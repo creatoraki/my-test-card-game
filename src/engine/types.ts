@@ -88,6 +88,7 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
+  handArtOffsetY?: number; // 左侧手牌背景的纵向裁切起始位置(px，按缩放后图片计算)
 }
 
 // 运行期卡牌实例(带唯一 uid, 可被单独升级)

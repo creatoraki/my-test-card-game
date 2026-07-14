@@ -7,8 +7,9 @@ export function EndScreen({ win }: { win: boolean }) {
   const backToMenu = useRunStore((s) => s.backToMenu);
 
   return (
-    <div className="screen end center">
-      <h1 className="title">{win ? "🏆 远征成功!" : "💀 远征失败"}</h1>
+    <div className="screen end terminal-screen center">
+      <div className="screen-kicker">远征终端 / 最终报告</div>
+      <h1 className="terminal-heading">{win ? "远征完成" : "远征中断"}</h1>
       <p className="muted">
         {win
           ? `通关全部 ${RUN_SEQUENCE.length} 场战斗。`

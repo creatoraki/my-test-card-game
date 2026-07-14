@@ -1,6 +1,7 @@
 import type { Card } from "../engine";
 import { getCharacter } from "../data";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
+import whirlwindSlashArt from "../assets/skills/swordsman/回旋斩.png";
 
 interface Props {
   card: Card;
@@ -14,16 +15,26 @@ interface Props {
 // 悬浮时向右弹出(见 styles.css .hand-card:hover), 并触发右侧详情抽屉。
 export function HandCard({ card, playable, selected, onClick, onHover }: Props) {
   const owner = getCharacter(card.ownerCharId);
+  const hasArt = card.id === "whirlwind-slash";
+  const handStyle = hasArt
+    ? ({
+        borderLeftColor: owner.color,
+        ["--hand-art" as string]: `url(${whirlwindSlashArt})`,
+        ["--hand-art-offset-y" as string]: `${card.handArtOffsetY ?? 0}px`,
+      } as React.CSSProperties)
+    : { borderLeftColor: owner.color };
+
   return (
     <div
       className={[
         "hand-card",
+        hasArt ? "has-art" : "",
         card.cardType,
         playable ? "playable" : "unplayable",
         selected ? "selected" : "",
         card.upgraded ? "upgraded" : "",
       ].join(" ")}
-      style={{ borderLeftColor: owner.color }}
+      style={handStyle}
       onClick={(e) => {
         e.stopPropagation();
         onClick?.();

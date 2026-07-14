@@ -22,7 +22,7 @@ export function CardDetailDrawer({ card }: { card: Card | null }) {
     <aside className={`card-drawer ${card ? "open" : ""}`} aria-hidden={!card}>
       {card && (
         <>
-          <div className="drawer-title">卡牌详情</div>
+          <div className="drawer-title">战术数据 / 卡牌详情</div>
           <CardView card={card} playable selected={false} />
           <dl className="drawer-meta">
             <div>

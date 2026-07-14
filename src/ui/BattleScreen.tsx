@@ -218,16 +218,19 @@ export function BattleScreen() {
     <div className="screen battle" onClick={() => setSelectedUid(null)}>
       {/* 顶部信息条 */}
       <div className="topbar">
-        <div className="topbar-left">
+        <div className="topbar-left hud-cluster">
+          <span className="hud-label">行动周期</span>
           <span className="chip round-chip">回合 {battle.round}</span>
           <span className="chip tick-chip" title="当前时刻; 每张普通牌 +1, 速攻牌不推进">
             ⏱ 时刻 {battle.tick}
           </span>
         </div>
-        <div className="topbar-mid">
+        <div className="topbar-mid hud-cluster">
+          <span className="hud-label">能量核心</span>
           <ManaCrystalBar mana={mana} max={RULES.resource.perRound} />
         </div>
-        <div className="topbar-right">
+        <div className="topbar-right hud-cluster">
+          <span className="hud-label">牌库数据</span>
           <span className="chip" title="抽牌堆">抽 {battle.draw.length}</span>
           <span className="chip" title="弃牌堆">弃 {battle.discard.length}</span>
         </div>
@@ -277,9 +280,8 @@ export function BattleScreen() {
             : ""}
       </div>
 
-      {/* 左侧手牌条 */}
+      {/* 左侧悬浮手牌 */}
       <div className="side" onClick={(e) => e.stopPropagation()}>
-        <div className="side-title">手牌 {hand.length}</div>
         <div className="hand-strip">
           {hand.length === 0 && <div className="empty-hand">(手牌为空)</div>}
           {hand.map((c) => (
@@ -295,7 +297,6 @@ export function BattleScreen() {
         </div>
       </div>
 
-      {/* 结束回合按钮(浮动右下角) */}
       <button
         className="end-turn-float"
         disabled={!isPlayerTurn || animating}

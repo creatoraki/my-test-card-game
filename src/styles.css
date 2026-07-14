@@ -950,6 +950,627 @@ code {
   border-color: #5a4d1f;
 }
 
+/* ===================== 战术终端视觉系统 ===================== */
+:root {
+  --bg: #080b0d;
+  --bg2: #101418;
+  --panel: #11161a;
+  --panel2: #171d21;
+  --border: #364047;
+  --text: #e9eeeb;
+  --muted: #849096;
+  --accent: #d8f329;
+  --accent2: #87a900;
+  --good: #8dcc3f;
+  --bad: #ff7068;
+  --warn: #d8f329;
+}
+
+body {
+  background:
+    linear-gradient(90deg, #050708e6, #12171ae6),
+    repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 5px);
+  color: var(--text);
+  font-family: "Bahnschrift", "Microsoft YaHei", sans-serif;
+  letter-spacing: 0;
+}
+
+button,
+.chip,
+.card,
+.combatant,
+.party-member,
+.menu-hint,
+.overlay-card,
+.drawer-text {
+  border-radius: 0;
+}
+
+button {
+  position: relative;
+  border-color: #536068;
+  background: linear-gradient(135deg, #20282d, #11161a);
+  color: #edf2ef;
+  font-weight: 700;
+  letter-spacing: 0;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2c3539, #151d20);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+button.primary {
+  background: linear-gradient(135deg, #e1f52e, #a9c913);
+  border-color: #f1ff8a;
+  color: #111605;
+  box-shadow: inset 0 0 0 1px #fcffb14d, 0 0 12px #d8f3292b;
+}
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f1ff54, #bedc20);
+  color: #080b0d;
+}
+button.big {
+  min-width: 212px;
+  font-size: 15px;
+  padding: 13px 26px;
+}
+
+.terminal-screen {
+  position: relative;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 58% 42%, #8ea51b12, transparent 28%),
+    linear-gradient(115deg, #070a0c 0%, #11171a 48%, #080b0d 100%);
+}
+.terminal-screen::before,
+.screen.battle::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  pointer-events: none;
+  z-index: 0;
+  border: 1px solid #ffffff0c;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+.terminal-screen > *,
+.screen.battle > :is(.topbar, .side, .row, .hint-bar) {
+  position: relative;
+  z-index: 1;
+}
+.screen-kicker,
+.hud-label,
+.party-tag,
+.choice-index {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.terminal-heading {
+  margin: 0;
+  color: #eef3ef;
+  font-size: 32px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.title {
+  color: #eff5ee;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  font-size: 43px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.subtitle {
+  color: #9ba7a3;
+}
+
+/* 主菜单 */
+.terminal-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-height: 52px;
+  padding: 0 34px;
+  border-bottom: 1px solid #ffffff14;
+  color: #758087;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.terminal-nav .terminal-mark,
+.terminal-nav b {
+  color: #0c1003;
+  background: #edf2ef;
+  padding: 3px 5px;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.terminal-nav b {
+  margin-left: auto;
+}
+.terminal-nav .nav-active {
+  position: relative;
+  color: var(--accent);
+}
+.terminal-nav .nav-active::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  bottom: -17px;
+  left: -10px;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 7px #d8f32980;
+}
+.menu-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: calc(100% - 52px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 20px;
+  text-align: center;
+}
+.party-preview {
+  display: flex;
+  gap: 18px;
+}
+.party-member {
+  position: relative;
+  width: 168px;
+  padding: 9px 12px 13px;
+  gap: 4px;
+  background: linear-gradient(145deg, #171e21, #0d1215);
+  border: 1px solid #4b555a;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+.party-member::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 2px;
+  background: var(--accent);
+}
+.party-tag {
+  align-self: stretch;
+  text-align: left;
+  color: #8e9b9d;
+}
+.menu-portrait {
+  width: 108px;
+  height: 132px;
+  margin: -7px 0 -9px;
+  filter: drop-shadow(8px 7px 7px #000b);
+}
+.party-member > span:not(.party-tag) {
+  font-size: 18px;
+  font-weight: 700;
+}
+.party-member small {
+  font-size: 11px;
+  color: #a6b1b1;
+}
+.menu-hint {
+  width: min(670px, 100%);
+  border: 1px solid #3f4b4e;
+  padding: 12px 18px;
+  background: #0a0e10dd;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.menu-hint p {
+  margin: 0 0 7px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+.menu-hint li {
+  margin: 5px 0;
+  color: #aeb9b6;
+}
+.menu-hint b {
+  color: #e7f1db;
+}
+
+/* 战斗终端 */
+.screen.battle {
+  position: relative;
+  grid-template-columns: 214px minmax(0, 1fr);
+  grid-template-rows: 62px minmax(0, 1fr) 28px auto;
+  grid-template-areas:
+    "side topbar"
+    "side enemies"
+    "side hint"
+    "allies allies";
+  gap: 10px;
+  padding: 16px;
+  background-image:
+    linear-gradient(#050708c9, #050708df),
+    url("./assets/战斗背景/森林.png");
+}
+.screen.battle::before {
+  z-index: 0;
+}
+.topbar,
+.card-drawer {
+  background: linear-gradient(145deg, #12181bdd, #090d0fd9);
+  border: 1px solid #3b474b;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.topbar {
+  padding: 8px 14px;
+  border-radius: 0;
+}
+.hud-cluster {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.topbar-left,
+.topbar-right {
+  gap: 7px;
+}
+.topbar-right {
+  justify-content: flex-end;
+}
+.hud-label {
+  color: #798689;
+  white-space: nowrap;
+}
+.chip {
+  padding: 4px 8px;
+  border: 1px solid #455157;
+  background: #0b0f11;
+  border-radius: 0;
+  color: #d7e0db;
+  font-size: 11px;
+}
+.round-chip,
+.tick-chip {
+  border-color: #657b20;
+  color: var(--accent);
+}
+.mana-label,
+.mana-num {
+  color: #86d9ff;
+}
+.side {
+  padding: 52px 0 0;
+  background: none;
+  border: 0;
+  clip-path: none;
+}
+.hand-strip {
+  gap: 6px;
+}
+.hand-card {
+  height: 64px;
+  padding: 0 9px;
+  border: 1px solid #3d494e;
+  border-left: 3px solid var(--accent);
+  border-radius: 0;
+  background: linear-gradient(100deg, #1a2226, #0f1417);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+.hand-card.fast {
+  background: linear-gradient(100deg, #13242b, #0d1519);
+}
+.hand-card.has-art {
+  background-image:
+    linear-gradient(90deg, #071011cc 0%, #07101166 52%, #071011bd 100%),
+    var(--hand-art);
+  background-position: center, center calc(0px - var(--hand-art-offset-y));
+  background-repeat: no-repeat;
+  background-size: 100% 100%, 100% auto;
+}
+.hand-card:hover,
+.hand-card.selected {
+  transform: translateX(8px);
+}
+.hand-card.playable:hover,
+.hand-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 14px #d8f32933;
+}
+.hc-name {
+  font-size: 12px;
+}
+.hc-type {
+  color: #b7c7c6;
+  border-color: #49565a;
+  border-radius: 0;
+}
+.end-turn-float {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 18;
+  min-width: 144px;
+  width: auto;
+  margin: 0;
+  padding: 11px 12px;
+  border-color: #b5d414;
+  background: linear-gradient(135deg, #cbe722, #7a9507);
+  color: #0d1201;
+  box-shadow: 0 0 12px #d8f32926;
+}
+.end-turn-float:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e7fa3b, #9fbd0e);
+}
+.row {
+  gap: 20px;
+}
+.enemy-row {
+  padding-top: 42px;
+  align-content: start;
+}
+.ally-row {
+  padding: 20px 0 2px 234px;
+}
+.combatant {
+  width: 156px;
+  border: 1px solid #485357;
+  border-radius: 0;
+  background: linear-gradient(145deg, #182024, #0d1215);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.combatant.enemy {
+  border-top: 2px solid #cf4d48;
+}
+.combatant.player {
+  border-bottom: 2px solid var(--accent);
+}
+.combatant.targetable {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px #d8f32946;
+}
+.combatant.aggro-target {
+  box-shadow: 0 0 0 1px #ff7068, 0 0 14px #ff706833;
+}
+.combatant-statuses {
+  top: -25px;
+}
+.combatant-figure {
+  height: 96px;
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, transparent 49%, #d8f32922 50%, transparent 51%),
+    linear-gradient(180deg, #222e32, #11191d);
+}
+.combatant-info {
+  gap: 6px;
+  padding: 8px 9px 10px;
+}
+.cmb-name {
+  color: #f0f5ed;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.threat,
+.block-badge {
+  border-radius: 0;
+}
+.hp-bar {
+  height: 14px;
+  border-radius: 0;
+  background: #111416;
+  border-color: #3c4649;
+}
+.hp-fill {
+  background: linear-gradient(90deg, #ae332e, #d8f329);
+}
+.pip {
+  border-radius: 0;
+  background: #101619;
+  font-size: 11px;
+}
+.intent {
+  right: 0;
+  top: 7px;
+}
+.intent-badge,
+.countdown {
+  border-radius: 0;
+  background: #101619e8;
+}
+.hint-bar {
+  color: #c8d5cc;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+/* 右侧战术数据面板 */
+.card-drawer {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  bottom: 16px;
+  width: 300px;
+  min-width: 0;
+  padding: 14px;
+  align-items: center;
+  box-shadow: none;
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.18s ease;
+  z-index: 19;
+}
+.card-drawer.open {
+  transform: translateX(0);
+}
+.drawer-title {
+  width: 100%;
+  color: var(--accent);
+  border-bottom: 1px solid #536016;
+  padding-bottom: 7px;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.drawer-empty {
+  display: grid;
+  min-height: 100%;
+  align-content: center;
+  gap: 9px;
+  padding: 28px;
+  color: #98a4a2;
+  text-align: center;
+}
+.drawer-empty-mark {
+  color: var(--accent);
+  font-size: 34px;
+  line-height: 1;
+}
+.drawer-empty strong {
+  color: #dbe5df;
+  font-size: 13px;
+}
+.drawer-empty p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.drawer-meta > div {
+  border-color: #ffffff12;
+}
+.drawer-text {
+  border-color: #3e4a4d;
+  background: #0a0e10;
+}
+
+/* 卡牌、奖励、结算 */
+.card {
+  border: 1px solid #536066 !important;
+  border-radius: 0;
+  background: linear-gradient(145deg, #1d2529, #0e1417);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+}
+.card.fast {
+  background: linear-gradient(145deg, #13252c, #0c1418);
+}
+.card.playable:hover,
+.card.selected {
+  box-shadow: 0 0 0 1px var(--accent), 0 12px 24px #000c;
+}
+.card-type {
+  border-radius: 0;
+}
+.card.upgraded .card-name {
+  color: var(--accent);
+}
+.reward,
+.end {
+  justify-content: center;
+  gap: 15px;
+}
+.reward-cards {
+  gap: 18px;
+}
+.reward-choice {
+  position: relative;
+  gap: 9px;
+  padding: 19px 10px 10px;
+  border: 1px solid #3c484b;
+  background: #0a0e10b8;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.choice-index {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  color: #8d9997;
+}
+.reward-actions {
+  gap: 10px;
+}
+.deck-summary {
+  width: min(720px, 100%);
+  border: 1px solid #3c484b;
+  padding: 14px;
+  background: #0b0f11d9;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.deck-summary h3 {
+  margin-top: 0;
+  color: var(--accent);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.deck-chip {
+  border-radius: 0;
+  background: #151c20;
+  border-color: #475358;
+}
+
+@media (max-width: 1100px) {
+  .screen.battle {
+    grid-template-columns: 192px minmax(0, 1fr);
+    grid-template-areas:
+      "side topbar"
+      "side enemies"
+      "side hint"
+      "allies allies";
+    grid-template-rows: 62px minmax(280px, 1fr) 28px auto;
+    overflow-y: auto;
+  }
+  .ally-row {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .terminal-nav {
+    gap: 14px;
+    padding: 0 16px;
+    overflow: hidden;
+  }
+  .terminal-nav > span:not(.terminal-mark):not(.nav-active) {
+    display: none;
+  }
+  .party-preview,
+  .reward-cards {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .screen.battle {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "topbar"
+      "enemies"
+      "allies"
+      "hint"
+      "side";
+    grid-template-rows: auto auto auto auto auto;
+  }
+  .topbar {
+    align-items: flex-start;
+    gap: 8px;
+    flex-direction: column;
+  }
+  .topbar-right {
+    justify-content: flex-start;
+  }
+  .side {
+    min-height: 0;
+    padding-top: 0;
+  }
+  .hand-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hand-card:hover,
+  .hand-card.selected {
+    transform: none;
+  }
+  .ally-row {
+    padding: 30px 0 0;
+  }
+}
+
 /* ===================== 遮罩 ===================== */
 .overlay {
   position: fixed;
@@ -976,27 +1597,29 @@ code {
   font-size: 28px;
 }
 
-/* 窄屏: 单列堆叠, 手牌条横向排列, 日志移到下方 */
+/* 窄屏: 战场单列，详情仍按需从右侧弹出 */
 @media (max-width: 900px) {
   .screen.battle {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto minmax(160px, auto);
     grid-template-areas:
       "topbar"
       "enemies"
+      "allies"
       "hint"
-      "side"
-      "allies";
-    overflow-y: auto;
+      "side";
   }
   .hand-strip {
-    flex-direction: row;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .hand-card {
-    flex: 1 1 160px;
+    min-width: 0;
   }
   .card-drawer {
-    width: 260px;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: min(300px, calc(100vw - 24px));
   }
 }
