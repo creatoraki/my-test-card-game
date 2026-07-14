@@ -949,7 +949,7 @@ code {
     opacity: 1;
   }
   100% {
-    transform: translate(140vw, -50%);
+    transform: translate(100px, -50%);
     opacity: 0;
   }
 }
