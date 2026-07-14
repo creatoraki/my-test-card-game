@@ -31,6 +31,7 @@ export function CombatantView({
 
   return (
     <div
+      data-cmb-id={cmb.id}
       className={[
         "combatant",
         cmb.team,

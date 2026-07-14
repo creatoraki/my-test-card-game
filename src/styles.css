@@ -16,6 +16,20 @@
 
 * {
   box-sizing: border-box;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none; /* 禁用移动端长按菜单 */
+}
+
+/* 例外：如果将来加入输入框，仍允许选中输入 */
+input,
+textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 html,
@@ -203,13 +217,6 @@ code {
   align-items: center;
   gap: 7px;
 }
-.mana-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #9ddcff;
-  font-weight: 600;
-}
 .mana-crystal {
   display: block;
   width: 12px;
@@ -220,15 +227,6 @@ code {
 .mana-pip.off {
   filter: grayscale(0.45) saturate(0.45) brightness(0.55) drop-shadow(0 1px 1px #000b);
   opacity: 0.7;
-}
-.mana-crystal-label {
-  width: 10px;
-  height: 18px;
-}
-.mana-num {
-  color: #9ddcff;
-  font-weight: 700;
-  margin-left: 2px;
 }
 
 .row {
@@ -608,7 +606,8 @@ code {
   font-size: 21px;
   pointer-events: none;
   text-shadow: 0 2px 4px #000, 0 0 8px currentColor;
-  animation: floatUp 0.55s ease-out forwards;
+  /* 聚焦镜头下停留约 1s: 快速弹出后保持可读, 末段才缓慢上浮淡出 */
+  animation: floatUp 0.95s ease-out forwards;
 }
 .float-dmg {
   color: #ff6b6b;
@@ -618,8 +617,10 @@ code {
 }
 @keyframes floatUp {
   0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
-  25% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
-  100% { transform: translate(-50%, -44px) scale(1); opacity: 0; }
+  14% { transform: translate(-50%, -12px) scale(1.28); opacity: 1; }
+  30% { transform: translate(-50%, -16px) scale(1); opacity: 1; }
+  72% { transform: translate(-50%, -22px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -42px) scale(0.95); opacity: 0; }
 }
 
 /* ===================== 提示条 ===================== */
@@ -824,6 +825,133 @@ code {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
+}
+
+/* 跟随鼠标的卡牌详情浮窗: 定宽, 高度由内容撑开 */
+.card-popup {
+  position: fixed;
+  width: 230px;
+  max-width: calc(100vw - 16px);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(145deg, #12181bf2, #090d0fee);
+  border: 1px solid #3b474b;
+  box-shadow: 0 12px 30px #000c;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* ── 出牌「亮相」卡面浮层(仅玩家出牌): 镜头聚焦后从左侧飞入 → 停留 → 往右飞出渐隐 ──
+   挂在舞台层之外, 不受相机缩放/裁切影响。animation-duration 由组件内联注入(对齐 CINEMA)。
+   @keyframes 各帧百分比 = CINEMA.cardIn / (cardIn+cardHold) 占总时长比例(默认 280/700/320)。 */
+.skill-cutin {
+  position: absolute;
+  left: 200px;
+  top: 50%;
+  z-index: 40;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation-name: skill-cutin-fly;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-fill-mode: both;
+}
+.skill-cutin.has-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 300px;
+  filter: drop-shadow(0 18px 40px #000c);
+}
+.skill-cutin .cutin-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+.skill-cutin .cutin-name {
+  color: #eef7ff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 10px #000d, 0 0 18px #000a;
+}
+.skill-cutin.placeholder {
+  width: 280px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(145deg, #12181bf7, #090d0ff2);
+  border: 1px solid #3b474b;
+  box-shadow: 0 18px 44px #000d;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.skill-cutin .cutin-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.skill-cutin .cutin-cost {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 30px;
+  color: #effbff;
+  font-weight: 800;
+  text-shadow: 0 1px 2px #02152f;
+}
+.skill-cutin .cutin-cost .mana-crystal {
+  position: absolute;
+  width: 20px;
+  height: 30px;
+}
+.skill-cutin .cutin-cost-value {
+  position: relative;
+  z-index: 1;
+}
+.skill-cutin.placeholder .cutin-name {
+  flex: 1;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-shadow: none;
+}
+.skill-cutin .cutin-type {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.skill-cutin .cutin-text {
+  color: #dbe5df;
+  font-size: 14px;
+  line-height: 1.7;
+}
+@keyframes skill-cutin-fly {
+  0% {
+    transform: translate(-140%, -50%);
+    opacity: 0;
+  }
+  21.5% {
+    transform: translate(0, -50%);
+    opacity: 1;
+  }
+  75.4% {
+    transform: translate(0, -50%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(140vw, -50%);
+    opacity: 0;
+  }
 }
 
 /* ===================== 卡牌 ===================== */
@@ -1182,16 +1310,33 @@ button.big {
 .screen.battle {
   position: relative;
   grid-template-columns: 280px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) 28px auto;
-  grid-template-areas:
-    "side enemies"
-    "side hint"
-    "allies allies";
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "side stage";
   gap: 10px;
   padding: 16px;
   background-image:
     linear-gradient(#050708c9, #050708df),
     url("./assets/战斗背景/森林.png");
+}
+/* 战场舞台层: 敌人(上)/提示/友军(下)竖排; 相机变换的作用对象。overflow:hidden 让镜头
+   推近时越界的单位被裁出画面; transform:none 静息态下布局与改造前一致(敌上友下)。 */
+.battle-stage {
+  grid-area: stage;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  will-change: transform;
+  transform-origin: 0 0;
+}
+.battle-stage .enemy-row {
+  flex: 0 0 auto;
+}
+.battle-stage .ally-row {
+  margin-top: auto; /* 把友军压到舞台底部 */
 }
 .screen.battle::before {
   z-index: 0;
@@ -1235,10 +1380,6 @@ button.big {
   border-color: #657b20;
   color: var(--accent);
 }
-.mana-label,
-.mana-num {
-  color: #86d9ff;
-}
 .side {
   padding: 0;
   background: none;
@@ -1249,30 +1390,51 @@ button.big {
   gap: 6px;
 }
 .hand-toolbar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 40px;
   margin-bottom: 8px;
-  padding: 4px 5px 4px 9px;
-  border: 1px solid #ffffff8c;
-  background: #ffffff36;
-  backdrop-filter: blur(5px);
+  padding: 4px 24px 9px 14px;
+  border: 0;
+  background: none;
+  clip-path: none;
+}
+/* ∟ 折线：左侧竖线向下 → 底部横线向右，内容坐在横线上 */
+.hand-toolbar::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 6px;
+  right: 16px;
+  bottom: 2px;
+  border-left: 2px solid #8ba63a;
+  border-bottom: 2px solid #8ba63a;
+  filter: drop-shadow(0 0 3px #8ba63a80);
+  pointer-events: none;
+}
+/* 横线末端向右的箭头 */
+.hand-toolbar::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  bottom: 3px;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 9px solid #8ba63a;
+  transform: translateY(50%);
+  filter: drop-shadow(0 0 3px #8ba63a80);
+  pointer-events: none;
 }
 .hand-toolbar .mana-bar {
-  gap: 4px;
-}
-.hand-toolbar .mana-label,
-.hand-toolbar .mana-num {
-  color: #17455e;
-  text-shadow: 0 1px #ffffff80;
-}
-.hand-toolbar .mana-crystal {
-  filter: drop-shadow(0 1px 1px #ffffffa6) drop-shadow(0 0 2px #277ba0);
+  gap: 5px;
 }
 .hand-toolbar-actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 .hand-tool-button {
   display: grid;
@@ -1281,29 +1443,29 @@ button.big {
   min-width: 30px;
   place-items: center;
   padding: 0;
-  border: 1px solid #1e4a5d80;
-  background: #ffffff73;
-  color: #17455e;
+  border: 0;
+  background: none;
   clip-path: none;
   box-shadow: none;
+  filter: drop-shadow(0 0 2px #8ba63a66);
+  transition: filter 0.15s;
 }
 .hand-tool-button:hover:not(:disabled),
 .hand-tool-button.active {
-  border-color: #ffffff;
-  background: #17455ed9;
-  color: #ffffff;
+  background: none;
+  filter: brightness(1.15) drop-shadow(0 0 4px #b6e34d) drop-shadow(0 0 8px #8ba63a99);
 }
 .hand-tool-button:disabled {
-  opacity: 0.42;
+  opacity: 0.35;
+  filter: grayscale(1);
 }
 .hand-tool-button svg {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   fill: none;
-  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 2;
 }
 .hand-card {
   height: 36px;
@@ -1313,6 +1475,28 @@ button.big {
   border-radius: 0;
   background: linear-gradient(100deg, #1a2226, #0f1417);
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  /* 抽牌: 从右侧飞入到位; backwards 让错峰等待期间保持隐藏, 到位后交还悬浮/选中的 transform */
+  animation: hand-deal-in 0.32s cubic-bezier(0.18, 0.72, 0.3, 1) backwards;
+  animation-delay: calc(var(--deal-i, 0) * 65ms);
+}
+/* 出牌/丢弃: 向右出鞘 → 渐隐。用过渡(而非关键帧)从"当前"位置飞出——
+   若牌处于选中弹出态, 直接从弹出位继续右移出鞘, 不会先缩回未选中位再飞。 */
+.hand-card.leaving {
+  pointer-events: none;
+  animation: none;
+  transform: translateX(56px);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.85, 0.4), opacity 0.28s ease-in;
+}
+@keyframes hand-deal-in {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 .hand-card.fast {
   background: linear-gradient(100deg, #13242b, #0d1519);
@@ -1372,7 +1556,7 @@ button.big {
   align-content: start;
 }
 .ally-row {
-  padding: 20px 0 2px 234px;
+  padding: 20px 0 2px;
 }
 .combatant {
   width: 156px;
@@ -1576,15 +1760,8 @@ button.big {
 @media (max-width: 1100px) {
   .screen.battle {
     grid-template-columns: 192px minmax(0, 1fr);
-    grid-template-areas:
-      "side enemies"
-      "side hint"
-      "allies allies";
-    grid-template-rows: minmax(280px, 1fr) 28px auto;
-    overflow-y: auto;
-  }
-  .ally-row {
-    padding-left: 0;
+    grid-template-areas: "side stage";
+    grid-template-rows: minmax(0, 1fr);
   }
 }
 
@@ -1605,11 +1782,9 @@ button.big {
   .screen.battle {
     grid-template-columns: 1fr;
     grid-template-areas:
-      "enemies"
-      "allies"
-      "hint"
+      "stage"
       "side";
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: minmax(0, 1fr) auto;
   }
   .side {
     min-height: 0;
@@ -1658,11 +1833,9 @@ button.big {
 @media (max-width: 900px) {
   .screen.battle {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto minmax(160px, auto);
+    grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas:
-      "enemies"
-      "allies"
-      "hint"
+      "stage"
       "side";
   }
   .hand-strip {

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { canPlay, RULES, type AnimFrame, type BattleState, type CardAnim } from "../engine";
+import { canPlay, RULES, type AnimFrame, type BattleState, type Card, type CardAnim } from "../engine";
 import { getEnemyDef } from "../data";
 import { useBattleStore } from "../store/battleStore";
 import { useRunStore } from "../store/runStore";
 import { CombatantView } from "./CombatantView";
 import { HandCard } from "./HandCard";
-import { CardDetailDrawer } from "./CardDetailDrawer";
-import { ANIM, cardAnim, moveAnim, type HitFx } from "./animations";
+import { CardDetailPopup } from "./CardDetailPopup";
+import { SkillCutInCard } from "./SkillCutInCard";
+import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "./animations";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
 
 export function BattleScreen() {
@@ -21,11 +22,20 @@ export function BattleScreen() {
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [hoveredUid, setHoveredUid] = useState<string | null>(null);
+  const [hoverRect, setHoverRect] = useState<DOMRect | null>(null); // 悬浮手牌的屏幕矩形(浮窗锚点)
   const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
+  // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
+  // 新出现的卡自动挂载 → CSS 触发飞入动画(见 styles.css .hand-card 的 hand-deal-in)。
+  const [renderHand, setRenderHand] = useState<{ card: Card; leaving: boolean }[]>([]);
+  // 正在出牌离场的卡: 点击瞬间即开始出鞘(引擎稍后才在命中时刻把它移出手牌), 避免先缩回未选中位再飞出。
+  const [playingOutUid, setPlayingOutUid] = useState<string | null>(null);
 
-  // —— 出牌动画编排(纯 UI): 施法者前冲 → 命中时刻结算+特效 → 归位/解锁 ——
-  const [attackerId, setAttackerId] = useState<string | null>(null); // 正在前冲的施法者
+  // —— 出牌动画编排(纯 UI): 施法者弹出 → 顿 → 镜头推近聚焦目标 → 命中特效/飘字 → 镜头恢复/归位 ——
+  const [attackerId, setAttackerId] = useState<string | null>(null); // 正在弹出的施法者
   const [hits, setHits] = useState<Record<string, HitFx>>({}); // 各目标当前的受击特效
+  const [cutInCard, setCutInCard] = useState<Card | null>(null); // 出牌亮相卡面(仅玩家出牌; null=不展示)
+  const [camera, setCamera] = useState<React.CSSProperties | null>(null); // 舞台层相机变换(null=全景)
+  const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(相机作用对象)
   const [animating, setAnimating] = useState(false); // 动画期间锁输入
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
   const seqRef = useRef(0); // 批次序号, 用于取消旧动画批次的定时器回调
@@ -47,10 +57,38 @@ export function BattleScreen() {
     setAnimating(false);
     setAttackerId(null);
     setHits({});
+    setCutInCard(null);
+    setCamera(null);
+    setRenderHand([]); // 换战斗: 清空手牌渲染列表, 让新战斗的手牌重新飞入(不播放旧牌离场)
+    setPlayingOutUid(null);
   }, [runIndex]);
 
   // 卸载时清理计时器
   useEffect(() => () => clearTimers(), []);
+
+  // 同步渲染列表 = 引擎手牌 + 离场中的卡。引擎手牌里消失的卡标记 leaving(出鞘渐隐, 保留原位),
+  // 新增的卡追加到末尾(挂载即飞入)。leaving 卡在其离场动画结束后由 handleCardExited 移除。
+  useEffect(() => {
+    if (!battle) return;
+    const liveSet = new Set(battle.hand);
+    setRenderHand((prev) => {
+      const prevUids = new Set(prev.map((e) => e.card.uid));
+      const merged = prev.map((e) =>
+        liveSet.has(e.card.uid)
+          ? { card: battle.cards[e.card.uid], leaving: false }
+          : { card: e.card, leaving: true },
+      );
+      for (const uid of battle.hand) {
+        if (!prevUids.has(uid)) merged.push({ card: battle.cards[uid], leaving: false });
+      }
+      return merged;
+    });
+  }, [battle]);
+
+  const handleCardExited = (uid: string) => {
+    setRenderHand((prev) => prev.filter((e) => e.card.uid !== uid));
+    setPlayingOutUid((cur) => (cur === uid ? null : cur));
+  };
 
   // 敌人预计攻击的我方目标(仇恨最高的存活友军), 用于 UI 提示
   const aggroTargetId = useMemo(() => {
@@ -100,6 +138,7 @@ export function BattleScreen() {
     anim: CardAnim; // 表现动画类型(UI 侧解析)
     snapshot: BattleState; // 该动作结算后的完整状态
     hits: { id: string; hpDelta: number }[]; // 受击/受益目标(hpDelta>0 掉血, <0 回血, 0 仅闪特效)
+    card?: Card; // 仅玩家出牌步携带: 用于镜头聚焦后的「卡面亮相」演出
   }
 
   // 引擎产出的敌人动画帧 → 一步(动画表现在 UI 侧按招式解析)。
@@ -109,24 +148,85 @@ export function BattleScreen() {
     return { actorId: f.actorId, anim: moveAnim(move), snapshot: f.snapshot, hits: f.hits };
   }
 
+  // 计算相机变换: 把给定目标(多目标取并集)在舞台内居中并放大。
+  // 用 transformOrigin '0 0' + translate(tx,ty) scale(S), 令目标并集中心映射到舞台正中;
+  // 多目标时按并集宽高自适应收敛 S, 避免缩放后有目标溢出裁切。
+  function computeCamera(targetIds: string[]): React.CSSProperties | null {
+    const stage = stageRef.current;
+    if (!stage || targetIds.length === 0) return null;
+    const stageRect = stage.getBoundingClientRect();
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+    for (const id of targetIds) {
+      const el = stage.querySelector<HTMLElement>(`[data-cmb-id="${id}"]`);
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      left = Math.min(left, r.left - stageRect.left);
+      top = Math.min(top, r.top - stageRect.top);
+      right = Math.max(right, r.right - stageRect.left);
+      bottom = Math.max(bottom, r.bottom - stageRect.top);
+    }
+    if (!isFinite(left)) return null;
+    const W = stageRect.width, H = stageRect.height;
+    const cx = (left + right) / 2, cy = (top + bottom) / 2; // 并集中心(舞台本地坐标)
+    // 并集需占据视野, 但留出边距(占屏 78%), 再与单目标上限 CINEMA.scale 取较小值防溢出。
+    const spanW = Math.max(1, right - left), spanH = Math.max(1, bottom - top);
+    const fit = Math.min((W * 0.78) / spanW, (H * 0.78) / spanH);
+    const S = Math.max(1, Math.min(CINEMA.scale, fit));
+    const tx = W / 2 - S * cx, ty = H / 2 - S * cy;
+    return {
+      transform: `translate(${tx}px, ${ty}px) scale(${S})`,
+      transformOrigin: "0 0",
+    };
+  }
+
   // 逐步回放动画。seq 为本批次代号: 切战斗/发起新动作会使旧批次的定时器回调失效。
+  // 单步分镜: 施法者弹出(全景可见) → 顿 → 镜头推近聚焦目标 → 命中特效/飘字停留 → 镜头恢复+归位。
   function runSteps(steps: AnimStep[], final: BattleState, seq: number) {
     let i = 0;
     const next = () => {
       if (seqRef.current !== seq) return;
       if (i >= steps.length) {
         commit(final); // 落到最终态(下一回合起始 / 出牌后终态)
+        setCamera(null);
         setAttackerId(null);
         setHits({});
+        setCutInCard(null);
         animatingRef.current = false;
         setAnimating(false);
         return;
       }
       const step = steps[i++];
       const preset = ANIM[step.anim];
-      setAttackerId(step.actorId); // 施法者前冲(CSS 过渡驱动)
+      const focusIds = step.hits.length ? step.hits.map((h) => h.id) : [step.actorId];
+      setAttackerId(step.actorId); // 施法者弹出并保持(CSS .attacking)
+      setCamera(null); // 保持全景, 让"顿"期间能看到弹出的角色
 
-      // 命中时刻: 提交该动作后的状态(扣血/加盾/状态在此可见), 同步目标特效 + 飘字
+      // 镜头到位时刻; 仅玩家出牌步在此后插入「卡面亮相」段(飞入→停留→飞出), 后续时刻整体后移 cutIn。
+      const tFocus = CINEMA.beat + CINEMA.zoomIn;
+      const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
+
+      // 顿之后: 镜头推近, 把目标居中放大
+      const tZoom = window.setTimeout(() => {
+        if (seqRef.current !== seq) return;
+        setCamera(computeCamera(focusIds));
+      }, CINEMA.beat);
+      timersRef.current.push(tZoom);
+
+      // 镜头到位后: 若为玩家出牌, 挂载卡面浮层(挂载即播放整段 CSS 动画), 演出结束再卸载
+      if (step.card) {
+        const cardForCutIn = step.card;
+        const tCutIn = window.setTimeout(() => {
+          if (seqRef.current !== seq) return;
+          setCutInCard(cardForCutIn);
+        }, tFocus);
+        const tCutInEnd = window.setTimeout(() => {
+          if (seqRef.current !== seq) return;
+          setCutInCard(null);
+        }, tFocus + cutIn);
+        timersRef.current.push(tCutIn, tCutInEnd);
+      }
+
+      // 卡面亮相结束后: 提交该动作后的状态(扣血/加盾/状态可见), 放特效 + 飘字, 停留 hitHold
       const tHit = window.setTimeout(() => {
         if (seqRef.current !== seq) return;
         commit(step.snapshot);
@@ -140,16 +240,22 @@ export function BattleScreen() {
           map[h.id] = fx;
         }
         setHits(map);
-      }, preset.windup);
+      }, tFocus + cutIn);
 
-      // 施法者归位
-      const tBack = window.setTimeout(() => {
-        if (seqRef.current === seq) setAttackerId(null);
-      }, preset.windup + 140);
+      // 停留结束: 镜头恢复全景 + 施法者归位 + 清特效
+      const tRestore = window.setTimeout(() => {
+        if (seqRef.current !== seq) return;
+        setCamera(null);
+        setAttackerId(null);
+        setHits({});
+      }, tFocus + cutIn + CINEMA.hitHold);
 
-      // 本步特效播完 → 下一步
-      const tNext = window.setTimeout(next, preset.windup + preset.hold);
-      timersRef.current.push(tHit, tBack, tNext);
+      // 镜头拉回后 → 下一步
+      const tNext = window.setTimeout(
+        next,
+        tFocus + cutIn + CINEMA.hitHold + CINEMA.zoomOut + CINEMA.gap,
+      );
+      timersRef.current.push(tHit, tRestore, tNext);
     };
     next();
   }
@@ -175,13 +281,14 @@ export function BattleScreen() {
 
     const plan = play(uid, primaryId);
     if (!plan) return;
+    setPlayingOutUid(uid); // 出牌成功: 立即让该卡从当前(选中弹出)位开始向右出鞘
 
     const cardHits = targets.map((id) => ({
       id,
       hpDelta: before[id] - (plan.cardSnapshot.combatants[id]?.hp ?? before[id]),
     }));
     const steps: AnimStep[] = [
-      { actorId: card.ownerCharId, anim, snapshot: plan.cardSnapshot, hits: cardHits },
+      { actorId: card.ownerCharId, anim, snapshot: plan.cardSnapshot, hits: cardHits, card },
       ...plan.frames.map(stepFromFrame),
     ];
     startBatch(steps, plan.final);
@@ -227,60 +334,70 @@ export function BattleScreen() {
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
   const hand = battle.hand.map((uid) => battle.cards[uid]);
 
-  // 详情抽屉展示的卡: 优先当前悬浮, 其次已选中(选目标期间保持展示)
-  const previewUid = hoveredUid ?? selectedUid;
-  const previewCard = previewUid && battle.cards[previewUid] ? battle.cards[previewUid] : null;
+  // 跟随鼠标的详情浮窗只在悬浮手牌时展示
+  const hoveredCard = hoveredUid && battle.cards[hoveredUid] ? battle.cards[hoveredUid] : null;
   const canUseHandActions = isPlayerTurn && !animating && hand.length > 0;
   const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
 
   return (
     <div className="screen battle" onClick={() => setSelectedUid(null)}>
-      {/* 敌人 */}
-      <div className="row enemy-row">
-        {enemies.map((e) => (
-          <CombatantView
-            key={e.id}
-            cmb={e}
-            currentTick={battle.tick}
-            targetable={isPlayerTurn && !!needsFoe && e.alive}
-            attacking={e.id === attackerId}
-            hit={hits[e.id] ?? null}
-            onClick={() => onCombatantClick(e.id)}
-          />
-        ))}
-      </div>
+      {/* 战场舞台层: 相机(缩放/平移)的作用对象。全景时 transform:none, 布局与静息态一致。 */}
+      <div
+        className="battle-stage"
+        ref={stageRef}
+        style={{
+          transition: `transform ${CINEMA.zoomIn}ms cubic-bezier(0.22, 0.61, 0.36, 1)`,
+          transform: camera?.transform ?? "none",
+          transformOrigin: camera?.transformOrigin ?? "0 0",
+        }}
+      >
+        {/* 敌人 */}
+        <div className="row enemy-row">
+          {enemies.map((e) => (
+            <CombatantView
+              key={e.id}
+              cmb={e}
+              currentTick={battle.tick}
+              targetable={isPlayerTurn && !!needsFoe && e.alive}
+              attacking={e.id === attackerId}
+              hit={hits[e.id] ?? null}
+              onClick={() => onCombatantClick(e.id)}
+            />
+          ))}
+        </div>
 
-      {/* 我方 */}
-      <div className="row ally-row">
-        {allies.map((a) => (
-          <CombatantView
-            key={a.id}
-            cmb={a}
-            currentTick={battle.tick}
-            targetable={isPlayerTurn && !!needsAlly && a.alive}
-            isAggroTarget={a.id === aggroTargetId && a.alive}
-            attacking={a.id === attackerId}
-            hit={hits[a.id] ?? null}
-            onClick={() => onCombatantClick(a.id)}
-          />
-        ))}
-      </div>
+        {/* 提示条 */}
+        <div className="hint-bar">
+          {handAction === "redraw"
+            ? "▶ 选择一张手牌换牌"
+            : handAction === "discard"
+              ? "▶ 选择一张手牌丢弃"
+              : selectedCard
+            ? needsFoe
+              ? "▶ 选择一个敌人作为目标(再次点击卡牌取消)"
+              : needsAlly
+                ? "▶ 选择一名友军作为目标(再次点击卡牌取消)"
+                : ""
+            : isPlayerTurn
+              ? "点击卡牌打出。普通牌会推进 1 时刻, 速攻牌不推进。"
+              : ""}
+        </div>
 
-      {/* 提示条 */}
-      <div className="hint-bar">
-        {handAction === "redraw"
-          ? "▶ 选择一张手牌换牌"
-          : handAction === "discard"
-            ? "▶ 选择一张手牌丢弃"
-            : selectedCard
-          ? needsFoe
-            ? "▶ 选择一个敌人作为目标(再次点击卡牌取消)"
-            : needsAlly
-              ? "▶ 选择一名友军作为目标(再次点击卡牌取消)"
-              : ""
-          : isPlayerTurn
-            ? "点击卡牌打出。普通牌会推进 1 时刻, 速攻牌不推进。"
-            : ""}
+        {/* 我方 */}
+        <div className="row ally-row">
+          {allies.map((a) => (
+            <CombatantView
+              key={a.id}
+              cmb={a}
+              currentTick={battle.tick}
+              targetable={isPlayerTurn && !!needsAlly && a.alive}
+              isAggroTarget={a.id === aggroTargetId && a.alive}
+              attacking={a.id === attackerId}
+              hit={hits[a.id] ?? null}
+              onClick={() => onCombatantClick(a.id)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* 左侧悬浮手牌 */}
@@ -300,8 +417,15 @@ export function BattleScreen() {
               }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20 11a8 8 0 0 0-14.8-4.2L3 9m0-5v5h5" />
-                <path d="M4 13a8 8 0 0 0 14.8 4.2L21 15m0 5v-5h-5" />
+                <defs>
+                  <linearGradient id="tool-metal-redraw" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stopColor="#e6f4c8" />
+                    <stop offset="0.5" stopColor="#9cbc4e" />
+                    <stop offset="1" stopColor="#3f5320" />
+                  </linearGradient>
+                </defs>
+                <path stroke="url(#tool-metal-redraw)" d="M20 11a8 8 0 0 0-14.8-4.2L3 9m0-5v5h5" />
+                <path stroke="url(#tool-metal-redraw)" d="M4 13a8 8 0 0 0 14.8 4.2L21 15m0 5v-5h-5" />
               </svg>
             </button>
             <button
@@ -316,26 +440,45 @@ export function BattleScreen() {
               }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 7h16" />
-                <path d="M9 7V4h6v3" />
-                <path d="M7 7l1 13h8l1-13" />
-                <path d="M10 11v5M14 11v5" />
+                <defs>
+                  <linearGradient id="tool-metal-discard" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stopColor="#e6f4c8" />
+                    <stop offset="0.5" stopColor="#9cbc4e" />
+                    <stop offset="1" stopColor="#3f5320" />
+                  </linearGradient>
+                </defs>
+                <path stroke="url(#tool-metal-discard)" d="M4 7h16" />
+                <path stroke="url(#tool-metal-discard)" d="M9 7V4h6v3" />
+                <path stroke="url(#tool-metal-discard)" d="M7 7l1 13h8l1-13" />
+                <path stroke="url(#tool-metal-discard)" d="M10 11v5M14 11v5" />
               </svg>
             </button>
           </div>
         </div>
         <div className="hand-strip">
-          {hand.length === 0 && <div className="empty-hand">(手牌为空)</div>}
-          {hand.map((c) => (
-            <HandCard
-              key={c.uid}
-              card={c}
-              playable={isPlayerTurn && (handAction !== null || canPlay(battle, c.uid))}
-              selected={c.uid === selectedUid}
-              onClick={() => onCardClick(c.uid)}
-              onHover={(h) => setHoveredUid(h ? c.uid : null)}
-            />
-          ))}
+          {renderHand.length === 0 && battle.hand.length === 0 && (
+            <div className="empty-hand">(手牌为空)</div>
+          )}
+          {renderHand.map((entry, i) => {
+            const c = entry.card;
+            const leaving = entry.leaving || c.uid === playingOutUid;
+            return (
+              <HandCard
+                key={c.uid}
+                card={c}
+                dealIndex={i}
+                leaving={leaving}
+                playable={!leaving && isPlayerTurn && (handAction !== null || canPlay(battle, c.uid))}
+                selected={c.uid === selectedUid}
+                onExited={() => handleCardExited(c.uid)}
+                onClick={() => onCardClick(c.uid)}
+                onHover={(h, rect) => {
+                  setHoveredUid(h ? c.uid : null);
+                  if (h && rect) setHoverRect(rect);
+                }}
+              />
+            );
+          })}
         </div>
       </div>
 
@@ -362,8 +505,11 @@ export function BattleScreen() {
         </div>
       )}
 
-      {/* 右侧卡牌详情抽屉 */}
-      <CardDetailDrawer card={previewCard} />
+      {/* 出牌亮相卡面: 挂在舞台层之外, 不受相机缩放/裁切影响 */}
+      <SkillCutInCard card={cutInCard} />
+
+      {/* 卡牌右侧的详情浮窗 */}
+      <CardDetailPopup card={hoveredCard} anchor={hoverRect} />
     </div>
   );
 }
@@ -372,14 +518,9 @@ function ManaCrystalBar({ mana, max }: { mana: number; max: number }) {
   const total = Math.max(max, mana);
   return (
     <div className="mana-bar" title="法力水晶（每回合的出牌资源）">
-      <span className="mana-label">
-        <ManaCrystalIcon className="mana-crystal mana-crystal-label" />
-        {RULES.resource.label}
-      </span>
       {Array.from({ length: total }).map((_, i) => (
         <ManaCrystalIcon key={i} className={`mana-crystal mana-pip ${i < mana ? "on" : "off"}`} />
       ))}
-      <span className="mana-num">{mana}</span>
     </div>
   );
 }
