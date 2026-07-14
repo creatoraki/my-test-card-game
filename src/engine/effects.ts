@@ -73,9 +73,9 @@ function applyEffect(
       drawCards(state, amount);
       break;
     case "GAIN_RESOURCE": {
-      const res = effect.resource ?? "light";
+      const res = effect.resource ?? "mana";
       state.resources[res] = (state.resources[res] ?? 0) + amount;
-      ops.log(state, `✨ 获得 ${amount} 点${res === "light" ? "光" : res}`);
+      ops.log(state, `✨ 获得 ${amount} 点${res === "mana" ? "法力水晶" : res}`);
       break;
     }
   }

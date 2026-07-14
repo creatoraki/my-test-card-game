@@ -3,15 +3,21 @@
 // 所有函数直接修改传入的 BattleState(store 层负责克隆后再调用, 保证不可变更新)。
 // ============================================================================
 
-import type { Ally, BattleState, Card, Combatant, Enemy } from "./types";
+import type { AnimFrame, Ally, BattleState, Card, Combatant, Enemy } from "./types";
 import { RULES } from "./rules";
 import { shuffle } from "./rng";
 import { allIds, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
-import { buildIntent, enemyAct } from "./ai";
+import { actAndRecord, buildIntent } from "./ai";
 import { advanceTick } from "./scheduler";
 import { getEncounter, getEnemyDef } from "../data";
+
+// 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
+export interface PlayRecorder {
+  frames: AnimFrame[];
+  cardSnapshot?: BattleState;
+}
 
 export interface AllyInit {
   id: string;
@@ -161,7 +167,12 @@ export function canPlay(state: BattleState, uid: string): boolean {
   return (state.resources[RULES.resource.name] ?? 0) >= card.cost;
 }
 
-export function playCard(state: BattleState, uid: string, primaryId?: string): boolean {
+export function playCard(
+  state: BattleState,
+  uid: string,
+  primaryId?: string,
+  rec?: PlayRecorder,
+): boolean {
   if (!canPlay(state, uid)) return false;
   const card = state.cards[uid];
   const owner = state.combatants[card.ownerCharId];
@@ -177,10 +188,14 @@ export function playCard(state: BattleState, uid: string, primaryId?: string): b
   else state.discard.push(uid);
 
   checkEnd(state);
+
+  // 记录"出牌结算后、敌人行动前"的快照, 供 UI 先展示出牌结果再逐个播放敌人行动。
+  if (rec) rec.cardSnapshot = structuredClone(state);
+
   if (state.phase === "player") {
     const adv =
       card.cardType === "normal" ? RULES.timeline.normalCardAdvance : RULES.timeline.fastCardAdvance;
-    if (adv > 0) advanceTick(state, adv);
+    if (adv > 0) advanceTick(state, adv, rec?.frames);
   }
   return true;
 }
@@ -188,7 +203,7 @@ export function playCard(state: BattleState, uid: string, primaryId?: string): b
 // ---------------------------------------------------------------------------
 // 结束回合
 // ---------------------------------------------------------------------------
-export function endRound(state: BattleState): void {
+export function endRound(state: BattleState, frames?: AnimFrame[]): void {
   if (state.phase !== "player") return;
 
   // 冲刷: 本回合还没行动过的存活敌人各补一次行动
@@ -198,8 +213,7 @@ export function endRound(state: BattleState): void {
       .filter((e) => e.alive && e.actsThisRound === 0);
     for (const e of pending) {
       if (!e.alive || state.phase !== "player") break;
-      enemyAct(state, e.id);
-      e.nextActTick += Math.max(1, e.castTick);
+      actAndRecord(state, e.id, frames); // 内部已重排 nextActTick
       checkEnd(state);
       if (state.phase !== "player") return;
     }

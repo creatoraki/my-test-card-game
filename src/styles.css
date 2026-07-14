@@ -119,8 +119,15 @@ code {
   border: 2px solid var(--border);
   border-radius: 12px;
 }
-.party-member .portrait {
-  font-size: 34px;
+.portrait-image {
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
+}
+.menu-portrait {
+  width: 84px;
+  height: 116px;
+  margin: -8px 0 -4px;
 }
 .party-member small {
   color: var(--muted);
@@ -139,19 +146,26 @@ code {
 }
 
 /* ===================== 战斗屏幕(网格布局) ===================== */
+/* 左: 手牌条 | 中: 战场(敌人在上); 我方角色横向排布在最底部整宽 */
 .screen.battle {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  grid-template-rows: auto 1fr auto auto auto;
+  grid-template-columns: 210px 1fr;
+  grid-template-rows: auto 1fr auto auto;
   grid-template-areas:
-    "topbar log"
-    "enemies log"
-    "allies  log"
-    "hint    log"
-    "bottom  log";
+    "side   topbar"
+    "side   enemies"
+    "side   hint"
+    "allies allies";
   gap: 12px;
   height: 100%;
   overflow: hidden;
+  /* 战斗背景图 + 压暗蒙版(保证前景文字/血条可读) */
+  background-image:
+    linear-gradient(rgba(15, 17, 24, 0.55), rgba(15, 17, 24, 0.7)),
+    url("./assets/战斗背景/森林.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .topbar {
@@ -184,30 +198,35 @@ code {
   color: var(--accent);
 }
 
-.light-bar {
+.mana-bar {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
 }
-.light-label {
-  color: var(--warn);
+.mana-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #9ddcff;
   font-weight: 600;
 }
-.light-pip {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid #6a5a20;
+.mana-crystal {
+  display: block;
+  width: 12px;
+  height: 20px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 1px 1px #01132ecc) drop-shadow(0 0 2px #51cfff80);
 }
-.light-pip.on {
-  background: radial-gradient(circle at 40% 35%, #fff6c2, var(--warn));
-  box-shadow: 0 0 6px var(--warn);
+.mana-pip.off {
+  filter: grayscale(0.45) saturate(0.45) brightness(0.55) drop-shadow(0 1px 1px #000b);
+  opacity: 0.7;
 }
-.light-pip.off {
-  background: #2a2c1a;
+.mana-crystal-label {
+  width: 10px;
+  height: 18px;
 }
-.light-num {
-  color: var(--warn);
+.mana-num {
+  color: #9ddcff;
   font-weight: 700;
   margin-left: 2px;
 }
@@ -231,15 +250,11 @@ code {
 /* ===================== 战斗单位 ===================== */
 .combatant {
   position: relative;
-  width: 130px;
+  width: 144px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
+  padding: 0;
   transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
 }
 .combatant.enemy {
@@ -277,6 +292,49 @@ code {
   font-size: 40px;
   line-height: 1;
 }
+.combatant-statuses {
+  position: absolute;
+  z-index: 4;
+  top: -28px;
+  left: 50%;
+  width: calc(100% - 12px);
+  min-height: 20px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.combatant-statuses .status-pips {
+  min-height: 20px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.combatant-figure {
+  position: relative;
+  height: 84px;
+  overflow: hidden;
+  border-radius: 11px 11px 0 0;
+  background: linear-gradient(180deg, #24344b 0%, #182230 100%);
+  border-bottom: 1px solid #0008;
+}
+.combatant-portrait {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center top;
+}
+.combatant-figure .portrait {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 54px;
+}
+.combatant-info {
+  display: grid;
+  gap: 5px;
+  padding: 7px 8px 9px;
+}
 .cmb-name {
   font-weight: 600;
   font-size: 13px;
@@ -284,6 +342,7 @@ code {
   display: flex;
   gap: 4px;
   align-items: center;
+  justify-content: center;
 }
 .threat {
   font-size: 11px;
@@ -302,6 +361,14 @@ code {
   overflow: hidden;
   border: 1px solid #000a;
 }
+.combatant-vitals {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.combatant-vitals .hp-bar {
+  flex: 1;
+}
 .hp-fill {
   height: 100%;
   background: linear-gradient(90deg, #d64545, #51cf66);
@@ -317,12 +384,8 @@ code {
   font-weight: 700;
   text-shadow: 0 1px 2px #000;
 }
-.cmb-badges {
-  display: flex;
-  gap: 4px;
-  min-height: 4px;
-}
 .block-badge {
+  flex: 0 0 auto;
   font-size: 12px;
   background: #1d2a3a;
   border: 1px solid #34567a;
@@ -368,7 +431,8 @@ code {
 /* 敌人意图 */
 .intent {
   position: absolute;
-  top: -14px;
+  z-index: 5;
+  top: 8px;
   right: -8px;
   display: flex;
   flex-direction: column;
@@ -415,6 +479,149 @@ code {
   animation: pulse 0.7s infinite;
 }
 
+/* ===================== 出牌攻击动画 ===================== */
+/* 施法者前冲(我方在底部, 向上冲 = 朝敌人方向) */
+.combatant.attacking {
+  z-index: 6;
+  transform: translateY(-18px) scale(1.06);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: brightness(1.12);
+}
+
+/* 敌人在顶部, 朝下冲 = 朝我方方向 */
+.combatant.enemy.attacking {
+  transform: translateY(18px) scale(1.06);
+}
+
+/* 目标受击: 抖动 + 高亮闪白 */
+.combatant.hit-react {
+  animation: hitShake 0.4s ease, hitFlash 0.42s ease;
+}
+@keyframes hitShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-7px) rotate(-2deg); }
+  35% { transform: translateX(6px) rotate(2deg); }
+  55% { transform: translateX(-4px); }
+  75% { transform: translateX(3px); }
+}
+@keyframes hitFlash {
+  0% { filter: brightness(2.4) saturate(0.5); }
+  100% { filter: brightness(1); }
+}
+
+/* 目标受益(辅助牌): 柔和光晕脉冲 */
+.combatant.bless-react {
+  animation: blessGlow 0.6s ease;
+}
+@keyframes blessGlow {
+  0% { box-shadow: 0 0 0 0 var(--vfx-color); }
+  40% { box-shadow: 0 0 24px 5px var(--vfx-color); filter: brightness(1.15); }
+  100% { box-shadow: 0 0 0 0 transparent; filter: brightness(1); }
+}
+
+/* —— 首击特效层: 定位在目标立绘上居中 —— */
+.vfx {
+  position: absolute;
+  top: 38px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 7;
+}
+.vfx-emoji {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 42px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 10px var(--vfx-color));
+  animation: vfxPop 0.5s ease-out forwards;
+}
+/* 攻击: 冲击环扩散 */
+.vfx-attack::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  border: 3px solid var(--vfx-color);
+  animation: ringPop 0.45s ease-out forwards;
+}
+/* 辅助: 柔和光晕扩散 */
+.vfx-support::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--vfx-color), transparent 70%);
+  animation: glowPop 0.6s ease-out forwards;
+}
+
+@keyframes vfxPop {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  28% { transform: translate(-50%, -50%) scale(1.35); opacity: 1; }
+  65% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
+}
+@keyframes ringPop {
+  0% { transform: scale(0.4); opacity: 0.9; }
+  100% { transform: scale(6.5); opacity: 0; }
+}
+@keyframes glowPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  40% { transform: scale(3); opacity: 0.75; }
+  100% { transform: scale(4.6); opacity: 0; }
+}
+
+/* 各技能差异化手感 */
+.vfx-slash .vfx-emoji {
+  animation: vfxSlash 0.42s ease-out forwards;
+}
+@keyframes vfxSlash {
+  0% { transform: translate(-50%, -50%) scale(0.4) rotate(-50deg); opacity: 0; }
+  30% { transform: translate(-50%, -50%) scale(1.5) rotate(8deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.8) rotate(22deg); opacity: 0; }
+}
+.vfx-lightning .vfx-emoji {
+  animation: vfxPop 0.32s steps(3) forwards;
+}
+.vfx-fire .vfx-emoji {
+  animation: vfxPop 0.6s ease-out forwards;
+}
+
+/* —— 伤害/治疗飘字 —— */
+.float-num {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  z-index: 8;
+  font-weight: 800;
+  font-size: 21px;
+  pointer-events: none;
+  text-shadow: 0 2px 4px #000, 0 0 8px currentColor;
+  animation: floatUp 0.55s ease-out forwards;
+}
+.float-dmg {
+  color: #ff6b6b;
+}
+.float-heal {
+  color: #69db7c;
+}
+@keyframes floatUp {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  25% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -44px) scale(1); opacity: 0; }
+}
+
 /* ===================== 提示条 ===================== */
 .hint-bar {
   grid-area: hint;
@@ -424,42 +631,199 @@ code {
   font-size: 13px;
 }
 
-/* ===================== 手牌 + 控制 ===================== */
-.bottom {
-  grid-area: bottom;
-  display: flex;
-  gap: 12px;
-  align-items: flex-end;
-}
-.hand {
-  flex: 1;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  min-height: 150px;
-  align-items: flex-end;
-}
-.empty-hand {
-  color: var(--muted);
-  align-self: center;
-}
-.controls {
+/* ===================== 左侧手牌条 + 控制 ===================== */
+.side {
+  grid-area: side;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 0;
 }
-.end-turn {
+.side-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  padding-left: 2px;
+}
+.hand-strip {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  /* 悬浮时卡牌向右平移弹出, 不能被裁剪 */
+  overflow: visible;
+}
+.empty-hand {
+  color: var(--muted);
+  padding: 8px 2px;
+}
+/* 结束回合: 浮动在页面右下角的小按钮 */
+.end-turn-float {
+  position: fixed;
+  right: 16px;
+  bottom: 14px;
+  z-index: 18;
   background: linear-gradient(180deg, #b8792e, #96601f);
   border-color: #d69a4a;
   color: #fff;
   font-weight: 700;
-  font-size: 15px;
-  padding: 14px 18px;
+  font-size: 13px;
+  padding: 8px 16px;
   white-space: nowrap;
+  box-shadow: 0 4px 14px #0008;
 }
-.end-turn:hover:not(:disabled) {
+.end-turn-float:hover:not(:disabled) {
   background: linear-gradient(180deg, #c98833, #a86c22);
+}
+
+/* ===================== 手牌条上的小长方形卡牌 ===================== */
+.hand-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  flex: none;
+  padding: 0 10px 0 8px;
+  background: linear-gradient(90deg, #232a3d, #1a1f2e);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 8px;
+  user-select: none;
+  transition: transform 0.12s ease, box-shadow 0.15s, border-color 0.15s;
+}
+.hand-card.fast {
+  background: linear-gradient(90deg, #26343d, #182028);
+}
+.hand-card.playable {
+  cursor: pointer;
+}
+.hand-card.unplayable {
+  opacity: 0.45;
+}
+/* 悬浮/选中: 向右弹出一段距离表示被聚焦 */
+.hand-card:hover,
+.hand-card.selected {
+  transform: translateX(16px);
+}
+.hand-card.playable:hover,
+.hand-card.selected {
+  border-color: var(--accent);
+  box-shadow: -3px 5px 18px #000a, 0 0 0 1px var(--accent);
+}
+.hand-card.selected {
+  box-shadow: -3px 5px 18px #000a, 0 0 0 2px var(--accent);
+}
+.hc-cost {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  color: #effbff;
+  font-weight: 800;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 2px #02152f;
+}
+.hc-cost-crystal {
+  position: absolute;
+  width: 14px;
+  height: 22px;
+}
+.hc-cost-value {
+  position: relative;
+  z-index: 1;
+}
+.hc-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hand-card.upgraded .hc-name {
+  color: var(--warn);
+}
+.hc-type {
+  flex: none;
+  font-size: 10px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0 4px;
+}
+.hand-card.fast .hc-type {
+  color: #7fd7ff;
+  border-color: #2b6a86;
+}
+
+/* ===================== 右侧卡牌详情抽屉 ===================== */
+.card-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(180deg, var(--panel2), var(--panel));
+  border-left: 1px solid var(--border);
+  box-shadow: -14px 0 40px #000b;
+  transform: translateX(100%);
+  transition: transform 0.18s ease;
+  z-index: 15;
+  overflow-y: auto;
+}
+.card-drawer.open {
+  transform: translateX(0);
+}
+.drawer-title {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.drawer-meta {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.drawer-meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #ffffff10;
+}
+.drawer-meta dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.drawer-meta dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+.drawer-text {
+  width: 100%;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #c8cde0;
+  background: #0c0e16;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
 }
 
 /* ===================== 卡牌 ===================== */
@@ -502,16 +866,24 @@ code {
   align-items: center;
 }
 .card-cost {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #fff6c2, var(--warn));
-  color: #3a2e00;
+  position: relative;
+  width: 25px;
+  height: 25px;
+  color: #effbff;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 6px var(--warn);
+  text-shadow: 0 1px 2px #02152f;
+}
+.card-cost-crystal {
+  position: absolute;
+  width: 17px;
+  height: 27px;
+}
+.card-cost-value {
+  position: relative;
+  z-index: 1;
 }
 .card-type {
   font-size: 10px;
@@ -537,26 +909,6 @@ code {
   color: #c8cde0;
   line-height: 1.3;
   overflow: hidden;
-}
-
-/* ===================== 日志 ===================== */
-.log {
-  grid-area: log;
-  background: #0c0e16;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 10px;
-  overflow-y: auto;
-  font-size: 12px;
-  line-height: 1.5;
-}
-.log-line {
-  border-bottom: 1px solid #ffffff08;
-  padding: 1px 0;
-}
-.log-meta {
-  color: var(--muted);
-  font-size: 10px;
 }
 
 /* ===================== 奖励 ===================== */
@@ -624,20 +976,27 @@ code {
   font-size: 28px;
 }
 
-/* 窄屏: 日志移到下方 */
+/* 窄屏: 单列堆叠, 手牌条横向排列, 日志移到下方 */
 @media (max-width: 900px) {
   .screen.battle {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto;
     grid-template-areas:
       "topbar"
       "enemies"
-      "allies"
       "hint"
-      "bottom"
-      "log";
+      "side"
+      "allies";
     overflow-y: auto;
   }
-  .log {
-    height: 160px;
+  .hand-strip {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .hand-card {
+    flex: 1 1 160px;
+  }
+  .card-drawer {
+    width: 260px;
   }
 }

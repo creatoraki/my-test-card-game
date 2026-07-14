@@ -1,5 +1,6 @@
 import type { Card } from "../engine";
 import { getCharacter } from "../data";
+import { ManaCrystalIcon } from "./ManaCrystalIcon";
 
 interface Props {
   card: Card;
@@ -27,8 +28,9 @@ export function CardView({ card, playable, selected, onClick }: Props) {
       title={card.text}
     >
       <div className="card-head">
-        <span className="card-cost" title="消耗光">
-          {card.cost}
+        <span className="card-cost" title="消耗法力水晶">
+          <ManaCrystalIcon className="mana-crystal card-cost-crystal" />
+          <span className="card-cost-value">{card.cost}</span>
         </span>
         <span className="card-type">{card.cardType === "fast" ? "速攻" : "普通"}</span>
       </div>

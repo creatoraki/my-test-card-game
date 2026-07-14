@@ -25,12 +25,12 @@ function battleWith(deckCardId: string): BattleState {
 }
 
 describe("战斗初始化", () => {
-  it("回合1/时刻1, 补满手牌, 光=每回合量, 2 个敌人", () => {
+  it("回合1/时刻1, 补满手牌, 法力水晶=每回合量, 2 个敌人", () => {
     const b = battleWith("spark");
     expect(b.round).toBe(1);
     expect(b.tick).toBe(RULES.timeline.startTick);
     expect(b.hand.length).toBe(RULES.hand.size);
-    expect(b.resources.light).toBe(RULES.resource.perRound);
+    expect(b.resources.mana).toBe(RULES.resource.perRound);
     expect(b.enemyIds.length).toBe(2);
     expect(b.playerIds.length).toBe(CHARACTERS.length);
   });
@@ -72,11 +72,11 @@ describe("状态: 中毒在回合开始结算", () => {
 });
 
 describe("回合结束冲刷: 未行动的敌人各打一次", () => {
-  it("两个史莱姆都攻击最高仇恨的看守者", () => {
+  it("两个史莱姆都攻击最高仇恨的剑士", () => {
     const b = battleWith("guard"); // guard 是自我护盾, 不推进时刻, 不伤敌
     // 玩家不做任何输出直接结束回合
     endRound(b);
-    // 看守者(仇恨16)被两个史莱姆各撞 6 点
-    expect(b.combatants["warden"].hp).toBe(70 - 12);
+    // 剑士(仇恨16)被两个史莱姆各撞 6 点
+    expect(b.combatants["swordsman"].hp).toBe(70 - 12);
   });
 });

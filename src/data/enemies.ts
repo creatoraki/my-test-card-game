@@ -2,7 +2,7 @@
 // castTick: 行动间隔(时刻); script: 意图脚本(循环), 引用 moves 里的招式 id。
 // 招式的 effects 复用与卡牌相同的效果系统。
 
-import type { EffectDescriptor, Targeting } from "../engine/types";
+import type { CardAnim, EffectDescriptor, Targeting } from "../engine/types";
 
 export interface EnemyMove {
   id: string;
@@ -11,6 +11,7 @@ export interface EnemyMove {
   kind: "attack" | "block" | "buff" | "debuff" | "special";
   targeting: Targeting;
   effects: EffectDescriptor[];
+  anim?: CardAnim; // 招式动画类型(纯表现)。缺省时 UI 按效果兜底推断(见 ui/animations.ts moveAnim)。
 }
 
 export interface EnemyDef {
@@ -45,6 +46,7 @@ export const ENEMIES: EnemyDef[] = [
         emoji: "🤢",
         kind: "debuff",
         targeting: "foe",
+        anim: "poison",
         effects: [
           { type: "DAMAGE", amount: 3, target: "primary" },
           { type: "APPLY_STATUS", status: "weak", stacks: 1, target: "primary" },
@@ -118,6 +120,7 @@ export const ENEMIES: EnemyDef[] = [
         emoji: "💥",
         kind: "attack",
         targeting: "foe",
+        anim: "fire",
         effects: [{ type: "DAMAGE", amount: 14, target: "primary" }],
       },
       {
@@ -126,6 +129,7 @@ export const ENEMIES: EnemyDef[] = [
         emoji: "📢",
         kind: "debuff",
         targeting: "none",
+        anim: "lightning",
         effects: [{ type: "APPLY_STATUS", status: "vulnerable", stacks: 1, target: "allFoes" }],
       },
     ],

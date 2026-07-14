@@ -1,10 +1,10 @@
 // 敌人 AI: 意图选择(数据驱动脚本) + 行动执行。敌人招式复用效果系统。
 
-import type { BattleState, Enemy, Intent } from "./types";
-import { getEnemyDef } from "../data";
+import type { AnimFrame, BattleState, Enemy, Intent } from "./types";
+import { getEnemyDef, type EnemyMove } from "../data";
 import { resolveEffects } from "./effects";
-import { chooseAggroTarget } from "./targeting";
-import { getStatus, log, markDead } from "./ops";
+import { alliesOf, chooseAggroTarget, foesOf } from "./targeting";
+import { allIds, getStatus, log, markDead } from "./ops";
 
 // 根据脚本指针刷新敌人当前意图(它下一次将要做的事)
 export function buildIntent(state: BattleState, enemyId: string): void {
@@ -31,10 +31,49 @@ export function buildIntent(state: BattleState, enemyId: string): void {
   e.intent = intent;
 }
 
-// 敌人执行它当前的意图。
-export function enemyAct(state: BattleState, enemyId: string): void {
+// 敌人行动结果 —— 供帧记录器构造动画帧(不影响引擎结算)。
+export interface EnemyActResult {
+  actorId: string;
+  enemyDefId: string;
+  moveId: string;
+  targetIds: string[]; // 受影响单位(用于闪特效): foe→[primary]; self→[self]; 群体→解析集合; 眩晕→[self]
+}
+
+// 归纳一次招式受影响的单位(用于 UI 闪特效)。在结算前按存活集合归纳, 不消耗 RNG。
+function collectMoveTargets(
+  state: BattleState,
+  e: Enemy,
+  move: EnemyMove,
+  primaryId: string | undefined,
+): string[] {
+  const set = new Set<string>();
+  for (const eff of move.effects) {
+    switch (eff.target ?? "primary") {
+      case "primary":
+        if (primaryId) set.add(primaryId);
+        break;
+      case "self":
+        set.add(e.id);
+        break;
+      case "allFoes":
+      case "randomFoe": // 随机目标无法在结算前确定, 近似为全体以供闪特效
+        for (const c of foesOf(state, e)) set.add(c.id);
+        break;
+      case "allAllies":
+      case "randomAlly":
+        for (const c of alliesOf(state, e)) set.add(c.id);
+        break;
+    }
+  }
+  return [...set];
+}
+
+// 敌人执行它当前的意图。返回本次行动的描述(供动画帧记录)。
+export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   const e = state.combatants[enemyId] as Enemy;
-  if (!e.alive) return;
+  const enemyDefId = e.enemyDefId;
+  if (!e.alive)
+    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [] };
 
   // 眩晕: 消耗 1 层, 跳过本次行动
   const stun = getStatus(e, "stun");
@@ -44,8 +83,9 @@ export function enemyAct(state: BattleState, enemyId: string): void {
     log(state, `💫 ${e.name} 被眩晕, 无法行动`);
     e.actsThisRound += 1;
     e.aiIndex += 1;
+    e.nextActTick += Math.max(1, e.castTick);
     buildIntent(state, enemyId);
-    return;
+    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId] };
   }
 
   const def = getEnemyDef(e.enemyDefId);
@@ -55,11 +95,40 @@ export function enemyAct(state: BattleState, enemyId: string): void {
   if (move.targeting === "foe") primaryId = chooseAggroTarget(state, enemyId);
   else if (move.targeting === "ally") primaryId = enemyId; // 简化: 支援自身
 
+  // 在结算前归纳受影响单位(此时目标仍存活, 死掉的目标也应闪特效)
+  const targetIds = collectMoveTargets(state, e, move, primaryId);
+
   log(state, `${e.emoji} ${e.name} 使用 ${move.name}`);
   resolveEffects(state, move.effects, enemyId, primaryId);
 
   if (e.hp <= 0) markDead(state, e);
   e.actsThisRound += 1;
   e.aiIndex += 1;
+  e.nextActTick += Math.max(1, e.castTick); // 重排下次行动(原先在调用方, 现内聚于此)
   buildIntent(state, enemyId);
+  return { actorId: enemyId, enemyDefId, moveId: move.id, targetIds };
+}
+
+// 执行一次敌人行动, 并(可选)记录一帧动画: 行动者 + 受击掉血量 + 结算后快照。
+export function actAndRecord(state: BattleState, enemyId: string, frames?: AnimFrame[]): void {
+  if (!frames) {
+    enemyAct(state, enemyId);
+    return;
+  }
+  const beforeHp: Record<string, number> = {};
+  for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
+
+  const res = enemyAct(state, enemyId);
+
+  const hits = res.targetIds
+    .filter((id) => state.combatants[id])
+    .map((id) => ({ id, hpDelta: (beforeHp[id] ?? 0) - state.combatants[id].hp }));
+
+  frames.push({
+    actorId: res.actorId,
+    enemyDefId: res.enemyDefId,
+    moveId: res.moveId,
+    hits,
+    snapshot: structuredClone(state),
+  });
 }
