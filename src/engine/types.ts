@@ -206,6 +206,7 @@ export interface BattleState {
   hand: string[];
   discard: string[];
   exhaust: string[];
+  redrawsThisRound: number;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   rngState: number;
   log: LogEntry[];

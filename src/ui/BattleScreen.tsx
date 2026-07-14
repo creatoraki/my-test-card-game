@@ -12,6 +12,8 @@ import { ManaCrystalIcon } from "./ManaCrystalIcon";
 export function BattleScreen() {
   const battle = useBattleStore((s) => s.battle);
   const play = useBattleStore((s) => s.play);
+  const redrawCard = useBattleStore((s) => s.redrawCard);
+  const discardCard = useBattleStore((s) => s.discardCard);
   const end = useBattleStore((s) => s.end);
   const commit = useBattleStore((s) => s.commit);
   const resolveBattle = useRunStore((s) => s.resolveBattle);
@@ -19,6 +21,7 @@ export function BattleScreen() {
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [hoveredUid, setHoveredUid] = useState<string | null>(null);
+  const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
 
   // —— 出牌动画编排(纯 UI): 施法者前冲 → 命中时刻结算+特效 → 归位/解锁 ——
   const [attackerId, setAttackerId] = useState<string | null>(null); // 正在前冲的施法者
@@ -37,6 +40,7 @@ export function BattleScreen() {
   useEffect(() => {
     setSelectedUid(null);
     setHoveredUid(null);
+    setHandAction(null);
     clearTimers();
     seqRef.current++;
     animatingRef.current = false;
@@ -70,16 +74,19 @@ export function BattleScreen() {
   // 本次出牌"接收特效"的目标单位(攻击→敌人受击; 辅助→友军柔光)
   function fxTargets(uid: string, primaryId?: string): string[] {
     const card = b.cards[uid];
+    // 施放确认目标与效果范围可以不同，例如回旋斩需点选敌人确认，但命中所有敌人。
+    if (card.effects.some((effect) => effect.target === "allFoes")) {
+      return b.enemyIds.filter((id) => b.combatants[id].alive);
+    }
+    if (card.effects.some((effect) => effect.target === "allAllies")) {
+      return b.playerIds.filter((id) => b.combatants[id].alive);
+    }
     switch (card.targeting) {
       case "foe":
       case "ally":
         return primaryId ? [primaryId] : [];
       case "self":
         return [card.ownerCharId];
-      case "allFoes":
-        return b.enemyIds.filter((id) => b.combatants[id].alive);
-      case "allAllies":
-        return b.playerIds.filter((id) => b.combatants[id].alive);
       default:
         return [];
     }
@@ -153,6 +160,7 @@ export function BattleScreen() {
     animatingRef.current = true;
     setAnimating(true);
     setSelectedUid(null);
+    setHandAction(null);
     runSteps(steps, final, seq);
   }
 
@@ -189,6 +197,15 @@ export function BattleScreen() {
 
   function onCardClick(uid: string) {
     if (!isPlayerTurn || animating) return;
+    if (handAction) {
+      const next = handAction === "redraw" ? redrawCard(uid) : discardCard(uid);
+      if (next) {
+        commit(next);
+        setHandAction(null);
+        setHoveredUid(null);
+      }
+      return;
+    }
     if (!canPlay(b, uid)) return;
     const card = b.cards[uid];
     if (card.targeting === "foe" || card.targeting === "ally") {
@@ -213,29 +230,11 @@ export function BattleScreen() {
   // 详情抽屉展示的卡: 优先当前悬浮, 其次已选中(选目标期间保持展示)
   const previewUid = hoveredUid ?? selectedUid;
   const previewCard = previewUid && battle.cards[previewUid] ? battle.cards[previewUid] : null;
+  const canUseHandActions = isPlayerTurn && !animating && hand.length > 0;
+  const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
 
   return (
     <div className="screen battle" onClick={() => setSelectedUid(null)}>
-      {/* 顶部信息条 */}
-      <div className="topbar">
-        <div className="topbar-left hud-cluster">
-          <span className="hud-label">行动周期</span>
-          <span className="chip round-chip">回合 {battle.round}</span>
-          <span className="chip tick-chip" title="当前时刻; 每张普通牌 +1, 速攻牌不推进">
-            ⏱ 时刻 {battle.tick}
-          </span>
-        </div>
-        <div className="topbar-mid hud-cluster">
-          <span className="hud-label">能量核心</span>
-          <ManaCrystalBar mana={mana} max={RULES.resource.perRound} />
-        </div>
-        <div className="topbar-right hud-cluster">
-          <span className="hud-label">牌库数据</span>
-          <span className="chip" title="抽牌堆">抽 {battle.draw.length}</span>
-          <span className="chip" title="弃牌堆">弃 {battle.discard.length}</span>
-        </div>
-      </div>
-
       {/* 敌人 */}
       <div className="row enemy-row">
         {enemies.map((e) => (
@@ -269,7 +268,11 @@ export function BattleScreen() {
 
       {/* 提示条 */}
       <div className="hint-bar">
-        {selectedCard
+        {handAction === "redraw"
+          ? "▶ 选择一张手牌换牌"
+          : handAction === "discard"
+            ? "▶ 选择一张手牌丢弃"
+            : selectedCard
           ? needsFoe
             ? "▶ 选择一个敌人作为目标(再次点击卡牌取消)"
             : needsAlly
@@ -282,13 +285,52 @@ export function BattleScreen() {
 
       {/* 左侧悬浮手牌 */}
       <div className="side" onClick={(e) => e.stopPropagation()}>
+        <div className="hand-toolbar" role="toolbar" aria-label="手牌工具栏">
+          <ManaCrystalBar mana={mana} max={RULES.resource.perRound} />
+          <div className="hand-toolbar-actions">
+            <button
+              className={`hand-tool-button ${handAction === "redraw" ? "active" : ""}`}
+              type="button"
+              aria-label="换牌"
+              title={battle.redrawsThisRound >= 1 ? "本回合已换牌" : "换牌：选择一张手牌替换"}
+              disabled={!redrawAvailable}
+              onClick={() => {
+                setSelectedUid(null);
+                setHandAction((current) => (current === "redraw" ? null : "redraw"));
+              }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 11a8 8 0 0 0-14.8-4.2L3 9m0-5v5h5" />
+                <path d="M4 13a8 8 0 0 0 14.8 4.2L21 15m0 5v-5h-5" />
+              </svg>
+            </button>
+            <button
+              className={`hand-tool-button ${handAction === "discard" ? "active" : ""}`}
+              type="button"
+              aria-label="丢弃"
+              title="丢弃：选择一张手牌置入弃牌堆"
+              disabled={!canUseHandActions}
+              onClick={() => {
+                setSelectedUid(null);
+                setHandAction((current) => (current === "discard" ? null : "discard"));
+              }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16" />
+                <path d="M9 7V4h6v3" />
+                <path d="M7 7l1 13h8l1-13" />
+                <path d="M10 11v5M14 11v5" />
+              </svg>
+            </button>
+          </div>
+        </div>
         <div className="hand-strip">
           {hand.length === 0 && <div className="empty-hand">(手牌为空)</div>}
           {hand.map((c) => (
             <HandCard
               key={c.uid}
               card={c}
-              playable={isPlayerTurn && canPlay(battle, c.uid)}
+              playable={isPlayerTurn && (handAction !== null || canPlay(battle, c.uid))}
               selected={c.uid === selectedUid}
               onClick={() => onCardClick(c.uid)}
               onHover={(h) => setHoveredUid(h ? c.uid : null)}

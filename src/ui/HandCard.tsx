@@ -2,6 +2,14 @@ import type { Card } from "../engine";
 import { getCharacter } from "../data";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
 import whirlwindSlashArt from "../assets/skills/swordsman/回旋斩.png";
+import lightningInfusedArt from "../assets/skills/swordsman/雷灌.png";
+import skyRendArt from "../assets/skills/swordsman/裂空.png";
+
+const HAND_ART: Record<string, string> = {
+  "whirlwind-slash": whirlwindSlashArt,
+  "lightning-infused": lightningInfusedArt,
+  "sky-rend": skyRendArt,
+};
 
 interface Props {
   card: Card;
@@ -15,11 +23,12 @@ interface Props {
 // 悬浮时向右弹出(见 styles.css .hand-card:hover), 并触发右侧详情抽屉。
 export function HandCard({ card, playable, selected, onClick, onHover }: Props) {
   const owner = getCharacter(card.ownerCharId);
-  const hasArt = card.id === "whirlwind-slash";
+  const art = HAND_ART[card.id];
+  const hasArt = Boolean(art);
   const handStyle = hasArt
     ? ({
         borderLeftColor: owner.color,
-        ["--hand-art" as string]: `url(${whirlwindSlashArt})`,
+        ["--hand-art" as string]: `url(${art})`,
         ["--hand-art-offset-y" as string]: `${card.handArtOffsetY ?? 0}px`,
       } as React.CSSProperties)
     : { borderLeftColor: owner.color };

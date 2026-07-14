@@ -3,7 +3,7 @@
 export * from "./types";
 export { RULES } from "./rules";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
-export { createBattle, playCard, endRound, startRound, canPlay } from "./battle";
+export { createBattle, playCard, endRound, startRound, canPlay, redrawHandCard, discardHandCard } from "./battle";
 export type { AllyInit, BattleSetup, PlayRecorder } from "./battle";
 export { foesOf, alliesOf, aliveOf, chooseAggroTarget } from "./targeting";
 export { getStatus } from "./ops";

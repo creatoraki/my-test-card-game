@@ -1,5 +1,13 @@
 import type { Card, Targeting, Rarity } from "../engine";
-import { CardView } from "./CardView";
+import whirlwindSlashArt from "../assets/skills/swordsman/回旋斩.png";
+import lightningInfusedArt from "../assets/skills/swordsman/雷灌.png";
+import skyRendArt from "../assets/skills/swordsman/裂空.png";
+
+const CARD_ART: Record<string, string> = {
+  "whirlwind-slash": whirlwindSlashArt,
+  "lightning-infused": lightningInfusedArt,
+  "sky-rend": skyRendArt,
+};
 
 const TARGET_LABEL: Record<Targeting, string> = {
   foe: "敌方单体",
@@ -18,12 +26,16 @@ const RARITY_LABEL: Record<Rarity, string> = {
 
 // 右侧详情抽屉: 悬浮/选中某张手牌时滑出, 展示该卡的完整信息。
 export function CardDetailDrawer({ card }: { card: Card | null }) {
+  const art = card ? CARD_ART[card.id] : undefined;
+  const hasAllFoesEffect = card?.effects.some((effect) => effect.target === "allFoes") ?? false;
+  const hasAllAlliesEffect = card?.effects.some((effect) => effect.target === "allAllies") ?? false;
+
   return (
     <aside className={`card-drawer ${card ? "open" : ""}`} aria-hidden={!card}>
       {card && (
         <>
           <div className="drawer-title">战术数据 / 卡牌详情</div>
-          <CardView card={card} playable selected={false} />
+          {art && <img className="drawer-card-art" src={art} alt={`${card.name}卡牌全图`} />}
           <dl className="drawer-meta">
             <div>
               <dt>消耗</dt>
@@ -34,9 +46,15 @@ export function CardDetailDrawer({ card }: { card: Card | null }) {
               <dd>{card.cardType === "fast" ? "速攻 · 不推进时刻" : "普通 · 推进 1 时刻"}</dd>
             </div>
             <div>
-              <dt>目标</dt>
+              <dt>施放确认</dt>
               <dd>{TARGET_LABEL[card.targeting]}</dd>
             </div>
+            {(hasAllFoesEffect || hasAllAlliesEffect) && (
+              <div>
+                <dt>作用范围</dt>
+                <dd>{hasAllFoesEffect ? "全体敌人" : "全体友军"}</dd>
+              </div>
+            )}
             {card.rarity && (
               <div>
                 <dt>稀有度</dt>

@@ -19,6 +19,6 @@ export const CHARACTERS: CharacterDef[] = [
     color: "#78c8ff",
     maxHp: 70,
     threat: 16,
-    startingCardIds: ["whirlwind-slash"],
+    startingCardIds: ["whirlwind-slash", "lightning-infused", "sky-rend"],
   },
 ];

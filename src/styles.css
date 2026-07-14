@@ -1034,7 +1034,7 @@ button.big {
   clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
 }
 .terminal-screen > *,
-.screen.battle > :is(.topbar, .side, .row, .hint-bar) {
+.screen.battle > :is(.side, .row, .hint-bar) {
   position: relative;
   z-index: 1;
 }
@@ -1181,10 +1181,9 @@ button.big {
 /* 战斗终端 */
 .screen.battle {
   position: relative;
-  grid-template-columns: 214px minmax(0, 1fr);
-  grid-template-rows: 62px minmax(0, 1fr) 28px auto;
+  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 28px auto;
   grid-template-areas:
-    "side topbar"
     "side enemies"
     "side hint"
     "allies allies";
@@ -1241,7 +1240,7 @@ button.big {
   color: #86d9ff;
 }
 .side {
-  padding: 52px 0 0;
+  padding: 0;
   background: none;
   border: 0;
   clip-path: none;
@@ -1249,8 +1248,65 @@ button.big {
 .hand-strip {
   gap: 6px;
 }
+.hand-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  margin-bottom: 8px;
+  padding: 4px 5px 4px 9px;
+  border: 1px solid #ffffff8c;
+  background: #ffffff36;
+  backdrop-filter: blur(5px);
+}
+.hand-toolbar .mana-bar {
+  gap: 4px;
+}
+.hand-toolbar .mana-label,
+.hand-toolbar .mana-num {
+  color: #17455e;
+  text-shadow: 0 1px #ffffff80;
+}
+.hand-toolbar .mana-crystal {
+  filter: drop-shadow(0 1px 1px #ffffffa6) drop-shadow(0 0 2px #277ba0);
+}
+.hand-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+.hand-tool-button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #1e4a5d80;
+  background: #ffffff73;
+  color: #17455e;
+  clip-path: none;
+  box-shadow: none;
+}
+.hand-tool-button:hover:not(:disabled),
+.hand-tool-button.active {
+  border-color: #ffffff;
+  background: #17455ed9;
+  color: #ffffff;
+}
+.hand-tool-button:disabled {
+  opacity: 0.42;
+}
+.hand-tool-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
 .hand-card {
-  height: 64px;
+  height: 36px;
   padding: 0 9px;
   border: 1px solid #3d494e;
   border-left: 3px solid var(--accent);
@@ -1263,15 +1319,20 @@ button.big {
 }
 .hand-card.has-art {
   background-image:
-    linear-gradient(90deg, #071011cc 0%, #07101166 52%, #071011bd 100%),
+    linear-gradient(90deg, #07101173 0%, #07101133 52%, #07101166 100%),
     var(--hand-art);
   background-position: center, center calc(0px - var(--hand-art-offset-y));
   background-repeat: no-repeat;
   background-size: 100% 100%, 100% auto;
 }
+.hand-card.has-art:hover {
+  background-image: var(--hand-art);
+  background-position: center calc(0px - var(--hand-art-offset-y));
+  background-size: 100% auto;
+}
 .hand-card:hover,
 .hand-card.selected {
-  transform: translateX(8px);
+  transform: translateX(22px);
 }
 .hand-card.playable:hover,
 .hand-card.selected {
@@ -1411,6 +1472,12 @@ button.big {
   font-size: 11px;
   text-transform: uppercase;
 }
+.drawer-card-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
 .drawer-empty {
   display: grid;
   min-height: 100%;
@@ -1510,11 +1577,10 @@ button.big {
   .screen.battle {
     grid-template-columns: 192px minmax(0, 1fr);
     grid-template-areas:
-      "side topbar"
       "side enemies"
       "side hint"
       "allies allies";
-    grid-template-rows: 62px minmax(280px, 1fr) 28px auto;
+    grid-template-rows: minmax(280px, 1fr) 28px auto;
     overflow-y: auto;
   }
   .ally-row {
@@ -1539,20 +1605,11 @@ button.big {
   .screen.battle {
     grid-template-columns: 1fr;
     grid-template-areas:
-      "topbar"
       "enemies"
       "allies"
       "hint"
       "side";
-    grid-template-rows: auto auto auto auto auto;
-  }
-  .topbar {
-    align-items: flex-start;
-    gap: 8px;
-    flex-direction: column;
-  }
-  .topbar-right {
-    justify-content: flex-start;
+    grid-template-rows: auto auto auto auto;
   }
   .side {
     min-height: 0;
@@ -1601,9 +1658,8 @@ button.big {
 @media (max-width: 900px) {
   .screen.battle {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto auto minmax(160px, auto);
+    grid-template-rows: auto auto auto minmax(160px, auto);
     grid-template-areas:
-      "topbar"
       "enemies"
       "allies"
       "hint"

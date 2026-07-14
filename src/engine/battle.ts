@@ -107,6 +107,7 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
     hand: [],
     discard: [],
     exhaust: [],
+    redrawsThisRound: 0,
     resources: {},
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
@@ -124,6 +125,7 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
 export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
+  state.redrawsThisRound = 0;
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
 
   if (RULES.combat.clearBlockOnRoundStart) {
@@ -165,6 +167,30 @@ export function canPlay(state: BattleState, uid: string): boolean {
   const owner = state.combatants[card.ownerCharId];
   if (!owner || !owner.alive) return false;
   return (state.resources[RULES.resource.name] ?? 0) >= card.cost;
+}
+
+export function redrawHandCard(state: BattleState, uid: string): boolean {
+  if (state.phase !== "player" || state.redrawsThisRound >= 1 || !state.hand.includes(uid)) return false;
+  const card = state.cards[uid];
+  if (!card) return false;
+
+  state.hand = state.hand.filter((id) => id !== uid);
+  state.discard.push(uid);
+  state.redrawsThisRound += 1;
+  drawCards(state, 1);
+  log(state, `${card.name} 已换牌`);
+  return true;
+}
+
+export function discardHandCard(state: BattleState, uid: string): boolean {
+  if (state.phase !== "player" || !state.hand.includes(uid)) return false;
+  const card = state.cards[uid];
+  if (!card) return false;
+
+  state.hand = state.hand.filter((id) => id !== uid);
+  state.discard.push(uid);
+  log(state, `${card.name} 已丢弃`);
+  return true;
 }
 
 export function playCard(

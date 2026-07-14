@@ -5,7 +5,7 @@
 
 import { create } from "zustand";
 import type { AnimFrame, BattleSetup, BattleState, PlayRecorder } from "../engine";
-import { createBattle, endRound, playCard } from "../engine";
+import { createBattle, discardHandCard, endRound, playCard, redrawHandCard } from "../engine";
 
 // 一次出牌的动画计划: 先展示出牌结果(cardSnapshot), 再逐帧播放触发的敌人行动, 最后落到 final。
 export interface PlayPlan {
@@ -24,6 +24,8 @@ interface BattleStore {
   battle: BattleState | null;
   init: (encounterId: string, setup: BattleSetup, seed?: number) => void;
   play: (uid: string, targetId?: string) => PlayPlan | null;
+  redrawCard: (uid: string) => BattleState | null;
+  discardCard: (uid: string) => BattleState | null;
   end: () => EndPlan | null;
   commit: (snapshot: BattleState) => void;
   clear: () => void;
@@ -44,6 +46,20 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const ok = playCard(draft, uid, targetId, rec);
     if (!ok) return null;
     return { cardSnapshot: rec.cardSnapshot ?? draft, frames: rec.frames, final: draft };
+  },
+
+  redrawCard: (uid) => {
+    const b = get().battle;
+    if (!b) return null;
+    const draft = structuredClone(b);
+    return redrawHandCard(draft, uid) ? draft : null;
+  },
+
+  discardCard: (uid) => {
+    const b = get().battle;
+    if (!b) return null;
+    const draft = structuredClone(b);
+    return discardHandCard(draft, uid) ? draft : null;
   },
 
   end: () => {
