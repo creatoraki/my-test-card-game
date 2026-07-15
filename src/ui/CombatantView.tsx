@@ -2,6 +2,8 @@ import type { Ally, Combatant, Enemy } from "../engine";
 import { StatusPips } from "./StatusPips";
 import { ANIM, type HitFx } from "./animations";
 import { CharacterPortrait } from "./CharacterPortrait";
+import { EnemySprite } from "./EnemySprite";
+import { enemyArt } from "./enemyArt";
 import { SpriteFx } from "./SpriteFx";
 
 interface Props {
@@ -26,6 +28,10 @@ export function CombatantView({
   const hpPct = Math.max(0, (cmb.hp / cmb.maxHp) * 100);
   const dead = !cmb.alive;
 
+  // 敌人立绘按 enemyDefId 查登记表; 未登记(或我方)则退回 CharacterPortrait
+  const enemyDefId = cmb.team === "enemy" ? (cmb as Enemy).enemyDefId : undefined;
+  const enemySprite = enemyDefId ? enemyArt(enemyDefId) : undefined;
+
   const preset = hit ? ANIM[hit.anim] : null;
   // 提出局部 const 保住闭包内的类型窄化(直接在 JSX 里写 preset.sprite! 会丢窄化)
   const sprite = preset?.sprite;
@@ -43,8 +49,6 @@ export function CombatantView({
         isAggroTarget ? "aggro-target" : "",
         attacking ? "attacking" : "",
         reactClass,
-        // 序列帧特效尺寸远超卡面盒, 需临时解开 .combatant 的 clip-path(见 styles.css .vfx-open)
-        sprite ? "vfx-open" : "",
       ].join(" ")}
       // --vfx-color: 特效主色, 供闪光/冲击环/光晕/飘字着色
       // --vfx-impact: 挂载 → 砸中的偏移, 把受击抖动/闪白推迟到序列帧真正命中那一刻(emoji 系缺省 0, 行为不变)
@@ -82,37 +86,40 @@ export function CombatantView({
         </div>
       )}
 
-      <div className="combatant-statuses">
-        <StatusPips statuses={cmb.statuses} />
-      </div>
-
       <div className="combatant-figure">
-        <CharacterPortrait
-          characterId={cmb.team === "player" ? (cmb as Ally).charId : undefined}
-          emoji={cmb.emoji}
-          alt={`${cmb.name}立绘`}
-          className="combatant-portrait"
-        />
+        {enemySprite && enemyDefId ? (
+          <EnemySprite id={enemyDefId} sprite={enemySprite} alt={`${cmb.name}立绘`} />
+        ) : (
+          <CharacterPortrait
+            characterId={cmb.team === "player" ? (cmb as Ally).charId : undefined}
+            emoji={cmb.emoji}
+            alt={`${cmb.name}立绘`}
+          />
+        )}
       </div>
 
+      {/* 立绘下方: 血条(内嵌名字 + 数值) → 状态/护盾/仇恨一排 */}
       <div className="combatant-info">
-        <div className="cmb-name">
-          {cmb.name}
-          {cmb.team === "player" && <span className="threat" title="仇恨值">🎯{(cmb as Ally).threat}</span>}
+        <div className="hp-bar">
+          <div className="hp-fill" style={{ width: `${hpPct}%` }} />
+          <span className="cmb-name">{cmb.name}</span>
+          <span className="hp-text">
+            {Math.max(0, cmb.hp)}/{cmb.maxHp}
+          </span>
         </div>
 
-        <div className="combatant-vitals">
-          <div className="hp-bar">
-            <div className="hp-fill" style={{ width: `${hpPct}%` }} />
-            <span className="hp-text">
-              {Math.max(0, cmb.hp)}/{cmb.maxHp}
-            </span>
-          </div>
+        <div className="combatant-badges">
           {cmb.block > 0 && (
             <span className="block-badge" title="护盾">
               🛡️{cmb.block}
             </span>
           )}
+          {cmb.team === "player" && (
+            <span className="threat" title="仇恨值">
+              🎯{(cmb as Ally).threat}
+            </span>
+          )}
+          <StatusPips statuses={cmb.statuses} />
         </div>
       </div>
 

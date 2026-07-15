@@ -1,4 +1,4 @@
-// ★ 占位遭遇战数据 ★ —— enemies 引用 enemies.ts 的敌人 id(可重复)。
+// 遭遇战数据 —— enemies 引用 enemies.ts 的敌人 id(可重复, createBattle 会自动加 A/B/C 后缀)。
 // runStore 会按顺序把这些遭遇战串成一次"跑"。
 
 export interface EncounterDef {
@@ -8,9 +8,9 @@ export interface EncounterDef {
 }
 
 export const ENCOUNTERS: EncounterDef[] = [
-  { id: "e1", name: "洞穴入口", enemies: ["slime", "slime"] },
-  { id: "e2", name: "哥布林巡逻队", enemies: ["goblin", "goblin", "bat"] },
-  { id: "e3", name: "深处的巨兽", enemies: ["brute", "slime"] },
+  { id: "e1", name: "林间怪响", enemies: ["weird-bird", "weird-bird"] },
+  { id: "e2", name: "惊起的鸟群", enemies: ["weird-bird", "weird-bird", "weird-bird"] },
+  { id: "e3", name: "巢穴深处", enemies: ["weird-bird", "weird-bird", "weird-bird", "weird-bird"] },
 ];
 
 // 一次"跑"的遭遇战顺序

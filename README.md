@@ -83,8 +83,10 @@ my-test-card-game/
       ├─ MenuScreen.tsx    # 主菜单：队伍预览 + 开始远征
       ├─ BattleScreen.tsx  # ★ 战斗主界面：敌我单位/手牌/胜负遮罩 + 分镜编排 + 场景相机
       ├─ animations.ts     # ★ 出牌动画预设表：CINEMA 分镜时间轴/相机参数 + ANIM 每种特效的预设
-      ├─ CombatantView.tsx # 单个战斗单位（血条/护盾/状态/敌人意图 + 受击特效挂载点）
+      ├─ CombatantView.tsx # 单个战斗单位（无框立绘 + 下方血条/状态/敌人意图 + 受击特效挂载点）
       ├─ CharacterPortrait.tsx # 角色立绘（有图用图，无图回退 emoji）
+      ├─ EnemySprite.tsx   # 敌人待机立绘播放器（横向拼条 + steps() 无限循环）
+      ├─ enemyArt.ts       # 敌人 id → 待机拼条立绘的查找表 + 预加载
       ├─ SpriteFx.tsx      # 序列帧播放器（逐帧 <img> 用 animation-delay 错开）
       ├─ vfxSprites.ts     # 序列帧图 URL 表 + 预加载
       ├─ SkillCutInCard.tsx# 出牌「亮相」卡面浮层（左侧飞入 → 停留 → 飞出）
@@ -168,8 +170,10 @@ my-test-card-game/
 | `MenuScreen.tsx` | 主菜单：队伍预览 + 玩法要点 + 「开始一次远征」。 |
 | `BattleScreen.tsx` | 战斗主界面：顶部信息条（回合/时刻/光/牌堆数）、敌我单位、目标选择交互、手牌区、结束回合按钮、胜负遮罩。同时高亮敌人预计攻击的最高仇恨友军。另含**分镜编排**（`runSteps` 定时器队列）与**场景相机**（`computeCamera`）。 |
 | `animations.ts` | **★ 动画预设表**：`CINEMA`（分镜时间轴 + 相机缩放/视差系数）、`ANIM`（每种 `CardAnim` 的特效图形/主色/时序）、`cardAnim`/`moveAnim`（卡牌与敌人招式 → 动画类型）。调演出节奏主要改这里。 |
-| `CombatantView.tsx` | 单个战斗单位卡片：立绘、血条、护盾徽章、状态图标、仇恨值；敌人额外显示**意图徽章 + 行动倒计时**。带 `data-cmb-id`（相机据此定位聚焦目标），并挂载受击特效层与飘字。 |
+| `CombatantView.tsx` | 单个战斗单位：**无背景面板**，立绘直接浮在场景上，自上而下为〔敌人意图徽章 + 倒计时〕→ 立绘（完整不裁切）→ 血条（名字嵌在左侧、HP 数值靠右）→ 护盾/仇恨/BUFF-DEBUFF 一排。带 `data-cmb-id`（相机据此定位聚焦目标），并挂载受击特效层与飘字。 |
 | `CharacterPortrait.tsx` | 角色立绘：有配图用图，无图回退 emoji。 |
+| `EnemySprite.tsx` | 敌人待机立绘播放器：单张横向拼条图靠 `background-position` + `steps()` 无限循环。与 `SpriteFx` 并列的另一套机制——那套是逐帧独立图、播一次即停的命中特效。 |
+| `enemyArt.ts` | 敌人 `EnemyDef.id` → 待机拼条立绘（`EnemySpriteDef`：帧数/每帧时长/渲染尺寸）的查找表 + `warmEnemyArt()` 预加载。未登记的敌人由 `CombatantView` 回退 emoji。 |
 | `SpriteFx.tsx` | 序列帧播放器：把 `SpritePreset` 的所有帧堆叠为 `<img>`，用 `animation-delay` 逐帧错开播放。 |
 | `vfxSprites.ts` | 序列帧图 URL 列表（如魔剑坠落 12 帧）+ `warmVfxSprites()` 预加载。 |
 | `SkillCutInCard.tsx` | 出牌「亮相」卡面浮层：镜头聚焦后从左侧飞入 → 停留 → 往右飞出渐隐。挂在场景之外，不受相机影响。 |

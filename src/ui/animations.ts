@@ -75,7 +75,7 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
       frameMs: 70,
       width: 192, // 243:583 原始比例
       height: 460,
-      anchorTop: 88, // 立绘(96px)脚下 = 剑插地处; anchorY 是帧内比例, 故放大无需动此值
+      anchorTop: 146, // 立绘框(150px, 底对齐)脚下 = 剑插地处; anchorY 是帧内比例, 故放大无需动此值
       anchorY: 0.82,
       impactMs: 210, // 约第 3 帧砸中
     },

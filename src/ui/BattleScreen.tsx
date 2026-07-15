@@ -9,6 +9,7 @@ import { CardDetailPopup } from "./CardDetailPopup";
 import { SkillCutInCard } from "./SkillCutInCard";
 import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "./animations";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
+import { warmEnemyArt } from "./enemyArt";
 import { warmVfxSprites } from "./vfxSprites";
 import forestBgVideo from "../assets/战斗背景/森林.mp4";
 
@@ -95,9 +96,11 @@ export function BattleScreen() {
   useEffect(() => () => clearTimers(), []);
 
   // 预热序列帧特效素材: 帧图是 12 个独立请求, 不预热首次播放会逐帧闪。
+  // 敌人待机立绘同理(拼条单文件但体积大), 不预热则进战斗首帧空白。
   // 放在进战斗时(而非模块顶层)以免菜单界面白付流量; 到首次命中至少有 beat+zoomIn 的余量。
   useEffect(() => {
     warmVfxSprites();
+    warmEnemyArt();
   }, []);
 
   // 同步渲染列表 = 引擎手牌 + 离场中的卡。引擎手牌里消失的卡标记 leaving(出鞘渐隐, 保留原位),
