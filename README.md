@@ -9,7 +9,7 @@
 ## 一、核心玩法概览
 
 - **时刻（tick）**：每回合从第 1 时刻开始。打出**普通牌**推进 1 时刻，打出**速攻牌**不推进时刻。
-- **敌人排程**：每个敌人有行动间隔 `castTick`，头顶显示**意图 + 倒计时**；当时刻推进到其倒计时归零时行动。回合结束时，本回合还没行动过的敌人会各补一次行动（保证每回合至少被打一次）。
+- **敌人排程**：每个敌人有行动间隔 `castTick`，头顶显示**施法倒计时**；当时刻推进到其倒计时归零时行动。**攻击意图默认不可见**——你知道敌人「何时」动手，但不知道「要做什么」；意图数据引擎里照常生成，需靠「洞察」标记揭示（后续会做对应卡牌能力）。回合结束时，本回合还没行动过的敌人会各补一次行动（保证每回合至少被打一次）。
 - **资源（光）**：全队每回合共享一个「光」池用于出牌（默认每回合 3 点，不结转）。
 - **仇恨（aggro）**：无站位。敌人按仇恨值选择攻击目标，可用「嘲讽」拉仇恨改变敌人目标。
 - **构筑闭环**：全队共享一个牌库；每场胜利后可**三选一加卡 / 强化随机牌**，卡组在整场远征中持续成长，串联通关多场遭遇战。
@@ -83,7 +83,7 @@ my-test-card-game/
       ├─ MenuScreen.tsx    # 主菜单：队伍预览 + 开始远征
       ├─ BattleScreen.tsx  # ★ 战斗主界面：敌我单位/手牌/胜负遮罩 + 分镜编排 + 场景相机
       ├─ animations.ts     # ★ 出牌动画预设表：CINEMA 分镜时间轴/相机参数 + ANIM 每种特效的预设
-      ├─ CombatantView.tsx # 单个战斗单位（无框立绘 + 下方血条/状态/敌人意图 + 受击特效挂载点）
+      ├─ CombatantView.tsx # 单个战斗单位（无框立绘 + 下方血条/状态 + 敌人倒计时/意图 + 受击特效挂载点）
       ├─ CharacterPortrait.tsx # 角色立绘（有图用图，无图回退 emoji）
       ├─ EnemySprite.tsx   # 敌人待机立绘播放器（横向拼条 + steps() 无限循环）
       ├─ enemyArt.ts       # 敌人 id → 待机拼条立绘的查找表 + 预加载
@@ -131,7 +131,7 @@ my-test-card-game/
 | `rules.ts` | **★ 集中的可配置规则常量**：资源经济、手牌上限、时刻推进量、护盾/虚弱/易伤系数、仇恨模式、升级倍率。调平衡主要改这里。 |
 | `rng.ts` | mulberry32 可复现伪随机：`rngFloat/rngInt/rngPick` + Fisher–Yates `shuffle`；`rngState` 存在 `BattleState` 内。 |
 | `ops.ts` | **引擎原语与结算落点**：伤害管线（力量→虚弱→易伤→护盾吸收→落定→荆棘反伤）、治疗、加护盾、施加状态、改仇恨、状态生命周期驱动（回合/时刻边界）、胜负判定。 |
-| `statuses.ts` | **状态效果注册表**：中毒 / 灼烧 / 再生 / 力量 / 虚弱 / 易伤 / 荆棘 / 眩晕。每个状态带行为钩子（`onRoundStart` / `modifyOutgoingDamage` 等），通过 `ctx.ops` 调用原语——**不 import 引擎实现，避免循环依赖**。 |
+| `statuses.ts` | **状态效果注册表**：中毒 / 灼烧 / 再生 / 力量 / 虚弱 / 易伤 / 荆棘 / 眩晕 / 洞察。其中眩晕与洞察是**纯显示定义**（无钩子），实际效果分别在 `ai.ts` 与 UI 层处理。其余状态带行为钩子（`onRoundStart` / `modifyOutgoingDamage` 等），通过 `ctx.ops` 调用原语——**不 import 引擎实现，避免循环依赖**。 |
 | `effects.ts` | **效果解释器**：把声明式 `EffectDescriptor`（DAMAGE / GAIN_BLOCK / HEAL / APPLY_STATUS / DRAW / GAIN_RESOURCE / MODIFY_THREAT）翻译成 `ops` 原语调用，并解析每条效果的作用目标（primary / self / allFoes / randomFoe …）。**卡牌与敌人招式共用**这套。 |
 | `targeting.ts` | 目标查询（`aliveOf/foesOf/alliesOf`）与**仇恨算法** `chooseAggroTarget`（最高仇恨 / 加权随机两种模式）。无站位。 |
 | `deck.ts` | 抽牌逻辑；抽牌堆抽空时把弃牌堆洗回；受手牌上限约束。 |
@@ -168,9 +168,9 @@ my-test-card-game/
 | 文件 | 功能 |
 | --- | --- |
 | `MenuScreen.tsx` | 主菜单：队伍预览 + 玩法要点 + 「开始一次远征」。 |
-| `BattleScreen.tsx` | 战斗主界面：顶部信息条（回合/时刻/光/牌堆数）、敌我单位、目标选择交互、手牌区、结束回合按钮、胜负遮罩。同时高亮敌人预计攻击的最高仇恨友军。另含**分镜编排**（`runSteps` 定时器队列）与**场景相机**（`computeCamera`）。 |
+| `BattleScreen.tsx` | 战斗主界面：顶部信息条（回合/时刻/光/牌堆数）、敌我单位、目标选择交互、手牌区、结束回合按钮、胜负遮罩。敌人预计攻击的最高仇恨友军会被高亮，但该提示同样属于「意图信息」——**仅当场上有敌人被「洞察」时才显示**。另含**分镜编排**（`runSteps` 定时器队列）与**场景相机**（`computeCamera`）。 |
 | `animations.ts` | **★ 动画预设表**：`CINEMA`（分镜时间轴 + 相机缩放/视差系数）、`ANIM`（每种 `CardAnim` 的特效图形/主色/时序）、`cardAnim`/`moveAnim`（卡牌与敌人招式 → 动画类型）。调演出节奏主要改这里。 |
-| `CombatantView.tsx` | 单个战斗单位：**无背景面板**，立绘直接浮在场景上，自上而下为〔敌人意图徽章 + 倒计时〕→ 立绘（完整不裁切）→ 血条（名字嵌在左侧、HP 数值靠右）→ 护盾/仇恨/BUFF-DEBUFF 一排。带 `data-cmb-id`（相机据此定位聚焦目标），并挂载受击特效层与飘字。 |
+| `CombatantView.tsx` | 单个战斗单位：**无背景面板**，立绘直接浮在场景上，自上而下为〔敌人施法倒计时；仅在敌人带「洞察」时额外显示意图徽章，见 `isIntentRevealed`〕→ 立绘（完整不裁切）→ 血条（名字嵌在左侧、HP 数值靠右）→ 护盾/仇恨/BUFF-DEBUFF 一排。带 `data-cmb-id`（相机据此定位聚焦目标），并挂载受击特效层与飘字。 |
 | `CharacterPortrait.tsx` | 角色立绘：有配图用图，无图回退 emoji。 |
 | `EnemySprite.tsx` | 敌人待机立绘播放器：单张横向拼条图靠 `background-position` + `steps()` 无限循环。与 `SpriteFx` 并列的另一套机制——那套是逐帧独立图、播一次即停的命中特效。 |
 | `enemyArt.ts` | 敌人 `EnemyDef.id` → 待机拼条立绘（`EnemySpriteDef`：帧数/每帧时长/渲染尺寸）的查找表 + `warmEnemyArt()` 预加载。未登记的敌人由 `CombatantView` 回退 emoji。 |

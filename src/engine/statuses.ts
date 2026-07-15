@@ -130,6 +130,16 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     kind: "debuff",
     desc: "无法行动。行动时机到来时消耗 1 层并跳过该次行动。",
   },
+
+  // ---- 情报 ----
+  // 洞察没有引擎侧效果, UI 层(CombatantView)据此决定是否显示该敌人的意图。
+  insight: {
+    id: "insight",
+    name: "洞察",
+    emoji: "👁️",
+    kind: "buff",
+    desc: "可以看见该敌人的攻击意图。",
+  },
 };
 
 export function getStatusDef(id: string): StatusDef | undefined {

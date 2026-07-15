@@ -500,6 +500,14 @@ code {
   padding: 0 4px;
   color: var(--warn);
 }
+/* 意图未被揭示时, 倒计时是头顶唯一元素 → 放大加粗顶上去。
+   不设 color/border-color, 让下面的 .imminent(同权重)照常覆盖成红色脉冲。 */
+.countdown.countdown-solo {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 1px 7px;
+  letter-spacing: 0.5px;
+}
 .countdown.imminent {
   color: var(--bad);
   border-color: var(--bad);

@@ -1,4 +1,4 @@
-import type { Ally, Combatant, Enemy } from "../engine";
+import { getStatus, type Ally, type Combatant, type Enemy } from "../engine";
 import { StatusPips } from "./StatusPips";
 import { ANIM, type HitFx } from "./animations";
 import { CharacterPortrait } from "./CharacterPortrait";
@@ -128,16 +128,33 @@ export function CombatantView({
   );
 }
 
+// 意图默认不可见: 敌人带「洞察」标记时才揭示。数据始终存在(engine/ai.ts 照常 buildIntent),
+// 这里只控制显示 —— 未来的「查看意图」卡牌用 APPLY_STATUS 给敌人挂 insight 即可。
+export function isIntentRevealed(enemy: Enemy): boolean {
+  return (getStatus(enemy, "insight")?.stacks ?? 0) > 0;
+}
+
 function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number }) {
   const countdown = Math.max(0, enemy.nextActTick - currentTick);
   const i = enemy.intent;
+  const revealed = isIntentRevealed(enemy);
   return (
-    <div className="intent" title={`意图: ${i.name}`}>
-      <span className={`intent-badge intent-${i.kind}`}>
-        {i.emoji}
-        {i.value != null && <b>{i.value}</b>}
-      </span>
-      <span className={`countdown ${countdown === 0 ? "imminent" : ""}`} title="距离下次行动的时刻">
+    // 未揭示时不给 title —— 否则 hover 就把招式名漏出去了
+    <div className="intent" title={revealed ? `意图: ${i.name}` : undefined}>
+      {revealed && (
+        <span className={`intent-badge intent-${i.kind}`}>
+          {i.emoji}
+          {i.value != null && <b>{i.value}</b>}
+        </span>
+      )}
+      <span
+        className={[
+          "countdown",
+          revealed ? "" : "countdown-solo",
+          countdown === 0 ? "imminent" : "",
+        ].join(" ")}
+        title="距离下次行动的时刻"
+      >
         ⏱{countdown}
       </span>
     </div>

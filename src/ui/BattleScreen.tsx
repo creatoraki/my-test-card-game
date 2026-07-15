@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { canPlay, RULES, type AnimFrame, type BattleState, type Card, type CardAnim } from "../engine";
+import { canPlay, RULES, type AnimFrame, type BattleState, type Card, type CardAnim, type Enemy } from "../engine";
 import { getEnemyDef } from "../data";
 import { useBattleStore } from "../store/battleStore";
 import { useRunStore } from "../store/runStore";
-import { CombatantView } from "./CombatantView";
+import { CombatantView, isIntentRevealed } from "./CombatantView";
 import { HandCard } from "./HandCard";
 import { CardDetailPopup } from "./CardDetailPopup";
 import { SkillCutInCard } from "./SkillCutInCard";
@@ -135,6 +135,14 @@ export function BattleScreen() {
     return allies.reduce((best, a) =>
       (a as any).threat > (best as any).threat ? a : best,
     ).id;
+  }, [battle]);
+
+  // 仇恨高亮同样泄露「敌人下一击打谁」, 因此跟随意图的揭示开关: 有敌人被洞察时才显示
+  const aggroHintVisible = useMemo(() => {
+    if (!battle) return false;
+    return battle.enemyIds
+      .map((id) => battle.combatants[id] as Enemy)
+      .some((e) => e.alive && isIntentRevealed(e));
   }, [battle]);
 
   if (!battle) return <div className="screen center">加载中…</div>;
@@ -476,7 +484,7 @@ export function BattleScreen() {
               cmb={a}
               currentTick={battle.tick}
               targetable={isPlayerTurn && !!needsAlly && a.alive}
-              isAggroTarget={a.id === aggroTargetId && a.alive}
+              isAggroTarget={aggroHintVisible && a.id === aggroTargetId && a.alive}
               attacking={a.id === attackerId}
               hit={hits[a.id] ?? null}
               onClick={() => onCombatantClick(a.id)}
