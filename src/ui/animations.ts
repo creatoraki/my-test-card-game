@@ -1,15 +1,29 @@
 // ============================================================================
 // 出牌动画预设表(纯 UI 表现层)。
-// 每个 CardAnim 对应一套: 攻击/辅助分类 + 首击特效 emoji + 主色 + 时间轴参数。
+// 每个 CardAnim 对应一套: 攻击/辅助分类 + 首击特效(emoji 或序列帧) + 主色 + 时间轴参数。
 // 具体视觉(受击抖动/斩击/火爆/柔光…)在 styles.css 里按 .vfx-<anim> / 反馈类实现。
 // ============================================================================
 
 import type { Card, CardAnim } from "../engine";
 import type { EnemyMove } from "../data";
+import { SWORD_FALL_FRAMES } from "./vfxSprites";
+
+// 序列帧特效参数。几何/时序集中在此(而非散落 CSS), 保证「登记一次」即可调。
+// 由 ui/SpriteFx.tsx 行内下发给逐帧 <img>。
+export interface SpritePreset {
+  frames: readonly string[]; // 逐帧图 URL(按播放顺序)
+  frameMs: number; // 每帧停留(ms); frames.length * frameMs 须 ≤ CINEMA.hitHold, 否则末尾帧会被卸载截断
+  width: number; // 渲染宽(px)
+  height: number; // 渲染高(px); 须与原图比例一致
+  anchorTop: number; // .vfx 图层相对卡面顶边的下移量(px), 决定冲击点落在目标何处
+  anchorY: number; // 冲击点在帧内的纵向位置(0~1), 用于把它对到锚点
+  impactMs: number; // 挂载 → 真正砸中的偏移(ms), 用于同步受击抖动/冲击环
+}
 
 export interface AnimPreset {
   kind: "attack" | "support"; // attack: 目标受击特效; support: 目标柔和光效
-  emoji: string; // 首击特效图形
+  emoji?: string; // 首击特效图形(无 sprite 时使用)
+  sprite?: SpritePreset; // 序列帧特效(存在时优先于 emoji)
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
@@ -39,6 +53,28 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   ice: { kind: "attack", emoji: "❄️", color: "#66d9e8", windup: 210, hold: 720 },
   lightning: { kind: "attack", emoji: "⚡", color: "#a5d8ff", windup: 130, hold: 600 },
   poison: { kind: "attack", emoji: "☠️", color: "#94d82d", windup: 190, hold: 720 },
+  // 魔剑坠落(序列帧): 12 帧 × 70ms = 840ms, 在 hitHold(1000ms) 内播完, 不循环。
+  // height 460 ≈ 4.8 倍身位; 上方约 247px(帧高 53.7%)会被舞台顶边裁掉 —— 素材构图里
+  // 00-02 凝聚段的剑位于帧内 5%~37%, 整段落在裁切线以上不可见, 特效实际从爆炸起步;
+  // 这是「不动布局换更大剑」的明确取舍, 非 bug。舞台 overflow:hidden 与相机 transform
+  // 同元素, 推近镜头并不会让出净空 —— 唯一的净空杠杆是 styles.css 里 .enemy-row 的
+  // padding-top(现 42px; 要让凝聚段完整可见需 ≥ 266px, 代价是敌人不再贴舞台顶)。
+  // 调 impactMs 时记得同步改 styles.css 里 swordFallRing 的百分比。
+  "sword-fall": {
+    kind: "attack",
+    color: "#ff4d4d", // 与素材红色剑光同色系(供闪白/冲击环/飘字着色)
+    sprite: {
+      frames: SWORD_FALL_FRAMES,
+      frameMs: 70,
+      width: 192, // 243:583 原始比例
+      height: 460,
+      anchorTop: 88, // 立绘(96px)脚下 = 剑插地处; anchorY 是帧内比例, 故放大无需动此值
+      anchorY: 0.82,
+      impactMs: 210, // 约第 3 帧砸中
+    },
+    windup: 210,
+    hold: 840,
+  },
   // —— 辅助系(柔和光效) ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720 },
   shield: { kind: "support", emoji: "🛡️", color: "#6ea8fe", windup: 200, hold: 700 },

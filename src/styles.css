@@ -173,10 +173,7 @@ code {
   gap: 12px;
   height: 100%;
   overflow: hidden;
-  /* 战斗背景图 + 压暗蒙版(保证前景文字/血条可读) */
-  background-image:
-    linear-gradient(rgba(15, 17, 24, 0.55), rgba(15, 17, 24, 0.7)),
-    url("./assets/战斗背景/森林.png");
+  background-image: url("./assets/战斗背景/森林.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -594,6 +591,54 @@ code {
 }
 .vfx-fire .vfx-emoji {
   animation: vfxPop 0.6s ease-out forwards;
+}
+
+/* —— 序列帧特效: 逐帧图堆叠, 各自亮起自己的时间片 —— */
+/* 基态 opacity:0 + 不设 fill-mode → 延迟期与播完后都回落到 0, 只在自己的时间片内亮。
+   挂载即播、卸载即停, 与 key={hit.seq} 重挂载重播天然契合, 无需任何 JS 计时器。
+   尺寸/位移/时序全部由 SpriteFx 按 ANIM 预设行内注入(见 ui/animations.ts 的 SpritePreset)。 */
+.vfx-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation-name: vfxFrameShow;
+  animation-timing-function: linear;
+}
+@keyframes vfxFrameShow {
+  from, to { opacity: 1; }
+}
+
+/* 播序列帧期间解开 .combatant 的 clip-path, 否则特效被裁死在卡面盒内。
+   代价是 10px 斜切角短暂消失 —— 1s 内伴随巨剑+闪白+抖动, 实际不可察觉。 */
+.combatant.vfx-open {
+  clip-path: none;
+}
+/* 状态 pip 定位在卡面盒外(top:-25px), 平时正被 clip-path 裁掉;
+   解开裁剪会让它们在特效期间闪现, 故显式隐藏。(pip 被裁是既存问题, 此处只避免闪现, 不修根因) */
+.combatant.vfx-open .combatant-statuses {
+  visibility: hidden;
+}
+
+/* 受击抖动/闪白推迟到剑真正砸中那一刻, 否则目标会先于剑落而抽搐。
+   hit-react 挂了 hitShake + hitFlash 两条动画, animation-delay 须写两个值一一对应。
+   基态即常态, 故延迟期无副作用; emoji 系特效 --vfx-impact 缺省 0, 行为不变。 */
+.combatant.hit-react {
+  animation-delay: var(--vfx-impact, 0ms), var(--vfx-impact, 0ms);
+}
+
+/* 冲击环同步到砸中时刻。不能直接给 .vfx-attack::after 加 animation-delay:
+   ringPop 是 forwards 且基态就是一个可见实心环, 延迟期它会静止杵在那儿;
+   改 fill-mode:both 又会在延迟期显示 from 态的小点。故把延迟烘进关键帧。 */
+.vfx-sword-fall.vfx-attack::after {
+  animation: swordFallRing 660ms ease-out forwards;
+}
+@keyframes swordFallRing {
+  /* 32% ≈ impactMs(210ms) / 660ms: 砸中前完全透明 */
+  0%, 31% { transform: scale(0.4); opacity: 0; }
+  32% { transform: scale(0.4); opacity: 0.9; }
+  /* 收尾 scale 跟随剑的尺寸走(14px 基座 × 13 ≈ 182px), 剑放大到 2 倍后环也翻倍, 否则比例失衡 */
+  100% { transform: scale(13); opacity: 0; }
 }
 
 /* —— 伤害/治疗飘字 —— */
@@ -1314,9 +1359,18 @@ button.big {
   grid-template-areas: "side stage";
   gap: 10px;
   padding: 16px;
-  background-image:
-    linear-gradient(#050708c9, #050708df),
-    url("./assets/战斗背景/森林.png");
+  background-image: url("./assets/战斗背景/森林.png");
+}
+/* 背景视频: 铺满战斗屏幕(含侧栏底下), 位于所有 UI 之下。父级 background-image 的静态图
+   保留为兜底, 视频就位后把它盖住。 */
+.battle-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
 }
 /* 战场舞台层: 敌人(上)/提示/友军(下)竖排; 相机变换的作用对象。overflow:hidden 让镜头
    推近时越界的单位被裁出画面; transform:none 静息态下布局与改造前一致(敌上友下)。 */
@@ -1338,8 +1392,10 @@ button.big {
 .battle-stage .ally-row {
   margin-top: auto; /* 把友军压到舞台底部 */
 }
+/* 边框描线要浮在背景视频之上(视频占 z-index:0), 故抬到 1; 仍在 .battle-stage 等 UI 之下,
+   因为同层级下 ::before 先于子元素绘制。 */
 .screen.battle::before {
-  z-index: 0;
+  z-index: 1;
 }
 .topbar,
 .card-drawer {

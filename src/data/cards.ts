@@ -35,7 +35,7 @@ export const CARD_DEFS: CardDef[] = [
     cardType: "normal",
     targeting: "foe",
     rarity: "common",
-    anim: "slash",
+    anim: "sword-fall",
     handArtOffsetY: 70,
     effects: [{ type: "DAMAGE", amount: 18, target: "primary" }],
     text: "选择一名敌人，挥出裂空一斩造成 18 点伤害。",

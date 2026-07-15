@@ -9,6 +9,9 @@ import { CardDetailPopup } from "./CardDetailPopup";
 import { SkillCutInCard } from "./SkillCutInCard";
 import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "./animations";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
+import { warmVfxSprites } from "./vfxSprites";
+import forestBgVideo from "../assets/战斗背景/森林.mp4";
+// import forestBgPoster from "../assets/战斗背景/森林.png";
 
 export function BattleScreen() {
   const battle = useBattleStore((s) => s.battle);
@@ -65,6 +68,12 @@ export function BattleScreen() {
 
   // 卸载时清理计时器
   useEffect(() => () => clearTimers(), []);
+
+  // 预热序列帧特效素材: 帧图是 12 个独立请求, 不预热首次播放会逐帧闪。
+  // 放在进战斗时(而非模块顶层)以免菜单界面白付流量; 到首次命中至少有 beat+zoomIn 的余量。
+  useEffect(() => {
+    warmVfxSprites();
+  }, []);
 
   // 同步渲染列表 = 引擎手牌 + 离场中的卡。引擎手牌里消失的卡标记 leaving(出鞘渐隐, 保留原位),
   // 新增的卡追加到末尾(挂载即飞入)。leaving 卡在其离场动画结束后由 handleCardExited 移除。
@@ -341,6 +350,17 @@ export function BattleScreen() {
 
   return (
     <div className="screen battle" onClick={() => setSelectedUid(null)}>
+      {/* 背景动画层: 铺满整屏的循环视频; poster 是原静态图, 在视频解码前/失败时兜底 */}
+      <video
+        className="battle-bg-video"
+        src={forestBgVideo}
+        // poster={forestBgPoster}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      />
       {/* 战场舞台层: 相机(缩放/平移)的作用对象。全景时 transform:none, 布局与静息态一致。 */}
       <div
         className="battle-stage"

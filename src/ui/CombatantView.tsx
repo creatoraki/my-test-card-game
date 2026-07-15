@@ -2,6 +2,7 @@ import type { Ally, Combatant, Enemy } from "../engine";
 import { StatusPips } from "./StatusPips";
 import { ANIM, type HitFx } from "./animations";
 import { CharacterPortrait } from "./CharacterPortrait";
+import { SpriteFx } from "./SpriteFx";
 
 interface Props {
   cmb: Combatant;
@@ -26,6 +27,8 @@ export function CombatantView({
   const dead = !cmb.alive;
 
   const preset = hit ? ANIM[hit.anim] : null;
+  // 提出局部 const 保住闭包内的类型窄化(直接在 JSX 里写 preset.sprite! 会丢窄化)
+  const sprite = preset?.sprite;
   // 攻击 → 受击抖动闪光; 辅助 → 柔和光晕
   const reactClass = preset ? (preset.kind === "attack" ? "hit-react" : "bless-react") : "";
 
@@ -40,9 +43,19 @@ export function CombatantView({
         isAggroTarget ? "aggro-target" : "",
         attacking ? "attacking" : "",
         reactClass,
+        // 序列帧特效尺寸远超卡面盒, 需临时解开 .combatant 的 clip-path(见 styles.css .vfx-open)
+        sprite ? "vfx-open" : "",
       ].join(" ")}
-      // 特效主色: 供闪光/冲击环/光晕/飘字着色
-      style={preset ? ({ ["--vfx-color" as string]: preset.color } as React.CSSProperties) : undefined}
+      // --vfx-color: 特效主色, 供闪光/冲击环/光晕/飘字着色
+      // --vfx-impact: 挂载 → 砸中的偏移, 把受击抖动/闪白推迟到序列帧真正命中那一刻(emoji 系缺省 0, 行为不变)
+      style={
+        preset
+          ? ({
+              ["--vfx-color" as string]: preset.color,
+              ["--vfx-impact" as string]: `${sprite?.impactMs ?? 0}ms`,
+            } as React.CSSProperties)
+          : undefined
+      }
       onClick={(e) => {
         e.stopPropagation();
         if (targetable && onClick) onClick();
@@ -50,10 +63,17 @@ export function CombatantView({
     >
       {cmb.team === "enemy" && !dead && <EnemyIntent enemy={cmb as Enemy} currentTick={currentTick} />}
 
-      {/* 首击特效(斩击/火爆/柔光…) + 伤害/治疗飘字, 命中时刻挂载 */}
+      {/* 首击特效(序列帧/斩击/火爆/柔光…) + 伤害/治疗飘字, 命中时刻挂载。
+          key={hit.seq}: 连续命中时强制重挂载以重放动画。
+          序列帧用 anchorTop 把锚点下移到立绘脚下(剑插地处), emoji 系维持原有 .vfx 定位。 */}
       {hit && preset && (
-        <div className={`vfx vfx-${hit.anim} vfx-${preset.kind}`} key={hit.seq} aria-hidden>
-          <span className="vfx-emoji">{preset.emoji}</span>
+        <div
+          className={`vfx vfx-${hit.anim} vfx-${preset.kind}`}
+          key={hit.seq}
+          style={sprite ? { top: `${sprite.anchorTop}px` } : undefined}
+          aria-hidden
+        >
+          {sprite ? <SpriteFx sprite={sprite} /> : <span className="vfx-emoji">{preset.emoji}</span>}
         </div>
       )}
       {hit?.float && (
