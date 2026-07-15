@@ -3,7 +3,7 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { BattleState, EffectDescriptor } from "./types";
+import type { Ally, BattleState, EffectDescriptor } from "./types";
 import { ops } from "./ops";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
@@ -48,18 +48,25 @@ function applyEffect(
 ): void {
   const amount = effect.amount ?? 0;
   const unblockable = effect.flags?.includes("unblockable");
+  // 我方单位的攻击/防御属性为本人卡牌提供加成; 敌人招式共用本解释器但不受影响。
+  const src = state.combatants[sourceId];
+  const isAllySource = src?.team === "player";
   switch (effect.type) {
-    case "DAMAGE":
+    case "DAMAGE": {
+      const dmg = amount + (isAllySource ? (src as Ally).attack : 0);
       for (const id of targetIds)
-        ops.dealDamage(state, sourceId, id, amount, {
+        ops.dealDamage(state, sourceId, id, dmg, {
           isAttack: true,
           flags: effect.flags,
           unblockable,
         });
       break;
-    case "GAIN_BLOCK":
-      for (const id of targetIds) ops.gainBlock(state, id, amount);
+    }
+    case "GAIN_BLOCK": {
+      const blk = amount + (isAllySource ? (src as Ally).defense : 0);
+      for (const id of targetIds) ops.gainBlock(state, id, blk);
       break;
+    }
     case "HEAL":
       for (const id of targetIds) ops.heal(state, id, amount);
       break;

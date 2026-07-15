@@ -163,6 +163,8 @@ export interface BaseCombatant {
 export interface Ally extends BaseCombatant {
   team: "player";
   threat: number; // 仇恨值
+  attack: number; // 攻击加成: 本人卡牌的 DAMAGE 效果 +N
+  defense: number; // 防御加成: 本人卡牌的 GAIN_BLOCK 效果 +N
   charId: string;
 }
 

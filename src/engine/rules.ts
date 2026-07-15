@@ -49,4 +49,25 @@ export const RULES = {
   upgrade: {
     amountMultiplier: 1.4,
   },
+
+  // 角色养成 —— 等级 / 属性点 / 抽卡改造。
+  // 升级不涨基础属性, 只发属性点; 属性点要么加四维, 要么抽卡扩充个人卡组。
+  progression: {
+    partySize: 3, // 上阵人数上限
+    levelUpPoints: 5, // 每级获得的属性点
+    expPerEnemy: 10, // 遭遇战经验 = 敌人数 × 该值
+    expBase: 30, // 升至下一级所需 = expBase + expGrowth × (level - 1)
+    expGrowth: 15,
+    hpPerPoint: 3, // 每点生命 → 生命上限 +3
+    attackPerPoint: 1, // 每点攻击 → 本人卡牌 DAMAGE 效果 +1
+    defensePerPoint: 1, // 每点防御 → 本人卡牌 GAIN_BLOCK 效果 +1
+    threatPerPoint: 2, // 每点仇恨 → 初始仇恨 +2
+    drawCost: 2, // 抽一次卡消耗的属性点
+    drawChoices: 3, // 每次抽卡的候选数(3 选 1)
+  },
 } as const;
+
+// 升至下一级所需经验(level → level+1)。线性递增, 调曲线只动 RULES.progression。
+export function expToNext(level: number): number {
+  return RULES.progression.expBase + RULES.progression.expGrowth * (level - 1);
+}

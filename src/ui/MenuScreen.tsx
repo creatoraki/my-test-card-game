@@ -2,13 +2,14 @@ import { CHARACTERS } from "../data";
 import { RULES } from "../engine";
 import { useRunStore } from "../store/runStore";
 import { CharacterPortrait } from "./CharacterPortrait";
+import { TerminalNav } from "./TerminalNav";
 
 export function MenuScreen() {
-  const startRun = useRunStore((s) => s.startRun);
+  const enterTown = useRunStore((s) => s.enterTown);
 
   return (
     <div className="screen menu terminal-screen">
-      <TerminalNav active="远征准备" />
+      <TerminalNav active="启动" />
       <main className="menu-main">
         <div className="screen-kicker">系统 / 远征控制台</div>
         <h1 className="title">时刻方舟</h1>
@@ -25,8 +26,8 @@ export function MenuScreen() {
           ))}
         </div>
 
-        <button className="primary big" onClick={() => startRun()}>
-          启动远征
+        <button className="primary big" onClick={() => enterTown()}>
+          开始游戏
         </button>
 
         <div className="menu-hint">
@@ -40,18 +41,5 @@ export function MenuScreen() {
         </div>
       </main>
     </div>
-  );
-}
-
-function TerminalNav({ active }: { active: string }) {
-  return (
-    <header className="terminal-nav">
-      <span className="terminal-mark">AR//K</span>
-      <span>档案库</span>
-      <span className="nav-active">{active}</span>
-      <span>战术日志</span>
-      <span>配置</span>
-      <b>R1</b>
-    </header>
   );
 }

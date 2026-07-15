@@ -26,6 +26,8 @@ export interface AllyInit {
   emoji: string;
   maxHp: number;
   threat?: number;
+  attack?: number; // 攻击加成(缺省 0)
+  defense?: number; // 防御加成(缺省 0)
 }
 
 export interface BattleSetup {
@@ -55,6 +57,8 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
       statuses: [],
       alive: true,
       threat: a.threat ?? RULES.aggro.baseThreat,
+      attack: a.attack ?? 0,
+      defense: a.defense ?? 0,
     };
     combatants[a.id] = ally;
     playerIds.push(a.id);

@@ -1,74 +1,90 @@
-// Zustand store: 一次"跑"的流程管理 —— 持久卡组 + 遭遇战进度 + 战后奖励 + 界面切换。
+// Zustand store: 一次"远征"的流程管理 —— 地图进度 + 战后经验结算 + 界面切换。
+// 卡组/队伍/养成不在这里 —— 它们是城镇的持久资产, 见 townStore。
 
 import { create } from "zustand";
 import type { AllyInit, Card } from "../engine";
-import {
-  CHARACTERS,
-  RUN_SEQUENCE,
-  REWARD_CARD_POOL,
-  getCharacter,
-  makeCard,
-  upgradeCard,
-} from "../data";
+import { RULES } from "../engine";
+import { getCharacter, getEncounter, getMap } from "../data";
 import { useBattleStore } from "./battleStore";
+import { deriveStats, useTownStore, type ExpGain } from "./townStore";
 
-export type Screen = "menu" | "battle" | "reward" | "victory" | "defeat";
+export type Screen =
+  | "menu"
+  | "town"
+  | "formation"
+  | "expedition"
+  | "battle"
+  | "reward"
+  | "victory"
+  | "defeat";
 
 interface RunStore {
   screen: Screen;
-  deck: Card[]; // 持久卡组(实例)
-  roster: string[]; // 队伍角色 id
-  index: number; // 当前遭遇战下标
-  rewardCards: string[]; // 本次奖励可选的卡 id
+  mapId: string | null; // 当前远征的地图
+  index: number; // 当前遭遇战下标(在地图 sequence 内)
+  expReport: ExpGain[]; // 上一场胜利的经验结算报告(结算页/胜利页展示)
   lastResult: "won" | "lost" | null;
 
-  startRun: () => void;
-  resolveBattle: () => void; // 战斗结束后调用: 判定胜负并推进
-  addCard: (cardId: string) => void;
-  upgradeRandom: () => void;
-  skipReward: () => void;
+  enterTown: () => void; // 主菜单 → 城镇(顺带建档)
+  openFormation: () => void; // 城镇 → 编队
+  openExpedition: () => void; // 城镇 → 远征选图
+  startExpedition: (mapId: string) => void; // 选定地图 → 开打
+  resolveBattle: () => void; // 战斗结束后调用: 判定胜负、发经验并推进
+  confirmExpReport: () => void; // 结算页确认 → 下一场
+  backToTown: () => void;
   backToMenu: () => void;
 }
 
-function pickRewards(n: number): string[] {
-  const pool = [...REWARD_CARD_POOL];
-  const out: string[] = [];
-  for (let i = 0; i < n && pool.length; i++) {
-    const idx = Math.floor(Math.random() * pool.length);
-    out.push(pool.splice(idx, 1)[0]);
-  }
-  return out;
-}
-
-function alliesFor(roster: string[]): AllyInit[] {
-  return roster.map((id) => {
+// 战斗卡组 = 上阵角色个人卡组的集合; 我方单位数值 = 基础值 + 属性点收益。
+// createBattle 会直接引用传入的卡实例(不拷贝), 而个人卡组是城镇的持久资产 ——
+// 故必须传副本, 否则战斗中的改动会污染城镇卡组。
+function launchBattle(mapId: string, index: number): void {
+  const { characters, party } = useTownStore.getState();
+  const encounterId = getMap(mapId).sequence[index];
+  const battleDeck: Card[] = party.flatMap((id) => structuredClone(characters[id].deck));
+  const allies: AllyInit[] = party.map((id) => {
     const c = getCharacter(id);
-    return { id: c.id, charId: c.id, name: c.name, emoji: c.emoji, maxHp: c.maxHp, threat: c.threat };
+    const s = deriveStats(characters[id]);
+    return {
+      id: c.id,
+      charId: c.id,
+      name: c.name,
+      emoji: c.emoji,
+      maxHp: s.maxHp,
+      threat: s.threat,
+      attack: s.attack,
+      defense: s.defense,
+    };
   });
-}
-
-function launchBattle(index: number, deck: Card[], roster: string[]): void {
-  const encounterId = RUN_SEQUENCE[index];
-  useBattleStore.getState().init(encounterId, { allies: alliesFor(roster), deck });
+  useBattleStore.getState().init(encounterId, { allies, deck: battleDeck });
 }
 
 export const useRunStore = create<RunStore>((set, get) => ({
   screen: "menu",
-  deck: [],
-  roster: [],
+  mapId: null,
   index: 0,
-  rewardCards: [],
+  expReport: [],
   lastResult: null,
 
-  startRun: () => {
-    const roster = CHARACTERS.map((c) => c.id);
-    const deck: Card[] = [];
-    for (const c of CHARACTERS) for (const cid of c.startingCardIds) deck.push(makeCard(cid));
-    set({ deck, roster, index: 0, rewardCards: [], lastResult: null, screen: "battle" });
-    launchBattle(0, deck, roster);
+  enterTown: () => {
+    useTownStore.getState().ensureProfile();
+    set({ screen: "town" });
+  },
+
+  openFormation: () => {
+    useTownStore.getState().ensureProfile();
+    set({ screen: "formation" });
+  },
+
+  openExpedition: () => set({ screen: "expedition" }),
+
+  startExpedition: (mapId) => {
+    set({ mapId, index: 0, expReport: [], lastResult: null, screen: "battle" });
+    launchBattle(mapId, 0);
   },
 
   resolveBattle: () => {
+    if (get().screen !== "battle") return; // 幂等护栏: 防重复触发重复发经验
     const battle = useBattleStore.getState().battle;
     if (!battle) return;
     if (battle.phase === "lost") {
@@ -77,47 +93,34 @@ export const useRunStore = create<RunStore>((set, get) => ({
     }
     if (battle.phase !== "won") return;
 
-    const { index } = get();
-    const isLast = index >= RUN_SEQUENCE.length - 1;
-    if (isLast) {
-      set({ screen: "victory", lastResult: "won" });
-    } else {
-      set({ screen: "reward", rewardCards: pickRewards(3), lastResult: "won" });
-    }
+    const { index, mapId } = get();
+    if (!mapId) return;
+
+    // 胜利即发经验(含最终战), 战斗无卡牌奖励 —— 卡只能在编队里花属性点抽。
+    const town = useTownStore.getState();
+    const encounterId = getMap(mapId).sequence[index];
+    const exp = getEncounter(encounterId).enemies.length * RULES.progression.expPerEnemy;
+    const expReport = town.grantExp(town.party, exp);
+
+    const isLast = index >= getMap(mapId).sequence.length - 1;
+    set({ screen: isLast ? "victory" : "reward", expReport, lastResult: "won" });
   },
 
-  addCard: (cardId) => {
-    const deck = [...get().deck, makeCard(cardId)];
-    set({ deck });
-    advance(set, get);
+  confirmExpReport: () => {
+    const { index, mapId } = get();
+    if (!mapId) return;
+    const next = index + 1;
+    set({ index: next, screen: "battle", expReport: [] });
+    launchBattle(mapId, next);
   },
 
-  upgradeRandom: () => {
-    const deck = get().deck;
-    const candidates = deck.filter((c) => !c.upgraded);
-    if (candidates.length) {
-      const c = candidates[Math.floor(Math.random() * candidates.length)];
-      upgradeCard(c);
-      set({ deck: [...deck] });
-    }
-    advance(set, get);
+  backToTown: () => {
+    useBattleStore.getState().clear();
+    set({ screen: "town", mapId: null, index: 0, expReport: [], lastResult: null });
   },
-
-  skipReward: () => advance(set, get),
 
   backToMenu: () => {
     useBattleStore.getState().clear();
-    set({ screen: "menu", deck: [], roster: [], index: 0, rewardCards: [], lastResult: null });
+    set({ screen: "menu", mapId: null, index: 0, expReport: [], lastResult: null });
   },
 }));
-
-// 进入下一场战斗
-function advance(
-  set: (partial: Partial<RunStore>) => void,
-  get: () => RunStore,
-): void {
-  const { index, deck, roster } = get();
-  const next = index + 1;
-  set({ index: next, screen: "battle", rewardCards: [] });
-  launchBattle(next, deck, roster);
-}

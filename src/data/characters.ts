@@ -6,9 +6,10 @@ export interface CharacterDef {
   name: string;
   emoji: string;
   color: string; // 占位配色(UI 用)
-  maxHp: number;
-  threat: number; // 初始仇恨
+  maxHp: number; // 基础生命(属性点收益之外的底值)
+  threat: number; // 基础仇恨
   startingCardIds: string[];
+  poolCardIds: string[]; // 专属抽卡池: 编队里花属性点 3 选 1 获得(允许重复)
 }
 
 export const CHARACTERS: CharacterDef[] = [
@@ -20,5 +21,13 @@ export const CHARACTERS: CharacterDef[] = [
     maxHp: 70,
     threat: 16,
     startingCardIds: ["whirlwind-slash", "lightning-infused", "sky-rend"],
+    poolCardIds: [
+      "quick-slash",
+      "guard-stance",
+      "shield-bash",
+      "battle-cry",
+      "second-wind",
+      "heavy-cleave",
+    ],
   },
 ];

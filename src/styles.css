@@ -1311,7 +1311,9 @@ button.big {
   background: var(--accent);
   box-shadow: 0 0 7px #d8f32980;
 }
-.menu-main {
+.menu-main,
+.town-main,
+.expedition-main {
   position: relative;
   z-index: 1;
   display: flex;
@@ -1836,6 +1838,456 @@ button.big {
   border-radius: 0;
   background: #151c20;
   border-color: #475358;
+}
+
+/* ===================== 城镇 ===================== */
+/* 设施卡沿用终端皮肤的切角描边; 未开放的设施保持在位但压暗, 用于预示后续内容。 */
+.town-facilities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 220px));
+  gap: 12px;
+  margin-top: 6px;
+}
+.facility {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 14px;
+  min-height: 132px;
+  border: 1px solid #3c484b;
+  border-radius: 0;
+  background: #0b0f11d9;
+  text-align: center;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.facility small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.facility-emoji {
+  font-size: 30px;
+  line-height: 1.2;
+}
+.facility-name {
+  color: #eef3ef;
+  font-size: 15px;
+  font-weight: 700;
+}
+.facility.open {
+  border-color: var(--accent);
+  background: linear-gradient(160deg, #16201cf2, #0b0f11e6);
+}
+.facility.open:hover {
+  transform: translateY(-2px);
+  border-color: #eef3ef;
+}
+.facility.open .facility-emoji {
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+.facility:disabled {
+  opacity: 0.42;
+  filter: grayscale(1);
+  cursor: not-allowed;
+}
+.facility-lock {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: var(--warn);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.town-footer {
+  margin-top: 10px;
+}
+
+/* ===================== 远征选图 ===================== */
+.map-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.map-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 236px;
+  padding: 20px 16px 16px;
+  border: 1px solid #3c484b;
+  border-radius: 0;
+  background: #0b0f11d9;
+  text-align: center;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.map-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  background: linear-gradient(160deg, #16201cf2, #0b0f11e6);
+}
+.map-card .choice-index {
+  position: absolute;
+  top: 7px;
+  left: 10px;
+}
+.map-emoji {
+  font-size: 34px;
+  line-height: 1.2;
+}
+.map-name {
+  color: #eef3ef;
+  font-size: 16px;
+  font-weight: 700;
+}
+.map-difficulty {
+  color: var(--warn);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.map-difficulty .dim {
+  color: #3c484b;
+}
+.map-desc {
+  color: var(--muted);
+  line-height: 1.6;
+  min-height: 44px;
+}
+.map-meta {
+  margin-top: 2px;
+  padding: 2px 8px;
+  border: 1px solid #475358;
+  background: #151c20;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.expedition-footer {
+  margin-top: 10px;
+}
+
+/* ===================== 编队 ===================== */
+.formation-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  padding: 24px 24px 36px;
+  flex: 1;
+  min-height: 0;
+}
+.formation-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.formation-head .terminal-heading {
+  margin: 4px 0 0;
+}
+.formation-sub {
+  margin: 0 0 6px;
+}
+.formation-layout {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+/* 左栏: 角色列表 */
+.roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #3c484b;
+  background: #0a0e10b8;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  cursor: pointer;
+}
+.roster-item:hover {
+  border-color: #5a6a6e;
+}
+.roster-item.selected {
+  border-color: var(--accent);
+  background: linear-gradient(160deg, #10181bd9, #0c1113e8);
+}
+.roster-portrait {
+  width: 44px;
+  height: 58px;
+}
+.roster-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: left;
+}
+.roster-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.roster-level {
+  color: var(--muted);
+  font-size: 11px;
+}
+.roster-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.roster-tag {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  border: 1px solid #3c484b;
+  padding: 1px 6px;
+}
+.roster-tag.on {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.roster-toggle {
+  font-size: 11px;
+  padding: 2px 10px;
+}
+
+/* 右栏: 角色详情 */
+.char-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #3c484b;
+  background: #0b0f11d9;
+  padding: 16px;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  text-align: left;
+}
+.detail-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.detail-portrait {
+  width: 72px;
+  height: 96px;
+}
+.detail-id {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.detail-id h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.detail-points {
+  text-align: center;
+  border: 1px solid var(--accent);
+  padding: 8px 16px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.detail-points b {
+  display: block;
+  font-size: 24px;
+  color: var(--accent);
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.detail-block {
+  border: 1px solid #2c3639;
+  padding: 12px;
+  background: #0a0e10a0;
+}
+.detail-block h3 {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* 属性加点 */
+.attr-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px dashed #232c2f;
+}
+.attr-label {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.attr-value {
+  font-weight: 700;
+  font-size: 15px;
+}
+.attr-alloc {
+  font-size: 11px;
+}
+.attr-plus {
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  line-height: 1;
+}
+.attr-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+}
+
+/* 装备占位槽 */
+.equip-slots {
+  display: flex;
+  gap: 10px;
+}
+.equip-slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border: 1px dashed #3c484b;
+  color: var(--muted);
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+.equip-emoji {
+  font-size: 22px;
+}
+
+/* 个人卡组 */
+.personal-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.deck-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* 抽卡 3 选 1 弹层(无关闭按钮, 必须选择) */
+.draw-modal {
+  position: fixed;
+  inset: 0;
+  background: #05080add;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.draw-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 32px;
+  border: 1px solid var(--accent);
+  background: #0b0f11f2;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  max-width: min(880px, 92vw);
+}
+
+/* ===================== 经验结算 ===================== */
+.exp-report {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(520px, 100%);
+}
+.exp-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #3c484b;
+  background: #0a0e10b8;
+  padding: 10px 14px;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  text-align: left;
+}
+.exp-row.leveled {
+  border-color: var(--accent);
+}
+.exp-portrait {
+  width: 48px;
+  height: 64px;
+}
+.exp-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.exp-name-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.exp-name {
+  font-weight: 700;
+}
+.exp-gain {
+  color: var(--accent);
+  font-weight: 700;
+}
+.exp-bar {
+  width: 100%;
+  max-width: 280px;
+  height: 8px;
+  background: #151c20;
+  border: 1px solid #3c484b;
+}
+.exp-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+.exp-levelup {
+  color: var(--warn);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.deck-summary-char + .deck-summary-char {
+  margin-top: 12px;
+}
+
+@media (max-width: 820px) {
+  .town-facilities {
+    grid-template-columns: repeat(2, minmax(150px, 200px));
+  }
+  .formation-layout {
+    grid-template-columns: 1fr;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1100px) {
