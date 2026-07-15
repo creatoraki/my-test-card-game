@@ -1,0 +1,47 @@
+- generic [ref=e29]:
+  - generic [ref=e30]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - 'generic "意图: 撞击" [ref=e33]':
+          - generic [ref=e34]: ⚔️6
+          - generic "距离下次行动的时刻" [ref=e35]: ⏱3
+        - generic [ref=e36]: 🟢
+        - generic [ref=e38]:
+          - generic [ref=e39]: 史莱姆 A
+          - generic [ref=e40]: 30/30
+      - generic [ref=e44]:
+        - 'generic "意图: 撞击" [ref=e45]':
+          - generic [ref=e46]: ⚔️6
+          - generic "距离下次行动的时刻" [ref=e47]: ⏱3
+        - generic [ref=e48]: 🟢
+        - generic [ref=e50]:
+          - generic [ref=e51]: 史莱姆 B
+          - generic [ref=e52]: 30/30
+    - generic [ref=e56]: 点击卡牌打出。普通牌会推进 1 时刻, 速攻牌不推进。
+    - generic [ref=e58]:
+      - img "剑士立绘" [ref=e60]
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - text: 剑士
+          - generic "仇恨值" [ref=e63]: 🎯16
+        - generic [ref=e64]: 70/70
+  - generic [ref=e68]:
+    - toolbar "手牌工具栏" [ref=e69]:
+      - generic "法力水晶（每回合的出牌资源）" [ref=e70]
+      - generic [ref=e95]:
+        - button "换牌" [ref=e96] [cursor=pointer]
+        - button "丢弃" [ref=e100] [cursor=pointer]
+    - generic [ref=e105]:
+      - generic [ref=e106] [cursor=pointer]:
+        - generic "消耗法力水晶" [ref=e107]: "2"
+        - generic [ref=e117]: 裂空
+        - 'generic "普通: 推进 1 时刻" [ref=e118]': 普
+      - generic [ref=e119] [cursor=pointer]:
+        - generic "消耗法力水晶" [ref=e120]: "2"
+        - generic [ref=e130]: 回旋斩
+        - 'generic "普通: 推进 1 时刻" [ref=e131]': 普
+      - generic [ref=e132] [cursor=pointer]:
+        - generic "消耗法力水晶" [ref=e133]: "1"
+        - generic [ref=e143]: 雷灌
+        - 'generic "普通: 推进 1 时刻" [ref=e144]': 普
+  - button "结束回合" [ref=e145] [cursor=pointer]

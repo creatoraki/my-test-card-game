@@ -11,7 +11,30 @@ import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "./animations";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
 import { warmVfxSprites } from "./vfxSprites";
 import forestBgVideo from "../assets/战斗背景/森林.mp4";
-// import forestBgPoster from "../assets/战斗背景/森林.png";
+
+// 相机下发给两个图层的 style: 前景(舞台)与背景(视频)。二者由同一个相机变换导出。
+interface CameraStyles {
+  stage: React.CSSProperties;
+  bg: React.CSSProperties;
+}
+
+// 前景与背景必须共用同一条 transition —— 视差关系全程精确成立就靠这个。
+// 二者都是 none → translate+scale, CSS 按分量线性插值, 于是任意时刻
+// S(τ)=1+(S-1)e(τ) 且 S_bg(τ)=1+(S-1)k·e(τ), 比值恒为 k, 过渡中不会错位。
+const CAMERA_TRANSITION = `transform ${CINEMA.zoomIn}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+
+const clamp = (v: number, lo: number, hi: number) =>
+  lo > hi ? (lo + hi) / 2 : Math.min(Math.max(v, lo), hi); // lo>hi = 出血不足, 取中点兜底
+
+// 把屏幕空间仿射 q → S·q + T 换算成某元素的局部 transform(配合 transform-origin: 0 0)。
+// 推导: 元素局部点 p 的未变换屏幕位置 q = O + p (O = 元素未变换时的屏幕左上角)。
+// 施加 translate(t) scale(S) 后屏幕位置 = O + S·p + t = S·q + t + (1-S)·O。
+// 令其等于 S·q + T ⇒ t = T - (1-S)·O。
+function screenAffineToLocal(S: number, T: { x: number; y: number }, origin: DOMRect): React.CSSProperties {
+  const tx = T.x - (1 - S) * origin.left;
+  const ty = T.y - (1 - S) * origin.top;
+  return { transform: `translate(${tx}px, ${ty}px) scale(${S})`, transformOrigin: "0 0" };
+}
 
 export function BattleScreen() {
   const battle = useBattleStore((s) => s.battle);
@@ -37,8 +60,10 @@ export function BattleScreen() {
   const [attackerId, setAttackerId] = useState<string | null>(null); // 正在弹出的施法者
   const [hits, setHits] = useState<Record<string, HitFx>>({}); // 各目标当前的受击特效
   const [cutInCard, setCutInCard] = useState<Card | null>(null); // 出牌亮相卡面(仅玩家出牌; null=不展示)
-  const [camera, setCamera] = useState<React.CSSProperties | null>(null); // 舞台层相机变换(null=全景)
-  const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(相机作用对象)
+  const [camera, setCamera] = useState<CameraStyles | null>(null); // 相机变换(null=全景)
+  const screenRef = useRef<HTMLDivElement>(null); // 战斗屏幕(相机画框, 也是唯一的裁切边界)
+  const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(前景: 敌我单位)
+  const bgRef = useRef<HTMLVideoElement>(null); // 背景视频层(按视差跟随相机)
   const [animating, setAnimating] = useState(false); // 动画期间锁输入
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
   const seqRef = useRef(0); // 批次序号, 用于取消旧动画批次的定时器回调
@@ -157,34 +182,65 @@ export function BattleScreen() {
     return { actorId: f.actorId, anim: moveAnim(move), snapshot: f.snapshot, hits: f.hits };
   }
 
-  // 计算相机变换: 把给定目标(多目标取并集)在舞台内居中并放大。
-  // 用 transformOrigin '0 0' + translate(tx,ty) scale(S), 令目标并集中心映射到舞台正中;
-  // 多目标时按并集宽高自适应收敛 S, 避免缩放后有目标溢出裁切。
-  function computeCamera(targetIds: string[]): React.CSSProperties | null {
-    const stage = stageRef.current;
-    if (!stage || targetIds.length === 0) return null;
-    const stageRect = stage.getBoundingClientRect();
+  // 计算相机变换: 把给定目标(多目标取并集)聚焦到画框中心并放大, 背景按视差跟随。
+  //
+  // 相机 = 一个屏幕空间仿射变换 q → S·q + T。前景(舞台)与背景(视频)各自把它换算到
+  // 自身局部坐标系(见 screenAffineToLocal), 因此二者严格同步 —— 这是「真聚焦」而非
+  // 「放大一个 div」的关键: 推近时森林与角色一起动。
+  //
+  // 取景框用舞台矩形(而非整屏): 目标居中到清晰可见区, 不会跑到左侧透明手牌栏底下;
+  // 整屏只是裁切边界, 让场景铺满、边缘不露馅。
+  //
+  // ⚠ 测量前提: 只在全景态(camera===null → transform:none)调用, 否则 getBoundingClientRect
+  // 量到的是变换后的矩形。runSteps 在 beat(500ms) 时刻调用, 上一步的 zoomOut(380ms) 早已结束。
+  function computeCamera(targetIds: string[]): CameraStyles | null {
+    const screen = screenRef.current, stage = stageRef.current, bg = bgRef.current;
+    if (!screen || !stage || !bg || targetIds.length === 0) return null;
+
+    // 目标并集包围盒(屏幕坐标)
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     for (const id of targetIds) {
       const el = stage.querySelector<HTMLElement>(`[data-cmb-id="${id}"]`);
       if (!el) continue;
       const r = el.getBoundingClientRect();
-      left = Math.min(left, r.left - stageRect.left);
-      top = Math.min(top, r.top - stageRect.top);
-      right = Math.max(right, r.right - stageRect.left);
-      bottom = Math.max(bottom, r.bottom - stageRect.top);
+      left = Math.min(left, r.left);
+      top = Math.min(top, r.top);
+      right = Math.max(right, r.right);
+      bottom = Math.max(bottom, r.bottom);
     }
     if (!isFinite(left)) return null;
-    const W = stageRect.width, H = stageRect.height;
-    const cx = (left + right) / 2, cy = (top + bottom) / 2; // 并集中心(舞台本地坐标)
-    // 并集需占据视野, 但留出边距(占屏 78%), 再与单目标上限 CINEMA.scale 取较小值防溢出。
+
+    const stageRect = stage.getBoundingClientRect();
+    const F = { x: (left + right) / 2, y: (top + bottom) / 2 }; // 聚焦点: 并集中心
+    const C = { x: stageRect.left + stageRect.width / 2, y: stageRect.top + stageRect.height / 2 }; // 画框中心
+
+    // 并集需占据视野, 但留出边距(占取景框 78%), 再与单目标上限 CINEMA.scale 取较小值防溢出。
     const spanW = Math.max(1, right - left), spanH = Math.max(1, bottom - top);
-    const fit = Math.min((W * 0.78) / spanW, (H * 0.78) / spanH);
+    const fit = Math.min((stageRect.width * 0.78) / spanW, (stageRect.height * 0.78) / spanH);
     const S = Math.max(1, Math.min(CINEMA.scale, fit));
-    const tx = W / 2 - S * cx, ty = H / 2 - S * cy;
+
+    // 前景: 把 F 映射到 C ⇒ T_fg = C - S·F
+    const Tfg = { x: C.x - S * F.x, y: C.y - S * F.y };
+
+    // 背景: 把前景拆成「以 C 为心缩放 S」+「平移 P = S·(C-F)」, 各按视差系数 k 衰减。
+    // k=0 → S_bg=1,T_bg=0(背景不动); k=1 → 与前景完全一致。
+    const k = CINEMA.bgParallax;
+    const Sbg = 1 + (S - 1) * k;
+    const Tbg = {
+      x: C.x - Sbg * C.x + k * S * (C.x - F.x),
+      y: C.y - Sbg * C.y + k * S * (C.y - F.y),
+    };
+
+    // 边缘钳制: 背景放大平移后必须仍盖住整个屏幕, 否则会露黑边。
+    // 出血(.battle-bg-video 的负 inset)通常让钳制不触发; 真触发时表现为「镜头顶到场景边界」。
+    const screenRect = screen.getBoundingClientRect();
+    const bgRect = bg.getBoundingClientRect();
+    Tbg.x = clamp(Tbg.x, screenRect.right - Sbg * bgRect.right, screenRect.left - Sbg * bgRect.left);
+    Tbg.y = clamp(Tbg.y, screenRect.bottom - Sbg * bgRect.bottom, screenRect.top - Sbg * bgRect.top);
+
     return {
-      transform: `translate(${tx}px, ${ty}px) scale(${S})`,
-      transformOrigin: "0 0",
+      stage: screenAffineToLocal(S, Tfg, stageRect),
+      bg: screenAffineToLocal(Sbg, Tbg, bgRect),
     };
   }
 
@@ -349,26 +405,32 @@ export function BattleScreen() {
   const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
 
   return (
-    <div className="screen battle" onClick={() => setSelectedUid(null)}>
-      {/* 背景动画层: 铺满整屏的循环视频; poster 是原静态图, 在视频解码前/失败时兜底 */}
+    <div className="screen battle" ref={screenRef} onClick={() => setSelectedUid(null)}>
+      {/* 背景层: 铺满整屏(带出血)的循环视频。作为相机的远景平面, 按 CINEMA.bgParallax 衰减跟随。 */}
       <video
+        ref={bgRef}
         className="battle-bg-video"
         src={forestBgVideo}
-        // poster={forestBgPoster}
         autoPlay
         loop
         muted
         playsInline
         preload="auto"
+        style={{
+          transition: CAMERA_TRANSITION,
+          transform: camera?.bg.transform ?? "none",
+          transformOrigin: "0 0",
+        }}
       />
-      {/* 战场舞台层: 相机(缩放/平移)的作用对象。全景时 transform:none, 布局与静息态一致。 */}
+      {/* 战场舞台层: 相机的近景平面。全景时 transform:none, 布局与静息态一致。
+          裁切在 .screen.battle(整屏), 故推近时角色可越过舞台边界铺满画面。 */}
       <div
         className="battle-stage"
         ref={stageRef}
         style={{
-          transition: `transform ${CINEMA.zoomIn}ms cubic-bezier(0.22, 0.61, 0.36, 1)`,
-          transform: camera?.transform ?? "none",
-          transformOrigin: camera?.transformOrigin ?? "0 0",
+          transition: CAMERA_TRANSITION,
+          transform: camera?.stage.transform ?? "none",
+          transformOrigin: "0 0",
         }}
       >
         {/* 敌人 */}

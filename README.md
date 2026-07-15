@@ -81,9 +81,18 @@ my-test-card-game/
    │
    └─ ui/                  # React 视图层（纯展示 + 派发，不含规则）
       ├─ MenuScreen.tsx    # 主菜单：队伍预览 + 开始远征
-      ├─ BattleScreen.tsx  # 战斗主界面：敌我单位/手牌/日志/胜负遮罩
-      ├─ CombatantView.tsx # 单个战斗单位（血条/护盾/状态/敌人意图）
-      ├─ CardView.tsx      # 单张卡牌
+      ├─ BattleScreen.tsx  # ★ 战斗主界面：敌我单位/手牌/胜负遮罩 + 分镜编排 + 场景相机
+      ├─ animations.ts     # ★ 出牌动画预设表：CINEMA 分镜时间轴/相机参数 + ANIM 每种特效的预设
+      ├─ CombatantView.tsx # 单个战斗单位（血条/护盾/状态/敌人意图 + 受击特效挂载点）
+      ├─ CharacterPortrait.tsx # 角色立绘（有图用图，无图回退 emoji）
+      ├─ SpriteFx.tsx      # 序列帧播放器（逐帧 <img> 用 animation-delay 错开）
+      ├─ vfxSprites.ts     # 序列帧图 URL 表 + 预加载
+      ├─ SkillCutInCard.tsx# 出牌「亮相」卡面浮层（左侧飞入 → 停留 → 飞出）
+      ├─ HandCard.tsx      # 手牌单卡（发牌飞入 / 出鞘离场）
+      ├─ CardView.tsx      # 单张卡牌（奖励/结算界面用）
+      ├─ CardDetailPopup.tsx # 悬浮手牌时跟随的详情浮窗
+      ├─ ManaCrystalIcon.tsx # 「光」资源水晶图标
+      ├─ cardArt.ts        # 卡面配图查找表
       ├─ StatusPips.tsx    # 状态图标一排（emoji + 层数）
       ├─ RewardScreen.tsx  # 战后奖励：三选一加卡 / 强化
       └─ EndScreen.tsx     # 远征结算：胜/负 + 最终卡组
@@ -157,12 +166,33 @@ my-test-card-game/
 | 文件 | 功能 |
 | --- | --- |
 | `MenuScreen.tsx` | 主菜单：队伍预览 + 玩法要点 + 「开始一次远征」。 |
-| `BattleScreen.tsx` | 战斗主界面：顶部信息条（回合/时刻/光/牌堆数）、敌我单位、目标选择交互、手牌区、结束回合按钮、战斗日志、胜负遮罩。同时高亮敌人预计攻击的最高仇恨友军。 |
-| `CombatantView.tsx` | 单个战斗单位卡片：立绘、血条、护盾徽章、状态图标、仇恨值；敌人额外显示**意图徽章 + 行动倒计时**。 |
-| `CardView.tsx` | 单张卡牌：消耗、普通/速攻标签、归属角色配色、名称与描述、可出/选中/已强化状态样式。 |
+| `BattleScreen.tsx` | 战斗主界面：顶部信息条（回合/时刻/光/牌堆数）、敌我单位、目标选择交互、手牌区、结束回合按钮、胜负遮罩。同时高亮敌人预计攻击的最高仇恨友军。另含**分镜编排**（`runSteps` 定时器队列）与**场景相机**（`computeCamera`）。 |
+| `animations.ts` | **★ 动画预设表**：`CINEMA`（分镜时间轴 + 相机缩放/视差系数）、`ANIM`（每种 `CardAnim` 的特效图形/主色/时序）、`cardAnim`/`moveAnim`（卡牌与敌人招式 → 动画类型）。调演出节奏主要改这里。 |
+| `CombatantView.tsx` | 单个战斗单位卡片：立绘、血条、护盾徽章、状态图标、仇恨值；敌人额外显示**意图徽章 + 行动倒计时**。带 `data-cmb-id`（相机据此定位聚焦目标），并挂载受击特效层与飘字。 |
+| `CharacterPortrait.tsx` | 角色立绘：有配图用图，无图回退 emoji。 |
+| `SpriteFx.tsx` | 序列帧播放器：把 `SpritePreset` 的所有帧堆叠为 `<img>`，用 `animation-delay` 逐帧错开播放。 |
+| `vfxSprites.ts` | 序列帧图 URL 列表（如魔剑坠落 12 帧）+ `warmVfxSprites()` 预加载。 |
+| `SkillCutInCard.tsx` | 出牌「亮相」卡面浮层：镜头聚焦后从左侧飞入 → 停留 → 往右飞出渐隐。挂在场景之外，不受相机影响。 |
+| `HandCard.tsx` | 手牌单卡：发牌飞入、悬浮弹出、出鞘离场。 |
+| `CardView.tsx` | 单张卡牌（奖励/结算界面用）：消耗、普通/速攻标签、归属角色配色、名称与描述、可出/选中/已强化状态样式。 |
+| `CardDetailPopup.tsx` | 悬浮手牌时跟随鼠标的卡牌详情浮窗。 |
+| `ManaCrystalIcon.tsx` | 「光」资源的水晶图标（SVG）。 |
+| `cardArt.ts` | 卡牌 id → 卡面配图的查找表。 |
 | `StatusPips.tsx` | 一排状态图标（emoji + 层数），悬停显示状态说明。 |
 | `RewardScreen.tsx` | 战后奖励：三选一加卡，或强化一张随机牌 / 跳过。 |
 | `EndScreen.tsx` | 远征结算：显示胜/负、进度与最终卡组，返回主菜单。 |
+
+#### 分镜相机（`BattleScreen.tsx` + `animations.ts`）
+
+每一步（玩家出牌 / 敌人行动）走同一套时序：施法者弹出 → 顿（全景）→ 镜头推近聚焦目标 →〔仅玩家出牌：卡面亮相〕→ 命中特效 + 飘字停留 → 镜头恢复归位 → 下一步。
+
+相机是**整屏场景相机**，不是「把某个 div 放大」：
+
+- 相机被建模为**一个屏幕空间仿射变换** `q → S·q + T`。前景（`.battle-stage`）与背景（`.battle-bg-video`）各自通过 `screenAffineToLocal` 换算到自身局部坐标系，因此严格同步 —— 推近时森林与角色一起动。
+- 背景按 `CINEMA.bgParallax`（0.35）**衰减跟随**：前景 1.55x 时背景约 1.19x，近快远慢 → 有纵深，且背景放大少、更清晰。系数取 0 即退回「背景不动」的老行为，取 1 则与前景完全同步。
+- **画框**用舞台矩形（目标居中到清晰可见区，不会跑到左侧透明手牌栏底下）；**裁切**统一在 `.screen.battle`（整屏），前景与背景共用同一个边界 —— 若各自裁切，角色被裁在舞台内而背景铺满整屏，边界对不上就会脱节。
+- 背景视频带 `inset: -10%` 出血，配合 `computeCamera` 里的边缘钳制，视差平移时不露黑边。
+- ⚠ 所有测量都必须在**全景态**（`camera === null` → `transform: none`）进行，否则 `getBoundingClientRect()` 量到的是变换后的矩形。
 
 ---
 
