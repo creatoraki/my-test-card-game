@@ -25,7 +25,7 @@ interface CameraStyles {
 const CAMERA_TRANSITION = `transform ${CINEMA.zoomIn}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
 
 const clamp = (v: number, lo: number, hi: number) =>
-  lo > hi ? (lo + hi) / 2 : Math.min(Math.max(v, lo), hi); // lo>hi = 出血不足, 取中点兜底
+  lo > hi ? (lo + hi) / 2 : Math.min(Math.max(v, lo), hi); // lo>hi = 背景缩放余量不足, 取中点兜底
 
 // 把屏幕空间仿射 q → S·q + T 换算成某元素的局部 transform(配合 transform-origin: 0 0)。
 // 推导: 元素局部点 p 的未变换屏幕位置 q = O + p (O = 元素未变换时的屏幕左上角)。
@@ -242,8 +242,8 @@ export function BattleScreen() {
       y: C.y - Sbg * C.y + k * S * (C.y - F.y),
     };
 
-    // 边缘钳制: 背景放大平移后必须仍盖住整个屏幕, 否则会露黑边。
-    // 出血(.battle-bg-video 的负 inset)通常让钳制不触发; 真触发时表现为「镜头顶到场景边界」。
+    // 边缘钳制: 背景放大平移后必须仍盖住游戏画布, 否则会露黑边。
+    // 真触发时表现为「镜头顶到场景边界」。
     const screenRect = screen.getBoundingClientRect();
     const bgRect = bg.getBoundingClientRect();
     Tbg.x = clamp(Tbg.x, screenRect.right - Sbg * bgRect.right, screenRect.left - Sbg * bgRect.left);
@@ -416,8 +416,9 @@ export function BattleScreen() {
   const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
 
   return (
-    <div className="screen battle" ref={screenRef} onClick={() => setSelectedUid(null)}>
-      {/* 背景层: 铺满整屏(带出血)的循环视频。作为相机的远景平面, 按 CINEMA.bgParallax 衰减跟随。 */}
+    <div className="battle-viewport">
+      <div className="screen battle" ref={screenRef} onClick={() => setSelectedUid(null)}>
+      {/* 背景层: 精确铺满游戏画布的循环视频。作为相机的远景平面, 按 CINEMA.bgParallax 衰减跟随。 */}
       <video
         ref={bgRef}
         className="battle-bg-video"
@@ -602,7 +603,8 @@ export function BattleScreen() {
       <SkillCutInCard card={cutInCard} />
 
       {/* 卡牌右侧的详情浮窗 */}
-      <CardDetailPopup card={hoveredCard} anchor={hoverRect} />
+        <CardDetailPopup card={hoveredCard} anchor={hoverRect} />
+      </div>
     </div>
   );
 }

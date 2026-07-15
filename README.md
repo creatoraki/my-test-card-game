@@ -50,7 +50,7 @@ my-test-card-game/
 └─ src/
    ├─ main.tsx             # React 入口，渲染 <App/> 并引入全局样式
    ├─ App.tsx              # 顶层路由：按 runStore.screen 切换界面
-   ├─ styles.css           # 全局深色主题样式（约 640 行）
+  ├─ styles.css           # 全局深色主题样式 + 战斗画面 16:9 / 最大 2560×1440 画布约束
    │
    ├─ engine/              # ★ 纯 TS 战斗引擎（无 React，无副作用，可序列化、可复现）
    │  ├─ types.ts          # 所有共享类型定义（不含逻辑）
@@ -119,7 +119,7 @@ my-test-card-game/
 | --- | --- |
 | `main.tsx` | React 根渲染，`StrictMode` 包裹 `<App/>`，引入全局 `styles.css`。 |
 | `App.tsx` | **顶层路由**：读取 `runStore.screen`，在 `menu / battle / reward / victory / defeat` 之间切换对应界面组件。 |
-| `styles.css` | 全局深色主题：CSS 变量、卡牌 / 单位 / 血条 / 意图 / 遮罩等所有样式。 |
+| `styles.css` | 全局深色主题：CSS 变量、卡牌 / 单位 / 血条 / 意图 / 遮罩等所有样式；战斗画面固定为 16:9、最大 2560×1440，超出画布的视口区域以黑色填充。 |
 
 ### `src/engine/`（纯 TS 战斗引擎）
 
@@ -195,7 +195,7 @@ my-test-card-game/
 - 相机被建模为**一个屏幕空间仿射变换** `q → S·q + T`。前景（`.battle-stage`）与背景（`.battle-bg-video`）各自通过 `screenAffineToLocal` 换算到自身局部坐标系，因此严格同步 —— 推近时森林与角色一起动。
 - 背景按 `CINEMA.bgParallax`（0.35）**衰减跟随**：前景 1.55x 时背景约 1.19x，近快远慢 → 有纵深，且背景放大少、更清晰。系数取 0 即退回「背景不动」的老行为，取 1 则与前景完全同步。
 - **画框**用舞台矩形（目标居中到清晰可见区，不会跑到左侧透明手牌栏底下）；**裁切**统一在 `.screen.battle`（整屏），前景与背景共用同一个边界 —— 若各自裁切，角色被裁在舞台内而背景铺满整屏，边界对不上就会脱节。
-- 背景视频带 `inset: -10%` 出血，配合 `computeCamera` 里的边缘钳制，视差平移时不露黑边。
+- 背景视频精确覆盖固定的游戏画布，保持媒体原始宽高比；配合 `computeCamera` 里的边缘钳制，视差平移时不露黑边。
 - ⚠ 所有测量都必须在**全景态**（`camera === null` → `transform: none`）进行，否则 `getBoundingClientRect()` 量到的是变换后的矩形。
 
 ---
