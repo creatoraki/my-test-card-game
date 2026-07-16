@@ -1,14 +1,52 @@
 // 遭遇战数据 —— enemies 引用 enemies.ts 的敌人 id(可重复, createBattle 会自动加 A/B/C 后缀)。
 // 遭遇战的编排顺序不在此定义 —— 见 maps.ts, 由 MapDef.sequence 串成一次远征。
+//
+// 站位: 敌人默认由 .enemy-row 的 flex 水平居中自动排布; 想让某场战斗的敌人贴合背景地面时,
+// 把该槽位从 "id" 字符串改写成 { id, dx, dy, scale } 对象 —— 两种写法可在同一数组里混用,
+// 字符串等价于 { id } (无偏移)。坐标是"相对默认位置推开多少设计 px", 不是绝对坐标, 故未标注的
+// 遭遇战行为完全不变。消费方见 ui/CombatantView.tsx(下发 CSS 变量)与 styles.css(.combatant)。
+
+// 单位是"设计 px": 战斗画面是固定 1920×1080 的设计画布, 整体等比缩放去适配窗口(见 ui/stage.ts),
+// 故这里的偏移与玩家的实际分辨率无关 —— 一次调好, 任何窗口尺寸下站位都与背景严丝合缝。
+export interface EnemyPlacement {
+  id: string; // 敌人 def id
+  dx?: number; // 相对默认位置的水平偏移(设计 px), 右为正
+  dy?: number; // 相对默认位置的垂直偏移(设计 px), 下为正 —— 往下 = 站得更靠近镜头
+  // 远近透视缩放, 缺省 1。注意缩放中心是 .combatant 整个盒子的中心(含血条), 故改了 scale
+  // 通常要回头微调 dy 才能把脚重新踩回地面线。
+  scale?: number;
+}
+
+// 字符串 = 用默认排布位置; 对象 = 手工指定站位。
+export type EnemySlot = string | EnemyPlacement;
 
 export interface EncounterDef {
   id: string;
   name: string;
-  enemies: string[];
+  enemies: EnemySlot[];
+}
+
+// 两个 slot 取值器 —— 引擎只关心打谁(slotDefId), UI 只关心站哪(slotPlacement)。
+export function slotDefId(slot: EnemySlot): string {
+  return typeof slot === "string" ? slot : slot.id;
+}
+
+// 无偏移(字符串写法或对象只写了 id)时返回 undefined, 由 UI 走默认排布。
+export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
+  if (typeof slot === "string") return undefined;
+  return slot.dx == null && slot.dy == null && slot.scale == null ? undefined : slot;
 }
 
 export const ENCOUNTERS: EncounterDef[] = [
   { id: "e1", name: "林间怪响", enemies: ["weird-bird", "weird-bird"] },
   { id: "e2", name: "惊起的鸟群", enemies: ["weird-bird", "weird-bird", "weird-bird"] },
   { id: "e3", name: "巢穴深处", enemies: ["weird-bird", "weird-bird", "weird-bird", "weird-bird"] },
+  // 霓虹城市: 三台机器人散开在街上, 左右两台站得稍远(dy 小 + scale 略缩), 中间一台压向镜头。
+  {
+    id: "n1",
+    name: "废墟拾荒者",
+    enemies: [
+      { id: "scrap-bot", dx: -150, dy: 400, scale: 1.5 },
+    ],
+  },
 ];

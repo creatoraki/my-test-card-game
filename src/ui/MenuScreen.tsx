@@ -30,7 +30,7 @@ export function MenuScreen() {
           开始游戏
         </button>
 
-        <div className="menu-hint">
+        {/* <div className="menu-hint">
           <p>作战协议 / 基础规则</p>
           <ul>
             <li>每回合有 {RULES.resource.perRound} 点<b>法力水晶</b>用于出牌; 打<b>普通牌</b>会推进 1 时刻, <b>速攻牌</b>不推进。</li>
@@ -38,7 +38,7 @@ export function MenuScreen() {
             <li>全队共享一个牌库; 用<b>嘲讽</b>拉仇恨可改变敌人的攻击目标。</li>
             <li>击败敌人后可<b>选卡 / 强化</b>, 卡组在整场远征中持续成长。</li>
           </ul>
-        </div>
+        </div> */}
       </main>
     </div>
   );

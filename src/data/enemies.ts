@@ -55,4 +55,34 @@ export const ENEMIES: EnemyDef[] = [
     ],
     script: ["peck", "spore", "peck"],
   },
+  {
+    id: "scrap-bot",
+    name: "废品机器人",
+    emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
+    maxHp: 30,
+    castTick: 3,
+    moves: [
+      {
+        id: "peck",
+        name: "啄击",
+        emoji: "⚔️",
+        kind: "attack",
+        targeting: "foe",
+        effects: [{ type: "DAMAGE", amount: 6, target: "primary" }],
+      },
+      {
+        id: "spore",
+        name: "喷孢子",
+        emoji: "🤢",
+        kind: "debuff",
+        targeting: "foe",
+        anim: "poison",
+        effects: [
+          { type: "DAMAGE", amount: 3, target: "primary" },
+          { type: "APPLY_STATUS", status: "weak", stacks: 1, target: "primary" },
+        ],
+      },
+    ],
+    script: ["peck", "spore", "peck"],
+  },
 ];

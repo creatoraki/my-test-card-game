@@ -1,6 +1,7 @@
 // 敌人立绘素材集中登记处(与 cardArt.ts 同思路: 静态 import + 登记表)。
 // 新增敌人立绘时只需在此登记一次, 按 EnemyDef.id 作键。
 import birdIdleStrip from "../assets/敌人立绘/怪异的鸟/idle-strip.png";
+import scrapBotIdle from "../assets/敌人立绘/废品机器人/idle-cut.png";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
 // 注意这与 animations.ts 的 SpritePreset 是两套并列机制: 那套是逐帧独立图、播一次即停的
@@ -26,6 +27,17 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     width: 180,
     height: 150,
     skipFrames: [8, 9],
+  },
+  // 废品机器人: 静态单帧立绘(idle-cut.png 604×552, 由 scripts/chroma-cut.mjs 抠自 idle.png)。
+  // frames: 1 是刻意的而非漏填 —— 拼条机制在单帧下自然退化成一张不动的背景图, 无需特判;
+  // 此时 frameMs 只决定那条空转动画的时长, 不影响观感。
+  // 渲染 164×150 —— 高度撑满 .combatant-figure(150px), 宽度按 604/552 等比得 164。
+  "scrap-bot": {
+    src: scrapBotIdle,
+    frames: 1,
+    frameMs: 1000,
+    width: 164,
+    height: 150,
   },
 };
 

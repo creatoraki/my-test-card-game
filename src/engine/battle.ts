@@ -11,7 +11,7 @@ import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { actAndRecord, buildIntent } from "./ai";
 import { advanceTick } from "./scheduler";
-import { getEncounter, getEnemyDef } from "../data";
+import { getEncounter, getEnemyDef, slotDefId } from "../data";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -64,12 +64,15 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
     playerIds.push(a.id);
   }
 
+  // 槽位可以是裸 id 或带站位的对象; 站位是纯表现, 引擎只取 def id(见 data/encounters.ts)
+  const defIds = enc.enemies.map(slotDefId);
+
   // 统计同名敌人以便加后缀区分
   const defCounts: Record<string, number> = {};
-  for (const defId of enc.enemies) defCounts[defId] = (defCounts[defId] ?? 0) + 1;
+  for (const defId of defIds) defCounts[defId] = (defCounts[defId] ?? 0) + 1;
   const defSeen: Record<string, number> = {};
 
-  enc.enemies.forEach((defId, i) => {
+  defIds.forEach((defId, i) => {
     const def = getEnemyDef(defId);
     const id = `${defId}#${i}`;
     const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";

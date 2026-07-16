@@ -1,3 +1,4 @@
+import type { EnemyPlacement } from "../data";
 import { getStatus, type Ally, type Combatant, type Enemy } from "../engine";
 import { StatusPips } from "./StatusPips";
 import { ANIM, type HitFx } from "./animations";
@@ -13,6 +14,7 @@ interface Props {
   isAggroTarget?: boolean; // 是否是敌人预计攻击的我方目标(仇恨最高)
   attacking?: boolean; // 是否是当前出牌的施法者(前冲动画)
   hit?: HitFx | null; // 命中时刻下发的受击/首击特效
+  placement?: EnemyPlacement; // 手工站位(贴合背景地面); 省略则用 .enemy-row 的默认排布
   onClick?: () => void;
 }
 
@@ -23,6 +25,7 @@ export function CombatantView({
   isAggroTarget,
   attacking,
   hit,
+  placement,
   onClick,
 }: Props) {
   const hpPct = Math.max(0, (cmb.hp / cmb.maxHp) * 100);
@@ -38,6 +41,21 @@ export function CombatantView({
   // 攻击 → 受击抖动闪光; 辅助 → 柔和光晕
   const reactClass = preset ? (preset.kind === "attack" ? "hit-react" : "bless-react") : "";
 
+  // --vfx-color: 特效主色, 供闪光/冲击环/光晕/飘字着色
+  // --vfx-impact: 挂载 → 砸中的偏移, 把受击抖动/闪白推迟到序列帧真正命中那一刻(emoji 系缺省 0, 行为不变)
+  // --place-*: 手工站位, 由 styles.css 的 .combatant 落到独立的 translate/scale 属性上
+  // (不能走 transform —— 那条已被 hover/前冲/hitShake 占满, 见 styles.css)
+  const vars: Record<string, string> = {};
+  if (preset) {
+    vars["--vfx-color"] = preset.color;
+    vars["--vfx-impact"] = `${sprite?.impactMs ?? 0}ms`;
+  }
+  if (placement) {
+    if (placement.dx != null) vars["--place-dx"] = `${placement.dx}px`;
+    if (placement.dy != null) vars["--place-dy"] = `${placement.dy}px`;
+    if (placement.scale != null) vars["--place-scale"] = `${placement.scale}`;
+  }
+
   return (
     <div
       data-cmb-id={cmb.id}
@@ -50,16 +68,7 @@ export function CombatantView({
         attacking ? "attacking" : "",
         reactClass,
       ].join(" ")}
-      // --vfx-color: 特效主色, 供闪光/冲击环/光晕/飘字着色
-      // --vfx-impact: 挂载 → 砸中的偏移, 把受击抖动/闪白推迟到序列帧真正命中那一刻(emoji 系缺省 0, 行为不变)
-      style={
-        preset
-          ? ({
-              ["--vfx-color" as string]: preset.color,
-              ["--vfx-impact" as string]: `${sprite?.impactMs ?? 0}ms`,
-            } as React.CSSProperties)
-          : undefined
-      }
+      style={Object.keys(vars).length ? (vars as React.CSSProperties) : undefined}
       onClick={(e) => {
         e.stopPropagation();
         if (targetable && onClick) onClick();

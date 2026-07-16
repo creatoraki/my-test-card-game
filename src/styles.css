@@ -343,11 +343,19 @@ code {
 /* 无面板: 立绘直接浮在场景上, 下方依次是血条 → 状态/护盾/仇恨。
    高亮(可选中/仇恨目标/受益)一律走 drop-shadow 而非 box-shadow —— 没有面板盒可描边,
    drop-shadow 沿立绘轮廓发光才不会凭空出现一个矩形。 */
+/* --place-dx/dy/scale: 手工站位(贴合背景地面), 由 data/encounters.ts 的槽位登记、
+   ui/CombatantView.tsx 行内下发; 未登记的敌人取缺省值 = 完全不动, 仍由 .enemy-row 居中排布。
+   必须用独立的 translate/scale 属性而非 transform —— transform 已被三方占用(:hover、
+   .attacking 的前冲、hitShake 关键帧), 写进去会被受击抖动整条覆盖掉。独立属性按
+   translate → scale → transform 的固定顺序各自合成, 故前冲/抖动仍在站位基础上叠加生效。
+   注意缩放中心是本盒子的中心(含血条), scale 会连带把脚抬离地面, 故 dy 需配合微调。 */
 .combatant {
   position: relative;
   width: 144px;
   padding: 0;
   transition: transform 0.1s;
+  translate: var(--place-dx, 0) var(--place-dy, 0);
+  scale: var(--place-scale, 1);
 }
 .combatant.dead {
   opacity: 0.4;
@@ -1490,17 +1498,31 @@ button.big {
   width: 100%;
   height: 100%;
   min-height: 0;
-  display: grid;
-  place-items: center;
+  position: relative; /* 设计画布的定位参照(画布绝对定位居中, 见下) */
   overflow: hidden;
   background: #000;
 }
-/* 战斗画面固定为 16:9，最大 2560×1440；较大显示器的剩余区域保持黑色。 */
+/* 战斗画面 = 固定 1920×1080 的设计画布, 由 --stage-scale 等比缩放去适配窗口(k 由 ui/stage.ts
+   的 ResizeObserver 算出, BattleScreen 行内下发到 .battle-viewport)。16:9 与"最大 2560×1440、
+   更大的显示器留黑边"仍然成立 —— 前者由固定长宽保证, 后者是 STAGE.maxScale 的上限。
+
+   ⚠ 这条是画布内一切 px 的地基: 画布内的每个 px 都是"设计 px", 不随分辨率变 —— 敌人站位
+   (data/encounters.ts 的 dx/dy)、立绘尺寸、侧栏宽、字号在任何窗口下构图完全一致。故画布内
+   不要再写 vw/vh 或按窗口宽度的 @media 断点, 那会让构图重新随分辨率漂移。
+
+   ⚠ 居中必须靠绝对定位 + translate(-50%,-50%), 不能靠 flex/grid 的 place-items:center ——
+   transform 不改变布局, 布局盒恒为 1920×1080, 在小窗口下比容器还宽; 这时 place-items:center
+   无处可居中(轨道被撑到 1920 并从容器左边缘溢出), 布局盒始终落在 [0,1920], 而 scale 绕盒子中心
+   (x=960)收缩 → 可见范围变成 960±960k, 左/上留黑边、右/下被裁。translate 的百分比按自身边框盒
+   算(=固定的 -960/-540px)且排在 scale 左侧(不被 k 缩放), 故任何 k 下都精确居中。 */
 .battle-viewport .screen.battle {
-  width: min(100vw, 2560px, calc(100dvh * 16 / 9));
-  height: auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
   min-height: 0;
-  aspect-ratio: 16 / 9;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
 }
 .screen.battle {
   position: relative;
@@ -2388,13 +2410,9 @@ button.big {
   }
 }
 
-@media (max-width: 1100px) {
-  .screen.battle {
-    grid-template-columns: 192px minmax(0, 1fr);
-    grid-template-areas: "side stage";
-    grid-template-rows: minmax(0, 1fr);
-  }
-}
+/* 这里曾有一条 @media (max-width:1100px) 把战斗侧栏从 280px 压到 192px。战斗画面改成
+   1920×1080 的固定设计画布后该断点已被移除 —— 画布恒为 1920 宽, 按窗口宽度改侧栏 = 让构图
+   随分辨率漂移, 正是设计画布要消灭的东西。窄窗口下整个画面等比缩小即可。 */
 
 @media (max-width: 720px) {
   .terminal-nav {

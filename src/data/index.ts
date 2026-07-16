@@ -11,7 +11,14 @@ import { MAPS, type MapDef } from "./maps";
 export { CARD_DEFS } from "./cards";
 export { CHARACTERS, type CharacterDef } from "./characters";
 export { ENEMIES, type EnemyDef, type EnemyMove } from "./enemies";
-export { ENCOUNTERS, type EncounterDef } from "./encounters";
+export {
+  ENCOUNTERS,
+  slotDefId,
+  slotPlacement,
+  type EncounterDef,
+  type EnemyPlacement,
+  type EnemySlot,
+} from "./encounters";
 export { MAPS, type MapDef } from "./maps";
 
 function keyBy<T extends { id: string }>(arr: T[]): Record<string, T> {

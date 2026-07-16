@@ -72,7 +72,7 @@ my-test-card-game/
    │  ├─ cards.ts          # 卡牌定义（声明式效果）：剑士初始卡 + 专属抽卡池
    │  ├─ characters.ts     # 角色定义（HP / 仇恨 / 初始卡 / 专属抽卡池）
    │  ├─ enemies.ts        # 敌人定义（招式 + 意图脚本）
-   │  ├─ encounters.ts     # 遭遇战定义（每场的敌人组合）
+   │  ├─ encounters.ts     # 遭遇战定义（每场的敌人组合 + 可选的手工站位）
    │  ├─ maps.ts           # ★ 地图定义（名称/难度/遭遇战序列）—— 一张地图 = 一次远征
    │  └─ index.ts          # 数据注册表：按 id 索引 + 卡牌实例化/升级
    │
@@ -95,6 +95,8 @@ my-test-card-game/
       ├─ CharacterPortrait.tsx # 角色立绘（有图用图，无图回退 emoji）
       ├─ EnemySprite.tsx   # 敌人待机立绘播放器（横向拼条 + steps() 无限循环）
       ├─ enemyArt.ts       # 敌人 id → 待机拼条立绘的查找表 + 预加载
+      ├─ battleBg.ts       # 地图 id → 战斗背景素材（视频 / 静态图）的查找表 + 预加载
+      ├─ stage.ts          # ★ 战斗设计画布：STAGE(1920×1080 基准) + useStageScale（画布→窗口的等比缩放）
       ├─ SpriteFx.tsx      # 序列帧播放器（逐帧 <img> 用 animation-delay 错开）
       ├─ vfxSprites.ts     # 序列帧图 URL 表 + 预加载
       ├─ SkillCutInCard.tsx# 出牌「亮相」卡面浮层（左侧飞入 → 停留 → 飞出）
@@ -157,9 +159,9 @@ my-test-card-game/
 | --- | --- |
 | `cards.ts` | 全部卡牌定义（`CardDef[]`）：归属角色、消耗、普通/速攻、目标类型、声明式 `effects`、稀有度等。当前为剑士 3 张初始卡 + 6 张专属抽卡池占位卡。 |
 | `characters.ts` | 角色定义（当前仅剑士，占位）：HP、初始仇恨、配色、初始卡列表 `startingCardIds`、**专属抽卡池 `poolCardIds`**（编队里花属性点 3 选 1 获得）。 |
-| `enemies.ts` | 敌人定义（当前仅「怪异的鸟」，占位）：`castTick`（行动间隔）、`moves`（招式，复用效果系统）、`script`（循环意图脚本）。 |
-| `encounters.ts` | 遭遇战定义（每场的敌人组合）。**编排顺序不在此**——见 `maps.ts`。 |
-| `maps.ts` | **★ 地图定义**：`MapDef`（名称 / 描述 / 难度 1-5 / 占位 emoji / `sequence` 遭遇战序列）。**一张地图 = 一条线性的远征路线**；新增远征内容主要改这里。地图配图不在此登记（数据层不碰素材，与 `enemies.ts` 同约定）。 |
+| `enemies.ts` | 敌人定义（当前有「怪异的鸟」「废品机器人」，占位）：`castTick`（行动间隔）、`moves`（招式，复用效果系统）、`script`（循环意图脚本）。 |
+| `encounters.ts` | 遭遇战定义（每场的敌人组合）。**编排顺序不在此**——见 `maps.ts`。`enemies` 的每个槽位可写成裸 `"id"`（默认居中排布）或 `{ id, dx, dy, scale }`（**手工站位**，让敌人贴合背景地面；两种写法可混用）。`slotDefId`/`slotPlacement` 是配套取值器：引擎只取前者，站位不进 `BattleState`。 |
+| `maps.ts` | **★ 地图定义**：`MapDef`（名称 / 描述 / 难度 1-5 / 占位 emoji / `sequence` 遭遇战序列）。**一张地图 = 一条线性的远征路线**（`sequence` 只写一个遭遇战 id 即「只有 1 关」，打完直接进结算页，无需改 `runStore`）；新增远征内容主要改这里。地图配图不在此登记（数据层不碰素材，与 `enemies.ts` 同约定）——**战斗背景按 id 登记在 `ui/battleBg.ts`**。 |
 | `index.ts` | **数据注册表**：按 id 建索引 + `getXxx` getter（找不到抛错，含 `getMap`）；`makeCard`（实例化，深拷贝效果；**uid 用 `crypto.randomUUID` 生成**——卡组会持久化，不能用刷新即归零的内存计数器）与 `upgradeCard`（升级：数值按倍率提升、名称加 `+`）。 |
 
 ### `src/store/`（状态层，Zustand）
@@ -183,12 +185,14 @@ my-test-card-game/
 | `FormationScreen.tsx` | **★ 编队**：左栏角色列表（等级/属性点/上阵切换，至少 1 人、至多 3 人），右栏选中角色详情——四维属性加点（基础值 + 每点收益，即点即生效）、装备占位空槽（武器/护甲/饰品，未开放）、个人卡组网格、「抽取行动卡」（花 2 属性点）。抽卡后弹**无法关闭的 3 选 1 弹层**（候选在 `pendingDraw` 持久化，刷新也必须选完）。 |
 | `ExpeditionScreen.tsx` | **远征选图**：把 `MAPS` 渲染成卡片（emoji / 名称 / 难度星级 / 描述 / 场次数），点击即 `startExpedition(map.id)` 开局。 |
 | `TerminalNav.tsx` | 非战斗界面共用的顶部终端导航条（原为 `MenuScreen` 内的局部组件，多屏共用后提取）。除 `active` 外的条目仍是占位。 |
-| `BattleScreen.tsx` | 战斗主界面：顶部信息条（回合/时刻/光/牌堆数）、敌我单位、目标选择交互、手牌区、结束回合按钮、胜负遮罩。敌人预计攻击的最高仇恨友军会被高亮，但该提示同样属于「意图信息」——**仅当场上有敌人被「洞察」时才显示**。另含**分镜编排**（`runSteps` 定时器队列）与**场景相机**（`computeCamera`）。 |
+| `BattleScreen.tsx` | 战斗主界面：顶部信息条（回合/时刻/光/牌堆数）、敌我单位、目标选择交互、手牌区、结束回合按钮、胜负遮罩。敌人预计攻击的最高仇恨友军会被高亮，但该提示同样属于「意图信息」——**仅当场上有敌人被「洞察」时才显示**。另含**分镜编排**（`runSteps` 定时器队列）与**场景相机**（`computeCamera`）。背景层按当前 `runStore.mapId` 查 `battleBg.ts` 取素材，视频渲染 `<video>`、静态图渲染 `<img>`——两个分支共用同一份 `className`/`ref`/`style`（相机的前后景同步依赖这条共用 transition）。 |
 | `animations.ts` | **★ 动画预设表**：`CINEMA`（分镜时间轴 + 相机缩放/视差系数）、`ANIM`（每种 `CardAnim` 的特效图形/主色/时序）、`cardAnim`/`moveAnim`（卡牌与敌人招式 → 动画类型）。调演出节奏主要改这里。 |
-| `CombatantView.tsx` | 单个战斗单位：**无背景面板**，立绘直接浮在场景上，自上而下为〔敌人施法倒计时；仅在敌人带「洞察」时额外显示意图徽章，见 `isIntentRevealed`〕→ 立绘（完整不裁切）→ 血条（名字嵌在左侧、HP 数值靠右）→ 护盾/仇恨/BUFF-DEBUFF 一排。带 `data-cmb-id`（相机据此定位聚焦目标），并挂载受击特效层与飘字。 |
+| `CombatantView.tsx` | 单个战斗单位：**无背景面板**，立绘直接浮在场景上，自上而下为〔敌人施法倒计时；仅在敌人带「洞察」时额外显示意图徽章，见 `isIntentRevealed`〕→ 立绘（完整不裁切）→ 血条（名字嵌在左侧、HP 数值靠右）→ 护盾/仇恨/BUFF-DEBUFF 一排。带 `data-cmb-id`（相机据此定位聚焦目标），并挂载受击特效层与飘字。可选的 `placement` 会下发成 `--place-dx/dy/scale`，由 `styles.css` 的 `.combatant` 落到**独立的 `translate`/`scale` 属性**上——不能走 `transform`，那条已被 `:hover`/`.attacking` 前冲/`hitShake` 抖动占用。 |
 | `CharacterPortrait.tsx` | 角色立绘：有配图用图，无图回退 emoji。 |
 | `EnemySprite.tsx` | 敌人待机立绘播放器：单张横向拼条图靠 `background-position` + `steps()` 无限循环。与 `SpriteFx` 并列的另一套机制——那套是逐帧独立图、播一次即停的命中特效。 |
-| `enemyArt.ts` | 敌人 `EnemyDef.id` → 待机拼条立绘（`EnemySpriteDef`：帧数/每帧时长/渲染尺寸）的查找表 + `warmEnemyArt()` 预加载。未登记的敌人由 `CombatantView` 回退 emoji。 |
+| `enemyArt.ts` | 敌人 `EnemyDef.id` → 待机拼条立绘（`EnemySpriteDef`：帧数/每帧时长/渲染尺寸）的查找表 + `warmEnemyArt()` 预加载。未登记的敌人由 `CombatantView` 回退 emoji。**静态单帧立绘**按 `frames: 1` 登记即可（拼条机制在单帧下自然退化成不动的背景图，无需特判）。 |
+| `battleBg.ts` | **地图 `MapDef.id` → 战斗背景素材**（`BattleBgDef`：`kind` 为 `video`/`image` + `src`）的查找表 + `warmBattleBg()` 预加载（只预热静态图，视频由 `<video preload>` 自理）。未登记的地图回退森林视频。**新增地图专属背景改这里**（数据层不碰素材，与 `enemyArt.ts` 同约定）。 |
+| `stage.ts` | **★ 战斗设计画布**：`STAGE`（1920×1080 基准分辨率 + `maxScale` 上限）与 `useStageScale`（`ResizeObserver` 观测 letterbox 容器，算出等比缩放系数 k）。战斗画面恒为 1920×1080，整体 `transform: scale(k)` 适配窗口 —— 详见下方「设计画布」。 |
 | `SpriteFx.tsx` | 序列帧播放器：把 `SpritePreset` 的所有帧堆叠为 `<img>`，用 `animation-delay` 逐帧错开播放。 |
 | `vfxSprites.ts` | 序列帧图 URL 列表（如魔剑坠落 12 帧）+ `warmVfxSprites()` 预加载。 |
 | `SkillCutInCard.tsx` | 出牌「亮相」卡面浮层：镜头聚焦后从左侧飞入 → 停留 → 往右飞出渐隐。挂在场景之外，不受相机影响。 |
@@ -201,6 +205,19 @@ my-test-card-game/
 | `ExpRewardScreen.tsx` | **战后经验结算**（取代旧的三选一选卡奖励）：每个上阵角色一行——经验入账、经验进度条、升级高亮徽章（LV x→y · 属性点 +N），确认后进入下一场。 |
 | `EndScreen.tsx` | 远征结算：显示胜/负、地图名与进度、上阵角色的等级与个人卡组；通关时附「最终战经验已入账」提示，返回城镇。 |
 
+#### 设计画布（`stage.ts` + `styles.css`）
+
+战斗画面是一块**固定 1920×1080 的设计画布**（`.screen.battle`），整体用 `transform: scale(k)` 等比缩放去适配窗口；`k = min(容器宽/1920, 容器高/1080)`，由 `useStageScale` 的 `ResizeObserver` 算出，经 `--stage-scale` 下发。16:9 与「最大 2560×1440、更大的显示器四周留黑边」仍然成立——前者由固定长宽保证，后者是 `STAGE.maxScale` 的上限。
+
+**为什么**：改造前画布宽度是 `min(100vw, 2560px, …)`，尺寸随窗口在 ~1280×720 到 2560×1440 之间浮动，而画布内部全是固定 px。背景 `object-fit: cover` 等比缩放、立绘却不缩放 → `encounters.ts` 里调好的敌人站位只在「调它时的那个窗口尺寸」踩得住地面线，换分辨率就脱节。
+
+**因此**：画布内的每个 px 都是**设计 px**，与玩家实际分辨率无关——站位 `dx/dy`、立绘尺寸、侧栏宽、字号在任何窗口下构图完全一致，站位一次调好即永久成立。
+
+- ⚠ **画布内不要再写 `vw`/`vh`，也不要按窗口宽度加 `@media` 断点**——那会让构图重新随分辨率漂移。（原先那条把战斗侧栏从 280px 压到 192px 的 `@media (max-width:1100px)` 已随此改造删除。）
+- 布局盒仍是 1920×1080（`transform` 不改变布局），由 `.battle-viewport` 的 `place-items: center` 居中，`scale` 绕中心原点缩放，溢出部分由 viewport 的 `overflow: hidden` 裁掉 → 视觉正好居中。
+- ⚠ **画布带 `transform` ⇒ 它成了内部 `position: fixed` 的包含块**：`.overlay`、`.end-turn-float` 等因此改为贴合画布而非窗口（顺带修掉了它们过去会浮到黑边上的毛病），并随画布一起缩放。
+- ⚠ **`getBoundingClientRect()` 量到的是屏幕 px，画布内元素拿它定位前必须用 `toDesignBox()` 换算回设计 px**，否则会连同 `--stage-scale` 被再缩放一次。`CardDetailPopup` 即是一例：锚点在 `BattleScreen` 侧换算，边界从 `window.innerWidth/Height` 改为 `STAGE.width/height`。（元素自身的 `offsetWidth/Height` 是布局 px，本就不含 transform，可直接用。）
+
 #### 分镜相机（`BattleScreen.tsx` + `animations.ts`）
 
 每一步（玩家出牌 / 敌人行动）走同一套时序：施法者弹出 → 顿（全景）→ 镜头推近聚焦目标 →〔仅玩家出牌：卡面亮相〕→ 命中特效 + 飘字停留 → 镜头恢复归位 → 下一步。
@@ -208,6 +225,7 @@ my-test-card-game/
 相机是**整屏场景相机**，不是「把某个 div 放大」：
 
 - 相机被建模为**一个屏幕空间仿射变换** `q → S·q + T`。前景（`.battle-stage`）与背景（`.battle-bg-video`）各自通过 `screenAffineToLocal` 换算到自身局部坐标系，因此严格同步 —— 推近时森林与角色一起动。
+- **换算要除以设计画布的缩放 k**（见上「设计画布」）：`computeCamera` 内部全是屏幕空间里的自洽比值（包围盒 / `fit` / 背景钳制），祖先缩放会同比约掉；只有 `screenAffineToLocal` 这一步跨坐标系——缩放分量 `S` 不受 k 影响（标量可交换），但平移量是屏幕 px，必须 `/k` 换回设计 px。漏除会让小窗口下推镜偏移/过头。
 - 背景按 `CINEMA.bgParallax`（0.35）**衰减跟随**：前景 1.55x 时背景约 1.19x，近快远慢 → 有纵深，且背景放大少、更清晰。系数取 0 即退回「背景不动」的老行为，取 1 则与前景完全同步。
 - **画框**用舞台矩形（目标居中到清晰可见区，不会跑到左侧透明手牌栏底下）；**裁切**统一在 `.screen.battle`（整屏），前景与背景共用同一个边界 —— 若各自裁切，角色被裁在舞台内而背景铺满整屏，边界对不上就会脱节。
 - 背景视频精确覆盖固定的游戏画布，保持媒体原始宽高比；配合 `computeCamera` 里的边缘钳制，视差平移时不露黑边。

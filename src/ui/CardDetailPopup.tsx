@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Card, Targeting, Rarity } from "../engine";
 import { cardArt } from "./cardArt";
+import { STAGE, type DesignBox } from "./stage";
 
 const TARGET_LABEL: Record<Targeting, string> = {
   foe: "敌方单体",
@@ -17,12 +18,16 @@ const RARITY_LABEL: Record<Rarity, string> = {
   rare: "稀有",
 };
 
-const OFFSET = 52; // 浮窗与卡牌的间距
-const MARGIN = 8; // 与视口边缘的最小间距
+const OFFSET = 52; // 浮窗与卡牌的间距(设计 px)
+const MARGIN = 8; // 与画布边缘的最小间距(设计 px)
 
 // 卡牌右侧的详情浮窗: 悬浮某张手牌时在该卡右侧展示完整信息。
-// 宽度固定、高度由内容撑开; 靠近视口边缘时自动翻转/收拢。
-export function CardDetailPopup({ card, anchor }: { card: Card | null; anchor: DOMRect | null }) {
+// 宽度固定、高度由内容撑开; 靠近画布边缘时自动翻转/收拢。
+//
+// 全程在设计 px 里算(anchor 已由 BattleScreen 用 toDesignBox 换算过, offsetWidth/Height 本就是
+// 布局 px 不含 transform): .screen.battle 带 transform 后成了 position:fixed 的包含块, 故 left/top
+// 是"相对画布左上角"的设计 px, 边界也从 window 改成画布 —— 浮窗因此不会溢进两侧黑边。
+export function CardDetailPopup({ card, anchor }: { card: Card | null; anchor: DesignBox | null }) {
   const ref = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 0, h: 0 });
 
@@ -40,13 +45,13 @@ export function CardDetailPopup({ card, anchor }: { card: Card | null; anchor: D
 
   // 默认贴在卡牌右侧、顶部对齐; 右侧放不下则翻到卡牌左侧, 底部越界则上收。
   let left = anchor.right + OFFSET;
-  if (dims.w && left + dims.w > window.innerWidth - MARGIN) {
+  if (dims.w && left + dims.w > STAGE.width - MARGIN) {
     left = anchor.left - OFFSET - dims.w;
   }
   if (left < MARGIN) left = MARGIN;
   let top = anchor.top;
-  if (dims.h && top + dims.h > window.innerHeight - MARGIN) {
-    top = window.innerHeight - MARGIN - dims.h;
+  if (dims.h && top + dims.h > STAGE.height - MARGIN) {
+    top = STAGE.height - MARGIN - dims.h;
   }
   if (top < MARGIN) top = MARGIN;
 

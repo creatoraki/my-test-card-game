@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { canPlay, RULES, type AnimFrame, type BattleState, type Card, type CardAnim, type Enemy } from "../engine";
-import { getEnemyDef } from "../data";
+import { getEncounter, getEnemyDef, slotPlacement } from "../data";
 import { useBattleStore } from "../store/battleStore";
 import { useRunStore } from "../store/runStore";
 import { CombatantView, isIntentRevealed } from "./CombatantView";
@@ -11,7 +11,8 @@ import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "./animations";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
 import { warmEnemyArt } from "./enemyArt";
 import { warmVfxSprites } from "./vfxSprites";
-import forestBgVideo from "../assets/战斗背景/森林.mp4";
+import { battleBg, warmBattleBg } from "./battleBg";
+import { toDesignBox, useStageScale, type DesignBox } from "./stage";
 
 // 相机下发给两个图层的 style: 前景(舞台)与背景(视频)。二者由同一个相机变换导出。
 interface CameraStyles {
@@ -28,12 +29,21 @@ const clamp = (v: number, lo: number, hi: number) =>
   lo > hi ? (lo + hi) / 2 : Math.min(Math.max(v, lo), hi); // lo>hi = 背景缩放余量不足, 取中点兜底
 
 // 把屏幕空间仿射 q → S·q + T 换算成某元素的局部 transform(配合 transform-origin: 0 0)。
-// 推导: 元素局部点 p 的未变换屏幕位置 q = O + p (O = 元素未变换时的屏幕左上角)。
-// 施加 translate(t) scale(S) 后屏幕位置 = O + S·p + t = S·q + t + (1-S)·O。
-// 令其等于 S·q + T ⇒ t = T - (1-S)·O。
-function screenAffineToLocal(S: number, T: { x: number; y: number }, origin: DOMRect): React.CSSProperties {
-  const tx = T.x - (1 - S) * origin.left;
-  const ty = T.y - (1 - S) * origin.top;
+// k = 祖先 .screen.battle 的 --stage-scale(设计画布→屏幕的等比缩放, 见 ui/stage.ts)。
+//
+// 推导: 元素局部点 p 的未变换屏幕位置 q = O + k·p (O = 元素未变换时的屏幕左上角)。
+// 施加局部 translate(t) scale(S) 后屏幕位置 = O + k·S·p + k·t。
+// 令其等于 S·q + T = S·O + S·k·p + T ⇒ t = (T - (1-S)·O) / k。
+// 即: 缩放分量 S 不受 k 影响(标量可交换), 但平移量是屏幕 px, 必须除以 k 换回设计 px ——
+// 漏除会让小窗口下推镜偏移/过头。
+function screenAffineToLocal(
+  S: number,
+  T: { x: number; y: number },
+  origin: DOMRect,
+  k: number,
+): React.CSSProperties {
+  const tx = (T.x - (1 - S) * origin.left) / k;
+  const ty = (T.y - (1 - S) * origin.top) / k;
   return { transform: `translate(${tx}px, ${ty}px) scale(${S})`, transformOrigin: "0 0" };
 }
 
@@ -46,10 +56,12 @@ export function BattleScreen() {
   const commit = useBattleStore((s) => s.commit);
   const resolveBattle = useRunStore((s) => s.resolveBattle);
   const runIndex = useRunStore((s) => s.index);
+  const mapId = useRunStore((s) => s.mapId);
+  const bg = battleBg(mapId); // 当前地图的背景素材(视频/静态图), 未登记则回退森林
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [hoveredUid, setHoveredUid] = useState<string | null>(null);
-  const [hoverRect, setHoverRect] = useState<DOMRect | null>(null); // 悬浮手牌的屏幕矩形(浮窗锚点)
+  const [hoverRect, setHoverRect] = useState<DesignBox | null>(null); // 悬浮手牌的矩形(浮窗锚点, 设计 px)
   const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 styles.css .hand-card 的 hand-deal-in)。
@@ -62,9 +74,20 @@ export function BattleScreen() {
   const [hits, setHits] = useState<Record<string, HitFx>>({}); // 各目标当前的受击特效
   const [cutInCard, setCutInCard] = useState<Card | null>(null); // 出牌亮相卡面(仅玩家出牌; null=不展示)
   const [camera, setCamera] = useState<CameraStyles | null>(null); // 相机变换(null=全景)
+  const viewportRef = useRef<HTMLDivElement>(null); // letterbox 容器(黑边区), 设计画布按它的尺寸缩放
   const screenRef = useRef<HTMLDivElement>(null); // 战斗屏幕(相机画框, 也是唯一的裁切边界)
   const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(前景: 敌我单位)
-  const bgRef = useRef<HTMLVideoElement>(null); // 背景视频层(按视差跟随相机)
+  const bgRef = useRef<HTMLElement | null>(null); // 背景层(按视差跟随相机); 视频/静态图共用, 故取宽类型
+  // 回调 ref: <video> 与 <img> 两种元素都要落到同一个 bgRef 上(相机只对它量 getBoundingClientRect)
+  const setBgEl = (el: HTMLElement | null) => {
+    bgRef.current = el;
+  };
+  // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform;
+  // 另存一份 ref 供 computeCamera 读 —— 相机是在定时器回调里算的, 走 ref 才拿得到当时的最新值。
+  const stageScale = useStageScale(viewportRef);
+  const stageScaleRef = useRef(stageScale);
+  stageScaleRef.current = stageScale;
+
   const [animating, setAnimating] = useState(false); // 动画期间锁输入
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
   const seqRef = useRef(0); // 批次序号, 用于取消旧动画批次的定时器回调
@@ -101,6 +124,7 @@ export function BattleScreen() {
   useEffect(() => {
     warmVfxSprites();
     warmEnemyArt();
+    warmBattleBg();
   }, []);
 
   // 同步渲染列表 = 引擎手牌 + 离场中的卡。引擎手牌里消失的卡标记 leaving(出鞘渐隐, 保留原位),
@@ -249,9 +273,12 @@ export function BattleScreen() {
     Tbg.x = clamp(Tbg.x, screenRect.right - Sbg * bgRect.right, screenRect.left - Sbg * bgRect.left);
     Tbg.y = clamp(Tbg.y, screenRect.bottom - Sbg * bgRect.bottom, screenRect.top - Sbg * bgRect.top);
 
+    // 以上全部是屏幕空间内的自洽比值(包围盒 / fit / Tbg 的钳制), 祖先缩放会同比约掉, 故不受 k 影响;
+    // 只有下面这步跨了坐标系(屏幕 px → 设计画布局部 px), 需要 k。
+    const stageK = stageScaleRef.current;
     return {
-      stage: screenAffineToLocal(S, Tfg, stageRect),
-      bg: screenAffineToLocal(Sbg, Tbg, bgRect),
+      stage: screenAffineToLocal(S, Tfg, stageRect, stageK),
+      bg: screenAffineToLocal(Sbg, Tbg, bgRect, stageK),
     };
   }
 
@@ -408,6 +435,9 @@ export function BattleScreen() {
 
   const enemies = battle.enemyIds.map((id) => battle.combatants[id]);
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
+  // 手工站位按槽位下标取 —— createBattle 按 enc.enemies 顺序 push enemyIds, 故两者下标一一对应。
+  // 站位是纯表现, 不进 BattleState(引擎无副作用且状态要可序列化), 故在此回查遭遇战定义。
+  const placements = getEncounter(battle.encounterId).enemies.map(slotPlacement);
   const hand = battle.hand.map((uid) => battle.cards[uid]);
 
   // 跟随鼠标的详情浮窗只在悬浮手牌时展示
@@ -415,25 +445,39 @@ export function BattleScreen() {
   const canUseHandActions = isPlayerTurn && !animating && hand.length > 0;
   const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
 
+  // 背景层的相机样式。提到分支外算一次, 保证 <video>/<img> 两个分支拿到的完全是同一份。
+  const bgStyle: React.CSSProperties = {
+    transition: CAMERA_TRANSITION,
+    transform: camera?.bg.transform ?? "none",
+    transformOrigin: "0 0",
+  };
+
   return (
-    <div className="battle-viewport">
+    // --stage-scale: 把 1920×1080 的设计画布等比缩到当前窗口(见 ui/stage.ts 与 styles.css .screen.battle)
+    <div
+      className="battle-viewport"
+      ref={viewportRef}
+      style={{ "--stage-scale": stageScale } as React.CSSProperties}
+    >
       <div className="screen battle" ref={screenRef} onClick={() => setSelectedUid(null)}>
-      {/* 背景层: 精确铺满游戏画布的循环视频。作为相机的远景平面, 按 CINEMA.bgParallax 衰减跟随。 */}
-      <video
-        ref={bgRef}
-        className="battle-bg-video"
-        src={forestBgVideo}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        style={{
-          transition: CAMERA_TRANSITION,
-          transform: camera?.bg.transform ?? "none",
-          transformOrigin: "0 0",
-        }}
-      />
+      {/* 背景层: 精确铺满游戏画布, 素材按当前地图取(见 ui/battleBg.ts)。作为相机的远景平面,
+          按 CINEMA.bgParallax 衰减跟随。视频与静态图两个分支必须共用同一份 className/ref/style ——
+          前景与背景的同步全靠这条共用 transition, 任一处不一致都会让推镜时前后景错位。 */}
+      {bg.kind === "video" ? (
+        <video
+          ref={setBgEl}
+          className="battle-bg-video"
+          src={bg.src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          style={bgStyle}
+        />
+      ) : (
+        <img ref={setBgEl} className="battle-bg-video" src={bg.src} alt="" style={bgStyle} />
+      )}
       {/* 战场舞台层: 相机的近景平面。全景时 transform:none, 布局与静息态一致。
           裁切在 .screen.battle(整屏), 故推近时角色可越过舞台边界铺满画面。 */}
       <div
@@ -447,7 +491,7 @@ export function BattleScreen() {
       >
         {/* 敌人 */}
         <div className="row enemy-row">
-          {enemies.map((e) => (
+          {enemies.map((e, i) => (
             <CombatantView
               key={e.id}
               cmb={e}
@@ -455,6 +499,7 @@ export function BattleScreen() {
               targetable={isPlayerTurn && !!needsFoe && e.alive}
               attacking={e.id === attackerId}
               hit={hits[e.id] ?? null}
+              placement={placements[i]}
               onClick={() => onCombatantClick(e.id)}
             />
           ))}
@@ -568,7 +613,11 @@ export function BattleScreen() {
                 onClick={() => onCardClick(c.uid)}
                 onHover={(h, rect) => {
                   setHoveredUid(h ? c.uid : null);
-                  if (h && rect) setHoverRect(rect);
+                  // 屏幕 px → 设计 px: 浮窗定位在画布局部坐标系里(见 ui/stage.ts)
+                  const canvas = screenRef.current?.getBoundingClientRect();
+                  if (h && rect && canvas) {
+                    setHoverRect(toDesignBox(rect, canvas, stageScaleRef.current));
+                  }
                 }}
               />
             );
