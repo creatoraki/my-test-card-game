@@ -1,4 +1,5 @@
-import { useRunStore } from "./store/runStore";
+import { useRunStore, type Screen } from "./store/runStore";
+import { ScreenTransition } from "./ui/ScreenTransition";
 import { MenuScreen } from "./ui/MenuScreen";
 import { TownScreen } from "./ui/TownScreen";
 import { FormationScreen } from "./ui/FormationScreen";
@@ -7,9 +8,8 @@ import { BattleScreen } from "./ui/BattleScreen";
 import { ExpRewardScreen } from "./ui/ExpRewardScreen";
 import { EndScreen } from "./ui/EndScreen";
 
-export default function App() {
-  const screen = useRunStore((s) => s.screen);
-
+// 界面 → 组件。抽成纯函数是为了让 ScreenTransition 能在出场期间继续渲染「旧」界面。
+function renderScreen(screen: Screen) {
   switch (screen) {
     case "town":
       return <TownScreen />;
@@ -29,4 +29,9 @@ export default function App() {
     default:
       return <MenuScreen />;
   }
+}
+
+export default function App() {
+  const screen = useRunStore((s) => s.screen);
+  return <ScreenTransition screen={screen} render={renderScreen} />;
 }

@@ -50,8 +50,8 @@ my-test-card-game/
 ├─ vite.config.ts          # Vite 配置（React 插件 + @ 别名）
 └─ src/
    ├─ main.tsx             # React 入口，渲染 <App/> 并引入全局样式
-   ├─ App.tsx              # 顶层路由：按 runStore.screen 切换界面
-  ├─ styles.css           # 全局深色主题样式 + 城镇/远征界面 + 战斗画面 16:9 / 最大 2560×1440 画布约束
+   ├─ App.tsx              # 顶层路由：按 runStore.screen 选界面，交给 ScreenTransition 编排过场
+  ├─ styles.css           # 全局深色主题样式 + 场景过场 + 城镇/远征界面 + 战斗画面 16:9 / 最大 2560×1440 画布约束
    │
    ├─ engine/              # ★ 纯 TS 战斗引擎（无 React，无副作用，可序列化、可复现）
    │  ├─ types.ts          # 所有共享类型定义（不含逻辑）
@@ -82,6 +82,8 @@ my-test-card-game/
    │  └─ runStore.ts       # 一次「远征」流程（地图/进度/经验结算/界面切换）
    │
    └─ ui/                  # React 视图层（纯展示 + 派发，不含规则）
+      ├─ transitions.ts    # ★ 场景过场预设表：全局开关 + 特效登记 + 按路线/按界面配置
+      ├─ ScreenTransition.tsx # 过场编排：出场 → 黑场停顿 → 入场（串行）
       ├─ MenuScreen.tsx    # 主菜单：队伍预览 + 开始游戏（→ 城镇）
       ├─ TownScreen.tsx    # 城镇：设施入口（「远征」「编队」开放，其余占位）+ 重置存档
       ├─ FormationScreen.tsx # ★ 编队：队伍编辑 / 角色详情 / 属性加点 / 抽卡改造个人卡组
@@ -124,8 +126,8 @@ my-test-card-game/
 | 文件 | 功能 |
 | --- | --- |
 | `main.tsx` | React 根渲染，`StrictMode` 包裹 `<App/>`，引入全局 `styles.css`。 |
-| `App.tsx` | **顶层路由**：读取 `runStore.screen`，在 `menu / town / formation / expedition / battle / reward / victory / defeat` 之间切换对应界面组件。 |
-| `styles.css` | 全局深色主题：CSS 变量、卡牌 / 单位 / 血条 / 意图 / 遮罩、城镇设施网格 / 地图卡片等所有样式；战斗画面固定为 16:9、最大 2560×1440，超出画布的视口区域以黑色填充。 |
+| `App.tsx` | **顶层路由**：读取 `runStore.screen`，把「界面 → 组件」的映射抽成纯函数 `renderScreen`，交给 `<ScreenTransition>` 渲染。抽成函数是为了让过场期间能继续渲染**旧**界面。 |
+| `styles.css` | 全局深色主题：CSS 变量、卡牌 / 单位 / 血条 / 意图 / 遮罩、城镇设施网格 / 地图卡片、**场景过场**等所有样式；战斗画面固定为 16:9、最大 2560×1440，超出画布的视口区域以黑色填充。 |
 
 ### `src/engine/`（纯 TS 战斗引擎）
 
@@ -174,6 +176,8 @@ my-test-card-game/
 
 | 文件 | 功能 |
 | --- | --- |
+| `transitions.ts` | **★ 场景过场预设表**：总开关 `TRANSITIONS_ENABLED`、特效登记表 `FX`（fadeOut/fadeIn/zoomIn/zoomOut/slideUp/none）、全局默认 `DEFAULT_TRANSITION`、按界面 `SCREEN_FX`、按路线 `ROUTE_FX`（键为 `` `${from}>${to}` ``），以及解析函数 `resolveTransition`。**调过场节奏与演出只改这里**。 |
+| `ScreenTransition.tsx` | **过场编排**：界面切换时把「瞬移」拆成 出场 → 黑场停顿 → 入场，**串行**执行（旧界面先卸载、新界面再挂载，避免 BattleScreen 双挂载/视频双解码）。用 `render` 回调而非 children，才能在出场期间继续渲染旧界面。定时器带批次序号守卫，快速连点会作废旧批次。 |
 | `MenuScreen.tsx` | 主菜单：队伍预览 + 玩法要点 + 「开始游戏」（→ 城镇）。仅在启动游戏时出现一次。 |
 | `TownScreen.tsx` | **城镇**：远征之间的常驻中枢。设施网格中「远征」「编队」可点，其余（补给站 / 锻造台 / 酒馆 / 档案库）为 disabled 占位，逐个实现后从 `LOCKED_FACILITIES` 挪走。另有「重置存档」按钮与上阵人数/合计行动卡显示。 |
 | `FormationScreen.tsx` | **★ 编队**：左栏角色列表（等级/属性点/上阵切换，至少 1 人、至多 3 人），右栏选中角色详情——四维属性加点（基础值 + 每点收益，即点即生效）、装备占位空槽（武器/护甲/饰品，未开放）、个人卡组网格、「抽取行动卡」（花 2 属性点）。抽卡后弹**无法关闭的 3 选 1 弹层**（候选在 `pendingDraw` 持久化，刷新也必须选完）。 |
@@ -208,6 +212,17 @@ my-test-card-game/
 - **画框**用舞台矩形（目标居中到清晰可见区，不会跑到左侧透明手牌栏底下）；**裁切**统一在 `.screen.battle`（整屏），前景与背景共用同一个边界 —— 若各自裁切，角色被裁在舞台内而背景铺满整屏，边界对不上就会脱节。
 - 背景视频精确覆盖固定的游戏画布，保持媒体原始宽高比；配合 `computeCamera` 里的边缘钳制，视差平移时不露黑边。
 - ⚠ 所有测量都必须在**全景态**（`camera === null` → `transform: none`）进行，否则 `getBoundingClientRect()` 量到的是变换后的矩形。
+
+#### 场景过场（`ScreenTransition.tsx` + `transitions.ts`）
+
+界面切换不再瞬移，统一走：**旧界面出场 → 黑场停顿 → 新界面入场**。默认动效是淡出 240ms → 停 60ms → 淡入 240ms。
+
+- **串行而非交叉淡化**：旧界面先卸载、新界面再挂载。两个界面同时挂载会导致 BattleScreen 双挂载、背景视频双解码、素材双预热、定时器串批。
+- **配置优先级**：`ROUTE_FX['from>to']` > `SCREEN_FX[界面]` > `DEFAULT_TRANSITION`。出场归**来源**界面、入场归**目标**界面，二者各自独立可配 —— 这就是「拆分出场/入场特效」的落点。
+- **关闭方式**：`TRANSITIONS_ENABLED = false` 即退回瞬移；另外自动尊重系统的「减少动态效果」（`resolveTransition` 短路返回零时长，CSS 侧 `@media (prefers-reduced-motion)` 兜底）。
+- **默认动效刻意只用 `opacity`**：过场包裹层是 `.screen.battle` 的祖先，而 `transform` 会污染 `computeCamera` 的 `getBoundingClientRect()` 测量（见上）。`opacity` 不影响布局矩形，天然安全。带 transform 的备选特效（zoom/slide）用在 battle 入场上时需留意这条。
+- **「黑场」不需要幕布层**：旧界面淡到 `opacity: 0` 后露出的就是页面本身的深色底。`.screen-curtain` 是留给自定义演出（闪白、拉幕）的可选层，默认不启用。
+- 时长常量的唯一真相在 `transitions.ts`，通过内联 `animationDuration` 下发给 CSS —— 与 `CINEMA` 同一套惯例。
 
 ---
 
@@ -265,4 +280,5 @@ ui （React：纯展示 + 交互，不含规则）
 - **城镇设施**：`TownScreen` 的 `LOCKED_FACILITIES` 是一排 disabled 占位；实现某个设施 = 加一个 `Screen` 成员 + `App.tsx` 加 case + 新建界面组件，并把它从占位表里挪走。持久资产统一放 `townStore`。
 - **地图形态**：目前 `MapDef.sequence` 是线性数组。若要做成《杀戮尖塔》式的分支节点图，只需把它换成节点结构 + 新增一个路径选择界面，`runStore.index` 改为 `currentNodeId`——耦合面集中在 `runStore` 的 `launchBattle` / `advance` / `resolveBattle` 三处。
 - **新机制**：加 `EffectType` + handler（效果）、加 `StatusDef`（状态）、加敌人招式/意图脚本。
+- **过场演出**：新增一种过场特效 = `transitions.ts` 的 `FX` 加一项 + `styles.css` 加一段同名 `@keyframes screen-<name>`；改某条跳转的演出 = `ROUTE_FX` 加一行（如 `"town>battle": { exit: FX.zoomOut, hold: 220 }`）。新增界面无需改过场代码，自动走默认动效。
 - **系统级扩展**：资源可扩成每角色独立池 / 结转 / 上限；调度可换轴制；`BattleState` 可序列化 → 易接入存档与回放。

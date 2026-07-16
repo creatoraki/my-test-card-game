@@ -102,6 +102,104 @@ code {
   gap: 16px;
   text-align: center;
 }
+
+/* ===================== 场景过场 ===================== */
+/* 时长不在这里 —— 由 ui/transitions.ts 的预设表通过内联 animationDuration 下发。
+   本文件只负责「长什么样」, 每个 .screen-fx-<name> 对应 transitions.ts 的 FX 表一项。
+   编排见 ui/ScreenTransition.tsx。 */
+
+/* 与 .screen 的 height:100% 咬合: 中间多一层不撑满的包裹会让所有界面塌成内容高。 */
+.screen-transition {
+  height: 100%;
+}
+
+/* fill-mode: both → 出场停在 0(不回弹), 入场从 0 起(不闪一帧全亮)。 */
+.screen-transition[class*="screen-fx-"] {
+  animation-fill-mode: both;
+  animation-timing-function: ease;
+}
+
+/* ── 默认动效: 淡出 → 淡入 ──
+   「黑场」不需要幕布层 —— 淡到 opacity 0 后露出的就是页面本身的深色底。
+   刻意只动 opacity: 它不影响 getBoundingClientRect, 因此不会污染 BattleScreen
+   的 computeCamera 测量(该处要求测量时祖先链上无 transform)。 */
+@keyframes screen-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes screen-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.screen-fx-fade-out {
+  animation-name: screen-fade-out;
+}
+.screen-fx-fade-in {
+  animation-name: screen-fade-in;
+}
+
+/* ── 备选特效(供 ROUTE_FX / SCREEN_FX 自定义) ──
+   ⚠ 以下都带 transform, 用作 battle 的入场会在动画期间污染 computeCamera 的测量。
+   目前无碍(相机只在出牌后 CINEMA.beat=500ms 才测, 早于此的入场已归位), 但若要
+   延长入场时长或改 battle 的运镜时序, 先回头看这条。 */
+@keyframes screen-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+@keyframes screen-zoom-out {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes screen-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+.screen-fx-zoom-in {
+  animation-name: screen-zoom-in;
+}
+.screen-fx-zoom-out {
+  animation-name: screen-zoom-out;
+}
+.screen-fx-slide-up {
+  animation-name: screen-slide-up;
+}
+
+/* ── 可选幕布层 ──
+   默认动效不用它(见上)。留给需要盖住全屏的自定义演出: 闪白、拉幕等。
+   启用方式: 在 transitions.ts 里给某条路线加 curtain: "black"。 */
+.screen-curtain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+}
+.screen-curtain.curtain-black {
+  background: #000;
+}
+.screen-curtain.curtain-flash {
+  background: #fff;
+  opacity: 0.35;
+}
+
+/* JS 侧(resolveTransition)已对系统的「减少动态效果」短路返回零时长,
+   这里是 CSS 侧兜底 —— 双保险, 免得漏一条路径。 */
+@media (prefers-reduced-motion: reduce) {
+  .screen-transition[class*="screen-fx-"] {
+    animation: none;
+  }
+  .screen-curtain {
+    display: none;
+  }
+}
+
 .muted {
   color: var(--muted);
 }
