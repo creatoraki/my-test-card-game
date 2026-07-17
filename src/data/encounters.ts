@@ -12,8 +12,9 @@ export interface EnemyPlacement {
   id: string; // 敌人 def id
   dx?: number; // 相对默认位置的水平偏移(设计 px), 右为正
   dy?: number; // 相对默认位置的垂直偏移(设计 px), 下为正 —— 往下 = 站得更靠近镜头
-  // 远近透视缩放, 缺省 1。注意缩放中心是 .combatant 整个盒子的中心(含血条), 故改了 scale
-  // 通常要回头微调 dy 才能把脚重新踩回地面线。
+  // 体型/远近透视缩放, 缺省 1。只作用于立绘与命中特效 —— 血条、护盾/BUFF 图标、意图、
+  // 倒计时全场统一尺寸, 不跟着放大。缩放中心是立绘底边中点, 故改 scale 时脚不离地,
+  // 立绘只向上长, 不必回头补 dy。
   scale?: number;
 }
 
@@ -41,12 +42,15 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "e1", name: "林间怪响", enemies: ["weird-bird", "weird-bird"] },
   { id: "e2", name: "惊起的鸟群", enemies: ["weird-bird", "weird-bird", "weird-bird"] },
   { id: "e3", name: "巢穴深处", enemies: ["weird-bird", "weird-bird", "weird-bird", "weird-bird"] },
-  // 霓虹城市: 三台机器人散开在街上, 左右两台站得稍远(dy 小 + scale 略缩), 中间一台压向镜头。
+  // 霓虹城市: 三台机器人散开在街上, 左右两台站得稍远, 中间的废品机器人压向镜头。
+  // 电线杆立绘细高, 给更大的 scale 撑出"高"的体型; 收音机体型接近废品, scale 取中。
   {
     id: "n1",
     name: "废墟拾荒者",
     enemies: [
-      { id: "scrap-bot", dx: -150, dy: 400, scale: 1.5 },
+      { id: "pole-bot", dx: -420, dy: 450, scale: 2 },
+      { id: "radio-bot", dx: -150, dy: 550, scale: 1.5 },
+      { id: "scrap-bot", dx: 50, dy: 400, scale: 1.8 },
     ],
   },
 ];

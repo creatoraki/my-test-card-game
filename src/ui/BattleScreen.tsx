@@ -4,6 +4,7 @@ import { getEncounter, getEnemyDef, slotPlacement } from "../data";
 import { useBattleStore } from "../store/battleStore";
 import { useRunStore } from "../store/runStore";
 import { CombatantView, isIntentRevealed } from "./CombatantView";
+import { AllyBar } from "./AllyBar";
 import { HandCard } from "./HandCard";
 import { CardDetailPopup } from "./CardDetailPopup";
 import { SkillCutInCard } from "./SkillCutInCard";
@@ -237,7 +238,11 @@ export function BattleScreen() {
     for (const id of targetIds) {
       const el = stage.querySelector<HTMLElement>(`[data-cmb-id="${id}"]`);
       if (!el) continue;
-      const r = el.getBoundingClientRect();
+      // 敌人量内层的 .combatant-stage(立绘 + 特效, 含体型 scale 的那层), 而不是外层布局盒 ——
+      // --place-scale 只作用于内层, 外层矩形量不到大体型敌人的真实占幅, 会把镜头推得过近。
+      // 顺带把血条/意图排除在取景外, 聚焦点落在立绘上。我方头像卡没有这层, 退回量自身。
+      const box = el.querySelector<HTMLElement>(".combatant-stage") ?? el;
+      const r = box.getBoundingClientRect();
       left = Math.min(left, r.left);
       top = Math.min(top, r.top);
       right = Math.max(right, r.right);
@@ -433,7 +438,7 @@ export function BattleScreen() {
     else if (needsAlly && t.team === "player") triggerPlay(selectedUid, id);
   }
 
-  const enemies = battle.enemyIds.map((id) => battle.combatants[id]);
+  const enemies = battle.enemyIds.map((id) => battle.combatants[id] as Enemy);
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
   // 手工站位按槽位下标取 —— createBattle 按 enc.enemies 顺序 push enemyIds, 故两者下标一一对应。
   // 站位是纯表现, 不进 BattleState(引擎无副作用且状态要可序列化), 故在此回查遭遇战定义。
@@ -522,21 +527,15 @@ export function BattleScreen() {
               : ""}
         </div>
 
-        {/* 我方 */}
-        <div className="row ally-row">
-          {allies.map((a) => (
-            <CombatantView
-              key={a.id}
-              cmb={a}
-              currentTick={battle.tick}
-              targetable={isPlayerTurn && !!needsAlly && a.alive}
-              isAggroTarget={aggroHintVisible && a.id === aggroTargetId && a.alive}
-              attacking={a.id === attackerId}
-              hit={hits[a.id] ?? null}
-              onClick={() => onCombatantClick(a.id)}
-            />
-          ))}
-        </div>
+        {/* 我方: 舞台底部的队伍玻璃头像栏(仍在舞台内 ⇒ 跟随相机) */}
+        <AllyBar
+          allies={allies}
+          hits={hits}
+          attackerId={attackerId}
+          aggroTargetId={aggroHintVisible ? aggroTargetId : undefined}
+          targetable={isPlayerTurn && !!needsAlly}
+          onSelect={onCombatantClick}
+        />
       </div>
 
       {/* 左侧悬浮手牌 */}
