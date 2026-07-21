@@ -3,10 +3,18 @@
 // 所有函数直接修改传入的 BattleState(store 层负责克隆后再调用, 保证不可变更新)。
 // ============================================================================
 
-import type { AnimFrame, Ally, BattleState, Card, Combatant, Enemy } from "./types";
+import type {
+  AnimFrame,
+  Ally,
+  BattleState,
+  Card,
+  Combatant,
+  EncounterModifier,
+  Enemy,
+} from "./types";
 import { RULES } from "./rules";
 import { shuffle } from "./rng";
-import { allIds, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
+import { allIds, applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { actAndRecord, buildIntent } from "./ai";
@@ -25,6 +33,9 @@ export interface AllyInit {
   name: string;
   emoji: string;
   maxHp: number;
+  // 开局生命。缺省 = maxHp; 探索模式传入上一场战斗继承下来的血量 ——
+  // 「血量跨战斗继承」是探索牌局的地基, 没有它「休整」与「撤退」都不成为决策。
+  startHp?: number;
   threat?: number;
   attack?: number; // 攻击加成(缺省 0)
   defense?: number; // 防御加成(缺省 0)
@@ -38,7 +49,12 @@ export interface BattleSetup {
 // ---------------------------------------------------------------------------
 // 建立一场战斗
 // ---------------------------------------------------------------------------
-export function createBattle(encounterId: string, setup: BattleSetup, seed?: number): BattleState {
+export function createBattle(
+  encounterId: string,
+  setup: BattleSetup,
+  seed?: number,
+  mod?: EncounterModifier,
+): BattleState {
   const enc = getEncounter(encounterId);
   const combatants: Record<string, Combatant> = {};
   const playerIds: string[] = [];
@@ -51,7 +67,7 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
       name: a.name,
       emoji: a.emoji,
       team: "player",
-      hp: a.maxHp,
+      hp: Math.max(1, Math.min(a.maxHp, a.startHp ?? a.maxHp)),
       maxHp: a.maxHp,
       block: 0,
       statuses: [],
@@ -65,7 +81,9 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
   }
 
   // 槽位可以是裸 id 或带站位的对象; 站位是纯表现, 引擎只取 def id(见 data/encounters.ts)
-  const defIds = enc.enemies.map(slotDefId);
+  // 改造器追加的敌人排在原有敌人之后 ⇒ 不影响 encounters.ts 里手工调好的站位下标。
+  const defIds = [...enc.enemies.map(slotDefId), ...(mod?.extraEnemies ?? [])];
+  const hpMul = mod?.hpMultiplier ?? 1;
 
   // 统计同名敌人以便加后缀区分
   const defCounts: Record<string, number> = {};
@@ -77,18 +95,19 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
     const id = `${defId}#${i}`;
     const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";
     defSeen[defId] = (defSeen[defId] ?? 0) + 1;
+    const maxHp = Math.max(1, Math.round(def.maxHp * hpMul));
     const enemy: Enemy = {
       id,
       enemyDefId: defId,
       name: def.name + suffix,
       emoji: def.emoji,
       team: "enemy",
-      hp: def.maxHp,
-      maxHp: def.maxHp,
+      hp: maxHp,
+      maxHp,
       block: 0,
       statuses: [],
       alive: true,
-      castTick: def.castTick,
+      castTick: Math.max(1, def.castTick + (mod?.castTickDelta ?? 0)),
       nextActTick: 0,
       actsThisRound: 0,
       aiIndex: 0,
@@ -122,6 +141,12 @@ export function createBattle(encounterId: string, setup: BattleSetup, seed?: num
 
   state.draw = shuffle(state, Object.keys(cards));
   log(state, `⚔️ 遭遇战: ${enc.name}`);
+
+  // 开局状态必须在 startRound 之前施加 —— startRound 会 buildIntent, 而意图预览要吃到力量加成。
+  for (const st of mod?.enemyStatuses ?? []) {
+    for (const id of enemyIds) applyStatus(state, id, st.id, st.stacks);
+  }
+
   startRound(state);
   return state;
 }

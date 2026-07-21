@@ -4,7 +4,13 @@
 // store 不立即替换终态, 而是把 { frames, final } 交给 UI 逐帧回放(见 commit)。
 
 import { create } from "zustand";
-import type { AnimFrame, BattleSetup, BattleState, PlayRecorder } from "../engine";
+import type {
+  AnimFrame,
+  BattleSetup,
+  BattleState,
+  EncounterModifier,
+  PlayRecorder,
+} from "../engine";
 import { createBattle, discardHandCard, endRound, playCard, redrawHandCard } from "../engine";
 
 // 一次出牌的动画计划: 先展示出牌结果(cardSnapshot), 再逐帧播放触发的敌人行动, 最后落到 final。
@@ -22,7 +28,10 @@ export interface EndPlan {
 
 interface BattleStore {
   battle: BattleState | null;
-  init: (encounterId: string, setup: BattleSetup, seed?: number) => void;
+  // 建局计数。UI 用它作为「这是第几场战斗」的身份标识来重置分镜/手牌渲染状态 ——
+  // battle 对象每次 commit 都会换新, 不能当身份用; encounterId 又可能在一趟远征里重复。
+  seq: number;
+  init: (encounterId: string, setup: BattleSetup, seed?: number, mod?: EncounterModifier) => void;
   play: (uid: string, targetId?: string) => PlayPlan | null;
   redrawCard: (uid: string) => BattleState | null;
   discardCard: (uid: string) => BattleState | null;
@@ -33,9 +42,10 @@ interface BattleStore {
 
 export const useBattleStore = create<BattleStore>((set, get) => ({
   battle: null,
+  seq: 0,
 
-  init: (encounterId, setup, seed) => {
-    set({ battle: createBattle(encounterId, setup, seed) });
+  init: (encounterId, setup, seed, mod) => {
+    set({ battle: createBattle(encounterId, setup, seed, mod), seq: get().seq + 1 });
   },
 
   play: (uid, targetId) => {

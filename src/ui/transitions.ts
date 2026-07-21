@@ -59,7 +59,12 @@ export const SCREEN_FX: Partial<Record<Screen, Partial<TransitionSpec>>> = {};
 // 键为 `${from}>${to}`。例:
 //   "town>battle": { exit: FX.zoomOut, hold: 220 },
 //   "battle>reward": { enter: FX.slideUp },
-export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionSpec>>> = {};
+export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionSpec>>> = {
+  // 探索牌桌 ↔ 战斗: 一「下潜」一「上浮」。牌桌是俯瞰整片区域的抽象层, 战斗是钻进其中一个点,
+  // 两者尺度差得远, 所以给比默认更长的黑场, 让切换有下沉感而不是页面跳转。
+  "explore>battle": { hold: 200 },
+  "reward>explore": { hold: 140 },
+};
 
 const NO_TRANSITION: TransitionSpec = { exit: FX.none, enter: FX.none, hold: 0 };
 

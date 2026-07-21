@@ -198,6 +198,8 @@ code {
   .screen-curtain {
     display: none;
   }
+  /* 战斗场景那套动感的降级写在**文件末尾** —— 媒体查询不加特异性, 写在这里会被后面
+     .combatant-figure 等同特异性的规则按源码顺序盖掉。 */
 }
 
 .muted {
@@ -360,6 +362,65 @@ code {
   scale: var(--place-scale, 1);
   transform-origin: 50% 100%;
 }
+/* 脚下的椭圆落地阴影: 把立绘"钉"在地面上 —— 没有它, 待机呼吸的上下浮动会看着像在飘。
+   ⚠ 挂在 .combatant-stage 而不是 .combatant-figure: 影子不该跟着呼吸一起上下动;
+   挂这层还能随 --place-scale 一起放大, 大体型敌人的影子自然更大。
+   --shadow-w 由 ui/CombatantView.tsx 按立绘渲染宽下发(不是布局盒宽, 影子该跟体型走)。
+   自带一条与呼吸同周期、**反相**的缩放: 身体升起时影子收紧变淡, 落下时铺开变实。 */
+.combatant-stage::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  z-index: -1;
+  width: var(--shadow-w, 96px);
+  height: calc(var(--shadow-w, 96px) * 0.19);
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(50% 50%, #000000a6 0%, #00000059 55%, transparent 100%);
+  animation: idleShadow var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite;
+}
+/* ⚠ 必须连 animation: none 一起写: 运行中的 @keyframes 在层叠里压过普通声明,
+   只写 opacity: 0 会被 idleShadow 的关键帧值直接顶掉。 */
+.combatant.dead .combatant-stage::after {
+  animation: none;
+  opacity: 0;
+}
+@keyframes idleShadow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(0.9);
+    opacity: 0.68;
+  }
+}
+/* 待机小动作(ui/useIdleTwitch.ts): 每隔几秒随机抽一个敌人抖一下。
+   纯循环的呼吸看久了会露出"这是段循环动画"的破绽, 一个低频随机事件就能盖掉。
+   挂在 .combatant-stage 的 transform 上 —— .combatant 那条已被 hover/前冲/hitShake 占满。
+   时长须 ≤ useIdleTwitch 的 TWITCH_MS(400ms), 否则会被中途摘掉类名而截断。 */
+.combatant.twitch .combatant-stage {
+  animation: idleTwitch 360ms ease-out 1;
+}
+@keyframes idleTwitch {
+  0% {
+    transform: translateX(0) rotate(0);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-1.1deg);
+  }
+  55% {
+    transform: translateX(2px) rotate(0.8deg);
+  }
+  80% {
+    transform: translateX(-1px) rotate(-0.3deg);
+  }
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+}
 .combatant.dead {
   opacity: 0.4;
   filter: grayscale(1);
@@ -367,8 +428,12 @@ code {
 .combatant.targetable {
   cursor: pointer;
 }
+/* ⚠ 必须连 idleBob 一起写: animation 是简写, 只写 pulseGlow 会把待机呼吸整条抹掉。
+   两条同时挂在这个元素上互不干扰 —— 一条动 transform, 一条动 filter。 */
 .combatant.targetable .combatant-figure {
-  animation: pulseGlow 1.1s infinite;
+  animation:
+    idleBob var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite,
+    pulseGlow 1.1s infinite;
 }
 .combatant.targetable:hover {
   transform: translateY(-4px) scale(1.03);
@@ -407,6 +472,26 @@ code {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  /* 待机呼吸: 逐敌人登记在 ui/enemyArt.ts 的 idle 段, 经 CombatantView 下发成 --idle-*。
+     ⚠ 落点必须是这一层: .enemy-sprite 的 animationName 由 EnemySprite.tsx 行内下发(拼条
+     逐帧循环), 挂在那儿会被整条覆盖; .combatant / .combatant-stage 的 transform 与 scale
+     则分别被 hover/前冲/hitShake 与 --place-scale 占用。这个元素三个变换属性全空。
+     transform-origin 取底边中点 —— 与体型缩放同一原则: 只在原地起伏, 脚不离地。 */
+  transform-origin: 50% 100%;
+  animation: idleBob var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite;
+}
+@keyframes idleBob {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  50% {
+    transform: translate(var(--idle-sway, 0px), calc(var(--idle-bob, 3px) * -1))
+      rotate(var(--idle-tilt, 0deg));
+  }
+}
+.combatant.dead .combatant-figure {
+  animation-play-state: paused; /* 尸体不该继续喘气(与下方 .dead .enemy-sprite 同理) */
 }
 /* 战斗中的角色立绘取半身像: 1:1 取景框 + cover + 顶对齐, 正好截出源图上半身
    (剑士-透明.png 560×1022 → 取 y 0~560, 头到短裤), 腿脚裁掉。
@@ -1390,7 +1475,7 @@ button.big {
   z-index: 1;
 }
 /* 手牌侧栏是浮在场景之上的 HUD: 舞台不再自裁, 推近时放大的角色会溢出到侧栏区域, 故须显式压住。
-   (.battle-stage 的 will-change:transform 已形成层叠上下文, 其内部的 z-index:4~8 不会穿透) */
+   (.battle-scene 的 will-change:transform 已形成层叠上下文, 其内部的 z-index:1~8 不会穿透) */
 .screen.battle > .side {
   position: relative;
   z-index: 2;
@@ -1571,18 +1656,161 @@ button.big {
 .screen.battle {
   position: relative;
   /* --hand-col-w: 手牌栏宽度; --hand-shift-y: 手牌栏整体下移量(设计画布 1080px 的 30%)。
-     两者都是设计 px, 随 --stage-scale 一起缩放, 故任何窗口下构图一致。 */
+     --canvas-pad / --stage-gap: 画布内边距与栏间距 —— 抽成变量是因为 .battle-stage 已不再是
+     grid 项(它现在绝对定位在场景层里), 得靠这三个值算出与原先逐 px 一致的舞台矩形。
+     全是设计 px, 随 --stage-scale 一起缩放, 故任何窗口下构图一致。 */
   --hand-col-w: 380px;
   --hand-shift-y: 224px;
+  --canvas-pad: 16px;
+  --stage-gap: 10px;
   grid-template-columns: var(--hand-col-w) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: "side stage";
-  gap: 10px;
-  padding: 16px;
+  gap: var(--stage-gap);
+  padding: var(--canvas-pad);
 }
-/* 背景视频: 相机的远景平面, 精确覆盖 16:9 游戏画布(含侧栏底下), 位于所有 UI 之下。
-  object-fit: cover 保持视频比例；推镜时由 BattleScreen 的 computeCamera 边缘钳制保证不露黑边。
-  transform 由 BattleScreen 行内下发, 与 .battle-stage 共用同一条 transition。 */
+/* ★ 场景层 = 世界(1920×1080), 相机的唯一作用对象。
+   背景与敌我单位都在它里面, 由 BattleScreen 行内下发的**唯一**一份 transform 驱动 ⇒
+   场景是刚体, 推近/平移时角色与它脚下的地面绝不可能分离。
+   刻意不加 overflow —— 裁切统一由 .screen.battle 承担。 */
+.battle-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  will-change: transform;
+  transform-origin: 0 0;
+}
+/* ★ 世界层: 夹在相机(.battle-scene)与场景内容之间的一层, 同样包住背景 + 氛围 + 舞台
+   ⇒ 刚体不变。它存在的唯一理由是「场景层的 transform 已被相机占用」, 而空闲漂移与震屏
+   还需要落点。三个变换属性各司其职、由浏览器按 translate → rotate → scale → transform
+   的固定顺序合成, 互不覆盖:
+     transform → 空闲漂移(worldDrift, 常驻循环)
+     translate → 震屏位移(worldShakeA/B, 命中时单次)
+     scale     → 震屏的冲击缩放(同上一条 keyframes 里一起写)
+   position:absolute + inset:0 使它与场景层几何完全重合 ⇒ 它成为 .battle-stage 的
+   offsetParent, BattleScreen.computeCamera 读的取景安全区一个数都不用改。 */
+.battle-world {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  transform-origin: 50% 50%;
+  animation: worldDrift var(--drift-dur, 22000ms) ease-in-out infinite;
+}
+/* 相机推近期间冻住漂移: 聚焦的那 1 秒里目标必须钉死在画面中心, 不能被漂移缓慢带偏。
+   animation-play-state 保留当前进度, 回到全景时从原处续播, 无跳变。 */
+.battle-scene[data-focused] .battle-world {
+  animation-play-state: paused;
+}
+/* 空闲漂移(Ken Burns): 22s 一圈的极慢推移 + 微缩放, 让静止画面永不完全死掉。
+   幅度全部走变量, 唯一真相在 ui/animations.ts 的 CINEMA.drift。 */
+@keyframes worldDrift {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  33% {
+    transform: scale(var(--drift-scale, 1.018)) translate(calc(var(--drift-x, 8px) * -1), var(--drift-y, 5px));
+  }
+  66% {
+    transform: scale(var(--drift-scale, 1.018)) translate(var(--drift-x, 8px), calc(var(--drift-y, 5px) * -1));
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+/* 震屏: 命中解冻的那一刻爆发, 幅度衰减到 0。
+   ⚠ 必须重复声明 worldDrift 这一条 —— animation 是简写, 只写 shake 会把漂移整条抹掉。
+   两个同内容不同名的 keyframes(A/B)由 BattleScreen 按 seq 奇偶交替挂载: 名字变了才会重播,
+   而列表第 0 位的 worldDrift 名字没变 ⇒ 继续播不重启。
+   为什么不给 .battle-world 加 key 重挂载: 那会连带重挂 <video> 背景, 触发二次解码。
+   世界被推开后露出的边缘由 .battle-bg-spill(背景模糊副本)兜底, 不会露黑。 */
+.battle-world.shake-a {
+  animation:
+    worldDrift var(--drift-dur, 22000ms) ease-in-out infinite,
+    worldShakeA var(--shake-dur, 260ms) ease-out 1;
+}
+.battle-world.shake-b {
+  animation:
+    worldDrift var(--drift-dur, 22000ms) ease-in-out infinite,
+    worldShakeB var(--shake-dur, 260ms) ease-out 1;
+}
+@keyframes worldShakeA {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+  15% {
+    translate: calc(var(--shake-amp) * -1) calc(var(--shake-amp) * 0.6);
+    scale: var(--shake-punch, 1.012);
+  }
+  35% {
+    translate: calc(var(--shake-amp) * 0.7) calc(var(--shake-amp) * -0.5);
+    scale: var(--shake-punch, 1.012);
+  }
+  60% {
+    translate: calc(var(--shake-amp) * -0.4) calc(var(--shake-amp) * 0.25);
+    scale: 1;
+  }
+  80% {
+    translate: calc(var(--shake-amp) * 0.18) 0;
+    scale: 1;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+/* 与 A 逐帧相同, 只为换个名字好重启动画(见上) */
+@keyframes worldShakeB {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+  15% {
+    translate: calc(var(--shake-amp) * -1) calc(var(--shake-amp) * 0.6);
+    scale: var(--shake-punch, 1.012);
+  }
+  35% {
+    translate: calc(var(--shake-amp) * 0.7) calc(var(--shake-amp) * -0.5);
+    scale: var(--shake-punch, 1.012);
+  }
+  60% {
+    translate: calc(var(--shake-amp) * -0.4) calc(var(--shake-amp) * 0.25);
+    scale: 1;
+  }
+  80% {
+    translate: calc(var(--shake-amp) * 0.18) 0;
+    scale: 1;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+/* 顿帧(hitstop): 命中瞬间把世界里所有循环动画冻住几十毫秒, 解冻同刻爆发震屏 —— 先"卡"
+   再"炸"是打击感的来源。粒子不在 CSS 里, 由 AmbienceLayer 的 paused prop 同步停更新。
+   ⚠ 只冻「持续循环」的那几条, 不能用 * 通配: 受击闪白/冲击环/飘字正是这一刻要播的东西。 */
+.screen.battle.hitstop .battle-world,
+.screen.battle.hitstop .enemy-sprite,
+.screen.battle.hitstop .combatant-figure {
+  animation-play-state: paused;
+}
+/* 溢出填充: 相机强制居中(不做边界钳制), 世界之外露出的区域由这一层兜底 —— 同一张背景的
+   模糊放大副本。它在 .battle-scene 之外 ⇒ 不跟相机动, 始终铺满画布。src 见 BattleScreen
+   的 spillSrc(静态图直接复用, 视频抓首帧到 64×36 小图 —— 反正会被 blur 糊掉)。 */
+.battle-bg-spill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+  transform: scale(1.15);
+  filter: blur(36px) brightness(0.45) saturate(0.85);
+}
+/* 背景层: 精确覆盖整个世界(含手牌栏底下), 位于场景内所有单位之下。
+   object-fit: cover 保持素材比例。它**不带自己的 transform** —— 相机只驱动外层的
+   .battle-scene, 这正是前后景不可能错位的原因。 */
 .battle-bg-video {
   position: absolute;
   inset: 0;
@@ -1591,29 +1819,104 @@ button.big {
   object-fit: cover;
   pointer-events: none;
   z-index: 0;
-  will-change: transform;
-  transform-origin: 0 0;
 }
-/* 战场舞台层: 相机的近景平面; 敌人(上)/提示/友军(下)竖排。
-   这里刻意不加 overflow —— 裁切统一由 .screen.battle 承担, 让前景与背景共用同一个画框,
-   否则角色会被裁在舞台矩形内而背景铺满整屏, 两者的边界对不上 = 脱节。
-   transform:none 静息态下布局与改造前一致(敌上友下)。 */
+/* 战场舞台层: 世界里的一块子矩形(避开左侧手牌栏), 敌人(上)/提示/友军(下)竖排;
+   同时它的布局盒就是相机的取景安全区(computeCamera 直接读 offsetLeft/Top/Width/Height)。
+   矩形 = 画布内边距 + 手牌栏宽 + 栏间距, 与改造前的 grid 单元格逐 px 相同, 故
+   data/encounters.ts 里调好的站位 dx/dy 继续成立。 */
 .battle-stage {
-  grid-area: stage;
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  top: var(--canvas-pad);
+  right: var(--canvas-pad);
+  bottom: var(--canvas-pad);
+  left: calc(var(--canvas-pad) + var(--hand-col-w) + var(--stage-gap));
+  /* 世界内的层序: 背景 0 → 远景粒子 1 → 灯光闪烁 2 → 舞台 3 → 近景粒子 4。
+     舞台被两层粒子夹住, 这就是纵深的全部来源(见 ui/AmbienceLayer.tsx)。 */
+  z-index: 3;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  height: 100%;
-  will-change: transform;
-  transform-origin: 0 0;
+}
+/* ===================== 场景氛围层(ui/AmbienceLayer.tsx + ui/ambience.ts) ===================== */
+/* 两张画布的 CSS 尺寸恒为设计画布尺寸(位图分辨率由组件按 dpr 另设), 与背景一样精确铺满世界。
+   它们在 .battle-world 内 ⇒ 跟随相机推近/平移/漂移/震屏, 粒子与场景是一体的。
+   near 层的 filter: blur 由组件行内下发(取该层各发射器 blur 的最大值)—— 近景失焦本就是
+   层级属性, 逐粒子设 ctx.filter 会让每次绘制重建滤镜链。 */
+.battle-ambience {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+.battle-ambience.far {
+  z-index: 1;
+}
+.battle-ambience.near {
+  z-index: 4;
+}
+/* 世界内的灯光闪烁(霓虹招牌/坏掉的灯管): screen 混合叠一层光色。
+   关键帧刻意做成不规则的 —— 均匀脉冲像呼吸灯, 不像坏灯。animation-duration 由组件下发。
+   这里的 mix-blend-mode 是安全的(与下面 .battle-grade::after 的教训相对照): 它在
+   .battle-world 这个层叠上下文内, 下方压着不透明的背景层(0)与远景粒子(1), 混合有实际的
+   backdrop 可用; 且 screen 只提亮, 最坏情况也不会糊出黑幕。 */
+.battle-flicker {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(120% 80% at 50% 18%, var(--flicker-color, #7b5cff) 0%, transparent 70%);
+  opacity: 0;
+  animation-name: ambienceFlicker;
+  animation-iteration-count: infinite;
+  animation-timing-function: steps(1, end);
+}
+@keyframes ambienceFlicker {
+  0%, 42%, 47%, 55%, 71%, 100% {
+    opacity: 0.05;
+  }
+  44%, 52%, 68% {
+    opacity: 0.16;
+  }
+  45%, 69% {
+    opacity: 0;
+  }
+}
+/* 屏幕空间调色: 暗角 / 色偏 / 扫描线。
+   ⚠ 它在 .battle-scene **之外** —— 这是「镜头」而非「场景」, 跟着相机放大的话暗角会被推出
+   画面而失效。z-index 1: 压在场景(0)之上、手牌栏 .side(2) 之下。参数见 ui/ambience.ts。 */
+.battle-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    /* 扫描线: 2px 一条, 强度 0 时整条透明 */
+    repeating-linear-gradient(
+      180deg,
+      rgb(0 0 0 / calc(var(--grade-scanline, 0) * 1)) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(120% 100% at 50% 50%, transparent 42%, rgb(0 0 0 / calc(var(--grade-vignette, 0.24) * 1)) 100%);
+}
+/* 色偏单独一层伪元素(与暗角分开, 免得两个渐变在同一个 background 里互相盖)。
+   ⚠ 这里**不能用 mix-blend-mode**: 父元素 .battle-grade 自带 position+z-index, 本身就是一个
+   层叠上下文, 混合只能作用于「同一上下文内、它下面的东西」—— 而它下面只有父元素那层中心
+   完全透明的暗角渐变。对透明背景做混合等于直接输出源色, 于是色偏会变成一整块不透明的深色
+   幕布糊住整个画面(霓虹城市曾因此全屏发黑)。改成低透明度的普通色罩即可。 */
+.battle-grade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grade-tint, transparent);
+  opacity: 0.14;
 }
 .battle-stage .enemy-row {
   flex: 0 0 auto;
 }
-/* 边框描线要浮在背景视频之上(视频占 z-index:0), 故抬到 1; 仍在 .battle-stage 等 UI 之下,
-   因为同层级下 ::before 先于子元素绘制。 */
+/* 终端边框描线 = 画布的"机框", 属 HUD 而非场景: 抬到 1 浮在 .battle-scene(0) 之上,
+   仍在手牌栏 .side(2) 之下。它不跟相机动 —— 机框本来就该钉在屏幕上。
+   (改造前场景被拆成背景 0 / 舞台 1 两层, 这条夹在中间; 现在两层已合并为同一个场景层。) */
 .screen.battle::before {
   z-index: 1;
 }
@@ -2458,9 +2761,12 @@ button.big {
   }
 }
 
-/* 这里曾有一条 @media (max-width:1100px) 把战斗侧栏从 280px 压到 192px。战斗画面改成
-   1920×1080 的固定设计画布后该断点已被移除 —— 画布恒为 1920 宽, 按窗口宽度改侧栏 = 让构图
-   随分辨率漂移, 正是设计画布要消灭的东西。窄窗口下整个画面等比缩小即可。 */
+/* ⚠ 战斗画布(.screen.battle 及其内部的 .side / .hand-* / .battle-*)**不允许**出现在任何
+   按窗口宽度的 @media 里 —— 画布恒为 1920×1080 设计 px, 整体等比缩放去适配窗口, 断点只会
+   让构图随分辨率漂移(正是设计画布要消灭的东西), 还会连带改变相机的取景安全区。
+   这里曾有三条这样的残留: (max-width:1100px) 压侧栏宽、(max-width:720px) 与 (max-width:900px)
+   把战场重排成单列上下堆叠 —— 已全部移除。窄窗口下整个画面等比缩小即可。
+   下面保留的断点只作用于非战斗界面(终端导航 / 队伍预览 / 奖励卡 / 编队抽屉)。 */
 
 @media (max-width: 720px) {
   .terminal-nav {
@@ -2475,25 +2781,6 @@ button.big {
   .reward-cards {
     flex-wrap: wrap;
     justify-content: center;
-  }
-  .screen.battle {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "stage"
-      "side";
-    grid-template-rows: minmax(0, 1fr) auto;
-  }
-  .side {
-    min-height: 0;
-    padding-top: 0;
-  }
-  .hand-strip {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .hand-card:hover,
-  .hand-card.selected {
-    transform: none;
   }
 }
 
@@ -2523,22 +2810,8 @@ button.big {
   font-size: 28px;
 }
 
-/* 窄屏: 战场单列，详情仍按需从右侧弹出 */
+/* 窄屏: 编队/奖励界面的详情抽屉收窄(战斗画布不参与, 见上方 ⚠) */
 @media (max-width: 900px) {
-  .screen.battle {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "stage"
-      "side";
-  }
-  .hand-strip {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .hand-card {
-    min-width: 0;
-  }
   .card-drawer {
     top: 12px;
     right: 12px;
@@ -2550,7 +2823,7 @@ button.big {
 /* ===================== 我方队伍头像栏(ui/AllyBar.tsx) ===================== */
 /* 舞台底部的一条固定构图: 左 10% / 中 80% / 右 10%, 高度 = 设计画布全高的 15%。
    左右两段是纯透明占位(留给后续内容), 中间 80% 均分成 4 个横向槽位。
-   仍在 .battle-stage 内 ⇒ 跟随分镜相机推近/平移(每格的 data-cmb-id 供 computeCamera 定位)。
+   仍在 .battle-scene 内 ⇒ 跟随分镜相机推近/平移(每格的 data-cmb-id 供 computeCamera 定位)。
 
    ⚠ 本段必须留在文件末尾: 槽位根节点复用 .combatant 的类名(拿前冲/受击抖动/光晕/阵亡那套
    现成规则), 故这里的尺寸与血条覆盖必须排在「战术终端视觉系统」主题层(.combatant 的 156px、
@@ -2622,6 +2895,21 @@ button.big {
   height: auto;
   max-width: none; /* 图可以宽于取景窗并向两侧溢出, 由 overflow 裁掉 */
   translate: calc(-50% + var(--head-dx, 0px)) var(--head-dy, 0px);
+  /* 头像也轻轻呼吸(1px, 比敌人更收敛 —— 取景窗很小, 幅度大了就成了"头在窗里晃")。
+     走 transform: translate 已被上面的头部取景偏移占用。 */
+  animation: allyBreathe 4200ms ease-in-out infinite;
+}
+.ally-bar .ally-slot.dead .portrait-image {
+  animation-play-state: paused;
+}
+@keyframes allyBreathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
 }
 /* 未登记立绘的角色: emoji 回退填满取景窗 */
 .ally-bar .ally-avatar .portrait {
@@ -2689,4 +2977,539 @@ button.big {
   background: #05080a59;
   border: 1px dashed #ffffff12;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+/* ===================== 探索牌局 ===================== */
+/* 界面骨架: 顶部信息条 → 队伍血量 → 轨迹 → 牌桌(路线 + 手牌) → 场地能力。
+   轨迹与牌桌是这一页的主角, 故只有它们可以伸缩; 其余四条固定高度不参与抢空间。 */
+.screen.explore {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  padding: 0 0 14px;
+}
+.explore-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-shrink: 0;
+  padding: 12px 28px 0;
+}
+.explore-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.explore-map {
+  margin: 0;
+  color: #eef3ef;
+  font-size: 22px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.explore-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.loot-chip,
+.deck-chip-count {
+  padding: 4px 10px;
+  border: 1px solid #475358;
+  background: #151c20;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.loot-chip {
+  color: #7fd8e8;
+  border-color: #2f6b78;
+}
+.loot-chip.big {
+  font-size: 16px;
+  padding: 8px 18px;
+}
+.loot-inline {
+  color: #7fd8e8;
+}
+.loot-lost {
+  color: var(--bad);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ── 危险度仪表 ──
+   决策发生在「跨档的那一手」, 所以 preview 态(ghost 格 + 档名箭头)必须比当前态更抢眼。 */
+.danger-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border: 1px solid #ffffff14;
+  background: #0b0f11cc;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.danger-label {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.danger-bars {
+  display: flex;
+  gap: 3px;
+}
+.danger-bar {
+  width: 26px;
+  height: 12px;
+  background: #ffffff10;
+  transform: skewX(-18deg);
+  transition: background 0.18s, box-shadow 0.18s;
+}
+.danger-bar.on {
+  background: var(--bar-color);
+  box-shadow: 0 0 8px var(--bar-color);
+}
+/* 预演: 打出悬停的这张牌会点亮的格子。虚化闪烁, 与已点亮的实心格明确区分。 */
+.danger-bar.ghost {
+  background: var(--bar-color);
+  opacity: 0.45;
+  animation: dangerGhost 0.7s infinite;
+}
+@keyframes dangerGhost {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+.danger-tier {
+  min-width: 76px;
+  color: var(--danger-color);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.danger-tier.crossing {
+  color: var(--warn);
+  animation: dangerGhost 0.7s infinite;
+}
+.danger-num {
+  color: #eef3ef;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.danger-num em {
+  font-style: normal;
+  font-weight: 700;
+}
+.danger-num em.up {
+  color: var(--bad);
+}
+.danger-num em.down {
+  color: var(--good);
+}
+.danger-gap {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+/* ── 队伍血量 ──
+   血量跨战斗继承是整套设计的地基, 玩家判断「还打不打得动下一场」全靠这一条, 必须常驻可见。 */
+.explore-party {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 0 28px;
+}
+.ex-party-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 190px;
+  padding: 5px 12px;
+  border: 1px solid #ffffff14;
+  background: #0b0f11a6;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.ex-party-member.down {
+  opacity: 0.42;
+  border-color: #5a2b2b;
+}
+.ex-party-emoji {
+  font-size: 16px;
+}
+.ex-party-name {
+  color: #eef3ef;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ex-party-bar {
+  flex: 1;
+  height: 6px;
+  background: #ffffff12;
+  overflow: hidden;
+}
+.ex-party-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d64b4b, #ff8a5b);
+  transition: width 0.35s;
+}
+.ex-party-hp {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 轨迹 ──
+   打出的卡不消失, 横向排开 = 这趟远征的可视历史。地图不用画, 它自己长出来。 */
+.trail-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 0 28px;
+}
+.trail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.trail-count {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.trail-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px 2px 10px;
+  border-top: 1px solid #ffffff10;
+  border-bottom: 1px solid #ffffff10;
+  scrollbar-width: thin;
+}
+.trail-empty {
+  color: #55606a;
+  font-size: 12px;
+  padding: 14px 4px;
+}
+.trail-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+  width: 68px;
+  padding: 6px 4px 5px;
+  border: 1px solid #ffffff1a;
+  border-bottom: 2px solid var(--trail-color, #4a5560);
+  background: #0d1215d9;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.trail-card.trail-encounter,
+.trail-card.trail-boss {
+  background: #1a0f12e0;
+  border-color: #6b3a3a;
+}
+.trail-emoji {
+  font-size: 17px;
+  line-height: 1.1;
+}
+.trail-name {
+  color: #cfd8dc;
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.trail-delta {
+  font-size: 10px;
+  font-weight: 700;
+}
+.trail-delta.up {
+  color: var(--bad);
+}
+.trail-delta.down {
+  color: var(--good);
+}
+.trail-delta.flat {
+  color: #4c565f;
+}
+.trail-danger {
+  color: var(--trail-color, #7f9aa6);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+/* 轨迹右端常驻的 BOSS 标记: 未揭示是背面, 揭示后显示按当前危险度算出的强度预览 ——
+   玩家继续刷事件卡时这里会实时变化, 那正是我们想让他盯着犹豫的东西。 */
+.trail-card.trail-bossmark {
+  width: 96px;
+  margin-left: 14px;
+  border-style: dashed;
+  border-color: #4a5560;
+  background: #0a0d0fcc;
+}
+.trail-card.trail-bossmark.revealed {
+  border-style: solid;
+  border-color: #c92a2a;
+  background: linear-gradient(180deg, #2a0f12, #12080ae6);
+  box-shadow: 0 0 16px #c92a2a3d;
+}
+.trail-boss-preview {
+  color: #ff9b9b;
+  font-size: 9px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── 牌桌: 路线牌 + 手牌 ── */
+.explore-table {
+  display: flex;
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+  padding: 0 28px;
+  overflow: hidden;
+}
+.explore-route,
+.explore-hand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.explore-route {
+  flex-shrink: 0;
+  padding-right: 18px;
+  border-right: 1px solid #ffffff12;
+}
+.explore-hand {
+  flex: 1;
+  min-width: 0;
+}
+.ex-hand-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  padding: 2px;
+  min-height: 0;
+}
+.ex-hand-empty {
+  color: #55606a;
+  font-size: 12px;
+  padding: 24px 6px;
+  line-height: 1.7;
+}
+
+/* ── 探索卡卡面 ──
+   与战斗卡刻意不复用: 两者信息结构不同(战斗卡讲消耗/目标/效果, 探索卡讲危险度/收益/通往哪)。 */
+.ex-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 132px;
+  min-height: 168px;
+  padding: 14px 9px 10px;
+  border: 1px solid #3c484b;
+  border-radius: 0;
+  background: linear-gradient(170deg, #131a1de6, #0a0e10f2);
+  text-align: center;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
+}
+.ex-card:hover:not(:disabled) {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  background: linear-gradient(170deg, #17221ff2, #0b1012f2);
+  box-shadow: 0 6px 18px #0009;
+}
+.ex-card.disabled,
+.ex-card:disabled {
+  opacity: 0.35;
+}
+.ex-emoji {
+  font-size: 28px;
+  line-height: 1.15;
+}
+.ex-name {
+  color: #eef3ef;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.ex-sub {
+  color: #7fd8e8;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.ex-text {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+/* 危险度角标: 卡面上信息密度最高的一个数, 放右上角固定位置便于横向扫读整手牌 */
+.ex-danger {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.ex-danger.up {
+  color: #ffb3b3;
+  background: #6b1f1f;
+}
+.ex-danger.down {
+  color: #b8f0c4;
+  background: #1f5b2e;
+}
+/* 跨档警示: 这一手会把区域推进下一档 —— 玩家应该在这里停一下 */
+.ex-card.crosses {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 1px #ffd43b40, 0 0 18px #ffd43b26;
+}
+.ex-warn {
+  margin-top: auto;
+  padding-top: 4px;
+  color: var(--warn);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+/* 弃牌选择模式下的勾选态 */
+.ex-card.picked {
+  border-color: var(--bad);
+  transform: translateY(-4px);
+  box-shadow: 0 0 0 1px var(--bad), 0 0 20px #ff6b6b40;
+}
+.ex-card.picked::after {
+  content: "弃";
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  padding: 1px 6px;
+  background: var(--bad);
+  color: #150607;
+  font-size: 11px;
+  font-weight: 700;
+}
+/* 路线牌与事件卡在视觉上必须一眼分开 —— 前者是"这一步通往战斗", 不可逆 */
+.ex-card.ex-encounter {
+  border-color: #6b3a3a;
+  background: linear-gradient(170deg, #201316f2, #0d0809f2);
+}
+.ex-card.ex-boss {
+  border-color: #c92a2a;
+  background: linear-gradient(170deg, #2c1014, #140809);
+  box-shadow: 0 0 20px #c92a2a33;
+}
+.ex-card.ex-boss .ex-name {
+  color: #ff9b9b;
+}
+.ex-card.ex-retreat {
+  border-color: #4a5560;
+  background: linear-gradient(170deg, #12181cf2, #090c0ef2);
+}
+.ex-card.ex-rare {
+  border-color: #8a6bd6;
+}
+.ex-card.ex-uncommon {
+  border-color: #4d7fb8;
+}
+
+/* ── 场地能力 ──
+   三个按钮各自把一种东西换成另一种: 危险度→牌 / 牌→血 / 牌→危险度下降。
+   永远可用(代价不足时置灰)⇒「牌库空 + 手牌空」的死局不成立。 */
+.explore-abilities {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+.ability-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #475358;
+  background: #101619e6;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.ability-emoji {
+  font-size: 16px;
+}
+.ability-name {
+  color: #eef3ef;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.ability-cost {
+  color: #ff9b9b;
+  font-size: 10px;
+}
+.ability-gain {
+  color: var(--good);
+  font-size: 10px;
+}
+.explore-abilities.discarding {
+  padding: 8px 0;
+  border-top: 1px solid #ffd43b33;
+}
+.discard-hint {
+  color: var(--warn);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/* 远征结算页的战利品条 */
+.end-loot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ===================== 减少动态效果: 战斗场景动感的降级 ===================== */
+/* ⚠ 必须留在文件末尾: 媒体查询**不增加特异性**, 写在前面会被后面同特异性的规则
+   (.combatant-figure 的 idleBob 等)按源码顺序直接盖掉。文件开头那个 @media 块只管
+   过场动画, 因为它要压的规则都在它前面。
+
+   氛围粒子不在这里 —— AmbienceLayer 在同一条件下**根本不挂载**(连 rAF 都不起), 见组件顶部。 */
+@media (prefers-reduced-motion: reduce) {
+  .battle-world,
+  .battle-flicker,
+  .combatant-figure,
+  .combatant-stage::after,
+  .combatant.twitch .combatant-stage,
+  .ally-bar .ally-avatar .portrait-image {
+    animation: none;
+  }
+  /* 可选中提示不能一起停掉 —— 那是玩法信息而非装饰。去掉脉冲, 保留一圈静态描光。 */
+  .combatant.targetable .combatant-figure {
+    animation: none;
+    filter: drop-shadow(0 0 6px var(--accent));
+  }
+  /* 危险度预演同理: 停掉闪烁, 但 ghost 格必须保持可见 —— 那是「会不会跳档」的玩法信息。 */
+  .danger-bar.ghost,
+  .danger-tier.crossing {
+    animation: none;
+    opacity: 0.6;
+  }
 }

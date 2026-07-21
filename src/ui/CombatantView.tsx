@@ -4,7 +4,7 @@ import { StatusPips } from "./StatusPips";
 import type { HitFx } from "./animations";
 import { CharacterPortrait } from "./CharacterPortrait";
 import { EnemySprite } from "./EnemySprite";
-import { enemyArt } from "./enemyArt";
+import { enemyArt, enemyIdle } from "./enemyArt";
 import { HitFxLayer, hitFxVars } from "./HitFxLayer";
 
 interface Props {
@@ -14,12 +14,22 @@ interface Props {
   attacking?: boolean; // 是否是当前出牌的施法者(前冲动画)
   hit?: HitFx | null; // 命中时刻下发的受击/首击特效
   placement?: EnemyPlacement; // 手工站位(贴合背景地面); 省略则用 .enemy-row 的默认排布
+  twitching?: boolean; // 待机小动作(见 ui/useIdleTwitch.ts): 随机抽中时抖一下
   onClick?: () => void;
 }
 
 // 场上的敌人单位: 无背景面板, 立绘直接浮在场景上。
 // 我方不走这里 —— 见 ui/AllyBar.tsx 的底部玻璃头像栏; 两者共用 HitFxLayer 保证命中表现一致。
-export function CombatantView({ cmb, currentTick, targetable, attacking, hit, placement, onClick }: Props) {
+export function CombatantView({
+  cmb,
+  currentTick,
+  targetable,
+  attacking,
+  hit,
+  placement,
+  twitching,
+  onClick,
+}: Props) {
   const hpPct = Math.max(0, (cmb.hp / cmb.maxHp) * 100);
   const dead = !cmb.alive;
 
@@ -36,6 +46,16 @@ export function CombatantView({ cmb, currentTick, targetable, attacking, hit, pl
     if (placement.scale != null) vars["--place-scale"] = `${placement.scale}`;
   }
 
+  // --idle-*: 待机呼吸(逐敌人登记在 enemyArt.ts), 落在 .combatant-figure 的 transform 上。
+  // --shadow-w: 脚下椭圆落地阴影的宽度, 取立绘渲染宽 —— 影子该跟体型走, 而不是跟布局盒(144px)走。
+  const idle = enemyIdle(enemySprite);
+  vars["--idle-bob"] = `${idle.bob}px`;
+  vars["--idle-sway"] = `${idle.sway}px`;
+  vars["--idle-tilt"] = `${idle.tilt}deg`;
+  vars["--idle-dur"] = `${idle.dur}ms`;
+  vars["--idle-delay"] = `${idle.delay}ms`;
+  vars["--shadow-w"] = `${(enemySprite?.width ?? 96) * 0.78}px`;
+
   return (
     <div
       data-cmb-id={cmb.id}
@@ -45,9 +65,10 @@ export function CombatantView({ cmb, currentTick, targetable, attacking, hit, pl
         dead ? "dead" : "",
         targetable ? "targetable" : "",
         attacking ? "attacking" : "",
+        twitching && !dead ? "twitch" : "",
         reactClass,
       ].join(" ")}
-      style={Object.keys(vars).length ? (vars as React.CSSProperties) : undefined}
+      style={vars as React.CSSProperties}
       onClick={(e) => {
         e.stopPropagation();
         if (targetable && onClick) onClick();

@@ -4,6 +4,7 @@ import { MenuScreen } from "./ui/MenuScreen";
 import { TownScreen } from "./ui/TownScreen";
 import { FormationScreen } from "./ui/FormationScreen";
 import { ExpeditionScreen } from "./ui/ExpeditionScreen";
+import { ExploreScreen } from "./ui/ExploreScreen";
 import { BattleScreen } from "./ui/BattleScreen";
 import { ExpRewardScreen } from "./ui/ExpRewardScreen";
 import { EndScreen } from "./ui/EndScreen";
@@ -17,14 +18,15 @@ function renderScreen(screen: Screen) {
       return <FormationScreen />;
     case "expedition":
       return <ExpeditionScreen />;
+    case "explore":
+      return <ExploreScreen />;
     case "battle":
       return <BattleScreen />;
     case "reward":
       return <ExpRewardScreen />;
     case "victory":
-      return <EndScreen win />;
     case "defeat":
-      return <EndScreen win={false} />;
+      return <EndScreen />;
     case "menu":
     default:
       return <MenuScreen />;

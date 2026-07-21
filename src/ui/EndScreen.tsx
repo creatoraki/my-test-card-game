@@ -1,32 +1,61 @@
+// 远征结算 —— 通关 / 撤退 / 团灭三种收场共用一页。
+// 主角是「轨迹」: 一趟远征结束时那一排卡就是完整的故事, 比任何数字都更值得看。
+
 import { getCharacter, getMap } from "../data";
+import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
 import { useTownStore } from "../store/townStore";
+import { TrailStrip } from "./TrailStrip";
 
-export function EndScreen({ win }: { win: boolean }) {
+const TITLES = {
+  won: { title: "远征完成", kicker: "远征终端 / 最终报告" },
+  retreat: { title: "已撤离", kicker: "远征终端 / 中止报告" },
+  lost: { title: "远征中断", kicker: "远征终端 / 事故报告" },
+} as const;
+
+export function EndScreen() {
   const characters = useTownStore((s) => s.characters);
+  const bankedLoot = useTownStore((s) => s.loot);
   const party = useTownStore((s) => s.party);
-  const index = useRunStore((s) => s.index);
+  const lastResult = useRunStore((s) => s.lastResult);
   const mapId = useRunStore((s) => s.mapId);
-  const expReport = useRunStore((s) => s.expReport);
   const backToTown = useRunStore((s) => s.backToTown);
+  const session = useExploreStore((s) => s.session);
 
+  const result = lastResult ?? "lost";
+  const { title, kicker } = TITLES[result];
   const map = mapId ? getMap(mapId) : null;
-  const total = map?.sequence.length ?? 0;
-  const leveledUp = expReport.some((g) => g.toLevel > g.fromLevel);
+  const wiped = result === "lost";
 
   return (
     <div className="screen end terminal-screen center">
-      <div className="screen-kicker">远征终端 / 最终报告</div>
-      <h1 className="terminal-heading">{win ? "远征完成" : "远征中断"}</h1>
+      <div className="screen-kicker">{kicker}</div>
+      <h1 className="terminal-heading">{title}</h1>
       <p className="muted">
-        {win
-          ? `${map?.name ?? "未知区域"} —— 通关全部 ${total} 场战斗。`
-          : `${map?.name ?? "未知区域"} —— 倒在了第 ${index + 1} / ${total} 场战斗。`}
+        {map?.name ?? "未知区域"} ——{" "}
+        {result === "won"
+          ? "深处之物已被清除。"
+          : result === "retreat"
+            ? "带着已有的收获退了出来。"
+            : "全队失去意识，被拖回了城镇。"}
       </p>
-      {win && (
-        <p className="muted">
-          最终战经验已入账{leveledUp ? "，有队员升级了" : ""}，回城后可在「编队」分配属性点。
-        </p>
+
+      <div className="end-loot">
+        {wiped ? (
+          <span className="loot-lost">💠 残片全部遗失</span>
+        ) : (
+          <span className="loot-chip big">💠 残片入账 {session?.loot ?? 0}</span>
+        )}
+        <span className="muted">城镇余额 {bankedLoot}</span>
+        {session && (
+          <span className="muted">
+            最终危险度 {session.danger} · 走了 {session.trail.length} 步
+          </span>
+        )}
+      </div>
+
+      {session && (
+        <TrailStrip trail={session.trail} bossRevealed={session.bossRevealed} bossPreview="" />
       )}
 
       <div className="deck-summary">

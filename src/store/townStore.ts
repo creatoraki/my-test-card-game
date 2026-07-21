@@ -41,9 +41,11 @@ export interface ExpGain {
 interface TownStore {
   characters: Record<string, CharacterState>;
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize
+  loot: number; // 残片余额 —— 探索层的产出, 仅撤退/通关时落袋进来(团灭全丢)
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
+  bankLoot: (amount: number) => void; // 远征结束落袋
   resetProfile: () => void; // 重置存档
   allocatePoint: (charId: string, attr: keyof CharacterAttrs) => void; // 花 1 点加一项属性
   startDraw: (charId: string) => void; // 花 drawCost 点 → 随机 drawChoices 张候选
@@ -93,14 +95,20 @@ export const useTownStore = create<TownStore>()(
     (set, get) => ({
       characters: {},
       party: [],
+      loot: 0,
       initialized: false,
 
       ensureProfile: () => {
         if (get().initialized) return;
-        set({ ...freshProfile(), initialized: true });
+        set({ ...freshProfile(), loot: 0, initialized: true });
       },
 
-      resetProfile: () => set({ ...freshProfile(), initialized: true }),
+      resetProfile: () => set({ ...freshProfile(), loot: 0, initialized: true }),
+
+      bankLoot: (amount) => {
+        if (amount <= 0) return;
+        set({ loot: get().loot + amount });
+      },
 
       allocatePoint: (charId, attr) => {
         const cs = get().characters[charId];

@@ -50,7 +50,7 @@ export const ENCOUNTERS: EncounterDef[] = [
     enemies: [
       { id: "pole-bot", dx: -420, dy: 450, scale: 2 },
       { id: "radio-bot", dx: -150, dy: 550, scale: 1.5 },
-      { id: "scrap-bot", dx: 50, dy: 400, scale: 1.8 },
+      { id: "scrap-bot", dx: 50, dy: 500, scale: 1.8 },
     ],
   },
 ];

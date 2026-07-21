@@ -189,6 +189,18 @@ export interface Enemy extends BaseCombatant {
 export type Combatant = Ally | Enemy;
 
 // ---------------------------------------------------------------------------
+// 遭遇战改造器 —— 建局时对 EncounterDef 的一次性加成。
+// 探索层的「区域危险度」通过它注入战斗(见 explore/session.ts encounterModifier);
+// 引擎本身不认识危险度, 只认识这四条改造 —— 日后任何"动态难度"来源都可复用这个结构。
+// ---------------------------------------------------------------------------
+export interface EncounterModifier {
+  extraEnemies?: string[]; // 追加的敌人 defId(排在原有敌人之后, 走默认站位)
+  enemyStatuses?: StatusInstance[]; // 全体敌人的开局状态
+  castTickDelta?: number; // 敌人行动间隔调整, 结果钳到下限 1
+  hpMultiplier?: number; // 敌人 maxHp 倍率(BOSS 缩放用), 缺省 1
+}
+
+// ---------------------------------------------------------------------------
 // 战斗状态 —— 完全可序列化(无函数), 可 structuredClone / 存 localStorage。
 // ---------------------------------------------------------------------------
 export interface LogEntry {
