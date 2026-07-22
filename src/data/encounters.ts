@@ -44,13 +44,17 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "e3", name: "巢穴深处", enemies: ["weird-bird", "weird-bird", "weird-bird", "weird-bird"] },
   // 霓虹城市: 三台机器人散开在街上, 左右两台站得稍远, 中间的废品机器人压向镜头。
   // 电线杆立绘细高, 给更大的 scale 撑出"高"的体型; 收音机体型接近废品, scale 取中。
+  //
+  // ⚠ 底部 HUD 改造后 dx 整体 +195(旧值 -420 / -150 / 50): 舞台不再避让左侧手牌栏
+  // (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
+  // 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
   {
     id: "n1",
     name: "废墟拾荒者",
     enemies: [
-      { id: "pole-bot", dx: -420, dy: 450, scale: 2 },
-      { id: "radio-bot", dx: -150, dy: 550, scale: 1.5 },
-      { id: "scrap-bot", dx: 50, dy: 500, scale: 1.8 },
+      { id: "pole-bot", dx: -225, dy: 450, scale: 2 },
+      { id: "radio-bot", dx: 45, dy: 550, scale: 1.5 },
+      { id: "scrap-bot", dx: 245, dy: 500, scale: 1.8 },
     ],
   },
 ];

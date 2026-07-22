@@ -5,8 +5,13 @@
 // ============================================================================
 
 import type { Card, CardAnim } from "../engine";
-import type { EnemyMove } from "../data";
+import { CARD_DEFS, type EnemyMove } from "../data";
 import { SWORD_FALL_FRAMES } from "./vfxSprites";
+
+// 卡牌定义表的 anim 索引: 卡实例随城镇档案持久化(localStorage), 实例上固化的 anim
+// 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
+// 解析。不走 getCardDef: 它对未知 id 直接 throw, 而存档可能残留已删定义的旧卡。
+const DEF_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.anim]));
 
 // 序列帧特效参数。几何/时序集中在此(而非散落 CSS), 保证「登记一次」即可调。
 // 由 ui/SpriteFx.tsx 行内下发给逐帧 <img>。
@@ -20,10 +25,19 @@ export interface SpritePreset {
   impactMs: number; // 挂载 → 真正砸中的偏移(ms), 用于同步受击抖动/冲击环
 }
 
+// 居合斩(程序化 CSS)参数。视觉几何在 IaiSlashFx.tsx / styles.css, 这里只放 JS 要消费的时序。
+export interface IaiPreset {
+  // 挂载 → 斩击爆发的偏移(ms), = 蓄力时长(压暗+光点渐亮)。
+  // runSteps 用它推迟顿帧/震屏, hitFxVars 用它推迟受击抖动/闪白与飘字。
+  impactMs: number;
+  floatMs: number; // 飘字时长(压缩): impactMs + floatMs 须 ≤ CINEMA.hitHold, 否则飘字被卸载截断
+}
+
 export interface AnimPreset {
   kind: "attack" | "support"; // attack: 目标受击特效; support: 目标柔和光效
-  emoji?: string; // 首击特效图形(无 sprite 时使用)
+  emoji?: string; // 首击特效图形(无 sprite/iai 时使用)
   sprite?: SpritePreset; // 序列帧特效(存在时优先于 emoji)
+  iai?: IaiPreset; // 居合斩程序化特效(与 sprite 平行的第三种渲染分支)
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
@@ -95,7 +109,19 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     },
     windup: 210,
     hold: 840,
-    shake: 2, // 全场唯一的重击档: 巨剑砸地理应把镜头震一下
+    shake: 2, // 重击档: 巨剑砸地理应把镜头震一下
+  },
+  // 居合拔刀斩(程序化 CSS): 全屏压暗 → 光点由暗渐亮蓄力 → 500ms 斩痕从左下向右上
+  // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在 hitHold(1000ms) 内。视觉在 IaiSlashFx.tsx
+  // 与 styles.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。
+  // 调 impactMs 时须同步改 styles.css 里 iaiBlade/iaiGlow/iaiRing/iaiScreenDim 的百分比。
+  "iai-slash": {
+    kind: "attack",
+    color: "#8fe3ff", // 青蓝主色(冲击环/受击着色/飘字), 与 sword-fall 的红形成区分
+    iai: { impactMs: 500, floatMs: 500 },
+    windup: 210, // 现时序不消费, 按语义填写
+    hold: 1000,
+    shake: 2, // 居合重斩, 与 sword-fall 同档
   },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
@@ -110,9 +136,11 @@ export interface HitFx {
   seq: number; // 递增序号, 用于强制重放动画
 }
 
-// 卡牌 → 动画类型。优先卡牌显式声明的 anim, 否则按效果兜底推断。
+// 卡牌 → 动画类型。优先按定义表实时解析(见 DEF_ANIM: 实例上的副本可能来自旧存档),
+// 定义已不存在才回退实例自带值, 都没有则按效果兜底推断。
 export function cardAnim(card: Card): CardAnim {
-  if (card.anim) return card.anim;
+  const anim = DEF_ANIM.has(card.id) ? DEF_ANIM.get(card.id) : card.anim;
+  if (anim) return anim;
   const has = (t: string) => card.effects.some((e) => e.type === t);
   if (has("DAMAGE")) return "slash";
   if (has("HEAL")) return "heal";

@@ -5,8 +5,9 @@ import { useBattleStore } from "../store/battleStore";
 import { useRunStore } from "../store/runStore";
 import { CombatantView, isIntentRevealed } from "./CombatantView";
 import { AllyBar } from "./AllyBar";
+import { TickRuler } from "./TickRuler";
 import { HandCard } from "./HandCard";
-import { CardDetailPopup } from "./CardDetailPopup";
+import { CardInfoPanel } from "./CardInfoPanel";
 import { SkillCutInCard } from "./SkillCutInCard";
 import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "./animations";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
@@ -15,7 +16,7 @@ import { warmVfxSprites } from "./vfxSprites";
 import { battleBg, warmBattleBg } from "./battleBg";
 import { AmbienceGrade, AmbienceLayer } from "./AmbienceLayer";
 import { useIdleTwitch } from "./useIdleTwitch";
-import { STAGE, toDesignBox, useStageScale, type DesignBox } from "./stage";
+import { STAGE, useStageScale } from "./stage";
 
 // ── 场景相机 ──
 // 世界 = 1920×1080 的设计画布(见 ui/stage.ts)。相机就是世界坐标里的一次 translate+scale,
@@ -63,7 +64,6 @@ export function BattleScreen() {
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [hoveredUid, setHoveredUid] = useState<string | null>(null);
-  const [hoverRect, setHoverRect] = useState<DesignBox | null>(null); // 悬浮手牌的矩形(浮窗锚点, 设计 px)
   const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 styles.css .hand-card 的 hand-deal-in)。
@@ -88,11 +88,8 @@ export function BattleScreen() {
   const worldRef = useRef<HTMLDivElement>(null); // ★ 世界层: 背景 + 氛围 + 舞台同在其中; 承载空闲漂移与震屏
   const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(敌我单位); 其布局盒 = 相机的取景安全区
   const bgVideoRef = useRef<HTMLVideoElement>(null); // 背景视频(仅用于抓首帧做溢出填充)
-  // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform;
-  // 另存一份 ref 供 computeCamera 读 —— 相机是在定时器回调里算的, 走 ref 才拿得到当时的最新值。
+  // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform。
   const stageScale = useStageScale(viewportRef);
-  const stageScaleRef = useRef(stageScale);
-  stageScaleRef.current = stageScale;
 
   const [animating, setAnimating] = useState(false); // 动画期间锁输入
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
@@ -371,13 +368,23 @@ export function BattleScreen() {
         // 打击感: 先"卡"再"炸" —— 命中瞬间把整个世界(CSS 动画 + 粒子)冻住 CINEMA.hitstop,
         // 解冻的同一刻爆发震屏。顿帧设 0 即退化成"命中即震"。震屏幅度按招式的 shake 档取,
         // 辅助系(档 0)完全不震。
+        // 居合斩(iai)的爆发点不在挂载瞬间而在 impactMs(蓄力后) ⇒ 顿帧/震屏整体推迟;
+        // 其余动画 impactDelay=0, 且必须保持同步调用(不能统一走 setTimeout(0), 否则
+        // setHitstop 与 setHits 拆成两次渲染, sword-fall 会多出一帧未冻结画面)。
         const level = preset.shake;
-        if (CINEMA.hitstop > 0) setHitstop(true);
+        const impactDelay = preset.iai?.impactMs ?? 0;
+        if (impactDelay > 0) {
+          const tStop = window.setTimeout(() => {
+            if (seqRef.current !== seq) return;
+            if (CINEMA.hitstop > 0) setHitstop(true);
+          }, impactDelay);
+          timersRef.current.push(tStop);
+        } else if (CINEMA.hitstop > 0) setHitstop(true);
         const tShake = window.setTimeout(() => {
           if (seqRef.current !== seq) return;
           setHitstop(false);
           if (level > 0) setShake((s) => ({ seq: s.seq + 1, level }));
-        }, CINEMA.hitstop);
+        }, impactDelay + CINEMA.hitstop);
         timersRef.current.push(tShake);
       }, tFocus + cutIn);
 
@@ -476,10 +483,20 @@ export function BattleScreen() {
   const placements = getEncounter(battle.encounterId).enemies.map(slotPlacement);
   const hand = battle.hand.map((uid) => battle.cards[uid]);
 
-  // 跟随鼠标的详情浮窗只在悬浮手牌时展示
-  const hoveredCard = hoveredUid && battle.cards[hoveredUid] ? battle.cards[hoveredUid] : null;
   const canUseHandActions = isPlayerTurn && !animating && hand.length > 0;
   const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
+
+  // 当前关注的手牌(悬停优先, 其次选中): 归属角色的槽位变宽点亮(AllyBar), 卡牌详情进右侧
+  // 固定面板(CardInfoPanel)。纯派生, 不新增任何 state —— 每张卡都带 ownerCharId, 且我方
+  // Combatant 的 id 就是角色 id(runStore.launchBattle 如此建局, fxTargets 的 case "self"
+  // 也依赖这一点)。选中待选目标期间 focusUid 仍在, 详情与槽位高亮因此持续可见。
+  const focusUid = hoveredUid ?? selectedUid;
+  const focusCard = focusUid ? (battle.cards[focusUid] ?? null) : null;
+  const focusCharId = focusCard?.ownerCharId;
+
+  // 居合斩全屏压暗: 由 hits 派生, 与特效同挂同卸(tRestore 的 setHits({}) 自动清掉),
+  // key=seq 保证连发重放。零新增 state / 计时器。
+  const dimHit = Object.values(hits).find((h) => ANIM[h.anim].iai);
 
   return (
     // --stage-scale: 把 1920×1080 的设计画布等比缩到当前窗口(见 ui/stage.ts 与 styles.css .screen.battle)
@@ -575,7 +592,7 @@ export function BattleScreen() {
         </div>
 
         {/* 提示条 */}
-        <div className="hint-bar">
+        {/* <div className="hint-bar">
           {handAction === "redraw"
             ? "▶ 选择一张手牌换牌"
             : handAction === "discard"
@@ -589,17 +606,7 @@ export function BattleScreen() {
             : isPlayerTurn
               ? "点击卡牌打出。普通牌会推进 1 时刻, 速攻牌不推进。"
               : ""}
-        </div>
-
-        {/* 我方: 舞台底部的队伍玻璃头像栏(仍在场景内 ⇒ 跟随相机) */}
-        <AllyBar
-          allies={allies}
-          hits={hits}
-          attackerId={attackerId}
-          aggroTargetId={aggroHintVisible ? aggroTargetId : undefined}
-          targetable={isPlayerTurn && !!needsAlly}
-          onSelect={onCombatantClick}
-        />
+        </div> */}
       </div>
       </div>
       </div>
@@ -608,9 +615,19 @@ export function BattleScreen() {
           跟着相机放大的话暗角会被推出画面而失效。参数按地图登记在 ui/ambience.ts。 */}
       <AmbienceGrade mapId={mapId} />
 
-      {/* 左侧悬浮手牌 */}
-      <div className="side" onClick={(e) => e.stopPropagation()}>
-        <div className="hand-toolbar" role="toolbar" aria-label="手牌工具栏">
+      {/* 居合斩全屏压暗: 刻意在 .battle-scene 之外(z 1) —— 盖住场景与调色层、不盖
+          HUD/顶栏; 不受 combatant-stage 的 scale 包含块与顿帧暂停选择器影响, 70ms
+          顿帧期间压暗/反白闪照常播(世界冻结、刀光继续走)。 */}
+      {dimHit && <div key={dimHit.seq} className="battle-dim" aria-hidden />}
+
+      {/* ★ 顶端信息条: 法力水晶 | 换牌/丢弃 | 时刻标尺。
+          同样在 .battle-scene **之外** ⇒ 不跟分镜相机推近/漂移/震屏, 信息恒定可读。 */}
+      <div
+        className="battle-topbar"
+        role="toolbar"
+        aria-label="战斗信息条"
+        onClick={(e) => e.stopPropagation()}
+      >
           <ManaCrystalBar mana={mana} max={RULES.resource.perRound} />
           <div className="hand-toolbar-actions">
             <button
@@ -662,10 +679,47 @@ export function BattleScreen() {
               </svg>
             </button>
           </div>
-        </div>
-        <div className="hand-strip">
+
+          {/* 手牌张数读数。原先挂在手牌托盘上沿, 但手牌放大后卡会越出 HUD 上沿把它盖住,
+              故并入顶端信息条 —— 这里本就是「法力 / 换牌丢弃 / 时刻」的全局读数区。 */}
+          <div className="hand-count-readout" aria-hidden="true">
+            <span className="hph-tag">HAND</span>
+            <span className="hph-rule" />
+            <span className="hph-count">
+              {String(battle.hand.length).padStart(2, "0")}
+              <i>/{String(RULES.hand.size).padStart(2, "0")}</i>
+            </span>
+          </div>
+
+          {/* 时刻标尺: 本作核心是时刻制, 这是界面里唯一的全局时刻显示 */}
+          <TickRuler tick={battle.tick} round={battle.round} enemies={enemies} />
+      </div>
+
+      {/* ★ 底部一体化 HUD: 队伍卡 | 手牌托盘 | 卡牌说明面板。
+          刻意在 .battle-scene **之外** ⇒ 整条不跟分镜相机推近/漂移/震屏, 构图恒定。
+          它同时意味着我方单位不在 .battle-stage 内 —— computeCamera 查不到我方的
+          data-cmb-id, 走它现成的 `if (!isFinite(left)) return null` 兜底保持全景, 于是
+          「打自身/友军牌时不推镜, 只播特效 + 震屏」不需要任何特判(见 ui/AllyBar.tsx 注释)。 */}
+      <div className="battle-hud" onClick={(e) => e.stopPropagation()}>
+        <AllyBar
+          allies={allies}
+          hits={hits}
+          attackerId={attackerId}
+          aggroTargetId={aggroHintVisible ? aggroTargetId : undefined}
+          focusCharId={focusCharId}
+          targetable={isPlayerTurn && !!needsAlly}
+          onSelect={onCombatantClick}
+        />
+
+        {/* 手牌托盘。导轨/衬板都是纯装饰, 几何全部由 styles.css 的 --hand-* 旋钮收敛,
+            这里不写任何尺寸。
+            ⚠ 卡刻意比托盘高(越出 HUD 上沿), 故这一列里不能再放别的东西 —— 原先压在托盘上沿的
+              HAND 张数读数已搬到顶端信息条, 见上方 .battle-topbar。 */}
+        <div className="hand-panel">
+        <div className="hand-tray">
+          <span className="hand-tray-rail" aria-hidden="true" />
           {renderHand.length === 0 && battle.hand.length === 0 && (
-            <div className="empty-hand">(手牌为空)</div>
+            <div className="empty-hand">NO CARDS</div>
           )}
           {renderHand.map((entry, i) => {
             const c = entry.card;
@@ -680,18 +734,15 @@ export function BattleScreen() {
                 selected={c.uid === selectedUid}
                 onExited={() => handleCardExited(c.uid)}
                 onClick={() => onCardClick(c.uid)}
-                onHover={(h, rect) => {
-                  setHoveredUid(h ? c.uid : null);
-                  // 屏幕 px → 设计 px: 浮窗定位在画布局部坐标系里(见 ui/stage.ts)
-                  const canvas = screenRef.current?.getBoundingClientRect();
-                  if (h && rect && canvas) {
-                    setHoverRect(toDesignBox(rect, canvas, stageScaleRef.current));
-                  }
-                }}
+                onHover={(h) => setHoveredUid(h ? c.uid : null)}
               />
             );
           })}
         </div>
+        </div>
+
+        {/* 卡牌说明固定面板: 手牌右侧、位置恒定。展示 focusUid(悬停 ?? 选中)那张卡 */}
+        <CardInfoPanel card={focusCard} />
       </div>
 
       <button
@@ -719,9 +770,6 @@ export function BattleScreen() {
 
       {/* 出牌亮相卡面: 挂在舞台层之外, 不受相机缩放/裁切影响 */}
       <SkillCutInCard card={cutInCard} />
-
-      {/* 卡牌右侧的详情浮窗 */}
-        <CardDetailPopup card={hoveredCard} anchor={hoverRect} />
       </div>
     </div>
   );

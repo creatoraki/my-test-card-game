@@ -6,6 +6,7 @@ import { CharacterPortrait } from "./CharacterPortrait";
 import { EnemySprite } from "./EnemySprite";
 import { enemyArt, enemyIdle } from "./enemyArt";
 import { HitFxLayer, hitFxVars } from "./HitFxLayer";
+import { HpBar } from "./HpBar";
 
 interface Props {
   cmb: Enemy;
@@ -30,7 +31,6 @@ export function CombatantView({
   twitching,
   onClick,
 }: Props) {
-  const hpPct = Math.max(0, (cmb.hp / cmb.maxHp) * 100);
   const dead = !cmb.alive;
 
   // 敌人立绘按 enemyDefId 查登记表; 未登记的退回 CharacterPortrait 的 emoji
@@ -92,13 +92,7 @@ export function CombatantView({
 
       {/* 立绘下方: 血条(内嵌名字 + 数值) → 护盾/BUFF-DEBUFF 一排 */}
       <div className="combatant-info">
-        <div className="hp-bar">
-          <div className="hp-fill" style={{ width: `${hpPct}%` }} />
-          <span className="cmb-name">{cmb.name}</span>
-          <span className="hp-text">
-            {Math.max(0, cmb.hp)}/{cmb.maxHp}
-          </span>
-        </div>
+        <HpBar hp={cmb.hp} maxHp={cmb.maxHp} name={cmb.name} />
 
         <div className="combatant-badges">
           {cmb.block > 0 && (

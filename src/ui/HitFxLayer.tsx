@@ -1,13 +1,17 @@
 import { ANIM, type HitFx } from "./animations";
 import { SpriteFx } from "./SpriteFx";
+import { IaiSlashFx } from "./IaiSlashFx";
 
 // 命中表现的共用件: 敌人(CombatantView)与我方头像栏(AllyBar)都靠这两个导出, 保证两边的
 // 特效着色、命中时序、飘字完全一致 —— 只有承载它们的外壳不同(场上立绘 vs 玻璃头像卡)。
 
 // 由 hit 推出「受击反应类名 + CSS 变量」, 挂在单位根节点(.combatant)上。
 //   --vfx-color:  特效主色, 供闪光/冲击环/光晕/飘字着色
-//   --vfx-impact: 挂载 → 砸中的偏移, 把受击抖动/闪白推迟到序列帧真正命中那一刻
+//   --vfx-impact: 挂载 → 砸中的偏移, 把受击抖动/闪白推迟到序列帧/居合斩真正命中那一刻
 //                 (emoji 系缺省 0, 行为不变)
+//   --vfx-float-delay/--vfx-float-dur: 飘字延迟与时长, 仅居合斩使用(把飘字推迟到
+//                 斩击爆发瞬间并压缩时长, 保证在 hitHold 卸载前收尾); 其余动画缺省值下
+//                 与原行为逐帧等价。
 // 攻击 → 受击抖动闪光; 辅助 → 柔和光晕。
 export function hitFxVars(hit: HitFx | null): {
   reactClass: string;
@@ -19,7 +23,9 @@ export function hitFxVars(hit: HitFx | null): {
     reactClass: preset.kind === "attack" ? "hit-react" : "bless-react",
     vars: {
       "--vfx-color": preset.color,
-      "--vfx-impact": `${preset.sprite?.impactMs ?? 0}ms`,
+      "--vfx-impact": `${preset.sprite?.impactMs ?? preset.iai?.impactMs ?? 0}ms`,
+      "--vfx-float-delay": `${preset.iai?.impactMs ?? 0}ms`,
+      "--vfx-float-dur": `${preset.iai?.floatMs ?? 950}ms`,
     },
   };
 }
@@ -32,6 +38,7 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
   const preset = hit ? ANIM[hit.anim] : null;
   // 提出局部 const 保住闭包内的类型窄化(直接在 JSX 里写 preset.sprite! 会丢窄化)
   const sprite = preset?.sprite;
+  const iai = preset?.iai;
 
   return (
     <>
@@ -42,7 +49,14 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
           style={sprite ? { top: `${sprite.anchorTop}px` } : undefined}
           aria-hidden
         >
-          {sprite ? <SpriteFx sprite={sprite} /> : <span className="vfx-emoji">{preset.emoji}</span>}
+          {sprite ? (
+            <SpriteFx sprite={sprite} />
+          ) : iai ? (
+            // 居合斩不设 top, 沿用 .vfx 默认 top:78px(立绘中段) ⇒ 斩痕贯穿身体
+            <IaiSlashFx preset={iai} />
+          ) : (
+            <span className="vfx-emoji">{preset.emoji}</span>
+          )}
         </div>
       )}
       {hit?.float && (

@@ -62,7 +62,7 @@ export type Rarity = "common" | "uncommon" | "rare";
 
 // 出牌动画类型(与技能绑定, 决定目标的受击/首击特效表现)。
 //   攻击系: slash 斩击 / shot 箭击 / fire 火爆 / ice 冰霜 / lightning 电击 / poison 剧毒
-//           sword-fall 魔剑坠落(序列帧)
+//           sword-fall 魔剑坠落(序列帧) / iai-slash 居合拔刀斩(程序化 CSS)
 //   辅助系(柔和光效): heal 治疗 / shield 护盾 / buff 增益
 // 纯 UI 表现字段, 引擎逻辑不读取。UI 侧有兜底推断(见 ui/animations.ts)。
 export type CardAnim =
@@ -73,6 +73,7 @@ export type CardAnim =
   | "lightning"
   | "poison"
   | "sword-fall"
+  | "iai-slash"
   | "heal"
   | "shield"
   | "buff";
@@ -90,7 +91,6 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
-  handArtOffsetY?: number; // 左侧手牌背景的纵向裁切起始位置(px，按缩放后图片计算)
 }
 
 // 运行期卡牌实例(带唯一 uid, 可被单独升级)
