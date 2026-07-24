@@ -52,9 +52,9 @@ export const ENCOUNTERS: EncounterDef[] = [
     id: "n1",
     name: "废墟拾荒者",
     enemies: [
-      { id: "pole-bot", dx: -225, dy: 450, scale: 2 },
-      { id: "radio-bot", dx: 45, dy: 550, scale: 1.5 },
-      { id: "scrap-bot", dx: 245, dy: 500, scale: 1.8 },
+      { id: "pole-bot", dx: -125, dy: 350, scale: 1.5 },
+      { id: "radio-bot", dx: 45, dy: 450, scale: 1.2 },
+      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.5 },
     ],
   },
 ];
