@@ -627,6 +627,7 @@ export function BattleScreen() {
         role="toolbar"
         aria-label="战斗信息条"
         onClick={(e) => e.stopPropagation()}
+        style={{display:'none'}}
       >
           <ManaCrystalBar mana={mana} max={RULES.resource.perRound} />
           <div className="hand-toolbar-actions">
@@ -745,6 +746,9 @@ export function BattleScreen() {
         <CardInfoPanel card={focusCard} />
       </div>
 
+      {/* 结束回合: 竖版机能条, 外挂在卡牌详情面板的左上角外侧(顶边与面板顶边齐平)。
+          ⚠ 「文字竖排」整个由 CSS 的 writing-mode 承担(见 styles.css .end-turn-float) ——
+            这里刻意保持一个纯文本按钮, 不要拆成一字一 <span>, 那会毁掉无障碍名与选中行为。 */}
       <button
         className="end-turn-float"
         disabled={!isPlayerTurn || animating}
@@ -755,6 +759,7 @@ export function BattleScreen() {
       >
         结束回合
       </button>
+      
 
       {/* 胜负遮罩 */}
       {!isPlayerTurn && (

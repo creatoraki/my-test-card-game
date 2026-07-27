@@ -55,7 +55,7 @@ my-test-card-game/
 └─ src/
    ├─ main.tsx             # React 入口，渲染 <App/> 并引入全局样式
    ├─ App.tsx              # 顶层路由：按 runStore.screen 选界面，交给 ScreenTransition 编排过场
-  ├─ styles.css           # 全局深色主题样式 + 场景过场 + 城镇/远征界面 + 战斗画面 16:9 / 最大 2560×1440 画布约束
+  ├─ styles.css           # 全局深色主题样式 + 场景过场 + 主菜单视频开屏 + 城镇/远征界面 + 战斗画面 16:9 / 最大 2560×1440 画布约束
    │
    ├─ engine/              # ★ 纯 TS 战斗引擎（无 React，无副作用，可序列化、可复现）
    │  ├─ types.ts          # 所有共享类型定义（不含逻辑）
@@ -96,7 +96,9 @@ my-test-card-game/
    └─ ui/                  # React 视图层（纯展示 + 派发，不含规则）
       ├─ transitions.ts    # ★ 场景过场预设表：全局开关 + 特效登记 + 按路线/按界面配置
       ├─ ScreenTransition.tsx # 过场编排：出场 → 黑场停顿 → 入场（串行）
-      ├─ MenuScreen.tsx    # 主菜单：队伍预览 + 开始游戏（→ 城镇）
+      ├─ MenuScreen.tsx    # 主菜单：1920×1080 设计画布开屏（复用 stage.ts，恒 16:9、四周黑边）——视频背景（菜单.mp4 铺满 cover）+ 游戏标题图（场景/霓虹都市.png，无滤镜无动画的纯图，left/top/width 在内联 style 微调）+ 「开始游戏」按钮（MenuStartButton，right/bottom/width 在内联 style 微调 → 城镇）
+      ├─ MenuStartButton.tsx # ★ 「开始游戏」霓虹牌匾按钮：图 + 轮廓跑光/内部光尘/外溢火星三层特效（用 PNG 自身 alpha 当 mask）
+      ├─ StartGameButton.tsx # 「开始游戏」像素科技风艺术字按钮（内联 SVG 像素化滤镜 + 黑白金属质感 + HUD 装饰[角框/闪烁光标/扫描线] + 硬像素投影 + 悬停通电切蓝白）
       ├─ TownScreen.tsx    # 城镇：设施入口（「远征」「编队」开放，其余占位）+ 重置存档
       ├─ FormationScreen.tsx # ★ 编队：队伍编辑 / 角色详情 / 属性加点 / 抽卡改造个人卡组
       ├─ ExpeditionScreen.tsx # 远征：地图选择列表
@@ -119,14 +121,14 @@ my-test-card-game/
       ├─ EnemySprite.tsx   # 敌人待机立绘播放器（横向拼条 + steps() 无限循环）
       ├─ enemyArt.ts       # 敌人 id → 待机拼条立绘的查找表 + 预加载
       ├─ battleBg.ts       # 地图 id → 战斗背景素材（视频 / 静态图）的查找表 + 预加载
-      ├─ stage.ts          # ★ 战斗设计画布：STAGE(1920×1080 基准) + useStageScale（画布→窗口的等比缩放）
+      ├─ stage.ts          # ★ 设计画布（战斗 + 封面共用）：STAGE(1920×1080 基准) + useStageScale（画布→窗口的等比缩放）
       ├─ SpriteFx.tsx      # 序列帧播放器（逐帧 <img> 用 animation-delay 错开）
       ├─ IaiSlashFx.tsx    # 居合斩程序化特效（蓄力光点 + 左下→右上斩痕刃光，纯 CSS 无素材）
       ├─ vfxSprites.ts     # 序列帧图 URL 表 + 预加载
       ├─ SkillCutInCard.tsx# 出牌「亮相」卡面浮层（左侧飞入 → 停留 → 飞出）
       ├─ HandCard.tsx      # 手牌单卡（发牌飞入 / 出鞘离场 / 机能边框：左上角 3D 水晶费用 + 双线框 + 巡游流光）
       ├─ CardView.tsx      # 单张卡牌（奖励/结算界面用）
-      ├─ CardInfoPanel.tsx # 手牌右侧的固定卡牌说明面板（悬停/选中的卡牌详情；无卡时科幻待机占位）
+      ├─ CardInfoPanel.tsx # 手牌右侧的固定卡牌说明面板（1:2 竖版：上半 1:1 大卡面 + 下半信息；无卡时科幻待机占位）
       ├─ ManaCrystalIcon.tsx # 「光」资源水晶图标（内联 3D SVG 宝石，中央桌面留给费用数字）
       ├─ cardArt.ts        # 卡面配图查找表
       ├─ StatusPips.tsx    # 状态图标一排（emoji + 层数）
@@ -219,7 +221,9 @@ my-test-card-game/
 | --- | --- |
 | `transitions.ts` | **★ 场景过场预设表**：总开关 `TRANSITIONS_ENABLED`、特效登记表 `FX`（fadeOut/fadeIn/zoomIn/zoomOut/slideUp/none）、全局默认 `DEFAULT_TRANSITION`、按界面 `SCREEN_FX`、按路线 `ROUTE_FX`（键为 `` `${from}>${to}` ``），以及解析函数 `resolveTransition`。**调过场节奏与演出只改这里**。当前 `ROUTE_FX` 里给 `explore>battle` / `reward>explore` 配了更长的黑场——牌桌是俯瞰整片区域的抽象层、战斗是钻进其中一个点，两者尺度差得远，需要「下潜/上浮」感而不是页面跳转。 |
 | `ScreenTransition.tsx` | **过场编排**：界面切换时把「瞬移」拆成 出场 → 黑场停顿 → 入场，**串行**执行（旧界面先卸载、新界面再挂载，避免 BattleScreen 双挂载/视频双解码）。用 `render` 回调而非 children，才能在出场期间继续渲染旧界面。定时器带批次序号守卫，快速连点会作废旧批次。 |
-| `MenuScreen.tsx` | 主菜单：队伍预览 + 玩法要点 + 「开始游戏」（→ 城镇）。仅在启动游戏时出现一次。 |
+| `MenuScreen.tsx` | 主菜单：纯净电影感开屏，**与战斗共用同一块 1920×1080 设计画布**（复用 `stage.ts` 的 `useStageScale`，见下方「设计画布」）——`.menu-viewport` 是 letterbox 容器（黑底），`.menu-splash` 是恒为 1920×1080 的画布，故**任何分辨率下画面都是 16:9、标题与按钮的构图逐 px 一致，多出来的地方留黑边**。画布内容：视频背景（`assets/场景/菜单.mp4`，`.menu-bg-video` 以 cover 铺满画布、与战斗背景同款）+ 游戏标题图（`assets/场景/霓虹都市.png`，`.menu-title` 层中心锚点定位）+ 「开始游戏」按钮（`MenuStartButton` → 城镇）。★ **标题与按钮的位置/大小旋钮全在本文件的内联 `style` 里**（标题 `left`/`top` + img `width`；按钮 `right`/`bottom`/`width`），全是**设计 px**，照着 1920×1080 的设计稿填数即可；CSS 侧只负责定位机制与观感，不写死坐标。不挂 `.terminal-screen`，故无渐变底/边框装饰/导航条；原队伍预览与玩法要点已移除。艺术字按钮 `StartGameButton` 当前未挂载（改用图片按钮，`.menu-cta` 层留着以便换回）。仅在启动游戏时出现一次。 |
+| `MenuStartButton.tsx` | **★ 「开始游戏」霓虹牌匾按钮**：素材是一张带透明通道的青绿霓虹牌匾（`assets/场景/开始游戏.png`）。★ **全部特效的手法都是「拿这张 PNG 自身的 alpha 当 `mask`」**——特效层叠在 `<img>` 之上并 `mask-image: var(--start-mask)`（路径由本文件 `import` 后经内联 style 下发，不写进 `styles.css`，避开 Vite 里 CSS 相对 `url()` 的坑），于是光与粒子被裁进牌匾的**真实剪影**里 ⇒ 观感是「图片内部在发光」而非外面套了个矩形光框。三层：**① 轮廓跑光**（整张 alpha **减去**一份等比缩小的自己 ⇒ 一条贴轮廓的环带，`mask-composite: subtract` + WebKit 的 `source-out` **两套关键字都要写**；环带内转一道 `conic-gradient` 窄亮楔 ⇒ 一段光沿轮廓绕圈跑。⚠ mask 在父层、旋转在子层，挂反了环带会散）、**② 内部光尘**（单层 mask，粒子只在牌匾内部上浮）、**③ 外溢火星**（**不加 mask**，可飞出轮廓，仅悬停出现）。强度由 `.menu-start` 上的 `--fx` 一个变量总控（空闲 0.35 / 悬停 1，须 `@property` 注册为 `<number>` 才能平滑过渡），另有 `--rim-inset`（环带宽窄，嫌糊调小）与 `--start-hue`（霓虹色）两个旋钮。粒子参数是**确定性伪随机**（同 `HpBar` 的 sin-hash）在模块级算一次并用**负 `animation-delay`** 错峰，挂载瞬间就是散开状态。⚠ **悬停不产生任何缩放**（原来的 `scale(1.06)` + 蓝白辉光已整条移除），要加形变反馈只动 `:active`。⚠ **三层绝不能加 `mix-blend-mode`**（哪怕只是想「加光」的 `screen`），也不要给 `.menu-start` 加 `isolation: isolate`——判据同 `.battle-flicker` 那条注释：混合模式要求下方有**不透明的 backdrop**，而这三层压着的只有一张**透明 PNG**，牌匾之外全是空的 ⇒ 悬停触发混合组时整个按钮矩形会糊出一块**黑幕**（已踩过一次）。⚠ 辉光与 mask 必须分在**两个元素**上：渲染顺序是 `filter → mask`，同层写会让 `drop-shadow` 撒到形状外的光被随后的 mask 整个裁掉，灯管就不发光了。 |
+| `StartGameButton.tsx` | **「开始游戏」像素科技风艺术字按钮**：内联 SVG 把四个字画成 8-bit **像素字**——用经典 pixelation 滤镜（`#sgPixel`）把「矢量字 + 金属渐变」整体切成 `CELL×CELL` 方块像素，金属高光被量化成「像素金属」；立体改用一个整格偏移的**硬像素暗影**（扁平硬朗）。外加全套 **HUD 终端装饰**：角框 `[ ]`、闪烁光标 `_`、CRT 扫描线、底部像素能量线。字面走**黑白金属渐变**（顶部近白高光 + 约 45% 处一条窄亮带做镜面反光 → 底部深色）。字面/暗影/HUD/辉光的颜色全走 `--sg-*` 变量，**悬停时整组"通电点亮"成蓝白**并加强蓝色辉光、微微抬起放大；**待机时整字有缓慢的呼吸动画**（内层 SVG 做 `scale` + 辉光 halo 脉动，`@keyframes sgBreathe`，尊重 `prefers-reduced-motion`）。颜色变量在 `styles.css` 里用 `@property` 注册成 `<color>` 才能平滑过渡（未注册的自定义属性不可插值、会瞬跳）。`CELL` 常量控制像素颗粒粗细。 |
 | `TownScreen.tsx` | **城镇**：远征之间的常驻中枢。设施网格中「远征」「编队」可点，其余（补给站 / 锻造台 / 酒馆 / 档案库）为 disabled 占位，逐个实现后从 `LOCKED_FACILITIES` 挪走。另有「重置存档」按钮与上阵人数/合计行动卡显示。 |
 | `FormationScreen.tsx` | **★ 编队**：左栏角色列表（等级/属性点/上阵切换，至少 1 人、至多 3 人），右栏选中角色详情——四维属性加点（基础值 + 每点收益，即点即生效）、装备占位空槽（武器/护甲/饰品，未开放）、个人卡组网格、「抽取行动卡」（花 2 属性点）。抽卡后弹**无法关闭的 3 选 1 弹层**（候选在 `pendingDraw` 持久化，刷新也必须选完）。 |
 | `ExpeditionScreen.tsx` | **远征选图**：把 `MAPS` 渲染成卡片（emoji / 名称 / 难度星级 / 描述 / 场次与探索卡池大小），点击即 `startExpedition(map.id)` **进入探索牌局**（不再直接开打）。 |
@@ -242,14 +246,14 @@ my-test-card-game/
 | `EnemySprite.tsx` | 敌人待机立绘播放器：单张横向拼条图靠 `background-position` + `steps()` 无限循环。与 `SpriteFx` 并列的另一套机制——那套是逐帧独立图、播一次即停的命中特效。 |
 | `enemyArt.ts` | 敌人 `EnemyDef.id` → 待机拼条立绘（`EnemySpriteDef`：帧数/每帧时长/渲染尺寸）的查找表 + `warmEnemyArt()` 预加载。未登记的敌人由 `CombatantView` 回退 emoji。**静态单帧立绘**按 `frames: 1` 登记即可（拼条机制在单帧下自然退化成不动的背景图，无需特判）。另有可选的 **`idle` 段**（`bob`/`sway`/`tilt`/`dur`/`delay`）——挂在 `.combatant-figure` 上的待机呼吸，专治 `frames: 1` 的立绘完全不动；`enemyIdle()` 负责与 `DEFAULT_IDLE` 合并。逐个错开 `delay`，避免全场同频「齐步走」。 |
 | `battleBg.ts` | **地图 `MapDef.id` → 战斗背景素材**（`BattleBgDef`：`kind` 为 `video`/`image` + `src`）的查找表 + `warmBattleBg()` 预加载（只预热静态图，视频由 `<video preload>` 自理）。未登记的地图回退森林视频。**新增地图专属背景改这里**（数据层不碰素材，与 `enemyArt.ts` 同约定）。 |
-| `stage.ts` | **★ 战斗设计画布**：`STAGE`（1920×1080 基准分辨率 + `maxScale` 上限）与 `useStageScale`（`ResizeObserver` 观测 letterbox 容器，算出等比缩放系数 k）。战斗画面恒为 1920×1080，整体 `transform: scale(k)` 适配窗口 —— 详见下方「设计画布」。 |
+| `stage.ts` | **★ 设计画布**（战斗与封面共用）：`STAGE`（1920×1080 基准分辨率 + `maxScale` 上限）与 `useStageScale`（`ResizeObserver` 观测 letterbox 容器，算出等比缩放系数 k）。战斗画面与主菜单封面均恒为 1920×1080，整体 `transform: scale(k)` 适配窗口 —— 详见下方「设计画布」。 |
 | `SpriteFx.tsx` | 序列帧播放器：把 `SpritePreset` 的所有帧堆叠为 `<img>`，用 `animation-delay` 逐帧错开播放。 |
 | `IaiSlashFx.tsx` | 居合拔刀斩程序化特效（裂空 `iai-slash` 专用，纯 CSS 无素材）：全屏压暗 → 7 颗光点沿对角线由暗渐亮蓄力 → `impactMs`(500ms) 斩痕从左下向右上贯出 + 青白反白闪，顿帧/震屏/受击闪白/飘字全部推迟对齐爆发瞬间。容器旋转 -45° ⇒ 局部 X 轴即斩击对角线；光点用固定伪随机分布表，爆闪时刻靠行内 `animation-delay` 与 `impactMs` 硬同步。压暗层 `.battle-dim` 由 `BattleScreen` 从 hits 派生、挂在场景之外（盖场景不盖 HUD）。改 `impactMs` 须同步改 `styles.css` 中 iai 系关键帧的百分比。 |
 | `vfxSprites.ts` | 序列帧图 URL 列表（如魔剑坠落 12 帧）+ `warmVfxSprites()` 预加载。 |
 | `SkillCutInCard.tsx` | 出牌「亮相」卡面浮层：镜头聚焦后从左侧飞入 → 停留 → 往右飞出渐隐。挂在场景之外，不受相机影响。 |
 | `HandCard.tsx` | 手牌单卡（**竖版卡面**）：**卡面铺满整张卡 + 底部信息条（只剩卡名）**，费用是**左上角一颗直接贴在卡角的 3D 法力水晶**（`.hc-cost`，数字压在水晶中央桌面上；旧的斜切铭牌 `.hc-plate` 已废弃），另加一层纯装饰的机框（`.hc-frame`：顶部两角 L 形卡扣 + 扫描线）。⚠ 普/速、目标范围、效果说明**一律不上卡面**，统一由右侧 `CardInfoPanel` 承载——手牌因此是一排画而不是一排数据表。运动方向随手牌盘从左侧竖排改到底部横排而整体转 90°：**从下方飞入 / 悬浮上浮 / 向上出鞘离场**。⚠ 出鞘仍走 `transform` 而非独立的 `translate` 属性——`onTransitionEnd` 判的就是 `propertyName === "transform"`，换属性会让离场的卡永远留在渲染列表里。 |
 | `CardView.tsx` | 单张卡牌（编队/抽卡界面用）：消耗、普通/速攻标签、归属角色配色、名称与描述、可出/选中/已强化状态样式。 |
-| `CardInfoPanel.tsx` | 手牌右侧的**固定卡牌说明面板**（底部 HUD 第三列，取代旧的悬停跟随浮窗）：展示 `focusUid`（悬停 ?? 选中）那张卡的小卡面缩略图 + 卡名/类型 + 元数据两列 + 描述（描述区自行滚动，版面不因内容多少而跳动）。无卡时渲染科幻待机占位（STANDBY + 扫描线）而不是收起面板，版面永远稳定。按归属角色下发 `--owner-color`（顶边能量线与卡名同色）。内容复用 `.card-drawer` 那套 `.drawer-*` 类，覆盖全部限定在 `.card-info-panel` 作用域内。 |
+| `CardInfoPanel.tsx` | 手牌右侧的**固定卡牌说明面板**（底部 HUD 第三列，取代旧的悬停跟随浮窗）：展示 `focusUid`（悬停 ?? 选中）那张卡。★ **宽高比锁死 1:2**（320×640）——上半是一张**与面板同宽的 1:1 大卡面**（296 见方，`object-fit: contain`，与手牌 `.hc-art` 同原则：宁可留边也不裁），下半是卡名/普速副标题 + 元数据两列 + 描述（描述区自行滚动，版面不因内容多少而跳动）。比例是从内容推出来的：卡面素材恒为方图 ⇒「一个正方形 + 一块信息区」正好是 1:2。⚠ 无配图的卡渲染**同尺寸的 `NO VISUAL` 占位**而不是不渲染——否则那个 296px 见方的块一塌，悬停不同卡时下半部整块会上下跳。无卡时渲染科幻待机占位（STANDBY + 扫描线）而不是收起面板，版面永远稳定。按归属角色下发 `--owner-color`（顶边能量线与卡名同色）。内容复用 `.card-drawer` 那套 `.drawer-*` 类，覆盖全部限定在 `.card-info-panel` 作用域内。 |
 | `ManaCrystalIcon.tsx` | 「光」资源的水晶图标：内联 **3D SVG** 六边形刻面宝石（`viewBox="0 0 48 48"`）。6 片冠部刻面按「光从上方来」由亮到暗分色做立体切工，中央桌面用径向渐变做玻璃核心高光并**刻意留成平区**——调用方（卡面 / 手牌 / 出牌亮相）会把费用数字绝对定位压在正中，正好落在这片桌面上。⚠ viewBox 是 **1:1** 的，凡是用 `.mana-crystal` 的地方尺寸都成对给正方形；同屏会渲染多颗，故用 `useId()` 保证渐变 id 唯一，避免多实例串色。 |
 | `cardArt.ts` | 卡牌 id → 卡面配图的查找表。 |
 | `StatusPips.tsx` | 一排状态图标（emoji + 层数），悬停显示状态说明。 |
@@ -260,6 +264,8 @@ my-test-card-game/
 
 战斗画面是一块**固定 1920×1080 的设计画布**（`.screen.battle`），整体用 `transform: scale(k)` 等比缩放去适配窗口；`k = min(容器宽/1920, 容器高/1080)`，由 `useStageScale` 的 `ResizeObserver` 算出，经 `--stage-scale` 下发。16:9 与「最大 2560×1440、更大的显示器四周留黑边」仍然成立——前者由固定长宽保证，后者是 `STAGE.maxScale` 的上限。
 
+**主菜单封面复用同一套机制**（`.menu-viewport` + `.menu-splash`，见 `MenuScreen.tsx`）：letterbox 容器铺满窗口且底色纯黑，画布恒为 1920×1080 —— 玩家用什么分辨率，封面都是 16:9，窗口比例对不上的部分留黑边，标题图与「开始游戏」按钮的相对位置**永不随分辨率改变**。封面画布内的坐标同样是设计 px（旋钮写在 `MenuScreen.tsx` 的内联 `style` 里），所以那两个元素也不要再写 `vw`/`vh`/百分比。
+
 **为什么**：改造前画布宽度是 `min(100vw, 2560px, …)`，尺寸随窗口在 ~1280×720 到 2560×1440 之间浮动，而画布内部全是固定 px。背景 `object-fit: cover` 等比缩放、立绘却不缩放 → `encounters.ts` 里调好的敌人站位只在「调它时的那个窗口尺寸」踩得住地面线，换分辨率就脱节。
 
 **因此**：画布内的每个 px 都是**设计 px**，与玩家实际分辨率无关——站位 `dx/dy`、立绘尺寸、侧栏宽、字号在任何窗口下构图完全一致，站位一次调好即永久成立。
@@ -267,8 +273,11 @@ my-test-card-game/
 - ⚠ **画布内不要再写 `vw`/`vh`，也不要按窗口宽度加 `@media` 断点**——那会让构图重新随分辨率漂移，还会连带改变相机的取景安全区。历史上有三条这样的残留，现已全部删除：`@media (max-width:1100px)`（把战斗侧栏从 280px 压到 192px）、`(max-width:720px)` 与 `(max-width:900px)`（把 `.screen.battle` 重排成单列上下堆叠——窗口一窄整个战场构图就崩）。`styles.css` 里那两段断点现在只作用于非战斗界面。
 - 布局盒仍是 1920×1080（`transform` 不改变布局），由 `.battle-viewport` 的 `place-items: center` 居中，`scale` 绕中心原点缩放，溢出部分由 viewport 的 `overflow: hidden` 裁掉 → 视觉正好居中。
 - ⚠ **画布带 `transform` ⇒ 它成了内部 `position: fixed` 的包含块**：`.overlay`、`.end-turn-float` 等因此改为贴合画布而非窗口（顺带修掉了它们过去会浮到黑边上的毛病），并随画布一起缩放。
-- **画布的全部构图旋钮**写在 `.screen.battle` 上（`styles.css`），全是设计 px：`--canvas-pad`(16) / `--stage-gap`(10) / `--hud-h`(264，底部 HUD 总高) / `--hud-party-w`(500，HUD 左段队伍卡 3 槽) / `--hud-info-w`(260，HUD 右段卡牌说明面板)。剩下的宽度全归中段手牌托盘：`1920 - 2×16 - 500 - 260 - 2×20 = 1088`。舞台与 HUD 是两个绝对定位的兄弟矩形，`.screen.battle` 本身不再是 grid。
-  - ⚠ 左右两段之所以是 500/260（而非更宽），是**为了给放大后的手牌腾中段宽度**——手牌卡宽 240 且必须排下 5 张。改这两个数就要回去重算 `--hand-overlap`。队伍槽基准宽 `.ally-bar --slot-base-w`(160) = `(500 − 2×10) / 3`，立绘图宽 = 它 × `--bust-zoom`，会跟着等比收，取景倍率不用调。
+  - ★ **结束回合是一条竖版机能条**（56 × 216，文字 `writing-mode: vertical-rl` + `text-orientation: upright` 竖排，字距 12px 把「结束回合」四个字拉满整条，另配等值的 `text-indent: 12px` 抵消末字后那一份字距造成的上偏——**取满值而非一半**，因为 `place-items: center` 下文字盒是 fit-content 尺寸，缩进会同时把盒子撑大、只有一半落成位移），**外挂在卡牌详情面板的左上角外侧**：横向 `right: calc(--canvas-pad + --hud-info-w + 12px)`（= 348 ⇒ 右缘 1572 = 面板左缘 1584 − 12），纵向 `top: calc(100% - --canvas-pad - --hud-info-w × 2)`（= 424，**与面板顶边齐平**；`--hud-info-w × 2` 就是面板高度，与它 `aspect-ratio: 1/2` 同源，`100%` 按包含块＝画布高 1080 解析）。两个方向都跟着 `--hud-info-w` 走 ⇒ 改面板尺寸不用回头手改按钮。占位 x 1516~1572 · y 424~640，与「弹出手牌的右缘 ≈1387」和「面板左缘 1584」两头都不撞。⚠ 纵向刻意用 `top` 而非 `bottom`：顶边对齐是这套构图的立足点，不该让按钮自身高度掺进换算（并显式写 `bottom: auto` 清掉基础段的 `bottom: 14px`，免得 `top + height + bottom` 过约束）。改造前它是个横版小按钮，浮在手牌托盘上方那块没人管的空白里，与右侧 320×640 的详情面板既不对齐也不成组。
+- **画布的全部构图旋钮**写在 `.screen.battle` 上（`styles.css`），全是设计 px：`--canvas-pad`(16) / `--stage-gap`(10) / `--hud-h`(264，底部 HUD 总高) / `--hud-party-w`(500，HUD 左段队伍卡 3 槽) / `--hud-info-w`(320，HUD 右段卡牌说明面板)。剩下的宽度全归中段手牌托盘：`1920 - 2×16 - 500 - 320 - 2×20 = 1028`。舞台与 HUD 是两个绝对定位的兄弟矩形，`.screen.battle` 本身不再是 grid。
+  - ⚠ 左右两段之所以不是更宽，是**为了给放大后的手牌腾中段宽度**——手牌卡宽 240 且必须排下 5 张。改这两个数就要回去重算 `--hand-overlap`。队伍槽基准宽 `.ally-bar --slot-base-w`(160) = `(500 − 2×10) / 3`，立绘图宽 = 它 × `--bust-zoom`，会跟着等比收，取景倍率不用调。
+  - ★ **`--hud-info-w` 同时是详情面板的高度旋钮**：面板宽高比锁死 1:2（`aspect-ratio: 1 / 2` + `align-self: end`），故高 = `320 × 2 = 640`，远高于 HUD 行高 264 ⇒ 面板底边贴 HUD 底、多出的 **376px 向上溢出到场景里**（顶边落在画布 `y≈424`，左缘 `x=1584`；敌人立绘最右缘 ≈1330、弹出手牌右缘 ≈1387，都不撞）。⚠ `align-self: end` 不能省——grid 默认 `align-self: stretch` 会把高度定死成行高 264，`aspect-ratio` 随即失效。溢出**不需要动任何 z-index**：`.battle-hud` 整条本就是 `z-index: 2`，压在场景(0)/调色层(1)/居合压暗(1)之上、顶栏(12)之下。
+  - ⚠ 加高走「面板向上溢出」而**不是**调大 `--hud-h`——后者会从下往上啃掉敌人的脚（见下条）。这与手牌卡刻意越出 HUD 上沿是同一套路。
   - ⚠ **`--hud-h` 直接决定场景的可见下沿**（`1080 - pad - hud-h`），而 `data/encounters.ts` 里调好的敌人站位是贴着背景地面线的。调大它会从下往上啃掉敌人的脚——当前 264 是「参考图那条厚 HUD」与「霓虹城市的地面线仍站得下三台机器人」之间的折中。
   - **手牌卡尺寸的唯一真旋钮**是 `.hand-panel` 上的 `--hand-card-w`(240)，它等于 **1:1 配图的边长**；卡高由它推导 `--hand-card-h = --hand-card-w + --hc-bar-h(38) = 278`，别手写。另有叠压量 `--hand-overlap`(100)、衬板高 `--hand-plate-h`(82)。
     - ★ **配图 1:1 完整展示**：卡面自上而下只有两段——上部是 `--hand-card-w` 见方的正方形配图区 `.hc-art`，下部是同宽的 `.hc-bar`（**只剩卡名**，居中）实位条。`.hc-art` 的 `bottom` 让给 `--hc-bar-h`，配 `background-size: contain` ⇒ 素材（`assets/skills/**` 的 256×256 / 512×512 方图）整幅可见，不裁剪也不被信息条压住。原先按卡逐张微调纵向取景的 `CardDef.handArtOffsetY` 已随裁剪一并废除。将来若混进非正方素材，`contain` 会留边而不会裁——本作原则是宁可留边也不裁。
@@ -279,7 +288,7 @@ my-test-card-game/
       - **`--card-hue` 是边框整族的唯一主色旋钮**，按卡类型分色：普通 `#6fd2ff` 青蓝 / 速攻 `#da77f2` 品红紫（定义在 `.hand-card` / `.hand-card.fast`）。这是普/速在卡面上**仅有**的线索——卡面刻意不写「普通/速攻」四个字，文字说明全在右侧 `CardInfoPanel`。归属角色配色 `--owner-color` 已从框族撤出，只保留在**铭牌最左那条 3px 色块**与**信息条上沿的能量线**两处，免得紫框配绿辉光两种色相互相打架。
       - 打不出的卡（法力不够 / 非玩家回合）`.hc-edge` 整框 `grayscale(1)` + 流光停转 ⇒ **断电感**。这是玩法信息而非装饰，文件末尾的 `prefers-reduced-motion` 降级里只 `display:none` 掉巡游流光（⚠ 光条靠关键帧推进，只写 `animation:none` 会让它永久停在起始位置留一块固定亮斑，同 `.hp-motes` 那个坑），静态框与灰化全部保留。
       - ★ **聚焦（悬浮/选中）的唯一表达是「弹出」**：`translateY(-145px) scale(1.34)` + 一层中性黑落影，**不做任何变色**；过渡走 `0.18s cubic-bezier(0.2, 0.9, 0.3, 1.15)` 末端过冲的回弹曲线（移出时回落也会轻微过冲一下再归位）。原先那套悬浮高亮（描边环四条直边点亮成 `--card-hue`、斜口提亮、L 卡扣拉满不透明、`.hc-frame::after` 斜掠高光、巡游流光提速三倍、配色辉光 `drop-shadow`）已**整套移除**，`.hc-frame::after` 与 `@keyframes hcSweep` 一并删除。⇒ 框色因此只承载「普/速」一种信息，不再兼职表达聚焦；一排紧压的牌里同时只有一张被抽出，位移本身已经足够醒目。⚠ 弹出幅度牵着**两个**别处的数：① 叠压量（叠压 100px 意味着幅度太小根本提不出被压住的那一截）；② `.hand-card.leaving` 的出鞘位移 `translateY(-235px)`——出牌那张多半正停在弹出位，终点必须比它再高约 90px 才仍读作「整张飞出去」，改弹出幅度就要回去重算它。
-    - 版式约束：横向 `5 × 240 − 4 × 100 = 800 ≤ 中段可用宽(1088 − 2×10 托盘内边距 = 1068)`，静止时每张卡露出 58%（叠压量下限只有 `(5×240 − 1068)/4 = 33px`，取 100 是纯观感选择——「握紧的一副牌」而非摊开的一排，整排向左收拢、右侧留白）；纵向 `卡 278 > 托盘可用高(264 − 8) = 256` ⇒ **刻意越出 HUD 上沿 22px**（悬停上浮 145 + `scale(1.34)` 的溢出 `278 × 0.34 ÷ 2 ≈ 47` 后峰值约 214px，卡顶落在画布 `y ≈ 586`）。为此有两处配套让位：① `HAND / 03/05` 张数读数已从托盘上沿搬进顶端信息条 `.battle-topbar`（`.hand-count-readout`）；② 舞台底部的 `.hint-bar` 保留 `margin-bottom: 62px`——这是**刻意的不完全避让**：完全避让要 204px，会把提示条顶到 `y≈586` 正压在敌人身上（最靠前的 n1 站位 `dy≈550`），比被卡盖住更糟，故接受「选中居中那几张卡时提示条被卡面盖住」。层序上也无解——卡在 `.battle-hud`(z 2) 里、提示条在 `.battle-scene`(z 0) 里，卡必然在上。
+    - 版式约束：横向 `5 × 240 − 4 × 100 = 800 ≤ 中段可用宽(1028 − 2×10 托盘内边距 = 1008)`，静止时每张卡露出 58%（叠压量下限只有 `(5×240 − 1008)/4 = 48px`，取 100 是纯观感选择——「握紧的一副牌」而非摊开的一排，整排向左收拢、右侧留白）；纵向 `卡 278 > 托盘可用高(264 − 8) = 256` ⇒ **刻意越出 HUD 上沿 22px**（悬停上浮 145 + `scale(1.34)` 的溢出 `278 × 0.34 ÷ 2 ≈ 47` 后峰值约 214px，卡顶落在画布 `y ≈ 586`）。为此有两处配套让位：① `HAND / 03/05` 张数读数已从托盘上沿搬进顶端信息条 `.battle-topbar`（`.hand-count-readout`）；② 舞台底部的 `.hint-bar` 保留 `margin-bottom: 62px`——这是**刻意的不完全避让**：完全避让要 204px，会把提示条顶到 `y≈586` 正压在敌人身上（最靠前的 n1 站位 `dy≈550`），比被卡盖住更糟，故接受「选中居中那几张卡时提示条被卡面盖住」。层序上也无解——卡在 `.battle-hud`(z 2) 里、提示条在 `.battle-scene`(z 0) 里，卡必然在上。
   - 手牌**靠左排**（`.hand-tray` 的 `justify-content: flex-start`，不是居中）：出牌后剩下的卡不会整排重新居中来回挪，每张卡的位置只跟它在手牌里的序号有关，肌肉记忆才立得住。
   - 手牌之间是**鱼鳞叠**：`.hand-tray` 的 `gap` 恒为 0，靠 `.hand-card + .hand-card { margin-left: calc(-1 * var(--hand-overlap)) }` 互相压进去；同为 `z-index: 1` ⇒ DOM 靠后者在上，天然形成从左往右依次压过去的一副手牌。悬浮/选中态提到 `z-index: 6` **置顶**，配合上浮 + 放大 ⇒ 悬停即露全卡（叠压不违背「配图完整展示」）。
   - 手牌托盘（HUD 中段）是一套「战术终端」外观：斜切角衬板（经纬网格 + 两端渗光）→ 四角 L 形卡扣（`.hand-panel::before`）→ 沿衬板上沿巡航的扫描光带（`.hand-tray::after`）→ 卡脚下 8px 的 45° 斜纹导轨（`.hand-tray-rail`）。装饰层全部 `z-index: 0/1` 且 DOM 在手牌之前 ⇒ 恒在卡之下，悬浮上弹的卡不受影响。

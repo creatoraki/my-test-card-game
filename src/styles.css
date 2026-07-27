@@ -1229,7 +1229,9 @@ code {
   color: var(--muted);
   padding: 8px 2px;
 }
-/* 结束回合: 浮动在页面右下角的小按钮 */
+/* 结束回合: 浮在画布上的独立按钮(不在任何 HUD 列里)。
+   ⚠ 实际形态与落点由下方「战术终端视觉系统」主题层的同名规则决定(竖版机能条, 挂在卡牌详情
+     面板的左上角外侧) —— 这里只留一份配色/层序的基础底稿, 几何全部会被覆盖。 */
 .end-turn-float {
   position: fixed;
   right: 16px;
@@ -2005,6 +2007,398 @@ button.big {
   color: #9ba7a3;
 }
 
+/* ===================== 「开始游戏」像素科技风艺术字按钮 ===================== */
+/* 像素字见 ui/StartGameButton.tsx(#sgPixel 滤镜把字切成方块像素)。字面/暗影/HUD/辉光的
+   颜色全走这组 --sg-* 变量,悬停时整组从「黑白金属」切到「蓝白」。必须用 @property 把它们
+   注册成 <color>,否则未注册的自定义属性在 CSS 里是不可插值的字符串, transition 会瞬跳而非平滑过渡。 */
+@property --sg-c1 { syntax: "<color>"; inherits: true; initial-value: #e8e8e8; }
+@property --sg-c2 { syntax: "<color>"; inherits: true; initial-value: #9a9a9a; }
+@property --sg-c3 { syntax: "<color>"; inherits: true; initial-value: #1c1c1c; }
+@property --sg-shadow { syntax: "<color>"; inherits: true; initial-value: #000000; }
+@property --sg-hud { syntax: "<color>"; inherits: true; initial-value: #c9c9c9; }
+@property --sg-glow { syntax: "<color>"; inherits: true; initial-value: #d8d8d8; }
+
+.start-art-btn {
+  /* 抹掉原生按钮外观(全局 button 带边框/底色/内距),只留纯 SVG 艺术字 */
+  border: 0;
+  background: none;
+  padding: 6px 10px;
+  border-radius: 14px;
+  line-height: 0; /* 消除 inline SVG 基线下的空隙 */
+  /* —— 默认态:黑白金属(渐变里顶部近白高光 + 45% 窄亮带做镜面反光;暗影纯黑;HUD/辉光浅灰) —— */
+  --sg-c1: #e8e8e8;
+  --sg-c2: #9a9a9a;
+  --sg-c3: #1c1c1c;
+  --sg-shadow: #000000;
+  --sg-hud: #c9c9c9;
+  --sg-glow: #d8d8d8;
+  --sg-glow-op: 0.35;
+  --sg-scan-op: 0.4;
+  --sg-underline-op: 0.55;
+  filter: drop-shadow(0 6px 14px #0009);
+  transition: transform 0.22s ease, filter 0.22s ease, --sg-c1 0.28s, --sg-c2 0.28s,
+    --sg-c3 0.28s, --sg-shadow 0.28s, --sg-hud 0.28s, --sg-glow 0.28s;
+}
+.start-art {
+  display: block;
+  width: 300px;
+  height: auto;
+  overflow: visible; /* 让辉光溢出画框而不被裁切 */
+  transform-origin: 50% 50%;
+  /* 呼吸动画放在内层 SVG 上(scale + 辉光脉动),外层 .start-art-btn 的 hover translateY/scale
+     作用在不同元素上,两者叠加而不互相覆盖 */
+  animation: sgBreathe 3.6s ease-in-out infinite;
+}
+.sg-glow {
+  opacity: var(--sg-glow-op);
+}
+/* CRT 扫描线叠加(裁在字面内) */
+.sg-scan {
+  opacity: var(--sg-scan-op);
+  mix-blend-mode: multiply;
+}
+/* HUD 角框 [ ] */
+.sg-bracket {
+  filter: drop-shadow(0 0 3px var(--sg-glow));
+}
+/* 闪烁光标 _ */
+.sg-cursor {
+  animation: sgBlink 1.1s steps(1) infinite;
+  filter: drop-shadow(0 0 4px var(--sg-glow));
+}
+@keyframes sgBlink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+/* 呼吸:整字缓慢放大缩小 + 辉光 halo 脉动,营造"待机通电"的生命感。
+   filter 只改 blur 半径、颜色恒为 var(--sg-glow)(默认灰、hover 蓝),过渡无脏色。 */
+@keyframes sgBreathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px var(--sg-glow));
+  }
+  50% {
+    transform: scale(1.035);
+    filter: drop-shadow(0 0 10px var(--sg-glow));
+  }
+}
+/* 尊重系统"减少动画"偏好:关掉呼吸与光标闪烁 */
+@media (prefers-reduced-motion: reduce) {
+  .start-art,
+  .sg-cursor {
+    animation: none;
+  }
+}
+/* 像素能量底线 */
+.sg-underline {
+  opacity: var(--sg-underline-op);
+  filter: drop-shadow(0 0 4px var(--sg-glow));
+}
+/* 悬停:整组"通电点亮"成蓝白、蓝色辉光加强、微微抬起放大(:not(:disabled) 提高特异性以压过全局 button:hover) */
+.start-art-btn:hover:not(:disabled) {
+  background: none;
+  --sg-c1: #ffffff;
+  --sg-c2: #bcdcff;
+  --sg-c3: #2f5fa0;
+  --sg-shadow: #0a1424;
+  --sg-hud: #bcdcff;
+  --sg-glow: #6ea8fe;
+  --sg-glow-op: 0.85;
+  --sg-scan-op: 0.5;
+  --sg-underline-op: 1;
+  transform: translateY(-3px) scale(1.05);
+  filter: drop-shadow(0 12px 22px #000b) drop-shadow(0 0 18px #9cc4ff66);
+}
+.start-art-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* 封面的 letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。
+   与 .battle-viewport 同一套机制(那边有完整的原理长注释), 单独写以免语义耦合。 */
+.menu-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #000; /* 16:9 之外的留白色 */
+}
+/* 封面画面 = 固定 1920×1080 的设计画布, 由 --stage-scale 等比缩放去适配窗口
+   (k 由 ui/stage.ts 的 ResizeObserver 算出, MenuScreen 行内下发到 .menu-viewport)。
+   ⇒ 任何分辨率下画面恒为 16:9、标题与按钮的构图逐 px 一致, 多出来的地方是黑边;
+     超过 2560×1440 不再放大(STAGE.maxScale), 与战斗画面同一取舍。
+
+   ⚠ 画布内的每个 px 都是「设计 px」—— 不要在画布内写 vw/vh 或按窗口宽度的 @media,
+     那会让构图重新随分辨率漂移。
+   ⚠ 居中必须靠绝对定位 + translate(-50%,-50%) 而非 flex 居中, 原因见 .battle-viewport 的注释。 */
+.menu-viewport .menu-splash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  min-height: 0;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+}
+/* 主菜单视频开屏: 纯净的电影感开屏 —— 只有一段 16:9 视频背景 + 标题图 + 开始游戏图片按钮,
+   不挂 .terminal-screen(故无渐变底/无 ::before 边框装饰/无导航条)。 */
+.menu-splash {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  background: #070a0c; /* 视频解码前/失败时的深色兜底, 不露白 */
+}
+/* 视频背景: 与 .battle-bg-video 同款(铺满裁切), 单独写以免语义耦合 */
+.menu-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+/* 开始按钮(StartGameButton 艺术字)定位层: 水平居中、垂直中间偏下。bottom 是调节旋钮。
+   当前封面改用 .menu-start-img 图片按钮, 这一层暂未挂载 —— 留着以便随时换回艺术字按钮。 */
+.menu-cta {
+  position: absolute;
+  right: 0;
+  bottom: 14%;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* 游戏标题定位层: 绝对定位 + 中心锚点(translateX(-50%)), 所以内联 left 填的是
+   「标题中心」在画布里的横向位置(设计 px, 960 = 正中)。纯展示层, 不挡按钮点击。
+   ★ 位置(left / top)与大小(img 的 width)全在 MenuScreen.tsx 的内联 style 里微调, 全是设计 px;
+     这里只负责「定位机制」, 不写死坐标以免和内联值打架 —— 与 .menu-start-img 同款分工。 */
+.menu-title {
+  position: absolute;
+  display: flex;
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+/* 标题图本体: 512×512 方形(仅文字), 宽度由 MenuScreen.tsx 内联 style 控制。
+   ★ 刻意「素颜」: 不加 filter/阴影/辉光, 也不挂任何动画 —— 原图长什么样就显示什么样。
+     (曾有 drop-shadow 霓虹辉光 + 淡入下沉 + 辉光呼吸三件套, 那圈蓝白光晕看着像背光, 已全部移除。) */
+.menu-title img {
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+}
+
+/* ════════ 「开始游戏」图片按钮(见 ui/MenuStartButton.tsx) ════════
+   青绿霓虹牌匾 PNG + 三层特效。★ 位置/大小(right / bottom / width)在 MenuScreen.tsx 的内联
+   style 里微调(设计 px), 这里只负责「机制 + 观感」, 不写死坐标以免和内联值打架。
+
+   ★ 全部特效的手法都是**拿同一张 PNG 的 alpha 当 mask**(--start-mask 由 TSX 侧内联下发):
+     光与粒子因此被裁进牌匾的真实剪影里 ⇒ 是「图片内部在发光」, 而不是外面套了个矩形光框。
+
+   ⓘ 这里原来的悬停是 transform: scale(1.06) + 一圈蓝白 drop-shadow 辉光。已整条移除 ——
+     那套既不贴素材本身的青绿霓虹调, 又是纯外部装饰(图片本体是死的)。**现在悬停不产生任何缩放**,
+     反馈全部来自下面三层。若将来想加回"可点"的形变反馈, 请只动 :active, 不要碰 :hover。
+
+   ★ 三个调节旋钮都在 .menu-start 上:
+       --fx        特效强度总开关(空闲 / 悬停两档, 三层的透明度与辉光半径都乘它)
+       --rim-inset 轮廓环带的内缩量 ⇒ 环带越窄越贴边; 嫌环带糊就调小
+       --start-hue 霓虹色(默认取素材本身的青绿) */
+.menu-start {
+  position: absolute; /* right/bottom 生效的前提, 相对 1920×1080 的 .menu-splash 画布定位 */
+  z-index: 2; /* 压在标题(1)之上, 确保可点 */
+  padding: 0; /* <button> 复位: 它只是个可聚焦的定位盒, 不该有任何按钮外观 */
+  border: 0;
+  background: none;
+  line-height: 0; /* 去掉 inline 图片底下的基线空隙, 盒子才严丝合缝贴着图 */
+  cursor: pointer;
+  user-select: none;
+
+  --fx: 0.35; /* ← 空闲强度: 牌匾自己微微「通着电」, 安静不抢标题 */
+  --rim-inset: 10px;
+  --start-hue: #6ff0cf;
+  /* ⚠ --fx 必须经 @property 注册为 <number> 才能过渡(见下), 否则悬停会是硬跳 */
+  transition: --fx 0.28s ease;
+}
+.menu-start:hover {
+  --fx: 1; /* ← 悬停强度 */
+}
+/* @property 注册: 自定义属性默认是"不可动画的字符串", 注册成 <number> 后才能被 transition
+   平滑插值。与文件上方 --sg-* 那组同一个理由。 */
+@property --fx {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.35;
+}
+
+/* 图本体: 唯一的实体像素。drop-shadow 是**静态**落地阴影(形体, 不是动效), 悬停不动它;
+   悬停只补一点点提亮, 让图片本身也有反应 —— 真正的"活"交给上面三层。 */
+.menu-start-img {
+  display: block;
+  width: 100%;
+  height: auto; /* 宽度定, 高度等比 → 原图比例不变形 */
+  filter: drop-shadow(0 6px 16px #000a);
+  transition: filter 0.28s ease, transform 0.12s ease-out;
+}
+.menu-start:hover .menu-start-img {
+  filter: drop-shadow(0 6px 16px #000a) brightness(1.07) saturate(1.12);
+}
+/* 按下: 极轻微下压, 保留实体触感。被否掉的是**悬停**放大, 点击反馈照留。 */
+.menu-start:active .menu-start-img {
+  transform: scale(0.985);
+}
+
+/* 三层特效的共性: 铺满按钮、不吃鼠标(点击必须落到 <button> 上)。
+   ⚠ 这三层**绝不能加 mix-blend-mode**(哪怕只是想"加光"的 screen), 也不要给 .menu-start 加
+     isolation: isolate。这是本文件第三次踩同一个坑, 判据见 .battle-flicker 那条注释 ——
+     混合模式要求下方有**不透明的 backdrop** 可用; 而这里三层压着的只有一张**透明** PNG,
+     牌匾之外全是空的, isolate 又把 backdrop 隔成透明黑 ⇒ 悬停触发混合组时整个按钮矩形
+     直接糊出一块**黑幕**(正是那条注释里说的最坏情况)。粒子与环带本身就是亮色, 走普通合成
+     叠在亮牌匾上观感几乎没差别, 不值得为它冒这个险。 */
+.menu-start-motes,
+.menu-start-rim,
+.menu-start-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── 1) 内部光尘: 整张 alpha 当 mask ⇒ 粒子只在牌匾内部上浮, 出了剪影就被裁掉 ── */
+.menu-start-motes {
+  -webkit-mask-image: var(--start-mask);
+  mask-image: var(--start-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  opacity: calc(var(--fx) * 0.9);
+}
+/* 每颗的起点/尺寸/摆幅/周期/负延迟由 MenuStartButton.tsx 内联下发(确定性伪随机, 重渲染不跳位) */
+.menu-start-mote {
+  position: absolute;
+  left: var(--mx, 50%);
+  top: var(--my, 50%);
+  width: var(--ms, 3px);
+  height: var(--ms, 3px);
+  border-radius: 50%;
+  background: #eafffa;
+  box-shadow: 0 0 calc(4px + var(--fx) * 5px) var(--start-hue);
+  opacity: 0;
+  animation: menuStartMote var(--mdur, 3s) linear var(--mdel, 0s) infinite;
+}
+@keyframes menuStartMote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 6px) scale(0.5);
+  }
+  18% {
+    opacity: 0.95;
+  }
+  70% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--msway, 0), -34px) scale(0.35);
+  }
+}
+
+/* ── 2) 轮廓跑光(霓虹管):三层套娃, 每层只干一件事 ──
+     .menu-start-rim      外溢辉光(filter)
+     └ ...-rim-band       环带形状(双 mask 相减)
+       └ ...-rim-run      转的那道 conic 亮楔
+
+   ⚠ 辉光与 mask **必须分在两个元素上**: 元素的渲染顺序是 filter → mask → opacity → 混合,
+     即 filter 先于 mask 生效。两者写在同一个元素上, drop-shadow 撒到形状之外的那圈光会被
+     紧接着的 mask 整个裁掉 —— 灯管就不发光了。故 mask 放在子层, 辉光放在父层(父层的 filter
+     作用于"已经裁好的"子层结果)。
+   ⚠ 同理, mask 挂在 band、旋转挂在 run —— 挂反了 mask 会跟着一起转, 环带就散了。 */
+.menu-start-rim {
+  /* 环带外溢的辉光 —— 有这层它才是"灯管在发光", 没有就只是一条贴纸 */
+  filter: drop-shadow(0 0 calc(3px + var(--fx) * 7px) var(--start-hue));
+  opacity: calc(0.35 + var(--fx) * 0.65);
+}
+/* 环带 = 整张 alpha **减去**一份等比缩小的自己 ⇒ 一条贴着牌匾轮廓的窄带。
+   ⚠ 两套关键字都要写: mask-composite: subtract 是标准, -webkit-mask-composite: source-out
+     是 WebKit 旧语法; 缺一个在部分内核上会退化成"整块亮"。
+   牌匾是斜的, 但等比缩小是朝中心收, 环带自然跟着倾斜走, 不需要额外处理。 */
+.menu-start-rim-band {
+  position: absolute;
+  inset: 0;
+  overflow: hidden; /* 关住下面那个超出边界的旋转子元素 */
+  -webkit-mask-image: var(--start-mask), var(--start-mask);
+  mask-image: var(--start-mask), var(--start-mask);
+  -webkit-mask-size: 100% 100%, calc(100% - var(--rim-inset)) calc(100% - var(--rim-inset));
+  mask-size: 100% 100%, calc(100% - var(--rim-inset)) calc(100% - var(--rim-inset));
+  -webkit-mask-position: center, center;
+  mask-position: center, center;
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-composite: source-out;
+  mask-composite: subtract;
+}
+/* 转的是这一层: 一道窄亮楔的 conic 渐变, 匀速绕中心转 ⇒ 亮楔扫过环带 = 光沿轮廓跑一圈。
+   刻意用 transform 转元素而不是 @property 动画 conic 的角度: 前者走合成层, 不逐帧重画渐变。
+   放大到 200% 并居中, 是为了旋转时四角不露空。 */
+.menu-start-rim-run {
+  position: absolute;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 296deg,
+    color-mix(in srgb, var(--start-hue) 55%, transparent) 322deg,
+    #ffffff 348deg,
+    color-mix(in srgb, var(--start-hue) 55%, transparent) 356deg,
+    transparent 360deg
+  );
+  animation: menuStartRimRun 3.6s linear infinite;
+}
+@keyframes menuStartRimRun {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── 3) 外溢火星: **不加 mask**, 所以能飞出牌匾轮廓。整层空闲态隐藏, 悬停才出现 ──
+   于是"悬停 → 粒子明显变多、并且往外溅"的层次是白送的, 不用去调粒子数量。 */
+.menu-start-sparks {
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+.menu-start:hover .menu-start-sparks {
+  opacity: 1;
+}
+.menu-start-spark {
+  position: absolute;
+  left: var(--sx0, 50%);
+  top: var(--sy0, 50%);
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 6px var(--start-hue), 0 0 2px #fff;
+  opacity: 0;
+  animation: menuStartSpark var(--sdur, 1.4s) ease-out var(--sdel, 0s) infinite;
+}
+@keyframes menuStartSpark {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sx, 10px), var(--sy, -24px)) scale(0.25);
+  }
+}
+
 /* 主菜单 */
 .terminal-nav {
   display: flex;
@@ -2158,11 +2552,17 @@ button.big {
        --hud-party-w              : HUD 左段 —— 我方 3 槽 × 160 + 2 × 10 gap。
                                     固定值: 聚焦槽变宽由其余槽位微收消化(见 .ally-bar),
                                     段宽不变 ⇒ 中段手牌的位置永远不动。
-       --hud-info-w               : HUD 右段 —— 卡牌说明固定面板
+       --hud-info-w               : HUD 右段 —— 卡牌说明固定面板。★ 它同时是面板的**高度**旋钮:
+                                    面板宽高比锁死 1:2(aspect-ratio), 故高 = 本值 × 2 = 640,
+                                    远高于 HUD 行高 264 ⇒ 面板底边贴 HUD 底、多出的 376px
+                                    向上溢出到场景里(层序靠 .battle-hud 的 z-index:2 天然成立,
+                                    见 .card-info-panel)。改本值 = 同时改面板的宽和高。
      剩下的宽度全给 HUD 中段的手牌托盘:
-       1920 - 2×16(pad) - 500 - 260 - 2×20(gap) = 1088
-     ⚠ 左右两段的 560/320 是为了给手牌腾地方才收到 500/260 的 —— 手牌卡宽 240(= 1:1 配图
-        的边长)且必须排下 5 张, 见 .hand-panel 的版式算式。改动这两个数就要回去重算叠压量。 */
+       1920 - 2×16(pad) - 500 - 320 - 2×20(gap) = 1028
+     ⚠ 左右两段不能随便放宽 —— 手牌卡宽 240(= 1:1 配图的边长)且必须排下 5 张, 见 .hand-panel
+        的版式算式。改动这两个数就要回去重算叠压量的下限。
+     ⚠ 右段 260 → 320 那次(详情面板要放得下一张与面板同宽的 1:1 大卡面): 中段从 1088 收到
+        1028, 而手牌实占恒为 800 ⇒ 卡的尺寸与位置一个都不用动, 收窄的只是托盘右侧那截空白衬板。 */
   --canvas-pad: 16px;
   --stage-gap: 10px;
   /* ⚠ --hud-h 直接决定场景的可见下沿(= 1080 - pad - hud-h = 804), 而 data/encounters.ts 里
@@ -2170,7 +2570,7 @@ button.big {
      三台机器人」之间的折中 —— 再往上加就会开始啃掉敌人的脚。 */
   --hud-h: 264px;
   --hud-party-w: 500px;
-  --hud-info-w: 260px;
+  --hud-info-w: 320px;
   padding: var(--canvas-pad);
 }
 /* ★ 场景层 = 世界(1920×1080), 相机的唯一作用对象。
@@ -2594,16 +2994,45 @@ button.big {
   transform: translateY(-145px) scale(1.34);
   filter: drop-shadow(3px 0 6px #000a) drop-shadow(0 10px 14px #000c);
 }
+/* ★ 竖版机能条, 外挂在卡牌详情面板的左上角。
+   横版小按钮原先浮在手牌托盘上方那块没人管的空白里, 与右侧 320×640 的详情面板既不对齐也不成组,
+   读作一个飘着的杂项控件。改成竖条并让**顶边与面板顶边齐平** ⇒ 两者共享一条水平基准线,
+   右下角读作「详情面板 + 一个外挂标签」的一组。
+
+   几何(设计 px): 56 × 216, 右缘 1572(= 面板左缘 1584 − 12 间距), 顶边 424, 底边 640。
+   落在「弹出手牌的右缘 ≈1387」与「面板左缘 1584」之间, 两头都不撞。
+   ⚠ 两个方向都**跟着 --hud-info-w 走**, 改面板尺寸不用回来手改这里:
+     横向 right = pad + 面板宽 + 12;
+     纵向 top   = 100% − pad − 面板高, 而面板高 ≡ --hud-info-w × 2(它的 aspect-ratio: 1/2)。
+   ⚠ 纵向刻意用 top 而不是 bottom: 顶边对齐是这次构图的立足点, 不该再让按钮自身高度掺进换算。
+     画布带 transform ⇒ 它是本元素(fixed)的包含块, 100% 即画布高 1080。 */
 .end-turn-float {
   position: fixed;
-  right: 18px;
-  /* 抬到底部 HUD 之上, 免得压住手牌盘 */
-  bottom: calc(var(--hud-h) + var(--canvas-pad) + 12px);
+  --end-turn-w: 56px;
+  --end-turn-h: 216px;
+  right: calc(var(--canvas-pad) + var(--hud-info-w) + 12px);
+  top: calc(100% - var(--canvas-pad) - var(--hud-info-w) * 2);
+  bottom: auto; /* 显式清掉基础段的 bottom:14px —— top+height+bottom 同时给会过约束 */
   z-index: 18;
-  min-width: 144px;
-  width: auto;
+  width: var(--end-turn-w);
+  height: var(--end-turn-h);
+  min-width: 0;
   margin: 0;
-  padding: 11px 12px;
+  padding: 0;
+  /* 竖排下 text-align 的语义轴会翻转, grid 居中两轴都稳、不受 writing-mode 影响 */
+  display: grid;
+  place-items: center;
+  /* 文字竖排: 结/束/回/合 上下排列, 字符正立(纯中文下 mixed 已同效, 显式写死更稳)。
+     letter-spacing 在竖排下作用于**字间纵向间距**, 把 4 个字拉满整条。
+     ⚠ text-indent 抵消末字之后那一份 letter-spacing 造成的上偏, 取值**等于**字距而不是它的一半:
+       place-items:center ⇒ 文字盒是 fit-content 尺寸, indent 同时把盒子撑大 ⇒ 只有一半落成位移。
+       (令字宽 c、字距 s、缩进 i, 则字形中心 = 108 − s/2 + i/2, 要它等于 108 ⇒ i = s。)
+       与 .cip-art.empty span 的同类补偿同为「取满值」, 是一个套路。 */
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 12px;
+  text-indent: 12px;
+  font-size: 17px;
   border-color: #b5d414;
   background: linear-gradient(135deg, #cbe722, #7a9507);
   color: #0d1201;
@@ -3569,13 +3998,23 @@ button.big {
 }
 
 /* ── HUD 右段: 卡牌说明固定面板(ui/CardInfoPanel.tsx) ── */
-/* 位置恒定(取代旧的悬停跟随浮窗), 高度钉死在 HUD 行高内: 描述文本自行滚动, 版面不跳。
+/* 位置恒定(取代旧的悬停跟随浮窗), 描述文本自行滚动 ⇒ 版面不跳。
    内容复用 .card-drawer 那套 .drawer-* 类, 覆盖全部 scoped 在 .card-info-panel 下。
-   ⚠ 段宽已从 320 收到 260(把宽度让给放大后的手牌) ⇒ 内容宽仅 236px。内边距与元数据列距
-     一并收紧; 结构不用动: .drawer-meta 本就是 2 列 grid、.cip-name 带 ellipsis、
-     .drawer-text 自带纵向滚动, 挤不炸。 */
+
+   ★ 宽高比锁死 1:2, 宽 = 列宽 --hud-info-w(320) ⇒ 高 640。这个比例是从**内容**推出来的,
+     不是随手定的: 卡面素材恒为 1:1 方图(assets/skills/**), 于是上半部正好是一张与面板同宽的
+     正方形大卡面(296 见方), 下半部是卡名/元数据/描述 —— 一个正方形 + 一块信息区 = 1:2。
+   ⚠ align-self: end 是这套的关键 —— grid 默认 align-self: stretch 会把高度定死成行高 264,
+     aspect-ratio 就失效了。改成 end 后高度交给比例算, 底边贴 HUD 底、多出的 376px 向上溢出
+     到场景里。溢出不需要动任何 z-index: .battle-hud 整条本就是 z-index:2, 压在场景(0)/
+     调色层(1)/居合压暗(1)之上、顶栏(12)之下。
+   ⚠ 面板顶边落在画布 y≈424, 左缘 x=1584: 敌人立绘最右缘 ≈1330、弹出手牌右缘 ≈1387,
+     都不撞。改 --hud-info-w 前先回头核这两个数。 */
 .card-info-panel {
   position: relative;
+  align-self: end;
+  aspect-ratio: 1 / 2;
+  height: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3603,20 +4042,41 @@ button.big {
   letter-spacing: 2px;
   text-transform: uppercase;
 }
-/* 头部: 小卡面缩略图 + 卡名/类型(面板高度有限, 放不下旧浮窗那张大图) */
-.cip-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* ★ 上半部: 与面板同宽的 1:1 大卡面(296 见方)。这就是面板要 1:2 的理由。
+   object-fit: contain 与手牌卡面 .hc-art 的 background-size: contain 同一原则 ——
+   宁可留边也不裁, 素材本就是 256/512 的方图, 正常情况下一个 px 都不会留边。
+   ⚠ flex: 0 0 auto 不能省: 在 flex column 里默认 flex-shrink:1, 描述文本长时方图会被压扁,
+     1:1 就不成立了(描述区自带滚动, 该被挤的是它)。 */
 .cip-art {
   flex: 0 0 auto;
-  width: 52px;
-  height: 52px;
-  object-fit: cover;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: #05080a99;
   border: 1px solid #ffffff22;
-  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
+/* 无配图的卡(ui/cardArt.ts 只登记了有图的那几张)的同尺寸占位。
+   ⚠ 刻意不是"不渲染": 296px 的方块一塌, 悬停不同卡时下半部整块会上下跳。 */
+.cip-art.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    repeating-linear-gradient(45deg, #6fd2ff0f 0 1px, transparent 1px 9px),
+    linear-gradient(160deg, #0a1114cc, #05080ae6);
+  border-style: dashed;
+  border-color: #6fd2ff24;
+}
+.cip-art.empty span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-indent: 4px; /* 抵消 letter-spacing 造成的视觉右偏 */
+  color: #6fd2ff5c;
+}
+/* 图下一行: 卡名 + 普/速副标题 */
 .cip-id {
   min-width: 0;
   display: flex;
@@ -3624,7 +4084,7 @@ button.big {
   gap: 3px;
 }
 .cip-name {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: 1px;
   color: var(--owner-color, #eaf6ff);
@@ -3637,11 +4097,11 @@ button.big {
   font-size: 11px;
   color: var(--muted);
 }
-/* 元数据两列排: 面板高度有限, 竖排放不下 */
+/* 元数据两列排: 内容宽 296px, 两列比竖排一长条读得快 */
 .card-info-panel .drawer-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 8px;
+  gap: 6px 10px;
 }
 .card-info-panel .drawer-meta > div {
   padding-bottom: 3px;
@@ -3701,7 +4161,7 @@ button.big {
 /* ★ 唯一的真旋钮是 --hand-card-w(= 1:1 配图的边长); 卡高由它推导, 别手写。
    版式(全是设计 px):
      横向 5 张(engine/rules.ts 的 hand.size)× 240 − 4 × 100 叠压 = 800 ≤ 中段可用宽
-          (1088 − 2×10 托盘内边距 = 1068)
+          (1028 − 2×10 托盘内边距 = 1008)
           ⇒ 静止时每张卡露出 240 − 100 = 140px ≈ 58%(握紧的一副牌), 悬停置顶时露全。
      纵向 卡 278 > 托盘可用高(--hud-h 264 − 托盘下内边距 8 = 256)
           ⇒ **刻意**越出 HUD 上沿 22px(悬停上浮 145 + scale 1.34 后峰值约 214px)。
@@ -3718,7 +4178,7 @@ button.big {
   /* 卡高 = 正方形配图区 + 图下信息条 ⇒ 配图区恒为 --hand-card-w 见方, 1:1 素材零裁剪 */
   --hand-card-h: calc(var(--hand-card-w) + var(--hc-bar-h));
   /* 相邻卡的叠压量(负 margin, 见 .hand-tray .hand-card + .hand-card)。
-     下限 = (5 × --hand-card-w − 中段可用宽) / 4 = 33px —— 小于它就排不下 5 张。
+     下限 = (5 × --hand-card-w − 中段可用宽) / 4 = 48px —— 小于它就排不下 5 张。
      取 100px(远大于下限): 排下不成问题, 纯为"握紧的一副牌"的观感, 整排向左收拢约 800px。 */
   --hand-overlap: 100px;
   --hand-plate-h: 82px; /* 托盘衬板高度, 角标/扫描线都对齐它 */
@@ -4526,6 +4986,16 @@ button.big {
      ⚠ 静态部分(主环 / 四角卡扣 / 刻度齿 / 铭牌)**全部保留** —— 边框本身不是动效;
        并且 .hand-card.unplayable 那条 grayscale 是"这张打不出"的玩法信息, 不能一起去掉。 */
   .hc-edge::after {
+    display: none;
+  }
+  /* 「开始游戏」按钮的三层特效(轮廓跑光 / 内部光尘 / 外溢火星)整体撤掉, 只剩静态牌匾 + 落地阴影。
+     ⚠ 又是 .hp-motes / .hc-edge::after 那个坑 —— 粒子与亮楔都靠关键帧从 opacity:0 或某个角度
+       起步, 只写 animation:none 会让它们**永久冻在起始帧**, 在牌匾上留一片死亮点、外加一段
+       不动的亮环。故整层 display:none。三层纯装饰, 不承载任何玩法信息, 去掉无损可用性
+       (按钮本体、落地阴影与悬停提亮都还在, "这里可点"依然读得出来)。 */
+  .menu-start-motes,
+  .menu-start-rim,
+  .menu-start-sparks {
     display: none;
   }
 }
