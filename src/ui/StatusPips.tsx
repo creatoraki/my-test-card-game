@@ -1,5 +1,6 @@
 import type { StatusInstance } from "../engine";
 import { getStatusDef } from "../engine";
+import "./StatusPips.css";
 
 // 一排状态图标(emoji + 层数), 悬停显示说明。
 export function StatusPips({ statuses }: { statuses: StatusInstance[] }) {

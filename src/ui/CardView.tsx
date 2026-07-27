@@ -1,6 +1,7 @@
 import type { Card } from "../engine";
 import { getCharacter } from "../data";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
+import "./CardView.css";
 
 interface Props {
   card: Card;

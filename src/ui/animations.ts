@@ -1,7 +1,7 @@
 // ============================================================================
 // 出牌动画预设表(纯 UI 表现层)。
 // 每个 CardAnim 对应一套: 攻击/辅助分类 + 首击特效(emoji 或序列帧) + 主色 + 时间轴参数。
-// 具体视觉(受击抖动/斩击/火爆/柔光…)在 styles.css 里按 .vfx-<anim> / 反馈类实现。
+// 具体视觉(受击抖动/斩击/火爆/柔光…)在 ui/HitFxLayer.css 里按 .vfx-<anim> / 反馈类实现。
 // ============================================================================
 
 import type { Card, CardAnim } from "../engine";
@@ -25,7 +25,7 @@ export interface SpritePreset {
   impactMs: number; // 挂载 → 真正砸中的偏移(ms), 用于同步受击抖动/冲击环
 }
 
-// 居合斩(程序化 CSS)参数。视觉几何在 IaiSlashFx.tsx / styles.css, 这里只放 JS 要消费的时序。
+// 居合斩(程序化 CSS)参数。视觉几何在 IaiSlashFx.tsx / IaiSlashFx.css, 这里只放 JS 要消费的时序。
 export interface IaiPreset {
   // 挂载 → 斩击爆发的偏移(ms), = 蓄力时长(压暗+光点渐亮)。
   // runSteps 用它推迟顿帧/震屏, hitFxVars 用它推迟受击抖动/闪白与飘字。
@@ -66,7 +66,7 @@ export const CINEMA = {
   cardHold: 700, // 卡面停在距左侧 200px 处停留
   cardOut: 320, // 卡面往右飞出 + 渐隐
 
-  // ── 打击感: 顿帧 + 震屏(见 styles.css 的 .hitstop / worldShakeA|B) ──
+  // ── 打击感: 顿帧 + 震屏(见 ui/BattleScreen.css 的 .hitstop / worldShakeA|B) ──
   // 顿帧: 命中瞬间把世界的所有 CSS 动画与粒子更新冻住这么久, 解冻的同一刻爆发震屏。
   // 设 0 即关闭整段顿帧(震屏仍在, 只是紧贴命中时刻触发)。
   hitstop: 70,
@@ -92,9 +92,9 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   // height 460 ≈ 4.8 倍身位; 帧上方约 247px(帧高 53.7%)是 00-02 的凝聚段(剑位于帧内
   // 5%~37%), 露出多少取决于敌人头顶的净空。裁切边界现在在 .screen.battle(整屏)而非
   // 舞台, 故凝聚段可向上越过舞台顶边、延伸到顶栏区域, 比改造前多露一截;
-  // 要让它完整可见仍需加 styles.css 里 .enemy-row 的 padding-top(现 42px), 代价是
+  // 要让它完整可见仍需加 ui/BattleScreen.css 里 .enemy-row 的 padding-top(现 42px), 代价是
   // 敌人不再贴舞台顶 —— 目前维持现状, 属「不动布局换更大剑」的明确取舍, 非 bug。
-  // 调 impactMs 时记得同步改 styles.css 里 swordFallRing 的百分比。
+  // 调 impactMs 时记得同步改 ui/HitFxLayer.css 里 swordFallRing 的百分比。
   "sword-fall": {
     kind: "attack",
     color: "#ff4d4d", // 与素材红色剑光同色系(供闪白/冲击环/飘字着色)
@@ -113,8 +113,8 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   },
   // 居合拔刀斩(程序化 CSS): 全屏压暗 → 光点由暗渐亮蓄力 → 500ms 斩痕从左下向右上
   // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在 hitHold(1000ms) 内。视觉在 IaiSlashFx.tsx
-  // 与 styles.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。
-  // 调 impactMs 时须同步改 styles.css 里 iaiBlade/iaiGlow/iaiRing/iaiScreenDim 的百分比。
+  // 与 ui/IaiSlashFx.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。
+  // 调 impactMs 时须同步改 ui/IaiSlashFx.css 里 iaiBlade/iaiGlow/iaiRing/iaiScreenDim 的百分比。
   "iai-slash": {
     kind: "attack",
     color: "#8fe3ff", // 青蓝主色(冲击环/受击着色/飘字), 与 sword-fall 的红形成区分

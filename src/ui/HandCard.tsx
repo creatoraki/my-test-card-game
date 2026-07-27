@@ -2,12 +2,13 @@ import type { Card } from "../engine";
 import { getCharacter } from "../data";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
 import { cardArt } from "./cardArt";
+import "./HandCard.css";
 
 interface Props {
   card: Card;
   playable: boolean;
   selected: boolean;
-  leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 styles.css .hand-card.leaving)
+  leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 HandCard.css .hand-card.leaving)
   dealIndex?: number; // 抽牌飞入的错峰序号(--deal-i), 让手牌一张张依次飞入
   onExited?: () => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
   onClick?: () => void;
@@ -16,14 +17,14 @@ interface Props {
 
 // 底部手牌盘上的大卡。自上而下只有两段: **正方形配图区** + **图下信息条**(只剩卡名)，
 // 费用是左上角一颗直接贴在卡角的 3D 法力水晶(.hc-cost), 数字压在水晶中央桌面上 —— 旧的斜切铭牌已废弃。
-// ★ 配图区恒为卡宽见方(卡高 = 卡宽 + 信息条高, 见 styles.css 的 --hand-card-h), 素材是 1:1
+// ★ 配图区恒为卡宽见方(卡高 = 卡宽 + 信息条高, 见 ui/BattleScreen.css 的 --hand-card-h), 素材是 1:1
 //   的方图, 配 background-size: contain ⇒ 整幅图完整可见, 不裁剪也不被信息条压住。
 //   ⚠ 唯二压在配图上的是机能边框(最外 4~6px)与左上那颗水晶 —— 这是刻意的取舍,
 //     换来"卡是嵌在终端里的弹药模块"而不是一张贴纸, 配图主体仍完整。
 // 普/速、目标范围、效果说明等一律不进卡面 —— 它们统一由右侧固定面板(CardInfoPanel)承载,
 // 手牌因此读起来是一排画, 而不是一排数据表。普/速的唯一卡面线索是**框色**
-// (普通青蓝 / 速攻品红紫, 见 styles.css 的 --card-hue)。
-// 卡之间是鱼鳞叠(负 margin), 悬浮时上浮 + 放大 + 置顶露出完整卡面(见 styles.css .hand-tray);
+// (普通青蓝 / 速攻品红紫, 见 HandCard.css 的 --card-hue)。
+// 卡之间是鱼鳞叠(负 margin), 悬浮时上浮 + 放大 + 置顶露出完整卡面(见 ui/BattleScreen.css .hand-tray);
 // 详情面板由 BattleScreen 依 onHover 上报的悬停态派生, 这里不需要上报自身矩形。
 export function HandCard({ card, playable, selected, leaving, dealIndex, onExited, onClick, onHover }: Props) {
   const owner = getCharacter(card.ownerCharId);
@@ -67,7 +68,7 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
       {/* 机框层: 全卡扫描线 + 四角 L 卡扣 + 两个斜切角上的亮线。纯装饰, 不吃点击 */}
       <span className="hc-frame" aria-hidden />
 
-      {/* 描边环: 跟着 14px 斜切角走的单层主环(4px) + 常驻巡游流光(见 styles.css .hc-edge) */}
+      {/* 描边环: 跟着 14px 斜切角走的单层主环(4px) + 常驻巡游流光(见 HandCard.css .hc-edge) */}
       <span className="hc-edge" aria-hidden />
 
       {/* 侧边刻度齿: 左右内侧各一列仪表刻度, 纯装饰 */}

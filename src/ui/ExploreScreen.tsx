@@ -17,6 +17,7 @@ import { DangerMeter } from "./DangerMeter";
 import { ExploreCardView } from "./ExploreCardView";
 import { TerminalNav } from "./TerminalNav";
 import { TrailStrip } from "./TrailStrip";
+import "./ExploreScreen.css";
 
 const ABILITIES: { id: AbilityId; name: string; emoji: string; cost: string; gain: string }[] = [
   { id: "scout", name: "搜寻", emoji: "🔦", cost: "危险度 +1", gain: "抽 1 张" },

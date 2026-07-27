@@ -5,6 +5,8 @@ import { CharacterPortrait } from "./CharacterPortrait";
 import { HitFxLayer, hitFxVars } from "./HitFxLayer";
 import { HpBar } from "./HpBar";
 import { StatusPips } from "./StatusPips";
+import "./AllyBar.css";
+import "./unit-badges.css";
 
 // 固定槽位数: 队伍区恒定 3 格, 与 engine/rules.ts 的 progression.maxParty(3)对齐。
 // 人数不足时空出来的格子渲染成空槽, 保持构图稳定; 若未来开放第 4 个上阵位,
@@ -69,7 +71,8 @@ interface SlotProps {
 // 根节点刻意仍带 .combatant.player 两个类名: 前冲(.attacking)、受击抖动闪白(.hit-react)、
 // 受益光晕(.bless-react)、阵亡(.dead)、特效层(.vfx/.float-num)的定位 —— 这些规则全部
 // scoped 在 .combatant 上, 复用它们即可让队伍卡与敌人立绘共享同一套演出, 无需重写一遍。
-// .ally-slot 只负责覆盖尺寸与内部排布(写在 styles.css 主题层之后, 故能盖过 .combatant 的宽度)。
+// .ally-slot 只负责覆盖尺寸与内部排布 —— 选择器是 .ally-bar .ally-slot(0-2-0), 特异性本就
+// 高于 .combatant(0-1-0), 故与 AllyBar.css / CombatantView.css 的加载顺序无关。
 function AllySlot({ cmb, hit, attacking, isAggroTarget, focused, targetable, onClick }: SlotProps) {
   // 绿条 = 护盾。护盾没有上限概念, 按占最大生命的比例画并封顶 100% —— 只求「有多厚」的量感。
   const blockPct = Math.min(100, (cmb.block / cmb.maxHp) * 100);

@@ -1,6 +1,7 @@
 import type { Card, Targeting, Rarity } from "../engine";
 import { getCharacter } from "../data";
 import { cardArt } from "./cardArt";
+import "./CardInfoPanel.css";
 
 const TARGET_LABEL: Record<Targeting, string> = {
   foe: "敌方单体",
@@ -22,7 +23,7 @@ const RARITY_LABEL: Record<Rarity, string> = {
 // 无卡时渲染科幻待机占位而不是收起面板, 版面因此永远稳定。
 // 内容复用 .drawer-* 类(与 .card-drawer 共用), 样式覆盖 scoped 在 .card-info-panel 下。
 //
-// ★ 面板宽高比恒为 1:2(320×640, 见 styles.css .card-info-panel), 结构因此是「上半一张与
+// ★ 面板宽高比恒为 1:2(320×640, 见 CardInfoPanel.css .card-info-panel), 结构因此是「上半一张与
 //   面板同宽的 1:1 大卡面 + 下半卡名/元数据/描述」—— 卡面素材本就是方图, 比例是从这里推出来的。
 //   面板比 HUD 行高(264)高得多, 多出来的部分向上溢出到场景里。
 // ⚠ 无配图的卡渲染同尺寸的 NO VISUAL 占位而不是不渲染: 否则那个 296px 见方的块会塌掉,

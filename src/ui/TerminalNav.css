@@ -1,0 +1,48 @@
+/* 主菜单 */
+.terminal-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-height: 52px;
+  padding: 0 34px;
+  border-bottom: 1px solid #ffffff14;
+  color: #758087;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.terminal-nav .terminal-mark,
+.terminal-nav b {
+  color: #0c1003;
+  background: #edf2ef;
+  padding: 3px 5px;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.terminal-nav b {
+  margin-left: auto;
+}
+.terminal-nav .nav-active {
+  position: relative;
+  color: var(--accent);
+}
+.terminal-nav .nav-active::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  bottom: -17px;
+  left: -10px;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 7px #d8f32980;
+}
+
+@media (max-width: 720px) {
+  .terminal-nav {
+    gap: 14px;
+    padding: 0 16px;
+    overflow: hidden;
+  }
+  .terminal-nav > span:not(.terminal-mark):not(.nav-active) {
+    display: none;
+  }
+}

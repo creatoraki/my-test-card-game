@@ -1,0 +1,170 @@
+/* ===================== 探索牌局 ===================== */
+/* 界面骨架: 顶部信息条 → 队伍血量 → 轨迹 → 牌桌(路线 + 手牌) → 场地能力。
+   轨迹与牌桌是这一页的主角, 故只有它们可以伸缩; 其余四条固定高度不参与抢空间。 */
+.screen.explore {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  padding: 0 0 14px;
+}
+.explore-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-shrink: 0;
+  padding: 12px 28px 0;
+}
+.explore-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.explore-map {
+  margin: 0;
+  color: #eef3ef;
+  font-size: 22px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.explore-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* ── 队伍血量 ──
+   血量跨战斗继承是整套设计的地基, 玩家判断「还打不打得动下一场」全靠这一条, 必须常驻可见。 */
+.explore-party {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 0 28px;
+}
+.ex-party-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 190px;
+  padding: 5px 12px;
+  border: 1px solid #ffffff14;
+  background: #0b0f11a6;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.ex-party-member.down {
+  opacity: 0.42;
+  border-color: #5a2b2b;
+}
+.ex-party-emoji {
+  font-size: 16px;
+}
+.ex-party-name {
+  color: #eef3ef;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ex-party-bar {
+  flex: 1;
+  height: 6px;
+  background: #ffffff12;
+  overflow: hidden;
+}
+.ex-party-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d64b4b, #ff8a5b);
+  transition: width 0.35s;
+}
+.ex-party-hp {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 牌桌: 路线牌 + 手牌 ── */
+.explore-table {
+  display: flex;
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+  padding: 0 28px;
+  overflow: hidden;
+}
+.explore-route,
+.explore-hand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.explore-route {
+  flex-shrink: 0;
+  padding-right: 18px;
+  border-right: 1px solid #ffffff12;
+}
+.explore-hand {
+  flex: 1;
+  min-width: 0;
+}
+.ex-hand-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  padding: 2px;
+  min-height: 0;
+}
+.ex-hand-empty {
+  color: #55606a;
+  font-size: 12px;
+  padding: 24px 6px;
+  line-height: 1.7;
+}
+
+/* ── 场地能力 ──
+   三个按钮各自把一种东西换成另一种: 危险度→牌 / 牌→血 / 牌→危险度下降。
+   永远可用(代价不足时置灰)⇒「牌库空 + 手牌空」的死局不成立。 */
+.explore-abilities {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+.ability-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #475358;
+  background: #101619e6;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.ability-emoji {
+  font-size: 16px;
+}
+.ability-name {
+  color: #eef3ef;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.ability-cost {
+  color: #ff9b9b;
+  font-size: 10px;
+}
+.ability-gain {
+  color: var(--good);
+  font-size: 10px;
+}
+.explore-abilities.discarding {
+  padding: 8px 0;
+  border-top: 1px solid #ffd43b33;
+}
+.discard-hint {
+  color: var(--warn);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+

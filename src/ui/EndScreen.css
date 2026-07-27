@@ -1,0 +1,11 @@
+.deck-summary-char + .deck-summary-char {
+  margin-top: 12px;
+}
+
+/* 远征结算页的战利品条 */
+.end-loot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+

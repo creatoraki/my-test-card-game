@@ -1,0 +1,271 @@
+/* ===================== 右侧卡牌详情抽屉(战术数据面板) ===================== */
+/* 不贴屏幕边而是四周留 16px, 收起时整条连同这段留白一起滑出(translateX 多推 24px)。 */
+.card-drawer {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  bottom: 16px;
+  width: 300px;
+  min-width: 0;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  /* 与顶栏(.topbar, 见 ui/BattleScreen.css)同款的终端面板底 */
+  background: linear-gradient(145deg, #12181bdd, #090d0fd9);
+  border: 1px solid #3b474b;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  box-shadow: none;
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.18s ease;
+  z-index: 19;
+  overflow-y: auto;
+}
+.card-drawer.open {
+  transform: translateX(0);
+}
+.drawer-title {
+  align-self: flex-start;
+  width: 100%;
+  color: var(--accent);
+  border-bottom: 1px solid #536016;
+  padding-bottom: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.drawer-meta {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.drawer-meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #ffffff12;
+}
+.drawer-meta dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.drawer-meta dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+.drawer-text {
+  width: 100%;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #c8cde0;
+  background: #0a0e10;
+  border: 1px solid #3e4a4d;
+  border-radius: 0;
+  padding: 10px;
+}
+/* ⚠ 疑似未使用(全项目 .tsx 里搜不到), 确认后可删。 */
+.drawer-card-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.drawer-empty {
+  display: grid;
+  min-height: 100%;
+  align-content: center;
+  gap: 9px;
+  padding: 28px;
+  color: #98a4a2;
+  text-align: center;
+}
+.drawer-empty-mark {
+  color: var(--accent);
+  font-size: 34px;
+  line-height: 1;
+}
+.drawer-empty strong {
+  color: #dbe5df;
+  font-size: 13px;
+}
+.drawer-empty p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+/* 窄屏: 编队/奖励界面的详情抽屉收窄(战斗画布不参与, 见上方 ⚠) */
+@media (max-width: 900px) {
+  .card-drawer {
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: min(300px, calc(100vw - 24px));
+  }
+}
+
+/* ── HUD 右段: 卡牌说明固定面板(ui/CardInfoPanel.tsx) ── */
+/* 位置恒定(取代旧的悬停跟随浮窗), 描述文本自行滚动 ⇒ 版面不跳。
+   内容复用 .card-drawer 那套 .drawer-* 类, 覆盖全部 scoped 在 .card-info-panel 下。
+
+   ★ 宽高比锁死 1:2, 宽 = 列宽 --hud-info-w(320) ⇒ 高 640。这个比例是从**内容**推出来的,
+     不是随手定的: 卡面素材恒为 1:1 方图(assets/skills/**), 于是上半部正好是一张与面板同宽的
+     正方形大卡面(296 见方), 下半部是卡名/元数据/描述 —— 一个正方形 + 一块信息区 = 1:2。
+   ⚠ align-self: end 是这套的关键 —— grid 默认 align-self: stretch 会把高度定死成行高 264,
+     aspect-ratio 就失效了。改成 end 后高度交给比例算, 底边贴 HUD 底、多出的 376px 向上溢出
+     到场景里。溢出不需要动任何 z-index: .battle-hud 整条本就是 z-index:2, 压在场景(0)/
+     调色层(1)/居合压暗(1)之上、顶栏(12)之下。
+   ⚠ 面板顶边落在画布 y≈424, 左缘 x=1584: 敌人立绘最右缘 ≈1330、弹出手牌右缘 ≈1387,
+     都不撞。改 --hud-info-w 前先回头核这两个数。 */
+.card-info-panel {
+  position: relative;
+  align-self: end;
+  aspect-ratio: 1 / 2;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 10px 12px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0d1214e6, #05080af2);
+  border: 1px solid #6fd2ff3d;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+/* 顶边一条归属配色的能量线(--owner-color 由 CardInfoPanel 按卡牌归属角色下发) */
+.card-info-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--owner-color, var(--accent)), transparent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.card-info-panel .drawer-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+/* ★ 上半部: 与面板同宽的 1:1 大卡面(296 见方)。这就是面板要 1:2 的理由。
+   object-fit: contain 与手牌卡面 .hc-art 的 background-size: contain 同一原则 ——
+   宁可留边也不裁, 素材本就是 256/512 的方图, 正常情况下一个 px 都不会留边。
+   ⚠ flex: 0 0 auto 不能省: 在 flex column 里默认 flex-shrink:1, 描述文本长时方图会被压扁,
+     1:1 就不成立了(描述区自带滚动, 该被挤的是它)。 */
+.cip-art {
+  flex: 0 0 auto;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: #05080a99;
+  border: 1px solid #ffffff22;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+/* 无配图的卡(ui/cardArt.ts 只登记了有图的那几张)的同尺寸占位。
+   ⚠ 刻意不是"不渲染": 296px 的方块一塌, 悬停不同卡时下半部整块会上下跳。 */
+.cip-art.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    repeating-linear-gradient(45deg, #6fd2ff0f 0 1px, transparent 1px 9px),
+    linear-gradient(160deg, #0a1114cc, #05080ae6);
+  border-style: dashed;
+  border-color: #6fd2ff24;
+}
+.cip-art.empty span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-indent: 4px; /* 抵消 letter-spacing 造成的视觉右偏 */
+  color: #6fd2ff5c;
+}
+/* 图下一行: 卡名 + 普/速副标题 */
+.cip-id {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cip-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--owner-color, #eaf6ff);
+  text-shadow: 0 1px 3px #000c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cip-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+/* 元数据两列排: 内容宽 296px, 两列比竖排一长条读得快 */
+.card-info-panel .drawer-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+.card-info-panel .drawer-meta > div {
+  padding-bottom: 3px;
+}
+.card-info-panel .drawer-text {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border-radius: 0;
+  border-color: #ffffff14;
+  background: #05080a99;
+}
+/* 待机态: 无悬停/选中卡牌时的科幻占位, 保持版面稳定 */
+.card-info-panel.empty {
+  border-color: #6fd2ff24;
+}
+.card-info-panel.empty::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg, transparent 0 3px, #6fd2ff0a 3px 4px);
+}
+.cip-standby {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  opacity: 0.6;
+}
+.cip-standby-code {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 7px;
+  text-indent: 7px; /* 抵消 letter-spacing 造成的视觉右偏 */
+  color: #6fd2ff;
+  animation: cipBlink 2.4s ease-in-out infinite;
+}
+.cip-standby-hint {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+@keyframes cipBlink {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+

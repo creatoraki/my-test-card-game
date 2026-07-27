@@ -1,0 +1,253 @@
+/* ===================== 编队 ===================== */
+.formation-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  padding: 24px 24px 36px;
+  flex: 1;
+  min-height: 0;
+}
+.formation-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.formation-head .terminal-heading {
+  margin: 4px 0 0;
+}
+.formation-sub {
+  margin: 0 0 6px;
+}
+.formation-layout {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+/* 左栏: 角色列表 */
+.roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #3c484b;
+  background: #0a0e10b8;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  cursor: pointer;
+}
+.roster-item:hover {
+  border-color: #5a6a6e;
+}
+.roster-item.selected {
+  border-color: var(--accent);
+  background: linear-gradient(160deg, #10181bd9, #0c1113e8);
+}
+.roster-portrait {
+  width: 44px;
+  height: 58px;
+}
+.roster-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: left;
+}
+.roster-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.roster-level {
+  color: var(--muted);
+  font-size: 11px;
+}
+.roster-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.roster-tag {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  border: 1px solid #3c484b;
+  padding: 1px 6px;
+}
+.roster-tag.on {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.roster-toggle {
+  font-size: 11px;
+  padding: 2px 10px;
+}
+
+/* 右栏: 角色详情 */
+.char-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #3c484b;
+  background: #0b0f11d9;
+  padding: 16px;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  text-align: left;
+}
+.detail-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.detail-portrait {
+  width: 72px;
+  height: 96px;
+}
+.detail-id {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.detail-id h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.detail-points {
+  text-align: center;
+  border: 1px solid var(--accent);
+  padding: 8px 16px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.detail-points b {
+  display: block;
+  font-size: 24px;
+  color: var(--accent);
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.detail-block {
+  border: 1px solid #2c3639;
+  padding: 12px;
+  background: #0a0e10a0;
+}
+.detail-block h3 {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* 属性加点 */
+.attr-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px dashed #232c2f;
+}
+.attr-label {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.attr-value {
+  font-weight: 700;
+  font-size: 15px;
+}
+.attr-alloc {
+  font-size: 11px;
+}
+.attr-plus {
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  line-height: 1;
+}
+.attr-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+}
+
+/* 装备占位槽 */
+.equip-slots {
+  display: flex;
+  gap: 10px;
+}
+.equip-slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border: 1px dashed #3c484b;
+  color: var(--muted);
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+.equip-emoji {
+  font-size: 22px;
+}
+
+/* 个人卡组 */
+.personal-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.deck-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* 抽卡 3 选 1 弹层(无关闭按钮, 必须选择) */
+.draw-modal {
+  position: fixed;
+  inset: 0;
+  background: #05080add;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.draw-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 32px;
+  border: 1px solid var(--accent);
+  background: #0b0f11f2;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  max-width: min(880px, 92vw);
+}
+
+
+@media (max-width: 820px) {
+  .formation-layout {
+    grid-template-columns: 1fr;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

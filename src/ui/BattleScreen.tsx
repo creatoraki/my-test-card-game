@@ -17,6 +17,7 @@ import { battleBg, warmBattleBg } from "./battleBg";
 import { AmbienceGrade, AmbienceLayer } from "./AmbienceLayer";
 import { useIdleTwitch } from "./useIdleTwitch";
 import { STAGE, useStageScale } from "./stage";
+import "./BattleScreen.css";
 
 // ── 场景相机 ──
 // 世界 = 1920×1080 的设计画布(见 ui/stage.ts)。相机就是世界坐标里的一次 translate+scale,
@@ -66,7 +67,7 @@ export function BattleScreen() {
   const [hoveredUid, setHoveredUid] = useState<string | null>(null);
   const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
-  // 新出现的卡自动挂载 → CSS 触发飞入动画(见 styles.css .hand-card 的 hand-deal-in)。
+  // 新出现的卡自动挂载 → CSS 触发飞入动画(见 ui/HandCard.css .hand-card 的 hand-deal-in)。
   const [renderHand, setRenderHand] = useState<{ card: Card; leaving: boolean }[]>([]);
   // 正在出牌离场的卡: 点击瞬间即开始出鞘(引擎稍后才在命中时刻把它移出手牌), 避免先缩回未选中位再飞出。
   const [playingOutUid, setPlayingOutUid] = useState<string | null>(null);
@@ -499,7 +500,7 @@ export function BattleScreen() {
   const dimHit = Object.values(hits).find((h) => ANIM[h.anim].iai);
 
   return (
-    // --stage-scale: 把 1920×1080 的设计画布等比缩到当前窗口(见 ui/stage.ts 与 styles.css .screen.battle)
+    // --stage-scale: 把 1920×1080 的设计画布等比缩到当前窗口(见 ui/stage.ts 与 BattleScreen.css .screen.battle)
     <div
       className="battle-viewport"
       ref={viewportRef}
@@ -712,7 +713,7 @@ export function BattleScreen() {
           onSelect={onCombatantClick}
         />
 
-        {/* 手牌托盘。导轨/衬板都是纯装饰, 几何全部由 styles.css 的 --hand-* 旋钮收敛,
+        {/* 手牌托盘。导轨/衬板都是纯装饰, 几何全部由 BattleScreen.css 的 --hand-* 旋钮收敛,
             这里不写任何尺寸。
             ⚠ 卡刻意比托盘高(越出 HUD 上沿), 故这一列里不能再放别的东西 —— 原先压在托盘上沿的
               HAND 张数读数已搬到顶端信息条, 见上方 .battle-topbar。 */}
@@ -747,7 +748,7 @@ export function BattleScreen() {
       </div>
 
       {/* 结束回合: 竖版机能条, 外挂在卡牌详情面板的左上角外侧(顶边与面板顶边齐平)。
-          ⚠ 「文字竖排」整个由 CSS 的 writing-mode 承担(见 styles.css .end-turn-float) ——
+          ⚠ 「文字竖排」整个由 CSS 的 writing-mode 承担(见 BattleScreen.css .end-turn-float) ——
             这里刻意保持一个纯文本按钮, 不要拆成一字一 <span>, 那会毁掉无障碍名与选中行为。 */}
       <button
         className="end-turn-float"

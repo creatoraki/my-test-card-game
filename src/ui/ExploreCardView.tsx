@@ -3,6 +3,7 @@
 
 import { getEncounter } from "../data";
 import type { ExploreCard } from "../explore/types";
+import "./ExploreCardView.css";
 
 interface Props {
   card: ExploreCard;

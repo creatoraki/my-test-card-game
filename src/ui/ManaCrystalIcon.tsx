@@ -1,4 +1,5 @@
 import { useId } from "react";
+import "./ManaCrystalIcon.css";
 
 interface Props {
   className?: string;
@@ -10,9 +11,9 @@ interface Props {
 //   · 中央桌面(table)用径向渐变做玻璃核心高光, 且刻意留成一片较平的六边形空区 ——
 //     调用方(卡面 / 手牌 / 出牌亮相)会把「费用数字」用绝对定位压在正中, 正好落在这片桌面上;
 //   · 上缘一道亮边高光 + 下缘一道暗边阴影 + 左上一小片高光, 让宝石有打磨过的反光。
-// ⚠ viewBox 是 1:1(0 0 48 48), 所有用 .mana-crystal 的地方尺寸都按正方形成对给(见 styles.css)。
+// ⚠ viewBox 是 1:1(0 0 48 48), 所有用 .mana-crystal 的地方尺寸都按正方形成对给(见 ManaCrystalIcon.css)。
 // ⚠ 图内有渐变 <defs>, 而同屏会渲染多颗(顶栏水晶条就是一排), 故用 useId() 保证渐变 id 唯一,
-//    否则多实例共享同一 id 会互相串色。off 态(mana-pip.off)的灰暗仍由 styles.css 的 filter 负责。
+//    否则多实例共享同一 id 会互相串色。off 态(mana-pip.off)的灰暗仍由 ManaCrystalIcon.css 的 filter 负责。
 export function ManaCrystalIcon({ className }: Props) {
   const uid = useId();
   const tableId = `mc-table-${uid}`;

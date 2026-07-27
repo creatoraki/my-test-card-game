@@ -6,6 +6,7 @@ import { dangerTier } from "../explore/session";
 import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
 import { CharacterPortrait } from "./CharacterPortrait";
+import "./ExpRewardScreen.css";
 
 export function ExpRewardScreen() {
   const expReport = useRunStore((s) => s.expReport);

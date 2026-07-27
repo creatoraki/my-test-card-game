@@ -5,7 +5,7 @@ import neonCityBg from "../assets/战斗背景/霓虹城市.png";
 
 // kind 决定 BattleScreen 渲染成 <video>(循环播放) 还是 <img>(静态图)。两者挂同一个
 // .battle-bg-video 类与同一份相机变换 —— 该类名早于静态图存在, 现已不止承载视频, 保留原名
-// 只为不惊动 styles.css / animations.ts 里对它的多处引用。对场景相机而言二者完全等价。
+// 只为不惊动 ui/BattleScreen.css / animations.ts 里对它的多处引用。对场景相机而言二者完全等价。
 export interface BattleBgDef {
   kind: "video" | "image";
   src: string;

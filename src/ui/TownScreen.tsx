@@ -3,6 +3,7 @@
 import { useRunStore } from "../store/runStore";
 import { useTownStore } from "../store/townStore";
 import { TerminalNav } from "./TerminalNav";
+import "./TownScreen.css";
 
 interface Facility {
   id: string;

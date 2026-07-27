@@ -19,7 +19,7 @@ export interface EnemySpriteDef {
 }
 
 // 待机呼吸: 立绘本身之外再叠一层极缓的位移/倾斜循环, 专治 frames:1 的静态立绘"完全不动"。
-// 由 ui/CombatantView.tsx 下发成 --idle-* 变量, 落在 styles.css 的 @keyframes idleBob 上。
+// 由 ui/CombatantView.tsx 下发成 --idle-* 变量, 落在 ui/CombatantView.css 的 @keyframes idleBob 上。
 //
 // ⚠ 它挂在 .combatant-figure 的 transform 上, 不能挂 .enemy-sprite —— 后者的 animationName
 // 由 EnemySprite.tsx 行内下发(拼条逐帧循环), 会把这条整个覆盖掉。

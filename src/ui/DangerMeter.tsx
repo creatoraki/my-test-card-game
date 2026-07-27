@@ -4,6 +4,7 @@
 
 import { DANGER_TIERS } from "../explore/rules";
 import { dangerTier, toNextTier } from "../explore/session";
+import "./DangerMeter.css";
 
 export function DangerMeter({ danger, preview }: { danger: number; preview?: number | null }) {
   const cur = dangerTier(danger);

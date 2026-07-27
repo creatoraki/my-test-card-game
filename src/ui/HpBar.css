@@ -1,0 +1,272 @@
+/* 名字嵌在血条内左侧, 数值靠右; hp-fill 垫在底下(z-index:2 抬过分段刻度层的 1) */
+.cmb-name {
+  position: relative;
+  z-index: 2;
+  /* flex:1 + min-width:0 缺一不可: 否则长名字撑破血条而非省略 */
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 11px;
+  color: #f0f5ed;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+}
+/* ── 血条(ui/HpBar.tsx, 敌我共用) ──
+   分档配色走 --hp-a/--hp-b/--hp-glow 三个变量。必须用 @property 注册为 <color>:
+   未注册的自定义属性在 CSS 里是不可插值的字符串, transition 会瞬跳而非渐变。 */
+@property --hp-a {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #2ce8d0;
+}
+@property --hp-b {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #22e0ff;
+}
+@property --hp-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #22e0ff;
+}
+
+/* ⚠ 只在这里定形(高度/硬边/斜切角/描边)。填充配色一概不写 —— 那是 .hp-ok/.hp-warn/.hp-low
+   三档变量的地盘, 在这条里覆盖 .hp-fill 的 background 会把整套分档配色打死。 */
+.hp-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  width: 100%;
+  height: 16px;
+  padding: 0 5px;
+  /* 槽底: 深青黑, 中段略亮做出圆柱感 */
+  background: linear-gradient(180deg, #04090cf2, #0b171de6 52%, #03080af2);
+  border-radius: 0;
+  overflow: hidden;
+  border: 1px solid #6fd2ff4d;
+  /* 与全局硬边风格一致的斜切角(队伍卡里的贴底血条会用 .hp-flush 把它压掉, 见 ui/AllyBar.css) */
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  box-shadow: 0 2px 6px #0009, inset 0 1px 3px #000c, inset 0 -1px 2px #6fd2ff14;
+  transition: --hp-a 0.4s ease, --hp-b 0.4s ease, --hp-glow 0.4s ease;
+}
+/* 血量分档: >60% 霓虹青 / 30~60% 琥珀金 / <30% 绯红。切换靠上面那条 transition 平滑过渡。 */
+.hp-bar.hp-ok {
+  --hp-a: #2ce8d0;
+  --hp-b: #22e0ff;
+  --hp-glow: #22e0ff;
+}
+.hp-bar.hp-warn {
+  --hp-a: #ffc93e;
+  --hp-b: #ff8a2b;
+  --hp-glow: #ffa63a;
+}
+.hp-bar.hp-low {
+  --hp-a: #ff2033;
+  --hp-b: #ff5a3c;
+  --hp-glow: #ff2f3f;
+}
+/* 玻璃罩: 顶部一道高光 + 上下内凹阴影, 把平面的填充压出弧面质感。
+   z-index 压在填充层之上、文字(z-index:2)之下。原本这层画的是 10% 分段刻度。 */
+.hp-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #ffffff2e 0,
+    #ffffff0f 22%,
+    transparent 46%,
+    #0000001f 78%,
+    #00000045 100%
+  );
+}
+/* 扣血拖影: 位于 .hp-fill 之下(DOM 里排在它前面)的残影层。主填充速缩(0.15s)后,
+   它停 0.3s 再花 0.5s 追上 —— 掉血瞬间拉出一截亮色残尾, 掉了多少一目了然。
+   刻意用中性暖白而非血条色: 三档配色都在变, 残尾若跟着变就分不清"刚掉的"和"还剩的"。 */
+.hp-ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #fff5d840, #fffaead9);
+  transition: width 0.5s ease 0.3s;
+}
+.hp-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--hp-pct, 0%);
+  overflow: hidden; /* 裁住内部那条 200% 宽的流光带 */
+  /* 横向色相(--hp-a→--hp-b) 叠一层纵向明暗塑形 = 能量管的圆柱感 */
+  background: linear-gradient(180deg, #ffffff3d, #ffffff00 42%, #00000038),
+    linear-gradient(90deg, var(--hp-a), var(--hp-b));
+  box-shadow: 0 0 10px -1px var(--hp-glow), inset 0 0 6px #ffffff1f;
+  transition: width 0.15s ease-out;
+}
+/* 流光带: 填充区内持续向右流动的斜纹。
+   ⚠ 条纹尺寸用 px 而非 % —— 血少时填充变窄, 用 % 会让流速凭空变快。
+   ⚠ 走 transform 而非 background-position: 前者上合成层, 场上十几条同时跑才不掉帧。 */
+.hp-flow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+  background: repeating-linear-gradient(
+    115deg,
+    transparent 0 9px,
+    #ffffff26 9px 13px,
+    #ffffff59 13px 15px,
+    transparent 15px 26px
+  );
+  animation: hpFlow 2.4s linear infinite;
+}
+@keyframes hpFlow {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+/* 端头: 白热核心 + 双层外溢辉光 = 血量的"游标"。
+   靠 left:var(--hp-pct) 跟随填充(而非嵌在 .hp-fill 里), 辉光才能往右溢进空槽。
+   transition 与 .hp-fill 的 width 同参数, 两者才不会在掉血那 0.15s 里脱节。 */
+.hp-edge {
+  position: absolute;
+  left: var(--hp-pct, 0%);
+  margin-left: -2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  background: #ffffff;
+  box-shadow: 0 0 4px #fff, 0 0 12px var(--hp-glow), 0 0 20px var(--hp-glow);
+  transition: left 0.15s ease-out;
+}
+/* 端头上飘的微弱光点: 自身 + ::before + ::after 共 3 颗, 靠 animation-delay 错峰。
+   位移压在 6px 内 —— 血条只有 16~20px 高, 再高就被 overflow 切出断口。 */
+.hp-motes,
+.hp-motes::before,
+.hp-motes::after {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 5px var(--hp-glow);
+  animation: hpMote 1.6s ease-out infinite;
+}
+.hp-motes {
+  left: var(--hp-pct, 0%);
+  margin-left: -6px;
+  bottom: 3px;
+  pointer-events: none;
+  transition: left 0.15s ease-out;
+}
+.hp-motes::before {
+  content: "";
+  right: 3px;
+  bottom: 1px;
+  animation-delay: 0.55s;
+}
+.hp-motes::after {
+  content: "";
+  right: -2px;
+  bottom: -1px;
+  animation-delay: 1.05s;
+}
+@keyframes hpMote {
+  0% {
+    opacity: 0;
+    transform: translateY(2px) scale(0.6);
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.3);
+  }
+}
+/* 掉血迸溅: 只覆盖刚扣掉的那一段 [to, from], 由 ui/HpBar.tsx 行内下发 left/width。
+   每颗火花的起点(--sl)与位移(--sx/--sy)/错峰(--sd)是按 seq+索引推出的确定性伪随机。 */
+.hp-sparks {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.hp-spark {
+  position: absolute;
+  left: var(--sl, 50%);
+  top: 50%;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px var(--hp-glow), 0 0 2px #fff;
+  opacity: 0;
+  animation: hpSpark 520ms ease-out var(--sd, 0ms) forwards;
+}
+@keyframes hpSpark {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sx, 6px), var(--sy, -6px)) scale(0.2);
+  }
+}
+/* 低血脉动: 辉光呼吸, 让"要死了"在余光里也能被察觉 */
+.hp-bar.hp-low .hp-fill {
+  animation: hpLowPulse 1.1s ease-in-out infinite;
+}
+@keyframes hpLowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px -1px var(--hp-glow), inset 0 0 6px #ffffff1f;
+  }
+  50% {
+    box-shadow: 0 0 18px 1px var(--hp-glow), inset 0 0 10px #ffffff42;
+  }
+}
+.hp-text {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+}
+/* 减少动态效果: 血条的装饰性动感全停 —— 流光带 / 端头光点 / 掉血火花。
+   ⚠ 光点与火花靠关键帧从 opacity:0 起步, 单停动画会让它们**永久停在起始态**并留下
+   一颗静止的亮点。故一并 display:none —— 它们纯装饰, 不承载任何玩法信息。 */
+@media (prefers-reduced-motion: reduce) {
+  .hp-flow {
+    animation: none;
+  }
+  .hp-motes,
+  .hp-sparks {
+    display: none;
+  }
+  /* 低血脉动例外: 停动画但保留一圈静态辉光 —— "要死了"是玩法信息, 不能跟装饰一起消失
+     (与 .combatant.targetable 同一处理)。 */
+  .hp-bar.hp-low .hp-fill {
+    animation: none;
+    box-shadow: 0 0 14px var(--hp-glow), inset 0 0 8px #ffffff33;
+  }
+}

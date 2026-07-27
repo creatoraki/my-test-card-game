@@ -1,6 +1,8 @@
 // 顶部终端导航条 —— 非战斗界面共用(菜单/城镇/远征)。
 // 除 active 外的条目目前均为占位, 尚未实现对应界面。
 
+import "./TerminalNav.css";
+
 export function TerminalNav({ active }: { active: string }) {
   return (
     <header className="terminal-nav">

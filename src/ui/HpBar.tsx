@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./HpBar.css";
 
 // 敌我共用的血条。CombatantView(场上敌人立绘下方) 与 AllyBar(我方队伍卡底边) 都走这里 ——
 // 材质、分档配色、流光/火花/迸溅的时序只写一份, 两边表现必然一致。
@@ -11,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 // ⚠ .hp-bar 自带 overflow:hidden, 我方那侧的 .ally-frame 还额外裁一次 ⇒ 粒子飞不出条外。
 // 所以火花的位移一律压在 8px 以内并快速淡出, 被裁到也看不出断口。
 
-// 分档阈值(%): 与 styles.css 的 .hp-ok / .hp-warn / .hp-low 三套配色一一对应。
+// 分档阈值(%): 与 HpBar.css 的 .hp-ok / .hp-warn / .hp-low 三套配色一一对应。
 const TIER_OK = 60;
 const TIER_WARN = 30;
 
@@ -74,7 +75,7 @@ export function HpBar({ hp, maxHp, name, flush }: Props) {
       className={["hp-bar", tier, flush ? "hp-flush" : ""].join(" ")}
       style={{ "--hp-pct": `${hpPct}%` } as React.CSSProperties}
     >
-      {/* 扣血拖影: 残影层延迟收缩, 主填充速缩后它慢半拍追上(见 styles.css .hp-ghost) */}
+      {/* 扣血拖影: 残影层延迟收缩, 主填充速缩后它慢半拍追上(见 HpBar.css .hp-ghost) */}
       <div className="hp-ghost" style={{ width: `${hpPct}%` }} />
 
       <div className="hp-fill">

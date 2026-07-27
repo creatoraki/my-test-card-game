@@ -1,25 +1,27 @@
 import type { CSSProperties } from "react";
 import startGameImg from "../assets/场景/开始游戏.png";
+import "./MenuStartButton.css";
 
 /**
  * 主菜单「开始游戏」按钮:一张青绿霓虹牌匾 PNG + 三层特效。
  *
  * ★ 核心手法 —— 用**同一张 PNG 的 alpha** 当 mask:
  *   特效层叠在 <img> 之上并 `mask-image: var(--start-mask)`, 于是光和粒子被裁进牌匾的真实
- *   剪影里 ⇒ 观感是「图片内部在发光」, 而不是外面套了个矩形光框。素材路径不写进 styles.css
+ *   剪影里 ⇒ 观感是「图片内部在发光」, 而不是外面套了个矩形光框。素材路径不写进 MenuStartButton.css
  *   (Vite 里 CSS 的相对 url() 易错), 而是这里 import 后经内联 style 下发成 --start-mask。
  *
- * 三层(z 由 DOM 顺序给, 见 styles.css):
+ * 三层(z 由 DOM 顺序给, 见 MenuStartButton.css):
  *   .menu-start-motes   内部光尘 —— 单层 mask, 粒子只在牌匾内部上浮
  *   .menu-start-rim     轮廓跑光 —— 双 mask 相减出一条贴轮廓的环带, 里面转一道 conic 亮楔
- *   .menu-start-sparks  外溢火星 —— **不加 mask**, 贴着外沿往外飘, 仅悬停时出现
+ *                       空闲 3.6s/圈; 悬停直接提到 **0.05s/圈 = 20 圈/秒**(--rim-spin)
+ *   .menu-start-sparks  外溢火星 —— **不加 mask**, 沿轮廓一圈被"甩"向外侧, 仅悬停时出现
  *
  * 强度总开关是 .menu-start 上的 --fx(空闲 0.35 / 悬停 1), 三层的透明度与辉光都乘它 ⇒
  * 「常驻弱效, 悬停增强」只有一个旋钮。**全程没有任何缩放**(悬停放大是这次要去掉的东西)。
  */
 
 const MOTE_COUNT = 14; // 内部光尘颗数
-const SPARK_COUNT = 6; // 外溢火星颗数
+const SPARK_COUNT = 24; // 外溢火星颗数(悬停才可见, 是"跑光甩火花"的主体, 所以给得比光尘还密)
 
 // 确定性伪随机: 同一颗粒子每次渲染都拿到同一组数, 重渲染不会让它中途跳位。
 // 与 ui/HpBar.tsx 的迸溅火花同一个 sin-hash(那边多一个 seq 维度, 这里粒子是常驻的, 不需要)。
@@ -43,16 +45,32 @@ const MOTES: CSSProperties[] = Array.from({ length: MOTE_COUNT }, (_, i) => {
   } as CSSProperties;
 });
 
-// 火星: 贴着牌匾外沿(横向铺开、纵向压在中下段)往外上方飘散。仅悬停时可见。
+// 火星: 沿牌匾外沿**绕一圈**铺开, 每颗沿"离开中心"的方向被甩出去 ⇒ 观感是高速跑光从轮廓上
+// 蹭下来的火花, 而不是从图片中间往上冒的烟。仅悬停时可见。
+//
+// ★ 起点用**内接椭圆**而不是盒子的矩形周长: 牌匾是斜的, 外接盒的四角基本是空的,
+//   从角上冒火星会明显脱离图形、像凭空出现。椭圆虽然也只是近似, 但永远落在实体附近。
+// ★ 位移方向 = 起点方向(纯径向), 所以火星一定是"向外"而不是乱飘;
+//   拖尾靠 --srot 转到同一方向, 头朝外、尾朝内(见 MenuStartButton.css 的渐变方向)。
 const SPARKS: CSSProperties[] = Array.from({ length: SPARK_COUNT }, (_, i) => {
-  const dur = 1.1 + rand(i, 11) * 0.7;
+  // 均匀铺满一圈 + 一点抖动 —— 纯等分会排得像齿轮, 一眼看出是"摆"上去的。
+  const ang = ((i + rand(i, 11) * 0.8) / SPARK_COUNT) * Math.PI * 2;
+  const ux = Math.cos(ang);
+  const uy = Math.sin(ang);
+  const dist = 26 + rand(i, 12) * 44; // 甩出距离 26~70px(飞得远才看得出是"被甩出去"的)
+  // 短促才像火花, 但太短会来不及看清 —— 半秒到一秒之间是"够快又读得到"的窗口。
+  const dur = 0.5 + rand(i, 13) * 0.4;
   return {
-    "--sx0": `${10 + rand(i, 12) * 80}%`,
-    "--sy0": `${45 + rand(i, 13) * 45}%`,
-    "--sx": `${(rand(i, 14) - 0.5) * 44}px`, // 外飘位移
-    "--sy": `${-16 - rand(i, 15) * 26}px`,
+    "--sx0": `${50 + ux * 44}%`, // 起点贴着轮廓(44%/38% 是椭圆半径, 略小于外接盒)
+    "--sy0": `${50 + uy * 38}%`,
+    "--sx": `${ux * dist}px`,
+    "--sy": `${uy * dist - 12}px`, // 径向位移再叠一点上飘, 火花才有"热"的感觉
+    "--srot": `${ang}rad`, // 拖尾朝向 = 甩出方向
+    "--sw": `${12 + rand(i, 14) * 14}px`, // 拖尾长度 12~26px
+    "--sh": `${2 + rand(i, 16) * 2}px`, // 拖尾粗细 2~4px(粗细也随机, 免得 24 条像一套复制品)
     "--sdur": `${dur}s`,
-    "--sdel": `${-rand(i, 16) * dur}s`,
+    // 负延迟: 同 MOTES, 让 20 颗一挂载就散在各自相位上, 否则悬停瞬间会齐步炸开一次。
+    "--sdel": `${-rand(i, 15) * dur}s`,
   } as CSSProperties;
 });
 
@@ -96,7 +114,7 @@ export function MenuStartButton({ onClick, right, bottom, width }: Props) {
 
       {/* 2) 轮廓跑光: 三层套娃, 每层只干一件事 —— 外层辉光 / 中层环带形状(双 mask 相减) /
              内层转那道 conic 亮楔。⚠ 辉光与 mask 必须分开两个元素(filter 先于 mask 生效,
-             同层写会把溢出的光裁掉), mask 与旋转也必须分开(挂反了环带会跟着转散)。详见 styles.css。 */}
+             同层写会把溢出的光裁掉), mask 与旋转也必须分开(挂反了环带会跟着转散)。详见 MenuStartButton.css。 */}
       <span className="menu-start-rim" aria-hidden>
         <span className="menu-start-rim-band">
           <i className="menu-start-rim-run" />

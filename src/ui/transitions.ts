@@ -1,6 +1,6 @@
 // ============================================================================
 // 场景过场动效预设表(纯 UI 表现层)。
-// 与 animations.ts 同一套哲学: 时长常量的唯一真相在 TS, 视觉在 styles.css;
+// 与 animations.ts 同一套哲学: 时长常量的唯一真相在 TS, 视觉在 ui/ScreenTransition.css;
 // JS 只负责挂载/卸载与时序编排, 不引入任何动画库。
 //
 // 一次切换 = 旧界面出场(exit) → 黑场停顿(hold) → 新界面入场(enter), 串行执行。
@@ -12,7 +12,7 @@ import type { Screen } from "../store/runStore";
 // 总开关: 置 false 即彻底关闭过场, 退回瞬移式切换。
 export const TRANSITIONS_ENABLED = true;
 
-// 单个出/入场特效。name 对应 styles.css 里的 .screen-fx-<name>,
+// 单个出/入场特效。name 对应 ui/ScreenTransition.css 里的 .screen-fx-<name>,
 // ms 同时用于内联 animationDuration 与 JS 定时 —— 单一真相, 不会两头对不上。
 export interface ScreenFx {
   name: string;
@@ -27,7 +27,7 @@ export interface TransitionSpec {
 }
 
 // ── 可用特效登记处 ──
-// 新增一种特效 = 这里加一项 + styles.css 加一段同名 keyframes。
+// 新增一种特效 = 这里加一项 + ui/ScreenTransition.css 加一段同名 keyframes。
 //
 // ⚠ transform 类特效(zoomIn/slideUp)慎用在 battle 的入场上: BattleScreen 的
 // computeCamera 靠 getBoundingClientRect() 算相机仿射变换, 要求测量时祖先链上无

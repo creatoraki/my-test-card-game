@@ -6,6 +6,7 @@ import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
 import { useTownStore } from "../store/townStore";
 import { TrailStrip } from "./TrailStrip";
+import "./EndScreen.css";
 
 const TITLES = {
   won: { title: "远征完成", kicker: "远征终端 / 最终报告" },

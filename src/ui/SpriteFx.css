@@ -1,0 +1,16 @@
+/* —— 序列帧特效: 逐帧图堆叠, 各自亮起自己的时间片 —— */
+/* 基态 opacity:0 + 不设 fill-mode → 延迟期与播完后都回落到 0, 只在自己的时间片内亮。
+   挂载即播、卸载即停, 与 key={hit.seq} 重挂载重播天然契合, 无需任何 JS 计时器。
+   尺寸/位移/时序全部由 SpriteFx 按 ANIM 预设行内注入(见 ui/animations.ts 的 SpritePreset)。 */
+.vfx-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation-name: vfxFrameShow;
+  animation-timing-function: linear;
+}
+@keyframes vfxFrameShow {
+  from, to { opacity: 1; }
+}
+

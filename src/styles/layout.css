@@ -1,0 +1,138 @@
+/* 界面骨架与跨界面通用排版。
+   这里只放「所有界面都可能用到」的类; 只被单个组件用的一律回各自的 ui/<Component>.css。 */
+
+/* ===================== 通用屏幕 ===================== */
+.screen {
+  height: 100%;
+  padding: 14px;
+}
+.screen.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+/* 终端界面的底: 渐变底 + 一圈机框描线。战斗画布的同款机框在
+   ui/BattleScreen.css 的 .screen.battle::before(几何相同, 但归属不同)。 */
+.terminal-screen {
+  position: relative;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 58% 42%, #8ea51b12, transparent 28%),
+    linear-gradient(115deg, #070a0c 0%, #11171a 48%, #080b0d 100%);
+}
+.terminal-screen::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  pointer-events: none;
+  z-index: 0;
+  border: 1px solid #ffffff0c;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+.terminal-screen > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 各终端界面的主体区(导航条之下的那一屏) */
+/* ⚠ 这一组里 .menu-main 疑似未使用(全项目 .tsx 里搜不到 —— 现主菜单走 .menu-splash
+   视频开屏那一套, 不挂 .terminal-screen), 确认后可单独把这一行删掉。 */
+.menu-main,
+.town-main,
+.expedition-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: calc(100% - 52px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===================== 文字 ===================== */
+.muted {
+  color: var(--muted);
+}
+/* ⚠ 疑似未使用(全项目 .tsx 里搜不到), 确认后可删。
+   注: 原文件里这条曾是 accent→accent2 的渐变文字, 后被终端皮肤整条覆盖成纯色 —— 合并时
+   已删掉那三条失效的 background-clip 声明。 */
+.title {
+  margin: 0;
+  color: #eff5ee;
+  font-size: 43px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.subtitle {
+  color: #9ba7a3;
+  margin-top: -6px;
+}
+.terminal-heading {
+  margin: 0;
+  color: #eef3ef;
+  font-size: 32px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+/* 小号 accent 全大写标签。同族的 .party-tag 配色被覆盖成中性灰, 单独写在 ui/MenuScreen.css。 */
+.screen-kicker,
+.choice-index {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+/* 同一族, 但配色是中性灰而非 accent —— HUD 里 accent 已被数值占用, 标签再抢色会读不清 */
+.hud-label {
+  color: #798689;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ===================== 遮罩 ===================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #000b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+/* ⚠ 圆角 16px 是旧 styles.css 的**实际**表现: 终端皮肤层曾把它列进「全局去圆角」组,
+   但这条规则写在更后面, 同特异性下反而压回了圆角。合并时按实际表现保留 16px ——
+   若要统一成终端直角风(全项目其余面板都是 0 + 斜切角), 把这行改成 0 即可。 */
+.overlay-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 32px 48px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px #000c;
+}
+.overlay-card h2 {
+  margin: 0;
+  font-size: 28px;
+}

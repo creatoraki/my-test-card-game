@@ -3,6 +3,7 @@
 import { MAPS } from "../data";
 import { useRunStore } from "../store/runStore";
 import { TerminalNav } from "./TerminalNav";
+import "./ExpeditionScreen.css";
 
 export function ExpeditionScreen() {
   const startExpedition = useRunStore((s) => s.startExpedition);

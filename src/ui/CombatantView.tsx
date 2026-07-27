@@ -7,6 +7,8 @@ import { EnemySprite } from "./EnemySprite";
 import { enemyArt, enemyIdle } from "./enemyArt";
 import { HitFxLayer, hitFxVars } from "./HitFxLayer";
 import { HpBar } from "./HpBar";
+import "./CombatantView.css";
+import "./unit-badges.css";
 
 interface Props {
   cmb: Enemy;
@@ -39,7 +41,7 @@ export function CombatantView({
   const { reactClass, vars } = hitFxVars(hit ?? null);
 
   // --place-*: 手工站位, dx/dy 落到 .combatant 的 translate, scale 只落到 .combatant-stage
-  // (不能走 transform —— 那条已被 hover/前冲/hitShake 占满, 见 styles.css)
+  // (不能走 transform —— 那条已被 hover/前冲/hitShake 占满, 见 CombatantView.css)
   if (placement) {
     if (placement.dx != null) vars["--place-dx"] = `${placement.dx}px`;
     if (placement.dy != null) vars["--place-dy"] = `${placement.dy}px`;

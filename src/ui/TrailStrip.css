@@ -1,0 +1,105 @@
+/* ── 轨迹 ──
+   打出的卡不消失, 横向排开 = 这趟远征的可视历史。地图不用画, 它自己长出来。 */
+.trail-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 0 28px;
+}
+.trail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.trail-count {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.trail-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px 2px 10px;
+  border-top: 1px solid #ffffff10;
+  border-bottom: 1px solid #ffffff10;
+  scrollbar-width: thin;
+}
+.trail-empty {
+  color: #55606a;
+  font-size: 12px;
+  padding: 14px 4px;
+}
+.trail-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+  width: 68px;
+  padding: 6px 4px 5px;
+  border: 1px solid #ffffff1a;
+  border-bottom: 2px solid var(--trail-color, #4a5560);
+  background: #0d1215d9;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.trail-card.trail-encounter,
+.trail-card.trail-boss {
+  background: #1a0f12e0;
+  border-color: #6b3a3a;
+}
+.trail-emoji {
+  font-size: 17px;
+  line-height: 1.1;
+}
+.trail-name {
+  color: #cfd8dc;
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.trail-delta {
+  font-size: 10px;
+  font-weight: 700;
+}
+.trail-delta.up {
+  color: var(--bad);
+}
+.trail-delta.down {
+  color: var(--good);
+}
+.trail-delta.flat {
+  color: #4c565f;
+}
+.trail-danger {
+  color: var(--trail-color, #7f9aa6);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+/* 轨迹右端常驻的 BOSS 标记: 未揭示是背面, 揭示后显示按当前危险度算出的强度预览 ——
+   玩家继续刷事件卡时这里会实时变化, 那正是我们想让他盯着犹豫的东西。 */
+.trail-card.trail-bossmark {
+  width: 96px;
+  margin-left: 14px;
+  border-style: dashed;
+  border-color: #4a5560;
+  background: #0a0d0fcc;
+}
+.trail-card.trail-bossmark.revealed {
+  border-style: solid;
+  border-color: #c92a2a;
+  background: linear-gradient(180deg, #2a0f12, #12080ae6);
+  box-shadow: 0 0 16px #c92a2a3d;
+}
+.trail-boss-preview {
+  color: #ff9b9b;
+  font-size: 9px;
+  text-align: center;
+  line-height: 1.3;
+}
+

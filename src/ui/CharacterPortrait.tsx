@@ -1,4 +1,5 @@
 import swordsmanPortrait from "../assets/人物立绘/剑士-透明.png";
+import "./CharacterPortrait.css";
 
 // 角色立绘登记表(与 enemyArt.ts 同思路: 静态 import + 登记表, 按 CharacterDef.id 作键)。
 // 立绘只登记在 UI 层 —— data/characters.ts 不碰素材路径, 与 enemyArt.ts / battleBg.ts 同约定。
@@ -31,10 +32,10 @@ export function CharacterPortrait({ characterId, emoji, alt, className }: Props)
   const art = characterId ? CHARACTER_ART[characterId] : undefined;
 
   if (art) {
-    // 各套取景各自下发自己的变量, 由 className 决定 styles.css 里哪套规则接管:
-    //   无 className    → .combatant-figure .portrait-image  战斗立绘半身像(1:1 cover)
-    //   ally-portrait   → .ally-figure .portrait-image       底部队伍卡的半身取景(--bust-zoom)
-    //   menu-portrait   → 基础规则 .portrait-image           全身(contain)
+    // 各套取景各自下发自己的变量, 由 className 决定哪套规则接管(规则分散在消费方的组件 CSS 里):
+    //   无 className    → .combatant-figure .portrait-image  战斗立绘半身像(1:1 cover) — CombatantView.css
+    //   ally-portrait   → .ally-figure .portrait-image       底部队伍卡的半身取景(--bust-zoom) — AllyBar.css
+    //   menu-portrait   → 基础规则 .portrait-image           全身(contain) — CharacterPortrait.css
     // 后两者共用 --portrait-dx/dy; --head-* 暂无使用方(见上方登记表的注释)。
     return (
       <img

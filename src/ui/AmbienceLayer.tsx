@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { ambience, type AmbienceDef, type EmitterDef } from "./ambience";
 import { STAGE } from "./stage";
+import "./AmbienceLayer.css";
 
 // ============================================================================
 // 场景氛围层: 按地图预设(ui/ambience.ts)在世界里跑一套 Canvas 粒子。

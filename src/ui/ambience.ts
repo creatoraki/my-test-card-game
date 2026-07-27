@@ -36,7 +36,7 @@ export interface EmitterDef {
 export interface AmbienceDef {
   emitters: EmitterDef[];
   // 世界内的灯光闪烁: color 是叠加的光色(screen 混合), period 是一整圈的时长(ms)。
-  // 关键帧刻意做成不规则的(见 styles.css 的 ambienceFlicker), 才像坏掉的霓虹管。
+  // 关键帧刻意做成不规则的(见 ui/AmbienceLayer.css 的 ambienceFlicker), 才像坏掉的霓虹管。
   flicker?: { color: string; period: number };
   // 屏幕空间调色。vignette = 四角压暗强度(0~1), tint = 整体色偏(叠加色, 很淡),
   // scanline = 扫描线不透明度(0 = 不画)。

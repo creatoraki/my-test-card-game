@@ -1,0 +1,67 @@
+/* ===================== 远征选图 ===================== */
+.map-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.map-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 236px;
+  padding: 20px 16px 16px;
+  border: 1px solid #3c484b;
+  border-radius: 0;
+  background: #0b0f11d9;
+  text-align: center;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.map-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  background: linear-gradient(160deg, #16201cf2, #0b0f11e6);
+}
+.map-card .choice-index {
+  position: absolute;
+  top: 7px;
+  left: 10px;
+}
+.map-emoji {
+  font-size: 34px;
+  line-height: 1.2;
+}
+.map-name {
+  color: #eef3ef;
+  font-size: 16px;
+  font-weight: 700;
+}
+.map-difficulty {
+  color: var(--warn);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.map-difficulty .dim {
+  color: #3c484b;
+}
+.map-desc {
+  color: var(--muted);
+  line-height: 1.6;
+  min-height: 44px;
+}
+.map-meta {
+  margin-top: 2px;
+  padding: 2px 8px;
+  border: 1px solid #475358;
+  background: #151c20;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.expedition-footer {
+  margin-top: 10px;
+}
+

@@ -1,10 +1,11 @@
 import type { IaiPreset } from "./animations";
+import "./IaiSlashFx.css";
 
 // 居合拔刀斩(程序化 CSS)首击特效: 蓄力光点 + 左下→右上的斩痕刃光。
 // 与 SpriteFx 同模式 —— 组件零状态, 挂载即播、卸载即停, key={hit.seq} 重挂载即重播;
 // 全部时序由 CSS 动画驱动, 爆发时刻通过行内 animation-delay 与预设 impactMs 硬同步。
 // 几何: 外层 .iai-wrap 旋转 -45° ⇒ 容器局部 X 轴即"左下→右上"对角线, 刃光/光点
-// 只需沿局部 X 轴布置(见 styles.css 的 iai 系样式)。
+// 只需沿局部 X 轴布置(见 IaiSlashFx.css 的 iai 系样式)。
 
 // 光点固定伪随机分布表: t=沿刃向偏移(px), n=垂直刃向微偏(px), size=直径(px),
 // delay=渐亮错峰(ms)。不真随机 —— 可复现且免 re-render 抖动。

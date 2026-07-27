@@ -4,6 +4,7 @@ import { useStageScale } from "./stage";
 import { MenuStartButton } from "./MenuStartButton";
 import menuBgVideo from "../assets/场景/菜单.mp4";
 import menuTitle from "../assets/场景/霓虹都市.png";
+import "./MenuScreen.css";
 
 export function MenuScreen() {
   const enterTown = useRunStore((s) => s.enterTown);
@@ -56,8 +57,8 @@ export function MenuScreen() {
             这里只管「摆在哪、多大」—— 位置/大小的微调旋钮全在下面, 直接改数值即可。 */}
         <MenuStartButton
           onClick={() => enterTown()}
-          right="180px" // ← 距画布右边距离(设计 px, 0~1920, 越大越靠左)
-          bottom="300px" // ← 距画布底部距离(设计 px, 0~1080, 越大越靠上)
+          right="220px" // ← 距画布右边距离(设计 px, 0~1920, 越大越靠左)
+          bottom="320px" // ← 距画布底部距离(设计 px, 0~1080, 越大越靠上)
           width="220px" // ← 显示宽度(设计 px; 原图 256×256, 等比缩放)
         />
       </div>

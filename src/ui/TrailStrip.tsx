@@ -5,6 +5,7 @@
 import { useEffect, useRef } from "react";
 import { dangerTier } from "../explore/session";
 import type { TrailEntry } from "../explore/types";
+import "./TrailStrip.css";
 
 interface Props {
   trail: TrailEntry[];

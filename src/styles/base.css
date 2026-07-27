@@ -1,0 +1,92 @@
+/* 全局重置 + 基础元素外观(终端皮肤)。 */
+
+* {
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none; /* 禁用移动端长按菜单 */
+}
+
+/* 例外：如果将来加入输入框，仍允许选中输入 */
+input,
+textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  /* 深色渐变底 + 一层 5px 周期的横向扫描线, 整站的"终端屏"质感从这里起 */
+  background:
+    linear-gradient(90deg, #050708e6, #12171ae6),
+    repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 5px);
+  color: var(--text);
+  font-family: "Bahnschrift", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+/* 按钮: 硬边 + 左上/右下 7px 斜切角(clip-path), 全站统一。
+   ⚠ 直角是刻意的 —— 终端皮肤里没有任何圆角, 斜切角是它唯一的"倒角"语言。 */
+button {
+  position: relative;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid #536068;
+  border-radius: 0;
+  background: linear-gradient(135deg, #20282d, #11161a);
+  color: #edf2ef;
+  font-weight: 700;
+  letter-spacing: 0;
+  padding: 8px 14px;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  transition: transform 0.08s, background 0.15s, border-color 0.15s;
+}
+button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2c3539, #151d20);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+button.primary {
+  background: linear-gradient(135deg, #e1f52e, #a9c913);
+  border-color: #f1ff8a;
+  color: #111605;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px #fcffb14d, 0 0 12px #d8f3292b;
+}
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f1ff54, #bedc20);
+  color: #080b0d;
+}
+button.big {
+  min-width: 212px;
+  font-size: 15px;
+  padding: 13px 26px;
+  /* ⚠ 此条比上面 button 的 border-radius:0 特异性高, 故大按钮仍带 12px 圆角
+     —— 但 button 的 clip-path 斜切角会把四角切掉, 实际看不出圆角。保持原样以免动到观感。 */
+  border-radius: 12px;
+}
+
+code {
+  background: #000a;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--warn);
+}

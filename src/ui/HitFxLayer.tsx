@@ -1,6 +1,7 @@
 import { ANIM, type HitFx } from "./animations";
 import { SpriteFx } from "./SpriteFx";
 import { IaiSlashFx } from "./IaiSlashFx";
+import "./HitFxLayer.css";
 
 // 命中表现的共用件: 敌人(CombatantView)与我方头像栏(AllyBar)都靠这两个导出, 保证两边的
 // 特效着色、命中时序、飘字完全一致 —— 只有承载它们的外壳不同(场上立绘 vs 玻璃头像卡)。

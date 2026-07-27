@@ -4,7 +4,7 @@
 // 站位: 敌人默认由 .enemy-row 的 flex 水平居中自动排布; 想让某场战斗的敌人贴合背景地面时,
 // 把该槽位从 "id" 字符串改写成 { id, dx, dy, scale } 对象 —— 两种写法可在同一数组里混用,
 // 字符串等价于 { id } (无偏移)。坐标是"相对默认位置推开多少设计 px", 不是绝对坐标, 故未标注的
-// 遭遇战行为完全不变。消费方见 ui/CombatantView.tsx(下发 CSS 变量)与 styles.css(.combatant)。
+// 遭遇战行为完全不变。消费方见 ui/CombatantView.tsx(下发 CSS 变量)与 ui/CombatantView.css(.combatant)。
 
 // 单位是"设计 px": 战斗画面是固定 1920×1080 的设计画布, 整体等比缩放去适配窗口(见 ui/stage.ts),
 // 故这里的偏移与玩家的实际分辨率无关 —— 一次调好, 任何窗口尺寸下站位都与背景严丝合缝。

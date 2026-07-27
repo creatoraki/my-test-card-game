@@ -2,6 +2,7 @@ import type { Card } from "../engine";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
 import { cardArt } from "./cardArt";
 import { CINEMA } from "./animations";
+import "./SkillCutInCard.css";
 
 // 整段亮相时长: 与 runSteps 的定时器口径一致。作为 CSS animation-duration,
 // 令 @keyframes skill-cutin-fly 的飞入/停留/飞出比例始终对齐 CINEMA 参数。

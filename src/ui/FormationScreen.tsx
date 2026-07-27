@@ -15,6 +15,7 @@ import {
 import { CardView } from "./CardView";
 import { CharacterPortrait } from "./CharacterPortrait";
 import { TerminalNav } from "./TerminalNav";
+import "./FormationScreen.css";
 
 const ATTR_ROWS: { key: keyof CharacterAttrs; label: string; hint: string }[] = [
   { key: "hp", label: "生命", hint: `每点生命上限 +${RULES.progression.hpPerPoint}` },

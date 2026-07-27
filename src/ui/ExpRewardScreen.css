@@ -1,0 +1,47 @@
+/* ===================== 经验结算 ===================== */
+.exp-report {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(520px, 100%);
+}
+.exp-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #3c484b;
+  background: #0a0e10b8;
+  padding: 10px 14px;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  text-align: left;
+}
+.exp-row.leveled {
+  border-color: var(--accent);
+}
+.exp-portrait {
+  width: 48px;
+  height: 64px;
+}
+.exp-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.exp-name-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.exp-name {
+  font-weight: 700;
+}
+.exp-gain {
+  color: var(--accent);
+  font-weight: 700;
+}
+.exp-levelup {
+  color: var(--warn);
+  font-size: 12px;
+  letter-spacing: 1px;
+}

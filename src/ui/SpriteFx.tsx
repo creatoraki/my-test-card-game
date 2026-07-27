@@ -1,4 +1,5 @@
 import type { SpritePreset } from "./animations";
+import "./SpriteFx.css";
 
 // 序列帧特效播放器。12 帧一次性堆叠挂载, 各帧靠 animation-delay 亮起自己的时间片,
 // 与 SkillCutInCard 同源思路 —— 纯 CSS 驱动, 组件内不维护播放状态; 卸载即中止。

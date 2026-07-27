@@ -1,0 +1,9 @@
+.portrait-image {
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
+}
+.portrait {
+  font-size: 40px;
+  line-height: 1;
+}

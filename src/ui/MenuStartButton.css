@@ -1,0 +1,290 @@
+/* ════════ 「开始游戏」图片按钮(见 ui/MenuStartButton.tsx) ════════
+   青绿霓虹牌匾 PNG + 三层特效。★ 位置/大小(right / bottom / width)在 MenuScreen.tsx 的内联
+   style 里微调(设计 px), 这里只负责「机制 + 观感」, 不写死坐标以免和内联值打架。
+
+   ★ 全部特效的手法都是**拿同一张 PNG 的 alpha 当 mask**(--start-mask 由 TSX 侧内联下发):
+     光与粒子因此被裁进牌匾的真实剪影里 ⇒ 是「图片内部在发光」, 而不是外面套了个矩形光框。
+
+   ⓘ 这里原来的悬停是 transform: scale(1.06) + 一圈蓝白 drop-shadow 辉光。已整条移除 ——
+     那套既不贴素材本身的青绿霓虹调, 又是纯外部装饰(图片本体是死的)。**现在悬停不产生任何缩放**,
+     反馈全部来自下面三层。若将来想加回"可点"的形变反馈, 请只动 :active, 不要碰 :hover。
+
+   ★ 四个调节旋钮都在 .menu-start 上:
+       --fx        特效强度总开关(空闲 / 悬停两档, 三层的透明度与辉光半径都乘它)
+       --rim-inset 轮廓环带的内缩量 ⇒ 环带越窄越贴边; 嫌环带糊就调小
+       --rim-spin  轮廓跑光转一圈的时间(空闲慢爬 / 悬停飞快, 两档都在 .menu-start 上直接调)
+       --start-hue 霓虹色(默认取素材本身的青绿) */
+.menu-start {
+  position: absolute; /* right/bottom 生效的前提, 相对 1920×1080 的 .menu-splash 画布定位 */
+  z-index: 2; /* 压在标题(1)之上, 确保可点 */
+  line-height: 0; /* 去掉 inline 图片底下的基线空隙, 盒子才严丝合缝贴着图 */
+  cursor: pointer;
+  user-select: none;
+
+  --fx: 0.35; /* ← 空闲强度: 牌匾自己微微「通着电」, 安静不抢标题 */
+  --rim-inset: 10px;
+  --rim-spin: 3.6s; /* ← 空闲: 光慢悠悠绕轮廓爬一圈 */
+  --start-hue: #6ff0cf;
+  /* ⚠ --fx 必须经 @property 注册为 <number> 才能过渡(见下), 否则悬停会是硬跳 */
+  transition: --fx 0.28s ease;
+}
+.menu-start:hover {
+  --fx: 1; /* ← 悬停强度 */
+  /* ← 悬停转速。圈/秒 = 1 ÷ 本值。参考: 0.5s=2 圈/秒(亮楔看得清在跑) …… 0.05s=20 圈/秒
+     (60fps 下约 3 帧一圈, 单道亮楔已经跟不住, 会被视觉积分成一整圈匀亮的灯管)。 */
+  --rim-spin: 0.5s;
+}
+/* ⚠⚠ 全站 button 皮肤复位 —— **必须把 :hover / :active 一起写进选择器**, 只写 .menu-start 不够。
+   styles/base.css 里有两条全站规则:
+       button                      background: linear-gradient(135deg, #20282d, #11161a)  特异性 (0,0,1)
+       button:hover:not(:disabled) background: linear-gradient(135deg, #2c3539, #151d20)  特异性 (0,2,1)
+   单个 .menu-start 只有 (0,1,0): 压得过第一条(所以空闲态看着一切正常), 却压不过第二条 ⇒
+   鼠标一悬停, 那条深色渐变就铺满整个按钮矩形, 从透明 PNG 的镂空处透出来 —— 就是"悬停冒出一块黑底"。
+   这里用 .menu-start:hover:not(:disabled) (0,3,0) 反压回去(类计数 3 > 2, 直接胜出)。
+   注意这**不是** mask / mix-blend-mode 那类坑(见下面三层特效的注释), 纯粹是级联特异性问题,
+   别再往特效层上找原因。
+
+   clip-path 一并复位: base.css 给所有 button 挂了 7px 斜切角, .menu-start 从没复位过它 ⇒
+   牌匾左上/右下角被切掉一小块, 飞出边界的外溢火星也会被裁死。这里恢复成 none。
+
+   ⓘ 只复位"外观"四项。button:active 的 translateY(1px) 故意不碰 —— 那是按下的实体反馈, 留着。 */
+.menu-start,
+.menu-start:hover:not(:disabled),
+.menu-start:active:not(:disabled) {
+  padding: 0; /* <button> 复位: 它只是个可聚焦的定位盒, 不该有任何按钮外观 */
+  border: 0;
+  background: none;
+  clip-path: none;
+  color: inherit;
+}
+
+/* @property 注册: 自定义属性默认是"不可动画的字符串", 注册成 <number> 后才能被 transition
+   平滑插值。与文件上方 --sg-* 那组同一个理由。 */
+@property --fx {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.35;
+}
+
+/* 图本体: 唯一的实体像素。drop-shadow 是**静态**落地阴影(形体, 不是动效), 悬停不动它;
+   悬停只补一点点提亮, 让图片本身也有反应 —— 真正的"活"交给上面三层。 */
+.menu-start-img {
+  display: block;
+  width: 100%;
+  height: auto; /* 宽度定, 高度等比 → 原图比例不变形 */
+  filter: drop-shadow(0 6px 16px #000a);
+  transition: filter 0.28s ease, transform 0.12s ease-out;
+}
+.menu-start:hover .menu-start-img {
+  filter: drop-shadow(0 6px 16px #000a) brightness(1.07) saturate(1.12);
+}
+/* 按下: 极轻微下压, 保留实体触感。被否掉的是**悬停**放大, 点击反馈照留。 */
+.menu-start:active .menu-start-img {
+  transform: scale(0.985);
+}
+
+/* 三层特效的共性: 铺满按钮、不吃鼠标(点击必须落到 <button> 上)。
+   ⚠ 这三层**绝不能加 mix-blend-mode**(哪怕只是想"加光"的 screen), 也不要给 .menu-start 加
+     isolation: isolate。这是本文件第三次踩同一个坑, 判据见 .battle-flicker 那条注释 ——
+     混合模式要求下方有**不透明的 backdrop** 可用; 而这里三层压着的只有一张**透明** PNG,
+     牌匾之外全是空的, isolate 又把 backdrop 隔成透明黑 ⇒ 悬停触发混合组时整个按钮矩形
+     直接糊出一块**黑幕**(正是那条注释里说的最坏情况)。粒子与环带本身就是亮色, 走普通合成
+     叠在亮牌匾上观感几乎没差别, 不值得为它冒这个险。 */
+.menu-start-motes,
+.menu-start-rim,
+.menu-start-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── 1) 内部光尘: 整张 alpha 当 mask ⇒ 粒子只在牌匾内部上浮, 出了剪影就被裁掉 ── */
+.menu-start-motes {
+  -webkit-mask-image: var(--start-mask);
+  mask-image: var(--start-mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  opacity: calc(var(--fx) * 0.9);
+}
+/* 每颗的起点/尺寸/摆幅/周期/负延迟由 MenuStartButton.tsx 内联下发(确定性伪随机, 重渲染不跳位) */
+.menu-start-mote {
+  position: absolute;
+  left: var(--mx, 50%);
+  top: var(--my, 50%);
+  width: var(--ms, 3px);
+  height: var(--ms, 3px);
+  border-radius: 50%;
+  background: #eafffa;
+  box-shadow: 0 0 calc(4px + var(--fx) * 5px) var(--start-hue);
+  opacity: 0;
+  animation: menuStartMote var(--mdur, 3s) linear var(--mdel, 0s) infinite;
+}
+@keyframes menuStartMote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 6px) scale(0.5);
+  }
+  18% {
+    opacity: 0.95;
+  }
+  70% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--msway, 0), -34px) scale(0.35);
+  }
+}
+
+/* ── 2) 轮廓跑光(霓虹管):三层套娃, 每层只干一件事 ──
+     .menu-start-rim      外溢辉光(filter)
+     └ ...-rim-band       环带形状(双 mask 相减)
+       └ ...-rim-run      转的那道 conic 亮楔
+
+   ⚠ 辉光与 mask **必须分在两个元素上**: 元素的渲染顺序是 filter → mask → opacity → 混合,
+     即 filter 先于 mask 生效。两者写在同一个元素上, drop-shadow 撒到形状之外的那圈光会被
+     紧接着的 mask 整个裁掉 —— 灯管就不发光了。故 mask 放在子层, 辉光放在父层(父层的 filter
+     作用于"已经裁好的"子层结果)。
+   ⚠ 同理, mask 挂在 band、旋转挂在 run —— 挂反了 mask 会跟着一起转, 环带就散了。 */
+.menu-start-rim {
+  /* 环带外溢的辉光 —— 有这层它才是"灯管在发光", 没有就只是一条贴纸 */
+  filter: drop-shadow(0 0 calc(3px + var(--fx) * 7px) var(--start-hue));
+  opacity: calc(0.35 + var(--fx) * 0.65);
+}
+/* 环带 = 整张 alpha **减去**一份等比缩小的自己 ⇒ 一条贴着牌匾轮廓的窄带。
+   ⚠ 两套关键字都要写: mask-composite: subtract 是标准, -webkit-mask-composite: source-out
+     是 WebKit 旧语法; 缺一个在部分内核上会退化成"整块亮"。
+   牌匾是斜的, 但等比缩小是朝中心收, 环带自然跟着倾斜走, 不需要额外处理。 */
+.menu-start-rim-band {
+  position: absolute;
+  inset: 0;
+  overflow: hidden; /* 关住下面那个超出边界的旋转子元素 */
+  -webkit-mask-image: var(--start-mask), var(--start-mask);
+  mask-image: var(--start-mask), var(--start-mask);
+  -webkit-mask-size: 100% 100%, calc(100% - var(--rim-inset)) calc(100% - var(--rim-inset));
+  mask-size: 100% 100%, calc(100% - var(--rim-inset)) calc(100% - var(--rim-inset));
+  -webkit-mask-position: center, center;
+  mask-position: center, center;
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-composite: source-out;
+  mask-composite: subtract;
+}
+/* 转的是这一层: 一道窄亮楔的 conic 渐变, 匀速绕中心转 ⇒ 亮楔扫过环带 = 光沿轮廓跑一圈。
+   刻意用 transform 转元素而不是 @property 动画 conic 的角度: 前者走合成层, 不逐帧重画渐变。
+   放大到 200% 并居中, 是为了旋转时四角不露空。
+
+   转速由 .menu-start 上的 --rim-spin 给(空闲 / 悬停两档, 具体值见那边)。
+   ⚠ animation-duration **不是可过渡属性**, 悬停换挡那一下是硬切; 而且浏览器按
+     「已播放时长 ÷ 新周期」重算进度, 换挡瞬间亮楔的相位会跳一下。这里判断可以接受: 换挡同时
+     一层火花正好炸开, 视线被拽走, 那一帧的相位跳看不出来。
+     ⇒ 别为了"平滑加速"改成 @property 动画 conic 角度, 那会让每帧重画渐变, 为一个看不见的细节
+       换掉整层的合成层优化, 得不偿失。真要平滑, 正解是再叠一层快转的 wedge 做交叉淡入。
+   ⓘ 转速越快, 亮楔越会被视觉积分成一圈匀亮的灯管、"在跑"的读感越弱 —— 那部分观感由下面的
+     外溢火星接管。两者是一套东西: 环带负责"通电了", 火星负责"转得飞快"。 */
+.menu-start-rim-run {
+  position: absolute;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 296deg,
+    color-mix(in srgb, var(--start-hue) 55%, transparent) 322deg,
+    #ffffff 348deg,
+    color-mix(in srgb, var(--start-hue) 55%, transparent) 356deg,
+    transparent 360deg
+  );
+  animation: menuStartRimRun var(--rim-spin, 3.6s) linear infinite;
+}
+@keyframes menuStartRimRun {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── 3) 外溢火星: **不加 mask**, 所以能飞出牌匾轮廓。整层空闲态隐藏, 悬停才出现 ──
+   起点沿轮廓绕一圈铺开、位移是纯径向朝外(几何全在 MenuStartButton.tsx 里算, 见那边的注释) ⇒
+   读起来就是"跑光转到飞快, 把火花从轮廓上甩了出去"。
+
+   ⚠ 进出用不同的时长: 进 0.12s(要跟得上跑光换挡那一下, 慢了会像"先亮圈、过一会儿才着火"),
+     出 0.35s(松开鼠标让火花自己烧完更自然, 硬切会像断电)。
+
+   ★ 辉光挂在**整层**而不是每颗上: 一次 drop-shadow 罩住 24 颗, 比 24 份各自的 box-shadow 再
+     加大半径便宜得多, 而且光会互相叠加成一团"火"而不是 24 个独立小光斑 —— 这正是"明显"的来源。
+     (同 .menu-start-rim 把辉光放在父层的理由; 区别是这层没有 mask, 不存在被裁掉的问题。) */
+.menu-start-sparks {
+  opacity: 0;
+  filter: drop-shadow(0 0 7px var(--start-hue));
+  transition: opacity 0.35s ease;
+}
+.menu-start:hover .menu-start-sparks {
+  opacity: 1;
+  transition-duration: 0.12s;
+}
+/* 一颗火花 = 一道细长拖尾, 不是圆点: 圆点在径向甩出时读不出方向感。
+   --srot 把拖尾转到和位移同一个方向, 于是渐变的"亮头"永远朝外(90deg = 元素自身 +x 轴)。
+   长度/粗细(--sw / --sh)逐颗随机, 由 MenuStartButton.tsx 内联下发。
+
+   ★ 渐变三段是"一颗火花"的全部造型, 从尾到头:
+       透明 → 半透明青绿(尾焰) → 实心 --start-hue(躯干) → 掺白的 --start-hue(白热的头)
+     头部**掺白而不是纯白**: 掺白只抬亮度、不改色相, 所以再亮也还是同一支青绿, 和环带、光尘
+     是一家人 —— 纯 #fff 会立刻变成一堆刺眼的白点, 把整个青绿霓虹调冲散。 */
+.menu-start-spark {
+  position: absolute;
+  left: var(--sx0, 50%);
+  top: var(--sy0, 50%);
+  width: var(--sw, 18px);
+  height: var(--sh, 3px);
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--start-hue) 55%, transparent) 40%,
+    var(--start-hue) 76%,
+    color-mix(in srgb, var(--start-hue) 40%, #fff) 100%
+  );
+  /* 贴身的一圈小 bloom。大范围辉光交给父层的 drop-shadow, 这里只负责"芯很烫"。 */
+  box-shadow: 0 0 calc(4px + var(--fx) * 7px) var(--start-hue);
+  opacity: 0;
+  animation: menuStartSpark var(--sdur, 0.7s) ease-out var(--sdel, 0s) infinite;
+}
+/* ⚠ transform 的顺序不能换: translate 先走(在父层坐标系里位移), rotate 后走(绕火花自己的中心
+   转朝向)。反过来写会把位移也一起旋转掉, 火花就飞去别的方向了。
+   scaleX 由短拉长 = 甩出去时被"拉出"尾巴, 收尾再随 opacity 烧没。
+   ⓘ 60% 那一帧是特意加的"亮度平台": 只写 12% 亮起、100% 灭掉的话, 中间是一路匀速变暗,
+     整颗火花大半程都处在半亮, 观感很飘。压住不掉、最后一段才急落, 才像一颗真的在烧的火星。 */
+@keyframes menuStartSpark {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(var(--srot, 0rad)) scaleX(0.4);
+  }
+  10% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.92;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sx, 10px), var(--sy, -24px)) rotate(var(--srot, 0rad)) scaleX(1);
+  }
+}
+
+
+/* 减少动态效果: 三层特效(轮廓跑光 / 内部光尘 / 外溢火星)整体撤掉, 只剩静态牌匾 + 落地阴影。
+   ⚠ 又是 .hp-motes / .hc-edge::after 那个坑 —— 粒子与亮楔都靠关键帧从 opacity:0 或某个角度
+     起步, 只写 animation:none 会让它们**永久冻在起始帧**, 在牌匾上留一片死亮点、外加一段
+     不动的亮环。故整层 display:none。三层纯装饰, 不承载任何玩法信息, 去掉无损可用性
+     (按钮本体、落地阴影与悬停提亮都还在, "这里可点"依然读得出来)。 */
+@media (prefers-reduced-motion: reduce) {
+  .menu-start-motes,
+  .menu-start-rim,
+  .menu-start-sparks {
+    display: none;
+  }
+}

@@ -1,0 +1,106 @@
+/* ===================== 「开始游戏」像素科技风艺术字按钮 ===================== */
+/* 像素字见 ui/StartGameButton.tsx(#sgPixel 滤镜把字切成方块像素)。字面/暗影/HUD/辉光的
+   颜色全走这组 --sg-* 变量,悬停时整组从「黑白金属」切到「蓝白」。必须用 @property 把它们
+   注册成 <color>,否则未注册的自定义属性在 CSS 里是不可插值的字符串, transition 会瞬跳而非平滑过渡。 */
+@property --sg-c1 { syntax: "<color>"; inherits: true; initial-value: #e8e8e8; }
+@property --sg-c2 { syntax: "<color>"; inherits: true; initial-value: #9a9a9a; }
+@property --sg-c3 { syntax: "<color>"; inherits: true; initial-value: #1c1c1c; }
+@property --sg-shadow { syntax: "<color>"; inherits: true; initial-value: #000000; }
+@property --sg-hud { syntax: "<color>"; inherits: true; initial-value: #c9c9c9; }
+@property --sg-glow { syntax: "<color>"; inherits: true; initial-value: #d8d8d8; }
+
+.start-art-btn {
+  /* 抹掉原生按钮外观(全局 button 带边框/底色/内距),只留纯 SVG 艺术字 */
+  border: 0;
+  background: none;
+  padding: 6px 10px;
+  border-radius: 14px;
+  line-height: 0; /* 消除 inline SVG 基线下的空隙 */
+  /* —— 默认态:黑白金属(渐变里顶部近白高光 + 45% 窄亮带做镜面反光;暗影纯黑;HUD/辉光浅灰) —— */
+  --sg-c1: #e8e8e8;
+  --sg-c2: #9a9a9a;
+  --sg-c3: #1c1c1c;
+  --sg-shadow: #000000;
+  --sg-hud: #c9c9c9;
+  --sg-glow: #d8d8d8;
+  --sg-glow-op: 0.35;
+  --sg-scan-op: 0.4;
+  --sg-underline-op: 0.55;
+  filter: drop-shadow(0 6px 14px #0009);
+  transition: transform 0.22s ease, filter 0.22s ease, --sg-c1 0.28s, --sg-c2 0.28s,
+    --sg-c3 0.28s, --sg-shadow 0.28s, --sg-hud 0.28s, --sg-glow 0.28s;
+}
+.start-art {
+  display: block;
+  width: 300px;
+  height: auto;
+  overflow: visible; /* 让辉光溢出画框而不被裁切 */
+  transform-origin: 50% 50%;
+  /* 呼吸动画放在内层 SVG 上(scale + 辉光脉动),外层 .start-art-btn 的 hover translateY/scale
+     作用在不同元素上,两者叠加而不互相覆盖 */
+  animation: sgBreathe 3.6s ease-in-out infinite;
+}
+.sg-glow {
+  opacity: var(--sg-glow-op);
+}
+/* CRT 扫描线叠加(裁在字面内) */
+.sg-scan {
+  opacity: var(--sg-scan-op);
+  mix-blend-mode: multiply;
+}
+/* HUD 角框 [ ] */
+.sg-bracket {
+  filter: drop-shadow(0 0 3px var(--sg-glow));
+}
+/* 闪烁光标 _ */
+.sg-cursor {
+  animation: sgBlink 1.1s steps(1) infinite;
+  filter: drop-shadow(0 0 4px var(--sg-glow));
+}
+@keyframes sgBlink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+/* 呼吸:整字缓慢放大缩小 + 辉光 halo 脉动,营造"待机通电"的生命感。
+   filter 只改 blur 半径、颜色恒为 var(--sg-glow)(默认灰、hover 蓝),过渡无脏色。 */
+@keyframes sgBreathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px var(--sg-glow));
+  }
+  50% {
+    transform: scale(1.035);
+    filter: drop-shadow(0 0 10px var(--sg-glow));
+  }
+}
+/* 尊重系统"减少动画"偏好:关掉呼吸与光标闪烁 */
+@media (prefers-reduced-motion: reduce) {
+  .start-art,
+  .sg-cursor {
+    animation: none;
+  }
+}
+/* 像素能量底线 */
+.sg-underline {
+  opacity: var(--sg-underline-op);
+  filter: drop-shadow(0 0 4px var(--sg-glow));
+}
+/* 悬停:整组"通电点亮"成蓝白、蓝色辉光加强、微微抬起放大(:not(:disabled) 提高特异性以压过全局 button:hover) */
+.start-art-btn:hover:not(:disabled) {
+  background: none;
+  --sg-c1: #ffffff;
+  --sg-c2: #bcdcff;
+  --sg-c3: #2f5fa0;
+  --sg-shadow: #0a1424;
+  --sg-hud: #bcdcff;
+  --sg-glow: #6ea8fe;
+  --sg-glow-op: 0.85;
+  --sg-scan-op: 0.5;
+  --sg-underline-op: 1;
+  transform: translateY(-3px) scale(1.05);
+  filter: drop-shadow(0 12px 22px #000b) drop-shadow(0 0 18px #9cc4ff66);
+}
+.start-art-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+}
+

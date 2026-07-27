@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Screen } from "../store/runStore";
 import { resolveTransition, type TransitionSpec } from "./transitions";
+import "./ScreenTransition.css";
 
 interface Props {
   screen: Screen; // 目标界面(来自 runStore)
