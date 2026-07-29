@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { canPlay, RULES, type AnimFrame, type BattleState, type Card, type CardAnim, type Enemy } from "../engine";
+import {
+  canPlay,
+  partyHandLimit,
+  RULES,
+  type AnimFrame,
+  type BattleState,
+  type Card,
+  type CardAnim,
+  type Enemy,
+} from "../engine";
 import { getEncounter, getEnemyDef, slotPlacement } from "../data";
 import { useBattleStore } from "../store/battleStore";
 import { useRunStore } from "../store/runStore";
@@ -176,23 +185,8 @@ export function BattleScreen() {
     setPlayingOutUid((cur) => (cur === uid ? null : cur));
   };
 
-  // 敌人预计攻击的我方目标(仇恨最高的存活友军), 用于 UI 提示
-  const aggroTargetId = useMemo(() => {
-    if (!battle) return undefined;
-    const allies = battle.playerIds.map((id) => battle.combatants[id]).filter((c) => c.alive);
-    if (!allies.length) return undefined;
-    return allies.reduce((best, a) =>
-      (a as any).threat > (best as any).threat ? a : best,
-    ).id;
-  }, [battle]);
-
-  // 仇恨高亮同样泄露「敌人下一击打谁」, 因此跟随意图的揭示开关: 有敌人被洞察时才显示
-  const aggroHintVisible = useMemo(() => {
-    if (!battle) return false;
-    return battle.enemyIds
-      .map((id) => battle.combatants[id] as Enemy)
-      .some((e) => e.alive && isIntentRevealed(e));
-  }, [battle]);
+  // ★ 仇恨系统已移除 —— 敌人在存活我方单位里随机挑目标, 因此不存在"预计会打谁"这件事,
+  //   原先的仇恨目标高亮与它的洞察开关一并删除。
 
   // 待机小动作: 每隔几秒随机让一个存活敌人抖一下(纯表现)。分镜播放期间关掉, 免得和演出打架。
   // ⚠ hook 必须在下面的早退之前调用, 故这里从 battle 现算存活名单而非复用后面的 enemies。
@@ -689,7 +683,7 @@ export function BattleScreen() {
             <span className="hph-rule" />
             <span className="hph-count">
               {String(battle.hand.length).padStart(2, "0")}
-              <i>/{String(RULES.hand.size).padStart(2, "0")}</i>
+              <i>/{String(partyHandLimit(battle)).padStart(2, "0")}</i>
             </span>
           </div>
 
@@ -707,7 +701,6 @@ export function BattleScreen() {
           allies={allies}
           hits={hits}
           attackerId={attackerId}
-          aggroTargetId={aggroHintVisible ? aggroTargetId : undefined}
           focusCharId={focusCharId}
           targetable={isPlayerTurn && !!needsAlly}
           onSelect={onCombatantClick}

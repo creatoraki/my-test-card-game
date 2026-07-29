@@ -99,9 +99,6 @@
 .combatant.targetable:hover {
   transform: translateY(-4px) scale(1.03);
 }
-.combatant.aggro-target .combatant-figure {
-  filter: drop-shadow(0 0 5px #ff7068);
-}
 @keyframes pulseGlow {
   0%,
   100% {

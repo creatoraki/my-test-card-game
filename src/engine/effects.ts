@@ -3,8 +3,9 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { Ally, BattleState, EffectDescriptor } from "./types";
+import type { BattleState, EffectDescriptor } from "./types";
 import { ops } from "./ops";
+import { statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
@@ -48,33 +49,39 @@ function applyEffect(
 ): void {
   const amount = effect.amount ?? 0;
   const unblockable = effect.flags?.includes("unblockable");
-  // 我方单位的攻击/防御属性为本人卡牌提供加成; 敌人招式共用本解释器但不受影响。
+  const mustHit = effect.flags?.includes("mustHit");
   const src = state.combatants[sourceId];
-  const isAllySource = src?.team === "player";
   switch (effect.type) {
     case "DAMAGE": {
-      const dmg = amount + (isAllySource ? (src as Ally).attack : 0);
+      // amount 与 multiplier 二选一(见 types.EffectDescriptor):
+      //   写了 amount   ⇒ 固定伤害, 不用攻击力, 不吃防御与格挡
+      //   写了 multiplier ⇒ 攻击力 × 倍率, 走完整管线
+      const fixed = effect.amount != null;
+      const dmg = fixed ? amount : statOf(src, "attack") * (effect.multiplier ?? 1);
       for (const id of targetIds)
         ops.dealDamage(state, sourceId, id, dmg, {
           isAttack: true,
+          fixed,
+          mustHit,
           flags: effect.flags,
           unblockable,
         });
       break;
     }
-    case "GAIN_BLOCK": {
-      const blk = amount + (isAllySource ? (src as Ally).defense : 0);
-      for (const id of targetIds) ops.gainBlock(state, id, blk);
+    case "GAIN_SHIELD":
+      // amount 是基础护盾; 护盾强度在 ops.gainShield 里按施法者结算。
+      for (const id of targetIds) ops.gainShield(state, sourceId, id, amount);
       break;
-    }
     case "HEAL":
-      for (const id of targetIds) ops.heal(state, id, amount);
+      // amount 是基础治疗; 治愈力与治愈强度在 ops.heal 里按施法者结算。
+      for (const id of targetIds) ops.heal(state, sourceId, id, amount);
       break;
     case "APPLY_STATUS":
       for (const id of targetIds) ops.applyStatus(state, id, effect.status!, effect.stacks ?? 0);
       break;
-    case "MODIFY_THREAT":
-      for (const id of targetIds) ops.modifyThreat(state, id, amount);
+    case "APPLY_STAT_MOD":
+      for (const id of targetIds)
+        ops.applyStatMod(state, id, effect.stat!, amount, effect.pct ?? false);
       break;
     case "DRAW":
       drawCards(state, amount);

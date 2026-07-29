@@ -1,8 +1,8 @@
-// 目标选择 + 仇恨(aggro)。无站位。
+// 目标选择。无站位、★ 无仇恨 —— 敌人在存活的我方单位里等概率随机挑一个。
+// 走战斗 RNG(rngFloat) 而不是 Math.random, 保证同种子的战斗可复现。
 
 import type { BattleState, Combatant } from "./types";
-import { RULES } from "./rules";
-import { rngFloat } from "./rng";
+import { rngPick } from "./rng";
 
 export function aliveOf(state: BattleState, team: "player" | "enemy"): Combatant[] {
   const ids = team === "player" ? state.playerIds : state.enemyIds;
@@ -17,24 +17,10 @@ export function alliesOf(state: BattleState, cmb: Combatant): Combatant[] {
   return aliveOf(state, cmb.team);
 }
 
-// 敌人按仇恨选择要攻击的我方目标。
-export function chooseAggroTarget(state: BattleState, enemyId: string): string | undefined {
+// 敌人随机挑一个存活的我方单位。没有可选目标时返回 undefined。
+export function chooseRandomTarget(state: BattleState, enemyId: string): string | undefined {
   const enemy = state.combatants[enemyId];
-  const allies = foesOf(state, enemy); // 敌人的 foe = 我方
-  if (allies.length === 0) return undefined;
-
-  if (RULES.aggro.mode === "highest") {
-    // 取最高仇恨, 平局取靠前
-    return allies.reduce((best, a) => ((a as any).threat > (best as any).threat ? a : best)).id;
-  }
-
-  // 按仇恨加权随机
-  const weights = allies.map((a) => Math.max(1, (a as any).threat as number));
-  const total = weights.reduce((s, w) => s + w, 0);
-  let roll = rngFloat(state) * total;
-  for (let i = 0; i < allies.length; i++) {
-    roll -= weights[i];
-    if (roll <= 0) return allies[i].id;
-  }
-  return allies[allies.length - 1].id;
+  const candidates = foesOf(state, enemy); // 敌人的 foe = 我方
+  if (candidates.length === 0) return undefined;
+  return rngPick(state, candidates).id;
 }

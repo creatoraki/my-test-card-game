@@ -33,14 +33,9 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { RULES, expToNext } from "../engine";
+import { RULES, type StatBlock } from "../engine";
 import { CHARACTERS, getCharacter } from "../data";
-import {
-  deriveStats,
-  useTownStore,
-  type CharacterAttrs,
-  type CharacterState,
-} from "../store/townStore";
+import { deriveStats, useTownStore, type CharacterState } from "../store/townStore";
 import { CardView } from "./CardView";
 import { CharacterPortrait } from "./CharacterPortrait";
 import { prefersReducedMotion } from "./transitions";
@@ -67,13 +62,48 @@ const PANEL_SIZE: Record<PanelId, { w: number; h: number }> = {
 // ★ 角色多到超过这个数时列表照样能滚, 这里只是**至少**画几格。
 const POD_SLOTS = 6;
 
-// 四维只读行。与 FormationScreen 的 ATTR_ROWS 同一份语义, 但这里不带加点提示。
-const ATTR_ROWS: { key: keyof CharacterAttrs; label: string }[] = [
-  { key: "hp", label: "生命" },
-  { key: "attack", label: "攻击" },
-  { key: "defense", label: "防御" },
-  { key: "threat", label: "仇恨" },
-];
+// 只读面板分组。★ 角色不设等级也不加点 —— 这些数字进游戏后不会再变, 长期成长看装备与卡组。
+// suffix "%" 的项在数据里存的是百分点整数(见 engine/types.StatBlock)。
+const STAT_GROUPS: { title: string; rows: { key: keyof StatBlock; label: string; pct?: boolean }[] }[] =
+  [
+    {
+      title: "生存与输出",
+      rows: [
+        { key: "maxHp", label: "生命" },
+        { key: "attack", label: "攻击力" },
+        { key: "defense", label: "防御力" },
+        { key: "healPower", label: "治愈力" },
+      ],
+    },
+    {
+      title: "命中与暴击",
+      rows: [
+        { key: "hitRate", label: "命中率", pct: true },
+        { key: "dodgeRate", label: "闪避率", pct: true },
+        { key: "critRate", label: "暴击率", pct: true },
+        { key: "critDamage", label: "爆伤", pct: true },
+        { key: "precision", label: "精准", pct: true },
+      ],
+    },
+    {
+      title: "节奏与防护",
+      rows: [
+        { key: "initiative", label: "先手" },
+        { key: "blockRate", label: "格挡", pct: true },
+        { key: "healBoost", label: "治愈强度", pct: true },
+        { key: "shieldBoost", label: "护盾强度", pct: true },
+        { key: "ailmentResist", label: "异常抗性", pct: true },
+      ],
+    },
+    {
+      title: "探索与小队",
+      rows: [
+        { key: "burdenAdapt", label: "负重适应", pct: true },
+        { key: "handLimit", label: "手牌上限" },
+        { key: "drawCount", label: "抽牌数" },
+      ],
+    },
+  ];
 
 // 密封舱详情的装饰读数。⚠ 纯文案, 不接任何数据 —— 休眠体在解封前本来就「身份未解析」。
 const VITALS = [
@@ -455,7 +485,8 @@ function FormationPanel({
                 </span>
                 <span className="cryo-slot-name">{getCharacter(id).name}</span>
                 <span className="cryo-slot-meta">
-                  Lv.{characters[id].level} · {deriveStats(characters[id]).maxHp} HP
+                  {Math.round(deriveStats(characters[id]).maxHp)} HP · 卡组 Lv.
+                  {characters[id].deckLevel}
                 </span>
                 <button
                   className="cryo-mini is-off"
@@ -499,7 +530,8 @@ function FormationPanel({
                 <span className="cryo-bench-text">
                   <span className="cryo-slot-name">{getCharacter(id).name}</span>
                   <span className="cryo-slot-meta">
-                    Lv.{characters[id].level} · {deriveStats(characters[id]).maxHp} HP
+                    {Math.round(deriveStats(characters[id]).maxHp)} HP · 卡组 Lv.
+                    {characters[id].deckLevel}
                   </span>
                 </span>
                 <button
@@ -572,7 +604,9 @@ function DossierPanel({
                 </span>
                 <span className="cryo-roster-text">
                   <span className="cryo-slot-name">{c.name}</span>
-                  <span className="cryo-slot-meta">Lv.{s.level} · 卡组 {s.deck.length} 张</span>
+                  <span className="cryo-slot-meta">
+                    卡组 Lv.{s.deckLevel} · {s.deck.length} 张
+                  </span>
                 </span>
                 {onField && <span className="cryo-roster-flag">ON</span>}
               </button>
@@ -584,7 +618,7 @@ function DossierPanel({
       </div>
 
       <div className="cryo-panel-foot">
-        <p className="cryo-note">属性分配与卡组锻造请前往训练室 —— 冬眠仓只负责唤醒与编成。</p>
+        <p className="cryo-note">卡组锻造请前往训练室 —— 冬眠仓只负责唤醒与编成。</p>
       </div>
     </>
   );
@@ -593,22 +627,10 @@ function DossierPanel({
 function DossierDetail({ cs }: { cs: CharacterState }) {
   const def = getCharacter(cs.charId);
   const stats = deriveStats(cs);
-  const need = expToNext(cs.level);
 
-  // 与 FormationScreen 的 finalValue 同款换算: 生命/仇恨是绝对值(含基础值),
-  // 攻击/防御是**加成**, 故显示成 +N。
-  const finalValue = (key: keyof CharacterAttrs): string => {
-    switch (key) {
-      case "hp":
-        return String(stats.maxHp);
-      case "attack":
-        return `+${stats.attack}`;
-      case "defense":
-        return `+${stats.defense}`;
-      case "threat":
-        return String(stats.threat);
-    }
-  };
+  // 面板都是绝对值(角色基础 + 装备)。百分点类补个 % 后缀, 其余取整显示。
+  const fmt = (key: keyof StatBlock, pct?: boolean): string =>
+    `${Math.round(stats[key])}${pct ? "%" : ""}`;
 
   return (
     <div className="cryo-dossier-detail">
@@ -624,25 +646,26 @@ function DossierDetail({ cs }: { cs: CharacterState }) {
         <div className="cryo-detail-id">
           <span className="cryo-kicker">SUBJECT / {def.id.toUpperCase()}</span>
           <h4 className="cryo-detail-name">{def.name}</h4>
+          {/* ★ 没有等级。这里给的是"可用经验"(卡组锻造的燃料)与卡组的锻造进度。 */}
           <span className="cryo-detail-lv">
-            Lv.{cs.level} · EXP {cs.exp} / {need}
+            可用经验 {cs.exp} · 累计 {cs.expEarned}
           </span>
-          <div className="exp-bar">
-            <div
-              className="exp-bar-fill"
-              style={{ width: `${Math.min(100, (cs.exp / need) * 100)}%` }}
-            />
-          </div>
-          <div className="cryo-attrs">
-            {ATTR_ROWS.map((row) => (
-              <div key={row.key} className="cryo-attr">
-                <span className="cryo-attr-label">{row.label}</span>
-                <strong className="cryo-attr-value">{finalValue(row.key)}</strong>
-                <span className="cryo-attr-alloc">已加 {cs.attrs[row.key]} 点</span>
+          <div className="cryo-stat-groups">
+            {STAT_GROUPS.map((g) => (
+              <div key={g.title} className="cryo-stat-group">
+                <span className="cryo-stat-group-title">{g.title}</span>
+                {g.rows.map((row) => (
+                  <div key={row.key} className="cryo-attr">
+                    <span className="cryo-attr-label">{row.label}</span>
+                    <strong className="cryo-attr-value">{fmt(row.key, row.pct)}</strong>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
-          <p className="cryo-note">剩余属性点 {cs.attrPoints}</p>
+          <p className="cryo-note">
+            卡组 Lv.{cs.deckLevel} · 最小卡组下限 {cs.minDeckSize} 张
+          </p>
         </div>
       </div>
 

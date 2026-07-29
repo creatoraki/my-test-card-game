@@ -1,0 +1,143 @@
+// ============================================================================
+// 属性结算 —— 面板层级的唯一换算点(《角色养成设计.md》第二章)。
+//
+//   最终属性 =(角色基础值 + 装备固定值)×(1 + 装备百分比) + 战斗内固定修正
+//   战斗内百分比最后结算; 概率类属性在最终结算后截断。
+//
+// 局外那两层(角色基础 + 装备)在进战斗前就已合并进 Combatant.stats;
+// 本模块负责把 Combatant.mods(战斗内修正)叠上去, 并提供各处需要的派生量。
+// ⚠ 只 import 类型与规则, 不 import 引擎实现 —— ops / effects / statuses 都能安全引用它。
+// ============================================================================
+
+import type { BattleState, Combatant, StatBlock, StatModifier } from "./types";
+import { RULES, capProb } from "./rules";
+
+// 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
+export const ZERO_STATS: StatBlock = {
+  maxHp: 0,
+  attack: 0,
+  healPower: 0,
+  defense: 0,
+  hitRate: 0,
+  dodgeRate: 0,
+  critRate: 0,
+  critDamage: 0,
+  precision: 0,
+  initiative: 0,
+  blockRate: 0,
+  healBoost: 0,
+  shieldBoost: 0,
+  ailmentResist: 0,
+  burdenAdapt: 0,
+  handLimit: 0,
+  drawCount: 0,
+};
+
+export const STAT_KEYS = Object.keys(ZERO_STATS) as (keyof StatBlock)[];
+
+// 用局部字段补全成完整面板(未写的项为 0)。角色/装备数据都用它落地。
+export function makeStats(partial: Partial<StatBlock>): StatBlock {
+  return { ...ZERO_STATS, ...partial };
+}
+
+// 逐项相加。用于把多件装备的固定值合进角色基础面板。
+export function addStats(...blocks: Partial<StatBlock>[]): StatBlock {
+  const out = { ...ZERO_STATS };
+  for (const b of blocks) for (const k of STAT_KEYS) out[k] += b[k] ?? 0;
+  return out;
+}
+
+// 把一层修正(flat + pct)套到面板上: (base + flat) ×(1 + pct/100)。
+export function applyModifier(base: StatBlock, mod: StatModifier): StatBlock {
+  const out = { ...ZERO_STATS };
+  for (const k of STAT_KEYS) {
+    const flat = base[k] + (mod.flat?.[k] ?? 0);
+    out[k] = flat * (1 + (mod.pct?.[k] ?? 0) / 100);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 战斗中读取单项属性 —— 引擎里所有属性读取都必须走这里, 不要直接读 cmb.stats。
+// 概率类属性(暴击/闪避/格挡/异常抗性)在此处截到 RULES.combat.probCapPct。
+// ---------------------------------------------------------------------------
+const CAPPED_KEYS = new Set<keyof StatBlock>([
+  "critRate",
+  "dodgeRate",
+  "blockRate",
+  "ailmentResist",
+]);
+
+export function statOf(cmb: Combatant, key: keyof StatBlock): number {
+  const flat = cmb.stats[key] + (cmb.mods.flat?.[key] ?? 0);
+  const v = flat * (1 + (cmb.mods.pct?.[key] ?? 0) / 100);
+  return CAPPED_KEYS.has(key) ? capProb(v) : v;
+}
+
+// 往战斗内修正里写一笔(卡牌 / 状态 / 场景效果都走这里)。
+export function addMod(
+  cmb: Combatant,
+  key: keyof StatBlock,
+  amount: number,
+  pct = false,
+): void {
+  const bucket = pct ? "pct" : "flat";
+  const cur = cmb.mods[bucket] ?? (cmb.mods[bucket] = {});
+  cur[key] = (cur[key] ?? 0) + amount;
+}
+
+// ---------------------------------------------------------------------------
+// 派生量
+// ---------------------------------------------------------------------------
+
+// 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。
+export function hitChance(attacker: Combatant, defender: Combatant): number {
+  const c = RULES.combat;
+  const raw =
+    c.baseHitChance +
+    statOf(attacker, "hitRate") +
+    statOf(attacker, "precision") -
+    statOf(defender, "dodgeRate") -
+    burdenPenalty();
+  return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
+}
+
+// 防御减伤后的乘数: 1 − 防御力 /(防御力 + 常量)。
+export function defenseMultiplier(defender: Combatant): number {
+  const def = Math.max(0, statOf(defender, "defense"));
+  return 1 - def / (def + RULES.combat.defenseConstant);
+}
+
+// 我方小队先手均值 S_party —— 只算**存活**的上阵角色, 有人阵亡节奏就会变。
+export function partyInitiative(state: BattleState): number {
+  const alive = state.playerIds.map((id) => state.combatants[id]).filter((c) => c.alive);
+  if (alive.length === 0) return 0;
+  return alive.reduce((s, c) => s + statOf(c, "initiative"), 0) / alive.length;
+}
+
+// 敌人下一次行动的间隔: T = max(1, D_skill + S_party − S_enemy)。
+export function enemyActDelay(state: BattleState, enemy: Combatant, castTick: number): number {
+  const delta = partyInitiative(state) - statOf(enemy, "initiative");
+  return Math.max(1, Math.round(castTick + delta));
+}
+
+// 小队手牌上限 / 每回合基础抽牌数 —— 上阵角色属性求和 + 全队修正(《角色养成设计.md》第六章)。
+// ⚠ 用**建局时的全员**求和, 不随阵亡缩水: 队友倒下已经够惨了, 再砍手牌是双重惩罚。
+export function partyHandLimit(state: BattleState): number {
+  let sum: number = RULES.hand.partyBonusHandLimit;
+  for (const id of state.playerIds) sum += state.combatants[id].stats.handLimit;
+  return Math.max(RULES.hand.minHandLimit, Math.round(sum));
+}
+
+export function partyDrawCount(state: BattleState): number {
+  let sum: number = RULES.hand.partyBonusDrawCount;
+  for (const id of state.playerIds) sum += state.combatants[id].stats.drawCount;
+  return Math.max(0, Math.round(sum));
+}
+
+// 负重惩罚(百分点), 三项属性(命中/闪避/暴击)各减这么多。
+// ⚠ 背包与占格属探索层 P1, 现在恒为 0; 接上背包后把 occupiedSlots 传进来即可。
+export function burdenPenalty(occupiedSlots = 0, partyBurdenAdapt = 0): number {
+  const adapt = Math.max(0, Math.min(100, partyBurdenAdapt));
+  return occupiedSlots * RULES.burden.penaltyPerSlot * (1 - adapt / 100);
+}

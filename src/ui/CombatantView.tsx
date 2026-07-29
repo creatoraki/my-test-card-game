@@ -97,9 +97,9 @@ export function CombatantView({
         <HpBar hp={cmb.hp} maxHp={cmb.maxHp} name={cmb.name} />
 
         <div className="combatant-badges">
-          {cmb.block > 0 && (
-            <span className="block-badge" title="护盾">
-              🛡️{cmb.block}
+          {cmb.shield > 0 && (
+            <span className="shield-badge" title="护盾">
+              🛡️{cmb.shield}
             </span>
           )}
           <StatusPips statuses={cmb.statuses} />

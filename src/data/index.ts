@@ -88,16 +88,20 @@ export function makeCard(defId: string, upgraded = false): Card {
   return card;
 }
 
-const UPGRADE_AMOUNT_TYPES = new Set(["DAMAGE", "HEAL", "GAIN_BLOCK"]);
+const UPGRADE_AMOUNT_TYPES = new Set(["DAMAGE", "HEAL", "GAIN_SHIELD"]);
 
 export function upgradeCard(card: Card): void {
   if (card.upgraded) return;
   card.upgraded = true;
   if (!card.name.endsWith("+")) card.name += "+";
-  card.effects = card.effects.map((e) =>
-    e.amount != null && UPGRADE_AMOUNT_TYPES.has(e.type)
-      ? { ...e, amount: Math.ceil(e.amount * RULES.upgrade.amountMultiplier) }
-      : e,
-  );
+  card.effects = card.effects.map((e) => {
+    if (!UPGRADE_AMOUNT_TYPES.has(e.type)) return e;
+    // 倍率伤害升级倍率, 固定值效果升级 amount —— 两者只会有一个存在(见 EffectDescriptor)。
+    if (e.multiplier != null)
+      return { ...e, multiplier: Number((e.multiplier * RULES.upgrade.amountMultiplier).toFixed(2)) };
+    if (e.amount != null)
+      return { ...e, amount: Math.ceil(e.amount * RULES.upgrade.amountMultiplier) };
+    return e;
+  });
   card.text += "（已强化）";
 }

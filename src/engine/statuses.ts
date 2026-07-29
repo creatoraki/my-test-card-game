@@ -15,11 +15,13 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "☠️",
     kind: "debuff",
     desc: "回合开始时受到等同层数的伤害(无视护盾), 然后层数 -1。",
+    resistMode: "stacks", // 中毒按层数结算 ⇒ 异常抗性削减层数
     hooks: {
       onRoundStart: (c: StatusCtx) => {
         if (c.inst.stacks > 0)
           c.ops.dealDamage(c.state, undefined, c.ownerId, c.inst.stacks, {
             flags: ["poison"],
+            fixed: true,
             unblockable: true,
           });
         c.inst.stacks -= 1;
@@ -32,11 +34,13 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "🔥",
     kind: "debuff",
     desc: "回合开始时受到等同层数的伤害(无视护盾), 然后层数减半。",
+    resistMode: "stacks",
     hooks: {
       onRoundStart: (c: StatusCtx) => {
         if (c.inst.stacks > 0)
           c.ops.dealDamage(c.state, undefined, c.ownerId, c.inst.stacks, {
             flags: ["burn"],
+            fixed: true,
             unblockable: true,
           });
         c.inst.stacks = Math.floor(c.inst.stacks / 2);
@@ -53,7 +57,8 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     desc: "回合开始时回复等同层数的生命, 然后层数 -1。",
     hooks: {
       onRoundStart: (c: StatusCtx) => {
-        if (c.inst.stacks > 0) c.ops.heal(c.state, c.ownerId, c.inst.stacks);
+        // 施法者传 undefined —— 再生是状态自身在跳血, 不该再吃一次治愈力/治愈强度。
+        if (c.inst.stacks > 0) c.ops.heal(c.state, undefined, c.ownerId, c.inst.stacks);
         c.inst.stacks -= 1;
       },
     },
@@ -78,6 +83,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "💧",
     kind: "debuff",
     desc: `造成的攻击伤害 ×${RULES.combat.weakMultiplier}。每回合结束层数 -1。`,
+    resistMode: "duration", // 层数即持续回合
     hooks: {
       modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
         if (dmg.isAttack) dmg.amount *= RULES.combat.weakMultiplier;
@@ -93,6 +99,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "🎯",
     kind: "debuff",
     desc: `受到的伤害 ×${RULES.combat.vulnerableMultiplier}。每回合结束层数 -1。`,
+    resistMode: "duration",
     hooks: {
       modifyIncomingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
         dmg.amount *= RULES.combat.vulnerableMultiplier;
@@ -115,6 +122,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
         if (dmg.isAttack && dmg.sourceId && dmg.sourceId !== c.ownerId)
           c.ops.dealDamage(c.state, c.ownerId, dmg.sourceId, c.inst.stacks, {
             flags: ["thorns"],
+            fixed: true,
             unblockable: true,
           });
       },
@@ -129,6 +137,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "💫",
     kind: "debuff",
     desc: "无法行动。行动时机到来时消耗 1 层并跳过该次行动。",
+    resistMode: "chance", // 开关型控制 ⇒ 异常抗性抵抗的是"是否被施加"
   },
 
   // ---- 情报 ----

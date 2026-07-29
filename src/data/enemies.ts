@@ -2,7 +2,7 @@
 // 招式的 effects 复用与卡牌相同的效果系统。
 // 立绘不在此登记 —— 见 ui/enemyArt.ts, 按 id 查表(与 cardArt.ts 同约定, 数据层不碰素材)。
 
-import type { CardAnim, EffectDescriptor, Targeting } from "../engine/types";
+import type { CardAnim, EffectDescriptor, StatBlock, Targeting } from "../engine/types";
 
 export interface EnemyMove {
   id: string;
@@ -19,7 +19,10 @@ export interface EnemyDef {
   name: string;
   emoji: string;
   maxHp: number;
-  castTick: number;
+  castTick: number; // 技能基础延迟 D_skill; 实际间隔还要叠先手差(见 engine/stats.enemyActDelay)
+  // 敌人面板。未写的项为 0 —— 未写 defense 就是不减伤, 未写 dodgeRate 就是必被命中。
+  // ⚠ attack 是倍率伤害的基数: 首版最弱敌人的基础伤害定在 12~15(《角色养成设计.md》3.0 与第八章)。
+  stats?: Partial<StatBlock>;
   moves: EnemyMove[];
   script: string[];
 }
@@ -31,6 +34,7 @@ export const ENEMIES: EnemyDef[] = [
     emoji: "🐦", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 30,
     castTick: 3,
+    stats: { attack: 12, initiative: 10, critDamage: 150 },
     moves: [
       {
         id: "peck",
@@ -38,7 +42,7 @@ export const ENEMIES: EnemyDef[] = [
         emoji: "⚔️",
         kind: "attack",
         targeting: "foe",
-        effects: [{ type: "DAMAGE", amount: 6, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
       },
       {
         id: "spore",
@@ -48,7 +52,7 @@ export const ENEMIES: EnemyDef[] = [
         targeting: "foe",
         anim: "poison",
         effects: [
-          { type: "DAMAGE", amount: 3, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
           { type: "APPLY_STATUS", status: "weak", stacks: 1, target: "primary" },
         ],
       },
@@ -61,6 +65,7 @@ export const ENEMIES: EnemyDef[] = [
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 30,
     castTick: 3,
+    stats: { attack: 14, defense: 5, initiative: 10, critDamage: 150 },
     moves: [
       {
         id: "peck",
@@ -68,7 +73,7 @@ export const ENEMIES: EnemyDef[] = [
         emoji: "⚔️",
         kind: "attack",
         targeting: "foe",
-        effects: [{ type: "DAMAGE", amount: 6, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
       },
       {
         id: "spore",
@@ -78,7 +83,7 @@ export const ENEMIES: EnemyDef[] = [
         targeting: "foe",
         anim: "poison",
         effects: [
-          { type: "DAMAGE", amount: 3, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
           { type: "APPLY_STATUS", status: "weak", stacks: 1, target: "primary" },
         ],
       },
@@ -92,6 +97,7 @@ export const ENEMIES: EnemyDef[] = [
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 30,
     castTick: 3,
+    stats: { attack: 14, defense: 5, initiative: 10, critDamage: 150 },
     moves: [
       {
         id: "peck",
@@ -99,7 +105,7 @@ export const ENEMIES: EnemyDef[] = [
         emoji: "⚔️",
         kind: "attack",
         targeting: "foe",
-        effects: [{ type: "DAMAGE", amount: 6, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
       },
       {
         id: "spore",
@@ -109,7 +115,7 @@ export const ENEMIES: EnemyDef[] = [
         targeting: "foe",
         anim: "poison",
         effects: [
-          { type: "DAMAGE", amount: 3, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
           { type: "APPLY_STATUS", status: "weak", stacks: 1, target: "primary" },
         ],
       },
@@ -123,6 +129,7 @@ export const ENEMIES: EnemyDef[] = [
     emoji: "📻", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 30,
     castTick: 3,
+    stats: { attack: 14, defense: 5, initiative: 10, critDamage: 150 },
     moves: [
       {
         id: "peck",
@@ -130,7 +137,7 @@ export const ENEMIES: EnemyDef[] = [
         emoji: "⚔️",
         kind: "attack",
         targeting: "foe",
-        effects: [{ type: "DAMAGE", amount: 6, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
       },
       {
         id: "spore",
@@ -140,7 +147,7 @@ export const ENEMIES: EnemyDef[] = [
         targeting: "foe",
         anim: "poison",
         effects: [
-          { type: "DAMAGE", amount: 3, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
           { type: "APPLY_STATUS", status: "weak", stacks: 1, target: "primary" },
         ],
       },

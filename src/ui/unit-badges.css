@@ -2,7 +2,7 @@
    故单独成文件, 由两者各自 import(Vite 自动去重)。 */
 
 /* 护盾数值徽章 */
-.block-badge {
+.shield-badge {
   flex: 0 0 auto;
   padding: 0 5px;
   font-size: 12px;

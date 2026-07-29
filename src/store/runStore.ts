@@ -13,10 +13,10 @@ import { useBattleStore } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
 import { deriveStats, useTownStore, type ExpGain } from "./townStore";
 
+// ★ 旧的 "formation"(独立编队页)已随角色养成重做删除 —— 编队搬进了冬眠仓的设施内浮层。
 export type Screen =
   | "menu"
   | "town"
-  | "formation"
   | "explore"
   | "battle"
   | "reward"
@@ -33,7 +33,6 @@ interface RunStore {
   lastLoot: number; // 上一场战斗的居民积分产出(结算页展示)
 
   enterTown: () => void;
-  openFormation: () => void;
   startExpedition: (mapId: string) => void; // 选定地图 → 进路由图
   enterEncounter: () => void; // 落点浮层选了战斗分支 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
@@ -49,8 +48,8 @@ function partySnapshot(): PartySnapshot[] {
   const { characters, party } = useTownStore.getState();
   return party.map((id) => {
     const c = getCharacter(id);
-    const s = deriveStats(characters[id]);
-    return { charId: id, name: c.name, emoji: c.emoji, hp: s.maxHp, maxHp: s.maxHp, alive: true };
+    const maxHp = Math.max(1, Math.round(deriveStats(characters[id]).maxHp));
+    return { charId: id, name: c.name, emoji: c.emoji, hp: maxHp, maxHp, alive: true };
   });
 }
 
@@ -74,11 +73,8 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
       charId: c.id,
       name: c.name,
       emoji: c.emoji,
-      maxHp: s.maxHp,
+      stats: s, // ★ 局外已结算的完整面板(角色基础 + 装备)
       startHp: p.hp, // ★ 血量跨战斗继承
-      threat: s.threat,
-      attack: s.attack,
-      defense: s.defense,
     };
   });
 
@@ -97,11 +93,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
     useTownStore.getState().ensureProfile();
     useExploreStore.getState().clear();
     set({ screen: "town" });
-  },
-
-  openFormation: () => {
-    useTownStore.getState().ensureProfile();
-    set({ screen: "formation" });
   },
 
   startExpedition: (mapId) => {

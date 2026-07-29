@@ -32,11 +32,12 @@ export function ExpRewardScreen() {
       </p>
 
       <div className="exp-report">
+        {/* ★ 角色没有等级 —— 经验只是进池子, 等玩家拿去训练室锻造卡组。
+            所以这里既没有升级提示, 也没有"距下一级还差多少"的进度条。 */}
         {expReport.map((g) => {
           const c = getCharacter(g.charId);
-          const leveled = g.toLevel > g.fromLevel;
           return (
-            <div key={g.charId} className={`exp-row ${leveled ? "leveled" : ""}`}>
+            <div key={g.charId} className="exp-row">
               <CharacterPortrait
                 characterId={c.id}
                 emoji={c.emoji}
@@ -48,22 +49,8 @@ export function ExpRewardScreen() {
                   <span className="exp-name">{c.name}</span>
                   <span className="exp-gain">+{g.gained} EXP</span>
                 </div>
-                <div className="exp-bar">
-                  <div
-                    className="exp-bar-fill"
-                    style={{ width: `${Math.min(100, (g.expAfter / g.expToNextAfter) * 100)}%` }}
-                  />
-                </div>
                 <div className="exp-level-line">
-                  {leveled ? (
-                    <span className="exp-levelup">
-                      LV {g.fromLevel} → {g.toLevel} · 属性点 +{g.pointsGained}
-                    </span>
-                  ) : (
-                    <span className="muted">
-                      LV {g.toLevel} · {g.expAfter}/{g.expToNextAfter}
-                    </span>
-                  )}
+                  <span className="muted">可用经验 {g.expAfter} · 用于卡组锻造</span>
                 </div>
               </div>
             </div>

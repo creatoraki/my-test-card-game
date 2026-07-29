@@ -889,18 +889,31 @@
   background: linear-gradient(90deg, var(--cryo-glow-deep), var(--cryo-glow));
 }
 
-/* 四维只读, 一排铺开。⚠ 刻意没有 ＋ 按钮 —— 属性分配归训练室(游戏设定.md 的设施分工)。 */
-.cryo-attrs {
+/* 属性面板只读, 按「生存与输出 / 命中与暴击 / 节奏与防护 / 探索与小队」四组竖排。
+   ⚠ 刻意没有 ＋ 按钮 —— 角色不设等级也不加点, 面板进游戏后就固定了(角色养成设计.md 第一章)。 */
+.cryo-stat-groups {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   margin-top: 4px;
 }
-.cryo-attr {
+.cryo-stat-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 10px 12px;
+}
+.cryo-stat-group-title {
+  color: var(--cryo-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+.cryo-attr {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 10px;
   border: 1px solid #2a1b3d17;
   background: #ffffffa8;
 }
@@ -912,15 +925,9 @@
 .cryo-attr-value {
   color: var(--cryo-ink);
   font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 1px;
-}
-.cryo-attr-alloc {
-  color: var(--cryo-ink-dim);
-  font-size: 11px;
-  letter-spacing: 1px;
-  opacity: 0.72;
 }
 
 /* 个人卡组: 吃掉详情列剩下的全部高度, 卡片网格自己滚 —— 换面板尺寸时不用回头调这里。 */

@@ -11,8 +11,10 @@ import type {
   Combatant,
   EncounterModifier,
   Enemy,
+  StatBlock,
 } from "./types";
 import { RULES } from "./rules";
+import { enemyActDelay, makeStats, partyDrawCount, partyHandLimit } from "./stats";
 import { shuffle } from "./rng";
 import { allIds, applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
@@ -32,13 +34,11 @@ export interface AllyInit {
   charId: string;
   name: string;
   emoji: string;
-  maxHp: number;
-  // 开局生命。缺省 = maxHp; 探索模式传入上一场战斗继承下来的血量 ——
+  // ★ 局外已结算完的面板(角色基础 + 装备)。由 store 层通过 townStore.deriveStats 产出。
+  stats: StatBlock;
+  // 开局生命。缺省 = stats.maxHp; 探索模式传入上一场战斗继承下来的血量 ——
   // 「血量跨战斗继承」是探索牌局的地基, 没有它「休整」与「撤退」都不成为决策。
   startHp?: number;
-  threat?: number;
-  attack?: number; // 攻击加成(缺省 0)
-  defense?: number; // 防御加成(缺省 0)
 }
 
 export interface BattleSetup {
@@ -61,20 +61,20 @@ export function createBattle(
   const enemyIds: string[] = [];
 
   for (const a of setup.allies) {
+    const maxHp = Math.max(1, Math.round(a.stats.maxHp));
     const ally: Ally = {
       id: a.id,
       charId: a.charId,
       name: a.name,
       emoji: a.emoji,
       team: "player",
-      hp: Math.max(1, Math.min(a.maxHp, a.startHp ?? a.maxHp)),
-      maxHp: a.maxHp,
-      block: 0,
+      hp: Math.max(1, Math.min(maxHp, a.startHp ?? maxHp)),
+      maxHp,
+      shield: 0,
+      stats: a.stats,
+      mods: {},
       statuses: [],
       alive: true,
-      threat: a.threat ?? RULES.aggro.baseThreat,
-      attack: a.attack ?? 0,
-      defense: a.defense ?? 0,
     };
     combatants[a.id] = ally;
     playerIds.push(a.id);
@@ -104,7 +104,9 @@ export function createBattle(
       team: "enemy",
       hp: maxHp,
       maxHp,
-      block: 0,
+      shield: 0,
+      stats: makeStats({ ...def.stats, maxHp }),
+      mods: {},
       statuses: [],
       alive: true,
       castTick: Math.max(1, def.castTick + (mod?.castTickDelta ?? 0)),
@@ -160,8 +162,8 @@ export function startRound(state: BattleState): void {
   state.redrawsThisRound = 0;
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
 
-  if (RULES.combat.clearBlockOnRoundStart) {
-    for (const id of allIds(state)) state.combatants[id].block = 0;
+  if (RULES.combat.clearShieldOnRoundStart) {
+    for (const id of allIds(state)) state.combatants[id].shield = 0;
   }
 
   const rn = RULES.resource.name;
@@ -171,11 +173,16 @@ export function startRound(state: BattleState): void {
     const e = state.combatants[id] as Enemy;
     if (!e.alive) continue;
     e.actsThisRound = 0;
-    e.nextActTick = state.tick + Math.max(1, e.castTick);
+    // ★ 先手: 行动时刻 = max(1, 技能延迟 + 我方先手均值 − 敌方先手)
+    e.nextActTick = state.tick + enemyActDelay(state, e, e.castTick);
     buildIntent(state, id);
   }
 
-  if (RULES.hand.drawToFullEachRound) drawCards(state, RULES.hand.size - state.hand.length);
+  // 第 1 回合抽满至手牌上限, 之后每回合只抽小队抽牌数(抽到上限为止)。
+  const limit = partyHandLimit(state);
+  const want =
+    state.round === 1 && RULES.hand.openingDrawToFull ? limit - state.hand.length : partyDrawCount(state);
+  drawCards(state, Math.max(0, Math.min(want, limit - state.hand.length)));
 
   runRoundStart(state); // 中毒/再生等在回合开始结算
   checkEnd(state);

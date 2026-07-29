@@ -91,7 +91,7 @@ export function EndScreen() {
           return (
             <div key={id} className="deck-summary-char">
               <h3>
-                {c.emoji} {c.name} · LV {cs.level} · 个人卡组({cs.deck.length} 张)
+                {c.emoji} {c.name} · 卡组 Lv.{cs.deckLevel} · 个人卡组({cs.deck.length} 张)
               </h3>
               <div className="deck-list">
                 {cs.deck.map((card) => (

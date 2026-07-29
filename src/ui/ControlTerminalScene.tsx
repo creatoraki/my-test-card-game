@@ -332,7 +332,7 @@ export function ControlTerminalScene({ leaving = false }: Props) {
                               <span className="term-party-emoji">{c.emoji}</span>
                               <span className="term-party-name">{c.name}</span>
                               <span className="term-party-meta">
-                                Lv.{cs.level} · {s.maxHp} HP
+                                {Math.round(s.maxHp)} HP · 卡组 Lv.{cs.deckLevel}
                               </span>
                             </span>
                           );

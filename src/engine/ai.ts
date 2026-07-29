@@ -3,8 +3,9 @@
 import type { AnimFrame, BattleState, Enemy, Intent } from "./types";
 import { getEnemyDef, type EnemyMove } from "../data";
 import { resolveEffects } from "./effects";
-import { alliesOf, chooseAggroTarget, foesOf } from "./targeting";
+import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
 import { allIds, getStatus, log, markDead } from "./ops";
+import { enemyActDelay, statOf } from "./stats";
 
 // 根据脚本指针刷新敌人当前意图(它下一次将要做的事)
 export function buildIntent(state: BattleState, enemyId: string): void {
@@ -14,12 +15,16 @@ export function buildIntent(state: BattleState, enemyId: string): void {
   const move = def.moves.find((m) => m.id === moveId) ?? def.moves[0];
 
   const dmgEff = move.effects.find((x) => x.type === "DAMAGE");
-  const blockEff = move.effects.find((x) => x.type === "GAIN_BLOCK");
-  // 攻击意图预览把力量算进去
+  const shieldEff = move.effects.find((x) => x.type === "GAIN_SHIELD");
+  // 攻击意图预览 = 施法者视角的伤害(倍率牌按攻击力换算) + 力量。
+  // ⚠ 只算施法者这一侧 —— 目标的防御/格挡/闪避是逐个目标的, 意图里给不出确定值。
   const str = getStatus(e, "strength")?.stacks ?? 0;
   let value: number | undefined;
-  if (dmgEff) value = (dmgEff.amount ?? 0) + str;
-  else if (blockEff) value = blockEff.amount ?? 0;
+  if (dmgEff) {
+    const base =
+      dmgEff.amount != null ? dmgEff.amount : statOf(e, "attack") * (dmgEff.multiplier ?? 1);
+    value = Math.round(base + str);
+  } else if (shieldEff) value = shieldEff.amount ?? 0;
 
   const intent: Intent = {
     moveId: move.id,
@@ -83,7 +88,7 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
     log(state, `💫 ${e.name} 被眩晕, 无法行动`);
     e.actsThisRound += 1;
     e.aiIndex += 1;
-    e.nextActTick += Math.max(1, e.castTick);
+    e.nextActTick += enemyActDelay(state, e, e.castTick);
     buildIntent(state, enemyId);
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId] };
   }
@@ -92,7 +97,7 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   const move = def.moves.find((m) => m.id === e.intent.moveId) ?? def.moves[0];
 
   let primaryId: string | undefined;
-  if (move.targeting === "foe") primaryId = chooseAggroTarget(state, enemyId);
+  if (move.targeting === "foe") primaryId = chooseRandomTarget(state, enemyId);
   else if (move.targeting === "ally") primaryId = enemyId; // 简化: 支援自身
 
   // 在结算前归纳受影响单位(此时目标仍存活, 死掉的目标也应闪特效)
@@ -104,7 +109,7 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   if (e.hp <= 0) markDead(state, e);
   e.actsThisRound += 1;
   e.aiIndex += 1;
-  e.nextActTick += Math.max(1, e.castTick); // 重排下次行动(原先在调用方, 现内聚于此)
+  e.nextActTick += enemyActDelay(state, e, e.castTick); // 重排下次行动(先手差每次重算)
   buildIntent(state, enemyId);
   return { actorId: enemyId, enemyDefId, moveId: move.id, targetIds };
 }

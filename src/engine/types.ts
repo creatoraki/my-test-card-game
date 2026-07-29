@@ -37,21 +37,28 @@ export type EffectTarget =
 // ---------------------------------------------------------------------------
 export type EffectType =
   | "DAMAGE"
-  | "GAIN_BLOCK"
+  | "GAIN_SHIELD"
   | "HEAL"
   | "APPLY_STATUS"
+  | "APPLY_STAT_MOD"
   | "DRAW"
-  | "GAIN_RESOURCE"
-  | "MODIFY_THREAT";
+  | "GAIN_RESOURCE";
 
 export interface EffectDescriptor {
   type: EffectType;
+  // DAMAGE 二选一(见 effects.ts):
+  //   multiplier —— 攻击力倍率伤害, 走完整管线(命中/暴击/防御/格挡/护盾)
+  //   amount     —— 固定伤害, 不使用攻击力, 也不吃防御与格挡(仍可被护盾吸收)
+  // 其余效果(HEAL / GAIN_SHIELD / DRAW / GAIN_RESOURCE)一律用 amount 当基础值。
   amount?: number;
+  multiplier?: number;
   target?: EffectTarget; // 默认 "primary"
   status?: string; // APPLY_STATUS: 状态 id
   stacks?: number; // APPLY_STATUS: 层数
+  stat?: keyof StatBlock; // APPLY_STAT_MOD: 要修改的属性
+  pct?: boolean; // APPLY_STAT_MOD: true = 百分比修正(百分点), 缺省 = 固定值修正
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
-  flags?: string[]; // 例如 ["unblockable"]
+  flags?: string[]; // 例如 ["unblockable", "mustHit"]
 }
 
 // ---------------------------------------------------------------------------
@@ -123,7 +130,11 @@ export interface DamageCtx {
   amount: number; // 在管线中被逐段修改
   flags: string[];
   isAttack: boolean;
-  blocked: number;
+  fixed: boolean; // 固定伤害: 不使用攻击力, 也不吃防御与格挡
+  missed: boolean; // 命中判定失手 —— 后续各段全部跳过
+  crit: boolean; // 本次是否暴击
+  blockRolled: boolean; // 本次是否触发格挡(伤害减半)
+  blocked: number; // 被护盾吸收的量
   hpLost: number;
 }
 
@@ -136,13 +147,56 @@ export interface StatusHooks {
   onAfterAttacked?: (c: StatusCtx, dmg: DamageCtx) => void; // 荆棘等
 }
 
+// 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
+//   chance   —— 按抗性掷判定, 成功则本次完全不施加(眩晕这类开关型控制)
+//   stacks   —— 按抗性削减层数(中毒这类按层数结算的异常)
+//   duration —— 按抗性削减持续回合(本作的持续回合即层数, 与 stacks 同处理)
+export type ResistMode = "chance" | "stacks" | "duration";
+
 export interface StatusDef {
   id: string;
   name: string;
   emoji: string;
   kind: StatusKind;
   desc: string;
+  resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减
   hooks?: StatusHooks;
+}
+
+// ---------------------------------------------------------------------------
+// 属性面板 —— 见《角色养成设计.md》第三/五/六章。
+// ⚠ 所有概率与百分比类属性一律存**百分点整数**(命中率 8 = +8%, 爆伤 150 = 150%),
+//   引擎里不出现 0.08 这种小数, 避免"到底该加还是该乘"的歧义。
+// ---------------------------------------------------------------------------
+export interface StatBlock {
+  // 生存与输出
+  maxHp: number; // 最大生命。★ 战斗中的实时上限读 Combatant.maxHp, 这里只是声明来源
+  attack: number; // 攻击力: 攻击牌伤害 = 攻击力 × 倍率
+  healPower: number; // 治愈力: 治疗基础值 + 该值
+  defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)
+  // 命中 / 回避 / 暴击
+  hitRate: number; // 命中率(百分点)
+  dodgeRate: number; // 闪避率(百分点, 最终值 70 封顶)
+  critRate: number; // 暴击率(百分点, 最终值 70 封顶)
+  critDamage: number; // 爆伤(百分点, 150 = 暴击伤害为 1.5 倍)
+  precision: number; // 精准(百分点, 与命中率同向, 不封顶)
+  // 节奏 / 防护 / 异常
+  initiative: number; // 先手: 敌人行动时刻 = max(1, 技能延迟 + 我方均值 − 敌方先手)
+  blockRate: number; // 格挡率(百分点, 最终值 70 封顶); 成功则本次伤害 ×RULES.combat.blockReduction
+  healBoost: number; // 治愈强度(百分点): 最终治疗 ×(1 + 治愈强度/100)
+  shieldBoost: number; // 护盾强度(百分点): 最终护盾 ×(1 + 护盾强度/100)
+  ailmentResist: number; // 异常抗性(百分点, 最终值 70 封顶); 抵抗哪一项由各异常自己定义
+  // 探索 / 小队
+  burdenAdapt: number; // 负重适应(百分点): 小队合计, 抵消负重惩罚
+  handLimit: number; // 对小队手牌上限的贡献
+  drawCount: number; // 对小队每回合基础抽牌数的贡献
+}
+
+// 属性修正层。最终属性 = (基础 + flat) × (1 + pct/100)。
+// 装备(局外常驻)与卡牌/状态(战斗内)都用这个结构, 只是生命周期不同。
+export interface StatModifier {
+  flat?: Partial<StatBlock>;
+  pct?: Partial<StatBlock>; // 百分点; 同名 pct 默认相加
 }
 
 // ---------------------------------------------------------------------------
@@ -154,17 +208,16 @@ export interface BaseCombatant {
   emoji: string;
   team: Team;
   hp: number;
-  maxHp: number;
-  block: number;
+  maxHp: number; // 实时生命上限(建局时由 stats.maxHp 解析而来)
+  shield: number; // 护盾值(可被伤害吸收)。⚠ 与"格挡"(blockRate, 概率减半)是两回事
+  stats: StatBlock; // 局外已结算的面板(角色基础 + 装备)
+  mods: StatModifier; // 战斗内修正(卡牌/状态/场景), 战斗结束即弃
   statuses: StatusInstance[];
   alive: boolean;
 }
 
 export interface Ally extends BaseCombatant {
   team: "player";
-  threat: number; // 仇恨值
-  attack: number; // 攻击加成: 本人卡牌的 DAMAGE 效果 +N
-  defense: number; // 防御加成: 本人卡牌的 GAIN_BLOCK 效果 +N
   charId: string;
 }
 
@@ -179,7 +232,7 @@ export interface Intent {
 export interface Enemy extends BaseCombatant {
   team: "enemy";
   enemyDefId: string;
-  castTick: number; // 行动间隔(时刻)
+  castTick: number; // 技能基础延迟 D_skill; 实际间隔还要叠先手差(见 stats.enemyActDelay)
   nextActTick: number; // 下次行动的时刻(本回合内)
   actsThisRound: number;
   aiIndex: number; // 意图脚本指针
@@ -233,8 +286,10 @@ export interface BattleState {
 // ---------------------------------------------------------------------------
 export interface DamageOpts {
   flags?: string[];
-  isAttack?: boolean;
-  unblockable?: boolean;
+  isAttack?: boolean; // 攻击: 吃力量/虚弱, 需要命中判定, 可暴击
+  fixed?: boolean; // 固定伤害: 跳过防御减伤与格挡
+  mustHit?: boolean; // 必中: 跳过命中判定
+  unblockable?: boolean; // 不被护盾吸收
 }
 
 export interface EngineOps {
@@ -245,10 +300,22 @@ export interface EngineOps {
     amount: number,
     opts?: DamageOpts,
   ): void;
-  heal(state: BattleState, targetId: string, amount: number): void;
-  gainBlock(state: BattleState, targetId: string, amount: number): void;
+  // sourceId 为 undefined 时按"无施法者"处理: 不吃治愈力/治愈强度/护盾强度(如再生、场景效果)。
+  heal(state: BattleState, sourceId: string | undefined, targetId: string, amount: number): void;
+  gainShield(
+    state: BattleState,
+    sourceId: string | undefined,
+    targetId: string,
+    amount: number,
+  ): void;
   applyStatus(state: BattleState, targetId: string, statusId: string, stacks: number): void;
-  modifyThreat(state: BattleState, targetId: string, amount: number): void;
+  applyStatMod(
+    state: BattleState,
+    targetId: string,
+    stat: keyof StatBlock,
+    amount: number,
+    pct?: boolean,
+  ): void;
   log(state: BattleState, text: string): void;
 }
 

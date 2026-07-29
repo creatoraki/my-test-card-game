@@ -1,29 +1,32 @@
-// Zustand store: 城镇档案 —— 跨远征持久的玩家资产(角色养成 / 编队 / 个人卡组)。
+// Zustand store: 城镇档案 —— 跨远征持久的玩家资产(个人卡组 / 编队 / 经验 / 居民积分)。
 // 与 runStore 的分工: 这里存"永久拥有的东西", runStore 只存"这趟远征的进度"。
 // 依赖方向: runStore → townStore(单向); 本 store 不认识 runStore。
 // 已接 persist 中间件(localStorage), 刷新页面进度保留;「重置存档」清回初始档。
+//
+// ★ 角色**不设等级、不加属性点**(《角色养成设计.md》第一章)。
+//   角色面板固定, 经验的唯一去处是锻造个人卡组: 升卡组等级 / 抽卡 / 删卡 / 降低最小卡组下限。
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Card } from "../engine";
-import { RULES, expToNext } from "../engine";
+import type { Card, Rarity, StatBlock } from "../engine";
+import { RULES, addStats, deckUpgradeCost, lowerMinSizeCost } from "../engine";
 import { CHARACTERS, getCharacter, makeCard, type CharacterDef } from "../data";
 
-// 四维属性的已分配点数(存点数不存换算值, 换算统一走 deriveStats)
-export interface CharacterAttrs {
-  hp: number;
-  attack: number;
-  defense: number;
-  threat: number;
+// 装备修正层的占位。三装备槽(见 物品设计.md)尚未实现 —— 接上后把已穿戴装备的
+// 固定值与百分比塞进这里, deriveStats 会自动把它算进最终面板, 别的地方一行都不用改。
+export interface EquipmentMods {
+  flat?: Partial<StatBlock>;
+  pct?: Partial<StatBlock>;
 }
 
 export interface CharacterState {
   charId: string;
-  level: number; // 从 1 起
-  exp: number; // 当前等级内已积累的经验
-  attrPoints: number; // 未分配属性点(升级 +5, 加点/抽卡消耗)
-  attrs: CharacterAttrs;
+  exp: number; // ★ 可用经验池(不再有等级, 也不再回落); 锻造直接从这里扣
+  expEarned: number; // 累计获得的经验(纯展示用)
   deck: Card[]; // 个人卡组(实例); 战斗卡组 = 上阵角色个人卡组的集合
+  deckLevel: number; // 卡组等级, 从 1 起; 只影响抽卡时的稀有度权重
+  minDeckSize: number; // 当前最小卡组下限, 删卡不能把卡组删到它以下
+  equipment: EquipmentMods; // ⚠ 占位: 装备系统未实现, 恒为空对象
   pendingDraw: string[] | null; // 抽卡进行中的候选 defId; 持久化 => 刷新也躲不掉 3 选 1
 }
 
@@ -31,11 +34,7 @@ export interface CharacterState {
 export interface ExpGain {
   charId: string;
   gained: number;
-  fromLevel: number;
-  toLevel: number;
-  pointsGained: number;
-  expAfter: number; // 结算后当前等级内经验
-  expToNextAfter: number; // 结算后升下一级所需(供进度条)
+  expAfter: number; // 结算后的可用经验池
 }
 
 interface TownStore {
@@ -45,45 +44,77 @@ interface TownStore {
   //   characters[id] 才不必判空。上阵资格 = 在这张名单上。
   awakened: string[];
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize, 且必须 ⊆ awakened
-  loot: number; // 残片余额 —— 探索层的产出, 仅撤退/通关时落袋进来(团灭全丢)
+  loot: number; // 居民积分余额 —— 探索层的产出, 仅撤退/通关时落袋进来(团灭全丢)
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
   bankLoot: (amount: number) => void; // 远征结束落袋
   resetProfile: () => void; // 重置存档
-  allocatePoint: (charId: string, attr: keyof CharacterAttrs) => void; // 花 1 点加一项属性
-  startDraw: (charId: string) => void; // 花 drawCost 点 → 随机 drawChoices 张候选
-  pickDraw: (charId: string, cardDefId: string) => void; // 3 选 1 落袋, 清 pendingDraw
   toggleParty: (charId: string) => void; // 上阵/下阵
-  awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 残片解封一名休眠队员
-  grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验并处理连升
+  awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
+  grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
+
+  // ---- 卡组锻造(经验的唯一去处) ----
+  upgradeDeck: (charId: string) => void; // 升一级卡组等级
+  forgeDraw: (charId: string) => void; // 花 drawCost 经验 → 摇稀有度 → 出 drawChoices 张候选
+  pickDraw: (charId: string, cardDefId: string) => void; // 3 选 1 落袋, 清 pendingDraw
+  removeCard: (charId: string, uid: string) => void; // 花 removeCost 经验删一张卡
+  lowerMinDeck: (charId: string) => void; // 花经验把最小卡组下限降 1
 }
 
-// 角色最终战斗数值 = 基础值 + 已分配点数 × 每点收益(唯一换算点, UI 与开战共用)
-export function deriveStats(cs: CharacterState): {
-  maxHp: number;
-  attack: number;
-  defense: number;
-  threat: number;
-} {
-  const base = getCharacter(cs.charId);
-  const p = RULES.progression;
-  return {
-    maxHp: base.maxHp + cs.attrs.hp * p.hpPerPoint,
-    attack: cs.attrs.attack * p.attackPerPoint,
-    defense: cs.attrs.defense * p.defensePerPoint,
-    threat: base.threat + cs.attrs.threat * p.threatPerPoint,
-  };
+// ---------------------------------------------------------------------------
+// 面板结算 —— 局外唯一换算点(UI 与开战共用)。
+// 最终面板 =(角色基础 + 装备固定)×(1 + 装备百分比); 战斗内那一层在引擎里叠(engine/stats)。
+// ---------------------------------------------------------------------------
+export function deriveStats(cs: CharacterState): StatBlock {
+  const base = getCharacter(cs.charId).base;
+  const flat = addStats(base, cs.equipment?.flat ?? {});
+  const pct = cs.equipment?.pct ?? {};
+  const out = { ...flat };
+  for (const k of Object.keys(out) as (keyof StatBlock)[]) {
+    out[k] = flat[k] * (1 + (pct[k] ?? 0) / 100);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// 卡组约束 —— 稀有度限携与最小卡组下限(《角色养成设计.md》4.2)。
+// ---------------------------------------------------------------------------
+export function countByRarity(deck: Card[]): Record<Rarity, number> {
+  const out: Record<Rarity, number> = { common: 0, uncommon: 0, rare: 0 };
+  for (const c of deck) out[c.rarity ?? "common"] += 1;
+  return out;
+}
+
+// 该稀有度还能不能再收一张。⚠ 硬约束, 不受卡组等级/装备影响。
+export function canAddRarity(deck: Card[], rarity: Rarity): boolean {
+  return countByRarity(deck)[rarity] < RULES.deck.rarityCap[rarity];
+}
+
+// 按卡组等级摇一次稀有度。该档卡池为空时自动降级(rare → uncommon → common)。
+function rollRarity(level: number, pools: Record<Rarity, string[]>, rand: () => number): Rarity {
+  const weights = RULES.deck.rarityWeights[Math.min(level, RULES.deck.levelMax) - 1];
+  const order: Rarity[] = ["common", "uncommon", "rare"];
+  const total = order.reduce((s, r) => s + (pools[r].length ? weights[r] : 0), 0);
+  if (total <= 0) return "common";
+  let roll = rand() * total;
+  for (const r of order) {
+    if (!pools[r].length) continue;
+    roll -= weights[r];
+    if (roll <= 0) return r;
+  }
+  return "common";
 }
 
 function freshCharacter(def: CharacterDef): CharacterState {
   return {
     charId: def.id,
-    level: 1,
     exp: 0,
-    attrPoints: 0,
-    attrs: { hp: 0, attack: 0, defense: 0, threat: 0 },
+    expEarned: 0,
     deck: def.startingCardIds.map((cid) => makeCard(cid)),
+    deckLevel: 1,
+    minDeckSize: RULES.deck.initialMinSize,
+    equipment: {},
     pendingDraw: null,
   };
 }
@@ -123,51 +154,6 @@ export const useTownStore = create<TownStore>()(
         set({ loot: get().loot + amount });
       },
 
-      allocatePoint: (charId, attr) => {
-        const cs = get().characters[charId];
-        if (!cs || cs.attrPoints < 1) return;
-        set({
-          characters: {
-            ...get().characters,
-            [charId]: {
-              ...cs,
-              attrPoints: cs.attrPoints - 1,
-              attrs: { ...cs.attrs, [attr]: cs.attrs[attr] + 1 },
-            },
-          },
-        });
-      },
-
-      startDraw: (charId) => {
-        const cs = get().characters[charId];
-        const p = RULES.progression;
-        if (!cs || cs.pendingDraw || cs.attrPoints < p.drawCost) return;
-        const pool = getCharacter(charId).poolCardIds;
-        if (!pool.length) return;
-        // 候选独立随机, 允许重复 —— 抽到两张同名卡也是合法结果
-        const options = Array.from(
-          { length: p.drawChoices },
-          () => pool[Math.floor(Math.random() * pool.length)],
-        );
-        set({
-          characters: {
-            ...get().characters,
-            [charId]: { ...cs, attrPoints: cs.attrPoints - p.drawCost, pendingDraw: options },
-          },
-        });
-      },
-
-      pickDraw: (charId, cardDefId) => {
-        const cs = get().characters[charId];
-        if (!cs?.pendingDraw?.includes(cardDefId)) return;
-        set({
-          characters: {
-            ...get().characters,
-            [charId]: { ...cs, deck: [...cs.deck, makeCard(cardDefId)], pendingDraw: null },
-          },
-        });
-      },
-
       toggleParty: (charId) => {
         const { party, characters, awakened } = get();
         if (!characters[charId]) return;
@@ -181,7 +167,7 @@ export const useTownStore = create<TownStore>()(
         }
       },
 
-      // 冬眠仓解封: 扣残片 + 进 awakened 名单。
+      // 冬眠仓解封: 扣居民积分 + 进 awakened 名单。
       // ⚠ 刻意**不自动上阵** —— 队伍可能已经满员, 自动塞人要么失败要么得替谁下阵,
       //   两种都不该由 store 替玩家决定。解封后由玩家在冬眠仓里手动编队。
       awaken: (charId) => {
@@ -191,37 +177,113 @@ export const useTownStore = create<TownStore>()(
         set({ awakened: [...awakened, charId], loot: loot - cost });
       },
 
+      // 发经验。★ 没有等级也没有升级 —— 经验只是进池子, 等玩家拿去锻造卡组。
       grantExp: (charIds, amount) => {
         const characters = { ...get().characters };
         const report: ExpGain[] = [];
         for (const id of charIds) {
           const cs = characters[id];
           if (!cs) continue;
-          let { level, exp, attrPoints } = cs;
-          const fromLevel = level;
-          exp += amount;
-          while (exp >= expToNext(level)) {
-            exp -= expToNext(level);
-            level += 1;
-            attrPoints += RULES.progression.levelUpPoints;
-          }
-          characters[id] = { ...cs, level, exp, attrPoints };
-          report.push({
-            charId: id,
-            gained: amount,
-            fromLevel,
-            toLevel: level,
-            pointsGained: (level - fromLevel) * RULES.progression.levelUpPoints,
-            expAfter: exp,
-            expToNextAfter: expToNext(level),
-          });
+          const exp = cs.exp + amount;
+          characters[id] = { ...cs, exp, expEarned: cs.expEarned + amount };
+          report.push({ charId: id, gained: amount, expAfter: exp });
         }
         set({ characters });
         return report;
       },
+
+      // ---- 卡组锻造 ----
+
+      upgradeDeck: (charId) => {
+        const cs = get().characters[charId];
+        if (!cs) return;
+        const cost = deckUpgradeCost(cs.deckLevel);
+        if (cost == null || cs.exp < cost) return;
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, exp: cs.exp - cost, deckLevel: cs.deckLevel + 1 },
+          },
+        });
+      },
+
+      forgeDraw: (charId) => {
+        const cs = get().characters[charId];
+        const d = RULES.deck;
+        if (!cs || cs.pendingDraw || cs.exp < d.drawCost) return;
+
+        const pools = getCharacter(charId).pools;
+        // 先摇稀有度(按卡组等级权重), 再从该稀有度池里出候选。
+        const rarity = rollRarity(cs.deckLevel, pools, Math.random);
+        // 该稀有度已满额就不必开抽 —— 抽了也放不进卡组。
+        if (!canAddRarity(cs.deck, rarity)) return;
+        const pool = pools[rarity];
+        if (!pool.length) return;
+
+        // 候选独立随机, 允许重复 —— 抽到两张同名卡也是合法结果
+        const options = Array.from(
+          { length: d.drawChoices },
+          () => pool[Math.floor(Math.random() * pool.length)],
+        );
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, exp: cs.exp - d.drawCost, pendingDraw: options },
+          },
+        });
+      },
+
+      pickDraw: (charId, cardDefId) => {
+        const cs = get().characters[charId];
+        if (!cs?.pendingDraw?.includes(cardDefId)) return;
+        const card = makeCard(cardDefId);
+        // 再校验一次限携 —— 候选是抽卡那一刻算的, 期间卡组可能已经变了。
+        if (!canAddRarity(cs.deck, card.rarity ?? "common")) {
+          set({ characters: { ...get().characters, [charId]: { ...cs, pendingDraw: null } } });
+          return;
+        }
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, deck: [...cs.deck, card], pendingDraw: null },
+          },
+        });
+      },
+
+      removeCard: (charId, uid) => {
+        const cs = get().characters[charId];
+        const cost = RULES.deck.removeCost;
+        if (!cs || cs.exp < cost) return;
+        if (cs.deck.length <= cs.minDeckSize) return; // 卡组不能低于最小下限
+        if (!cs.deck.some((c) => c.uid === uid)) return;
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: {
+              ...cs,
+              exp: cs.exp - cost,
+              deck: cs.deck.filter((c) => c.uid !== uid),
+            },
+          },
+        });
+      },
+
+      // 降低最小卡组下限。★ 只开放后续删卡空间, 不会直接删掉任何卡。
+      lowerMinDeck: (charId) => {
+        const cs = get().characters[charId];
+        if (!cs) return;
+        const cost = lowerMinSizeCost(cs.minDeckSize);
+        if (cost == null || cs.exp < cost) return;
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, exp: cs.exp - cost, minDeckSize: cs.minDeckSize - 1 },
+          },
+        });
+      },
     }),
-    // ⚠ 加 awakened 时把 key 从 v1 提到 v2: 旧档没有这个字段, 读进来会让整个冬眠仓名单为
-    //   undefined。项目不做旧存档兼容, 换 key 让旧档自然失效重建, 比写 migrate 省事。
-    { name: "town-profile-v2", version: 2 },
+    // ⚠ 角色养成重做(去等级/属性点 → 经验池 + 卡组锻造)后档案结构完全变了。
+    //   项目不做旧存档兼容, 换 key 让旧档自然失效重建, 比写 migrate 省事。
+    { name: "town-profile-v3", version: 3 },
   ),
 );

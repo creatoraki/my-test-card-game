@@ -2,7 +2,6 @@ import { useRunStore, type Screen } from "./store/runStore";
 import { ScreenTransition } from "./ui/ScreenTransition";
 import { MenuScreen } from "./ui/MenuScreen";
 import { TownScreen } from "./ui/TownScreen";
-import { FormationScreen } from "./ui/FormationScreen";
 import { ExploreScreen } from "./ui/ExploreScreen";
 import { BattleScreen } from "./ui/BattleScreen";
 import { ExpRewardScreen } from "./ui/ExpRewardScreen";
@@ -13,8 +12,6 @@ function renderScreen(screen: Screen) {
   switch (screen) {
     case "town":
       return <TownScreen />;
-    case "formation":
-      return <FormationScreen />;
     case "explore":
       return <ExploreScreen />;
     case "battle":
