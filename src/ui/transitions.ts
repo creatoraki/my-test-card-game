@@ -69,7 +69,8 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
 const NO_TRANSITION: TransitionSpec = { exit: FX.none, enter: FX.none, hold: 0 };
 
 // 系统级「减少动态效果」无障碍设置。每次读取而非缓存 —— 用户可能中途改系统设置。
-function prefersReducedMotion(): boolean {
+// 导出供其他有自建时序编排的界面复用(如 TownScreen 的进设施运镜), 免得各写一份。
+export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }

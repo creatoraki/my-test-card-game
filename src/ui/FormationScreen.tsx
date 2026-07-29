@@ -2,7 +2,7 @@
 // 分配属性点 / 花属性点抽卡改造个人卡组(3 选 1, 不可取消)。
 
 import { useState } from "react";
-import { CHARACTERS, getCardDef, getCharacter } from "../data";
+import { getCardDef, getCharacter } from "../data";
 import type { Card } from "../engine";
 import { RULES, expToNext } from "../engine";
 import { useRunStore } from "../store/runStore";
@@ -33,13 +33,14 @@ const EQUIP_SLOTS = [
 export function FormationScreen() {
   const enterTown = useRunStore((s) => s.enterTown);
   const characters = useTownStore((s) => s.characters);
+  const awakened = useTownStore((s) => s.awakened);
   const party = useTownStore((s) => s.party);
   const toggleParty = useTownStore((s) => s.toggleParty);
   const allocatePoint = useTownStore((s) => s.allocatePoint);
   const startDraw = useTownStore((s) => s.startDraw);
   const pickDraw = useTownStore((s) => s.pickDraw);
 
-  const [selectedId, setSelectedId] = useState(CHARACTERS[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState(awakened[0] ?? "");
   const selected = characters[selectedId];
 
   // 任何角色有进行中的抽卡都强制弹 3 选 1 —— 属性点已消耗, 选完才能继续。
@@ -63,7 +64,9 @@ export function FormationScreen() {
 
         <div className="formation-layout">
           <aside className="roster-list">
-            {CHARACTERS.map((c) => {
+            {/* 只列**已唤醒**的角色 —— characters 是全量建档, 直接遍历 CHARACTERS 会把还躺在
+                冬眠仓里的人露出来(唤醒态的真相在 townStore.awakened, 见 ui/CryoScene.tsx)。 */}
+            {awakened.map((id) => getCharacter(id)).map((c) => {
               const cs = characters[c.id];
               if (!cs) return null;
               const inParty = party.includes(c.id);

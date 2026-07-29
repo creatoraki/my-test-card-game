@@ -64,6 +64,7 @@ export const RULES = {
     threatPerPoint: 2, // 每点仇恨 → 初始仇恨 +2
     drawCost: 2, // 抽一次卡消耗的属性点
     drawChoices: 3, // 每次抽卡的候选数(3 选 1)
+    awakenCost: 150, // 在冬眠仓解封一名休眠队员消耗的残片
   },
 } as const;
 

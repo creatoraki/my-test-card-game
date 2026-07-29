@@ -40,9 +40,9 @@
 
 /* 各终端界面的主体区(导航条之下的那一屏) */
 /* ⚠ 这一组里 .menu-main 疑似未使用(全项目 .tsx 里搜不到 —— 现主菜单走 .menu-splash
-   视频开屏那一套, 不挂 .terminal-screen), 确认后可单独把这一行删掉。 */
+   视频开屏那一套, 不挂 .terminal-screen), 确认后可单独把这一行删掉。
+   注: .town-main 已随据点页改造(改成 .town-splash 设计画布)删除, 现只剩远征界面在用。 */
 .menu-main,
-.town-main,
 .expedition-main {
   position: relative;
   z-index: 1;

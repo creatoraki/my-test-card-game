@@ -15,8 +15,9 @@
 - **资源（光）**：全队每回合共享一个「光」池用于出牌（默认每回合 3 点，不结转）。
 - **仇恨（aggro）**：无站位。敌人按仇恨值选择攻击目标，可用「嘲讽」拉仇恨改变敌人目标。
 - **养成闭环**：每个角色**独立拥有一个个人卡组**，战斗实际卡组 = 上阵角色个人卡组的集合。战斗胜利**不掉卡**，只给上阵角色发经验；**升级不涨基础属性，只获得 5 属性点**。属性点在城镇「编队」里二选一花法：加四维属性（生命/攻击/防御/仇恨），或花 2 点从角色**专属卡池**随机 3 选 1 抽一张新卡（抽卡不可取消）。养成进度是**城镇的持久资产**（localStorage）——跨远征持续，胜败都保留。
-- **探索牌局**：进入地图后**不是直接战斗**，而是进入一场**探索牌局**。3 张〔遭遇〕路线牌固定在手，事件卡靠抽取；**打事件卡会累积「区域危险度」**，危险度同时抬高所有战斗的难度与奖励，并最终决定 BOSS 的强度与掉落。核心张力是「**牌是资源，而抽牌权只能靠打仗换**」——详见 `探索模式设计.md` 与下方「探索牌局」章节。
-- **流程**：主菜单 →「开始游戏」→ **城镇**（常驻中枢，开放「远征」「编队」）→ **选择地图** → **探索牌局**（打事件卡 / 打遭遇卡进战斗 / 随时撤退）→ 击杀 BOSS 或撤退 → 结算回城镇。
+- **探索路由**：进入地图后**不是直接战斗**，而是接入一场由 $5\sim7$ 段阿弥陀签式线路组成的「失真路由图」。每段都会公开 5 个终点事件并短暂显示完整线路；玩家选择 A-E 入口后，信号遇横线强制换线，抵达一个事件并生成下一段。**区域危险度**会随事件累积，抬高战斗、精英与 BOSS 的难度和奖励；角色探索指令则提供扫描、标记、探针、重接或回滚等有限干预。详见 `探索模式设计.md`。⚠ 当前代码仍是旧探索牌局实现，尚未迁移至该方案。
+- **流程**：主菜单 →「开始游戏」→ **据点**（常驻中枢）→ **控制终端 → 下降舱 → 选择地图** → **探索路由**（观察线路 / 选择入口 / 结算事件 / 进入战斗或撤退）→ 击杀 BOSS 或撤退 → 结算回据点。
+  > ⚠ **据点页正在改造中**：现已换成「大厅场景 + 冬眠仓 / 训练室 / 控制终端三个毛玻璃入口」，点击这三个入口会播一段**进设施运镜**（镜头以「拿起 → 对焦 → 放大」的节奏推进，前两处短停；界面元素逐个飞出，背景交叉淡入设施场景）。**目前控制终端与冬眠仓有真实内容**：`ui/ControlTerminalScene.tsx`（下降舱 → 场景内浮层选地图 → 出击；委托 → 三条示例工单的灰化占位，工单系统未接入）与 `ui/CryoScene.tsx`（右下三块入口砖 → 编队 / 队员档案 / 冬眠唤醒 三个浮层）；**训练室**进去仍只有背景与「返回据点」。**顶部导航条与「回主菜单」的路仍未恢复**（角落只剩「重置存档」），但**据点已不再是死路** —— 下降舱接的就是 `runStore.startExpedition`，编队则在冬眠仓里。⚠ 旧的 `ExpeditionScreen`（远征选图页）与 `FormationScreen`（旧编队页）因此都仍然不可达：下降舱与冬眠仓都是场景内浮层/设施内 UI，没走那两条路由。
 
 ---
 
@@ -51,10 +52,11 @@ my-test-card-game/
 ├─ package.json            # 依赖与脚本
 ├─ tsconfig.json           # TypeScript 配置（strict、@/* 路径别名）
 ├─ vite.config.ts          # Vite 配置（React 插件 + @ 别名）
-├─ 游戏设定.md             # ★ 世界观与机制设定：3300 年代苏醒、电子生命城市、克拉能探索、据点设施与地下城场地
+├─ 游戏设定.md             # ★ 世界观与机制设定：3300 年代苏醒、电子生命城市、粒子污染探索、经验锻造卡组、关键词模组、据点设施与地下城场地
 ├─ 抠图技巧.md             # 立绘抠图流程与调参经验（配套 scripts/chroma-cut.mjs）
-├─ 探索模式设计.md         # ★ 探索卡牌模式设计文档（待实现：远征改造成一场探索牌局）
+├─ 探索模式设计.md         # ★ 阿弥陀签式「失真路由图」探索设计：5-7 段线路决策、探索指令、危险度与 BOSS/撤退张力（待实现）
 ├─ 角色养成设计.md         # ★ 角色养成设计文档（设计定稿，待实现：12 周战役 + 特性/卡组/装备 + 传承积分）
+├─ 物品设计.md             # ★ 物品与装备设计：三装备槽、稀有度、随机羁绊、羁绊饰品与重铸规则
 └─ src/
    ├─ main.tsx             # React 入口，渲染 <App/>；★ 第一行 import "./styles/index.css"（必须排在所有 import 之前）
    ├─ App.tsx              # 顶层路由：按 runStore.screen 选界面，交给 ScreenTransition 编排过场
@@ -63,7 +65,7 @@ my-test-card-game/
    │  ├─ index.css         # 只做 @import，固定公共层内部顺序：tokens → base → layout → widgets
    │  ├─ tokens.css        # :root 设计令牌（配色 / 边框 / 圆角等 CSS 变量）
    │  ├─ base.css          # reset、html/body/#root、body 底纹、button 全家桶、input/code
-   │  ├─ layout.css        # 屏幕骨架：.screen / .terminal-screen / .title / .row / .overlay(-card) + 非战斗界面的 3 个宽度断点
+   │  ├─ layout.css        # 屏幕骨架：.screen / .terminal-screen / .title / .row / .overlay(-card)
    │  └─ widgets.css       # 跨界面复用的小部件：奖励三选一 / 卡组摘要 / 战利品 chip / 经验条
    │
    ├─ engine/              # ★ 纯 TS 战斗引擎（无 React，无副作用，可序列化、可复现）
@@ -105,7 +107,7 @@ my-test-card-game/
    └─ ui/                  # React 视图层（纯展示 + 派发，不含规则）
       │  ★ 样式约定：下列**每个 .tsx 组件旁都贴着一个同名 .css**（如 BattleScreen.tsx ↔ BattleScreen.css），
       │  由组件自己在 import 块末尾 `import "./<同名>.css"`。类名仍是全局的（没用 CSS Modules），
-      │  同名只是「这段样式归谁」的边界约定。纯逻辑模块（transitions.ts / animations.ts / stage.ts…）没有 .css。
+      │  同名只是「这段样式归谁」的边界约定。纯逻辑模块（transitions.ts / animations.ts / stage.ts / facilityScenes.ts…）没有 .css。
       │  合并主题层后**每个选择器全项目只有一处定义**，组件 CSS 之间的加载顺序不影响结果。
       ├─ unit-badges.css   # ★ 唯一没有同名组件的 CSS：CombatantView 与 AllyBar 共用的护盾徽章/阵亡遮罩，两者都 import（Vite 自动去重）
       ├─ transitions.ts    # ★ 场景过场预设表：全局开关 + 特效登记 + 按路线/按界面配置
@@ -113,7 +115,11 @@ my-test-card-game/
       ├─ MenuScreen.tsx    # 主菜单：1920×1080 设计画布开屏（复用 stage.ts，恒 16:9、四周黑边）——视频背景（菜单.mp4 铺满 cover）+ 游戏标题图（场景/霓虹都市.png，无滤镜无动画的纯图，left/top/width 在内联 style 微调）+ 「开始游戏」按钮（MenuStartButton，right/bottom/width 在内联 style 微调 → 城镇）
       ├─ MenuStartButton.tsx # ★ 「开始游戏」霓虹牌匾按钮：图 + 轮廓跑光/内部光尘/外溢火星三层特效（用 PNG 自身 alpha 当 mask）
       ├─ StartGameButton.tsx # 「开始游戏」像素科技风艺术字按钮（内联 SVG 像素化滤镜 + 黑白金属质感 + HUD 装饰[角框/闪烁光标/扫描线] + 硬像素投影 + 悬停通电切蓝白）
-      ├─ TownScreen.tsx    # 城镇：设施入口（「远征」「编队」开放，其余占位）+ 重置存档
+      ├─ TownScreen.tsx    # 据点大厅：1920×1080 设计画布（复用 stage.ts，恒 16:9、四周黑边）+ 大厅.png 固定背景 + 右下 718×350 的 bento 毛玻璃面板（6 块形状各异的半透明玻璃砖拼成规则矩形：冬眠仓/训练室/控制终端 3 个真入口 + 3 个未开放占位，图标为内联线框 SVG）+ 角落的重置存档；★ 点真入口播「进设施」演出（3s「拿起→对焦→放大」运镜，前两处短停 + 界面元素逐个错峰飞出 + 背景交叉淡入设施场景，参数见 facilityScenes.ts）；★ 设施内容走模块级 FACILITY_CONTENT 登记表（目前 worklog → ControlTerminalScene、cryo → CryoScene）；⚠ 训练室仍是空场景
+      ├─ facilityScenes.ts # ★ 进设施演出预设表：设施 id → 背景图/推镜焦点/倍数 + 相机换算 + 时间轴与飞出参数（据点专用，无 .css）；已登记 cryo/training/worklog 三处
+      ├─ ControlTerminalScene.tsx # ★ 控制终端（设施 worklog）的设施内 UI：亮色玻璃基调（白底场景专用的 --term-* 一套，不复用 .bento-glass）+ 右侧两条**抽屉式入口**（常态半隐在画布右缘外，悬浮哪条哪条向左弹出）→「下降舱」浮层（地图列表/预览图/队伍摘要 → startExpedition 出击）与「委托」浮层（3 条示例工单全灰化，工单系统未接入）；浮层**无全局遮罩**，背板是白色毛玻璃，顶边左右各 34% 处垂两根**吊绳**（.term-modal 的伪元素，靠 PANEL_SIZE 传来的 --panel-w/h 定位），开合是 600ms 的「连绳带板从天花板滑下 / 收回」
+      ├─ CryoScene.tsx     # ★ 冬眠仓（设施 cryo）的设施内 UI：与 ControlTerminalScene **完全同构**（右侧三条**抽屉式入口** + **无遮罩吊绳浮层**，场景上只有标题 + 读数 + 抽屉，点入口才弹浮层），只把亮玻璃的强调色从深青换成**深紫罗兰 #7c4dbe**（冬眠仓.png 是紫粉白的浅色场景，--cryo-* 一套）。三条抽屉 → 三个浮层：①「编队」= partySize 个出战槽（所见即所得，空槽画虚线 ＋）+ 待命名册，互相编入/撤出；②「队员档案」= 左名册 + 右**只读**详情（立绘/经验条/四维/个人卡组）；③「冬眠唤醒」= 舱位阵列（已解封 / 密封 / 无信号三态，至少 `POD_SLOTS`=6 格）+ 右侧舱位详情 +「解封唤醒 −awakenCost 残片」→ `townStore.awaken`。⚠ 属性加点与抽卡刻意**不**在这里（按 `游戏设定.md` 的设施分工归训练室）
+      ├─ mapArt.ts         # 地图 id → 选层预览图的查找表 + warmMapArt() 预热（与 battleBg.ts 同约定；那边是战斗背景，这边是选层缩略图）
       ├─ FormationScreen.tsx # ★ 编队：队伍编辑 / 角色详情 / 属性加点 / 抽卡改造个人卡组
       ├─ ExpeditionScreen.tsx # 远征：地图选择列表
       ├─ ExploreScreen.tsx # ★ 探索牌局主界面：危险度仪表 + 队伍血量 + 轨迹 + 路线/手牌 + 场地能力
@@ -162,8 +168,9 @@ my-test-card-game/
 | `package.json` | 声明依赖（react / react-dom / zustand）与脚本（dev / build / preview / test）。 |
 | `tsconfig.json` | TS 严格模式，配置 `@/*` → `src/*` 路径别名，`bundler` 模块解析。 |
 | `vite.config.ts` | 启用 `@vitejs/plugin-react`，并配置 `@` 指向 `src`。 |
-| `游戏设定.md` | **★ 世界观与机制设定**：记录人类时代系统耗尽后主角在 3300 年代从冬眠仓苏醒、2600 年代上一批苏醒者的信、由电子生命与自治机械维持的无人类城市、X 粒子污染与克拉能过滤装置、量子隧穿售货机和城市居民积分、城市工单任务，以及事件卡探索、32 格背包、个人卡组、小队战斗属性、八项据点设施和四个已定地下城场地。 |
+| `游戏设定.md` | **★ 世界观与机制设定**：记录人类时代系统耗尽后主角在 3300 年代从冬眠仓苏醒、2600 年代上一批苏醒者的信、由电子生命与自治机械维持的无人类城市、X 粒子污染与粒子过滤装置、量子隧穿售货机和城市居民积分、城市工单任务，以及事件卡探索、32 格背包、个人卡组、经验锻造卡组、关键词模组连携、小队战斗属性、八项据点设施和四个已定地下城场地。 |
 | `角色养成设计.md` | **★ 角色养成设计文档（设计定稿，待实现）**：把现在单薄的「等级 + 属性点 + 个人卡组」扩展成完整养成结构 —— **一局 = 12 周战役**（主线 6 段 / 支线自由支配 / 超时即失败），角色三条轴（**特性** 2~3 选 1 / **卡组** 带容量上限 / **装备** 3 槽词条制），**删掉等级与四维自由加点**，经验改名「熟练度」，以及跨局的**解锁 + 传承积分**（派生值 + 槽位制启动器）。含三层持久化架构（`metaStore` / `campaignStore` / `exploreStore`）与 P0~P4 分期清单。**动 `townStore` 或养成相关代码前先读这个**。 |
+| `物品设计.md` | **★ 物品与装备设计**：记录武器 / 防具 / 饰品三槽的职责、普通装备的稀有度与随机羁绊、饰品独有的双羁绊羁绊饰品、固定与副羁绊不重复规则，以及重铸边界。**动装备、羁绊或重铸相关代码前先读这个**。 |
 | `探索模式设计.md` | **★ 探索卡牌模式设计文档（设计定稿，待实现）**：把「进入地图后连打 N 场战斗」改造成一场**探索牌局** —— 3 张固定〔遭遇〕卡 + 靠抽取的事件卡，打事件卡累积**区域危险度**，危险度同时抬高所有战斗的难度与奖励并最终决定 BOSS 强度。含完整规则、卡型表、档位数值、数据结构、界面稿与分期实施清单。**动远征流程前先读这个**。 |
 
 ### `src/`（入口 & 路由）
@@ -182,7 +189,7 @@ my-test-card-game/
 | `index.css` | 只做 `@import`，固定公共层内部顺序：`tokens → base → layout → widgets`。唯一由 `main.tsx` 引入的样式文件。 |
 | `tokens.css` | `:root` 设计令牌：配色 / 边框 / 圆角等 CSS 变量（终端皮肤合并后的单一版本）。 |
 | `base.css` | `*` reset、`html/body/#root`、`body` 底纹（深色渐变 + 扫描线）、`button` 全家桶（含 `.primary`/`.big` 与斜切角 `clip-path`）、`input/textarea/code`。 |
-| `layout.css` | 屏幕骨架与跨界面排版：`.screen`/`.screen.center`、`.terminal-screen`（含扫描线 `::before`）、`.terminal-heading`、`.title`/`.subtitle`/`.muted`、`.row`、`.screen-kicker`·`.hud-label`·`.choice-index` 一族、`.overlay`/`.overlay-card`，以及 3 个**只作用于非战斗界面**的宽度断点（⚠ 战斗画布严禁用宽度断点，见「设计画布」）。 |
+| `layout.css` | 屏幕骨架与跨界面排版：`.screen`/`.screen.center`、`.terminal-screen`（含扫描线 `::before`）、`.terminal-heading`、`.title`/`.subtitle`/`.muted`、`.row`、`.screen-kicker`·`.hud-label`·`.choice-index` 一族、`.overlay`/`.overlay-card`，以及各终端界面主体区 `.menu-main`/`.expedition-main`（`.town-main` 已随据点页改造删除）。⚠ **宽度断点只允许出现在仍走流式布局的界面**（现散落在 `widgets.css` / `FormationScreen.css` / `CardInfoPanel.css` / `TerminalNav.css`）：战斗、主菜单、据点三页已改用 1920×1080 设计画布，画布内严禁按窗口宽度做断点，见「设计画布」。 |
 | `widgets.css` | 跨界面复用的小部件：奖励三选一（`.reward-cards`/`.reward-choice`）、卡组摘要（`.deck-summary`/`.deck-chip`/`.deck-list`）、战利品 `.loot-chip`、经验条 `.exp-bar`。 |
 
 ### `src/ui/*.css`（组件样式层）
@@ -198,7 +205,7 @@ my-test-card-game/
 | 文件 | 功能 |
 | --- | --- |
 | `types.ts` | 引擎与 UI 共享的**类型总集**：`Card` / `Combatant`（`Ally`/`Enemy`）/ `EffectDescriptor` / `StatusDef` / `BattleState` / `EngineOps` / **`EncounterModifier`** 等。只定义类型、不含逻辑、不 import 其他模块。 |
-| `rules.ts` | **★ 集中的可配置规则常量**：资源经济、手牌上限、时刻推进量、护盾/虚弱/易伤系数、仇恨模式、升级倍率，以及**养成段 `progression`**（上阵上限 / 每级属性点 / 经验曲线 / 每点属性收益 / 抽卡消耗），另导出经验曲线函数 `expToNext`。调平衡主要改这里。 |
+| `rules.ts` | **★ 集中的可配置规则常量**：资源经济、手牌上限、时刻推进量、护盾/虚弱/易伤系数、仇恨模式、升级倍率，以及**养成段 `progression`**（上阵上限 / 每级属性点 / 经验曲线 / 每点属性收益 / 抽卡消耗 / **冬眠仓唤醒残片价 `awakenCost`**），另导出经验曲线函数 `expToNext`。调平衡主要改这里。 |
 | `rng.ts` | mulberry32 可复现伪随机：`rngFloat/rngInt/rngPick` + Fisher–Yates `shuffle`；`rngState` 存在 `BattleState` 内。 |
 | `ops.ts` | **引擎原语与结算落点**：伤害管线（力量→虚弱→易伤→护盾吸收→落定→荆棘反伤）、治疗、加护盾、施加状态、改仇恨、状态生命周期驱动（回合/时刻边界）、胜负判定。 |
 | `statuses.ts` | **状态效果注册表**：中毒 / 灼烧 / 再生 / 力量 / 虚弱 / 易伤 / 荆棘 / 眩晕 / 洞察。其中眩晕与洞察是**纯显示定义**（无钩子），实际效果分别在 `ai.ts` 与 UI 层处理。其余状态带行为钩子（`onRoundStart` / `modifyOutgoingDamage` 等），通过 `ctx.ops` 调用原语——**不 import 引擎实现，避免循环依赖**。 |
@@ -242,7 +249,7 @@ my-test-card-game/
 | --- | --- |
 | `battleStore.ts` | 包裹纯 TS 引擎供 UI 订阅/派发。每次 `play/end` 都先 `structuredClone` 战斗状态再交给引擎修改，保证 React 持有对象不被就地改动（**克隆式不可变更新**）。`init` 额外透传 `EncounterModifier`。另有 **`seq` 建局计数**：`BattleScreen` 用它当「这是第几场战斗」的身份标识来重置分镜/手牌渲染状态——`battle` 对象每次 commit 都换新不能当身份用，`encounterId` 又可能在一趟远征里重复。 |
 | `exploreStore.ts` | **★ 探索牌局状态**：包裹 `explore/session.ts`，与 `battleStore` 同模式（先 `structuredClone` 再交给纯函数，纯函数返回 `false` 表示操作无效则不替换）。**不持久化**——远征中途关页面即作废。分工：本 store 只管牌局本身，「打出遭遇卡 → 真的建一场战斗 → 切界面」由 `runStore` 编排。 |
-| `townStore.ts` | **★ 城镇档案**：跨远征持久的角色养成资产。每个角色一份 `CharacterState`（等级 / 经验 / 未分配属性点 / 四维已加点 `attrs` / 个人卡组 `deck` / 抽卡候选 `pendingDraw`）+ 上阵名单 `party`（1~3 人）+ **残片余额 `loot`**。actions：`ensureProfile`（幂等建档）、`resetProfile`、`allocatePoint`（花 1 点加一维）、`startDraw`/`pickDraw`（花 2 点随机 3 选 1 抽卡，候选持久化 → 刷新逃不掉）、`toggleParty`、`grantExp`（发经验并处理连升，每级 +5 点）、**`bankLoot`**（远征结束落袋）。另导出 `deriveStats`（基础值 + 加点 × 每点收益的唯一换算点）。**已接 zustand persist（localStorage，key `town-profile-v1`）**。 |
+| `townStore.ts` | **★ 城镇档案**：跨远征持久的角色养成资产。每个角色一份 `CharacterState`（等级 / 经验 / 未分配属性点 / 四维已加点 `attrs` / 个人卡组 `deck` / 抽卡候选 `pendingDraw`）+ **已唤醒名单 `awakened`** + 上阵名单 `party`（1~3 人，必须 ⊆ `awakened`）+ **残片余额 `loot`**。actions：`ensureProfile`（幂等建档）、`resetProfile`、`allocatePoint`（花 1 点加一维）、`startDraw`/`pickDraw`（花 2 点随机 3 选 1 抽卡，候选持久化 → 刷新逃不掉）、`toggleParty`（未唤醒的人上不了阵）、**`awaken`**（冬眠仓解封：扣 `awakenCost` 残片 + 进 `awakened`，**不自动上阵**）、`grantExp`（发经验并处理连升，每级 +5 点）、**`bankLoot`**（远征结束落袋）。另导出 `deriveStats`（基础值 + 加点 × 每点收益的唯一换算点）。**已接 zustand persist（localStorage，key `town-profile-v2`）**。⚠ `characters` 是**全量**建档（未唤醒的人也有一份初始档案，解封即可用），「解锁没解锁」的唯一真相是 `awakened` —— 遍历角色名册时别直接用 `data.CHARACTERS`。 |
 | `runStore.ts` | 一次「远征」的**流程编排**：界面路由 + 牌局与战斗之间的往返。只有它同时认识 `battleStore`、`exploreStore` 与 `Screen`，故这三者的连接点全部集中在此。`startExpedition` 建牌局；`enterEncounter` 在打出路线牌后 `launchBattle`——合并上阵角色个人卡组（`structuredClone` 副本）、用 `deriveStats` 生成数值、**传入继承的 `startHp`**、把危险度经 `encounterModifier` 注入战斗；`resolveBattle` 把战斗终局血量回填给牌局、按危险度倍率发经验（**委托 `townStore.grantExp`**，带幂等护栏）；`confirmExpReport` 回牌桌或进最终结算；`retreat` 落袋回城。⚠ **只有存活角色参战**——本次远征内阵亡的角色不出战，其个人卡组也一并排除出战斗卡组。 |
 
 ### `src/ui/`（React 视图层）
@@ -256,8 +263,11 @@ my-test-card-game/
 | `MenuScreen.tsx` | 主菜单：纯净电影感开屏，**与战斗共用同一块 1920×1080 设计画布**（复用 `stage.ts` 的 `useStageScale`，见下方「设计画布」）——`.menu-viewport` 是 letterbox 容器（黑底），`.menu-splash` 是恒为 1920×1080 的画布，故**任何分辨率下画面都是 16:9、标题与按钮的构图逐 px 一致，多出来的地方留黑边**。画布内容：视频背景（`assets/场景/菜单.mp4`，`.menu-bg-video` 以 cover 铺满画布、与战斗背景同款）+ 游戏标题图（`assets/场景/霓虹都市.png`，`.menu-title` 层中心锚点定位）+ 「开始游戏」按钮（`MenuStartButton` → 城镇）。★ **标题与按钮的位置/大小旋钮全在本文件的内联 `style` 里**（标题 `left`/`top` + img `width`；按钮 `right`/`bottom`/`width`），全是**设计 px**，照着 1920×1080 的设计稿填数即可；CSS 侧只负责定位机制与观感，不写死坐标。不挂 `.terminal-screen`，故无渐变底/边框装饰/导航条；原队伍预览与玩法要点已移除。艺术字按钮 `StartGameButton` 当前未挂载（改用图片按钮，`.menu-cta` 层留着以便换回）。仅在启动游戏时出现一次。 |
 | `MenuStartButton.tsx` | **★ 「开始游戏」霓虹牌匾按钮**：素材是一张带透明通道的青绿霓虹牌匾（`assets/场景/开始游戏.png`）。★ **全部特效的手法都是「拿这张 PNG 自身的 alpha 当 `mask`」**——特效层叠在 `<img>` 之上并 `mask-image: var(--start-mask)`（路径由本文件 `import` 后经内联 style 下发，不写进 `MenuStartButton.css`，避开 Vite 里 CSS 相对 `url()` 的坑），于是光与粒子被裁进牌匾的**真实剪影**里 ⇒ 观感是「图片内部在发光」而非外面套了个矩形光框。三层：**① 轮廓跑光**（整张 alpha **减去**一份等比缩小的自己 ⇒ 一条贴轮廓的环带，`mask-composite: subtract` + WebKit 的 `source-out` **两套关键字都要写**；环带内转一道 `conic-gradient` 窄亮楔 ⇒ 一段光沿轮廓绕圈跑。⚠ mask 在父层、旋转在子层，挂反了环带会散）、**② 内部光尘**（单层 mask，粒子只在牌匾内部上浮）、**③ 外溢火星**（**不加 mask**，可飞出轮廓，仅悬停出现）。强度由 `.menu-start` 上的 `--fx` 一个变量总控（空闲 0.35 / 悬停 1，须 `@property` 注册为 `<number>` 才能平滑过渡），另有 `--rim-inset`（环带宽窄，嫌糊调小）与 `--start-hue`（霓虹色）两个旋钮。粒子参数是**确定性伪随机**（同 `HpBar` 的 sin-hash）在模块级算一次并用**负 `animation-delay`** 错峰，挂载瞬间就是散开状态。⚠ **悬停不产生任何缩放**（原来的 `scale(1.06)` + 蓝白辉光已整条移除），要加形变反馈只动 `:active`。⚠ **三层绝不能加 `mix-blend-mode`**（哪怕只是想「加光」的 `screen`），也不要给 `.menu-start` 加 `isolation: isolate`——判据同 `.battle-flicker` 那条注释：混合模式要求下方有**不透明的 backdrop**，而这三层压着的只有一张**透明 PNG**，牌匾之外全是空的 ⇒ 悬停触发混合组时整个按钮矩形会糊出一块**黑幕**（已踩过一次）。⚠ 辉光与 mask 必须分在**两个元素**上：渲染顺序是 `filter → mask`，同层写会让 `drop-shadow` 撒到形状外的光被随后的 mask 整个裁掉，灯管就不发光了。 |
 | `StartGameButton.tsx` | **「开始游戏」像素科技风艺术字按钮**：内联 SVG 把四个字画成 8-bit **像素字**——用经典 pixelation 滤镜（`#sgPixel`）把「矢量字 + 金属渐变」整体切成 `CELL×CELL` 方块像素，金属高光被量化成「像素金属」；立体改用一个整格偏移的**硬像素暗影**（扁平硬朗）。外加全套 **HUD 终端装饰**：角框 `[ ]`、闪烁光标 `_`、CRT 扫描线、底部像素能量线。字面走**黑白金属渐变**（顶部近白高光 + 约 45% 处一条窄亮带做镜面反光 → 底部深色）。字面/暗影/HUD/辉光的颜色全走 `--sg-*` 变量，**悬停时整组"通电点亮"成蓝白**并加强蓝色辉光、微微抬起放大；**待机时整字有缓慢的呼吸动画**（内层 SVG 做 `scale` + 辉光 halo 脉动，`@keyframes sgBreathe`，尊重 `prefers-reduced-motion`）。颜色变量在 `StartGameButton.css` 里用 `@property` 注册成 `<color>` 才能平滑过渡（未注册的自定义属性不可插值、会瞬跳）。`CELL` 常量控制像素颗粒粗细。 |
-| `TownScreen.tsx` | **城镇**：远征之间的常驻中枢。设施网格中「远征」「编队」可点，其余（补给站 / 锻造台 / 酒馆 / 档案库）为 disabled 占位，逐个实现后从 `LOCKED_FACILITIES` 挪走。另有「重置存档」按钮与上阵人数/合计行动卡显示。 |
-| `FormationScreen.tsx` | **★ 编队**：左栏角色列表（等级/属性点/上阵切换，至少 1 人、至多 3 人），右栏选中角色详情——四维属性加点（基础值 + 每点收益，即点即生效）、装备占位空槽（武器/护甲/饰品，未开放）、个人卡组网格、「抽取行动卡」（花 2 属性点）。抽卡后弹**无法关闭的 3 选 1 弹层**（候选在 `pendingDraw` 持久化，刷新也必须选完）。 |
+| `TownScreen.tsx` | **据点大厅**：远征之间的常驻中枢，已从终端列表页改成沉浸式场景页。与主菜单同一套 **1920×1080 设计画布**（复用 `stage.ts` 的 `useStageScale`，画面恒为 16:9、构图逐 px 不随分辨率变、四周黑边），底图是 `assets/场景/大厅.png`（2560×1440，同为 16:9 ⇒ `cover` 只等比缩小），上面压一层暗角 `.town-veil` 给内容挣对比度。内容只有**右下角一块 718×350 的 bento 入口面板**（距画布右边 96px、底边 72px）+ 左上角的据点状态条 + 角落的「重置存档」。★ **面板 = 一张 5 列 × 2 行的 `grid-template-areas` 马赛克**（`160/120/150/150/98` 列 × `150/190` 行 + 10px 缝），同名格连成一块砖 ⇒ 6 块**尺寸互不相同**而**外轮廓仍是规则矩形**；三个真入口是冬眠仓 / 训练室 / 控制终端（对应 `游戏设定.md` 的低温维生区 / 作业模拟间 / 控制终端），冬眠仓与训练室占面积最大的两块，余下 3 块是未开放设施的锁定占位（模块装配舱 / 生物维护舱 / 物资中转仓，降亮 + 右上角「未开放」小标 + hover 反馈弱一档）——**可用性靠面积表达**（⚠ 控制终端已开放但仍占小块，是该约定的当前例外）。砖 = `backdrop-filter` 毛玻璃 + 内联线框 SVG 图标（不用 emoji：Windows 上会渲染成彩色贴纸）+ 名称 + 常驻说明文字，三档尺寸（`is-lg/md/sm`）只调图标与字号。★ **玻璃的关键取舍**：底色只留 ~9%/3% 的白，文字对比度**靠 `backdrop-filter` 里的 `brightness(0.94)` 压暗背景**换来而不是靠加深自己的底色 ⇒ 砖块是真透明的（能看清背后霓虹灯管的形状与走向），读不清时优先下调 `brightness` 而非加底色。斜切角走 `--notch` 一个变量（`clip-path` 与 `::before` 光带、`::after` 角标全跟着它联动）。位置/尺寸/马赛克排布五个旋钮（`right`/`width`/`height`/`gap`/`grid-template-*`）全走内联 style，与 `MenuScreen` 同款分工。★ **设施内容走模块级 `FACILITY_CONTENT` 登记表**（设施 id → 渲染函数，参数是 `leaving`），目前只登记了 `worklog → ControlTerminalScene`；实现一个新设施 = 写一个 `ui/<Xxx>Scene.tsx` + 在表里加一行，本组件其余部分一行都不用动。内容层与「返回据点」都**延到 `leaving` 阶段才卸载**（各自淡出，与背景 700ms 交叉淡同步）——只在 `inside` 时渲染会让面板在背景还在淡的时候硬切消失。⚠ 冬眠仓 / 训练室点进去仍**只有背景与「返回据点」**；另外 3 块是纯 UI 占位（不挂 `onClick`、也刻意不加 `disabled` 以保留 hover 效果）；**顶部导航条与「编队」入口仍未恢复**（也没有回主菜单的路），但据点**已不是死路**——控制终端 → 下降舱能出击。 |
+| `ControlTerminalScene.tsx` | **★ 控制终端（设施 `worklog`）的设施内 UI**，由 `TownScreen` 的 `FACILITY_CONTENT` 在运镜结束后挂载。设定依据是 `游戏设定.md` 第四节「控制终端 \| 接取任务、选择地下城、结算城市居民积分」。★ **配色刻意不复用大厅的 `.bento-glass`**：`控制终端.png` 是一张纯白高亮的洁净控制室，大厅那套「暗底毛玻璃 + 亮青 `#6fe3f5`」压在白底上文字会糊、描边会消失 ⇒ 这里是一套**亮玻璃**（白雾底 `#ffffff8f` + 深墨字 `#0b2a33` + 比大厅深两档的青 `#0a8fa8` + `brightness(1.04)` **提亮**背景而非压暗），四个旋钮集中在 `.term-scene` 的 `--term-*` 里（只在本文件使用，不新增也不覆盖全局令牌，与 `--town-glow` 同款做法）。版面：左上场景标题 + 右上两枚读数 chip（终端积分 / 上阵 N/3）+ **右侧两条抽屉式入口**（`right:0 / top:138 / width:460 / 每条 88px 高`，紧贴右上读数 chip 下方；六个旋钮同样走内联 style）。★ **抽屉机制**：`.term-entry` 常态 `transform: translateX(calc(100% - var(--peek)))` 把自己推出画布右缘，只留 `--peek`（248px，读全「图标 + 名称 + 未接入小标」之后还留一截余白，收起态一眼能认出是可点的入口）那一截，超出的部分由 `.town-splash` 的 `overflow:hidden` 裁掉；hover 只把 `--slide` 改成 `0` ⇒ `transform` 计算值变化，靠 `transition: transform` 滑出，两条各自 hover 各自弹。⚠ 滑动的 transform **只能挂在按钮自己身上**（不能套做位移的包装层，理由同下面的 backdrop root 警告）；⚠ hover **刻意不再叠 `translateY(-6px)` 上浮**（共用 transform 会把 `--slide` 覆盖掉）；⚠ 入场/退场必须用**带 `translateX(var(--slide))` 的专用关键帧** `termEntryRise`/`termEntryFade`（动画胜过普通声明，少写 translateX 就等于把收起位抹平）；⚠ `prefers-reduced-motion` 下**不能写 `transform: none`** 关掉弹出（那是功能不是装饰），改成把过渡压到 `0.01s`；⚠ 「未接入」小标改成**与名称同行的行内标签**而非右上角标——收起态右上角在画布外，角标读不到。两个入口都开**场景内浮层**（不换路由）：**① 下降舱**——左列 `MAPS` 列表（`SECTOR-0N` / 名称 / 星级 / 场次）+ 右侧详情（`mapArt` 预览图 / 描述 / 难度·场次·探索卡池 / 队伍 chip 走 `getCharacter`+`deriveStats`），「确认下降」直接 `runStore.startExpedition(mapId)` 进探索牌局；**② 委托**——3 条示例工单（回收失控机器人 / 维修城市装置 / 运送物资，照 `游戏设定.md:35-44`）全部灰化标「未接入」，**是占位不是功能**，真接工单系统时整段 `COMMISSIONS` 常量删掉换数据源。浮层**从画布上方滑入、关窗时滑回上方**（`termPanelIn` 440ms / `termPanelOut` 300ms，位移 `-1080px` = 画布高，保证任何尺寸的面板都完全退到画布外；刻意不叠淡入淡出——顶边之外那段本就被 `.town-splash` 的 `overflow:hidden` 裁掉，再加 opacity 会像鬼影）。★ 关窗**不直接卸载**：先进 `closing` 态让 CSS 播完滑出，`PANEL_OUT_MS` 后才把 `panel` 置空（与 `TownScreen` 的 `leaving` 阶段同一套做法）⇒ ⚠ **CSS 的 `termPanelOut` duration 与 TSX 的 `PANEL_OUT_MS` 必须一致**，降级路径同理（`termFadeOut` ↔ `PANEL_OUT_REDUCED_MS`）。三条关窗路径（✕ / 点面板外空白 / 按 `Esc`）全部走同一个 `closePanel()`；★ **没有全局遮罩**——场景是纯白洁净控制室，压暗它换对比度会毁掉这张图的气质，故 `.term-modal` 是一整块**完全透明**的点击捕获层，分层全交给 `.term-panel` 自己的**白色毛玻璃**（`blur(26px)` + 白色外描边 + 重投影；面板内的列表行/数值砖白不透明度随之各提一档，否则从半透明背板上分不出来）。它 `z-index:3` 高于「返回据点」的 1 ⇒ 浮层开着时那个按钮（与两条抽屉）天然点不到，不需要额外禁用逻辑，⚠ 但没有 scrim 之后它**不再变暗**，看起来仍可点——这是刻意接受的取舍。⚠⚠ `.term-modal` 自己**绝不能挂 opacity/filter/transform 动画**（原来那条 `termScrimIn` 已删除）：它是面板的父元素，一旦成为 backdrop root，面板的 `backdrop-filter` 就取不到场景。⚠⚠ **根节点 `.term-scene` 永远不能挂 `animation`/`opacity`/`transform`/`filter`**：任何祖先一旦成为 backdrop root，底下亮玻璃砖的 `backdrop-filter` 就取不到设施背景、会糊成一块死板（元素**自己**的 opacity 不影响自己的 backdrop-filter，只有祖先会）——故入场/退场动画一律挂在叶子元素（`.term-header`/`.term-readout`/`.term-entry`）身上。这与 `TownScreen.css` 里「相机变换不套包装层」是同一条约束的另一面。⚠ 所有按钮都必须**显式覆写** `background`/`color`/`border` 且 hover 规则带 `.town-splash` 前缀——`styles/base.css` 的 `button`(0,0,1) 给了深色渐变底 + `#edf2ef` 文字，`button:hover:not(:disabled)`(0,2,1) 会把裸类按钮刷成终端皮肤的黄绿描边。 |
+| `CryoScene.tsx` | **★ 冬眠仓（设施 `cryo`）的设施内 UI**，由 `TownScreen` 的 `FACILITY_CONTENT` 在运镜结束后挂载。设定依据是 `游戏设定.md` 第一节「主角一行在 3300 年代被强制唤醒」+ 第四节据点设施表「冬眠舱 \| 唤醒新队友」。★ **与 `ControlTerminalScene` 完全同构**——版面（左上标题 + 右上读数 chip + 右侧抽屉式入口）、抽屉机制（`--peek` / `--slide` / 专用的 `cryoEntryRise`/`cryoEntryFade` 关键帧）、浮层演出（无遮罩 + 白毛玻璃面板 + 两根吊绳 + 从画布上方滑入滑回 + `closing` 延迟卸载）全部逐段照搬，**唯一的差别是色相**：`冬眠仓.png` 是一张紫粉白的浅色场景，故走同一套**亮玻璃**配方（白雾底 `#ffffff8f` + 深紫墨字 `#2a1b3d` + `brightness(1.04)` 提亮）而把强调色从深青换成**深紫罗兰 `#7c4dbe`**（加深档 `#55307f`），五个旋钮集中在 `.cryo-scene` 的 `--cryo-*` 里。抽屉旋钮：`right:0 / top:138 / width:460 / 每条 88px 高 / --peek:260`（比控制终端的 248 大一档——「查看属性与卡组 · N 人」这行更长，248 会把末尾卡在画布边缘）。三条抽屉 → 三个浮层：**①「编队」**= `partySize` 个出战槽（所见即所得，空槽画虚线 ＋）+ 待命名册，互相编入/撤出（至少留 1 人、至多 `partySize` 人）；**②「队员档案」**= 左名册 + 右**只读**详情（立绘 / 经验条 / 四维 / 个人卡组）；**③「冬眠唤醒」**= 舱位阵列（已解封 / 密封 / 无信号三态，至少 `POD_SLOTS`=6 格）+ 右侧舱位详情 +「解封唤醒 −`awakenCost` 残片」→ `townStore.awaken`。⚠ 属性加点与抽卡刻意**不**在这里（按 `游戏设定.md` 的设施分工归训练室）。⚠ 浮层内的行/砖**不用**场景层那套 `backdrop-filter` 玻璃配方——它们压在 `.cryo-panel` 这块毛玻璃背板上，再叠一层只会互相糊，故一律用比背板高一档白不透明度的实色（`#ffffffad` / hover `#ffffffd9` / 选中 `#fffffff0`）。⚠ 舱位的「冷凝雾」`.cryo-pod-frost` 从冷白换成**紫粉雾**——浅底上冷白完全不可见，留不住「看不清舱里」那层读感。⚠⚠ 与控制终端共享的三条硬约束一条不少：**根节点 `.cryo-scene` 与 `.cryo-entries`/`.cryo-modal` 永远不能挂 `animation`/`opacity`/`transform`/`filter`**（祖先一旦成为 backdrop root，玻璃砖与面板的 `backdrop-filter` 就取不到背景）；抽屉入场动画的 fill-mode 必须是 `backwards`（`forwards` 会把 transform 锁死 ⇒ 滑不动）；`prefers-reduced-motion` 下**不能写 `transform: none`** 关掉弹出（那是功能不是装饰），改成把过渡压到 `0.01s`。⚠ CSS 的 `cryoPanelOut` duration 与 TSX 的 `PANEL_OUT_MS`（600ms）、降级块的 `cryoFadeOut` 与 `PANEL_OUT_REDUCED_MS`（180ms）各是同一个数，改一处必须改两处。 |
+| `mapArt.ts` | **地图 `MapDef.id` → 选层预览图**的查找表 + `warmMapArt()` 预热（幂等，同 `warmBattleBg`/`warmFacilityBg` 写法；`大楼废弃楼层.png` 约 3.4MB，不预热则点开下降舱那一刻预览位是一片空底色）。⚠ 与 `battleBg.ts` 的分工：那边是**战斗背景**（打起来时铺满屏幕的那张），这边是**选层时的缩略预览**，同一张地图两者可以是不同的图，故刻意分成两张表而不是给 `BattleBgDef` 加字段。目前只有一张场景图，未登记的地图（迷雾森林 / 巢穴腹地）先共用它。 |
+| `FormationScreen.tsx` | **⚠ 旧编队页，已不可达**（编队功能现由 `CryoScene` 承担，这里只留着属性加点与抽卡两件事等训练室接手）：左栏角色列表（只列已唤醒的 `awakened`，等级/属性点/上阵切换，至少 1 人、至多 3 人），右栏选中角色详情——四维属性加点（基础值 + 每点收益，即点即生效）、装备占位空槽（武器/护甲/饰品，未开放）、个人卡组网格、「抽取行动卡」（花 2 属性点）。抽卡后弹**无法关闭的 3 选 1 弹层**（候选在 `pendingDraw` 持久化，刷新也必须选完）。 |
 | `ExpeditionScreen.tsx` | **远征选图**：把 `MAPS` 渲染成卡片（emoji / 名称 / 难度星级 / 描述 / 场次与探索卡池大小），点击即 `startExpedition(map.id)` **进入探索牌局**（不再直接开打）。 |
 | `ExploreScreen.tsx` | **★ 探索牌局主界面**：自上而下为〔地图名 + 危险度仪表 + 残片/牌库〕→〔队伍血量条〕→〔轨迹〕→〔牌桌：左侧路线牌、右侧手牌〕→〔三个场地能力按钮〕。悬停手牌时把 `previewDanger` 下发给仪表与卡面做**跨档预演**。弃牌选择模式下手牌的点击语义从「打出」切换为「勾选」。 |
 | `ExploreCardView.tsx` | 探索卡卡面。**与战斗卡的 `CardView` 刻意不复用**——两者信息结构完全不同（战斗卡讲「消耗/目标/效果」，探索卡讲「危险度/收益/这一步通往哪」）。遭遇/BOSS 卡开局即绑定具体 `encounterId`，故卡面能提前亮出敌人数，玩家因此可以**自选先打哪一场**。 |
@@ -464,7 +474,7 @@ ui （React：纯展示 + 交互，不含规则）
 ### 8. 可扩展点（后续方向）
 
 - **内容替换**：`data/` 全部为占位默认，替换成正式卡牌/角色/敌人/遭遇战/地图即可。
-- **城镇设施**：`TownScreen` 的 `LOCKED_FACILITIES` 是一排 disabled 占位；实现某个设施 = 加一个 `Screen` 成员 + `App.tsx` 加 case + 新建界面组件，并把它从占位表里挪走。持久资产统一放 `townStore`。
+- **据点设施**：`TownScreen` 的模块级常量 `FACILITIES` 列了 6 块砖，其中冬眠仓 / 训练室 / 控制终端已开放，八项设施的全集见 `游戏设定.md` 第四节。三步各自独立：**① 开放一个设施** = 去掉它的 `locked` + 在 `facilityScenes.ts` 的 `FACILITY_SCENES` 里登记一行（背景图 / 推镜焦点 / 倍数），组件一行都不用动（未登记的设施即使去掉 `locked` 也点不动，`hasFacilityScene` 会拦下）。**② 给设施填内容** = 写一个 `ui/<Xxx>Scene.tsx`（照 `ControlTerminalScene.tsx`：设施内的一切都画在据点画布里，不新增 `Screen` 成员、不碰路由）+ 在 `TownScreen` 的 `FACILITY_CONTENT` 里加一行 —— 目前 `worklog`（`ControlTerminalScene`）与 `cryo`（`CryoScene`）有内容，训练室仍是空场景。**③ 新增入口** = 往 `FACILITIES` 里加一条（含一个内联线框 SVG 图标组件）+ 在 `gridTemplateAreas` 里给它划格。持久资产统一放 `townStore`。⚠ 编队已迁进冬眠仓，但旧的 `FormationScreen` 与 `runStore.openFormation` 都还在、仍然没人调 —— 它俩额外带着**属性加点**与**抽卡改造卡组**两件冬眠仓刻意没做的事（按 `游戏设定.md` 的设施分工归训练室），等做训练室时再决定是迁移还是删除。也仍然没有回主菜单的路；离开据点目前只有「控制终端 → 下降舱 → 确认下降」这一条。
 - **新探索卡**：`data/explore.ts` 加一条定义 + 把 id 登记进某张地图的 `explorePool`。若需要新的效果类型，则 `explore/types.ts` 的 `ExploreEffect` 加一个成员 + `session.ts` 的 `applyEffect` 加一个分支（与战斗层的 `EffectType` 同套路）。
 - **地图性格**：卡池是唯一的性格来源。森林多采集与回血、城市多商人与情报、深渊多高危高收益 + 更多杂质——靠 `explorePool` 的构成表达，不需要任何新机制。
 - **动态难度**：任何「改造一场遭遇战」的需求都走 `EncounterModifier`（追加敌人 / 全体开局状态 / `castTick` 调整 / HP 倍率），引擎侧无需再改。危险度只是它的第一个来源。

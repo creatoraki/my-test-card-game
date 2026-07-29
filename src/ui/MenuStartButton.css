@@ -207,9 +207,9 @@
   }
 }
 
-/* ── 3) 外溢火星: **不加 mask**, 所以能飞出牌匾轮廓。整层空闲态隐藏, 悬停才出现 ──
-   起点沿轮廓绕一圈铺开、位移是纯径向朝外(几何全在 MenuStartButton.tsx 里算, 见那边的注释) ⇒
-   读起来就是"跑光转到飞快, 把火花从轮廓上甩了出去"。
+/* ── 3) 金属火花: **不加 mask**, 所以能飞出牌匾轮廓。整层空闲态隐藏, 悬停才出现 ──
+  每个 burst 是贴在轮廓附近的固定发射点，按跑光周期错相位触发。粒子出生后不继承旋转，
+  只沿该点的外法线飞散；因此流光扫过哪里，哪里才有一小束新火花被切出来。
 
    ⚠ 进出用不同的时长: 进 0.12s(要跟得上跑光换挡那一下, 慢了会像"先亮圈、过一会儿才着火"),
      出 0.35s(松开鼠标让火花自己烧完更自然, 硬切会像断电)。
@@ -219,45 +219,57 @@
      (同 .menu-start-rim 把辉光放在父层的理由; 区别是这层没有 mask, 不存在被裁掉的问题。) */
 .menu-start-sparks {
   opacity: 0;
-  filter: drop-shadow(0 0 7px var(--start-hue));
+  filter: drop-shadow(0 0 6px var(--start-hue));
   transition: opacity 0.35s ease;
+}
+.menu-start-spark-burst {
+  position: absolute;
+  left: var(--bx, 50%);
+  top: var(--by, 50%);
+  width: 1px;
+  height: 1px;
+  transform: rotate(var(--br, 0rad));
+}
+.menu-start-spark-source {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
 }
 .menu-start:hover .menu-start-sparks {
   opacity: 1;
   transition-duration: 0.12s;
 }
-/* 一颗火花 = 一道细长拖尾, 不是圆点: 圆点在径向甩出时读不出方向感。
+/* 一颗火花 = 一道细长拖尾, 不是圆点: 圆点在喷射时读不出方向感。
    --srot 把拖尾转到和位移同一个方向, 于是渐变的"亮头"永远朝外(90deg = 元素自身 +x 轴)。
    长度/粗细(--sw / --sh)逐颗随机, 由 MenuStartButton.tsx 内联下发。
 
-   ★ 渐变三段是"一颗火花"的全部造型, 从尾到头:
-       透明 → 半透明青绿(尾焰) → 实心 --start-hue(躯干) → 掺白的 --start-hue(白热的头)
-     头部**掺白而不是纯白**: 掺白只抬亮度、不改色相, 所以再亮也还是同一支青绿, 和环带、光尘
-     是一家人 —— 纯 #fff 会立刻变成一堆刺眼的白点, 把整个青绿霓虹调冲散。 */
+  渐变从透明尾焰过渡到青绿色躯干与亮青热芯，与轮廓跑光保持同一条能量色谱。 */
 .menu-start-spark {
   position: absolute;
-  left: var(--sx0, 50%);
-  top: var(--sy0, 50%);
+  left: 0;
+  top: 0;
   width: var(--sw, 18px);
   height: var(--sh, 3px);
   border-radius: 2px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in srgb, var(--start-hue) 55%, transparent) 40%,
-    var(--start-hue) 76%,
-    color-mix(in srgb, var(--start-hue) 40%, #fff) 100%
+    color-mix(in srgb, var(--start-hue) 48%, transparent) 34%,
+    var(--start-hue) 62%,
+    color-mix(in srgb, var(--start-hue) 62%, #d9fff7) 83%,
+    #edfffb 100%
   );
-  /* 贴身的一圈小 bloom。大范围辉光交给父层的 drop-shadow, 这里只负责"芯很烫"。 */
-  box-shadow: 0 0 calc(4px + var(--fx) * 7px) var(--start-hue);
+  /* 贴身的青绿色小 bloom。大范围辉光交给父层的 drop-shadow, 这里只负责亮芯。 */
+  box-shadow: 0 0 calc(3px + var(--fx) * 5px) var(--start-hue);
   opacity: 0;
-  animation: menuStartSpark var(--sdur, 0.7s) ease-out var(--sdel, 0s) infinite;
+  animation: menuStartSpark 0.5s ease-out calc(var(--bdel, 0s) + var(--sdelay, 0s)) infinite;
 }
 /* ⚠ transform 的顺序不能换: translate 先走(在父层坐标系里位移), rotate 后走(绕火花自己的中心
    转朝向)。反过来写会把位移也一起旋转掉, 火花就飞去别的方向了。
    scaleX 由短拉长 = 甩出去时被"拉出"尾巴, 收尾再随 opacity 烧没。
-   ⓘ 60% 那一帧是特意加的"亮度平台": 只写 12% 亮起、100% 灭掉的话, 中间是一路匀速变暗,
-     整颗火花大半程都处在半亮, 观感很飘。压住不掉、最后一段才急落, 才像一颗真的在烧的火星。 */
+  末段收短并熄灭；发射点自身持续沿轮廓跑动，因此火流始终咬在流光后面。 */
 @keyframes menuStartSpark {
   0% {
     opacity: 0;
@@ -267,11 +279,12 @@
     opacity: 1;
   }
   60% {
-    opacity: 0.92;
+    opacity: 0.82;
+    transform: translate(calc(var(--sx, 10px) * 0.68), calc(var(--sy, 24px) * 0.54)) rotate(var(--srot, 0rad)) scaleX(1);
   }
   100% {
     opacity: 0;
-    transform: translate(var(--sx, 10px), var(--sy, -24px)) rotate(var(--srot, 0rad)) scaleX(1);
+    transform: translate(var(--sx, 10px), var(--sy, 24px)) rotate(var(--srot, 0rad)) scaleX(0.6);
   }
 }
 

@@ -44,7 +44,7 @@ export interface AmbienceDef {
 }
 
 const AMBIENCE: Record<string, AmbienceDef> = {
-  // 霓虹城市: 背景是**静态图**, 是本次改造的主要受益者 —— 三层粒子 + 招牌闪 + 冷调暗角,
+  // 废弃楼层(neon-city): 背景是**静态图**, 是本次改造的主要受益者 —— 三层粒子 + 招牌闪 + 冷调暗角,
   // 把一张不动的图撑成"下着雨的赛博街区"。
   "neon-city": {
     emitters: [
@@ -86,37 +86,9 @@ const AMBIENCE: Record<string, AmbienceDef> = {
     flicker: { color: "#7b5cff", period: 5200 },
     grade: { vignette: 0.28, tint: "#0a1520", scanline: 0.04 },
   },
-
-  // 森林: 背景本身是循环视频, 已经在动 —— 粒子只补前景纵深与光斑, 数量比霓虹城市更少。
-  forest: {
-    emitters: [
-      {
-        kind: "dust",
-        layer: "far",
-        count: 55,
-        color: "#ffeec2",
-        size: [1.5, 3.5],
-        speed: [10, 26],
-        opacity: [0.18, 0.45],
-        drift: 26,
-      },
-      {
-        kind: "dust",
-        layer: "near",
-        count: 12,
-        color: "#fff6dd",
-        size: [5, 11],
-        speed: [14, 32],
-        opacity: [0.06, 0.14],
-        drift: 40,
-        blur: 3,
-      },
-    ],
-    grade: { vignette: 0.22 },
-  },
 };
 
-// 未登记的地图(巢穴腹地/树冠回廊…)回退到一层最轻的光尘 + 淡暗角 —— 任何背景都不出戏。
+// 未登记的地图回退到一层最轻的光尘 + 淡暗角 —— 任何背景都不出戏。
 const FALLBACK_AMBIENCE: AmbienceDef = {
   emitters: [
     {

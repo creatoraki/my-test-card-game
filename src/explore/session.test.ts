@@ -21,7 +21,7 @@ const PARTY: PartySnapshot[] = [
 ];
 
 function newSession(seed = 1): ExploreState {
-  return createSession("forest", PARTY, [], seed);
+  return createSession("neon-city", PARTY, [], seed);
 }
 
 // 手牌里第一张 danger 为 delta 的事件卡; 找不到就返回 undefined

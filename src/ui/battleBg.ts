@@ -12,11 +12,10 @@ export interface BattleBgDef {
 }
 
 const BATTLE_BG: Record<string, BattleBgDef> = {
-  forest: { kind: "video", src: forestBgVideo },
   "neon-city": { kind: "image", src: neonCityBg },
 };
 
-// 未登记背景的地图(巢穴腹地/树冠回廊)回退到森林视频, 与登记表存在之前的行为一致。
+// 未登记背景的地图回退到森林视频, 与登记表存在之前的行为一致。
 const FALLBACK_BG: BattleBgDef = { kind: "video", src: forestBgVideo };
 
 export function battleBg(mapId: string | null): BattleBgDef {

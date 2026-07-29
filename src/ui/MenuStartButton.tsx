@@ -14,14 +14,15 @@ import "./MenuStartButton.css";
  *   .menu-start-motes   内部光尘 —— 单层 mask, 粒子只在牌匾内部上浮
  *   .menu-start-rim     轮廓跑光 —— 双 mask 相减出一条贴轮廓的环带, 里面转一道 conic 亮楔
  *                       空闲 3.6s/圈; 悬停直接提到 **0.05s/圈 = 20 圈/秒**(--rim-spin)
- *   .menu-start-sparks  外溢火星 —— **不加 mask**, 沿轮廓一圈被"甩"向外侧, 仅悬停时出现
+ *   .menu-start-sparks  金属火花 —— **不加 mask**, 与轮廓跑光同步绕牌匾移动，从当前流光切割点喷出
  *
  * 强度总开关是 .menu-start 上的 --fx(空闲 0.35 / 悬停 1), 三层的透明度与辉光都乘它 ⇒
  * 「常驻弱效, 悬停增强」只有一个旋钮。**全程没有任何缩放**(悬停放大是这次要去掉的东西)。
  */
 
 const MOTE_COUNT = 14; // 内部光尘颗数
-const SPARK_COUNT = 24; // 外溢火星颗数(悬停才可见, 是"跑光甩火花"的主体, 所以给得比光尘还密)
+const SPARK_BURST_COUNT = 16; // 沿轮廓排开的独立发射点; 流光每经过一个点就触发一次火花批次
+const SPARKS_PER_BURST = 4;
 
 // 确定性伪随机: 同一颗粒子每次渲染都拿到同一组数, 重渲染不会让它中途跳位。
 // 与 ui/HpBar.tsx 的迸溅火花同一个 sin-hash(那边多一个 seq 维度, 这里粒子是常驻的, 不需要)。
@@ -45,34 +46,35 @@ const MOTES: CSSProperties[] = Array.from({ length: MOTE_COUNT }, (_, i) => {
   } as CSSProperties;
 });
 
-// 火星: 沿牌匾外沿**绕一圈**铺开, 每颗沿"离开中心"的方向被甩出去 ⇒ 观感是高速跑光从轮廓上
-// 蹭下来的火花, 而不是从图片中间往上冒的烟。仅悬停时可见。
-//
-// ★ 起点用**内接椭圆**而不是盒子的矩形周长: 牌匾是斜的, 外接盒的四角基本是空的,
-//   从角上冒火星会明显脱离图形、像凭空出现。椭圆虽然也只是近似, 但永远落在实体附近。
-// ★ 位移方向 = 起点方向(纯径向), 所以火星一定是"向外"而不是乱飘;
-//   拖尾靠 --srot 转到同一方向, 头朝外、尾朝内(见 MenuStartButton.css 的渐变方向)。
-const SPARKS: CSSProperties[] = Array.from({ length: SPARK_COUNT }, (_, i) => {
-  // 均匀铺满一圈 + 一点抖动 —— 纯等分会排得像齿轮, 一眼看出是"摆"上去的。
-  const ang = ((i + rand(i, 11) * 0.8) / SPARK_COUNT) * Math.PI * 2;
-  const ux = Math.cos(ang);
-  const uy = Math.sin(ang);
-  const dist = 26 + rand(i, 12) * 44; // 甩出距离 26~70px(飞得远才看得出是"被甩出去"的)
-  // 短促才像火花, 但太短会来不及看清 —— 半秒到一秒之间是"够快又读得到"的窗口。
-  const dur = 0.5 + rand(i, 13) * 0.4;
+// 火花批次: 发射点固定在牌匾轮廓附近。每个点的动画错开一个轮廓跑光周期，流光经过时才短促喷出；
+// 粒子自身只在页面坐标中向外飞散，不继承任何旋转 transform。
+const SPARK_BURSTS: CSSProperties[] = Array.from({ length: SPARK_BURST_COUNT }, (_, i) => {
+  const angle = (i / SPARK_BURST_COUNT) * Math.PI * 2;
+  const ux = Math.cos(angle);
+  const uy = Math.sin(angle);
   return {
-    "--sx0": `${50 + ux * 44}%`, // 起点贴着轮廓(44%/38% 是椭圆半径, 略小于外接盒)
-    "--sy0": `${50 + uy * 38}%`,
-    "--sx": `${ux * dist}px`,
-    "--sy": `${uy * dist - 12}px`, // 径向位移再叠一点上飘, 火花才有"热"的感觉
-    "--srot": `${ang}rad`, // 拖尾朝向 = 甩出方向
-    "--sw": `${12 + rand(i, 14) * 14}px`, // 拖尾长度 12~26px
-    "--sh": `${2 + rand(i, 16) * 2}px`, // 拖尾粗细 2~4px(粗细也随机, 免得 24 条像一套复制品)
-    "--sdur": `${dur}s`,
-    // 负延迟: 同 MOTES, 让 20 颗一挂载就散在各自相位上, 否则悬停瞬间会齐步炸开一次。
-    "--sdel": `${-rand(i, 15) * dur}s`,
+    "--bx": `${50 + ux * 40}%`,
+    "--by": `${50 + uy * 34}%`,
+    "--br": `${angle}rad`,
+    // 悬停态跑光固定为 0.5s/圈。将每个发射点沿这一周期均匀错相位，形成跟着流光移动的切割轨迹。
+    "--bdel": `${-(i / SPARK_BURST_COUNT) * 0.5}s`,
   } as CSSProperties;
 });
+
+function sparkStyle(burstIndex: number, particleIndex: number): CSSProperties {
+  const seed = burstIndex * SPARKS_PER_BURST + particleIndex;
+  // 父级旋转到局部外法线，+x 就是向外；小角度散布做成紧凑的磨削火花束。
+  const ang = ((rand(seed, 12) - 0.28) * 72 * Math.PI) / 180;
+  const dist = 24 + rand(seed, 13) * 48;
+  return {
+    "--sx": `${Math.cos(ang) * dist}px`,
+    "--sy": `${Math.sin(ang) * dist + 5}px`,
+    "--srot": `${ang}rad`,
+    "--sw": `${12 + rand(seed, 14) * 17}px`,
+    "--sh": `${1 + rand(seed, 15) * 1.1}px`,
+    "--sdelay": `${rand(seed, 16) * 0.055}s`,
+  } as CSSProperties;
+}
 
 interface Props {
   onClick: () => void;
@@ -121,10 +123,20 @@ export function MenuStartButton({ onClick, right, bottom, width }: Props) {
         </span>
       </span>
 
-      {/* 3) 外溢火星: 无 mask, 可以飞出牌匾轮廓; 空闲态整层 opacity:0, 悬停才出现 */}
+      {/* 3) 金属火花: 流光扫过轮廓时逐点触发；每颗粒子出生后独立飞散。 */}
       <span className="menu-start-sparks" aria-hidden>
-        {SPARKS.map((style, i) => (
-          <i key={i} className="menu-start-spark" style={style} />
+        {SPARK_BURSTS.map((burstStyle, burstIndex) => (
+          <span key={burstIndex} className="menu-start-spark-burst" style={burstStyle}>
+            <span className="menu-start-spark-source">
+              {Array.from({ length: SPARKS_PER_BURST }, (_, particleIndex) => (
+                <i
+                  key={particleIndex}
+                  className="menu-start-spark"
+                  style={sparkStyle(burstIndex, particleIndex)}
+                />
+              ))}
+            </span>
+          </span>
         ))}
       </span>
     </button>
