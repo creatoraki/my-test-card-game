@@ -1,61 +1,103 @@
 // ============================================================================
 // 探索层类型定义 —— 与 engine/types.ts 同惯例: 只定义类型, 不含逻辑, 不 import 实现。
-// 探索卡与战斗卡是两套完全独立的体系, 刻意不复用 Card ——
-// 前者的"效果"作用于整支队伍与区域危险度, 后者作用于战斗单位。
+//
+// 本层描述的是「失真路由图」远征(见 探索模式设计.md):
+//   一张地图 = 5-7 段独立的阿弥陀签路由决策; 每段公开 5 个终点事件、短暂全显线路后隐去,
+//   玩家选入口 A-E, 信号自动下行遇横线强制换线, 抵达一个终点并结算。
+//   净化粒子(energy)是唯一的难度轴与时限, 只降不升。
 // ============================================================================
 
-import type { Rarity } from "../engine/types";
+// ---------------------------------------------------------------------------
+// 路由图
+// ---------------------------------------------------------------------------
+// 一条横线连接 leftLane 与 leftLane + 1 两条相邻竖线。同一 row 内不得共享端点。
+export interface RouteCrossbar {
+  row: number;
+  leftLane: number;
+}
+
+export interface RouteBoard {
+  segment: number; // 本段段号(从 1 起)
+  laneCount: number;
+  rowCount: number; // 横线可占用的行数, 决定图形高度
+  crossbars: RouteCrossbar[];
+  events: RouteEvent[]; // 终点事件, 从左到右与 lane 0..laneCount-1 一一对应
+  revealDurationMs: number; // 完整线路的展示时长
+  blockedLanes: number[]; // 被「塌落的隔断」等 debuff 封锁的入口(不可选)
+}
 
 // ---------------------------------------------------------------------------
-// 探索卡
+// 终点事件
 // ---------------------------------------------------------------------------
-// encounter/boss/retreat 是「路线牌」: 不进牌库、不可弃、不占手牌上限, 由 createSession 直接发到 route。
-// event 是唯一会进牌库、靠抽取获得的卡型。
-export type ExploreCardKind = "encounter" | "boss" | "retreat" | "event";
+export type RouteEventKind =
+  | "battle"
+  | "elite"
+  | "boss"
+  | "retreat"
+  | "loot"
+  | "heal"
+  | "merchant"
+  | "route"
+  | "energy"
+  | "hazard";
 
-// 探索效果 —— 新增一种机制 = 这里加一个成员 + session.ts 的 applyEffect 加一个分支。
+// 保底规则按「类别」而非 kind 判定(设计文档 §2.3): 一段里至少各有一个生存 / 成长 / 战斗。
+export type EventCategory =
+  | "survival"
+  | "growth"
+  | "battle"
+  | "economy"
+  | "route"
+  | "energy"
+  | "hazard"
+  | "endgame";
+
+// 风险标记 —— 纯负面每段最多 1 个, 纯负面 + 高风险合计不超过 2 个。
+export type EventRisk = "negative" | "highRisk";
+
+// 事件效果。新增一种机制 = 这里加一个成员 + session.ts 的 applyEffect 加一个分支。
 export type ExploreEffect =
-  | { type: "GAIN_LOOT"; amount: number } // 残片入袋(仅撤退/通关时才转进城镇)
-  | { type: "DRAW"; amount: number } // 抽牌(手牌满则抽满即止)
-  | { type: "DISCARD"; amount: number } // 随机弃牌(负面卡用; 玩家主动弃牌走 pendingDiscard)
   | { type: "HEAL_PARTY"; percent: number } // 全队按 maxHp 百分比回血(不复活阵亡者)
-  | { type: "DAMAGE_PARTY"; amount: number } // 全队固定伤害(无视护盾, 可致死)
-  | { type: "MODIFY_DANGER"; amount: number }; // 额外的危险度增减(danger 字段之外的)
+  | { type: "HEAL_ONE_FULL"; othersPercent: number } // 单人回满 + 其余按百分比
+  | { type: "DAMAGE_PARTY_PERCENT"; percent: number } // 全队按 maxHp 百分比掉血
+  | { type: "GAIN_LOOT"; amount: number } // 城市居民积分(仅撤退/通关时落袋)
+  | { type: "MODIFY_ENERGY"; amount: number } // 净化粒子增减
+  | { type: "MODIFY_TAINT"; amount: number } // 污染层数增减
+  | { type: "SKIP_SEGMENT_COST" } // 免除本段的基础能量消耗
+  | { type: "START_BATTLE"; encounterId: string; boss?: boolean } // 进入战斗
+  | { type: "RETREAT" }; // 立即结束远征, 收益带回
 
-export interface ExploreCardDef {
+export interface RouteEvent {
   id: string;
-  name: string;
-  kind: ExploreCardKind;
-  emoji: string;
-  text: string;
-  danger: number; // 打出后危险度变化。事件卡默认 +1, 路线牌为 0
+  kind: RouteEventKind;
+  category: EventCategory;
+  risk?: EventRisk;
+  title: string;
+  description: string;
+  energyDelta: number; // 抵达该终点的额外能量代价(每段的基础 -10 不含在内)
   effects: ExploreEffect[];
-  rarity?: Rarity;
-}
-
-// 运行期实例。encounterId 只有 encounter/boss 卡有 —— 开局就绑定好具体打哪一场,
-// 因此卡面能提前把敌人组合亮给玩家看(玩家可以自选先打哪一场)。
-export interface ExploreCard extends ExploreCardDef {
-  uid: string;
-  encounterId?: string;
+  minSegment?: number; // 精英 / 高额奖励 / 终局事件的最早出现段号
+  disabled?: boolean; // P0 未实现的事件: 留在池里当占位, 不参与抽取
 }
 
 // ---------------------------------------------------------------------------
-// 轨迹 —— 已打出的卡, 横向排开构成这趟远征的可视历史。
-// 「地图不用画, 它自己长出来」: 轨迹就是地图。
+// 净化粒子档位 —— 唯一的难度轴(取代已废弃的区域危险度)
 // ---------------------------------------------------------------------------
-export interface TrailEntry {
+export interface EnergyTier {
+  tier: number; // 1..5
   name: string;
-  emoji: string;
-  kind: ExploreCardKind;
-  dangerBefore: number;
-  dangerAfter: number;
-  note: string; // 结算摘要, 如 "残片 +12"; 悬停轨迹卡时显示
+  color: string;
+  min: number; // 进入该档所需的能量下限(含)
+  extraEnemies: number;
+  enemyStatuses: { id: string; stacks: number }[];
+  castTickDelta: number;
+  taint: number; // 该档位下我方持续承受的污染层数下限
+  rewardMultiplier: number; // 即 K_energy, 同时作用于经验与产出
 }
 
 // ---------------------------------------------------------------------------
-// 队伍快照 —— 探索层持有的队伍血量, 跨战斗继承。
-// 这是整套设计的地基: 没有它,「休整」没意义、撤退没人考虑。
+// 队伍快照 —— 探索层持有的队伍血量, 跨段与跨战斗继承。
+// ⚠ 形状与上一版完全一致: runStore.partySnapshot() 直接产出它, 不要随意改字段名。
 // ---------------------------------------------------------------------------
 export interface PartySnapshot {
   charId: string;
@@ -67,63 +109,55 @@ export interface PartySnapshot {
 }
 
 // ---------------------------------------------------------------------------
-// 危险度档位
+// 远征记录 —— 每段一条, 结算页据此回顾整趟远征
 // ---------------------------------------------------------------------------
-export interface DangerTier {
-  tier: number; // 1..5
-  name: string;
-  color: string;
-  min: number; // 进入该档所需的危险度数值(含)
-  extraEnemies: number; // 战斗追加的敌人数
-  enemyStatuses: { id: string; stacks: number }[]; // 敌人开局状态
-  castTickDelta: number; // 敌人行动间隔调整(引擎侧钳到下限 1)
-  rewardMultiplier: number; // 战利品与经验倍率
-}
-
-// ---------------------------------------------------------------------------
-// 场地能力 —— 探索界面上三个常驻按钮, 永远可用(代价不足时置灰)。
-// 存在的意义是「牌库空 + 手牌空」的死局不成立。
-// ---------------------------------------------------------------------------
-export type AbilityId = "scout" | "rest" | "conceal";
-
-// 需要玩家点选弃牌的挂起态。rest/conceal 的代价是弃牌, 而「弃哪两张」本身就是决策,
-// 故不做随机弃牌 —— 随机弃牌等于没有决策。
-export interface PendingDiscard {
-  ability: AbilityId;
-  count: number;
-  picked: string[]; // 已点选的手牌 uid
+export interface RouteHistoryEntry {
+  segment: number;
+  entryLane: number;
+  exitLane: number;
+  eventId: string;
+  eventTitle: string;
+  energyBefore: number;
+  energyAfter: number;
+  note: string;
 }
 
 // ---------------------------------------------------------------------------
 // 会话状态 —— 完全可序列化(无函数), 可 structuredClone。
 // ---------------------------------------------------------------------------
 export type ExplorePhase =
-  | "exploring" // 牌桌上, 等玩家操作
-  | "inBattle" // 已打出遭遇/BOSS 卡, 战斗进行中
+  | "revealing" // 完整线路展示中。⚠ 此阶段禁止开背包(设计文档 §6.3 硬约束)
+  | "choosing" // 线路已隐去, 等玩家选入口。不限时, 可开背包
+  | "routing" // 信号沿线路下行中, 动画由 UI 驱动
+  | "resolving" // 已抵达终点并结算完毕, 等玩家确认后推进
+  | "inBattle" // 终点是战斗, 战斗进行中
   | "cleared" // BOSS 已击杀
-  | "retreated" // 主动撤退
+  | "retreated" // 主动撤退 / 走完全部段数
   | "wiped"; // 团灭
 
 export interface ExploreState {
   mapId: string;
-  danger: number;
-  loot: number; // 本趟累积的残片; 仅撤退/通关时转进城镇
 
-  cards: Record<string, ExploreCard>;
-  draw: string[]; // 牌库(uid)。打出的卡不洗回 ⇒ 牌库有限 ⇒ 地图卡池大小 = 这张图最多能玩多久
-  hand: string[]; // 事件卡, 受 handSize 约束
-  route: string[]; // 路线牌: 遭遇 ×N / BOSS(揭示后) / 撤退
+  energy: number; // 净化粒子, 唯一难度轴
+  taint: number; // 污染层数, 本次远征内不可自行清除
+  loot: number; // 本趟累积的城市居民积分; 仅撤退/通关时转进城镇
 
-  trail: TrailEntry[];
+  segment: number; // 当前段号, 从 1 起
+  segmentCount: number;
+  board: RouteBoard | null;
+
   party: PartySnapshot[];
+  history: RouteHistoryEntry[];
 
-  bossUid: string; // BOSS 卡的 uid(未揭示时不在 route 里)
-  bossRevealed: boolean;
-  encountersLeft: number;
+  entryLane: number | null; // 本段已选的入口
+  exitLane: number | null; // 本段的落点(phase 进入 routing 后才有值)
+  pendingNotes: string[]; // 本段结算摘要, 供 resolving 浮层展示
 
   pendingEncounterId: string | null; // 战斗中: 打的是哪一场
   pendingIsBoss: boolean;
-  pendingDiscard: PendingDiscard | null;
+  skipSegmentCost: boolean; // 「隐匿通道」: 本段免除基础能量消耗
+
+  bossAvailable: boolean; // BOSS 已接入网络, 终点池开始出现 BOSS 与撤离升降机
 
   phase: ExplorePhase;
   rngState: number;

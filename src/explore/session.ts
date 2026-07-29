@@ -2,60 +2,75 @@
 // 探索会话 —— 纯 TS, 无 React、无副作用。所有函数直接修改传入的 ExploreState,
 // 由 store 层负责 structuredClone 后再调用(与 engine/battle.ts 同惯例)。
 //
-// 核心循环: 牌是资源, 而抽牌权只能靠打仗换。
-//   手上有事件卡 ──打出──▶ 收益入袋 + 危险度↑
-//        ▲                        │
-//        └──胜利抽 2 张──  打出遭遇卡进入战斗(难度按当前危险度)
+// 一段的生命周期(设计文档 §1.2):
+//   generateSegment ──▶ revealing ──finishReveal──▶ choosing ──chooseEntry──▶ routing
+//                                                                                │
+//        ┌──────────────── resolving ◀──finishRouting────────────────────────────┘
+//        │                     ▲                    (终点是战斗则先去 inBattle)
+//        └──nextSegment──▶ 下一段 / cleared / retreated / wiped
+//
+// 净化粒子(energy)是**唯一**的难度轴与时限, 只降不升(少数事件例外)。
 // ============================================================================
 
 import { rngInt, shuffle } from "../engine/rng";
 import type { EncounterModifier } from "../engine/types";
-import { getMap, makeExploreCard } from "../data";
-import { EXPLORE_RULES, DANGER_TIERS } from "./rules";
+import { getEventPool, getMap } from "../data";
+import { generateCrossbars, exitLaneOf } from "./route";
+import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import type {
-  AbilityId,
-  DangerTier,
-  ExploreCard,
+  EnergyTier,
   ExploreEffect,
   ExploreState,
   PartySnapshot,
+  RouteBoard,
+  RouteEvent,
 } from "./types";
 
 // ---------------------------------------------------------------------------
-// 危险度换算 —— 唯一真相点, UI 与战斗生成共用
+// 能量换算 —— 唯一真相点, UI 与战斗生成共用
 // ---------------------------------------------------------------------------
-export function dangerTier(danger: number): DangerTier {
-  let found = DANGER_TIERS[0];
-  for (const t of DANGER_TIERS) if (danger >= t.min) found = t;
-  return found;
+// ENERGY_TIERS 按 min 降序排列(80 / 60 / 40 / 20 / 0), 故第一个 min <= energy 的就是当前档。
+export function energyTier(energy: number): EnergyTier {
+  for (const t of ENERGY_TIERS) if (energy >= t.min) return t;
+  return ENERGY_TIERS[ENERGY_TIERS.length - 1];
 }
 
-// 距离下一档还差多少点; 已在顶档返回 null(供 UI 决定要不要显示"再打 N 张跳档")
-export function toNextTier(danger: number): number | null {
-  const next = DANGER_TIERS.find((t) => t.min > danger);
-  return next ? next.min - danger : null;
+// 再掉多少点就跌入下一档; 已在末档返回 null(供 UI 决定要不要显示跨档预警)。
+export function toNextTier(energy: number): number | null {
+  const cur = energyTier(energy);
+  const next = ENERGY_TIERS.find((t) => t.tier === cur.tier + 1);
+  return next ? energy - next.min + 1 : null;
 }
 
-export function rewardMultiplier(danger: number): number {
-  return dangerTier(danger).rewardMultiplier;
+// 即设计文档 §5.1 的 K_energy。P0 只用它缩放经验与居民积分;
+// 掉落率与品质要等实物战利品(P1)接进来才有第二个消费方。
+export function rewardMultiplier(energy: number): number {
+  return energyTier(energy).rewardMultiplier;
 }
 
-// 危险度 → 遭遇战改造。引擎侧只认这一个结构(见 engine/types.ts EncounterModifier)。
+// 实际生效的污染层数 = 档位自带的下限 与 事件累积值 取大者。
+// ⚠ P0 只做**记录与显示**: 把「受伤 +6%/层、治疗 -10%/层」真的打进战斗需要引擎侧的
+//   我方修正器(EncounterModifier 目前只能改敌人), 那是 P1 的活。
+export function effectiveTaint(s: ExploreState): number {
+  return Math.min(EXPLORE_RULES.taint.max, Math.max(energyTier(s.energy).taint, s.taint));
+}
+
+// 能量档位 → 遭遇战改造。引擎侧只认这一个结构(见 engine/types.ts EncounterModifier)。
 export function encounterModifier(
-  danger: number,
+  energy: number,
   isBoss: boolean,
   fillerEnemyIds: string[],
 ): EncounterModifier {
-  const t = dangerTier(danger);
+  const t = energyTier(energy);
   const extra: string[] = [];
   if (fillerEnemyIds.length) {
-    // 追加敌人用确定性取模而非随机 —— 同一危险度下阵容稳定, 玩家看得懂自己招来了什么
+    // 追加敌人用确定性取模而非随机 —— 同一档位下阵容稳定, 玩家看得懂自己招来了什么
     for (let i = 0; i < t.extraEnemies; i++) extra.push(fillerEnemyIds[i % fillerEnemyIds.length]);
     if (isBoss && t.tier >= EXPLORE_RULES.boss.guardFromTier) extra.push(fillerEnemyIds[0]);
   }
   return {
     extraEnemies: extra,
-    enemyStatuses: t.enemyStatuses.map((s) => ({ ...s })),
+    enemyStatuses: t.enemyStatuses.map((st) => ({ ...st })),
     castTickDelta: t.castTickDelta,
     hpMultiplier: isBoss ? 1 + EXPLORE_RULES.boss.hpPerTier * (t.tier - 1) : 1,
   };
@@ -67,58 +82,33 @@ export function encounterModifier(
 export function createSession(
   mapId: string,
   party: PartySnapshot[],
-  carryCardIds: string[] = [],
   seed?: number,
 ): ExploreState {
   const map = getMap(mapId);
   const s: ExploreState = {
     mapId,
-    danger: 0,
+    energy: map.startingEnergy,
+    taint: 0,
     loot: 0,
-    cards: {},
-    draw: [],
-    hand: [],
-    route: [],
-    trail: [],
+    segment: 1,
+    segmentCount: map.routeSegments,
+    board: null,
     party: party.map((p) => ({ ...p })),
-    bossUid: "",
-    bossRevealed: false,
-    encountersLeft: map.encounterCount,
+    history: [],
+    entryLane: null,
+    exitLane: null,
+    pendingNotes: [],
     pendingEncounterId: null,
     pendingIsBoss: false,
-    pendingDiscard: null,
-    phase: "exploring",
+    skipSegmentCost: false,
+    bossAvailable: false,
+    phase: "revealing",
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
   };
 
-  const register = (card: ExploreCard) => {
-    s.cards[card.uid] = card;
-    return card.uid;
-  };
-
-  // ── 路线牌: 直接入手, 不进牌库 ──
-  // 遭遇卡开局就绑定具体 encounter 并亮在卡面上 ⇒ 玩家可以自选先打哪一场(先啃软的攒资源, 还是趁危险度低啃硬的)
-  const pool = [...map.encounterPool];
-  for (let i = 0; i < map.encounterCount; i++) {
-    const encounterId = pool.length ? pool[rngInt(s, pool.length)] : map.encounterPool[0];
-    const card = makeExploreCard("route-encounter");
-    card.encounterId = encounterId;
-    s.route.push(register(card));
-  }
-  s.route.push(register(makeExploreCard("route-retreat")));
-
-  // BOSS 卡先造好但不入 route —— 3 张遭遇卡打完后才揭示
-  const boss = makeExploreCard("route-boss");
-  boss.encounterId = map.bossEncounterId;
-  s.bossUid = register(boss);
-
-  // ── 牌库: 地图卡池 + 玩家随身卡, 洗匀 ──
-  const deckUids = [...map.explorePool, ...carryCardIds].map((id) => register(makeExploreCard(id)));
-  s.draw = shuffle(s, deckUids);
-
-  logLine(s, `进入 ${map.name}`);
-  drawCards(s, EXPLORE_RULES.openingDraw);
+  logLine(s, `接入 ${map.name}`);
+  generateSegment(s);
   return s;
 }
 
@@ -129,21 +119,8 @@ function logLine(s: ExploreState, text: string): void {
   s.log.push(text);
 }
 
-// 抽满即止: 手牌已满时剩余抽牌数直接作废, 不弃牌、不让玩家做无意义的取舍。
-function drawCards(s: ExploreState, n: number): number {
-  let drawn = 0;
-  for (let i = 0; i < n; i++) {
-    if (s.hand.length >= EXPLORE_RULES.handSize) break;
-    const uid = s.draw.shift();
-    if (!uid) break;
-    s.hand.push(uid);
-    drawn++;
-  }
-  return drawn;
-}
-
-function changeDanger(s: ExploreState, delta: number): void {
-  s.danger = Math.max(0, Math.min(EXPLORE_RULES.dangerMax, s.danger + delta));
+function changeEnergy(s: ExploreState, delta: number): void {
+  s.energy = Math.max(0, Math.min(EXPLORE_RULES.energyMax, s.energy + delta));
 }
 
 function healParty(s: ExploreState, percent: number): void {
@@ -153,10 +130,10 @@ function healParty(s: ExploreState, percent: number): void {
   }
 }
 
-function damageParty(s: ExploreState, amount: number): void {
+function damagePartyPercent(s: ExploreState, percent: number): void {
   for (const p of s.party) {
     if (!p.alive) continue;
-    p.hp -= amount;
+    p.hp -= Math.max(1, Math.round(p.maxHp * percent));
     if (p.hp <= 0) {
       p.hp = 0;
       p.alive = false;
@@ -165,114 +142,265 @@ function damageParty(s: ExploreState, amount: number): void {
   }
 }
 
-function discardRandom(s: ExploreState, n: number): void {
-  for (let i = 0; i < n && s.hand.length; i++) {
-    s.hand.splice(rngInt(s, s.hand.length), 1); // 打出即离场, 不回牌库
-  }
-}
-
-// 全队阵亡 = 团灭。事件卡的 DAMAGE_PARTY 也可能触发, 故每次改动队伍后都要查。
-function checkWipe(s: ExploreState): void {
-  if (s.phase !== "exploring") return;
-  if (s.party.every((p) => !p.alive)) {
-    s.phase = "wiped";
-    s.loot = Math.floor(s.loot * EXPLORE_RULES.wipe.lootKept);
-    logLine(s, "全队失去意识……");
-  }
-}
-
-// 单条效果 → 一句结算摘要(写进轨迹, 悬停可见)
-function applyEffect(s: ExploreState, e: ExploreEffect): string {
-  switch (e.type) {
-    case "GAIN_LOOT":
-      s.loot += e.amount;
-      return `残片 +${e.amount}`;
-    case "DRAW": {
-      const n = drawCards(s, e.amount);
-      return n < e.amount ? `抽 ${n} 张(手牌已满/牌库见底)` : `抽 ${n} 张`;
-    }
-    case "DISCARD":
-      discardRandom(s, e.amount);
-      return `随机弃 ${e.amount} 张`;
-    case "HEAL_PARTY":
-      healParty(s, e.percent);
-      return `全队回复 ${Math.round(e.percent * 100)}%`;
-    case "DAMAGE_PARTY":
-      damageParty(s, e.amount);
-      return `全队受到 ${e.amount} 伤害`;
-    case "MODIFY_DANGER":
-      changeDanger(s, e.amount);
-      return `危险度 ${e.amount > 0 ? "+" : ""}${e.amount}`;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 出牌
-// ---------------------------------------------------------------------------
-export function canPlay(s: ExploreState, uid: string): boolean {
-  if (s.phase !== "exploring" || s.pendingDiscard) return false;
-  return s.hand.includes(uid) || s.route.includes(uid);
-}
-
-// 打出一张事件卡: 结算 → 危险度变化 → 进轨迹(不洗回牌库)。
-// 路线牌走 playRoute(需要 store 层配合切界面), 这里直接拒绝。
-export function playEvent(s: ExploreState, uid: string): boolean {
-  if (!canPlay(s, uid) || !s.hand.includes(uid)) return false;
-  const card = s.cards[uid];
-  if (!card || card.kind !== "event") return false;
-
-  const dangerBefore = s.danger;
-  s.hand = s.hand.filter((x) => x !== uid);
-  changeDanger(s, card.danger);
-
-  const notes = card.effects.map((e) => applyEffect(s, e)).filter(Boolean);
-  s.trail.push({
-    name: card.name,
-    emoji: card.emoji,
-    kind: card.kind,
-    dangerBefore,
-    dangerAfter: s.danger,
-    note: notes.join(" · ") || "无结算",
-  });
-  logLine(s, `打出 ${card.name}`);
-  checkWipe(s);
+// 全队阵亡 = 团灭。事件掉血也可能触发, 故每次改动队伍后都要查。返回是否刚刚团灭。
+function checkWipe(s: ExploreState): boolean {
+  if (s.phase === "wiped" || s.phase === "cleared" || s.phase === "retreated") return false;
+  if (!s.party.every((p) => !p.alive)) return false;
+  s.phase = "wiped";
+  s.loot = Math.floor(s.loot * EXPLORE_RULES.wipe.lootKept);
+  logLine(s, "全队失去意识……");
   return true;
 }
 
-// 打出遭遇/BOSS 卡 —— 只把会话切进 inBattle, 真正建局由 store 层做(它才认识 battleStore)。
-export function playRoute(s: ExploreState, uid: string): boolean {
-  if (!canPlay(s, uid) || !s.route.includes(uid)) return false;
-  const card = s.cards[uid];
-  if (!card?.encounterId) return false; // 撤退卡没有 encounterId, 走 retreat()
+// 单条效果 → 一句结算摘要(写进本段记录与结算浮层)。
+// ⚠ START_BATTLE 与 RETREAT 会改变 phase, 由 finishRouting 单独处理, 不走这里。
+function applyEffect(s: ExploreState, e: ExploreEffect): string {
+  switch (e.type) {
+    case "HEAL_PARTY":
+      healParty(s, e.percent);
+      return `全队回复 ${Math.round(e.percent * 100)}% 生命`;
+    case "HEAL_ONE_FULL": {
+      const alive = s.party.filter((p) => p.alive);
+      if (!alive.length) return "无人可治疗";
+      // 优先治疗伤得最重的那个 —— 随机指定只会让玩家觉得系统在跟自己作对
+      const target = alive.reduce((a, b) => (a.hp / a.maxHp <= b.hp / b.maxHp ? a : b));
+      target.hp = target.maxHp;
+      for (const p of alive) {
+        if (p === target) continue;
+        p.hp = Math.min(p.maxHp, p.hp + Math.ceil(p.maxHp * e.othersPercent));
+      }
+      return `${target.name} 回满, 其余回复 ${Math.round(e.othersPercent * 100)}%`;
+    }
+    case "DAMAGE_PARTY_PERCENT":
+      damagePartyPercent(s, e.percent);
+      return `全队损失 ${Math.round(e.percent * 100)}% 生命`;
+    case "GAIN_LOOT": {
+      const gain = Math.round(e.amount * rewardMultiplier(s.energy));
+      s.loot += gain;
+      return `居民积分 +${gain}`;
+    }
+    case "MODIFY_ENERGY":
+      changeEnergy(s, e.amount);
+      return `净化粒子 ${e.amount > 0 ? "+" : ""}${e.amount}`;
+    case "MODIFY_TAINT":
+      s.taint = Math.max(0, Math.min(EXPLORE_RULES.taint.max, s.taint + e.amount));
+      return `污染层数 ${e.amount > 0 ? "+" : ""}${e.amount}`;
+    case "SKIP_SEGMENT_COST":
+      s.skipSegmentCost = true;
+      return "本段免除基础能量消耗";
+    // 这两个由 finishRouting 拦截, 走不到这里; 列出来让 switch 保持穷尽
+    case "START_BATTLE":
+    case "RETREAT":
+      return "";
+  }
+}
 
-  s.route = s.route.filter((x) => x !== uid);
-  s.pendingEncounterId = card.encounterId;
-  s.pendingIsBoss = card.kind === "boss";
-  s.phase = "inBattle";
-  s.trail.push({
-    name: card.name,
-    emoji: card.emoji,
-    kind: card.kind,
-    dangerBefore: s.danger,
-    dangerAfter: s.danger,
-    note: card.kind === "boss" ? "最终战" : "遭遇战",
+// ---------------------------------------------------------------------------
+// 一段的生成
+// ---------------------------------------------------------------------------
+// 段在远征里的位置 → 展示时长与横线数(设计文档 §2.2)。
+function stageOf(segment: number, segmentCount: number) {
+  const ratio = segment / segmentCount;
+  const st = EXPLORE_RULES.stages;
+  if (ratio <= st.early.untilRatio) return st.early;
+  if (ratio <= st.mid.untilRatio) return st.mid;
+  return st.late;
+}
+
+// 事件保底(设计文档 §2.3):
+//   · 每段至少 1 个生存、1 个成长、1 个战斗终点;
+//   · 纯负面最多 1 个, 纯负面 + 高风险合计不超过 2 个;
+//   · 精英 / 高额奖励只在中后段(靠事件自己的 minSegment 声明);
+//   · BOSS 接入后, BOSS 接入点与撤离升降机必现 —— 玩家永远有把东西带回去的机会;
+//   · 能量跌到第 5 档(枯竭)时撤离升降机同样必现(§4.2 的枯竭档保护)。
+function pickEvents(s: ExploreState, poolId: string, bossAvailable: boolean): RouteEvent[] {
+  const pool = getEventPool(poolId);
+  const usable = (list: RouteEvent[]) =>
+    list.filter((e) => !e.disabled && (e.minSegment ?? 1) <= s.segment);
+
+  const picked: RouteEvent[] = [];
+  const has = (id: string) => picked.some((e) => e.id === id);
+  const take = (list: RouteEvent[]): boolean => {
+    const avail = list.filter((e) => !has(e.id) && withinRiskCap(picked, e));
+    if (!avail.length) return false;
+    picked.push(avail[rngInt(s, avail.length)]);
+    return true;
+  };
+  const takeById = (id: string) => {
+    const found = usable(pool.endgame).find((e) => e.id === id);
+    if (found && !has(found.id)) picked.push(found);
+  };
+
+  // ① 必现项
+  if (bossAvailable) {
+    takeById("boss-uplink");
+    takeById("evac-lift");
+  } else if (energyTier(s.energy).tier >= 5) {
+    takeById("evac-lift");
+  }
+
+  // ② 三条保底
+  take(usable(pool.survival));
+  take(usable(pool.growth));
+  take(usable(pool.battle));
+
+  // ③ 剩下的名额从全池补, 受风险上限约束
+  const filler = shuffle(s, [
+    ...usable(pool.survival),
+    ...usable(pool.growth),
+    ...usable(pool.battle),
+    ...usable(pool.economy),
+    ...usable(pool.energy),
+    ...usable(pool.hazard),
+    ...(bossAvailable ? usable(pool.endgame) : []),
+  ]);
+  while (picked.length < EXPLORE_RULES.laneCount) {
+    if (!take(filler)) break;
+  }
+
+  // 终点顺序打散 —— 否则「最左边永远是生存」会让整套记忆玩法失去意义
+  return shuffle(s, picked).slice(0, EXPLORE_RULES.laneCount);
+}
+
+function withinRiskCap(picked: RouteEvent[], e: RouteEvent): boolean {
+  if (!e.risk) return true;
+  const negatives = picked.filter((p) => p.risk === "negative").length;
+  const risky = picked.filter((p) => p.risk).length;
+  if (e.risk === "negative" && negatives >= 1) return false;
+  return risky < 2;
+}
+
+export function generateSegment(s: ExploreState): void {
+  const map = getMap(s.mapId);
+  const stage = stageOf(s.segment, s.segmentCount);
+  const [minBars, maxBars] = stage.bars;
+  const barCount = minBars + rngInt(s, maxBars - minBars + 1);
+
+  s.bossAvailable = s.segment >= map.bossAvailableFrom;
+
+  const board: RouteBoard = {
+    segment: s.segment,
+    laneCount: EXPLORE_RULES.laneCount,
+    rowCount: EXPLORE_RULES.rowCount,
+    crossbars: generateCrossbars(s, EXPLORE_RULES.laneCount, EXPLORE_RULES.rowCount, barCount),
+    events: pickEvents(s, map.eventPoolId, s.bossAvailable),
+    revealDurationMs: stage.revealMs,
+    blockedLanes: [],
+  };
+
+  s.board = board;
+  s.entryLane = null;
+  s.exitLane = null;
+  s.pendingNotes = [];
+  s.skipSegmentCost = false;
+  s.phase = "revealing";
+}
+
+// ---------------------------------------------------------------------------
+// 一段的推进
+// ---------------------------------------------------------------------------
+// 展示计时结束 —— 由 UI 侧的定时器触发(时长取 board.revealDurationMs)。
+export function finishReveal(s: ExploreState): boolean {
+  if (s.phase !== "revealing") return false;
+  s.phase = "choosing";
+  return true;
+}
+
+export function chooseEntry(s: ExploreState, lane: number): boolean {
+  if (s.phase !== "choosing" || !s.board) return false;
+  if (lane < 0 || lane >= s.board.laneCount) return false;
+  if (s.board.blockedLanes.includes(lane)) return false;
+  s.entryLane = lane;
+  s.exitLane = exitLaneOf(s.board, lane);
+  s.phase = "routing";
+  return true;
+}
+
+// 走线动画播完 —— 结算落点事件。战斗类终点会把会话切进 inBattle,
+// 真正建局由 store 层做(只有它认识 battleStore)。
+export function finishRouting(s: ExploreState): boolean {
+  if (s.phase !== "routing" || !s.board || s.entryLane == null || s.exitLane == null) return false;
+
+  const ev = s.board.events[s.exitLane];
+  const energyBefore = s.energy;
+  changeEnergy(s, ev.energyDelta);
+
+  const notes: string[] = [];
+  if (ev.energyDelta !== 0) {
+    notes.push(`净化粒子 ${ev.energyDelta > 0 ? "+" : ""}${ev.energyDelta}`);
+  }
+
+  let battle: { encounterId: string; boss?: boolean } | null = null;
+  let leaving = false;
+  for (const e of ev.effects) {
+    if (e.type === "START_BATTLE") {
+      battle = { encounterId: e.encounterId, boss: e.boss };
+      continue;
+    }
+    if (e.type === "RETREAT") {
+      leaving = true;
+      continue;
+    }
+    const note = applyEffect(s, e);
+    if (note) notes.push(note);
+  }
+
+  s.pendingNotes = notes;
+  s.history.push({
+    segment: s.segment,
+    entryLane: s.entryLane,
+    exitLane: s.exitLane,
+    eventId: ev.id,
+    eventTitle: ev.title,
+    energyBefore,
+    energyAfter: s.energy, // 本段的基础消耗还没扣, nextSegment 里会回填
+    note: notes.join(" · ") || "无结算",
   });
-  logLine(s, `打出 ${card.name}`);
+  logLine(s, `第 ${s.segment} 段: ${ev.title}`);
+
+  if (checkWipe(s)) return true;
+
+  if (leaving) {
+    s.phase = "retreated";
+    logLine(s, "搭上撤离升降机");
+    return true;
+  }
+
+  if (battle) {
+    s.pendingEncounterId = battle.encounterId;
+    s.pendingIsBoss = !!battle.boss;
+    s.phase = "inBattle";
+    return true;
+  }
+
+  s.phase = "resolving";
+  return true;
+}
+
+// 玩家在结算浮层点「继续」 —— 扣本段基础能量, 推进到下一段或收尾。
+export function nextSegment(s: ExploreState): boolean {
+  if (s.phase !== "resolving") return false;
+
+  if (!s.skipSegmentCost) changeEnergy(s, -EXPLORE_RULES.energyPerSegment);
+  const last = s.history[s.history.length - 1];
+  if (last) last.energyAfter = s.energy;
+
+  if (s.segment >= s.segmentCount) {
+    // 走完全部段数仍没打 BOSS 也没坐升降机 —— 视为自行撤离, 收益照常带回。
+    s.phase = "retreated";
+    logLine(s, "路由网络到此为止, 原路返回");
+    return true;
+  }
+
+  s.segment += 1;
+  generateSegment(s);
   return true;
 }
 
 export function retreat(s: ExploreState): boolean {
-  if (s.phase !== "exploring") return false;
+  if (s.phase !== "choosing" && s.phase !== "resolving") return false;
   s.phase = "retreated";
-  s.trail.push({
-    name: "撤退",
-    emoji: "🚪",
-    kind: "retreat",
-    dangerBefore: s.danger,
-    dangerAfter: s.danger,
-    note: `带回残片 ${s.loot}`,
-  });
-  logLine(s, "撤离了这片区域");
+  logLine(s, "主动撤离了这片区域");
   return true;
 }
 
@@ -287,7 +415,7 @@ export function finishBattle(
 ): { loot: number } {
   if (s.phase !== "inBattle") return { loot: 0 };
 
-  // 血量跨战斗继承 —— 这是整套设计的地基
+  // 血量跨段与跨战斗继承 —— 这是整套设计的地基
   for (const p of s.party) {
     const found = survivors.find((x) => x.charId === p.charId);
     if (!found) continue;
@@ -299,113 +427,51 @@ export function finishBattle(
     s.phase = "wiped";
     s.loot = Math.floor(s.loot * EXPLORE_RULES.wipe.lootKept);
     s.pendingEncounterId = null;
+    s.pendingIsBoss = false;
     logLine(s, "战斗失利, 远征中断");
     return { loot: 0 };
   }
 
   const wasBoss = s.pendingIsBoss;
-  const mult = rewardMultiplier(s.danger);
+  const mult = rewardMultiplier(s.energy);
   let loot = Math.round(enemyCount * EXPLORE_RULES.loot.perEnemy * mult);
-  if (wasBoss) {
-    const t = dangerTier(s.danger);
-    loot += Math.round(
-      EXPLORE_RULES.loot.bossBonus * (1 + EXPLORE_RULES.boss.lootPerTier * (t.tier - 1)),
-    );
-  }
+  if (wasBoss) loot += Math.round(EXPLORE_RULES.loot.bossBonus * mult);
   s.loot += loot;
 
   s.pendingEncounterId = null;
   s.pendingIsBoss = false;
+  s.pendingNotes = [...s.pendingNotes, `战斗胜利 · 居民积分 +${loot}`];
+
+  const last = s.history[s.history.length - 1];
+  if (last) last.note = `${last.note} · 居民积分 +${loot}`;
 
   if (wasBoss) {
     s.phase = "cleared";
-    logLine(s, "BOSS 已击杀");
+    logLine(s, "回收总控已停机");
     return { loot };
   }
 
-  s.encountersLeft = Math.max(0, s.encountersLeft - 1);
-  drawCards(s, EXPLORE_RULES.drawPerBattle);
-
-  // 3 张遭遇卡全部打完 → BOSS 入手。此后玩家仍可继续刷事件卡把它喂肥, 或立刻开打, 或带着残片撤退。
-  if (s.encountersLeft === 0 && !s.bossRevealed) {
-    s.bossRevealed = true;
-    s.route.unshift(s.bossUid);
-    logLine(s, "深处的东西听见了动静");
-  }
-
-  s.phase = "exploring";
-  checkWipe(s);
+  s.phase = "resolving";
   return { loot };
-}
-
-// ---------------------------------------------------------------------------
-// 场地能力 —— 永远可用(代价不足时 UI 置灰), 保证「牌库空 + 手牌空」的死局不成立
-// ---------------------------------------------------------------------------
-export function canUseAbility(s: ExploreState, id: AbilityId): boolean {
-  if (s.phase !== "exploring" || s.pendingDiscard) return false;
-  const a = EXPLORE_RULES.abilities;
-  if (id === "scout") return s.draw.length > 0 && s.hand.length < EXPLORE_RULES.handSize;
-  if (id === "rest") return s.hand.length >= a.rest.discard;
-  return s.hand.length >= a.conceal.discard;
-}
-
-// 搜寻立即结算; rest/conceal 的代价是弃牌, 而「弃哪两张」本身就是决策 ——
-// 故进入 pendingDiscard 等玩家点选, 不做随机弃牌(随机弃牌等于没有决策)。
-export function useAbility(s: ExploreState, id: AbilityId): boolean {
-  if (!canUseAbility(s, id)) return false;
-  const a = EXPLORE_RULES.abilities;
-
-  if (id === "scout") {
-    changeDanger(s, a.scout.danger);
-    drawCards(s, a.scout.draw);
-    logLine(s, "搜寻: 危险度 +1, 抽 1 张");
-    return true;
-  }
-
-  s.pendingDiscard = { ability: id, count: id === "rest" ? a.rest.discard : a.conceal.discard, picked: [] };
-  return true;
-}
-
-export function toggleDiscardPick(s: ExploreState, uid: string): boolean {
-  const pd = s.pendingDiscard;
-  if (!pd || !s.hand.includes(uid)) return false;
-  if (pd.picked.includes(uid)) pd.picked = pd.picked.filter((x) => x !== uid);
-  else if (pd.picked.length < pd.count) pd.picked.push(uid);
-  return true;
-}
-
-export function confirmDiscard(s: ExploreState): boolean {
-  const pd = s.pendingDiscard;
-  if (!pd || pd.picked.length !== pd.count) return false;
-  const a = EXPLORE_RULES.abilities;
-
-  s.hand = s.hand.filter((uid) => !pd.picked.includes(uid));
-  if (pd.ability === "rest") {
-    healParty(s, a.rest.healPercent);
-    logLine(s, `休整: 弃 ${pd.count} 张, 全队回血`);
-  } else {
-    changeDanger(s, a.conceal.danger);
-    logLine(s, `隐匿: 弃 ${pd.count} 张, 危险度 -1`);
-  }
-  s.pendingDiscard = null;
-  return true;
-}
-
-export function cancelDiscard(s: ExploreState): boolean {
-  if (!s.pendingDiscard) return false;
-  s.pendingDiscard = null;
-  return true;
 }
 
 // ---------------------------------------------------------------------------
 // 查询辅助(UI 用)
 // ---------------------------------------------------------------------------
-// 悬停手牌时预演危险度落点 —— 卡面与仪表据此提示「⚠ 将进入〔警戒〕」
-export function previewDanger(s: ExploreState, uid: string): number {
-  const card = s.cards[uid];
-  if (!card) return s.danger;
-  let d = s.danger + card.danger;
-  for (const e of card.effects) if (e.type === "MODIFY_DANGER") d += e.amount;
-  return Math.max(0, Math.min(EXPLORE_RULES.dangerMax, d));
+// ⚠ 背包开放时机是**硬约束**(设计文档 §6.3): 展示线路时开背包等于无限延长观察时间,
+//   直接废掉核心机制。故必须在这里拦截, 不能只靠 UI 隐藏按钮。
+export function canOpenBackpack(s: ExploreState): boolean {
+  return s.phase === "choosing" || s.phase === "resolving";
 }
 
+// 本段终点事件(尚未走线时返回 null)。
+export function landedEvent(s: ExploreState): RouteEvent | null {
+  if (!s.board || s.exitLane == null) return null;
+  return s.board.events[s.exitLane] ?? null;
+}
+
+// 「这段走完能量会掉到哪」—— 供 UI 做跨档预警(§11.2 要求的强提示)。
+export function projectedEnergy(s: ExploreState): number {
+  const cost = s.skipSegmentCost ? 0 : EXPLORE_RULES.energyPerSegment;
+  return Math.max(0, s.energy - cost);
+}

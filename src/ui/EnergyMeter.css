@@ -1,0 +1,110 @@
+/* 净化粒子仪表。挂在探索页右上角的暗玻璃读数区里, 尺寸全是「设计 px」。
+   ⚠ 配色只用两个来源: 全局令牌(--text/--muted/--border) 与档位自带的 color
+   (由 EnergyMeter.tsx 以 --energy-color / --bar-color 传进来)。不新增全局变量。 */
+
+.energy-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 260px;
+}
+
+.em-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.em-label {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+.em-value {
+  color: var(--energy-color, var(--text));
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  /* 数值本身就是那道最重要的读数, 给一层同色辉光把它从背景图里托出来 */
+  text-shadow: 0 0 14px color-mix(in srgb, var(--energy-color) 55%, transparent);
+}
+.em-value em {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* ── 5 格档位条 ── */
+.em-bars {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.em-bar {
+  height: 7px;
+  border: 1px solid var(--border);
+  background: #0a0e11;
+  /* 左端切角: 与 .bento-glass 一族同款的斜切语言, 只切一角免得五连格显得碎 */
+  clip-path: polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px);
+  transition:
+    background 260ms ease,
+    box-shadow 260ms ease;
+}
+.em-bar.on {
+  border-color: color-mix(in srgb, var(--bar-color) 60%, transparent);
+  background: var(--bar-color);
+  box-shadow: 0 0 10px -2px var(--bar-color);
+}
+/* 预演: 本段结算后才会点亮的格子, 用虚描边打底提前给出信号 */
+.em-bar.ghost {
+  border-color: color-mix(in srgb, var(--bar-color) 70%, transparent);
+  background: color-mix(in srgb, var(--bar-color) 22%, transparent);
+  animation: emGhostPulse 1.1s ease-in-out infinite;
+}
+@keyframes emGhostPulse {
+  50% {
+    background: color-mix(in srgb, var(--bar-color) 44%, transparent);
+  }
+}
+
+/* ── 档名 + 跨档预警 ── */
+.em-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.em-tier {
+  color: var(--energy-color, var(--text));
+  font-weight: 600;
+}
+.em-gap {
+  color: var(--muted);
+}
+/* 跨档预警是这块表存在的理由, 故做成整条里最响的元素: 描边 + 底色 + 缓慢呼吸。 */
+.em-warn {
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--next-color) 70%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--next-color) 16%, transparent);
+  color: var(--next-color);
+  font-weight: 700;
+  animation: emWarnPulse 1.4s ease-in-out infinite;
+}
+@keyframes emWarnPulse {
+  50% {
+    background: color-mix(in srgb, var(--next-color) 34%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .em-bar.ghost,
+  .em-warn {
+    animation: none;
+  }
+}

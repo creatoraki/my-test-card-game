@@ -1,17 +1,20 @@
 // 数据注册表 —— 所有内容按 id 索引; 引擎/store 通过这些 getter 取数据。
 
 import type { Card, CardDef } from "../engine/types";
-import type { ExploreCard, ExploreCardDef } from "../explore/types";
 import { RULES } from "../engine/rules";
 import { CARD_DEFS } from "./cards";
 import { CHARACTERS, type CharacterDef } from "./characters";
 import { ENEMIES, type EnemyDef } from "./enemies";
 import { ENCOUNTERS, type EncounterDef } from "./encounters";
-import { EXPLORE_CARD_DEFS } from "./explore";
 import { MAPS, type MapDef } from "./maps";
 
 export { CARD_DEFS } from "./cards";
-export { EXPLORE_CARD_DEFS } from "./explore";
+export {
+  EVENT_POOLS,
+  ALL_ROUTE_EVENTS,
+  getEventPool,
+  type EventPool,
+} from "./exploreEvents";
 export { CHARACTERS, type CharacterDef } from "./characters";
 export { ENEMIES, type EnemyDef, type EnemyMove } from "./enemies";
 export {
@@ -34,17 +37,11 @@ const CARD_INDEX = keyBy(CARD_DEFS);
 const CHAR_INDEX = keyBy(CHARACTERS);
 const ENEMY_INDEX = keyBy(ENEMIES);
 const ENCOUNTER_INDEX = keyBy(ENCOUNTERS);
-const EXPLORE_INDEX = keyBy(EXPLORE_CARD_DEFS);
 const MAP_INDEX = keyBy(MAPS);
 
 export function getCardDef(id: string): CardDef {
   const def = CARD_INDEX[id];
   if (!def) throw new Error(`未知卡牌: ${id}`);
-  return def;
-}
-export function getExploreCardDef(id: string): ExploreCardDef {
-  const def = EXPLORE_INDEX[id];
-  if (!def) throw new Error(`未知探索卡: ${id}`);
   return def;
 }
 export function getCharacter(id: string): CharacterDef {
@@ -77,17 +74,6 @@ function newUid(): string {
   return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? `c-${crypto.randomUUID()}`
     : `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-// 探索卡实例。会话不持久化到 localStorage(远征中途关页面即作废), 故 uid 只需在会话内唯一;
-// 仍复用同一个发号器, 与战斗卡保持一致。
-export function makeExploreCard(defId: string): ExploreCard {
-  const def = getExploreCardDef(defId);
-  return {
-    ...def,
-    effects: def.effects.map((e) => ({ ...e })), // 深拷贝, 便于日后做"卡牌沿路变异"
-    uid: newUid(),
-  };
 }
 
 export function makeCard(defId: string, upgraded = false): Card {

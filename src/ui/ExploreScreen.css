@@ -1,170 +1,509 @@
-/* ===================== 探索牌局 ===================== */
-/* 界面骨架: 顶部信息条 → 队伍血量 → 轨迹 → 牌桌(路线 + 手牌) → 场地能力。
-   轨迹与牌桌是这一页的主角, 故只有它们可以伸缩; 其余四条固定高度不参与抢空间。 */
-.screen.explore {
+/* ===================== 探索(失真路由图) ===================== */
+/* 与主菜单/据点/战斗同一套设计画布机制: 固定 1920×1080 画布 + --stage-scale 等比缩放, 画布外黑边。
+   原理长注释的权威版本见 ui/MenuScreen.css 的 .menu-viewport 一族, 这里只写简注。
+   ⚠ 画布内每个 px 都是「设计 px」—— 不要写 vw/vh, 不要按窗口宽度做 @media。
+
+   配色: 底图是暗色废弃楼层, 故沿用全局暗色令牌(--panel/--border/--accent/--muted),
+   本页强调色与玻璃配方集中在 .explore-stage 作用域内的 --expl-* 里, **不改 styles/tokens.css**。
+   玻璃走大厅 .bento-glass 那一路的**暗玻璃**(brightness(0.94) 压暗背景换对比度),
+   而不是控制终端的亮玻璃 —— 那套是给纯白控制室用的。 */
+
+/* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
+.explore-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+}
+/* ⚠ 居中必须靠绝对定位 + translate(-50%,-50%) 而非 flex 居中(原因见 .battle-viewport 的注释)。 */
+.explore-viewport .screen.explore {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  min-height: 0;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+}
+
+/* 画布本体。不挂 .terminal-screen ⇒ 没有渐变底/机框/导航条, 与据点、战斗一致(全屏场景页)。
+   ⚠⚠ 这一层**永远不能挂 animation / opacity / filter**: 它是下面所有玻璃砖的祖先,
+   一旦成为 backdrop root, backdrop-filter 就取不到背景图。入场动画一律挂叶子元素。
+   (transform 是上面那条缩放, 属于画布机制本身 —— 故本页的玻璃刻意都做成「玻璃 + 半透明渐变底」
+   的组合, 即便某些浏览器把缩放层当作 backdrop root, 也仍有底色兜住可读性。) */
+.explore-stage {
+  --expl-glow: #6fe3f5; /* 本页强调青: 与路由图横线同色, 读作「还在供电的东西」 */
+  --expl-line: #ffffff24; /* 玻璃常态描边 */
+  /* ★ 背景压暗强度 —— 想调明暗**只改这一个数**(0 = 完全不压, 露出原图; 1 = 原始最暗配方)。
+     0.75 ≈ 略透一点; 0.5 ≈ 背景清晰可辨、路由图仍读得清(当前值); 0.3 ≈ 图很亮, HUD 文字会开始吃力。 */
+  --expl-veil: 0.65;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  background: #070a0c; /* 图加载前/失败时的深色兜底, 不露白 */
+}
+
+/* 背景层: 铺满裁切。原图与画布同为 16:9 ⇒ 只等比缩放, 不变形。 */
+.explore-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+/* 压暗层: 场景图本身细节很密, 不压一层的话路由图的线会淹在墙面纹理里。
+   四角比中心更暗 —— HUD 贴四角, 那几块要读的字最需要对比度。
+   强度由 --expl-veil 统一缩放(见 .explore-stage): 用 opacity 而不是逐个改 alpha,
+   这样四角/中心的**相对**明暗关系不变, 只是整体变淡。
+   ⚠ opacity 挂在这一层是安全的 —— 它是玻璃砖的兄弟而非祖先, 不会变成 backdrop root。 */
+.explore-veil {
+  position: absolute;
+  inset: 0;
+  opacity: var(--expl-veil, 1);
+  background:
+    radial-gradient(ellipse 62% 52% at 50% 46%, #00000026, #000000b8 100%),
+    linear-gradient(180deg, #05080ab8, #05080a4d 30%, #05080a99);
+}
+
+/* ===================== 左上: 区域与进度 ===================== */
+/* 刻意不做成玻璃卡片 —— 直接压字更干净, 只靠一道左侧竖线把三行拢在一起(与 .term-header 同款)。 */
+.expl-header {
+  position: absolute;
+  padding-left: 16px;
+  border-left: 2px solid var(--expl-glow);
+  animation: explRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.expl-kicker {
+  display: block;
+  color: var(--expl-glow);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+.expl-title {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-indent: 8px; /* 补回 letter-spacing 在末字之后多留的那一格 */
+  text-shadow: 0 2px 18px #000000b3;
+}
+.expl-sub {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+/* ===================== 右上: 读数 ===================== */
+.expl-readout {
+  position: absolute;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  animation: explRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+/* ★ 暗玻璃配方(本文件里 .expl-chip / .expl-member / .expl-btn / .expl-panel 各展开一遍,
+     改动请同步):
+     border: 1px solid var(--expl-line)
+     background: linear-gradient(155deg, #0f171c9e, #0a1013cc)
+     backdrop-filter: blur(12px) saturate(110%) brightness(0.94)  ← 压暗背景换对比度
+     box-shadow: inset 0 1px 0 #ffffff14(顶边玻璃高光), 0 20px 44px -28px #000c(从场景里托起来)
+   与控制终端的亮玻璃取舍恰好相反: 那边背景是纯白控制室, 靠 brightness(1.04) 提亮 + 深墨字;
+   这边背景已经很暗, 靠压暗 + 浅色字换对比度。字读不清时优先加深底色的不透明度, 别动 brightness。
+   斜切角(左上 + 右下)按 --notch 在各自块里展开, 与 .bento-glass 同款语言。 */
+.expl-chip {
+  --notch: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 132px;
+  padding: 12px 16px;
+  border: 1px solid var(--expl-line);
+  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+.expl-chip-wide {
+  min-width: 300px;
+}
+.expl-chip-label {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+.expl-chip-value {
+  color: var(--text);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+.expl-chip-value.is-bad {
+  color: var(--bad);
+}
+.expl-chip-note {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+/* P1 才接入的读数: 整块压暗, 一眼看出「这里将来有东西, 但现在没有」。 */
+.expl-chip.is-locked {
+  opacity: 0.42;
+}
+
+/* ===================== 中央: 路由图容器 ===================== */
+/* 只是个定位盒。⚠ 不挂 opacity/filter —— RouteBoard 里的玻璃砖要靠它上面的背景图。 */
+.expl-board {
+  position: absolute;
+  /* ⚠ 必须给一个具体的 z-index: 路由图内部用 z-index 排了入口/SVG/终点卡三层, 这里若是 auto
+     就不会形成堆叠上下文, 那几层会漏到画布级去跟结算浮层比高低(见 RouteBoard.css)。
+     z-index 只造堆叠上下文, 不是 backdrop root, 不影响下层玻璃的 backdrop-filter。 */
+  z-index: 1;
+}
+
+/* ===================== 左下: 队伍 ===================== */
+.expl-party {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 380px;
+  animation: explRise 420ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.expl-member {
+  --notch: 10px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--expl-line);
+  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+.expl-member-emoji {
+  font-size: 30px;
+  line-height: 1;
+  text-align: center;
+}
+.expl-member-body {
+  min-width: 0;
+}
+/* 阵亡: 整卡去饱和压暗。血条归零已经说明问题, 这里只补一层「这个人出局了」。 */
+.expl-member.is-down {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+.expl-member-down {
+  position: absolute;
+  right: 14px;
+  top: 8px;
+  color: var(--bad);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+/* ===================== 右下: 指令栏 + 按钮 ===================== */
+.expl-actions {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  animation: explRise 420ms 160ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.expl-commands {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.expl-command-row {
+  display: flex;
+  gap: 8px;
+}
+/* P1 占位: 版式按最终形态排好, 下一轮只往里填实现。虚线描边 = 「预留位」的统一语言。 */
+.expl-command {
+  --notch: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 118px;
+  padding: 10px 8px;
+  border: 1px dashed #ffffff2b;
+  background: #0a101399;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  opacity: 0.5;
+}
+.expl-command-name {
+  color: var(--text);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.expl-command-flag {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.expl-button-row {
+  display: flex;
+  gap: 10px;
+}
+.expl-btn {
+  --notch: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 130px;
+  padding: 12px 20px;
+  border: 1px solid var(--expl-line);
+  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  color: var(--text);
+  font-size: 15px;
+  letter-spacing: 3px;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+/* ⚠ 以下 hover/disabled 一律用 .explore-stage 提一级特异性: 全局的
+   button:hover:not(:disabled)(styles/base.css) 特异性是 0,2,1, 会压过裸类的 0,1,0。
+   与 TownScreen.css 里同一处坑的处理方式一致。 */
+.explore-stage .expl-btn:hover:not(:disabled) {
+  border-color: var(--expl-glow);
+  color: var(--expl-glow);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 0 24px -8px var(--expl-glow);
+}
+.explore-stage .expl-btn:disabled {
+  color: var(--muted);
+  opacity: 0.45;
+}
+.explore-stage .expl-btn.is-danger:hover:not(:disabled) {
+  border-color: var(--bad);
+  color: var(--bad);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 0 24px -8px var(--bad);
+}
+.explore-stage .expl-btn.is-primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.explore-stage .expl-btn.is-primary:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #0a0d0a;
+}
+.expl-btn-flag {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+/* 阶段锁定与「功能未开放」是两回事: 前者是玩法约束(展示线路时不许开背包), 用虚线描边点出来。 */
+.explore-stage .expl-btn.is-phase-locked {
+  border-style: dashed;
+}
+
+/* ===================== 结算浮层 ===================== */
+/* ★ 无遮罩: 压暗背景会挡住刚刚亮起来的路径, 而那正是玩家此刻最想看的东西。
+   本层只负责定位; 背后的入口与按钮此刻都已按 phase 禁用, 不需要额外遮挡。
+   ⚠ 这一层自己**绝不能挂动画/opacity/filter** —— 它是面板的父元素, 一旦成为 backdrop root,
+   面板的 backdrop-filter 就取不到场景了。动画挂在 .expl-panel 上。 */
+.expl-modal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  /* 画布内最高层: 结算浮层压过路由图与四角 HUD。留出空档给将来更靠上的东西(过场/提示)。 */
+  z-index: 20;
+  pointer-events: none;
+}
+.expl-panel {
+  --k: var(--accent); /* 事件 kind 的强调色, 由下面的 .k-* 覆写 */
+  --notch: 18px;
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow: hidden;
-  padding: 0 0 14px;
+  width: 720px;
+  margin-top: 196px; /* 落在路由图上沿附近: 盖住横线区, 但让下面那排终点卡全部露出来 */
+  padding: 24px 30px 20px;
+  border: 1px solid #ffffff30;
+  border-top: 2px solid var(--k);
+  background: linear-gradient(160deg, #0f171cd6, #080d10ee);
+  backdrop-filter: blur(16px) saturate(112%) brightness(0.9);
+  box-shadow:
+    inset 0 1px 0 #ffffff1a,
+    0 40px 90px -40px #000000f2;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  /* 从画布上方滑入(与控制终端浮层同一套语言)。⚠ 动画挂面板自己, 不挂 .expl-modal。 */
+  animation: explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards;
 }
-.explore-top {
+.expl-panel-title {
+  margin: 2px 0 0;
+  color: var(--k);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+.expl-panel-desc {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.7;
+  opacity: 0.86;
+}
+.expl-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+.expl-note {
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--k) 45%, transparent);
+  background: color-mix(in srgb, var(--k) 12%, transparent);
+  color: var(--text);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.expl-note.is-muted {
+  border-color: var(--border);
+  background: none;
+  color: var(--muted);
+}
+.expl-panel-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  flex-shrink: 0;
-  padding: 12px 28px 0;
+  gap: 16px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid #ffffff1a;
 }
-.explore-ident {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.explore-map {
-  margin: 0;
-  color: #eef3ef;
-  font-size: 22px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-.explore-stats {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-/* ── 队伍血量 ──
-   血量跨战斗继承是整套设计的地基, 玩家判断「还打不打得动下一场」全靠这一条, 必须常驻可见。 */
-.explore-party {
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-  padding: 0 28px;
-}
-.ex-party-member {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 190px;
-  padding: 5px 12px;
-  border: 1px solid #ffffff14;
-  background: #0b0f11a6;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-}
-.ex-party-member.down {
-  opacity: 0.42;
-  border-color: #5a2b2b;
-}
-.ex-party-emoji {
-  font-size: 16px;
-}
-.ex-party-name {
-  color: #eef3ef;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.ex-party-bar {
-  flex: 1;
-  height: 6px;
-  background: #ffffff12;
-  overflow: hidden;
-}
-.ex-party-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #d64b4b, #ff8a5b);
-  transition: width 0.35s;
-}
-.ex-party-hp {
+.expl-panel-cost {
   color: var(--muted);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── 牌桌: 路线牌 + 手牌 ── */
-.explore-table {
-  display: flex;
-  gap: 18px;
-  flex: 1;
-  min-height: 0;
-  padding: 0 28px;
-  overflow: hidden;
-}
-.explore-route,
-.explore-hand {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 0;
-}
-.explore-route {
-  flex-shrink: 0;
-  padding-right: 18px;
-  border-right: 1px solid #ffffff12;
-}
-.explore-hand {
-  flex: 1;
-  min-width: 0;
-}
-.ex-hand-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  flex-wrap: wrap;
-  overflow-y: auto;
-  padding: 2px;
-  min-height: 0;
-}
-.ex-hand-empty {
-  color: #55606a;
   font-size: 12px;
-  padding: 24px 6px;
-  line-height: 1.7;
+  letter-spacing: 2px;
+}
+/* 浮层的 kind 强调色与终点卡共用一套(权威版本见 RouteBoard.css 末尾的 .expl-node.k-*)。 */
+.expl-panel.k-battle,
+.expl-panel.k-elite {
+  --k: #ff8f6b;
+}
+.expl-panel.k-boss {
+  --k: #ff5f6b;
+}
+.expl-panel.k-hazard {
+  --k: #ffb020;
+}
+.expl-panel.k-heal {
+  --k: #62d99a;
+}
+.expl-panel.k-energy {
+  --k: #6fe3f5;
+}
+.expl-panel.k-merchant {
+  --k: #c8a2ff;
+}
+.expl-panel.k-route {
+  --k: #8fb3c4;
+}
+.expl-panel.k-retreat {
+  --k: #ffffff;
 }
 
-/* ── 场地能力 ──
-   三个按钮各自把一种东西换成另一种: 危险度→牌 / 牌→血 / 牌→危险度下降。
-   永远可用(代价不足时置灰)⇒「牌库空 + 手牌空」的死局不成立。 */
-.explore-abilities {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-shrink: 0;
-  padding-top: 4px;
+/* ===================== 关键帧 ===================== */
+@keyframes explRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
 }
-.ability-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: 1px solid #475358;
-  background: #101619e6;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+@keyframes explDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-260px);
+  }
 }
-.ability-emoji {
-  font-size: 16px;
-}
-.ability-name {
-  color: #eef3ef;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-.ability-cost {
-  color: #ff9b9b;
-  font-size: 10px;
-}
-.ability-gain {
-  color: var(--good);
-  font-size: 10px;
-}
-.explore-abilities.discarding {
-  padding: 8px 0;
-  border-top: 1px solid #ffd43b33;
-}
-.discard-hint {
-  color: var(--warn);
-  font-size: 13px;
-  letter-spacing: 1px;
+@keyframes explFade {
+  from {
+    opacity: 0;
+  }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .expl-header,
+  .expl-readout,
+  .expl-party,
+  .expl-actions {
+    animation: none;
+  }
+  .expl-panel {
+    animation: explFade 180ms ease backwards;
+  }
+}

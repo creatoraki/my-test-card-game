@@ -293,7 +293,9 @@ export function ControlTerminalScene({ leaving = false }: Props) {
                           {"★".repeat(m.difficulty)}
                           <span className="term-dim">{"★".repeat(5 - m.difficulty)}</span>
                         </span>
-                        <span className="term-map-line">遭遇 {m.encounterCount} 场 + BOSS</span>
+                        <span className="term-map-line">
+                          {m.routeSegments} 段路由 · 第 {m.bossAvailableFrom} 段起可接入 BOSS
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -310,14 +312,12 @@ export function ControlTerminalScene({ leaving = false }: Props) {
                         <strong className="term-stat-value">{selected.difficulty} / 5</strong>
                       </div>
                       <div className="term-stat">
-                        <span className="term-stat-label">遭遇</span>
-                        <strong className="term-stat-value">
-                          {selected.encounterCount} 场 + BOSS
-                        </strong>
+                        <span className="term-stat-label">路由段数</span>
+                        <strong className="term-stat-value">{selected.routeSegments} 段</strong>
                       </div>
                       <div className="term-stat">
-                        <span className="term-stat-label">探索卡池</span>
-                        <strong className="term-stat-value">{selected.explorePool.length} 张</strong>
+                        <span className="term-stat-label">净化粒子</span>
+                        <strong className="term-stat-value">{selected.startingEnergy}</strong>
                       </div>
                     </div>
                     <div className="term-party">
@@ -344,7 +344,7 @@ export function ControlTerminalScene({ leaving = false }: Props) {
 
                 <div className="term-panel-foot">
                   <p className="term-note">
-                    打事件卡会惊动这片区域 —— 危险度越高, 战斗越难、收获越厚。
+                    净化粒子只降不升 —— 掉得越低, 战斗越难、产出倍率也越高。
                   </p>
                   <button
                     className="term-primary"

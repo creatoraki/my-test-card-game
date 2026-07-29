@@ -57,4 +57,41 @@ export const ENCOUNTERS: EncounterDef[] = [
       { id: "scrap-bot", dx: 245, dy: 400, scale: 1.5 },
     ],
   },
+  // ── 废弃楼层的路由终点战(见 探索模式设计.md §8.3) ──
+  // 站位沿用 n1 那套已经和霓虹城市背景对好的坐标, 只是按人数取其中几个位置,
+  // 免得每加一场战斗都要重新对一遍地面线。
+  {
+    id: "n-crew",
+    name: "清运班组",
+    enemies: [
+      { id: "scrap-bot", dx: -125, dy: 400, scale: 1.5 },
+      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.5 },
+    ],
+  },
+  {
+    id: "n-beacon",
+    name: "巡回信标",
+    enemies: [
+      { id: "radio-bot", dx: -125, dy: 450, scale: 1.2 },
+      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.5 },
+    ],
+  },
+  {
+    id: "n-compactor",
+    name: "报废压缩机",
+    enemies: [
+      { id: "pole-bot", dx: 45, dy: 350, scale: 1.8 },
+      { id: "scrap-bot", dx: -195, dy: 420, scale: 1.4 },
+      { id: "scrap-bot", dx: 285, dy: 420, scale: 1.4 },
+    ],
+  },
+  {
+    id: "n-boss",
+    name: "回收总控",
+    enemies: [
+      { id: "pole-bot", dx: 45, dy: 330, scale: 2 },
+      { id: "radio-bot", dx: -215, dy: 450, scale: 1.2 },
+      { id: "scrap-bot", dx: 305, dy: 400, scale: 1.5 },
+    ],
+  },
 ];

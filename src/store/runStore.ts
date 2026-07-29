@@ -1,7 +1,7 @@
-// Zustand store: 一次"远征"的流程编排 —— 界面路由 + 探索牌局与战斗之间的往返。
+// Zustand store: 一次"远征"的流程编排 —— 界面路由 + 探索路由图与战斗之间的往返。
 // 卡组/队伍/养成不在这里 —— 它们是城镇的持久资产, 见 townStore。
-// 牌局本身也不在这里 —— 见 exploreStore; 本 store 只负责"打出遭遇卡后真的建一场战斗"这件事,
-// 因为只有它同时认识 battleStore、exploreStore 与界面路由。
+// 路由会话本身也不在这里 —— 见 exploreStore; 本 store 只负责"走线落到战斗终点后真的建一场战斗"
+// 这件事, 因为只有它同时认识 battleStore、exploreStore 与界面路由。
 
 import { create } from "zustand";
 import type { AllyInit, Ally, Card } from "../engine";
@@ -17,7 +17,6 @@ export type Screen =
   | "menu"
   | "town"
   | "formation"
-  | "expedition"
   | "explore"
   | "battle"
   | "reward"
@@ -31,16 +30,16 @@ interface RunStore {
   mapId: string | null; // 当前远征的地图
   expReport: ExpGain[]; // 上一场胜利的经验结算报告(结算页展示)
   lastResult: RunResult | null;
-  lastLoot: number; // 上一场战斗的残片产出(结算页展示)
+  lastLoot: number; // 上一场战斗的居民积分产出(结算页展示)
 
   enterTown: () => void;
   openFormation: () => void;
-  openExpedition: () => void;
-  startExpedition: (mapId: string) => void; // 选定地图 → 进探索牌局
-  enterEncounter: (routeUid: string) => void; // 打出遭遇/BOSS 卡 → 建局开打
-  resolveBattle: () => void; // 战斗结束: 回填血量/结算残片与经验/推进牌局
-  confirmExpReport: () => void; // 战斗小结确认 → 回牌桌, 或进通关结算
-  retreat: () => void; // 打出撤退卡 → 落袋回城
+  startExpedition: (mapId: string) => void; // 选定地图 → 进路由图
+  enterEncounter: () => void; // 走线落到战斗终点 → 建局开打
+  resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
+  confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
+  retreat: () => void; // 主动撤离 → 落袋回城
+  finishExpedition: () => void; // 会话自行走到终局(升降机/段数走完/团灭) → 结算页
   backToTown: () => void;
   backToMenu: () => void;
 }
@@ -59,7 +58,7 @@ function partySnapshot(): PartySnapshot[] {
 // - 战斗卡组 = 上阵角色个人卡组的集合。createBattle 直接引用传入的卡实例(不拷贝), 而个人卡组是
 //   城镇的持久资产, 故必须传副本, 否则战斗中的改动会污染城镇卡组。
 // - 只有存活角色参战: 本次远征内阵亡的角色不出战, 其个人卡组也一并排除。
-// - 危险度经 encounterModifier 注入 —— 引擎不认识危险度, 只认识 EncounterModifier。
+// - 净化粒子档位经 encounterModifier 注入 —— 引擎不认识能量, 只认识 EncounterModifier。
 function launchBattle(encounterId: string, isBoss: boolean): void {
   const { characters } = useTownStore.getState();
   const session = useExploreStore.getState().session;
@@ -83,7 +82,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     };
   });
 
-  const mod = encounterModifier(session.danger, isBoss, getMap(session.mapId).fillerEnemyIds);
+  const mod = encounterModifier(session.energy, isBoss, getMap(session.mapId).fillerEnemyIds);
   useBattleStore.getState().init(encounterId, { allies, deck: battleDeck }, undefined, mod);
 }
 
@@ -105,15 +104,14 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({ screen: "formation" });
   },
 
-  openExpedition: () => set({ screen: "expedition" }),
-
   startExpedition: (mapId) => {
     useExploreStore.getState().start(mapId, partySnapshot());
     set({ mapId, expReport: [], lastResult: null, lastLoot: 0, screen: "explore" });
   },
 
-  enterEncounter: (routeUid) => {
-    const next = useExploreStore.getState().playRouteCard(routeUid);
+  // 走线动画播完 → 结算落点。落点是战斗时 finishRouting 会写下 pendingEncounterId, 这里据此建局。
+  enterEncounter: () => {
+    const next = useExploreStore.getState().routeDone();
     if (!next?.pendingEncounterId) return;
     launchBattle(next.pendingEncounterId, next.pendingIsBoss);
     set({ screen: "battle" });
@@ -145,9 +143,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
       return;
     }
 
-    // 经验按危险度倍率即时入账(与残片不同 —— 残片要活着回城才落袋, 经验打完就是你的)
+    // 经验按能量档位倍率即时入账(与积分不同 —— 积分要活着回城才落袋, 经验打完就是你的)
     const town = useTownStore.getState();
-    const mult = rewardMultiplier(session.danger);
+    const mult = rewardMultiplier(session.energy);
     const exp = Math.round(enemyCount * RULES.progression.expPerEnemy * mult);
     const expReport = town.grantExp(
       session.party.filter((p) => p.alive).map((p) => p.charId),
@@ -177,11 +175,29 @@ export const useRunStore = create<RunStore>((set, get) => ({
   },
 
   retreat: () => {
-    const explore = useExploreStore.getState();
-    explore.retreatNow();
+    useExploreStore.getState().retreatNow();
+    get().finishExpedition();
+  },
+
+  // 会话自己走到了终局(坐上撤离升降机 / 段数走完 / 事件掉血团灭)时由 ExploreScreen 调用。
+  // 撤离与通关一样落袋; 团灭时 session.loot 已被 finishBattle/checkWipe 清零, 这里照样 bank 即可,
+  // 不必再判一次 —— 惩罚的真相点只有 EXPLORE_RULES.wipe 一处。
+  finishExpedition: () => {
+    if (get().screen !== "explore") return; // 幂等护栏: 同一趟只结算一次
     const session = useExploreStore.getState().session;
-    if (session) useTownStore.getState().bankLoot(session.loot);
-    set({ screen: "victory", lastResult: "retreat" });
+    if (!session) return set({ screen: "town" });
+
+    if (session.phase === "wiped") {
+      set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0 });
+      return;
+    }
+    if (session.phase !== "retreated" && session.phase !== "cleared") return;
+
+    useTownStore.getState().bankLoot(session.loot);
+    set({
+      screen: "victory",
+      lastResult: session.phase === "cleared" ? "won" : "retreat",
+    });
   },
 
   backToTown: () => {

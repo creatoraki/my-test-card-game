@@ -1,0 +1,297 @@
+/* ===================== 失真路由图 ===================== */
+/* 挂在探索画布(.explore-stage)之内、废弃楼层背景图之上。
+   ⚠ 本文件每个 px 都是「设计 px」(1920×1080 画布): 不要写 vw/vh, 不要按窗口宽度做 @media。
+   ⚠ .route-board 自己**不能挂 animation / opacity / transform / filter** —— 它是底下暗玻璃砖的
+     祖先, 一旦成为 backdrop root, backdrop-filter 就取不到背景图。入场动画一律挂叶子元素。
+
+   配色: 只用全局令牌(--text/--muted/--border/--accent) + 本文件作用域内的 --rb-* 。
+   玻璃走大厅那一路的**暗玻璃**(brightness 压暗背景换对比度), 而不是控制终端的亮玻璃 ——
+   废弃楼层图本身就是暗的, 提亮只会让线路读不清。 */
+
+.route-board {
+  --rb-line: #6d7d86; /* 竖线: 中性灰蓝, 不抢戏 */
+  --rb-bar: #6fe3f5; /* 横线: 亮青, 展示阶段是全屏最亮的东西 */
+  --rb-trace: var(--accent); /* 已走过的路径: 荧光黄绿 */
+  position: relative;
+  padding: 0;
+}
+
+/* ── 顶部倒计时 ── */
+.rb-timer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 3px;
+  background: #ffffff14;
+}
+.rb-timer-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--rb-bar), #ffffff);
+  box-shadow: 0 0 12px -2px var(--rb-bar);
+  transform-origin: left center;
+  animation-name: rbCountdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes rbCountdown {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* ── 入口 A-E ── */
+.rb-entries {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 100%;
+  height: 64px;
+  /* ⚠ 必须压在 .rb-svg 之上: SVG 根元素虽然内容透明, 但整个盒子照样参与命中测试,
+     而它在 DOM 里排在入口之后、又是从 top:0 起画的 —— 不提层就会把 A-E 的点击全吃掉。 */
+  z-index: 2;
+}
+.rb-entry {
+  --notch: 10px;
+  position: absolute;
+  top: 0;
+  width: 88px;
+  height: 60px;
+  padding: 0;
+  border: 1px solid #ffffff2b;
+  background: linear-gradient(150deg, #0f171c99, #0b1216cc);
+  backdrop-filter: blur(10px) saturate(108%) brightness(0.94);
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  color: var(--text);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+/* ⚠ 用 .route-board 提一级特异性: 全局 button:hover:not(:disabled)(styles/base.css) 是 0,2,1,
+   会压过裸类的 0,1,0。与 TownScreen.css 里同一处坑的处理方式一致。 */
+.route-board .rb-entry:hover:not(:disabled) {
+  border-color: var(--rb-trace);
+  color: var(--rb-trace);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rb-trace) 40%, transparent),
+    0 0 22px -6px var(--rb-trace);
+}
+.route-board .rb-entry:disabled {
+  color: var(--muted);
+  opacity: 0.55;
+}
+.route-board .rb-entry.is-active {
+  border-color: var(--rb-trace);
+  color: var(--rb-trace);
+  opacity: 1;
+}
+.route-board .rb-entry.is-blocked {
+  border-style: dashed;
+  color: #6b767c;
+  text-decoration: line-through;
+}
+
+/* ── SVG 本体 ── */
+.rb-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: visible;
+  /* 纯展示层, 不接受任何指针事件 —— 它横跨整块面板, 挡住入口按钮与终点卡。 */
+  pointer-events: none;
+}
+.rb-lane {
+  stroke: var(--rb-line);
+  stroke-width: 2;
+  stroke-dasharray: 5 7; /* 虚线: 与实线的横线拉开层次, 也暗示「线路本身是失真的」 */
+  opacity: 0.55;
+}
+.rb-bar {
+  stroke: var(--rb-bar);
+  stroke-width: 4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--rb-bar) 70%, transparent));
+}
+/* 隐去阶段: 只降 opacity, 节点仍在 DOM 里(见 RouteBoard.tsx 的注释)。
+   400ms 的淡出刻意留得住 —— 瞬间消失会让人以为是渲染错误。 */
+.rb-bars {
+  opacity: 1;
+  transition: opacity 400ms ease;
+}
+.rb-bars.is-hidden {
+  opacity: 0;
+}
+
+/* 已走过的路径: dasharray 从「全长」偏移到 0, 与信号点同步推进。 */
+.rb-trace-line {
+  fill: none;
+  stroke: var(--rb-trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--rb-trace) 75%, transparent));
+  animation-name: rbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes rbDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.rb-signal {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 10px var(--rb-trace)) drop-shadow(0 0 22px var(--rb-trace));
+}
+
+/* ── 终点事件卡 ── */
+.rb-nodes {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 1;
+}
+.expl-node {
+  --k: var(--rb-line); /* 该 kind 的强调色, 由下面的 .k-* 覆写 */
+  --notch: 14px;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 16px 12px;
+  border: 1px solid #ffffff24;
+  border-top: 2px solid color-mix(in srgb, var(--k) 70%, transparent);
+  background: linear-gradient(160deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  text-align: center;
+  transition:
+    opacity 300ms ease,
+    border-color 300ms ease,
+    box-shadow 300ms ease;
+}
+.expl-node-icon {
+  display: block;
+  width: 44px;
+  height: 44px;
+  color: var(--k);
+}
+.expl-node-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.expl-node-title {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 1.35;
+}
+.expl-node-energy {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.expl-node-energy.up {
+  color: var(--good);
+}
+.expl-node-energy.down {
+  color: #ffb37a;
+}
+.expl-node-risk {
+  padding: 1px 7px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.expl-node-risk.negative {
+  color: var(--bad);
+}
+.expl-node-risk.highRisk {
+  color: #ffb020;
+}
+
+/* 落点: 强描边 + 同色辉光, 一眼看出信号停在哪张卡上 */
+.expl-node.is-landed {
+  border-color: var(--k);
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 0 0 1px color-mix(in srgb, var(--k) 45%, transparent),
+    0 0 34px -6px var(--k);
+}
+/* 结算阶段其余四张压暗, 让注意力回到落点与结算浮层上 */
+.expl-node.is-dim {
+  opacity: 0.4;
+}
+
+/* kind → 强调色。与 EnergyMeter 的档位色是两套体系, 刻意不共用 ——
+   一个说「情况有多糟」, 一个说「这是什么类型的事」。 */
+.expl-node.k-battle,
+.expl-node.k-elite {
+  --k: #ff8f6b;
+}
+.expl-node.k-boss {
+  --k: #ff5f6b;
+}
+.expl-node.k-hazard {
+  --k: #ffb020;
+}
+.expl-node.k-heal {
+  --k: #62d99a;
+}
+.expl-node.k-loot {
+  --k: var(--accent);
+}
+.expl-node.k-energy {
+  --k: #6fe3f5;
+}
+.expl-node.k-merchant {
+  --k: #c8a2ff;
+}
+.expl-node.k-route {
+  --k: #8fb3c4;
+}
+.expl-node.k-retreat {
+  --k: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 走线是**信息**而不是装饰(玩家要看清楚它怎么横移的), 故这里不整体关掉动画,
+     只把它压到最短的可辨识时长。倒计时条同理保留 —— 它就是那几秒本身。 */
+  .rb-trace-line {
+    animation-duration: 400ms !important;
+  }
+}

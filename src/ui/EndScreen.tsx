@@ -1,16 +1,19 @@
-// 远征结算 —— 通关 / 撤退 / 团灭三种收场共用一页。
-// 主角是「轨迹」: 一趟远征结束时那一排卡就是完整的故事, 比任何数字都更值得看。
+// 远征结算 —— 通关 / 撤离 / 团灭三种收场共用一页。
+// 主角是「远征记录」: session.history 每段一条(落在哪个终点、能量掉到多少),
+// 一趟远征结束时那一列就是完整的故事, 比任何汇总数字都更值得看。
 
 import { getCharacter, getMap } from "../data";
+import { energyTier } from "../explore/session";
 import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
 import { useTownStore } from "../store/townStore";
-import { TrailStrip } from "./TrailStrip";
 import "./EndScreen.css";
+
+const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
 
 const TITLES = {
   won: { title: "远征完成", kicker: "远征终端 / 最终报告" },
-  retreat: { title: "已撤离", kicker: "远征终端 / 中止报告" },
+  retreat: { title: "已撤离", kicker: "远征终端 / 撤离报告" },
   lost: { title: "远征中断", kicker: "远征终端 / 事故报告" },
 } as const;
 
@@ -35,7 +38,7 @@ export function EndScreen() {
       <p className="muted">
         {map?.name ?? "未知区域"} ——{" "}
         {result === "won"
-          ? "深处之物已被清除。"
+          ? "回收总控已停机，这一层安静下来了。"
           : result === "retreat"
             ? "带着已有的收获退了出来。"
             : "全队失去意识，被拖回了城镇。"}
@@ -43,20 +46,41 @@ export function EndScreen() {
 
       <div className="end-loot">
         {wiped ? (
-          <span className="loot-lost">💠 残片全部遗失</span>
+          <span className="loot-lost">💠 居民积分全部遗失</span>
         ) : (
-          <span className="loot-chip big">💠 残片入账 {session?.loot ?? 0}</span>
+          <span className="loot-chip big">💠 居民积分入账 {session?.loot ?? 0}</span>
         )}
         <span className="muted">城镇余额 {bankedLoot}</span>
         {session && (
           <span className="muted">
-            最终危险度 {session.danger} · 走了 {session.trail.length} 步
+            剩余净化粒子 {session.energy}〈{energyTier(session.energy).name}〉 · 走了{" "}
+            {session.history.length} 段
           </span>
         )}
       </div>
 
-      {session && (
-        <TrailStrip trail={session.trail} bossRevealed={session.bossRevealed} bossPreview="" />
+      {/* 本次远征记录: 每段一行 —— 从哪个入口进、落到哪个终点、能量怎么掉的。 */}
+      {session && session.history.length > 0 && (
+        <div className="end-log">
+          <span className="hud-label">本次远征记录</span>
+          {session.history.map((h) => (
+            <div key={h.segment} className="end-log-row">
+              <span className="end-log-seg">段 {h.segment}</span>
+              <span className="end-log-lane">
+                {ENTRY_LABELS[h.entryLane] ?? h.entryLane + 1} →{" "}
+                {ENTRY_LABELS[h.exitLane] ?? h.exitLane + 1}
+              </span>
+              <span className="end-log-title">{h.eventTitle}</span>
+              <span className="end-log-note">{h.note}</span>
+              <span
+                className={`end-log-energy ${h.energyAfter < h.energyBefore ? "down" : "flat"}`}
+                style={{ ["--tier-color" as string]: energyTier(h.energyAfter).color }}
+              >
+                {h.energyBefore} → {h.energyAfter}
+              </span>
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="deck-summary">
