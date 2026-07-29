@@ -14,13 +14,25 @@
 
 import { useEffect, useRef, type CSSProperties } from "react";
 import { getMap } from "../data";
-import { canOpenBackpack, effectiveTaint, landedEvent, projectedEnergy } from "../explore/session";
+import {
+  canOpenBackpack,
+  effectiveTaint,
+  landedChoices,
+  landedEvent,
+  projectedEnergy,
+} from "../explore/session";
 import { EXPLORE_RULES } from "../explore/rules";
 import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
 import { EnergyMeter } from "./EnergyMeter";
 import { HpBar } from "./HpBar";
-import { RouteBoard, ROUTE_PANEL_H, routePanelWidth } from "./RouteBoard";
+import {
+  RouteBoard,
+  ROUTE_PANEL_H,
+  laneCenterX,
+  NODE_TOP_Y,
+  routePanelWidth,
+} from "./RouteBoard";
 import { useStageScale } from "./stage";
 import { mapArt, warmMapArt } from "./mapArt";
 import "./ExploreScreen.css";
@@ -41,6 +53,7 @@ const PHASE_HINT: Record<string, string> = {
   revealing: "记住线路 —— 它马上就会消失",
   choosing: "选择一个入口",
   routing: "信号下行中……",
+  landed: "决定怎么处理这个落点",
   resolving: "结算落点",
   inBattle: "战斗中",
 };
@@ -49,6 +62,8 @@ export function ExploreScreen() {
   const session = useExploreStore((s) => s.session);
   const revealDone = useExploreStore((s) => s.revealDone);
   const pickEntry = useExploreStore((s) => s.pickEntry);
+  const routeDone = useExploreStore((s) => s.routeDone);
+  const pickOption = useExploreStore((s) => s.pickOption);
   const advance = useExploreStore((s) => s.advance);
   const enterEncounter = useRunStore((s) => s.enterEncounter);
   const finishExpedition = useRunStore((s) => s.finishExpedition);
@@ -87,6 +102,16 @@ export function ExploreScreen() {
   const canBackpack = canOpenBackpack(session);
   const boardW = routePanelWidth(board.laneCount);
 
+  // 落点浮层开着的两个阶段: 四角 HUD 轻度后退, 把注意力收拢到面板上(不加全屏遮罩)。
+  const focused = session.phase === "landed" || session.phase === "resolving";
+  const recede = focused ? " is-recede" : "";
+
+  // 落点分支 → 应用。战斗分支会把会话打成 inBattle, 这里顺手切战斗页。
+  const takeOption = (index: number) => {
+    const next = pickOption(index);
+    if (next?.phase === "inBattle") enterEncounter();
+  };
+
   return (
     <div
       className="explore-viewport"
@@ -98,16 +123,17 @@ export function ExploreScreen() {
         <div className="explore-veil" aria-hidden />
 
         {/* ---- 左上: 区域与进度 ---- */}
-        <header className="expl-header" style={{ left: "56px", top: "42px" }}>
+        <header className={`expl-header${recede}`} style={{ left: "56px", top: "42px" }}>
           <span className="expl-kicker">区域推进</span>
           <h2 className="expl-title">{map.name}</h2>
-          <p className="expl-sub">
+          {/* key 挂 phase: 换阶段时这一行重挂一次, 走一遍卷入动画 —— 提示变了要被看见。 */}
+          <p className="expl-sub" key={session.phase}>
             段 {session.segment} / {session.segmentCount} · {PHASE_HINT[session.phase] ?? ""}
           </p>
         </header>
 
         {/* ---- 右上: 读数 ---- */}
-        <div className="expl-readout" style={{ right: "56px", top: "42px" }}>
+        <div className={`expl-readout${recede}`} style={{ right: "56px", top: "42px" }}>
           <div className="expl-chip expl-chip-wide">
             <EnergyMeter energy={session.energy} projected={projectedEnergy(session)} />
           </div>
@@ -151,12 +177,25 @@ export function ExploreScreen() {
             entryLane={session.entryLane}
             exitLane={session.exitLane}
             onPickEntry={pickEntry}
-            onRouteDone={enterEncounter}
+            onRouteDone={routeDone}
           />
+          {/* 落点 → 浮层的光柱: 从落点卡上沿向上升起, 把「是这张卡把面板叫出来的」说清楚。
+              位置用 RouteBoard 导出的版式常量算, 两边不各写一份坐标。 */}
+          {focused && session.exitLane != null && (
+            <div
+              className={`expl-beam k-${ev?.kind ?? "route"}`}
+              style={{
+                left: `${laneCenterX(session.exitLane) - 3}px`,
+                top: "48px",
+                height: `${NODE_TOP_Y - 48}px`,
+              }}
+              aria-hidden
+            />
+          )}
         </div>
 
         {/* ---- 左下: 队伍 ---- */}
-        <div className="expl-party" style={{ left: "56px", bottom: "40px" }}>
+        <div className={`expl-party${recede}`} style={{ left: "56px", bottom: "40px" }}>
           {session.party.map((p) => (
             <div key={p.charId} className={`expl-member${p.alive ? "" : " is-down"}`}>
               <span className="expl-member-emoji">{p.emoji}</span>
@@ -169,7 +208,7 @@ export function ExploreScreen() {
         </div>
 
         {/* ---- 右下: 指令栏 + 背包 + 撤退 ---- */}
-        <div className="expl-actions" style={{ right: "56px", bottom: "40px" }}>
+        <div className={`expl-actions${recede}`} style={{ right: "56px", bottom: "40px" }}>
           <div className="expl-commands">
             <span className="expl-chip-label">探索指令</span>
             <div className="expl-command-row">
@@ -206,37 +245,75 @@ export function ExploreScreen() {
           </div>
         </div>
 
-        {/* ---- 结算浮层 ----
+        {/* ---- 落点浮层(两段式) ----
+            landed   —— 事件卡面 + 两个分支按钮。**所有事件都走这一步**, 战斗也不例外:
+                        点了「迎战」才切战斗页, 玩家总有机会先看清自己落在哪张卡上。
+            resolving —— 同一块面板原地换成结算摘要 + 推进按钮(key 不变 ⇒ 不重播入场)。
+
             ★ 没有全屏遮罩: 压暗背景会毁掉这张废弃楼层图的气质, 也会挡住刚刚亮起来的路径 ——
-              而玩家此刻最想看的就是「我是怎么走到这张卡上的」。面板靠自身的暗玻璃与重投影
-              从场景里托起来, 开合都是从画布上方滑入(与控制终端的吊绳浮层同一套语言)。 */}
-        {session.phase === "resolving" && ev && (
+              而玩家此刻最想看的就是「我是怎么走到这张卡上的」。聚焦靠四角 HUD 的轻度后退
+              与那道光柱来做。面板开合是从画布上方滑入(与控制终端的吊绳浮层同一套语言)。 */}
+        {focused && ev && (
           <div className="expl-modal" key={`${session.segment}-${ev.id}`}>
             <section className={`expl-panel k-${ev.kind}`}>
               <span className="expl-kicker">第 {session.segment} 段 · 落点</span>
               <h3 className="expl-panel-title">{ev.title}</h3>
               <p className="expl-panel-desc">{ev.description}</p>
-              <div className="expl-notes">
-                {session.pendingNotes.length ? (
-                  session.pendingNotes.map((n, i) => (
-                    <span key={i} className="expl-note">
-                      {n}
+
+              {session.phase === "landed" ? (
+                <div className="expl-choices">
+                  {landedChoices(session).map((c, i) => (
+                    <button
+                      key={c.id}
+                      className="expl-choice"
+                      type="button"
+                      onClick={() => takeOption(i)}
+                    >
+                      <span className="expl-choice-bar" aria-hidden />
+                      <span className="expl-choice-head">
+                        <span className="expl-choice-label">{c.label}</span>
+                        {c.energyDelta !== 0 && (
+                          <span
+                            className={`expl-choice-energy ${c.energyDelta > 0 ? "up" : "down"}`}
+                          >
+                            粒子 {c.energyDelta > 0 ? "+" : ""}
+                            {c.energyDelta}
+                          </span>
+                        )}
+                      </span>
+                      <span className="expl-choice-desc">{c.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="expl-notes">
+                    {session.pendingNotes.length ? (
+                      session.pendingNotes.map((n, i) => (
+                        <span
+                          key={i}
+                          className="expl-note"
+                          style={{ animationDelay: `${i * 40}ms` } as CSSProperties}
+                        >
+                          {n}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="expl-note is-muted">无结算</span>
+                    )}
+                  </div>
+                  <div className="expl-panel-foot">
+                    <span className="expl-panel-cost">
+                      {session.skipSegmentCost
+                        ? "本段免除基础消耗"
+                        : `推进消耗 −${EXPLORE_RULES.energyPerSegment} 粒子`}
                     </span>
-                  ))
-                ) : (
-                  <span className="expl-note is-muted">无结算</span>
-                )}
-              </div>
-              <div className="expl-panel-foot">
-                <span className="expl-panel-cost">
-                  {session.skipSegmentCost
-                    ? "本段免除基础消耗"
-                    : `推进消耗 −${EXPLORE_RULES.energyPerSegment} 粒子`}
-                </span>
-                <button className="expl-btn is-primary" type="button" onClick={() => advance()}>
-                  {session.segment >= session.segmentCount ? "结束远征 ▸" : "继续推进 ▸"}
-                </button>
-              </div>
+                    <button className="expl-btn is-primary" type="button" onClick={() => advance()}>
+                      {session.segment >= session.segmentCount ? "结束远征 ▸" : "继续推进 ▸"}
+                    </button>
+                  </div>
+                </>
+              )}
             </section>
           </div>
         )}

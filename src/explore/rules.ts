@@ -27,6 +27,10 @@ export const EXPLORE_RULES = {
   energyPerSegment: 10, // 每完成一段的固定消耗, 玩家无法阻止
   battleEnergy: { normal: 4, elite: 7, boss: 10 }, // 终点为战斗时的额外消耗
 
+  // 落点浮层里「绕开/放弃」那一支的代价。规避永远要付钱 —— 否则风险终点就没有风险了,
+  // 而且代价一律比硬吃这场战斗的能量消耗高, 玩家才会真的犹豫。
+  bypass: { normal: 8, elite: 12, boss: 15, hazard: 4 },
+
   // ── 污染层数(每层叠加, 本次远征内不可自行清除) ──
   taint: {
     damageTakenPerStack: 0.06, // 全队受到伤害 +6%/层

@@ -5,9 +5,13 @@
 // 一段的生命周期(设计文档 §1.2):
 //   generateSegment ──▶ revealing ──finishReveal──▶ choosing ──chooseEntry──▶ routing
 //                                                                                │
-//        ┌──────────────── resolving ◀──finishRouting────────────────────────────┘
-//        │                     ▲                    (终点是战斗则先去 inBattle)
+//                                        landed ◀──finishRouting────────────────┘
+//        ┌──────────────── resolving ◀──chooseOption──┘
+//        │                     ▲            (分支是战斗则先去 inBattle; 是撤离则直接 retreated)
 //        └──nextSegment──▶ 下一段 / cleared / retreated / wiped
+//
+// ★ landed 是「已经知道落在哪张卡上, 但什么都还没发生」的那一拍: 浮层在这里给出两个分支,
+//   战斗也不例外 —— 玩家点了「迎战」才进战斗页。
 //
 // 净化粒子(energy)是**唯一**的难度轴与时限, 只降不升(少数事件例外)。
 // ============================================================================
@@ -19,6 +23,7 @@ import { generateCrossbars, exitLaneOf } from "./route";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import type {
   EnergyTier,
+  EventChoice,
   ExploreEffect,
   ExploreState,
   PartySnapshot,
@@ -153,7 +158,7 @@ function checkWipe(s: ExploreState): boolean {
 }
 
 // 单条效果 → 一句结算摘要(写进本段记录与结算浮层)。
-// ⚠ START_BATTLE 与 RETREAT 会改变 phase, 由 finishRouting 单独处理, 不走这里。
+// ⚠ START_BATTLE 与 RETREAT 会改变 phase, 由 chooseOption 单独处理, 不走这里。
 function applyEffect(s: ExploreState, e: ExploreEffect): string {
   switch (e.type) {
     case "HEAL_PARTY":
@@ -188,7 +193,7 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
     case "SKIP_SEGMENT_COST":
       s.skipSegmentCost = true;
       return "本段免除基础能量消耗";
-    // 这两个由 finishRouting 拦截, 走不到这里; 列出来让 switch 保持穷尽
+    // 这两个由 chooseOption 拦截, 走不到这里; 列出来让 switch 保持穷尽
     case "START_BATTLE":
     case "RETREAT":
       return "";
@@ -316,23 +321,51 @@ export function chooseEntry(s: ExploreState, lane: number): boolean {
   return true;
 }
 
-// 走线动画播完 —— 结算落点事件。战斗类终点会把会话切进 inBattle,
-// 真正建局由 store 层做(只有它认识 battleStore)。
+// 走线动画播完 —— **只落点, 不结算**。效果要等玩家在浮层里挑完分支才生效(见 chooseOption)。
+// ⚠ 战斗终点同样停在这里: 「还没看清落在哪张卡上就已经在打了」是上一版最大的问题。
 export function finishRouting(s: ExploreState): boolean {
   if (s.phase !== "routing" || !s.board || s.entryLane == null || s.exitLane == null) return false;
+  s.pendingNotes = [];
+  s.phase = "landed";
+  return true;
+}
+
+// 落点分支的可选项。事件没写 choices 时退化成「只有主选项」, 结算行为与上一版完全一致。
+export function landedChoices(s: ExploreState): EventChoice[] {
+  const ev = landedEvent(s);
+  if (!ev) return [];
+  if (ev.choices?.length) return ev.choices;
+  return [
+    {
+      id: "proceed",
+      label: "继续",
+      desc: "按事件本身的结果处理",
+      energyDelta: ev.energyDelta,
+      effects: ev.effects,
+    },
+  ];
+}
+
+// 玩家在落点浮层里选了一支 —— 这里才真的扣能量、跑效果、写记录。
+// 战斗类分支把会话切进 inBattle, 真正建局由 store 层做(只有它认识 battleStore)。
+export function chooseOption(s: ExploreState, index: number): boolean {
+  if (s.phase !== "landed" || !s.board || s.entryLane == null || s.exitLane == null) return false;
 
   const ev = s.board.events[s.exitLane];
+  const choice = landedChoices(s)[index];
+  if (!choice) return false;
+
   const energyBefore = s.energy;
-  changeEnergy(s, ev.energyDelta);
+  changeEnergy(s, choice.energyDelta);
 
   const notes: string[] = [];
-  if (ev.energyDelta !== 0) {
-    notes.push(`净化粒子 ${ev.energyDelta > 0 ? "+" : ""}${ev.energyDelta}`);
+  if (choice.energyDelta !== 0) {
+    notes.push(`净化粒子 ${choice.energyDelta > 0 ? "+" : ""}${choice.energyDelta}`);
   }
 
   let battle: { encounterId: string; boss?: boolean } | null = null;
   let leaving = false;
-  for (const e of ev.effects) {
+  for (const e of choice.effects) {
     if (e.type === "START_BATTLE") {
       battle = { encounterId: e.encounterId, boss: e.boss };
       continue;
@@ -346,6 +379,7 @@ export function finishRouting(s: ExploreState): boolean {
   }
 
   s.pendingNotes = notes;
+  // 记录里带上所选分支 —— 结算页回顾整趟远征时, 玩家要读得出自己当时做了什么决定。
   s.history.push({
     segment: s.segment,
     entryLane: s.entryLane,
@@ -354,9 +388,9 @@ export function finishRouting(s: ExploreState): boolean {
     eventTitle: ev.title,
     energyBefore,
     energyAfter: s.energy, // 本段的基础消耗还没扣, nextSegment 里会回填
-    note: notes.join(" · ") || "无结算",
+    note: [choice.label, notes.join(" · ") || "无结算"].join(" · "),
   });
-  logLine(s, `第 ${s.segment} 段: ${ev.title}`);
+  logLine(s, `第 ${s.segment} 段: ${ev.title} · ${choice.label}`);
 
   if (checkWipe(s)) return true;
 
@@ -460,8 +494,9 @@ export function finishBattle(
 // ---------------------------------------------------------------------------
 // ⚠ 背包开放时机是**硬约束**(设计文档 §6.3): 展示线路时开背包等于无限延长观察时间,
 //   直接废掉核心机制。故必须在这里拦截, 不能只靠 UI 隐藏按钮。
+// landed 与 resolving 同类: 都是「不限时、等玩家操作」的阶段, 开背包不会绕过任何机制。
 export function canOpenBackpack(s: ExploreState): boolean {
-  return s.phase === "choosing" || s.phase === "resolving";
+  return s.phase === "choosing" || s.phase === "landed" || s.phase === "resolving";
 }
 
 // 本段终点事件(尚未走线时返回 null)。

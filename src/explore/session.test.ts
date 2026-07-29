@@ -1,5 +1,6 @@
 // 探索会话。断言集中在三件事:
-//   ① 阶段机(revealing → choosing → routing → resolving/inBattle → 下一段)不会被跳步或绕过;
+//   ① 阶段机(revealing → choosing → routing → landed → resolving/inBattle → 下一段)
+//      不会被跳步或绕过 —— 尤其是 landed: 走线播完只是落点, 效果必须等玩家选完分支才生效;
 //   ② 每段终点的**保底规则**成立(设计文档 §2.3) —— 这是「每段都有得选」的唯一保障;
 //   ③ 能量档位、血量继承、团灭清算这些跨系统的口子表现稳定。
 
@@ -8,6 +9,7 @@ import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import {
   canOpenBackpack,
   chooseEntry,
+  chooseOption,
   createSession,
   encounterModifier,
   energyTier,
@@ -30,11 +32,13 @@ function newSession(seed = 1): ExploreState {
   return createSession("neon-city", PARTY.map((p) => ({ ...p })), seed);
 }
 
-// 走完一段: 展示 → 选 lane 口 → 走线 → 落点结算。返回是否落在了战斗终点。
+// 走完一段: 展示 → 选 lane 口 → 走线 → 落点 → 选主分支结算。返回是否落在了战斗终点。
+// ⚠ 分支固定取 0(主选项): 它的代价与效果与「没有分支的旧行为」一致, 用它跑保底/回归最稳。
 function runSegment(s: ExploreState, lane = 0): boolean {
   finishReveal(s);
   chooseEntry(s, lane);
   finishRouting(s);
+  chooseOption(s, 0);
   return s.phase === "inBattle";
 }
 
@@ -149,6 +153,7 @@ describe("终点事件保底(设计文档 §2.3)", () => {
     finishReveal(s);
     chooseEntry(s, 0);
     finishRouting(s);
+    chooseOption(s, 0);
     if (s.phase === "inBattle") {
       finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
     }
@@ -196,6 +201,69 @@ describe("阶段机", () => {
     expect(canOpenBackpack(s)).toBe(true); // choosing
     chooseEntry(s, 0);
     expect(canOpenBackpack(s)).toBe(false); // routing
+    finishRouting(s);
+    expect(canOpenBackpack(s)).toBe(true); // landed: 不限时的决策阶段, 与 resolving 同类
+  });
+
+  it("走线播完只是落点, 效果要等玩家在浮层里选完分支才生效", () => {
+    const s = newSession();
+    finishReveal(s);
+    chooseEntry(s, 0);
+    const energyBefore = s.energy;
+    finishRouting(s);
+    expect(s.phase).toBe("landed");
+    // 还没选分支 ⇒ 能量、记录、结算摘要都不该动
+    expect(s.energy).toBe(energyBefore);
+    expect(s.history).toHaveLength(0);
+    expect(s.pendingNotes).toEqual([]);
+
+    expect(chooseOption(s, 0)).toBe(true);
+    expect(s.history).toHaveLength(1);
+    expect(["resolving", "inBattle", "retreated", "wiped"]).toContain(s.phase);
+  });
+
+  it("落点决策途中不许跳步 —— 选入口/撤离/推进全部无效", () => {
+    const s = newSession();
+    finishReveal(s);
+    chooseEntry(s, 0);
+    finishRouting(s);
+    expect(chooseEntry(s, 1)).toBe(false);
+    expect(retreat(s)).toBe(false);
+    expect(nextSegment(s)).toBe(false);
+    expect(chooseOption(s, 9)).toBe(false); // 越界的分支
+    expect(s.phase).toBe("landed");
+  });
+
+  it("选备选分支时, 生效的是备选分支自己的代价与效果", () => {
+    const s = newSession();
+    finishReveal(s);
+    chooseEntry(s, 0);
+    // 造一个两支差异明显的落点: 主支纯扣能量, 备支纯给积分
+    s.board!.events[s.exitLane!] = {
+      id: "test-branch",
+      kind: "loot",
+      category: "growth",
+      title: "测试用岔路",
+      description: "",
+      energyDelta: -30,
+      effects: [],
+      choices: [
+        { id: "a", label: "主支", desc: "", energyDelta: -30, effects: [] },
+        {
+          id: "b",
+          label: "备支",
+          desc: "",
+          energyDelta: 0,
+          effects: [{ type: "GAIN_LOOT", amount: 10 }],
+        },
+      ],
+    };
+    const energyBefore = s.energy;
+    finishRouting(s);
+    chooseOption(s, 1);
+    expect(s.energy).toBe(energyBefore);
+    expect(s.loot).toBe(Math.round(10 * rewardMultiplier(energyBefore)));
+    expect(s.history[0].note).toContain("备支");
   });
 
   it("推进一段扣掉基础能量, 并把结果回填进本段记录", () => {
@@ -218,6 +286,7 @@ describe("阶段机", () => {
     finishReveal(s);
     chooseEntry(s, 0);
     finishRouting(s);
+    chooseOption(s, 0);
     if (s.phase === "inBattle") {
       finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
     }
@@ -292,6 +361,7 @@ describe("战斗回填与团灭", () => {
     );
     s.exitLane = battleLane;
     finishRouting(s);
+    chooseOption(s, 0); // 「迎战」这一支
     expect(s.phase).toBe("inBattle");
   }
 
@@ -344,6 +414,7 @@ describe("战斗回填与团灭", () => {
       effects: [{ type: "DAMAGE_PARTY_PERCENT", percent: 1 }],
     };
     finishRouting(s);
+    chooseOption(s, 0);
     expect(s.phase).toBe("wiped");
   });
 });

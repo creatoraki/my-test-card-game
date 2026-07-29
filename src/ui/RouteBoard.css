@@ -4,6 +4,10 @@
    ⚠ .route-board 自己**不能挂 animation / opacity / transform / filter** —— 它是底下暗玻璃砖的
      祖先, 一旦成为 backdrop root, backdrop-filter 就取不到背景图。入场动画一律挂叶子元素。
 
+   ⛔ **本页禁止任何闪烁型画面变化**: 不允许 infinite/alternate 的 opacity 或亮度关键帧,
+     不允许高频明暗脉冲。常驻动效只用匀速或缓入缓出的**位移/旋转**(如入口灯箱的摆动);
+     明暗变化一律走 transition(悬停时一次性由暗转亮), 一次性播完即止的扩散/淡出不算闪烁。
+
    配色: 只用全局令牌(--text/--muted/--border/--accent) + 本文件作用域内的 --rb-* 。
    玻璃走大厅那一路的**暗玻璃**(brightness 压暗背景换对比度), 而不是控制终端的亮玻璃 ——
    废弃楼层图本身就是暗的, 提亮只会让线路读不清。 */
@@ -44,67 +48,175 @@
   }
 }
 
-/* ── 入口 A-E ── */
+/* ── 入口 A-E: 悬挂灯箱 ──
+   一块从面板顶沿吊下来的招牌: 两根吊索 + 切角箱体 + 底沿一段灯管。
+   它是全屏最重要的交互点, 故做成全屏最大的可点物件。
+   常态: 极缓慢摆动(±0.9deg, 8s), 支点在吊索顶端, 各入口用 --i 错开相位 —— 纯旋转, 无明暗变化。
+   悬停: 停摆归零 + 下压放大 + 灯管点亮 + 所属竖线通电(见 .rb-lane.is-live)。 */
 .rb-entries {
   position: absolute;
   left: 0;
-  top: 16px;
+  top: 0;
   width: 100%;
-  height: 64px;
   /* ⚠ 必须压在 .rb-svg 之上: SVG 根元素虽然内容透明, 但整个盒子照样参与命中测试,
      而它在 DOM 里排在入口之后、又是从 top:0 起画的 —— 不提层就会把 A-E 的点击全吃掉。 */
   z-index: 2;
 }
 .rb-entry {
-  --notch: 10px;
   position: absolute;
   top: 0;
-  width: 88px;
-  height: 60px;
+  height: calc(var(--rope) + var(--box-h));
   padding: 0;
-  border: 1px solid #ffffff2b;
-  background: linear-gradient(150deg, #0f171c99, #0b1216cc);
+  border: 0;
+  background: none;
+  /* 摆动挂在 .rb-entry-box 上而不是按钮本身 —— 按钮要保持稳定的命中区域。 */
+}
+/* 吊索: 两根细线从面板顶沿垂到箱体顶边。用两条渐变背景画, 免得多两个 DOM。 */
+.rb-entry-rope {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: var(--rope);
+  background:
+    linear-gradient(180deg, #ffffff00, #ffffff4d) no-repeat 32% 0 / 2px 100%,
+    linear-gradient(180deg, #ffffff00, #ffffff4d) no-repeat 68% 0 / 2px 100%;
+  transition: background-image 220ms ease;
+}
+.rb-entry-box {
+  position: absolute;
+  left: 0;
+  top: var(--rope);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--box-h);
+  border: 1px solid #ffffff33;
+  background: linear-gradient(155deg, #14202699, #0b1216dd);
   backdrop-filter: blur(10px) saturate(108%) brightness(0.94);
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 22px 40px -26px #000000e6;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  /* 支点在吊索顶端 ⇒ 摆起来像真的挂在那儿。 */
+  transform-origin: 50% calc(-1 * var(--rope));
+  animation: rbSway 8s calc(var(--i) * -1.6s) ease-in-out infinite alternate;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+@keyframes rbSway {
+  from {
+    transform: rotate(-0.9deg);
+  }
+  to {
+    transform: rotate(0.9deg);
+  }
+}
+.rb-entry-no {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  color: var(--muted);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.rb-entry-letter {
   color: var(--text);
   font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
-  font-size: 26px;
+  font-size: 52px;
   font-weight: 700;
+  line-height: 1;
   letter-spacing: 2px;
+  text-indent: 2px;
   transition:
-    border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+    color 220ms ease,
+    letter-spacing 220ms ease,
+    text-shadow 220ms ease;
 }
-/* ⚠ 用 .route-board 提一级特异性: 全局 button:hover:not(:disabled)(styles/base.css) 是 0,2,1,
-   会压过裸类的 0,1,0。与 TownScreen.css 里同一处坑的处理方式一致。 */
-.route-board .rb-entry:hover:not(:disabled) {
+/* 灯管: 箱体底沿的一道横条。暗 = 未通电, 亮 = 可以从这里进去。 */
+.rb-entry-tube {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: #ffffff1f;
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+/* ⚠ 以下一律用 .route-board 提一级特异性: 全局 button:hover:not(:disabled)(styles/base.css)
+   是 0,2,1, 会压过裸类的 0,1,0。与 TownScreen.css 里同一处坑的处理方式一致。 */
+.route-board .rb-entry:hover:not(:disabled) .rb-entry-box,
+.route-board .rb-entry:focus-visible .rb-entry-box {
+  animation-play-state: paused;
+  transform: translateY(7px) scale(1.05) rotate(0deg);
   border-color: var(--rb-trace);
-  color: var(--rb-trace);
   box-shadow:
+    inset 0 1px 0 #ffffff2b,
     0 0 0 1px color-mix(in srgb, var(--rb-trace) 40%, transparent),
-    0 0 22px -6px var(--rb-trace);
+    0 26px 46px -24px #000000e6;
 }
-.route-board .rb-entry:disabled {
-  color: var(--muted);
-  opacity: 0.55;
-}
-.route-board .rb-entry.is-active {
-  border-color: var(--rb-trace);
+.route-board .rb-entry:hover:not(:disabled) .rb-entry-letter,
+.route-board .rb-entry:focus-visible .rb-entry-letter {
   color: var(--rb-trace);
-  opacity: 1;
+  letter-spacing: 6px;
+  text-shadow: 0 0 22px color-mix(in srgb, var(--rb-trace) 60%, transparent);
 }
+.route-board .rb-entry:hover:not(:disabled) .rb-entry-tube,
+.route-board .rb-entry:focus-visible .rb-entry-tube,
+.route-board .rb-entry.is-active .rb-entry-tube {
+  background: var(--rb-trace);
+  box-shadow: 0 0 16px -1px var(--rb-trace);
+}
+/* 按下: 真的插进去一截, 松手回弹。 */
+.route-board .rb-entry:active:not(:disabled) .rb-entry-box {
+  transform: translateY(13px) scale(1.02) rotate(0deg);
+  transition-duration: 90ms;
+}
+/* 已选: 下压定格 + 灯管全亮, 读作「插上了」。 */
+.route-board .rb-entry.is-active .rb-entry-box {
+  animation: none;
+  transform: translateY(11px) rotate(0deg);
+  border-color: var(--rb-trace);
+  box-shadow:
+    inset 0 1px 0 #ffffff2b,
+    0 0 0 1px color-mix(in srgb, var(--rb-trace) 45%, transparent),
+    0 0 30px -8px var(--rb-trace);
+}
+.route-board .rb-entry.is-active .rb-entry-letter {
+  color: var(--rb-trace);
+}
+/* 未到可选阶段: 灯箱照常挂着摆动, 只是没通电 —— 「它还在那, 只是还不能用」。 */
+.route-board .rb-entry:disabled .rb-entry-letter {
+  color: var(--muted);
+}
+/* 被封锁: 一根吊索断了, 箱体歪挂着不再摆动, 字母划掉。 */
 .route-board .rb-entry.is-blocked {
+  cursor: not-allowed;
+}
+.route-board .rb-entry.is-blocked .rb-entry-rope {
+  background: linear-gradient(180deg, #ffffff00, #ffffff33) no-repeat 32% 0 / 2px 100%;
+}
+.route-board .rb-entry.is-blocked .rb-entry-box {
+  animation: none;
+  transform: rotate(7deg);
+  border-color: #ffffff1a;
   border-style: dashed;
+}
+.route-board .rb-entry.is-blocked .rb-entry-letter {
   color: #6b767c;
   text-decoration: line-through;
+}
+.route-board .rb-entry.is-blocked .rb-entry-tube {
+  background: #ffffff12;
 }
 
 /* ── SVG 本体 ── */
@@ -122,6 +234,18 @@
   stroke-width: 2;
   stroke-dasharray: 5 7; /* 虚线: 与实线的横线拉开层次, 也暗示「线路本身是失真的」 */
   opacity: 0.55;
+  transition:
+    stroke 220ms ease,
+    stroke-width 220ms ease,
+    opacity 220ms ease;
+}
+/* 悬停某个入口 ⇒ 那一条竖线通电。⚠ 只是「这条线归这个入口」的确认,
+   不含任何终点信息 —— 一旦预告落点, 整套记忆玩法就废了。 */
+.rb-lane.is-live {
+  stroke: var(--rb-trace);
+  stroke-width: 3;
+  opacity: 1;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--rb-trace) 60%, transparent));
 }
 .rb-bar {
   stroke: var(--rb-bar);
@@ -158,9 +282,41 @@
     stroke-dashoffset: 0;
   }
 }
+/* 亮头: 一小段更白的 dash 跟着主线一起推进, 让「信号在跑」这件事有方向感。 */
+.rb-trace-head {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--rb-trace) 85%, transparent));
+  animation-name: rbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
 .rb-signal {
   fill: #ffffff;
   filter: drop-shadow(0 0 10px var(--rb-trace)) drop-shadow(0 0 22px var(--rb-trace));
+}
+/* 换线拐点的扩散环: 单次播放(no infinite), 播完停在透明 —— 不是闪烁, 是一次撞击的余波。 */
+.rb-ripple {
+  fill: none;
+  stroke: var(--rb-trace);
+  stroke-width: 2;
+  /* ⚠ both 而不是 backwards: 播完必须停在 stroke-opacity:0, 否则会退回基础样式留下一圈实环。 */
+  animation: rbRipple 620ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes rbRipple {
+  from {
+    r: 3;
+    stroke-opacity: 0.95;
+    stroke-width: 3;
+  }
+  to {
+    r: 28;
+    stroke-opacity: 0;
+    stroke-width: 1;
+  }
 }
 
 /* ── 终点事件卡 ── */
@@ -171,10 +327,25 @@
   width: 100%;
   z-index: 1;
 }
-.expl-node {
-  --k: var(--rb-line); /* 该 kind 的强调色, 由下面的 .k-* 覆写 */
-  --notch: 14px;
+/* 展示线路 / 走线途中: 卡片不接受指针。那几秒玩家必须盯着横线, 不该被悬停详情分走注意力。 */
+.rb-nodes.is-inert {
+  pointer-events: none;
+}
+/* 一个终点的定位盒: 卡片 + 悬停详情都装在里面。
+   ⚠ 它自己**不能有 clip-path** —— clip-path 会连后代一起裁掉, 详情浮层会被切没。 */
+.expl-node-slot {
+  --k: var(--rb-line); /* 该 kind 的强调色, 由本文件末尾的 .k-* 覆写 */
   position: absolute;
+}
+.expl-node-slot:hover,
+.expl-node-slot:focus-visible {
+  z-index: 3; /* 详情要压在相邻的卡之上 */
+}
+.expl-node {
+  --notch: 14px;
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -200,13 +371,29 @@
   transition:
     opacity 300ms ease,
     border-color 300ms ease,
-    box-shadow 300ms ease;
+    box-shadow 300ms ease,
+    transform 220ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+/* 悬停: 整卡抬起、图标前推、描边转本类强调色。 */
+.expl-node-slot:hover .expl-node,
+.expl-node-slot:focus-visible .expl-node {
+  transform: translateY(-7px);
+  border-color: var(--k);
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 0 0 1px color-mix(in srgb, var(--k) 35%, transparent),
+    0 30px 54px -26px #000000e6;
+}
+.expl-node-slot:hover .expl-node-icon,
+.expl-node-slot:focus-visible .expl-node-icon {
+  transform: translateY(-2px) scale(1.08);
 }
 .expl-node-icon {
   display: block;
   width: 44px;
   height: 44px;
   color: var(--k);
+  transition: transform 220ms cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 .expl-node-icon svg {
   width: 100%;
@@ -244,6 +431,58 @@
   color: #ffb020;
 }
 
+/* ── 详情浮层: 挂在卡下方, 绝对定位 ⇒ 不参与卡片盒模型, 同排的卡不会跳位 ── */
+.expl-node-detail {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  width: 268px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--k) 40%, transparent);
+  border-top: 2px solid var(--k);
+  background: linear-gradient(160deg, #0f171ceb, #080d10f7);
+  box-shadow: 0 26px 54px -26px #000000f2;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  text-align: left;
+  opacity: 0;
+  transform: translate(-50%, -8px);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+.expl-node-slot:hover .expl-node-detail,
+.expl-node-slot:focus-visible .expl-node-detail {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.expl-node-detail-desc {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.82;
+}
+.expl-node-detail-choice {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 5px 0 0;
+  border-top: 1px solid #ffffff14;
+}
+.expl-node-detail-label {
+  flex: none;
+  color: var(--k);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.expl-node-detail-cost {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 /* 落点: 强描边 + 同色辉光, 一眼看出信号停在哪张卡上 */
 .expl-node.is-landed {
   border-color: var(--k);
@@ -252,46 +491,93 @@
     0 0 0 1px color-mix(in srgb, var(--k) 45%, transparent),
     0 0 34px -6px var(--k);
 }
+/* 抵达那一下: 卡被信号「撞」得下沉再弹回来 + 顶边扫过一道光。都是单次, 播完即止。 */
+/* ⚠ 不设 fill-mode: 播完必须把 transform 交还给上面的悬停/常态规则, 否则卡片再也抬不起来。 */
+.expl-node.is-struck {
+  animation: rbStruck 380ms cubic-bezier(0.34, 1.46, 0.64, 1);
+}
+.expl-node.is-struck::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #ffffff00, var(--k), #ffffff00);
+  animation: rbSweep 620ms 120ms ease-out both;
+}
+@keyframes rbStruck {
+  0% {
+    transform: translateY(0);
+  }
+  38% {
+    transform: translateY(9px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes rbSweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
 /* 结算阶段其余四张压暗, 让注意力回到落点与结算浮层上 */
 .expl-node.is-dim {
   opacity: 0.4;
 }
 
-/* kind → 强调色。与 EnergyMeter 的档位色是两套体系, 刻意不共用 ——
-   一个说「情况有多糟」, 一个说「这是什么类型的事」。 */
-.expl-node.k-battle,
-.expl-node.k-elite {
+/* kind → 强调色(★ 权威定义在这里, ExploreScreen.css 的 .expl-panel.k-* 与之对齐)。
+   与 EnergyMeter 的档位色是两套体系, 刻意不共用 ——
+   一个说「情况有多糟」, 一个说「这是什么类型的事」。
+   ⚠ 挂在 slot 上: 卡片与详情浮层都要用同一个 --k。 */
+.expl-node-slot.k-battle,
+.expl-node-slot.k-elite {
   --k: #ff8f6b;
 }
-.expl-node.k-boss {
+.expl-node-slot.k-boss {
   --k: #ff5f6b;
 }
-.expl-node.k-hazard {
+.expl-node-slot.k-hazard {
   --k: #ffb020;
 }
-.expl-node.k-heal {
+.expl-node-slot.k-heal {
   --k: #62d99a;
 }
-.expl-node.k-loot {
+.expl-node-slot.k-loot {
   --k: var(--accent);
 }
-.expl-node.k-energy {
+.expl-node-slot.k-energy {
   --k: #6fe3f5;
 }
-.expl-node.k-merchant {
+.expl-node-slot.k-merchant {
   --k: #c8a2ff;
 }
-.expl-node.k-route {
+.expl-node-slot.k-route {
   --k: #8fb3c4;
 }
-.expl-node.k-retreat {
+.expl-node-slot.k-retreat {
   --k: #ffffff;
 }
 
 @media (prefers-reduced-motion: reduce) {
   /* 走线是**信息**而不是装饰(玩家要看清楚它怎么横移的), 故这里不整体关掉动画,
      只把它压到最短的可辨识时长。倒计时条同理保留 —— 它就是那几秒本身。 */
-  .rb-trace-line {
+  .rb-trace-line,
+  .rb-trace-head {
     animation-duration: 400ms !important;
+  }
+  /* 纯装饰的那几样直接关掉: 灯箱摆动、落点撞击。 */
+  .rb-entry-box,
+  .expl-node.is-struck,
+  .expl-node.is-struck::after {
+    animation: none;
+  }
+  /* 涟漪不能只停动画 —— 那会把每个拐点的圆环定格在画面上。整个不渲染。 */
+  .rb-ripple {
+    display: none;
   }
 }

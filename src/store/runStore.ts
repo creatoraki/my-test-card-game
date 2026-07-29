@@ -35,7 +35,7 @@ interface RunStore {
   enterTown: () => void;
   openFormation: () => void;
   startExpedition: (mapId: string) => void; // 选定地图 → 进路由图
-  enterEncounter: () => void; // 走线落到战斗终点 → 建局开打
+  enterEncounter: () => void; // 落点浮层选了战斗分支 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
   confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
   retreat: () => void; // 主动撤离 → 落袋回城
@@ -109,11 +109,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({ mapId, expReport: [], lastResult: null, lastLoot: 0, screen: "explore" });
   },
 
-  // 走线动画播完 → 结算落点。落点是战斗时 finishRouting 会写下 pendingEncounterId, 这里据此建局。
+  // 玩家在落点浮层里选了战斗分支 → 建局开打。
+  // ⚠ 会话的推进不在这里: chooseOption 已经把 phase 打成 inBattle 并写下 pendingEncounterId,
+  //   本函数只负责「照着它建一场战斗并切页」。没有待打的战斗就什么都不做(幂等护栏)。
   enterEncounter: () => {
-    const next = useExploreStore.getState().routeDone();
-    if (!next?.pendingEncounterId) return;
-    launchBattle(next.pendingEncounterId, next.pendingIsBoss);
+    const s = useExploreStore.getState().session;
+    if (!s?.pendingEncounterId) return;
+    launchBattle(s.pendingEncounterId, s.pendingIsBoss);
     set({ screen: "battle" });
   },
 

@@ -67,6 +67,16 @@ export type ExploreEffect =
   | { type: "START_BATTLE"; encounterId: string; boss?: boolean } // 进入战斗
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
 
+// 落点分支选项(设计: 抵达终点后先开浮层, 玩家在两条路里挑一条 —— 落点是运气, 怎么处理是决策)。
+// ⚠ 代价与效果**只认选项自己的这两个字段**: RouteEvent 上的同名字段仅用于终点卡的预览。
+export interface EventChoice {
+  id: string;
+  label: string; // 按钮文字, 如「迎战」「绕行」
+  desc: string; // 一行代价/收益说明, 直接渲染在按钮里
+  energyDelta: number; // 选中该项的净化粒子增减
+  effects: ExploreEffect[];
+}
+
 export interface RouteEvent {
   id: string;
   kind: RouteEventKind;
@@ -74,8 +84,11 @@ export interface RouteEvent {
   risk?: EventRisk;
   title: string;
   description: string;
-  energyDelta: number; // 抵达该终点的额外能量代价(每段的基础 -10 不含在内)
+  // ★ 终点卡上给玩家看的**预览**代价 = 主选项(choices[0])的 energyDelta。
+  //   真正结算读的是被选中的那个 EventChoice; 只有 choices 缺省时才回退到这两个字段。
+  energyDelta: number;
   effects: ExploreEffect[];
+  choices?: EventChoice[]; // 两项。缺省 = 单选项事件(等价于直接用上面的 energyDelta/effects)
   minSegment?: number; // 精英 / 高额奖励 / 终局事件的最早出现段号
   disabled?: boolean; // P0 未实现的事件: 留在池里当占位, 不参与抽取
 }
@@ -129,7 +142,8 @@ export type ExplorePhase =
   | "revealing" // 完整线路展示中。⚠ 此阶段禁止开背包(设计文档 §6.3 硬约束)
   | "choosing" // 线路已隐去, 等玩家选入口。不限时, 可开背包
   | "routing" // 信号沿线路下行中, 动画由 UI 驱动
-  | "resolving" // 已抵达终点并结算完毕, 等玩家确认后推进
+  | "landed" // ★ 信号已抵达终点, **效果尚未结算**, 等玩家在浮层里选分支。不限时
+  | "resolving" // 分支已结算完毕, 等玩家确认后推进
   | "inBattle" // 终点是战斗, 战斗进行中
   | "cleared" // BOSS 已击杀
   | "retreated" // 主动撤退 / 走完全部段数

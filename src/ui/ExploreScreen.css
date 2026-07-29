@@ -77,6 +77,32 @@
   border-left: 2px solid var(--expl-glow);
   animation: explRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
+/* ★ 落点浮层开着时四角 HUD 集体后退一档 —— 这是本页「聚焦」的全部手段, 没有全屏遮罩。
+   ⚠⚠ 后退**只能压在叶子元素上**: .expl-readout / .expl-party / .expl-actions 都是玻璃砖的
+     父元素, 而 opacity != 1 与 transform 都会让它们变成 backdrop root, 里面每块玻璃的
+     backdrop-filter 就取不到背景图了。容器上只放 pointer-events(它没有视觉副作用)。
+     元素自己带 opacity 是安全的 —— .expl-chip.is-locked 一直这么用。
+   ⚠ 后退是**纯视觉**的: 不能顺手关掉 pointer-events —— `resolving` 阶段撤离远征仍然合法
+     (见 session.retreat 的阶段白名单), 关掉就等于凭空砍了一条出路。 */
+.expl-header.is-recede .expl-kicker,
+.expl-header.is-recede .expl-title,
+.expl-header.is-recede .expl-sub {
+  opacity: 0.5;
+}
+.expl-readout.is-recede .expl-chip,
+.expl-party.is-recede .expl-member,
+.expl-actions.is-recede .expl-command,
+.expl-actions.is-recede .expl-btn {
+  opacity: 0.5;
+}
+.expl-kicker,
+.expl-title,
+.expl-sub,
+.expl-chip,
+.expl-member,
+.expl-command {
+  transition: opacity 220ms ease;
+}
 .expl-kicker {
   display: block;
   color: var(--expl-glow);
@@ -94,11 +120,13 @@
   text-indent: 8px; /* 补回 letter-spacing 在末字之后多留的那一格 */
   text-shadow: 0 2px 18px #000000b3;
 }
+/* 阶段提示。key 挂 phase(见 tsx) ⇒ 每次换阶段重挂一次, 走一遍卷入 —— 提示变了就该被看见。 */
 .expl-sub {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 13px;
   letter-spacing: 2px;
+  animation: explRise 320ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 /* ===================== 右上: 读数 ===================== */
@@ -168,6 +196,18 @@
 .expl-chip.is-locked {
   opacity: 0.42;
 }
+.expl-readout.is-recede .expl-chip.is-locked {
+  opacity: 0.28;
+}
+/* 读数也要有回应: 悬停时描边提亮 —— 位移会挤到相邻的 chip, 故只动颜色。 */
+.expl-chip:hover {
+  border-color: color-mix(in srgb, var(--expl-glow) 55%, transparent);
+}
+.expl-chip {
+  transition:
+    opacity 220ms ease,
+    border-color 200ms ease;
+}
 
 /* ===================== 中央: 路由图容器 ===================== */
 /* 只是个定位盒。⚠ 不挂 opacity/filter —— RouteBoard 里的玻璃砖要靠它上面的背景图。 */
@@ -218,6 +258,17 @@
 }
 .expl-member-body {
   min-width: 0;
+}
+/* 悬停: 整卡向右让出一点, 描边提亮 —— 队伍是活的, 不是一张贴图。 */
+.expl-member {
+  transition:
+    opacity 220ms ease,
+    transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 200ms ease;
+}
+.expl-member:hover {
+  transform: translateX(5px);
+  border-color: color-mix(in srgb, var(--expl-glow) 50%, transparent);
 }
 /* 阵亡: 整卡去饱和压暗。血条归零已经说明问题, 这里只补一层「这个人出局了」。 */
 .expl-member.is-down {
@@ -273,6 +324,18 @@
   );
   opacity: 0.5;
 }
+/* 「不可用」也要有回应: 悬停时轻轻歪一下 + 描边提亮, 而不是死的一块。 */
+.expl-command {
+  transition:
+    opacity 220ms ease,
+    transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 200ms ease;
+}
+.explore-stage .expl-command:hover {
+  transform: rotate(-0.8deg) translateY(-2px);
+  border-color: color-mix(in srgb, var(--expl-glow) 45%, transparent);
+  opacity: 0.7;
+}
 .expl-command-name {
   color: var(--text);
   font-size: 13px;
@@ -317,7 +380,13 @@
     border-color 180ms ease,
     color 180ms ease,
     background 180ms ease,
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    opacity 220ms ease,
+    transform 140ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+/* 按下有实体的下压 —— 所有可点的东西都要给这一下。 */
+.explore-stage .expl-btn:active:not(:disabled) {
+  transform: translateY(2px);
 }
 /* ⚠ 以下 hover/disabled 一律用 .explore-stage 提一级特异性: 全局的
    button:hover:not(:disabled)(styles/base.css) 特异性是 0,2,1, 会压过裸类的 0,1,0。
@@ -359,8 +428,9 @@
   border-style: dashed;
 }
 
-/* ===================== 结算浮层 ===================== */
+/* ===================== 落点浮层(landed 选分支 → resolving 看结算) ===================== */
 /* ★ 无遮罩: 压暗背景会挡住刚刚亮起来的路径, 而那正是玩家此刻最想看的东西。
+   聚焦改由四角 HUD 的 .is-recede 与落点光柱 .expl-beam 承担。
    本层只负责定位; 背后的入口与按钮此刻都已按 phase 禁用, 不需要额外遮挡。
    ⚠ 这一层自己**绝不能挂动画/opacity/filter** —— 它是面板的父元素, 一旦成为 backdrop root,
    面板的 backdrop-filter 就取不到场景了。动画挂在 .expl-panel 上。 */
@@ -403,6 +473,139 @@
   /* 从画布上方滑入(与控制终端浮层同一套语言)。⚠ 动画挂面板自己, 不挂 .expl-modal。 */
   animation: explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards;
 }
+/* ── 落点 → 浮层的光柱 ──
+   从落点终点卡上沿升起的一道窄光, 把「是这张卡把面板叫出来的」说清楚。
+   scaleY 单次生长后保持(不循环、不明暗脉冲)。挂在 .expl-board 里, 位置由 laneCenterX 算。 */
+.expl-beam {
+  --k: var(--accent);
+  position: absolute;
+  width: 6px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 0%, transparent), var(--k));
+  filter: blur(1px);
+  opacity: 0.55;
+  transform-origin: bottom center;
+  animation: explBeam 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  pointer-events: none;
+}
+@keyframes explBeam {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+.expl-beam.k-battle,
+.expl-beam.k-elite {
+  --k: #ff8f6b;
+}
+.expl-beam.k-boss {
+  --k: #ff5f6b;
+}
+.expl-beam.k-hazard {
+  --k: #ffb020;
+}
+.expl-beam.k-heal {
+  --k: #62d99a;
+}
+.expl-beam.k-energy {
+  --k: #6fe3f5;
+}
+.expl-beam.k-merchant {
+  --k: #c8a2ff;
+}
+.expl-beam.k-route {
+  --k: #8fb3c4;
+}
+.expl-beam.k-retreat {
+  --k: #ffffff;
+}
+
+/* ── 落点分支按钮(landed 阶段) ── */
+.expl-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 6px;
+}
+.expl-choice {
+  --notch: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 14px 16px 14px 20px;
+  border: 1px solid #ffffff2b;
+  background: linear-gradient(155deg, #16222899, #0b1216cc);
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+/* 左侧那道竖条: 悬停时自上而下长出来, 读作「这一支被选中了」。 */
+.expl-choice-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--k);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 220ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+.explore-stage .expl-choice:hover,
+.explore-stage .expl-choice:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--k);
+  box-shadow: 0 26px 46px -26px #000000e6;
+}
+.explore-stage .expl-choice:hover .expl-choice-bar,
+.explore-stage .expl-choice:focus-visible .expl-choice-bar {
+  transform: scaleY(1);
+}
+.explore-stage .expl-choice:active {
+  transform: translateY(2px);
+  transition-duration: 90ms;
+}
+.expl-choice-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.expl-choice-label {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+.expl-choice-energy {
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.expl-choice-energy.up {
+  color: var(--good);
+}
+.expl-choice-energy.down {
+  color: #ffb37a;
+}
+.expl-choice-desc {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .expl-panel-title {
   margin: 2px 0 0;
   color: var(--k);
@@ -423,7 +626,9 @@
   gap: 8px;
   margin-top: 2px;
 }
+/* 结算摘要逐条错峰浮起(延迟由 tsx 按序号给)。单次播放, 不循环。 */
 .expl-note {
+  animation: explRise 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   padding: 4px 10px;
   border: 1px solid color-mix(in srgb, var(--k) 45%, transparent);
   background: color-mix(in srgb, var(--k) 12%, transparent);
@@ -501,6 +706,11 @@
   .expl-readout,
   .expl-party,
   .expl-actions {
+    animation: none;
+  }
+  .expl-sub,
+  .expl-note,
+  .expl-beam {
     animation: none;
   }
   .expl-panel {

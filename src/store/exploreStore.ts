@@ -8,6 +8,7 @@ import { create } from "zustand";
 import type { ExploreState, PartySnapshot } from "../explore/types";
 import {
   chooseEntry,
+  chooseOption,
   createSession,
   finishBattle,
   finishReveal,
@@ -22,7 +23,8 @@ interface ExploreStore {
   start: (mapId: string, party: PartySnapshot[], seed?: number) => void;
   revealDone: () => void; // 展示计时结束(UI 定时器)
   pickEntry: (lane: number) => void; // 选入口 A-E
-  routeDone: () => ExploreState | null; // 走线动画播完; 返回新会话供 runStore 判断要不要建局
+  routeDone: () => ExploreState | null; // 走线动画播完 → landed(只落点, 不结算)
+  pickOption: (index: number) => ExploreState | null; // 落点浮层选分支; 返回新会话供 UI 判断要不要切战斗页
   advance: () => void; // 结算浮层「继续」→ 下一段
   retreatNow: () => void;
   settleBattle: (
@@ -64,6 +66,8 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   },
 
   routeDone: () => mutate(get, set, (d) => finishRouting(d)),
+
+  pickOption: (index) => mutate(get, set, (d) => chooseOption(d, index)),
 
   advance: () => {
     mutate(get, set, (d) => nextSegment(d));
