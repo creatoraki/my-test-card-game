@@ -1,6 +1,8 @@
 // 探索会话。断言集中在三件事:
-//   ① 阶段机(revealing → choosing → routing → landed → resolving/inBattle → 下一段)
-//      不会被跳步或绕过 —— 尤其是 landed: 走线播完只是落点, 效果必须等玩家选完分支才生效;
+//   ① 阶段机(generating → sealed → revealing → choosing → routing → landed →
+//      resolving/inBattle → 下一段)不会被跳步或绕过 —— 尤其是两处:
+//      · sealed → revealing 只能由玩家主动触发, 且一段仅此一次(转向线不能反复看);
+//      · landed: 走线播完只是落点, 效果必须等玩家选完分支才生效;
 //   ② 每段终点的**保底规则**成立(设计文档 §2.3) —— 这是「每段都有得选」的唯一保障;
 //   ③ 能量档位、血量继承、团灭清算这些跨系统的口子表现稳定。
 
@@ -14,6 +16,7 @@ import {
   encounterModifier,
   energyTier,
   finishBattle,
+  finishGenerating,
   finishReveal,
   finishRouting,
   landedEvent,
@@ -21,6 +24,7 @@ import {
   projectedEnergy,
   retreat,
   rewardMultiplier,
+  startReveal,
 } from "./session";
 import type { ExploreState, PartySnapshot } from "./types";
 
@@ -32,10 +36,18 @@ function newSession(seed = 1): ExploreState {
   return createSession("neon-city", PARTY.map((p) => ({ ...p })), seed);
 }
 
-// 走完一段: 展示 → 选 lane 口 → 走线 → 落点 → 选主分支结算。返回是否落在了战斗终点。
+// 从新生成的一段(generating)推到 choosing —— 演出、揭示、限时展示这三拍都是 UI 侧的定时器/点击
+// 驱动的, 纯逻辑测试里一次走完即可。所有「换段之后」的用例都该先过这里。
+function toChoosing(s: ExploreState): void {
+  finishGenerating(s);
+  startReveal(s);
+  finishReveal(s);
+}
+
+// 走完一段: 演出/揭示/展示 → 选 lane 口 → 走线 → 落点 → 选主分支结算。返回是否落在了战斗终点。
 // ⚠ 分支固定取 0(主选项): 它的代价与效果与「没有分支的旧行为」一致, 用它跑保底/回归最稳。
 function runSegment(s: ExploreState, lane = 0): boolean {
-  finishReveal(s);
+  toChoosing(s);
   chooseEntry(s, lane);
   finishRouting(s);
   chooseOption(s, 0);
@@ -43,9 +55,9 @@ function runSegment(s: ExploreState, lane = 0): boolean {
 }
 
 describe("建局", () => {
-  it("开局即生成第 1 段, 处于展示阶段", () => {
+  it("开局即生成第 1 段, 处于生成演出阶段", () => {
     const s = newSession();
-    expect(s.phase).toBe("revealing");
+    expect(s.phase).toBe("generating");
     expect(s.segment).toBe(1);
     expect(s.segmentCount).toBe(6);
     expect(s.energy).toBe(EXPLORE_RULES.startingEnergy);
@@ -150,7 +162,7 @@ describe("终点事件保底(设计文档 §2.3)", () => {
     s.energy = 5; // 第 5 档
     s.segment = 3;
     // 重新生成一段以应用当前能量
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 0);
     finishRouting(s);
     chooseOption(s, 0);
@@ -165,18 +177,55 @@ describe("终点事件保底(设计文档 §2.3)", () => {
 });
 
 describe("阶段机", () => {
-  it("展示阶段不能选入口 —— 必须先等计时结束", () => {
+  it("生成演出与展示阶段都不能选入口 —— 必须一路走到 choosing", () => {
     const s = newSession();
-    expect(chooseEntry(s, 0)).toBe(false);
+    expect(chooseEntry(s, 0)).toBe(false); // generating
+    expect(finishGenerating(s)).toBe(true);
+    expect(s.phase).toBe("sealed");
+    expect(chooseEntry(s, 0)).toBe(false); // sealed: 转向线还没揭示, 不许下注
+    expect(startReveal(s)).toBe(true);
+    expect(s.phase).toBe("revealing");
+    expect(chooseEntry(s, 0)).toBe(false); // revealing
     expect(finishReveal(s)).toBe(true);
     expect(s.phase).toBe("choosing");
     expect(chooseEntry(s, 0)).toBe(true);
     expect(s.phase).toBe("routing");
   });
 
+  it("★ 转向线一段只能看一次 —— 揭示之后再也回不到 sealed", () => {
+    const s = newSession();
+    // 演出没播完就想揭示: 不认
+    expect(startReveal(s)).toBe(false);
+    finishGenerating(s);
+    expect(startReveal(s)).toBe(true);
+    // revealing / choosing 阶段再按都不生效, 阶段也不会被打回去
+    expect(startReveal(s)).toBe(false);
+    finishReveal(s);
+    expect(startReveal(s)).toBe(false);
+    expect(s.phase).toBe("choosing");
+  });
+
+  it("生成演出播完才进 sealed, 且不能重复触发", () => {
+    const s = newSession();
+    expect(finishGenerating(s)).toBe(true);
+    expect(finishGenerating(s)).toBe(false);
+    expect(s.phase).toBe("sealed");
+  });
+
+  it("换段后重新回到生成演出阶段, 转向线要重新揭示一次", () => {
+    const s = newSession();
+    runSegment(s);
+    if (s.phase === "inBattle") {
+      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
+    }
+    expect(nextSegment(s)).toBe(true);
+    expect(s.phase).toBe("generating");
+    expect(s.segment).toBe(2);
+  });
+
   it("越界或被封锁的入口选不了", () => {
     const s = newSession();
-    finishReveal(s);
+    toChoosing(s);
     s.board!.blockedLanes = [2];
     expect(chooseEntry(s, -1)).toBe(false);
     expect(chooseEntry(s, 5)).toBe(false);
@@ -186,7 +235,7 @@ describe("阶段机", () => {
 
   it("选入口时就定下落点, 走线只是把它演出来", () => {
     const s = newSession();
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 3);
     expect(s.entryLane).toBe(3);
     expect(s.exitLane).not.toBeNull();
@@ -194,9 +243,14 @@ describe("阶段机", () => {
     expect(landedEvent(s)).toBe(s.board!.events[s.exitLane!]);
   });
 
-  it("⚠ 展示与走线途中禁止开背包(设计文档 §6.3 的硬约束)", () => {
+  it("⚠ 演出、展示与走线途中禁止开背包(设计文档 §6.3 的硬约束)", () => {
     const s = newSession();
-    expect(canOpenBackpack(s)).toBe(false); // revealing
+    expect(canOpenBackpack(s)).toBe(false); // generating: 演出期锁死一切
+    finishGenerating(s);
+    // sealed: 横线还没揭示, 慢慢翻背包也偷看不到东西 —— 与 choosing 同类
+    expect(canOpenBackpack(s)).toBe(true);
+    startReveal(s);
+    expect(canOpenBackpack(s)).toBe(false); // revealing: 开背包 = 无限延长观察时间
     finishReveal(s);
     expect(canOpenBackpack(s)).toBe(true); // choosing
     chooseEntry(s, 0);
@@ -207,7 +261,7 @@ describe("阶段机", () => {
 
   it("走线播完只是落点, 效果要等玩家在浮层里选完分支才生效", () => {
     const s = newSession();
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 0);
     const energyBefore = s.energy;
     finishRouting(s);
@@ -224,7 +278,7 @@ describe("阶段机", () => {
 
   it("落点决策途中不许跳步 —— 选入口/撤离/推进全部无效", () => {
     const s = newSession();
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 0);
     finishRouting(s);
     expect(chooseEntry(s, 1)).toBe(false);
@@ -236,7 +290,7 @@ describe("阶段机", () => {
 
   it("选备选分支时, 生效的是备选分支自己的代价与效果", () => {
     const s = newSession();
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 0);
     // 造一个两支差异明显的落点: 主支纯扣能量, 备支纯给积分
     s.board!.events[s.exitLane!] = {
@@ -283,7 +337,7 @@ describe("阶段机", () => {
     const s = newSession(9);
     s.loot = 88;
     s.segment = s.segmentCount;
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 0);
     finishRouting(s);
     chooseOption(s, 0);
@@ -297,12 +351,25 @@ describe("阶段机", () => {
 
   it("主动撤离只在可操作的阶段允许, 且保留全部积分", () => {
     const s = newSession();
-    expect(retreat(s)).toBe(false); // revealing
+    expect(retreat(s)).toBe(false); // generating: 演出期锁死一切
+    finishGenerating(s);
+    startReveal(s);
+    expect(retreat(s)).toBe(false); // revealing: 限时窗口内不许中途开溜
     finishReveal(s);
     s.loot = 120;
     expect(retreat(s)).toBe(true);
     expect(s.phase).toBe("retreated");
     expect(s.loot).toBe(120);
+  });
+
+  it("遮蔽阶段(还没按探索路线)也允许撤离 —— 与 choosing 同类, 都是不限时的待决策阶段", () => {
+    const s = newSession();
+    finishGenerating(s);
+    expect(s.phase).toBe("sealed");
+    s.loot = 77;
+    expect(retreat(s)).toBe(true);
+    expect(s.phase).toBe("retreated");
+    expect(s.loot).toBe(77);
   });
 });
 
@@ -354,7 +421,7 @@ describe("净化粒子", () => {
 describe("战斗回填与团灭", () => {
   // 强制走到一个战斗终点: 直接改会话状态比反复换种子碰运气可靠。
   function intoBattle(s: ExploreState): void {
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 0);
     const battleLane = s.board!.events.findIndex((e) =>
       e.effects.some((x) => x.type === "START_BATTLE"),
@@ -395,13 +462,13 @@ describe("战斗回填与团灭", () => {
   it("非战斗阶段调用回填无效 —— 幂等护栏", () => {
     const s = newSession();
     expect(finishBattle(s, true, [], 2)).toEqual({ loot: 0 });
-    expect(s.phase).toBe("revealing");
+    expect(s.phase).toBe("generating");
   });
 
   it("事件掉血也能团灭", () => {
     const s = newSession();
     s.party[0].hp = 1;
-    finishReveal(s);
+    toChoosing(s);
     chooseEntry(s, 0);
     // 直接把落点改成一个纯掉血事件
     s.board!.events[s.exitLane!] = {

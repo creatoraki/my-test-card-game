@@ -563,6 +563,166 @@
   --k: #ffffff;
 }
 
+/* ===================== 生成演出(.is-generating) =====================
+   换段时新签路「浮现」的那 2 秒, 自上而下分三段递进 —— 时间轴与 RouteBoard.GENERATE_MS
+   一一对应, ⚠ 改这里必须同步改那个常量, 否则 ExploreScreen 的定时器会与画面脱节:
+
+     ①    0– 780ms  入口灯箱落下(500ms, --i 每条 +70ms)
+     ②  500–1640ms  竖线自上而下画出来(900ms, --i 每条 +60ms), 画完由实线 morph 成常态虚线
+     ③ 1400–2000ms  终点卡浮现(420ms, --i 每张 +45ms) ← 末张正好压在 2000ms 收尾
+
+   ⚠ 三段都必须在 GENERATE_MS 之前播完: 定时器一到就摘掉 .is-generating,
+     还没播完的动画会当场跳到终态。改任何一处时长/错开都要重算末尾那一张。
+
+   ⚠ 横线(.rb-bars)全程不参与 —— 这一段是仪式, 不是信息展示; 转向线要等玩家按「探索路线」。
+   ⚠ 一律 fill-mode: backwards **而不是 forwards**: 延迟期停在起始态(不可见)即可,
+     播完必须把 transform/opacity 交还给常态与悬停规则, 否则卡片再也抬不起来、灯箱不再摆动。
+     这也让 .rb-entry / .expl-node-slot 只在这 2 秒内短暂成为 backdrop root ——
+     动画一结束 transform 归 none, 里面那层暗玻璃自己就回来了。 */
+
+.route-board.is-generating .rb-entry {
+  animation: rbGenEntry 500ms cubic-bezier(0.2, 0.72, 0.28, 1) calc(var(--i) * 70ms) backwards;
+}
+@keyframes rbGenEntry {
+  from {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 竖线下行。dasharray 从「0 实 + 全长虚」长到「全长实 + 0 虚」= 一条自顶向下画出来的线;
+   最后 30% 再把它 morph 回常态的 5 7 虚线 —— 两端都是双值列表, 插值是良定义的,
+   收尾帧与 .rb-lane 的常态完全一致, 所以 backwards 收场时不会有跳变。 */
+.route-board.is-generating .rb-lane {
+  animation: rbGenLane 900ms cubic-bezier(0.2, 0.72, 0.28, 1) calc(500ms + var(--i) * 60ms)
+    backwards;
+}
+@keyframes rbGenLane {
+  from {
+    stroke-dasharray: 0 var(--len);
+  }
+  70% {
+    stroke-dasharray: var(--len) 0;
+  }
+  to {
+    stroke-dasharray: 5 7;
+  }
+}
+
+/* ⚠ 末张卡必须在 GENERATE_MS 之前收尾, 否则 is-generating 被摘掉时它会硬生生跳到终态:
+   1400 + 4×45(最后一条 lane 的错开) + 420 = 2000, 正好压线。改错开或时长时重算这条。 */
+.route-board.is-generating .expl-node-slot {
+  animation: rbGenNode 420ms cubic-bezier(0.2, 0.72, 0.28, 1) calc(1400ms + var(--i) * 45ms)
+    backwards;
+}
+@keyframes rbGenNode {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── 「探索路线」按钮: 遮蔽态正中那一颗 ──
+   本段唯一能看见转向线的机会, 按下即不可逆(见 RouteBoard.tsx 的注释), 故做得比普通按钮重:
+   胶囊 + 副标提醒「仅一次」+ 一圈缓慢外扩的探针环。
+   ⚠ 那圈环走的是**位移/缩放**的匀速外扩(不是明暗脉冲), 符合本页禁闪烁的约定。
+
+   ⚠⚠ 居中位移(translate(-50%,-50%))**必须留在 .rb-probe-anchor 这层, 不能回到 button 上**:
+       base.css 的 `button:active:not(:disabled){transform:translateY(1px)}` 特异性 (0,2,1)
+       高于任何单类名选择器, 按下时会把居中位移整条顶掉 —— 按钮朝右下跳半个自身宽高,
+       从光标底下跑走, mouseup 落在外面, click 事件根本不会触发(表现为"点很多下才生效")。
+       同理探针环也挂在 anchor 上: button 带全站斜切角的 clip-path, 会把外扩的环裁掉。 */
+.rb-probe-anchor {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* 竖线层(z-index:2 的入口)之上, 详情浮层(3)之下 */
+  z-index: 3;
+  animation: rbProbeIn 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.rb-probe {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 30px;
+  border: 1px solid color-mix(in srgb, var(--rb-bar) 55%, transparent);
+  border-radius: 3px;
+  background: linear-gradient(155deg, #14202699, #0b1216ee);
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 24px 46px -26px #000000e6;
+  color: var(--text);
+  cursor: pointer;
+  /* transform 也进过渡列表: base.css 的按下反馈(translateY(1px))现在安全地落在按钮自己身上 */
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease,
+    transform 80ms ease;
+}
+.rb-probe:hover,
+.rb-probe:focus-visible {
+  border-color: var(--rb-bar);
+  background: linear-gradient(155deg, #1a2c33cc, #0b1216ee);
+  box-shadow:
+    inset 0 1px 0 #ffffff2b,
+    0 0 0 1px color-mix(in srgb, var(--rb-bar) 40%, transparent),
+    0 30px 54px -24px #000000e6;
+}
+.rb-probe-label {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+.rb-probe-note {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+/* 探针环: 从按钮中心匀速外扩一圈细线, 读作「正在向签路里打信号」。 */
+.rb-probe-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  border: 1px solid color-mix(in srgb, var(--rb-bar) 45%, transparent);
+  border-radius: 3px;
+  pointer-events: none;
+  animation: rbProbeRing 2600ms cubic-bezier(0.16, 0.84, 0.3, 1) infinite;
+}
+@keyframes rbProbeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+/* ⚠ opacity 只在单次外扩的末尾收尾(环飞出去自然淡掉), 不是明暗脉冲 —— 不属于禁止的闪烁。 */
+@keyframes rbProbeRing {
+  from {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* 走线是**信息**而不是装饰(玩家要看清楚它怎么横移的), 故这里不整体关掉动画,
      只把它压到最短的可辨识时长。倒计时条同理保留 —— 它就是那几秒本身。 */
@@ -579,5 +739,27 @@
   /* 涟漪不能只停动画 —— 那会把每个拐点的圆环定格在画面上。整个不渲染。 */
   .rb-ripple {
     display: none;
+  }
+  /* 生成演出同样不能整个关掉(关掉会让 backwards 把元素定格在起始的不可见态), 只把三段
+     压进 RouteBoard.GENERATE_REDUCED_MS 的窗口里 —— 顺序还在, 但基本一闪而过。
+     ⚠ 这里的总时长必须 ≤ 那个常量, 否则定时器会比画面先落地。 */
+  .route-board.is-generating .rb-entry {
+    animation-duration: 100ms;
+    animation-delay: 0ms;
+  }
+  .route-board.is-generating .rb-lane {
+    animation-duration: 120ms;
+    animation-delay: 100ms;
+  }
+  .route-board.is-generating .expl-node-slot {
+    animation-duration: 90ms;
+    animation-delay: 220ms;
+  }
+  /* 探针环纯装饰, 直接不渲染(只停动画会把它定格成一圈静止描边)。 */
+  .rb-probe-ring {
+    display: none;
+  }
+  .rb-probe-anchor {
+    animation: none;
   }
 }

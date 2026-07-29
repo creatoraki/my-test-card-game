@@ -1,7 +1,11 @@
 // ★ 失真路由图(阿弥陀签) ★ —— 探索页的主体交互, 见 探索模式设计.md §2。
 //
-// 一段的四个阶段各对应一种画面, 全部落在同一张 SVG 上:
+// 一段的各阶段各对应一种画面, 全部落在同一张 SVG 上:
+//   generating —— 新图逐层画出来(灯箱 → 竖线下行 → 终点卡), 共 GENERATE_MS; 全程不可交互。
+//                 ⚠ 横线自始至终不出现 —— 这一段是「浮现仪式」, 不是信息展示。
+//   sealed    —— 图已画完、横线仍遮蔽, 正中悬一个「探索路线」按钮。不限时。
 //   revealing —— 横线全显 + 顶部一条倒计时进度条; 玩家在这几秒内**用眼睛记**。
+//                只能由 sealed 阶段按下按钮进入, 一段仅此一次。
 //   choosing  —— 横线整体淡出到 opacity:0(⚠ 只改 opacity, **不卸载**: DOM 里留着才不会被
 //                「查看元素」看穿, 也免得回放时重新布局); 入口 A-E 变成可点按钮。
 //   routing   —— 信号沿 traceRoute() 求出的折线下行, 走过的线段实时点亮, 拐点留下扩散环。
@@ -38,6 +42,12 @@ const SIGNAL_SPEED = 0.75;
 const SIGNAL_MIN_MS = 800;
 const SIGNAL_MAX_MS = 2400;
 const SIGNAL_TAIL_MS = 220; // 抵达终点后多停一拍再结算, 免得画面一到就跳
+
+// ★ 生成演出总时长。RouteBoard.css 的 rbGen* 三段关键帧按这条时间轴排:
+//   灯箱 0-500 / 竖线 500-1400 / 终点卡 1400-2000。**改这里必须同步改那三段的 delay+duration**,
+//   否则 ExploreScreen 的定时器会比画面早或晚落地。reduced-motion 走下面的压缩值。
+export const GENERATE_MS = 2000;
+export const GENERATE_REDUCED_MS = 320;
 
 export const ROUTE_PANEL_H = NODE_TOP + NODE_H + 24;
 export function routePanelWidth(laneCount: number): number {
@@ -152,11 +162,21 @@ interface Props {
   exitLane: number | null;
   /** 只在 choosing 阶段可用; 由 ExploreScreen 转给 store 的 pickEntry。 */
   onPickEntry: (lane: number) => void;
+  /** 只在 sealed 阶段可用; 玩家按下「探索路线」→ store 的 beginReveal。 */
+  onStartReveal: () => void;
   /** 走线动画播完。ExploreScreen 据此调 runStore.enterEncounter()(内部走 routeDone)。 */
   onRouteDone: () => void;
 }
 
-export function RouteBoard({ board, phase, entryLane, exitLane, onPickEntry, onRouteDone }: Props) {
+export function RouteBoard({
+  board,
+  phase,
+  entryLane,
+  exitLane,
+  onPickEntry,
+  onStartReveal,
+  onRouteDone,
+}: Props) {
   const width = routePanelWidth(board.laneCount);
   // 悬停/聚焦中的入口 —— 只用来把**那一条竖线**点亮。
   // ⚠ 绝不据此提示终点: 竖线本身不泄露信息(它是常显的), 但一旦预告落点, 整套记忆玩法就没了。
@@ -216,16 +236,26 @@ export function RouteBoard({ board, phase, entryLane, exitLane, onPickEntry, onR
     return () => window.clearTimeout(id);
   }, [phase, travelMs, onRouteDone, board.segment]);
 
+  const generating = phase === "generating";
+  const sealed = phase === "sealed";
   const showBars = phase === "revealing";
   const routed =
     phase === "routing" || phase === "landed" || phase === "resolving" || phase === "inBattle";
   // 落点已定、还没结算完的两个阶段: 其余四张卡压暗, 注意力交给浮层。
   const settling = phase === "landed" || phase === "resolving" || phase === "inBattle";
   // 展示线路的那几秒里终点卡不接受指针 —— 玩家此刻必须盯着横线, 不该被悬停详情分走注意力。
-  const nodesInteractive = phase !== "revealing" && phase !== "routing";
+  // 生成演出期同样惰性: 卡还在往外浮, 这时候能悬停出详情很怪。sealed 起恢复 ——
+  // 「这五张卡值不值得赌」正是按下探索路线之前该看清的东西。
+  const nodesInteractive = !generating && phase !== "revealing" && phase !== "routing";
 
   return (
-    <div className="route-board" style={{ width: `${width}px`, height: `${ROUTE_PANEL_H}px` }}>
+    // ⚠ key 挂段号: 换段时整块重挂, rbGen* 三段生成动画才会从头再播一遍
+    //   (顺带把 hoverLane 清掉 —— 新的一段本就不该留着上一段的悬停态)。
+    <div
+      key={board.segment}
+      className={`route-board${generating ? " is-generating" : ""}`}
+      style={{ width: `${width}px`, height: `${ROUTE_PANEL_H}px` }}
+    >
       {/* ── 顶部倒计时: 只在展示阶段出现, 宽度由 CSS 动画从 100% 收到 0 ── */}
       <div className="rb-timer" aria-hidden>
         {phase === "revealing" && (
@@ -295,6 +325,8 @@ export function RouteBoard({ board, phase, entryLane, exitLane, onPickEntry, onR
             y1={TOP_Y}
             x2={laneX(lane)}
             y2={BOTTOM_Y}
+            // --i 错开生成时的下行相位, --len 供 rbGenLane 的 dashoffset 用(竖线是直的, 长度即高差)
+            style={{ "--i": lane, "--len": BOTTOM_Y - TOP_Y } as CSSProperties}
           />
         ))}
 
@@ -364,6 +396,33 @@ export function RouteBoard({ board, phase, entryLane, exitLane, onPickEntry, onR
         )}
       </svg>
 
+      {/* ── 「探索路线」: 遮蔽态正中的那一颗按钮 ──
+          它是本段唯一进入 revealing 的入口, 按下即消失、**这一段再也回不来**(见 session.startReveal)。
+          故意做得像个探针触发器而不是普通按钮 —— 玩家要意识到这一下是不可撤销的。 */}
+      {sealed && (
+        // ⚠ 居中定位挂在这层 anchor 上, **不能**挂在 button 自己身上:
+        //   全站的 base.css 有 `button:active:not(:disabled){transform:translateY(1px)}`,
+        //   特异性比单个类名高 —— 按下的瞬间它会把 translate(-50%,-50%) 整条顶掉,
+        //   按钮当场朝右下跳半个自身宽高, 从光标底下跑走, click 根本不触发。
+        //   拆成两层后按钮本体不持有 transform, 那条按下反馈就只是它本来的意思。
+        //   探针环同样挪到 anchor 上: button 有 clip-path(全站斜切角), 留在里面会被裁掉。
+        <div
+          className="rb-probe-anchor"
+          style={{ top: `${(TOP_Y + BOTTOM_Y) / 2}px` }}
+        >
+          <span className="rb-probe-ring" aria-hidden />
+          <button
+            type="button"
+            className="rb-probe"
+            onClick={onStartReveal}
+            title="向签路注入探针, 转向线会短暂显形 —— 本段仅此一次"
+          >
+            <span className="rb-probe-label">探索路线</span>
+            <span className="rb-probe-note">转向线仅显形一次</span>
+          </button>
+        </div>
+      )}
+
       {/* ── 终点事件卡: 常驻可见(玩家要靠它们判断值不值得赌某个入口) ──
           悬停时整卡抬起并在下方展开详情(完整描述 + 两条分支各自的代价) ——
           「这张卡到底能怎么处理」是选入口前最该看清的信息。 */}
@@ -376,12 +435,20 @@ export function RouteBoard({ board, phase, entryLane, exitLane, onPickEntry, onR
             <div
               key={`${lane}-${ev.id}`}
               className={`expl-node-slot k-${ev.kind}`}
-              style={{
-                left: `${laneX(lane) - NODE_W / 2}px`,
-                top: `${NODE_TOP}px`,
-                width: `${NODE_W}px`,
-                height: `${NODE_H}px`,
-              }}
+              style={
+                {
+                  left: `${laneX(lane) - NODE_W / 2}px`,
+                  top: `${NODE_TOP}px`,
+                  width: `${NODE_W}px`,
+                  height: `${NODE_H}px`,
+                  // 生成演出第三段的错开相位。动画挂在这层 slot 上(而不是里面的 .expl-node),
+                  // 卡片的 is-landed / is-struck / 悬停三套规则才不用跟它抢 transform。
+                  // ⚠ slot 是带 backdrop-filter 的卡片的祖先, 动画期间那层暗玻璃会失效 ——
+                  //   可以接受: 只持续这一段淡入, 且 fill-mode 用 backwards(不留 forwards),
+                  //   播完 transform 归 none, 祖先不再是 backdrop root, 玻璃自己就回来了。
+                  "--i": lane,
+                } as CSSProperties
+              }
               tabIndex={nodesInteractive ? 0 : -1}
             >
               <div

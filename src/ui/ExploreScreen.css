@@ -44,6 +44,13 @@
   padding: 0;
   background: #070a0c; /* 图加载前/失败时的深色兜底, 不露白 */
 }
+/* generating 阶段(新签路逐层浮现的那 2 秒)整块画布不收输入 —— 那一段是纯演出,
+   中途插手会让 ExploreScreen 的定时器与画面对不上。
+   ⚠ 只能做 pointer-events: 这一层是所有玻璃砖的祖先, 压暗/淡出会直接废掉 backdrop-filter
+     (见上面 .explore-stage 抬头那条约束)。「现在不能操作」由左上角的阶段提示负责说清楚。 */
+.explore-stage.is-locked {
+  pointer-events: none;
+}
 
 /* 背景层: 铺满裁切。原图与画布同为 16:9 ⇒ 只等比缩放, 不变形。 */
 .explore-bg {

@@ -11,16 +11,20 @@ import {
   chooseOption,
   createSession,
   finishBattle,
+  finishGenerating,
   finishReveal,
   finishRouting,
   nextSegment,
   retreat,
+  startReveal,
 } from "../explore/session";
 
 interface ExploreStore {
   session: ExploreState | null;
 
   start: (mapId: string, party: PartySnapshot[], seed?: number) => void;
+  generateDone: () => void; // 生成演出播完(UI 定时器) → sealed
+  beginReveal: () => void; // 玩家按「探索路线」→ revealing。一段只生效一次
   revealDone: () => void; // 展示计时结束(UI 定时器)
   pickEntry: (lane: number) => void; // 选入口 A-E
   routeDone: () => ExploreState | null; // 走线动画播完 → landed(只落点, 不结算)
@@ -55,6 +59,14 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   start: (mapId, party, seed) => {
     set({ session: createSession(mapId, party, seed) });
+  },
+
+  generateDone: () => {
+    mutate(get, set, (d) => finishGenerating(d));
+  },
+
+  beginReveal: () => {
+    mutate(get, set, (d) => startReveal(d));
   },
 
   revealDone: () => {

@@ -3,12 +3,16 @@
 // 由 store 层负责 structuredClone 后再调用(与 engine/battle.ts 同惯例)。
 //
 // 一段的生命周期(设计文档 §1.2):
-//   generateSegment ──▶ revealing ──finishReveal──▶ choosing ──chooseEntry──▶ routing
+//   generateSegment ──▶ generating ──finishGenerating──▶ sealed ──startReveal──▶ revealing
 //                                                                                │
-//                                        landed ◀──finishRouting────────────────┘
-//        ┌──────────────── resolving ◀──chooseOption──┘
-//        │                     ▲            (分支是战斗则先去 inBattle; 是撤离则直接 retreated)
-//        └──nextSegment──▶ 下一段 / cleared / retreated / wiped
+//        routing ◀──chooseEntry── choosing ◀──finishReveal──────────────────────┘
+//           │
+//           └──finishRouting──▶ landed ──chooseOption──▶ resolving
+//                                (分支是战斗则先去 inBattle; 是撤离则直接 retreated)  │
+//                          下一段 / cleared / retreated / wiped ◀──nextSegment──────┘
+//
+// ★ generating / sealed 是「新签路的浮现仪式」那两拍: 图先花 2 秒逐层画出来(此时全锁),
+//   画完横线仍然遮着 —— 玩家必须主动按「探索路线」才开始限时展示, 一段只能按一次。
 //
 // ★ landed 是「已经知道落在哪张卡上, 但什么都还没发生」的那一拍: 浮层在这里给出两个分支,
 //   战斗也不例外 —— 玩家点了「迎战」才进战斗页。
@@ -107,7 +111,7 @@ export function createSession(
     pendingIsBoss: false,
     skipSegmentCost: false,
     bossAvailable: false,
-    phase: "revealing",
+    phase: "generating", // 占位: 下面的 generateSegment 会重新打一次(第一段也走完整演出)
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
   };
@@ -298,12 +302,30 @@ export function generateSegment(s: ExploreState): void {
   s.exitLane = null;
   s.pendingNotes = [];
   s.skipSegmentCost = false;
-  s.phase = "revealing";
+  // ★ 新图不是立刻可看的: 先播 2 秒逐层绘制(generating), 再停在遮蔽态(sealed)等玩家主动揭示。
+  s.phase = "generating";
 }
 
 // ---------------------------------------------------------------------------
 // 一段的推进
 // ---------------------------------------------------------------------------
+// 生成演出播完 —— 由 UI 侧的 2 秒定时器触发(时长见 RouteBoard.GENERATE_MS)。
+// 图这时已经完整画在屏幕上了, 但横线仍然遮蔽 —— 只是从「锁死」变成「等玩家出手」。
+export function finishGenerating(s: ExploreState): boolean {
+  if (s.phase !== "generating") return false;
+  s.phase = "sealed";
+  return true;
+}
+
+// 玩家按下「探索路线」—— 唯一进入 revealing 的入口。
+// ★ 一段只能看一次: 阶段单向流转 sealed → revealing → choosing, 再也回不到 sealed,
+//   所以「限次」不需要额外的计数字段, 拿 phase 卡住就够了。
+export function startReveal(s: ExploreState): boolean {
+  if (s.phase !== "sealed") return false;
+  s.phase = "revealing";
+  return true;
+}
+
 // 展示计时结束 —— 由 UI 侧的定时器触发(时长取 board.revealDurationMs)。
 export function finishReveal(s: ExploreState): boolean {
   if (s.phase !== "revealing") return false;
@@ -431,8 +453,10 @@ export function nextSegment(s: ExploreState): boolean {
   return true;
 }
 
+// sealed 与 choosing 同类(都是不限时的待决策阶段, 此时撤离不逃避任何代价);
+// generating 演出期与 revealing 限时期一律不许 —— 前者锁交互, 后者是核心机制的计时窗口。
 export function retreat(s: ExploreState): boolean {
-  if (s.phase !== "choosing" && s.phase !== "resolving") return false;
+  if (s.phase !== "sealed" && s.phase !== "choosing" && s.phase !== "resolving") return false;
   s.phase = "retreated";
   logLine(s, "主动撤离了这片区域");
   return true;
@@ -494,9 +518,15 @@ export function finishBattle(
 // ---------------------------------------------------------------------------
 // ⚠ 背包开放时机是**硬约束**(设计文档 §6.3): 展示线路时开背包等于无限延长观察时间,
 //   直接废掉核心机制。故必须在这里拦截, 不能只靠 UI 隐藏按钮。
-// landed 与 resolving 同类: 都是「不限时、等玩家操作」的阶段, 开背包不会绕过任何机制。
+// landed / resolving / sealed 同类: 都是「不限时、等玩家操作」的阶段, 开背包不会绕过任何机制
+// (sealed 时横线还没揭示, 慢慢翻背包也偷看不到东西)。generating 则一律锁死 —— 演出期不接受输入。
 export function canOpenBackpack(s: ExploreState): boolean {
-  return s.phase === "choosing" || s.phase === "landed" || s.phase === "resolving";
+  return (
+    s.phase === "sealed" ||
+    s.phase === "choosing" ||
+    s.phase === "landed" ||
+    s.phase === "resolving"
+  );
 }
 
 // 本段终点事件(尚未走线时返回 null)。

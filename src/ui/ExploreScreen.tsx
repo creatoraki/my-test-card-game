@@ -29,10 +29,13 @@ import { HpBar } from "./HpBar";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
+  GENERATE_MS,
+  GENERATE_REDUCED_MS,
   laneCenterX,
   NODE_TOP_Y,
   routePanelWidth,
 } from "./RouteBoard";
+import { prefersReducedMotion } from "./transitions";
 import { useStageScale } from "./stage";
 import { mapArt, warmMapArt } from "./mapArt";
 import "./ExploreScreen.css";
@@ -50,6 +53,8 @@ const COMMANDS = [
 
 // 阶段 → 左上角那一句提示。玩家永远该知道「现在轮到我做什么」。
 const PHASE_HINT: Record<string, string> = {
+  generating: "新的签路正在浮现……",
+  sealed: "签路已就位 —— 按下探索路线才能看见转向",
   revealing: "记住线路 —— 它马上就会消失",
   choosing: "选择一个入口",
   routing: "信号下行中……",
@@ -60,6 +65,8 @@ const PHASE_HINT: Record<string, string> = {
 
 export function ExploreScreen() {
   const session = useExploreStore((s) => s.session);
+  const generateDone = useExploreStore((s) => s.generateDone);
+  const beginReveal = useExploreStore((s) => s.beginReveal);
   const revealDone = useExploreStore((s) => s.revealDone);
   const pickEntry = useExploreStore((s) => s.pickEntry);
   const routeDone = useExploreStore((s) => s.routeDone);
@@ -78,6 +85,15 @@ export function ExploreScreen() {
 
   // 背景图 3.4MB, 进页先拉一次(从据点过来时通常已被 warm 过, 本调用幂等)。
   useEffect(warmMapArt, []);
+
+  // 生成演出 —— 换段时新图逐层画出来的那 2 秒。时长必须与 RouteBoard.css 的 rbGen* 三段一致,
+  // 故直接用 RouteBoard 导出的常量, 两边不各写一份。同样挂 effect 以便卸载时撤表。
+  useEffect(() => {
+    if (phase !== "generating") return;
+    const ms = prefersReducedMotion() ? GENERATE_REDUCED_MS : GENERATE_MS;
+    const id = window.setTimeout(generateDone, ms);
+    return () => window.clearTimeout(id);
+  }, [phase, segment, generateDone]);
 
   // 展示计时 —— 唯一的「限时」在这里。⚠ 计时器挂 effect 而非裸 setTimeout: 进战斗/离页导致卸载时
   // 清理函数顺手撤掉, 不会有卸载后 setState。段号进依赖数组, 换段才会重新起表。
@@ -106,6 +122,10 @@ export function ExploreScreen() {
   const focused = session.phase === "landed" || session.phase === "resolving";
   const recede = focused ? " is-recede" : "";
 
+  // 生成演出的 2 秒里整块画布不接受输入 —— 这一段是纯演出, 中途插手会让计时器与画面对不上。
+  // ⚠ is-locked 只做 pointer-events, **不能**在 .explore-stage 上加 opacity/filter(见抬头约束)。
+  const locked = session.phase === "generating";
+
   // 落点分支 → 应用。战斗分支会把会话打成 inBattle, 这里顺手切战斗页。
   const takeOption = (index: number) => {
     const next = pickOption(index);
@@ -118,7 +138,7 @@ export function ExploreScreen() {
       ref={viewportRef}
       style={{ "--stage-scale": stageScale } as CSSProperties}
     >
-      <div className="screen explore explore-stage">
+      <div className={`screen explore explore-stage${locked ? " is-locked" : ""}`}>
         <img className="explore-bg" src={mapArt(session.mapId)} alt="" draggable={false} />
         <div className="explore-veil" aria-hidden />
 
@@ -177,6 +197,7 @@ export function ExploreScreen() {
             entryLane={session.entryLane}
             exitLane={session.exitLane}
             onPickEntry={pickEntry}
+            onStartReveal={beginReveal}
             onRouteDone={routeDone}
           />
           {/* 落点 → 浮层的光柱: 从落点卡上沿向上升起, 把「是这张卡把面板叫出来的」说清楚。
@@ -229,7 +250,7 @@ export function ExploreScreen() {
               className={`expl-btn is-locked${canBackpack ? "" : " is-phase-locked"}`}
               type="button"
               disabled
-              title={canBackpack ? "实物背包尚未开放" : "展示线路与走线途中不可开背包"}
+              title={canBackpack ? "实物背包尚未开放" : "签路浮现、展示线路与走线途中不可开背包"}
             >
               背包
               <span className="expl-btn-flag">{canBackpack ? "未开放" : "本阶段锁定"}</span>
@@ -237,7 +258,12 @@ export function ExploreScreen() {
             <button
               className="expl-btn is-danger"
               type="button"
-              disabled={session.phase !== "choosing" && session.phase !== "resolving"}
+              // 与 session.retreat 的白名单保持一致(sealed 与 choosing 同类: 都是不限时的待决策阶段)
+              disabled={
+                session.phase !== "sealed" &&
+                session.phase !== "choosing" &&
+                session.phase !== "resolving"
+              }
               onClick={() => retreat()}
             >
               撤离远征
