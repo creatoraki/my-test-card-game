@@ -459,8 +459,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 720px;
-  margin-top: 196px; /* 落在路由图上沿附近: 盖住横线区, 但让下面那排终点卡全部露出来 */
+  width: 760px;
+  /* ★ 落在等距场地的**下方**: 路由图占了画布上半部, 浮层压上去会挡住刚亮起来的路径 ——
+     而那正是玩家此刻最想看的(设计文档 §11.2 明确不加全屏遮罩)。 */
+  margin-top: 806px;
   padding: 24px 30px 20px;
   border: 1px solid #ffffff30;
   border-top: 2px solid var(--k);
@@ -499,13 +501,6 @@
     transform: scaleY(0);
     opacity: 0;
   }
-}
-.expl-beam.k-battle,
-.expl-beam.k-elite {
-  --k: #ff8f6b;
-}
-.expl-beam.k-boss {
-  --k: #ff5f6b;
 }
 .expl-beam.k-hazard {
   --k: #ffb020;
@@ -663,13 +658,6 @@
   letter-spacing: 2px;
 }
 /* 浮层的 kind 强调色与终点卡共用一套(权威版本见 RouteBoard.css 末尾的 .expl-node.k-*)。 */
-.expl-panel.k-battle,
-.expl-panel.k-elite {
-  --k: #ff8f6b;
-}
-.expl-panel.k-boss {
-  --k: #ff5f6b;
-}
 .expl-panel.k-hazard {
   --k: #ffb020;
 }
@@ -723,4 +711,165 @@
   .expl-panel {
     animation: explFade 180ms ease backwards;
   }
+}
+
+/* ===================== 新增: 轮次副标 / 节点详情侧栏 / 决策面板 ===================== */
+
+/* 左上角第二行: 本轮的推进战斗档位。玩家在选通道之前就该知道这一轮末尾等着他的是什么。 */
+.expl-sub2 {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.expl-header.is-recede .expl-sub2 {
+  opacity: 0.55;
+}
+
+/* ── 右侧: 节点详情侧栏(设计文档 §11.1) ──
+   20 个节点的瓦片上放不下文字, 所以图标常驻、详情进这里。
+   ⚠ 侧栏**不显示任何桥接/落点信息** —— 它讲的是「这个节点是什么」, 不是「你会不会走到它」。 */
+.expl-inspect {
+  position: absolute;
+  z-index: 2;
+  animation: explRise 420ms 160ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  transition: opacity 220ms ease;
+}
+.expl-inspect.is-recede {
+  opacity: 0.45;
+}
+.expl-inspect-body {
+  --k: var(--accent);
+  --notch: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px 18px;
+  border: 1px solid #ffffff26;
+  border-top: 2px solid var(--k);
+  background: linear-gradient(160deg, #0f171cc4, #080d10e8);
+  backdrop-filter: blur(14px) saturate(110%) brightness(0.92);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 26px 54px -30px #000000e6;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  /* 换节点时重挂(key 带 id) ⇒ 走一遍淡入, 让「切换了」这件事被看见。 */
+  animation: explFade 180ms ease backwards;
+}
+.expl-inspect-body.is-empty {
+  --k: #46596b;
+}
+.expl-inspect-title {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+.expl-inspect-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.expl-tag {
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.expl-tag.up {
+  color: var(--good);
+}
+.expl-tag.down {
+  color: #ffb37a;
+}
+.expl-tag.negative {
+  color: var(--bad);
+}
+.expl-tag.highRisk {
+  color: #ffb020;
+}
+.expl-inspect-desc {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.82;
+}
+.expl-inspect-choice {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 0 0;
+  border-top: 1px solid #ffffff14;
+}
+.expl-inspect-label {
+  flex: none;
+  color: var(--k);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.expl-inspect-cost {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.expl-inspect-body.k-hazard {
+  --k: #ffb020;
+}
+.expl-inspect-body.k-heal {
+  --k: #62d99a;
+}
+.expl-inspect-body.k-loot {
+  --k: var(--accent);
+}
+.expl-inspect-body.k-energy {
+  --k: #6fe3f5;
+}
+.expl-inspect-body.k-merchant {
+  --k: #c8a2ff;
+}
+.expl-inspect-body.k-route {
+  --k: #8fb3c4;
+}
+.expl-inspect-body.k-retreat {
+  --k: #ffffff;
+}
+
+/* ── 节点决策 / 线路披露面板 ──
+   ★ 两个按钮必须并排、等重、都带后果预告(设计文档 §11.2): 这是玩家判断
+     「我对这条线还有多少信心」的全部界面依据, 任何一边做得更显眼都是在替他做决定。 */
+.expl-panel-decide {
+  --k: var(--rb-bridge, #6fe3f5);
+  width: 860px;
+}
+.expl-decide-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+.expl-decide-row .expl-choice:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── 选通道阶段的「直接前往下一区域」(本轮 0 个节点) ──
+   放在图的正下方、决策面板同一条基线上 —— 它和 atNode 的那个按钮是同一件事。 */
+.expl-skip {
+  position: absolute;
+  left: 50%;
+  top: 880px;
+  transform: translateX(-50%);
+  z-index: 3;
 }

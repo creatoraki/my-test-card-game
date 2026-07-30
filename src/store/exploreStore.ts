@@ -1,25 +1,28 @@
 // Zustand store: 包裹纯 TS 探索会话(explore/session.ts), 供 UI 订阅与派发。
 // 与 battleStore 同模式 —— 每次操作先 structuredClone 再交给纯函数, 对 React 呈现不可变更新。
 //
-// 分工: 本 store 只管一趟远征的会话本身; 「走线落到战斗终点 → 真的建一场战斗 → 切界面」由
+// 分工: 本 store 只管一趟远征的会话本身; 「本轮结束 → 真的建一场推进战斗 → 切界面」由
 // runStore 编排, 因为只有它同时认识 battleStore 与界面路由。会话不持久化 —— 远征中途关页面即作废。
 
 import { create } from "zustand";
 import type { ExploreState, PartySnapshot } from "../explore/types";
 import {
   abandonPending,
+  arriveNode,
   chooseEntry,
   chooseOption,
+  confirmNode,
   createSession,
   discardStack,
   finishBattle,
   finishGenerating,
   finishReveal,
-  finishRouting,
-  nextSegment,
+  leaveRegion,
+  pushOn,
   retreat,
   shipHome,
   startReveal,
+  startRoundBattle,
   takePending,
   useItem,
 } from "../explore/session";
@@ -28,13 +31,16 @@ interface ExploreStore {
   session: ExploreState | null;
 
   start: (mapId: string, party: PartySnapshot[], seed?: number) => void;
-  generateDone: () => void; // 生成演出播完(UI 定时器) → sealed
-  beginReveal: () => void; // 玩家按「探索路线」→ revealing。一段只生效一次
-  revealDone: () => void; // 展示计时结束(UI 定时器)
-  pickEntry: (lane: number) => void; // 选入口 A-E
-  routeDone: () => ExploreState | null; // 走线动画播完 → landed(只落点, 不结算)
-  pickOption: (index: number) => ExploreState | null; // 落点浮层选分支; 返回新会话供 UI 判断要不要切战斗页
-  advance: () => void; // 结算浮层「继续」→ 下一段
+  generateDone: () => void; // 浮现演出播完(UI 定时器) → sealed
+  beginReveal: () => void; // 玩家按「探索路线」→ revealing。一轮只生效一次
+  revealDone: () => void; // 揭示计时结束(UI 定时器)
+  pickEntry: (lane: number) => void; // 选入口通道 A-E。★ 全轮唯一一次自由选择
+  arrive: () => ExploreState | null; // 推进动画播完 → landed(只落点, 不结算)
+  pickOption: (index: number) => ExploreState | null; // 落点浮层选分支
+  confirmNode: () => void; // 结算浮层「确认」→ atNode 决策
+  pushOn: () => void; // 「继续推进」→ 下一个推进段
+  leaveRegion: () => void; // 「前往下一区域」→ 本轮线路披露
+  startBattle: () => ExploreState | null; // 披露页「进入推进战斗」→ inBattle
   retreatNow: () => void;
   settleBattle: (
     won: boolean,
@@ -89,13 +95,23 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     mutate(get, set, (d) => chooseEntry(d, lane));
   },
 
-  routeDone: () => mutate(get, set, (d) => finishRouting(d)),
+  arrive: () => mutate(get, set, (d) => arriveNode(d)),
 
   pickOption: (index) => mutate(get, set, (d) => chooseOption(d, index)),
 
-  advance: () => {
-    mutate(get, set, (d) => nextSegment(d));
+  confirmNode: () => {
+    mutate(get, set, (d) => confirmNode(d));
   },
+
+  pushOn: () => {
+    mutate(get, set, (d) => pushOn(d));
+  },
+
+  leaveRegion: () => {
+    mutate(get, set, (d) => leaveRegion(d));
+  },
+
+  startBattle: () => mutate(get, set, (d) => startRoundBattle(d)),
 
   retreatNow: () => {
     mutate(get, set, (d) => retreat(d));

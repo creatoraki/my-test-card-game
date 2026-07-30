@@ -294,7 +294,7 @@ export function ControlTerminalScene({ leaving = false }: Props) {
                           <span className="term-dim">{"★".repeat(5 - m.difficulty)}</span>
                         </span>
                         <span className="term-map-line">
-                          {m.routeSegments} 段路由 · 第 {m.bossAvailableFrom} 段起可接入 BOSS
+                          {m.roundCount} 轮区域推进 · 第 {m.roundCount} 轮 BOSS 战
                         </span>
                       </button>
                     ))}
@@ -312,8 +312,8 @@ export function ControlTerminalScene({ leaving = false }: Props) {
                         <strong className="term-stat-value">{selected.difficulty} / 5</strong>
                       </div>
                       <div className="term-stat">
-                        <span className="term-stat-label">路由段数</span>
-                        <strong className="term-stat-value">{selected.routeSegments} 段</strong>
+                        <span className="term-stat-label">区域轮数</span>
+                        <strong className="term-stat-value">{selected.roundCount} 轮</strong>
                       </div>
                       <div className="term-stat">
                         <span className="term-stat-label">净化粒子</span>

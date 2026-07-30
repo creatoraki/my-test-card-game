@@ -1,36 +1,75 @@
 // ============================================================================
 // ★ 可配置探索规则 ★ —— 与 engine/rules.ts 同惯例: 所有旋钮集中在这一个文件。
-// 调探索层平衡(段数 / 展示时长 / 横线数 / 能量档位与收益)只改这里。
+// 调探索层平衡(轮数 / 桥接数 / 揭示时长 / 能量档位与收益)只改这里。
 //
 // ⚠ 上一版的「区域危险度 DANGER_TIERS」与「残片」已废弃, 难度轴只保留净化粒子一条
 //   (设计文档 §4.1 明确禁止再引入第二条并行难度数值)。
+// ⚠ 上一版的「每段 −10 粒子」「战斗额外扣 4/7/10」「避战代价」口径也已废弃(设计文档 §4.2):
+//   现在只有「每结算 1 个节点 −3」与「每进行 1 个战斗回合 −1」两项。
+//   后者需要战斗引擎侧的回合钩子, 随战斗签一起实现, 目前尚未接入。
 // ============================================================================
 
 import type { ItemRarity } from "../items/types";
-import type { EnergyTier } from "./types";
+import type { BattleTier, EnergyTier } from "./types";
 
 export const EXPLORE_RULES = {
-  // ── 路由图规模 ──
-  laneCount: 5, // 5 条竖线 / 5 个入口 / 5 个终点
-  rowCount: 10, // 横线可占用的行数。行越多图越高, 横线越稀疏也越好记
+  // ── 路由图规模(设计文档 §2.1 / §9.3) ──
+  laneCount: 5, // 5 条通道 / 5 个入口
+  segmentsPerRound: 4, // 4 个推进段横向拼接
+  // 每段内桥接可占用的横向位置数。★ 上限由「整张图必须一屏内完整可见」倒推而来(§9.3),
+  // 生成器显式按它校验, 不允许 UI 去截断。
+  rowsPerSegment: 4,
 
-  // 展示时长与横线数按「段在远征中的位置」分三档(设计文档 §2.2 的表)。
-  // ⚠ 展示时长的下限刻意不低于 800ms —— 短时记忆是特色, 但不该变成不可跨越的门槛(§11.3)。
-  stages: {
-    early: { untilRatio: 1 / 3, revealMs: 1200, bars: [4, 6] },
-    mid: { untilRatio: 2 / 3, revealMs: 1000, bars: [6, 9] },
-    late: { untilRatio: 1, revealMs: 900, bars: [9, 12] },
+  // 轮次 → 每段桥接数区间与揭示时长(设计文档 §2.2 的表)。
+  // bridges[i] = 第 i 个推进段的 [下限, 上限]。**沿推进方向递增** ——
+  // 这是「记忆置信度随深度递减」的唯一实现手段(§2.2): 第 1 段几乎必然记得住, 越往后越模糊。
+  // 每行末尾的注释是该轮次的全图桥接总数区间, 必须落在设计文档给的 8-13 里。
+  // ⚠ 揭示时长下限 2000ms 是硬底线(§11.3): 新图形是 4 段拼接, 旧的 800ms 下限已不适用。
+  rounds: {
+    early: {
+      untilRound: 2,
+      revealMs: 3000,
+      bridges: [
+        [2, 2],
+        [2, 2],
+        [2, 3],
+        [2, 3],
+      ],
+    }, // 全图 8-10 根
+    mid: {
+      untilRound: 4,
+      revealMs: 2500,
+      bridges: [
+        [2, 3],
+        [2, 3],
+        [3, 3],
+        [3, 3],
+      ],
+    }, // 全图 10-12 根
+    late: {
+      untilRound: 6,
+      revealMs: 2000,
+      bridges: [
+        [2, 3],
+        [3, 3],
+        [3, 4],
+        [3, 3],
+      ],
+    }, // 全图 11-13 根
   },
 
-  // ── 净化粒子 ──
+  // ── 净化粒子(设计文档 §4.2) ──
   startingEnergy: 100,
   energyMax: 100,
-  energyPerSegment: 10, // 每完成一段的固定消耗, 玩家无法阻止
-  battleEnergy: { normal: 4, elite: 7, boss: 10 }, // 终点为战斗时的额外消耗
+  // ★ 唯一的固定消耗: 每结算 1 个节点事件 −3。**刻意不随深度递增** ——
+  //   刹车由「不可逆 + 深段高方差 + 记忆置信度递减」三条结构性因素承担(§2.3.3)。
+  energyPerNode: 3,
+  // 每进行 1 个战斗回合 −1。⚠ 尚未接入战斗引擎, 留常量供接战斗签时引用。
+  energyPerBattleRound: 1,
 
-  // 落点浮层里「绕开/放弃」那一支的代价。规避永远要付钱 —— 否则风险终点就没有风险了,
-  // 而且代价一律比硬吃这场战斗的能量消耗高, 玩家才会真的犹豫。
-  bypass: { normal: 8, elite: 12, boss: 15, hazard: 4 },
+  // ── 推进战斗档位表(设计文档 §3.1) ──
+  // index = 轮次 - 1。老虎机战斗签接上之前, 本表直接决定本轮打哪一场。
+  battleTierByRound: ["light", "medium", "medium", "heavy", "heavy", "boss"] as readonly BattleTier[],
 
   // ── 污染层数(每层叠加, 本次远征内不可自行清除) ──
   taint: {
@@ -66,16 +105,16 @@ export const EXPLORE_RULES = {
 
   // ── 掉落系数 K 与品质右移(设计文档 §5.1) ──
   drop: {
-    // ★ 总产出旋钮。K = K_energy ×(1 + Σ挑战加成)× kGlobal;
-    //   挑战词条(§5.3)尚未实现, 中间那项恒为 1 —— 接词条时只改 session.dropCoefficient。
+    // ★ 总产出旋钮。K =(K_energy + Σ挑战加成 + 同花加成)× kGlobal ——
+    //   **全加法合成**(§5.1)。挑战词条与老虎机同花目前都未实现, 那两项恒为 0。
     kGlobal: 1.0,
-    // K → 品质权重。⚠ 设计文档 §5.1 的原表只有「常见/精良/稀有」三列, 这里按五档稀有度
-    //   扩写; 史诗与传说两列是**新补的草案数值**(K ≤ 1.8 时不出传说), 实测后再调。
+    // K → 品质权重。⚠ 阈值已按新的 K 分布整体下移: K_energy 压平到 1.00-1.60 后,
+    //   旧的 1.2/1.8/2.5/3.5 分档会让无加成局面长期停在第一档(§13-10)。
     qualityTable: [
-      { maxK: 1.2, w: { common: 85, fine: 14, rare: 1, epic: 0, legendary: 0 } },
-      { maxK: 1.8, w: { common: 74, fine: 22, rare: 3, epic: 1, legendary: 0 } },
-      { maxK: 2.5, w: { common: 62, fine: 30, rare: 5, epic: 2.5, legendary: 0.5 } },
-      { maxK: 3.5, w: { common: 50, fine: 36, rare: 10, epic: 3, legendary: 1 } },
+      { maxK: 1.05, w: { common: 85, fine: 14, rare: 1, epic: 0, legendary: 0 } },
+      { maxK: 1.3, w: { common: 74, fine: 22, rare: 3, epic: 1, legendary: 0 } },
+      { maxK: 1.7, w: { common: 62, fine: 30, rare: 5, epic: 2.5, legendary: 0.5 } },
+      { maxK: 2.4, w: { common: 50, fine: 36, rare: 10, epic: 3, legendary: 1 } },
       { maxK: Infinity, w: { common: 38, fine: 43, rare: 15, epic: 3, legendary: 1 } },
     ] as { maxK: number; w: Record<ItemRarity, number> }[],
   },
@@ -84,11 +123,14 @@ export const EXPLORE_RULES = {
 // ---------------------------------------------------------------------------
 // 净化粒子档位表(设计文档 §4.2)
 // ---------------------------------------------------------------------------
-// 分档而非连续数值, 是因为决策发生在「跨档的那一段」——
-// 玩家看到「这段走完就掉进告急」会真的停下来算一算撤不撤。
+// 分档而非连续数值, 是因为决策发生在「跨档的那一步」——
+// 玩家看到「再推进一个节点就掉进告急」会真的停下来算一算还要不要深潜。
 //
+// ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40), 旧的
+//   「力量 +3 / 追加 2 名敌人 / 污染 3 层」会让低档位变成纯亏, 玩家会本能地一个节点都不探索。
+//   故追加敌人上限 2→1、力量上限 +3→+2、污染上限 3→2 层。
 // ⚠ 高档位刻意不给敌人「开局护盾」: RULES.combat.clearBlockOnRoundStart 会在第 1 回合
-// 开始时把护盾清空, 开局塞 block 等于什么都没做。要加硬度只能走状态(力量/荆棘/再生)。
+//   开始时把护盾清空, 开局塞 block 等于什么都没做。要加硬度只能走状态(力量/荆棘/再生)。
 export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 1,
@@ -110,18 +152,18 @@ export const ENERGY_TIERS: EnergyTier[] = [
     enemyStatuses: [{ id: "strength", stacks: 1 }],
     castTickDelta: 0,
     taint: 0,
-    rewardMultiplier: 1.25,
+    rewardMultiplier: 1.1,
   },
   {
     tier: 3,
     name: "衰减",
     color: "#ffd43b",
     min: 40,
-    extraEnemies: 1,
+    extraEnemies: 0,
     enemyStatuses: [{ id: "strength", stacks: 1 }],
     castTickDelta: 0,
     taint: 1,
-    rewardMultiplier: 1.55,
+    rewardMultiplier: 1.2,
   },
   {
     tier: 4,
@@ -129,20 +171,20 @@ export const ENERGY_TIERS: EnergyTier[] = [
     color: "#ff922b",
     min: 20,
     extraEnemies: 1,
-    enemyStatuses: [{ id: "strength", stacks: 2 }],
-    castTickDelta: -1,
-    taint: 2,
-    rewardMultiplier: 1.9,
+    enemyStatuses: [{ id: "strength", stacks: 1 }],
+    castTickDelta: -1, // 敌方先手 +1
+    taint: 1,
+    rewardMultiplier: 1.35,
   },
   {
     tier: 5,
     name: "枯竭",
     color: "#ff6b6b",
     min: 0,
-    extraEnemies: 2,
-    enemyStatuses: [{ id: "strength", stacks: 3 }],
-    castTickDelta: -1,
-    taint: 3,
-    rewardMultiplier: 2.4,
+    extraEnemies: 1,
+    enemyStatuses: [{ id: "strength", stacks: 2 }],
+    castTickDelta: -2, // 敌方先手 +2
+    taint: 2,
+    rewardMultiplier: 1.6,
   },
 ];

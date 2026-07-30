@@ -2,22 +2,32 @@
 // 探索会话 —— 纯 TS, 无 React、无副作用。所有函数直接修改传入的 ExploreState,
 // 由 store 层负责 structuredClone 后再调用(与 engine/battle.ts 同惯例)。
 //
-// 一段的生命周期(设计文档 §1.2):
-//   generateSegment ──▶ generating ──finishGenerating──▶ sealed ──startReveal──▶ revealing
-//                                                                                │
-//        routing ◀──chooseEntry── choosing ◀──finishReveal──────────────────────┘
-//           │
-//           └──finishRouting──▶ landed ──chooseOption──▶ resolving
-//                                (分支是战斗则先去 inBattle; 是撤离则直接 retreated)  │
-//                          下一段 / cleared / retreated / wiped ◀──nextSegment──────┘
+// 一轮的生命周期(设计文档 §1.2):
+//   generateRound ─▶ generating ─finishGenerating─▶ sealed ─startReveal─▶ revealing
+//                                                                          │
+//     advancing ◀─chooseEntry─ choosingEntry ◀─finishReveal────────────────┘
+//         │
+//         └─arriveNode─▶ landed ─chooseOption─▶ resolving ─confirmNode─▶ atNode
+//                                                                          │
+//              ┌────────── pushOn(currentSegment < 4) ──────────────────────┤
+//              ▼                                                            ▼
+//          advancing                                   leaveRegion / 已走满 4 段
+//                                                                          │
+//                            routeDisclosure ◀────────────────────────────┘
+//                                   │ startRoundBattle
+//                                   ▼
+//                                inBattle ─finishBattle─▶ 下一轮 / cleared / wiped
 //
-// ★ generating / sealed 是「新签路的浮现仪式」那两拍: 图先花 2 秒逐层画出来(此时全锁),
-//   画完横线仍然遮着 —— 玩家必须主动按「探索路线」才开始限时展示, 一段只能按一次。
+// ★ generating / sealed 是「新区域的浮现仪式」那两拍: 图先花 2 秒逐段浮现(此时全锁),
+//   浮现完桥接仍然遮着 —— 玩家必须主动按「探索路线」才开始限时揭示, 一轮只能按一次。
 //
-// ★ landed 是「已经知道落在哪张卡上, 但什么都还没发生」的那一拍: 浮层在这里给出两个分支,
-//   战斗也不例外 —— 玩家点了「迎战」才进战斗页。
+// ★ landed 是「已经知道落在哪个节点上, 但什么都还没发生」的那一拍: 浮层在这里给出两个分支。
 //
-// 净化粒子(energy)是**唯一**的难度轴与时限, 只降不升(少数事件例外)。
+// ★ atNode 是这套玩法的核心决策点: 继续推进(再扣 3 粒子, 深段更不确定) 还是 前往下一区域。
+//   依据是玩家对自己记忆的置信度, 不是一条算术曲线 —— 所以每节点消耗固定 3 点, 不递增。
+//
+// ⚠ 战斗不再是路由图上的终点: 每轮结束后按 §3.1 的固定档位表打一场推进战斗。
+//   老虎机战斗签(§2.4)尚未实现, startRoundBattle 就是它将来插入的**唯一接缝**。
 // ============================================================================
 
 import { rngInt, shuffle } from "../engine/rng";
@@ -40,17 +50,18 @@ import {
   removeByUid,
   stackSlots,
 } from "../items/inventory";
-import type { DropEntry, ItemRarity, ItemStack } from "../items/types";
-import { generateCrossbars, exitLaneOf } from "./route";
+import type { ItemRarity, ItemStack } from "../items/types";
+import { generateSegments, lanePath, traceSegment } from "./route";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import type {
+  BattleTier,
   EnergyTier,
   EventChoice,
   ExploreEffect,
   ExploreState,
+  NodeEvent,
   PartySnapshot,
   RouteBoard,
-  RouteEvent,
 } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -74,10 +85,12 @@ export function rewardMultiplier(energy: number): number {
   return energyTier(energy).rewardMultiplier;
 }
 
-// 统一掉落系数 K = K_energy ×(1 + Σ挑战加成)× K_global(设计文档 §5.1)。
-// ⚠ 挑战词条(§5.3)尚未实现, 中间那项恒为 1 —— 接词条时只改这一个函数。
+// 统一掉落系数 K =(K_energy + Σ挑战加成 + 同花加成)× K_global —— **全加法合成**(设计文档 §5.1)。
+// ⚠ 挑战词条(§5.3)与老虎机同花(§2.4.2)都尚未实现, 那两项恒为 0 —— 接上时只改这一个函数。
 export function dropCoefficient(s: ExploreState): number {
-  return rewardMultiplier(s.energy) * EXPLORE_RULES.drop.kGlobal;
+  const challengeBonus = 0;
+  const matchBonus = 0;
+  return (rewardMultiplier(s.energy) + challengeBonus + matchBonus) * EXPLORE_RULES.drop.kGlobal;
 }
 
 // K → 品质权重(qualityBias 的右移结果)。表在 EXPLORE_RULES.drop.qualityTable。
@@ -125,22 +138,31 @@ export function encounterModifier(
   };
 }
 
+// 本轮推进战斗的档位(设计文档 §3.1 的固定表)。
+export function battleTierOf(round: number): BattleTier {
+  const table = EXPLORE_RULES.battleTierByRound;
+  return table[Math.min(Math.max(round, 1), table.length) - 1];
+}
+
+export const BATTLE_TIER_NAME: Record<BattleTier, string> = {
+  light: "轻战斗",
+  medium: "中战斗",
+  heavy: "大战斗",
+  boss: "BOSS 战",
+};
+
 // ---------------------------------------------------------------------------
 // 建立会话
 // ---------------------------------------------------------------------------
-export function createSession(
-  mapId: string,
-  party: PartySnapshot[],
-  seed?: number,
-): ExploreState {
+export function createSession(mapId: string, party: PartySnapshot[], seed?: number): ExploreState {
   const map = getMap(mapId);
   const s: ExploreState = {
     mapId,
     energy: map.startingEnergy,
     taint: 0,
     loot: 0,
-    segment: 1,
-    segmentCount: map.routeSegments,
+    round: 1,
+    roundCount: map.roundCount,
     board: null,
     party: party.map((p) => ({ ...p })),
     history: [],
@@ -149,19 +171,21 @@ export function createSession(
     pendingPickup: [],
     chuteOpen: false,
     entryLane: null,
-    exitLane: null,
+    currentLane: null,
+    currentSegment: 0,
+    freeNodes: 0,
     pendingNotes: [],
+    lateralShiftsLeft: 1,
     pendingEncounterId: null,
     pendingIsBoss: false,
-    skipSegmentCost: false,
-    bossAvailable: false,
-    phase: "generating", // 占位: 下面的 generateSegment 会重新打一次(第一段也走完整演出)
+    pendingBattleTier: null,
+    phase: "generating", // 占位: 下面的 generateRound 会重新打一次(第一轮也走完整演出)
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
   };
 
   logLine(s, `接入 ${map.name}`);
-  generateSegment(s);
+  generateRound(s);
   return s;
 }
 
@@ -247,10 +271,15 @@ const RARITY_RANK: Record<ItemRarity, number> = {
   legendary: 4,
 };
 
-// 消耗品的可用阶段 ⊂ canOpenBackpack: 设计文档 §6.4 只点名 choosing / landed / resolving。
-// sealed 时线路还没揭示, 这会儿喝药既没信息也没意义。
+// 消耗品的可用阶段 ⊂ canOpenBackpack: 设计文档 §6.4 只点名「不限时的待决策阶段」。
+// sealed 时桥接还没揭示, 这会儿喝药既没信息也没意义。
 export function canUseItem(s: ExploreState): boolean {
-  return s.phase === "choosing" || s.phase === "landed" || s.phase === "resolving";
+  return (
+    s.phase === "choosingEntry" ||
+    s.phase === "landed" ||
+    s.phase === "resolving" ||
+    s.phase === "atNode"
+  );
 }
 
 // 使用一件消耗品。★ 不额外消耗净化粒子 —— 携带成本已由负重收过一次, 不重复收费(§6.4)。
@@ -314,7 +343,7 @@ export function shipHome(s: ExploreState, uids: string[]): boolean {
   for (const st of picked) s.backpack = removeByUid(s.backpack, st.uid);
   s.shipped = [...s.shipped, ...picked];
   changeEnergy(s, -EXPLORE_RULES.chute.energyCost);
-  s.chuteOpen = false; // 一段只能寄一次
+  s.chuteOpen = false; // 一个节点只能寄一次
   logLine(s, `投递口寄回 ${picked.length} 件 · 净化粒子 −${EXPLORE_RULES.chute.energyCost}`);
   return true;
 }
@@ -369,8 +398,8 @@ function summarizeItems(taken: ItemStack[], overflow: ItemStack[]): string {
   return overflow.length ? `${head}（${overflow.length} 件背不动了）` : head;
 }
 
-// 单条效果 → 一句结算摘要(写进本段记录与结算浮层)。
-// ⚠ START_BATTLE 与 RETREAT 会改变 phase, 由 chooseOption 单独处理, 不走这里。
+// 单条效果 → 一句结算摘要(写进节点记录与结算浮层)。
+// ⚠ RETREAT 与 END_REGION 会改变阶段, 由 chooseOption 单独处理, 不走这里。
 function applyEffect(s: ExploreState, e: ExploreEffect): string {
   switch (e.type) {
     case "HEAL_PARTY":
@@ -425,123 +454,219 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
     case "MODIFY_TAINT":
       s.taint = Math.max(0, Math.min(EXPLORE_RULES.taint.max, s.taint + e.amount));
       return `污染层数 ${e.amount > 0 ? "+" : ""}${e.amount}`;
-    case "SKIP_SEGMENT_COST":
-      s.skipSegmentCost = true;
-      return "本段免除基础能量消耗";
+    case "SKIP_NODE_COST":
+      s.freeNodes += e.nodes;
+      return `接下来 ${e.nodes} 个节点不消耗净化粒子`;
     // 这两个由 chooseOption 拦截, 走不到这里; 列出来让 switch 保持穷尽
-    case "START_BATTLE":
+    case "END_REGION":
     case "RETREAT":
       return "";
   }
 }
 
 // ---------------------------------------------------------------------------
-// 一段的生成
+// 一轮的生成
 // ---------------------------------------------------------------------------
-// 段在远征里的位置 → 展示时长与横线数(设计文档 §2.2)。
-function stageOf(segment: number, segmentCount: number) {
-  const ratio = segment / segmentCount;
-  const st = EXPLORE_RULES.stages;
-  if (ratio <= st.early.untilRatio) return st.early;
-  if (ratio <= st.mid.untilRatio) return st.mid;
-  return st.late;
+// 轮次 → 揭示时长与额外桥接数(设计文档 §2.2)。
+function roundStageOf(round: number) {
+  const r = EXPLORE_RULES.rounds;
+  if (round <= r.early.untilRound) return r.early;
+  if (round <= r.mid.untilRound) return r.mid;
+  return r.late;
 }
 
-// 事件保底(设计文档 §2.3):
-//   · 每段至少 1 个生存、1 个成长、1 个战斗终点;
-//   · 纯负面最多 1 个, 纯负面 + 高风险合计不超过 2 个;
-//   · 精英 / 高额奖励只在中后段(靠事件自己的 minSegment 声明);
-//   · BOSS 接入后, BOSS 接入点与撤离升降机必现 —— 玩家永远有把东西带回去的机会;
-//   · 能量跌到第 5 档(枯竭)时撤离升降机同样必现(§4.2 的枯竭档保护)。
-function pickEvents(s: ExploreState, poolId: string, bossAvailable: boolean): RouteEvent[] {
-  const pool = getEventPool(poolId);
-  const usable = (list: RouteEvent[]) =>
-    list.filter((e) => !e.disabled && (e.minSegment ?? 1) <= s.segment);
+const SEGMENTS = EXPLORE_RULES.segmentsPerRound;
+const LANES = EXPLORE_RULES.laneCount;
 
-  const picked: RouteEvent[] = [];
-  const has = (id: string) => picked.some((e) => e.id === id);
-  const take = (list: RouteEvent[]): boolean => {
-    const avail = list.filter((e) => !has(e.id) && withinRiskCap(picked, e));
-    if (!avail.length) return false;
-    picked.push(avail[rngInt(s, avail.length)]);
+// 事件允许出现在第 seg 个推进段(0-based)吗 —— depth 是 1-based 的闭区间。
+function fitsDepth(e: NodeEvent, seg: number): boolean {
+  const [lo, hi] = e.depth ?? [1, SEGMENTS];
+  return seg + 1 >= lo && seg + 1 <= hi;
+}
+
+// 全图节点生成(设计文档 §2.3.2 / §9.3)。
+//
+// 生成顺序刻意是**从第 4 段往第 1 段填**: 纯负面与高风险有全图配额且只准出现在第 3-4 段,
+// 先填深段才不会出现「配额被浅段用光 → 深段凑不满 5 个」。
+//
+// 保底(范围是**整张图**而不是每段 —— 单个推进段允许全是坑或全是宝):
+//   · 至少 2 个生存/低风险节点, 其中至少 1 个在第 1-2 段;
+//   · 至少 3 个成长节点;
+//   · 纯负面 ≤ 2, 高风险 ≤ 3, 且都只在第 3-4 段;
+//   · 告急档(第 4 档)起传送投递口必现; 枯竭档(第 5 档)起撤离升降机必现于第 1-2 段。
+function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
+  const pool = getEventPool(poolId);
+  const tier = energyTier(s.energy).tier;
+
+  const all = [
+    ...pool.survival,
+    ...pool.growth,
+    ...pool.economy,
+    ...pool.route,
+    ...pool.energy,
+    ...pool.hazard,
+    ...pool.endgame,
+  ].filter((e) => !e.disabled && (e.minRound ?? 1) <= s.round);
+
+  const grid: (NodeEvent | null)[][] = Array.from({ length: SEGMENTS }, () =>
+    Array.from({ length: LANES }, () => null),
+  );
+  let negatives = 0;
+  let highRisks = 0;
+
+  const inSegment = (seg: number, id: string) => grid[seg].some((e) => e?.id === id);
+  const place = (seg: number, e: NodeEvent): boolean => {
+    const free = grid[seg].map((x, i) => (x ? -1 : i)).filter((i) => i >= 0);
+    if (!free.length || inSegment(seg, e.id)) return false;
+    grid[seg][free[rngInt(s, free.length)]] = e;
+    if (e.risk === "negative") negatives += 1;
+    if (e.risk === "highRisk") highRisks += 1;
     return true;
   };
-  const takeById = (id: string) => {
-    const found = usable(pool.endgame).find((e) => e.id === id);
-    if (found && !has(found.id)) picked.push(found);
+  // 风险节点只准出现在第 3-4 段(seg >= 2), 且吃全图配额。
+  const riskOk = (e: NodeEvent, seg: number): boolean => {
+    if (!e.risk) return true;
+    if (seg < 2) return false;
+    if (e.risk === "negative") return negatives < 2;
+    return highRisks < 3;
   };
 
-  // ① 必现项
-  if (bossAvailable) {
-    takeById("boss-uplink");
-    takeById("evac-lift");
-  } else if (energyTier(s.energy).tier >= 5) {
-    takeById("evac-lift");
+  // ① 档位保底(设计文档 §4.2)。撤离升降机的枯竭档保护**无视 minRound** ——
+  //    时限是压力不是死刑, 玩家永远要有把背包带回去的机会。
+  if (tier >= 5) {
+    const lift = all.find((e) => e.id === "evac-lift") ?? pool.endgame.find((e) => e.id === "evac-lift" && !e.disabled);
+    if (lift) place(rngInt(s, 2), lift); // 第 1-2 段
+  }
+  if (tier >= 4) {
+    const chute = all.find((e) => e.id === "dispatch-chute");
+    if (chute) place(rngInt(s, SEGMENTS), chute);
   }
 
-  // ② 三条保底
-  take(usable(pool.survival));
-  take(usable(pool.growth));
-  take(usable(pool.battle));
-
-  // ③ 剩下的名额从全池补, 受风险上限约束
-  const filler = shuffle(s, [
-    ...usable(pool.survival),
-    ...usable(pool.growth),
-    ...usable(pool.battle),
-    ...usable(pool.economy),
-    ...usable(pool.energy),
-    ...usable(pool.hazard),
-    ...(bossAvailable ? usable(pool.endgame) : []),
-  ]);
-  while (picked.length < EXPLORE_RULES.laneCount) {
-    if (!take(filler)) break;
+  // ② 逐段填满 —— 从最深的一段开始
+  for (let seg = SEGMENTS - 1; seg >= 0; seg--) {
+    while (grid[seg].some((x) => !x)) {
+      const avail = shuffle(
+        s,
+        all.filter((e) => fitsDepth(e, seg) && !inSegment(seg, e.id) && riskOk(e, seg)),
+      );
+      if (!avail.length) break; // 池子撑不满这一段: 少几个节点也不该卡死生成
+      place(seg, avail[0]);
+    }
   }
 
-  // 终点顺序打散 —— 否则「最左边永远是生存」会让整套记忆玩法失去意义
-  return shuffle(s, picked).slice(0, EXPLORE_RULES.laneCount);
+  // ③ 保底修复。★ 替换而不是回溯: 挑一个可牺牲的填充节点换掉即可(§9.3 不要求回溯)。
+  //
+  // ⚠ 已经为某条保底补进去的格子必须**上锁**: 否则后一条保底(比如「至少 3 个成长」)会
+  //   把前一条刚补进去的生存节点当成填充物换掉, 两条保底互相拆台, 谁最后跑谁生效。
+  const locked = new Set<string>();
+  const key = (seg: number, lane: number) => `${seg}:${lane}`;
+  // 档位必现项同样上锁 —— 它们是硬保底, 不许被任何修复挤掉。
+  grid.forEach((row, seg) =>
+    row.forEach((e, lane) => {
+      if (e && (e.id === "evac-lift" || e.id === "dispatch-chute")) locked.add(key(seg, lane));
+    }),
+  );
+
+  const replaceIn = (segs: number[], want: (e: NodeEvent) => boolean): boolean => {
+    const pick = shuffle(
+      s,
+      all.filter((e) => want(e)),
+    );
+    for (const cand of pick) {
+      for (const seg of segs) {
+        if (!fitsDepth(cand, seg) || inSegment(seg, cand.id)) continue;
+        // 牺牲品: 同段里既不是保底目标、也没上锁的那一个
+        const victimLane = grid[seg].findIndex(
+          (e, lane) => e && !want(e) && !locked.has(key(seg, lane)),
+        );
+        if (victimLane < 0) continue;
+        const victim = grid[seg][victimLane]!;
+        if (victim.risk === "negative") negatives -= 1;
+        if (victim.risk === "highRisk") highRisks -= 1;
+        grid[seg][victimLane] = cand;
+        if (cand.risk === "negative") negatives += 1;
+        if (cand.risk === "highRisk") highRisks += 1;
+        locked.add(key(seg, victimLane));
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const isSafe = (e: NodeEvent) => e.category === "survival" || (!e.risk && e.category !== "hazard");
+  const isGrowth = (e: NodeEvent) => e.category === "growth";
+
+  // ⚠ 天然就满足某条保底的格子也要先上锁: 否则后一条保底会把它当填充物换走, 前一条当场失效。
+  //   `n` = 这条保底还需要几个, 上锁到额度为止, 不足的部分才走 replaceIn 去补。
+  const lockExisting = (segs: number[], want: (e: NodeEvent) => boolean, n: number): number => {
+    let got = 0;
+    for (const seg of segs) {
+      grid[seg].forEach((e, lane) => {
+        if (got >= n || !e || !want(e) || locked.has(key(seg, lane))) return;
+        locked.add(key(seg, lane));
+        got += 1;
+      });
+    }
+    return got;
+  };
+  const guarantee = (segs: number[], want: (e: NodeEvent) => boolean, n: number): void => {
+    let have = lockExisting(segs, want, n);
+    let guard = 0;
+    while (have < n && guard++ < n + 2) {
+      if (!replaceIn(segs, want)) break; // 池子给不出更多了: 少一个也不该卡死生成
+      have += 1;
+    }
+  };
+
+  // 「第 1-2 段至少 1 个生存节点」—— 浅停必须是有价值的巩固打法(§1.4)
+  guarantee([0, 1], (e) => e.category === "survival", 1);
+  // 全图至少 2 个生存/低风险
+  guarantee([0, 1, 2, 3], isSafe, 2);
+  // 全图至少 3 个成长
+  guarantee([0, 1, 2, 3], isGrowth, 3);
+
+  // 池子实在填不满时用同段已有的事件顶上, 保证结构完整(20 格全满)。
+  return grid.map((row, seg) => {
+    const filled = row.filter((e): e is NodeEvent => !!e);
+    return row.map(
+      (e, lane) => e ?? filled[lane % Math.max(1, filled.length)] ?? all.find((x) => fitsDepth(x, seg))!,
+    );
+  });
 }
 
-function withinRiskCap(picked: RouteEvent[], e: RouteEvent): boolean {
-  if (!e.risk) return true;
-  const negatives = picked.filter((p) => p.risk === "negative").length;
-  const risky = picked.filter((p) => p.risk).length;
-  if (e.risk === "negative" && negatives >= 1) return false;
-  return risky < 2;
-}
-
-export function generateSegment(s: ExploreState): void {
+export function generateRound(s: ExploreState): void {
   const map = getMap(s.mapId);
-  const stage = stageOf(s.segment, s.segmentCount);
-  const [minBars, maxBars] = stage.bars;
-  const barCount = minBars + rngInt(s, maxBars - minBars + 1);
-
-  s.bossAvailable = s.segment >= map.bossAvailableFrom;
+  const stage = roundStageOf(s.round);
+  // 每段桥接数在本轮次给定的区间里各掷一次 —— 递增曲线由区间表本身保证(rules.rounds)
+  const counts = stage.bridges.map(([lo, hi]) => lo + rngInt(s, hi - lo + 1));
 
   const board: RouteBoard = {
-    segment: s.segment,
-    laneCount: EXPLORE_RULES.laneCount,
-    rowCount: EXPLORE_RULES.rowCount,
-    crossbars: generateCrossbars(s, EXPLORE_RULES.laneCount, EXPLORE_RULES.rowCount, barCount),
-    events: pickEvents(s, map.eventPoolId, s.bossAvailable),
+    round: s.round,
+    laneCount: LANES,
+    rowsPerSegment: EXPLORE_RULES.rowsPerSegment,
+    segments: generateSegments(s, LANES, EXPLORE_RULES.rowsPerSegment, counts),
+    nodes: pickNodes(s, map.eventPoolId),
     revealDurationMs: stage.revealMs,
     blockedLanes: [],
   };
 
   s.board = board;
   s.entryLane = null;
-  s.exitLane = null;
+  s.currentLane = null;
+  s.currentSegment = 0;
+  s.freeNodes = 0;
   s.pendingNotes = [];
-  s.skipSegmentCost = false;
-  // ★ 新图不是立刻可看的: 先播 2 秒逐层绘制(generating), 再停在遮蔽态(sealed)等玩家主动揭示。
+  s.pendingBattleTier = null;
+  s.chuteOpen = false;
+  // ★ 新图不是立刻可看的: 先播 2 秒逐段浮现(generating), 再停在遮蔽态(sealed)等玩家主动揭示。
   s.phase = "generating";
 }
 
 // ---------------------------------------------------------------------------
-// 一段的推进
+// 一轮的推进
 // ---------------------------------------------------------------------------
-// 生成演出播完 —— 由 UI 侧的 2 秒定时器触发(时长见 RouteBoard.GENERATE_MS)。
-// 图这时已经完整画在屏幕上了, 但横线仍然遮蔽 —— 只是从「锁死」变成「等玩家出手」。
+// 生成演出播完 —— 由 UI 侧的定时器触发(时长见 RouteBoard.GENERATE_MS)。
+// 图这时已经完整画在屏幕上了, 但桥接仍然遮蔽 —— 只是从「锁死」变成「等玩家出手」。
 export function finishGenerating(s: ExploreState): boolean {
   if (s.phase !== "generating") return false;
   s.phase = "sealed";
@@ -549,7 +674,7 @@ export function finishGenerating(s: ExploreState): boolean {
 }
 
 // 玩家按下「探索路线」—— 唯一进入 revealing 的入口。
-// ★ 一段只能看一次: 阶段单向流转 sealed → revealing → choosing, 再也回不到 sealed,
+// ★ 一轮只能看一次: 阶段单向流转 sealed → revealing → choosingEntry, 再也回不到 sealed,
 //   所以「限次」不需要额外的计数字段, 拿 phase 卡住就够了。
 export function startReveal(s: ExploreState): boolean {
   if (s.phase !== "sealed") return false;
@@ -557,33 +682,37 @@ export function startReveal(s: ExploreState): boolean {
   return true;
 }
 
-// 展示计时结束 —— 由 UI 侧的定时器触发(时长取 board.revealDurationMs)。
+// 揭示计时结束 —— 由 UI 侧的定时器触发(时长取 board.revealDurationMs)。
 export function finishReveal(s: ExploreState): boolean {
   if (s.phase !== "revealing") return false;
-  s.phase = "choosing";
+  s.phase = "choosingEntry";
   return true;
 }
 
+// 选入口通道 —— **全轮唯一一次自由选择**, 写入后不可再改(设计文档 §9.2)。
 export function chooseEntry(s: ExploreState, lane: number): boolean {
-  if (s.phase !== "choosing" || !s.board) return false;
+  if (s.phase !== "choosingEntry" || !s.board) return false;
   if (lane < 0 || lane >= s.board.laneCount) return false;
   if (s.board.blockedLanes.includes(lane)) return false;
   s.entryLane = lane;
-  s.exitLane = exitLaneOf(s.board, lane);
-  s.phase = "routing";
+  s.currentLane = lane;
+  s.phase = "advancing";
   return true;
 }
 
-// 走线动画播完 —— **只落点, 不结算**。效果要等玩家在浮层里挑完分支才生效(见 chooseOption)。
-// ⚠ 战斗终点同样停在这里: 「还没看清落在哪张卡上就已经在打了」是上一版最大的问题。
-export function finishRouting(s: ExploreState): boolean {
-  if (s.phase !== "routing" || !s.board || s.entryLane == null || s.exitLane == null) return false;
+// 推进动画播完 —— **只落点, 不结算**。效果要等玩家在浮层里挑完分支才生效(见 chooseOption)。
+export function arriveNode(s: ExploreState): boolean {
+  if (s.phase !== "advancing" || !s.board || s.currentLane == null) return false;
+  if (s.currentSegment >= SEGMENTS) return false;
+  const seg = s.board.segments[s.currentSegment];
+  s.currentLane = traceSegment(seg, s.currentLane, s.board.rowsPerSegment).laneOut;
+  s.currentSegment += 1;
   s.pendingNotes = [];
   s.phase = "landed";
   return true;
 }
 
-// 落点分支的可选项。事件没写 choices 时退化成「只有主选项」, 结算行为与上一版完全一致。
+// 落点分支的可选项。事件没写 choices 时退化成「只有主选项」。
 export function landedChoices(s: ExploreState): EventChoice[] {
   const ev = landedEvent(s);
   if (!ev) return [];
@@ -599,32 +728,43 @@ export function landedChoices(s: ExploreState): EventChoice[] {
   ];
 }
 
-// 玩家在落点浮层里选了一支 —— 这里才真的扣能量、跑效果、写记录。
-// 战斗类分支把会话切进 inBattle, 真正建局由 store 层做(只有它认识 battleStore)。
+// 玩家在落点浮层里选了一支 —— 这里才真的扣粒子、跑效果、写记录。
+// ★ 粒子消耗 = 每节点固定 −3(freeNodes 可免) + 该分支自己的 energyDelta(设计文档 §4.2)。
 export function chooseOption(s: ExploreState, index: number): boolean {
-  if (s.phase !== "landed" || !s.board || s.entryLane == null || s.exitLane == null) return false;
+  if (s.phase !== "landed" || !s.board || s.currentLane == null || s.currentSegment < 1) {
+    return false;
+  }
 
-  const ev = s.board.events[s.exitLane];
+  const ev = landedEvent(s);
   const choice = landedChoices(s)[index];
-  if (!choice) return false;
+  if (!ev || !choice) return false;
 
   const energyBefore = s.energy;
-  changeEnergy(s, choice.energyDelta);
-
   const notes: string[] = [];
+
+  // ① 节点的基础消耗。「隐匿通道」这类效果免的就是这一份。
+  if (s.freeNodes > 0) {
+    s.freeNodes -= 1;
+    notes.push("隐匿通道: 本节点不消耗粒子");
+  } else {
+    changeEnergy(s, -EXPLORE_RULES.energyPerNode);
+  }
+
+  // ② 分支自己的额外增减
   if (choice.energyDelta !== 0) {
+    changeEnergy(s, choice.energyDelta);
     notes.push(`净化粒子 ${choice.energyDelta > 0 ? "+" : ""}${choice.energyDelta}`);
   }
 
-  let battle: { encounterId: string; boss?: boolean } | null = null;
   let leaving = false;
+  let endRegion = false;
   for (const e of choice.effects) {
-    if (e.type === "START_BATTLE") {
-      battle = { encounterId: e.encounterId, boss: e.boss };
-      continue;
-    }
     if (e.type === "RETREAT") {
       leaving = true;
+      continue;
+    }
+    if (e.type === "END_REGION") {
+      endRegion = true;
       continue;
     }
     const note = applyEffect(s, e);
@@ -634,16 +774,17 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   s.pendingNotes = notes;
   // 记录里带上所选分支 —— 结算页回顾整趟远征时, 玩家要读得出自己当时做了什么决定。
   s.history.push({
-    segment: s.segment,
-    entryLane: s.entryLane,
-    exitLane: s.exitLane,
+    round: s.round,
+    segment: s.currentSegment - 1,
+    lane: s.currentLane,
     eventId: ev.id,
     eventTitle: ev.title,
+    choiceIndex: index,
     energyBefore,
-    energyAfter: s.energy, // 本段的基础消耗还没扣, nextSegment 里会回填
+    energyAfter: s.energy,
     note: [choice.label, notes.join(" · ") || "无结算"].join(" · "),
   });
-  logLine(s, `第 ${s.segment} 段: ${ev.title} · ${choice.label}`);
+  logLine(s, `第 ${s.round} 轮 · 第 ${s.currentSegment} 段: ${ev.title} · ${choice.label}`);
 
   if (checkWipe(s)) return true;
 
@@ -653,45 +794,78 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     return true;
   }
 
-  if (battle) {
-    s.pendingEncounterId = battle.encounterId;
-    s.pendingIsBoss = !!battle.boss;
-    s.phase = "inBattle";
-    return true;
+  // 「逆流净化机」: 立即结束本轮推进。把 currentSegment 直接推到走满, atNode 因此
+  // 只剩「前往下一区域」一个出口 —— 不需要为它单开一个状态位。
+  if (endRegion) {
+    s.currentSegment = SEGMENTS;
+    s.pendingNotes = [...notes, "本轮推进到此为止"];
   }
 
   s.phase = "resolving";
   return true;
 }
 
-// 玩家在结算浮层点「继续」 —— 扣本段基础能量, 推进到下一段或收尾。
-export function nextSegment(s: ExploreState): boolean {
+// 结算浮层点「确认」→ 进入节点决策。
+// ⚠ 背包满时不许推进 —— pendingPickup 是必须当场处理完的取舍(设计文档 §6.4)。
+export function confirmNode(s: ExploreState): boolean {
   if (s.phase !== "resolving") return false;
-  // ⚠ 背包满时不许推进 —— pendingPickup 是必须当场处理完的取舍(设计文档 §6.4),
-  //   放它跨段会让「拿不拿」这个决定悄悄消失。UI 侧也会把「继续」按钮禁掉。
   if (s.pendingPickup.length) return false;
-
-  s.chuteOpen = false; // 投递口只在开启它的那一段有效
-  if (!s.skipSegmentCost) changeEnergy(s, -EXPLORE_RULES.energyPerSegment);
-  const last = s.history[s.history.length - 1];
-  if (last) last.energyAfter = s.energy;
-
-  if (s.segment >= s.segmentCount) {
-    // 走完全部段数仍没打 BOSS 也没坐升降机 —— 视为自行撤离, 收益照常带回。
-    s.phase = "retreated";
-    logLine(s, "路由网络到此为止, 原路返回");
-    return true;
-  }
-
-  s.segment += 1;
-  generateSegment(s);
+  s.chuteOpen = false; // 投递口只在开启它的那个节点有效
+  s.phase = "atNode";
   return true;
 }
 
-// sealed 与 choosing 同类(都是不限时的待决策阶段, 此时撤离不逃避任何代价);
-// generating 演出期与 revealing 限时期一律不许 —— 前者锁交互, 后者是核心机制的计时窗口。
+// 还能不能继续推进 —— currentSegment === 4 时 atNode **不得**提供「继续推进」(设计文档 §9.2)。
+export function canPushOn(s: ExploreState): boolean {
+  return s.phase === "atNode" && s.currentSegment < SEGMENTS;
+}
+
+// 「继续推进」: 信号进入下一个推进段。
+export function pushOn(s: ExploreState): boolean {
+  if (!canPushOn(s)) return false;
+  s.phase = "advancing";
+  return true;
+}
+
+// 「前往下一区域」: 放弃本轮剩余节点, 先披露线路再打本轮的推进战斗。
+// choosingEntry 阶段也允许 —— 那就是设计文档 §1.2 说的「本轮 0 个节点」直推。
+export function leaveRegion(s: ExploreState): boolean {
+  if (s.phase !== "atNode" && s.phase !== "choosingEntry") return false;
+  s.phase = "routeDisclosure";
+  return true;
+}
+
+// 本轮剩余没走的节点数 —— atNode 的「前往下一区域」按钮要拿它做后果预告(§11.2)。
+export function remainingNodes(s: ExploreState): number {
+  return Math.max(0, SEGMENTS - s.currentSegment);
+}
+
+// 披露页点「进入推进战斗」—— 按 §3.1 的固定档位表建局。
+// ★ 老虎机战斗签(§2.4)将来就插在这里: 档位不变, 只是多一层「转轮 → 三选一」再定 encounterId。
+export function startRoundBattle(s: ExploreState): boolean {
+  if (s.phase !== "routeDisclosure") return false;
+  const map = getMap(s.mapId);
+  const tier = battleTierOf(s.round);
+  const encounterId = map.battleEncounters[tier];
+  if (!encounterId) return false;
+  s.pendingBattleTier = tier;
+  s.pendingEncounterId = encounterId;
+  s.pendingIsBoss = tier === "boss";
+  s.phase = "inBattle";
+  logLine(s, `第 ${s.round} 轮推进战斗: ${BATTLE_TIER_NAME[tier]}`);
+  return true;
+}
+
+// 撤离远征。★ 白名单 = 全部「不限时、等玩家操作」的阶段 ——
+// 此时撤离不逃避任何代价; generating 演出期与 revealing 限时期一律不许。
 export function retreat(s: ExploreState): boolean {
-  if (s.phase !== "sealed" && s.phase !== "choosing" && s.phase !== "resolving") return false;
+  const ok =
+    s.phase === "sealed" ||
+    s.phase === "choosingEntry" ||
+    s.phase === "resolving" ||
+    s.phase === "atNode" ||
+    s.phase === "routeDisclosure";
+  if (!ok) return false;
   s.phase = "retreated";
   logLine(s, "主动撤离了这片区域");
   return true;
@@ -711,7 +885,7 @@ export function finishBattle(
   const empty = { loot: 0, items: [], overflow: [] };
   if (s.phase !== "inBattle") return empty;
 
-  // 血量跨段与跨战斗继承 —— 这是整套设计的地基
+  // 血量跨轮与跨战斗继承 —— 这是整套设计的地基
   for (const p of s.party) {
     const found = survivors.find((x) => x.charId === p.charId);
     if (!found) continue;
@@ -724,7 +898,7 @@ export function finishBattle(
     loseEverything(s);
     s.pendingEncounterId = null;
     s.pendingIsBoss = false;
-    logLine(s, "战斗失利, 远征中断");
+    logLine(s, "推进战斗失利, 远征中断");
     return empty;
   }
 
@@ -747,45 +921,56 @@ export function finishBattle(
   const notes: string[] = [];
   if (loot > 0) notes.push(`居民积分 +${loot}`);
   if (rolled.length) notes.push(summarizeItems(taken, overflow));
-  s.pendingNotes = [...s.pendingNotes, ["战斗胜利", ...notes].join(" · ")];
+  s.pendingNotes = [["战斗胜利", ...notes].join(" · ")];
 
   const last = s.history[s.history.length - 1];
   if (last && notes.length) last.note = `${last.note} · ${notes.join(" · ")}`;
 
-  if (wasBoss) {
+  if (wasBoss || s.round >= s.roundCount) {
+    // BOSS 轮胜利 = 通关。轮次走满但不是 BOSS(理论上不会发生)也按通关收尾。
     s.phase = "cleared";
     logLine(s, "回收总控已停机");
     return { loot, items: taken, overflow };
   }
 
-  s.phase = "resolving";
+  // 下一轮: 新区域, 新的一张路由图
+  s.round += 1;
+  generateRound(s);
   return { loot, items: taken, overflow };
 }
 
 // ---------------------------------------------------------------------------
 // 查询辅助(UI 用)
 // ---------------------------------------------------------------------------
-// ⚠ 背包开放时机是**硬约束**(设计文档 §6.3): 展示线路时开背包等于无限延长观察时间,
+// ⚠ 背包开放时机是**硬约束**(设计文档 §6.3): 揭示桥接时开背包等于无限延长观察时间,
 //   直接废掉核心机制。故必须在这里拦截, 不能只靠 UI 隐藏按钮。
-// landed / resolving / sealed 同类: 都是「不限时、等玩家操作」的阶段, 开背包不会绕过任何机制
-// (sealed 时横线还没揭示, 慢慢翻背包也偷看不到东西)。generating 则一律锁死 —— 演出期不接受输入。
+//   推进途中(advancing)与浮现演出(generating)同样锁死 —— 那两拍不接受输入。
 export function canOpenBackpack(s: ExploreState): boolean {
   return (
     s.phase === "sealed" ||
-    s.phase === "choosing" ||
+    s.phase === "choosingEntry" ||
     s.phase === "landed" ||
-    s.phase === "resolving"
+    s.phase === "resolving" ||
+    s.phase === "atNode" ||
+    s.phase === "routeDisclosure"
   );
 }
 
-// 本段终点事件(尚未走线时返回 null)。
-export function landedEvent(s: ExploreState): RouteEvent | null {
-  if (!s.board || s.exitLane == null) return null;
-  return s.board.events[s.exitLane] ?? null;
+// 当前落点的节点事件(尚未抵达任何节点时返回 null)。
+export function landedEvent(s: ExploreState): NodeEvent | null {
+  if (!s.board || s.currentLane == null || s.currentSegment < 1) return null;
+  return s.board.nodes[s.currentSegment - 1]?.[s.currentLane] ?? null;
 }
 
-// 「这段走完能量会掉到哪」—— 供 UI 做跨档预警(§11.2 要求的强提示)。
+// 「再推进一个节点, 能量会掉到哪」—— 供 atNode 的后果预告与跨档预警用(§11.2)。
 export function projectedEnergy(s: ExploreState): number {
-  const cost = s.skipSegmentCost ? 0 : EXPLORE_RULES.energyPerSegment;
+  const cost = s.freeNodes > 0 ? 0 : EXPLORE_RULES.energyPerNode;
   return Math.max(0, s.energy - cost);
+}
+
+// 本轮玩家的实际推进路径(入口 + 每段落点)。★ 只有 routeDisclosure 与结算页可以读 ——
+// 其余阶段读它等于把答案画在屏幕上(设计文档 §9.3)。
+export function tracedPath(s: ExploreState): number[] {
+  if (!s.board || s.entryLane == null) return [];
+  return [s.entryLane, ...lanePath(s.board, s.entryLane)];
 }

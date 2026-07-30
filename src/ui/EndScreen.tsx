@@ -80,17 +80,16 @@ export function EndScreen() {
         </div>
       )}
 
-      {/* 本次远征记录: 每段一行 —— 从哪个入口进、落到哪个终点、能量怎么掉的。 */}
+      {/* 本次远征记录: 每结算一个节点一行 —— 第几轮第几段、落在哪条通道、能量怎么掉的。 */}
       {session && session.history.length > 0 && (
         <div className="end-log">
           <span className="hud-label">本次远征记录</span>
-          {session.history.map((h) => (
-            <div key={h.segment} className="end-log-row">
-              <span className="end-log-seg">段 {h.segment}</span>
-              <span className="end-log-lane">
-                {ENTRY_LABELS[h.entryLane] ?? h.entryLane + 1} →{" "}
-                {ENTRY_LABELS[h.exitLane] ?? h.exitLane + 1}
+          {session.history.map((h, i) => (
+            <div key={`${h.round}-${h.segment}-${i}`} className="end-log-row">
+              <span className="end-log-seg">
+                {h.round} 轮 · {h.segment + 1} 段
               </span>
+              <span className="end-log-lane">{ENTRY_LABELS[h.lane] ?? h.lane + 1} 通道</span>
               <span className="end-log-title">{h.eventTitle}</span>
               <span className="end-log-note">{h.note}</span>
               <span

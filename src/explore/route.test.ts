@@ -1,113 +1,157 @@
-// 阿弥陀签的生成与求解。这一层是整套玩法的地基, 故断言全部盯着**结构性质**而非具体数值 ——
-// 图是随机的, 但「同 row 不共享端点」「入口终点是双射」「同种子可复现」这三条永远成立。
+// 4 段拼接阿弥陀签的生成与求解。这一层是整套玩法的地基, 故断言全部盯着**结构性质**而非具体数值 ——
+// 图是随机的, 但「同 row 不共享端点」「每段入→出是双射」「同种子可复现」这三条永远成立。
 
 import { describe, expect, it } from "vitest";
-import { exitLaneOf, generateCrossbars, solveMapping, traceRoute } from "./route";
+import {
+  generateSegmentBridges,
+  generateSegments,
+  lanePath,
+  laneAfterSegments,
+  solveFullMapping,
+  solveSegmentMapping,
+  traceSegment,
+} from "./route";
 import type { RouteBoard } from "./types";
 
 const LANES = 5;
-const ROWS = 10;
+const ROWS = 4;
+const COUNTS = [2, 2, 3, 3];
 
-function boardWith(seed: number, bars: number): RouteBoard {
+function boardWith(seed: number, counts: readonly number[] = COUNTS): RouteBoard {
   const rng = { rngState: seed >>> 0 };
   return {
-    segment: 1,
+    round: 1,
     laneCount: LANES,
-    rowCount: ROWS,
-    crossbars: generateCrossbars(rng, LANES, ROWS, bars),
-    events: [],
-    revealDurationMs: 1000,
+    rowsPerSegment: ROWS,
+    segments: generateSegments(rng, LANES, ROWS, counts),
+    nodes: [],
+    revealDurationMs: 3000,
     blockedLanes: [],
   };
 }
 
 describe("生成", () => {
-  it("横线只连相邻竖线, 且落在合法行内", () => {
+  it("桥接只连相邻通道, 且落在合法行内", () => {
     for (let seed = 1; seed <= 50; seed++) {
-      for (const c of boardWith(seed, 12).crossbars) {
-        expect(c.row).toBeGreaterThanOrEqual(0);
-        expect(c.row).toBeLessThan(ROWS);
-        expect(c.leftLane).toBeGreaterThanOrEqual(0);
-        expect(c.leftLane).toBeLessThan(LANES - 1); // leftLane + 1 必须仍是合法竖线
+      for (const seg of boardWith(seed).segments) {
+        for (const b of seg.bridges) {
+          expect(b.row).toBeGreaterThanOrEqual(0);
+          expect(b.row).toBeLessThan(ROWS);
+          expect(b.leftLane).toBeGreaterThanOrEqual(0);
+          expect(b.leftLane).toBeLessThan(LANES - 1); // leftLane + 1 必须仍是合法通道
+        }
       }
     }
   });
 
-  it("同一 row 内不共享端点(两条横线的 leftLane 至少差 2)", () => {
+  it("同一 row 内不共享端点(两根桥接的 leftLane 至少差 2)", () => {
     for (let seed = 1; seed <= 50; seed++) {
-      const byRow = new Map<number, number[]>();
-      for (const c of boardWith(seed, 12).crossbars) {
-        const used = byRow.get(c.row) ?? [];
-        for (const l of used) expect(Math.abs(l - c.leftLane)).toBeGreaterThanOrEqual(2);
-        used.push(c.leftLane);
-        byRow.set(c.row, used);
+      for (const seg of boardWith(seed).segments) {
+        const byRow = new Map<number, number[]>();
+        for (const b of seg.bridges) {
+          const used = byRow.get(b.row) ?? [];
+          for (const l of used) expect(Math.abs(l - b.leftLane)).toBeGreaterThanOrEqual(2);
+          used.push(b.leftLane);
+          byRow.set(b.row, used);
+        }
       }
     }
   });
 
-  it("不超过请求条数, 且按 row 升序排好", () => {
-    const bars = boardWith(7, 9).crossbars;
-    expect(bars.length).toBeLessThanOrEqual(9);
-    for (let i = 1; i < bars.length; i++) {
-      expect(bars[i].row).toBeGreaterThanOrEqual(bars[i - 1].row);
+  it("固定 4 段, 段号连续, 且没有完全空白段(设计文档 §9.3)", () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const segs = boardWith(seed).segments;
+      expect(segs).toHaveLength(4);
+      segs.forEach((seg, i) => {
+        expect(seg.index).toBe(i);
+        expect(seg.bridges.length).toBeGreaterThan(0);
+      });
+    }
+  });
+
+  it("每段桥接数不超过请求条数, 且沿推进方向递增(第 1 段 ≤ 第 4 段)", () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const segs = boardWith(seed).segments;
+      segs.forEach((seg, i) => expect(seg.bridges.length).toBeLessThanOrEqual(COUNTS[i]));
+      expect(segs[3].bridges.length).toBeGreaterThanOrEqual(segs[0].bridges.length);
     }
   });
 
   it("同种子两次生成完全一致 —— 可复现是设计文档 §9.3 的硬要求", () => {
-    expect(boardWith(1234, 10).crossbars).toEqual(boardWith(1234, 10).crossbars);
+    expect(boardWith(1234).segments).toEqual(boardWith(1234).segments);
   });
 
-  it("rng 容器被推进 —— 连续两次调用拿到的是不同的图", () => {
+  it("rng 容器被推进 —— 连续两次调用拿到的是不同的段", () => {
     const rng = { rngState: 99 };
-    const a = generateCrossbars(rng, LANES, ROWS, 10);
-    const b = generateCrossbars(rng, LANES, ROWS, 10);
+    const a = generateSegmentBridges(rng, LANES, ROWS, 3);
+    const b = generateSegmentBridges(rng, LANES, ROWS, 3);
     expect(a).not.toEqual(b);
   });
 });
 
 describe("求解", () => {
-  it("入口 → 终点是双射: 每个终点恰好被一个入口命中", () => {
+  it("每个推进段内「入通道 → 出通道」都是双射", () => {
     for (let seed = 1; seed <= 100; seed++) {
-      const mapping = solveMapping(boardWith(seed, 12));
-      expect([...mapping].sort()).toEqual([0, 1, 2, 3, 4]);
-    }
-  });
-
-  it("走线的每一步都只移动一格, 且不越界", () => {
-    const board = boardWith(42, 12);
-    for (let lane = 0; lane < LANES; lane++) {
-      const steps = traceRoute(board, lane);
-      expect(steps[0]).toEqual({ row: -1, lane });
-      expect(steps[steps.length - 1].row).toBe(ROWS);
-      for (const st of steps) {
-        expect(st.lane).toBeGreaterThanOrEqual(0);
-        expect(st.lane).toBeLessThan(LANES);
-        if (st.movedFrom != null) expect(Math.abs(st.lane - st.movedFrom)).toBe(1);
+      const board = boardWith(seed);
+      for (let i = 0; i < board.segments.length; i++) {
+        expect([...solveSegmentMapping(board, i)].sort()).toEqual([0, 1, 2, 3, 4]);
       }
     }
   });
 
-  it("横移的步数 = 该入口路径上真正命中的横线数", () => {
-    const board = boardWith(5, 12);
-    const steps = traceRoute(board, 0);
-    const moves = steps.filter((s) => s.movedFrom != null);
-    // 每次横移都必须能在 crossbars 里找到对应的那一条
-    for (const m of moves) {
+  it("整张图的入口 → 第 4 段落点同样是双射(双射的复合仍是双射)", () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const board = boardWith(seed);
+      const ends = solveFullMapping(board).map((p) => p[p.length - 1]);
+      expect([...ends].sort()).toEqual([0, 1, 2, 3, 4]);
+    }
+  });
+
+  it("段内走线每一步都只跨一条通道, 且不越界", () => {
+    const board = boardWith(42);
+    for (const seg of board.segments) {
+      for (let lane = 0; lane < LANES; lane++) {
+        const { steps } = traceSegment(seg, lane, ROWS);
+        expect(steps[0]).toEqual({ row: -1, lane });
+        expect(steps[steps.length - 1].row).toBe(ROWS);
+        for (const st of steps) {
+          expect(st.lane).toBeGreaterThanOrEqual(0);
+          expect(st.lane).toBeLessThan(LANES);
+          if (st.movedFrom != null) expect(Math.abs(st.lane - st.movedFrom)).toBe(1);
+        }
+      }
+    }
+  });
+
+  it("每次跨接都能在该段的桥接表里找到对应的那一根", () => {
+    const board = boardWith(5);
+    const seg = board.segments[2];
+    const { steps } = traceSegment(seg, 0, ROWS);
+    for (const m of steps.filter((s) => s.movedFrom != null)) {
       const left = Math.min(m.lane, m.movedFrom!);
-      expect(board.crossbars.some((c) => c.row === m.row && c.leftLane === left)).toBe(true);
+      expect(seg.bridges.some((b) => b.row === m.row && b.leftLane === left)).toBe(true);
     }
   });
 
-  it("exitLaneOf 与 traceRoute 的末端一致", () => {
-    const board = boardWith(17, 12);
+  it("lanePath / laneAfterSegments 与逐段求解一致", () => {
+    const board = boardWith(17);
     for (let lane = 0; lane < LANES; lane++) {
-      const steps = traceRoute(board, lane);
-      expect(exitLaneOf(board, lane)).toBe(steps[steps.length - 1].lane);
+      const path = lanePath(board, lane);
+      expect(path).toHaveLength(4);
+      for (let n = 1; n <= 4; n++) expect(laneAfterSegments(board, lane, n)).toBe(path[n - 1]);
     }
   });
 
-  it("没有横线时原路直下", () => {
-    const board = boardWith(3, 0);
-    expect(solveMapping(board)).toEqual([0, 1, 2, 3, 4]);
+  it("没有桥接时原路直行", () => {
+    const board: RouteBoard = {
+      round: 1,
+      laneCount: LANES,
+      rowsPerSegment: ROWS,
+      segments: [0, 1, 2, 3].map((index) => ({ index, bridges: [] })),
+      nodes: [],
+      revealDurationMs: 3000,
+      blockedLanes: [],
+    };
+    expect(solveFullMapping(board).map((p) => p[3])).toEqual([0, 1, 2, 3, 4]);
   });
 });

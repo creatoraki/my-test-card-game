@@ -14,7 +14,7 @@ import { MAPS, type MapDef } from "./maps";
 export { CARD_DEFS } from "./cards";
 export {
   EVENT_POOLS,
-  ALL_ROUTE_EVENTS,
+  ALL_NODE_EVENTS,
   getEventPool,
   type EventPool,
 } from "./exploreEvents";

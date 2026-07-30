@@ -1,6 +1,6 @@
 // Zustand store: 一次"远征"的流程编排 —— 界面路由 + 探索路由图与战斗之间的往返。
 // 卡组/队伍/养成不在这里 —— 它们是城镇的持久资产, 见 townStore。
-// 路由会话本身也不在这里 —— 见 exploreStore; 本 store 只负责"走线落到战斗终点后真的建一场战斗"
+// 路由会话本身也不在这里 —— 见 exploreStore; 本 store 只负责"本轮区域走完后真的建一场推进战斗"
 // 这件事, 因为只有它同时认识 battleStore、exploreStore 与界面路由。
 
 import { create } from "zustand";
@@ -36,11 +36,11 @@ interface RunStore {
 
   enterTown: () => void;
   startExpedition: (mapId: string) => void; // 选定地图 → 进路由图
-  enterEncounter: () => void; // 落点浮层选了战斗分支 → 建局开打
+  enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
   confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
   retreat: () => void; // 主动撤离 → 落袋回城
-  finishExpedition: () => void; // 会话自行走到终局(升降机/段数走完/团灭) → 结算页
+  finishExpedition: () => void; // 会话自行走到终局(升降机/轮次走完/团灭) → 结算页
   backToTown: () => void;
   backToMenu: () => void;
 }
@@ -134,9 +134,10 @@ export const useRunStore = create<RunStore>((set, get) => ({
     });
   },
 
-  // 玩家在落点浮层里选了战斗分支 → 建局开打。
-  // ⚠ 会话的推进不在这里: chooseOption 已经把 phase 打成 inBattle 并写下 pendingEncounterId,
+  // 本轮线路披露完 → 建局开打(设计文档 §3.1 的固定档位表)。
+  // ⚠ 会话的推进不在这里: startRoundBattle 已经把 phase 打成 inBattle 并写下 pendingEncounterId,
   //   本函数只负责「照着它建一场战斗并切页」。没有待打的战斗就什么都不做(幂等护栏)。
+  //   ★ 老虎机战斗签接上之后, 变的只是 pendingEncounterId 怎么定, 这条路径不动。
   enterEncounter: () => {
     const s = useExploreStore.getState().session;
     if (!s?.pendingEncounterId) return;
@@ -218,7 +219,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
     get().finishExpedition();
   },
 
-  // 会话自己走到了终局(坐上撤离升降机 / 段数走完 / 事件掉血团灭)时由 ExploreScreen 调用。
+  // 会话自己走到了终局(坐上撤离升降机 / 主动撤离 / 事件掉血团灭)时由 ExploreScreen 调用。
   // 撤离与通关一样落袋; 团灭时 session.loot 已被 finishBattle/checkWipe 清零, 这里照样 bank 即可,
   // 不必再判一次 —— 惩罚的真相点只有 EXPLORE_RULES.wipe 一处。
   finishExpedition: () => {
