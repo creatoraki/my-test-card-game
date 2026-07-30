@@ -50,6 +50,7 @@ import {
 } from "./facilityScenes";
 import { ControlTerminalScene } from "./ControlTerminalScene";
 import { CryoScene } from "./CryoScene";
+import { StorageScene } from "./StorageScene";
 import townBg from "../assets/场景/大厅.png";
 import "./TownScreen.css";
 
@@ -192,10 +193,9 @@ const FACILITIES: Facility[] = [
   {
     id: "storage",
     name: "物资中转仓",
-    desc: "背包与库存管理。",
+    desc: "库存 · 装备 · 废料回收。",
     icon: <StorageIcon />,
     size: "sm",
-    locked: true,
   },
 ];
 
@@ -206,6 +206,7 @@ const FACILITIES: Facility[] = [
 const FACILITY_CONTENT: Record<string, (leaving: boolean) => ReactNode> = {
   worklog: (leaving) => <ControlTerminalScene leaving={leaving} />,
   cryo: (leaving) => <CryoScene leaving={leaving} />,
+  storage: (leaving) => <StorageScene leaving={leaving} />,
 };
 
 // ===================== 进设施演出 =====================

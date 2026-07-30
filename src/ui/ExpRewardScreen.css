@@ -45,3 +45,20 @@
   font-size: 12px;
   letter-spacing: 1px;
 }
+
+/* ===================== 战利品(实物掉落) ===================== */
+/* 战斗只掉物品(设计文档 §6.1), 所以这一块才是战后小结的主角。
+   格子复用 ui/ItemSlot —— 与背包、仓库同一套稀有度边框, 玩家一眼认出档次。 */
+.reward-drops {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  width: min(520px, 100%);
+}
+.reward-drop-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(66px, 66px));
+  gap: 7px;
+  justify-content: center;
+}

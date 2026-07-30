@@ -6,6 +6,7 @@
 //   (设计文档 §4.1 明确禁止再引入第二条并行难度数值)。
 // ============================================================================
 
+import type { ItemRarity } from "../items/types";
 import type { EnergyTier } from "./types";
 
 export const EXPLORE_RULES = {
@@ -44,15 +45,39 @@ export const EXPLORE_RULES = {
     guardFromTier: 4, // 第 4 档起追加一个护卫
   },
 
-  // ── 团灭惩罚。产出全丢, 经验照发(经验在每场战斗后即时入账, 见 runStore)。──
+  // ── 团灭惩罚。★ 背包与积分全丢, 经验照发(经验在每场战斗后即时入账, 见 runStore)。
+  //   已通过投递口寄回的物品不受影响 —— 那是背包玩法唯一的保险手段(设计文档 §6.5)。──
   wipe: {
     lootKept: 0,
   },
 
-  // ── 战斗产出(P0 用居民积分占位; 实物战利品与掉落系数 K 属于 P1) ──
+  // ── 投递口: 把背包里选中的物品提前寄回据点, 安全落袋(设计文档 §6.5) ──
+  chute: {
+    energyCost: 5,
+  },
+
+  // ── 战斗产出。⚠ 设计文档 §6.1: 战斗胜利**只掉物品, 绝不直接掉居民积分** ——
+  //   积分改由「废料带回据点的回收台出售」产生。下面这两个数留着是给 BOSS 的通关奖励用的,
+  //   普通战斗的 perEnemy 已归零; 若手感上觉得积分来得太晚, 回滚点就是这一行。──
   loot: {
-    perEnemy: 6,
+    perEnemy: 0,
     bossBonus: 60,
+  },
+
+  // ── 掉落系数 K 与品质右移(设计文档 §5.1) ──
+  drop: {
+    // ★ 总产出旋钮。K = K_energy ×(1 + Σ挑战加成)× kGlobal;
+    //   挑战词条(§5.3)尚未实现, 中间那项恒为 1 —— 接词条时只改 session.dropCoefficient。
+    kGlobal: 1.0,
+    // K → 品质权重。⚠ 设计文档 §5.1 的原表只有「常见/精良/稀有」三列, 这里按五档稀有度
+    //   扩写; 史诗与传说两列是**新补的草案数值**(K ≤ 1.8 时不出传说), 实测后再调。
+    qualityTable: [
+      { maxK: 1.2, w: { common: 85, fine: 14, rare: 1, epic: 0, legendary: 0 } },
+      { maxK: 1.8, w: { common: 74, fine: 22, rare: 3, epic: 1, legendary: 0 } },
+      { maxK: 2.5, w: { common: 62, fine: 30, rare: 5, epic: 2.5, legendary: 0.5 } },
+      { maxK: 3.5, w: { common: 50, fine: 36, rare: 10, epic: 3, legendary: 1 } },
+      { maxK: Infinity, w: { common: 38, fine: 43, rare: 15, epic: 3, legendary: 1 } },
+    ] as { maxK: number; w: Record<ItemRarity, number> }[],
   },
 } as const;
 

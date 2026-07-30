@@ -1,0 +1,138 @@
+/* 物品详情栏(背包与仓库共用)。稀有度只染标题与图标 ——
+   整块面板跟着变色会让五档之间的差别变成"换了个皮肤", 反而读不出档次。 */
+
+.item-detail {
+  --rr: var(--rarity-common);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  height: 100%;
+  padding: 14px;
+  overflow-y: auto;
+
+  background: #00000030;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.item-detail.r-common {
+  --rr: var(--rarity-common);
+}
+.item-detail.r-fine {
+  --rr: var(--rarity-fine);
+}
+.item-detail.r-rare {
+  --rr: var(--rarity-rare);
+}
+.item-detail.r-epic {
+  --rr: var(--rarity-epic);
+}
+.item-detail.r-legendary {
+  --rr: var(--rarity-legendary);
+}
+
+.item-detail.is-idle {
+  align-items: center;
+  justify-content: center;
+}
+.item-detail-idle {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.item-detail-head {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+
+.item-detail-icon {
+  flex: none;
+  width: 44px;
+  color: var(--rr);
+  line-height: 0;
+}
+.item-detail-icon svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.item-detail-name {
+  margin: 0;
+  font-size: 15px;
+  color: var(--rr);
+}
+.item-detail-mult {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.item-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.item-detail-rarity {
+  color: var(--rr);
+}
+
+.item-detail-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text);
+  opacity: 0.82;
+}
+
+.item-detail-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.item-detail-stats > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.item-detail-stats dt {
+  color: var(--muted);
+}
+.item-detail-stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.item-detail-stats dd.is-good {
+  color: var(--good);
+}
+.item-detail-stats dd.is-bad {
+  color: var(--bad);
+}
+
+.item-detail-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--accent2);
+}
+.item-detail-note.is-locked {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+.item-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 10px;
+}

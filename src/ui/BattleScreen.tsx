@@ -615,14 +615,15 @@ export function BattleScreen() {
           顿帧期间压暗/反白闪照常播(世界冻结、刀光继续走)。 */}
       {dimHit && <div key={dimHit.seq} className="battle-dim" aria-hidden />}
 
-      {/* ★ 顶端信息条: 法力水晶 | 换牌/丢弃 | 时刻标尺。
-          同样在 .battle-scene **之外** ⇒ 不跟分镜相机推近/漂移/震屏, 信息恒定可读。 */}
+      {/* ★ 顶端信息条: 法力水晶 | 换牌/丢弃 | 手牌读数 | 时刻标尺 | 结束回合。
+          同样在 .battle-scene **之外** ⇒ 不跟分镜相机推近/漂移/震屏, 信息恒定可读。
+          ⚠ 它**贴着画布上沿**(top/left/right 全为 0, 不吃 --canvas-pad), 与顶边零缝隙 ——
+            见 BattleScreen.css .battle-topbar。 */}
       <div
         className="battle-topbar"
         role="toolbar"
         aria-label="战斗信息条"
         onClick={(e) => e.stopPropagation()}
-        style={{display:'none'}}
       >
           <ManaCrystalBar mana={mana} max={RULES.resource.perRound} />
           <div className="hand-toolbar-actions">
@@ -687,8 +688,24 @@ export function BattleScreen() {
             </span>
           </div>
 
-          {/* 时刻标尺: 本作核心是时刻制, 这是界面里唯一的全局时刻显示 */}
+          {/* 时刻标尺: 本作核心是时刻制, 这是界面里唯一的全局时刻显示。
+              它自带 margin-left:auto ⇒ 从这里开始的东西一律靠右, 结束回合按钮因此落在最右端。 */}
           <TickRuler tick={battle.tick} round={battle.round} enemies={enemies} />
+
+          {/* 结束回合: 信息条最右端的一枚横版机能键(旧的竖排外挂条已废弃, 见 .end-turn-btn)。
+              放进信息条是为了让「回合级操作」与回合级读数(法力/时刻/手牌)同处一条, 不再有
+              一个飘在画布右下的孤立控件。 */}
+          <button
+            className="end-turn-btn"
+            type="button"
+            disabled={!isPlayerTurn || animating}
+            onClick={(e) => {
+              e.stopPropagation();
+              triggerEndTurn();
+            }}
+          >
+            结束回合
+          </button>
       </div>
 
       {/* ★ 底部一体化 HUD: 队伍卡 | 手牌托盘 | 卡牌说明面板。
@@ -739,21 +756,6 @@ export function BattleScreen() {
         {/* 卡牌说明固定面板: 手牌右侧、位置恒定。展示 focusUid(悬停 ?? 选中)那张卡 */}
         <CardInfoPanel card={focusCard} />
       </div>
-
-      {/* 结束回合: 竖版机能条, 外挂在卡牌详情面板的左上角外侧(顶边与面板顶边齐平)。
-          ⚠ 「文字竖排」整个由 CSS 的 writing-mode 承担(见 BattleScreen.css .end-turn-float) ——
-            这里刻意保持一个纯文本按钮, 不要拆成一字一 <span>, 那会毁掉无障碍名与选中行为。 */}
-      <button
-        className="end-turn-float"
-        disabled={!isPlayerTurn || animating}
-        onClick={(e) => {
-          e.stopPropagation();
-          triggerEndTurn();
-        }}
-      >
-        结束回合
-      </button>
-      
 
       {/* 胜负遮罩 */}
       {!isPlayerTurn && (

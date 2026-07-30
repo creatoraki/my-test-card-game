@@ -15,5 +15,21 @@
   --good: #8dcc3f;
   --bad: #ff7068;
   --warn: #d8f329;
+
+  /* 物品稀有度(五档 —— 普通/精良/稀有/史诗/传说, 见 物品设计.md 第四章)。
+     ⚠ 与**卡牌**稀有度无关: 卡牌那套是三档且刻意没有配色, 别互相套用。
+     每档两个变量: 主色(边框/名称/图标) + 辉光(外发光与角标底)。
+     加一档 = 这里加两行 + ui/ItemSlot.css 加一条 .r-xxx。 */
+  --rarity-common: #8f9aa0;
+  --rarity-common-glow: #8f9aa033;
+  --rarity-fine: #6fd08c;
+  --rarity-fine-glow: #6fd08c40;
+  --rarity-rare: #4aa3ff;
+  --rarity-rare-glow: #4aa3ff45;
+  --rarity-epic: #b06cf0;
+  --rarity-epic-glow: #b06cf04d;
+  --rarity-legendary: #ffb340;
+  --rarity-legendary-glow: #ffb34055;
+
   color-scheme: dark;
 }

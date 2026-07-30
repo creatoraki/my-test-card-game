@@ -21,8 +21,26 @@
 // ============================================================================
 
 import { rngInt, shuffle } from "../engine/rng";
+import { RULES } from "../engine/rules";
+import { burdenPenalty } from "../engine/stats";
 import type { EncounterModifier } from "../engine/types";
-import { getEventPool, getMap } from "../data";
+import {
+  getEnemyDef,
+  getEventPool,
+  getItemDef,
+  getItemFamily,
+  getMap,
+  makeItemStack,
+} from "../data";
+import { rollDropTable, type DropContext } from "../items/drops";
+import {
+  addToContainer,
+  findByUid,
+  occupiedSlots,
+  removeByUid,
+  stackSlots,
+} from "../items/inventory";
+import type { DropEntry, ItemRarity, ItemStack } from "../items/types";
 import { generateCrossbars, exitLaneOf } from "./route";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import type {
@@ -51,10 +69,32 @@ export function toNextTier(energy: number): number | null {
   return next ? energy - next.min + 1 : null;
 }
 
-// 即设计文档 §5.1 的 K_energy。P0 只用它缩放经验与居民积分;
-// 掉落率与品质要等实物战利品(P1)接进来才有第二个消费方。
+// 即设计文档 §5.1 的 K_energy。同时作用于经验、居民积分与实物掉落。
 export function rewardMultiplier(energy: number): number {
   return energyTier(energy).rewardMultiplier;
+}
+
+// 统一掉落系数 K = K_energy ×(1 + Σ挑战加成)× K_global(设计文档 §5.1)。
+// ⚠ 挑战词条(§5.3)尚未实现, 中间那项恒为 1 —— 接词条时只改这一个函数。
+export function dropCoefficient(s: ExploreState): number {
+  return rewardMultiplier(s.energy) * EXPLORE_RULES.drop.kGlobal;
+}
+
+// K → 品质权重(qualityBias 的右移结果)。表在 EXPLORE_RULES.drop.qualityTable。
+export function qualityWeights(k: number): Record<ItemRarity, number> {
+  for (const row of EXPLORE_RULES.drop.qualityTable) if (k <= row.maxK) return { ...row.w };
+  const last = EXPLORE_RULES.drop.qualityTable[EXPLORE_RULES.drop.qualityTable.length - 1];
+  return { ...last.w };
+}
+
+// 掉落所需的上下文。★ 唯一一处把 data 层的注册表接进物品层的地方。
+function dropContext(s: ExploreState): DropContext {
+  return {
+    weights: qualityWeights(dropCoefficient(s)),
+    getDef: getItemDef,
+    getFamily: getItemFamily,
+    makeStack: (itemId, count) => makeItemStack(itemId, count),
+  };
 }
 
 // 实际生效的污染层数 = 档位自带的下限 与 事件累积值 取大者。
@@ -104,6 +144,10 @@ export function createSession(
     board: null,
     party: party.map((p) => ({ ...p })),
     history: [],
+    backpack: [],
+    shipped: [],
+    pendingPickup: [],
+    chuteOpen: false,
     entryLane: null,
     exitLane: null,
     pendingNotes: [],
@@ -132,6 +176,149 @@ function changeEnergy(s: ExploreState, delta: number): void {
   s.energy = Math.max(0, Math.min(EXPLORE_RULES.energyMax, s.energy + delta));
 }
 
+// ---------------------------------------------------------------------------
+// 背包 —— 占格、收纳与负重(设计文档 §六)
+// ---------------------------------------------------------------------------
+// 已占格数。★ 唯一真相点: UI 读数、开战快照、「满载」判定全部读它。
+export function backpackSlots(s: ExploreState): number {
+  return occupiedSlots(s.backpack, getItemDef);
+}
+
+export function backpackFree(s: ExploreState): number {
+  return RULES.burden.backpackSlots - backpackSlots(s);
+}
+
+// 小队负重适应 A = min(100%, Σ 上阵角色负重适应)(《角色养成设计.md》)。
+// ⚠ 算**全员**而不只是存活者 —— 东西是开局就背上的, 队友倒下不会让包变轻。
+export function partyBurdenAdapt(s: ExploreState): number {
+  return s.party.reduce((n, p) => n + (p.burdenAdapt ?? 0), 0);
+}
+
+// 当前负重惩罚(百分点): 我方命中 / 暴击 / 闪避各减这么多。
+// 换算本体在 engine/stats.burdenPenalty —— 探索页读数与开战快照共用同一个函数。
+export function burdenNow(s: ExploreState): number {
+  return burdenPenalty(backpackSlots(s), partyBurdenAdapt(s));
+}
+
+// 尝试把一批物品收进背包。装不下的进 pendingPickup 并原样回传 ——
+// 由 UI 拉起「替换模式」让玩家取舍(设计文档 §6.4), store 层不替玩家做决定。
+export function addItems(
+  s: ExploreState,
+  stacks: ItemStack[],
+): { taken: ItemStack[]; overflow: ItemStack[] } {
+  const r = addToContainer(s.backpack, stacks, getItemDef, RULES.burden.backpackSlots);
+  s.backpack = r.next;
+  if (r.overflow.length) s.pendingPickup = [...s.pendingPickup, ...r.overflow];
+  return { taken: r.taken, overflow: r.overflow };
+}
+
+// 丢弃一整堆。⚠ 不可撤销 —— 二次确认由 UI 负责(设计文档 §6.4), 这里只认结果。
+export function discardStack(s: ExploreState, uid: string): boolean {
+  const next = removeByUid(s.backpack, uid);
+  if (next === s.backpack) return false;
+  const st = findByUid(s.backpack, uid);
+  s.backpack = next;
+  if (st) logLine(s, `丢弃了 ${getItemDef(st.itemId).name}`);
+  return true;
+}
+
+// 强制丢弃若干格(「压力门夹层」)。★ 从**最不值钱**的开始丢 ——
+// 让系统随机砸掉稀有装备只会让玩家觉得被针对, 而不是觉得付出了代价。
+function forceDiscardSlots(s: ExploreState, slots: number): number {
+  const rank = (st: ItemStack) => {
+    const d = getItemDef(st.itemId);
+    return RARITY_RANK[d.rarity] * 10 + (d.category === "equipment" ? 5 : 0);
+  };
+  const order = s.backpack.slice().sort((a, b) => rank(a) - rank(b));
+  let dropped = 0;
+  for (const st of order) {
+    if (dropped >= slots) break;
+    dropped += stackSlots(st, getItemDef(st.itemId));
+    s.backpack = removeByUid(s.backpack, st.uid);
+  }
+  return dropped;
+}
+
+const RARITY_RANK: Record<ItemRarity, number> = {
+  common: 0,
+  fine: 1,
+  rare: 2,
+  epic: 3,
+  legendary: 4,
+};
+
+// 消耗品的可用阶段 ⊂ canOpenBackpack: 设计文档 §6.4 只点名 choosing / landed / resolving。
+// sealed 时线路还没揭示, 这会儿喝药既没信息也没意义。
+export function canUseItem(s: ExploreState): boolean {
+  return s.phase === "choosing" || s.phase === "landed" || s.phase === "resolving";
+}
+
+// 使用一件消耗品。★ 不额外消耗净化粒子 —— 携带成本已由负重收过一次, 不重复收费(§6.4)。
+// 返回结算摘要(供 UI 飘一条); 用不了返回 null。
+export function useItem(s: ExploreState, uid: string): string | null {
+  if (!canUseItem(s)) return null;
+  const st = findByUid(s.backpack, uid);
+  if (!st) return null;
+  const def = getItemDef(st.itemId);
+  if (!def.use) return null;
+
+  // ItemUse → 已有的 ExploreEffect。★ 翻译表只有这一处 ——
+  // items/ 刻意不认识 ExploreEffect(否则 townStore 会被拖进探索层的类型图)。
+  const u = def.use;
+  const effect: ExploreEffect =
+    u.kind === "healParty"
+      ? { type: "HEAL_PARTY", percent: u.percent }
+      : u.kind === "healOneFull"
+        ? { type: "HEAL_ONE_FULL", othersPercent: u.othersPercent }
+        : u.kind === "gainEnergy"
+          ? { type: "MODIFY_ENERGY", amount: u.amount }
+          : { type: "MODIFY_TAINT", amount: -u.amount };
+
+  const note = applyEffect(s, effect);
+  s.backpack = removeByUid(s.backpack, uid);
+  logLine(s, `使用了 ${def.name} · ${note}`);
+  return `${def.name} · ${note}`;
+}
+
+// 替换模式: 从 pendingPickup 里取第 index 件进背包。格子不够返回 false。
+export function takePending(s: ExploreState, index: number): boolean {
+  const st = s.pendingPickup[index];
+  if (!st) return false;
+  if (stackSlots(st, getItemDef(st.itemId)) > backpackFree(s)) return false;
+  const r = addToContainer(s.backpack, [st], getItemDef, RULES.burden.backpackSlots);
+  if (!r.taken.length) return false;
+  s.backpack = r.next;
+  s.pendingPickup = s.pendingPickup.filter((_, i) => i !== index);
+  return true;
+}
+
+// 放弃拾取: 指定一件, 或(省略 index)全部放弃。
+export function abandonPending(s: ExploreState, index?: number): boolean {
+  if (!s.pendingPickup.length) return false;
+  if (index == null) {
+    s.pendingPickup = [];
+    return true;
+  }
+  if (!s.pendingPickup[index]) return false;
+  s.pendingPickup = s.pendingPickup.filter((_, i) => i !== index);
+  return true;
+}
+
+// 传送投递口(设计文档 §6.5): 把选中的物品提前寄回据点, 安全落袋, 不受后续团灭影响。
+// ★ 代价按**一次寄件**收, 不按件数收 —— 否则玩家会为了省能量只寄一件, 解压阀就失效了。
+export function shipHome(s: ExploreState, uids: string[]): boolean {
+  if (!s.chuteOpen || !uids.length) return false;
+  const picked = uids.map((u) => findByUid(s.backpack, u)).filter((x): x is ItemStack => !!x);
+  if (!picked.length) return false;
+
+  for (const st of picked) s.backpack = removeByUid(s.backpack, st.uid);
+  s.shipped = [...s.shipped, ...picked];
+  changeEnergy(s, -EXPLORE_RULES.chute.energyCost);
+  s.chuteOpen = false; // 一段只能寄一次
+  logLine(s, `投递口寄回 ${picked.length} 件 · 净化粒子 −${EXPLORE_RULES.chute.energyCost}`);
+  return true;
+}
+
 function healParty(s: ExploreState, percent: number): void {
   for (const p of s.party) {
     if (!p.alive) continue; // 回血不复活阵亡者
@@ -156,9 +343,30 @@ function checkWipe(s: ExploreState): boolean {
   if (s.phase === "wiped" || s.phase === "cleared" || s.phase === "retreated") return false;
   if (!s.party.every((p) => !p.alive)) return false;
   s.phase = "wiped";
-  s.loot = Math.floor(s.loot * EXPLORE_RULES.wipe.lootKept);
+  loseEverything(s);
   logLine(s, "全队失去意识……");
   return true;
+}
+
+// 团灭惩罚的唯一真相点: 积分与背包全丢, 已寄回的(s.shipped)不受影响(设计文档 §3.2 / §6.5)。
+// ★ 显式清空而不是「靠没人来入库」隐式实现 —— 后者会让 UI 在结算前还读得到一包早就没了的东西。
+function loseEverything(s: ExploreState): void {
+  s.loot = Math.floor(s.loot * EXPLORE_RULES.wipe.lootKept);
+  if (s.backpack.length || s.pendingPickup.length) {
+    logLine(s, "背包连同里面的东西一起丢在了那层楼");
+  }
+  s.backpack = [];
+  s.pendingPickup = [];
+  s.chuteOpen = false;
+}
+
+// 一批掉落 → 一句摘要, 同名合并计数(「废件 ×3 · 补焊装甲板 ×1」)。
+function summarizeItems(taken: ItemStack[], overflow: ItemStack[]): string {
+  const count = new Map<string, number>();
+  for (const st of taken) count.set(st.itemId, (count.get(st.itemId) ?? 0) + st.count);
+  const parts = [...count].map(([id, n]) => `${getItemDef(id).name} ×${n}`);
+  const head = parts.length ? `拾得 ${parts.join(" · ")}` : "背包已满, 什么都拿不下";
+  return overflow.length ? `${head}（${overflow.length} 件背不动了）` : head;
 }
 
 // 单条效果 → 一句结算摘要(写进本段记录与结算浮层)。
@@ -188,6 +396,29 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
       s.loot += gain;
       return `居民积分 +${gain}`;
     }
+    case "GAIN_ITEM": {
+      // 指名实物 ⇒ **不**吃掉落系数: 事件写死给几件就是几件, K 只作用于随机掉落表。
+      const count = Math.max(1, e.count ?? 1);
+      const def = getItemDef(e.itemId);
+      const made = Array.from({ length: count }, () => makeItemStack(e.itemId, 1));
+      const { taken, overflow } = addItems(s, made);
+      return overflow.length
+        ? `拾得 ${def.name} ×${taken.length}（${overflow.length} 件背不动了）`
+        : `拾得 ${def.name} ×${taken.length}`;
+    }
+    case "ROLL_DROP": {
+      const rolled = rollDropTable(s, e.table, dropCoefficient(s), dropContext(s));
+      if (!rolled.length) return "什么也没找到";
+      const { taken, overflow } = addItems(s, rolled);
+      return summarizeItems(taken, overflow);
+    }
+    case "DISCARD_SLOTS": {
+      const dropped = forceDiscardSlots(s, e.slots);
+      return dropped > 0 ? `被迫丢弃 ${dropped} 格物资` : "背包本来就是空的";
+    }
+    case "OPEN_CHUTE":
+      s.chuteOpen = true;
+      return `投递口已开启（寄回一批物资 · 净化粒子 −${EXPLORE_RULES.chute.energyCost}）`;
     case "MODIFY_ENERGY":
       changeEnergy(s, e.amount);
       return `净化粒子 ${e.amount > 0 ? "+" : ""}${e.amount}`;
@@ -436,7 +667,11 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 // 玩家在结算浮层点「继续」 —— 扣本段基础能量, 推进到下一段或收尾。
 export function nextSegment(s: ExploreState): boolean {
   if (s.phase !== "resolving") return false;
+  // ⚠ 背包满时不许推进 —— pendingPickup 是必须当场处理完的取舍(设计文档 §6.4),
+  //   放它跨段会让「拿不拿」这个决定悄悄消失。UI 侧也会把「继续」按钮禁掉。
+  if (s.pendingPickup.length) return false;
 
+  s.chuteOpen = false; // 投递口只在开启它的那一段有效
   if (!s.skipSegmentCost) changeEnergy(s, -EXPLORE_RULES.energyPerSegment);
   const last = s.history[s.history.length - 1];
   if (last) last.energyAfter = s.energy;
@@ -465,13 +700,16 @@ export function retreat(s: ExploreState): boolean {
 // ---------------------------------------------------------------------------
 // 战斗回填 —— 由 store 层在战斗结束后调用
 // ---------------------------------------------------------------------------
+// ⚠ 第四参是**敌人 defId 列表**而不是数量: 掉落要查每个敌人自己的 dropTable。
+//   数量仍可由 .length 取到, 所以旧口径没有丢失。
 export function finishBattle(
   s: ExploreState,
   won: boolean,
   survivors: { charId: string; hp: number; alive: boolean }[],
-  enemyCount: number,
-): { loot: number } {
-  if (s.phase !== "inBattle") return { loot: 0 };
+  enemyDefIds: string[],
+): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
+  const empty = { loot: 0, items: [], overflow: [] };
+  if (s.phase !== "inBattle") return empty;
 
   // 血量跨段与跨战斗继承 —— 这是整套设计的地基
   for (const p of s.party) {
@@ -483,34 +721,45 @@ export function finishBattle(
 
   if (!won) {
     s.phase = "wiped";
-    s.loot = Math.floor(s.loot * EXPLORE_RULES.wipe.lootKept);
+    loseEverything(s);
     s.pendingEncounterId = null;
     s.pendingIsBoss = false;
     logLine(s, "战斗失利, 远征中断");
-    return { loot: 0 };
+    return empty;
   }
 
   const wasBoss = s.pendingIsBoss;
   const mult = rewardMultiplier(s.energy);
-  let loot = Math.round(enemyCount * EXPLORE_RULES.loot.perEnemy * mult);
+  // ⚠ 设计文档 §6.1: 战斗胜利**只掉物品**。perEnemy 已归零, 这里只剩 BOSS 的通关奖励。
+  let loot = Math.round(enemyDefIds.length * EXPLORE_RULES.loot.perEnemy * mult);
   if (wasBoss) loot += Math.round(EXPLORE_RULES.loot.bossBonus * mult);
   s.loot += loot;
 
+  // 实物掉落: 每个敌人各掷自己的表, 走同一条种子链 ⇒ 同种子的一趟远征掉的东西逐件一致。
+  const k = dropCoefficient(s);
+  const ctx = dropContext(s);
+  const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
+  const { taken, overflow } = addItems(s, rolled);
+
   s.pendingEncounterId = null;
   s.pendingIsBoss = false;
-  s.pendingNotes = [...s.pendingNotes, `战斗胜利 · 居民积分 +${loot}`];
+
+  const notes: string[] = [];
+  if (loot > 0) notes.push(`居民积分 +${loot}`);
+  if (rolled.length) notes.push(summarizeItems(taken, overflow));
+  s.pendingNotes = [...s.pendingNotes, ["战斗胜利", ...notes].join(" · ")];
 
   const last = s.history[s.history.length - 1];
-  if (last) last.note = `${last.note} · 居民积分 +${loot}`;
+  if (last && notes.length) last.note = `${last.note} · ${notes.join(" · ")}`;
 
   if (wasBoss) {
     s.phase = "cleared";
     logLine(s, "回收总控已停机");
-    return { loot };
+    return { loot, items: taken, overflow };
   }
 
   s.phase = "resolving";
-  return { loot };
+  return { loot, items: taken, overflow };
 }
 
 // ---------------------------------------------------------------------------

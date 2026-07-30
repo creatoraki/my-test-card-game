@@ -6,3 +6,8 @@
 5、不要使用视觉能力或工具查看任何.png文件的详情或者具体画面内容，如必须查看，则向我询问
 6、阅读readme,如果你修改了文件，请更新readme里面的文件目录结构
 7、永远不要运行build命令进行构建验证
+
+
+## 临时美术资源
+F:\new\my-test-card-game\src\assets\占位素材.png 256*256的美术占位素材 1:1
+F:\new\my-test-card-game\src\assets\占位场景素材.png 1920*1080的场景美术占位素材 16:9

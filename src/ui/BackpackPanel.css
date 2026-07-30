@@ -1,0 +1,204 @@
+/* 探索页背包面板。变量前缀 --bp-*(与 --cryo-* / --term-* 同惯例)。
+   ⚠ 与落点浮层同一条约束: **没有全屏遮罩** —— 压暗背景会毁掉废弃楼层图的气质。
+   入场动画挂在 .bp-panel 这个叶子上, 不挂它的任何祖先(祖先一旦有 animation/opacity,
+   探索页玻璃砖的 backdrop-filter 就取不到背景)。 */
+
+.bp-modal {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  width: 1180px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.bp-panel {
+  --bp-accent: #7fd4c4; /* 背包自己的强调色: 偏青的金属绿, 与落点浮层的事件色区分开 */
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  width: 100%;
+  padding: 18px 22px 20px;
+
+  color: var(--text);
+  background: linear-gradient(180deg, #10171acc, #0b1013e8);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 22px 60px #000000a8;
+  backdrop-filter: blur(6px);
+
+  pointer-events: auto;
+  animation: bpDrop 420ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+/* 从画布上方滑下来 —— 与控制终端吊绳浮层同一套「从天花板落下」的语言 */
+@keyframes bpDrop {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ── 顶栏 ── */
+.bp-head {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.bp-title {
+  margin: 2px 0 0;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+}
+
+.bp-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: auto;
+  text-align: right;
+  /* key={used} 让这一行每次占格变化都重挂 ⇒ 走一遍跳变, 「边丢边看数字回升」 */
+  animation: bpTick 320ms ease both;
+}
+
+@keyframes bpTick {
+  0% {
+    transform: scale(1.08);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+.bp-load {
+  font-size: 15px;
+  color: var(--muted);
+}
+.bp-load strong {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.bp-load strong.is-bad {
+  color: var(--warn);
+}
+
+.bp-penalty {
+  font-size: 12px;
+  color: var(--bad);
+}
+.bp-adapt {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.bp-close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 14px;
+  color: var(--muted);
+  background: #ffffff0a;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+}
+.bp-close:hover {
+  color: var(--text);
+  border-color: var(--bad);
+}
+
+/* ── 替换模式横幅 ── */
+.bp-pending {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+
+  padding: 10px 12px;
+  background: #ff922b1a;
+  border: 1px solid #ff922b66;
+  border-radius: 3px;
+}
+
+.bp-pending-label {
+  font-size: 12px;
+  color: #ffc07a;
+}
+
+.bp-pending-row {
+  display: flex;
+  gap: 10px;
+}
+
+.bp-pending-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 74px;
+}
+
+/* ── 投递口横幅 ── */
+.bp-chute {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+
+  padding: 10px 12px;
+  background: #4aa3ff1a;
+  border: 1px solid #4aa3ff59;
+  border-radius: 3px;
+}
+.bp-chute-label {
+  flex: 1;
+  font-size: 12px;
+  color: #9ccbff;
+}
+
+/* ── 主体 ── */
+.bp-body {
+  display: grid;
+  grid-template-columns: 1fr 296px;
+  gap: 16px;
+  align-items: start;
+}
+
+.bp-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--bp-cols, 8), 1fr);
+  gap: 6px;
+}
+
+/* 详情栏与网格等高, 免得选中长描述的物品时整块面板抽一下 */
+.bp-body > .item-detail {
+  min-height: 348px;
+  max-height: 348px;
+}
+
+.bp-mini {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.bp-flash {
+  margin: 0;
+  font-size: 12px;
+  color: var(--good);
+  text-align: center;
+  animation: bpTick 260ms ease both;
+}

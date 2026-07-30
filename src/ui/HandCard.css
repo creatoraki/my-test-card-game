@@ -1,27 +1,29 @@
 /* ===================== 手牌盘上的竖版卡 ===================== */
-/* 卡面结构: **正方形配图区**(.hc-art) + **图下信息条**(.hc-bar, 只剩卡名), 费用是左上角一颗直接
-   贴在卡角的 3D 法力水晶(.hc-cost) ⇒ 卡面下有信息条、左上角一颗水晶, 中间是完整配图。
-   ★ 配图区恒为 --hand-card-w 见方的正方形(卡高 = 卡宽 + --hc-bar-h), 素材是 1:1 的 256/512 方图,
-     配 background-size: contain ⇒ 整幅图完整可见, 信息条是图**下方**的实位而不是压在图上的浮层。
-   ⚠ 唯二压在配图上的是**机能边框最外 4~6px** 与**左上角那颗水晶**——这是刻意的取舍(旧版注释
-     写的"零遮挡"已作废): 换来"卡是嵌在终端里的弹药模块"而不是一张贴纸, 配图主体仍不被截断。
+/* 卡面结构(自上而下三段): **顶行**(.hc-head, 费用水晶 + 卡名) + **正方形配图区**(.hc-art)
+   + **底部效果说明**(.hc-text)。
+   ★ 配图区恒为 --hand-card-w 见方的正方形(卡高 = 卡宽 + --hc-head-h + --hc-text-h), 素材是 1:1 的
+     256/512 方图, 配 background-size: contain ⇒ 整幅图完整可见; 上下两条信息区都是配图**之外**的
+     实位, 不是压在图上的浮层。
+   ⚠ 唯一压在配图上的是**机能边框最外 4~6px**——这是刻意的取舍: 换来"卡是嵌在终端里的弹药模块"
+     而不是一张贴纸, 配图主体仍不被截断。
 
    ── 卡内层序(z-index, 由下往上) ──
      .hc-art   auto  配图
      .hc-frame  3    扫描线 + 两个直角上的 L 卡扣
-     .hc-bar    4    底部信息条(卡名)
-     .hc-cost   5    左上角费用水晶(3D 宝石 + 数字)
+     .hc-text   4    底部效果说明
+     .hc-head   5    顶行(费用水晶 + 卡名)
      .hc-ticks  6    左右侧刻度齿
-     .hc-edge   7    ★ 主描边环(单层, 4px) + 巡游流光 —— **必须在最上**, 才能绕着信息条外侧
-                     完整画一圈, 让底条读作"嵌进框里"而不是"贴上去"。
-   ⚠ 卡面上刻意**没有**普/速文字、目标范围、效果说明 —— 全部交给右侧 CardInfoPanel; 普/速在
-     卡面上的唯一线索是**框色 --card-hue**(普通青蓝 / 速攻品红紫, 见下方 .hand-card 的 --card-hue)。
+     .hc-edge   7    ★ 主描边环(单层, 4px) + 巡游流光 —— **必须在最上**, 才能绕着上下两条信息区
+                     外侧完整画一圈, 让它们读作"嵌进框里"而不是"贴上去"。
+   ⚠ 卡面上仍**没有**普/速文字、目标范围、稀有度 —— 那些留给右侧 CardInfoPanel; 卡面只承载
+     "打不打得起 / 是什么 / 干什么"。普/速在卡面上的唯一线索是**框色 --card-hue**
+     (普通青蓝 / 速攻品红紫, 见下方 .hand-card 的 --card-hue)。
    尺寸与悬浮/出鞘的运动方向在文件末尾的「聚焦 / 出鞘」段收敛。 */
 /* ★ --card-hue: 机能边框整族的**唯一**主色旋钮, 按卡类型分色 —— 这是普/速在卡面上仅有的线索
    (卡面刻意不写"普通/速攻"四个字, 文字说明全在右侧 CardInfoPanel)。
-   描边环 / 卡扣 / 刻度齿 / 铭牌描边 / 底条端子纹 / 悬停辉光**全部**只认它, 改配色改这一处。
-   ⚠ 归属角色配色 --owner-color 已从框族撤出, 只保留在铭牌最左那条 3px 色块与信息条上沿的能量线
-     上 —— 否则紫框配绿辉光两种色相互相打架, 谁都读不清。队伍辨识度靠那两小块 + 队伍槽本身。
+   描边环 / 卡扣 / 刻度齿 / 说明区上沿分隔线**全部**只认它, 改配色改这一处。
+   ⚠ 归属角色配色 --owner-color 已从框族撤出, 只保留在顶行下沿那条能量线上 —— 否则紫框配绿辉光
+     两种色相互相打架, 谁都读不清。队伍辨识度靠那一条 + 队伍槽本身。
    ⚠ 本条 border 只是 clip 之后的兜底细边; 真正的描边是 .hc-edge 那圈跟着斜切角走的 mask 环。 */
 .hand-card {
   --card-hue: #6fd2ff; /* 普通卡: 科技青蓝 */
@@ -38,7 +40,7 @@
   /* 抽牌: 从下方飞入到位; backwards 让错峰等待期间保持隐藏, 到位后交还悬浮/选中的 transform */
   animation: hand-deal-in 0.32s cubic-bezier(0.18, 0.72, 0.3, 1) backwards;
   animation-delay: calc(var(--deal-i, 0) * 65ms);
-  /* 弹出幅度大(见文件末尾的 -145px / 1.34), 直线 ease 会读作"瞬移"⇒ 换末端过冲的回弹曲线。
+  /* 弹出幅度大(半张卡高 = 182px, 见文件末尾的「聚焦」段), 直线 ease 会读作"瞬移"⇒ 换末端过冲的回弹曲线。
      ⚠ 过冲是双向的: 鼠标移出时回落也会轻微越过原位再归位, 这是刻意的手感。
      ⚠ .hand-card.leaving 自带一整条 transition, 会覆盖这里 —— 出鞘手感不受影响。 */
   transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.15), box-shadow 0.15s, border-color 0.15s;
@@ -54,20 +56,20 @@
 .hand-card.unplayable {
   opacity: 0.45;
 }
-/* ★ 配图层: 卡上部的正方形取景窗 —— 下边界让给 .hc-bar 的实位高度, 于是它的尺寸恰是
-   --hand-card-w × --hand-card-w(因为卡高被定义成 宽 + 条高), 与 1:1 素材完全同形。
+/* ★ 配图层: 卡中段的正方形取景窗 —— 上下边界分别让给 .hc-head / .hc-text 的实位高度, 于是它的
+   尺寸恰是 --hand-card-w × --hand-card-w(因为卡高被定义成 宽 + 顶行 + 说明区), 与 1:1 素材完全同形。
    ⚠ 用 contain 而非 cover: 1:1 图配 1:1 窗时两者等价、都无留白, 但将来若混进非正方素材,
      contain 会留边而 cover 会裁 —— 本作的原则是**宁可留边也不裁**。
    ⚠ 也不再有任何 background-position 偏移(旧的 --hand-art-offset-y 已随裁剪一起废除):
      图既然完整展示, "取景微调"这个概念就不存在了。
-   ⚠ 本层的**几何**不因机能边框改动: 边框与铭牌是压在它上面的叠加层, 而不是把它缩小。
-     素材作画时给最外一圈 6px 与左上 60×34 的一角留点余量即可。 */
+   ⚠ 本层的**几何**不因机能边框改动: 边框是压在它上面的叠加层, 而不是把它缩小。
+     素材作画时给最外一圈 6px 留点余量即可(上下已不再有任何东西压上来)。 */
 .hc-art {
   position: absolute;
-  top: 0;
+  top: var(--hc-head-h, 40px);
   left: 0;
   right: 0;
-  bottom: var(--hc-bar-h, 38px);
+  bottom: var(--hc-text-h, 84px);
   background-image: var(--hand-art);
   background-repeat: no-repeat;
   background-size: contain;
@@ -87,7 +89,7 @@
 /* L 形卡扣**只放在两个直角**(右上 / 左下)。
    ⚠ 另两个角(左上 / 右下)是 14px 斜切角, 那里放 L 卡扣会跟斜口打架 —— 它们的高光交给
      .hc-edge 主环: 那条 160deg 渐变的两端正好落在这两个斜切上(见下). 于是四个角各司其职、
-     还构成对角对称。左上另有铭牌、右下另有信息条, 本来也放不下卡扣。 */
+     还构成对角对称。左上是顶行、右下是说明区, 本来也放不下卡扣。 */
 .hc-frame::before {
   content: "";
   position: absolute;
@@ -222,11 +224,12 @@
    grayscale 会改变它, 于是框色始终只承载一种信息(普/速 --card-hue), 不再兼职表达聚焦。 */
 
 /* ── 侧边刻度齿: 左右内侧各一列仪表刻度 ── */
-/* 单元素零伪元素: 两列刻度靠 background-position 摆左右。上下 inset 让开铭牌(34)与信息条(38)。
+/* 单元素零伪元素: 两列刻度靠 background-position 摆左右。上下 inset 让开顶行与说明区,
+   各再多留 8px 的空当, 刻度才不会顶着两条信息区的边。
    两组周期(8px 短齿 / 32px 长齿)叠在一起 ⇒ 像真尺子那样"每第四格更长"。 */
 .hc-ticks {
   position: absolute;
-  inset: 46px 0 52px;
+  inset: calc(var(--hc-head-h, 40px) + 8px) 0 calc(var(--hc-text-h, 84px) + 8px);
   z-index: 6;
   pointer-events: none;
   color: var(--card-hue, #6fd2ff);
@@ -241,50 +244,35 @@
   background-repeat: no-repeat;
 }
 
-/* ── 图下信息条: 费用挪到左上角水晶后, 只剩卡名 ── */
-/* 它落在 .hc-art 让出的那条实位里 ⇒ 一个像素都不压配图。底色因此是**不透明**实底
-   (旧版是半透明的, 因为当年它浮在图上、要让画面透出来一点)。
-   ★ 与边框"咬合": 三边各内缩 4px、并切出小一号(10px)的同向斜角 ⇒ .hc-edge 主环从它**外侧**
-     完整绕过去, 底条因此读作嵌进框里的一块模块, 而不是贴在卡底的一条。
-     ⚠ 高度必须是 --hc-bar-h − 4, 这样上沿仍精确落在 .hc-art 的下边界上, 中间不留缝。
-   ⚠ 自身的 10px 斜角比卡的 14px 更"狠", 保证右下角整块落在卡的斜切内侧, 不会被卡的 clip 削。
-   卡名两侧空出来的位置补一小段数据端子纹, 免得费用搬走后底条塌成一条空槽。 */
-.hc-bar {
+/* ── 顶行: 费用水晶 + 卡名 ── */
+/* 落在 .hc-art 上方让出的那条实位里 ⇒ 一个像素都不压配图, 底色因此是**不透明**实底。
+   ★ 与边框"咬合": 左右上三边各内缩 4px、并切出小一号(10px)的左上斜角 ⇒ .hc-edge 主环从它
+     **外侧**完整绕过去, 顶行因此读作嵌进框里的一块模块, 而不是贴在卡顶的一条。
+     ⚠ 高度必须是 --hc-head-h − 4, 这样下沿仍精确落在 .hc-art 的上边界上, 中间不留缝。
+   ⚠ 自身的 10px 斜角比卡的 14px 更"狠", 保证左上角整块落在卡的斜切内侧, 不会被卡的 clip 削;
+     水晶再往右让 2px(padding-left)才不会骑到那个斜口上。 */
+.hc-head {
   position: absolute;
-  z-index: 4;
+  z-index: 5;
   left: 4px;
   right: 4px;
-  bottom: 4px;
-  height: calc(var(--hc-bar-h, 38px) - 4px);
+  top: 4px;
+  height: calc(var(--hc-head-h, 40px) - 4px);
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 12px;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  background:
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--card-hue, #6fd2ff) 24%, transparent) 0 2px,
-      transparent 2px 6px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--card-hue, #6fd2ff) 24%, transparent) 0 2px,
-      transparent 2px 6px
-    ),
-    linear-gradient(180deg, #0d1214, #05080a);
-  background-position: left 10px center, right 10px center, 0 0;
-  background-size: 22px 10px, 22px 10px, auto;
-  background-repeat: no-repeat, no-repeat, repeat;
+  gap: 8px;
+  padding: 0 10px 0 12px;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+  background: linear-gradient(180deg, #0d1214, #05080a);
   box-shadow: inset 0 1px 0 #ffffff0f;
 }
-/* 上沿一条归属配色的能量线, 把信息条与卡面切开 */
-.hc-bar::before {
+/* 下沿一条归属配色的能量线, 把顶行与配图切开(旧版这条在图下信息条的上沿) */
+.hc-head::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  bottom: 0;
   height: 1px;
   background: linear-gradient(
     90deg,
@@ -295,23 +283,19 @@
   );
   opacity: 0.85;
 }
-/* 费用: 一颗 3D 法力水晶直接贴在卡的左上角, 费用数字压在水晶中央桌面上。
-   旧版住在斜切铭牌(.hc-plate)里, 现在铭牌拆了 —— 水晶自带 3D 切面 + 投影, 直接浮在配图角上更干净。
-   ⚠ 卡带 14px 左上斜切角, 但水晶是内嵌于方 viewBox 的六边形, 其左上区本就是透明留白,
-     配上 3~4px 的内缩偏移后, 宝石本体完整落在斜切内侧, 不会被卡的 clip-path 削角。 */
+/* 费用: 一颗 3D 法力水晶, 数字压在水晶中央桌面上。它是顶行 flex 的第一个子项(不再绝对定位),
+   flex: none 免得卡名长时被挤扁。 */
 .hc-cost {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  z-index: 5;
-  width: 34px;
-  height: 34px;
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #f2fdff;
   font-weight: 800;
-  font-size: 17px;
+  font-size: 16px;
   text-shadow: 0 1px 2px #02152f, 0 0 5px #0a3a6ecc;
 }
 .hc-cost-crystal {
@@ -326,16 +310,15 @@
   position: relative;
   z-index: 1;
 }
-/* 卡名: 信息条里唯一的文字, 整条居中。两侧留 34px 给端子纹, 名字过长时省略号收尾。 */
+/* 卡名: 顶行里水晶右侧的那段文字, 左对齐(与水晶一起从左起排, 一排卡的卡名因此纵向对齐)。
+   min-width:0 是 flex 子项能省略号收尾的前提, 少了它长名字会把水晶挤出去。 */
 .hc-name {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
-  max-width: calc(100% - 34px);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   line-height: 1.1;
-  text-align: center;
   color: #eaf6ff;
   text-shadow: 0 1px 3px #000d;
   white-space: nowrap;
@@ -346,6 +329,60 @@
   color: var(--warn);
 }
 
+/* ── 底部效果说明: card.text 原样一段 ── */
+/* 与 .hc-head 同一套"嵌进框里"的手法(内缩 4px + 10px 同向斜角), 只是斜角在右下、能量线在上沿。
+   ★ 高度**固定**(--hc-text-h − 4): 一排手牌必须等高, 否则顶端参差不齐。文字长短由 .lg/.md/.sm
+     三档字号消化(档位在 ui/HandCard.tsx 里按字数派生), 极端超长的靠行数截断兜底 ——
+     完整文字在右侧 CardInfoPanel 永远读得到, 这里丢几个字不影响决策。
+   ⚠ 端子纹背景刻意去掉了: 底下现在是一整段文字, 再垫花纹就读不清了。 */
+.hc-text {
+  position: absolute;
+  z-index: 4;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  height: calc(var(--hc-text-h, 84px) - 4px);
+  padding: 7px 11px;
+  overflow: hidden;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  /* 上沿那条极淡的分隔线走**背景图层**而不是 ::before —— 本元素是 -webkit-box(见下方行数截断),
+     伪元素会被当成一个盒子参与排版、吃掉一行。第二层才是底色。 */
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--card-hue, #6fd2ff) 55%, transparent) 20%,
+      color-mix(in srgb, var(--card-hue, #6fd2ff) 55%, transparent) 80%,
+      transparent
+    ),
+    linear-gradient(180deg, #0d1214, #05080a);
+  background-position: left top, 0 0;
+  background-size: 100% 1px, auto;
+  background-repeat: no-repeat, repeat;
+  color: #c6d8e4;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: justify;
+  /* 行数截断: -webkit-box 那套是唯一能按**行**截断并给省略号的写法(Chromium/WebKit/Firefox 均支持) */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+/* 三档字号 + 对应的可容纳行数(区域净高 = 84 − 4 − 2×7 = 66px)。
+   档位阈值见 ui/HandCard.tsx 的 textSize —— 改这里的字号就要回去核那两个字数阈值。 */
+.hc-text.lg {
+  font-size: 13px;
+  -webkit-line-clamp: 3;
+}
+.hc-text.md {
+  font-size: 12px;
+  -webkit-line-clamp: 4;
+}
+.hc-text.sm {
+  font-size: 11px;
+  -webkit-line-clamp: 4;
+}
+
 /* ── 聚焦 / 出鞘 / 抽入 ── */
 /* 出牌/丢弃: 向上出鞘 → 渐隐。用过渡(而非关键帧)从"当前"位置飞出——
    若牌处于选中弹出态, 直接从弹出位继续上移出鞘, 不会先缩回未选中位再飞。
@@ -354,10 +391,10 @@
 .hand-card.leaving {
   pointer-events: none;
   animation: none;
-  /* 位移量跟着卡高**与悬浮弹出幅度**走: 出牌的那张多半正处在悬浮/选中位(已在 -145px),
-     终点必须比它高出足够一截才仍读作"整张飞出去" —— 恒定留 90px 行程 ⇒ 145 + 90 = 235。
-     ⚠ 改 .hand-card:hover 的弹出幅度就要回来重算这个数(旧的 -170 是按悬停位 -80 定的)。 */
-  transform: translateY(-235px);
+  /* 位移量跟着卡高**与悬浮弹出幅度**走: 出牌的那张多半正处在悬浮/选中位(半张卡高 = 182px),
+     终点必须比它高出足够一截才仍读作"整张飞出去" —— 恒定再留 90px 行程 ⇒ 约 272px。
+     写成公式而不是死数, 卡高一变它自己就跟上了。 */
+  transform: translateY(calc(var(--hand-card-h) / -2 - 90px));
   opacity: 0;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.85, 0.4), opacity 0.28s ease-in;
 }
@@ -371,30 +408,29 @@
     transform: translateY(0);
   }
 }
-/* ★ 聚焦(悬浮/选中)的**唯一**表达: 抽出来一大截 + 放大。
-   叠压量已压到 100px(每张只露 140px), 幅度不够就读不出"被抽出来"⇒ 上浮 145px、scale 1.34,
-   让"被抽出的那张"在一排紧压的牌里一眼可辨。
-   ⚠ 卡顶因此越出 HUD 上沿约 214px(静止越出 22 = 卡高 278 − 托盘可用高 256, 加 145 上浮,
-     再加放大溢出 278 × 0.34 ÷ 2 ≈ 47), 峰值落在画布 y ≈ 586 —— 会压到舞台下半与
-     选择目标提示条, 这是刻意的取舍, 手牌本就该盖住场景下沿(提示条的避让量见 .hint-bar 注释)。
+/* ★ 聚焦(悬浮/选中)的**唯一**表达: 向上弹出**半张卡高**(--hand-card-h / 2 = 182px)。
+   ⚠ 刻意**不放大**(旧版是 -145px + scale 1.34): 卡面素材是定尺方图, 放大要插值; 且卡本身
+     已经加高到 364, 再放大会盖掉大半个场景。半张卡高这个量与叠压量(100px, 每张只露 140px)
+     配合, 足够把"被抽出的那张"从一排紧压的牌里读出来。
+   ⚠ 卡顶因此越出 HUD 上沿约 290px(静止越出 108 = 卡高 364 − 托盘可用高 256, 加 182 弹出),
+     峰值落在画布 y ≈ 510 —— 会压到舞台下半与选择目标提示条, 这是刻意的取舍, 手牌本就该盖住
+     场景下沿(提示条的避让量见 ui/BattleScreen.css .hint-bar 的注释)。
    ⚠ 刻意**不**改变任何颜色: 不点亮描边、不加配色辉光、不掠光。框色只承载"普/速"一种信息,
      聚焦只由位移表达 —— 一排卡里同时只有一张被抽出, 位移本身已经足够醒目。
-   ⚠ 落影是**中性黑**而非配色辉光: 卡被提起来就该在下面投出更深的影子, 否则读作"贴在原地放大了"。
+   ⚠ 落影是**中性黑**而非配色辉光: 卡被提起来就该在下面投出更深的影子, 否则读作"贴在原地不动"。
      只能走 filter: drop-shadow —— 卡带 clip-path(斜切角), box-shadow 会被连投影一起裁掉
      (同 .ally-slot.card-focus .ally-frame 那个坑)。这条 filter 会整条覆盖
-     .hand-tray .hand-card 的鱼鳞叠投影, 故把那道右缘投影也一并写回。
-   ⓘ 本条在旧 styles.css 里因上面这段注释漏了闭合而被解析器整条丢弃(实际生效的是更早那条
-     translateY(-18px))。拆分时按注释描述的设计意图修复。 */
+     .hand-tray .hand-card 的鱼鳞叠投影, 故把那道右缘投影也一并写回。 */
 .hand-card:hover,
 .hand-card.selected {
-  transform: translateY(-145px) scale(1.34);
+  transform: translateY(calc(var(--hand-card-h) / -2));
   filter: drop-shadow(3px 0 6px #000a) drop-shadow(0 10px 14px #000c);
 }
 
 /* 减少动态效果: 机能边框的巡游流光停转。
    ⚠ 与 .hp-motes 同一个坑 —— 流光靠 offset-distance 推进, 只写 animation:none 会让那道亮楔
      **永久停在起始位置**, 在每张卡的同一个角上留一块固定亮斑, 比动着还难看。故整层 display:none。
-   ⚠ 静态部分(主环 / 四角卡扣 / 刻度齿 / 铭牌)**全部保留** —— 边框本身不是动效;
+   ⚠ 静态部分(主环 / 四角卡扣 / 刻度齿 / 顶行与说明区)**全部保留** —— 边框本身不是动效;
      并且 .hand-card.unplayable 那条 grayscale 是"这张打不出"的玩法信息, 不能一起去掉。 */
 @media (prefers-reduced-motion: reduce) {
   .hc-edge::after {

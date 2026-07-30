@@ -10,6 +10,8 @@ export {
   applyModifier,
   statOf,
   hitChance,
+  critChance,
+  burdenOf,
   defenseMultiplier,
   partyInitiative,
   partyHandLimit,

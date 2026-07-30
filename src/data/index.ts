@@ -2,7 +2,10 @@
 
 import type { Card, CardDef } from "../engine/types";
 import { RULES } from "../engine/rules";
+import type { ItemDef, ItemStack } from "../items/types";
+import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
+import { ITEM_DEFS } from "./items";
 import { CHARACTERS, type CharacterDef } from "./characters";
 import { ENEMIES, type EnemyDef } from "./enemies";
 import { ENCOUNTERS, type EncounterDef } from "./encounters";
@@ -26,6 +29,7 @@ export {
   type EnemySlot,
 } from "./encounters";
 export { MAPS, type MapDef } from "./maps";
+export { ITEM_DEFS } from "./items";
 
 function keyBy<T extends { id: string }>(arr: T[]): Record<string, T> {
   const out: Record<string, T> = {};
@@ -38,6 +42,21 @@ const CHAR_INDEX = keyBy(CHARACTERS);
 const ENEMY_INDEX = keyBy(ENEMIES);
 const ENCOUNTER_INDEX = keyBy(ENCOUNTERS);
 const MAP_INDEX = keyBy(MAPS);
+const ITEM_INDEX = keyBy(ITEM_DEFS);
+
+// 家族索引: familyId → 该族全部 def, 组内按稀有度由低到高排好。
+// 掉落时 qualityBias 就在这个数组上右移权重(见 items/drops.pickByQuality)。
+const FAMILY_INDEX: Record<string, ItemDef[]> = (() => {
+  const out: Record<string, ItemDef[]> = {};
+  for (const def of ITEM_DEFS) {
+    if (!def.familyId) continue;
+    (out[def.familyId] ??= []).push(def);
+  }
+  for (const list of Object.values(out)) {
+    list.sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
+  }
+  return out;
+})();
 
 export function getCardDef(id: string): CardDef {
   const def = CARD_INDEX[id];
@@ -64,16 +83,33 @@ export function getMap(id: string): MapDef {
   if (!def) throw new Error(`未知地图: ${id}`);
   return def;
 }
+export function getItemDef(id: string): ItemDef {
+  const def = ITEM_INDEX[id];
+  if (!def) throw new Error(`未知物品: ${id}`);
+  return def;
+}
+export function getItemFamily(familyId: string): ItemDef[] {
+  const list = FAMILY_INDEX[familyId];
+  if (!list?.length) throw new Error(`未知物品家族: ${familyId}`);
+  return list;
+}
 
 // ---------------------------------------------------------------------------
 // 卡牌实例化 / 升级
 // ---------------------------------------------------------------------------
 // 卡实例会随城镇档案持久化到 localStorage, 刷新后继续发号 ——
 // 不能用会归零的内存计数器, 否则新卡 uid 会撞上存档里的旧卡。
-function newUid(): string {
+// 物品实例(仓库)同理, 故两者共用这个发号器, 只换前缀。
+function newUid(prefix = "c"): string {
   return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-    ? `c-${crypto.randomUUID()}`
-    : `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    ? `${prefix}-${crypto.randomUUID()}`
+    : `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+// 物品实例化。⚠ uid 会随仓库进 localStorage, 所以同样走 newUid 而不是内存计数器。
+export function makeItemStack(itemId: string, count = 1, affinity?: string): ItemStack {
+  getItemDef(itemId); // 存在性校验: 打错 id 要在这里炸, 而不是等 UI 渲染时才发现
+  return { uid: newUid("i"), itemId, count: Math.max(1, count), affinity };
 }
 
 export function makeCard(defId: string, upgraded = false): Card {

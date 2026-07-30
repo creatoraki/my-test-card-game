@@ -7,9 +7,17 @@
 //   ③ 能量档位、血量继承、团灭清算这些跨系统的口子表现稳定。
 
 import { describe, expect, it } from "vitest";
+import { makeItemStack } from "../data";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import {
+  addItems,
+  backpackSlots,
+  burdenNow,
   canOpenBackpack,
+  canUseItem,
+  discardStack,
+  shipHome,
+  useItem,
   chooseEntry,
   chooseOption,
   createSession,
@@ -29,7 +37,7 @@ import {
 import type { ExploreState, PartySnapshot } from "./types";
 
 const PARTY: PartySnapshot[] = [
-  { charId: "swordsman", name: "剑士", emoji: "⚔️", hp: 70, maxHp: 70, alive: true },
+  { charId: "swordsman", name: "剑士", emoji: "⚔️", hp: 70, maxHp: 70, alive: true, burdenAdapt: 0 },
 ];
 
 function newSession(seed = 1): ExploreState {
@@ -85,7 +93,7 @@ describe("终点事件保底(设计文档 §2.3)", () => {
       fn(s);
       if (runSegment(s)) {
         // 落到战斗终点: 直接判胜, 回到 resolving 继续推进
-        finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
+        finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], ["scrap-bot", "scrap-bot"]);
       }
       if (s.phase !== "resolving") break; // BOSS 通关 / 撤离 / 团灭都在这里收尾
       nextSegment(s);
@@ -145,7 +153,7 @@ describe("终点事件保底(设计文档 §2.3)", () => {
   it("BOSS 接入后, BOSS 接入点与撤离升降机必现", () => {
     const s = newSession(5);
     while (s.segment < 5 && s.phase !== "retreated" && s.phase !== "wiped") {
-      if (runSegment(s)) finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
+      if (runSegment(s)) finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], ["scrap-bot", "scrap-bot"]);
       if (s.phase !== "resolving") break;
       nextSegment(s);
     }
@@ -167,7 +175,7 @@ describe("终点事件保底(设计文档 §2.3)", () => {
     finishRouting(s);
     chooseOption(s, 0);
     if (s.phase === "inBattle") {
-      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
+      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], ["scrap-bot", "scrap-bot"]);
     }
     s.energy = 5;
     nextSegment(s);
@@ -216,7 +224,7 @@ describe("阶段机", () => {
     const s = newSession();
     runSegment(s);
     if (s.phase === "inBattle") {
-      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
+      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], ["scrap-bot", "scrap-bot"]);
     }
     expect(nextSegment(s)).toBe(true);
     expect(s.phase).toBe("generating");
@@ -257,6 +265,92 @@ describe("阶段机", () => {
     expect(canOpenBackpack(s)).toBe(false); // routing
     finishRouting(s);
     expect(canOpenBackpack(s)).toBe(true); // landed: 不限时的决策阶段, 与 resolving 同类
+  });
+
+  // 消耗品的可用阶段 ⊂ 可开背包阶段: sealed 时线路还没揭示, 这会儿喝药既没信息也没意义。
+  it("消耗品只在 choosing / landed / resolving 能用", () => {
+    const s = newSession();
+    finishGenerating(s);
+    expect(canOpenBackpack(s)).toBe(true);
+    expect(canUseItem(s)).toBe(false); // sealed 是唯一「能开包但不能用药」的阶段
+    startReveal(s);
+    finishReveal(s);
+    expect(canUseItem(s)).toBe(true);
+  });
+});
+
+describe("背包与负重(设计文档 §六)", () => {
+  it("装备占 2 格、其余占 1 格, 负重惩罚随占格线性上升", () => {
+    const s = newSession();
+    expect(backpackSlots(s)).toBe(0);
+    expect(burdenNow(s)).toBe(0);
+
+    addItems(s, [makeItemStack("scrap-piece"), makeItemStack("armor-plate-c")]);
+    expect(backpackSlots(s)).toBe(3); // 1 + 2
+    expect(burdenNow(s)).toBe(3); // 每格 −1 个百分点
+  });
+
+  it("装不下的进 pendingPickup, 不会被悄悄丢掉", () => {
+    const s = newSession();
+    // 32 格全部塞满 1 格物品, 再来一件装备必然溢出
+    addItems(
+      s,
+      Array.from({ length: 32 }, () => makeItemStack("scrap-piece")),
+    );
+    expect(backpackSlots(s)).toBe(32);
+
+    const { taken, overflow } = addItems(s, [makeItemStack("armor-plate-c")]);
+    expect(taken).toHaveLength(0);
+    expect(overflow).toHaveLength(1);
+    expect(s.pendingPickup).toHaveLength(1);
+  });
+
+  it("背包里还有待取舍的东西时不许推进到下一段", () => {
+    const s = newSession();
+    toChoosing(s);
+    chooseEntry(s, 0);
+    finishRouting(s);
+    chooseOption(s, 0);
+    if (s.phase !== "resolving") return; // 落到战斗/撤离终点就跳过, 这条用例只管 resolving
+    s.pendingPickup = [makeItemStack("scrap-piece")];
+    expect(nextSegment(s)).toBe(false);
+  });
+
+  it("丢弃即时生效, 负重立刻回升", () => {
+    const s = newSession();
+    addItems(s, [makeItemStack("armor-plate-c")]);
+    const uid = s.backpack[0].uid;
+    expect(burdenNow(s)).toBe(2);
+    expect(discardStack(s, uid)).toBe(true);
+    expect(burdenNow(s)).toBe(0);
+    expect(discardStack(s, uid)).toBe(false); // 丢过的再丢一次不该有反应
+  });
+
+  it("消耗品用完即消失, 且不额外扣净化粒子", () => {
+    const s = newSession();
+    toChoosing(s);
+    addItems(s, [makeItemStack("nutrient-paste")]);
+    s.party[0].hp = 10;
+    const energyBefore = s.energy;
+    expect(useItem(s, s.backpack[0].uid)).not.toBeNull();
+    expect(s.backpack).toHaveLength(0);
+    expect(s.party[0].hp).toBeGreaterThan(10);
+    expect(s.energy).toBe(energyBefore); // 携带成本已由负重收过一次, 不重复收费
+  });
+
+  it("投递口: 未开启不能寄, 开启后寄一次扣一次能量", () => {
+    const s = newSession();
+    addItems(s, [makeItemStack("data-shard")]);
+    const uid = s.backpack[0].uid;
+
+    expect(shipHome(s, [uid])).toBe(false); // 投递口没开
+    s.chuteOpen = true;
+    const energyBefore = s.energy;
+    expect(shipHome(s, [uid])).toBe(true);
+    expect(s.backpack).toHaveLength(0);
+    expect(s.shipped).toHaveLength(1);
+    expect(s.energy).toBe(energyBefore - EXPLORE_RULES.chute.energyCost);
+    expect(s.chuteOpen).toBe(false); // 一段只能寄一次
   });
 
   it("走线播完只是落点, 效果要等玩家在浮层里选完分支才生效", () => {
@@ -323,7 +417,7 @@ describe("阶段机", () => {
   it("推进一段扣掉基础能量, 并把结果回填进本段记录", () => {
     const s = newSession(3);
     while (runSegment(s)) {
-      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
+      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], ["scrap-bot", "scrap-bot"]);
     }
     if (s.phase !== "resolving") return; // 撤离/团灭的段直接跳过这条
     const before = s.energy;
@@ -342,7 +436,7 @@ describe("阶段机", () => {
     finishRouting(s);
     chooseOption(s, 0);
     if (s.phase === "inBattle") {
-      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 2);
+      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], ["scrap-bot", "scrap-bot"]);
     }
     if (s.phase === "resolving") nextSegment(s);
     expect(["retreated", "cleared"]).toContain(s.phase);
@@ -435,33 +529,57 @@ describe("战斗回填与团灭", () => {
   it("战斗后血量写回队伍, 下一段以此开局", () => {
     const s = newSession();
     intoBattle(s);
-    finishBattle(s, true, [{ charId: "swordsman", hp: 23, alive: true }], 2);
+    finishBattle(s, true, [{ charId: "swordsman", hp: 23, alive: true }], ["scrap-bot"]);
     expect(s.party[0].hp).toBe(23);
     expect(s.party[0].alive).toBe(true);
     expect(s.phase).toBe("resolving");
   });
 
-  it("胜利按能量倍率结算积分", () => {
+  // 设计文档 §6.1: 战斗胜利**只掉物品, 绝不直接掉居民积分** —— 积分改由废料回据点出售产生。
+  it("普通战斗胜利不给积分, 只掉实物", () => {
     const s = newSession();
-    s.energy = 0; // 枯竭档, 倍率最高
+    s.energy = 0; // 枯竭档, 掉落系数最高
     intoBattle(s);
     const before = s.loot;
-    finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], 3);
-    expect(s.loot - before).toBe(Math.round(3 * EXPLORE_RULES.loot.perEnemy * rewardMultiplier(0)));
+    finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], [
+      "scrap-bot",
+      "scrap-bot",
+      "scrap-bot",
+    ]);
+    expect(s.loot).toBe(before);
+    expect(s.backpack.length).toBeGreaterThan(0); // 枯竭档三只机械不可能一件不掉
   });
 
-  it("战斗失利 = 团灭, 积分按 wipe 规则清算", () => {
+  it("同种子的战斗掉的东西逐件一致", () => {
+    const run = () => {
+      const s = newSession(4242);
+      intoBattle(s);
+      finishBattle(s, true, [{ charId: "swordsman", hp: 70, alive: true }], ["scrap-bot", "radio-bot"]);
+      return s.backpack.map((x) => x.itemId);
+    };
+    expect(run()).toEqual(run());
+  });
+
+  it("战斗失利 = 团灭, 积分与背包一起清空(已寄回的除外)", () => {
     const s = newSession();
     intoBattle(s);
     s.loot = 200;
-    finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false }], 2);
+    s.backpack = [makeItemStack("scrap-piece"), makeItemStack("data-shard")];
+    s.shipped = [makeItemStack("scrap-alloy")];
+    finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false }], ["scrap-bot"]);
     expect(s.phase).toBe("wiped");
     expect(s.loot).toBe(Math.floor(200 * EXPLORE_RULES.wipe.lootKept));
+    expect(s.backpack).toEqual([]);
+    expect(s.shipped).toHaveLength(1); // 投递口是背包玩法唯一的保险手段
   });
 
   it("非战斗阶段调用回填无效 —— 幂等护栏", () => {
     const s = newSession();
-    expect(finishBattle(s, true, [], 2)).toEqual({ loot: 0 });
+    expect(finishBattle(s, true, [], ["scrap-bot"])).toEqual({
+      loot: 0,
+      items: [],
+      overflow: [],
+    });
     expect(s.phase).toBe("generating");
   });
 

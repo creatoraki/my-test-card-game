@@ -1,0 +1,69 @@
+/* 分类 tab 条(背包与仓库共用)。配色刻意只用 --accent 与 --muted:
+   稀有度的颜色留给格子本身, tab 再上色会把整个面板变成调色板。 */
+
+.item-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item-tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.item-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  padding: 5px 11px;
+  font-size: 12px;
+  color: var(--muted);
+
+  background: #ffffff08;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+
+  cursor: pointer;
+  transition:
+    color 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease;
+}
+
+.item-tab:hover {
+  color: var(--text);
+  border-color: #6b787f;
+}
+
+.item-tab.is-on {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.item-tab-count {
+  min-width: 15px;
+  padding: 0 3px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  background: #00000038;
+  border-radius: 7px;
+}
+.item-tab.is-on .item-tab-count {
+  background: #00000024;
+}
+
+/* 二级 tab(装备槽位)比一级小一号, 读起来才是「从属」而不是「并列」 */
+.item-tab-row.is-sub {
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+.item-tab.is-sub {
+  padding: 3px 9px;
+  font-size: 11px;
+}

@@ -7,6 +7,8 @@
 //   净化粒子(energy)是唯一的难度轴与时限, 只降不升。
 // ============================================================================
 
+import type { DropEntry, ItemStack } from "../items/types";
+
 // ---------------------------------------------------------------------------
 // 路由图
 // ---------------------------------------------------------------------------
@@ -61,6 +63,10 @@ export type ExploreEffect =
   | { type: "HEAL_ONE_FULL"; othersPercent: number } // 单人回满 + 其余按百分比
   | { type: "DAMAGE_PARTY_PERCENT"; percent: number } // 全队按 maxHp 百分比掉血
   | { type: "GAIN_LOOT"; amount: number } // 城市居民积分(仅撤退/通关时落袋)
+  | { type: "GAIN_ITEM"; itemId: string; count?: number } // 指名实物(不吃掉落系数)
+  | { type: "ROLL_DROP"; table: DropEntry[] } // 掷一张掉落表(吃 K 与 qualityBias)
+  | { type: "DISCARD_SLOTS"; slots: number } // 强制丢弃背包若干格(「压力门夹层」)
+  | { type: "OPEN_CHUTE" } // 传送投递口: 开启寄件流程(实际寄件由玩家在背包面板里选)
   | { type: "MODIFY_ENERGY"; amount: number } // 净化粒子增减
   | { type: "MODIFY_TAINT"; amount: number } // 污染层数增减
   | { type: "SKIP_SEGMENT_COST" } // 免除本段的基础能量消耗
@@ -119,6 +125,9 @@ export interface PartySnapshot {
   hp: number;
   maxHp: number;
   alive: boolean; // 本次远征内阵亡即无法再出战, 回城镇后复原
+  // 负重适应(百分点)。★ 由 runStore.partySnapshot() 一次性填好 ——
+  // 探索层因此自足: 算负重惩罚不用回头去问 townStore, UI 与开战两处也不会各算一份。
+  burdenAdapt: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,6 +173,18 @@ export interface ExploreState {
 
   party: PartySnapshot[];
   history: RouteHistoryEntry[];
+
+  // ---- 实物背包(设计文档 §六) ----
+  // 紧凑数组 + 容量以**格数**计(RULES.burden.backpackSlots), 不是定长稀疏数组。
+  // 视觉上的 32 个格位由 items/inventory.layoutBackpack 现算。
+  backpack: ItemStack[];
+  // 已通过投递口寄回据点的物品。★ 团灭时 backpack 清空而它保留 —— 这是唯一的保险手段。
+  shipped: ItemStack[];
+  // 背包装不下、等玩家取舍的物品。非空 ⇒ UI 强制打开背包并进「替换模式」。
+  // ⚠ 刻意**不**做成 phase: 它会叠加在 landed / resolving 之上, 做成阶段会把阶段机撑爆。
+  pendingPickup: ItemStack[];
+  // 投递口已开启(本段的 resolving 阶段内可寄件)。推进到下一段即复位。
+  chuteOpen: boolean;
 
   entryLane: number | null; // 本段已选的入口
   exitLane: number | null; // 本段的落点(phase 进入 routing 后才有值)

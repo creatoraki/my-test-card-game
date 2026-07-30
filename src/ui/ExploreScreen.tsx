@@ -12,9 +12,12 @@
 //   filter**: 任何祖先一旦成为 backdrop root, 玻璃的 backdrop-filter 就取不到背景图。
 //   入场动画一律挂叶子元素(与 ControlTerminalScene 同一条约束)。
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { getMap } from "../data";
+import { RULES } from "../engine";
 import {
+  backpackSlots,
+  burdenNow,
   canOpenBackpack,
   effectiveTaint,
   landedChoices,
@@ -24,6 +27,7 @@ import {
 import { EXPLORE_RULES } from "../explore/rules";
 import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
+import BackpackPanel from "./BackpackPanel";
 import { EnergyMeter } from "./EnergyMeter";
 import { HpBar } from "./HpBar";
 import {
@@ -78,6 +82,7 @@ export function ExploreScreen() {
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageScale = useStageScale(viewportRef);
+  const [bagOpen, setBagOpen] = useState(false);
 
   const phase = session?.phase;
   const segment = session?.segment;
@@ -109,6 +114,13 @@ export function ExploreScreen() {
     if (phase === "retreated" || phase === "wiped") finishExpedition();
   }, [phase, finishExpedition]);
 
+  // 阶段一旦走出白名单(比如按下「探索路线」), 背包必须自己关掉 ——
+  // 硬约束在 store 层, 但面板留在屏幕上会让玩家以为还能翻。
+  const bagAllowed = session ? canOpenBackpack(session) : false;
+  useEffect(() => {
+    if (!bagAllowed) setBagOpen(false);
+  }, [bagAllowed]);
+
   if (!session || !session.board) return null;
 
   const map = getMap(session.mapId);
@@ -116,6 +128,10 @@ export function ExploreScreen() {
   const ev = landedEvent(session);
   const taint = effectiveTaint(session);
   const canBackpack = canOpenBackpack(session);
+  const usedSlots = backpackSlots(session);
+  const burden = Math.round(burdenNow(session));
+  // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
+  const mustReplace = session.pendingPickup.length > 0;
   const boardW = routePanelWidth(board.laneCount);
 
   // 落点浮层开着的两个阶段: 四角 HUD 轻度后退, 把注意力收拢到面板上(不加全屏遮罩)。
@@ -173,11 +189,16 @@ export function ExploreScreen() {
             <strong className="expl-chip-value">{session.loot}</strong>
             <span className="expl-chip-note">撤离或通关才落袋</span>
           </div>
-          {/* 负重是 P1(32 格背包)的读数, 位置先占住 */}
-          <div className="expl-chip is-locked">
+          {/* 负重(设计文档 §6.2): 每占 1 格, 全队命中/暴击/闪避各 −1 个百分点。
+              ⚠ 目前没有任何来源提供「负重适应」, 所以惩罚是吃满的 —— 这是预期行为, 不是 bug。 */}
+          <div className="expl-chip">
             <span className="expl-chip-label">负重</span>
-            <strong className="expl-chip-value">— —</strong>
-            <span className="expl-chip-note">未开放</span>
+            <strong className={`expl-chip-value${usedSlots > 0 ? " is-bad" : ""}`}>
+              {usedSlots} / {RULES.burden.backpackSlots}
+            </strong>
+            <span className="expl-chip-note">
+              {usedSlots > 0 ? `命中/暴击/闪避 −${burden}%` : "空手上路"}
+            </span>
           </div>
         </div>
 
@@ -243,17 +264,18 @@ export function ExploreScreen() {
           </div>
           <div className="expl-button-row">
             {/* ⚠ 背包的开放时机是硬约束(设计文档 §6.3): 展示线路时开背包 = 无限延长观察时间。
-                真正的拦截在 explore/session.canOpenBackpack, 这里只是把它的结论画出来。
-                实物背包本身属于 P1, 故按钮当前恒为禁用 —— 但两种禁用的**理由不同**, 分别标出来,
-                这样下一轮把背包接进来时, 阶段锁定的表现已经是对的。 */}
+                真正的拦截在 explore/session.canOpenBackpack, 这里只是把它的结论画出来。 */}
             <button
-              className={`expl-btn is-locked${canBackpack ? "" : " is-phase-locked"}`}
+              className={`expl-btn${canBackpack ? "" : " is-locked is-phase-locked"}`}
               type="button"
-              disabled
-              title={canBackpack ? "实物背包尚未开放" : "签路浮现、展示线路与走线途中不可开背包"}
+              disabled={!canBackpack}
+              title={canBackpack ? undefined : "签路浮现、展示线路与走线途中不可开背包"}
+              onClick={() => setBagOpen((v) => !v)}
             >
               背包
-              <span className="expl-btn-flag">{canBackpack ? "未开放" : "本阶段锁定"}</span>
+              <span className="expl-btn-flag">
+                {canBackpack ? `${usedSlots}/${RULES.burden.backpackSlots}` : "本阶段锁定"}
+              </span>
             </button>
             <button
               className="expl-btn is-danger"
@@ -330,11 +352,19 @@ export function ExploreScreen() {
                   </div>
                   <div className="expl-panel-foot">
                     <span className="expl-panel-cost">
-                      {session.skipSegmentCost
-                        ? "本段免除基础消耗"
-                        : `推进消耗 −${EXPLORE_RULES.energyPerSegment} 粒子`}
+                      {mustReplace
+                        ? "先在背包里处理完拿不下的东西"
+                        : session.skipSegmentCost
+                          ? "本段免除基础消耗"
+                          : `推进消耗 −${EXPLORE_RULES.energyPerSegment} 粒子`}
                     </span>
-                    <button className="expl-btn is-primary" type="button" onClick={() => advance()}>
+                    <button
+                      className="expl-btn is-primary"
+                      type="button"
+                      // 背包里还有待取舍的东西就不许推进 —— 真正的拦截在 session.nextSegment
+                      disabled={mustReplace}
+                      onClick={() => advance()}
+                    >
                       {session.segment >= session.segmentCount ? "结束远征 ▸" : "继续推进 ▸"}
                     </button>
                   </div>
@@ -342,6 +372,13 @@ export function ExploreScreen() {
               )}
             </section>
           </div>
+        )}
+
+        {/* ---- 背包面板 ----
+            替换模式(pendingPickup 非空)时强制打开: 「拿不拿得下」这个决定必须当场做完,
+            让它跨段就等于把决定悄悄取消掉了(session.nextSegment 也会拦一次)。 */}
+        {(bagOpen || mustReplace) && canBackpack && (
+          <BackpackPanel onClose={() => setBagOpen(false)} />
         )}
       </div>
     </div>

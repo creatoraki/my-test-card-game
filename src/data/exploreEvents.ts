@@ -52,7 +52,15 @@ const SURVIVAL: RouteEvent[] = [
         label: "翻找储物柜",
         desc: "不休息, 把柜子挨个撬开 —— 花时间, 换东西",
         energyDelta: -4,
-        effects: [{ type: "GAIN_LOOT", amount: 14 }],
+        effects: [
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "item", itemId: "scrap-piece", chance: 1, min: 1, max: 2 },
+              { kind: "item", itemId: "nutrient-paste", chance: 0.5 },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -75,9 +83,12 @@ const SURVIVAL: RouteEvent[] = [
       {
         id: "strip",
         label: "拆成便携件",
-        desc: "谁也不治, 整柜药剂拆下来带走",
+        desc: "谁也不治, 整柜药剂拆下来带走 —— 急救组件 ×1、营养膏 ×1",
         energyDelta: 0,
-        effects: [{ type: "GAIN_LOOT", amount: 20 }],
+        effects: [
+          { type: "GAIN_ITEM", itemId: "trauma-kit" },
+          { type: "GAIN_ITEM", itemId: "nutrient-paste" },
+        ],
       },
     ],
   },
@@ -124,22 +135,40 @@ const GROWTH: RouteEvent[] = [
     category: "growth",
     title: "废品分拣带",
     description: "传送带还在空转, 分拣仓里堆着没人来收的东西。",
+    // ★ 设计文档 §6.1: 探索层产出的全是**实物**, 废料要带回据点的回收台卖了才是积分。
+    //   两条分支的对价换成「多拿但占背包 / 少拿但不费粒子」—— 负重本身就是代价。
     energyDelta: -2,
-    effects: [{ type: "GAIN_LOOT", amount: 18 }],
+    effects: [
+      {
+        type: "ROLL_DROP",
+        table: [
+          { kind: "item", itemId: "scrap-piece", chance: 1, min: 2, max: 3 },
+          { kind: "item", itemId: "scrap-alloy", chance: 0.5 },
+        ],
+      },
+    ],
     choices: [
       {
         id: "clear",
         label: "搬空分拣仓",
-        desc: "居民积分 +18 · 停机与搬运耗掉 2 粒子",
+        desc: "废件 ×2-3、可能有整块合金 · 停机与搬运耗掉 2 粒子",
         energyDelta: -2,
-        effects: [{ type: "GAIN_LOOT", amount: 18 }],
+        effects: [
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "item", itemId: "scrap-piece", chance: 1, min: 2, max: 3 },
+              { kind: "item", itemId: "scrap-alloy", chance: 0.5 },
+            ],
+          },
+        ],
       },
       {
         id: "skim",
         label: "只挑轻的",
-        desc: "不停机, 顺手拿几件 —— 居民积分 +8, 不耗粒子",
+        desc: "不停机, 顺手拿一件废件 —— 不耗粒子, 也不怎么压背包",
         energyDelta: 0,
-        effects: [{ type: "GAIN_LOOT", amount: 8 }],
+        effects: [{ type: "GAIN_ITEM", itemId: "scrap-piece" }],
       },
     ],
   },
@@ -150,21 +179,37 @@ const GROWTH: RouteEvent[] = [
     title: "拆解台",
     description: "工位上摆着半台拆开的伺服器, 工具还插在原位。",
     energyDelta: -2,
-    effects: [{ type: "GAIN_LOOT", amount: 24 }],
+    effects: [
+      {
+        type: "ROLL_DROP",
+        table: [
+          { kind: "family", familyId: "servo", chance: 1 },
+          { kind: "family", familyId: "coil", chance: 0.6 },
+        ],
+      },
+    ],
     choices: [
       {
         id: "teardown",
         label: "全部拆解",
-        desc: "居民积分 +24 · 接电作业耗掉 2 粒子",
+        desc: "模组材料 ×1-2（品质随净化粒子档位）· 接电作业耗掉 2 粒子",
         energyDelta: -2,
-        effects: [{ type: "GAIN_LOOT", amount: 24 }],
+        effects: [
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "family", familyId: "servo", chance: 1 },
+              { kind: "family", familyId: "coil", chance: 0.6 },
+            ],
+          },
+        ],
       },
       {
         id: "tools",
         label: "只拿工具",
-        desc: "居民积分 +10, 不耗粒子",
+        desc: "顺走那把撬棒 —— 不耗粒子, 但装备占 2 格",
         energyDelta: 0,
-        effects: [{ type: "GAIN_LOOT", amount: 10 }],
+        effects: [{ type: "GAIN_ITEM", itemId: "prybar-c" }],
       },
     ],
   },
@@ -175,14 +220,14 @@ const GROWTH: RouteEvent[] = [
     title: "上批苏醒者营地",
     description: "睡袋、烧尽的加热片, 还有一封没写完的信。",
     energyDelta: 0,
-    effects: [{ type: "GAIN_LOOT", amount: 14 }],
+    effects: [{ type: "GAIN_ITEM", itemId: "nutrient-paste", count: 2 }],
     choices: [
       {
         id: "gather",
         label: "收拢遗物",
-        desc: "能带走的都带走 —— 居民积分 +14",
+        desc: "还没吃完的营养膏 ×2",
         energyDelta: 0,
-        effects: [{ type: "GAIN_LOOT", amount: 14 }],
+        effects: [{ type: "GAIN_ITEM", itemId: "nutrient-paste", count: 2 }],
       },
       {
         id: "read",
@@ -200,21 +245,39 @@ const GROWTH: RouteEvent[] = [
     title: "未清空的储物柜",
     description: "三百年前有人锁上它就去上班了, 再没回来。",
     energyDelta: -2,
-    effects: [{ type: "GAIN_LOOT", amount: 12 }],
+    effects: [
+      {
+        type: "ROLL_DROP",
+        table: [
+          { kind: "item", itemId: "scrap-piece", chance: 0.8 },
+          { kind: "item", itemId: "data-shard", chance: 0.35 },
+          { kind: "family", familyId: "jammer", chance: 0.2 },
+        ],
+      },
+    ],
     choices: [
       {
         id: "pry",
         label: "逐个撬开",
-        desc: "居民积分 +12 · 撬锁耗掉 2 粒子",
+        desc: "私人物品、旧存档, 偶尔还有能用的东西 · 撬锁耗掉 2 粒子",
         energyDelta: -2,
-        effects: [{ type: "GAIN_LOOT", amount: 12 }],
+        effects: [
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "item", itemId: "scrap-piece", chance: 0.8 },
+              { kind: "item", itemId: "data-shard", chance: 0.35 },
+              { kind: "family", familyId: "jammer", chance: 0.2 },
+            ],
+          },
+        ],
       },
       {
         id: "unlocked",
         label: "只开没锁的",
-        desc: "居民积分 +5, 不耗粒子",
+        desc: "一支过滤滤芯 —— 不耗粒子, 也占不了多少地方",
         energyDelta: 0,
-        effects: [{ type: "GAIN_LOOT", amount: 5 }],
+        effects: [{ type: "GAIN_ITEM", itemId: "filter-cartridge" }],
       },
     ],
   },
@@ -284,17 +347,17 @@ const BATTLE: RouteEvent[] = [
     energyDelta: -COST.normal,
     effects: [
       { type: "START_BATTLE", encounterId: "n-crew" },
-      { type: "GAIN_LOOT", amount: 20 },
+      { type: "GAIN_ITEM", itemId: "scrap-alloy", count: 2 },
     ],
     choices: [
       {
         id: "fight",
         label: "在待压区打",
-        desc: `边打边把压缩仓掏空 · 居民积分 +20 · 耗 ${COST.normal} 粒子`,
+        desc: `边打边把压缩仓掏空 · 整块合金 ×2 · 耗 ${COST.normal} 粒子`,
         energyDelta: -COST.normal,
         effects: [
           { type: "START_BATTLE", encounterId: "n-crew" },
-          { type: "GAIN_LOOT", amount: 20 },
+          { type: "GAIN_ITEM", itemId: "scrap-alloy", count: 2 },
         ],
       },
       {
@@ -390,9 +453,28 @@ const ECONOMY: RouteEvent[] = [
     category: "economy",
     title: "传送投递口",
     description: "把选中的物品提前寄回据点, 团灭也丢不掉。",
-    energyDelta: -5,
-    effects: [],
-    disabled: true, // 需要实物背包(P1)才有意义
+    // ★ 背包玩法唯一的保险手段(设计文档 §6.5), 也是首图的必备教学点 ——
+    //   没有它, 后段只能在「背满了打不动」和「丢掉稀有装备」之间硬二选一。
+    //   OPEN_CHUTE 只是开启寄件流程; 真正扣的 −5 粒子在玩家按下「寄回」时才收
+    //   (见 explore/session.shipHome), 所以这里的 energyDelta 是 0。
+    energyDelta: 0,
+    effects: [{ type: "OPEN_CHUTE" }],
+    choices: [
+      {
+        id: "use",
+        label: "接入投递口",
+        desc: `寄回一批物资 · 寄件时扣 ${5} 粒子 · 团灭也丢不掉`,
+        energyDelta: 0,
+        effects: [{ type: "OPEN_CHUTE" }],
+      },
+      {
+        id: "skip",
+        label: "不用",
+        desc: "省下粒子, 东西继续自己背着",
+        energyDelta: 0,
+        effects: [],
+      },
+    ],
   },
 ];
 
@@ -455,9 +537,9 @@ const ENERGY: RouteEvent[] = [
       {
         id: "swap",
         label: "正常更换滤芯",
-        desc: "净化粒子 +10, 换下来的旧芯还能卖 · 居民积分 +15",
+        desc: "净化粒子 +10, 换下来的旧芯还能卖 · 整块合金 ×1",
         energyDelta: 10,
-        effects: [{ type: "GAIN_LOOT", amount: 15 }],
+        effects: [{ type: "GAIN_ITEM", itemId: "scrap-alloy" }],
       },
     ],
   },
@@ -480,9 +562,17 @@ const ENERGY: RouteEvent[] = [
       {
         id: "detour",
         label: "顺路摸一把",
-        desc: "在井底的备件箱里翻一遍 · 居民积分 +20 · 基础消耗照扣",
+        desc: "在井底的备件箱里翻一遍 · 得一批物资 · 基础消耗照扣",
         energyDelta: 0,
-        effects: [{ type: "GAIN_LOOT", amount: 20 }],
+        effects: [
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "item", itemId: "scrap-piece", chance: 1, min: 1, max: 2 },
+              { kind: "family", familyId: "coil", chance: 0.45 },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -492,22 +582,23 @@ const ENERGY: RouteEvent[] = [
     category: "energy",
     title: "强拆配电柜",
     description: "拆得越狠, 拿得越多, 过滤装置也烧得越快。",
+    // 设计文档 §4.3 的「买收益」条目: 强拆配电柜 = E −8 → 模组材料 ×2。
     energyDelta: -8,
-    effects: [{ type: "GAIN_LOOT", amount: 34 }],
+    effects: [{ type: "ROLL_DROP", table: [{ kind: "family", familyId: "servo", chance: 2 }] }],
     choices: [
       {
         id: "gut",
         label: "拆到底",
-        desc: "居民积分 +34 · 耗 8 粒子",
+        desc: "模组材料 ×2（品质随档位）· 耗 8 粒子",
         energyDelta: -8,
-        effects: [{ type: "GAIN_LOOT", amount: 34 }],
+        effects: [{ type: "ROLL_DROP", table: [{ kind: "family", familyId: "servo", chance: 2 }] }],
       },
       {
         id: "surface",
         label: "只取表层",
-        desc: "居民积分 +12 · 耗 2 粒子",
+        desc: "废件 ×1 · 耗 2 粒子",
         energyDelta: -2,
-        effects: [{ type: "GAIN_LOOT", amount: 12 }],
+        effects: [{ type: "GAIN_ITEM", itemId: "scrap-piece" }],
       },
     ],
   },
@@ -518,16 +609,19 @@ const ENERGY: RouteEvent[] = [
     risk: "highRisk",
     title: "通风破口",
     description: "破口后面是干净的储藏舱, 但粒子会顺着灌进来。",
+    // 设计文档 §4.3 的「买收益」条目: 通风破口 = E −12 → 装备 ×1(品质按当前档位)。
     energyDelta: -12,
     minSegment: 3,
-    effects: [{ type: "GAIN_LOOT", amount: 52 }],
+    effects: [{ type: "ROLL_DROP", table: [{ kind: "family", familyId: "armor-plate", chance: 1 }] }],
     choices: [
       {
         id: "enter",
         label: "钻进去",
-        desc: "把储藏舱搬空 · 居民积分 +52 · 耗 12 粒子",
+        desc: "储藏舱里有整套护板 · 装备 ×1（品质按当前档位）· 耗 12 粒子",
         energyDelta: -12,
-        effects: [{ type: "GAIN_LOOT", amount: 52 }],
+        effects: [
+          { type: "ROLL_DROP", table: [{ kind: "family", familyId: "armor-plate", chance: 1 }] },
+        ],
       },
       {
         id: "seal",
@@ -606,17 +700,29 @@ const HAZARD: RouteEvent[] = [
     energyDelta: 0,
     effects: [
       { type: "DAMAGE_PARTY_PERCENT", percent: 0.15 },
-      { type: "GAIN_LOOT", amount: 40 },
+      {
+        type: "ROLL_DROP",
+        table: [
+          { kind: "item", itemId: "scrap-alloy", chance: 1, min: 1, max: 2 },
+          { kind: "item", itemId: "scrap-core", chance: 0.4 },
+        ],
+      },
     ],
     choices: [
       {
         id: "wade",
         label: "趟过去",
-        desc: "全队 −15% 生命 · 居民积分 +40",
+        desc: "全队 −15% 生命 · 成色极好的一堆废料",
         energyDelta: 0,
         effects: [
           { type: "DAMAGE_PARTY_PERCENT", percent: 0.15 },
-          { type: "GAIN_LOOT", amount: 40 },
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "item", itemId: "scrap-alloy", chance: 1, min: 1, max: 2 },
+              { kind: "item", itemId: "scrap-core", chance: 0.4 },
+            ],
+          },
         ],
       },
       {
@@ -625,6 +731,34 @@ const HAZARD: RouteEvent[] = [
         desc: "不趟电, 不受伤, 也不带走任何东西",
         energyDelta: 0,
         effects: [],
+      },
+    ],
+  },
+  // 设计文档 §8.7 的「压力门夹层」: 唯一一个**直接惩罚背包**的事件 ——
+  // 背得越满亏得越多, 于是「要不要再多拿一件」这个决定在这里有了反面。
+  {
+    id: "pressure-door",
+    kind: "hazard",
+    category: "hazard",
+    risk: "negative",
+    title: "压力门夹层",
+    description: "两道门之间的空腔正在泄压。带不动的东西必须扔下。",
+    energyDelta: 0,
+    effects: [{ type: "DISCARD_SLOTS", slots: 4 }],
+    choices: [
+      {
+        id: "drop",
+        label: "扔掉最不值钱的",
+        desc: "强制丢弃 4 格物资（从最不值钱的开始）· 不耗粒子",
+        energyDelta: 0,
+        effects: [{ type: "DISCARD_SLOTS", slots: 4 }],
+      },
+      {
+        id: "hold",
+        label: "一件都不放",
+        desc: "全队顶着压差硬挤过去 —— 全队 −12% 生命 · 耗 6 粒子",
+        energyDelta: -6,
+        effects: [{ type: "DAMAGE_PARTY_PERCENT", percent: 0.12 }],
       },
     ],
   },
@@ -638,17 +772,29 @@ const HAZARD: RouteEvent[] = [
     energyDelta: 0,
     effects: [
       { type: "MODIFY_TAINT", amount: 1 },
-      { type: "GAIN_LOOT", amount: 46 },
+      {
+        type: "ROLL_DROP",
+        table: [
+          { kind: "family", familyId: "jammer", chance: 1 },
+          { kind: "item", itemId: "scrap-core", chance: 0.6 },
+        ],
+      },
     ],
     choices: [
       {
         id: "open",
         label: "开门",
-        desc: "污染 +1 层(整趟远征不可清除) · 居民积分 +46",
+        desc: "污染 +1 层(整趟远征不可清除) · 一件饰品 + 可能的未熄核心",
         energyDelta: 0,
         effects: [
           { type: "MODIFY_TAINT", amount: 1 },
-          { type: "GAIN_LOOT", amount: 46 },
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "family", familyId: "jammer", chance: 1 },
+              { kind: "item", itemId: "scrap-core", chance: 0.6 },
+            ],
+          },
         ],
       },
       {
@@ -748,22 +894,41 @@ const ENDGAME: RouteEvent[] = [
     risk: "highRisk",
     title: "高风险宝库",
     description: "总控的私藏。开一次, 整层都会知道。",
+    // 终局宝库: 三个族各掷一次 + 一枚未熄核心。品质吃当前档位 —— 能量越低, 开出来的越好。
     energyDelta: -15,
-    effects: [{ type: "GAIN_LOOT", amount: 80 }],
+    effects: [
+      {
+        type: "ROLL_DROP",
+        table: [
+          { kind: "family", familyId: "prybar", chance: 1 },
+          { kind: "family", familyId: "armor-plate", chance: 1 },
+          { kind: "item", itemId: "scrap-core", chance: 1 },
+        ],
+      },
+    ],
     choices: [
       {
         id: "open",
         label: "开箱",
-        desc: "居民积分 +80 · 耗 15 粒子",
+        desc: "武器 + 防具各 1 件（品质按当前档位）、未熄核心 ×1 · 耗 15 粒子",
         energyDelta: -15,
-        effects: [{ type: "GAIN_LOOT", amount: 80 }],
+        effects: [
+          {
+            type: "ROLL_DROP",
+            table: [
+              { kind: "family", familyId: "prybar", chance: 1 },
+              { kind: "family", familyId: "armor-plate", chance: 1 },
+              { kind: "item", itemId: "scrap-core", chance: 1 },
+            ],
+          },
+        ],
       },
       {
         id: "mark",
         label: "只记下位置",
-        desc: "不惊动整层 · 居民积分 +10",
+        desc: "不惊动整层 · 只把门口那枚数据存档带走",
         energyDelta: 0,
-        effects: [{ type: "GAIN_LOOT", amount: 10 }],
+        effects: [{ type: "GAIN_ITEM", itemId: "data-shard" }],
       },
     ],
   },

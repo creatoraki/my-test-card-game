@@ -44,33 +44,10 @@ export interface AmbienceDef {
 }
 
 const AMBIENCE: Record<string, AmbienceDef> = {
-  // 废弃楼层(neon-city): 背景是**静态图**, 是本次改造的主要受益者 —— 三层粒子 + 招牌闪 + 冷调暗角,
-  // 把一张不动的图撑成"下着雨的赛博街区"。
+  // 废弃楼层(neon-city): 背景是**静态图** —— 靠低空雾团 + 冷调暗角把它撑出呼吸感。
+  // 注: 这里原先还有远/近两层 rain 和一组 flicker(顶部灯光闪), 因观感诉求已移除, 不要再加回来。
   "neon-city": {
     emitters: [
-      // 远景雨: 细、密、偏慢, 构成整体雨幕
-      {
-        kind: "rain",
-        layer: "far",
-        count: 90,
-        color: "#bcd7ff",
-        size: [22, 46],
-        speed: [900, 1400],
-        opacity: [0.1, 0.26],
-        angle: 0.16,
-      },
-      // 近景雨: 少而粗、更快、失焦 —— 只负责纵深, 数量刻意压到 22 免得挡住立绘
-      {
-        kind: "rain",
-        layer: "near",
-        count: 22,
-        color: "#dbe9ff",
-        size: [60, 120],
-        speed: [1900, 2600],
-        opacity: [0.08, 0.16],
-        angle: 0.2,
-        blur: 2.5,
-      },
       // 低空雾团: 极慢横漂, 给地面一层湿冷的空气感
       {
         kind: "mist",
@@ -83,7 +60,6 @@ const AMBIENCE: Record<string, AmbienceDef> = {
         drift: 40,
       },
     ],
-    flicker: { color: "#7b5cff", period: 5200 },
     grade: { vignette: 0.28, tint: "#0a1520", scanline: 0.04 },
   },
 };

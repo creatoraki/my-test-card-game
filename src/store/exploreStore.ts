@@ -7,16 +7,21 @@
 import { create } from "zustand";
 import type { ExploreState, PartySnapshot } from "../explore/types";
 import {
+  abandonPending,
   chooseEntry,
   chooseOption,
   createSession,
+  discardStack,
   finishBattle,
   finishGenerating,
   finishReveal,
   finishRouting,
   nextSegment,
   retreat,
+  shipHome,
   startReveal,
+  takePending,
+  useItem,
 } from "../explore/session";
 
 interface ExploreStore {
@@ -34,9 +39,16 @@ interface ExploreStore {
   settleBattle: (
     won: boolean,
     survivors: { charId: string; hp: number; alive: boolean }[],
-    enemyCount: number,
+    enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
   ) => void;
   clear: () => void;
+
+  // ---- 背包(阶段白名单的真相点在 explore/session, 这里只是转发) ----
+  discardItem: (uid: string) => void;
+  useItem: (uid: string) => string | null; // 返回结算摘要, UI 拿去飘一条
+  takePending: (index: number) => void; // 替换模式: 收下待取物
+  abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
+  shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
 }
 
 // 所有 mutation 共用: 克隆 → 交给纯函数 → 仅在真的改动时替换。
@@ -89,11 +101,38 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     mutate(get, set, (d) => retreat(d));
   },
 
-  settleBattle: (won, survivors, enemyCount) => {
+  settleBattle: (won, survivors, enemyDefIds) => {
     mutate(get, set, (d) => {
-      finishBattle(d, won, survivors, enemyCount);
+      finishBattle(d, won, survivors, enemyDefIds);
     });
   },
 
   clear: () => set({ session: null }),
+
+  // ---- 背包 ----
+  discardItem: (uid) => {
+    mutate(get, set, (d) => discardStack(d, uid));
+  },
+
+  // useItem 要把摘要交回 UI, 所以不能只走 mutate 的布尔约定 —— 自己接一下返回值。
+  useItem: (uid) => {
+    let note: string | null = null;
+    mutate(get, set, (d) => {
+      note = useItem(d, uid);
+      return note != null;
+    });
+    return note;
+  },
+
+  takePending: (index) => {
+    mutate(get, set, (d) => takePending(d, index));
+  },
+
+  abandonPending: (index) => {
+    mutate(get, set, (d) => abandonPending(d, index));
+  },
+
+  shipHome: (uids) => {
+    mutate(get, set, (d) => shipHome(d, uids));
+  },
 }));

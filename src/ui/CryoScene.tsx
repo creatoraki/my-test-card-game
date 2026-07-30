@@ -30,6 +30,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type AnimationEvent,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -39,6 +40,7 @@ import { deriveStats, useTownStore, type CharacterState } from "../store/townSto
 import { CardView } from "./CardView";
 import { CharacterPortrait } from "./CharacterPortrait";
 import { prefersReducedMotion } from "./transitions";
+import { useCountUp } from "./useCountUp";
 import "./CryoScene.css";
 
 // ===================== 常量 =====================
@@ -54,8 +56,16 @@ const PANEL_OUT_REDUCED_MS = 180; // 「减少动态效果」下退化成一次�
 const PANEL_SIZE: Record<PanelId, { w: number; h: number }> = {
   formation: { w: 1100, h: 640 },
   dossier: { w: 1240, h: 680 },
-  awaken: { w: 1100, h: 640 },
+  awaken: { w: 1180, h: 660 }, // 舱位改成 2 列网格后比另外两块宽一档
 };
+
+// 面板滑落到位所需的时间(= cryoPanelIn 的 600ms)。浮层内的内容从这之后才开始逐块浮现,
+// 读作「面板落定 → 数据接通」。⚠ 这个数只用来算 CSS 里的 animation-delay 起点, 与
+// PANEL_OUT_MS 无关 —— 那个是卸载时机, 改错会让面板提前消失。
+const CONTENT_DELAY_MS = 560;
+// 相邻两块内容之间的错峰间隔。⚠ 与 CryoScene.css 里 cryoContentIn 的 animation-delay 算式
+// (var(--i) * 55ms)是同一个数, 改一处要改两处 —— JS 只有数值滚动的起跑时间要跟它对齐。
+const STAGGER_MS = 55;
 
 // 舱位阵列的格数(只在「冬眠唤醒」浮层里用)。已解封 + 休眠中的角色依次占位, 剩下的补成
 // 「无信号」空舱 —— 空舱不是错误状态, 是「这排舱位本来就有这么多, 只是没人」的场景表达。
@@ -64,53 +74,63 @@ const POD_SLOTS = 6;
 
 // 只读面板分组。★ 角色不设等级也不加点 —— 这些数字进游戏后不会再变, 长期成长看装备与卡组。
 // suffix "%" 的项在数据里存的是百分点整数(见 engine/types.StatBlock)。
-const STAT_GROUPS: { title: string; rows: { key: keyof StatBlock; label: string; pct?: boolean }[] }[] =
-  [
-    {
-      title: "生存与输出",
-      rows: [
-        { key: "maxHp", label: "生命" },
-        { key: "attack", label: "攻击力" },
-        { key: "defense", label: "防御力" },
-        { key: "healPower", label: "治愈力" },
-      ],
-    },
-    {
-      title: "命中与暴击",
-      rows: [
-        { key: "hitRate", label: "命中率", pct: true },
-        { key: "dodgeRate", label: "闪避率", pct: true },
-        { key: "critRate", label: "暴击率", pct: true },
-        { key: "critDamage", label: "爆伤", pct: true },
-        { key: "precision", label: "精准", pct: true },
-      ],
-    },
-    {
-      title: "节奏与防护",
-      rows: [
-        { key: "initiative", label: "先手" },
-        { key: "blockRate", label: "格挡", pct: true },
-        { key: "healBoost", label: "治愈强度", pct: true },
-        { key: "shieldBoost", label: "护盾强度", pct: true },
-        { key: "ailmentResist", label: "异常抗性", pct: true },
-      ],
-    },
-    {
-      title: "探索与小队",
-      rows: [
-        { key: "burdenAdapt", label: "负重适应", pct: true },
-        { key: "handLimit", label: "手牌上限" },
-        { key: "drawCount", label: "抽牌数" },
-      ],
-    },
-  ];
+//
+// ★ ref = 该项画满那条底部微条所需的值。⚠⚠ **纯展示旋钮, 不参与任何结算** —— 它既不是上限也不是
+//   平衡口径, 只决定"这条横杠画多长"。数值本身照旧原样显示, 条只是让四组面板一眼看出长短对比。
+//   百分比项默认按 100 铺满, 与 engine 里 70% 的概率封顶无关(那是结算封顶, 面板可以超)。
+const STAT_GROUPS: {
+  title: string;
+  rows: { key: keyof StatBlock; label: string; pct?: boolean; ref?: number }[];
+}[] = [
+  {
+    title: "生存与输出",
+    rows: [
+      { key: "maxHp", label: "生命", ref: 120 },
+      { key: "attack", label: "攻击力", ref: 30 },
+      { key: "defense", label: "防御力", ref: 30 },
+      { key: "healPower", label: "治愈力", ref: 30 },
+    ],
+  },
+  {
+    title: "命中与暴击",
+    rows: [
+      { key: "hitRate", label: "命中率", pct: true },
+      { key: "dodgeRate", label: "闪避率", pct: true },
+      { key: "critRate", label: "暴击率", pct: true },
+      { key: "critDamage", label: "爆伤", pct: true, ref: 250 },
+      { key: "precision", label: "精准", pct: true },
+    ],
+  },
+  {
+    title: "节奏与防护",
+    rows: [
+      { key: "initiative", label: "先手", ref: 20 },
+      { key: "blockRate", label: "格挡", pct: true },
+      { key: "healBoost", label: "治愈强度", pct: true },
+      { key: "shieldBoost", label: "护盾强度", pct: true },
+      { key: "ailmentResist", label: "异常抗性", pct: true },
+    ],
+  },
+  {
+    title: "探索与小队",
+    rows: [
+      { key: "burdenAdapt", label: "负重适应", pct: true },
+      { key: "handLimit", label: "手牌上限", ref: 12 },
+      { key: "drawCount", label: "抽牌数", ref: 8 },
+    ],
+  },
+];
+
+const REF_DEFAULT_PCT = 100; // pct 项没写 ref 时的铺满值
 
 // 密封舱详情的装饰读数。⚠ 纯文案, 不接任何数据 —— 休眠体在解封前本来就「身份未解析」。
-const VITALS = [
-  { label: "舱内温度", value: "−196.4 °C" },
-  { label: "代谢速率", value: "0.3 %" },
-  { label: "舱压", value: "标称" },
-  { label: "维生余量", value: "充足" },
+// ★ num 的那两项会走 useCountUp 滚一遍(选中另一个舱位时重滚), 读起来像仪表在重新采样;
+//   「标称 / 充足」这种非数值项没有 num, 直接原样出。
+const VITALS: { label: string; num?: number; decimals?: number; unit?: string; text?: string }[] = [
+  { label: "舱内温度", num: -196.4, decimals: 1, unit: "°C" },
+  { label: "代谢速率", num: 0.3, decimals: 1, unit: "%" },
+  { label: "舱压", text: "标称" },
+  { label: "维生余量", text: "充足" },
 ];
 
 // ===================== 图标 =====================
@@ -187,6 +207,37 @@ function NoSignalIcon() {
     </svg>
   );
 }
+
+// ===================== 氛围层 =====================
+
+// 浮层背板上的常驻冷冻氛围: 冷凝雾(两团缓慢漂移的紫雾) + 扫描线 + 霜花微粒。
+// ⚠ 它是 .cryo-panel 的**第一个子节点**, 不是祖先 —— 面板自己的 backdrop-filter 不受影响,
+//   而这一层挂动画也不会把任何人变成 backdrop root(本文件反复在防的那条约束)。
+// ⚠ 全部动画只动 transform, 透明度写死在各层背景色里 —— 项目对"闪烁型明暗变化"是禁止的
+//   (RouteBoard 立的规矩), 呼吸式明暗在六格并排时会糊成一片闪。
+// ★ 刻意不用 Canvas: ui/AmbienceLayer.tsx 那套是战斗场景的重型方案(双 canvas + rAF),
+//   浮层里几团渐变 + 8 个光点用纯 CSS 就够, 也不必跟着面板开合去起停 rAF。
+const MOTE_COUNT = 8;
+
+function CryoAmbience() {
+  return (
+    <div className="cryo-ambience" aria-hidden>
+      <span className="cryo-fog cryo-fog-a" />
+      <span className="cryo-fog cryo-fog-b" />
+      <span className="cryo-scanlines" />
+      <span className="cryo-motes">
+        {Array.from({ length: MOTE_COUNT }, (_, i) => (
+          // --i 派生出各自的横向位置 / 大小 / 时长 / 延迟(算式在 CSS 里), 免得在 TSX 里
+          // 撒一堆 magic number, 也免得每次渲染都重新随机(那会让微粒在重渲染时集体跳位)。
+          <span key={i} className="cryo-mote" style={{ "--i": i } as CSSProperties} />
+        ))}
+      </span>
+    </div>
+  );
+}
+
+// 错峰入场的序号。CSS 用 --i 算 animation-delay, 这里只负责把序号递给样式层。
+const stagger = (i: number): CSSProperties => ({ "--i": i }) as CSSProperties;
 
 // ===================== 类型 =====================
 
@@ -348,12 +399,19 @@ export function CryoScene({ leaving = false }: Props) {
           <section
             className="cryo-panel"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              // 面板只给宽高(设计 px), 居中交给 .cryo-modal 的 flex —— 换尺寸不用回头算坐标。
-              width: `${PANEL_SIZE[panel].w}px`,
-              height: `${PANEL_SIZE[panel].h}px`,
-            }}
+            style={
+              {
+                // 面板只给宽高(设计 px), 居中交给 .cryo-modal 的 flex —— 换尺寸不用回头算坐标。
+                width: `${PANEL_SIZE[panel].w}px`,
+                height: `${PANEL_SIZE[panel].h}px`,
+                // 面板内所有错峰入场的公共起点(见 CSS 的 cryoContentIn)
+                "--content-delay": `${CONTENT_DELAY_MS}ms`,
+              } as CSSProperties
+            }
           >
+            {/* 常驻冷冻氛围。⚠ 必须是第一个子节点: 面板其余内容靠 CSS 抬到 z-index:1 压在它上面 */}
+            <CryoAmbience />
+
             {panel === "formation" ? (
               <FormationPanel
                 characters={characters}
@@ -464,6 +522,20 @@ function FormationPanel({
   const bench = awakened.filter((id) => !party.includes(id));
   const full = party.length >= size;
 
+  // 上一次编入/撤出的目标, 只为放一段演出。⚠ 纯 UI 状态, 不进 store —— 它没有任何规则含义。
+  //   编入: 目标**槽位**播「光柱注入」; 撤出: 刚回到待命区的那张**卡片**播「弹出落位」。
+  //   刻意不做 FLIP(跨容器测量 + 待命区还带 overflow:auto), 这套冷冻主题里"注入/弹出"比位移更贴。
+  const [fx, setFx] = useState<{ id: string; kind: "in" | "out" } | null>(null);
+  const toggle = (id: string, kind: "in" | "out") => {
+    setFx({ id, kind });
+    onToggle(id);
+  };
+  // 动画自己播完自己摘类名 —— 不摘的话同一个人再次编入时类名没变化, 动画不会重启。
+  // ⚠ animationend **会冒泡**: 舱盖灯带 / 立绘那些子元素播完也会打到这里, 故只认打在本体上的那次。
+  const clearFx = (e: AnimationEvent) => {
+    if (e.target === e.currentTarget) setFx(null);
+  };
+
   return (
     <>
       <PanelHead kicker="SQUAD FORMATION" title="编队 · 出战编成" onClose={onClose} />
@@ -473,9 +545,17 @@ function FormationPanel({
         <div className="cryo-slots" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
           {slots.map((id, i) =>
             id ? (
-              <div key={id} className="cryo-slot is-filled">
+              <div
+                key={id}
+                className={`cryo-slot is-filled${
+                  fx?.kind === "in" && fx.id === id ? " is-injecting" : ""
+                }`}
+                style={stagger(i)}
+                onAnimationEnd={clearFx}
+              >
+                <span className="cryo-slot-lid" aria-hidden />
                 <span className="cryo-slot-no">SLOT-{String(i + 1).padStart(2, "0")}</span>
-                <span className="cryo-slot-figure">
+                <span className="cryo-slot-figure cryo-vitrine">
                   <CharacterPortrait
                     characterId={id}
                     emoji={getCharacter(id).emoji}
@@ -493,13 +573,16 @@ function FormationPanel({
                   type="button"
                   disabled={party.length <= 1}
                   title={party.length <= 1 ? "至少要保留 1 名队员上阵" : undefined}
-                  onClick={() => onToggle(id)}
+                  onClick={() => toggle(id, "out")}
                 >
                   撤出
                 </button>
               </div>
             ) : (
-              <div key={`empty-${i}`} className="cryo-slot is-vacant">
+              <div key={`empty-${i}`} className="cryo-slot is-vacant" style={stagger(i)}>
+                <span className="cryo-slot-lid" aria-hidden />
+                {/* 四角括号: 读作「等待注入的空舱」, 比一圈虚线更像取景框 */}
+                <span className="cryo-slot-brackets" aria-hidden />
                 <span className="cryo-slot-no">SLOT-{String(i + 1).padStart(2, "0")}</span>
                 <span className="cryo-slot-vacant-mark" aria-hidden>
                   ＋
@@ -517,9 +600,16 @@ function FormationPanel({
               没有待命的队员 —— 去「冬眠唤醒」解封更多休眠体。
             </p>
           ) : (
-            bench.map((id) => (
-              <div key={id} className="cryo-bench-card">
-                <span className="cryo-bench-figure">
+            bench.map((id, i) => (
+              <div
+                key={id}
+                className={`cryo-bench-card${
+                  fx?.kind === "out" && fx.id === id ? " is-arriving" : ""
+                }`}
+                style={stagger(i)}
+                onAnimationEnd={clearFx}
+              >
+                <span className="cryo-bench-figure cryo-vitrine">
                   <CharacterPortrait
                     characterId={id}
                     emoji={getCharacter(id).emoji}
@@ -539,7 +629,7 @@ function FormationPanel({
                   type="button"
                   disabled={full}
                   title={full ? `上阵人数已达上限 ${size} 人` : undefined}
-                  onClick={() => onToggle(id)}
+                  onClick={() => toggle(id, "in")}
                 >
                   编入
                 </button>
@@ -583,7 +673,7 @@ function DossierPanel({
 
       <div className="cryo-dossier-body" style={{ gridTemplateColumns: "320px 1fr" }}>
         <div className="cryo-roster">
-          {awakened.map((id) => {
+          {awakened.map((id, i) => {
             const c = getCharacter(id);
             const s = characters[id];
             const onField = party.includes(id);
@@ -592,9 +682,12 @@ function DossierPanel({
                 key={id}
                 className={`cryo-roster-row${id === selectedId ? " is-active" : ""}`}
                 type="button"
+                style={stagger(i)}
                 onClick={() => onSelect(id)}
               >
-                <span className="cryo-roster-figure">
+                {/* 选中态那道紫竖条: 做成伪元素才能"从上往下长出来", border-left 不能动画 */}
+                <span className="cryo-roster-bar" aria-hidden />
+                <span className="cryo-roster-figure cryo-vitrine">
                   <CharacterPortrait
                     characterId={id}
                     emoji={c.emoji}
@@ -614,7 +707,9 @@ function DossierPanel({
           })}
         </div>
 
-        {cs ? <DossierDetail cs={cs} /> : <p className="cryo-note">没有已唤醒的队员。</p>}
+        {/* ★ key 换人就整块重挂 —— 换人时右栏要**重播**一遍入场(立绘淡入 / 属性条从 0 长 /
+            卡组逐张翻入)。不重挂的话 React 只改文本, 观感就是数字瞬间跳变。 */}
+        {cs ? <DossierDetail key={cs.charId} cs={cs} /> : <p className="cryo-note">没有已唤醒的队员。</p>}
       </div>
 
       <div className="cryo-panel-foot">
@@ -628,14 +723,10 @@ function DossierDetail({ cs }: { cs: CharacterState }) {
   const def = getCharacter(cs.charId);
   const stats = deriveStats(cs);
 
-  // 面板都是绝对值(角色基础 + 装备)。百分点类补个 % 后缀, 其余取整显示。
-  const fmt = (key: keyof StatBlock, pct?: boolean): string =>
-    `${Math.round(stats[key])}${pct ? "%" : ""}`;
-
   return (
     <div className="cryo-dossier-detail">
       <div className="cryo-detail-head">
-        <div className="cryo-detail-figure">
+        <div className="cryo-detail-figure cryo-vitrine">
           <CharacterPortrait
             characterId={def.id}
             emoji={def.emoji}
@@ -651,14 +742,20 @@ function DossierDetail({ cs }: { cs: CharacterState }) {
             可用经验 {cs.exp} · 累计 {cs.expEarned}
           </span>
           <div className="cryo-stat-groups">
-            {STAT_GROUPS.map((g) => (
-              <div key={g.title} className="cryo-stat-group">
+            {STAT_GROUPS.map((g, gi) => (
+              <div key={g.title} className="cryo-stat-group" style={stagger(gi)}>
                 <span className="cryo-stat-group-title">{g.title}</span>
                 {g.rows.map((row) => (
-                  <div key={row.key} className="cryo-attr">
-                    <span className="cryo-attr-label">{row.label}</span>
-                    <strong className="cryo-attr-value">{fmt(row.key, row.pct)}</strong>
-                  </div>
+                  <AttrRow
+                    key={row.key}
+                    label={row.label}
+                    value={stats[row.key]}
+                    pct={row.pct}
+                    ref100={row.ref ?? (row.pct ? REF_DEFAULT_PCT : undefined)}
+                    // 与 CSS 里这一组的 animation-delay 对齐(见 cryoContentIn 的算式):
+                    // 数字要在这一组浮现出来之后才开滚。
+                    delay={CONTENT_DELAY_MS + gi * STAGGER_MS}
+                  />
                 ))}
               </div>
             ))}
@@ -672,11 +769,41 @@ function DossierDetail({ cs }: { cs: CharacterState }) {
       <div className="cryo-deck">
         <span className="cryo-section-label">个人卡组 · {cs.deck.length} 张</span>
         <div className="cryo-deck-grid">
-          {cs.deck.map((card) => (
-            <CardView key={card.uid} card={card} playable selected={false} />
+          {cs.deck.map((card, i) => (
+            <div key={card.uid} className="cryo-deck-cell" style={stagger(i)}>
+              <CardView card={card} playable selected={false} />
+            </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// 一行属性: 标签 + 滚动数值 + 底部占比微条。
+// ⚠ 条长走 ref(见 STAT_GROUPS 顶部注释)——**纯展示**, 与结算无关; 超过 ref 的值条画满不溢出。
+function AttrRow({
+  label,
+  value,
+  pct,
+  ref100,
+  delay,
+}: {
+  label: string;
+  value: number;
+  pct?: boolean;
+  ref100?: number;
+  delay: number;
+}) {
+  const shown = useCountUp(Math.round(value), delay);
+  const fill = ref100 ? Math.max(0, Math.min(1, value / ref100)) : 0;
+  return (
+    <div className="cryo-attr" style={{ "--pct": fill } as CSSProperties}>
+      <span className="cryo-attr-label">{label}</span>
+      <strong className="cryo-attr-value">
+        {shown}
+        {pct ? "%" : ""}
+      </strong>
     </div>
   );
 }
@@ -723,10 +850,12 @@ function AwakenPanel({
     <>
       <PanelHead kicker="CRYO POD ARRAY" title="冬眠唤醒 · 舱位解封" onClose={onClose} />
 
-      <div className="cryo-awaken-body" style={{ gridTemplateColumns: "340px 1fr" }}>
+      <div className="cryo-awaken-body" style={{ gridTemplateColumns: "440px 1fr" }}>
+        {/* 舱位阵列: 2 列网格的**竖向舱体**(编号刻线 → 取景窗 → 状态灯 + 文案),
+            比原来的横条更像"一排冬眠舱"。列数在 CSS 里, 不是旋钮。 */}
         <div className="cryo-rack">
           {pods.map((pod, i) => (
-            <PodRow
+            <PodCard
               key={pod.kind === "empty" ? `empty-${i}` : pod.charId}
               pod={pod}
               index={i}
@@ -736,10 +865,13 @@ function AwakenPanel({
           ))}
         </div>
 
-        <div className="cryo-pod-detail">
+        {/* ★ key 换舱位就整块重挂: 右栏要跟着重播一次入场(与档案页换人同一套做法)。 */}
+        <div className="cryo-pod-detail" key={slot}>
           {active?.kind === "sealed" ? (
             <>
               <div className="cryo-sealed-figure" aria-hidden>
+                {/* 缓慢旋转的扫描环: 读作"仪器还在持续采样这具休眠体" */}
+                <span className="cryo-scan-ring" />
                 <SealedIcon />
               </div>
               <span className="cryo-kicker">DORMANT / {active.charId.toUpperCase()}</span>
@@ -748,17 +880,14 @@ function AwakenPanel({
                 舱盖仍处于密封状态。解封前无法读取该冬眠体的档案 —— 只知道生命体征仍在。
               </p>
               <div className="cryo-vitals">
-                {VITALS.map((v) => (
-                  <div key={v.label} className="cryo-vital">
-                    <span className="cryo-attr-label">{v.label}</span>
-                    <strong className="cryo-vital-value">{v.value}</strong>
-                  </div>
+                {VITALS.map((v, i) => (
+                  <VitalCell key={v.label} vital={v} index={i} />
                 ))}
               </div>
             </>
           ) : active?.kind === "awake" ? (
             <>
-              <div className="cryo-awake-figure">
+              <div className="cryo-awake-figure cryo-vitrine">
                 <CharacterPortrait
                   characterId={active.charId}
                   emoji={getCharacter(active.charId).emoji}
@@ -805,9 +934,10 @@ function AwakenPanel({
   );
 }
 
-// 一格舱位。三种状态共用一个外壳, 靠 is-* 类切视觉。空舱也是 button 而**不是 div**:
-// 它可选中、右栏会给出说明, 做成死块反而让人以为界面坏了。
-function PodRow({
+// 一格舱位(竖向舱体卡)。三种状态共用一个外壳, 靠 is-* 类切视觉。
+// 空舱也是 button 而**不是 div**: 它可选中、右栏会给出说明, 做成死块反而让人以为界面坏了。
+// 结构: 舱盖灯带 + 编号刻线 → 取景窗(立绘/图标) → 状态灯 + 两行文案; 四角括号只在选中时张开。
+function PodCard({
   pod,
   index,
   selected,
@@ -823,13 +953,15 @@ function PodRow({
     .join(" ");
 
   return (
-    <button className={cls} type="button" onClick={onSelect}>
+    <button className={cls} type="button" style={stagger(index)} onClick={onSelect}>
+      <span className="cryo-pod-lid" aria-hidden />
       <span className="cryo-pod-frost" aria-hidden />
+      <span className="cryo-pod-brackets" aria-hidden />
       <span className="cryo-pod-no">POD-{String(index + 1).padStart(2, "0")}</span>
 
       {pod.kind === "awake" ? (
         <>
-          <span className="cryo-pod-figure">
+          <span className="cryo-pod-figure cryo-vitrine">
             <CharacterPortrait
               characterId={pod.charId}
               emoji={getCharacter(pod.charId).emoji}
@@ -839,7 +971,10 @@ function PodRow({
           </span>
           <span className="cryo-pod-text">
             <span className="cryo-slot-name">{getCharacter(pod.charId).name}</span>
-            <span className="cryo-slot-meta">已解封</span>
+            <span className="cryo-slot-meta">
+              <i className="cryo-pod-led" aria-hidden />
+              已解封
+            </span>
           </span>
         </>
       ) : pod.kind === "sealed" ? (
@@ -849,7 +984,10 @@ function PodRow({
           </span>
           <span className="cryo-pod-text">
             <span className="cryo-slot-name">休眠体</span>
-            <span className="cryo-slot-meta">密封 · 生命体征稳定</span>
+            <span className="cryo-slot-meta">
+              <i className="cryo-pod-led" aria-hidden />
+              密封 · 体征稳定
+            </span>
           </span>
         </>
       ) : (
@@ -859,10 +997,39 @@ function PodRow({
           </span>
           <span className="cryo-pod-text">
             <span className="cryo-slot-name is-mono">NO SIGNAL</span>
-            <span className="cryo-slot-meta">空舱</span>
+            <span className="cryo-slot-meta">
+              <i className="cryo-pod-led" aria-hidden />
+              空舱
+            </span>
           </span>
         </>
       )}
     </button>
+  );
+}
+
+// 一格装饰读数。数值项滚一遍(换舱位时右栏整块重挂 ⇒ 重滚), 文字项原样出。
+function VitalCell({
+  vital,
+  index,
+}: {
+  vital: (typeof VITALS)[number];
+  index: number;
+}) {
+  const shown = useCountUp(
+    vital.num ?? 0,
+    CONTENT_DELAY_MS + index * STAGGER_MS,
+    460,
+    vital.decimals ?? 0,
+  );
+  return (
+    <div className="cryo-vital" style={stagger(index)}>
+      <span className="cryo-attr-label">{vital.label}</span>
+      <strong className="cryo-vital-value">
+        {vital.num === undefined
+          ? vital.text
+          : `${shown.toFixed(vital.decimals ?? 0)} ${vital.unit ?? ""}`.trim()}
+      </strong>
+    </div>
   );
 }

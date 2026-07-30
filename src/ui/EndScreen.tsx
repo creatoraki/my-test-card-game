@@ -2,11 +2,12 @@
 // 主角是「远征记录」: session.history 每段一条(落在哪个终点、能量掉到多少),
 // 一趟远征结束时那一列就是完整的故事, 比任何汇总数字都更值得看。
 
-import { getCharacter, getMap } from "../data";
+import { getCharacter, getItemDef, getMap } from "../data";
 import { energyTier } from "../explore/session";
 import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
 import { useTownStore } from "../store/townStore";
+import ItemSlot from "./ItemSlot";
 import "./EndScreen.css";
 
 const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
@@ -30,6 +31,8 @@ export function EndScreen() {
   const { title, kicker } = TITLES[result];
   const map = mapId ? getMap(mapId) : null;
   const wiped = result === "lost";
+  const backpack = session?.backpack ?? [];
+  const shipped = session?.shipped ?? [];
 
   return (
     <div className="screen end terminal-screen center">
@@ -46,7 +49,7 @@ export function EndScreen() {
 
       <div className="end-loot">
         {wiped ? (
-          <span className="loot-lost">💠 居民积分全部遗失</span>
+          <span className="loot-lost">💠 背包与本趟积分全部遗失</span>
         ) : (
           <span className="loot-chip big">💠 居民积分入账 {session?.loot ?? 0}</span>
         )}
@@ -58,6 +61,24 @@ export function EndScreen() {
           </span>
         )}
       </div>
+
+      {/* 带回来的实物 —— 这才是一趟远征真正的产出(设计文档 §6.1)。
+          团灭时 session.backpack 已被清空, 于是这里只会剩下投递口寄回的那些,
+          「唯一的保险手段」这件事不用文案解释, 玩家自己看得见。 */}
+      {session && (backpack.length > 0 || shipped.length > 0) && (
+        <div className="end-haul">
+          <span className="hud-label">
+            带回据点 {backpack.length + shipped.length} 件
+            {wiped && shipped.length > 0 ? "（全靠投递口寄回）" : ""}
+          </span>
+          <div className="end-haul-row">
+            {[...shipped, ...backpack].map((st) => (
+              <ItemSlot key={st.uid} stack={st} span={getItemDef(st.itemId).slots} />
+            ))}
+          </div>
+          <span className="muted">已存入物资中转仓。</span>
+        </div>
+      )}
 
       {/* 本次远征记录: 每段一行 —— 从哪个入口进、落到哪个终点、能量怎么掉的。 */}
       {session && session.history.length > 0 && (

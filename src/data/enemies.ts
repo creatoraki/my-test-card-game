@@ -3,6 +3,7 @@
 // 立绘不在此登记 —— 见 ui/enemyArt.ts, 按 id 查表(与 cardArt.ts 同约定, 数据层不碰素材)。
 
 import type { CardAnim, EffectDescriptor, StatBlock, Targeting } from "../engine/types";
+import type { DropEntry } from "../items/types";
 
 export interface EnemyMove {
   id: string;
@@ -25,6 +26,9 @@ export interface EnemyDef {
   stats?: Partial<StatBlock>;
   moves: EnemyMove[];
   script: string[];
+  // 掉落表(《探索模式设计.md》§5.2)。⚠ 经验**不进掉落表** —— 那是敌人固定值, 走 RULES.progression。
+  //   chance 是**基准**概率, 结算时乘统一掉落系数 K; kind: "family" 的条目才吃 qualityBias。
+  dropTable?: DropEntry[];
 }
 
 export const ENEMIES: EnemyDef[] = [
@@ -58,6 +62,8 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
     script: ["peck", "spore", "peck"],
+    // 活物, 身上没什么可拆的 —— 掉落刻意比三台机械少一大截。
+    dropTable: [{ kind: "item", itemId: "scrap-piece", chance: 0.3 }],
   },
   {
     id: "scrap-bot",
@@ -89,6 +95,12 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
     script: ["peck", "spore", "peck"],
+    // 《探索模式设计.md》§5.2 的首图示例表。
+    dropTable: [
+      { kind: "item", itemId: "scrap-piece", chance: 0.6, min: 1, max: 2 },
+      { kind: "family", familyId: "servo", chance: 0.25 },
+      { kind: "family", familyId: "armor-plate", chance: 0.08 },
+    ],
   },
   // 电线杆机器人: 技能完全复用废品机器人(招式/脚本/节奏逐字相同), 仅换立绘与名字。
   {
@@ -121,6 +133,12 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
     script: ["peck", "spore", "peck"],
+    // 招式虽与废品机器人相同, 掉落却换成武器族 —— 同一场里打谁能出什么, 是玩家该记住的信息。
+    dropTable: [
+      { kind: "item", itemId: "scrap-piece", chance: 0.5, min: 1, max: 2 },
+      { kind: "item", itemId: "scrap-alloy", chance: 0.15 },
+      { kind: "family", familyId: "prybar", chance: 0.08 },
+    ],
   },
   // 收音机机器人: 技能完全复用废品机器人(招式/脚本/节奏逐字相同), 仅换立绘与名字。
   {
@@ -153,5 +171,12 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
     script: ["peck", "spore", "peck"],
+    // 《探索模式设计.md》§5.2 的首图示例表: 信标机是数据存档的主要来源。
+    dropTable: [
+      { kind: "item", itemId: "scrap-piece", chance: 0.4 },
+      { kind: "family", familyId: "coil", chance: 0.3 },
+      { kind: "item", itemId: "data-shard", chance: 0.12 },
+      { kind: "family", familyId: "jammer", chance: 0.06 },
+    ],
   },
 ];

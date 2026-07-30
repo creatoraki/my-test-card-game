@@ -16,6 +16,9 @@ import { STAGE } from "./stage";
 import cryoBg from "../assets/场景/冬眠仓.png";
 import trainingBg from "../assets/场景/训练室.png";
 import worklogBg from "../assets/场景/控制终端.png";
+// ⚠ 临时素材: 物资中转仓还没有专属场景图, 先用 16:9 的场景占位素材。
+//   专属图到位后只改这一行的 import 即可。
+import storageBg from "../assets/占位场景素材.png";
 
 // ── 设施场景登记处 ──
 // 加一个设施 = 这里加一行数据(背景图 + 焦点 + 倍数), 组件一行都不用动。
@@ -34,6 +37,9 @@ export const FACILITY_SCENES: Record<string, FacilityScene> = {
   // 控制终端对准大厅右侧二层平台下那排蓝色屏幕(霓虹招牌下方的控制台)。
   // 与另外两处刻意分居画面三个不同区域, 三段运镜才不会看着像同一个镜头。
   worklog: { bg: worklogBg, focus: { x: 1360, y: 620 }, scale: 1.8 },
+  // 物资中转仓取大厅左上那片货架/管线区 —— 与另外三处分居四个不同象限,
+  // 四段运镜才不会看着像同一个镜头。
+  storage: { bg: storageBg, focus: { x: 430, y: 200 }, scale: 1.8 },
 };
 
 export const hasFacilityScene = (id: string): boolean => id in FACILITY_SCENES;

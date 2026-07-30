@@ -10,14 +10,19 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Card, Rarity, StatBlock } from "../engine";
 import { RULES, addStats, deckUpgradeCost, lowerMinSizeCost } from "../engine";
-import { CHARACTERS, getCharacter, makeCard, type CharacterDef } from "../data";
+import { CHARACTERS, getCharacter, getItemDef, makeCard, type CharacterDef } from "../data";
+import { removeByUid } from "../items/inventory";
+import type { EquipSlot, ItemStack } from "../items/types";
 
-// 装备修正层的占位。三装备槽(见 物品设计.md)尚未实现 —— 接上后把已穿戴装备的
-// 固定值与百分比塞进这里, deriveStats 会自动把它算进最终面板, 别的地方一行都不用改。
+// 装备修正层。★ 不再是占位 —— 它由 equipModsOf() 从 CharacterState.equipped 现算,
+// 不单独持久化(存两份必然对不上)。deriveStats 仍是局外面板的唯一换算点。
 export interface EquipmentMods {
   flat?: Partial<StatBlock>;
   pct?: Partial<StatBlock>;
 }
+
+// 三个装备槽(《物品设计.md》第二章), 均在开局开放。
+export const EQUIP_SLOTS: EquipSlot[] = ["weapon", "armor", "trinket"];
 
 export interface CharacterState {
   charId: string;
@@ -26,7 +31,8 @@ export interface CharacterState {
   deck: Card[]; // 个人卡组(实例); 战斗卡组 = 上阵角色个人卡组的集合
   deckLevel: number; // 卡组等级, 从 1 起; 只影响抽卡时的稀有度权重
   minDeckSize: number; // 当前最小卡组下限, 删卡不能把卡组删到它以下
-  equipment: EquipmentMods; // ⚠ 占位: 装备系统未实现, 恒为空对象
+  // 已穿戴的三件装备(物品实例本身, 不是修正层)。★ 穿在身上的**不占背包/仓库格**。
+  equipped: Record<EquipSlot, ItemStack | null>;
   pendingDraw: string[] | null; // 抽卡进行中的候选 defId; 持久化 => 刷新也躲不掉 3 选 1
 }
 
@@ -44,11 +50,18 @@ interface TownStore {
   //   characters[id] 才不必判空。上阵资格 = 在这张名单上。
   awakened: string[];
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize, 且必须 ⊆ awakened
-  loot: number; // 居民积分余额 —— 探索层的产出, 仅撤退/通关时落袋进来(团灭全丢)
+  loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
+  // ★ 物资中转仓: **不设上限**(与背包的 32 格形成对照)。远征活着回来才有东西进来。
+  storage: ItemStack[];
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
   bankLoot: (amount: number) => void; // 远征结束落袋
+  deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
+  discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
+  sellItem: (uid: string) => void; // 回收台: 按 sellValue 出售换居民积分
+  equipItem: (charId: string, uid: string) => void; // 从仓库取一件穿上
+  unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
   resetProfile: () => void; // 重置存档
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
@@ -66,10 +79,31 @@ interface TownStore {
 // 面板结算 —— 局外唯一换算点(UI 与开战共用)。
 // 最终面板 =(角色基础 + 装备固定)×(1 + 装备百分比); 战斗内那一层在引擎里叠(engine/stats)。
 // ---------------------------------------------------------------------------
+// 已穿戴的三件装备 → 一个合并后的修正层。同名 flat 相加、同名 pct 相加。
+// ⚠ 现算而不是存一份: 存两份(equipped 与 equipment)必然会有一份先过期。
+export function equipModsOf(cs: CharacterState): EquipmentMods {
+  const flat: Partial<StatBlock> = {};
+  const pct: Partial<StatBlock> = {};
+  for (const slot of EQUIP_SLOTS) {
+    const st = cs.equipped?.[slot];
+    if (!st) continue;
+    const mods = getItemDef(st.itemId).mods;
+    if (!mods) continue;
+    for (const [k, v] of Object.entries(mods.flat ?? {}) as [keyof StatBlock, number][]) {
+      flat[k] = (flat[k] ?? 0) + v;
+    }
+    for (const [k, v] of Object.entries(mods.pct ?? {}) as [keyof StatBlock, number][]) {
+      pct[k] = (pct[k] ?? 0) + v;
+    }
+  }
+  return { flat, pct };
+}
+
 export function deriveStats(cs: CharacterState): StatBlock {
   const base = getCharacter(cs.charId).base;
-  const flat = addStats(base, cs.equipment?.flat ?? {});
-  const pct = cs.equipment?.pct ?? {};
+  const eq = equipModsOf(cs);
+  const flat = addStats(base, eq.flat ?? {});
+  const pct = eq.pct ?? {};
   const out = { ...flat };
   for (const k of Object.keys(out) as (keyof StatBlock)[]) {
     out[k] = flat[k] * (1 + (pct[k] ?? 0) / 100);
@@ -114,7 +148,7 @@ function freshCharacter(def: CharacterDef): CharacterState {
     deck: def.startingCardIds.map((cid) => makeCard(cid)),
     deckLevel: 1,
     minDeckSize: RULES.deck.initialMinSize,
-    equipment: {},
+    equipped: { weapon: null, armor: null, trinket: null },
     pendingDraw: null,
   };
 }
@@ -140,18 +174,78 @@ export const useTownStore = create<TownStore>()(
       awakened: [],
       party: [],
       loot: 0,
+      storage: [],
       initialized: false,
 
       ensureProfile: () => {
         if (get().initialized) return;
-        set({ ...freshProfile(), loot: 0, initialized: true });
+        set({ ...freshProfile(), loot: 0, storage: [], initialized: true });
       },
 
-      resetProfile: () => set({ ...freshProfile(), loot: 0, initialized: true }),
+      resetProfile: () => set({ ...freshProfile(), loot: 0, storage: [], initialized: true }),
 
       bankLoot: (amount) => {
         if (amount <= 0) return;
         set({ loot: get().loot + amount });
+      },
+
+      // ---- 物资中转仓 ----
+
+      // 远征落袋。仓库无上限, 所以只是接上去 —— 不会有"装不下"这回事。
+      deposit: (stacks) => {
+        if (!stacks.length) return; // 幂等护栏, 同 bankLoot
+        set({ storage: [...get().storage, ...stacks.map((s) => ({ ...s }))] });
+      },
+
+      discardStored: (uid) => {
+        const next = removeByUid(get().storage, uid);
+        if (next !== get().storage) set({ storage: next });
+      },
+
+      // 回收台。⚠ 只有填了 sellValue 的物品(目前是废料)能卖 ——
+      // 模组材料与数据存档留着有别的用处, 卖掉会让日后接模组系统时无货可用。
+      sellItem: (uid) => {
+        const { storage, loot } = get();
+        const st = storage.find((s) => s.uid === uid);
+        if (!st) return;
+        const value = getItemDef(st.itemId).sellValue;
+        if (!value) return;
+        set({ storage: removeByUid(storage, uid), loot: loot + value * st.count });
+      },
+
+      // ---- 三装备槽(《物品设计.md》第二章) ----
+      // 穿上 = 从仓库移出、进角色的槽位; 被替下的旧装备退回仓库, 不会凭空消失。
+      // ⚠ 同一角色的同类槽位只能有一件; 不同角色可以各装一件同类装备。
+      equipItem: (charId, uid) => {
+        const { storage, characters } = get();
+        const cs = characters[charId];
+        const st = storage.find((s) => s.uid === uid);
+        if (!cs || !st) return;
+        const def = getItemDef(st.itemId);
+        if (def.category !== "equipment" || !def.slot) return;
+
+        const old = cs.equipped[def.slot];
+        set({
+          storage: old ? [...removeByUid(storage, uid), { ...old }] : removeByUid(storage, uid),
+          characters: {
+            ...characters,
+            [charId]: { ...cs, equipped: { ...cs.equipped, [def.slot]: { ...st } } },
+          },
+        });
+      },
+
+      unequipItem: (charId, slot) => {
+        const { storage, characters } = get();
+        const cs = characters[charId];
+        const st = cs?.equipped?.[slot];
+        if (!cs || !st) return;
+        set({
+          storage: [...storage, { ...st }],
+          characters: {
+            ...characters,
+            [charId]: { ...cs, equipped: { ...cs.equipped, [slot]: null } },
+          },
+        });
       },
 
       toggleParty: (charId) => {
@@ -282,8 +376,8 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
-    // ⚠ 角色养成重做(去等级/属性点 → 经验池 + 卡组锻造)后档案结构完全变了。
-    //   项目不做旧存档兼容, 换 key 让旧档自然失效重建, 比写 migrate 省事。
-    { name: "town-profile-v3", version: 3 },
+    // ⚠ v4: 加入物资中转仓(storage)与三装备槽(CharacterState.equipped 取代了旧的 equipment
+    //   修正层空壳)。项目不做旧存档兼容, 换 key 让旧档自然失效重建, 比写 migrate 省事。
+    { name: "town-profile-v4", version: 4 },
   ),
 );

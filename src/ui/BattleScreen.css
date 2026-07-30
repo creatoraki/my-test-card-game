@@ -136,8 +136,8 @@
   color: var(--muted);
   padding: 8px 2px;
 }
-/* 结束回合按钮见下方「战斗底部 HUD」段的 .end-turn-float —— 它是浮在画布上的独立元素,
-   不在任何 HUD 列里, 但几何全部跟着 --hud-info-w 走, 故与 HUD 放在一起。 */
+/* 结束回合按钮见上方「顶端信息条」段的 .end-turn-btn —— 它已从画布右下角的竖排外挂条
+   改成信息条最右端的一枚横版键, 不再需要任何独立定位。 */
 
 /* 底部 HUD 是浮在场景之上的一层: 舞台不再自裁, 推近时放大的角色会溢出到 HUD 区域, 故须显式压住。
    (.battle-scene 的 will-change:transform 已形成层叠上下文, 其内部的 z-index:1~8 不会穿透) */
@@ -355,29 +355,36 @@
 .topbar-right {
   justify-content: flex-end;
 }
-/* ── 顶端信息条(ui/BattleScreen.tsx 的 .battle-topbar): 法力水晶 | 换牌/丢弃 | 时刻标尺 ── */
-/* 在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏; z-index 抬过场景与调色层。 */
+/* ── 顶端信息条(ui/BattleScreen.tsx 的 .battle-topbar) ── */
+/* 法力水晶 | 换牌/丢弃 | 手牌读数 | 时刻标尺 | 结束回合 —— 一条里收齐所有**回合级**读数与操作。
+   在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏; z-index 抬过场景与调色层。
+   ★ 它**贴死画布上沿**: top/left/right 全是 0, 刻意不吃 --canvas-pad ⇒ 与顶边零缝隙,
+     读作"嵌在终端顶框上的一条状态栏"而不是浮在画面里的一块板。
+     为此 (a) 四角斜切只保留**下方**两个(上沿必须是整条直边, 切角会在顶边留出两个三角缺口);
+          (b) 边框只留下沿一条(左/右/上三边紧贴画布边缘, 画出来就是重复的框线)。
+   ⚠ 它盖在 .battle-stage(top: --canvas-pad) 的上沿之上 —— 敌人不会被挡住:
+     .enemy-row 自带 padding-top: 42px, 立绘本就从更下面起排。 */
 .battle-topbar {
   position: absolute;
   z-index: 12;
-  left: var(--canvas-pad);
-  right: var(--canvas-pad);
-  top: var(--canvas-pad);
+  left: 0;
+  right: 0;
+  top: 0;
   display: flex;
   align-items: center;
   gap: 20px;
-  height: 48px;
-  padding: 0 18px;
-  background: linear-gradient(180deg, #0d1214cc, #05080a9e);
-  border: 1px solid #6fd2ff2e;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  height: 52px;
+  padding: 0 22px;
+  background: linear-gradient(180deg, #0d1214f2, #05080ab8);
+  border-bottom: 1px solid #6fd2ff2e;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px));
 }
 /* 底边中央一条 accent 能量细线 */
 .battle-topbar::after {
   content: "";
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 12px;
+  right: 12px;
   bottom: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, #8ba63a99, transparent);
@@ -421,53 +428,44 @@
   stroke-linejoin: round;
   stroke-width: 2;
 }
-/* ★ 竖版机能条, 外挂在卡牌详情面板的左上角。
-   横版小按钮原先浮在手牌托盘上方那块没人管的空白里, 与右侧 320×640 的详情面板既不对齐也不成组,
-   读作一个飘着的杂项控件。改成竖条并让**顶边与面板顶边齐平** ⇒ 两者共享一条水平基准线,
-   右下角读作「详情面板 + 一个外挂标签」的一组。
-
-   几何(设计 px): 56 × 216, 右缘 1572(= 面板左缘 1584 − 12 间距), 顶边 424, 底边 640。
-   落在「弹出手牌的右缘 ≈1387」与「面板左缘 1584」之间, 两头都不撞。
-   ⚠ 两个方向都**跟着 --hud-info-w 走**, 改面板尺寸不用回来手改这里:
-     横向 right = pad + 面板宽 + 12;
-     纵向 top   = 100% − pad − 面板高, 而面板高 ≡ --hud-info-w × 2(它的 aspect-ratio: 1/2)。
-   ⚠ 纵向刻意用 top 而不是 bottom: 顶边对齐是这次构图的立足点, 不该再让按钮自身高度掺进换算。
-     画布带 transform ⇒ 它是本元素(fixed)的包含块, 100% 即画布高 1080。 */
-.end-turn-float {
-  position: fixed;
-  --end-turn-w: 56px;
-  --end-turn-h: 216px;
-  right: calc(var(--canvas-pad) + var(--hud-info-w) + 12px);
-  top: calc(100% - var(--canvas-pad) - var(--hud-info-w) * 2);
-  z-index: 18;
-  width: var(--end-turn-w);
-  height: var(--end-turn-h);
+/* ★ 结束回合: 顶端信息条最右端的一枚横版机能键。
+   旧版是外挂在卡牌详情面板左上角的竖排条(writing-mode: vertical-rl 那套), 已整条废弃 ——
+   它浮在画布右下角、与任何一组读数都不成组; 回合级操作理应与回合级读数(法力/时刻/手牌)同处一条。
+   ⚠ 尺寸与信息条高度(52)咬合: 36 高 + 上下各 8 的余量。斜切角 8px, 与信息条自身的 12px 同族但小一号
+     (嵌进去的东西切角要更"狠"才不会顶破容器的轮廓, 同 .hc-text 之于卡)。
+   ⚠ TickRuler 自带 margin-left:auto, 本键排在它之后 ⇒ 两者一起被推到最右, 不需要再写定位。 */
+.end-turn-btn {
+  flex: none;
   min-width: 0;
+  height: 36px;
   margin: 0;
-  padding: 0;
-  /* 竖排下 text-align 的语义轴会翻转, grid 居中两轴都稳、不受 writing-mode 影响 */
-  display: grid;
-  place-items: center;
-  /* 文字竖排: 结/束/回/合 上下排列, 字符正立(纯中文下 mixed 已同效, 显式写死更稳)。
-     letter-spacing 在竖排下作用于**字间纵向间距**, 把 4 个字拉满整条。
-     ⚠ text-indent 抵消末字之后那一份 letter-spacing 造成的上偏, 取值**等于**字距而不是它的一半:
-       place-items:center ⇒ 文字盒是 fit-content 尺寸, indent 同时把盒子撑大 ⇒ 只有一半落成位移。
-       (令字宽 c、字距 s、缩进 i, 则字形中心 = 108 − s/2 + i/2, 要它等于 108 ⇒ i = s。)
-       与 .cip-art.empty span 的同类补偿同为「取满值」, 是一个套路。 */
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  letter-spacing: 12px;
-  text-indent: 12px;
-  font-size: 17px;
+  padding: 0 18px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  font-size: 14px;
   font-weight: 700;
+  letter-spacing: 3px;
   white-space: nowrap;
-  border-color: #b5d414;
+  border: 1px solid #b5d414;
   background: linear-gradient(135deg, #cbe722, #7a9507);
   color: #0d1201;
   box-shadow: 0 0 12px #d8f32926;
+  transition: transform 0.08s, background 0.15s, box-shadow 0.15s;
 }
-.end-turn-float:hover:not(:disabled) {
+/* ⚠ color / border-color 必须在这条里显式写回: styles/base.css 的 button:hover:not(:disabled)
+   会把它们改成 accent 描边 + accent 字色, 落在这枚本就是 accent 底色的键上会糊成一片。 */
+.end-turn-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #e7fa3b, #9fbd0e);
+  border-color: #e8ff6b;
+  color: #0d1201;
+  box-shadow: 0 0 16px #d8f32947;
+}
+/* 敌方回合 / 动画播放期间: 整键断电成灰, 与手牌"打不出"那套灰化同一个语汇 */
+.end-turn-btn:disabled {
+  border-color: #46525a;
+  background: linear-gradient(135deg, #2a3238, #171d21);
+  color: #7b8a93;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /* ===================== 战斗底部 HUD(ui/BattleScreen.tsx 的 .battle-hud) ===================== */
@@ -501,8 +499,8 @@
    ⚠ 必须自带底衬 + z-index: 站得最靠前的敌人(如 n1 的收音机, dy 550)血条就在这个高度,
    裸文字压上去两边都读不清。收成 align-self:center 的小药丸而不是整宽横条, 也是为了少挡人。
    ⚠ margin-bottom 62px 是**刻意的不完全避让**, 不是算出来的安全值: 手牌弹出后峰值越出 HUD
-     上沿约 214px(见 .hand-card:hover 的注释), 而手牌横向正压在舞台中线上(提示条也居中)
-     ⇒ 完全避让要 204px, 那会把提示条顶到 y≈586、正好压在敌人身上(最靠前的 n1 站位 dy≈550),
+     上沿约 290px(见 .hand-card:hover 的注释), 而手牌横向正压在舞台中线上(提示条也居中)
+     ⇒ 完全避让要 280px, 那会把提示条顶到 y≈510、正好压在敌人身上(最靠前的 n1 站位 dy≈550),
      比被卡盖住更糟。故接受: 选中/悬停居中那几张卡时, 提示条会被卡面盖住。
      层序上无解 —— 卡在 .battle-hud(z 2)里, 提示条在 .battle-scene(z 0)里, 卡必然在上。 */
 .battle-stage .hint-bar {
@@ -523,13 +521,13 @@
 }
 
 /* ── HUD 中段: 手牌托盘(横排鱼鳞叠的大卡) ── */
-/* ★ 唯一的真旋钮是 --hand-card-w(= 1:1 配图的边长); 卡高由它推导, 别手写。
+/* ★ 唯一的真旋钮是 --hand-card-w(= 1:1 配图的边长); 卡高由它 + 上下两条信息区推导, 别手写。
    版式(全是设计 px):
      横向 5 张(engine/rules.ts 的 hand.size)× 240 − 4 × 100 叠压 = 800 ≤ 中段可用宽
           (1028 − 2×10 托盘内边距 = 1008)
           ⇒ 静止时每张卡露出 240 − 100 = 140px ≈ 58%(握紧的一副牌), 悬停置顶时露全。
-     纵向 卡 278 > 托盘可用高(--hud-h 264 − 托盘下内边距 8 = 256)
-          ⇒ **刻意**越出 HUD 上沿 22px(悬停上浮 145 + scale 1.34 后峰值约 214px)。
+     纵向 卡 364(= 顶行 40 + 配图 240 + 说明区 84) > 托盘可用高(--hud-h 264 − 托盘下内边距 8 = 256)
+          ⇒ **刻意**越出 HUD 上沿 108px(悬停再上浮半张卡高 182 ⇒ 峰值约 290px)。
             为此 (a) HAND 读数条已从这里搬去顶端信息条(.hand-count-readout), 否则会被卡盖住;
                  (b) 舞台底部的 .hint-bar 加了 margin-bottom 避让, 见「战斗底部 HUD」段开头。
    改卡牌大小: 只动 --hand-card-w, 然后回去重算 --hand-overlap 与 .hint-bar 的 margin-bottom。 */
@@ -539,9 +537,12 @@
   flex-direction: column;
   min-width: 0;
   --hand-card-w: 240px;
-  --hc-bar-h: 38px;
-  /* 卡高 = 正方形配图区 + 图下信息条 ⇒ 配图区恒为 --hand-card-w 见方, 1:1 素材零裁剪 */
-  --hand-card-h: calc(var(--hand-card-w) + var(--hc-bar-h));
+  /* 卡面三段: 顶行(费用水晶 + 卡名) / 正方形配图 / 底部效果说明。
+     两条信息区都是**实位**(不压配图), 故卡高 = 卡宽 + 两者之和; 配图区因此恒为 240 见方,
+     1:1 素材零裁剪。说明区高度固定 ⇒ 一排卡等高, 文字长短靠 HandCard.tsx 的三档字号消化。 */
+  --hc-head-h: 40px;
+  --hc-text-h: 84px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-head-h) + var(--hc-text-h));
   /* 相邻卡的叠压量(负 margin, 见 .hand-tray .hand-card + .hand-card)。
      下限 = (5 × --hand-card-w − 中段可用宽) / 4 = 48px —— 小于它就排不下 5 张。
      取 100px(远大于下限): 排下不成问题, 纯为"握紧的一副牌"的观感, 整排向左收拢约 800px。 */

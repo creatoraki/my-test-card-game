@@ -7,6 +7,7 @@ import {
   partyDrawCount,
   statOf,
   hitChance,
+  critChance,
   defenseMultiplier,
   RULES,
 } from "./index";
@@ -65,9 +66,27 @@ describe("属性口径", () => {
     const b = battleWith("whirlwind-slash");
     const sw = b.combatants["swordsman"];
     const enemy = b.combatants[b.enemyIds[0]];
-    const p = hitChance(sw, enemy);
+    const p = hitChance(b, sw, enemy);
     expect(p).toBeGreaterThanOrEqual(RULES.combat.hitFloorPct);
     expect(p).toBeLessThanOrEqual(RULES.combat.hitCeilPct);
+  });
+
+  // 负重是我方自己背的包 —— 它只该削我方的命中/暴击, 不该顺手削掉敌人的。
+  it("负重只扣我方: 我方命中下降, 敌人打我方反而更准", () => {
+    const light = battleWith("whirlwind-slash");
+    const heavy = { ...battleWith("whirlwind-slash"), burdenPenalty: 20 };
+    const sw = heavy.combatants["swordsman"];
+    const enemy = heavy.combatants[heavy.enemyIds[0]];
+
+    // 我方进攻: 命中被扣 20 个百分点
+    expect(hitChance(light, light.combatants["swordsman"], light.combatants[light.enemyIds[0]]) - hitChance(heavy, sw, enemy)).toBeCloseTo(20, 6);
+    // 我方暴击同样被扣, 且不会被扣成负数
+    expect(critChance(heavy, sw)).toBe(Math.max(0, statOf(sw, "critRate") - 20));
+    expect(critChance(heavy, enemy)).toBe(statOf(enemy, "critRate")); // 敌人不受影响
+    // 敌人进攻我方: 我方闪避被扣 ⇒ 敌人更容易命中(但闪避先钳到 0, 不会反向加成)
+    expect(hitChance(heavy, enemy, sw)).toBeGreaterThanOrEqual(
+      hitChance(light, light.combatants[light.enemyIds[0]], light.combatants["swordsman"]),
+    );
   });
 
   it("概率类属性最终值封顶在 probCapPct", () => {

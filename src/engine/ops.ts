@@ -20,7 +20,7 @@ import type {
 import { STATUS_DEFS } from "./statuses";
 import { RULES } from "./rules";
 import { rngFloat } from "./rng";
-import { addMod, defenseMultiplier, hitChance, statOf } from "./stats";
+import { addMod, critChance, defenseMultiplier, hitChance, statOf } from "./stats";
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -94,7 +94,7 @@ export function dealDamage(
 
   // ---- 1. 命中判定 —— 只有"攻击"需要命中; 无施法者(中毒/荆棘等)与必中效果直接跳过 ----
   if (dmg.isAttack && src && !opts.mustHit) {
-    if (!roll(state, hitChance(src, target))) {
+    if (!roll(state, hitChance(state, src, target))) {
       dmg.missed = true;
       dmg.amount = 0;
       log(state, `${target.emoji} ${target.name} 闪避了这次攻击`);
@@ -103,7 +103,7 @@ export function dealDamage(
   }
 
   // ---- 2. 暴击判定(命中之后) ----
-  if (dmg.isAttack && src && roll(state, statOf(src, "critRate"))) {
+  if (dmg.isAttack && src && roll(state, critChance(state, src))) {
     dmg.crit = true;
     dmg.amount *= statOf(src, "critDamage") / 100;
   }

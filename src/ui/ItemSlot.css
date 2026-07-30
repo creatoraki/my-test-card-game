@@ -1,0 +1,144 @@
+/* 物品格。★ 稀有度只在下面 5 条 .r-* 里各改两个局部变量(--rr 主色 / --rg 辉光),
+   边框、角标、发光、图标色一律读这两个 ⇒ 加一档稀有度 = tokens.css 两行 + 这里一条。
+   斜切角沿用项目已有的 clip-path 语言(与 bento 玻璃砖 / 终点卡同一族)。 */
+
+.item-slot {
+  --rr: var(--rarity-common);
+  --rg: var(--rarity-common-glow);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 4px 3px;
+
+  color: var(--rr); /* ★ 图标靠 currentColor 吃这一行, 于是自动染上稀有度色 */
+  background: linear-gradient(160deg, var(--rg), transparent 62%), var(--panel);
+  border: 1px solid var(--rr);
+  border-radius: 3px;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.item-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px var(--rr) inset;
+}
+
+.item-slot.is-selected {
+  box-shadow:
+    0 0 0 1px var(--rr) inset,
+    0 0 14px var(--rg);
+}
+
+/* 分类 tab 未命中: 压暗但保留格子, 空间感不丢 */
+.item-slot.is-dimmed {
+  opacity: 0.28;
+  filter: saturate(0.3);
+}
+
+/* ── 五档稀有度 ── */
+.item-slot.r-common {
+  --rr: var(--rarity-common);
+  --rg: var(--rarity-common-glow);
+}
+.item-slot.r-fine {
+  --rr: var(--rarity-fine);
+  --rg: var(--rarity-fine-glow);
+}
+.item-slot.r-rare {
+  --rr: var(--rarity-rare);
+  --rg: var(--rarity-rare-glow);
+}
+.item-slot.r-epic {
+  --rr: var(--rarity-epic);
+  --rg: var(--rarity-epic-glow);
+}
+.item-slot.r-legendary {
+  --rr: var(--rarity-legendary);
+  --rg: var(--rarity-legendary-glow);
+}
+
+/* 边框语言逐档加码: 普通只有细边 → 精良加内描边 → 稀有起加外发光 →
+   史诗/传说再加左上角的切角三角标。用「层数」而不是「亮度」区分, 远看也读得出档次。 */
+.item-slot.r-fine {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--rr) 35%, transparent) inset;
+}
+.item-slot.r-rare,
+.item-slot.r-epic,
+.item-slot.r-legendary {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rr) 45%, transparent) inset,
+    0 0 10px var(--rg);
+}
+.item-slot.r-epic::before,
+.item-slot.r-legendary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-top: 9px solid var(--rr);
+  border-right: 9px solid transparent;
+}
+
+/* ── 内容 ── */
+.item-slot-icon {
+  display: block;
+  width: 46%;
+  line-height: 0;
+}
+.item-slot-icon svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.item-slot-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 9px;
+  line-height: 1.15;
+  color: var(--text);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-slot-count {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text);
+  text-shadow: 0 0 4px #000;
+}
+
+/* ── 空格 / 死格 ── */
+.item-slot.is-empty {
+  cursor: default;
+  background: #0000002e;
+  border: 1px dashed #ffffff1f;
+  box-shadow: none;
+}
+.item-slot.is-empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+/* 死格 = 行末让给跨格装备的那一格。画一道斜杠, 表示"这格用不上"而不是"这格空着"。 */
+.item-slot.is-dead {
+  background:
+    repeating-linear-gradient(135deg, #ffffff0f 0 2px, transparent 2px 7px), #0000002e;
+  border-style: solid;
+  border-color: #ffffff14;
+}

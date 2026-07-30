@@ -277,6 +277,10 @@ export interface BattleState {
   exhaust: string[];
   redrawsThisRound: number;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
+  // ★ 开战瞬间快照的负重惩罚(百分点), 战斗中恒定不变(《探索模式设计.md》§6.3)。
+  //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenPenalty 算好传入。
+  //   我方命中 / 暴击 / 闪避各减这么多; 敌人不受影响(见 stats.burdenOf)。
+  burdenPenalty: number;
   rngState: number;
   log: LogEntry[];
 }

@@ -90,16 +90,34 @@ export function addMod(
 // 派生量
 // ---------------------------------------------------------------------------
 
+// 该单位实际承受的负重惩罚(百分点)。★ 只有我方吃 —— 背包是小队自己背的。
+export function burdenOf(state: BattleState, cmb: Combatant): number {
+  return cmb.team === "player" ? (state.burdenPenalty ?? 0) : 0;
+}
+
 // 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。
-export function hitChance(attacker: Combatant, defender: Combatant): number {
+// ⚠ 负重在这里出现**两次**且方向相反: 我方进攻时命中降低, 我方挨打时闪避降低。
+//   闪避那项必须先钳到 0 再相减 —— 直接写 -(dodge - burden) 在 dodge 为 0 时会变成
+//   「负重反而给我方加命中」, 方向完全反了。
+export function hitChance(
+  state: BattleState,
+  attacker: Combatant,
+  defender: Combatant,
+): number {
   const c = RULES.combat;
+  const dodge = Math.max(0, statOf(defender, "dodgeRate") - burdenOf(state, defender));
   const raw =
     c.baseHitChance +
     statOf(attacker, "hitRate") +
     statOf(attacker, "precision") -
-    statOf(defender, "dodgeRate") -
-    burdenPenalty();
+    dodge -
+    burdenOf(state, attacker);
   return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
+}
+
+// 暴击概率(百分点), 已扣掉负重。ops 的暴击判定读它, 不要直接读 statOf(…, "critRate")。
+export function critChance(state: BattleState, cmb: Combatant): number {
+  return Math.max(0, statOf(cmb, "critRate") - burdenOf(state, cmb));
 }
 
 // 防御减伤后的乘数: 1 − 防御力 /(防御力 + 常量)。
@@ -136,7 +154,9 @@ export function partyDrawCount(state: BattleState): number {
 }
 
 // 负重惩罚(百分点), 三项属性(命中/闪避/暴击)各减这么多。
-// ⚠ 背包与占格属探索层 P1, 现在恒为 0; 接上背包后把 occupiedSlots 传进来即可。
+// ★ 换算的唯一真相点: 探索页的负重读数与开战时的快照都走它(见 explore/session.burdenNow)。
+//   战斗内不再重算 —— 负重在**开战瞬间快照**进 BattleState.burdenPenalty(设计文档 §6.3),
+//   否则战斗中用掉一个消耗品就会让命中率跳一下。
 export function burdenPenalty(occupiedSlots = 0, partyBurdenAdapt = 0): number {
   const adapt = Math.max(0, Math.min(100, partyBurdenAdapt));
   return occupiedSlots * RULES.burden.penaltyPerSlot * (1 - adapt / 100);

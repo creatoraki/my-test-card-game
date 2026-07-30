@@ -4,11 +4,12 @@
 // 这件事, 因为只有它同时认识 battleStore、exploreStore 与界面路由。
 
 import { create } from "zustand";
-import type { AllyInit, Ally, Card } from "../engine";
+import type { AllyInit, Ally, Card, Enemy } from "../engine";
 import { RULES } from "../engine";
-import { getCharacter, getEncounter, getMap } from "../data";
-import { encounterModifier, rewardMultiplier } from "../explore/session";
+import { getCharacter, getMap } from "../data";
+import { burdenNow, encounterModifier, rewardMultiplier } from "../explore/session";
 import type { PartySnapshot } from "../explore/types";
+import type { ItemStack } from "../items/types";
 import { useBattleStore } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
 import { deriveStats, useTownStore, type ExpGain } from "./townStore";
@@ -30,7 +31,8 @@ interface RunStore {
   mapId: string | null; // 当前远征的地图
   expReport: ExpGain[]; // 上一场胜利的经验结算报告(结算页展示)
   lastResult: RunResult | null;
-  lastLoot: number; // 上一场战斗的居民积分产出(结算页展示)
+  lastLoot: number; // 上一场战斗的居民积分产出(结算页展示)。⚠ 普通战斗恒为 0, 见 EXPLORE_RULES.loot
+  lastDrops: ItemStack[]; // 上一场战斗掉的实物(结算页展示) —— 战斗的正经产出是这个
 
   enterTown: () => void;
   startExpedition: (mapId: string) => void; // 选定地图 → 进路由图
@@ -48,8 +50,18 @@ function partySnapshot(): PartySnapshot[] {
   const { characters, party } = useTownStore.getState();
   return party.map((id) => {
     const c = getCharacter(id);
-    const maxHp = Math.max(1, Math.round(deriveStats(characters[id]).maxHp));
-    return { charId: id, name: c.name, emoji: c.emoji, hp: maxHp, maxHp, alive: true };
+    const stats = deriveStats(characters[id]);
+    const maxHp = Math.max(1, Math.round(stats.maxHp));
+    return {
+      charId: id,
+      name: c.name,
+      emoji: c.emoji,
+      hp: maxHp,
+      maxHp,
+      alive: true,
+      // ★ 负重适应随快照一起带进探索层 —— 之后算负重惩罚就不用回头来问 townStore 了。
+      burdenAdapt: stats.burdenAdapt,
+    };
   });
 }
 
@@ -79,7 +91,21 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   });
 
   const mod = encounterModifier(session.energy, isBoss, getMap(session.mapId).fillerEnemyIds);
-  useBattleStore.getState().init(encounterId, { allies, deck: battleDeck }, undefined, mod);
+  // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个百分点数。
+  const burden = burdenNow(session);
+  useBattleStore
+    .getState()
+    .init(encounterId, { allies, deck: battleDeck, burdenPenalty: burden }, undefined, mod);
+}
+
+// 远征收尾的落袋 —— 积分 + 实物一起进城镇, 只有这一个出口。
+// ★ 团灭时 session.backpack 与 session.loot 已被 explore/session.loseEverything 清零,
+//   所以这里**无条件**调用即可: 惩罚的真相点只在 EXPLORE_RULES.wipe 一处, 不在这里再判一次。
+//   投递口寄回的 shipped 不受团灭影响, 因此照样入仓 —— 那是背包玩法唯一的保险手段(§6.5)。
+function bankEverything(session: { loot: number; backpack: ItemStack[]; shipped: ItemStack[] }) {
+  const town = useTownStore.getState();
+  town.bankLoot(session.loot);
+  town.deposit([...session.shipped, ...session.backpack]);
 }
 
 export const useRunStore = create<RunStore>((set, get) => ({
@@ -88,6 +114,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
   expReport: [],
   lastResult: null,
   lastLoot: 0,
+  lastDrops: [],
 
   enterTown: () => {
     useTownStore.getState().ensureProfile();
@@ -97,7 +124,14 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
   startExpedition: (mapId) => {
     useExploreStore.getState().start(mapId, partySnapshot());
-    set({ mapId, expReport: [], lastResult: null, lastLoot: 0, screen: "explore" });
+    set({
+      mapId,
+      expReport: [],
+      lastResult: null,
+      lastLoot: 0,
+      lastDrops: [],
+      screen: "explore",
+    });
   },
 
   // 玩家在落点浮层里选了战斗分支 → 建局开打。
@@ -118,8 +152,10 @@ export const useRunStore = create<RunStore>((set, get) => ({
     if (battle.phase !== "won" && battle.phase !== "lost") return;
 
     const won = battle.phase === "won";
-    const encounterId = session.pendingEncounterId;
-    const enemyCount = getEncounter(encounterId).enemies.length;
+    // ★ 从战斗单位而非遭遇战定义里取敌人 defId —— 能量档位追加进来的敌人也该掉东西,
+    //   而 EncounterDef.enemies 里没有它们。数量仍是 .length, 与旧口径一致。
+    const enemyDefIds = battle.enemyIds.map((id) => (battle.combatants[id] as Enemy).enemyDefId);
+    const enemyCount = enemyDefIds.length;
 
     // 战斗单位的最终血量回填给探索层 —— 下一场以此开局
     const survivors = battle.playerIds.map((id) => {
@@ -128,11 +164,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
     });
 
     const explore = useExploreStore.getState();
-    explore.settleBattle(won, survivors, enemyCount);
+    explore.settleBattle(won, survivors, enemyDefIds);
     const after = useExploreStore.getState().session;
 
     if (!won) {
-      set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0 });
+      // 战败即团灭。背包已在 settleBattle 里丢干净, 这里只把寄回的落袋。
+      if (after) bankEverything(after);
+      set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0, lastDrops: [] });
       return;
     }
 
@@ -145,11 +183,19 @@ export const useRunStore = create<RunStore>((set, get) => ({
       exp,
     );
 
+    // 本场掉了什么: 拿战斗前后的背包做差(uid 唯一, 所以差集就是新进来的那些)。
+    // ⚠ 还要算上 pendingPickup —— 背包满时掉落会落在那里, 玩家仍然「掉到了」它们。
+    const before = new Set(session.backpack.map((s) => s.uid));
+    const lastDrops = [...(after?.backpack ?? []), ...(after?.pendingPickup ?? [])].filter(
+      (s) => !before.has(s.uid),
+    );
+
     set({
       screen: "reward",
       expReport,
       lastResult: "won",
       lastLoot: (after?.loot ?? 0) - session.loot,
+      lastDrops,
     });
   },
 
@@ -158,7 +204,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
     if (!session) return set({ screen: "town" });
 
     if (session.phase === "cleared") {
-      useTownStore.getState().bankLoot(session.loot);
+      bankEverything(session);
       useBattleStore.getState().clear();
       set({ screen: "victory", lastResult: "won" });
       return;
@@ -181,12 +227,14 @@ export const useRunStore = create<RunStore>((set, get) => ({
     if (!session) return set({ screen: "town" });
 
     if (session.phase === "wiped") {
-      set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0 });
+      // 团灭: session.backpack 已被 loseEverything 清空, 但**投递口寄回的仍然算数**(§6.5)。
+      bankEverything(session);
+      set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0, lastDrops: [] });
       return;
     }
     if (session.phase !== "retreated" && session.phase !== "cleared") return;
 
-    useTownStore.getState().bankLoot(session.loot);
+    bankEverything(session);
     set({
       screen: "victory",
       lastResult: session.phase === "cleared" ? "won" : "retreat",
@@ -196,12 +244,12 @@ export const useRunStore = create<RunStore>((set, get) => ({
   backToTown: () => {
     useBattleStore.getState().clear();
     useExploreStore.getState().clear();
-    set({ screen: "town", mapId: null, expReport: [], lastResult: null, lastLoot: 0 });
+    set({ screen: "town", mapId: null, expReport: [], lastResult: null, lastLoot: 0, lastDrops: [] });
   },
 
   backToMenu: () => {
     useBattleStore.getState().clear();
     useExploreStore.getState().clear();
-    set({ screen: "menu", mapId: null, expReport: [], lastResult: null, lastLoot: 0 });
+    set({ screen: "menu", mapId: null, expReport: [], lastResult: null, lastLoot: 0, lastDrops: [] });
   },
 }));
