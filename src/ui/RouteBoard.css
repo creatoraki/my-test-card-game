@@ -399,11 +399,11 @@
    ⚠ 主管与桥管共用这套**基础**规则; 桥接只有在**显形的那几秒**才另换一套亮青(见下面的
      .rb-bridges.is-revealing) —— 平时它与主线一模一样, 抬头那三条区分依然成立。 */
 .rb-pipe-bed {
-  stroke: #04090d;
-  stroke-width: 5.4;
+  stroke: #020508;
+  stroke-width: 6.2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.82;
+  opacity: 0.92;
   transition:
     stroke 220ms ease,
     stroke-width 220ms ease;
@@ -413,6 +413,7 @@
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+  filter: drop-shadow(0 1.5px 0 #000000b8) drop-shadow(0 -0.6px 0 #d8c3a044);
   transition:
     stroke 220ms ease,
     stroke-width 220ms ease;
@@ -423,7 +424,7 @@
      读法当场破掉, 也会在揭示期给桥接的青色添一层背景噪声。 */
 .rb-lane,
 .rb-bridge {
-  filter: drop-shadow(0 0 2.5px #d8c3a02e);
+  filter: drop-shadow(0 1px 0 #00000066);
   transition:
     filter 220ms ease,
     opacity 300ms ease;
@@ -433,7 +434,7 @@
    ⚠ 通电态刻意与电流同色同辉, 让「悬停点亮」与「信号跑过」看起来是同一种电。
    ⚠ 轨槽同时换成偏荧光的暗色: 槽还留着中性冷灰的话, 通电的亮线会像浮在一条没通电的槽上面。 */
 .rb-lane.is-live {
-  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--rb-trace) 55%, transparent));
+  filter: drop-shadow(0 1px 0 #00000088) drop-shadow(0 0 4px color-mix(in srgb, var(--rb-trace) 38%, transparent));
 }
 .rb-lane.is-live .rb-pipe {
   stroke: var(--rb-trace);
@@ -441,7 +442,7 @@
 }
 .rb-lane.is-live .rb-pipe-bed {
   stroke: color-mix(in srgb, var(--rb-trace) 16%, #04090d);
-  stroke-width: 6;
+  stroke-width: 6.4;
 }
 
 /* ── 「不是我这条」的通道: 选完入口之后整条压暗 ──
@@ -485,10 +486,10 @@
 /* 亮线加粗到 3.6 之后轨槽必须一起加宽, 否则槽被亮线撑破、凹槽关系当场翻成「亮线镶了圈黑边」。 */
 .rb-bridges:not(.is-hidden) .rb-pipe-bed {
   stroke: #03161c;
-  stroke-width: 6.6;
+  stroke-width: 7;
 }
 .rb-bridges:not(.is-hidden) .rb-bridge {
-  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--rb-bridge) 70%, transparent));
+  filter: drop-shadow(0 2px 0 #000000b8) drop-shadow(0 0 5px color-mix(in srgb, var(--rb-bridge) 48%, transparent));
 }
 /* ⚠⚠ **本页禁闪烁约定的唯一例外**(见本文件抬头): 揭示期的桥接需要一闪一闪的高亮。
    这是玩家全轮唯一一次看桥接的机会, 闪烁本身就是「快记, 它要没了」的倒计时信号 ——

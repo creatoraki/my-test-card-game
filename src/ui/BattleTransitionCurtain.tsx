@@ -28,6 +28,7 @@ interface Crack {
 }
 
 const MAX_PIXEL_RATIO = 1.5;
+const CRACK_WIDTH_SCALE = 3;
 
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const randomBetween = (min: number, max: number) => min + Math.random() * (max - min);
@@ -66,13 +67,25 @@ function createCrack(
 function createCracks(origin: Point, width: number, height: number): Crack[] {
   const cracks: Crack[] = [];
   const radius = Math.hypot(width, height) * 0.78;
-  const mainCount = 42;
-  const ringCount = 4;
-  const ringPoints = 26;
+  const mainCount = 21;
+  const ringCount = 2;
+  const ringPoints = 13;
+  const crackStartRadius = 34;
 
   for (let index = 0; index < mainCount; index++) {
     const angle = (Math.PI * 2 * index) / mainCount + randomBetween(-0.055, 0.055);
-    const main = createCrack(origin, angle, radius * randomBetween(0.55, 0.95), index * 5, index % 4 === 0);
+    const startRadius = crackStartRadius + randomBetween(-3.5, 3.5);
+    const start = {
+      x: origin.x + Math.cos(angle) * startRadius,
+      y: origin.y + Math.sin(angle) * startRadius,
+    };
+    const main = createCrack(
+      start,
+      angle,
+      radius * randomBetween(0.55, 0.95),
+      index * 5,
+      index % 4 === 0,
+    );
     cracks.push(main);
 
     if (index % 2 === 0 || Math.random() > 0.18) {
@@ -170,29 +183,29 @@ function CrackCanvas({ origin }: { origin: TransitionOrigin | null }) {
       for (const crack of cracks) {
         const progress = clamp((elapsed - crack.delay) / crack.duration);
         if (progress === 0) continue;
-        // 多层描边模拟裂纹的黑色凹口、红色断面与边缘高光。
-        context.globalAlpha = crack.alpha * 0.94;
-        context.strokeStyle = "rgb(3 2 4 / 0.98)";
-        context.lineWidth = crack.width + 5.2;
-        context.shadowColor = "rgb(0 0 0 / 0.9)";
-        context.shadowBlur = 5;
-        context.shadowOffsetX = 1.5;
-        context.shadowOffsetY = 2;
+        // 多层描边模拟裂纹的暗色凹口、青色断面与白色边缘高光。
+        context.globalAlpha = crack.alpha * 0.62;
+        context.strokeStyle = "rgb(5 18 24 / 0.78)";
+        context.lineWidth = (crack.width + 5.2) * CRACK_WIDTH_SCALE;
+        context.shadowColor = "rgb(0 8 12 / 0.48)";
+        context.shadowBlur = 3;
+        context.shadowOffsetX = 1;
+        context.shadowOffsetY = 1;
         drawPartialPath(context, crack, progress);
         context.shadowBlur = 0;
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
-        context.globalAlpha = crack.alpha * 0.95;
-        context.strokeStyle = "rgb(74 5 12 / 0.98)";
-        context.lineWidth = crack.width + 3.2;
+        context.globalAlpha = crack.alpha * 0.88;
+        context.strokeStyle = "rgb(18 86 98 / 0.92)";
+        context.lineWidth = (crack.width + 3.2) * CRACK_WIDTH_SCALE;
         drawPartialPath(context, crack, progress);
         context.globalAlpha = crack.alpha;
-        context.strokeStyle = crack.highlight ? "rgb(255 48 58 / 0.98)" : "rgb(190 18 35 / 0.94)";
-        context.lineWidth = crack.width + 1.15;
+        context.strokeStyle = crack.highlight ? "rgb(224 255 255 / 0.98)" : "rgb(86 218 231 / 0.96)";
+        context.lineWidth = (crack.width + 1.15) * CRACK_WIDTH_SCALE;
         drawPartialPath(context, crack, progress);
         context.globalAlpha = crack.alpha * 0.8;
-        context.strokeStyle = crack.highlight ? "rgb(255 184 170 / 0.96)" : "rgb(255 83 75 / 0.86)";
-        context.lineWidth = Math.max(0.35, crack.width * 0.38);
+        context.strokeStyle = crack.highlight ? "rgb(255 255 255 / 0.98)" : "rgb(190 247 248 / 0.92)";
+        context.lineWidth = Math.max(0.35, crack.width * 0.38 * CRACK_WIDTH_SCALE);
         drawPartialPath(context, crack, progress);
       }
 
@@ -201,15 +214,15 @@ function CrackCanvas({ origin }: { origin: TransitionOrigin | null }) {
         const impactAlpha = 1 - impactProgress;
         const impactRadius = 7 + impactProgress * 28;
         context.globalAlpha = impactAlpha * 0.9;
-        context.strokeStyle = "rgb(255 42 52 / 0.98)";
+        context.strokeStyle = "rgb(156 245 248 / 0.98)";
         context.lineWidth = 3;
-        context.shadowColor = "rgb(255 20 30 / 0.95)";
+        context.shadowColor = "rgb(62 222 235 / 0.82)";
         context.shadowBlur = 16;
         context.beginPath();
         context.arc(point.x, point.y, impactRadius, 0, Math.PI * 2);
         context.stroke();
         context.shadowBlur = 0;
-        context.fillStyle = "rgb(255 110 92 / 0.98)";
+        context.fillStyle = "rgb(224 255 255 / 0.98)";
         context.beginPath();
         context.arc(point.x, point.y, 3.5 + impactProgress * 2, 0, Math.PI * 2);
         context.fill();

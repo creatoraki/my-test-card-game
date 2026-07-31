@@ -4,7 +4,8 @@
 
 | 区域 | 主要入口 |
 | --- | --- |
-| 路由与过场 | [ScreenTransition.tsx](../../src/ui/ScreenTransition.tsx)、[transitions.ts](../../src/ui/transitions.ts) |
+| 路由与过场 | [ScreenTransition.tsx](../../src/ui/ScreenTransition.tsx)、[transitions.ts](../../src/ui/transitions.ts)、[transitionOrigin.ts](../../src/ui/transitionOrigin.ts) |
+| 共享元素过场 | [screenViewTransition.css](../../src/ui/screenViewTransition.css)、[sharedPortrait.ts](../../src/ui/sharedPortrait.ts)（编队 ↔ 角色详情，走原生 `document.startViewTransition`） |
 | 主菜单与据点 | [MenuScreen.tsx](../../src/ui/MenuScreen.tsx)、[TownScreen.tsx](../../src/ui/TownScreen.tsx) |
 | 设施 | [ControlTerminalScene.tsx](../../src/ui/ControlTerminalScene.tsx)、[CryoScene.tsx](../../src/ui/CryoScene.tsx)、[StorageScene.tsx](../../src/ui/StorageScene.tsx) |
 | 编队与角色 | [FormationScreen.tsx](../../src/ui/FormationScreen.tsx)、[CharacterDetailScreen.tsx](../../src/ui/CharacterDetailScreen.tsx) |
