@@ -16,7 +16,11 @@ import { deriveStats, useTownStore, type ExpGain } from "./townStore";
 
 // ★ "formation"(编队) 与 "charDetail"(角色详情) 是据点的**一级全屏页**, 不是设施内浮层 ——
 //   入口在大厅 bento 的「编队」砖(见 ui/TownScreen.tsx), 冬眠仓只剩「冬眠唤醒」。
-//   两页之间与回据点的切换都走 ScreenTransition 的默认淡出淡入(ui/transitions.ts)。
+//   回据点走 ScreenTransition 的默认淡出淡入; 两页之间走**原生 View Transition 的共享元素
+//   过场**(ROUTE_FX 里 viewTransition: true): 被点那张卡的面板/立绘/角色名与详情页的
+//   立绘栏/展示柜/大标题挂同名 view-transition-name, 浏览器自动配对形变。
+//   ⚠ 「回程该给哪张卡挂共享名」由 ui/sharedPortrait.ts 单独递送 —— 纯表现层数据,
+//   刻意不进本 store(会被持久化, 且订阅者要为一个只活半秒的值重渲染)。
 export type Screen =
   | "menu"
   | "town"

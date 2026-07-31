@@ -242,6 +242,41 @@
     0 18px 40px -26px #2a1b3d52;
 }
 
+/* ===================== 与角色详情页之间的共享元素过场 ===================== */
+/* ★ 整套动画**不在本文件** —— 它跑在文档根上的 ::view-transition-* 伪元素里,
+     统一写在 ui/screenViewTransition.css。这里只负责给本页元素**挂名字**。
+   ★ 卡片一族的名字由 FormationScreen.tsx 内联下发(要按"是不是被点的那张"和索引区分),
+     这里只有全页唯一的四件角落元素能写死。
+   ⚠ .fm-bg / .fm-veil 刻意不命名: 与详情页是同一张底图, 让它们落进 root 快照,
+     两页像素一致 ⇒ root 的默认交叉淡化完全看不见 ⇒ 观感上"底图从头到尾没动过"。 */
+.fm-header {
+  view-transition-name: vt-fm-header;
+}
+.fm-readout {
+  view-transition-name: vt-fm-readout;
+}
+.fm-back {
+  view-transition-name: vt-fm-back;
+}
+.fm-note {
+  view-transition-name: vt-fm-note;
+}
+
+/* ⚠⚠ 从详情页飞回来的那一次挂载, 必须关掉本页**自己**的入场动画(fmRise / fmCardIn):
+     1. ::view-transition-new(...) 是**活的**渲染, 不是静态位图 —— 元素自己的入场动画会照播,
+        与 screenViewTransition.css 里那组飞入叠在一起, 变成"淡入两遍";
+     2. 更要命的是几何: 这两条动画的 backwards 填充带 translateY, 浏览器测量新状态的
+        border box 时量到的是**偏移后**的位置, 共享元素会飞到一个偏下的落点。
+   ⚠ 只能按"是不是飞回来的"开关, 不能一刀切删掉 —— 从据点直接进编队页走的是普通淡入淡出,
+     那条路线上这些入场动画仍然是本页唯一的过渡。类由 FormationScreen.tsx 按 landingId 挂。 */
+.fm-stage.is-vt-enter .fm-header,
+.fm-stage.is-vt-enter .fm-readout,
+.fm-stage.is-vt-enter .fm-back,
+.fm-stage.is-vt-enter .fm-note,
+.fm-stage.is-vt-enter .fm-card {
+  animation: none;
+}
+
 /* 卡面主体: 铺满整卡的一颗按钮 —— 点哪都进详情。
    ⚠ 必须把全局 button 的深色底/描边/斜切角全部清掉, 只留布局(它们是给暗底 HUD 写的)。 */
 .fm-card-main {
@@ -515,6 +550,8 @@ span.fm-bust {
   .fm-card-go {
     transform: none;
   }
+  /* ⚠ 与详情页之间的共享元素过场不需要在这里兜底: resolveTransition 已经短路成零时长,
+     根本不会调 startViewTransition, ::view-transition-* 伪元素连生成都不会生成。 */
 }
 @keyframes fmFade {
   from {

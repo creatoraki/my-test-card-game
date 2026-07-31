@@ -294,7 +294,7 @@ const GROWTH: NodeEvent[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// §8.4 经济类 —— P0 未接入交易系统, 全部占位
+// §8.4 经济类 —— 临期食品交易与投递
 // ---------------------------------------------------------------------------
 const ECONOMY: NodeEvent[] = [
   {
@@ -318,32 +318,6 @@ const ECONOMY: NodeEvent[] = [
     energyDelta: 0,
     effects: [],
     disabled: true,
-  },
-  {
-    id: "work-order",
-    kind: "merchant",
-    category: "economy",
-    depth: [1, 3],
-    title: "控制终端·临时工单",
-    description: "接一条本轮内能干完的小活, 换居民积分。",
-    energyDelta: -3,
-    effects: [{ type: "GAIN_LOOT", amount: 26 }],
-    choices: [
-      {
-        id: "accept",
-        label: "接单",
-        desc: "干完这票 · 居民积分 +26 · 耗 3 粒子",
-        energyDelta: -3,
-        effects: [{ type: "GAIN_LOOT", amount: 26 }],
-      },
-      {
-        id: "decline",
-        label: "不接",
-        desc: "登出终端就走, 什么都不花也什么都没有",
-        energyDelta: 0,
-        effects: [],
-      },
-    ],
   },
   {
     id: "dispatch-chute",

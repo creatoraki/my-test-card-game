@@ -60,13 +60,20 @@
 }
 
 /* ===================== 左上: 身份 ===================== */
+/* ⚠⚠ 本页所有带 view-transition-name 的元素都**不再写自己的入场动画** ——
+   本页只有一个入口(编队页点卡), 走的是 View Transition, 飞入统一由
+   ui/screenViewTransition.css 的 ::view-transition-new(vt-cd-*) 负责。
+   两套并存会出两个问题: ① ::view-transition-new 是活的渲染, 动画会叠播两遍;
+   ② cdRise / cdContentIn 的 backwards 填充带 translateY, 浏览器测量新状态几何时会量到
+   偏移后的位置, 共享元素落点就偏了。
+   ⚠ 栏**内部**的错峰(.cd-stat-group / .cd-deck-cell)照旧保留: 它们没有名字, 活在
+   ::view-transition-new(vt-cd-stats) 这张活渲染里面, 照常播不受影响。 */
 .cd-header {
   position: absolute;
   z-index: 1;
   max-width: 900px;
   padding-left: 18px;
   border-left: 2px solid var(--cd-glow);
-  animation: cdRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 .cd-kicker {
   display: block;
@@ -97,7 +104,6 @@
   z-index: 1;
   display: flex;
   gap: 10px;
-  animation: cdRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 /* ★ 亮玻璃配方(与 FormationScreen.css / CryoScene.css 那两份逐行一致)。 */
 .cd-chip {
@@ -156,6 +162,8 @@
   display: grid;
   min-height: 0;
 }
+/* ⚠ 三栏的入场动画已移交给 ::view-transition-new(vt-card-panel / vt-cd-stats / vt-cd-deck),
+   理由见本文件 .cd-header 上方那段。 */
 .cd-figure-col,
 .cd-stats-col,
 .cd-deck-col {
@@ -163,14 +171,6 @@
   flex-direction: column;
   gap: 12px;
   min-height: 0;
-  animation: cdContentIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  animation-delay: 140ms;
-}
-.cd-stats-col {
-  animation-delay: 200ms;
-}
-.cd-deck-col {
-  animation-delay: 260ms;
 }
 
 /* ---- 立绘栏 ---- */
@@ -348,7 +348,8 @@ span.cd-bust {
 }
 /* ⚠ 起点 260ms 与 CharacterDetailScreen.tsx 的 CONTENT_DELAY_MS、间隔 55ms 与 STAGGER_MS
    是同两个数(那边靠它们算数值滚动的起跑时间), 改一处要改两处。
-   ⚠ 也必须**晚于**父列 .cd-stats-col 的 200ms —— 不然这几组会在还看不见的时候先浮完。 */
+   ⚠ 也必须**晚于**父列的飞入(screenViewTransition.css 里 ::view-transition-new(vt-cd-stats)
+     的 200ms 延迟) —— 不然这几组会在还看不见的时候先浮完。 */
 .cd-stat-group {
   display: flex;
   flex-direction: column;
@@ -474,7 +475,6 @@ span.cd-bust {
     border-color 0.15s ease,
     color 0.15s ease,
     transform 0.15s cubic-bezier(0.2, 0.72, 0.28, 1);
-  animation: cdRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 .cd-stage .cd-back:hover {
   border-color: var(--cd-glow);
@@ -484,6 +484,52 @@ span.cd-bust {
 }
 .cd-stage .cd-back:active {
   transform: translateX(-4px) translateY(1px);
+}
+
+/* ===================== 与编队页之间的共享元素过场 ===================== */
+/* ★ 整套动画**不在本文件** —— 它跑在文档根上的 ::view-transition-* 伪元素里,
+     统一写在 ui/screenViewTransition.css。这里只负责给本页元素**挂名字**。
+     本页每个名字都只有一份, 故全部写死, TSX 侧不需要任何运行时逻辑。
+   ★ 三个名字与编队页**同名** ⇒ 浏览器把它们配对成形变:
+       vt-card-panel  ← 编队页被点那张卡的外壳 .fm-card
+       vt-portrait    ← 那张卡的立绘取景窗 .fm-card-figure
+       vt-char-name   ← 那张卡的角色名 .fm-card-name
+     其余 vt-cd-* 在编队页没有对应物 ⇒ 只生成 new(飞入) 或只生成 old(飞出)。
+   ⚠ .cd-primary / .cd-note 必须单独命名: 它们是 .cd-figure-col 的子元素, 不给名字就会被
+     烘进 vt-card-panel 那张位图, 跟着一起被拉伸成编队卡的形状。
+   ⚠ .cd-bg / .cd-veil 刻意不命名: 与编队页是同一张底图, 让它们落进 root 快照 ⇒
+     两页像素一致 ⇒ root 的默认交叉淡化完全看不见 ⇒ 观感上"底图从头到尾没动过"。 */
+.cd-header {
+  view-transition-name: vt-cd-header;
+}
+.cd-readout {
+  view-transition-name: vt-cd-readout;
+}
+.cd-title {
+  view-transition-name: vt-char-name;
+}
+.cd-figure-col {
+  view-transition-name: vt-card-panel;
+}
+.cd-figure {
+  view-transition-name: vt-portrait;
+}
+.cd-primary {
+  view-transition-name: vt-cd-primary;
+}
+/* ⚠ 只有立绘栏那条说明要单独命名(它在 vt-card-panel 里面)。属性栏/卡组栏底下的 .cd-note
+   跟着各自的栏一起飞, 不该抢名字 —— 名字全局唯一, 三个 .cd-note 同名会让过场直接作废。 */
+.cd-figure-col > .cd-note {
+  view-transition-name: vt-cd-note;
+}
+.cd-stats-col {
+  view-transition-name: vt-cd-stats;
+}
+.cd-deck-col {
+  view-transition-name: vt-cd-deck;
+}
+.cd-back {
+  view-transition-name: vt-cd-back;
 }
 
 /* ===================== 入场 ===================== */
@@ -529,6 +575,10 @@ span.cd-bust {
   .cd-deck-cell:hover {
     transform: none;
   }
+  /* ⚠ 与编队页之间的共享元素过场不需要在这里兜底: resolveTransition 已经短路成零时长,
+     根本不会调 startViewTransition, ::view-transition-* 伪元素连生成都不会生成。
+     这个媒体查询块反倒是本页在减少动效下**唯一**的入场动画来源 —— 常态那几条已经移交给
+     伪元素了(见 .cd-header 上方那段), 这里的 cdFade 必须留着。 */
 }
 @keyframes cdFade {
   from {

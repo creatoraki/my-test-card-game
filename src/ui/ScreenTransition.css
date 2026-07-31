@@ -35,10 +35,70 @@
   animation-name: screen-fade-in;
 }
 
+/* ── 「不做任何事」的占位动效 ──
+   ★ 它是刻意的空规则, 不要以为漏写了 keyframes。
+   用途: 探索 → 战斗那条路线的画面由 BattleTransitionCurtain 在包裹层**之上**演,
+   包裹层此刻绝不能整体淡出(裂纹底下的探索画面会跟着没)。但 ScreenTransition 仍然需要
+   一个非零时长来决定"旧界面什么时候卸载", 于是就有了这个只出时长、不出画面的档位。
+   ⚠ 别给它加任何 keyframes。 */
+.screen-fx-stay {
+  animation-name: none;
+}
+
+/* 探索→战斗用 View Transitions API：旧快照作为清晰的镜面场景保留，新快照在
+  ScreenTransition 的同步 update 中生成，再由 JS 对 ::view-transition-new(root) 做从点击点
+  向外的黑色涟漪裁切。默认 CSS 动画必须关闭，避免浏览器内建淡入与自定义替换叠加。
+   ⚠⚠ 必须靠 [data-vt-route] 收窄到**这一条路线**: 项目里还有别的 VT 路线(编队 ↔ 角色详情,
+     见 ui/screenViewTransition.css), 那边指望 root 走浏览器默认的交叉淡化。无差别写法会把
+     那边的底图淡化一起掐掉, 表现为背景在过场瞬间硬切。标记由 ScreenTransition.tsx 挂/摘。 */
+:root[data-vt-route="explore>battle"]::view-transition-old(root),
+:root[data-vt-route="explore>battle"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+:root[data-vt-route="explore>battle"]::view-transition-old(root) {
+  z-index: 1;
+}
+
+:root[data-vt-route="explore>battle"]::view-transition-new(root) {
+  z-index: 2;
+  filter: drop-shadow(0 0 0 rgb(255 48 48 / 1)) drop-shadow(0 0 7px rgb(255 48 48 / 0.95));
+}
+
+/* 探索场景的整张旧快照就是玻璃主体。保持它清晰可读，只做极轻的受击外扩；
+   裂纹和黑色涟漪会在这张场景快照上完成碎裂与替换。 */
+:root[data-vt-route="explore>battle"]::view-transition-old(root) {
+  transform-origin: var(--vt-impact-x) var(--vt-impact-y);
+  animation: vt-glass-impact var(--vt-glass-break-ms) linear both;
+}
+
+@keyframes vt-glass-impact {
+  0%,
+  14% {
+    transform: translate(0, 0) scale(1);
+  }
+  22% {
+    transform: translate(-1px, 1px) scale(1.002);
+  }
+  34% {
+    transform: translate(1px, -1px) scale(1.004);
+  }
+  48% {
+    transform: translate(-1px, 1px) scale(1.006);
+  }
+  100% {
+    transform: translate(0, 0) scale(1.008);
+  }
+}
+
 /* ── 备选特效(供 ROUTE_FX / SCREEN_FX 自定义) ──
    ⚠ 以下都带 transform, 用作 battle 的入场会在动画期间污染 computeCamera 的测量。
    目前无碍(相机只在出牌后 CINEMA.beat=500ms 才测, 早于此的入场已归位), 但若要
-   延长入场时长或改 battle 的运镜时序, 先回头看这条。 */
+   延长入场时长或改 battle 的运镜时序, 先回头看这条。
+   ⚠ 另一条坑: 带 transform 的特效会把包裹层推出视口, 而**静态定位**盒子的溢出要计入
+   视口的可滚动区域 ⇒ 播放期间冒出滚动条。真要启用, 记得一并给它 position:fixed; inset:0
+   (fixed 盒子的溢出不计入, 这也是 .screen-curtain 从不产生滚动条的原因)。 */
 @keyframes screen-zoom-in {
   from {
     opacity: 0;
@@ -96,4 +156,3 @@
   /* 战斗场景那套动感的降级写在**文件末尾** —— 媒体查询不加特异性, 写在这里会被后面
      .combatant-figure 等同特异性的规则按源码顺序盖掉。 */
 }
-

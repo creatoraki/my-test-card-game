@@ -5,6 +5,11 @@
 //
 // 一次切换 = 旧界面出场(exit) → 黑场停顿(hold) → 新界面入场(enter), 串行执行。
 // 出场与入场各自独立可配, 见 TransitionSpec。
+//
+// ★ 例外: 标了 viewTransition 的路线走**原生 View Transitions API**, 不适用上面这条模型 ——
+//   没有 exit/hold/enter 三段, 也没有任何 JS 定时器(收尾靠 transition.finished)。
+//   那类路线的**时长与画面一律在 CSS 里**(ui/screenViewTransition.css), "时长唯一真相在 TS"
+//   这条规矩对它们不成立: 动的是 ::view-transition-* 伪元素, TS 根本够不着。
 // ============================================================================
 
 import type { Screen } from "../store/runStore";
@@ -24,7 +29,22 @@ export interface TransitionSpec {
   enter: ScreenFx; // 新界面入场
   hold: number; // ms: 出场结束到入场开始之间的黑场停顿
   curtain?: string; // 可选全屏幕布层特效名 → .screen-curtain.curtain-<name>
+  /**
+   * 走原生 View Transitions API(document.startViewTransition)。
+   * ⚠ 置 true 后 exit/enter/hold 全部**不生效** —— 界面交换是一次原子提交, 中间没有三段式,
+   *   动画由 ui/screenViewTransition.css 里的 ::view-transition-* 规则负责。
+   * 用于「共享元素」型过场: 两页各自给对应元素挂同名 view-transition-name, 浏览器自动配对形变。
+   */
+  viewTransition?: boolean;
 }
+
+// 探索 → 战斗专用演出严格分三段：场景玻璃受击 → 裂纹停留 → 黑色涟漪吞没旧场景。
+// 旧路线图由 View Transition 快照承担玻璃主体，BattleTransitionCurtain 负责表面裂痕与冲击反馈。
+export const BATTLE_CRACK_DRAW_MS = 1000;
+export const BATTLE_CRACK_HOLD_MS = 5000;
+export const BATTLE_RIPPLE_MS = 2000;
+export const BATTLE_RIPPLE_START_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS;
+export const BATTLE_RIPPLE_EXIT_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS + BATTLE_RIPPLE_MS;
 
 // ── 可用特效登记处 ──
 // 新增一种特效 = 这里加一项 + ui/ScreenTransition.css 加一段同名 keyframes。
@@ -40,6 +60,10 @@ export const FX = {
   zoomIn: { name: "zoom-in", ms: 280 },
   zoomOut: { name: "zoom-out", ms: 220 },
   slideUp: { name: "slide-up", ms: 280 },
+  // 只出时长、不出画面的档位(CSS 里 .screen-fx-stay 是个刻意的空规则): 探索→战斗那条路线
+  // 要让包裹层原样停在屏幕上, 由 BattleTransitionCurtain 在它**之上**演裂纹, 包裹层一淡出
+  // 裂纹底下的探索画面就跟着没了。
+  battleRippleOut: { name: "stay", ms: BATTLE_RIPPLE_EXIT_MS },
 } as const satisfies Record<string, ScreenFx>;
 
 // 全局默认: 淡出 → 短暂黑场 → 淡入。
@@ -60,10 +84,26 @@ export const SCREEN_FX: Partial<Record<Screen, Partial<TransitionSpec>>> = {};
 //   "town>battle": { exit: FX.zoomOut, hold: 220 },
 //   "battle>reward": { enter: FX.slideUp },
 export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionSpec>>> = {
-  // 探索牌桌 ↔ 战斗: 一「下潜」一「上浮」。牌桌是俯瞰整片区域的抽象层, 战斗是钻进其中一个点,
-  // 两者尺度差得远, 所以给比默认更长的黑场, 让切换有下沉感而不是页面跳转。
-  "explore>battle": { hold: 200 },
+  // 探索牌桌 → 战斗: 路线图保持清晰成为镜面，点击处生成白色蛛网裂痕，随后黑色涟漪从同一点替换为战斗。
+  // 包裹层必须 stay: 它是 BattleScreen 的祖先，不能挂 transform；旧场景快照只做极轻微外扩。
+  "explore>battle": {
+    exit: FX.battleRippleOut,
+    enter: FX.none,
+    hold: 0,
+    curtain: "battle-ripple",
+  },
   "reward>explore": { hold: 140 },
+
+  // ★ 编队 ↔ 角色详情: **原生 View Transition 的共享元素过场**, 不是全屏特效。
+  //   两页背景是同一张冬眠仓.png ⇒ 未命名的一切落进 root 快照, 它的默认交叉淡化因此
+  //   完全看不见, "底图不动、只有元素重组"的错觉自然成立。
+  //     被点的卡面板/立绘/角色名 与 详情页的立绘栏/展示柜/大标题 **同名** ⇒ 浏览器自动形变;
+  //     两页各自独有的元素(标题、读数、其余卡、属性栏、卡组栏)各挂各的名 ⇒ 各演各的飞出/飞入。
+  //   编排见 ui/ScreenTransition.tsx 的 viewTransition 分支, 画面见 ui/screenViewTransition.css。
+  //   ⚠ exit/enter/hold 在这条分支里不读, 填 none/0 只是为了满足类型。
+  //   ⚠ 两条路线刻意同参: 来回对称, 空间关系才立得住。
+  "formation>charDetail": { exit: FX.none, enter: FX.none, hold: 0, viewTransition: true },
+  "charDetail>formation": { exit: FX.none, enter: FX.none, hold: 0, viewTransition: true },
 };
 
 const NO_TRANSITION: TransitionSpec = { exit: FX.none, enter: FX.none, hold: 0 };
@@ -86,5 +126,6 @@ export function resolveTransition(from: Screen, to: Screen): TransitionSpec {
     enter: route?.enter ?? SCREEN_FX[to]?.enter ?? DEFAULT_TRANSITION.enter,
     hold: route?.hold ?? DEFAULT_TRANSITION.hold,
     curtain: route?.curtain ?? DEFAULT_TRANSITION.curtain,
+    viewTransition: route?.viewTransition ?? SCREEN_FX[to]?.viewTransition,
   };
 }

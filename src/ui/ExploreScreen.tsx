@@ -13,7 +13,7 @@
 //   filter**: 任何祖先一旦成为 backdrop root, 玻璃的 backdrop-filter 就取不到背景图。
 //   入场动画一律挂叶子元素(与 ControlTerminalScene 同一条约束)。
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { getMap } from "../data";
 import { RULES } from "../engine";
 import {
@@ -46,6 +46,8 @@ import {
 import { prefersReducedMotion } from "./transitions";
 import { useStageScale } from "./stage";
 import { mapArt, warmMapArt } from "./mapArt";
+import { eventArt } from "./eventArt";
+import { setTransitionOrigin } from "./transitionOrigin";
 import "./ExploreScreen.css";
 
 // 路由图面板在画布里的落位。
@@ -194,9 +196,13 @@ export function ExploreScreen() {
   };
 
   // 披露页 → 推进战斗。战斗建局在 runStore(只有它认识 battleStore)。
-  const goBattle = () => {
+  const goBattle = (event: MouseEvent<HTMLButtonElement>) => {
     const next = startBattle();
-    if (next?.phase === "inBattle") enterEncounter();
+    if (next?.phase === "inBattle") {
+      // 键盘触发的 click 没有可用鼠标坐标(detail 为 0)，幕布会安全回退到视口中心。
+      if (event.detail !== 0) setTransitionOrigin(event.clientX, event.clientY);
+      enterEncounter();
+    }
   };
 
   return (
@@ -413,72 +419,83 @@ export function ExploreScreen() {
         {focused && ev && (
           <div className="expl-modal" key={`${session.round}-${session.currentSegment}-${ev.id}`}>
             <section className={`expl-panel k-${ev.kind}`}>
-              <span className="expl-kicker">
-                第 {session.round} 轮 · 第 {session.currentSegment} 推进段 · 落点
-              </span>
-              <h3 className="expl-panel-title">{ev.title}</h3>
-              <p className="expl-panel-desc">{ev.description}</p>
-
-              {session.phase === "landed" ? (
-                <div className="expl-choices">
-                  {landedChoices(session).map((c, i) => {
-                    // ★ 按钮上写的是**这一支的粒子净变化** = 每节点固定消耗(可被隐匿通道免掉)
-                    //   + 该分支自己的额外增减。玩家不该自己去做这道加法。
-                    const base = session.freeNodes > 0 ? 0 : -EXPLORE_RULES.energyPerNode;
-                    const delta = base + c.energyDelta;
-                    return (
-                      <button
-                        key={c.id}
-                        className="expl-choice"
-                        type="button"
-                        onClick={() => takeOption(i)}
-                      >
-                        <span className="expl-choice-bar" aria-hidden />
-                        <span className="expl-choice-head">
-                          <span className="expl-choice-label">{c.label}</span>
-                          <span className={`expl-choice-energy ${delta >= 0 ? "up" : "down"}`}>
-                            粒子 {delta > 0 ? "+" : delta < 0 ? "−" : ""}
-                            {Math.abs(delta)}
-                          </span>
-                        </span>
-                        <span className="expl-choice-desc">{c.desc}</span>
-                      </button>
-                    );
-                  })}
+              <div className="expl-panel-art" aria-hidden="true">
+                <img className="expl-panel-image" src={eventArt(ev.kind)} alt="" />
+                <div className="expl-panel-art-grid" />
+                <span className="expl-panel-art-code">EVT / {ev.kind.toUpperCase()}</span>
+                <span className="expl-panel-art-mark">◆</span>
+              </div>
+              <div className="expl-panel-content">
+                <div className="expl-panel-heading">
+                  <span className="expl-kicker">
+                    第 {session.round} 轮 · 第 {session.currentSegment} 推进段 · 落点
+                  </span>
+                  <span className="expl-panel-status">
+                    {session.phase === "landed" ? "待处理" : "已结算"}
+                  </span>
                 </div>
-              ) : (
-                <>
-                  <div className="expl-notes">
-                    {session.pendingNotes.length ? (
-                      session.pendingNotes.map((n, i) => (
-                        <span
-                          key={i}
-                          className="expl-note"
-                          style={{ animationDelay: `${i * 40}ms` } as CSSProperties}
+                <h3 className="expl-panel-title">{ev.title}</h3>
+                <p className="expl-panel-desc">{ev.description}</p>
+
+                {session.phase === "landed" ? (
+                  <div className="expl-choices">
+                    {landedChoices(session).map((c, i) => {
+                      // ★ 按钮上写的是这一支的粒子净变化, 不让玩家自己做加法。
+                      const base = session.freeNodes > 0 ? 0 : -EXPLORE_RULES.energyPerNode;
+                      const delta = base + c.energyDelta;
+                      return (
+                        <button
+                          key={c.id}
+                          className="expl-choice"
+                          type="button"
+                          onClick={() => takeOption(i)}
                         >
-                          {n}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="expl-note is-muted">无结算</span>
-                    )}
+                          <span className="expl-choice-bar" aria-hidden />
+                          <span className="expl-choice-head">
+                            <span className="expl-choice-label">{c.label}</span>
+                            <span className={`expl-choice-energy ${delta >= 0 ? "up" : "down"}`}>
+                              粒子 {delta > 0 ? "+" : delta < 0 ? "−" : ""}
+                              {Math.abs(delta)}
+                            </span>
+                          </span>
+                          <span className="expl-choice-desc">{c.desc}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div className="expl-panel-foot">
-                    <span className="expl-panel-cost">
-                      {mustReplace ? "先在背包里处理完拿不下的东西" : "结算完毕"}
-                    </span>
-                    <button
-                      className="expl-btn is-primary"
-                      type="button"
-                      // 背包里还有待取舍的东西就不许推进 —— 真正的拦截在 session.confirmNode
-                      disabled={mustReplace}
-                      onClick={() => confirmNode()}
-                    >
-                      确认 ▸
-                    </button>
-                  </div>
-                </>
-              )}
+                ) : (
+                  <>
+                    <div className="expl-notes">
+                      {session.pendingNotes.length ? (
+                        session.pendingNotes.map((n, i) => (
+                          <span
+                            key={i}
+                            className="expl-note"
+                            style={{ animationDelay: `${i * 40}ms` } as CSSProperties}
+                          >
+                            {n}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="expl-note is-muted">无结算</span>
+                      )}
+                    </div>
+                    <div className="expl-panel-foot">
+                      <span className="expl-panel-cost">
+                        {mustReplace ? "先在背包里处理完拿不下的东西" : "结算完毕"}
+                      </span>
+                      <button
+                        className="expl-btn is-primary"
+                        type="button"
+                        disabled={mustReplace}
+                        onClick={() => confirmNode()}
+                      >
+                        确认 ▸
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </section>
           </div>
         )}

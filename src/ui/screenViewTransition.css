@@ -1,0 +1,349 @@
+/* ===================== 共享元素过场: 编队 ↔ 角色详情 ===================== */
+/* 编排见 ui/ScreenTransition.tsx 的 viewTransition 分支; 路线配置见 ui/transitions.ts。
+   由 ScreenTransition.tsx import —— ::view-transition-* 是**文档根**上的伪元素, 不属于任何
+   一页, 拆进 FormationScreen.css / CharacterDetailScreen.css 会让人以为它受那一页的作用域管。
+
+   ★ 机制: 两页的对应元素挂**同名** view-transition-name ⇒ 浏览器自动配对, 一路形变过去;
+     只有一侧存在的名字 ⇒ 只生成 old(演飞出) 或只生成 new(演飞入)。于是同一份规则表在
+     去程/回程各取一半, 不需要按方向写两套。
+
+   ★ 底图为什么不动: .fm-bg / .cd-bg 是同一张冬眠仓.png 且**刻意不命名** ⇒ 落进 root 快照,
+     而两页的 root 快照在背景那片区域像素完全一致, 默认交叉淡化因此完全看不见。
+     ⚠ 正因如此, ScreenTransition.css 里那几条掐掉 root 动画的规则必须收窄到 explore>battle。
+
+   ⚠⚠ 本文件里的 px 是**窗口 px**, 不是设计 px —— 伪元素活在文档根上, 不受 .fm-stage 的
+     scale(--stage-scale) 影响。位移量刻意都很小(≤20px), 分辨率差异带来的观感偏移可以忽略;
+     真要按设计 px 走就得用 JS 下发, 不值当。
+
+   ⚠ 「减少动态效果」不在这里兜底: resolveTransition 已经短路成零时长, 根本不会调
+     startViewTransition, 这些伪元素连生成都不会生成。 */
+
+/* ---------- 时长旋钮 ----------
+   ⚠ 唯一真相在这里, **不在 transitions.ts** —— VT 路线的动画全在伪元素上, TS 够不着。 */
+:root {
+  --vt-morph: 460ms; /* 共享元素盒子形变的总时长 */
+  --vt-cross: 180ms; /* 共享元素两张快照的交叉淡化 —— 刻意远短于形变, 理由见 vt-portrait */
+  --vt-out: 200ms; /* 独有元素飞出 */
+  --vt-in: 380ms; /* 独有元素飞入 */
+  --vt-ease: cubic-bezier(0.2, 0.72, 0.28, 1); /* 与两页自身入场动画同款 */
+  --vt-ease-out: cubic-bezier(0.4, 0, 0.9, 0.5); /* 飞出用: 起步慢、后段快, 像被抽走 */
+}
+
+/* ===================== 一、共享元素(两侧同名 ⇒ 形变) ===================== */
+
+::view-transition-group(vt-card-panel),
+::view-transition-group(vt-portrait),
+::view-transition-group(vt-char-name) {
+  animation-duration: var(--vt-morph);
+  animation-timing-function: var(--vt-ease);
+}
+/* 立绘飞在最上层: 它是这次过场的主角, 不该被其余卡片的快照压住。
+   (::view-transition-group 的默认层序是捕获时的 DOM 顺序, 编队页的卡在网格里, 顺序不可控) */
+::view-transition-group(vt-portrait) {
+  z-index: 30;
+}
+::view-transition-group(vt-char-name) {
+  z-index: 20;
+}
+::view-transition-group(vt-card-panel) {
+  z-index: 10;
+}
+
+/* ---- 立绘 ---- */
+/* ⚠⚠ 这是整套过场唯一的硬伤, 改之前先读: 两页的**取景规则根本不同** ——
+   编队卡是「半身」(图放大到卡宽 1.5 倍、顶对齐、腰以下被 overflow 裁掉),
+   详情展示柜是「全身 contain、底对齐」。View Transition 抓的是**位图**, 无法重新取景,
+   所以中间帧必然是两张取景不同的图在交叉淡化, 人物大小对不齐。
+   两条缓解手段:
+     1. 下面的 cover + 两端各自的 object-position —— 让每张快照贴着自己那端的锚点边铺满
+        形变中的盒子(半身图贴顶、全身图贴底), 与真身的对齐方式一致;
+     2. --vt-cross(180ms) 远短于 --vt-morph(460ms) —— 错位窗口一闪而过, 大部分时间里
+        屏幕上只有"正确的那一张"在跟着盒子长大。
+   ⚠ 别改成 contain: 那会在盒子里留出空白边, 与真身(铺满取景窗)对不上, 交接处会闪一下。 */
+::view-transition-old(vt-portrait),
+::view-transition-new(vt-portrait) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation-duration: var(--vt-cross);
+}
+::view-transition-old(vt-portrait) {
+  object-position: center top; /* 半身取景是顶对齐的 */
+}
+::view-transition-new(vt-portrait) {
+  object-position: center bottom; /* 展示柜是底对齐的 */
+}
+
+/* ---- 卡面板 → 立绘栏 ---- */
+/* 它就是一块亮玻璃 + 描边, 拉伸读起来正是"面板长大了", 故用 fill 而不是 cover(不裁边框)。 */
+::view-transition-old(vt-card-panel),
+::view-transition-new(vt-card-panel) {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  animation-duration: var(--vt-cross);
+}
+
+/* ---- 角色名 → 大标题 ---- */
+/* 文字必须 contain: 卡上是 20px 居中、详情页是 42px 左对齐, fill 会把字拉扁。 */
+::view-transition-old(vt-char-name),
+::view-transition-new(vt-char-name) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation-duration: var(--vt-cross);
+}
+::view-transition-old(vt-char-name) {
+  object-position: center;
+}
+::view-transition-new(vt-char-name) {
+  object-position: left center;
+}
+
+/* ===================== 二、通用进出场 keyframes ===================== */
+/* ⚠ 伪元素上写 animation 简写会**整条替换**掉浏览器内建的淡入淡出 —— 这正是我们要的:
+   独有元素不需要在默认淡化之上再叠一层位移。 */
+@keyframes vtOutUp {
+  to {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+@keyframes vtOutDown {
+  to {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+@keyframes vtOutFade {
+  to {
+    opacity: 0;
+  }
+}
+/* 卡片退场: 往下沉一点点并缩小, 像是"退回抽屉" —— 与上下两条边栏的方向拉开,
+   免得整页元素一起朝同一个方向平移。 */
+@keyframes vtOutCard {
+  to {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+}
+@keyframes vtInRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes vtInFade {
+  from {
+    opacity: 0;
+  }
+}
+/* 与 CharacterDetailScreen.css 的 cdContentIn / FormationScreen.css 的 fmCardIn 同款:
+   带一点点失焦, 让大块内容"聚焦成型"而不是硬生生平移进来。 */
+@keyframes vtInContent {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* ===================== 三、编队页独有的元素 ===================== */
+/* 去程只有 old(飞出), 回程只有 new(飞入) —— 同一份规则表自动各取一半。 */
+
+::view-transition-old(vt-fm-header),
+::view-transition-old(vt-fm-readout) {
+  animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
+}
+::view-transition-old(vt-fm-back),
+::view-transition-old(vt-fm-note) {
+  animation: vtOutDown var(--vt-out) var(--vt-ease-out) both;
+}
+/* 被点那张卡上的文字与角标: 单独命名就是为了**不被 vt-card-panel 的位图一起拉伸**成
+   详情立绘栏的形状 —— 它们在详情页没有对应物, 该干脆地淡掉。 */
+::view-transition-old(vt-fm-meta),
+::view-transition-old(vt-fm-go),
+::view-transition-old(vt-fm-toggle),
+::view-transition-old(vt-fm-flag) {
+  animation: vtOutFade 140ms linear both;
+}
+
+::view-transition-new(vt-fm-header) {
+  animation: vtInRise var(--vt-in) 140ms var(--vt-ease) both;
+}
+::view-transition-new(vt-fm-readout) {
+  animation: vtInRise var(--vt-in) 180ms var(--vt-ease) both;
+}
+::view-transition-new(vt-fm-back) {
+  animation: vtInRise var(--vt-in) 240ms var(--vt-ease) both;
+}
+::view-transition-new(vt-fm-note) {
+  animation: vtInRise var(--vt-in) 280ms var(--vt-ease) both;
+}
+::view-transition-new(vt-fm-meta),
+::view-transition-new(vt-fm-go),
+::view-transition-new(vt-fm-toggle),
+::view-transition-new(vt-fm-flag) {
+  animation: vtInFade 220ms 300ms linear both;
+}
+
+/* ===================== 四、其余角色卡: 依次错位 ===================== */
+/* ⚠⚠ 为什么是一张手写的延迟表, 而不是像页面里那样用 var(--i) 算:
+   ::view-transition-* 伪元素挂在**文档根**上, 继承的是 :root 的自定义属性, **拿不到**原元素
+   身上的 --i。所以错峰只能靠"每个索引一条规则"。
+   ⚠ 表只到 23: 编队网格 1776×770 一屏放得下 6 列 × 1 行, 24 档远超可见范围。
+     索引 ≥24 的卡在 TSX 里给的是 view-transition-name: none ⇒ 落进 root 快照跟着淡化,
+     反正它们此刻滚在视口外, 看不见。 */
+::view-transition-old(vt-fm-card-0),
+::view-transition-old(vt-fm-card-1),
+::view-transition-old(vt-fm-card-2),
+::view-transition-old(vt-fm-card-3),
+::view-transition-old(vt-fm-card-4),
+::view-transition-old(vt-fm-card-5),
+::view-transition-old(vt-fm-card-6),
+::view-transition-old(vt-fm-card-7),
+::view-transition-old(vt-fm-card-8),
+::view-transition-old(vt-fm-card-9),
+::view-transition-old(vt-fm-card-10),
+::view-transition-old(vt-fm-card-11),
+::view-transition-old(vt-fm-card-12),
+::view-transition-old(vt-fm-card-13),
+::view-transition-old(vt-fm-card-14),
+::view-transition-old(vt-fm-card-15),
+::view-transition-old(vt-fm-card-16),
+::view-transition-old(vt-fm-card-17),
+::view-transition-old(vt-fm-card-18),
+::view-transition-old(vt-fm-card-19),
+::view-transition-old(vt-fm-card-20),
+::view-transition-old(vt-fm-card-21),
+::view-transition-old(vt-fm-card-22),
+::view-transition-old(vt-fm-card-23) {
+  animation: vtOutCard 220ms var(--vt-ease-out) both;
+}
+::view-transition-new(vt-fm-card-0),
+::view-transition-new(vt-fm-card-1),
+::view-transition-new(vt-fm-card-2),
+::view-transition-new(vt-fm-card-3),
+::view-transition-new(vt-fm-card-4),
+::view-transition-new(vt-fm-card-5),
+::view-transition-new(vt-fm-card-6),
+::view-transition-new(vt-fm-card-7),
+::view-transition-new(vt-fm-card-8),
+::view-transition-new(vt-fm-card-9),
+::view-transition-new(vt-fm-card-10),
+::view-transition-new(vt-fm-card-11),
+::view-transition-new(vt-fm-card-12),
+::view-transition-new(vt-fm-card-13),
+::view-transition-new(vt-fm-card-14),
+::view-transition-new(vt-fm-card-15),
+::view-transition-new(vt-fm-card-16),
+::view-transition-new(vt-fm-card-17),
+::view-transition-new(vt-fm-card-18),
+::view-transition-new(vt-fm-card-19),
+::view-transition-new(vt-fm-card-20),
+::view-transition-new(vt-fm-card-21),
+::view-transition-new(vt-fm-card-22),
+::view-transition-new(vt-fm-card-23) {
+  animation: vtInContent 420ms var(--vt-ease) both;
+}
+
+/* 出场步长 30ms: 出场是"让路", 不该拖成一场演出, 但要比原先的 16ms 明确一档。 */
+::view-transition-old(vt-fm-card-0) { animation-delay: 0ms; }
+::view-transition-old(vt-fm-card-1) { animation-delay: 30ms; }
+::view-transition-old(vt-fm-card-2) { animation-delay: 60ms; }
+::view-transition-old(vt-fm-card-3) { animation-delay: 90ms; }
+::view-transition-old(vt-fm-card-4) { animation-delay: 120ms; }
+::view-transition-old(vt-fm-card-5) { animation-delay: 150ms; }
+::view-transition-old(vt-fm-card-6) { animation-delay: 180ms; }
+::view-transition-old(vt-fm-card-7) { animation-delay: 210ms; }
+::view-transition-old(vt-fm-card-8) { animation-delay: 240ms; }
+::view-transition-old(vt-fm-card-9) { animation-delay: 270ms; }
+::view-transition-old(vt-fm-card-10) { animation-delay: 300ms; }
+::view-transition-old(vt-fm-card-11) { animation-delay: 330ms; }
+::view-transition-old(vt-fm-card-12) { animation-delay: 360ms; }
+::view-transition-old(vt-fm-card-13) { animation-delay: 390ms; }
+::view-transition-old(vt-fm-card-14) { animation-delay: 420ms; }
+::view-transition-old(vt-fm-card-15) { animation-delay: 450ms; }
+::view-transition-old(vt-fm-card-16) { animation-delay: 480ms; }
+::view-transition-old(vt-fm-card-17) { animation-delay: 510ms; }
+::view-transition-old(vt-fm-card-18) { animation-delay: 540ms; }
+::view-transition-old(vt-fm-card-19) { animation-delay: 570ms; }
+::view-transition-old(vt-fm-card-20) { animation-delay: 600ms; }
+::view-transition-old(vt-fm-card-21) { animation-delay: 630ms; }
+::view-transition-old(vt-fm-card-22) { animation-delay: 660ms; }
+::view-transition-old(vt-fm-card-23) { animation-delay: 690ms; }
+
+/* 入场步长沿用编队页自身 fmCardIn 的 55ms 节奏, 起点 120ms —— 回到编队页时,
+   这些卡的观感应当与"第一次进编队页"完全一致。 */
+::view-transition-new(vt-fm-card-0) { animation-delay: 120ms; }
+::view-transition-new(vt-fm-card-1) { animation-delay: 175ms; }
+::view-transition-new(vt-fm-card-2) { animation-delay: 230ms; }
+::view-transition-new(vt-fm-card-3) { animation-delay: 285ms; }
+::view-transition-new(vt-fm-card-4) { animation-delay: 340ms; }
+::view-transition-new(vt-fm-card-5) { animation-delay: 395ms; }
+::view-transition-new(vt-fm-card-6) { animation-delay: 450ms; }
+::view-transition-new(vt-fm-card-7) { animation-delay: 505ms; }
+::view-transition-new(vt-fm-card-8) { animation-delay: 560ms; }
+::view-transition-new(vt-fm-card-9) { animation-delay: 615ms; }
+::view-transition-new(vt-fm-card-10) { animation-delay: 670ms; }
+::view-transition-new(vt-fm-card-11) { animation-delay: 725ms; }
+::view-transition-new(vt-fm-card-12) { animation-delay: 780ms; }
+::view-transition-new(vt-fm-card-13) { animation-delay: 835ms; }
+::view-transition-new(vt-fm-card-14) { animation-delay: 890ms; }
+::view-transition-new(vt-fm-card-15) { animation-delay: 945ms; }
+::view-transition-new(vt-fm-card-16) { animation-delay: 1000ms; }
+::view-transition-new(vt-fm-card-17) { animation-delay: 1055ms; }
+::view-transition-new(vt-fm-card-18) { animation-delay: 1110ms; }
+::view-transition-new(vt-fm-card-19) { animation-delay: 1165ms; }
+::view-transition-new(vt-fm-card-20) { animation-delay: 1220ms; }
+::view-transition-new(vt-fm-card-21) { animation-delay: 1275ms; }
+::view-transition-new(vt-fm-card-22) { animation-delay: 1330ms; }
+::view-transition-new(vt-fm-card-23) { animation-delay: 1385ms; }
+
+/* ===================== 五、详情页独有的元素 ===================== */
+/* 去程只有 new(飞入), 回程只有 old(飞出) —— 与编队页那组严格对称。
+   入场的延迟/节奏刻意与本页原来的 cdRise / cdContentIn 对齐(0 / 60 / 140 / 200 / 260ms),
+   于是"从编队飞进来"和"直接落在详情页"看起来是同一套动作。 */
+::view-transition-new(vt-cd-header) {
+  animation: vtInRise 420ms 60ms var(--vt-ease) both;
+}
+::view-transition-new(vt-cd-readout) {
+  animation: vtInRise 420ms 120ms var(--vt-ease) both;
+}
+::view-transition-new(vt-cd-stats) {
+  animation: vtInContent 420ms 200ms var(--vt-ease) both;
+}
+::view-transition-new(vt-cd-deck) {
+  animation: vtInContent 420ms 260ms var(--vt-ease) both;
+}
+::view-transition-new(vt-cd-back) {
+  animation: vtInRise 420ms 240ms var(--vt-ease) both;
+}
+/* 立绘栏内部的按钮与说明: 单独命名, 免得被 vt-card-panel 的位图拉伸(理由同 vt-fm-meta 那组)。 */
+::view-transition-new(vt-cd-primary),
+::view-transition-new(vt-cd-note) {
+  animation: vtInRise 420ms 300ms var(--vt-ease) both;
+}
+
+::view-transition-old(vt-cd-header),
+::view-transition-old(vt-cd-readout) {
+  animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
+}
+::view-transition-old(vt-cd-back),
+::view-transition-old(vt-cd-primary),
+::view-transition-old(vt-cd-note) {
+  animation: vtOutDown var(--vt-out) var(--vt-ease-out) both;
+}
+/* 两栏内容按"离展示柜由近及远"错峰退场 —— 属性栏先走, 卡组栏后走。 */
+::view-transition-old(vt-cd-stats) {
+  animation: vtOutDown 190ms var(--vt-ease-out) both;
+}
+::view-transition-old(vt-cd-deck) {
+  animation: vtOutDown 190ms 40ms var(--vt-ease-out) both;
+}

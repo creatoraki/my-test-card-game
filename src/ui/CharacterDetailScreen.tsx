@@ -10,7 +10,7 @@
 // 版面与视觉与编队页同族(同一张背景、同一套亮玻璃配方), 旋钮在 CharacterDetailScreen.css 的 --cd-*。
 // 与全项目同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts): 所有坐标都是「设计 px」。
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, type CSSProperties } from "react";
 import { RULES, type StatBlock } from "../engine";
 import { getCharacter } from "../data";
 import { useRunStore } from "../store/runStore";
@@ -19,6 +19,7 @@ import { CardView } from "./CardView";
 import { CharacterPortrait } from "./CharacterPortrait";
 import { useCountUp } from "./useCountUp";
 import { useStageScale } from "./stage";
+import { setSharedPortrait } from "./sharedPortrait";
 import cdBg from "../assets/场景/冬眠仓.png";
 import "./CharacterDetailScreen.css";
 
@@ -96,6 +97,21 @@ export function CharacterDetailScreen() {
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageScale = useStageScale(viewportRef);
 
+  // ---- 与编队页之间的共享元素过场 ----
+  // ★ 本页这一侧**不需要任何运行时逻辑**: 每个名字在本页都只有一份, 全部写死在
+  //   CharacterDetailScreen.css 里。浏览器靠"两侧同名"自己完成配对与形变。
+  //   编排见 ui/ScreenTransition.tsx 的 viewTransition 分支, 画面见 ui/screenViewTransition.css。
+  //
+  // 返回编队页: 唯一要做的是把"飞的是谁"交出去 —— 编队页是新挂载的, 不然它不知道
+  // 该给哪张卡挂 vt-portrait。
+  // ⚠ 必须在切 screen **之前**存: closeCharDetail 会让 ScreenTransition 立刻发起过场,
+  //   编队页在那次同步提交里就要读到它。
+  const back = useCallback(() => {
+    if (!charId) return;
+    setSharedPortrait(charId);
+    closeCharDetail();
+  }, [charId, closeCharDetail]);
+
   const cs = charId ? characters[charId] : undefined;
   // 兜底: 存档重置 / 直接落在这一页而 detailCharId 已失效时, 退回编队页而不是渲染半张空白。
   // ⚠ 放在 effect 里而不是渲染期间 —— 渲染期间 set 别的 store 会触发 React 的更新警告。
@@ -104,14 +120,14 @@ export function CharacterDetailScreen() {
     if (invalid) closeCharDetail();
   }, [invalid, closeCharDetail]);
 
-  // Esc 返回编队页。与左下角那颗按钮同一个出口。
+  // Esc 返回编队页。与左下角那颗按钮同一个出口(都走 back, 才能一并触发返回的飞行)。
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeCharDetail();
+      if (e.key === "Escape") back();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [closeCharDetail]);
+  }, [back]);
 
   if (!cs || !charId) return null;
 
@@ -129,6 +145,8 @@ export function CharacterDetailScreen() {
       ref={viewportRef}
       style={{ "--stage-scale": stageScale } as CSSProperties}
     >
+      {/* ⚠ 背景刻意**不挂 view-transition-name**: 与编队页是同一张冬眠仓.png ⇒ 落进 root 快照,
+          两页那片区域像素一致, 默认交叉淡化因此完全看不见 —— 这就是"底图不动"的来源。 */}
       <div className="screen cd-stage">
         <img className="cd-bg" src={cdBg} alt="" draggable={false} />
         <div className="cd-veil" />
@@ -173,6 +191,8 @@ export function CharacterDetailScreen() {
         >
           {/* 立绘栏 */}
           <div className="cd-figure-col">
+            {/* 立绘展示柜 = 与编队卡立绘窗配对的那一端(view-transition-name: vt-portrait,
+                写在 CSS 里)。⚠ 这里不需要 ref 也不需要任何测量 —— 位置全归浏览器算。 */}
             <div className="cd-figure cd-vitrine">
               <CharacterPortrait
                 characterId={def.id}
@@ -238,7 +258,7 @@ export function CharacterDetailScreen() {
           className="cd-back"
           style={{ left: "72px", bottom: "48px" }}
           type="button"
-          onClick={() => closeCharDetail()}
+          onClick={back}
         >
           ← 返回编队
         </button>
