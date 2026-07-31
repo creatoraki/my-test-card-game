@@ -33,7 +33,7 @@ export const CHARACTERS: CharacterDef[] = [
       critRate: 5,
       critDamage: 150,
       handLimit: 3,
-      drawCount: 1,
+      drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: ["whirlwind-slash", "lightning-infused", "sky-rend"],
     pools: {
@@ -48,5 +48,59 @@ export const CHARACTERS: CharacterDef[] = [
       uncommon: ["focused-edge", "riposte-stance"],
       rare: ["executioner"],
     },
+  },
+  {
+    id: "glutton",
+    name: "大胃王",
+    emoji: "🍖",
+    color: "#ffb066",
+    // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
+    base: makeStats({
+      maxHp: 50,
+      attack: 20,
+      defense: 10,
+      initiative: 10,
+      critRate: 5,
+      critDamage: 150,
+      handLimit: 3,
+      drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
+    }),
+    // 初始卡组 = 5 张同名的「基础攻击」
+    startingCardIds: [
+      "glutton-basic-attack",
+      "glutton-basic-attack",
+      "glutton-basic-attack",
+      "glutton-basic-attack",
+      "glutton-basic-attack",
+    ],
+    // ⚠ 专属抽卡池待设计: 三档都空 ⇒ 锻造抽卡对本角色暂时抽不出东西(forgeDraw 会直接返回)。
+    pools: { common: [], uncommon: [], rare: [] },
+  },
+  {
+    id: "botanist",
+    name: "植物学家",
+    emoji: "🌿",
+    color: "#8fd67a",
+    // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
+    base: makeStats({
+      maxHp: 50,
+      attack: 20,
+      defense: 10,
+      initiative: 10,
+      critRate: 5,
+      critDamage: 150,
+      handLimit: 3,
+      drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
+    }),
+    // 初始卡组 = 5 张同名的「普通攻击」
+    startingCardIds: [
+      "botanist-basic-attack",
+      "botanist-basic-attack",
+      "botanist-basic-attack",
+      "botanist-basic-attack",
+      "botanist-basic-attack",
+    ],
+    // ⚠ 专属抽卡池待设计: 三档都空 ⇒ 锻造抽卡对本角色暂时抽不出东西(forgeDraw 会直接返回)。
+    pools: { common: [], uncommon: [], rare: [] },
   },
 ];

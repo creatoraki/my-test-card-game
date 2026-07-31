@@ -18,20 +18,23 @@ const RARITY_LABEL: Record<Rarity, string> = {
   rare: "稀有",
 };
 
-// 手牌右侧的固定卡牌说明面板: 占底部 HUD 第三列, 位置恒定(取代旧的悬停跟随浮窗)。
+// 固定卡牌说明面板: 绝对定位在**画布右上角**, 位置恒定(取代旧的悬停跟随浮窗)。
+// (它曾是底部 HUD 的第三列, 为把整列宽度让给手牌托盘而搬出, 理由见 CardInfoPanel.css。)
 // 展示哪张卡由 BattleScreen 的 focusUid(悬停 ?? 选中)派生 —— 选中待选目标期间说明持续可见。
 // 无卡时渲染科幻待机占位而不是收起面板, 版面因此永远稳定。
 // 内容复用 .drawer-* 类(与 .card-drawer 共用), 样式覆盖 scoped 在 .card-info-panel 下。
 //
 // ★ 面板宽高比恒为 1:2(320×640, 见 CardInfoPanel.css .card-info-panel), 结构因此是「上半一张与
 //   面板同宽的 1:1 大卡面 + 下半卡名/元数据/描述」—— 卡面素材本就是方图, 比例是从这里推出来的。
-//   面板比 HUD 行高(264)高得多, 多出来的部分向上溢出到场景里。
+//   面板底边(y=720)与手牌静止时的上沿正好在同一条线上。
 // ⚠ 无配图的卡渲染同尺寸的 NO VISUAL 占位而不是不渲染: 否则那个 296px 见方的块会塌掉,
 //   悬停不同卡时下半部整块上下跳。
+// ⚠ 两个分支的根节点都要自己 stopPropagation: 面板已搬出 .battle-hud(那层统一拦了冒泡), 现在
+//   直挂在 .screen.battle 下, 不拦的话点面板会冒泡到画布的 onClick 把选中的卡取消掉。
 export function CardInfoPanel({ card }: { card: Card | null }) {
   if (!card) {
     return (
-      <div className="card-info-panel empty" aria-hidden>
+      <div className="card-info-panel empty" aria-hidden onClick={(e) => e.stopPropagation()}>
         <div className="drawer-title">战术数据 / 卡牌详情</div>
         <div className="cip-standby">
           <span className="cip-standby-code">STANDBY</span>
@@ -51,6 +54,7 @@ export function CardInfoPanel({ card }: { card: Card | null }) {
       className="card-info-panel"
       style={{ "--owner-color": owner.color } as React.CSSProperties}
       aria-hidden
+      onClick={(e) => e.stopPropagation()}
     >
       {/* <div className="drawer-title">战术数据 / 卡牌详情</div> */}
 

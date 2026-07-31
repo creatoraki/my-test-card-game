@@ -14,10 +14,14 @@ import { useBattleStore } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
 import { deriveStats, useTownStore, type ExpGain } from "./townStore";
 
-// ★ 旧的 "formation"(独立编队页)已随角色养成重做删除 —— 编队搬进了冬眠仓的设施内浮层。
+// ★ "formation"(编队) 与 "charDetail"(角色详情) 是据点的**一级全屏页**, 不是设施内浮层 ——
+//   入口在大厅 bento 的「编队」砖(见 ui/TownScreen.tsx), 冬眠仓只剩「冬眠唤醒」。
+//   两页之间与回据点的切换都走 ScreenTransition 的默认淡出淡入(ui/transitions.ts)。
 export type Screen =
   | "menu"
   | "town"
+  | "formation"
+  | "charDetail"
   | "explore"
   | "battle"
   | "reward"
@@ -33,8 +37,14 @@ interface RunStore {
   lastResult: RunResult | null;
   lastLoot: number; // 上一场战斗的居民积分产出(结算页展示)。⚠ 普通战斗恒为 0, 见 EXPLORE_RULES.loot
   lastDrops: ItemStack[]; // 上一场战斗掉的实物(结算页展示) —— 战斗的正经产出是这个
+  // 角色详情页正在看谁。⚠ 只在 screen === "charDetail" 时有意义; 从详情返回编队时**刻意不清空**,
+  // 好让退场动画期间那一页仍能渲染出内容(ScreenTransition 会把旧界面多留一个出场时长)。
+  detailCharId: string | null;
 
   enterTown: () => void;
+  openFormation: () => void; // 大厅「编队」砖 → 全屏编队页
+  openCharDetail: (charId: string) => void; // 编队页点卡面 → 全屏角色详情页
+  closeCharDetail: () => void; // 详情页返回编队页
   startExpedition: (mapId: string) => void; // 选定地图 → 进路由图
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
@@ -115,12 +125,19 @@ export const useRunStore = create<RunStore>((set, get) => ({
   lastResult: null,
   lastLoot: 0,
   lastDrops: [],
+  detailCharId: null,
 
   enterTown: () => {
     useTownStore.getState().ensureProfile();
     useExploreStore.getState().clear();
     set({ screen: "town" });
   },
+
+  // ★ 编队/详情是纯查看与编成, 不碰探索层, 故这三个 action 只切 screen ——
+  //   不要在这里 clear() 任何东西, 否则从据点绕一圈编队回来会莫名重置。
+  openFormation: () => set({ screen: "formation" }),
+  openCharDetail: (charId) => set({ screen: "charDetail", detailCharId: charId }),
+  closeCharDetail: () => set({ screen: "formation" }),
 
   startExpedition: (mapId) => {
     useExploreStore.getState().start(mapId, partySnapshot());

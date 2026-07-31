@@ -14,7 +14,7 @@ import type {
   StatBlock,
 } from "./types";
 import { RULES } from "./rules";
-import { enemyActDelay, makeStats, partyDrawCount, partyHandLimit } from "./stats";
+import { enemyActDelay, makeStats, partyDrawCount, partyHandLimit, partyOpeningDrawCount } from "./stats";
 import { shuffle } from "./rng";
 import { allIds, applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
@@ -182,10 +182,9 @@ export function startRound(state: BattleState): void {
     buildIntent(state, id);
   }
 
-  // 第 1 回合抽满至手牌上限, 之后每回合只抽小队抽牌数(抽到上限为止)。
+  // 第 1 回合抽开局张数(5), 之后每回合抽小队抽牌数(2), 均抽到手牌上限为止。
   const limit = partyHandLimit(state);
-  const want =
-    state.round === 1 && RULES.hand.openingDrawToFull ? limit - state.hand.length : partyDrawCount(state);
+  const want = state.round === 1 ? partyOpeningDrawCount(state) : partyDrawCount(state);
   drawCards(state, Math.max(0, Math.min(want, limit - state.hand.length)));
 
   runRoundStart(state); // 中毒/再生等在回合开始结算

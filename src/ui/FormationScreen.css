@@ -1,0 +1,523 @@
+/* ===================== 编队页(一级全屏页) ===================== */
+/* 与主菜单/据点/战斗同一套设计画布机制: 固定 1920×1080 画布 + --stage-scale 等比缩放,
+   画布之外是黑边。原理长注释的权威版本见 ui/MenuScreen.css 的 .menu-viewport 一族。
+   ⚠ 本文件里每个 px 都是「设计 px」: 不要写 vw/vh, 不要按窗口宽度做 @media。
+
+   ★ 视觉与冬眠仓(CryoScene.css)**同族**: 背景是同一张紫粉白场景, 故同样走「亮玻璃 + 深紫墨字」
+     那套配方, 强调色深紫罗兰 #7c4dbe。刻意不复用 .cryo-* 的类名 ——
+     那些是「浮层内」的尺度(卡 46×58、面板 1100×640), 这里是全屏尺度, 共用只会互相拖累;
+     两边独立演进, 只保留配方一致。
+   ★ 局部旋钮全在 .fm-stage 的 --fm-* 里, 只在本文件使用 —— 不新增也不覆盖 styles/tokens.css
+     的全局令牌(与 CryoScene 的 --cryo-* / TownScreen 的 --town-glow 同款做法)。
+
+   ⚠ 全局 base.css 里 `button:hover:not(:disabled)` 的特异性是 (0,2,1), 单靠一个类选择器
+     (0,2,0)压不住 —— 故本文件所有按钮的 hover/active 规则一律带 `.fm-stage ` 前缀。
+     这与 CryoScene.css 里到处的 `.town-splash ` 前缀是同一个坑。 */
+
+/* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
+.fm-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+}
+/* ⚠ 居中必须靠绝对定位 + translate(-50%,-50%) 而非 flex 居中(同 .town-viewport / .battle-viewport)。 */
+.fm-viewport .screen.fm-stage {
+  --fm-ink: #2a1b3d; /* 主文字: 深紫墨 */
+  --fm-ink-dim: #6b5b82; /* 次文字 / 标签 */
+  --fm-line: #2a1b3d24; /* 常态描边 */
+  --fm-glow: #7c4dbe; /* 强调深紫罗兰: 已上阵的异色边框就是它 */
+  --fm-glow-deep: #55307f; /* 悬停/按下加深档 */
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  background: #f3ecfa; /* 图加载前/失败时的浅色兜底, 与场景色系一致 */
+}
+
+/* ===================== 背景 ===================== */
+/* 原图与画布同为 16:9 ⇒ cover 只等比缩小, 无裁切无变形。 */
+.fm-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+/* 提亮 + 收边: 中间偏亮让卡片阵列托得起来, 四角略压一点点避免版面飘。
+   ⚠ 这是**提亮**不是压暗 —— 冬眠仓那张图是浅色紫粉白, 压暗会毁掉它的气质。 */
+.fm-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, #ffffff8f 0%, #ffffff5c 42%, #f0e6fa73 100%),
+    radial-gradient(ellipse at 50% 46%, transparent 52%, #2a1b3d1a 100%);
+}
+
+/* ===================== 左上: 标题 ===================== */
+/* 与冬眠仓同构: 不做成卡片, 只靠一道左侧竖线把三行拢在一起。 */
+.fm-header {
+  position: absolute;
+  z-index: 1;
+  padding-left: 18px;
+  border-left: 2px solid var(--fm-glow);
+  animation: fmRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+/* ⚠ 刻意没有 text-shadow 外发光: 那是暗底上的手法, 压在浅紫背景上只会糊出一圈脏边。 */
+.fm-kicker {
+  display: block;
+  color: var(--fm-glow);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 5px;
+}
+.fm-title {
+  margin: 6px 0 0;
+  color: var(--fm-ink);
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  text-indent: 10px; /* 补回 letter-spacing 在末字之后多留的那一格 */
+}
+.fm-sub {
+  margin: 6px 0 0;
+  color: var(--fm-ink-dim);
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+/* ===================== 右上: 读数 chip ===================== */
+.fm-readout {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  animation: fmRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+/* ★ 亮玻璃配方(与 CryoScene.css 顶部那份逐行一致, 改动请两边同步):
+     白半透明渐变 + blur/saturate/brightness 提亮 + 顶边高光 + 远投影, 外加左上/右下斜切角。 */
+.fm-chip {
+  --notch: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 116px;
+  padding: 11px 18px;
+  border: 1px solid var(--fm-line);
+  background: linear-gradient(150deg, #ffffff8f, #fbf3ff66 55%, #ecdcfa59);
+  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  box-shadow:
+    inset 0 1px 0 #ffffffd9,
+    0 18px 40px -26px #2a1b3d52;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+.fm-chip-label {
+  color: var(--fm-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.fm-chip-value {
+  color: var(--fm-ink);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+/* ===================== 卡片阵列 ===================== */
+/* ★ left / top / width / height / gap 五个旋钮由 FormationScreen.tsx 的内联 style 给,
+     这里只声明机制 —— 与 .town-bento / .cryo-entries 同款分工。
+   260px = 下面 .fm-card 的固定宽度。auto-fill 而不是 auto-fit: 人少的时候不该把两三张卡
+   拉开摊满一整行(同 .cryo-deck-grid 的取舍)。
+   ★ 卡片是 260×650 的**高楼型**(≈1:2.5) —— 立绘竖着放才有"人站在那儿"的体量,
+     1776px 宽正好排 6 列(260×6 + 20×5 = 1660), 一行放得下常规队伍规模。 */
+.fm-grid {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 260px);
+  grid-auto-rows: 650px;
+  align-content: start;
+  justify-content: start;
+  min-height: 0;
+  padding: 4px;
+  overflow-y: auto;
+}
+.fm-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 80px;
+  color: var(--fm-ink-dim);
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+/* 一张角色卡。⚠ 外壳是 div 而非 button(卡面与右上角开关是两个同级 button, 见 TSX 的警告)。
+   错峰入场: --i 由 TSX 的 stagger() 下发。
+   ⚠ fill-mode 必须是 backwards —— forwards/both 会把关键帧终值锁进层叠, 于是 hover 要动的
+     transform 全部失效(CryoScene 的抽屉已经踩过这个坑)。 */
+.fm-card {
+  --fm-card-w: 260px;
+  /* 立绘取景倍率: 图宽 = 卡宽 × 本值。调大 = 人更大、裁掉的下半身更多。 */
+  --fm-bust-zoom: 1.5;
+
+  position: relative;
+  width: var(--fm-card-w);
+  height: 650px;
+  border: 1px solid var(--fm-line);
+  background: linear-gradient(150deg, #ffffff9e, #fbf3ff7a 55%, #ecdcfa6b);
+  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  box-shadow:
+    inset 0 1px 0 #ffffffd9,
+    0 18px 40px -26px #2a1b3d52;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+  animation: fmCardIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(120ms + var(--i, 0) * 55ms);
+}
+@keyframes fmCardIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+/* ★ 悬停 = **只高亮边框**。刻意不动 background、不做 translateY 抬起 ——
+   高楼型卡片一整片浅玻璃, 底色一变整块面积都在闪, 六张并排会很吵;
+   边框(外框 + 一圈同色内描边)已经足够把"鼠标在这张"说清楚。
+   ⚠ 这里的 box-shadow 只加**内描边**, 不改外投影, 免得视觉上又变成"卡片浮起来了"。 */
+.fm-stage .fm-card:hover {
+  border-color: var(--fm-glow);
+  box-shadow:
+    inset 0 0 0 1px #7c4dbe2e,
+    inset 0 1px 0 #ffffffd9,
+    0 18px 40px -26px #2a1b3d52;
+}
+/* ★★ 已上阵 = 异色边框。这是本页最重要的一条视觉: 深紫罗兰实边 + 内描边 + 一圈柔光,
+   与未上阵那条几乎透明的 --fm-line 拉开两个档位。
+   ⚠ 刻意**不加任何明暗呼吸动画** —— 六张卡并排闪会糊成一片(RouteBoard 立的规矩)。 */
+.fm-card.is-on {
+  border-color: var(--fm-glow);
+  background: linear-gradient(150deg, #ffffffc9, #f7edffa3 55%, #ecdcfa8f);
+  box-shadow:
+    inset 0 0 0 1px #7c4dbe33,
+    0 0 26px -8px var(--fm-glow),
+    0 18px 40px -26px #2a1b3d52;
+}
+/* 已上阵的卡悬停: 同样只在边框上加档(实边加深 + 内描边加浓 + 柔光略收紧), 背景保持不变。 */
+.fm-stage .fm-card.is-on:hover {
+  border-color: var(--fm-glow-deep);
+  box-shadow:
+    inset 0 0 0 1px #7c4dbe66,
+    0 0 30px -6px var(--fm-glow),
+    0 18px 40px -26px #2a1b3d52;
+}
+
+/* 卡面主体: 铺满整卡的一颗按钮 —— 点哪都进详情。
+   ⚠ 必须把全局 button 的深色底/描边/斜切角全部清掉, 只留布局(它们是给暗底 HUD 写的)。 */
+.fm-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  /* ⚠ 上/左/右不留内边距: 立绘取景窗要顶到卡片边缘, 高楼型卡的体量全给立绘。
+     文字块自己带横向 padding(见 .fm-card-name / -meta / -go)。 */
+  padding: 0 0 16px;
+  border: 0;
+  background: none;
+  color: var(--fm-ink);
+  font-weight: 400;
+  text-align: center;
+  clip-path: none;
+  transition: none; /* 位移交给外壳 .fm-card 做, 两层都动会打架 */
+}
+/* ⚠⚠ 必须把全局 `button:hover:not(:disabled)` 在卡面上的效果整条按住:
+   那条规则的特异性是 (0,2,1), 上面 .fm-card-main 的 (0,1,0) 压不住它 ⇒ 鼠标一进卡面,
+   卡面按钮就会被刷成暗色渐变底 + --accent 色的字(那是暗底 HUD 的配方), 表现为「悬浮时
+   底下文字变色」。这里用 `.fm-stage .fm-card-main:hover` (0,3,0) 把 background/color/border
+   全部按回常态 —— 本页的悬浮反馈**只有边框**(见 .fm-card:hover)。
+   :active 一并按住: 全局的 translateY(1px) 会让卡面内容相对外壳错位一格。 */
+.fm-stage .fm-card-main:hover,
+.fm-stage .fm-card-main:active {
+  border: 0;
+  background: none;
+  color: var(--fm-ink);
+  transform: none;
+}
+/* 立绘取景窗: 顶满卡宽, 吃掉高楼型卡片约 3/4 的高度 —— 剩下的才是名字/数值那三行。
+   ⚠ 只留下边一道分隔线, 左右上三边不描边: 它已经贴着卡片边缘, 再画一圈就成了"框中框"。 */
+.fm-card-figure {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-bottom: 1px solid #2a1b3d17;
+  /* 舱内打光: 底部一团淡紫, 把立绘从浅底里托起来(同 .cryo-detail-figure) */
+  background:
+    radial-gradient(88% 56% at 50% 104%, #c79ce84d, transparent 70%),
+    #f8f2fdb3;
+}
+/* 取景窗底部的柔化: 立绘被窗口从腰部裁断, 直接一条硬边很生硬, 用一层渐变把它化开。 */
+.fm-card-figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 62%, #f6effdb8 92%, #f2e9fcd9 100%);
+}
+.fm-card-name {
+  flex: 0 0 auto;
+  margin-top: 14px;
+  padding: 0 12px;
+  color: var(--fm-ink);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-indent: 4px;
+}
+.fm-card-meta {
+  flex: 0 0 auto;
+  padding: 0 12px;
+  color: var(--fm-ink-dim);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  line-height: 1.5;
+}
+/* 「查看详情 ▸」: 常态半隐, hover 才浮出来 —— 六张卡各挂一行常亮提示会很吵。 */
+.fm-card-go {
+  flex: 0 0 auto;
+  padding: 0 12px;
+  color: var(--fm-glow);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+.fm-stage .fm-card:hover .fm-card-go {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ★ 半身取景 —— 与 AllyBar 的 .ally-figure .portrait-image 同一套做法:
+   保持原图宽高比(height:auto), 图宽 = 卡宽 × --fm-bust-zoom(>1 ⇒ 图比取景窗宽, 向两侧溢出),
+   顶对齐 ⇒ 头留在窗内、腰以下被 overflow 裁掉, 于是"只展示上半身"且立绘足够大。
+   ⚠ 不能用 contain: 那会把整个全身塞进窗里, 人反而变小 —— 这正是改版前的样子。
+   微调靠 --portrait-dx/dy(登记表见 ui/CharacterPortrait.tsx), 三套半身取景共用同一对参数。 */
+img.fm-bust {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: calc(var(--fm-card-w, 260px) * var(--fm-bust-zoom, 1.5));
+  height: auto;
+  max-width: none; /* 允许图宽于取景窗, 溢出部分由 overflow 裁掉 */
+  object-fit: contain;
+  object-position: center top;
+  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  filter: drop-shadow(0 10px 22px #2a1b3d33);
+}
+/* 未登记立绘的角色退回 emoji(CharacterPortrait 的兜底分支) */
+span.fm-bust {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 96px;
+}
+
+/* 「出战中」角标: 压在卡片左上角。⚠ pointer-events:none —— 它只是标, 不该挡住底下的卡面按钮。 */
+.fm-card-flag {
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  z-index: 2;
+  pointer-events: none;
+  padding: 4px 10px;
+  border: 1px solid var(--fm-glow);
+  background: #ffffffdb;
+  color: var(--fm-glow);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  box-shadow: 0 0 14px -2px #7c4dbe80;
+}
+
+/* 上阵/下阵开关: 卡片右上角的角标按钮, 与卡面主体是**同级**元素(不是嵌套), 故点它不会进详情。 */
+.fm-toggle {
+  --notch: 8px;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 2;
+  padding: 6px 14px;
+  border: 1px solid #7c4dbe4d;
+  background: #ffffffc4;
+  color: var(--fm-glow-deep);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-indent: 3px;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+.fm-stage .fm-toggle:hover:not(:disabled) {
+  border-color: var(--fm-glow);
+  background: #f3e9fd;
+  color: var(--fm-glow-deep);
+}
+/* 「下阵」是**减法**动作: 常态退成中性灰, hover 才走警示红 —— 免得和「上阵」一样抢眼。
+   ⚠ 浅底上不能用暗红那套(#3a1c22 底 + #ffc4c4 字), 那是暗底配方。 */
+.fm-toggle.is-on {
+  border-color: #2a1b3d29;
+  background: #ffffffa8;
+  color: var(--fm-ink-dim);
+}
+.fm-stage .fm-toggle.is-on:hover:not(:disabled) {
+  border-color: #c25a6e;
+  background: #fdeff2;
+  color: #9c3550;
+}
+.fm-stage .fm-toggle:active:not(:disabled) {
+  transform: translateY(1px);
+}
+/* 不可点(只剩 1 人 / 已满员)时退成一块哑光紫灰 —— 全局 button:disabled 只压 opacity,
+   在浅底上仍然显眼得像能点。 */
+.fm-toggle:disabled {
+  border-color: #2a1b3d1a;
+  background: #ffffff70;
+  color: #a294b8;
+  opacity: 1; /* 覆盖全局的 0.4: 这里靠配色表达"不可点", 不靠整体变淡 */
+}
+
+/* ===================== 角落 ===================== */
+/* 返回按钮: 与冬眠仓的「返回据点」同款描边玻璃, 不跟卡片阵列抢注意力。 */
+.fm-back {
+  position: absolute;
+  z-index: 1;
+  --notch: 10px;
+  padding: 12px 26px;
+  border: 1px solid var(--fm-line);
+  background: #ffffffab;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--fm-ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-indent: 4px;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s cubic-bezier(0.2, 0.72, 0.28, 1);
+  animation: fmRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.fm-stage .fm-back:hover {
+  border-color: var(--fm-glow);
+  background: #ffffffe0;
+  color: var(--fm-glow-deep);
+  transform: translateX(-4px);
+}
+.fm-stage .fm-back:active {
+  transform: translateX(-4px) translateY(1px);
+}
+.fm-note {
+  position: absolute;
+  z-index: 1;
+  margin: 0;
+  color: var(--fm-ink-dim);
+  font-size: 13px;
+  letter-spacing: 1px;
+  animation: fmRise 420ms 240ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+/* ===================== 入场 ===================== */
+@keyframes fmRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* 「减少动态效果」: 位移与错峰一律取消, 只留一次极短的淡入 —— 这一页的信息密度高,
+   完全不做过渡反而会让人以为界面闪了一下。 */
+@media (prefers-reduced-motion: reduce) {
+  .fm-header,
+  .fm-readout,
+  .fm-back,
+  .fm-note,
+  .fm-card {
+    animation: fmFade 140ms linear backwards;
+    animation-delay: 0ms;
+  }
+  /* ⚠ .fm-card:hover 本身已经不带位移了(只换边框色), 这里只剩返回按钮要压。 */
+  .fm-stage .fm-back:hover {
+    transform: none;
+  }
+  .fm-card-go {
+    transform: none;
+  }
+}
+@keyframes fmFade {
+  from {
+    opacity: 0;
+  }
+}

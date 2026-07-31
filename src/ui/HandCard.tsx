@@ -22,6 +22,8 @@ interface Props {
 // 目标范围 / 稀有度 / 普速文字等更完整的数据仍由右侧固定面板(CardInfoPanel)承载 —— 卡面只放
 // "打不打得起(费用) / 是什么(卡名) / 干什么(效果)"这三样即可决策。普/速的卡面线索仍是**框色**
 // (普通青蓝 / 速攻品红紫, 见 HandCard.css 的 --card-hue)。
+// 本组件渲染的是**两层**: 外层 .hand-slot(不动的占位壳, 吃悬停与版式) + 内层 .hand-card(卡面本体,
+// 只做位移动画)。分层的理由见下方 return 处的注释 —— 少了这层, 悬停会无限抖动。
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.css);
 // 详情面板由 BattleScreen 依 onHover 上报的悬停态派生, 这里不需要上报自身矩形。
 export function HandCard({ card, playable, selected, leaving, dealIndex, onExited, onClick, onHover }: Props) {
@@ -40,53 +42,63 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
   } as React.CSSProperties;
 
   return (
+    // ★ 外壳 .hand-slot: 一个**永不位移**的占位框, 悬停命中区与层序全归它, 卡本身只负责视觉位移。
+    //   ⚠ 这一层不是可有可无的包装 —— 悬停上弹的幅度是半张卡高(168px), 若命中区跟着卡一起走,
+    //     鼠标停在卡下半部时卡一弹起就脱离光标 ⇒ 失焦落回 ⇒ 又盖住光标 ⇒ 无限抖动。
+    //     壳不动 ⇒ 光标始终在壳内, 悬停态稳定。上弹后卡越出壳外的那半张由 CSS 的悬停桥
+    //     (.hand-slot:hover::after, 见 HandCard.css)补上命中区, 故移到弹起的卡上也不会掉焦。
+    //   ⚠ 尺寸/负 margin 叠压/张数自适应等版式规则全部认这一层, 见 ui/BattleScreen.css 的 .hand-slot。
     <div
-      className={[
-        "hand-card",
-        hasArt ? "has-art" : "",
-        card.cardType,
-        playable ? "playable" : "unplayable",
-        selected ? "selected" : "",
-        leaving ? "leaving" : "",
-        card.upgraded ? "upgraded" : "",
-      ].join(" ")}
-      style={handStyle}
-      onTransitionEnd={(e) => {
-        // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
-        // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。
-        if (leaving && e.propertyName === "transform") onExited?.();
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (leaving) return;
-        onClick?.();
-      }}
+      className={`hand-slot${selected ? " selected" : ""}${leaving ? " leaving" : ""}`}
       onMouseEnter={() => !leaving && onHover?.(true)}
       onMouseLeave={() => onHover?.(false)}
     >
-      {/* 配图层: 夹在顶行与说明区之间的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪、不被信息条覆盖) */}
-      {hasArt && <span className="hc-art" aria-hidden />}
+      <div
+        className={[
+          "hand-card",
+          hasArt ? "has-art" : "",
+          card.cardType,
+          playable ? "playable" : "unplayable",
+          selected ? "selected" : "",
+          leaving ? "leaving" : "",
+          card.upgraded ? "upgraded" : "",
+        ].join(" ")}
+        style={handStyle}
+        onTransitionEnd={(e) => {
+          // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
+          // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。
+          if (leaving && e.propertyName === "transform") onExited?.();
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (leaving) return;
+          onClick?.();
+        }}
+      >
+        {/* 配图层: 夹在顶行与说明区之间的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪、不被信息条覆盖) */}
+        {hasArt && <span className="hc-art" aria-hidden />}
 
-      {/* 机框层: 全卡扫描线 + 四角 L 卡扣 + 两个斜切角上的亮线。纯装饰, 不吃点击 */}
-      <span className="hc-frame" aria-hidden />
+        {/* 机框层: 全卡扫描线 + 四角 L 卡扣 + 两个斜切角上的亮线。纯装饰, 不吃点击 */}
+        <span className="hc-frame" aria-hidden />
 
-      {/* 描边环: 跟着 14px 斜切角走的单层主环(4px) + 常驻巡游流光(见 HandCard.css .hc-edge) */}
-      <span className="hc-edge" aria-hidden />
+        {/* 描边环: 跟着 14px 斜切角走的单层主环(4px) + 常驻巡游流光(见 HandCard.css .hc-edge) */}
+        <span className="hc-edge" aria-hidden />
 
-      {/* 侧边刻度齿: 左右内侧各一列仪表刻度, 纯装饰 */}
-      <span className="hc-ticks" aria-hidden />
+        {/* 侧边刻度齿: 左右内侧各一列仪表刻度, 纯装饰 */}
+        <span className="hc-ticks" aria-hidden />
 
-      {/* 顶行: 费用水晶(数字压在水晶中央桌面上) + 卡名, 同一行左起排 */}
-      <span className="hc-head">
-        <span className="hc-cost" title="消耗法力水晶">
-          <ManaCrystalIcon className="mana-crystal hc-cost-crystal" />
-          <span className="hc-cost-value">{card.cost}</span>
+        {/* 顶行: 费用水晶(数字压在水晶中央桌面上) + 卡名, 同一行左起排 */}
+        <span className="hc-head">
+          <span className="hc-cost" title="消耗法力水晶">
+            <ManaCrystalIcon className="mana-crystal hc-cost-crystal" />
+            <span className="hc-cost-value">{card.cost}</span>
+          </span>
+          <span className="hc-name">{card.name}</span>
         </span>
-        <span className="hc-name">{card.name}</span>
-      </span>
 
-      {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
-      <span className={`hc-text ${textSize}`}>{card.text}</span>
+        {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
+        <span className={`hc-text ${textSize}`}>{card.text}</span>
+      </div>
     </div>
   );
 }

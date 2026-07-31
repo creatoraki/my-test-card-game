@@ -153,9 +153,12 @@ function freshCharacter(def: CharacterDef): CharacterState {
   };
 }
 
-// ★ 开局只有第一名角色是醒着的(主角), 其余全躺在冬眠仓等着被解封。
+// ★ 开局醒着的是 INITIAL_AWAKENED 上的人(剑士 + 大胃王 + 植物学家), 其余全躺在冬眠仓等着被解封。
 //   characters 仍然**全量**建档 —— 未唤醒角色也有一份初始档案, 解封那一刻直接可用,
 //   awaken() 不需要建档, 各处 characters[id] 也不必判空。
+// 开局就已唤醒并直接上阵的角色 id(按顺序)。
+const INITIAL_AWAKENED = ["swordsman", "glutton", "botanist"];
+
 function freshProfile(): {
   characters: Record<string, CharacterState>;
   awakened: string[];
@@ -163,8 +166,10 @@ function freshProfile(): {
 } {
   const characters: Record<string, CharacterState> = {};
   for (const c of CHARACTERS) characters[c.id] = freshCharacter(c);
-  const awakened = CHARACTERS.slice(0, 1).map((c) => c.id);
-  return { characters, awakened, party: [...awakened] };
+  // 名单里不存在的 id 直接忽略, 保证改角色数据时这里不会崩
+  const awakened = INITIAL_AWAKENED.filter((id) => characters[id]);
+  // 上阵人数有上限, 初始队伍按名单顺序截断
+  return { characters, awakened, party: awakened.slice(0, RULES.progression.partySize) };
 }
 
 export const useTownStore = create<TownStore>()(

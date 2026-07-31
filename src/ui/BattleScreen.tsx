@@ -708,7 +708,7 @@ export function BattleScreen() {
           </button>
       </div>
 
-      {/* ★ 底部一体化 HUD: 队伍卡 | 手牌托盘 | 卡牌说明面板。
+      {/* ★ 底部一体化 HUD: 队伍卡 | 手牌托盘(两列; 卡牌说明面板已搬到画布右上角, 见下方)。
           刻意在 .battle-scene **之外** ⇒ 整条不跟分镜相机推近/漂移/震屏, 构图恒定。
           它同时意味着我方单位不在 .battle-stage 内 —— computeCamera 查不到我方的
           data-cmb-id, 走它现成的 `if (!isFinite(left)) return null` 兜底保持全景, 于是
@@ -726,7 +726,9 @@ export function BattleScreen() {
         {/* 手牌托盘。导轨/衬板都是纯装饰, 几何全部由 BattleScreen.css 的 --hand-* 旋钮收敛,
             这里不写任何尺寸。
             ⚠ 卡刻意比托盘高(越出 HUD 上沿), 故这一列里不能再放别的东西 —— 原先压在托盘上沿的
-              HAND 张数读数已搬到顶端信息条, 见上方 .battle-topbar。 */}
+              HAND 张数读数已搬到顶端信息条, 见上方 .battle-topbar。
+            ⚠ 本列现在一直铺到画布右缘(卡牌说明面板搬走后腾出来的), 手牌最多 10 张也排得下 ——
+              叠压量按张数自适应, 见 BattleScreen.css 的 .hand-tray:has(...) 两条。 */}
         <div className="hand-panel">
         <div className="hand-tray">
           <span className="hand-tray-rail" aria-hidden="true" />
@@ -752,10 +754,13 @@ export function BattleScreen() {
           })}
         </div>
         </div>
-
-        {/* 卡牌说明固定面板: 手牌右侧、位置恒定。展示 focusUid(悬停 ?? 选中)那张卡 */}
-        <CardInfoPanel card={focusCard} />
       </div>
+
+      {/* ★ 卡牌说明固定面板: 画布**右上角**, 位置恒定。展示 focusUid(悬停 ?? 选中)那张卡。
+          刻意在 .battle-hud **之外**(它曾是 HUD 的第三列) —— 手牌上限实为 10 张, 面板让出那一列
+          后手牌托盘才排得下, 几何与层序的完整理由见 ui/CardInfoPanel.css .card-info-panel。
+          同样在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏。 */}
+      <CardInfoPanel card={focusCard} />
 
       {/* 胜负遮罩 */}
       {!isPlayerTurn && (

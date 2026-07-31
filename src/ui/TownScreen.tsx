@@ -5,8 +5,8 @@
 //   任何分辨率下构图逐 px 一致, 画布之外露出的是黑边。
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图重新随分辨率漂移。
 //
-// ★ 入口布局 = 右侧 718×350 的 **bento 马赛克**: 6 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
-//   拼出一个外轮廓规则的矩形。冬眠仓 / 训练室(真入口)占最大的两块, 未开放设施是小块 ——
+// ★ 入口布局 = 右侧 718×350 的 **bento 马赛克**: 7 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
+//   拼出一个外轮廓规则的矩形。编队 / 训练室 / 冬眠仓(真入口)占较大的块, 未开放设施是小块 ——
 //   可用性靠面积表达, 不必额外加说明。马赛克本身由下面内联 style 的 gridTemplateAreas 定义。
 //   ⚠ 控制终端已开放但仍占小块(worklog), 与「面积=可用性」的约定暂时不符, 想强调它就调
 //     gridTemplateAreas 里 worklog 占的格数。
@@ -15,12 +15,15 @@
 //   镜头推向该设施在大厅里的位置并放大 → 界面元素逐个错峰飞出 → 大厅背景淡出、设施背景淡入。
 //
 // ★ 设施内容登记在下面的 FACILITY_CONTENT: 目前有**控制终端**(ui/ControlTerminalScene.tsx ——
-//   下降舱出击 + 委托占位)与**冬眠仓**(ui/CryoScene.tsx —— 编队 / 只读属性 / 唤醒队员);
+//   下降舱出击 + 委托占位)与**冬眠仓**(ui/CryoScene.tsx —— 只剩唤醒队员);
 //   训练室仍只有背景 +「返回据点」, 功能未做。
+//
+// ★ **不是所有砖都是设施**: Facility.kind === "screen" 的砖(目前只有「编队」)点下去不播运镜,
+//   而是直接切到一个顶层全屏页(runStore.openFormation → ui/FormationScreen.tsx)。
 //
 // ⚠ 「回主菜单」仍然没有入口(角落只剩「重置存档」), 但据点**已不再是死路** ——
 //   控制终端 → 下降舱 → 确认下降 会接上 runStore.startExpedition 进探索牌局;
-//   编队已经在冬眠仓里了。
+//   编队是右侧 bento 上的一级入口。
 
 import {
   useCallback,
@@ -30,6 +33,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { useRunStore } from "../store/runStore";
 import { useTownStore } from "../store/townStore";
 import { useStageScale } from "./stage";
 import { prefersReducedMotion } from "./transitions";
@@ -58,6 +62,25 @@ import "./TownScreen.css";
 // 全部是线框风内联 SVG —— 刻意不用 emoji: emoji 在 Windows 上会渲染成彩色贴纸, 和暗色科技风冲突。
 // 颜色由父级 .bento-icon 的 color 决定(stroke="currentColor"), 故 hover 变色/发光只改一处。
 // 画法统一: 48×48 视框, 外轮廓 strokeWidth 1.2 + opacity .38 当陪衬, 主体 strokeWidth 1.6。
+
+// 编队: 一个居中靠前的主位 + 两侧各一个副位, 读作「三人一队的编成」。
+// (原先长在 CryoScene 里, 编队独立成页后随入口一起搬到大厅。)
+function FormationIcon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
+      {/* 编成框: 压低透明度当陪衬 */}
+      <path d="M5 10h38v28H5z" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
+      {/* 中间主位: 头 + 肩 */}
+      <circle cx="24" cy="19" r="4" strokeWidth={1.6} />
+      <path d="M18 31c0-3.6 2.7-6 6-6s6 2.4 6 6" strokeWidth={1.6} />
+      {/* 两侧副位: 小一号 */}
+      <circle cx="12" cy="21" r="3" strokeWidth={1.4} opacity={0.72} />
+      <path d="M7.5 31c0-2.8 2-4.6 4.5-4.6s4.5 1.8 4.5 4.6" strokeWidth={1.4} opacity={0.72} />
+      <circle cx="36" cy="21" r="3" strokeWidth={1.4} opacity={0.72} />
+      <path d="M31.5 31c0-2.8 2-4.6 4.5-4.6s4.5 1.8 4.5 4.6" strokeWidth={1.4} opacity={0.72} />
+    </svg>
+  );
+}
 
 // 冬眠仓(设定里的「低温维生区」): 六角雪花。
 const CRYO_ARM = "M24 24V7M24 12.5l-4.5-4.5M24 12.5l4.5-4.5M24 18l-3.5-3.5M24 18l3.5-3.5";
@@ -154,12 +177,24 @@ interface Facility {
   icon: ReactNode;
   size: "lg" | "md" | "sm"; // 只影响图标/字号/斜切角尺度, 砖块几何由 grid 决定
   locked?: boolean; // 未开放占位: 降亮 + 右上角挂「未开放」小标 + hover 反馈弱一档
+  // 点下去发生什么。缺省 "scene" = 播进设施运镜、在大厅内挂载设施场景(FACILITY_CONTENT);
+  // "screen" = 直接切到一个顶层全屏页(走 ScreenTransition), 不播运镜也不需要设施背景。
+  // ⚠ "screen" 的砖不必登记进 FACILITY_SCENES / FACILITY_CONTENT。
+  kind?: "scene" | "screen";
 }
 
 // 六个设施。名称与功能一律照抄 游戏设定.md 第四节「据点设施」表:
 // 低温维生区 → 冬眠仓 / 作业模拟间 → 训练室, 其余四个直接用设定里的原名。
 const FACILITIES: Facility[] = [
-  { id: "cryo", name: "冬眠仓", desc: "唤醒队友 · 编成小队。", icon: <CryoIcon />, size: "md" },
+  { id: "cryo", name: "冬眠仓", desc: "唤醒沉睡的队友。", icon: <CryoIcon />, size: "md" },
+  {
+    id: "formation",
+    name: "编队",
+    desc: "编成小队 · 查看队员。",
+    icon: <FormationIcon />,
+    size: "md",
+    kind: "screen", // ★ 唯一一块不是设施的砖: 直接切到全屏编队页(ui/FormationScreen.tsx)
+  },
   {
     id: "assembly",
     name: "模块装配舱",
@@ -227,6 +262,7 @@ function flyVars(fly: FlyOut, delay = fly.delay, ms = fly.ms): CSSProperties {
 
 export function TownScreen() {
   const resetProfile = useTownStore((s) => s.resetProfile);
+  const openFormation = useRunStore((s) => s.openFormation);
   const terminalCredits = useTownStore((s) => s.loot);
   const viewportRef = useRef<HTMLDivElement>(null);
   const activeFacilities = FACILITIES.filter((facility) => !facility.locked).length;
@@ -408,11 +444,11 @@ export function TownScreen() {
                 gap: "10px", // ← 砖块之间的缝隙
                 gridTemplateColumns: "160px 120px 150px 150px 98px",
                 gridTemplateRows: "150px 190px",
-                // ★ 马赛克本体: 同名格连成一块砖 ⇒ 6 块尺寸互不相同, 外轮廓仍是规则矩形。
+                // ★ 马赛克本体: 同名格连成一块砖 ⇒ 7 块尺寸互不相同, 外轮廓仍是规则矩形。
                 //   词必须与 FACILITIES 的 id 完全一致。
                 gridTemplateAreas: `
-                  "cryo     cryo     worklog medical  medical"
-                  "assembly training training training storage"
+                  "cryo     cryo     formation formation worklog"
+                  "assembly training training  medical   storage"
                 `,
               }}
             >
@@ -422,7 +458,9 @@ export function TownScreen() {
                 const spec = picked ? FLY_PICKED : FLY_TILES[tileCursor++ % FLY_TILES.length];
                 const backIdx = picked ? 0 : FLY_TILES.length - (tileCursor - 1);
                 // 锁定块仍是未开放占位: 不挂 onClick, 但刻意不加 disabled, 好让 hover 反馈照常生效。
-                const openable = !f.locked && hasFacilityScene(f.id);
+                // 切页的砖(kind:"screen")不需要设施场景登记, 故不走 hasFacilityScene 那一关。
+                const toScreen = f.kind === "screen";
+                const openable = !f.locked && (toScreen || hasFacilityScene(f.id));
                 return (
                   <button
                     key={f.id}
@@ -438,7 +476,16 @@ export function TownScreen() {
                       ...(picked ? ({ "--pick-ms": `${PICK_FLASH}ms` } as CSSProperties) : {}),
                     }}
                     type="button"
-                    onClick={openable ? () => enterFacility(f.id) : undefined}
+                    onClick={
+                      !openable
+                        ? undefined
+                        : toScreen
+                          ? // 切页: 不播运镜 —— 那套演出的落点是「大厅内的某个设施」, 而全屏页
+                            // 与大厅不是同一张画布, 推镜过去再硬切反而读作两次转场。
+                            // ⚠ 仍要卡 phase: 进设施演出途中不该被一次切页打断。
+                            () => phase === "idle" && openFormation()
+                          : () => enterFacility(f.id)
+                    }
                   >
                     <span className="bento-rim" aria-hidden />
                     <span className="bento-icon">{f.icon}</span>

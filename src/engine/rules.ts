@@ -16,17 +16,18 @@ export const RULES = {
     carryOver: false,
   },
 
-  // 手牌 / 抽牌 —— ★ 不再是定值。
+  // 手牌 / 抽牌
   // 小队手牌上限 = Σ上阵角色 handLimit + partyBonusHandLimit
-  // 小队抽牌数   = Σ上阵角色 drawCount + partyBonusDrawCount
+  // 小队每回合抽牌数 = partyBonusDrawCount(全队基准) + Σ上阵角色 drawCount
+  // 开局(第 1 回合)抽牌数 = openingDrawCount + Σ上阵角色 drawCount
   hand: {
-    // ⚠ 调试期补偿: 设计的首版基准是"三名角色合计 7 手牌 / 2 抽牌", 但目前只有剑士
-    //   一名角色(3 / 1), 单人上阵会憋死。三名角色到位后**把这两项归 0**。
+    // ⚠ 调试期补偿: 手牌上限设计首版基准是"三名角色合计 7 手牌", 目前角色不齐,
+    //   靠这个全队修正兜底; 三名角色到位后**归 0**。
     partyBonusHandLimit: 4,
-    partyBonusDrawCount: 1,
+    // ★ 抽牌走固定基准: 角色 drawCount 目前一律 0, 只有装备/成长才加成。
+    openingDrawCount: 5, // 开局抽 5 张
+    partyBonusDrawCount: 2, // 之后每回合抽 2 张
     minHandLimit: 1,
-    // 第 1 回合抽满至手牌上限, 之后每回合只抽 drawCount 张(抽到上限为止)。
-    openingDrawToFull: true,
     discardLeftoversOnRoundEnd: false,
   },
 

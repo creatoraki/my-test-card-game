@@ -5,6 +5,7 @@ import {
   endRound,
   partyHandLimit,
   partyDrawCount,
+  partyOpeningDrawCount,
   statOf,
   hitChance,
   critChance,
@@ -35,12 +36,12 @@ function battleWith(deckCardId: string, n = 12): BattleState {
 }
 
 describe("战斗初始化", () => {
-  it("回合1/时刻1, 抽满至小队手牌上限, 法力水晶=每回合量, 2 个敌人", () => {
+  it("回合1/时刻1, 抽开局张数, 法力水晶=每回合量, 2 个敌人", () => {
     const b = battleWith("whirlwind-slash");
     expect(b.round).toBe(1);
     expect(b.tick).toBe(RULES.timeline.startTick);
-    // 第 1 回合抽满至小队手牌上限(Σ上阵角色 handLimit + 全队修正)
-    expect(b.hand.length).toBe(partyHandLimit(b));
+    // 第 1 回合抽 partyOpeningDrawCount 张(抽到手牌上限为止)
+    expect(b.hand.length).toBe(Math.min(partyOpeningDrawCount(b), partyHandLimit(b)));
     expect(b.resources.mana).toBe(RULES.resource.perRound);
     expect(b.enemyIds.length).toBe(2);
     expect(b.playerIds.length).toBe(CHARACTERS.length);

@@ -1,4 +1,6 @@
 import swordsmanPortrait from "../assets/人物立绘/剑士-透明.png";
+import gluttonPortrait from "../assets/人物立绘/大胃王-透明.png";
+import botanistPortrait from "../assets/人物立绘/植物学家-透明.png";
 import "./CharacterPortrait.css";
 
 // 角色立绘登记表(与 enemyArt.ts 同思路: 静态 import + 登记表, 按 CharacterDef.id 作键)。
@@ -10,6 +12,9 @@ interface CharacterArtDef {
   // 菜单的 .menu-portrait 全身像不受影响。
   dx?: number;
   dy?: number;
+  // 底部队伍卡半身像的个体取景倍率(默认 1 = 跟随 AllyBar 的 --bust-zoom)。
+  // 各角色原图的人物占画幅比例不一样, 同一个 --bust-zoom 下有的人显小, 靠它单独补偿。
+  bustScale?: number;
   // 头部取景的微调参数(zoom = 图宽相对取景窗宽的倍率; dx/dy = 缩放后的位置微调)。
   // ⚠ 目前**没有使用方** —— 底部队伍卡已从「头部裁切的玻璃头像」改为「带框半身立绘」,
   // 半身走上面的 dx/dy。这套参数保留登记, 留给后续需要圆头像的界面(如编队/结算页)。
@@ -17,8 +22,18 @@ interface CharacterArtDef {
 }
 
 const CHARACTER_ART: Record<string, CharacterArtDef> = {
-  // 剑士: 原图人物偏左(左手持剑外展占了画面左侧), 右移 20px 才在槽位里居中
-  swordsman: { src: swordsmanPortrait, dx: 10, head: { zoom: 1.15, dx: 4, dy: -12 } },
+  // 剑士: 原图人物偏左(左手持剑外展占了画面左侧), 右移 20px 才在槽位里居中;
+  //       原图人物在画幅里偏小, 队伍卡里比其他人矮一头 ⇒ bustScale 单独放大一点
+  swordsman: {
+    src: swordsmanPortrait,
+    dx: 10,
+    bustScale: 1.18,
+    head: { zoom: 1.15, dx: 4, dy: -12 },
+  },
+  // 大胃王: 取景偏移尚未校准, 先按 0 登记, 看到实际画面后再微调
+  glutton: { src: gluttonPortrait },
+  // 植物学家: 原图头顶留白偏多, 放大后人在窗里压得偏低 ⇒ 整体上移一点
+  botanist: { src: botanistPortrait, bustScale: 1.35, dy: -20 },
 };
 
 interface Props {
@@ -34,7 +49,7 @@ export function CharacterPortrait({ characterId, emoji, alt, className }: Props)
   if (art) {
     // 各套取景各自下发自己的变量, 由 className 决定哪套规则接管(规则分散在消费方的组件 CSS 里):
     //   无 className    → .combatant-figure .portrait-image  战斗立绘半身像(1:1 cover) — CombatantView.css
-    //   ally-portrait   → .ally-figure .portrait-image       底部队伍卡的半身取景(--bust-zoom) — AllyBar.css
+    //   ally-portrait   → .ally-figure .portrait-image       底部队伍卡的半身取景(--bust-zoom × --bust-scale) — AllyBar.css
     //   menu-portrait   → 基础规则 .portrait-image           全身(contain) — CharacterPortrait.css
     // 后两者共用 --portrait-dx/dy; --head-* 暂无使用方(见上方登记表的注释)。
     return (
@@ -46,6 +61,7 @@ export function CharacterPortrait({ characterId, emoji, alt, className }: Props)
           {
             "--portrait-dx": `${art.dx ?? 0}px`,
             "--portrait-dy": `${art.dy ?? 0}px`,
+            "--bust-scale": `${art.bustScale ?? 1}`,
             "--head-zoom": `${art.head?.zoom ?? 1}`,
             "--head-dx": `${art.head?.dx ?? 0}px`,
             "--head-dy": `${art.head?.dy ?? 0}px`,

@@ -16,6 +16,7 @@ import {
   discardStack,
   finishBattle,
   finishGenerating,
+  finishLeaving,
   finishReveal,
   leaveRegion,
   pushOn,
@@ -39,7 +40,8 @@ interface ExploreStore {
   pickOption: (index: number) => ExploreState | null; // 落点浮层选分支
   confirmNode: () => void; // 结算浮层「确认」→ atNode 决策
   pushOn: () => void; // 「继续推进」→ 下一个推进段
-  leaveRegion: () => void; // 「前往下一区域」→ 本轮线路披露
+  leaveRegion: () => void; // 「前往下一区域」→ 离场行走演出(leaving), 无路可走则直接披露
+  leaveDone: () => void; // 离场行走演出播完(UI 动画计时器) → routeDisclosure
   startBattle: () => ExploreState | null; // 披露页「进入推进战斗」→ inBattle
   retreatNow: () => void;
   settleBattle: (
@@ -109,6 +111,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   leaveRegion: () => {
     mutate(get, set, (d) => leaveRegion(d));
+  },
+
+  leaveDone: () => {
+    mutate(get, set, (d) => finishLeaving(d));
   },
 
   startBattle: () => mutate(get, set, (d) => startRoundBattle(d)),

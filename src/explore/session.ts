@@ -13,7 +13,8 @@
 //              ▼                                                            ▼
 //          advancing                                   leaveRegion / 已走满 4 段
 //                                                                          │
-//                            routeDisclosure ◀────────────────────────────┘
+//                     leaving ─finishLeaving─▶ routeDisclosure ◀───────────┘
+//                    (还有剩余线路可走时才经过它, 见 leaveRegion)
 //                                   │ startRoundBattle
 //                                   ▼
 //                                inBattle ─finishBattle─▶ 下一轮 / cleared / wiped
@@ -829,8 +830,23 @@ export function pushOn(s: ExploreState): boolean {
 
 // 「前往下一区域」: 放弃本轮剩余节点, 先披露线路再打本轮的推进战斗。
 // choosingEntry 阶段也允许 —— 那就是设计文档 §1.2 说的「本轮 0 个节点」直推。
+//
+// ★ 中间多一相 leaving: 玩家**不该被瞬间挪到战斗里** —— 棋子要沿本轮剩下的那条线路一路走完,
+//   走到第 4 段终点才弹披露页(它本来就要把整条路径描出来, 现在这条线是被人「走」出来的)。
+//   ⚠ 两种情况没有线路可走, 直接落 routeDisclosure, 不要为了「统一」硬塞一相空演出:
+//     ① choosingEntry 直推 —— 连入口都没选, 本轮压根没有路径(披露页也只会写「你没有进入这片区域」);
+//     ② 已走满 4 段 —— 剩余路线长度为 0。
 export function leaveRegion(s: ExploreState): boolean {
   if (s.phase !== "atNode" && s.phase !== "choosingEntry") return false;
+  const hasWalk = s.phase === "atNode" && s.entryLane != null && s.currentSegment < SEGMENTS;
+  s.phase = hasWalk ? "leaving" : "routeDisclosure";
+  return true;
+}
+
+// 离场行走演出播完(由 RouteBoard 的动画计时器调) → 披露页。
+// ⚠ 只认 leaving: 演出期间玩家若已被别的路径(团灭/撤离)带走, 这里不能把阶段拽回来。
+export function finishLeaving(s: ExploreState): boolean {
+  if (s.phase !== "leaving") return false;
   s.phase = "routeDisclosure";
   return true;
 }

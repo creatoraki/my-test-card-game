@@ -171,6 +171,11 @@ export type ExplorePhase =
   | "landed" // ★ 已抵达节点, **效果尚未结算**, 等玩家在浮层里选分支。不限时
   | "resolving" // 分支已结算完毕, 等玩家确认
   | "atNode" // 节点决策: 继续推进 / 前往下一区域(设计文档 §2.3.3)
+  // ★ 「前往下一区域」按下之后的**离场演出**: 棋子沿本轮剩余的完整线路一路走到第 4 段终点。
+  //   ⚠ 它是纯演出阶段(与 advancing 同性质): 锁交互、禁开背包、不许撤离, 由 UI 的动画
+  //     播完调 finishLeaving 才进披露页。没有剩余路线可走时(0 节点直推 / 已走满 4 段)
+  //     leaveRegion 会跳过这一相直接进 routeDisclosure。
+  | "leaving"
   | "routeDisclosure" // 本轮结束, 披露全图桥接与实际路径
   | "inBattle" // 本轮的推进战斗进行中
   | "cleared" // BOSS 已击杀

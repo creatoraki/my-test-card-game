@@ -109,22 +109,30 @@
   }
 }
 
-/* ── HUD 右段: 卡牌说明固定面板(ui/CardInfoPanel.tsx) ── */
+/* ── 画布右上角: 卡牌说明固定面板(ui/CardInfoPanel.tsx) ── */
 /* 位置恒定(取代旧的悬停跟随浮窗), 描述文本自行滚动 ⇒ 版面不跳。
    内容复用 .card-drawer 那套 .drawer-* 类, 覆盖全部 scoped 在 .card-info-panel 下。
 
-   ★ 宽高比锁死 1:2, 宽 = 列宽 --hud-info-w(320) ⇒ 高 640。这个比例是从**内容**推出来的,
+   ★ 宽高比锁死 1:2, 宽 = --hud-info-w(320) ⇒ 高 640。这个比例是从**内容**推出来的,
      不是随手定的: 卡面素材恒为 1:1 方图(assets/skills/**), 于是上半部正好是一张与面板同宽的
      正方形大卡面(296 见方), 下半部是卡名/元数据/描述 —— 一个正方形 + 一块信息区 = 1:2。
-   ⚠ align-self: end 是这套的关键 —— grid 默认 align-self: stretch 会把高度定死成行高 264,
-     aspect-ratio 就失效了。改成 end 后高度交给比例算, 底边贴 HUD 底、多出的 376px 向上溢出
-     到场景里。溢出不需要动任何 z-index: .battle-hud 整条本就是 z-index:2, 压在场景(0)/
-     调色层(1)/居合压暗(1)之上、顶栏(12)之下。
-   ⚠ 面板顶边落在画布 y≈424, 左缘 x=1584: 敌人立绘最右缘 ≈1330、弹出手牌右缘 ≈1387,
-     都不撞。改 --hud-info-w 前先回头核这两个数。 */
+
+   ★★ 它曾是底部 HUD 的第三列(align-self:end + 向上溢出 376px), 现已整块搬到**画布右上角**并
+     改为绝对定位。原因: 手牌上限实际是 10 张(partyHandLimit()), 而三列制下手牌中段只有
+     1028px, 7 张就撑爆了 —— 面板让出那一列后中段拿到 1368px。
+   ★ 为什么锚在**上部**而不是垂直居中: top = --topbar-h + 12 = 80 ⇒ 底边落在 y=720, 而手牌
+     静止时的上沿正好也是 720(见 ui/BattleScreen.css .hand-panel 的版式算式)。两条边严丝合缝
+     地咬在同一条线上, 静止态零重叠; 垂直居中(top 220 / 底 860)反而会压进手牌静止区。
+   ⚠ z-index: 3 —— 高于 .battle-hud(2), 故手牌 ≥8 张时最右侧那几张**弹起后**会被本面板盖住
+     一截。这是刻意的取舍: 此刻你正在读的就是这块面板(它显示的正是那张卡), 让卡盖住它是本末倒置。
+     仍低于顶端信息条(12)。
+   ⚠ 左缘 x=1584, 顶边 y=80: 敌人立绘最右缘 ≈1330 不撞。改 --hud-info-w 前先回头核这个数。 */
 .card-info-panel {
-  position: relative;
-  align-self: end;
+  position: absolute;
+  top: calc(var(--topbar-h) + 12px);
+  right: var(--canvas-pad);
+  z-index: 3;
+  width: var(--hud-info-w);
   aspect-ratio: 1 / 2;
   height: auto;
   display: flex;

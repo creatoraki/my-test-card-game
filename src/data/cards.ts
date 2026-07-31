@@ -180,4 +180,34 @@ export const CARD_DEFS: CardDef[] = [
     ],
     text: "必中的断罪一击，造成 260% 攻击力的伤害并施加 2 层易伤。打出后本场移除。",
   },
+
+  // ---- 大胃王初始卡 ----
+  // ⚠ 占位内容: 初始卡组是 5 张同名的「基础攻击」(卡面用占位素材), 专属卡牌与抽卡池设计另起。
+  {
+    id: "glutton-basic-attack",
+    name: "基础攻击",
+    ownerCharId: "glutton",
+    cost: 1,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "common",
+    anim: "slash",
+    effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
+    text: "选择一名敌人，挥出一击造成 100% 攻击力的伤害。",
+  },
+
+  // ---- 植物学家初始卡 ----
+  // ⚠ 占位内容: 初始卡组是 5 张同名的「普通攻击」(卡面用占位素材), 专属卡牌与抽卡池设计另起。
+  {
+    id: "botanist-basic-attack",
+    name: "普通攻击",
+    ownerCharId: "botanist",
+    cost: 1,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "common",
+    anim: "slash",
+    effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
+    text: "选择一名敌人，挥出一击造成 100% 攻击力的伤害。",
+  },
 ];

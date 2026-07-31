@@ -153,6 +153,13 @@ export function partyDrawCount(state: BattleState): number {
   return Math.max(0, Math.round(sum));
 }
 
+// 开局(第 1 回合)抽牌数 —— 固定基准 5 张, 同样叠加上阵角色的 drawCount 加成。
+export function partyOpeningDrawCount(state: BattleState): number {
+  let sum: number = RULES.hand.openingDrawCount;
+  for (const id of state.playerIds) sum += state.combatants[id].stats.drawCount;
+  return Math.max(0, Math.round(sum));
+}
+
 // 负重惩罚(百分点), 三项属性(命中/闪避/暴击)各减这么多。
 // ★ 换算的唯一真相点: 探索页的负重读数与开战时的快照都走它(见 explore/session.burdenNow)。
 //   战斗内不再重算 —— 负重在**开战瞬间快照**进 BattleState.burdenPenalty(设计文档 §6.3),

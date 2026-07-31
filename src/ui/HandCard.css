@@ -1,4 +1,33 @@
 /* ===================== 手牌盘上的竖版卡 ===================== */
+/* ★ .hand-slot: 每张卡外面那层**永不位移**的壳 —— 悬停命中区、层序、版式(宽高/叠压)全归它,
+     .hand-card 只负责视觉上的上弹/出鞘/飞入。
+   ⚠ 这层是修「悬停抖动」的关键, 不能为了省一层 DOM 去掉: 聚焦位移是**半张卡高(168px)**,
+     若命中区跟着卡走, 鼠标停在卡下半部时 —— 卡弹起 ⇒ 光标落到卡外 ⇒ :hover 失效 ⇒ 卡落回
+     ⇒ 又盖住光标 ⇒ 无限循环地弹出/缩回。壳不动, 这个环就断了。
+   ⚠ 也不能改成"给卡加个向下延伸的伪元素补命中区": .hand-card 自带 overflow:hidden + clip-path,
+     任何子元素/伪元素都会被连命中区一起裁掉。
+   尺寸与鱼鳞叠的负 margin 见 ui/BattleScreen.css 的 .hand-tray .hand-slot 段。 */
+.hand-slot {
+  position: relative;
+}
+/* 悬停桥: 卡弹起后有半张卡高**越出壳外**, 若不补命中区, 鼠标往上追到弹起的卡面上就会掉焦落回。
+   这块透明垫只在悬停时存在 ⇒ 静止时壳外的空白不吃悬停(否则鼠标扫过托盘上方就会平白弹卡)。
+   ⚠ 刻意只盖"壳上沿以上"那半张 + 2px 接缝, 不盖壳自身: 壳本身已经是命中区, 多盖一层反而会把
+     右邻卡被叠压的那一条挡住, 让相邻卡难以切换悬停。
+   ⚠ 不吃点击: 它没有 z-index(auto), 而卡是 z-index:1 ⇒ 弹起的卡恒在垫子之上, 点击照常落到卡上。 */
+.hand-slot:hover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% - 2px);
+  height: calc(var(--hand-card-h) / 2 + 2px);
+}
+/* 出鞘中的卡不该再吃悬停(同 .hand-card.leaving 的 pointer-events:none) */
+.hand-slot.leaving {
+  pointer-events: none;
+}
+
 /* 卡面结构(自上而下三段): **顶行**(.hc-head, 费用水晶 + 卡名) + **正方形配图区**(.hc-art)
    + **底部效果说明**(.hc-text)。
    ★ 配图区恒为 --hand-card-w 见方的正方形(卡高 = 卡宽 + --hc-head-h + --hc-text-h), 素材是 1:1 的
@@ -66,7 +95,7 @@
      素材作画时给最外一圈 6px 留点余量即可(上下已不再有任何东西压上来)。 */
 .hc-art {
   position: absolute;
-  top: var(--hc-head-h, 40px);
+  top: var(--hc-head-h, 52px);
   left: 0;
   right: 0;
   bottom: var(--hc-text-h, 84px);
@@ -229,7 +258,7 @@
    两组周期(8px 短齿 / 32px 长齿)叠在一起 ⇒ 像真尺子那样"每第四格更长"。 */
 .hc-ticks {
   position: absolute;
-  inset: calc(var(--hc-head-h, 40px) + 8px) 0 calc(var(--hc-text-h, 84px) + 8px);
+  inset: calc(var(--hc-head-h, 52px) + 8px) 0 calc(var(--hc-text-h, 84px) + 8px);
   z-index: 6;
   pointer-events: none;
   color: var(--card-hue, #6fd2ff);
@@ -257,7 +286,7 @@
   left: 4px;
   right: 4px;
   top: 4px;
-  height: calc(var(--hc-head-h, 40px) - 4px);
+  height: calc(var(--hc-head-h, 52px) - 4px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -285,17 +314,19 @@
 }
 /* 费用: 一颗 3D 法力水晶, 数字压在水晶中央桌面上。它是顶行 flex 的第一个子项(不再绝对定位),
    flex: none 免得卡名长时被挤扁。 */
+/* ⚠ 水晶尺寸跟着 --hc-head-h(52) 走: 顶行内容高 = 52 − 4 = 48, 34 的水晶上下各余 7px。
+   顶行加高就是为了让这两样东西读得更清, 别只加高不放大 —— 那样只是多出一条空带。 */
 .hc-cost {
   position: relative;
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #f2fdff;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 17px;
   text-shadow: 0 1px 2px #02152f, 0 0 5px #0a3a6ecc;
 }
 .hc-cost-crystal {
@@ -315,7 +346,7 @@
 .hc-name {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 1px;
   line-height: 1.1;
@@ -391,7 +422,7 @@
 .hand-card.leaving {
   pointer-events: none;
   animation: none;
-  /* 位移量跟着卡高**与悬浮弹出幅度**走: 出牌的那张多半正处在悬浮/选中位(半张卡高 = 182px),
+  /* 位移量跟着卡高**与悬浮弹出幅度**走: 出牌的那张多半正处在悬浮/选中位(半张卡高 = 168px),
      终点必须比它高出足够一截才仍读作"整张飞出去" —— 恒定再留 90px 行程 ⇒ 约 272px。
      写成公式而不是死数, 卡高一变它自己就跟上了。 */
   transform: translateY(calc(var(--hand-card-h) / -2 - 90px));
@@ -408,12 +439,11 @@
     transform: translateY(0);
   }
 }
-/* ★ 聚焦(悬浮/选中)的**唯一**表达: 向上弹出**半张卡高**(--hand-card-h / 2 = 182px)。
-   ⚠ 刻意**不放大**(旧版是 -145px + scale 1.34): 卡面素材是定尺方图, 放大要插值; 且卡本身
-     已经加高到 364, 再放大会盖掉大半个场景。半张卡高这个量与叠压量(100px, 每张只露 140px)
-     配合, 足够把"被抽出的那张"从一排紧压的牌里读出来。
-   ⚠ 卡顶因此越出 HUD 上沿约 290px(静止越出 108 = 卡高 364 − 托盘可用高 256, 加 182 弹出),
-     峰值落在画布 y ≈ 510 —— 会压到舞台下半与选择目标提示条, 这是刻意的取舍, 手牌本就该盖住
+/* ★ 聚焦(悬浮/选中)的**唯一**表达: 向上弹出**半张卡高**(--hand-card-h / 2 = 168px)。
+   ⚠ 刻意**不放大**(旧版是 -145px + scale 1.34): 卡面素材是定尺方图, 放大要插值。
+     半张卡高这个量与叠压量(55px, 每张露 145px)配合, 足够把"被抽出的那张"从一排牌里读出来。
+   ⚠ 卡顶因此越出 HUD 上沿约 248px(静止越出 80 = 卡高 336 − 托盘可用高 256, 加 168 弹出),
+     峰值落在画布 y ≈ 552 —— 会压到舞台下半与选择目标提示条, 这是刻意的取舍, 手牌本就该盖住
      场景下沿(提示条的避让量见 ui/BattleScreen.css .hint-bar 的注释)。
    ⚠ 刻意**不**改变任何颜色: 不点亮描边、不加配色辉光、不掠光。框色只承载"普/速"一种信息,
      聚焦只由位移表达 —— 一排卡里同时只有一张被抽出, 位移本身已经足够醒目。
@@ -421,7 +451,9 @@
      只能走 filter: drop-shadow —— 卡带 clip-path(斜切角), box-shadow 会被连投影一起裁掉
      (同 .ally-slot.card-focus .ally-frame 那个坑)。这条 filter 会整条覆盖
      .hand-tray .hand-card 的鱼鳞叠投影, 故把那道右缘投影也一并写回。 */
-.hand-card:hover,
+/* ⚠ 悬停判的是**外壳** .hand-slot 而不是卡自己 —— 卡一弹起就会脱离光标, 判卡会无限抖动,
+     完整理由见本文件开头 .hand-slot 段。 */
+.hand-slot:not(.leaving):hover > .hand-card,
 .hand-card.selected {
   transform: translateY(calc(var(--hand-card-h) / -2));
   filter: drop-shadow(3px 0 6px #000a) drop-shadow(0 10px 14px #000c);

@@ -1,14 +1,19 @@
 // ★ 区域路由图(等距瓦片战棋视角) ★ —— 探索页的主体交互, 见 探索模式设计.md §2 与 §11.1。
 //
 // 一轮 = 一张 5 通道 × 4 推进段的图。各阶段各对应一种画面, 全部落在同一张 SVG 上:
-//   generating —— 棋盘沿推进方向(左下 → 右上)逐条浮现(起点地板 → 水管 → 节点地板), 共 GENERATE_MS; 全程不可交互。
+//   generating —— 棋盘沿推进方向(左下 → 右上)逐条浮现(起点地板 → 连线 → 节点地板), 共 GENERATE_MS; 全程不可交互。
 //                 ⚠ 桥接自始至终不出现 —— 这一段是「浮现仪式」, 不是信息展示。
 //   sealed    —— 图已浮现完、桥接仍遮蔽, 正中悬一个「探索路线」按钮。不限时。
 //   revealing —— **全图 4 段桥接一次性全显** + 顶部倒计时; 玩家在这 2-3 秒里用眼睛记。
 //                只能由 sealed 阶段按下按钮进入, 一轮仅此一次。
 //   choosingEntry —— 桥接整体淡出到 opacity:0(⚠ 只改 opacity, **不卸载**: DOM 里留着才不会被
 //                「查看元素」看穿); 入口通道 A-E 变成可点按钮。★ 全轮唯一一次自由选择。
-//   advancing —— 信号沿当前推进段的折线前进: 顺主管朝右上 → 走到岔口拐上桥管 → 落到隔壁通道。
+//   advancing —— 信号沿当前推进段的折线前进: 顺主管朝右上 → 走到岔口拐上桥管 → 落到隔壁通道;
+//                **代表玩家的几何体小人跟在信号点后半步走同一条折线**(见下面的 <Pawn>)。
+//   leaving   —— **离场行走**: 玩家在 atNode 选了「前往下一区域」之后, 棋子沿本轮**剩余的整条
+//                线路**从当前落点一路走到第 4 段终点, 走线跟着他同速描出来, 桥接一并显形。
+//                ⚠ 这一相的意义是「不许把人瞬移进战斗」: 走完(onLeaveDone)才进披露页。
+//                没有剩余线路可走时(0 节点直推 / 已走满 4 段)session 会跳过它。
 //   landed / resolving / atNode —— 落点地板被「撞」一下并高亮, 已走过的路径保持点亮;
 //                浮层(先选分支、再看结算、再决定推不推进)由 ExploreScreen 负责, 不在这一层。
 //   routeDisclosure —— 全图桥接常亮 + 玩家的实际路径整条描出 + 放弃掉的剩余节点压暗(§11.2)。
@@ -19,22 +24,35 @@
 //     推进轴(沿通道向前) = 左下 → 右上   通道轴(跨到隔壁通道) = 左上 → 右下
 //   世界坐标 (u = 沿推进轴的距离, s = 沿通道轴的偏移) → 屏幕坐标是这两条单位向量的线性组合。
 //
-// ★ 呈现方式: **瓦片地板 + 小水管**。起点与 20 个节点都是一块等距瓦片地板(正方形地板的等距投影
-//   = 2:1 菱形 + 厚度), 地板上**站着**一个立体感的事件图标(起点站的是立体字母 A-E);
-//   地板之间用细圆柱小水管相连(暗轮廓 + 管身 + 顶部细高光 + 圆头端帽塞进地板边缘)。
-//   ⚠ **桥接用的是与主管完全相同的水管**, 没有独立材质 —— 这是刻意的(见下)。
+// ★ 呈现方式: **瓦片地板 + 黑色连线**。20 个节点各是一块等距瓦片地板(正方形地板的等距投影
+//   = 2:1 菱形 + 厚度), **地板的材质本身跟着该节点的事件类型走**(顶面/侧面/砖缝按 --k 轻度染色,
+//   风险标记再叠一档 —— 见 RouteBoard.css 的 .rb-tile-top), 地板上**站着**一个立体感的事件图标;
+//   ★ 5 个入口(A-E)**刻意不是同一类物件**: 同样的 2:1 底盘, 但材质与零件表都另起一套 ——
+//     亮青高填充的台面 + 外扩光环 + 指向推进方向的人字标 + 升起的光柱 + 大一档的立体字母
+//     (见下面的 <EntryTile>)。「入口」与「事件」在画面上必须一眼分得开, 别把两者的样式合并回去;
+//   地板之间用**一条嵌进地面的细线**相连(暗色轨槽 + 细导线两层描边, 圆头端帽塞进地板边缘,
+//   不是圆柱水管)。
+//   ★ 这条线的颜色是**低饱和暖灰铜**(--rb-pipe), 刻意不是冷白 —— 它读作「没通电的裸金属导槽」,
+//     通电(悬停 / 电流 / 桥接显形)才转成发光的冷色。⚠ 别改回冷白: 那会与显形中的亮青桥接
+//     同属冷色且明度更高, 揭示的那两三秒里 20 条主线比 4 段桥接还抢眼(见 CSS 里 --rb-pipe 的注释)。
+//   ⚠ 这条线是电流特效(信号推进/已走路径/悬停通电)的轨道: 端点与端帽照着电流定,
+//     电流比它粗、跑过去把它整条盖住 —— 详见 RouteBoard.css 里 .rb-pipe 处的对齐约定。
+//   ⚠ **桥接平时用的是与主线完全相同的那条线**, 没有独立材质 —— 这是刻意的(见下);
+//     唯一的例外是**揭示期**: 那两三秒里桥接换成闪烁的亮青, 与暖铜底线在色相与明度上双向拉开(见 CSS)。
+//   ★ 选完入口之后, 「不是玩家这一条」的通道主线整体压暗(.rb-lane.is-dim, 见下面的 dim):
+//     推进期画面上同时跑着电流走线与已走路径, 20 条等亮的主线会把它们淹掉。
 //
 //   ⚠ 等距下两条轴都是斜线, §11.1 点名的唯一真实风险是它们**形状撞车**。旧版靠「走廊平台 vs
 //     发光天桥」两种材质来区分; 本版取消了那套材质对立, 风险改由三件事承担, ⚠ 改动本文件时
 //     务必保住这三条, 否则那条风险会原样回来:
-//       ① 两条轴的**屏幕朝向天然相反** —— 主管朝右上, 桥管朝右下;
-//       ② **地板只长在推进轴上** —— 串着地板的那条水管就是通道, 横着搭的那根没有地板;
-//       ③ 桥管**平时根本不在画面上**(沿用只改 opacity 的遮蔽机制), 它一出现就只可能是「跨道」。
+//       ① 两条轴的**屏幕朝向天然相反** —— 主线朝右上, 桥线朝右下;
+//       ② **地板只长在推进轴上** —— 串着地板的那条线就是通道, 横着搭的那根没有地板;
+//       ③ 桥线**平时根本不在画面上**(沿用只改 opacity 的遮蔽机制), 它一出现就只可能是「跨道」。
 //
 // ★ 本文件所有坐标都是「设计 px」, 与 stage.ts 的 1920×1080 画布同一套尺度 ——
 //   面板由 ExploreScreen 定位, 这里只管面板内部的构图。改版式直接改下面的常量。
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { traceSegment } from "../explore/route";
 import type {
   ExplorePhase,
@@ -42,6 +60,7 @@ import type {
   RouteBoard as RouteBoardData,
   RouteSegment,
 } from "../explore/types";
+import { prefersReducedMotion } from "./transitions";
 import "./RouteBoard.css";
 
 // ===================== 版式旋钮(设计 px) =====================
@@ -58,17 +77,18 @@ const LANE_Y = 0.447;
 
 // ⚠ 这三个间距比上一版(110 / 180 / 100)大一档: 地板比原来的走廊平台窄得多, 沿用旧间距会
 //   让整块面板缩水约 150×120px, 在 ExploreScreen 的版式里塌成一小块。放大后面板尺寸与旧版持平。
-const ENTRY_RUN = 125; // 入口 → 第 1 段节点的推进距离(沿推进轴)
-const SEG_PITCH = 200; // 相邻两段节点之间的推进距离(沿推进轴)
-const RUN_OUT = 50; // 第 4 段节点之后的水管延伸(信号「继续向前」的去向)
+// ⚠ 起点 → 第 1 段的推进距离**必须与段间距相等**: 这条通道上的 5 块地板是同一种东西
+//   (「一格」), 起点那一格短一截会读成「第 1 段特别近 / 起点是贴上去的」, 节奏当场不匀。
+//   两个数写成一个常量, 免得以后又被分头改开。
+const SEG_PITCH = 200; // 相邻两块地板之间的推进距离(沿推进轴) —— 起点 → 段 1 也走这个数
+const ENTRY_RUN = SEG_PITCH;
 const LANE_GAP = 124; // 相邻通道的中心距(沿通道轴)
 
 const TILE_HALF = 20; // 地板在世界坐标里的半边长(⇒ 正方形边长 40)
 const TILE_D = 9; // 地板厚度(纯屏幕垂直方向)
 const ICON_H = 40; // 站在地板上的图标高度 —— 同时就是面板上边界要留的净空
 const ENTRY_U = -96; // 起点地板的推进坐标(第 1 段节点之前一格)
-const TILE_INSET = 22; // 水管两端从地板中心往里缩多少 ⇒ 圆头端帽正好塞进地板边缘
-const GLOSS_LIFT = 3; // 管身高光整条上移多少 ⇒ 光从上方来
+const TILE_INSET = 22; // 连线两端从地板中心往里缩多少 ⇒ 圆头端帽正好塞进地板边缘
 
 // 地板整块相对「水管中线交点」的视觉微调(纯观感旋钮, 不动任何投影计算)。
 // ⚠ 几何上地板顶面中心本来就精确落在水管中线上, 但地板是带厚度的立方体:
@@ -86,6 +106,11 @@ const TILE_BOX_H = TILE_TOP_H + TILE_D; // 连厚度一起的按钮盒高
 
 const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
 
+// 「探索路线」横条的**底边**距面板底边的距离(anchor 走 translate(-50%,-100%), 见 CSS)。
+// ⚠ 见下面挂 .rb-probe-anchor 处的长注释: 横条顶边必须留在最低那块节点地板的底沿(y ≈ 585)之下,
+//   这个数往上调就会重新遮挡段 1 · 通道 E 的节点。面板高约 702 ⇒ 底部有约 110px 的净空。
+const PROBE_BOTTOM_INSET = 6;
+
 // 信号点的行进速度(设计 px / ms)与时长夹逼。
 // ⚠ 比上一版更慢(0.75 → 0.42): §11.2 要求「足够慢地逐格经过主管与桥管」——
 //   推进动画是每个推进段的核心仪式感, 快了就只剩一个结果通知。
@@ -93,10 +118,29 @@ const SIGNAL_SPEED = 0.42;
 const SIGNAL_MIN_MS = 900;
 const SIGNAL_MAX_MS = 2200;
 const SIGNAL_TAIL_MS = 260; // 抵达节点后多停一拍再结算, 免得画面一到就跳
+// 玩家棋子的节奏: **等信号点把整条折线跑完**(= travelMs)才起步 —— 信号点是「路线被点亮」,
+// 小人是「人真的走过去」, 两件事分开演, 不抢同一拍。
+// 走的速度是信号点的 1/3(耗时 ×3): 推进段是本页的核心仪式感, 人走得慢才看得清他从哪条通道
+// 拐到哪条通道去。⚠ 一段推进的总时长因此是 travelMs × 4, onArrive 的计时器按 pawnDoneMs 排,
+//   改这个数一定会同步改变段落节奏, 不要只当成一个动画参数。
+const PAWN_SPEED_DIV = 3;
+
+// ★ 离场行走(phase = "leaving")的速度: 玩家在 atNode 按下「前往下一区域」之后, 棋子要**沿本轮
+//   剩下的整条线路一路走到第 4 段终点**, 走完才弹披露页 —— 「放弃剩余节点」不等于被瞬移进战斗。
+// ⚠ 刻意比推进段的走速(SIGNAL_SPEED / PAWN_SPEED_DIV ≈ 0.14)快一档: 这一段最长要走 4 个
+//   推进段(近千 px), 用推进段的速度会拖到 6 秒以上 —— 那是过场, 不是仪式感。
+//   但仍明显慢于信号点(0.42), 读得出是「人在走」而不是「线被点亮」。
+const LEAVE_SPEED = 0.28;
+const LEAVE_MIN_MS = 900;
+const LEAVE_MAX_MS = 3600;
+// reduced-motion: 路径信息保留(线照样描、人照样沿线移动), 只压到最短可辨识时长。
+// ⚠ 与 .rb-trace-walk 共用这一个数 —— 那条线的 animationDuration 是内联传进去的, 两者天然同步。
+const LEAVE_REDUCED_MS = 420;
 
 // ★ 生成演出总时长。RouteBoard.css 的 rbGen* 关键帧按这条时间轴排:
-//   起点地板 0-500 / 水管逐条 400-1500 / 节点地板 1200-2000。**改这里必须同步改那几段的 delay+duration**,
-//   否则 ExploreScreen 的定时器会比画面早或晚落地。reduced-motion 走下面的压缩值。
+//   起点地板 0-740 / 连线逐节绘制 380-1480 / 节点地板落位 1090-1998 / 扫描光带 0-1900。
+//   **改这里必须同步改那几段的 delay+duration**, 否则 ExploreScreen 的定时器会比画面早或晚落地。
+//   reduced-motion 走下面的压缩值。
 export const GENERATE_MS = 2000;
 export const GENERATE_REDUCED_MS = 320;
 
@@ -112,7 +156,9 @@ const LANE_COUNT = 5;
 function nodeU(seg: number): number {
   return seg < 0 ? ENTRY_U : ENTRY_U + ENTRY_RUN + seg * SEG_PITCH;
 }
-const TRACK_LEN = nodeU(SEG_COUNT - 1) + RUN_OUT;
+// 轨道**到最后一块地板为止**。⚠ 这里曾经再往前伸出一截 RUN_OUT 的短桩(本意是「信号继续向前」),
+//   但第 4 段之后没有任何东西, 它在画面上就是 5 根连着空气的线头 —— 已删除, 不要加回来。
+const TRACK_LEN = nodeU(SEG_COUNT - 1);
 const S_MAX = (LANE_COUNT - 1) * LANE_GAP;
 
 // (u, s) → 屏幕。★ 全文件唯一的投影入口, 改视角只改这两个函数。
@@ -127,7 +173,7 @@ function laneS(lane: number): number {
 }
 
 // 要包进面板的推进区间与通道区间(未加原点偏移的「裸投影」范围):
-// 推进方向上从起点地板的最外角一直到末段短桩, 通道方向上是两侧地板各自的最外角。
+// 推进方向上从起点地板的最外角一直到末段地板的最外角, 通道方向上是两侧地板各自的最外角。
 const U_MIN = ENTRY_U - TILE_HALF;
 const S_MIN = -TILE_HALF;
 const S_TOP = S_MAX + TILE_HALF;
@@ -140,7 +186,7 @@ const rawY = (u: number, s: number) => u * ADV_Y + s * LANE_Y;
 // 菱形的左右两个尖角落在 (u−h, s−h) 与 (u+h, s+h) 上, 上下两个尖角落在 (u+h, s−h) 与 (u−h, s+h) 上。
 const X_LO = rawX(U_MIN, S_MIN);
 const X_HI = Math.max(rawX(TRACK_LEN, S_MAX), rawX(nodeU(SEG_COUNT - 1) + TILE_HALF, S_TOP));
-// 上边界取两者较高的一个: 站在最远那块地板上的图标顶端, 或末段短桩/地板本身的上尖角。
+// 上边界取两者较高的一个: 站在最远那块地板上的图标顶端, 或末段地板本身的上尖角。
 // 下边界要算上最近那块地板的厚度。
 const Y_LO = Math.min(rawY(nodeU(SEG_COUNT - 1), 0) - ICON_H, rawY(TRACK_LEN, S_MIN));
 const Y_HI = rawY(U_MIN, S_TOP) + TILE_D;
@@ -151,8 +197,10 @@ export const ROUTE_PANEL_W = Math.round(X_HI - X_LO + PAD * 2);
 export const ROUTE_PANEL_H = Math.round(Y_HI - Y_LO + PAD * 2);
 
 // 一根桥接在本段内的推进距离。段内均分, 首尾各留一格 —— 免得桥管贴在节点地板上。
+// ⚠ 首段不再单独用一个更小的留空(旧值 40): 起点 → 段 1 的距离已经和段间距一样了,
+//   两边用同一个数, 四段的桥接才是等间距的。
 function bridgeU(seg: number, row: number, rows: number): number {
-  const from = seg === 0 ? nodeU(-1) + 40 : nodeU(seg - 1) + 48;
+  const from = nodeU(seg - 1) + 48;
   const to = nodeU(seg) - 48;
   return from + ((row + 1) * (to - from)) / (rows + 1);
 }
@@ -169,25 +217,39 @@ function poly(points: [number, number][]): string {
   return points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
 }
 
-// ===================== 水管 =====================
-// 细圆柱小水管: 三条同端点的描边叠出圆柱感 —— 暗轮廓(外径) + 管身 + 顶部细高光,
-// 圆头端帽(stroke-linecap:round)让它能「插进」地板边缘。粗细与配色全在 RouteBoard.css。
-// ⚠ 用三层描边而不是渐变填充: 主管朝右上、桥管朝右下, userSpace 的线性渐变会跟着方向错;
-//   三层描边两条轴通用, 桥管因此能与主管**共用同一套 class ⇒ 天然同款**(见抬头 ③)。
-function Pipe({ a, b }: { a: [number, number]; b: [number, number] }) {
+// ===================== 连线 =====================
+// **一条嵌进地面的细线**: 两层同几何的描边 —— 底下一条更粗的暗色「轨槽」(.rb-pipe-bed),
+// 上面一条细亮线(.rb-pipe); 都是圆头端帽, 塞进地板边缘。粗细与配色全在 RouteBoard.css。
+// ⚠ 两层的意义: 单层白线贴在暗背景上会读成「画上去的一笔」; 垫一层比它宽一档的近黑槽之后,
+//   亮线读作**躺在凹槽里的导体**, 等距场景的地面关系才立得住。改线宽必须两层一起改。
+// ⚠ 它存在的意义是给电流特效(.rb-trace-line / .rb-trace-head / .rb-signal)当轨道, 所以
+//   **几何必须与电流完全一致**: 同一组端点、同样的 round 端帽/接头; 亮线比电流细一档,
+//   电流跑过去把亮线整条盖住、只在两侧留下轨槽的暗边 —— 任何一项改了都会露出错位。
+// ⚠ 主管与桥管仍共用这一组 class ⇒ 平时天然同款(见抬头 ③), 揭示期的换色由 CSS 单独挂。
+//
+// ★ --len(这一节的屏幕长度)与 --j(这一节在通道里的序号)是**给生成演出用的**:
+//   生成期两层一起走 stroke-dashoffset 的逐节绘制, 延迟按 --i(通道) + --j(节号) 排成
+//   一个平行于通道轴、沿推进轴推进的波面; spark 是跟在绘制头上的那点火花。
+//   ⚠ 平时这三个都不生效(CSS 里只有 .is-generating 作用域读它们), 不影响常态渲染。
+function Pipe({
+  a,
+  b,
+  j = 0,
+  spark = false,
+}: {
+  a: [number, number];
+  b: [number, number];
+  j?: number;
+  spark?: boolean;
+}) {
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const geo = { x1: a[0], y1: a[1], x2: b[0], y2: b[1] };
   return (
-    <>
-      <line className="rb-pipe-shell" x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} />
-      <line className="rb-pipe-body" x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} />
-      {/* 高光整条上移 ⇒ 光从上方来, 管子有了朝上的那一面 */}
-      <line
-        className="rb-pipe-gloss"
-        x1={a[0]}
-        y1={a[1] - GLOSS_LIFT}
-        x2={b[0]}
-        y2={b[1] - GLOSS_LIFT}
-      />
-    </>
+    <g className="rb-pipe-g" style={{ "--len": len.toFixed(1), "--j": j } as CSSProperties}>
+      <line className="rb-pipe-bed" {...geo} />
+      <line className="rb-pipe" {...geo} />
+      {spark && <line className="rb-pipe-spark" {...geo} />}
+    </g>
   );
 }
 
@@ -220,6 +282,53 @@ function Tile() {
         className="rb-tile-seam"
         points={poly([T_TOP, T_RIGHT, T_BOTTOM, T_LEFT].map(seamPt))}
       />
+    </svg>
+  );
+}
+
+// ===================== 入口地板(A-E 专用) =====================
+// ★ 入口与 20 块事件地板**必须一眼分得开**: 事件地板是「暗底 + 事件色轻度染色」的普通砖,
+//   入口则是一座**亮青的发光登船台** —— 换的不只是颜色, 连零件表都不一样:
+//     ① 顶面高填充的亮青实心(事件砖是 18% 的轻染) ⇒ 五块入口在一片暗棋盘上直接跳出来;
+//     ② 外面套一圈**外扩的虚线光环**(halo), 事件砖没有任何外扩物件;
+//     ③ 顶面上刻两枚指向**推进方向**的等距人字标(chevron) ⇒ 「从这里往右上出发」;
+//     ④ 前缘(u = +h 那条边, 即朝推进方向的那条棱)单独加粗点亮, 读作登船台的出发沿。
+//   再加上 CSS 里那道从地板升起的光柱(.rb-entry-beam)与比节点大一档的立体字母,
+//   「入口」在画面上是一类**独立的物件**, 而不是「另一种颜色的事件砖」。
+// ⚠ 几何一律用下面的 elocal(du, ds) 从世界坐标投影, **不要直接写屏幕 px**:
+//   手写的斜线一旦不是 2:1, 在等距场景里会当场读成「飘在地板上方的贴纸」。
+// ⚠ 全部零件都不接受指针事件(见 CSS): 光环外扩到按钮盒之外, 否则会把邻座通道的悬停吃掉。
+const elocal = (du: number, ds: number): [number, number] => [
+  TILE_W / 2 + du * ADV_X + ds * LANE_X,
+  TILE_TOP_H / 2 + du * ADV_Y + ds * LANE_Y,
+];
+// 光环: 比地板(半边长 TILE_HALF=20)大一圈的同心菱形。
+const HALO_HALF = 33;
+// 人字标: 尖端朝 +u(推进方向), 两翼沿通道轴张开 ⇒ 投影后仍是标准 2:1 的箭头。
+const chevron = (a: number): string => poly([elocal(a, -9), elocal(a + 9, 0), elocal(a, 9)]);
+
+function EntryTile() {
+  const corners = (h: number): [number, number][] => [
+    elocal(h, -h), // 上角
+    elocal(h, h), // 右角
+    elocal(-h, h), // 下角
+    elocal(-h, -h), // 左角
+  ];
+  return (
+    <svg className="rb-tile rb-entry-tile" viewBox={`0 0 ${TILE_W} ${TILE_BOX_H}`} aria-hidden>
+      {/* 外扩光环: 画在最底层, 地板压在它上面 ⇒ 读作「从台座底下透出来的光圈」。 */}
+      <polygon className="rb-entry-halo" points={poly(corners(HALO_HALF))} />
+      <polygon
+        className="rb-tile-side"
+        points={poly([T_LEFT, T_BOTTOM, T_RIGHT, drop(T_RIGHT), drop(T_BOTTOM), drop(T_LEFT)])}
+      />
+      <polygon className="rb-tile-top" points={poly([T_TOP, T_RIGHT, T_BOTTOM, T_LEFT])} />
+      <polygon className="rb-tile-seam" points={poly(corners(TILE_HALF * SEAM))} />
+      {/* 前缘: 朝推进方向的那条棱(上角—右角), 单独加粗点亮。 */}
+      <polyline className="rb-entry-edge" points={poly([T_TOP, T_RIGHT])} />
+      {/* 两枚人字标, 沿推进轴一前一后。 */}
+      <polyline className="rb-entry-chevron" points={chevron(-9)} />
+      <polyline className="rb-entry-chevron" points={chevron(0)} />
     </svg>
   );
 }
@@ -324,6 +433,85 @@ function StandingIcon({ kind }: { kind: NodeEventKind }) {
   );
 }
 
+// ===================== 玩家棋子(几何体小人) =====================
+// ★ 「我在哪」的实体表达。它常驻在当前位置(选完入口 → 起点地板; 每段落地 → 落点地板),
+//   推进时**跟在白色信号点后面**沿同一条折线走过去 —— 走过的那条荧光线就是它的运动轨迹。
+//
+// ⚠ 刻意用**实心几何面**而不是线框: 节点事件图标全是线框(见 StandingIcon), 两者一实一虚,
+//   玩家一眼能分清「我」和「这里有什么事」。明暗分档沿用地板的语言(顶面亮 / 右侧面中 / 左侧面暗),
+//   它才读作「站在这块棋盘里的一个东西」, 而不是贴在画面上的一枚 UI 标记。
+// ⚠ 左右对称, **不做朝向翻转**: 桥接可能朝任一侧跨, 判方向要按段算, 收益不抵复杂度。
+//
+// 局部坐标: **原点在脚底**(0,0), 整个人朝 −y 长出去 —— animateMotion 与静止定位都只需把原点
+// 摆到地板顶面中心, 不用再补任何高度偏移。
+// ⚠ 整体高约 48px, 与站在地板上的事件图标(ICON_H = 40)同一量级并略高一档 ——
+//   玩家自己必须是这张图上最容易一眼找到的东西, 比事件图标小就会淹在棋盘里。
+const PAWN_BW = 12; // 躯干底面半宽
+const PAWN_TW = 8; // 躯干顶面半宽(上小下大的棱台)
+const PAWN_TH = 28; // 躯干高
+const PAWN_NECK = 4; // 躯干顶面 → 头部底面的间隙
+const PAWN_HW = 7.5; // 头(小立方体)半宽
+const PAWN_HH = 13; // 头高
+
+// 一个等距实体在屏幕上只看得见三个面: 顶面(2:1 菱形) + 朝观者的左右两个侧面。
+// 底面菱形四角(半宽 w, 基准高度 y): 左 / 下 / 右 / 上 —— 与 <Tile> 的 2:1 比例一致。
+function diamond(w: number, y: number) {
+  const L: [number, number] = [-w, y];
+  const B: [number, number] = [0, y + w / 2];
+  const R: [number, number] = [w, y];
+  return { L, B, R };
+}
+
+function Pawn() {
+  const t = diamond(PAWN_TW, -PAWN_TH); // 躯干顶面
+  const b = diamond(PAWN_BW, 0); // 躯干底面
+  const hy0 = -(PAWN_TH + PAWN_NECK); // 头底面
+  const hy1 = hy0 - PAWN_HH; // 头顶面
+  return (
+    <g className="rb-pawn-body">
+      {/* 投影留在地面上, **不进呼吸组** —— 人起伏时影子跟着飘会立刻穿帮。 */}
+      <ellipse className="rb-pawn-shadow" cx={0} cy={0} rx={16} ry={6.5} />
+      <g className="rb-pawn-idle">
+        {/* 躯干: 左侧面(暗) / 右侧面(中) / 顶面(亮) */}
+        <polygon className="rb-pawn-dark" points={poly([b.L, b.B, t.B, t.L])} />
+        <polygon className="rb-pawn-mid" points={poly([b.B, b.R, t.R, t.B])} />
+        <polygon
+          className="rb-pawn-lit"
+          points={poly([t.L, t.B, t.R, [0, -PAWN_TH - PAWN_TW / 2]])}
+        />
+        {/* 头: 同样三个面 */}
+        <polygon
+          className="rb-pawn-dark"
+          points={poly([
+            [-PAWN_HW, hy0],
+            [0, hy0 + PAWN_HW / 2],
+            [0, hy1 + PAWN_HW / 2],
+            [-PAWN_HW, hy1],
+          ])}
+        />
+        <polygon
+          className="rb-pawn-mid"
+          points={poly([
+            [0, hy0 + PAWN_HW / 2],
+            [PAWN_HW, hy0],
+            [PAWN_HW, hy1],
+            [0, hy1 + PAWN_HW / 2],
+          ])}
+        />
+        <polygon
+          className="rb-pawn-lit"
+          points={poly([
+            [-PAWN_HW, hy1],
+            [0, hy1 + PAWN_HW / 2],
+            [PAWN_HW, hy1],
+            [0, hy1 - PAWN_HW / 2],
+          ])}
+        />
+      </g>
+    </g>
+  );
+}
+
 // 段内折线 → 屏幕折线点。信号顺主管走到岔口, 再拐上桥管落到隔壁通道。
 function segmentPoints(
   segment: RouteSegment,
@@ -371,6 +559,9 @@ interface Props {
   onStartReveal: () => void;
   /** 推进动画播完 → store 的 arrive()(会话从 advancing 进 landed)。 */
   onArrive: () => void;
+  /** 离场行走播完 → store 的 leaveDone()(会话从 leaving 进 routeDisclosure)。
+   *  ⚠ 没有剩余线路可走时(理论上 session 已经拦掉)本组件会立刻回调, 阶段机不会卡死。 */
+  onLeaveDone: () => void;
   /** 悬停/聚焦某个节点 → ExploreScreen 的详情侧栏。null = 移开。 */
   onHoverNode: (at: { seg: number; lane: number } | null) => void;
 }
@@ -384,6 +575,7 @@ export function RouteBoard({
   onPickEntry,
   onStartReveal,
   onArrive,
+  onLeaveDone,
   onHoverNode,
 }: Props) {
   const rows = board.rowsPerSegment;
@@ -392,11 +584,20 @@ export function RouteBoard({
   const [hoverLane, setHoverLane] = useState<number | null>(null);
 
   const advancing = phase === "advancing";
+  // 离场行走: 「前往下一区域」按下之后、披露页之前的那一段演出(见 session.leaveRegion)。
+  const leaving = phase === "leaving";
   const disclosing = phase === "routeDisclosure";
+  // 玩家当前所在的通道 —— **选完入口之后**只有这一条主线保持常态亮度, 其余 4 条压暗(见 CSS 的
+  // .rb-lane.is-dim)。选入口之前它是 null ⇒ 5 条通道一样亮, 因为那时它们是同等重要的候选。
+  // ⚠ advancing 时 currentLane 是**本段的入通道**(人正从这条走出去), 正是该亮着的那条;
+  //   刚选完入口、还没推进过时 currentLane 可能尚未落位, 兜底回 entryLane。
+  const activeLane = entryLane == null ? null : (currentLane ?? entryLane);
   const generating = phase === "generating";
   const sealed = phase === "sealed";
-  // 桥接: 只有揭示期与披露页可见。⚠ 其余阶段留在 DOM 里只改 opacity(见抬头)。
-  const showBridges = phase === "revealing" || disclosing;
+  // 桥接: 揭示期、离场行走与披露页可见。⚠ 其余阶段留在 DOM 里只改 opacity(见抬头)。
+  // ★ 离场行走也显形: 人这一路要连过好几根桥, 桥还遮着的话他会读成「在空中横移」。
+  //   这不算泄题 —— 本轮的选择已经全部做完了。
+  const showBridges = phase === "revealing" || leaving || disclosing;
 
   // 正在推进的那一段(0-based)。advancing 时 currentSegment 尚未 +1, 它就是本段段号。
   const legPoints = useMemo<[number, number][]>(() => {
@@ -419,9 +620,29 @@ export function RouteBoard({
     return out;
   }, [board, entryLane, doneSegments, rows]);
 
+  // ★ 离场行走的路线 = 本轮**剩下的全部推进段**接成的一条折线(当前落点 → 第 4 段终点)。
+  //   与 donePoints 同一套算法, 只是起点从 currentSegment 开始接着往下走。
+  const walkPoints = useMemo<[number, number][]>(() => {
+    if (!leaving || entryLane == null || currentSegment >= SEG_COUNT) return [];
+    let lane = currentSegment === 0 ? entryLane : (currentLane ?? entryLane);
+    const out: [number, number][] = [];
+    for (let i = currentSegment; i < SEG_COUNT; i++) {
+      const pts = segmentPoints(board.segments[i], lane, rows, i);
+      out.push(...(out.length ? pts.slice(1) : pts));
+      lane = traceSegment(board.segments[i], lane, rows).laneOut;
+    }
+    return out;
+  }, [leaving, board, entryLane, currentLane, currentSegment, rows]);
+
   const legPath = useMemo(() => pathOf(legPoints), [legPoints]);
   const legLen = useMemo(() => lengthOf(legPoints), [legPoints]);
   const travelMs = Math.min(SIGNAL_MAX_MS, Math.max(SIGNAL_MIN_MS, legLen / SIGNAL_SPEED));
+
+  const walkPath = useMemo(() => pathOf(walkPoints), [walkPoints]);
+  const walkLen = useMemo(() => lengthOf(walkPoints), [walkPoints]);
+  const walkMs = prefersReducedMotion()
+    ? LEAVE_REDUCED_MS
+    : Math.min(LEAVE_MAX_MS, Math.max(LEAVE_MIN_MS, walkLen / LEAVE_SPEED));
 
   // 每次「过桥完成」的时刻与坐标 —— 走线经过桥尾时在那里留一圈扩散环。
   const ripples = useMemo(() => {
@@ -438,17 +659,68 @@ export function RouteBoard({
     return out;
   }, [legPoints, legLen, travelMs]);
 
-  // 推进播完 → 通知上层落点。⚠ 计时器挂 effect 里(而非裸 setTimeout): 战斗/离页导致卸载时
-  // 清理函数顺手撤掉, 不会有卸载后回调。
+  // 棋子的时间轴: 先让信号点把整条折线跑完(travelMs), 小人才起步, 再以信号点 1/3 的速度走完同一条线。
+  // ⇒ 一段推进的完整时长 = travelMs × (1 + PAWN_SPEED_DIV)。
+  const pawnWalkMs = travelMs * PAWN_SPEED_DIV;
+  const pawnDoneMs = travelMs + pawnWalkMs;
+
+  // 棋子正在沿折线走 —— 推进段与离场行走两种情况共用同一套 animateMotion(见下面的棋子层)。
+  // ⚠ 两者只差在「起步前等不等信号点」: 推进段要等(keyPoints 0;0;1), 离场行走没有信号点, 直接走。
+  const pawnMoving = advancing ? legPoints.length > 1 : leaving && walkPoints.length > 1;
+  const motionPath = advancing ? legPath : walkPath;
+  const motionMs = advancing ? pawnDoneMs : walkMs;
+
+  // 推进播完 → 通知上层落点。⚠ 以**小人落位**为准而不是信号点: 人还在路上就弹结算浮层,
+  //   「他是怎么走过来的」这条唯一的路径信息就被打断了。
+  // ⚠ 计时器挂 effect 里(而非裸 setTimeout): 战斗/离页导致卸载时清理函数顺手撤掉, 不会有卸载后回调。
   useEffect(() => {
     if (!advancing) return;
-    const id = window.setTimeout(onArrive, travelMs + SIGNAL_TAIL_MS);
+    const id = window.setTimeout(onArrive, pawnDoneMs + SIGNAL_TAIL_MS);
     return () => window.clearTimeout(id);
-  }, [advancing, travelMs, onArrive, board.round, currentSegment]);
+  }, [advancing, pawnDoneMs, onArrive, board.round, currentSegment]);
+
+  // 离场行走播完 → 披露页。⚠ 没有路线可走(理论上 session.leaveRegion 已经拦掉)也要立刻回调,
+  //   否则阶段机会停在 leaving 上, 玩家的画面就此卡死 —— 这一条兜底不能省。
+  useEffect(() => {
+    if (!leaving) return;
+    const ms = walkPoints.length > 1 ? walkMs + SIGNAL_TAIL_MS : 0;
+    const id = window.setTimeout(onLeaveDone, ms);
+    return () => window.clearTimeout(id);
+  }, [leaving, walkMs, walkPoints.length, onLeaveDone, board.round]);
+
+  // ★ 棋子的 animateMotion **必须显式 beginElement() 启动**(begin="indefinite")。
+  // ⚠ 这是「只有第一段有走路动画、后面几段全是瞬移」那个 bug 的根: SMIL 的 begin="0s" 是相对
+  //   **SVG 时间容器启动**算的。第一段推进恰好是这层 <svg> 刚挂上去的那一刻(entryLane 从 null
+  //   变成通道号), 容器时间正好 0, 动画正常播; 之后几段容器已经跑了几十秒, 新插进来的动画
+  //   begin=0 落在过去 → 直接跳到 fill="freeze" 的终态, 看起来就是人凭空瞬移到落点。
+  //   改成 indefinite + 手动 beginElement, 每一段都从「现在」开始, 与容器跑了多久无关。
+  const pawnMotionRef = useRef<SVGElement | null>(null);
+  useEffect(() => {
+    if (!pawnMoving) return;
+    (pawnMotionRef.current as SVGAnimationElement | null)?.beginElement();
+  }, [pawnMoving, motionPath, board.round, currentSegment]);
+
+  // 玩家棋子的**静止**站位: 还没落过地就站在起点地板上, 否则站在最近一次的落点地板上。
+  // ⚠ advancing 期间不用它 —— 那时位置由 animateMotion 沿本段折线驱动。
+  const pawnAt = useMemo(() => {
+    if (entryLane == null) return null;
+    // ★ 披露页: 人刚刚在 leaving 那一相沿整条线路走到了第 4 段终点, 站位必须跟着落在那里 ——
+    //   照旧回落到 currentSegment-1 的话, 披露浮层弹出的同一帧他会倒退回中途那块地板,
+    //   刚演完的那段行走当场作废(走满 4 段的那条路径两者本就同值, 不受影响)。
+    if (disclosing) {
+      let lane = entryLane;
+      for (let i = 0; i < SEG_COUNT; i++) {
+        lane = traceSegment(board.segments[i], lane, rows).laneOut;
+      }
+      return nodeCenter(SEG_COUNT - 1, lane);
+    }
+    if (currentSegment === 0 || currentLane == null) return nodeCenter(-1, entryLane);
+    return nodeCenter(currentSegment - 1, currentLane);
+  }, [entryLane, currentLane, currentSegment, disclosing, board, rows]);
 
   // 节点在哪些阶段可以悬停出详情: 揭示期与推进期一律惰性 ——
   // 那两拍玩家必须盯着桥接/信号, 不该被悬停详情分走注意力(§2.2)。
-  const nodesInteractive = !generating && phase !== "revealing" && !advancing;
+  const nodesInteractive = !generating && phase !== "revealing" && !advancing && !leaving;
 
   // 玩家实际落在过的节点(seg → lane), 供高亮与「已结算」标记。
   const visited = useMemo(() => {
@@ -470,6 +742,19 @@ export function RouteBoard({
       className={`route-board${generating ? " is-generating" : ""}`}
       style={{ width: `${ROUTE_PANEL_W}px`, height: `${ROUTE_PANEL_H}px` }}
     >
+      {/* ── 生成期的扫描光带 ──
+          一条**平行于通道轴**(朝右下, 靠 CSS 的 skewX 摆成 2:1 斜率)的光带, 在生成的那 2 秒里
+          沿推进方向扫过全图一次 —— 它就是连线逐节绘制的那个「波面」的可见化身: 光带扫到哪,
+          哪一段线路刚好被画出来。⚠ 单次播放、播完随元素一起卸载, 不是明暗脉冲, 不违反禁闪烁约定。
+          ⚠ 只在 generating 时挂载: 它是全屏尺寸的混合层, 常驻会白白吃合成开销。 */}
+      {/* ⚠ 必须套一层 overflow:hidden 的 clip 层: 光带要扫出面板两侧才叫「扫过去」,
+          裸放在 .route-board 里(它没有 overflow 裁剪)那截尾巴会直接飘到隔壁的侧栏上。 */}
+      {generating && (
+        <span className="rb-scan-clip" aria-hidden>
+          <span className="rb-scan" />
+        </span>
+      )}
+
       {/* ── 顶部倒计时: 只在揭示阶段出现, 宽度由 CSS 动画从 100% 收到 0 ── */}
       <div className="rb-timer" aria-hidden>
         {phase === "revealing" && (
@@ -506,8 +791,11 @@ export function RouteBoard({
               onClick={() => onPickEntry(lane)}
               title={blocked ? "该通道已被隔断封锁" : `从 ${ENTRY_LABELS[lane]} 通道进入`}
             >
-              <Tile />
+              <EntryTile />
               <span className="rb-tile-shadow" aria-hidden />
+              {/* 从地板升起的光柱: 入口专属的第三件「事件砖没有的东西」。
+                  ⚠ 必须排在字母之前 —— 两者都是绝对定位, 后画的压在上面, 字母要在光里。 */}
+              <span className="rb-entry-beam" aria-hidden />
               <span className="rb-entry-letter">{ENTRY_LABELS[lane] ?? lane + 1}</span>
             </button>
           );
@@ -522,27 +810,34 @@ export function RouteBoard({
         aria-hidden
       >
         {/* 主管 = 沿**推进轴(右上方向)**把一条通道上的地板串起来的小水管。
-            每条通道 5 节: 起点 → 段1 → 段2 → 段3 → 段4 → 末端短桩(信号「继续向前」的去向)。
-            地板之间的那几节两端各沿 u 缩 TILE_INSET, 圆头端帽因此正好塞进地板边缘 ——
+            每条通道 4 节: 起点 → 段1 → 段2 → 段3 → 段4, **到最后一块地板为止**。
+            每一节两端各沿 u 缩 TILE_INSET, 圆头端帽因此正好塞进地板边缘 ——
             读作「管子插进地板」, 而不是「一根线穿过一个图标」。
             ⚠ 绘制顺序 = 通道 0 → 4, 即由远及近(通道轴朝右下 ⇒ 序号越大越靠近观者),
               后画的自然压在前面画的之上, 这就是等距场景的画家算法。 */}
         {Array.from({ length: board.laneCount }, (_, lane) => {
-          const live = hoverLane === lane || (entryLane === lane && phase === "advancing");
-          // 每一节的推进区间。最后一节是短桩, 尾端不缩(它没有地板可插)。
+          // ⚠ **只认悬停**。这里曾经把「advancing 时的入通道」也算作通电, 结果推进那几秒画面上
+          //   同时亮着两条电光: 小人真正走的那条折线, 与整条笔直的入通道主管 ——
+          //   后者会被读成「他要一直走到底」, 直接和过桥的事实打架。推进期的路线只由走线负责。
+          const live = hoverLane === lane;
+          // 退到背景层的那几条: 玩家已经选定通道之后, 「不是我这条」的主线不该再和走线抢亮度。
+          const dim = activeLane != null && lane !== activeLane;
+          // 每一节的推进区间: 起点 → 段1 → … → 段4, 共 4 节, **两端都缩 TILE_INSET**
+          // ⇒ 每一节的两个端帽都塞在地板边缘里。
+          // ⚠ 这里曾经再补一节 [nodeU(3)+INSET, TRACK_LEN] 的「短桩」, 它尾端没有地板可插,
+          //   画出来就是 5 根悬在空中的线头 —— 已删除。连线只连地板与地板。
           const runs: [number, number][] = [];
           for (let seg = 0; seg < SEG_COUNT; seg++) {
             runs.push([nodeU(seg - 1) + TILE_INSET, nodeU(seg) - TILE_INSET]);
           }
-          runs.push([nodeU(SEG_COUNT - 1) + TILE_INSET, TRACK_LEN]);
           return (
             <g
               key={lane}
-              className={`rb-lane${live ? " is-live" : ""}`}
+              className={`rb-lane${live ? " is-live" : ""}${dim ? " is-dim" : ""}`}
               style={{ "--i": lane } as CSSProperties}
             >
               {runs.map(([u0, u1], i) => (
-                <Pipe key={i} a={pt(u0, lane)} b={pt(u1, lane)} />
+                <Pipe key={i} a={pt(u0, lane)} b={pt(u1, lane)} j={i} spark={generating} />
               ))}
             </g>
           );
@@ -553,7 +848,13 @@ export function RouteBoard({
             身上没有地板、平时根本不在画面上。
             ⚠ 任何阶段都留在 DOM 里, 只靠 .is-hidden 改 opacity —— 卸载会让「记不住就没了」
             这条核心机制被 DevTools 绕过, 也会在回放时重新布局。 */}
-        <g className={`rb-bridges${showBridges ? "" : " is-hidden"}`}>
+        {/* is-revealing 只挂在**揭示期**: 那几秒桥接要闪烁高亮(禁闪烁约定的唯一例外, 见 CSS);
+            披露页同样显形但**常亮不闪** —— 那是教学页, 不该再催人。 */}
+        <g
+          className={`rb-bridges${showBridges ? "" : " is-hidden"}${
+            phase === "revealing" ? " is-revealing" : ""
+          }`}
+        >
           {board.segments.flatMap((seg) =>
             seg.bridges.map((b) => {
               const u = bridgeU(seg.index, b.row, rows);
@@ -575,6 +876,21 @@ export function RouteBoard({
           />
         )}
 
+        {/* 离场行走的那条线: 跟着棋子**同速**逐段描出来(不是一次性亮完) ——
+            玩家要看到的是「他自己走出了这条线」, 一次性描完就又变回了一张答案图。
+            ⚠ 刻意用独立的 .rb-trace-walk 而不是复用 .rb-trace-line: 后者在 reduced-motion 下被
+              一条 400ms !important 覆写掉, 复用会让线与人当场脱节。这里的时长由 walkMs 内联给出,
+              reduced-motion 的压缩已经算在 walkMs 里了(见 LEAVE_REDUCED_MS)。 */}
+        {leaving && walkPoints.length > 1 && (
+          <path
+            className="rb-trace-walk"
+            d={walkPath}
+            style={
+              { "--len": walkLen, animationDuration: `${Math.round(walkMs)}ms` } as CSSProperties
+            }
+          />
+        )}
+
         {/* 正在推进的这一段 + 信号点。key 带段号: 每段重挂一次, dash 与 SMIL 动画才会重播。 */}
         {advancing && legPoints.length > 1 && (
           <g key={`${board.round}-${currentSegment}`} className="rb-trace">
@@ -582,6 +898,19 @@ export function RouteBoard({
               className="rb-trace-line"
               d={legPath}
               style={{ "--len": legLen, animationDuration: `${travelMs}ms` } as CSSProperties}
+            />
+            {/* 拖尾: 比亮头长得多、淡得多的一段 dash, 与亮头同速 ⇒ 信号后面拖出一条渐隐的尾巴,
+                「有东西在跑」这件事因此有了长度感, 而不只是一个孤零零的白点。 */}
+            <path
+              className="rb-trace-comet"
+              d={legPath}
+              style={
+                {
+                  "--len": legLen,
+                  strokeDasharray: `150 ${legLen}`,
+                  animationDuration: `${travelMs}ms`,
+                } as CSSProperties
+              }
             />
             <path
               className="rb-trace-head"
@@ -635,6 +964,8 @@ export function RouteBoard({
                     ...tileBox(x, y),
                     "--i": seg * 5 + lane,
                     "--seg": seg,
+                    // 生成期地板落位的错开量按「段 + 通道」两维排, 波面才与连线的绘制波面同向
+                    "--lane": lane,
                   } as CSSProperties
                 }
                 tabIndex={nodesInteractive ? 0 : -1}
@@ -657,9 +988,76 @@ export function RouteBoard({
         )}
       </div>
 
-      {/* ── 「探索路线」: 遮蔽态正中的那一颗按钮 ──
+      {/* ── 玩家棋子层 ──
+          ⚠ 单独一层而不是塞进 .rb-svg: 棋子必须压在地板层(.rb-nodes z:1 / .rb-entries z:2)之上,
+            否则它站在某块地板上时会被那颗按钮的瓦片挡掉半个身子。z:3 在探针按钮(z:4)之下。
+          ⚠ 整层套 TILE_NUDGE 的位移: 地板是被 tileBox() 朝左上微调过的(见那里的注释),
+            棋子不跟着挪就会站在地板外沿。静止与推进用的是同一套偏移 ⇒ 两态交接处不会跳。
+          ⚠ 推进态分两拍: 先由信号点把整条折线跑完(travelMs), 小人才起步, 再以 1/3 的速度
+            走完同一条线(travelMs × PAWN_SPEED_DIV)。onArrive 的计时器按 pawnDoneMs 排,
+            结算浮层因此一定在人站定之后才弹。
+          ⚠ 棋子的位置变化**一律是连续的**: 推进走 animateMotion(滞后靠 keyPoints 而不是 begin,
+            见下面的注释), 静止态之间走 CSS transform 过渡 —— 任何一处瞬移都会让「他是怎么走过来的」
+            这条唯一的路径信息断掉。 */}
+      {entryLane != null && (
+        <svg
+          className="rb-pawn-layer"
+          viewBox={`0 0 ${ROUTE_PANEL_W} ${ROUTE_PANEL_H}`}
+          style={{
+            height: `${ROUTE_PANEL_H}px`,
+            transform: `translate(${TILE_NUDGE_X}px, ${TILE_NUDGE_Y}px)`,
+          }}
+          aria-hidden
+        >
+          {pawnMoving ? (
+            // key 带段号与「是哪一种行走」: 每段/每次离场重挂一次, animateMotion 才会重播
+            <g
+              key={`${board.round}-${currentSegment}-${advancing ? "adv" : "leave"}`}
+              className="rb-pawn is-walking"
+              style={{ "--pawn-hold": `${advancing ? Math.round(travelMs) : 0}ms` } as CSSProperties}
+            >
+              <Pawn />
+              {/* ⚠ 等信号点跑完再起步这件事**只能用 keyPoints 做, 不能用 begin 延迟**:
+                  animateMotion 未开始时元素停在自己的原点(= 面板左上角), 那一段时间里小人会先
+                  出现在画面角上再瞬移到路径起点。改成「总时长 = 等待 + 行程」, 前 travelMs 把
+                  进度按在 0(人就站在本段起点那块地板上不动), 之后线性走完 —— 没有任何一帧是跳的。
+                  ⚠ begin="indefinite" + 上面 effect 里的 beginElement(): 见那里的注释, 这是
+                    「第二段之后全变瞬移」的解法, 不要改回 begin="0s"。
+                  ★ 离场行走没有信号点先跑, 所以那一支是干净的 0→1, 不需要等待段。 */}
+              <animateMotion
+                ref={pawnMotionRef}
+                begin="indefinite"
+                dur={`${Math.round(motionMs)}ms`}
+                path={motionPath}
+                keyPoints={advancing ? "0;0;1" : "0;1"}
+                keyTimes={advancing ? `0;${(travelMs / pawnDoneMs).toFixed(4)};1` : "0;1"}
+                fill="freeze"
+                calcMode="linear"
+              />
+            </g>
+          ) : (
+            pawnAt && (
+              <g
+                className="rb-pawn"
+                style={{ transform: `translate(${pawnAt.x}px, ${pawnAt.y}px)` }}
+              >
+                <Pawn />
+              </g>
+            )
+          )}
+        </svg>
+      )}
+
+      {/* ── 「探索路线」: 遮蔽态**贴在面板底边居中**的那一条横条 ──
           它是本轮唯一进入 revealing 的入口, 按下即消失、**这一轮再也回不来**(见 session.startReveal)。
-          故意做得像个探针触发器而不是普通按钮 —— 玩家要意识到这一下是不可撤销的。 */}
+          故意做得像个探针触发器而不是普通按钮 —— 玩家要意识到这一下是不可撤销的。
+          ⚠ 它曾经摆在面板正中(ROUTE_PANEL_H / 2), 正好压在棋盘斜带的腰上, 把中间几段节点挡掉 ——
+            而 sealed 恰恰是玩家**唯一**能从容悬停查看 20 个节点的阶段(nodesInteractive 在这一相为真),
+            挡住等于把这一相废掉。故改为贴底边: 棋盘是左下 → 右上的斜带, 面板底边中段是天然空白。
+          ⚠ PROBE_BOTTOM_INSET 这个数不能随手调大: 最低的一块**节点**地板(段 1 · 通道 E)的底沿
+            约在 y = 585, 面板高约 702 —— 横条(约 62px 高)顶边必须留在 590 以下才一个节点都不压。
+            往上挪就会重新开始遮挡。压住通道 E 起点地板的下沿是可以的: sealed 阶段起点按钮本就
+            disabled、地板本身不带任何信息, 站在上面的字母又在地板**上方**, 不会被盖到。 */}
       {sealed && (
         // ⚠ 居中定位挂在这层 anchor 上, **不能**挂在 button 自己身上:
         //   全站的 base.css 有 `button:active:not(:disabled){transform:translateY(1px)}`,
@@ -669,7 +1067,10 @@ export function RouteBoard({
         //   探针环同样挪到 anchor 上: button 有 clip-path(全站斜切角), 留在里面会被裁掉。
         <div
           className="rb-probe-anchor"
-          style={{ left: `${ROUTE_PANEL_W / 2}px`, top: `${ROUTE_PANEL_H / 2}px` }}
+          style={{
+            left: `${ROUTE_PANEL_W / 2}px`,
+            top: `${ROUTE_PANEL_H - PROBE_BOTTOM_INSET}px`,
+          }}
         >
           <span className="rb-probe-ring" aria-hidden />
           <button
@@ -679,6 +1080,7 @@ export function RouteBoard({
             title="向签路注入探针, 全图桥接会短暂显形 —— 本轮仅此一次"
           >
             <span className="rb-probe-label">探索路线</span>
+            <span className="rb-probe-sep" aria-hidden />
             <span className="rb-probe-note">全图桥接仅显形一次</span>
           </button>
         </div>

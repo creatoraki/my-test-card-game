@@ -1,0 +1,276 @@
+// 角色详情页 —— 据点的**一级全屏页**(runStore 的 screen === "charDetail"), 从编队页点卡面进来。
+// ⚠ 它不是浮层: 原先这套内容是冬眠仓「队员档案」modal 里的右栏(1240×680 面板里的一小半),
+//   独立成页后立绘、属性、卡组各有自己的一栏, 不再互相挤。
+//
+// ★ 内容是**只读**的。加点与卡组锻造刻意不放这里 —— 那两样归训练室(游戏设定.md:86-89 的设施分工);
+//   角色也不设等级(角色养成设计.md 第一章), 故这里给的是「可用经验」与卡组的锻造进度。
+// ★ 唯一会改变游戏状态的东西是左下角那颗**上阵 / 下阵**按钮 —— 看完属性能就地编队,
+//   不必退回列表页再点一次角标。禁用口径与编队页、与 townStore.toggleParty 三处一致。
+//
+// 版面与视觉与编队页同族(同一张背景、同一套亮玻璃配方), 旋钮在 CharacterDetailScreen.css 的 --cd-*。
+// 与全项目同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts): 所有坐标都是「设计 px」。
+
+import { useEffect, useRef, type CSSProperties } from "react";
+import { RULES, type StatBlock } from "../engine";
+import { getCharacter } from "../data";
+import { useRunStore } from "../store/runStore";
+import { deriveStats, useTownStore } from "../store/townStore";
+import { CardView } from "./CardView";
+import { CharacterPortrait } from "./CharacterPortrait";
+import { useCountUp } from "./useCountUp";
+import { useStageScale } from "./stage";
+import cdBg from "../assets/场景/冬眠仓.png";
+import "./CharacterDetailScreen.css";
+
+// ===================== 属性表 =====================
+// 只读面板分组。★ 角色不设等级也不加点 —— 这些数字进游戏后不会再变, 长期成长看装备与卡组。
+// suffix "%" 的项在数据里存的是百分点整数(见 engine/types.StatBlock)。
+//
+// ★ ref = 该项画满那条底部微条所需的值。⚠⚠ **纯展示旋钮, 不参与任何结算** —— 它既不是上限也不是
+//   平衡口径, 只决定"这条横杠画多长"。数值本身照旧原样显示, 条只是让四组面板一眼看出长短对比。
+//   百分比项默认按 100 铺满, 与 engine 里 70% 的概率封顶无关(那是结算封顶, 面板可以超)。
+const STAT_GROUPS: {
+  title: string;
+  rows: { key: keyof StatBlock; label: string; pct?: boolean; ref?: number }[];
+}[] = [
+  {
+    title: "生存与输出",
+    rows: [
+      { key: "maxHp", label: "生命", ref: 120 },
+      { key: "attack", label: "攻击力", ref: 30 },
+      { key: "defense", label: "防御力", ref: 30 },
+      { key: "healPower", label: "治愈力", ref: 30 },
+    ],
+  },
+  {
+    title: "命中与暴击",
+    rows: [
+      { key: "hitRate", label: "命中率", pct: true },
+      { key: "dodgeRate", label: "闪避率", pct: true },
+      { key: "critRate", label: "暴击率", pct: true },
+      { key: "critDamage", label: "爆伤", pct: true, ref: 250 },
+      { key: "precision", label: "精准", pct: true },
+    ],
+  },
+  {
+    title: "节奏与防护",
+    rows: [
+      { key: "initiative", label: "先手", ref: 20 },
+      { key: "blockRate", label: "格挡", pct: true },
+      { key: "healBoost", label: "治愈强度", pct: true },
+      { key: "shieldBoost", label: "护盾强度", pct: true },
+      { key: "ailmentResist", label: "异常抗性", pct: true },
+    ],
+  },
+  {
+    title: "探索与小队",
+    rows: [
+      { key: "burdenAdapt", label: "负重适应", pct: true },
+      { key: "handLimit", label: "手牌上限", ref: 12 },
+      { key: "drawCount", label: "抽牌数", ref: 8 },
+    ],
+  },
+];
+
+const REF_DEFAULT_PCT = 100; // pct 项没写 ref 时的铺满值
+
+// 内容错峰入场的公共起点(ms)。⚠ 与 CharacterDetailScreen.css 里 cdContentIn 的 animation-delay
+// 起点是同一个数, 改一处要改两处 —— JS 只有数值滚动的起跑时间要跟它对齐。
+const CONTENT_DELAY_MS = 260;
+// 相邻两块内容之间的错峰间隔。⚠ 同样与 CSS 里 `var(--i) * 55ms` 那条算式对齐。
+const STAGGER_MS = 55;
+
+// 错峰入场的序号。CSS 用 --i 算 animation-delay, 这里只负责把序号递给样式层。
+const stagger = (i: number): CSSProperties => ({ "--i": i }) as CSSProperties;
+
+// ===================== 主组件 =====================
+
+export function CharacterDetailScreen() {
+  const characters = useTownStore((s) => s.characters);
+  const awakened = useTownStore((s) => s.awakened);
+  const party = useTownStore((s) => s.party);
+  const toggleParty = useTownStore((s) => s.toggleParty);
+  const charId = useRunStore((s) => s.detailCharId);
+  const closeCharDetail = useRunStore((s) => s.closeCharDetail);
+
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const stageScale = useStageScale(viewportRef);
+
+  const cs = charId ? characters[charId] : undefined;
+  // 兜底: 存档重置 / 直接落在这一页而 detailCharId 已失效时, 退回编队页而不是渲染半张空白。
+  // ⚠ 放在 effect 里而不是渲染期间 —— 渲染期间 set 别的 store 会触发 React 的更新警告。
+  const invalid = !cs || !charId || !awakened.includes(charId);
+  useEffect(() => {
+    if (invalid) closeCharDetail();
+  }, [invalid, closeCharDetail]);
+
+  // Esc 返回编队页。与左下角那颗按钮同一个出口。
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeCharDetail();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [closeCharDetail]);
+
+  if (!cs || !charId) return null;
+
+  const def = getCharacter(charId);
+  const stats = deriveStats(cs);
+  const size = RULES.progression.partySize;
+  const onField = party.includes(charId);
+  // 禁用口径与 townStore.toggleParty(以及编队页的角标)三处一致。
+  const blocked = onField ? party.length <= 1 : party.length >= size;
+  const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
+
+  return (
+    <div
+      className="cd-viewport"
+      ref={viewportRef}
+      style={{ "--stage-scale": stageScale } as CSSProperties}
+    >
+      <div className="screen cd-stage">
+        <img className="cd-bg" src={cdBg} alt="" draggable={false} />
+        <div className="cd-veil" />
+
+        {/* ---- 左上: 身份 ---- */}
+        <header className="cd-header" style={{ left: "72px", top: "48px" }}>
+          <span className="cd-kicker">SUBJECT / {def.id.toUpperCase()}</span>
+          <h2 className="cd-title">{def.name}</h2>
+          <p className="cd-sub">
+            可用经验 {cs.exp} · 累计 {cs.expEarned} · 卡组 Lv.{cs.deckLevel} · 最小卡组下限{" "}
+            {cs.minDeckSize} 张
+          </p>
+        </header>
+
+        {/* ---- 右上: 出战状态 ---- */}
+        <div className="cd-readout" style={{ right: "72px", top: "48px" }}>
+          <div className={`cd-chip${onField ? " is-on" : ""}`}>
+            <span className="cd-chip-label">状态</span>
+            <strong className="cd-chip-value">{onField ? "出战中" : "待命"}</strong>
+          </div>
+          <div className="cd-chip">
+            <span className="cd-chip-label">上阵</span>
+            <strong className="cd-chip-value">
+              {party.length} / {size}
+            </strong>
+          </div>
+        </div>
+
+        {/* ---- 主体三栏 ----
+            ★ 位置/尺寸旋钮全在下面的内联 style(设计 px); CSS 只负责每一栏内部的机制。
+              420(立绘) + 560(属性) + 剩余(卡组), 两道 24px 的槽。 */}
+        <div
+          className="cd-body"
+          style={{
+            left: "72px",
+            top: "192px",
+            width: "1776px",
+            height: "740px",
+            gap: "24px",
+            gridTemplateColumns: "420px 560px 1fr",
+          }}
+        >
+          {/* 立绘栏 */}
+          <div className="cd-figure-col">
+            <div className="cd-figure cd-vitrine">
+              <CharacterPortrait
+                characterId={def.id}
+                emoji={def.emoji}
+                alt={def.name}
+                className="cd-bust"
+              />
+            </div>
+            <button
+              className={`cd-primary${onField ? " is-off" : ""}`}
+              type="button"
+              disabled={blocked}
+              title={blocked ? reason : undefined}
+              onClick={() => toggleParty(charId)}
+            >
+              {onField ? "撤出小队" : "编入小队"}
+            </button>
+            <p className="cd-note">{blocked ? reason : "改动即时生效, 下次远征按此阵容出发。"}</p>
+          </div>
+
+          {/* 属性栏: 四组竖排, 两列。 */}
+          <div className="cd-stats-col">
+            <span className="cd-section-label">面板属性 · 只读</span>
+            <div className="cd-stat-groups">
+              {STAT_GROUPS.map((g, gi) => (
+                <div key={g.title} className="cd-stat-group" style={stagger(gi)}>
+                  <span className="cd-stat-group-title">{g.title}</span>
+                  {g.rows.map((row) => (
+                    <AttrRow
+                      key={row.key}
+                      label={row.label}
+                      value={stats[row.key]}
+                      pct={row.pct}
+                      ref100={row.ref ?? (row.pct ? REF_DEFAULT_PCT : undefined)}
+                      // 与 CSS 里这一组的 animation-delay 对齐: 数字要在这一组浮现出来之后才开滚。
+                      delay={CONTENT_DELAY_MS + gi * STAGGER_MS}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+            <p className="cd-note">
+              属性由角色基底 + 装备换算而来(deriveStats), 不设等级也不加点 —— 长期成长看装备与卡组。
+            </p>
+          </div>
+
+          {/* 卡组栏 */}
+          <div className="cd-deck-col">
+            <span className="cd-section-label">个人卡组 · {cs.deck.length} 张</span>
+            <div className="cd-deck-grid">
+              {cs.deck.map((card, i) => (
+                <div key={card.uid} className="cd-deck-cell" style={stagger(i)}>
+                  <CardView card={card} playable selected={false} />
+                </div>
+              ))}
+            </div>
+            <p className="cd-note">卡组锻造请前往训练室。</p>
+          </div>
+        </div>
+
+        {/* ---- 左下: 返回 ---- */}
+        <button
+          className="cd-back"
+          style={{ left: "72px", bottom: "48px" }}
+          type="button"
+          onClick={() => closeCharDetail()}
+        >
+          ← 返回编队
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 一行属性: 标签 + 滚动数值 + 底部占比微条。
+// ⚠ 条长走 ref(见 STAT_GROUPS 顶部注释)——**纯展示**, 与结算无关; 超过 ref 的值条画满不溢出。
+function AttrRow({
+  label,
+  value,
+  pct,
+  ref100,
+  delay,
+}: {
+  label: string;
+  value: number;
+  pct?: boolean;
+  ref100?: number;
+  delay: number;
+}) {
+  const shown = useCountUp(Math.round(value), delay);
+  const fill = ref100 ? Math.max(0, Math.min(1, value / ref100)) : 0;
+  return (
+    <div className="cd-attr" style={{ "--pct": fill } as CSSProperties}>
+      <span className="cd-attr-label">{label}</span>
+      <strong className="cd-attr-value">
+        {shown}
+        {pct ? "%" : ""}
+      </strong>
+    </div>
+  );
+}

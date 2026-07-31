@@ -1,0 +1,537 @@
+/* ===================== 角色详情页(一级全屏页) ===================== */
+/* 与编队页(FormationScreen.css)同族: 同一张紫粉白背景、同一套「亮玻璃 + 深紫墨字」配方,
+   固定 1920×1080 画布 + --stage-scale 等比缩放。
+   ⚠ 本文件里每个 px 都是「设计 px」: 不要写 vw/vh, 不要按窗口宽度做 @media。
+   ⚠ 全局 base.css 的 `button:hover:not(:disabled)` 特异性是 (0,2,1), 单个类选择器压不住 ——
+     故本文件所有按钮的 hover/active 规则一律带 `.cd-stage ` 前缀(同 FormationScreen.css)。
+
+   ★ 为什么不与 FormationScreen.css 共用一套类: 两页的**尺度**不同(那边是 260×360 的卡阵,
+     这边是 420 宽的立绘栏 + 两列属性 + 卡组网格), 共用只会让任何一边的微调牵动另一边。
+     共用的只有配方与色值 —— 改配色时两个文件的 --fm-* / --cd-* 要一起改。 */
+
+.cd-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+}
+/* ⚠ 居中必须靠绝对定位 + translate(-50%,-50%) 而非 flex 居中(同 .fm-viewport / .battle-viewport)。 */
+.cd-viewport .screen.cd-stage {
+  --cd-ink: #2a1b3d;
+  --cd-ink-dim: #6b5b82;
+  --cd-line: #2a1b3d24;
+  --cd-glow: #7c4dbe;
+  --cd-glow-deep: #55307f;
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  background: #f3ecfa;
+}
+
+/* ===================== 背景 ===================== */
+.cd-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+/* 提亮层(不是压暗层, 理由见 FormationScreen.css 同名规则)。
+   ⚠ 比编队页再白一档: 这一页满屏是小字号的属性行, 底噪必须压得更干净。 */
+.cd-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, #ffffff9e 0%, #ffffff70 42%, #f0e6fa85 100%),
+    radial-gradient(ellipse at 50% 46%, transparent 52%, #2a1b3d1a 100%);
+}
+
+/* ===================== 左上: 身份 ===================== */
+.cd-header {
+  position: absolute;
+  z-index: 1;
+  max-width: 900px;
+  padding-left: 18px;
+  border-left: 2px solid var(--cd-glow);
+  animation: cdRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.cd-kicker {
+  display: block;
+  color: var(--cd-glow);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 5px;
+}
+.cd-title {
+  margin: 6px 0 0;
+  color: var(--cd-ink);
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  text-indent: 10px;
+}
+.cd-sub {
+  margin: 6px 0 0;
+  color: var(--cd-ink-dim);
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+/* ===================== 右上: 读数 chip ===================== */
+.cd-readout {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  animation: cdRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+/* ★ 亮玻璃配方(与 FormationScreen.css / CryoScene.css 那两份逐行一致)。 */
+.cd-chip {
+  --notch: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 116px;
+  padding: 11px 18px;
+  border: 1px solid var(--cd-line);
+  background: linear-gradient(150deg, #ffffff8f, #fbf3ff66 55%, #ecdcfa59);
+  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  box-shadow:
+    inset 0 1px 0 #ffffffd9,
+    0 18px 40px -26px #2a1b3d52;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+/* 出战中: 与编队页卡片的异色边框同一条视觉语言。 */
+.cd-chip.is-on {
+  border-color: var(--cd-glow);
+  box-shadow:
+    inset 0 0 0 1px #7c4dbe33,
+    0 0 22px -8px var(--cd-glow),
+    0 18px 40px -26px #2a1b3d52;
+}
+.cd-chip.is-on .cd-chip-value {
+  color: var(--cd-glow-deep);
+}
+.cd-chip-label {
+  color: var(--cd-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.cd-chip-value {
+  color: var(--cd-ink);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+/* ===================== 主体三栏 ===================== */
+/* ★ left / top / width / height / gap / grid-template-columns 六个旋钮由 TSX 的内联 style 给,
+     这里只声明机制 —— 与 .fm-grid / .town-bento 同款分工。 */
+.cd-body {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  min-height: 0;
+}
+.cd-figure-col,
+.cd-stats-col,
+.cd-deck-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  animation: cdContentIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: 140ms;
+}
+.cd-stats-col {
+  animation-delay: 200ms;
+}
+.cd-deck-col {
+  animation-delay: 260ms;
+}
+
+/* ---- 立绘栏 ---- */
+/* 取景窗吃掉这一栏除按钮/说明之外的全部高度。 */
+.cd-figure {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--cd-line);
+  /* 舱内打光: 底部一团淡紫, 把立绘从浅底里托起来 */
+  background:
+    radial-gradient(88% 56% at 50% 104%, #c79ce85c, transparent 70%),
+    #f8f2fdc4;
+  box-shadow: inset 0 1px 0 #ffffffd9;
+}
+/* 冷冻取景窗: 四角刻线 + 一道斜向玻璃反光(与 .cryo-vitrine 同款, 只是尺度更大)。 */
+.cd-vitrine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(112deg, #ffffff00 42%, #ffffff2e 50%, #ffffff00 58%);
+}
+/* 四角刻线: 用两层 conic 太绕, 直接用八段线性渐变画在四个角上。 */
+.cd-vitrine::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left top / 14px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left top / 1px 14px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right top / 14px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right top / 1px 14px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left bottom / 14px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left bottom / 1px 14px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right bottom / 14px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right bottom / 1px 14px;
+}
+/* .cd-bust 走 --portrait-dx/dy 的半身取景(登记表见 ui/CharacterPortrait.tsx);
+   基础规则(CharacterPortrait.css)已给 contain + center bottom, 这里只补尺寸与偏移。 */
+img.cd-bust {
+  width: 100%;
+  height: 100%;
+  transform: translate(var(--portrait-dx), var(--portrait-dy));
+}
+/* 未登记立绘的角色退回 emoji(CharacterPortrait 的兜底分支) */
+span.cd-bust {
+  align-self: center;
+  margin-bottom: 60px;
+  font-size: 96px;
+}
+
+/* 主按钮: 全页唯一一处**实心深紫** —— 它是这一页唯一会改变游戏状态的东西。 */
+.cd-primary {
+  --notch: 12px;
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  padding: 15px 32px;
+  border: 1px solid #7c4dbe;
+  background: linear-gradient(135deg, #9560d8, #5b3488);
+  color: #faf6ff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-indent: 5px;
+  box-shadow:
+    inset 0 1px 0 #ffffff4d,
+    0 14px 30px -18px #55307f;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transition:
+    background 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.12s ease;
+}
+/* hover 光扫: 一道高光横穿按钮。常态停在左侧画布外, hover 才跑一趟。 */
+.cd-primary::after {
+  content: "";
+  position: absolute;
+  left: -40%;
+  top: -50%;
+  width: 34%;
+  height: 200%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, #ffffff59, transparent);
+  transform: rotate(16deg) translateX(0);
+}
+.cd-stage .cd-primary:hover:not(:disabled) {
+  border-color: #b98adf;
+  background: linear-gradient(135deg, #a877e6, #6b3f9c);
+  color: #faf6ff;
+  box-shadow:
+    inset 0 1px 0 #ffffff6b,
+    0 0 26px -6px var(--cd-glow),
+    0 16px 34px -18px #55307f;
+}
+.cd-stage .cd-primary:hover:not(:disabled)::after {
+  animation: cdSheen 620ms ease-out;
+}
+.cd-stage .cd-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+/* 「撤出小队」是**减法**动作: 退成描边款, 不再是实心紫 —— 免得和「编入」一样怂恿人点。 */
+.cd-primary.is-off {
+  border-color: #2a1b3d29;
+  background: #ffffffb3;
+  color: var(--cd-ink-dim);
+  box-shadow: inset 0 1px 0 #ffffffd9;
+}
+.cd-stage .cd-primary.is-off:hover:not(:disabled) {
+  border-color: #c25a6e;
+  background: #fdeff2;
+  color: #9c3550;
+  box-shadow: inset 0 1px 0 #ffffffd9;
+}
+/* 不可点时退成一块哑光紫灰 —— 全局 button:disabled 只压 opacity, 在浅底上仍然显眼。 */
+.cd-primary:disabled {
+  border-color: #2a1b3d1f;
+  background: linear-gradient(135deg, #cbb9e0, #a795bd);
+  color: #f4eefa;
+  box-shadow: none;
+  opacity: 1;
+}
+@keyframes cdSheen {
+  from {
+    transform: rotate(16deg) translateX(0);
+  }
+  to {
+    transform: rotate(16deg) translateX(420%);
+  }
+}
+
+/* ---- 属性栏 ---- */
+.cd-section-label {
+  flex: 0 0 auto;
+  color: var(--cd-glow);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+.cd-note {
+  flex: 0 0 auto;
+  margin: 0;
+  color: var(--cd-ink-dim);
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 1px;
+}
+/* 四组竖排, 两列。⚠ 刻意没有 ＋ 按钮 —— 角色不设等级也不加点(角色养成设计.md 第一章)。 */
+.cd-stat-groups {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(2, 1fr);
+  align-content: start;
+  gap: 12px;
+  min-height: 0;
+  padding: 2px;
+  overflow-y: auto;
+}
+/* ⚠ 起点 260ms 与 CharacterDetailScreen.tsx 的 CONTENT_DELAY_MS、间隔 55ms 与 STAGGER_MS
+   是同两个数(那边靠它们算数值滚动的起跑时间), 改一处要改两处。
+   ⚠ 也必须**晚于**父列 .cd-stats-col 的 200ms —— 不然这几组会在还看不见的时候先浮完。 */
+.cd-stat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  animation: cdContentIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(260ms + var(--i, 0) * 55ms);
+}
+.cd-stat-group-title {
+  color: var(--cd-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+/* 一行属性 = 标签 + 数值 + **底边一条占比微条**。
+   ⚠ 条长的 --pct(0~1)由 TSX 给, 口径是 STAT_GROUPS 的 ref, **纯展示**不参与结算。
+   ⚠ 条画在行的底边而不是单独占一行: 四组共 17 行, 每行再多一行高度会撑爆这一栏。 */
+.cd-attr {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 12px;
+  overflow: hidden;
+  border: 1px solid #2a1b3d17;
+  background: #ffffffb8;
+}
+.cd-attr::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cd-glow-deep), var(--cd-glow));
+  opacity: 0.72;
+  transform: scaleX(var(--pct, 0));
+  transform-origin: left;
+  /* 进页时这条从 0 长到 --pct。延迟跟着内容浮现走, 免得在看不见时长完。 */
+  animation: cdBarGrow 620ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: 380ms;
+}
+@keyframes cdBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.cd-attr-label {
+  color: var(--cd-ink-dim);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.cd-attr-value {
+  color: var(--cd-ink);
+  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* ---- 卡组栏 ---- */
+/* 118px = ui/CardView.css 里 .card 的固定宽度。auto-fill 而不是 auto-fit:
+   卡少的时候不该把两三张卡拉开摊满一整行。 */
+.cd-deck-grid {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(auto-fill, 118px);
+  align-content: start;
+  justify-content: start;
+  gap: 14px;
+  min-height: 0;
+  padding: 4px;
+  overflow-y: auto;
+  perspective: 900px; /* 给下面的翻入一点透视, 否则 rotateY 看起来只是被压扁 */
+}
+/* 每张卡外面套一格: 翻入动画挂在这层, 不去动 CardView 自己的样式(那是跨界面共用件)。
+   ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
+.cd-deck-cell {
+  animation: cdCardFlipIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(320ms + var(--i, 0) * 28ms);
+  transition: transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+@keyframes cdCardFlipIn {
+  from {
+    opacity: 0;
+    transform: rotateY(-14deg) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0) translateY(0);
+  }
+}
+.cd-deck-cell:hover {
+  transform: translateY(-6px);
+  filter: drop-shadow(0 12px 18px #2a1b3d3d);
+}
+
+/* ===================== 角落 ===================== */
+.cd-back {
+  position: absolute;
+  z-index: 1;
+  --notch: 10px;
+  padding: 12px 26px;
+  border: 1px solid var(--cd-line);
+  background: #ffffffab;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--cd-ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-indent: 4px;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s cubic-bezier(0.2, 0.72, 0.28, 1);
+  animation: cdRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.cd-stage .cd-back:hover {
+  border-color: var(--cd-glow);
+  background: #ffffffe0;
+  color: var(--cd-glow-deep);
+  transform: translateX(-4px);
+}
+.cd-stage .cd-back:active {
+  transform: translateX(-4px) translateY(1px);
+}
+
+/* ===================== 入场 ===================== */
+@keyframes cdRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes cdContentIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* 「减少动态效果」: 位移/错峰/翻入一律取消, 只留一次极短的淡入。
+   ⚠ 属性微条的 --pct 是内联下发的, 这里只把「从 0 长出来」那段动画去掉, 条本身照旧画。 */
+@media (prefers-reduced-motion: reduce) {
+  .cd-header,
+  .cd-readout,
+  .cd-back,
+  .cd-figure-col,
+  .cd-stats-col,
+  .cd-deck-col,
+  .cd-stat-group,
+  .cd-deck-cell {
+    animation: cdFade 140ms linear backwards;
+    animation-delay: 0ms;
+  }
+  .cd-attr::after {
+    animation: none;
+  }
+  .cd-stage .cd-back:hover {
+    transform: none;
+  }
+  .cd-deck-cell:hover {
+    transform: none;
+  }
+}
+@keyframes cdFade {
+  from {
+    opacity: 0;
+  }
+}

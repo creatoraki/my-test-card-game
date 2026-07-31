@@ -74,6 +74,7 @@ const PHASE_HINT: Record<string, string> = {
   landed: "决定怎么处理这个落点",
   resolving: "结算落点",
   atNode: "继续推进, 还是前往下一区域？",
+  leaving: "正在离开这片区域……",
   routeDisclosure: "本轮线路披露",
   inBattle: "推进战斗中",
 };
@@ -89,6 +90,7 @@ export function ExploreScreen() {
   const confirmNode = useExploreStore((s) => s.confirmNode);
   const pushOn = useExploreStore((s) => s.pushOn);
   const leaveRegion = useExploreStore((s) => s.leaveRegion);
+  const leaveDone = useExploreStore((s) => s.leaveDone);
   const startBattle = useExploreStore((s) => s.startBattle);
   const enterEncounter = useRunStore((s) => s.enterEncounter);
   const finishExpedition = useRunStore((s) => s.finishExpedition);
@@ -145,6 +147,12 @@ export function ExploreScreen() {
     arrive();
   }, [arrive]);
 
+  // ⚠ 与 onArrive 同理包一层 useCallback: RouteBoard 的离场计时器把它放进依赖数组,
+  //   每次渲染换一个新函数会让那个 setTimeout 不断重排, 行走永远走不完。
+  const onLeaveDone = useCallback(() => {
+    leaveDone();
+  }, [leaveDone]);
+
   if (!session || !session.board) return null;
 
   const map = getMap(session.mapId);
@@ -163,7 +171,9 @@ export function ExploreScreen() {
 
   // 浮现演出的 2 秒里整块画布不接受输入 —— 这一段是纯演出, 中途插手会让计时器与画面对不上。
   // ⚠ is-locked 只做 pointer-events, **不能**在 .explore-stage 上加 opacity/filter(见抬头约束)。
-  const locked = session.phase === "generating";
+  // ★ 离场行走(leaving)同样锁死: 那几秒棋子正沿线路走向本轮终点, 中途按撤离/开背包
+  //   会让画面与阶段机各说各话(session 层对这一相也一律不放行)。
+  const locked = session.phase === "generating" || session.phase === "leaving";
 
   // 侧栏展示: 优先悬停的那个, 其次是当前落点。
   const shownNode = hovered
@@ -263,6 +273,7 @@ export function ExploreScreen() {
             onPickEntry={pickEntry}
             onStartReveal={beginReveal}
             onArrive={onArrive}
+            onLeaveDone={onLeaveDone}
             onHoverNode={onHoverNode}
           />
           {/* 落点 → 浮层的光柱: 从落点瓦片向上升起, 把「是这个节点把面板叫出来的」说清楚。
