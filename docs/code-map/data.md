@@ -10,7 +10,8 @@
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与站位。 |
 | [items.ts](../../src/data/items.ts) | 物品和装备定义。 |
 | [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池和分支。 |
-| [maps.ts](../../src/data/maps.ts) | 地图、区域轮数、事件池和战斗档位映射。 |
+| [slotSymbols.ts](../../src/data/slotSymbols.ts) | 战斗签转轮符号：战斗卡、战前准备卡与 BOSS 开局条件。 |
+| [maps.ts](../../src/data/maps.ts) | 地图、区域轮数、事件池、战斗档位映射和各档转轮池。 |
 | [index.ts](../../src/data/index.ts) | 各类数据注册、按 id 查询和实例化。 |
 
 数据层不登记素材路径；素材查表在 `src/ui/`。规则计算留在 `engine/`、`explore/`、`items/`，不要把流程逻辑写进数据文件。

@@ -7,7 +7,7 @@ import { create } from "zustand";
 import type { AllyInit, Ally, Card, Enemy } from "../engine";
 import { RULES } from "../engine";
 import { getCharacter, getMap } from "../data";
-import { burdenNow, encounterModifier, rewardMultiplier } from "../explore/session";
+import { battleModifier, burdenNow, rewardMultiplier } from "../explore/session";
 import type { PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
 import { useBattleStore } from "./battleStore";
@@ -83,7 +83,8 @@ function partySnapshot(): PartySnapshot[] {
 // - 战斗卡组 = 上阵角色个人卡组的集合。createBattle 直接引用传入的卡实例(不拷贝), 而个人卡组是
 //   城镇的持久资产, 故必须传副本, 否则战斗中的改动会污染城镇卡组。
 // - 只有存活角色参战: 本次远征内阵亡的角色不出战, 其个人卡组也一并排除。
-// - 净化粒子档位经 encounterModifier 注入 —— 引擎不认识能量, 只认识 EncounterModifier。
+// - 净化粒子档位与战斗签条件经 battleModifier 注入 —— 引擎不认识能量与老虎机,
+//   只认识 EncounterModifier。
 function launchBattle(encounterId: string, isBoss: boolean): void {
   const { characters } = useTownStore.getState();
   const session = useExploreStore.getState().session;
@@ -104,7 +105,9 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     };
   });
 
-  const mod = encounterModifier(session.energy, isBoss, getMap(session.mapId).fillerEnemyIds);
+  // ★ 能量档位的改造 + 本轮战斗签选中符号的改造, 由 battleModifier 一并合出来 ——
+  //   这里只调它一个, 分两处各算一半必然漏掉其中一半。
+  const mod = battleModifier(session, getMap(session.mapId).fillerEnemyIds);
   // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个百分点数。
   const burden = burdenNow(session);
   useBattleStore

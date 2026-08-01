@@ -2,6 +2,7 @@
 
 import type { Card, CardDef } from "../engine/types";
 import { RULES } from "../engine/rules";
+import type { SlotSymbol } from "../explore/types";
 import type { ItemDef, ItemStack } from "../items/types";
 import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
@@ -10,6 +11,7 @@ import { CHARACTERS, type CharacterDef } from "./characters";
 import { ENEMIES, type EnemyDef } from "./enemies";
 import { ENCOUNTERS, type EncounterDef } from "./encounters";
 import { MAPS, type MapDef } from "./maps";
+import { SLOT_SYMBOLS } from "./slotSymbols";
 
 export { CARD_DEFS } from "./cards";
 export {
@@ -29,6 +31,7 @@ export {
   type EnemySlot,
 } from "./encounters";
 export { MAPS, type MapDef } from "./maps";
+export { SLOT_SYMBOLS, NEON_NORMAL_REEL, NEON_BOSS_REEL } from "./slotSymbols";
 export { ITEM_DEFS } from "./items";
 
 function keyBy<T extends { id: string }>(arr: T[]): Record<string, T> {
@@ -43,6 +46,7 @@ const ENEMY_INDEX = keyBy(ENEMIES);
 const ENCOUNTER_INDEX = keyBy(ENCOUNTERS);
 const MAP_INDEX = keyBy(MAPS);
 const ITEM_INDEX = keyBy(ITEM_DEFS);
+const SLOT_SYMBOL_INDEX = keyBy(SLOT_SYMBOLS);
 
 // 家族索引: familyId → 该族全部 def, 组内按稀有度由低到高排好。
 // 掉落时 qualityBias 就在这个数组上右移权重(见 items/drops.pickByQuality)。
@@ -81,6 +85,11 @@ export function getEncounter(id: string): EncounterDef {
 export function getMap(id: string): MapDef {
   const def = MAP_INDEX[id];
   if (!def) throw new Error(`未知地图: ${id}`);
+  return def;
+}
+export function getSlotSymbol(id: string): SlotSymbol {
+  const def = SLOT_SYMBOL_INDEX[id];
+  if (!def) throw new Error(`未知战斗签符号: ${id}`);
   return def;
 }
 export function getItemDef(id: string): ItemDef {

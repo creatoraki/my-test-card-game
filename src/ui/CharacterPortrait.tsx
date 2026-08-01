@@ -27,8 +27,8 @@ const CHARACTER_ART: Record<string, CharacterArtDef> = {
   swordsman: {
     src: swordsmanPortrait,
     dx: 10,
-    bustScale: 1.18,
-    head: { zoom: 1.15, dx: 4, dy: -12 },
+    bustScale: 1.25,
+    head: { zoom: 1.15, dx: 4, dy: -18 },
   },
   // 大胃王: 取景偏移尚未校准, 先按 0 登记, 看到实际画面后再微调
   glutton: { src: gluttonPortrait },

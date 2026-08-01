@@ -27,8 +27,9 @@
 // ★ atNode 是这套玩法的核心决策点: 继续推进(再扣 3 粒子, 深段更不确定) 还是 前往下一区域。
 //   依据是玩家对自己记忆的置信度, 不是一条算术曲线 —— 所以每节点消耗固定 3 点, 不递增。
 //
-// ⚠ 战斗不再是路由图上的终点: 每轮结束后按 §3.1 的固定档位表打一场推进战斗。
-//   老虎机战斗签(§2.4)尚未实现, startRoundBattle 就是它将来插入的**唯一接缝**。
+// ⚠ 战斗不再是路由图上的终点: 每轮线路披露完先走一次**战斗签老虎机**(§2.4), 再打推进战斗。
+//   档位仍由 §3.1 的固定表决定; 老虎机决定的是战斗条件与收益。
+//   startSlot(路由图 → 战斗签) 与 chooseSlotCard(战斗签 → 战斗) 是这条链上的两处接缝。
 // ============================================================================
 
 import { rngInt, shuffle } from "../engine/rng";
@@ -54,6 +55,7 @@ import {
 import type { ItemRarity, ItemStack } from "../items/types";
 import { generateSegments, lanePath, traceSegment } from "./route";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
+import { buildSlot, matchBonusOf, reelSymbolAt, resolveChoice } from "./slot";
 import type {
   BattleTier,
   EnergyTier,
@@ -63,6 +65,8 @@ import type {
   NodeEvent,
   PartySnapshot,
   RouteBoard,
+  SlotBattleMod,
+  SlotSymbol,
 } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -87,11 +91,12 @@ export function rewardMultiplier(energy: number): number {
 }
 
 // 统一掉落系数 K =(K_energy + Σ挑战加成 + 同花加成)× K_global —— **全加法合成**(设计文档 §5.1)。
-// ⚠ 挑战词条(§5.3)与老虎机同花(§2.4.2)都尚未实现, 那两项恒为 0 —— 接上时只改这一个函数。
+// ⚠ 挑战词条(§5.3)尚未实现, 那一项恒为 0 —— 接上时只改这一个函数。
+// ★ 老虎机的两项都读**开战瞬间的快照**而不是 s.slot: 卡一旦选定, 后续任何操作都不该再改动它。
 export function dropCoefficient(s: ExploreState): number {
   const challengeBonus = 0;
-  const matchBonus = 0;
-  return (rewardMultiplier(s.energy) + challengeBonus + matchBonus) * EXPLORE_RULES.drop.kGlobal;
+  const slotBonus = s.pendingMatchBonus + s.pendingDropBonus;
+  return (rewardMultiplier(s.energy) + challengeBonus + slotBonus) * EXPLORE_RULES.drop.kGlobal;
 }
 
 // K → 品质权重(qualityBias 的右移结果)。表在 EXPLORE_RULES.drop.qualityTable。
@@ -139,6 +144,24 @@ export function encounterModifier(
   };
 }
 
+// 能量档位的改造 + 本轮战斗签选中符号的改造, 合并成引擎认识的那一个结构。
+// ★ **这是 store 层建局时唯一该调的入口** —— 分两处各算一半必然漏掉其中一半。
+//   合并口径: 先手相加(两者都是「行动间隔的增量」)、状态与追加敌人拼接、HP 倍率相乘。
+export function battleModifier(s: ExploreState, fillerEnemyIds: string[]): EncounterModifier {
+  const base = encounterModifier(s.energy, s.pendingIsBoss, fillerEnemyIds);
+  const mod = s.pendingBattleMod;
+  if (!mod) return base;
+  return {
+    extraEnemies: [...(base.extraEnemies ?? []), ...(mod.extraEnemies ?? [])],
+    enemyStatuses: [
+      ...(base.enemyStatuses ?? []),
+      ...(mod.enemyStatuses ?? []).map((st) => ({ ...st })),
+    ],
+    castTickDelta: (base.castTickDelta ?? 0) + (mod.castTickDelta ?? 0),
+    hpMultiplier: (base.hpMultiplier ?? 1) * (mod.hpMultiplier ?? 1),
+  };
+}
+
 // 本轮推进战斗的档位(设计文档 §3.1 的固定表)。
 export function battleTierOf(round: number): BattleTier {
   const table = EXPLORE_RULES.battleTierByRound;
@@ -177,9 +200,13 @@ export function createSession(mapId: string, party: PartySnapshot[], seed?: numb
     freeNodes: 0,
     pendingNotes: [],
     lateralShiftsLeft: 1,
+    slot: null,
     pendingEncounterId: null,
     pendingIsBoss: false,
     pendingBattleTier: null,
+    pendingMatchBonus: 0,
+    pendingDropBonus: 0,
+    pendingBattleMod: null,
     phase: "generating", // 占位: 下面的 generateRound 会重新打一次(第一轮也走完整演出)
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
@@ -856,32 +883,129 @@ export function remainingNodes(s: ExploreState): number {
   return Math.max(0, SEGMENTS - s.currentSegment);
 }
 
-// 披露页点「进入推进战斗」—— 按 §3.1 的固定档位表建局。
-// ★ 老虎机战斗签(§2.4)将来就插在这里: 档位不变, 只是多一层「转轮 → 三选一」再定 encounterId。
-export function startRoundBattle(s: ExploreState): boolean {
+// ---------------------------------------------------------------------------
+// 战斗签: 老虎机(设计文档 §2.4)。转轮与同花的算法在 explore/slot.ts, 这里只管阶段流转。
+// ---------------------------------------------------------------------------
+// 披露页点「抽取战斗签」→ 建本轮转轮。档位仍由 §3.1 的固定表决定, 老虎机只改战斗条件与收益。
+export function startSlot(s: ExploreState): boolean {
   if (s.phase !== "routeDisclosure") return false;
-  const map = getMap(s.mapId);
   const tier = battleTierOf(s.round);
-  const encounterId = map.battleEncounters[tier];
-  if (!encounterId) return false;
-  s.pendingBattleTier = tier;
-  s.pendingEncounterId = encounterId;
-  s.pendingIsBoss = tier === "boss";
-  s.phase = "inBattle";
-  logLine(s, `第 ${s.round} 轮推进战斗: ${BATTLE_TIER_NAME[tier]}`);
+  const slot = buildSlot(s, tier);
+  if (slot.symbols.length !== EXPLORE_RULES.slot.symbolCount) return false;
+  s.slot = slot;
+  s.phase = "slotSpinning";
+  logLine(s, `第 ${s.round} 轮战斗签: ${BATTLE_TIER_NAME[tier]}`);
   return true;
 }
 
-// 撤离远征。★ 白名单 = 全部「不限时、等玩家操作」的阶段 ——
-// 此时撤离不逃避任何代价; generating 演出期与 revealing 限时期一律不许。
-export function retreat(s: ExploreState): boolean {
-  const ok =
+// 按下一次暂停 —— 定住**最左边尚未定住**的那个槽位。
+// ⚠ elapsedMs 由 UI 传(performance.now() 减去开始滚动的时刻), 但**定住哪个符号由这里判**:
+//   判定与渲染共用 slot.reelSymbolAt, 两边各算一份就会「停在这个却给了那个」。
+export function stopReel(s: ExploreState, elapsedMs: number): boolean {
+  if (s.phase !== "slotSpinning" || !s.slot) return false;
+  const i = s.slot.stopped.findIndex((x) => x == null);
+  if (i < 0) return false;
+
+  const id = reelSymbolAt(s.slot.reels[i], elapsedMs, EXPLORE_RULES.slot.symbolMs);
+  s.slot.stopped[i] = id;
+  logLine(s, `槽位 ${i + 1} 定格: ${s.slot.symbols.find((x) => x.id === id)?.title ?? id}`);
+
+  if (s.slot.stopped.every((x) => x != null)) {
+    s.slot.matchBonus = matchBonusOf(s.slot.stopped);
+    if (s.slot.matchBonus > 0) logLine(s, `同花加成 +${s.slot.matchBonus.toFixed(2)}`);
+    s.phase = "slotChoosing";
+  }
+  return true;
+}
+
+// 从 3 张定住的卡里选 1 张执行 → 直接开战。
+// ★ 战斗必然发生(§2.4.1): 选中准备卡就先结算它的效果, 再随机回落一张战斗卡当本轮的战斗条件。
+export function chooseSlotCard(s: ExploreState, index: number): boolean {
+  if (s.phase !== "slotChoosing" || !s.slot) return false;
+  const picked = resolveChoice(s, s.slot, index);
+  if (!picked) return false;
+  const { symbol, battle } = picked;
+
+  const tier = s.slot.tier;
+  const map = getMap(s.mapId);
+  const encounterId = battle.encounterId ?? map.battleEncounters[tier];
+  if (!encounterId) return false;
+
+  s.slot.chosenIndex = index;
+  s.slot.resolvedBattleSymbolId = battle.id;
+
+  const notes: string[] = [];
+  if (symbol.kind === "prep") {
+    // ⚠ 准备卡的效果在**开战前**结算, 所以背包这一刻是关着的(phase 马上变 inBattle)。
+    //   若给的物品装不下, 它会落进 pendingPickup, 等下一轮的 sealed 阶段强制弹出替换面板 ——
+    //   不是漏洞, 但别在这里额外加逻辑去「提前解决」: 战斗中开背包是明确禁止的(§6.3)。
+    for (const e of symbol.prepEffects ?? []) notes.push(applyEffect(s, e));
+    notes.push(`战斗条件回落为「${battle.title}」`);
+    for (const n of notes) logLine(s, n);
+  }
+
+  // ★ 快照(设计文档 §10.1): 与负重快照同一时机。战斗结算读的必须是这三份, 不是 s.slot ——
+  //   否则战后清空 slot 或玩家做点别的, 掉落系数就跟着变了。
+  //   准备卡自己不带战斗条件, 所以 mod 与 dropBonus 都取回落到的那张战斗卡的;
+  //   但准备卡若自带 mod(如「战前情报」的洞察), 也要一并合进去 —— 它买的正是这个。
+  s.pendingBattleTier = tier;
+  s.pendingEncounterId = encounterId;
+  s.pendingIsBoss = tier === "boss";
+  s.pendingMatchBonus = s.slot.matchBonus;
+  s.pendingDropBonus =
+    (battle.dropBonus ?? 0) + (symbol.id === battle.id ? 0 : (symbol.dropBonus ?? 0));
+  s.pendingBattleMod = mergeSlotMods(symbol.kind === "prep" ? symbol.mod : undefined, battle.mod);
+
+  s.phase = "inBattle";
+  s.pendingNotes = notes;
+  logLine(s, `选择「${symbol.title}」→ ${BATTLE_TIER_NAME[tier]}`);
+  return true;
+}
+
+// 准备卡自带的条件 + 回落战斗卡的条件。合并口径与 battleModifier 一致。
+function mergeSlotMods(a?: SlotBattleMod, b?: SlotBattleMod): SlotBattleMod | null {
+  if (!a) return b ? { ...b } : null;
+  if (!b) return { ...a };
+  return {
+    extraEnemies: [...(a.extraEnemies ?? []), ...(b.extraEnemies ?? [])],
+    enemyStatuses: [...(a.enemyStatuses ?? []), ...(b.enemyStatuses ?? [])],
+    castTickDelta: (a.castTickDelta ?? 0) + (b.castTickDelta ?? 0),
+    hpMultiplier: (a.hpMultiplier ?? 1) * (b.hpMultiplier ?? 1),
+  };
+}
+
+// 战斗结算完毕 —— 把本轮战斗签的一切抹掉, 免得下一轮的掉落还带着上一轮的同花加成。
+function clearSlotSnapshot(s: ExploreState): void {
+  s.slot = null;
+  s.pendingMatchBonus = 0;
+  s.pendingDropBonus = 0;
+  s.pendingBattleMod = null;
+}
+
+// 本轮战斗签选中的那张卡(UI 拿去在战斗界面上标注条件)。
+export function chosenSlotSymbol(s: ExploreState): SlotSymbol | null {
+  if (!s.slot || s.slot.chosenIndex == null) return null;
+  const id = s.slot.stopped[s.slot.chosenIndex];
+  return s.slot.symbols.find((x) => x.id === id) ?? null;
+}
+
+// 撤离远征的阶段白名单 = 全部「不限时、等玩家操作」的阶段 ——
+// 此时撤离不逃避任何代价; generating 演出期与 revealing / slotSpinning 两个限时期一律不许。
+// ★ 独立导出是给 UI 用的: 按钮的禁用条件必须与这里同源, 各写一份迟早对不上。
+export function canRetreat(s: ExploreState): boolean {
+  return (
     s.phase === "sealed" ||
     s.phase === "choosingEntry" ||
     s.phase === "resolving" ||
     s.phase === "atNode" ||
-    s.phase === "routeDisclosure";
-  if (!ok) return false;
+    s.phase === "routeDisclosure" ||
+    // 3 张卡定住、尚未确认执行之前仍可撤离(§2.4.5) —— 此时战斗还没建局。
+    s.phase === "slotChoosing"
+  );
+}
+
+export function retreat(s: ExploreState): boolean {
+  if (!canRetreat(s)) return false;
   s.phase = "retreated";
   logLine(s, "主动撤离了这片区域");
   return true;
@@ -914,6 +1038,7 @@ export function finishBattle(
     loseEverything(s);
     s.pendingEncounterId = null;
     s.pendingIsBoss = false;
+    clearSlotSnapshot(s);
     logLine(s, "推进战斗失利, 远征中断");
     return empty;
   }
@@ -931,8 +1056,10 @@ export function finishBattle(
   const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
   const { taken, overflow } = addItems(s, rolled);
 
+  // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清 —— 同花加成正是靠那份快照生效的。
   s.pendingEncounterId = null;
   s.pendingIsBoss = false;
+  clearSlotSnapshot(s);
 
   const notes: string[] = [];
   if (loot > 0) notes.push(`居民积分 +${loot}`);
@@ -961,6 +1088,8 @@ export function finishBattle(
 // ⚠ 背包开放时机是**硬约束**(设计文档 §6.3): 揭示桥接时开背包等于无限延长观察时间,
 //   直接废掉核心机制。故必须在这里拦截, 不能只靠 UI 隐藏按钮。
 //   推进途中(advancing)与浮现演出(generating)同样锁死 —— 那两拍不接受输入。
+//   ★ 老虎机同理: slotSpinning 是本作第二个限时操作, 开背包等于给转轮按暂停(§6.3);
+//     slotChoosing 则允许 —— 「打哪场」本来就要看当前状态与背包。
 export function canOpenBackpack(s: ExploreState): boolean {
   return (
     s.phase === "sealed" ||
@@ -968,7 +1097,8 @@ export function canOpenBackpack(s: ExploreState): boolean {
     s.phase === "landed" ||
     s.phase === "resolving" ||
     s.phase === "atNode" ||
-    s.phase === "routeDisclosure"
+    s.phase === "routeDisclosure" ||
+    s.phase === "slotChoosing"
   );
 }
 

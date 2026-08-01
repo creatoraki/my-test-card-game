@@ -11,6 +11,7 @@ import {
   arriveNode,
   chooseEntry,
   chooseOption,
+  chooseSlotCard,
   confirmNode,
   createSession,
   discardStack,
@@ -23,7 +24,8 @@ import {
   retreat,
   shipHome,
   startReveal,
-  startRoundBattle,
+  startSlot,
+  stopReel,
   takePending,
   useItem,
 } from "../explore/session";
@@ -42,7 +44,13 @@ interface ExploreStore {
   pushOn: () => void; // 「继续推进」→ 下一个推进段
   leaveRegion: () => void; // 「前往下一区域」→ 离场行走演出(leaving), 无路可走则直接披露
   leaveDone: () => void; // 离场行走演出播完(UI 动画计时器) → routeDisclosure
-  startBattle: () => ExploreState | null; // 披露页「进入推进战斗」→ inBattle
+
+  // ---- 战斗签老虎机(设计文档 §2.4) ----
+  startSlot: () => void; // 披露页「抽取战斗签」→ slotSpinning
+  // 按下暂停。⚠ 传的是**滚动至今的毫秒数**, 不是符号 id: 定住哪个符号由 explore/slot 判,
+  //   UI 只负责报时。两边各算一份就会「停在这个却给了那个」。
+  stopReel: (elapsedMs: number) => ExploreState | null;
+  chooseSlotCard: (index: number) => ExploreState | null; // 三选一 → inBattle
   retreatNow: () => void;
   settleBattle: (
     won: boolean,
@@ -117,7 +125,13 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     mutate(get, set, (d) => finishLeaving(d));
   },
 
-  startBattle: () => mutate(get, set, (d) => startRoundBattle(d)),
+  startSlot: () => {
+    mutate(get, set, (d) => startSlot(d));
+  },
+
+  stopReel: (elapsedMs) => mutate(get, set, (d) => stopReel(d, elapsedMs)),
+
+  chooseSlotCard: (index) => mutate(get, set, (d) => chooseSlotCard(d, index)),
 
   retreatNow: () => {
     mutate(get, set, (d) => retreat(d));

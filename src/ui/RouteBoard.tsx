@@ -586,7 +586,10 @@ export function RouteBoard({
   const advancing = phase === "advancing";
   // 离场行走: 「前往下一区域」按下之后、披露页之前的那一段演出(见 session.leaveRegion)。
   const leaving = phase === "leaving";
-  const disclosing = phase === "routeDisclosure";
+  // 披露态: 披露页本身 + 其后的战斗签两相。★ 战斗签期间线路继续摊在浮层背后 ——
+  // 披露一旦开始就不该再收回去, 那会让玩家以为「刚才那张图我没看够就没了」。
+  const disclosing =
+    phase === "routeDisclosure" || phase === "slotSpinning" || phase === "slotChoosing";
   // 玩家当前所在的通道 —— **选完入口之后**只有这一条主线保持常态亮度, 其余 4 条压暗(见 CSS 的
   // .rb-lane.is-dim)。选入口之前它是 null ⇒ 5 条通道一样亮, 因为那时它们是同等重要的候选。
   // ⚠ advancing 时 currentLane 是**本段的入通道**(人正从这条走出去), 正是该亮着的那条;

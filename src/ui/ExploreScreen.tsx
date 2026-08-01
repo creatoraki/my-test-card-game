@@ -23,6 +23,7 @@ import {
   burdenNow,
   canOpenBackpack,
   canPushOn,
+  canRetreat,
   effectiveTaint,
   landedChoices,
   landedEvent,
@@ -43,6 +44,7 @@ import {
   GENERATE_REDUCED_MS,
   nodeCenter,
 } from "./RouteBoard";
+import SlotReels from "./SlotReels";
 import { prefersReducedMotion } from "./transitions";
 import { useStageScale } from "./stage";
 import { mapArt, warmMapArt } from "./mapArt";
@@ -78,6 +80,8 @@ const PHASE_HINT: Record<string, string> = {
   atNode: "继续推进, 还是前往下一区域？",
   leaving: "正在离开这片区域……",
   routeDisclosure: "本轮线路披露",
+  slotSpinning: "按 3 次暂停 —— 定住 3 个槽位",
+  slotChoosing: "从 3 张里选 1 张 —— 战斗必然发生",
   inBattle: "推进战斗中",
 };
 
@@ -93,7 +97,7 @@ export function ExploreScreen() {
   const pushOn = useExploreStore((s) => s.pushOn);
   const leaveRegion = useExploreStore((s) => s.leaveRegion);
   const leaveDone = useExploreStore((s) => s.leaveDone);
-  const startBattle = useExploreStore((s) => s.startBattle);
+  const startSlot = useExploreStore((s) => s.startSlot);
   const enterEncounter = useRunStore((s) => s.enterEncounter);
   const finishExpedition = useRunStore((s) => s.finishExpedition);
   const retreat = useRunStore((s) => s.retreat);
@@ -195,14 +199,12 @@ export function ExploreScreen() {
     pickOption(index);
   };
 
-  // 披露页 → 推进战斗。战斗建局在 runStore(只有它认识 battleStore)。
+  // 战斗签三选一 → 推进战斗。战斗建局在 runStore(只有它认识 battleStore)。
+  // ★ 会话的推进由 SlotReels 里的 chooseSlotCard 完成, 这里只负责「幕布 + 切页」。
   const goBattle = (event: MouseEvent<HTMLButtonElement>) => {
-    const next = startBattle();
-    if (next?.phase === "inBattle") {
-      // 键盘触发的 click 没有可用鼠标坐标(detail 为 0)，幕布会安全回退到视口中心。
-      if (event.detail !== 0) setTransitionOrigin(event.clientX, event.clientY);
-      enterEncounter();
-    }
+    // 键盘触发的 click 没有可用鼠标坐标(detail 为 0)，幕布会安全回退到视口中心。
+    if (event.detail !== 0) setTransitionOrigin(event.clientX, event.clientY);
+    enterEncounter();
   };
 
   return (
@@ -385,14 +387,8 @@ export function ExploreScreen() {
             <button
               className="expl-btn is-danger"
               type="button"
-              // 与 session.retreat 的白名单保持一致(全部「不限时、等玩家操作」的阶段)
-              disabled={
-                session.phase !== "sealed" &&
-                session.phase !== "choosingEntry" &&
-                session.phase !== "resolving" &&
-                session.phase !== "atNode" &&
-                session.phase !== "routeDisclosure"
-              }
+              // ★ 直接读 session.canRetreat —— 白名单只有一份, 各写一份迟早对不上
+              disabled={!canRetreat(session)}
               onClick={() => retreat()}
             >
               撤离远征
@@ -560,15 +556,20 @@ export function ExploreScreen() {
               </p>
               <div className="expl-panel-foot">
                 <span className="expl-panel-cost">
-                  下一关：{BATTLE_TIER_NAME[tier]} · 战斗只掉物品, 废料要带回据点才换积分
+                  下一关：{BATTLE_TIER_NAME[tier]} 的战斗签 · 战斗只掉物品, 废料要带回据点才换积分
                 </span>
-                <button className="expl-btn is-primary" type="button" onClick={goBattle}>
-                  进入推进战斗 ▸
+                <button className="expl-btn is-primary" type="button" onClick={() => startSlot()}>
+                  抽取战斗签 ▸
                 </button>
               </div>
             </section>
           </div>
         )}
+
+        {/* ---- 战斗签老虎机(slotSpinning / slotChoosing) ----
+            每轮的第二个关卡。动词与路由图刻意不同 —— 那边考记忆, 这边考时机(§2.4)。
+            会话推进在 SlotReels 内部完成, 这里只把「切到战斗界面」这一步传进去。 */}
+        <SlotReels onEnterBattle={goBattle} />
 
         {/* ---- 背包面板 ----
             替换模式(pendingPickup 非空)时强制打开: 「拿不拿得下」这个决定必须当场做完,

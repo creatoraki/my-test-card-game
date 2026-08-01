@@ -611,8 +611,10 @@
      这是 ≤8 张时的首选值, 9/10 张由下方两条 :has() 规则收紧, 算式见本段开头的版式。 */
   --hand-overlap: 60px;
   --hand-plate-h: 82px; /* 托盘衬板高度, 角标都对齐它 */
-  /* 悬停时左右邻卡各自横向让开的量(见 .hand-tray .hand-slot:hover 附近的两条让位规则) */
-  --hand-yield: 22px;
+  /* 悬停时左右邻卡各自横向让开的量(见 .hand-tray .hand-slot:hover 附近的两条让位规则)。
+     ⓘ 从 22 提到 26: 悬停的卡现在会 rotateX 翘起(见 ui/HandCard.css 的聚焦段), 翘起后它的
+       下缘在视觉上更宽, 22px 的空当会被吃掉一部分。 */
+  --hand-yield: 26px;
 }
 /* 托盘四角的 L 形卡扣(几何对齐衬板矩形)。z-index 1 与手牌同级, 但 DOM 在前 ⇒ 恒在卡之下。
    上沿两段刻意内缩 18px, 正好接在衬板斜切角的末端上。
@@ -709,11 +711,14 @@
 .hand-tray:has(.hand-slot:nth-last-child(10)) {
   --hand-overlap: 95px;
 }
-/* 托盘衬板: 手牌脚下的一块斜切角基座 —— **拉丝金属**, 与卡面同一种材质。
+/* 托盘衬板: 手牌脚下的一块斜切角基座 —— **与卡面同料的蚀刻黑钢**。
    独立一层压在卡之下(卡带 z-index:1), 悬浮上弹的卡不受影响。
    ⚠ 旧版是"深色玻璃 + 经纬细网格 + 两端 accent 渗光 + 内发光", 是发光科技风, 配不上金属卡面
-     —— 卡是实心金属板, 底下却是块发光玻璃, 两者读作不同世界的东西。现在改成同族的拉丝金属:
-     竖向拉丝纹 + 上沿一道受光斜面(1px 亮 + 1px 暗)。
+     —— 卡是实心金属板, 底下却是块发光玻璃, 两者读作不同世界的东西。
+   ★ 材质必须与卡**逐层同源**(见 ui/HandCard.css 的 .hand-card): 伪噪点 + 不均匀反光斑 + 竖向
+     拉丝。卡刚补上这三层而基座没有的话, 一块有颗粒的板躺在一块光滑的板上, 两者仍读作两种料。
+     ⓘ 唯一的差别是受光方向: 基座是 180deg(自上而下), 卡是 150deg(左上光源) —— 基座是躺平的
+       台面、卡是立着的板, 受光本就不同, 这个差别是对的, 别去统一它。
    ⚠ 保留 18px 斜切角: 那是全站统一的倒角语言(见 src/styles/base.css)。 */
 .hand-tray::before {
   content: "";
@@ -725,14 +730,19 @@
   z-index: 0;
   pointer-events: none;
   background:
-    /* ① 上沿受光斜面(亮) ② 其下的下沉暗线 ③ 竖向拉丝纹 ④ 基座底色 */
-    linear-gradient(#8a97a2, #8a97a2),
+    /* ① 上沿受光斜面(亮) ② 其下的下沉暗线 ③④ 伪噪点(2px/3px 互质双向纹) ⑤⑥ 不均匀反光斑
+       ⑦ 竖向拉丝纹 ⑧ 基座底色 */
+    linear-gradient(#a2aeb8, #a2aeb8),
     linear-gradient(#05080a, #05080a),
-    repeating-linear-gradient(90deg, #ffffff05 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #1b2024, #0d1113);
-  background-position: left top, left 1px, 0 0, 0 0;
-  background-size: 100% 1px, 100% 1px, auto, auto;
-  background-repeat: no-repeat, no-repeat, repeat, repeat;
+    repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, #00000026 0 1px, transparent 1px 2px),
+    radial-gradient(40% 90% at 16% 20%, #ffffff0d, transparent 72%),
+    radial-gradient(34% 80% at 74% 40%, #ffffff08, transparent 74%),
+    repeating-linear-gradient(90deg, #ffffff06 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #1f262b, #0b0f11);
+  background-position: left top, left 1px, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  background-size: 100% 1px, 100% 1px, auto, auto, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, repeat, repeat;
   border: 1px solid #2b3339;
   border-bottom: 0;
   clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%, 0 18px);
@@ -744,7 +754,9 @@
    出牌/抽牌时才有运动。 */
 /* 卡脚下露出的那 8px: 一列等距竖刻痕, 让手牌读作"插进金属槽里"而不是浮着。
    ⚠ 刻痕间距(26px)刻意**不与卡位对齐** —— 叠压量有三档(60/80/95, 见上方 :has() 两条),
-     对齐了也只在一种张数下成立, 反而会在切档时读作错位。取一个中性密度即可。 */
+     对齐了也只在一种张数下成立, 反而会在切档时读作错位。取一个中性密度即可。
+   ★ 每道刻痕现在是「2px 暗槽 + 1px 亮边」的**凹槽剖面**而不是一条暗线: 槽的右壁受光,
+     与卡面三层棱同一套"暗槽 + 受光面"的语言。 */
 .hand-tray-rail {
   position: absolute;
   left: 12px;
@@ -756,8 +768,9 @@
   background: repeating-linear-gradient(
     90deg,
     #05080a 0 2px,
-    #ffffff08 2px 3px,
-    transparent 3px 26px
+    #ffffff1a 2px 3px,
+    #ffffff08 3px 4px,
+    transparent 4px 26px
   );
   border-top: 1px solid #05080a;
 }
@@ -791,6 +804,16 @@
 .hand-tray .hand-slot:not(:hover) > .hand-card:not(.selected) {
   filter: drop-shadow(0 4px 0 #05080a) drop-shadow(3px 0 5px #000a) drop-shadow(0 7px 9px #000b);
 }
+/* ★ 打不出的卡: 厚度层从 4px **减半到 2px**, 接触影收紧压暗 ⇒ 卡读作"贴死在基座上、断电"。
+   这是"能不能打"在卡面上的主要表达(另一半是三层棱塌成一层暗棱, 见 ui/HandCard.css 的
+   .hand-card.unplayable)。
+   ⚠ 旧版靠 .hc-edge 上的 grayscale(1), 卡面配色中性化后那条完全失效(整圈本来就是灰的), 已删除。
+   ⚠ 必须排掉悬停与选中: 打不出的卡仍然可以被悬停看详情, 那时应该走悬停那条(厚度 7px)。
+     filter 不叠加、后命中的整条覆盖, 所以这条与上一条靠 :not(:hover) 天然互斥,
+     只需再自带一次厚度层即可 —— 漏写会让打不出的卡在静止时突然没有厚度。 */
+.hand-tray .hand-slot:not(:hover) > .hand-card.unplayable:not(.selected) {
+  filter: drop-shadow(0 2px 0 #05080a) drop-shadow(0 3px 5px #000c);
+}
 /* ★ 鱼鳞叠: 负 margin 把每张卡往左拉进前一张。同为 z-index:1 ⇒ 谁在 DOM 后面谁在上,
    于是自然形成"从左往右依次压过去"的一副手牌。
    叠压量的下限见 .hand-panel 的 --hand-overlap 注释。 */
@@ -814,12 +837,20 @@
    ⚠ 用 :not(.selected):not(.leaving) 排除掉那两种态 —— 它们各自有自带的 transform
      (上弹 / 出鞘), 被这里的 translateX 整条覆盖就会原地不动或飞错方向。
    ⚠ 左邻靠 :has(+ .hand-slot:hover) 反查。:has() 在本文件已用于叠压量三档(见上方两条), 可放心用。
-   ⚠ 过渡曲线跟 .hand-card 自带的那条走(见 HandCard.css), 这里只给终点值。 */
+   ⚠ 过渡曲线跟 .hand-card 自带的那条走(见 HandCard.css), 这里只给终点值与延迟。
+
+   ★ 45ms 的 transition-delay 是**因果的时间表达**: 先是那张卡被抽起来, 邻卡**随后**被挤开。
+     零延迟时两件事同时发生, 读作"一排卡同时闪开"—— 那是 UI 的语言; 有了这一档极短的滞后,
+     它才读作"一张牌顶开了旁边两张"的连锁物理反应。
+   ⚠ 延迟只加在**让位**上, 不能加到被悬停那张卡自己身上 —— 悬停反馈必须是零延迟的,
+     否则手感会立刻发黏。 */
 .hand-tray .hand-slot:hover + .hand-slot > .hand-card:not(.selected):not(.leaving) {
   transform: translateX(var(--hand-yield));
+  transition-delay: 45ms;
 }
 .hand-tray .hand-slot:has(+ .hand-slot:hover) > .hand-card:not(.selected):not(.leaving) {
   transform: translateX(calc(-1 * var(--hand-yield)));
+  transition-delay: 45ms;
 }
 .hand-tray .empty-hand {
   z-index: 1;

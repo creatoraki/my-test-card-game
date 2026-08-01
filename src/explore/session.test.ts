@@ -30,6 +30,7 @@ import {
   energyTier,
   finishBattle,
   finishGenerating,
+  generateRound,
   finishReveal,
   landedEvent,
   leaveRegion,
@@ -39,7 +40,9 @@ import {
   rewardMultiplier,
   shipHome,
   startReveal,
-  startRoundBattle,
+  startSlot,
+  stopReel,
+  chooseSlotCard,
   useItem,
 } from "./session";
 import type { ExploreState, PartySnapshot } from "./types";
@@ -79,7 +82,18 @@ function takeNode(s: ExploreState): void {
   if (s.phase === "resolving") confirmNode(s);
 }
 
-// 走完一整轮: 选入口 → 榨满 4 个节点 → 披露 → 推进战斗 → 判胜。
+// 披露页 → 战斗签 → 开战。转轮的三次暂停用固定 elapsedMs 喂进去, 种子一样结果就一样。
+// ⚠ 停哪个符号不重要(测试只需要走进 inBattle), 但**必须真的走完三次** ——
+//   少一次就停在 slotSpinning, 后面的战斗回填会静默地什么都不做。
+function runSlot(s: ExploreState, index = 0): void {
+  startSlot(s);
+  stopReel(s, 40);
+  stopReel(s, 220);
+  stopReel(s, 505);
+  chooseSlotCard(s, index);
+}
+
+// 走完一整轮: 选入口 → 榨满 4 个节点 → 披露 → 战斗签 → 推进战斗 → 判胜。
 function runRound(s: ExploreState, lane = 0, nodes = SEGMENTS): void {
   toChoosing(s);
   chooseEntry(s, lane);
@@ -90,7 +104,7 @@ function runRound(s: ExploreState, lane = 0, nodes = SEGMENTS): void {
     if (i < nodes - 1 && canPushOn(s)) pushOn(s);
   }
   if (phaseOf(s) === "atNode" || phaseOf(s) === "choosingEntry") leaveRegion(s);
-  if (phaseOf(s) === "routeDisclosure") startRoundBattle(s);
+  if (phaseOf(s) === "routeDisclosure") runSlot(s);
   if (phaseOf(s) === "inBattle") finishBattle(s, true, WIN, ["scrap-bot", "scrap-bot"]);
 }
 
@@ -214,15 +228,17 @@ describe("节点生成与保底(设计文档 §2.3.2)", () => {
   });
 
   it("能量跌到枯竭档时撤离升降机必现于第 1-2 段 —— 时限是压力, 不是死刑", () => {
-    const s = newSession(11);
-    s.energy = 5; // 第 5 档
-    expect(energyTier(s.energy).tier).toBe(5);
-    runRound(s); // 打完一轮 → finishBattle 里生成下一轮的图
-    s.energy = 5;
-    if (s.round > 1 && s.board) {
-      const shallow = [...s.board.nodes[0], ...s.board.nodes[1]];
-      // 生成发生在能量被改回 5 之前也无妨: 上一轮结束时能量本就在第 5 档
-      expect(shallow.some((e) => e.id === "evac-lift") || energyTier(s.energy).tier < 5).toBe(true);
+    // ⚠ 这条是**硬保底**, 所以直接对着生成器断言, 不要靠「打一轮看看」——
+    //   打一轮会经过能量类事件(逆流净化机 +18), 能量可能反弹出第 5 档, 保底本就不该生效,
+    //   于是用例会随种子时灵时不灵, 而且失败时分不清是保底坏了还是能量没跌到位。
+    for (let seed = 1; seed <= 20; seed++) {
+      const s = newSession(seed);
+      s.energy = 5;
+      expect(energyTier(s.energy).tier).toBe(5);
+      s.round = 2; // 枯竭档保护**无视 minRound**: 第 2 轮也必须给出升降机
+      generateRound(s);
+      const shallow = [...s.board!.nodes[0], ...s.board!.nodes[1]];
+      expect(shallow.some((e) => e.id === "evac-lift")).toBe(true);
     }
   });
 });
@@ -322,12 +338,15 @@ describe("阶段机", () => {
     expect(s.history).toHaveLength(0);
   });
 
-  it("披露页 → 推进战斗: 档位按轮次固定表(轻/中/中/大/大/BOSS)", () => {
+  it("披露页 → 战斗签 → 推进战斗: 档位按轮次固定表(轻/中/中/大/大/BOSS)", () => {
     expect(["light", "medium", "medium", "heavy", "heavy", "boss"]).toEqual([1, 2, 3, 4, 5, 6].map(battleTierOf));
     const s = newSession();
     toChoosing(s);
     leaveRegion(s);
-    expect(startRoundBattle(s)).toBe(true);
+    // ★ 老虎机只改战斗条件与收益, **不改档位** —— 档位仍由轮次固定表决定。
+    expect(startSlot(s)).toBe(true);
+    expect(s.phase).toBe("slotSpinning");
+    runSlot(s); // 已在 slotSpinning 时 startSlot 会被拦, 后面三次暂停照常
     expect(s.phase).toBe("inBattle");
     expect(s.pendingBattleTier).toBe("light");
     expect(s.pendingIsBoss).toBe(false);
@@ -348,7 +367,7 @@ describe("阶段机", () => {
     s.round = 6;
     toChoosing(s);
     leaveRegion(s);
-    startRoundBattle(s);
+    runSlot(s);
     expect(s.pendingIsBoss).toBe(true);
     finishBattle(s, true, WIN, ["scrap-bot"]);
     expect(s.phase).toBe("cleared");
@@ -650,7 +669,7 @@ describe("战斗回填与团灭", () => {
   function intoBattle(s: ExploreState): void {
     toChoosing(s);
     leaveRegion(s);
-    startRoundBattle(s);
+    runSlot(s);
     expect(s.phase).toBe("inBattle");
   }
 
