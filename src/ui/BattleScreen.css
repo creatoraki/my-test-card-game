@@ -179,32 +179,68 @@
   height: 1080px;
   min-height: 0;
   transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  /* ★ 3D 投影就发生在这里。必须是 perspective **属性**而不是 .battle-scene 的 transform
+     里写 perspective() 函数 —— 后者只对该元素自身的变换生效, 后代的 translateZ 拿不到透视,
+     各纵深层就永远不会产生视差。
+     perspective-origin 用默认的 50% 50% = 画布正中 = 镜头光轴(BattleScreen.tsx 的 AXIS),
+     相机的推进/偏航数学全部按这个点写死, 改它必须同步改那边。
+     单位是设计 px(本元素的边框盒恒为 1920×1080) ⇒ --stage-scale 怎么缩, 畸变量都一致。 */
+  perspective: var(--perspective, 1400px);
 }
 /* ★ 场景层 = 世界(1920×1080), 相机的唯一作用对象。
    背景与敌我单位都在它里面, 由 BattleScreen 行内下发的**唯一**一份 transform 驱动 ⇒
-   场景是刚体, 推近/平移时角色与它脚下的地面绝不可能分离。
-   刻意不加 overflow —— 裁切统一由 .screen.battle 承担。 */
+   场景是刚体, 推近/平移/偏航时角色与它脚下的地面绝不可能分离。
+   刻意不加 overflow —— 裁切统一由 .screen.battle 承担。
+
+   ⚠ 相机是透视相机: 行内 transform 形如 translateZ() rotateY() translate(), 推近实为沿
+     视线推进、朝向实为绕光轴偏航(见 BattleScreen.tsx 的 cameraCss)。投影本身由父级
+     .screen.battle 的 perspective 属性完成, 这里不写 perspective() 函数。
+   ⚠ transform-origin 必须是 50% 50%(= 画布正中 = perspective-origin = 光轴):
+     消失点、偏航轴、推进的缩放中心三者重合是相机数学成立的前提。
+   ⚠ preserve-3d 不能去掉 —— 各纵深层(背景/粒子)就靠它参与 3D 合成, 一旦 flatten,
+     视差消失, 整个场景退回"一张纸在平面上滑"。
+     同理: 别给本层或 .battle-world 加 overflow/filter/opacity/mask —— 按规范它们会强制
+     flatten, 效果与去掉 preserve-3d 等价, 且极难排查。 */
 .battle-scene {
   position: absolute;
   inset: 0;
   z-index: 0;
   will-change: transform;
-  transform-origin: 0 0;
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
 }
-/* ★ 世界层: 夹在相机(.battle-scene)与场景内容之间的一层, 同样包住背景 + 氛围 + 舞台
-   ⇒ 刚体不变。它存在的唯一理由是「场景层的 transform 已被相机占用」, 而空闲漂移与震屏
+/* ── 纵深层 ──
+   每层 = translateZ(纵深) + 抵消透视的预缩放 (P-z)/P, 两个数都由 JS 按 CINEMA.depth 下发
+   到 .battle-world(见 BattleScreen.tsx 的 depthVars)。预缩放保证**静止画面与无纵深时逐 px
+   相同** —— 纵深只在相机运动时以视差显现, 不会偷偷改变任何一层的构图或尺寸。
+   基准面(.battle-stage, 敌我单位)刻意没有这一组: 它是 z=0, 是相机取景数学的基准。
+   ⚠ 这些 transform 各自独占所在元素的 transform 属性, 别再往上面叠别的东西。 */
+.battle-scene .battle-bg-video {
+  transform: translateZ(var(--depth-bg, 0)) scale(var(--depth-bg-fix, 1));
+}
+.battle-scene .battle-ambience.far {
+  transform: translateZ(var(--depth-far, 0)) scale(var(--depth-far-fix, 1));
+}
+.battle-scene .battle-ambience.near {
+  transform: translateZ(var(--depth-near, 0)) scale(var(--depth-near-fix, 1));
+}
+/* ★ 世界层: 夹在相机(.battle-scene)与场景内容之间的一层, 同样包住背景 + 氛围 + 舞台。
+   它存在的唯一理由是「场景层的 transform 已被相机占用」, 而空闲漂移与震屏
    还需要落点。三个变换属性各司其职、由浏览器按 translate → rotate → scale → transform
    的固定顺序合成, 互不覆盖:
      transform → 空闲漂移(worldDrift, 常驻循环)
      translate → 震屏位移(worldShakeA/B, 命中时单次)
      scale     → 震屏的冲击缩放(同上一条 keyframes 里一起写)
    position:absolute + inset:0 使它与场景层几何完全重合 ⇒ 它成为 .battle-stage 的
-   offsetParent, BattleScreen.computeCamera 读的取景安全区一个数都不用改。 */
+   offsetParent, BattleScreen.computeCamera 读的取景安全区一个数都不用改。
+   ⚠ preserve-3d 不能去掉: 纵深层是它的**子元素**, 这一层一旦 flatten 就把各层的 z 全部
+     压平, 视差消失(而画面看上去毫无异样, 极难排查)。同理别给它加 overflow/filter/opacity。 */
 .battle-world {
   position: absolute;
   inset: 0;
   will-change: transform;
   transform-origin: 50% 50%;
+  transform-style: preserve-3d;
   animation: worldDrift var(--drift-dur, 22000ms) ease-in-out infinite;
 }
 /* 相机推近期间冻住漂移: 聚焦的那 1 秒里目标必须钉死在画面中心, 不能被漂移缓慢带偏。

@@ -19,6 +19,9 @@ interface Props {
   placement?: EnemyPlacement; // 手工站位(贴合背景地面); 省略则用 .enemy-row 的默认排布
   twitching?: boolean; // 待机小动作(见 ui/useIdleTwitch.ts): 随机抽中时抖一下
   onClick?: () => void;
+  // 悬停到本单位(仅 targetable 时触发): 供瞄准运镜取朝向, 见 BattleScreen 的 aimFoeId。
+  // 刻意没有配对的"离开"回调 —— 瞄准朝向是锁存的, 清除挂在 .battle-stage 上(理由见那里)。
+  onHover?: () => void;
 }
 
 // 场上的敌人单位: 无背景面板, 立绘直接浮在场景上。
@@ -32,6 +35,7 @@ export function CombatantView({
   placement,
   twitching,
   onClick,
+  onHover,
 }: Props) {
   const dead = !cmb.alive;
 
@@ -74,6 +78,9 @@ export function CombatantView({
       onClick={(e) => {
         e.stopPropagation();
         if (targetable && onClick) onClick();
+      }}
+      onMouseEnter={() => {
+        if (targetable && onHover) onHover();
       }}
     >
       {!dead && <EnemyIntent enemy={cmb} currentTick={currentTick} />}

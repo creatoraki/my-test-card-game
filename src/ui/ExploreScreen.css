@@ -782,7 +782,130 @@
   --k-line: #d0b87866;
 }
 
+/* ===================== 落点浮层的逐字演出 ===================== */
+/* ★ 一整段设计只为一件事: 让「抵达一个落点」读起来像**发生了一件事**, 而不是弹出一段说明。
+   节拍表在 ExploreScreen.tsx 的 EVENT_BEAT, 这里只认它下发的 --choice-stagger 与内联 delay。
+   ⚠ 所有动画都挂在 .expl-panel 的**后代**上 —— 面板自己与 .expl-modal 的约束见本文件 444 行。 */
+
+/* 标题逐字浮起。用淡入+上浮+去模糊而不是打字机: 标题短, 打字机反而显得磨蹭。 */
+.expl-title-char {
+  display: inline-block;
+  white-space: pre;
+  animation: explChar 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+/* 正文光标。只在打字期间挂载(tsx 侧按 done 决定), 打完即消失, 不留一个永远在闪的东西。 */
+.expl-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 3px;
+  background: var(--k);
+  box-shadow: 0 0 8px var(--k-line);
+  vertical-align: -0.14em;
+  animation: explCaret 620ms steps(1, end) infinite;
+}
+/* 正文没讲完之前选项还没「就位」: 看得见、读得到, 但按不动。
+   ⚠ 这一层用 pointer-events 而不是只靠 disabled —— 免得 hover 态先亮起来诱导玩家去点。 */
+.expl-choices .expl-choice {
+  opacity: 0;
+}
+.expl-choices:not(.is-armed) {
+  pointer-events: none;
+}
+.expl-choices.is-armed .expl-choice {
+  opacity: 1;
+  animation: explRise 340ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(var(--i, 0) * var(--choice-stagger, 90ms));
+}
+/* 决策浮层(atNode)与落点用同一套语言, 只是不需要等正文 —— 直接错峰浮起。 */
+.expl-decide-row .expl-choice {
+  animation: explRise 340ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+.expl-choice:disabled {
+  cursor: default;
+}
+/* ── 落子的回响 ──
+   被点中的那一支: 竖条锁死 + 一道扫光掠过 + 轻微下压回弹。这 460ms 里结算还没发生,
+   它买到的是「我做了一个决定」这句话 —— 少了它, 点击就只是一次表单提交。 */
+.expl-choices .expl-choice.is-chosen {
+  opacity: 1;
+  border-color: var(--k);
+  background: linear-gradient(145deg, var(--k-soft), #172329e6);
+  box-shadow: 0 18px 34px -24px var(--k-line), inset 0 1px 0 #ffffff1a;
+  animation: explChoiceCommit 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+  animation-delay: 0ms;
+}
+.expl-choice.is-chosen .expl-choice-bar {
+  transform: scaleY(1);
+}
+.expl-choice.is-chosen::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 38%, #ffffff33 50%, transparent 62%);
+  content: "";
+  pointer-events: none;
+  transform: translateX(-120%);
+  animation: explChoiceSheen 460ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+}
+/* 没被选中的那一支: 退场而不是留在原地 —— 让玩家的视线只剩下自己刚按的东西。 */
+.expl-choices .expl-choice.is-dimmed {
+  animation: none;
+  opacity: 0.18;
+  transform: translateY(8px);
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+/* 「待处理 → 已结算」: 换 kind 强调色, 这一跳必须被看见。 */
+.expl-panel-status {
+  animation: explRise 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.expl-panel-status.is-settled {
+  border-color: var(--k);
+  background: var(--k-soft);
+  color: var(--k);
+  text-shadow: 0 0 12px var(--k-line);
+}
+/* 确认按钮跟在最后一条摘要之后浮出来(延迟由 tsx 按摘要条数算)。 */
+.expl-confirm {
+  animation: explRise 300ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
 /* ===================== 关键帧 ===================== */
+@keyframes explChar {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+    filter: blur(5px);
+  }
+}
+@keyframes explCaret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes explChoiceCommit {
+  0% {
+    transform: translateY(0);
+  }
+  22% {
+    transform: translateY(3px) scale(0.985);
+  }
+  100% {
+    transform: translateY(-2px) scale(1);
+  }
+}
+@keyframes explChoiceSheen {
+  to {
+    transform: translateX(120%);
+  }
+}
 @keyframes explRise {
   from {
     opacity: 0;
@@ -815,6 +938,22 @@
   }
   .expl-panel {
     animation: explFade 180ms ease backwards;
+  }
+  /* 逐字演出整套下线: 文字由 useTypewriter 直接给全文, 这里只保证它们**看得见**
+     (那几条 opacity:0 的默认态必须被顶掉)。 */
+  .expl-title-char,
+  .expl-caret,
+  .expl-panel-status,
+  .expl-confirm,
+  .expl-decide-row .expl-choice,
+  .expl-choices .expl-choice,
+  .expl-choices.is-armed .expl-choice,
+  .expl-choices .expl-choice.is-chosen {
+    animation: none;
+    opacity: 1;
+  }
+  .expl-choice.is-chosen::after {
+    display: none;
   }
 }
 

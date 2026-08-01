@@ -46,6 +46,7 @@ import {
 } from "./RouteBoard";
 import SlotReels from "./SlotReels";
 import { prefersReducedMotion } from "./transitions";
+import { useTypewriter } from "./useTypewriter";
 import { useStageScale } from "./stage";
 import { mapArt, warmMapArt } from "./mapArt";
 import { eventArt } from "./eventArt";
@@ -67,6 +68,23 @@ const COMMANDS = [
   { name: "并行探针", desc: "预览一条通道的落点" },
   { name: "侧向跨接", desc: "落点前跨到相邻通道" },
 ] as const;
+
+// 落点事件浮层的演出节拍(ms)。★ 单一真相在这里 —— 需要给 CSS 的那几个由 tsx 内联下发,
+// 两边不各写一份(与 SlotReels 的几何常量、CryoScene 的 --content-delay 同一套做法)。
+//
+// 这段时序读作一句话: **面板落定 → 标题浮字 → 正文讲完 → 选项才就位 → 落子有回响 → 结果逐条揭晓**。
+// 抵达一个落点是这个模式里唯一的叙事时刻, 值得花两三秒把它讲完; 中途不给跳过, 就是要玩家读完。
+const EVENT_BEAT = {
+  titleStart: 260, // 面板下滑过半(explDrop 600ms)时标题开始浮字, 早一点才不显得等
+  titleChar: 45, // 标题每字间隔
+  descStart: 560, // 正文起播 —— 压着面板落定的那一刻
+  descCps: 34, // 正文速度(字/秒), 标点处由 useTypewriter 自己加停顿
+  choiceStagger: 90, // 选项逐个浮现的间隔
+  commit: 460, // 点下选项 → 真正派发 pickOption 的「判定」停顿
+  noteLead: 180, // resolving: 第一条结算摘要前的留白(等选项收干净)
+  noteStagger: 140, // 结算摘要逐条间隔
+  noteTail: 260, // 最后一条播完到「确认」解锁之间的收尾
+} as const;
 
 // 阶段 → 左上角那一句提示。玩家永远该知道「现在轮到我做什么」。
 const PHASE_HINT: Record<string, string> = {
@@ -107,6 +125,12 @@ export function ExploreScreen() {
   const [bagOpen, setBagOpen] = useState(false);
   // 侧栏当前展示的是哪个节点。悬停/聚焦即换, 移开则回落到「当前落点」。
   const [hovered, setHovered] = useState<{ seg: number; lane: number } | null>(null);
+  // 已点下但还没派发出去的那一支。★ 这个空档就是「落子的回响」——
+  //   按钮先演完(竖条锁死 + 扫光掠过), 结算才发生; 少了它, 点击就只是一次表单提交。
+  const [committing, setCommitting] = useState<number | null>(null);
+  const commitTimer = useRef<number | null>(null);
+  // 结算摘要是否已逐条播完 —— 播完之前「确认」按钮不接受点击, 否则玩家一路连点就什么都没看见。
+  const [notesDone, setNotesDone] = useState(false);
 
   const phase = session?.phase;
   const round = session?.round;
@@ -159,11 +183,40 @@ export function ExploreScreen() {
     leaveDone();
   }, [leaveDone]);
 
+  // ---- 落点浮层的演出时序 ----
+  // ⚠ 这三个 hook 必须待在下面那句早退**之前**: 会话还没建好时也得照常调用, 否则 hook 顺序会变。
+  const landedEv = session?.board ? landedEvent(session) : null;
+  const evDesc = landedEv?.description ?? "";
+  // 正文逐字。text 一变就自动重置游标 ⇒ 换事件自然重播, 这里不需要额外的 key。
+  const desc = useTypewriter(evDesc, EVENT_BEAT.descStart, EVENT_BEAT.descCps);
+
+  // 走出 landed(结算已派发, 或整轮被别的路径打断)就把「已点下」清掉,
+  // 免得下一个落点一进来两个按钮就是暗的。
+  useEffect(() => {
+    if (phase !== "landed") setCommitting(null);
+  }, [phase]);
+  useEffect(() => () => window.clearTimeout(commitTimer.current ?? undefined), []);
+
+  // 结算摘要的揭晓计时: 最后一条浮起来之后才给「确认」解锁。
+  const noteCount = session?.pendingNotes.length ?? 0;
+  useEffect(() => {
+    if (phase !== "resolving") return;
+    if (prefersReducedMotion()) {
+      setNotesDone(true);
+      return;
+    }
+    setNotesDone(false);
+    const ms =
+      EVENT_BEAT.noteLead + Math.max(1, noteCount) * EVENT_BEAT.noteStagger + EVENT_BEAT.noteTail;
+    const id = window.setTimeout(() => setNotesDone(true), ms);
+    return () => window.clearTimeout(id);
+  }, [phase, noteCount]);
+
   if (!session || !session.board) return null;
 
   const map = getMap(session.mapId);
   const board = session.board;
-  const ev = landedEvent(session);
+  const ev = landedEv;
   const taint = effectiveTaint(session);
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
@@ -195,8 +248,20 @@ export function ExploreScreen() {
   const nextBridges = board.segments[session.currentSegment]?.bridges.length ?? 0;
 
   // 落点分支 → 应用。
+  // ★ 不立刻派发: 先让被点中的那一支演完「落子」(竖条锁死 + 扫光), 另一支同时暗下去,
+  //   commit 拍之后才把结算算进会话。这段停顿就是玩家读到的「我做了一个决定」。
+  // ⚠ 演出中不接受第二次点击 —— 否则连点两个分支会派发两次结算。
   const takeOption = (index: number) => {
-    pickOption(index);
+    if (committing != null) return;
+    if (prefersReducedMotion()) {
+      pickOption(index);
+      return;
+    }
+    setCommitting(index);
+    commitTimer.current = window.setTimeout(() => {
+      commitTimer.current = null;
+      pickOption(index);
+    }, EVENT_BEAT.commit);
   };
 
   // 战斗签三选一 → 推进战斗。战斗建局在 runStore(只有它认识 battleStore)。
@@ -426,24 +491,61 @@ export function ExploreScreen() {
                   <span className="expl-kicker">
                     第 {session.round} 轮 · 第 {session.currentSegment} 推进段 · 落点
                   </span>
-                  <span className="expl-panel-status">
+                  {/* key 挂 phase: 「待处理 → 已结算」这一跳必须被看见, 重挂一次走遍浮起动画。 */}
+                  <span
+                    className={`expl-panel-status${session.phase === "resolving" ? " is-settled" : ""}`}
+                    key={session.phase}
+                  >
                     {session.phase === "landed" ? "待处理" : "已结算"}
                   </span>
                 </div>
-                <h3 className="expl-panel-title">{ev.title}</h3>
-                <p className="expl-panel-desc">{ev.description}</p>
+                {/* 标题逐字浮起: 打字机那套用在标题上太慢, 逐字**淡入**才有「名字被念出来」的分量。
+                    ⚠ 减弱动态效果时不拆 span —— 一堆 inline-block 会让标点的行内断行规则失效。 */}
+                <h3 className="expl-panel-title">
+                  {prefersReducedMotion()
+                    ? ev.title
+                    : Array.from(ev.title).map((ch, i) => (
+                        <span
+                          key={i}
+                          className="expl-title-char"
+                          style={
+                            {
+                              animationDelay: `${EVENT_BEAT.titleStart + i * EVENT_BEAT.titleChar}ms`,
+                            } as CSSProperties
+                          }
+                        >
+                          {ch === " " ? " " : ch}
+                        </span>
+                      ))}
+                </h3>
+                {/* 正文逐字。aria-label 给读屏一次性的全文 —— 无障碍不该被演出拖着走。 */}
+                <p className="expl-panel-desc" aria-label={ev.description}>
+                  <span aria-hidden>{desc.shown}</span>
+                  {!desc.done && <span className="expl-caret" aria-hidden />}
+                </p>
 
                 {session.phase === "landed" ? (
-                  <div className="expl-choices">
+                  // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸):
+                  // 让玩家先读完代价再做选择, 这是这段演出想换来的东西。
+                  <div
+                    className={`expl-choices${desc.done ? " is-armed" : ""}`}
+                    style={
+                      { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
+                    }
+                  >
                     {landedChoices(session).map((c, i) => {
                       // ★ 按钮上写的是这一支的粒子净变化, 不让玩家自己做加法。
                       const base = session.freeNodes > 0 ? 0 : -EXPLORE_RULES.energyPerNode;
                       const delta = base + c.energyDelta;
+                      const state =
+                        committing == null ? "" : committing === i ? " is-chosen" : " is-dimmed";
                       return (
                         <button
                           key={c.id}
-                          className="expl-choice"
+                          className={`expl-choice${state}`}
                           type="button"
+                          disabled={!desc.done || committing != null}
+                          style={{ "--i": i } as CSSProperties}
                           onClick={() => takeOption(i)}
                         >
                           <span className="expl-choice-bar" aria-hidden />
@@ -467,23 +569,44 @@ export function ExploreScreen() {
                           <span
                             key={i}
                             className="expl-note"
-                            style={{ animationDelay: `${i * 40}ms` } as CSSProperties}
+                            style={
+                              {
+                                animationDelay: `${EVENT_BEAT.noteLead + i * EVENT_BEAT.noteStagger}ms`,
+                              } as CSSProperties
+                            }
                           >
                             {n}
                           </span>
                         ))
                       ) : (
-                        <span className="expl-note is-muted">无结算</span>
+                        <span
+                          className="expl-note is-muted"
+                          style={
+                            { animationDelay: `${EVENT_BEAT.noteLead}ms` } as CSSProperties
+                          }
+                        >
+                          无结算
+                        </span>
                       )}
                     </div>
+                    {/* 结算摘要还在逐条浮起时「确认」不接受点击(notesDone) ——
+                        否则玩家一路连点, 这一节点到底发生了什么就永远没被看见。 */}
                     <div className="expl-panel-foot">
                       <span className="expl-panel-cost">
                         {mustReplace ? "先在背包里处理完拿不下的东西" : "结算完毕"}
                       </span>
                       <button
-                        className="expl-btn is-primary"
+                        className="expl-btn is-primary expl-confirm"
                         type="button"
-                        disabled={mustReplace}
+                        disabled={mustReplace || !notesDone}
+                        style={
+                          {
+                            animationDelay: `${
+                              EVENT_BEAT.noteLead +
+                              Math.max(1, session.pendingNotes.length) * EVENT_BEAT.noteStagger
+                            }ms`,
+                          } as CSSProperties
+                        }
                         onClick={() => confirmNode()}
                       >
                         确认 ▸
@@ -510,6 +633,7 @@ export function ExploreScreen() {
                   className="expl-choice"
                   type="button"
                   disabled={!canPushOn(session)}
+                  style={{ "--i": 0 } as CSSProperties}
                   onClick={() => pushOn()}
                 >
                   <span className="expl-choice-bar" aria-hidden />
@@ -525,7 +649,12 @@ export function ExploreScreen() {
                       : "已走满 4 个推进段, 本轮到此为止"}
                   </span>
                 </button>
-                <button className="expl-choice" type="button" onClick={() => leaveRegion()}>
+                <button
+                  className="expl-choice"
+                  type="button"
+                  style={{ "--i": 1 } as CSSProperties}
+                  onClick={() => leaveRegion()}
+                >
                   <span className="expl-choice-bar" aria-hidden />
                   <span className="expl-choice-head">
                     <span className="expl-choice-label">前往下一区域</span>

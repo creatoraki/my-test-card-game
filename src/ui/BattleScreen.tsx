@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   canPlay,
   partyHandLimit,
@@ -29,28 +29,94 @@ import { useIdleTwitch } from "./useIdleTwitch";
 import { STAGE, useStageScale } from "./stage";
 import "./BattleScreen.css";
 
-// ── 场景相机 ──
-// 世界 = 1920×1080 的设计画布(见 ui/stage.ts)。相机就是世界坐标里的一次 translate+scale,
-// 直接作为 .battle-scene 的局部 transform 下发 —— 场景层与它的父级(.screen.battle)之间
-// 没有别的变换, 故「局部 px」恒等于「世界 px」, 全程不需要任何屏幕 px 换算。
+// ── 场景相机(透视) ──
+// 世界 = 1920×1080 的设计画布(见 ui/stage.ts), 摊在一个真实的 3D 空间里: 背景在远处、
+// 敌我单位在基准面 z=0、近景粒子在镜头这一侧(纵深见 CINEMA.depth, 落点在 BattleScreen.css)。
+// 相机是这个空间的一次「世界平移 + 绕光轴偏航 + 沿视线推进」, 作为 .battle-scene 的局部
+// transform 下发; 真正的投影由 .screen.battle 的 perspective **属性**完成 —— 必须是属性
+// 而不是 transform 里的 perspective() 函数, 后者只对该元素自身生效, 后代的 translateZ
+// 拿不到透视, 各层就永远不会产生视差。
 //
-// 背景与敌我单位同在 .battle-scene 内 ⇒ 只有这一份变换, 场景是刚体:
-// 角色与它脚下的那块地面在任何缩放/平移/窗口尺寸下都不可能分离。
+// 全程在设计 px 里算(透视距离也是), 不出现任何屏幕 px ⇒ 任何窗口尺寸下的成像逐 px 一致。
+//
+// ⚠ 「场景是刚体」这条老约定已被有意打破: 各层深度不同 ⇒ 相机一动就有视差, 角色与它脚下的
+//   背景地面会相对滑移。这正是纵深感的来源, 幅度由 CINEMA.depth 收敛(全设 0 即退回刚体)。
 interface Camera {
-  s: number; // 放大倍数
-  tx: number; // 世界 px
-  ty: number;
+  s: number; // 基准面(敌我单位)的放大倍数; 实现为沿视线的推进量, 见 cameraCss
+  dx: number; // 世界平移(世界 px): 把聚焦点送到画框锚点上, 由 worldShift 算出
+  dy: number;
+  yaw: number; // 偏航角(deg): 正 = 镜头朝右转。0 = 正对场景
+  pitch: number; // 俯仰角(deg): 正 = 镜头朝上仰(CSS 的 rotateX 正角把底边拉近)
 }
 
-const cameraCss = (c: Camera | null) =>
-  c ? `translate(${c.tx}px, ${c.ty}px) scale(${c.s})` : "none";
+// 全景(无相机)= 恒等变换。刻意不用 "none" —— 见 cameraCss 的函数链恒定说明。
+const CAMERA_REST: Camera = { s: 1, dx: 0, dy: 0, yaw: 0, pitch: 0 };
+
+// 镜头光轴 = 画布正中。它同时是 perspective-origin(消失点)、偏航轴与推进的缩放中心 ——
+// 三者必须重合, 且必须是**画布**中心而不是取景安全区中心: 前者在 CSS 里恒等于 50% 50%,
+// 于是每一个纵深层都能用同一句静态 CSS 定位, 不必逐层下发锚点。
+// 取景安全区中心(画框锚点 A)是另一回事 —— 那是"把主体摆哪", 由 worldShift 负责。
+const AXIS = { x: STAGE.width / 2, y: STAGE.height / 2 };
+
+// 把世界里的聚焦点 F 送到画框锚点 A 所需的世界平移。
+// 基准面的成像为 screen(p) = AXIS + s·(p + d − AXIS)(推进绕光轴放大 s 倍), 令 screen(F)=A:
+//   d = (A − AXIS)/s + AXIS − F
+// 比"直接 A−F"多出来的那一截, 补的是"绕光轴放大 s 倍会把偏离光轴的 A 顶开"的位移。
+function worldShift(A: { x: number; y: number }, F: { x: number; y: number }, s: number) {
+  return {
+    dx: (A.x - AXIS.x) / s + AXIS.x - F.x,
+    dy: (A.y - AXIS.y) / s + AXIS.y - F.y,
+  };
+}
+
+// 相机 → CSS transform。⚠ 配套前提(缺一不可, 见 BattleScreen.css):
+//   .screen.battle  → perspective 属性 + 默认的 perspective-origin(50% 50% = AXIS)
+//   .battle-scene   → transform-style: preserve-3d + transform-origin: 50% 50%
+//   .battle-world   → 同上(它夹在中间, 一旦 flatten 各层深度就全丢了)
+//
+// 链的执行顺序是从右往左: 先把世界平移(dx,dy), 再俯仰、再偏航, 最后沿视线推进 z。
+// 推进排在两个旋转左侧 ⇒ 推的是「镜头正前方」而非世界 Z, 旋转只管转向;
+// rotateY 排在 rotateX 左侧 = 先俯仰后偏航, 即标准相机的 YXZ 姿态顺序(地平线不会被拧歪)。
+// 透视投影下 z 处的平面相对光轴放大 P/(P−z), 取 z = P(1−1/s) 即得到基准面精确的 s 倍 ——
+// 于是 yaw=0 时基准面的成像与旧的 scale() 逐 px 等价, computeCamera 的取景数学一个字没改;
+// 而其余各层因为自带深度, 会自动获得不同的放大与位移速率, 视差由此产生。
+//
+// ⚠ 函数链恒定(哪怕全景态也照样输出 identity): 只有 from/to 的函数列表逐项对应, 浏览器才会
+// 逐项插值; 一旦退化成矩阵插值, 3D 变换会在过渡中间产生诡异的畸变跳动。
+function cameraCss(c: Camera | null): string {
+  const { s, dx, dy, yaw, pitch } = c ?? CAMERA_REST;
+  const z = CINEMA.perspective * (1 - 1 / s);
+  return `translateZ(${z}px) rotateY(${yaw}deg) rotateX(${pitch}deg) translate(${dx}px, ${dy}px)`;
+}
+
+// 各纵深层的 CSS 变量: 位置 z + 抵消透视的预缩放 (P−z)/P。
+// 预缩放保证「静止画面与纵深为 0 时逐 px 相同」—— 纵深只在相机运动时以视差的形式显现,
+// 不会悄悄改变任何一层的构图或尺寸。
+function depthVars(): Record<string, string> {
+  const P = CINEMA.perspective;
+  const out: Record<string, string> = {};
+  for (const [k, z] of Object.entries(CINEMA.depth)) {
+    out[`--depth-${k}`] = `${z}px`;
+    out[`--depth-${k}-fix`] = `${(P - z) / P}`;
+  }
+  return out;
+}
 
 const CAMERA_TRANSITION = `transform ${CINEMA.zoomIn}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+// 瞄准态(挑目标期间)专用: 更慢更软, 与分镜的推近区分开 —— 它是"状态"而非"事件"。
+const AIM_TRANSITION = `transform ${CINEMA.aim.dur}ms cubic-bezier(0.2, 0.72, 0.28, 1)`;
 
 // 屏幕 px → 世界 px 的反投影。除数取**世界层**当前的屏幕矩形(其未变换尺寸恒为 STAGE.width),
 // 于是 --stage-scale、当前相机变换、以及世界自身的空闲漂移被一次性抵消 —— 测得的永远是纯
 // 设计 px, 与 stage.offsetLeft/Top(布局 px)同一坐标系。过渡进行到一半时测量同样成立。
-// (旧实现要求"必须在全景态测量", 这个前提就此消失。)
+//
+// ⚠⚠ 成立的前提是场景当前的变换为 **2D 仿射**(纯缩放 + 平移): 那时"世界矩形 → 屏幕矩形"
+//    是线性映射, 用两端点定标才有意义。相机一旦带上偏航/俯仰, 投影就是非线性的,
+//    getBoundingClientRect 给的只是投影后的**包围盒** —— 它的中心不再对应世界中心
+//    (6° 偏航即可差出几十 px), 反投影会产生同量级的系统性偏差。
+//    ⇒ 任何要靠它定位的测量(computeCamera), 都必须安排在姿态已归零的时刻进行;
+//      triggerPlay 的镜头交接特意把 yaw/pitch 清零, 就是为了保住这一条。
+//    computeAimCamera 是例外: 它只用结果判断"往哪边偏", 再乘比例并钳制, 不怕这点偏差。
 function screenToWorld(r: DOMRect, worldRect: DOMRect) {
   const u = STAGE.width / worldRect.width;
   return {
@@ -60,6 +126,86 @@ function screenToWorld(r: DOMRect, worldRect: DOMRect) {
     bottom: (r.bottom - worldRect.top) * u,
   };
 }
+
+// 取景安全区(世界 px) = .battle-stage 的布局盒。读 offsetLeft/Top/Width/Height 而非
+// getBoundingClientRect —— 布局 px 天然就是世界 px(offsetParent 即 .battle-world), 完全
+// 不受相机变换影响。分镜相机与瞄准相机共用同一个画框锚点。
+function safeArea(stage: HTMLElement) {
+  return { x: stage.offsetLeft, y: stage.offsetTop, w: stage.offsetWidth, h: stage.offsetHeight };
+}
+
+// 量一个单位在世界坐标里的包围盒。取内层的 .combatant-stage(立绘 + 特效, 含体型 scale 的那层),
+// 而不是外层布局盒 —— 外层量不到大体型敌人的真实占幅, 且会把血条/意图算进取景。
+// 我方头像卡没有这层, 退回量自身。查不到该单位(如我方不在 .battle-stage 内)则返回 null。
+function worldBoxOf(stage: HTMLElement, worldRect: DOMRect, id: string) {
+  const el = stage.querySelector<HTMLElement>(`[data-cmb-id="${id}"]`);
+  if (!el) return null;
+  const box = el.querySelector<HTMLElement>(".combatant-stage") ?? el;
+  return screenToWorld(box.getBoundingClientRect(), worldRect);
+}
+
+const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
+
+// ── 瞄准相机 ──
+// 选中攻击卡、正在挑目标期间的常驻镜头: 固定轻微推近, 并朝当前悬停的敌人**转过去** ——
+// 姿态(yaw/pitch)与位移(dx/dy)同向叠加。刻意不对准目标: 对准所需的位移会把目标从指针
+// 底下挪走, 只求方向感。
+//
+// ★ 位移必须是斜的。纯水平的直线位移人眼一律读成"平面滑动", 这跟透视/视差做得多足没关系 ——
+//   现实里的相机不会只沿一条水平轨道走。所以纵向有两个来源, 缺一不可:
+//     ① panY —— 跟随目标自身的高度(敌人普遍站在画框上方 ⇒ 镜头整体微微抬起)
+//     ② arc  —— 越偏离画框中央抬得越多, 于是从中央看向两侧走的是一条弧线;
+//                哪怕两个敌人一样高, 左右切换目标时轨迹也是斜的, 而不是一条水平直线。
+//
+// ⓘ 这里量目标位置用的仍是 getBoundingClientRect + screenToWorld, 而此刻场景可能正带着
+//   几度姿态 —— 投影包围盒因此有 <1% 的失真。无所谓: 结果只用来定"往哪边偏、偏多少",
+//   还要再乘比例并钳制, 且偏移量有上限 ⇒ 不会自激。
+function computeAimCamera(
+  world: HTMLElement | null,
+  stage: HTMLElement | null,
+  foeId: string | null,
+): Camera | null {
+  if (!world || !stage) return null;
+  const worldRect = world.getBoundingClientRect();
+  if (worldRect.width <= 0) return null;
+
+  const safe = safeArea(stage);
+  const A = { x: safe.x + safe.w / 2, y: safe.y + safe.h / 2 }; // 画框锚点 = 安全区中心
+  const { scale: s, yaw: yawMax, pitch: pitchMax, pan, panMax, panY, panMaxY, arc } = CINEMA.aim;
+
+  let yaw = 0, pitch = 0;
+  const F = { ...A }; // 聚焦点: 默认就是画框锚点(不朝任何人时纯推近)
+  const box = foeId ? worldBoxOf(stage, worldRect, foeId) : null;
+  if (box) {
+    // 目标中心相对画框锚点的偏离(世界 px), 以及它占半个安全区的比例
+    const offX = (box.left + box.right) / 2 - A.x;
+    const offY = (box.top + box.bottom) / 2 - A.y;
+    const nx = clamp(offX / (safe.w / 2), 1);
+    const ny = clamp(offY / (safe.h / 2), 1);
+
+    // 姿态: 目标在右就朝右转(CSS 的 rotateY 正角把右侧推远、收向中心, 正是相机右转的成像);
+    // 俯仰**反号** —— CSS 的 y 轴向下为正, 而 rotateX 正角是把底边拉近(仰视), 故目标偏上
+    // (ny<0)时 pitch 取正 = 镜头上仰。
+    yaw = nx * yawMax;
+    pitch = -ny * pitchMax;
+
+    // 位移: 聚焦点朝目标让开一小段(与姿态同向协同), 纵向再叠一段随横向偏离增大的抬升。
+    // arc 取负是"镜头看向更高处" —— 聚焦点上移, 画面内容随之下沉。
+    F.x += clamp(offX * pan, panMax);
+    F.y += clamp(offY * panY, panMaxY) - Math.abs(nx) * arc;
+  }
+  return { s, ...worldShift(A, F, s), yaw, pitch };
+}
+
+const sameCamera = (a: Camera | null, b: Camera | null) =>
+  a === b ||
+  (!!a &&
+    !!b &&
+    a.s === b.s &&
+    a.dx === b.dx &&
+    a.dy === b.dy &&
+    a.yaw === b.yaw &&
+    a.pitch === b.pitch);
 
 export function BattleScreen() {
   const battle = useBattleStore((s) => s.battle);
@@ -90,7 +236,14 @@ export function BattleScreen() {
   const [attackerId, setAttackerId] = useState<string | null>(null); // 正在弹出的施法者
   const [hits, setHits] = useState<Record<string, HitFx>>({}); // 各目标当前的受击特效
   const [cutInCard, setCutInCard] = useState<Card | null>(null); // 出牌亮相卡面(仅玩家出牌; null=不展示)
-  const [camera, setCamera] = useState<Camera | null>(null); // 相机变换(null=全景)
+  const [camera, setCamera] = useState<Camera | null>(null); // 分镜相机变换(null=全景)
+  // —— 瞄准运镜(挑目标期间的常驻态, 与上面的分镜相机互斥) ——
+  // aimFoeId: 当前朝向的敌人, **锁存** —— 只在悬到另一个敌人或指针离开 .battle-stage 时才变。
+  // ⓘ 这是个顶层 hover state, 与本文件上方 selectedUid 处"悬停态别放这里"的告诫**不矛盾**:
+  //   那条针对手牌(鼠标扫过一排 10 张牌 ⇒ 连续 setState 全量重渲染)。敌人最多 4 个、且只在
+  //   待选目标态里响应, 触发频率与点击同级, 代价等同于 setSelectedUid 本身。
+  const [aimFoeId, setAimFoeId] = useState<string | null>(null);
+  const [aim, setAim] = useState<Camera | null>(null); // 瞄准相机(null=不在瞄准态)
   const [spillSrc, setSpillSrc] = useState<string | null>(null); // 溢出填充图(见下方 grabSpill)
   // 打击感: 命中瞬间冻住世界(顿帧) → 解冻同刻爆发震屏。seq 奇偶交替 shake-a/shake-b 两个
   // 同内容不同名的 keyframes 以重启动画 —— 绝不能给 .battle-world 加 key 重挂载, 那会连带
@@ -129,6 +282,8 @@ export function BattleScreen() {
     setHits({});
     setCutInCard(null);
     setCamera(null);
+    setAimFoeId(null);
+    setAim(null);
     setHitstop(false);
     setRenderHand([]); // 换战斗: 清空手牌渲染列表, 让新战斗的手牌重新飞入(不播放旧牌离场)
     setPlayingOutUid(null);
@@ -201,6 +356,19 @@ export function BattleScreen() {
   );
   const twitchId = useIdleTwitch(aliveEnemyIds, !animating);
 
+  // 瞄准相机的驱动: "选中了一张指向敌人的卡 且 不在分镜里" ⇒ 推近(并朝锁存的目标偏移),
+  // 否则退出瞄准态。分镜期间恒不生效 —— startBatch 会清 selectedUid 并上锁, 这里只是二重保险。
+  // ⚠ hook 必须在下面的早退之前, 故条件全部在 effect 内部从 battle 现算(与 useIdleTwitch 同理)。
+  // 用 useLayoutEffect: 与首帧同步测量, 避免瞄准态先渲染一帧全景再跳。
+  // stageScale 进依赖: 窗口尺寸变了要重测(结果虽是设计 px, 但 DOM 矩形已变)。
+  useLayoutEffect(() => {
+    const card = battle && selectedUid ? battle.cards[selectedUid] : null;
+    const on =
+      !!battle && battle.phase === "player" && !animating && card?.targeting === "foe";
+    const next = on ? computeAimCamera(worldRef.current, stageRef.current, aimFoeId) : null;
+    setAim((prev) => (sameCamera(prev, next) ? prev : next));
+  }, [battle, selectedUid, aimFoeId, animating, stageScale]);
+
   if (!battle) return <div className="screen center">加载中…</div>;
   const b = battle; // 非空别名: 供下方事件处理/setTimeout 闭包安全引用(收窄不跨闭包)
 
@@ -254,8 +422,7 @@ export function BattleScreen() {
   // 故任何窗口尺寸下的推镜结果逐 px 一致。
   //
   // 取景安全区 = .battle-stage 的布局盒(而非整个画布): 目标居中到清晰可见区, 不会跑到
-  // 左侧透明手牌栏底下。读 offsetLeft/Top/Width/Height 而不是 getBoundingClientRect ——
-  // 布局 px 天然就是世界 px(offsetParent 即 .battle-scene), 完全不受相机变换影响。
+  // 左侧透明手牌栏底下(见上方 safeArea)。
   //
   // 刻意不做边界钳制: 目标永远精确居中, 世界之外露出的部分由 .battle-bg-spill 填充。
   function computeCamera(targetIds: string[]): Camera | null {
@@ -268,13 +435,8 @@ export function BattleScreen() {
     // 目标并集包围盒(世界坐标)
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     for (const id of targetIds) {
-      const el = stage.querySelector<HTMLElement>(`[data-cmb-id="${id}"]`);
-      if (!el) continue;
-      // 敌人量内层的 .combatant-stage(立绘 + 特效, 含体型 scale 的那层), 而不是外层布局盒 ——
-      // --place-scale 只作用于内层, 外层矩形量不到大体型敌人的真实占幅, 会把镜头推得过近。
-      // 顺带把血条/意图排除在取景外, 聚焦点落在立绘上。我方头像卡没有这层, 退回量自身。
-      const box = el.querySelector<HTMLElement>(".combatant-stage") ?? el;
-      const w = screenToWorld(box.getBoundingClientRect(), worldRect);
+      const w = worldBoxOf(stage, worldRect, id);
+      if (!w) continue;
       left = Math.min(left, w.left);
       top = Math.min(top, w.top);
       right = Math.max(right, w.right);
@@ -283,12 +445,7 @@ export function BattleScreen() {
     if (!isFinite(left)) return null;
 
     // 取景安全区(世界 px)
-    const safe = {
-      x: stage.offsetLeft,
-      y: stage.offsetTop,
-      w: stage.offsetWidth,
-      h: stage.offsetHeight,
-    };
+    const safe = safeArea(stage);
 
     // 并集需占据视野, 但留出边距(占安全区 CINEMA.fit), 再与上限 CINEMA.scale 取较小值防溢出。
     const spanW = Math.max(1, right - left), spanH = Math.max(1, bottom - top);
@@ -298,13 +455,14 @@ export function BattleScreen() {
     const F = { x: (left + right) / 2, y: (top + bottom) / 2 }; // 聚焦点: 并集中心
     const A = { x: safe.x + safe.w / 2, y: safe.y + safe.h / 2 }; // 画框锚点: 安全区中心
 
-    // 把 F 映射到 A ⇒ T = A - s·F(配合 transform-origin: 0 0)
-    return { s, tx: A.x - s * F.x, ty: A.y - s * F.y };
+    // yaw/pitch=0 —— 分镜的职责是"把目标怼到画面正中看清楚", 该正对就正对; 它的 3D 感来自
+    // 推进时各纵深层的视差(背景退开、近景粒子扑面)。姿态是瞄准态的事(见 computeAimCamera)。
+    return { s, ...worldShift(A, F, s), yaw: 0, pitch: 0 };
   }
 
   // 逐步回放动画。seq 为本批次代号: 切战斗/发起新动作会使旧批次的定时器回调失效。
   // 单步分镜: 施法者弹出(全景可见) → 顿 → 镜头推近聚焦目标 → 命中特效/飘字停留 → 镜头恢复+归位。
-  function runSteps(steps: AnimStep[], final: BattleState, seq: number) {
+  function runSteps(steps: AnimStep[], final: BattleState, seq: number, enter: Camera | null) {
     let i = 0;
     const next = () => {
       if (seqRef.current !== seq) return;
@@ -319,11 +477,15 @@ export function BattleScreen() {
         setAnimating(false);
         return;
       }
+      const first = i === 0;
       const step = steps[i++];
       const preset = ANIM[step.anim];
       const focusIds = step.hits.length ? step.hits.map((h) => h.id) : [step.actorId];
       setAttackerId(step.actorId); // 施法者弹出并保持(CSS .attacking)
-      setCamera(null); // 保持全景, 让"顿"期间能看到弹出的角色
+      // 「顿」期间的镜头。默认回全景, 让施法者弹出这一下看得见 ——
+      // 但第 0 步若带着 enter(玩家刚从瞄准态点下目标), 就**接着瞄准位往下演**: 先退回全景
+      // 再推近会把"确认目标 → 打过去"这个连贯动作切成一退一进两截, 观感很碎。
+      setCamera(first ? enter : null);
 
       // 镜头到位时刻; 仅玩家出牌步在此后插入「卡面亮相」段(飞入→停留→飞出), 后续时刻整体后移 cutIn。
       const tFocus = CINEMA.beat + CINEMA.zoomIn;
@@ -407,17 +569,19 @@ export function BattleScreen() {
   }
 
   // 开启一个动画批次: 上锁 + 清选择, 逐步回放。空步数则直接落到终态。
-  function startBatch(steps: AnimStep[], final: BattleState) {
+  // enter: 第 0 步「顿」期间的镜头(null=回全景)。玩家出牌时传当前瞄准位, 见 triggerPlay。
+  function startBatch(steps: AnimStep[], final: BattleState, enter: Camera | null = null) {
     const seq = ++seqRef.current;
     animatingRef.current = true;
     setAnimating(true);
     setSelectedUid(null);
     setHandAction(null);
+    setAimFoeId(null); // 瞄准朝向只在一次"挑目标"里有效, 不该跨到下一张卡
     // ⓘ 这里刻意**不清**悬停态 —— 保持与旧 hoveredUid 实现逐帧一致的行为。
     //   (旧实现有个遗留小毛病: 打出的那张卡 leaving 后带 pointer-events:none 且随即卸载,
     //    永远收不到 mouseleave ⇒ 右侧详情面板会一直停在这张已经打出去的卡上, 直到鼠标
     //    悬到另一张牌。想修的话在这里加一行 resetHandHover() 即可, 但那是行为变更, 单独议。)
-    runSteps(steps, final, seq);
+    runSteps(steps, final, seq, enter);
   }
 
   // 出牌: 先算出动画计划(含触发的敌人行动), 玩家出牌为第 0 步, 敌人行动依次接续。
@@ -441,7 +605,16 @@ export function BattleScreen() {
       { actorId: card.ownerCharId, anim, snapshot: plan.cardSnapshot, hits: cardHits, card },
       ...plan.frames.map(stepFromFrame),
     ];
-    startBatch(steps, plan.final);
+
+    // 出牌瞬间的镜头交接: 从瞄准位**接着往下推**, 不回全景(见 runSteps 的 enter)。
+    // ⚠ 但姿态(yaw/pitch)必须在这一刻归零, 只留推近与平移 —— 两个理由:
+    //   ① 叙事上: 目标已确认, 镜头该对正了; 保持歪着推进反而像没瞄准好。
+    //   ② 技术上(硬性): 500ms 后 computeCamera 要量目标位置, 而 screenToWorld 只在场景是
+    //      2D 仿射(纯缩放+平移)时才精确 —— 带着偏航去量, 反投影会有几十 px 的系统性偏差,
+    //      推近后目标就不在画面正中了。详见 screenToWorld 的注释。
+    //   转正用的是 zoomIn(380ms) < beat(500ms), 到量取时刻已经稳定落位。
+    const enter = aim ? { ...aim, yaw: 0, pitch: 0 } : null;
+    startBatch(steps, plan.final, enter);
   }
 
   // 结束回合: 逐步播放冲刷的敌人行动, 最后落到下一回合起始态。
@@ -506,7 +679,14 @@ export function BattleScreen() {
     <div
       className="battle-viewport"
       ref={viewportRef}
-      style={{ "--stage-scale": stageScale } as React.CSSProperties}
+      style={
+        {
+          "--stage-scale": stageScale,
+          // 透视距离下发给 .screen.battle 的 perspective 属性(唯一真相在 CINEMA.perspective;
+          // cameraCss 的推进量按同一个 P 反算, 两边必须是同一个数)
+          "--perspective": `${CINEMA.perspective}px`,
+        } as React.CSSProperties
+      }
     >
       <div
         className={`screen battle${hitstop ? " hitstop" : ""}`}
@@ -518,29 +698,35 @@ export function BattleScreen() {
       {spillSrc && <img className="battle-bg-spill" src={spillSrc} alt="" aria-hidden="true" />}
 
       {/* ★ 场景层(世界 1920×1080) = 相机的唯一作用对象。背景与敌我单位同在其中, 由同一份
-          transform 驱动 ⇒ 场景是刚体, 角色与它脚下的地面永远不会分离。
+          transform 驱动。★ 场景**不再是刚体**: 各层带着不同的纵深(CINEMA.depth), 相机一动
+          就按深度分速率位移 —— 这就是 3D 感的来源, 代价是角色与背景地面会相对滑移。
           裁切在 .screen.battle(整屏), 故推近时角色可越过舞台边界铺满画面。
-          data-focused: 相机非全景时置位, CSS 据此暂停世界的空闲漂移(见下)。 */}
+          data-focused: **分镜**相机非全景时置位, CSS 据此暂停世界的空闲漂移(见下)。瞄准态
+          刻意不置位 —— 挑目标可以持续很久, 那期间画面不该完全静止。
+          camera ?? aim: 分镜相机优先, 挑目标期间才轮到瞄准相机(两者天然互斥, 见上方 effect)。 */}
       <div
         className="battle-scene"
         ref={sceneRef}
         data-focused={camera ? "1" : undefined}
         style={{
-          transition: CAMERA_TRANSITION,
-          transform: cameraCss(camera),
-          transformOrigin: "0 0",
+          transition: camera ? CAMERA_TRANSITION : AIM_TRANSITION,
+          transform: cameraCss(camera ?? aim),
         }}
       >
-      {/* ★ 世界层: 相机之下、场景内容之上的一层。它同样包住背景 + 氛围 + 舞台 ⇒ 刚体不变,
+      {/* ★ 世界层: 相机之下、场景内容之上的一层。它同样包住背景 + 氛围 + 舞台,
           存在的意义是让「空闲漂移」和「震屏」有地方落 —— 场景层的 transform 已被相机占用。
           三个变换属性各司其职、互不覆盖: transform=漂移, translate=震屏位移, scale=冲击缩放。
           刻意 position:absolute + inset:0 与场景层几何重合 ⇒ 它成为 .battle-stage 的
-          offsetParent, computeCamera 读的取景安全区(stage.offsetLeft/Top/W/H)一个数都不用改。 */}
+          offsetParent, computeCamera 读的取景安全区(stage.offsetLeft/Top/W/H)一个数都不用改。
+          ⚠ 它必须保持 transform-style: preserve-3d(见 CSS) —— 各纵深层就挂在它下面,
+            一旦它 flatten, 视差(以及整个 3D 感)当场消失。
+          --depth-*: 各层的纵深与抵消透视的预缩放, 唯一真相在 CINEMA.depth。 */}
       <div
         className={`battle-world${shake.level ? ` shake-lv${shake.level} shake-${shake.seq % 2 ? "a" : "b"}` : ""}`}
         ref={worldRef}
         style={
           {
+            ...depthVars(),
             "--drift-x": `${CINEMA.drift.x}px`,
             "--drift-y": `${CINEMA.drift.y}px`,
             "--drift-scale": `${1 + CINEMA.drift.scale}`,
@@ -576,7 +762,10 @@ export function BattleScreen() {
 
       {/* 战场舞台层: 世界里的一块子矩形(避开左侧手牌栏), 同时是相机的取景安全区。
           它不带自己的 transform —— 相机只驱动外层的 .battle-scene。 */}
-      <div className="battle-stage" ref={stageRef}>
+      {/* ⓘ onMouseLeave 清瞄准朝向刻意挂在**这一层**而不是逐个敌人身上: 瞄准镜头一平移, 敌人
+          就从指针底下挪走了, 逐敌人清除会形成「平移 → leave → 回中 → enter → 平移」的来回震荡。
+          .battle-stage 是一大块区域, 这点位移不会让指针离开它 ⇒ 朝向在区域内锁存, 稳定。 */}
+      <div className="battle-stage" ref={stageRef} onMouseLeave={() => setAimFoeId(null)}>
         {/* 敌人 */}
         <div className="row enemy-row">
           {enemies.map((e, i) => (
@@ -590,6 +779,7 @@ export function BattleScreen() {
               placement={placements[i]}
               twitching={e.id === twitchId}
               onClick={() => onCombatantClick(e.id)}
+              onHover={() => setAimFoeId(e.id)}
             />
           ))}
         </div>
