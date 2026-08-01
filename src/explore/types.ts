@@ -76,7 +76,6 @@ export type ExploreEffect =
   | { type: "DISCARD_SLOTS"; slots: number } // 强制丢弃背包若干格(「压力门夹层」)
   | { type: "OPEN_CHUTE" } // 传送投递口: 开启寄件流程(实际寄件由玩家在背包面板里选)
   | { type: "MODIFY_ENERGY"; amount: number } // 净化粒子增减
-  | { type: "MODIFY_TAINT"; amount: number } // 污染层数增减
   | { type: "SKIP_NODE_COST"; nodes: number } // 「隐匿通道」: 接下来 N 个节点免除基础粒子消耗
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
@@ -122,7 +121,6 @@ export interface EnergyTier {
   extraEnemies: number;
   enemyStatuses: { id: string; stacks: number }[];
   castTickDelta: number; // 敌方先手变化
-  taint: number; // 该档位下我方持续承受的污染层数下限
   rewardMultiplier: number; // 即 K_energy, 同时作用于经验与产出
 }
 
@@ -239,7 +237,6 @@ export interface ExploreState {
   mapId: string;
 
   energy: number; // 净化粒子, 唯一难度轴
-  taint: number; // 污染层数, 本次远征内不可自行清除
   loot: number; // 本趟累积的城市居民积分; 仅撤退/通关时转进城镇
 
   round: number; // 当前轮号, 从 1 起

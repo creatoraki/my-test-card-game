@@ -121,17 +121,6 @@ export const ITEM_DEFS: ItemDef[] = [
     use: { kind: "healParty", percent: 0.2 },
   },
   {
-    id: "filter-cartridge",
-    name: "过滤滤芯",
-    category: "consumable",
-    rarity: "fine",
-    desc: "临时替换粒子过滤装置的滤芯。清除 1 层污染。",
-    slots: 1,
-    maxStack: 1,
-    icon: "consumable",
-    use: { kind: "cleanseTaint", amount: 1 },
-  },
-  {
     id: "purge-ampoule",
     name: "净化安瓿",
     category: "consumable",

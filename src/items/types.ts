@@ -65,8 +65,7 @@ export const CATEGORY_LABEL: Record<ItemCategory, string> = {
 export type ItemUse =
   | { kind: "healParty"; percent: number } // 全队按 maxHp 百分比回血
   | { kind: "healOneFull"; othersPercent: number } // 单人回满 + 其余按百分比
-  | { kind: "gainEnergy"; amount: number } // 净化粒子 +
-  | { kind: "cleanseTaint"; amount: number }; // 污染层数 −
+  | { kind: "gainEnergy"; amount: number }; // 净化粒子 +
 
 // ---------------------------------------------------------------------------
 // 定义与实例

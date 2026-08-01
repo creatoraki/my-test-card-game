@@ -116,13 +116,6 @@ function dropContext(s: ExploreState): DropContext {
   };
 }
 
-// 实际生效的污染层数 = 档位自带的下限 与 事件累积值 取大者。
-// ⚠ P0 只做**记录与显示**: 把「受伤 +6%/层、治疗 -10%/层」真的打进战斗需要引擎侧的
-//   我方修正器(EncounterModifier 目前只能改敌人), 那是 P1 的活。
-export function effectiveTaint(s: ExploreState): number {
-  return Math.min(EXPLORE_RULES.taint.max, Math.max(energyTier(s.energy).taint, s.taint));
-}
-
 // 能量档位 → 遭遇战改造。引擎侧只认这一个结构(见 engine/types.ts EncounterModifier)。
 export function encounterModifier(
   energy: number,
@@ -183,7 +176,6 @@ export function createSession(mapId: string, party: PartySnapshot[], seed?: numb
   const s: ExploreState = {
     mapId,
     energy: map.startingEnergy,
-    taint: 0,
     loot: 0,
     round: 1,
     roundCount: map.roundCount,
@@ -327,9 +319,7 @@ export function useItem(s: ExploreState, uid: string): string | null {
       ? { type: "HEAL_PARTY", percent: u.percent }
       : u.kind === "healOneFull"
         ? { type: "HEAL_ONE_FULL", othersPercent: u.othersPercent }
-        : u.kind === "gainEnergy"
-          ? { type: "MODIFY_ENERGY", amount: u.amount }
-          : { type: "MODIFY_TAINT", amount: -u.amount };
+        : { type: "MODIFY_ENERGY", amount: u.amount };
 
   const note = applyEffect(s, effect);
   s.backpack = removeByUid(s.backpack, uid);
@@ -479,9 +469,6 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
     case "MODIFY_ENERGY":
       changeEnergy(s, e.amount);
       return `净化粒子 ${e.amount > 0 ? "+" : ""}${e.amount}`;
-    case "MODIFY_TAINT":
-      s.taint = Math.max(0, Math.min(EXPLORE_RULES.taint.max, s.taint + e.amount));
-      return `污染层数 ${e.amount > 0 ? "+" : ""}${e.amount}`;
     case "SKIP_NODE_COST":
       s.freeNodes += e.nodes;
       return `接下来 ${e.nodes} 个节点不消耗净化粒子`;

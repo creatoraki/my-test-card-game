@@ -5,7 +5,7 @@
 //   1. 清运回路 —— scrap-bot / radio-bot 不是猎人, 而是作业中的机械;
 //   2. 仍在供电的设施 —— 门禁、货梯、维护终端、消防喷淋、售货机;
 //   3. 上一批苏醒者的遗留 —— 营地、遗书、私藏物资。
-// 首图**不引入**污染泄漏、坠落、生物失控 —— 那是下水管道与温室花园的性格。
+// 首图**不引入**异常泄漏、坠落、生物失控 —— 那是下水管道与温室花园的性格。
 //
 // ⚠ 尚未实现的机制(商人交易、路由类 buff)一律标 disabled:
 //   条目留在池里当占位与 TODO, 但 session.pickNodes 不会抽到它们 ——
@@ -103,22 +103,16 @@ const SURVIVAL: NodeEvent[] = [
     category: "survival",
     depth: [1, 3],
     title: "消防喷淋室",
-    description: "手动泄压后, 冷水把附着在装甲缝里的粒子冲了下去。",
+    description: "手动泄压后, 冷水把附着在装甲缝里的灰尘冲了下去。",
     energyDelta: -4,
-    effects: [
-      { type: "MODIFY_TAINT", amount: -1 },
-      { type: "HEAL_PARTY", percent: 0.15 },
-    ],
+    effects: [{ type: "HEAL_PARTY", percent: 0.15 }],
     choices: [
       {
         id: "wash",
         label: "全身冲洗",
-        desc: "污染 −1 层, 全队回复 15% 生命 · 泄压耗掉 4 粒子",
+        desc: "全队回复 15% 生命 · 泄压耗掉 4 粒子",
         energyDelta: -4,
-        effects: [
-          { type: "MODIFY_TAINT", amount: -1 },
-          { type: "HEAL_PARTY", percent: 0.15 },
-        ],
+        effects: [{ type: "HEAL_PARTY", percent: 0.15 }],
       },
       {
         id: "canteen",
@@ -241,9 +235,9 @@ const GROWTH: NodeEvent[] = [
       {
         id: "read",
         label: "读完那封信",
-        desc: "什么也不拿。知道他们怎么走的, 污染 −1 层",
+        desc: "什么也不拿。读完路线和警告, 记下撤离方向",
         energyDelta: 0,
-        effects: [{ type: "MODIFY_TAINT", amount: -1 }],
+        effects: [],
       },
     ],
   },
@@ -285,9 +279,9 @@ const GROWTH: NodeEvent[] = [
       {
         id: "unlocked",
         label: "只开没锁的",
-        desc: "一支过滤滤芯 —— 不耗粒子, 也占不了多少地方",
+        desc: "一支净化安瓿 —— 不耗粒子, 也占不了多少地方",
         energyDelta: 0,
-        effects: [{ type: "GAIN_ITEM", itemId: "filter-cartridge" }],
+        effects: [{ type: "GAIN_ITEM", itemId: "purge-ampoule" }],
       },
     ],
   },
@@ -640,51 +634,6 @@ const HAZARD: NodeEvent[] = [
         desc: "全队顶着压差硬挤过去 —— 全队 −12% 生命 · 耗 6 粒子",
         energyDelta: -6,
         effects: [{ type: "DAMAGE_PARTY_PERCENT", percent: 0.12 }],
-      },
-    ],
-  },
-  {
-    id: "tainted-storage",
-    kind: "hazard",
-    category: "hazard",
-    risk: "highRisk",
-    depth: [3, 4],
-    title: "污染储藏间",
-    description: "门缝里渗出细密的光点。里面的东西很好, 但会跟着你走完整趟远征。",
-    energyDelta: 0,
-    effects: [
-      { type: "MODIFY_TAINT", amount: 1 },
-      {
-        type: "ROLL_DROP",
-        table: [
-          { kind: "family", familyId: "jammer", chance: 1 },
-          { kind: "item", itemId: "scrap-core", chance: 0.6 },
-        ],
-      },
-    ],
-    choices: [
-      {
-        id: "open",
-        label: "开门",
-        desc: "污染 +1 层(整趟远征不可清除) · 一件饰品 + 可能的未熄核心",
-        energyDelta: 0,
-        effects: [
-          { type: "MODIFY_TAINT", amount: 1 },
-          {
-            type: "ROLL_DROP",
-            table: [
-              { kind: "family", familyId: "jammer", chance: 1 },
-              { kind: "item", itemId: "scrap-core", chance: 0.6 },
-            ],
-          },
-        ],
-      },
-      {
-        id: "avoid",
-        label: "不碰",
-        desc: "把门重新压紧, 干干净净地走开",
-        energyDelta: 0,
-        effects: [],
       },
     ],
   },

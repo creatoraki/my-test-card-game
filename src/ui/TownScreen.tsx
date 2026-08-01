@@ -213,7 +213,7 @@ const FACILITIES: Facility[] = [
   {
     id: "medical",
     name: "生物维护舱",
-    desc: "治疗与污染处理。",
+    desc: "治疗与卡牌污染处理。",
     icon: <MedicalIcon />,
     size: "md",
     locked: true,

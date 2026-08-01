@@ -24,7 +24,6 @@ import {
   canOpenBackpack,
   canPushOn,
   canRetreat,
-  effectiveTaint,
   landedChoices,
   landedEvent,
   projectedEnergy,
@@ -217,7 +216,6 @@ export function ExploreScreen() {
   const map = getMap(session.mapId);
   const board = session.board;
   const ev = landedEv;
-  const taint = effectiveTaint(session);
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
   const burden = Math.round(burdenNow(session));
@@ -298,17 +296,6 @@ export function ExploreScreen() {
         <div className={`expl-readout${recede}`} style={{ right: "56px", top: "42px" }}>
           <div className="expl-chip expl-chip-wide">
             <EnergyMeter energy={session.energy} projected={projectedEnergy(session)} />
-          </div>
-          <div className="expl-chip">
-            <span className="expl-chip-label">污染层数</span>
-            <strong className={`expl-chip-value${taint > 0 ? " is-bad" : ""}`}>
-              {taint} / {EXPLORE_RULES.taint.max}
-            </strong>
-            <span className="expl-chip-note">
-              {taint > 0
-                ? `受伤 +${Math.round(taint * EXPLORE_RULES.taint.damageTakenPerStack * 100)}%`
-                : "未受污染"}
-            </span>
           </div>
           <div className="expl-chip">
             <span className="expl-chip-label">居民积分</span>

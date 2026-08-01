@@ -92,13 +92,6 @@ export const EXPLORE_RULES = {
     reelOffsetMs: [0, 370, 730] as readonly number[],
   },
 
-  // ── 污染层数(每层叠加, 本次远征内不可自行清除) ──
-  taint: {
-    damageTakenPerStack: 0.06, // 全队受到伤害 +6%/层
-    healingPerStack: -0.1, // 治疗效果 -10%/层
-    max: 5,
-  },
-
   // ── BOSS 的额外缩放(在档位表之上再叠一层, 读开打瞬间的能量) ──
   boss: {
     hpPerTier: 0.15, // maxHp × (1 + 0.15 × (档位-1))
@@ -148,8 +141,8 @@ export const EXPLORE_RULES = {
 // 玩家看到「再推进一个节点就掉进告急」会真的停下来算一算还要不要深潜。
 //
 // ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40), 旧的
-//   「力量 +3 / 追加 2 名敌人 / 污染 3 层」会让低档位变成纯亏, 玩家会本能地一个节点都不探索。
-//   故追加敌人上限 2→1、力量上限 +3→+2、污染上限 3→2 层。
+//   「力量 +3 / 追加 2 名敌人」会让低档位变成纯亏, 玩家会本能地一个节点都不探索。
+//   故追加敌人上限 2→1、力量上限 +3→+2。
 // ⚠ 高档位刻意不给敌人「开局护盾」: RULES.combat.clearBlockOnRoundStart 会在第 1 回合
 //   开始时把护盾清空, 开局塞 block 等于什么都没做。要加硬度只能走状态(力量/荆棘/再生)。
 export const ENERGY_TIERS: EnergyTier[] = [
@@ -161,7 +154,6 @@ export const ENERGY_TIERS: EnergyTier[] = [
     extraEnemies: 0,
     enemyStatuses: [],
     castTickDelta: 0,
-    taint: 0,
     rewardMultiplier: 1.0,
   },
   {
@@ -172,7 +164,6 @@ export const ENERGY_TIERS: EnergyTier[] = [
     extraEnemies: 0,
     enemyStatuses: [{ id: "strength", stacks: 1 }],
     castTickDelta: 0,
-    taint: 0,
     rewardMultiplier: 1.1,
   },
   {
@@ -183,7 +174,6 @@ export const ENERGY_TIERS: EnergyTier[] = [
     extraEnemies: 0,
     enemyStatuses: [{ id: "strength", stacks: 1 }],
     castTickDelta: 0,
-    taint: 1,
     rewardMultiplier: 1.2,
   },
   {
@@ -194,7 +184,6 @@ export const ENERGY_TIERS: EnergyTier[] = [
     extraEnemies: 1,
     enemyStatuses: [{ id: "strength", stacks: 1 }],
     castTickDelta: -1, // 敌方先手 +1
-    taint: 1,
     rewardMultiplier: 1.35,
   },
   {
@@ -205,7 +194,6 @@ export const ENERGY_TIERS: EnergyTier[] = [
     extraEnemies: 1,
     enemyStatuses: [{ id: "strength", stacks: 2 }],
     castTickDelta: -2, // 敌方先手 +2
-    taint: 2,
     rewardMultiplier: 1.6,
   },
 ];
