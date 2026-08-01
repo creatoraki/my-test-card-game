@@ -568,50 +568,56 @@
 }
 
 /* ── HUD 中段: 手牌托盘(横排鱼鳞叠的大卡) ── */
-/* ★ 唯一的真旋钮是 --hand-card-w(= 1:1 配图的边长); 卡高由它 + 上下两条信息区推导, 别手写。
+/* ★ 唯一的真旋钮是 --hand-card-w(= 1:1 配图的边长); 卡高由它 + 说明区高推导, 别手写。
    ⚠⚠ 手牌张数上限**不是 5** —— 是 engine/stats.ts 的 partyHandLimit() 算出来的
       Σ上阵角色 handLimit(3+3) + RULES.hand.partyBonusHandLimit(4) = **10 张**, 且
       RULES.hand.discardLeftoversOnRoundEnd 为 false ⇒ 手牌会跨回合累积到上限。
-      (旧注释写的"5 张(engine/rules.ts 的 hand.size)"是错的, hand.size 这个字段早就不存在了。)
       版式必须按 10 张能排下来算, 否则最右侧的卡会溢出画布右缘。
    版式(全是设计 px):
      横向 中段可用宽 = 1368(HUD 两列制下的 1fr) − 2×10 托盘内边距 = **1348**
-          n 张总宽 = 200 + (n−1) × (200 − 叠压量), 恒须 ≤ 1348:
-            ≤8 张 叠压 55 ⇒ 每张露 145px(72.5%), 8 张 = 1215 ✓
-             9 张 叠压 60 ⇒ 每张露 140px,        9 张 = 1320 ✓
-            10 张 叠压 75 ⇒ 每张露 125px,       10 张 = 1325 ✓
+          n 张总宽 = 220 + (n−1) × (220 − 叠压量), 恒须 ≤ 1348:
+            ≤8 张 叠压 60 ⇒ 每张露 160px(72.7%), 8 张 = 1340 ✓
+             9 张 叠压 80 ⇒ 每张露 140px,        9 张 = 1340 ✓
+            10 张 叠压 95 ⇒ 每张露 125px,       10 张 = 1345 ✓
           后两档由下方两条 :has() 规则自动切换, 见 .hand-tray:has(...)。
-          静止时相邻卡互相叠压(一副握在手里的牌), 悬停置顶时露全。
-     纵向 卡 336(= 顶行 52 + 配图 200 + 说明区 84) > 托盘可用高(--hud-h 264 − 托盘下内边距 8 = 256)
-          ⇒ **刻意**越出 HUD 上沿 80px(悬停再上浮半张卡高 168 ⇒ 峰值约 248px)。
+          静止时相邻卡互相叠压(一副握在手里的牌), 悬停置顶 + 左右邻卡让位 ⇒ 露全。
+     纵向 卡 308(= 配图 220 + 说明区 88) > 托盘可用高(--hud-h 264 − 托盘下内边距 8 = 256)
+          ⇒ **刻意**越出 HUD 上沿 52px(悬停再上浮半张卡高 154 ⇒ 峰值约 206px)。
             为此 (a) HAND 读数条已从这里搬去顶端信息条(.hand-count-readout), 否则会被卡盖住;
                  (b) 舞台底部的 .hint-bar 加了 margin-bottom 避让, 见「战斗底部 HUD」段开头。
-          ★ 卡的静止上沿因此落在画布 y = 1064 − 8 − 336 = **720**, 与画布右上角那块卡牌详情
-            面板的底边(80 + 640 = 720)严丝合缝地咬在同一条线上 —— 见 ui/CardInfoPanel.css。
-            改 --hand-card-w / --hc-head-h 会挪动这条线, 面板那边只是"不再对齐"而不会坏, 但值得回去核一眼。
-   改卡牌大小: 只动 --hand-card-w, 然后回去重算 --hand-overlap 那三档与 .hint-bar 的 margin-bottom。 */
+                     ⓘ 越出量已从旧版的 80 降到 52, 那条避让量现在留了余量, 不必跟着改。
+          ★ 卡的静止上沿因此落在画布 y = 1064 − 8 − 308 = **748**, 与画布右上角那块卡牌详情
+            面板的底边(108 + 640 = 748)严丝合缝地咬在同一条线上 —— 见 ui/CardInfoPanel.css。
+            改 --hand-card-w / --hc-text-h 会挪动这条线, 面板那边只是"不再对齐"而不会坏,
+            但值得回去把 .card-info-panel 的 top 一起调过来。
+   改卡牌大小: 只动 --hand-card-w, 然后回去重算 --hand-overlap 那三档与 CardInfoPanel 的 top。 */
 .hand-panel {
   position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  --hand-card-w: 200px;
-  /* 卡面三段: 顶行(费用水晶 + 卡名) / 正方形配图 / 底部效果说明。
-     两条信息区都是**实位**(不压配图), 故卡高 = 卡宽 + 两者之和; 配图区因此恒为 200 见方,
-     1:1 素材零裁剪。说明区高度固定 ⇒ 一排卡等高, 文字长短靠 HandCard.tsx 的三档字号消化。
+  --hand-card-w: 220px;
+  /* ★ 卡面只有**两段实位**: 正方形配图(上) + 底部效果说明(下) ⇒ 卡高 = 卡宽 + 说明区高
+     = 220 + 88 = 308, 比例 220:308 = **1:1.4**(实体卡的手感比例)。
+     费用徽章与卡名压条都是压在配图上的**浮层**, 一个像素的实位都不占 —— 旧版为这两样单开了
+     一条 52px 的顶行实位, 卡高因此是 336(1:1.68), 偏细长。
+     ⚠ 没有 --hc-head-h 了: 顶行已取消, 若在别处看到这个变量说明是漏改的残留。
      ⚠ --hc-text-h 刻意**不跟着卡一起缩**: .hc-text 的三档字号与行数截断是按净高
-       84 − 4 − 2×7 = 66px 调的(见 ui/HandCard.css 的 .hc-text.lg/.md/.sm), 压到 76 以下
+       88 − 3 − 2×9 = 67px 调的(见 ui/HandCard.css 的 .hc-text.lg/.md/.sm), 压到 80 以下
        md/sm 档的第 4 行就会被切掉半行。要动它得连带重调那三档字号与 HandCard.tsx 的字数阈值。 */
-  --hc-head-h: 52px;
-  --hc-text-h: 84px;
-  --hand-card-h: calc(var(--hand-card-w) + var(--hc-head-h) + var(--hc-text-h));
+  --hc-text-h: 88px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
   /* 相邻卡的叠压量(负 margin, 见 .hand-tray .hand-slot + .hand-slot)。
      这是 ≤8 张时的首选值, 9/10 张由下方两条 :has() 规则收紧, 算式见本段开头的版式。 */
-  --hand-overlap: 55px;
-  --hand-plate-h: 82px; /* 托盘衬板高度, 角标/扫描线都对齐它 */
+  --hand-overlap: 60px;
+  --hand-plate-h: 82px; /* 托盘衬板高度, 角标都对齐它 */
+  /* 悬停时左右邻卡各自横向让开的量(见 .hand-tray .hand-slot:hover 附近的两条让位规则) */
+  --hand-yield: 22px;
 }
 /* 托盘四角的 L 形卡扣(几何对齐衬板矩形)。z-index 1 与手牌同级, 但 DOM 在前 ⇒ 恒在卡之下。
-   上沿两段刻意内缩 18px, 正好接在衬板斜切角的末端上。 */
+   上沿两段刻意内缩 18px, 正好接在衬板斜切角的末端上。
+   ⚠ 颜色从 #6fd2ff 改成金属亮色 #8a97a2, 与卡面的 .hc-frame 卡扣同源 —— 它们是**结构件**
+     (铆在基座上的角铁), 不是发光元件。整条底部 HUD 现在只有费用水晶在发光。 */
 .hand-panel::before {
   content: "";
   position: absolute;
@@ -622,12 +628,12 @@
   z-index: 1;
   pointer-events: none;
   background-image:
-    linear-gradient(#6fd2ff, #6fd2ff),
-    linear-gradient(#6fd2ff, #6fd2ff),
-    linear-gradient(#6fd2ff, #6fd2ff),
-    linear-gradient(#6fd2ff, #6fd2ff),
-    linear-gradient(#6fd2ff, #6fd2ff),
-    linear-gradient(#6fd2ff, #6fd2ff);
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2);
   background-position:
     left 18px top 0,
     right 18px top 0,
@@ -637,7 +643,7 @@
     right 0 bottom 0;
   background-size: 30px 2px, 30px 2px, 2px 20px, 20px 2px, 2px 20px, 20px 2px;
   background-repeat: no-repeat;
-  opacity: 0.55;
+  opacity: 0.4;
 }
 /* 手牌张数读数 —— HAND / 虚线 / 张数。
    ⚠ 它原先是托盘上沿的一行(.hand-panel-head), 手牌放大后卡会越出 HUD 上沿把它整条盖住,
@@ -698,13 +704,17 @@
    ⓘ 出鞘中的卡(.leaving)还在 DOM 里, 出牌瞬间张数可能短暂多算一张 ⇒ 至多让整排多收紧
      300ms 再弹回, 不会溢出, 可以接受。 */
 .hand-tray:has(.hand-slot:nth-last-child(9)) {
-  --hand-overlap: 60px;
+  --hand-overlap: 80px;
 }
 .hand-tray:has(.hand-slot:nth-last-child(10)) {
-  --hand-overlap: 75px;
+  --hand-overlap: 95px;
 }
-/* 托盘衬板: 手牌脚下的一块斜切角基座 —— 深色玻璃 + 经纬细网格 + 两端 accent 渗光。
-   独立一层压在卡之下(卡带 z-index:1), 悬浮上弹的卡不受影响。 */
+/* 托盘衬板: 手牌脚下的一块斜切角基座 —— **拉丝金属**, 与卡面同一种材质。
+   独立一层压在卡之下(卡带 z-index:1), 悬浮上弹的卡不受影响。
+   ⚠ 旧版是"深色玻璃 + 经纬细网格 + 两端 accent 渗光 + 内发光", 是发光科技风, 配不上金属卡面
+     —— 卡是实心金属板, 底下却是块发光玻璃, 两者读作不同世界的东西。现在改成同族的拉丝金属:
+     竖向拉丝纹 + 上沿一道受光斜面(1px 亮 + 1px 暗)。
+   ⚠ 保留 18px 斜切角: 那是全站统一的倒角语言(见 src/styles/base.css)。 */
 .hand-tray::before {
   content: "";
   position: absolute;
@@ -715,43 +725,26 @@
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, #8ba63a26, transparent 24%, transparent 76%, #8ba63a26),
-    repeating-linear-gradient(90deg, #6fd2ff0f 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(0deg, #6fd2ff0a 0 1px, transparent 1px 13px),
-    linear-gradient(180deg, #0d1214c9, #05080ae6);
-  border: 1px solid #6fd2ff2e;
+    /* ① 上沿受光斜面(亮) ② 其下的下沉暗线 ③ 竖向拉丝纹 ④ 基座底色 */
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#05080a, #05080a),
+    repeating-linear-gradient(90deg, #ffffff05 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #1b2024, #0d1113);
+  background-position: left top, left 1px, 0 0, 0 0;
+  background-size: 100% 1px, 100% 1px, auto, auto;
+  background-repeat: no-repeat, no-repeat, repeat, repeat;
+  border: 1px solid #2b3339;
   border-bottom: 0;
   clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%, 0 18px);
-  box-shadow: inset 0 1px 0 #8ba63a3d, inset 0 0 34px #0a1a2366;
+  box-shadow: inset 0 -18px 24px #05080a99;
 }
-/* 巡航扫描光带: 沿衬板上沿来回掠过, 是这一条 HUD 里唯一的持续动效(慢, 不抢戏) */
-.hand-tray::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: calc(var(--hand-plate-h) - 2px);
-  width: 26%;
-  height: 2px;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, #6fd2ffcc 45%, #d8f329e6 55%, transparent);
-  animation: handTrayScan 6.4s linear infinite;
-}
-@keyframes handTrayScan {
-  0% {
-    transform: translateX(-10%);
-    opacity: 0;
-  }
-  14%,
-  86% {
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateX(295%);
-    opacity: 0;
-  }
-}
-/* 卡脚下露出的那 8px: 一条 45° 斜纹导轨, 让手牌看起来是"卡进槽位"而不是浮着 */
+/* ⓘ 这里原有一道**巡航扫描光带**(.hand-tray::after + @keyframes handTrayScan): 沿衬板上沿
+   来回掠过的 accent 光带, 曾是这条 HUD 唯一的持续动效。已整条删除 —— 静态金属基座上不该有
+   光带跑来跑去, 它与卡面上一并删掉的巡游流光是同一个问题。底部 HUD 现在完全安静, 只有
+   出牌/抽牌时才有运动。 */
+/* 卡脚下露出的那 8px: 一列等距竖刻痕, 让手牌读作"插进金属槽里"而不是浮着。
+   ⚠ 刻痕间距(26px)刻意**不与卡位对齐** —— 叠压量有三档(60/80/95, 见上方 :has() 两条),
+     对齐了也只在一种张数下成立, 反而会在切档时读作错位。取一个中性密度即可。 */
 .hand-tray-rail {
   position: absolute;
   left: 12px;
@@ -761,11 +754,12 @@
   z-index: 0;
   pointer-events: none;
   background: repeating-linear-gradient(
-    45deg,
-    #6fd2ff1f 0 1px,
-    transparent 1px 6px
+    90deg,
+    #05080a 0 2px,
+    #ffffff08 2px 3px,
+    transparent 3px 26px
   );
-  border-top: 1px solid #6fd2ff1f;
+  border-top: 1px solid #05080a;
 }
 /* ★ 版式挂在**外壳** .hand-slot 上, 不再挂在卡自己身上 —— 卡悬停时要上弹半张卡高, 壳必须留在
    原位当命中区, 否则会无限抖动(完整理由见 ui/HandCard.css 开头的 .hand-slot 段)。
@@ -782,14 +776,20 @@
   width: 100%;
   height: 100%;
 }
-/* 右缘投影: 叠压时让"谁压着谁"读得出来, 否则一排卡会糊成一块。
+/* ★ 静止态的 filter: **卡厚 + 右缘投影 + 接触影**, 三段合成"一块躺在金属基座上的厚板"。
+     ① drop-shadow(0 4px 0 #05080a) —— 零模糊纯位移 ⇒ 渲染出与卡同形的实色, 从卡下缘露出 4px,
+        读作金属板的**侧面截面**(不是影子)。
+     ② drop-shadow(3px 0 5px #000a) —— 右缘投影, 叠压时让"谁压着谁"读得出来, 否则一排卡糊成一块。
+     ③ drop-shadow(0 7px 9px #000b) —— 接触影, 把卡从基座上托起来。
    ⚠ 必须走 filter: drop-shadow —— 卡带 clip-path(斜切角), box-shadow 会连投影一起被裁掉
-     (同 .ally-slot.card-focus .ally-frame 的发光, 那里是同一个坑)。
-   ⚠ 用 :not() 排除掉悬浮/选中态, 是为了**不与** ui/HandCard.css 里 .hand-card.selected 那条
-     同名 filter 抢 —— 否则本条会反过来压掉选中卡的配色辉光。这样写两条规则永不同时命中。
+     (同 .ally-slot.card-focus .ally-frame 的发光, 那里是同一个坑)。drop-shadow 是对**裁剪后
+     的形状**求影, 厚度层因此会完美跟着两个斜口拐弯。
+   ⚠ 用 :not() 排除掉悬浮/选中态, 是为了不与 ui/HandCard.css 里那两条同名 filter 抢
+     —— filter 不叠加, 后命中的整条覆盖。三条规则靠 :not() 保证永不同时命中,
+     且**每条都自带厚度层**, 漏写的那条会让卡在该状态下突然变薄。
    ⚠ 悬浮判的是外壳 .hand-slot:hover(卡自己一弹起就脱离光标), 与 HandCard.css 的聚焦规则保持同源。 */
 .hand-tray .hand-slot:not(:hover) > .hand-card:not(.selected) {
-  filter: drop-shadow(3px 0 6px #000a);
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(3px 0 5px #000a) drop-shadow(0 7px 9px #000b);
 }
 /* ★ 鱼鳞叠: 负 margin 把每张卡往左拉进前一张。同为 z-index:1 ⇒ 谁在 DOM 后面谁在上,
    于是自然形成"从左往右依次压过去"的一副手牌。
@@ -797,12 +797,29 @@
 .hand-tray .hand-slot + .hand-slot {
   margin-left: calc(-1 * var(--hand-overlap));
 }
-/* 悬浮/选中必须置顶: 否则被右邻卡压住的那 34px 永远看不见, 违背「配图完整展示」。
-   与 HandCard.css 里 .hand-slot:hover > .hand-card 的上浮合起来 ⇒ 悬停即露全卡。
+/* 悬浮/选中必须置顶: 否则被右邻卡压住的那一条永远看不见, 违背「配图完整展示」。
+   与 HandCard.css 里的上浮合起来 ⇒ 悬停即露全卡。
    ⚠ 挂在**壳**上而不是卡上: 卡弹起后已脱离光标, 判卡会让层序跟着抖动。 */
 .hand-tray .hand-slot:hover,
 .hand-tray .hand-slot.selected {
   z-index: 6;
+}
+/* ★ 邻卡让位: 悬停时左右两张邻居各自横向让开 --hand-yield, 给弹起的那张腾出呼吸的空当。
+   旧版只靠 z-index 把悬停卡盖上去, 一排卡在视觉上仍是挤成一坨的, 被抽出的那张读作"浮在
+   一堵墙前面"而不是"从一副牌里被抽出来"。
+
+   ⚠⚠ 让位的必须是 .hand-card(卡)而**不是** .hand-slot(壳) —— 壳一动就改变命中区,
+     会重新引发 ui/HandCard.css 开头记录的那个悬停抖动死循环(壳移开 ⇒ 光标落到壳外 ⇒
+     :hover 失效 ⇒ 壳移回 ⇒ 又盖住光标)。壳恒定不动是这套交互的地基。
+   ⚠ 用 :not(.selected):not(.leaving) 排除掉那两种态 —— 它们各自有自带的 transform
+     (上弹 / 出鞘), 被这里的 translateX 整条覆盖就会原地不动或飞错方向。
+   ⚠ 左邻靠 :has(+ .hand-slot:hover) 反查。:has() 在本文件已用于叠压量三档(见上方两条), 可放心用。
+   ⚠ 过渡曲线跟 .hand-card 自带的那条走(见 HandCard.css), 这里只给终点值。 */
+.hand-tray .hand-slot:hover + .hand-slot > .hand-card:not(.selected):not(.leaving) {
+  transform: translateX(var(--hand-yield));
+}
+.hand-tray .hand-slot:has(+ .hand-slot:hover) > .hand-card:not(.selected):not(.leaving) {
+  transform: translateX(calc(-1 * var(--hand-yield)));
 }
 .hand-tray .empty-hand {
   z-index: 1;

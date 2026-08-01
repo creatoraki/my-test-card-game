@@ -1,7 +1,9 @@
-import type { Ally, Combatant } from "../engine";
+import { memo } from "react";
+import type { Ally, Card, Combatant } from "../engine";
 import { getCharacter } from "../data";
 import type { HitFx } from "./animations";
 import { CharacterPortrait } from "./CharacterPortrait";
+import { useHandHover } from "./handFocusStore";
 import { HitFxLayer, hitFxVars } from "./HitFxLayer";
 import { HpBar } from "./HpBar";
 import { StatusPips } from "./StatusPips";
@@ -17,7 +19,8 @@ interface Props {
   allies: Combatant[];
   hits: Record<string, HitFx>; // 各目标当前的受击特效
   attackerId: string | null; // 正在弹出的施法者
-  focusCharId?: string; // 当前悬停/选中手牌的归属角色 —— 该槽位变宽 + 按归属配色点亮
+  // 「选中」的那张手牌(可为 null)。悬停的那张不走 props, 由本组件自己订阅 —— 见下方组件注释。
+  focusFallbackCard: Card | null;
   targetable: boolean; // 当前是否处于「选择一名友军」的状态
   onSelect: (id: string) => void;
 }
@@ -32,7 +35,13 @@ interface Props {
 // 由此带来的一个副作用是刻意保留的: computeCamera 只在 .battle-stage 内按 data-cmb-id
 // 查询聚焦目标, 我方在舞台外 ⇒ 查不到 ⇒ 它的 `if (!isFinite(left)) return null` 兜底生效,
 // 镜头保持全景。于是「打我方/自身牌时不推近, 只播特效 + 震屏」是自然结果, 不需要特判。
-export function AllyBar({ allies, hits, attackerId, focusCharId, targetable, onSelect }: Props) {
+//
+// ★ 聚焦角色 = (悬停的手牌 ?? 选中的手牌).ownerCharId, 但**悬停那半自己订阅** store
+//   (ui/handFocusStore.ts)而不走 props —— 它以前挂在 BattleScreen 上, 鼠标扫过手牌会把
+//   整个战斗界面重渲染一遍。代价是悬停变化时本组件必然重渲染, 所以下面的 AllySlot 必须
+//   用 React.memo 挡住: 三格里只有「刚失焦」和「刚聚焦」那两格的 props 真的变了。
+export function AllyBar({ allies, hits, attackerId, focusFallbackCard, targetable, onSelect }: Props) {
+  const focusCharId = (useHandHover() ?? focusFallbackCard)?.ownerCharId;
   return (
     <div className="ally-bar">
       {Array.from({ length: ALLY_SLOTS }, (_, i) => {
@@ -46,7 +55,9 @@ export function AllyBar({ allies, hits, attackerId, focusCharId, targetable, onS
             attacking={cmb.id === attackerId}
             focused={cmb.id === focusCharId}
             targetable={targetable && cmb.alive}
-            onClick={() => onSelect(cmb.id)}
+            // ⚠ 直接透传而不是 `() => onSelect(cmb.id)` —— 内联箭头每次渲染都是新引用,
+            //   会让下面的 React.memo 永远命中不了。id 改由 AllySlot 自己带上。
+            onClick={onSelect}
           />
         );
       })}
@@ -60,7 +71,7 @@ interface SlotProps {
   attacking: boolean;
   focused: boolean;
   targetable: boolean;
-  onClick: () => void;
+  onClick: (id: string) => void; // 收 id 而非零参闭包, 才能让父级透传同一个引用(见上)
 }
 
 // 单个角色槽: 描边卡框 + 半身立绘, 底部红(生命)/绿(护盾)双条, 右上/右下两枚角标。
@@ -70,7 +81,12 @@ interface SlotProps {
 // scoped 在 .combatant 上, 复用它们即可让队伍卡与敌人立绘共享同一套演出, 无需重写一遍。
 // .ally-slot 只负责覆盖尺寸与内部排布 —— 选择器是 .ally-bar .ally-slot(0-2-0), 特异性本就
 // 高于 .combatant(0-1-0), 故与 AllyBar.css / CombatantView.css 的加载顺序无关。
-function AllySlot({ cmb, hit, attacking, focused, targetable, onClick }: SlotProps) {
+//
+// ★ 包了 React.memo: 手牌悬停会让父级 AllyBar 重渲染(它订阅了悬停 store), 但三格里通常
+//   只有两格的 focused 真的翻转。没有这层 memo, 每次跨卡都要重跑三份立绘 + 血条 + 状态图标 +
+//   特效层。⚠ 生效的前提是**所有 props 引用都稳定** —— onClick 已改为父级直接透传,
+//   cmb/hit 来自 store 与 hits 表, 悬停时不变。
+const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetable, onClick }: SlotProps) {
   // 绿条 = 护盾。护盾没有上限概念, 按占最大生命的比例画并封顶 100% —— 只求「有多厚」的量感。
   const shieldPct = Math.min(100, (cmb.shield / cmb.maxHp) * 100);
   const dead = !cmb.alive;
@@ -94,7 +110,7 @@ function AllySlot({ cmb, hit, attacking, focused, targetable, onClick }: SlotPro
       style={{ "--owner-color": ownerColor, ...vars } as React.CSSProperties}
       onClick={(e) => {
         e.stopPropagation();
-        if (targetable) onClick();
+        if (targetable) onClick(cmb.id);
       }}
     >
       {/* 悬空外挂的状态图标排: 不占流, 浮在卡框正上方。
@@ -134,4 +150,4 @@ function AllySlot({ cmb, hit, attacking, focused, targetable, onClick }: SlotPro
       {dead && <div className="dead-overlay">☠</div>}
     </div>
   );
-}
+});

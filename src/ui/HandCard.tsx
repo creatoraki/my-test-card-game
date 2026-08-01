@@ -2,6 +2,7 @@ import type { Card } from "../engine";
 import { getCharacter } from "../data";
 import { ManaCrystalIcon } from "./ManaCrystalIcon";
 import { cardArt } from "./cardArt";
+import { clearHandHover, setHandHover } from "./handFocusStore";
 import "./HandCard.css";
 
 interface Props {
@@ -12,21 +13,25 @@ interface Props {
   dealIndex?: number; // 抽牌飞入的错峰序号(--deal-i), 让手牌一张张依次飞入
   onExited?: () => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
   onClick?: () => void;
-  onHover?: (hovering: boolean) => void;
+  // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
-// 底部手牌盘上的大卡。自上而下三段: **顶行(费用水晶 + 卡名)** + **正方形配图区** + **底部效果说明**。
-// ★ 配图区恒为卡宽见方(卡高 = 卡宽 + 顶行高 + 说明区高, 见 ui/BattleScreen.css 的 --hand-card-h),
-//   素材是 1:1 的方图, 配 background-size: contain ⇒ 整幅图完整可见; 上下两条信息区都是**实位**,
-//   一个像素都不压配图, 唯一压上去的只有机能边框最外 4~6px。
+// 底部手牌盘上的大卡, 质感是**暗色金属刻板**(拉丝深石墨底 + 斜面高光/背光 + 可见卡厚)。
+// 自上而下**两段实位**: **正方形配图区**(上) + **底部效果说明**(下), 卡高 = 卡宽 + 说明区高
+// (见 ui/BattleScreen.css 的 --hand-card-h), 比例恒为 220:308 ≈ 1:1.4。
+// ★ 配图区恒为卡宽见方, 素材是 1:1 的方图, 配 background-size: contain ⇒ 整幅图完整可见。
+// ★ 费用与卡名都是**压在配图上的浮层**, 不占实位 —— 这是把卡高从 336 压到 308(1:1.4)的关键:
+//   费用做成嵌在左上斜口内侧的立体金属徽章(实体卡的"角钉"), 卡名做成贴在配图下沿的渐变压条。
+//   代价是配图左上角约 46×46 与底部一条 30px 被压住, 这是刻意的取舍 —— 素材本就留了边。
 // 目标范围 / 稀有度 / 普速文字等更完整的数据仍由右侧固定面板(CardInfoPanel)承载 —— 卡面只放
 // "打不打得起(费用) / 是什么(卡名) / 干什么(效果)"这三样即可决策。普/速的卡面线索仍是**框色**
 // (普通青蓝 / 速攻品红紫, 见 HandCard.css 的 --card-hue)。
 // 本组件渲染的是**两层**: 外层 .hand-slot(不动的占位壳, 吃悬停与版式) + 内层 .hand-card(卡面本体,
 // 只做位移动画)。分层的理由见下方 return 处的注释 —— 少了这层, 悬停会无限抖动。
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.css);
-// 详情面板由 BattleScreen 依 onHover 上报的悬停态派生, 这里不需要上报自身矩形。
-export function HandCard({ card, playable, selected, leaving, dealIndex, onExited, onClick, onHover }: Props) {
+// 详情面板(CardInfoPanel)与队伍槽高亮(AllyBar)读的是本组件写进 ui/handFocusStore.ts 的悬停卡,
+// 两者各自订阅、与 BattleScreen 无关; 这里不需要上报自身矩形, 也不需要回调冒泡。
+export function HandCard({ card, playable, selected, leaving, dealIndex, onExited, onClick }: Props) {
   const owner = getCharacter(card.ownerCharId);
   const art = cardArt(card.id);
   const hasArt = Boolean(art);
@@ -35,7 +40,8 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
   // 极端超长的仍会被 .hc-text 的行数截断兜住, 完整文字在右侧 CardInfoPanel 永远读得到。
   const textSize = card.text.length <= 24 ? "lg" : card.text.length <= 44 ? "md" : "sm";
   const handStyle = {
-    // 归属角色配色: 落到机框卡扣、信息条上沿能量线与聚焦光晕上
+    // 归属角色配色: 现在只落在**卡名压条左端那道竖标**上(见 HandCard.css .hc-title::before)。
+    // ⚠ 刻意只留这一处 —— 金属刻板的卡面上配色越少越贵气, 归属辨识主要靠队伍槽本身。
     ["--owner-color" as string]: owner.color,
     ["--deal-i" as string]: dealIndex ?? 0,
     ...(hasArt ? { ["--hand-art" as string]: `url(${art})` } : {}),
@@ -50,8 +56,14 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
     //   ⚠ 尺寸/负 margin 叠压/张数自适应等版式规则全部认这一层, 见 ui/BattleScreen.css 的 .hand-slot。
     <div
       className={`hand-slot${selected ? " selected" : ""}${leaving ? " leaving" : ""}`}
-      onMouseEnter={() => !leaving && onHover?.(true)}
-      onMouseLeave={() => onHover?.(false)}
+      // ★ 悬停**直接写进 ui/handFocusStore.ts**, 不再经由 props 冒泡到 BattleScreen。
+      //   这是战斗画面最重要的一条性能约束: 旧写法是 onHover → BattleScreen 的 setHoveredUid,
+      //   一次顶层 setState ⇒ 全屏组件树重渲染, 而鼠标扫过一排卡每跨一张就有两次。现在只有
+      //   真正需要这个值的两个订阅方(CardInfoPanel / AllyBar)会重渲染。
+      // ⚠ 本组件**只写不读** store —— 一旦在这里订阅, 十张卡就会跟着悬停一起重渲染,
+      //   等于把刚搬走的开销原样搬回来。卡自己的悬停视觉全部由 CSS :hover 驱动(见 HandCard.css)。
+      onMouseEnter={() => !leaving && setHandHover(card)}
+      onMouseLeave={() => clearHandHover(card)}
     >
       <div
         className={[
@@ -75,29 +87,30 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
           onClick?.();
         }}
       >
-        {/* 配图层: 夹在顶行与说明区之间的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪、不被信息条覆盖) */}
+        {/* 配图层: 卡上段的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪) */}
         {hasArt && <span className="hc-art" aria-hidden />}
 
-        {/* 机框层: 全卡扫描线 + 四角 L 卡扣 + 两个斜切角上的亮线。纯装饰, 不吃点击 */}
+        {/* 机框层: 四角 L 卡扣(金属亮色)。纯装饰, 不吃点击 */}
         <span className="hc-frame" aria-hidden />
 
-        {/* 描边环: 跟着 14px 斜切角走的单层主环(4px) + 常驻巡游流光(见 HandCard.css .hc-edge) */}
+        {/* 描边环: 跟着 14px 斜切角走的金属斜面(上/左受光 + 下/右背光, 见 HandCard.css .hc-edge) */}
         <span className="hc-edge" aria-hidden />
 
-        {/* 侧边刻度齿: 左右内侧各一列仪表刻度, 纯装饰 */}
-        <span className="hc-ticks" aria-hidden />
-
-        {/* 顶行: 费用水晶(数字压在水晶中央桌面上) + 卡名, 同一行左起排 */}
-        <span className="hc-head">
-          <span className="hc-cost" title="消耗法力水晶">
-            <ManaCrystalIcon className="mana-crystal hc-cost-crystal" />
-            <span className="hc-cost-value">{card.cost}</span>
-          </span>
-          <span className="hc-name">{card.name}</span>
+        {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上 */}
+        <span className="hc-cost" title="消耗法力水晶">
+          <ManaCrystalIcon className="mana-crystal hc-cost-crystal" />
+          <span className="hc-cost-value">{card.cost}</span>
         </span>
+
+        {/* 卡名压条: 贴在配图下沿的渐变浮层(透明 → 实底), 不占实位 */}
+        <span className="hc-title">{card.name}</span>
 
         {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
         <span className={`hc-text ${textSize}`}>{card.text}</span>
+
+        {/* 选中角标: 右上角一块配色三角切片。选中态**唯一**的不依赖位移的线索 ——
+            鼠标移开手牌区后, 玩家仍要能一眼认出锁定的是哪张。仅 .selected 时渲染。 */}
+        {selected && <span className="hc-selected-mark" aria-hidden />}
       </div>
     </div>
   );

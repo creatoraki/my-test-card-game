@@ -41,8 +41,8 @@ export interface TransitionSpec {
 // 探索 → 战斗专用演出严格分三段：场景玻璃受击 → 裂纹停留 → 黑色涟漪吞没旧场景。
 // 旧路线图由 View Transition 快照承担玻璃主体，BattleTransitionCurtain 负责表面裂痕与冲击反馈。
 export const BATTLE_CRACK_DRAW_MS = 1000;
-export const BATTLE_CRACK_HOLD_MS = 5000;
-export const BATTLE_RIPPLE_MS = 2000;
+export const BATTLE_CRACK_HOLD_MS = 500;
+export const BATTLE_RIPPLE_MS = 1500;
 export const BATTLE_RIPPLE_START_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS;
 export const BATTLE_RIPPLE_EXIT_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS + BATTLE_RIPPLE_MS;
 
@@ -84,7 +84,7 @@ export const SCREEN_FX: Partial<Record<Screen, Partial<TransitionSpec>>> = {};
 //   "town>battle": { exit: FX.zoomOut, hold: 220 },
 //   "battle>reward": { enter: FX.slideUp },
 export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionSpec>>> = {
-  // 探索牌桌 → 战斗: 路线图保持清晰成为镜面，点击处生成白色蛛网裂痕，随后黑色涟漪从同一点替换为战斗。
+  // 探索牌桌 → 战斗: 路线图保持清晰成为玻璃，点击处炸出中性白/黑的冲击断裂网格（碎片留在原位），随后黑色涟漪从同一点替换为战斗。
   // 包裹层必须 stay: 它是 BattleScreen 的祖先，不能挂 transform；旧场景快照只做极轻微外扩。
   "explore>battle": {
     exit: FX.battleRippleOut,

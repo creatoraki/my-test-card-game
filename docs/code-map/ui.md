@@ -10,7 +10,7 @@
 | 设施 | [ControlTerminalScene.tsx](../../src/ui/ControlTerminalScene.tsx)、[CryoScene.tsx](../../src/ui/CryoScene.tsx)、[StorageScene.tsx](../../src/ui/StorageScene.tsx) |
 | 编队与角色 | [FormationScreen.tsx](../../src/ui/FormationScreen.tsx)、[CharacterDetailScreen.tsx](../../src/ui/CharacterDetailScreen.tsx) |
 | 探索 | [ExploreScreen.tsx](../../src/ui/ExploreScreen.tsx)、[RouteBoard.tsx](../../src/ui/RouteBoard.tsx)、[BackpackPanel.tsx](../../src/ui/BackpackPanel.tsx) |
-| 战斗 | [BattleScreen.tsx](../../src/ui/BattleScreen.tsx)、[CombatantView.tsx](../../src/ui/CombatantView.tsx)、[AllyBar.tsx](../../src/ui/AllyBar.tsx)、[HandCard.tsx](../../src/ui/HandCard.tsx) |
+| 战斗 | [BattleScreen.tsx](../../src/ui/BattleScreen.tsx)、[CombatantView.tsx](../../src/ui/CombatantView.tsx)、[AllyBar.tsx](../../src/ui/AllyBar.tsx)、[HandCard.tsx](../../src/ui/HandCard.tsx)、[handFocusStore.ts](../../src/ui/handFocusStore.ts)（手牌悬停态，刻意独立于 BattleScreen —— 见文件头注释） |
 | 资源查表 | [battleBg.ts](../../src/ui/battleBg.ts)、[mapArt.ts](../../src/ui/mapArt.ts)、[enemyArt.ts](../../src/ui/enemyArt.ts)、[cardArt.ts](../../src/ui/cardArt.ts)、[eventArt.ts](../../src/ui/eventArt.ts) |
 | 共用物品 UI | [ItemSlot.tsx](../../src/ui/ItemSlot.tsx)、[ItemTabs.tsx](../../src/ui/ItemTabs.tsx)、[ItemDetail.tsx](../../src/ui/ItemDetail.tsx) |
 | 舞台与表现 | [stage.ts](../../src/ui/stage.ts)、[animations.ts](../../src/ui/animations.ts)、[ambience.ts](../../src/ui/ambience.ts) |

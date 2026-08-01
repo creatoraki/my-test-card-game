@@ -24,6 +24,7 @@ import { warmEnemyArt } from "./enemyArt";
 import { warmVfxSprites } from "./vfxSprites";
 import { battleBg, warmBattleBg } from "./battleBg";
 import { AmbienceGrade, AmbienceLayer } from "./AmbienceLayer";
+import { resetHandHover } from "./handFocusStore";
 import { useIdleTwitch } from "./useIdleTwitch";
 import { STAGE, useStageScale } from "./stage";
 import "./BattleScreen.css";
@@ -73,7 +74,11 @@ export function BattleScreen() {
   const bg = battleBg(mapId); // 当前地图的背景素材(视频/静态图), 未登记则回退森林
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  const [hoveredUid, setHoveredUid] = useState<string | null>(null);
+  // ★ 手牌**悬停**态刻意**不在这里** —— 它住在 ui/handFocusStore.ts。
+  //   它曾是这里的一个 useState, 于是鼠标每跨过一张手牌(mouseleave + mouseenter 两次 setState)
+  //   就把整个战斗界面重渲染一遍: 每个敌人、一排法力水晶 SVG、时刻标尺、队伍卡、十张手牌、
+  //   右侧详情面板。而它真正影响的只有 CardInfoPanel 的内容与 AllyBar 里的一格高亮 ——
+  //   现在由那两个组件各自订阅, 本组件对悬停完全无感。⚠ 别再把它搬回来。
   const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 ui/HandCard.css .hand-card 的 hand-deal-in)。
@@ -114,7 +119,7 @@ export function BattleScreen() {
   // 换战斗时清空选择/悬浮/动画(并让在途动画批次失效)
   useEffect(() => {
     setSelectedUid(null);
-    setHoveredUid(null);
+    resetHandHover();
     setHandAction(null);
     clearTimers();
     seqRef.current++;
@@ -408,6 +413,10 @@ export function BattleScreen() {
     setAnimating(true);
     setSelectedUid(null);
     setHandAction(null);
+    // ⓘ 这里刻意**不清**悬停态 —— 保持与旧 hoveredUid 实现逐帧一致的行为。
+    //   (旧实现有个遗留小毛病: 打出的那张卡 leaving 后带 pointer-events:none 且随即卸载,
+    //    永远收不到 mouseleave ⇒ 右侧详情面板会一直停在这张已经打出去的卡上, 直到鼠标
+    //    悬到另一张牌。想修的话在这里加一行 resetHandHover() 即可, 但那是行为变更, 单独议。)
     runSteps(steps, final, seq);
   }
 
@@ -450,7 +459,7 @@ export function BattleScreen() {
       if (next) {
         commit(next);
         setHandAction(null);
-        setHoveredUid(null);
+        resetHandHover(); // 换掉/丢掉的那张已不在手上, 详情面板不该继续显示它
       }
       return;
     }
@@ -481,13 +490,12 @@ export function BattleScreen() {
   const canUseHandActions = isPlayerTurn && !animating && hand.length > 0;
   const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
 
-  // 当前关注的手牌(悬停优先, 其次选中): 归属角色的槽位变宽点亮(AllyBar), 卡牌详情进右侧
-  // 固定面板(CardInfoPanel)。纯派生, 不新增任何 state —— 每张卡都带 ownerCharId, 且我方
-  // Combatant 的 id 就是角色 id(runStore.launchBattle 如此建局, fxTargets 的 case "self"
-  // 也依赖这一点)。选中待选目标期间 focusUid 仍在, 详情与槽位高亮因此持续可见。
-  const focusUid = hoveredUid ?? selectedUid;
-  const focusCard = focusUid ? (battle.cards[focusUid] ?? null) : null;
-  const focusCharId = focusCard?.ownerCharId;
+  // ★ 「当前关注的手牌」= 悬停 ?? 选中 —— 但这个合并**不在这里做**, 而是由 AllyBar 与
+  //   CardInfoPanel 各自完成: 悬停那半它们自己从 ui/handFocusStore.ts 订阅, 选中这半由
+  //   下面以 props 传下去。理由是性能(见文件上方 selectedUid 处的注释), 语义完全不变 ——
+  //   选中待选目标期间 selectedCard 仍在, 详情与槽位高亮因此持续可见。
+  //   (归属角色 = card.ownerCharId; 我方 Combatant 的 id 就是角色 id, runStore.launchBattle
+  //    如此建局, fxTargets 的 case "self" 也依赖这一点。)
 
   // 居合斩全屏压暗: 由 hits 派生, 与特效同挂同卸(tRestore 的 setHits({}) 自动清掉),
   // key=seq 保证连发重放。零新增 state / 计时器。
@@ -718,7 +726,7 @@ export function BattleScreen() {
           allies={allies}
           hits={hits}
           attackerId={attackerId}
-          focusCharId={focusCharId}
+          focusFallbackCard={selectedCard}
           targetable={isPlayerTurn && !!needsAlly}
           onSelect={onCombatantClick}
         />
@@ -748,7 +756,6 @@ export function BattleScreen() {
                 selected={c.uid === selectedUid}
                 onExited={() => handleCardExited(c.uid)}
                 onClick={() => onCardClick(c.uid)}
-                onHover={(h) => setHoveredUid(h ? c.uid : null)}
               />
             );
           })}
@@ -756,11 +763,12 @@ export function BattleScreen() {
         </div>
       </div>
 
-      {/* ★ 卡牌说明固定面板: 画布**右上角**, 位置恒定。展示 focusUid(悬停 ?? 选中)那张卡。
+      {/* ★ 卡牌说明固定面板: 画布**右上角**, 位置恒定。展示「悬停 ?? 选中」那张卡 ——
+          悬停那半它自己订阅 ui/handFocusStore.ts, 这里只把选中的传下去(理由同 AllyBar)。
           刻意在 .battle-hud **之外**(它曾是 HUD 的第三列) —— 手牌上限实为 10 张, 面板让出那一列
           后手牌托盘才排得下, 几何与层序的完整理由见 ui/CardInfoPanel.css .card-info-panel。
           同样在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏。 */}
-      <CardInfoPanel card={focusCard} />
+      <CardInfoPanel fallbackCard={selectedCard} />
 
       {/* 胜负遮罩 */}
       {!isPlayerTurn && (

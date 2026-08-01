@@ -1,6 +1,7 @@
 import type { Card, Targeting, Rarity } from "../engine";
 import { getCharacter } from "../data";
 import { cardArt } from "./cardArt";
+import { useHandHover } from "./handFocusStore";
 import "./CardInfoPanel.css";
 
 const TARGET_LABEL: Record<Targeting, string> = {
@@ -20,7 +21,11 @@ const RARITY_LABEL: Record<Rarity, string> = {
 
 // 固定卡牌说明面板: 绝对定位在**画布右上角**, 位置恒定(取代旧的悬停跟随浮窗)。
 // (它曾是底部 HUD 的第三列, 为把整列宽度让给手牌托盘而搬出, 理由见 CardInfoPanel.css。)
-// 展示哪张卡由 BattleScreen 的 focusUid(悬停 ?? 选中)派生 —— 选中待选目标期间说明持续可见。
+// 展示哪张卡仍是「悬停 ?? 选中」, 但两半来路不同: **悬停自己订阅** ui/handFocusStore.ts,
+// **选中**由 BattleScreen 以 fallbackCard 传入。选中待选目标期间说明持续可见。
+// ★ 悬停之所以走 store 而不是 props: 它以前是 BattleScreen 的顶层 state, 鼠标扫过手牌
+//   会把整个战斗界面重渲染一遍(完整理由见 ui/handFocusStore.ts 开头)。现在悬停变化只重渲染
+//   本组件与 AllyBar 的一格。选中变化频率低, 继续走 props 即可。
 // 无卡时渲染科幻待机占位而不是收起面板, 版面因此永远稳定。
 // 内容复用 .drawer-* 类(与 .card-drawer 共用), 样式覆盖 scoped 在 .card-info-panel 下。
 //
@@ -31,7 +36,11 @@ const RARITY_LABEL: Record<Rarity, string> = {
 //   悬停不同卡时下半部整块上下跳。
 // ⚠ 两个分支的根节点都要自己 stopPropagation: 面板已搬出 .battle-hud(那层统一拦了冒泡), 现在
 //   直挂在 .screen.battle 下, 不拦的话点面板会冒泡到画布的 onClick 把选中的卡取消掉。
-export function CardInfoPanel({ card }: { card: Card | null }) {
+export function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
+  // ⚠ hook 必须在下面的早退**之前**调用。
+  const hovered = useHandHover();
+  const card = hovered ?? fallbackCard;
+
   if (!card) {
     return (
       <div className="card-info-panel empty" aria-hidden onClick={(e) => e.stopPropagation()}>

@@ -11,6 +11,9 @@ import "./AmbienceLayer.css";
 //
 // 两张画布(far/near)夹着 .battle-stage —— 近景粒子画在敌我单位**之上**并整层失焦,
 // 这是纵深的全部来源。两张画布由**同一个** rAF 循环驱动(不是两个循环)。
+// ⚠ 某一层若没有登记发射器, 它的画布**根本不挂载**(见 AmbienceCanvases 里的 has):
+//   空画布每帧照样 clearRect ⇒ 被标脏 ⇒ 合成器每帧白传一次 ~2880×1620 的全屏纹理。
+//   目前多数地图只用 far 层, 这一条省下的是实打实的每帧带宽。
 //
 // 画布挂在 .battle-world 内 ⇒ 跟随分镜相机推近/平移/漂移/震屏, 粒子与场景是一体的。
 // CSS 尺寸恒为设计画布尺寸(1920×1080), 位图分辨率按 devicePixelRatio 上浮但封顶 1.5 ——
@@ -110,6 +113,18 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
   // 逐粒子设 ctx.filter 会让每次绘制都重建滤镜链, 而"近景整体失焦"本就是层级属性。
   const blur = useMemo(() => layerBlur(def), [def]);
 
+  // ★ 该层有没有发射器。**没有就整张画布不挂载** —— 一张 1920×1080(位图按 dpr 上浮到
+  //   ~2880×1620)的画布哪怕一个粒子都不画, 每帧的 clearRect 仍会把它标脏, 合成器于是
+  //   每帧白传一次全屏纹理。目前多数地图只登记了 far 层(见 ui/ambience.ts), near 那张
+  //   就是在空烧带宽。将来登记了 near 发射器它会自动挂回来, 这里不需要维护名单。
+  const has = useMemo(
+    () => ({
+      far: def.emitters.some((e) => e.layer === "far"),
+      near: def.emitters.some((e) => e.layer === "near"),
+    }),
+    [def],
+  );
+
   // 粒子池: 换地图才重建。数组长度恒定, 出界即就地复用同一个对象(无 GC 压力)。
   useEffect(() => {
     groupsRef.current = def.emitters.map((e) => ({
@@ -123,19 +138,20 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
     }));
   }, [def]);
 
+  // 依赖 has.far/has.near: 某层从"无"变"有"(换地图)时画布是新挂载的 DOM 节点,
+  // 必须重新取一次 2d context, 否则循环里握着的是已卸载画布的旧 context。
   useEffect(() => {
-    const far = farRef.current, near = nearRef.current;
-    if (!far || !near) return;
     const res = Math.min(window.devicePixelRatio || 1, MAX_RES);
-    const ctxOf = (c: HTMLCanvasElement) => {
+    const ctxOf = (c: HTMLCanvasElement | null) => {
+      if (!c) return null;
       c.width = Math.round(STAGE.width * res);
       c.height = Math.round(STAGE.height * res);
       const ctx = c.getContext("2d");
       ctx?.setTransform(res, 0, 0, res, 0, 0); // 之后一律用设计 px 作图
       return ctx;
     };
-    const farCtx = ctxOf(far), nearCtx = ctxOf(near);
-    if (!farCtx || !nearCtx) return;
+    const farCtx = ctxOf(farRef.current), nearCtx = ctxOf(nearRef.current);
+    if (!farCtx && !nearCtx) return; // 两层都空: 这张地图没有粒子, 连 rAF 都不起
 
     let raf = 0;
     let last = performance.now();
@@ -165,7 +181,7 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
       document.removeEventListener("visibilitychange", onVisibility);
       stop();
     };
-  }, []);
+  }, [has.far, has.near]);
 
   const style = { width: `${STAGE.width}px`, height: `${STAGE.height}px` };
   return (
@@ -181,16 +197,20 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
           }
         />
       )}
-      <canvas
-        className="battle-ambience far"
-        ref={farRef}
-        style={{ ...style, filter: blur.far ? `blur(${blur.far}px)` : undefined }}
-      />
-      <canvas
-        className="battle-ambience near"
-        ref={nearRef}
-        style={{ ...style, filter: blur.near ? `blur(${blur.near}px)` : undefined }}
-      />
+      {has.far && (
+        <canvas
+          className="battle-ambience far"
+          ref={farRef}
+          style={{ ...style, filter: blur.far ? `blur(${blur.far}px)` : undefined }}
+        />
+      )}
+      {has.near && (
+        <canvas
+          className="battle-ambience near"
+          ref={nearRef}
+          style={{ ...style, filter: blur.near ? `blur(${blur.near}px)` : undefined }}
+        />
+      )}
     </>
   );
 }
@@ -224,11 +244,18 @@ function update(groups: Group[], dt: number): void {
   }
 }
 
-function draw(farCtx: CanvasRenderingContext2D, nearCtx: CanvasRenderingContext2D, groups: Group[]): void {
-  farCtx.clearRect(0, 0, STAGE.width, STAGE.height);
-  nearCtx.clearRect(0, 0, STAGE.width, STAGE.height);
+// 某层没有发射器时它的 ctx 为 null(画布根本没挂载, 见 AmbienceCanvases 的 has)——
+// 于是这一帧既不 clearRect 也不绘制, 省掉一次全屏纹理重传。
+function draw(
+  farCtx: CanvasRenderingContext2D | null,
+  nearCtx: CanvasRenderingContext2D | null,
+  groups: Group[],
+): void {
+  farCtx?.clearRect(0, 0, STAGE.width, STAGE.height);
+  nearCtx?.clearRect(0, 0, STAGE.width, STAGE.height);
   for (const g of groups) {
     const ctx = g.def.layer === "near" ? nearCtx : farCtx;
+    if (!ctx) continue;
     const d = g.def;
     if (d.kind === "rain") {
       // 雨丝: 沿速度方向往回拉一条线段 —— 线长即"曝光时间", 故 size 就是视觉上的速度感
@@ -256,8 +283,8 @@ function draw(farCtx: CanvasRenderingContext2D, nearCtx: CanvasRenderingContext2
       }
     }
   }
-  farCtx.globalAlpha = 1;
-  nearCtx.globalAlpha = 1;
+  if (farCtx) farCtx.globalAlpha = 1;
+  if (nearCtx) nearCtx.globalAlpha = 1;
 }
 
 // 屏幕空间调色层: 暗角 / 色偏 / 扫描线。
