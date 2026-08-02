@@ -5,14 +5,14 @@
 
 import { create } from "zustand";
 import type { AllyInit, Ally, Card, Enemy } from "../engine";
-import { RULES } from "../engine";
-import { getCharacter, getMap } from "../data";
+import { RULES, applyModifier } from "../engine";
+import { activeBonds, getCharacter, getMap, mergeMods } from "../data";
 import { battleModifier, burdenNow, rewardMultiplier } from "../explore/session";
 import type { PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
 import { useBattleStore } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
-import { deriveStats, useTownStore, type ExpGain } from "./townStore";
+import { bondCountsOf, deriveStats, useTownStore, type ExpGain } from "./townStore";
 
 // ★ "formation"(编队) 与 "charDetail"(角色详情) 是据点的**一级全屏页**, 不是设施内浮层 ——
 //   入口在大厅 bento 的「编队」砖(见 ui/TownScreen.tsx), 冬眠仓只剩「冬眠唤醒」。
@@ -60,6 +60,8 @@ interface RunStore {
 }
 
 // 上阵角色 → 探索层的队伍快照。血量在整趟远征里由 exploreStore 持有并跨战斗继承。
+// ⚠ 这里的 maxHp **不含羁绊加成** —— 羁绊在 launchBattle 才叠。本期实装的 6 个羁绊都不改 maxHp,
+//   所以两处口径一致; 日后一旦有加 maxHp 的羁绊, 这里必须一并叠, 否则出发时的血量会对不上。
 function partySnapshot(): PartySnapshot[] {
   const { characters, party } = useTownStore.getState();
   return party.map((id) => {
@@ -86,21 +88,33 @@ function partySnapshot(): PartySnapshot[] {
 // - 净化粒子档位与战斗签条件经 battleModifier 注入 —— 引擎不认识能量与老虎机,
 //   只认识 EncounterModifier。
 function launchBattle(encounterId: string, isBoss: boolean): void {
-  const { characters } = useTownStore.getState();
+  const { characters, party } = useTownStore.getState();
   const session = useExploreStore.getState().session;
   if (!session) return;
 
+  // ★ 羁绊在**开战瞬间快照**, 与负重惩罚同一个范式(见 engine/stats.burdenPenalty 的注释):
+  //   局外算好, 灌进面板, 引擎不认识羁绊 —— 正如它不认识装备与背包。
+  //   刻意不进 deriveStats: 那是**单角色**换算点(角色详情/编队页都在用), 而羁绊是**全队**系统,
+  //   塞进去会让「看某个角色的面板」凭空多出队友装备带来的加成。
+  const active = activeBonds(bondCountsOf(characters, party));
+  const bondMods = mergeMods(active.map((a) => a.tier.mods)); // 每人各叠一份
+  const bondPartyMods = mergeMods(active.map((a) => a.tier.partyMods)); // 全队只叠一份
+
   const alive = session.party.filter((p) => p.alive);
   const battleDeck: Card[] = alive.flatMap((p) => structuredClone(characters[p.charId].deck));
-  const allies: AllyInit[] = alive.map((p) => {
+  const allies: AllyInit[] = alive.map((p, i) => {
     const c = getCharacter(p.charId);
-    const s = deriveStats(characters[p.charId]);
+    // 局外第一层(角色基础 + 装备)已由 deriveStats 算完; 羁绊是叠在它之上的第二层。
+    let s = applyModifier(deriveStats(characters[p.charId]), bondMods);
+    // ★ 抽牌数/手牌上限是**小队合计**属性(engine/stats.partyDrawCount 按上阵角色求和),
+    //   每人加一份会变成 3 人队三倍。所以这类只给队伍第一人加。
+    if (i === 0) s = applyModifier(s, bondPartyMods);
     return {
       id: c.id,
       charId: c.id,
       name: c.name,
       emoji: c.emoji,
-      stats: s, // ★ 局外已结算的完整面板(角色基础 + 装备)
+      stats: s, // ★ 局外已结算的完整面板(角色基础 + 装备 + 羁绊)
       startHp: p.hp, // ★ 血量跨战斗继承
     };
   });

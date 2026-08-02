@@ -26,11 +26,11 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { getCharacter, getItemDef } from "../data";
+import { BOND_DEFS, activeBonds, getCharacter, getItemDef, nextTier } from "../data";
 import { STAT_KEYS, type StatBlock } from "../engine";
 import { occupiedSlots, sortStacks } from "../items/inventory";
 import { RARITY_ORDER, SLOT_LABEL, type EquipSlot, type ItemStack } from "../items/types";
-import { deriveStats, EQUIP_SLOTS, useTownStore } from "../store/townStore";
+import { bondCountsOf, deriveStats, EQUIP_SLOTS, useTownStore } from "../store/townStore";
 import ItemDetail from "./ItemDetail";
 import ItemSlot from "./ItemSlot";
 import ItemTabs from "./ItemTabs";
@@ -88,6 +88,7 @@ export function StorageScene({ leaving = false }: Props) {
   const loot = useTownStore((s) => s.loot);
   const characters = useTownStore((s) => s.characters);
   const awakened = useTownStore((s) => s.awakened);
+  const party = useTownStore((s) => s.party); // 羁绊只统计上阵队伍的装备槽
   const discardStored = useTownStore((s) => s.discardStored);
   const sellItem = useTownStore((s) => s.sellItem);
   const equipItem = useTownStore((s) => s.equipItem);
@@ -216,6 +217,7 @@ export function StorageScene({ leaving = false }: Props) {
                 stacks={sorted}
                 characters={characters}
                 awakened={awakened}
+                party={party}
                 onEquip={equipItem}
                 onUnequip={unequipItem}
                 onClose={closePanel}
@@ -394,6 +396,7 @@ function GearPanel({
   stacks,
   characters,
   awakened,
+  party,
   onEquip,
   onUnequip,
   onClose,
@@ -401,12 +404,16 @@ function GearPanel({
   stacks: ItemStack[];
   characters: Record<string, import("../store/townStore").CharacterState>;
   awakened: string[];
+  party: string[];
   onEquip: (charId: string, uid: string) => void;
   onUnequip: (charId: string, slot: EquipSlot) => void;
   onClose: () => void;
 }) {
   const [charId, setCharId] = useState(awakened[0] ?? "");
   const [slot, setSlot] = useState<EquipSlot>("weapon");
+
+  // ★ 羁绊是**全队**系统, 只统计上阵队伍的 9 个槽 —— 与左边选中的是谁无关。
+  const bondCounts = bondCountsOf(characters, party);
 
   const cs = characters[charId] ?? characters[awakened[0] ?? ""];
   const stats = cs ? deriveStats(cs) : null;
@@ -431,6 +438,8 @@ function GearPanel({
               onClick={() => setCharId(id)}
             >
               {getCharacter(id).name}
+              {/* ★ 羁绊只算上阵角色 —— 不标出来的话, 给替补穿一堆装备却看不到羁绊涨点, 像 bug */}
+              {party.includes(id) && <span className="stor-roster-tag">上阵</span>}
             </button>
           ))}
         </div>
@@ -504,13 +513,62 @@ function GearPanel({
           )}
         </div>
       </div>
-      <div className="stor-panel-foot">
-        {/* ⚠ 随机羁绊词条尚未实现(《物品设计.md》第五/六章) —— 说清楚, 别让玩家以为是 bug */}
-        <p className="stor-note">
-          装备只提供基础属性；随机羁绊词条与羁绊饰品尚未开放。
-        </p>
-      </div>
+      <BondPanel counts={bondCounts} partySize={party.length} />
     </>
+  );
+}
+
+// 全队羁绊进度(《羁绊设计概览.md》)。
+// ⚠ 刻意**不**把羁绊加成混进上面那块 stor-stats 属性表 —— 那张表是 deriveStats 的
+//   **单角色**口径(角色基础 + 该角色的装备), 羁绊却是全队的; 混在一起两个口径会打架,
+//   玩家也说不清"这 +3 攻击到底是谁给的"。所以羁绊单独一块, 用文字把效果讲明白。
+function BondPanel({ counts, partySize }: { counts: Record<string, number>; partySize: number }) {
+  const defs = Object.values(BOND_DEFS);
+  const maxSlots = partySize * EQUIP_SLOTS.length; // 上阵人数 × 3 槽
+  const used = defs.reduce((s, d) => s + (counts[d.id] ?? 0), 0);
+  // 已激活的档位, 按羁绊 id 索引 —— 与开战时 runStore 读的是同一个 activeBonds, 口径不会分叉。
+  const tiers = new Map(activeBonds(counts).map((a) => [a.def.id, a.tier]));
+
+  return (
+    <div className="stor-panel-foot stor-bonds">
+      <div className="stor-bonds-head">
+        <span className="stor-section-label">羁绊 AFFINITY</span>
+        <span className="stor-note">
+          上阵队伍共 {maxSlots} 个装备槽 · 已带 {used} 条词条
+        </span>
+      </div>
+      <div className="stor-bonds-grid">
+        {defs.map((def) => {
+          const n = counts[def.id] ?? 0;
+          const active = tiers.get(def.id) ?? null;
+          const next = nextTier(def, n);
+          return (
+            <div key={def.id} className={`stor-bond${active ? " is-on" : ""}`}>
+              <p className="stor-bond-head">
+                <span className="stor-bond-emoji">{def.emoji}</span>
+                <span className="stor-bond-name">{def.name}</span>
+                <span className="stor-bond-arcana">{def.arcana}</span>
+                <span className="stor-bond-count">
+                  {n}
+                  {next && <span className="stor-bond-next"> / {next.count}</span>}
+                </span>
+              </p>
+              <p className="stor-bond-effect">
+                {active
+                  ? active.desc
+                  : next
+                    ? `还差 ${next.count - n} 点：${next.desc}`
+                    : "已达最高档"}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      {/* 只实装了 6 个 —— 说清楚, 别让玩家以为剩下 16 张塔罗牌是 bug */}
+      <p className="stor-note">
+        当前开放 {defs.length} 种羁绊；羁绊饰品与词条重铸尚未开放。
+      </p>
+    </div>
   );
 }
 

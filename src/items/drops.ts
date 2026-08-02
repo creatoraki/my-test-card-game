@@ -16,7 +16,11 @@ export interface DropContext {
   weights: Record<ItemRarity, number>; // 已按 qualityBias 选好的那一行权重
   getDef: (itemId: string) => ItemDef;
   getFamily: (familyId: string) => ItemDef[];
-  makeStack: (itemId: string, count: number) => ItemStack;
+  makeStack: (itemId: string, count: number, affinity?: string) => ItemStack;
+  // 随机羁绊词条的抽取池(羁绊 id)。★ 由调用方从 data 层递进来 ——
+  //   items/ 是纯 TS 层, 不能 import data/(依赖方向是 data → items), 与 getDef/getFamily 同理。
+  //   空数组 = 不 roll 词条(单元测试与不关心羁绊的调用方直接传 [])。
+  affinityPool: string[];
 }
 
 // 掷件数: finalChance = base × K。结果 >1 时, 整数部分为保底件数, 小数部分再掷一次
@@ -58,6 +62,17 @@ export function pickByQuality(
   return last.defs[rngInt(rng, last.defs.length)];
 }
 
+// 掷一条随机羁绊词条(《羁绊设计概览.md》§2.1: 普通武器/防具/饰品各提供 1 条随机羁绊)。
+// ★ 稀有度**不影响**词条数量 —— 普通到传说, 同一件装备模型都只给 1 条。
+function rollAffinity(
+  rng: { rngState: number },
+  def: ItemDef,
+  ctx: DropContext,
+): string | undefined {
+  if (!def.affinityRollable || !ctx.affinityPool.length) return undefined;
+  return ctx.affinityPool[rngInt(rng, ctx.affinityPool.length)];
+}
+
 // 掷一整张掉落表 → 若干 ItemStack。★ 每件一个 stack(与首版 maxStack: 1 一致);
 // 需要合并由 inventory.addToContainer 负责, 本模块不管容器。
 export function rollDropTable(
@@ -83,7 +98,9 @@ export function rollDropTable(
 
       // maxStack 为 1 时拆成 count 个独立 stack —— 装备本来就必须逐件独立(各带各的羁绊)。
       if (def.maxStack <= 1) {
-        for (let n = 0; n < count; n++) out.push(ctx.makeStack(def.id, 1));
+        // ⚠ 词条**逐件**掷, 且必须走 rngInt(同一条种子链) —— 否则同种子的一趟远征
+        //   掉的东西不再逐件一致, 本模块顶部的可复现承诺当场作废。
+        for (let n = 0; n < count; n++) out.push(ctx.makeStack(def.id, 1, rollAffinity(rng, def, ctx)));
       } else {
         out.push(ctx.makeStack(def.id, count));
       }

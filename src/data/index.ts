@@ -22,6 +22,16 @@ export {
   type EventPool,
 } from "./exploreEvents";
 export { CHARACTERS, type CharacterDef } from "./characters";
+export {
+  BOND_DEFS,
+  ROLLABLE_BOND_IDS,
+  activeBonds,
+  getBondDef,
+  mergeMods,
+  nextTier,
+  type BondDef,
+  type BondTier,
+} from "./bonds";
 export { ENEMIES, type EnemyDef, type EnemyMove } from "./enemies";
 export {
   ENCOUNTERS,

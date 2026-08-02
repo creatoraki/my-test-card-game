@@ -4,7 +4,7 @@
 //   ③ 掉落 —— finalChance > 1 时的「整数保底 + 小数再掷」, 以及品质在族内的右移。
 
 import { describe, expect, it } from "vitest";
-import { getItemDef, getItemFamily, makeItemStack } from "../data";
+import { ROLLABLE_BOND_IDS, getItemDef, getItemFamily, makeItemStack } from "../data";
 import { pickByQuality, rollCount, rollDropTable } from "./drops";
 import { addToContainer, layoutBackpack, occupiedSlots, removeByUid } from "./inventory";
 import type { ItemRarity } from "./types";
@@ -93,9 +93,12 @@ describe("掉落", () => {
       >,
       getDef: getItemDef,
       getFamily: getItemFamily,
-      makeStack: (id: string, n: number) => makeItemStack(id, n),
+      makeStack: (id: string, n: number, affinity?: string) => makeItemStack(id, n, affinity),
+      // 羁绊词条也走同一条种子链 —— 一并纳入复现口径
+      affinityPool: ROLLABLE_BOND_IDS,
     };
-    const run = () => rollDropTable({ rngState: 777 }, table, 1.5, ctx).map((s) => s.itemId);
+    const run = () =>
+      rollDropTable({ rngState: 777 }, table, 1.5, ctx).map((s) => `${s.itemId}/${s.affinity ?? "-"}`);
     expect(run()).toEqual(run());
   });
 

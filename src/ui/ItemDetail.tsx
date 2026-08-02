@@ -3,7 +3,7 @@
 // 故用 children 插槽让调用方自己塞。本组件只负责「这件东西是什么」。
 
 import type { ReactNode } from "react";
-import { getItemDef } from "../data";
+import { getBondDef, getItemDef } from "../data";
 import { STAT_KEYS } from "../engine";
 import type { StatBlock } from "../engine";
 import type { ItemStack } from "../items/types";
@@ -50,6 +50,9 @@ export default function ItemDetail({
   }
 
   const def = getItemDef(stack.itemId);
+  // def.affinity = 羁绊饰品的固定羁绊; stack.affinity = 掉落时 roll 出的随机羁绊。
+  // 本期只会有后者, 但两者的展示是同一套, 先一并取。
+  const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
   const mods = def.mods;
   const rows: { label: string; value: string; good: boolean }[] = [];
   for (const k of STAT_KEYS) {
@@ -98,9 +101,25 @@ export default function ItemDetail({
       {def.category === "data" && (
         <p className="item-detail-note is-locked">叙事解锁尚未开放，先存进仓库。</p>
       )}
-      {/* ⚠ 随机羁绊词条本期不生成 —— 但装备上写着 affinityRollable, 得让玩家知道那不是 bug */}
-      {def.affinityRollable && (
-        <p className="item-detail-note is-locked">羁绊词条尚未开放。</p>
+      {/* 羁绊词条 —— 掉落时 roll 出来, 逐件独立(见 items/drops.rollAffinity)。
+          ★ 计数只在**上阵角色**穿戴时才作数, 躺仓库里的这一条只是"这件东西带什么"。 */}
+      {bond && (
+        <div className="item-detail-bond">
+          <p className="item-detail-bond-head">
+            <span className="item-detail-bond-emoji">{bond.emoji}</span>
+            <span className="item-detail-bond-name">
+              {bond.name}
+              <span className="item-detail-bond-arcana">{bond.arcana}</span>
+            </span>
+            <span className="item-detail-bond-count">羁绊 +1</span>
+          </p>
+          <p className="item-detail-bond-desc">{bond.desc}</p>
+        </div>
+      )}
+      {/* 有 affinityRollable 却没 roll 到词条(如旧存档残留 / 已下线的羁绊 id) ——
+          说清楚, 别让玩家以为是 bug。 */}
+      {def.affinityRollable && !bond && (
+        <p className="item-detail-note is-locked">这件装备没有羁绊词条。</p>
       )}
 
       {children && <div className="item-detail-actions">{children}</div>}
