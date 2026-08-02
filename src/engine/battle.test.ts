@@ -58,9 +58,9 @@ describe("战斗初始化", () => {
 });
 
 describe("属性口径", () => {
-  it("防御 10 ⇒ 减伤 10/(10+50)", () => {
+  it("防御 10 ⇒ 减伤 10/(10+30)", () => {
     const b = battleWith("whirlwind-slash");
-    expect(defenseMultiplier(b.combatants["swordsman"])).toBeCloseTo(1 - 10 / 60, 6);
+    expect(defenseMultiplier(b.combatants["swordsman"])).toBeCloseTo(1 - 10 / 40, 6);
   });
 
   it("命中率截断在 5%~100% 之间", () => {
