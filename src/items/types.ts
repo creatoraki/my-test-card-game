@@ -36,7 +36,7 @@ export const RARITY_LABEL: Record<ItemRarity, string> = {
 export type ItemCategory =
   | "scrap" // 废料: 带回据点的回收台出售, 换居民积分
   | "material" // 模组材料: 制造与装配关键词模组(模组系统未实现, 先当收藏品)
-  | "equipment" // 装备: 穿戴或分解。★ 唯一占 2 格的类别
+  | "equipment" // 装备: 穿戴或分解
   | "data" // 数据存档: 回城解锁叙事, 不直接兑换积分
   | "consumable"; // 消耗品: 探索途中使用
 
@@ -77,9 +77,7 @@ export interface ItemDef {
   rarity: ItemRarity;
   desc: string;
 
-  // 占格数(《探索模式设计.md》§6.1): 装备 2, 其余一律 1。
-  slots: number;
-  // 一「堆」最多几件。★ 首版一律 1 ⇒ 1 格 = 1 件。
+  // 一「堆」最多几件。★ 首版一律 1 ⇒ 一件物品 = 一格。
   //   堆叠逻辑在 inventory.ts 里写好了但数据上没启用: 若废料能 5 件一堆, 十来件废料只占
   //   2-3 格, §6.2 的「一趟 12-18 格」产出配额与 −12%~−18% 的负重惩罚会当场崩塌。
   //   日后想放宽, 只改这里的数字, 逻辑一行不用动。

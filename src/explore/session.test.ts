@@ -482,23 +482,23 @@ describe("净化粒子(设计文档 §4.2)", () => {
 });
 
 describe("背包与负重(设计文档 §六)", () => {
-  it("装备占 2 格、其余占 1 格, 负重惩罚随占格线性上升", () => {
+  it("一件物品一格, 负重惩罚随占格线性上升", () => {
     const s = newSession();
     expect(backpackSlots(s)).toBe(0);
     expect(burdenNow(s)).toBe(0);
 
     addItems(s, [makeItemStack("scrap-piece"), makeItemStack("armor-plate-c")]);
-    expect(backpackSlots(s)).toBe(3); // 1 + 2
-    expect(burdenNow(s)).toBe(3); // 每格 −1 个百分点
+    expect(backpackSlots(s)).toBe(2); // 1 + 1
+    expect(burdenNow(s)).toBe(2); // 每格 −1 个百分点
   });
 
   it("装不下的进 pendingPickup, 不会被悄悄丢掉", () => {
     const s = newSession();
     addItems(
       s,
-      Array.from({ length: 32 }, () => makeItemStack("scrap-piece")),
+      Array.from({ length: 24 }, () => makeItemStack("scrap-piece")),
     );
-    expect(backpackSlots(s)).toBe(32);
+    expect(backpackSlots(s)).toBe(24);
 
     const { taken, overflow } = addItems(s, [makeItemStack("armor-plate-c")]);
     expect(taken).toHaveLength(0);
@@ -521,7 +521,7 @@ describe("背包与负重(设计文档 §六)", () => {
     const s = newSession();
     addItems(s, [makeItemStack("armor-plate-c")]);
     const uid = s.backpack[0].uid;
-    expect(burdenNow(s)).toBe(2);
+    expect(burdenNow(s)).toBe(1);
     expect(discardStack(s, uid)).toBe(true);
     expect(burdenNow(s)).toBe(0);
     expect(discardStack(s, uid)).toBe(false); // 丢过的再丢一次不该有反应

@@ -1,21 +1,22 @@
 # 战斗引擎
 
-路径：`src/engine/`。纯 TypeScript，无 React、无 Zustand、副作用少，可复现并适合单测。
+路径：`src/engine/`。纯 TypeScript，无 React、无 Zustand，可 `structuredClone`、可复现、适合单测。`BattleState` 不含函数，随机状态保存在状态内。
 
 | 文件 | 作用 |
 | --- | --- |
-| [types.ts](../../src/engine/types.ts) | 战斗状态、卡牌、单位、效果、属性与修正层类型。 |
-| [rules.ts](../../src/engine/rules.ts) | 战斗与卡组锻造规则常量；调平衡优先看这里。 |
-| [stats.ts](../../src/engine/stats.ts) | 属性合并、命中/暴击/防御/先手、手牌与负重计算的唯一入口。 |
-| [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、状态与胜负等引擎原语。 |
-| [effects.ts](../../src/engine/effects.ts) | 将声明式效果翻译为引擎原语；卡牌和敌人招式共用。 |
-| [statuses.ts](../../src/engine/statuses.ts) | 状态注册表和状态行为钩子。 |
-| [targeting.ts](../../src/engine/targeting.ts) | 存活单位查询与随机目标选择。 |
-| [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆。 |
-| [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行。 |
-| [scheduler.ts](../../src/engine/scheduler.ts) | tick 推进和敌人到点行动。 |
-| [battle.ts](../../src/engine/battle.ts) | 建局、回合、出牌和结束回合编排。 |
-| [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API。 |
-| [battle.test.ts](../../src/engine/battle.test.ts) | 战斗核心行为测试。 |
+| [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、我方/敌方单位、效果、状态、战斗状态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。概率与百分比存百分点整数；`burdenPenalty` 是开战瞬间的负重快照。 |
+| [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、时刻推进、虚弱/易伤、命中上下限、概率封顶、格挡、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
+| [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、先手排程、小队手牌/抽牌和负重。属性读取必须经过 `statOf`；负重换算由 `burdenPenalty` 统一提供，且只有我方承担负重。 |
+| [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/抽取、Fisher–Yates 洗牌。 |
+| [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、状态生命周期和胜负判定等原语。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡。 |
+| [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释为引擎原语，并解析 primary、self、allFoes、randomFoe 等目标。卡牌和敌人招式共用；`amount` 固定伤害，`multiplier` 按施放者攻击力计算，二者只能选一个。 |
+| [statuses.ts](../../src/engine/statuses.ts) | 中毒、灼烧、再生、力量、虚弱、易伤、荆棘、眩晕、洞察等状态注册表。状态通过 `ctx.ops` 调用原语，避免直接依赖引擎实现造成循环依赖。眩晕和洞察的实际处理分别在 AI 与 UI。 |
+| [targeting.ts](../../src/engine/targeting.ts) | 存活单位、敌我查询和随机目标选择。没有站位仇恨，敌人从存活我方中等概率随机选目标。 |
+| [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆，并受小队手牌上限约束。 |
+| [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行：倍率预览、眩晕跳过、随机选目标、效果解释和行动后重排。 |
+| [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进，处理所有到点敌人并安排下次行动，带死循环安全阀。 |
+| [battle.ts](../../src/engine/battle.ts) | 建局、回合开始、出牌、结束回合编排。支持跨战斗 `startHp` 和 `EncounterModifier`；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |
+| [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API 出口。 |
+| [battle.test.ts](../../src/engine/battle.test.ts) | 初始化、速攻/普通牌时刻推进、中毒回合开始、回合末冲刷等核心行为测试。 |
 
-依赖方向：`data -> engine/types`；`engine` 不依赖 UI/store。修改规则时通常联读 `rules.ts`、`stats.ts`、`ops.ts`，不要从组件反推结算口径。
+依赖方向：`data -> engine/types`；`engine` 不依赖 UI/store。修改结算口径时联读 `rules.ts`、`stats.ts`、`ops.ts`，不要从组件反推规则。

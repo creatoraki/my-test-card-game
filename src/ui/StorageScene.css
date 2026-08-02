@@ -1,4 +1,4 @@
-/* 物资中转仓(设施 storage)的设施内 UI。
+﻿/* 物资中转仓(设施 storage)的设施内 UI。
    与 CryoScene.css / ControlTerminalScene.css **逐层同构**, 只有两处不同:
      ① 借用的「大楼废弃楼层」是**暗色**场景 ⇒ 走暗玻璃配方(冬眠仓那边是浅底亮玻璃);
      ② 强调色换成琥珀/铁锈橙 —— 与冬眠仓的紫、控制终端的青分居三个色相。
@@ -536,7 +536,7 @@
   min-height: 0;
 }
 
-/* 仓库网格: **无 32 格上限**, 用 auto-fill 流式铺 + 滚动。装备照旧 span 2。 */
+/* 仓库网格: **无格数上限**, 用 auto-fill 流式铺 + 滚动。 */
 .stor-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));

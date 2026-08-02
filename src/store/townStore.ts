@@ -1,4 +1,4 @@
-// Zustand store: 城镇档案 —— 跨远征持久的玩家资产(个人卡组 / 编队 / 经验 / 居民积分)。
+﻿// Zustand store: 城镇档案 —— 跨远征持久的玩家资产(个人卡组 / 编队 / 经验 / 居民积分)。
 // 与 runStore 的分工: 这里存"永久拥有的东西", runStore 只存"这趟远征的进度"。
 // 依赖方向: runStore → townStore(单向); 本 store 不认识 runStore。
 // 已接 persist 中间件(localStorage), 刷新页面进度保留;「重置存档」清回初始档。
@@ -51,7 +51,7 @@ interface TownStore {
   awakened: string[];
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize, 且必须 ⊆ awakened
   loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
-  // ★ 物资中转仓: **不设上限**(与背包的 32 格形成对照)。远征活着回来才有东西进来。
+  // ★ 物资中转仓: **不设上限**(与背包的 24 格形成对照)。远征活着回来才有东西进来。
   storage: ItemStack[];
   initialized: boolean;
 

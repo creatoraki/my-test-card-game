@@ -173,7 +173,7 @@ export interface StatBlock {
   maxHp: number; // 最大生命。★ 战斗中的实时上限读 Combatant.maxHp, 这里只是声明来源
   attack: number; // 攻击力: 攻击牌伤害 = 攻击力 × 倍率
   healPower: number; // 治愈力: 治疗基础值 + 该值
-  defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)
+  defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)，初始防御力通常为 10
   // 命中 / 回避 / 暴击
   hitRate: number; // 命中率(百分点)
   dodgeRate: number; // 闪避率(百分点, 最终值 70 封顶)

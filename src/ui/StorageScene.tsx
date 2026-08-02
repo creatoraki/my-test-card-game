@@ -1,4 +1,4 @@
-// 物资中转仓(据点设施 storage)的**设施内**界面 —— 由 TownScreen 在 phase 进到 inside 后挂载。
+﻿// 物资中转仓(据点设施 storage)的**设施内**界面 —— 由 TownScreen 在 phase 进到 inside 后挂载。
 // 设定依据: 游戏设定.md 第四节据点设施表「物资中转仓 | 背包与库存管理」+ 探索模式设计.md §六。
 //
 // 与冬眠仓(ui/CryoScene.tsx)/ 控制终端(ui/ControlTerminalScene.tsx)**逐层同构** ——
@@ -7,7 +7,7 @@
 //   ⚠ 不要把功能内容直接摊在场景上 —— 那样一进设施就被一整块面板糊住, 设施背景美术等于白画。
 //
 // 三条抽屉 = 三个功能:
-//   ① 库存清单 —— **无上限**的物品列表(与探索背包的 32 格形成对照) + 同一套分类 tab + 丢弃。
+//   ① 库存清单 —— **无上限**的物品列表(与探索背包的 24 格形成对照) + 同一套分类 tab + 丢弃。
 //   ② 装备     —— 三装备槽穿戴/拆卸(《物品设计.md》第二章), 实时预览 16 项面板的变化。
 //   ③ 回收台   —— 废料按 sellValue 批量出售换居民积分(设计文档 §6.1: 废料必须带回来卖)。
 //
@@ -280,7 +280,7 @@ function PanelHead({
 }
 
 // 库存网格。★ 与探索背包共用同一个 ItemSlot 与同一套 tab —— 这就是把格子抽成组件的全部意义。
-//   区别只有一条: 这里**没有 32 格上限**, 用 auto-fill 的流式网格 + 滚动。
+//   区别只有一条: 这里**没有格数上限**, 用 auto-fill 的流式网格 + 滚动。
 function StockGrid({
   stacks,
   tab,
@@ -304,7 +304,6 @@ function StockGrid({
         <ItemSlot
           key={st.uid}
           stack={st}
-          span={getItemDef(st.itemId).slots}
           selected={selected === st.uid}
           onClick={() => onSelect(st.uid)}
         />
@@ -489,7 +488,7 @@ function GearPanel({
             <div className="stor-grid is-tight">
               {candidates.map((st) => (
                 <div className="stor-cand" key={st.uid}>
-                  <ItemSlot stack={st} span={1} />
+                  <ItemSlot stack={st} />
                   <button
                     type="button"
                     className="stor-btn is-mini is-primary"
@@ -560,7 +559,6 @@ function RecyclePanel({
                 <ItemSlot
                   key={st.uid}
                   stack={st}
-                  span={1}
                   selected={picked.includes(st.uid)}
                   onClick={() => toggle(st.uid)}
                 />

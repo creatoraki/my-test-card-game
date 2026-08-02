@@ -1,10 +1,10 @@
-// 战后小结 —— 一场战斗结束后的收获报告, 确认后回到路由图(BOSS 战则进最终结算)。
+﻿// 战后小结 —— 一场战斗结束后的收获报告, 确认后回到路由图(BOSS 战则进最终结算)。
 // 经验按能量档位倍率**即时入账**; 实物与积分相反, 要活着回城才落袋 —— 这是「撤离」成为真选择的原因。
 //
 // ⚠ 设计文档 §6.1: 战斗胜利**只掉物品, 绝不直接掉居民积分**。所以这一页的主角是掉落列表,
 //   积分那一行只有 BOSS 通关奖励时才会出现。
 
-import { getCharacter, getItemDef } from "../data";
+import { getCharacter } from "../data";
 import { energyTier } from "../explore/session";
 import { EXPLORE_RULES } from "../explore/rules";
 import { useExploreStore } from "../store/exploreStore";
@@ -47,7 +47,7 @@ export function ExpRewardScreen() {
           <span className="screen-kicker">战利品</span>
           <div className="reward-drop-row">
             {lastDrops.map((st) => (
-              <ItemSlot key={st.uid} stack={st} span={getItemDef(st.itemId).slots} />
+              <ItemSlot key={st.uid} stack={st} />
             ))}
           </div>
           {overflowed && (

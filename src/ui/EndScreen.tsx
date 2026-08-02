@@ -1,8 +1,8 @@
-// 远征结算 —— 通关 / 撤离 / 团灭三种收场共用一页。
+﻿// 远征结算 —— 通关 / 撤离 / 团灭三种收场共用一页。
 // 主角是「远征记录」: session.history 每段一条(落在哪个终点、能量掉到多少),
 // 一趟远征结束时那一列就是完整的故事, 比任何汇总数字都更值得看。
 
-import { getCharacter, getItemDef, getMap } from "../data";
+import { getCharacter, getMap } from "../data";
 import { energyTier } from "../explore/session";
 import { useExploreStore } from "../store/exploreStore";
 import { useRunStore } from "../store/runStore";
@@ -73,7 +73,7 @@ export function EndScreen() {
           </span>
           <div className="end-haul-row">
             {[...shipped, ...backpack].map((st) => (
-              <ItemSlot key={st.uid} stack={st} span={getItemDef(st.itemId).slots} />
+              <ItemSlot key={st.uid} stack={st} />
             ))}
           </div>
           <span className="muted">已存入物资中转仓。</span>

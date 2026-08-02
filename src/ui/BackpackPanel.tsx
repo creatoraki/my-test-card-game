@@ -1,4 +1,4 @@
-// ★ 探索页的背包面板 ★ —— 32 格网格 + 分类 tab + 实时负重读数(见 探索模式设计.md §6.4)。
+// ★ 探索页的背包面板 ★ —— 24 格网格 + 分类 tab + 实时负重读数(见 探索模式设计.md §6.4)。
 //
 // 沿用探索页的浮层语言: **无全屏遮罩**, 从画布上方滑入(与落点浮层、控制终端的吊绳面板同族)。
 // ⚠ 开放时机的真相点在 explore/session.canOpenBackpack, 不在这里 —— 本组件只画结论。
@@ -28,7 +28,7 @@ import ItemTabs from "./ItemTabs";
 import { matchTab, type EquipTab, type ItemTab } from "./itemFilters";
 import "./BackpackPanel.css";
 
-const COLS = 8; // 8 × 4 = 32。列数改了 layoutBackpack 的换行判断会跟着变, 两边同一个常量。
+const COLS = 8; // 8 × 3 = 24。只影响 CSS grid 的列数, 排布本身与列数无关。
 
 export default function BackpackPanel({ onClose }: { onClose: () => void }) {
   const session = useExploreStore((s) => s.session);
@@ -47,7 +47,7 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
 
   const backpack = session?.backpack ?? [];
   const cells = useMemo(
-    () => layoutBackpack(backpack, getItemDef, RULES.burden.backpackSlots, COLS),
+    () => layoutBackpack(backpack, RULES.burden.backpackSlots),
     [backpack],
   );
 
@@ -126,7 +126,7 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
                 const ok = need <= free;
                 return (
                   <div className="bp-pending-item" key={st.uid}>
-                    <ItemSlot stack={st} span={1} />
+                    <ItemSlot stack={st} />
                     <button
                       className="expl-btn is-primary bp-mini"
                       type="button"
@@ -175,16 +175,11 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
         <div className="bp-body">
           <div className="bp-grid" style={{ "--bp-cols": COLS } as CSSProperties}>
             {cells.map((cell, i) => {
-              // covered = 被前一格的装备横跨占掉。**必须整个跳过** ——
-              // CSS grid 的 span 2 已经把它盖住了, 再画一个格子会把整行挤下去。
-              if (cell.kind === "covered") return null;
-              if (cell.kind === "gap") return <EmptySlot key={i} dead />;
               if (cell.kind === "empty") return <EmptySlot key={i} />;
               return (
                 <ItemSlot
                   key={cell.stack.uid}
                   stack={cell.stack}
-                  span={cell.span}
                   selected={chuteMode ? shipping.includes(cell.stack.uid) : selected === cell.stack.uid}
                   dimmed={!matchTab(cell.stack, tab, equipTab)}
                   onClick={() => onSlotClick(cell.stack)}

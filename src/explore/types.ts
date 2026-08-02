@@ -248,7 +248,7 @@ export interface ExploreState {
 
   // ---- 实物背包(设计文档 §六) ----
   // 紧凑数组 + 容量以**格数**计(RULES.burden.backpackSlots), 不是定长稀疏数组。
-  // 视觉上的 32 个格位由 items/inventory.layoutBackpack 现算。
+  // 视觉上的 24 个格位由 items/inventory.layoutBackpack 现算。
   backpack: ItemStack[];
   // 已通过投递口寄回据点的物品。★ 团灭时 backpack 清空而它保留 —— 这是唯一的保险手段。
   shipped: ItemStack[];

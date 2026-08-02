@@ -6,7 +6,8 @@ import type { SlotSymbol } from "../explore/types";
 import type { ItemDef, ItemStack } from "../items/types";
 import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
-import { ITEM_DEFS } from "./items";
+import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
+import { DESIGN_ITEM_DEFS } from "./items/index";
 import { CHARACTERS, type CharacterDef } from "./characters";
 import { ENEMIES, type EnemyDef } from "./enemies";
 import { ENCOUNTERS, type EncounterDef } from "./encounters";
@@ -32,7 +33,15 @@ export {
 } from "./encounters";
 export { MAPS, type MapDef } from "./maps";
 export { SLOT_SYMBOLS, NEON_NORMAL_REEL, NEON_BOSS_REEL } from "./slotSymbols";
-export { ITEM_DEFS } from "./items";
+export { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
+export {
+  CONSUMABLE_ITEM_DEFS,
+  DESIGN_ITEM_DEFS,
+  EQUIPMENT_ITEM_DEFS,
+  MATERIAL_ITEM_DEFS,
+} from "./items/index";
+
+export const ITEM_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...DESIGN_ITEM_DEFS];
 
 function keyBy<T extends { id: string }>(arr: T[]): Record<string, T> {
   const out: Record<string, T> = {};

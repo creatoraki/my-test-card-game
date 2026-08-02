@@ -135,10 +135,3 @@
   transform: none;
   box-shadow: none;
 }
-/* 死格 = 行末让给跨格装备的那一格。画一道斜杠, 表示"这格用不上"而不是"这格空着"。 */
-.item-slot.is-dead {
-  background:
-    repeating-linear-gradient(135deg, #ffffff0f 0 2px, transparent 2px 7px), #0000002e;
-  border-style: solid;
-  border-color: #ffffff14;
-}

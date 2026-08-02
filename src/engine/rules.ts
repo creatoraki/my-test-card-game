@@ -46,7 +46,7 @@ export const RULES = {
     weakMultiplier: 0.75, // 虚弱: 造成攻击伤害 ×
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
 
-    defenseConstant: 50, // 减伤 = 防御力 / (防御力 + 该常量)
+    defenseConstant: 30, // 减伤 = 防御力 / (防御力 + 该常量)
     baseHitChance: 100, // P_base
     hitFloorPct: 5, // 最终命中概率下限
     hitCeilPct: 100, // 最终命中概率上限
@@ -55,10 +55,10 @@ export const RULES = {
     blockReduction: 0.5, // 格挡成功后本次伤害 ×
   },
 
-  // 探索负重 —— 背包固定 32 格; 每占 1 格, 命中/闪避/暴击各 −1 个百分点,
+  // 探索负重 —— 背包固定 24 格; 每占 1 格, 命中/闪避/暴击各 −1 个百分点,
   // 实际惩罚 P = 已占格数 ×(1 − 小队负重适应)。⚠ 背包属 P1, 现在 W 恒为 0。
   burden: {
-    backpackSlots: 32,
+    backpackSlots: 24,
     penaltyPerSlot: 1,
   },
 

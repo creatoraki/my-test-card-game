@@ -1,11 +1,11 @@
 // ============================================================================
-// 容器操作 —— 纯函数, 背包(32 格)与仓库(无上限)共用同一套。
-// ★ 本模块**不认识 32 这个数**: 容量由调用方传进来(背包传 RULES.burden.backpackSlots,
+// 容器操作 —— 纯函数, 背包(24 格)与仓库(无上限)共用同一套。
+// ★ 本模块**不认识 24 这个数**: 容量由调用方传进来(背包传 RULES.burden.backpackSlots,
 //   仓库不传 = 无上限)。这样"背包有上限、仓库没有"就只是同一个函数的两种调用方式。
 //
 // 容器状态是**紧凑数组 + 一个容量数字**, 不是定长稀疏数组:
-//   定长数组要处理「装备必须占两个相邻格」的装箱问题, 丢弃后还要留洞, 序列化与 diff 都变脏。
-//   UI 需要的「32 个格位」由 layoutBackpack() 现算, 是纯表现, 可单测。
+//   定长数组丢弃后要留洞, 序列化与 diff 都变脏。
+//   UI 需要的「24 个格位」由 layoutBackpack() 现算, 是纯表现, 可单测。
 // ============================================================================
 
 import type { ItemDef, ItemStack } from "./types";
@@ -15,9 +15,9 @@ export type GetDef = (itemId: string) => ItemDef;
 // ---------------------------------------------------------------------------
 // 占格
 // ---------------------------------------------------------------------------
-// 一堆占几格。★ 首版所有 def 的 maxStack 都是 1, 于是这里恒等于 slots × count。
+// 一堆占几格。★ 一件物品 = 一格; 首版所有 def 的 maxStack 都是 1, 于是这里恒等于 count。
 export function stackSlots(st: ItemStack, def: ItemDef): number {
-  return def.slots * Math.ceil(st.count / Math.max(1, def.maxStack));
+  return Math.ceil(st.count / Math.max(1, def.maxStack));
 }
 
 export function occupiedSlots(stacks: ItemStack[], getDef: GetDef): number {
@@ -113,34 +113,13 @@ export function sortStacks(stacks: ItemStack[], getDef: GetDef, rarityRank: (r: 
 // 背包的视觉排布 —— 纯表现, 但放在纯 TS 里以便单测
 // ---------------------------------------------------------------------------
 export type BackpackCell =
-  | { kind: "item"; stack: ItemStack; span: number }
-  | { kind: "empty" } // 可放东西的空格
-  | { kind: "gap" } // 行末放不下 2 格装备而留出的空隙(仍计入容量, 只是这一格用不上)
-  | { kind: "covered" }; // ★ 被前一个跨格物品占掉的格子。**渲染时必须跳过** —— CSS grid 的
-//   span 2 已经把它盖住了, 再画一个格子会把整行挤下去。它存在只是为了让
-//   数组下标 = 真实格号, 占格换算与视觉排布不会对不上。
+  | { kind: "item"; stack: ItemStack }
+  | { kind: "empty" }; // 可放东西的空格
 
-// 逐个放入 cols 列的网格; 跨 2 格的装备**不跨行** —— 行末塞不下就先留一个 gap 再换行。
-// 返回长度恒为 capacity(不足补 empty)。
-export function layoutBackpack(
-  stacks: ItemStack[],
-  getDef: GetDef,
-  capacity: number,
-  cols: number,
-): BackpackCell[] {
-  const cells: BackpackCell[] = [];
-  for (const st of stacks) {
-    const span = stackSlots(st, getDef(st.itemId));
-    const col = cells.length % cols;
-    if (span > 1 && col + span > cols) {
-      for (let i = col; i < cols; i++) cells.push({ kind: "gap" });
-    }
-    cells.push({ kind: "item", stack: st, span });
-    for (let i = 1; i < span; i++) cells.push({ kind: "covered" });
-  }
-  // ⚠ **不截断**: 行末让出的 gap 是视觉格, 不计入 occupiedSlots ——
-  //   背包占满 32 格又恰好有一个 gap 时, 截断会把最后一件东西整个藏起来。
-  //   宁可多画一行(补齐到整行), 也不能让玩家看不见自己背着的东西。
-  while (cells.length < capacity || cells.length % cols !== 0) cells.push({ kind: "empty" });
+// 一件物品一格, 逐个 push, 再补 empty 到 capacity。
+// ⚠ **不截断**: 容量算漏时宁可多画一格, 也不能让玩家看不见自己背着的东西。
+export function layoutBackpack(stacks: ItemStack[], capacity: number): BackpackCell[] {
+  const cells: BackpackCell[] = stacks.map((st) => ({ kind: "item" as const, stack: st }));
+  while (cells.length < capacity) cells.push({ kind: "empty" });
   return cells;
 }
