@@ -5,17 +5,19 @@
 //   任何分辨率下构图逐 px 一致, 画布之外露出的是黑边。
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图重新随分辨率漂移。
 //
-// ★ 入口布局 = 右侧 718×350 的 **bento 马赛克**: 7 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
+// ★ 入口布局 = 右侧 718×470 的 **bento 马赛克**: 8 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
 //   拼出一个外轮廓规则的矩形。编队 / 训练室 / 冬眠仓(真入口)占较大的块, 未开放设施是小块 ——
 //   可用性靠面积表达, 不必额外加说明。马赛克本身由下面内联 style 的 gridTemplateAreas 定义。
 //   ⚠ 控制终端已开放但仍占小块(worklog), 与「面积=可用性」的约定暂时不符, 想强调它就调
 //     gridTemplateAreas 里 worklog 占的格数。
 //
-// ★ 点击冬眠仓 / 训练室 / 控制终端会播一段「进设施」演出(见下方 enterFacility 与 ui/facilityScenes.ts):
+// ★ 点击冬眠仓 / 训练室 / 控制终端 / 物资中转仓 / 商店会播一段「进设施」演出
+//   (见下方 enterFacility 与 ui/facilityScenes.ts):
 //   镜头推向该设施在大厅里的位置并放大 → 界面元素逐个错峰飞出 → 大厅背景淡出、设施背景淡入。
 //
 // ★ 设施内容登记在下面的 FACILITY_CONTENT: 目前有**控制终端**(ui/ControlTerminalScene.tsx ——
-//   下降舱出击 + 委托占位)与**冬眠仓**(ui/CryoScene.tsx —— 只剩唤醒队员);
+//   下降舱出击 + 委托占位)、**冬眠仓**(ui/CryoScene.tsx —— 只剩唤醒队员)、
+//   **物资中转仓**(ui/StorageScene.tsx)与**商店**(ui/ShopScene.tsx —— 按天刷新的货架);
 //   训练室仍只有背景 +「返回据点」, 功能未做。
 //
 // ★ **不是所有砖都是设施**: Facility.kind === "screen" 的砖(目前只有「编队」)点下去不播运镜,
@@ -54,6 +56,7 @@ import {
 } from "./facilityScenes";
 import { ControlTerminalScene } from "./ControlTerminalScene";
 import { CryoScene } from "./CryoScene";
+import { ShopScene } from "./ShopScene";
 import { StorageScene } from "./StorageScene";
 import townBg from "../assets/场景/大厅.png";
 import "./TownScreen.css";
@@ -170,6 +173,26 @@ function StorageIcon() {
   );
 }
 
+// 商店: 遮阳篷 + 柜台, 篷下挂一枚价签 —— 读作「摆出来卖的货」而不是仓库。
+function ShopIcon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
+      {/* 店面外框: 压低透明度当陪衬 */}
+      <path d="M7 20v21h34V20" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
+      {/* 遮阳篷: 三折的波浪边 */}
+      <path
+        d="M4 20 7.5 9h33L44 20Z"
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+      <path d="M17.3 9v11M30.7 9v11" strokeWidth={1.2} opacity={0.6} />
+      {/* 柜台上的价签 */}
+      <path d="M21 26h9v9h-9z" strokeWidth={1.6} strokeLinejoin="round" />
+      <circle cx="27" cy="29.5" r="1.2" strokeWidth={1.4} />
+    </svg>
+  );
+}
+
 interface Facility {
   id: string; // 同时就是 grid-area 名, 与下面 gridTemplateAreas 里的词一一对应
   name: string;
@@ -232,6 +255,15 @@ const FACILITIES: Facility[] = [
     icon: <StorageIcon />,
     size: "sm",
   },
+  // ★ 商店独占马赛克第三行 —— 它是唯一按「天」变化的设施, 给它一条横贯的整条砖,
+  //   进大厅一眼就能看出今天有没有去看过货。
+  {
+    id: "shop",
+    name: "商店",
+    desc: "补给采购 · 每日上新。",
+    icon: <ShopIcon />,
+    size: "md",
+  },
 ];
 
 // ===================== 设施内容登记处 =====================
@@ -242,6 +274,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean) => ReactNode> = {
   worklog: (leaving) => <ControlTerminalScene leaving={leaving} />,
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   storage: (leaving) => <StorageScene leaving={leaving} />,
+  shop: (leaving) => <ShopScene leaving={leaving} />,
 };
 
 // ===================== 进设施演出 =====================
@@ -264,6 +297,8 @@ export function TownScreen() {
   const resetProfile = useTownStore((s) => s.resetProfile);
   const openFormation = useRunStore((s) => s.openFormation);
   const terminalCredits = useTownStore((s) => s.loot);
+  // 生存天数: 只由 townStore.advanceDay 推进(出击打完回据点算一日), 也是商店换货的节拍器。
+  const day = useTownStore((s) => s.day);
   const viewportRef = useRef<HTMLDivElement>(null);
   const activeFacilities = FACILITIES.filter((facility) => !facility.locked).length;
   // 复用战斗/封面那套设计画布: k = min(容器宽/1920, 容器高/1080, 2560/1920)。见 ui/stage.ts
@@ -348,7 +383,10 @@ export function TownScreen() {
         ? flyVars(spec, flyBackDelay(backIdx), FACILITY_CINEMA.leaveFlyIn)
         : flyVars(spec);
 
-  // 未被点击的 5 块砖依次取用 FLY_TILES 的参数; 被点击的那块走 FLY_PICKED(最后飞)。
+  // 未被点击的 7 块砖依次取用 FLY_TILES 的参数; 被点击的那块走 FLY_PICKED(最后飞)。
+  // ⚠ 飞回次序编号(fly 的第二参数)是**全局**排的: 砖占 0..7(被点的那块恒为 0),
+  //   「重置存档」8, 信息条 9。再加设施砖时这两个数要跟着往后挪, 并复核 flyBackDelay
+  //   的末位是否还在 FACILITY_CINEMA.leave 之内。
   let tileCursor = 0;
 
   return (
@@ -411,13 +449,13 @@ export function TownScreen() {
           <>
             <section
               className={`town-status-bar${inCinema ? " is-flying" : ""}`}
-              style={inCinema ? fly(FLY_STATUS, 7) : undefined}
+              style={inCinema ? fly(FLY_STATUS, 9) : undefined}
               aria-label="据点终端状态"
             >
               <span className="town-status-rim" aria-hidden />
               <div className="town-status-item">
                 <span className="town-status-label">生存时间</span>
-                <strong className="town-status-value">第 1 日</strong>
+                <strong className="town-status-value">第 {day} 日</strong>
               </div>
               <div className="town-status-item">
                 <span className="town-status-label">终端积分</span>
@@ -432,7 +470,7 @@ export function TownScreen() {
             </section>
 
             {/* bento 面板: 位置/尺寸/马赛克排布的旋钮全在下面内联 style(设计 px), 直接改数值即可。
-              列宽 160+120+150+150+98 + 4×10 缝 = 718 宽; 行高 150+190 + 10 缝 = 350 高。
+              列宽 160+120+150+150+98 + 4×10 缝 = 718 宽; 行高 150+190+110 + 2×10 缝 = 470 高。
                 改列宽/行高时记得同步 width/height, 否则最后一列/行会被拉伸或留空。 */}
             <div
               className="town-bento"
@@ -440,15 +478,17 @@ export function TownScreen() {
                 right: "96px", // ← 距画布右边距离(设计 px)
                 bottom: "72px", // ← 距画布底边距离(设计 px)
                 width: "718px", // ← 区域总宽 = 各列宽 + 缝
-                height: "350px", // ← 区域总高 = 各行高 + 缝
+                height: "470px", // ← 区域总高 = 各行高 + 缝
                 gap: "10px", // ← 砖块之间的缝隙
                 gridTemplateColumns: "160px 120px 150px 150px 98px",
-                gridTemplateRows: "150px 190px",
-                // ★ 马赛克本体: 同名格连成一块砖 ⇒ 7 块尺寸互不相同, 外轮廓仍是规则矩形。
+                gridTemplateRows: "150px 190px 110px",
+                // ★ 马赛克本体: 同名格连成一块砖 ⇒ 8 块尺寸互不相同, 外轮廓仍是规则矩形。
                 //   词必须与 FACILITIES 的 id 完全一致。
+                //   第三行是商店独占的一条横贯砖 —— 它是唯一按天变化的设施, 值得一条整行。
                 gridTemplateAreas: `
                   "cryo     cryo     formation formation worklog"
                   "assembly training training  medical   storage"
+                  "shop     shop     shop      shop      shop"
                 `,
               }}
             >
@@ -499,7 +539,7 @@ export function TownScreen() {
 
             <button
               className={`town-reset${inCinema ? " is-flying" : ""}`}
-              style={inCinema ? fly(FLY_RESET, 6) : undefined}
+              style={inCinema ? fly(FLY_RESET, 8) : undefined}
               type="button"
               onClick={() => resetProfile()}
             >

@@ -16,9 +16,10 @@ import { STAGE } from "./stage";
 import cryoBg from "../assets/场景/冬眠仓.png";
 import trainingBg from "../assets/场景/训练室.png";
 import worklogBg from "../assets/场景/控制终端.png";
-// ⚠ 临时素材: 物资中转仓还没有专属场景图, 先用 16:9 的场景占位素材。
-//   专属图到位后只改这一行的 import 即可。
+// ⚠ 临时素材: 物资中转仓与商店都还没有专属场景图, 先用 16:9 的场景占位素材。
+//   专属图到位后只改这一行的 import 即可(两处共用同一张, 故各起一个别名)。
 import storageBg from "../assets/占位场景素材.png";
+import shopBg from "../assets/占位场景素材.png";
 
 // ── 设施场景登记处 ──
 // 加一个设施 = 这里加一行数据(背景图 + 焦点 + 倍数), 组件一行都不用动。
@@ -40,6 +41,10 @@ export const FACILITY_SCENES: Record<string, FacilityScene> = {
   // 物资中转仓取大厅左上那片货架/管线区 —— 与另外三处分居四个不同象限,
   // 四段运镜才不会看着像同一个镜头。
   storage: { bg: storageBg, focus: { x: 430, y: 200 }, scale: 1.8 },
+  // 商店取**画面正中偏下**: 另外四处已经把四个象限占满, 第五段运镜必须落在剩下的那块
+  // 中央区域, 否则读起来就是在重复某一段镜头。
+  // (scale 1.8 下的钳制安全区是 x∈[533,1387]、y∈[300,780], 这个焦点不触边, 镜头不会贴边停。)
+  shop: { bg: shopBg, focus: { x: 860, y: 740 }, scale: 1.8 },
 };
 
 export const hasFacilityScene = (id: string): boolean => id in FACILITY_SCENES;
@@ -127,21 +132,27 @@ export const FLY_STATUS: FlyOut = { delay: 0, ms: 460, dx: -820, dy: -70, rot: -
 export const FLY_RESET: FlyOut = { delay: 320, ms: 340, dx: -300, dy: 160, rot: -6 };
 
 // 右侧面板的设施砖 → 一律往右出画。按马赛克阅读序取用(见 FACILITIES 的顺序),
-// 五组参数刻意长短不一 ⇒ 明显不同步。被点击的那块不用这里的参数, 见 FLY_PICKED。
+// 七组参数刻意长短不一 ⇒ 明显不同步。被点击的那块不用这里的参数, 见 FLY_PICKED。
+// ⚠ 本表长度必须 ≥「设施砖数 − 1」(被点的那块走 FLY_PICKED)。砖数从 7 加到 8 时这里
+//   也从 5 组补到 7 组 —— 不够用会 % 回头复用, 于是有两块砖同步飞出, 错峰当场失效。
 export const FLY_TILES: FlyOut[] = [
   { delay: 140, ms: 380, dx: 760, dy: -40, rot: 5 },
   { delay: 260, ms: 460, dx: 780, dy: 30, rot: -3 },
   { delay: 380, ms: 340, dx: 740, dy: 60, rot: 6 },
   { delay: 500, ms: 500, dx: 800, dy: -30, rot: -5 },
   { delay: 620, ms: 420, dx: 760, dy: 50, rot: 4 },
+  { delay: 700, ms: 360, dx: 730, dy: -55, rot: 7 },
+  { delay: 820, ms: 480, dx: 790, dy: 70, rot: -6 },
 ];
 
 // 被点击的那块最后飞: 先亮一下(--pick-ms 的高亮)当作「就是它」的确认反馈, 再飞出。
-export const FLY_PICKED: FlyOut = { delay: 780, ms: 560, dx: 820, dy: -60, rot: -7 };
+// ⚠ delay 必须大于 FLY_TILES 里最大的那个(现为 820), 否则它就不是最后一块了。
+export const FLY_PICKED: FlyOut = { delay: 940, ms: 560, dx: 820, dy: -60, rot: -7 };
 export const PICK_FLASH = 220; // ms: 确认高亮的时长
 
 // 返回时飞回的顺序与进入相反(最后飞出的最先飞回), 故这里只给「第 i 个飞回」的延迟。
-// 次序: 被点击的砖(0) → 其余砖倒序(1~5) → 重置存档(6) → 信息条(7)。
+// 次序: 被点击的砖(0) → 其余砖倒序(1~7) → 重置存档(8) → 信息条(9)。
 // 起步的 240ms 是刻意留的: 让背景先交叉淡回大厅, 元素才不会飞在还没淡掉的设施背景上。
-// 末位算完 = 240 + 7×70 + leaveFlyIn = 1250ms, 仍在 leave(1400ms) 之内。
-export const flyBackDelay = (i: number): number => 240 + i * 70;
+// ⚠ 末位算完 = 240 + 9×60 + leaveFlyIn = 1300ms, 必须留在 leave(1400ms) 之内 ——
+//   再加设施砖就得把 60 这个步长继续调小, 否则最后一块会被硬切掉。
+export const flyBackDelay = (i: number): number => 240 + i * 60;

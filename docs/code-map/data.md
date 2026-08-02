@@ -9,7 +9,8 @@
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、技能、意图脚本、基础施法延迟和掉落表。经验是敌人固定值，不写入掉落表。 |
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale` 只供 UI 取景。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |
-| [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用/地区/怪物材料、消耗品与临期食品、普通装备模板；由 `data/index.ts` 与旧清单合并注册。 |
+| [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用/地区/怪物材料、消耗品与临期食品、普通装备模板；由 `data/index.ts` 与旧清单合并注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，三张物品表都调它。 |
+| [shop.ts](../../src/data/shop.ts) | 据点商店：等级配置 `SHOP_LEVELS`、线性递增的刷新计价 `shopRefreshCost`、货架生成 `rollShopStock`。上架资格看 `buyValue`；随机刻意用 `Math.random`，不进探索的可复现种子链。 |
 | [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池、事件选项、代价和效果。 |
 | [slotSymbols.ts](../../src/data/slotSymbols.ts) | 战斗签转轮符号：战斗卡、战前准备卡和 BOSS 开局条件。 |
 | [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战、低档补充敌人和转轮池。地图素材由 UI 查表。 |

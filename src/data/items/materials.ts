@@ -1,6 +1,7 @@
 import type { ItemDef } from "../../items/types";
+import { withBuyValue } from "./pricing";
 
-export const MATERIAL_ITEM_DEFS: ItemDef[] = [
+const DEFS: ItemDef[] = [
   {
     id: "logic-cube",
     name: "魔方",
@@ -164,3 +165,6 @@ export const MATERIAL_ITEM_DEFS: ItemDef[] = [
     icon: "material",
   },
 ];
+
+// 商店挂牌价统一打标(见 ./pricing.ts): 逐条手写价格, 漏一条就是一件永不上架的材料。
+export const MATERIAL_ITEM_DEFS: ItemDef[] = withBuyValue(DEFS);

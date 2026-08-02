@@ -1,4 +1,5 @@
 import type { ItemDef } from "../../items/types";
+import { withBuyValue } from "./pricing";
 
 const DEFS: ItemDef[] = [
   {
@@ -368,4 +369,7 @@ const DEFS: ItemDef[] = [
 // ★ 在这里统一打标而不是逐条写 affinityRollable —— 这张表里每一件都是普通装备,
 //   逐条写 30 遍只会让「漏写一条」变成沉默的 bug(那件装备会永远不带词条)。
 //   日后若出现不给随机词条的装备(如羁绊饰品), 再改成逐条声明。
-export const EQUIPMENT_ITEM_DEFS: ItemDef[] = DEFS.map((d) => ({ ...d, affinityRollable: true }));
+// 商店挂牌价同样在这里统一打标(见 ./pricing.ts), 理由与 affinityRollable 相同。
+export const EQUIPMENT_ITEM_DEFS: ItemDef[] = withBuyValue(
+  DEFS.map((d) => ({ ...d, affinityRollable: true })),
+);

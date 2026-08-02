@@ -85,6 +85,10 @@ export interface ItemDef {
 
   icon?: string; // ui/itemArt.tsx 的图标 key; 缺省按 category 兜底
   sellValue?: number; // 据点回收台的出售价(居民积分)。只有废料填
+  // 据点商店的**购买**价(居民积分)。⚠ 与 sellValue 是两个方向、两套数, 不要互相换算:
+  //   sellValue = 玩家把废料卖给回收台; buyValue = 玩家从商店买走这件东西。
+  //   ★ 缺省 = 商店永不上架这件物品(见 data/shop.ts 的候选池筛选)。
+  buyValue?: number;
 
   // ---- 装备专属(category === "equipment" 时才有意义) ----
   slot?: EquipSlot;

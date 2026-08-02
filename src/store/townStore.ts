@@ -16,8 +16,15 @@ import {
   getCharacter,
   getItemDef,
   makeCard,
+  makeItemStack,
   type CharacterDef,
 } from "../data";
+import {
+  DEFAULT_SHOP_LEVEL,
+  rollShopStock,
+  shopRefreshCost,
+  type ShopSlot,
+} from "../data/shop";
 import { removeByUid } from "../items/inventory";
 import type { EquipSlot, ItemStack } from "../items/types";
 
@@ -43,6 +50,23 @@ export interface CharacterState {
   pendingDraw: string[] | null; // 抽卡进行中的候选 defId; 持久化 => 刷新也躲不掉 3 选 1
 }
 
+// ---------------------------------------------------------------------------
+// 商店(据点设施 shop)
+// ---------------------------------------------------------------------------
+// 货架是**存档的一部分**: 关掉页面再回来, 今天挑剩下的还是今天那批货。
+// 「隔日重置」的唯一真相点是 advanceDay() —— UI 不再判一次日期。
+export interface ShopState {
+  level: number; // 设施等级, 默认 1; 提升入口本期不开放
+  day: number; // 这批货是哪一天上的(与 TownStore.day 比对, 只作护栏与展示)
+  refreshes: number; // 今日已花积分刷新的次数 → 决定下次刷新价(隔日归 0)
+  equip: ShopSlot[];
+  material: ShopSlot[];
+}
+
+function freshShop(day: number, level = DEFAULT_SHOP_LEVEL): ShopState {
+  return { level, day, refreshes: 0, ...rollShopStock(level) };
+}
+
 // 战后经验结算报告条目(交给结算/胜利界面展示)
 export interface ExpGain {
   charId: string;
@@ -60,6 +84,8 @@ interface TownStore {
   loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
   // ★ 物资中转仓: **不设上限**(与背包的 24 格形成对照)。远征活着回来才有东西进来。
   storage: ItemStack[];
+  day: number; // 生存天数, 从第 1 日起。★ 只由 advanceDay() 推进(出击后返回据点算一日)
+  shop: ShopState;
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
@@ -73,6 +99,11 @@ interface TownStore {
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
+
+  // ---- 天数与商店 ----
+  advanceDay: () => void; // 推进一日 + 重摇货架(由 runStore.backToTown 调用)
+  refreshShop: () => void; // 花积分立刻重摇货架, 当日刷得越多下次越贵
+  buyShopItem: (key: string) => void; // 买下一格货, 扣积分 + 入仓
 
   // ---- 卡组锻造(经验的唯一去处) ----
   upgradeDeck: (charId: string) => void; // 升一级卡组等级
@@ -215,14 +246,31 @@ export const useTownStore = create<TownStore>()(
       party: [],
       loot: 0,
       storage: [],
+      day: 1,
+      shop: freshShop(1),
       initialized: false,
 
       ensureProfile: () => {
         if (get().initialized) return;
-        set({ ...freshProfile(), loot: 0, storage: [], initialized: true });
+        set({
+          ...freshProfile(),
+          loot: 0,
+          storage: [],
+          day: 1,
+          shop: freshShop(1),
+          initialized: true,
+        });
       },
 
-      resetProfile: () => set({ ...freshProfile(), loot: 0, storage: [], initialized: true }),
+      resetProfile: () =>
+        set({
+          ...freshProfile(),
+          loot: 0,
+          storage: [],
+          day: 1,
+          shop: freshShop(1),
+          initialized: true,
+        }),
 
       bankLoot: (amount) => {
         if (amount <= 0) return;
@@ -326,6 +374,46 @@ export const useTownStore = create<TownStore>()(
         return report;
       },
 
+      // ---- 天数与商店 ----
+
+      // 推进一日。★ 商店的主刷新机制就是这个 —— 唯一调用方是 runStore.backToTown
+      //   (出击打完从结算页回据点)。从主菜单进据点不算一日, 故 enterTown 不调它。
+      // ⚠「隔日重置」在这里一次做完: 换新货 + 刷新次数归零。UI 不再判日期。
+      advanceDay: () => {
+        const { day, shop } = get();
+        const next = day + 1;
+        set({ day: next, shop: { ...shop, day: next, refreshes: 0, ...rollShopStock(shop.level) } });
+      },
+
+      // 花积分立刻重摇货架。价格随当日刷新次数线性上涨, 隔日由 advanceDay 归零。
+      refreshShop: () => {
+        const { shop, loot } = get();
+        const cost = shopRefreshCost(shop.refreshes);
+        if (loot < cost) return; // 护栏与 awaken 同写法: 买不起就什么都不发生
+        set({
+          loot: loot - cost,
+          shop: { ...shop, refreshes: shop.refreshes + 1, ...rollShopStock(shop.level) },
+        });
+      },
+
+      // 买下一格货。★ 售出后该格保留占位并打上 sold —— 当日不补货, 想要新货得刷新或过一天。
+      //   实例化推迟到这一刻(uid 此时才发), 羁绊词条沿用上架时摇好的那条。
+      buyShopItem: (key) => {
+        const { shop, loot, storage } = get();
+        const inEquip = shop.equip.some((s) => s.key === key);
+        const list = inEquip ? shop.equip : shop.material;
+        const slot = list.find((s) => s.key === key);
+        if (!slot || slot.sold || loot < slot.price) return;
+
+        const next = list.map((s) => (s.key === key ? { ...s, sold: true } : s));
+        set({
+          loot: loot - slot.price,
+          // 仓库无上限, 与 deposit 同写法直接追加, 不必走 addToContainer。
+          storage: [...storage, makeItemStack(slot.itemId, 1, slot.affinity)],
+          shop: inEquip ? { ...shop, equip: next } : { ...shop, material: next },
+        });
+      },
+
       // ---- 卡组锻造 ----
 
       upgradeDeck: (charId) => {
@@ -416,9 +504,11 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
-    // ⚠ v5: 装备实例开始带随机羁绊词条(ItemStack.affinity)。v4 的存量装备一条词条都没有,
-    //   留着会让羁绊面板恒为 0 且看不出原因。项目不做旧存档兼容, 换 key 让旧档自然失效重建。
-    //   (v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v5", version: 5 },
+    // ⚠ v6: 新增天数 day 与商店货架 shop。v5 的存档两者都缺, 读回来 day 会是 undefined
+    //   ⇒ 据点状态条显示「第 NaN 日」、商店货架空着且刷新价算不出来。项目不做旧存档兼容,
+    //   换 key 让旧档自然失效重建。
+    //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
+    //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
+    { name: "town-profile-v6", version: 6 },
   ),
 );

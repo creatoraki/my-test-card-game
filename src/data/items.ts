@@ -9,8 +9,9 @@
 // ============================================================================
 
 import type { ItemDef } from "../items/types";
+import { withBuyValue } from "./items/pricing";
 
-export const ITEM_DEFS: ItemDef[] = [
+const DEFS: ItemDef[] = [
   // ── 废料 ────────────────────────────────────────────────────────────────
   // 探索层唯一的「货币前体」: 本身不是积分, 带回据点的回收台出售才换成居民积分。
   {
@@ -281,3 +282,7 @@ export const ITEM_DEFS: ItemDef[] = [
     icon: "weapon",
   },
 ];
+
+// 商店挂牌价统一打标(见 ./items/pricing.ts)。★ 旧表里的装备与材料同样会上架 ——
+// 普通材料若只取新表, 候选池就只有魔方/齿轮/电池 3 件, 1 级商店抽 3 个刚好把池子抽干。
+export const ITEM_DEFS: ItemDef[] = withBuyValue(DEFS);

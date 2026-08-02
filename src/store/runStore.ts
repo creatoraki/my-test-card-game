@@ -280,9 +280,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
     });
   },
 
+  // ★ 一趟出击的收尾 = **时间推进一日**(据点商店的主刷新机制就靠它)。
+  // ⚠ 只在这里推进: enterTown 是从主菜单进据点(没出击过), finishExpedition 只是切到
+  //   结算页(玩家还没回到据点), 两处都不该 +1 天。
   backToTown: () => {
     useBattleStore.getState().clear();
     useExploreStore.getState().clear();
+    useTownStore.getState().advanceDay();
     set({ screen: "town", mapId: null, expReport: [], lastResult: null, lastLoot: 0, lastDrops: [] });
   },
 
