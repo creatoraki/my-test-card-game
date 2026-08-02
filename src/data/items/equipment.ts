@@ -58,7 +58,7 @@ export const EQUIPMENT_ITEM_DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "weapon",
     familyId: "shock-maul",
-    mods: { flat: { attack: 3 }, pct: { critDamage: 30 } },
+    mods: { flat: { attack: 1 }, pct: { critDamage: 20 } },
     icon: "weapon",
   },
   {
