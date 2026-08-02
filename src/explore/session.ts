@@ -37,6 +37,7 @@ import { RULES } from "../engine/rules";
 import { burdenPenalty } from "../engine/stats";
 import type { EncounterModifier } from "../engine/types";
 import {
+  ROLLABLE_BOND_IDS,
   getEnemyDef,
   getEventPool,
   getItemDef,
@@ -112,7 +113,9 @@ function dropContext(s: ExploreState): DropContext {
     weights: qualityWeights(dropCoefficient(s)),
     getDef: getItemDef,
     getFamily: getItemFamily,
-    makeStack: (itemId, count) => makeItemStack(itemId, count),
+    makeStack: (itemId, count, affinity) => makeItemStack(itemId, count, affinity),
+    // ★ 随机羁绊词条的抽取池 —— 只含**已实装**的羁绊, 见 data/bonds.ts 的说明。
+    affinityPool: ROLLABLE_BOND_IDS,
   };
 }
 

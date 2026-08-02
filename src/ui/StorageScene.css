@@ -689,6 +689,90 @@
   min-height: 0;
 }
 
+/* ---- 羁绊进度(装备浮层底栏) ----
+   ⚠ 这里显示的是**全队**口径(上阵队伍 9 个槽), 与上面那块单角色属性表不是一回事,
+      所以刻意分成两块、各自带标题, 不要合并。 */
+.stor-bonds {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.stor-bonds-head {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.stor-bonds-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 14px;
+}
+.stor-bond {
+  padding: 7px 11px;
+  background: #ffffff08;
+  border: 1px solid #f2e6d814;
+  border-left: 2px solid #f2e6d81a;
+  border-radius: 2px;
+}
+/* 已激活 —— 用左侧竖条 + 琥珀色点亮, 扫一眼就知道哪几条成了 */
+.stor-bond.is-on {
+  background: #e59b3f14;
+  border-color: #e59b3f2e;
+  border-left-color: var(--stor-glow);
+}
+.stor-bond-head {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: 13px;
+  color: var(--stor-ink-dim);
+}
+.stor-bond.is-on .stor-bond-head {
+  color: var(--stor-ink);
+}
+.stor-bond-emoji {
+  flex: 0 0 auto;
+}
+.stor-bond-arcana {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--stor-ink-dim);
+  opacity: 0.7;
+}
+.stor-bond-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.stor-bond.is-on .stor-bond-count {
+  color: var(--stor-glow);
+}
+.stor-bond-next {
+  color: var(--stor-ink-dim);
+  opacity: 0.7;
+}
+.stor-bond-effect {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--stor-ink-dim);
+}
+.stor-bond.is-on .stor-bond-effect {
+  color: var(--stor-glow-deep, var(--stor-ink));
+}
+
+/* 名册上的「上阵」标记 —— 羁绊只算上阵角色, 这个标记是那条规则的唯一提示 */
+.stor-roster-tag {
+  margin-left: 7px;
+  padding: 1px 5px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--stor-glow);
+  border: 1px solid #e59b3f4d;
+  border-radius: 2px;
+}
+
 /* ---- 按钮 ---- */
 .stor-btn {
   padding: 7px 15px;

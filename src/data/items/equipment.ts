@@ -1,6 +1,6 @@
 import type { ItemDef } from "../../items/types";
 
-export const EQUIPMENT_ITEM_DEFS: ItemDef[] = [
+const DEFS: ItemDef[] = [
   {
     id: "dawn-saber",
     name: "曙光军刀",
@@ -362,3 +362,10 @@ export const EQUIPMENT_ITEM_DEFS: ItemDef[] = [
     icon: "trinket",
   },
 ];
+
+// 本表 30 件全部掉落时 roll 一条随机羁绊词条(《羁绊设计概览.md》§2.1:
+// 普通武器/防具/饰品各提供 1 条随机羁绊; 稀有度**不**增加词条数量)。
+// ★ 在这里统一打标而不是逐条写 affinityRollable —— 这张表里每一件都是普通装备,
+//   逐条写 30 遍只会让「漏写一条」变成沉默的 bug(那件装备会永远不带词条)。
+//   日后若出现不给随机词条的装备(如羁绊饰品), 再改成逐条声明。
+export const EQUIPMENT_ITEM_DEFS: ItemDef[] = DEFS.map((d) => ({ ...d, affinityRollable: true }));

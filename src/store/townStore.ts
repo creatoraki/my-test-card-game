@@ -10,7 +10,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Card, Rarity, StatBlock } from "../engine";
 import { RULES, addStats, deckUpgradeCost, lowerMinSizeCost } from "../engine";
-import { CHARACTERS, getCharacter, getItemDef, makeCard, type CharacterDef } from "../data";
+import {
+  CHARACTERS,
+  getBondDef,
+  getCharacter,
+  getItemDef,
+  makeCard,
+  type CharacterDef,
+} from "../data";
 import { removeByUid } from "../items/inventory";
 import type { EquipSlot, ItemStack } from "../items/types";
 
@@ -97,6 +104,34 @@ export function equipModsOf(cs: CharacterState): EquipmentMods {
     }
   }
   return { flat, pct };
+}
+
+// 全队羁绊计数(《羁绊设计概览.md》§2.1) —— 遍历**上阵队伍**的 9 个槽(3 角色 × 3 槽):
+//   def.affinity   = 羁绊饰品的固定羁绊(本期尚无这类数据, 但先支持, 免得日后要改两处)
+//   stack.affinity = 掉落时 roll 出的随机羁绊
+// 两者都算数, 因此一件羁绊饰品日后可以同时贡献两条。
+// ⚠ 只算**上阵**角色 —— 羁绊是队伍构筑, 躺在冬眠仓里的人穿再多也不作数。
+// ⚠ 现算不存储, 与 equipModsOf 同理: 存一份必然会与 equipped 对不上。
+export function bondCountsOf(
+  characters: Record<string, CharacterState>,
+  party: string[],
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  const bump = (id: string | undefined) => {
+    // getBondDef 返回 undefined = 已下线的羁绊 id(旧存档残留), 静默跳过
+    if (id && getBondDef(id)) out[id] = (out[id] ?? 0) + 1;
+  };
+  for (const charId of party) {
+    const cs = characters[charId];
+    if (!cs) continue;
+    for (const slot of EQUIP_SLOTS) {
+      const st = cs.equipped?.[slot];
+      if (!st) continue;
+      bump(getItemDef(st.itemId).affinity);
+      bump(st.affinity);
+    }
+  }
+  return out;
 }
 
 export function deriveStats(cs: CharacterState): StatBlock {
@@ -381,8 +416,9 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
-    // ⚠ v4: 加入物资中转仓(storage)与三装备槽(CharacterState.equipped 取代了旧的 equipment
-    //   修正层空壳)。项目不做旧存档兼容, 换 key 让旧档自然失效重建, 比写 migrate 省事。
-    { name: "town-profile-v4", version: 4 },
+    // ⚠ v5: 装备实例开始带随机羁绊词条(ItemStack.affinity)。v4 的存量装备一条词条都没有,
+    //   留着会让羁绊面板恒为 0 且看不出原因。项目不做旧存档兼容, 换 key 让旧档自然失效重建。
+    //   (v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
+    { name: "town-profile-v5", version: 5 },
   ),
 );

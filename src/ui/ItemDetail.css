@@ -119,6 +119,48 @@
   color: var(--bad);
 }
 
+/* 羁绊词条 —— 刻意用 accent 描边框起来: 同一件装备的属性人人都有,
+   词条才是构筑里真正要挑的那一项, 得比属性表更抢眼。 */
+.item-detail-bond {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 3px;
+}
+.item-detail-bond-head {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  margin: 0;
+  font-size: 13px;
+}
+.item-detail-bond-emoji {
+  flex: none;
+}
+.item-detail-bond-name {
+  color: var(--accent);
+}
+.item-detail-bond-arcana {
+  margin-left: 5px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.item-detail-bond-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.item-detail-bond-desc {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
 .item-detail-note {
   margin: 0;
   font-size: 11px;
