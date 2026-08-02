@@ -98,13 +98,13 @@ export function ShopScene({ leaving = false }: Props) {
   return (
     <div className={`shop-scene${leaving ? " is-leaving" : ""}`}>
       {/* ---- 店主立绘 ---- 纯装饰, 不接收点击; 贴画布左下, 避开右侧抽屉。 */}
-      <img
+      {/* <img
         className="shop-keeper"
         src={keeperArt}
         alt=""
         draggable={false}
         style={{ left: "96px", bottom: "0px", height: "760px" }}
-      />
+      /> */}
 
       {/* ---- 左上: 场景标题 ---- */}
       <header className="shop-header" style={{ left: "56px", top: "42px" }}>

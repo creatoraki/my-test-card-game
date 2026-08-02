@@ -16,10 +16,9 @@ import { STAGE } from "./stage";
 import cryoBg from "../assets/场景/冬眠仓.png";
 import trainingBg from "../assets/场景/训练室.png";
 import worklogBg from "../assets/场景/控制终端.png";
-// ⚠ 临时素材: 物资中转仓与商店都还没有专属场景图, 先用 16:9 的场景占位素材。
-//   专属图到位后只改这一行的 import 即可(两处共用同一张, 故各起一个别名)。
+// ⚠ 临时素材: 物资中转仓还没有专属场景图, 先用 16:9 的场景占位素材。
 import storageBg from "../assets/占位场景素材.png";
-import shopBg from "../assets/占位场景素材.png";
+import shopBg from "../assets/场景/商店.png";
 
 // ── 设施场景登记处 ──
 // 加一个设施 = 这里加一行数据(背景图 + 焦点 + 倍数), 组件一行都不用动。
