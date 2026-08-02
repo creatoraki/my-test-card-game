@@ -18,8 +18,8 @@
   padding: 4px 3px;
 
   color: var(--rr); /* ★ 图标靠 currentColor 吃这一行, 于是自动染上稀有度色 */
-  background: linear-gradient(160deg, var(--rg), transparent 62%), var(--panel);
-  border: 1px solid var(--rr);
+  background: linear-gradient(160deg, var(--rg), transparent 62%);
+  border: 1px solid transparent;
   border-radius: 3px;
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
 
@@ -32,13 +32,6 @@
 
 .item-slot:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 0 1px var(--rr) inset;
-}
-
-.item-slot.is-selected {
-  box-shadow:
-    0 0 0 1px var(--rr) inset,
-    0 0 14px var(--rg);
 }
 
 /* 分类 tab 未命中: 压暗但保留格子, 空间感不丢 */
@@ -69,18 +62,7 @@
   --rg: var(--rarity-legendary-glow);
 }
 
-/* 边框语言逐档加码: 普通只有细边 → 精良加内描边 → 稀有起加外发光 →
-   史诗/传说再加左上角的切角三角标。用「层数」而不是「亮度」区分, 远看也读得出档次。 */
-.item-slot.r-fine {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--rr) 35%, transparent) inset;
-}
-.item-slot.r-rare,
-.item-slot.r-epic,
-.item-slot.r-legendary {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--rr) 45%, transparent) inset,
-    0 0 10px var(--rg);
-}
+/* 史诗/传说保留左上角的稀有度标记, 物品格边框仅在交互状态显示。 */
 .item-slot.r-epic::before,
 .item-slot.r-legendary::before {
   content: "";
@@ -89,6 +71,16 @@
   left: 0;
   border-top: 9px solid var(--rr);
   border-right: 9px solid transparent;
+}
+
+.item-slot:hover {
+  border-color: var(--rr);
+  box-shadow: none;
+}
+
+.item-slot.is-selected {
+  border-color: var(--accent);
+  box-shadow: none;
 }
 
 /* ── 内容 ── */
@@ -134,6 +126,30 @@
   line-height: 1;
   text-shadow: 0 0 4px #000;
   pointer-events: none;
+}
+
+/* 商店货架: 只保留图标, 尺寸固定, 不随格子剩余空间压缩。 */
+.item-slot.is-icon-only {
+  flex: 0 0 auto;
+  width: 124px;
+  height: 124px;
+  padding: 0;
+}
+.item-slot.is-icon-only .item-slot-icon {
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+}
+.item-slot.is-icon-only .item-slot-icon svg,
+.item-slot.is-icon-only .item-slot-icon img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+.item-slot.is-icon-only .item-slot-name,
+.item-slot.is-icon-only .item-slot-bond,
+.item-slot.is-icon-only .item-slot-count {
+  display: none;
 }
 
 /* ── 空格 / 死格 ── */
