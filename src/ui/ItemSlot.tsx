@@ -3,7 +3,7 @@
 // 稀有度配色读 styles/tokens.css 的 --rarity-* 令牌, 组件里不硬编码颜色。
 
 import type { ItemStack } from "../items/types";
-import { getItemDef } from "../data";
+import { getBondDef, getItemDef } from "../data";
 import { itemIcon } from "./itemArt";
 import "./ItemSlot.css";
 
@@ -18,6 +18,9 @@ interface Props {
 
 export default function ItemSlot({ stack, selected, dimmed, onClick }: Props) {
   const def = getItemDef(stack.itemId);
+  // 羁绊词条角标 —— 装备调配页要在一堆候选里挑"缺的那一条羁绊",
+  // 每件都点开看详情太慢, 所以在格子上直接露出词条的 emoji。
+  const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
   const cls = [
     "item-slot",
     `r-${def.rarity}`,
@@ -28,10 +31,16 @@ export default function ItemSlot({ stack, selected, dimmed, onClick }: Props) {
     .join(" ");
 
   return (
-    <button type="button" className={cls} onClick={onClick} title={def.name}>
+    <button
+      type="button"
+      className={cls}
+      onClick={onClick}
+      title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
+    >
       <span className="item-slot-icon">{itemIcon(def)}</span>
       <span className="item-slot-name">{def.name}</span>
       {stack.count > 1 && <span className="item-slot-count">{stack.count}</span>}
+      {bond && <span className="item-slot-bond">{bond.emoji}</span>}
     </button>
   );
 }

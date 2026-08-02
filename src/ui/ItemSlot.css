@@ -124,6 +124,17 @@
   text-shadow: 0 0 4px #000;
 }
 
+/* 羁绊词条角标 —— 放左上角, 与右下角的数量角标错开互不遮挡 */
+.item-slot-bond {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  font-size: 10px;
+  line-height: 1;
+  text-shadow: 0 0 4px #000;
+  pointer-events: none;
+}
+
 /* ── 空格 / 死格 ── */
 .item-slot.is-empty {
   cursor: default;
