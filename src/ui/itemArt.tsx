@@ -1,8 +1,7 @@
 // ============================================================================
 // 物品图标查找表 —— 与 enemyArt.ts / cardArt.ts 同约定: 数据层不碰素材, UI 层查表。
 //
-// ★ 全部是**内联线框 SVG**, 不用图片也不用 emoji:
-//   · src/assets/道具/ 目前只有一张法力水晶.png, 没有物品美术资源;
+// ★ 没有专属美术的物品继续使用内联线框 SVG, 已登记美术资源的物品优先显示图片:
 //   · emoji 在 Windows 上会渲染成彩色贴纸, 和暗色科技风冲突(与 TownScreen/CryoScene 同结论)。
 //
 // ★ 全部用 stroke="currentColor" ⇒ 颜色由父级 .item-slot 的 color: var(--rr) 决定,
@@ -12,6 +11,32 @@
 
 import type { ReactNode } from "react";
 import type { ItemCategory, ItemDef } from "../items/types";
+import deflectionBladeArt from "../assets/道具/装备/武器/偏折盾刃.png";
+import crossSwordArt from "../assets/道具/装备/武器/十字剑.png";
+import dawnSaberArt from "../assets/道具/装备/武器/曙光军刀.png";
+import huntingRifleArt from "../assets/道具/装备/武器/猎杀步枪.png";
+import glassDaggerArt from "../assets/道具/装备/武器/玻璃匕首.png";
+import armorPiercingCrossbowArt from "../assets/道具/装备/武器/穿甲弩.png";
+import quickstrikeGauntletArt from "../assets/道具/装备/武器/迅击拳套.png";
+import hunterLongbowArt from "../assets/道具/装备/武器/追猎长弓.png";
+import heavyCannonArt from "../assets/道具/装备/武器/重型火炮.png";
+import shockMaulArt from "../assets/道具/装备/武器/震荡重锤.png";
+import medicalKitArt from "../assets/道具/消耗品/医疗包.png";
+import holyWaterArt from "../assets/道具/消耗品/圣水.png";
+import fruitJuiceArt from "../assets/道具/消耗品/果汁.png";
+import sugarCubeArt from "../assets/道具/消耗品/糖块.png";
+import batteryArt from "../assets/道具/材料/通用材料/电池.png";
+import cubeArt from "../assets/道具/材料/通用材料/魔方.png";
+import gearArt from "../assets/道具/材料/通用材料/齿轮.png";
+import lightGuideFilmArt from "../assets/道具/材料/废弃楼层/光导薄膜.png";
+import coolingMicrocrystalArt from "../assets/道具/材料/废弃楼层/冷却微晶.png";
+import sortingIdChipArt from "../assets/道具/材料/废弃楼层/分拣识别片.png";
+import conductiveInkArt from "../assets/道具/材料/废弃楼层/导电印墨.png";
+import packagingGelArt from "../assets/道具/材料/废弃楼层/封装凝胶.png";
+import broadcastTuningChipArt from "../assets/道具/材料/废弃楼层/广播校频片.png";
+import breakerCeramicCoreArt from "../assets/道具/材料/废弃楼层/断路陶芯.png";
+import magRailLiningArt from "../assets/道具/材料/废弃楼层/磁轨衬层.png";
+import highVoltageInsulatorArt from "../assets/道具/材料/废弃楼层/高压绝缘节.png";
 
 const VB = "0 0 48 48";
 const base = {
@@ -107,7 +132,48 @@ const BY_CATEGORY: Record<ItemCategory, string> = {
   consumable: "consumable",
 };
 
+const EQUIPMENT_ART: Record<string, string> = {
+  "dawn-saber": dawnSaberArt,
+  "armor-piercing-crossbow": armorPiercingCrossbowArt,
+  "hunting-rifle": huntingRifleArt,
+  "quickstrike-gauntlet": quickstrikeGauntletArt,
+  "shock-maul": shockMaulArt,
+  "cross-sword": crossSwordArt,
+  "glass-dagger": glassDaggerArt,
+  "heavy-cannon": heavyCannonArt,
+  "hunter-longbow": hunterLongbowArt,
+  "deflection-blade": deflectionBladeArt,
+};
+
+const CONSUMABLE_ART: Record<string, string> = {
+  "sugar-cube": sugarCubeArt,
+  "medical-kit": medicalKitArt,
+  "holy-water": holyWaterArt,
+  "fruit-juice": fruitJuiceArt,
+};
+
+const MATERIAL_ART: Record<string, string> = {
+  "logic-cube": cubeArt,
+  "standard-gear": gearArt,
+  "standard-battery": batteryArt,
+  "breaker-ceramic-core": breakerCeramicCoreArt,
+  "cooling-microcrystal": coolingMicrocrystalArt,
+  "light-guide-film": lightGuideFilmArt,
+  "packaging-gel": packagingGelArt,
+  "conductive-ink": conductiveInkArt,
+  "mag-rail-lining": magRailLiningArt,
+  "sorting-id-chip": sortingIdChipArt,
+  "high-voltage-insulator": highVoltageInsulatorArt,
+  "broadcast-tuning-chip": broadcastTuningChipArt,
+};
+
 export function itemIcon(def: ItemDef): ReactNode {
+  const art =
+    EQUIPMENT_ART[def.id] ??
+    (def.familyId ? CONSUMABLE_ART[def.familyId] : undefined) ??
+    MATERIAL_ART[def.id];
+  if (art) return <img src={art} alt="" />;
+
   const key = def.icon ?? BY_CATEGORY[def.category];
   const Icon = ICONS[key] ?? ICONS[BY_CATEGORY[def.category]];
   return <Icon />;

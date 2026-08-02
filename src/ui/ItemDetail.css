@@ -55,7 +55,8 @@
   color: var(--rr);
   line-height: 0;
 }
-.item-detail-icon svg {
+.item-detail-icon svg,
+.item-detail-icon img {
   width: 100%;
   height: auto;
   display: block;

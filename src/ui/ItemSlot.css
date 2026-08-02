@@ -97,7 +97,8 @@
   width: 46%;
   line-height: 0;
 }
-.item-slot-icon svg {
+.item-slot-icon svg,
+.item-slot-icon img {
   width: 100%;
   height: auto;
   display: block;
