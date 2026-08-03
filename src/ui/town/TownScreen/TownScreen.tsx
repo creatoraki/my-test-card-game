@@ -59,7 +59,7 @@ import { ControlTerminalScene } from "@/ui/town/terminal/ControlTerminalScene";
 import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { StorageScene } from "@/ui/town/storage/StorageScene";
-import townBg from "@/assets/场景/大厅.png";
+import { TOWN_BG_ART } from "@/ui/art/sceneArt";
 import s from "./TownScreen.module.css";
 
 // ===================== 设施图标 =====================
@@ -422,7 +422,7 @@ export function TownScreen() {
             {/* 背景层: 2560×1440 的大厅场景图, 与画布同为 16:9 ⇒ cover 只等比缩小, 无裁切无变形。
                 ⚠ 相机变换直接下在这两个元素身上 —— 刻意不套包装层, 否则玻璃砖的 backdrop-filter
                 取不到背景(见 TownScreen.css 顶部的警告)。 */}
-            <img className={s["town-bg"]} src={townBg} alt="" draggable={false} />
+            <img className={s["town-bg"]} src={TOWN_BG_ART} alt="" draggable={false} />
             {/* 压暗层: 纯装饰, 让毛玻璃砖与角落文字读得清。 */}
             <div className={s["town-veil"]} />
           </>

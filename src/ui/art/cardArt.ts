@@ -14,6 +14,8 @@ export const CARD_ART: Record<string, string> = {
   "botanist-basic-attack": placeholderArt,
 };
 
+export const CARD_ART_SOURCES: readonly string[] = [...new Set(Object.values(CARD_ART))];
+
 // 取某卡的美术大图 URL(无图返回 undefined)。
 export function cardArt(cardId: string): string | undefined {
   return CARD_ART[cardId];

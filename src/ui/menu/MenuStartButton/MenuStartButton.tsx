@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import startGameImg from "@/assets/场景/开始游戏.png";
+import { START_GAME_ART } from "@/ui/art/sceneArt";
 import s from "./MenuStartButton.module.css";
 
 /**
@@ -78,6 +78,7 @@ function sparkStyle(burstIndex: number, particleIndex: number): CSSProperties {
 
 interface Props {
   onClick: () => void;
+  disabled?: boolean;
   /** 距画布右边距离(设计 px)。位置/大小旋钮由 MenuScreen 内联下发, 与 .menu-title 同款分工。 */
   right: string;
   /** 距画布底部距离(设计 px) */
@@ -86,13 +87,15 @@ interface Props {
   width: string;
 }
 
-export function MenuStartButton({ onClick, right, bottom, width }: Props) {
+export function MenuStartButton({ onClick, disabled = false, right, bottom, width }: Props) {
   return (
     // 用 <button> 而不是过去的 <img onClick>: 顺带拿到键盘可达性(Tab 聚焦 / 回车触发)。
     // --start-mask 同时供 .menu-start-motes 与 .menu-start-rim 使用。
     <button
+      type="button"
       className={s["menu-start"]}
       onClick={onClick}
+      disabled={disabled}
       aria-label="开始游戏"
       style={
         {
@@ -101,11 +104,11 @@ export function MenuStartButton({ onClick, right, bottom, width }: Props) {
           width,
           // ⚠ url() 里必须带引号: 素材路径含中文, Vite 打包后会变成 % 转义的形式,
           //   不加引号的 url() token 对这些字符的容错很差。
-          "--start-mask": `url("${startGameImg}")`,
+          "--start-mask": `url("${START_GAME_ART}")`,
         } as CSSProperties
       }
     >
-      <img className={s["menu-start-img"]} src={startGameImg} alt="" draggable={false} />
+      <img className={s["menu-start-img"]} src={START_GAME_ART} alt="" draggable={false} />
 
       {/* 1) 内部光尘: 被牌匾形状裁死, 粒子只在图片内部活动 */}
       <span className={s["menu-start-motes"]} aria-hidden>

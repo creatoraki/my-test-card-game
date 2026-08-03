@@ -103,7 +103,11 @@ src/ui/
 | [art/eventArt.ts](../../src/ui/art/eventArt.ts) | 探索事件素材查表。 |
 | [art/slotArt.ts](../../src/ui/art/slotArt.ts) | 战斗签符号卡面查表。 |
 | [art/vfxSprites.ts](../../src/ui/art/vfxSprites.ts) | 命中特效序列帧 URL 列表和预热。 |
+| [art/sceneArt.ts](../../src/ui/art/sceneArt.ts) | 菜单、大厅、设施和商店直接使用的场景/界面素材登记。 |
+| [art/assetLoader.ts](../../src/ui/art/assetLoader.ts) | 可复用的图片下载/解码与视频首帧预加载器；按 URL 缓存并持有预热对象。 |
+| [art/assetPreloader.ts](../../src/ui/art/assetPreloader.ts) | 游戏启动时的实际美术资源清单、去重、进度和失败收口；不扫描未引用的 `assets` 文件。 |
 | [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |
+| [hooks/useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 将启动预加载状态接入 React 外部 store；主菜单等待所有资源任务 settle 后开放入口。 |
 | [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布和等比 letterbox 缩放。画布内不使用 `vw` / `vh` 或窗口断点。 |
 | [hooks/useCountUp.ts](../../src/ui/hooks/useCountUp.ts) | rAF 数值滚动；起点走 ref，减少动态效果下直接使用终值。 |
 | [hooks/useIdleTwitch.ts](../../src/ui/hooks/useIdleTwitch.ts) | 低频随机敌人待机小动作，只存在于 UI 局部状态。 |

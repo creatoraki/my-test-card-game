@@ -37,6 +37,10 @@ const CHARACTER_ART: Record<string, CharacterArtDef> = {
   botanist: { src: botanistPortrait, bustScale: 1.35, dy: -20 },
 };
 
+export const CHARACTER_ART_SOURCES: readonly string[] = [...new Set(
+  Object.values(CHARACTER_ART).map((def) => def.src),
+)];
+
 interface Props {
   characterId?: string;
   emoji: string;

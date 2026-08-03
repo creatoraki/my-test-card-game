@@ -11,6 +11,8 @@ const EVENT_ART: Record<NodeEventKind, string> = {
   hazard: placeholderArt,
 };
 
+export const EVENT_ART_SOURCES: readonly string[] = [...new Set(Object.values(EVENT_ART))];
+
 export function eventArt(kind: NodeEventKind): string {
   return EVENT_ART[kind];
 }

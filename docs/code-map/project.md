@@ -12,6 +12,9 @@
 | [src/App.tsx](../../src/App.tsx) | 顶层路由：读取 `runStore.screen`，将界面映射为组件，并交给 `ScreenTransition` 渲染。抽出 `renderScreen` 是为了过场期间继续渲染旧界面。 |
 | `scripts/` | 开发辅助脚本，不承载游戏规则。 |
 
+启动时的美术资源预加载由 `App.tsx` 触发，资源 URL 必须登记在 `ui/art` 的对应查表或 `sceneArt.ts` 中。
+图片任务等待下载和解码完成；视频任务只等待首帧可用，浏览器是否继续下载完整文件由 `preload="auto"` 和网络策略决定。
+
 依赖入口：`main.tsx` → `App.tsx` → `runStore` / UI 页面；`main.tsx` 同时是全局样式入口。业务规则不应写入入口文件。
 
 ## 相关设计文档

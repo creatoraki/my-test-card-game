@@ -4,6 +4,7 @@ import birdIdleStrip from "@/assets/敌人立绘/怪异的鸟/idle-strip.png";
 import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle-cut.png";
 import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle-cut.png";
 import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle-cut.png";
+import { preloadImage } from "@/ui/art/assetLoader";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
 // 注意这与 animations.ts 的 SpritePreset 是两套并列机制: 那套是逐帧独立图、播一次即停的
@@ -102,7 +103,10 @@ export function enemyArt(defId: string): EnemySpriteDef | undefined {
   return ENEMY_ART[defId];
 }
 
-const held: HTMLImageElement[] = []; // 持有引用, 避免解码结果被 GC
+export const ENEMY_ART_SOURCES: readonly string[] = [...new Set(
+  Object.values(ENEMY_ART).map((def) => def.src),
+)];
+
 let warmed = false;
 
 // 预热: strip 单文件约 640KB, 远超 Vite 4KB 内联阈值 → 独立请求, 不预热则进战斗首帧空白。
@@ -110,10 +114,5 @@ let warmed = false;
 export function warmEnemyArt(): void {
   if (warmed) return;
   warmed = true;
-  for (const def of Object.values(ENEMY_ART)) {
-    const img = new Image();
-    img.src = def.src;
-    void img.decode().catch(() => {}); // 解码失败不阻断渲染
-    held.push(img);
-  }
+  for (const src of ENEMY_ART_SOURCES) void preloadImage(src).catch(() => {});
 }

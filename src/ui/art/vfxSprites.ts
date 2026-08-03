@@ -12,6 +12,7 @@ import f08 from "@/assets/特效/魔剑坠落/0006_08.png";
 import f09 from "@/assets/特效/魔剑坠落/0006_09.png";
 import f10 from "@/assets/特效/魔剑坠落/0006_10.png";
 import f11 from "@/assets/特效/魔剑坠落/0006_11.png";
+import { preloadImage } from "@/ui/art/assetLoader";
 
 // 魔剑坠落: 12 帧, 每帧 243×583(竖长)。
 // 构图: 00-02 凝聚 → 03-05 下坠砸地爆发 → 06-11 消散。冲击点在帧内纵向约 82% 处。
@@ -20,9 +21,8 @@ export const SWORD_FALL_FRAMES: readonly string[] = [
 ];
 
 // 全部序列帧素材(预热用)。新增特效时把新的帧数组并进来。
-const ALL_SPRITE_FRAMES: readonly string[] = [...SWORD_FALL_FRAMES];
+export const ALL_SPRITE_FRAMES: readonly string[] = [...SWORD_FALL_FRAMES];
 
-const held: HTMLImageElement[] = []; // 持有引用, 避免解码结果被 GC
 let warmed = false;
 
 // 预热: 12 帧共约 425KB, 均超 Vite 4KB 内联阈值 → 会是 12 个独立请求,
@@ -30,10 +30,5 @@ let warmed = false;
 export function warmVfxSprites(): void {
   if (warmed) return;
   warmed = true;
-  for (const src of ALL_SPRITE_FRAMES) {
-    const img = new Image();
-    img.src = src;
-    void img.decode().catch(() => {}); // 解码失败不阻断后续播放
-    held.push(img);
-  }
+  for (const src of ALL_SPRITE_FRAMES) void preloadImage(src).catch(() => {});
 }

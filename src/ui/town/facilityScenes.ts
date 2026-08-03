@@ -13,12 +13,14 @@
 // ============================================================================
 
 import { STAGE } from "@/ui/hooks/stage";
-import cryoBg from "@/assets/场景/冬眠仓.png";
-import trainingBg from "@/assets/场景/训练室.png";
-import worklogBg from "@/assets/场景/控制终端.png";
-// ⚠ 临时素材: 物资中转仓还没有专属场景图, 先用 16:9 的场景占位素材。
-import storageBg from "@/assets/占位场景素材.png";
-import shopBg from "@/assets/场景/商店.png";
+import { preloadImage } from "@/ui/art/assetLoader";
+import {
+  CRYO_BG_ART,
+  SHOP_BG_ART,
+  STORAGE_BG_ART,
+  TRAINING_BG_ART,
+  WORKLOG_BG_ART,
+} from "@/ui/art/sceneArt";
 
 // ── 设施场景登记处 ──
 // 加一个设施 = 这里加一行数据(背景图 + 焦点 + 倍数), 组件一行都不用动。
@@ -31,24 +33,23 @@ export interface FacilityScene {
 
 export const FACILITY_SCENES: Record<string, FacilityScene> = {
   // 冬眠仓在大厅画面的左下: 焦点取「左 10% / 距底 40%」。
-  cryo: { bg: cryoBg, focus: { x: 192, y: 648 }, scale: 1.8 },
+  cryo: { bg: CRYO_BG_ART, focus: { x: 192, y: 648 }, scale: 1.8 },
   // 训练室取右侧的对称位。★ 构图不满意就改这两个数, 别去动组件或 CSS。
-  training: { bg: trainingBg, focus: { x: 1128, y: 148 }, scale: 1.8 },
+  training: { bg: TRAINING_BG_ART, focus: { x: 1128, y: 148 }, scale: 1.8 },
   // 控制终端对准大厅右侧二层平台下那排蓝色屏幕(霓虹招牌下方的控制台)。
   // 与另外两处刻意分居画面三个不同区域, 三段运镜才不会看着像同一个镜头。
-  worklog: { bg: worklogBg, focus: { x: 1360, y: 620 }, scale: 1.8 },
+  worklog: { bg: WORKLOG_BG_ART, focus: { x: 1360, y: 620 }, scale: 1.8 },
   // 物资中转仓取大厅左上那片货架/管线区 —— 与另外三处分居四个不同象限,
   // 四段运镜才不会看着像同一个镜头。
-  storage: { bg: storageBg, focus: { x: 430, y: 200 }, scale: 1.8 },
+  storage: { bg: STORAGE_BG_ART, focus: { x: 430, y: 200 }, scale: 1.8 },
   // 商店取**画面正中偏下**: 另外四处已经把四个象限占满, 第五段运镜必须落在剩下的那块
   // 中央区域, 否则读起来就是在重复某一段镜头。
   // (scale 1.8 下的钳制安全区是 x∈[533,1387]、y∈[300,780], 这个焦点不触边, 镜头不会贴边停。)
-  shop: { bg: shopBg, focus: { x: 860, y: 740 }, scale: 1.8 },
+  shop: { bg: SHOP_BG_ART, focus: { x: 860, y: 740 }, scale: 1.8 },
 };
 
 export const hasFacilityScene = (id: string): boolean => id in FACILITY_SCENES;
 
-const held: HTMLImageElement[] = []; // 持有引用, 避免解码结果被 GC
 let warmed = false;
 
 // 预热: 设施背景约 2.6~2.9MB, 远超 Vite 的内联阈值 ⇒ 各是一个独立请求。不预热的话, 运镜
@@ -58,9 +59,7 @@ export function warmFacilityBg(): void {
   if (warmed) return;
   warmed = true;
   for (const scene of Object.values(FACILITY_SCENES)) {
-    const img = new Image();
-    img.src = scene.bg;
-    held.push(img);
+    void preloadImage(scene.bg).catch(() => {});
   }
 }
 

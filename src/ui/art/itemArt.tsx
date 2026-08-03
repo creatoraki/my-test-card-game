@@ -219,6 +219,12 @@ const MATERIAL_ART: Record<string, string> = {
   "broadcast-tuning-chip": broadcastTuningChipArt,
 };
 
+export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
+  ...Object.values(EQUIPMENT_ART),
+  ...Object.values(CONSUMABLE_ART),
+  ...Object.values(MATERIAL_ART),
+])];
+
 export function itemIcon(def: ItemDef): ReactNode {
   const art =
     EQUIPMENT_ART[def.id] ??

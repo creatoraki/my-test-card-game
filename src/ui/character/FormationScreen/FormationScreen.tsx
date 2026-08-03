@@ -31,7 +31,7 @@ import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
 import { useStageScale } from "@/ui/hooks/stage";
 import { takeSharedPortrait } from "@/ui/character/sharedPortrait";
-import fmBg from "@/assets/场景/冬眠仓.png";
+import { CRYO_BG_ART } from "@/ui/art/sceneArt";
 import s from "./FormationScreen.module.css";
 
 // 错峰入场的序号。CSS 用 --i 算 animation-delay(见 .fm-card 那条), 这里只负责把序号递给样式层。
@@ -110,7 +110,7 @@ export function FormationScreen() {
             因此完全看不见。"底图不动、只有元素重组"就是这么来的。 */}
       <div className={cx(s["screen"], s["fm-stage"], landingId && s["is-vt-enter"])}>
         {/* 背景: 冬眠仓那张 16:9 场景图, 与画布同比例 ⇒ cover 只等比缩小, 无裁切无变形。 */}
-        <img className={s["fm-bg"]} src={fmBg} alt="" draggable={false} />
+        <img className={s["fm-bg"]} src={CRYO_BG_ART} alt="" draggable={false} />
         {/* 提亮层: 背景本身是浅色紫粉白, 这里再往白里推一档, 给玻璃卡挣出对比度。
             ⚠ 不是压暗层 —— 压暗会毁掉这张图的气质(与 CryoScene 同一条取舍)。 */}
         <div className={s["fm-veil"]} />

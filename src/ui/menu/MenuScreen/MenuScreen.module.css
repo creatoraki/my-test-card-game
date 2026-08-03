@@ -162,6 +162,22 @@
   user-select: none;
 }
 
+/* 预加载状态: 与开始按钮共享右下定位参照, 不参与画布布局。 */
+.menu-load-status {
+  position: absolute;
+  right: 220px;
+  bottom: 278px;
+  z-index: 2;
+  width: 220px;
+  margin: 0;
+  color: #b8cbc6;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  text-shadow: 0 1px 6px #000;
+  pointer-events: none;
+}
+
 @media (max-width: 720px) {
   .party-preview {
     flex-wrap: wrap;

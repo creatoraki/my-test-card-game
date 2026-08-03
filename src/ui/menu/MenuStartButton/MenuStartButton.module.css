@@ -28,7 +28,7 @@
   /* ⚠ --fx 必须经 @property 注册为 <number> 才能过渡(见下), 否则悬停会是硬跳 */
   transition: --fx 0.28s ease;
 }
-.menu-start:hover {
+.menu-start:hover:not(:disabled) {
   --fx: 1; /* ← 悬停强度 */
   /* ← 悬停转速。圈/秒 = 1 ÷ 本值。参考: 0.5s=2 圈/秒(亮楔看得清在跑) …… 0.05s=20 圈/秒
      (60fps 下约 3 帧一圈, 单道亮楔已经跟不住, 会被视觉积分成一整圈匀亮的灯管)。 */
@@ -75,11 +75,11 @@
   filter: drop-shadow(0 6px 16px #000a);
   transition: filter 0.28s ease, transform 0.12s ease-out;
 }
-.menu-start:hover .menu-start-img {
+.menu-start:hover:not(:disabled) .menu-start-img {
   filter: drop-shadow(0 6px 16px #000a) brightness(1.07) saturate(1.12);
 }
 /* 按下: 极轻微下压, 保留实体触感。被否掉的是**悬停**放大, 点击反馈照留。 */
-.menu-start:active .menu-start-img {
+.menu-start:active:not(:disabled) .menu-start-img {
   transform: scale(0.985);
 }
 
@@ -237,9 +237,19 @@
   width: 1px;
   height: 1px;
 }
-.menu-start:hover .menu-start-sparks {
+.menu-start:hover:not(:disabled) .menu-start-sparks {
   opacity: 1;
   transition-duration: 0.12s;
+}
+
+.menu-start:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+.menu-start:disabled .menu-start-motes,
+.menu-start:disabled .menu-start-rim,
+.menu-start:disabled .menu-start-sparks {
+  display: none;
 }
 /* 一颗火花 = 一道细长拖尾, 不是圆点: 圆点在喷射时读不出方向感。
    --srot 把拖尾转到和位移同一个方向, 于是渐变的"亮头"永远朝外(90deg = 元素自身 +x 轴)。

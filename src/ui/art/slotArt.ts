@@ -29,6 +29,8 @@ const SLOT_ART: Record<string, string> = {
   "sbs-scrapheap": placeholderArt,
 };
 
+export const SLOT_ART_SOURCES: readonly string[] = [...new Set(Object.values(SLOT_ART))];
+
 // 未登记的符号回落到占位图 —— 新增符号时忘了配美术不该让整条转轮开天窗。
 export function slotArt(symbolId: string): string {
   return SLOT_ART[symbolId] ?? placeholderArt;

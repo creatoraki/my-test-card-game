@@ -8,7 +8,7 @@
 // 图标仍靠 stroke="currentColor" 吃父级 color(= --sx-rr), 一套图标覆盖五档稀有度。
 
 import { getBondDef, getItemDef } from "@/data";
-import productTrayArt from "@/assets/道具/商品托盘.png";
+import { PRODUCT_TRAY_ART } from "@/ui/art/sceneArt";
 import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
 import { cx } from "@/ui/common/cx";
@@ -59,7 +59,7 @@ export default function ShopItemTile({
       onBlur={onBlur}
       title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
     >
-      <img className={s["sx-tile-tray"]} src={productTrayArt} alt="" aria-hidden="true" />
+      <img className={s["sx-tile-tray"]} src={PRODUCT_TRAY_ART} alt="" aria-hidden="true" />
       <span className={s["sx-tile-icon"]}>{itemIcon(def)}</span>
     </button>
   );

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useRunStore, type Screen } from "./store/runStore";
 import { ScreenTransition } from "@/ui/app/ScreenTransition";
 import { MenuScreen } from "@/ui/menu/MenuScreen";
@@ -8,6 +9,7 @@ import { ExploreScreen } from "@/ui/explore/ExploreScreen";
 import { BattleScreen } from "@/ui/battle/BattleScreen";
 import { ExpRewardScreen } from "@/ui/result/ExpRewardScreen";
 import { EndScreen } from "@/ui/result/EndScreen";
+import { startGameAssetPreload } from "@/ui/art/assetPreloader";
 
 // 界面 → 组件。抽成纯函数是为了让 ScreenTransition 能在出场期间继续渲染「旧」界面。
 function renderScreen(screen: Screen) {
@@ -34,6 +36,9 @@ function renderScreen(screen: Screen) {
 }
 
 export default function App() {
+  useEffect(() => {
+    void startGameAssetPreload();
+  }, []);
   const screen = useRunStore((s) => s.screen);
   return <ScreenTransition screen={screen} render={renderScreen} />;
 }

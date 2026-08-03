@@ -21,7 +21,7 @@ import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { useStageScale } from "@/ui/hooks/stage";
 import { setSharedPortrait } from "@/ui/character/sharedPortrait";
-import cdBg from "@/assets/场景/冬眠仓.png";
+import { CRYO_BG_ART } from "@/ui/art/sceneArt";
 import s from "./CharacterDetailScreen.module.css";
 
 // ===================== 属性表 =====================
@@ -149,7 +149,7 @@ export function CharacterDetailScreen() {
       {/* ⚠ 背景刻意**不挂 view-transition-name**: 与编队页是同一张冬眠仓.png ⇒ 落进 root 快照,
           两页那片区域像素一致, 默认交叉淡化因此完全看不见 —— 这就是"底图不动"的来源。 */}
       <div className={cx(s["screen"], s["cd-stage"])}>
-        <img className={s["cd-bg"]} src={cdBg} alt="" draggable={false} />
+        <img className={s["cd-bg"]} src={CRYO_BG_ART} alt="" draggable={false} />
         <div className={s["cd-veil"]} />
 
         {/* ---- 左上: 身份 ---- */}
