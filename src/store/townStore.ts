@@ -244,7 +244,7 @@ export const useTownStore = create<TownStore>()(
       characters: {},
       awakened: [],
       party: [],
-      loot: 0,
+      loot: 10000,
       storage: [],
       day: 1,
       shop: freshShop(1),
@@ -254,7 +254,7 @@ export const useTownStore = create<TownStore>()(
         if (get().initialized) return;
         set({
           ...freshProfile(),
-          loot: 0,
+          loot: 10000,
           storage: [],
           day: 1,
           shop: freshShop(1),
@@ -265,7 +265,7 @@ export const useTownStore = create<TownStore>()(
       resetProfile: () =>
         set({
           ...freshProfile(),
-          loot: 0,
+          loot: 10000,
           storage: [],
           day: 1,
           shop: freshShop(1),

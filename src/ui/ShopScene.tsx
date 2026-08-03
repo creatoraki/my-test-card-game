@@ -146,6 +146,37 @@ function ShelfRow({
   );
 }
 
+// 购买徽章 —— 价格**长在按钮里面**, 所以详情栏不再单列一行「售价 xxx 居民积分」:
+//   同一个数字出现两次会让玩家在两处之间来回确认, 反而变慢。
+// 三种态各自显式配色(见 .shop-buy.is-*), 不用整体 opacity 压暗 —— 价格必须始终读得清,
+// 尤其是「积分不足」时, 玩家要看的正是还差多少。
+function BuyBadge({
+  slot,
+  affordable,
+  onBuy,
+}: {
+  slot: ShopSlot;
+  affordable: boolean;
+  onBuy: (key: string) => void;
+}) {
+  const state = slot.sold ? "sold" : affordable ? "ready" : "poor";
+  const label = slot.sold ? "已售出" : affordable ? "购入" : "积分不足";
+
+  return (
+    <button
+      className={`shop-buy is-${state}`}
+      type="button"
+      disabled={slot.sold || !affordable}
+      onClick={() => onBuy(slot.key)}
+      aria-label={`${label}，售价 ${slot.price} 居民积分`}
+    >
+      <span className="shop-buy-rim" aria-hidden="true" />
+      <span className="shop-buy-label">{label}</span>
+      <strong className="shop-buy-price">{slot.price}</strong>
+    </button>
+  );
+}
+
 // ===================== 常驻面板: 补给货架 =====================
 function ShelfPanel({
   shop,
@@ -225,23 +256,7 @@ function ShelfPanel({
           stack={sel ? asStack(sel) : null}
           placeholder="选择一件商品查看详情。今天挑剩的，明天就换新货了。"
         >
-          {sel && (
-            <>
-              <p className="shop-price-line">
-                <span className="shop-price-label">售价</span>
-                <strong className="shop-price">{sel.price}</strong>
-                <span className="shop-price-unit">居民积分</span>
-              </p>
-              <button
-                className="shop-btn is-primary"
-                type="button"
-                disabled={sel.sold || !affordable}
-                onClick={() => onBuy(sel.key)}
-              >
-                {sel.sold ? "已售出" : affordable ? "买下" : "积分不足"}
-              </button>
-            </>
-          )}
+          {sel && <BuyBadge slot={sel} affordable={affordable} onBuy={onBuy} />}
         </ItemDetail>
       </div>
       <div className="shop-panel-foot">
