@@ -1,0 +1,60 @@
+/* 页签吊牌 WebGL 版的**外壳**样式 —— 牌面本身画在 canvas 里, 这里只管三件事:
+   canvas 的位置与外扩、透明命中按钮的布局盒、以及键盘焦点环。
+
+   ★ 布局盒仍是 ShopScene.css 的 .sx-tabrail(高度 / 负 margin / 透视补偿一个都没动),
+     命中按钮也仍是它的 flex 子项 —— 3D 那边**量的就是这两颗按钮的矩形**, 所以
+     --sx-vtab-h / --sx-rail-in / --sx-rail-top 改成什么, 牌子自动跟到哪。
+     ⇒ 尺寸真相点仍然只有 ShopScene.css 一处, 这个文件里不出现任何牌面尺寸。 */
+
+/* 立柱改由 WebGL 画(带辉光的发光杆), 关掉 CSS 版那条 2px 渐变线, 免得两根重叠。 */
+.sx-root .sx-tabrail.is-3d::before {
+  display: none;
+}
+
+/* canvas 绝对定位, 不参与 flex 排布。
+   ⚠ 四周必须**外扩**: 霓虹辉光要晕到牌面之外, 贴着布局盒裁会切出一道硬边。
+     右侧外扩最多 —— 那一侧越界的部分会被 .sx-panel 盖住(面板是后一个兄弟节点),
+     正好读作"牌根塞进了面板底下"。 */
+.sx-root .sx-tabrail.is-3d .sx-rail-gl {
+  position: absolute;
+  z-index: 0;
+  top: -70px;
+  right: -90px;
+  bottom: -90px;
+  left: -110px;
+  width: calc(100% + 200px);
+  height: calc(100% + 160px);
+  pointer-events: none;
+}
+
+/* 命中按钮: 完全透明, 只提供布局盒与交互。
+   ⚠ 尺寸必须与 .sx-vtab 一致 —— 它就是 3D 牌子的屏幕定位依据。 */
+.sx-root .sx-tabrail.is-3d .sx-vtab-hit {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 76px;
+  height: var(--sx-vtab-h);
+  flex: 0 0 auto;
+  pointer-events: auto;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* 键盘焦点必须看得见 —— 牌面在 canvas 里, DOM 这边只剩这一圈能提示"焦点在哪块牌上"。
+   :focus-visible 而不是 :focus: 鼠标点击不该留下框。 */
+.sx-root .sx-tabrail.is-3d .sx-vtab-hit:focus-visible {
+  outline: 2px solid var(--sx-glow-deep);
+  outline-offset: 3px;
+}
+
+/* 品类名对读屏器/搜索保留一份, 视觉上完全移除(牌面文字由 WebGL 画)。 */
+.sx-root .sx-tabrail.is-3d .sx-vtab-sr {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

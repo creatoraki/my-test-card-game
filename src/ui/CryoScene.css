@@ -54,7 +54,7 @@
 .cryo-kicker {
   display: block;
   color: var(--cryo-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 4px;
@@ -113,7 +113,7 @@
 }
 .cryo-chip-value {
   color: var(--cryo-ink);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 19px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -763,7 +763,7 @@
 .cryo-section-label {
   flex: 0 0 auto;
   color: var(--cryo-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 3px;
@@ -1088,7 +1088,7 @@
   left: 12px;
   top: 9px;
   color: var(--cryo-ink-dim);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 3px;
@@ -1117,7 +1117,7 @@
 }
 /* NO SIGNAL 这类英文读数换等宽感字体, 与中文名字区分开。 */
 .cryo-slot-name.is-mono {
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 14px;
   letter-spacing: 4px;
 }
@@ -1284,7 +1284,7 @@
   padding: 2px 8px;
   border: 1px solid var(--cryo-glow);
   color: var(--cryo-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -1349,7 +1349,7 @@
 }
 .cryo-detail-lv {
   color: var(--cryo-ink-dim);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 13px;
   letter-spacing: 2px;
 }
@@ -1424,7 +1424,7 @@
 }
 .cryo-attr-value {
   color: var(--cryo-ink);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -1588,7 +1588,7 @@
   left: 14px;
   top: 8px;
   color: var(--cryo-ink-dim);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 3px;
@@ -1806,7 +1806,7 @@
   line-height: 1.8;
   letter-spacing: 1px;
 }
-/* 装饰读数: 四格一排。数值用 Bahnschrift, 读起来像仪表盘。 */
+/* 装饰读数: 四格一排。数值使用全局字体, 读起来像仪表盘。 */
 .cryo-vitals {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1837,7 +1837,7 @@
 }
 .cryo-vital-value {
   color: var(--cryo-ink);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 1px;

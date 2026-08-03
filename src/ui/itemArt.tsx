@@ -45,6 +45,12 @@ import medicalKitArt from "../assets/道具/消耗品/医疗包.png";
 import holyWaterArt from "../assets/道具/消耗品/圣水.png";
 import fruitJuiceArt from "../assets/道具/消耗品/果汁.png";
 import sugarCubeArt from "../assets/道具/消耗品/糖块.png";
+import colaArt from "../assets/道具/临期食品/可乐.png";
+import pizzaArt from "../assets/道具/临期食品/披萨.png";
+import hamburgerArt from "../assets/道具/临期食品/汉堡.png";
+import friedChickenArt from "../assets/道具/临期食品/炸鸡.png";
+import milkArt from "../assets/道具/临期食品/牛奶.png";
+import breadArt from "../assets/道具/临期食品/面包.png";
 import batteryArt from "../assets/道具/材料/通用材料/电池.png";
 import cubeArt from "../assets/道具/材料/通用材料/魔方.png";
 import gearArt from "../assets/道具/材料/通用材料/齿轮.png";
@@ -190,6 +196,12 @@ const CONSUMABLE_ART: Record<string, string> = {
   "medical-kit": medicalKitArt,
   "holy-water": holyWaterArt,
   "fruit-juice": fruitJuiceArt,
+  milk: milkArt,
+  bread: breadArt,
+  cola: colaArt,
+  hamburger: hamburgerArt,
+  "fried-chicken": friedChickenArt,
+  pizza: pizzaArt,
 };
 
 const MATERIAL_ART: Record<string, string> = {

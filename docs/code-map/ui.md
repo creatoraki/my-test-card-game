@@ -11,7 +11,7 @@
 | [ControlTerminalScene.tsx](../../src/ui/ControlTerminalScene.tsx) | 控制终端：下降舱地图选择、队伍预览、远征启动，以及委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由。 |
 | [CryoScene.tsx](../../src/ui/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里展示。 |
 | [StorageScene.tsx](../../src/ui/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
-| [ShopScene.tsx](../../src/ui/ShopScene.tsx) | 商店：进入设施后直接打开靠右的常驻货架面板，通过装备/材料 tab 切换商品，支持采购与花积分刷新。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action，不自己判日期。 |
+| [ShopScene.tsx](../../src/ui/ShopScene.tsx) | 商店：进入设施后直接打开靠右的常驻货架面板，通过装备/材料 tab 切换商品，支持采购与花积分刷新。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action，不自己判日期。tab 控件是面板外的立体吊牌，见 `ShelfTabRail3D.tsx`；`ShopTab` / `SHOP_TABS` 也定义在那边。 |
 | [FormationScreen.tsx](../../src/ui/FormationScreen.tsx) | 编队/角色相关独立视图入口，复用角色立绘和卡组显示。若流程从设施内进入，路由编排仍由 store 决定。 |
 | [CharacterDetailScreen.tsx](../../src/ui/CharacterDetailScreen.tsx) | 角色详情视图，展示角色面板、装备和个人卡组。 |
 | [ExpeditionScreen.tsx](../../src/ui/ExpeditionScreen.tsx) | 地图选择页，将 `MAPS` 渲染为可进入的远征入口。 |
@@ -43,6 +43,7 @@
 | --- | --- |
 | [ItemSlot.tsx](../../src/ui/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量驱动，装备真实跨 2 格，并导出排布所需的 `EmptySlot`。 |
 | [ItemTabs.tsx](../../src/ui/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
+| [ShelfTabRail3D.tsx](../../src/ui/ShelfTabRail3D.tsx) | 商店货架的装备/材料页签吊牌。全站唯一的 three.js 场景：挤出牌体 + 霓虹灯管 + 加色辉光，相机参数（倾角/透视/消失点）每次布局实读 `.sx-stage` 的计算样式，牌子的屏幕位置量的是上层透明按钮的布局盒。交互全走 DOM 按钮，不做 Raycaster。开关在 `ENABLE_SHELF_3D`；关掉、系统「减少动态效果」或无 WebGL 时回落到 CSS 版（样式仍在 `ShopScene.css` 的 `.sx-vtab` 一族）。 |
 | [ItemDetail.tsx](../../src/ui/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。 |
 | [itemFilters.ts](../../src/ui/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |
 | [HpBar.tsx](../../src/ui/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。 |

@@ -22,7 +22,7 @@
 }
 .em-value {
   color: var(--energy-color, var(--text));
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 26px;
   font-weight: 700;
   line-height: 1;

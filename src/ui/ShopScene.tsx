@@ -18,9 +18,7 @@
 //   价格与商品在同一个格子里, 玩家不用在"看中哪件"和"在哪付钱"之间来回移动视线,
 //   详情栏也就腾得出整个上半部分给商品图当主视觉。
 //
-// ★ 「装备 / 材料」页签是挂在面板**视觉左上角外侧**、顺着立柱往下垂的两块招牌(ShelfTabRail),
-//   不在面板里: 面板整幅是"今天的货", 换品类是站在货架**外面**做的动作 —— 分成两个物件,
-//   面板内部就不必再为导航让出一条横带。因此 tab 状态提到 ShopScene 这一层, 由招牌与面板共用。
+// ★ 商店面板左侧保留两块独立的梯形侧牌, 与面板共用背板材质, 负责装备/材料切换。
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { shopRefreshCost, type ShopSlot } from "../data/shop";
@@ -34,7 +32,7 @@ import "./ShopScene.css";
 const CONTENT_DELAY_MS = 560;
 const PANEL_SIZE = { w: 1180, h: 800 };
 type ShopTab = "equipment" | "material";
-
+type TabDirection = "forward" | "backward";
 const SHOP_TABS: { id: ShopTab; label: string }[] = [
   { id: "equipment", label: "装备" },
   { id: "material", label: "材料" },
@@ -62,8 +60,14 @@ export function ShopScene({ leaving = false }: Props) {
   const refreshShop = useTownStore((s) => s.refreshShop);
   const buyShopItem = useTownStore((s) => s.buyShopItem);
   const refreshCost = shopRefreshCost(shop.refreshes);
-  // ★ tab 提到这一层: 纵向控制柱在面板**外面**, 与面板是兄弟节点, 两边都要读这个值。
   const [tab, setTab] = useState<ShopTab>("equipment");
+  const [tabDirection, setTabDirection] = useState<TabDirection>("forward");
+
+  const handleTabChange = (nextTab: ShopTab) => {
+    if (nextTab === tab) return;
+    setTabDirection(tab === "equipment" && nextTab === "material" ? "forward" : "backward");
+    setTab(nextTab);
+  };
 
   return (
     <div className={`sx-root${leaving ? " is-leaving" : ""}`}>
@@ -84,29 +88,48 @@ export function ShopScene({ leaving = false }: Props) {
           } as CSSProperties
         }
       >
-        {/* 招牌在面板**之前** —— .sx-stage 是右对齐的 flex 行, 它自然落在面板左外侧。 */}
-        <ShelfTabRail tab={tab} onTab={setTab} shop={shop} />
-        <section
-          className="sx-panel"
-          style={
-            {
-              width: `${PANEL_SIZE.w}px`,
-              height: `${PANEL_SIZE.h}px`,
-              "--content-delay": `${CONTENT_DELAY_MS}ms`,
-            } as CSSProperties
-          }
-        >
-          <span className="sx-panel-rim" aria-hidden="true" />
-          <ShelfPanel
-            shop={shop}
-            loot={loot}
-            day={day}
-            tab={tab}
-            refreshCost={refreshCost}
-            onBuy={buyShopItem}
-            onRefresh={refreshShop}
-          />
-        </section>
+        <div className="sx-display-group">
+          {/* 两块侧牌与面板作为一个整体倾斜, 右侧靠近用户、左侧远离用户。 */}
+          <div className="sx-side-rail" role="tablist" aria-label="货架分类" aria-orientation="vertical">
+            {SHOP_TABS.map((item) => {
+              const active = tab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  className={`sx-side-plaque${active ? " is-active" : ""}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => handleTabChange(item.id)}
+                >
+                  <span className="sx-side-plaque-label">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <section
+            className="sx-panel"
+            style={
+              {
+                width: `${PANEL_SIZE.w}px`,
+                height: `${PANEL_SIZE.h}px`,
+                "--content-delay": `${CONTENT_DELAY_MS}ms`,
+              } as CSSProperties
+            }
+          >
+            <span className="sx-panel-rim" aria-hidden="true" />
+            <ShelfPanel
+              shop={shop}
+              loot={loot}
+              day={day}
+              tab={tab}
+              tabDirection={tabDirection}
+              refreshCost={refreshCost}
+              onBuy={buyShopItem}
+              onRefresh={refreshShop}
+            />
+          </section>
+        </div>
       </div>
     </div>
   );
@@ -135,47 +158,12 @@ function PanelHead({
   );
 }
 
-// ===================== 面板外的页签吊牌 =====================
-// 从面板左上角外侧往下垂的两块招牌, 挂在一根立柱上 —— 像建筑外墙上挑出去的广告牌:
-// 牌面与面板共用同一个 rotateY 倾角(读作贴在同一面墙上), 它们和面板一样是"摆在场景里的
-// 物件", 而不是面板内部的一条导航带。
-// 品类名走 writing-mode: vertical-rl 竖排(两个汉字自然叠成一列), 数量仍是横排小徽标。
-// 当前页签会朝面板方向推出一小截, 牌面底色变化指出当前货物分类。
-function ShelfTabRail({
-  tab,
-  onTab,
-  shop,
-}: {
-  tab: ShopTab;
-  onTab: (t: ShopTab) => void;
-  shop: { equip: ShopSlot[]; material: ShopSlot[] };
-}) {
-  return (
-    <div className="sx-tabrail" role="tablist" aria-label="货架分类" aria-orientation="vertical">
-      {SHOP_TABS.map((item) => {
-        const active = tab === item.id;
-        return (
-          <button
-            key={item.id}
-            className={`sx-vtab${active ? " is-active" : ""}`}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onTab(item.id)}
-          >
-            <span className="sx-vtab-label">{item.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 // 一排货。格子用商店专属的 ShopItemTile(见该文件顶部注释: 为什么不复用 ItemSlot)。
 //   已售出的格压暗并把价格划掉, 但**保留占位**: 当日不补货是规则的一部分,
 //   抽掉格子会让玩家看不出今天原本有几件。
 function ShelfRow({
   label,
+  direction,
   slots,
   selected,
   hovered,
@@ -186,6 +174,7 @@ function ShelfRow({
   onBuy,
 }: {
   label: string;
+  direction: TabDirection;
   slots: ShopSlot[];
   selected: string | null;
   hovered: string | null;
@@ -196,10 +185,10 @@ function ShelfRow({
   onBuy: (key: string) => void;
 }) {
   return (
-    <div className="sx-row">
+    <div className={`sx-row is-${direction}`}>
       <p className="sx-row-label">{label}</p>
       {slots.length ? (
-        <div className="sx-grid">
+        <div className={`sx-grid is-${direction}`}>
           {slots.map((s) => (
             <div key={s.key} className={`sx-cell${s.sold ? " is-sold" : ""}`}>
               <ShopItemTile
@@ -260,6 +249,7 @@ function ShelfPanel({
   loot,
   day,
   tab,
+  tabDirection,
   refreshCost,
   onBuy,
   onRefresh,
@@ -269,6 +259,7 @@ function ShelfPanel({
   day: number;
   /** 当前品类。★ 由 ShopScene 持有 —— 切换控件在面板外面(见 ShelfTabRail)。 */
   tab: ShopTab;
+  tabDirection: TabDirection;
   refreshCost: number;
   onBuy: (key: string) => void;
   onRefresh: () => void;
@@ -312,10 +303,11 @@ function ShelfPanel({
       </PanelHead>
       <div className="sx-body">
         <div className="sx-main">
-          {/* key={tab} 强制换页签时重挂载 —— .sx-grid 的 sxTabSwap 淡入才会重播。 */}
+          {/* key={tab} 强制换页签时重挂载 —— 方向类让货架切换动画按来向播放。 */}
           <ShelfRow
             key={tab}
             label={tab === "equipment" ? "装备" : "材料"}
+            direction={tabDirection}
             slots={visibleSlots}
             selected={selected}
             hovered={hovered}
@@ -336,13 +328,22 @@ function ShelfPanel({
             数字, 而底栏这条最长的文字信息量最低。留下的是 readout 说不了的那件事:
             主刷新机制不在这个界面里, 免得玩家以为只能花钱换货。 */}
         <p className="sx-note">出击归来自动换一批新货，刷新价也会归零。</p>
+        {/* ★ 三段式(图标 / 动词 / 价格)不是装饰 —— 动词与价格必须**分列**才有层级:
+            挤在同一行同字号时, "刷新货架 · 12" 读起来像一串标签而不是一颗可按的键。
+            分隔竖线由 CSS ::before 画, 不进 DOM。 */}
         <button
           className="sx-refresh"
           type="button"
           disabled={loot < refreshCost}
           onClick={onRefresh}
+          aria-label={`刷新货架，花费 ${refreshCost} 居民积分`}
+          title={loot < refreshCost ? "居民积分不足" : "刷新货架"}
         >
-          刷新货架 · {refreshCost}
+          <span className="sx-refresh-icon" aria-hidden="true">
+            ↻
+          </span>
+          <span className="sx-refresh-label">刷新货架</span>
+          <span className="sx-refresh-cost">{refreshCost}</span>
         </button>
       </div>
     </>

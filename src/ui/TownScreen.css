@@ -141,7 +141,7 @@
 }
 .town-status-value {
   color: #ecf8fa;
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 2px;

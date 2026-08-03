@@ -78,7 +78,7 @@
 .cd-kicker {
   display: block;
   color: var(--cd-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 5px;
@@ -147,7 +147,7 @@
 }
 .cd-chip-value {
   color: var(--cd-ink);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 21px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -322,7 +322,7 @@ span.cd-bust {
 .cd-section-label {
   flex: 0 0 auto;
   color: var(--cd-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 3px;
@@ -404,7 +404,7 @@ span.cd-bust {
 }
 .cd-attr-value {
   color: var(--cd-ink);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 17px;
   font-weight: 600;
   letter-spacing: 1px;

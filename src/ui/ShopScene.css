@@ -94,8 +94,8 @@
 .sx-root .sx-kicker {
   display: block;
   color: var(--sx-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
-  font-size: 12px;
+  font-family: var(--font-family);
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 4px;
 }
@@ -103,7 +103,7 @@
 .sx-root .sx-title {
   margin: 6px 0 0;
   color: var(--sx-ink);
-  font-size: 40px;
+  font-size: 42px;
   font-weight: 700;
   letter-spacing: 8px;
   text-shadow: 0 2px 18px #000000a6;
@@ -112,7 +112,7 @@
 .sx-root .sx-sub {
   margin: 6px 0 0;
   color: var(--sx-ink-dim);
-  font-size: 15px;
+  font-size: 17px;
   letter-spacing: 3px;
 }
 
@@ -129,16 +129,183 @@
   perspective: var(--panel-perspective);
   perspective-origin: calc(100% - var(--sx-stage-right)) 50%;
   transform-style: preserve-3d;
-  /* 右对齐的一行: [吊牌立柱][面板]。吊牌是面板的兄弟而不是子节点 ——
-     stage 只提供共同的 3D 相机, 不挂 transform, 因此不会成为 backdrop root。
-     面板与吊牌各自挂 rotateY, 但共享这一台相机, 才会落在同一面墙上。
-     ⚠ 这里**不留 gap**: 吊牌要贴死在面板左边框上, 两者之间的距离由 .sx-tabrail 的
-       透视补偿(--sx-rail-in)一处说了算, 再加一份 gap 只会让补偿值失真。 */
+    /* 右对齐的一行: [整体显示组]。stage 只提供共同的 3D 相机, 具体的倾斜由
+      .sx-display-group 统一承担, 保证面板与两块挂牌保持同一几何平面。 */
   gap: 0;
   align-items: center;
   justify-content: flex-end;
   padding-right: var(--sx-stage-right);
   pointer-events: none;
+}
+
+.sx-root .sx-display-group {
+  --sx-display-tilt: var(--panel-tilt);
+  display: flex;
+  height: var(--panel-h);
+  flex: 0 0 auto;
+  transform: rotateY(var(--sx-display-tilt));
+  transform-origin: right center;
+  transform-style: preserve-3d;
+}
+
+/* ===================== 面板侧边挂牌 =====================
+  两块挂牌由同一个侧牌栏从面板顶部向下排列, 右边缘与面板左边框共用同一条布局边界。
+   每块总高 160px, 左边垂直边约 107px, 右边垂直边 160px, 左右边高为 4:6。 */
+.sx-root .sx-side-rail {
+  position: relative;
+  left: 6px;
+  align-self: flex-start;
+  /* .sx-stage 覆盖整张 1080px 设计画布, 面板自身垂直居中; 这里先补回面板顶部位置,
+     再留 64px 的中等间隙, 避免第一块挂牌跑到面板外。 */
+  margin-top: 64px;
+  display: flex;
+  width: 64px;
+  flex: 0 0 64px;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.sx-root .sx-side-plaque {
+  position: relative;
+  display: flex;
+  width: 64px;
+  height: 160px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  color: var(--sx-ink-dim);
+  font-family: var(--font-family);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  isolation: isolate;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.28s ease,
+    transform 0.3s cubic-bezier(0.2, 0.72, 0.28, 1);
+  border: 1px solid transparent;
+  border-top-color: var(--sx-line);
+  border-right-color: var(--sx-line);
+  background:
+    linear-gradient(120deg, #ffffff16, transparent 34%),
+    linear-gradient(155deg, #170f1399, #120e10ad 58%, #0a0809c7);
+  -webkit-backdrop-filter: blur(22px) saturate(126%) brightness(0.98);
+  backdrop-filter: blur(22px) saturate(126%) brightness(0.98);
+  box-shadow:
+    inset 0 1px 0 #ffffff38,
+    -42px 14px 86px -42px #cf5aa8a6,
+    -10px 0 0 -9px #f1a8d22e,
+    0 46px 100px -36px #000000e0;
+  clip-path: polygon(0 16.6667%, 100% 0, 100% 100%, 0 83.3333%);
+}
+
+.sx-root .sx-side-plaque-label {
+  position: relative;
+  z-index: 1;
+  writing-mode: vertical-rl;
+  letter-spacing: 6px;
+  pointer-events: none;
+}
+
+.sx-root .sx-side-plaque::before {
+  content: "";
+  position: absolute;
+  inset: -30% -70%;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    112deg,
+    transparent 42%,
+    #ffffff00 46%,
+    #f1a8d2d9 50%,
+    #ffffffd9 52%,
+    #ffffff00 57%,
+    transparent 62%
+  );
+  opacity: 0;
+  transform: translateX(-78%) skewX(-12deg);
+}
+
+.sx-root .sx-side-plaque::after {
+  content: "";
+  position: absolute;
+  top: 14%;
+  right: 0;
+  bottom: 14%;
+  z-index: 0;
+  width: 2px;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--sx-glow-deep) 42%, #fff4fa 52%, transparent);
+  opacity: 0;
+  transform: scaleY(0.48);
+  transition:
+    opacity 0.26s ease,
+    transform 0.3s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.sx-root .sx-side-plaque:hover:not(:disabled) {
+  color: var(--sx-ink);
+  border-color: color-mix(in srgb, var(--sx-glow) 40%, transparent);
+  background: linear-gradient(150deg, #2a1a24ad, #191218cc 58%, #0d0a0cd6);
+  box-shadow:
+    inset 0 1px 0 #ffffff40,
+    inset -8px 0 18px -16px #f1a8d2cc,
+    -14px 10px 34px -24px #cf5aa8d9,
+    0 46px 100px -36px #000000e0;
+  transform: translateX(4px) translateY(-2px);
+}
+
+.sx-root .sx-side-plaque:hover:not(:disabled)::before {
+  opacity: 1;
+  animation: sxPlaqueSweep 680ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.sx-root .sx-side-plaque:hover:not(:disabled)::after {
+  opacity: 0.76;
+  transform: scaleY(1);
+}
+
+.sx-root .sx-side-plaque.is-active,
+.sx-root .sx-side-plaque.is-active:hover:not(:disabled) {
+  color: var(--sx-ink);
+  border-color: color-mix(in srgb, var(--sx-glow) 62%, transparent);
+  background: color-mix(in srgb, var(--sx-glow) 30%, #150f13);
+  box-shadow:
+    inset 0 1px 0 #ffffff42,
+    inset -10px 0 22px -16px #f1a8d2d9,
+    -16px 8px 40px -25px #cf5aa8e0,
+    0 18px 40px -26px #000000a8;
+  transform: translateX(8px) translateY(-1px);
+}
+
+.sx-root .sx-side-plaque.is-active::before {
+  opacity: 0.82;
+  animation: sxPlaqueSweep 720ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.sx-root .sx-side-plaque.is-active::after {
+  opacity: 1;
+  transform: scaleY(1);
+  animation: sxPlaquePulse 1.8s ease-in-out 720ms infinite;
+}
+
+.sx-root .sx-side-plaque:active:not(:disabled),
+.sx-root .sx-side-plaque.is-active:active:not(:disabled) {
+  transform: translateX(5px) translateY(2px) scale(0.98);
+  box-shadow:
+    inset 0 2px 12px -8px #f1a8d2d9,
+    inset 0 -1px 0 #ffffff1c,
+    -8px 4px 24px -20px #cf5aa8c7;
+}
+
+.sx-root .sx-side-plaque:focus-visible {
+  outline: 2px solid var(--sx-glow-deep);
+  outline-offset: 3px;
 }
 
 .sx-root .sx-panel {
@@ -165,7 +332,6 @@
     -42px 14px 86px -42px #cf5aa8a6,
     -10px 0 0 -9px #f1a8d22e,
     0 46px 100px -36px #000000e0;
-  transform: rotateY(var(--panel-tilt));
   transform-origin: right center;
   transform-style: preserve-3d;
   backface-visibility: hidden;
@@ -286,7 +452,7 @@
 .sx-root .sx-panel-title {
   margin: 4px 0 0;
   color: var(--sx-ink);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   letter-spacing: 5px;
 }
@@ -313,40 +479,37 @@
 .sx-root .sx-readout span,
 .sx-root .sx-readout em {
   color: var(--sx-ink-dim);
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   letter-spacing: 2px;
 }
 
 .sx-root .sx-readout strong {
   color: var(--sx-ink);
-  font-size: 21px;
+  font-size: 23px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
 }
 
 .sx-root .sx-readout em {
   color: var(--sx-action);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
 }
 
 /* ===================== 页签吊牌(挂在面板**视觉**左上角外侧) =====================
+   ★★ 默认渲染的是 three.js 立体霓虹吊牌(ShelfTabRail3D.tsx), 本节的 .sx-vtab 一族现在是
+      **降级实现** —— 系统「减少动态效果」或拿不到 WebGL 时才用它。⚠ 不要删。
+      而 .sx-tabrail 这个布局盒**两版共用**: 3D 版的透明命中按钮仍是它的 flex 子项,
+      牌子的三维位置就是量这几颗按钮的矩形得来的 ⇒ 下面那组透视补偿仍是唯一的尺寸真相点。
+
    ★ 页签不在面板里 —— 它是挂在面板左上角外侧、顺着一根立柱往下垂的两块招牌,
      像建筑物外墙上挑出去的广告牌: 牌面与面板同一个 rotateY 倾角(读作贴在同一面墙上),
      从面板顶边起向下排, 而不是在左侧居中。面板整幅因此全部让给货。
    ★ 走粉紫 —— 换品类是导航不是交易, 不能用青(见文件顶部的颜色语义分层)。
 
-   ⚠ **透视补偿**(本段唯一的算出来的常数, 改倾角/面板尺寸/透视量就要重算):
-     stage 的 perspective-origin 对齐面板右侧布局边缘; 面板 transform-origin: right center
-     + rotateY(-4deg) 是把它的左边沿**向后推**, 投影回屏幕后, 面板的视觉左边框比它的布局盒
-     **往里缩**、视觉顶边也**往下掉**一截。
-     按现在这组值(1180×800 / -4deg / 1600px)算:
-       缩进 = 1180 - 1180·cos4° · 1600/(1600 + 1180·sin4°) = 1180 - 1119.5 ≈ 60px
-       下沉 = 400 - 400 · 1600/(1600 + 1180·sin4°)          = 400 - 380.4  ≈ 20px
-     吊牌若按布局盒贴, 就会悬在面板左边框外 60px 处、还高出 20px ——
-     所以整根柱子按 --sx-rail-in / --sx-rail-down 往回收, 牌的右沿才**压在面板左边框上**。
-     ⚠ 只能用 margin / top 这类**布局**位移来补, 不能用 transform(见下面那条警告)。
+   ⚠ 当前面板恢复平面视角, 不再需要旧的透视补偿。吊牌栏的右沿直接贴着面板
+     的左边框, 顶边与面板布局顶边对齐, 再由 --sx-rail-top 躲开面板左上角的缺角。
 
    ⚠ --sx-vtab-h / --sx-vtab-gap 是**唯一**的尺寸真相点: 牌高与牌间距只在布局补偿中使用。
      加第三个页签不用改任何尺寸。
@@ -356,18 +519,17 @@
 .sx-root .sx-tabrail {
   --sx-vtab-h: 104px;
   --sx-vtab-gap: 10px;
-  /* ↓ 两个透视补偿量, 推导见上。负 margin 把柱子推进面板的布局盒里,
-     牌的右沿因此正好落在面板**看得见**的那条左边框上。 */
-  --sx-rail-in: 60px;
-  --sx-rail-down: 20px;
+    /* ↓ 平面视角下不再向面板内压入或向下偏移, 右沿直接贴住面板左边框。 */
+    --sx-rail-in: 0px;
+    --sx-rail-down: 0px;
   /* 第一块牌离面板视觉顶边的距离 —— 立柱与高亮条都从这里起算。
      面板左上角有 22px 斜切(--notch), 这里要躲开它, 否则牌会挂在缺角的空处。 */
   --sx-rail-top: 26px;
 
   position: relative;
   transform-style: preserve-3d;
-  /* 与面板等高且同为居中对齐 ⇒ 两者布局顶边天然齐平, 再由 top 补掉那段视觉下沉。
-     ⚠ 用 position 偏移而不是 transform: 见上面的 backdrop root 警告。 */
+    /* 与面板等高且同为居中对齐, 两者布局顶边天然齐平。
+      ⚠ 用 position 偏移而不是 transform: 见上面的 backdrop root 警告。 */
   top: var(--sx-rail-down);
   display: flex;
   height: var(--panel-h);
@@ -459,7 +621,7 @@
      视觉重心因此偏上; margin-bottom 负值把这一份补回来, 砖里的字才是真居中。 */
 .sx-root .sx-vtab-label {
   margin-bottom: -6px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: 6px;
   writing-mode: vertical-rl;
@@ -520,8 +682,8 @@
 .sx-root .sx-row-label {
   margin: 0;
   color: var(--sx-glow-deep);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
-  font-size: 13px;
+  font-family: var(--font-family);
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 3px;
 }
@@ -534,7 +696,11 @@
   gap: 16px;
   align-content: start;
   /* 切页签时整片货架淡入 —— ShelfRow 挂了 key={tab}, 换页签会重新挂载, 动画随之重播。 */
-  animation: sxTabSwap 260ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+  animation: sxTabSwapForward 460ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+.sx-root .sx-grid.is-backward {
+  animation-name: sxTabSwapBackward;
 }
 
 .sx-root .sx-cell {
@@ -724,7 +890,7 @@
   justify-content: center;
   padding: 5px 14px;
   color: var(--sx-price-ink);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
@@ -741,7 +907,7 @@
 /* 积分符号: 纯字符, 不引新素材 */
 .sx-root .sx-price::before {
   content: "◈";
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   opacity: 0.8;
 }
@@ -777,7 +943,7 @@
 }
 
 .sx-root .sx-price.is-sold .sx-price-sold {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 2px;
   text-decoration: line-through;
@@ -787,7 +953,7 @@
   margin: 0;
   padding: 14px 0;
   color: var(--sx-ink-dim);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 /* ===================== 商品详情 =====================
@@ -864,7 +1030,7 @@
 
 .sx-root .sx-card-idle {
   color: var(--sx-ink-dim);
-  font-size: 14px;
+  font-size: 16px;
   text-align: center;
 }
 
@@ -963,7 +1129,7 @@
 .sx-root .sx-card-name {
   margin: 0;
   color: var(--sx-rr);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: 1px;
   line-height: 1.25;
@@ -972,7 +1138,7 @@
 
 .sx-root .sx-card-mult {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
 }
 
@@ -982,7 +1148,7 @@
   gap: 4px 10px;
   margin: -4px 0 0;
   color: #d3c5cf;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
 }
 
@@ -993,7 +1159,7 @@
 .sx-root .sx-card-desc {
   margin: 0;
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.65;
 }
 
@@ -1017,13 +1183,13 @@
 
 .sx-root .sx-card-stats dt {
   color: var(--sx-ink-dim);
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
 }
 
 .sx-root .sx-card-stats dd {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
@@ -1063,7 +1229,7 @@
 
 .sx-root .sx-card-bond-name {
   color: inherit;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 1px;
 }
@@ -1084,7 +1250,7 @@
 .sx-root .sx-card-note {
   margin: 0;
   color: var(--sx-ink-dim);
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   opacity: 0.82;
 }
@@ -1107,28 +1273,36 @@
 .sx-root .sx-note {
   margin: 0;
   color: #d7cbd3;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 1px;
 }
 
+/* ===================== 刷新键 =====================
+   ★★ 幽灵终端键 —— 它是**暗玻璃**, 不是实心色块。
+   以前这里是全屏唯一一块满饱和青色渐变 + `inset 0 1px 0 #ffffff9c` 白高光, 那是网页塑料
+   按钮的打光方式, 与本面板"暗玻璃 + 发丝描边"的语言正面冲突: 同为青色动作控件的
+   .sx-price 只用 16% 的薄底(见该处), 刻意压着不抢戏, 刷新键却反其道而行。
+   ⚠ 别再往这里加 linear-gradient 实心底或任何 inset 白高光, 那是塑料感的根源。
+
+   ★ 但它**要**比商品更显眼 —— 靠的是"精度"而不是"色块面积":
+     ① 描边走满饱和 --sx-action-line(商品价格牌只有半透明 #7fb9c66b) → 边缘最锐的一处
+     ② 常驻外辉光把它从底栏平面上浮起来
+     ③ sxRefreshPulse: 底栏里唯一持续运动的东西, 余光会主动找它
+   三者叠加足以让它成为底栏焦点, 同时一整块亮色都不用。 */
 .sx-root .sx-refresh {
   --notch: 12px;
 
   position: relative;
   display: inline-flex;
+  min-width: 236px;
   flex: 0 0 auto;
+  gap: 14px;
   align-items: center;
-  justify-content: center;
-  padding: 13px 30px;
-  color: var(--sx-action-ink);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  background: linear-gradient(135deg, var(--sx-action-line), var(--sx-action-deep));
+  padding: 14px 26px;
+  color: var(--sx-action);
+  /* 与 .sx-price 同源的配方, 只是更薄 —— 那颗在货架里要退让, 这颗要压住底栏。 */
+  background: color-mix(in srgb, var(--sx-action) 12%, #071419 88%);
   border: 1px solid var(--sx-action-line);
-  box-shadow:
-    inset 0 1px 0 #ffffff9c,
-    0 14px 30px -18px #167d9366;
   clip-path: polygon(
     var(--notch) 0,
     100% 0,
@@ -1137,24 +1311,92 @@
     0 100%,
     0 var(--notch)
   );
+  /* ⚠ 外辉光必须走 filter: drop-shadow 而**不是** box-shadow —— clip-path 会把 box-shadow
+     一起裁掉, 外发光根本渲染不出来(改造前那条 `0 14px 30px -18px` 就一直是无效的)。
+     drop-shadow 在裁切之后生效, 且沿着斜切后的轮廓走, 缺角处的光也是对的。
+     inset 阴影不受影响(画在盒内), 所以按下态仍然可以用 box-shadow。 */
+  filter: drop-shadow(0 0 7px #62e1ef4d);
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
     box-shadow 0.16s ease,
+    filter 0.16s ease,
     transform 0.12s ease;
 }
 
-.sx-root .sx-refresh:hover:not(:disabled) {
-  color: var(--sx-action-ink);
-  background: linear-gradient(135deg, #c8fbff, var(--sx-action));
-  border-color: #ffffff;
-  box-shadow: inset 0 1px 0 #ffffffd1, 0 0 18px -6px var(--sx-action);
+/* 幅度必须**很小**: 这是余光信号, 不是闪烁警报。只动外辉光, 不动尺寸/透明度 ——
+   底栏边上任何会"跳动"的东西都会立刻显得廉价。 */
+.sx-root .sx-refresh:not(:disabled) {
+  animation: sxRefreshPulse 4.5s ease-in-out infinite;
 }
 
-/* 按下 = 下沉。inset 高光同时收掉 —— 高光是"凸起"的来源, 留着按不下去。 */
+.sx-root .sx-refresh-icon {
+  flex: none;
+  font-size: 19px;
+  line-height: 1;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sx-root .sx-refresh-label {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+/* margin-left: auto 把价格顶到右端 —— 动词与价格分列两侧才读得出层级。
+   tabular-nums: 刷新价涨到三位数时按钮宽度不能跳。 */
+.sx-root .sx-refresh-cost {
+  position: relative;
+  margin-left: auto;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  opacity: 0.88;
+}
+
+/* 分隔发丝。不留白边距而是负偏移 —— 它属于价格这一段, 不占 gap。 */
+.sx-root .sx-refresh-cost::before {
+  content: "";
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  left: -12px;
+  width: 1px;
+  background: var(--sx-action-line);
+  opacity: 0.35;
+}
+
+/* hover: 底色微升 + 边框转白 + 辉光收紧变亮。↻ 转半圈是"刷新"语义的直接反馈,
+   也是本键唯一的位移动画 —— 呼吸同时暂停, hover 已经是明确的高亮态,
+   两层动效叠着跑只会互相打架。 */
+.sx-root .sx-refresh:hover:not(:disabled) {
+  color: var(--sx-action);
+  background: color-mix(in srgb, var(--sx-action) 22%, #071419 78%);
+  border-color: #ffffff;
+  filter: drop-shadow(0 0 11px #62e1efa6);
+  /* ⚠ 必须 `none` 而**不是** animation-play-state: paused —— 暂停的动画仍然在往
+     filter 上写当前关键帧的值, 会直接盖掉上面这条 hover 辉光。撤掉动画后
+     .sx-refresh 自己的 transition 会把辉光平滑接过去, 不会跳。 */
+  animation: none;
+}
+
+.sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon {
+  transform: rotate(180deg);
+}
+
+/* 按下 = 下沉, 且**光被压灭**(外辉光归零、换成内阴影)。
+   辉光是"浮起"的来源, 留着就按不下去。 */
 .sx-root .sx-refresh:active:not(:disabled) {
+  box-shadow: inset 0 2px 8px -3px #00303da8;
+  /* 外辉光归零 = 光被压灭。辉光是"浮起"的来源, 留着就按不下去。 */
+  filter: none;
+  /* 同 hover: 呼吸动画不撤掉就会盖住这条 filter, 按下去光灭不掉。 */
+  animation: none;
   transform: translateY(1px);
-  box-shadow: inset 0 2px 6px -2px #00303d8c;
+}
+
+.sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
+  transform: rotate(180deg);
 }
 
 /* ⚠ **不**叠 opacity: 已经显式改了 color / background / border-color, 再整体压暗是双重
@@ -1162,10 +1404,18 @@
    特异性 (0,3,1) 已压得过 base 的 `.sx-root button:disabled` (0,2,1)。 */
 .sx-root .sx-refresh:disabled {
   color: #7c888c;
-  background: #1b2427;
-  border-color: #46545a;
+  background: #10181b;
+  border-color: #3d4a4f;
   box-shadow: none;
+  filter: none;
+  animation: none;
   cursor: not-allowed;
+  opacity: 1;
+}
+
+/* 差的就是这个数 —— 禁用时价格转暗红单独点出来, 而不是跟着一起变灰读不出。 */
+.sx-root .sx-refresh:disabled .sx-refresh-cost {
+  color: #b8656f;
   opacity: 1;
 }
 
@@ -1184,15 +1434,15 @@
 @keyframes sxPanelIn {
   from {
     opacity: 0;
-    transform: rotateY(var(--panel-tilt)) translateX(100%);
+    transform: translateX(100%);
   }
   84% {
     opacity: 1;
-    transform: rotateY(var(--panel-tilt)) translateX(-14px);
+    transform: translateX(-14px);
   }
   to {
     opacity: 1;
-    transform: rotateY(var(--panel-tilt)) translateX(0);
+    transform: translateX(0);
   }
 }
 
@@ -1223,11 +1473,56 @@
   }
 }
 
+/* 刷新键的常驻呼吸 —— 只吐纳外辉光的强度, 不碰尺寸/透明度。
+   ⚠ 动的是 filter 不是 box-shadow: 按钮带 clip-path, box-shadow 会被裁掉(见 .sx-refresh)。
+   ⚠ 别把幅度调大: 它的作用是"底栏里有个东西是活的", 一旦看得出在闪就廉价了。 */
+@keyframes sxRefreshPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 7px #62e1ef4d);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px #62e1ef7a);
+  }
+}
+
+@keyframes sxPlaqueSweep {
+  from {
+    transform: translateX(-78%) skewX(-12deg);
+  }
+  to {
+    transform: translateX(78%) skewX(-12deg);
+  }
+}
+
+@keyframes sxPlaquePulse {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scaleY(0.72);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
 /* 切页签时货架的一次性淡入 —— 由 ShelfRow 的 key={tab} 触发重挂载来重播。 */
-@keyframes sxTabSwap {
+@keyframes sxTabSwapForward {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateX(28px) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sxTabSwapBackward {
+  from {
+    opacity: 0;
+    transform: translateX(-28px) translateY(10px);
   }
   to {
     opacity: 1;
@@ -1258,13 +1553,31 @@
    给它加 opacity 会让它变成 backdrop root, 砖的毛玻璃在淡出途中会整块糊掉。 */
 .sx-root.is-leaving .sx-header,
 .sx-root.is-leaving .sx-panel,
+.sx-root.is-leaving .sx-side-plaque,
 .sx-root.is-leaving .sx-vtab,
-.sx-root.is-leaving .sx-vtab-ink,
 .sx-root.is-leaving .sx-tabrail::before {
   animation: sxFade 420ms ease both;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sx-root .sx-side-plaque {
+    transition: none;
+  }
+
+  .sx-root .sx-side-plaque::before,
+  .sx-root .sx-side-plaque::after {
+    animation: none;
+    transition: none;
+  }
+
+  .sx-root .sx-side-plaque:hover:not(:disabled),
+  .sx-root .sx-side-plaque.is-active,
+  .sx-root .sx-side-plaque.is-active:hover:not(:disabled),
+  .sx-root .sx-side-plaque:active:not(:disabled),
+  .sx-root .sx-side-plaque.is-active:active:not(:disabled) {
+    transform: none;
+  }
+
   .sx-root .sx-header,
   .sx-root .sx-panel {
     animation-duration: 180ms;
@@ -1282,9 +1595,20 @@
     animation: none;
   }
 
-  /* 高亮条不再滑动, 但**位置仍然正确** —— 关掉的只是 transition, transform 照常生效。
-     同理 .sx-vtab 的推出位移是**状态指示**不是动效, 保留位移只去掉过渡。 */
-  .sx-root .sx-vtab-ink,
+  /* 刷新键: 呼吸与 ↻ 转半圈都停掉。静态配色(满饱和描边 + 常驻辉光)本身已经够抢眼,
+     去掉动效不影响它在底栏里的分量。 */
+  .sx-root .sx-refresh:not(:disabled) {
+    animation: none;
+  }
+
+  .sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon,
+  .sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
+    transform: none;
+  }
+
+  /* .sx-vtab 的推出位移是**状态指示**不是动效, 保留位移只去掉过渡。
+     ⚠ 开了「减少动态效果」时页签必然是 CSS 版(WebGL 版整个不挂载, 见 ShelfTabRail3D),
+       所以这一节仍然有效, 不要因为默认走 3D 就把它删了。 */
   .sx-root .sx-vtab {
     transition: none;
   }

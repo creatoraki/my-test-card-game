@@ -36,7 +36,7 @@
 }
 .end-log-lane {
   color: var(--accent);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   letter-spacing: 2px;
 }
 .end-log-title {
@@ -52,7 +52,7 @@
 /* 能量列用**结算后**那一档的颜色 —— 一列扫下来就能看出这趟是从哪一段开始垮的。 */
 .end-log-energy {
   color: var(--tier-color, var(--text));
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   text-align: right;
 }
 

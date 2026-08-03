@@ -117,7 +117,7 @@
   bottom: var(--foot);
   width: 100%;
   color: var(--text);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 40px;
   font-weight: 700;
   line-height: 1;

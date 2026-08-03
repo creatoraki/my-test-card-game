@@ -3,6 +3,7 @@
    它同时兼任 --warn(两者刻意同色: 终端里"注意"与"强调"本就是一回事)。
    ⚠ 这里是全站唯一的变量真相 —— 组件 CSS 里不要再重新声明这几个名字。 */
 :root {
+   --font-family: "PingFangSC", "Microsoft YaHei", sans-serif;
   --bg: #080b0d;
   --bg2: #101418;
   --panel: #11161a;

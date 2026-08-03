@@ -113,7 +113,7 @@
 .expl-kicker {
   display: block;
   color: var(--expl-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 4px;
@@ -186,7 +186,7 @@
 }
 .expl-chip-value {
   color: var(--text);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 24px;
   font-weight: 700;
   line-height: 1;

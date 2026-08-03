@@ -47,7 +47,7 @@
 .term-kicker {
   display: block;
   color: var(--term-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 4px;
@@ -105,7 +105,7 @@
 }
 .term-chip-value {
   color: var(--term-ink);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 19px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -550,7 +550,7 @@
 .term-map-no {
   grid-area: no;
   color: var(--term-glow);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 3px;
@@ -659,7 +659,7 @@
 }
 .term-stat-value {
   color: var(--term-ink);
-  font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
+  font-family: var(--font-family);
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 1px;
