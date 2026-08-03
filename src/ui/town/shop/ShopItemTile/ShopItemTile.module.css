@@ -24,7 +24,6 @@
 }
 
 :global([data-shop-root]) .sx-tile {
-  --sx-corner: #ffffff80;
   --sx-tile-notch: 13px;
   --sx-tray-w: 146px;
 
@@ -40,10 +39,10 @@
   overflow: hidden;
   color: var(--sx-rr);
   background:
-    radial-gradient(ellipse 70% 44% at 50% 91%, color-mix(in srgb, var(--sx-rr) 13%, transparent), transparent 72%),
-    linear-gradient(135deg, #ffffff45, transparent 50%),
-    linear-gradient(150deg, #d4d9d799, #56606373 72%);
-  border: 1px solid #ffffff5c;
+    radial-gradient(ellipse 70% 44% at 50% 91%, color-mix(in srgb, var(--sx-rr) 16%, transparent), transparent 72%),
+    linear-gradient(135deg, #ffffff12, transparent 50%),
+    linear-gradient(150deg, #171a2db8, #080b13b3 72%);
+  border: 1px solid #e4e7ff2e;
   border-radius: 17px 10px 18px 11px;
   clip-path: polygon(
     var(--sx-tile-notch) 0,
@@ -64,80 +63,46 @@
     box-shadow 180ms ease,
     color 180ms ease,
     transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
-  box-shadow: inset 0 1px 0 #ffffff8c, 0 9px 19px -17px #071c25d1;
-  -webkit-backdrop-filter: blur(10px) saturate(110%) brightness(1.02);
-  backdrop-filter: blur(10px) saturate(110%) brightness(1.02);
-}
-
-:global([data-shop-root]) .sx-tile::before {
-  position: absolute;
-  z-index: 2;
-  inset: 6px;
-  background:
-    linear-gradient(var(--sx-corner), var(--sx-corner)) left top / 28px 2px no-repeat,
-    linear-gradient(var(--sx-corner), var(--sx-corner)) left top / 2px 28px no-repeat,
-    linear-gradient(var(--sx-corner), var(--sx-corner)) right top / 28px 2px no-repeat,
-    linear-gradient(var(--sx-corner), var(--sx-corner)) right top / 2px 28px no-repeat,
-    linear-gradient(var(--sx-corner), var(--sx-corner)) left bottom / 28px 2px no-repeat,
-    linear-gradient(var(--sx-corner), var(--sx-corner)) left bottom / 2px 28px no-repeat,
-    linear-gradient(var(--sx-corner), var(--sx-corner)) right bottom / 28px 2px no-repeat,
-    linear-gradient(var(--sx-corner), var(--sx-corner)) right bottom / 2px 28px no-repeat;
-  content: "";
-  pointer-events: none;
-  transition: background 180ms ease;
-}
-
-:global([data-shop-root]) .sx-tile::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 42%;
-  background:
-    linear-gradient(transparent, #11171931),
-    repeating-linear-gradient(104deg, transparent 0 16px, #ffffff0b 16px 17px);
-  content: "";
-  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 #ffffff30,
+    0 9px 19px -17px #000000f2,
+    0 0 14px -12px #8279ffb3;
+  -webkit-backdrop-filter: blur(12px) saturate(115%) brightness(0.8);
+  backdrop-filter: blur(12px) saturate(115%) brightness(0.8);
 }
 
 :global([data-shop-root]) .sx-tile:hover:not(:disabled),
 :global([data-shop-root]) .sx-tile.is-hovered,
 :global([data-shop-root]) .sx-tile:focus-visible {
-  --sx-corner: var(--sx-action);
-
   background:
-    radial-gradient(ellipse 70% 44% at 50% 91%, color-mix(in srgb, var(--sx-rr) 22%, transparent), transparent 72%),
-    linear-gradient(135deg, #ffffff78, transparent 50%),
-    linear-gradient(150deg, #f0f2efb8, #70787b7f 72%);
-  border-color: #ffffff;
+    radial-gradient(ellipse 70% 44% at 50% 91%, color-mix(in srgb, var(--sx-rr) 26%, transparent), transparent 72%),
+    linear-gradient(135deg, #ffffff25, transparent 50%),
+    linear-gradient(150deg, #28294dbd, #0b0e19bf 72%);
+  border-color: var(--sx-action-hot);
   box-shadow:
-    inset 0 1px 0 #ffffffc2,
-    0 12px 20px -15px #061c25d1,
-    0 0 0 1px #ffffff52;
+    inset 0 1px 0 #ffffff5c,
+    0 12px 20px -15px #000000f2,
+    0 0 20px -10px color-mix(in srgb, var(--sx-rr) 66%, #8279ff 34%);
   transform: translateY(-5px) rotateX(2deg) rotateY(-1.5deg) rotateZ(0.3deg);
 }
 
 :global([data-shop-root]) .sx-tile.is-selected {
-  --sx-corner: #111719;
-
-  border-color: #111719;
+  border-color: var(--sx-electric);
   box-shadow:
-    inset 0 1px 0 #ffffffc2,
-    0 11px 20px -15px #061c25d1,
-    0 0 0 2px #ffffff80;
+    inset 0 1px 0 #ffffff5c,
+    0 11px 20px -15px #000000f2,
+    0 0 22px -10px #8279ffd9;
 }
 
 :global([data-shop-root]) .sx-tile.is-selected:hover:not(:disabled),
 :global([data-shop-root]) .sx-tile.is-selected.is-hovered,
 :global([data-shop-root]) .sx-tile.is-selected:focus-visible {
-  --sx-corner: var(--sx-action-hot);
-
   border-color: var(--sx-action-hot);
   transform: translateY(-7px) rotateX(3deg) rotateY(-2deg) rotateZ(-0.3deg);
 }
 
 :global([data-shop-root]) .sx-tile:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--sx-action-hot);
   outline-offset: 4px;
 }
 
@@ -153,7 +118,7 @@
   object-fit: contain;
   object-position: center bottom;
   opacity: 0.48;
-  filter: saturate(0.7) contrast(0.95) drop-shadow(0 3px 5px #0b2c3559);
+  filter: saturate(0.7) contrast(0.95) drop-shadow(0 3px 5px #00000099) drop-shadow(0 0 8px #8279ff2e);
   transform: translateX(-50%) translateZ(-4px);
   transition: opacity 180ms ease, transform 220ms ease;
 }
@@ -168,7 +133,7 @@
   place-items: center;
   color: var(--sx-rr);
   line-height: 0;
-  filter: drop-shadow(0 3px 3px #0b2c3559) drop-shadow(0 0 6px color-mix(in srgb, var(--sx-rr) 24%, transparent));
+  filter: drop-shadow(0 3px 3px #00000099) drop-shadow(0 0 6px color-mix(in srgb, var(--sx-rr) 24%, transparent));
   transform: translateY(0) translateZ(8px);
   transition:
     filter 180ms ease,
@@ -190,7 +155,7 @@
   z-index: -1;
   width: 82px;
   height: 14px;
-  background: radial-gradient(ellipse at 50% 50%, #11171966, transparent 70%);
+  background: radial-gradient(ellipse at 50% 50%, #00000099, transparent 70%);
   content: "";
   filter: blur(3px);
   transform: translateX(-50%) scale(1, 0.78);
@@ -200,7 +165,7 @@
 :global([data-shop-root]) .sx-tile:hover:not(:disabled) .sx-tile-icon,
 :global([data-shop-root]) .sx-tile.is-hovered .sx-tile-icon,
 :global([data-shop-root]) .sx-tile:focus-visible .sx-tile-icon {
-  filter: drop-shadow(0 4px 4px #0b2c3566) drop-shadow(0 0 8px color-mix(in srgb, var(--sx-rr) 32%, transparent));
+  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 8px color-mix(in srgb, var(--sx-rr) 32%, #8279ff 18%));
   transform: translateY(-9px) translateZ(18px) rotateZ(-1deg);
 }
 
@@ -211,17 +176,15 @@
 }
 
 :global([data-shop-root]) .sx-tile.is-selected .sx-tile-icon {
-  filter: drop-shadow(0 4px 4px #0b2c3566) drop-shadow(0 0 9px color-mix(in srgb, var(--sx-rr) 38%, transparent));
+  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 9px color-mix(in srgb, var(--sx-rr) 38%, #8279ff 22%));
 }
 
 :global([data-shop-root]) .sx-tile.is-sold,
 :global([data-shop-root]) .sx-tile.is-sold:hover:not(:disabled),
 :global([data-shop-root]) .sx-tile.is-sold:focus-visible {
-  --sx-corner: #92a9ad66;
-
-  color: #8ea5aa;
-  background: linear-gradient(150deg, #c4d1d088, #667b8170);
-  border-color: #c6d8d866;
+  color: #788198;
+  background: linear-gradient(150deg, #171b27a6, #080b12a6);
+  border-color: #aeb7d52e;
   box-shadow: none;
   cursor: default;
   filter: saturate(0.25);

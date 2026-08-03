@@ -200,7 +200,6 @@ function ShelfRow({
 
   return (
     <div className={cx(s["sx-row"], s[`is-${direction}`])}>
-      <p className={s["sx-row-label"]}>{label}</p>
       {slots.length ? (
         <div className={cx(s["sx-grid"], s[`is-${direction}`], motionClass)}>
           {slots.map((slot) => (
