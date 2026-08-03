@@ -29,9 +29,9 @@ import ShopItemTile from "@/ui/town/shop/ShopItemTile";
 import { cx } from "@/ui/common/cx";
 import s from "./ShopScene.module.css";
 
-// 面板使用固定设计画布尺寸, 右侧保留独立 UI 呼吸区, 并由 CSS 靠右对齐。
+// 面板使用固定设计画布尺寸, 右侧靠近用户, 左侧保留背景 NPC 的观景区。
 const CONTENT_DELAY_MS = 560;
-const PANEL_SIZE = { w: 1180, h: 800 };
+const PANEL_SIZE = { w: 1100, h: 800 };
 type ShopTab = "equipment" | "material";
 type TabDirection = "forward" | "backward";
 const SHOP_TABS: { id: ShopTab; label: string }[] = [
@@ -304,9 +304,9 @@ function ShelfPanel({
       </PanelHead>
       <div className={s["sx-body"]}>
         <div className={s["sx-main"]}>
-          {/* key={tab} 强制换页签时重挂载 —— 方向类让货架切换动画按来向播放。 */}
+          {/* 分类、刷新或跨日换货时重挂载 —— 方向类让货架切换动画按来向播放。 */}
           <ShelfRow
-            key={tab}
+            key={`${tab}-${day}-${shop.refreshes}`}
             label={tab === "equipment" ? "装备" : "材料"}
             direction={tabDirection}
             slots={visibleSlots}
@@ -320,6 +320,11 @@ function ShelfPanel({
           />
         </div>
         <ShopItemCard
+          key={
+            displayedSlot
+              ? `${day}-${shop.refreshes}-${displayedSlot.key}`
+              : `idle-${day}-${shop.refreshes}`
+          }
           stack={displayedSlot ? asStack(displayedSlot) : null}
           placeholder="选择一件商品查看详情。今天挑剩的，明天就换新货了。"
         />
