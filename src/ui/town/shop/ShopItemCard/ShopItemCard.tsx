@@ -57,29 +57,30 @@ export default function ShopItemCard({
         <span className={s["sx-card-icon"]}>{itemIcon(def)}</span>
       </div>
 
-      <h4 className={s["sx-card-name"]}>
-        {def.name}
-        {stack.count > 1 && <span className={s["sx-card-mult"]}> ×{stack.count}</span>}
-      </h4>
+      <div className={s["sx-card-title-row"]}>
+        <h4 className={s["sx-card-name"]}>
+          {def.name}
+          {stack.count > 1 && <span className={s["sx-card-mult"]}> ×{stack.count}</span>}
+        </h4>
+
+        {/* 羁绊标签与名称同排，固定在标题行右侧。 */}
+        {bond && (
+          <span
+            className={s["sx-card-bond"]}
+            style={{ "--sx-bond": bond.color } as CSSProperties}
+            title={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
+          >
+            <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
+            <span className={s["sx-card-bond-name"]}>{bond.name}</span>
+          </span>
+        )}
+      </div>
 
       <p className={s["sx-card-tags"]}>
         <span className={s["sx-card-rarity"]}>{RARITY_LABEL[def.rarity]}</span>
         <span>{CATEGORY_LABEL[def.category]}</span>
         {def.slot && <span>{SLOT_LABEL[def.slot]}</span>}
       </p>
-
-      {/* 羁绊 —— 精简成一个彩色 tag: 颜色即身份(见 data/bonds.ts 的 BondDef.color),
-          六条羁绊各一个色相, 扫一眼就认得出。效果说明挂 title, 想看再悬浮。 */}
-      {bond && (
-        <span
-          className={s["sx-card-bond"]}
-          style={{ "--sx-bond": bond.color } as CSSProperties}
-          title={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
-        >
-          <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
-          <span className={s["sx-card-bond-name"]}>{bond.name}</span>
-        </span>
-      )}
 
       <p className={s["sx-card-desc"]}>{def.desc}</p>
 

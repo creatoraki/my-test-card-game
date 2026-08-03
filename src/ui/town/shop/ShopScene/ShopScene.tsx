@@ -20,7 +20,7 @@
 //
 // ★ 商店面板左侧保留两块独立的梯形侧牌, 与面板共用背板材质, 负责装备/材料切换。
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { shopRefreshCost, type ShopSlot } from "@/data/shop";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
@@ -31,13 +31,22 @@ import s from "./ShopScene.module.css";
 
 // 面板使用固定设计画布尺寸, 右侧靠近用户, 左侧保留背景 NPC 的观景区。
 const CONTENT_DELAY_MS = 560;
+const SHELF_EXIT_MS = 500;
+const SHELF_ENTER_MS = 520;
 const PANEL_SIZE = { w: 1100, h: 800 };
 type ShopTab = "equipment" | "material";
 type TabDirection = "forward" | "backward";
+type ShelfMotion = "entering" | "leaving" | "idle";
+type ShelfSnapshot = { key: string; tab: ShopTab; slots: ShopSlot[] };
 const SHOP_TABS: { id: ShopTab; label: string }[] = [
   { id: "equipment", label: "装备" },
   { id: "material", label: "材料" },
 ];
+
+const shelfMotionDuration = (duration: number) =>
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? 0
+    : duration;
 
 // 货架格 → ShopItemTile / ShopItemCard 认识的 ItemStack。★ 只是**展示用**的临时对象:
 //   真正的实例(与 uid)要到 townStore.buyShopItem 里才由 makeItemStack 发出来。
@@ -168,6 +177,7 @@ function ShelfRow({
   slots,
   selected,
   hovered,
+  motion,
   loot,
   onSelect,
   onHoverStart,
@@ -179,17 +189,20 @@ function ShelfRow({
   slots: ShopSlot[];
   selected: string | null;
   hovered: string | null;
+  motion: ShelfMotion;
   loot: number;
   onSelect: (key: string) => void;
   onHoverStart: (key: string) => void;
   onHoverEnd: (key: string) => void;
   onBuy: (key: string) => void;
 }) {
+  const motionClass = motion === "leaving" ? s["is-leaving"] : motion === "entering" ? s["is-entering"] : undefined;
+
   return (
     <div className={cx(s["sx-row"], s[`is-${direction}`])}>
       <p className={s["sx-row-label"]}>{label}</p>
       {slots.length ? (
-        <div className={cx(s["sx-grid"], s[`is-${direction}`])}>
+        <div className={cx(s["sx-grid"], s[`is-${direction}`], motionClass)}>
           {slots.map((slot) => (
             <div key={slot.key} className={cx(s["sx-cell"], slot.sold && s["is-sold"])}>
               <ShopItemTile
@@ -268,9 +281,72 @@ function ShelfPanel({
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const visibleSlots = tab === "equipment" ? shop.equip : shop.material;
+  const shelfKey = `${tab}-${day}-${shop.refreshes}`;
+  const initialShelf: ShelfSnapshot = { key: shelfKey, tab, slots: visibleSlots };
+  const [shelfMotion, setShelfMotion] = useState<ShelfMotion>("entering");
+  const [shelf, setShelf] = useState<ShelfSnapshot>(initialShelf);
+  const activeShelfRef = useRef<ShelfSnapshot>(initialShelf);
+  const pendingShelfRef = useRef<ShelfSnapshot>(initialShelf);
+  const transitionRef = useRef(false);
+  const initialEnterTimerRef = useRef<number | null>(null);
+  const exitTimerRef = useRef<number | null>(null);
+  const enterTimerRef = useRef<number | null>(null);
   const selectedSlot = visibleSlots.find((s) => s.key === selected) ?? null;
   const hoveredSlot = visibleSlots.find((s) => s.key === hovered) ?? null;
   const displayedSlot = hoveredSlot ?? selectedSlot;
+
+  useEffect(() => {
+    initialEnterTimerRef.current = window.setTimeout(() => {
+      initialEnterTimerRef.current = null;
+      setShelfMotion("idle");
+    }, shelfMotionDuration(SHELF_ENTER_MS));
+
+    return () => {
+      if (initialEnterTimerRef.current !== null) {
+        window.clearTimeout(initialEnterTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const nextShelf: ShelfSnapshot = { key: shelfKey, tab, slots: visibleSlots };
+    pendingShelfRef.current = nextShelf;
+
+    if (nextShelf.key === activeShelfRef.current.key) {
+      activeShelfRef.current = nextShelf;
+      setShelf(nextShelf);
+      return;
+    }
+
+    if (initialEnterTimerRef.current !== null) {
+      window.clearTimeout(initialEnterTimerRef.current);
+      initialEnterTimerRef.current = null;
+    }
+
+    if (transitionRef.current) return;
+
+    transitionRef.current = true;
+    setShelfMotion("leaving");
+    exitTimerRef.current = window.setTimeout(() => {
+      exitTimerRef.current = null;
+      const incomingShelf = pendingShelfRef.current;
+      activeShelfRef.current = incomingShelf;
+      setShelf(incomingShelf);
+      setShelfMotion("entering");
+      enterTimerRef.current = window.setTimeout(() => {
+        enterTimerRef.current = null;
+        transitionRef.current = false;
+        setShelfMotion("idle");
+      }, shelfMotionDuration(SHELF_ENTER_MS));
+    }, shelfMotionDuration(SHELF_EXIT_MS));
+  }, [shelfKey, tab, visibleSlots]);
+
+  useEffect(() => {
+    return () => {
+      if (exitTimerRef.current !== null) window.clearTimeout(exitTimerRef.current);
+      if (enterTimerRef.current !== null) window.clearTimeout(enterTimerRef.current);
+    };
+  }, []);
 
   // 切换页签或刷新会让当前货架变化, 不可见的选中/悬浮商品都要清掉。
   useEffect(() => {
@@ -291,25 +367,17 @@ function ShelfPanel({
             <span>居民积分</span>
             <strong>{loot.toLocaleString()}</strong>
           </div>
-          <div>
-            <span>生存时间</span>
-            <strong>第 {day} 日</strong>
-          </div>
-          <div>
-            <span>今日刷新</span>
-            <strong>{shop.refreshes}</strong>
-            <em>下次 {refreshCost}</em>
-          </div>
         </div>
       </PanelHead>
       <div className={s["sx-body"]}>
         <div className={s["sx-main"]}>
-          {/* 分类、刷新或跨日换货时重挂载 —— 方向类让货架切换动画按来向播放。 */}
+          {/* 分类、刷新或跨日换货时先保留旧快照离场，再替换成新货架。 */}
           <ShelfRow
-            key={`${tab}-${day}-${shop.refreshes}`}
-            label={tab === "equipment" ? "装备" : "材料"}
+            key={shelf.key}
+            label={shelf.tab === "equipment" ? "装备" : "材料"}
             direction={tabDirection}
-            slots={visibleSlots}
+            motion={shelfMotion}
+            slots={shelf.slots}
             selected={selected}
             hovered={hovered}
             loot={loot}
@@ -333,7 +401,7 @@ function ShelfPanel({
         {/* ★ 余额与刷新次数**只在**顶部 readout 说一次 —— 这里以前重复了一遍, 三处讲同一批
             数字, 而底栏这条最长的文字信息量最低。留下的是 readout 说不了的那件事:
             主刷新机制不在这个界面里, 免得玩家以为只能花钱换货。 */}
-        <p className={s["sx-note"]}>出击归来自动换一批新货，刷新价也会归零。</p>
+        <p className={s["sx-note"]}></p>
         {/* ★ 三段式(图标 / 动词 / 价格)不是装饰 —— 动词与价格必须**分列**才有层级:
             挤在同一行同字号时, "刷新货架 · 12" 读起来像一串标签而不是一颗可按的键。
             分隔竖线由 CSS ::before 画, 不进 DOM。 */}
