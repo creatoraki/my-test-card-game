@@ -138,8 +138,10 @@
   margin: 0;
   font-size: 13px;
 }
-.item-detail-bond-emoji {
+.item-detail-bond-icon {
   flex: none;
+  width: 24px;
+  height: 24px;
 }
 .item-detail-bond-name {
   color: var(--accent);

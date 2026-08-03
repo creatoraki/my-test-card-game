@@ -13,8 +13,16 @@
 //
 // ★ 样式独立: 类名一律 sx- 前缀且全挂在 .sx-root 作用域下, 货架格与详情栏用商店自己的
 //   ShopItemTile / ShopItemCard —— 本界面不再改写任何共享组件, 也不依赖 .town-splash。
+//
+// ★ 购买入口在**货架格底部的价格牌**(ShelfPriceTag)上, 右侧详情栏是**纯展示**:
+//   价格与商品在同一个格子里, 玩家不用在"看中哪件"和"在哪付钱"之间来回移动视线,
+//   详情栏也就腾得出整个上半部分给商品图当主视觉。
+//
+// ★ 「装备 / 材料」页签是挂在面板**视觉左上角外侧**、顺着立柱往下垂的两块招牌(ShelfTabRail),
+//   不在面板里: 面板整幅是"今天的货", 换品类是站在货架**外面**做的动作 —— 分成两个物件,
+//   面板内部就不必再为导航让出一条横带。因此 tab 状态提到 ShopScene 这一层, 由招牌与面板共用。
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { shopRefreshCost, type ShopSlot } from "../data/shop";
 import type { ItemStack } from "../items/types";
 import { useTownStore } from "../store/townStore";
@@ -54,6 +62,8 @@ export function ShopScene({ leaving = false }: Props) {
   const refreshShop = useTownStore((s) => s.refreshShop);
   const buyShopItem = useTownStore((s) => s.buyShopItem);
   const refreshCost = shopRefreshCost(shop.refreshes);
+  // ★ tab 提到这一层: 纵向控制柱在面板**外面**, 与面板是兄弟节点, 两边都要读这个值。
+  const [tab, setTab] = useState<ShopTab>("equipment");
 
   return (
     <div className={`sx-root${leaving ? " is-leaving" : ""}`}>
@@ -74,6 +84,8 @@ export function ShopScene({ leaving = false }: Props) {
           } as CSSProperties
         }
       >
+        {/* 招牌在面板**之前** —— .sx-stage 是右对齐的 flex 行, 它自然落在面板左外侧。 */}
+        <ShelfTabRail tab={tab} onTab={setTab} shop={shop} />
         <section
           className="sx-panel"
           style={
@@ -89,6 +101,7 @@ export function ShopScene({ leaving = false }: Props) {
             shop={shop}
             loot={loot}
             day={day}
+            tab={tab}
             refreshCost={refreshCost}
             onBuy={buyShopItem}
             onRefresh={refreshShop}
@@ -100,11 +113,60 @@ export function ShopScene({ leaving = false }: Props) {
 }
 
 // 常驻面板标题栏。返回据点由 TownScreen 统一提供, 商店面板不再设置关闭按钮。
-function PanelHead({ kicker, title }: { kicker: string; title: string }) {
+// ★ 读数(余额/日期/刷新)是标题栏的**一部分**, 不再是浮在面板右上角的绝对定位块 ——
+//   两者同属一条 flex 行, 底边天然对齐, 面板 padding 变了也不会错位。
+function PanelHead({
+  kicker,
+  title,
+  children,
+}: {
+  kicker: string;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="sx-panel-head">
-      <span className="sx-kicker">{kicker}</span>
-      <h3 className="sx-panel-title">{title}</h3>
+      <div className="sx-panel-head-text">
+        <span className="sx-kicker">{kicker}</span>
+        <h3 className="sx-panel-title">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ===================== 面板外的页签吊牌 =====================
+// 从面板左上角外侧往下垂的两块招牌, 挂在一根立柱上 —— 像建筑外墙上挑出去的广告牌:
+// 牌面与面板共用同一个 rotateY 倾角(读作贴在同一面墙上), 它们和面板一样是"摆在场景里的
+// 物件", 而不是面板内部的一条导航带。
+// 品类名走 writing-mode: vertical-rl 竖排(两个汉字自然叠成一列), 数量仍是横排小徽标。
+// 当前页签会朝面板方向推出一小截, 牌面底色变化指出当前货物分类。
+function ShelfTabRail({
+  tab,
+  onTab,
+  shop,
+}: {
+  tab: ShopTab;
+  onTab: (t: ShopTab) => void;
+  shop: { equip: ShopSlot[]; material: ShopSlot[] };
+}) {
+  return (
+    <div className="sx-tabrail" role="tablist" aria-label="货架分类" aria-orientation="vertical">
+      {SHOP_TABS.map((item) => {
+        const active = tab === item.id;
+        return (
+          <button
+            key={item.id}
+            className={`sx-vtab${active ? " is-active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onTab(item.id)}
+          >
+            <span className="sx-vtab-label">{item.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -116,12 +178,22 @@ function ShelfRow({
   label,
   slots,
   selected,
+  hovered,
+  loot,
   onSelect,
+  onHoverStart,
+  onHoverEnd,
+  onBuy,
 }: {
   label: string;
   slots: ShopSlot[];
   selected: string | null;
+  hovered: string | null;
+  loot: number;
   onSelect: (key: string) => void;
+  onHoverStart: (key: string) => void;
+  onHoverEnd: (key: string) => void;
+  onBuy: (key: string) => void;
 }) {
   return (
     <div className="sx-row">
@@ -133,10 +205,15 @@ function ShelfRow({
               <ShopItemTile
                 stack={asStack(s)}
                 selected={selected === s.key}
+                hovered={hovered === s.key}
                 sold={s.sold}
                 onClick={() => onSelect(s.key)}
+                onPointerEnter={() => onHoverStart(s.key)}
+                onPointerLeave={() => onHoverEnd(s.key)}
+                onFocus={() => onHoverStart(s.key)}
+                onBlur={() => onHoverEnd(s.key)}
               />
-              <span className="sx-cell-price">{s.sold ? "已售出" : s.price}</span>
+              <ShelfPriceTag slot={s} affordable={loot >= s.price} onBuy={onBuy} />
             </div>
           ))}
         </div>
@@ -147,11 +224,11 @@ function ShelfRow({
   );
 }
 
-// 购买徽章 —— 价格**长在按钮里面**, 所以详情栏不再单列一行「售价 xxx 居民积分」:
-//   同一个数字出现两次会让玩家在两处之间来回确认, 反而变慢。
-// 三种态各自显式配色(见 .sx-buy.is-*), 不用整体 opacity 压暗 —— 价格必须始终读得清,
+// 货架格底部的价格标记牌 —— 它**就是**购买按钮: 价格与商品在同一个格子里,
+//   玩家不必先选中再挪到右栏付钱。详情栏因此不再有任何购买控件。
+// 三种态各自显式配色(见 .sx-price.is-*), 不用整体 opacity 压暗 —— 价格必须始终读得清,
 // 尤其是「积分不足」时, 玩家要看的正是还差多少。
-function BuyBadge({
+function ShelfPriceTag({
   slot,
   affordable,
   onBuy,
@@ -161,19 +238,18 @@ function BuyBadge({
   onBuy: (key: string) => void;
 }) {
   const state = slot.sold ? "sold" : affordable ? "ready" : "poor";
-  const label = slot.sold ? "已售出" : affordable ? "购入" : "积分不足";
+  const label = slot.sold ? "已售出" : affordable ? "买入" : "积分不足";
 
   return (
     <button
-      className={`sx-buy is-${state}`}
+      className={`sx-price is-${state}`}
       type="button"
       disabled={slot.sold || !affordable}
       onClick={() => onBuy(slot.key)}
       aria-label={`${label}，售价 ${slot.price} 居民积分`}
+      title={label}
     >
-      <span className="sx-buy-rim" aria-hidden="true" />
-      <span className="sx-buy-label">{label}</span>
-      <strong className="sx-buy-price">{slot.price}</strong>
+      {slot.sold ? <span className="sx-price-sold">已售出</span> : <strong>{slot.price}</strong>}
     </button>
   );
 }
@@ -183,6 +259,7 @@ function ShelfPanel({
   shop,
   loot,
   day,
+  tab,
   refreshCost,
   onBuy,
   onRefresh,
@@ -190,82 +267,75 @@ function ShelfPanel({
   shop: { equip: ShopSlot[]; material: ShopSlot[]; refreshes: number };
   loot: number;
   day: number;
+  /** 当前品类。★ 由 ShopScene 持有 —— 切换控件在面板外面(见 ShelfTabRail)。 */
+  tab: ShopTab;
   refreshCost: number;
   onBuy: (key: string) => void;
   onRefresh: () => void;
 }) {
-  const [tab, setTab] = useState<ShopTab>("equipment");
   const [selected, setSelected] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
   const visibleSlots = tab === "equipment" ? shop.equip : shop.material;
-  const sel = visibleSlots.find((s) => s.key === selected) ?? null;
+  const selectedSlot = visibleSlots.find((s) => s.key === selected) ?? null;
+  const hoveredSlot = visibleSlots.find((s) => s.key === hovered) ?? null;
+  const displayedSlot = hoveredSlot ?? selectedSlot;
 
-  // 切换页签或刷新会让当前货架变化, 选中的商品若已不可见就清掉详情。
+  // 切换页签或刷新会让当前货架变化, 不可见的选中/悬浮商品都要清掉。
   useEffect(() => {
     const visibleKeys = new Set(visibleSlots.map((s) => s.key));
     setSelected((cur) => (cur && visibleKeys.has(cur) ? cur : null));
+    setHovered((cur) => (cur && visibleKeys.has(cur) ? cur : null));
   }, [shop.equip, shop.material, tab, visibleSlots]);
 
-  const affordable = sel ? loot >= sel.price : false;
+  const handleHoverEnd = (key: string) => {
+    setHovered((current) => (current === key ? null : current));
+  };
 
   return (
     <>
-      <PanelHead kicker="SUPPLY EXCHANGE" title="补给货架" />
-      <div className="sx-readout" aria-label="商店状态">
-        <div>
-          <span>居民积分</span>
-          <strong>{loot.toLocaleString()}</strong>
+      <PanelHead kicker="SUPPLY EXCHANGE" title="补给货架">
+        <div className="sx-readout" aria-label="商店状态">
+          <div>
+            <span>居民积分</span>
+            <strong>{loot.toLocaleString()}</strong>
+          </div>
+          <div>
+            <span>生存时间</span>
+            <strong>第 {day} 日</strong>
+          </div>
+          <div>
+            <span>今日刷新</span>
+            <strong>{shop.refreshes}</strong>
+            <em>下次 {refreshCost}</em>
+          </div>
         </div>
-        <div>
-          <span>生存时间</span>
-          <strong>第 {day} 日</strong>
-        </div>
-        <div>
-          <span>今日刷新</span>
-          <strong>{shop.refreshes}</strong>
-          <em>下次 {refreshCost}</em>
-        </div>
-      </div>
-      <div className="sx-tabs" role="tablist" aria-label="货架分类">
-        {SHOP_TABS.map((item) => {
-          const count = item.id === "equipment" ? shop.equip.length : shop.material.length;
-          const active = tab === item.id;
-          return (
-            <button
-              key={item.id}
-              className={`sx-tab${active ? " is-active" : ""}`}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setTab(item.id)}
-            >
-              <span>{item.label}</span>
-              <strong>{count}</strong>
-            </button>
-          );
-        })}
-      </div>
+      </PanelHead>
       <div className="sx-body">
         <div className="sx-main">
+          {/* key={tab} 强制换页签时重挂载 —— .sx-grid 的 sxTabSwap 淡入才会重播。 */}
           <ShelfRow
+            key={tab}
             label={tab === "equipment" ? "装备" : "材料"}
             slots={visibleSlots}
             selected={selected}
+            hovered={hovered}
+            loot={loot}
             onSelect={setSelected}
+            onHoverStart={setHovered}
+            onHoverEnd={handleHoverEnd}
+            onBuy={onBuy}
           />
         </div>
         <ShopItemCard
-          stack={sel ? asStack(sel) : null}
+          stack={displayedSlot ? asStack(displayedSlot) : null}
           placeholder="选择一件商品查看详情。今天挑剩的，明天就换新货了。"
-        >
-          {sel && <BuyBadge slot={sel} affordable={affordable} onBuy={onBuy} />}
-        </ShopItemCard>
+        />
       </div>
       <div className="sx-foot">
-        <p className="sx-note">
-          当前余额 {loot.toLocaleString()} · 今日已刷新 {shop.refreshes} 次
-          {/* 主刷新机制不在这里, 说清楚免得玩家以为只能花钱换货 */}
-          <span className="sx-note-dim">　出击归来自动换一批新货，刷新价也会归零。</span>
-        </p>
+        {/* ★ 余额与刷新次数**只在**顶部 readout 说一次 —— 这里以前重复了一遍, 三处讲同一批
+            数字, 而底栏这条最长的文字信息量最低。留下的是 readout 说不了的那件事:
+            主刷新机制不在这个界面里, 免得玩家以为只能花钱换货。 */}
+        <p className="sx-note">出击归来自动换一批新货，刷新价也会归零。</p>
         <button
           className="sx-refresh"
           type="button"

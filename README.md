@@ -76,3 +76,6 @@ my-test-card-game/
 ```
 
 详细说明入口：[`docs/code-map/README.md`](docs/code-map/README.md)。
+
+
+临时访问命令 cloudflared tunnel --url http://127.0.0.1:5173

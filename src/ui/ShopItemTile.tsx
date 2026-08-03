@@ -8,21 +8,43 @@
 // 图标仍靠 stroke="currentColor" 吃父级 color(= --sx-rr), 一套图标覆盖五档稀有度。
 
 import { getBondDef, getItemDef } from "../data";
+import productTrayArt from "../assets/道具/商品托盘.png";
 import type { ItemStack } from "../items/types";
 import { itemIcon } from "./itemArt";
 
 interface Props {
   stack: ItemStack;
   selected?: boolean;
+  hovered?: boolean;
   /** 已售出: 压暗 + 描边落到面板线色。★ 保留占位, 当日不补货是规则的一部分。 */
   sold?: boolean;
   onClick?: () => void;
+  onPointerEnter?: () => void;
+  onPointerLeave?: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
-export default function ShopItemTile({ stack, selected, sold, onClick }: Props) {
+export default function ShopItemTile({
+  stack,
+  selected,
+  hovered,
+  sold,
+  onClick,
+  onPointerEnter,
+  onPointerLeave,
+  onFocus,
+  onBlur,
+}: Props) {
   const def = getItemDef(stack.itemId);
   const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
-  const cls = ["sx-tile", `sx-r-${def.rarity}`, selected ? "is-selected" : "", sold ? "is-sold" : ""]
+  const cls = [
+    "sx-tile",
+    `sx-r-${def.rarity}`,
+    selected ? "is-selected" : "",
+    hovered ? "is-hovered" : "",
+    sold ? "is-sold" : "",
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -31,8 +53,13 @@ export default function ShopItemTile({ stack, selected, sold, onClick }: Props) 
       type="button"
       className={cls}
       onClick={onClick}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onFocus={onFocus}
+      onBlur={onBlur}
       title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
     >
+      <img className="sx-tile-tray" src={productTrayArt} alt="" aria-hidden="true" />
       <span className="sx-tile-icon">{itemIcon(def)}</span>
     </button>
   );

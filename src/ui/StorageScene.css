@@ -732,8 +732,10 @@
 .stor-bond.is-on .stor-bond-head {
   color: var(--stor-ink);
 }
-.stor-bond-emoji {
+.stor-bond-icon {
   flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
 }
 .stor-bond-arcana {
   font-size: 10px;

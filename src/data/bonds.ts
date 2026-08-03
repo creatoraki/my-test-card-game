@@ -28,8 +28,10 @@ export interface BondDef {
   id: string;
   name: string; // 塔罗牌名, 同时就是羁绊名
   arcana: string; // 大阿尔卡那编号(纯展示)
-  emoji: string;
   desc: string; // 主题一句话
+  // 羁绊主题色 —— UI 的 tag 文字/图标/描边统一读这一份, 不在各界面各配一套。
+  // 取色要求: 在近黑底上读得清, 且六个之间的色相拉得开(玩家要"扫一眼认出是哪条羁绊")。
+  color: string;
   tiers: BondTier[]; // 由低到高, activeBonds 取达到的最高档
 }
 
@@ -39,8 +41,8 @@ export const BOND_DEFS: Record<string, BondDef> = {
     id: "strength",
     name: "力量",
     arcana: "VIII",
-    emoji: "🦁",
     desc: "以柔驯猛。队伍的每一次挥击都更沉。",
+    color: "#ff6b57",
     tiers: [
       { count: 3, desc: "全队攻击力 +3", mods: { flat: { attack: 3 } } },
       { count: 6, desc: "全队攻击力 +6", mods: { flat: { attack: 6 } } },
@@ -51,8 +53,8 @@ export const BOND_DEFS: Record<string, BondDef> = {
     id: "chariot",
     name: "战车",
     arcana: "VII",
-    emoji: "🛞",
     desc: "驾驭矛盾的方向感。攻势不再走空。",
+    color: "#ffab3d",
     tiers: [
       { count: 3, desc: "全队命中率 +7%", mods: { flat: { hitRate: 7 } } },
       { count: 6, desc: "全队命中率 +15%", mods: { flat: { hitRate: 15 } } },
@@ -63,8 +65,8 @@ export const BOND_DEFS: Record<string, BondDef> = {
     id: "judgement",
     name: "审判",
     arcana: "XX",
-    emoji: "📯",
     desc: "号角落下的那一刻，罪与罚同时兑现。",
+    color: "#ffd84a",
     tiers: [
       { count: 3, desc: "全队暴击率 +10%", mods: { flat: { critRate: 10 } } },
       { count: 6, desc: "全队暴击率 +20%", mods: { flat: { critRate: 20 } } },
@@ -77,8 +79,8 @@ export const BOND_DEFS: Record<string, BondDef> = {
     id: "priestess",
     name: "女祭司",
     arcana: "II",
-    emoji: "🌙",
     desc: "帷幕之后的静默知识，让治愈更深一层。",
+    color: "#5ec8ff",
     tiers: [
       { count: 3, desc: "治疗效果 +10%", mods: { flat: { healBoost: 10 } } },
       { count: 6, desc: "治疗效果 +20%", mods: { flat: { healBoost: 20 } } },
@@ -89,8 +91,8 @@ export const BOND_DEFS: Record<string, BondDef> = {
     id: "tower",
     name: "高塔",
     arcana: "XVI",
-    emoji: "🗼",
     desc: "崩塌之前，先把墙筑得更厚。",
+    color: "#b06cf0",
     tiers: [
       { count: 3, desc: "护盾强度 +10%", mods: { flat: { shieldBoost: 10 } } },
       { count: 6, desc: "护盾强度 +20%", mods: { flat: { shieldBoost: 20 } } },
@@ -104,8 +106,8 @@ export const BOND_DEFS: Record<string, BondDef> = {
     id: "fool",
     name: "愚者",
     arcana: "0",
-    emoji: "🎒",
     desc: "毫无计划地起步，反而看见更多的路。",
+    color: "#7ce08a",
     tiers: [
       { count: 4, desc: "每回合额外抽 1 张牌", partyMods: { flat: { drawCount: 1 } } },
       { count: 8, desc: "每回合额外抽 2 张牌", partyMods: { flat: { drawCount: 2 } } },

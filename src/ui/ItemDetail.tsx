@@ -8,6 +8,7 @@ import { STAT_KEYS } from "../engine";
 import type { StatBlock } from "../engine";
 import type { ItemStack } from "../items/types";
 import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "../items/types";
+import { BondIcon } from "./BondIcon";
 import { itemIcon } from "./itemArt";
 import "./ItemDetail.css";
 
@@ -107,7 +108,7 @@ export default function ItemDetail({
       {bond && (
         <div className="item-detail-bond">
           <p className="item-detail-bond-head">
-            <span className="item-detail-bond-emoji">{bond.emoji}</span>
+            <BondIcon bondId={bond.id} className="item-detail-bond-icon" />
             <span className="item-detail-bond-name">
               {bond.name}
               <span className="item-detail-bond-arcana">{bond.arcana}</span>

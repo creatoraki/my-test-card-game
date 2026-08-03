@@ -31,6 +31,7 @@ import { STAT_KEYS, type StatBlock } from "../engine";
 import { occupiedSlots, sortStacks } from "../items/inventory";
 import { RARITY_ORDER, SLOT_LABEL, type EquipSlot, type ItemStack } from "../items/types";
 import { bondCountsOf, deriveStats, EQUIP_SLOTS, useTownStore } from "../store/townStore";
+import { BondIcon } from "./BondIcon";
 import ItemDetail from "./ItemDetail";
 import ItemSlot from "./ItemSlot";
 import ItemTabs from "./ItemTabs";
@@ -545,7 +546,7 @@ function BondPanel({ counts, partySize }: { counts: Record<string, number>; part
           return (
             <div key={def.id} className={`stor-bond${active ? " is-on" : ""}`}>
               <p className="stor-bond-head">
-                <span className="stor-bond-emoji">{def.emoji}</span>
+                <BondIcon bondId={def.id} className="stor-bond-icon" />
                 <span className="stor-bond-name">{def.name}</span>
                 <span className="stor-bond-arcana">{def.arcana}</span>
                 <span className="stor-bond-count">
