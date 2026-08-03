@@ -1,0 +1,889 @@
+/* 物资中转仓(设施 storage)的设施内 UI。
+   与 CryoScene.css / ControlTerminalScene.css **逐层同构**, 只有两处不同:
+     ① 借用的「大楼废弃楼层」是**暗色**场景 ⇒ 走暗玻璃配方(冬眠仓那边是浅底亮玻璃);
+     ② 强调色换成琥珀/铁锈橙 —— 与冬眠仓的紫、控制终端的青分居三个色相。
+   旋钮全在 --stor-* 里, 只在本文件使用; 不新增也不覆盖 styles/tokens.css 的全局令牌。 */
+
+.stor-scene {
+  --stor-ink: #f2e6d8; /* 主文字: 暖白, 贴废墟场景的锈色 */
+  --stor-ink-dim: #a5937f; /* 次文字 / 标签 */
+  --stor-line: #f2e6d824; /* 常态描边 */
+  --stor-glow: #e59b3f; /* 强调琥珀橙 */
+  --stor-glow-deep: #ffbe6b; /* 悬停/按下提亮档(暗底上是**提亮**而非加深) */
+
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  /* ⚠⚠ 这一层永远不能挂 animation / opacity / transform / filter:
+     任何祖先一旦成为 backdrop root, 下面玻璃砖的 backdrop-filter 就取不到设施背景。
+     入场/退场动画一律挂叶子元素(见文件末尾的 storRise / storFade)。
+     同理 .stor-entries 这个**容器**也不挂动画 —— 它是三块玻璃砖的祖先。 */
+}
+
+/* ★ 暗玻璃配方(.stor-chip / .stor-entry 各展开一遍, 改动请同步两处):
+     border: 1px solid var(--stor-line)
+     background: linear-gradient(150deg, #1b171459, #12100e73 55%, #0d0b0a80)
+     backdrop-filter: blur(14px) saturate(108%) brightness(0.86)
+     box-shadow: inset 0 1px 0 #ffffff1f, 0 18px 40px -26px #000000a8
+   与大厅的 .bento-glass 同一套取舍: 背景是暗的, 靠 brightness(0.86) 再压暗 + 暖白文字换对比度。
+   文字读不清时优先加亮 --stor-ink 或把底色黑的不透明度往上调, 别去动 blur。
+   斜切角(左上 + 右下)按 --notch 展开, 与 .bento-glass / .cryo-entry 同款语言。 */
+
+/* ===================== 左上: 场景标题 ===================== */
+.stor-header {
+  position: absolute;
+  padding-left: 16px;
+  border-left: 2px solid var(--stor-glow);
+  pointer-events: none;
+  animation: storRise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.stor-kicker {
+  display: block;
+  color: var(--stor-glow);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+.stor-title {
+  margin: 6px 0 0;
+  color: var(--stor-ink);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-shadow: 0 2px 18px #000000a6;
+}
+.stor-sub {
+  margin: 6px 0 0;
+  color: var(--stor-ink-dim);
+  font-size: 14px;
+  letter-spacing: 3px;
+}
+
+/* ===================== 右上: 读数 chip ===================== */
+.stor-readout {
+  position: absolute;
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+}
+.stor-chip {
+  --notch: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 96px;
+  padding: 9px 14px;
+  /* ↓ 暗玻璃配方(见文件顶部) */
+  border: 1px solid var(--stor-line);
+  background: linear-gradient(150deg, #1b171459, #12100e73 55%, #0d0b0a80);
+  -webkit-backdrop-filter: blur(14px) saturate(108%) brightness(0.86);
+  backdrop-filter: blur(14px) saturate(108%) brightness(0.86);
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 18px 40px -26px #000000a8;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  animation: storRise 460ms 200ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.stor-chip-label {
+  color: var(--stor-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.stor-chip-value {
+  color: var(--stor-ink);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+.stor-chip-note {
+  color: var(--stor-ink-dim);
+  font-size: 10px;
+}
+
+/* ===================== 右侧抽屉 ===================== */
+/* ⚠ 容器不能加 overflow: hidden —— 收起态砖块是靠伸出画布、由 :global([data-town-stage]) 的
+     overflow:hidden 在画布右缘裁掉的; 在这里裁会把弹出动画也切掉。
+   ⚠ 本元素是玻璃砖的祖先, 永远不挂 animation/opacity/transform(见顶部警告)。 */
+.stor-entries {
+  position: absolute;
+  display: grid;
+}
+
+/* 抽屉: 常态 translateX 把自己推出画布右缘, 只留 --peek 那一截; hover 时 --slide 归零弹出。
+   ⚠⚠ 滑动的 transform 只能挂在**本元素自己**身上, 绝不能套一层做位移的包装层。 */
+.stor-entry {
+  --notch: 12px;
+  --slide: calc(100% - var(--peek, 252px));
+  position: relative;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 24px;
+  color: var(--stor-ink);
+  font-weight: 400;
+  border: 1px solid var(--stor-line);
+  border-radius: 0;
+  background: linear-gradient(150deg, #1b171459, #12100e73 55%, #0d0b0a80);
+  -webkit-backdrop-filter: blur(14px) saturate(108%) brightness(0.86);
+  backdrop-filter: blur(14px) saturate(108%) brightness(0.86);
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 18px 40px -26px #000000a8;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transform: translateX(var(--slide));
+  pointer-events: auto;
+  transition:
+    transform 0.26s cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+/* ⚠ fill-mode 必须是 backwards 而不是 both/forwards: 这三块砖的 hover 要动 transform,
+   带 forwards 的动画会把 transform 永久锁在关键帧终值上 ⇒ 抽屉滑不动(同 .cryo-entry)。 */
+.stor-entry:nth-child(1) {
+  animation: storEntryRise 460ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.stor-entry:nth-child(2) {
+  animation: storEntryRise 460ms 200ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.stor-entry:nth-child(3) {
+  animation: storEntryRise 460ms 280ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+@keyframes storEntryRise {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--slide) + 40px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(var(--slide));
+  }
+}
+
+/* 顶边一道琥珀光带。left 从 --notch 起 —— 左上角被 clip-path 切掉了。 */
+.stor-entry::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: var(--notch);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--stor-glow) 45%, var(--stor-glow));
+  opacity: 0.42;
+  transition: opacity 0.18s ease;
+}
+
+/* 悬浮跑光: 外框静止, 只让内部的亮楔旋转; 固定的 1px 外边框把亮楔裁成沿边缘移动的流光。
+   与 .cryo-rim 同一套做法 —— 暗底上用**亮色**楔子(浅底那边反过来用深色)。 */
+.stor-rim {
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  padding: 2px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+.stor-rim::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220%;
+  aspect-ratio: 1;
+  background: conic-gradient(from 0deg, transparent 0 72%, #ffbe6bd6 86%, transparent 100%);
+  transform: translate(-50%, -50%);
+  animation: storEdgeRun 2.6s linear infinite;
+}
+@keyframes storEdgeRun {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.stor-entry-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  color: var(--stor-glow);
+  line-height: 0;
+}
+.stor-entry-icon svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.stor-entry-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+.stor-entry-name {
+  color: var(--stor-ink);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+.stor-entry-desc {
+  color: var(--stor-ink-dim);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.stor-entry-go {
+  flex: 0 0 auto;
+  color: var(--stor-glow);
+  font-size: 20px;
+  opacity: 0.5;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+/* ⚠ hover 规则一律用 :global([data-town-stage]) 提一级特异性: 全局的 button:hover:not(:disabled)
+   (styles/base.css)特异性是 0,2,1, 会压过裸类的 0,2,0。
+   ★ hover = 抽屉弹出。刻意不叠 translateY 上浮 —— 两者共用 transform, 上浮会覆盖 --slide。 */
+:global([data-town-stage]) .stor-entry:hover {
+  --slide: 0px;
+  color: var(--stor-ink);
+  background: linear-gradient(150deg, #2a231c73, #1a16138c 55%, #12100e99);
+  border-color: var(--stor-glow);
+  box-shadow:
+    inset 0 1px 0 #ffffff2e,
+    0 0 24px -8px var(--stor-glow),
+    0 22px 44px -26px #000000c4;
+}
+:global([data-town-stage]) .stor-entry:hover::before {
+  opacity: 1;
+}
+:global([data-town-stage]) .stor-entry:hover > .stor-rim {
+  opacity: 1;
+}
+:global([data-town-stage]) .stor-entry:hover .stor-entry-icon {
+  color: var(--stor-glow-deep);
+  filter: drop-shadow(0 0 8px #e59b3f66);
+}
+:global([data-town-stage]) .stor-entry:hover .stor-entry-go {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* ===================== 浮层 ===================== */
+/* ★ **没有 scrim** —— 与 .cryo-modal / .term-modal 同一条理由: 压暗背景会毁掉设施美术。
+     这一层是一整块完全透明的点击捕获层, 面板与背景的分层交给面板自己的毛玻璃 + 重投影。
+   ⚠⚠ 本层绝不能挂 opacity / filter / transform 动画: 它是 .stor-panel 的父元素,
+     一旦成为 backdrop root, 面板的 backdrop-filter 就取不到场景, 会糊死。 */
+.stor-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  pointer-events: auto;
+}
+
+/* ---- 顶部两根吊绳 ----
+   做成 .stor-modal 的**伪元素**而不是包一层 wrapper: 包装层若要跟着面板动就得挂 transform
+   ⇒ 成为 backdrop root ⇒ 面板毛玻璃糊死。伪元素不是面板的祖先, 挂动画完全安全。
+   ★ 定位只吃 --panel-w / --panel-h(由 StorageScene.tsx 的 PANEL_SIZE 内联给 .stor-modal),
+     挂在面板顶边左右各 34% 宽处。换面板尺寸不用动这里。
+   ⚠ 绳子必须与面板**同一条关键帧、同一个时长与缓动**, 否则滑入时会脱节。
+   ★ 金属色相取**锈铜**, 与冬眠仓的淡紫灰、控制终端的青灰对应。 */
+.stor-modal::before,
+.stor-modal::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 30px;
+  height: 1080px;
+  bottom: calc(50% + var(--panel-h) / 2 - 12px);
+  pointer-events: none;
+  background:
+    linear-gradient(160deg, #d8b48a, #9a7550 55%, #5f452c) no-repeat bottom center / 26px 18px,
+    linear-gradient(#7a5c3c, #7a5c3c) no-repeat center calc(100% - 18px) / 12px 6px,
+    linear-gradient(
+      90deg,
+      transparent calc(50% - 3px),
+      #00000040 calc(50% - 3px),
+      #000000a6 calc(50% - 1.5px),
+      #e0c3a0 50%,
+      #000000a6 calc(50% + 1.5px),
+      #00000040 calc(50% + 3px),
+      transparent calc(50% + 3px)
+    );
+  /* ⚠ drop-shadow 而不是 box-shadow: 后者描的是 30px 宽的整个方框, 会在绳子两侧投出空气影。 */
+  filter: drop-shadow(0 4px 8px #00000073);
+  animation: storPanelIn 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+/* -15px = 自身宽度的一半, 把 30px 宽的绳框中心对到 34% 的挂点上。
+   ⚠ 不用 translateX(-50%) 居中: transform 已被滑入/滑出的关键帧占着。 */
+.stor-modal::before {
+  left: calc(50% - var(--panel-w) * 0.34 - 15px);
+}
+.stor-modal::after {
+  right: calc(50% - var(--panel-w) * 0.34 - 15px);
+}
+.stor-modal.is-closing::before,
+.stor-modal.is-closing::after {
+  animation: storPanelOut 600ms cubic-bezier(0.55, 0, 0.9, 0.35) both;
+}
+
+/* 面板本体: 暗色毛玻璃(偏暖的铁锈黑)。与场景的分层全靠模糊、暖白外描边与重投影。
+   ✔ 本元素**自己**的 storPanelIn(transform)不影响自己的 backdrop-filter
+     —— 只有祖先才会造 backdrop root, 故这条入场动画可以留。 */
+.stor-panel {
+  --notch: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  padding: 26px 30px 22px;
+  color: var(--stor-ink);
+  border: 1px solid #f2e6d82e;
+  background: linear-gradient(155deg, #15120fe0, #100e0ce6 52%, #0a0908ed);
+  -webkit-backdrop-filter: blur(26px) saturate(112%) brightness(0.9);
+  backdrop-filter: blur(26px) saturate(112%) brightness(0.9);
+  box-shadow:
+    inset 0 1px 0 #ffffff26,
+    0 0 0 1px #00000073,
+    0 46px 100px -36px #000000e0;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  animation: storPanelIn 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+/* 着陆光扫: 面板落定的那一下, 一道 45° 光从左上扫到右下。
+   ⚠ 只播一次(无 infinite): 常驻扫光会变成闪烁, 项目对此是禁止的。 */
+.stor-panel::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -60%;
+  z-index: 2;
+  width: 60%;
+  height: 220%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, #ffd9a340 48%, transparent);
+  transform: rotate(18deg) translateX(0);
+  animation: storLand 720ms 520ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+}
+@keyframes storLand {
+  from {
+    opacity: 0.9;
+    transform: rotate(18deg) translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(18deg) translateX(320%);
+  }
+}
+
+/* 开合 = 从画布上方滑入 / 滑回上方。刻意不叠淡入淡出 —— 面板在画布顶边之外那段本来就被
+   :global([data-town-stage]) 的 overflow:hidden 裁掉, 再加 opacity 会让它在半空中若隐若现。
+   ⚠ -1080px 是画布高, 保证任何尺寸的面板都完全退到画布之外。
+   ⚠ 滑出的 duration 必须与 StorageScene.tsx 的 PANEL_OUT_MS 一致。
+   ⚠ 这两条关键帧还被上面的两根吊绳复用, 改时长/缓动必须同步。
+   ★ 84% 那一帧是过冲: 先压过中位 16px 再回弹, 落地才有重量感。 */
+@keyframes storPanelIn {
+  from {
+    transform: translateY(-1080px);
+  }
+  84% {
+    transform: translateY(16px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+/* ⚠ 必须是另一个 keyframes 名, 不能给 storPanelIn 加 reverse: 元素跨阶段一直挂载着,
+   只改 direction 不会重启动画, 反向后会直接跳到终态。 */
+.stor-modal.is-closing .stor-panel {
+  animation: storPanelOut 600ms cubic-bezier(0.55, 0, 0.9, 0.35) both;
+}
+@keyframes storPanelOut {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-1080px);
+  }
+}
+
+/* ===================== 浮层内的结构 ===================== */
+.stor-panel-head {
+  position: relative;
+  flex: 0 0 auto;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f2e6d81f;
+}
+.stor-panel-title {
+  margin: 4px 0 0;
+  color: var(--stor-ink);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 5px;
+}
+/* 关闭按钮: 右上角(左上/右下被 clip-path 裁掉, 右上是唯一不被裁的角)。 */
+.stor-close {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--stor-ink-dim);
+  font-size: 15px;
+  font-weight: 400;
+  background: #ffffff0f;
+  border: 1px solid #f2e6d824;
+  clip-path: none; /* 34×34 的小方块上再切角会看不出形状, 刻意关掉全局 button 的斜切 */
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+:global([data-town-stage]) .stor-close:hover {
+  color: var(--stor-glow-deep);
+  background: #ffffff1c;
+  border-color: var(--stor-glow);
+  transform: rotate(90deg);
+}
+:global([data-town-stage]) .stor-close:active {
+  transform: rotate(90deg) scale(0.92);
+}
+
+.stor-panel-foot {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid #f2e6d81f;
+}
+.stor-note {
+  margin: 0;
+  color: var(--stor-ink-dim);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.stor-section-label {
+  flex: 0 0 auto;
+  color: var(--stor-glow);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+
+/* ---- 主体布局 ---- */
+.stor-panel-body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: 1fr 300px;
+  gap: 16px;
+  min-height: 0;
+  padding: 14px 0;
+}
+.stor-panel-body.is-single {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stor-col-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/* 仓库网格: **无格数上限**, 用 auto-fill 流式铺 + 滚动。 */
+.stor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 7px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+.stor-grid.is-tight {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+}
+
+.stor-cand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.stor-empty {
+  margin: auto;
+  padding: 30px 0;
+  color: var(--stor-ink-dim);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---- 装备浮层 ---- */
+.stor-gear-body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: 190px 1fr 320px;
+  gap: 16px;
+  min-height: 0;
+  padding: 14px 0;
+}
+
+.stor-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+}
+.stor-roster-row {
+  padding: 10px 12px;
+  color: var(--stor-ink-dim);
+  font-size: 14px;
+  text-align: left;
+  background: #ffffff08;
+  border: 1px solid #f2e6d81a;
+  border-radius: 2px;
+  clip-path: none;
+}
+:global([data-town-stage]) .stor-roster-row:hover {
+  color: var(--stor-ink);
+  border-color: #f2e6d840;
+  background: #ffffff12;
+}
+.stor-roster-row.is-on {
+  color: var(--stor-ink);
+  background: #e59b3f24;
+  border-color: var(--stor-glow);
+}
+
+.stor-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+}
+.stor-slot-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.stor-slot-pick {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 13px;
+  text-align: left;
+  background: #ffffff08;
+  border: 1px solid #f2e6d81a;
+  border-radius: 2px;
+  clip-path: none;
+}
+.stor-slot-row.is-on .stor-slot-pick {
+  border-color: var(--stor-glow);
+  background: #e59b3f1c;
+}
+.stor-slot-label {
+  color: var(--stor-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.stor-slot-name {
+  font-size: 15px;
+  color: var(--stor-ink);
+}
+.stor-slot-name.is-empty {
+  color: var(--stor-ink-dim);
+  opacity: 0.6;
+}
+/* 槽位上的装备名也吃稀有度色 —— 一眼看出身上穿的是什么档次 */
+.stor-slot-name.r-common {
+  color: var(--rarity-common);
+}
+.stor-slot-name.r-fine {
+  color: var(--rarity-fine);
+}
+.stor-slot-name.r-rare {
+  color: var(--rarity-rare);
+}
+.stor-slot-name.r-epic {
+  color: var(--rarity-epic);
+}
+.stor-slot-name.r-legendary {
+  color: var(--rarity-legendary);
+}
+
+/* 16 项面板: 两列紧凑排布, 穿戴/卸下后数值当场就变(deriveStats 现算) */
+.stor-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 16px;
+  margin: 6px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #f2e6d81a;
+}
+.stor-stats > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.stor-stats dt {
+  color: var(--stor-ink-dim);
+}
+.stor-stats dd {
+  margin: 0;
+  color: var(--stor-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.stor-candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 0;
+}
+
+/* ---- 羁绊进度(装备浮层底栏) ----
+   ⚠ 这里显示的是**全队**口径(上阵队伍 9 个槽), 与上面那块单角色属性表不是一回事,
+      所以刻意分成两块、各自带标题, 不要合并。 */
+.stor-bonds {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.stor-bonds-head {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.stor-bonds-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 14px;
+}
+.stor-bond {
+  padding: 7px 11px;
+  background: #ffffff08;
+  border: 1px solid #f2e6d814;
+  border-left: 2px solid #f2e6d81a;
+  border-radius: 2px;
+}
+/* 已激活 —— 用左侧竖条 + 琥珀色点亮, 扫一眼就知道哪几条成了 */
+.stor-bond.is-on {
+  background: #e59b3f14;
+  border-color: #e59b3f2e;
+  border-left-color: var(--stor-glow);
+}
+.stor-bond-head {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin: 0;
+  font-size: 13px;
+  color: var(--stor-ink-dim);
+}
+.stor-bond.is-on .stor-bond-head {
+  color: var(--stor-ink);
+}
+.stor-bond-icon {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+}
+.stor-bond-arcana {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--stor-ink-dim);
+  opacity: 0.7;
+}
+.stor-bond-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.stor-bond.is-on .stor-bond-count {
+  color: var(--stor-glow);
+}
+.stor-bond-next {
+  color: var(--stor-ink-dim);
+  opacity: 0.7;
+}
+.stor-bond-effect {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--stor-ink-dim);
+}
+.stor-bond.is-on .stor-bond-effect {
+  color: var(--stor-glow-deep, var(--stor-ink));
+}
+
+/* 名册上的「上阵」标记 —— 羁绊只算上阵角色, 这个标记是那条规则的唯一提示 */
+.stor-roster-tag {
+  margin-left: 7px;
+  padding: 1px 5px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--stor-glow);
+  border: 1px solid #e59b3f4d;
+  border-radius: 2px;
+}
+
+/* ---- 按钮 ---- */
+.stor-btn {
+  padding: 7px 15px;
+  color: var(--stor-ink);
+  font-size: 13px;
+  background: #ffffff0f;
+  border: 1px solid #f2e6d82e;
+  border-radius: 2px;
+  clip-path: none;
+}
+:global([data-town-stage]) .stor-btn:hover {
+  color: var(--stor-glow-deep);
+  border-color: var(--stor-glow);
+  background: #ffffff1c;
+}
+.stor-btn.is-mini {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+.stor-btn.is-primary {
+  color: #1b1410;
+  background: var(--stor-glow);
+  border-color: var(--stor-glow);
+}
+:global([data-town-stage]) .stor-btn.is-primary:hover {
+  color: #1b1410;
+  background: var(--stor-glow-deep);
+}
+.stor-btn.is-danger {
+  color: var(--bad);
+  border-color: #ff706866;
+  background: #ff70681a;
+}
+:global([data-town-stage]) .stor-btn.is-danger:hover {
+  color: #fff;
+  background: var(--bad);
+  border-color: var(--bad);
+}
+
+/* 主按钮: 全场唯一一处**实心琥珀**, 与旁边一切描边框拉开层级 ——
+   它是浮层上唯一会改变游戏状态的东西。 */
+.stor-primary {
+  --notch: 12px;
+  position: relative;
+  flex: 0 0 auto;
+  padding: 13px 30px;
+  color: #1b1410;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, #ffc06e, #c97f27);
+  border: 1px solid #e59b3f;
+  box-shadow:
+    inset 0 1px 0 #ffffff66,
+    0 14px 30px -18px #a86a1f;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+:global([data-town-stage]) .stor-primary:hover:not(:disabled) {
+  color: #1b1410;
+  background: linear-gradient(135deg, #ffd291, #dc9235);
+  border-color: #ffbe6b;
+}
+.stor-primary:disabled {
+  opacity: 0.4;
+}
+
+/* ===================== 入场 / 退场 ===================== */
+/* ⚠ 只挂叶子元素 —— .stor-scene 与 .stor-entries 这两层是玻璃砖的祖先, 永远不挂(见顶部)。 */
+@keyframes storRise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 返回据点: 场景内容整体淡出, 与背景交叉淡同步(时长对齐 FACILITY_CINEMA.crossfade)。 */
+.stor-scene.is-leaving .stor-header,
+.stor-scene.is-leaving .stor-readout,
+.stor-scene.is-leaving .stor-entry {
+  animation: storFade 420ms ease both;
+}
+@keyframes storFade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* 「减少动态效果」: 滑入退化成一次短促淡入, 时长对齐 PANEL_OUT_REDUCED_MS。 */
+@media (prefers-reduced-motion: reduce) {
+  .stor-panel,
+  .stor-modal::before,
+  .stor-modal::after {
+    animation-duration: 180ms;
+  }
+  .stor-panel::after {
+    animation: none;
+  }
+  .stor-rim::before {
+    animation: none;
+  }
+}

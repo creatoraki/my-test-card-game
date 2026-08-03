@@ -12,13 +12,13 @@
 //   内联 style 同一坐标系, 任何分辨率下构图逐 px 一致。
 // ============================================================================
 
-import { STAGE } from "./stage";
-import cryoBg from "../assets/场景/冬眠仓.png";
-import trainingBg from "../assets/场景/训练室.png";
-import worklogBg from "../assets/场景/控制终端.png";
+import { STAGE } from "@/ui/hooks/stage";
+import cryoBg from "@/assets/场景/冬眠仓.png";
+import trainingBg from "@/assets/场景/训练室.png";
+import worklogBg from "@/assets/场景/控制终端.png";
 // ⚠ 临时素材: 物资中转仓还没有专属场景图, 先用 16:9 的场景占位素材。
-import storageBg from "../assets/占位场景素材.png";
-import shopBg from "../assets/场景/商店.png";
+import storageBg from "@/assets/占位场景素材.png";
+import shopBg from "@/assets/场景/商店.png";
 
 // ── 设施场景登记处 ──
 // 加一个设施 = 这里加一行数据(背景图 + 焦点 + 倍数), 组件一行都不用动。

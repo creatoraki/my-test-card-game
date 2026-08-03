@@ -1,6 +1,6 @@
 // ============================================================================
 // 场景过场动效预设表(纯 UI 表现层)。
-// 与 animations.ts 同一套哲学: 时长常量的唯一真相在 TS, 视觉在 ui/ScreenTransition.css;
+// 与 animations.ts 同一套哲学: 时长常量的唯一真相在 TS, 视觉在 app/ScreenTransition/ScreenTransition.module.css;
 // JS 只负责挂载/卸载与时序编排, 不引入任何动画库。
 //
 // 一次切换 = 旧界面出场(exit) → 黑场停顿(hold) → 新界面入场(enter), 串行执行。
@@ -8,16 +8,16 @@
 //
 // ★ 例外: 标了 viewTransition 的路线走**原生 View Transitions API**, 不适用上面这条模型 ——
 //   没有 exit/hold/enter 三段, 也没有任何 JS 定时器(收尾靠 transition.finished)。
-//   那类路线的**时长与画面一律在 CSS 里**(ui/screenViewTransition.css), "时长唯一真相在 TS"
+//   那类路线的**时长与画面一律在 CSS 里**(app/viewTransition.global.css), "时长唯一真相在 TS"
 //   这条规矩对它们不成立: 动的是 ::view-transition-* 伪元素, TS 根本够不着。
 // ============================================================================
 
-import type { Screen } from "../store/runStore";
+import type { Screen } from "@/store/runStore";
 
 // 总开关: 置 false 即彻底关闭过场, 退回瞬移式切换。
 export const TRANSITIONS_ENABLED = true;
 
-// 单个出/入场特效。name 对应 ui/ScreenTransition.css 里的 .screen-fx-<name>,
+// 单个出/入场特效。name 对应 app/ScreenTransition/ScreenTransition.module.css 里的 .screen-fx-<name>,
 // ms 同时用于内联 animationDuration 与 JS 定时 —— 单一真相, 不会两头对不上。
 export interface ScreenFx {
   name: string;
@@ -32,7 +32,7 @@ export interface TransitionSpec {
   /**
    * 走原生 View Transitions API(document.startViewTransition)。
    * ⚠ 置 true 后 exit/enter/hold 全部**不生效** —— 界面交换是一次原子提交, 中间没有三段式,
-   *   动画由 ui/screenViewTransition.css 里的 ::view-transition-* 规则负责。
+   *   动画由 app/viewTransition.global.css 里的 ::view-transition-* 规则负责。
    * 用于「共享元素」型过场: 两页各自给对应元素挂同名 view-transition-name, 浏览器自动配对形变。
    */
   viewTransition?: boolean;
@@ -47,7 +47,7 @@ export const BATTLE_RIPPLE_START_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_M
 export const BATTLE_RIPPLE_EXIT_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS + BATTLE_RIPPLE_MS;
 
 // ── 可用特效登记处 ──
-// 新增一种特效 = 这里加一项 + ui/ScreenTransition.css 加一段同名 keyframes。
+// 新增一种特效 = 这里加一项 + app/ScreenTransition/ScreenTransition.module.css 加一段同名 keyframes。
 //
 // ⚠ transform 类特效(zoomIn/slideUp)慎用在 battle 的入场上: BattleScreen 的
 // computeCamera 靠 getBoundingClientRect() 算相机仿射变换, 要求测量时祖先链上无
@@ -99,7 +99,7 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
   //   完全看不见, "底图不动、只有元素重组"的错觉自然成立。
   //     被点的卡面板/立绘/角色名 与 详情页的立绘栏/展示柜/大标题 **同名** ⇒ 浏览器自动形变;
   //     两页各自独有的元素(标题、读数、其余卡、属性栏、卡组栏)各挂各的名 ⇒ 各演各的飞出/飞入。
-  //   编排见 ui/ScreenTransition.tsx 的 viewTransition 分支, 画面见 ui/screenViewTransition.css。
+  //   编排见 app/ScreenTransition/ScreenTransition.tsx 的 viewTransition 分支, 画面见 app/viewTransition.global.css。
   //   ⚠ exit/enter/hold 在这条分支里不读, 填 none/0 只是为了满足类型。
   //   ⚠ 两条路线刻意同参: 来回对称, 空间关系才立得住。
   "formation>charDetail": { exit: FX.none, enter: FX.none, hold: 0, viewTransition: true },

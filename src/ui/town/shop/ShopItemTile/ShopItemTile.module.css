@@ -1,0 +1,166 @@
+/* 商店货架格专属样式。跨组件契约：父级通过 data-shop-root 提供商店按钮 reset 的特异性边界。 */
+
+.sx-tile.sx-r-common {
+  --sx-rr: var(--rarity-common);
+}
+.sx-tile.sx-r-fine {
+  --sx-rr: var(--rarity-fine);
+}
+.sx-tile.sx-r-rare {
+  --sx-rr: var(--rarity-rare);
+}
+.sx-tile.sx-r-epic {
+  --sx-rr: var(--rarity-epic);
+}
+.sx-tile.sx-r-legendary {
+  --sx-rr: var(--rarity-legendary);
+}
+
+:global([data-shop-root]) .sx-tile {
+  --sx-corner: transparent;
+  --sx-tray-w: 152px;
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 184px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0 30px;
+  color: var(--sx-rr);
+  background:
+    radial-gradient(
+      ellipse 62% 38% at 50% 88%,
+      color-mix(in srgb, var(--sx-rr) 18%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(160deg, #ffffff0d, #00000038);
+  border: 1px solid var(--sx-line);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  transition:
+    transform 0.12s ease,
+    opacity 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+:global([data-shop-root]) button.sx-tile:hover:not(:disabled) {
+  --sx-corner: var(--sx-action);
+  color: var(--sx-rr);
+  border-color: color-mix(in srgb, var(--sx-action) 55%, transparent);
+  background:
+    radial-gradient(
+      ellipse 62% 38% at 50% 88%,
+      color-mix(in srgb, var(--sx-rr) 26%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(160deg, #ffffff17, #00000038);
+}
+
+:global([data-shop-root]) .sx-tile.is-selected {
+  --sx-corner: var(--sx-glow-deep);
+  color: var(--sx-rr);
+}
+
+:global([data-shop-root]) .sx-tile.is-hovered,
+:global([data-shop-root]) button.sx-tile.is-selected:hover:not(:disabled) {
+  --sx-corner: var(--sx-action);
+}
+
+.sx-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left top / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left top / 5px 30px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right top / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right top / 5px 30px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left bottom / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left bottom / 5px 30px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right bottom / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right bottom / 5px 30px no-repeat;
+}
+
+.sx-tile-tray {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  z-index: 0;
+  display: block;
+  width: var(--sx-tray-w);
+  height: auto;
+  pointer-events: none;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: translateX(-50%);
+}
+
+.sx-tile-icon {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 124px;
+  height: 124px;
+  flex: 0 0 124px;
+  line-height: 0;
+  transition: transform 0.16s ease;
+}
+
+.sx-tile-icon svg,
+.sx-tile-icon img {
+  display: block;
+  width: 124px;
+  height: 124px;
+  object-fit: contain;
+}
+
+.sx-tile-icon::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  z-index: -1;
+  width: 74px;
+  height: 13px;
+  background: radial-gradient(ellipse at 50% 50%, #000000b3, transparent 70%);
+  filter: blur(2px);
+  transform: translateX(-50%);
+  transition: transform 0.16s ease;
+}
+
+:global([data-shop-root]) button.sx-tile:hover:not(:disabled) .sx-tile-icon {
+  transform: translateY(-6px);
+}
+
+:global([data-shop-root]) button.sx-tile:hover:not(:disabled) .sx-tile-icon::after {
+  transform: translateX(-50%) translateY(6px) scale(0.82, 0.7);
+}
+
+:global([data-shop-root]) .sx-tile.is-sold,
+:global([data-shop-root]) button.sx-tile.is-sold:hover:not(:disabled) {
+  --sx-corner: var(--sx-line);
+  opacity: 0.5;
+  filter: saturate(0.3);
+  border-color: var(--sx-line);
+  background: linear-gradient(160deg, #ffffff08, #0000003d);
+  transform: none;
+}
+
+:global([data-shop-root]) .sx-tile.is-sold .sx-tile-icon,
+:global([data-shop-root]) button.sx-tile.is-sold:hover:not(:disabled) .sx-tile-icon {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-shop-root]) button.sx-tile:hover:not(:disabled) .sx-tile-icon {
+    transform: none;
+  }
+
+  :global([data-shop-root]) button.sx-tile:hover:not(:disabled) .sx-tile-icon::after {
+    transform: translateX(-50%);
+  }
+}

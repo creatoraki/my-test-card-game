@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Card } from "../engine";
+import type { Card } from "@/engine";
 
 // ============================================================================
 // 手牌悬停态: 一个只装一张卡的极小 store。

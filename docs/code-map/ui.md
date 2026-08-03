@@ -1,92 +1,130 @@
 # React 视图层
 
-路径：`src/ui/`。组件只负责展示、交互和派发 action，不承载战斗、探索、物品或养成规则。图片素材只通过 UI 查表引用，`data/` 不直接引用素材路径。
+路径：`src/ui/`。组件只负责展示、交互和派发 action，不承载战斗、探索、物品或养成规则。图片素材只通过 `art/` 的查表引用，`data/` 不直接引用素材路径。
+
+样式约定（CSS Modules、五条铁律、`data-*` 跨模块契约）见 [styles.md](styles.md)，本文件不重复。
+
+## 目录结构
+
+```text
+src/ui/
+├─ app/          过场编排（App.tsx 的直接依赖）
+├─ common/       跨域复用的组件与 cx.ts
+├─ menu/         主菜单
+├─ town/         据点大厅与四个设施场景
+├─ character/    编队 / 角色详情 / 单卡视图
+├─ explore/      探索主界面与其私有子组件
+├─ battle/       战斗画布与其私有子组件、演出预设
+├─ result/       战后小结与远征结算
+├─ art/          素材查表（id → 图片 URL + 预热）
+├─ hooks/        设计画布与三个通用 hook
+└─ _legacy/      无人引用的归档件，见该目录的 README
+```
+
+每个组件占一个目录，三件套：`Xxx.tsx` + `Xxx.module.css` + `index.ts`（只做 re-export）。
+跨目录 import 一律走 `@/` 别名，同目录用 `./`。
 
 ## 页面与流程
 
 | 文件 | 作用 |
 | --- | --- |
-| [MenuScreen.tsx](../../src/ui/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
-| [TownScreen.tsx](../../src/ui/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积（8 块，商店独占第三行）；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。 |
-| [ControlTerminalScene.tsx](../../src/ui/ControlTerminalScene.tsx) | 控制终端：下降舱地图选择、队伍预览、远征启动，以及委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由。 |
-| [CryoScene.tsx](../../src/ui/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里展示。 |
-| [StorageScene.tsx](../../src/ui/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
-| [ShopScene.tsx](../../src/ui/ShopScene.tsx) | 商店：进入设施后直接打开靠右的常驻货架面板，通过装备/材料 tab 切换商品，支持采购与花积分刷新。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action，不自己判日期。tab 控件是面板外的立体吊牌，见 `ShelfTabRail3D.tsx`；`ShopTab` / `SHOP_TABS` 也定义在那边。 |
-| [FormationScreen.tsx](../../src/ui/FormationScreen.tsx) | 编队/角色相关独立视图入口，复用角色立绘和卡组显示。若流程从设施内进入，路由编排仍由 store 决定。 |
-| [CharacterDetailScreen.tsx](../../src/ui/CharacterDetailScreen.tsx) | 角色详情视图，展示角色面板、装备和个人卡组。 |
-| [ExpeditionScreen.tsx](../../src/ui/ExpeditionScreen.tsx) | 地图选择页，将 `MAPS` 渲染为可进入的远征入口。 |
-| [ExploreScreen.tsx](../../src/ui/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点侧栏、粒子/积分/负重读数、节点分支、战斗签入口、背包和撤离。状态机判断留在 `explore/session`。 |
-| [ExpRewardScreen.tsx](../../src/ui/ExpRewardScreen.tsx) | 战后小结：显示实物掉落、角色经验入账、净化粒子档位和返回牌桌/结算操作。战斗胜利不直接产生居民积分。 |
-| [EndScreen.tsx](../../src/ui/EndScreen.tsx) | 远征结算：通关、撤退和团灭共用；复用轨迹回顾并展示积分、带回据点的 `shipped`/`backpack` 实物和角色卡组。 |
+| [app/ScreenTransition](../../src/ui/app/ScreenTransition/ScreenTransition.tsx) | 串行执行旧界面出场 → 黑场停顿 → 新界面入场；避免两套 BattleScreen 同时挂载和视频双解码。快速切换由批次号使旧定时器失效。特效档位靠 `.is-fx` 标记类 + `s[\`screen-fx-${name}\`]` 查表。 |
+| [app/BattleTransitionCurtain](../../src/ui/app/BattleTransitionCurtain/BattleTransitionCurtain.tsx) | 探索到战斗的裂纹 Canvas、主环和 View Transition 显现；幕布层固定且不向祖先施加 transform/filter。 |
+| [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
+| [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
+| [town/terminal/ControlTerminalScene](../../src/ui/town/terminal/ControlTerminalScene/ControlTerminalScene.tsx) | 控制终端：下降舱地图选择、队伍预览、远征启动，以及委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由。 |
+| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里。 |
+| [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
+| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
+| [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队视图，复用角色立绘和卡组显示。 |
+| [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图，展示角色面板、装备和个人卡组。与编队页之间是共享元素过场。 |
+| [character/CardView](../../src/ui/character/CardView/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
+| [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点侧栏、粒子/积分/负重读数、节点分支、战斗签入口、背包和撤离。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。 |
+| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、战场、底部 HUD、目标交互、分镜队列和相机。手牌上限读取 `partyHandLimit`，敌人目标不做仇恨高亮。 |
+| [result/ExpRewardScreen](../../src/ui/result/ExpRewardScreen/ExpRewardScreen.tsx) | 战后小结：实物掉落、角色经验入账、净化粒子档位和返回牌桌/结算操作。战斗胜利不直接产生居民积分。 |
+| [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算：通关、撤退和团灭共用；展示积分、带回据点的 `shipped`/`backpack` 实物和角色卡组。 |
 
-## 探索与战斗组件
-
-| 文件 | 作用 |
-| --- | --- |
-| [RouteBoard.tsx](../../src/ui/RouteBoard.tsx) | SVG 等距路由图。统一由 `sx()` / `sy()` 投影，阶段依次展示生成、封存、桥接揭示、入口选择、走线、落点和路径披露；隐藏桥接时不能读取引擎求解结果。 |
-| [SlotReels.tsx](../../src/ui/SlotReels.tsx) | 战斗签老虎机：全屏三列卡带和停止摇杆，使用独立 `.slot-stage`，不复用普通探索浮层。 |
-| [ExploreCardView.tsx](../../src/ui/ExploreCardView.tsx) | 探索卡卡面，与战斗卡的内容结构分离；显示危险度/收益/去向或绑定的遭遇战。 |
-| [DangerMeter.tsx](../../src/ui/DangerMeter.tsx) | 旧探索牌局危险度展示；新路由图流程以净化粒子和能量档位为主，修改时先确认调用方仍使用该组件。 |
-| [TrailStrip.tsx](../../src/ui/TrailStrip.tsx) | 横向轨迹，远征中记录过程，结算页复用作历史回顾。 |
-| [BackpackPanel.tsx](../../src/ui/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
-| [BattleScreen.tsx](../../src/ui/BattleScreen.tsx) | 战斗画布、顶端信息条、战场、底部 HUD、目标交互、分镜队列和相机。手牌上限读取 `partyHandLimit`，敌人目标不做仇恨高亮。 |
-| [CombatantView.tsx](../../src/ui/CombatantView.tsx) | 敌方单位：倒计时、意图、立绘、血条、护盾/状态和命中特效；站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。 |
-| [AllyBar.tsx](../../src/ui/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，生命/护盾和状态采用共用组件。位于战场之外，因此不参与相机推近。 |
-| [HandCard.tsx](../../src/ui/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图和定高说明区；靠下方飞入、上浮聚焦、向上出鞘离场。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
-| [CardView.tsx](../../src/ui/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
-| [CardInfoPanel.tsx](../../src/ui/CardInfoPanel.tsx) | 战斗 HUD 右侧固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位。 |
-| [TickRuler.tsx](../../src/ui/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
-
-## 共用组件与素材查表
+## 探索域
 
 | 文件 | 作用 |
 | --- | --- |
-| [ItemSlot.tsx](../../src/ui/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量驱动，装备真实跨 2 格，并导出排布所需的 `EmptySlot`。 |
-| [ItemTabs.tsx](../../src/ui/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
-| [ShelfTabRail3D.tsx](../../src/ui/ShelfTabRail3D.tsx) | 商店货架的装备/材料页签吊牌。全站唯一的 three.js 场景：挤出牌体 + 霓虹灯管 + 加色辉光，相机参数（倾角/透视/消失点）每次布局实读 `.sx-stage` 的计算样式，牌子的屏幕位置量的是上层透明按钮的布局盒。交互全走 DOM 按钮，不做 Raycaster。开关在 `ENABLE_SHELF_3D`；关掉、系统「减少动态效果」或无 WebGL 时回落到 CSS 版（样式仍在 `ShopScene.css` 的 `.sx-vtab` 一族）。 |
-| [ItemDetail.tsx](../../src/ui/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。 |
-| [itemFilters.ts](../../src/ui/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |
-| [HpBar.tsx](../../src/ui/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。 |
-| [HitFxLayer.tsx](../../src/ui/HitFxLayer.tsx) | 敌我共用命中特效和飘字；以 `hit.seq` 重挂载重播。 |
-| [CharacterPortrait.tsx](../../src/ui/CharacterPortrait.tsx) | 角色立绘查表和取景变体，缺素材时回退 emoji。 |
-| [EnemySprite.tsx](../../src/ui/EnemySprite.tsx) | 横向拼条待机立绘播放器。单帧也走同一套播放器，待机呼吸另由 `enemyArt` 的 idle 参数控制。 |
-| [ManaCrystalIcon.tsx](../../src/ui/ManaCrystalIcon.tsx) | 光资源 3D SVG 图标，使用 `useId()` 隔离多个渐变实例。 |
-| [StatusPips.tsx](../../src/ui/StatusPips.tsx) | 状态图标和层数展示。 |
-| [SpriteFx.tsx](../../src/ui/SpriteFx.tsx) | 一次性序列帧播放器。 |
-| [IaiSlashFx.tsx](../../src/ui/IaiSlashFx.tsx) | `iai-slash` 居合斩程序化特效；`impactMs` 需与 CSS 关键帧同步。 |
-| [SkillCutInCard.tsx](../../src/ui/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |
-| [battleBg.ts](../../src/ui/battleBg.ts) | 地图 id 到战斗背景素材的查表和静态图预热。 |
-| [mapArt.ts](../../src/ui/mapArt.ts) | 地图 id 到选层预览素材的查表和预热；与战斗背景表分离。 |
-| [enemyArt.ts](../../src/ui/enemyArt.ts) | 敌人 id 到待机拼条、尺寸和 idle 参数的查表与预热。 |
-| [cardArt.ts](../../src/ui/cardArt.ts) | 战斗卡 id 到卡面配图的查表。 |
-| [eventArt.ts](../../src/ui/eventArt.ts) | 探索事件素材查表。 |
-| [slotArt.ts](../../src/ui/slotArt.ts) | 战斗签符号卡面查表。 |
-| [vfxSprites.ts](../../src/ui/vfxSprites.ts) | 命中特效序列帧 URL 列表和预热。 |
+| [RouteBoard](../../src/ui/explore/RouteBoard/RouteBoard.tsx) | SVG 等距路由图。统一由 `sx()` / `sy()` 投影，阶段依次展示生成、封存、桥接揭示、入口选择、走线、落点和路径披露；隐藏桥接时不能读取引擎求解结果。 |
+| [SlotReels](../../src/ui/explore/SlotReels/SlotReels.tsx) | 战斗签老虎机：全屏三列卡带和停止摇杆，使用独立舞台，不复用普通探索浮层。 |
+| [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
+| [EnergyMeter](../../src/ui/explore/EnergyMeter/EnergyMeter.tsx) | 能量档位读数。 |
+| [styles/exploreKit.module.css](../../src/ui/explore/styles/exploreKit.module.css) | 探索域共享的按钮、标签和事件类型色，四个组件各自 `composes`。 |
 
-## 过场、动画与舞台
+## 战斗域
 
 | 文件 | 作用 |
 | --- | --- |
-| [transitions.ts](../../src/ui/transitions.ts) | 过场预设、默认时长、按界面/路线解析；探索到战斗的裂纹涟漪时长只在这里配置。 |
-| [transitionOrigin.ts](../../src/ui/transitionOrigin.ts) | 一次性缓存点击坐标，仅用于视觉过场，不进入 Zustand。 |
-| [ScreenTransition.tsx](../../src/ui/ScreenTransition.tsx) | 串行执行旧界面出场 → 黑场停顿 → 新界面入场；避免两套 BattleScreen 同时挂载和视频双解码。快速切换由批次号使旧定时器失效。 |
-| [BattleTransitionCurtain.tsx](../../src/ui/BattleTransitionCurtain.tsx) | 探索到战斗的裂纹 Canvas、主环和 View Transition 显现；幕布层固定且不向祖先施加 transform/filter。 |
-| [stage.ts](../../src/ui/stage.ts) | 1920×1080 设计画布和等比 letterbox 缩放。画布内不使用 `vw` / `vh` 或窗口断点。 |
-| [animations.ts](../../src/ui/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设。调演出节奏优先改这里。 |
-| [ambience.ts](../../src/ui/ambience.ts) | 按地图登记粒子发射器、灯光闪烁和屏幕调色。 |
-| [AmbienceLayer.tsx](../../src/ui/AmbienceLayer.tsx) | 双 Canvas 粒子和氛围层；隐藏页面暂停 rAF，减少动态效果时不挂载，调色层在场景外。 |
-| [useCountUp.ts](../../src/ui/useCountUp.ts) | rAF 数值滚动；起点走 ref，避免每帧重启，减少动态效果下直接使用终值。 |
-| [useIdleTwitch.ts](../../src/ui/useIdleTwitch.ts) | 低频随机敌人待机小动作，只存在于 UI 局部状态。 |
-| [useTypewriter.ts](../../src/ui/useTypewriter.ts) | 探索事件文本逐字演出。 |
-| [handFocusStore.ts](../../src/ui/handFocusStore.ts) | 手牌悬停/聚焦状态，独立于 `BattleScreen`，避免鼠标状态和战斗状态互相污染。 |
-| [sharedPortrait.ts](../../src/ui/sharedPortrait.ts) | 编队与角色详情之间共享立绘元素的 View Transition 标识。 |
+| [unitShell.ts](../../src/ui/battle/unitShell.ts) | **单位外壳的跨组件契约**：敌人（CombatantView）与我方（AllyBar）两种外壳几何不同但演出必须一致，靠 `unitShellAttrs()` 摊出的 `data-side` / `data-dead` / `data-attacking` / `data-targetable` / `data-react` 共享同一份规则。改这里要全库搜同名字符串——CSS 那侧没有类型保护。 |
+| [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：倒计时、意图、立绘、血条、护盾/状态和命中特效；站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
+| [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`@keyframes` 按敌人在运行时注入 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
+| [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度。位于战场之外，因此不参与相机推近。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图和定高说明区。**卡在托盘里的版式与厚度也归本文件**（选择器从 `:global([data-hand-tray])` 起手），尺寸变量由 BattleScreen 下发。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
+| [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位。 |
+| [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
+| [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |
+| [AmbienceLayer](../../src/ui/battle/AmbienceLayer/AmbienceLayer.tsx) | 双 Canvas 粒子和氛围层；两层同时是 3D 纵深层（`translateZ` 写在自己的 module.css，纵深值由 BattleScreen 下发）。隐藏页面暂停 rAF，减少动态效果时不挂载，调色层在场景外。 |
+| [fx/HitFxLayer](../../src/ui/battle/fx/HitFxLayer/HitFxLayer.tsx) | 敌我共用命中特效和飘字；以 `hit.seq` 重挂载重播。`hitFxVars()` 返回的是 `UnitReact` 词元而非类名。 |
+| [fx/SpriteFx](../../src/ui/battle/fx/SpriteFx/SpriteFx.tsx) | 一次性序列帧播放器。 |
+| [fx/IaiSlashFx](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.tsx) | `iai-slash` 居合斩程序化特效；`impactMs` 需与 CSS 关键帧同步，`animation-name` 必须留在 CSS 里（理由见 styles.md）。 |
+| [styles/unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css) | 敌我共用的护盾数值与阵亡叠层两枚徽章。 |
+| [animations.ts](../../src/ui/battle/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设。调演出节奏优先改这里。 |
+| [ambience.ts](../../src/ui/battle/ambience.ts) | 按地图登记粒子发射器、灯光闪烁和屏幕调色。 |
+| [handFocusStore.ts](../../src/ui/battle/handFocusStore.ts) | 手牌悬停/聚焦状态，独立于 BattleScreen，避免鼠标状态和战斗状态互相污染。 |
 
-组件旁的同名 CSS 属于该组件；跨组件公共规则放在 `src/styles/`。涉及动画时要同时检查对应 `.css`，尤其是 `prefers-reduced-motion`、`transform` 占用和关键帧时长。
+## 公共组件（`common/`）
+
+| 文件 | 作用 |
+| --- | --- |
+| [cx.ts](../../src/ui/common/cx.ts) | 全项目唯一的 className 拼接工具。 |
+| [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；`--portrait-dx/dy`、`--bust-scale` 等由登记表行内下发。 |
+| [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）的样式也在本组件内。 |
+| [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 状态图标和层数展示。 |
+| [ManaCrystalIcon](../../src/ui/common/ManaCrystalIcon/ManaCrystalIcon.tsx) | 光资源 3D SVG 图标，`useId()` 隔离多个渐变实例；基础外观由自己挂，调用方只传尺寸类。 |
+| [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 羁绊词条线框图标，无样式文件。 |
+| [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
+| [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
+| [item/ItemTabs](../../src/ui/common/item/ItemTabs/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
+| [item/itemFilters.ts](../../src/ui/common/item/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |
+
+公共组件一律接受 `className`（铁律 3）——那是父组件唯一能改子组件外观的通道。
+
+## 素材查表（`art/`）与 hooks
+
+| 文件 | 作用 |
+| --- | --- |
+| [art/cardArt.ts](../../src/ui/art/cardArt.ts) | 战斗卡 id → 卡面配图。 |
+| [art/enemyArt.ts](../../src/ui/art/enemyArt.ts) | 敌人 id → 待机拼条、尺寸和 idle 参数，含预热。 |
+| [art/battleBg.ts](../../src/ui/art/battleBg.ts) | 地图 id → 战斗背景素材与静态图预热。 |
+| [art/mapArt.ts](../../src/ui/art/mapArt.ts) | 地图 id → 选层预览素材；与战斗背景表分离。 |
+| [art/eventArt.ts](../../src/ui/art/eventArt.ts) | 探索事件素材查表。 |
+| [art/slotArt.ts](../../src/ui/art/slotArt.ts) | 战斗签符号卡面查表。 |
+| [art/vfxSprites.ts](../../src/ui/art/vfxSprites.ts) | 命中特效序列帧 URL 列表和预热。 |
+| [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |
+| [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布和等比 letterbox 缩放。画布内不使用 `vw` / `vh` 或窗口断点。 |
+| [hooks/useCountUp.ts](../../src/ui/hooks/useCountUp.ts) | rAF 数值滚动；起点走 ref，减少动态效果下直接使用终值。 |
+| [hooks/useIdleTwitch.ts](../../src/ui/hooks/useIdleTwitch.ts) | 低频随机敌人待机小动作，只存在于 UI 局部状态。 |
+| [hooks/useTypewriter.ts](../../src/ui/hooks/useTypewriter.ts) | 探索事件文本逐字演出。 |
+
+## 过场与共享元素
+
+| 文件 | 作用 |
+| --- | --- |
+| [app/transitions.ts](../../src/ui/app/transitions.ts) | 过场预设、默认时长、按界面/路线解析；探索到战斗的裂纹涟漪时长只在这里配置。 |
+| [app/transitionOrigin.ts](../../src/ui/app/transitionOrigin.ts) | 一次性缓存点击坐标，仅用于视觉过场，不进入 Zustand。 |
+| [app/viewTransition.global.css](../../src/ui/app/viewTransition.global.css) | 编队 ↔ 角色详情的共享元素过场。全局普通 CSS（无类名，只有文档根伪元素）。 |
+| [character/sharedPortrait.ts](../../src/ui/character/sharedPortrait.ts) | 编队与角色详情之间共享立绘元素的 View Transition 标识。 |
+| [town/facilityScenes.ts](../../src/ui/town/facilityScenes.ts) | 据点进设施的推镜时序、飞出参数与设施背景图。 |
 
 ## 战斗设计画布与相机边界
 
 战斗、主菜单和据点画布恒为 1920×1080，由 `useStageScale` 以 `k = min(容器宽/1920, 容器高/1080)` 等比缩放，超出部分留黑边。战斗舞台和底部 HUD 是兄弟矩形；`--hud-h` 直接决定敌人可见地面线，调整前必须复核站位。
 
-战斗世界使用一个相机：背景、氛围和单位都在 `.battle-world` 内作为刚体一起变换。`transform` 负责空闲漂移，独立 `translate` 负责震屏，独立 `scale` 负责冲击缩放；不要让背景和单位分别套变换。相机全程使用设计 px，`getBoundingClientRect()` 得到屏幕 px 时，普通定位先经 `toDesignBox()` 换算；相机反投影则通过世界层矩形抵消画布缩放、当前相机和漂移。
+战斗世界使用一个相机：背景、氛围和单位都在 `.battle-world` 内一起变换。`transform` 负责空闲漂移，独立 `translate` 负责震屏，独立 `scale` 负责冲击缩放；不要让背景和单位分别套变换。相机全程使用设计 px，`getBoundingClientRect()` 得到屏幕 px 时先经换算；相机反投影则通过世界层矩形抵消画布缩放、当前相机和漂移。
 
-我方队伍卡在 `.battle-hud` 外于战场世界之外，因此不参与推镜；攻击自身或友军时保持全景，只播放特效和震屏。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。
+⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
+
+我方队伍卡在战场世界之外，因此不参与推镜；攻击自身或友军时保持全景，只播放特效和震屏。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。

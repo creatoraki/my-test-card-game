@@ -1,10 +1,8 @@
 /* 公共样式层的唯一入口 —— 由 src/main.tsx 在**所有其它 import 之前**引入。
-   顺序有意义: 令牌 → 基础元素 → 界面骨架 → 通用小部件, 后者会用到前者的变量。
+   顺序有意义: 令牌 → 基础元素 → 尚未迁移页面仍使用的界面骨架。
 
-   组件独有的样式不在这里 —— 它们各自住在 src/ui/<Component>.css, 由组件自己 import。
+   组件独有的样式不在这里 —— 它们各自住在同名目录的 Xxx.module.css, 由组件自己 import。
    合并主题层之后, 全项目每个选择器只有一处定义 ⇒ 组件 CSS 之间的加载顺序不影响结果,
    唯一需要保证的顺序就是「本文件先于组件 CSS」, 由 main.tsx 的 import 位置保证。 */
 @import "./tokens.css";
 @import "./base.css";
-@import "./layout.css";
-@import "./widgets.css";

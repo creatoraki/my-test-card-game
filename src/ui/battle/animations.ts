@@ -4,9 +4,9 @@
 // 具体视觉(受击抖动/斩击/火爆/柔光…)在 ui/HitFxLayer.css 里按 .vfx-<anim> / 反馈类实现。
 // ============================================================================
 
-import type { Card, CardAnim } from "../engine";
-import { CARD_DEFS, type EnemyMove } from "../data";
-import { SWORD_FALL_FRAMES } from "./vfxSprites";
+import type { Card, CardAnim } from "@/engine";
+import { CARD_DEFS, type EnemyMove } from "@/data";
+import { SWORD_FALL_FRAMES } from "@/ui/art/vfxSprites";
 
 // 卡牌定义表的 anim 索引: 卡实例随城镇档案持久化(localStorage), 实例上固化的 anim
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时

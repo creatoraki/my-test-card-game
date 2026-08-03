@@ -1,9 +1,9 @@
 // 敌人立绘素材集中登记处(与 cardArt.ts 同思路: 静态 import + 登记表)。
 // 新增敌人立绘时只需在此登记一次, 按 EnemyDef.id 作键。
-import birdIdleStrip from "../assets/敌人立绘/怪异的鸟/idle-strip.png";
-import scrapBotIdle from "../assets/敌人立绘/废品机器人/idle-cut.png";
-import poleBotIdle from "../assets/敌人立绘/电线杆机器人/idle-cut.png";
-import radioBotIdle from "../assets/敌人立绘/收音机机器人/idle-cut.png";
+import birdIdleStrip from "@/assets/敌人立绘/怪异的鸟/idle-strip.png";
+import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle-cut.png";
+import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle-cut.png";
+import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle-cut.png";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
 // 注意这与 animations.ts 的 SpritePreset 是两套并列机制: 那套是逐帧独立图、播一次即停的

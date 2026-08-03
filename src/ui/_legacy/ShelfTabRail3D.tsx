@@ -44,8 +44,8 @@ import {
   type BufferGeometry,
   type Material,
 } from "three";
-import type { ShopSlot } from "../data/shop";
-import { STAGE } from "./stage";
+import type { ShopSlot } from "@/data/shop";
+import { STAGE } from "@/ui/hooks/stage";
 import "./ShelfTabRail3D.css";
 
 // ===================== 页签定义 =====================

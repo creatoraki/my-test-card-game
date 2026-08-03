@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { prefersReducedMotion } from "./transitions";
+import { prefersReducedMotion } from "@/ui/app/transitions";
 
 // 数值滚动: 目标值一变, 就用 rAF 从**上一次显示的值**滚到新值(而不是每次从 0 起) ——
 // 从 0 起会让「切到下一个角色」看起来像面板被清空重填, 从旧值起才读作「同一块仪表在换读数」。
@@ -8,7 +8,7 @@ import { prefersReducedMotion } from "./transitions";
 // 而且拿不到「取整/带小数」的控制权。
 //
 // ⚠ 关掉动态效果时**直接返回终值**(不是快速播一遍): 那台机器上任何持续变化都是负担。
-//   JS 侧的开关与场景过场共用 ui/transitions.ts 的 prefersReducedMotion()。
+//   JS 侧的开关与场景过场共用 app/transitions.ts 的 prefersReducedMotion()。
 // ★ 起点是 0(挂载时)或上一次显示的值(目标变化时) —— 于是"整块重挂换人"与"原地改数"
 //   两种用法都有滚动过程。
 // ★ delayMs: 等 CSS 那边的错峰入场把这一块**显示出来**之后再开滚。浮层里的内容都要等面板

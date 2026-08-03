@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { prefersReducedMotion } from "./transitions";
+import { prefersReducedMotion } from "@/ui/app/transitions";
 
 // 逐字机: 把一段叙事文本按「一个字一个字打出来」的节奏交给渲染层。
 //
@@ -9,7 +9,7 @@ import { prefersReducedMotion } from "./transitions";
 // ★ 节奏才是重点, 不是速度。匀速吐字读起来像机器打印, 没有「有人在讲」的感觉;
 //   在标点处**多停一拍**, 一段话立刻有了断句和轻重 —— 这是「层次感」的全部来源。
 // ⚠ 关掉动态效果时**直接给全文**(不是快放一遍): 那台机器上任何持续变化都是负担。
-//   JS 侧的开关与场景过场、useCountUp 共用 ui/transitions.ts 的 prefersReducedMotion()。
+//   JS 侧的开关与场景过场、useCountUp 共用 app/transitions.ts 的 prefersReducedMotion()。
 // ★ delayMs: 等 CSS 那边的入场把这一块**显示出来**之后再起播。面板是从画布上方滑进来的,
 //   不等的话开头几个字是在半空中打的, 白做。
 

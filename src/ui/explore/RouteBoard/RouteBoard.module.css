@@ -1,0 +1,1266 @@
+/* ===================== 区域路由图(等距瓦片) ===================== */
+/* 挂在探索画布(.explore-stage)之内、废弃楼层背景图之上。
+   ⚠ 本文件每个 px 都是「设计 px」(1920×1080 画布): 不要写 vw/vh, 不要按窗口宽度做 @media。
+   ⚠ .route-board 自己**不能挂 animation / opacity / transform / filter** —— 它是底下暗玻璃砖的
+     祖先, 一旦成为 backdrop root, backdrop-filter 就取不到背景图。入场动画一律挂叶子元素。
+
+   ⛔ **本页禁止任何闪烁型画面变化**: 不允许 infinite/alternate 的 opacity 或亮度关键帧,
+     不允许高频明暗脉冲。常驻动效只用匀速或缓入缓出的**位移/旋转**(如起点字母的浮动);
+     明暗变化一律走 transition(悬停时一次性由暗转亮), 一次性播完即止的扩散/淡出不算闪烁。
+     ★ 唯一例外: **揭示期(.rb-bridges.is-revealing)的桥接闪烁高亮** —— 那是一轮仅此一次、
+       只有两三秒的记忆窗口, 闪烁本身就是「快记」的信号。例外仅限那一支, 不得扩散到别处。
+
+   ★ 这是一块**等距(2:1)战棋棋盘**: 推进轴朝右上、通道轴朝右下, 四个方向分别指向
+     左上 / 右上 / 左下 / 右下。画面语言是**瓦片地板 + 黑色连线**:
+     20 个节点各是一块带厚度的等距瓦片地板, 上面站着一个立体感的线框图标;
+     ★ 5 个入口(A-E)**不是同一类物件**: 它们是亮青的发光登船台 —— 高填充亮面 + 外扩光环 +
+       推进方向的人字标 + 升起的光柱 + 立体字母, 详见下面 .rb-entry 那一段的抬头;
+     **地板的材质跟着该节点的事件类型走** —— 顶面/侧面/砖缝都按 --k 轻度染色, 风险标记再叠一档;
+     地板之间用一条**嵌进地面的细线**相连(暗色轨槽 .rb-pipe-bed + 细导线 .rb-pipe 两层, 不是
+     圆柱水管), 导线是**低饱和暖灰铜**(--rb-pipe, 「没通电的裸金属」), **桥线与主线平时完全
+     同款**(同一组 class; 只有揭示期的桥接会换成闪烁的亮青, 见 .rb-bridges.is-revealing) ——
+     冷暖对立就是「通没通电」, 也是揭示期桥接能一眼跳出来的根据;
+     选完入口后不属于玩家的那几条通道整体压暗(.rb-lane.is-dim), 把画面让给电流走线。
+   ★ 棋盘上另有一枚**代表玩家的几何体小人**(.rb-pawn, 单独一层 z-index:3), 常驻在当前地板上,
+     推进时跟在信号点后半步沿折线走 —— 走过的荧光线就是它的运动轨迹。
+     ⚠ 黑线的线宽/端帽是照着电流特效定的, 见下面 .rb-pipe 处的对齐约定。
+   ⚠ 两条轴都是斜线, 旧版靠「走廊平台 vs 发光天桥」的材质对立来防撞车; 本版取消了那套对立,
+     区分改由三件事承担 —— ① 朝向天然相反(主管右上 / 桥管右下) ② 地板只长在推进轴上
+     ③ 桥管平时根本不在画面上。改本文件时这三条一条都不能破(详见 RouteBoard.tsx 抬头)。
+
+   配色: 只用全局令牌(--text/--muted/--border/--accent) + 本文件作用域内的 --rb-* 。 */
+
+.route-board {
+  /* ★ 主线(通道内串起地板的那条线)的材质色: **低饱和的暖灰铜**, 刻意**不是**冷白。
+     ⚠⚠ 这个色相是从「与桥接拉开区分」倒推出来的, 不是随手挑的观感值 —— 不要改回冷白/冷灰:
+       旧版主线是近白的 #d7e7f0, 与显形中的亮青桥接**同属冷色、明度还更高**, 揭示的那 2-3 秒里
+       20 条主线在画面上比 4 段桥接还抢眼, 玩家根本挑不出「哪一段有桥」。现在两者在**色相
+       (暖铜 vs 冷青)与明度(暗一档 vs 最亮)两个维度同时对立**, 桥接一显形就是全图唯一的亮物。
+     ⚠ 它同时是「没通电的地面导槽」这个读法的来源: 暖灰铜 = 裸金属, 通电(悬停 / 电流 / 桥接
+       显形)才转成发光的冷色 —— 冷暖切换本身就是「通没通电」的信号。 */
+  --rb-pipe: #96897a;
+  --rb-bridge: #6fe3f5; /* 亮青: 倒计时条、探针按钮, 以及**显形中的桥接** */
+  --rb-trace: var(--accent); /* 已走过的路径: 荧光黄绿 */
+  position: relative;
+  padding: 0;
+}
+
+.k-hazard {
+  composes: k-hazard from "../styles/exploreKit.module.css";
+}
+.k-heal {
+  composes: k-heal from "../styles/exploreKit.module.css";
+}
+.k-loot {
+  composes: k-loot from "../styles/exploreKit.module.css";
+}
+.k-energy {
+  composes: k-energy from "../styles/exploreKit.module.css";
+}
+.k-merchant {
+  composes: k-merchant from "../styles/exploreKit.module.css";
+}
+.k-route {
+  composes: k-route from "../styles/exploreKit.module.css";
+}
+.k-retreat {
+  composes: k-retreat from "../styles/exploreKit.module.css";
+}
+
+/* ── 顶部倒计时 ── */
+.rb-timer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 3px;
+  background: #ffffff14;
+}
+.rb-timer-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--rb-bridge), #ffffff);
+  box-shadow: 0 0 12px -2px var(--rb-bridge);
+  transform-origin: left center;
+  animation-name: rbCountdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes rbCountdown {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* ── 入口 A-E: 每条通道起点的那一块地板 ──
+   ★★ 入口是全屏最重要的交互点(§11.2), 它与 20 块事件地板**必须一眼分得开** ——
+   分界不靠「换个颜色」, 而是**换一类物件**: 事件砖是暗底轻染的普通地砖, 入口是一座
+   **亮青的发光登船台**, 独占四件事件砖完全没有的零件:
+     ① 顶面高填充的亮青实心 + 亮棱(事件砖顶面只有 18% 轻染)  ② 外扩的虚线光环
+     ③ 顶面上指向推进方向的两枚人字标 + 加粗点亮的前缘  ④ 从地板升起的光柱
+   (几何全在 RouteBoard.tsx 的 <EntryTile>, 那里有对应的注释。)
+   ⚠ 配色也刻意与节点系统**错开一整套**: 节点的 --k 取自事件类型/风险色, 入口固定用亮青
+     --rb-bridge; 悬停/已选才切到荧光黄绿 --rb-trace(= 已走路径色) ⇒ 「青 = 可进入的门」、
+     「黄绿 = 我选的这条」。不要把入口的常态色改成 --rb-trace, 那会和「已走过」撞车。
+   常态: 字母极缓慢地上下浮动(±2px, 4s), 各通道用 --i 错开相位 —— 纯位移, 无明暗变化。
+   悬停: 定住抬起 + 整座台子转荧光(--k 一换, 顶面/光环/人字标/光柱同时跟着走) +
+         所属通道整串连线通电(见 .rb-lane.is-live)。 */
+.rb-entries {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  /* ⚠ 必须压在 .rb-svg 之上: SVG 根元素虽然内容透明, 但整个盒子照样参与命中测试,
+     而它在 DOM 里排在入口之后、又是从 top:0 起画的 —— 不提层就会把 A-E 的点击全吃掉。 */
+  z-index: 2;
+  pointer-events: none;
+}
+.rb-entry {
+  /* 入口的主色: 亮青。整座台子(顶面/侧面/砖缝/光环/人字标/前缘/光柱)全部读这一个变量,
+     所以悬停与已选只要换掉 --k, 一整座台子就同时转色 —— 不要在下面各处写死颜色。 */
+  --k: var(--rb-bridge);
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+  /* 浮动挂在字母上而不是按钮本身 —— 按钮(= 地板)要保持稳定的命中区域。 */
+}
+/* 立体字母: 多层向下的实心 text-shadow 挤出厚度, 再加一层软投影落到地板上。
+   ⚠ 只有位移进过渡, 明暗一律靠悬停时的一次性 transition(本文件抬头的禁闪烁约定)。 */
+.rb-entry-letter {
+  position: absolute;
+  left: 0;
+  bottom: var(--foot);
+  width: 100%;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-align: center;
+  /* 前四层是向下的实心厚度(立体字), 第五层落到地板上的软投影,
+     最后一层是入口专属的**外发光**: 它把字母从光柱里再拔出来一档。 */
+  text-shadow:
+    0 1px 0 #0a1015,
+    0 2px 0 #0a1015,
+    0 3px 0 #080e12,
+    0 4px 0 #080e12,
+    0 10px 16px #000000cc,
+    0 0 20px color-mix(in srgb, var(--k) 60%, transparent);
+  animation: rbEntryFloat 4s calc(var(--i) * -0.8s) ease-in-out infinite alternate;
+  transition:
+    color 220ms ease,
+    letter-spacing 220ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+@keyframes rbEntryFloat {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+
+/* ── 入口台座的专属材质 ──
+   ⚠ 这一组全部是 (0,2,0) 的 `.rb-entry .xxx`, 刚好压过后面 (0,1,0) 的通用瓦片规则
+     (.rb-tile-top / -side / -seam), 又低于 (0,3,0) 以上的悬停/封锁态 —— 三层关系不要打乱。
+   ⚠ 顶面**故意突破**通用瓦片那条「染色不超过 25%」的上限: 那条限制是为了让线框事件图标的
+     暗描边压得住底色, 而入口站的是自带四层实心厚度的立体字母, 不吃这个约束; 反过来,
+     正是这块高填充的亮面让五个入口在暗棋盘上一眼可见。改事件砖时别把这条一起改了。 */
+.rb-entry .rb-tile-top {
+  fill: color-mix(in srgb, var(--k) 52%, #0d1c26);
+  stroke: color-mix(in srgb, var(--k) 92%, transparent);
+  stroke-width: 1.6;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k) 45%, transparent));
+}
+/* 侧面(台座的厚度): 仍必须明显暗于顶面, 否则转角消失、台子塌成一片平色。 */
+.rb-entry .rb-tile-side {
+  fill: color-mix(in srgb, var(--k) 26%, #060f16);
+  stroke: color-mix(in srgb, var(--k) 40%, #00000066);
+}
+.rb-entry .rb-tile-seam {
+  stroke: color-mix(in srgb, var(--k) 70%, transparent);
+  stroke-width: 1.2;
+}
+/* ① 外扩光环: 事件砖没有任何外扩物件, 它是「这是一座台子, 不是一块砖」最快的读法。
+   ⚠ pointer-events:none 必须留着 —— 它扩到按钮盒之外, 否则会把邻座通道的悬停吃掉。 */
+.rb-entry-halo {
+  fill: color-mix(in srgb, var(--k) 9%, transparent);
+  stroke: color-mix(in srgb, var(--k) 60%, transparent);
+  stroke-width: 1.4;
+  stroke-dasharray: 10 7;
+  stroke-linejoin: round;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--k) 40%, transparent));
+  transition:
+    fill 220ms ease,
+    stroke 220ms ease,
+    filter 220ms ease;
+}
+/* ② 前缘: 朝推进方向的那条棱(上角—右角)。加粗点亮 ⇒ 「出发是往这一侧」。 */
+.rb-entry-edge {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 85%, #ffffff);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  pointer-events: none;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--k) 70%, transparent));
+  transition:
+    stroke 220ms ease,
+    filter 220ms ease;
+}
+/* ③ 人字标: 刻在顶面上、尖端朝推进方向的两枚箭头。
+   ⚠ 它们是**贴地**的路面标线, 不是浮空图标 —— 所以只有描边、没有投影, 且颜色比前缘淡一档。 */
+.rb-entry-chevron {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 55%, #ffffff);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+  pointer-events: none;
+  transition:
+    stroke 220ms ease,
+    opacity 220ms ease;
+}
+/* ④ 光柱: 从台面升起、向上散开的一道光, 字母就站在这道光里(DOM 顺序保证字母压在它上面)。
+   ⚠ 静态渐变 + 悬停时一次性拉高, **没有任何循环的明暗关键帧**(本文件抬头的禁闪烁约定)。 */
+.rb-entry-beam {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--foot) - 3px);
+  width: 54px;
+  height: 78px;
+  margin-left: -27px;
+  clip-path: polygon(15% 0, 85% 0, 63% 100%, 37% 100%);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--k) 55%, transparent),
+    transparent 84%
+  );
+  filter: blur(1.5px);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  transition:
+    background 220ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+/* ⚠⚠ 地板按钮(起点 + 节点)必须把 styles/base.css 的**全站按钮外观整套卸掉**:
+   ① `button{background:linear-gradient(...)}` 与 `button:hover:not(:disabled){background:...}`
+      会在瓦片底下垫一块深色矩形 —— 常态那条被 .rb-entry/.rb-node 的 background:none 压住了,
+      但**悬停那条特异性是 (0,2,1)**, 裸类压不过, 于是一悬停就冒出一块多余的黑底。
+   ② `button{clip-path: 7px 斜切角}` 按边框盒裁剪, 而站在地板上的图标/字母是**向上溢出**
+      按钮盒的(见 tileBox 的注释), 顶部会被整齐切掉。这两类按钮不要斜切角。
+   ③ `button:disabled{opacity:.4}` 会把整块地板连同字母/图标一起**半透明化**。地板按钮在
+      「还不能点」的阶段(未到选入口的 choosingEntry、遮蔽/推进期的节点)全都是 disabled 的,
+      于是路线还没探索时 5 个起点直接淡成半透 —— 与下面「它还在, 只是还不能用」的口径直接矛盾,
+      且淡出的地板会连带把等距场景的前后关系读糊。不可点靠**颜色**表达(字母转 --muted、
+      封锁态转虚线压暗、已结算节点各自的 .is-settled/.is-abandoned), **一律不用 opacity**。
+   故整组状态(常态/悬停/聚焦/按下/禁用)一起显式关掉, 且一律用 .route-board 提到 (0,2,1) 以上。
+   ⚠ 新增地板类按钮时记得加进这张选择器表, 否则这两个 bug 会原样回来。 */
+.route-board .rb-entry,
+.route-board .rb-node,
+.route-board .rb-entry:hover:not(:disabled),
+.route-board .rb-node:hover:not(:disabled),
+.route-board .rb-entry:focus-visible,
+.route-board .rb-node:focus-visible,
+.route-board .rb-entry:active:not(:disabled),
+.route-board .rb-node:active:not(:disabled),
+.route-board .rb-entry:disabled,
+.route-board .rb-node:disabled {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  clip-path: none;
+  /* ⚠ 生成演出(.is-generating 的 rbGenEntry / rbGenNode)自己带 opacity 关键帧, 那是 animation,
+     播放期间压过这条静态声明, 播完(backwards)再交还给这里的 1 —— 两者不冲突。 */
+  opacity: 1;
+}
+
+/* ⚠ 以下一律用 .route-board 提一级特异性: 全局 button:hover:not(:disabled)(styles/base.css)
+   是 0,2,1, 会压过裸类的 0,1,0。与 TownScreen.css 里同一处坑的处理方式一致。 */
+.route-board .rb-entry:hover:not(:disabled) .rb-entry-letter,
+.route-board .rb-entry:focus-visible .rb-entry-letter {
+  animation-play-state: paused;
+  transform: translateY(-7px);
+  color: var(--rb-trace);
+  letter-spacing: 5px;
+}
+/* ★ 悬停/聚焦/已选只需要换掉 --k: 顶面、侧面、砖缝、光环、前缘、人字标、光柱、字母发光
+   **一起**从亮青转成荧光黄绿 —— 整座台子通电, 而不是只有一圈描边变色。
+   ⚠ 别再往下面各处补写死的 --rb-trace, 那会让某个零件在换色时掉队。 */
+.route-board .rb-entry:hover:not(:disabled),
+.route-board .rb-entry:focus-visible,
+.route-board .rb-entry.is-active {
+  --k: var(--rb-trace);
+}
+.route-board .rb-entry:hover:not(:disabled) .rb-tile-top,
+.route-board .rb-entry:focus-visible .rb-tile-top,
+.route-board .rb-entry.is-active .rb-tile-top {
+  fill: color-mix(in srgb, var(--k) 62%, #0d1c26);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--k) 65%, transparent));
+}
+/* 光柱在悬停时向上拉高一档(纯 transform), 人字标补满亮度 —— 「这道门开了」。 */
+.route-board .rb-entry:hover:not(:disabled) .rb-entry-beam,
+.route-board .rb-entry:focus-visible .rb-entry-beam,
+.route-board .rb-entry.is-active .rb-entry-beam {
+  transform: scaleY(1.22);
+}
+.route-board .rb-entry:hover:not(:disabled) .rb-entry-chevron,
+.route-board .rb-entry:focus-visible .rb-entry-chevron,
+.route-board .rb-entry.is-active .rb-entry-chevron {
+  opacity: 1;
+}
+/* 按下: 字母被踩回地板里一点, 松手回弹。 */
+.route-board .rb-entry:active:not(:disabled) .rb-entry-letter {
+  transform: translateY(-2px);
+  transition-duration: 90ms;
+}
+/* 已选: 抬起定格 + 地板点亮, 读作「接上了」。 */
+.route-board .rb-entry.is-active .rb-entry-letter {
+  animation: none;
+  transform: translateY(-7px);
+  color: var(--rb-trace);
+}
+/* 未到可选阶段: 台子照常亮着、字母照常浮着, 只是**没通电** —— 「它还在, 只是现在不能进」。
+   ⚠ 这里刻意只把主色调低一档(掺灰), 不降 opacity、不把字母压成 --muted 灰:
+     入口是全屏第一可读的地标, 大半个探索流程它都处于 disabled, 一旦压暗棋盘就没有锚点了。
+   ⚠⚠ 必须写 :not(.is-active): 选完入口后那颗按钮**同时**是 is-active 与 disabled, 而
+     `.rb-entry.is-active` 与 `.rb-entry:disabled` 的特异性完全相等(伪类与类同权),
+     靠源码顺序的话后写的这条会赢, 已选的入口当场被掺灰拽回去。排除掉最省心。 */
+.route-board .rb-entry:disabled:not(.is-active) {
+  --k: color-mix(in srgb, var(--rb-bridge) 72%, #6d7d88);
+}
+.route-board .rb-entry:disabled:not(.is-active) .rb-entry-letter {
+  color: color-mix(in srgb, var(--text) 78%, #6d7d88);
+}
+/* 被封锁: 地板描边转虚线压暗, 字母停住不再浮动并划掉。 */
+.route-board .rb-entry.is-blocked {
+  cursor: not-allowed;
+}
+/* ⚠ 封锁态必须把染色一起压回中性: 入口的 --k 是发光的亮青, 不显式覆写的话
+   地板会继续亮着一层荧光底 —— 「这条路走不了」和「这条路通电」当场自相矛盾。
+   ★ 改 --k 一处, 光环/前缘/人字标/字母发光全部跟着转成中性灰; 光柱则直接**熄掉**
+     (登船台断电, 不是「淡一点的登船台")。顶面/侧面/砖缝仍单独覆写 —— 它们要的是
+     彻底的死色 + 虚线描边, 不只是把主色掺灰。 */
+/* ⚠ 写成 :not(.is-active) 是为了凑够 4 个类, 压过上面那条同样 4 类的
+   `.rb-entry:disabled:not(.is-active)`(封锁的入口必然也是 disabled) —— 封锁比「暂不可点」更死。 */
+.route-board .rb-entry.is-blocked:not(.is-active) {
+  --k: #6b767c;
+}
+.route-board .rb-entry.is-blocked .rb-entry-beam {
+  display: none;
+}
+.route-board .rb-entry.is-blocked .rb-entry-halo {
+  fill: none;
+  filter: none;
+}
+.route-board .rb-entry.is-blocked .rb-entry-edge,
+.route-board .rb-entry.is-blocked .rb-entry-chevron {
+  stroke: #6b767c66;
+  filter: none;
+}
+.route-board .rb-entry.is-blocked .rb-tile-top {
+  fill: #16242e;
+  stroke: #ffffff1a;
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+  /* 入口常态那圈外发光必须一并撤掉, 否则死色地板还镶着一圈光晕。 */
+  filter: none;
+}
+.route-board .rb-entry.is-blocked .rb-tile-side {
+  fill: #0a1116;
+}
+.route-board .rb-entry.is-blocked .rb-tile-seam {
+  stroke: #ffffff14;
+}
+.route-board .rb-entry.is-blocked .rb-entry-letter {
+  animation: none;
+  transform: none;
+  color: #6b767c;
+  text-decoration: line-through;
+  text-shadow:
+    0 1px 0 #0a1015,
+    0 2px 0 #080e12;
+}
+.route-board .rb-entry.is-blocked .rb-tile-shadow {
+  opacity: 0.35;
+}
+
+/* ── SVG 本体(场地) ── */
+.rb-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: visible;
+  /* 纯展示层, 不接受任何指针事件 —— 它横跨整块面板, 挡住入口按钮与节点瓦片。 */
+  pointer-events: none;
+}
+
+/* 连线 = **一条嵌进地面的细线**(不是圆柱水管, 也不是旧版那条近黑的粗线)。
+   ★ 两层同几何的描边, 缺一不可:
+       .rb-pipe-bed —— 近黑的「轨槽」, 比亮线宽一档, 让亮线读作**躺在凹槽里的导体**
+                       而不是「画上去的一笔」; 等距地面的前后关系全靠它撑住。
+       .rb-pipe     —— 细亮线本体, 悬停通电 / 桥接显形时换色的就是它。
+     ⚠ 改任一层的 stroke-width 必须两层一起核对: 槽必须**始终比亮线宽**, 否则凹槽当场变成描边。
+   ⚠⚠ 它是电流特效的轨道, 端点与端帽必须与 .rb-trace-line / .rb-trace-done / .rb-trace-head
+       **完全一致**(同一组端点 + 同为 round 端帽/接头)。线宽关系:
+       亮线细(2.4)、电流粗(4 / 亮头 5)、轨槽居中(5.4) ⇒ 电流跑过去把亮线整条盖住,
+       两侧只剩轨槽的一线暗边 —— 读作「凹槽里的这条线被点亮了」。改宽度回头核对这个覆盖关系。
+   ⚠ 主管与桥管共用这套**基础**规则; 桥接只有在**显形的那几秒**才另换一套亮青(见下面的
+     .rb-bridges.is-revealing) —— 平时它与主线一模一样, 抬头那三条区分依然成立。 */
+.rb-pipe-bed {
+  stroke: #020508;
+  stroke-width: 6.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.92;
+  transition:
+    stroke 220ms ease,
+    stroke-width 220ms ease;
+}
+.rb-pipe {
+  stroke: var(--rb-pipe);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1.5px 0 #000000b8) drop-shadow(0 -0.6px 0 #d8c3a044);
+  transition:
+    stroke 220ms ease,
+    stroke-width 220ms ease;
+}
+/* 极淡的常驻辉光挂在**通道整组**上而不是每一节线上: 25 节各挂一个 filter 会白白建 25 个
+   离屏层, 挂在 <g> 上只有 5 个。作用是让线不至于「干」在暗背景里, 强度刻意压到几乎看不出。
+   ⚠ 辉光跟着主线一起转暖(旧值是冷青的 #7fd8ee2e): 暖铜的线镶一圈冷青边会把「未通电」这个
+     读法当场破掉, 也会在揭示期给桥接的青色添一层背景噪声。 */
+.rb-lane,
+.rb-bridge {
+  filter: drop-shadow(0 1px 0 #00000066);
+  transition:
+    filter 220ms ease,
+    opacity 300ms ease;
+}
+/* 悬停某个入口 ⇒ 那一条通道的整串连线通电。⚠ 只是「这条通道归这个入口」的确认,
+   不含任何落点信息 —— 一旦预告落点, 整套记忆玩法就废了。
+   ⚠ 通电态刻意与电流同色同辉, 让「悬停点亮」与「信号跑过」看起来是同一种电。
+   ⚠ 轨槽同时换成偏荧光的暗色: 槽还留着中性冷灰的话, 通电的亮线会像浮在一条没通电的槽上面。 */
+.rb-lane.is-live {
+  filter: drop-shadow(0 1px 0 #00000088) drop-shadow(0 0 4px color-mix(in srgb, var(--rb-trace) 38%, transparent));
+}
+.rb-lane.is-live .rb-pipe {
+  stroke: var(--rb-trace);
+  stroke-width: 2.8;
+}
+.rb-lane.is-live .rb-pipe-bed {
+  stroke: color-mix(in srgb, var(--rb-trace) 16%, #04090d);
+  stroke-width: 6.4;
+}
+
+/* ── 「不是我这条」的通道: 选完入口之后整条压暗 ──
+   ★ 选完入口之前(生成/遮蔽/揭示/选入口), 5 条通道是**同等重要的候选**, 必须一样亮;
+     选完之后玩家只走其中一条, 另外 4 条继续以同一档亮度铺满画面就只是噪声 ——
+     推进期画面上同时有 20 条亮线、1 条电流走线、1 条已走路径, 走线根本压不出来。
+   ⚠ 刻意**只压亮线、不动轨槽的几何**: 槽还留着(只是淡一档) ⇒ 「哪块地板通到哪块」这条
+     结构信息仍然读得出来, 玩家回头还能判断桥接可能搭在哪儿。这不是隐藏, 是退到背景层。
+   ⚠ 别改成 opacity 压整组: 那会连带把轨槽一起吃掉, 等距地面的前后关系当场糊掉
+     (与地板按钮那条「不可点靠颜色、不用 opacity」是同一个理由)。
+   ⚠ :not(.is-live) 是保险: 悬停通电永远赢过压暗(实际上选完入口后入口按钮已 disabled,
+     两个状态不会同时出现, 但别让后来加的悬停入口踩到这个坑)。 */
+.rb-lane.is-dim:not(.is-live) {
+  filter: none;
+}
+.rb-lane.is-dim:not(.is-live) .rb-pipe {
+  stroke: color-mix(in srgb, var(--rb-pipe) 24%, #0c151b);
+  stroke-width: 2;
+}
+.rb-lane.is-dim:not(.is-live) .rb-pipe-bed {
+  opacity: 0.45;
+}
+
+/* 隐去阶段: 只降 opacity, 节点仍在 DOM 里(见 RouteBoard.tsx 的注释)。
+   400ms 的淡出刻意留得住 —— 瞬间消失会让人以为是渲染错误。 */
+.rb-bridges {
+  opacity: 1;
+  transition: opacity 400ms ease;
+}
+.rb-bridges.is-hidden {
+  opacity: 0;
+}
+/* 显形中的桥接: **换成亮青 + 加粗一档 + 辉光**, 与细白的基础连线拉开明确的颜色对比 ——
+   玩家这几秒要记的就是「哪一段有桥、搭在哪两条通道之间」, 它必须一眼从底图里跳出来。
+   ⚠ 这不违反抬头那三条区分: 平时(遮蔽期/推进期)桥接与主线仍是同一条 .rb-pipe、同一副样子,
+     只有「一轮仅此一次」的显形窗口里才穿上这身亮色。 */
+.rb-bridges:not(.is-hidden) .rb-pipe {
+  stroke: var(--rb-bridge);
+  stroke-width: 3.6;
+}
+/* 亮线加粗到 3.6 之后轨槽必须一起加宽, 否则槽被亮线撑破、凹槽关系当场翻成「亮线镶了圈黑边」。 */
+.rb-bridges:not(.is-hidden) .rb-pipe-bed {
+  stroke: #03161c;
+  stroke-width: 7;
+}
+.rb-bridges:not(.is-hidden) .rb-bridge {
+  filter: drop-shadow(0 2px 0 #000000b8) drop-shadow(0 0 5px color-mix(in srgb, var(--rb-bridge) 48%, transparent));
+}
+/* ⚠⚠ **本页禁闪烁约定的唯一例外**(见本文件抬头): 揭示期的桥接需要一闪一闪的高亮。
+   这是玩家全轮唯一一次看桥接的机会, 闪烁本身就是「快记, 它要没了」的倒计时信号 ——
+   与倒计时条一起构成那几秒的紧迫感。⚠ 例外只限 .is-revealing 这一支, 别扩散到别处:
+   披露页(routeDisclosure)的桥接是**常亮**的, 那是教学页, 不该再催人。 */
+.rb-bridges.is-revealing .rb-pipe {
+  animation: rbBridgeFlash 620ms ease-in-out infinite alternate;
+}
+@keyframes rbBridgeFlash {
+  from {
+    stroke: color-mix(in srgb, var(--rb-bridge) 55%, #0b1216);
+    stroke-width: 3;
+  }
+  to {
+    stroke: #ffffff;
+    stroke-width: 4.2;
+  }
+}
+
+/* 已走过的路径: 落点确定后保持点亮, 玩家要能一直看到自己是怎么走过来的。 */
+.rb-trace-done {
+  fill: none;
+  stroke: color-mix(in srgb, var(--rb-trace) 70%, transparent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--rb-trace) 55%, transparent));
+}
+/* 披露页: 整条线路描得更实 —— 这是教学页, 不是过场(§11.2)。 */
+.rb-trace-done.is-disclosed {
+  stroke: var(--rb-trace);
+  stroke-width: 5;
+}
+
+/* 正在推进的那一段: dasharray 从「全长」偏移到 0, 与信号点同步推进。 */
+.rb-trace-line {
+  fill: none;
+  stroke: var(--rb-trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--rb-trace) 75%, transparent));
+  animation-name: rbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes rbDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* 离场行走(phase = leaving)那条线: 玩家在 atNode 选了「前往下一区域」之后, 棋子沿本轮剩下的
+   整条线路走到终点, 这条线**跟着他同速**被描出来 —— 走到哪亮到哪, 不是一次性亮完。
+   ⚠ 刻意与 .rb-trace-line 分开一个类名, 不是复用: 文件末尾的 reduced-motion 块用
+     `animation-duration: 400ms !important` 覆写了 .rb-trace-line, 复用会让线跑完了人还在半路。
+     这一支的时长由 TSX 内联给出(walkMs 里已经含了 reduced-motion 的压缩), 两者天然同步。
+   ⚠ 比推进段的走线淡一档、细一档: 那是「正在推进」, 这是「离场收尾」, 不该比它还抢眼。 */
+.rb-trace-walk {
+  fill: none;
+  stroke: color-mix(in srgb, var(--rb-trace) 82%, transparent);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--rb-trace) 60%, transparent));
+  animation-name: rbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+/* 拖尾: 一段很长、很淡的 dash, 与亮头同速同相 ⇒ 亮头之后拖出一条渐隐的尾巴。
+   ⚠ 它必须画在亮头**之前**(见 TSX 的顺序): 尾巴压在亮头上会把那点白核糊掉。 */
+.rb-trace-comet {
+  fill: none;
+  stroke: color-mix(in srgb, var(--rb-trace) 55%, transparent);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dashoffset: var(--len);
+  filter: blur(3px);
+  animation-name: rbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+/* 亮头: 一小段更白的 dash 跟着主线一起推进, 让「信号在跑」这件事有方向感。 */
+.rb-trace-head {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--rb-trace) 85%, transparent));
+  animation-name: rbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.rb-signal {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 10px var(--rb-trace)) drop-shadow(0 0 22px var(--rb-trace));
+}
+/* 过桥完成时的扩散环: 单次播放(no infinite), 播完停在透明 —— 不是闪烁, 是一次落地的余波。 */
+.rb-ripple {
+  fill: none;
+  stroke: var(--rb-trace);
+  stroke-width: 2;
+  /* ⚠ both 而不是 backwards: 播完必须停在 stroke-opacity:0, 否则会退回基础样式留下一圈实环。 */
+  animation: rbRipple 620ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+@keyframes rbRipple {
+  from {
+    r: 3;
+    stroke-opacity: 0.95;
+    stroke-width: 3;
+  }
+  to {
+    r: 28;
+    stroke-opacity: 0;
+    stroke-width: 1;
+  }
+}
+
+/* ── 节点: 一块瓦片地板 + 站在上面的事件图标 ──
+   20 个节点全程可见。地板上放不下文字, 详情由 ExploreScreen 的侧栏承担(§11.1)。 */
+.rb-nodes {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+/* 揭示线路 / 推进途中: 瓦片不接受指针。那几秒玩家必须盯着桥接与信号。 */
+.rb-nodes.is-inert {
+  pointer-events: none;
+}
+.rb-node {
+  --k: var(--expl-kind, #8fb3c4); /* 该 kind 的强调色由 exploreKit 提供 */
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.rb-nodes.is-inert .rb-node {
+  pointer-events: none;
+}
+/* 瓦片地板: 正方形地板的等距投影 = 2:1 菱形顶面 + 朝向观者的两个侧面(厚度)。
+   ⚠ 用 SVG polygon 而不是「旋转 45° 的方块」: 旋转会把描边一起转过去, 与棋盘的 2:1 斜率对不上。
+   等距下它不缩放 —— 平行投影的定义属性(§11.1)。几何在 RouteBoard.tsx 的 <Tile>。
+   起点(.rb-entry)与节点(.rb-node)共用这一整套。 */
+.rb-tile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* ⚠ 地板的**材质本身跟着事件类型走**(不只是描边): 顶面/侧面/砖缝都按该节点的 --k 轻度染色。
+   ⚠ 比例是在「暗色棋盘 + 站在上面的图标才是主角」这个前提下定的, 别再往上加 ——
+     顶面一旦超过 ~25%, 图标的 .ri-body 暗描边就压不住底色, 图标会糊进地板里。
+   ⚠ 侧面的混入比例必须低于顶面: 厚度的明暗关系(侧面永远比顶面暗)一旦被拉平, 转角当场消失。 */
+.rb-tile-top {
+  fill: color-mix(in srgb, var(--k) 18%, #16242e);
+  stroke: color-mix(in srgb, var(--k) 55%, transparent);
+  stroke-width: 1;
+  transition:
+    fill 220ms ease,
+    stroke 220ms ease,
+    stroke-width 220ms ease,
+    filter 220ms ease,
+    opacity 300ms ease;
+}
+/* 侧面: 比顶面暗两档, 转角才立得住(同色会让厚度当场消失)。 */
+.rb-tile-side {
+  fill: color-mix(in srgb, var(--k) 10%, #0a1116);
+  stroke: #00000066;
+  stroke-width: 1;
+  transition:
+    fill 220ms ease,
+    opacity 300ms ease;
+}
+/* 地砖缝: 顶面内缩一圈的细菱形, 让它读作「一块砖」而不是一个几何色块。 */
+.rb-tile-seam {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 30%, #ffffff14);
+  stroke-width: 1;
+}
+/* 落地投影: 站在地板上的那个物件在顶面中心投下的一枚扁椭圆。 */
+.rb-tile-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--foot) - 4px);
+  width: 26px;
+  height: 11px;
+  margin-left: -13px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, #000000a6, #00000000 72%);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    opacity 300ms ease;
+}
+/* 站在地板上的事件图标。脚底落在顶面中心(--foot 由 TSX 按版式常量算好)。 */
+.rb-node-icon {
+  position: absolute;
+  left: 50%;
+  bottom: var(--foot);
+  display: block;
+  width: var(--icon-h);
+  height: var(--icon-h);
+  margin-left: calc(var(--icon-h) / -2);
+  color: var(--k);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    opacity 300ms ease;
+}
+.rb-node-icon svg {
+  width: 100%;
+  height: 100%;
+}
+/* 图标的三层立体: 暗部厚度 / 主体线框 / 受光边。
+   ⚠ 必须用 `*` 选到子元素: 图标数据里带行内 stroke-width, 挂在 <g> 上是压不过它的。 */
+.rb-node-icon .ri-body * {
+  stroke: #070d12;
+  stroke-width: 5;
+  opacity: 0.85;
+}
+.rb-node-icon .ri-lit * {
+  stroke: #eafcff;
+  stroke-width: 0.8;
+  opacity: 0.5;
+}
+/* 悬停: 小物件被拎起来一下, 投影跟着收小 —— 位移而非明暗。 */
+.route-board .rb-node:hover:not(:disabled) .rb-node-icon,
+.route-board .rb-node:focus-visible .rb-node-icon {
+  transform: translateY(-6px) scale(1.1);
+}
+.route-board .rb-node:hover:not(:disabled) .rb-tile-shadow,
+.route-board .rb-node:focus-visible .rb-tile-shadow {
+  transform: scale(0.86);
+}
+.route-board .rb-node:hover:not(:disabled) .rb-tile-top,
+.route-board .rb-node:focus-visible .rb-tile-top {
+  stroke: var(--k);
+  stroke-width: 1.6;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k) 55%, transparent));
+}
+/* 风险标记: 地板描边换色 + **地板本身也染上那一档危险色**, 不加文字 —— 文字在侧栏里。
+   「这块地不对劲」要在瓦片本体上读得出来, 不能只靠一圈细描边。 */
+.rb-node.r-negative .rb-tile-top {
+  fill: color-mix(in srgb, var(--bad) 24%, #16242e);
+  stroke: color-mix(in srgb, var(--bad) 70%, transparent);
+  stroke-dasharray: 6 5;
+}
+.rb-node.r-negative .rb-tile-side {
+  fill: color-mix(in srgb, var(--bad) 12%, #0a1116);
+}
+.rb-node.r-highRisk .rb-tile-top {
+  fill: color-mix(in srgb, #ffb020 24%, #16242e);
+  stroke: color-mix(in srgb, #ffb020 70%, transparent);
+}
+.rb-node.r-highRisk .rb-tile-side {
+  fill: color-mix(in srgb, #ffb020 12%, #0a1116);
+}
+/* 当前落点: 地板染得更实 + 强描边 + 同色辉光 + 一次落地撞击(单次, 播完即止)。 */
+.rb-node.is-current .rb-tile-top {
+  fill: color-mix(in srgb, var(--k) 30%, #16242e);
+  stroke: var(--k);
+  stroke-width: 1.8;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--k) 70%, transparent));
+}
+/* ⚠ 不设 fill-mode: 播完把 transform 交还常态/悬停规则。 */
+.rb-node.is-current .rb-tile,
+.rb-node.is-current .rb-node-icon {
+  animation: rbStruck 380ms cubic-bezier(0.34, 1.46, 0.64, 1);
+}
+@keyframes rbStruck {
+  0% {
+    transform: translateY(0);
+  }
+  38% {
+    transform: translateY(7px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+/* 已结算过的节点: 压暗留痕, 玩家回头能数清自己走过几个。 */
+.rb-node.is-settled .rb-tile-top,
+.rb-node.is-settled .rb-tile-side,
+.rb-node.is-settled .rb-tile-shadow,
+.rb-node.is-settled .rb-node-icon {
+  opacity: 0.5;
+}
+/* 披露页里被放弃的那些段: 明显压暗 —— 「我放弃了什么」必须看得见(§11.2)。 */
+.rb-node.is-abandoned .rb-tile-top,
+.rb-node.is-abandoned .rb-tile-side,
+.rb-node.is-abandoned .rb-tile-shadow,
+.rb-node.is-abandoned .rb-node-icon {
+  opacity: 0.28;
+}
+
+/* ── 玩家棋子(几何体小人) ──
+   「我在哪」的实体表达: 选完入口后常驻在当前地板上, 推进时跟在信号点后半步沿折线走过去 ——
+   它的运动轨迹就是玩家的前进轨迹, 身后那条荧光线是它走过的路。几何在 RouteBoard.tsx 的 <Pawn>。
+   ⚠ 单独一层且 z-index:3(地板层之上、探针按钮之下): 棋子站在地板上时不能被那颗按钮的瓦片挡住。
+   ⚠ 明暗三档沿用地板的语言(顶面亮 / 右侧面中 / 左侧面暗), 且**实心面 vs 事件图标的线框** ——
+     这一实一虚就是「我」与「事件」的区分, 不要把棋子也改成线框。 */
+.rb-pawn-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+/* 静止站位的位移走 CSS transform(内联给出), 带过渡 ⇒ landed / atNode / 披露页之间切换不跳。
+   ⚠ 推进态(.is-walking)由 animateMotion 驱动, 那一支不带内联 transform, 两者不会打架。 */
+.rb-pawn {
+  transition: transform 250ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+.rb-pawn-lit {
+  fill: #f2fbff;
+}
+.rb-pawn-mid {
+  fill: color-mix(in srgb, var(--rb-trace) 26%, #7f9aa8);
+}
+.rb-pawn-dark {
+  fill: color-mix(in srgb, var(--rb-trace) 18%, #2b3d48);
+}
+.rb-pawn-body polygon {
+  stroke: var(--rb-trace);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.rb-pawn-body {
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--rb-trace) 50%, transparent));
+}
+/* 脚下投影: 与 .rb-tile-shadow 同款, 但它留在地面上不参与呼吸 —— 影子跟着人飘会立刻穿帮。 */
+.rb-pawn-shadow {
+  fill: #000000;
+  opacity: 0.5;
+}
+/* 常驻呼吸: ±1.5px 的纯位移(禁闪烁约定 —— 不允许任何明暗脉冲)。 */
+.rb-pawn-idle {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: rbPawnBreathe 3.2s ease-in-out infinite alternate;
+}
+@keyframes rbPawnBreathe {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-1.5px);
+  }
+}
+/* 行走: 小幅起伏 + 轻微踩踏形变。同样是纯形变, 没有明暗变化。
+   ⚠ --pawn-hold(由 TSX 传入 = 信号点跑完整条线的时长)是**起步前的等待**: 那一拍人是站着不动的,
+     踩踏节奏必须等到他真的迈步才开始, 否则会出现「原地踏步」。
+   ⚠ 步频比上一版慢(360 → 520ms): 走速降到信号点的 1/3 之后, 快步频会读成小碎步。 */
+.rb-pawn.is-walking .rb-pawn-idle {
+  animation: rbPawnStep 520ms ease-in-out var(--pawn-hold, 0ms) infinite alternate;
+}
+@keyframes rbPawnStep {
+  from {
+    transform: translateY(0) scaleY(0.96);
+  }
+  to {
+    transform: translateY(-3px) scaleY(1);
+  }
+}
+
+/* ===================== 生成演出(.is-generating) =====================
+   换轮时新区域「浮现」的那 2 秒。★ 全程只有**一个波面**: 一个平行于通道轴、沿推进轴
+   (左下 → 右上)推进的斜切面。起点地板落位、连线绘制、节点地板砸落、扫描光带 —— 四件事
+   全都按这个波面错开, 读作「区域正沿着推进方向一段一段被扫描出来」, 而不是四组各自淡入的元素。
+   ⚠ 所有错开量都是 `var(--i)(通道) + var(--j)/var(--seg)(推进方向的第几节/第几段)` 的线性组合,
+     两个系数的比值决定波面的倾角 —— 想调倾角就同比例改这两个系数, 别只改一个。
+
+   时间轴与 RouteBoard.GENERATE_MS(2000) 一一对应, ⚠ 改这里必须同步改那个常量:
+
+     ①    0– 740ms  起点地板沿推进轴反方向升起并落位(460ms, --i 每条通道 +70ms)
+     ②  380–1480ms  连线**逐节被画出来**(400ms, 通道 +80ms / 节号 +95ms), 绘制头跟一点火花
+     ③ 1090–1998ms  节点地板从上方砸落 + 一次性落地辉光(400ms, 段 +140ms / 通道 +22ms) ← 压线
+     ④    0–1900ms  扫描光带扫过全图一次(单次, 与 ② 的波面同向同速)
+
+   ⚠ 四段都必须在 GENERATE_MS 之前播完: 定时器一到就摘掉 .is-generating,
+     还没播完的动画会当场跳到终态。改任何一处时长/错开都要重算末尾那一段(③ 已经压线)。
+
+   ⚠ 桥管(.rb-bridges)全程不参与 —— 这一段是仪式, 不是信息展示; 桥管要等玩家按「探索路线」。
+   ⚠ 一律 fill-mode: backwards **而不是 forwards**: 延迟期停在起始态(不可见)即可,
+     播完必须把 transform/opacity/stroke-dasharray 交还给常态与悬停规则,
+     否则地板再也抬不起来、字母不再浮动、连线永远定格成一条虚线。 */
+
+/* ── ① 起点地板 ──
+   沿推进轴的**反方向**(左下的来路)升起并落位, 末尾带一点点超调 ⇒ 有重量, 不是淡入。 */
+.route-board.is-generating .rb-entry {
+  animation: rbGenEntry 460ms cubic-bezier(0.18, 1.12, 0.4, 1) calc(var(--i) * 70ms) backwards;
+}
+@keyframes rbGenEntry {
+  0% {
+    opacity: 0;
+    transform: translate(-32px, 16px) scale(0.82);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* ── ② 连线逐节绘制 ──
+   ★ 这是本段演出的主角: 每一节管子从靠近起点的那一端**长到**另一端(stroke-dashoffset
+   由全长收到 0), 轨槽与亮线同步, 所以看到的是「一条线被画进凹槽里」。
+   ⚠ 旧版是整条通道平移滑入 —— 那读作「一张画好的图被推进画面」, 没有任何「生成」的意思,
+     这一版刻意换掉。⚠ 也**不能**改回 scaleX: 线是斜的, 横向缩放会把它拉歪成另一个角度、
+     粗细也跟着变, 等距场景里那看起来就像投影错了。dash 绘制完全不改形状。
+   ⚠ --len(节长) / --j(节号) 由 RouteBoard.tsx 的 <Pipe> 挂在每一节的 <g> 上;
+     --i(通道号) 在外层 .rb-lane 上。两个自定义属性靠继承一起落到 <line> 身上。 */
+.route-board.is-generating .rb-lane .rb-pipe-bed,
+.route-board.is-generating .rb-lane .rb-pipe {
+  animation: rbGenPipe 400ms cubic-bezier(0.32, 0.08, 0.22, 1)
+    calc(380ms + var(--i) * 80ms + var(--j) * 95ms) backwards;
+}
+@keyframes rbGenPipe {
+  from {
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: 0;
+  }
+}
+/* 绘制头上的那点火花: 一小段亮 dash 跟着绘制进度跑到节尾, 到头就熄。
+   ⚠ 元素本身只在 generating 时挂载(见 TSX 的 spark), 所以这里不必再管收尾态。 */
+.rb-pipe-spark {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-dasharray: 15 var(--len);
+  filter: drop-shadow(0 0 7px var(--rb-bridge));
+  animation: rbGenSpark 400ms cubic-bezier(0.32, 0.08, 0.22, 1)
+    calc(380ms + var(--i) * 80ms + var(--j) * 95ms) backwards;
+}
+@keyframes rbGenSpark {
+  from {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  to {
+    stroke-dashoffset: calc(var(--len) * -1px);
+    opacity: 0;
+  }
+}
+
+/* ── ③ 节点地板 ──
+   从上方**砸落**并轻微过冲(落地那一下压扁 4px), 与落点撞击(rbStruck)是同一种物理语言。
+   ⚠ 末段必须在 GENERATE_MS 之前收尾: 1090 + 3×140 + 4×22 + 400 = 1998, 压线。改错开时重算。 */
+.route-board.is-generating .rb-node {
+  animation:
+    rbGenNode 400ms cubic-bezier(0.34, 1.4, 0.5, 1)
+      calc(1090ms + var(--seg) * 140ms + var(--lane) * 22ms) backwards,
+    rbGenNodeGlow 400ms ease-out calc(1090ms + var(--seg) * 140ms + var(--lane) * 22ms) backwards;
+}
+@keyframes rbGenNode {
+  0% {
+    opacity: 0;
+    transform: translateY(-34px) scale(0.84);
+  }
+  50% {
+    opacity: 1;
+  }
+  74% {
+    transform: translateY(4px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* 落地的那一下亮一次就收 —— **一次性**播完即止, 不是明暗脉冲, 不违反抬头的禁闪烁约定。
+   ⚠ 与上面那支共用同一段 animation 简写: 一支管 transform/opacity, 一支只管 filter,
+     两支不碰同一个属性才不会互相顶掉。 */
+@keyframes rbGenNodeGlow {
+  0%,
+  62% {
+    filter: none;
+  }
+  76% {
+    filter: drop-shadow(0 0 16px color-mix(in srgb, var(--k) 75%, transparent))
+      brightness(1.35);
+  }
+  100% {
+    filter: none;
+  }
+}
+
+/* ── ④ 扫描光带 ──
+   一条**平行于通道轴**的光带沿推进方向扫过全图一次。skewX 的角度就是通道轴的 2:1 斜率:
+   通道轴方向 (0.894, 0.447) ⇒ dx/dy = 2 ⇒ skewX(atan 2) = 63.435deg。
+   ⚠ 这个角度不是随便调的观感值 —— 改了它光带就不再与通道轴平行, 会斜切过棋盘, 当场穿帮。
+   ⚠ mix-blend-mode / filter 挂在**这个子元素**上, 不是 .route-board ——
+     后者是底下暗玻璃砖的 backdrop root, 一旦挂上滤镜 backdrop-filter 就取不到背景图(见抬头)。 */
+.rb-scan-clip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+.rb-scan {
+  position: absolute;
+  left: 0;
+  top: -30%;
+  width: 130px;
+  height: 160%;
+  background: linear-gradient(
+    90deg,
+    #00000000 0%,
+    color-mix(in srgb, var(--rb-bridge) 20%, transparent) 38%,
+    #eafcffb3 50%,
+    color-mix(in srgb, var(--rb-bridge) 20%, transparent) 62%,
+    #00000000 100%
+  );
+  /* ⚠ 刻意**不用 mix-blend-mode: screen**: 外面那层 .rb-scan-clip 带 z-index ⇒ 是个独立的
+     层叠上下文, 混合模式只会跟上下文内部(除了光带自己什么都没有)合成, 等于白挂一个开销。
+     光带本来就是浅色压在暗棋盘上, 直接走 alpha 合成的观感是一样的。 */
+  filter: blur(1px);
+  animation: rbScan 1900ms cubic-bezier(0.36, 0.02, 0.3, 1) forwards;
+}
+/* ⚠ 位移用固定 px 而不是 %: translateX 的百分比按元素自身宽度(130px)算, 换算成扫程要靠猜。
+   起止值按面板宽度(约 1290 设计 px)留足余量, 两端各多扫出去一截, 光带才是「扫过去」而不是
+   「在画面里出现又消失」。opacity 只在两端收尾, 中段全程常亮 —— 一次性淡入淡出, 不是脉冲。 */
+@keyframes rbScan {
+  0% {
+    opacity: 0;
+    transform: translateX(-340px) skewX(63.435deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(1560px) skewX(63.435deg);
+  }
+}
+
+/* ── 「探索路线」按钮: 遮蔽态**贴在面板底边居中**的那一条横条 ──
+   本轮唯一能看见桥接的机会, 按下即不可逆(见 RouteBoard.tsx 的注释), 故做得比普通按钮重得多:
+   宽扁横条 + 亮青实底描边 + 主标与副标横排(中间一道竖分隔) + 一圈缓慢外扩的探针环。
+   ⚠ 那圈环走的是**位移/缩放**的匀速外扩(不是明暗脉冲), 符合本页禁闪烁的约定。
+
+   ★ 它原来摆在面板正中, 正好压在等距斜带的腰上、挡掉中间几段节点 —— 而 sealed 是玩家唯一
+     能从容悬停查看 20 个节点的阶段。现在改为贴底边居中(定位由 TSX 的 PROBE_BOTTOM_INSET 给),
+     棋盘斜带在面板底边中段留下的正是一块天然空白。
+   ⚠ 挪走一档存在感之后**样式反过来要加重**: 它是这一相唯一的推进入口, 移出视觉正中就不能再靠
+     位置来喊人。所以这里刻意用了全页最强的一档亮青(--rb-bridge)与外发光, 与倒计时条同色 ——
+     读作「同一套探针系统」。⚠ 但仍不许用明暗脉冲来抢眼, 加重只走**尺寸/颜色/静态辉光**。
+
+   ⚠⚠ 居中位移(translate(-50%, -100%))**必须留在 .rb-probe-anchor 这层, 不能回到 button 上**:
+       base.css 的 `button:active:not(:disabled){transform:translateY(1px)}` 特异性 (0,2,1)
+       高于任何单类名选择器, 按下时会把居中位移整条顶掉 —— 按钮朝右下跳半个自身宽高,
+       从光标底下跑走, mouseup 落在外面, click 事件根本不会触发(表现为"点很多下才生效")。
+       同理探针环也挂在 anchor 上: button 带全站斜切角的 clip-path, 会把外扩的环裁掉。
+   ⚠ -100% 而不是 -50%: TSX 传进来的 top 是横条的**底边**位置(面板底边往上 PROBE_BOTTOM_INSET),
+     这样横条高度怎么改, 底部留白都是同一个数, 顶边不会悄悄往上爬去压节点。 */
+.rb-probe-anchor {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  /* 地板层(z-index:2 的入口)之上 */
+  z-index: 4;
+  animation: rbProbeIn 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.rb-probe {
+  position: relative;
+  display: flex;
+  /* 横排: 主标 · 竖分隔 · 副标 —— 横条要横着长, 竖着长就会往上顶到节点地板。 */
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 15px 34px;
+  border: 2px solid var(--rb-bridge);
+  border-radius: 3px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--rb-bridge) 22%, #0b1216) 0%,
+    #0b1216f2 62%,
+    color-mix(in srgb, var(--rb-bridge) 14%, #0b1216) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 #ffffff33,
+    inset 0 0 22px -6px color-mix(in srgb, var(--rb-bridge) 45%, transparent),
+    0 0 26px -4px color-mix(in srgb, var(--rb-bridge) 55%, transparent),
+    0 26px 48px -22px #000000f2;
+  color: var(--text);
+  cursor: pointer;
+  /* transform 也进过渡列表: base.css 的按下反馈(translateY(1px))现在安全地落在按钮自己身上 */
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease,
+    transform 80ms ease;
+}
+.rb-probe:hover,
+.rb-probe:focus-visible {
+  border-color: #eafcff;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--rb-bridge) 34%, #0b1216) 0%,
+    #12222acc 62%,
+    color-mix(in srgb, var(--rb-bridge) 22%, #0b1216) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 #ffffff47,
+    inset 0 0 26px -6px color-mix(in srgb, var(--rb-bridge) 65%, transparent),
+    0 0 40px -2px color-mix(in srgb, var(--rb-bridge) 75%, transparent),
+    0 30px 54px -20px #000000f2;
+}
+.rb-probe-label {
+  color: #eafcff;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 7px;
+  /* 缩进补偿: letter-spacing 会在最后一个字后面也留一格, 不补的话主标看起来偏左。 */
+  text-indent: 7px;
+  text-shadow: 0 0 14px color-mix(in srgb, var(--rb-bridge) 70%, transparent);
+}
+/* 主标与副标之间的那道竖线: 横排之后两段文字需要一个硬分界, 否则读成一句话。 */
+.rb-probe-sep {
+  width: 1px;
+  height: 22px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--rb-bridge) 70%, transparent),
+    transparent
+  );
+}
+.rb-probe-note {
+  color: color-mix(in srgb, var(--rb-bridge) 55%, var(--muted));
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+/* 探针环: 从横条中心匀速外扩一圈细线, 读作「正在向签路里打信号」。 */
+.rb-probe-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  border: 1px solid color-mix(in srgb, var(--rb-bridge) 55%, transparent);
+  border-radius: 3px;
+  pointer-events: none;
+  animation: rbProbeRing 2600ms cubic-bezier(0.16, 0.84, 0.3, 1) infinite;
+}
+@keyframes rbProbeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 10px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%);
+  }
+}
+/* ⚠ opacity 只在单次外扩的末尾收尾(环飞出去自然淡掉), 不是明暗脉冲 —— 不属于禁止的闪烁。
+   ⚠ 外扩倍数从 1.5 收到 1.26: 横条比原来那颗胶囊宽得多也贴着面板底边, 1.5 倍会横向撑出去
+     一大截、竖向扫出面板底边(.route-board 没有 overflow 裁剪, 会飘到下面的 UI 上)。 */
+@keyframes rbProbeRing {
+  from {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.26);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 推进动画是**信息**而不是装饰(玩家要看清楚信号从哪条通道跨到哪条), 故这里不整体关掉,
+     只把它压到最短的可辨识时长。倒计时条同理保留 —— 它就是那几秒本身。 */
+  .rb-trace-line,
+  .rb-trace-head,
+  .rb-trace-comet {
+    animation-duration: 400ms !important;
+  }
+  /* 纯装饰的那几样直接关掉: 起点字母浮动、落点撞击、棋子的呼吸与走姿。
+     ⚠ 棋子**本体与 animateMotion 保留** —— 「玩家现在在哪、怎么走过去的」是信息不是装饰,
+       和推进线一个待遇, 只是不再起伏。 */
+  .rb-entry-letter,
+  .rb-node.is-current .rb-tile,
+  .rb-node.is-current .rb-node-icon,
+  .rb-pawn-idle,
+  .rb-pawn.is-walking .rb-pawn-idle {
+    animation: none;
+  }
+  /* 桥接的闪烁停掉, 但**高亮留着**: 亮青 + 加粗那一层是 .rb-bridges:not(.is-hidden) 给的,
+     这里只摘掉 alternate 的那支动画, 显形窗口照样看得清。 */
+  .rb-bridges.is-revealing .rb-pipe {
+    animation: none;
+  }
+  /* 涟漪不能只停动画 —— 那会把每个桥尾的圆环定格在画面上。整个不渲染。 */
+  .rb-ripple {
+    display: none;
+  }
+  /* 生成演出同样不能整个关掉(关掉会让 backwards 把元素定格在起始的不可见态), 只把三段
+     压进 RouteBoard.GENERATE_REDUCED_MS 的窗口里 —— 顺序还在, 但基本一闪而过。
+     ⚠ 这里的总时长必须 ≤ 那个常量, 否则定时器会比画面先落地。 */
+  .route-board.is-generating .rb-entry {
+    animation-duration: 100ms;
+    animation-delay: 0ms;
+  }
+  /* 连线仍然是「画出来」的(那是这一段唯一的信息: 哪块地板通到哪块), 只是三段错开全部取消,
+     25 节一起在 110ms 内画完。⚠ 不能整个 animation:none —— backwards 会把它定格成不可见。 */
+  .route-board.is-generating .rb-lane .rb-pipe-bed,
+  .route-board.is-generating .rb-lane .rb-pipe {
+    animation-duration: 110ms;
+    animation-delay: 90ms;
+  }
+  .route-board.is-generating .rb-node {
+    animation-duration: 100ms;
+    animation-delay: 210ms;
+  }
+  /* 纯装饰的两样直接不渲染(只停动画会把火花定格成一截亮线、光带定格在画面中央)。 */
+  .rb-pipe-spark,
+  .rb-scan {
+    display: none;
+  }
+  /* 探针环纯装饰, 直接不渲染(只停动画会把它定格成一圈静止描边)。 */
+  .rb-probe-ring {
+    display: none;
+  }
+  .rb-probe-anchor {
+    animation: none;
+  }
+}

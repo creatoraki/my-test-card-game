@@ -6,8 +6,8 @@
 // (三装备槽见《物品设计.md》第二章)。
 // ============================================================================
 
-import { getItemDef } from "../data";
-import type { EquipSlot, ItemCategory, ItemStack } from "../items/types";
+import { getItemDef } from "@/data";
+import type { EquipSlot, ItemCategory, ItemStack } from "@/items/types";
 
 export type ItemTab = "all" | ItemCategory;
 export type EquipTab = "all" | EquipSlot;

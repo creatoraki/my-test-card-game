@@ -1,0 +1,99 @@
+/* ===================== 场景氛围层(ui/AmbienceLayer.tsx + ui/ambience.ts) ===================== */
+/* 两张画布的 CSS 尺寸恒为设计画布尺寸(位图分辨率由组件按 dpr 另设), 与背景一样精确铺满世界。
+   它们在 .battle-world 内 ⇒ 跟随相机推近/平移/漂移/震屏, 粒子与场景是一体的。
+   ★ 两张画布同时是 3D 场景里的**纵深层**: far 在敌人之后、near 在敌人之前, translateZ 与
+     抵消透视的预缩放见下面 .far / .near 两条(纵深值由 BattleScreen 按 CINEMA.depth 下发)。
+     所以这里不要给 .battle-ambience 加任何 transform —— 那条属性已经被纵深占用了。
+   near 层的 filter: blur 由组件行内下发(取该层各发射器 blur 的最大值)—— 近景失焦本就是
+   层级属性, 逐粒子设 ctx.filter 会让每次绘制重建滤镜链。 */
+.battle-ambience {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+/* ── 两层的层序 + 纵深 ──
+   far 在敌人之后、near 在敌人之前(z-index), 同时各自是 3D 场景里的一个纵深层:
+   translateZ(纵深) + 抵消透视的预缩放 (P−z)/P, 两个数都由 BattleScreen 的 depthVars
+   按 CINEMA.depth 下发到 .battle-world(跨组件变量契约, 样式铁律 4)。
+   预缩放保证**静止画面与无纵深时逐 px 相同** —— 纵深只在相机运动时以视差显现。
+   ⓘ transform 那两行原先住在 BattleScreen.module.css 的「纵深层」一组(写作
+     `.battle-scene .battle-ambience.far`), 但 .battle-ambience 是本文件的类,
+     Modules 之后那边够不着, 故迁回来与层序并作一条(样式铁律 1)。
+   ⚠ transform 属性已被纵深占满 —— 文件开头那句「不要给 .battle-ambience 加任何 transform」
+     说的就是这里。 */
+.battle-ambience.far {
+  z-index: 1;
+  transform: translateZ(var(--depth-far, 0)) scale(var(--depth-far-fix, 1));
+}
+.battle-ambience.near {
+  z-index: 4;
+  transform: translateZ(var(--depth-near, 0)) scale(var(--depth-near-fix, 1));
+}
+/* 世界内的灯光闪烁(霓虹招牌/坏掉的灯管): screen 混合叠一层光色。
+   关键帧刻意做成不规则的 —— 均匀脉冲像呼吸灯, 不像坏灯。animation-duration 由组件下发。
+   这里的 mix-blend-mode 是安全的(与下面 .battle-grade::after 的教训相对照): 它在
+   .battle-world 这个层叠上下文内, 下方压着不透明的背景层(0)与远景粒子(1), 混合有实际的
+   backdrop 可用; 且 screen 只提亮, 最坏情况也不会糊出黑幕。
+   ⓘ 它刻意**不带纵深**(z=0, 与敌我单位同面): 混合与 3D 合成放在一起本就是浏览器实现里最
+     模糊的地带, 而这层只是一张全屏光色, 有没有视差看不出来 —— 不值得为它冒险。
+     若某张地图的闪烁在 3D 场景下出现异常, 第一嫌疑就是这条 mix-blend-mode。 */
+.battle-flicker {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(120% 80% at 50% 18%, var(--flicker-color, #7b5cff) 0%, transparent 70%);
+  opacity: 0;
+  animation-name: ambienceFlicker;
+  animation-iteration-count: infinite;
+  animation-timing-function: steps(1, end);
+}
+@keyframes ambienceFlicker {
+  0%, 42%, 47%, 55%, 71%, 100% {
+    opacity: 0.05;
+  }
+  44%, 52%, 68% {
+    opacity: 0.16;
+  }
+  45%, 69% {
+    opacity: 0;
+  }
+}
+/* 屏幕空间调色: 暗角 / 色偏 / 扫描线。
+   ⚠ 它在 .battle-scene **之外** —— 这是「镜头」而非「场景」, 跟着相机放大的话暗角会被推出
+   画面而失效。z-index 1: 压在场景(0)之上、底部 HUD .battle-hud(2) 之下。参数见 ui/ambience.ts。 */
+.battle-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    /* 扫描线: 2px 一条, 强度 0 时整条透明 */
+    repeating-linear-gradient(
+      180deg,
+      rgb(0 0 0 / calc(var(--grade-scanline, 0) * 1)) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(120% 100% at 50% 50%, transparent 42%, rgb(0 0 0 / calc(var(--grade-vignette, 0.24) * 1)) 100%);
+}
+/* 色偏单独一层伪元素(与暗角分开, 免得两个渐变在同一个 background 里互相盖)。
+   ⚠ 这里**不能用 mix-blend-mode**: 父元素 .battle-grade 自带 position+z-index, 本身就是一个
+   层叠上下文, 混合只能作用于「同一上下文内、它下面的东西」—— 而它下面只有父元素那层中心
+   完全透明的暗角渐变。对透明背景做混合等于直接输出源色, 于是色偏会变成一整块不透明的深色
+   幕布糊住整个画面(霓虹城市曾因此全屏发黑)。改成低透明度的普通色罩即可。 */
+.battle-grade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grade-tint, transparent);
+  opacity: 0.14;
+}
+
+/* 减少动态效果: 世界内的灯光闪烁停掉(粒子层则由组件直接不挂载) */
+@media (prefers-reduced-motion: reduce) {
+  .battle-flicker {
+    animation: none;
+  }
+}

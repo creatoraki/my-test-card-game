@@ -1,0 +1,112 @@
+
+/* ── 出牌「亮相」卡面浮层(仅玩家出牌): 镜头聚焦后从左侧飞入 → 停留 → 往右飞出渐隐 ──
+   挂在舞台层之外, 不受相机缩放/裁切影响。animation-duration 由组件内联注入(对齐 CINEMA)。
+   @keyframes 各帧百分比 = CINEMA.cardIn / (cardIn+cardHold) 占总时长比例(默认 280/700/320)。 */
+.skill-cutin {
+  position: absolute;
+  left: 200px;
+  top: 50%;
+  z-index: 40;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation-name: skill-cutin-fly;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-fill-mode: both;
+}
+.skill-cutin.has-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 300px;
+  filter: drop-shadow(0 18px 40px #000c);
+}
+.skill-cutin .cutin-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+.skill-cutin .cutin-name {
+  color: #eef7ff;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 10px #000d, 0 0 18px #000a;
+}
+.skill-cutin.placeholder {
+  width: 280px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(145deg, #12181bf7, #090d0ff2);
+  border: 1px solid #3b474b;
+  box-shadow: 0 18px 44px #000d;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.skill-cutin .cutin-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.skill-cutin .cutin-cost {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 30px;
+  color: #effbff;
+  font-weight: 800;
+  text-shadow: 0 1px 2px #02152f;
+}
+/* 水晶尺寸: 通过 className 下发给公共 ManaCrystalIcon(样式铁律 3)。
+   ⚠ viewBox 是 1:1 ⇒ 宽高必须成对给正方形。 */
+.skill-cutin .cutin-cost .cutin-cost-crystal {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+}
+.skill-cutin .cutin-cost-value {
+  position: relative;
+  z-index: 1;
+}
+.skill-cutin.placeholder .cutin-name {
+  flex: 1;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-shadow: none;
+}
+.skill-cutin .cutin-type {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.skill-cutin .cutin-text {
+  color: #dbe5df;
+  font-size: 14px;
+  line-height: 1.7;
+}
+@keyframes skill-cutin-fly {
+  0% {
+    transform: translate(-140%, -50%);
+    opacity: 0;
+  }
+  21.5% {
+    transform: translate(0, -50%);
+    opacity: 1;
+  }
+  75.4% {
+    transform: translate(0, -50%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(100px, -50%);
+    opacity: 0;
+  }
+}
+

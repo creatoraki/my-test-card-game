@@ -11,8 +11,8 @@
 - `items/`：物品类型、容器、装备占格和掉落逻辑。
 - `data/`：卡牌、角色、敌人、遭遇战、物品、事件和地图数据。
 - `store/`：Zustand 状态层；城镇档案持久化，远征过程为临时状态。
-- `ui/`：React 页面、组件、场景表现、动画和素材查表。
-- `styles/`：全局样式、设计令牌和公共布局。
+- `ui/`：React 页面、组件、场景表现、动画和素材查表。按功能域分目录，组件样式一律 CSS Modules。
+- `styles/`：全局样式层，只剩设计令牌与基础元素皮肤两个文件。
 
 ## 技术栈
 
@@ -71,8 +71,14 @@ my-test-card-game/
    ├─ items/               # 物品逻辑
    ├─ data/                # 内容数据
    ├─ store/               # 状态与持久化
-   ├─ ui/                  # React 视图、表现与事件素材查表（含战斗签老虎机、战斗裂纹过场、编队↔详情共享元素过场、探索事件弹窗逐字演出 useTypewriter）
-   └─ styles/              # 公共样式
+   ├─ ui/                  # React 视图层，按功能域分目录（详见 docs/code-map/ui.md）
+   │  ├─ app/              # 过场编排：ScreenTransition、战斗裂纹幕布、编队↔详情共享元素过场
+   │  ├─ common/           # 跨域复用组件：立绘、血条、状态图标、物品格/详情/分类 tab
+   │  ├─ menu/ town/ character/ explore/ battle/ result/  # 各功能域的页面与私有子组件
+   │  ├─ art/              # 素材查表（id → 图片 URL + 预热）
+   │  ├─ hooks/            # 1920×1080 设计画布与三个通用 hook
+   │  └─ _legacy/          # 无人引用的归档件
+   └─ styles/              # 全局层：tokens.css（设计令牌）+ base.css（reset / 按钮皮肤）
 ```
 
 详细说明入口：[`docs/code-map/README.md`](docs/code-map/README.md)。

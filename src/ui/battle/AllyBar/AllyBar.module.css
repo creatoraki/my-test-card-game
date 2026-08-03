@@ -1,0 +1,211 @@
+/* ── HUD 左段: 我方队伍卡(ui/AllyBar.tsx) ── */
+/* --bust-zoom     : 立绘在卡框里的取景倍率(图宽 = 槽位基准宽 × 倍率)。调大 = 人更大、裁得更多。
+   --slot-base-w   : 槽位基准宽 = (--hud-party-w 500 - 2×10 gap) / 3。立绘取景以它为准(固定值),
+                     槽位聚焦伸缩只改变取景窗宽度、立绘尺寸恒定。
+                     ⚠ 图宽 = 本值 × --bust-zoom ⇒ 段宽收窄时立绘自动等比收, 取景关系不变,
+                       --bust-zoom 不用跟着调。 */
+.ally-bar {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  --bust-zoom: 1.8;
+  --slot-base-w: 160px;
+}
+/* 覆盖 .combatant 的固定宽度: 槽宽交给 flex 均分, 高度撑满整条。
+   flex-grow 可过渡 ⇒ 聚焦槽平滑变宽、其余槽位微收, 三槽总宽恒等于 --hud-party-w。 */
+.ally-bar .ally-slot {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  height: 100%;
+  transition: flex-grow 0.25s ease;
+}
+/* 聚焦槽(当前悬停/选中手牌的归属角色, ui/AllyBar.tsx 的 card-focus): 变宽约 +70px
+   (1.85/3.85 × 480 ≈ 231px, 其余两槽各收到约 125px)。三槽总宽仍恒等于 --hud-party-w ——
+   中段手牌的位置不会因为聚焦而挪动。 */
+.ally-bar .ally-slot.card-focus {
+  flex-grow: 1.85;
+}
+/* 点亮: 按归属配色**加粗**描边 + 发光。⚠ 卡框带 clip-path ⇒ 发光只能走 filter: drop-shadow,
+   box-shadow 会被裁掉(与下方 targetable/aggro 的做法一致)。
+   ⚠ 全局 box-sizing: border-box ⇒ 描边 1px→5px 不改变槽位外框尺寸, 只吃掉内部 4px, 不会跳版。 */
+.ally-bar .ally-slot.card-focus .ally-frame {
+  border-color: var(--owner-color, var(--accent));
+  border-width: 5px;
+  filter: drop-shadow(0 0 4px var(--owner-color, var(--accent)))
+    drop-shadow(0 0 16px color-mix(in srgb, var(--owner-color, var(--accent)) 75%, transparent));
+}
+/* 卡框: 槽位的可见主体。
+   overflow + clip-path 一起把立绘与双条裁进同一个轮廓 = 双条与卡框一体化(条自身不带角)。
+   刻意不挂 backdrop-filter: 立绘画在本层之上, 磨砂只会糊到背景视频、糊不到人, 徒增开销。 */
+.ally-frame {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0d1214d9, #05080aef);
+  border: 1px solid #6fd2ff3d;
+  box-shadow: 0 6px 18px #000a, inset 0 0 26px #0a1a2359;
+  /* 与全局硬边风格一致的斜切角 */
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  /* 聚焦点亮/熄灭的平滑过渡(card-focus): 描边由 1px 加粗到 5px 也要跟着过渡, 否则会"啪"地一跳 */
+  transition: border-color 0.2s, border-width 0.2s, filter 0.2s;
+}
+/* 半身取景窗: 立绘贴在卡框底色之上, 由本窗裁出上半身 */
+.ally-figure {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+/* 卡框的正面 film: 顶部一道高光 → 底部压暗。压暗同时保证下方双条读得清 */
+.ally-figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff1a 0%, #ffffff05 38%, #00000080 100%);
+}
+/* 队伍卡的半身取景 —— 与 CombatantView 的 img.combatant-portrait 1:1 取景是两个不同的
+   取景窗, 但共用同一套 --portrait-dx/dy 微调参数(common/CharacterPortrait 的 CHARACTER_ART)。
+   保持原图宽高比(height:auto)后靠取景窗裁: 图宽 = 槽位基准宽 × --bust-zoom, 顶对齐 ⇒
+   头留在窗内、腿脚被裁掉。
+   ⚠ 图宽以 --slot-base-w(固定值)而非槽宽为基准: 槽位聚焦变宽/微收时立绘尺寸恒定,
+   伸缩只表现为取景窗的宽窄变化。
+   ⚠ 用独立的 translate 属性而非 transform —— transform 留给下面的呼吸动画。 */
+.ally-figure .ally-portrait {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  /* --bust-scale: 单个角色的取景补偿(默认 1), 由 CHARACTER_ART 行内下发 —— 有的原图人物
+     在画幅里偏小, 同一个 --bust-zoom 下就比别人矮一头, 靠它单独放大回来 */
+  width: calc(var(--slot-base-w, 160px) * var(--bust-zoom, 1.8) * var(--bust-scale, 1));
+  height: auto;
+  max-width: none; /* 图可以宽于取景窗并向两侧溢出, 由 overflow 裁掉 */
+  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  filter: drop-shadow(0 4px 10px #000a);
+  /* 轻轻呼吸(1px, 比敌人更收敛 —— 取景窗不大, 幅度大了就成了"人在框里晃") */
+  animation: allyBreathe 4200ms ease-in-out infinite;
+}
+.ally-bar .ally-slot[data-dead] .ally-portrait {
+  animation-play-state: paused;
+}
+@keyframes allyBreathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+/* 未登记立绘的角色: emoji 回退填满取景窗(CharacterPortrait 的 <span> 分支) */
+span.ally-portrait {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+}
+/* 一体化双条: 贴卡框底边。自身不带圆角/斜切角/描边 —— 轮廓由 .ally-frame 裁出。 */
+.ally-bars {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+/* ⓘ 红条 = 生命, 走公共 HpBar 的 `flush` prop。它的贴底外观(去描边/斜切角、20px 高、
+   名字与数值 12px)现在住在 common/HpBar/HpBar.module.css 的 `.hp-bar.hp-flush` 一节 ——
+   那是 HpBar 自己的一个变体, 不该由本文件远程改写(样式铁律 1/3)。 */
+/* 绿条 = 护盾。护盾无上限概念, 按占最大生命的比例画并封顶(见 ui/AllyBar.tsx), 只求量感;
+   没护盾时是一条空槽 —— 刻意保留空条而不是收起来, 否则四张卡的底边会高低不齐。 */
+.shield-bar {
+  position: relative;
+  flex: 0 0 auto;
+  height: 8px;
+  overflow: hidden;
+  background: #05080ad9;
+  border-top: 1px solid #ffffff12;
+}
+/* 与生命条同款玻璃罩(原本是 10% 分段刻度) */
+.shield-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff26 0, #ffffff0a 30%, transparent 60%, #00000038 100%);
+}
+/* 护盾恒定青绿, 不参与血量分档 —— 与血条同一套材质语言, 只靠色相区分 */
+.shield-fill {
+  height: 100%;
+  background: linear-gradient(180deg, #ffffff3d, #ffffff00 42%, #00000038),
+    linear-gradient(90deg, #3dffb0, #7ef0ff);
+  box-shadow: 0 0 8px -1px #4ff0c6, inset 0 0 4px #ffffff26;
+  transition: width 0.3s;
+}
+/* 角标: 右上 = 护盾数值(无护盾不渲染), 右下 = 仇恨值。绝对定位浮在立绘之上。
+   右下那枚要抬过底部双条的高度(20 + 8)。 */
+.ally-corner-top,
+.ally-corner-bot {
+  position: absolute;
+  z-index: 2;
+  right: 4px;
+  padding: 1px 5px;
+  line-height: 1.4;
+  backdrop-filter: blur(2px);
+}
+.ally-corner-top {
+  top: 4px;
+}
+.ally-corner-bot {
+  bottom: 32px;
+}
+/* 悬空外挂的状态图标排: BUFF-DEBUFF。绝对定位(不占流)浮在卡框正上方,
+   与敌人的 .intent 同一套路 —— 占流会把 .vfx / .float-num 的定位一起压偏。 */
+.ally-bar .ally-badges {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-height: 18px;
+  pointer-events: none;
+}
+/* 可选中 / 仇恨目标的描边发光。
+   ⚠ 不能走 box-shadow: 卡框带 clip-path, 而 clip-path 会把外阴影一起裁掉(整条不可见)。
+   filter 在裁切**之后**生效, drop-shadow 因此沿着斜切角的真实轮廓发光 —— 与 .combatant
+   那套沿立绘轮廓发光是同一个理由。 */
+.ally-bar .ally-slot[data-targetable] .ally-frame {
+  border-color: var(--accent);
+  animation: allyGlassPulse 1.1s infinite;
+}
+@keyframes allyGlassPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px var(--accent));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px var(--accent)) drop-shadow(0 0 4px var(--accent));
+  }
+}
+/* 空槽: 上阵人数少于 3 时的占位, 保持格宽恒定 */
+.ally-bar .ally-slot.empty {
+  background: #05080a59;
+  border: 1px dashed #ffffff12;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .ally-figure .ally-portrait {
+    animation: none;
+  }
+}

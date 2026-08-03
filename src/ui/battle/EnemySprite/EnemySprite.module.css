@@ -1,0 +1,27 @@
+/* 敌人待机立绘: 横向拼条逐帧循环。几何与 @keyframes(按敌人生成, 支持跳帧)均由
+   EnemySprite.tsx 行内下发, 故此处不写 animation-name。
+   ⓘ 那份 @keyframes 是组件运行时注入的 <style> 原文, 不经 CSS Modules ⇒ 名字不会被哈希,
+     行内 animationName 匹配得到。与 fx/IaiSlashFx 的情况刚好相反(那边的关键帧写在
+     module.css 里会被哈希, 只能由 CSS 自己引用)。 */
+
+/* ⓘ 原先写作 `.combatant-figure .enemy-sprite` —— .combatant-figure 是 CombatantView 的类,
+   Modules 之后够不着。本组件只在那个取景框里渲染, 去掉祖先限定后表现等价。 */
+.enemy-sprite {
+  /* 必须锁死尺寸: 本图 180px 宽于 .combatant(156px), 作为 flex 子项默认会被 shrink 压到
+     156px, 而背景仍按原尺寸从左边缘铺 → 每帧右侧被切掉。flex:none 后如约向两侧居中溢出 */
+  flex: none;
+  background-repeat: no-repeat;
+  background-position-x: 0;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 4px 10px #000a); /* 与 common/CharacterPortrait 的立绘一致 */
+}
+
+/* 外壳状态(契约见 battle/unitShell.ts)与顿帧标记(由 battle/BattleScreen 挂在画布根上)
+   都是 data 属性 —— 属性不参与哈希, 是模块边界上合法的通道(样式铁律 2)。
+   特异性 (0,2,0) > 上面那条 (0,1,0), 与改造前的层叠关系一致。 */
+:global([data-dead]) .enemy-sprite {
+  animation-play-state: paused; /* 尸体不该继续振翅 */
+}
+:global([data-hitstop]) .enemy-sprite {
+  animation-play-state: paused; /* 顿帧: 命中瞬间连待机一起冻住 */
+}

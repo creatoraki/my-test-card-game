@@ -1,0 +1,130 @@
+/* ===================== 经验结算 ===================== */
+.screen {
+  height: 100%;
+  padding: 14px;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.terminal-screen {
+  position: relative;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 58% 42%, #8ea51b12, transparent 28%),
+    linear-gradient(115deg, #070a0c 0%, #11171a 48%, #080b0d 100%);
+}
+.terminal-screen::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  pointer-events: none;
+  z-index: 0;
+  border: 1px solid #ffffff0c;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+.terminal-screen > * {
+  position: relative;
+  z-index: 1;
+}
+
+.muted {
+  color: var(--muted);
+}
+.terminal-heading {
+  margin: 0;
+  color: #eef3ef;
+  font-size: 32px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.screen-kicker {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.primary {
+  composes: primary from global;
+}
+.button-big {
+  composes: big from global;
+}
+.reward {
+  justify-content: center;
+  gap: 15px;
+}
+.loot-inline {
+  color: #7fd8e8;
+}
+
+.exp-report {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(520px, 100%);
+}
+.exp-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #3c484b;
+  background: #0a0e10b8;
+  padding: 10px 14px;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  text-align: left;
+}
+.exp-row.leveled {
+  border-color: var(--accent);
+}
+.exp-portrait {
+  width: 48px;
+  height: 64px;
+}
+.exp-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.exp-name-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.exp-name {
+  font-weight: 700;
+}
+.exp-gain {
+  color: var(--accent);
+  font-weight: 700;
+}
+.exp-levelup {
+  color: var(--warn);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* ===================== 战利品(实物掉落) ===================== */
+/* 战斗只掉物品(设计文档 §6.1), 所以这一块才是战后小结的主角。
+   格子复用 ui/ItemSlot —— 与背包、仓库同一套稀有度边框, 玩家一眼认出档次。 */
+.reward-drops {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  width: min(520px, 100%);
+}
+.reward-drop-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(66px, 66px));
+  gap: 7px;
+  justify-content: center;
+}

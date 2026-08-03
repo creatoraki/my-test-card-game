@@ -1,13 +1,13 @@
 import { useRunStore, type Screen } from "./store/runStore";
-import { ScreenTransition } from "./ui/ScreenTransition";
-import { MenuScreen } from "./ui/MenuScreen";
-import { TownScreen } from "./ui/TownScreen";
-import { FormationScreen } from "./ui/FormationScreen";
-import { CharacterDetailScreen } from "./ui/CharacterDetailScreen";
-import { ExploreScreen } from "./ui/ExploreScreen";
-import { BattleScreen } from "./ui/BattleScreen";
-import { ExpRewardScreen } from "./ui/ExpRewardScreen";
-import { EndScreen } from "./ui/EndScreen";
+import { ScreenTransition } from "@/ui/app/ScreenTransition";
+import { MenuScreen } from "@/ui/menu/MenuScreen";
+import { TownScreen } from "@/ui/town/TownScreen";
+import { FormationScreen } from "@/ui/character/FormationScreen";
+import { CharacterDetailScreen } from "@/ui/character/CharacterDetailScreen";
+import { ExploreScreen } from "@/ui/explore/ExploreScreen";
+import { BattleScreen } from "@/ui/battle/BattleScreen";
+import { ExpRewardScreen } from "@/ui/result/ExpRewardScreen";
+import { EndScreen } from "@/ui/result/EndScreen";
 
 // 界面 → 组件。抽成纯函数是为了让 ScreenTransition 能在出场期间继续渲染「旧」界面。
 function renderScreen(screen: Screen) {

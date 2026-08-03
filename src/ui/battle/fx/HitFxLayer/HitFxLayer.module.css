@@ -1,0 +1,189 @@
+/* ===================== 出牌攻击动画 ===================== */
+/* ⚠⚠ 本段作用在**单位外壳**上, 而外壳有两个不同的所有者: 敌人是 battle/CombatantView 的
+   .combatant, 我方是 battle/AllyBar 的 .ally-slot。CSS Modules 之后本文件够不着它们的类名,
+   所以外壳状态一律走 data 属性(样式铁律 2) —— 属性不参与哈希, 是模块边界上合法的通道。
+   契约(唯一真相在 battle/unitShell.ts, 两个外壳都从那里取):
+     data-unit            外壳标记(本段只认它的后代关系, 不直接用)
+     data-side="enemy"    敌方(缺省视作我方) —— 决定前冲的方向
+     data-attacking       该单位是当前出牌的施法者
+     data-react="hit"     受击(抖动 + 闪白)
+     data-react="bless"   受益(柔光脉冲)
+   特异性: 属性选择器与类同权, 故与改造前的 (0,2,0)/(0,3,0) 逐条一致, 层叠关系没变。 */
+/* 施法者前冲(我方在底部, 向上冲 = 朝敌人方向) */
+[data-unit][data-attacking] {
+  z-index: 6;
+  transform: translateY(-18px) scale(1.06);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: brightness(1.12);
+}
+
+/* 敌人在顶部, 朝下冲 = 朝我方方向 */
+[data-unit][data-side="enemy"][data-attacking] {
+  transform: translateY(18px) scale(1.06);
+}
+
+/* 目标受击: 抖动 + 高亮闪白 */
+[data-unit][data-react="hit"] {
+  animation: hitShake 0.4s ease, hitFlash 0.42s ease;
+}
+@keyframes hitShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-7px) rotate(-2deg); }
+  35% { transform: translateX(6px) rotate(2deg); }
+  55% { transform: translateX(-4px); }
+  75% { transform: translateX(3px); }
+}
+@keyframes hitFlash {
+  0% { filter: brightness(2.4) saturate(0.5); }
+  100% { filter: brightness(1); }
+}
+
+/* 目标受益(辅助牌): 柔和光晕脉冲。无面板后改用 drop-shadow, 光晕贴着立绘轮廓亮起 */
+[data-unit][data-react="bless"] {
+  animation: blessGlow 0.6s ease;
+}
+@keyframes blessGlow {
+  0% { filter: drop-shadow(0 0 0 var(--vfx-color)) brightness(1); }
+  40% { filter: drop-shadow(0 0 16px var(--vfx-color)) drop-shadow(0 0 6px var(--vfx-color)) brightness(1.15); }
+  100% { filter: drop-shadow(0 0 0 transparent) brightness(1); }
+}
+
+/* —— 首击特效层: 定位在目标立绘上居中(立绘框 150px 的中段) —— */
+.vfx {
+  position: absolute;
+  top: 78px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 7;
+}
+.vfx-emoji {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 42px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 10px var(--vfx-color));
+  animation: vfxPop 0.5s ease-out forwards;
+}
+/* 攻击: 冲击环扩散 */
+.vfx-attack::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  border: 3px solid var(--vfx-color);
+  animation: ringPop 0.45s ease-out forwards;
+}
+/* 辅助: 柔和光晕扩散 */
+.vfx-support::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--vfx-color), transparent 70%);
+  animation: glowPop 0.6s ease-out forwards;
+}
+
+@keyframes vfxPop {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  28% { transform: translate(-50%, -50%) scale(1.35); opacity: 1; }
+  65% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
+}
+@keyframes ringPop {
+  0% { transform: scale(0.4); opacity: 0.9; }
+  100% { transform: scale(6.5); opacity: 0; }
+}
+@keyframes glowPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  40% { transform: scale(3); opacity: 0.75; }
+  100% { transform: scale(4.6); opacity: 0; }
+}
+
+/* 各技能差异化手感 */
+.vfx-slash .vfx-emoji {
+  animation: vfxSlash 0.42s ease-out forwards;
+}
+@keyframes vfxSlash {
+  0% { transform: translate(-50%, -50%) scale(0.4) rotate(-50deg); opacity: 0; }
+  30% { transform: translate(-50%, -50%) scale(1.5) rotate(8deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.8) rotate(22deg); opacity: 0; }
+}
+.vfx-lightning .vfx-emoji {
+  animation: vfxPop 0.32s steps(3) forwards;
+}
+.vfx-fire .vfx-emoji {
+  animation: vfxPop 0.6s ease-out forwards;
+}
+
+/* 受击抖动/闪白推迟到剑真正砸中那一刻, 否则目标会先于剑落而抽搐。
+   hit-react 挂了 hitShake + hitFlash 两条动画, animation-delay 须写两个值一一对应。
+   基态即常态, 故延迟期无副作用; emoji 系特效 --vfx-impact 缺省 0, 行为不变。 */
+[data-unit][data-react="hit"] {
+  animation-delay: var(--vfx-impact, 0ms), var(--vfx-impact, 0ms);
+}
+
+/* 冲击环同步到砸中时刻。不能直接给 .vfx-attack::after 加 animation-delay:
+   ringPop 是 forwards 且基态就是一个可见实心环, 延迟期它会静止杵在那儿;
+   改 fill-mode:both 又会在延迟期显示 from 态的小点。故把延迟烘进关键帧。 */
+.vfx-sword-fall.vfx-attack::after {
+  animation: swordFallRing 660ms ease-out forwards;
+}
+@keyframes swordFallRing {
+  /* 32% ≈ impactMs(210ms) / 660ms: 砸中前完全透明 */
+  0%, 31% { transform: scale(0.4); opacity: 0; }
+  32% { transform: scale(0.4); opacity: 0.9; }
+  /* 收尾 scale 跟随剑的尺寸走(14px 基座 × 13 ≈ 182px), 剑放大到 2 倍后环也翻倍, 否则比例失衡 */
+  100% { transform: scale(13); opacity: 0; }
+}
+/* 居合斩的冲击环: 同法把延迟烘进关键帧(50% = 500ms 斩击时刻)。
+   ⓘ 原先住在 fx/IaiSlashFx/IaiSlashFx.module.css —— 但 .vfx-* 一族是**本文件**的类,
+     那边够不着(样式铁律 1), 故迁来与上面 sword-fall 的那圈环并排。 */
+.vfx-iai-slash.vfx-attack::after {
+  animation: iaiRing 1000ms ease-out forwards;
+}
+@keyframes iaiRing {
+  0%, 49% { transform: scale(0.4); opacity: 0; }
+  50% { transform: scale(0.4); opacity: 0.9; }
+  80%, 100% { transform: scale(9); opacity: 0; }
+}
+/* —— 伤害/治疗飘字 —— */
+.float-num {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  z-index: 8;
+  font-weight: 800;
+  font-size: 21px;
+  pointer-events: none;
+  text-shadow: 0 2px 4px #000, 0 0 8px currentColor;
+  /* 聚焦镜头下停留约 1s: 快速弹出后保持可读, 末段才缓慢上浮淡出。
+     延迟/时长走 CSS 变量(见 HitFxLayer.hitFxVars): 缺省值下与原 0.95s 无延迟逐帧等价;
+     居合斩把飘字推迟到斩击爆发瞬间(impactMs)并压缩时长, 保证在 hitHold 卸载前收尾。 */
+  animation: floatUp var(--vfx-float-dur, 0.95s) ease-out var(--vfx-float-delay, 0ms) both;
+}
+.float-dmg {
+  color: #ff6b6b;
+}
+.float-heal {
+  color: #69db7c;
+}
+@keyframes floatUp {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  14% { transform: translate(-50%, -12px) scale(1.28); opacity: 1; }
+  30% { transform: translate(-50%, -16px) scale(1); opacity: 1; }
+  72% { transform: translate(-50%, -22px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -42px) scale(0.95); opacity: 0; }
+}
+

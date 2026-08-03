@@ -1,7 +1,7 @@
 // 战斗背景素材集中登记处(与 enemyArt.ts 同思路: 静态 import + 登记表), 按 MapDef.id 作键。
 // 数据层不碰素材(见 data/maps.ts 顶部注释), 故「地图 → 背景」的关联落在这里。
-import forestBgVideo from "../assets/战斗背景/森林.mp4";
-import neonCityBg from "../assets/战斗背景/霓虹城市.png";
+import forestBgVideo from "@/assets/战斗背景/森林.mp4";
+import neonCityBg from "@/assets/战斗背景/霓虹城市.png";
 
 // kind 决定 BattleScreen 渲染成 <video>(循环播放) 还是 <img>(静态图)。两者挂同一个
 // .battle-bg-video 类与同一份相机变换 —— 该类名早于静态图存在, 现已不止承载视频, 保留原名

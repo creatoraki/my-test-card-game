@@ -1,0 +1,13 @@
+/* 立绘的**基础**表现 —— 只管「一张全身图怎么摆」, 取景交给使用方。
+   ⚠ 这里的特异性只有 (0,1,0)。使用方通过 className 传进来的取景规则必须写成
+   `.<自己的容器> .<自己的取景类>`(0,2,0) 才能稳定压过它 —— CSS Modules 之后
+   各组件 CSS 的注入顺序不再有任何保证, 不能靠"写在后面"取胜。 */
+.portrait-image {
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
+}
+.portrait {
+  font-size: 40px;
+  line-height: 1;
+}

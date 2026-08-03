@@ -1,0 +1,127 @@
+/* 探索域共享样式契约。
+   这里只放多个探索组件共同使用的动作按钮、标签和事件类型色；页面/面板的几何与动画归各自模块。 */
+
+.expl-kicker {
+  display: block;
+  color: var(--expl-glow, #6fe3f5);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.expl-btn {
+  --notch: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 130px;
+  padding: 12px 20px;
+  border: 1px solid var(--expl-line, #ffffff24);
+  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  color: var(--text);
+  font-size: 15px;
+  letter-spacing: 3px;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    opacity 220ms ease,
+    transform 140ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+:global([data-explore-stage]) .expl-btn:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+:global([data-explore-stage]) .expl-btn:hover:not(:disabled) {
+  border-color: #9ed0d1;
+  color: #c7e6e2;
+  background: linear-gradient(145deg, #2a4144d9, #17282dbd);
+  box-shadow:
+    inset 0 1px 0 #ffffff1d,
+    0 0 24px -10px #83cbd2;
+}
+
+:global([data-explore-stage]) .expl-btn:disabled {
+  color: var(--muted);
+  opacity: 0.45;
+}
+
+:global([data-explore-stage]) .expl-btn.is-danger:hover:not(:disabled) {
+  border-color: #d49676;
+  color: #e5b49a;
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 0 24px -10px #d49676;
+}
+
+:global([data-explore-stage]) .expl-btn.is-primary {
+  border-color: #8dbfc0;
+  background: linear-gradient(145deg, #467276, #294b50);
+  color: #e0f0eb;
+  box-shadow: inset 0 1px 0 #ffffff24, 0 12px 24px -18px #83cbd2;
+}
+
+:global([data-explore-stage]) .expl-btn.is-primary:hover:not(:disabled) {
+  border-color: #b6e0da;
+  background: linear-gradient(145deg, #598b8d, #356167);
+  color: #f0faf6;
+}
+
+.expl-btn-flag {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+/* 事件类型色是探索页、节点图和事件面板之间的唯一颜色契约。 */
+.k-hazard {
+  --expl-kind: #e3aa72;
+  --expl-kind-soft: #e3aa721c;
+  --expl-kind-line: #e3aa7266;
+}
+.k-heal {
+  --expl-kind: #8ac8a5;
+  --expl-kind-soft: #8ac8a51c;
+  --expl-kind-line: #8ac8a566;
+}
+.k-loot {
+  --expl-kind: #d0b878;
+  --expl-kind-soft: #d0b8781c;
+  --expl-kind-line: #d0b87866;
+}
+.k-energy {
+  --expl-kind: #83cbd2;
+  --expl-kind-soft: #83cbd21c;
+  --expl-kind-line: #83cbd266;
+}
+.k-merchant {
+  --expl-kind: #b8a9d1;
+  --expl-kind-soft: #b8a9d11c;
+  --expl-kind-line: #b8a9d166;
+}
+.k-route {
+  --expl-kind: #9cb6c0;
+  --expl-kind-soft: #9cb6c01c;
+  --expl-kind-line: #9cb6c066;
+}
+.k-retreat {
+  --expl-kind: #d1d8d6;
+  --expl-kind-soft: #d1d8d61c;
+  --expl-kind-line: #d1d8d666;
+}

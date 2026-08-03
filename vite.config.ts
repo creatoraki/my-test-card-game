@@ -8,6 +8,17 @@ export default defineConfig({
   server: {
     allowedHosts: [".trycloudflare.com"],
   },
+  css: {
+    modules: {
+      // 组件样式一律 *.module.css, 类名在编译期被哈希 ⇒ 天然隔离, 不再靠命名前缀人肉避让。
+      // ★ 刻意保留 [name] 与 [local]: devtools 里仍能一眼看出「哪个组件的哪个类」,
+      //   排查演出/特异性问题的体验不因模块化而退化。
+      generateScopedName: "[name]__[local]___[hash:base64:5]",
+      // ⚠ 刻意**不开** localsConvention: camelCase —— 项目里大量动态类名
+      //   (k-${kind} / intent-${kind} / pip-${kind} / r-${rarity} / screen-fx-${fx} / shake-lv${n}),
+      //   保持 kebab 原名 + s["..."] 方括号访问才能拼得出来。
+    },
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

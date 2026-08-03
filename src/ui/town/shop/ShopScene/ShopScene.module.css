@@ -1,0 +1,835 @@
+/* 商店设施 UI。固定 1920×1080 设计画布, 面板右侧保留独立 UI 呼吸区。
+   ★ 本文件是**自洽**的: 所有类名带 sx- 前缀, 所有规则挂在 .sx-root 作用域内,
+     不依赖任何祖先(如 .town-splash), 也不改写任何外部组件(ItemSlot / ItemDetail)。
+     货架格与详情栏用商店自己的 ShopItemTile / ShopItemCard, 想怎么定制都不牵连别处。 */
+
+/* ===================== 按钮 reset =====================
+   base.css 的 button 规则(深色渐变底 / #536068 描边 / 7px 斜切 / padding)会灌进本面板的
+   每一颗按钮。这里在根作用域内一次性抵消, 之后本文件不再需要任何祖先前缀去抢特异性。
+
+   ⚠ 特异性约定(改本文件前务必读):
+   · 静态 reset  .sx-root button                          = (0,1,1)  → all: unset
+   · 交互 reset  .sx-root button:hover:not(:disabled) 等  = (0,3,1)  → 只抵消 base 改的那几项
+   · 组件规则    .sx-root .sx-price                       = (0,2,0)  胜静态 reset
+   · 组件交互    .sx-root .sx-price:hover:not(:disabled)  = (0,4,0)  胜交互 reset
+   ⚠ 但 `.sx-root button:disabled` = (0,2,1) **压得过** (0,2,0) 的组件基础规则 ——
+     禁用态要保住自己的 color/background/border-color, 必须写到两个类(如 .sx-price.is-poor)。
+   ⇒ 本文件所有规则一律写成 `.sx-root .sx-xxx` / `.sx-root .sx-xxx:hover:not(:disabled)`. */
+.sx-control {
+  display: block;
+}
+
+.sx-root .sx-control {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* 交互态**不能**用 all: unset —— 它会把组件自己设的 background 一起打掉。
+   base.css 在这三态只改 background / border-color / color / transform / opacity, 精确抵消即可。 */
+.sx-root .sx-control:hover:not(:disabled),
+.sx-root .sx-control:active:not(:disabled),
+.sx-root .sx-control:disabled {
+  background: none;
+  border-color: transparent;
+  color: inherit;
+  transform: none;
+  opacity: 1;
+}
+
+/* ===================== 根 ===================== */
+.sx-root {
+  --sx-ink: #fff4fa;
+  --sx-ink-dim: #d1c1cc;
+  --sx-line: #f0d9e83d;
+  --sx-glow: #cf5aa8;
+  --sx-glow-deep: #f1a8d2;
+  --sx-action: #62e1ef;
+  --sx-action-deep: #13778f;
+  --sx-action-line: #8cf4ff;
+  --sx-action-ink: #06161a;
+  /* 动作控件的**默认态**青 —— 降一档饱和与亮度。满饱和的 --sx-action 只留给 hover/active:
+     一屏九个价格牌若全是满亮青块, 会把注意力从商品本身抢走。 */
+  --sx-action-soft: #7fb9c6;
+
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ★★ 颜色语义分层(改本文件的任何配色前先读这三行):
+   · 粉紫 --sx-glow / --sx-glow-deep = **身份 / 导航 / 结构** —— 场景标题、面板边、页签、
+     行标签、分区线。它说的是"这里是商店", 不代表可以点。
+   · 青   --sx-action* = **动作** —— 只用在会真正改变游戏状态的两颗控件上:
+     .sx-price(买入)与 .sx-refresh(刷新)。玩家看到青色 = 点下去会花积分。
+   · 例外只有一处: .sx-readout em(下次刷新价)保留青 —— 它是刷新按钮的附属读数,
+     同色正好建立"这个数字对应那颗按钮"的联系。
+   ⇒ 新增可点控件走青, 新增标签/装饰走粉紫。别再往界面里引第三个强调色。 */
+
+/* ===================== 场景标题 ===================== */
+.sx-root .sx-header {
+  position: absolute;
+  z-index: 2;
+  padding-left: 16px;
+  border-left: 2px solid var(--sx-glow);
+  pointer-events: none;
+  animation: sxRise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.sx-root .sx-kicker {
+  display: block;
+  color: var(--sx-glow);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.sx-root .sx-title {
+  margin: 6px 0 0;
+  color: var(--sx-ink);
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-shadow: 0 2px 18px #000000a6;
+}
+
+.sx-root .sx-sub {
+  margin: 6px 0 0;
+  color: var(--sx-ink-dim);
+  font-size: 17px;
+  letter-spacing: 3px;
+}
+
+/* ===================== 常驻面板 ===================== */
+.sx-root .sx-stage {
+  --panel-perspective: 1600px;
+  --panel-tilt: -4deg;
+  --sx-stage-right: 64px;
+
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  perspective: var(--panel-perspective);
+  perspective-origin: calc(100% - var(--sx-stage-right)) 50%;
+  transform-style: preserve-3d;
+    /* 右对齐的一行: [整体显示组]。stage 只提供共同的 3D 相机, 具体的倾斜由
+      .sx-display-group 统一承担, 保证面板与两块挂牌保持同一几何平面。 */
+  gap: 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--sx-stage-right);
+  pointer-events: none;
+}
+
+.sx-root .sx-display-group {
+  --sx-display-tilt: var(--panel-tilt);
+  display: flex;
+  height: var(--panel-h);
+  flex: 0 0 auto;
+  transform: rotateY(var(--sx-display-tilt));
+  transform-origin: right center;
+  transform-style: preserve-3d;
+}
+
+.sx-root .sx-readout {
+  min-width: 112px;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 14px;
+  border-left: 1px solid var(--sx-line);
+}
+
+.sx-root .sx-readout span,
+.sx-root .sx-readout em {
+  color: var(--sx-ink-dim);
+  font-size: 14px;
+  font-style: normal;
+  letter-spacing: 2px;
+}
+
+.sx-root .sx-readout strong {
+  color: var(--sx-ink);
+  font-size: 23px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+
+.sx-root .sx-readout em {
+  color: var(--sx-action);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/* ===================== 页签吊牌(挂在面板**视觉**左上角外侧) =====================
+   ★★ 默认渲染的是 three.js 立体霓虹吊牌(ShelfTabRail3D.tsx), 本节的 .sx-vtab 一族现在是
+      **降级实现** —— 系统「减少动态效果」或拿不到 WebGL 时才用它。⚠ 不要删。
+      而 .sx-tabrail 这个布局盒**两版共用**: 3D 版的透明命中按钮仍是它的 flex 子项,
+      牌子的三维位置就是量这几颗按钮的矩形得来的 ⇒ 下面那组透视补偿仍是唯一的尺寸真相点。
+
+   ★ 页签不在面板里 —— 它是挂在面板左上角外侧、顺着一根立柱往下垂的两块招牌,
+     像建筑物外墙上挑出去的广告牌: 牌面与面板同一个 rotateY 倾角(读作贴在同一面墙上),
+     从面板顶边起向下排, 而不是在左侧居中。面板整幅因此全部让给货。
+   ★ 走粉紫 —— 换品类是导航不是交易, 不能用青(见文件顶部的颜色语义分层)。
+
+   ⚠ 当前面板恢复平面视角, 不再需要旧的透视补偿。吊牌栏的右沿直接贴着面板
+     的左边框, 顶边与面板布局顶边对齐, 再由 --sx-rail-top 躲开面板左上角的缺角。
+
+   ⚠ --sx-vtab-h / --sx-vtab-gap 是**唯一**的尺寸真相点: 牌高与牌间距只在布局补偿中使用。
+     加第三个页签不用改任何尺寸。
+   ⚠ 本元素是 .sx-vtab(带 backdrop-filter)的祖先, **永远不挂** animation / opacity /
+     transform / filter —— 一旦成为 backdrop root, 牌面的毛玻璃就取不到设施背景。
+     入场/退场动画与那份倾角一律挂到 .sx-vtab 自己身上(同 .stor-chip 的做法)。 */
+.sx-root .sx-tabrail {
+  --sx-vtab-h: 104px;
+  --sx-vtab-gap: 10px;
+    /* ↓ 平面视角下不再向面板内压入或向下偏移, 右沿直接贴住面板左边框。 */
+    --sx-rail-in: 0px;
+    --sx-rail-down: 0px;
+  /* 第一块牌离面板视觉顶边的距离 —— 立柱与高亮条都从这里起算。
+     面板左上角有 22px 斜切(--notch), 这里要躲开它, 否则牌会挂在缺角的空处。 */
+  --sx-rail-top: 26px;
+
+  position: relative;
+  transform-style: preserve-3d;
+    /* 与面板等高且同为居中对齐, 两者布局顶边天然齐平。
+      ⚠ 用 position 偏移而不是 transform: 见上面的 backdrop root 警告。 */
+  top: var(--sx-rail-down);
+  display: flex;
+  height: var(--panel-h);
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--sx-vtab-gap);
+  /* 从顶边起向下挂, 不再纵向居中。 */
+  justify-content: flex-start;
+  margin-right: calc(var(--sx-rail-in) * -1);
+  padding-top: var(--sx-rail-top);
+  /* 柱子本身现在有一整块面板那么高 —— 空白处不能吃掉指针, 只有牌面收事件。 */
+  pointer-events: none;
+}
+
+/* 立柱: 牌挂在它上面, 位置就是面板那条视觉左边框。顺着它往下淡出, 不与面板的边框亮线抢注意力。
+   ⚠ right: 0 而不是负值 —— 柱子右边**就是**面板, 越界的部分会被面板整个盖住(面板是后一个
+     兄弟节点, 画在上层)。柱子因此只从牌与牌的缝隙、以及末块牌下方露出来, 正是"挂杆"的读法。 */
+.sx-root .sx-tabrail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--sx-glow) -10%, var(--sx-line) 26%, transparent 72%);
+  opacity: 0.7;
+}
+
+/* 一块招牌。stage 提供共同透视, 这里与面板共享 rotateY(--panel-tilt), transform-origin
+   也同为 right center —— 靠柱子的那一侧当铰链, 牌面朝外张开。
+   ⚠ 倾角写进 --sx-vtab-tilt 这一个变量里: 下面每条会改 transform 的规则(hover / 激活 /
+   入场关键帧)都必须**带上它**, 漏掉哪一条, 那一态的牌就会突然拍平。 */
+.sx-root .sx-vtab {
+  --notch: 10px;
+  --sx-vtab-tilt: rotateY(var(--panel-tilt));
+
+  position: relative;
+  display: flex;
+  width: 76px;
+  height: var(--sx-vtab-h);
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  color: var(--sx-ink-dim);
+  transform: var(--sx-vtab-tilt) translateX(0);
+  transform-origin: right center;
+  backface-visibility: hidden;
+  /* ↓ 暗玻璃配方 —— 与面板同族, 但更薄(砖只有 76px 宽, 重玻璃会糊成一坨) */
+  border: 1px solid var(--sx-line);
+  background: linear-gradient(150deg, #1c1218a6, #140f12c4 58%, #0b080ad6);
+  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.95);
+  backdrop-filter: blur(14px) saturate(120%) brightness(0.95);
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 18px 40px -26px #000000a8;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.22s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+/* ⚠ fill-mode 必须是 backwards 而不是 both/forwards: 激活态要动 transform,
+   带 forwards 的动画会把 transform 永久锁在关键帧终值上 ⇒ 砖推不出去(同 .stor-entry)。
+   延迟排在面板落定(sxPanelIn 600ms)前后, 让控制柱跟着面板一起到位。 */
+.sx-root .sx-vtab:nth-child(1) {
+  animation: sxRailIn 460ms 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.sx-root .sx-vtab:nth-child(2) {
+  animation: sxRailIn 460ms 500ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+/* 品类名竖排 —— 两个汉字自然叠成一列。
+   ⚠ letter-spacing 在竖排里加的是**字下方**的间距, 末字后面也会多出一份,
+     视觉重心因此偏上; margin-bottom 负值把这一份补回来, 砖里的字才是真居中。 */
+.sx-root .sx-vtab-label {
+  margin-bottom: -6px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 6px;
+  writing-mode: vertical-rl;
+}
+
+/* 未激活 hover: 提亮 + 朝面板方向探一点, 预告"点下去会切到这一格"。
+   ⚠ 位移量别再往大调: 牌的右沿已经贴死在面板左边框上, 推过去的部分会被面板盖住。 */
+.sx-root .sx-vtab:hover:not(:disabled) {
+  color: var(--sx-ink);
+  border-color: color-mix(in srgb, var(--sx-glow) 40%, transparent);
+  background: linear-gradient(150deg, #2a1a24ad, #191218cc 58%, #0d0a0cd6);
+  transform: var(--sx-vtab-tilt) translateX(2px);
+}
+
+/* 激活: 牌根往面板里再塞一点(被面板边框吃掉一线, 读作"这块牌连着的就是眼前这幅货架")
+  + 改变牌面底色。这是经典的页签合并读法: 选中的那块与面板长在一起。
+   ⚠ 必须连 :hover:not(:disabled) 一起写: 单独的 .sx-vtab.is-active 是 (0,3,0),
+     压不过 base reset 的 .sx-root button:hover:not(:disabled) (0,3,1) ——
+     鼠标停在当前页签上时底色和位移会被打回去(见文件顶部的特异性约定)。 */
+.sx-root .sx-vtab.is-active,
+.sx-root .sx-vtab.is-active:hover:not(:disabled) {
+  color: var(--sx-ink);
+  border-color: color-mix(in srgb, var(--sx-glow) 62%, transparent);
+  background: color-mix(in srgb, var(--sx-glow) 30%, #150f13);
+  box-shadow:
+    inset 0 1px 0 #ffffff2e,
+    0 18px 40px -26px #000000a8;
+  transform: var(--sx-vtab-tilt) translateX(5px);
+}
+
+/* ===================== 主体 ===================== */
+.sx-root .sx-body {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 28px;
+  min-height: 0;
+  padding: 26px 0;
+}
+
+.sx-root .sx-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 8px 8px 2px;
+}
+
+.sx-root .sx-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 粉紫: 这是**标签**不是控件, 不能用青(见文件顶部的颜色语义分层)。 */
+.sx-root .sx-row-label {
+  margin: 0;
+  color: var(--sx-glow-deep);
+  font-family: var(--font-family);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+
+/* 三列**铺满**货架区: 列宽由 1fr 分, 不再写死 124px ——
+   面板宽度或详情栏宽度日后一改, 货架格自己跟着重新分配, 不会在右侧留一条空带。 */
+.sx-root .sx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-content: start;
+  /* 切页签时整片货架淡入 —— ShelfRow 挂了 key={tab}, 换页签会重新挂载, 动画随之重播。 */
+  animation: sxTabSwapForward 460ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+.sx-root .sx-grid.is-backward {
+  animation-name: sxTabSwapBackward;
+}
+
+.sx-root .sx-cell {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ===================== 货架价格牌 =====================
+   ★ 它**就是**购买按钮 —— 价格与商品同格, 玩家不用挪到右栏付钱(详情栏因此是纯展示)。
+   小斜切标牌, 切角尺寸与羁绊 tag 共用一套几何, 呼应面板的 --notch。
+   三种态各自显式配色, **不**用整体 opacity 压暗: 价格必须始终读得清,
+   尤其「积分不足」时玩家要看的正是还差多少。 */
+.sx-root .sx-price {
+  /* 默认走降档青 --sx-action-soft, 满饱和留给 hover —— 一排九个满亮青块会盖过商品。
+     默认态降档之后, hover 的对比反而**更强**。 */
+  --sx-price-ink: var(--sx-action-soft);
+  --sx-price-line: #7fb9c66b;
+
+  display: inline-flex;
+  gap: 5px;
+  align-items: baseline;
+  justify-content: center;
+  padding: 5px 14px;
+  color: var(--sx-price-ink);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  line-height: 1.15;
+  background: color-mix(in srgb, var(--sx-price-ink) 16%, #071419 84%);
+  border: 1px solid var(--sx-price-line);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  transition:
+    transform 0.14s ease,
+    filter 0.18s ease,
+    color 0.14s ease;
+}
+
+/* 积分符号: 纯字符, 不引新素材 */
+.sx-root .sx-price::before {
+  content: "◈";
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.sx-root .sx-price.is-ready:hover:not(:disabled) {
+  color: var(--sx-action-ink);
+  background: linear-gradient(135deg, var(--sx-action-line), var(--sx-action));
+  border-color: var(--sx-action-line);
+  transform: translateY(-1px);
+  filter: drop-shadow(0 0 8px #62e1efaa);
+}
+
+/* 按下 —— 花积分是不可逆操作, 手感上必须有一次明确的下沉。 */
+.sx-root .sx-price.is-ready:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97);
+  filter: none;
+}
+
+/* 买不起 / 已售出 —— 各自显式灰化, **不**整体 opacity 压暗。
+   ⚠ color / background / border-color 必须在这里**重写一遍**: base.css 的
+   `.sx-root button:disabled` reset 是 (0,2,1), 会压过基础规则 .sx-root .sx-price (0,2,0);
+   本规则两个类 = (0,3,0) 才抢得回来(见文件顶部的特异性约定)。 */
+.sx-root .sx-price.is-poor,
+.sx-root .sx-price.is-sold {
+  --sx-price-ink: #8093a0;
+  --sx-price-line: #8093a05e;
+
+  color: var(--sx-price-ink);
+  background: color-mix(in srgb, var(--sx-price-ink) 10%, transparent);
+  border-color: var(--sx-price-line);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.sx-root .sx-price.is-sold .sx-price-sold {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-decoration: line-through;
+}
+
+.sx-root .sx-empty {
+  margin: 0;
+  padding: 14px 0;
+  color: var(--sx-ink-dim);
+  font-size: 16px;
+}
+
+/* ===================== 面板底栏 ===================== */
+.sx-root .sx-foot {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid var(--sx-line);
+}
+
+.sx-root .sx-note {
+  margin: 0;
+  color: #d7cbd3;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+/* ===================== 刷新键 =====================
+   ★★ 幽灵终端键 —— 它是**暗玻璃**, 不是实心色块。
+   以前这里是全屏唯一一块满饱和青色渐变 + `inset 0 1px 0 #ffffff9c` 白高光, 那是网页塑料
+   按钮的打光方式, 与本面板"暗玻璃 + 发丝描边"的语言正面冲突: 同为青色动作控件的
+   .sx-price 只用 16% 的薄底(见该处), 刻意压着不抢戏, 刷新键却反其道而行。
+   ⚠ 别再往这里加 linear-gradient 实心底或任何 inset 白高光, 那是塑料感的根源。
+
+   ★ 但它**要**比商品更显眼 —— 靠的是"精度"而不是"色块面积":
+     ① 描边走满饱和 --sx-action-line(商品价格牌只有半透明 #7fb9c66b) → 边缘最锐的一处
+     ② 常驻外辉光把它从底栏平面上浮起来
+     ③ sxRefreshPulse: 底栏里唯一持续运动的东西, 余光会主动找它
+   三者叠加足以让它成为底栏焦点, 同时一整块亮色都不用。 */
+.sx-root .sx-refresh {
+  --notch: 12px;
+
+  position: relative;
+  display: inline-flex;
+  min-width: 236px;
+  flex: 0 0 auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 26px;
+  color: var(--sx-action);
+  /* 与 .sx-price 同源的配方, 只是更薄 —— 那颗在货架里要退让, 这颗要压住底栏。 */
+  background: color-mix(in srgb, var(--sx-action) 12%, #071419 88%);
+  border: 1px solid var(--sx-action-line);
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  /* ⚠ 外辉光必须走 filter: drop-shadow 而**不是** box-shadow —— clip-path 会把 box-shadow
+     一起裁掉, 外发光根本渲染不出来(改造前那条 `0 14px 30px -18px` 就一直是无效的)。
+     drop-shadow 在裁切之后生效, 且沿着斜切后的轮廓走, 缺角处的光也是对的。
+     inset 阴影不受影响(画在盒内), 所以按下态仍然可以用 box-shadow。 */
+  filter: drop-shadow(0 0 7px #62e1ef4d);
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease,
+    transform 0.12s ease;
+}
+
+/* 幅度必须**很小**: 这是余光信号, 不是闪烁警报。只动外辉光, 不动尺寸/透明度 ——
+   底栏边上任何会"跳动"的东西都会立刻显得廉价。 */
+.sx-root .sx-refresh:not(:disabled) {
+  animation: sxRefreshPulse 4.5s ease-in-out infinite;
+}
+
+.sx-root .sx-refresh-icon {
+  flex: none;
+  font-size: 19px;
+  line-height: 1;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sx-root .sx-refresh-label {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+/* margin-left: auto 把价格顶到右端 —— 动词与价格分列两侧才读得出层级。
+   tabular-nums: 刷新价涨到三位数时按钮宽度不能跳。 */
+.sx-root .sx-refresh-cost {
+  position: relative;
+  margin-left: auto;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  opacity: 0.88;
+}
+
+/* 分隔发丝。不留白边距而是负偏移 —— 它属于价格这一段, 不占 gap。 */
+.sx-root .sx-refresh-cost::before {
+  content: "";
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  left: -12px;
+  width: 1px;
+  background: var(--sx-action-line);
+  opacity: 0.35;
+}
+
+/* hover: 底色微升 + 边框转白 + 辉光收紧变亮。↻ 转半圈是"刷新"语义的直接反馈,
+   也是本键唯一的位移动画 —— 呼吸同时暂停, hover 已经是明确的高亮态,
+   两层动效叠着跑只会互相打架。 */
+.sx-root .sx-refresh:hover:not(:disabled) {
+  color: var(--sx-action);
+  background: color-mix(in srgb, var(--sx-action) 22%, #071419 78%);
+  border-color: #ffffff;
+  filter: drop-shadow(0 0 11px #62e1efa6);
+  /* ⚠ 必须 `none` 而**不是** animation-play-state: paused —— 暂停的动画仍然在往
+     filter 上写当前关键帧的值, 会直接盖掉上面这条 hover 辉光。撤掉动画后
+     .sx-refresh 自己的 transition 会把辉光平滑接过去, 不会跳。 */
+  animation: none;
+}
+
+.sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon {
+  transform: rotate(180deg);
+}
+
+/* 按下 = 下沉, 且**光被压灭**(外辉光归零、换成内阴影)。
+   辉光是"浮起"的来源, 留着就按不下去。 */
+.sx-root .sx-refresh:active:not(:disabled) {
+  box-shadow: inset 0 2px 8px -3px #00303da8;
+  /* 外辉光归零 = 光被压灭。辉光是"浮起"的来源, 留着就按不下去。 */
+  filter: none;
+  /* 同 hover: 呼吸动画不撤掉就会盖住这条 filter, 按下去光灭不掉。 */
+  animation: none;
+  transform: translateY(1px);
+}
+
+.sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
+  transform: rotate(180deg);
+}
+
+/* ⚠ **不**叠 opacity: 已经显式改了 color / background / border-color, 再整体压暗是双重
+   削弱, 刷新价会读不清 —— 与 .sx-price.is-poor 同一条原则(见该处注释)。
+   特异性 (0,3,1) 已压得过 base 的 `.sx-root button:disabled` (0,2,1)。 */
+.sx-root .sx-refresh:disabled {
+  color: #7c888c;
+  background: #10181b;
+  border-color: #3d4a4f;
+  box-shadow: none;
+  filter: none;
+  animation: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* 差的就是这个数 —— 禁用时价格转暗红单独点出来, 而不是跟着一起变灰读不出。 */
+.sx-root .sx-refresh:disabled .sx-refresh-cost {
+  color: #b8656f;
+  opacity: 1;
+}
+
+/* ===================== 入场 / 退场 ===================== */
+@keyframes sxRise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sxPanelIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  84% {
+    opacity: 1;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sxEdgeRun {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes sxLand {
+  from {
+    opacity: 0.9;
+    transform: rotate(18deg) translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(18deg) translateX(520%);
+  }
+}
+
+@keyframes sxShowcase {
+  0%,
+  100% {
+    transform: perspective(760px) rotateY(-9deg) rotateX(4deg) translate3d(0, 0, 8px);
+  }
+  50% {
+    transform: perspective(760px) rotateY(-6deg) rotateX(2deg) translate3d(0, -4px, 12px);
+  }
+}
+
+/* 刷新键的常驻呼吸 —— 只吐纳外辉光的强度, 不碰尺寸/透明度。
+   ⚠ 动的是 filter 不是 box-shadow: 按钮带 clip-path, box-shadow 会被裁掉(见 .sx-refresh)。
+   ⚠ 别把幅度调大: 它的作用是"底栏里有个东西是活的", 一旦看得出在闪就廉价了。 */
+@keyframes sxRefreshPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 7px #62e1ef4d);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px #62e1ef7a);
+  }
+}
+
+@keyframes sxPlaqueSweep {
+  from {
+    transform: translateX(-78%) skewX(-12deg);
+  }
+  to {
+    transform: translateX(78%) skewX(-12deg);
+  }
+}
+
+@keyframes sxPlaquePulse {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scaleY(0.72);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* 切页签时货架的一次性淡入 —— 由 ShelfRow 的 key={tab} 触发重挂载来重播。 */
+@keyframes sxTabSwapForward {
+  from {
+    opacity: 0;
+    transform: translateX(28px) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sxTabSwapBackward {
+  from {
+    opacity: 0;
+    transform: translateX(-28px) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 吊牌入场: 从面板左外侧再往外一点滑进来。关键帧里也要带 --sx-vtab-tilt,
+  确保动画期间与面板保持同一旋转平面。 */
+@keyframes sxRailIn {
+  from {
+    opacity: 0;
+    transform: var(--sx-vtab-tilt) translateX(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: var(--sx-vtab-tilt) translateX(0);
+  }
+}
+
+@keyframes sxFade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ⚠ 退场淡出挂在 .sx-vtab **自己**身上, 不挂 .sx-tabrail —— 后者是玻璃砖的祖先,
+   给它加 opacity 会让它变成 backdrop root, 砖的毛玻璃在淡出途中会整块糊掉。 */
+.sx-root.is-leaving .sx-header,
+.sx-root.is-leaving .sx-panel,
+.sx-root.is-leaving .sx-side-plaque,
+.sx-root.is-leaving .sx-vtab,
+.sx-root.is-leaving .sx-tabrail::before {
+  animation: sxFade 420ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sx-root .sx-side-plaque {
+    transition: none;
+  }
+
+  .sx-root .sx-side-plaque::before,
+  .sx-root .sx-side-plaque::after {
+    animation: none;
+    transition: none;
+  }
+
+  .sx-root .sx-side-plaque:hover:not(:disabled),
+  .sx-root .sx-side-plaque.is-active,
+  .sx-root .sx-side-plaque.is-active:hover:not(:disabled),
+  .sx-root .sx-side-plaque:active:not(:disabled),
+  .sx-root .sx-side-plaque.is-active:active:not(:disabled) {
+    transform: none;
+  }
+
+  .sx-root .sx-header,
+  .sx-root .sx-panel {
+    animation-duration: 180ms;
+  }
+
+  .sx-root .sx-panel::after {
+    animation: none;
+  }
+
+  .sx-root .sx-panel-rim::before {
+    display: none;
+  }
+
+  /* 刷新键: 呼吸与 ↻ 转半圈都停掉。静态配色(满饱和描边 + 常驻辉光)本身已经够抢眼,
+     去掉动效不影响它在底栏里的分量。 */
+  .sx-root .sx-refresh:not(:disabled) {
+    animation: none;
+  }
+
+  .sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon,
+  .sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
+    transform: none;
+  }
+
+  /* .sx-vtab 的推出位移是**状态指示**不是动效, 保留位移只去掉过渡。
+     ⚠ 开了「减少动态效果」时页签必然是 CSS 版(WebGL 版整个不挂载, 见 ShelfTabRail3D),
+       所以这一节仍然有效, 不要因为默认走 3D 就把它删了。 */
+  .sx-root .sx-vtab {
+    transition: none;
+  }
+
+  .sx-root .sx-vtab:nth-child(1),
+  .sx-root .sx-vtab:nth-child(2) {
+    animation-duration: 180ms;
+    animation-delay: 0ms;
+  }
+
+  .sx-root .sx-grid {
+    animation: none;
+  }
+
+  .sx-root .sx-price.is-ready:hover:not(:disabled),
+  .sx-root .sx-price.is-ready:active:not(:disabled) {
+    transform: none;
+    filter: none;
+  }
+
+  .sx-root .sx-refresh:active:not(:disabled) {
+    transform: none;
+  }
+
+}

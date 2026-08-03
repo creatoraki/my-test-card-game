@@ -3,7 +3,7 @@
 //
 // ⚠ 与 battleBg.ts 的分工: 那边是**战斗背景**(打起来时铺满屏幕的那张), 这边是**选层时的缩略预览**。
 //   同一张地图两者可以是不同的图, 故刻意分成两张表而不是给 BattleBgDef 加字段。
-import ruinedFloorArt from "../assets/场景/大楼废弃楼层.png";
+import ruinedFloorArt from "@/assets/场景/大楼废弃楼层.png";
 
 const MAP_ART: Record<string, string> = {
   // 废弃楼层 = 废弃大楼内部, 与这张等距废弃楼层图最贴。

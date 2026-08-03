@@ -5,7 +5,7 @@
 // 现在 16 个符号(5 战斗 + 3 准备 + 8 BOSS)全指向占位图; 补正式素材时只需在这里改行。
 // ⚠ 卡面美术区是**正方形**(见 SlotReels.css 的 --slot-card-w), 与 256×256 的占位素材同比。
 
-import placeholderArt from "../assets/占位素材.png";
+import placeholderArt from "@/assets/占位素材.png";
 
 const SLOT_ART: Record<string, string> = {
   // 普通轮 · 战斗卡

@@ -1,0 +1,18 @@
+/* 法力水晶: 内联 3D SVG 宝石(由 ManaCrystalIcon.tsx 用 <svg viewBox="0 0 48 48"> 绘制)。
+   ⚠ viewBox 是 1:1 的, 所以**调用方**改尺寸时也必须成对给正方形。
+   drop-shadow 给宝石外投影 + 一圈蓝色辉光; `off` 变体(顶栏水晶条的已耗格)再叠灰暗滤镜。
+
+   ★ .mana-crystal 由组件自己挂 —— 调用方过去是靠字符串 "mana-crystal xxx" 顺带把基础样式
+     一起带上的, Modules 之后那样够不着了(样式铁律 3)。调用方现在只传自己的取景/尺寸类。 */
+.mana-crystal {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 1px 1px #01132ecc) drop-shadow(0 0 2px #51cfff80);
+}
+/* 已耗格: 压灰 + 降透明。特异性 (0,2,0) ⇒ 稳定压过上面的 (0,1,0) filter。 */
+.mana-crystal.is-off {
+  filter: grayscale(0.45) saturate(0.45) brightness(0.55) drop-shadow(0 1px 1px #000b);
+  opacity: 0.7;
+}
