@@ -1,0 +1,428 @@
+.warehouse-layer {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+}
+
+.warehouse-panel {
+  --warehouse-ink: #f3f5ff;
+  --warehouse-muted: #a9b1c7;
+  --warehouse-line: #d8ddff38;
+  --warehouse-line-strong: #e8ebff5c;
+  --warehouse-frame: #7e78e8;
+  --warehouse-frame-hot: #c7c1ff;
+  --warehouse-electric: #847cff;
+  --warehouse-electric-hot: #b8b0ff;
+  --warehouse-cell-size: 88px;
+  --warehouse-gap: 10px;
+  --accent: var(--warehouse-electric-hot);
+  --bg: #0d1020;
+  --border: var(--warehouse-line);
+  --muted: var(--warehouse-muted);
+  --text: var(--warehouse-ink);
+
+  position: absolute;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 24px 26px 20px;
+  overflow: hidden;
+  color: var(--warehouse-ink);
+  background:
+    radial-gradient(ellipse 78% 38% at 4% 4%, #ffffff18, transparent 72%),
+    radial-gradient(ellipse 58% 68% at 96% 94%, #4e7dff1c, transparent 74%),
+    repeating-linear-gradient(0deg, transparent 0 5px, #e9ecff0a 5px 6px),
+    linear-gradient(145deg, #111528d1, #080b13c7 58%, #0b1220c9);
+  border: 1px solid #d9ddff4d;
+  border-radius: 22px 13px 24px 15px;
+  box-shadow:
+    inset 0 1px 0 #ffffff3b,
+    inset -18px 0 36px -34px #958cff42,
+    0 18px 38px -24px #000000f2,
+    0 0 0 1px #8279ff2e,
+    0 0 34px -26px #8279ffb3;
+  clip-path: polygon(
+    20px 0,
+    100% 0,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%,
+    0 20px
+  );
+  -webkit-backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
+  backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
+  pointer-events: auto;
+  animation: warehousePanelIn 520ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
+}
+
+.warehouse-panel::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    repeating-linear-gradient(92deg, transparent 0 12px, #ffffff08 12px 13px),
+    repeating-linear-gradient(0deg, transparent 0 23px, #a29aff12 23px 25px),
+    radial-gradient(circle at 70% 30%, #ffffff24 0 1px, transparent 2px);
+  content: "";
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.warehouse-panel::after {
+  position: absolute;
+  right: 26px;
+  bottom: 0;
+  left: 26px;
+  z-index: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--warehouse-frame) 18%,
+    #ffffff 50%,
+    var(--warehouse-frame) 82%,
+    transparent
+  );
+  content: "";
+  opacity: 0.56;
+}
+
+.warehouse-panel > *:not(.warehouse-rim) {
+  position: relative;
+  z-index: 1;
+}
+
+.warehouse-rim {
+  position: absolute;
+  z-index: 2;
+  inset: 10px;
+  overflow: hidden;
+  pointer-events: none;
+  border: 1px solid #ffffff35;
+  border-radius: 14px 9px 16px 10px;
+  opacity: 0.92;
+}
+
+.warehouse-rim::before {
+  position: absolute;
+  inset: -1px;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  border-image: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 302deg,
+      #8279ff70 326deg,
+      #ffffff 346deg,
+      #5ed5ff9c 358deg,
+      transparent 360deg
+    )
+    1;
+  content: "";
+  filter: drop-shadow(0 0 3px #8279ff8c) drop-shadow(0 0 7px #5ed5ff4d);
+  animation: warehouseRimRun 5.8s linear infinite;
+}
+
+.warehouse-rim::after {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid #b9b6ff26;
+  border-radius: 9px 6px 11px 7px;
+  content: "";
+  transform: rotate(-0.16deg);
+}
+
+.warehouse-head {
+  display: flex;
+  min-height: 62px;
+  flex: 0 0 62px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 2px 4px 14px 6px;
+  border-bottom: 1px solid var(--warehouse-line-strong);
+}
+
+.warehouse-kicker {
+  display: block;
+  color: var(--warehouse-electric-hot);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.warehouse-title {
+  margin: 7px 0 0;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  line-height: 1;
+  text-shadow: 0 2px 12px #000000c7, 1px 1px 0 #ffffff24;
+}
+
+.warehouse-close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  padding: 0;
+  color: var(--warehouse-muted);
+  font-size: 22px;
+  line-height: 1;
+  background: #ffffff0a;
+  border: 1px solid var(--warehouse-line);
+  border-radius: 8px 5px 9px 6px;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.warehouse-close:hover,
+.warehouse-close:focus-visible {
+  color: #ffffff;
+  background: #8279ff30;
+  border-color: var(--warehouse-frame-hot);
+  transform: translateY(-2px);
+}
+
+.warehouse-close:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.warehouse-tabs {
+  min-height: 52px;
+  flex: 0 0 auto;
+  justify-content: center;
+  margin: 14px 2px 14px;
+}
+
+.warehouse-grid {
+  box-sizing: border-box;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 var(--warehouse-grid-height);
+  grid-template-columns: repeat(var(--warehouse-columns), minmax(0, 1fr));
+  grid-auto-rows: var(--warehouse-cell-size);
+  gap: var(--warehouse-gap);
+  align-content: start;
+  height: var(--warehouse-grid-height);
+  padding-top: var(--warehouse-grid-bleed);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #847cffb8 #080b1466;
+  scrollbar-width: thin;
+}
+
+.warehouse-grid::-webkit-scrollbar {
+  width: 7px;
+}
+
+.warehouse-grid::-webkit-scrollbar-track {
+  background: #080b1466;
+}
+
+.warehouse-grid::-webkit-scrollbar-thumb {
+  background: #847cffb8;
+  border: 2px solid #080b1466;
+  border-radius: 8px;
+}
+
+.warehouse-cell,
+.warehouse-empty {
+  width: 100%;
+  height: var(--warehouse-cell-size);
+  min-width: 0;
+  min-height: 0;
+}
+
+.warehouse-cell {
+  position: relative;
+}
+
+.warehouse-slot.warehouse-slot,
+.warehouse-empty.warehouse-empty {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: auto;
+  border-radius: 12px 7px 13px 8px;
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
+}
+
+.warehouse-slot.warehouse-slot {
+  padding: 4px 3px;
+  --item-slot-name-offset: 10px;
+  color: var(--rr);
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 100%, #847cff22, transparent 76%),
+    linear-gradient(145deg, #ffffff13, transparent 48%),
+    linear-gradient(160deg, #171a2dbd, #080b13c4 75%);
+  border: 1px solid #e4e7ff45;
+  box-shadow:
+    inset 0 1px 0 #ffffff26,
+    0 6px 14px -12px #000000f2,
+    0 0 14px -12px #8279ffb3;
+  cursor: pointer;
+  transform: translateY(0);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.warehouse-slot.warehouse-slot:hover,
+.warehouse-slot.warehouse-slot.is-hovered,
+.warehouse-slot.warehouse-slot:focus-visible {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 100%, #847cff45, transparent 76%),
+    linear-gradient(145deg, #ffffff24, transparent 48%),
+    linear-gradient(160deg, #28294dc4, #0b0e19cc 75%);
+  border-color: var(--warehouse-frame-hot);
+  box-shadow:
+    inset 0 1px 0 #ffffff52,
+    0 8px 16px -12px #000000f2,
+    0 0 18px -9px #9a91ffe6;
+  transform: translateY(-3px);
+}
+
+.warehouse-slot.warehouse-slot.is-hovered {
+  border-color: #ffffff;
+}
+
+.warehouse-slot.warehouse-slot:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.warehouse-empty.warehouse-empty {
+  display: block;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 8px, #ffffff08 8px 9px),
+    linear-gradient(145deg, #ffffff0b, #080b138a);
+  border: 1px solid #d8ddff45;
+  border-style: solid;
+  box-shadow: inset 0 1px 0 #ffffff18;
+}
+
+.warehouse-foot {
+  display: flex;
+  min-height: 28px;
+  flex: 0 0 28px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 4px 0 6px;
+  color: var(--warehouse-muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  border-top: 1px solid var(--warehouse-line);
+}
+
+.warehouse-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: 260px;
+  pointer-events: none;
+  filter: drop-shadow(0 14px 24px #000000cc);
+}
+
+.warehouse-tooltip-detail.warehouse-tooltip-detail {
+  --accent: #b8b0ff;
+  --accent2: #5ed5ff;
+  --bad: #ff819d;
+  --border: #d8ddff38;
+  --good: #87f5c1;
+  --muted: #a9b1c7;
+  --text: #f3f5ff;
+
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  max-height: min(300px, calc(100vh - 24px));
+  padding: 12px;
+  overflow-y: auto;
+  background:
+    linear-gradient(135deg, #ffffff16, transparent 50%),
+    linear-gradient(155deg, #151a31f2, #080b13f5);
+  border: 1px solid #d8ddff66;
+  border-radius: 11px 7px 12px 8px;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.8);
+  backdrop-filter: blur(14px) saturate(120%) brightness(0.8);
+}
+
+@keyframes warehousePanelIn {
+  from {
+    opacity: 0;
+    transform: translateX(-24px) translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+.warehouse-panel.is-right {
+  animation-name: warehousePanelInRight;
+}
+
+@keyframes warehousePanelInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px) translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@keyframes warehouseRimRun {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warehouse-panel,
+  .warehouse-rim::before,
+  .warehouse-close,
+  .warehouse-slot.warehouse-slot {
+    animation: none;
+    transition: none;
+  }
+
+  .warehouse-slot.warehouse-slot:hover,
+  .warehouse-slot.warehouse-slot.is-hovered,
+  .warehouse-slot.warehouse-slot:focus-visible,
+  .warehouse-close:hover,
+  .warehouse-close:focus-visible {
+    transform: none;
+  }
+}

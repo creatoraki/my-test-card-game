@@ -6,7 +6,13 @@
 import { describe, expect, it } from "vitest";
 import { ROLLABLE_BOND_IDS, getItemDef, getItemFamily, makeItemStack } from "../data";
 import { pickByQuality, rollCount, rollDropTable } from "./drops";
-import { addToContainer, layoutBackpack, occupiedSlots, removeByUid } from "./inventory";
+import {
+  addToContainer,
+  layoutBackpack,
+  mergeStacksForDisplay,
+  occupiedSlots,
+  removeByUid,
+} from "./inventory";
 import type { ItemRarity } from "./types";
 
 const stack = (id: string) => makeItemStack(id);
@@ -41,6 +47,36 @@ describe("占格", () => {
     const list = [stack("scrap-piece")];
     expect(removeByUid(list, "不存在")).toBe(list);
     expect(removeByUid(list, list[0].uid)).toHaveLength(0);
+  });
+});
+
+describe("仓库展示堆叠", () => {
+  it("只合并材料和消耗品, 装备仍保持独立", () => {
+    const materialA = stack("logic-cube");
+    const materialB = stack("logic-cube");
+    const foodA = stack("milk");
+    const foodB = stack("milk");
+    const equipmentA = stack("armor-plate-c");
+    const equipmentB = stack("armor-plate-c");
+
+    const merged = mergeStacksForDisplay(
+      [materialA, equipmentA, materialB, foodA, equipmentB, foodB],
+      getItemDef,
+    );
+
+    expect(merged).toHaveLength(4);
+    expect(merged.find((s) => s.itemId === "logic-cube")).toMatchObject({ count: 2, uid: materialA.uid });
+    expect(merged.find((s) => s.itemId === "milk")).toMatchObject({ count: 2, uid: foodA.uid });
+    expect(merged.filter((s) => s.itemId === "armor-plate-c")).toHaveLength(2);
+  });
+
+  it("不同羁绊的可堆叠展示物分开保留", () => {
+    const first = { ...stack("milk"), affinity: "bond-a" };
+    const second = { ...stack("milk"), affinity: "bond-b" };
+
+    const merged = mergeStacksForDisplay([first, second], getItemDef);
+
+    expect(merged).toHaveLength(2);
   });
 });
 

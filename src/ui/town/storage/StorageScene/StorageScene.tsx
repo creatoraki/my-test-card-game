@@ -28,7 +28,7 @@ import {
 } from "react";
 import { BOND_DEFS, activeBonds, getCharacter, getItemDef, nextTier } from "@/data";
 import { STAT_KEYS, type StatBlock } from "@/engine";
-import { occupiedSlots, sortStacks } from "@/items/inventory";
+import { mergeStacksForDisplay, occupiedSlots, sortStacks } from "@/items/inventory";
 import { RARITY_ORDER, SLOT_LABEL, type EquipSlot, type ItemStack } from "@/items/types";
 import { bondCountsOf, deriveStats, EQUIP_SLOTS, useTownStore } from "@/store/townStore";
 import type { CharacterState } from "@/store/townStore";
@@ -334,11 +334,25 @@ function InventoryPanel({
   const [equipTab, setEquipTab] = useState<EquipTab>("all");
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const displayStacks = useMemo(() => mergeStacksForDisplay(stacks, getItemDef), [stacks]);
 
   // 换选中项时清掉确认态 —— 否则「确认丢弃」会挂在另一件东西上。
   useEffect(() => setConfirming(null), [selected]);
 
-  const sel = stacks.find((s) => s.uid === selected) ?? null;
+  const sel = displayStacks.find((s) => s.uid === selected) ?? null;
+  const discardSelection = (stack: ItemStack) => {
+    const def = getItemDef(stack.itemId);
+    if (def.category !== "material" && def.category !== "consumable") {
+      onDiscard(stack.uid);
+      return;
+    }
+
+    for (const source of stacks) {
+      if (source.itemId === stack.itemId && source.affinity === stack.affinity) {
+        onDiscard(source.uid);
+      }
+    }
+  };
 
   return (
     <>
@@ -346,14 +360,14 @@ function InventoryPanel({
       <div className={cn("stor-panel-body")}>
         <div className={cn("stor-col-main")}>
           <ItemTabs
-            stacks={stacks}
+            stacks={displayStacks}
             tab={tab}
             equipTab={equipTab}
             onTab={setTab}
             onEquipTab={setEquipTab}
           />
           <StockGrid
-            stacks={stacks}
+            stacks={displayStacks}
             tab={tab}
             equipTab={equipTab}
             selected={selected}
@@ -369,7 +383,7 @@ function InventoryPanel({
                   className={cn("stor-btn", "is-danger")}
                   type="button"
                   onClick={() => {
-                    onDiscard(sel.uid);
+                    discardSelection(sel);
                     setSelected(null);
                   }}
                 >

@@ -44,6 +44,73 @@
     outline-offset: 4px;
 }
 
+.sx-root .sx-warehouse-trigger {
+    position: absolute;
+    z-index: 5;
+    top: 42px;
+    right: 56px;
+    display: inline-flex;
+    min-width: 126px;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    color: var(--sx-action);
+    background:
+        linear-gradient(135deg, #ffffff1c, transparent 52%),
+        linear-gradient(145deg, #171a2db8, #080b13b3);
+    border: 1px solid #d8ddff52;
+    border-radius: 14px 8px 15px 9px;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    box-shadow:
+        inset 0 1px 0 #ffffff35,
+        0 9px 20px -16px #000000f2,
+        0 0 18px -13px #8279ffbf;
+    -webkit-backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
+    backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    pointer-events: auto;
+    transition:
+        color 160ms ease,
+        background 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 160ms ease;
+}
+
+.sx-root .sx-warehouse-trigger:hover,
+.sx-root .sx-warehouse-trigger:focus-visible,
+.sx-root .sx-warehouse-trigger.is-active {
+    color: var(--sx-action-hot);
+    background:
+        linear-gradient(135deg, #ffffff32, transparent 52%),
+        linear-gradient(145deg, #302d64d9, #0c1020d1);
+    border-color: var(--sx-frame-hot);
+    box-shadow:
+        inset 0 1px 0 #ffffff5e,
+        0 11px 22px -15px #000000f2,
+        0 0 0 1px #a69fff52,
+        0 0 22px -10px #8279ffe6;
+    transform: translateY(-3px);
+}
+
+.sx-root .sx-warehouse-trigger:focus-visible {
+    outline: 2px solid var(--sx-action-hot);
+    outline-offset: 4px;
+}
+
+.sx-root .sx-warehouse-icon {
+    display: grid;
+    width: 21px;
+    height: 21px;
+    place-items: center;
+    color: var(--sx-electric-hot);
+    font-size: 23px;
+    line-height: 1;
+}
+
 .sx-root .sx-header {
     position: absolute;
     z-index: 1;

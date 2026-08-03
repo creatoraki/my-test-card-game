@@ -85,6 +85,32 @@ export function findByUid(stacks: ItemStack[], uid: string): ItemStack | undefin
   return stacks.find((s) => s.uid === uid);
 }
 
+export function mergeStacksForDisplay(stacks: ItemStack[], getDef: GetDef): ItemStack[] {
+  const merged = new Map<string, ItemStack>();
+  const out: ItemStack[] = [];
+
+  for (const stack of stacks) {
+    const def = getDef(stack.itemId);
+    if (def.category !== "material" && def.category !== "consumable") {
+      out.push({ ...stack });
+      continue;
+    }
+
+    const key = `${stack.itemId}\u0000${stack.affinity ?? ""}`;
+    const existing = merged.get(key);
+    if (existing) {
+      existing.count += stack.count;
+      continue;
+    }
+
+    const copy = { ...stack };
+    merged.set(key, copy);
+    out.push(copy);
+  }
+
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // 排序
 // ---------------------------------------------------------------------------

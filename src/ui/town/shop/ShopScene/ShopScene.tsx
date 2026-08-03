@@ -26,6 +26,7 @@ import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import ShopItemCard from "@/ui/town/shop/ShopItemCard";
 import ShopItemTile from "@/ui/town/shop/ShopItemTile";
+import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
 import { cx } from "@/ui/common/cx";
 import s from "./ShopScene.module.css";
 
@@ -72,6 +73,7 @@ export function ShopScene({ leaving = false }: Props) {
   const refreshCost = shopRefreshCost(shop.refreshes);
   const [tab, setTab] = useState<ShopTab>("equipment");
   const [tabDirection, setTabDirection] = useState<TabDirection>("forward");
+  const [warehouseOpen, setWarehouseOpen] = useState(false);
 
   const handleTabChange = (nextTab: ShopTab) => {
     if (nextTab === tab) return;
@@ -87,6 +89,19 @@ export function ShopScene({ leaving = false }: Props) {
         <h2 className={s["sx-title"]}>商店</h2>
         <p className={s["sx-sub"]}>每日上新 · 积分采购</p>
       </header>
+
+      <button
+        className={cx(s["sx-control"], s["sx-warehouse-trigger"], warehouseOpen && s["is-active"])}
+        type="button"
+        aria-controls="shop-warehouse-panel"
+        aria-expanded={warehouseOpen}
+        onClick={() => setWarehouseOpen((current) => !current)}
+      >
+        <span className={s["sx-warehouse-icon"]} aria-hidden="true">
+          ▦
+        </span>
+        <span>仓库</span>
+      </button>
 
       {/* ---- 常驻货架面板 ---- */}
       <div
@@ -141,6 +156,15 @@ export function ShopScene({ leaving = false }: Props) {
           </section>
         </div>
       </div>
+
+      <WarehousePanel
+        open={warehouseOpen}
+        onClose={() => setWarehouseOpen(false)}
+        panelId="shop-warehouse-panel"
+        rows={4}
+        columns={6}
+        position={{ side: "left", top: 200, offset: 80 }}
+      />
     </div>
   );
 }
