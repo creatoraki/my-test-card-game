@@ -21,6 +21,26 @@ import quickstrikeGauntletArt from "../assets/道具/装备/武器/迅击拳套.
 import hunterLongbowArt from "../assets/道具/装备/武器/追猎长弓.png";
 import heavyCannonArt from "../assets/道具/装备/武器/重型火炮.png";
 import shockMaulArt from "../assets/道具/装备/武器/震荡重锤.png";
+import cityDefenseHeavyArmorArt from "../assets/道具/装备/防具/城防重甲.png";
+import compositeArmorArt from "../assets/道具/装备/防具/复合护甲.png";
+import guardPlateArt from "../assets/道具/装备/防具/护卫板甲.png";
+import hazmatSuitArt from "../assets/道具/装备/防具/防毒战衣.png";
+import mobileArmorArt from "../assets/道具/装备/防具/机动护甲.png";
+import bufferCoatArt from "../assets/道具/装备/防具/缓冲外套.png";
+import lifeSupportArmorArt from "../assets/道具/装备/防具/生命维持甲.png";
+import assaultExoskeletonArt from "../assets/道具/装备/防具/突击外骨骼.png";
+import fireControlArmorArt from "../assets/道具/装备/防具/火控战甲.png";
+import raiderLightArmorArt from "../assets/道具/装备/防具/破袭轻甲.png";
+import polarizedCoreArt from "../assets/道具/装备/饰品/偏振核心.png";
+import medicalPendantArt from "../assets/道具/装备/饰品/医疗吊坠.png";
+import reactionCharmArt from "../assets/道具/装备/饰品/反应护符.png";
+import quickstepWatchArt from "../assets/道具/装备/饰品/急行怀表.png";
+import tacticalGogglesArt from "../assets/道具/装备/饰品/战术目镜.png";
+import criticalPrismArt from "../assets/道具/装备/饰品/暴击棱镜.png";
+import lifeThornRingArt from "../assets/道具/装备/饰品/生命棘环.png";
+import breachBeaconArt from "../assets/道具/装备/饰品/破阵信标.png";
+import burdenModuleArt from "../assets/道具/装备/饰品/负重模块.png";
+import resourceChipArt from "../assets/道具/装备/饰品/资源芯片.png";
 import medicalKitArt from "../assets/道具/消耗品/医疗包.png";
 import holyWaterArt from "../assets/道具/消耗品/圣水.png";
 import fruitJuiceArt from "../assets/道具/消耗品/果汁.png";
@@ -143,6 +163,26 @@ const EQUIPMENT_ART: Record<string, string> = {
   "heavy-cannon": heavyCannonArt,
   "hunter-longbow": hunterLongbowArt,
   "deflection-blade": deflectionBladeArt,
+  "city-defense-heavy-armor": cityDefenseHeavyArmorArt,
+  "composite-armor": compositeArmorArt,
+  "guard-plate": guardPlateArt,
+  "hazmat-suit": hazmatSuitArt,
+  "mobile-armor": mobileArmorArt,
+  "buffer-coat": bufferCoatArt,
+  "life-support-armor": lifeSupportArmorArt,
+  "assault-exoskeleton": assaultExoskeletonArt,
+  "fire-control-armor": fireControlArmorArt,
+  "raider-light-armor": raiderLightArmorArt,
+  "tactical-goggles": tacticalGogglesArt,
+  "polarized-core": polarizedCoreArt,
+  "quickstep-watch": quickstepWatchArt,
+  "medical-pendant": medicalPendantArt,
+  "resource-chip": resourceChipArt,
+  "reaction-charm": reactionCharmArt,
+  "critical-prism": criticalPrismArt,
+  "life-thorn-ring": lifeThornRingArt,
+  "breach-beacon": breachBeaconArt,
+  "burden-module": burdenModuleArt,
 };
 
 const CONSUMABLE_ART: Record<string, string> = {

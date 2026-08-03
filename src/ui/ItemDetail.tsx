@@ -12,7 +12,8 @@ import { itemIcon } from "./itemArt";
 import "./ItemDetail.css";
 
 // 属性中文名。⚠ 与 CryoScene 的队员档案是同一套口径, 改名要一起改。
-const STAT_LABEL: Partial<Record<keyof StatBlock, string>> = {
+// ★ 导出给 ShopItemCard 复用 —— 商店的详情栏样式独立, 但**文案口径必须同一份**。
+export const STAT_LABEL: Partial<Record<keyof StatBlock, string>> = {
   maxHp: "生命上限",
   attack: "攻击力",
   healPower: "治愈力",

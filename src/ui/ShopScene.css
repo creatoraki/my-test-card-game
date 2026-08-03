@@ -1,11 +1,43 @@
-/* 商店设施 UI。固定 1920×1080 设计画布, 面板右侧保留独立 UI 呼吸区。 */
+/* 商店设施 UI。固定 1920×1080 设计画布, 面板右侧保留独立 UI 呼吸区。
+   ★ 本文件是**自洽**的: 所有类名带 sx- 前缀, 所有规则挂在 .sx-root 作用域内,
+     不依赖任何祖先(如 .town-splash), 也不改写任何外部组件(ItemSlot / ItemDetail)。
+     货架格与详情栏用商店自己的 ShopItemTile / ShopItemCard, 想怎么定制都不牵连别处。 */
 
-.shop-scene {
-  --shop-ink: #f5e7f1;
-  --shop-ink-dim: #ab91a5;
-  --shop-line: #f0d9e824;
-  --shop-glow: #cf5aa8;
-  --shop-glow-deep: #f1a8d2;
+/* ===================== 按钮 reset =====================
+   base.css 的 button 规则(深色渐变底 / #536068 描边 / 7px 斜切 / padding)会灌进本面板的
+   每一颗按钮。这里在根作用域内一次性抵消, 之后本文件不再需要任何祖先前缀去抢特异性。
+
+   ⚠ 特异性约定(改本文件前务必读):
+   · 静态 reset  .sx-root button                          = (0,1,1)  → all: unset
+   · 交互 reset  .sx-root button:hover:not(:disabled) 等  = (0,3,1)  → 只抵消 base 改的那几项
+   · 组件规则    .sx-root .sx-buy                         = (0,2,0)  胜静态 reset
+   · 组件交互    .sx-root .sx-buy:hover:not(:disabled)    = (0,4,0)  胜交互 reset
+   ⇒ 本文件所有规则一律写成 `.sx-root .sx-xxx` / `.sx-root .sx-xxx:hover:not(:disabled)`。 */
+.sx-root button {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* 交互态**不能**用 all: unset —— 它会把组件自己设的 background 一起打掉。
+   base.css 在这三态只改 background / border-color / color / transform / opacity, 精确抵消即可。 */
+.sx-root button:hover:not(:disabled),
+.sx-root button:active:not(:disabled),
+.sx-root button:disabled {
+  background: none;
+  border-color: transparent;
+  color: inherit;
+  transform: none;
+  opacity: 1;
+}
+
+/* ===================== 根 ===================== */
+.sx-root {
+  --sx-ink: #f5e7f1;
+  --sx-ink-dim: #ab91a5;
+  --sx-line: #f0d9e824;
+  --sx-glow: #cf5aa8;
+  --sx-glow-deep: #f1a8d2;
 
   position: absolute;
   inset: 0;
@@ -13,43 +45,61 @@
   pointer-events: none;
 }
 
+/* 稀有度 —— 读 tokens.css 的全站令牌, 但在商店内部一律转手成本地别名 --sx-rr。
+   日后想让商店脱钩自成一套配色, 只改下面这五行。 */
+.sx-root .sx-r-common {
+  --sx-rr: var(--rarity-common);
+}
+.sx-root .sx-r-fine {
+  --sx-rr: var(--rarity-fine);
+}
+.sx-root .sx-r-rare {
+  --sx-rr: var(--rarity-rare);
+}
+.sx-root .sx-r-epic {
+  --sx-rr: var(--rarity-epic);
+}
+.sx-root .sx-r-legendary {
+  --sx-rr: var(--rarity-legendary);
+}
+
 /* ===================== 场景标题 ===================== */
-.shop-header {
+.sx-root .sx-header {
   position: absolute;
   z-index: 2;
   padding-left: 16px;
-  border-left: 2px solid var(--shop-glow);
+  border-left: 2px solid var(--sx-glow);
   pointer-events: none;
-  animation: shopRise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation: sxRise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
-.shop-kicker {
+.sx-root .sx-kicker {
   display: block;
-  color: var(--shop-glow);
+  color: var(--sx-glow);
   font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 4px;
 }
 
-.shop-title {
+.sx-root .sx-title {
   margin: 6px 0 0;
-  color: var(--shop-ink);
+  color: var(--sx-ink);
   font-size: 40px;
   font-weight: 700;
   letter-spacing: 8px;
   text-shadow: 0 2px 18px #000000a6;
 }
 
-.shop-sub {
+.sx-root .sx-sub {
   margin: 6px 0 0;
-  color: var(--shop-ink-dim);
+  color: var(--sx-ink-dim);
   font-size: 14px;
   letter-spacing: 3px;
 }
 
 /* ===================== 常驻面板 ===================== */
-.shop-modal {
+.sx-root .sx-stage {
   --panel-perspective: 1600px;
   --panel-tilt: -4deg;
 
@@ -63,7 +113,7 @@
   pointer-events: none;
 }
 
-.shop-panel {
+.sx-root .sx-panel {
   --notch: 22px;
 
   position: relative;
@@ -72,11 +122,11 @@
   gap: 0;
   overflow: hidden;
   padding: 30px 38px 26px;
-  color: var(--shop-ink);
+  color: var(--sx-ink);
   pointer-events: auto;
   border: 1px solid transparent;
-  border-top-color: var(--shop-line);
-  border-right-color: var(--shop-line);
+  border-top-color: var(--sx-line);
+  border-right-color: var(--sx-line);
   background:
     linear-gradient(120deg, #ffffff16, transparent 34%),
     linear-gradient(155deg, #170f1399, #120e10ad 58%, #0a0809c7);
@@ -99,23 +149,23 @@
     0 100%,
     0 var(--notch)
   );
-  animation: shopPanelIn 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+  animation: sxPanelIn 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
-.shop-panel::before {
+.sx-root .sx-panel::before {
   content: "";
   position: absolute;
   top: 0;
   right: 0;
   left: var(--notch);
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--shop-glow) 40%, #f5e7f1);
+  background: linear-gradient(90deg, transparent, var(--sx-glow) 40%, #f5e7f1);
   opacity: 0.9;
   pointer-events: none;
 }
 
 /* 独立的显示器边框: 静态底框托住持续运行的电流亮楔, 内部透明区不遮挡货架。 */
-.shop-panel-rim {
+.sx-root .sx-panel-rim {
   position: absolute;
   inset: -1px;
   z-index: 4;
@@ -142,7 +192,7 @@
   mask-composite: exclude;
 }
 
-.shop-panel-rim::before {
+.sx-root .sx-panel-rim::before {
   content: "";
   position: absolute;
   top: 50%;
@@ -159,21 +209,21 @@
     transparent 360deg
   );
   transform: translate(-50%, -50%);
-  animation: shopEdgeRun 2.4s linear infinite;
+  animation: sxEdgeRun 2.4s linear infinite;
 }
 
-.shop-panel-rim::after {
+.sx-root .sx-panel-rim::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(var(--shop-glow-deep), var(--shop-glow-deep)) no-repeat left var(--notch) top / 58px 2px,
-    linear-gradient(var(--shop-glow-deep), var(--shop-glow-deep)) no-repeat right top / 2px 58px;
+    linear-gradient(var(--sx-glow-deep), var(--sx-glow-deep)) no-repeat left var(--notch) top / 58px 2px,
+    linear-gradient(var(--sx-glow-deep), var(--sx-glow-deep)) no-repeat right top / 2px 58px;
   opacity: 0.72;
 }
 
-.shop-panel::after {
+.sx-root .sx-panel::after {
   content: "";
   position: absolute;
   top: -70%;
@@ -184,26 +234,26 @@
   pointer-events: none;
   background: linear-gradient(90deg, transparent, #e8a1d340 48%, transparent);
   transform: rotate(18deg) translateX(0);
-  animation: shopLand 720ms 520ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+  animation: sxLand 720ms 520ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
 }
 
 /* ===================== 面板头部与页签 ===================== */
-.shop-panel-head {
+.sx-root .sx-panel-head {
   position: relative;
   flex: 0 0 auto;
   padding-bottom: 14px;
-  border-bottom: 1px solid var(--shop-line);
+  border-bottom: 1px solid var(--sx-line);
 }
 
-.shop-panel-title {
+.sx-root .sx-panel-title {
   margin: 4px 0 0;
-  color: var(--shop-ink);
+  color: var(--sx-ink);
   font-size: 28px;
   font-weight: 700;
   letter-spacing: 5px;
 }
 
-.shop-panel-readout {
+.sx-root .sx-readout {
   position: absolute;
   top: 30px;
   right: 38px;
@@ -214,52 +264,52 @@
   pointer-events: none;
 }
 
-.shop-panel-readout > div {
+.sx-root .sx-readout > div {
   display: flex;
   min-width: 112px;
   flex-direction: column;
   gap: 4px;
   padding-left: 14px;
-  border-left: 1px solid var(--shop-line);
+  border-left: 1px solid var(--sx-line);
 }
 
-.shop-panel-readout span,
-.shop-panel-readout em {
-  color: var(--shop-ink-dim);
+.sx-root .sx-readout span,
+.sx-root .sx-readout em {
+  color: var(--sx-ink-dim);
   font-size: 11px;
   font-style: normal;
   letter-spacing: 2px;
 }
 
-.shop-panel-readout strong {
-  color: var(--shop-ink);
+.sx-root .sx-readout strong {
+  color: var(--sx-ink);
   font-size: 20px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
 }
 
-.shop-panel-readout em {
-  color: var(--shop-glow);
+.sx-root .sx-readout em {
+  color: var(--sx-glow);
   font-size: 10px;
   letter-spacing: 1px;
 }
 
-.shop-tabs {
+.sx-root .sx-tabs {
   display: flex;
   flex: 0 0 auto;
   gap: 8px;
   margin-top: 22px;
-  border-bottom: 1px solid var(--shop-line);
+  border-bottom: 1px solid var(--sx-line);
 }
 
-.shop-tab {
+.sx-root .sx-tab {
   display: inline-flex;
   min-width: 156px;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
   padding: 11px 16px 10px;
-  color: var(--shop-ink-dim);
+  color: var(--sx-ink-dim);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 3px;
@@ -269,7 +319,7 @@
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
 
-.shop-tab strong {
+.sx-root .sx-tab strong {
   min-width: 20px;
   color: inherit;
   font-size: 11px;
@@ -278,21 +328,22 @@
   text-align: center;
 }
 
-.town-splash .shop-tab:hover:not(:disabled) {
-  color: var(--shop-ink);
+.sx-root .sx-tab:hover:not(:disabled) {
+  color: var(--sx-ink);
   background: #cf5aa812;
   border-color: #cf5aa855;
 }
 
-.town-splash .shop-tab.is-active {
+.sx-root .sx-tab.is-active,
+.sx-root .sx-tab.is-active:hover:not(:disabled) {
   color: #1a1014;
   background: linear-gradient(135deg, #f1afd5, #cf5aa8);
-  border-color: var(--shop-glow-deep);
-  border-bottom-color: var(--shop-glow);
+  border-color: var(--sx-glow-deep);
+  border-bottom-color: var(--sx-glow);
 }
 
 /* ===================== 主体 ===================== */
-.shop-panel-body {
+.sx-root .sx-body {
   display: grid;
   flex: 1 1 auto;
   grid-template-columns: minmax(0, 1fr) 350px;
@@ -301,7 +352,7 @@
   padding: 26px 0;
 }
 
-.shop-col-main {
+.sx-root .sx-main {
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -311,152 +362,479 @@
   padding: 2px 8px 8px 2px;
 }
 
-.shop-row {
+.sx-root .sx-row {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.shop-section-label {
+.sx-root .sx-row-label {
   margin: 0;
-  color: var(--shop-glow);
+  color: var(--sx-glow);
   font-family: Bahnschrift, "Microsoft YaHei", sans-serif;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 3px;
 }
 
-.shop-grid {
+/* 三列**铺满**货架区: 列宽由 1fr 分, 不再写死 124px ——
+   面板宽度或详情栏宽度日后一改, 货架格自己跟着重新分配, 不会在右侧留一条空带。 */
+.sx-root .sx-grid {
   display: grid;
-  grid-template-columns: repeat(5, 124px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   align-content: start;
 }
 
-.shop-cell {
+.sx-root .sx-cell {
   position: relative;
   display: flex;
-  width: 124px;
-  flex: 0 0 124px;
+  width: 100%;
+  min-width: 0;
   flex-direction: column;
   gap: 8px;
   align-items: center;
 }
 
-/* 货架格去底色。★ 只在 .shop-panel 作用域内覆盖 —— 背包与仓库共用同一颗 ItemSlot,
-   基线(ItemSlot.css)一行都不动。--rr 由那边的 .r-* 设好, 这里直接拿来当描边色,
-   于是「稀有度」从一层渐变底色改由**常驻描边**说出来。
-   ⚠ 每个交互态都要**显式**再写一遍 background —— base.css 的
-   `button:hover:not(:disabled)`(0,3,1) 会把全站深色渐变底打回来,
-   只在静态态写 `background: none` 是盖不住它的(与 StorageScene.css 里同一条坑)。 */
-/* 默认态与悬浮态都不画描边: 货架上的方框会把注意力从图标本身抢走,
-   稀有度由**图标自身的颜色**(currentColor = --rr)与史诗/传说的左上角标记承担;
-   选中态仍用面板高光提示当前商品。 */
-.town-splash .shop-panel .item-slot {
-  --shop-corner-color: transparent;
+/* ===================== 货架格 =====================
+   默认态与悬浮态都不画整圈描边: 货架上的方框会把注意力从图标本身抢走,
+   稀有度由**图标自身的颜色**(currentColor = --sx-rr)说出来, 交互态用四角粗边提示。 */
+.sx-root .sx-tile {
+  --sx-corner: transparent;
+  --sx-base-w: 132px; /* 底座宽 */
+  --sx-base-h: 12px; /* 底座高(薄玻璃板: 台面 + 一线侧壁) */
 
-  background: none;
-  border-color: transparent;
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 172px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  /* 图标靠下: 让它「站」在玻璃板上, 而不是浮在格子正中。
+     下方 24px = 底座离底 8 + 板厚 12 + 图标与板面的 4px 缝。 */
+  justify-content: flex-end;
+  padding: 0 0 24px;
+  color: var(--sx-rr);
+  /* 底部一团稀有度辉光, 给底座打底(原来这里是纯透明)。 */
+  background: radial-gradient(
+    ellipse 62% 38% at 50% 88%,
+    color-mix(in srgb, var(--sx-rr) 18%, transparent),
+    transparent 72%
+  );
+  border: 1px solid transparent;
+  transition:
+    transform 0.12s ease,
+    opacity 0.16s ease;
 }
 
-.town-splash .shop-panel .item-slot:hover:not(:disabled) {
-  --shop-corner-color: var(--accent);
-
-  color: var(--rr);
-  background: none;
-  border-color: transparent;
-  border-radius: 0;
-  clip-path: none;
-  box-shadow: none;
+/* ── 3D 展示底座: 一块**薄玻璃板** ──
+   ★ 刻意做薄(12px)且几乎不实心 —— 底座只是承托, 一旦厚重就跟商品本身抢视觉。
+   材质靠三样东西凑出来, 不靠填色: ① 极淡的白/稀有度着色玻璃体本身,
+   ② 上下两条 inset 亮线(玻璃的上棱与下棱), ③ 斜向的一道高光扫过板面。
+   clip-path 切角呼应面板的 --notch, 上窄下宽保留一点点透视。 */
+.sx-root .sx-tile::before {
+  content: "";
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: var(--sx-base-w);
+  height: var(--sx-base-h);
+  pointer-events: none;
+  background:
+    /* 斜向高光: 玻璃面上的一道反光 */
+    linear-gradient(104deg, transparent 18%, #ffffff42 34%, transparent 52%),
+    /* 玻璃体: 两侧几乎透明, 中间吃一点稀有度色 */
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--sx-rr) 8%, transparent) 0%,
+        color-mix(in srgb, var(--sx-rr) 34%, transparent) 38%,
+        color-mix(in srgb, var(--sx-rr) 26%, transparent) 66%,
+        color-mix(in srgb, var(--sx-rr) 6%, transparent) 100%
+      ),
+    linear-gradient(180deg, #ffffff1f, #05060859);
+  -webkit-backdrop-filter: blur(3px) saturate(120%);
+  backdrop-filter: blur(3px) saturate(120%);
+  box-shadow:
+    inset 0 1px 0 #ffffff8c,
+    inset 0 -1px 0 color-mix(in srgb, var(--sx-rr) 62%, transparent),
+    0 6px 12px -8px #000000cc,
+    0 0 16px -8px var(--sx-rr);
+  clip-path: polygon(
+    9px 0,
+    calc(100% - 9px) 0,
+    100% 5px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0 calc(100% - 4px),
+    0 5px
+  );
+  transform: translateX(-50%);
+  transition: filter 0.16s ease;
 }
 
-/* 悬浮时只显示四角的直角粗边框, 不恢复整圈描边。使用 ::after 避开
-   ItemSlot.css 里史诗/传说物品占用的 ::before 稀有度标记。 */
-.town-splash .shop-panel .item-slot:hover:not(:disabled)::after,
-.town-splash .shop-panel .item-slot.is-selected::after {
+.sx-root .sx-tile:hover:not(:disabled) {
+  --sx-corner: var(--accent);
+
+  color: var(--sx-rr);
+}
+
+/* 悬浮**不动整格**, 只让图标从底座上浮起来 —— 底座是"陈列台", 它不该跟着跑。 */
+.sx-root .sx-tile:hover:not(:disabled)::before {
+  filter: brightness(1.25);
+}
+
+/* 选中态使用粉色四角高光, 与悬浮态的荧光黄绿区分。 */
+.sx-root .sx-tile.is-selected,
+.sx-root .sx-tile.is-selected:hover:not(:disabled) {
+  --sx-corner: var(--sx-glow-deep);
+
+  color: var(--sx-rr);
+}
+
+/* 四角的直角粗边框 —— 悬浮与选中共用一套几何, 只换 --sx-corner 的颜色。 */
+.sx-root .sx-tile::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) left top / 24px 5px no-repeat,
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) left top / 5px 24px no-repeat,
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) right top / 24px 5px no-repeat,
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) right top / 5px 24px no-repeat,
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) left bottom / 24px 5px no-repeat,
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) left bottom / 5px 24px no-repeat,
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) right bottom / 24px 5px no-repeat,
-    linear-gradient(var(--shop-corner-color), var(--shop-corner-color)) right bottom / 5px 24px no-repeat;
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left top / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left top / 5px 30px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right top / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right top / 5px 30px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left bottom / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) left bottom / 5px 30px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right bottom / 30px 5px no-repeat,
+    linear-gradient(var(--sx-corner), var(--sx-corner)) right bottom / 5px 30px no-repeat;
 }
 
-/* 选中态使用粉色四角高光, 与悬浮态的荧光黄绿区分。 */
-.town-splash .shop-panel .item-slot.is-selected,
-.town-splash .shop-panel .item-slot.is-selected:hover:not(:disabled) {
-  --shop-corner-color: var(--shop-glow-deep);
-
-  color: var(--rr);
-  background: none;
-  border-color: transparent;
-  border-radius: 0;
-  clip-path: none;
-  box-shadow: none;
+/* z-index 抬到底座之上: ::before 是绝对定位的, 默认会盖住不定位的图标。 */
+.sx-root .sx-tile-icon {
+  position: relative;
+  z-index: 1;
+  display: block;
+  flex: 0 0 112px;
+  width: 112px;
+  height: 112px;
+  line-height: 0;
+  transition: transform 0.16s ease;
 }
 
-/* 已售出: 脱离稀有度体系, 描边降到面板线色 */
-.town-splash .shop-panel .shop-cell.is-sold .item-slot,
-.town-splash .shop-panel .shop-cell.is-sold .item-slot:hover:not(:disabled) {
-  background: none;
-  border-color: var(--shop-line);
-  box-shadow: none;
+.sx-root .sx-tile-icon svg,
+.sx-root .sx-tile-icon img {
+  display: block;
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
 }
 
-.shop-cell-price {
-  color: var(--shop-glow);
+/* 台面上的接触阴影: 图标"踩"在底座上而不是飘着。悬浮抬起时它收小, 读作离地。 */
+.sx-root .sx-tile-icon::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  z-index: -1;
+  width: 74px;
+  height: 13px;
+  background: radial-gradient(ellipse at 50% 50%, #000000b3, transparent 70%);
+  filter: blur(2px);
+  transform: translateX(-50%);
+  transition: transform 0.16s ease;
+}
+
+.sx-root .sx-tile:hover:not(:disabled) .sx-tile-icon {
+  transform: translateY(-6px);
+}
+
+.sx-root .sx-tile:hover:not(:disabled) .sx-tile-icon::after {
+  transform: translateX(-50%) translateY(6px) scale(0.82, 0.7);
+}
+
+/* 已售出: 脱离稀有度体系, 压暗并把描边降到面板线色。★ 仍占位 —— 当日不补货是规则的一部分,
+   抽掉格子会让玩家看不出今天原本有几件。 */
+.sx-root .sx-tile.is-sold,
+.sx-root .sx-tile.is-sold:hover:not(:disabled) {
+  opacity: 0.28;
+  filter: saturate(0.3);
+  border-color: var(--sx-line);
+  transform: none;
+}
+
+.sx-root .sx-tile.is-sold .sx-tile-icon,
+.sx-root .sx-tile.is-sold:hover:not(:disabled) .sx-tile-icon {
+  transform: none;
+}
+
+.sx-root .sx-cell-price {
+  color: var(--sx-glow);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
   text-align: center;
 }
 
-.shop-cell.is-sold .shop-cell-price {
+.sx-root .sx-cell.is-sold .sx-cell-price {
   color: #8093a0;
   text-decoration: line-through;
 }
 
-.shop-empty {
+.sx-root .sx-empty {
   margin: 0;
   padding: 14px 0;
-  color: var(--shop-ink-dim);
+  color: var(--sx-ink-dim);
   font-size: 13px;
 }
 
-/* 详情框同样去底色: 描边吃 ItemDetail.css 里 .r-* 设好的 --rr,
-   于是「选中商品的稀有度」直接由这一圈边框说出来, 不需要再加色块。 */
-.shop-panel .item-detail {
+/* ===================== 商品详情 =====================
+   透明玻璃底 + 稀有度描边: 「选中商品的稀有度」由这一圈边框说出来, 不再加色块,
+   让 3D 展示柜成为整栏的视觉焦点。 */
+.sx-root .sx-card {
+  --sx-rr: var(--rarity-common);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
   min-height: 0;
+  overflow-y: auto;
+  padding: 14px;
+  perspective: 1000px;
   background: none;
-  border-color: color-mix(in srgb, var(--rr) 55%, transparent);
-  /* 极轻的内侧色晕 —— 只做"这一框是活的"的暗示, 不构成底色 */
-  box-shadow: inset 0 0 24px -18px var(--rr);
+  border: 1px solid color-mix(in srgb, var(--sx-rr) 68%, transparent);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 0 28px -16px var(--sx-rr),
+    0 0 0 1px color-mix(in srgb, var(--sx-rr) 18%, transparent),
+    0 0 30px -18px var(--sx-rr);
 }
 
-.shop-panel .item-detail.is-idle {
-  border-color: var(--shop-line);
+.sx-root .sx-card.is-idle {
+  align-items: center;
+  justify-content: center;
+  border-color: var(--sx-line);
   border-style: dashed;
   box-shadow: none;
 }
 
-/* 羁绊块在商店里也统一为「透明底 + 描边」, 与外面两层保持同一条规则。 */
-.shop-panel .item-detail-bond {
+.sx-root .sx-card-idle {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ── 商品展示柜 ── */
+.sx-root .sx-card-head {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 136px;
+  align-items: center;
+}
+
+.sx-root .sx-card-icon {
+  position: relative;
+  display: grid;
+  width: 108px;
+  height: 124px;
+  flex: none;
+  place-items: center;
+  isolation: isolate;
+  color: var(--sx-rr);
+  line-height: 0;
+  transform: perspective(760px) rotateY(-9deg) rotateX(4deg) translateZ(8px);
+  transform-style: preserve-3d;
+  animation: sxShowcase 4.8s ease-in-out infinite;
+  filter:
+    drop-shadow(0 0 7px color-mix(in srgb, var(--sx-rr) 72%, transparent))
+    drop-shadow(0 12px 10px #00000080);
+}
+
+/* 展柜玻璃背板 */
+.sx-root .sx-card-icon::before {
+  content: "";
+  position: absolute;
+  inset: 5px 4px 13px;
+  z-index: -2;
+  border: 1px solid color-mix(in srgb, var(--sx-rr) 62%, transparent);
+  background:
+    linear-gradient(135deg, #ffffff18, transparent 34%),
+    radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--sx-rr) 24%, transparent), transparent 68%),
+    linear-gradient(160deg, #1c2025d9, #080a0dc4 72%);
+  box-shadow:
+    inset 0 1px 0 #ffffff38,
+    inset 0 -18px 22px -20px var(--sx-rr),
+    0 0 18px -10px var(--sx-rr);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transform: translateZ(-10px);
+}
+
+/* 展柜台面(斜切投影) */
+.sx-root .sx-card-icon::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 3px;
+  left: 10px;
+  z-index: -1;
+  height: 22px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--sx-rr) 78%, #ffffff 22%), color-mix(in srgb, var(--sx-rr) 48%, #050608 52%)),
+    #000;
+  box-shadow: 0 10px 12px -5px #000000d9;
+  clip-path: polygon(10px 0, calc(100% - 7px) 0, 100% 100%, 0 100%);
+  transform: perspective(240px) rotateX(54deg) translateY(7px);
+  transform-origin: center bottom;
+}
+
+.sx-root .sx-card-icon svg,
+.sx-root .sx-card-icon img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 88px;
+  max-height: 100px;
+  object-fit: contain;
+}
+
+.sx-root .sx-card-name {
+  margin: 0;
+  color: var(--sx-rr);
+  font-size: 15px;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--sx-rr) 42%, transparent);
+}
+
+.sx-root .sx-card-mult {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sx-root .sx-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sx-root .sx-card-rarity {
+  color: var(--sx-rr);
+}
+
+.sx-root .sx-card-desc {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.65;
+  opacity: 0.82;
+}
+
+.sx-root .sx-card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 9px 0;
+  border-top: 1px solid var(--sx-line);
+  border-bottom: 1px solid var(--sx-line);
+}
+
+.sx-root .sx-card-stats > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.sx-root .sx-card-stats dt {
+  color: var(--muted);
+}
+
+.sx-root .sx-card-stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.sx-root .sx-card-stats dd.is-good {
+  color: var(--good);
+}
+
+.sx-root .sx-card-stats dd.is-bad {
+  color: var(--bad);
+}
+
+/* 羁绊词条 —— 透明底 + accent 描边, 与面板整体的玻璃质感一致。 */
+.sx-root .sx-card-bond {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
   background: none;
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 3px;
+}
+
+.sx-root .sx-card-bond-head {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  margin: 0;
+  font-size: 13px;
+}
+
+.sx-root .sx-card-bond-emoji {
+  flex: none;
+}
+
+.sx-root .sx-card-bond-name {
+  color: var(--accent);
+}
+
+.sx-root .sx-card-bond-arcana {
+  margin-left: 5px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.sx-root .sx-card-bond-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sx-root .sx-card-bond-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.sx-root .sx-card-note {
+  margin: 0;
+  color: var(--accent2);
+  font-size: 11px;
+}
+
+.sx-root .sx-card-note.is-locked {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+.sx-root .sx-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 10px;
 }
 
 /* ===================== 购买徽章 ===================== */
-/* 六边形描边靠 mask-composite 抠空内部(与 .shop-panel-rim 同一套写法),
+/* 六边形描边靠 mask-composite 抠空内部(与 .sx-panel-rim 同一套写法),
    于是徽章内部**真的**是透明的, 价格数字直接浮在面板玻璃上。 */
-.town-splash .shop-buy,
-.town-splash .shop-buy:hover:not(:disabled) {
+.sx-root .sx-buy {
   position: relative;
   display: flex;
   width: 100%;
@@ -466,28 +844,17 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  /* base.css 的 button / button:hover 会塞进深色渐变底、实线描边与斜切角,
-     徽章要的是「只有六边形描边、内部全透明」, 所以三者都得清掉。 */
-  background: none;
-  border: 0;
-  box-shadow: none;
-  clip-path: none;
   transition:
     transform 0.14s ease,
     filter 0.18s ease;
 }
 
-/* 按下时不要 base.css 那记 translateY(1px) —— 会和 hover 的 -1px 打架 */
-.town-splash .shop-buy:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.shop-buy-rim {
+.sx-root .sx-buy-rim {
   position: absolute;
   inset: 0;
   padding: 2px;
   pointer-events: none;
-  background: linear-gradient(135deg, var(--shop-glow), var(--shop-glow-deep) 50%, var(--shop-glow));
+  background: linear-gradient(135deg, var(--sx-glow), var(--sx-glow-deep) 50%, var(--sx-glow));
   clip-path: polygon(
     18px 0,
     calc(100% - 18px) 0,
@@ -506,18 +873,18 @@
   mask-composite: exclude;
 }
 
-.shop-buy-label {
-  color: var(--shop-ink-dim);
+.sx-root .sx-buy-label {
+  color: var(--sx-ink-dim);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 3px;
 }
 
-.shop-buy-price {
+.sx-root .sx-buy-price {
   display: inline-flex;
   gap: 6px;
   align-items: baseline;
-  color: var(--shop-glow-deep);
+  color: var(--sx-glow-deep);
   font-size: 26px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -526,81 +893,85 @@
 }
 
 /* 积分符号: 纯字符, 不引新素材 */
-.shop-buy-price::before {
+.sx-root .sx-buy-price::before {
   content: "◈";
   font-size: 13px;
   opacity: 0.8;
 }
 
-.town-splash .shop-buy.is-ready:hover {
+.sx-root .sx-buy.is-ready:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: drop-shadow(0 0 8px #cf5aa88c);
 }
 
-.town-splash .shop-buy.is-ready:hover .shop-buy-price {
+.sx-root .sx-buy.is-ready:hover:not(:disabled) .sx-buy-price {
   color: #ffffff;
 }
 
-.town-splash .shop-buy.is-ready:hover .shop-buy-label {
-  color: var(--shop-ink);
+.sx-root .sx-buy.is-ready:hover:not(:disabled) .sx-buy-label {
+  color: var(--sx-ink);
 }
 
 /* 买不起 / 已售出 —— 各自显式灰化, **不**整体 opacity 压暗:
-   价格是这两种态下玩家最需要看清的信息。 */
-.shop-buy.is-poor,
-.shop-buy.is-sold {
+   价格是这两种态下玩家最需要看清的信息(尤其"积分不足"时要看还差多少)。 */
+.sx-root .sx-buy.is-poor,
+.sx-root .sx-buy.is-sold {
   cursor: not-allowed;
   opacity: 1;
 }
 
-.shop-buy.is-poor .shop-buy-rim,
-.shop-buy.is-sold .shop-buy-rim {
+.sx-root .sx-buy.is-poor .sx-buy-rim,
+.sx-root .sx-buy.is-sold .sx-buy-rim {
   background: linear-gradient(135deg, #8093a066, #8093a0a6 50%, #8093a066);
 }
 
-.shop-buy.is-poor .shop-buy-price,
-.shop-buy.is-sold .shop-buy-price {
+.sx-root .sx-buy.is-poor .sx-buy-price,
+.sx-root .sx-buy.is-sold .sx-buy-price {
   color: #8093a0;
 }
 
-.shop-buy.is-sold .shop-buy-price {
+.sx-root .sx-buy.is-sold .sx-buy-price {
   text-decoration: line-through;
 }
 
-.shop-panel-foot {
+/* ===================== 面板底栏 ===================== */
+.sx-root .sx-foot {
   display: flex;
   flex: 0 0 auto;
   gap: 24px;
   align-items: center;
   justify-content: space-between;
   padding-top: 16px;
-  border-top: 1px solid var(--shop-line);
+  border-top: 1px solid var(--sx-line);
 }
 
-.shop-note {
+.sx-root .sx-note {
   margin: 0;
-  color: var(--shop-ink-dim);
+  color: var(--sx-ink-dim);
   font-size: 13px;
   letter-spacing: 1px;
 }
 
-.shop-note-dim {
+.sx-root .sx-note-dim {
   color: #927d91;
   font-size: 12px;
 }
 
-.shop-primary {
+.sx-root .sx-refresh {
   --notch: 12px;
 
   position: relative;
+  display: inline-flex;
   flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
   padding: 13px 30px;
   color: #1a1014;
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 4px;
   background: linear-gradient(135deg, #ee91c8, #b94493);
-  border: 1px solid var(--shop-glow-deep);
+  border: 1px solid var(--sx-glow-deep);
   box-shadow:
     inset 0 1px 0 #ffffff9c,
     0 14px 30px -18px #96327666;
@@ -614,18 +985,19 @@
   );
 }
 
-.town-splash .shop-primary:hover:not(:disabled) {
+.sx-root .sx-refresh:hover:not(:disabled) {
   color: #1a1014;
   background: linear-gradient(135deg, #f1afd5, #c953a0);
   border-color: #ffffff;
 }
 
-.shop-primary:disabled {
+.sx-root .sx-refresh:disabled {
+  cursor: not-allowed;
   opacity: 0.4;
 }
 
 /* ===================== 入场 / 退场 ===================== */
-@keyframes shopRise {
+@keyframes sxRise {
   from {
     opacity: 0;
     transform: translateY(16px);
@@ -636,7 +1008,7 @@
   }
 }
 
-@keyframes shopPanelIn {
+@keyframes sxPanelIn {
   from {
     opacity: 0;
     transform: perspective(var(--panel-perspective)) rotateY(var(--panel-tilt)) translateX(100%);
@@ -651,13 +1023,13 @@
   }
 }
 
-@keyframes shopEdgeRun {
+@keyframes sxEdgeRun {
   to {
     transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
-@keyframes shopLand {
+@keyframes sxLand {
   from {
     opacity: 0.9;
     transform: rotate(18deg) translateX(0);
@@ -668,33 +1040,56 @@
   }
 }
 
-@keyframes shopFade {
+@keyframes sxShowcase {
+  0%,
+  100% {
+    transform: perspective(760px) rotateY(-9deg) rotateX(4deg) translate3d(0, 0, 8px);
+  }
+  50% {
+    transform: perspective(760px) rotateY(-6deg) rotateX(2deg) translate3d(0, -4px, 12px);
+  }
+}
+
+@keyframes sxFade {
   to {
     opacity: 0;
   }
 }
 
-.shop-scene.is-leaving .shop-header,
-.shop-scene.is-leaving .shop-panel {
-  animation: shopFade 420ms ease both;
+.sx-root.is-leaving .sx-header,
+.sx-root.is-leaving .sx-panel {
+  animation: sxFade 420ms ease both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shop-header,
-  .shop-panel {
+  .sx-root .sx-header,
+  .sx-root .sx-panel {
     animation-duration: 180ms;
   }
 
-  .shop-panel::after {
+  .sx-root .sx-panel::after {
     animation: none;
   }
 
-  .shop-panel-rim::before {
+  .sx-root .sx-panel-rim::before {
     display: none;
   }
 
-  .town-splash .shop-buy.is-ready:hover {
+  .sx-root .sx-card-icon {
+    animation: none;
+  }
+
+  .sx-root .sx-buy.is-ready:hover:not(:disabled) {
     transform: none;
     filter: none;
+  }
+
+  /* 悬浮抬升关掉, 但 ::after 的 translateX(-50%) 是**居中定位**不是动效, 必须留着。 */
+  .sx-root .sx-tile:hover:not(:disabled) .sx-tile-icon {
+    transform: none;
+  }
+
+  .sx-root .sx-tile:hover:not(:disabled) .sx-tile-icon::after {
+    transform: translateX(-50%);
   }
 }

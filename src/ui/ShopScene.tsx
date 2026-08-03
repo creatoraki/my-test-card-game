@@ -7,21 +7,24 @@
 //
 // 面板主题使用白色文字与冷蓝色高光, 与商店背景中的冷光设施保持一致。
 //
-// ⚠ 本组件的根节点 .shop-scene **永远不能挂 animation / opacity / transform**:
+// ⚠ 本组件的根节点 .sx-root **永远不能挂 animation / opacity / transform**:
 //   一旦祖先成为 backdrop root, 底下玻璃砖的 backdrop-filter 就取不到设施背景。
 //   入场/退场动画一律挂叶子元素(与 StorageScene / CryoScene 同一条约束)。
+//
+// ★ 样式独立: 类名一律 sx- 前缀且全挂在 .sx-root 作用域下, 货架格与详情栏用商店自己的
+//   ShopItemTile / ShopItemCard —— 本界面不再改写任何共享组件, 也不依赖 .town-splash。
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { shopRefreshCost, type ShopSlot } from "../data/shop";
 import type { ItemStack } from "../items/types";
 import { useTownStore } from "../store/townStore";
-import ItemDetail from "./ItemDetail";
-import ItemSlot from "./ItemSlot";
+import ShopItemCard from "./ShopItemCard";
+import ShopItemTile from "./ShopItemTile";
 import "./ShopScene.css";
 
 // 面板使用固定设计画布尺寸, 右侧保留独立 UI 呼吸区, 并由 CSS 靠右对齐。
 const CONTENT_DELAY_MS = 560;
-const PANEL_SIZE = { w: 1180, h: 720 };
+const PANEL_SIZE = { w: 1180, h: 800 };
 type ShopTab = "equipment" | "material";
 
 const SHOP_TABS: { id: ShopTab; label: string }[] = [
@@ -29,7 +32,7 @@ const SHOP_TABS: { id: ShopTab; label: string }[] = [
   { id: "material", label: "材料" },
 ];
 
-// 货架格 → ItemSlot / ItemDetail 认识的 ItemStack。★ 只是**展示用**的临时对象:
+// 货架格 → ShopItemTile / ShopItemCard 认识的 ItemStack。★ 只是**展示用**的临时对象:
 //   真正的实例(与 uid)要到 townStore.buyShopItem 里才由 makeItemStack 发出来。
 //   uid 借用货架格的 key —— 它在这一批货里唯一, 够 React key 与选中态用了。
 const asStack = (s: ShopSlot): ItemStack => ({
@@ -53,17 +56,17 @@ export function ShopScene({ leaving = false }: Props) {
   const refreshCost = shopRefreshCost(shop.refreshes);
 
   return (
-    <div className={`shop-scene${leaving ? " is-leaving" : ""}`}>
+    <div className={`sx-root${leaving ? " is-leaving" : ""}`}>
       {/* ---- 左上: 场景标题 ---- */}
-      <header className="shop-header" style={{ left: "56px", top: "42px" }}>
-        <span className="shop-kicker">SUPPLY EXCHANGE</span>
-        <h2 className="shop-title">商店</h2>
-        <p className="shop-sub">每日上新 · 积分采购</p>
+      <header className="sx-header" style={{ left: "56px", top: "42px" }}>
+        <span className="sx-kicker">SUPPLY EXCHANGE</span>
+        <h2 className="sx-title">商店</h2>
+        <p className="sx-sub">每日上新 · 积分采购</p>
       </header>
 
       {/* ---- 常驻货架面板 ---- */}
       <div
-        className="shop-modal"
+        className="sx-stage"
         style={
           {
             "--panel-w": `${PANEL_SIZE.w}px`,
@@ -72,7 +75,7 @@ export function ShopScene({ leaving = false }: Props) {
         }
       >
         <section
-          className="shop-panel"
+          className="sx-panel"
           style={
             {
               width: `${PANEL_SIZE.w}px`,
@@ -81,7 +84,7 @@ export function ShopScene({ leaving = false }: Props) {
             } as CSSProperties
           }
         >
-          <span className="shop-panel-rim" aria-hidden="true" />
+          <span className="sx-panel-rim" aria-hidden="true" />
           <ShelfPanel
             shop={shop}
             loot={loot}
@@ -99,16 +102,15 @@ export function ShopScene({ leaving = false }: Props) {
 // 常驻面板标题栏。返回据点由 TownScreen 统一提供, 商店面板不再设置关闭按钮。
 function PanelHead({ kicker, title }: { kicker: string; title: string }) {
   return (
-    <div className="shop-panel-head">
-      <span className="shop-kicker">{kicker}</span>
-      <h3 className="shop-panel-title">{title}</h3>
+    <div className="sx-panel-head">
+      <span className="sx-kicker">{kicker}</span>
+      <h3 className="sx-panel-title">{title}</h3>
     </div>
   );
 }
 
-// 一排货。★ 复用背包/仓库那颗 ItemSlot —— 稀有度边框、图标与羁绊角标不在这里再画一遍。
-//   已售出的格压暗并盖一张「已售出」封条, 但**保留占位**:
-//  当日不补货是规则的一部分,
+// 一排货。格子用商店专属的 ShopItemTile(见该文件顶部注释: 为什么不复用 ItemSlot)。
+//   已售出的格压暗并把价格划掉, 但**保留占位**: 当日不补货是规则的一部分,
 //   抽掉格子会让玩家看不出今天原本有几件。
 function ShelfRow({
   label,
@@ -122,25 +124,24 @@ function ShelfRow({
   onSelect: (key: string) => void;
 }) {
   return (
-    <div className="shop-row">
-      <p className="shop-section-label">{label}</p>
+    <div className="sx-row">
+      <p className="sx-row-label">{label}</p>
       {slots.length ? (
-        <div className="shop-grid">
+        <div className="sx-grid">
           {slots.map((s) => (
-            <div key={s.key} className={`shop-cell${s.sold ? " is-sold" : ""}`}>
-              <ItemSlot
+            <div key={s.key} className={`sx-cell${s.sold ? " is-sold" : ""}`}>
+              <ShopItemTile
                 stack={asStack(s)}
                 selected={selected === s.key}
-                iconOnly
-                dimmed={s.sold}
+                sold={s.sold}
                 onClick={() => onSelect(s.key)}
               />
-              <span className="shop-cell-price">{s.sold ? "已售出" : s.price}</span>
+              <span className="sx-cell-price">{s.sold ? "已售出" : s.price}</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="shop-empty">这一档今天没有进货。</p>
+        <p className="sx-empty">这一档今天没有进货。</p>
       )}
     </div>
   );
@@ -148,7 +149,7 @@ function ShelfRow({
 
 // 购买徽章 —— 价格**长在按钮里面**, 所以详情栏不再单列一行「售价 xxx 居民积分」:
 //   同一个数字出现两次会让玩家在两处之间来回确认, 反而变慢。
-// 三种态各自显式配色(见 .shop-buy.is-*), 不用整体 opacity 压暗 —— 价格必须始终读得清,
+// 三种态各自显式配色(见 .sx-buy.is-*), 不用整体 opacity 压暗 —— 价格必须始终读得清,
 // 尤其是「积分不足」时, 玩家要看的正是还差多少。
 function BuyBadge({
   slot,
@@ -164,15 +165,15 @@ function BuyBadge({
 
   return (
     <button
-      className={`shop-buy is-${state}`}
+      className={`sx-buy is-${state}`}
       type="button"
       disabled={slot.sold || !affordable}
       onClick={() => onBuy(slot.key)}
       aria-label={`${label}，售价 ${slot.price} 居民积分`}
     >
-      <span className="shop-buy-rim" aria-hidden="true" />
-      <span className="shop-buy-label">{label}</span>
-      <strong className="shop-buy-price">{slot.price}</strong>
+      <span className="sx-buy-rim" aria-hidden="true" />
+      <span className="sx-buy-label">{label}</span>
+      <strong className="sx-buy-price">{slot.price}</strong>
     </button>
   );
 }
@@ -209,7 +210,7 @@ function ShelfPanel({
   return (
     <>
       <PanelHead kicker="SUPPLY EXCHANGE" title="补给货架" />
-      <div className="shop-panel-readout" aria-label="商店状态">
+      <div className="sx-readout" aria-label="商店状态">
         <div>
           <span>居民积分</span>
           <strong>{loot.toLocaleString()}</strong>
@@ -224,14 +225,14 @@ function ShelfPanel({
           <em>下次 {refreshCost}</em>
         </div>
       </div>
-      <div className="shop-tabs" role="tablist" aria-label="货架分类">
+      <div className="sx-tabs" role="tablist" aria-label="货架分类">
         {SHOP_TABS.map((item) => {
           const count = item.id === "equipment" ? shop.equip.length : shop.material.length;
           const active = tab === item.id;
           return (
             <button
               key={item.id}
-              className={`shop-tab${active ? " is-active" : ""}`}
+              className={`sx-tab${active ? " is-active" : ""}`}
               type="button"
               role="tab"
               aria-selected={active}
@@ -243,8 +244,8 @@ function ShelfPanel({
           );
         })}
       </div>
-      <div className="shop-panel-body">
-        <div className="shop-col-main">
+      <div className="sx-body">
+        <div className="sx-main">
           <ShelfRow
             label={tab === "equipment" ? "装备" : "材料"}
             slots={visibleSlots}
@@ -252,21 +253,21 @@ function ShelfPanel({
             onSelect={setSelected}
           />
         </div>
-        <ItemDetail
+        <ShopItemCard
           stack={sel ? asStack(sel) : null}
           placeholder="选择一件商品查看详情。今天挑剩的，明天就换新货了。"
         >
           {sel && <BuyBadge slot={sel} affordable={affordable} onBuy={onBuy} />}
-        </ItemDetail>
+        </ShopItemCard>
       </div>
-      <div className="shop-panel-foot">
-        <p className="shop-note">
+      <div className="sx-foot">
+        <p className="sx-note">
           当前余额 {loot.toLocaleString()} · 今日已刷新 {shop.refreshes} 次
           {/* 主刷新机制不在这里, 说清楚免得玩家以为只能花钱换货 */}
-          <span className="shop-note-dim">　出击归来自动换一批新货，刷新价也会归零。</span>
+          <span className="sx-note-dim">　出击归来自动换一批新货，刷新价也会归零。</span>
         </p>
         <button
-          className="shop-primary"
+          className="sx-refresh"
           type="button"
           disabled={loot < refreshCost}
           onClick={onRefresh}

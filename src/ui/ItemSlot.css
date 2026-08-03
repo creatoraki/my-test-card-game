@@ -128,30 +128,6 @@
   pointer-events: none;
 }
 
-/* 商店货架: 只保留图标, 尺寸固定, 不随格子剩余空间压缩。 */
-.item-slot.is-icon-only {
-  flex: 0 0 auto;
-  width: 124px;
-  height: 124px;
-  padding: 0;
-}
-.item-slot.is-icon-only .item-slot-icon {
-  flex: 0 0 72px;
-  width: 72px;
-  height: 72px;
-}
-.item-slot.is-icon-only .item-slot-icon svg,
-.item-slot.is-icon-only .item-slot-icon img {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-}
-.item-slot.is-icon-only .item-slot-name,
-.item-slot.is-icon-only .item-slot-bond,
-.item-slot.is-icon-only .item-slot-count {
-  display: none;
-}
-
 /* ── 空格 / 死格 ── */
 .item-slot.is-empty {
   cursor: default;
