@@ -51,6 +51,47 @@
   line-height: 1.6;
 }
 
+.deck-card-detail.is-floating {
+  width: 100%;
+  height: 100%;
+  flex: 0 0 auto;
+  padding: 16px;
+  gap: 12px;
+  background: linear-gradient(155deg, #ffffff, #fbf3ff 58%, #ecdcfa);
+  border-color: color-mix(in srgb, var(--owner-color) 38%, #2a1b3d24);
+  box-shadow:
+    inset 0 1px 0 #ffffffeb,
+    0 24px 56px -24px #2a1b3db8,
+    0 0 34px -16px var(--owner-color);
+  animation: deckCardDetailFloatIn 180ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.deck-card-detail.is-floating .deck-card-detail-art {
+  width: 100%;
+  flex: 0 0 auto;
+  aspect-ratio: 1 / 1;
+  height: auto;
+}
+
+.deck-card-detail.is-floating .deck-card-detail-art img {
+  object-fit: contain;
+}
+
+.deck-card-detail.is-floating .deck-card-detail-title h3 {
+  font-size: 25px;
+}
+
+.deck-card-detail.is-floating .deck-card-detail-text {
+  font-size: 13px;
+}
+
+@keyframes deckCardDetailFloatIn {
+  from {
+    opacity: 0;
+    transform: translateX(-14px) scale(0.97);
+  }
+}
+
 .deck-card-detail-head {
   display: flex;
   align-items: baseline;
@@ -96,7 +137,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .deck-card-detail-art > span:not(.deck-card-detail-cost) {
@@ -200,4 +241,10 @@
 }
 .deck-card-detail-text::-webkit-scrollbar {
   display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-card-detail.is-floating {
+    animation: none;
+  }
 }

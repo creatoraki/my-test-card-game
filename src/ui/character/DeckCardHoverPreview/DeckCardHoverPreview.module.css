@@ -1,0 +1,9 @@
+.deck-card-hover-preview {
+  position: absolute;
+  z-index: 4;
+  top: 206px;
+  left: 716px;
+  width: 360px;
+  height: 660px;
+  pointer-events: none;
+}

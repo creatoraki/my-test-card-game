@@ -23,12 +23,17 @@ const RARITY_LABEL: Record<Rarity, string> = {
 
 interface Props {
   card: Card | null;
+  variant?: "panel" | "floating";
+  className?: string;
 }
 
-export function DeckCardDetail({ card }: Props) {
+export function DeckCardDetail({ card, variant = "panel", className }: Props) {
   if (!card) {
     return (
-      <aside className={cx(s["deck-card-detail"], s["is-empty"])} aria-label="卡牌详情">
+      <aside
+        className={cx(s["deck-card-detail"], s["is-empty"], variant === "floating" && s["is-floating"], className)}
+        aria-label="卡牌详情"
+      >
         <span className={s["deck-card-detail-empty-mark"]}>DECK / READY</span>
         <p>选择一张卡牌查看完整战术信息。</p>
       </aside>
@@ -41,7 +46,7 @@ export function DeckCardDetail({ card }: Props) {
 
   return (
     <aside
-      className={s["deck-card-detail"]}
+      className={cx(s["deck-card-detail"], variant === "floating" && s["is-floating"], className)}
       style={{ "--owner-color": owner.color } as CSSProperties}
       aria-label={`${card.name}卡牌详情`}
     >

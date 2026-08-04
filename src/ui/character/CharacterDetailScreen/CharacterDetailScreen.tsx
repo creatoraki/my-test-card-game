@@ -18,7 +18,7 @@ import type { EquipSlot } from "@/items/types";
 import { useRunStore } from "@/store/runStore";
 import { deriveStats, useTownStore } from "@/store/townStore";
 import { DeckCard } from "@/ui/character/DeckCard";
-import { DeckCardDetail } from "@/ui/character/DeckCardDetail";
+import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { EquipmentDrawer } from "@/ui/character/EquipmentDrawer";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
@@ -104,6 +104,7 @@ export function CharacterDetailScreen() {
   const closeCharDetail = useRunStore((s) => s.closeCharDetail);
   const [activeSlot, setActiveSlot] = useState<EquipSlot | null>(null);
   const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
+  const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageScale = useStageScale(viewportRef);
@@ -134,12 +135,21 @@ export function CharacterDetailScreen() {
   useEffect(() => {
     setActiveSlot(null);
     setSelectedCardUid(cs?.deck[0]?.uid ?? null);
+    setHoveredCardUid(null);
   }, [charId]);
 
   useEffect(() => {
     const firstCardUid = cs?.deck[0]?.uid ?? null;
     if (!cs?.deck.some((card) => card.uid === selectedCardUid)) setSelectedCardUid(firstCardUid);
   }, [cs, selectedCardUid]);
+
+  useEffect(() => {
+    if (!cs?.deck.some((card) => card.uid === hoveredCardUid)) setHoveredCardUid(null);
+  }, [cs, hoveredCardUid]);
+
+  useEffect(() => {
+    if (activeSlot) setHoveredCardUid(null);
+  }, [activeSlot]);
 
   // Esc 返回编队页。与左下角那颗按钮同一个出口(都走 back, 才能一并触发返回的飞行)。
   useEffect(() => {
@@ -175,7 +185,7 @@ export function CharacterDetailScreen() {
   // 禁用口径与 townStore.toggleParty(以及编队页的角标)三处一致。
   const blocked = onField ? party.length <= 1 : party.length >= size;
   const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
-  const selectedCard = cs.deck.find((card) => card.uid === selectedCardUid) ?? cs.deck[0] ?? null;
+  const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
 
   return (
     <div
@@ -260,7 +270,7 @@ export function CharacterDetailScreen() {
               onSelect={setActiveSlot}
               onUnequip={(slot) => unequipItem(charId, slot)}
             />
-            <span className={s["cd-section-label"]}>面板属性 · 只读</span>
+            {/* <span className={s["cd-section-label"]}>面板属性 · 只读</span> */}
             <div className={s["cd-stat-groups"]}>
               {STAT_GROUPS.map((g, gi) => (
                 <div key={g.title} className={s["cd-stat-group"]} style={stagger(gi)}>
@@ -279,9 +289,6 @@ export function CharacterDetailScreen() {
                 </div>
               ))}
             </div>
-            <p className={s["cd-note"]}>
-              属性由角色基底 + 装备换算而来(deriveStats), 不设等级也不加点 —— 长期成长看装备与卡组。
-            </p>
           </div>
 
           {/* 右侧工作区: 默认展示个人卡组, 点击左侧装备槽后切换到对应部位仓库。 */}
@@ -315,18 +322,27 @@ export function CharacterDetailScreen() {
                         <DeckCard
                           card={card}
                           index={i}
-                          selected={card.uid === selectedCard?.uid}
+                          selected={card.uid === selectedCardUid}
                           onClick={() => setSelectedCardUid(card.uid)}
+                          onMouseEnter={() => setHoveredCardUid(card.uid)}
+                          onMouseLeave={() =>
+                            setHoveredCardUid((current) => (current === card.uid ? null : current))
+                          }
+                          onFocus={() => setHoveredCardUid(card.uid)}
+                          onBlur={() =>
+                            setHoveredCardUid((current) => (current === card.uid ? null : current))
+                          }
                         />
                       </div>
                     ))}
                   </div>
-                  <DeckCardDetail card={selectedCard} />
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {!activeSlot && hoveredCard && <DeckCardHoverPreview card={hoveredCard} />}
 
         {/* ---- 左下: 返回 ---- */}
         <button

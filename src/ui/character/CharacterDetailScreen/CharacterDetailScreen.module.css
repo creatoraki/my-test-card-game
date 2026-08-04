@@ -359,6 +359,11 @@ span.cd-bust {
   min-height: 0;
   padding: 2px;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.cd-stat-groups::-webkit-scrollbar {
+  display: none;
 }
 /* ⚠ 起点 260ms 与 CharacterDetailScreen.tsx 的 CONTENT_DELAY_MS、间隔 55ms 与 STAGGER_MS
    是同两个数(那边靠它们算数值滚动的起跑时间), 改一处要改两处。
@@ -478,12 +483,10 @@ span.cd-bust {
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) 236px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .cd-deck-grid {
-  --deck-card-w: 100%;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
@@ -501,6 +504,7 @@ span.cd-bust {
 /* 每张卡外面套一格: 翻入动画挂在这层, 不去动 CardView 自己的样式(那是跨界面共用件)。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
 .cd-deck-cell {
+  min-width: 0;
   animation: cdCardFlipIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(320ms + var(--i, 0) * 28ms);
   transition: transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
