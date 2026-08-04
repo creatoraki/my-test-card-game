@@ -1,4 +1,4 @@
-import { preloadImage, preloadVideo } from "@/ui/art/assetLoader";
+import { preloadImage, preloadVideo, scheduleLowPriority } from "@/ui/art/assetLoader";
 import { CARD_ART_SOURCES } from "@/ui/art/cardArt";
 import { CHARACTER_ART_SOURCES } from "@/ui/common/CharacterPortrait/CharacterPortrait";
 import { ENEMY_ART_SOURCES } from "@/ui/art/enemyArt";
@@ -42,6 +42,7 @@ const imageSources = unique([
 ]);
 
 const videoSources = unique([...SCENE_VIDEO_SOURCES, ...BATTLE_BG_VIDEO_SOURCES]);
+const PRELOAD_TASK_CONCURRENCY = 2;
 
 export const GAME_ASSET_TASKS: readonly AssetTask[] = [
   ...imageSources.map((src) => ({ kind: "image" as const, src })),
@@ -86,24 +87,45 @@ export function startGameAssetPreload(): Promise<void> {
   let completed = 0;
   let failed = 0;
 
-  const tasks = GAME_ASSET_TASKS.map((task) =>
-    Promise.resolve()
-      .then(() => (task.kind === "image" ? preloadImage(task.src) : preloadVideo(task.src)))
-      .catch(() => {
-        failed += 1;
-      })
-      .then(() => {
-        completed += 1;
-        publish({
-          status: "loading",
-          total: GAME_ASSET_TASKS.length,
-          completed,
-          failed,
-        });
-      }),
-  );
+  preloadPromise = new Promise<void>((resolve) => {
+    let nextTaskIndex = 0;
+    let activeTasks = 0;
 
-  preloadPromise = Promise.all(tasks).then(() => {
+    const pump = () => {
+      if (completed === GAME_ASSET_TASKS.length) {
+        resolve();
+        return;
+      }
+
+      while (
+        activeTasks < PRELOAD_TASK_CONCURRENCY &&
+        nextTaskIndex < GAME_ASSET_TASKS.length
+      ) {
+        const task = GAME_ASSET_TASKS[nextTaskIndex];
+        nextTaskIndex += 1;
+        activeTasks += 1;
+
+        const loadTask = task.kind === "image" ? preloadImage(task.src) : preloadVideo(task.src);
+        void loadTask
+          .catch(() => {
+            failed += 1;
+          })
+          .then(() => {
+            activeTasks -= 1;
+            completed += 1;
+            publish({
+              status: "loading",
+              total: GAME_ASSET_TASKS.length,
+              completed,
+              failed,
+            });
+            scheduleLowPriority(pump);
+          });
+      }
+    };
+
+    scheduleLowPriority(pump);
+  }).then(() => {
     publish({
       status: "ready",
       total: GAME_ASSET_TASKS.length,

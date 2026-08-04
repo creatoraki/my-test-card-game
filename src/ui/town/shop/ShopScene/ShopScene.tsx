@@ -165,6 +165,7 @@ export function ShopScene({ leaving = false }: Props) {
         rows={4}
         columns={6}
         position={{ side: "left", top: 200, offset: 80 }}
+        rotation={{ x: 0.7, y: 4 }}
       />
     </div>
   );

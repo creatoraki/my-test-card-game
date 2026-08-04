@@ -32,6 +32,11 @@ export interface WarehousePanelPosition {
   offset?: number;
 }
 
+export interface WarehousePanelRotation {
+  x?: number;
+  y?: number;
+}
+
 interface ResolvedWarehousePanelPosition {
   side: "left" | "right";
   top: number;
@@ -45,6 +50,7 @@ export interface WarehousePanelProps {
   rows?: number;
   columns?: number;
   position?: WarehousePanelPosition;
+  rotation?: WarehousePanelRotation;
   panelId?: string;
 }
 
@@ -78,6 +84,7 @@ export default function WarehousePanel({
   rows = 4,
   columns = 6,
   position,
+  rotation,
   panelId = "warehouse-panel",
 }: WarehousePanelProps) {
   const storage = useTownStore((state) => state.storage);
@@ -165,23 +172,34 @@ export default function WarehousePanel({
     "--warehouse-columns": safeColumns,
     "--warehouse-grid-height": `${gridHeight}px`,
     "--warehouse-grid-bleed": `${GRID_HOVER_BLEED}px`,
+    "--warehouse-rotation-x": `${rotation?.x ?? 0}deg`,
+    "--warehouse-rotation-y": `${rotation?.y ?? 0}deg`,
   } as CSSProperties;
 
   return (
-    <div className={s["warehouse-layer"]}>
-      <section
-        id={panelId}
-        className={cx(
-          s["warehouse-panel"],
-          safePosition.side === "right" && s["is-right"],
-          leaving && s["is-leaving"],
-        )}
-        style={style}
-        role="dialog"
-        aria-modal="false"
-        aria-labelledby={`${panelId}-title`}
-      >
-        <span className={s["warehouse-rim"]} aria-hidden="true" />
+    <div
+      className={cx(s["warehouse-layer"], safePosition.side === "right" && s["is-right"])}
+    >
+      <div className={s["warehouse-stage"]} style={style}>
+        <span
+          className={cx(
+            s["warehouse-rim"],
+            safePosition.side === "right" && s["is-right"],
+            leaving && s["is-leaving"],
+          )}
+          aria-hidden="true"
+        />
+        <section
+          id={panelId}
+          className={cx(
+            s["warehouse-panel"],
+            safePosition.side === "right" && s["is-right"],
+            leaving && s["is-leaving"],
+          )}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={`${panelId}-title`}
+        >
         <header className={s["warehouse-head"]}>
           <div>
             <span className={s["warehouse-kicker"]}>STORAGE INDEX</span>
@@ -247,7 +265,8 @@ export default function WarehousePanel({
           <span>库存 {storage.length} 件</span>
           <span>{visibleStacks.length} 件匹配</span>
         </footer>
-      </section>
+        </section>
+      </div>
 
       {hoveredStack && tooltipPoint && (
         <WarehouseTooltip stack={hoveredStack} point={tooltipPoint} leaving={leaving} />

@@ -1,10 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
+import imageOptimize from "./scripts/vite-plugin-image-optimize.mjs";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  // imageOptimize 在 dev 与 build 下行为一致(见插件头部注释), 所以开发时看到的画质
+  // 就是线上画质。OPTIMIZE=0 pnpm dev 可退回原始 PNG 做原画对比。
+  plugins: [react(), imageOptimize()],
   server: {
     allowedHosts: [".trycloudflare.com"],
   },

@@ -2,8 +2,25 @@
   position: absolute;
   z-index: 8;
   inset: 0;
+  perspective: 1500px;
+  perspective-origin: 56px 50%;
   pointer-events: none;
   background: transparent;
+}
+
+.warehouse-layer.is-right {
+  perspective-origin: calc(100% - 56px) 50%;
+}
+
+.warehouse-stage {
+  position: absolute;
+  transform: rotateY(var(--warehouse-rotation-y)) rotateX(var(--warehouse-rotation-x));
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+
+.warehouse-layer.is-right .warehouse-stage {
+  transform-origin: right center;
 }
 
 .warehouse-panel {
@@ -24,6 +41,7 @@
   --text: var(--warehouse-ink);
 
   position: absolute;
+  inset: 0;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -91,49 +109,59 @@
   opacity: 0.56;
 }
 
-.warehouse-panel > *:not(.warehouse-rim) {
+.warehouse-panel > * {
   position: relative;
   z-index: 1;
 }
 
 .warehouse-rim {
   position: absolute;
+  inset: 0;
   z-index: 2;
-  inset: 10px;
+  box-sizing: border-box;
+  padding: 2px;
   overflow: hidden;
   pointer-events: none;
   border: 1px solid #ffffff35;
-  border-radius: 14px 9px 16px 10px;
+  border-radius: 22px 13px 24px 15px;
+  clip-path: polygon(
+    20px 0,
+    100% 0,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%,
+    0 20px
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
   opacity: 0.92;
+  animation: warehousePanelIn 520ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
 }
 
 .warehouse-rim::before {
-  position: absolute;
-  inset: -1px;
-  border: 2px solid transparent;
-  border-radius: inherit;
-  border-image: conic-gradient(
-      from 0deg,
-      transparent 0deg,
-      transparent 302deg,
-      #8279ff70 326deg,
-      #ffffff 346deg,
-      #5ed5ff9c 358deg,
-      transparent 360deg
-    )
-    1;
   content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 304deg,
+    #5ed5ff18 318deg,
+    #8279ff72 332deg,
+    #b8f2ff 346deg,
+    #ffffff 351deg,
+    #5ed5ffb8 357deg,
+    transparent 360deg
+  );
+  transform: translate(-50%, -50%);
   filter: drop-shadow(0 0 3px #8279ff8c) drop-shadow(0 0 7px #5ed5ff4d);
   animation: warehouseRimRun 5.8s linear infinite;
-}
-
-.warehouse-rim::after {
-  position: absolute;
-  inset: 8px;
-  border: 1px solid #b9b6ff26;
-  border-radius: 9px 6px 11px 7px;
-  content: "";
-  transform: rotate(-0.16deg);
 }
 
 .warehouse-head {
@@ -392,15 +420,18 @@
   }
 }
 
-.warehouse-panel.is-right {
+.warehouse-panel.is-right,
+.warehouse-rim.is-right {
   animation-name: warehousePanelInRight;
 }
 
-.warehouse-panel.is-leaving {
+.warehouse-panel.is-leaving,
+.warehouse-rim.is-leaving {
   animation: warehousePanelOut 420ms ease-in both;
 }
 
-.warehouse-panel.is-right.is-leaving {
+.warehouse-panel.is-right.is-leaving,
+.warehouse-rim.is-right.is-leaving {
   animation-name: warehousePanelOutRight;
 }
 
@@ -450,12 +481,13 @@
 
 @keyframes warehouseRimRun {
   to {
-    transform: rotate(360deg);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .warehouse-panel,
+  .warehouse-rim,
   .warehouse-rim::before,
   .warehouse-close,
   .warehouse-slot.warehouse-slot {
