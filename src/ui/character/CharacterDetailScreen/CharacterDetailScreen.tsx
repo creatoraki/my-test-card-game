@@ -2,20 +2,25 @@
 // ⚠ 它不是浮层: 原先这套内容是冬眠仓「队员档案」modal 里的右栏(1240×680 面板里的一小半),
 //   独立成页后立绘、属性、卡组各有自己的一栏, 不再互相挤。
 //
-// ★ 内容是**只读**的。加点与卡组锻造刻意不放这里 —— 那两样归训练室(游戏设定.md:86-89 的设施分工);
-//   角色也不设等级(角色养成设计.md 第一章), 故这里给的是「可用经验」与卡组的锻造进度。
-// ★ 唯一会改变游戏状态的东西是左下角那颗**上阵 / 下阵**按钮 —— 看完属性能就地编队,
-//   不必退回列表页再点一次角标。禁用口径与编队页、与 townStore.toggleParty 三处一致。
+// ★ 属性与卡组档案是**只读**的。加点与卡组锻造刻意不放这里 —— 那两样归训练室
+//   (游戏设定.md:86-89 的设施分工); 角色也不设等级(角色养成设计.md 第一章)。
+// ★ 装备槽是本页的即时操作区: 点击部位后右侧切换对应仓库, 穿戴/卸下直接复用 townStore。
+//   左下角的**上阵 / 下阵**按钮也保留在这里, 看完属性能就地编队, 不必退回列表页再点角标。
+//   两类操作的业务规则都不在本组件内重复实现。
 //
 // 版面与视觉与编队页同族(同一张背景、同一套亮玻璃配方), 旋钮在 CharacterDetailScreen.css 的 --cd-*。
 // 与全项目同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts): 所有坐标都是「设计 px」。
 
-import { useCallback, useEffect, useRef, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { RULES, type StatBlock } from "@/engine";
-import { getCharacter } from "@/data";
+import { getCharacter, getItemDef } from "@/data";
+import type { EquipSlot } from "@/items/types";
 import { useRunStore } from "@/store/runStore";
 import { deriveStats, useTownStore } from "@/store/townStore";
-import { CardView } from "@/ui/character/CardView";
+import { DeckCard } from "@/ui/character/DeckCard";
+import { DeckCardDetail } from "@/ui/character/DeckCardDetail";
+import { EquipmentDrawer } from "@/ui/character/EquipmentDrawer";
+import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
@@ -91,9 +96,14 @@ export function CharacterDetailScreen() {
   const characters = useTownStore((s) => s.characters);
   const awakened = useTownStore((s) => s.awakened);
   const party = useTownStore((s) => s.party);
+  const storage = useTownStore((s) => s.storage);
+  const equipItem = useTownStore((s) => s.equipItem);
+  const unequipItem = useTownStore((s) => s.unequipItem);
   const toggleParty = useTownStore((s) => s.toggleParty);
   const charId = useRunStore((s) => s.detailCharId);
   const closeCharDetail = useRunStore((s) => s.closeCharDetail);
+  const [activeSlot, setActiveSlot] = useState<EquipSlot | null>(null);
+  const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageScale = useStageScale(viewportRef);
@@ -121,14 +131,40 @@ export function CharacterDetailScreen() {
     if (invalid) closeCharDetail();
   }, [invalid, closeCharDetail]);
 
+  useEffect(() => {
+    setActiveSlot(null);
+    setSelectedCardUid(cs?.deck[0]?.uid ?? null);
+  }, [charId]);
+
+  useEffect(() => {
+    const firstCardUid = cs?.deck[0]?.uid ?? null;
+    if (!cs?.deck.some((card) => card.uid === selectedCardUid)) setSelectedCardUid(firstCardUid);
+  }, [cs, selectedCardUid]);
+
   // Esc 返回编队页。与左下角那颗按钮同一个出口(都走 back, 才能一并触发返回的飞行)。
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") back();
+      if (e.key !== "Escape") return;
+      if (activeSlot) {
+        setActiveSlot(null);
+        return;
+      }
+      back();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [back]);
+  }, [activeSlot, back]);
+
+  const drawerCandidates = useMemo(
+    () =>
+      activeSlot && cs
+        ? storage.filter((stack) => {
+            const def = getItemDef(stack.itemId);
+            return def.category === "equipment" && def.slot === activeSlot;
+          })
+        : [],
+    [activeSlot, cs, storage],
+  );
 
   if (!cs || !charId) return null;
 
@@ -139,6 +175,7 @@ export function CharacterDetailScreen() {
   // 禁用口径与 townStore.toggleParty(以及编队页的角标)三处一致。
   const blocked = onField ? party.length <= 1 : party.length >= size;
   const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
+  const selectedCard = cs.deck.find((card) => card.uid === selectedCardUid) ?? cs.deck[0] ?? null;
 
   return (
     <div
@@ -214,8 +251,15 @@ export function CharacterDetailScreen() {
             <p className={s["cd-note"]}>{blocked ? reason : "改动即时生效, 下次远征按此阵容出发。"}</p>
           </div>
 
-          {/* 属性栏: 四组竖排, 两列。 */}
+          {/* 属性栏: 装备配置置于顶部, 下方是四组竖排属性。 */}
           <div className={s["cd-stats-col"]}>
+            <EquipmentSlots
+              className={s["cd-equipment-slots"]}
+              equipped={cs.equipped}
+              activeSlot={activeSlot}
+              onSelect={setActiveSlot}
+              onUnequip={(slot) => unequipItem(charId, slot)}
+            />
             <span className={s["cd-section-label"]}>面板属性 · 只读</span>
             <div className={s["cd-stat-groups"]}>
               {STAT_GROUPS.map((g, gi) => (
@@ -240,17 +284,47 @@ export function CharacterDetailScreen() {
             </p>
           </div>
 
-          {/* 卡组栏 */}
+          {/* 右侧工作区: 默认展示个人卡组, 点击左侧装备槽后切换到对应部位仓库。 */}
           <div className={s["cd-deck-col"]}>
-            <span className={s["cd-section-label"]}>个人卡组 · {cs.deck.length} 张</span>
-            <div className={s["cd-deck-grid"]}>
-              {cs.deck.map((card, i) => (
-                <div key={card.uid} className={s["cd-deck-cell"]} style={stagger(i)}>
-                  <CardView card={card} playable selected={false} />
+            {activeSlot ? (
+              <EquipmentDrawer
+                slot={activeSlot}
+                current={cs.equipped[activeSlot]}
+                candidates={drawerCandidates}
+                onEquip={(uid) => equipItem(charId, uid)}
+                onUnequip={() => unequipItem(charId, activeSlot)}
+                onClose={() => setActiveSlot(null)}
+              />
+            ) : (
+              <div className={s["cd-deck-panel"]}>
+                <div className={s["cd-deck-head"]}>
+                  <div>
+                    <span className={s["cd-section-label"]}>个人卡组</span>
+                    <p className={s["cd-deck-sub"]}>只读构筑档案 · 卡组锻造请前往训练室</p>
+                  </div>
+                  <div className={s["cd-deck-readout"]}>
+                    <span>{cs.deck.length} 张</span>
+                    <span>Lv.{cs.deckLevel}</span>
+                    <span>下限 {cs.minDeckSize}</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-            <p className={s["cd-note"]}>卡组锻造请前往训练室。</p>
+                <div className={s["cd-deck-content"]}>
+                  <div className={s["cd-deck-grid"]}>
+                    {cs.deck.map((card, i) => (
+                      <div key={card.uid} className={s["cd-deck-cell"]} style={stagger(i)}>
+                        <DeckCard
+                          card={card}
+                          index={i}
+                          selected={card.uid === selectedCard?.uid}
+                          onClick={() => setSelectedCardUid(card.uid)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <DeckCardDetail card={selectedCard} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

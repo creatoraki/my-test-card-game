@@ -50,11 +50,22 @@
     0 0 22px -16px #8279ffb3;
   -webkit-backdrop-filter: blur(16px) saturate(120%) brightness(0.82);
   backdrop-filter: blur(16px) saturate(120%) brightness(0.82);
-  animation: sxCardIn 420ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
 }
 
 .sx-card::-webkit-scrollbar {
   display: none;
+}
+
+/* ★ 入场动画从 .sx-card 搬到这里。外壳(带 backdrop-filter)跨商品切换存活,
+   只有这一层随 key 重挂载 —— 淡入不再连带重建玻璃层与重采样整屏背景。
+   动画也去掉了 rotateX: 为一次淡入单独建一个 3D 层不值当, 位移感由 translateY 给足。 */
+.sx-card-body {
+  display: flex;
+  min-height: 0;
+  flex: 1 0 auto;
+  flex-direction: column;
+  gap: 11px;
+  animation: sxCardIn 420ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
 }
 
 .sx-card::before {
@@ -94,9 +105,11 @@
   display: none;
 }
 
+/* 空态没有 .sx-card-body, 淡入直接挂在这段文字上 —— 与有商品时的入场保持一致。 */
 .sx-card-idle {
   max-width: 190px;
   margin: 0;
+  animation: sxCardIn 420ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
   color: var(--sx-muted);
   font-size: 14px;
   letter-spacing: 1px;
@@ -123,8 +136,9 @@
     inset 0 1px 0 #ffffff38,
     inset 0 -25px 35px -30px #000000b3,
     0 0 18px -14px color-mix(in srgb, var(--sx-rr) 72%, #8279ff 28%);
-  -webkit-backdrop-filter: blur(10px) saturate(125%) brightness(0.82);
-  backdrop-filter: blur(10px) saturate(125%) brightness(0.82);
+  /* ★ 这里原本还有一层 backdrop-filter: blur(10px)。它叠在 .sx-card 已经模糊过的底子上,
+     模糊叠模糊几乎看不出差别, 却让展示台成为独立的 backdrop root —— 每次换商品
+     都要连它一起重建并重采样。删掉后视觉不变, 少一个合成层。 */
 }
 
 .sx-card-stage::before {
@@ -141,20 +155,32 @@
   transform-origin: center bottom;
 }
 
+/* 静态扫描线 —— 不再承担扫光, 因此这一层彻底不动了。 */
 .sx-card-stage::after {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
-  background:
-    linear-gradient(105deg, transparent 0 47%, #ffffff7a 48%, transparent 49% 100%),
-    repeating-linear-gradient(0deg, transparent 0 16px, #ffffff09 16px 17px);
-  background-size: 220% 100%, auto;
-  background-position: 120% 0, 0 0;
+  background: repeating-linear-gradient(0deg, transparent 0 16px, #ffffff09 16px 17px);
   content: "";
   pointer-events: none;
+}
+
+/* 扫光带。宽度取展示台的 220%, 位移量按原来 background-position 120%→-20% 的等效
+   换算得来(见 sxStageSweep), 因此轨迹与改动前一致, 只是驱动属性从 background-position
+   换成了 transform。z-index 1 让它压住扫描线又被商品图盖住, 与原来的层序相同。 */
+.sx-card-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 220%;
+  background: linear-gradient(105deg, transparent 0 47%, #ffffff7a 48%, transparent 49% 100%);
+  pointer-events: none;
   animation: sxStageSweep 5.6s ease-in-out infinite;
+  will-change: transform;
 }
 
 .sx-card-icon {
@@ -170,6 +196,9 @@
   transform-style: preserve-3d;
   filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 7px color-mix(in srgb, var(--sx-rr) 34%, #8279ff 20%));
   animation: sxShowcase 4.8s ease-in-out infinite;
+  /* filter 是**静态**的, 可以被烘进图层一次性栅格化, 之后 sxShowcase 只动 transform。
+     显式声明 will-change 免得浏览器在每次换商品后重新判断要不要提层。 */
+  will-change: transform;
 }
 
 .sx-card-icon::before {
@@ -356,11 +385,11 @@
 @keyframes sxCardIn {
   from {
     opacity: 0;
-    transform: translateY(16px) rotateX(3deg);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) rotateX(0);
+    transform: translateY(0);
   }
 }
 
@@ -374,21 +403,35 @@
   }
 }
 
+/* ★ 位移量的来历: 原来是 background-position 从 120% 走到 -20%, 图案宽 220%。
+   背景百分比定位的偏移 = P × (容器宽 − 图案宽) = P × (−120%容器宽)。
+   起点 120% → −144% 容器宽 = −65.45% 自身宽; 终点 −20% → +24% 容器宽 = +10.91% 自身宽。 */
 @keyframes sxStageSweep {
   0%,
   28% {
-    background-position: 120% 0, 0 0;
+    transform: translateX(-65.45%);
   }
   56%,
   100% {
-    background-position: -20% 0, 0 0;
+    transform: translateX(10.91%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :global([data-shop-root]) .sx-card,
+  :global([data-shop-root]) .sx-card-body,
+  :global([data-shop-root]) .sx-card-idle,
   :global([data-shop-root]) .sx-card-icon,
-  :global([data-shop-root]) .sx-card-stage::after {
+  :global([data-shop-root]) .sx-card-sweep {
     animation: none;
+  }
+
+  :global([data-shop-root]) .sx-card-icon,
+  :global([data-shop-root]) .sx-card-sweep {
+    will-change: auto;
+  }
+
+  /* 不动了就别留着那条光带压在商品图上。 */
+  :global([data-shop-root]) .sx-card-sweep {
+    display: none;
   }
 }

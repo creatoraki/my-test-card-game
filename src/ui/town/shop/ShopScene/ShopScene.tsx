@@ -20,12 +20,13 @@
 //
 // ★ 商店面板左侧保留两块独立的梯形侧牌, 与面板共用背板材质, 负责装备/材料切换。
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { shopRefreshCost, type ShopSlot } from "@/data/shop";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import ShopItemCard from "@/ui/town/shop/ShopItemCard";
 import ShopItemTile from "@/ui/town/shop/ShopItemTile";
+import PurchaseFlight, { type PurchaseFlightRect } from "@/ui/town/shop/PurchaseFlight/PurchaseFlight";
 import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
 import { cx } from "@/ui/common/cx";
 import s from "./ShopScene.module.css";
@@ -39,6 +40,12 @@ type ShopTab = "equipment" | "material";
 type TabDirection = "forward" | "backward";
 type ShelfMotion = "entering" | "leaving" | "idle";
 type ShelfSnapshot = { key: string; tab: ShopTab; slots: ShopSlot[] };
+type PurchaseFlightState = {
+  id: number;
+  itemId: string;
+  source: PurchaseFlightRect;
+  target: PurchaseFlightRect;
+};
 const SHOP_TABS: { id: ShopTab; label: string }[] = [
   { id: "equipment", label: "装备" },
   { id: "material", label: "材料" },
@@ -74,6 +81,57 @@ export function ShopScene({ leaving = false }: Props) {
   const [tab, setTab] = useState<ShopTab>("equipment");
   const [tabDirection, setTabDirection] = useState<TabDirection>("forward");
   const [warehouseOpen, setWarehouseOpen] = useState(false);
+  const warehouseIconRef = useRef<HTMLSpanElement>(null);
+  const itemIconRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
+  const flightIdRef = useRef(0);
+  const [purchaseFlights, setPurchaseFlights] = useState<PurchaseFlightState[]>([]);
+
+  // ★ 必须 useCallback: 它一路传到 memo 化的 ShopItemTile 上当 ref 回调,
+  //   引用一变就会把每个格子的图标节点 detach/attach 一遍, 顺带击穿 memo。
+  const registerItemIcon = useCallback((key: string, element: HTMLSpanElement | null) => {
+    if (element) {
+      itemIconRefs.current.set(key, element);
+    } else {
+      itemIconRefs.current.delete(key);
+    }
+  }, []);
+
+  const handleBuy = (key: string) => {
+    const slot = [...shop.equip, ...shop.material].find((item) => item.key === key);
+    const source = itemIconRefs.current.get(key);
+    const target = warehouseIconRef.current;
+
+    if (slot && !slot.sold && loot >= slot.price && source && target) {
+      const sourceRect = source.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const id = flightIdRef.current++;
+      setPurchaseFlights((current) => [
+        ...current,
+        {
+          id,
+          itemId: slot.itemId,
+          source: {
+            left: sourceRect.left,
+            top: sourceRect.top,
+            width: sourceRect.width,
+            height: sourceRect.height,
+          },
+          target: {
+            left: targetRect.left,
+            top: targetRect.top,
+            width: targetRect.width,
+            height: targetRect.height,
+          },
+        },
+      ]);
+    }
+
+    buyShopItem(key);
+  };
+
+  const removePurchaseFlight = (id: number) => {
+    setPurchaseFlights((current) => current.filter((flight) => flight.id !== id));
+  };
 
   const handleTabChange = (nextTab: ShopTab) => {
     if (nextTab === tab) return;
@@ -97,7 +155,7 @@ export function ShopScene({ leaving = false }: Props) {
         aria-expanded={warehouseOpen}
         onClick={() => setWarehouseOpen((current) => !current)}
       >
-        <span className={s["sx-warehouse-icon"]} aria-hidden="true">
+        <span ref={warehouseIconRef} className={s["sx-warehouse-icon"]} aria-hidden="true">
           ▦
         </span>
         <span>仓库</span>
@@ -150,7 +208,8 @@ export function ShopScene({ leaving = false }: Props) {
               tab={tab}
               tabDirection={tabDirection}
               refreshCost={refreshCost}
-              onBuy={buyShopItem}
+              onBuy={handleBuy}
+              onIconRef={registerItemIcon}
               onRefresh={refreshShop}
             />
           </section>
@@ -164,9 +223,19 @@ export function ShopScene({ leaving = false }: Props) {
         panelId="shop-warehouse-panel"
         rows={4}
         columns={6}
-        position={{ side: "left", top: 200, offset: 80 }}
-        rotation={{ x: 0.7, y: 4 }}
+        position={{ side: "left", top: 200, offset: 85 }}
+        rotation={{ x: 0.7, y: 5 }}
       />
+
+      {purchaseFlights.map((flight) => (
+        <PurchaseFlight
+          key={flight.id}
+          itemId={flight.itemId}
+          source={flight.source}
+          target={flight.target}
+          onComplete={() => removePurchaseFlight(flight.id)}
+        />
+      ))}
     </div>
   );
 }
@@ -197,32 +266,37 @@ function PanelHead({
 // 一排货。格子用商店专属的 ShopItemTile(见该文件顶部注释: 为什么不复用 ItemSlot)。
 //   已售出的格压暗并把价格划掉, 但**保留占位**: 当日不补货是规则的一部分,
 //   抽掉格子会让玩家看不出今天原本有几件。
+//
+// ★ 这里**不再**接收 hovered —— 悬浮的视觉由 ShopItemTile 的 CSS :hover 直接给,
+//   不必等 React 走一圈状态。ShelfPanel 仍持有 hovered, 但那只喂右边的详情栏。
 function ShelfRow({
-  label,
   direction,
   slots,
   selected,
-  hovered,
   motion,
   loot,
   onSelect,
   onHoverStart,
   onHoverEnd,
   onBuy,
+  onIconRef,
 }: {
-  label: string;
   direction: TabDirection;
   slots: ShopSlot[];
   selected: string | null;
-  hovered: string | null;
   motion: ShelfMotion;
   loot: number;
   onSelect: (key: string) => void;
   onHoverStart: (key: string) => void;
   onHoverEnd: (key: string) => void;
   onBuy: (key: string) => void;
+  onIconRef: (key: string, element: HTMLSpanElement | null) => void;
 }) {
   const motionClass = motion === "leaving" ? s["is-leaving"] : motion === "entering" ? s["is-entering"] : undefined;
+
+  // 展示用的 ItemStack 跟着这一批货走, 不跟着渲染走 —— 内联 asStack(slot) 每渲染一次
+  // 就是一批新对象, memo 化的格子会因此全部白跑。
+  const stacks = useMemo(() => new Map(slots.map((slot) => [slot.key, asStack(slot)])), [slots]);
 
   return (
     <div className={cx(s["sx-row"], s[`is-${direction}`])}>
@@ -231,15 +305,14 @@ function ShelfRow({
           {slots.map((slot) => (
             <div key={slot.key} className={cx(s["sx-cell"], slot.sold && s["is-sold"])}>
               <ShopItemTile
-                stack={asStack(slot)}
+                slotKey={slot.key}
+                stack={stacks.get(slot.key)!}
                 selected={selected === slot.key}
-                hovered={hovered === slot.key}
                 sold={slot.sold}
-                onClick={() => onSelect(slot.key)}
-                onPointerEnter={() => onHoverStart(slot.key)}
-                onPointerLeave={() => onHoverEnd(slot.key)}
-                onFocus={() => onHoverStart(slot.key)}
-                onBlur={() => onHoverEnd(slot.key)}
+                onIconRef={onIconRef}
+                onSelect={onSelect}
+                onHoverStart={onHoverStart}
+                onHoverEnd={onHoverEnd}
               />
               <ShelfPriceTag slot={slot} affordable={loot >= slot.price} onBuy={onBuy} />
             </div>
@@ -291,6 +364,7 @@ function ShelfPanel({
   tabDirection,
   refreshCost,
   onBuy,
+  onIconRef,
   onRefresh,
 }: {
   shop: { equip: ShopSlot[]; material: ShopSlot[]; refreshes: number };
@@ -301,6 +375,7 @@ function ShelfPanel({
   tabDirection: TabDirection;
   refreshCost: number;
   onBuy: (key: string) => void;
+  onIconRef: (key: string, element: HTMLSpanElement | null) => void;
   onRefresh: () => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -319,6 +394,8 @@ function ShelfPanel({
   const selectedSlot = visibleSlots.find((s) => s.key === selected) ?? null;
   const hoveredSlot = visibleSlots.find((s) => s.key === hovered) ?? null;
   const displayedSlot = hoveredSlot ?? selectedSlot;
+  // 详情卡的展示对象。asStack 每次调用都是新对象, 缓存住才不会让卡片白重渲染一遍。
+  const displayedStack = useMemo(() => (displayedSlot ? asStack(displayedSlot) : null), [displayedSlot]);
 
   useEffect(() => {
     initialEnterTimerRef.current = window.setTimeout(() => {
@@ -380,9 +457,11 @@ function ShelfPanel({
     setHovered((cur) => (cur && visibleKeys.has(cur) ? cur : null));
   }, [shop.equip, shop.material, tab, visibleSlots]);
 
-  const handleHoverEnd = (key: string) => {
+  // setSelected / setHovered 本身就是稳定的; 这一个得自己 useCallback 补上,
+  // 否则 memo 化的 ShopItemTile 会因为它每渲染一次都换新引用而全部重渲染。
+  const handleHoverEnd = useCallback((key: string) => {
     setHovered((current) => (current === key ? null : current));
-  };
+  }, []);
 
   return (
     <>
@@ -399,26 +478,25 @@ function ShelfPanel({
           {/* 分类、刷新或跨日换货时先保留旧快照离场，再替换成新货架。 */}
           <ShelfRow
             key={shelf.key}
-            label={shelf.tab === "equipment" ? "装备" : "材料"}
             direction={tabDirection}
             motion={shelfMotion}
             slots={shelf.slots}
             selected={selected}
-            hovered={hovered}
             loot={loot}
             onSelect={setSelected}
             onHoverStart={setHovered}
             onHoverEnd={handleHoverEnd}
             onBuy={onBuy}
+            onIconRef={onIconRef}
           />
         </div>
+        {/* ★ key **不含**当前悬浮的商品: 详情卡的外壳是这一栏唯一的 backdrop-filter 层,
+            以前 key 里带上 displayedSlot.key, 鼠标每划过一格就把玻璃层连根拔掉重建,
+            一次悬浮要重新采样一遍整屏背景 —— 这是悬浮卡顿的头号来源。
+            换商品的淡入现在由卡片内部的 .sx-card-body 自己 re-key 完成。 */}
         <ShopItemCard
-          key={
-            displayedSlot
-              ? `${day}-${shop.refreshes}-${displayedSlot.key}`
-              : `idle-${day}-${shop.refreshes}`
-          }
-          stack={displayedSlot ? asStack(displayedSlot) : null}
+          key={`${day}-${shop.refreshes}`}
+          stack={displayedStack}
           placeholder="选择一件商品查看详情。今天挑剩的，明天就换新货了。"
         />
       </div>

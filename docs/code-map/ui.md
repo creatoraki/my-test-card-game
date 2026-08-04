@@ -38,7 +38,11 @@ src/ui/
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
 | [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队视图，复用角色立绘和卡组显示。 |
-| [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图，展示角色面板、装备和个人卡组。与编队页之间是共享元素过场。 |
+| [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘，中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性和个人卡组为只读档案，卡组支持卡面选中详情。与编队页之间是共享元素过场。 |
+| [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
+| [character/EquipmentDrawer](../../src/ui/character/EquipmentDrawer/EquipmentDrawer.tsx) | 角色详情页右侧部位仓库，只展示匹配槽位的装备，点击物品立即穿戴，并展示当前装备详情。 |
+| [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情页专用卡面，展示卡面插画或稳定占位、费用、类型、稀有度小徽标、左下角名称和效果；不修改公共 `CardView`。 |
+| [character/DeckCardDetail](../../src/ui/character/DeckCardDetail/DeckCardDetail.tsx) | 角色详情页选中卡详情，展示插画、目标、稀有度、强化/消耗状态和完整描述；不依赖战斗 HUD。 |
 | [character/CardView](../../src/ui/character/CardView/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点侧栏、粒子/积分/负重读数、节点分支、战斗签入口、背包和撤离。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、战场、底部 HUD、目标交互、分镜队列和相机。手牌上限读取 `partyHandLimit`，敌人目标不做仇恨高亮。 |

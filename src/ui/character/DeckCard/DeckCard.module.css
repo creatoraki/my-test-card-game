@@ -1,0 +1,204 @@
+.deck-card {
+  --owner-color: var(--cd-glow);
+  --deck-card-w: 150px;
+  --deck-card-h: 190px;
+  position: relative;
+  display: flex;
+  width: var(--deck-card-w);
+  height: var(--deck-card-h);
+  min-width: 0;
+  flex-direction: column;
+  padding: 6px;
+  overflow: hidden;
+  color: var(--cd-ink);
+  text-align: left;
+  background: linear-gradient(150deg, #ffffffd4, #fbf3ffb0 55%, #ecdcfa9c);
+  border: 1px solid #2a1b3d42;
+  box-shadow: inset 0 1px 0 #ffffffeb, 0 12px 26px -20px #2a1b3d80;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  cursor: pointer;
+  animation: deckCardIn 400ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(100ms + var(--i, 0) * 24ms);
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.deck-card::before {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 10px;
+  left: 10px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--owner-color), transparent);
+  content: "";
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.deck-card:hover:not(:disabled),
+.deck-card:focus-visible,
+.deck-card.is-selected {
+  border-color: var(--owner-color);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--owner-color) 35%, transparent), 0 0 22px -8px var(--owner-color), 0 16px 28px -20px #2a1b3d8c;
+  transform: translateY(-4px);
+}
+
+.deck-card:focus-visible {
+  outline: 2px solid var(--owner-color);
+  outline-offset: 3px;
+}
+
+.deck-card.is-selected {
+  background: linear-gradient(150deg, #ffffffe3, #f8edffc4 55%, #e9d9faad);
+}
+
+.deck-card:hover:not(:disabled),
+.deck-card:focus-visible {
+  color: var(--cd-ink);
+  background: linear-gradient(150deg, #ffffffe8, #f5e8ffc9 55%, #e6d1faad);
+}
+
+.deck-card-art {
+  position: relative;
+  display: flex;
+  flex: 0 0 94px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #2a1b3d12;
+  border: 1px solid #2a1b3d24;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+
+.deck-card-art::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(120deg, #ffffff40, transparent 34%, transparent 70%, #7c4dbe16);
+  content: "";
+  pointer-events: none;
+}
+
+.deck-card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.deck-card-art-empty {
+  color: var(--cd-ink-dim);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.deck-card-cost {
+  position: absolute;
+  z-index: 1;
+  top: 5px;
+  left: 5px;
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  color: #ffffff;
+  font-size: 13px;
+  text-shadow: 0 1px 2px #2a1b3dcc;
+}
+
+.deck-card-cost-icon {
+  position: absolute;
+  width: 27px;
+  height: 27px;
+}
+
+.deck-card-cost strong {
+  position: relative;
+  z-index: 1;
+}
+
+.deck-card-rarity {
+  position: absolute;
+  z-index: 1;
+  right: 5px;
+  bottom: 5px;
+  padding: 2px 4px;
+  color: #ffffff;
+  font-size: 9px;
+  background: #2a1b3db8;
+  border: 1px solid #ffffff66;
+  letter-spacing: 1px;
+}
+
+.deck-card-name {
+  position: absolute;
+  z-index: 1;
+  right: 40px;
+  bottom: 5px;
+  left: 5px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 3px 5px;
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #2a1b3db8;
+  border: 1px solid #ffffff66;
+}
+
+.deck-card-body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 3px 2px;
+}
+
+.deck-card-meta {
+  display: flex;
+  min-height: 13px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  color: var(--cd-ink-dim);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.deck-card-upgraded {
+  color: var(--cd-glow-deep);
+}
+
+.deck-card-text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--cd-ink-dim);
+  font-size: 10px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+@keyframes deckCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotateY(-10deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-card {
+    animation: none;
+    transition: none;
+  }
+
+  .deck-card:hover,
+  .deck-card:focus-visible,
+  .deck-card.is-selected {
+    transform: none;
+  }
+}

@@ -176,6 +176,12 @@
   gap: 12px;
   min-height: 0;
 }
+.cd-stats-col > .cd-equipment-slots {
+  flex: 0 0 auto;
+}
+.cd-deck-col {
+  overflow: hidden;
+}
 
 /* ---- 立绘栏 ---- */
 /* 取景窗吃掉这一栏除按钮/说明之外的全部高度。 */
@@ -232,6 +238,10 @@ span.cd-bust {
   align-self: center;
   margin-bottom: 60px;
   font-size: 96px;
+}
+
+.cd-equipment-slots {
+  view-transition-name: vt-cd-equipment;
 }
 
 /* 主按钮: 全页唯一一处**实心深紫** —— 它是这一页唯一会改变游戏状态的东西。 */
@@ -415,20 +425,78 @@ span.cd-bust {
 }
 
 /* ---- 卡组栏 ---- */
-/* 跨组件尺寸契约: --cv-card-w 与 CardView.module.css 的卡面宽度保持一致。
-  auto-fill 而不是 auto-fit: 卡少的时候不该把两三张卡拉开摊满一整行。 */
-.cd-deck-grid {
-  --cv-card-w: 118px;
-  display: grid;
+/* 卡组是右侧独立工作区: 面板负责边界, 内容负责内部滚动, 不把固定舞台撑破。 */
+.cd-deck-panel {
+  display: flex;
+  min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: repeat(auto-fill, var(--cv-card-w));
-  align-content: start;
-  justify-content: start;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #ffffff9e, #fbf3ff70 58%, #ecdcfa55);
+  border: 1px solid var(--cd-line);
+  box-shadow: inset 0 1px 0 #ffffffd9, 0 18px 40px -26px #2a1b3d52;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.cd-deck-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cd-line);
+}
+
+.cd-deck-sub {
+  margin: 5px 0 0;
+  color: var(--cd-ink-dim);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.cd-deck-readout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+  max-width: 230px;
+}
+
+.cd-deck-readout span {
+  padding: 4px 7px;
+  color: var(--cd-glow-deep);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  background: #ffffff85;
+  border: 1px solid var(--cd-line);
+}
+
+.cd-deck-content {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) 236px;
   gap: 14px;
+}
+
+.cd-deck-grid {
+  --deck-card-w: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  justify-content: stretch;
+  gap: 14px 10px;
   min-height: 0;
   padding: 4px;
   overflow-y: auto;
+  scrollbar-width: none;
   perspective: 900px; /* 给下面的翻入一点透视, 否则 rotateY 看起来只是被压扁 */
+}
+.cd-deck-grid::-webkit-scrollbar {
+  display: none;
 }
 /* 每张卡外面套一格: 翻入动画挂在这层, 不去动 CardView 自己的样式(那是跨界面共用件)。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */

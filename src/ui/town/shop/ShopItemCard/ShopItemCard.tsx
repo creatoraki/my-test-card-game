@@ -51,64 +51,74 @@ export default function ShopItemCard({
   }
 
   return (
+    // ★ 外壳与内容**必须**分开: 外壳(.sx-card)是这一栏唯一的 backdrop-filter 承载者,
+    //   它要跨商品切换存活下来。以前整张卡挂在 ShopScene 的 key 上, 鼠标每划过一格
+    //   就卸载重建一次玻璃层, 一次悬浮 = 重新采样一遍整屏背景, 这是最大的一处掉帧。
+    //   现在只有内层 .sx-card-body 带 key 重挂载 —— 它不含 backdrop-filter, 淡入很便宜。
     <div className={cx(s["sx-card"], s[`sx-r-${def.rarity}`])}>
-      {/* 商品展示台: 整栏通宽的大图, 是这一栏唯一的视觉焦点 */}
-      <div className={s["sx-card-stage"]}>
-        <span className={s["sx-card-icon"]}>{itemIcon(def)}</span>
-      </div>
+      <div className={s["sx-card-body"]} key={stack.uid}>
+        {/* 商品展示台: 整栏通宽的大图, 是这一栏唯一的视觉焦点 */}
+        <div className={s["sx-card-stage"]}>
+          {/* 扫光带独立成节点: 它以前是 ::after 上一层 220% 宽的渐变, 靠 background-position
+              做 5.6s 无限循环 —— 那是纯主线程重绘, 整个展示台每帧重画一遍。
+              现在改成一条实体光带走 transform, 交给合成器。 */}
+          <span className={s["sx-card-sweep"]} aria-hidden="true" />
+          <span className={s["sx-card-icon"]}>{itemIcon(def)}</span>
+        </div>
 
-      <div className={s["sx-card-title-row"]}>
-        <h4 className={s["sx-card-name"]}>
-          {def.name}
-          {stack.count > 1 && <span className={s["sx-card-mult"]}> ×{stack.count}</span>}
-        </h4>
+        <div className={s["sx-card-title-row"]}>
+          <h4 className={s["sx-card-name"]}>
+            {def.name}
+            {stack.count > 1 && <span className={s["sx-card-mult"]}> ×{stack.count}</span>}
+          </h4>
 
-        {/* 羁绊标签与名称同排，固定在标题行右侧。 */}
-        {bond && (
-          <span
-            className={s["sx-card-bond"]}
-            style={{ "--sx-bond": bond.color } as CSSProperties}
-            title={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
-          >
-            <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
-            <span className={s["sx-card-bond-name"]}>{bond.name}</span>
-          </span>
+          {/* 羁绊标签与名称同排，固定在标题行右侧。 */}
+          {bond && (
+            <span
+              className={s["sx-card-bond"]}
+              style={{ "--sx-bond": bond.color } as CSSProperties}
+              title={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
+            >
+              <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
+              <span className={s["sx-card-bond-name"]}>{bond.name}</span>
+            </span>
+          )}
+        </div>
+
+        <p className={s["sx-card-tags"]}>
+          <span className={s["sx-card-rarity"]}>{RARITY_LABEL[def.rarity]}</span>
+          <span>{CATEGORY_LABEL[def.category]}</span>
+          {def.slot && <span>{SLOT_LABEL[def.slot]}</span>}
+        </p>
+
+        <p className={s["sx-card-desc"]}>{def.desc}</p>
+
+        {rows.length > 0 && (
+          <dl className={s["sx-card-stats"]}>
+            {rows.map((r) => (
+              <div key={`${r.label}${r.value}`}>
+                <dt>{r.label}</dt>
+                <dd className={r.good ? s["is-good"] : s["is-bad"]}>{r.value}</dd>
+              </div>
+            ))}
+          </dl>
         )}
-      </div>
 
-      <p className={s["sx-card-tags"]}>
-        <span className={s["sx-card-rarity"]}>{RARITY_LABEL[def.rarity]}</span>
-        <span>{CATEGORY_LABEL[def.category]}</span>
-        {def.slot && <span>{SLOT_LABEL[def.slot]}</span>}
-      </p>
-
-      <p className={s["sx-card-desc"]}>{def.desc}</p>
-
-      {rows.length > 0 && (
-        <dl className={s["sx-card-stats"]}>
-          {rows.map((r) => (
-            <div key={`${r.label}${r.value}`}>
-              <dt>{r.label}</dt>
-              <dd className={r.good ? s["is-good"] : s["is-bad"]}>{r.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      {/* 脚注 —— 售价与各类"尚未开放"提示折叠进同一块最弱字号里, 不再各占一行主文本 */}
-      <div className={s["sx-card-foot"]}>
-        {def.sellValue != null && (
-          <span className={s["sx-card-note"]}>回收台售价 {def.sellValue * stack.count}</span>
-        )}
-        {def.category === "material" && (
-          <span className={cx(s["sx-card-note"], s["is-locked"])}>关键词模组尚未开放，先存进仓库。</span>
-        )}
-        {def.category === "data" && (
-          <span className={cx(s["sx-card-note"], s["is-locked"])}>叙事解锁尚未开放，先存进仓库。</span>
-        )}
-        {def.affinityRollable && !bond && (
-          <span className={cx(s["sx-card-note"], s["is-locked"])}>这件装备没有羁绊词条。</span>
-        )}
+        {/* 脚注 —— 售价与各类"尚未开放"提示折叠进同一块最弱字号里, 不再各占一行主文本 */}
+        <div className={s["sx-card-foot"]}>
+          {def.sellValue != null && (
+            <span className={s["sx-card-note"]}>回收台售价 {def.sellValue * stack.count}</span>
+          )}
+          {def.category === "material" && (
+            <span className={cx(s["sx-card-note"], s["is-locked"])}>关键词模组尚未开放，先存进仓库。</span>
+          )}
+          {def.category === "data" && (
+            <span className={cx(s["sx-card-note"], s["is-locked"])}>叙事解锁尚未开放，先存进仓库。</span>
+          )}
+          {def.affinityRollable && !bond && (
+            <span className={cx(s["sx-card-note"], s["is-locked"])}>这件装备没有羁绊词条。</span>
+          )}
+        </div>
       </div>
     </div>
   );

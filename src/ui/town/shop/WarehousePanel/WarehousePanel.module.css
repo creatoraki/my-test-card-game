@@ -161,7 +161,6 @@
   );
   transform: translate(-50%, -50%);
   filter: drop-shadow(0 0 3px #8279ff8c) drop-shadow(0 0 7px #5ed5ff4d);
-  animation: warehouseRimRun 5.8s linear infinite;
 }
 
 .warehouse-head {
@@ -476,12 +475,6 @@
   to {
     opacity: 0;
     transform: translateX(-18px);
-  }
-}
-
-@keyframes warehouseRimRun {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 

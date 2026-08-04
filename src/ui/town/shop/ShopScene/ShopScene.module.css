@@ -1,9 +1,3 @@
-@property --sx-rim-angle {
-    syntax: "<angle>";
-    inherits: false;
-    initial-value: 0deg;
-}
-
 .sx-root {
     --sx-ink: #f3f5ff;
     --sx-muted: #a9b1c7;
@@ -399,7 +393,7 @@
     inset: -1px;
     border: 2px solid transparent;
     border-radius: inherit;
-    border-image: conic-gradient(from var(--sx-rim-angle),
+    border-image: conic-gradient(from 0deg,
             transparent 0deg,
             transparent 302deg,
             #8279ff70 326deg,
@@ -408,7 +402,6 @@
             transparent 360deg) 1;
     content: "";
     filter: drop-shadow(0 0 3px #8279ff8c) drop-shadow(0 0 7px #5ed5ff4d);
-    animation: sxRimRun 5.8s linear infinite;
 }
 
 .sx-root .sx-panel-rim::after {
@@ -646,8 +639,9 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: 1px;
     line-height: 1;
+    /* ★ 不再过渡 background: 价格牌带 backdrop-filter, 过渡多层渐变等于每帧
+       重绘 + 重采样背景。底色直接切换, 视线焦点本来就在扫光与位移上。 */
     transition:
-        background 160ms ease,
         border-color 160ms ease,
         box-shadow 160ms ease,
         color 160ms ease,
@@ -673,17 +667,23 @@
     font-weight: 700;
 }
 
+/* 扫光带。★ 以前是一层 220% 宽的渐变靠 background-position 过渡 620ms —— 那是纯主线程
+   重绘, 而价格牌本身还带 backdrop-filter, 一次悬浮要连着重采样背景。
+   现在换成实体光带走 transform: 宽度取 220%, 位移量按背景百分比定位的等效换算
+   (P × (100% − 220%) 再除以自身宽度)得到 −65.45% → 10.91%, 轨迹与改动前一致。 */
 .sx-root .sx-price.is-ready::after {
     position: absolute;
-    inset: 1px;
+    top: 1px;
+    bottom: 1px;
+    left: 1px;
+    width: 220%;
     background: linear-gradient(112deg, transparent 42%, #ffffffb3 49%, transparent 56%);
-    background-size: 220% 100%;
-    background-position: 120% 0;
     border-radius: inherit;
     content: "";
     pointer-events: none;
     opacity: 0;
-    transition: opacity 160ms ease, background-position 620ms ease;
+    transform: translateX(-65.45%);
+    transition: opacity 160ms ease, transform 620ms ease;
 }
 
 .sx-root .sx-price.is-ready:hover:not(:disabled),
@@ -703,8 +703,8 @@
 
 .sx-root .sx-price.is-ready:hover:not(:disabled)::after,
 .sx-root .sx-price.is-ready:focus-visible::after {
-    background-position: -20% 0;
     opacity: 0.72;
+    transform: translateX(10.91%);
 }
 
 .sx-root .sx-price.is-ready:hover:not(:disabled)::before,
@@ -794,6 +794,9 @@
         border-color 160ms ease,
         box-shadow 160ms ease,
         transform 120ms ease;
+    /* ⚠ 这条呼吸光晕**故意**留着动画 filter: drop-shadow。按钮带 clip-path(切角),
+       而 clip-path 会连伪元素的外发光一起裁掉 —— 把光晕搬进 ::before 就看不见了,
+       那不是性能优化而是改设计。代价是一颗小按钮的持续重绘, 与货架悬浮不是一个量级。 */
     animation: sxRefreshPulse 4.8s ease-in-out infinite;
 }
 
@@ -941,16 +944,6 @@
     to {
         opacity: 1;
         translate: 0 0;
-    }
-}
-
-@keyframes sxRimRun {
-    from {
-        --sx-rim-angle: 0deg;
-    }
-
-    to {
-        --sx-rim-angle: 360deg;
     }
 }
 

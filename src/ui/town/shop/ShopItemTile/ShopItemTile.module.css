@@ -57,9 +57,11 @@
   transform: translateY(0) rotateX(0deg) rotateY(0deg);
   transform-origin: center bottom;
   transform-style: preserve-3d;
+  /* ★ 只过渡**可合成**属性。以前这里还过渡 background / border-color / box-shadow(含
+     color-mix 与三层渐变), 每帧都要主线程重绘整格 —— 而本元素是 backdrop root,
+     一次重绘就连带重采样一次背景模糊, 悬浮才会顿。悬浮态的底色/描边现已搬进 ::before,
+     靠 opacity 交叉淡入, 见下方。 */
   transition:
-    background 180ms ease,
-    border-color 180ms ease,
     box-shadow 180ms ease,
     color 180ms ease,
     transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
@@ -69,18 +71,47 @@
     0 0 14px -12px #8279ffb3;
   -webkit-backdrop-filter: blur(12px) saturate(115%) brightness(0.8);
   backdrop-filter: blur(12px) saturate(115%) brightness(0.8);
+  /* 常驻提升为合成层: 一屏最多 6 格, 显存代价可忽略, 换来悬浮变换不再触发重新栅格化。
+     ★ 这里**不要**加 contain: layout/paint —— 它们和 overflow/filter 一样属于会强制
+     transform-style 变回 flat 的分组属性, 而本元素的 3D 微旋依赖 preserve-3d。 */
+  will-change: transform;
 }
 
-:global([data-shop-root]) .sx-tile:hover:not(:disabled),
-:global([data-shop-root]) .sx-tile.is-hovered,
-:global([data-shop-root]) .sx-tile:focus-visible {
+/* 悬浮态的**全部底色与描边**。默认 opacity:0 叠在基础底色之上, 悬浮时淡入 ——
+   只动 opacity, 不动 background/border-color, 因此走合成器而不是主线程重绘。
+   ★ 底层渐变的 alpha 比原来的 hover 值略高(bd→d1 / bf→d4): 它现在是**叠**在基础
+   底色上而不是替换掉它, 提高 alpha 用来抵消底下透上来的那一层, 合成结果与改动前一致。 */
+:global([data-shop-root]) .sx-tile::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
   background:
     radial-gradient(ellipse 70% 44% at 50% 91%, color-mix(in srgb, var(--sx-rr) 26%, transparent), transparent 72%),
     linear-gradient(135deg, #ffffff25, transparent 50%),
-    linear-gradient(150deg, #28294dbd, #0b0e19bf 72%);
-  border-color: var(--sx-action-hot);
+    linear-gradient(150deg, #28294dd1, #0b0e19d4 72%);
   box-shadow:
     inset 0 1px 0 #ffffff5c,
+    inset 0 0 0 1px var(--sx-action-hot);
+  content: "";
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+/* 已售出的格子不点亮 —— 原来这由 .is-sold 那条规则把 background/box-shadow 改回去实现,
+   现在悬浮态住在 ::before 里, 得在这里直接挡掉。 */
+:global([data-shop-root]) .sx-tile:hover:not(:disabled):not(.is-sold)::before,
+:global([data-shop-root]) .sx-tile:focus-visible:not(.is-sold)::before {
+  opacity: 1;
+}
+
+/* ★ 只剩**外**投影还在过渡: 它画在元素框外, 被 overflow:hidden + clip-path 裁掉,
+   搬不进伪元素。好在两组值都是大负 spread 的小范围投影, 重绘面积极小,
+   且不再伴随整格底色重绘 —— 与改动前的开销不是一个量级。 */
+:global([data-shop-root]) .sx-tile:hover:not(:disabled),
+:global([data-shop-root]) .sx-tile:focus-visible {
+  box-shadow:
+    inset 0 1px 0 #ffffff30,
     0 12px 20px -15px #000000f2,
     0 0 20px -10px color-mix(in srgb, var(--sx-rr) 66%, #8279ff 34%);
   transform: translateY(-5px) rotateX(2deg) rotateY(-1.5deg) rotateZ(0.3deg);
@@ -95,7 +126,6 @@
 }
 
 :global([data-shop-root]) .sx-tile.is-selected:hover:not(:disabled),
-:global([data-shop-root]) .sx-tile.is-selected.is-hovered,
 :global([data-shop-root]) .sx-tile.is-selected:focus-visible {
   border-color: var(--sx-action-hot);
   transform: translateY(-7px) rotateX(3deg) rotateY(-2deg) rotateZ(-0.3deg);
@@ -135,9 +165,10 @@
   line-height: 0;
   filter: drop-shadow(0 3px 3px #00000099) drop-shadow(0 0 6px color-mix(in srgb, var(--sx-rr) 24%, transparent));
   transform: translateY(0) translateZ(8px);
-  transition:
-    filter 180ms ease,
-    transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
+  /* ★ 不再过渡 filter —— drop-shadow 的每一帧都要重画一遍图标位图。两档 drop-shadow
+     的差别本来就只有 1px 偏移与 2px 模糊, 直接切换看不出来, 上浮靠 transform 表达。 */
+  transition: transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
+  will-change: transform;
 }
 
 .sx-tile-icon svg,
@@ -163,14 +194,12 @@
 }
 
 :global([data-shop-root]) .sx-tile:hover:not(:disabled) .sx-tile-icon,
-:global([data-shop-root]) .sx-tile.is-hovered .sx-tile-icon,
 :global([data-shop-root]) .sx-tile:focus-visible .sx-tile-icon {
   filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 8px color-mix(in srgb, var(--sx-rr) 32%, #8279ff 18%));
   transform: translateY(-9px) translateZ(18px) rotateZ(-1deg);
 }
 
 :global([data-shop-root]) .sx-tile:hover:not(:disabled) .sx-tile-icon::after,
-:global([data-shop-root]) .sx-tile.is-hovered .sx-tile-icon::after,
 :global([data-shop-root]) .sx-tile:focus-visible .sx-tile-icon::after {
   transform: translateX(-50%) translateY(7px) scale(0.74, 0.56);
 }
@@ -205,20 +234,27 @@
 
 @media (prefers-reduced-motion: reduce) {
   :global([data-shop-root]) .sx-tile,
+  :global([data-shop-root]) .sx-tile::before,
   :global([data-shop-root]) .sx-tile-tray,
   :global([data-shop-root]) .sx-tile-icon,
   :global([data-shop-root]) .sx-tile-icon::after {
     transition: none;
   }
 
+  /* 不做位移就不需要常驻合成层了。 */
+  :global([data-shop-root]) .sx-tile,
+  :global([data-shop-root]) .sx-tile-icon {
+    will-change: auto;
+  }
+
   :global([data-shop-root]) .sx-tile:hover:not(:disabled),
-  :global([data-shop-root]) .sx-tile.is-hovered,
+  :global([data-shop-root]) .sx-tile:focus-visible,
   :global([data-shop-root]) .sx-tile.is-selected:hover:not(:disabled),
-  :global([data-shop-root]) .sx-tile.is-selected.is-hovered,
+  :global([data-shop-root]) .sx-tile.is-selected:focus-visible,
   :global([data-shop-root]) .sx-tile:hover:not(:disabled) .sx-tile-icon,
-  :global([data-shop-root]) .sx-tile.is-hovered .sx-tile-icon,
+  :global([data-shop-root]) .sx-tile:focus-visible .sx-tile-icon,
   :global([data-shop-root]) .sx-tile:hover:not(:disabled) .sx-tile-icon::after,
-  :global([data-shop-root]) .sx-tile.is-hovered .sx-tile-icon::after {
+  :global([data-shop-root]) .sx-tile:focus-visible .sx-tile-icon::after {
     transform: none;
   }
 }
