@@ -107,11 +107,6 @@
   width: 320px;
   margin-top: 12px;
 }
-.cd-conditions .cd-pollution {
-  padding: 7px 9px;
-  background: #26170dcc;
-  border: 1px solid #e68a3a5c;
-}
 .cd-quirks {
   justify-content: flex-start;
 }
@@ -258,94 +253,12 @@ span.cd-bust {
   view-transition-name: vt-cd-equipment;
 }
 
-/* 主按钮: 全页唯一一处**实心深紫** —— 它是这一页唯一会改变游戏状态的东西。 */
-.cd-primary {
-  --notch: 12px;
-  position: relative;
-  overflow: hidden;
+.cd-status-bars {
+  display: grid;
   flex: 0 0 auto;
-  padding: 15px 32px;
-  border: 1px solid #7c4dbe;
-  background: linear-gradient(135deg, #9560d8, #5b3488);
-  color: #faf6ff;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 5px;
-  text-indent: 5px;
-  box-shadow:
-    inset 0 1px 0 #ffffff4d,
-    0 14px 30px -18px #55307f;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-  transition:
-    background 0.16s ease,
-    box-shadow 0.16s ease,
-    border-color 0.16s ease,
-    transform 0.12s ease;
+  gap: 8px;
+  width: 100%;
 }
-/* hover 光扫: 一道高光横穿按钮。常态停在左侧画布外, hover 才跑一趟。 */
-.cd-primary::after {
-  content: "";
-  position: absolute;
-  left: -40%;
-  top: -50%;
-  width: 34%;
-  height: 200%;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, #ffffff59, transparent);
-  transform: rotate(16deg) translateX(0);
-}
-.cd-stage .cd-primary:hover:not(:disabled) {
-  border-color: #b98adf;
-  background: linear-gradient(135deg, #a877e6, #6b3f9c);
-  color: #faf6ff;
-  box-shadow:
-    inset 0 1px 0 #ffffff6b,
-    0 0 26px -6px var(--cd-glow),
-    0 16px 34px -18px #55307f;
-}
-.cd-stage .cd-primary:hover:not(:disabled)::after {
-  animation: cdSheen 620ms ease-out;
-}
-.cd-stage .cd-primary:active:not(:disabled) {
-  transform: translateY(1px);
-}
-/* 「撤出小队」是**减法**动作: 退成描边款, 不再是实心紫 —— 免得和「编入」一样怂恿人点。 */
-.cd-primary.is-off {
-  border-color: #2a1b3d29;
-  background: #ffffffb3;
-  color: var(--cd-ink-dim);
-  box-shadow: inset 0 1px 0 #ffffffd9;
-}
-.cd-stage .cd-primary.is-off:hover:not(:disabled) {
-  border-color: #c25a6e;
-  background: #fdeff2;
-  color: #9c3550;
-  box-shadow: inset 0 1px 0 #ffffffd9;
-}
-/* 不可点时退成一块哑光紫灰 —— 全局 button:disabled 只压 opacity, 在浅底上仍然显眼。 */
-.cd-primary:disabled {
-  border-color: #2a1b3d1f;
-  background: linear-gradient(135deg, #cbb9e0, #a795bd);
-  color: #f4eefa;
-  box-shadow: none;
-  opacity: 1;
-}
-@keyframes cdSheen {
-  from {
-    transform: rotate(16deg) translateX(0);
-  }
-  to {
-    transform: rotate(16deg) translateX(420%);
-  }
-}
-
 /* ---- 属性栏 ---- */
 .cd-section-label {
   flex: 0 0 auto;
@@ -354,14 +267,6 @@ span.cd-bust {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 3px;
-}
-.cd-note {
-  flex: 0 0 auto;
-  margin: 0;
-  color: var(--cd-ink-dim);
-  font-size: 12px;
-  line-height: 1.6;
-  letter-spacing: 1px;
 }
 /* 四组竖排, 两列。⚠ 刻意没有 ＋ 按钮 —— 角色不设等级也不加点(角色养成设计.md 第一章)。 */
 .cd-stat-groups {
@@ -586,8 +491,7 @@ span.cd-bust {
        vt-portrait    ← 那张卡的立绘取景窗 .fm-card-figure
        vt-char-name   ← 那张卡的角色名 .fm-card-name
      其余 vt-cd-* 在编队页没有对应物 ⇒ 只生成 new(飞入) 或只生成 old(飞出)。
-   ⚠ .cd-primary / .cd-note 必须单独命名: 它们是 .cd-figure-col 的子元素, 不给名字就会被
-     烘进 vt-card-panel 那张位图, 跟着一起被拉伸成编队卡的形状。
+  ⚠ 立绘栏里的状态条跟随 vt-card-panel 一起过场, 不额外挂共享元素名字, 避免把一整组状态拆散。
    ⚠ .cd-bg / .cd-veil 刻意不命名: 与编队页是同一张底图, 让它们落进 root 快照 ⇒
      两页像素一致 ⇒ root 的默认交叉淡化完全看不见 ⇒ 观感上"底图从头到尾没动过"。 */
 .cd-header {
@@ -604,14 +508,6 @@ span.cd-bust {
 }
 .cd-figure {
   view-transition-name: vt-portrait;
-}
-.cd-primary {
-  view-transition-name: vt-cd-primary;
-}
-/* ⚠ 只有立绘栏那条说明要单独命名(它在 vt-card-panel 里面)。属性栏/卡组栏底下的 .cd-note
-   跟着各自的栏一起飞, 不该抢名字 —— 名字全局唯一, 三个 .cd-note 同名会让过场直接作废。 */
-.cd-figure-col > .cd-note {
-  view-transition-name: vt-cd-note;
 }
 .cd-stats-col {
   view-transition-name: vt-cd-stats;

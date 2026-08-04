@@ -5,8 +5,7 @@
 // ★ 属性与卡组档案是**只读**的。加点与卡组锻造刻意不放这里 —— 那两样归训练室
 //   (游戏设定.md:86-89 的设施分工); 角色也不设等级(角色养成设计.md 第一章)。
 // ★ 装备槽是本页的即时操作区: 点击部位后右侧切换对应仓库, 穿戴/卸下直接复用 townStore。
-//   左下角的**上阵 / 下阵**按钮也保留在这里, 看完属性能就地编队, 不必退回列表页再点角标。
-//   两类操作的业务规则都不在本组件内重复实现。
+//   角色状态在这里仅作展示, 编队调整统一从编队页完成。
 //
 // 版面与视觉与编队页同族(同一张背景、同一套亮玻璃配方), 旋钮在 CharacterDetailScreen.css 的 --cd-*。
 // 与全项目同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts): 所有坐标都是「设计 px」。
@@ -22,6 +21,7 @@ import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { EquipmentDrawer } from "@/ui/character/EquipmentDrawer";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
+import { HpBar } from "@/ui/common/HpBar/HpBar";
 import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
 import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import { cx } from "@/ui/common/cx";
@@ -101,7 +101,6 @@ export function CharacterDetailScreen() {
   const storage = useTownStore((s) => s.storage);
   const equipItem = useTownStore((s) => s.equipItem);
   const unequipItem = useTownStore((s) => s.unequipItem);
-  const toggleParty = useTownStore((s) => s.toggleParty);
   const charId = useRunStore((s) => s.detailCharId);
   const closeCharDetail = useRunStore((s) => s.closeCharDetail);
   const [activeSlot, setActiveSlot] = useState<EquipSlot | null>(null);
@@ -184,9 +183,6 @@ export function CharacterDetailScreen() {
   const stats = deriveStats(cs);
   const size = RULES.progression.partySize;
   const onField = party.includes(charId);
-  // 禁用口径与 townStore.toggleParty(以及编队页的角标)三处一致。
-  const blocked = onField ? party.length <= 1 : party.length >= size;
-  const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
 
   return (
@@ -210,7 +206,6 @@ export function CharacterDetailScreen() {
             {cs.minDeckSize} 张
           </p>
           <div className={s["cd-conditions"]}>
-            <PollutionMeter value={cs.pollution} className={s["cd-pollution"]} />
             <QuirkPips sick={cs.sick} quirks={cs.quirks} className={s["cd-quirks"]} />
           </div>
         </header>
@@ -255,16 +250,12 @@ export function CharacterDetailScreen() {
                 className={s["cd-bust"]}
               />
             </div>
-            <button
-              className={cx(s["cd-primary"], onField && s["is-off"])}
-              type="button"
-              disabled={blocked}
-              title={blocked ? reason : undefined}
-              onClick={() => toggleParty(charId)}
-            >
-              {onField ? "撤出小队" : "编入小队"}
-            </button>
-            <p className={s["cd-note"]}>{blocked ? reason : "改动即时生效, 下次远征按此阵容出发。"}</p>
+            <div className={s["cd-status-bars"]}>
+              <div className={s["cd-hp"]}>
+                <HpBar hp={stats.maxHp} maxHp={stats.maxHp} name="HP" flush />
+              </div>
+              <PollutionMeter value={cs.pollution} bar className={s["cd-pollution"]} />
+            </div>
           </div>
 
           {/* 属性栏: 装备配置置于顶部, 下方是四组竖排属性。 */}

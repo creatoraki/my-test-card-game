@@ -332,19 +332,11 @@
 ::view-transition-new(vt-cd-back) {
   animation: vtInRise 420ms 240ms var(--vt-ease) both;
 }
-/* 立绘栏内部的按钮与说明: 单独命名, 免得被 vt-card-panel 的位图拉伸(理由同 vt-fm-meta 那组)。 */
-::view-transition-new(vt-cd-primary),
-::view-transition-new(vt-cd-note) {
-  animation: vtInRise 420ms 300ms var(--vt-ease) both;
-}
-
 ::view-transition-old(vt-cd-header),
 ::view-transition-old(vt-cd-readout) {
   animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
-::view-transition-old(vt-cd-back),
-::view-transition-old(vt-cd-primary),
-::view-transition-old(vt-cd-note) {
+::view-transition-old(vt-cd-back) {
   animation: vtOutDown var(--vt-out) var(--vt-ease-out) both;
 }
 /* 两栏内容按"离展示柜由近及远"错峰退场 —— 属性栏先走, 卡组栏后走。 */

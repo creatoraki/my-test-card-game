@@ -5,15 +5,16 @@ import s from "./PollutionMeter.module.css";
 interface Props {
   value: number;
   compact?: boolean;
+  bar?: boolean;
   className?: string;
 }
 
-export function PollutionMeter({ value, compact, className }: Props) {
+export function PollutionMeter({ value, compact, bar, className }: Props) {
   const current = Math.max(0, Math.min(POLLUTION_RULES.threshold - 1, Math.round(value)));
   const pct = (current / POLLUTION_RULES.threshold) * 100;
   return (
     <div
-      className={cx(s["pollution-meter"], compact && s.compact, className)}
+      className={cx(s["pollution-meter"], compact && s.compact, bar && s.bar, className)}
       title={`污染值 ${current}/${POLLUTION_RULES.threshold}`}
     >
       <div className={s["pollution-head"]}>
