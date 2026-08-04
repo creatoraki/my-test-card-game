@@ -21,11 +21,15 @@ import { bondCountsOf, deriveStats, useTownStore, type ExpGain } from "./townSto
 //   立绘栏/展示柜/大标题挂同名 view-transition-name, 浏览器自动配对形变。
 //   ⚠ 「回程该给哪张卡挂共享名」由 ui/sharedPortrait.ts 单独递送 —— 纯表现层数据,
 //   刻意不进本 store(会被持久化, 且订阅者要为一个只活半秒的值重渲染)。
+// ★ "sortie"(出击) 同样是据点的一级全屏页: 入口在大厅 bento 的「出击」砖, 内部分两步
+//   (选地图 → 备物资, step 存在 store/sortieStore 里)。它取代了原先埋在控制终端设施内的
+//   「下降舱」抽屉 —— 出击是核心动线, 不该要玩家先播 2s 进设施运镜才找得到。
 export type Screen =
   | "menu"
   | "town"
   | "formation"
   | "charDetail"
+  | "sortie"
   | "explore"
   | "battle"
   | "reward"
@@ -49,7 +53,9 @@ interface RunStore {
   openFormation: () => void; // 大厅「编队」砖 → 全屏编队页
   openCharDetail: (charId: string) => void; // 编队页点卡面 → 全屏角色详情页
   closeCharDetail: () => void; // 详情页返回编队页
-  startExpedition: (mapId: string) => void; // 选定地图 → 进路由图
+  openSortie: () => void; // 大厅「出击」砖 → 全屏出击页(选地图 + 备物资)
+  // 物资准备完毕 → 进路由图。backpack = 出发时装好的物资(见 store/sortieStore)。
+  startExpedition: (mapId: string, backpack?: ItemStack[]) => void;
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
   confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
@@ -170,9 +176,11 @@ export const useRunStore = create<RunStore>((set, get) => ({
   openFormation: () => set({ screen: "formation" }),
   openCharDetail: (charId) => set({ screen: "charDetail", detailCharId: charId }),
   closeCharDetail: () => set({ screen: "formation" }),
+  // ⚠ 会话本身由 ui/sortie 那边 open() —— 这里只切页, 与 openFormation 保持同一粒度。
+  openSortie: () => set({ screen: "sortie" }),
 
-  startExpedition: (mapId) => {
-    useExploreStore.getState().start(mapId, partySnapshot());
+  startExpedition: (mapId, backpack = []) => {
+    useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack);
     set({
       mapId,
       expReport: [],

@@ -1,0 +1,80 @@
+.panel {
+  position: relative;
+  flex: 1;
+  min-height: 355px;
+  padding: 22px 30px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.kicker,
+.foot,
+.loadReadout span {
+  color: #86b8b4;
+  font-family: "Bahnschrift", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.kicker {
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 7px 0 0;
+  color: #f2fbf8;
+  font-family: "Trebuchet MS", "Microsoft YaHei UI", sans-serif;
+  font-size: 27px;
+  font-weight: 600;
+}
+
+.loadReadout {
+  text-align: right;
+}
+
+.loadReadout strong {
+  display: block;
+  color: #effffb;
+  font-family: "Bahnschrift", "Microsoft YaHei UI", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.loadReadout span {
+  display: block;
+  margin-top: 5px;
+  color: #db9d88;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(8, 88px);
+  gap: 10px;
+  width: 774px;
+  margin: 24px auto 0;
+}
+
+.slotAnchor,
+.slot,
+.empty {
+  width: 88px;
+  height: 88px;
+}
+
+.slotAnchor {
+  position: relative;
+}
+
+.foot {
+  margin: 17px 0 0;
+  color: #71918d;
+  letter-spacing: 0;
+}
+

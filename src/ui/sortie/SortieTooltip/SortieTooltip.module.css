@@ -1,0 +1,32 @@
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: 260px;
+  pointer-events: none;
+  filter: drop-shadow(0 14px 24px #000000cc);
+}
+
+.detail.detail {
+  --accent: #86d8d2;
+  --accent2: #f0c27b;
+  --bad: #e58f83;
+  --border: #8ddbd433;
+  --good: #8ee0ad;
+  --muted: #9fb9b4;
+  --text: #effaf7;
+
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  max-height: min(300px, calc(100vh - 24px));
+  padding: 12px;
+  overflow-y: auto;
+  background:
+    linear-gradient(135deg, #ffffff16, transparent 50%),
+    linear-gradient(155deg, #162b32f5, #081317f7);
+  border: 1px solid #a8e4dc66;
+  border-radius: 3px;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.82);
+  backdrop-filter: blur(14px) saturate(120%) brightness(0.82);
+}

@@ -5,7 +5,7 @@
 //   任何分辨率下构图逐 px 一致, 画布之外露出的是黑边。
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图重新随分辨率漂移。
 //
-// ★ 入口布局 = 右侧 718×470 的 **bento 马赛克**: 8 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
+// ★ 入口布局 = 右侧 718×590 的 **bento 马赛克**: 9 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
 //   拼出一个外轮廓规则的矩形。编队 / 训练室 / 冬眠仓(真入口)占较大的块, 未开放设施是小块 ——
 //   可用性靠面积表达, 不必额外加说明。马赛克本身由下面内联 style 的 gridTemplateAreas 定义。
 //   ⚠ 控制终端已开放但仍占小块(worklog), 与「面积=可用性」的约定暂时不符, 想强调它就调
@@ -16,15 +16,15 @@
 //   镜头推向该设施在大厅里的位置并放大 → 界面元素逐个错峰飞出 → 大厅背景淡出、设施背景淡入。
 //
 // ★ 设施内容登记在下面的 FACILITY_CONTENT: 目前有**控制终端**(ui/ControlTerminalScene.tsx ——
-//   下降舱出击 + 委托占位)、**冬眠仓**(ui/CryoScene.tsx —— 只剩唤醒队员)、
+//   只剩委托占位)、**冬眠仓**(ui/CryoScene.tsx —— 只剩唤醒队员)、
 //   **物资中转仓**(ui/StorageScene.tsx)与**商店**(ui/ShopScene.tsx —— 按天刷新的货架);
 //   训练室仍只有背景 +「返回据点」, 功能未做。
 //
-// ★ **不是所有砖都是设施**: Facility.kind === "screen" 的砖(目前只有「编队」)点下去不播运镜,
-//   而是直接切到一个顶层全屏页(runStore.openFormation → ui/FormationScreen.tsx)。
+// ★ **不是所有砖都是设施**: Facility.kind === "screen" 的砖(目前是「编队」与「出击」)点下去
+//   不播运镜, 而是直接切到一个顶层全屏页(见下面 SCREEN_TILES 的分流表)。
 //
 // ⚠ 「回主菜单」仍然没有入口(角落只剩「重置存档」), 但据点**已不再是死路** ——
-//   控制终端 → 下降舱 → 确认下降 会接上 runStore.startExpedition 进探索牌局;
+//   出击砖 → 选地图 → 备物资 → 出击 会接上 runStore.startExpedition 进探索牌局;
 //   编队是右侧 bento 上的一级入口。
 
 import {
@@ -194,6 +194,17 @@ function ShopIcon() {
   );
 }
 
+// 出击: 下降舱门 + 下行箭头, 从控制终端搬到大厅一级入口。
+function SortieIcon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
+      <path d="M8 5h32v38H8z" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
+      <path d="M14 10h20v17H14z" strokeWidth={1.6} strokeLinejoin="round" />
+      <path d="M24 10v27M18 32l6 7 6-7" strokeWidth={1.6} />
+    </svg>
+  );
+}
+
 interface Facility {
   id: string; // 同时就是 grid-area 名, 与下面 gridTemplateAreas 里的词一一对应
   name: string;
@@ -230,7 +241,7 @@ const FACILITIES: Facility[] = [
   {
     id: "worklog",
     name: "控制终端",
-    desc: "接取任务、选择地下城。",
+    desc: "接取城市维护工单。",
     icon: <WorkOrderIcon />,
     size: "sm",
   },
@@ -265,6 +276,14 @@ const FACILITIES: Facility[] = [
     icon: <ShopIcon />,
     size: "md",
   },
+  {
+    id: "sortie",
+    name: "出击",
+    desc: "选定地下城 · 准备物资。",
+    icon: <SortieIcon />,
+    size: "lg",
+    kind: "screen",
+  },
 ];
 
 // ===================== 设施内容登记处 =====================
@@ -297,6 +316,7 @@ function flyVars(fly: FlyOut, delay = fly.delay, ms = fly.ms): CSSProperties {
 export function TownScreen() {
   const resetProfile = useTownStore((s) => s.resetProfile);
   const openFormation = useRunStore((s) => s.openFormation);
+  const openSortie = useRunStore((s) => s.openSortie);
   const terminalCredits = useTownStore((s) => s.loot);
   // 生存天数: 只由 townStore.advanceDay 推进(出击打完回据点算一日), 也是商店换货的节拍器。
   const day = useTownStore((s) => s.day);
@@ -451,7 +471,7 @@ export function TownScreen() {
           <>
             <section
               className={cx(s["town-status-bar"], inCinema && s["is-flying"])}
-              style={inCinema ? fly(FLY_STATUS, 9) : undefined}
+              style={inCinema ? fly(FLY_STATUS, 10) : undefined}
               aria-label="据点终端状态"
             >
               <span className={s["town-status-rim"]} aria-hidden />
@@ -472,7 +492,7 @@ export function TownScreen() {
             </section>
 
             {/* bento 面板: 位置/尺寸/马赛克排布的旋钮全在下面内联 style(设计 px), 直接改数值即可。
-              列宽 160+120+150+150+98 + 4×10 缝 = 718 宽; 行高 150+190+110 + 2×10 缝 = 470 高。
+              列宽 160+120+150+150+98 + 4×10 缝 = 718 宽; 行高 150+190+110+110 + 3×10 缝 = 590 高。
                 改列宽/行高时记得同步 width/height, 否则最后一列/行会被拉伸或留空。 */}
             <div
               className={s["town-bento"]}
@@ -480,17 +500,18 @@ export function TownScreen() {
                 right: "96px", // ← 距画布右边距离(设计 px)
                 bottom: "72px", // ← 距画布底边距离(设计 px)
                 width: "718px", // ← 区域总宽 = 各列宽 + 缝
-                height: "470px", // ← 区域总高 = 各行高 + 缝
+                height: "590px", // ← 区域总高 = 各行高 + 缝
                 gap: "10px", // ← 砖块之间的缝隙
                 gridTemplateColumns: "160px 120px 150px 150px 98px",
-                gridTemplateRows: "150px 190px 110px",
-                // ★ 马赛克本体: 同名格连成一块砖 ⇒ 8 块尺寸互不相同, 外轮廓仍是规则矩形。
+                gridTemplateRows: "150px 190px 110px 110px",
+                // ★ 马赛克本体: 同名格连成一块砖 ⇒ 9 块尺寸互不相同, 外轮廓仍是规则矩形。
                 //   词必须与 FACILITIES 的 id 完全一致。
-                //   第三行是商店独占的一条横贯砖 —— 它是唯一按天变化的设施, 值得一条整行。
+                //   第三行是商店独占的一条横贯砖, 第四行是出击一级入口。
                 gridTemplateAreas: `
                   "cryo     cryo     formation formation worklog"
                   "assembly training training  medical   storage"
                   "shop     shop     shop      shop      shop"
+                  "sortie   sortie   sortie    sortie    sortie"
                 `,
               }}
             >
@@ -526,7 +547,9 @@ export function TownScreen() {
                           ? // 切页: 不播运镜 —— 那套演出的落点是「大厅内的某个设施」, 而全屏页
                             // 与大厅不是同一张画布, 推镜过去再硬切反而读作两次转场。
                             // ⚠ 仍要卡 phase: 进设施演出途中不该被一次切页打断。
-                            () => phase === "idle" && openFormation()
+                            () =>
+                              phase === "idle" &&
+                              (f.id === "formation" ? openFormation() : openSortie())
                           : () => enterFacility(f.id)
                     }
                   >
@@ -542,7 +565,7 @@ export function TownScreen() {
 
             <button
               className={cx(s["town-reset"], inCinema && s["is-flying"])}
-              style={inCinema ? fly(FLY_RESET, 8) : undefined}
+              style={inCinema ? fly(FLY_RESET, 9) : undefined}
               type="button"
               onClick={() => resetProfile()}
             >

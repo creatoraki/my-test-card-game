@@ -50,6 +50,7 @@ export {
   EQUIPMENT_ITEM_DEFS,
   MATERIAL_ITEM_DEFS,
 } from "./items/index";
+export { SORTIE_STOCK_IDS, SORTIE_STOCK_FIRST_ROW } from "./sortieStock";
 
 export const ITEM_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...DESIGN_ITEM_DEFS];
 

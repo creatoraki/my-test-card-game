@@ -104,6 +104,7 @@ interface TownStore {
   bankLoot: (amount: number) => void; // 远征结束落袋
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
+  withdraw: (uid: string) => ItemStack | null; // 出击准备: 把一整堆从仓库取出交给调用方
   sellItem: (uid: string) => void; // 回收台: 按 sellValue 出售换居民积分
   equipItem: (charId: string, uid: string) => void; // 从仓库取一件穿上
   unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
@@ -315,6 +316,18 @@ export const useTownStore = create<TownStore>()(
       discardStored: (uid) => {
         const next = removeByUid(get().storage, uid);
         if (next !== get().storage) set({ storage: next });
+      },
+
+      // 出击准备: 把一整堆从仓库取出, 交给调用方(store/sortieStore 会把它塞进待出发的背包)。
+      // ★ 刻意返回那一堆而不是只做删除 —— 调用方需要拿到 uid 与 count 才能原样退回。
+      // ⚠ 按 uid 整堆取, **不拆堆**: 仓库里合并显示的是 UI 的事(mergeStacksForDisplay),
+      //   状态里存的本来就是逐 uid 的独立堆。
+      withdraw: (uid) => {
+        const { storage } = get();
+        const st = storage.find((s) => s.uid === uid);
+        if (!st) return null;
+        set({ storage: removeByUid(storage, uid) });
+        return { ...st };
       },
 
       // 回收台。⚠ 只有填了 sellValue 的物品(目前是废料)能卖 ——

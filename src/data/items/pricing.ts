@@ -9,6 +9,13 @@
 // 数值口径(对照《游戏设定.md》的积分体量): 解封一名冬眠队员 = 150 积分,
 // 一件普通装备 120 ≈ 队员的 4/5 —— 早期买装备是真金白银的取舍, 不是顺手就能扫货。
 // 1 级商店只出普通档, 高档位先填好, 日后开高级商店不必回来改结构。
+//
+// ⚠ 消耗品(含临期食品)走的是**一口价**, 不吃稀有度阶梯 —— 它们不在据点商店卖, 而在
+//   出击准备界面的「货柜」里不限量常驻(货品清单见 data/sortieStock.ts)。这里给它们打
+//   buyValue 只是为了让 UI 有价可读、让 townStore 有价可扣。
+// ⚠⚠ data/shop.ts 的候选池是「填了 buyValue **且** category 是 equipment/material」——
+//   两个条件都要满足。别在那边加一句 sellable("consumable"), 否则消耗品会连带上架到
+//   据点商店的随机货架上去。
 // ============================================================================
 
 import type { ItemDef, ItemRarity } from "../../items/types";
@@ -29,10 +36,17 @@ export const MATERIAL_BUY_BY_RARITY: Record<ItemRarity, number> = {
   legendary: 600,
 };
 
-// 只给装备与材料标价 —— 废料是卖给回收台的(sellValue), 数据存档与消耗品本期不上架,
-// 它们保持 buyValue 缺省, 于是 data/shop.ts 的候选池自然把它们排除在外。
+// 货柜一口价。★ 刻意不做成 Record<ItemRarity, number>: 消耗品的稀有度是**效果强度**的档位,
+// 不是稀缺度; 而货柜只卖普通档, 一个数就够。日后开高级货柜再换成表也不迟。
+export const CONSUMABLE_BUY_VALUE = 20;
+
+// 只给装备、材料与消耗品标价 —— 废料是卖给回收台的(sellValue), 数据存档本期不上架,
+// 它保持 buyValue 缺省。
 export function withBuyValue(defs: ItemDef[]): ItemDef[] {
   return defs.map((d) => {
+    if (d.category === "consumable") {
+      return { ...d, buyValue: d.buyValue ?? CONSUMABLE_BUY_VALUE };
+    }
     const table =
       d.category === "equipment"
         ? EQUIP_BUY_BY_RARITY

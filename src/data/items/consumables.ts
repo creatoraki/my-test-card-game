@@ -1,4 +1,5 @@
 import type { ItemDef, ItemRarity } from "../../items/types";
+import { withBuyValue } from "./pricing";
 
 const QUALITY_SUFFIX: Record<ItemRarity, string> = {
   common: "c",
@@ -37,7 +38,9 @@ function pendingConsumable(
 
 const QUALITY_ORDER: ItemRarity[] = ["common", "fine", "rare", "epic", "legendary"];
 
-export const CONSUMABLE_ITEM_DEFS: ItemDef[] = [
+// ★ 与装备/材料同样过一遍 withBuyValue —— 消耗品与临期食品要在出击准备的「货柜」里卖,
+//   没有 buyValue 就没法标价也没法扣钱(货柜清单见 data/sortieStock.ts)。
+const DEFS: ItemDef[] = [
   ...QUALITY_ORDER.map((rarity) =>
     pendingConsumable(
       `sugar-cube-${QUALITY_SUFFIX[rarity]}`,
@@ -129,3 +132,5 @@ export const CONSUMABLE_ITEM_DEFS: ItemDef[] = [
     icon: "consumable",
   },
 ];
+
+export const CONSUMABLE_ITEM_DEFS: ItemDef[] = withBuyValue(DEFS);

@@ -174,7 +174,14 @@ export const BATTLE_TIER_NAME: Record<BattleTier, string> = {
 // ---------------------------------------------------------------------------
 // 建立会话
 // ---------------------------------------------------------------------------
-export function createSession(mapId: string, party: PartySnapshot[], seed?: number): ExploreState {
+// ★ initialBackpack 排在 seed 之后, 不是「更重要」的第三参 —— 单测按位置传 seed 的调用点
+//   有好几处, 插在中间会把它们全部改坏。出发时装填的物资由出击准备界面(ui/sortie)备好。
+export function createSession(
+  mapId: string,
+  party: PartySnapshot[],
+  seed?: number,
+  initialBackpack: ItemStack[] = [],
+): ExploreState {
   const map = getMap(mapId);
   const s: ExploreState = {
     mapId,
@@ -185,7 +192,9 @@ export function createSession(mapId: string, party: PartySnapshot[], seed?: numb
     board: null,
     party: party.map((p) => ({ ...p })),
     history: [],
-    backpack: [],
+    // 出发时带进来的物资(货柜买的 + 从仓库拿的)。★ 拷贝一份: 准备界面那边还持有原数组,
+    // 会话开始后两边不能再互相影响。
+    backpack: initialBackpack.map((st) => ({ ...st })),
     shipped: [],
     pendingPickup: [],
     chuteOpen: false,

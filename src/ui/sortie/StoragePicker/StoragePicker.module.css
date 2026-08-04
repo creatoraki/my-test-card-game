@@ -1,0 +1,67 @@
+.panel {
+  position: relative;
+  min-height: 420px;
+  padding: 20px 24px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.kicker,
+.foot,
+.notice {
+  color: #86b8b4;
+  font-family: "Bahnschrift", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.kicker {
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 7px 0 0;
+  color: #f2fbf8;
+  font-family: "Trebuchet MS", "Microsoft YaHei UI", sans-serif;
+  font-size: 25px;
+  font-weight: 600;
+}
+
+.notice {
+  color: #e5b883;
+  letter-spacing: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 88px);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.slotAnchor,
+.slot,
+.empty {
+  width: 88px;
+  height: 88px;
+}
+
+.slotAnchor {
+  position: relative;
+}
+
+.slot {
+  --item-slot-icon-size: 54px;
+}
+
+.foot {
+  margin: 16px 0 0;
+  color: #71918d;
+  letter-spacing: 0;
+}
+

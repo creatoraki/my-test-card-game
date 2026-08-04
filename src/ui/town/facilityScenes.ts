@@ -130,9 +130,9 @@ export const FLY_STATUS: FlyOut = { delay: 0, ms: 460, dx: -820, dy: -70, rot: -
 export const FLY_RESET: FlyOut = { delay: 320, ms: 340, dx: -300, dy: 160, rot: -6 };
 
 // 右侧面板的设施砖 → 一律往右出画。按马赛克阅读序取用(见 FACILITIES 的顺序),
-// 七组参数刻意长短不一 ⇒ 明显不同步。被点击的那块不用这里的参数, 见 FLY_PICKED。
-// ⚠ 本表长度必须 ≥「设施砖数 − 1」(被点的那块走 FLY_PICKED)。砖数从 7 加到 8 时这里
-//   也从 5 组补到 7 组 —— 不够用会 % 回头复用, 于是有两块砖同步飞出, 错峰当场失效。
+// 八组参数刻意长短不一 ⇒ 明显不同步。被点击的那块不用这里的参数, 见 FLY_PICKED。
+// ⚠ 本表长度必须 ≥「砖数 − 1」(被点的那块走 FLY_PICKED)。砖数从 8 加到 9 时这里
+//   也从 7 组补到 8 组 —— 不够用会 % 回头复用, 于是有两块砖同步飞出, 错峰当场失效。
 export const FLY_TILES: FlyOut[] = [
   { delay: 140, ms: 380, dx: 760, dy: -40, rot: 5 },
   { delay: 260, ms: 460, dx: 780, dy: 30, rot: -3 },
@@ -141,6 +141,7 @@ export const FLY_TILES: FlyOut[] = [
   { delay: 620, ms: 420, dx: 760, dy: 50, rot: 4 },
   { delay: 700, ms: 360, dx: 730, dy: -55, rot: 7 },
   { delay: 820, ms: 480, dx: 790, dy: 70, rot: -6 },
+  { delay: 900, ms: 400, dx: 750, dy: 20, rot: 5 },
 ];
 
 // 被点击的那块最后飞: 先亮一下(--pick-ms 的高亮)当作「就是它」的确认反馈, 再飞出。
@@ -149,8 +150,8 @@ export const FLY_PICKED: FlyOut = { delay: 940, ms: 560, dx: 820, dy: -60, rot: 
 export const PICK_FLASH = 220; // ms: 确认高亮的时长
 
 // 返回时飞回的顺序与进入相反(最后飞出的最先飞回), 故这里只给「第 i 个飞回」的延迟。
-// 次序: 被点击的砖(0) → 其余砖倒序(1~7) → 重置存档(8) → 信息条(9)。
+// 次序: 被点击的砖(0) → 其余砖倒序(1~8) → 重置存档(9) → 信息条(10)。
 // 起步的 240ms 是刻意留的: 让背景先交叉淡回大厅, 元素才不会飞在还没淡掉的设施背景上。
-// ⚠ 末位算完 = 240 + 9×60 + leaveFlyIn = 1300ms, 必须留在 leave(1400ms) 之内 ——
+// ⚠ 末位算完 = 240 + 10×60 + leaveFlyIn = 1360ms, 必须留在 leave(1400ms) 之内 ——
 //   再加设施砖就得把 60 这个步长继续调小, 否则最后一块会被硬切掉。
 export const flyBackDelay = (i: number): number => 240 + i * 60;

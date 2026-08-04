@@ -6,6 +6,7 @@
 
 import { create } from "zustand";
 import type { ExploreState, PartySnapshot } from "../explore/types";
+import type { ItemStack } from "../items/types";
 import {
   abandonPending,
   arriveNode,
@@ -34,7 +35,13 @@ import {
 interface ExploreStore {
   session: ExploreState | null;
 
-  start: (mapId: string, party: PartySnapshot[], seed?: number) => void;
+  // initialBackpack = 出击准备界面装好的物资(见 store/sortieStore.ts)。缺省 = 空手出发。
+  start: (
+    mapId: string,
+    party: PartySnapshot[],
+    seed?: number,
+    initialBackpack?: ItemStack[],
+  ) => void;
   generateDone: () => void; // 浮现演出播完(UI 定时器) → sealed
   beginReveal: () => void; // 玩家按「探索路线」→ revealing。一轮只生效一次
   revealDone: () => void; // 揭示计时结束(UI 定时器)
@@ -87,8 +94,8 @@ function mutate(
 export const useExploreStore = create<ExploreStore>((set, get) => ({
   session: null,
 
-  start: (mapId, party, seed) => {
-    set({ session: createSession(mapId, party, seed) });
+  start: (mapId, party, seed, initialBackpack) => {
+    set({ session: createSession(mapId, party, seed, initialBackpack) });
   },
 
   generateDone: () => {

@@ -1,0 +1,166 @@
+.panel {
+  position: relative;
+  min-height: 370px;
+  padding: 24px 30px 18px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.kicker,
+.foot,
+.notice,
+.capacityHint {
+  color: #86b8b4;
+  font-family: "Bahnschrift", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.kicker {
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 7px 0 0;
+  color: #f2fbf8;
+  font-family: "Trebuchet MS", "Microsoft YaHei UI", sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.notice {
+  min-width: 90px;
+  color: #e5b883;
+  text-align: right;
+}
+
+.shelf {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(102px, 1fr));
+  justify-content: center;
+  gap: 18px 12px;
+  max-width: 820px;
+  margin: 22px auto 0;
+  padding: 0 24px 22px;
+  border-bottom: 1px solid rgba(142, 231, 216, 0.36);
+}
+
+.shelf::after {
+  grid-column: 1 / -1;
+  height: 9px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(137, 215, 205, 0.35), transparent);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.item.secondRow:nth-child(7) {
+  grid-column: 2;
+}
+
+.itemTile {
+  display: flex;
+  width: 100%;
+  min-height: 140px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 6px;
+  border: 1px solid rgba(146, 218, 209, 0.28);
+  color: #dff5f0;
+  background: linear-gradient(145deg, rgba(46, 91, 88, 0.44), rgba(10, 27, 30, 0.64));
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.itemTile:hover,
+.itemTile:focus-visible {
+  border-color: #91e8dc;
+  background: linear-gradient(145deg, rgba(60, 125, 116, 0.6), rgba(13, 39, 40, 0.78));
+  outline: none;
+  transform: translateY(-4px);
+}
+
+.icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  color: #e9c47f;
+}
+
+.icon svg,
+.icon img {
+  width: 64px;
+  height: 64px;
+}
+
+.itemTile strong {
+  overflow: hidden;
+  max-width: 100%;
+  color: #e7f7f3;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rarity-fine .icon {
+  color: var(--rarity-fine);
+}
+
+.rarity-rare .icon {
+  color: var(--rarity-rare);
+}
+
+.rarity-epic .icon {
+  color: var(--rarity-epic);
+}
+
+.rarity-legendary .icon {
+  color: var(--rarity-legendary);
+}
+
+.price {
+  display: block;
+  width: 100%;
+  padding: 7px 4px;
+  box-sizing: border-box;
+  color: #071214;
+  font-family: "Bahnschrift", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  background: #91e8dc;
+}
+
+.priceDisabled {
+  color: #aec1bd;
+  background: #3a5553;
+}
+
+.foot {
+  margin: 15px 0 0;
+  color: #71918d;
+  letter-spacing: 0;
+}
+
+.capacityHint {
+  position: absolute;
+  right: 30px;
+  bottom: 18px;
+  letter-spacing: 0;
+}

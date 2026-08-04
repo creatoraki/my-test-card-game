@@ -1,9 +1,8 @@
 // 控制终端(据点设施 worklog)的**设施内**界面 —— 由 TownScreen 在 phase 进到 inside 后挂载。
-// 设定依据: 游戏设定.md 第四节据点设施表「控制终端 | 接取任务、选择地下城、结算城市居民积分」。
+// 设定依据: 游戏设定.md 第四节据点设施表「控制终端 | 接取城市维护工单」。
 //
-// 两个功能入口(右侧的**抽屉**: 常态半隐在画布右缘外, 悬浮哪条哪条向左弹出):
-//   ① 下降舱 —— 出击。浮层里选一张地下城地图 → startExpedition(mapId) → 探索牌局。
-//   ② 委托   —— 接取城市维护工单。**本次只做 UI 骨架**: 三条示例工单全部灰化标「未接入」。
+// 唯一功能入口(右侧的**抽屉**: 常态半隐在画布右缘外, 悬浮后向左弹出):
+//   委托 —— 接取城市维护工单。**本次只做 UI 骨架**: 三条示例工单全部灰化标「未接入」。
 //
 // 与据点大厅同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts):
 // ★ 本文件里所有坐标/尺寸都是「设计 px」, 直接照着 1920×1080 的设计稿填数。
@@ -18,12 +17,8 @@
 //   故入场/退场动画一律挂在叶子元素身上(见 CSS 里 termRise / termFade 的挂法)。
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import { RULES } from "@/engine";
-import { MAPS, getCharacter } from "@/data";
-import { useRunStore } from "@/store/runStore";
-import { deriveStats, useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/townStore";
 import { prefersReducedMotion } from "@/ui/app/transitions";
-import { mapArt, warmMapArt } from "@/ui/art/mapArt";
 import { cx } from "@/ui/common/cx";
 import s from "./ControlTerminalScene.module.css";
 
@@ -39,29 +34,12 @@ const PANEL_OUT_REDUCED_MS = 180; // 「减少动态效果」下退化成一次�
 // .term-modal —— 顶上那两根吊绳是 .term-modal 的伪元素, 靠这两个数算出「该垂到面板顶边的哪两点」
 // (见 CSS 的 .term-modal::before / ::after)。改尺寸只改这里一处, 绳子会自己跟上。
 const PANEL_SIZE: Record<PanelId, { w: number; h: number }> = {
-  descent: { w: 1240, h: 660 },
   commission: { w: 900, h: 540 },
 };
 
 // ===================== 图标 =====================
 // 画法与大厅设施图标统一(见 TownScreen.tsx 顶部): 48×48 视框、stroke="currentColor"、
 // 外轮廓 strokeWidth 1.2 + opacity .38 当陪衬、主体 1.6。刻意不用 emoji。
-
-// 下降舱: 电梯井外框 + 舱厢 + 三段递减的向下箭头(读作「往下走」)。
-function DescentIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      {/* 井道: 压低透明度当陪衬 */}
-      <path d="M8 4h32v40H8z" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
-      {/* 舱厢 + 中缝(双开门) */}
-      <path d="M14 9h20v20H14z" strokeWidth={1.6} strokeLinejoin="round" />
-      <path d="M24 9v20" strokeWidth={1.2} opacity={0.6} />
-      {/* 下行指示: 三段递减的 V, 越往下越窄 */}
-      <path d="M18 34.5l6 5 6-5" strokeWidth={1.6} />
-      <path d="M20 40.5l4 3.5 4-3.5" strokeWidth={1.4} opacity={0.66} />
-    </svg>
-  );
-}
 
 // 委托: 工单纸(右上折角) + 长短错落三行 + 一枚受理印章圆。
 function CommissionIcon() {
@@ -107,7 +85,7 @@ const COMMISSIONS = [
 ] as const;
 
 // 当前打开的浮层; null = 没开, 只看得到场景与两个入口。
-type PanelId = "descent" | "commission";
+type PanelId = "commission";
 
 interface Props {
   /** 返回据点的演出已开始: 内容整体淡出, 与背景交叉淡同步。 */
@@ -116,18 +94,11 @@ interface Props {
 
 export function ControlTerminalScene({ leaving = false }: Props) {
   const loot = useTownStore((s) => s.loot);
-  const party = useTownStore((s) => s.party);
-  const characters = useTownStore((s) => s.characters);
-  const startExpedition = useRunStore((s) => s.startExpedition);
 
   const [panel, setPanel] = useState<PanelId | null>(null);
   // 关窗**不能**直接卸载: 那样滑出动画根本没机会播(元素当场消失)。故先进 closing 态让 CSS 播滑出,
   // 播完再真的把 panel 置空 —— 与 TownScreen 的 leaving 阶段是同一套「留到演出走完才卸载」的做法。
   const [closing, setClosing] = useState(false);
-  const [mapId, setMapId] = useState(MAPS[0].id);
-
-  // 预览图 3.4MB, 一进设施就先拉 —— 等点开下降舱才发请求会先闪一片空底色。
-  useEffect(warmMapArt, []);
 
   // 所有关窗路径(✕ / 点面板外空白 / Esc)都走这里, 保证一定播完滑出。
   // 滑出途中重复调用是安全的: 置同一个 true 不会触发重渲染, 上面的计时器也就不会被重置。
@@ -155,36 +126,27 @@ export function ControlTerminalScene({ leaving = false }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [panel, closePanel]);
 
-  const selected = MAPS.find((m) => m.id === mapId) ?? MAPS[0];
-
   return (
     <div className={cn("term-scene", leaving && "is-leaving")}>
       {/* ---- 左上: 场景标题 ---- */}
       <header className={cn("term-header")} style={{ left: "56px", top: "42px" }}>
         <span className={cn("term-kicker")}>CONTROL TERMINAL</span>
         <h2 className={cn("term-title")}>控制终端</h2>
-        <p className={cn("term-sub")}>城市工单接入 · 下降通道授权</p>
+        <p className={cn("term-sub")}>城市工单接入 · 维护任务授权</p>
       </header>
 
-      {/* ---- 右上: 两枚读数 chip ---- */}
+      {/* ---- 右上: 终端积分读数 ---- */}
       <div className={cn("term-readout")} style={{ right: "56px", top: "42px" }}>
         <div className={cn("term-chip")}>
           <span className={cn("term-chip-label")}>终端积分</span>
           <strong className={cn("term-chip-value")}>{loot.toLocaleString()}</strong>
         </div>
-        <div className={cn("term-chip")}>
-          <span className={cn("term-chip-label")}>上阵</span>
-          <strong className={cn("term-chip-value")}>
-            {party.length} / {RULES.progression.partySize}
-          </strong>
-        </div>
       </div>
 
       {/* ---- 右侧抽屉: 功能入口 ----
           ★ 位置/尺寸旋钮全在下面的内联 style(设计 px), 直接改数值即可 —— CSS 只负责定位与滑动机制。
-          ★ 贴画布右缘(right:0)、落在右上读数 chip 下方: 常态两条砖大部分被推出画布, 超出的部分由
-            .town-splash 的 overflow:hidden 裁掉; 鼠标悬浮哪一条, 哪一条向左弹出完整宽度。
-            这样场景本身(电梯 / 全息球 / 墙面数据屏 / 服务器机柜)一个都不遮。 */}
+          ★ 贴画布右缘(right:0)、落在右上读数 chip 下方: 常态砖块大部分被推出画布, 超出的部分由
+            .town-splash 的 overflow:hidden 裁掉; 鼠标悬浮后向左弹出完整宽度。 */}
       <div
         className={cn("term-entries")}
         style={
@@ -192,8 +154,8 @@ export function ControlTerminalScene({ leaving = false }: Props) {
             right: "0px", // ← 贴画布右缘: 抽屉收起时超出的部分被画布裁掉
             top: "138px", // ← 落在右上 .term-readout(top:42, 实高约 72)下方, 留 24px 呼吸
             width: "460px", // ← 完全弹出时的条宽
-            gap: "10px", // ← 两条砖之间的缝
-            gridTemplateRows: "88px 88px", // ← 每条砖的高
+            gap: "10px",
+            gridTemplateRows: "88px",
             // ★ 本次唯一需要手调的旋钮: 收起时露在画布内的宽度。
             //   248px = 图标 + 名称 + 「未接入」小标读全之后还留一截余白, 收起态一眼能认出是可点的入口
             //   (只够卡着读完文字会显得像被切坏的边框)。嫌露太多就调小, 嫌找不到入口就调大。
@@ -201,22 +163,6 @@ export function ControlTerminalScene({ leaving = false }: Props) {
           } as CSSProperties
         }
       >
-        <button className={cn("term-entry")} type="button" onClick={() => setPanel("descent")}>
-          <span className={cn("term-rim")} aria-hidden />
-          <span className={cn("term-entry-icon")}>
-            <DescentIcon />
-          </span>
-          <span className={cn("term-entry-text")}>
-            <span className={cn("term-entry-head")}>
-              <span className={cn("term-entry-name")}>下降舱</span>
-            </span>
-            <span className={cn("term-entry-desc")}>出击 · 选定下降层</span>
-          </span>
-          <span className={cn("term-entry-go")} aria-hidden>
-            ▸
-          </span>
-        </button>
-
         <button className={cn("term-entry")} type="button" onClick={() => setPanel("commission")}>
           <span className={cn("term-rim")} aria-hidden />
           <span className={cn("term-entry-icon")}>
@@ -240,7 +186,7 @@ export function ControlTerminalScene({ leaving = false }: Props) {
           ★ **没有全局遮罩**: 控制终端.png 是一张纯白洁净控制室, 压暗它换对比度会毁掉这张图的气质。
             面板本体改成白色毛玻璃, 靠模糊 + 重投影从场景里托起来(见 CSS 的 .term-panel)。
           外层 .term-modal 仍是一整层(只是完全透明): 点它关窗, 同时天然挡住底下的「返回据点」
-          与两条抽屉 —— 不需要额外的禁用逻辑。⚠ 代价是那个按钮不再变暗, 看起来仍可点。
+            与抽屉 —— 不需要额外的禁用逻辑。⚠ 代价是那个按钮不再变暗, 看起来仍可点。
           ★ 开合都是**从画布上方滑入 / 滑回上方**(见 CSS 的 termPanelIn / termPanelOut)。
             is-closing 只挂在 .term-modal 上当选择器用 —— ⚠ 这一层自己绝不能挂动画, 它是面板的
             父元素, 一旦成为 backdrop root, 面板的 backdrop-filter 就取不到场景了。 */}
@@ -267,101 +213,7 @@ export function ControlTerminalScene({ leaving = false }: Props) {
               height: `${PANEL_SIZE[panel].h}px`,
             }}
           >
-            {panel === "descent" ? (
-              <>
-                <div className={cn("term-panel-head")}>
-                  <span className={cn("term-kicker")}>DESCENT POD / SECTOR SELECT</span>
-                  <h3 className={cn("term-panel-title")}>下降舱 · 目标层选定</h3>
-                  <button
-                    className={cn("term-close")}
-                    type="button"
-                    onClick={closePanel}
-                    aria-label="关闭"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className={cn("term-descent-body")} style={{ gridTemplateColumns: "420px 1fr" }}>
-                  <div className={cn("term-map-list")}>
-                    {MAPS.map((m, i) => (
-                      <button
-                        key={m.id}
-                        className={cn("term-map-row", m.id === mapId && "is-active")}
-                        type="button"
-                        onClick={() => setMapId(m.id)}
-                      >
-                        <span className={cn("term-map-no")}>SECTOR-{String(i + 1).padStart(2, "0")}</span>
-                        <span className={cn("term-map-name")}>{m.name}</span>
-                        <span className={cn("term-map-stars")} title={`难度 ${m.difficulty} / 5`}>
-                          {"★".repeat(m.difficulty)}
-                          <span className={cn("term-dim")}>{"★".repeat(5 - m.difficulty)}</span>
-                        </span>
-                        <span className={cn("term-map-line")}>
-                          {m.roundCount} 轮区域推进 · 第 {m.roundCount} 轮 BOSS 战
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className={cn("term-map-detail")}>
-                    <div className={cn("term-map-shot")}>
-                      <img src={mapArt(selected.id)} alt="" draggable={false} />
-                      <span className={cn("term-map-shot-name")}>{selected.name}</span>
-                    </div>
-                    <p className={cn("term-map-desc")}>{selected.desc}</p>
-                    <div className={cn("term-stat-row")}>
-                      <div className={cn("term-stat")}>
-                        <span className={cn("term-stat-label")}>难度</span>
-                        <strong className={cn("term-stat-value")}>{selected.difficulty} / 5</strong>
-                      </div>
-                      <div className={cn("term-stat")}>
-                        <span className={cn("term-stat-label")}>区域轮数</span>
-                        <strong className={cn("term-stat-value")}>{selected.roundCount} 轮</strong>
-                      </div>
-                      <div className={cn("term-stat")}>
-                        <span className={cn("term-stat-label")}>净化粒子</span>
-                        <strong className={cn("term-stat-value")}>{selected.startingEnergy}</strong>
-                      </div>
-                    </div>
-                    <div className={cn("term-party")}>
-                      <span className={cn("term-stat-label")}>下降小队</span>
-                      <div className={cn("term-party-row")}>
-                        {party.map((id) => {
-                          const c = getCharacter(id);
-                          const cs = characters[id];
-                          const s = deriveStats(cs);
-                          return (
-                            <span key={id} className={cn("term-party-chip")}>
-                              <span className={cn("term-party-emoji")}>{c.emoji}</span>
-                              <span className={cn("term-party-name")}>{c.name}</span>
-                              <span className={cn("term-party-meta")}>
-                                {Math.round(s.maxHp)} HP · 卡组 Lv.{cs.deckLevel}
-                              </span>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={cn("term-panel-foot")}>
-                  <p className={cn("term-note")}>
-                    净化粒子只降不升 —— 掉得越低, 战斗越难、产出倍率也越高。
-                  </p>
-                  <button
-                    className={cn("term-primary")}
-                    type="button"
-                    disabled={party.length === 0}
-                    onClick={() => startExpedition(selected.id)}
-                  >
-                    确认下降 ▸
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
+            <>
                 <div className={cn("term-panel-head")}>
                   <span className={cn("term-kicker")}>COMMISSION BOARD</span>
                   <h3 className={cn("term-panel-title")}>委托 · 城市维护工单</h3>
@@ -394,8 +246,7 @@ export function ControlTerminalScene({ leaving = false }: Props) {
                     工单系统尚未接入 —— 委托的发布、验收与积分结算将在后续实现。
                   </p>
                 </div>
-              </>
-            )}
+            </>
           </section>
         </div>
       )}

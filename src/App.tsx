@@ -5,6 +5,7 @@ import { MenuScreen } from "@/ui/menu/MenuScreen";
 import { TownScreen } from "@/ui/town/TownScreen";
 import { FormationScreen } from "@/ui/character/FormationScreen";
 import { CharacterDetailScreen } from "@/ui/character/CharacterDetailScreen";
+import { SortieScreen } from "@/ui/sortie/SortieScreen";
 import { ExploreScreen } from "@/ui/explore/ExploreScreen";
 import { BattleScreen } from "@/ui/battle/BattleScreen";
 import { ExpRewardScreen } from "@/ui/result/ExpRewardScreen";
@@ -20,6 +21,8 @@ function renderScreen(screen: Screen) {
       return <FormationScreen />;
     case "charDetail":
       return <CharacterDetailScreen />;
+    case "sortie":
+      return <SortieScreen />;
     case "explore":
       return <ExploreScreen />;
     case "battle":

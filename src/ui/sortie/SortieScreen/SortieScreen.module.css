@@ -1,0 +1,43 @@
+.viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #05070a;
+}
+
+.stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  color: #e8f3f1;
+  background:
+    linear-gradient(135deg, rgba(27, 54, 55, 0.9), rgba(5, 12, 17, 0.98) 54%),
+    #071014;
+  transform: translate(-50%, -50%) scale(var(--stage-scale));
+  transform-origin: center;
+}
+
+.stage::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.34;
+  background-image: linear-gradient(rgba(142, 231, 216, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142, 231, 216, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.stage::after {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: 118px;
+  height: 1px;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(133, 223, 211, 0.46), transparent);
+}
