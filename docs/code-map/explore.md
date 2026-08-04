@@ -6,11 +6,11 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [types.ts](../../src/explore/types.ts) | 路由图、节点事件、探索效果、队伍快照、能量/战斗档位、节点记录、背包和会话阶段类型。只定义类型。 |
+| [types.ts](../../src/explore/types.ts) | 路由图、节点事件、探索效果、队伍快照、能量/战斗档位、节点记录、背包和会话阶段类型。`CONTAMINATE_CARDS` 只记录待处理污染数量，不直接接触城镇卡组。 |
 | [rules.ts](../../src/explore/rules.ts) | 路由规模、桥接数和揭示时长、节点粒子消耗、轮次战斗档位、BOSS 缩放、团灭、投递口、能量档位和掉落品质权重。探索平衡优先改这里。 |
 | [route.ts](../../src/explore/route.ts) | 路由段桥接生成、走线、通道映射与求解。每段入/出通道必须是双射；UI 隐藏桥接时不能读取求解结果。 |
 | [slot.ts](../../src/explore/slot.ts) | 战斗签老虎机：转轮构造、定格位置、符号组合判定、准备卡和战斗卡回落。 |
-| [session.ts](../../src/explore/session.ts) | 会话状态机：建局、生成/揭示/选入口、到达节点、选项结算、推进、离场、战斗签、战斗接缝、能量/掉落系数、背包、寄件和团灭清算。`battleModifier` 是能量档位与战斗签条件的唯一合并点。 |
+| [session.ts](../../src/explore/session.ts) | 会话状态机：建局、生成/揭示/选入口、到达节点、选项结算、推进、离场、战斗签、战斗接缝、能量/掉落系数、背包、寄件、待污染请求和团灭清算。`battleModifier` 是能量档位与战斗签条件的唯一合并点；污染请求由 store 层消费一次。 |
 | [route.test.ts](../../src/explore/route.test.ts) | 桥接合法性、双射、入口到末段映射、递增桥接、无空白段和同种子复现。 |
 | [slot.test.ts](../../src/explore/slot.test.ts) | 符号数、三轮不同相、组合数值、准备卡回落和阶段白名单。 |
 | [session.test.ts](../../src/explore/session.test.ts) | 阶段机、节点保底、粒子、能量档位、六轮闭环、血量继承、团灭、背包和投递口。 |

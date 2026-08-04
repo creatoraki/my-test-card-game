@@ -13,6 +13,7 @@ import type {
   Enemy,
   StatBlock,
 } from "./types";
+import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
 import { enemyActDelay, makeStats, partyDrawCount, partyHandLimit, partyOpeningDrawCount } from "./stats";
 import { shuffle } from "./rng";
@@ -39,6 +40,9 @@ export interface AllyInit {
   // 开局生命。缺省 = stats.maxHp; 探索模式传入上一场战斗继承下来的血量 ——
   // 「血量跨战斗继承」是探索牌局的地基, 没有它「休整」与「撤退」都不成为决策。
   startHp?: number;
+  pollution?: number;
+  sick?: boolean;
+  quirks?: QuirkId[];
 }
 
 export interface BattleSetup {
@@ -78,6 +82,9 @@ export function createBattle(
       mods: {},
       statuses: [],
       alive: true,
+      pollution: Math.max(0, Math.min(99, Math.round(a.pollution ?? 0))),
+      sick: a.sick ?? false,
+      quirks: [...(a.quirks ?? [])],
     };
     combatants[a.id] = ally;
     playerIds.push(a.id);

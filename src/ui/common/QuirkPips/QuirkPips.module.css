@@ -1,0 +1,38 @@
+.quirk-pips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+.pip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 2px 4px;
+  color: #f6d7bd;
+  font-size: 9px;
+  line-height: 1;
+  background: #21130fdd;
+  border: 1px solid #e58a5d70;
+  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+}
+.pip span {
+  flex: 0 0 auto;
+}
+.pip b {
+  overflow: hidden;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pip.sick {
+  color: #ffbf9c;
+  border-color: #ff8f6a9c;
+}
+.pip.quirk {
+  color: #e8c89e;
+  border-color: #b8875d75;
+}

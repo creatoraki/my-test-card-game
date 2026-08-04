@@ -85,6 +85,7 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
           selected && s.selected,
           leaving && s.leaving,
           card.upgraded && s.upgraded,
+          card.contaminated && s.contaminated,
         )}
         style={handStyle}
         onTransitionEnd={(e) => {
@@ -122,6 +123,11 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
         {/* 选中角标: 右上角一块配色三角切片。选中态**唯一**的不依赖位移的线索 ——
             鼠标移开手牌区后, 玩家仍要能一眼认出锁定的是哪张。仅 .selected 时渲染。 */}
         {selected && <span className={s["hc-selected-mark"]} aria-hidden />}
+        {card.contaminated && (
+          <span className={s["hc-pollution-mark"]} title="污染卡 · 抽到时污染值 +2" aria-label="污染卡">
+            ☣
+          </span>
+        )}
       </div>
     </div>
   );

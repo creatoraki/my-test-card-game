@@ -101,6 +101,20 @@
   font-size: 14px;
   letter-spacing: 2px;
 }
+.cd-conditions {
+  display: grid;
+  gap: 8px;
+  width: 320px;
+  margin-top: 12px;
+}
+.cd-conditions .cd-pollution {
+  padding: 7px 9px;
+  background: #26170dcc;
+  border: 1px solid #e68a3a5c;
+}
+.cd-quirks {
+  justify-content: flex-start;
+}
 
 /* ===================== 右上: 读数 chip ===================== */
 .cd-readout {

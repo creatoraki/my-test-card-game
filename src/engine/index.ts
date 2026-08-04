@@ -21,6 +21,14 @@ export {
 } from "./stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
 export {
+  POLLUTION_RULES,
+  QUIRK_DEFS,
+  QUIRK_IDS,
+  SICK_MOD,
+  getQuirkDef,
+} from "./quirks";
+export type { QuirkDef, QuirkId } from "./quirks";
+export {
   createBattle,
   playCard,
   endRound,

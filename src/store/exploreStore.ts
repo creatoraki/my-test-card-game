@@ -26,6 +26,7 @@ import {
   startReveal,
   startSlot,
   stopReel,
+  takePendingContamination,
   takePending,
   useItem,
 } from "../explore/session";
@@ -51,6 +52,7 @@ interface ExploreStore {
   //   UI 只负责报时。两边各算一份就会「停在这个却给了那个」。
   stopReel: (elapsedMs: number) => ExploreState | null;
   chooseSlotCard: (index: number) => ExploreState | null; // 三选一 → inBattle
+  consumePendingContamination: () => number;
   retreatNow: () => void;
   settleBattle: (
     won: boolean,
@@ -132,6 +134,15 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   stopReel: (elapsedMs) => mutate(get, set, (d) => stopReel(d, elapsedMs)),
 
   chooseSlotCard: (index) => mutate(get, set, (d) => chooseSlotCard(d, index)),
+
+  consumePendingContamination: () => {
+    const s = get().session;
+    if (!s || s.pendingContaminationCount <= 0) return 0;
+    const draft = structuredClone(s);
+    const count = takePendingContamination(draft);
+    set({ session: draft });
+    return count;
+  },
 
   retreatNow: () => {
     mutate(get, set, (d) => retreat(d));

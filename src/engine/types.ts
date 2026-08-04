@@ -1,6 +1,8 @@
 // ============================================================================
-// 核心类型定义 —— 引擎与 UI 共享。此文件只定义类型, 不含逻辑, 不 import 其他模块。
+// 核心类型定义 —— 引擎与 UI 共享。此文件只定义类型, 不含逻辑。
 // ============================================================================
+
+import type { QuirkId } from "./quirks";
 
 export type Team = "player" | "enemy";
 export type Phase = "player" | "won" | "lost";
@@ -104,6 +106,7 @@ export interface CardDef {
 export interface Card extends CardDef {
   uid: string;
   upgraded: boolean;
+  contaminated: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,6 +222,9 @@ export interface BaseCombatant {
 export interface Ally extends BaseCombatant {
   team: "player";
   charId: string;
+  pollution: number;
+  sick: boolean;
+  quirks: QuirkId[];
 }
 
 export interface Intent {

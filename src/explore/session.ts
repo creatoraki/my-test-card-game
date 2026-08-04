@@ -194,6 +194,7 @@ export function createSession(mapId: string, party: PartySnapshot[], seed?: numb
     currentSegment: 0,
     freeNodes: 0,
     pendingNotes: [],
+    pendingContaminationCount: 0,
     lateralShiftsLeft: 1,
     slot: null,
     pendingEncounterId: null,
@@ -475,11 +476,23 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
     case "SKIP_NODE_COST":
       s.freeNodes += e.nodes;
       return `接下来 ${e.nodes} 个节点不消耗净化粒子`;
+    case "CONTAMINATE_CARDS": {
+      const count = Math.max(1, Math.floor(e.count ?? 1));
+      s.pendingContaminationCount += count;
+      return `发现 ${count} 张污染卡, 将在离开事件后记录`;
+    }
     // 这两个由 chooseOption 拦截, 走不到这里; 列出来让 switch 保持穷尽
     case "END_REGION":
     case "RETREAT":
       return "";
   }
+}
+
+// 由 store 层消费一次, 纯探索层不接触 townStore。
+export function takePendingContamination(s: ExploreState): number {
+  const count = s.pendingContaminationCount;
+  s.pendingContaminationCount = 0;
+  return count;
 }
 
 // ---------------------------------------------------------------------------
@@ -1009,7 +1022,7 @@ export function retreat(s: ExploreState): boolean {
 export function finishBattle(
   s: ExploreState,
   won: boolean,
-  survivors: { charId: string; hp: number; alive: boolean }[],
+  survivors: { charId: string; hp: number; alive: boolean; maxHp?: number }[],
   enemyDefIds: string[],
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
   const empty = { loot: 0, items: [], overflow: [] };
@@ -1019,7 +1032,8 @@ export function finishBattle(
   for (const p of s.party) {
     const found = survivors.find((x) => x.charId === p.charId);
     if (!found) continue;
-    p.hp = Math.max(0, found.hp);
+    p.maxHp = Math.max(1, Math.round(found.maxHp ?? p.maxHp));
+    p.hp = Math.min(p.maxHp, Math.max(0, found.hp));
     p.alive = found.alive && found.hp > 0;
   }
 

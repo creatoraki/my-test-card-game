@@ -1,0 +1,52 @@
+.pollution-meter {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: #f4d2a0;
+}
+.pollution-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  font-size: 10px;
+  line-height: 1;
+}
+.pollution-label {
+  color: #f0b56d;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.pollution-head strong {
+  color: #ffe2b8;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pollution-track {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  background: #1f1610;
+  border: 1px solid #f0a04b45;
+}
+.pollution-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #e68a3a, #ffcc72);
+  box-shadow: 0 0 7px #ffad4c;
+  transition: width 180ms ease-out;
+}
+.pollution-meter.compact {
+  gap: 2px;
+}
+.pollution-meter.compact .pollution-head {
+  font-size: 9px;
+}
+.pollution-meter.compact .pollution-head strong {
+  font-size: 9px;
+}
+.pollution-meter.compact .pollution-track {
+  height: 3px;
+}

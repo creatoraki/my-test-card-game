@@ -4,7 +4,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、我方/敌方单位、效果、状态、战斗状态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。概率与百分比存百分点整数；`burdenPenalty` 是开战瞬间的负重快照。 |
+| [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、我方/敌方单位、效果、状态、战斗状态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。卡牌带 `contaminated` 标记，我方单位携带污染值、生病和怪癖快照；概率与百分比存百分点整数。 |
 | [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、时刻推进、虚弱/易伤、命中上下限、概率封顶、格挡、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、先手排程、小队手牌/抽牌和负重。属性读取必须经过 `statOf`；负重换算由 `burdenPenalty` 统一提供，且只有我方承担负重。 |
 | [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/抽取、Fisher–Yates 洗牌。 |
@@ -13,6 +13,8 @@
 | [statuses.ts](../../src/engine/statuses.ts) | 中毒、灼烧、再生、力量、虚弱、易伤、荆棘、眩晕、洞察等状态注册表。状态通过 `ctx.ops` 调用原语，避免直接依赖引擎实现造成循环依赖。眩晕和洞察的实际处理分别在 AI 与 UI。 |
 | [targeting.ts](../../src/engine/targeting.ts) | 存活单位、敌我查询和随机目标选择。没有站位仇恨，敌人从存活我方中等概率随机选目标。 |
 | [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆，并受小队手牌上限约束。 |
+| [quirks.ts](../../src/engine/quirks.ts) | 污染阈值、每张污染卡增量、生病永久修正和怪癖注册表；永久状态不复用会在战斗结束清理的 `StatusInstance`。 |
+| [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
 | [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行：倍率预览、眩晕跳过、随机选目标、效果解释和行动后重排。 |
 | [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进，处理所有到点敌人并安排下次行动，带死循环安全阀。 |
 | [battle.ts](../../src/engine/battle.ts) | 建局、回合开始、出牌、结束回合编排。支持跨战斗 `startHp` 和 `EncounterModifier`；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |

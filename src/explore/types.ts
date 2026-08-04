@@ -77,6 +77,7 @@ export type ExploreEffect =
   | { type: "OPEN_CHUTE" } // 传送投递口: 开启寄件流程(实际寄件由玩家在背包面板里选)
   | { type: "MODIFY_ENERGY"; amount: number } // 净化粒子增减
   | { type: "SKIP_NODE_COST"; nodes: number } // 「隐匿通道」: 接下来 N 个节点免除基础粒子消耗
+  | { type: "CONTAMINATE_CARDS"; count?: number } // 记录待处理的个人卡组污染请求
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
 
@@ -135,8 +136,8 @@ export type BattleTier = "light" | "medium" | "heavy" | "boss";
 export type SlotSymbolKind = "battle" | "prep";
 
 // 符号自带的战斗条件改造。⚠ 刻意**只收现有 engine/EncounterModifier 能落地的四项** ——
-// 设计文档里的「场景特殊卡牌」「污染卡牌」「首回合手牌 −1」引擎侧都还没有支持,
-// 与其在卡面上承诺一个不执行的效果, 不如降级成语义等价的可落地项(见 data/slotSymbols.ts)。
+// 设计文档里的「场景特殊卡牌」「首回合手牌 −1」仍未由 SlotBattleMod 承载；污染卡请求
+// 已由探索效果记录，并在 runStore 的战斗入口或远征收尾处交给城镇档案处理。
 export interface SlotBattleMod {
   castTickDelta?: number; // 负 = 敌方先手更快, 正 = 敌方行动更慢
   enemyStatuses?: { id: string; stacks: number }[]; // 全体敌人的开局状态
@@ -264,6 +265,7 @@ export interface ExploreState {
   currentSegment: number; // 已抵达的推进段数, 0 = 尚未进入第 1 段, 4 = 已走满
   freeNodes: number; // 「隐匿通道」: 接下来几个节点免除基础粒子消耗
   pendingNotes: string[]; // 本节点结算摘要, 供 resolving 浮层展示
+  pendingContaminationCount: number; // 尚未交给 townStore 应用的污染卡数量
 
   // 侧向跨接(设计文档 §7.2): 整趟出击的剩余次数, 基础 1。
   // ⚠ 字段先占位, 指令系统是 P1 —— 目前没有任何入口消耗它。

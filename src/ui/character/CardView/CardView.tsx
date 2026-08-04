@@ -21,6 +21,7 @@ export function CardView({ card, playable, selected, onClick }: Props) {
         playable ? s["playable"] : s["unplayable"],
         selected && s["selected"],
         card.upgraded && s["upgraded"],
+        card.contaminated && s["contaminated"],
       )}
       style={{ borderColor: owner.color }}
       onClick={(e) => {
@@ -36,6 +37,11 @@ export function CardView({ card, playable, selected, onClick }: Props) {
         </span>
         <span className={s["card-type"]}>{card.cardType === "fast" ? "速攻" : "普通"}</span>
       </div>
+      {card.contaminated && (
+        <span className={s["pollution-mark"]} title="污染卡 · 抽到时污染值 +2" aria-label="污染卡">
+          ☣
+        </span>
+      )}
       <div className={s["card-owner"]} style={{ color: owner.color }}>
         {owner.emoji} {owner.name}
       </div>

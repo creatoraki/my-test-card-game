@@ -22,6 +22,8 @@ import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { EquipmentDrawer } from "@/ui/character/EquipmentDrawer";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
+import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
+import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { useStageScale } from "@/ui/hooks/stage";
@@ -207,6 +209,10 @@ export function CharacterDetailScreen() {
             可用经验 {cs.exp} · 累计 {cs.expEarned} · 卡组 Lv.{cs.deckLevel} · 最小卡组下限{" "}
             {cs.minDeckSize} 张
           </p>
+          <div className={s["cd-conditions"]}>
+            <PollutionMeter value={cs.pollution} className={s["cd-pollution"]} />
+            <QuirkPips sick={cs.sick} quirks={cs.quirks} className={s["cd-quirks"]} />
+          </div>
         </header>
 
         {/* ---- 右上: 出战状态 ---- */}

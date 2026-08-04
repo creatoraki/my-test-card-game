@@ -36,6 +36,11 @@ export function DeckCardFace({ card, className }: Props) {
       <span className={s["deck-card-cost"]}>
         <strong>{card.cost}</strong>
       </span>
+      {card.contaminated && (
+        <span className={s["deck-card-pollution"]} title="污染卡 · 抽到时污染值 +2" aria-label="污染卡">
+          ☣
+        </span>
+      )}
       <span className={s["deck-card-art"]}>
         {art ? (
           <img src={art} draggable={false} />

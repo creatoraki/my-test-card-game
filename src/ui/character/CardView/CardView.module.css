@@ -28,6 +28,24 @@
 .card.unplayable {
   opacity: 0.45;
 }
+.card.contaminated {
+  box-shadow: 0 0 0 1px #e68a3a, 0 8px 20px #8f3d174d;
+}
+.pollution-mark {
+  position: absolute;
+  z-index: 2;
+  top: 5px;
+  right: 6px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  color: #ffe0a2;
+  font-size: 13px;
+  line-height: 1;
+  background: #3b1e12e8;
+  border: 1px solid #e68a3a;
+}
 .card.selected {
   transform: translateY(-14px);
   box-shadow: 0 0 0 1px var(--accent), 0 12px 24px #000c;

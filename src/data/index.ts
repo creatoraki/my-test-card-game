@@ -147,6 +147,7 @@ export function makeCard(defId: string, upgraded = false): Card {
     effects: def.effects.map((e) => ({ ...e })), // 深拷贝效果, 便于单卡升级
     uid: newUid(),
     upgraded: false,
+    contaminated: false,
   };
   if (upgraded) upgradeCard(card);
   return card;

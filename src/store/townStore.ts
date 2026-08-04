@@ -8,8 +8,17 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Card, Rarity, StatBlock } from "../engine";
-import { RULES, addStats, deckUpgradeCost, lowerMinSizeCost } from "../engine";
+import type { Card, QuirkId, Rarity, StatBlock } from "../engine";
+import {
+  POLLUTION_RULES,
+  QUIRK_DEFS,
+  RULES,
+  SICK_MOD,
+  addStats,
+  deckUpgradeCost,
+  lowerMinSizeCost,
+  quirkIdsOf,
+} from "../engine";
 import {
   CHARACTERS,
   getBondDef,
@@ -48,6 +57,9 @@ export interface CharacterState {
   // 已穿戴的三件装备(物品实例本身, 不是修正层)。★ 穿在身上的**不占背包/仓库格**。
   equipped: Record<EquipSlot, ItemStack | null>;
   pendingDraw: string[] | null; // 抽卡进行中的候选 defId; 持久化 => 刷新也躲不掉 3 选 1
+  pollution: number; // 个人污染值, 达到阈值后归零
+  sick: boolean; // 是否已经进入永久生病状态
+  quirks: QuirkId[]; // 永久怪癖, 最多 POLLUTION_RULES.maxQuirks 个
 }
 
 // ---------------------------------------------------------------------------
@@ -99,6 +111,10 @@ interface TownStore {
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
+  contaminateCards: (charIds: string[], count: number) => number; // 随机污染队伍个人卡组中的未污染卡
+  syncBattleConditions: (
+    conditions: { charId: string; pollution: number; sick: boolean; quirks: string[] }[],
+  ) => void; // 战斗结束回填污染、疾病和怪癖
 
   // ---- 天数与商店 ----
   advanceDay: () => void; // 推进一日 + 重摇货架(由 runStore.backToTown 调用)
@@ -169,11 +185,19 @@ export function deriveStats(cs: CharacterState): StatBlock {
   const base = getCharacter(cs.charId).base;
   const eq = equipModsOf(cs);
   const flat = addStats(base, eq.flat ?? {});
-  const pct = eq.pct ?? {};
+  const pct: Partial<StatBlock> = { ...(eq.pct ?? {}) };
+  const addPct = (mod: Partial<StatBlock> | undefined) => {
+    for (const [key, value] of Object.entries(mod ?? {}) as [keyof StatBlock, number][]) {
+      pct[key] = (pct[key] ?? 0) + value;
+    }
+  };
+  if (cs.sick) addPct(SICK_MOD.pct);
+  for (const quirkId of quirkIdsOf(cs.quirks)) addPct(QUIRK_DEFS[quirkId].mod.pct);
   const out = { ...flat };
   for (const k of Object.keys(out) as (keyof StatBlock)[]) {
     out[k] = flat[k] * (1 + (pct[k] ?? 0) / 100);
   }
+  out.maxHp = Math.max(1, out.maxHp);
   return out;
 }
 
@@ -216,6 +240,9 @@ function freshCharacter(def: CharacterDef): CharacterState {
     minDeckSize: RULES.deck.initialMinSize,
     equipped: { weapon: null, armor: null, trinket: null },
     pendingDraw: null,
+    pollution: 0,
+    sick: false,
+    quirks: [],
   };
 }
 
@@ -374,6 +401,62 @@ export const useTownStore = create<TownStore>()(
         return report;
       },
 
+      contaminateCards: (charIds, count) => {
+        const wanted = Math.max(0, Math.floor(count));
+        if (!wanted || !charIds.length) return 0;
+
+        const characters = { ...get().characters };
+        const candidates: { charId: string; index: number }[] = [];
+        for (const charId of charIds) {
+          const cs = characters[charId];
+          if (!cs) continue;
+          cs.deck.forEach((card, index) => {
+            if (!card.contaminated) candidates.push({ charId, index });
+          });
+        }
+
+        const total = Math.min(wanted, candidates.length);
+        for (let i = 0; i < total; i++) {
+          const pick = Math.floor(Math.random() * candidates.length);
+          const candidate = candidates.splice(pick, 1)[0];
+          const cs = characters[candidate.charId];
+          characters[candidate.charId] = {
+            ...cs,
+            deck: cs.deck.map((card, index) =>
+              index === candidate.index ? { ...card, contaminated: true } : card,
+            ),
+          };
+        }
+
+        if (total > 0) set({ characters });
+        return total;
+      },
+
+      syncBattleConditions: (conditions) => {
+        const characters = { ...get().characters };
+        let changed = false;
+        for (const condition of conditions) {
+          const cs = characters[condition.charId];
+          if (!cs) continue;
+          const quirks = quirkIdsOf(condition.quirks).slice(0, POLLUTION_RULES.maxQuirks);
+          const pollution = Math.max(
+            0,
+            Math.min(POLLUTION_RULES.threshold - 1, Math.floor(condition.pollution)),
+          );
+          if (
+            cs.pollution === pollution &&
+            cs.sick === condition.sick &&
+            cs.quirks.length === quirks.length &&
+            cs.quirks.every((id, index) => id === quirks[index])
+          ) {
+            continue;
+          }
+          characters[condition.charId] = { ...cs, pollution, sick: condition.sick, quirks };
+          changed = true;
+        }
+        if (changed) set({ characters });
+      },
+
       // ---- 天数与商店 ----
 
       // 推进一日。★ 商店的主刷新机制就是这个 —— 唯一调用方是 runStore.backToTown
@@ -504,11 +587,12 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
-    // ⚠ v6: 新增天数 day 与商店货架 shop。v5 的存档两者都缺, 读回来 day 会是 undefined
+    // ⚠ v7: 新增污染值、疾病与怪癖。旧存档不兼容, 换 key 让旧档自然失效重建。
+    // v6 新增的天数 day 与商店货架 shop 也由新档完整初始化。
     //   ⇒ 据点状态条显示「第 NaN 日」、商店货架空着且刷新价算不出来。项目不做旧存档兼容,
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v6", version: 6 },
+    { name: "town-profile-v7", version: 7 },
   ),
 );

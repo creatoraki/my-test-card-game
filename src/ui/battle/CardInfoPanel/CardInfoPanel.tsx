@@ -83,6 +83,7 @@ export function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
         <span className={s["cip-sub"]}>
           {card.cardType === "fast" ? "速攻 · 不推进时刻" : "普通 · 推进 1 时刻"}
           {card.upgraded ? " · 已强化" : ""}
+          {card.contaminated ? " · 污染卡" : ""}
         </span>
       </div>
 
@@ -111,6 +112,12 @@ export function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
           <div>
             <dt>消耗</dt>
             <dd>打出后本场移除</dd>
+          </div>
+        )}
+        {card.contaminated && (
+          <div>
+            <dt>污染效果</dt>
+            <dd>抽到时所属角色污染值 +2</dd>
           </div>
         )}
       </dl>

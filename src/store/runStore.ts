@@ -81,6 +81,11 @@ function partySnapshot(): PartySnapshot[] {
   });
 }
 
+function applyPendingContamination(charIds: string[]): void {
+  const count = useExploreStore.getState().consumePendingContamination();
+  if (count > 0) useTownStore.getState().contaminateCards(charIds, count);
+}
+
 // 建一场战斗。
 // - 战斗卡组 = 上阵角色个人卡组的集合。createBattle 直接引用传入的卡实例(不拷贝), 而个人卡组是
 //   城镇的持久资产, 故必须传副本, 否则战斗中的改动会污染城镇卡组。
@@ -88,9 +93,11 @@ function partySnapshot(): PartySnapshot[] {
 // - 净化粒子档位与战斗签条件经 battleModifier 注入 —— 引擎不认识能量与老虎机,
 //   只认识 EncounterModifier。
 function launchBattle(encounterId: string, isBoss: boolean): void {
-  const { characters, party } = useTownStore.getState();
   const session = useExploreStore.getState().session;
   if (!session) return;
+
+  applyPendingContamination(session.party.map((p) => p.charId));
+  const { characters, party } = useTownStore.getState();
 
   // ★ 羁绊在**开战瞬间快照**, 与负重惩罚同一个范式(见 engine/stats.burdenPenalty 的注释):
   //   局外算好, 灌进面板, 引擎不认识羁绊 —— 正如它不认识装备与背包。
@@ -109,6 +116,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     // ★ 抽牌数/手牌上限是**小队合计**属性(engine/stats.partyDrawCount 按上阵角色求和),
     //   每人加一份会变成 3 人队三倍。所以这类只给队伍第一人加。
     if (i === 0) s = applyModifier(s, bondPartyMods);
+    const characterState = characters[p.charId];
     return {
       id: c.id,
       charId: c.id,
@@ -116,6 +124,9 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
       emoji: c.emoji,
       stats: s, // ★ 局外已结算的完整面板(角色基础 + 装备 + 羁绊)
       startHp: p.hp, // ★ 血量跨战斗继承
+      pollution: characterState.pollution,
+      sick: characterState.sick,
+      quirks: [...characterState.quirks],
     };
   });
 
@@ -199,8 +210,15 @@ export const useRunStore = create<RunStore>((set, get) => ({
     // 战斗单位的最终血量回填给探索层 —— 下一场以此开局
     const survivors = battle.playerIds.map((id) => {
       const a = battle.combatants[id] as Ally;
-      return { charId: a.charId, hp: a.hp, alive: a.alive };
+      return { charId: a.charId, hp: a.hp, maxHp: a.maxHp, alive: a.alive };
     });
+
+    useTownStore.getState().syncBattleConditions(
+      battle.playerIds.map((id) => {
+        const a = battle.combatants[id] as Ally;
+        return { charId: a.charId, pollution: a.pollution, sick: a.sick, quirks: a.quirks };
+      }),
+    );
 
     const explore = useExploreStore.getState();
     explore.settleBattle(won, survivors, enemyDefIds);
@@ -265,14 +283,22 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const session = useExploreStore.getState().session;
     if (!session) return set({ screen: "town" });
 
+    if (
+      session.phase !== "wiped" &&
+      session.phase !== "retreated" &&
+      session.phase !== "cleared"
+    ) {
+      return;
+    }
+
+    applyPendingContamination(session.party.map((p) => p.charId));
+
     if (session.phase === "wiped") {
       // 团灭: session.backpack 已被 loseEverything 清空, 但**投递口寄回的仍然算数**(§6.5)。
       bankEverything(session);
       set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0, lastDrops: [] });
       return;
     }
-    if (session.phase !== "retreated" && session.phase !== "cleared") return;
-
     bankEverything(session);
     set({
       screen: "victory",

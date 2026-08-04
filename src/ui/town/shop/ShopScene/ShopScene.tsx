@@ -465,7 +465,7 @@ function ShelfPanel({
 
   return (
     <>
-      <PanelHead kicker="SUPPLY EXCHANGE" title="补给货架">
+      <PanelHead kicker="SUPPLY EXCHANGE" title="自动售货机">
         <div className={s["sx-readout"]} aria-label="商店状态">
           <div>
             <span>居民积分</span>

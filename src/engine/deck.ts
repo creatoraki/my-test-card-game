@@ -4,6 +4,7 @@ import type { BattleState } from "./types";
 import { shuffle } from "./rng";
 import { log } from "./ops";
 import { partyHandLimit } from "./stats";
+import { registerPollutedCardDraw } from "./pollution";
 
 // 抽 n 张(受小队手牌上限限制)。抽牌堆空则把弃牌堆洗回。
 export function drawCards(state: BattleState, n: number): void {
@@ -19,6 +20,8 @@ export function drawCards(state: BattleState, n: number): void {
     }
     const uid = state.draw.shift()!;
     state.hand.push(uid);
+    const card = state.cards[uid];
+    if (card) registerPollutedCardDraw(state, card);
     drawn++;
   }
   if (drawn > 0) log(state, `🃏 抽了 ${drawn} 张牌`);

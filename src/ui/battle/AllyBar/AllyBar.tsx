@@ -9,6 +9,8 @@ import { useHandHover } from "@/ui/battle/handFocusStore";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { HpBar } from "@/ui/common/HpBar";
 import { StatusPips } from "@/ui/common/StatusPips";
+import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
+import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import s from "./AllyBar.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
 import ub from "@/ui/battle/styles/unitBadges.module.css";
@@ -116,6 +118,7 @@ const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetab
           占流会把 .vfx / .float-num 的定位一起压偏(与敌人的 .intent 同一套路)。 */}
       <div className={s["ally-badges"]}>
         <StatusPips statuses={cmb.statuses} />
+        <QuirkPips sick={(cmb as Ally).sick} quirks={(cmb as Ally).quirks} />
       </div>
 
       <div className={s["ally-frame"]}>
@@ -138,6 +141,11 @@ const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetab
         {/* 一体化双条: 贴卡框底边, 自身不带圆角/描边 —— 轮廓由 .ally-frame 的 overflow 裁出 */}
         <div className={s["ally-bars"]}>
           <HpBar hp={cmb.hp} maxHp={cmb.maxHp} name={cmb.name} flush />
+          <PollutionMeter
+            value={(cmb as Ally).pollution}
+            compact
+            className={s["ally-pollution"]}
+          />
           <div className={s["shield-bar"]} title={`护盾 ${cmb.shield}`}>
             <div className={s["shield-fill"]} style={{ width: `${shieldPct}%` }} />
           </div>
