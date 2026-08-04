@@ -36,7 +36,7 @@ export default function ItemSlot({ stack, selected, dimmed, onClick, className }
         className,
       )}
       onClick={onClick}
-      title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
+      // title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
     >
       <span className={s["item-slot-icon"]}>{itemIcon(def)}</span>
       <span className={s["item-slot-name"]}>{def.name}</span>

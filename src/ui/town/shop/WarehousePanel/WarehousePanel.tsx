@@ -4,7 +4,6 @@ import {
   useState,
   type CSSProperties,
   type FocusEvent,
-  type PointerEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import { getItemDef } from "@/data";
@@ -231,14 +230,9 @@ export default function WarehousePanel({
               <div
                 className={s["warehouse-cell"]}
                 key={stack.uid}
-                onPointerEnter={(event: PointerEvent<HTMLDivElement>) =>
-                  showTooltip(stack, { x: event.clientX, y: event.clientY })
+                onPointerEnter={(event) =>
+                  showTooltip(stack, tooltipPointFromRect(event.currentTarget.getBoundingClientRect()))
                 }
-                onPointerMove={(event: PointerEvent<HTMLDivElement>) => {
-                  if (hoveredUid === stack.uid) {
-                    setTooltipPoint({ x: event.clientX, y: event.clientY });
-                  }
-                }}
                 onPointerLeave={() => {
                   setHoveredUid((current) => (current === stack.uid ? null : current));
                   setTooltipPoint(null);

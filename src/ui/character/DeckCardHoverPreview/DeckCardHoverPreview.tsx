@@ -1,5 +1,5 @@
 import type { Card } from "@/engine";
-import { DeckCardDetail } from "@/ui/character/DeckCardDetail";
+import { DeckCardFace } from "@/ui/character/DeckCardFace";
 import s from "./DeckCardHoverPreview.module.css";
 
 interface Props {
@@ -8,8 +8,12 @@ interface Props {
 
 export function DeckCardHoverPreview({ card }: Props) {
   return (
-    <div className={s["deck-card-hover-preview"]} aria-live="polite">
-      <DeckCardDetail key={card.uid} card={card} variant="floating" />
+    <div
+      className={s["deck-card-hover-preview"]}
+      aria-label={`${card.name}卡牌详情`}
+      aria-live="polite"
+    >
+      <DeckCardFace card={card} />
     </div>
   );
 }
