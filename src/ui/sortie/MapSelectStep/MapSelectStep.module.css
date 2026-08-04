@@ -2,23 +2,30 @@
 /* 固定 1920×1080 设计画布由 SortieScreen 的 .stage 提供, 本文件只负责画布内的排版。
    所有 px 都是设计 px: 不写 vw/vh, 不按窗口宽度重排, 由父级 --stage-scale 统一等比缩放。
 
-   ★ 版面沿用 FormationScreen 的全屏页语法: 左上标题簇、右上读数 chip、中央卡阵列、
-     下方详情栏与三个角落元素。亮玻璃配方翻译成暗色玻璃, 让地图场景的废楼氛围保持压暗。
-     .sm-step 上的令牌只在本页使用, 与 FormationScreen 的 --fm-* 同属局部令牌。
+   ★ 版面只有四件东西: 全屏背景图、左上角地图基础信息、一条斜跨上下的白玻璃横幅、左下两个按钮。
+   ★ 横幅几何: 中线顶端 x=1728(距右边缘 10% 宽), 底端 x=1536(距右边缘 20% 宽), 向下向左倾。
+     倾角 θ = atan(192 / 1080) ≈ 10.08deg, 由 --band-skew 统一持有。
+     skewX 把 (x, y) 映射到 (x + y·tanθ, y): y 不变 ⇒ 切片上下边保持水平, 左右边整体倾斜,
+     正是"从横幅上水平切出来的四边形"。切片图跟随 skew 一起倾斜, 因此填充无缝隙; 只有文字反倾斜扳正。
+   ★ 选中项居中: .sm-band-list 在斜带局部坐标里只做 translateY, 经父级 skew 后表现为沿斜带轴线滑动,
+     斜带的左右边缘始终是同一条连续直线。位移量 --shift 由 TSX 下发(铁律 4 的跨模块变量契约),
+     其步进必须与本文件 .sm-slice 的 height + margin-bottom 之和一致 —— 见 MapSelectStep.tsx 的 SLICE_STEP。
    ★ .sm-step 前缀是必要的: base.css 的 button:hover:not(:disabled) 特异性高于单个类,
-     所有按钮的 hover/active 规则都用它压住全局 HUD 皮肤, 卡片悬停才能只亮边框。
-   ★ 背景遮罩是压暗层而不是提亮层。场景图铺满画布, 网格线也在遮罩中接管, 避免被底图盖掉。
-   ★ 大卡不使用 clip-path, 只有 chip、按钮、角标使用斜切角; 全项目终端皮肤不使用圆角。
+     所有按钮的 hover/active 规则都用它压住全局 HUD 皮肤。
+   ★ 全项目终端皮肤不使用圆角; 按钮的斜切角走 clip-path。
 */
 
 .sm-step {
   --sm-ink: #eaf6f3;
   --sm-ink-dim: #8fb2ae;
-  --sm-line: #78cbc32e;
   --sm-glow: #91e8dc;
   --sm-glow-hi: #c2fff6;
-  --sm-gold: #e8c57e;
-  --sm-bad: #d99b8c;
+
+  /* 横幅倾角与几何 */
+  --band-skew: -10.08deg;
+  --band-w: 520px;
+  --slice-h: 208px;
+  --slice-gap: 6px;
 
   position: relative;
   z-index: 1;
@@ -30,15 +37,23 @@
 }
 
 /* ===================== 背景 ===================== */
+/* 换图是"一进一出"的上下推移: 新层从 --dir 指向的一侧滑入, 旧层朝反方向滑出。
+   --dir 由 TSX 下发(+1 = 往下一张地图, 新图自下方推入; -1 相反), 是本组件的跨模块变量契约。
+   图层比画布高 20% 并上提 10%, 保证推移过程中不会露出画布边缘。 */
 .sm-bg {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: -10%;
   z-index: 0;
   width: 100%;
-  height: 100%;
+  height: 120%;
   object-fit: cover;
   pointer-events: none;
-  animation: smBgIn 240ms ease both;
+  animation: smBgIn 460ms cubic-bezier(0.22, 0.9, 0.24, 1) both;
+}
+
+.sm-bg-out {
+  animation-name: smBgOut;
 }
 
 .sm-veil {
@@ -47,474 +62,196 @@
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(rgba(142, 231, 216, 0.035) 1px, transparent 1px) 0 0 / 48px 48px,
-    linear-gradient(90deg, rgba(142, 231, 216, 0.035) 1px, transparent 1px) 0 0 / 48px 48px,
-    linear-gradient(to bottom, #050c0fd9 0%, #050c0fb3 42%, #04090bde 100%),
-    radial-gradient(ellipse at 50% 44%, transparent 46%, #000000a6 100%);
+    linear-gradient(to right, #04090be6 0%, #04090b8c 34%, transparent 62%),
+    linear-gradient(to bottom, #050c0f8c 0%, #050c0f45 40%, #04090bb3 100%),
+    radial-gradient(ellipse at 46% 46%, transparent 48%, #0000009e 100%);
 }
 
-/* ===================== 标题与读数 ===================== */
-.sm-header,
-.sm-readout,
-.sm-grid,
-.sm-detail,
-.sm-back,
-.sm-note,
-.sm-confirm {
+/* ===================== 左上角地图基础信息 ===================== */
+.sm-info {
   position: absolute;
-  z-index: 1;
-}
-
-.sm-header {
-  padding-left: 18px;
+  left: 72px;
+  top: 72px;
+  z-index: 2;
+  width: 620px;
+  padding-left: 20px;
   border-left: 2px solid var(--sm-glow);
-  animation: smRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation: smRise 460ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
-.sm-kicker,
-.sm-detail-kicker,
-.sm-card-no {
-  display: block;
-  color: var(--sm-glow);
-  font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 5px;
-}
-
-.sm-title {
-  margin: 6px 0 0;
+.sm-info-name {
+  margin: 0;
   color: var(--sm-ink);
-  font-size: 42px;
+  font-size: 52px;
   font-weight: 700;
   letter-spacing: 10px;
   text-indent: 10px;
-  text-shadow: 0 0 24px #91e8dc1f;
+  text-shadow: 0 2px 26px #000000a6;
 }
 
-.sm-sub {
-  margin: 6px 0 0;
+.sm-info-desc {
+  margin: 14px 0 0;
+  max-width: 560px;
   color: var(--sm-ink-dim);
-  font-size: 14px;
-  letter-spacing: 2px;
+  font-size: 15px;
+  line-height: 1.9;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 12px #000000a6;
 }
 
-.sm-readout {
-  display: flex;
-  gap: 10px;
-  animation: smRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+.sm-info-stars {
+  display: block;
+  margin-top: 16px;
+  color: var(--sm-glow);
+  font-size: 20px;
+  letter-spacing: 8px;
+  text-shadow: 0 0 18px #91e8dc3d;
 }
 
-.sm-chip {
-  --notch: 10px;
-  display: flex;
-  min-width: 116px;
-  flex-direction: column;
-  gap: 4px;
-  padding: 11px 18px;
-  border: 1px solid var(--sm-line);
-  background: linear-gradient(150deg, #12242899, #0d1b1e80 55%, #0a171a8c);
-  -webkit-backdrop-filter: blur(14px) saturate(118%) brightness(0.92);
-  backdrop-filter: blur(14px) saturate(118%) brightness(0.92);
-  box-shadow:
-    inset 0 1px 0 #7fd9cd24,
-    0 18px 40px -26px #000000cc;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
+/* ===================== 斜跨横幅 ===================== */
+.sm-band {
+  position: absolute;
+  left: calc(1728px - var(--band-w) / 2); /* = 1468px, 顶端中线对齐画布右侧 10% */
+  top: 0;
+  z-index: 2;
+  width: var(--band-w);
+  height: 100%;
+  overflow: hidden;
+  transform: skewX(var(--band-skew));
+  transform-origin: 0 0;
+  border-left: 1px solid #ffffff61;
+  border-right: 1px solid #ffffff61;
+  box-shadow: 0 0 60px -18px #00000099;
+  animation: smBandIn 520ms 80ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
-.sm-chip-label {
-  color: var(--sm-ink-dim);
-  font-size: 11px;
-  letter-spacing: 2px;
+.sm-band-list {
+  position: absolute;
+  left: 0;
+  top: 540px; /* 画布竖直中点 */
+  width: 100%;
+  transform: translateY(calc(var(--shift) * 1px));
+  transition: transform 420ms cubic-bezier(0.22, 0.9, 0.24, 1);
 }
 
-.sm-chip-value {
-  color: var(--sm-ink);
-  font-family: var(--font-family);
-  font-size: 21px;
-  font-weight: 600;
-  letter-spacing: 2px;
-}
-
-/* ===================== 地图卡阵列 ===================== */
-.sm-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 300px);
-  grid-auto-rows: 420px;
-  align-content: start;
-  justify-content: start;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-color: #78cbc366 transparent;
-  scrollbar-width: thin;
-}
-
-.sm-card {
-  --sm-card-w: 300px;
-
-  position: relative;
-  display: flex;
-  width: var(--sm-card-w);
-  height: 420px;
-  min-width: 0;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 0;
-  border: 1px solid var(--sm-line);
-  border-radius: 0;
-  background: linear-gradient(150deg, #12242899, #0d1b1e80 55%, #0a171a8c);
-  -webkit-backdrop-filter: blur(14px) saturate(118%) brightness(0.92);
-  backdrop-filter: blur(14px) saturate(118%) brightness(0.92);
-  box-shadow:
-    inset 0 1px 0 #7fd9cd24,
-    0 18px 40px -26px #000000cc;
-  color: var(--sm-ink);
-  font-family: var(--font-family);
-  font-size: inherit;
-  font-weight: 400;
-  text-align: left;
-  clip-path: none;
-  cursor: pointer;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-  animation: smCardIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  animation-delay: calc(120ms + var(--i, 0) * 55ms);
-}
-
-@keyframes smCardIn {
-  from {
-    opacity: 0;
-    filter: blur(4px);
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-  }
-}
-
-.sm-step .sm-card:hover {
-  border-color: var(--sm-glow);
-  background: linear-gradient(150deg, #12242899, #0d1b1e80 55%, #0a171a8c);
-  box-shadow:
-    inset 0 0 0 1px #91e8dc33,
-    inset 0 1px 0 #7fd9cd24,
-    0 18px 40px -26px #000000cc;
-}
-
-.sm-card.sm-is-on {
-  border-color: var(--sm-glow);
-  background: linear-gradient(150deg, #18383aab, #12303391 55%, #0f272a9e);
-  box-shadow:
-    inset 0 0 0 1px #91e8dc33,
-    0 0 26px -8px var(--sm-glow),
-    0 18px 40px -26px #000000cc;
-}
-
-.sm-step .sm-card.sm-is-on:hover {
-  border-color: var(--sm-glow-hi);
-  background: linear-gradient(150deg, #18383aab, #12303391 55%, #0f272a9e);
-  box-shadow:
-    inset 0 0 0 1px #91e8dc66,
-    0 0 30px -6px var(--sm-glow),
-    0 18px 40px -26px #000000cc;
-}
-
-.sm-step .sm-card:active {
-  border-color: var(--sm-glow);
-  background: linear-gradient(150deg, #12242899, #0d1b1e80 55%, #0a171a8c);
-  transform: none;
-}
-
-.sm-step .sm-card.sm-is-on:active {
-  background: linear-gradient(150deg, #18383aab, #12303391 55%, #0f272a9e);
-  transform: none;
-}
-
-.sm-card-preview {
+.sm-slice {
   position: relative;
   display: block;
-  flex: 0 0 169px;
   width: 100%;
+  height: var(--slice-h);
+  margin: 0 0 var(--slice-gap);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
   overflow: hidden;
-  border-bottom: 1px solid #78cbc35c;
-  background: #081417;
+  background: linear-gradient(160deg, #ffffff2e, #ffffff14 55%, #ffffff24);
+  -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
+  backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 #ffffff59,
+    inset 0 -1px 0 #ffffff26,
+    0 22px 46px -28px #000000cc;
+  color: var(--sm-ink);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.28s ease, box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 
-.sm-card-preview::after {
+.sm-slice-art {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  content: "";
-  background: linear-gradient(180deg, transparent 52%, #0a171ad9 100%);
-}
-
-.sm-card-preview img {
-  display: block;
+  z-index: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.sm-card-body {
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 20px 20px 18px;
-}
-
-.sm-card-no {
-  font-size: 11px;
-  letter-spacing: 3px;
-}
-
-.sm-card-name {
-  margin-top: 10px;
-  color: var(--sm-ink);
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 4px;
-}
-
-.sm-card-stars {
-  margin-top: 12px;
-  color: var(--sm-gold);
-  font-size: 16px;
-  letter-spacing: 2px;
-}
-
-.sm-card-meta {
-  margin-top: 14px;
-  color: var(--sm-ink-dim);
-  font-size: 12px;
-  letter-spacing: 0;
-}
-
-.sm-card-go {
-  margin-top: auto;
-  color: var(--sm-glow);
-  font-family: var(--font-family);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 3px;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
-}
-
-.sm-step .sm-card:hover .sm-card-go {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.sm-card-flag {
-  --notch: 8px;
-  position: absolute;
-  left: -1px;
-  top: -1px;
-  z-index: 2;
   pointer-events: none;
-  padding: 5px 11px;
-  border: 1px solid var(--sm-glow);
-  background: #0d292bd9;
-  color: var(--sm-glow);
-  font-family: var(--font-family);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 3px;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-  box-shadow: 0 0 14px -2px #91e8dc80;
+  /* 不反倾斜: 跟随父级 skew 一起变形才能严丝合缝填满平行四边形。 */
+  opacity: 0;
+  filter: saturate(0.15) brightness(0.7);
+  transition: opacity 0.32s ease, filter 0.32s ease;
 }
 
-/* ===================== 详情栏 ===================== */
-.sm-detail {
-  display: flex;
-  border: 1px solid var(--sm-line);
-  background: linear-gradient(150deg, #12242899, #0d1b1e80 55%, #0a171a8c);
-  -webkit-backdrop-filter: blur(14px) saturate(118%) brightness(0.92);
-  backdrop-filter: blur(14px) saturate(118%) brightness(0.92);
-  box-shadow:
-    inset 0 1px 0 #7fd9cd24,
-    0 18px 40px -26px #000000cc;
-  animation: smRise 420ms 140ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-
-.sm-detail-left,
-.sm-detail-stats,
-.sm-detail-party {
-  min-width: 0;
-  padding: 30px 32px;
-  box-sizing: border-box;
-}
-
-.sm-detail-left {
-  display: flex;
-  flex: 1.4;
-  flex-direction: column;
-}
-
-.sm-detail-left h2 {
-  margin: 12px 0 12px;
-  color: var(--sm-ink);
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: 4px;
-}
-
-.sm-detail-left p {
-  max-width: 660px;
-  margin: 0;
-  color: #d2e5e1;
-  font-size: 15px;
-  line-height: 1.8;
-}
-
-.sm-detail-stats {
-  display: flex;
-  flex: 1;
-  gap: 10px;
-  border-left: 1px solid #78cbc33d;
-  border-right: 1px solid #78cbc33d;
-}
-
-.sm-detail-stats > div {
-  flex: 1;
-  min-width: 0;
-  padding: 16px 12px;
-  border-top: 1px solid #78cbc35c;
-}
-
-.sm-detail-stats span {
-  color: var(--sm-ink-dim);
-  font-size: 12px;
-  letter-spacing: 2px;
-}
-
-.sm-detail-stats strong {
-  display: block;
-  margin-top: 12px;
-  color: var(--sm-ink);
-  font-family: var(--font-family);
-  font-size: 21px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  white-space: nowrap;
-}
-
-.sm-detail-party {
-  display: flex;
-  flex: 1.2;
-  flex-direction: column;
-}
-
-.sm-party-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.sm-party-chip {
-  display: flex;
-  min-width: 190px;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px 8px 8px;
-  border: 1px solid #78cbc347;
-  background: #193a3c61;
-}
-
-.sm-party-portrait {
+.sm-slice-copy {
   position: relative;
-  display: block;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
-  overflow: hidden;
-  border: 1px solid #78cbc35c;
-  background: #081719b8;
-}
-
-img.sm-party-bust {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: calc(56px * var(--head-zoom, 1));
-  height: auto;
-  max-width: none;
-  object-fit: contain;
-  object-position: center top;
-  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
-}
-
-span.sm-party-bust {
+  z-index: 1;
   display: flex;
-  width: 100%;
-  height: 100%;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  /* 反倾斜, 把文字从平行四边形里扳正。 */
+  transform: skewX(calc(-1 * var(--band-skew)));
 }
 
-.sm-party-copy {
-  min-width: 0;
-}
-
-.sm-party-copy strong,
-.sm-party-copy small {
-  display: block;
-}
-
-.sm-party-copy strong {
-  color: var(--sm-ink);
-  font-size: 15px;
+.sm-slice-no {
+  color: #ffffffad;
+  font-family: var(--font-family);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 5px;
+  text-indent: 5px;
+  text-shadow: 0 1px 8px #000000b3;
 }
 
-.sm-party-copy small {
-  margin-top: 6px;
-  color: var(--sm-ink-dim);
-  font-size: 11px;
-  letter-spacing: 0;
+.sm-slice-name {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 7px;
+  text-indent: 7px;
+  text-shadow: 0 2px 14px #000000cc;
   white-space: nowrap;
 }
 
-.sm-empty-party {
-  margin: 28px 0 0;
-  color: var(--sm-bad);
-  font-size: 14px;
-  line-height: 1.7;
+.sm-step .sm-slice:hover {
+  opacity: 0.82;
+  background: linear-gradient(160deg, #ffffff3d, #ffffff1f 55%, #ffffff2e);
 }
 
-/* ===================== 角落按钮与说明 ===================== */
+.sm-step .sm-slice:active {
+  opacity: 0.92;
+}
+
+.sm-step .sm-slice.sm-is-on {
+  z-index: 1;
+  opacity: 1;
+  box-shadow:
+    inset 0 0 0 2px #ffffffcc,
+    inset 0 1px 0 #ffffff8a,
+    0 0 42px -6px #ffffff5c,
+    0 26px 52px -30px #000000e6;
+}
+
+.sm-is-on .sm-slice-art {
+  opacity: 1;
+  filter: none;
+}
+
+.sm-is-on .sm-slice-no {
+  color: var(--sm-glow-hi);
+}
+
+/* ===================== 角落按钮 ===================== */
+/* 与横幅切片同一套白玻璃配方: 白色渐变底 + backdrop-filter + 内高光。
+   clip-path 会把描边一起裁掉, 所以边框走 inset box-shadow 而不是 border。
+   主次差异只体现在玻璃浓度和描边亮度上, 不再用实心亮色块打断玻璃语言。 */
 .sm-back,
 .sm-confirm {
   --notch: 10px;
-  padding: 12px 26px;
-  border: 1px solid var(--sm-line);
+  position: absolute;
+  left: 72px;
+  z-index: 3;
+  padding: 13px 28px;
+  border: 0;
   border-radius: 0;
   font-family: var(--font-family);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 4px;
   text-indent: 4px;
+  -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
+  backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
   clip-path: polygon(
     var(--notch) 0,
     100% 0,
@@ -524,68 +261,74 @@ span.sm-party-bust {
     0 var(--notch)
   );
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s cubic-bezier(0.2, 0.72, 0.28, 1);
+  transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 
 .sm-back {
-  background: #193a3c61;
-  color: var(--sm-ink);
-  animation: smRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  bottom: 48px;
+  background: linear-gradient(160deg, #ffffff1f, #ffffff0f 55%, #ffffff1a);
+  box-shadow:
+    inset 0 0 0 1px #ffffff59,
+    inset 0 1px 0 #ffffff45,
+    0 18px 38px -26px #000000cc;
+  color: #dfeeeb;
+  animation: smRise 420ms 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .sm-step .sm-back:hover {
-  border-color: var(--sm-glow);
-  background: #193a3c9e;
-  color: var(--sm-glow-hi);
+  background: linear-gradient(160deg, #ffffff33, #ffffff1c 55%, #ffffff29);
+  box-shadow:
+    inset 0 0 0 1px #ffffff8a,
+    inset 0 1px 0 #ffffff5e,
+    0 18px 38px -26px #000000cc;
+  color: #ffffff;
   transform: translateX(-4px);
 }
 
 .sm-step .sm-back:active {
-  background: #193a3c9e;
   transform: translateX(-4px) translateY(1px);
 }
 
 .sm-confirm {
+  bottom: 118px;
   min-width: 220px;
-  border-color: var(--sm-glow);
-  background: var(--sm-glow);
-  color: #061013;
+  background: linear-gradient(160deg, #ffffff3d, #ffffff1f 55%, #ffffff2e);
+  box-shadow:
+    inset 0 0 0 1px #ffffffb3,
+    inset 0 1px 0 #ffffff7a,
+    0 0 34px -10px #ffffff4d,
+    0 22px 46px -28px #000000e6;
+  color: #ffffff;
   font-size: 16px;
   font-weight: 700;
+  text-shadow: 0 1px 10px #0000008a;
   animation: smRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .sm-step .sm-confirm:hover:not(:disabled) {
-  border-color: var(--sm-glow-hi);
-  background: var(--sm-glow-hi);
-  color: #061013;
-  outline: 2px solid #c2fff66b;
-  outline-offset: 3px;
+  background: linear-gradient(160deg, #ffffff5c, #ffffff30 55%, #ffffff42);
+  box-shadow:
+    inset 0 0 0 2px #ffffffe0,
+    inset 0 1px 0 #ffffff9e,
+    0 0 46px -6px #ffffff70,
+    0 22px 46px -28px #000000e6;
+  color: #ffffff;
   transform: none;
 }
 
 .sm-step .sm-confirm:active:not(:disabled) {
-  background: var(--sm-glow-hi);
   transform: translateY(1px);
 }
 
 .sm-step .sm-confirm:disabled {
-  border-color: #55726f;
-  background: #29403f;
-  color: #88a09c;
+  background: linear-gradient(160deg, #ffffff14, #ffffff0a 55%, #ffffff12);
+  box-shadow:
+    inset 0 0 0 1px #ffffff2e,
+    0 18px 38px -30px #000000cc;
+  color: #ffffff59;
+  text-shadow: none;
   opacity: 1;
   cursor: not-allowed;
-}
-
-.sm-note {
-  left: 50%;
-  margin: 0;
-  color: var(--sm-ink-dim);
-  font-size: 13px;
-  letter-spacing: 1px;
-  transform: translateX(-50%);
-  animation: smRise 420ms 240ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  white-space: nowrap;
 }
 
 /* ===================== 入场与动态降级 ===================== */
@@ -599,36 +342,49 @@ span.sm-party-bust {
 @keyframes smBgIn {
   from {
     opacity: 0;
+    transform: translateY(calc(var(--dir, 1) * 6%));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smBgOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--dir, 1) * -6%));
+  }
+}
+
+@keyframes smBandIn {
+  from {
+    opacity: 0;
+    transform: skewX(var(--band-skew)) translateX(80px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sm-bg,
-  .sm-header,
-  .sm-readout,
-  .sm-card,
-  .sm-detail,
+  .sm-info,
+  .sm-band,
   .sm-back,
-  .sm-note,
   .sm-confirm {
-    animation: smFade 140ms linear backwards;
-    animation-delay: 0ms;
+    animation: none;
   }
 
-  .sm-step .sm-back:hover,
-  .sm-step .sm-back:active,
-  .sm-step .sm-confirm:hover:not(:disabled),
-  .sm-step .sm-confirm:active:not(:disabled) {
-    transform: none;
+  .sm-band-list {
+    transition: none;
   }
 
-  .sm-card-go {
-    transform: none;
-  }
-}
-
-@keyframes smFade {
-  from {
-    opacity: 0;
+  .sm-slice,
+  .sm-slice-art {
+    transition: none;
   }
 }

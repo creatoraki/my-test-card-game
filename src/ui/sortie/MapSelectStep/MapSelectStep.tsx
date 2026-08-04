@@ -1,8 +1,7 @@
-import { useEffect, useState, type CSSProperties } from "react";
-import { MAPS, getCharacter } from "@/data";
-import { deriveStats, useTownStore } from "@/store/townStore";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type WheelEvent } from "react";
+import { MAPS } from "@/data";
+import { useTownStore } from "@/store/townStore";
 import { useSortieStore } from "@/store/sortieStore";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
 import { mapArt, warmMapArt } from "@/ui/art/mapArt";
 import s from "./MapSelectStep.module.css";
@@ -11,158 +10,147 @@ interface Props {
   onCancel: () => void;
 }
 
-const stagger = (i: number): CSSProperties => ({ "--i": i }) as CSSProperties;
+/* 切片步进 = 切片高 + 间隙, 必须与 MapSelectStep.module.css 的 .sm-slice 保持一致。 */
+const SLICE_STEP = 214;
+/* 滚轮节流: 触控板惯性会连发 wheel, 不节流会一次跳过多张。 */
+const WHEEL_GAP_MS = 180;
+/* 背景推移时长, 必须与 MapSelectStep.module.css 的 smBgIn / smBgOut 一致。 */
+const BG_SLIDE_MS = 460;
+
+interface BgLayer {
+  id: string;
+  seq: number;
+  dir: 1 | -1;
+}
 
 export function MapSelectStep({ onCancel }: Props) {
   const party = useTownStore((state) => state.party);
-  const characters = useTownStore((state) => state.characters);
   const pickMap = useSortieStore((state) => state.pickMap);
   const [mapId, setMapId] = useState(MAPS[0]?.id ?? "");
   const selected = MAPS.find((map) => map.id === mapId) ?? MAPS[0];
+  const wheelAtRef = useRef(0);
+  /* 背景推移方向: +1 表示往下一张地图走(新图从下方推入), -1 相反。 */
+  const dirRef = useRef<1 | -1>(1);
+  const seqRef = useRef(0);
+  const [layers, setLayers] = useState<BgLayer[]>(() => [{ id: MAPS[0]?.id ?? "", seq: 0, dir: 1 }]);
 
   useEffect(warmMapArt, []);
 
+  /* 换图时压入一张新层, 旧层留到动画结束再摘, 才能做出"一进一出"的上下推移。 */
+  useEffect(() => {
+    setLayers((prev) => {
+      if (prev[prev.length - 1]?.id === mapId) return prev;
+      seqRef.current += 1;
+      return [...prev, { id: mapId, seq: seqRef.current, dir: dirRef.current }];
+    });
+  }, [mapId]);
+
+  useEffect(() => {
+    if (layers.length < 2) return;
+    const timer = window.setTimeout(() => setLayers((prev) => prev.slice(-1)), BG_SLIDE_MS);
+    return () => window.clearTimeout(timer);
+  }, [layers]);
+
+  const select = useCallback((nextId: string) => {
+    setMapId((currentId) => {
+      if (nextId === currentId) return currentId;
+      const from = MAPS.findIndex((map) => map.id === currentId);
+      const to = MAPS.findIndex((map) => map.id === nextId);
+      dirRef.current = to >= from ? 1 : -1;
+      return nextId;
+    });
+  }, []);
+
+  const step = useCallback((offset: number) => {
+    dirRef.current = offset > 0 ? 1 : -1;
+    setMapId((currentId) => {
+      const currentIndex = Math.max(0, MAPS.findIndex((map) => map.id === currentId));
+      const nextIndex = (currentIndex + offset + MAPS.length) % MAPS.length;
+      return MAPS[nextIndex]?.id ?? currentId;
+    });
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const back = event.key === "ArrowUp" || event.key === "ArrowLeft";
+      const next = event.key === "ArrowDown" || event.key === "ArrowRight";
+      if (!back && !next) return;
       event.preventDefault();
-      setMapId((currentId) => {
-        const currentIndex = Math.max(0, MAPS.findIndex((map) => map.id === currentId));
-        const offset = event.key === "ArrowRight" ? 1 : -1;
-        const nextIndex = (currentIndex + offset + MAPS.length) % MAPS.length;
-        return MAPS[nextIndex]?.id ?? currentId;
-      });
+      step(next ? 1 : -1);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [step]);
+
+  const onWheel = (event: WheelEvent<HTMLElement>) => {
+    if (event.deltaY === 0) return;
+    const now = performance.now();
+    if (now - wheelAtRef.current < WHEEL_GAP_MS) return;
+    wheelAtRef.current = now;
+    step(event.deltaY > 0 ? 1 : -1);
+  };
 
   if (!selected) return null;
 
   const selectedIndex = Math.max(0, MAPS.findIndex((map) => map.id === selected.id));
-  const sectorLabel = `SECTOR-${String(selectedIndex + 1).padStart(2, "0")}`;
+  /* 让选中切片的中心停在画布竖直中点; 父级已 skew, 局部纯 translateY 在屏幕上即沿斜带轴线滑动。 */
+  const shift = -(selectedIndex + 0.5) * SLICE_STEP;
 
   return (
-    <section className={s["sm-step"]} aria-labelledby="sortie-map-title">
-      <img key={selected.id} className={s["sm-bg"]} src={mapArt(selected.id)} alt="" draggable={false} />
+    <section className={s["sm-step"]} aria-labelledby="sortie-map-title" onWheel={onWheel}>
+      {layers.map((layer, index) => (
+        <img
+          key={layer.seq}
+          className={cx(s["sm-bg"], index < layers.length - 1 && s["sm-bg-out"])}
+          style={{ "--dir": layer.dir } as CSSProperties}
+          src={mapArt(layer.id)}
+          alt=""
+          draggable={false}
+        />
+      ))}
       <div className={s["sm-veil"]} />
 
-      <header className={s["sm-header"]} style={{ left: "72px", top: "48px" }}>
-        <span className={s["sm-kicker"]}>SORTIE ROUTE / TARGET SECTOR</span>
-        <h1 id="sortie-map-title" className={s["sm-title"]}>选择目标层</h1>
-        <p className={s["sm-sub"]}>先确定地下城，再为这趟远征装填物资</p>
+      <header className={s["sm-info"]}>
+        <h1 id="sortie-map-title" className={s["sm-info-name"]}>{selected.name}</h1>
+        <p className={s["sm-info-desc"]}>{selected.desc}</p>
+        <span className={s["sm-info-stars"]} aria-label={`难度 ${selected.difficulty} / 5`}>
+          {"★".repeat(selected.difficulty)}{"☆".repeat(5 - selected.difficulty)}
+        </span>
       </header>
 
-      <div className={s["sm-readout"]} style={{ right: "72px", top: "48px" }}>
-        <div className={s["sm-chip"]}>
-          <span className={s["sm-chip-label"]}>下降小队</span>
-          <strong className={s["sm-chip-value"]}>{party.length} / 3</strong>
-        </div>
-        <div className={s["sm-chip"]}>
-          <span className={s["sm-chip-label"]}>目标层</span>
-          <strong className={s["sm-chip-value"]}>{sectorLabel}</strong>
-        </div>
-        <div className={s["sm-chip"]}>
-          <span className={s["sm-chip-label"]}>区域轮数</span>
-          <strong className={s["sm-chip-value"]}>{selected.roundCount} 轮</strong>
-        </div>
-      </div>
-
-      <div className={s["sm-grid"]} style={{ left: "72px", top: "184px", width: "1776px", height: "452px", gap: "20px" }}>
-        {MAPS.map((map, index) => (
-          <button
-            key={map.id}
-            className={cx(s["sm-card"], map.id === selected.id && s["sm-is-on"])}
-            style={stagger(index)}
-            type="button"
-            aria-label={`选择${map.name}`}
-            aria-pressed={map.id === selected.id}
-            onClick={() => setMapId(map.id)}
-          >
-            <span className={s["sm-card-preview"]}>
-              <img src={mapArt(map.id)} alt="" draggable={false} />
-            </span>
-            {map.id === selected.id && <span className={s["sm-card-flag"]}>目标层</span>}
-            <span className={s["sm-card-body"]}>
-              <span className={s["sm-card-no"]}>{`SECTOR-${String(index + 1).padStart(2, "0")}`}</span>
-              <strong className={s["sm-card-name"]}>{map.name}</strong>
-              <span className={s["sm-card-stars"]} aria-label={`难度 ${map.difficulty} / 5`}>
-                {"★".repeat(map.difficulty)}{"☆".repeat(5 - map.difficulty)}
+      <div className={s["sm-band"]}>
+        <div className={s["sm-band-list"]} style={{ "--shift": shift } as CSSProperties} role="listbox" aria-label="目标层">
+          {MAPS.map((map, index) => (
+            <button
+              key={map.id}
+              className={cx(s["sm-slice"], map.id === selected.id && s["sm-is-on"])}
+              type="button"
+              role="option"
+              aria-selected={map.id === selected.id}
+              aria-label={`选择${map.name}`}
+              onClick={() => select(map.id)}
+            >
+              <img className={s["sm-slice-art"]} src={mapArt(map.id)} alt="" draggable={false} />
+              <span className={s["sm-slice-copy"]}>
+                <span className={s["sm-slice-no"]}>{`SECTOR-${String(index + 1).padStart(2, "0")}`}</span>
+                <strong className={s["sm-slice-name"]}>{map.name}</strong>
               </span>
-              <span className={s["sm-card-meta"]}>{map.roundCount} 轮区域推进 · 起始 {map.startingEnergy}</span>
-              <span className={s["sm-card-go"]}>查看详情 ▸</span>
-            </span>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <article className={s["sm-detail"]} style={{ left: "72px", top: "656px", width: "1776px", height: "292px" }}>
-        <section className={s["sm-detail-left"]}>
-          <span className={s["sm-detail-kicker"]}>DESTINATION LOCKED</span>
-          <h2>{selected.name}</h2>
-          <p>{selected.desc}</p>
-        </section>
-        <section className={s["sm-detail-stats"]} aria-label="地图参数">
-          <div>
-            <span>难度</span>
-            <strong>{selected.difficulty} / 5</strong>
-          </div>
-          <div>
-            <span>区域轮数</span>
-            <strong>{selected.roundCount} 轮</strong>
-          </div>
-          <div>
-            <span>起始粒子</span>
-            <strong>{selected.startingEnergy}</strong>
-          </div>
-        </section>
-        <section className={s["sm-detail-party"]}>
-          <span className={s["sm-detail-kicker"]}>DESCENDING PARTY</span>
-          {party.length === 0 ? (
-            <p className={s["sm-empty-party"]}>尚未编成小队，请先返回编队。</p>
-          ) : (
-            <div className={s["sm-party-row"]}>
-              {party.map((id) => {
-                const character = getCharacter(id);
-                const profile = characters[id];
-                const stats = deriveStats(profile);
-                return (
-                  <div className={s["sm-party-chip"]} key={id}>
-                    <span className={s["sm-party-portrait"]}>
-                      <CharacterPortrait
-                        characterId={character.id}
-                        emoji={character.emoji}
-                        alt={character.name}
-                        className={s["sm-party-bust"]}
-                      />
-                    </span>
-                    <span className={s["sm-party-copy"]}>
-                      <strong>{character.name}</strong>
-                      <small>{Math.round(stats.maxHp)} HP · 卡组 Lv.{profile.deckLevel}</small>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      </article>
-
-      <button className={s["sm-back"]} style={{ left: "72px", bottom: "48px" }} type="button" onClick={onCancel}>
-        ← 返回据点
-      </button>
-      <p className={s["sm-note"]} style={{ bottom: "56px" }}>
-        净化粒子只降不升，低能量会提高战斗压力与产出倍率。
-      </p>
       <button
         className={s["sm-confirm"]}
-        style={{ right: "72px", bottom: "48px" }}
         type="button"
         disabled={party.length === 0}
         onClick={() => pickMap(selected.id)}
       >
         确认目标层 <span aria-hidden>▸</span>
+      </button>
+      <button className={s["sm-back"]} type="button" onClick={onCancel}>
+        ← 返回据点
       </button>
     </section>
   );

@@ -229,6 +229,7 @@ export function itemIcon(def: ItemDef): ReactNode {
   const art =
     EQUIPMENT_ART[def.id] ??
     (def.familyId ? CONSUMABLE_ART[def.familyId] : undefined) ??
+    CONSUMABLE_ART[def.id] ??
     MATERIAL_ART[def.id];
   if (art) return <img src={art} alt="" />;
 

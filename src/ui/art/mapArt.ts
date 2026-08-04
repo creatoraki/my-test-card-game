@@ -4,14 +4,18 @@
 // ⚠ 与 battleBg.ts 的分工: 那边是**战斗背景**(打起来时铺满屏幕的那张), 这边是**选层时的缩略预览**。
 //   同一张地图两者可以是不同的图, 故刻意分成两张表而不是给 BattleBgDef 加字段。
 import ruinedFloorArt from "@/assets/场景/大楼废弃楼层.png";
+import indoorGardenArt from "@/assets/场景/室内花园.png";
+import cityZenithArt from "@/assets/场景/城市天顶.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
 const MAP_ART: Record<string, string> = {
   // 废弃楼层 = 废弃大楼内部, 与这张等距废弃楼层图最贴。
   "neon-city": ruinedFloorArt,
+  "indoor-garden": indoorGardenArt,
+  "city-zenith": cityZenithArt,
 };
 
-// 目前只有一张场景图, 未登记的地图先共用它 —— 有了各自的图再往上表里加行。
+// 未登记的地图先共用废弃楼层图。
 const FALLBACK_ART = ruinedFloorArt;
 
 export const MAP_ART_SOURCES: readonly string[] = [...new Set([
