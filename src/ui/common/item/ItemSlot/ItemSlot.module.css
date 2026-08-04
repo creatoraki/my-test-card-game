@@ -88,7 +88,7 @@
 /* ── 内容 ── */
 .item-slot-icon {
   display: block;
-  width: 46%;
+  width: var(--item-slot-icon-size, 46%);
   line-height: 0;
 }
 .item-slot-icon svg,

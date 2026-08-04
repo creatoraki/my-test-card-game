@@ -27,6 +27,7 @@ export {
   SICK_MOD,
   getQuirkDef,
 } from "./quirks";
+export { quirkIdsOf } from "./pollution";
 export type { QuirkDef, QuirkId } from "./quirks";
 export {
   createBattle,

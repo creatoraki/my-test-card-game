@@ -70,6 +70,7 @@
 }
 
 .equipment-slot-item.equipment-slot-item {
+  --item-slot-icon-size: 90%;
   --item-slot-name-offset: 0px;
   aspect-ratio: 1;
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
 import ItemDetail from "@/ui/common/item/ItemDetail";
@@ -22,6 +23,10 @@ export function EquipmentDrawer({
   onUnequip,
   onClose,
 }: Props) {
+  const [hoveredCandidateUid, setHoveredCandidateUid] = useState<string | null>(null);
+  const hoveredCandidate = candidates.find((stack) => stack.uid === hoveredCandidateUid) ?? null;
+  const detailStack = hoveredCandidate ?? current;
+
   return (
     <section className={s["equipment-drawer"]} aria-label={`${SLOT_LABEL[slot]}仓库`}>
       <header className={s["equipment-drawer-head"]}>
@@ -44,7 +49,18 @@ export function EquipmentDrawer({
           {candidates.length > 0 ? (
             <div className={s["equipment-candidates-grid"]}>
               {candidates.map((stack) => (
-                <div className={s["equipment-candidate"]} key={stack.uid}>
+                <div
+                  className={s["equipment-candidate"]}
+                  key={stack.uid}
+                  onMouseEnter={() => setHoveredCandidateUid(stack.uid)}
+                  onMouseLeave={() =>
+                    setHoveredCandidateUid((uid) => (uid === stack.uid ? null : uid))
+                  }
+                  onFocus={() => setHoveredCandidateUid(stack.uid)}
+                  onBlur={() =>
+                    setHoveredCandidateUid((uid) => (uid === stack.uid ? null : uid))
+                  }
+                >
                   <ItemSlot
                     stack={stack}
                     className={s["equipment-candidate-slot"]}
@@ -62,7 +78,7 @@ export function EquipmentDrawer({
         <aside className={s["equipment-current"]}>
           <span className={s["equipment-drawer-label"]}>当前装备</span>
           <ItemDetail
-            stack={current}
+            stack={detailStack}
             className={s["equipment-current-detail"]}
             placeholder={`当前没有装备${SLOT_LABEL[slot]}`}
           >

@@ -45,13 +45,14 @@
 
 .item-detail-head {
   display: flex;
+  flex-direction: var(--item-detail-head-direction, row);
   gap: 11px;
   align-items: flex-start;
 }
 
 .item-detail-icon {
   flex: none;
-  width: 44px;
+  width: var(--item-detail-icon-width, 44px);
   color: var(--rr);
   line-height: 0;
 }
