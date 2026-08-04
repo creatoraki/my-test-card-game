@@ -147,10 +147,10 @@ export function MapSelectStep({ onCancel }: Props) {
         disabled={party.length === 0}
         onClick={() => pickMap(selected.id)}
       >
-        确认目标层 <span aria-hidden>▸</span>
+        <span className={s["sm-btn-copy"]}>确认 <span aria-hidden>▸</span></span>
       </button>
       <button className={s["sm-back"]} type="button" onClick={onCancel}>
-        ← 返回据点
+        <span className={s["sm-btn-copy"]}>← 返回据点</span>
       </button>
     </section>
   );

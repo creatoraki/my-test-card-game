@@ -2,8 +2,9 @@
 /* 固定 1920×1080 设计画布由 SortieScreen 的 .stage 提供, 本文件只负责画布内的排版。
    所有 px 都是设计 px: 不写 vw/vh, 不按窗口宽度重排, 由父级 --stage-scale 统一等比缩放。
 
-   ★ 版面只有四件东西: 全屏背景图、左上角地图基础信息、一条斜跨上下的白玻璃横幅、左下两个按钮。
-   ★ 横幅几何: 中线顶端 x=1728(距右边缘 10% 宽), 底端 x=1536(距右边缘 20% 宽), 向下向左倾。
+   ★ 版面只有四件东西: 全屏背景图、左上角地图基础信息、一条斜跨上下的白玻璃横幅、底部左右各一个按钮。
+   ★ 横幅几何: 中线顶端 x=1400, 底端 x=1208, 向下向左倾; 横幅底部右边缘落在 x≈1468,
+     刻意让出画布右下角给确认键(right:72, 左边缘 x≈1628), 两者留 160px 间隙。
      倾角 θ = atan(192 / 1080) ≈ 10.08deg, 由 --band-skew 统一持有。
      skewX 把 (x, y) 映射到 (x + y·tanθ, y): y 不变 ⇒ 切片上下边保持水平, 左右边整体倾斜,
      正是"从横幅上水平切出来的四边形"。切片图跟随 skew 一起倾斜, 因此填充无缝隙; 只有文字反倾斜扳正。
@@ -12,7 +13,8 @@
      其步进必须与本文件 .sm-slice 的 height + margin-bottom 之和一致 —— 见 MapSelectStep.tsx 的 SLICE_STEP。
    ★ .sm-step 前缀是必要的: base.css 的 button:hover:not(:disabled) 特异性高于单个类,
      所有按钮的 hover/active 规则都用它压住全局 HUD 皮肤。
-   ★ 全项目终端皮肤不使用圆角; 按钮的斜切角走 clip-path。
+   ★ 全项目终端皮肤不使用圆角; 底部两个按钮与斜带共用 --band-skew, 整体 skew 成平行四边形,
+     文案由 .sm-btn-copy 反倾斜扳正。
 */
 
 .sm-step {
@@ -62,9 +64,9 @@
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(to right, #04090be6 0%, #04090b8c 34%, transparent 62%),
-    linear-gradient(to bottom, #050c0f8c 0%, #050c0f45 40%, #04090bb3 100%),
-    radial-gradient(ellipse at 46% 46%, transparent 48%, #0000009e 100%);
+    linear-gradient(to right, #04090b68 0%, #04090b3f 34%, transparent 62%),
+    linear-gradient(to bottom, #050c0f3f 0%, #050c0f1f 40%, #04090b51 100%),
+    radial-gradient(ellipse at 46% 46%, transparent 48%, #00000047 100%);
 }
 
 /* ===================== 左上角地图基础信息 ===================== */
@@ -86,7 +88,7 @@
   font-weight: 700;
   letter-spacing: 10px;
   text-indent: 10px;
-  text-shadow: 0 2px 26px #000000a6;
+  text-shadow: 0 2px 8px #000000cc, 0 2px 26px #000000cc;
 }
 
 .sm-info-desc {
@@ -96,7 +98,7 @@
   font-size: 15px;
   line-height: 1.9;
   letter-spacing: 1px;
-  text-shadow: 0 1px 12px #000000a6;
+  text-shadow: 0 1px 6px #000000d9, 0 1px 12px #000000a6;
 }
 
 .sm-info-stars {
@@ -105,13 +107,13 @@
   color: var(--sm-glow);
   font-size: 20px;
   letter-spacing: 8px;
-  text-shadow: 0 0 18px #91e8dc3d;
+  text-shadow: 0 0 18px #91e8dc3d, 0 1px 8px #000000b3;
 }
 
 /* ===================== 斜跨横幅 ===================== */
 .sm-band {
   position: absolute;
-  left: calc(1728px - var(--band-w) / 2); /* = 1468px, 顶端中线对齐画布右侧 10% */
+  left: calc(1640px - var(--band-w) / 2); /* = 1140px, 顶端中线 x=1400 */
   top: 0;
   z-index: 2;
   width: var(--band-w);
@@ -233,14 +235,17 @@
 }
 
 /* ===================== 角落按钮 ===================== */
-/* 与横幅切片同一套白玻璃配方: 白色渐变底 + backdrop-filter + 内高光。
-   clip-path 会把描边一起裁掉, 所以边框走 inset box-shadow 而不是 border。
-   主次差异只体现在玻璃浓度和描边亮度上, 不再用实心亮色块打断玻璃语言。 */
+/* 与横幅切片同一套玻璃配方, 并与斜带共用同一个倾角: 按钮整体 skewX(--band-skew) 成平行四边形,
+   内层 .sm-btn-copy 反倾斜把文案扳正 —— 和 .sm-slice / .sm-slice-copy 完全一致的手法。
+   ★ 任何 hover/active 的 transform 都必须重写 skewX(var(--band-skew)), 否则会把基础倾斜抹掉。
+   ★ 边框走 inset box-shadow 而不是 border, 描边才能贴着倾斜后的边缘。
+   主次差异靠青色主色区分: 确认键整体走 --sm-glow 描边+辉光, 返回键只在左侧留一条青色竖条
+   (呼应 .sm-info 的左边框), 底色仍是低浓度白玻璃。 */
+/* 返回键在左下(left), 确认键在右下(right), 底边同高 —— 定位边各自在下面单独声明。 */
 .sm-back,
 .sm-confirm {
-  --notch: 10px;
   position: absolute;
-  left: 72px;
+  bottom: 48px;
   z-index: 3;
   padding: 13px 28px;
   border: 0;
@@ -252,72 +257,73 @@
   text-indent: 4px;
   -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
   backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
+  transform: skewX(var(--band-skew));
   cursor: pointer;
   transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 
+.sm-btn-copy {
+  display: inline-block;
+  transform: skewX(calc(-1 * var(--band-skew)));
+}
+
 .sm-back {
-  bottom: 48px;
+  left: 72px;
+  padding-left: 31px; /* 左侧让出 3px 青色竖条 */
   background: linear-gradient(160deg, #ffffff1f, #ffffff0f 55%, #ffffff1a);
   box-shadow:
-    inset 0 0 0 1px #ffffff59,
-    inset 0 1px 0 #ffffff45,
+    inset 3px 0 0 0 var(--sm-glow),
+    inset 0 0 0 1px #ffffff45,
+    inset 0 1px 0 #ffffff3d,
     0 18px 38px -26px #000000cc;
   color: #dfeeeb;
-  animation: smRise 420ms 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation: smBtnRise 420ms 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .sm-step .sm-back:hover {
   background: linear-gradient(160deg, #ffffff33, #ffffff1c 55%, #ffffff29);
   box-shadow:
-    inset 0 0 0 1px #ffffff8a,
+    inset 3px 0 0 0 var(--sm-glow-hi),
+    inset 0 0 0 1px #ffffff70,
     inset 0 1px 0 #ffffff5e,
     0 18px 38px -26px #000000cc;
   color: #ffffff;
-  transform: translateX(-4px);
+  transform: skewX(var(--band-skew)) translateX(-4px);
 }
 
 .sm-step .sm-back:active {
-  transform: translateX(-4px) translateY(1px);
+  transform: skewX(var(--band-skew)) translateX(-4px) translateY(1px);
 }
 
 .sm-confirm {
-  bottom: 118px;
-  min-width: 220px;
-  background: linear-gradient(160deg, #ffffff3d, #ffffff1f 55%, #ffffff2e);
+  right: 32px;
+  /* min-width: 220px; */
+  background: linear-gradient(160deg, #91e8dc38, #91e8dc17 55%, #91e8dc2b);
   box-shadow:
-    inset 0 0 0 1px #ffffffb3,
-    inset 0 1px 0 #ffffff7a,
-    0 0 34px -10px #ffffff4d,
+    inset 0 0 0 1px #91e8dcbf,
+    inset 0 1px 0 #c2fff67a,
+    0 0 34px -10px #91e8dc66,
     0 22px 46px -28px #000000e6;
-  color: #ffffff;
+  color: var(--sm-glow-hi);
   font-size: 16px;
   font-weight: 700;
   text-shadow: 0 1px 10px #0000008a;
-  animation: smRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation: smBtnRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .sm-step .sm-confirm:hover:not(:disabled) {
-  background: linear-gradient(160deg, #ffffff5c, #ffffff30 55%, #ffffff42);
+  background: linear-gradient(160deg, #91e8dc54, #91e8dc26 55%, #91e8dc3d);
   box-shadow:
-    inset 0 0 0 2px #ffffffe0,
-    inset 0 1px 0 #ffffff9e,
-    0 0 46px -6px #ffffff70,
+    inset 0 0 0 2px #c2fff6e6,
+    inset 0 1px 0 #c2fff69e,
+    0 0 46px -6px #91e8dc99,
     0 22px 46px -28px #000000e6;
   color: #ffffff;
-  transform: none;
+  transform: skewX(var(--band-skew));
 }
 
 .sm-step .sm-confirm:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: skewX(var(--band-skew)) translateY(1px);
 }
 
 .sm-step .sm-confirm:disabled {
@@ -328,6 +334,7 @@
   color: #ffffff59;
   text-shadow: none;
   opacity: 1;
+  transform: skewX(var(--band-skew));
   cursor: not-allowed;
 }
 
@@ -336,6 +343,14 @@
   from {
     opacity: 0;
     transform: translateY(14px);
+  }
+}
+
+/* 按钮专用: from 里必须带上 skewX, 否则入场那 420ms 会把基础倾斜抹平, 表现为"矩形歪成平行四边形"。 */
+@keyframes smBtnRise {
+  from {
+    opacity: 0;
+    transform: skewX(var(--band-skew)) translateY(14px);
   }
 }
 
