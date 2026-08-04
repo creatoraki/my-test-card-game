@@ -6,7 +6,7 @@
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图重新随分辨率漂移。
 //
 // ★ 入口布局 = 右侧 718×590 的 **bento 马赛克**: 9 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
-//   拼出一个外轮廓规则的矩形。编队 / 训练室 / 冬眠仓(真入口)占较大的块, 未开放设施是小块 ——
+//   拼出一个三行、外轮廓规则的矩形。编队 / 训练室 / 冬眠仓(真入口)占较大的块, 未开放设施是小块 ——
 //   可用性靠面积表达, 不必额外加说明。马赛克本身由下面内联 style 的 gridTemplateAreas 定义。
 //   ⚠ 控制终端已开放但仍占小块(worklog), 与「面积=可用性」的约定暂时不符, 想强调它就调
 //     gridTemplateAreas 里 worklog 占的格数。
@@ -208,7 +208,6 @@ function SortieIcon() {
 interface Facility {
   id: string; // 同时就是 grid-area 名, 与下面 gridTemplateAreas 里的词一一对应
   name: string;
-  desc: string;
   icon: ReactNode;
   size: "lg" | "md" | "sm"; // 只影响图标/字号/斜切角尺度, 砖块几何由 grid 决定
   locked?: boolean; // 未开放占位: 降亮 + 右上角挂「未开放」小标 + hover 反馈弱一档
@@ -221,11 +220,10 @@ interface Facility {
 // 六个设施。名称与功能一律照抄 游戏设定.md 第四节「据点设施」表:
 // 低温维生区 → 冬眠仓 / 作业模拟间 → 训练室, 其余四个直接用设定里的原名。
 const FACILITIES: Facility[] = [
-  { id: "cryo", name: "冬眠仓", desc: "唤醒沉睡的队友。", icon: <CryoIcon />, size: "md" },
+  { id: "cryo", name: "冬眠仓", icon: <CryoIcon />, size: "md" },
   {
     id: "formation",
     name: "编队",
-    desc: "编成小队 · 查看队员。",
     icon: <FormationIcon />,
     size: "md",
     kind: "screen", // ★ 唯一一块不是设施的砖: 直接切到全屏编队页(ui/FormationScreen.tsx)
@@ -233,7 +231,6 @@ const FACILITIES: Facility[] = [
   {
     id: "assembly",
     name: "模块装配舱",
-    desc: "装备打造与强化。",
     icon: <AssemblyIcon />,
     size: "sm",
     locked: true,
@@ -241,14 +238,12 @@ const FACILITIES: Facility[] = [
   {
     id: "worklog",
     name: "控制终端",
-    desc: "接取城市维护工单。",
     icon: <WorkOrderIcon />,
     size: "sm",
   },
   {
     id: "medical",
     name: "生物维护舱",
-    desc: "治疗与卡牌污染处理。",
     icon: <MedicalIcon />,
     size: "md",
     locked: true,
@@ -256,14 +251,12 @@ const FACILITIES: Facility[] = [
   {
     id: "training",
     name: "训练室",
-    desc: "配队 · 加点 · 卡组调整。",
     icon: <TrainingIcon />,
     size: "lg",
   },
   {
     id: "storage",
     name: "物资中转仓",
-    desc: "库存 · 装备 · 废料回收。",
     icon: <StorageIcon />,
     size: "sm",
   },
@@ -272,14 +265,12 @@ const FACILITIES: Facility[] = [
   {
     id: "shop",
     name: "商店",
-    desc: "补给采购 · 每日上新。",
     icon: <ShopIcon />,
     size: "md",
   },
   {
     id: "sortie",
     name: "出击",
-    desc: "选定地下城 · 准备物资。",
     icon: <SortieIcon />,
     size: "lg",
     kind: "screen",
@@ -492,26 +483,25 @@ export function TownScreen() {
             </section>
 
             {/* bento 面板: 位置/尺寸/马赛克排布的旋钮全在下面内联 style(设计 px), 直接改数值即可。
-              列宽 160+120+150+150+98 + 4×10 缝 = 718 宽; 行高 150+190+110+110 + 3×10 缝 = 590 高。
+              6 列原始宽度合计 770 + 5×10 缝 = 820 宽; 3 行原始高度合计 400 + 2×10 缝 = 420 高。
                 改列宽/行高时记得同步 width/height, 否则最后一列/行会被拉伸或留空。 */}
             <div
               className={s["town-bento"]}
               style={{
                 right: "96px", // ← 距画布右边距离(设计 px)
                 bottom: "72px", // ← 距画布底边距离(设计 px)
-                width: "718px", // ← 区域总宽 = 各列宽 + 缝
-                height: "590px", // ← 区域总高 = 各行高 + 缝
+                width: "820px", // ← 区域总宽 = 各列宽 + 缝
+                height: "420px", // ← 区域总高 = 各行高 + 缝
                 gap: "10px", // ← 砖块之间的缝隙
-                gridTemplateColumns: "160px 120px 150px 150px 98px",
-                gridTemplateRows: "150px 190px 110px 110px",
+                gridTemplateColumns: "136px 152px 127px 145px 124px 86px",
+                gridTemplateRows: "120px 165px 115px",
                 // ★ 马赛克本体: 同名格连成一块砖 ⇒ 9 块尺寸互不相同, 外轮廓仍是规则矩形。
                 //   词必须与 FACILITIES 的 id 完全一致。
-                //   第三行是商店独占的一条横贯砖, 第四行是出击一级入口。
+                //   三行都使用不同的横向拼接比例, 让入口像由独立模块临时拼装而成。
                 gridTemplateAreas: `
-                  "cryo     cryo     formation formation worklog"
-                  "assembly training training  medical   storage"
-                  "shop     shop     shop      shop      shop"
-                  "sortie   sortie   sortie    sortie    sortie"
+                  "formation formation cryo     cryo     worklog worklog"
+                  "training  training  training  assembly medical  medical"
+                  "storage   storage   shop      shop     sortie  sortie"
                 `,
               }}
             >
@@ -556,7 +546,6 @@ export function TownScreen() {
                     <span className={s["bento-rim"]} aria-hidden />
                     <span className={s["bento-icon"]}>{f.icon}</span>
                     <span className={s["bento-name"]}>{f.name}</span>
-                    <span className={s["bento-desc"]}>{f.desc}</span>
                     {f.locked && <span className={s["bento-lock"]}>未开放</span>}
                   </button>
                 );

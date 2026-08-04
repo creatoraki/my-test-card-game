@@ -7,11 +7,7 @@ import { StoragePicker } from "@/ui/sortie/StoragePicker";
 import { SortieBackpack } from "@/ui/sortie/SortieBackpack";
 import s from "./PrepStep.module.css";
 
-interface Props {
-  onCancel: () => void;
-}
-
-export function PrepStep({ onCancel }: Props) {
+export function PrepStep() {
   const mapId = useSortieStore((state) => state.mapId);
   const backpack = useSortieStore((state) => state.backpack);
   const backToMap = useSortieStore((state) => state.backToMap);
@@ -45,9 +41,6 @@ export function PrepStep({ onCancel }: Props) {
           <section className={s.mapCard}>
             <div className={s.panelHead}>
               <span className={s.panelLabel}>TARGET SECTOR</span>
-              <button type="button" className={s.textButton} onClick={backToMap}>
-                重选地图
-              </button>
             </div>
             {map && (
               <>
@@ -71,8 +64,8 @@ export function PrepStep({ onCancel }: Props) {
       </div>
 
       <footer className={s.footer}>
-        <button className={s.secondary} type="button" onClick={onCancel}>
-          取消出击
+        <button className={s.secondary} type="button" onClick={backToMap}>
+          返回选择目标层
         </button>
         <button className={s.primary} type="button" onClick={startRun} disabled={!mapId}>
           出击 <span aria-hidden>▸</span>

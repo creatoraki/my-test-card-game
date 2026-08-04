@@ -44,7 +44,7 @@ export function SortieScreen() {
       style={{ "--stage-scale": stageScale } as CSSProperties}
     >
       <main className={s.stage}>
-        {step === "map" ? <MapSelectStep /> : <PrepStep onCancel={leave} />}
+        {step === "map" ? <MapSelectStep onCancel={leave} /> : <PrepStep />}
       </main>
     </div>
   );
