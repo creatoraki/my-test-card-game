@@ -40,6 +40,7 @@ interface ResolvedWarehousePanelPosition {
 
 export interface WarehousePanelProps {
   open: boolean;
+  leaving?: boolean;
   onClose: () => void;
   rows?: number;
   columns?: number;
@@ -72,6 +73,7 @@ function tooltipPointFromRect(rect: DOMRect): TooltipPoint {
 
 export default function WarehousePanel({
   open,
+  leaving = false,
   onClose,
   rows = 4,
   columns = 6,
@@ -169,7 +171,11 @@ export default function WarehousePanel({
     <div className={s["warehouse-layer"]}>
       <section
         id={panelId}
-        className={cx(s["warehouse-panel"], safePosition.side === "right" && s["is-right"])}
+        className={cx(
+          s["warehouse-panel"],
+          safePosition.side === "right" && s["is-right"],
+          leaving && s["is-leaving"],
+        )}
         style={style}
         role="dialog"
         aria-modal="false"
@@ -244,13 +250,21 @@ export default function WarehousePanel({
       </section>
 
       {hoveredStack && tooltipPoint && (
-        <WarehouseTooltip stack={hoveredStack} point={tooltipPoint} />
+        <WarehouseTooltip stack={hoveredStack} point={tooltipPoint} leaving={leaving} />
       )}
     </div>
   );
 }
 
-function WarehouseTooltip({ stack, point }: { stack: ItemStack; point: TooltipPoint }) {
+function WarehouseTooltip({
+  stack,
+  point,
+  leaving,
+}: {
+  stack: ItemStack;
+  point: TooltipPoint;
+  leaving: boolean;
+}) {
   if (typeof document === "undefined") return null;
 
   const right = point.x + TOOLTIP_GAP;
@@ -265,7 +279,7 @@ function WarehouseTooltip({ stack, point }: { stack: ItemStack; point: TooltipPo
 
   return createPortal(
     <div
-      className={s["warehouse-tooltip"]}
+      className={cx(s["warehouse-tooltip"], leaving && s["is-leaving"])}
       style={{ left: `${left}px`, top: `${top}px` }}
       role="tooltip"
     >

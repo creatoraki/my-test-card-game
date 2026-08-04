@@ -159,6 +159,7 @@ export function ShopScene({ leaving = false }: Props) {
 
       <WarehousePanel
         open={warehouseOpen}
+        leaving={leaving}
         onClose={() => setWarehouseOpen(false)}
         panelId="shop-warehouse-panel"
         rows={4}

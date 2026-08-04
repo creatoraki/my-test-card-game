@@ -352,6 +352,10 @@
   filter: drop-shadow(0 14px 24px #000000cc);
 }
 
+.warehouse-tooltip.is-leaving {
+  animation: warehouseTooltipOut 420ms ease-in both;
+}
+
 .warehouse-tooltip-detail.warehouse-tooltip-detail {
   --accent: #b8b0ff;
   --accent2: #5ed5ff;
@@ -392,6 +396,14 @@
   animation-name: warehousePanelInRight;
 }
 
+.warehouse-panel.is-leaving {
+  animation: warehousePanelOut 420ms ease-in both;
+}
+
+.warehouse-panel.is-right.is-leaving {
+  animation-name: warehousePanelOutRight;
+}
+
 @keyframes warehousePanelInRight {
   from {
     opacity: 0;
@@ -400,6 +412,39 @@
   to {
     opacity: 1;
     transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@keyframes warehousePanelOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-44px) translateY(8px) scale(0.985);
+  }
+}
+
+@keyframes warehousePanelOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(44px) translateY(8px) scale(0.985);
+  }
+}
+
+@keyframes warehouseTooltipOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-18px);
   }
 }
 
