@@ -1,4 +1,4 @@
-/* ===================== 共享元素过场: 编队 ↔ 角色详情、出击选层 ↔ 物资准备 ===================== */
+/* ===================== 共享元素过场: 编队 ↔ 角色详情 ===================== */
 /* ⚠⚠ 本文件是**普通全局 CSS**, 刻意不是 *.module.css —— 全项目仅三处例外之一
    (另两处是 styles/tokens.css 与 styles/base.css, 见 docs/code-map/styles.md)。
    理由: 这里一个类选择器都没有, 全是 `::view-transition-*(名字)` 文档根伪元素。
@@ -344,77 +344,5 @@
   animation: vtOutDown 190ms var(--vt-ease-out) both;
 }
 ::view-transition-old(vt-cd-deck) {
-  animation: vtOutDown 190ms 40ms var(--vt-ease-out) both;
-}
-
-/* ===================== 六、出击步骤 ===================== */
-
-::view-transition-group(vt-sortie-band) {
-  animation-duration: var(--vt-morph);
-  animation-timing-function: var(--vt-ease);
-  z-index: 10;
-}
-
-::view-transition-old(vt-sortie-band),
-::view-transition-new(vt-sortie-band) {
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-  animation-duration: var(--vt-cross);
-}
-
-::view-transition-group(vt-sortie-slice-m3),
-::view-transition-group(vt-sortie-slice-m2),
-::view-transition-group(vt-sortie-slice-m1),
-::view-transition-group(vt-sortie-slice-c),
-::view-transition-group(vt-sortie-slice-p1),
-::view-transition-group(vt-sortie-slice-p2),
-::view-transition-group(vt-sortie-slice-p3) {
-  animation-duration: var(--vt-morph);
-  animation-timing-function: var(--vt-ease);
-  z-index: 20;
-}
-
-::view-transition-old(vt-sortie-slice-m3),
-::view-transition-new(vt-sortie-slice-m3),
-::view-transition-old(vt-sortie-slice-m2),
-::view-transition-new(vt-sortie-slice-m2),
-::view-transition-old(vt-sortie-slice-m1),
-::view-transition-new(vt-sortie-slice-m1),
-::view-transition-old(vt-sortie-slice-c),
-::view-transition-new(vt-sortie-slice-c),
-::view-transition-old(vt-sortie-slice-p1),
-::view-transition-new(vt-sortie-slice-p1),
-::view-transition-old(vt-sortie-slice-p2),
-::view-transition-new(vt-sortie-slice-p2),
-::view-transition-old(vt-sortie-slice-p3),
-::view-transition-new(vt-sortie-slice-p3) {
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-  animation-duration: var(--vt-cross);
-}
-
-::view-transition-old(vt-sortie-target) {
-  animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
-}
-
-::view-transition-new(vt-sortie-target) {
-  animation: vtInRise var(--vt-in) 140ms var(--vt-ease) both;
-}
-
-::view-transition-new(vt-sortie-storage) {
-  animation: vtInContent 420ms 160ms var(--vt-ease) both;
-}
-
-::view-transition-new(vt-sortie-backpack) {
-  animation: vtInContent 420ms 220ms var(--vt-ease) both;
-}
-
-::view-transition-old(vt-sortie-storage) {
-  animation: vtOutDown 190ms var(--vt-ease-out) both;
-}
-
-::view-transition-old(vt-sortie-backpack) {
   animation: vtOutDown 190ms 40ms var(--vt-ease-out) both;
 }

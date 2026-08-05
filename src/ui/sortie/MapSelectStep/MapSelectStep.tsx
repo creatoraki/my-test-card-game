@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, type CSSProperties, type WheelEvent } f
 import { MAPS } from "@/data";
 import { cx } from "@/ui/common/cx";
 import { mapArt } from "@/ui/art/mapArt";
-import { sliceVtName } from "@/ui/sortie/sortieStepTransition";
 import s from "./MapSelectStep.module.css";
 
 interface Props {
   active: boolean;
+  entering: boolean;
   intro: boolean;
   selectedMapId: string;
   onSelectMap: (mapId: string) => void;
@@ -15,7 +15,7 @@ interface Props {
 const SLICE_STEP = 214;
 const WHEEL_GAP_MS = 180;
 
-export function MapSelectStep({ active, intro, selectedMapId, onSelectMap }: Props) {
+export function MapSelectStep({ active, entering, intro, selectedMapId, onSelectMap }: Props) {
   const selected = MAPS.find((map) => map.id === selectedMapId) ?? MAPS[0];
   const wheelAtRef = useRef(0);
 
@@ -65,7 +65,7 @@ export function MapSelectStep({ active, intro, selectedMapId, onSelectMap }: Pro
       aria-label="目标层选择"
       onWheel={onWheel}
     >
-      <div className={cx(s["sm-band"], intro && s["sm-band-intro"])}>
+      <div className={cx(s["sm-band"], intro && s["sm-band-intro"], entering && s["sm-band-enter"])}>
         <div
           className={s["sm-band-list"]}
           style={{ "--shift": shift } as CSSProperties}
@@ -76,7 +76,6 @@ export function MapSelectStep({ active, intro, selectedMapId, onSelectMap }: Pro
             <button
               key={map.id}
               className={cx(s["sm-slice"], map.id === selected.id && s["sm-is-on"])}
-              style={{ viewTransitionName: sliceVtName(index - selectedIndex) }}
               type="button"
               role="option"
               aria-selected={map.id === selected.id}

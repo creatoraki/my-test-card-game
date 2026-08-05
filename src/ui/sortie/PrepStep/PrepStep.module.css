@@ -12,6 +12,54 @@
   pointer-events: none;
 }
 
+.status {
+  position: absolute;
+  top: 28px;
+  right: 32px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 220px;
+  pointer-events: none;
+  text-align: right;
+}
+
+.statusLabel {
+  color: var(--sm-ink-dim);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-shadow: 0 1px 6px #000000aa;
+}
+
+.statusValue {
+  margin-top: 4px;
+  color: var(--sm-glow-hi);
+  font-family: var(--font-family);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1;
+  text-shadow: 0 0 18px #91e8dc66, 0 2px 8px #000000cc;
+}
+
+.statusNotice,
+.statusCapacity {
+  min-height: 16px;
+  color: #e8c57e;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 1px;
+  line-height: 16px;
+  text-shadow: 0 1px 6px #000000aa;
+}
+
+.statusCapacity {
+  color: #9bc8c2;
+}
+
 .side {
   position: absolute;
   top: 132px;

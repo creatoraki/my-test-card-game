@@ -71,12 +71,18 @@ export function SortieScreen() {
           map={
             <MapSelectStep
               active={visibleStep === "map" && !transitioning}
+              entering={visibleStep === "map" && transitioning}
               intro={intro}
               selectedMapId={selectedMapId}
               onSelectMap={selectMap}
             />
           }
-          prep={<PrepStep active={visibleStep === "prep" && !transitioning} />}
+          prep={
+            <PrepStep
+              active={visibleStep === "prep" && !transitioning}
+              entering={visibleStep === "prep" && transitioning}
+            />
+          }
         />
         <SortieNav
           step={visibleStep}

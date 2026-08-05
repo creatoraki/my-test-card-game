@@ -4,7 +4,6 @@
   display: block;
   width: fit-content;
   padding: 16px;
-  view-transition-name: vt-sortie-storage;
 }
 
 .bar {

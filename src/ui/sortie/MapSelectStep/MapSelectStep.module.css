@@ -1,6 +1,7 @@
 .sm-step {
   --band-skew: -10.08deg;
   --band-w: 520px;
+  --band-travel: 1240px;
   --slice-h: 208px;
   --slice-gap: 6px;
 
@@ -30,11 +31,14 @@
   border-right: 1px solid #ffffff61;
   border-left: 1px solid #ffffff61;
   box-shadow: 0 0 60px -18px #00000099;
-  view-transition-name: vt-sortie-band;
 }
 
 .sm-band-intro {
   animation: bandIn 520ms 80ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.sm-band-enter {
+  animation: bandEnter 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
 }
 
 .sm-band-list {
@@ -149,8 +153,19 @@
   }
 }
 
+@keyframes bandEnter {
+  from {
+    transform: translateX(calc(-1 * var(--band-travel))) skewX(var(--band-skew));
+  }
+
+  to {
+    transform: skewX(var(--band-skew));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .sm-band {
+  .sm-band,
+  .sm-band-enter {
     animation: none;
   }
 

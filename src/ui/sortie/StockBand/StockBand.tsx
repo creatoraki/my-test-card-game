@@ -4,26 +4,24 @@ import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
 import { itemIcon } from "@/ui/art/itemArt";
 import { cx } from "@/ui/common/cx";
-import { useCountUp } from "@/ui/hooks/useCountUp";
-import { sliceVtName } from "@/ui/sortie/sortieStepTransition";
 import s from "./StockBand.module.css";
 
 interface Props {
   active: boolean;
   className?: string;
+  entering: boolean;
+  onNoticeChange: (notice: string | null) => void;
 }
 
 const SLICE_STEP = 214;
 const WHEEL_GAP_MS = 180;
 
-export function StockBand({ active, className }: Props) {
+export function StockBand({ active, className, entering, onNoticeChange }: Props) {
   const loot = useTownStore((state) => state.loot);
-  const backpack = useSortieStore((state) => state.backpack);
   const buy = useSortieStore((state) => state.buy);
   const [focusIndex, setFocusIndex] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
   const wheelAtRef = useRef(0);
-  const credits = useCountUp(loot, 120, 460);
 
   const step = useCallback((offset: number) => {
     setFocusIndex((currentIndex) =>
@@ -44,6 +42,10 @@ export function StockBand({ active, className }: Props) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [active, step]);
+
+  useEffect(() => {
+    onNoticeChange(notice);
+  }, [notice, onNoticeChange]);
 
   const onWheel = (event: WheelEvent<HTMLElement>) => {
     if (!active || event.deltaY === 0) return;
@@ -68,13 +70,7 @@ export function StockBand({ active, className }: Props) {
       aria-label="货柜"
       onWheel={onWheel}
     >
-      <div className={s["sb-band"]}>
-        <div className={s["sb-band-top"]}>
-          <span className={s["sb-credits-label"]}>终端积分</span>
-          <strong className={s["sb-credits-value"]}>{credits.toLocaleString()}</strong>
-          <span className={s["sb-notice"]} role="status">{notice}</span>
-          <span className={s["sb-capacity"]}>已装 {backpack.length} 堆</span>
-        </div>
+      <div className={cx(s["sb-band"], entering && s["sb-band-enter"])}>
         <div
           className={s["sb-band-list"]}
           style={{ "--shift": focusShift } as CSSProperties}
@@ -94,7 +90,6 @@ export function StockBand({ active, className }: Props) {
                   focused && s["sb-is-on"],
                   !affordable && s["sb-cant"],
                 )}
-                style={{ viewTransitionName: sliceVtName(index - focusIndex) }}
                 type="button"
                 role="option"
                 aria-selected={focused}
