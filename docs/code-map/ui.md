@@ -38,9 +38,12 @@ src/ui/
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
-| [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，按出击临时状态在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
-| [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：展示地图预览、难度、轮数、起始粒子和下降小队；无队伍时禁止确认目标层。 |
-| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：组合固定货柜、仓库消耗品和 8×3 出击背包，实时显示积分、占格和负重惩罚，并把背包透传给远征启动。 |
+| [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
+| [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按地图选择播放上下推移背景动画，在左上角固定显示目标层名称、描述、难度、轮数和起始粒子。 |
+| [sortie/SortieStepViewport](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) | 出击步骤视口：管理地图选择与物资准备面板的水平滑动过场，过渡期间锁定两个面板的交互和辅助技术访问。 |
+| [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
+| [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在斜跨玻璃选择带中切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
+| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：组合固定货柜、仓库消耗品和 8×3 出击背包，实时显示积分、占格和负重惩罚；远征启动由共享流程外壳派发。 |
 | [sortie/StockPanel](../../src/ui/sortie/StockPanel/StockPanel.tsx) | 出击货柜：按固定清单不限量购买消耗品，购买前检查积分与背包容量。 |
 | [sortie/StoragePicker](../../src/ui/sortie/StoragePicker/StoragePicker.tsx) | 出击准备中的仓库消耗品选择器，取物前由 `sortieStore` 试算容量并按 uid 移出整堆。 |
 | [sortie/SortieBackpack](../../src/ui/sortie/SortieBackpack/SortieBackpack.tsx) | 出击背包：按规则排布 8×3 格，展示占格和命中/闪避/暴击惩罚；点击物品退回来源。 |

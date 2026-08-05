@@ -6,6 +6,11 @@
 }
 
 .stage {
+  --sm-ink: #eaf6f3;
+  --sm-ink-dim: #8fb2ae;
+  --sm-glow: #91e8dc;
+  --sm-glow-hi: #c2fff6;
+
   position: absolute;
   left: 50%;
   top: 50%;
