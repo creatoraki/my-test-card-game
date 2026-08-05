@@ -5,6 +5,8 @@
 //   同一张地图两者可以是不同的图, 故刻意分成两张表而不是给 BattleBgDef 加字段。
 import ruinedFloorArt from "@/assets/场景/大楼废弃楼层.png";
 import indoorGardenArt from "@/assets/场景/室内花园.png";
+import skyTrainArt from "@/assets/场景/天空列车.png";
+import glassWalkwayArt from "@/assets/场景/玻璃栈道.png";
 import cityZenithArt from "@/assets/场景/城市天顶.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
@@ -12,6 +14,8 @@ const MAP_ART: Record<string, string> = {
   // 废弃楼层 = 废弃大楼内部, 与这张等距废弃楼层图最贴。
   "neon-city": ruinedFloorArt,
   "indoor-garden": indoorGardenArt,
+  "sky-train": skyTrainArt,
+  "glass-walkway": glassWalkwayArt,
   "city-zenith": cityZenithArt,
 };
 
