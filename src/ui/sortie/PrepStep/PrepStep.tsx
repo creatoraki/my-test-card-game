@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { RULES } from "@/engine";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
@@ -16,6 +16,7 @@ interface Props {
 }
 
 export function PrepStep({ active, entering, exiting }: Props) {
+  const stepRef = useRef<HTMLElement>(null);
   const loot = useTownStore((state) => state.loot);
   const backpack = useSortieStore((state) => state.backpack);
   const putBack = useSortieStore((state) => state.putBack);
@@ -23,7 +24,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
 
   return (
-    <section className={s.step} data-active={active} aria-hidden={!active}>
+    <section ref={stepRef} className={s.step} data-active={active} aria-hidden={!active}>
       {!exiting && (
         <>
           <StockBand
@@ -31,6 +32,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
             className={s.areaStock}
             entering={entering}
             onNoticeChange={setNotice}
+            wheelTargetRef={stepRef}
           />
         </>
       )}

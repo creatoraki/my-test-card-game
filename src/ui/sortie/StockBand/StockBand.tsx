@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type WheelEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { getItemDef, SORTIE_STOCK_IDS } from "@/data";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
@@ -11,12 +11,13 @@ interface Props {
   className?: string;
   entering: boolean;
   onNoticeChange: (notice: string | null) => void;
+  wheelTargetRef: RefObject<HTMLElement>;
 }
 
 const SLICE_STEP = 214;
 const WHEEL_GAP_MS = 180;
 
-export function StockBand({ active, className, entering, onNoticeChange }: Props) {
+export function StockBand({ active, className, entering, onNoticeChange, wheelTargetRef }: Props) {
   const loot = useTownStore((state) => state.loot);
   const buy = useSortieStore((state) => state.buy);
   const [focusIndex, setFocusIndex] = useState(0);
@@ -47,13 +48,20 @@ export function StockBand({ active, className, entering, onNoticeChange }: Props
     onNoticeChange(notice);
   }, [notice, onNoticeChange]);
 
-  const onWheel = (event: WheelEvent<HTMLElement>) => {
+  const onWheel = useCallback((event: WheelEvent) => {
     if (!active || event.deltaY === 0) return;
     const now = performance.now();
     if (now - wheelAtRef.current < WHEEL_GAP_MS) return;
     wheelAtRef.current = now;
     step(event.deltaY > 0 ? 1 : -1);
-  };
+  }, [active, step]);
+
+  useEffect(() => {
+    const target = wheelTargetRef.current;
+    if (!target) return;
+    target.addEventListener("wheel", onWheel);
+    return () => target.removeEventListener("wheel", onWheel);
+  }, [onWheel, wheelTargetRef]);
 
   const showNotice = (message: string) => {
     setNotice(message);
@@ -68,7 +76,6 @@ export function StockBand({ active, className, entering, onNoticeChange }: Props
       data-active={active}
       aria-hidden={!active}
       aria-label="货柜"
-      onWheel={onWheel}
     >
       <div className={cx(s["sb-band"], entering && s["sb-band-enter"])}>
         <div
