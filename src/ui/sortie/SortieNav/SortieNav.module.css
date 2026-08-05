@@ -3,21 +3,15 @@
   inset: 0;
   z-index: 3;
   pointer-events: none;
-}
-
-.nav[data-step="prep"] {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 16px;
-  padding: 0 32px 48px;
-  box-sizing: border-box;
+  --sortie-back-width: 232px;
+  --sortie-confirm-width: 144px;
 }
 
 .back,
 .confirm {
   position: absolute;
   bottom: 48px;
+  box-sizing: border-box;
   padding: 13px 28px;
   border: 0;
   border-radius: 0;
@@ -31,7 +25,7 @@
   transform: skewX(-10.08deg);
   cursor: pointer;
   pointer-events: auto;
-  transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
+  transition: left 460ms cubic-bezier(0.22, 0.9, 0.24, 1), background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
   animation: buttonRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
@@ -42,6 +36,7 @@
 
 .back {
   left: 72px;
+  width: var(--sortie-back-width);
   padding-left: 31px;
   background: linear-gradient(160deg, #ffffff1f, #ffffff0f 55%, #ffffff1a);
   box-shadow:
@@ -54,6 +49,7 @@
 
 .confirm {
   right: 32px;
+  width: var(--sortie-confirm-width);
   background: linear-gradient(160deg, #91e8dc38, #91e8dc17 55%, #91e8dc2b);
   box-shadow:
     inset 0 0 0 1px #91e8dcbf,
@@ -66,10 +62,8 @@
   text-shadow: 0 1px 10px #0000008a;
 }
 
-.nav[data-step="prep"] .back,
-.nav[data-step="prep"] .confirm {
-  position: relative;
-  inset: auto;
+.nav[data-step="prep"] .back {
+  left: calc(100% - 32px - var(--sortie-confirm-width) - 16px - var(--sortie-back-width));
 }
 
 .nav .back:hover:not(:disabled) {

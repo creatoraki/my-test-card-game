@@ -23,6 +23,13 @@ export function SortieNav({
   const onBack = step === "map" ? onBackToTown : onBackToMap;
   const onNext = step === "map" ? onConfirmMap : onStartExpedition;
   const nextDisabled = disabled || (step === "map" && !canConfirmMap);
+  const backLabel = disabled
+    ? step === "map"
+      ? "← 返回选择目标层"
+      : "← 返回据点"
+    : step === "map"
+      ? "← 返回据点"
+      : "← 返回选择目标层";
 
   return (
     <nav className={s.nav} data-step={step} aria-label="出击流程导航">
@@ -33,7 +40,7 @@ export function SortieNav({
         disabled={disabled}
       >
         <span className={s.buttonCopy}>
-          {step === "map" ? "← 返回据点" : "← 返回选择目标层"}
+          {backLabel}
         </span>
       </button>
       <button
