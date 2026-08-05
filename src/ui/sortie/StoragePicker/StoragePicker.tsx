@@ -11,7 +11,7 @@ import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
 import s from "./StoragePicker.module.css";
 
 interface Props {
-  /** 调用方的布局类(占哪块格、第几个入场)。面板自身的外观一律由本组件持有。 */
+  /** 调用方的布局类。面板自身的外观一律由本组件持有。 */
   className?: string;
 }
 
@@ -58,13 +58,10 @@ export function StoragePicker({ className }: Props) {
 
   return (
     <section className={cx(s.panel, className)} aria-labelledby="sortie-storage-title">
-      <header className={s.header}>
-        <div>
-          <span className={s.kicker}>STORAGE / CONSUMABLES</span>
-          <h2 id="sortie-storage-title" className={s.title}>仓库</h2>
-        </div>
+      <div className={s.bar}>
+        <span id="sortie-storage-title" className={s.label}>仓库</span>
         <span className={s.notice} role="status">{notice}</span>
-      </header>
+      </div>
       <div className={s.grid}>
         {cells.map((stack, index) =>
           stack ? (
@@ -95,7 +92,6 @@ export function StoragePicker({ className }: Props) {
           ),
         )}
       </div>
-      <p className={s.foot}>点击消耗品取入出击背包 · {visible.length} 堆可用</p>
       {tooltipStack && tooltip && <SortieTooltip stack={tooltipStack} anchor={tooltip.rect} />}
     </section>
   );

@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState } from "react";
 import { RULES } from "@/engine";
 import { layoutBackpack } from "@/items/inventory";
 import { useSortieStore, sortieUsedSlots } from "@/store/sortieStore";
@@ -10,11 +10,11 @@ import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
 import s from "./SortieBackpack.module.css";
 
 interface Props {
-  /** 调用方的布局类(占哪块格、第几个入场)。面板自身的外观一律由本组件持有。 */
+  /** 调用方的布局类。面板自身的外观一律由本组件持有。 */
   className?: string;
 }
 
-// 容量条的三档。★ 阈值是显示口径, 不是规则 —— 负重惩罚本身是线性的(RULES.burden),
+// 负重读数的三档。★ 阈值是显示口径, 不是规则 —— 负重惩罚本身是线性的(RULES.burden),
 // 这里只是把「快满了」提前告诉玩家。
 const WARN_AT = 0.8;
 
@@ -42,23 +42,12 @@ export function SortieBackpack({ className }: Props) {
 
   return (
     <section className={cx(s.panel, className)} aria-labelledby="sortie-backpack-title">
-      <header className={s.header}>
-        <div>
-          <span className={s.kicker}>{`LOADOUT / ${total} SLOTS`}</span>
-          <h2 id="sortie-backpack-title" className={s.title}>背包</h2>
-        </div>
-        <div className={cx(s.loadReadout, s[`level-${level}`])}>
-          {/* key={used} 让读数每次变化都重挂一次 ⇒ 触发 CSS 的 bump, 不需要 JS 计时 */}
-          <strong key={used} className={s.loadValue}>
-            {usedShown} / {total}
-          </strong>
-          <span className={s.meter} aria-hidden>
-            <span className={s.meterFill} style={{ "--fill": fill } as CSSProperties} />
-          </span>
-          <span className={s.penalty}>命中 · 闪避 · 暴击 -{penalty}%</span>
-        </div>
-        <p className={s.foot}>点击物品退回来源 · 货柜购买的物品会在取消出击时退款</p>
-      </header>
+      <div className={cx(s.bar, s[`level-${level}`])}>
+        <span id="sortie-backpack-title" className={s.label}>背包</span>
+        <span key={used} className={s.readout}>
+          {usedShown} / {total} · 命中 闪避 暴击 -{penalty}%
+        </span>
+      </div>
       <div className={s.grid}>
         {cells.map((cell, index) =>
           cell.kind === "item" ? (

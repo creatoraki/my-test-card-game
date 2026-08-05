@@ -14,14 +14,14 @@
 // ============================================================================
 
 export const SORTIE_STOCK_IDS: readonly string[] = [
-  // 第一行(6 格): 六种临期食品 —— 探索事件里的指定交易货币, maxStack 5 可堆叠。
+  // 六种临期食品 —— 探索事件里的指定交易货币, maxStack 5 可堆叠。
   "milk",
   "bread",
   "cola",
   "hamburger",
   "fried-chicken",
   "pizza",
-  // 第二行(4 格): 四族消耗品的**普通档**。高品质档先不上架, 日后开高级货柜再加。
+  // 四族消耗品的**普通档**。高品质档先不上架, 日后开高级货柜再加。
   // ⚠ 这四件目前 def 里没有 use 字段(数值待平衡), 买了能带进去占格, 但探索中用不了。
   "sugar-cube-c",
   "medical-kit-c",
@@ -29,6 +29,3 @@ export const SORTIE_STOCK_IDS: readonly string[] = [
   "fruit-juice-c",
 ];
 
-// UI 排布: 第一行几个, 剩下的进第二行。★ 摆位是数据的一部分(食品一行、消耗品一行),
-// 让 StockPanel 自己按宽度换行会把这层语义弄丢。
-export const SORTIE_STOCK_FIRST_ROW = 6;

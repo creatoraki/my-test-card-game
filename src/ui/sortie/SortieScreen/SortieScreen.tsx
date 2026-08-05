@@ -9,6 +9,7 @@ import { PrepStep } from "@/ui/sortie/PrepStep";
 import { SortieBackdrop } from "@/ui/sortie/SortieBackdrop";
 import { SortieNav } from "@/ui/sortie/SortieNav";
 import { SortieStepViewport } from "@/ui/sortie/SortieStepViewport";
+import { useSortieStepTransition } from "@/ui/sortie/sortieStepTransition";
 import s from "./SortieScreen.module.css";
 
 export function SortieScreen() {
@@ -26,7 +27,7 @@ export function SortieScreen() {
   const startExpedition = useRunStore((state) => state.startExpedition);
   const enterTown = useRunStore((state) => state.enterTown);
   const [selectedMapId, setSelectedMapId] = useState(MAPS[0]?.id ?? "");
-  const [isStepTransitioning, setIsStepTransitioning] = useState(false);
+  const { visibleStep, transitioning, intro } = useSortieStepTransition(step);
 
   useEffect(() => {
     open();
@@ -64,22 +65,22 @@ export function SortieScreen() {
       style={{ "--stage-scale": stageScale } as CSSProperties}
     >
       <main className={s.stage}>
-        <SortieBackdrop mapId={selectedMapId} />
+        <SortieBackdrop mapId={selectedMapId} showInfo={visibleStep === "map"} intro={intro} />
         <SortieStepViewport
-          step={step}
-          onTransitioningChange={setIsStepTransitioning}
+          visibleStep={visibleStep}
           map={
             <MapSelectStep
-              active={step === "map" && !isStepTransitioning}
+              active={visibleStep === "map" && !transitioning}
+              intro={intro}
               selectedMapId={selectedMapId}
               onSelectMap={selectMap}
             />
           }
-          prep={<PrepStep />}
+          prep={<PrepStep active={visibleStep === "prep" && !transitioning} />}
         />
         <SortieNav
-          step={step}
-          disabled={isStepTransitioning}
+          step={visibleStep}
+          disabled={transitioning}
           canConfirmMap={party.length > 0}
           onBackToTown={leave}
           onBackToMap={backToMap}

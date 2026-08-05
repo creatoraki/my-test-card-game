@@ -1,6 +1,6 @@
 /* 出击域共享的「白玻璃面板」材质。★ 真相点抄自 MapSelectStep.module.css 的 .sm-slice ——
    选层带、底部导航按钮和物资准备的三块面板必须读作同一种材料, 否则两个步骤之间滑动会像换了个游戏。
-   由 StockPanel / StoragePicker / SortieBackpack 和 PrepStep 的积分片各自 composes 使用(样式铁律 1)。
+  由 StockBand / StoragePicker / SortieBackpack 各自 composes 使用(样式铁律 1)。
 
    ⚠ --sm-ease / --sm-dur 是**跨组件契约**(铁律 4): 三个面板的 CSS 都读这两个值来对齐手感,
      改名要同步。--sm-ink / --sm-glow 那组由 SortieScreen 的 .stage 下发, 这里只消费。 */
@@ -34,6 +34,26 @@
     /* ★ 比选层带多压一层深底: SortieBackdrop 的地图信息(左上, 约 620x300)在物资准备步骤
        仍然渲染在面板背后。blur(18px) 会把它糊成色块, 深底再压一层, 读作「结霜的舷窗」
        而不是「文字透出来了」。这是与选层带唯一刻意的偏差。 */
+    #05121466;
+  -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
+  backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 #ffffff59,
+    inset 0 -1px 0 #ffffff26,
+    0 22px 46px -28px #000000cc;
+}
+
+.shellStatic {
+  composes: tokens;
+
+  position: relative;
+  min-height: 0;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 0;
+  color: var(--sm-ink);
+  background:
+    linear-gradient(160deg, #ffffff2e, #ffffff14 55%, #ffffff24),
     #05121466;
   -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
   backdrop-filter: blur(18px) saturate(118%) brightness(1.06);

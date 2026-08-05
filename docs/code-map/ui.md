@@ -39,14 +39,15 @@ src/ui/
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
-| [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按地图选择播放上下推移背景动画，在左上角固定显示目标层名称、描述、难度、轮数和起始粒子。 |
-| [sortie/SortieStepViewport](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) | 出击步骤视口：管理地图选择与物资准备面板的水平滑动过场，过渡期间锁定两个面板的交互和辅助技术访问。 |
+| [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按地图选择播放上下推移背景动画；目标层信息只在地图步骤挂载，并通过 View Transition 独有元素过场离场/入场。 |
+| [sortie/SortieStepViewport](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) | 出击步骤视口：只挂载当前实际步骤，避免共享元素名称撞名；步骤时序由 `sortieStepTransition.ts` 编排。 |
+| [sortie/sortieStepTransition.ts](../../src/ui/sortie/sortieStepTransition.ts) | 出击地图选择 ↔ 物资准备的原生 View Transition hook；同步提交唯一可见步骤，提供共享片命名和过场交互锁。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在斜跨玻璃选择带中切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
-| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：三段式栅格（右对齐标题条 + 积分片 / 中部左仓库右货柜 / 底部通栏背包），标题让出左侧 640px 给共享背景的目标层 HUD。只向三块面板下发 `grid-area` 与错峰入场的 `--enter-delay`，面板外观归各自的 `module.css`。 |
-| [sortie/StockPanel](../../src/ui/sortie/StockPanel/StockPanel.tsx) | 出击货柜：按固定清单不限量购买消耗品，购买前检查积分与背包容量。换行位置读 `SORTIE_STOCK_FIRST_ROW`（食品一行、消耗品一行是数据语义，不按宽度自动换行）。 |
-| [sortie/StoragePicker](../../src/ui/sortie/StoragePicker/StoragePicker.tsx) | 出击准备中的仓库消耗品选择器，取物前由 `sortieStore` 试算容量并按 uid 移出整堆；6×2 格，取物提示 1.5s 自动消失。 |
-| [sortie/SortieBackpack](../../src/ui/sortie/SortieBackpack/SortieBackpack.tsx) | 出击背包：通栏版式（左读数右 8×3 格网），展示占格、容量条和命中/闪避/暴击惩罚，容量条按 80%/100% 两档换色；点击物品退回来源。 |
+| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左侧斜切货柜带，右侧一上一下紧贴格网的仓库与背包；只向子组件下发位置类和交互状态。 |
+| [sortie/StockBand](../../src/ui/sortie/StockBand/StockBand.tsx) | 出击货柜斜切滚动带：固定清单、不限量购买消耗品，支持滚轮/方向键滚动与高亮片二次点击购买；共享带壳和窗口片命名参与步骤过场。 |
+| [sortie/StoragePicker](../../src/ui/sortie/StoragePicker/StoragePicker.tsx) | 出击准备中的仓库消耗品选择器，取物前由 `sortieStore` 试算容量并按 uid 移出整堆；6×2 放大格网，取物提示 1.5s 自动消失。 |
+| [sortie/SortieBackpack](../../src/ui/sortie/SortieBackpack/SortieBackpack.tsx) | 出击背包：紧贴 8×3 放大格网，标题栏显示占格和命中/闪避/暴击惩罚并按 80%/100% 两档换色；点击物品退回来源。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
 | [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队视图，复用角色立绘和卡组显示。 |
 | [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性和个人卡组为只读档案，卡组支持卡面选中详情。与编队页之间是共享元素过场。 |
@@ -139,7 +140,7 @@ src/ui/
 | --- | --- |
 | [app/transitions.ts](../../src/ui/app/transitions.ts) | 过场预设、默认时长、按界面/路线解析；探索到战斗的裂纹涟漪时长只在这里配置。 |
 | [app/transitionOrigin.ts](../../src/ui/app/transitionOrigin.ts) | 一次性缓存点击坐标，仅用于视觉过场，不进入 Zustand。 |
-| [app/viewTransition.global.css](../../src/ui/app/viewTransition.global.css) | 编队 ↔ 角色详情的共享元素过场。全局普通 CSS（无类名，只有文档根伪元素）。 |
+| [app/viewTransition.global.css](../../src/ui/app/viewTransition.global.css) | 编队 ↔ 角色详情、出击选层 ↔ 物资准备的共享元素过场。全局普通 CSS（无类名，只有文档根伪元素）。 |
 | [character/sharedPortrait.ts](../../src/ui/character/sharedPortrait.ts) | 编队与角色详情之间共享立绘元素的 View Transition 标识。 |
 | [town/facilityScenes.ts](../../src/ui/town/facilityScenes.ts) | 据点进设施的推镜时序、飞出参数与设施背景图。 |
 

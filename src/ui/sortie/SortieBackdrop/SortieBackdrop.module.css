@@ -46,6 +46,10 @@
   width: 620px;
   padding-left: 20px;
   border-left: 2px solid var(--sm-glow);
+  view-transition-name: vt-sortie-target;
+}
+
+.infoIntro {
   animation: rise 460ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 

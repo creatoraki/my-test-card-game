@@ -1,59 +1,52 @@
-/* 仓库消耗品选择器。面板外壳材质 composes 自 sortie/styles/sortieGlass.module.css,
-   本文件只管内部版式与格子的交互反馈。
-   ⚠ .slot 与 ItemSlot 自己的 .item-slot 挂在**同一个元素**上, 所以这里改它是合法的
-     (不是穿透到子组件内部的后代选择器); 靠 .grid 提一级特异性盖过 ItemSlot 的默认 hover。 */
-
 .panel {
-  composes: shell from "../styles/sortieGlass.module.css";
+  composes: shellStatic from "../styles/sortieGlass.module.css";
 
+  display: block;
+  width: fit-content;
+  padding: 16px;
+  view-transition-name: vt-sortie-storage;
+}
+
+.bar {
   display: flex;
-  flex-direction: column;
-  padding: 20px 26px 16px;
-}
-
-.kicker {
-  composes: kicker from "../styles/sortieGlass.module.css";
-}
-
-.title {
-  composes: title from "../styles/sortieGlass.module.css";
-}
-
-.foot {
-  composes: foot from "../styles/sortieGlass.module.css";
-}
-
-.header {
-  display: flex;
-  align-items: flex-start;
+  width: 100%;
+  height: 16px;
+  align-items: center;
   justify-content: space-between;
-  min-height: 52px;
+  margin-bottom: 10px;
+}
+
+.label {
+  color: var(--sm-ink);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-indent: 4px;
+  text-shadow: 0 2px 10px #000000cc;
 }
 
 .notice {
+  min-width: 90px;
   color: #e8c57e;
   font-family: var(--font-family);
   font-size: 11px;
   letter-spacing: 1px;
+  text-align: right;
   text-shadow: 0 1px 6px #000000aa;
 }
 
-/* 6 列 x 2 行 @92px: 6*92 + 5*10 = 602 <= 620-52; 2*92 + 10 = 194 */
 .grid {
   display: grid;
-  flex: 1;
-  align-content: center;
-  justify-content: center;
   gap: 10px;
-  grid-template-columns: repeat(6, 92px);
-  margin-top: 10px;
+  grid-template-columns: repeat(6, 116px);
 }
 
 .slotAnchor,
 .slot,
 .empty {
-  width: 92px;
-  height: 92px;
+  width: 116px;
+  height: 116px;
 }
 
 .slotAnchor {
@@ -62,7 +55,7 @@
 }
 
 .slot {
-  --item-slot-icon-size: 56px;
+  --item-slot-icon-size: 72px;
 }
 
 .grid .slot {
@@ -86,11 +79,6 @@
 
 .pulse {
   animation: slotPulse 320ms var(--sm-ease);
-}
-
-/* 提一级特异性: glass.foot 的 `margin: 0` 与这条同为单类, 谁赢取决于两个 module 的引入顺序 */
-.panel .foot {
-  margin-top: 12px;
 }
 
 @keyframes slotPop {

@@ -28,11 +28,12 @@
 
 出击域的白玻璃面板材质（零圆角 + `blur(18px) saturate(118%) brightness(1.06)` + 白色内描边 hairline）
 住在 [sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css)，
-`StockPanel` / `StoragePicker` / `SortieBackpack` 与 `PrepStep` 的积分片各自 `composes` 使用。
-它同时下发 `--sm-ease` / `--sm-dur` 两个手感令牌和错峰入场用的 `--enter-delay`（由 `PrepStep` 的
-布局类赋值）——真相点是 `MapSelectStep` 的选层带，改材质要两边一起看，否则两个步骤之间滑动会脱节。
-⚠ 与选层带唯一刻意的偏差是面板多压了一层 `#05121466` 深底：`SortieBackdrop` 的地图信息在物资准备
-步骤仍渲染在面板背后，纯白玻璃会让物品图标读不清。
+`StoragePicker` / `SortieBackpack` 通过 `.shellStatic` 使用不带 `panelIn` 的版本，货柜带自行持有与选层带对齐的
+玻璃片外观。`.shell` 仍保留给需要自身入场动画的复用方，`.shellStatic` 专供由 View Transition 负责飞入的仓库和背包。
+共享材质同时下发 `--sm-ease` / `--sm-dur` 两个手感令牌；两条步骤路线的带壳和片通过
+`view-transition.global.css` 的文档根伪元素规则配对。
+⚠ 面板唯一刻意的偏差是多压一层 `#05121466` 深底：`SortieBackdrop` 的地图信息在物资准备步骤的面板背后，
+纯白玻璃会让物品图标读不清。
 
 据点设施的 hover/active 样式通过大厅根的 `data-town-stage` 传递状态；商店的
 `ShopItemTile.module.css` 与 `ShopItemCard.module.css` 各自独占商品格和详情栏样式，
@@ -74,7 +75,7 @@ import s from "./CombatantView.module.css";
 
 ### 保持全局的三处
 
-`src/styles/tokens.css`（设计令牌）、`src/styles/base.css`（reset / `body` / `button` 皮肤）、`src/ui/app/viewTransition.global.css`（只含 `:root` 变量与 `::view-transition-*`，无类名）。除此之外 `src/ui` 下不应再出现普通 `.css`——`_legacy/` 是归档区，不算在内。
+`src/styles/tokens.css`（设计令牌）、`src/styles/base.css`（reset / `body` / `button` 皮肤）、`src/ui/app/viewTransition.global.css`（承载编队↔详情与出击两条路线，只含 `:root` 变量与 `::view-transition-*`，无类名）。除此之外 `src/ui` 下不应再出现普通 `.css`——`_legacy/` 是归档区，不算在内。
 
 `view-transition-name` 是属性**值**不是类名，不受 Modules 影响。
 

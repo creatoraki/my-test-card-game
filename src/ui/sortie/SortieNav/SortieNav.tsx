@@ -25,7 +25,7 @@ export function SortieNav({
   const nextDisabled = disabled || (step === "map" && !canConfirmMap);
 
   return (
-    <nav className={s.nav} aria-label="出击流程导航">
+    <nav className={s.nav} data-step={step} aria-label="出击流程导航">
       <button
         className={s.back}
         type="button"

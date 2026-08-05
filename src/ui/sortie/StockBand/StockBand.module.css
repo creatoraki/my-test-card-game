@@ -1,8 +1,10 @@
-.sm-step {
+.sb-step {
   --band-skew: -10.08deg;
   --band-w: 520px;
   --slice-h: 208px;
   --slice-gap: 6px;
+
+  composes: tokens from "../styles/sortieGlass.module.css";
 
   position: relative;
   z-index: 1;
@@ -13,14 +15,14 @@
   color: var(--sm-ink);
 }
 
-.sm-step[data-active="false"] {
+.sb-step[data-active="false"] {
   pointer-events: none;
 }
 
-.sm-band {
+.sb-band {
   position: absolute;
   top: 0;
-  left: calc(1640px - var(--band-w) / 2);
+  left: calc(400px - var(--band-w) / 2);
   z-index: 2;
   width: var(--band-w);
   height: 100%;
@@ -33,11 +35,59 @@
   view-transition-name: vt-sortie-band;
 }
 
-.sm-band-intro {
-  animation: bandIn 520ms 80ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+.sb-band-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  width: 100%;
+  min-height: 88px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 22px 30px;
+  box-sizing: border-box;
+  transform: skewX(calc(-1 * var(--band-skew)));
+  transform-origin: 0 0;
+  pointer-events: none;
 }
 
-.sm-band-list {
+.sb-credits-label {
+  color: var(--sm-ink-dim);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-shadow: 0 1px 6px #000000aa;
+}
+
+.sb-credits-value {
+  margin-top: 4px;
+  color: var(--sm-glow-hi);
+  font-family: var(--font-family);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1;
+  text-shadow: 0 0 18px #91e8dc66, 0 2px 8px #000000cc;
+}
+
+.sb-notice,
+.sb-capacity {
+  min-height: 16px;
+  color: #e8c57e;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 1px;
+  line-height: 16px;
+  text-shadow: 0 1px 6px #000000aa;
+}
+
+.sb-capacity {
+  color: #9bc8c2;
+}
+
+.sb-band-list {
   position: absolute;
   top: 540px;
   left: 0;
@@ -46,7 +96,7 @@
   transition: transform 420ms cubic-bezier(0.22, 0.9, 0.24, 1);
 }
 
-.sm-slice {
+.sb-slice {
   position: relative;
   display: block;
   width: 100%;
@@ -69,20 +119,31 @@
   transition: opacity 0.28s ease, box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 
-.sm-slice-art {
+.sb-slice-art {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
   z-index: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  display: grid;
+  width: 128px;
+  height: 128px;
+  place-items: center;
+  transform: translate(-50%, -50%) skewX(calc(-1 * var(--band-skew)));
+  color: var(--sm-glow-hi);
+  filter: drop-shadow(0 0 18px #91e8dc55);
+  opacity: 0.12;
   pointer-events: none;
-  opacity: 0;
-  filter: saturate(0.15) brightness(0.7);
   transition: opacity 0.32s ease, filter 0.32s ease;
 }
 
-.sm-slice-copy {
+.sb-slice-art svg,
+.sb-slice-art img {
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+}
+
+.sb-slice-copy {
   position: relative;
   z-index: 1;
   display: flex;
@@ -95,7 +156,7 @@
   transform: skewX(calc(-1 * var(--band-skew)));
 }
 
-.sm-slice-no {
+.sb-slice-no {
   color: #ffffffad;
   font-family: var(--font-family);
   font-size: 12px;
@@ -105,7 +166,7 @@
   text-shadow: 0 1px 8px #000000b3;
 }
 
-.sm-slice-name {
+.sb-slice-name {
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 7px;
@@ -114,16 +175,24 @@
   white-space: nowrap;
 }
 
-.sm-step .sm-slice:hover {
+.sb-slice-price {
+  color: var(--sm-glow);
+  font-family: var(--font-family);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 8px #000000b3;
+}
+
+.sb-step .sb-slice:hover {
   opacity: 0.82;
   background: linear-gradient(160deg, #ffffff3d, #ffffff1f 55%, #ffffff2e);
 }
 
-.sm-step .sm-slice:active {
+.sb-step .sb-slice:active {
   opacity: 0.92;
 }
 
-.sm-step .sm-slice.sm-is-on {
+.sb-step .sb-slice.sb-is-on {
   z-index: 1;
   opacity: 1;
   box-shadow:
@@ -133,30 +202,23 @@
     0 26px 52px -30px #000000e6;
 }
 
-.sm-is-on .sm-slice-art {
-  opacity: 1;
-  filter: none;
+.sb-is-on .sb-slice-art {
+  opacity: 0.58;
+  filter: drop-shadow(0 0 24px #91e8dc99) saturate(1.12);
 }
 
-.sm-is-on .sm-slice-no {
+.sb-is-on .sb-slice-no {
   color: var(--sm-glow-hi);
 }
 
-@keyframes bandIn {
-  from {
-    opacity: 0;
-    transform: skewX(var(--band-skew)) translateX(80px);
-  }
+.sb-slice.sb-cant .sb-slice-price {
+  color: #aec1bd;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sm-band {
-    animation: none;
-  }
-
-  .sm-band-list,
-  .sm-slice,
-  .sm-slice-art {
+  .sb-band-list,
+  .sb-slice,
+  .sb-slice-art {
     transition: none;
   }
 }

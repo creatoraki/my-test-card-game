@@ -1,44 +1,23 @@
-/* 出击背包。面板外壳材质 composes 自 sortie/styles/sortieGlass.module.css。
-   ★ 本面板在 PrepStep 里是通栏(1776 宽)而 8x3 的格网只有 806 宽 ⇒ 标题与读数横过来放在左侧,
-     格网占右侧, 而不是标题压在格网头上留一大片空白。
-   ⚠ .slot 与 ItemSlot 自己的 .item-slot 挂在**同一个元素**上, 所以这里改它是合法的
-     (不是穿透到子组件内部的后代选择器); 靠 .grid 提一级特异性盖过 ItemSlot 的默认 hover。 */
-
 .panel {
-  composes: shell from "../styles/sortieGlass.module.css";
+  composes: shellStatic from "../styles/sortieGlass.module.css";
 
-  display: flex;
-  align-items: center;
-  gap: 48px;
-  padding: 20px 28px;
+  display: block;
+  width: fit-content;
+  padding: 16px;
+  view-transition-name: vt-sortie-backpack;
 }
 
-.kicker {
-  composes: kicker from "../styles/sortieGlass.module.css";
-}
-
-.title {
-  composes: title from "../styles/sortieGlass.module.css";
-}
-
-.foot {
-  composes: foot from "../styles/sortieGlass.module.css";
-}
-
-.header {
-  display: flex;
-  width: 360px;
-  flex: 0 0 360px;
-  flex-direction: column;
-}
-
-.loadReadout {
+.bar {
   --level-color: var(--sm-glow);
 
-  margin-top: 22px;
-  padding-left: 18px;
-  border-left: 2px solid var(--level-color);
-  transition: border-color 320ms ease;
+  display: flex;
+  width: 100%;
+  height: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: var(--level-color);
+  transition: color 320ms ease;
 }
 
 .level-warn {
@@ -49,73 +28,36 @@
   --level-color: #db9d88;
 }
 
-.loadValue {
-  display: block;
-  color: var(--sm-glow-hi);
+.label {
+  color: var(--sm-ink);
   font-family: var(--font-family);
-  font-size: 30px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 2px;
-  text-shadow: 0 0 16px #91e8dc55, 0 2px 8px #000000cc;
-  animation: bump 200ms var(--sm-ease);
+  letter-spacing: 4px;
+  text-indent: 4px;
+  text-shadow: 0 2px 10px #000000cc;
 }
 
-/* 容量槽 —— 玻璃底槽 + 按档位换色的填充条 */
-.meter {
-  display: block;
-  overflow: hidden;
-  width: 100%;
-  height: 6px;
-  margin-top: 12px;
-  background: #ffffff1f;
-  box-shadow: inset 0 0 0 1px #ffffff2e;
-}
-
-.meterFill {
-  display: block;
-  width: calc(var(--fill, 0) * 100%);
-  height: 100%;
-  background: var(--level-color);
-  transition:
-    width 320ms var(--sm-ease),
-    background 320ms ease,
-    box-shadow 320ms ease;
-}
-
-.level-full .meterFill {
-  box-shadow: 0 0 20px -2px #db9d88;
-}
-
-.penalty {
-  display: block;
-  margin-top: 10px;
+.readout {
   color: var(--level-color);
   font-family: var(--font-family);
   font-size: 11px;
   letter-spacing: 1px;
   text-shadow: 0 1px 6px #000000aa;
-  transition: color 320ms ease;
+  animation: bump 200ms var(--sm-ease);
 }
 
-/* 提一级特异性: glass.foot 的 `margin: 0` 与这条同为单类, 谁赢取决于两个 module 的引入顺序 */
-.panel .foot {
-  margin-top: 16px;
-}
-
-/* 8 列 x 3 行 @92px: 8*92 + 7*10 = 806 */
 .grid {
   display: grid;
-  flex: 1;
-  justify-content: center;
   gap: 10px;
-  grid-template-columns: repeat(8, 92px);
+  grid-template-columns: repeat(8, 116px);
 }
 
 .slotAnchor,
 .slot,
 .empty {
-  width: 92px;
-  height: 92px;
+  width: 116px;
+  height: 116px;
 }
 
 .slotAnchor {
@@ -124,7 +66,7 @@
 }
 
 .slot {
-  --item-slot-icon-size: 56px;
+  --item-slot-icon-size: 72px;
 }
 
 .grid .slot {
@@ -146,7 +88,6 @@
     0 0 42px -6px #ffffff5c;
 }
 
-/* 空格暗示还能落东西 */
 .grid .empty {
   transition: box-shadow var(--sm-dur) var(--sm-ease);
 }
@@ -180,7 +121,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loadValue,
+  .readout,
   .slotAnchor,
   .pulse {
     animation: none;
@@ -188,9 +129,7 @@
 
   .grid .slot,
   .grid .empty,
-  .meterFill,
-  .penalty,
-  .loadReadout {
+  .bar {
     transition: none;
   }
 }

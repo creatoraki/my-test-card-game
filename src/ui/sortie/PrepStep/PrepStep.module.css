@@ -1,125 +1,29 @@
-/* 物资准备步骤的**版式**。面板材质在 sortie/styles/sortieGlass.module.css,
-   面板内部外观归各自的 module.css —— 这里不许出现改写子组件的后代选择器(样式铁律 3)。
-
-   设计画布 1920x1080, 去掉 padding 后内容区 1776 x 882:
-     76(header) + 16 + 372(仓库 | 货柜) + 16 + 402(背包通栏) = 882 */
-
 .step {
-  /* --sm-ease / --sm-dur: 出击域的手感令牌, 三块面板与标题块共用同一条缓动 */
   composes: tokens from "../styles/sortieGlass.module.css";
 
   position: relative;
   z-index: 1;
   width: 100%;
   height: 100%;
-  padding: 66px 72px 132px; /* 底部 132 让位给 SortieNav 与 .stage::after 的分隔线 */
-  box-sizing: border-box;
   color: var(--sm-ink);
 }
 
-.header {
-  position: relative;
-  z-index: 2;
+.step[data-active="false"] {
+  pointer-events: none;
+}
+
+.side {
+  position: absolute;
+  top: 132px;
+  right: 72px;
   display: flex;
-  height: 76px;
-  align-items: center;
-  justify-content: space-between;
-  /* SortieBackdrop 的目标层信息占 left:72 width:620, 本步骤仍然可见 ⇒ 标题整体让到右侧 */
-  padding-left: 640px;
-}
-
-.heading {
-  composes: enter from "../styles/sortieGlass.module.css";
-
-  min-width: 0;
-}
-
-.kicker {
-  composes: kicker from "../styles/sortieGlass.module.css";
-}
-
-.title {
-  margin: 5px 0 0;
-  color: var(--sm-ink);
-  font-family: var(--font-family);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: 7px;
-  text-indent: 7px;
-  text-shadow: 0 2px 10px #000000cc, 0 2px 24px #00000099;
-}
-
-.credits {
-  composes: shell from "../styles/sortieGlass.module.css";
-
-  --enter-delay: 120ms;
-
-  display: flex;
-  min-width: 210px;
   flex-direction: column;
   align-items: flex-end;
-  justify-content: center;
-  padding: 9px 18px 9px 20px;
+  gap: 24px;
 }
 
-/* 玻璃片左缘的一道辉光竖条 —— 与 SortieNav 的 .back 同一手法。
-   提一级特异性: 要盖掉 glass.shell 的 box-shadow, 同为单类时谁赢取决于引入顺序。 */
-.header .credits {
-  box-shadow:
-    inset 3px 0 0 0 var(--sm-glow),
-    inset 0 0 0 1px #ffffff45,
-    inset 0 1px 0 #ffffff59,
-    0 18px 38px -26px #000000cc;
-}
-
-.creditsLabel {
-  color: var(--sm-ink-dim);
-  font-family: var(--font-family);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 3px;
-  text-shadow: 0 1px 6px #000000aa;
-}
-
-.creditsValue {
-  margin-top: 4px;
-  color: var(--sm-glow-hi);
-  font-family: var(--font-family);
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-shadow: 0 0 18px #91e8dc66, 0 2px 8px #000000cc;
-}
-
-.layout {
-  display: grid;
-  height: calc(100% - 76px);
-  box-sizing: border-box;
-  padding-top: 16px;
-  grid-template-areas:
-    "storage stock"
-    "backpack backpack";
-  grid-template-columns: 620px 1fr;
-  grid-template-rows: 372px 402px;
-  gap: 16px 18px;
-}
-
-/* 面板只从这里拿「占哪块格 + 第几个入场」。--enter-delay 是下发给
-   sortieGlass.module.css 的 .shell 的契约(铁律 4)。 */
-.areaStorage {
-  --enter-delay: 0ms;
-
-  grid-area: storage;
-}
-
-.areaStock {
-  --enter-delay: 90ms;
-
-  grid-area: stock;
-}
-
+.areaStock,
+.areaStorage,
 .areaBackpack {
-  --enter-delay: 180ms;
-
-  grid-area: backpack;
+  position: relative;
 }

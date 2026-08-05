@@ -8,6 +8,8 @@ const BACKGROUND_SLIDE_MS = 460;
 
 interface Props {
   mapId: string;
+  showInfo: boolean;
+  intro: boolean;
 }
 
 interface BackgroundLayer {
@@ -16,7 +18,7 @@ interface BackgroundLayer {
   dir: 1 | -1;
 }
 
-export function SortieBackdrop({ mapId }: Props) {
+export function SortieBackdrop({ mapId, showInfo, intro }: Props) {
   const map = MAPS.find((candidate) => candidate.id === mapId) ?? MAPS[0];
   const directionRef = useRef<1 | -1>(1);
   const sequenceRef = useRef(0);
@@ -68,18 +70,20 @@ export function SortieBackdrop({ mapId }: Props) {
       ))}
       <div className={s.veil} aria-hidden />
 
-      <header className={s.info} aria-live="polite">
-        <span className={s.kicker}>TARGET SECTOR / ACTIVE ROUTE</span>
-        <h1 className={s.name}>{map.name}</h1>
-        <p className={s.desc}>{map.desc}</p>
-        <div className={s.meta}>
-          <span className={s.stars} aria-label={`难度 ${map.difficulty} / 5`}>
-            {"★".repeat(map.difficulty)}{"☆".repeat(5 - map.difficulty)}
-          </span>
-          <span>{map.roundCount} 轮</span>
-          <span>粒子 {map.startingEnergy}</span>
-        </div>
-      </header>
+      {showInfo && (
+        <header className={cx(s.info, intro && s.infoIntro)} aria-live="polite">
+          <span className={s.kicker}>TARGET SECTOR / ACTIVE ROUTE</span>
+          <h1 className={s.name}>{map.name}</h1>
+          <p className={s.desc}>{map.desc}</p>
+          <div className={s.meta}>
+            <span className={s.stars} aria-label={`难度 ${map.difficulty} / 5`}>
+              {"★".repeat(map.difficulty)}{"☆".repeat(5 - map.difficulty)}
+            </span>
+            <span>{map.roundCount} 轮</span>
+            <span>粒子 {map.startingEnergy}</span>
+          </div>
+        </header>
+      )}
     </div>
   );
 }

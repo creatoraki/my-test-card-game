@@ -5,6 +5,15 @@
   pointer-events: none;
 }
 
+.nav[data-step="prep"] {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 0 32px 48px;
+  box-sizing: border-box;
+}
+
 .back,
 .confirm {
   position: absolute;
@@ -55,6 +64,12 @@
   font-size: 16px;
   font-weight: 700;
   text-shadow: 0 1px 10px #0000008a;
+}
+
+.nav[data-step="prep"] .back,
+.nav[data-step="prep"] .confirm {
+  position: relative;
+  inset: auto;
 }
 
 .nav .back:hover:not(:disabled) {
