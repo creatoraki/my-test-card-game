@@ -4,3 +4,17 @@
   z-index: 1;
   overflow: hidden;
 }
+
+.currentLayer,
+.exitingLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.currentLayer {
+  z-index: 2;
+}
+
+.exitingLayer {
+  z-index: 1;
+}

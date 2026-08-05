@@ -15,7 +15,7 @@
 .status {
   position: absolute;
   top: 28px;
-  right: 32px;
+  right: 72px;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -60,6 +60,14 @@
   color: #9bc8c2;
 }
 
+.statusEntering {
+  animation: statusSlideIn 460ms var(--sm-ease) both;
+}
+
+.statusExiting {
+  animation: statusSlideOut 460ms var(--sm-ease) both;
+}
+
 .side {
   position: absolute;
   top: 132px;
@@ -70,8 +78,73 @@
   gap: 24px;
 }
 
+.sideEntering {
+  animation: sideSlideIn 460ms var(--sm-ease) both;
+}
+
+.sideExiting {
+  animation: sideSlideOut 460ms var(--sm-ease) both;
+}
+
 .areaStock,
 .areaStorage,
 .areaBackpack {
   position: relative;
+}
+
+@keyframes sideSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes statusSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes statusSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sideSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sideEntering,
+  .sideExiting,
+  .statusEntering,
+  .statusExiting {
+    animation: none;
+  }
 }

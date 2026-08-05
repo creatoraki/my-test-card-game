@@ -10,6 +10,8 @@ interface Props {
   mapId: string;
   showInfo: boolean;
   intro: boolean;
+  infoEntering?: boolean;
+  infoExiting?: boolean;
 }
 
 interface BackgroundLayer {
@@ -18,7 +20,13 @@ interface BackgroundLayer {
   dir: 1 | -1;
 }
 
-export function SortieBackdrop({ mapId, showInfo, intro }: Props) {
+export function SortieBackdrop({
+  mapId,
+  showInfo,
+  intro,
+  infoEntering = false,
+  infoExiting = false,
+}: Props) {
   const map = MAPS.find((candidate) => candidate.id === mapId) ?? MAPS[0];
   const directionRef = useRef<1 | -1>(1);
   const sequenceRef = useRef(0);
@@ -71,7 +79,15 @@ export function SortieBackdrop({ mapId, showInfo, intro }: Props) {
       <div className={s.veil} aria-hidden />
 
       {showInfo && (
-        <header className={cx(s.info, intro && s.infoIntro)} aria-live="polite">
+        <header
+          className={cx(
+            s.info,
+            intro && s.infoIntro,
+            infoEntering && s.infoEntering,
+            infoExiting && s.infoExiting,
+          )}
+          aria-live="polite"
+        >
           <span className={s.kicker}>TARGET SECTOR / ACTIVE ROUTE</span>
           <h1 className={s.name}>{map.name}</h1>
           <p className={s.desc}>{map.desc}</p>

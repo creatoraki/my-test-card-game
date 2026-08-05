@@ -6,12 +6,14 @@ const SORTIE_STEP_TRANSITION_MS = 460;
 
 export interface SortieStepTransition {
   visibleStep: SortieStep;
+  exitingStep: SortieStep | null;
   transitioning: boolean;
   intro: boolean;
 }
 
 export function useSortieStepTransition(step: SortieStep): SortieStepTransition {
   const [visibleStep, setVisibleStep] = useState(step);
+  const [exitingStep, setExitingStep] = useState<SortieStep | null>(null);
   const [transitioning, setTransitioning] = useState(false);
   const [intro, setIntro] = useState(true);
   const seqRef = useRef(0);
@@ -27,6 +29,7 @@ export function useSortieStepTransition(step: SortieStep): SortieStepTransition 
     }
 
     const reducedMotion = prefersReducedMotion();
+    setExitingStep(reducedMotion ? null : visibleStep);
     setVisibleStep(step);
     setIntro(false);
     setTransitioning(!reducedMotion);
@@ -36,6 +39,7 @@ export function useSortieStepTransition(step: SortieStep): SortieStepTransition 
     transitionTimerRef.current = window.setTimeout(() => {
       transitionTimerRef.current = null;
       if (seq !== seqRef.current) return;
+      setExitingStep(null);
       setTransitioning(false);
     }, SORTIE_STEP_TRANSITION_MS);
   }, [step, visibleStep]);
@@ -46,5 +50,5 @@ export function useSortieStepTransition(step: SortieStep): SortieStepTransition 
     }
   }, []);
 
-  return { visibleStep, transitioning, intro };
+  return { visibleStep, exitingStep, transitioning, intro };
 }

@@ -52,6 +52,14 @@
   animation: rise 460ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
+.infoEntering {
+  animation: infoSlideIn 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.infoExiting {
+  animation: infoSlideOut 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
 .kicker {
   color: var(--sm-glow);
   font-family: var(--font-family);
@@ -109,6 +117,30 @@
   }
 }
 
+@keyframes infoSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes infoSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
 @keyframes backgroundIn {
   from {
     opacity: 0;
@@ -135,7 +167,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .background,
-  .info {
+  .info,
+  .infoEntering,
+  .infoExiting {
     animation: none;
   }
 }

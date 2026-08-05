@@ -27,7 +27,7 @@ export function SortieScreen() {
   const startExpedition = useRunStore((state) => state.startExpedition);
   const enterTown = useRunStore((state) => state.enterTown);
   const [selectedMapId, setSelectedMapId] = useState(MAPS[0]?.id ?? "");
-  const { visibleStep, transitioning, intro } = useSortieStepTransition(step);
+  const { visibleStep, exitingStep, transitioning, intro } = useSortieStepTransition(step);
 
   useEffect(() => {
     open();
@@ -65,7 +65,13 @@ export function SortieScreen() {
       style={{ "--stage-scale": stageScale } as CSSProperties}
     >
       <main className={s.stage}>
-        <SortieBackdrop mapId={selectedMapId} showInfo={visibleStep === "map"} intro={intro} />
+        <SortieBackdrop
+          mapId={selectedMapId}
+          showInfo={visibleStep === "map" || exitingStep === "map"}
+          infoEntering={visibleStep === "map" && transitioning}
+          infoExiting={exitingStep === "map"}
+          intro={intro}
+        />
         <SortieStepViewport
           visibleStep={visibleStep}
           map={
@@ -81,8 +87,10 @@ export function SortieScreen() {
             <PrepStep
               active={visibleStep === "prep" && !transitioning}
               entering={visibleStep === "prep" && transitioning}
+              exiting={exitingStep === "prep"}
             />
           }
+          exitingStep={exitingStep}
         />
         <SortieNav
           step={visibleStep}
