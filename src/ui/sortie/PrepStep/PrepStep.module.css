@@ -73,6 +73,7 @@
   top: 132px;
   right: 72px;
   display: flex;
+  width: 820px;
   flex-direction: column;
   align-items: flex-end;
   gap: 24px;
@@ -90,6 +91,11 @@
 .areaStorage,
 .areaBackpack {
   position: relative;
+}
+
+.areaBackpack {
+  width: 100%;
+  pointer-events: auto;
 }
 
 @keyframes sideSlideIn {

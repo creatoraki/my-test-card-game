@@ -12,6 +12,7 @@ import s from "./ItemSlot.module.css";
 interface Props {
   stack: ItemStack;
   selected?: boolean;
+  showName?: boolean;
   // 分类 tab 未命中。★ 压暗而不隐藏 —— 24 格是「物理容器」的隐喻,
   //   抽掉格子会让玩家失去空间感, 也看不出还剩多少地方。
   dimmed?: boolean;
@@ -20,7 +21,14 @@ interface Props {
   className?: string;
 }
 
-export default function ItemSlot({ stack, selected, dimmed, onClick, className }: Props) {
+export default function ItemSlot({
+  stack,
+  selected,
+  showName = true,
+  dimmed,
+  onClick,
+  className,
+}: Props) {
   const def = getItemDef(stack.itemId);
   // 羁绊词条角标 —— 装备调配页要在一堆候选里挑"缺的那一条羁绊",
   // 每件都点开看详情太慢, 所以在格子上直接露出词条图标。
@@ -39,7 +47,7 @@ export default function ItemSlot({ stack, selected, dimmed, onClick, className }
       // title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
     >
       <span className={s["item-slot-icon"]}>{itemIcon(def)}</span>
-      <span className={s["item-slot-name"]}>{def.name}</span>
+      {showName && <span className={s["item-slot-name"]}>{def.name}</span>}
       {stack.count > 1 && <span className={s["item-slot-count"]}>{stack.count}</span>}
       {bond && <BondIcon bondId={bond.id} className={s["item-slot-bond"]} />}
     </button>

@@ -1,5 +1,24 @@
 .panel {
-  composes: shellStatic from "../styles/sortieGlass.module.css";
+  composes: inventoryPanel from "../styles/sortieGlass.module.css";
+
+  --inventory-accent: #e7b45f;
+  --inventory-accent-bright: #ffe1a3;
+  --inventory-accent-soft: #e7b45f4d;
+  --inventory-frame: #e7b45f73;
+  --inventory-frame-soft: #e7b45f40;
+  --inventory-panel-wash: #ffe1a30e;
+  --inventory-panel-glow: #d8862a24;
+  --inventory-grid-line: #e7b45f59;
+  --inventory-grid-line-strong: #e7b45fb3;
+  --inventory-tray-fill: #1a120acc;
+  --inventory-tray-wash: #e7b45f12;
+  --inventory-tray-edge: #e7b45f6b;
+  --inventory-slot-fill: #211606db;
+  --inventory-slot-fill-hi: #3a260be6;
+  --inventory-slot-edge: #e7b45f59;
+  --inventory-empty-fill: #130d056f;
+  --inventory-empty-edge: #e7b45f60;
+  --inventory-scanline: #ffe1a31a;
 
   display: block;
   width: fit-content;
@@ -7,7 +26,7 @@
 }
 
 .bar {
-  --level-color: var(--sm-glow);
+  --level-color: var(--inventory-accent);
 
   display: flex;
   width: 100%;
@@ -20,15 +39,15 @@
 }
 
 .level-warn {
-  --level-color: #e8c57e;
+  --level-color: #ffd27a;
 }
 
 .level-full {
-  --level-color: #db9d88;
+  --level-color: #ff9376;
 }
 
 .label {
-  color: var(--sm-ink);
+  color: var(--inventory-accent-bright);
   font-family: var(--font-family);
   font-size: 14px;
   font-weight: 700;
@@ -47,8 +66,10 @@
 }
 
 .grid {
+  composes: inventoryGrid from "../styles/sortieGlass.module.css";
+
   display: grid;
-  gap: 10px;
+  gap: var(--inventory-cell-gap);
   grid-template-columns: repeat(8, 116px);
 }
 
@@ -66,6 +87,15 @@
 
 .slot {
   --item-slot-icon-size: 72px;
+
+  background:
+    linear-gradient(145deg, var(--inventory-slot-fill-hi), transparent 52%),
+    var(--inventory-slot-fill);
+  border-color: var(--inventory-slot-edge);
+  box-shadow:
+    inset 0 0 0 1px #00000066,
+    inset 0 0 18px var(--inventory-panel-glow),
+    inset 0 3px 10px #00000099;
 }
 
 .grid .slot {
@@ -75,16 +105,26 @@
 }
 
 .grid .slot:hover {
+  border-color: var(--rr);
   box-shadow:
-    inset 0 0 0 1px #ffffffb3,
-    0 0 26px -8px #ffffff8a;
+    inset 0 0 0 1px var(--inventory-accent-bright),
+    inset 0 0 22px var(--inventory-accent-soft),
+    0 0 26px -8px var(--inventory-accent-soft);
   transform: translateY(-4px);
 }
 
-.grid .slotOn {
+.grid .slot.slotOn,
+.grid .slot:focus-visible {
+  border-color: var(--inventory-accent-bright);
   box-shadow:
-    inset 0 0 0 2px #ffffffcc,
-    0 0 42px -6px #ffffff5c;
+    inset 0 0 0 2px var(--inventory-accent-bright),
+    inset 0 0 26px var(--inventory-accent-soft),
+    0 0 42px -6px var(--inventory-accent-soft);
+}
+
+.grid .slot:focus-visible {
+  outline: 2px solid var(--inventory-accent);
+  outline-offset: 2px;
 }
 
 .grid .empty {
@@ -92,7 +132,20 @@
 }
 
 .grid .empty:hover {
-  box-shadow: inset 0 0 0 1px #ffffff45;
+  border-color: var(--inventory-accent);
+  box-shadow:
+    inset 0 0 0 1px var(--inventory-accent-soft),
+    inset 0 0 18px var(--inventory-accent-soft);
+}
+
+.grid .empty {
+  background:
+    linear-gradient(145deg, var(--inventory-tray-wash), transparent 55%),
+    var(--inventory-empty-fill);
+  border-color: var(--inventory-empty-edge);
+  box-shadow:
+    inset 0 0 0 1px #00000066,
+    inset 0 0 18px var(--inventory-panel-glow);
 }
 
 .pulse {
@@ -108,7 +161,7 @@
 
 @keyframes slotPulse {
   50% {
-    filter: brightness(1.5) drop-shadow(0 0 12px #ffffffb3);
+    filter: brightness(1.42) drop-shadow(0 0 14px var(--inventory-accent-soft));
     transform: scale(1.06);
   }
 }

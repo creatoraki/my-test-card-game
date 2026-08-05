@@ -14,6 +14,7 @@
   min-height: 0;
   overflow: hidden;
   color: var(--sm-ink);
+  pointer-events: none;
 }
 
 .sb-step[data-active="false"] {
@@ -23,7 +24,7 @@
 .sb-band {
   position: absolute;
   top: 0;
-  left: calc(400px - var(--band-w) / 2);
+  left: calc(550px - var(--band-w) / 2);
   z-index: 2;
   width: var(--band-w);
   height: 100%;
@@ -33,6 +34,11 @@
   border-right: 1px solid #ffffff61;
   border-left: 1px solid #ffffff61;
   box-shadow: 0 0 60px -18px #00000099;
+  pointer-events: auto;
+}
+
+.sb-step[data-active="false"] .sb-band {
+  pointer-events: none;
 }
 
 .sb-band-enter {

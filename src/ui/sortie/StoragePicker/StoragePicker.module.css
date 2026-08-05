@@ -1,5 +1,24 @@
 .panel {
-  composes: shellStatic from "../styles/sortieGlass.module.css";
+  composes: inventoryPanel from "../styles/sortieGlass.module.css";
+
+  --inventory-accent: #75e1d4;
+  --inventory-accent-bright: #c7fff6;
+  --inventory-accent-soft: #75e1d44d;
+  --inventory-frame: #75e1d473;
+  --inventory-frame-soft: #75e1d440;
+  --inventory-panel-wash: #b9fff20d;
+  --inventory-panel-glow: #2bbcae21;
+  --inventory-grid-line: #75e1d459;
+  --inventory-grid-line-strong: #75e1d4b3;
+  --inventory-tray-fill: #031718cc;
+  --inventory-tray-wash: #75e1d412;
+  --inventory-tray-edge: #75e1d46b;
+  --inventory-slot-fill: #061a1dcc;
+  --inventory-slot-fill-hi: #0c3332e6;
+  --inventory-slot-edge: #75e1d459;
+  --inventory-empty-fill: #00131573;
+  --inventory-empty-edge: #75e1d460;
+  --inventory-scanline: #b9fff21a;
 
   display: block;
   width: fit-content;
@@ -16,7 +35,7 @@
 }
 
 .label {
-  color: var(--sm-ink);
+  color: var(--inventory-accent-bright);
   font-family: var(--font-family);
   font-size: 14px;
   font-weight: 700;
@@ -27,7 +46,7 @@
 
 .notice {
   min-width: 90px;
-  color: #e8c57e;
+  color: #f0c27b;
   font-family: var(--font-family);
   font-size: 11px;
   letter-spacing: 1px;
@@ -36,8 +55,10 @@
 }
 
 .grid {
+  composes: inventoryGrid from "../styles/sortieGlass.module.css";
+
   display: grid;
-  gap: 10px;
+  gap: var(--inventory-cell-gap);
   grid-template-columns: repeat(6, 116px);
 }
 
@@ -55,6 +76,15 @@
 
 .slot {
   --item-slot-icon-size: 72px;
+
+  background:
+    linear-gradient(145deg, var(--inventory-slot-fill-hi), transparent 52%),
+    var(--inventory-slot-fill);
+  border-color: var(--inventory-slot-edge);
+  box-shadow:
+    inset 0 0 0 1px #00000066,
+    inset 0 0 18px var(--inventory-panel-glow),
+    inset 0 3px 10px #00000099;
 }
 
 .grid .slot {
@@ -64,16 +94,43 @@
 }
 
 .grid .slot:hover {
+  border-color: var(--rr);
   box-shadow:
-    inset 0 0 0 1px #ffffffb3,
-    0 0 26px -8px #ffffff8a;
+    inset 0 0 0 1px var(--inventory-accent-bright),
+    inset 0 0 22px var(--inventory-accent-soft),
+    0 0 26px -8px var(--inventory-accent-soft);
   transform: translateY(-4px);
 }
 
-.grid .slotOn {
+.grid .slot.slotOn,
+.grid .slot:focus-visible {
+  border-color: var(--inventory-accent-bright);
   box-shadow:
-    inset 0 0 0 2px #ffffffcc,
-    0 0 42px -6px #ffffff5c;
+    inset 0 0 0 2px var(--inventory-accent-bright),
+    inset 0 0 26px var(--inventory-accent-soft),
+    0 0 42px -6px var(--inventory-accent-soft);
+}
+
+.grid .slot:focus-visible {
+  outline: 2px solid var(--inventory-accent);
+  outline-offset: 2px;
+}
+
+.grid .empty {
+  background:
+    linear-gradient(145deg, var(--inventory-tray-wash), transparent 55%),
+    var(--inventory-empty-fill);
+  border-color: var(--inventory-empty-edge);
+  box-shadow:
+    inset 0 0 0 1px #00000066,
+    inset 0 0 18px var(--inventory-panel-glow);
+}
+
+.grid .empty:hover {
+  border-color: var(--inventory-accent);
+  box-shadow:
+    inset 0 0 0 1px var(--inventory-accent-soft),
+    inset 0 0 18px var(--inventory-accent-soft);
 }
 
 .pulse {
@@ -89,7 +146,7 @@
 
 @keyframes slotPulse {
   50% {
-    filter: brightness(1.5) drop-shadow(0 0 12px #ffffffb3);
+    filter: brightness(1.42) drop-shadow(0 0 14px var(--inventory-accent-soft));
     transform: scale(1.06);
   }
 }
@@ -100,7 +157,8 @@
     animation: none;
   }
 
-  .grid .slot {
+  .grid .slot,
+  .grid .empty {
     transition: none;
   }
 }

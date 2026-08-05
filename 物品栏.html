@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博朋克 HUD 物品栏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff0080;
+            --neon-yellow: #fcee0a;
+            --bg-dark: #050a15;
+            --panel-glass: rgba(6, 12, 28, 0.65);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            /* 模拟霓虹城市背景，增加光污染氛围 */
+            background: 
+                radial-gradient(circle at 20% 90%, rgba(255, 0, 128, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 90% 10%, rgba(0, 243, 255, 0.2) 0%, transparent 40%),
+                linear-gradient(145deg, #020712 0%, #0a1b33 100%);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        /* =================== 主面板 (背板升级) =================== */
+        .hud-container {
+            position: relative;
+            width: 820px;
+            padding: 24px 30px 25px 30px;
+            background: var(--panel-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            
+            /* 多层背板物理深度 */
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.8), 
+                inset 0 0 60px rgba(0, 243, 255, 0.05);
+            
+            /* 极细网格背景模拟终端背光 */
+            background-image: 
+                radial-gradient(circle at center, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 10px 10px;
+
+            border-radius: 12px;
+            transform: rotateX(2deg) rotateY(-1deg); /* 微微倾斜增加空间感 */
+            transition: box-shadow 0.4s ease;
+        }
+
+        .hud-container:hover {
+            box-shadow: 
+                0 30px 100px rgba(0, 0, 0, 0.9), 
+                inset 0 0 60px rgba(0, 243, 255, 0.08),
+                0 0 40px rgba(0, 243, 255, 0.1);
+        }
+
+        /* 屏幕扫描线叠加层 */
+        .hud-container::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            border-radius: 12px;
+            background: repeating-linear-gradient(0deg, 
+                transparent, 
+                transparent 2px, 
+                rgba(0, 243, 255, 0.02) 2px, 
+                rgba(0, 243, 255, 0.02) 4px
+            );
+            z-index: 10;
+        }
+
+        /* =================== 外边框与科技断点 (边框升级) =================== */
+        .tech-border {
+            position: absolute;
+            border: 1.5px solid rgba(0, 243, 255, 0.25);
+            border-radius: 12px;
+            top: 2px; left: 2px; right: 2px; bottom: 2px;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+            z-index: 5;
+        }
+
+        /* 4个角的科技转向灯 */
+        .corner-bracket {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 12px rgba(0, 243, 255, 0.6);
+            pointer-events: none;
+            z-index: 6;
+            transition: box-shadow 0.3s;
+        }
+        .hud-container:hover .corner-bracket {
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+        }
+
+        /* 模仿赛博朋克2077的切角 */
+        .corner-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+        .corner-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
+        .corner-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; border-bottom-left-radius: 12px; }
+        .corner-br { bottom: -1px; right: -1px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+
+        /* 4条边框上的断点装饰横线 */
+        .line-deco {
+            position: absolute;
+            background: var(--neon-cyan);
+            opacity: 0.5;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+            pointer-events: none;
+            z-index: 6;
+        }
+        .line-t { top: -4px; left: 30%; width: 40%; height: 2px; }
+        .line-b { bottom: -4px; left: 30%; width: 40%; height: 2px; }
+        .line-l { left: -4px; top: 30%; height: 40%; width: 2px; }
+        .line-r { right: -4px; top: 30%; height: 40%; width: 2px; }
+
+        /* =================== 顶部 HUD 信息 =================== */
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.15);
+            position: relative;
+            z-index: 8;
+        }
+
+        .header-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+        .header-title span { color: var(--neon-cyan); }
+        .header-sub {
+            font-size: 11px;
+            color: #7a8fa6;
+            letter-spacing: 3px;
+            margin-top: 2px;
+        }
+
+        .hud-right {
+            text-align: right;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .hud-credits {
+            color: var(--neon-yellow);
+            font-size: 18px;
+            font-weight: 700;
+            text-shadow: 0 0 15px rgba(252, 238, 10, 0.3);
+        }
+        .hud-credits small {
+            font-size: 12px;
+            color: #8aa;
+            font-weight: 400;
+            text-shadow: none;
+        }
+        .hud-capacity {
+            font-size: 11px;
+            color: #6a7f96;
+            margin-top: 3px;
+        }
+
+        /* =================== 物品网格 (网格升级) =================== */
+        .grid-wrapper {
+            position: relative;
+            z-index: 8;
+            /* 托盘内光影 */
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 16px;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 243, 255, 0.05);
+            border: 1px solid rgba(0, 243, 255, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        /* 网格插槽 - 物理凹槽感 */
+        .slot {
+            aspect-ratio: 1 / 1;
+            background: radial-gradient(circle at center, rgba(0, 20, 50, 0.3), rgba(0, 5, 15, 0.8));
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            box-shadow: inset 0 3px 10px rgba(0,0,0,0.7);
+        }
+
+        /* 插槽悬浮 - 霓虹辉光 */
+        .slot:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 
+                0 0 25px rgba(0, 243, 255, 0.3), 
+                inset 0 0 30px rgba(0, 243, 255, 0.15);
+            background: radial-gradient(circle at center, rgba(0, 50, 80, 0.6), rgba(0, 10, 30, 0.9));
+            transform: scale(1.04);
+        }
+
+        /* 插槽四角状态指示灯 */
+        .slot::before, .slot::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 2px;
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 4px rgba(0, 243, 255, 0.05);
+            transition: all 0.3s ease;
+            opacity: 0.4;
+        }
+        .slot::before { top: 3px; left: 3px; }
+        .slot::after { bottom: 3px; right: 3px; }
+        
+        .slot:hover::before, .slot:hover::after {
+            opacity: 1;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        /* =================== 物品卡牌 =================== */
+        .item-card {
+            position: relative;
+            width: 75%;
+            height: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #ffffff, #d1d5db);
+            border-radius: 8px;
+            box-shadow: 2px 4px 12px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.8);
+            transform: rotate(-8deg) translateY(-2px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid rgba(255,255,255,0.6);
+        }
+        
+        .slot:hover .item-card {
+            transform: rotate(0deg) scale(1.1) translateY(0);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3), 2px 4px 15px rgba(0,0,0,0.9);
+            border-color: var(--neon-cyan);
+        }
+
+        /* CSS 3D 牛奶盒 (质感加强) */
+        .milk-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            width: 65%;
+            height: 85%;
+            background: #f8fafc;
+            border-radius: 3px;
+            position: relative;
+            border-left: 3px solid #cbd5e1;
+            border-right: 2px solid #94a3b8;
+            overflow: hidden;
+            box-shadow: inset -2px 0 5px rgba(0,0,0,0.1);
+        }
+        .milk-box::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 15%;
+            width: 70%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 3px 3px 0 0;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .milk-label {
+            background: linear-gradient(145deg, #1d4ed8, #1e3a8a);
+            color: #fff;
+            text-align: center;
+            padding: 6px 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 -2px 10px rgba(37, 99, 235, 0.4);
+        }
+
+        /* 悬浮提示文字 */
+        .item-tooltip {
+            display: none;
+            position: absolute;
+            bottom: -42px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 5px 14px;
+            border: 1px solid var(--neon-cyan);
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.9), 0 0 10px rgba(0, 243, 255, 0.2);
+            backdrop-filter: blur(4px);
+            color: #fff;
+            z-index: 20;
+        }
+        .item-tooltip span { color: var(--neon-yellow); font-weight: bold; }
+        .slot:hover .item-tooltip { display: block; }
+
+        /* =================== 底部功能面板 =================== */
+        .panel-footer {
+            position: relative;
+            z-index: 8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .selected-info {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: #7a8fa6;
+            letter-spacing: 1px;
+        }
+        .selected-info strong { color: #fff; }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* 开关类按钮设计 */
+        .btn {
+            background: transparent;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            color: #9aaec5;
+            padding: 8px 25px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            letter-spacing: 2px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            text-transform: uppercase;
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            background: rgba(255,255,255,0.05);
+            filter: blur(4px);
+            z-index: -1;
+        }
+        .btn:hover { transform: translateY(-2px); }
+
+        .btn-back {
+            border-color: #4a5568;
+            color: #a0aec0;
+        }
+        .btn-back:hover {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        .btn-sell {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+        }
+        .btn-sell:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
+            border-color: var(--neon-cyan);
+        }
+        .btn-sell:active { transform: scale(0.95); }
+
+    </style>
+</head>
+<body>
+
+    <!-- 主容器 -->
+    <div class="hud-container">
+        
+        <!-- 外边框层 -->
+        <div class="tech-border"></div>
+        <div class="line-deco line-t"></div>
+        <div class="line-deco line-b"></div>
+        <div class="line-deco line-l"></div>
+        <div class="line-deco line-r"></div>
+        <div class="corner-bracket corner-tl"></div>
+        <div class="corner-bracket corner-tr"></div>
+        <div class="corner-bracket corner-bl"></div>
+        <div class="corner-bracket corner-br"></div>
+
+        <!-- 顶部 -->
+        <div class="panel-header">
+            <div>
+                <div class="header-title"><span>SECTOR</span>-03 // 物品终端</div>
+                <div class="header-sub">ROUTE: <span style="color:var(--neon-pink);">ACTIVE</span> | 08.05.2026</div>
+            </div>
+            <div class="hud-right">
+                <div class="hud-credits"><span style="color:#fcee0a;">9,000</span> <small>pts</small></div>
+                <div class="hud-capacity">CAPACITY <span style="color:var(--neon-cyan);">1</span> / 24</div>
+            </div>
+        </div>
+
+        <!-- 内部网格背板托盘 -->
+        <div class="grid-wrapper">
+            <div class="grid-container" id="inventoryGrid">
+                
+                <!-- 物品插槽 1 (牛奶) -->
+                <div class="slot" data-item="milk">
+                    <div class="item-card">
+                        <div class="milk-box">
+                            <div class="milk-label">MILK</div>
+                        </div>
+                    </div>
+                    <div class="item-tooltip">新鲜牛奶 <span>20</span> 积分</div>
+                </div>
+
+                <!-- 空插槽 -->
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <div class="panel-footer">
+            <div class="selected-info">ITEM-01 <span style="color:var(--neon-cyan);font-weight:700;">[ 牛奶 ]</span> <br> <span style="font-weight:300;font-size:11px;">单价 20 pts</span></div>
+            <div class="action-buttons">
+                <button class="btn btn-back" onclick="alert('返回上级菜单')">← 返回</button>
+                <button class="btn btn-sell" onclick="alert('售出牛奶， +20 积分！')">售出 →</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 交互逻辑演示
+        const slots = document.querySelectorAll('.slot');
+        slots.forEach(slot => {
+            slot.addEventListener('click', function() {
+                // 清除其他选中状态
+                slots.forEach(s => s.style.borderColor = 'rgba(0, 243, 255, 0.1)');
+                // 标记当前选中
+                this.style.borderColor = '#ff0080';
+                this.style.boxShadow = '0 0 30px rgba(255, 0, 128, 0.4), inset 0 0 30px rgba(255, 0, 128, 0.2)';
+                
+                const itemName = this.dataset.item || '空';
+                document.querySelector('.selected-info').innerHTML = `ITEM-01 <span style="color:var(--neon-pink);font-weight:700;">[ ${itemName.toUpperCase()} ]</span> <br> <span style="font-weight:300;font-size:11px;">${itemName === 'milk' ? '单价 20 pts' : '待售物品'}</span>`;
+            });
+        });
+    </script>
+</body>
+</html>
