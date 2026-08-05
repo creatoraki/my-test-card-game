@@ -4,13 +4,23 @@ import { mergeStacksForDisplay, sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
+import { cx } from "@/ui/common/cx";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot/ItemSlot";
+import { useChangePulse } from "@/ui/hooks/useChangePulse";
 import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
 import s from "./StoragePicker.module.css";
 
+interface Props {
+  /** 调用方的布局类(占哪块格、第几个入场)。面板自身的外观一律由本组件持有。 */
+  className?: string;
+}
+
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
 
-export function StoragePicker() {
+// 6 列 x 2 行 —— 与 PrepStep 中部左栏的 620x372 对齐。
+const CELLS = 12;
+
+export function StoragePicker({ className }: Props) {
   const storage = useTownStore((state) => state.storage);
   const takeFromStorage = useSortieStore((state) => state.takeFromStorage);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
@@ -28,20 +38,30 @@ export function StoragePicker() {
       ),
     [storage],
   );
-  const selected = visible.find((stack) => stack.uid === selectedUid) ?? null;
   const tooltipStack = tooltip ? visible.find((stack) => stack.uid === tooltip.uid) ?? null : null;
-  const cells = [...visible, ...Array.from({ length: Math.max(0, 12 - visible.length) }, () => null)];
+  const cells = [...visible, ...Array.from({ length: Math.max(0, CELLS - visible.length) }, () => null)];
+  // 取物是按 uid 整堆移出 ⇒ 那个格子直接卸载; 但显示层做过 mergeStacksForDisplay,
+  // 同款的另几堆会合并到一起显示, 于是「拿走一堆、合并格的数字变小」这种原地改数
+  // 不会重挂 DOM —— 靠这里认出来闪一下。
+  const pulsed = useChangePulse(
+    useMemo(() => Object.fromEntries(visible.map((stack) => [stack.uid, stack.count])), [visible]),
+  );
 
   const hideTooltip = (uid: string) => {
     setTooltip((current) => (current?.uid === uid ? null : current));
   };
 
+  const showNotice = (message: string) => {
+    setNotice(message);
+    window.setTimeout(() => setNotice((current) => (current === message ? null : current)), 1500);
+  };
+
   return (
-    <section className={s.panel} aria-labelledby="sortie-storage-title">
+    <section className={cx(s.panel, className)} aria-labelledby="sortie-storage-title">
       <header className={s.header}>
         <div>
           <span className={s.kicker}>STORAGE / CONSUMABLES</span>
-          <h2 id="sortie-storage-title">仓库</h2>
+          <h2 id="sortie-storage-title" className={s.title}>仓库</h2>
         </div>
         <span className={s.notice} role="status">{notice}</span>
       </header>
@@ -50,7 +70,7 @@ export function StoragePicker() {
           stack ? (
             <div
               key={stack.uid}
-              className={s.slotAnchor}
+              className={cx(s.slotAnchor, pulsed.has(stack.uid) && s.pulse)}
               onPointerEnter={(event) =>
                 setTooltip({ uid: stack.uid, rect: event.currentTarget.getBoundingClientRect() })
               }
@@ -63,10 +83,10 @@ export function StoragePicker() {
               <ItemSlot
                 stack={stack}
                 selected={stack.uid === selectedUid}
-                className={s.slot}
+                className={cx(s.slot, stack.uid === selectedUid && s.slotOn)}
                 onClick={() => {
                   setSelectedUid(stack.uid);
-                  if (!takeFromStorage(stack.uid)) setNotice("背包已满");
+                  if (!takeFromStorage(stack.uid)) showNotice("背包已满");
                 }}
               />
             </div>

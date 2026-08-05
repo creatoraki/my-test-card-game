@@ -1,163 +1,125 @@
+/* 物资准备步骤的**版式**。面板材质在 sortie/styles/sortieGlass.module.css,
+   面板内部外观归各自的 module.css —— 这里不许出现改写子组件的后代选择器(样式铁律 3)。
+
+   设计画布 1920x1080, 去掉 padding 后内容区 1776 x 882:
+     76(header) + 16 + 372(仓库 | 货柜) + 16 + 402(背包通栏) = 882 */
+
 .step {
+  /* --sm-ease / --sm-dur: 出击域的手感令牌, 三块面板与标题块共用同一条缓动 */
+  composes: tokens from "../styles/sortieGlass.module.css";
+
   position: relative;
   z-index: 1;
   width: 100%;
   height: 100%;
-  padding: 66px 72px 132px;
+  padding: 66px 72px 132px; /* 底部 132 让位给 SortieNav 与 .stage::after 的分隔线 */
   box-sizing: border-box;
   color: var(--sm-ink);
-  animation: rise 420ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
-}
-
-.header,
-.layout,
-.panelHead {
-  display: flex;
 }
 
 .header {
   position: relative;
   z-index: 2;
-  min-height: 118px;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding-left: 700px;
+  display: flex;
+  height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  /* SortieBackdrop 的目标层信息占 left:72 width:620, 本步骤仍然可见 ⇒ 标题整体让到右侧 */
+  padding-left: 640px;
 }
 
-.header > div:first-child {
+.heading {
+  composes: enter from "../styles/sortieGlass.module.css";
+
   min-width: 0;
-  flex: 1;
-}
-
-.kicker,
-.panelLabel,
-.credits span,
-.mapLine,
-.textButton {
-  color: var(--sm-glow);
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 3px;
-  text-shadow: 0 1px 8px #000000b3;
 }
 
 .kicker {
-  display: block;
-  text-transform: uppercase;
+  composes: kicker from "../styles/sortieGlass.module.css";
 }
 
-.header h1 {
-  margin: 9px 0 7px;
+.title {
+  margin: 5px 0 0;
   color: var(--sm-ink);
   font-family: var(--font-family);
-  font-size: 34px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: 7px;
   text-indent: 7px;
   text-shadow: 0 2px 10px #000000cc, 0 2px 24px #00000099;
 }
 
-.header p {
-  max-width: 650px;
-  margin: 0;
-  color: var(--sm-ink-dim);
-  font-size: 14px;
-  line-height: 1.7;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 7px #000000cc;
-}
-
 .credits {
-  min-width: 180px;
-  margin-left: 30px;
-  padding: 8px 0 8px 18px;
-  border-left: 2px solid var(--sm-glow);
-  background: linear-gradient(90deg, #0b2022a8, transparent);
-  text-align: right;
+  composes: shell from "../styles/sortieGlass.module.css";
+
+  --enter-delay: 120ms;
+
+  display: flex;
+  min-width: 210px;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 9px 18px 9px 20px;
 }
 
-.credits span {
+/* 玻璃片左缘的一道辉光竖条 —— 与 SortieNav 的 .back 同一手法。
+   提一级特异性: 要盖掉 glass.shell 的 box-shadow, 同为单类时谁赢取决于引入顺序。 */
+.header .credits {
+  box-shadow:
+    inset 3px 0 0 0 var(--sm-glow),
+    inset 0 0 0 1px #ffffff45,
+    inset 0 1px 0 #ffffff59,
+    0 18px 38px -26px #000000cc;
+}
+
+.creditsLabel {
   color: var(--sm-ink-dim);
-  letter-spacing: 2px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-shadow: 0 1px 6px #000000aa;
 }
 
-.credits strong {
-  display: block;
-  margin-top: 7px;
+.creditsValue {
+  margin-top: 4px;
   color: var(--sm-glow-hi);
   font-family: var(--font-family);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: 2px;
   text-shadow: 0 0 18px #91e8dc66, 0 2px 8px #000000cc;
 }
 
 .layout {
-  gap: 18px;
-  height: calc(100% - 118px);
-  margin-top: 8px;
+  display: grid;
+  height: calc(100% - 76px);
+  box-sizing: border-box;
+  padding-top: 16px;
+  grid-template-areas:
+    "storage stock"
+    "backpack backpack";
+  grid-template-columns: 620px 1fr;
+  grid-template-rows: 372px 402px;
+  gap: 16px 18px;
 }
 
-.leftColumn,
-.rightColumn {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 14px;
+/* 面板只从这里拿「占哪块格 + 第几个入场」。--enter-delay 是下发给
+   sortieGlass.module.css 的 .shell 的契约(铁律 4)。 */
+.areaStorage {
+  --enter-delay: 0ms;
+
+  grid-area: storage;
 }
 
-.leftColumn {
-  width: 620px;
-  flex: 0 0 620px;
-  padding-top: 12px;
+.areaStock {
+  --enter-delay: 90ms;
+
+  grid-area: stock;
 }
 
-.rightColumn {
-  flex: 1;
-}
+.areaBackpack {
+  --enter-delay: 180ms;
 
-.leftColumn > section,
-.rightColumn > section {
-  min-width: 0;
-  border: 1px solid #8edfd544;
-  background:
-    linear-gradient(135deg, #11292db8, #071417c7 66%),
-    #071417c7;
-  box-shadow:
-    inset 0 1px 0 #ffffff2e,
-    inset 0 -1px 0 #00000070,
-    0 22px 48px -30px #000000e6;
-  -webkit-backdrop-filter: blur(12px) saturate(112%);
-  backdrop-filter: blur(12px) saturate(112%);
-}
-
-.leftColumn > section {
-  flex: 1;
-}
-
-.rightColumn > section:first-child {
-  flex: 0 0 398px;
-}
-
-.rightColumn > section:last-child {
-  flex: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .step {
-    animation: none;
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  grid-area: backpack;
 }

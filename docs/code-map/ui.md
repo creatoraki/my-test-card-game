@@ -18,7 +18,7 @@ src/ui/
 ├─ battle/       战斗画布与其私有子组件、演出预设
 ├─ result/       战后小结与远征结算
 ├─ art/          素材查表（id → 图片 URL + 预热）
-├─ hooks/        设计画布与三个通用 hook
+├─ hooks/        设计画布与四个通用 hook
 └─ _legacy/      无人引用的归档件，见该目录的 README
 ```
 
@@ -43,10 +43,11 @@ src/ui/
 | [sortie/SortieStepViewport](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) | 出击步骤视口：管理地图选择与物资准备面板的水平滑动过场，过渡期间锁定两个面板的交互和辅助技术访问。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在斜跨玻璃选择带中切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
-| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：组合固定货柜、仓库消耗品和 8×3 出击背包，实时显示积分、占格和负重惩罚；远征启动由共享流程外壳派发。 |
-| [sortie/StockPanel](../../src/ui/sortie/StockPanel/StockPanel.tsx) | 出击货柜：按固定清单不限量购买消耗品，购买前检查积分与背包容量。 |
-| [sortie/StoragePicker](../../src/ui/sortie/StoragePicker/StoragePicker.tsx) | 出击准备中的仓库消耗品选择器，取物前由 `sortieStore` 试算容量并按 uid 移出整堆。 |
-| [sortie/SortieBackpack](../../src/ui/sortie/SortieBackpack/SortieBackpack.tsx) | 出击背包：按规则排布 8×3 格，展示占格和命中/闪避/暴击惩罚；点击物品退回来源。 |
+| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：三段式栅格（右对齐标题条 + 积分片 / 中部左仓库右货柜 / 底部通栏背包），标题让出左侧 640px 给共享背景的目标层 HUD。只向三块面板下发 `grid-area` 与错峰入场的 `--enter-delay`，面板外观归各自的 `module.css`。 |
+| [sortie/StockPanel](../../src/ui/sortie/StockPanel/StockPanel.tsx) | 出击货柜：按固定清单不限量购买消耗品，购买前检查积分与背包容量。换行位置读 `SORTIE_STOCK_FIRST_ROW`（食品一行、消耗品一行是数据语义，不按宽度自动换行）。 |
+| [sortie/StoragePicker](../../src/ui/sortie/StoragePicker/StoragePicker.tsx) | 出击准备中的仓库消耗品选择器，取物前由 `sortieStore` 试算容量并按 uid 移出整堆；6×2 格，取物提示 1.5s 自动消失。 |
+| [sortie/SortieBackpack](../../src/ui/sortie/SortieBackpack/SortieBackpack.tsx) | 出击背包：通栏版式（左读数右 8×3 格网），展示占格、容量条和命中/闪避/暴击惩罚，容量条按 80%/100% 两档换色；点击物品退回来源。 |
+| [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
 | [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队视图，复用角色立绘和卡组显示。 |
 | [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性和个人卡组为只读档案，卡组支持卡面选中详情。与编队页之间是共享元素过场。 |
 | [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
@@ -128,6 +129,7 @@ src/ui/
 | [hooks/useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 将启动预加载状态接入 React 外部 store；主菜单等待所有资源任务 settle 后开放入口。 |
 | [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布和等比 letterbox 缩放。画布内不使用 `vw` / `vh` 或窗口断点。 |
 | [hooks/useCountUp.ts](../../src/ui/hooks/useCountUp.ts) | rAF 数值滚动；起点走 ref，减少动态效果下直接使用终值。 |
+| [hooks/useChangePulse.ts](../../src/ui/hooks/useChangePulse.ts) | 认出「同一个 key 的数值变了」并短暂高亮。物品**新进来**由格子重挂载的 CSS 动画负责，这个 hook 只管 uid 不变、`count` 改数的那种；新出现的 key 刻意不算变化，否则两边都闪会重影。 |
 | [hooks/useIdleTwitch.ts](../../src/ui/hooks/useIdleTwitch.ts) | 低频随机敌人待机小动作，只存在于 UI 局部状态。 |
 | [hooks/useTypewriter.ts](../../src/ui/hooks/useTypewriter.ts) | 探索事件文本逐字演出。 |
 

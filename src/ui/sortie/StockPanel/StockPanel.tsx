@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getItemDef } from "@/data";
+import { getItemDef, SORTIE_STOCK_FIRST_ROW } from "@/data";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
 import { itemIcon } from "@/ui/art/itemArt";
@@ -8,9 +8,11 @@ import s from "./StockPanel.module.css";
 
 interface Props {
   itemIds: readonly string[];
+  /** 调用方的布局类(占哪块格、第几个入场)。面板自身的外观一律由本组件持有。 */
+  className?: string;
 }
 
-export function StockPanel({ itemIds }: Props) {
+export function StockPanel({ itemIds, className }: Props) {
   const loot = useTownStore((state) => state.loot);
   const backpack = useSortieStore((state) => state.backpack);
   const buy = useSortieStore((state) => state.buy);
@@ -22,11 +24,11 @@ export function StockPanel({ itemIds }: Props) {
   };
 
   return (
-    <section className={s.panel} aria-labelledby="sortie-stock-title">
+    <section className={cx(s.panel, className)} aria-labelledby="sortie-stock-title">
       <header className={s.header}>
         <div>
           <span className={s.kicker}>SUPPLY BAY / UNLIMITED STOCK</span>
-          <h2 id="sortie-stock-title">货柜</h2>
+          <h2 id="sortie-stock-title" className={s.title}>货柜</h2>
         </div>
         <span className={s.notice} role="status">
           {notice}
@@ -37,11 +39,12 @@ export function StockPanel({ itemIds }: Props) {
           const def = getItemDef(itemId);
           const price = def.buyValue ?? 0;
           const affordable = loot >= price;
-          const row = index < 6 ? 0 : 1;
+          // 摆位是数据的一部分(食品一行、消耗品一行), 换行位置读 data/sortieStock.ts 的常量:
+          // 第二行的头一件起在第 2 列, 于是 4 件相对第一行的 6 件居中。
           return (
-            <div className={cx(s.item, row === 1 && s.secondRow)} key={itemId}>
+            <div className={cx(s.item, index === SORTIE_STOCK_FIRST_ROW && s.rowBreak)} key={itemId}>
               <button
-                className={cx(s.itemTile, s[`rarity-${def.rarity}`])}
+                className={cx(s.itemTile, s[`rarity-${def.rarity}`], !affordable && s.tileDisabled)}
                 type="button"
                 title={`${def.name} · ${price} 积分`}
                 onClick={() => {

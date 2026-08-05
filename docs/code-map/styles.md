@@ -26,6 +26,14 @@
 [exploreKit.module.css](../../src/ui/explore/styles/exploreKit.module.css)，探索组件各自通过 `composes` 使用；
 探索画布根通过 `data-explore-stage` 传递跨组件状态，不再依赖 `.explore-stage` 的远程后代选择器。
 
+出击域的白玻璃面板材质（零圆角 + `blur(18px) saturate(118%) brightness(1.06)` + 白色内描边 hairline）
+住在 [sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css)，
+`StockPanel` / `StoragePicker` / `SortieBackpack` 与 `PrepStep` 的积分片各自 `composes` 使用。
+它同时下发 `--sm-ease` / `--sm-dur` 两个手感令牌和错峰入场用的 `--enter-delay`（由 `PrepStep` 的
+布局类赋值）——真相点是 `MapSelectStep` 的选层带，改材质要两边一起看，否则两个步骤之间滑动会脱节。
+⚠ 与选层带唯一刻意的偏差是面板多压了一层 `#05121466` 深底：`SortieBackdrop` 的地图信息在物资准备
+步骤仍渲染在面板背后，纯白玻璃会让物品图标读不清。
+
 据点设施的 hover/active 样式通过大厅根的 `data-town-stage` 传递状态；商店的
 `ShopItemTile.module.css` 与 `ShopItemCard.module.css` 各自独占商品格和详情栏样式，
 不再由 `ShopScene.module.css` 远程改写子组件。
@@ -95,7 +103,8 @@ import s from "./CombatantView.module.css";
 
 1. 只服务一个组件 → 它自己的 `Xxx.module.css`（**默认答案**）。
 2. 一个域内两个以上组件共用 → `<域>/styles/xxx.module.css`，双方 `composes` 或直接 import
-   （现有两例：`battle/styles/unitBadges.module.css`、`explore/styles/exploreKit.module.css`）。
+   （现有三例：`battle/styles/unitBadges.module.css`、`explore/styles/exploreKit.module.css`、
+   `sortie/styles/sortieGlass.module.css`）。
 3. 跨域复用的**组件** → `ui/common/` 下建组件，别建共享类名。
 4. 真的全站通用且无法组件化（新设计令牌、`button` 皮肤）→ `src/styles/tokens.css` 或 `base.css`。
 
