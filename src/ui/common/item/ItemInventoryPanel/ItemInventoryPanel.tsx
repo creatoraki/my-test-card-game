@@ -45,6 +45,7 @@ export interface ItemInventoryPanelProps {
   kicker?: ReactNode;
   title?: ReactNode;
   subtitle?: ReactNode;
+  compact?: boolean;
   credits?: number | string;
   creditsLabel?: ReactNode;
   capacity?: number;
@@ -116,6 +117,7 @@ export default function ItemInventoryPanel({
   kicker = "SECTOR-03 // INVENTORY TERMINAL",
   title = "物品终端",
   subtitle,
+  compact = false,
   credits,
   creditsLabel = "pts",
   capacity,
@@ -223,6 +225,7 @@ export default function ItemInventoryPanel({
       id={panelId}
       className={cx(s["inventory-panel"], className)}
       style={style}
+      data-compact={compact ? "true" : undefined}
       aria-labelledby={`${panelId}-title`}
     >
       <span className={s["inventory-tech-border"]} aria-hidden="true" />
@@ -238,21 +241,23 @@ export default function ItemInventoryPanel({
       <div className={s["inventory-content"]}>
         <header className={s["inventory-header"]}>
           <div className={s["inventory-heading"]}>
-            <span className={s["inventory-kicker"]}>{kicker}</span>
+            {!compact && <span className={s["inventory-kicker"]}>{kicker}</span>}
             <h2 id={`${panelId}-title`} className={s["inventory-title"]}>
               {title}
             </h2>
-            <p className={s["inventory-subtitle"]}>
-              {subtitle ?? (
-                <>
-                  ROUTE: <span className={s["inventory-subtitle-active"]}>ACTIVE</span>
-                </>
-              )}
-            </p>
+            {!compact && (
+              <p className={s["inventory-subtitle"]}>
+                {subtitle ?? (
+                  <>
+                    ROUTE: <span className={s["inventory-subtitle-active"]}>ACTIVE</span>
+                  </>
+                )}
+              </p>
+            )}
           </div>
 
           <div className={s["inventory-readout"]}>
-            {credits != null && (
+            {!compact && credits != null && (
               <div className={s["inventory-credits"]}>
                 <span>
                   {typeof credits === "number" ? credits.toLocaleString("en-US") : credits}
@@ -261,7 +266,7 @@ export default function ItemInventoryPanel({
               </div>
             )}
             <div className={s["inventory-capacity"]}>
-              <span>{capacityLabel}</span>
+              {!compact && <span>{capacityLabel}</span>}
               <strong>{displayedOccupied}</strong>
               <em>/ {displayedCapacity}</em>
             </div>
@@ -302,12 +307,14 @@ export default function ItemInventoryPanel({
           </div>
         </div>
 
-        <footer className={s["inventory-footer"]}>
-          <div className={s["inventory-selected"]} aria-live="polite">
-            {selectedInfo}
-          </div>
-          {footer && <div className={s["inventory-actions"]}>{footer}</div>}
-        </footer>
+        {!compact && (
+          <footer className={s["inventory-footer"]}>
+            <div className={s["inventory-selected"]} aria-live="polite">
+              {selectedInfo}
+            </div>
+            {footer && <div className={s["inventory-actions"]}>{footer}</div>}
+          </footer>
+        )}
       </div>
       {hoveredStack && hoveredItem && (
         <InventoryTooltip stack={hoveredStack} point={hoveredItem.point} />
