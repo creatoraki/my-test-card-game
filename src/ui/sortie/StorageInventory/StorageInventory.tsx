@@ -5,9 +5,8 @@ import { RARITY_ORDER } from "@/items/types";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
-import ItemInventoryPanel, {
-  type InventoryColorMap,
-} from "@/ui/common/item/ItemInventoryPanel";
+import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
+import { SORTIE_STORAGE_COLORS } from "@/ui/sortie/styles/inventoryPalettes";
 import s from "./StorageInventory.module.css";
 
 interface Props {
@@ -16,27 +15,6 @@ interface Props {
 
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
 const CELLS = 4;
-
-const STORAGE_COLORS: InventoryColorMap = {
-  panel: "#0b1a1fa6",
-  panelDeep: "#04090cb3",
-  panelGlow: "#ffffff14",
-  panelLine: "#ffffff3d",
-  frame: "#ffffffb3",
-  frameHot: "#ffffff",
-  accent: "#ffffffe6",
-  accentAlt: "#75e1d4",
-  text: "#ffffff",
-  muted: "#b6c7c9",
-  tray: "#ffffff0f",
-  trayBorder: "#ffffff33",
-  slot: "#ffffff12",
-  slotBorder: "#ffffff2e",
-  slotHover: "#ffffff2b",
-  selected: "#c7fff6",
-  selectedGlow: "#c7fff666",
-  emptySlot: "#ffffff0a",
-};
 
 export function StorageInventory({ className }: Props) {
   const storage = useTownStore((state) => state.storage);
@@ -75,7 +53,7 @@ export function StorageInventory({ className }: Props) {
       capacityLabel="可取消耗品"
       gridLabel="仓库消耗品格位"
       panelId="sortie-storage-panel"
-      colorMap={STORAGE_COLORS}
+      colorMap={SORTIE_STORAGE_COLORS}
       selectedUid={null}
       onSelect={(stack) => {
         if (!stack) return;

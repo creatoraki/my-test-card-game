@@ -34,6 +34,7 @@
 `view-transition.global.css` 的文档根伪元素规则配对。
 ⚠ 面板唯一刻意的偏差是多压一层 `#05121466` 深底：`SortieBackdrop` 的地图信息在物资准备步骤的面板背后，
 纯白玻璃会让物品图标读不清。
+面板材质共享自 `sortieGlass.module.css`，配色（`--inventory-*` 变量组）由 `inventoryPalettes.ts` 以 props 下发，两者分工不要混。
 
 据点设施的 hover/active 样式通过大厅根的 `data-town-stage` 传递状态；商店的
 `ShopItemTile.module.css` 与 `ShopItemCard.module.css` 各自独占商品格和详情栏样式，

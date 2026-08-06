@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科技感游戏卡牌框架</title>
+    <style>
+        :root {
+            --card-width: 320px;
+            --card-height: 460px;
+            --primary-white: #f8f9fb;
+            --white-pure: #ffffff;
+            --accent-blue: #4a90d9;
+            --accent-cyan: #00c6f0;
+            --accent-deep: #1b2d45;
+            --glow-color: #5db8fe;
+            --border-metallic: #d0d8e4;
+            --border-inner: #e8ecf2;
+            --text-dark: #1a2332;
+            --text-mid: #3a4a5c;
+            --gold-accent: #c9a96e;
+            --subtle-blue: #e8f0fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+            flex-wrap: wrap;
+            padding: 40px 20px;
+            background-color: #0d1520;
+            background-image:
+                radial-gradient(ellipse at 30% 20%, rgba(30, 60, 100, 0.35) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 60%, rgba(20, 50, 80, 0.3) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 80%, rgba(10, 30, 55, 0.25) 0%, transparent 50%);
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============ 背景装饰粒子 ============ */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(140, 190, 240, 0.5);
+            animation: floatUp 8s infinite ease-in;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 0.3;
+                transform: translateY(-60vh) translateX(30px) scale(0.5);
+            }
+            100% {
+                transform: translateY(-110vh) translateX(-20px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* ============ 卡牌容器（3D透视） ============ */
+        .card-wrapper {
+            perspective: 1200px;
+            position: relative;
+            z-index: 1;
+            width: var(--card-width);
+            height: var(--card-height);
+            flex-shrink: 0;
+        }
+
+        /* ============ 卡牌主体 ============ */
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+            border-radius: 18px;
+            /* 外层立体阴影 */
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.3),
+                0 6px 16px rgba(0, 0, 0, 0.25),
+                0 14px 32px rgba(0, 0, 0, 0.2),
+                0 28px 56px rgba(0, 0, 0, 0.18),
+                0 0 0 1px rgba(180, 200, 220, 0.5),
+                0 0 60px rgba(70, 140, 220, 0.12);
+        }
+
+        .card-wrapper:hover .card {
+            transform: rotateY(-8deg) rotateX(5deg) translateY(-12px);
+            box-shadow:
+                0 4px 8px rgba(0, 0, 0, 0.35),
+                0 10px 24px rgba(0, 0, 0, 0.28),
+                0 22px 44px rgba(0, 0, 0, 0.22),
+                0 36px 70px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(180, 200, 225, 0.6),
+                0 0 80px rgba(70, 150, 230, 0.22),
+                0 0 120px rgba(0, 180, 240, 0.1);
+        }
+
+        /* ============ 卡牌厚度层 ============ */
+        .card-thickness {
+            position: absolute;
+            top: 6px;
+            left: 4px;
+            right: -4px;
+            bottom: -6px;
+            border-radius: 18px;
+            background: linear-gradient(145deg,
+                    #b8c5d4 0%, #8a9aae 15%, #6d7e94 30%,
+                    #8a9aae 50%, #9aabbc 65%, #7b8ca0 80%, #6a7b90 100%);
+            z-index: -1;
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        /* 厚度侧面纹理 */
+        .card-thickness::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 18px;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(255, 255, 255, 0.06) 3px,
+                    rgba(255, 255, 255, 0.06) 4px);
+            pointer-events: none;
+        }
+
+        /* ============ 卡牌表面 ============ */
+        .card-surface {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            background:
+                /* 主体白色带微妙的暖灰渐变 */
+                linear-gradient(170deg,
+                    #ffffff 0%, #fafbfc 8%, #f7f8fa 18%,
+                    #fcfdfe 30%, #f5f6f9 45%,
+                    #fafbfd 58%, #f3f4f7 72%,
+                    #f8f9fb 85%, #fefefe 100%);
+            overflow: hidden;
+            z-index: 0;
+            /* 内边框 — 金属感细线 */
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+
+        /* 内边框发光层 */
+        .card-surface::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border-radius: 13px;
+            border: 2px solid rgba(180, 200, 220, 0.55);
+            pointer-events: none;
+            z-index: 5;
+            box-shadow:
+                inset 0 0 20px rgba(150, 190, 230, 0.2),
+                inset 0 0 40px rgba(180, 210, 240, 0.08),
+                0 0 0 1px rgba(210, 225, 240, 0.5);
+        }
+
+        /* 科技感网格纹理 */
+        .card-surface::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 18px;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.25;
+            background:
+                /* 细微横纹 */
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 6px,
+                    rgba(180, 200, 225, 0.18) 6px,
+                    rgba(180, 200, 225, 0.18) 7px),
+                /* 细微竖纹 */
+                repeating-linear-gradient(90deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(180, 200, 225, 0.12) 8px,
+                    rgba(180, 200, 225, 0.12) 9px),
+                /* 对角斜纹 */
+                repeating-linear-gradient(45deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(190, 210, 235, 0.06) 40px,
+                    rgba(190, 210, 235, 0.06) 41px);
+        }
+
+        /* 高光条纹 */
+        .card-highlight {
+            position: absolute;
+            top: -30%;
+            left: 10%;
+            width: 60%;
+            height: 70%;
+            background: radial-gradient(ellipse at center,
+                    rgba(255, 255, 255, 0.5) 0%,
+                    rgba(255, 255, 255, 0.2) 30%,
+                    transparent 70%);
+            z-index: 2;
+            pointer-events: none;
+            border-radius: 50%;
+            transform: rotate(-8deg);
+        }
+
+        /* ============ 顶部名称栏 ============ */
+        .card-header {
+            position: absolute;
+            top: 22px;
+            left: 18px;
+            right: 18px;
+            height: 48px;
+            z-index: 6;
+            background: linear-gradient(180deg,
+                    rgba(28, 42, 62, 0.92) 0%,
+                    rgba(22, 35, 52, 0.95) 40%,
+                    rgba(30, 48, 68, 0.9) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border: 1px solid rgba(120, 170, 220, 0.5);
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 16px rgba(60, 140, 210, 0.25);
+            overflow: hidden;
+        }
+
+        /* 名称栏的科技纹理 */
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(255, 255, 255, 0.02) 3px,
+                    rgba(255, 255, 255, 0.02) 4px);
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 8px;
+        }
+
+        /* 名称栏发光下边线 */
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 8px;
+            right: 8px;
+            height: 2px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(0, 190, 240, 0.7) 15%,
+                    rgba(100, 200, 255, 0.9) 50%,
+                    rgba(0, 190, 240, 0.7) 85%,
+                    transparent);
+            z-index: 1;
+            filter: blur(1px);
+            animation: scanLine 3s ease-in-out infinite;
+        }
+        @keyframes scanLine {
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .card-name {
+            position: relative;
+            z-index: 2;
+            color: #e8f2fc;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(150, 210, 255, 0.6), 0 0 20px rgba(100, 180, 240, 0.3);
+            text-transform: uppercase;
+        }
+
+        /* 名称栏左侧装饰图标 */
+        .header-icon {
+            position: relative;
+            z-index: 2;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1.5px solid rgba(0, 200, 240, 0.7);
+            border-radius: 3px;
+            transform: rotate(45deg);
+            background: rgba(0, 180, 220, 0.15);
+            box-shadow: 0 0 8px rgba(0, 200, 240, 0.4), inset 0 0 6px rgba(0, 200, 240, 0.2);
+            animation: iconPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes iconPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 8px rgba(0, 200, 240, 0.4), inset 0 0 6px rgba(0, 200, 240, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 16px rgba(0, 220, 255, 0.7), inset 0 0 10px rgba(0, 210, 250, 0.4);
+            }
+        }
+
+        /* ============ 能量/费用圆环 ============ */
+        .energy-orb {
+            position: absolute;
+            top: 16px;
+            left: -8px;
+            width: 44px;
+            height: 44px;
+            z-index: 8;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%,
+                    #ffffff 0%, #e8eef6 30%, #c5d4e8 60%, #8aaac8 100%);
+            border: 3px solid #b0c8dc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 3px 10px rgba(0, 0, 0, 0.35),
+                0 0 18px rgba(60, 140, 210, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.6),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+            font-size: 18px;
+            font-weight: 900;
+            color: #1a3048;
+            letter-spacing: 0;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            animation: orbFloat 4s ease-in-out infinite;
+        }
+        @keyframes orbFloat {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+        .energy-orb::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border-radius: 50%;
+            border: 1px dashed rgba(100, 170, 220, 0.5);
+            pointer-events: none;
+            animation: orbRing 8s linear infinite;
+        }
+        @keyframes orbRing {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ============ 插图区域 ============ */
+        .card-art-zone {
+            position: absolute;
+            top: 80px;
+            left: 18px;
+            right: 18px;
+            height: 190px;
+            z-index: 6;
+            border-radius: 10px;
+            background:
+                linear-gradient(160deg,
+                    #e8eef6 0%, #dce4ef 20%, #f0f3f8 40%,
+                    #e2e9f2 60%, #d5dfea 80%, #eaf0f7 100%);
+            border: 2px solid rgba(170, 195, 220, 0.6);
+            box-shadow:
+                inset 0 2px 12px rgba(0, 0, 0, 0.1),
+                inset 0 0 30px rgba(100, 150, 200, 0.15),
+                0 1px 3px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 插图区内部科技装饰 */
+        .card-art-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                /* 扫描线 */
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(180, 200, 225, 0.2) 3px,
+                    rgba(180, 200, 225, 0.2) 4px),
+                /* 对角光晕 */
+                radial-gradient(ellipse at 55% 40%,
+                    rgba(255, 255, 255, 0.5) 0%,
+                    transparent 55%);
+            z-index: 1;
+            pointer-events: none;
+            border-radius: 10px;
+        }
+
+        /* 插图区四角装饰 */
+        .art-corner {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .art-corner::before,
+        .art-corner::after {
+            content: '';
+            position: absolute;
+            background: rgba(80, 160, 220, 0.7);
+            box-shadow: 0 0 4px rgba(100, 180, 240, 0.6);
+        }
+        .art-corner-tl {
+            top: 6px;
+            left: 6px;
+        }
+        .art-corner-tr {
+            top: 6px;
+            right: 6px;
+        }
+        .art-corner-bl {
+            bottom: 6px;
+            left: 6px;
+        }
+        .art-corner-br {
+            bottom: 6px;
+            right: 6px;
+        }
+        .art-corner-tl::before {
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 1.5px;
+        }
+        .art-corner-tl::after {
+            top: 0;
+            left: 0;
+            width: 1.5px;
+            height: 12px;
+        }
+        .art-corner-tr::before {
+            top: 0;
+            right: 0;
+            width: 12px;
+            height: 1.5px;
+        }
+        .art-corner-tr::after {
+            top: 0;
+            right: 0;
+            width: 1.5px;
+            height: 12px;
+        }
+        .art-corner-bl::before {
+            bottom: 0;
+            left: 0;
+            width: 12px;
+            height: 1.5px;
+        }
+        .art-corner-bl::after {
+            bottom: 0;
+            left: 0;
+            width: 1.5px;
+            height: 12px;
+        }
+        .art-corner-br::before {
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 1.5px;
+        }
+        .art-corner-br::after {
+            bottom: 0;
+            right: 0;
+            width: 1.5px;
+            height: 12px;
+        }
+
+        /* 插图占位图案 */
+        .art-placeholder {
+            position: relative;
+            z-index: 2;
+            width: 70px;
+            height: 70px;
+            border: 2px solid rgba(130, 170, 210, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(200, 220, 240, 0.3);
+        }
+        .art-placeholder-inner {
+            width: 30px;
+            height: 30px;
+            border: 1.5px solid rgba(100, 150, 200, 0.6);
+            border-radius: 3px;
+            transform: rotate(45deg);
+            background: rgba(160, 200, 230, 0.25);
+        }
+        .art-label {
+            position: absolute;
+            bottom: 12px;
+            z-index: 2;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: rgba(100, 140, 180, 0.7);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* ============ 类型标识条 ============ */
+        .card-type-bar {
+            position: absolute;
+            top: 278px;
+            left: 28px;
+            right: 28px;
+            height: 22px;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .type-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(80, 150, 210, 0.7);
+            box-shadow: 0 0 6px rgba(80, 160, 220, 0.5);
+        }
+        .type-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(150, 190, 220, 0.6) 30%,
+                    rgba(150, 190, 220, 0.6) 70%,
+                    transparent);
+        }
+        .type-label {
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: rgba(80, 130, 180, 0.8);
+            text-transform: uppercase;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* ============ 描述文字区域 ============ */
+        .card-description {
+            position: absolute;
+            top: 308px;
+            left: 22px;
+            right: 22px;
+            bottom: 60px;
+            z-index: 6;
+            background: rgba(240, 244, 250, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(180, 200, 220, 0.4);
+            padding: 14px 16px;
+            font-size: 12px;
+            line-height: 1.7;
+            color: #3a4d62;
+            letter-spacing: 0.5px;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        .card-description::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(180, 200, 220, 0.08) 20px,
+                    rgba(180, 200, 220, 0.08) 21px);
+            pointer-events: none;
+            border-radius: 8px;
+            z-index: 0;
+        }
+        .card-description p {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+        }
+
+        /* ============ 底部属性栏 ============ */
+        .card-footer {
+            position: absolute;
+            bottom: 16px;
+            left: 22px;
+            right: 22px;
+            height: 34px;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(180deg,
+                    rgba(235, 240, 248, 0.7) 0%,
+                    rgba(225, 232, 242, 0.8) 100%);
+            border-radius: 6px;
+            border: 1px solid rgba(170, 195, 220, 0.5);
+            padding: 0 14px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        .footer-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #2a4058;
+            letter-spacing: 1px;
+        }
+        .footer-stat-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            border: 1.5px solid rgba(80, 140, 200, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: rgba(60, 120, 180, 0.8);
+            background: rgba(180, 210, 240, 0.3);
+            box-shadow: 0 0 6px rgba(80, 150, 210, 0.3);
+        }
+        .footer-divider {
+            width: 1px;
+            height: 18px;
+            background: rgba(150, 180, 210, 0.5);
+            border-radius: 1px;
+        }
+
+        /* ============ 卡牌边缘发光点 ============ */
+        .edge-node {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(100, 180, 230, 0.8);
+            z-index: 7;
+            pointer-events: none;
+            box-shadow: 0 0 8px rgba(100, 190, 240, 0.7), 0 0 16px rgba(80, 160, 220, 0.4);
+            animation: nodeBlink 3s ease-in-out infinite;
+        }
+        .edge-node:nth-child(1) {
+            top: 10px;
+            left: 50%;
+            animation-delay: 0s;
+        }
+        .edge-node:nth-child(2) {
+            top: 50%;
+            right: 8px;
+            animation-delay: 0.8s;
+        }
+        .edge-node:nth-child(3) {
+            bottom: 10px;
+            left: 50%;
+            animation-delay: 1.6s;
+        }
+        .edge-node:nth-child(4) {
+            top: 50%;
+            left: 8px;
+            animation-delay: 2.2s;
+        }
+        @keyframes nodeBlink {
+            0%,
+            100% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.8);
+            }
+        }
+
+        /* ============ 数据流线条装饰 ============ */
+        .data-stream {
+            position: absolute;
+            pointer-events: none;
+            z-index: 3;
+            opacity: 0.3;
+        }
+        .data-stream-h {
+            top: 272px;
+            left: 18px;
+            right: 18px;
+            height: 1px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(120, 180, 220, 0.5) 10%,
+                    rgba(120, 180, 220, 0.1) 40%,
+                    rgba(120, 180, 220, 0.5) 70%,
+                    transparent);
+        }
+        .data-stream-v1 {
+            top: 80px;
+            bottom: 50px;
+            left: 16px;
+            width: 1px;
+            background: linear-gradient(180deg,
+                    transparent,
+                    rgba(120, 180, 220, 0.3) 20%,
+                    transparent 60%,
+                    rgba(120, 180, 220, 0.3) 85%,
+                    transparent);
+        }
+        .data-stream-v2 {
+            top: 80px;
+            bottom: 50px;
+            right: 16px;
+            width: 1px;
+            background: linear-gradient(180deg,
+                    transparent,
+                    rgba(120, 180, 220, 0.3) 15%,
+                    transparent 50%,
+                    rgba(120, 180, 220, 0.3) 80%,
+                    transparent);
+        }
+
+        /* ============ 第二张卡牌变体 ============ */
+        .card-wrapper:nth-child(2) .card-surface {
+            background:
+                linear-gradient(170deg,
+                    #fefefe 0%, #fafbfd 10%, #f5f7fb 22%,
+                    #fcfdfe 35%, #f3f5f9 48%,
+                    #f9fbfd 60%, #f2f4f8 74%,
+                    #f7f9fc 85%, #fdfdfe 100%);
+        }
+        .card-wrapper:nth-child(2) .card-header {
+            background: linear-gradient(180deg,
+                    rgba(35, 30, 55, 0.9) 0%,
+                    rgba(28, 24, 45, 0.93) 40%,
+                    rgba(38, 32, 58, 0.88) 100%);
+            border: 1px solid rgba(160, 140, 210, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                0 0 16px rgba(120, 90, 200, 0.25);
+        }
+        .card-wrapper:nth-child(2) .card-header::after {
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(180, 140, 240, 0.7) 15%,
+                    rgba(200, 160, 255, 0.9) 50%,
+                    rgba(180, 140, 240, 0.7) 85%,
+                    transparent);
+        }
+        .card-wrapper:nth-child(2) .card-name {
+            color: #e8e0fc;
+            text-shadow: 0 0 10px rgba(180, 150, 240, 0.6), 0 0 20px rgba(140, 110, 220, 0.3);
+        }
+        .card-wrapper:nth-child(2) .header-icon {
+            border-color: rgba(180, 140, 240, 0.7);
+            background: rgba(140, 100, 210, 0.15);
+            box-shadow: 0 0 8px rgba(170, 130, 240, 0.4), inset 0 0 6px rgba(170, 130, 240, 0.2);
+        }
+        .card-wrapper:nth-child(2) .card {
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.3),
+                0 6px 16px rgba(0, 0, 0, 0.25),
+                0 14px 32px rgba(0, 0, 0, 0.2),
+                0 28px 56px rgba(0, 0, 0, 0.18),
+                0 0 0 1px rgba(190, 180, 215, 0.5),
+                0 0 60px rgba(110, 90, 180, 0.12);
+        }
+        .card-wrapper:nth-child(2):hover .card {
+            box-shadow:
+                0 4px 8px rgba(0, 0, 0, 0.35),
+                0 10px 24px rgba(0, 0, 0, 0.28),
+                0 22px 44px rgba(0, 0, 0, 0.22),
+                0 36px 70px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(190, 180, 220, 0.6),
+                0 0 80px rgba(130, 100, 210, 0.22),
+                0 0 120px rgba(150, 120, 230, 0.1);
+        }
+        .card-wrapper:nth-child(2) .energy-orb {
+            background: radial-gradient(circle at 35% 30%,
+                    #ffffff 0%, #ece8f6 30%, #d0c8e8 60%, #a898c8 100%);
+            border-color: #c0b8d8;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35),
+                0 0 18px rgba(110, 80, 180, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.6),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+        }
+        .card-wrapper:nth-child(2) .edge-node {
+            background: rgba(150, 120, 210, 0.8);
+            box-shadow: 0 0 8px rgba(160, 130, 220, 0.7), 0 0 16px rgba(130, 100, 200, 0.4);
+        }
+        .card-wrapper:nth-child(2) .art-corner::before,
+        .card-wrapper:nth-child(2) .art-corner::after {
+            background: rgba(140, 110, 200, 0.7);
+            box-shadow: 0 0 4px rgba(150, 120, 210, 0.6);
+        }
+
+        /* ============ 响应式 ============ */
+        @media (max-width: 768px) {
+            body {
+                gap: 30px;
+                padding: 20px 10px;
+                flex-direction: column;
+                align-items: center;
+            }
+            .card-wrapper {
+                width: 280px;
+                height: 400px;
+            }
+            :root {
+                --card-width: 280px;
+                --card-height: 400px;
+            }
+            .card-art-zone {
+                height: 155px;
+                top: 70px;
+            }
+            .card-header {
+                top: 16px;
+                left: 14px;
+                right: 14px;
+                height: 40px;
+            }
+            .card-name {
+                font-size: 14px;
+                letter-spacing: 1.5px;
+            }
+            .card-description {
+                top: 265px;
+                font-size: 11px;
+                padding: 10px 12px;
+                bottom: 52px;
+            }
+            .card-type-bar {
+                top: 238px;
+            }
+            .card-footer {
+                bottom: 12px;
+                left: 16px;
+                right: 16px;
+                height: 28px;
+            }
+            .energy-orb {
+                width: 36px;
+                height: 36px;
+                top: 12px;
+                left: -4px;
+                font-size: 15px;
+            }
+            .edge-node {
+                width: 4px;
+                height: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景粒子 -->
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <!-- ==================== 卡牌 1：科技蓝主题 ==================== -->
+    <div class="card-wrapper">
+        <div class="card">
+            <!-- 卡牌厚度 -->
+            <div class="card-thickness"></div>
+            <!-- 卡牌表面 -->
+            <div class="card-surface">
+                <!-- 高光 -->
+                <div class="card-highlight"></div>
+                <!-- 数据流线条 -->
+                <div class="data-stream data-stream-h"></div>
+                <div class="data-stream data-stream-v1"></div>
+                <div class="data-stream data-stream-v2"></div>
+                <!-- 边缘节点 -->
+                <div class="edge-node" style="top:9px;left:50%;"></div>
+                <div class="edge-node" style="top:50%;right:7px;"></div>
+                <div class="edge-node" style="bottom:9px;left:50%;"></div>
+                <div class="edge-node" style="top:50%;left:7px;"></div>
+                <!-- 能量球 -->
+                <div class="energy-orb">5</div>
+                <!-- 名称栏 -->
+                <div class="card-header">
+                    <div class="header-icon"></div>
+                    <span class="card-name">量子先锋</span>
+                </div>
+                <!-- 插图区 -->
+                <div class="card-art-zone">
+                    <div class="art-corner art-corner-tl"></div>
+                    <div class="art-corner art-corner-tr"></div>
+                    <div class="art-corner art-corner-bl"></div>
+                    <div class="art-corner art-corner-br"></div>
+                    <div class="art-placeholder">
+                        <div class="art-placeholder-inner"></div>
+                    </div>
+                    <span class="art-label">◆ 插画区域 ◆</span>
+                </div>
+                <!-- 类型条 -->
+                <div class="card-type-bar">
+                    <div class="type-dot"></div>
+                    <div class="type-line"></div>
+                    <span class="type-label">单位 · 机械</span>
+                    <div class="type-line"></div>
+                    <div class="type-dot"></div>
+                </div>
+                <!-- 描述区 -->
+                <div class="card-description">
+                    <p>部署时获得<strong>2点能量</strong>。每回合可使用一次扫描能力，揭示敌方隐藏单位并造成<strong>3点伤害</strong>。该单位在量子领域中获得额外护盾。</p>
+                </div>
+                <!-- 底部属性 -->
+                <div class="card-footer">
+                    <div class="footer-stat">
+                        <div class="footer-stat-icon">⚔</div>
+                        <span>7</span>
+                    </div>
+                    <div class="footer-divider"></div>
+                    <div class="footer-stat">
+                        <div class="footer-stat-icon">🛡</div>
+                        <span>5</span>
+                    </div>
+                    <div class="footer-divider"></div>
+                    <div class="footer-stat">
+                        <div class="footer-stat-icon">⚡</div>
+                        <span>3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 卡牌 2：紫调变体 ==================== -->
+    <div class="card-wrapper">
+        <div class="card">
+            <div class="card-thickness"></div>
+            <div class="card-surface">
+                <div class="card-highlight"></div>
+                <div class="data-stream data-stream-h"></div>
+                <div class="data-stream data-stream-v1"></div>
+                <div class="data-stream data-stream-v2"></div>
+                <div class="edge-node" style="top:9px;left:50%;"></div>
+                <div class="edge-node" style="top:50%;right:7px;"></div>
+                <div class="edge-node" style="bottom:9px;left:50%;"></div>
+                <div class="edge-node" style="top:50%;left:7px;"></div>
+                <div class="energy-orb">3</div>
+                <div class="card-header">
+                    <div class="header-icon"></div>
+                    <span class="card-name">虚空行者</span>
+                </div>
+                <div class="card-art-zone">
+                    <div class="art-corner art-corner-tl"></div>
+                    <div class="art-corner art-corner-tr"></div>
+                    <div class="art-corner art-corner-bl"></div>
+                    <div class="art-corner art-corner-br"></div>
+                    <div class="art-placeholder">
+                        <div class="art-placeholder-inner"></div>
+                    </div>
+                    <span class="art-label">◆ 插画区域 ◆</span>
+                </div>
+                <div class="card-type-bar">
+                    <div class="type-dot"></div>
+                    <div class="type-line"></div>
+                    <span class="type-label">单位 · 灵能</span>
+                    <div class="type-line"></div>
+                    <div class="type-dot"></div>
+                </div>
+                <div class="card-description">
+                    <p>入场时<strong>沉默</strong>所有敌方单位1回合。每当有单位被消灭，虚空行者获得<strong>+1/+1</strong>。可消耗2点能量进行相位转移。</p>
+                </div>
+                <div class="card-footer">
+                    <div class="footer-stat">
+                        <div class="footer-stat-icon">⚔</div>
+                        <span>4</span>
+                    </div>
+                    <div class="footer-divider"></div>
+                    <div class="footer-stat">
+                        <div class="footer-stat-icon">🛡</div>
+                        <span>8</span>
+                    </div>
+                    <div class="footer-divider"></div>
+                    <div class="footer-stat">
+                        <div class="footer-stat-icon">⚡</div>
+                        <span>6</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 卡牌 3：金调变体 ==================== -->
+    <div class="card-wrapper">
+        <div class="card" style="
+        box-shadow:
+        0 2px 4px rgba(0,0,0,0.3),
+        0 6px 16px rgba(0,0,0,0.25),
+        0 14px 32px rgba(0,0,0,0.2),
+        0 28px 56px rgba(0,0,0,0.18),
+        0 0 0 1px rgba(200,185,155,0.5),
+        0 0 60px rgba(180,150,100,0.12);
+    ">
+    <div class="card-thickness" style="background: linear-gradient(145deg,
+    #c8bfa8 0%, #a89980 15%, #8c7d68 30%,
+    #a89980 50%, #b5a892 65%, #93836e 80%, #7d6e5a 100%);"></div>
+    <div class="card-surface">
+        <div class="card-highlight"></div>
+        <div class="data-stream data-stream-h" style="background: linear-gradient(90deg,
+        transparent,
+        rgba(190,160,120,0.5) 10%,
+        rgba(190,160,120,0.1) 40%,
+        rgba(190,160,120,0.5) 70%,
+        transparent);"></div>
+        <div class="data-stream data-stream-v1" style="background: linear-gradient(180deg,
+        transparent,
+        rgba(190,160,120,0.3) 20%,
+        transparent 60%,
+        rgba(190,160,120,0.3) 85%,
+        transparent);"></div>
+        <div class="data-stream data-stream-v2" style="background: linear-gradient(180deg,
+        transparent,
+        rgba(190,160,120,0.3) 15%,
+        transparent 50%,
+        rgba(190,160,120,0.3) 80%,
+        transparent);"></div>
+        <div class="edge-node" style="top:9px;left:50%;background:rgba(200,160,100,0.8);box-shadow:0 0 8px rgba(210,170,110,0.7),0 0 16px rgba(180,140,90,0.4);"></div>
+        <div class="edge-node" style="top:50%;right:7px;background:rgba(200,160,100,0.8);box-shadow:0 0 8px rgba(210,170,110,0.7),0 0 16px rgba(180,140,90,0.4);"></div>
+        <div class="edge-node" style="bottom:9px;left:50%;background:rgba(200,160,100,0.8);box-shadow:0 0 8px rgba(210,170,110,0.7),0 0 16px rgba(180,140,90,0.4);"></div>
+        <div class="edge-node" style="top:50%;left:7px;background:rgba(200,160,100,0.8);box-shadow:0 0 8px rgba(210,170,110,0.7),0 0 16px rgba(180,140,90,0.4);"></div>
+        <div class="energy-orb" style="background: radial-gradient(circle at 35% 30%,
+        #ffffff 0%, #f8f2e8 30%, #e8dcc8 60%, #c8b898 100%);
+        border-color: #d8ccb8;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.35),
+        0 0 18px rgba(180,140,80,0.4),
+        inset 0 2px 4px rgba(255,255,255,0.6),
+        inset 0 -2px 4px rgba(0,0,0,0.15);">7</div>
+        <div class="card-header" style="background: linear-gradient(180deg,
+        rgba(55,42,28,0.92) 0%,
+        rgba(45,34,22,0.95) 40%,
+        rgba(58,46,30,0.9) 100%);
+        border: 1px solid rgba(200,170,120,0.5);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        0 0 16px rgba(190,150,90,0.25);">
+        <div class="header-icon" style="border-color:rgba(220,190,120,0.7);background:rgba(200,160,80,0.15);box-shadow:0 0 8px rgba(220,180,100,0.4),inset 0 0 6px rgba(220,180,100,0.2);"></div>
+        <span class="card-name" style="color:#f8eed8;text-shadow:0 0 10px rgba(220,190,130,0.6),0 0 20px rgba(190,150,90,0.3);">泰坦之盾</span>
+    </div>
+    <div class="card-art-zone">
+        <div class="art-corner art-corner-tl" style="--corner-color:rgba(190,150,90,0.7);"></div>
+        <div class="art-corner art-corner-tr" style="--corner-color:rgba(190,150,90,0.7);"></div>
+        <div class="art-corner art-corner-bl" style="--corner-color:rgba(190,150,90,0.7);"></div>
+        <div class="art-corner art-corner-br" style="--corner-color:rgba(190,150,90,0.7);"></div>
+        <div class="art-placeholder">
+            <div class="art-placeholder-inner"></div>
+        </div>
+        <span class="art-label">◆ 插画区域 ◆</span>
+    </div>
+    <div class="card-type-bar">
+        <div class="type-dot" style="background:rgba(190,150,90,0.7);box-shadow:0 0 6px rgba(200,160,100,0.5);"></div>
+        <div class="type-line" style="background:linear-gradient(90deg,transparent,rgba(200,170,130,0.6) 30%,rgba(200,170,130,0.6) 70%,transparent);"></div>
+        <span class="type-label" style="color:rgba(160,120,70,0.8);">单位 · 重装</span>
+        <div class="type-line" style="background:linear-gradient(90deg,transparent,rgba(200,170,130,0.6) 30%,rgba(200,170,130,0.6) 70%,transparent);"></div>
+        <div class="type-dot" style="background:rgba(190,150,90,0.7);box-shadow:0 0 6px rgba(200,160,100,0.5);"></div>
+    </div>
+    <div class="card-description">
+        <p>部署时获得<strong>护盾+10</strong>。所有友方单位获得<strong>+2防御</strong>。当泰坦之盾在场时，敌方无法直接攻击你的核心单位。持续3回合。</p>
+    </div>
+    <div class="card-footer">
+        <div class="footer-stat">
+            <div class="footer-stat-icon">⚔</div>
+            <span>2</span>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-stat">
+            <div class="footer-stat-icon">🛡</div>
+            <span>12</span>
+        </div>
+        <div class="footer-divider"></div>
+        <div class="footer-stat">
+            <div class="footer-stat-icon">⚡</div>
+            <span>8</span>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    // ============ 背景粒子生成 ============
+    (function() {
+        const container = document.getElementById('bgParticles');
+        const particleCount = 35;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('bg-particle');
+            const size = Math.random() * 3 + 1.5;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = (Math.random() * 100 + 100) + '%';
+            particle.style.animationDuration = (Math.random() * 10 + 8) + 's';
+            particle.style.animationDelay = (Math.random() * 8) + 's';
+            const colors = [
+                'rgba(140,190,240,0.5)',
+                'rgba(100,180,230,0.4)',
+                'rgba(160,200,245,0.45)',
+                'rgba(120,170,220,0.5)',
+                'rgba(180,210,250,0.35)',
+            ];
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            container.appendChild(particle);
+        }
+    })();
+
+    // ============ 卡牌hover音效模拟（视觉反馈增强） ============
+    document.querySelectorAll('.card-wrapper').forEach(wrapper => {
+        wrapper.addEventListener('mouseenter', function() {
+            this.style.zIndex = '10';
+        });
+        wrapper.addEventListener('mouseleave', function() {
+            this.style.zIndex = '1';
+        });
+    });
+
+    // ============ 第三张卡牌角落颜色修正 ============
+    document.querySelectorAll('.card-wrapper:nth-child(3) .art-corner').forEach(corner => {
+        const style = corner.getAttribute('style') || '';
+        corner.style.setProperty('--corner-color', 'rgba(190,150,90,0.7)');
+        // 直接应用
+        const beforeAfter = ['::before', '::after'];
+    });
+    // 为第三张卡牌的角落手动设置颜色
+    const card3Corners = document.querySelectorAll('.card-wrapper:nth-child(3) .art-corner');
+    card3Corners.forEach(c => {
+        c.style.setProperty('background', 'transparent');
+    });
+    // 使用内联样式覆盖
+    const thirdCard = document.querySelector('.card-wrapper:nth-child(3)');
+    if (thirdCard) {
+        const corners = thirdCard.querySelectorAll('.art-corner::before, .art-corner::after');
+        // 通过插入style标签覆盖
+        const overrideStyle = document.createElement('style');
+        overrideStyle.textContent = `
+        .card-wrapper:nth-child(3) .art-corner::before,
+        .card-wrapper:nth-child(3) .art-corner::after {
+          background: rgba(190,150,90,0.7) !important;
+          box-shadow: 0 0 4px rgba(200,160,100,0.6) !important;
+        }
+      `;
+        document.head.appendChild(overrideStyle);
+    }
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@ import { StockBand } from "@/ui/sortie/StockBand";
 import { StorageInventory } from "@/ui/sortie/StorageInventory";
 import { cx } from "@/ui/common/cx";
 import s from "./PrepStep.module.css";
+import { SORTIE_BACKPACK_COLORS } from "../styles/inventoryPalettes";
 
 interface Props {
   active: boolean;
@@ -58,7 +59,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
           columns={8}
           capacity={RULES.burden.backpackSlots}
           title="背包"
-          // compact
+          colorMap={SORTIE_BACKPACK_COLORS}
           onSelect={(stack) => {
             if (stack) putBack(stack.uid);
           }}
