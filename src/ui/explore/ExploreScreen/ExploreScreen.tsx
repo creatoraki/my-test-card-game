@@ -57,8 +57,8 @@ import s from "./ExploreScreen.module.css";
 // ★ 等距棋盘沿「左下 → 右上」铺开, 因此包围盒的**左上角与右下角天然是空的** ——
 //   节点详情侧栏就摆进左上那块空三角(见下面的 .expl-inspect 定位), 决策浮层落在下方。
 //   把面板往右推是为了给左上的侧栏让位, 同时让棋盘右上角避开右上的读数列。
-const BOARD_LEFT = 396;
-const BOARD_TOP = 150;
+const BOARD_LEFT = 548;
+const BOARD_TOP = 224;
 const BAG_W = 640;
 
 // P1 才接入的指令。**先按最终形态排好版**, 下一轮往里填实现即可 —— 位置定下来了,
@@ -325,7 +325,7 @@ export function ExploreScreen() {
             ★ 落在标题下方的那块空地 —— 等距棋盘的包围盒左上角本来就是空的, 不会挡住任何瓦片。 */}
         <aside
           className={cx(s["expl-inspect"], recede)}
-          style={{ left: "56px", top: "214px", width: "320px" }}
+          style={{ left: "56px", top: "400px", width: "320px" }}
         >
           {shownNode ? (
             <div

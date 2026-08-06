@@ -793,7 +793,7 @@ export function RouteBoard({
               onFocus={() => usable && setHoverLane(lane)}
               onBlur={() => setHoverLane((l) => (l === lane ? null : l))}
               onClick={() => onPickEntry(lane)}
-              title={blocked ? "该通道已被隔断封锁" : `从 ${ENTRY_LABELS[lane]} 通道进入`}
+              // title={blocked ? "该通道已被隔断封锁" : `从 ${ENTRY_LABELS[lane]} 通道进入`}
             >
               <EntryTile />
               <span className={s["rb-tile-shadow"]} aria-hidden />
@@ -985,7 +985,7 @@ export function RouteBoard({
                 onPointerLeave={() => onHoverNode(null)}
                 onFocus={() => onHoverNode({ seg, lane })}
                 onBlur={() => onHoverNode(null)}
-                title={ev.title}
+                // title={ev.title}
               >
                 <Tile />
                 {/* 脚下的落地投影 —— 「站在地板上」这件事的物理依据 */}
@@ -1088,7 +1088,7 @@ export function RouteBoard({
             type="button"
             className={s["rb-probe"]}
             onClick={onStartReveal}
-            title="向签路注入探针, 全图桥接会短暂显形 —— 本轮仅此一次"
+            // title="向签路注入探针, 全图桥接会短暂显形 —— 本轮仅此一次"
           >
             <span className={s["rb-probe-label"]}>探索路线</span>
             <span className={s["rb-probe-sep"]} aria-hidden />
