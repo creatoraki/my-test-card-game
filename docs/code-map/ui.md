@@ -98,6 +98,7 @@ src/ui/
 | 文件 | 作用 |
 | --- | --- |
 | [cx.ts](../../src/ui/common/cx.ts) | 全项目唯一的 className 拼接工具。 |
+| [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，支持蓝 / 紫 / 金三套配色。 |
 | [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；`--portrait-dx/dy`、`--bust-scale` 等由登记表行内下发。 |
 | [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）的样式也在本组件内。 |
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |
