@@ -253,6 +253,19 @@ function freshCharacter(def: CharacterDef): CharacterState {
 // 开局就已唤醒并直接上阵的角色 id(按顺序)。
 const INITIAL_AWAKENED = ["swordsman", "glutton", "botanist"];
 
+const INITIAL_CONSUMABLE_IDS = [
+  "sugar-cube-c",
+  "medical-kit-c",
+  "holy-water-c",
+  "fruit-juice-c",
+] as const;
+
+function freshStorage(): ItemStack[] {
+  return INITIAL_CONSUMABLE_IDS.flatMap((itemId) =>
+    Array.from({ length: 3 }, () => makeItemStack(itemId)),
+  );
+}
+
 function freshProfile(): {
   characters: Record<string, CharacterState>;
   awakened: string[];
@@ -283,7 +296,7 @@ export const useTownStore = create<TownStore>()(
         set({
           ...freshProfile(),
           loot: 10000,
-          storage: [],
+          storage: freshStorage(),
           day: 1,
           shop: freshShop(1),
           initialized: true,
@@ -294,7 +307,7 @@ export const useTownStore = create<TownStore>()(
         set({
           ...freshProfile(),
           loot: 10000,
-          storage: [],
+          storage: freshStorage(),
           day: 1,
           shop: freshShop(1),
           initialized: true,
