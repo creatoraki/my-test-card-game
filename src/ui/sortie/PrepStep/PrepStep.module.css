@@ -94,7 +94,8 @@
 }
 
 .areaBackpack {
-  width: 100%;
+  width: 960px;
+  max-width: none;
   pointer-events: auto;
 }
 

@@ -58,7 +58,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
           columns={8}
           capacity={RULES.burden.backpackSlots}
           title="背包"
-          compact
+          // compact
           onSelect={(stack) => {
             if (stack) putBack(stack.uid);
           }}

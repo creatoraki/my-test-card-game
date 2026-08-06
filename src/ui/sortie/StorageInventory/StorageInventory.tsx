@@ -68,6 +68,7 @@ export function StorageInventory({ className }: Props) {
       columns={CELLS}
       kicker="SORTIE // STORAGE"
       title="仓库"
+      compact
       subtitle={notice ?? "SELECT TO LOAD"}
       capacity={CELLS}
       occupied={visible.length}
