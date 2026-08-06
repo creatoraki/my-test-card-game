@@ -117,12 +117,11 @@
     linear-gradient(180deg, #05080ab8, #05080a4d 30%, #05080a99);
 }
 
-/* ===================== 左上: 区域与进度 ===================== */
-/* 刻意不做成玻璃卡片 —— 直接压字更干净, 只靠一道左侧竖线把三行拢在一起(与 .term-header 同款)。 */
-.expl-header {
+/* ===================== 左上: 随身背包 ===================== */
+/* 12 列 × 2 行 —— 面板底边收在节点详情侧栏(top:214)之前。 */
+.expl-bag {
   position: absolute;
-  padding-left: 16px;
-  border-left: 2px solid var(--expl-glow);
+  z-index: 3;
   animation: explRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 /* ★ 落点浮层开着时四角 HUD 集体后退一档 —— 这是本页「聚焦」的全部手段, 没有全屏遮罩。
@@ -132,11 +131,6 @@
      元素自己带 opacity 是安全的 —— .expl-chip.is-locked 一直这么用。
    ⚠ 后退是**纯视觉**的: 不能顺手关掉 pointer-events —— `resolving` 阶段撤离远征仍然合法
      (见 session.retreat 的阶段白名单), 关掉就等于凭空砍了一条出路。 */
-.expl-header.is-recede .expl-kicker,
-.expl-header.is-recede .expl-title,
-.expl-header.is-recede .expl-sub {
-  opacity: 0.5;
-}
 .expl-readout.is-recede .expl-chip,
 .expl-party.is-recede .expl-member,
 .expl-actions.is-recede .expl-command,
@@ -144,31 +138,11 @@
   opacity: 0.5;
 }
 .expl-kicker,
-.expl-title,
-.expl-sub,
 .expl-chip,
 .expl-member,
 .expl-command {
   transition: opacity 220ms ease;
 }
-.expl-title {
-  margin: 4px 0 0;
-  color: var(--text);
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: 8px;
-  text-indent: 8px; /* 补回 letter-spacing 在末字之后多留的那一格 */
-  text-shadow: 0 2px 18px #000000b3;
-}
-/* 阶段提示。key 挂 phase(见 tsx) ⇒ 每次换阶段重挂一次, 走一遍卷入 —— 提示变了就该被看见。 */
-.expl-sub {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  letter-spacing: 2px;
-  animation: explRise 320ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-
 /* ===================== 右上: 读数 ===================== */
 .expl-readout {
   position: absolute;
@@ -827,13 +801,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .expl-header,
+  .expl-bag,
   .expl-readout,
   .expl-party,
   .expl-actions {
     animation: none;
   }
-  .expl-sub,
   .expl-note,
   .expl-beam {
     animation: none;
@@ -859,18 +832,7 @@
   }
 }
 
-/* ===================== 新增: 轮次副标 / 节点详情侧栏 / 决策面板 ===================== */
-
-/* 左上角第二行: 本轮的推进战斗档位。玩家在选通道之前就该知道这一轮末尾等着他的是什么。 */
-.expl-sub2 {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: 2px;
-}
-.expl-header.is-recede .expl-sub2 {
-  opacity: 0.55;
-}
+/* ===================== 新增: 节点详情侧栏 / 决策面板 ===================== */
 
 /* ── 右侧: 节点详情侧栏(设计文档 §11.1) ──
    20 个节点的瓦片上放不下文字, 所以图标常驻、详情进这里。

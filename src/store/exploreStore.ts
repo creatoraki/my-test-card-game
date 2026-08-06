@@ -22,6 +22,7 @@ import {
   finishReveal,
   leaveRegion,
   pushOn,
+  reorderBackpack as reorderBackpackFn,
   retreat,
   shipHome,
   startReveal,
@@ -70,6 +71,7 @@ interface ExploreStore {
 
   // ---- 背包(阶段白名单的真相点在 explore/session, 这里只是转发) ----
   discardItem: (uid: string) => void;
+  reorderBackpack: (uid: string, toIndex: number) => void;
   useItem: (uid: string) => string | null; // 返回结算摘要, UI 拿去飘一条
   takePending: (index: number) => void; // 替换模式: 收下待取物
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
@@ -166,6 +168,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   // ---- 背包 ----
   discardItem: (uid) => {
     mutate(get, set, (d) => discardStack(d, uid));
+  },
+
+  reorderBackpack: (uid, toIndex) => {
+    mutate(get, set, (d) => reorderBackpackFn(d, uid, toIndex));
   },
 
   // useItem 要把摘要交回 UI, 所以不能只走 mutate 的布尔约定 —— 自己接一下返回值。

@@ -279,6 +279,20 @@ export function discardStack(s: ExploreState, uid: string): boolean {
   return true;
 }
 
+// 背包重排序 —— 背包是紧凑数组, 数组顺序 = 玩家看到的格位顺序。
+// 把 uid 那一堆抽出来, 插到目标格位上(后面的整体后移), 不是两两交换。
+export function reorderBackpack(s: ExploreState, uid: string, toIndex: number): boolean {
+  const from = s.backpack.findIndex((st) => st.uid === uid);
+  if (from < 0) return false;
+  const to = Math.max(0, Math.min(s.backpack.length - 1, toIndex));
+  if (from === to) return false;
+  const next = s.backpack.slice();
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  s.backpack = next;
+  return true;
+}
+
 // 强制丢弃若干格(「压力门夹层」)。★ 从**最不值钱**的开始丢 ——
 // 让系统随机砸掉稀有装备只会让玩家觉得被针对, 而不是觉得付出了代价。
 function forceDiscardSlots(s: ExploreState, slots: number): number {

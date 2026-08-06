@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { getItemDef } from "@/data";
 import { occupiedSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
+import ItemContextMenu, { type ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import { cx } from "@/ui/common/cx";
@@ -56,6 +57,10 @@ export interface ItemInventoryPanelProps {
   defaultSelectedUid?: string | null;
   onSelect?: (stack: ItemStack | null) => void;
   renderSelectedInfo?: SelectedInfoRenderer;
+  /** 传了才启用左键拖动排序。fromIndex/toIndex 是 stacks 数组下标。 */
+  onReorder?: (fromIndex: number, toIndex: number) => void;
+  /** 传了才启用右键菜单。返回空数组 = 这一格不弹菜单。 */
+  contextMenuItems?: (stack: ItemStack) => ContextMenuItem[];
   footer?: ReactNode;
   panelId?: string;
   colorMap?: InventoryColorMap;
@@ -128,6 +133,8 @@ export default function ItemInventoryPanel({
   defaultSelectedUid = null,
   onSelect,
   renderSelectedInfo,
+  onReorder,
+  contextMenuItems,
   footer,
   panelId = "item-inventory-panel",
   colorMap,
@@ -141,6 +148,13 @@ export default function ItemInventoryPanel({
     defaultSelectedUid,
   );
   const [hoveredItem, setHoveredItem] = useState<HoveredItem | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [menu, setMenu] = useState<{
+    x: number;
+    y: number;
+    items: ContextMenuItem[];
+  } | null>(null);
   const activeSelectedUid = isControlled ? selectedUid : internalSelectedUid;
   const selectedStack =
     stacks.find((stack) => stack.uid === activeSelectedUid) ?? null;
@@ -160,6 +174,10 @@ export default function ItemInventoryPanel({
       setHoveredItem(null);
     }
   }, [hoveredItem, stacks]);
+
+  useEffect(() => {
+    if (menu) setMenu(null);
+  }, [stacks]);
 
   const cells = useMemo(
     () => [
@@ -207,6 +225,7 @@ export default function ItemInventoryPanel({
   };
 
   const showTooltip = (stack: ItemStack, point: TooltipPoint) => {
+    if (dragIndex != null) return;
     setHoveredItem({ uid: stack.uid, point });
   };
 
@@ -280,6 +299,40 @@ export default function ItemInventoryPanel({
                 <div
                   key={stack.uid}
                   className={s["inventory-slot-anchor"]}
+                  draggable={onReorder ? true : undefined}
+                  data-dragging={dragIndex === index ? "true" : undefined}
+                  data-drop={dropIndex === index ? "true" : undefined}
+                  onDragStart={(event) => {
+                    if (!onReorder) return;
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", stack.uid);
+                    setDragIndex(index);
+                    hideTooltip(stack.uid);
+                  }}
+                  onDragEnd={() => {
+                    setDragIndex(null);
+                    setDropIndex(null);
+                  }}
+                  onDragOver={(event) => {
+                    if (dragIndex == null || !onReorder) return;
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    setDropIndex(index);
+                  }}
+                  onDragLeave={() => setDropIndex((current) => (current === index ? null : current))}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    if (dragIndex != null && dragIndex !== index) onReorder?.(dragIndex, index);
+                    setDragIndex(null);
+                    setDropIndex(null);
+                  }}
+                  onContextMenu={(event) => {
+                    const items = contextMenuItems?.(stack) ?? [];
+                    if (!items.length) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setMenu({ x: event.clientX, y: event.clientY, items });
+                  }}
                   onPointerEnter={(event) =>
                     showTooltip(stack, tooltipPointFromRect(event.currentTarget.getBoundingClientRect()))
                   }
@@ -301,7 +354,28 @@ export default function ItemInventoryPanel({
                   />
                 </div>
               ) : (
-                <EmptySlot key={`empty-${index}`} className={s["inventory-empty"]} />
+                <div
+                  key={`empty-${index}`}
+                  className={cx(s["inventory-slot-anchor"], s["inventory-empty-anchor"])}
+                  data-drop={dropIndex === index ? "true" : undefined}
+                  onDragOver={(event) => {
+                    if (dragIndex == null || !onReorder) return;
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    setDropIndex(index);
+                  }}
+                  onDragLeave={() => setDropIndex((current) => (current === index ? null : current))}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    if (dragIndex != null && onReorder && stacks.length > 0) {
+                      onReorder(dragIndex, stacks.length - 1);
+                    }
+                    setDragIndex(null);
+                    setDropIndex(null);
+                  }}
+                >
+                  <EmptySlot className={s["inventory-empty"]} />
+                </div>
               ),
             )}
           </div>
@@ -317,13 +391,22 @@ export default function ItemInventoryPanel({
         )}
       </div>
       {hoveredStack && hoveredItem && (
-        <InventoryTooltip stack={hoveredStack} point={hoveredItem.point} />
+        <InventoryTooltip stack={hoveredStack} point={hoveredItem.point} themeStyle={style} />
       )}
+      {menu && <ItemContextMenu {...menu} themeStyle={style} onClose={() => setMenu(null)} />}
     </section>
   );
 }
 
-function InventoryTooltip({ stack, point }: { stack: ItemStack; point: TooltipPoint }) {
+function InventoryTooltip({
+  stack,
+  point,
+  themeStyle,
+}: {
+  stack: ItemStack;
+  point: TooltipPoint;
+  themeStyle: CSSProperties;
+}) {
   if (typeof document === "undefined") return null;
 
   const right = point.x + TOOLTIP_GAP;
@@ -339,7 +422,7 @@ function InventoryTooltip({ stack, point }: { stack: ItemStack; point: TooltipPo
   return createPortal(
     <div
       className={s["inventory-tooltip"]}
-      style={{ left: `${left}px`, top: `${top}px` }}
+      style={{ ...themeStyle, left: `${left}px`, top: `${top}px` }}
       role="tooltip"
     >
       <ItemDetail stack={stack} className={s["inventory-tooltip-detail"]} />

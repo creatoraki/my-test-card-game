@@ -320,6 +320,24 @@
   aspect-ratio: 1;
 }
 
+.inventory-slot-anchor[data-dragging="true"] {
+  opacity: 0.35;
+}
+
+.inventory-slot-anchor[data-drop="true"]::before {
+  position: absolute;
+  z-index: 3;
+  top: 4px;
+  bottom: 4px;
+  left: -6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--inventory-accent);
+  box-shadow: 0 0 10px var(--inventory-accent);
+  content: "";
+  pointer-events: none;
+}
+
 .inventory-slot.inventory-slot,
 .inventory-empty.inventory-empty {
   box-sizing: border-box;
@@ -453,13 +471,13 @@
 }
 
 .inventory-tooltip-detail.inventory-tooltip-detail {
-  --accent: #00f3ff;
-  --accent2: #ffcf70;
+  --accent: var(--inventory-accent, #ffffffe6);
+  --accent2: var(--inventory-accent-alt, #75e1d4);
   --bad: #ff819d;
-  --border: #00f3ff38;
-  --good: #87f5c1;
-  --muted: #a9b8c7;
-  --text: #f3fbff;
+  --border: var(--inventory-panel-line, #ffffff3d);
+  --good: var(--inventory-accent-alt, #75e1d4);
+  --muted: var(--inventory-muted, #b6c7c9);
+  --text: var(--inventory-text, #ffffff);
 
   box-sizing: border-box;
   width: 100%;
@@ -468,9 +486,9 @@
   padding: 12px;
   overflow-y: auto;
   background:
-    linear-gradient(135deg, #ffffff16, transparent 50%),
-    linear-gradient(155deg, #071d2bf2, #050b13f5);
-  border: 1px solid #00f3ff66;
+    linear-gradient(135deg, var(--inventory-panel-glow, #ffffff14), transparent 50%),
+    linear-gradient(155deg, var(--inventory-panel, #0b1a1fa6), var(--inventory-panel-deep, #04090cb3));
+  border: 1px solid var(--inventory-panel-line, #ffffff3d);
   border-radius: 8px 4px 9px 5px;
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
   -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.82);

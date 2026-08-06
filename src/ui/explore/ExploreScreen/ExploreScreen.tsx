@@ -14,7 +14,6 @@
 //   入场动画一律挂叶子元素(与 ControlTerminalScene 同一条约束)。
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
-import { getMap } from "@/data";
 import { RULES } from "@/engine";
 import {
   backpackSlots,
@@ -32,6 +31,7 @@ import { EXPLORE_RULES } from "@/explore/rules";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
+import BackpackBar from "@/ui/explore/BackpackBar";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import { HpBar } from "@/ui/common/HpBar";
 import {
@@ -58,6 +58,7 @@ import s from "./ExploreScreen.module.css";
 //   把面板往右推是为了给左上的侧栏让位, 同时让棋盘右上角避开右上的读数列。
 const BOARD_LEFT = 396;
 const BOARD_TOP = 150;
+const BAG_W = 640;
 
 // P1 才接入的指令。**先按最终形态排好版**, 下一轮往里填实现即可 —— 位置定下来了,
 // 玩家也提前知道这排东西将来是干什么的(设计文档 §7.3)。
@@ -84,23 +85,6 @@ const EVENT_BEAT = {
   noteStagger: 140, // 结算摘要逐条间隔
   noteTail: 260, // 最后一条播完到「确认」解锁之间的收尾
 } as const;
-
-// 阶段 → 左上角那一句提示。玩家永远该知道「现在轮到我做什么」。
-const PHASE_HINT: Record<string, string> = {
-  generating: "新的区域正在浮现……",
-  sealed: "读完 20 个节点 —— 按下探索路线才能看见桥接",
-  revealing: "记住桥接 —— 它马上就会消失",
-  choosingEntry: "选择一条入口通道（本轮唯一一次选择）",
-  advancing: "信号推进中……",
-  landed: "决定怎么处理这个落点",
-  resolving: "结算落点",
-  atNode: "继续推进, 还是前往下一区域？",
-  leaving: "正在离开这片区域……",
-  routeDisclosure: "本轮线路披露",
-  slotSpinning: "按 3 次暂停 —— 定住 3 个槽位",
-  slotChoosing: "从 3 张里选 1 张 —— 战斗必然发生",
-  inBattle: "推进战斗中",
-};
 
 export function ExploreScreen() {
   const session = useExploreStore((s) => s.session);
@@ -213,7 +197,6 @@ export function ExploreScreen() {
 
   if (!session || !session.board) return null;
 
-  const map = getMap(session.mapId);
   const board = session.board;
   const ev = landedEv;
   const canBackpack = canOpenBackpack(session);
@@ -282,17 +265,11 @@ export function ExploreScreen() {
         <img className={s["explore-bg"]} src={mapArt(session.mapId)} alt="" draggable={false} />
         <div className={s["explore-veil"]} aria-hidden />
 
-        {/* ---- 左上: 区域与进度 ---- */}
-        <header className={cx(s["expl-header"], recede)} style={{ left: "56px", top: "42px" }}>
-          <span className={s["expl-kicker"]}>区域推进</span>
-          <h2 className={s["expl-title"]}>{map.name}</h2>
-          {/* key 挂 phase: 换阶段时这一行重挂一次, 走一遍卷入动画 —— 提示变了要被看见。 */}
-          <p className={s["expl-sub"]} key={session.phase}>
-            第 {session.round} / {session.roundCount} 轮 · 推进段 {session.currentSegment} /{" "}
-            {EXPLORE_RULES.segmentsPerRound} · {PHASE_HINT[session.phase] ?? ""}
-          </p>
-          <p className={s["expl-sub2"]}>本轮推进战斗：{BATTLE_TIER_NAME[tier]}</p>
-        </header>
+        {/* ---- 左上: 随身背包(12 × 2 = 24 格) ----
+            原来这里是纯文字的区域标题, 但探索途中真正需要一直看见的是物资与余量。 */}
+        <div className={s["expl-bag"]} style={{ left: "56px", top: "42px", width: `${BAG_W}px` }}>
+          <BackpackBar />
+        </div>
 
         {/* ---- 右上: 净化粒子 ----
             这一局唯一的时限就是这个数字, 所以右上角只留它一个 ——
