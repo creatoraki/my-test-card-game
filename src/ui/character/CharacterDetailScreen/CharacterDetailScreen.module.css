@@ -412,7 +412,7 @@ span.cd-bust {
   justify-content: stretch;
   gap: 14px 10px;
   min-height: 0;
-  padding: 4px;
+  padding: 8px 4px 4px;
   overflow-y: auto;
   scrollbar-width: none;
   perspective: 900px; /* 给下面的翻入一点透视, 否则 rotateY 看起来只是被压扁 */

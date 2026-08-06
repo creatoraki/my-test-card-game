@@ -1,8 +1,9 @@
 import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
-import { DeckCardFace } from "@/ui/character/DeckCardFace";
+import { cardArt } from "@/ui/art/cardArt";
 import { cx } from "@/ui/common/cx";
+import { TechCard } from "@/ui/common/TechCard";
 import s from "./DeckCard.module.css";
 
 interface Props {
@@ -45,7 +46,13 @@ export function DeckCard({
       onBlur={onBlur}
       aria-pressed={selected}
     >
-      <DeckCardFace card={card} />
+      <TechCard
+        name={card.name}
+        cost={card.cost}
+        description={card.text}
+        artSrc={cardArt(card.id)}
+        theme={card.cardType}
+      />
     </button>
   );
 }
