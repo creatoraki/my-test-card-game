@@ -20,7 +20,6 @@ import {
   backpackSlots,
   battleTierOf,
   BATTLE_TIER_NAME,
-  burdenNow,
   canOpenBackpack,
   canPushOn,
   canRetreat,
@@ -33,7 +32,7 @@ import { EXPLORE_RULES } from "@/explore/rules";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
-import { EnergyMeter } from "@/ui/explore/EnergyMeter";
+import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import { HpBar } from "@/ui/common/HpBar";
 import {
   RouteBoard,
@@ -219,7 +218,6 @@ export function ExploreScreen() {
   const ev = landedEv;
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
-  const burden = Math.round(burdenNow(session));
   // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
   const mustReplace = session.pendingPickup.length > 0;
 
@@ -296,26 +294,15 @@ export function ExploreScreen() {
           <p className={s["expl-sub2"]}>本轮推进战斗：{BATTLE_TIER_NAME[tier]}</p>
         </header>
 
-        {/* ---- 右上: 读数 ---- */}
+        {/* ---- 右上: 净化粒子 ----
+            这一局唯一的时限就是这个数字, 所以右上角只留它一个 ——
+            居民积分与负重都退到面板里(上一版那两块 chip 已废弃)。 */}
         <div className={cx(s["expl-readout"], recede)} style={{ right: "56px", top: "42px" }}>
-          <div className={cx(s["expl-chip"], s["expl-chip-wide"])}>
-            <EnergyMeter energy={session.energy} projected={projectedEnergy(session)} />
-          </div>
-          <div className={s["expl-chip"]}>
-            <span className={s["expl-chip-label"]}>居民积分</span>
-            <strong className={s["expl-chip-value"]}>{session.loot}</strong>
-            <span className={s["expl-chip-note"]}>撤离或通关才落袋</span>
-          </div>
-          {/* 负重(设计文档 §6.2): 每占 1 格, 全队命中/暴击/闪避各 −1 个百分点。 */}
-          <div className={s["expl-chip"]}>
-            <span className={s["expl-chip-label"]}>负重</span>
-            <strong className={cx(s["expl-chip-value"], usedSlots > 0 && s["is-bad"])}>
-              {usedSlots} / {RULES.burden.backpackSlots}
-            </strong>
-            <span className={s["expl-chip-note"]}>
-              {usedSlots > 0 ? `命中/暴击/闪避 −${burden}%` : "空手上路"}
-            </span>
-          </div>
+          <EnergyLamp
+            energy={session.energy}
+            projected={projectedEnergy(session)}
+            recede={focused}
+          />
         </div>
 
         {/* ---- 中央: 等距路由图 ---- */}
