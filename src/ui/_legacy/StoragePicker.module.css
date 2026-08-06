@@ -1,5 +1,5 @@
 .panel {
-  composes: inventoryPanel from "../styles/sortieGlass.module.css";
+  composes: inventoryPanel from "../sortie/styles/sortieGlass.module.css";
 
   --inventory-accent: #75e1d4;
   --inventory-accent-bright: #c7fff6;

@@ -1,0 +1,1 @@
+export { StorageInventory } from "./StorageInventory";

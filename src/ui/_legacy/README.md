@@ -7,6 +7,7 @@
 | `ShelfTabRail3D.tsx` / `.css` | 商店货架的 three.js 立体页签吊牌。`ShopScene.tsx` 后来自己重新定义了 `ShopTab` / `SHOP_TABS` 并改用 CSS 版页签，此组件随之弃用。**全项目唯一使用 `three` 的地方**——若确定不再捡回，`package.json` 的 `three` / `@types/three` 也可一并移除。 |
 | `StartGameButton.tsx` / `.css` | 主菜单开始按钮的旧实现，已被 `menu/MenuStartButton` 取代。 |
 | `TerminalNav.tsx` / `.css` | 顶部终端导航条的占位实现，从未接入。 |
+| `StoragePicker.tsx` / `StoragePicker.module.css` / `StoragePicker.index.ts` | 出击准备旧仓库选择器，已被 `sortie/StorageInventory` 与公共 `common/item/ItemInventoryPanel` 取代。 |
 
 ## 规则
 

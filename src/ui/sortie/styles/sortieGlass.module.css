@@ -1,6 +1,6 @@
 /* 出击域共享的「白玻璃面板」材质。★ 真相点抄自 MapSelectStep.module.css 的 .sm-slice ——
    选层带、底部导航按钮和物资准备的三块面板必须读作同一种材料, 否则两个步骤之间滑动会像换了个游戏。
-  由 StockBand / StoragePicker / SortieBackpack 各自 composes 使用(样式铁律 1)。
+  由 StockBand / StorageInventory / 出击背包面板各自 composes 使用(样式铁律 1)。
 
    ⚠ --sm-ease / --sm-dur 是**跨组件契约**(铁律 4): 三个面板的 CSS 都读这两个值来对齐手感,
      改名要同步。--sm-ink / --sm-glow 那组由 SortieScreen 的 .stage 下发, 这里只消费。 */

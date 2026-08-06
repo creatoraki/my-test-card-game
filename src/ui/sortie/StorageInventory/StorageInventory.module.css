@@ -1,0 +1,5 @@
+.panel {
+  width: fit-content;
+  max-width: none;
+  margin-left: auto;
+}

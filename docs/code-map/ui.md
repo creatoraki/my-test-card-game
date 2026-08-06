@@ -46,8 +46,7 @@ src/ui/
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在斜跨玻璃选择带中切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左侧斜切货柜带，右侧一上一下紧贴格网的仓库与背包；只向子组件下发位置类和交互状态。 |
 | [sortie/StockBand](../../src/ui/sortie/StockBand/StockBand.tsx) | 出击货柜斜切滚动带：固定清单、不限量购买消耗品，支持滚轮/方向键滚动与高亮片二次点击购买；步骤切换时由真实 DOM 动画滑入，避免玻璃快照参与过场。 |
-| [sortie/StoragePicker](../../src/ui/sortie/StoragePicker/StoragePicker.tsx) | 出击准备中的仓库消耗品选择器，取物前由 `sortieStore` 试算容量并按 uid 移出整堆；6×2 放大格网，取物提示 1.5s 自动消失。 |
-| [sortie/SortieBackpack](../../src/ui/sortie/SortieBackpack/SortieBackpack.tsx) | 出击背包：紧贴 8×3 放大格网，标题栏显示占格和命中/闪避/暴击惩罚并按 80%/100% 两档换色；点击物品退回来源。 |
+| [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；1×4 格，配色经 `colorMap` 与背包区分。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
 | [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队视图，复用角色立绘和卡组显示。 |
 | [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性和个人卡组为只读档案，卡组支持卡面选中详情。与编队页之间是共享元素过场。 |
@@ -109,6 +108,7 @@ src/ui/
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
 | [item/ItemTabs](../../src/ui/common/item/ItemTabs/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
 | [item/itemFilters.ts](../../src/ui/common/item/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |
+| [item/ItemInventoryPanel](../../src/ui/common/item/ItemInventoryPanel/ItemInventoryPanel.tsx) | 背包、仓库等物品容器共用的面板壳，提供格网、容量读数、受控选中态和 portal 物品详情。 |
 
 公共组件一律接受 `className`（铁律 3）——那是父组件唯一能改子组件外观的通道。
 
