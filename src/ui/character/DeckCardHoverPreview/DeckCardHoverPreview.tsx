@@ -1,5 +1,6 @@
 import type { Card } from "@/engine";
-import { DeckCardFace } from "@/ui/character/DeckCardFace";
+import { cardArt } from "@/ui/art/cardArt";
+import { TechCard } from "@/ui/common/TechCard";
 import s from "./DeckCardHoverPreview.module.css";
 
 interface Props {
@@ -13,7 +14,13 @@ export function DeckCardHoverPreview({ card }: Props) {
       aria-label={`${card.name}卡牌详情`}
       aria-live="polite"
     >
-      <DeckCardFace card={card} />
+      <TechCard
+        name={card.name}
+        cost={card.cost}
+        description={card.text}
+        artSrc={cardArt(card.id)}
+        theme={card.cardType}
+      />
     </div>
   );
 }
