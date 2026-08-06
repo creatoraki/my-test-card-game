@@ -22,7 +22,7 @@ const TYPO = {
   fontSize: 86,
   fontWeight: 900,
   letterSpacing: 8,
-  fontFamily: '"Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif',
+  fontFamily: '"Bebas Neue", "Noto Sans SC", sans-serif',
 };
 
 export function StartGameButton({ onClick }: { onClick: () => void }) {

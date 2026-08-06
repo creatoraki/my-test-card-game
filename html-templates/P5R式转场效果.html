@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P5R风格菜单转场 - Persona 5 Royal UI</title>
+    <style>
+        :root {
+            --p5-red: #e50012;
+            --p5-red-dark: #b3000e;
+            --p5-red-glow: #ff1a2e;
+            --p5-black: #0a0a0a;
+            --p5-dark: #111111;
+            --p5-white: #f0ece8;
+            --p5-gray: #8a8580;
+            --p5-light-gray: #c8c4c0;
+            --p5-gold: #d4a843;
+            --skew-angle: -6deg;
+            --transition-speed: 320ms;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--p5-black);
+            font-family: 'Impact', 'Arial Black', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            cursor: default;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        /* ========== 主容器 ========== */
+        .app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ========== 四角斜切边框装饰 ========== */
+        .corner-decor {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .corner-decor::before,
+        .corner-decor::after {
+            content: '';
+            position: absolute;
+            background: var(--p5-red);
+            transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        /* 左上角 */
+        .corner-tl {
+            top: 0;
+            left: 0;
+            width: 70px;
+            height: 70px;
+        }
+        .corner-tl::before {
+            top: 0;
+            left: 0;
+            width: 55px;
+            height: 3px;
+            transform-origin: left center;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+        }
+        .corner-tl::after {
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 55px;
+            transform-origin: center top;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+        /* 右上角 */
+        .corner-tr {
+            top: 0;
+            right: 0;
+            width: 70px;
+            height: 70px;
+        }
+        .corner-tr::before {
+            top: 0;
+            right: 0;
+            width: 55px;
+            height: 3px;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 15% 100%);
+        }
+        .corner-tr::after {
+            top: 0;
+            right: 0;
+            width: 3px;
+            height: 55px;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 85%);
+        }
+        /* 左下角 */
+        .corner-bl {
+            bottom: 0;
+            left: 0;
+            width: 70px;
+            height: 70px;
+        }
+        .corner-bl::before {
+            bottom: 0;
+            left: 0;
+            width: 55px;
+            height: 3px;
+            clip-path: polygon(0 0, 85% 0, 100% 100%, 0 100%);
+        }
+        .corner-bl::after {
+            bottom: 0;
+            left: 0;
+            width: 3px;
+            height: 55px;
+            clip-path: polygon(0 0, 100% 15%, 100% 100%, 0 100%);
+        }
+        /* 右下角 */
+        .corner-br {
+            bottom: 0;
+            right: 0;
+            width: 70px;
+            height: 70px;
+        }
+        .corner-br::before {
+            bottom: 0;
+            right: 0;
+            width: 55px;
+            height: 3px;
+            clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .corner-br::after {
+            bottom: 0;
+            right: 0;
+            width: 3px;
+            height: 55px;
+            clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
+        }
+
+        /* ========== 背景动态几何装饰 ========== */
+        .bg-geometry {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.06;
+        }
+        .bg-geometry.diamond {
+            width: 300px;
+            height: 300px;
+            background: var(--p5-red);
+            transform: rotate(45deg);
+            border-radius: 4px;
+        }
+        .bg-geometry.diamond-1 {
+            top: -8%;
+            left: -5%;
+            animation: floatDiamond1 18s ease-in-out infinite;
+        }
+        .bg-geometry.diamond-2 {
+            bottom: -12%;
+            right: -6%;
+            width: 400px;
+            height: 400px;
+            animation: floatDiamond2 22s ease-in-out infinite;
+            opacity: 0.04;
+        }
+        .bg-geometry.triangle {
+            width: 0;
+            height: 0;
+            border-left: 180px solid transparent;
+            border-right: 180px solid transparent;
+            border-bottom: 320px solid var(--p5-red);
+            background: none;
+            border-radius: 0;
+            transform: none;
+            opacity: 0.05;
+        }
+        .bg-geometry.triangle-1 {
+            top: 30%;
+            left: 60%;
+            animation: floatTriangle 20s ease-in-out infinite;
+        }
+
+        @keyframes floatDiamond1 {
+            0%,
+            100% {
+                transform: rotate(45deg) translate(0, 0) scale(1);
+            }
+            25% {
+                transform: rotate(48deg) translate(40px, -30px) scale(1.1);
+            }
+            50% {
+                transform: rotate(43deg) translate(-20px, 25px) scale(0.9);
+            }
+            75% {
+                transform: rotate(47deg) translate(30px, 15px) scale(1.05);
+            }
+        }
+        @keyframes floatDiamond2 {
+            0%,
+            100% {
+                transform: rotate(45deg) translate(0, 0) scale(1);
+            }
+            33% {
+                transform: rotate(41deg) translate(-50px, -20px) scale(1.15);
+            }
+            66% {
+                transform: rotate(49deg) translate(25px, 35px) scale(0.85);
+            }
+        }
+        @keyframes floatTriangle {
+            0%,
+            100% {
+                transform: rotate(0deg) translate(0, 0);
+            }
+            50% {
+                transform: rotate(8deg) translate(-30px, -25px);
+            }
+        }
+
+        /* ========== 斜线纹理背景 ========== */
+        .diagonal-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background: repeating-linear-gradient(-25deg,
+                    transparent,
+                    transparent 3px,
+                    var(--p5-red) 3px,
+                    var(--p5-red) 4px);
+        }
+
+        /* ========== 菜单页面 ========== */
+        .menu-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .menu-page.hidden {
+            display: none;
+        }
+
+        .menu-inner {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            transform: skewX(var(--skew-angle));
+            padding: 30px 50px;
+        }
+
+        .menu-title {
+            font-size: 0.85rem;
+            letter-spacing: 0.25em;
+            color: var(--p5-gray);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding-left: 8px;
+            transform: skewX(calc(var(--skew-angle) * -1));
+            font-weight: 900;
+            position: relative;
+        }
+        .menu-title::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 8px;
+            width: 40px;
+            height: 2px;
+            background: var(--p5-red);
+            clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%);
+        }
+
+        .menu-item {
+            position: relative;
+            padding: 14px 28px 14px 40px;
+            cursor: pointer;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--p5-light-gray);
+            transition: color 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+                transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+                text-shadow 0.25s ease;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .menu-item:hover {
+            color: #fff;
+            transform: translateX(8px);
+            text-shadow: 0 0 30px rgba(229, 0, 18, 0.5);
+        }
+        .menu-item.active {
+            color: #ffffff;
+            text-shadow: 0 0 40px rgba(229, 0, 18, 0.7), 0 0 80px rgba(229, 0, 18, 0.3);
+        }
+        .menu-item .item-sub {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: var(--p5-gray);
+            display: block;
+            margin-top: -2px;
+            font-weight: 400;
+        }
+        .menu-item.active .item-sub {
+            color: var(--p5-light-gray);
+        }
+
+        /* 菱形光标 */
+        .cursor-diamond {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background: var(--p5-red);
+            transform: translateY(-50%) rotate(45deg);
+            transition: top 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                width 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+                height 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+                background 0.2s ease;
+            box-shadow: 0 0 20px rgba(229, 0, 18, 0.9), 0 0 45px rgba(229, 0, 18, 0.5), 0 0 80px rgba(229, 0, 18, 0.3);
+            z-index: 2;
+            border-radius: 2px;
+        }
+        .cursor-diamond.pulse {
+            animation: cursorPulse 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        @keyframes cursorPulse {
+            0% {
+                transform: translateY(-50%) rotate(45deg) scale(1);
+            }
+            30% {
+                transform: translateY(-50%) rotate(45deg) scale(2.2);
+                box-shadow: 0 0 50px rgba(229, 0, 18, 1), 0 0 100px rgba(229, 0, 18, 0.8);
+            }
+            100% {
+                transform: translateY(-50%) rotate(45deg) scale(1);
+            }
+        }
+
+        /* 菜单底部提示 */
+        .menu-hint {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: var(--p5-gray);
+            z-index: 11;
+            text-align: center;
+            animation: hintBlink 2.5s ease-in-out infinite;
+        }
+        @keyframes hintBlink {
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* ========== 页面A 和 页面B 通用样式 ========== */
+        .content-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+        .content-page.visible {
+            opacity: 1;
+            pointer-events: all;
+            z-index: 9;
+        }
+        .content-page.hidden-full {
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .content-card {
+            background: rgba(20, 20, 20, 0.85);
+            border: 2px solid rgba(229, 0, 18, 0.4);
+            padding: 40px 50px;
+            clip-path: polygon(4% 0, 100% 0, 96% 100%, 0% 100%);
+            position: relative;
+            max-width: 600px;
+            width: 85%;
+            transform: skewX(-2deg);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .content-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: transparent;
+            border: 1px solid rgba(229, 0, 18, 0.25);
+            clip-path: polygon(3.8% 0, 100% 0, 96.2% 100%, 0% 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .content-card .card-diamond {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 18px;
+            height: 18px;
+            background: var(--p5-red);
+            border-radius: 2px;
+            box-shadow: 0 0 20px rgba(229, 0, 18, 0.8);
+            z-index: 3;
+        }
+        .content-card h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .content-card .card-subtitle {
+            font-size: 0.75rem;
+            letter-spacing: 0.25em;
+            color: var(--p5-gray);
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .content-card .card-info {
+            color: var(--p5-light-gray);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            text-align: center;
+            letter-spacing: 0.03em;
+        }
+        .content-card .card-stat {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            gap: 20px;
+        }
+        .content-card .card-stat .stat-label {
+            color: var(--p5-gray);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .content-card .card-stat .stat-value {
+            color: #fff;
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+        .content-card .card-stat .stat-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            clip-path: polygon(2% 0, 100% 0, 98% 100%, 0% 100%);
+        }
+        .content-card .card-stat .stat-bar-fill {
+            height: 100%;
+            background: var(--p5-red);
+            clip-path: polygon(2% 0, 100% 0, 98% 100%, 0% 100%);
+            box-shadow: 0 0 10px rgba(229, 0, 18, 0.6);
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: fixed;
+            top: 30px;
+            left: 35px;
+            z-index: 50;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px 10px 14px;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(229, 0, 18, 0.5);
+            clip-path: polygon(8% 0, 100% 0, 92% 100%, 0% 100%);
+            transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+            font-family: inherit;
+            color: var(--p5-light-gray);
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .back-btn:hover {
+            border-color: var(--p5-red);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(229, 0, 18, 0.4), inset 0 0 20px rgba(229, 0, 18, 0.08);
+            transform: translateX(-4px);
+        }
+        .back-btn .back-arrow {
+            width: 10px;
+            height: 10px;
+            background: var(--p5-red);
+            transform: rotate(45deg);
+            border-radius: 1px;
+            box-shadow: 0 0 10px rgba(229, 0, 18, 0.7);
+            transition: all 0.25s ease;
+        }
+        .back-btn:hover .back-arrow {
+            box-shadow: 0 0 20px rgba(229, 0, 18, 1);
+            transform: rotate(45deg) scale(1.2);
+        }
+
+        /* ========== 转场覆盖层 ========== */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 60;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.01s ease;
+        }
+        .transition-overlay.active {
+            opacity: 1;
+        }
+
+        /* 转场色块 */
+        .trans-block {
+            position: absolute;
+            will-change: transform;
+            transition: transform 0.35s cubic-bezier(0.32, 0.94, 0.6, 1);
+        }
+        .trans-block.speed-line {
+            height: 3px;
+            background: #fff;
+            opacity: 0.9;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            z-index: 62;
+            border-radius: 1px;
+        }
+
+        /* 色块颜色变体 */
+        .trans-block.red-fill {
+            background: var(--p5-red);
+            box-shadow: 0 0 40px rgba(229, 0, 18, 0.7);
+        }
+        .trans-block.red-dark {
+            background: var(--p5-red-dark);
+            box-shadow: 0 0 30px rgba(179, 0, 14, 0.6);
+        }
+        .trans-block.black-fill {
+            background: #080808;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+        .trans-block.white-stripe {
+            background: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+            z-index: 63;
+        }
+
+        /* 各色块clip-path定义 */
+        .block-a {
+            clip-path: polygon(0 0, 65% 0, 30% 100%, 0 100%);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform: translateX(-110%) translateY(-15%);
+        }
+        .block-b {
+            clip-path: polygon(35% 0, 100% 0, 100% 100%, 55% 100%);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            right: 0;
+            transform: translateX(110%) translateY(-10%);
+        }
+        .block-c {
+            clip-path: polygon(0 30%, 100% 18%, 100% 48%, 0 58%);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform: translateX(-105%) rotate(-2deg);
+        }
+        .block-d {
+            clip-path: polygon(0 52%, 100% 42%, 100% 72%, 0 80%);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            right: 0;
+            transform: translateX(105%) rotate(2deg);
+        }
+        .block-e {
+            clip-path: polygon(15% 0, 55% 0, 75% 100%, 30% 100%);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform: translateY(-110%) translateX(-20%);
+        }
+        .block-f {
+            clip-path: polygon(50% 0, 90% 0, 65% 100%, 20% 100%);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            right: 0;
+            transform: translateY(110%) translateX(15%);
+        }
+        .block-center {
+            clip-path: polygon(50% 8%, 92% 50%, 50% 92%, 8% 50%);
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform: scale(0) rotate(15deg);
+            transition: transform 0.3s cubic-bezier(0.32, 0.94, 0.6, 1);
+        }
+
+        /* 色块就位状态 */
+        .transition-overlay.phase-enter .block-a {
+            transform: translateX(0) translateY(0);
+        }
+        .transition-overlay.phase-enter .block-b {
+            transform: translateX(0) translateY(0);
+        }
+        .transition-overlay.phase-enter .block-c {
+            transform: translateX(0) rotate(0deg);
+        }
+        .transition-overlay.phase-enter .block-d {
+            transform: translateX(0) rotate(0deg);
+        }
+        .transition-overlay.phase-enter .block-e {
+            transform: translateY(0) translateX(0);
+        }
+        .transition-overlay.phase-enter .block-f {
+            transform: translateY(0) translateX(0);
+        }
+        .transition-overlay.phase-enter .block-center {
+            transform: scale(1) rotate(0deg);
+        }
+        .transition-overlay.phase-enter .speed-line {
+            transform: translateX(0);
+        }
+
+        /* 色块退出状态 */
+        .transition-overlay.phase-exit .block-a {
+            transform: translateX(110%) translateY(20%);
+            transition: transform 0.38s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+        .transition-overlay.phase-exit .block-b {
+            transform: translateX(-110%) translateY(-18%);
+            transition: transform 0.38s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+        .transition-overlay.phase-exit .block-c {
+            transform: translateX(105%) rotate(4deg);
+            transition: transform 0.36s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+        .transition-overlay.phase-exit .block-d {
+            transform: translateX(-105%) rotate(-4deg);
+            transition: transform 0.36s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+        .transition-overlay.phase-exit .block-e {
+            transform: translateY(110%) translateX(25%);
+            transition: transform 0.37s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+        .transition-overlay.phase-exit .block-f {
+            transform: translateY(-110%) translateX(-20%);
+            transition: transform 0.37s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+        .transition-overlay.phase-exit .block-center {
+            transform: scale(0) rotate(-20deg);
+            transition: transform 0.32s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+        .transition-overlay.phase-exit .speed-line {
+            transform: translateX(150%);
+            transition: transform 0.28s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+
+        /* 速度线 */
+        .speed-line-1 {
+            top: 22%;
+            left: -30%;
+            width: 35%;
+            transform: translateX(-120%);
+            transition: transform 0.28s cubic-bezier(0.32, 0.94, 0.6, 1);
+            clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%);
+        }
+        .speed-line-2 {
+            top: 55%;
+            right: -25%;
+            width: 30%;
+            transform: translateX(130%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.94, 0.6, 1);
+            clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .speed-line-3 {
+            top: 72%;
+            left: -35%;
+            width: 28%;
+            height: 2px;
+            transform: translateX(-125%);
+            transition: transform 0.26s cubic-bezier(0.32, 0.94, 0.6, 1);
+            clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+            opacity: 0.7;
+        }
+
+        /* 大字闪现 */
+        .flash-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) skewX(-8deg) scale(0.3);
+            font-size: 5rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            z-index: 65;
+            opacity: 0;
+            pointer-events: none;
+            text-shadow: 0 0 60px rgba(229, 0, 18, 0.9), 0 0 120px rgba(229, 0, 18, 0.5), 0 4px 8px rgba(0, 0, 0, 0.7);
+            transition: all 0.12s cubic-bezier(0.22, 0.61, 0.36, 1);
+            white-space: nowrap;
+        }
+        .flash-text.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) skewX(-8deg) scale(1);
+            transition: all 0.08s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .flash-text.hide-flash {
+            opacity: 0;
+            transform: translate(-50%, -50%) skewX(-8deg) scale(1.3);
+            transition: all 0.2s cubic-bezier(0.55, 0, 1, 0.45);
+        }
+
+        /* 粒子 */
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--p5-red);
+            transform: rotate(45deg);
+            border-radius: 1px;
+            pointer-events: none;
+            z-index: 64;
+            opacity: 0;
+            box-shadow: 0 0 12px rgba(229, 0, 18, 0.8);
+        }
+        .particle.burst {
+            animation: particleBurst 0.5s cubic-bezier(0, 0.7, 0.3, 1) forwards;
+        }
+        @keyframes particleBurst {
+            0% {
+                opacity: 1;
+                transform: rotate(45deg) translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: rotate(45deg) translate(var(--px), var(--py)) scale(0);
+            }
+        }
+        .particle.white-p {
+            background: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+        }
+
+        /* ========== 闪光帧 ========== */
+        .flash-frame {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 70;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.04s ease;
+        }
+        .flash-frame.trigger {
+            opacity: 1;
+            transition: opacity 0.01s ease;
+        }
+        .flash-frame.fade-out {
+            opacity: 0;
+            transition: opacity 0.15s ease-out;
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 768px) {
+            .menu-item {
+                font-size: 1.5rem;
+                padding: 10px 20px 10px 32px;
+            }
+            .cursor-diamond {
+                width: 12px;
+                height: 12px;
+                left: 6px;
+            }
+            .content-card {
+                padding: 25px 28px;
+                width: 90%;
+            }
+            .content-card h2 {
+                font-size: 1.8rem;
+            }
+            .flash-text {
+                font-size: 2.5rem;
+            }
+            .corner-tl,
+            .corner-tr,
+            .corner-bl,
+            .corner-br {
+                width: 40px;
+                height: 40px;
+            }
+            .corner-tl::before,
+            .corner-tr::before,
+            .corner-bl::before,
+            .corner-br::before {
+                width: 30px;
+                height: 2px;
+            }
+            .corner-tl::after,
+            .corner-tr::after,
+            .corner-bl::after,
+            .corner-br::after {
+                width: 2px;
+                height: 30px;
+            }
+            .back-btn {
+                top: 15px;
+                left: 15px;
+                padding: 8px 14px 8px 10px;
+                font-size: 0.7rem;
+                gap: 6px;
+            }
+        }
+        @media (max-width: 480px) {
+            .menu-item {
+                font-size: 1.2rem;
+                padding: 8px 16px 8px 26px;
+            }
+            .cursor-diamond {
+                width: 10px;
+                height: 10px;
+                left: 4px;
+            }
+            .menu-inner {
+                gap: 10px;
+                padding: 20px 25px;
+            }
+            .content-card {
+                padding: 18px 20px;
+                width: 92%;
+            }
+            .content-card h2 {
+                font-size: 1.4rem;
+            }
+            .flash-text {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="appContainer">
+        <!-- 背景几何装饰 -->
+        <div class="bg-geometry diamond diamond-1"></div>
+        <div class="bg-geometry diamond diamond-2"></div>
+        <div class="bg-geometry triangle triangle-1"></div>
+        <div class="diagonal-lines"></div>
+
+        <!-- 四角斜切边框 -->
+        <div class="corner-decor corner-tl"></div>
+        <div class="corner-decor corner-tr"></div>
+        <div class="corner-decor corner-bl"></div>
+        <div class="corner-decor corner-br"></div>
+
+        <!-- 闪光帧 -->
+        <div class="flash-frame" id="flashFrame"></div>
+
+        <!-- ========== 转场覆盖层 ========== -->
+        <div class="transition-overlay" id="transitionOverlay">
+            <div class="trans-block red-fill block-a"></div>
+            <div class="trans-block red-dark block-b"></div>
+            <div class="trans-block black-fill block-c"></div>
+            <div class="trans-block red-fill block-d"></div>
+            <div class="trans-block red-dark block-e"></div>
+            <div class="trans-block black-fill block-f"></div>
+            <div class="trans-block red-fill block-center"></div>
+            <div class="trans-block speed-line speed-line-1"></div>
+            <div class="trans-block speed-line speed-line-2"></div>
+            <div class="trans-block speed-line speed-line-3"></div>
+            <div class="flash-text" id="flashText">PAGE A</div>
+            <!-- 粒子容器 -->
+            <div id="particleContainer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:64;"></div>
+        </div>
+
+        <!-- ========== 菜单页面 ========== -->
+        <div class="menu-page" id="menuPage">
+            <div class="menu-inner" id="menuInner">
+                <div class="menu-title">SELECT DESTINATION</div>
+                <div class="menu-item active" data-target="pageA" id="menuItemA">
+                    PAGE A
+                    <span class="item-sub">· STATUS INFO ·</span>
+                </div>
+                <div class="menu-item" data-target="pageB" id="menuItemB">
+                    PAGE B
+                    <span class="item-sub">· INVENTORY ·</span>
+                </div>
+                <div class="cursor-diamond" id="cursorDiamond"></div>
+            </div>
+            <div class="menu-hint">▲ 点击选择 / 键盘切换 ▼</div>
+        </div>
+
+        <!-- ========== 页面A ========== -->
+        <div class="content-page hidden-full" id="pageA">
+            <button class="back-btn" id="backBtnA">
+                <span class="back-arrow"></span> BACK
+            </button>
+            <div class="content-card" id="cardA">
+                <div class="card-diamond"></div>
+                <h2>PAGE A</h2>
+                <p class="card-subtitle">· STATUS INFORMATION ·</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                    <div class="card-stat">
+                        <span class="stat-label">LEVEL</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" style="width:78%;"></div></div>
+                        <span class="stat-value">78</span>
+                    </div>
+                    <div class="card-stat">
+                        <span class="stat-label">POWER</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" style="width:92%;"></div></div>
+                        <span class="stat-value">92</span>
+                    </div>
+                    <div class="card-stat">
+                        <span class="stat-label">AGILITY</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" style="width:65%;"></div></div>
+                        <span class="stat-value">65</span>
+                    </div>
+                    <div class="card-stat">
+                        <span class="stat-label">LUCK</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" style="width:81%;"></div></div>
+                        <span class="stat-value">81</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 页面B ========== -->
+        <div class="content-page hidden-full" id="pageB">
+            <button class="back-btn" id="backBtnB">
+                <span class="back-arrow"></span> BACK
+            </button>
+            <div class="content-card" id="cardB">
+                <div class="card-diamond"></div>
+                <h2>PAGE B</h2>
+                <p class="card-subtitle">· INVENTORY DATA ·</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                    <div class="card-stat">
+                        <span class="stat-label">ITEMS</span>
+                        <span class="stat-value">47 / 99</span>
+                    </div>
+                    <div class="card-stat">
+                        <span class="stat-label">RARE DROPS</span>
+                        <span class="stat-value" style="color:#d4a843;">12</span>
+                    </div>
+                    <div class="card-stat">
+                        <span class="stat-label">COLLECTION</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" style="width:54%;"></div></div>
+                        <span class="stat-value">54%</span>
+                    </div>
+                    <div class="card-stat">
+                        <span class="stat-label">RANK</span>
+                        <span class="stat-value" style="color:#e50012;">S</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ============ DOM引用 ============
+            const menuPage = document.getElementById('menuPage');
+            const menuItemA = document.getElementById('menuItemA');
+            const menuItemB = document.getElementById('menuItemB');
+            const cursorDiamond = document.getElementById('cursorDiamond');
+            const menuInner = document.getElementById('menuInner');
+            const pageA = document.getElementById('pageA');
+            const pageB = document.getElementById('pageB');
+            const backBtnA = document.getElementById('backBtnA');
+            const backBtnB = document.getElementById('backBtnB');
+            const transitionOverlay = document.getElementById('transitionOverlay');
+            const flashText = document.getElementById('flashText');
+            const flashFrame = document.getElementById('flashFrame');
+            const particleContainer = document.getElementById('particleContainer');
+            const cardA = document.getElementById('cardA');
+            const cardB = document.getElementById('cardB');
+
+            // ============ 状态 ============
+            let currentPage = 'menu'; // 'menu' | 'pageA' | 'pageB'
+            let selectedTarget = 'pageA'; // 菜单中当前选中的目标
+            let isTransitioning = false;
+            const menuItems = [menuItemA, menuItemB];
+            const targetMap = { 'pageA': menuItemA, 'pageB': menuItemB };
+
+            // ============ 更新菱形光标位置 ============
+            function updateCursor() {
+                const activeItem = targetMap[selectedTarget];
+                if (!activeItem) return;
+                const itemRect = activeItem.getBoundingClientRect();
+                const innerRect = menuInner.getBoundingClientRect();
+                const relativeTop = itemRect.top - innerRect.top + itemRect.height / 2;
+                cursorDiamond.style.top = relativeTop + 'px';
+                // 更新active类
+                menuItems.forEach(item => item.classList.remove('active'));
+                activeItem.classList.add('active');
+            }
+
+            // ============ 菜单项点击 ============
+            menuItemA.addEventListener('click', () => {
+                if (isTransitioning) return;
+                if (currentPage === 'menu') {
+                    selectedTarget = 'pageA';
+                    updateCursor();
+                    // 短暂延迟让光标动画先播放
+                    cursorDiamond.classList.add('pulse');
+                    setTimeout(() => {
+                        cursorDiamond.classList.remove('pulse');
+                        triggerTransition('pageA');
+                    }, 180);
+                }
+            });
+            menuItemB.addEventListener('click', () => {
+                if (isTransitioning) return;
+                if (currentPage === 'menu') {
+                    selectedTarget = 'pageB';
+                    updateCursor();
+                    cursorDiamond.classList.add('pulse');
+                    setTimeout(() => {
+                        cursorDiamond.classList.remove('pulse');
+                        triggerTransition('pageB');
+                    }, 180);
+                }
+            });
+
+            // ============ 返回按钮 ============
+            backBtnA.addEventListener('click', () => {
+                if (isTransitioning || currentPage !== 'pageA') return;
+                triggerTransition('menu');
+            });
+            backBtnB.addEventListener('click', () => {
+                if (isTransitioning || currentPage !== 'pageB') return;
+                triggerTransition('menu');
+            });
+
+            // ============ 键盘导航 ============
+            document.addEventListener('keydown', (e) => {
+                if (isTransitioning) return;
+                if (currentPage === 'menu') {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedTarget = selectedTarget === 'pageA' ? 'pageB' : 'pageA';
+                        updateCursor();
+                    }
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        cursorDiamond.classList.add('pulse');
+                        const target = selectedTarget;
+                        setTimeout(() => {
+                            cursorDiamond.classList.remove('pulse');
+                            triggerTransition(target);
+                        }, 180);
+                    }
+                } else {
+                    // 在子页面中按Esc返回
+                    if (e.key === 'Escape' || e.key === 'Backspace') {
+                        e.preventDefault();
+                        triggerTransition('menu');
+                    }
+                }
+            });
+
+            // ============ 触摸/移动端适配 ============
+            menuItemA.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (isTransitioning || currentPage !== 'menu') return;
+                selectedTarget = 'pageA';
+                updateCursor();
+                cursorDiamond.classList.add('pulse');
+                setTimeout(() => {
+                    cursorDiamond.classList.remove('pulse');
+                    triggerTransition('pageA');
+                }, 180);
+            });
+            menuItemB.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (isTransitioning || currentPage !== 'menu') return;
+                selectedTarget = 'pageB';
+                updateCursor();
+                cursorDiamond.classList.add('pulse');
+                setTimeout(() => {
+                    cursorDiamond.classList.remove('pulse');
+                    triggerTransition('pageB');
+                }, 180);
+            });
+
+            // ============ 转场核心逻辑 ============
+            function triggerTransition(target) {
+                if (isTransitioning) return;
+                isTransitioning = true;
+
+                const targetName = target === 'menu' ? 'MENU' : (target === 'pageA' ? 'PAGE A' : 'PAGE B');
+                flashText.textContent = targetName;
+
+                // 重置转场层状态
+                transitionOverlay.classList.remove('phase-enter', 'phase-exit');
+                transitionOverlay.classList.add('active');
+                flashText.classList.remove('show', 'hide-flash');
+                // 强制回流
+                void transitionOverlay.offsetWidth;
+
+                // 生成粒子
+                spawnParticles(18);
+
+                // 阶段1：色块飞入 (约350ms)
+                requestAnimationFrame(() => {
+                    transitionOverlay.classList.add('phase-enter');
+                });
+
+                // 在大约200ms时闪现文字
+                setTimeout(() => {
+                    flashText.classList.add('show');
+                }, 180);
+
+                // 在大约280ms时文字开始消失
+                setTimeout(() => {
+                    flashText.classList.add('hide-flash');
+                }, 280);
+
+                // 在大约320ms时触发闪光帧
+                setTimeout(() => {
+                    flashFrame.classList.add('trigger');
+                    requestAnimationFrame(() => {
+                        flashFrame.classList.add('fade-out');
+                    });
+                }, 310);
+
+                // 在大约340ms时切换页面内容（色块已覆盖屏幕）
+                setTimeout(() => {
+                    switchPageContent(target);
+                }, 340);
+
+                // 在大约370ms后清除闪光
+                setTimeout(() => {
+                    flashFrame.classList.remove('trigger', 'fade-out');
+                }, 450);
+
+                // 阶段2：色块飞走 (约380ms，从420ms开始)
+                setTimeout(() => {
+                    transitionOverlay.classList.remove('phase-enter');
+                    transitionOverlay.classList.add('phase-exit');
+                }, 400);
+
+                // 转场完成
+                setTimeout(() => {
+                    transitionOverlay.classList.remove('phase-exit', 'active');
+                    flashText.classList.remove('show', 'hide-flash');
+                    transitionOverlay.classList.remove('phase-enter');
+                    // 清理粒子
+                    particleContainer.innerHTML = '';
+                    // 重置色块transform（通过移除class已经重置）
+                    isTransitioning = false;
+                    // 更新当前页面状态
+                    if (target === 'menu') {
+                        currentPage = 'menu';
+                    } else {
+                        currentPage = target;
+                    }
+                }, 800);
+            }
+
+            function switchPageContent(target) {
+                // 隐藏所有
+                menuPage.classList.add('hidden');
+                pageA.classList.remove('visible');
+                pageA.classList.add('hidden-full');
+                pageB.classList.remove('visible');
+                pageB.classList.add('hidden-full');
+
+                if (target === 'menu') {
+                    menuPage.classList.remove('hidden');
+                    updateCursor();
+                } else if (target === 'pageA') {
+                    pageA.classList.remove('hidden-full');
+                    pageA.classList.add('visible');
+                    // 卡片入场动画
+                    animateCardEntrance(cardA);
+                } else if (target === 'pageB') {
+                    pageB.classList.remove('hidden-full');
+                    pageB.classList.add('visible');
+                    animateCardEntrance(cardB);
+                }
+            }
+
+            function animateCardEntrance(card) {
+                card.style.transition = 'none';
+                card.style.transform = 'skewX(-2deg) translateY(25px)';
+                card.style.opacity = '0';
+                void card.offsetWidth;
+                card.style.transition = 'transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s ease';
+                card.style.transform = 'skewX(-2deg) translateY(0)';
+                card.style.opacity = '1';
+                setTimeout(() => {
+                    card.style.transition = '';
+                    card.style.transform = '';
+                    card.style.opacity = '';
+                }, 450);
+            }
+
+            // ============ 粒子系统 ============
+            function spawnParticles(count) {
+                particleContainer.innerHTML = '';
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const fragment = document.createDocumentFragment();
+
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    if (i % 3 === 0) particle.classList.add('white-p');
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 80 + Math.random() * 220;
+                    const px = Math.cos(angle) * distance;
+                    const py = Math.sin(angle) * distance;
+                    particle.style.setProperty('--px', px + 'px');
+                    particle.style.setProperty('--py', py + 'px');
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+                    particle.style.width = (4 + Math.random() * 10) + 'px';
+                    particle.style.height = particle.style.width;
+                    particle.style.animationDelay = (Math.random() * 0.08) + 's';
+                    particle.style.animationDuration = (0.35 + Math.random() * 0.4) + 's';
+
+                    fragment.appendChild(particle);
+                }
+                particleContainer.appendChild(fragment);
+
+                // 触发动画
+                requestAnimationFrame(() => {
+                    const particles = particleContainer.querySelectorAll('.particle');
+                    particles.forEach(p => p.classList.add('burst'));
+                });
+
+                // 清理
+                setTimeout(() => {
+                    if (particleContainer) particleContainer.innerHTML = '';
+                }, 600);
+            }
+
+            // ============ 初始化 ============
+            function init() {
+                updateCursor();
+                menuPage.classList.remove('hidden');
+                pageA.classList.add('hidden-full');
+                pageA.classList.remove('visible');
+                pageB.classList.add('hidden-full');
+                pageB.classList.remove('visible');
+                currentPage = 'menu';
+                selectedTarget = 'pageA';
+            }
+
+            // ============ 窗口大小变化时更新光标 ============
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (currentPage === 'menu') updateCursor();
+                }, 200);
+            });
+
+            // ============ 启动 ============
+            init();
+
+            console.log('%c🎭 P5R风格菜单转场系统已就绪 %c| %c点击菜单选项或使用键盘↑↓切换，Enter确认 | Esc返回',
+                'color:#e50012;font-weight:bold;font-size:14px;',
+                '',
+                'color:#aaa;');
+            console.log('%c💎 转场动画特征：斜切色块飞入 · 菱形粒子爆发 · 大字闪现 · 闪光帧 · 速度线',
+                'color:#d4a843;font-size:11px;');
+        })();
+    </script>
+</body>
+</html>

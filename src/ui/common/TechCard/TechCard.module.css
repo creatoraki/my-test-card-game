@@ -26,7 +26,7 @@
   aspect-ratio: 320 / 496;
   flex-shrink: 0;
   perspective: calc(1200 * var(--u));
-  font-family: 'Segoe UI', "PingFangSC", 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
 }
 
