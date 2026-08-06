@@ -237,19 +237,27 @@
 .expl-party {
   position: absolute;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 380px;
+  flex-direction: row;
+  gap: 10px;
+  width: 500px;
+  height: 264px;
+  min-height: 264px;
   animation: explRise 420ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  --slot-base-w: 160px;
+  --bust-zoom: 1.8;
 }
 .expl-member {
   --notch: 10px;
   position: relative;
-  display: grid;
-  grid-template-columns: 46px 1fr;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  height: 264px;
+  min-height: 264px;
+  max-height: 264px;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--expl-line);
   background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
   backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
@@ -265,15 +273,53 @@
     0 var(--notch)
   );
 }
-.expl-member-emoji {
-  font-size: 30px;
-  line-height: 1;
-  text-align: center;
+.expl-member-figure {
+  position: relative;
+  flex: 1 1 0;
+  width: 100%;
+  height: 0;
+  min-height: 0;
+  max-height: 240px;
+  overflow: hidden;
+  contain: layout paint;
+}
+.expl-member-figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff1a 0%, #ffffff05 38%, #00000080 100%);
+}
+.expl-member-figure > img.expl-portrait {
+  display: block;
+  flex: none;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: calc(var(--slot-base-w, 120px) * var(--bust-zoom, 1.8) * var(--bust-scale, 1));
+  height: auto;
+  max-width: none;
+  object-fit: contain;
+  object-position: center top;
+  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  filter: drop-shadow(0 4px 10px #000a);
+}
+.expl-member-figure > span.expl-portrait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
 }
 .expl-member-body {
+  flex: 0 0 auto;
+  width: 100%;
   min-width: 0;
 }
-/* 悬停: 整卡向右让出一点, 描边提亮 —— 队伍是活的, 不是一张贴图。 */
+/* 悬停: 整卡轻轻上浮, 描边提亮 —— 队伍是活的, 不是一张贴图。 */
 .expl-member {
   transition:
     opacity 220ms ease,
@@ -281,7 +327,7 @@
     border-color 200ms ease;
 }
 .expl-member:hover {
-  transform: translateX(5px);
+  transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--expl-glow) 50%, transparent);
 }
 /* 阵亡: 整卡去饱和压暗。血条归零已经说明问题, 这里只补一层「这个人出局了」。 */
@@ -291,8 +337,8 @@
 }
 .expl-member-down {
   position: absolute;
-  right: 14px;
-  top: 8px;
+  right: 8px;
+  top: 6px;
   color: var(--bad);
   font-size: 11px;
   letter-spacing: 2px;

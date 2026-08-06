@@ -33,6 +33,7 @@ import { useRunStore } from "@/store/runStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
+import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar";
 import {
   RouteBoard,
@@ -365,10 +366,17 @@ export function ExploreScreen() {
         </aside>
 
         {/* ---- 左下: 队伍 ---- */}
-        <div className={cx(s["expl-party"], recede)} style={{ left: "56px", bottom: "40px" }}>
+        <div className={cx(s["expl-party"], recede)} style={{ left: "16px", bottom: "16px" }}>
           {session.party.map((p) => (
             <div key={p.charId} className={cx(s["expl-member"], !p.alive && s["is-down"])}>
-              <span className={s["expl-member-emoji"]}>{p.emoji}</span>
+              <div className={s["expl-member-figure"]}>
+                <CharacterPortrait
+                  characterId={p.charId}
+                  emoji={p.emoji}
+                  alt={`${p.name}立绘`}
+                  className={s["expl-portrait"]}
+                />
+              </div>
               <div className={s["expl-member-body"]}>
                 <HpBar hp={p.hp} maxHp={p.maxHp} name={p.name} flush />
               </div>
