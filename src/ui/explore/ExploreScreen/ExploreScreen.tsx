@@ -57,8 +57,8 @@ import s from "./ExploreScreen.module.css";
 // ★ 等距棋盘沿「左下 → 右上」铺开, 因此包围盒的**左上角与右下角天然是空的** ——
 //   节点详情侧栏就摆进左上那块空三角(见下面的 .expl-inspect 定位), 决策浮层落在下方。
 //   把面板往右推是为了给左上的侧栏让位, 同时让棋盘右上角避开右上的读数列。
-const BOARD_LEFT = 548;
-const BOARD_TOP = 224;
+const BOARD_LEFT = 508;
+const BOARD_TOP = 184;
 const BAG_W = 640;
 
 // P1 才接入的指令。**先按最终形态排好版**, 下一轮往里填实现即可 —— 位置定下来了,
@@ -268,14 +268,14 @@ export function ExploreScreen() {
 
         {/* ---- 左上: 随身背包(12 × 2 = 24 格) ----
             原来这里是纯文字的区域标题, 但探索途中真正需要一直看见的是物资与余量。 */}
-        <div className={s["expl-bag"]} style={{ left: "56px", top: "42px", width: `${BAG_W}px` }}>
+        <div className={s["expl-bag"]} style={{ left: "12px", top: "0px", width: `${BAG_W}px` }}>
           <BackpackBar />
         </div>
 
         {/* ---- 右上: 净化粒子 ----
             这一局唯一的时限就是这个数字, 所以右上角只留它一个 ——
             居民积分与负重都退到面板里(上一版那两块 chip 已废弃)。 */}
-        <div className={cx(s["expl-readout"], recede)} style={{ right: "56px", top: "42px" }}>
+        <div className={cx(s["expl-readout"], recede)} style={{ right: "12px", top: "0px" }}>
           <EnergyLamp
             energy={session.energy}
             projected={projectedEnergy(session)}

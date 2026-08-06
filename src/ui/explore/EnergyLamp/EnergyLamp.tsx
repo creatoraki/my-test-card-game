@@ -29,18 +29,11 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
   return (
     <div className={s["energy-lamp"]} style={{ ["--energy-color" as string]: cur.color }}>
       <div className={cx(s["el-readout"], recede && s["is-recede"])}>
-        <span className={s["el-label"]}>净化粒子</span>
+        {/* <span className={s["el-label"]}>净化粒子</span> */}
         {/* key 挂数值: 每次变动重挂一次, 走一遍跳数动画 —— 这是全屏最该被看见的变化 */}
         <strong className={s["el-value"]} key={energy}>
           {energy}
-          <em>/{EXPLORE_RULES.energyMax}</em>
         </strong>
-        <span className={s["el-tier"]}>{cur.name}</span>
-        {crossing && (
-          <span className={s["el-warn"]} style={{ ["--next-color" as string]: after.color }}>
-            本段后跌入〈{after.name}〉
-          </span>
-        )}
       </div>
       {/* 5 张图构图完全重叠 ⇒ key 挂 tier, 换档时新图淡入盖住旧图, 看起来就是同一个装置换了光色。
           ⚠ 装饰性图像, aria-hidden + 空 alt; 数值与档名已由左侧文字读屏播完。 */}
