@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Card } from "@/engine";
 import { makeCard } from "@/data";
-import { CardView } from "@/ui/character/CardView";
 import { DeckCard } from "@/ui/character/DeckCard";
 import s from "./DeckForgeOverlay.module.css";
 
@@ -40,6 +39,11 @@ export function DeckForgeOverlay({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const drawCards = useMemo(
+    () => (pendingDraw ?? []).map((cardId) => makeCard(cardId)),
+    [pendingDraw],
+  );
+
   const selectedCard = deck.find((card) => card.uid === selectedUid) ?? null;
 
   return (
@@ -61,9 +65,9 @@ export function DeckForgeOverlay({
 
         {mode === "draw" ? (
           <div className={s["draw-list"]}>
-            {pendingDraw?.map((cardId, index) => (
-              <div className={s["draw-choice"]} key={`${cardId}-${index}`}>
-                <CardView card={makeCard(cardId)} playable selected={false} onClick={() => onPickDraw(cardId)} />
+            {drawCards.map((card, index) => (
+              <div className={s["draw-choice"]} key={card.uid}>
+                <DeckCard card={card} index={index} selected={false} onClick={() => onPickDraw(card.id)} />
               </div>
             ))}
           </div>

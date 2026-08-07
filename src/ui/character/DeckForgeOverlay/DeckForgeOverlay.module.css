@@ -101,7 +101,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 118px;
+  width: 220px;
+  flex: 0 0 auto;
+}
+
+.draw-choice > button {
+  animation: none;
 }
 
 .remove-list {
@@ -163,6 +168,10 @@
 
   .draw-list {
     gap: 10px;
+  }
+
+  .draw-choice {
+    width: 160px;
   }
 
   .remove-list {

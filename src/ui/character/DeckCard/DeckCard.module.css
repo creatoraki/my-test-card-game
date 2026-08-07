@@ -37,12 +37,6 @@
     background: transparent;
 }
 
-.deck-card.deck-card:hover:not(:disabled) {
-    background-color: transparent !important;
-    border: 0;
-    color: #3f4547;
-}
-
 @keyframes deckCardIn {
     from {
         opacity: 0;

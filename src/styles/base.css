@@ -68,11 +68,6 @@ button {
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
   transition: transform 0.08s, background 0.15s, border-color 0.15s;
 }
-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2c3539, #151d20);
-  border-color: var(--accent);
-  color: var(--accent);
-}
 button:active:not(:disabled) {
   transform: translateY(1px);
 }
