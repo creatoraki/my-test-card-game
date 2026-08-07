@@ -17,8 +17,21 @@ const ENERGY_LAMP_ART: Record<number, string> = {
   5: lampRed,
 };
 
+// 键 = EnergyTier.tier, 值 = 该张素材灯芯的光色(非档位色)。
+const ENERGY_LAMP_GLOW: Record<number, string> = {
+  1: "#7bd93a",
+  2: "#3fa9ff",
+  3: "#ffd43b",
+  4: "#b56bff",
+  5: "#ff5a5a",
+};
+
 export const ENERGY_LAMP_SOURCES: readonly string[] = [...new Set(Object.values(ENERGY_LAMP_ART))];
 
 export function energyLampArt(tier: number): string {
   return ENERGY_LAMP_ART[tier] ?? lampRed;
+}
+
+export function energyLampGlow(tier: number): string {
+  return ENERGY_LAMP_GLOW[tier] ?? ENERGY_LAMP_GLOW[5];
 }

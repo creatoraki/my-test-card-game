@@ -10,7 +10,7 @@
 
 import { energyTier } from "@/explore/session";
 import { EXPLORE_RULES } from "@/explore/rules";
-import { energyLampArt } from "@/ui/art/energyLampArt";
+import { energyLampArt, energyLampGlow } from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
 import s from "./EnergyLamp.module.css";
 
@@ -28,16 +28,15 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
 
   return (
     <div className={s["energy-lamp"]} style={{ ["--energy-color" as string]: cur.color }}>
-      <div className={cx(s["el-readout"], recede && s["is-recede"])}>
-        {/* <span className={s["el-label"]}>净化粒子</span> */}
-        {/* key 挂数值: 每次变动重挂一次, 走一遍跳数动画 —— 这是全屏最该被看见的变化 */}
-        <strong className={s["el-value"]} key={energy}>
-          {energy}
-        </strong>
-      </div>
+ 
       {/* 5 张图构图完全重叠 ⇒ key 挂 tier, 换档时新图淡入盖住旧图, 看起来就是同一个装置换了光色。
           ⚠ 装饰性图像, aria-hidden + 空 alt; 数值与档名已由左侧文字读屏播完。 */}
-      <div className={s["el-lamp"]} aria-hidden>
+      <div
+        className={s["el-lamp"]}
+        style={{ ["--el-glow" as string]: energyLampGlow(cur.tier) }}
+        aria-hidden
+      >
+        <span className={cx(s["el-halo"], recede && s["is-recede"])} key={cur.tier} />
         <img
           className={cx(s["el-lamp-img"], recede && s["is-recede"], crossing && s["is-warning"])}
           key={cur.tier}
@@ -45,6 +44,13 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
           alt=""
           draggable={false}
         />
+      </div>
+      <div className={cx(s["el-readout"], recede && s["is-recede"])}>
+        {/* <span className={s["el-label"]}>净化粒子</span> */}
+        {/* key 挂数值: 每次变动重挂一次, 走一遍跳数动画 —— 这是全屏最该被看见的变化 */}
+        <strong className={s["el-value"]} key={energy}>
+          {energy}
+        </strong>
       </div>
     </div>
   );

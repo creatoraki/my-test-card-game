@@ -7,6 +7,7 @@
 .energy-lamp {
   display: flex;
   align-items: center;
+  flex-direction: column;
   gap: 8px;
 }
 
@@ -49,6 +50,25 @@
   width: 160px;
   height: 160px;
   flex: 0 0 auto;
+  --el-glow-x: 50%;
+  --el-glow-y: 50%;
+}
+.el-halo {
+  position: absolute;
+  inset: 5%;
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at var(--el-glow-x) var(--el-glow-y),
+      color-mix(in srgb, var(--el-glow) 90%, white) 0 14%,
+      color-mix(in srgb, var(--el-glow) 65%, transparent) 26%,
+      transparent 46%),
+    radial-gradient(circle at var(--el-glow-x) var(--el-glow-y),
+      color-mix(in srgb, var(--el-glow) 45%, transparent) 0 18%,
+      color-mix(in srgb, var(--el-glow) 24%, transparent) 42%,
+      transparent 72%);
+  filter: blur(4px);
+  animation: elLampIn 420ms ease, elHaloBreath 3.2s ease-in-out infinite;
 }
 .el-lamp-img {
   position: absolute;
@@ -57,18 +77,27 @@
   height: 100%;
   object-fit: contain;
   user-select: none;
+  filter: drop-shadow(0 0 5px var(--el-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--el-glow) 70%, transparent));
   animation: elLampIn 420ms ease;
   transition: opacity 220ms ease;
 }
 .el-lamp-img.is-warning { animation: elLampIn 420ms ease, elLampPulse 1.4s 420ms ease-in-out infinite; }
 .el-readout.is-recede,
 .el-lamp-img.is-recede { opacity: 0.5; }
+.el-halo.is-recede { opacity: 0.35; }
 
 @keyframes elTick { from { transform: translateY(-4px); opacity: 0.2; } }
 @keyframes elLampIn { from { opacity: 0; } }
-@keyframes elLampPulse { 50% { filter: brightness(1.25); } }
+@keyframes elHaloBreath {
+  0%, 100% { opacity: 0.78; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+@keyframes elLampPulse {
+  0%, 100% { filter: drop-shadow(0 0 5px var(--el-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--el-glow) 70%, transparent)); }
+  50% { filter: drop-shadow(0 0 5px var(--el-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--el-glow) 70%, transparent)) brightness(1.25); }
+}
 @keyframes elWarnPulse { 50% { background: color-mix(in srgb, var(--next-color) 34%, transparent); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .el-value, .el-lamp-img, .el-lamp-img.is-warning, .el-warn { animation: none; }
+  .el-value, .el-lamp-img, .el-lamp-img.is-warning, .el-halo, .el-warn { animation: none; }
 }
