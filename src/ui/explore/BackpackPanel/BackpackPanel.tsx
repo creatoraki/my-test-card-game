@@ -64,6 +64,7 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
   const pending = session.pendingPickup;
   const replaceMode = pending.length > 0;
   const chuteMode = session.chuteOpen;
+  const pendingHasUndroppable = pending.some((st) => getItemDef(st.itemId).undroppable);
   const sel = backpack.find((s) => s.uid === selected) ?? null;
   const selDef = sel ? getItemDef(sel.itemId) : null;
 
@@ -140,9 +141,6 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
                 );
               })}
             </div>
-            <button className={cx(s["expl-btn"], s["bp-mini"])} type="button" onClick={() => abandonPending()}>
-              全部放弃拾取
-            </button>
           </div>
         )}
 
@@ -182,6 +180,7 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
                   key={cell.stack.uid}
                   stack={cell.stack}
                   selected={chuteMode ? shipping.includes(cell.stack.uid) : selected === cell.stack.uid}
+                  disabled={chuteMode && !!getItemDef(cell.stack.itemId).undroppable}
                   dimmed={!matchTab(cell.stack, tab, equipTab)}
                   onClick={() => onSlotClick(cell.stack)}
                 />
@@ -209,7 +208,9 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
                   )}
                   {/* 丢弃**不可撤销**, 故在详情区原地二次确认 ——
                       探索页已经是「浮层里的浮层」, 再叠一层模态读起来会很脏。 */}
-                  {confirming === sel.uid ? (
+                  {selDef.undroppable ? (
+                    <p className={s["bp-locked"]}>锁死在背包上，远征途中无法卸下</p>
+                  ) : confirming === sel.uid ? (
                     <>
                       <button
                         className={cx(s["expl-btn"], s["is-danger"], s["bp-mini"])}
@@ -243,6 +244,12 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
             </ItemDetail>
           </div>
         </div>
+
+        {replaceMode && !pendingHasUndroppable && (
+          <button className={cx(s["expl-btn"], s["bp-mini"])} type="button" onClick={() => abandonPending()}>
+            全部放弃拾取
+          </button>
+        )}
 
         {flash && <p className={s["bp-flash"]}>{flash}</p>}
       </section>

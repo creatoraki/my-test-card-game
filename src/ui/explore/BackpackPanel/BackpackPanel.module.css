@@ -225,3 +225,9 @@
   text-align: center;
   animation: bpTick 260ms ease both;
 }
+
+.bp-locked {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}

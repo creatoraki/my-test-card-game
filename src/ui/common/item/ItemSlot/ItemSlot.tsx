@@ -16,6 +16,7 @@ interface Props {
   // 分类 tab 未命中。★ 压暗而不隐藏 —— 24 格是「物理容器」的隐喻,
   //   抽掉格子会让玩家失去空间感, 也看不出还剩多少地方。
   dimmed?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
   /** 调用方的布局类(格子在网格里怎么占位)。格子自身的外观一律由本组件持有。 */
   className?: string;
@@ -26,6 +27,7 @@ export default function ItemSlot({
   selected,
   showName = true,
   dimmed,
+  disabled,
   onClick,
   className,
 }: Props) {
@@ -43,6 +45,7 @@ export default function ItemSlot({
         dimmed && s["is-dimmed"],
         className,
       )}
+      disabled={disabled}
       onClick={onClick}
       // title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
     >

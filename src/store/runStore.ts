@@ -12,7 +12,13 @@ import type { PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
 import { useBattleStore } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
-import { bondCountsOf, deriveStats, useTownStore, type ExpGain } from "./townStore";
+import {
+  bondCountsOf,
+  deriveStats,
+  useTownStore,
+  type ContaminationHit,
+  type ExpGain,
+} from "./townStore";
 
 // ★ "formation"(编队) 与 "charDetail"(角色详情) 是据点的**一级全屏页**, 不是设施内浮层 ——
 //   入口在大厅 bento 的「编队」砖(见 ui/TownScreen.tsx), 冬眠仓只剩「冬眠唤醒」。
@@ -56,6 +62,7 @@ interface RunStore {
   openSortie: () => void; // 大厅「出击」砖 → 全屏出击页(选地图 + 备物资)
   // 物资准备完毕 → 进路由图。backpack = 出发时装好的物资(见 store/sortieStore)。
   startExpedition: (mapId: string, backpack?: ItemStack[]) => void;
+  chooseEventOption: (index: number) => void;
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
   confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
@@ -88,11 +95,13 @@ function partySnapshot(): PartySnapshot[] {
   });
 }
 
-function applyPendingContamination(charIds: string[]): void {
+function applyPendingContamination(charIds: string[]): ContaminationHit[] {
   const request = useExploreStore.getState().consumePendingContamination();
   const town = useTownStore.getState();
-  if (request.total > 0) town.contaminateCards(charIds, request.total);
-  if (request.each > 0) town.contaminateCards(charIds, request.each, true);
+  const hits: ContaminationHit[] = [];
+  if (request.total > 0) hits.push(...town.contaminateCards(charIds, request.total));
+  if (request.each > 0) hits.push(...town.contaminateCards(charIds, request.each, true));
+  return hits;
 }
 
 function alivePartyIds(): string[] {
@@ -208,6 +217,15 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastDrops: [],
       screen: "explore",
     });
+  },
+
+  chooseEventOption: (index) => {
+    const explore = useExploreStore.getState();
+    explore.pickOption(index);
+    const session = useExploreStore.getState().session;
+    if (!session) return;
+    const hits = applyPendingContamination(session.party.map((p) => p.charId));
+    if (hits.length) useExploreStore.getState().fillStoryPlaceholders(hits);
   },
 
   // 本轮线路披露完 → 建局开打(设计文档 §3.1 的固定档位表)。

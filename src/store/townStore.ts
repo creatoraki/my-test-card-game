@@ -88,6 +88,12 @@ export interface ExpGain {
   expAfter: number; // 结算后的可用经验池
 }
 
+export interface ContaminationHit {
+  charId: string;
+  charName: string;
+  cardName: string;
+}
+
 interface TownStore {
   characters: Record<string, CharacterState>;
   // ★ 已唤醒(已解锁)的角色 id, 按唤醒先后。CHARACTERS 里不在这张名单上的都还躺在冬眠仓里。
@@ -115,7 +121,7 @@ interface TownStore {
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
   grantExpEach: (byChar: Record<string, number>) => ExpGain[]; // 按角色分别发经验
-  contaminateCards: (charIds: string[], count: number, each?: boolean) => number; // 随机污染队伍个人卡组中的未污染卡
+  contaminateCards: (charIds: string[], count: number, each?: boolean) => ContaminationHit[]; // 随机污染队伍个人卡组中的未污染卡
   cureQuirk: (charId: string, quirkId?: QuirkId) => QuirkId | null;
   reducePollution: (charId: string, amount: number) => number;
   purifyCards: (charId: string, count: number, uids?: string[]) => number;
@@ -464,10 +470,10 @@ export const useTownStore = create<TownStore>()(
 
       contaminateCards: (charIds, count, each = false) => {
         const wanted = Math.max(0, Math.floor(count));
-        if (!wanted || !charIds.length) return 0;
+        if (!wanted || !charIds.length) return [];
 
         const characters = { ...get().characters };
-        let total = 0;
+        const hits: ContaminationHit[] = [];
         const targets = each ? charIds : ["__all__"];
         for (const target of targets) {
           const candidates: { charId: string; index: number }[] = [];
@@ -483,6 +489,12 @@ export const useTownStore = create<TownStore>()(
             const pick = Math.floor(Math.random() * candidates.length);
             const candidate = candidates.splice(pick, 1)[0];
             const cs = characters[candidate.charId];
+            const card = cs.deck[candidate.index];
+            hits.push({
+              charId: candidate.charId,
+              charName: getCharacter(candidate.charId).name,
+              cardName: card.name,
+            });
             characters[candidate.charId] = {
               ...cs,
               deck: cs.deck.map((card, index) =>
@@ -490,11 +502,10 @@ export const useTownStore = create<TownStore>()(
               ),
             };
           }
-          total += amount;
         }
 
-        if (total > 0) set({ characters });
-        return total;
+        if (hits.length) set({ characters });
+        return hits;
       },
 
       cureQuirk: (charId, quirkId) => {

@@ -118,7 +118,7 @@ export function ExploreScreen() {
   const revealDone = useExploreStore((s) => s.revealDone);
   const pickEntry = useExploreStore((s) => s.pickEntry);
   const arrive = useExploreStore((s) => s.arrive);
-  const pickOption = useExploreStore((s) => s.pickOption);
+  const chooseEventOption = useRunStore((s) => s.chooseEventOption);
   const confirmNode = useExploreStore((s) => s.confirmNode);
   const restEat = useExploreStore((s) => s.restEat);
   const restSkip = useExploreStore((s) => s.restSkip);
@@ -325,13 +325,13 @@ export function ExploreScreen() {
   const takeOption = (index: number) => {
     if (committing != null) return;
     if (prefersReducedMotion()) {
-      pickOption(index);
+      chooseEventOption(index);
       return;
     }
     setCommitting(index);
     commitTimer.current = window.setTimeout(() => {
       commitTimer.current = null;
-      pickOption(index);
+      chooseEventOption(index);
     }, EVENT_BEAT.commit);
   };
 

@@ -314,11 +314,12 @@ export function abandonLoot(s: ExploreState): boolean {
 
 // 丢弃一整堆。⚠ 不可撤销 —— 二次确认由 UI 负责(设计文档 §6.4), 这里只认结果。
 export function discardStack(s: ExploreState, uid: string): boolean {
+  const st = findByUid(s.backpack, uid);
+  if (!st || getItemDef(st.itemId).undroppable) return false;
   const next = removeByUid(s.backpack, uid);
   if (next === s.backpack) return false;
-  const st = findByUid(s.backpack, uid);
   s.backpack = next;
-  if (st) logLine(s, `丢弃了 ${getItemDef(st.itemId).name}`);
+  logLine(s, `丢弃了 ${getItemDef(st.itemId).name}`);
   return true;
 }
 
@@ -343,7 +344,10 @@ function forceDiscardSlots(s: ExploreState, slots: number): number {
     const d = getItemDef(st.itemId);
     return RARITY_RANK[d.rarity] * 10 + (d.category === "equipment" ? 5 : 0);
   };
-  const order = s.backpack.slice().sort((a, b) => rank(a) - rank(b));
+  const order = s.backpack
+    .filter((st) => !getItemDef(st.itemId).undroppable)
+    .slice()
+    .sort((a, b) => rank(a) - rank(b));
   let dropped = 0;
   for (const st of order) {
     if (dropped >= slots) break;
@@ -415,10 +419,13 @@ export function takePending(s: ExploreState, index: number): boolean {
 export function abandonPending(s: ExploreState, index?: number): boolean {
   if (!s.pendingPickup.length) return false;
   if (index == null) {
-    s.pendingPickup = [];
+    const next = s.pendingPickup.filter((st) => getItemDef(st.itemId).undroppable);
+    if (next.length === s.pendingPickup.length) return false;
+    s.pendingPickup = next;
     return true;
   }
-  if (!s.pendingPickup[index]) return false;
+  const st = s.pendingPickup[index];
+  if (!st || getItemDef(st.itemId).undroppable) return false;
   s.pendingPickup = s.pendingPickup.filter((_, i) => i !== index);
   return true;
 }
@@ -468,7 +475,9 @@ export function confirmNpc(s: ExploreState): boolean {
 // ★ 代价按**一次寄件**收, 不按件数收 —— 否则玩家会为了省能量只寄一件, 解压阀就失效了。
 export function shipHome(s: ExploreState, uids: string[]): boolean {
   if (!s.chuteOpen || !uids.length) return false;
-  const picked = uids.map((u) => findByUid(s.backpack, u)).filter((x): x is ItemStack => !!x);
+  const picked = uids
+    .map((u) => findByUid(s.backpack, u))
+    .filter((x): x is ItemStack => !!x && !getItemDef(x.itemId).undroppable);
   if (!picked.length) return false;
 
   for (const st of picked) s.backpack = removeByUid(s.backpack, st.uid);
@@ -595,6 +604,15 @@ function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
         ? `拾得 ${def.name} ×${taken.length}（${overflow.length} 件背不动了）`
         : `拾得 ${def.name} ×${taken.length}`;
     }
+    case "FORCE_ITEM": {
+      const count = Math.max(1, e.count ?? 1);
+      const def = getItemDef(e.itemId);
+      const made = Array.from({ length: count }, () => makeItemStack(e.itemId, 1));
+      const { taken, overflow } = addItems(s, made);
+      return overflow.length
+        ? `强制拾取 ${def.name} ×${count}（背包已满, 必须腾出 ${overflow.length} 格）`
+        : `强制拾取 ${def.name} ×${taken.length}`;
+    }
     case "ROLL_DROP": {
       const rolled = rollDropTable(s, e.table, dropCoefficient(s), dropContext(s));
       if (!rolled.length) return "什么也没找到";
@@ -619,10 +637,10 @@ function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
       const count = Math.max(1, Math.floor(e.count ?? 1));
       if (e.each) {
         s.pendingContaminationEach += count;
-        return `每名角色的牌组各加入 ${count} 张污染卡, 将在离开事件后记录`;
+        return `每名角色的牌组各有 ${count} 张卡牌被污染`;
       }
       s.pendingContaminationCount += count;
-      return `发现 ${count} 张污染卡, 将在离开事件后记录`;
+      return `${count} 张卡牌被污染`;
     }
     case "HEAL_ONE":
       s.pendingActions.push({ kind: "healOne", percent: e.percent, full: e.full ?? false });

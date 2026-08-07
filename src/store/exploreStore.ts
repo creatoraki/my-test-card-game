@@ -74,6 +74,7 @@ interface ExploreStore {
   stopReel: (elapsedMs: number) => ExploreState | null;
   chooseSlotCard: (index: number) => ExploreState | null; // 三选一 → inBattle
   consumePendingContamination: () => { total: number; each: number };
+  fillStoryPlaceholders: (names: { charName: string; cardName: string }[]) => void;
   retreatNow: () => void;
   settleBattle: (
     won: boolean,
@@ -179,6 +180,27 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     const count = takePendingContamination(draft);
     set({ session: draft });
     return count;
+  },
+
+  fillStoryPlaceholders: (names) => {
+    const s = get().session;
+    if (!s || !names.length) return;
+    const charName = names[0]?.charName ?? "某名队员";
+    const card1 = names[0]?.cardName ?? "未知卡牌";
+    const card2 = names[1]?.cardName ?? card1;
+    const fill = (text: string) =>
+      text
+        .replace(/\{实际角色名\}/g, charName)
+        .replace(/\{实际卡牌名1\}/g, card1)
+        .replace(/\{实际卡牌名2\}/g, card2)
+        .replace(/\{实际卡牌名\}/g, card1);
+    set({
+      session: {
+        ...s,
+        pendingStory: s.pendingStory.map(fill),
+        pendingNotes: s.pendingNotes.map(fill),
+      },
+    });
   },
 
   retreatNow: () => {

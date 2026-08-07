@@ -89,6 +89,8 @@ export interface ItemDef {
   //   sellValue = 玩家把废料卖给回收台; buyValue = 玩家从商店买走这件东西。
   //   ★ 缺省 = 商店永不上架这件物品(见 data/shop.ts 的候选池筛选)。
   buyValue?: number;
+  // 远征途中不可移除: 丢弃、强制丢弃、放弃拾取、投递口寄件四条出口全部对它关闭。
+  undroppable?: boolean;
 
   // ---- 装备专属(category === "equipment" 时才有意义) ----
   slot?: EquipSlot;

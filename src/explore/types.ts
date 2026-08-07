@@ -76,6 +76,7 @@ export type ExploreEffect =
   | { type: "DAMAGE_PARTY_PERCENT"; percent: number } // 全队按 maxHp 百分比掉血
   | { type: "GAIN_LOOT"; amount: number } // 城市居民积分(仅撤退/通关时落袋)
   | { type: "GAIN_ITEM"; itemId: string; count?: number } // 指名实物(不吃掉落系数)
+  | { type: "FORCE_ITEM"; itemId: string; count?: number } // 强制拾取, 不进入可放弃的 pendingLoot
   | { type: "ROLL_DROP"; table: DropEntry[] } // 掷一张掉落表(吃 K 与 qualityBias)
   | { type: "DISCARD_SLOTS"; slots: number } // 强制丢弃背包若干格(「压力门夹层」)
   | { type: "OPEN_CHUTE" } // 传送投递口: 开启寄件流程(实际寄件由玩家在背包面板里选)
