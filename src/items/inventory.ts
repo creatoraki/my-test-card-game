@@ -81,6 +81,28 @@ export function removeByUid(stacks: ItemStack[], uid: string): ItemStack[] {
   return i < 0 ? stacks : [...stacks.slice(0, i), ...stacks.slice(i + 1)];
 }
 
+export function countByItemId(stacks: ItemStack[], itemId: string): number {
+  return stacks.reduce((count, stack) => count + (stack.itemId === itemId ? stack.count : 0), 0);
+}
+
+export function consumeItems(
+  stacks: ItemStack[],
+  itemId: string,
+  count: number,
+  uid?: string,
+): ItemStack[] {
+  let remaining = Math.max(0, Math.floor(count));
+  if (!remaining) return stacks;
+  const next = stacks.map((stack) => ({ ...stack }));
+  for (const stack of next) {
+    if (stack.itemId !== itemId || (uid && stack.uid !== uid) || remaining <= 0) continue;
+    const used = Math.min(stack.count, remaining);
+    stack.count -= used;
+    remaining -= used;
+  }
+  return next.filter((stack) => stack.count > 0);
+}
+
 export function findByUid(stacks: ItemStack[], uid: string): ItemStack | undefined {
   return stacks.find((s) => s.uid === uid);
 }

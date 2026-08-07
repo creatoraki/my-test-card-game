@@ -24,7 +24,7 @@ import { buildSlot, matchBonusOf, reelIndexAt, reelSymbolAt } from "./slot";
 import type { ExploreState, PartySnapshot } from "./types";
 
 const PARTY: PartySnapshot[] = [
-  { charId: "swordsman", name: "剑士", emoji: "⚔️", hp: 70, maxHp: 70, alive: true, burdenAdapt: 0 },
+  { charId: "swordsman", name: "剑士", emoji: "⚔️", hp: 70, hpLimit: 70, maxHp: 70, alive: true, burdenAdapt: 0 },
 ];
 
 const WIN = [{ charId: "swordsman", hp: 60, alive: true }];

@@ -13,6 +13,7 @@
 // ============================================================================
 
 import type { DropEntry, EquipSlot, ItemStack } from "../items/types";
+import type { StatModifier } from "../engine/types";
 
 // ---------------------------------------------------------------------------
 // 路由图
@@ -68,6 +69,9 @@ export type EventRisk = "negative" | "highRisk";
 // 事件效果。新增一种机制 = 这里加一个成员 + session.ts 的 applyEffect 加一个分支。
 export type ExploreEffect =
   | { type: "HEAL_PARTY"; percent: number } // 全队按 maxHp 百分比回血(不复活阵亡者)
+  | { type: "HEAL_ONE"; percent: number; full?: boolean } // 指定一名存活角色按 maxHp 回血
+  | { type: "HEAL_LIMIT_PARTY"; percent: number } // 全队修复 hpLimit, 不改变当前 hp
+  | { type: "HEAL_LIMIT_ONE"; percent?: number; full?: boolean } // 指定一名角色修复 hpLimit
   | { type: "HEAL_ONE_FULL"; othersPercent: number } // 单人回满 + 其余按百分比
   | { type: "DAMAGE_PARTY_PERCENT"; percent: number } // 全队按 maxHp 百分比掉血
   | { type: "GAIN_LOOT"; amount: number } // 城市居民积分(仅撤退/通关时落袋)
@@ -77,7 +81,11 @@ export type ExploreEffect =
   | { type: "OPEN_CHUTE" } // 传送投递口: 开启寄件流程(实际寄件由玩家在背包面板里选)
   | { type: "MODIFY_ENERGY"; amount: number } // 净化粒子增减
   | { type: "SKIP_NODE_COST"; nodes: number } // 「隐匿通道」: 接下来 N 个节点免除基础粒子消耗
-  | { type: "CONTAMINATE_CARDS"; count?: number } // 记录待处理的个人卡组污染请求
+  | { type: "CONTAMINATE_CARDS"; count?: number; each?: boolean } // 记录待处理的个人卡组污染请求
+  | { type: "CURE_QUIRK"; scope: "one" | "party"; count?: number }
+  | { type: "REDUCE_POLLUTION"; scope: "one" | "party"; amount: number }
+  | { type: "PURIFY_CARDS"; scope: "one" | "party"; count?: number }
+  | { type: "GRANT_AURA"; aura: ExploreAura }
   | { type: "GAIN_EXP_PARTY"; amount: number }
   | { type: "GAIN_EXP_ONE"; amount: number }
   | { type: "FORGE_DRAW" }
@@ -88,6 +96,18 @@ export type ExploreEffect =
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
 
 export type BondBias = "offense" | "defense";
+
+export interface ChoiceCost {
+  itemId: string;
+  count: number;
+}
+
+export interface ExploreAura {
+  id: string;
+  name: string;
+  desc: string;
+  mods: StatModifier;
+}
 
 export interface EventOutcome {
   id: string;
@@ -104,6 +124,7 @@ export interface EventChoice {
   desc: string; // 一行代价/收益说明; 当前 UI 不渲染, 选项不预告得失
   story?: string;
   energyDelta: number; // 选中该项的净化粒子增减(**不含**每节点固定 −3)
+  cost?: ChoiceCost;
   effects?: ExploreEffect[];
   outcomes?: EventOutcome[];
 }
@@ -118,7 +139,12 @@ export type PendingAction =
   | { kind: "forgeDraw" }
   | { kind: "forgeRemove" }
   | { kind: "equipOffer"; offers: ItemStack[] }
-  | { kind: "reforge"; bias?: BondBias };
+  | { kind: "reforge"; bias?: BondBias }
+  | { kind: "healOne"; percent: number; full: boolean }
+  | { kind: "healLimitOne"; percent: number; full: boolean }
+  | { kind: "cureQuirk"; scope: "one" | "party"; count: number }
+  | { kind: "reducePollution"; scope: "one" | "party"; amount: number }
+  | { kind: "purifyCards"; scope: "one" | "party"; count: number };
 
 export interface NpcEventLike {
   id: string;
@@ -223,6 +249,7 @@ export interface PartySnapshot {
   name: string;
   emoji: string;
   hp: number;
+  hpLimit: number;
   maxHp: number;
   alive: boolean; // 本次远征内阵亡即无法再出战, 回城镇后复原
   // 负重适应(百分点)。★ 由 runStore.partySnapshot() 一次性填好 ——
@@ -285,6 +312,7 @@ export interface ExploreState {
   board: RouteBoard | null;
 
   party: PartySnapshot[];
+  auras: ExploreAura[];
   history: NodeHistoryEntry[];
 
   // ---- 实物背包(设计文档 §六) ----
@@ -311,6 +339,7 @@ export interface ExploreState {
   freeNodes: number; // 「隐匿通道」: 接下来几个节点免除基础粒子消耗
   pendingNotes: string[]; // 本节点结算摘要, 供 resolving 浮层展示
   pendingContaminationCount: number; // 尚未交给 townStore 应用的污染卡数量
+  pendingContaminationEach: number; // 每名角色各污染 N 张, 与上面的全队总数语义分开
 
   // 侧向跨接(设计文档 §7.2): 整趟出击的剩余次数, 基础 1。
   // ⚠ 字段先占位, 指令系统是 P1 —— 目前没有任何入口消耗它。

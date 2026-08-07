@@ -29,6 +29,7 @@ import {
   retreat,
   reforgeBackpackItem,
   resolvePendingAction,
+  resolvePendingHealing,
   restEat,
   restSkip,
   chooseNpcOption,
@@ -72,11 +73,11 @@ interface ExploreStore {
   //   UI 只负责报时。两边各算一份就会「停在这个却给了那个」。
   stopReel: (elapsedMs: number) => ExploreState | null;
   chooseSlotCard: (index: number) => ExploreState | null; // 三选一 → inBattle
-  consumePendingContamination: () => number;
+  consumePendingContamination: () => { total: number; each: number };
   retreatNow: () => void;
   settleBattle: (
     won: boolean,
-    survivors: { charId: string; hp: number; alive: boolean }[],
+    survivors: { charId: string; hp: number; hpLimit: number; alive: boolean }[],
     enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
   ) => void;
   clear: () => void;
@@ -96,6 +97,7 @@ interface ExploreStore {
   chooseNpcOption: (index: number) => void;
   confirmNpc: () => void;
   grantExpTo: (charId: string) => void;
+  resolvePendingHealing: (charId: string, limit: boolean) => void;
   resolvePendingAction: () => void;
   acceptEquipOffer: (index: number) => void;
   reforgeBackpackItem: (uid: string) => void;
@@ -170,7 +172,9 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   consumePendingContamination: () => {
     const s = get().session;
-    if (!s || s.pendingContaminationCount <= 0) return 0;
+    if (!s || (s.pendingContaminationCount <= 0 && s.pendingContaminationEach <= 0)) {
+      return { total: 0, each: 0 };
+    }
     const draft = structuredClone(s);
     const count = takePendingContamination(draft);
     set({ session: draft });
@@ -250,6 +254,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   grantExpTo: (charId) => {
     mutate(get, set, (d) => grantExpTo(d, charId));
+  },
+
+  resolvePendingHealing: (charId, limit) => {
+    mutate(get, set, (d) => resolvePendingHealing(d, charId, limit));
   },
 
   resolvePendingAction: () => {

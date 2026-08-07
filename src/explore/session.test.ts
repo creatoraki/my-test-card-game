@@ -48,7 +48,7 @@ import {
 import type { ExploreState, PartySnapshot } from "./types";
 
 const PARTY: PartySnapshot[] = [
-  { charId: "swordsman", name: "剑士", emoji: "⚔️", hp: 70, maxHp: 70, alive: true, burdenAdapt: 0 },
+  { charId: "swordsman", name: "剑士", emoji: "⚔️", hp: 70, hpLimit: 70, maxHp: 70, alive: true, burdenAdapt: 0 },
 ];
 
 const SEGMENTS = EXPLORE_RULES.segmentsPerRound;

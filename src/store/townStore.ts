@@ -115,7 +115,10 @@ interface TownStore {
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
   grantExpEach: (byChar: Record<string, number>) => ExpGain[]; // 按角色分别发经验
-  contaminateCards: (charIds: string[], count: number) => number; // 随机污染队伍个人卡组中的未污染卡
+  contaminateCards: (charIds: string[], count: number, each?: boolean) => number; // 随机污染队伍个人卡组中的未污染卡
+  cureQuirk: (charId: string, quirkId?: QuirkId) => QuirkId | null;
+  reducePollution: (charId: string, amount: number) => number;
+  purifyCards: (charId: string, count: number, uids?: string[]) => number;
   syncBattleConditions: (
     conditions: { charId: string; pollution: number; sick: boolean; quirks: string[] }[],
   ) => void; // 战斗结束回填污染、疾病和怪癖
@@ -459,35 +462,90 @@ export const useTownStore = create<TownStore>()(
         return report;
       },
 
-      contaminateCards: (charIds, count) => {
+      contaminateCards: (charIds, count, each = false) => {
         const wanted = Math.max(0, Math.floor(count));
         if (!wanted || !charIds.length) return 0;
 
         const characters = { ...get().characters };
-        const candidates: { charId: string; index: number }[] = [];
-        for (const charId of charIds) {
-          const cs = characters[charId];
-          if (!cs) continue;
-          cs.deck.forEach((card, index) => {
-            if (!card.contaminated) candidates.push({ charId, index });
-          });
-        }
-
-        const total = Math.min(wanted, candidates.length);
-        for (let i = 0; i < total; i++) {
-          const pick = Math.floor(Math.random() * candidates.length);
-          const candidate = candidates.splice(pick, 1)[0];
-          const cs = characters[candidate.charId];
-          characters[candidate.charId] = {
-            ...cs,
-            deck: cs.deck.map((card, index) =>
-              index === candidate.index ? { ...card, contaminated: true } : card,
-            ),
-          };
+        let total = 0;
+        const targets = each ? charIds : ["__all__"];
+        for (const target of targets) {
+          const candidates: { charId: string; index: number }[] = [];
+          for (const charId of each ? [target] : charIds) {
+            const cs = characters[charId];
+            if (!cs) continue;
+            cs.deck.forEach((card, index) => {
+              if (!card.contaminated) candidates.push({ charId, index });
+            });
+          }
+          const amount = Math.min(wanted, candidates.length);
+          for (let i = 0; i < amount; i++) {
+            const pick = Math.floor(Math.random() * candidates.length);
+            const candidate = candidates.splice(pick, 1)[0];
+            const cs = characters[candidate.charId];
+            characters[candidate.charId] = {
+              ...cs,
+              deck: cs.deck.map((card, index) =>
+                index === candidate.index ? { ...card, contaminated: true } : card,
+              ),
+            };
+          }
+          total += amount;
         }
 
         if (total > 0) set({ characters });
         return total;
+      },
+
+      cureQuirk: (charId, quirkId) => {
+        const cs = get().characters[charId];
+        if (!cs?.quirks.length) return null;
+        const target = quirkId && cs.quirks.includes(quirkId) ? quirkId : cs.quirks[0];
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, quirks: cs.quirks.filter((id) => id !== target) },
+          },
+        });
+        return target;
+      },
+
+      reducePollution: (charId, amount) => {
+        const cs = get().characters[charId];
+        const wanted = Math.max(0, Math.floor(amount));
+        if (!cs || !wanted) return 0;
+        const actual = Math.min(cs.pollution, wanted);
+        if (!actual) return 0;
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, pollution: cs.pollution - actual },
+          },
+        });
+        return actual;
+      },
+
+      purifyCards: (charId, count, uids) => {
+        const cs = get().characters[charId];
+        let remaining = Math.max(0, Math.floor(count));
+        if (!cs || !remaining) return 0;
+        const wanted = uids?.length ? new Set(uids) : null;
+        let purified = 0;
+        const deck = cs.deck.map((card) => {
+          if (
+            remaining <= 0 ||
+            !card.contaminated ||
+            (wanted && !wanted.has(card.uid))
+          ) {
+            return card;
+          }
+          remaining -= 1;
+          purified += 1;
+          return { ...card, contaminated: false };
+        });
+        if (!purified) return 0;
+        set({ characters: { ...get().characters, [charId]: { ...cs, deck } } });
+        return purified;
       },
 
       syncBattleConditions: (conditions) => {

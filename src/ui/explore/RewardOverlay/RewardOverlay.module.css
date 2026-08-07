@@ -154,6 +154,43 @@
 .card-choice:hover {
   border-color: #a7c9ff;
 }
+
+.card-choice.is-selected {
+  border-color: #a7c9ff;
+  background: #23405f;
+  box-shadow: inset 3px 0 0 var(--k), 0 0 18px -12px #a7c9ff;
+}
+
+.quirk-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.quirk-choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 8px;
+  padding: 12px;
+  border: 1px solid #a7c9ff38;
+  background: #122033;
+  color: #dce8f6;
+  cursor: pointer;
+  text-align: left;
+}
+
+.quirk-choice:hover,
+.quirk-choice:focus-visible {
+  border-color: #a7c9ff;
+  background: #23405f;
+}
+
+.quirk-choice small {
+  grid-column: 2;
+  color: #9faec0;
+  font-size: 11px;
+  line-height: 1.5;
+}
 .card-choice:active {
   transform: translateY(1px) scale(0.985);
   transition-duration: 90ms;

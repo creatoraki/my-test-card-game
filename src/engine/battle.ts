@@ -40,6 +40,7 @@ export interface AllyInit {
   // 开局生命。缺省 = stats.maxHp; 探索模式传入上一场战斗继承下来的血量 ——
   // 「血量跨战斗继承」是探索牌局的地基, 没有它「休整」与「撤退」都不成为决策。
   startHp?: number;
+  startHpLimit?: number;
   pollution?: number;
   sick?: boolean;
   quirks?: QuirkId[];
@@ -69,6 +70,7 @@ export function createBattle(
 
   for (const a of setup.allies) {
     const maxHp = Math.max(1, Math.round(a.stats.maxHp));
+    const hpLimit = Math.max(1, Math.min(maxHp, Math.round(a.startHpLimit ?? maxHp)));
     const ally: Ally = {
       id: a.id,
       charId: a.charId,
@@ -76,6 +78,7 @@ export function createBattle(
       emoji: a.emoji,
       team: "player",
       hp: Math.max(1, Math.min(maxHp, a.startHp ?? maxHp)),
+      hpLimit,
       maxHp,
       shield: 0,
       stats: a.stats,
@@ -113,6 +116,7 @@ export function createBattle(
       emoji: def.emoji,
       team: "enemy",
       hp: maxHp,
+      hpLimit: maxHp,
       maxHp,
       shield: 0,
       stats: makeStats({ ...def.stats, maxHp }),

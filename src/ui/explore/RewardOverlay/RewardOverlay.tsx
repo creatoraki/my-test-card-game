@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getCharacter, getItemDef, makeCard } from "@/data";
+import { getQuirkDef } from "@/engine";
+import type { QuirkId } from "@/engine";
 import { EQUIP_SLOTS, useTownStore } from "@/store/townStore";
 import { useExploreStore } from "@/store/exploreStore";
+import { useRunStore } from "@/store/runStore";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
 import { CardView } from "@/ui/character/CardView";
@@ -15,6 +18,10 @@ export default function RewardOverlay() {
   const resolvePendingAction = useExploreStore((state) => state.resolvePendingAction);
   const acceptEquipOffer = useExploreStore((state) => state.acceptEquipOffer);
   const reforgeBackpackItem = useExploreStore((state) => state.reforgeBackpackItem);
+  const resolvePendingHeal = useRunStore((state) => state.resolvePendingHeal);
+  const resolvePendingQuirk = useRunStore((state) => state.resolvePendingQuirk);
+  const resolvePendingPollution = useRunStore((state) => state.resolvePendingPollution);
+  const resolvePendingPurification = useRunStore((state) => state.resolvePendingPurification);
   const characters = useTownStore((state) => state.characters);
   const party = useTownStore((state) => state.party);
   const grantFreeDraw = useTownStore((state) => state.grantFreeDraw);
@@ -24,6 +31,9 @@ export default function RewardOverlay() {
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
 
   const action = session?.pendingActions[0];
+  useEffect(() => {
+    setSelectedChar(null);
+  }, [action?.kind]);
   if (!session || !action) return null;
 
   const selectableCharacters = session.party.filter((member) => member.alive);
@@ -122,6 +132,86 @@ export default function RewardOverlay() {
             onSkip={finish}
           />
         )}
+
+        {action.kind === "healOne" && (
+          <CharacterPicker
+            members={selectableCharacters}
+            selected={chosenCharId}
+            onSelect={setSelectedChar}
+            caption={action.full ? "选择一名存活角色，将当前生命恢复至体力极限。" : `选择一名存活角色，回复 ${Math.round(action.percent * 100)}% 当前生命。`}
+            onSkip={finish}
+            onConfirm={() => {
+              if (chosenCharId) resolvePendingHeal(chosenCharId, false);
+            }}
+          />
+        )}
+
+        {action.kind === "healLimitOne" && (
+          <CharacterPicker
+            members={selectableCharacters}
+            selected={chosenCharId}
+            onSelect={setSelectedChar}
+            caption={action.full ? "选择一名存活角色，将体力极限恢复至基础最大生命。" : `选择一名存活角色，修复 ${Math.round(action.percent * 100)}% 体力极限。`}
+            onSkip={finish}
+            onConfirm={() => {
+              if (chosenCharId) resolvePendingHeal(chosenCharId, true);
+            }}
+          />
+        )}
+
+        {action.kind === "cureQuirk" && (
+          action.scope === "party" ? (
+            <PartyReward
+              caption={`全队存活角色各治疗 ${action.count} 个怪癖。`}
+              onSkip={finish}
+              onConfirm={() => resolvePendingQuirk()}
+            />
+          ) : (
+            <QuirkReward
+              members={selectableCharacters}
+              selected={chosenCharId}
+              character={chosenCharacter}
+              count={action.count}
+              onSelect={setSelectedChar}
+              onSkip={finish}
+              onConfirm={(quirkId) => resolvePendingQuirk(chosenCharId ?? undefined, quirkId)}
+            />
+          )
+        )}
+
+        {action.kind === "reducePollution" && (
+          action.scope === "party" ? (
+            <PartyReward
+              caption={`全队存活角色污染值降低 ${action.amount}。`}
+              onSkip={finish}
+              onConfirm={() => resolvePendingPollution()}
+            />
+          ) : (
+            <CharacterPicker
+              members={selectableCharacters}
+              selected={chosenCharId}
+              onSelect={setSelectedChar}
+              caption={`选择一名存活角色，污染值降低 ${action.amount}。`}
+              onSkip={finish}
+              onConfirm={() => {
+                if (chosenCharId) resolvePendingPollution(chosenCharId);
+              }}
+            />
+          )
+        )}
+
+        {action.kind === "purifyCards" && (
+          <PurifyReward
+            members={selectableCharacters}
+            selected={chosenCharId}
+            character={chosenCharacter}
+            scope={action.scope}
+            count={action.count}
+            onSelect={setSelectedChar}
+            onSkip={finish}
+            onConfirm={(uids) => resolvePendingPurification(chosenCharId ?? undefined, uids)}
+          />
+        )}
       </section>
     </div>
   );
@@ -139,6 +229,16 @@ function titleOf(kind: string): string {
       return "装备候选";
     case "reforge":
       return "羁绊重铸";
+    case "healOne":
+      return "指定角色治疗";
+    case "healLimitOne":
+      return "指定角色体力极限修复";
+    case "cureQuirk":
+      return "怪癖治疗";
+    case "reducePollution":
+      return "污染值降低";
+    case "purifyCards":
+      return "污染卡净化";
     default:
       return "事件奖励";
   }
@@ -188,6 +288,202 @@ function CharacterPicker({
         ) : (
           <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
         )}
+      </footer>
+    </div>
+  );
+}
+
+function PartyReward({
+  caption,
+  onSkip,
+  onConfirm,
+}: {
+  caption: string;
+  onSkip: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className={s["reward-body"]}>
+      <p className={s["reward-caption"]}>{caption}</p>
+      <footer className={s["reward-foot"]}>
+        <span>确认后立即应用到当前远征的存活角色</span>
+        <div>
+          <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
+          <button className={cx(s["reward-btn"], s["is-primary"])} type="button" onClick={onConfirm}>
+            确认奖励
+          </button>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function QuirkReward({
+  members,
+  selected,
+  character,
+  count,
+  onSelect,
+  onSkip,
+  onConfirm,
+}: {
+  members: { charId: string; name: string; emoji: string }[];
+  selected: string | null;
+  character: { quirks: QuirkId[] } | null;
+  count: number;
+  onSelect: (id: string) => void;
+  onSkip: () => void;
+  onConfirm: (quirkId: QuirkId) => void;
+}) {
+  const quirks = character?.quirks ?? [];
+  return (
+    <div className={s["reward-body"]}>
+      {!character ? (
+        <>
+          <p className={s["reward-caption"]}>选择一名存活角色，治疗 {count} 个怪癖。</p>
+          <div className={s["character-list"]}>
+            {members.map((member) => (
+              <button
+                className={cx(s["character-choice"], selected === member.charId && s["is-selected"])}
+                type="button"
+                key={member.charId}
+                onClick={() => onSelect(member.charId)}
+              >
+                <span className={s["character-emoji"]}>{member.emoji}</span>
+                <span>{member.name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : quirks.length ? (
+        <>
+          <p className={s["reward-caption"]}>选择要治疗的怪癖。当前角色可治疗 {count} 个。</p>
+          <div className={s["quirk-list"]}>
+            {quirks.map((quirkId) => {
+              const quirk = getQuirkDef(quirkId);
+              return (
+                <button
+                  className={s["quirk-choice"]}
+                  type="button"
+                  key={quirkId}
+                  onClick={() => onConfirm(quirkId)}
+                >
+                  <span>{quirk?.emoji ?? "?"}</span>
+                  <span>{quirk?.name ?? quirkId}</span>
+                  <small>{quirk?.desc ?? ""}</small>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <p className={s["reward-empty"]}>该角色当前没有可治疗的怪癖。</p>
+      )}
+      <footer className={s["reward-foot"]}>
+        <span>{character ? (quirks.length ? "选择一个怪癖即可确认" : "奖励无法执行") : "请选择角色"}</span>
+        <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
+      </footer>
+    </div>
+  );
+}
+
+function PurifyReward({
+  members,
+  selected,
+  character,
+  scope,
+  count,
+  onSelect,
+  onSkip,
+  onConfirm,
+}: {
+  members: { charId: string; name: string; emoji: string }[];
+  selected: string | null;
+  character: { deck: ReturnType<typeof makeCard>[] } | null;
+  scope: "one" | "party";
+  count: number;
+  onSelect: (id: string) => void;
+  onSkip: () => void;
+  onConfirm: (uids?: string[]) => void;
+}) {
+  const contaminated = character?.deck.filter((card) => card.contaminated) ?? [];
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
+  useEffect(() => {
+    setSelectedCards([]);
+  }, [selected]);
+  if (scope === "party") {
+    return (
+      <PartyReward
+        caption={`全队存活角色各净化 ${count} 张污染卡。`}
+        onSkip={onSkip}
+        onConfirm={() => onConfirm()}
+      />
+    );
+  }
+  return (
+    <div className={s["reward-body"]}>
+      {!character ? (
+        <>
+          <p className={s["reward-caption"]}>选择一名存活角色，净化最多 {count} 张污染卡。</p>
+          <div className={s["character-list"]}>
+            {members.map((member) => (
+              <button
+                className={cx(s["character-choice"], selected === member.charId && s["is-selected"])}
+                type="button"
+                key={member.charId}
+                onClick={() => onSelect(member.charId)}
+              >
+                <span className={s["character-emoji"]}>{member.emoji}</span>
+                <span>{member.name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : contaminated.length ? (
+        <>
+          <p className={s["reward-caption"]}>选择最多 {count} 张污染卡进行净化。</p>
+          <div className={s["card-list"]}>
+            {contaminated.map((card) => {
+              const picked = selectedCards.includes(card.uid);
+              return (
+                <div className={cx(s["card-choice"], picked && s["is-selected"])} key={card.uid}>
+                  <CardView
+                    card={card}
+                    playable
+                    selected={picked}
+                    onClick={() => {
+                      setSelectedCards((current) =>
+                        picked
+                          ? current.filter((uid) => uid !== card.uid)
+                          : current.length < count
+                            ? [...current, card.uid]
+                            : current,
+                      );
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <p className={s["reward-empty"]}>该角色当前没有污染卡。</p>
+      )}
+      <footer className={s["reward-foot"]}>
+        <span>{character ? `${selectedCards.length}/${Math.min(count, contaminated.length)} 张已选择` : "请选择角色"}</span>
+        <div>
+          <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
+          {character && contaminated.length > 0 && (
+            <button
+              className={cx(s["reward-btn"], s["is-primary"])}
+              type="button"
+              disabled={!selectedCards.length}
+              onClick={() => onConfirm(selectedCards)}
+            >
+              确认净化
+            </button>
+          )}
+        </div>
       </footer>
     </div>
   );

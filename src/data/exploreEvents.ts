@@ -1,3 +1,4 @@
+import type { StatModifier } from "../engine/types";
 import type { EventChoice, ExploreEffect, NodeEvent } from "../explore/types";
 
 const outcome = (id: string, text: string, effects: ExploreEffect[]) => ({
@@ -14,7 +15,8 @@ const choice = (
   story: string,
   outcomes: EventChoice["outcomes"],
   energyDelta = 0,
-): EventChoice => ({ id, label, desc, story, energyDelta, outcomes });
+  choiceCost?: EventChoice["cost"],
+): EventChoice => ({ id, label, desc, story, energyDelta, cost: choiceCost, outcomes });
 
 const item = (itemId: string, count = 1): ExploreEffect => ({ type: "GAIN_ITEM", itemId, count });
 const items = (...effects: ExploreEffect[]): ExploreEffect[] => effects;
@@ -25,6 +27,168 @@ const equip = (count: number, slot?: "weapon" | "armor" | "trinket"): ExploreEff
   count,
   slot,
 });
+const cost = (itemId: string, count = 1) => ({ itemId, count });
+const aura = (id: string, name: string, desc: string, mods: StatModifier) => ({
+  type: "GRANT_AURA" as const,
+  aura: { id, name, desc, mods },
+});
+
+const SURVIVAL: NodeEvent[] = [
+  {
+    id: "survival-night-shift-sleep-pods",
+    kind: "heal",
+    category: "survival",
+    title: "夜班睡眠舱",
+    description: "夜班员工的睡眠舱仍在低功率运行，舱门上的生命体征灯逐一亮起。",
+    energyDelta: 0,
+    choices: [
+      choice("recover", "接入睡眠舱", "全队治疗 18%，获得医疗包或糖块", "你让队伍依次接入尚未断电的睡眠舱。", [
+        outcome("recover", "睡眠舱释放出温和的恢复脉冲，全队回复当前生命 18%；体力极限没有恢复。", [{ type: "HEAL_PARTY", percent: 0.18 }]),
+      ]),
+      choice("supplies", "拆下维生模块", "获得医疗包 ×1 或糖块 ×2，队伍不接受现场治疗", "你不让任何人进入睡眠舱，而是把备用维生模块拆成可携带的治疗组件。", [
+        outcome("supplies-a", "备用维生模块里还封着一只医疗包。你们拆下它带走，睡眠舱没有启动。", [item("medical-kit-c")]),
+        outcome("supplies-b", "医疗组件已经失效，营养匣却仍然可以工作。你们带走糖块 ×2。", [item("sugar-cube-c", 2)]),
+      ]),
+      choice("milk", "提交整夜休眠申请", "需要 牛奶 ×1；全队治疗并修复体力极限，或获得医疗包与粒子", "你让控制台把队伍登记成连续加班员工，申请一整轮高规格休眠。", [
+        outcome("milk-a", "牛奶的包装条码通过福利核验，所有睡眠舱进入深度修复模式。", [{ type: "HEAL_PARTY", percent: 0.35 }, { type: "HEAL_LIMIT_PARTY", percent: 0.08 }]),
+        outcome("milk-b", "福利系统只剩半套深度程序，但备用电池仍被完整释放。", [{ type: "HEAL_PARTY", percent: 0.25 }, item("medical-kit-c"), { type: "MODIFY_ENERGY", amount: 4 }]),
+      ], 0, cost("milk")),
+    ],
+  },
+  {
+    id: "survival-remote-trauma-station",
+    kind: "heal",
+    category: "survival",
+    title: "远程创伤台",
+    description: "创伤台的机械臂悬在半空，扫描光束仍在寻找可以处理的伤口。",
+    energyDelta: 0,
+    choices: [
+      choice("single", "锁定最重伤员", "当前生命比例最低的角色治疗 42%，或治疗 30% 并处理 1 个怪癖", "你把当前生命比例最低的队员推入固定架，让全部凝胶处理深层创伤。", [
+        outcome("single-a", "机械臂锁定了最严重的伤势，深层创伤被逐层封合。", [{ type: "HEAL_ONE", percent: 0.42 }]),
+        outcome("single-b", "红色扫描区与神经异常重叠，机械臂顺便修正了异常反应。", [{ type: "HEAL_ONE", percent: 0.3 }, { type: "CURE_QUIRK", scope: "one" }]),
+      ]),
+      choice("party", "分配微型凝胶", "全队治疗 14%", "你取消单人锁定，把凝胶分成小剂量注入每个人的护甲接口。", [{ type: "HEAL_PARTY", percent: 0.14 }]),
+      choice("hamburger", "用汉堡换取完整护理", "需要 汉堡 ×1；全队治疗 28% 并获得医疗包，或单体回满并治疗怪癖", "你把汉堡放进创伤台的奖励识别槽。", [
+        outcome("hamburger-a", "创伤台将热量转成全队护理脉冲，备用医疗包也被解锁。", [{ type: "HEAL_PARTY", percent: 0.28 }, item("medical-kit-c")]),
+        outcome("hamburger-b", "一名队员获得完整创伤修复，创伤台顺手清除了一个神经异常。", [{ type: "HEAL_ONE", percent: 0, full: true }, { type: "CURE_QUIRK", scope: "one" }]),
+      ], 0, cost("hamburger")),
+    ],
+  },
+  {
+    id: "survival-cold-chain-ration-station",
+    kind: "heal",
+    category: "survival",
+    title: "冷链配给站",
+    description: "冷链配给站的保鲜灯在黑暗中持续闪烁，货架深处堆着未被污染的员工餐。",
+    energyDelta: 0,
+    choices: [
+      choice("full-ration", "启动全员配给", "全队治疗 20%，额外消耗 3 粒子", "你让配给站将剩余营养液平均分配给所有人。", [{ type: "HEAL_PARTY", percent: 0.2 }], -3),
+      choice("contaminated", "接受污染风险的高热量餐", "全队治疗 12%，每人污染 1 张卡", "你打开标记为高风险的冷柜，让每个人快速吃下配给。", [{ type: "HEAL_PARTY", percent: 0.12 }, { type: "CONTAMINATE_CARDS", count: 1, each: true }]),
+      choice("pizza", "用披萨换取高级配给", "需要 披萨 ×1；全队治疗 30%，修复 10% 体力极限，或治疗 22% 并获得 2 个医疗包", "你用披萨覆盖配给站的高级员工餐识别器。", [
+        outcome("pizza-a", "高级配给将恢复信号推到极限，队伍的治疗上限也被暂时修复。", [{ type: "HEAL_PARTY", percent: 0.3 }, { type: "HEAL_LIMIT_PARTY", percent: 0.1 }]),
+        outcome("pizza-b", "配给站吐出两只医疗包，队伍获得稳定而克制的恢复。", [{ type: "HEAL_PARTY", percent: 0.22 }, item("medical-kit-c", 2)]),
+      ], 0, cost("pizza")),
+    ],
+  },
+  {
+    id: "survival-airtight-recovery-capsule",
+    kind: "heal",
+    category: "survival",
+    title: "气密恢复舱",
+    description: "气密舱隔绝了楼层里的污染雾，透明舱壁上还留着上一批使用者的呼吸记录。",
+    energyDelta: 0,
+    choices: [
+      choice("seal", "封闭舱门", "全队治疗 24%，额外消耗 4 粒子", "你关闭外部阀门，让恢复舱进入完整循环。", [{ type: "HEAL_PARTY", percent: 0.24 }], -4),
+      choice("filter", "反向抽取过滤芯", "获得圣水并降低一名角色污染值，或获得医疗包与糖块", "你不让队伍进入恢复舱，而是拆下仍有活性的过滤芯，换取之后可以使用的净化物资。", [
+        outcome("filter-a", "过滤芯里凝结的中和液仍然可用。你们封装成圣水，并将其中一部分用于一名队员。", [item("holy-water-c"), { type: "REDUCE_POLLUTION", scope: "one", amount: 20 }]),
+        outcome("filter-b", "过滤芯已经干涸，只剩下备用医疗匣和营养匣。你们带走医疗包和糖块，没有启动恢复舱。", [item("medical-kit-c"), item("sugar-cube-c")]),
+      ]),
+      choice("cola", "用可乐换取循环供氧", "需要 可乐 ×1；全队治疗 18% 并获得 8 粒子，或获得循环供氧光环", "你用可乐启动恢复舱的旧员工协议。", [
+        outcome("cola-a", "循环泵恢复运转，队伍得到一阵稳定的恢复脉冲和净化粒子。", [{ type: "HEAL_PARTY", percent: 0.18 }, { type: "MODIFY_ENERGY", amount: 8 }]),
+        outcome("cola-b", "恢复舱将供氧协议写入队伍识别码，之后的战斗会持续受益。", [aura("recovery-oxygen", "循环供氧", "战斗中治疗效果提高。", { flat: { healBoost: 10 } })]),
+      ], 0, cost("cola")),
+    ],
+  },
+  {
+    id: "survival-sterile-suture-robots",
+    kind: "heal",
+    category: "survival",
+    title: "无菌缝合机器人",
+    description: "无菌缝合机器人排成一列，细小的机械针在消毒灯下反射出冷光。",
+    energyDelta: 0,
+    choices: [
+      choice("line", "排队接受缝合", "全队治疗 16%", "你让机器人按照受伤程度依次处理队伍。", [{ type: "HEAL_PARTY", percent: 0.16 }]),
+      choice("deep", "指定一名角色做深层缝合", "指定角色治疗 32%，修复 15% 体力极限，或治疗 22% 并治疗怪癖", "你把最重的伤口交给中央缝合臂。", [
+        outcome("deep-a", "中央缝合臂完成深层修复，连体力极限的裂口也被一并补上。", [{ type: "HEAL_ONE", percent: 0.32 }, { type: "HEAL_LIMIT_ONE", percent: 0.15 }]),
+        outcome("deep-b", "缝合臂避开了旧伤，同时清理了一个长期影响行动的怪癖。", [{ type: "HEAL_ONE", percent: 0.22 }, { type: "CURE_QUIRK", scope: "one" }]),
+      ]),
+      choice("fried-chicken", "用炸鸡启动极限护理", "需要 炸鸡 ×1；单体体力极限恢复至基础最大生命并治疗 20%，或全队修复 12% 极限并获得医疗包", "你将炸鸡放入机器人中央的高热量医疗槽。", [
+        outcome("fried-chicken-a", "中央机器人完成一次完整的极限修复，随后为目标补上额外生命。", [{ type: "HEAL_LIMIT_ONE", full: true }, { type: "HEAL_ONE", percent: 0.2 }]),
+        outcome("fried-chicken-b", "所有机器人同步工作，队伍的治疗上限被整体抬高，医疗包也被送到出口。", [{ type: "HEAL_LIMIT_PARTY", percent: 0.12 }, item("medical-kit-c")]),
+      ], 0, cost("fried-chicken")),
+    ],
+  },
+  {
+    id: "survival-card-pollution-wash",
+    kind: "heal",
+    category: "survival",
+    title: "卡牌污染洗消站",
+    description: "洗消站的卡槽仍在等待投递，紫黑色的污染纹路在透明传送带上缓慢移动。",
+    energyDelta: 0,
+    choices: [
+      choice("wash", "洗消一张卡", "指定角色净化 1 张污染卡并治疗 10%，或净化并降低污染值 18", "你把一名队员的污染卡组接入洗消站。", [
+        outcome("wash-a", "洗消液剥离污染后，卡组持有者也获得了一阵恢复。", [{ type: "PURIFY_CARDS", scope: "one", count: 1 }, { type: "HEAL_ONE", percent: 0.1 }]),
+        outcome("wash-b", "洗消站将剥离出的污染压缩回收，角色的污染值随之下降。", [{ type: "PURIFY_CARDS", scope: "one", count: 1 }, { type: "REDUCE_POLLUTION", scope: "one", amount: 18 }]),
+      ]),
+      choice("cycle", "启动全队循环洗消", "全队污染值降低 10，额外消耗 2 粒子", "你把洗消站切换到循环模式，让所有队员同时接入。", [{ type: "REDUCE_POLLUTION", scope: "party", amount: 10 }], -2),
+      choice("cola", "用两罐可乐换取深层洗消", "需要 可乐 ×2；每人净化 1 张并降低污染值 20，或单体净化 2 张并治疗怪癖", "你把两罐可乐放进洗消站的旧式能源槽。", [
+        outcome("cola-a", "洗消站的全线喷头同时启动，每名队员的污染卡和污染值都得到处理。", [{ type: "PURIFY_CARDS", scope: "party", count: 1 }, { type: "REDUCE_POLLUTION", scope: "party", amount: 20 }]),
+        outcome("cola-b", "所有资源集中到一名队员的卡组，深层洗消同时清理了一项怪癖。", [{ type: "PURIFY_CARDS", scope: "one", count: 2 }, { type: "CURE_QUIRK", scope: "one" }]),
+      ], 0, cost("cola", 2)),
+    ],
+  },
+  {
+    id: "survival-neural-feedback-lounge",
+    kind: "heal",
+    category: "survival",
+    title: "神经反馈休息室",
+    description: "休息室的软椅围着一圈神经反馈头环，墙上的灯光仍在播放让人平静的呼吸节奏。",
+    energyDelta: 0,
+    choices: [
+      choice("single", "接受单人反馈", "指定角色治疗 1 个怪癖并降低污染值 15，或全队污染值降低 8 并治疗 8%", "你让一名队员戴上反馈头环，逐步校准神经信号。", [
+        outcome("single-a", "反馈头环完成单人校准，清理了一项长期影响行动的怪癖。", [{ type: "CURE_QUIRK", scope: "one" }, { type: "REDUCE_POLLUTION", scope: "one", amount: 15 }]),
+        outcome("single-b", "你把反馈频率扩散到休息室的公共线路，所有队员的污染与疲劳都得到缓解。", [{ type: "REDUCE_POLLUTION", scope: "party", amount: 8 }, { type: "HEAL_PARTY", percent: 0.08 }]),
+      ]),
+      choice("supplies", "关闭反馈椅，带走安抚物资", "获得圣水，或获得糖块 ×2 与医疗包", "你不把队伍交给旧系统，而是拆下椅背上的安抚组件，作为之后使用的治疗物资。", [
+        outcome("supplies-a", "安抚组件的储液囊仍然完整，你们将它封装为圣水，没有启动反馈训练。", [item("holy-water-c")]),
+        outcome("supplies-b", "储液囊已经失效，但营养匣和备用治疗匣还能拆下。", [item("sugar-cube-c", 2), item("medical-kit-c")]),
+      ]),
+      choice("fried-chicken", "用炸鸡开启深度反馈", "需要 炸鸡 ×1；全队各治疗 1 个怪癖并降低污染值 25，或获得平静呼吸光环", "你用高热量食品让休息室进入深度反馈模式。", [
+        outcome("fried-chicken-a", "所有头环同时进入深层校准，队伍的怪癖和污染值都得到处理。", [{ type: "CURE_QUIRK", scope: "party" }, { type: "REDUCE_POLLUTION", scope: "party", amount: 25 }]),
+        outcome("fried-chicken-b", "休息室将平静呼吸写入队伍协议，之后的战斗节奏变得更加稳定。", [aura("calm-breathing", "平静呼吸", "战斗中提高治疗、护盾与格挡，并获得少量防御。", { flat: { healBoost: 12, shieldBoost: 12, blockRate: 8, defense: 3 } })]),
+      ], 0, cost("fried-chicken")),
+    ],
+  },
+  {
+    id: "survival-protective-gear-decontamination",
+    kind: "heal",
+    category: "survival",
+    title: "防护装备消毒仓",
+    description: "消毒仓的悬挂轨道上还留着一批防护装备，喷淋臂在空仓之间来回摆动。",
+    energyDelta: 0,
+    choices: [
+      choice("decontaminate", "启动全队消毒", "全队治疗 12%，污染值降低 8", "你让消毒仓对全队的装备和生命读数做一次同步处理。", [{ type: "HEAL_PARTY", percent: 0.12 }, { type: "REDUCE_POLLUTION", scope: "party", amount: 8 }]),
+      choice("supplies", "拆取维护架上的急救匣", "获得医疗包 ×2，或获得医疗包与圣水", "你放弃打开防具箱，转而拆下维护架上的备用组件，把它们留作之后的治疗手段。", [
+        outcome("supplies-a", "两只医疗包被送到出口，消毒仓没有改变队伍状态。", [item("medical-kit-c", 2)]),
+        outcome("supplies-b", "医疗包和圣水一起被识别，净化液填满了备用槽。", [item("medical-kit-c"), item("holy-water-c")]),
+      ]),
+      choice("pizza", "用披萨换取高级装备处理", "需要 披萨 ×1；防具候选 2 选 1，或随机防具并全队治疗 15%", "你用披萨启动消毒仓的高级装备协议。", [
+        outcome("pizza-a", "两件防具完成消毒并被列为候选，属性信息完整公开。", [equip(2, "armor")]),
+        outcome("pizza-b", "消毒仓随机推出一件防具，同时释放恢复雾气。", [equip(1, "armor"), { type: "HEAL_PARTY", percent: 0.15 }]),
+      ], 0, cost("pizza")),
+    ],
+  },
+];
 
 const GROWTH: NodeEvent[] = [
   {
@@ -377,7 +541,7 @@ export interface EventPool {
 
 export const EVENT_POOLS: Record<string, EventPool> = {
   "ruined-floor": {
-    survival: [],
+    survival: SURVIVAL,
     growth: GROWTH,
     economy: [],
     route: [],

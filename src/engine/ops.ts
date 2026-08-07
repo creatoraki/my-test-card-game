@@ -128,6 +128,7 @@ export function dealDamage(
   }
 
   // ---- 6. 落到 HP ----
+  if (target.team === "player" && dmg.amount > 0) target.hpLimit = Math.max(1, target.hp);
   target.hp -= dmg.amount;
   dmg.hpLost = dmg.amount;
 
@@ -159,7 +160,7 @@ export function heal(
   if (src) final = (amount + statOf(src, "healPower")) * (1 + statOf(src, "healBoost") / 100);
 
   const before = t.hp;
-  t.hp = Math.min(t.maxHp, t.hp + Math.round(final));
+  t.hp = Math.min(t.hpLimit, t.hp + Math.round(final));
   log(state, `${t.emoji} ${t.name} 回复 ${t.hp - before} 点生命`);
 }
 
@@ -226,6 +227,7 @@ export function applyStatMod(
   // maxHp 修正要同步实时上限, 否则改了面板血条不动。
   if (stat === "maxHp" && !pct) {
     t.maxHp = Math.max(1, t.maxHp + amount);
+    t.hpLimit = Math.min(t.maxHp, t.hpLimit + amount);
     if (amount > 0) t.hp += amount;
     t.hp = Math.min(t.hp, t.maxHp);
   }

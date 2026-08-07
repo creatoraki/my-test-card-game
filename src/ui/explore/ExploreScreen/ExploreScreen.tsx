@@ -36,6 +36,7 @@ import {
   projectedEnergy,
 } from "@/explore/session";
 import { getItemDef, getNpcEvent } from "@/data";
+import { countByItemId } from "@/items/inventory";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
@@ -371,6 +372,16 @@ export function ExploreScreen() {
             projected={projectedEnergy(session)}
             recede={focused}
           />
+          {session.auras.length > 0 && (
+            <div className={s["expl-aura-list"]} aria-label="远征光环">
+              {session.auras.map((aura) => (
+                <span className={s["expl-aura"]} key={aura.id} title={aura.desc}>
+                  <span className={s["expl-aura-name"]}>{aura.name}</span>
+                  <span className={s["expl-aura-desc"]}>{aura.desc}</span>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ---- 中央: 等距路由图 ---- */}
@@ -437,7 +448,7 @@ export function ExploreScreen() {
                 />
               )}
               <div className={s["expl-member-body"]}>
-                <HpBar hp={p.hp} maxHp={p.maxHp} name={p.name} flush />
+                <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} name={p.name} flush />
               </div>
               {!p.alive && <span className={s["expl-member-down"]}>阵亡</span>}
             </div>
@@ -618,17 +629,34 @@ export function ExploreScreen() {
                             : committing === i
                               ? s["is-chosen"]
                               : s["is-dimmed"];
+                        const requiredCount = c.cost?.count ?? 0;
+                        const availableCount = c.cost
+                          ? countByItemId(session.backpack, c.cost.itemId)
+                          : 0;
+                        const costUnavailable = Boolean(c.cost && availableCount < requiredCount);
                         return (
                           <button
                             key={c.id}
-                            className={cx(s["expl-choice"], state)}
+                            className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
                             type="button"
-                            disabled={!desc.done || committing != null}
+                            disabled={!desc.done || committing != null || costUnavailable}
+                            title={
+                              c.cost
+                                ? costUnavailable
+                                  ? "背包中没有指定食品"
+                                  : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`
+                                : undefined
+                            }
                             style={{ "--i": i } as CSSProperties}
                             onClick={() => takeOption(i)}
                           >
                             <span className={s["expl-choice-bar"]} aria-hidden />
                             <span className={s["expl-choice-label"]}>{c.label}</span>
+                            {c.cost && (
+                              <span className={s["expl-choice-cost"]}>
+                                {costUnavailable ? "背包中没有指定食品" : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`}
+                              </span>
+                            )}
                           </button>
                         );
                       })}

@@ -211,6 +211,7 @@ export interface BaseCombatant {
   emoji: string;
   team: Team;
   hp: number;
+  hpLimit: number; // 当前可治疗上限; 玩家受伤时会留下永久体力极限损伤
   maxHp: number; // 实时生命上限(建局时由 stats.maxHp 解析而来)
   shield: number; // 护盾值(可被伤害吸收)。⚠ 与"格挡"(blockRate, 概率减半)是两回事
   stats: StatBlock; // 局外已结算的面板(角色基础 + 装备)

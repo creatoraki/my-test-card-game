@@ -79,6 +79,7 @@ function partySnapshot(): PartySnapshot[] {
       name: c.name,
       emoji: c.emoji,
       hp: maxHp,
+      hpLimit: maxHp,
       maxHp,
       alive: true,
       // ★ 负重适应随快照一起带进探索层 —— 之后算负重惩罚就不用回头来问 townStore 了。
@@ -88,8 +89,19 @@ function partySnapshot(): PartySnapshot[] {
 }
 
 function applyPendingContamination(charIds: string[]): void {
-  const count = useExploreStore.getState().consumePendingContamination();
-  if (count > 0) useTownStore.getState().contaminateCards(charIds, count);
+  const request = useExploreStore.getState().consumePendingContamination();
+  const town = useTownStore.getState();
+  if (request.total > 0) town.contaminateCards(charIds, request.total);
+  if (request.each > 0) town.contaminateCards(charIds, request.each, true);
+}
+
+function alivePartyIds(): string[] {
+  return (
+    useExploreStore
+      .getState()
+      .session?.party.filter((member) => member.alive)
+      .map((member) => member.charId) ?? []
+  );
 }
 
 // 建一场战斗。
@@ -112,6 +124,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   const active = activeBonds(bondCountsOf(characters, party));
   const bondMods = mergeMods(active.map((a) => a.tier.mods)); // 每人各叠一份
   const bondPartyMods = mergeMods(active.map((a) => a.tier.partyMods)); // 全队只叠一份
+  const auraMods = mergeMods(session.auras.map((aura) => aura.mods));
 
   const alive = session.party.filter((p) => p.alive);
   const battleDeck: Card[] = alive.flatMap((p) => structuredClone(characters[p.charId].deck));
@@ -119,6 +132,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     const c = getCharacter(p.charId);
     // 局外第一层(角色基础 + 装备)已由 deriveStats 算完; 羁绊是叠在它之上的第二层。
     let s = applyModifier(deriveStats(characters[p.charId]), bondMods);
+    s = applyModifier(s, auraMods);
     // ★ 抽牌数/手牌上限是**小队合计**属性(engine/stats.partyDrawCount 按上阵角色求和),
     //   每人加一份会变成 3 人队三倍。所以这类只给队伍第一人加。
     if (i === 0) s = applyModifier(s, bondPartyMods);
@@ -130,6 +144,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
       emoji: c.emoji,
       stats: s, // ★ 局外已结算的完整面板(角色基础 + 装备 + 羁绊)
       startHp: p.hp, // ★ 血量跨战斗继承
+      startHpLimit: p.hpLimit,
       pollution: characterState.pollution,
       sick: characterState.sick,
       quirks: [...characterState.quirks],
@@ -222,7 +237,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
     // 战斗单位的最终血量回填给探索层 —— 下一场以此开局
     const survivors = battle.playerIds.map((id) => {
       const a = battle.combatants[id] as Ally;
-      return { charId: a.charId, hp: a.hp, maxHp: a.maxHp, alive: a.alive };
+      return {
+        charId: a.charId,
+        hp: a.hp,
+        hpLimit: a.hpLimit,
+        maxHp: a.maxHp,
+        alive: a.alive,
+      };
     });
 
     useTownStore.getState().syncBattleConditions(
@@ -316,6 +337,48 @@ export const useRunStore = create<RunStore>((set, get) => ({
       screen: "victory",
       lastResult: session.phase === "cleared" ? "won" : "retreat",
     });
+  },
+
+  resolvePendingHeal: (charId, limit) => {
+    const action = useExploreStore.getState().session?.pendingActions[0];
+    if (!action || (limit ? action.kind !== "healLimitOne" : action.kind !== "healOne")) return;
+    useExploreStore.getState().resolvePendingHealing(charId, limit);
+  },
+
+  resolvePendingQuirk: (charId, quirkId) => {
+    const action = useExploreStore.getState().session?.pendingActions[0];
+    if (!action || action.kind !== "cureQuirk") return;
+    const ids = action.scope === "party" ? alivePartyIds() : charId ? [charId] : [];
+    if (!ids.length) return;
+    const town = useTownStore.getState();
+    for (const id of ids) {
+      for (let i = 0; i < action.count; i++) {
+        town.cureQuirk(id, id === charId ? quirkId : undefined);
+      }
+    }
+    useExploreStore.getState().resolvePendingAction();
+  },
+
+  resolvePendingPollution: (charId) => {
+    const action = useExploreStore.getState().session?.pendingActions[0];
+    if (!action || action.kind !== "reducePollution") return;
+    const ids = action.scope === "party" ? alivePartyIds() : charId ? [charId] : [];
+    if (!ids.length) return;
+    const town = useTownStore.getState();
+    for (const id of ids) town.reducePollution(id, action.amount);
+    useExploreStore.getState().resolvePendingAction();
+  },
+
+  resolvePendingPurification: (charId, uids) => {
+    const action = useExploreStore.getState().session?.pendingActions[0];
+    if (!action || action.kind !== "purifyCards") return;
+    const ids = action.scope === "party" ? alivePartyIds() : charId ? [charId] : [];
+    if (!ids.length) return;
+    const town = useTownStore.getState();
+    for (const id of ids) {
+      town.purifyCards(id, action.count, id === charId ? uids : undefined);
+    }
+    useExploreStore.getState().resolvePendingAction();
   },
 
   // ★ 一趟出击的收尾 = **时间推进一日**(据点商店的主刷新机制就靠它)。

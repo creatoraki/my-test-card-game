@@ -34,13 +34,16 @@ interface Burst {
 
 interface Props {
   hp: number;
+  hpLimit?: number;
   maxHp: number;
   name: string;
   flush?: boolean; // 我方队伍卡的贴底变体: 去描边/斜切角, 与卡框底边一体化
 }
 
-export function HpBar({ hp, maxHp, name, flush }: Props) {
+export function HpBar({ hp, hpLimit, maxHp, name, flush }: Props) {
+  const limit = hpLimit ?? maxHp;
   const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+  const hpLimitPct = Math.max(0, Math.min(100, (limit / maxHp) * 100));
   const tier = hpPct > TIER_OK ? "hp-ok" : hpPct > TIER_WARN ? "hp-warn" : "hp-low";
 
   // 掉血迸溅。刻意盯 hp 的变化而非上游的 hit 特效: 中毒/流血这类非命中掉血也该迸溅,
@@ -74,10 +77,12 @@ export function HpBar({ hp, maxHp, name, flush }: Props) {
     // 填充为了裁住流光带带了 overflow:hidden, 端头若在里面, 辉光就没法往右溢进空槽。
     <div
       className={cx(s["hp-bar"], s[tier], flush && s["hp-flush"])}
-      style={{ "--hp-pct": `${hpPct}%` } as React.CSSProperties}
+      style={{ "--hp-pct": `${hpPct}%`, "--hp-limit-pct": `${hpLimitPct}%` } as React.CSSProperties}
     >
       {/* 扣血拖影: 残影层延迟收缩, 主填充速缩后它慢半拍追上(见 HpBar.module.css .hp-ghost) */}
       <div className={s["hp-ghost"]} style={{ width: `${hpPct}%` }} />
+
+      <div className={s["hp-limit-fill"]} style={{ width: `${hpLimitPct}%` }} />
 
       <div className={s["hp-fill"]}>
         <span className={s["hp-flow"]} />

@@ -13,6 +13,7 @@ import { log } from "./ops";
 function syncMaxHp(ally: Ally): void {
   const nextMaxHp = Math.max(1, Math.round(statOf(ally, "maxHp")));
   ally.maxHp = nextMaxHp;
+  ally.hpLimit = Math.min(ally.hpLimit, nextMaxHp);
   ally.hp = Math.min(ally.hp, nextMaxHp);
 }
 

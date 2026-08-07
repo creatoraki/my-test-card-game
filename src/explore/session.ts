@@ -51,8 +51,10 @@ import {
 import { rollDropTable, type DropContext } from "../items/drops";
 import {
   addToContainer,
+  countByItemId,
   findByUid,
   occupiedSlots,
+  consumeItems,
   removeByUid,
   stackSlots,
 } from "../items/inventory";
@@ -202,6 +204,7 @@ export function createSession(
     backpack: initialBackpack.map((st) => ({ ...st })),
     shipped: [],
     pendingPickup: [],
+      auras: [],
     pendingLoot: [],
     pendingExp: {},
     pendingActions: [],
@@ -214,6 +217,7 @@ export function createSession(
     freeNodes: 0,
     pendingNotes: [],
     pendingContaminationCount: 0,
+    pendingContaminationEach: 0,
     lateralShiftsLeft: 1,
     slot: null,
     pendingEncounterId: null,
@@ -425,7 +429,7 @@ export function restEat(s: ExploreState, uid: string): boolean {
   if (!event?.hiddenRest) return false;
   const item = findByUid(s.backpack, uid);
   if (!item || item.itemId !== event.hiddenRest.foodItemId) return false;
-  s.backpack = removeByUid(s.backpack, uid);
+  s.backpack = consumeItems(s.backpack, event.hiddenRest.foodItemId, 1, uid);
   s.phase = "npcEvent";
   return true;
 }
@@ -478,14 +482,16 @@ export function shipHome(s: ExploreState, uids: string[]): boolean {
 function healParty(s: ExploreState, percent: number): void {
   for (const p of s.party) {
     if (!p.alive) continue; // 回血不复活阵亡者
-    p.hp = Math.min(p.maxHp, p.hp + Math.ceil(p.maxHp * percent));
+    p.hp = Math.min(p.hpLimit, p.hp + Math.ceil(p.maxHp * percent));
   }
 }
 
 function damagePartyPercent(s: ExploreState, percent: number): void {
   for (const p of s.party) {
     if (!p.alive) continue;
-    p.hp -= Math.max(1, Math.round(p.maxHp * percent));
+    const damage = Math.max(1, Math.round(p.maxHp * percent));
+    p.hpLimit = Math.max(1, p.hpLimit > p.hp ? p.hp : p.hpLimit);
+    p.hp -= damage;
     if (p.hp <= 0) {
       p.hp = 0;
       p.alive = false;
@@ -563,10 +569,10 @@ function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
       if (!alive.length) return "无人可治疗";
       // 优先治疗伤得最重的那个 —— 随机指定只会让玩家觉得系统在跟自己作对
       const target = alive.reduce((a, b) => (a.hp / a.maxHp <= b.hp / b.maxHp ? a : b));
-      target.hp = target.maxHp;
+      target.hp = target.hpLimit;
       for (const p of alive) {
         if (p === target) continue;
-        p.hp = Math.min(p.maxHp, p.hp + Math.ceil(p.maxHp * e.othersPercent));
+        p.hp = Math.min(p.hpLimit, p.hp + Math.ceil(p.maxHp * e.othersPercent));
       }
       return `${target.name} 回满, 其余回复 ${Math.round(e.othersPercent * 100)}%`;
     }
@@ -611,9 +617,42 @@ function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
       return `接下来 ${e.nodes} 个节点不消耗净化粒子`;
     case "CONTAMINATE_CARDS": {
       const count = Math.max(1, Math.floor(e.count ?? 1));
+      if (e.each) {
+        s.pendingContaminationEach += count;
+        return `每名角色的牌组各加入 ${count} 张污染卡, 将在离开事件后记录`;
+      }
       s.pendingContaminationCount += count;
       return `发现 ${count} 张污染卡, 将在离开事件后记录`;
     }
+    case "HEAL_ONE":
+      s.pendingActions.push({ kind: "healOne", percent: e.percent, full: e.full ?? false });
+      return e.full ? "获得一次指定角色生命回满" : `获得一次指定角色治疗 ${Math.round(e.percent * 100)}%`;
+    case "HEAL_LIMIT_PARTY": {
+      for (const p of s.party) {
+        if (!p.alive) continue;
+        p.hpLimit = Math.min(p.maxHp, p.hpLimit + Math.ceil(p.maxHp * e.percent));
+      }
+      return `全队体力极限恢复 ${Math.round(e.percent * 100)}%`;
+    }
+    case "HEAL_LIMIT_ONE":
+      s.pendingActions.push({
+        kind: "healLimitOne",
+        percent: e.percent ?? 0,
+        full: e.full ?? false,
+      });
+      return e.full ? "获得一次指定角色体力极限全恢复" : `获得一次指定角色体力极限修复 ${Math.round((e.percent ?? 0) * 100)}%`;
+    case "CURE_QUIRK":
+      s.pendingActions.push({ kind: "cureQuirk", scope: e.scope, count: Math.max(1, e.count ?? 1) });
+      return e.scope === "party" ? `获得全队各治疗 ${Math.max(1, e.count ?? 1)} 个怪癖` : "获得一次指定角色怪癖治疗";
+    case "REDUCE_POLLUTION":
+      s.pendingActions.push({ kind: "reducePollution", scope: e.scope, amount: Math.max(0, e.amount) });
+      return e.scope === "party" ? `获得全队污染值降低 ${Math.max(0, e.amount)}` : `获得一次指定角色污染值降低 ${Math.max(0, e.amount)}`;
+    case "PURIFY_CARDS":
+      s.pendingActions.push({ kind: "purifyCards", scope: e.scope, count: Math.max(1, e.count ?? 1) });
+      return e.scope === "party" ? `获得全队各净化 ${Math.max(1, e.count ?? 1)} 张污染卡` : "获得一次指定角色污染卡净化";
+    case "GRANT_AURA":
+      if (!s.auras.some((aura) => aura.id === e.aura.id)) s.auras.push({ ...e.aura });
+      return `获得远征光环「${e.aura.name}」`;
     case "GAIN_EXP_PARTY": {
       let count = 0;
       for (const p of s.party) {
@@ -648,10 +687,16 @@ function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
 }
 
 // 由 store 层消费一次, 纯探索层不接触 townStore。
-export function takePendingContamination(s: ExploreState): number {
-  const count = s.pendingContaminationCount;
+export interface PendingContamination {
+  total: number;
+  each: number;
+}
+
+export function takePendingContamination(s: ExploreState): PendingContamination {
+  const result = { total: s.pendingContaminationCount, each: s.pendingContaminationEach };
   s.pendingContaminationCount = 0;
-  return count;
+  s.pendingContaminationEach = 0;
+  return result;
 }
 
 export function grantExpTo(s: ExploreState, charId: string): boolean {
@@ -671,6 +716,25 @@ export function takePendingExp(s: ExploreState): Record<string, number> {
 
 export function resolvePendingAction(s: ExploreState): boolean {
   if (!s.pendingActions.length) return false;
+  s.pendingActions.shift();
+  return true;
+}
+
+export function resolvePendingHealing(s: ExploreState, charId: string, limit: boolean): boolean {
+  const action = s.pendingActions[0];
+  if (!action || (limit ? action.kind !== "healLimitOne" : action.kind !== "healOne")) return false;
+  const target = s.party.find((p) => p.charId === charId && p.alive);
+  if (!target) return false;
+  if (limit) {
+    target.hpLimit = action.full
+      ? target.maxHp
+      : Math.min(target.maxHp, target.hpLimit + Math.ceil(target.maxHp * action.percent));
+  } else {
+    target.hp = Math.min(
+      target.hpLimit,
+      action.full ? target.hpLimit : target.hp + Math.ceil(target.maxHp * action.percent),
+    );
+  }
   s.pendingActions.shift();
   return true;
 }
@@ -993,6 +1057,12 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   const choice = landedChoices(s)[index];
   if (!ev || !choice) return false;
 
+  if (choice.cost) {
+    const count = Math.max(1, Math.floor(choice.cost.count));
+    if (countByItemId(s.backpack, choice.cost.itemId) < count) return false;
+    s.backpack = consumeItems(s.backpack, choice.cost.itemId, count);
+  }
+
   const energyBefore = s.energy;
   const notes: string[] = [];
 
@@ -1259,7 +1329,7 @@ export function retreat(s: ExploreState): boolean {
 export function finishBattle(
   s: ExploreState,
   won: boolean,
-  survivors: { charId: string; hp: number; alive: boolean; maxHp?: number }[],
+  survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; maxHp?: number }[],
   enemyDefIds: string[],
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
   const empty = { loot: 0, items: [], overflow: [] };
@@ -1270,6 +1340,7 @@ export function finishBattle(
     const found = survivors.find((x) => x.charId === p.charId);
     if (!found) continue;
     p.maxHp = Math.max(1, Math.round(found.maxHp ?? p.maxHp));
+    p.hpLimit = Math.max(1, Math.min(p.maxHp, Math.round(found.hpLimit ?? p.hpLimit)));
     p.hp = Math.min(p.maxHp, Math.max(0, found.hp));
     p.alive = found.alive && found.hp > 0;
   }
