@@ -419,7 +419,7 @@ export function ExploreScreen() {
                 onClick={() => pushOn()}
               >
                 <span className={s["expl-advance-ring"]} aria-hidden />
-                <span className={s["expl-advance-label"]}>继续推进 ▸</span>
+                <span className={s["expl-advance-label"]}>继续推进</span>
               </button>
               <button
                 className={cx(s["expl-advance-btn"], s["is-leave"])}
@@ -428,7 +428,7 @@ export function ExploreScreen() {
                 onClick={() => leaveRegion()}
               >
                 <span className={s["expl-advance-ring"]} aria-hidden />
-                <span className={s["expl-advance-label"]}>前往下一区域 ▸</span>
+                <span className={s["expl-advance-label"]}>前往下一区域</span>
               </button>
             </div>
           )}
@@ -448,7 +448,7 @@ export function ExploreScreen() {
           <div className={s["expl-button-row"]}>
             {/* ⚠ 背包的开放时机是硬约束(设计文档 §6.3): 揭示桥接时开背包 = 无限延长观察时间。
                 真正的拦截在 explore/session.canOpenBackpack, 这里只是把它的结论画出来。 */}
-            <button
+            {/* <button
               className={cx(
                 s["expl-btn"],
                 !canBackpack && s["is-locked"],
@@ -463,7 +463,7 @@ export function ExploreScreen() {
               <span className={s["expl-btn-flag"]}>
                 {canBackpack ? `${usedSlots}/${RULES.burden.backpackSlots}` : "本阶段锁定"}
               </span>
-            </button>
+            </button> */}
             <button
               className={cx(s["expl-btn"], s["is-danger"])}
               type="button"

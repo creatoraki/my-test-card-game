@@ -422,8 +422,8 @@
 }
 .expl-advance-btn {
   position: relative;
-  width: 300px;
-  padding: 18px 28px;
+  width: 260px;
+  padding: 13px 20px;
   overflow: visible;
   clip-path: none;
   border: 2px solid var(--adv-k);
@@ -448,15 +448,6 @@
     box-shadow 220ms ease,
     background 220ms ease,
     transform 140ms cubic-bezier(0.2, 0.72, 0.28, 1);
-}
-.expl-advance-btn::after {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 38%, #ffffff33 50%, transparent 62%);
-  content: "";
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-120%);
 }
 .is-push {
   --adv-k: #e3aa72;
@@ -489,11 +480,6 @@
     inset 0 0 26px -6px color-mix(in srgb, var(--adv-k) 65%, transparent),
     0 0 44px -2px color-mix(in srgb, var(--adv-k) 80%, transparent),
     0 30px 54px -20px #000000f2;
-}
-:global([data-explore-stage]) .expl-advance-btn:hover:not(:disabled)::after,
-:global([data-explore-stage]) .expl-advance-btn:focus-visible::after {
-  opacity: 1;
-  animation: explChoiceSheen 460ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
 }
 .expl-advance-ring {
   position: absolute;
@@ -1008,9 +994,6 @@
   .expl-advance-btn {
     animation: none;
     opacity: 1;
-  }
-  .expl-advance-btn::after {
-    display: none;
   }
   .expl-panel {
     animation: explFade 180ms ease backwards;

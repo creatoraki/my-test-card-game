@@ -36,10 +36,13 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
         style={{ ["--el-glow" as string]: energyLampGlow(cur.tier) }}
         aria-hidden
       >
-        <span className={cx(s["el-halo"], recede && s["is-recede"])} key={cur.tier} />
+        <span
+          className={cx(s["el-halo"], recede && s["is-recede"])}
+          key={`halo-${cur.tier}`}
+        />
         <img
           className={cx(s["el-lamp-img"], recede && s["is-recede"], crossing && s["is-warning"])}
-          key={cur.tier}
+          key={`lamp-${cur.tier}`}
           src={energyLampArt(cur.tier)}
           alt=""
           draggable={false}
