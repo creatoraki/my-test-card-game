@@ -34,6 +34,8 @@ export default function RewardOverlay() {
   return (
     <div className={s["reward-layer"]}>
       <section className={s["reward-panel"]} aria-label="事件奖励">
+        <span className={s["panel-frame"]} aria-hidden />
+        <span className={s["panel-scan"]} aria-hidden />
         <header className={s["reward-head"]}>
           <div>
             <span className={s["reward-kicker"]}>GROWTH PROTOCOL / REWARD</span>
@@ -87,7 +89,6 @@ export default function RewardOverlay() {
               removeCardFree(chosenCharId, uid);
               finish();
             }}
-            onSkip={finish}
           />
         )}
 

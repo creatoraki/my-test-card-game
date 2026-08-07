@@ -1,0 +1,71 @@
+/* 探索事件类面板共享材质。颜色由调用方通过 --k 下发，几何尺寸与布局留在各自组件。 */
+.panel-shell {
+  --notch: 14px;
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--k) 32%, #ffffff1c);
+  border-top: 2px solid var(--k);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--k) 7%, #101a1ecc),
+    #0a0f12f2
+  );
+  backdrop-filter: blur(14px) saturate(112%) brightness(0.92);
+  box-shadow:
+    inset 0 1px 0 #ffffff16,
+    0 28px 72px -34px #000000e8;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+
+.panel-frame {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.panel-frame::before,
+.panel-frame::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.panel-frame::before {
+  inset: 7px;
+  border: 1px solid color-mix(in srgb, var(--k) 25%, #ffffff14);
+}
+
+.panel-frame::after {
+  background:
+    linear-gradient(var(--k), var(--k)) left top / 22px 2px no-repeat,
+    linear-gradient(var(--k), var(--k)) left top / 2px 22px no-repeat,
+    linear-gradient(var(--k), var(--k)) right top / 22px 2px no-repeat,
+    linear-gradient(var(--k), var(--k)) right top / 2px 22px no-repeat,
+    linear-gradient(var(--k), var(--k)) left bottom / 22px 2px no-repeat,
+    linear-gradient(var(--k), var(--k)) left bottom / 2px 22px no-repeat,
+    linear-gradient(var(--k), var(--k)) right bottom / 22px 2px no-repeat,
+    linear-gradient(var(--k), var(--k)) right bottom / 2px 22px no-repeat,
+    linear-gradient(var(--k), var(--k)) 18px 0 / 120px 2px no-repeat,
+    linear-gradient(var(--k), var(--k)) calc(100% - 22px) 14px / 10px 1px no-repeat,
+    linear-gradient(var(--k), var(--k)) calc(100% - 22px) 18px / 10px 1px no-repeat,
+    linear-gradient(var(--k), var(--k)) calc(100% - 22px) 22px / 10px 1px no-repeat;
+  opacity: 0.82;
+}
+
+.panel-scan {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 6px);
+  opacity: 0.3;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}

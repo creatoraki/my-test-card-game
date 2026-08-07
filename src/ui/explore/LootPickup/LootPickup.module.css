@@ -8,24 +8,54 @@
 }
 
 .loot-panel {
+  composes: panel-shell from "../styles/explorePanel.module.css";
+  --k: #9be4bd;
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
   width: 560px;
   padding: 22px 26px 18px;
-  border: 1px solid #d5e7dd40;
-  border-top: 2px solid #9be4bd;
-  background: linear-gradient(145deg, #172721f5, #0b1411f7);
-  box-shadow: 0 28px 70px -32px #000;
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
   pointer-events: auto;
   animation: loot-in 360ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.panel-frame {
+  composes: panel-frame from "../styles/explorePanel.module.css";
+}
+
+.panel-scan {
+  composes: panel-scan from "../styles/explorePanel.module.css";
+}
+
+:global([data-explore-dock="stacked"]) .loot-layer {
+  align-content: start;
+  padding-top: var(--expl-dock-top);
+}
+
+:global([data-explore-dock="stacked"]) .loot-panel {
+  max-height: var(--expl-dock-max-h);
+  overflow: hidden;
 }
 
 .loot-head,
 .loot-foot,
 .loot-confirm {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+}
+
+.loot-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .loot-kicker {
@@ -54,6 +84,11 @@
 }
 
 .loot-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: #9be4bd66 transparent;
+  scrollbar-width: thin;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
@@ -61,6 +96,21 @@
 
 .loot-item {
   min-width: 0;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.loot-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px -10px #9be4bd;
+}
+
+.loot-item:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 90ms;
 }
 
 .loot-item :global(.item-slot) {
@@ -87,11 +137,32 @@
   background: #17231e;
   color: #dcece4;
   cursor: pointer;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
 }
 
 .loot-btn:hover:not(:disabled) {
   border-color: #9be4bd;
   transform: translateY(-2px);
+}
+
+.loot-btn:focus-visible,
+.loot-btn:hover:not(:disabled) {
+  box-shadow: 0 0 20px -12px #9be4bd;
+}
+
+.loot-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 90ms;
+}
+
+.loot-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .loot-btn.is-primary {
@@ -126,4 +197,10 @@
 @media (prefers-reduced-motion: reduce) {
   .loot-panel { animation: none; }
   .loot-fly { animation-duration: 180ms; }
+  .loot-item:hover,
+  .loot-item:active,
+  .loot-btn:hover:not(:disabled),
+  .loot-btn:active:not(:disabled) {
+    transform: none;
+  }
 }

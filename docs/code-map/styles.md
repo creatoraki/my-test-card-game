@@ -25,6 +25,10 @@
 探索域的共享按钮、标签和事件类型色位于
 [exploreKit.module.css](../../src/ui/explore/styles/exploreKit.module.css)，探索组件各自通过 `composes` 使用；
 探索画布根通过 `data-explore-stage` 传递跨组件状态，不再依赖 `.explore-stage` 的远程后代选择器。
+探索事件、拾取和奖励面板的统一暗玻璃材质、边框装饰与扫描线位于
+[explorePanel.module.css](../../src/ui/explore/styles/explorePanel.module.css)，三方各自通过 `composes` 使用；
+画布根通过 `data-explore-dock="stacked"` 传递事件面板占用上半格的状态，dock 顶部位置与可用高度由
+`--expl-dock-top` / `--expl-dock-max-h` CSS 变量统一下发。
 
 出击域的白玻璃面板材质（零圆角 + `blur(18px) saturate(118%) brightness(1.06)` + 白色内描边 hairline）
 住在 [sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css)，

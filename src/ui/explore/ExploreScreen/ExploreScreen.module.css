@@ -27,6 +27,12 @@
 .expl-btn-flag {
   composes: expl-btn-flag from "../styles/exploreKit.module.css";
 }
+.panel-frame {
+  composes: panel-frame from "../styles/explorePanel.module.css";
+}
+.panel-scan {
+  composes: panel-scan from "../styles/explorePanel.module.css";
+}
 .k-hazard {
   composes: k-hazard from "../styles/exploreKit.module.css";
 }
@@ -75,6 +81,9 @@
    (transform 是上面那条缩放, 属于画布机制本身 —— 故本页的玻璃刻意都做成「玻璃 + 半透明渐变底」
    的组合, 即便某些浏览器把缩放层当作 backdrop root, 也仍有底色兜住可读性。) */
 .explore-stage {
+  --expl-modal-top: 202px;
+  --expl-dock-top: 702px;
+  --expl-dock-max-h: 356px;
   --expl-glow: #6fe3f5; /* 本页强调青: 与路由图横线同色, 读作「还在供电的东西」 */
   --expl-line: #ffffff24; /* 玻璃常态描边 */
   /* ★ 背景压暗强度 —— 想调明暗**只改这一个数**(0 = 完全不压, 露出原图; 1 = 原始最暗配方)。
@@ -481,6 +490,10 @@
     0 0 44px -2px color-mix(in srgb, var(--adv-k) 80%, transparent),
     0 30px 54px -20px #000000f2;
 }
+:global([data-explore-stage]) .expl-advance-btn:active:not(:disabled) {
+  transform: translateX(-6px) translateY(1px) scale(0.985);
+  transition-duration: 90ms;
+}
 .expl-advance-ring {
   position: absolute;
   left: 50%;
@@ -524,39 +537,29 @@
   z-index: 20;
   pointer-events: none;
 }
+:global([data-explore-dock="stacked"]) .expl-modal {
+  align-items: flex-start;
+  padding-top: var(--expl-modal-top);
+}
 .expl-panel {
+  composes: panel-shell from "../styles/explorePanel.module.css";
   --k: var(--expl-kind, #c9d4d2);
   --k-soft: var(--expl-kind-soft, #c9d4d21f);
   --k-line: var(--expl-kind-line, #c9d4d266);
-  --notch: 12px;
   pointer-events: auto;
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 24px;
-  width: 860px;
-  min-height: 382px;
+  width: 980px;
+  height: 500px;
   padding: 18px;
-  border: 1px solid var(--expl-line);
-  border-top: 2px solid var(--expl-line);
-  background: linear-gradient(180deg, #10171acc, #0b1013e8);
-  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
-  box-shadow:
-    inset 0 1px 0 #ffffff14,
-    0 28px 66px -34px #000000e6;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
   /* 从画布上方滑入(与控制终端浮层同一套语言)。⚠ 动画挂面板自己, 不挂 .expl-modal。 */
   animation: explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards;
 }
 .expl-panel-art {
   position: relative;
-  min-height: 346px;
+  z-index: 1;
+  height: 100%;
   overflow: hidden;
   border: 1px solid var(--expl-line);
   background: #0b1317;
@@ -569,7 +572,6 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 346px;
   object-fit: cover;
   opacity: 0.68;
   filter: saturate(0.64) contrast(0.96) brightness(0.82);
@@ -611,13 +613,19 @@
   font-size: 20px;
 }
 .expl-panel-content {
+  position: relative;
+  z-index: 1;
   display: flex;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
   flex-direction: column;
   gap: 10px;
   padding: 7px 10px 4px 0;
 }
 .expl-panel-heading {
+  flex: none;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -656,16 +664,19 @@
 .expl-choices {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 8px;
   margin-top: auto;
+}
+.expl-panel.has-choices .expl-panel-slot {
+  overflow: hidden;
 }
 .expl-choice {
   --notch: 10px;
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 64px;
-  padding: 14px 18px 14px 20px;
+  min-height: 50px;
+  padding: 10px 14px 10px 16px;
   border: 1px solid var(--expl-line);
   background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
   backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
@@ -716,37 +727,16 @@
   transform: translateY(2px);
   transition-duration: 90ms;
 }
-.expl-choice-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
 .expl-choice-label {
   color: #edf3f0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 650;
   letter-spacing: 1px;
 }
-.expl-choice-energy {
-  flex: none;
-  color: #aebbb9;
-  font-size: 12px;
-  letter-spacing: 1px;
-}
-.expl-choice-energy.up {
-  color: #a6d79a;
-}
-.expl-choice-energy.down {
-  color: #e6b08d;
-}
-.expl-choice-desc {
-  color: #a9b7b8;
-  font-size: 12px;
-  line-height: 1.65;
-}
-
 .expl-panel-title {
+  flex: none;
+  height: 42px;
+  overflow: hidden;
   margin: 8px 0 0;
   color: var(--text);
   font-size: 27px;
@@ -754,11 +744,38 @@
   letter-spacing: 3px;
 }
 .expl-panel-desc {
+  position: relative;
+  flex: none;
   margin: 0;
-  max-width: 470px;
+  max-width: 620px;
+  max-height: 160px;
+  height: 160px;
+  overflow-y: auto;
+  scrollbar-color: var(--k-line) transparent;
+  scrollbar-width: thin;
   color: #d1dcd9;
   font-size: 14px;
   line-height: 1.8;
+}
+.expl-desc-ghost {
+  position: absolute;
+  inset: 0;
+  white-space: pre-wrap;
+  visibility: hidden;
+}
+.expl-desc-live {
+  display: block;
+  min-height: 100%;
+  white-space: pre-wrap;
+}
+.expl-panel-slot {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-color: var(--k-line) transparent;
+  scrollbar-width: thin;
 }
 .expl-notes {
   display: flex;
@@ -782,6 +799,7 @@
   color: var(--muted);
 }
 .expl-panel-foot {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -804,6 +822,7 @@
 }
 .expl-story p {
   margin: 0;
+  animation: explRise 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 .expl-rest-food {
   display: flex;
@@ -859,6 +878,10 @@
   opacity: 1;
   animation: explRise 340ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(var(--i, 0) * var(--choice-stagger, 90ms));
+}
+.expl-choices.is-closing {
+  pointer-events: none;
+  animation: explChoicesExit 360ms cubic-bezier(0.2, 0.72, 0.28, 1) forwards;
 }
 /* 决策浮层(atNode)与落点用同一套语言, 只是不需要等正文 —— 直接错峰浮起。 */
 .expl-decide-row .expl-choice {
@@ -949,6 +972,12 @@
     transform: translateX(120%);
   }
 }
+@keyframes explChoicesExit {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+}
 @keyframes explAdvRing {
   from {
     opacity: 0.7;
@@ -995,8 +1024,13 @@
     animation: none;
     opacity: 1;
   }
+  .expl-advance-btn:hover:not(:disabled),
+  .expl-advance-btn:focus-visible,
+  .expl-advance-btn:active:not(:disabled) {
+    transform: none;
+  }
   .expl-panel {
-    animation: explFade 180ms ease backwards;
+    animation: none;
   }
   /* 逐字演出整套下线: 文字由 useTypewriter 直接给全文, 这里只保证它们**看得见**
      (那几条 opacity:0 的默认态必须被顶掉)。 */
@@ -1026,6 +1060,7 @@
   flex-direction: column;
   gap: 10px;
   width: 860px;
+  height: 380px;
   min-height: 0;
   padding: 24px 30px 24px;
 }

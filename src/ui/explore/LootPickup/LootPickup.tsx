@@ -13,7 +13,7 @@ interface FlyingLoot {
   to: { left: number; top: number };
 }
 
-export default function LootPickup() {
+function LootPickup() {
   const pendingLoot = useExploreStore((state) => state.session?.pendingLoot ?? []);
   const takeLoot = useExploreStore((state) => state.takeLoot);
   const takeAllLoot = useExploreStore((state) => state.takeAllLoot);
@@ -55,6 +55,8 @@ export default function LootPickup() {
   return (
     <div className={s["loot-layer"]}>
       <section className={s["loot-panel"]} aria-label="待拾取物品">
+        <span className={s["panel-frame"]} aria-hidden />
+        <span className={s["panel-scan"]} aria-hidden />
         <header className={s["loot-head"]}>
           <div>
             <span className={s["loot-kicker"]}>EVENT MATERIAL RECOVERY</span>
@@ -62,13 +64,15 @@ export default function LootPickup() {
           </div>
           <span className={s["loot-count"]}>{pendingLoot.length} 件待拾取</span>
         </header>
-        <p className={s["loot-desc"]}>点击物品将它们收入背包。放弃的物品不会进入本次远征记录。</p>
-        <div className={s["loot-grid"]}>
-          {displayed.map((stack) => (
-            <div className={s["loot-item"]} data-loot-uid={stack.uid} key={stack.uid}>
-              <ItemSlot stack={stack} onClick={() => pick(stack)} />
-            </div>
-          ))}
+        <div className={s["loot-body"]}>
+          <p className={s["loot-desc"]}>点击物品将它们收入背包。放弃的物品不会进入本次远征记录。</p>
+          <div className={s["loot-grid"]}>
+            {displayed.map((stack) => (
+              <div className={s["loot-item"]} data-loot-uid={stack.uid} key={stack.uid}>
+                <ItemSlot stack={stack} onClick={() => pick(stack)} />
+              </div>
+            ))}
+          </div>
         </div>
         <footer className={s["loot-foot"]}>
           {confirming ? (
@@ -113,3 +117,5 @@ export default function LootPickup() {
     </div>
   );
 }
+
+export default LootPickup;
