@@ -2,8 +2,8 @@
 // ⚠ 它不是浮层: 原先这套内容是冬眠仓「队员档案」modal 里的右栏(1240×680 面板里的一小半),
 //   独立成页后立绘、属性、卡组各有自己的一栏, 不再互相挤。
 //
-// ★ 属性与卡组档案是**只读**的。加点与卡组锻造刻意不放这里 —— 那两样归训练室
-//   (游戏设定.md:86-89 的设施分工); 角色也不设等级(角色养成设计.md 第一章)。
+// ★ 属性面板仍是**只读**的; 个人卡组已开放扩充、精简、升级三项锻造操作。
+//   成本口径统一读取 RULES.deck 与 townStore 的 deckForgeCosts, 角色也不设等级。
 // ★ 装备槽是本页的即时操作区: 点击部位后右侧切换对应仓库, 穿戴/卸下直接复用 townStore。
 //   角色状态在这里仅作展示, 编队调整统一从编队页完成。
 //
@@ -15,9 +15,11 @@ import { RULES, type StatBlock } from "@/engine";
 import { getCharacter, getItemDef } from "@/data";
 import type { EquipSlot } from "@/items/types";
 import { useRunStore } from "@/store/runStore";
-import { deriveStats, useTownStore } from "@/store/townStore";
+import { canAddRarity, deckForgeCosts, deriveStats, useTownStore } from "@/store/townStore";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
+import { DeckForgeBar } from "@/ui/character/DeckForgeBar";
+import { DeckForgeOverlay } from "@/ui/character/DeckForgeOverlay";
 import { EquipmentDrawer } from "@/ui/character/EquipmentDrawer";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
@@ -99,11 +101,18 @@ export function CharacterDetailScreen() {
   const awakened = useTownStore((s) => s.awakened);
   const party = useTownStore((s) => s.party);
   const storage = useTownStore((s) => s.storage);
+  const day = useTownStore((s) => s.day);
   const equipItem = useTownStore((s) => s.equipItem);
   const unequipItem = useTownStore((s) => s.unequipItem);
+  const forgeDraw = useTownStore((s) => s.forgeDraw);
+  const removeCard = useTownStore((s) => s.removeCard);
+  const upgradeDeck = useTownStore((s) => s.upgradeDeck);
+  const pickDraw = useTownStore((s) => s.pickDraw);
+  const cancelDraw = useTownStore((s) => s.cancelDraw);
   const charId = useRunStore((s) => s.detailCharId);
   const closeCharDetail = useRunStore((s) => s.closeCharDetail);
   const [activeSlot, setActiveSlot] = useState<EquipSlot | null>(null);
+  const [forgeMode, setForgeMode] = useState<"draw" | "remove" | null>(null);
   const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
 
@@ -135,6 +144,7 @@ export function CharacterDetailScreen() {
 
   useEffect(() => {
     setActiveSlot(null);
+    setForgeMode(null);
     setSelectedCardUid(cs?.deck[0]?.uid ?? null);
     setHoveredCardUid(null);
   }, [charId]);
@@ -152,10 +162,32 @@ export function CharacterDetailScreen() {
     if (activeSlot) setHoveredCardUid(null);
   }, [activeSlot]);
 
+  useEffect(() => {
+    if (activeSlot) setForgeMode(null);
+  }, [activeSlot]);
+
+  useEffect(() => {
+    if (cs?.pendingDraw) setForgeMode("draw");
+  }, [cs?.pendingDraw]);
+
+  const closeForge = useCallback(() => {
+    if (forgeMode === "draw" && charId) cancelDraw(charId);
+    setForgeMode(null);
+  }, [cancelDraw, charId, forgeMode]);
+
+  const openEquipmentSlot = useCallback((slot: EquipSlot) => {
+    setForgeMode(null);
+    setActiveSlot(slot);
+  }, []);
+
   // Esc 返回编队页。与左下角那颗按钮同一个出口(都走 back, 才能一并触发返回的飞行)。
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
+      if (forgeMode) {
+        closeForge();
+        return;
+      }
       if (activeSlot) {
         setActiveSlot(null);
         return;
@@ -164,7 +196,7 @@ export function CharacterDetailScreen() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeSlot, back]);
+  }, [activeSlot, back, closeForge, forgeMode]);
 
   const drawerCandidates = useMemo(
     () =>
@@ -184,6 +216,13 @@ export function CharacterDetailScreen() {
   const size = RULES.progression.partySize;
   const onField = party.includes(charId);
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
+  const costs = deckForgeCosts(cs, day);
+  const hasDrawPool = (Object.keys(def.pools) as (keyof typeof def.pools)[]).some(
+    (rarity) => def.pools[rarity].length > 0 && canAddRarity(cs.deck, rarity),
+  );
+  const canDraw = !cs.pendingDraw && cs.exp >= costs.draw && hasDrawPool;
+  const canRemove = cs.exp >= costs.remove && cs.deck.length > cs.minDeckSize;
+  const canUpgrade = costs.upgrade != null && cs.exp >= costs.upgrade;
 
   return (
     <div
@@ -202,7 +241,7 @@ export function CharacterDetailScreen() {
           <span className={s["cd-kicker"]}>SUBJECT / {def.id.toUpperCase()}</span>
           <h2 className={s["cd-title"]}>{def.name}</h2>
           <p className={s["cd-sub"]}>
-            可用经验 {cs.exp} · 累计 {cs.expEarned} · 卡组 Lv.{cs.deckLevel} · 最小卡组下限{" "}
+            可用经验 {cs.exp} · 累计 {cs.expEarned} · 卡组 Lv.{cs.deckLevel}/{RULES.deck.levelMax} · 最小卡组下限{" "}
             {cs.minDeckSize} 张
           </p>
           <div className={s["cd-conditions"]}>
@@ -226,7 +265,7 @@ export function CharacterDetailScreen() {
 
         {/* ---- 主体三栏 ----
             ★ 位置/尺寸旋钮全在下面的内联 style(设计 px); CSS 只负责每一栏内部的机制。
-              420(立绘) + 560(属性) + 剩余(卡组), 两道 24px 的槽。 */}
+              420(立绘) + 600(属性) + 剩余(卡组), 两道 24px 的槽。 */}
         <div
           className={s["cd-body"]}
           style={{
@@ -235,7 +274,7 @@ export function CharacterDetailScreen() {
             width: "1776px",
             height: "740px",
             gap: "24px",
-            gridTemplateColumns: "420px 560px 1fr",
+            gridTemplateColumns: "420px 600px 1fr",
           }}
         >
           {/* 立绘栏 */}
@@ -264,7 +303,7 @@ export function CharacterDetailScreen() {
               className={s["cd-equipment-slots"]}
               equipped={cs.equipped}
               activeSlot={activeSlot}
-              onSelect={setActiveSlot}
+              onSelect={openEquipmentSlot}
               onUnequip={(slot) => unequipItem(charId, slot)}
             />
             {/* <span className={s["cd-section-label"]}>面板属性 · 只读</span> */}
@@ -304,14 +343,30 @@ export function CharacterDetailScreen() {
                 <div className={s["cd-deck-head"]}>
                   <div>
                     <span className={s["cd-section-label"]}>个人卡组</span>
-                    <p className={s["cd-deck-sub"]}>只读构筑档案 · 卡组锻造请前往训练室</p>
+                    <p className={s["cd-deck-sub"]}>构筑档案 · 扩充 / 精简 / 升级</p>
                   </div>
                   <div className={s["cd-deck-readout"]}>
                     <span>{cs.deck.length} 张</span>
-                    <span>Lv.{cs.deckLevel}</span>
+                    <span>
+                      Lv.{cs.deckLevel}/{RULES.deck.levelMax}
+                    </span>
                     <span>下限 {cs.minDeckSize}</span>
                   </div>
                 </div>
+                <DeckForgeBar
+                  costs={costs}
+                  exp={cs.exp}
+                  deckLevel={cs.deckLevel}
+                  deckSize={cs.deck.length}
+                  minDeckSize={cs.minDeckSize}
+                  canDraw={canDraw}
+                  canRemove={canRemove}
+                  canUpgrade={canUpgrade}
+                  onDraw={() => forgeDraw(charId)}
+                  onRemove={() => setForgeMode("remove")}
+                  onUpgrade={() => upgradeDeck(charId)}
+                  drawDisabledReason={!hasDrawPool ? "该角色暂无可抽卡池" : undefined}
+                />
                 <div className={s["cd-deck-content"]}>
                   <div className={s["cd-deck-grid"]}>
                     {cs.deck.map((card, i) => (
@@ -339,7 +394,26 @@ export function CharacterDetailScreen() {
           </div>
         </div>
 
-        {!activeSlot && hoveredCard && <DeckCardHoverPreview card={hoveredCard} />}
+        {!activeSlot && !forgeMode && hoveredCard && <DeckCardHoverPreview card={hoveredCard} />}
+
+        {forgeMode && (
+          <DeckForgeOverlay
+            mode={forgeMode}
+            pendingDraw={cs.pendingDraw}
+            deck={cs.deck}
+            minDeckSize={cs.minDeckSize}
+            onPickDraw={(cardDefId) => {
+              pickDraw(charId, cardDefId);
+              setForgeMode(null);
+            }}
+            onRemoveCard={(uid) => {
+              removeCard(charId, uid);
+              setForgeMode(null);
+            }}
+            onCancelDraw={closeForge}
+            onClose={closeForge}
+          />
+        )}
 
         {/* ---- 左下: 返回 ---- */}
         <button

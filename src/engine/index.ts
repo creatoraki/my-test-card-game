@@ -1,7 +1,14 @@
 // 引擎公开 API。UI / store 只从这里 import。
 
 export * from "./types";
-export { RULES, capProb, deckUpgradeCost, lowerMinSizeCost } from "./rules";
+export {
+  RULES,
+  capProb,
+  deckUpgradeCost,
+  drawCostToday,
+  lowerMinSizeCost,
+  removeCostToday,
+} from "./rules";
 export {
   ZERO_STATS,
   STAT_KEYS,

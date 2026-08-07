@@ -16,7 +16,9 @@ import {
   SICK_MOD,
   addStats,
   deckUpgradeCost,
+  drawCostToday,
   lowerMinSizeCost,
+  removeCostToday,
   quirkIdsOf,
 } from "../engine";
 import {
@@ -59,6 +61,9 @@ export interface CharacterState {
   // 已穿戴的三件装备(物品实例本身, 不是修正层)。★ 穿在身上的**不占背包/仓库格**。
   equipped: Record<EquipSlot, ItemStack | null>;
   pendingDraw: string[] | null; // 抽卡进行中的候选 defId; 持久化 => 刷新也躲不掉 3 选 1
+  forgeDay: number; // 上次锻造发生在第几日, 与 TownStore.day 比对
+  drawUsedToday: number; // 今日已扩充次数
+  removeUsedToday: number; // 今日已精简次数
   pollution: number; // 个人污染值, 达到阈值后归零
   sick: boolean; // 是否已经进入永久生病状态
   quirks: QuirkId[]; // 永久怪癖, 最多 POLLUTION_RULES.maxQuirks 个
@@ -137,6 +142,7 @@ interface TownStore {
   // ---- 卡组锻造(经验的唯一去处) ----
   upgradeDeck: (charId: string) => void; // 升一级卡组等级
   forgeDraw: (charId: string) => void; // 花 drawCost 经验 → 摇稀有度 → 出 drawChoices 张候选
+  cancelDraw: (charId: string) => void; // 放弃待选卡, 不退还已支付的经验
   grantFreeDraw: (charId: string) => void; // 不消耗经验 → 出 drawChoices 张候选
   pickDraw: (charId: string, cardDefId: string) => void; // 3 选 1 落袋, 清 pendingDraw
   removeCard: (charId: string, uid: string) => void; // 花 removeCost 经验删一张卡
@@ -258,6 +264,25 @@ function rollDrawOptions(cs: CharacterState): string[] | null {
   );
 }
 
+// 取该角色今日的锻造用量; 跨日自动归零(懒重置, 不依赖 advanceDay)。
+function todayUsage(cs: CharacterState, day: number): { draw: number; remove: number } {
+  if (cs.forgeDay !== day) return { draw: 0, remove: 0 };
+  return { draw: cs.drawUsedToday, remove: cs.removeUsedToday };
+}
+
+export function deckForgeCosts(cs: CharacterState, day: number): {
+  draw: number;
+  remove: number;
+  upgrade: number | null;
+} {
+  const usage = todayUsage(cs, day);
+  return {
+    draw: drawCostToday(usage.draw),
+    remove: removeCostToday(usage.remove),
+    upgrade: deckUpgradeCost(cs.deckLevel),
+  };
+}
+
 function freshCharacter(def: CharacterDef): CharacterState {
   return {
     charId: def.id,
@@ -268,6 +293,9 @@ function freshCharacter(def: CharacterDef): CharacterState {
     minDeckSize: RULES.deck.initialMinSize,
     equipped: { weapon: null, armor: null, trinket: null },
     pendingDraw: null,
+    forgeDay: 1,
+    drawUsedToday: 0,
+    removeUsedToday: 0,
     pollution: 0,
     sick: false,
     quirks: [],
@@ -279,6 +307,7 @@ function freshCharacter(def: CharacterDef): CharacterState {
 //   awaken() 不需要建档, 各处 characters[id] 也不必判空。
 // 开局就已唤醒并直接上阵的角色 id(按顺序)。
 const INITIAL_AWAKENED = ["swordsman", "glutton", "botanist"];
+const INITIAL_TEST_EXP = 2000;
 
 const INITIAL_CONSUMABLE_IDS = [
   "sugar-cube-c",
@@ -302,6 +331,13 @@ function freshProfile(): {
   for (const c of CHARACTERS) characters[c.id] = freshCharacter(c);
   // 名单里不存在的 id 直接忽略, 保证改角色数据时这里不会崩
   const awakened = INITIAL_AWAKENED.filter((id) => characters[id]);
+  for (const charId of awakened) {
+    characters[charId] = {
+      ...characters[charId],
+      exp: INITIAL_TEST_EXP,
+      expEarned: INITIAL_TEST_EXP,
+    };
+  }
   // 上阵人数有上限, 初始队伍按名单顺序截断
   return { characters, awakened, party: awakened.slice(0, RULES.progression.partySize) };
 }
@@ -641,16 +677,33 @@ export const useTownStore = create<TownStore>()(
 
       forgeDraw: (charId) => {
         const cs = get().characters[charId];
-        const d = RULES.deck;
-        if (!cs || cs.pendingDraw || cs.exp < d.drawCost) return;
+        const { day } = get();
+        const usage = cs ? todayUsage(cs, day) : null;
+        const cost = usage ? drawCostToday(usage.draw) : 0;
+        if (!cs || cs.pendingDraw || cs.exp < cost) return;
 
         const options = rollDrawOptions(cs);
         if (!options) return;
         set({
           characters: {
             ...get().characters,
-            [charId]: { ...cs, exp: cs.exp - d.drawCost, pendingDraw: options },
+            [charId]: {
+              ...cs,
+              exp: cs.exp - cost,
+              pendingDraw: options,
+              forgeDay: day,
+              drawUsedToday: usage.draw + 1,
+              removeUsedToday: usage.remove,
+            },
           },
+        });
+      },
+
+      cancelDraw: (charId) => {
+        const cs = get().characters[charId];
+        if (!cs?.pendingDraw) return;
+        set({
+          characters: { ...get().characters, [charId]: { ...cs, pendingDraw: null } },
         });
       },
 
@@ -686,7 +739,9 @@ export const useTownStore = create<TownStore>()(
 
       removeCard: (charId, uid) => {
         const cs = get().characters[charId];
-        const cost = RULES.deck.removeCost;
+        const { day } = get();
+        const usage = cs ? todayUsage(cs, day) : null;
+        const cost = usage ? removeCostToday(usage.remove) : 0;
         if (!cs || cs.exp < cost) return;
         if (cs.deck.length <= cs.minDeckSize) return; // 卡组不能低于最小下限
         if (!cs.deck.some((c) => c.uid === uid)) return;
@@ -696,6 +751,9 @@ export const useTownStore = create<TownStore>()(
             [charId]: {
               ...cs,
               exp: cs.exp - cost,
+              forgeDay: day,
+              drawUsedToday: usage.draw,
+              removeUsedToday: usage.remove + 1,
               deck: cs.deck.filter((c) => c.uid !== uid),
             },
           },
@@ -748,12 +806,12 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
-    // ⚠ v7: 新增污染值、疾病与怪癖。旧存档不兼容, 换 key 让旧档自然失效重建。
+    // ⚠ v8: 新增每日锻造用量与待选卡放弃 action。旧存档不兼容, 换 key 让旧档自然失效重建。
     // v6 新增的天数 day 与商店货架 shop 也由新档完整初始化。
     //   ⇒ 据点状态条显示「第 NaN 日」、商店货架空着且刷新价算不出来。项目不做旧存档兼容,
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v7", version: 7 },
+    { name: "town-profile-v8", version: 8 },
   ),
 );

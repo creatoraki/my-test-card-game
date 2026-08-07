@@ -71,17 +71,18 @@ export const RULES = {
 
   // 卡组锻造 —— 经验的唯一去处(《角色养成设计.md》第四章)。⚠ 全部为草案数值。
   deck: {
-    levelMax: 5,
+    levelMax: 6,
     // 升到下一级所需经验: 下标 0 = 1→2 级。长度应为 levelMax − 1。
-    upgradeCost: [60, 120, 200, 300],
+    upgradeCost: [100, 300, 500, 800, 1200],
     // 每级抽卡时的稀有度权重(先摇稀有度, 再从该角色对应稀有度的专属池里出候选)。
     // 下标 = 卡组等级 − 1。若该稀有度池为空, 抽取时自动降级到更低稀有度。
     rarityWeights: [
-      { common: 90, uncommon: 10, rare: 0 },
-      { common: 80, uncommon: 18, rare: 2 },
-      { common: 70, uncommon: 25, rare: 5 },
+      { common: 80, uncommon: 20, rare: 0 },
+      { common: 75, uncommon: 25, rare: 0 },
+      { common: 68, uncommon: 27, rare: 5 },
       { common: 60, uncommon: 30, rare: 10 },
       { common: 50, uncommon: 35, rare: 15 },
+      { common: 40, uncommon: 40, rare: 20 },
     ] as Record<Rarity, number>[],
     // 稀有度限携: 单个角色的个人卡组内, 每种稀有度最多携带的张数。
     // ⚠ 硬约束 —— 不能被卡组等级 / 装备 / 模组提高。
@@ -92,9 +93,10 @@ export const RULES = {
     // 把最小下限降 1 所需经验: 下标 0 = 第一次降低。成本递增。
     lowerMinSizeCost: [80, 160, 240],
 
-    drawCost: 30, // 抽一次卡消耗的经验
+    drawCostBase: 50, // 今日第一次扩充卡组消耗的经验, 之后按次数递增
     drawChoices: 3, // 每次抽卡的候选数(3 选 1)
-    removeCost: 20, // 删一张卡消耗的经验
+    removeCostBase: 100, // 今日第一次精简卡组消耗的经验
+    removeCostStep: 50, // 精简卡组每日每次递增的经验
   },
 
   // 升级: 打+的卡, 数值倍率
@@ -111,6 +113,16 @@ export function capProb(v: number): number {
 // 卡组从 level 升到 level+1 所需经验; 已满级返回 null。
 export function deckUpgradeCost(level: number): number | null {
   return RULES.deck.upgradeCost[level - 1] ?? null;
+}
+
+// 今日第 usedToday+1 次扩充所需经验。不封顶。
+export function drawCostToday(usedToday: number): number {
+  return RULES.deck.drawCostBase * (Math.max(0, usedToday) + 1);
+}
+
+// 今日第 usedToday+1 次精简所需经验。不封顶。
+export function removeCostToday(usedToday: number): number {
+  return RULES.deck.removeCostBase + RULES.deck.removeCostStep * Math.max(0, usedToday);
 }
 
 // 把最小卡组下限从 current 再降 1 所需经验; 已到底返回 null。
