@@ -24,13 +24,13 @@
 .el-value {
   color: var(--energy-color, var(--text));
   font-family: var(--font-family);
-  font-size: 44px;
+  font-size: 32px;
   font-weight: 700;
   line-height: 1;
   text-shadow: 0 0 18px color-mix(in srgb, var(--energy-color) 55%, transparent), 0 2px 10px #000c;
   animation: elTick 320ms cubic-bezier(0.2, 0.72, 0.28, 1);
 }
-.el-value em { margin-left: 2px; color: var(--muted); font-size: 14px; font-style: normal; font-weight: 500; }
+.el-value em { margin-left: 2px; color: var(--muted); font-size: 12px; font-style: normal; font-weight: 500; }
 .el-tier { color: var(--energy-color, var(--text)); font-size: 12px; font-weight: 600; letter-spacing: 2px; }
 .el-warn {
   padding: 2px 8px;

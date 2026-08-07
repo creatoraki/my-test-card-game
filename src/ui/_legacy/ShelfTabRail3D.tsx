@@ -872,7 +872,7 @@ function drawPlate(c: HTMLCanvasElement, label: string, glow: boolean): void {
   const step = size + 6;
   const cy = TAB_H / 2;
   ctx.fillStyle = ink;
-  ctx.font = `600 ${size}px "Bebas Neue", "Noto Sans SC", sans-serif`;
+  ctx.font = `600 ${size}px "BebasNeue", "SourceHanSansSC", sans-serif`;
   chars.forEach((ch, i) => {
     ctx.fillText(ch, TAB_W / 2, cy + (i - (chars.length - 1) / 2) * step);
   });

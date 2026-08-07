@@ -1,10 +1,18 @@
 /* 全局重置 + 基础元素外观(终端皮肤)。 */
 
 @font-face {
-  font-family: "PingFangSC";
-  src: url("../assets/fonts/PingFangSC-Medium.woff2") format("woff2");
+  font-family: "BebasNeue";
+  src: url("../assets/fonts/BebasNeue.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SourceHanSansSC";
+  src: url("../assets/fonts/SourceHanSansSC-Bold-2.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 900;
   font-display: swap;
 }
 

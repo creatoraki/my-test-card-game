@@ -177,7 +177,8 @@
 .warehouse-kicker {
   display: block;
   color: var(--warehouse-electric-hot);
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2.5px;
@@ -365,7 +366,8 @@
   margin-top: 14px;
   padding: 12px 4px 0 6px;
   color: var(--warehouse-muted);
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
   font-size: 10px;
   letter-spacing: 1px;
   border-top: 1px solid var(--warehouse-line);

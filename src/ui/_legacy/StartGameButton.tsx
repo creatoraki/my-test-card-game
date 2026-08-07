@@ -22,7 +22,7 @@ const TYPO = {
   fontSize: 86,
   fontWeight: 900,
   letterSpacing: 8,
-  fontFamily: '"Bebas Neue", "Noto Sans SC", sans-serif',
+  fontFamily: '"BebasNeue", "SourceHanSansSC", sans-serif',
 };
 
 export function StartGameButton({ onClick }: { onClick: () => void }) {
