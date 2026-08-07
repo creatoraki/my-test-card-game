@@ -12,7 +12,7 @@
 //   档位仍由轮次固定表决定(EXPLORE_RULES.battleTierByRound), 老虎机只决定**战斗条件与收益**。
 // ============================================================================
 
-import type { DropEntry, ItemStack } from "../items/types";
+import type { DropEntry, EquipSlot, ItemStack } from "../items/types";
 
 // ---------------------------------------------------------------------------
 // 路由图
@@ -78,8 +78,23 @@ export type ExploreEffect =
   | { type: "MODIFY_ENERGY"; amount: number } // 净化粒子增减
   | { type: "SKIP_NODE_COST"; nodes: number } // 「隐匿通道」: 接下来 N 个节点免除基础粒子消耗
   | { type: "CONTAMINATE_CARDS"; count?: number } // 记录待处理的个人卡组污染请求
+  | { type: "GAIN_EXP_PARTY"; amount: number }
+  | { type: "GAIN_EXP_ONE"; amount: number }
+  | { type: "FORGE_DRAW" }
+  | { type: "FORGE_REMOVE" }
+  | { type: "EQUIP_OFFER"; count: number; slot?: EquipSlot }
+  | { type: "REFORGE_BOND"; bias?: BondBias }
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
+
+export type BondBias = "offense" | "defense";
+
+export interface EventOutcome {
+  id: string;
+  weight?: number;
+  text: string;
+  effects: ExploreEffect[];
+}
 
 // 落点分支选项(设计: 抵达节点后先开浮层, 玩家在两条路里挑一条 —— 落点是运气, 怎么处理是决策)。
 // ⚠ 代价与效果**只认选项自己的这两个字段**: NodeEvent 上的同名字段仅用于节点卡的预览。
@@ -87,8 +102,29 @@ export interface EventChoice {
   id: string;
   label: string; // 按钮文字, 如「使用」「拆走」
   desc: string; // 一行代价/收益说明, 直接渲染在按钮里
+  story?: string;
   energyDelta: number; // 选中该项的净化粒子增减(**不含**每节点固定 −3)
-  effects: ExploreEffect[];
+  effects?: ExploreEffect[];
+  outcomes?: EventOutcome[];
+}
+
+export interface HiddenRest {
+  foodItemId: string;
+  npcId: string;
+}
+
+export type PendingAction =
+  | { kind: "expOne"; amount: number }
+  | { kind: "forgeDraw" }
+  | { kind: "forgeRemove" }
+  | { kind: "equipOffer"; offers: ItemStack[] }
+  | { kind: "reforge"; bias?: BondBias };
+
+export interface NpcEventLike {
+  id: string;
+  title: string;
+  description: string;
+  choices: EventChoice[];
 }
 
 export interface NodeEvent {
@@ -102,8 +138,9 @@ export interface NodeEvent {
   //   真正结算读的是被选中的那个 EventChoice; 只有 choices 缺省时才回退到这两个字段。
   //   ⚠ 这是「每节点固定 −3」之外的**额外**增减(设计文档 §8 的 E 列)。
   energyDelta: number;
-  effects: ExploreEffect[];
+  effects?: ExploreEffect[];
   choices?: EventChoice[]; // 两项。缺省 = 单选项事件(等价于直接用上面的 energyDelta/effects)
+  hiddenRest?: HiddenRest;
   // 允许出现的推进段区间(1-4, 含两端), 缺省 [1, 4]。深度分层的唯一声明处(设计文档 §2.3.2)。
   depth?: [number, number];
   minRound?: number; // 终局类事件的最早出现轮次(第 5 轮起)
@@ -219,6 +256,9 @@ export type ExplorePhase =
   | "advancing" // 信号沿通道向右推进中, 动画由 UI 驱动
   | "landed" // ★ 已抵达节点, **效果尚未结算**, 等玩家在浮层里选分支。不限时
   | "resolving" // 分支已结算完毕, 等玩家确认
+  | "resting"
+  | "npcEvent"
+  | "npcResolving"
   | "atNode" // 节点决策: 继续推进 / 前往下一区域(设计文档 §2.3.3)
   // ★ 「前往下一区域」按下之后的**离场演出**: 棋子沿本轮剩余的完整线路一路走到第 4 段终点。
   //   ⚠ 它是纯演出阶段(与 advancing 同性质): 锁交互、禁开背包、不许撤离, 由 UI 的动画
@@ -256,6 +296,11 @@ export interface ExploreState {
   // 背包装不下、等玩家取舍的物品。非空 ⇒ UI 强制打开背包并进「替换模式」。
   // ⚠ 刻意**不**做成 phase: 它会叠加在 landed / resolving 之上, 做成阶段会把阶段机撑爆。
   pendingPickup: ItemStack[];
+  pendingLoot: ItemStack[];
+  pendingExp: Record<string, number>;
+  pendingActions: PendingAction[];
+  pendingStory: string[];
+  restNpcId: string | null;
   // 投递口已开启(本节点的 resolving/atNode 阶段内可寄件)。推进到下一个节点即复位。
   chuteOpen: boolean;
 

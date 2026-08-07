@@ -38,8 +38,11 @@ import { burdenPenalty } from "../engine/stats";
 import type { EncounterModifier } from "../engine/types";
 import {
   ROLLABLE_BOND_IDS,
+  bondPool,
   getEnemyDef,
+  getNpcEvent,
   getEventPool,
+  equipmentDefsBySlot,
   getItemDef,
   getItemFamily,
   getMap,
@@ -56,15 +59,17 @@ import {
 import type { ItemRarity, ItemStack } from "../items/types";
 import { generateSegments, lanePath, traceSegment } from "./route";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
-import { buildSlot, matchBonusOf, reelSymbolAt, resolveChoice } from "./slot";
+import { buildSlot, matchBonusOf, reelSymbolAt, resolveChoice as resolveSlotChoice } from "./slot";
 import type {
   BattleTier,
   EnergyTier,
   EventChoice,
+  EventOutcome,
   ExploreEffect,
   ExploreState,
   NodeEvent,
   PartySnapshot,
+  PendingAction,
   RouteBoard,
   SlotBattleMod,
   SlotSymbol,
@@ -197,6 +202,11 @@ export function createSession(
     backpack: initialBackpack.map((st) => ({ ...st })),
     shipped: [],
     pendingPickup: [],
+    pendingLoot: [],
+    pendingExp: {},
+    pendingActions: [],
+    pendingStory: [],
+    restNpcId: null,
     chuteOpen: false,
     entryLane: null,
     currentLane: null,
@@ -267,6 +277,35 @@ export function addItems(
   s.backpack = r.next;
   if (r.overflow.length) s.pendingPickup = [...s.pendingPickup, ...r.overflow];
   return { taken: r.taken, overflow: r.overflow };
+}
+
+function addPendingLoot(s: ExploreState, stacks: ItemStack[]): void {
+  s.pendingLoot = [...s.pendingLoot, ...stacks];
+}
+
+export function takeLoot(s: ExploreState, index: number): boolean {
+  const st = s.pendingLoot[index];
+  if (!st) return false;
+  const result = addToContainer(s.backpack, [st], getItemDef, RULES.burden.backpackSlots);
+  if (!result.taken.length) return false;
+  s.backpack = result.next;
+  s.pendingLoot = s.pendingLoot.filter((_, i) => i !== index);
+  return true;
+}
+
+export function takeAllLoot(s: ExploreState): boolean {
+  if (!s.pendingLoot.length) return false;
+  let changed = false;
+  for (let i = s.pendingLoot.length - 1; i >= 0; i--) {
+    if (takeLoot(s, i)) changed = true;
+  }
+  return changed;
+}
+
+export function abandonLoot(s: ExploreState): boolean {
+  if (!s.pendingLoot.length) return false;
+  s.pendingLoot = [];
+  return true;
 }
 
 // 丢弃一整堆。⚠ 不可撤销 —— 二次确认由 UI 负责(设计文档 §6.4), 这里只认结果。
@@ -349,7 +388,9 @@ export function useItem(s: ExploreState, uid: string): string | null {
         : { type: "MODIFY_ENERGY", amount: u.amount };
 
   const note = applyEffect(s, effect);
-  s.backpack = removeByUid(s.backpack, uid);
+  s.backpack = item.count > 1
+    ? s.backpack.map((stack) => (stack.uid === uid ? { ...stack, count: stack.count - 1 } : stack))
+    : removeByUid(s.backpack, uid);
   logLine(s, `使用了 ${def.name} · ${note}`);
   return `${def.name} · ${note}`;
 }
@@ -375,6 +416,47 @@ export function abandonPending(s: ExploreState, index?: number): boolean {
   }
   if (!s.pendingPickup[index]) return false;
   s.pendingPickup = s.pendingPickup.filter((_, i) => i !== index);
+  return true;
+}
+
+export function restEat(s: ExploreState, uid: string): boolean {
+  if (s.phase !== "resting" || !s.restNpcId || !s.board) return false;
+  const event = landedEvent(s);
+  if (!event?.hiddenRest) return false;
+  const item = findByUid(s.backpack, uid);
+  if (!item || item.itemId !== event.hiddenRest.foodItemId) return false;
+  s.backpack = removeByUid(s.backpack, uid);
+  s.phase = "npcEvent";
+  return true;
+}
+
+export function restSkip(s: ExploreState): boolean {
+  if (s.phase !== "resting") return false;
+  s.restNpcId = null;
+  s.phase = "atNode";
+  return true;
+}
+
+export function npcChoices(s: ExploreState): EventChoice[] {
+  if (!s.restNpcId) return [];
+  return getNpcEvent(s.restNpcId)?.choices ?? [];
+}
+
+export function chooseNpcOption(s: ExploreState, index: number): boolean {
+  if (s.phase !== "npcEvent") return false;
+  const choice = npcChoices(s)[index];
+  if (!choice) return false;
+  s.pendingNotes = applyChoiceEffects(s, choice, true);
+  s.phase = "npcResolving";
+  return true;
+}
+
+export function confirmNpc(s: ExploreState): boolean {
+  if (s.phase !== "npcResolving") return false;
+  if (s.pendingPickup.length || s.pendingLoot.length || s.pendingActions.length) return false;
+  s.pendingStory = [];
+  s.restNpcId = null;
+  s.phase = "atNode";
   return true;
 }
 
@@ -426,11 +508,14 @@ function checkWipe(s: ExploreState): boolean {
 // ★ 显式清空而不是「靠没人来入库」隐式实现 —— 后者会让 UI 在结算前还读得到一包早就没了的东西。
 function loseEverything(s: ExploreState): void {
   s.loot = Math.floor(s.loot * EXPLORE_RULES.wipe.lootKept);
-  if (s.backpack.length || s.pendingPickup.length) {
+  if (s.backpack.length || s.pendingPickup.length || s.pendingLoot.length) {
     logLine(s, "背包连同里面的东西一起丢在了那层楼");
   }
   s.backpack = [];
   s.pendingPickup = [];
+  s.pendingLoot = [];
+  s.pendingExp = {};
+  s.pendingActions = [];
   s.chuteOpen = false;
 }
 
@@ -445,7 +530,30 @@ function summarizeItems(taken: ItemStack[], overflow: ItemStack[]): string {
 
 // 单条效果 → 一句结算摘要(写进节点记录与结算浮层)。
 // ⚠ RETREAT 与 END_REGION 会改变阶段, 由 chooseOption 单独处理, 不走这里。
-function applyEffect(s: ExploreState, e: ExploreEffect): string {
+function rollOutcome(s: ExploreState, outcomes: EventOutcome[]): EventOutcome | null {
+  if (!outcomes.length) return null;
+  const total = outcomes.reduce((sum, item) => sum + Math.max(0, item.weight ?? 1), 0);
+  if (total <= 0) return outcomes[0];
+  let roll = rngInt(s, Math.ceil(total * 1000)) / 1000;
+  for (const item of outcomes) {
+    roll -= Math.max(0, item.weight ?? 1);
+    if (roll < 0) return item;
+  }
+  return outcomes[outcomes.length - 1];
+}
+
+function rollEquipOffers(s: ExploreState, count: number, slot?: import("../items/types").EquipSlot): ItemStack[] {
+  return shuffle(s, equipmentDefsBySlot(slot))
+    .slice(0, Math.max(0, count))
+    .map((def) => makeItemStack(def.id, 1));
+}
+
+function deferEffectLoot(s: ExploreState, stacks: ItemStack[]): string {
+  addPendingLoot(s, stacks);
+  return `发现 ${summarizeItems(stacks, [])}，等待拾取`;
+}
+
+function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
   switch (e.type) {
     case "HEAL_PARTY":
       healParty(s, e.percent);
@@ -475,6 +583,7 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
       const count = Math.max(1, e.count ?? 1);
       const def = getItemDef(e.itemId);
       const made = Array.from({ length: count }, () => makeItemStack(e.itemId, 1));
+      if (defer) return deferEffectLoot(s, made);
       const { taken, overflow } = addItems(s, made);
       return overflow.length
         ? `拾得 ${def.name} ×${taken.length}（${overflow.length} 件背不动了）`
@@ -483,6 +592,7 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
     case "ROLL_DROP": {
       const rolled = rollDropTable(s, e.table, dropCoefficient(s), dropContext(s));
       if (!rolled.length) return "什么也没找到";
+      if (defer) return deferEffectLoot(s, rolled);
       const { taken, overflow } = addItems(s, rolled);
       return summarizeItems(taken, overflow);
     }
@@ -504,6 +614,32 @@ function applyEffect(s: ExploreState, e: ExploreEffect): string {
       s.pendingContaminationCount += count;
       return `发现 ${count} 张污染卡, 将在离开事件后记录`;
     }
+    case "GAIN_EXP_PARTY": {
+      let count = 0;
+      for (const p of s.party) {
+        if (!p.alive) continue;
+        s.pendingExp[p.charId] = (s.pendingExp[p.charId] ?? 0) + e.amount;
+        count += 1;
+      }
+      return `存活角色各获得经验 +${e.amount}（${count} 人）`;
+    }
+    case "GAIN_EXP_ONE":
+      s.pendingActions.push({ kind: "expOne", amount: e.amount });
+      return `获得一次指定角色经验 +${e.amount}`;
+    case "FORGE_DRAW":
+      s.pendingActions.push({ kind: "forgeDraw" });
+      return "获得一次免费角色卡组锻造";
+    case "FORGE_REMOVE":
+      s.pendingActions.push({ kind: "forgeRemove" });
+      return "获得一次免费角色删卡机会";
+    case "EQUIP_OFFER": {
+      const offers = rollEquipOffers(s, e.count, e.slot);
+      s.pendingActions.push({ kind: "equipOffer", offers });
+      return `公开 ${offers.length} 件装备候选`;
+    }
+    case "REFORGE_BOND":
+      s.pendingActions.push({ kind: "reforge", bias: e.bias });
+      return "获得一次免费装备羁绊重铸";
     // 这两个由 chooseOption 拦截, 走不到这里; 列出来让 switch 保持穷尽
     case "END_REGION":
     case "RETREAT":
@@ -516,6 +652,47 @@ export function takePendingContamination(s: ExploreState): number {
   const count = s.pendingContaminationCount;
   s.pendingContaminationCount = 0;
   return count;
+}
+
+export function grantExpTo(s: ExploreState, charId: string): boolean {
+  const action = s.pendingActions[0];
+  if (!action || action.kind !== "expOne") return false;
+  const target = s.party.find((p) => p.charId === charId && p.alive);
+  if (!target) return false;
+  s.pendingExp[charId] = (s.pendingExp[charId] ?? 0) + action.amount;
+  return true;
+}
+
+export function takePendingExp(s: ExploreState): Record<string, number> {
+  const exp = { ...s.pendingExp };
+  s.pendingExp = {};
+  return exp;
+}
+
+export function resolvePendingAction(s: ExploreState): boolean {
+  if (!s.pendingActions.length) return false;
+  s.pendingActions.shift();
+  return true;
+}
+
+export function reforgeBackpackItem(s: ExploreState, uid: string): boolean {
+  const action = s.pendingActions[0];
+  if (!action || action.kind !== "reforge") return false;
+  const item = findByUid(s.backpack, uid);
+  if (!item || getItemDef(item.itemId).category !== "equipment") return false;
+  const pool = bondPool(action.bias);
+  if (!pool.length) return false;
+  item.affinity = pool[rngInt(s, pool.length)];
+  return true;
+}
+
+export function acceptEquipOffer(s: ExploreState, index: number): boolean {
+  const action = s.pendingActions[0];
+  if (!action || action.kind !== "equipOffer") return false;
+  const offer = action.offers[index];
+  if (!offer) return false;
+  addPendingLoot(s, [{ ...offer }]);
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -762,6 +939,7 @@ export function arriveNode(s: ExploreState): boolean {
   s.currentLane = traceSegment(seg, s.currentLane, s.board.rowsPerSegment).laneOut;
   s.currentSegment += 1;
   s.pendingNotes = [];
+  s.pendingStory = [];
   s.phase = "landed";
   return true;
 }
@@ -780,6 +958,28 @@ export function landedChoices(s: ExploreState): EventChoice[] {
       effects: ev.effects,
     },
   ];
+}
+
+function resolveEventOutcome(s: ExploreState, choice: EventChoice): EventOutcome | null {
+  return choice.outcomes?.length ? rollOutcome(s, choice.outcomes) : null;
+}
+
+function applyChoiceEffects(s: ExploreState, choice: EventChoice, defer: boolean): string[] {
+  const outcome = resolveEventOutcome(s, choice);
+  const notes: string[] = [];
+  const effects = outcome?.effects ?? choice.effects ?? [];
+  if (choice.story) s.pendingStory.push(choice.story);
+  if (outcome?.text) s.pendingStory.push(outcome.text);
+  for (const e of effects) {
+    if (e.type === "RETREAT" || e.type === "END_REGION") continue;
+    const note = applyEffect(s, e, defer);
+    if (note) notes.push(note);
+  }
+  return notes;
+}
+
+export function resolveChoice(s: ExploreState, choice: EventChoice, defer = true): string[] {
+  return applyChoiceEffects(s, choice, defer);
 }
 
 // 玩家在落点浮层里选了一支 —— 这里才真的扣粒子、跑效果、写记录。
@@ -812,7 +1012,11 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 
   let leaving = false;
   let endRegion = false;
-  for (const e of choice.effects) {
+  const outcome = resolveEventOutcome(s, choice);
+  const effects = outcome?.effects ?? choice.effects ?? [];
+  if (choice.story) s.pendingStory.push(choice.story);
+  if (outcome?.text) s.pendingStory.push(outcome.text);
+  for (const e of effects) {
     if (e.type === "RETREAT") {
       leaving = true;
       continue;
@@ -821,7 +1025,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
       endRegion = true;
       continue;
     }
-    const note = applyEffect(s, e);
+    const note = applyEffect(s, e, true);
     if (note) notes.push(note);
   }
 
@@ -863,9 +1067,16 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 // ⚠ 背包满时不许推进 —— pendingPickup 是必须当场处理完的取舍(设计文档 §6.4)。
 export function confirmNode(s: ExploreState): boolean {
   if (s.phase !== "resolving") return false;
-  if (s.pendingPickup.length) return false;
+  if (s.pendingPickup.length || s.pendingLoot.length || s.pendingActions.length) return false;
+  s.pendingStory = [];
   s.chuteOpen = false; // 投递口只在开启它的那个节点有效
-  s.phase = "atNode";
+  const event = landedEvent(s);
+  if (event?.hiddenRest) {
+    s.restNpcId = event.hiddenRest.npcId;
+    s.phase = "resting";
+  } else {
+    s.phase = "atNode";
+  }
   return true;
 }
 
@@ -948,7 +1159,7 @@ export function stopReel(s: ExploreState, elapsedMs: number): boolean {
 // ★ 战斗必然发生(§2.4.1): 选中准备卡就先结算它的效果, 再随机回落一张战斗卡当本轮的战斗条件。
 export function chooseSlotCard(s: ExploreState, index: number): boolean {
   if (s.phase !== "slotChoosing" || !s.slot) return false;
-  const picked = resolveChoice(s, s.slot, index);
+  const picked = resolveSlotChoice(s, s.slot, index);
   if (!picked) return false;
   const { symbol, battle } = picked;
 
@@ -1023,6 +1234,9 @@ export function canRetreat(s: ExploreState): boolean {
     s.phase === "sealed" ||
     s.phase === "choosingEntry" ||
     s.phase === "resolving" ||
+    s.phase === "resting" ||
+    s.phase === "npcEvent" ||
+    s.phase === "npcResolving" ||
     s.phase === "atNode" ||
     s.phase === "routeDisclosure" ||
     // 3 张卡定住、尚未确认执行之前仍可撤离(§2.4.5) —— 此时战斗还没建局。
@@ -1123,6 +1337,9 @@ export function canOpenBackpack(s: ExploreState): boolean {
     s.phase === "choosingEntry" ||
     s.phase === "landed" ||
     s.phase === "resolving" ||
+    s.phase === "resting" ||
+    s.phase === "npcEvent" ||
+    s.phase === "npcResolving" ||
     s.phase === "atNode" ||
     s.phase === "routeDisclosure" ||
     s.phase === "slotChoosing"

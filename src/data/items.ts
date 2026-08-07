@@ -12,6 +12,46 @@ import type { ItemDef } from "../items/types";
 import { withBuyValue } from "./items/pricing";
 
 const DEFS: ItemDef[] = [
+	{
+		id: "scrap-piece",
+		name: "废料碎片",
+		category: "scrap",
+		rarity: "common",
+		desc: "从废弃楼层回收的普通金属碎片，可在回收台换取居民积分。",
+		maxStack: 1,
+		sellValue: 12,
+		icon: "material",
+	},
+	{
+		id: "scrap-alloy",
+		name: "废料合金",
+		category: "scrap",
+		rarity: "fine",
+		desc: "经过分拣的高纯度废料合金，可在回收台换取居民积分。",
+		maxStack: 1,
+		sellValue: 30,
+		icon: "material",
+	},
+	{
+		id: "scrap-core",
+		name: "废料核心",
+		category: "scrap",
+		rarity: "rare",
+		desc: "从高压压缩设备中回收的完整废料核心。",
+		maxStack: 1,
+		sellValue: 80,
+		icon: "material",
+	},
+	{
+		id: "data-shard",
+		name: "数据存档",
+		category: "data",
+		rarity: "common",
+		desc: "保存着废弃楼层旧时代记录的数据片段。",
+		maxStack: 1,
+		sellValue: 25,
+		icon: "material",
+	},
 ];
 
 // 商店挂牌价统一打标(见 ./items/pricing.ts)。★ 旧表里的装备与材料同样会上架 ——

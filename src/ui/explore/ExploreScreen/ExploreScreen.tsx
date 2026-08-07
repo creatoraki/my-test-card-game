@@ -24,17 +24,23 @@ import {
   canRetreat,
   landedChoices,
   landedEvent,
+  npcChoices,
   projectedEnergy,
   remainingNodes,
 } from "@/explore/session";
+import { getItemDef, getNpcEvent } from "@/data";
 import { EXPLORE_RULES } from "@/explore/rules";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
+import ExpDropFx from "@/ui/explore/ExpDropFx";
+import LootPickup from "@/ui/explore/LootPickup";
+import RewardOverlay from "@/ui/explore/RewardOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar";
+import ItemSlot from "@/ui/common/item/ItemSlot";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
@@ -96,6 +102,10 @@ export function ExploreScreen() {
   const arrive = useExploreStore((s) => s.arrive);
   const pickOption = useExploreStore((s) => s.pickOption);
   const confirmNode = useExploreStore((s) => s.confirmNode);
+  const restEat = useExploreStore((s) => s.restEat);
+  const restSkip = useExploreStore((s) => s.restSkip);
+  const chooseNpcOption = useExploreStore((s) => s.chooseNpcOption);
+  const confirmNpc = useExploreStore((s) => s.confirmNpc);
   const pushOn = useExploreStore((s) => s.pushOn);
   const leaveRegion = useExploreStore((s) => s.leaveRegion);
   const leaveDone = useExploreStore((s) => s.leaveDone);
@@ -115,6 +125,10 @@ export function ExploreScreen() {
   const commitTimer = useRef<number | null>(null);
   // 结算摘要是否已逐条播完 —— 播完之前「确认」按钮不接受点击, 否则玩家一路连点就什么都没看见。
   const [notesDone, setNotesDone] = useState(false);
+  const previousExpRef = useRef<Record<string, number>>({});
+  const expSequenceRef = useRef<Record<string, number>>({});
+  const expTimersRef = useRef<Record<string, number>>({});
+  const [expDrops, setExpDrops] = useState<Record<string, { amount: number; sequence: number }>>({});
 
   const phase = session?.phase;
   const round = session?.round;
@@ -196,6 +210,43 @@ export function ExploreScreen() {
     return () => window.clearTimeout(id);
   }, [phase, noteCount]);
 
+  useEffect(() => {
+    const current = session?.pendingExp ?? {};
+    const previous = previousExpRef.current;
+    if (phase === "generating" && round === 1 && !Object.keys(current).length) {
+      previousExpRef.current = {};
+      setExpDrops({});
+      return;
+    }
+
+    const nextDrops: Record<string, { amount: number; sequence: number }> = {};
+    for (const [charId, total] of Object.entries(current)) {
+      const gained = total - (previous[charId] ?? 0);
+      if (gained <= 0) continue;
+      const sequence = (expSequenceRef.current[charId] ?? 0) + 1;
+      expSequenceRef.current[charId] = sequence;
+      nextDrops[charId] = { amount: gained, sequence };
+      window.clearTimeout(expTimersRef.current[charId]);
+      expTimersRef.current[charId] = window.setTimeout(() => {
+        setExpDrops((drops) => {
+          if (drops[charId]?.sequence !== sequence) return drops;
+          const remaining = { ...drops };
+          delete remaining[charId];
+          return remaining;
+        });
+      }, prefersReducedMotion() ? 700 : 2200);
+    }
+    previousExpRef.current = { ...current };
+    if (Object.keys(nextDrops).length) setExpDrops((drops) => ({ ...drops, ...nextDrops }));
+  }, [phase, round, session?.pendingExp]);
+
+  useEffect(
+    () => () => {
+      for (const timer of Object.values(expTimersRef.current)) window.clearTimeout(timer);
+    },
+    [],
+  );
+
   if (!session || !session.board) return null;
 
   const board = session.board;
@@ -204,9 +255,22 @@ export function ExploreScreen() {
   const usedSlots = backpackSlots(session);
   // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
   const mustReplace = session.pendingPickup.length > 0;
+  const hasLoot = session.pendingLoot.length > 0;
+  const hasPendingAction = session.pendingActions.length > 0;
+  const hiddenRest = ev?.hiddenRest;
+  const restFood = hiddenRest
+    ? session.backpack.find((stack) => stack.itemId === hiddenRest.foodItemId) ?? null
+    : null;
+  const npc = session.restNpcId ? getNpcEvent(session.restNpcId) : undefined;
 
   // 落点浮层开着的两个阶段: 四角 HUD 轻度后退, 把注意力收拢到面板上(不加全屏遮罩)。
-  const focused = session.phase === "landed" || session.phase === "resolving";
+  const focused =
+    session.phase === "landed" ||
+    session.phase === "resolving" ||
+    session.phase === "resting" ||
+    session.phase === "npcEvent" ||
+    session.phase === "npcResolving";
+  const eventModalOpen = session.phase === "landed" || session.phase === "resolving";
   const recede = focused ? s["is-recede"] : undefined;
 
   // 浮现演出的 2 秒里整块画布不接受输入 —— 这一段是纯演出, 中途插手会让计时器与画面对不上。
@@ -377,6 +441,12 @@ export function ExploreScreen() {
                   className={s["expl-portrait"]}
                 />
               </div>
+              {expDrops[p.charId] && (
+                <ExpDropFx
+                  key={`${p.charId}-${expDrops[p.charId].sequence}`}
+                  amount={expDrops[p.charId].amount}
+                />
+              )}
               <div className={s["expl-member-body"]}>
                 <HpBar hp={p.hp} maxHp={p.maxHp} name={p.name} flush />
               </div>
@@ -447,7 +517,7 @@ export function ExploreScreen() {
 
             ★ 没有全屏遮罩: 压暗背景会毁掉这张废弃楼层图的气质, 也会挡住刚刚亮起来的路径 ——
               而玩家此刻最想看的就是「我是怎么走到这个节点上的」(§11.2)。 */}
-        {focused && ev && (
+        {eventModalOpen && ev && (
           <div className={s["expl-modal"]} key={`${session.round}-${session.currentSegment}-${ev.id}`}>
             <section className={cx(s["expl-panel"], s[`k-${ev.kind}`])}>
               <div className={s["expl-panel-art"]} aria-hidden="true">
@@ -493,6 +563,13 @@ export function ExploreScreen() {
                   <span aria-hidden>{desc.shown}</span>
                   {!desc.done && <span className={s["expl-caret"]} aria-hidden />}
                 </p>
+                {session.phase === "resolving" && session.pendingStory.length > 0 && (
+                  <div className={s["expl-story"]} aria-live="polite">
+                    {session.pendingStory.map((story, index) => (
+                      <p key={`${story}-${index}`}>{story}</p>
+                    ))}
+                  </div>
+                )}
 
                 {session.phase === "landed" ? (
                   // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸):
@@ -567,12 +644,18 @@ export function ExploreScreen() {
                         否则玩家一路连点, 这一节点到底发生了什么就永远没被看见。 */}
                     <div className={s["expl-panel-foot"]}>
                       <span className={s["expl-panel-cost"]}>
-                        {mustReplace ? "先在背包里处理完拿不下的东西" : "结算完毕"}
+                        {mustReplace
+                          ? "先在背包里处理完拿不下的东西"
+                          : hasLoot
+                            ? "先处理事件物品"
+                            : hasPendingAction
+                              ? "先处理事件奖励"
+                              : "结算完毕"}
                       </span>
                       <button
                         className={cx(s["expl-btn"], s["is-primary"], s["expl-confirm"])}
                         type="button"
-                        disabled={mustReplace || !notesDone}
+                        disabled={mustReplace || hasLoot || hasPendingAction || !notesDone}
                         style={
                           {
                             animationDelay: `${
@@ -588,6 +671,100 @@ export function ExploreScreen() {
                     </div>
                   </>
                 )}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {session.phase === "resting" && ev?.hiddenRest && (
+          <div className={s["expl-modal"]}>
+            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
+              <span className={s["expl-kicker"]}>隐藏休息 · 事件后的额外选择</span>
+              <h3 className={s["expl-panel-title"]}>要在这里休息吗？</h3>
+              <p className={s["expl-panel-desc"]}>
+                你可以消耗指定食品，唤来隐藏访客；也可以跳过休息，继续前往下一个节点。
+              </p>
+              {restFood ? (
+                <div className={s["expl-rest-food"]}>
+                  <ItemSlot
+                    stack={restFood}
+                    showName
+                    onClick={() => restEat(restFood.uid)}
+                  />
+                  <span>食用 {getItemDef(restFood.itemId).name}，触发隐藏 NPC</span>
+                </div>
+              ) : (
+                <p className={s["expl-empty"]}>背包中没有指定食品。</p>
+              )}
+              <div className={s["expl-panel-foot"]}>
+                <span className={s["expl-panel-cost"]}>{restFood ? "食品会从背包中消耗" : "无法触发隐藏访客"}</span>
+                <button className={s["expl-btn"]} type="button" onClick={restSkip}>
+                  跳过休息
+                </button>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {session.phase === "npcEvent" && npc && (
+          <div className={s["expl-modal"]}>
+            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
+              <span className={s["expl-kicker"]}>隐藏 NPC · 特殊事件</span>
+              <h3 className={s["expl-panel-title"]}>{npc.title}</h3>
+              <p className={s["expl-panel-desc"]}>{npc.description}</p>
+              <div className={s["expl-decide-row"]}>
+                {npcChoices(session).map((choice, index) => (
+                  <button
+                    className={s["expl-choice"]}
+                    type="button"
+                    key={choice.id}
+                    style={{ "--i": index } as CSSProperties}
+                    onClick={() => chooseNpcOption(index)}
+                  >
+                    <span className={s["expl-choice-bar"]} aria-hidden />
+                    <span className={s["expl-choice-head"]}>
+                      <span className={s["expl-choice-label"]}>{choice.label}</span>
+                      <span className={s["expl-choice-energy"]}>免费</span>
+                    </span>
+                    <span className={s["expl-choice-desc"]}>{choice.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {session.phase === "npcResolving" && npc && (
+          <div className={s["expl-modal"]}>
+            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
+              <span className={s["expl-kicker"]}>隐藏 NPC · 结果记录</span>
+              <h3 className={s["expl-panel-title"]}>{npc.title}</h3>
+              {session.pendingStory.length > 0 && (
+                <div className={s["expl-story"]} aria-live="polite">
+                  {session.pendingStory.map((story, index) => (
+                    <p key={`${story}-${index}`}>{story}</p>
+                  ))}
+                </div>
+              )}
+              <div className={s["expl-notes"]}>
+                {session.pendingNotes.map((note, index) => (
+                  <span className={s["expl-note"]} key={`${note}-${index}`}>
+                    {note}
+                  </span>
+                ))}
+              </div>
+              <div className={s["expl-panel-foot"]}>
+                <span className={s["expl-panel-cost"]}>
+                  {hasLoot || hasPendingAction ? "先处理上方奖励" : "隐藏事件已结算"}
+                </span>
+                <button
+                  className={cx(s["expl-btn"], s["is-primary"])}
+                  type="button"
+                  disabled={hasLoot || hasPendingAction}
+                  onClick={confirmNpc}
+                >
+                  返回路线 ▸
+                </button>
               </div>
             </section>
           </div>
@@ -680,6 +857,9 @@ export function ExploreScreen() {
         {(bagOpen || mustReplace) && canBackpack && (
           <BackpackPanel onClose={() => setBagOpen(false)} />
         )}
+
+        {session.pendingActions.length > 0 && <RewardOverlay />}
+        {!session.pendingActions.length && <LootPickup />}
       </div>
     </div>
   );

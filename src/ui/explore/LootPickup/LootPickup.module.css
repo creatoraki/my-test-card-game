@@ -1,0 +1,129 @@
+.loot-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.loot-panel {
+  width: 560px;
+  padding: 22px 26px 18px;
+  border: 1px solid #d5e7dd40;
+  border-top: 2px solid #9be4bd;
+  background: linear-gradient(145deg, #172721f5, #0b1411f7);
+  box-shadow: 0 28px 70px -32px #000;
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  pointer-events: auto;
+  animation: loot-in 360ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.loot-head,
+.loot-foot,
+.loot-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.loot-kicker {
+  color: #8db3a2;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.loot-title {
+  margin: 4px 0 0;
+  color: #e5fff0;
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.loot-count {
+  color: #9be4bd;
+  font-size: 12px;
+}
+
+.loot-desc {
+  margin: 12px 0 18px;
+  color: #b6c9bf;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.loot-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.loot-item {
+  min-width: 0;
+}
+
+.loot-item :global(.item-slot) {
+  width: 100%;
+}
+
+.loot-foot {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid #d5e7dd1c;
+}
+
+.loot-confirm {
+  width: 100%;
+  justify-content: flex-end;
+  color: #e6eee9;
+  font-size: 12px;
+}
+
+.loot-btn {
+  min-width: 96px;
+  padding: 9px 14px;
+  border: 1px solid #b9d3c52e;
+  background: #17231e;
+  color: #dcece4;
+  cursor: pointer;
+}
+
+.loot-btn:hover:not(:disabled) {
+  border-color: #9be4bd;
+  transform: translateY(-2px);
+}
+
+.loot-btn.is-primary {
+  border-color: #9be4bd99;
+  background: #315b46;
+}
+
+.loot-btn.is-danger {
+  border-color: #d88a7c99;
+  color: #ffc0b4;
+}
+
+.loot-fly {
+  position: fixed;
+  z-index: 100;
+  left: var(--fly-left);
+  top: var(--fly-top);
+  width: 74px;
+  pointer-events: none;
+  animation: loot-fly 430ms cubic-bezier(0.2, 0.72, 0.28, 1) forwards;
+}
+
+@keyframes loot-in {
+  from { opacity: 0; transform: translateY(18px); }
+}
+
+@keyframes loot-fly {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--fly-x), var(--fly-y)) scale(0.42); opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loot-panel { animation: none; }
+  .loot-fly { animation-duration: 180ms; }
+}

@@ -3,7 +3,7 @@
 import type { Card, CardDef } from "../engine/types";
 import { RULES } from "../engine/rules";
 import type { SlotSymbol } from "../explore/types";
-import type { ItemDef, ItemStack } from "../items/types";
+import type { EquipSlot, ItemDef, ItemStack } from "../items/types";
 import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
 import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
@@ -13,6 +13,7 @@ import { ENEMIES, type EnemyDef } from "./enemies";
 import { ENCOUNTERS, type EncounterDef } from "./encounters";
 import { MAPS, type MapDef } from "./maps";
 import { SLOT_SYMBOLS } from "./slotSymbols";
+import { NPC_EVENTS, getNpcEvent, type NpcEvent } from "./npcEvents";
 
 export { CARD_DEFS } from "./cards";
 export {
@@ -24,14 +25,17 @@ export {
 export { CHARACTERS, type CharacterDef } from "./characters";
 export {
   BOND_DEFS,
+  BOND_BIAS,
   ROLLABLE_BOND_IDS,
   activeBonds,
+  bondPool,
   getBondDef,
   mergeMods,
   nextTier,
   type BondDef,
   type BondTier,
 } from "./bonds";
+export { NPC_EVENTS, getNpcEvent, type NpcEvent } from "./npcEvents";
 export { ENEMIES, type EnemyDef, type EnemyMove } from "./enemies";
 export {
   ENCOUNTERS,
@@ -53,6 +57,10 @@ export {
 export { SORTIE_STOCK_IDS } from "./sortieStock";
 
 export const ITEM_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...DESIGN_ITEM_DEFS];
+
+export function equipmentDefsBySlot(slot?: EquipSlot): ItemDef[] {
+  return EQUIPMENT_ITEM_DEFS.filter((def) => !slot || def.slot === slot);
+}
 
 function keyBy<T extends { id: string }>(arr: T[]): Record<string, T> {
   const out: Record<string, T> = {};

@@ -154,6 +154,10 @@ function bankEverything(session: { loot: number; backpack: ItemStack[]; shipped:
   const town = useTownStore.getState();
   town.bankLoot(session.loot);
   town.deposit([...session.shipped, ...session.backpack]);
+  const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
+  if (exp.length) {
+    useRunStore.setState({ expReport: exp });
+  }
 }
 
 export const useRunStore = create<RunStore>((set, get) => ({

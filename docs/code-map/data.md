@@ -13,7 +13,8 @@
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；据点随机商店仍只筛选装备与材料。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
 | [shop.ts](../../src/data/shop.ts) | 据点商店：等级配置 `SHOP_LEVELS`、线性递增的刷新计价 `shopRefreshCost`、货架生成 `rollShopStock`。上架资格看 `buyValue`；随机刻意用 `Math.random`，不进探索的可复现种子链。 |
-| [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池、事件选项、代价和效果。 |
+| [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池、事件选项、加权 outcome、独立故事文案和效果。废弃楼层当前只登记 15 个成长事件，旧生存/经济/路线等事件池已清空；六个食品触发的隐藏休息映射由事件的 `hiddenRest` 登记。 |
+| [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
 | [slotSymbols.ts](../../src/data/slotSymbols.ts) | 战斗签转轮符号：战斗卡、战前准备卡和 BOSS 开局条件。 |
 | [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战、低档补充敌人和转轮池。地图素材由 UI 查表。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid。 |

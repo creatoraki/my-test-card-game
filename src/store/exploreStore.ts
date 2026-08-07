@@ -9,6 +9,8 @@ import type { ExploreState, PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
 import {
   abandonPending,
+  abandonLoot,
+  acceptEquipOffer,
   arriveNode,
   chooseEntry,
   chooseOption,
@@ -20,16 +22,26 @@ import {
   finishGenerating,
   finishLeaving,
   finishReveal,
+  grantExpTo,
   leaveRegion,
   pushOn,
   reorderBackpack as reorderBackpackFn,
   retreat,
+  reforgeBackpackItem,
+  resolvePendingAction,
+  restEat,
+  restSkip,
+  chooseNpcOption,
+  confirmNpc,
   shipHome,
   startReveal,
   startSlot,
   stopReel,
   takePendingContamination,
   takePending,
+  takeAllLoot,
+  takeLoot,
+  takePendingExp,
   useItem,
 } from "../explore/session";
 
@@ -76,6 +88,18 @@ interface ExploreStore {
   takePending: (index: number) => void; // 替换模式: 收下待取物
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
   shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
+  takeLoot: (index: number) => void;
+  takeAllLoot: () => void;
+  abandonLoot: () => void;
+  restEat: (uid: string) => void;
+  restSkip: () => void;
+  chooseNpcOption: (index: number) => void;
+  confirmNpc: () => void;
+  grantExpTo: (charId: string) => void;
+  resolvePendingAction: () => void;
+  acceptEquipOffer: (index: number) => void;
+  reforgeBackpackItem: (uid: string) => void;
+  consumePendingExp: () => Record<string, number>;
 }
 
 // 所有 mutation 共用: 克隆 → 交给纯函数 → 仅在真的改动时替换。
@@ -194,5 +218,58 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   shipHome: (uids) => {
     mutate(get, set, (d) => shipHome(d, uids));
+  },
+
+  takeLoot: (index) => {
+    mutate(get, set, (d) => takeLoot(d, index));
+  },
+
+  takeAllLoot: () => {
+    mutate(get, set, (d) => takeAllLoot(d));
+  },
+
+  abandonLoot: () => {
+    mutate(get, set, (d) => abandonLoot(d));
+  },
+
+  restEat: (uid) => {
+    mutate(get, set, (d) => restEat(d, uid));
+  },
+
+  restSkip: () => {
+    mutate(get, set, (d) => restSkip(d));
+  },
+
+  chooseNpcOption: (index) => {
+    mutate(get, set, (d) => chooseNpcOption(d, index));
+  },
+
+  confirmNpc: () => {
+    mutate(get, set, (d) => confirmNpc(d));
+  },
+
+  grantExpTo: (charId) => {
+    mutate(get, set, (d) => grantExpTo(d, charId));
+  },
+
+  resolvePendingAction: () => {
+    mutate(get, set, (d) => resolvePendingAction(d));
+  },
+
+  acceptEquipOffer: (index) => {
+    mutate(get, set, (d) => acceptEquipOffer(d, index));
+  },
+
+  reforgeBackpackItem: (uid) => {
+    mutate(get, set, (d) => reforgeBackpackItem(d, uid));
+  },
+
+  consumePendingExp: () => {
+    let exp: Record<string, number> = {};
+    mutate(get, set, (d) => {
+      exp = takePendingExp(d);
+      return Object.keys(exp).length > 0;
+    });
+    return exp;
   },
 }));

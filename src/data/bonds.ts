@@ -12,6 +12,7 @@
 // ============================================================================
 
 import type { StatBlock, StatModifier } from "../engine/types";
+import type { BondBias } from "../explore/types";
 
 export interface BondTier {
   count: number; // 激活门槛(羁绊点数)
@@ -119,6 +120,15 @@ export const BOND_DEFS: Record<string, BondDef> = {
 // ★ 只放**已实装**的羁绊 —— 一共只有 9 个装备槽, 22 张塔罗牌全进池时每种期望 0.4 点,
 //   连最低的 3 点门槛都凑不出来, 羁绊系统等于摆设。日后每实装一个就往这里加一个 id。
 export const ROLLABLE_BOND_IDS: string[] = Object.keys(BOND_DEFS);
+
+export const BOND_BIAS: Record<BondBias, string[]> = {
+  offense: ["strength", "chariot", "judgement", "fool"],
+  defense: ["priestess", "tower", "fool"],
+};
+
+export function bondPool(bias?: BondBias): string[] {
+  return bias ? [...BOND_BIAS[bias]] : [...ROLLABLE_BOND_IDS];
+}
 
 // ⚠ 刻意**不 throw**(与 data/index.ts 的 getItemDef 相反): 存档里可能残留已下线的羁绊 id,
 //   计数时静默跳过即可 —— 不该让一件旧装备把整个仓库界面炸掉。

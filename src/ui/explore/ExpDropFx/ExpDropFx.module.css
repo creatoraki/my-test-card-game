@@ -1,0 +1,28 @@
+.exp-drop {
+  position: absolute;
+  left: 50%;
+  top: 28px;
+  z-index: 4;
+  color: #ffe69a;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px #ffb84d;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: exp-drop 2000ms cubic-bezier(0.2, 0.72, 0.28, 1) forwards;
+}
+
+@keyframes exp-drop {
+  0% { opacity: 0; transform: translate(-50%, -8px) scale(0.8); }
+  16% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  70% { opacity: 1; transform: translate(-50%, 34px) scale(0.96); }
+  100% { opacity: 0; transform: translate(-50%, 58px) scale(0.72); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exp-drop {
+    animation-duration: 600ms;
+    animation-timing-function: ease-out;
+  }
+}

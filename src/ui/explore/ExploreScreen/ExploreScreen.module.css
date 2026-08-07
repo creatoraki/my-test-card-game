@@ -699,6 +699,36 @@
   padding-top: 14px;
   border-top: 1px solid #c8d5d31c;
 }
+.expl-story {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--k);
+  background: #ffffff08;
+  color: #d7e5e0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.expl-story p {
+  margin: 0;
+}
+.expl-rest-food {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  color: #c8d8d4;
+  font-size: 13px;
+}
+.expl-empty {
+  margin: 8px 0 0;
+  padding: 14px;
+  border: 1px dashed #c8d5d344;
+  color: #9eacab;
+  font-size: 13px;
+}
 .expl-panel-cost {
   color: #9eacab;
   font-size: 12px;

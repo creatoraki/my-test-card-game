@@ -21,6 +21,7 @@ import {
 } from "../engine";
 import {
   CHARACTERS,
+  bondPool,
   getBondDef,
   getCharacter,
   getItemDef,
@@ -36,6 +37,7 @@ import {
 } from "../data/shop";
 import { removeByUid } from "../items/inventory";
 import type { EquipSlot, ItemStack } from "../items/types";
+import type { BondBias } from "../explore/types";
 
 // 装备修正层。★ 不再是占位 —— 它由 equipModsOf() 从 CharacterState.equipped 现算,
 // 不单独持久化(存两份必然对不上)。deriveStats 仍是局外面板的唯一换算点。
@@ -112,6 +114,7 @@ interface TownStore {
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
+  grantExpEach: (byChar: Record<string, number>) => ExpGain[]; // 按角色分别发经验
   contaminateCards: (charIds: string[], count: number) => number; // 随机污染队伍个人卡组中的未污染卡
   syncBattleConditions: (
     conditions: { charId: string; pollution: number; sick: boolean; quirks: string[] }[],
@@ -125,8 +128,11 @@ interface TownStore {
   // ---- 卡组锻造(经验的唯一去处) ----
   upgradeDeck: (charId: string) => void; // 升一级卡组等级
   forgeDraw: (charId: string) => void; // 花 drawCost 经验 → 摇稀有度 → 出 drawChoices 张候选
+  grantFreeDraw: (charId: string) => void; // 不消耗经验 → 出 drawChoices 张候选
   pickDraw: (charId: string, cardDefId: string) => void; // 3 选 1 落袋, 清 pendingDraw
   removeCard: (charId: string, uid: string) => void; // 花 removeCost 经验删一张卡
+  removeCardFree: (charId: string, uid: string) => void; // 不消耗经验删一张卡
+  reforgeEquipped: (charId: string, slot: EquipSlot, bias?: BondBias) => void;
   lowerMinDeck: (charId: string) => void; // 花经验把最小卡组下限降 1
 }
 
@@ -229,6 +235,18 @@ function rollRarity(level: number, pools: Record<Rarity, string[]>, rand: () => 
     if (roll <= 0) return r;
   }
   return "common";
+}
+
+function rollDrawOptions(cs: CharacterState): string[] | null {
+  const pools = getCharacter(cs.charId).pools;
+  const rarity = rollRarity(cs.deckLevel, pools, Math.random);
+  if (!canAddRarity(cs.deck, rarity)) return null;
+  const pool = pools[rarity];
+  if (!pool.length) return null;
+  return Array.from(
+    { length: RULES.deck.drawChoices },
+    () => pool[Math.floor(Math.random() * pool.length)],
+  );
 }
 
 function freshCharacter(def: CharacterDef): CharacterState {
@@ -427,6 +445,20 @@ export const useTownStore = create<TownStore>()(
         return report;
       },
 
+      grantExpEach: (byChar) => {
+        const characters = { ...get().characters };
+        const report: ExpGain[] = [];
+        for (const [charId, amount] of Object.entries(byChar)) {
+          const cs = characters[charId];
+          if (!cs || amount <= 0) continue;
+          const exp = cs.exp + amount;
+          characters[charId] = { ...cs, exp, expEarned: cs.expEarned + amount };
+          report.push({ charId, gained: amount, expAfter: exp });
+        }
+        if (report.length) set({ characters });
+        return report;
+      },
+
       contaminateCards: (charIds, count) => {
         const wanted = Math.max(0, Math.floor(count));
         if (!wanted || !charIds.length) return 0;
@@ -543,23 +575,25 @@ export const useTownStore = create<TownStore>()(
         const d = RULES.deck;
         if (!cs || cs.pendingDraw || cs.exp < d.drawCost) return;
 
-        const pools = getCharacter(charId).pools;
-        // 先摇稀有度(按卡组等级权重), 再从该稀有度池里出候选。
-        const rarity = rollRarity(cs.deckLevel, pools, Math.random);
-        // 该稀有度已满额就不必开抽 —— 抽了也放不进卡组。
-        if (!canAddRarity(cs.deck, rarity)) return;
-        const pool = pools[rarity];
-        if (!pool.length) return;
-
-        // 候选独立随机, 允许重复 —— 抽到两张同名卡也是合法结果
-        const options = Array.from(
-          { length: d.drawChoices },
-          () => pool[Math.floor(Math.random() * pool.length)],
-        );
+        const options = rollDrawOptions(cs);
+        if (!options) return;
         set({
           characters: {
             ...get().characters,
             [charId]: { ...cs, exp: cs.exp - d.drawCost, pendingDraw: options },
+          },
+        });
+      },
+
+      grantFreeDraw: (charId) => {
+        const cs = get().characters[charId];
+        if (!cs || cs.pendingDraw) return;
+        const options = rollDrawOptions(cs);
+        if (!options) return;
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, pendingDraw: options },
           },
         });
       },
@@ -594,6 +628,38 @@ export const useTownStore = create<TownStore>()(
               ...cs,
               exp: cs.exp - cost,
               deck: cs.deck.filter((c) => c.uid !== uid),
+            },
+          },
+        });
+      },
+
+      removeCardFree: (charId, uid) => {
+        const cs = get().characters[charId];
+        if (!cs || cs.deck.length <= cs.minDeckSize) return;
+        if (!cs.deck.some((c) => c.uid === uid)) return;
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: { ...cs, deck: cs.deck.filter((c) => c.uid !== uid) },
+          },
+        });
+      },
+
+      reforgeEquipped: (charId, slot, bias) => {
+        const cs = get().characters[charId];
+        const equipped = cs?.equipped?.[slot];
+        const pool = bondPool(bias);
+        if (!cs || !equipped || !pool.length) return;
+        const affinity = pool[Math.floor(Math.random() * pool.length)];
+        set({
+          characters: {
+            ...get().characters,
+            [charId]: {
+              ...cs,
+              equipped: {
+                ...cs.equipped,
+                [slot]: { ...equipped, affinity },
+              },
             },
           },
         });
