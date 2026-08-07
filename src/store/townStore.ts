@@ -15,6 +15,7 @@ import {
   RULES,
   SICK_MOD,
   addStats,
+  deckRarityWeights,
   deckUpgradeCost,
   drawCostToday,
   lowerMinSizeCost,
@@ -239,7 +240,7 @@ export function canAddRarity(deck: Card[], rarity: Rarity): boolean {
 
 // 按卡组等级摇一次稀有度。该档卡池为空时自动降级(rare → uncommon → common)。
 function rollRarity(level: number, pools: Record<Rarity, string[]>, rand: () => number): Rarity {
-  const weights = RULES.deck.rarityWeights[Math.min(level, RULES.deck.levelMax) - 1];
+  const weights = deckRarityWeights(level);
   const order: Rarity[] = ["common", "uncommon", "rare"];
   const total = order.reduce((s, r) => s + (pools[r].length ? weights[r] : 0), 0);
   if (total <= 0) return "common";

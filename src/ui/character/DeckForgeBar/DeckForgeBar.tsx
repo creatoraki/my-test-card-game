@@ -15,7 +15,7 @@ interface Props {
   minDeckSize: number;
   canDraw: boolean;
   canRemove: boolean;
-  canUpgrade: boolean;
+  canOpenUpgrade: boolean;
   onDraw: () => void;
   onRemove: () => void;
   onUpgrade: () => void;
@@ -28,7 +28,7 @@ export function DeckForgeBar({
   deckLevel,
   canDraw,
   canRemove,
-  canUpgrade,
+  canOpenUpgrade,
   onDraw,
   onRemove,
   onUpgrade,
@@ -59,7 +59,7 @@ export function DeckForgeBar({
       <button
         className={cx(s["forge-action"], s["is-upgrade"])}
         type="button"
-        disabled={!canUpgrade}
+        disabled={!canOpenUpgrade}
         onClick={onUpgrade}
       >
         <span className={s["forge-action-name"]}>升级卡组</span>

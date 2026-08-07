@@ -4,6 +4,8 @@ export * from "./types";
 export {
   RULES,
   capProb,
+  deckRarityChances,
+  deckRarityWeights,
   deckUpgradeCost,
   drawCostToday,
   lowerMinSizeCost,

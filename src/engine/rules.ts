@@ -115,6 +115,28 @@ export function deckUpgradeCost(level: number): number | null {
   return RULES.deck.upgradeCost[level - 1] ?? null;
 }
 
+// 该卡组等级的稀有度相对权重。level 会被夹到 [1, levelMax]。
+export function deckRarityWeights(level: number): Record<Rarity, number> {
+  const index = Math.max(0, Math.min(RULES.deck.levelMax, Math.floor(level)) - 1);
+  return RULES.deck.rarityWeights[index] ?? RULES.deck.rarityWeights[0];
+}
+
+// 归一化成百分比的抽取概率；空卡池不计入分母，与实际抽卡降级口径一致。
+export function deckRarityChances(
+  level: number,
+  hasPool: Record<Rarity, boolean> = { common: true, uncommon: true, rare: true },
+): Record<Rarity, number> {
+  const weights = deckRarityWeights(level);
+  const rarities: Rarity[] = ["common", "uncommon", "rare"];
+  const total = rarities.reduce((sum, rarity) => sum + (hasPool[rarity] ? weights[rarity] : 0), 0);
+  if (total <= 0) return { common: 0, uncommon: 0, rare: 0 };
+  return {
+    common: hasPool.common ? (weights.common / total) * 100 : 0,
+    uncommon: hasPool.uncommon ? (weights.uncommon / total) * 100 : 0,
+    rare: hasPool.rare ? (weights.rare / total) * 100 : 0,
+  };
+}
+
 // 今日第 usedToday+1 次扩充所需经验。不封顶。
 export function drawCostToday(usedToday: number): number {
   return RULES.deck.drawCostBase * (Math.max(0, usedToday) + 1);

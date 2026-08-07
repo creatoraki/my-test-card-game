@@ -11,7 +11,7 @@
 // 与全项目同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts): 所有坐标都是「设计 px」。
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { RULES, type StatBlock } from "@/engine";
+import { deckUpgradeCost, RULES, type Rarity, type StatBlock } from "@/engine";
 import { getCharacter, getItemDef } from "@/data";
 import type { EquipSlot } from "@/items/types";
 import { useRunStore } from "@/store/runStore";
@@ -20,6 +20,7 @@ import { DeckCard } from "@/ui/character/DeckCard";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckForgeBar } from "@/ui/character/DeckForgeBar";
 import { DeckForgeOverlay } from "@/ui/character/DeckForgeOverlay";
+import { DeckUpgradeOverlay } from "@/ui/character/DeckUpgradeOverlay";
 import { EquipmentDrawer } from "@/ui/character/EquipmentDrawer";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
@@ -112,7 +113,7 @@ export function CharacterDetailScreen() {
   const charId = useRunStore((s) => s.detailCharId);
   const closeCharDetail = useRunStore((s) => s.closeCharDetail);
   const [activeSlot, setActiveSlot] = useState<EquipSlot | null>(null);
-  const [forgeMode, setForgeMode] = useState<"draw" | "remove" | null>(null);
+  const [forgeMode, setForgeMode] = useState<"draw" | "remove" | "upgrade" | null>(null);
   const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
 
@@ -184,6 +185,7 @@ export function CharacterDetailScreen() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
+      if (forgeMode === "upgrade") return;
       if (forgeMode) {
         closeForge();
         return;
@@ -220,6 +222,11 @@ export function CharacterDetailScreen() {
   const hasDrawPool = (Object.keys(def.pools) as (keyof typeof def.pools)[]).some(
     (rarity) => def.pools[rarity].length > 0 && canAddRarity(cs.deck, rarity),
   );
+  const hasPool: Record<Rarity, boolean> = {
+    common: def.pools.common.length > 0,
+    uncommon: def.pools.uncommon.length > 0,
+    rare: def.pools.rare.length > 0,
+  };
   const canDraw = !cs.pendingDraw && cs.exp >= costs.draw && hasDrawPool;
   const canRemove = cs.exp >= costs.remove && cs.deck.length > cs.minDeckSize;
   const canUpgrade = costs.upgrade != null && cs.exp >= costs.upgrade;
@@ -361,10 +368,10 @@ export function CharacterDetailScreen() {
                   minDeckSize={cs.minDeckSize}
                   canDraw={canDraw}
                   canRemove={canRemove}
-                  canUpgrade={canUpgrade}
+                  canOpenUpgrade={costs.upgrade != null}
                   onDraw={() => forgeDraw(charId)}
                   onRemove={() => setForgeMode("remove")}
-                  onUpgrade={() => upgradeDeck(charId)}
+                  onUpgrade={() => setForgeMode("upgrade")}
                   drawDisabledReason={!hasDrawPool ? "该角色暂无可抽卡池" : undefined}
                 />
                 <div className={s["cd-deck-content"]}>
@@ -396,7 +403,21 @@ export function CharacterDetailScreen() {
 
         {!activeSlot && !forgeMode && hoveredCard && <DeckCardHoverPreview card={hoveredCard} />}
 
-        {forgeMode && (
+        {forgeMode === "upgrade" ? (
+          <DeckUpgradeOverlay
+            deckLevel={cs.deckLevel}
+            levelMax={RULES.deck.levelMax}
+            exp={cs.exp}
+            upgradeCost={costs.upgrade}
+            nextUpgradeCost={deckUpgradeCost(cs.deckLevel + 1)}
+            deckSize={cs.deck.length}
+            minDeckSize={cs.minDeckSize}
+            hasPool={hasPool}
+            canUpgrade={canUpgrade}
+            onConfirm={() => upgradeDeck(charId)}
+            onClose={closeForge}
+          />
+        ) : forgeMode ? (
           <DeckForgeOverlay
             mode={forgeMode}
             pendingDraw={cs.pendingDraw}
@@ -413,7 +434,7 @@ export function CharacterDetailScreen() {
             onCancelDraw={closeForge}
             onClose={closeForge}
           />
-        )}
+        ) : null}
 
         {/* ---- 左下: 返回 ---- */}
         <button

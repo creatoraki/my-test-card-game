@@ -1,0 +1,442 @@
+.upg-overlay {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 42px;
+}
+
+.upg-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: #2a1b3d73;
+  border: 0;
+  clip-path: none;
+  cursor: default;
+}
+
+.upg-modal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(860px, 100%);
+  max-height: 92%;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  overflow: hidden;
+  color: var(--cd-ink);
+  background: linear-gradient(145deg, #ffffffed, #fbf3ffeb 58%, #ecdcfad9);
+  border: 1px solid #2a1b3d38;
+  box-shadow: 0 28px 70px -32px #2a1b3dcc, inset 0 1px 0 #ffffff;
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+}
+
+.upg-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cd-line);
+}
+
+.upg-kicker {
+  color: var(--cd-glow);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.upg-title {
+  margin: 6px 0 0;
+  font-size: 30px;
+  letter-spacing: 4px;
+}
+
+.upg-sub {
+  margin: 6px 0 0;
+  color: var(--cd-ink-dim);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.upg-close {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  padding: 0;
+  color: var(--cd-ink-dim);
+  font-size: 24px;
+  line-height: 1;
+  background: #ffffff82;
+  border: 1px solid var(--cd-line);
+  clip-path: none;
+}
+
+.upg-close:hover:not(:disabled),
+.upg-button:hover:not(:disabled) {
+  color: var(--cd-glow-deep);
+  background: #ffffffd9;
+  border-color: var(--cd-glow);
+}
+
+.upg-level-block {
+  position: relative;
+  display: grid;
+  min-height: 92px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--cd-line);
+  background: #ffffff45;
+}
+
+.upg-levels {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.upg-level-current,
+.upg-level-target {
+  font-size: 42px;
+  letter-spacing: 2px;
+}
+
+.upg-level-target {
+  color: var(--cd-glow-deep);
+}
+
+.upg-level-arrow {
+  color: var(--cd-glow);
+  font-size: 28px;
+}
+
+.upg-cap {
+  position: absolute;
+  right: 22px;
+  bottom: 18px;
+  color: var(--cd-ink-dim);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.upg-burst,
+.upg-ring {
+  position: absolute;
+  pointer-events: none;
+}
+
+.upg-burst {
+  inset: 50% auto auto 50%;
+  width: 80px;
+  height: 80px;
+  transform: translate(-50%, -50%);
+}
+
+.upg-ring {
+  inset: 0;
+  display: block;
+  border: 1px solid var(--cd-glow);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+/* 与 DeckUpgradeOverlay.tsx 的 BURST_MS 手动同步。 */
+.is-levelup .upg-modal {
+  animation: upgBurst 900ms cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.is-levelup .upg-ring {
+  animation: upgRing 900ms cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.is-levelup .upg-level-target {
+  animation: upgLevelFlip 900ms cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.upg-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.upg-metric {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px 12px;
+  background: #ffffff65;
+  border: 1px solid var(--cd-line);
+}
+
+.upg-metric span,
+.upg-metric small {
+  color: var(--cd-ink-dim);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.upg-metric strong {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.upg-metric small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upg-exp {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upg-exp-head,
+.upg-table-head,
+.upg-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.upg-exp-head {
+  color: var(--cd-ink-dim);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.upg-exp-head strong {
+  color: var(--cd-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.upg-exp-track {
+  position: relative;
+  height: 12px;
+  overflow: hidden;
+  background: #2a1b3d16;
+  border: 1px solid var(--cd-line);
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+
+.upg-exp-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--cd-glow-deep), var(--cd-glow), #bd9ce8);
+  transform: scaleX(var(--exp-pct, 0));
+  transform-origin: left;
+  transition: transform var(--fill-ms, 720ms) cubic-bezier(.2, .72, .28, 1);
+}
+
+.upg-exp-glint {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 22%;
+  background: linear-gradient(90deg, transparent, #ffffffb8, transparent);
+  opacity: .55;
+  transform: translateX(-120%);
+}
+
+.is-filling .upg-exp-glint {
+  animation: upgGlint var(--fill-ms, 720ms) ease-out both;
+}
+
+.is-filling .upg-exp-fill.is-pulse {
+  animation: upgPulse var(--fill-ms, 720ms) ease-in-out both;
+}
+
+.upg-probability {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upg-table-head {
+  color: var(--cd-ink-dim);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.upg-table-head > div {
+  display: grid;
+  grid-template-columns: repeat(2, 92px);
+  gap: 12px;
+  text-align: right;
+}
+
+.upg-table-head strong {
+  color: var(--cd-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.upg-table {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--cd-line);
+}
+
+.upg-row {
+  display: grid;
+  grid-template-columns: 1fr 92px 24px 92px 66px;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  border-bottom: 1px solid var(--cd-line);
+  font-variant-numeric: tabular-nums;
+}
+
+.upg-row > strong,
+.upg-row > em {
+  text-align: right;
+}
+
+.upg-rarity {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.upg-row > strong {
+  font-size: 15px;
+}
+
+.upg-row-arrow {
+  color: var(--cd-glow);
+  text-align: center;
+}
+
+.upg-row em {
+  color: var(--cd-glow-deep);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.upg-row.is-empty {
+  color: var(--cd-ink-dim);
+  opacity: .48;
+}
+
+/* 与 DeckUpgradeOverlay.tsx 的 BURST_MS 手动同步。 */
+.is-levelup .upg-row.is-changed {
+  animation: upgRowPulse 900ms ease-in-out both;
+}
+
+.upg-foot {
+  flex: 0 0 auto;
+  padding-top: 12px;
+  color: var(--cd-ink-dim);
+  font-size: 13px;
+  border-top: 1px solid var(--cd-line);
+}
+
+.upg-button {
+  padding: 10px 18px;
+  color: var(--cd-ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: #ffffff91;
+  border: 1px solid var(--cd-line);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+}
+
+.upg-button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+/* 与 DeckUpgradeOverlay.tsx 的 SETTLE_MS 手动同步。 */
+.is-settle .upg-exp-fill {
+  transition: none;
+}
+
+.is-settle.is-settle-ready .upg-exp-fill {
+  transition: transform var(--fill-ms, 420ms) cubic-bezier(.2, .72, .28, 1);
+}
+
+@keyframes upgBurst {
+  0%, 100% { box-shadow: 0 28px 70px -32px #2a1b3dcc, inset 0 1px 0 #ffffff; }
+  35% { box-shadow: 0 28px 76px -22px #7c4dbea8, 0 0 0 1px #ffffff, inset 0 1px 0 #ffffff; }
+}
+
+@keyframes upgRing {
+  0% { opacity: .75; transform: scale(.35); }
+  72% { opacity: .18; transform: scale(2.8); }
+  100% { opacity: 0; transform: scale(3.2); }
+}
+
+@keyframes upgLevelFlip {
+  0% { opacity: .2; transform: translateY(12px) rotateX(-72deg); }
+  42% { opacity: 1; transform: translateY(0) rotateX(0); }
+  100% { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+@keyframes upgRowPulse {
+  0%, 100% { background: transparent; }
+  35% { background: #ffffffb8; }
+}
+
+@keyframes upgGlint {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(560%); }
+}
+
+@keyframes upgPulse {
+  0%, 100% { transform: scaleX(1); filter: brightness(1); }
+  50% { transform: scaleX(.985); filter: brightness(1.45); }
+}
+
+@media (max-width: 900px) {
+  .upg-modal {
+    padding: 16px;
+  }
+
+  .upg-level-current,
+  .upg-level-target {
+    font-size: 32px;
+  }
+
+  .upg-row {
+    grid-template-columns: 1fr 72px 18px 72px 52px;
+    gap: 6px;
+  }
+
+  .upg-table-head > div {
+    grid-template-columns: repeat(2, 72px);
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upg-modal,
+  .upg-ring,
+  .upg-level-target,
+  .upg-row.is-changed,
+  .upg-exp-glint,
+  .upg-exp-fill.is-pulse {
+    animation: none;
+  }
+
+  .upg-exp-fill,
+  .is-settle.is-settle-ready .upg-exp-fill {
+    transition: none;
+  }
+}
