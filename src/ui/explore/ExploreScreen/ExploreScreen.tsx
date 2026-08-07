@@ -26,10 +26,8 @@ import {
   landedEvent,
   npcChoices,
   projectedEnergy,
-  remainingNodes,
 } from "@/explore/session";
 import { getItemDef, getNpcEvent } from "@/data";
-import { EXPLORE_RULES } from "@/explore/rules";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
@@ -38,6 +36,7 @@ import ExpDropFx from "@/ui/explore/ExpDropFx";
 import LootPickup from "@/ui/explore/LootPickup";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
+import NodeTip from "@/ui/explore/NodeTip";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar";
 import ItemSlot from "@/ui/common/item/ItemSlot";
@@ -61,8 +60,8 @@ import s from "./ExploreScreen.module.css";
 
 // 路由图面板在画布里的落位。
 // ★ 等距棋盘沿「左下 → 右上」铺开, 因此包围盒的**左上角与右下角天然是空的** ——
-//   节点详情侧栏就摆进左上那块空三角(见下面的 .expl-inspect 定位), 决策浮层落在下方。
-//   把面板往右推是为了给左上的侧栏让位, 同时让棋盘右上角避开右上的读数列。
+//   节点悬浮浮卡会贴着对应瓦片出现, 决策浮层仍落在画布中央。
+//   把面板往右推是为了给左上的 HUD 让位, 同时让棋盘右上角避开右上的读数列。
 const BOARD_LEFT = 508;
 const BOARD_TOP = 184;
 const BAG_W = 640;
@@ -117,7 +116,7 @@ export function ExploreScreen() {
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageScale = useStageScale(viewportRef);
   const [bagOpen, setBagOpen] = useState(false);
-  // 侧栏当前展示的是哪个节点。悬停/聚焦即换, 移开则回落到「当前落点」。
+  // 当前悬停的节点。浮卡只跟随悬停，不回落到当前落点。
   const [hovered, setHovered] = useState<{ seg: number; lane: number } | null>(null);
   // 已点下但还没派发出去的那一支。★ 这个空档就是「落子的回响」——
   //   按钮先演完(竖条锁死 + 扫光掠过), 结算才发生; 少了它, 点击就只是一次表单提交。
@@ -279,18 +278,7 @@ export function ExploreScreen() {
   //   会让画面与阶段机各说各话(session 层对这一相也一律不放行)。
   const locked = session.phase === "generating" || session.phase === "leaving";
 
-  // 侧栏展示: 优先悬停的那个, 其次是当前落点。
-  const shownNode = hovered
-    ? board.nodes[hovered.seg]?.[hovered.lane]
-    : session.currentSegment > 0
-      ? ev
-      : null;
-  const shownSeg = hovered ? hovered.seg : session.currentSegment - 1;
-
   const tier = battleTierOf(session.round);
-  const left = remainingNodes(session);
-  // 「继续推进」的后果预告(§11.2): 下一段有几根桥接 —— 越深越不确定, 这是决策的全部依据。
-  const nextBridges = board.segments[session.currentSegment]?.bridges.length ?? 0;
 
   // 落点分支 → 应用。
   // ★ 不立刻派发: 先让被点中的那一支演完「落子」(竖条锁死 + 扫光), 另一支同时暗下去,
@@ -369,6 +357,14 @@ export function ExploreScreen() {
             onLeaveDone={onLeaveDone}
             onHoverNode={onHoverNode}
           />
+          {hovered && !focused && (
+            <NodeTip
+              key={`${hovered.seg}-${hovered.lane}`}
+              event={board.nodes[hovered.seg][hovered.lane]}
+              seg={hovered.seg}
+              lane={hovered.lane}
+            />
+          )}
           {/* 落点 → 浮层的光柱: 从落点瓦片向上升起, 把「是这个节点把面板叫出来的」说清楚。
               位置用 RouteBoard 导出的版式常量算, 两边不各写一份坐标。 */}
           {focused && session.currentLane != null && session.currentSegment > 0 && (
@@ -383,51 +379,6 @@ export function ExploreScreen() {
             />
           )}
         </div>
-
-        {/* ---- 左上: 节点详情侧栏 ----
-            20 个节点的瓦片上放不下文字, 所以按战棋的标准做法: 图标常驻、详情进侧栏(§11.1)。
-            ★ 落在标题下方的那块空地 —— 等距棋盘的包围盒左上角本来就是空的, 不会挡住任何瓦片。 */}
-        <aside
-          className={cx(s["expl-inspect"], recede)}
-          style={{ left: "56px", top: "400px", width: "320px" }}
-        >
-          {shownNode ? (
-            <div
-              className={cx(s["expl-inspect-body"], s[`k-${shownNode.kind}`])}
-              key={shownNode.id + shownSeg}
-            >
-              <span className={s["expl-kicker"]}>第 {shownSeg + 1} 推进段 · 节点</span>
-              <h3 className={s["expl-inspect-title"]}>{shownNode.title}</h3>
-              <div className={s["expl-inspect-tags"]}>
-                {shownNode.energyDelta !== 0 && (
-                  <span className={cx(s["expl-tag"], shownNode.energyDelta > 0 ? s["up"] : s["down"])}>
-                    额外粒子 {shownNode.energyDelta > 0 ? "+" : ""}
-                    {shownNode.energyDelta}
-                  </span>
-                )}
-                {shownNode.risk && (
-                  <span className={cx(s["expl-tag"], s[shownNode.risk])}>
-                    {shownNode.risk === "negative" ? "纯损耗" : "高风险"}
-                  </span>
-                )}
-              </div>
-              <p className={s["expl-inspect-desc"]}>{shownNode.description}</p>
-              {shownNode.choices?.map((c) => (
-                <p key={c.id} className={s["expl-inspect-choice"]}>
-                  <span className={s["expl-inspect-label"]}>{c.label}</span>
-                  <span className={s["expl-inspect-cost"]}>{c.desc}</span>
-                </p>
-              ))}
-            </div>
-          ) : (
-            <div className={cx(s["expl-inspect-body"], s["is-empty"])}>
-              <span className={s["expl-kicker"]}>节点详情</span>
-              <p className={s["expl-inspect-desc"]}>
-                把光标放到任意一个节点图标上 —— 20 个节点全程可见, 这是你决定走哪条通道的全部依据。
-              </p>
-            </div>
-          )}
-        </aside>
 
         {/* ---- 左下: 队伍 ---- */}
         <div className={cx(s["expl-party"], recede)} style={{ left: "16px", bottom: "16px" }}>
@@ -457,6 +408,30 @@ export function ExploreScreen() {
 
         {/* ---- 右下: 指令栏 + 背包 + 撤退 ---- */}
         <div className={cx(s["expl-actions"], recede)} style={{ right: "56px", bottom: "40px" }}>
+          {session.phase === "atNode" && (
+            <div className={s["expl-advance"]}>
+              <button
+                className={cx(s["expl-advance-btn"], s["is-push"])}
+                type="button"
+                disabled={!canPushOn(session)}
+                title={canPushOn(session) ? undefined : "已走满 4 个推进段, 本轮到此为止"}
+                style={{ "--i": 0 } as CSSProperties}
+                onClick={() => pushOn()}
+              >
+                <span className={s["expl-advance-ring"]} aria-hidden />
+                <span className={s["expl-advance-label"]}>继续推进 ▸</span>
+              </button>
+              <button
+                className={cx(s["expl-advance-btn"], s["is-leave"])}
+                type="button"
+                style={{ "--i": 1 } as CSSProperties}
+                onClick={() => leaveRegion()}
+              >
+                <span className={s["expl-advance-ring"]} aria-hidden />
+                <span className={s["expl-advance-label"]}>前往下一区域 ▸</span>
+              </button>
+            </div>
+          )}
           <div className={s["expl-commands"]}>
             <span className={s["expl-chip-label"]}>
               探索指令 · 侧向跨接 {session.lateralShiftsLeft}/1
@@ -581,9 +556,7 @@ export function ExploreScreen() {
                     }
                   >
                     {landedChoices(session).map((c, i) => {
-                      // ★ 按钮上写的是这一支的粒子净变化, 不让玩家自己做加法。
-                      const base = session.freeNodes > 0 ? 0 : -EXPLORE_RULES.energyPerNode;
-                      const delta = base + c.energyDelta;
+                      // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
                       const state =
                         committing == null
                           ? undefined
@@ -600,14 +573,7 @@ export function ExploreScreen() {
                           onClick={() => takeOption(i)}
                         >
                           <span className={s["expl-choice-bar"]} aria-hidden />
-                          <span className={s["expl-choice-head"]}>
-                            <span className={s["expl-choice-label"]}>{c.label}</span>
-                            <span className={cx(s["expl-choice-energy"], delta >= 0 ? s["up"] : s["down"])}>
-                              粒子 {delta > 0 ? "+" : delta < 0 ? "−" : ""}
-                              {Math.abs(delta)}
-                            </span>
-                          </span>
-                          <span className={s["expl-choice-desc"]}>{c.desc}</span>
+                          <span className={s["expl-choice-label"]}>{c.label}</span>
                         </button>
                       );
                     })}
@@ -722,11 +688,7 @@ export function ExploreScreen() {
                     onClick={() => chooseNpcOption(index)}
                   >
                     <span className={s["expl-choice-bar"]} aria-hidden />
-                    <span className={s["expl-choice-head"]}>
-                      <span className={s["expl-choice-label"]}>{choice.label}</span>
-                      <span className={s["expl-choice-energy"]}>免费</span>
-                    </span>
-                    <span className={s["expl-choice-desc"]}>{choice.desc}</span>
+                    <span className={s["expl-choice-label"]}>{choice.label}</span>
                   </button>
                 ))}
               </div>
@@ -764,56 +726,6 @@ export function ExploreScreen() {
                   onClick={confirmNpc}
                 >
                   返回路线 ▸
-                </button>
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* ---- 节点决策(atNode) ----
-            ★ 两个按钮必须并排、等重、都带后果预告(§11.2) —— 这是玩家判断
-              「我对这条线还有多少信心」的全部界面依据。 */}
-        {session.phase === "atNode" && (
-          <div className={s["expl-modal"]}>
-            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
-              <span className={s["expl-kicker"]}>
-                第 {session.currentSegment} / {EXPLORE_RULES.segmentsPerRound} 推进段已结算
-              </span>
-              <div className={s["expl-decide-row"]}>
-                <button
-                  className={s["expl-choice"]}
-                  type="button"
-                  disabled={!canPushOn(session)}
-                  style={{ "--i": 0 } as CSSProperties}
-                  onClick={() => pushOn()}
-                >
-                  <span className={s["expl-choice-bar"]} aria-hidden />
-                  <span className={s["expl-choice-head"]}>
-                    <span className={s["expl-choice-label"]}>继续推进</span>
-                    <span className={cx(s["expl-choice-energy"], s["down"])}>
-                      粒子 −{EXPLORE_RULES.energyPerNode}
-                    </span>
-                  </span>
-                  <span className={s["expl-choice-desc"]}>
-                    {canPushOn(session)
-                      ? `进入第 ${session.currentSegment + 1} 推进段 · 该段有 ${nextBridges} 根桥接 —— 越深越不确定`
-                      : "已走满 4 个推进段, 本轮到此为止"}
-                  </span>
-                </button>
-                <button
-                  className={s["expl-choice"]}
-                  type="button"
-                  style={{ "--i": 1 } as CSSProperties}
-                  onClick={() => leaveRegion()}
-                >
-                  <span className={s["expl-choice-bar"]} aria-hidden />
-                  <span className={s["expl-choice-head"]}>
-                    <span className={s["expl-choice-label"]}>前往下一区域</span>
-                    <span className={s["expl-choice-energy"]}>{BATTLE_TIER_NAME[tier]}</span>
-                  </span>
-                  <span className={s["expl-choice-desc"]}>
-                    {left > 0 ? `放弃本轮剩余 ${left} 个节点, 直接打推进战斗` : "进入本轮的推进战斗"}
-                  </span>
                 </button>
               </div>
             </section>

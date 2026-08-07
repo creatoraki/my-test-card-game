@@ -101,7 +101,7 @@ export interface EventOutcome {
 export interface EventChoice {
   id: string;
   label: string; // 按钮文字, 如「使用」「拆走」
-  desc: string; // 一行代价/收益说明, 直接渲染在按钮里
+  desc: string; // 一行代价/收益说明; 当前 UI 不渲染, 选项不预告得失
   story?: string;
   energyDelta: number; // 选中该项的净化粒子增减(**不含**每节点固定 −3)
   effects?: ExploreEffect[];

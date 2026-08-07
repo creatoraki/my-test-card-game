@@ -103,7 +103,10 @@ const TILE_NUDGE_Y = -5;
 // 四角投影: (+h,+h)→(+1.788h, 0)  (+h,−h)→(0, −0.894h)  (−h,−h)→(−1.788h, 0)  (−h,+h)→(0, +0.894h)
 const TILE_W = 2 * TILE_HALF * (ADV_X + LANE_X); // 菱形屏幕宽 ≈ 71.5
 const TILE_TOP_H = 2 * TILE_HALF * (LANE_Y - ADV_Y); // 菱形屏幕高 ≈ 35.8(正好是宽的一半)
-const TILE_BOX_H = TILE_TOP_H + TILE_D; // 连厚度一起的按钮盒高
+export const TILE_BOX_H = TILE_TOP_H + TILE_D; // 连厚度一起的按钮盒高
+
+// 站在地板上的图标顶端相对瓦片顶面中心的高度 —— 悬浮卡要贴在它上方。
+export const NODE_ICON_TOP = ICON_H + TILE_TOP_H / 2;
 
 const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
 
@@ -563,7 +566,7 @@ interface Props {
   /** 离场行走播完 → store 的 leaveDone()(会话从 leaving 进 routeDisclosure)。
    *  ⚠ 没有剩余线路可走时(理论上 session 已经拦掉)本组件会立刻回调, 阶段机不会卡死。 */
   onLeaveDone: () => void;
-  /** 悬停/聚焦某个节点 → ExploreScreen 的详情侧栏。null = 移开。 */
+  /** 悬停/聚焦某个节点 → ExploreScreen 的节点悬浮浮卡。null = 移开。 */
   onHoverNode: (at: { seg: number; lane: number } | null) => void;
 }
 
@@ -760,7 +763,7 @@ export function RouteBoard({
       )}
 
       {/* ── 顶部倒计时: 只在揭示阶段出现, 宽度由 CSS 动画从 100% 收到 0 ── */}
-      <div className={s["rb-timer"]} aria-hidden>
+      {/* <div className={s["rb-timer"]} aria-hidden>
         {phase === "revealing" && (
           <span
             key={board.round}
@@ -768,7 +771,7 @@ export function RouteBoard({
             style={{ animationDuration: `${board.revealDurationMs}ms` }}
           />
         )}
-      </div>
+      </div> */}
 
       {/* ── 入口 A-E: 每条通道**起点(左下端)**的那一块地板 ──
           与节点地板同款瓦片, 上面站着一个立体字母。五块地板沿通道轴排成一条朝右下的斜线。

@@ -1,0 +1,101 @@
+.expl-kicker {
+  composes: expl-kicker from "../styles/exploreKit.module.css";
+}
+.k-hazard {
+  composes: k-hazard from "../styles/exploreKit.module.css";
+}
+.k-heal {
+  composes: k-heal from "../styles/exploreKit.module.css";
+}
+.k-loot {
+  composes: k-loot from "../styles/exploreKit.module.css";
+}
+.k-energy {
+  composes: k-energy from "../styles/exploreKit.module.css";
+}
+.k-merchant {
+  composes: k-merchant from "../styles/exploreKit.module.css";
+}
+.k-route {
+  composes: k-route from "../styles/exploreKit.module.css";
+}
+.k-retreat {
+  composes: k-retreat from "../styles/exploreKit.module.css";
+}
+
+.tip {
+  --k: var(--expl-kind, #c9d4d2);
+  --notch: 14px;
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  width: 260px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--expl-line, #ffffff24);
+  border-top: 2px solid var(--k);
+  background: linear-gradient(160deg, #0f171cc4, #080d10e8);
+  backdrop-filter: blur(14px) saturate(110%) brightness(0.92);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 26px 54px -30px #000000e6;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  pointer-events: none;
+  animation: nodeTipRise 180ms ease backwards;
+}
+
+.tip.align-left {
+  --tip-x: 0;
+  --tip-y: -100%;
+}
+.tip.align-center {
+  --tip-x: -50%;
+  --tip-y: -100%;
+}
+.tip.align-right {
+  --tip-x: -100%;
+  --tip-y: -100%;
+}
+.tip.is-below {
+  --tip-y: 0;
+}
+.tip {
+  transform: translate(var(--tip-x, -50%), var(--tip-y, -100%));
+}
+
+.tip-title {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.tip-desc {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.82;
+}
+
+@keyframes nodeTipRise {
+  from {
+    opacity: 0;
+    transform: translate(var(--tip-x, -50%), calc(var(--tip-y, -100%) + 4px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip {
+    animation: none;
+  }
+}
