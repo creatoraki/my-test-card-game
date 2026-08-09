@@ -34,7 +34,6 @@ export function NodeTip({ event, seg, lane }: Props) {
       className={cx(s["tip"], s[`k-${event.kind}`], flipDown && s["is-below"], s[`align-${align}`])}
       style={style}
     >
-      <span className={s["expl-kicker"]}>第 {seg + 1} 推进段 · 节点</span>
       <h3 className={s["tip-title"]}>{event.title}</h3>
       <p className={s["tip-desc"]}>{event.description}</p>
     </div>

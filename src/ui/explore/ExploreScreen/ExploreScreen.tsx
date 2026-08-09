@@ -564,17 +564,16 @@ export function ExploreScreen() {
             >
               <span className={s["panel-frame"]} aria-hidden />
               <span className={s["panel-scan"]} aria-hidden />
-              <div className={s["expl-panel-art"]} aria-hidden="true">
-                <img className={s["expl-panel-image"]} src={eventArt(ev.kind)} alt="" />
-                <div className={s["expl-panel-art-grid"]} />
+              <div className={s["expl-panel-aside"]} aria-hidden="true">
+                <div className={s["expl-panel-art"]}>
+                  <img className={s["expl-panel-image"]} src={eventArt(ev.kind)} alt="" />
+                  <div className={s["expl-panel-art-grid"]} />
+                  <span className={s["expl-panel-art-mark"]}>◆</span>
+                </div>
                 <span className={s["expl-panel-art-code"]}>EVT / {ev.kind.toUpperCase()}</span>
-                <span className={s["expl-panel-art-mark"]}>◆</span>
               </div>
               <div className={s["expl-panel-content"]}>
                 <div className={s["expl-panel-heading"]}>
-                  <span className={s["expl-kicker"]}>
-                    第 {session.round} 轮 · 第 {session.currentSegment} 推进段 · 落点
-                  </span>
                   {/* key 挂 phase: 「待处理 → 已结算」这一跳必须被看见, 重挂一次走遍浮起动画。 */}
                   <span
                     className={cx(s["expl-panel-status"], session.phase === "resolving" && s["is-settled"])}
@@ -865,13 +864,13 @@ export function ExploreScreen() {
             <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
               <span className={s["panel-frame"]} aria-hidden />
               <span className={s["panel-scan"]} aria-hidden />
-              <span className={s["expl-kicker"]}>第 {session.round} 轮 · 线路披露</span>
+              <span className={s["expl-kicker"]}>线路披露</span>
               <h3 className={s["expl-panel-title"]}>这就是本轮的完整桥接</h3>
               <div className={s["expl-panel-slot"]}>
                 <p className={s["expl-panel-desc"]}>
                   亮起来的是你实际走过的路径, 压暗的是你放弃的节点。
                   {session.entryLane != null
-                    ? `你从 ${"ABCDE"[session.entryLane]} 通道进入, 推进了 ${session.currentSegment} 个节点。`
+                    ? `你从 ${"ABCDE"[session.entryLane]} 通道进入。`
                     : "你没有进入这片区域。"}
                 </p>
               </div>

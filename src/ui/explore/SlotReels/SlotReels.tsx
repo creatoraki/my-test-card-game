@@ -334,7 +334,7 @@ export function SlotReels({ onEnterBattle }: { onEnterBattle: (e: MouseEvent<HTM
     >
       <header className={s["slot-topbar"]}>
         <span className={s["expl-kicker"]}>
-          第 {slot.round} 轮 · 战斗签 · {BATTLE_TIER_NAME[slot.tier]}
+          战斗签 · {BATTLE_TIER_NAME[slot.tier]}
         </span>
         <h3 className={s["slot-title"]}>
           {held ? "进入推进战斗" : spinning ? `拉下摇杆定住第 ${stoppedCount + 1} / ${reelCount} 列` : "从 3 张里选 1 张"}

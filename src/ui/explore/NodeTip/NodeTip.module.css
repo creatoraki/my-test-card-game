@@ -1,6 +1,3 @@
-.expl-kicker {
-  composes: expl-kicker from "../styles/exploreKit.module.css";
-}
 .k-hazard {
   composes: k-hazard from "../styles/exploreKit.module.css";
 }
@@ -72,7 +69,7 @@
 }
 
 .tip-title {
-  margin: 2px 0 0;
+  margin: 10px 0 0;
   color: var(--text);
   font-size: 20px;
   font-weight: 600;

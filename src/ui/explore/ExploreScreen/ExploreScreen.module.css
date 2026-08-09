@@ -582,18 +582,26 @@
   --k-line: var(--expl-kind-line, #c9d4d266);
   pointer-events: auto;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 24px;
-  width: 980px;
-  height: 500px;
-  padding: 18px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 28px;
+  width: 1060px;
+  height: 560px;
+  padding: 20px;
   /* 从画布上方滑入(与控制终端浮层同一套语言)。⚠ 动画挂面板自己, 不挂 .expl-modal。 */
   animation: explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards;
+}
+.expl-panel-aside {
+  display: flex;
+  align-self: start;
+  flex-direction: column;
+  gap: 10px;
 }
 .expl-panel-art {
   position: relative;
   z-index: 1;
-  height: 100%;
+  width: 320px;
+  height: 320px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   border: 1px solid var(--expl-line);
   background: #0b1317;
@@ -629,22 +637,22 @@
 }
 .expl-panel-art-code,
 .expl-panel-art-mark {
-  position: absolute;
   z-index: 1;
   color: var(--muted);
   text-shadow: 0 0 12px #ffffff14;
 }
 .expl-panel-art-code {
-  left: 14px;
-  bottom: 12px;
-  font-size: 10px;
+  position: static;
+  color: #93a3a2;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 .expl-panel-art-mark {
+  position: absolute;
   color: var(--k);
   top: 12px;
   right: 14px;
-  font-size: 20px;
+  font-size: 24px;
 }
 .expl-panel-content {
   position: relative;
@@ -654,24 +662,29 @@
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding: 7px 10px 4px 0;
 }
 .expl-panel-heading {
   flex: none;
-  height: 24px;
+  height: 28px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
+}
+.expl-panel .expl-kicker {
+  font-size: 13px;
+  letter-spacing: 3px;
 }
 .expl-panel-status {
   flex: none;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border: 1px solid var(--k-line);
   background: var(--k-soft);
   color: var(--k);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 2px;
 }
 /* ── 落点 → 浮层的光柱 ──
@@ -705,12 +718,12 @@
   overflow: hidden;
 }
 .expl-choice {
-  --notch: 10px;
+  --notch: 12px;
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 50px;
-  padding: 10px 14px 10px 16px;
+  min-height: 62px;
+  padding: 14px 18px 14px 20px;
   border: 1px solid var(--expl-line);
   background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
   backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
@@ -729,7 +742,16 @@
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
-    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    letter-spacing 180ms ease;
+}
+.expl-choice::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, #ffffff26 50%, transparent 60%);
+  content: "";
+  pointer-events: none;
+  transform: translateX(-120%);
 }
 /* 左侧那道竖条: 悬停时自上而下长出来, 读作「这一支被选中了」。 */
 .expl-choice-bar {
@@ -745,33 +767,44 @@
 }
 :global([data-explore-stage]) .expl-choice:hover,
 :global([data-explore-stage]) .expl-choice:focus-visible {
-  transform: translateY(-3px);
+  transform: translateY(-3px) scale(1.02);
   border-color: #9ed0d1;
   color: #c7e6e2;
   background: linear-gradient(145deg, #2a4144d9, #17282dbd);
   box-shadow:
     inset 0 1px 0 #ffffff1d,
-    0 0 24px -10px #83cbd2;
+    0 0 30px -8px #83cbd2;
+  animation: explChoicePulse 1.6s ease-in-out infinite;
 }
 :global([data-explore-stage]) .expl-choice:hover .expl-choice-bar,
 :global([data-explore-stage]) .expl-choice:focus-visible .expl-choice-bar {
   transform: scaleY(1);
 }
+:global([data-explore-stage]) .expl-choice:hover .expl-choice-label,
+:global([data-explore-stage]) .expl-choice:focus-visible .expl-choice-label {
+  letter-spacing: 2.2px;
+}
+:global([data-explore-stage]) .expl-choice:hover::before,
+:global([data-explore-stage]) .expl-choice:focus-visible::before {
+  animation: explChoiceSweep 520ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+}
 :global([data-explore-stage]) .expl-choice:active {
-  transform: translateY(2px);
+  transform: translateY(2px) scale(0.985);
+  box-shadow: inset 0 2px 6px #00000066;
   transition-duration: 90ms;
 }
 .expl-choice-label {
-  color: #edf3f0;
-  font-size: 14px;
-  font-weight: 650;
+  color: #c9d6d2;
+  font-size: 18px;
+  font-weight: 700;
   letter-spacing: 1px;
+  transition: letter-spacing 180ms ease;
 }
 .expl-choice-cost {
   margin-left: auto;
   padding-left: 16px;
-  color: #a9d6d2;
-  font-size: 11px;
+  color: #93a3a2;
+  font-size: 13px;
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
@@ -785,27 +818,28 @@
 }
 .expl-panel-title {
   flex: none;
-  height: 42px;
+  height: 52px;
   overflow: hidden;
   margin: 8px 0 0;
-  color: var(--text);
-  font-size: 27px;
-  font-weight: 700;
-  letter-spacing: 3px;
+  color: #f2f7f5;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 0 18px #ffffff10;
 }
 .expl-panel-desc {
   position: relative;
   flex: none;
   margin: 0;
-  max-width: 620px;
-  max-height: 160px;
-  height: 160px;
+  max-width: 700px;
+  max-height: 190px;
+  height: 190px;
   overflow-y: auto;
   scrollbar-color: var(--k-line) transparent;
   scrollbar-width: thin;
-  color: #d1dcd9;
-  font-size: 14px;
-  line-height: 1.8;
+  color: #c9d6d2;
+  font-size: 17px;
+  line-height: 1.85;
 }
 .expl-desc-ghost {
   position: absolute;
@@ -836,17 +870,17 @@
 /* 结算摘要逐条错峰浮起(延迟由 tsx 按序号给)。单次播放, 不循环。 */
 .expl-note {
   animation: explRise 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  padding: 4px 10px;
+  padding: 6px 12px;
   border: 1px solid var(--expl-line);
   background: #ffffff08;
-  color: #d9e4e1;
-  font-size: 13px;
+  color: #c9d6d2;
+  font-size: 15px;
   letter-spacing: 1px;
 }
 .expl-note.is-muted {
   border-color: var(--border);
   background: none;
-  color: var(--muted);
+  color: #93a3a2;
 }
 .expl-panel-foot {
   flex: none;
@@ -866,9 +900,9 @@
   padding: 10px 12px;
   border-left: 2px solid var(--k);
   background: #ffffff08;
-  color: #d7e5e0;
-  font-size: 13px;
-  line-height: 1.7;
+  color: #c9d6d2;
+  font-size: 15px;
+  line-height: 1.75;
 }
 .expl-story p {
   margin: 0;
@@ -879,20 +913,48 @@
   align-items: center;
   gap: 14px;
   margin-top: 8px;
-  color: #c8d8d4;
-  font-size: 13px;
+  color: #c9d6d2;
+  font-size: 15px;
 }
 .expl-empty {
   margin: 8px 0 0;
   padding: 14px;
   border: 1px dashed #c8d5d344;
   color: #9eacab;
-  font-size: 13px;
+  font-size: 15px;
 }
 .expl-panel-cost {
-  color: #9eacab;
-  font-size: 12px;
+  color: #93a3a2;
+  font-size: 14px;
   letter-spacing: 2px;
+}
+.expl-panel .expl-btn {
+  position: relative;
+  padding: 14px 26px;
+  font-size: 17px;
+}
+:global([data-explore-stage]) .expl-panel .expl-btn:hover:not(:disabled),
+:global([data-explore-stage]) .expl-panel .expl-btn:focus-visible {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    inset 0 1px 0 #ffffff1d,
+    0 0 30px -8px #83cbd2;
+  animation: explChoicePulse 1.6s ease-in-out infinite;
+}
+:global([data-explore-stage]) .expl-panel .expl-btn:active:not(:disabled) {
+  transform: translateY(2px) scale(0.985);
+  box-shadow: inset 0 2px 6px #00000066;
+  transition-duration: 90ms;
+}
+:global([data-explore-stage]) .expl-panel .expl-btn:hover::before,
+:global([data-explore-stage]) .expl-panel .expl-btn:focus-visible::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, #ffffff26 50%, transparent 60%);
+  content: "";
+  pointer-events: none;
+  transform: translateX(-120%);
+  animation: explChoiceSweep 520ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
 }
 /* ===================== 落点浮层的逐字演出 ===================== */
 /* ★ 一整段设计只为一件事: 让「抵达一个落点」读起来像**发生了一件事**, 而不是弹出一段说明。
@@ -937,6 +999,12 @@
 .expl-decide-row .expl-choice {
   animation: explRise 340ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(var(--i, 0) * 90ms);
+}
+:global([data-explore-stage]) .expl-choices.is-armed .expl-choice:hover:not(:disabled),
+:global([data-explore-stage]) .expl-choices.is-armed .expl-choice:focus-visible,
+:global([data-explore-stage]) .expl-decide-row .expl-choice:hover:not(:disabled),
+:global([data-explore-stage]) .expl-decide-row .expl-choice:focus-visible {
+  animation: explChoicePulse 1.6s ease-in-out infinite;
 }
 .expl-choice:disabled {
   cursor: default;
@@ -1022,6 +1090,26 @@
     transform: translateX(120%);
   }
 }
+@keyframes explChoiceSweep {
+  to {
+    transform: translateX(120%);
+  }
+}
+@keyframes explChoicePulse {
+  0%,
+  100% {
+    border-color: #9ed0d1;
+    box-shadow:
+      inset 0 1px 0 #ffffff1d,
+      0 0 24px -10px #83cbd2;
+  }
+  50% {
+    border-color: #d8f5f1;
+    box-shadow:
+      inset 0 1px 0 #ffffff2b,
+      0 0 30px -8px #83cbd2;
+  }
+}
 @keyframes explChoicesExit {
   to {
     opacity: 0;
@@ -1079,6 +1167,26 @@
   .expl-advance-btn:active:not(:disabled) {
     transform: none;
   }
+  :global([data-explore-stage]) .expl-choice:hover,
+  :global([data-explore-stage]) .expl-choice:focus-visible,
+  :global([data-explore-stage]) .expl-choice:active:not(:disabled) {
+    transform: none;
+    animation: none;
+  }
+  :global([data-explore-stage]) .expl-choice:hover::before,
+  :global([data-explore-stage]) .expl-choice:focus-visible::before,
+  :global([data-explore-stage]) .expl-choice:active::before,
+  :global([data-explore-stage]) .expl-panel .expl-btn:hover::before,
+  :global([data-explore-stage]) .expl-panel .expl-btn:focus-visible::before,
+  :global([data-explore-stage]) .expl-panel .expl-btn:active::before {
+    display: none;
+  }
+  :global([data-explore-stage]) .expl-panel .expl-btn:hover:not(:disabled),
+  :global([data-explore-stage]) .expl-panel .expl-btn:focus-visible,
+  :global([data-explore-stage]) .expl-panel .expl-btn:active:not(:disabled) {
+    transform: none;
+    animation: none;
+  }
   .expl-panel {
     animation: none;
   }
@@ -1108,17 +1216,17 @@
   --k-line: #8dbfc066;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: 860px;
-  height: 380px;
+  gap: 12px;
+  width: 920px;
+  height: 420px;
   min-height: 0;
-  padding: 24px 30px 24px;
+  padding: 28px 34px;
 }
 .expl-panel-decide .expl-panel-title {
   margin-top: 4px;
 }
 .expl-panel-decide .expl-panel-desc {
-  max-width: 720px;
+  max-width: 780px;
 }
 .expl-panel-decide .expl-choice {
   min-height: 104px;
