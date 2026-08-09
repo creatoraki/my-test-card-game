@@ -34,7 +34,7 @@ const CHARACTER_ART: Record<string, CharacterArtDef> = {
   // 大胃王: 取景偏移尚未校准, 先按 0 登记, 看到实际画面后再微调
   glutton: { src: gluttonPortrait },
   // 植物学家: 原图头顶留白偏多, 放大后人在窗里压得偏低 ⇒ 整体上移一点
-  botanist: { src: botanistPortrait, bustScale: 1.35, dy: -20 },
+  botanist: { src: botanistPortrait, dx: -10, bustScale: 1.35, dy: -20 },
 };
 
 export const CHARACTER_ART_SOURCES: readonly string[] = [...new Set(

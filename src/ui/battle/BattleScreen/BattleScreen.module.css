@@ -575,6 +575,7 @@
   bottom: var(--canvas-pad);
   height: var(--hud-h);
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   grid-template-columns: var(--hud-party-w) minmax(0, 1fr);
   gap: 20px;
   /* 悬浮上弹的手牌与悬空外挂的状态徽章要能越出 HUD 上沿 */

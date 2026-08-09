@@ -3,7 +3,7 @@ import { cx } from "@/ui/common/cx";
 import s from "./HpBar.module.css";
 
 // 敌我共用的血条。CombatantView(场上敌人立绘下方) 与 AllyBar(我方队伍卡底边) 都走这里 ——
-// 材质、分档配色、流光/火花/迸溅的时序只写一份, 两边表现必然一致。
+// 材质、三段配色、流光/火花/迸溅的时序只写一份, 两边表现必然一致。
 //
 // 视觉分三层能量:
 //   .hp-flow   填充区内持续向右流动的斜向光带(质感, 不承载信息)
@@ -12,10 +12,6 @@ import s from "./HpBar.module.css";
 //
 // ⚠ .hp-bar 自带 overflow:hidden, 我方那侧的队伍卡框还额外裁一次 ⇒ 粒子飞不出条外。
 // 所以火花的位移一律压在 8px 以内并快速淡出, 被裁到也看不出断口。
-
-// 分档阈值(%): 与 HpBar.module.css 的 .hp-ok / .hp-warn / .hp-low 三套配色一一对应。
-const TIER_OK = 60;
-const TIER_WARN = 30;
 
 const SPARK_COUNT = 8;
 const SPARK_LIFE = 700; // ms: 迸溅层的挂载时长, 须 ≥ 关键帧总时长(520ms + 最大错峰)
@@ -44,7 +40,6 @@ export function HpBar({ hp, hpLimit, maxHp, name, flush }: Props) {
   const limit = hpLimit ?? maxHp;
   const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const hpLimitPct = Math.max(0, Math.min(100, (limit / maxHp) * 100));
-  const tier = hpPct > TIER_OK ? "hp-ok" : hpPct > TIER_WARN ? "hp-warn" : "hp-low";
 
   // 掉血迸溅。刻意盯 hp 的变化而非上游的 hit 特效: 中毒/流血这类非命中掉血也该迸溅,
   // 且组件自包含 —— 调用方不必多传一个 prop。
@@ -76,13 +71,16 @@ export function HpBar({ hp, hpLimit, maxHp, name, flush }: Props) {
     // --hp-pct 同时驱动填充宽度与端头层的横向位置。端头刻意**不是** .hp-fill 的子元素:
     // 填充为了裁住流光带带了 overflow:hidden, 端头若在里面, 辉光就没法往右溢进空槽。
     <div
-      className={cx(s["hp-bar"], s[tier], flush && s["hp-flush"])}
+      className={cx(s["hp-bar"], flush && s["hp-flush"])}
       style={{ "--hp-pct": `${hpPct}%`, "--hp-limit-pct": `${hpLimitPct}%` } as React.CSSProperties}
+      title={`HP ${hp}/${limit} · 上限 ${maxHp}`}
     >
-      {/* 扣血拖影: 残影层延迟收缩, 主填充速缩后它慢半拍追上(见 HpBar.module.css .hp-ghost) */}
-      <div className={s["hp-ghost"]} style={{ width: `${hpPct}%` }} />
+      <div className={s["hp-slot"]} />
 
       <div className={s["hp-limit-fill"]} style={{ width: `${hpLimitPct}%` }} />
+
+      {/* 扣血拖影: 残影层延迟收缩, 主填充速缩后它慢半拍追上(见 HpBar.module.css .hp-ghost) */}
+      <div className={s["hp-ghost"]} style={{ width: `${hpPct}%` }} />
 
       <div className={s["hp-fill"]}>
         <span className={s["hp-flow"]} />
@@ -122,7 +120,7 @@ export function HpBar({ hp, hpLimit, maxHp, name, flush }: Props) {
 
       <span className={s["cmb-name"]}>{name}</span>
       <span className={s["hp-text"]}>
-        {Math.max(0, hp)}/{maxHp}
+        {Math.max(0, hp)}/{limit}
       </span>
     </div>
   );

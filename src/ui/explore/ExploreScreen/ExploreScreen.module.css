@@ -357,6 +357,11 @@
   width: 100%;
   min-width: 0;
 }
+.expl-member-body > .expl-pollution {
+  flex: 0 0 auto;
+  padding: 2px 7px 3px;
+  background: #1a110bd1;
+}
 /* 悬停: 整卡轻轻上浮, 描边提亮 —— 队伍是活的, 不是一张贴图。 */
 .expl-member {
   transition:

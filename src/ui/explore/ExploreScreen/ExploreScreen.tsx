@@ -40,6 +40,7 @@ import { getItemDef, getNpcEvent } from "@/data";
 import { countByItemId } from "@/items/inventory";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
+import { useTownStore } from "@/store/townStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
@@ -50,6 +51,7 @@ import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import NodeTip from "@/ui/explore/NodeTip";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar";
+import { PollutionMeter } from "@/ui/common/PollutionMeter";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import {
   RouteBoard,
@@ -115,6 +117,7 @@ function narrationBeats(storyCount: number, noteCount: number) {
 
 export function ExploreScreen() {
   const session = useExploreStore((s) => s.session);
+  const characters = useTownStore((s) => s.characters);
   const generateDone = useExploreStore((s) => s.generateDone);
   const beginReveal = useExploreStore((s) => s.beginReveal);
   const revealDone = useExploreStore((s) => s.revealDone);
@@ -453,6 +456,11 @@ export function ExploreScreen() {
               )}
               <div className={s["expl-member-body"]}>
                 <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} name={p.name} flush />
+                <PollutionMeter
+                  value={characters[p.charId]?.pollution ?? 0}
+                  compact
+                  className={s["expl-pollution"]}
+                />
               </div>
               {!p.alive && <span className={s["expl-member-down"]}>阵亡</span>}
             </div>

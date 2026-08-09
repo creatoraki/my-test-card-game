@@ -7,6 +7,9 @@
 .ally-bar {
   position: relative;
   display: flex;
+  align-self: end;
+  height: 316px;
+  min-height: 316px;
   gap: 10px;
   --bust-zoom: 1.8;
   --slot-base-w: 160px;
@@ -110,7 +113,7 @@ span.ally-portrait {
   justify-content: center;
   font-size: 64px;
 }
-/* 一体化双条: 贴卡框底边。自身不带圆角/斜切角/描边 —— 轮廓由 .ally-frame 裁出。 */
+/* 一体化三条: 贴卡框底边。自身不带圆角/斜切角/描边 —— 轮廓由 .ally-frame 裁出。 */
 .ally-bars {
   flex: 0 0 auto;
   display: flex;
@@ -118,6 +121,10 @@ span.ally-portrait {
 }
 .ally-bars > .ally-pollution {
   flex: 0 0 auto;
+  display: grid;
+  width: 100%;
+  min-height: 20px;
+  box-sizing: border-box;
   padding: 2px 7px 3px;
   background: #1a110bd1;
 }
