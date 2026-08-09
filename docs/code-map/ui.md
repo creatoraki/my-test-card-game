@@ -54,7 +54,7 @@ src/ui/
 | [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性仍为只读，个人卡组提供扩充、精简、升级锻造和卡面选中详情，升级改为面板确认并播放等级演出。与编队页之间是共享元素过场。 |
 | [character/DeckForgeBar](../../src/ui/character/DeckForgeBar/DeckForgeBar.tsx) | 角色详情页卡组锻造操作条：展示扩充、精简、升级三项操作及父组件传入的经验价格和禁用态；升级入口只在满级时禁用，经验校验下沉到升级面板。 |
 | [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 角色详情页卡组锻造浮层：承载持久化候选的三选一扩充、卡组指定删除、遮罩/关闭和删除二次确认。 |
-| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情页卡组升级浮层：展示等级、经验和卡池概率对比；确认后冻结读数并播放充满经验条、等级升级与结算演出。 |
+| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情页卡组升级浮层：展示等级徽章、卡背化稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条。 |
 | [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
 | [character/EquipmentDrawer](../../src/ui/character/EquipmentDrawer/EquipmentDrawer.tsx) | 角色详情页右侧部位仓库，只展示匹配槽位的装备，点击物品立即穿戴，并展示当前装备详情。 |
 | [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情页列表卡的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面视觉由公共 `TechCard` 提供。 |

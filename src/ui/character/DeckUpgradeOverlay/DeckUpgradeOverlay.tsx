@@ -4,11 +4,14 @@ import { deckRarityChances, deckUpgradeCost } from "@/engine";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
+import { useHoldCharge } from "@/ui/hooks/useHoldCharge";
+import { CardBackGlyph, DeckStackGlyph, ExpShardGlyph, LevelBadge, LockGlyph, MaxGlyph } from "./UpgradeGlyphs";
 import s from "./DeckUpgradeOverlay.module.css";
 
 const FILL_MS = 720;
 const BURST_MS = 900;
 const SETTLE_MS = 420;
+const CHARGE_MS = 700;
 
 const RARITIES: { id: Rarity; label: string }[] = [
   { id: "common", label: "普通" },
@@ -206,115 +209,162 @@ export function DeckUpgradeOverlay({
     setPhase("filling");
   };
 
-  const levelLabel = showLevelTransition && snapshot ? snapshot.level : view.level;
   const pulseFull = phase === "filling" && snapshot != null && snapshot.exp >= (snapshot.upgradeCost ?? 0);
   const phaseClass = phase === "settle" && settleReady ? s["is-settle-ready"] : undefined;
+  const badgeLevel = showLevelTransition && snapshot ? snapshot.level : view.level;
+  const badgeTargetLevel = snapshot ? snapshot.level + 1 : view.level + 1;
+  const baseExpPct = fillOf(view.exp, view.upgradeCost);
+  const { progress: chargeProgress, holding, bind: holdBind } = useHoldCharge({
+    ms: CHARGE_MS,
+    disabled: !canUpgrade || busy,
+    onComplete: confirmUpgrade,
+  });
+  const chargePct = baseExpPct + (1 - baseExpPct) * chargeProgress;
+  const chargeReady = holding && chargeProgress >= 0.82;
+  const statusLabel = view.upgradeCost == null ? "已达上限" : !canUpgrade ? "经验不足" : "";
 
   return (
     <div
-      className={cx(s["upg-overlay"], s[`is-${phase}`], phaseClass)}
+      className={cx(s["upg-overlay"], s[`is-${phase}`], phaseClass, holding && s["is-holding"], chargeReady && s["is-charge-ready"])}
       role="dialog"
       aria-modal="true"
       aria-label="卡组升级"
-      style={{ "--exp-pct": displayPct, "--fill-ms": `${fillMs}ms` } as CSSProperties}
+      style={{
+        "--exp-pct": displayPct,
+        "--fill-ms": `${fillMs}ms`,
+        "--charge": chargeProgress,
+        "--charge-pct": chargePct,
+      } as CSSProperties}
     >
       <button className={s["upg-backdrop"]} type="button" aria-label="关闭卡组升级" onClick={() => !busy && onClose()} />
       <section className={s["upg-modal"]}>
         <header className={s["upg-head"]}>
-          <div>
-            <span className={s["upg-kicker"]}>DECK LEVEL / UPGRADE</span>
-            <h2 className={s["upg-title"]}>卡组升级</h2>
-            <p className={s["upg-sub"]}>提升稀有度抽取权重，重新校准个人卡组的成长轨道。</p>
-          </div>
+          <h2 className={s["upg-title"]}>卡组升级</h2>
           <button className={s["upg-close"]} type="button" onClick={() => !busy && onClose()} aria-label="关闭">
             ×
           </button>
         </header>
 
-        <div className={s["upg-level-block"]}>
+        <div className={s["upg-badge-block"]}>
           <div className={s["upg-burst"]} aria-hidden="true">
             <span className={s["upg-ring"]} />
           </div>
-          <div className={s["upg-levels"]}>
-            {showLevelTransition ? (
-              <>
-                <strong className={s["upg-level-current"]}>Lv.{levelLabel}</strong>
-                <span className={s["upg-level-arrow"]}>→</span>
-                <strong className={s["upg-level-target"]}>Lv.{snapshot ? snapshot.level + 1 : view.level + 1}</strong>
-              </>
-            ) : (
-              <strong className={s["upg-level-current"]}>Lv.{view.level}</strong>
-            )}
+          <div className={s["upg-badge-current"]}>
+            <LevelBadge level={badgeLevel} levelMax={levelMax} />
           </div>
+          {showLevelTransition && snapshot && (
+            <div className={s["upg-badge-target"]} aria-hidden="true">
+              <LevelBadge level={badgeTargetLevel} levelMax={levelMax} />
+            </div>
+          )}
           {!showLevelTransition && !showNextChance && <span className={s["upg-cap"]}>已达上限</span>}
         </div>
 
-        <div className={s["upg-metrics"]}>
-          <div className={s["upg-metric"]}>
-            <span>卡组最低数</span>
-            <strong>{view.minDeckSize} 张</strong>
-            <small>当前卡组 {view.deckSize} 张</small>
+        <div className={s["upg-chips"]}>
+          <div className={s["upg-chip"]} aria-label={`卡组 ${view.deckSize} 张，最低 ${view.minDeckSize} 张`}>
+            <DeckStackGlyph />
+            <strong>
+              {view.deckSize}/{view.minDeckSize}
+            </strong>
           </div>
-          <div className={s["upg-metric"]}>
-            <span>升级所需经验</span>
-            <strong>{view.upgradeCost == null ? "—" : `${view.upgradeCost}`}</strong>
-            <small>{view.upgradeCost == null ? "当前等级无需继续升级" : "下一次升级成本"}</small>
-          </div>
-          <div className={s["upg-metric"]}>
-            <span>当前经验</span>
+          <div className={s["upg-chip"]} aria-label={`当前经验 ${view.exp}`}>
+            <ExpShardGlyph />
             <strong>{view.exp}</strong>
-            <small>可用于卡组锻造</small>
+          </div>
+          <div className={s["upg-chip"]} aria-label={`升级所需经验 ${view.upgradeCost ?? "MAX"}`}>
+            {view.upgradeCost == null ? (
+              <MaxGlyph />
+            ) : (
+              <LevelBadge level={Math.min(levelMax, view.level + 1)} levelMax={levelMax} />
+            )}
+            <strong>{view.upgradeCost ?? "MAX"}</strong>
           </div>
         </div>
 
         <div className={s["upg-exp"]}>
           <div className={s["upg-exp-head"]}>
-            <span>本级升级进度</span>
+            <span>EXP</span>
             <strong>
               {shownExp} / {view.upgradeCost == null ? "MAX" : view.upgradeCost}
             </strong>
           </div>
-          <div className={s["upg-exp-track"]}>
+          <div
+            className={s["upg-exp-track"]}
+            role="progressbar"
+            aria-label="卡组升级经验"
+            aria-valuemin={0}
+            aria-valuemax={view.upgradeCost ?? 1}
+            aria-valuenow={view.upgradeCost == null ? 1 : shownExp}
+          >
             <div className={cx(s["upg-exp-fill"], pulseFull && s["is-pulse"])} />
+            <div className={s["upg-exp-charge"]} aria-hidden="true" />
             <span className={s["upg-exp-glint"]} aria-hidden="true" />
           </div>
         </div>
 
-        <div className={s["upg-probability"]}>
-          <div className={s["upg-table-head"]}>
-            <span>稀有度抽取概率</span>
-            <div>
-              <strong>Lv.{view.level}</strong>
-              {nextChances && <strong>Lv.{view.level + 1}</strong>}
-            </div>
-          </div>
-          <div className={s["upg-table"]}>
-            {RARITIES.map(({ id, label }) => {
+        <div className={s["upg-probability"]} aria-label="稀有度抽取概率">
+          <div className={s["upg-rarity-grid"]}>
+            {RARITIES.map(({ id, label }, index) => {
               const available = view.hasPool[id];
               const current = currentChances[id];
               const next = nextChances?.[id];
               const delta = next == null ? 0 : next - current;
+              const deltaVisible = showLevelTransition && available && next != null && delta !== 0;
               return (
-                <div className={cx(s["upg-row"], !available && s["is-empty"], delta !== 0 && available && s["is-changed"])} key={id}>
-                  <span className={s["upg-rarity"]}>{label}</span>
-                  <strong>{available ? percentage(current) : "暂无卡池"}</strong>
-                  {nextChances && (
-                    <>
-                      <span className={s["upg-row-arrow"]}>→</span>
-                      <strong>{available ? percentage(next ?? 0) : "—"}</strong>
-                      <em>{available ? `${delta >= 0 ? "+" : ""}${percentage(delta)}` : "—"}</em>
-                    </>
+                <div
+                  className={cx(
+                    s["upg-rarity-col"],
+                    !available && s["is-empty"],
+                    delta !== 0 && available && s["is-changed"],
+                    delta > 0 && available && s["is-rising"],
                   )}
+                  key={id}
+                  aria-label={`${label}：${available ? percentage(current) : "无可用卡池"}`}
+                >
+                  {deltaVisible && <span className={s["upg-delta"]}>{`${delta >= 0 ? "+" : ""}${percentage(delta)}`}</span>}
+                  <CardBackGlyph tier={index + 1} muted={!available} />
+                  <strong className={s["upg-rarity-value"]}>{available ? percentage(current) : "—"}</strong>
                 </div>
               );
             })}
           </div>
+          <div className={s["upg-ratio-bar"]} aria-hidden="true">
+            {RARITIES.map(({ id }) => (
+              <span
+                className={cx(s["upg-ratio-seg"], !view.hasPool[id] && s["is-empty"])}
+                key={id}
+                style={{ flexBasis: `${currentChances[id]}%` }}
+              />
+            ))}
+          </div>
         </div>
 
         <footer className={s["upg-foot"]}>
-          <span>{busy ? "系统正在重校准卡组等级……" : canUpgrade ? "升级后可继续查看新的概率曲线。" : "经验不足，仍可查看当前等级的抽取概率。"}</span>
-          <button className={s["upg-button"]} type="button" disabled={!canUpgrade || busy} onClick={confirmUpgrade}>
-            {busy ? "升级中" : "确定升级"}
+          <span className={s["upg-status"]} aria-label={statusLabel || undefined}>
+            {statusLabel === "经验不足" && <LockGlyph />}
+            {statusLabel === "已达上限" && <MaxGlyph />}
+          </span>
+          <button
+            className={s["upg-button"]}
+            type="button"
+            disabled={!canUpgrade || busy}
+            aria-label={busy ? "升级中" : holding ? `蓄力 ${Math.round(chargeProgress * 100)}%` : "长按升级"}
+            {...holdBind}
+          >
+            <span className={s["upg-button-charge"]} aria-hidden="true" />
+            <span className={s["upg-button-sweep"]} aria-hidden="true" />
+            <svg className={s["upg-button-ring"]} viewBox="0 0 112 42" preserveAspectRatio="none" aria-hidden="true">
+              <path className={s["upg-button-ring-track"]} d="M8 1h103v33l-7 7H1V8Z" pathLength="1" />
+              <path
+                className={s["upg-button-ring-fill"]}
+                d="M8 1h103v33l-7 7H1V8Z"
+                pathLength="1"
+                strokeDasharray="1"
+                style={{ strokeDashoffset: 1 - chargeProgress }}
+              />
+            </svg>
+            <span className={s["upg-button-label"]}>{busy ? "升级中" : "升级"}</span>
+            {holding && <span className={s["upg-button-percent"]}>{Math.round(chargeProgress * 100)}%</span>}
           </button>
         </footer>
       </section>
