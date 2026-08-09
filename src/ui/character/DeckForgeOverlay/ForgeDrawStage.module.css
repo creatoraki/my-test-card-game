@@ -1,0 +1,117 @@
+.draw-stage {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.draw-exp-shard {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 8;
+  width: 26px;
+  height: 26px;
+  color: var(--cd-glow);
+  pointer-events: none;
+  animation: forgeExpShard var(--exp-flight-ms) cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.draw-exp-shard svg {
+  width: 100%;
+  height: 100%;
+}
+
+.draw-list {
+  display: grid;
+  min-height: 360px;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  justify-items: center;
+  gap: 20px;
+  padding: 10px 8px 16px;
+}
+
+.draw-choice {
+  width: min(220px, 100%);
+  min-width: 0;
+}
+
+.draw-actions {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--cd-line);
+}
+
+.draw-confirm {
+  display: inline-flex;
+  min-width: 104px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  color: var(--cd-ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: #ffffff91;
+  border: 1px solid var(--cd-line);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.draw-confirm svg {
+  width: 22px;
+  height: 22px;
+  color: var(--cd-glow);
+}
+
+.draw-confirm:hover:not(:disabled) {
+  color: var(--cd-glow-deep);
+  background: #ffffffd9;
+  border-color: var(--cd-glow);
+  transform: translateY(-1px);
+}
+
+.draw-confirm:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+}
+
+@keyframes forgeExpShard {
+  0% {
+    opacity: 0;
+    transform: translate(var(--exp-start-x), var(--exp-start-y)) scale(1.15) rotate(-18deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--exp-end-x), var(--exp-end-y)) scale(.42) rotate(22deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .draw-list {
+    gap: 10px;
+    padding-inline: 0;
+  }
+
+  .draw-choice {
+    width: min(168px, 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-exp-shard,
+  .draw-confirm {
+    animation: none;
+    transition: none;
+  }
+}

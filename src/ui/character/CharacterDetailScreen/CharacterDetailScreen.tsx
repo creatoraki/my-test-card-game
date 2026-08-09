@@ -116,6 +116,7 @@ export function CharacterDetailScreen() {
   const [forgeMode, setForgeMode] = useState<"draw" | "remove" | "upgrade" | null>(null);
   const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
+  const justForgedRef = useRef(false);
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageScale = useStageScale(viewportRef);
@@ -144,6 +145,7 @@ export function CharacterDetailScreen() {
   }, [invalid, closeCharDetail]);
 
   useEffect(() => {
+    justForgedRef.current = false;
     setActiveSlot(null);
     setForgeMode(null);
     setSelectedCardUid(cs?.deck[0]?.uid ?? null);
@@ -175,6 +177,34 @@ export function CharacterDetailScreen() {
     if (forgeMode === "draw" && charId) cancelDraw(charId);
     setForgeMode(null);
   }, [cancelDraw, charId, forgeMode]);
+
+  const startDraw = useCallback(() => {
+    if (!charId) return;
+    justForgedRef.current = true;
+    forgeDraw(charId);
+  }, [charId, forgeDraw]);
+
+  const consumeDrawIntro = useCallback(() => {
+    justForgedRef.current = false;
+  }, []);
+
+  const finishForge = useCallback(() => {
+    setForgeMode(null);
+  }, []);
+
+  const pickForgedCard = useCallback(
+    (cardDefId: string) => {
+      if (charId) pickDraw(charId, cardDefId);
+    },
+    [charId, pickDraw],
+  );
+
+  const removeForgedCard = useCallback(
+    (uid: string) => {
+      if (charId) removeCard(charId, uid);
+    },
+    [charId, removeCard],
+  );
 
   const openEquipmentSlot = useCallback((slot: EquipSlot) => {
     setForgeMode(null);
@@ -375,7 +405,7 @@ export function CharacterDetailScreen() {
                   drawDisabledReason={!hasDrawPool ? "该角色暂无可抽卡池" : undefined}
                 />
                 <div className={s["cd-deck-content"]}>
-                  <div className={s["cd-deck-grid"]}>
+                  <div className={s["cd-deck-grid"]} data-deck-anchor>
                     {cs.deck.map((card, i) => (
                       <div key={card.uid} className={s["cd-deck-cell"]} style={stagger(i)}>
                         <DeckCard
@@ -423,15 +453,11 @@ export function CharacterDetailScreen() {
             pendingDraw={cs.pendingDraw}
             deck={cs.deck}
             minDeckSize={cs.minDeckSize}
-            onPickDraw={(cardDefId) => {
-              pickDraw(charId, cardDefId);
-              setForgeMode(null);
-            }}
-            onRemoveCard={(uid) => {
-              removeCard(charId, uid);
-              setForgeMode(null);
-            }}
-            onCancelDraw={closeForge}
+            playDrawIntro={justForgedRef.current}
+            onIntroConsumed={consumeDrawIntro}
+            onComplete={finishForge}
+            onPickDraw={pickForgedCard}
+            onRemoveCard={removeForgedCard}
             onClose={closeForge}
           />
         ) : null}

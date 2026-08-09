@@ -10,6 +10,7 @@ interface Props {
   card: Card;
   selected: boolean;
   index: number;
+  className?: string;
   onClick: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -21,6 +22,7 @@ export function DeckCard({
   card,
   selected,
   index,
+  className,
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -31,7 +33,7 @@ export function DeckCard({
 
   return (
     <button
-      className={cx(s["deck-card"], selected && s["is-selected"])}
+      className={cx(s["deck-card"], className, selected && s["is-selected"])}
       type="button"
       style={
         {

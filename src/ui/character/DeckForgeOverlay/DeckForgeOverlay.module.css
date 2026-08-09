@@ -25,6 +25,7 @@
   display: flex;
   width: min(900px, 100%);
   max-height: 92%;
+  min-height: 430px;
   flex-direction: column;
   gap: 16px;
   padding: 22px;
@@ -39,31 +40,24 @@
 .forge-head {
   display: flex;
   flex: 0 0 auto;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--cd-line);
 }
 
-.forge-kicker {
+.forge-mode-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
   color: var(--cd-glow);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 3px;
 }
 
-.forge-title {
-  margin: 6px 0 0;
-  font-size: 28px;
-  letter-spacing: 4px;
-}
-
-.forge-sub {
-  margin: 6px 0 0;
-  color: var(--cd-ink-dim);
-  font-size: 14px;
-  letter-spacing: 1px;
+.forge-mode-icon svg {
+  width: 32px;
+  height: 32px;
 }
 
 .forge-close {
@@ -81,100 +75,56 @@
   clip-path: none;
 }
 
-.forge-close:hover:not(:disabled),
-.forge-button:hover:not(:disabled) {
+.forge-overlay .forge-close:hover:not(:disabled) {
   color: var(--cd-glow-deep);
   background: #ffffffd9;
   border-color: var(--cd-glow);
 }
 
-.draw-list {
-  display: flex;
-  flex: 1 1 auto;
-  justify-content: center;
-  gap: 24px;
-  min-height: 0;
-  padding: 12px 0;
+.forge-overlay[data-intro="true"] .forge-backdrop {
+  animation: forgeBackdropIn var(--veil-ms) cubic-bezier(.2, .72, .28, 1) both;
 }
 
-.draw-choice {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 220px;
-  flex: 0 0 auto;
+.forge-overlay[data-intro="true"] .forge-modal {
+  animation: forgeModalIn var(--veil-ms) cubic-bezier(.2, .72, .28, 1) both;
 }
 
-.draw-choice > button {
-  animation: none;
+@keyframes forgeBackdropIn {
+  from {
+    clip-path: circle(0 at 50% 50%);
+  }
+  to {
+    clip-path: circle(75% at 50% 50%);
+  }
 }
 
-.remove-list {
-  display: grid;
-  flex: 1 1 auto;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-content: start;
-  gap: 14px 12px;
-  min-height: 0;
-  padding: 8px 4px;
-  overflow-y: auto;
-}
-
-.remove-choice {
-  min-width: 0;
-}
-
-.remove-choice > button {
-  animation: none;
-}
-
-.forge-foot {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 12px;
-  color: var(--cd-ink-dim);
-  font-size: 13px;
-  border-top: 1px solid var(--cd-line);
-}
-
-.forge-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.forge-button {
-  padding: 9px 16px;
-  color: var(--cd-ink);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  background: #ffffff91;
-  border: 1px solid var(--cd-line);
-  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-}
-
-.forge-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+@keyframes forgeModalIn {
+  from {
+    opacity: 0;
+    clip-path: polygon(50% 0, 50% 0, 50% 100%, 50% 100%, 50% 100%, 50% 0);
+    transform: translateY(12px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+    transform: translateY(0) scale(1);
+  }
 }
 
 @media (max-width: 900px) {
+  .forge-overlay {
+    padding: 20px;
+  }
+
   .forge-modal {
+    min-height: 380px;
     padding: 16px;
   }
+}
 
-  .draw-list {
-    gap: 10px;
-  }
-
-  .draw-choice {
-    width: 160px;
-  }
-
-  .remove-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (prefers-reduced-motion: reduce) {
+  .forge-overlay[data-intro="true"] .forge-backdrop,
+  .forge-overlay[data-intro="true"] .forge-modal {
+    animation: none;
   }
 }

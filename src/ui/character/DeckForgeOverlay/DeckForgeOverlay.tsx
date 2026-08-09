@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { prefersReducedMotion } from "@/ui/app/transitions";
 import type { Card } from "@/engine";
-import { makeCard } from "@/data";
-import { DeckCard } from "@/ui/character/DeckCard";
+import { DeckMinusGlyph, DeckPlusGlyph } from "./ForgeGlyphs";
+import { ForgeDrawStage } from "./ForgeDrawStage";
+import { ForgeRemoveStage } from "./ForgeRemoveStage";
+import { VEIL_MS } from "./forgeChoreo";
 import s from "./DeckForgeOverlay.module.css";
 
 interface Props {
@@ -11,7 +14,9 @@ interface Props {
   minDeckSize: number;
   onPickDraw: (cardDefId: string) => void;
   onRemoveCard: (uid: string) => void;
-  onCancelDraw: () => void;
+  playDrawIntro: boolean;
+  onIntroConsumed: () => void;
+  onComplete: () => void;
   onClose: () => void;
 }
 
@@ -22,97 +27,72 @@ export function DeckForgeOverlay({
   minDeckSize,
   onPickDraw,
   onRemoveCard,
-  onCancelDraw,
+  playDrawIntro,
+  onIntroConsumed,
+  onComplete,
   onClose,
 }: Props) {
-  const [selectedUid, setSelectedUid] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSelectedUid(null);
-  }, [mode]);
+  const [intro] = useState(playDrawIntro);
+  const [busy, setBusy] = useState(() => intro && !prefersReducedMotion());
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && !busy) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  const drawCards = useMemo(
-    () => (pendingDraw ?? []).map((cardId) => makeCard(cardId)),
-    [pendingDraw],
-  );
-
-  const selectedCard = deck.find((card) => card.uid === selectedUid) ?? null;
+  }, [busy, onClose]);
 
   return (
-    <div className={s["forge-overlay"]} role="dialog" aria-modal="true" aria-label={mode === "draw" ? "扩充卡组" : "精简卡组"}>
-      <button className={s["forge-backdrop"]} type="button" aria-label="关闭卡组锻造" onClick={onClose} />
+    <div
+      className={s["forge-overlay"]}
+      data-busy={busy ? "true" : "false"}
+      data-intro={intro ? "true" : "false"}
+      style={{ "--veil-ms": `${VEIL_MS}ms` } as CSSProperties}
+      role="dialog"
+      aria-modal="true"
+      aria-label={mode === "draw" ? "扩充卡组" : "精简卡组"}
+    >
+      <button
+        className={s["forge-backdrop"]}
+        type="button"
+        aria-label="关闭卡组锻造"
+        disabled={busy}
+        onClick={() => !busy && onClose()}
+      />
       <section className={s["forge-modal"]}>
         <header className={s["forge-head"]}>
-          <div>
-            <span className={s["forge-kicker"]}>DECK FORGE / {mode === "draw" ? "DRAW" : "REMOVE"}</span>
-            <h2 className={s["forge-title"]}>{mode === "draw" ? "扩充卡组" : "精简卡组"}</h2>
-            <p className={s["forge-sub"]}>
-              {mode === "draw" ? "从三张候选卡中选择一张加入个人卡组。" : `选择一张卡牌，再确认从卡组中移除。至少保留 ${minDeckSize} 张。`}
-            </p>
-          </div>
-          <button className={s["forge-close"]} type="button" onClick={onClose} aria-label="关闭">
+          <span className={s["forge-mode-icon"]} aria-hidden="true">
+            {mode === "draw" ? <DeckPlusGlyph /> : <DeckMinusGlyph />}
+          </span>
+          <button
+            className={s["forge-close"]}
+            type="button"
+            disabled={busy}
+            onClick={() => !busy && onClose()}
+            aria-label="关闭卡组锻造"
+          >
             ×
           </button>
         </header>
 
         {mode === "draw" ? (
-          <div className={s["draw-list"]}>
-            {drawCards.map((card, index) => (
-              <div className={s["draw-choice"]} key={card.uid}>
-                <DeckCard card={card} index={index} selected={false} onClick={() => onPickDraw(card.id)} />
-              </div>
-            ))}
-          </div>
+          <ForgeDrawStage
+            pendingDraw={pendingDraw}
+            playIntro={intro}
+            onPick={onPickDraw}
+            onComplete={onComplete}
+            onBusyChange={setBusy}
+            onIntroConsumed={onIntroConsumed}
+          />
         ) : (
-          <>
-            <div className={s["remove-list"]}>
-              {deck.map((card, index) => (
-                <div className={s["remove-choice"]} key={card.uid}>
-                  <DeckCard
-                    card={card}
-                    index={index}
-                    selected={card.uid === selectedUid}
-                    onClick={() => setSelectedUid(card.uid)}
-                  />
-                </div>
-              ))}
-            </div>
-            <footer className={s["forge-foot"]}>
-              <span>{selectedCard ? `已选：${selectedCard.name}` : "请选择一张要移除的卡牌"}</span>
-              <div className={s["forge-actions"]}>
-                <button className={s["forge-button"]} type="button" onClick={onClose}>
-                  取消
-                </button>
-                <button
-                  className={s["forge-button"]}
-                  type="button"
-                  disabled={!selectedCard || deck.length <= minDeckSize}
-                  onClick={() => {
-                    if (selectedCard) onRemoveCard(selectedCard.uid);
-                  }}
-                >
-                  确认删除
-                </button>
-              </div>
-            </footer>
-          </>
-        )}
-
-        {mode === "draw" && (
-          <footer className={s["forge-foot"]}>
-            <span>本次扩充已支付经验</span>
-            <button className={s["forge-button"]} type="button" onClick={onCancelDraw}>
-              放弃
-            </button>
-          </footer>
+          <ForgeRemoveStage
+            deck={deck}
+            minDeckSize={minDeckSize}
+            onRemove={onRemoveCard}
+            onComplete={onComplete}
+            onBusyChange={setBusy}
+          />
         )}
       </section>
     </div>

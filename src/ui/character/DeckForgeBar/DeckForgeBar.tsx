@@ -36,7 +36,7 @@ export function DeckForgeBar({
   className,
 }: Props) {
   return (
-    <div className={cx(s["forge-bar"], className)} aria-label="卡组锻造操作">
+    <div className={cx(s["forge-bar"], className)} data-deck-forge-bar aria-label="卡组锻造操作">
       <button
         className={cx(s["forge-action"], s["is-draw"])}
         type="button"

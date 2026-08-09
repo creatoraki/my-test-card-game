@@ -1,0 +1,114 @@
+.remove-stage {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.remove-grid {
+  display: grid;
+  min-height: 300px;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  gap: 16px 12px;
+  padding: 8px 4px 14px;
+  overflow-y: auto;
+}
+
+.remove-choice {
+  min-width: 0;
+}
+
+.remove-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cd-line);
+}
+
+.remove-count {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  color: var(--cd-ink-dim);
+  background: #ffffff65;
+  border: 1px solid var(--cd-line);
+  font-variant-numeric: tabular-nums;
+}
+
+.remove-count svg {
+  width: 24px;
+  height: 24px;
+  color: var(--cd-glow);
+}
+
+.remove-count strong {
+  color: var(--cd-ink);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.remove-count {
+  transition: color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+}
+
+.remove-count.is-locked {
+  opacity: .5;
+}
+
+.remove-confirm {
+  display: inline-flex;
+  min-width: 104px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  color: var(--cd-ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: #ffffff91;
+  border: 1px solid var(--cd-line);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.remove-confirm svg {
+  width: 22px;
+  height: 22px;
+  color: var(--cd-glow);
+}
+
+.remove-confirm:hover:not(:disabled) {
+  color: var(--cd-glow-deep);
+  background: #ffffffd9;
+  border-color: var(--cd-glow);
+  transform: translateY(-1px);
+}
+
+.remove-confirm:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+}
+
+@media (max-width: 900px) {
+  .remove-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .remove-confirm,
+  .remove-count {
+    transition: none;
+  }
+}

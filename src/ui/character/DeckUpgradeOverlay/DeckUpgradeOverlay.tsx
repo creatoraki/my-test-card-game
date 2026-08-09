@@ -5,7 +5,7 @@ import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { useHoldCharge } from "@/ui/hooks/useHoldCharge";
-import { CardBackGlyph, DeckStackGlyph, ExpShardGlyph, LevelBadge, LockGlyph, MaxGlyph } from "./UpgradeGlyphs";
+import { CardBackGlyph, DeckStackGlyph, ExpShardGlyph, LevelBadge, LockGlyph, MaxGlyph } from "@/ui/character/glyphs/deckGlyphs";
 import s from "./DeckUpgradeOverlay.module.css";
 
 const FILL_MS = 720;
