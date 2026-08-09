@@ -1,0 +1,226 @@
+.panel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.head,
+.slotHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kicker,
+.counter,
+.price {
+  color: var(--expl-kind, #d6b477);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.counter {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 0;
+}
+
+.slot {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d6b47755;
+  background: linear-gradient(150deg, #2c271e66, #101719cc);
+  box-shadow: inset 0 1px 0 #ffffff12;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+}
+
+.slot.sold {
+  border-color: #ffffff1c;
+  opacity: 0.52;
+}
+
+.slotHead h4 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.slotHead p {
+  max-width: 300px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.price {
+  flex: none;
+  padding: 4px 6px;
+  border: 1px solid #d6b47766;
+  background: #d6b47712;
+}
+
+.stock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-items: stretch;
+}
+
+.stockChoice {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #ffffff1c;
+  background: #0000002b;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.detail {
+  grid-column: 1 / -1;
+  height: auto;
+  min-height: 0;
+  padding: 8px;
+  gap: 6px;
+}
+
+.stockChoice:hover:not(:disabled),
+.stockChoice:focus-visible:not(:disabled) {
+  border-color: #d6b477;
+  background: #d6b47718;
+  transform: translateY(-2px);
+}
+
+.stockChoice > span {
+  color: #d6b477;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.stockChoice:disabled,
+.serviceButton:disabled {
+  cursor: default;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 12px;
+  border: 1px dashed #ffffff24;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.buffList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.buff {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 7px 8px;
+  border-left: 2px solid #d6b477;
+  background: #d6b4770d;
+}
+
+.buff strong {
+  color: #f0d49b;
+  font-size: 12px;
+}
+
+.buff span {
+  color: #d6b477;
+  font-size: 11px;
+}
+
+.buff small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.serviceButton {
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 1px solid #d6b47788;
+  background: #d6b47718;
+  color: #f0d49b;
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 1px;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.serviceButton:hover:not(:disabled),
+.serviceButton:focus-visible:not(:disabled) {
+  border-color: #f0d49b;
+  background: #d6b47732;
+  transform: translateY(-2px);
+}
+
+.message {
+  min-height: 18px;
+  margin: 0;
+  color: #b8c8c6;
+  font-size: 11px;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #ffffff1c;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.closeButton {
+  min-height: 30px;
+  padding: 6px 12px;
+  border: 1px solid #ffffff42;
+  background: #ffffff0b;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 1px;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.closeButton:hover:not(:disabled),
+.closeButton:focus-visible:not(:disabled) {
+  border-color: #d6b477;
+  background: #d6b47718;
+  transform: translateY(-2px);
+}
+
+.closeButton:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+@media (max-width: 720px) {
+  .slots {
+    grid-template-columns: 1fr;
+  }
+}

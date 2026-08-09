@@ -61,6 +61,7 @@ import {
 import type { ItemRarity, ItemStack } from "../items/types";
 import { generateSegments, lanePath, traceSegment } from "./route";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
+import { closeShop, openShop } from "./shop";
 import { buildSlot, matchBonusOf, reelSymbolAt, resolveChoice as resolveSlotChoice } from "./slot";
 import type {
   BattleTier,
@@ -73,6 +74,7 @@ import type {
   PartySnapshot,
   PendingAction,
   RouteBoard,
+  ShopState,
   SlotBattleMod,
   SlotSymbol,
 } from "./types";
@@ -209,6 +211,7 @@ export function createSession(
     pendingExp: {},
     pendingActions: [],
     pendingStory: [],
+    shop: null,
     restNpcId: null,
     chuteOpen: false,
     entryLane: null,
@@ -568,7 +571,7 @@ function deferEffectLoot(s: ExploreState, stacks: ItemStack[]): string {
   return `发现 ${summarizeItems(stacks, [])}，等待拾取`;
 }
 
-function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
+export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
   switch (e.type) {
     case "HEAL_PARTY":
       healParty(s, e.percent);
@@ -968,6 +971,7 @@ export function generateRound(s: ExploreState): void {
   s.currentLane = null;
   s.currentSegment = 0;
   s.freeNodes = 0;
+  s.shop = null;
   s.pendingNotes = [];
   s.pendingBattleTier = null;
   s.chuteOpen = false;
@@ -1023,6 +1027,8 @@ export function arriveNode(s: ExploreState): boolean {
   s.pendingNotes = [];
   s.pendingStory = [];
   s.phase = "landed";
+  const event = landedEvent(s);
+  if (event?.services?.length) openShop(s, event);
   return true;
 }
 
@@ -1030,6 +1036,9 @@ export function arriveNode(s: ExploreState): boolean {
 export function landedChoices(s: ExploreState): EventChoice[] {
   const ev = landedEvent(s);
   if (!ev) return [];
+  if (ev.services?.length) {
+    return [{ id: "leave", label: "关闭页面", desc: "关闭交易终端并离开", energyDelta: 0 }];
+  }
   if (ev.choices?.length) return ev.choices;
   return [
     {
@@ -1083,6 +1092,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 
   const energyBefore = s.energy;
   const notes: string[] = [];
+  if (ev.services?.length) notes.push(...closeShop(s));
 
   // ① 节点的基础消耗。「隐匿通道」这类效果免的就是这一份。
   if (s.freeNodes > 0) {
@@ -1439,6 +1449,10 @@ export function canOpenBackpack(s: ExploreState): boolean {
 export function landedEvent(s: ExploreState): NodeEvent | null {
   if (!s.board || s.currentLane == null || s.currentSegment < 1) return null;
   return s.board.nodes[s.currentSegment - 1]?.[s.currentLane] ?? null;
+}
+
+export function landedShop(s: ExploreState): ShopState | null {
+  return s.phase === "landed" ? s.shop : null;
 }
 
 // 「再推进一个节点, 能量会掉到哪」—— 供 atNode 的后果预告与跨档预警用(§11.2)。

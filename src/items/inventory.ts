@@ -17,7 +17,8 @@ export type GetDef = (itemId: string) => ItemDef;
 // ---------------------------------------------------------------------------
 // 一堆占几格。★ 一件物品 = 一格; 首版所有 def 的 maxStack 都是 1, 于是这里恒等于 count。
 export function stackSlots(st: ItemStack, def: ItemDef): number {
-  return Math.ceil(st.count / Math.max(1, def.maxStack));
+  const stackCount = Math.ceil(st.count / Math.max(1, def.maxStack));
+  return def.category === "equipment" ? stackCount * 2 : stackCount;
 }
 
 export function occupiedSlots(stacks: ItemStack[], getDef: GetDef): number {

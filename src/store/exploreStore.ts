@@ -44,7 +44,9 @@ import {
   takeLoot,
   takePendingExp,
   useItem,
+  applyEffect,
 } from "../explore/session";
+import { buyFromShop as buyFromShopFn } from "../explore/shop";
 
 interface ExploreStore {
   session: ExploreState | null;
@@ -62,6 +64,7 @@ interface ExploreStore {
   pickEntry: (lane: number) => void; // 选入口通道 A-E。★ 全轮唯一一次自由选择
   arrive: () => ExploreState | null; // 推进动画播完 → landed(只落点, 不结算)
   pickOption: (index: number) => ExploreState | null; // 落点浮层选分支
+  buyFromShop: (slotIndex: number, stockIndex?: number) => boolean;
   confirmNode: () => void; // 结算浮层「确认」→ atNode 决策
   pushOn: () => void; // 「继续推进」→ 下一个推进段
   leaveRegion: () => void; // 「前往下一区域」→ 离场行走演出(leaving), 无路可走则直接披露
@@ -146,6 +149,15 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   arrive: () => mutate(get, set, (d) => arriveNode(d)),
 
   pickOption: (index) => mutate(get, set, (d) => chooseOption(d, index)),
+
+  buyFromShop: (slotIndex, stockIndex) => {
+    let ok = false;
+    mutate(get, set, (d) => {
+      ok = buyFromShopFn(d, slotIndex, stockIndex, applyEffect);
+      return ok;
+    });
+    return ok;
+  },
 
   confirmNode: () => {
     mutate(get, set, (d) => confirmNode(d));

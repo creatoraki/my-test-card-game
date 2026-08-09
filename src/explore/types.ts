@@ -130,6 +130,27 @@ export interface EventChoice {
   outcomes?: EventOutcome[];
 }
 
+export type TradeServiceKind = "goods" | "party" | "pending" | "random";
+
+export interface TradeBuffOption {
+  weight: number;
+  aura: ExploreAura;
+}
+
+export interface TradeSlotState {
+  serviceId: string;
+  stock: ItemStack[];
+  buffOptions?: TradeBuffOption[];
+  sold: boolean;
+}
+
+export interface ShopState {
+  eventId: string;
+  slots: TradeSlotState[];
+  trades: number;
+  notes: string[];
+}
+
 export interface HiddenRest {
   foodItemId: string;
   npcId: string;
@@ -167,6 +188,7 @@ export interface NodeEvent {
   energyDelta: number;
   effects?: ExploreEffect[];
   choices?: EventChoice[]; // 两项。缺省 = 单选项事件(等价于直接用上面的 energyDelta/effects)
+  services?: string[]; // 交易终端服务槽位, 最多两个; 有它时 choices 只由 session 生成离开项
   hiddenRest?: HiddenRest;
   // 允许出现的推进段区间(1-4, 含两端), 缺省 [1, 4]。深度分层的唯一声明处(设计文档 §2.3.2)。
   depth?: [number, number];
@@ -256,6 +278,12 @@ export interface PartySnapshot {
   // 负重适应(百分点)。★ 由 runStore.partySnapshot() 一次性填好 ——
   // 探索层因此自足: 算负重惩罚不用回头去问 townStore, UI 与开战两处也不会各算一份。
   burdenAdapt: number;
+  tradeEligibility?: {
+    deckSize: number;
+    minDeckSize: number;
+    contaminatedCards: number;
+    quirkCount: number;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +357,7 @@ export interface ExploreState {
   pendingExp: Record<string, number>;
   pendingActions: PendingAction[];
   pendingStory: string[];
+  shop: ShopState | null;
   restNpcId: string | null;
   // 投递口已开启(本节点的 resolving/atNode 阶段内可寄件)。推进到下一个节点即复位。
   chuteOpen: boolean;

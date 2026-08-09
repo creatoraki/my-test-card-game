@@ -1076,6 +1076,63 @@ const HAZARD: NodeEvent[] = [
   },
 ];
 
+const ECONOMY: NodeEvent[] = [
+  {
+    id: "cold-chain-benefit-counter",
+    kind: "merchant",
+    category: "economy",
+    title: "冷链员工福利兑换台",
+    description: "冷链兑换台已接入。本次可用服务：临期食品商店、医疗服务。两种服务使用不同食品货币。",
+    energyDelta: 0,
+    services: ["near-expiry-food-shop", "medical-service"],
+  },
+  {
+    id: "material-procurement-terminal",
+    kind: "merchant",
+    category: "economy",
+    title: "材料定向采购台",
+    description: "采购室已恢复。通用材料接受面包，地区采集材料接受炸鸡；两套货架分别锁定。",
+    energyDelta: 0,
+    services: ["general-material-shop", "regional-gathering-shop"],
+  },
+  {
+    id: "specimen-exchange-locker",
+    kind: "merchant",
+    category: "economy",
+    title: "生物样本交换柜",
+    description: "样本交换柜已开启。炸鸡可兑换怪物材料，汉堡可兑换消耗品；每类最多购买 1 件。",
+    energyDelta: 0,
+    services: ["monster-material-shop", "consumable-shop"],
+  },
+  {
+    id: "security-gear-checkpoint",
+    kind: "merchant",
+    category: "economy",
+    title: "安保装备验收门",
+    description: "安保验收门已生成武器和防具货架。所有装备属性、品质和占格已公开。",
+    energyDelta: 0,
+    services: ["weapon-shop", "armor-shop"],
+  },
+  {
+    id: "accessory-protocol-booth",
+    kind: "merchant",
+    category: "economy",
+    title: "饰品校准与团队协议台",
+    description: "校准厅提供饰品和团队协议。饰品占用背包，团队 BUFF 按本次远征常驻处理。",
+    energyDelta: 0,
+    services: ["accessory-shop", "random-party-buff"],
+  },
+  {
+    id: "skill-archive-audit-terminal",
+    kind: "merchant",
+    category: "economy",
+    title: "技能档案审计终端",
+    description: "技能档案终端已接入。抽卡使用披萨，删卡使用面包 ×2；请选择角色后再确认。",
+    energyDelta: 0,
+    services: ["card-draw-service", "card-remove-service"],
+  },
+];
+
 export interface EventPool {
   survival: NodeEvent[];
   growth: NodeEvent[];
@@ -1090,7 +1147,7 @@ export const EVENT_POOLS: Record<string, EventPool> = {
   "ruined-floor": {
     survival: SURVIVAL,
     growth: GROWTH,
-    economy: [],
+    economy: ECONOMY,
     route: [],
     energy: [],
     hazard: HAZARD,

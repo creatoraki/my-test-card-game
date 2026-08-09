@@ -91,6 +91,12 @@ function partySnapshot(): PartySnapshot[] {
       alive: true,
       // ★ 负重适应随快照一起带进探索层 —— 之后算负重惩罚就不用回头来问 townStore 了。
       burdenAdapt: stats.burdenAdapt,
+      tradeEligibility: {
+        deckSize: characters[id].deck.length,
+        minDeckSize: characters[id].minDeckSize,
+        contaminatedCards: characters[id].deck.filter((card) => card.contaminated).length,
+        quirkCount: characters[id].quirks.length,
+      },
     };
   });
 }

@@ -55,6 +55,8 @@ export {
   MATERIAL_ITEM_DEFS,
 } from "./items/index";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
+export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
+export { tradeStockDefs, type TradeStockKind } from "./tradeStock";
 
 export const ITEM_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...DESIGN_ITEM_DEFS];
 

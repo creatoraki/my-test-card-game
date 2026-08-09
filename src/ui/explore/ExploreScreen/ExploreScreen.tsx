@@ -32,6 +32,7 @@ import {
   canRetreat,
   landedChoices,
   landedEvent,
+  landedShop,
   npcChoices,
   projectedEnergy,
 } from "@/explore/session";
@@ -43,6 +44,7 @@ import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
 import LootPickup from "@/ui/explore/LootPickup";
+import MerchantPanel from "@/ui/explore/MerchantPanel";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import NodeTip from "@/ui/explore/NodeTip";
@@ -118,6 +120,7 @@ export function ExploreScreen() {
   const revealDone = useExploreStore((s) => s.revealDone);
   const pickEntry = useExploreStore((s) => s.pickEntry);
   const arrive = useExploreStore((s) => s.arrive);
+  const buyFromShop = useExploreStore((s) => s.buyFromShop);
   const chooseEventOption = useRunStore((s) => s.chooseEventOption);
   const confirmNode = useExploreStore((s) => s.confirmNode);
   const restEat = useExploreStore((s) => s.restEat);
@@ -279,6 +282,7 @@ export function ExploreScreen() {
 
   const board = session.board;
   const ev = landedEv;
+  const shop = landedShop(session);
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
   // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
@@ -610,57 +614,67 @@ export function ExploreScreen() {
                 </p>
                 <div className={s["expl-panel-slot"]}>
                   {session.phase === "landed" ? (
-                    // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
-                    <div
-                      className={cx(
-                        s["expl-choices"],
-                        desc.done && s["is-armed"],
-                        committing != null && s["is-closing"],
-                      )}
-                      style={
-                        { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
-                      }
-                    >
-                      {landedChoices(session).map((c, i) => {
-                        // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
-                        const state =
-                          committing == null
-                            ? undefined
-                            : committing === i
-                              ? s["is-chosen"]
-                              : s["is-dimmed"];
-                        const requiredCount = c.cost?.count ?? 0;
-                        const availableCount = c.cost
-                          ? countByItemId(session.backpack, c.cost.itemId)
-                          : 0;
-                        const costUnavailable = Boolean(c.cost && availableCount < requiredCount);
-                        return (
-                          <button
-                            key={c.id}
-                            className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
-                            type="button"
-                            disabled={!desc.done || committing != null || costUnavailable}
-                            title={
-                              c.cost
-                                ? costUnavailable
-                                  ? "背包中没有指定食品"
-                                  : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`
-                                : undefined
-                            }
-                            style={{ "--i": i } as CSSProperties}
-                            onClick={() => takeOption(i)}
-                          >
-                            <span className={s["expl-choice-bar"]} aria-hidden />
-                            <span className={s["expl-choice-label"]}>{c.label}</span>
-                            {c.cost && (
-                              <span className={s["expl-choice-cost"]}>
-                                {costUnavailable ? "背包中没有指定食品" : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    ev.services?.length && shop ? (
+                      <MerchantPanel
+                        session={session}
+                        shop={shop}
+                        onBuy={buyFromShop}
+                        canClose={desc.done && committing == null && !session.pendingActions.length}
+                        onClose={() => takeOption(0)}
+                      />
+                    ) : (
+                      // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
+                      <div
+                        className={cx(
+                          s["expl-choices"],
+                          desc.done && s["is-armed"],
+                          committing != null && s["is-closing"],
+                        )}
+                        style={
+                          { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
+                        }
+                      >
+                        {landedChoices(session).map((c, i) => {
+                          // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
+                          const state =
+                            committing == null
+                              ? undefined
+                              : committing === i
+                                ? s["is-chosen"]
+                                : s["is-dimmed"];
+                          const requiredCount = c.cost?.count ?? 0;
+                          const availableCount = c.cost
+                            ? countByItemId(session.backpack, c.cost.itemId)
+                            : 0;
+                          const costUnavailable = Boolean(c.cost && availableCount < requiredCount);
+                          return (
+                            <button
+                              key={c.id}
+                              className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
+                              type="button"
+                              disabled={!desc.done || committing != null || costUnavailable}
+                              title={
+                                c.cost
+                                  ? costUnavailable
+                                    ? "背包中没有指定食品"
+                                    : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`
+                                  : undefined
+                              }
+                              style={{ "--i": i } as CSSProperties}
+                              onClick={() => takeOption(i)}
+                            >
+                              <span className={s["expl-choice-bar"]} aria-hidden />
+                              <span className={s["expl-choice-label"]}>{c.label}</span>
+                              {c.cost && (
+                                <span className={s["expl-choice-cost"]}>
+                                  {costUnavailable ? "背包中没有指定食品" : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )
                   ) : (
                     <div className={s["expl-notes"]}>
                       {session.pendingNotes.length ? (
