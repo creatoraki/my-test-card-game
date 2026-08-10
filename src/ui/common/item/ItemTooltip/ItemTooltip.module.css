@@ -1,0 +1,32 @@
+.item-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: 260px;
+  pointer-events: none;
+  filter: drop-shadow(0 14px 24px #000000cc);
+}
+
+.item-tooltip-detail.item-tooltip-detail {
+  --accent: var(--inventory-accent, #ffffffe6);
+  --accent2: var(--inventory-accent-alt, #75e1d4);
+  --bad: #ff819d;
+  --border: var(--inventory-panel-line, #ffffff3d);
+  --good: var(--inventory-accent-alt, #75e1d4);
+  --muted: var(--inventory-muted, #b6c7c9);
+  --text: var(--inventory-text, #ffffff);
+
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  max-height: min(300px, calc(100vh - 24px));
+  padding: 12px;
+  overflow-y: auto;
+  background:
+    linear-gradient(135deg, var(--inventory-panel-glow, #ffffff14), transparent 50%),
+    linear-gradient(155deg, var(--inventory-panel, #0b1a1fa6), var(--inventory-panel-deep, #04090cb3));
+  border: 1px solid var(--inventory-panel-line, #ffffff3d);
+  border-radius: 8px 4px 9px 5px;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.82);
+  backdrop-filter: blur(14px) saturate(120%) brightness(0.82);
+}

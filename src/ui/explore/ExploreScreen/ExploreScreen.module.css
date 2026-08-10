@@ -522,13 +522,17 @@
   top: 50%;
   width: 100%;
   height: 100%;
+  /* ⚠ 居中**必须**写在静态样式里, 不能只靠关键帧里的 translate(-50%,-50%): 动画没在跑的任何
+     时刻(延迟期/UA 暂停)都会退回静态样式, 那时 left/top:50% 会把这圈边框整块推到按钮右下方。 */
+  transform: translate(-50%, -50%);
   border: 1px solid color-mix(in srgb, var(--adv-k) 55%, transparent);
   border-radius: 3px;
   pointer-events: none;
   animation: explAdvRing 2600ms cubic-bezier(0.16, 0.84, 0.3, 1) infinite;
 }
+/* 负延迟: 两颗按钮的呼吸仍错开半个周期, 但动画**立即**开始 —— 正延迟会留出 1.3s 的静态空档。 */
 .is-leave .expl-advance-ring {
-  animation-delay: 1300ms;
+  animation-delay: -1300ms;
 }
 .expl-advance-btn:disabled {
   opacity: 0.32;

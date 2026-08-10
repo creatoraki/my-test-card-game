@@ -1,11 +1,16 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
-import ItemDetail from "@/ui/common/item/ItemDetail";
+import ItemTooltip, {
+  tooltipPointFromRect,
+  type TooltipPoint,
+} from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { cx } from "@/ui/common/cx";
 import { VICTORY_CHOREO, victoryStagger } from "@/ui/battle/victoryChoreo";
+import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
+import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import s from "./VictoryLootTray.module.css";
 
 interface FlyingLoot {
@@ -22,10 +27,17 @@ interface Props {
 export function VictoryLootTray({ onPicked }: Props) {
   const pendingLoot = useExploreStore((state) => state.session?.pendingLoot ?? []);
   const takeLoot = useExploreStore((state) => state.takeLoot);
-  const [hoveredUid, setHoveredUid] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
   const [flying, setFlying] = useState<FlyingLoot | null>(null);
 
+  useEffect(() => {
+    if (hovered && !pendingLoot.some((stack) => stack.uid === hovered.uid)) {
+      setHovered(null);
+    }
+  }, [hovered, pendingLoot]);
+
   const pick = (stack: ItemStack) => {
+    setHovered(null);
     if (flying) return;
     const source = document.querySelector<HTMLElement>(`[data-loot-uid="${stack.uid}"]`);
     const target = document.getElementById("victory-backpack-panel");
@@ -56,7 +68,9 @@ export function VictoryLootTray({ onPicked }: Props) {
     }, VICTORY_CHOREO.lootFlyMs);
   };
 
-  const hovered = pendingLoot.find((stack) => stack.uid === hoveredUid) ?? null;
+  const hoveredStack = hovered
+    ? pendingLoot.find((stack) => stack.uid === hovered.uid) ?? null
+    : null;
 
   return (
     <div className={s["loot-tray"]}>
@@ -68,8 +82,15 @@ export function VictoryLootTray({ onPicked }: Props) {
               data-loot-uid={stack.uid}
               key={stack.uid}
               style={{ "--vc-delay": victoryStagger(index) } as CSSProperties}
-              onPointerEnter={() => setHoveredUid(stack.uid)}
-              onPointerLeave={() => setHoveredUid((current) => (current === stack.uid ? null : current))}
+              onPointerEnter={(event) =>
+                setHovered({
+                  uid: stack.uid,
+                  point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                })
+              }
+              onPointerLeave={() =>
+                setHovered((current) => (current?.uid === stack.uid ? null : current))
+              }
             >
               <ItemSlot
                 stack={stack}
@@ -83,10 +104,12 @@ export function VictoryLootTray({ onPicked }: Props) {
           <div className={s["loot-empty"]}>战利品已处理完毕</div>
         )}
       </div>
-      {hovered && (
-        <div className={s["loot-detail"]} role="status">
-          <ItemDetail stack={hovered} placeholder="" />
-        </div>
+      {hoveredStack && hovered && (
+        <ItemTooltip
+          stack={hoveredStack}
+          point={hovered.point}
+          themeStyle={inventoryThemeVars(VICTORY_INVENTORY_COLORS)}
+        />
       )}
       {flying && typeof document !== "undefined" &&
         createPortal(

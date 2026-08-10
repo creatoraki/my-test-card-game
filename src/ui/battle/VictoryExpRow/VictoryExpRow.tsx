@@ -18,10 +18,6 @@ export function VictoryExpRow({ member, gain, fallbackExp, index }: Props) {
   const alive = member.alive;
   const gained = alive ? gain?.gained ?? 0 : 0;
   const expAfter = gain?.expAfter ?? fallbackExp;
-  const expBefore = Math.max(0, expAfter - gained);
-  const barMax = Math.max(100, Math.ceil(Math.max(expAfter, 1) / 100) * 100);
-  const beforeRatio = Math.min(1, expBefore / barMax);
-  const gainRatio = Math.min(1 - beforeRatio, gained / barMax);
   const displayedExp = useCountUp(
     expAfter,
     VICTORY_CHOREO.contentDelayMs + VICTORY_CHOREO.staggerMs * index + VICTORY_CHOREO.barDelayMs,
@@ -34,8 +30,8 @@ export function VictoryExpRow({ member, gain, fallbackExp, index }: Props) {
       style={
         {
           "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victoryStagger(index))}ms`,
-          "--vc-before": beforeRatio,
-          "--vc-gain": gainRatio,
+          "--vc-before": 0,
+          "--vc-gain": alive && gained > 0 ? 1 : 0,
         } as CSSProperties
       }
     >
@@ -54,7 +50,6 @@ export function VictoryExpRow({ member, gain, fallbackExp, index }: Props) {
           <b className={s["exp-gained"]}>+{gained} EXP</b>
         </div>
         <div className={s["exp-track"]} aria-label={`${member.name}经验 ${expAfter}`}>
-          <span className={s["exp-before"]} />
           <span className={s["exp-gain"]} />
         </div>
         <div className={s["exp-total"]}>{Math.round(displayedExp).toLocaleString("zh-CN")}</div>

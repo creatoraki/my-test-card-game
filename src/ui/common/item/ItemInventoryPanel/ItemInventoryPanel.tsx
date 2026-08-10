@@ -2,40 +2,23 @@ import {
   useEffect,
   useMemo,
   useState,
-  type CSSProperties,
   type FocusEvent,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
 import { getItemDef } from "@/data";
 import { occupiedSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import ItemContextMenu, { type ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
-import ItemDetail from "@/ui/common/item/ItemDetail";
+import ItemTooltip, {
+  tooltipPointFromRect,
+  type TooltipPoint,
+} from "@/ui/common/item/ItemTooltip";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import { cx } from "@/ui/common/cx";
+import { inventoryThemeVars, type InventoryColorMap } from "@/ui/common/item/inventoryTheme";
 import s from "./ItemInventoryPanel.module.css";
 
-export interface InventoryColorMap {
-  panel?: string;
-  panelDeep?: string;
-  panelGlow?: string;
-  panelLine?: string;
-  frame?: string;
-  frameHot?: string;
-  accent?: string;
-  accentAlt?: string;
-  text?: string;
-  muted?: string;
-  tray?: string;
-  trayBorder?: string;
-  slot?: string;
-  slotBorder?: string;
-  slotHover?: string;
-  selected?: string;
-  selectedGlow?: string;
-  emptySlot?: string;
-}
+export type { InventoryColorMap } from "@/ui/common/item/inventoryTheme";
 
 export type SelectedInfoRenderer = (stack: ItemStack | null) => ReactNode;
 
@@ -69,52 +52,15 @@ export interface ItemInventoryPanelProps {
   className?: string;
 }
 
-const DEFAULT_COLORS: Required<InventoryColorMap> = {
-  panel: "#050a15e6",
-  panelDeep: "#020712e6",
-  panelGlow: "#00f3ff10",
-  panelLine: "#00f3ff2b",
-  frame: "#00f3ff",
-  frameHot: "#8cffff",
-  accent: "#00f3ff",
-  accentAlt: "#ff0080",
-  text: "#ffffff",
-  muted: "#7a8fa6",
-  tray: "#0000004d",
-  trayBorder: "#00f3ff1a",
-  slot: "#001432cc",
-  slotBorder: "#00f3ff1f",
-  slotHover: "#00325099",
-  selected: "#ff0080",
-  selectedGlow: "#ff008066",
-  emptySlot: "#00f3ff0d",
-};
-
 const positiveInteger = (value: number, fallback: number) =>
   Number.isFinite(value) ? Math.max(1, Math.floor(value)) : fallback;
 
 const nonNegativeInteger = (value: number, fallback: number) =>
   Number.isFinite(value) ? Math.max(0, Math.floor(value)) : fallback;
 
-const TOOLTIP_WIDTH = 260;
-const TOOLTIP_ESTIMATED_HEIGHT = 300;
-const TOOLTIP_GAP = 18;
-
-interface TooltipPoint {
-  x: number;
-  y: number;
-}
-
 interface HoveredItem {
   uid: string;
   point: TooltipPoint;
-}
-
-function tooltipPointFromRect(rect: DOMRect): TooltipPoint {
-  return {
-    x: rect.right,
-    y: rect.top + rect.height / 2,
-  };
 }
 
 export default function ItemInventoryPanel({
@@ -197,28 +143,7 @@ export default function ItemInventoryPanel({
     occupied == null ? derivedOccupied : nonNegativeInteger(occupied, derivedOccupied);
   const displayedCapacity =
     capacity == null ? cellCount : nonNegativeInteger(capacity, cellCount);
-  const colors = { ...DEFAULT_COLORS, ...colorMap };
-  const style = {
-    "--inventory-columns": String(safeColumns),
-    "--inventory-panel": colors.panel,
-    "--inventory-panel-deep": colors.panelDeep,
-    "--inventory-panel-glow": colors.panelGlow,
-    "--inventory-panel-line": colors.panelLine,
-    "--inventory-frame": colors.frame,
-    "--inventory-frame-hot": colors.frameHot,
-    "--inventory-accent": colors.accent,
-    "--inventory-accent-alt": colors.accentAlt,
-    "--inventory-text": colors.text,
-    "--inventory-muted": colors.muted,
-    "--inventory-tray": colors.tray,
-    "--inventory-tray-border": colors.trayBorder,
-    "--inventory-slot": colors.slot,
-    "--inventory-slot-border": colors.slotBorder,
-    "--inventory-slot-hover": colors.slotHover,
-    "--inventory-selected": colors.selected,
-    "--inventory-selected-glow": colors.selectedGlow,
-    "--inventory-empty-slot": colors.emptySlot,
-  } as CSSProperties;
+  const style = inventoryThemeVars(colorMap, safeColumns);
 
   const handleSelect = (stack: ItemStack) => {
     const nextStack = activeSelectedUid === stack.uid ? null : stack;
@@ -395,43 +320,10 @@ export default function ItemInventoryPanel({
         )}
       </div>
       {hoveredStack && hoveredItem && (
-        <InventoryTooltip stack={hoveredStack} point={hoveredItem.point} themeStyle={style} />
+        <ItemTooltip stack={hoveredStack} point={hoveredItem.point} themeStyle={style} />
       )}
       {menu && <ItemContextMenu {...menu} themeStyle={style} onClose={() => setMenu(null)} />}
     </section>
-  );
-}
-
-function InventoryTooltip({
-  stack,
-  point,
-  themeStyle,
-}: {
-  stack: ItemStack;
-  point: TooltipPoint;
-  themeStyle: CSSProperties;
-}) {
-  if (typeof document === "undefined") return null;
-
-  const right = point.x + TOOLTIP_GAP;
-  const left =
-    right + TOOLTIP_WIDTH <= window.innerWidth - 12
-      ? right
-      : Math.max(12, point.x - TOOLTIP_WIDTH - TOOLTIP_GAP);
-  const top = Math.min(
-    Math.max(12, point.y - TOOLTIP_ESTIMATED_HEIGHT / 2),
-    Math.max(12, window.innerHeight - TOOLTIP_ESTIMATED_HEIGHT - 12),
-  );
-
-  return createPortal(
-    <div
-      className={s["inventory-tooltip"]}
-      style={{ ...themeStyle, left: `${left}px`, top: `${top}px` }}
-      role="tooltip"
-    >
-      <ItemDetail stack={stack} className={s["inventory-tooltip-detail"]} />
-    </div>,
-    document.body,
   );
 }
 

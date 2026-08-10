@@ -3,10 +3,18 @@
   min-height: 0;
   max-height: 180px;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 12px;
   background: #03090c99;
   border: 1px solid #6fd2ff38;
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.loot-tray::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .loot-grid {
@@ -57,26 +65,6 @@
   letter-spacing: 2px;
 }
 
-.loot-detail {
-  position: absolute;
-  z-index: 5;
-  top: calc(100% + 12px);
-  left: 0;
-  width: 100%;
-  max-height: 250px;
-  overflow: auto;
-  opacity: 0;
-  transform: translateY(8px);
-  pointer-events: none;
-  animation: vcDetailIn 160ms var(--vc-ease) forwards;
-}
-
-.loot-detail > div {
-  max-width: none;
-  background: #061014f5;
-  border-color: #6fd2ff66;
-}
-
 .loot-fly {
   position: fixed;
   z-index: 100;
@@ -96,10 +84,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes vcDetailIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes vcLootFly {
   from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   45% { opacity: 1; transform: translate3d(calc(var(--fly-x) * 0.5), calc(var(--fly-y) * 0.5 - 44px), 0) scale(1.18); }
@@ -109,12 +93,6 @@
 @media (prefers-reduced-motion: reduce) {
   .loot-cell {
     opacity: 1;
-    animation: none;
-  }
-
-  .loot-detail {
-    opacity: 1;
-    transform: none;
     animation: none;
   }
 

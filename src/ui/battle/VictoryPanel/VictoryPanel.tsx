@@ -11,33 +11,12 @@ import { cx } from "@/ui/common/cx";
 import { VICTORY_CHOREO, victoryChoreoVars, victorySectionStagger } from "@/ui/battle/victoryChoreo";
 import { VictoryExpRow } from "@/ui/battle/VictoryExpRow";
 import { VictoryLootTray } from "@/ui/battle/VictoryLootTray";
+import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import s from "./VictoryPanel.module.css";
-
-const INVENTORY_COLORS = {
-  panel: "#071116f2",
-  panelDeep: "#03090def",
-  panelGlow: "#69d9ff12",
-  panelLine: "#6fd2ff42",
-  frame: "#69d9ff",
-  frameHot: "#d8fbff",
-  accent: "#69d9ff",
-  accentAlt: "#ffb86b",
-  text: "#edfaff",
-  muted: "#72939e",
-  tray: "#00000066",
-  trayBorder: "#6fd2ff24",
-  slot: "#071a24dd",
-  slotBorder: "#6fd2ff30",
-  slotHover: "#16495d99",
-  selected: "#ffb86b",
-  selectedGlow: "#ffb86b66",
-  emptySlot: "#69d9ff0d",
-};
 
 export function VictoryPanel() {
   const battleSettled = useRunStore((state) => state.battleSettled);
   const expReport = useRunStore((state) => state.expReport);
-  const lastLoot = useRunStore((state) => state.lastLoot);
   const lastDropK = useRunStore((state) => state.lastDropK);
   const lastDropTier = useRunStore((state) => state.lastDropTier);
   const lastSlotBonus = useRunStore((state) => state.lastSlotBonus);
@@ -110,7 +89,6 @@ export function VictoryPanel() {
             <h2>战斗胜利</h2>
           </div>
           <div className={s["head-readout"]}>
-            <span className={s["loot-credit"]}>积分 +{lastLoot}</span>
             <button className={s["drop-chip"]} type="button">
               <span>掉落 ×{lastDropK.toFixed(2)}</span>
               <span className={s["drop-popover"]}>
@@ -171,7 +149,7 @@ export function VictoryPanel() {
                 pulseUids={new Set([...pulsedUids, ...pickedUids])}
                 onReorder={handleReorder}
                 contextMenuItems={contextMenuItems}
-                colorMap={INVENTORY_COLORS}
+                colorMap={VICTORY_INVENTORY_COLORS}
                 compact
               />
             </section>
@@ -192,7 +170,7 @@ export function VictoryPanel() {
             </>
           )}
           <button
-            className={cx(s["action-button"], s["continue"], pendingLoot.length && s["is-blocked"], continueNudge && s["is-nudging"])}
+            className={cx(s["action-button"], s["continue"], pendingLoot.length > 0 && s["is-blocked"], continueNudge && s["is-nudging"])}
             type="button"
             aria-disabled={pendingLoot.length > 0}
             onClick={handleContinue}
