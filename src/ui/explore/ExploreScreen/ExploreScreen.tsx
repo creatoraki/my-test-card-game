@@ -36,7 +36,6 @@ import {
   npcChoices,
   projectedEnergy,
 } from "@/explore/session";
-import type { NodeEventKind } from "@/explore/types";
 import { getItemDef, getNpcEvent } from "@/data";
 import { countByItemId } from "@/items/inventory";
 import { useExploreStore } from "@/store/exploreStore";
@@ -107,17 +106,6 @@ const EVENT_BEAT = {
   noteStagger: 140, // 结算摘要逐条间隔
   noteTail: 260, // 最后一条播完到「确认」解锁之间的收尾
 } as const;
-
-// 事件类型的中文标识。颜色契约在 exploreKit 的 k-* 里, 这里只补「叫什么」。
-const KIND_LABEL: Record<NodeEventKind, string> = {
-  retreat: "撤离",
-  loot: "物资",
-  heal: "补给",
-  merchant: "交易",
-  route: "线路",
-  energy: "能量",
-  hazard: "风险",
-};
 
 function narrationBeats(storyCount: number, noteCount: number) {
   const storyAt = (index: number) => EVENT_BEAT.storyLead + index * EVENT_BEAT.storyStagger;
@@ -586,20 +574,6 @@ export function ExploreScreen() {
                 </div>
               </aside>
               <div className={s["expl-panel-content"]}>
-                <div className={s["expl-panel-kindbar"]}>
-                  <div className={s["expl-panel-kind"]}>
-                    <span className={s["expl-panel-kind-dot"]} aria-hidden />
-                    <span className={s["expl-panel-kind-label"]}>{KIND_LABEL[ev.kind]}</span>
-                    <span className={s["expl-panel-art-code"]}>EVT / {ev.kind.toUpperCase()}</span>
-                  </div>
-                  {/* key 挂 phase: 「待处理 → 已结算」这一跳必须被看见, 重挂一次走遍浮起动画。 */}
-                  <span
-                    className={cx(s["expl-panel-status"], session.phase === "resolving" && s["is-settled"])}
-                    key={session.phase}
-                  >
-                    {session.phase === "landed" ? "待处理" : "已结算"}
-                  </span>
-                </div>
                 {/* 标题逐字浮起: 打字机那套用在标题上太慢, 逐字**淡入**才有「名字被念出来」的分量。
                     ⚠ 减弱动态效果时不拆 span —— 一堆 inline-block 会让标点的行内断行规则失效。 */}
                 <h3 className={s["expl-panel-title"]}>

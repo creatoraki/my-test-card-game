@@ -582,22 +582,21 @@
   --k-line: var(--expl-kind-line, #c9d4d266);
   pointer-events: auto;
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 560px minmax(0, 1fr);
   gap: 0;
-  width: 1060px;
+  width: 1320px;
   height: 560px;
   padding: 0;
   box-shadow:
-    inset 0 1px 0 #ffffff16,
+    inset 0 1px 0 var(--k),
     0 28px 72px -34px #000000e8,
-    0 0 90px -40px var(--k);
+    0 0 90px -42px var(--k);
   /* 从画布上方滑入(与控制终端浮层同一套语言)。⚠ 动画挂面板自己, 不挂 .expl-modal。 */
-  animation:
-    explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards,
-    explPanelHalo 6s ease-in-out 600ms infinite;
+  animation: explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards;
 }
 .expl-panel .panel-scan {
   background-size: 100% 140%;
+  opacity: 0.16;
   animation: explScanDrift 12s linear infinite;
 }
 .expl-panel-aside {
@@ -610,9 +609,9 @@
 .expl-panel-art {
   position: relative;
   z-index: 1;
-  width: auto;
+  width: 100%;
   height: 100%;
-  aspect-ratio: auto;
+  aspect-ratio: 1;
   overflow: hidden;
   background: #0b1317;
   box-shadow:
@@ -641,7 +640,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, transparent 55%, #0a0f12f2 100%),
+    linear-gradient(90deg, transparent 74%, #0a0f12cc 100%),
     linear-gradient(135deg, transparent 0 54%, #ffffff12 54% 55%, transparent 55%),
     linear-gradient(180deg, #0710141a 0%, #07101438 46%, #071014d1 100%);
   content: "";
@@ -665,16 +664,10 @@
   transform: translateY(-120%);
   animation: explArtSweep 7s ease-in-out infinite;
 }
-.expl-panel-art-code,
 .expl-panel-art-mark {
   z-index: 1;
   color: var(--muted);
   text-shadow: 0 0 12px #ffffff14;
-}
-.expl-panel-art-code {
-  color: #93a3a2;
-  font-size: 12px;
-  letter-spacing: 2px;
 }
 .expl-panel-art-mark {
   position: absolute;
@@ -693,52 +686,11 @@
   min-width: 0;
   flex-direction: column;
   gap: 12px;
-  padding: 28px 30px 24px;
-}
-.expl-panel-kindbar {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 32px;
-  gap: 16px;
-}
-.expl-panel-kind {
-  display: flex;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.expl-panel-kind-dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--k);
-  box-shadow: 0 0 10px var(--k-line);
-  animation: explKindBreathe 2.4s ease-in-out infinite;
-}
-.expl-panel-kind-label {
-  color: var(--k);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  white-space: nowrap;
+  padding: 36px 34px 26px;
 }
 .expl-panel .expl-kicker {
   font-size: 13px;
   letter-spacing: 3px;
-}
-.expl-panel-status {
-  flex: none;
-  padding: 5px 10px;
-  border: 1px solid var(--k-line);
-  background: var(--k-soft);
-  color: var(--k);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
 }
 .expl-panel-read {
   display: flex;
@@ -845,17 +797,22 @@
   text-align: left;
   transition:
     border-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
-    letter-spacing 180ms ease;
+    box-shadow 180ms ease;
 }
 .expl-choice::before {
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 40%, #ffffff26 50%, transparent 60%);
+  z-index: 0;
+  background: linear-gradient(
+    90deg,
+    var(--k) 0%,
+    color-mix(in srgb, var(--k) 55%, transparent) 100%
+  );
   content: "";
   pointer-events: none;
-  transform: translateX(-120%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 /* 左侧那道竖条: 悬停时自上而下长出来, 读作「这一支被选中了」。 */
 .expl-choice-bar {
@@ -874,38 +831,46 @@
 }
 :global([data-explore-stage]) .expl-choice:hover:not(:disabled),
 :global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) {
-  transform: translateY(-3px) scale(1.02);
   border-color: var(--k);
-  color: color-mix(in srgb, var(--k) 70%, #f2f7f5);
-  background: color-mix(in srgb, var(--k) 14%, #172329e6);
   box-shadow:
     inset 0 1px 0 #ffffff1d,
     0 0 30px -8px var(--k);
-  animation: explChoicePulse 1.6s ease-in-out infinite;
+}
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled)::before,
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled)::before {
+  transform: scaleX(1);
 }
 :global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-bar,
 :global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-bar {
-  width: 5px;
+  width: 8px;
   opacity: 1;
 }
 :global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-label,
 :global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-label {
-  letter-spacing: 2.2px;
+  color: #07100f;
 }
-:global([data-explore-stage]) .expl-choice:hover:not(:disabled)::before,
-:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled)::before {
-  animation: explChoiceSweep 520ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-index,
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-index {
+  border-color: #07100f66;
+  color: #07100f;
 }
-:global([data-explore-stage]) .expl-choice:active {
-  transform: translateY(2px) scale(0.985);
-  box-shadow: inset 0 2px 6px #00000066;
-  transition-duration: 90ms;
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-cost,
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-cost {
+  border-color: #07100f66;
+  background: #ffffff26;
+  color: #07100f;
+}
+:global([data-explore-stage]) .expl-choice:active:not(:disabled) {
+  box-shadow:
+    inset 0 2px 6px #00000066,
+    0 0 26px -6px var(--k);
 }
 :global([data-explore-stage]) .expl-choice:active:not(:disabled)::before {
-  background: radial-gradient(circle at 50% 50%, #ffffff3d, transparent 58%);
-  animation: explChoiceActive 90ms ease-out forwards;
+  animation: explChoiceFlash 90ms ease-out;
 }
 .expl-choice-index {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -919,14 +884,17 @@
   letter-spacing: 1px;
 }
 .expl-choice-label {
+  position: relative;
+  z-index: 1;
   min-width: 0;
   color: #c9d6d2;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 1px;
-  transition: letter-spacing 180ms ease;
 }
 .expl-choice-cost {
+  position: relative;
+  z-index: 1;
   margin-left: auto;
   padding: 3px 9px;
   border: 1px solid var(--expl-line);
@@ -937,14 +905,13 @@
   white-space: nowrap;
 }
 .expl-choice-arrow {
+  position: relative;
+  z-index: 1;
   flex: none;
   margin-left: 14px;
   color: var(--k);
   opacity: 0.35;
-  transform: translateX(0);
-  transition:
-    opacity 180ms ease,
-    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
+  transition: opacity 180ms ease;
 }
 .expl-choice-label + .expl-choice-arrow {
   margin-left: auto;
@@ -952,7 +919,6 @@
 :global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-arrow,
 :global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-arrow {
   opacity: 1;
-  transform: translateX(4px);
 }
 .expl-choice.is-cost-locked {
   border-color: #e5a3a3;
@@ -964,18 +930,26 @@
   background: #8d3d3d1c;
   color: #e5a3a3;
 }
+.expl-choice.is-cost-locked::before,
+.expl-choice:disabled::before {
+  transform: scaleX(0);
+}
+.expl-choice.is-cost-locked .expl-choice-bar,
+.expl-choice:disabled .expl-choice-bar {
+  opacity: 0.28;
+}
 .expl-panel-title {
   flex: none;
   position: relative;
   min-height: 74px;
   padding-bottom: 14px;
-  margin: 8px 0 0;
+  margin: 0;
   color: #f2f7f5;
   font-size: 36px;
   font-weight: 800;
   letter-spacing: 2px;
   line-height: 1.2;
-  text-shadow: 0 0 18px #ffffff10;
+  text-shadow: 0 0 12px #ffffff0c;
 }
 .expl-panel-title::after {
   position: absolute;
@@ -997,7 +971,7 @@
   overflow-y: auto;
   scrollbar-color: var(--k-line) transparent;
   scrollbar-width: thin;
-  color: #c9d6d2;
+  color: #d7e2de;
   font-size: 17px;
   line-height: 1.85;
 }
@@ -1103,22 +1077,11 @@
   box-shadow:
     inset 0 1px 0 #ffffff1d,
     0 0 30px -8px var(--k);
-  animation: explChoicePulse 1.6s ease-in-out infinite;
 }
 :global([data-explore-stage]) .expl-panel .expl-btn:active:not(:disabled) {
   transform: translateY(2px) scale(0.985);
   box-shadow: inset 0 2px 6px #00000066;
   transition-duration: 90ms;
-}
-:global([data-explore-stage]) .expl-panel .expl-btn:hover::before,
-:global([data-explore-stage]) .expl-panel .expl-btn:focus-visible::before {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 40%, #ffffff26 50%, transparent 60%);
-  content: "";
-  pointer-events: none;
-  transform: translateX(-120%);
-  animation: explChoiceSweep 520ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
 }
 /* ===================== 落点浮层的逐字演出 ===================== */
 /* ★ 一整段设计只为一件事: 让「抵达一个落点」读起来像**发生了一件事**, 而不是弹出一段说明。
@@ -1164,12 +1127,6 @@
   animation: explRise 340ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(var(--i, 0) * 90ms);
 }
-:global([data-explore-stage]) .expl-choices.is-armed .expl-choice:hover:not(:disabled),
-:global([data-explore-stage]) .expl-choices.is-armed .expl-choice:focus-visible,
-:global([data-explore-stage]) .expl-decide-row .expl-choice:hover:not(:disabled),
-:global([data-explore-stage]) .expl-decide-row .expl-choice:focus-visible {
-  animation: explChoicePulse 1.6s ease-in-out infinite;
-}
 .expl-choice:disabled {
   cursor: default;
 }
@@ -1184,15 +1141,30 @@
   animation: explChoiceCommit 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
   animation-delay: 0ms;
 }
+.expl-choices .expl-choice.is-chosen::before {
+  transform: scaleX(1);
+}
 .expl-choice.is-chosen .expl-choice-bar {
-  width: 5px;
+  width: 8px;
   opacity: 1;
   transform: scaleY(1);
 }
 .expl-choice.is-chosen .expl-choice-index {
   border-color: var(--k);
-  color: var(--k);
-  text-shadow: 0 0 10px var(--k-line);
+  color: #07100f;
+  text-shadow: none;
+}
+.expl-choice.is-chosen .expl-choice-label,
+.expl-choice.is-chosen .expl-choice-cost,
+.expl-choice.is-chosen .expl-choice-arrow {
+  color: #07100f;
+}
+.expl-choice.is-chosen .expl-choice-cost {
+  border-color: #07100f66;
+  background: #ffffff26;
+}
+.expl-choice.is-chosen .expl-choice-arrow {
+  opacity: 1;
 }
 .expl-choice.is-chosen::after {
   position: absolute;
@@ -1211,16 +1183,6 @@
   transition:
     opacity 260ms ease,
     transform 260ms ease;
-}
-/* 「待处理 → 已结算」: 换 kind 强调色, 这一跳必须被看见。 */
-.expl-panel-status {
-  animation: explRise 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-.expl-panel-status.is-settled {
-  border-color: var(--k);
-  background: var(--k-soft);
-  color: var(--k);
-  text-shadow: 0 0 12px var(--k-line);
 }
 /* 确认按钮跟在最后一条摘要之后浮出来(延迟由 tsx 按摘要条数算)。 */
 .expl-confirm {
@@ -1249,30 +1211,6 @@
   100% {
     opacity: 0;
     transform: translateY(120%);
-  }
-}
-@keyframes explKindBreathe {
-  0%,
-  100% {
-    box-shadow: 0 0 8px var(--k-line);
-  }
-  50% {
-    box-shadow: 0 0 14px var(--k-line);
-  }
-}
-@keyframes explPanelHalo {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 1px 0 #ffffff16,
-      0 28px 72px -34px #000000e8,
-      0 0 90px -40px var(--k);
-  }
-  50% {
-    box-shadow:
-      inset 0 1px 0 #ffffff16,
-      0 28px 72px -34px #000000e8,
-      0 0 90px -30px var(--k);
   }
 }
 @keyframes explArtMarkPulse {
@@ -1317,34 +1255,12 @@
     transform: translateX(120%);
   }
 }
-@keyframes explChoiceSweep {
-  to {
-    transform: translateX(120%);
+@keyframes explChoiceFlash {
+  0% {
+    filter: brightness(2.4);
   }
-}
-@keyframes explChoiceActive {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes explChoicePulse {
-  0%,
   100% {
-    border-color: var(--k);
-    box-shadow:
-      inset 0 1px 0 #ffffff1d,
-      0 0 24px -10px var(--k);
-  }
-  50% {
-    border-color: color-mix(in srgb, var(--k) 78%, #ffffff);
-    box-shadow:
-      inset 0 1px 0 #ffffff2b,
-      0 0 30px -8px var(--k);
+    filter: brightness(1);
   }
 }
 @keyframes explChoicesExit {
@@ -1411,12 +1327,13 @@
     animation: none;
   }
   :global([data-explore-stage]) .expl-choice:hover::before,
-  :global([data-explore-stage]) .expl-choice:focus-visible::before,
-  :global([data-explore-stage]) .expl-choice:active::before,
-  :global([data-explore-stage]) .expl-panel .expl-btn:hover::before,
-  :global([data-explore-stage]) .expl-panel .expl-btn:focus-visible::before,
-  :global([data-explore-stage]) .expl-panel .expl-btn:active::before {
-    display: none;
+  :global([data-explore-stage]) .expl-choice:focus-visible::before {
+    transform: none;
+    opacity: 0.9;
+    transition: none;
+  }
+  :global([data-explore-stage]) .expl-choice:active:not(:disabled)::before {
+    animation: none;
   }
   :global([data-explore-stage]) .expl-panel .expl-btn:hover:not(:disabled),
   :global([data-explore-stage]) .expl-panel .expl-btn:focus-visible,
@@ -1426,7 +1343,6 @@
   }
   .expl-panel .panel-scan,
   .expl-panel-art-grid::after,
-  .expl-panel-kind-dot,
   .expl-panel-art-mark {
     animation: none;
   }
@@ -1436,7 +1352,6 @@
   :global([data-explore-stage]) .expl-choice:hover .expl-choice-arrow,
   :global([data-explore-stage]) .expl-choice:focus-visible .expl-choice-arrow {
     opacity: 1;
-    transform: none;
   }
   .expl-choice-index,
   .expl-choice-arrow {
@@ -1446,7 +1361,6 @@
      (那几条 opacity:0 的默认态必须被顶掉)。 */
   .expl-title-char,
   .expl-caret,
-  .expl-panel-status,
   .expl-confirm,
   .expl-decide-row .expl-choice,
   .expl-choices .expl-choice,

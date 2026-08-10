@@ -2,17 +2,16 @@
 .panel-shell {
   --notch: 14px;
   position: relative;
-  border: 1px solid color-mix(in srgb, var(--k) 32%, #ffffff1c);
-  border-top: 2px solid var(--k);
+  border: 1px solid color-mix(in srgb, var(--k) 18%, #ffffff20);
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--k) 7%, #101a1ecc),
-    #0a0f12f2
+    color-mix(in srgb, var(--k) 7%, #0e161acc),
+    #070b0dfa
   );
-  backdrop-filter: blur(14px) saturate(112%) brightness(0.92);
   box-shadow:
-    inset 0 1px 0 #ffffff16,
+    inset 0 1px 0 var(--k),
     0 28px 72px -34px #000000e8;
+  backdrop-filter: blur(18px) saturate(104%) brightness(0.82);
   clip-path: polygon(
     var(--notch) 0,
     100% 0,
@@ -53,11 +52,8 @@
     linear-gradient(var(--k), var(--k)) left bottom / 2px 22px no-repeat,
     linear-gradient(var(--k), var(--k)) right bottom / 22px 2px no-repeat,
     linear-gradient(var(--k), var(--k)) right bottom / 2px 22px no-repeat,
-    linear-gradient(var(--k), var(--k)) 18px 0 / 120px 2px no-repeat,
-    linear-gradient(var(--k), var(--k)) calc(100% - 22px) 14px / 10px 1px no-repeat,
-    linear-gradient(var(--k), var(--k)) calc(100% - 22px) 18px / 10px 1px no-repeat,
-    linear-gradient(var(--k), var(--k)) calc(100% - 22px) 22px / 10px 1px no-repeat;
-  opacity: 0.82;
+    linear-gradient(var(--k), var(--k)) 18px 0 / 120px 2px no-repeat;
+  opacity: 0.5;
 }
 
 .panel-scan {
@@ -65,7 +61,7 @@
   z-index: 0;
   inset: 0;
   background: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 6px);
-  opacity: 0.3;
+  opacity: 0.16;
   mix-blend-mode: screen;
   pointer-events: none;
 }
