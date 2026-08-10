@@ -32,7 +32,7 @@ export function CardPile({ kind, label, count, className, disabled, onClick }: P
         </span>
       </span>
       <span className={s.label}>{label}</span>
-      <span className={s.badge}>{count}</span>
+      {/* <span className={s.badge}>{count}</span> */}
     </button>
   );
 }
