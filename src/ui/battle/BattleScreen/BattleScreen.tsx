@@ -25,196 +25,57 @@ import { PileDrawer } from "@/ui/battle/PileDrawer";
 import { RoundIndicator } from "@/ui/battle/RoundIndicator";
 import { SkillCutInCard } from "@/ui/battle/SkillCutInCard";
 import { ANIM, CINEMA, HAND_DEAL, cardAnim, moveAnim, type HitFx } from "@/ui/battle/animations";
+import {
+  choreograph,
+  depthVars,
+  sameCamera,
+  type Camera,
+  type ChoreoStep,
+  type ShotPreset,
+  unitWorldBox,
+  useCameraRig,
+  createTimeline,
+  type Timeline,
+  worldShift,
+} from "@/ui/battle/camera";
 import { warmEnemyArt } from "@/ui/art/enemyArt";
 import { warmVfxSprites } from "@/ui/art/vfxSprites";
 import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
 import { AmbienceGrade, AmbienceLayer } from "@/ui/battle/AmbienceLayer";
 import { resetHandHover } from "@/ui/battle/handFocusStore";
 import { useIdleTwitch } from "@/ui/hooks/useIdleTwitch";
-import { STAGE, useStageScale } from "@/ui/hooks/stage";
+import { useStageScale } from "@/ui/hooks/stage";
 import { cx } from "@/ui/common/cx";
 import s from "./BattleScreen.module.css";
 
-// ── 场景相机(透视) ──
-// 世界 = 1920×1080 的设计画布(见 ui/stage.ts), 摊在一个真实的 3D 空间里: 背景在远处、
-// 敌我单位在基准面 z=0、近景粒子在镜头这一侧(纵深见 CINEMA.depth, 落点在 BattleScreen.css)。
-// 相机是这个空间的一次「世界平移 + 绕光轴偏航 + 沿视线推进」, 作为 .battle-scene 的局部
-// transform 下发; 真正的投影由 .screen.battle 的 perspective **属性**完成 —— 必须是属性
-// 而不是 transform 里的 perspective() 函数, 后者只对该元素自身生效, 后代的 translateZ
-// 拿不到透视, 各层就永远不会产生视差。
-//
-// 全程在设计 px 里算(透视距离也是), 不出现任何屏幕 px ⇒ 任何窗口尺寸下的成像逐 px 一致。
-//
-// ⚠ 「场景是刚体」这条老约定已被有意打破: 各层深度不同 ⇒ 相机一动就有视差, 角色与它脚下的
-//   背景地面会相对滑移。这正是纵深感的来源, 幅度由 CINEMA.depth 收敛(全设 0 即退回刚体)。
-interface Camera {
-  s: number; // 基准面(敌我单位)的放大倍数; 实现为沿视线的推进量, 见 cameraCss
-  dx: number; // 世界平移(世界 px): 把聚焦点送到画框锚点上, 由 worldShift 算出
-  dy: number;
-  yaw: number; // 偏航角(deg): 正 = 镜头朝右转。0 = 正对场景
-  pitch: number; // 俯仰角(deg): 正 = 镜头朝上仰(CSS 的 rotateX 正角把底边拉近)
-}
+const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
+const CAMERA_HARD_CUT_DISTANCE = 420;
 
-// 全景(无相机)= 恒等变换。刻意不用 "none" —— 见 cameraCss 的函数链恒定说明。
-const CAMERA_REST: Camera = { s: 1, dx: 0, dy: 0, yaw: 0, pitch: 0 };
-
-// 镜头光轴 = 画布正中。它同时是 perspective-origin(消失点)、偏航轴与推进的缩放中心 ——
-// 三者必须重合, 且必须是**画布**中心而不是取景安全区中心: 前者在 CSS 里恒等于 50% 50%,
-// 于是每一个纵深层都能用同一句静态 CSS 定位, 不必逐层下发锚点。
-// 取景安全区中心(画框锚点 A)是另一回事 —— 那是"把主体摆哪", 由 worldShift 负责。
-const AXIS = { x: STAGE.width / 2, y: STAGE.height / 2 };
-
-// 把世界里的聚焦点 F 送到画框锚点 A 所需的世界平移。
-// 基准面的成像为 screen(p) = AXIS + s·(p + d − AXIS)(推进绕光轴放大 s 倍), 令 screen(F)=A:
-//   d = (A − AXIS)/s + AXIS − F
-// 比"直接 A−F"多出来的那一截, 补的是"绕光轴放大 s 倍会把偏离光轴的 A 顶开"的位移。
-function worldShift(A: { x: number; y: number }, F: { x: number; y: number }, s: number) {
-  return {
-    dx: (A.x - AXIS.x) / s + AXIS.x - F.x,
-    dy: (A.y - AXIS.y) / s + AXIS.y - F.y,
-  };
-}
-
-// 相机 → CSS transform。⚠ 配套前提(缺一不可, 见 BattleScreen.css):
-//   .screen.battle  → perspective 属性 + 默认的 perspective-origin(50% 50% = AXIS)
-//   .battle-scene   → transform-style: preserve-3d + transform-origin: 50% 50%
-//   .battle-world   → 同上(它夹在中间, 一旦 flatten 各层深度就全丢了)
-//
-// 链的执行顺序是从右往左: 先把世界平移(dx,dy), 再俯仰、再偏航, 最后沿视线推进 z。
-// 推进排在两个旋转左侧 ⇒ 推的是「镜头正前方」而非世界 Z, 旋转只管转向;
-// rotateY 排在 rotateX 左侧 = 先俯仰后偏航, 即标准相机的 YXZ 姿态顺序(地平线不会被拧歪)。
-// 透视投影下 z 处的平面相对光轴放大 P/(P−z), 取 z = P(1−1/s) 即得到基准面精确的 s 倍 ——
-// 于是 yaw=0 时基准面的成像与旧的 scale() 逐 px 等价, computeCamera 的取景数学一个字没改;
-// 而其余各层因为自带深度, 会自动获得不同的放大与位移速率, 视差由此产生。
-//
-// ⚠ 函数链恒定(哪怕全景态也照样输出 identity): 只有 from/to 的函数列表逐项对应, 浏览器才会
-// 逐项插值; 一旦退化成矩阵插值, 3D 变换会在过渡中间产生诡异的畸变跳动。
-function cameraCss(c: Camera | null): string {
-  const { s, dx, dy, yaw, pitch } = c ?? CAMERA_REST;
-  const z = CINEMA.perspective * (1 - 1 / s);
-  return `translateZ(${z}px) rotateY(${yaw}deg) rotateX(${pitch}deg) translate(${dx}px, ${dy}px)`;
-}
-
-// 各纵深层的 CSS 变量: 位置 z + 抵消透视的预缩放 (P−z)/P。
-// 预缩放保证「静止画面与纵深为 0 时逐 px 相同」—— 纵深只在相机运动时以视差的形式显现,
-// 不会悄悄改变任何一层的构图或尺寸。
-function depthVars(): Record<string, string> {
-  const P = CINEMA.perspective;
-  const out: Record<string, string> = {};
-  for (const [k, z] of Object.entries(CINEMA.depth)) {
-    out[`--depth-${k}`] = `${z}px`;
-    out[`--depth-${k}-fix`] = `${(P - z) / P}`;
-  }
-  return out;
-}
-
-const CAMERA_TRANSITION = `transform ${CINEMA.zoomIn}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
-// 瞄准态(挑目标期间)专用: 更慢更软, 与分镜的推近区分开 —— 它是"状态"而非"事件"。
-const AIM_TRANSITION = `transform ${CINEMA.aim.dur}ms cubic-bezier(0.2, 0.72, 0.28, 1)`;
-
-// 屏幕 px → 世界 px 的反投影。除数取**世界层**当前的屏幕矩形(其未变换尺寸恒为 STAGE.width),
-// 于是 --stage-scale、当前相机变换、以及世界自身的空闲漂移被一次性抵消 —— 测得的永远是纯
-// 设计 px, 与 stage.offsetLeft/Top(布局 px)同一坐标系。过渡进行到一半时测量同样成立。
-//
-// ⚠⚠ 成立的前提是场景当前的变换为 **2D 仿射**(纯缩放 + 平移): 那时"世界矩形 → 屏幕矩形"
-//    是线性映射, 用两端点定标才有意义。相机一旦带上偏航/俯仰, 投影就是非线性的,
-//    getBoundingClientRect 给的只是投影后的**包围盒** —— 它的中心不再对应世界中心
-//    (6° 偏航即可差出几十 px), 反投影会产生同量级的系统性偏差。
-//    ⇒ 任何要靠它定位的测量(computeCamera), 都必须安排在姿态已归零的时刻进行;
-//      triggerPlay 的镜头交接特意把 yaw/pitch 清零, 就是为了保住这一条。
-//    computeAimCamera 是例外: 它只用结果判断"往哪边偏", 再乘比例并钳制, 不怕这点偏差。
-function screenToWorld(r: DOMRect, worldRect: DOMRect) {
-  const u = STAGE.width / worldRect.width;
-  return {
-    left: (r.left - worldRect.left) * u,
-    top: (r.top - worldRect.top) * u,
-    right: (r.right - worldRect.left) * u,
-    bottom: (r.bottom - worldRect.top) * u,
-  };
-}
-
-// 取景安全区(世界 px) = .battle-stage 的布局盒。读 offsetLeft/Top/Width/Height 而非
-// getBoundingClientRect —— 布局 px 天然就是世界 px(offsetParent 即 .battle-world), 完全
-// 不受相机变换影响。分镜相机与瞄准相机共用同一个画框锚点。
 function safeArea(stage: HTMLElement) {
   return { x: stage.offsetLeft, y: stage.offsetTop, w: stage.offsetWidth, h: stage.offsetHeight };
 }
 
-// 量一个单位在世界坐标里的包围盒。取内层的 .combatant-stage(立绘 + 特效, 含体型 scale 的那层),
-// 而不是外层布局盒 —— 外层量不到大体型敌人的真实占幅, 且会把血条/意图算进取景。
-// 我方头像卡没有这层, 退回量自身。查不到该单位(如我方不在 .battle-stage 内)则返回 null。
-function worldBoxOf(stage: HTMLElement, worldRect: DOMRect, id: string) {
-  const el = stage.querySelector<HTMLElement>(`[data-cmb-id="${id}"]`);
-  if (!el) return null;
-  // ⚠ 用 data 属性而不是类名选: .combatant-stage 是 CombatantView 的局部类, CSS Modules
-  //   哈希后这里写死的字符串永远选不中(会静默退回外层布局盒, 取景就悄悄错了)。
-  //   标记由 CombatantView 挂, 见那边的 data-cmb-stage。
-  const box = el.querySelector<HTMLElement>("[data-cmb-stage]") ?? el;
-  return screenToWorld(box.getBoundingClientRect(), worldRect);
-}
-
-const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
-
-// ── 瞄准相机 ──
-// 选中攻击卡、正在挑目标期间的常驻镜头: 固定轻微推近, 并朝当前悬停的敌人**转过去** ——
-// 姿态(yaw/pitch)与位移(dx/dy)同向叠加。刻意不对准目标: 对准所需的位移会把目标从指针
-// 底下挪走, 只求方向感。
-//
-// ★ 位移必须是斜的。纯水平的直线位移人眼一律读成"平面滑动", 这跟透视/视差做得多足没关系 ——
-//   现实里的相机不会只沿一条水平轨道走。所以纵向有两个来源, 缺一不可:
-//     ① panY —— 跟随目标自身的高度(敌人普遍站在画框上方 ⇒ 镜头整体微微抬起)
-//     ② arc  —— 越偏离画框中央抬得越多, 于是从中央看向两侧走的是一条弧线;
-//                哪怕两个敌人一样高, 左右切换目标时轨迹也是斜的, 而不是一条水平直线。
-//
-// ⓘ 这里量目标位置用的仍是 getBoundingClientRect + screenToWorld, 而此刻场景可能正带着
-//   几度姿态 —— 投影包围盒因此有 <1% 的失真。无所谓: 结果只用来定"往哪边偏、偏多少",
-//   还要再乘比例并钳制, 且偏移量有上限 ⇒ 不会自激。
-function computeAimCamera(
-  world: HTMLElement | null,
-  stage: HTMLElement | null,
-  foeId: string | null,
-): Camera | null {
+function computeAimCamera(world: HTMLElement | null, stage: HTMLElement | null, foeId: string | null): Camera | null {
   if (!world || !stage) return null;
-  const worldRect = world.getBoundingClientRect();
-  if (worldRect.width <= 0) return null;
-
   const safe = safeArea(stage);
-  const A = { x: safe.x + safe.w / 2, y: safe.y + safe.h / 2 }; // 画框锚点 = 安全区中心
+  const A = { x: safe.x + safe.w / 2, y: safe.y + safe.h / 2 };
   const { scale: s, yaw: yawMax, pitch: pitchMax, pan, panMax, panY, panMaxY, arc } = CINEMA.aim;
-
-  let yaw = 0, pitch = 0;
-  const F = { ...A }; // 聚焦点: 默认就是画框锚点(不朝任何人时纯推近)
-  const box = foeId ? worldBoxOf(stage, worldRect, foeId) : null;
+  let yaw = 0;
+  let pitch = 0;
+  const F = { ...A };
+  const box = foeId ? unitWorldBox(world, foeId) : null;
   if (box) {
-    // 目标中心相对画框锚点的偏离(世界 px), 以及它占半个安全区的比例
     const offX = (box.left + box.right) / 2 - A.x;
     const offY = (box.top + box.bottom) / 2 - A.y;
     const nx = clamp(offX / (safe.w / 2), 1);
     const ny = clamp(offY / (safe.h / 2), 1);
-
-    // 姿态: 目标在右就朝右转(CSS 的 rotateY 正角把右侧推远、收向中心, 正是相机右转的成像);
-    // 俯仰**反号** —— CSS 的 y 轴向下为正, 而 rotateX 正角是把底边拉近(仰视), 故目标偏上
-    // (ny<0)时 pitch 取正 = 镜头上仰。
     yaw = nx * yawMax;
     pitch = -ny * pitchMax;
-
-    // 位移: 聚焦点朝目标让开一小段(与姿态同向协同), 纵向再叠一段随横向偏离增大的抬升。
-    // arc 取负是"镜头看向更高处" —— 聚焦点上移, 画面内容随之下沉。
     F.x += clamp(offX * pan, panMax);
     F.y += clamp(offY * panY, panMaxY) - Math.abs(nx) * arc;
   }
-  return { s, ...worldShift(A, F, s), yaw, pitch };
+  return { s, ...worldShift(A, F, s), yaw, pitch, roll: 0 };
 }
-
-const sameCamera = (a: Camera | null, b: Camera | null) =>
-  a === b ||
-  (!!a &&
-    !!b &&
-    a.s === b.s &&
-    a.dx === b.dx &&
-    a.dy === b.dy &&
-    a.yaw === b.yaw &&
-    a.pitch === b.pitch);
 
 export function BattleScreen() {
   const battle = useBattleStore((s) => s.battle);
@@ -250,7 +111,6 @@ export function BattleScreen() {
   const [attackerId, setAttackerId] = useState<string | null>(null); // 正在弹出的施法者
   const [hits, setHits] = useState<Record<string, HitFx>>({}); // 各目标当前的受击特效
   const [cutInCard, setCutInCard] = useState<Card | null>(null); // 出牌亮相卡面(仅玩家出牌; null=不展示)
-  const [camera, setCamera] = useState<Camera | null>(null); // 分镜相机变换(null=全景)
   // —— 瞄准运镜(挑目标期间的常驻态, 与上面的分镜相机互斥) ——
   // aimFoeId: 当前朝向的敌人, **锁存** —— 只在悬到另一个敌人或指针离开 .battle-stage 时才变。
   // ⓘ 这是个顶层 hover state, 与本文件上方 selectedUid 处"悬停态别放这里"的告诫**不矛盾**:
@@ -259,15 +119,14 @@ export function BattleScreen() {
   const [aimFoeId, setAimFoeId] = useState<string | null>(null);
   const [aim, setAim] = useState<Camera | null>(null); // 瞄准相机(null=不在瞄准态)
   const [spillSrc, setSpillSrc] = useState<string | null>(null); // 溢出填充图(见下方 grabSpill)
-  // 打击感: 命中瞬间冻住世界(顿帧) → 解冻同刻爆发震屏。seq 奇偶交替 shake-a/shake-b 两个
-  // 同内容不同名的 keyframes 以重启动画 —— 绝不能给 .battle-world 加 key 重挂载, 那会连带
-  // 重挂 <video> 背景触发二次解码。
-  const [shake, setShake] = useState<{ seq: number; level: 0 | 1 | 2 }>({ seq: 0, level: 0 });
   const [hitstop, setHitstop] = useState(false);
+  const [fxRate, setFxRate] = useState(1);
+  const [speed2x, setSpeed2x] = useState(false);
+  const playbackRateRef = useRef(1);
   const viewportRef = useRef<HTMLDivElement>(null); // letterbox 容器(黑边区), 设计画布按它的尺寸缩放
   const screenRef = useRef<HTMLDivElement>(null); // 战斗屏幕(画布 = 唯一的裁切边界)
   const sceneRef = useRef<HTMLDivElement>(null); // ★ 场景层: 相机(推近/平移)的唯一作用对象
-  const worldRef = useRef<HTMLDivElement>(null); // ★ 世界层: 背景 + 氛围 + 舞台同在其中; 承载空闲漂移与震屏
+  const worldRef = useRef<HTMLDivElement>(null); // ★ 世界层: 背景 + 氛围 + 舞台同在其中; 承载 rig 的漂移与冲击
   const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(敌我单位); 其布局盒 = 相机的取景安全区
   const bgVideoRef = useRef<HTMLVideoElement>(null); // 背景视频(仅用于抓首帧做溢出填充)
   // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform。
@@ -279,10 +138,25 @@ export function BattleScreen() {
   const hitSeqRef = useRef(0); // 受击特效序号, 递增以强制 React 重放同一目标的连续特效
   const dealtUidsRef = useRef(new Set<string>()); // 已经播过飞入动画的卡 uid
   const openingDoneRef = useRef(false); // 本场战斗的首批手牌是否已发出
-  const timersRef = useRef<number[]>([]);
-  const clearTimers = () => {
-    timersRef.current.forEach((t) => clearTimeout(t));
-    timersRef.current = [];
+  const timelineRef = useRef<Timeline | null>(null);
+  const cameraRig = useCameraRig({ sceneRef, worldRef, screenRef });
+  const setPlaybackRate = (rate: number, persist = true) => {
+    if (persist) playbackRateRef.current = rate;
+    cameraRig.setTimeScale(rate);
+    cameraRig.setFxRate(rate);
+    setFxRate(rate);
+  };
+
+  const togglePlaybackSpeed = () => {
+    const next = playbackRateRef.current === 2 ? 1 : 2;
+    playbackRateRef.current = next;
+    setSpeed2x(next === 2);
+    if (hitstop) {
+      cameraRig.setFxRate(next);
+      setFxRate(next);
+    } else if (animatingRef.current) {
+      setPlaybackRate(next);
+    }
   };
 
   // 换战斗时清空选择/悬浮/动画(并让在途动画批次失效)
@@ -291,29 +165,42 @@ export function BattleScreen() {
     resetHandHover();
     setHandAction(null);
     setOpenPile(null);
-    clearTimers();
+    timelineRef.current?.cancel();
+    timelineRef.current = null;
     seqRef.current++;
     animatingRef.current = false;
     setAnimating(false);
     setAttackerId(null);
     setHits({});
     setCutInCard(null);
-    setCamera(null);
+    cameraRig.snap(null);
     setAimFoeId(null);
     setAim(null);
     setHitstop(false);
+    setPlaybackRate(1);
+    setSpeed2x(false);
     dealtUidsRef.current.clear();
     openingDoneRef.current = false;
     setRenderHand([]); // 换战斗: 清空手牌渲染列表, 让新战斗的手牌重新飞入(不播放旧牌离场)
     setPlayingOutUid(null);
   }, [battleSeq]);
 
-  // 卸载时清理计时器
-  useEffect(() => () => clearTimers(), []);
+  // 卸载时取消当前批次；rig 自己负责销毁 rAF。
+  useEffect(() => () => timelineRef.current?.cancel(), []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!animatingRef.current || (event.key !== "Escape" && event.code !== "Space")) return;
+      event.preventDefault();
+      timelineRef.current?.flush();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   // 预热序列帧特效素材: 帧图是 12 个独立请求, 不预热首次播放会逐帧闪。
   // 敌人待机立绘同理(拼条单文件但体积大), 不预热则进战斗首帧空白。
-  // 放在进战斗时(而非模块顶层)以免菜单界面白付流量; 到首次命中至少有 beat+zoomIn 的余量。
+  // 放在进战斗时(而非模块顶层)以免菜单界面白付流量; 到首次命中前预留加载余量。
   useEffect(() => {
     warmVfxSprites();
     warmEnemyArt();
@@ -402,11 +289,12 @@ export function BattleScreen() {
     const on =
       !!battle && battle.phase === "player" && !animating && card?.targeting === "foe";
     const next = on ? computeAimCamera(worldRef.current, stageRef.current, aimFoeId) : null;
+    if (!animating) cameraRig.setCamera(next);
     setAim((prev) => (sameCamera(prev, next) ? prev : next));
-  }, [battle, selectedUid, aimFoeId, animating, stageScale]);
+  }, [battle, selectedUid, aimFoeId, animating, stageScale, cameraRig]);
 
   if (!battle) return <div className={s.loading}>加载中…</div>;
-  const b = battle; // 非空别名: 供下方事件处理/setTimeout 闭包安全引用(收窄不跨闭包)
+  const b = battle; // 非空别名: 供下方事件处理闭包安全引用(收窄不跨闭包)
 
   const isPlayerTurn = battle.phase === "player";
   const selectedCard = selectedUid ? battle.cards[selectedUid] : null;
@@ -437,16 +325,8 @@ export function BattleScreen() {
   // ── 统一动画帧队列 ──
   // 一"步"= 一个施法者的一次动作: 前冲蓄力 → 命中(提交该动作后的状态快照 + 受击特效/飘字) → 下一步。
   // 玩家出牌是第 0 步, 随后接续它触发的每个敌人行动; 结束回合则是冲刷的敌人行动逐步。
-  interface AnimStep {
-    actorId: string; // 前冲的施法者
-    anim: CardAnim; // 表现动画类型(UI 侧解析)
-    snapshot: BattleState; // 该动作结算后的完整状态
-    hits: { id: string; hpDelta: number }[]; // 受击/受益目标(hpDelta>0 掉血, <0 回血, 0 仅闪特效)
-    card?: Card; // 仅玩家出牌步携带: 用于镜头聚焦后的「卡面亮相」演出
-  }
-
   // 引擎产出的敌人动画帧 → 一步(动画表现在 UI 侧按招式解析)。
-  function stepFromFrame(f: AnimFrame): AnimStep {
+  function stepFromFrame(f: AnimFrame): ChoreoStep {
     const def = getEnemyDef(f.enemyDefId);
     const move = def.moves.find((m) => m.id === f.moveId) ?? def.moves[0];
     return { actorId: f.actorId, anim: moveAnim(move), snapshot: f.snapshot, hits: f.hits };
@@ -460,17 +340,16 @@ export function BattleScreen() {
   // 左侧透明手牌栏底下(见上方 safeArea)。
   //
   // 刻意不做边界钳制: 目标永远精确居中, 世界之外露出的部分由 .battle-bg-spill 填充。
-  function computeCamera(targetIds: string[]): Camera | null {
+  function computeCamera(targetIds: string[], shot: ShotPreset): Camera | null {
     const world = worldRef.current, stage = stageRef.current;
     if (!world || !stage || targetIds.length === 0) return null;
-
-    const worldRect = world.getBoundingClientRect();
-    if (worldRect.width <= 0) return null;
 
     // 目标并集包围盒(世界坐标)
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     for (const id of targetIds) {
-      const w = worldBoxOf(stage, worldRect, id);
+      const index = b.enemyIds.indexOf(id);
+      const placement = index >= 0 ? slotPlacement(getEncounter(b.encounterId).enemies[index]) : undefined;
+      const w = unitWorldBox(world, id, placement);
       if (!w) continue;
       left = Math.min(left, w.left);
       top = Math.min(top, w.top);
@@ -482,133 +361,164 @@ export function BattleScreen() {
     // 取景安全区(世界 px)
     const safe = safeArea(stage);
 
-    // 并集需占据视野, 但留出边距(占安全区 CINEMA.fit), 再与上限 CINEMA.scale 取较小值防溢出。
+    // 并集需占据视野, 但留出镜位自己的边距, 再与镜位上限取较小值防溢出。
     const spanW = Math.max(1, right - left), spanH = Math.max(1, bottom - top);
-    const fit = Math.min((safe.w * CINEMA.fit) / spanW, (safe.h * CINEMA.fit) / spanH);
-    const s = Math.max(1, Math.min(CINEMA.scale, fit));
+    const fit = Math.min((safe.w * shot.fit) / spanW, (safe.h * shot.fit) / spanH);
+    const s = Math.max(1, Math.min(shot.scale, fit));
 
     const F = { x: (left + right) / 2, y: (top + bottom) / 2 }; // 聚焦点: 并集中心
     const A = { x: safe.x + safe.w / 2, y: safe.y + safe.h / 2 }; // 画框锚点: 安全区中心
-
-    // yaw/pitch=0 —— 分镜的职责是"把目标怼到画面正中看清楚", 该正对就正对; 它的 3D 感来自
-    // 推进时各纵深层的视差(背景退开、近景粒子扑面)。姿态是瞄准态的事(见 computeAimCamera)。
-    return { s, ...worldShift(A, F, s), yaw: 0, pitch: 0 };
+    const nx = clamp((F.x - A.x) / (safe.w / 2), 1);
+    const ny = clamp((F.y - A.y) / (safe.h / 2), 1);
+    return {
+      s,
+      ...worldShift(A, F, s),
+      yaw: nx * shot.yaw,
+      pitch: -ny * shot.pitch,
+      roll: nx === 0 ? 0 : shot.roll * Math.sign(nx),
+    };
   }
 
-  // 逐步回放动画。seq 为本批次代号: 切战斗/发起新动作会使旧批次的定时器回调失效。
-  // 单步分镜: 施法者弹出(全景可见) → 顿 → 镜头推近聚焦目标 → 命中特效/飘字停留 → 镜头恢复+归位。
-  function runSteps(steps: AnimStep[], final: BattleState, seq: number, enter: Camera | null) {
-    let i = 0;
-    const next = () => {
+  function impactAxis(step: ChoreoStep, targetIds: string[]) {
+    const world = worldRef.current;
+    if (!world) return { x: 0, y: -1 };
+    const target = targetIds.map((id) => unitWorldBox(world, id)).find(Boolean);
+    const actor = unitWorldBox(world, step.actorId);
+    if (!target || !actor) return { x: 0, y: -1 };
+    const tx = (target.left + target.right) / 2;
+    const ty = (target.top + target.bottom) / 2;
+    const ax = (actor.left + actor.right) / 2;
+    const ay = (actor.top + actor.bottom) / 2;
+    const length = Math.hypot(tx - ax, ty - ay) || 1;
+    return { x: (tx - ax) / length, y: (ty - ay) / length };
+  }
+
+  function shouldHardCut(previous: ChoreoStep, current: ChoreoStep, previousFocus: Camera | null, currentFocus: Camera | null) {
+    const factionChanged = b.playerIds.includes(previous.actorId) !== b.playerIds.includes(current.actorId);
+    if (factionChanged) return true;
+    if (!previousFocus || !currentFocus) return false;
+    return Math.hypot(currentFocus.dx - previousFocus.dx, currentFocus.dy - previousFocus.dy) > CAMERA_HARD_CUT_DISTANCE;
+  }
+
+  function runSteps(steps: ChoreoStep[], final: BattleState, seq: number, enter: Camera | null) {
+    const plans = choreograph(steps, b);
+    const finishBatch = () => {
       if (seqRef.current !== seq) return;
-      if (i >= steps.length) {
-        commit(final); // 落到最终态(下一回合起始 / 出牌后终态)
-        setCamera(null);
-        setAttackerId(null);
-        setHits({});
-        setCutInCard(null);
-        setHitstop(false);
-        animatingRef.current = false;
-        setAnimating(false);
-        return;
-      }
-      const first = i === 0;
-      const step = steps[i++];
-      const preset = ANIM[step.anim];
-      const focusIds = step.hits.length ? step.hits.map((h) => h.id) : [step.actorId];
-      setAttackerId(step.actorId); // 施法者弹出并保持(CSS .attacking)
-      // 「顿」期间的镜头。默认回全景, 让施法者弹出这一下看得见 ——
-      // 但第 0 步若带着 enter(玩家刚从瞄准态点下目标), 就**接着瞄准位往下演**: 先退回全景
-      // 再推近会把"确认目标 → 打过去"这个连贯动作切成一退一进两截, 观感很碎。
-      setCamera(first ? enter : null);
-
-      // 镜头到位时刻; 仅玩家出牌步在此后插入「卡面亮相」段(飞入→停留→飞出), 后续时刻整体后移 cutIn。
-      const tFocus = CINEMA.beat + CINEMA.zoomIn;
-      const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
-
-      // 顿之后: 镜头推近, 把目标居中放大
-      const tZoom = window.setTimeout(() => {
-        if (seqRef.current !== seq) return;
-        setCamera(computeCamera(focusIds));
-      }, CINEMA.beat);
-      timersRef.current.push(tZoom);
-
-      // 镜头到位后: 若为玩家出牌, 挂载卡面浮层(挂载即播放整段 CSS 动画), 演出结束再卸载
-      if (step.card) {
-        const cardForCutIn = step.card;
-        const tCutIn = window.setTimeout(() => {
-          if (seqRef.current !== seq) return;
-          setCutInCard(cardForCutIn);
-        }, tFocus);
-        const tCutInEnd = window.setTimeout(() => {
-          if (seqRef.current !== seq) return;
-          setCutInCard(null);
-        }, tFocus + cutIn);
-        timersRef.current.push(tCutIn, tCutInEnd);
-      }
-
-      // 卡面亮相结束后: 提交该动作后的状态(扣血/加盾/状态可见), 放特效 + 飘字, 停留 hitHold
-      const tHit = window.setTimeout(() => {
-        if (seqRef.current !== seq) return;
-        commit(step.snapshot);
-        const hitSeq = ++hitSeqRef.current;
-        const map: Record<string, HitFx> = {};
-        for (const h of step.hits) {
-          const fx: HitFx = { anim: step.anim, seq: hitSeq };
-          if (preset.kind === "attack" && h.hpDelta > 0) fx.float = { text: `-${h.hpDelta}`, tone: "dmg" };
-          else if (preset.kind === "support" && h.hpDelta < 0)
-            fx.float = { text: `+${-h.hpDelta}`, tone: "heal" };
-          map[h.id] = fx;
-        }
-        setHits(map);
-
-        // 打击感: 先"卡"再"炸" —— 命中瞬间把整个世界(CSS 动画 + 粒子)冻住 CINEMA.hitstop,
-        // 解冻的同一刻爆发震屏。顿帧设 0 即退化成"命中即震"。震屏幅度按招式的 shake 档取,
-        // 辅助系(档 0)完全不震。
-        // 居合斩(iai)的爆发点不在挂载瞬间而在 impactMs(蓄力后) ⇒ 顿帧/震屏整体推迟;
-        // 其余动画 impactDelay=0, 且必须保持同步调用(不能统一走 setTimeout(0), 否则
-        // setHitstop 与 setHits 拆成两次渲染, sword-fall 会多出一帧未冻结画面)。
-        const level = preset.shake;
-        const impactDelay = preset.iai?.impactMs ?? 0;
-        if (impactDelay > 0) {
-          const tStop = window.setTimeout(() => {
-            if (seqRef.current !== seq) return;
-            if (CINEMA.hitstop > 0) setHitstop(true);
-          }, impactDelay);
-          timersRef.current.push(tStop);
-        } else if (CINEMA.hitstop > 0) setHitstop(true);
-        const tShake = window.setTimeout(() => {
-          if (seqRef.current !== seq) return;
-          setHitstop(false);
-          if (level > 0) setShake((s) => ({ seq: s.seq + 1, level }));
-        }, impactDelay + CINEMA.hitstop);
-        timersRef.current.push(tShake);
-      }, tFocus + cutIn);
-
-      // 停留结束: 镜头恢复全景 + 施法者归位 + 清特效
-      const tRestore = window.setTimeout(() => {
-        if (seqRef.current !== seq) return;
-        setCamera(null);
-        setAttackerId(null);
-        setHits({});
-      }, tFocus + cutIn + CINEMA.hitHold);
-
-      // 镜头拉回后 → 下一步
-      const tNext = window.setTimeout(
-        next,
-        tFocus + cutIn + CINEMA.hitHold + CINEMA.zoomOut + CINEMA.gap,
-      );
-      timersRef.current.push(tHit, tRestore, tNext);
+      commit(final);
+      cameraRig.setTimeScale(1);
+      cameraRig.snap(null);
+      cameraRig.setTuning(null);
+      setPlaybackRate(1, false);
+      setAttackerId(null);
+      setHits({});
+      setCutInCard(null);
+      setHitstop(false);
+      timelineRef.current = null;
+      animatingRef.current = false;
+      setAnimating(false);
     };
-    next();
+    if (plans.length === 0) {
+      finishBatch();
+      return;
+    }
+    const timeline = createTimeline(seq, () => cameraRig.getTimeScale(), finishBatch);
+    timelineRef.current?.cancel();
+    timelineRef.current = timeline;
+
+    let at = 0;
+    let lastActor = "";
+    let lastAnim: CardAnim | null = null;
+    plans.forEach(({ step, preset, targetIds, keepCamera }, index) => {
+      const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
+      const hold = preset.hold * Math.max(0.55, 0.78 ** repeat);
+      const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
+      const hitAt = at + preset.lead + cutIn;
+      const focus = () => (preset.kind === "none" ? null : computeCamera(targetIds, preset));
+      timeline.add({
+        at,
+        run: () => {
+          setAttackerId(step.actorId);
+          cameraRig.setTuning(preset.rig);
+          if (index === 0 && enter) cameraRig.setCamera(enter);
+          else if (index === 0) cameraRig.setCamera(null);
+        },
+      });
+      timeline.add({
+        at: at + preset.lead,
+        run: () => {
+          const previous = index > 0 ? plans[index - 1] : null;
+          const nextFocus = focus();
+          if (!previous || index === 0) {
+            cameraRig.setCamera(nextFocus);
+            return;
+          }
+          const previousFocus = previous.preset.kind === "none" ? null : computeCamera(previous.targetIds, previous.preset);
+          const hardCut = previous.preset.kind === "kill" || shouldHardCut(previous.step, step, previousFocus, nextFocus);
+          if (hardCut) cameraRig.snap(nextFocus);
+          else if (!keepCamera) cameraRig.setCamera(nextFocus);
+        },
+      });
+      if (step.card) {
+        timeline.add({ at: at + preset.lead, run: () => setCutInCard(step.card ?? null) });
+        timeline.add({ at: hitAt, run: () => setCutInCard(null) });
+      }
+      timeline.add({
+        at: hitAt,
+        run: () => {
+          commit(step.snapshot);
+          const hitSeq = ++hitSeqRef.current;
+          const map: Record<string, HitFx> = {};
+          for (const h of step.hits) {
+            const fx: HitFx = { anim: step.anim, seq: hitSeq };
+            if (ANIM[step.anim].kind === "attack" && h.hpDelta > 0) fx.float = { text: `-${h.hpDelta}`, tone: "dmg" };
+            else if (ANIM[step.anim].kind === "support" && h.hpDelta < 0) fx.float = { text: `+${-h.hpDelta}`, tone: "heal" };
+            map[h.id] = fx;
+          }
+          setHits(map);
+          const impactDelay = ANIM[step.anim].iai?.impactMs ?? 0;
+          timeline.schedule(impactDelay, () => {
+            setHitstop(preset.hitstop > 0);
+            if (preset.hitstop > 0) {
+              cameraRig.setTimeScale(0);
+            }
+            const axis = impactAxis(step, targetIds);
+            cameraRig.punch(preset.punch);
+            cameraRig.impact(axis, CINEMA.impact.shakeAmp[ANIM[step.anim].shake], -axis.x * preset.roll * 0.35);
+            if (preset.creep > 0) {
+              timeline.schedule(Math.round(hold * 0.35), () => {
+                const current = focus();
+                if (current) cameraRig.setCamera({ ...current, dy: current.dy - preset.creep });
+              });
+            }
+            if (preset.hitstop > 0) {
+              timeline.schedule(preset.hitstop, () => {
+                setHitstop(false);
+                const slow = preset.slowmo?.scale ?? 1;
+                setPlaybackRate(slow, false);
+                if (preset.slowmo) timeline.schedule(preset.slowmo.ms, () => setPlaybackRate(playbackRateRef.current), true);
+                else setPlaybackRate(playbackRateRef.current);
+              }, true);
+            }
+          });
+        },
+      });
+      timeline.add({ at: hitAt + hold, run: () => { setHits({}); setAttackerId(null); } });
+      at = hitAt + hold + 40;
+      lastActor = step.actorId;
+      lastAnim = step.anim;
+    });
+    timeline.add({ at: at + 260, run: () => cameraRig.setCamera(null) });
+    timeline.add({ at: at + 520, run: () => undefined });
+    timeline.start();
   }
 
   // 开启一个动画批次: 上锁 + 清选择, 逐步回放。空步数则直接落到终态。
   // enter: 第 0 步「顿」期间的镜头(null=回全景)。玩家出牌时传当前瞄准位, 见 triggerPlay。
-  function startBatch(steps: AnimStep[], final: BattleState, enter: Camera | null = null) {
+  function startBatch(steps: ChoreoStep[], final: BattleState, enter: Camera | null = null) {
     const seq = ++seqRef.current;
     animatingRef.current = true;
     setAnimating(true);
+    setPlaybackRate(playbackRateRef.current);
     setSelectedUid(null);
     setHandAction(null);
     setAimFoeId(null); // 瞄准朝向只在一次"挑目标"里有效, 不该跨到下一张卡
@@ -636,7 +546,7 @@ export function BattleScreen() {
       id,
       hpDelta: before[id] - (plan.cardSnapshot.combatants[id]?.hp ?? before[id]),
     }));
-    const steps: AnimStep[] = [
+    const steps: ChoreoStep[] = [
       { actorId: card.ownerCharId, anim, snapshot: plan.cardSnapshot, hits: cardHits, card },
       ...plan.frames.map(stepFromFrame),
     ];
@@ -647,7 +557,7 @@ export function BattleScreen() {
     //   ② 技术上(硬性): 500ms 后 computeCamera 要量目标位置, 而 screenToWorld 只在场景是
     //      2D 仿射(纯缩放+平移)时才精确 —— 带着偏航去量, 反投影会有几十 px 的系统性偏差,
     //      推近后目标就不在画面正中了。详见 screenToWorld 的注释。
-    //   转正用的是 zoomIn(380ms) < beat(500ms), 到量取时刻已经稳定落位。
+    //   转正使用短于首个命中节拍的过渡, 到量取时刻已经稳定落位。
     const enter = aim ? { ...aim, yaw: 0, pitch: 0 } : null;
     startBatch(steps, plan.final, enter);
   }
@@ -737,43 +647,25 @@ export function BattleScreen() {
           transform 驱动。★ 场景**不再是刚体**: 各层带着不同的纵深(CINEMA.depth), 相机一动
           就按深度分速率位移 —— 这就是 3D 感的来源, 代价是角色与背景地面会相对滑移。
           裁切在 .screen.battle(整屏), 故推近时角色可越过舞台边界铺满画面。
-          data-focused: **分镜**相机非全景时置位, CSS 据此暂停世界的空闲漂移(见下)。瞄准态
-          刻意不置位 —— 挑目标可以持续很久, 那期间画面不该完全静止。
           camera ?? aim: 分镜相机优先, 挑目标期间才轮到瞄准相机(两者天然互斥, 见上方 effect)。 */}
       <div
         className={s["battle-scene"]}
         ref={sceneRef}
-        data-focused={camera ? "1" : undefined}
-        style={{
-          transition: camera ? CAMERA_TRANSITION : AIM_TRANSITION,
-          transform: cameraCss(camera ?? aim),
-        }}
       >
-      {/* ★ 世界层: 相机之下、场景内容之上的一层。它同样包住背景 + 氛围 + 舞台,
-          存在的意义是让「空闲漂移」和「震屏」有地方落 —— 场景层的 transform 已被相机占用。
-          三个变换属性各司其职、互不覆盖: transform=漂移, translate=震屏位移, scale=冲击缩放。
+        {/* ★ 世界层: 相机之下、场景内容之上的一层。它同样包住背景 + 氛围 + 舞台,
+          存在的意义是承载 rig 直接写入的空闲漂移、冲击位移与 punch 缩放。
           刻意 position:absolute + inset:0 与场景层几何重合 ⇒ 它成为 .battle-stage 的
           offsetParent, computeCamera 读的取景安全区(stage.offsetLeft/Top/W/H)一个数都不用改。
           ⚠ 它必须保持 transform-style: preserve-3d(见 CSS) —— 各纵深层就挂在它下面,
             一旦它 flatten, 视差(以及整个 3D 感)当场消失。
           --depth-*: 各层的纵深与抵消透视的预缩放, 唯一真相在 CINEMA.depth。 */}
       <div
-        className={cx(
-          s["battle-world"],
-          shake.level > 0 && s[`shake-lv${shake.level}`],
-          shake.level > 0 && s[`shake-${shake.seq % 2 ? "a" : "b"}`],
-        )}
+        className={s["battle-world"]}
         ref={worldRef}
         style={
           {
+            "--fx-rate": fxRate,
             ...depthVars(),
-            "--drift-x": `${CINEMA.drift.x}px`,
-            "--drift-y": `${CINEMA.drift.y}px`,
-            "--drift-scale": `${1 + CINEMA.drift.scale}`,
-            "--drift-dur": `${CINEMA.drift.dur}ms`,
-            "--shake-amp": `${CINEMA.shake.amp[shake.level]}px`,
-            "--shake-punch": `${1 + CINEMA.shake.punch}`,
-            "--shake-dur": `${CINEMA.shake.dur}ms`,
           } as React.CSSProperties
         }
       >
@@ -797,8 +689,8 @@ export function BattleScreen() {
 
       {/* 场景氛围: 按地图登记的 Canvas 粒子(雨/光尘/雾)+ 可选的灯光闪烁。两张画布靠 z-index
           夹住舞台 —— far 在单位之下、near 在单位之上并整层失焦, 纵深由此而来。
-          它在世界内 ⇒ 跟随相机与漂移/震屏。顿帧期间 paused, 粒子和 CSS 动画一起冻住。 */}
-      <AmbienceLayer mapId={mapId} paused={hitstop} />
+          它在世界内 ⇒ 跟随相机与 rig 的动态位移。顿帧期间 paused, 粒子和 CSS 动画一起冻住。 */}
+      <AmbienceLayer mapId={mapId} paused={hitstop} fxRate={fxRate} />
 
       {/* 战场舞台层: 世界里的一块子矩形(避开左侧手牌栏), 同时是相机的取景安全区。
           它不带自己的 transform —— 相机只驱动外层的 .battle-scene。 */}
@@ -862,7 +754,12 @@ export function BattleScreen() {
       {battleMeta && <ChallengeRail challenges={battleMeta.challenges} />}
       <div className={s.topRight}>
         {battleMeta && <BondRail bonds={battleMeta.bonds} />}
-        <BattleActions canEndTurn={isPlayerTurn && !animating} onEndTurn={triggerEndTurn} />
+        <BattleActions
+          canEndTurn={isPlayerTurn && !animating}
+          onEndTurn={triggerEndTurn}
+          speed2x={speed2x}
+          onToggleSpeed={togglePlaybackSpeed}
+        />
       </div>
 
       {/* ★ 底部一体化 HUD: 队伍卡 | 手牌托盘(两列; 卡牌说明面板已搬到画布右上角, 见下方)。

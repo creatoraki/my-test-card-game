@@ -149,8 +149,8 @@
   perspective: var(--perspective, 1400px);
 }
 /* ★ 场景层 = 世界(1920×1080), 相机的唯一作用对象。
-   背景与敌我单位都在它里面, 由 BattleScreen 行内下发的**唯一**一份 transform 驱动 ⇒
-   场景是刚体, 推近/平移/偏航时角色与它脚下的地面绝不可能分离。
+  背景与敌我单位都在它里面, 由 BattleScreen 行内下发的相机 transform 驱动;
+  背景与粒子再通过各自纵深产生受控视差。
    刻意不加 overflow —— 裁切统一由 .battle 承担。
 
    ⚠ 相机是透视相机: 行内 transform 形如 translateZ() rotateY() translate(), 推近实为沿
@@ -178,130 +178,25 @@
    ⚠ 这些 transform 各自独占所在元素的 transform 属性, 别再往上面叠别的东西。 */
 .battle-scene .battle-bg-video {
   transform: translateZ(var(--depth-bg, 0)) scale(var(--depth-bg-fix, 1));
+  filter: blur(calc(var(--dof, 0) * 5px));
 }
 /* ⓘ 氛围两层(.battle-ambience.far/.near)的纵深写在 battle/AmbienceLayer.module.css ——
    那两个类是 AmbienceLayer 的, Modules 之后本文件够不着(样式铁律 1)。
    --depth-* 变量仍由本文件的 depthVars 下发到 .battle-world(样式铁律 4 的跨组件契约)。 */
-/* ★ 世界层: 夹在相机(.battle-scene)与场景内容之间的一层, 同样包住背景 + 氛围 + 舞台。
-   它存在的唯一理由是「场景层的 transform 已被相机占用」, 而空闲漂移与震屏
-   还需要落点。三个变换属性各司其职、由浏览器按 translate → rotate → scale → transform
-   的固定顺序合成, 互不覆盖:
-     transform → 空闲漂移(worldDrift, 常驻循环)
-     translate → 震屏位移(worldShakeA/B, 命中时单次)
-     scale     → 震屏的冲击缩放(同上一条 keyframes 里一起写)
-   position:absolute + inset:0 使它与场景层几何完全重合 ⇒ 它成为 .battle-stage 的
-   offsetParent, BattleScreen.computeCamera 读的取景安全区一个数都不用改。
-   ⚠ preserve-3d 不能去掉: 纵深层是它的**子元素**, 这一层一旦 flatten 就把各层的 z 全部
-     压平, 视差消失(而画面看上去毫无异样, 极难排查)。同理别给它加 overflow/filter/opacity。 */
+/* ★ 世界层: 相机 rig 的冲击位移与 punch 直接写在这里。它仍是 3D 保持层，不能添加
+   overflow/filter/opacity 等会 flatten 子级纵深的属性。 */
 .battle-world {
   position: absolute;
   inset: 0;
   will-change: transform;
   transform-origin: 50% 50%;
   transform-style: preserve-3d;
-  animation: worldDrift var(--drift-dur, 22000ms) ease-in-out infinite;
-}
-/* 相机推近期间冻住漂移: 聚焦的那 1 秒里目标必须钉死在画面中心, 不能被漂移缓慢带偏。
-   animation-play-state 保留当前进度, 回到全景时从原处续播, 无跳变。 */
-.battle-scene[data-focused] .battle-world {
-  animation-play-state: paused;
-}
-/* 空闲漂移(Ken Burns): 22s 一圈的极慢推移 + 微缩放, 让静止画面永不完全死掉。
-   幅度全部走变量, 唯一真相在 ui/animations.ts 的 CINEMA.drift。 */
-@keyframes worldDrift {
-  0% {
-    transform: scale(1) translate(0, 0);
-  }
-  33% {
-    transform: scale(var(--drift-scale, 1.018)) translate(calc(var(--drift-x, 8px) * -1), var(--drift-y, 5px));
-  }
-  66% {
-    transform: scale(var(--drift-scale, 1.018)) translate(var(--drift-x, 8px), calc(var(--drift-y, 5px) * -1));
-  }
-  100% {
-    transform: scale(1) translate(0, 0);
-  }
-}
-/* 震屏: 命中解冻的那一刻爆发, 幅度衰减到 0。
-   ⚠ 必须重复声明 worldDrift 这一条 —— animation 是简写, 只写 shake 会把漂移整条抹掉。
-   两个同内容不同名的 keyframes(A/B)由 BattleScreen 按 seq 奇偶交替挂载: 名字变了才会重播,
-   而列表第 0 位的 worldDrift 名字没变 ⇒ 继续播不重启。
-   为什么不给 .battle-world 加 key 重挂载: 那会连带重挂 <video> 背景, 触发二次解码。
-   世界被推开后露出的边缘由 .battle-bg-spill(背景模糊副本)兜底, 不会露黑。 */
-.battle-world.shake-a {
-  animation:
-    worldDrift var(--drift-dur, 22000ms) ease-in-out infinite,
-    worldShakeA var(--shake-dur, 260ms) ease-out 1;
-}
-.battle-world.shake-b {
-  animation:
-    worldDrift var(--drift-dur, 22000ms) ease-in-out infinite,
-    worldShakeB var(--shake-dur, 260ms) ease-out 1;
-}
-@keyframes worldShakeA {
-  0% {
-    translate: 0 0;
-    scale: 1;
-  }
-  15% {
-    translate: calc(var(--shake-amp) * -1) calc(var(--shake-amp) * 0.6);
-    scale: var(--shake-punch, 1.012);
-  }
-  35% {
-    translate: calc(var(--shake-amp) * 0.7) calc(var(--shake-amp) * -0.5);
-    scale: var(--shake-punch, 1.012);
-  }
-  60% {
-    translate: calc(var(--shake-amp) * -0.4) calc(var(--shake-amp) * 0.25);
-    scale: 1;
-  }
-  80% {
-    translate: calc(var(--shake-amp) * 0.18) 0;
-    scale: 1;
-  }
-  100% {
-    translate: 0 0;
-    scale: 1;
-  }
-}
-/* 与 A 逐帧相同, 只为换个名字好重启动画(见上) */
-@keyframes worldShakeB {
-  0% {
-    translate: 0 0;
-    scale: 1;
-  }
-  15% {
-    translate: calc(var(--shake-amp) * -1) calc(var(--shake-amp) * 0.6);
-    scale: var(--shake-punch, 1.012);
-  }
-  35% {
-    translate: calc(var(--shake-amp) * 0.7) calc(var(--shake-amp) * -0.5);
-    scale: var(--shake-punch, 1.012);
-  }
-  60% {
-    translate: calc(var(--shake-amp) * -0.4) calc(var(--shake-amp) * 0.25);
-    scale: 1;
-  }
-  80% {
-    translate: calc(var(--shake-amp) * 0.18) 0;
-    scale: 1;
-  }
-  100% {
-    translate: 0 0;
-    scale: 1;
-  }
-}
-/* 顿帧(hitstop): 命中瞬间把世界里所有循环动画冻住几十毫秒, 解冻同刻爆发震屏 —— 先"卡"
-   再"炸"是打击感的来源。粒子不在 CSS 里, 由 AmbienceLayer 的 paused prop 同步停更新。
-   ⚠ 只冻「持续循环」的那几条, 不能用 * 通配: 受击闪白/冲击环/飘字正是这一刻要播的东西。 */
+/* 顿帧(hitstop): 粒子由 AmbienceLayer 的 paused prop 同步停更新；命中特效本身继续播放。 */
 /* ⚠ 顿帧标记从 `.battle.hitstop` 类改成了根节点上的 `data-hitstop` 属性:
    要冻住的三样东西分属三个组件(本文件的 .battle-world、EnemySprite 的 .enemy-sprite、
    CombatantView 的 .combatant-figure), Modules 之后本文件够不着后两个的类名。
    属性不参与哈希 ⇒ 各组件在自己的 module.css 里写 `:global([data-hitstop]) .xxx` 即可
    (样式铁律 2)。这里只保留**本文件持有**的那一条。 */
-.battle[data-hitstop] .battle-world {
-  animation-play-state: paused;
-}
 /* 溢出填充: 相机强制居中(不做边界钳制), 世界之外露出的区域由这一层兜底 —— 同一张背景的
    模糊放大副本。它在 .battle-scene 之外 ⇒ 不跟相机动, 始终铺满画布。src 见 BattleScreen
    的 spillSrc(静态图直接复用, 视频抓首帧到 64×36 小图 —— 反正会被 blur 糊掉)。 */
@@ -695,12 +590,8 @@
 }
 
 
-/* 减少动态效果: 世界层的漂移/震屏整条停掉。
-   ⚠ 氛围粒子不在这里 —— AmbienceLayer 在同一条件下**根本不挂载**(连 rAF 都不起), 见组件顶部。 */
+/* 减少动态效果: 相机 rig 与氛围层分别处理 reduced-motion。 */
 @media (prefers-reduced-motion: reduce) {
-  .battle-world {
-    animation: none;
-  }
   /* 居合斩的全屏压暗/反白闪属光敏风险, 整段静默(基态 opacity:0 ⇒ 压暗不出现)。
      刃光/光点在 ui/IaiSlashFx.css 里一并静默; 伤害飘字与受击反馈仍在, 结算信息不丢。 */
   .battle-dim {

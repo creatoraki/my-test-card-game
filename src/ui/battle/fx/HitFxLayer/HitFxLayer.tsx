@@ -16,7 +16,7 @@ import s from "./HitFxLayer.module.css";
 //   --vfx-impact: 挂载 → 砸中的偏移, 把受击抖动/闪白推迟到序列帧/居合斩真正命中那一刻
 //                 (emoji 系缺省 0, 行为不变)
 //   --vfx-float-delay/--vfx-float-dur: 飘字延迟与时长, 仅居合斩使用(把飘字推迟到
-//                 斩击爆发瞬间并压缩时长, 保证在 hitHold 卸载前收尾); 其余动画缺省值下
+//                 斩击爆发瞬间并压缩时长, 保证在命中特效 hold 卸载前收尾); 其余动画缺省值下
 //                 与原行为逐帧等价。
 // 攻击 → 受击抖动闪光; 辅助 → 柔和光晕。
 export function hitFxVars(hit: HitFx | null): {

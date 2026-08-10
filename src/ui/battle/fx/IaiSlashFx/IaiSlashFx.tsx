@@ -35,8 +35,8 @@ export function IaiSlashFx({ preset }: { preset: IaiPreset }) {
             height: d.size,
             // 两段动画(蓄力渐亮 + 爆闪消散)的 animation-name 写在 IaiSlashFx.module.css ——
             // 关键帧名会被 Modules 哈希, 行内字符串匹配不到。这里只下发时序。
-            animationDelay: `${d.delay}ms, ${preset.impactMs}ms`,
-            animationDuration: `${preset.impactMs - d.delay}ms, 240ms`,
+            animationDelay: `calc(${d.delay}ms / max(var(--fx-rate, 1), 0.25)), calc(${preset.impactMs}ms / max(var(--fx-rate, 1), 0.25))`,
+            animationDuration: `calc(${preset.impactMs - d.delay}ms / max(var(--fx-rate, 1), 0.25)), calc(240ms / max(var(--fx-rate, 1), 0.25))`,
           }}
         />
       ))}

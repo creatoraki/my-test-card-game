@@ -21,7 +21,7 @@ export function SkillCutInCard({ card }: { card: Card | null }) {
     <div
       key={card.uid}
       className={cx(s["skill-cutin"], art ? s["has-art"] : s.placeholder)}
-      style={{ animationDuration: `${CUTIN_MS}ms` }}
+      style={{ animationDuration: `calc(${CUTIN_MS}ms / max(var(--fx-rate, 1), 0.25))` }}
       aria-hidden
     >
       {art ? (

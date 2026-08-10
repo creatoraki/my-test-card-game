@@ -38,6 +38,22 @@
   color: #9eb3b8;
   font-size: 36px;
 }
+.speed {
+  width: 48px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #6fd2ff45;
+  background: #071014cc;
+  color: #9eb3b8;
+  font-size: 14px;
+  font-weight: 800;
+}
+.speed[aria-pressed="true"],
+.speed:hover {
+  color: #eaffd0;
+  border-color: var(--accent);
+  background: #193020cc;
+}
 .settings:hover {
   color: #eaffd0;
   border-color: var(--accent);

@@ -17,7 +17,7 @@ const DEF_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.anim]));
 // 由 ui/SpriteFx.tsx 行内下发给逐帧 <img>。
 export interface SpritePreset {
   frames: readonly string[]; // 逐帧图 URL(按播放顺序)
-  frameMs: number; // 每帧停留(ms); frames.length * frameMs 须 ≤ CINEMA.hitHold, 否则末尾帧会被卸载截断
+  frameMs: number; // 每帧停留(ms); 总时长须小于命中特效的 hold, 否则末尾帧会被卸载截断
   width: number; // 渲染宽(px)
   height: number; // 渲染高(px); 须与原图比例一致
   anchorTop: number; // .vfx 图层相对卡面顶边的下移量(px), 决定冲击点落在目标何处
@@ -30,7 +30,7 @@ export interface IaiPreset {
   // 挂载 → 斩击爆发的偏移(ms), = 蓄力时长(压暗+光点渐亮)。
   // runSteps 用它推迟顿帧/震屏, hitFxVars 用它推迟受击抖动/闪白与飘字。
   impactMs: number;
-  floatMs: number; // 飘字时长(压缩): impactMs + floatMs 须 ≤ CINEMA.hitHold, 否则飘字被卸载截断
+  floatMs: number; // 飘字时长(压缩): impactMs + floatMs 须小于命中特效的 hold, 否则飘字被卸载截断
 }
 
 export interface AnimPreset {
@@ -41,27 +41,14 @@ export interface AnimPreset {
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
-  // 震屏档位: 下标取 CINEMA.shake.amp。0=不震(辅助系), 1=普通攻击, 2=重击。
+  // 震屏档位: 下标取 CINEMA.impact.shakeAmp。0=不震(辅助系), 1=普通攻击, 2=重击。
   shake: 0 | 1 | 2;
 }
 
 // ── 分镜运镜时间轴(ms)与相机参数 ──
-// 每一步(玩家出牌 / 敌人行动)统一走这套电影化时序: 施法者弹出 → 顿(全景) →
-// 镜头推近并把目标居中放大 → 命中特效+飘字停留 → 镜头恢复+归位 → 下一步。
-//
-// 相机是「一个世界 + 一个相机」: 背景与敌我单位同在 .battle-scene 内, 由**唯一**一份
-// transform 驱动 —— 场景是刚体, 推近时角色与它脚下的地面绝不会分离。
-// 换算细节见 BattleScreen.tsx 的 computeCamera。
+// 分档节奏由 camera/shots.ts 消费。这里保留透视、瞄准和亮相卡等跨组件的视觉契约，
+// 相机运动本身由 camera/useCameraRig.ts 的 rAF 循环接管。
 export const CINEMA = {
-  beat: 500, // 角色弹出后, 相机停在全景的"顿"时长
-  zoomIn: 380, // 相机推近并把目标居中的过渡时长
-  hitHold: 1000, // 命中特效 + 伤害/治疗数字在聚焦镜头下的停留时长
-  zoomOut: 380, // 相机恢复(退回全景)的过渡时长
-  gap: 120, // 一步收尾到下一步之间的小间隔
-  scale: 1.55, // 单目标聚焦时的最大放大倍数(多目标会按并集自适应收敛)
-  // 取景留白: 目标并集最多占取景安全区的这个比例, 越小留白越多、镜头越远。
-  fit: 0.78,
-
   // ── 3D 场景 ──
   // 透视距离(世界 px, 即设计画布的坐标系), 下发为 .screen.battle 的 perspective 属性。
   // 相机的"推近"实为沿视线推进 z = P(1-1/s)。越小畸变与视差越强: 1000 很"广角",
@@ -87,9 +74,15 @@ export const CINEMA = {
     // 敌我单位(.battle-stage)恒为 0 —— 它是取景与相机数学的基准面, 不要给它加深度。
   },
 
-  // ── 瞄准运镜(选中攻击卡 → 挑目标期间; 与上面的分镜相机互斥) ──
-  // 分镜相机负责"把目标怼到脸上"; 这套只负责"进入瞄准状态"的临场感, 幅度必须克制 ——
-  // 它在玩家读牌/点选期间长期生效, 大位移会干扰点选(目标会从指针底下挪走)。
+  // ── 分镜节奏 ──
+  tempo: {
+    light: { lead: 140, hold: 380 },
+    normal: { lead: 200, hold: 620 },
+    heavy: { lead: 280, hold: 980 },
+    aoe: { lead: 240, hold: 820 },
+    kill: { lead: 320, hold: 1300 },
+  },
+
   // 朝向 = 偏航/俯仰(转) + 平移(挪) 两者叠加。
   // ★ 位移必须是**斜的**: 纯水平的直线位移, 人眼一律读作"一张图在平面上滑", 加多少透视与
   //   视差都救不回来 —— 因为现实中相机不会只沿一条水平轨道走。垂直分量(panY)与随横向偏离
@@ -113,18 +106,6 @@ export const CINEMA = {
   cardHold: 700, // 卡面停在距左侧 200px 处停留
   cardOut: 320, // 卡面往右飞出 + 渐隐
 
-  // ── 打击感: 顿帧 + 震屏(见 ui/BattleScreen.css 的 .hitstop / worldShakeA|B) ──
-  // 顿帧: 命中瞬间把世界的所有 CSS 动画与粒子更新冻住这么久, 解冻的同一刻爆发震屏。
-  // 设 0 即关闭整段顿帧(震屏仍在, 只是紧贴命中时刻触发)。
-  hitstop: 70,
-  // 震屏: amp 按 AnimPreset.shake 取下标(0=不震), punch 是同时叠加的冲击缩放。
-  // 幅度落在 .battle-world 的 translate/scale 上 —— transform 已被下面的 drift 占用。
-  shake: { amp: [0, 3, 6], dur: 260, punch: 0.012 },
-
-  // ── 空闲镜头漂移(Ken Burns) ──
-  // 全景态下世界做一圈极慢的推移 + 微缩放, 让画面永不完全静止。它挂在 .battle-world 上 ⇒
-  // 背景与单位一起动, 场景仍是刚体。相机推近期间自动暂停(见 BattleScreen 的 data-focused)。
-  drift: { scale: 0.018, x: 8, y: 5, dur: 22000 },
 } as const;
 
 // 手牌发牌时序(ms)。单张飞行时长写在 HandCard.module.css 的 .hand-card animation(0.8s),
@@ -142,7 +123,7 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   ice: { kind: "attack", emoji: "❄️", color: "#66d9e8", windup: 210, hold: 720, shake: 1 },
   lightning: { kind: "attack", emoji: "⚡", color: "#a5d8ff", windup: 130, hold: 600, shake: 1 },
   poison: { kind: "attack", emoji: "☠️", color: "#94d82d", windup: 190, hold: 720, shake: 1 },
-  // 魔剑坠落(序列帧): 12 帧 × 70ms = 840ms, 在 hitHold(1000ms) 内播完, 不循环。
+  // 魔剑坠落(序列帧): 12 帧 × 70ms = 840ms, 在命中特效 hold 内播完, 不循环。
   // height 460 ≈ 4.8 倍身位; 帧上方约 247px(帧高 53.7%)是 00-02 的凝聚段(剑位于帧内
   // 5%~37%), 露出多少取决于敌人头顶的净空。裁切边界现在在 .screen.battle(整屏)而非
   // 舞台, 故凝聚段可向上越过舞台顶边、延伸到顶栏区域, 比改造前多露一截;
@@ -166,7 +147,7 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     shake: 2, // 重击档: 巨剑砸地理应把镜头震一下
   },
   // 居合拔刀斩(程序化 CSS): 全屏压暗 → 光点由暗渐亮蓄力 → 500ms 斩痕从左下向右上
-  // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在 hitHold(1000ms) 内。视觉在 IaiSlashFx.tsx
+  // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在命中特效 hold 内。视觉在 IaiSlashFx.tsx
   // 与 ui/IaiSlashFx.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。
   // 调 impactMs 时须同步改 ui/IaiSlashFx.css 里 iaiBlade/iaiGlow/iaiRing/iaiScreenDim 的百分比。
   "iai-slash": {

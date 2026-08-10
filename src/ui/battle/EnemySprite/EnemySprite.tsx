@@ -47,7 +47,7 @@ export function EnemySprite({
           backgroundSize: `${stripWidth}px ${sprite.height}px`,
           animationName: name,
           animationTimingFunction: "step-end",
-          animationDuration: `${play.length * sprite.frameMs}ms`,
+          animationDuration: `calc(${play.length * sprite.frameMs}ms / max(var(--fx-rate, 1), 0.25))`,
         }}
       />
     </>

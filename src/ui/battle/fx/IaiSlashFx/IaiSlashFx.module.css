@@ -2,7 +2,7 @@
 /* —— 居合拔刀斩(iai-slash): 纯程序化 CSS, 无序列帧素材 ——
    分层: .battle-dim 全屏压暗(BattleScreen 由 hits 派生挂载, 场景之外) + .iai-wrap
    目标身上的斩痕容器(IaiSlashFx.tsx, 挂 .vfx 内)。
-   时序: 所有关键帧百分比基于 1000ms(= CINEMA.hitHold)总时长, 50% = 斩击爆发时刻
+  时序: 所有关键帧百分比基于命中特效 hold 总时长, 50% = 斩击爆发时刻
    = ANIM["iai-slash"].iai.impactMs(500ms)。改 impactMs 须同步改 iaiBlade/iaiGlow/
    iaiRing/iaiScreenDim 四组关键帧的百分比(与 swordFallRing 同一约定)。
    光点(.iai-dot)的蓄力/爆闪时序由 IaiSlashFx 行内 animation-delay/duration 下发,

@@ -94,14 +94,14 @@ function spawn(p: Particle, def: EmitterDef, initial: boolean): void {
   }
 }
 
-export function AmbienceLayer({ mapId, paused }: { mapId: string | null; paused: boolean }) {
+export function AmbienceLayer({ mapId, paused, fxRate }: { mapId: string | null; paused: boolean; fxRate: number }) {
   // 系统「减少动态效果」: 整层不挂载(连 rAF 都不起), 而不是挂载后再静止。
   // 检查放在外壳组件里, 内部组件的 hook 才不会变成条件调用。
   if (prefersReducedMotion()) return null;
-  return <AmbienceCanvases mapId={mapId} paused={paused} />;
+  return <AmbienceCanvases mapId={mapId} paused={paused} fxRate={fxRate} />;
 }
 
-function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boolean }) {
+function AmbienceCanvases({ mapId, paused, fxRate }: { mapId: string | null; paused: boolean; fxRate: number }) {
   const def = ambience(mapId);
   const farRef = useRef<HTMLCanvasElement>(null);
   const nearRef = useRef<HTMLCanvasElement>(null);
@@ -109,6 +109,8 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
   // 顿帧(hitstop)期间跳过位置更新但照常重绘 —— 走 ref 而非依赖, 免得每次开关都重建循环。
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
+  const fxRateRef = useRef(fxRate);
+  fxRateRef.current = Math.max(0, fxRate);
 
   // 每层的失焦半径取该层各发射器的最大值, 作为整张画布的 CSS filter 下发。
   // 逐粒子设 ctx.filter 会让每次绘制都重建滤镜链, 而"近景整体失焦"本就是层级属性。
@@ -161,7 +163,7 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
       raf = requestAnimationFrame(frame);
       const dt = Math.min(0.05, (now - last) / 1000); // 封顶 50ms: 切回标签页时不让粒子瞬移
       last = now;
-      if (!pausedRef.current) update(groupsRef.current, dt);
+      if (!pausedRef.current) update(groupsRef.current, dt * fxRateRef.current);
       draw(farCtx, nearCtx, groupsRef.current);
     };
 
@@ -193,7 +195,8 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
           style={
             {
               "--flicker-color": def.flicker.color,
-              animationDuration: `${def.flicker.period}ms`,
+              animationDuration: `${def.flicker.period / Math.max(0.25, fxRate)}ms`,
+              animationPlayState: paused ? "paused" : "running",
             } as React.CSSProperties
           }
         />
@@ -202,14 +205,14 @@ function AmbienceCanvases({ mapId, paused }: { mapId: string | null; paused: boo
         <canvas
           className={cx(s["battle-ambience"], s.far)}
           ref={farRef}
-          style={{ ...style, filter: blur.far ? `blur(${blur.far}px)` : undefined }}
+          style={{ ...style, filter: `blur(calc(${blur.far}px + var(--dof, 0) * 2px))` }}
         />
       )}
       {has.near && (
         <canvas
           className={cx(s["battle-ambience"], s.near)}
           ref={nearRef}
-          style={{ ...style, filter: blur.near ? `blur(${blur.near}px)` : undefined }}
+          style={{ ...style, filter: `blur(calc(${blur.near}px + var(--dof, 0) * 6px))` }}
         />
       )}
     </>

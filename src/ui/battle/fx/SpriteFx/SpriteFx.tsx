@@ -20,9 +20,9 @@ export function SpriteFx({ sprite }: { sprite: SpritePreset }) {
             height: `${sprite.height}px`,
             // 把帧内 anchorY 处的冲击点对到 .vfx 锚点, 水平居中
             transform: `translate(-50%, -${sprite.anchorY * 100}%)`,
-            animationDelay: `${i * sprite.frameMs}ms`,
+            animationDelay: `calc(${i * sprite.frameMs}ms / max(var(--fx-rate, 1), 0.25))`,
             // 多 8ms 与下一帧微重叠, 消除帧间断档闪烁(重叠期后一帧盖在前一帧上, 不会双重曝光)
-            animationDuration: `${sprite.frameMs + 8}ms`,
+            animationDuration: `calc(${sprite.frameMs + 8}ms / max(var(--fx-rate, 1), 0.25))`,
           }}
         />
       ))}
