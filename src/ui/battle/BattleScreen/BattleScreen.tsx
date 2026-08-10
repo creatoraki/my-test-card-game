@@ -17,7 +17,8 @@ import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
 import { BattleActions } from "@/ui/battle/BattleActions";
 import { BondRail } from "@/ui/battle/BondRail";
 import { ChallengeRail } from "@/ui/battle/ChallengeRail";
-import { DeckColumn, type HandAction } from "@/ui/battle/DeckColumn";
+import { HandTools, type HandAction } from "@/ui/battle/HandTools";
+import { ManaBar } from "@/ui/battle/ManaBar";
 import { PileRail, type Pile } from "@/ui/battle/PileRail";
 import { PileDrawer } from "@/ui/battle/PileDrawer";
 import { RoundIndicator } from "@/ui/battle/RoundIndicator";
@@ -695,6 +696,8 @@ export function BattleScreen() {
   // 居合斩全屏压暗: 由 hits 派生, 与特效同挂同卸(tRestore 的 setHits({}) 自动清掉),
   // key=seq 保证连发重放。零新增 state / 计时器。
   const dimHit = Object.values(hits).find((h) => ANIM[h.anim].iai);
+  // 我方角色前冲上浮时(data-attacking, 见 fx/HitFxLayer.module.css)，让开左下角这三块 UI
+  const playerActing = !!attackerId && battle.playerIds.includes(attackerId);
 
   return (
     // --stage-scale: 把 1920×1080 的设计画布等比缩到当前窗口(见 ui/stage.ts 与 BattleScreen.css .screen.battle)
@@ -860,26 +863,27 @@ export function BattleScreen() {
           data-cmb-id, 走它现成的 `if (!isFinite(left)) return null` 兜底保持全景, 于是
           「打自身/友军牌时不推镜, 只播特效 + 震屏」不需要任何特判(见 ui/AllyBar.tsx 注释)。 */}
       <div className={s["battle-hud"]} onClick={(e) => e.stopPropagation()}>
-        <AllyBar
-          allies={allies}
-          hits={hits}
-          attackerId={attackerId}
-          focusFallbackCard={selectedCard}
-          targetable={isPlayerTurn && !!needsAlly}
-          onSelect={onCombatantClick}
-        />
-
-        <DeckColumn
-          battle={battle}
-          selectedCard={selectedCard}
-          handAction={handAction}
-          isPlayerTurn={isPlayerTurn}
-          animating={animating}
-          onToggleHandAction={(action) => {
-            setSelectedUid(null);
-            setHandAction((current) => (current === action ? null : action));
-          }}
-        />
+        <div className={cx(s["party-dock"], playerActing && s["dock-hidden"])}>
+          <HandTools
+            battle={battle}
+            handAction={handAction}
+            isPlayerTurn={isPlayerTurn}
+            animating={animating}
+            onToggle={(action) => {
+              setSelectedUid(null);
+              setHandAction((current) => (current === action ? null : action));
+            }}
+          />
+          <ManaBar battle={battle} />
+          <AllyBar
+            allies={allies}
+            hits={hits}
+            attackerId={attackerId}
+            focusFallbackCard={selectedCard}
+            targetable={isPlayerTurn && !!needsAlly}
+            onSelect={onCombatantClick}
+          />
+        </div>
         <div className={s["hand-panel"]}>
         {/* data-hand-tray: HandCard 的版式/厚度规则要从托盘起手选自己(见 HandCard.module.css
             末尾那一段)。类名会被哈希、跨不过模块边界, 属性可以(样式铁律 2)。 */}

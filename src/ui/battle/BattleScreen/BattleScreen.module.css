@@ -29,7 +29,7 @@
                                       右上角(绝对定位, 见 ui/CardInfoPanel.css .card-info-panel),
                                       HUD 因此只剩两列, 腾出的整列宽度全部还给了手牌托盘。
      底部 HUD 现在是两列, 剩下的宽度全给中段的手牌托盘:
-       1920 - 2×16(pad) - 500 - 20(gap) = 1368  (托盘内再吃 2×10 padding ⇒ 可用 1348)
+      1920 - 2×16(pad) - 500 - 12(gap) = 1396  (托盘内再吃 2×10 padding ⇒ 比旧版多 28px 余量)
      ⚠ 左段不能随便放宽 —— 手牌卡宽 200(= 1:1 配图的边长)且最多要排下 10 张, 见 .hand-panel
         的版式算式。改动它就要回去重算叠压量。 */
   --canvas-pad: 16px;
@@ -40,7 +40,6 @@
      三台机器人」之间的折中 —— 再往上加就会开始啃掉敌人的脚。 */
   --hud-h: 264px;
   --hud-party-w: 500px;
-  --hud-deck-w: 104px;
   --hud-info-w: 320px;
   padding: var(--canvas-pad);
 }
@@ -400,8 +399,8 @@
 
    ⚠ 曾经的第三列「卡牌说明面板」已搬走 —— 它现在绝对定位在**画布右上角**(见
    ui/CardInfoPanel.css .card-info-panel), 不再属于这条 HUD。原因: 手牌上限实际是 10 张
-   (partyHandLimit(), 见 .hand-panel 的版式算式), 三列时中段只有 1028px, 7 张就撑爆了。
-   面板让位后中段拿到 1368px, 10 张排得下。
+  (partyHandLimit(), 见 .hand-panel 的版式算式), 旧三列时中段只有 1028px, 7 张就撑爆了。
+  面板让位后中段拿到 1396px, 10 张排得下。
 
    ⚠ 它在 .battle-scene **之外** ⇒ 整条不跟分镜相机推近/平移/漂移/震屏, 构图恒定。
    由此我方单位不在 .battle-stage 内, computeCamera 按 data-cmb-id 在舞台里查我方必然落空,
@@ -421,10 +420,32 @@
   height: var(--hud-h);
   display: grid;
   grid-template-rows: minmax(0, 1fr);
-  grid-template-columns: var(--hud-party-w) var(--hud-deck-w) minmax(0, 1fr);
+  grid-template-columns: var(--hud-party-w) minmax(0, 1fr);
   gap: 12px;
   /* 悬浮上弹的手牌与悬空外挂的状态徽章要能越出 HUD 上沿 */
   overflow: visible;
+}
+/* 左下角一体化操作区: 按钮 → 水晶 → 立绘, 自下而上堆叠。
+   AllyBar 自身 316px 已越出 HUD 上沿(264), 再叠按钮与水晶后总高约 450 ⇒ 整块继续向上越界,
+   靠 .battle-hud 既有的 overflow: visible 露出, z-index 仍是 HUD 的 2。 */
+.party-dock {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+.party-dock > * {
+  transition: opacity 0.16s, visibility 0.16s;
+}
+/* 我方立绘前冲上浮时整块让开。立绘本身正是要上浮演出的那个, 不能一起隐藏。 */
+.party-dock.dock-hidden > *:not(:last-child) {
+  opacity: 0;
+  visibility: hidden;
+}
+.party-dock > :last-child {
+  width: var(--hud-party-w);
 }
 /* 提示条: 队伍卡搬走后它是舞台里最后一个 flex 子项, 用 margin-top:auto 压到舞台底边 ——
    「选择目标」的提示离操作区最近。

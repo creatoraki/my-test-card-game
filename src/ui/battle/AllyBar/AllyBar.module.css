@@ -7,7 +7,6 @@
 .ally-bar {
   position: relative;
   display: flex;
-  align-self: end;
   height: 316px;
   min-height: 316px;
   gap: 10px;

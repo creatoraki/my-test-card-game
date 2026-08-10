@@ -1,0 +1,52 @@
+.toolGrid {
+  display: grid;
+  grid-template-columns: 40px;
+  grid-auto-rows: 56px;
+  justify-content: center;
+  gap: 10px;
+}
+
+.toolButton {
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  padding: 0;
+  border: 1px solid #71808766;
+  background: linear-gradient(145deg, #1a2428, #080d0f);
+  color: #b7c8c8;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+
+.toolButton:hover:not(:disabled),
+.toolButton.active {
+  border-color: var(--accent);
+  color: #eaffd0;
+  box-shadow: 0 0 10px #d8f32945, inset 0 0 10px #d8f32918;
+}
+
+.toolButton:disabled {
+  opacity: 0.35;
+}
+
+.toolButton svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.toolButton span {
+  position: absolute;
+  top: calc(100% + 3px);
+  color: #829196;
+  font-size: 8px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}

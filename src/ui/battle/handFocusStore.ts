@@ -8,8 +8,9 @@ import type { Card } from "@/engine";
 //   于是鼠标每跨过一张手牌就有两次(mouseleave + mouseenter)顶层 setState ⇒ 整个 793 行的
 //   BattleScreen 子树全量重渲染: 每个敌人 CombatantView、顶栏的一排法力水晶 SVG、时刻标尺、
 //   队伍卡、十张结构复杂的 HandCard、右侧详情面板……全部重跑一遍 render + diff。
-//   而这个值真正影响的只有**两处**: 右侧 CardInfoPanel 的内容, 与 AllyBar 里归属角色那一格
-//   的高亮。把它挪出组件树后, 悬停只会重渲染这两个订阅方, 其余一律不动。
+//   而这个值真正影响的只有**三处**: 右侧 CardInfoPanel 的内容, AllyBar 里归属角色那一格的
+//   高亮, 以及 ManaBar 中对应费用的水晶激发态。把它挪出组件树后, 悬停只会重渲染这三个
+//   订阅方, 其余一律不动。
 //
 // ⚠ 它是**纯 UI 瞬态**, 不是游戏状态 —— 不进 src/store/(那里的东西要可序列化/可存档),
 //   也绝不能进 BattleState。放在 ui/ 下, 与它服务的组件同级。

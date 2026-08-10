@@ -1,0 +1,11 @@
+.manaBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-height: 48px;
+}
+
+.crystal {
+  --mana-crystal-size: 48px;
+}
