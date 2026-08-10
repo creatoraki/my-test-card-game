@@ -1,6 +1,6 @@
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
-import { ManaCrystalIcon } from "@/ui/common/ManaCrystalIcon";
+import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cx } from "@/ui/common/cx";
 import s from "./CardView.module.css";
 
@@ -32,7 +32,7 @@ export function CardView({ card, playable, selected, onClick }: Props) {
     >
       <div className={s["card-head"]}>
         <span className={s["card-cost"]} title="消耗法力水晶">
-          <ManaCrystalIcon className={s["card-cost-crystal"]} />
+          <ManaCrystal className={s["card-cost-crystal"]} still />
           <span className={s["card-cost-value"]}>{card.cost}</span>
         </span>
         <span className={s["card-type"]}>{card.cardType === "fast" ? "速攻" : "普通"}</span>

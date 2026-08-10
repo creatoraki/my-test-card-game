@@ -1,0 +1,95 @@
+/*
+ * Arcane Diamond 法力水晶。所有几何都按 60px 基准通过 --_u 等比缩放。
+ * 两处描边宽度刻意保持字面 px，避免 26px 尺寸下的发丝线消失。
+ */
+.crystal {
+  /* 公开变量只在 var() 兜底中出现，调用方可在同一元素上安全覆盖。 */
+  --_size: var(--mana-crystal-size, 60px);
+  --_u: calc(var(--_size) / 60px);
+  --_primary: var(--crystal-primary, #00d2ff);
+  --_secondary: var(--crystal-secondary, #0077be);
+  --_glow: var(--crystal-glow, rgba(0, 210, 255, 0.6));
+  --_empty: var(--crystal-empty, #3a3a45);
+  --_core: var(--crystal-core, #ffffff);
+
+  width: var(--_size);
+  height: var(--_size);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 auto;
+  transition: all 0.3s ease;
+}
+
+.shape {
+  width: calc(40px * var(--_u));
+  height: calc(40px * var(--_u));
+  background: linear-gradient(135deg, var(--_secondary), var(--_primary));
+  transform: rotate(45deg);
+  border-radius: calc(4px * var(--_u));
+  position: relative;
+  box-sizing: border-box;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.shape::after {
+  content: "";
+  position: absolute;
+  inset: calc(5px * var(--_u));
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: calc(2px * var(--_u));
+}
+
+.crystal.is-empty .shape {
+  background: var(--_empty);
+  box-shadow: none;
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.crystal.is-normal .shape {
+  box-shadow:
+    0 0 calc(10px * var(--_u)) var(--_glow),
+    inset 0 0 calc(5px * var(--_u)) rgba(255, 255, 255, 0.2);
+  animation: breathe 3s infinite ease-in-out;
+}
+
+.crystal.is-active .shape {
+  background: linear-gradient(135deg, var(--_primary), var(--_core));
+  box-shadow:
+    0 0 calc(20px * var(--_u)) var(--_primary),
+    0 0 calc(40px * var(--_u)) var(--_glow);
+  transform: rotate(45deg) scale(1.1);
+}
+
+.crystal.is-active .shape::before {
+  content: "";
+  position: absolute;
+  inset: calc(-4px * var(--_u));
+  border: 2px solid var(--_core);
+  opacity: 0.8;
+  animation: spin-pulse 2s infinite linear;
+}
+
+.crystal.is-still.is-normal .shape {
+  animation: none;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.85; filter: brightness(0.8); }
+}
+
+@keyframes spin-pulse {
+  0% { transform: rotate(0deg) scale(1); opacity: 0.8; }
+  50% { transform: rotate(180deg) scale(1.2); opacity: 0.3; }
+  100% { transform: rotate(360deg) scale(1); opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crystal .shape,
+  .crystal.is-active .shape::before {
+    animation: none;
+  }
+}

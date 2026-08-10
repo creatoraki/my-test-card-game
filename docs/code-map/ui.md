@@ -117,7 +117,7 @@ src/ui/
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |
 | [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 展示生病与永久怪癖徽章及说明；不复用临时战斗 `StatusPips`。 |
 | [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 状态图标和层数展示。 |
-| [ManaCrystalIcon](../../src/ui/common/ManaCrystalIcon/ManaCrystalIcon.tsx) | 光资源 3D SVG 图标，`useId()` 隔离多个渐变实例；基础外观由自己挂，调用方只传尺寸类。 |
+| [ManaCrystal](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) | 法力水晶菱形（Arcane Diamond）；`empty`/`normal`/`active` 三态受控，`still` 关闭呼吸循环；尺寸与配色经 `--mana-crystal-size` / `--crystal-*` 变量下发。 |
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 羁绊词条线框图标，无样式文件。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |

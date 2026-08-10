@@ -1,5 +1,5 @@
 import type { Card } from "@/engine";
-import { ManaCrystalIcon } from "@/ui/common/ManaCrystalIcon";
+import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { CINEMA } from "@/ui/battle/animations";
 import { cx } from "@/ui/common/cx";
@@ -33,7 +33,7 @@ export function SkillCutInCard({ card }: { card: Card | null }) {
         <>
           <div className={s["cutin-head"]}>
             <span className={s["cutin-cost"]} title="消耗法力水晶">
-              <ManaCrystalIcon className={s["cutin-cost-crystal"]} />
+              <ManaCrystal className={s["cutin-cost-crystal"]} still />
               <span className={s["cutin-cost-value"]}>{card.cost}</span>
             </span>
             <span className={s["cutin-name"]}>{card.name}</span>

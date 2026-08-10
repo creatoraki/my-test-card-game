@@ -73,14 +73,10 @@
   justify-content: center;
   text-shadow: 0 1px 2px #02152f;
 }
-/* 水晶尺寸: 通过 className 下发给公共 ManaCrystalIcon(样式铁律 3)。
-   ⚠ 必须写成后代形式 —— 公共组件的基础 .mana-crystal 也定了 width/height,
-     同为 (0,1,0) 时靠文件注入顺序取胜, Modules 之后那个顺序不再有保证。
-   ⚠ viewBox 是 1:1 ⇒ 宽高必须成对给正方形。 */
-.card-cost .card-cost-crystal {
+/* 水晶尺寸通过 CSS 变量下发给公共 ManaCrystal。 */
+.card-cost-crystal {
   position: absolute;
-  width: 25px;
-  height: 25px;
+  --mana-crystal-size: 25px;
 }
 .card-cost-value {
   position: relative;

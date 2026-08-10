@@ -43,8 +43,7 @@
   justify-content: center;
 }
 .manaCrystal {
-  width: 26px;
-  height: 26px;
+  --mana-crystal-size: 26px;
 }
 .manaValue {
   margin-top: 1px;

@@ -62,12 +62,10 @@
   font-weight: 800;
   text-shadow: 0 1px 2px #02152f;
 }
-/* 水晶尺寸: 通过 className 下发给公共 ManaCrystalIcon(样式铁律 3)。
-   ⚠ viewBox 是 1:1 ⇒ 宽高必须成对给正方形。 */
-.skill-cutin .cutin-cost .cutin-cost-crystal {
+/* 水晶尺寸通过 CSS 变量下发给公共 ManaCrystal。 */
+.cutin-cost-crystal {
   position: absolute;
-  width: 28px;
-  height: 28px;
+  --mana-crystal-size: 28px;
 }
 .skill-cutin .cutin-cost-value {
   position: relative;

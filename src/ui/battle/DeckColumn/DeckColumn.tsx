@@ -1,7 +1,7 @@
 import type { BattleState, Card } from "@/engine";
 import { RULES, canPlay, partyHandLimit } from "@/engine";
 import { useHandHover } from "@/ui/battle/handFocusStore";
-import { ManaCrystalIcon } from "@/ui/common/ManaCrystalIcon";
+import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import s from "./DeckColumn.module.css";
 
 export type HandAction = "redraw" | "discard" | null;
@@ -44,7 +44,7 @@ export function DeckColumn({
       <div className={s.manaBlock}>
         <div className={s.manaRow} title="法力水晶（每回合的出牌资源）">
           {Array.from({ length: Math.max(maxMana, mana) }, (_, index) => (
-            <ManaCrystalIcon key={index} className={s.manaCrystal} off={index >= mana} />
+            <ManaCrystal key={index} className={s.manaCrystal} state={index >= mana ? "empty" : "normal"} />
           ))}
         </div>
         <div className={s.manaValue}>{String(mana).padStart(2, "0")}<i>/{String(maxMana).padStart(2, "0")}</i></div>

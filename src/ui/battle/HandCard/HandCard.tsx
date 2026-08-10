@@ -1,6 +1,6 @@
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
-import { ManaCrystalIcon } from "@/ui/common/ManaCrystalIcon";
+import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
 import { cx } from "@/ui/common/cx";
@@ -110,7 +110,7 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
 
         {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上 */}
         <span className={s["hc-cost"]} title="消耗法力水晶">
-          <ManaCrystalIcon className={s["hc-cost-crystal"]} />
+          <ManaCrystal className={s["hc-cost-crystal"]} still />
           <span className={s["hc-cost-value"]}>{card.cost}</span>
         </span>
 

@@ -502,16 +502,12 @@
   /* 全站无圆角 ⇒ 徽章也走斜切角(8px, 比卡的 14 小一号), 与整体倒角语言一致 */
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
-/* ⚠ 尺寸必须成对给**正方形** —— 水晶的 viewBox 是 1:1 的, 见 common/ManaCrystalIcon。
-   徽章 46 见方, 水晶 34 见方 ⇒ 四周各余 6px。
-   ⚠ 必须写成后代形式 —— 公共组件的基础 .mana-crystal 也定了 width/height/filter,
-     同为 (0,1,0) 时靠文件注入顺序取胜, Modules 之后那个顺序不再有保证。 */
-.hc-cost .hc-cost-crystal {
+/* 水晶尺寸通过 CSS 变量下发；徽章 46 见方, 水晶 34 见方 ⇒ 四周各余 6px。 */
+.hc-cost-crystal {
   position: absolute;
   left: 6px;
   top: 6px;
-  width: 34px;
-  height: 34px;
+  --mana-crystal-size: 34px;
   /* 比通用 .mana-crystal 更重的投影 + 辉光 —— 水晶是卡面上**唯一**允许发光的实体件。
      ★ 辉光色走全站令牌 --accent(src/styles/tokens.css 的荧光黄绿), 与整站归队。
        卡面已全面中性化 ⇒ 这一点黄绿是整张卡上唯一的高饱和色, 视线自然被拉到费用上 ——
