@@ -1,6 +1,5 @@
 // 敌人立绘素材集中登记处(与 cardArt.ts 同思路: 静态 import + 登记表)。
 // 新增敌人立绘时只需在此登记一次, 按 EnemyDef.id 作键。
-import birdIdleStrip from "@/assets/敌人立绘/怪异的鸟/idle-strip.png";
 import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle-cut.png";
 import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle-cut.png";
 import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle-cut.png";
@@ -45,21 +44,7 @@ export function enemyIdle(def: EnemySpriteDef | undefined): typeof DEFAULT_IDLE 
   return { ...DEFAULT_IDLE, ...(def?.idle ?? {}) };
 }
 
-// 怪异的鸟: idle-strip.png 3060×212 = 12 帧 × 255×212。第 8、9 帧姿势不佳, 跳过后实播
-// 1-7 + 10-12 共 10 帧, 一圈 10×120 = 1200ms。
-// 渲染 180×150 —— 高度撑满 .combatant-figure(150px), 宽度按比例得 180, 比 .combatant 的
-// 156px 宽出一截会向两侧溢出; 布局本就不裁切(留给特效溢出), 视觉上属预期内。
 const ENEMY_ART: Record<string, EnemySpriteDef> = {
-  "weird-bird": {
-    src: birdIdleStrip,
-    frames: 12,
-    frameMs: 120,
-    width: 180,
-    height: 150,
-    skipFrames: [8, 9],
-    // 已经在振翅了, 呼吸幅度设 0 只留一点侧摆 —— 两套动作同频叠加会显得抽搐。
-    idle: { bob: 0, sway: 3, tilt: 0.8, dur: 3600 },
-  },
   // 废品机器人: 静态单帧立绘(idle-cut.png 604×552, 由 scripts/chroma-cut.mjs 抠自 idle.png)。
   // frames: 1 是刻意的而非漏填 —— 拼条机制在单帧下自然退化成一张不动的背景图, 无需特判;
   // 此时 frameMs 只决定那条空转动画的时长, 不影响观感。

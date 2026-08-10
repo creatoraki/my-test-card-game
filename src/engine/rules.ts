@@ -65,7 +65,7 @@ export const RULES = {
   // 角色养成 —— ★ 无等级、无属性点。角色面板固定, 经验只用于锻造个人卡组。
   progression: {
     partySize: 3, // 上阵人数上限
-    expPerEnemy: 10, // 遭遇战经验 = 敌人数 × 该值
+    expPerEnemy: 10, // 敌人 exp 的参考基准值, 实际结算读取 EnemyDef.exp
     awakenCost: 150, // 冬眠仓解封一名休眠队员消耗的居民积分
   },
 

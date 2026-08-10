@@ -39,9 +39,6 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
 }
 
 export const ENCOUNTERS: EncounterDef[] = [
-  { id: "e1", name: "林间怪响", enemies: ["weird-bird", "weird-bird"] },
-  { id: "e2", name: "惊起的鸟群", enemies: ["weird-bird", "weird-bird", "weird-bird"] },
-  { id: "e3", name: "巢穴深处", enemies: ["weird-bird", "weird-bird", "weird-bird", "weird-bird"] },
   // 霓虹城市: 三台机器人散开在街上, 左右两台站得稍远, 中间的废品机器人压向镜头。
   // 电线杆立绘细高, 给更大的 scale 撑出"高"的体型; 收音机体型接近废品, scale 取中。
   //

@@ -6,7 +6,7 @@
 import { create } from "zustand";
 import type { AllyInit, Ally, Card, Enemy } from "../engine";
 import { RULES, applyModifier, getStatusDef } from "../engine";
-import { BOND_DEFS, activeBonds, getCharacter, getMap, mergeMods, nextTier } from "../data";
+import { BOND_DEFS, activeBonds, getCharacter, getEnemyDef, getMap, mergeMods, nextTier } from "../data";
 import {
   battleModifier,
   burdenNow,
@@ -326,10 +326,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const lastDropK = dropCoefficient(session);
     const lastDropTier = energyTier(session.energy);
     const lastSlotBonus = session.pendingMatchBonus + session.pendingDropBonus;
-    // ★ 从战斗单位而非遭遇战定义里取敌人 defId —— 能量档位追加进来的敌人也该掉东西,
-    //   而 EncounterDef.enemies 里没有它们。数量仍是 .length, 与旧口径一致。
+    // ★ 从战斗单位而非遭遇战定义里取敌人 defId —— 能量档位追加进来的敌人也要计入经验与掉落,
+    //   而 EncounterDef.enemies 里没有它们。
     const enemyDefIds = battle.enemyIds.map((id) => (battle.combatants[id] as Enemy).enemyDefId);
-    const enemyCount = enemyDefIds.length;
 
     // 战斗单位的最终血量回填给探索层 —— 下一场以此开局
     const survivors = battle.playerIds.map((id) => {
@@ -374,7 +373,8 @@ export const useRunStore = create<RunStore>((set, get) => ({
     // 经验按能量档位倍率即时入账(与积分不同 —— 积分要活着回城才落袋, 经验打完就是你的)
     const town = useTownStore.getState();
     const mult = rewardMultiplier(session.energy);
-    const exp = Math.round(enemyCount * RULES.progression.expPerEnemy * mult);
+    const baseExp = enemyDefIds.reduce((sum, id) => sum + getEnemyDef(id).exp, 0);
+    const exp = Math.round(baseExp * mult);
     const expReport = town.grantExp(
       session.party.filter((p) => p.alive).map((p) => p.charId),
       exp,

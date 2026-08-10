@@ -32,7 +32,7 @@ function deckOf(cardId: string, n: number) {
 
 function battleWith(deckCardId: string, n = 12): BattleState {
   const setup: BattleSetup = { allies: allies(), deck: deckOf(deckCardId, n) };
-  return createBattle("e1", setup, 42);
+  return createBattle("n-crew", setup, 42);
 }
 
 describe("战斗初始化", () => {
