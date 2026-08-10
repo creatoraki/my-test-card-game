@@ -36,12 +36,18 @@
         的版式算式。改动它就要回去重算叠压量。 */
   --canvas-pad: 16px;
   --stage-gap: 10px;
-  --topbar-h: 68px;
+  --topbar-h: 56px;
+  --arch-h: 104px;
+  --arch-w: 640px;
+  --rail-w: 120px;
+  --rail-gap: 12px;
+  --rail-top: 108px;
   /* ⚠ --hud-h 直接决定场景的可见下沿(= 1080 - pad - hud-h = 804), 而 data/encounters.ts 里
      调好的敌人站位是贴着背景地面线的。264 是「参考图那条厚 HUD」与「霓虹城市的地面线仍留得住
      三台机器人」之间的折中 —— 再往上加就会开始啃掉敌人的脚。 */
   --hud-h: 264px;
   --hud-party-w: 500px;
+  --hud-deck-w: 104px;
   --hud-info-w: 320px;
   padding: var(--canvas-pad);
 }
@@ -378,9 +384,9 @@
 .battle-stage {
   position: absolute;
   top: var(--canvas-pad);
-  right: var(--canvas-pad);
+  right: calc(var(--canvas-pad) + var(--rail-w) + var(--rail-gap));
   bottom: calc(var(--canvas-pad) + var(--hud-h) + var(--stage-gap));
-  left: var(--canvas-pad);
+  left: calc(var(--canvas-pad) + var(--rail-w) + var(--rail-gap));
   /* 世界内的层序: 背景 0 → 远景粒子 1 → 灯光闪烁 2 → 舞台 3 → 近景粒子 4。
      舞台被两层粒子夹住, 这就是纵深的全部来源(见 ui/AmbienceLayer.tsx)。 */
   z-index: 3;
@@ -576,8 +582,8 @@
   height: var(--hud-h);
   display: grid;
   grid-template-rows: minmax(0, 1fr);
-  grid-template-columns: var(--hud-party-w) minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: var(--hud-party-w) var(--hud-deck-w) minmax(0, 1fr);
+  gap: 12px;
   /* 悬浮上弹的手牌与悬空外挂的状态徽章要能越出 HUD 上沿 */
   overflow: visible;
 }
@@ -649,7 +655,7 @@
   --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
   /* 相邻卡的叠压量(负 margin, 见 .hand-tray .hand-slot + .hand-slot)。
      这是 ≤8 张时的首选值, 9/10 张由下方两条 :has() 规则收紧, 算式见本段开头的版式。 */
-  --hand-overlap: 60px;
+  --hand-overlap: 78px;
   --hand-plate-h: 82px; /* 托盘衬板高度, 角标都对齐它 */
   /* 悬停时左右邻卡各自横向让开的量(见 .hand-tray .hand-slot:hover 附近的两条让位规则)。
      ⓘ 从 22 提到 26: 悬停的卡现在会 rotateX 翘起(见 ui/HandCard.css 的聚焦段), 翘起后它的
@@ -746,10 +752,10 @@
    ⓘ 出鞘中的卡(.leaving)还在 DOM 里, 出牌瞬间张数可能短暂多算一张 ⇒ 至多让整排多收紧
      300ms 再弹回, 不会溢出, 可以接受。 */
 .hand-tray:has([data-hand-slot]:nth-last-child(9)) {
-  --hand-overlap: 80px;
+  --hand-overlap: 95px;
 }
 .hand-tray:has([data-hand-slot]:nth-last-child(10)) {
-  --hand-overlap: 95px;
+  --hand-overlap: 110px;
 }
 /* 托盘衬板: 手牌脚下的一块斜切角基座 —— **与卡面同料的蚀刻黑钢**。
    独立一层压在卡之下(卡带 z-index:1), 悬浮上弹的卡不受影响。

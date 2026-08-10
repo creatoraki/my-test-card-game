@@ -1,8 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   canPlay,
-  partyHandLimit,
-  RULES,
   type AnimFrame,
   type BattleState,
   type Card,
@@ -14,12 +12,15 @@ import { useBattleStore } from "@/store/battleStore";
 import { useRunStore } from "@/store/runStore";
 import { CombatantView, isIntentRevealed } from "@/ui/battle/CombatantView";
 import { AllyBar } from "@/ui/battle/AllyBar";
-import { TickRuler } from "@/ui/battle/TickRuler";
 import { HandCard } from "@/ui/battle/HandCard";
 import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
+import { BattleHeader } from "@/ui/battle/BattleHeader";
+import { BondRail } from "@/ui/battle/BondRail";
+import { ChallengeRail } from "@/ui/battle/ChallengeRail";
+import { DeckColumn, type HandAction, type Pile } from "@/ui/battle/DeckColumn";
+import { PileDrawer } from "@/ui/battle/PileDrawer";
 import { SkillCutInCard } from "@/ui/battle/SkillCutInCard";
 import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "@/ui/battle/animations";
-import { ManaCrystalIcon } from "@/ui/common/ManaCrystalIcon";
 import { warmEnemyArt } from "@/ui/art/enemyArt";
 import { warmVfxSprites } from "@/ui/art/vfxSprites";
 import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
@@ -213,6 +214,7 @@ const sameCamera = (a: Camera | null, b: Camera | null) =>
 
 export function BattleScreen() {
   const battle = useBattleStore((s) => s.battle);
+  const battleMeta = useBattleStore((s) => s.meta);
   const play = useBattleStore((s) => s.play);
   const redrawCard = useBattleStore((s) => s.redrawCard);
   const discardCard = useBattleStore((s) => s.discardCard);
@@ -229,7 +231,8 @@ export function BattleScreen() {
   //   就把整个战斗界面重渲染一遍: 每个敌人、一排法力水晶 SVG、时刻标尺、队伍卡、十张手牌、
   //   右侧详情面板。而它真正影响的只有 CardInfoPanel 的内容与 AllyBar 里的一格高亮 ——
   //   现在由那两个组件各自订阅, 本组件对悬停完全无感。⚠ 别再把它搬回来。
-  const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
+  const [handAction, setHandAction] = useState<HandAction>(null);
+  const [openPile, setOpenPile] = useState<Pile | null>(null);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 ui/HandCard.css .hand-card 的 hand-deal-in)。
   const [renderHand, setRenderHand] = useState<{ card: Card; leaving: boolean }[]>([]);
@@ -278,6 +281,7 @@ export function BattleScreen() {
     setSelectedUid(null);
     resetHandHover();
     setHandAction(null);
+    setOpenPile(null);
     clearTimers();
     seqRef.current++;
     animatingRef.current = false;
@@ -380,7 +384,6 @@ export function BattleScreen() {
   const selectedCard = selectedUid ? battle.cards[selectedUid] : null;
   const needsFoe = selectedCard?.targeting === "foe";
   const needsAlly = selectedCard?.targeting === "ally";
-  const mana = battle.resources[RULES.resource.name] ?? 0;
 
   // 本次出牌"接收特效"的目标单位(攻击→敌人受击; 辅助→友军柔光)
   function fxTargets(uid: string, primaryId?: string): string[] {
@@ -662,11 +665,6 @@ export function BattleScreen() {
   // 手工站位按槽位下标取 —— createBattle 按 enc.enemies 顺序 push enemyIds, 故两者下标一一对应。
   // 站位是纯表现, 不进 BattleState(引擎无副作用且状态要可序列化), 故在此回查遭遇战定义。
   const placements = getEncounter(battle.encounterId).enemies.map(slotPlacement);
-  const hand = battle.hand.map((uid) => battle.cards[uid]);
-
-  const canUseHandActions = isPlayerTurn && !animating && hand.length > 0;
-  const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
-
   // ★ 「当前关注的手牌」= 悬停 ?? 选中 —— 但这个合并**不在这里做**, 而是由 AllyBar 与
   //   CardInfoPanel 各自完成: 悬停那半它们自己从 ui/handFocusStore.ts 订阅, 选中这半由
   //   下面以 props 传下去。理由是性能(见文件上方 selectedUid 处的注释), 语义完全不变 ——
@@ -824,98 +822,17 @@ export function BattleScreen() {
           顿帧期间压暗/反白闪照常播(世界冻结、刀光继续走)。 */}
       {dimHit && <div key={dimHit.seq} className={s["battle-dim"]} aria-hidden />}
 
-      {/* ★ 顶端信息条: 法力水晶 | 换牌/丢弃 | 手牌读数 | 时刻标尺 | 结束回合。
-          同样在 .battle-scene **之外** ⇒ 不跟分镜相机推近/漂移/震屏, 信息恒定可读。
-          ⚠ 它**贴着画布上沿**(top/left/right 全为 0, 不吃 --canvas-pad), 与顶边零缝隙 ——
-            见 BattleScreen.css .battle-topbar。 */}
-      <div
-        className={s["battle-topbar"]}
-        role="toolbar"
-        aria-label="战斗信息条"
-        onClick={(e) => e.stopPropagation()}
-      >
-          <ManaCrystalBar mana={mana} max={RULES.resource.perRound} />
-          <div className={s["hand-toolbar-actions"]}>
-            <button
-              className={cx(s["hand-tool-button"], handAction === "redraw" && s.active)}
-              type="button"
-              aria-label="换牌"
-              title={battle.redrawsThisRound >= 1 ? "本回合已换牌" : "换牌：选择一张手牌替换"}
-              disabled={!redrawAvailable}
-              onClick={() => {
-                setSelectedUid(null);
-                setHandAction((current) => (current === "redraw" ? null : "redraw"));
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <defs>
-                  <linearGradient id="tool-metal-redraw" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" stopColor="#e6f4c8" />
-                    <stop offset="0.5" stopColor="#9cbc4e" />
-                    <stop offset="1" stopColor="#3f5320" />
-                  </linearGradient>
-                </defs>
-                <path stroke="url(#tool-metal-redraw)" d="M20 11a8 8 0 0 0-14.8-4.2L3 9m0-5v5h5" />
-                <path stroke="url(#tool-metal-redraw)" d="M4 13a8 8 0 0 0 14.8 4.2L21 15m0 5v-5h-5" />
-              </svg>
-            </button>
-            <button
-              className={cx(s["hand-tool-button"], handAction === "discard" && s.active)}
-              type="button"
-              aria-label="丢弃"
-              title="丢弃：选择一张手牌置入弃牌堆"
-              disabled={!canUseHandActions}
-              onClick={() => {
-                setSelectedUid(null);
-                setHandAction((current) => (current === "discard" ? null : "discard"));
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <defs>
-                  <linearGradient id="tool-metal-discard" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" stopColor="#e6f4c8" />
-                    <stop offset="0.5" stopColor="#9cbc4e" />
-                    <stop offset="1" stopColor="#3f5320" />
-                  </linearGradient>
-                </defs>
-                <path stroke="url(#tool-metal-discard)" d="M4 7h16" />
-                <path stroke="url(#tool-metal-discard)" d="M9 7V4h6v3" />
-                <path stroke="url(#tool-metal-discard)" d="M7 7l1 13h8l1-13" />
-                <path stroke="url(#tool-metal-discard)" d="M10 11v5M14 11v5" />
-              </svg>
-            </button>
-          </div>
-
-          {/* 手牌张数读数。原先挂在手牌托盘上沿, 但手牌放大后卡会越出 HUD 上沿把它盖住,
-              故并入顶端信息条 —— 这里本就是「法力 / 换牌丢弃 / 时刻」的全局读数区。 */}
-          <div className={s["hand-count-readout"]} aria-hidden="true">
-            <span className={s["hph-tag"]}>HAND</span>
-            <span className={s["hph-rule"]} />
-            <span className={s["hph-count"]}>
-              {String(battle.hand.length).padStart(2, "0")}
-              <i>/{String(partyHandLimit(battle)).padStart(2, "0")}</i>
-            </span>
-          </div>
-
-          {/* 时刻标尺: 本作核心是时刻制, 这是界面里唯一的全局时刻显示。
-              它自带 margin-left:auto ⇒ 从这里开始的东西一律靠右, 结束回合按钮因此落在最右端。 */}
-          <TickRuler tick={battle.tick} round={battle.round} enemies={enemies} />
-
-          {/* 结束回合: 信息条最右端的一枚横版机能键(旧的竖排外挂条已废弃, 见 .end-turn-btn)。
-              放进信息条是为了让「回合级操作」与回合级读数(法力/时刻/手牌)同处一条, 不再有
-              一个飘在画布右下的孤立控件。 */}
-          <button
-            className={s["end-turn-btn"]}
-            type="button"
-            disabled={!isPlayerTurn || animating}
-            onClick={(e) => {
-              e.stopPropagation();
-              triggerEndTurn();
-            }}
-          >
-            结束回合
-          </button>
-      </div>
+      <BattleHeader
+        round={battle.round}
+        maxRound={12}
+        tick={battle.tick}
+        enemies={enemies}
+        encounterName={getEncounter(battle.encounterId).name}
+        canEndTurn={isPlayerTurn && !animating}
+        onEndTurn={triggerEndTurn}
+      />
+      {battleMeta && <ChallengeRail challenges={battleMeta.challenges} />}
+      {battleMeta && <BondRail bonds={battleMeta.bonds} />}
 
       {/* ★ 底部一体化 HUD: 队伍卡 | 手牌托盘(两列; 卡牌说明面板已搬到画布右上角, 见下方)。
           刻意在 .battle-scene **之外** ⇒ 整条不跟分镜相机推近/漂移/震屏, 构图恒定。
@@ -932,12 +849,18 @@ export function BattleScreen() {
           onSelect={onCombatantClick}
         />
 
-        {/* 手牌托盘。导轨/衬板都是纯装饰, 几何全部由 BattleScreen.css 的 --hand-* 旋钮收敛,
-            这里不写任何尺寸。
-            ⚠ 卡刻意比托盘高(越出 HUD 上沿), 故这一列里不能再放别的东西 —— 原先压在托盘上沿的
-              HAND 张数读数已搬到顶端信息条, 见上方 .battle-topbar。
-            ⚠ 本列现在一直铺到画布右缘(卡牌说明面板搬走后腾出来的), 手牌最多 10 张也排得下 ——
-              叠压量按张数自适应, 见 BattleScreen.css 的 .hand-tray:has(...) 两条。 */}
+        <DeckColumn
+          battle={battle}
+          selectedCard={selectedCard}
+          handAction={handAction}
+          isPlayerTurn={isPlayerTurn}
+          animating={animating}
+          onToggleHandAction={(action) => {
+            setSelectedUid(null);
+            setHandAction((current) => (current === action ? null : action));
+          }}
+          onOpenPile={setOpenPile}
+        />
         <div className={s["hand-panel"]}>
         {/* data-hand-tray: HandCard 的版式/厚度规则要从托盘起手选自己(见 HandCard.module.css
             末尾那一段)。类名会被哈希、跨不过模块边界, 属性可以(样式铁律 2)。 */}
@@ -966,6 +889,8 @@ export function BattleScreen() {
         </div>
       </div>
 
+      <PileDrawer battle={battle} pile={openPile} onClose={() => setOpenPile(null)} />
+
       {/* ★ 卡牌说明固定面板: 画布**右上角**, 位置恒定。展示「悬停 ?? 选中」那张卡 ——
           悬停那半它自己订阅 ui/handFocusStore.ts, 这里只把选中的传下去(理由同 AllyBar)。
           刻意在 .battle-hud **之外**(它曾是 HUD 的第三列) —— 手牌上限实为 10 张, 面板让出那一列
@@ -989,17 +914,6 @@ export function BattleScreen() {
       {/* 出牌亮相卡面: 挂在舞台层之外, 不受相机缩放/裁切影响 */}
       <SkillCutInCard card={cutInCard} />
       </div>
-    </div>
-  );
-}
-
-function ManaCrystalBar({ mana, max }: { mana: number; max: number }) {
-  const total = Math.max(max, mana);
-  return (
-    <div className={s["mana-bar"]} title="法力水晶（每回合的出牌资源）">
-      {Array.from({ length: total }).map((_, i) => (
-        <ManaCrystalIcon key={i} off={i >= mana} />
-      ))}
     </div>
   );
 }

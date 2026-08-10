@@ -11,6 +11,7 @@ import type {
   EncounterModifier,
   PlayRecorder,
 } from "../engine";
+import type { BondDef, BondTier } from "../data";
 import { createBattle, discardHandCard, endRound, playCard, redrawHandCard } from "../engine";
 
 // 一次出牌的动画计划: 先展示出牌结果(cardSnapshot), 再逐帧播放触发的敌人行动, 最后落到 final。
@@ -26,12 +27,40 @@ export interface EndPlan {
   final: BattleState;
 }
 
+export interface BattleChallenge {
+  id: string;
+  title: string;
+  icon: string;
+  desc: string;
+  degraded?: boolean;
+  dropBonus?: number;
+}
+
+export interface BattleBondView {
+  def: BondDef;
+  count: number;
+  tier: BondTier | null;
+  next: BondTier | null;
+}
+
+export interface BattleMeta {
+  challenges: BattleChallenge[];
+  bonds: BattleBondView[];
+}
+
 interface BattleStore {
   battle: BattleState | null;
+  meta: BattleMeta | null;
   // 建局计数。UI 用它作为「这是第几场战斗」的身份标识来重置分镜/手牌渲染状态 ——
   // battle 对象每次 commit 都会换新, 不能当身份用; encounterId 又可能在一趟远征里重复。
   seq: number;
-  init: (encounterId: string, setup: BattleSetup, seed?: number, mod?: EncounterModifier) => void;
+  init: (
+    encounterId: string,
+    setup: BattleSetup,
+    seed?: number,
+    mod?: EncounterModifier,
+    meta?: BattleMeta,
+  ) => void;
   play: (uid: string, targetId?: string) => PlayPlan | null;
   redrawCard: (uid: string) => BattleState | null;
   discardCard: (uid: string) => BattleState | null;
@@ -42,10 +71,11 @@ interface BattleStore {
 
 export const useBattleStore = create<BattleStore>((set, get) => ({
   battle: null,
+  meta: null,
   seq: 0,
 
-  init: (encounterId, setup, seed, mod) => {
-    set({ battle: createBattle(encounterId, setup, seed, mod), seq: get().seq + 1 });
+  init: (encounterId, setup, seed, mod, meta) => {
+    set({ battle: createBattle(encounterId, setup, seed, mod), meta: meta ?? null, seq: get().seq + 1 });
   },
 
   play: (uid, targetId) => {
@@ -84,5 +114,5 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   // 逐帧提交: 每个快照都是独立对象, 直接 set 即可(仍是克隆式不可变更新)。
   commit: (snapshot) => set({ battle: snapshot }),
 
-  clear: () => set({ battle: null }),
+  clear: () => set({ battle: null, meta: null }),
 }));

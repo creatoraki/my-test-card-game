@@ -1,1 +1,1 @@
-export * from "./TickRuler";
+export { default as TickRuler } from "./TickRuler";

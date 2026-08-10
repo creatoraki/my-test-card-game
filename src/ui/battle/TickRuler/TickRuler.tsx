@@ -14,14 +14,13 @@ const SHOW_ENEMY_MARKS = false;
 
 interface Props {
   tick: number; // 当前时刻
-  round: number; // 当前回合
   enemies: Enemy[]; // 仅在 SHOW_ENEMY_MARKS 打开时使用
 }
 
 // 手牌面板顶栏右侧的「时刻标尺」: 横向排开当前时刻起的若干刻, 高亮当前刻。
 // 本作的核心是时刻制, 但改造前界面里根本没有全局时刻显示(只有每个敌人头顶的倒计时),
 // 这条尺就是那个缺口。纯展示组件, 不读 store。
-export function TickRuler({ tick, round, enemies }: Props) {
+function TickRuler({ tick, enemies }: Props) {
   const ticks = Array.from({ length: SPAN }, (_, i) => tick + i);
 
   // 每个刻上有几个敌人会行动(开关关闭时恒为空表, 不产生任何渲染)
@@ -35,9 +34,6 @@ export function TickRuler({ tick, round, enemies }: Props) {
 
   return (
     <div className={s["tick-ruler"]} title="时刻轴：普通牌推进 1 时刻，速攻牌不推进">
-      <span className={s["tick-ruler-label"]}>
-        回合 <b>{round}</b>
-      </span>
       <div className={s["tick-ruler-track"]}>
         {ticks.map((t) => (
           <span key={t} className={cx(s["tick-cell"], t === tick && s.now)}>
@@ -56,3 +52,5 @@ export function TickRuler({ tick, round, enemies }: Props) {
     </div>
   );
 }
+
+export default TickRuler;

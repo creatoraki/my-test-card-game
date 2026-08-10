@@ -27,7 +27,7 @@ const RARITY_LABEL: Record<Rarity, string> = {
 // ★ 悬停之所以走 store 而不是 props: 它以前是 BattleScreen 的顶层 state, 鼠标扫过手牌
 //   会把整个战斗界面重渲染一遍(完整理由见 ui/handFocusStore.ts 开头)。现在悬停变化只重渲染
 //   本组件与 AllyBar 的一格。选中变化频率低, 继续走 props 即可。
-// 无卡时渲染科幻待机占位而不是收起面板, 版面因此永远稳定。
+// 无卡时不渲染占位面板, 让战斗画面把注意力还给场景。
 // 内容复用 .drawer-* 类(与 .card-drawer 共用), 样式覆盖 scoped 在 .card-info-panel 下。
 //
 // ★ 面板宽高比恒为 1:2(320×640, 见 CardInfoPanel.css .card-info-panel), 结构因此是「上半一张与
@@ -43,15 +43,7 @@ export function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
   const card = hovered ?? fallbackCard;
 
   if (!card) {
-    return (
-      <div className={cx(s["card-info-panel"], s.empty)} aria-hidden onClick={(e) => e.stopPropagation()}>
-        <div className={s["drawer-title"]}>战术数据 / 卡牌详情</div>
-        <div className={s["cip-standby"]}>
-          <span className={s["cip-standby-code"]}>STANDBY</span>
-          <span className={s["cip-standby-hint"]}>悬停手牌查看战术数据</span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const owner = getCharacter(card.ownerCharId);

@@ -132,8 +132,8 @@
    ⚠ 左缘 x=1584, 顶边 y=108: 敌人立绘最右缘 ≈1330 不撞。改 --hud-info-w 前先回头核这个数。 */
 .card-info-panel {
   position: absolute;
-  top: calc(var(--topbar-h) + 40px);
-  right: var(--canvas-pad);
+  top: var(--rail-top);
+  right: calc(var(--canvas-pad) + var(--rail-w) + var(--rail-gap));
   z-index: 3;
   width: var(--hud-info-w);
   aspect-ratio: 1 / 2;
@@ -236,47 +236,5 @@
   border-radius: 0;
   border-color: #ffffff14;
   background: #05080a99;
-}
-/* 待机态: 无悬停/选中卡牌时的科幻占位, 保持版面稳定 */
-.card-info-panel.empty {
-  border-color: #6fd2ff24;
-}
-.card-info-panel.empty::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(180deg, transparent 0 3px, #6fd2ff0a 3px 4px);
-}
-.cip-standby {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  opacity: 0.6;
-}
-.cip-standby-code {
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: 7px;
-  text-indent: 7px; /* 抵消 letter-spacing 造成的视觉右偏 */
-  color: #6fd2ff;
-  animation: cipBlink 2.4s ease-in-out infinite;
-}
-.cip-standby-hint {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: var(--muted);
-}
-@keyframes cipBlink {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 1;
-  }
 }
 

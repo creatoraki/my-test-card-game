@@ -1,0 +1,30 @@
+.popover {
+  position: absolute;
+  top: -1px;
+  z-index: 4;
+  width: 260px;
+  padding: 12px 14px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  background: linear-gradient(145deg, #121b1fe8, #070c0feb);
+  border: 1px solid #6fd2ff66;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  box-shadow: 0 10px 30px #000b;
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+}
+.left {
+  right: calc(100% + 12px);
+  transform: translateX(8px);
+}
+.right {
+  left: calc(100% + 12px);
+  transform: translateX(-8px);
+}
+:global([data-rail-item]:hover) .popover,
+:global([data-rail-item]:focus-within) .popover {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}

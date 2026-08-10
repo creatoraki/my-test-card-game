@@ -5,12 +5,12 @@
 
 import { create } from "zustand";
 import type { AllyInit, Ally, Card, Enemy } from "../engine";
-import { RULES, applyModifier } from "../engine";
-import { activeBonds, getCharacter, getMap, mergeMods } from "../data";
-import { battleModifier, burdenNow, rewardMultiplier } from "../explore/session";
+import { RULES, applyModifier, getStatusDef } from "../engine";
+import { BOND_DEFS, activeBonds, getCharacter, getMap, mergeMods, nextTier } from "../data";
+import { battleModifier, burdenNow, chosenSlotSymbol, energyTier, rewardMultiplier } from "../explore/session";
 import type { PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
-import { useBattleStore } from "./battleStore";
+import { useBattleStore, type BattleChallenge, type BattleMeta } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
 import {
   bondCountsOf,
@@ -119,6 +119,56 @@ function alivePartyIds(): string[] {
   );
 }
 
+function slotChallenge(symbol: { id: string; title: string; icon: string; desc: string; degraded?: boolean; dropBonus?: number }): BattleChallenge {
+  return {
+    id: symbol.id,
+    title: symbol.title,
+    icon: symbol.icon,
+    desc: symbol.desc,
+    degraded: symbol.degraded,
+    dropBonus: symbol.dropBonus,
+  };
+}
+
+function energyChallenge(energy: number): BattleChallenge {
+  const tier = energyTier(energy);
+  const effects: string[] = [];
+  if (tier.castTickDelta < 0) effects.push(`敌人行动提前 ${-tier.castTickDelta} 时刻`);
+  if (tier.castTickDelta > 0) effects.push(`敌人行动延后 ${tier.castTickDelta} 时刻`);
+  if (tier.extraEnemies > 0) effects.push(`追加 ${tier.extraEnemies} 名敌人`);
+  for (const status of tier.enemyStatuses) {
+    const name = getStatusDef(status.id)?.name ?? status.id;
+    effects.push(`敌人获得${name}×${status.stacks}`);
+  }
+  return {
+    id: `energy-${tier.tier}`,
+    title: `净化能量 Lv.${tier.tier}`,
+    icon: "◈",
+    desc: effects.length ? effects.join(" · ") : "敌方条件不变",
+  };
+}
+
+function battleMeta(session: NonNullable<ReturnType<typeof useExploreStore.getState>["session"]>, characters: Record<string, any>, party: string[]): BattleMeta {
+  const chosen = chosenSlotSymbol(session);
+  const challenges: BattleChallenge[] = [];
+  if (chosen) challenges.push(slotChallenge(chosen));
+  if (chosen?.kind === "prep" && session.slot?.resolvedBattleSymbolId) {
+    const fallback = session.slot.symbols.find((symbol) => symbol.id === session.slot?.resolvedBattleSymbolId);
+    if (fallback) challenges.push(slotChallenge(fallback));
+  }
+  challenges.push(energyChallenge(session.energy));
+
+  const counts = bondCountsOf(characters, party);
+  const active = new Map(activeBonds(counts).map((entry) => [entry.def.id, entry.tier]));
+  return {
+    challenges,
+    bonds: Object.values(BOND_DEFS).map((def) => {
+      const count = counts[def.id] ?? 0;
+      return { def, count, tier: active.get(def.id) ?? null, next: nextTier(def, count) };
+    }),
+  };
+}
+
 // 建一场战斗。
 // - 战斗卡组 = 上阵角色个人卡组的集合。createBattle 直接引用传入的卡实例(不拷贝), 而个人卡组是
 //   城镇的持久资产, 故必须传副本, 否则战斗中的改动会污染城镇卡组。
@@ -169,11 +219,12 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   // ★ 能量档位的改造 + 本轮战斗签选中符号的改造, 由 battleModifier 一并合出来 ——
   //   这里只调它一个, 分两处各算一半必然漏掉其中一半。
   const mod = battleModifier(session, getMap(session.mapId).fillerEnemyIds);
+  const meta = battleMeta(session, characters, party);
   // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个百分点数。
   const burden = burdenNow(session);
   useBattleStore
     .getState()
-    .init(encounterId, { allies, deck: battleDeck, burdenPenalty: burden }, undefined, mod);
+    .init(encounterId, { allies, deck: battleDeck, burdenPenalty: burden }, undefined, mod, meta);
 }
 
 // 远征收尾的落袋 —— 积分 + 实物一起进城镇, 只有这一个出口。
