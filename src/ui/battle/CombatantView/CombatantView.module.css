@@ -27,6 +27,44 @@
   margin-bottom: calc(150px * (1 - var(--place-scale, 1)));
   transform-origin: 50% 100%;
 }
+.combatant[data-telegraph] .combatant-stage {
+  animation: foeWindup 780ms ease-in-out infinite;
+}
+@keyframes foeWindup {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px #ff4d5f88) drop-shadow(0 0 1px #ff4d5f);
+  }
+  50% {
+    filter: drop-shadow(0 0 11px #ff334fdd) drop-shadow(0 0 4px #ff7b7b);
+  }
+}
+/* 蓄力时的脚下警示环与落地阴影分开占伪元素, 不改变单位布局。 */
+.combatant[data-telegraph] .combatant-stage::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  z-index: -1;
+  width: 112px;
+  height: 22px;
+  translate: -50% 0;
+  border: 2px solid #ff5368c7;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ff334f99, inset 0 0 6px #ff334f66;
+  animation: telegraphRing 780ms ease-out infinite;
+}
+@keyframes telegraphRing {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
 /* 脚下的椭圆落地阴影: 把立绘"钉"在地面上 —— 没有它, 待机呼吸的上下浮动会看着像在飘。
    ⚠ 挂在 .combatant-stage 而不是 .combatant-figure: 影子不该跟着呼吸一起上下动;
    挂这层还能随 --place-scale 一起放大, 大体型敌人的影子自然更大。
@@ -189,32 +227,61 @@ span.combatant-portrait {
 }
 .combatant-info {
   display: grid;
-  gap: 5px;
-  padding: 6px 0 0;
+  gap: 0;
+  padding: 20px 0 0;
 }
-/* 血条下方一排: 护盾 / 仇恨 / BUFF-DEBUFF。min-height 占位, 避免无状态时布局跳动 */
+.combatant-hp {
+  position: relative;
+}
+/* 血条上沿左对齐: 不占流, 因而没有状态时血条位置不会跳动。 */
 .combatant-badges {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  justify-content: flex-start;
+  pointer-events: auto;
+}
+.combatant-statuses {
+  --pip-size: 11px;
+  --pip-pad: 0 4px;
+}
+/* 血条下方的读数行: 意图(仅洞察时) + 沙漏倒计时。 */
+.combatant-readout {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
   gap: 3px;
   min-height: 18px;
+  margin-top: 2px;
 }
-/* 敌人意图: 立绘正上方居中。绝对定位(不占流)以保证敌我两侧的立绘框顶边一致 ——
-   .vfx / .float-num 都相对 .combatant 顶边定位, 若意图占流会把敌人的特效整体压低。
-   margin-bottom 里的 150px 项 = 取景框高 × (--place-scale - 1): 立绘放大后向上溢出布局盒,
-   意图本身不缩放, 得手动抬高同样的量才不会糊在大体型敌人脸上。 */
-.intent {
+.telegraph {
   position: absolute;
-  z-index: 5;
-  bottom: 100%;
+  top: -30px;
   left: 50%;
+  z-index: 6;
+  padding: 3px 9px;
   transform: translateX(-50%);
-  margin-bottom: calc(4px + 150px * (var(--place-scale, 1) - 1));
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  color: #ffe5e7;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  background: #250e15e8;
+  border: 1px solid #ff5368cc;
+  box-shadow: 0 0 10px #ff334f80, inset 0 0 8px #ff334f33;
+  animation: telegraphLabel 780ms ease-in-out infinite;
+}
+@keyframes telegraphLabel {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 .intent-badge {
   background: #101619e8;
@@ -243,12 +310,24 @@ span.combatant-portrait {
   color: #e59cff;
 }
 .countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   font-size: 11px;
   background: #101619e8;
   border: 1px solid var(--border);
   border-radius: 0;
   padding: 0 4px;
   color: var(--warn);
+}
+.hourglass {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 /* 意图未被揭示时, 倒计时是头顶唯一元素 → 放大加粗顶上去。
    不设 color/border-color, 让下面的 .imminent(同权重)照常覆盖成红色脉冲。 */
@@ -267,8 +346,18 @@ span.combatant-portrait {
 @media (prefers-reduced-motion: reduce) {
   .combatant-figure,
   .combatant-stage::after,
-  .combatant.twitch .combatant-stage {
+  .combatant.twitch .combatant-stage,
+  .combatant[data-telegraph] .telegraph,
+  .combatant[data-telegraph] .combatant-stage::before {
     animation: none;
+  }
+  .combatant[data-telegraph] .combatant-stage {
+    animation: none;
+    filter: drop-shadow(0 0 7px #ff334f) drop-shadow(0 0 2px #ff9a9a);
+  }
+  .combatant[data-telegraph] .combatant-stage::before {
+    opacity: 1;
+    transform: none;
   }
   /* 可选中提示不能一起停掉 —— 那是玩法信息而非装饰。去掉脉冲, 保留一圈静态描光。 */
   .combatant[data-targetable] .combatant-figure {

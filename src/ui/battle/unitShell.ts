@@ -28,6 +28,8 @@ export interface UnitShellState {
   attacking?: boolean;
   /** 可作为当前卡的目标 —— 播描边高亮, 并接受点击。 */
   targetable?: boolean;
+  /** 敌人正在蓄力预告。 */
+  telegraph?: boolean;
   react?: UnitReact;
 }
 
@@ -46,6 +48,7 @@ export function unitShellAttrs(state: UnitShellState): Record<string, string | u
     "data-dead": state.dead ? "" : undefined,
     "data-attacking": state.attacking ? "" : undefined,
     "data-targetable": state.targetable ? "" : undefined,
+    "data-telegraph": state.telegraph ? "" : undefined,
     "data-react": state.react ?? undefined,
   };
 }

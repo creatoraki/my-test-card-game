@@ -2,7 +2,7 @@ import type { CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/animations";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "foe";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -48,6 +48,7 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   none: { kind: "none", scale: 1, fit: 1, yaw: 0, pitch: 0, roll: 0, rig: {}, lead: 0, hold: 500, punch: 0, shake: 0, creep: 0, hitstop: 0 },
   light: { kind: "light", scale: 1.15, fit: 0.82, yaw: 2, pitch: 0, roll: 1, rig: { s: SOFT }, lead: 140, hold: 380, punch: 0.015, shake: 7, creep: 0, hitstop: 45 },
   normal: { kind: "normal", scale: 1.4, fit: 0.78, yaw: 4, pitch: 1, roll: 2, rig: { s: QUICK }, lead: 200, hold: 620, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
+  foe: { kind: "foe", scale: 1.3, fit: 0.8, yaw: 3, pitch: 1, roll: 1, rig: { s: QUICK }, lead: 460, hold: 700, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
   heavy: { kind: "heavy", scale: 1.7, fit: 0.72, yaw: 5, pitch: 5, roll: 5, rig: { s: QUICK, roll: { stiffness: 150, damping: 16 } }, lead: 280, hold: 980, punch: 0.06, shake: 22, creep: 0, hitstop: 90 },
   aoe: { kind: "aoe", scale: 1.1, fit: 0.72, yaw: 8, pitch: 0, roll: 3, rig: { s: SOFT, yaw: SOFT }, lead: 240, hold: 820, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
   kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: 1300, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
@@ -55,7 +56,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
 };
 
 export function pickShot(ctx: ShotContext): ShotPreset {
-  if (!ctx.targetInStage || ANIM[ctx.anim].kind === "support") return SHOTS.none;
+  if (ANIM[ctx.anim].kind === "support") return SHOTS.none;
+  if (!ctx.targetInStage) return SHOTS.foe;
   if (ctx.isKill) return SHOTS.kill;
   if (ctx.targetCount >= 2) return SHOTS.aoe;
   if (ctx.anim === "iai-slash") return SHOTS.iai;

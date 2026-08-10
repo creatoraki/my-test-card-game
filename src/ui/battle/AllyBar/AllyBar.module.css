@@ -198,6 +198,24 @@ span.ally-portrait {
   border-color: var(--accent);
   animation: allyGlassPulse 1.1s infinite;
 }
+/* 队伍卡位于场景之外, 受击反馈在这里补一层卡框红闪与外扩冲击辉光。 */
+.ally-bar .ally-slot[data-react="hit"] .ally-frame {
+  animation: allyHitFrame 360ms ease-out 1;
+}
+@keyframes allyHitFrame {
+  0% {
+    border-color: #ff5368;
+    filter: drop-shadow(0 0 3px #ff334f) drop-shadow(0 0 7px #ff334f);
+  }
+  45% {
+    border-color: #fff0f2;
+    filter: drop-shadow(0 0 8px #ff5368) drop-shadow(0 0 22px #ff334f);
+  }
+  100% {
+    border-color: #6fd2ff3d;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
 @keyframes allyGlassPulse {
   0%,
   100% {
@@ -218,5 +236,10 @@ span.ally-portrait {
 @media (prefers-reduced-motion: reduce) {
   .ally-figure .ally-portrait {
     animation: none;
+  }
+  .ally-bar .ally-slot[data-react="hit"] .ally-frame {
+    animation: none;
+    border-color: #ff5368;
+    filter: drop-shadow(0 0 8px #ff334f) drop-shadow(0 0 18px #ff334f);
   }
 }

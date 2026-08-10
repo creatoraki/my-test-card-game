@@ -66,7 +66,7 @@ src/ui/
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情页场景级卡牌悬浮层，固定在卡组左侧空档并放大渲染 `common/TechCard`；只负责定位和展示时机，不承载卡牌业务规则。 |
 | [character/CardView](../../src/ui/character/CardView/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、战斗签入口、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。 |
-| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
+| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
 | [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切风格的紧凑两列战斗胜利结算壳：队伍经验、掉落倍率、待拾取战利品、4×6 回收背包及继续/放弃操作。 |
 | [battle/VictoryExpRow](../../src/ui/battle/VictoryExpRow/VictoryExpRow.tsx) | 单名队员经验结算行：头像、存活/阵亡态、总经验数字、经验条增长和主视觉 `+N EXP` 演出。 |
@@ -94,8 +94,8 @@ src/ui/
 
 | 文件 | 作用 |
 | --- | --- |
-| [unitShell.ts](../../src/ui/battle/unitShell.ts) | **单位外壳的跨组件契约**：敌人（CombatantView）与我方（AllyBar）两种外壳几何不同但演出必须一致，靠 `unitShellAttrs()` 摊出的 `data-side` / `data-dead` / `data-attacking` / `data-targetable` / `data-react` 共享同一份规则。改这里要全库搜同名字符串——CSS 那侧没有类型保护。 |
-| [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：倒计时、意图、立绘、血条、护盾/状态和命中特效；站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
+| [unitShell.ts](../../src/ui/battle/unitShell.ts) | **单位外壳的跨组件契约**：敌人（CombatantView）与我方（AllyBar）两种外壳几何不同但演出必须一致，靠 `unitShellAttrs()` 摊出的 `data-side` / `data-dead` / `data-attacking` / `data-targetable` / `data-telegraph` / `data-react` 共享同一份规则。改这里要全库搜同名字符串——CSS 那侧没有类型保护。 |
+| [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：蓄力预告、血条周围的倒计时/意图/护盾/状态和命中特效；站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`@keyframes` 按敌人在运行时注入 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
 | [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，并通过公共污染条/状态徽章展示污染值、生病和怪癖。位于战场之外，因此不参与相机推近。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
@@ -125,7 +125,7 @@ src/ui/
 | [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）和 `hideLimit` 变体（战场敌人只显示蓝色当前血量，不画琥珀上限段）的样式也在本组件内。 |
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |
 | [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 展示生病与永久怪癖徽章及说明；不复用临时战斗 `StatusPips`。 |
-| [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 状态图标和层数展示。 |
+| [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 状态图标和层数展示；可选开启战斗敌人详情浮层，尺寸通过 `--pip-size` / `--pip-pad` 变量由父级收紧。 |
 | [ManaCrystal](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) | 法力水晶菱形（Arcane Diamond）；`empty`/`normal`/`active` 三态受控，`still` 关闭呼吸循环；尺寸与配色经 `--mana-crystal-size` / `--crystal-*` 变量下发。 |
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 羁绊词条线框图标，无样式文件。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
@@ -172,8 +172,8 @@ src/ui/
 
 全站页面画布恒为 1920×1080，由 `StageCanvas` 以 `k = min(容器宽/1920, 容器高/1080)` 等比缩放并通过布局居中的 `zoom` 缩放，超出部分留黑边；可用尺寸会向下吸附到整数设备像素倍数，显示器 DPR 变化会触发重测。战斗舞台和底部 HUD 是兄弟矩形；`--hud-h` 直接决定敌人可见地面线，调整前必须复核站位。
 
-战斗世界使用一个相机：背景、氛围和单位都在 `.battle-world` 内一起变换。`transform` 负责空闲漂移，独立 `translate` 负责震屏，独立 `scale` 负责冲击缩放；不要让背景和单位分别套变换。相机全程使用设计 px，`getBoundingClientRect()` 得到屏幕 px 时先经换算；相机反投影则通过世界层矩形抵消画布缩放、当前相机和漂移。
+战斗世界使用一个相机：背景、氛围和单位都在 `.battle-world` 内一起变换。`transform` 负责空闲漂移，独立 `translate` 负责震屏，独立 `scale` 负责冲击缩放；不要让背景和单位分别套变换。相机全程使用设计 px，`getBoundingClientRect()` 得到屏幕 px 时先经换算；相机反投影则通过世界层矩形抵消画布缩放、当前相机和漂移。分镜计划用 `focusIds` 表示取景对象，受击特效仍使用 `targetIds`；敌人攻击战场外的我方时回退聚焦施法敌人。
 
 ⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
 
-我方队伍卡在战场世界之外，因此不参与推镜；攻击自身或友军时保持全景，只播放特效和震屏。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。
+我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。

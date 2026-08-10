@@ -111,6 +111,7 @@ export function BattleScreen() {
 
   // —— 出牌动画编排(纯 UI): 施法者弹出 → 顿 → 镜头推近聚焦目标 → 命中特效/飘字 → 镜头恢复/归位 ——
   const [attackerId, setAttackerId] = useState<string | null>(null); // 正在弹出的施法者
+  const [telegraphId, setTelegraphId] = useState<string | null>(null); // 正在蓄力预告的敌人
   const [hits, setHits] = useState<Record<string, HitFx>>({}); // 各目标当前的受击特效
   const [cutInCard, setCutInCard] = useState<Card | null>(null); // 出牌亮相卡面(仅玩家出牌; null=不展示)
   // —— 瞄准运镜(挑目标期间的常驻态, 与上面的分镜相机互斥) ——
@@ -199,6 +200,7 @@ export function BattleScreen() {
     animatingRef.current = false;
     setAnimating(false);
     setAttackerId(null);
+    setTelegraphId(null);
     setHits({});
     setCutInCard(null);
     snapCameraTarget(null);
@@ -421,13 +423,13 @@ export function BattleScreen() {
   // 左侧透明手牌栏底下(见上方 safeArea)。
   //
   // 刻意不做边界钳制: 目标永远精确居中, 世界之外露出的部分由 .battle-bg-spill 填充。
-  function computeCamera(targetIds: string[], shot: ShotPreset): Camera | null {
+  function computeCamera(focusIds: string[], shot: ShotPreset): Camera | null {
     const world = worldRef.current, stage = stageRef.current;
-    if (!world || !stage || targetIds.length === 0) return null;
+    if (!world || !stage || focusIds.length === 0) return null;
 
     // 目标并集包围盒(世界坐标)
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
-    for (const id of targetIds) {
+    for (const id of focusIds) {
       const index = b.enemyIds.indexOf(id);
       const placement = index >= 0 ? slotPlacement(getEncounter(b.encounterId).enemies[index]) : undefined;
       const w = unitWorldBox(world, id, placement);
@@ -462,10 +464,11 @@ export function BattleScreen() {
 
   function impactAxis(step: ChoreoStep, targetIds: string[]) {
     const world = worldRef.current;
-    if (!world) return { x: 0, y: -1 };
+    const fallback = b.enemyIds.includes(step.actorId) ? { x: 0, y: 1 } : { x: 0, y: -1 };
+    if (!world) return fallback;
     const target = targetIds.map((id) => unitWorldBox(world, id)).find(Boolean);
     const actor = unitWorldBox(world, step.actorId);
-    if (!target || !actor) return { x: 0, y: -1 };
+    if (!target || !actor) return fallback;
     const tx = (target.left + target.right) / 2;
     const ty = (target.top + target.bottom) / 2;
     const ax = (actor.left + actor.right) / 2;
@@ -491,6 +494,7 @@ export function BattleScreen() {
       cameraRig.setTuning(null);
       setPlaybackRate(1, false);
       setAttackerId(null);
+      setTelegraphId(null);
       setHits({});
       setCutInCard(null);
       setHitstop(false);
@@ -509,16 +513,19 @@ export function BattleScreen() {
     let at = 0;
     let lastActor = "";
     let lastAnim: CardAnim | null = null;
-    plans.forEach(({ step, preset, targetIds, keepCamera }, index) => {
+    plans.forEach(({ step, preset, targetIds, focusIds, keepCamera }, index) => {
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
       const hold = preset.hold * Math.max(0.55, 0.78 ** repeat);
       const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
       const hitAt = at + preset.lead + cutIn;
-      const focus = () => (preset.kind === "none" ? null : computeCamera(targetIds, preset));
+      const focus = () => (preset.kind === "none" ? null : computeCamera(focusIds, preset));
       timeline.add({
         at,
         run: () => {
           setAttackerId(step.actorId);
+          setTelegraphId(
+            b.enemyIds.includes(step.actorId) && preset.kind !== "none" ? step.actorId : null,
+          );
           cameraRig.setTuning(preset.rig);
           if (index === 0 && enter) setCameraTarget(enter);
           else if (index === 0) setCameraTarget(null);
@@ -533,7 +540,7 @@ export function BattleScreen() {
             setCameraTarget(nextFocus);
             return;
           }
-          const previousFocus = previous.preset.kind === "none" ? null : computeCamera(previous.targetIds, previous.preset);
+          const previousFocus = previous.preset.kind === "none" ? null : computeCamera(previous.focusIds, previous.preset);
           const hardCut = previous.preset.kind === "kill" || shouldHardCut(previous.step, step, previousFocus, nextFocus);
           if (hardCut) snapCameraTarget(nextFocus);
           else if (!keepCamera) setCameraTarget(nextFocus);
@@ -546,6 +553,7 @@ export function BattleScreen() {
       timeline.add({
         at: hitAt,
         run: () => {
+          setTelegraphId(null);
           commit(step.snapshot);
           const hitSeq = ++hitSeqRef.current;
           const map: Record<string, HitFx> = {};
@@ -583,7 +591,7 @@ export function BattleScreen() {
           });
         },
       });
-      timeline.add({ at: hitAt + hold, run: () => { setHits({}); setAttackerId(null); } });
+      timeline.add({ at: hitAt + hold, run: () => { setHits({}); setAttackerId(null); setTelegraphId(null); } });
       at = hitAt + hold + 40;
       lastActor = step.actorId;
       lastAnim = step.anim;
@@ -766,6 +774,7 @@ export function BattleScreen() {
               currentTick={battle.tick}
               targetable={isPlayerTurn && !!needsFoe && e.alive}
               attacking={e.id === attackerId}
+              telegraph={e.id === telegraphId}
               hit={hits[e.id] ?? null}
               placement={placements[i]}
               twitching={e.id === twitchId}

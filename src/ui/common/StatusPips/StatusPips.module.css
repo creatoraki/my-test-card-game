@@ -5,16 +5,55 @@
   justify-content: center;
 }
 .pip {
-  padding: 0 4px;
-  font-size: 11px;
+  position: relative;
+  padding: var(--pip-pad, 0 4px);
+  font-size: var(--pip-size, 11px);
   border: 1px solid var(--border);
   border-radius: 0;
   background: #101619;
+  white-space: nowrap;
+  cursor: help;
 }
 /* 直接子代 —— 裸标签后代选择器(`.pip b`)在本组件里够用, 但 `>` 更贴合结构且不会
    在将来嵌套内容时误伤。 */
 .pip > b {
   margin-left: 1px;
+}
+.pip-tip {
+  position: absolute;
+  z-index: 9;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  display: grid;
+  gap: 3px;
+  width: 170px;
+  padding: 7px 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  color: #d9e7e8;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+  background: #081013f5;
+  border: 1px solid #6fd2ff66;
+  box-shadow: 0 4px 14px #000b;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, visibility 120ms ease;
+}
+.pip-tip > strong {
+  color: #f2fbca;
+  font-size: 12px;
+}
+.pip-tip > b {
+  margin-left: 0;
+  color: var(--accent);
+  font-size: 10px;
+}
+.pip:hover .pip-tip,
+.pip:focus-within .pip-tip {
+  opacity: 1;
+  visibility: visible;
 }
 /* ⚠ 只剩描边色在起作用: 这两条原本各自还带一个 background(#2a1717 / #16281b), 但终端皮肤层
    后来给 .pip 重新指定了 background 且特异性相同(都是 0-1-0)、位置更靠后 ⇒ 两条底色早已失效,

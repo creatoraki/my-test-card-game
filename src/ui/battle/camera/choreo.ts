@@ -14,6 +14,7 @@ export interface ShotPlan {
   step: ChoreoStep;
   preset: ShotPreset;
   targetIds: string[];
+  focusIds: string[];
   keepCamera: boolean;
 }
 
@@ -25,6 +26,10 @@ function killed(step: ChoreoStep, before: BattleState | undefined): boolean {
 export function choreograph(steps: ChoreoStep[], initial: BattleState | undefined): ShotPlan[] {
   return steps.map((step, index) => {
     const targetIds = step.hits.length ? step.hits.map((hit) => hit.id) : [step.actorId];
+    const stageFocusIds = step.hits
+      .map((hit) => hit.id)
+      .filter((id) => initial?.enemyIds.includes(id));
+    const focusIds = stageFocusIds.length ? stageFocusIds : [step.actorId];
     const ratios = step.hits.map((hit) => {
       const target = initial?.combatants[hit.id] ?? step.snapshot.combatants[hit.id];
       return target?.maxHp ? hit.hpDelta / target.maxHp : 0;
@@ -35,11 +40,14 @@ export function choreograph(steps: ChoreoStep[], initial: BattleState | undefine
       shake: ANIM[step.anim].shake,
       damageRatio: Math.max(0, ...ratios),
       isKill: killed(step, index === 0 ? initial : steps[index - 1]?.snapshot),
-      targetInStage: step.hits.length > 0,
+      targetInStage: stageFocusIds.length > 0,
     });
     const previous = index > 0 ? steps[index - 1] : undefined;
-    const previousTargets = previous?.hits.map((hit) => hit.id) ?? [];
-    const keepCamera = previousTargets.length === targetIds.length && previousTargets.every((id) => targetIds.includes(id));
-    return { step, preset, targetIds, keepCamera };
+    const previousFocusIds = previous
+      ? previous.hits.map((hit) => hit.id).filter((id) => initial?.enemyIds.includes(id))
+      : [];
+    const previousFocus = previousFocusIds.length ? previousFocusIds : previous ? [previous.actorId] : [];
+    const keepCamera = previousFocus.length === focusIds.length && previousFocus.every((id) => focusIds.includes(id));
+    return { step, preset, targetIds, focusIds, keepCamera };
   });
 }

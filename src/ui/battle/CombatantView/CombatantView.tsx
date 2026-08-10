@@ -10,6 +10,7 @@ import { EnemySprite } from "@/ui/battle/EnemySprite";
 import { enemyArt, enemyIdle } from "@/ui/art/enemyArt";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { HpBar } from "@/ui/common/HpBar";
+import { HourglassIcon } from "./icons";
 import s from "./CombatantView.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
 import ub from "@/ui/battle/styles/unitBadges.module.css";
@@ -19,6 +20,7 @@ interface Props {
   currentTick: number;
   targetable: boolean; // 当前是否是合法的点选目标
   attacking?: boolean; // 是否是当前出牌的施法者(前冲动画)
+  telegraph?: boolean; // 是否正在蓄力预告
   hit?: HitFx | null; // 命中时刻下发的受击/首击特效
   placement?: EnemyPlacement; // 手工站位(贴合背景地面); 省略则用 .enemy-row 的默认排布
   twitching?: boolean; // 待机小动作(见 ui/useIdleTwitch.ts): 随机抽中时抖一下
@@ -35,6 +37,7 @@ export const CombatantView = memo(function CombatantView({
   currentTick,
   targetable,
   attacking,
+  telegraph,
   hit,
   placement,
   twitching,
@@ -72,7 +75,7 @@ export const CombatantView = memo(function CombatantView({
       data-cmb-id={cmb.id}
       // 外壳状态一律走 data-*(见 battle/unitShell.ts): fx/HitFxLayer 与 EnemySprite 都要
       // 按这些状态改自己的表现, 而它们够不着本文件被哈希的类名。
-      {...unitShellAttrs({ side: "enemy", dead, targetable, attacking, react })}
+      {...unitShellAttrs({ side: "enemy", dead, targetable, attacking, telegraph, react })}
       className={cx(s["combatant"], twitching && !dead && s["twitch"])}
       style={vars as React.CSSProperties}
       onClick={(e) => {
@@ -83,7 +86,11 @@ export const CombatantView = memo(function CombatantView({
         if (targetable && onHover) onHover(cmb.id);
       }}
     >
-      {!dead && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
+      {telegraph && !dead && (
+        <div className={s.telegraph}>
+          {isIntentRevealed(cmb) ? cmb.intent.name : "⚠ 行动"}
+        </div>
+      )}
 
         {/* --place-scale 作用于立绘和命中特效的几何, 血条/BUFF/意图/倒计时保持原尺寸。
           HitFxLayer 必须留在这层内 —— 它相对最近的定位祖先定位, 且要跟着立绘一起缩放 */}
@@ -110,18 +117,24 @@ export const CombatantView = memo(function CombatantView({
         </div>
       </div>
 
-      {/* 立绘下方: 血条(数值) → 护盾/BUFF-DEBUFF 一排 */}
+      {/* 立绘下方: BUFF/护盾 → 血条 → 意图/倒计时 */}
       <div className={s["combatant-info"]}>
-        <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit />
-
-        <div className={s["combatant-badges"]}>
-          {cmb.shield > 0 && (
-            <span className={ub["shield-badge"]} title="护盾">
-              🛡️{cmb.shield}
-            </span>
-          )}
-          <StatusPips statuses={cmb.statuses} />
+        <div className={s["combatant-hp"]}>
+          <div className={s["combatant-badges"]}>
+            {cmb.shield > 0 && (
+              <span className={ub["shield-badge"]} title="护盾">
+                🛡️{cmb.shield}
+              </span>
+            )}
+            <StatusPips
+              statuses={cmb.statuses}
+              detail
+              className={s["combatant-statuses"]}
+            />
+          </div>
+          <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit />
         </div>
+        {!dead && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
       </div>
 
       {dead && <div className={ub["dead-overlay"]}>☠</div>}
@@ -141,7 +154,10 @@ function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number
   const revealed = isIntentRevealed(enemy);
   return (
     // 未揭示时不给 title —— 否则 hover 就把招式名漏出去了
-    <div className={s.intent} title={revealed ? `意图: ${i.name}` : undefined}>
+    <div
+      className={s["combatant-readout"]}
+      title={revealed ? `意图: ${i.name}` : undefined}
+    >
       {revealed && (
         <span className={cx(s["intent-badge"], s[`intent-${i.kind}`])}>
           {i.emoji}
@@ -156,7 +172,8 @@ function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number
         )}
         title="距离下次行动的时刻"
       >
-        ⏱{countdown}
+        <HourglassIcon className={s.hourglass} />
+        {countdown}
       </span>
     </div>
   );
