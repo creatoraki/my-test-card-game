@@ -308,6 +308,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
   //   本函数只负责「照着它建一场战斗并切页」。没有待打的战斗就什么都不做(幂等护栏)。
   //   ★ 老虎机战斗签接上之后, 变的只是 pendingEncounterId 怎么定, 这条路径不动。
   enterEncounter: () => {
+      if (get().screen !== "explore") return;
     const s = useExploreStore.getState().session;
     if (!s?.pendingEncounterId) return;
     launchBattle(s.pendingEncounterId, s.pendingIsBoss);

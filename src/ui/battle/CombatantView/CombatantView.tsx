@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { EnemyPlacement } from "@/data";
 import { getStatus, type Enemy } from "@/engine";
 import { StatusPips } from "@/ui/common/StatusPips";
@@ -21,15 +22,15 @@ interface Props {
   hit?: HitFx | null; // 命中时刻下发的受击/首击特效
   placement?: EnemyPlacement; // 手工站位(贴合背景地面); 省略则用 .enemy-row 的默认排布
   twitching?: boolean; // 待机小动作(见 ui/useIdleTwitch.ts): 随机抽中时抖一下
-  onClick?: () => void;
+  onClick?: (id: string) => void;
   // 悬停到本单位(仅 targetable 时触发): 供瞄准运镜取朝向, 见 BattleScreen 的 aimFoeId。
   // 刻意没有配对的"离开"回调 —— 瞄准朝向是锁存的, 清除挂在 .battle-stage 上(理由见那里)。
-  onHover?: () => void;
+  onHover?: (id: string) => void;
 }
 
 // 场上的敌人单位: 无背景面板, 立绘直接浮在场景上。
 // 我方不走这里 —— 见 ui/AllyBar.tsx 的底部玻璃头像栏; 两者共用 HitFxLayer 保证命中表现一致。
-export function CombatantView({
+export const CombatantView = memo(function CombatantView({
   cmb,
   currentTick,
   targetable,
@@ -76,10 +77,10 @@ export function CombatantView({
       style={vars as React.CSSProperties}
       onClick={(e) => {
         e.stopPropagation();
-        if (targetable && onClick) onClick();
+        if (targetable && onClick) onClick(cmb.id);
       }}
       onMouseEnter={() => {
-        if (targetable && onHover) onHover();
+        if (targetable && onHover) onHover(cmb.id);
       }}
     >
       {!dead && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
@@ -126,7 +127,7 @@ export function CombatantView({
       {dead && <div className={ub["dead-overlay"]}>☠</div>}
     </div>
   );
-}
+});
 
 // 意图默认不可见: 敌人带「洞察」标记时才揭示。数据始终存在(engine/ai.ts 照常 buildIntent),
 // 这里只控制显示 —— 未来的「查看意图」卡牌用 APPLY_STATUS 给敌人挂 insight 即可。

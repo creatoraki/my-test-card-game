@@ -226,6 +226,8 @@ export function createSession(
     pendingEncounterId: null,
     pendingIsBoss: false,
     pendingBattleTier: null,
+    recentEventIds: [],
+    battleSource: null,
     pendingMatchBonus: 0,
     pendingDropBonus: 0,
     pendingBattleMod: null,
@@ -707,6 +709,8 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
     case "REFORGE_BOND":
       s.pendingActions.push({ kind: "reforge", bias: e.bias });
       return "获得一次免费装备羁绊重铸";
+    case "START_NODE_BATTLE":
+      return `进入${BATTLE_TIER_NAME[e.tier]}`;
     // 这两个由 chooseOption 拦截, 走不到这里; 列出来让 switch 保持穷尽
     case "END_REGION":
     case "RETREAT":
@@ -809,13 +813,13 @@ function fitsDepth(e: NodeEvent, seg: number): boolean {
 
 // 全图节点生成(设计文档 §2.3.2 / §9.3)。
 //
-// 生成顺序刻意是**从第 4 段往第 1 段填**: 纯负面与高风险有全图配额且只准出现在第 3-4 段,
-// 先填深段才不会出现「配额被浅段用光 → 深段凑不满 5 个」。
+// 生成顺序刻意是**从第 4 段往第 1 段填**: 风险事件只准出现在第 3-4 段,
+// 先填深段再补保底, 才能稳定满足深段风险下限。
 //
 // 保底(范围是**整张图**而不是每段 —— 单个推进段允许全是坑或全是宝):
 //   · 至少 2 个生存/低风险节点, 其中至少 1 个在第 1-2 段;
 //   · 至少 3 个成长节点;
-//   · 纯负面 ≤ 2, 高风险 ≤ 3, 且都只在第 3-4 段;
+//   · 第 3-4 段至少出现配置数量的风险事件, 不再设置风险事件上限;
 //   · 告急档(第 4 档)起传送投递口必现; 枯竭档(第 5 档)起撤离升降机必现于第 1-2 段。
 function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
   const pool = getEventPool(poolId);
@@ -834,25 +838,23 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
   const grid: (NodeEvent | null)[][] = Array.from({ length: SEGMENTS }, () =>
     Array.from({ length: LANES }, () => null),
   );
-  let negatives = 0;
-  let highRisks = 0;
 
+  const onBoard = (id: string) => grid.some((row) => row.some((e) => e?.id === id));
   const inSegment = (seg: number, id: string) => grid[seg].some((e) => e?.id === id);
   const place = (seg: number, e: NodeEvent): boolean => {
     const free = grid[seg].map((x, i) => (x ? -1 : i)).filter((i) => i >= 0);
     if (!free.length || inSegment(seg, e.id)) return false;
     grid[seg][free[rngInt(s, free.length)]] = e;
-    if (e.risk === "negative") negatives += 1;
-    if (e.risk === "highRisk") highRisks += 1;
     return true;
   };
-  // 风险节点只准出现在第 3-4 段(seg >= 2), 且吃全图配额。
+  // 风险节点只准出现在第 3-4 段(seg >= 2)。
   const riskOk = (e: NodeEvent, seg: number): boolean => {
     if (!e.risk) return true;
-    if (seg < 2) return false;
-    if (e.risk === "negative") return negatives < 2;
-    return highRisks < 3;
+    return seg + 1 >= EXPLORE_RULES.eventPool.hazard.minSegment;
   };
+
+  const locked = new Set<string>();
+  const key = (seg: number, lane: number) => `${seg}:${lane}`;
 
   // ① 档位保底(设计文档 §4.2)。撤离升降机的枯竭档保护**无视 minRound** ——
   //    时限是压力不是死刑, 玩家永远要有把背包带回去的机会。
@@ -865,13 +867,41 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
     if (chute) place(rngInt(s, SEGMENTS), chute);
   }
 
+  // 战斗节点是独立保底, 不进入普通池随机填格, 且锁在不同深段避免连续相邻出现。
+  const battleDepth = EXPLORE_RULES.eventPool.battleNodes.depth;
+  const battleSegments = shuffle(
+    s,
+    Array.from({ length: SEGMENTS }, (_, seg) => seg).filter(
+      (seg) => seg + 1 >= battleDepth[0] && seg + 1 <= battleDepth[1],
+    ),
+  );
+  const battleEvents = shuffle(
+    s,
+    pool.battle.filter((e) => !e.disabled && (e.minRound ?? 1) <= s.round),
+  );
+  for (let i = 0; i < Math.min(EXPLORE_RULES.eventPool.battleNodes.count, battleEvents.length); i++) {
+    const seg = battleSegments[i];
+    if (seg == null || !place(seg, battleEvents[i])) continue;
+    const lane = grid[seg].findIndex((e) => e?.id === battleEvents[i].id);
+    if (lane >= 0) locked.add(`${seg}:${lane}`);
+  }
+
   // ② 逐段填满 —— 从最深的一段开始
   for (let seg = SEGMENTS - 1; seg >= 0; seg--) {
     while (grid[seg].some((x) => !x)) {
-      const avail = shuffle(
+      const cooled = shuffle(
         s,
-        all.filter((e) => fitsDepth(e, seg) && !inSegment(seg, e.id) && riskOk(e, seg)),
+        all.filter(
+          (e) =>
+            fitsDepth(e, seg) &&
+            !onBoard(e.id) &&
+            !s.recentEventIds.includes(e.id) &&
+            riskOk(e, seg),
+        ),
       );
+      const avail = cooled.length
+        ? cooled
+        : shuffle(s, all.filter((e) => fitsDepth(e, seg) && !inSegment(seg, e.id) && riskOk(e, seg)));
       if (!avail.length) break; // 池子撑不满这一段: 少几个节点也不该卡死生成
       place(seg, avail[0]);
     }
@@ -881,8 +911,6 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
   //
   // ⚠ 已经为某条保底补进去的格子必须**上锁**: 否则后一条保底(比如「至少 3 个成长」)会
   //   把前一条刚补进去的生存节点当成填充物换掉, 两条保底互相拆台, 谁最后跑谁生效。
-  const locked = new Set<string>();
-  const key = (seg: number, lane: number) => `${seg}:${lane}`;
   // 档位必现项同样上锁 —— 它们是硬保底, 不许被任何修复挤掉。
   grid.forEach((row, seg) =>
     row.forEach((e, lane) => {
@@ -897,18 +925,14 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
     );
     for (const cand of pick) {
       for (const seg of segs) {
-        if (!fitsDepth(cand, seg) || inSegment(seg, cand.id)) continue;
+        if (!fitsDepth(cand, seg) || onBoard(cand.id)) continue;
         // 牺牲品: 同段里既不是保底目标、也没上锁的那一个
         const victimLane = grid[seg].findIndex(
           (e, lane) => e && !want(e) && !locked.has(key(seg, lane)),
         );
         if (victimLane < 0) continue;
         const victim = grid[seg][victimLane]!;
-        if (victim.risk === "negative") negatives -= 1;
-        if (victim.risk === "highRisk") highRisks -= 1;
         grid[seg][victimLane] = cand;
-        if (cand.risk === "negative") negatives += 1;
-        if (cand.risk === "highRisk") highRisks += 1;
         locked.add(key(seg, victimLane));
         return true;
       }
@@ -941,6 +965,7 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
     }
   };
 
+  guarantee([2, 3], (e) => e.category === "hazard", EXPLORE_RULES.eventPool.hazard.minDeep);
   // 「第 1-2 段至少 1 个生存节点」—— 浅停必须是有价值的巩固打法(§1.4)
   guarantee([0, 1], (e) => e.category === "survival", 1);
   // 全图至少 2 个生存/低风险
@@ -948,11 +973,19 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
   // 全图至少 3 个成长
   guarantee([0, 1, 2, 3], isGrowth, 3);
 
-  // 池子实在填不满时用同段已有的事件顶上, 保证结构完整(20 格全满)。
+  // 池子实在填不满时先找全图未出现的事件, 再退回同段复制, 保证结构完整(20 格全满)。
   return grid.map((row, seg) => {
     const filled = row.filter((e): e is NodeEvent => !!e);
     return row.map(
-      (e, lane) => e ?? filled[lane % Math.max(1, filled.length)] ?? all.find((x) => fitsDepth(x, seg))!,
+      (e, lane) => {
+        if (e) return e;
+        const fresh = shuffle(s, all.filter((x) => fitsDepth(x, seg) && !onBoard(x.id)))[0];
+        if (fresh) {
+          grid[seg][lane] = fresh;
+          return fresh;
+        }
+        return filled[lane % Math.max(1, filled.length)] ?? all.find((x) => fitsDepth(x, seg))!;
+      },
     );
   });
 }
@@ -963,17 +996,23 @@ export function generateRound(s: ExploreState): void {
   // 每段桥接数在本轮次给定的区间里各掷一次 —— 递增曲线由区间表本身保证(rules.rounds)
   const counts = stage.bridges.map(([lo, hi]) => lo + rngInt(s, hi - lo + 1));
 
+  const nodes = pickNodes(s, map.eventPoolId);
   const board: RouteBoard = {
     round: s.round,
     laneCount: LANES,
     rowsPerSegment: EXPLORE_RULES.rowsPerSegment,
     segments: generateSegments(s, LANES, EXPLORE_RULES.rowsPerSegment, counts),
-    nodes: pickNodes(s, map.eventPoolId),
+    nodes,
     revealDurationMs: stage.revealMs,
     blockedLanes: [],
   };
 
   s.board = board;
+  const recentWindow = Math.max(0, EXPLORE_RULES.eventPool.recentWindowRounds);
+  const recent = [...s.recentEventIds, ...nodes.flat().map((event) => event.id)];
+  s.recentEventIds = recentWindow
+    ? recent.slice(-recentWindow * SEGMENTS * LANES)
+    : [];
   s.entryLane = null;
   s.currentLane = null;
   s.currentSegment = 0;
@@ -981,6 +1020,7 @@ export function generateRound(s: ExploreState): void {
   s.shop = null;
   s.pendingNotes = [];
   s.pendingBattleTier = null;
+  s.battleSource = null;
   s.chuteOpen = false;
   // ★ 新图不是立刻可看的: 先播 2 秒逐段浮现(generating), 再停在遮蔽态(sealed)等玩家主动揭示。
   s.phase = "generating";
@@ -1117,8 +1157,9 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 
   let leaving = false;
   let endRegion = false;
+  let nodeBattleTier: BattleTier | null = null;
   const outcome = resolveEventOutcome(s, choice);
-  const effects = outcome?.effects ?? choice.effects ?? [];
+  const effects = outcome?.effects ?? choice.effects ?? ev.effects ?? [];
   if (choice.story) s.pendingStory.push(choice.story);
   if (outcome?.text) s.pendingStory.push(outcome.text);
   for (const e of effects) {
@@ -1128,6 +1169,10 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     }
     if (e.type === "END_REGION") {
       endRegion = true;
+      continue;
+    }
+    if (e.type === "START_NODE_BATTLE") {
+      nodeBattleTier = e.tier;
       continue;
     }
     const note = applyEffect(s, e, true);
@@ -1154,6 +1199,15 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   if (leaving) {
     s.phase = "retreated";
     logLine(s, "搭上撤离升降机");
+    return true;
+  }
+
+  if (nodeBattleTier) {
+    s.pendingBattleTier = nodeBattleTier;
+    s.pendingEncounterId = getMap(s.mapId).battleEncounters[nodeBattleTier];
+    s.pendingIsBoss = false;
+    s.battleSource = "node";
+    s.phase = "inBattle";
     return true;
   }
 
@@ -1293,6 +1347,7 @@ export function chooseSlotCard(s: ExploreState, index: number): boolean {
   s.pendingBattleTier = tier;
   s.pendingEncounterId = encounterId;
   s.pendingIsBoss = tier === "boss";
+  s.battleSource = "round";
   s.pendingMatchBonus = s.slot.matchBonus;
   s.pendingDropBonus =
     (battle.dropBonus ?? 0) + (symbol.id === battle.id ? 0 : (symbol.dropBonus ?? 0));
@@ -1385,12 +1440,15 @@ export function finishBattle(
     loseEverything(s);
     s.pendingEncounterId = null;
     s.pendingIsBoss = false;
+    s.pendingBattleTier = null;
+    s.battleSource = null;
     clearSlotSnapshot(s);
     logLine(s, "推进战斗失利, 远征中断");
     return empty;
   }
 
   const wasBoss = s.pendingIsBoss;
+  const wasNodeBattle = s.battleSource === "node";
   const mult = rewardMultiplier(s.energy);
   // ⚠ 设计文档 §6.1: 战斗胜利**只掉物品**。perEnemy 已归零, 这里只剩 BOSS 的通关奖励。
   let loot = Math.round(enemyDefIds.length * EXPLORE_RULES.loot.perEnemy * mult);
@@ -1406,6 +1464,7 @@ export function finishBattle(
   // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清 —— 同花加成正是靠那份快照生效的。
   s.pendingEncounterId = null;
   s.pendingIsBoss = false;
+  s.pendingBattleTier = null;
   clearSlotSnapshot(s);
 
   const notes: string[] = [];
@@ -1415,6 +1474,12 @@ export function finishBattle(
 
   const last = s.history[s.history.length - 1];
   if (last && notes.length) last.note = `${last.note} · ${notes.join(" · ")}`;
+
+  if (wasNodeBattle) {
+    s.battleSource = null;
+    s.phase = "atNode";
+    return { loot, items: rolled, overflow: [] };
+  }
 
   if (wasBoss || s.round >= s.roundCount) {
     // BOSS 轮胜利 = 通关。轮次走满但不是 BOSS(理论上不会发生)也按通关收尾。

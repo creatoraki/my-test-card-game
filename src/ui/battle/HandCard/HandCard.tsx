@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
@@ -13,10 +14,10 @@ interface Props {
   selected: boolean;
   leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 HandCard.css .hand-card.leaving)
   dealDelay?: number; // 抽牌飞入的绝对延迟(ms), 由父级按批次计算
-  onExited?: () => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
-  onClick?: () => void;
+  onExited?: (uid: string) => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
+  onClick?: (uid: string) => void;
   actionBadge?: "redraw" | "discard" | null;
-  onAction?: () => void;
+  onAction?: (uid: string) => void;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
@@ -37,7 +38,7 @@ interface Props {
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.css);
 // 详情面板(CardInfoPanel)与队伍槽高亮(AllyBar)读的是本组件写进 ui/handFocusStore.ts 的悬停卡,
 // 两者各自订阅、与 BattleScreen 无关; 这里不需要上报自身矩形, 也不需要回调冒泡。
-export function HandCard({
+export const HandCard = memo(function HandCard({
   card,
   playable,
   selected,
@@ -64,14 +65,14 @@ export function HandCard({
   } as React.CSSProperties;
 
   return (
-    // ★ 外壳 .hand-slot: 一个**永不位移**的占位框, 悬停命中区与层序全归它, 卡本身只负责视觉位移。
+    // ★ 外壳 .hand-slot: 一个**永不位移**的占位框, 悬停命中区、点击处理器与层序全归它, 卡本身只负责视觉位移。
     //   ⚠ 这一层不是可有可无的包装 —— 悬停上弹的幅度是半张卡高(168px), 若命中区跟着卡一起走,
     //     鼠标停在卡下半部时卡一弹起就脱离光标 ⇒ 失焦落回 ⇒ 又盖住光标 ⇒ 无限抖动。
     //     壳不动 ⇒ 光标始终在壳内, 悬停态稳定。上弹后卡越出壳外的那半张由 CSS 的悬停桥
     //     (.hand-slot:hover::after, 见 HandCard.css)补上命中区, 故移到弹起的卡上也不会掉焦。
-    //   ⚠ 尺寸/负 margin 叠压/张数自适应等版式规则全部认这一层, 见 ui/BattleScreen.css 的 .hand-slot。
+    //   ⚠ 尺寸/负 margin 叠压/张数自适应等版式规则全部认这一层, 见 HandTray.module.css 与本文件末尾。
     <div
-      className={cx(s["hand-slot"], selected && s.selected, leaving && s.leaving)}
+      className={cx(s["hand-slot"], playable && s.playable, selected && s.selected, leaving && s.leaving)}
       style={handStyle}
       // data-hand-slot: 供 BattleScreen 的 `.hand-tray:has([data-hand-slot]:nth-last-child(N))`
       // 按张数收紧叠压量。类名被哈希后那条选择器够不着, 属性可以(样式铁律 2)。
@@ -84,6 +85,11 @@ export function HandCard({
       //   等于把刚搬走的开销原样搬回来。卡自己的悬停视觉全部由 CSS :hover 驱动(见 HandCard.css)。
       onMouseEnter={() => !leaving && setHandHover(card)}
       onMouseLeave={() => clearHandHover(card)}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (leaving) return;
+        onClick?.(card.uid);
+      }}
     >
       {actionBadge && !leaving && (
         <button
@@ -93,7 +99,7 @@ export function HandCard({
           title={actionBadge === "redraw" ? "换掉这张牌" : "丢弃这张牌"}
           onClick={(e) => {
             e.stopPropagation();
-            onAction?.();
+            onAction?.(card.uid);
           }}
         >
           {actionBadge === "redraw" ? <RedrawIcon /> : <DiscardIcon />}
@@ -109,7 +115,7 @@ export function HandCard({
           // ⚠ rarity 在 CardDef 上是可选的(engine/types.ts), 缺省当 common —— 否则那张卡会一层纹都没有,
           //   与 common 看起来一样但走的是"未定义"的路径, 将来加档时容易漏。
           s[`r-${card.rarity ?? "common"}`],
-          playable ? s.playable : s.unplayable,
+          !playable && s.unplayable,
           selected && s.selected,
           leaving && s.leaving,
           card.upgraded && s.upgraded,
@@ -118,12 +124,7 @@ export function HandCard({
         onTransitionEnd={(e) => {
           // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
           // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。
-          if (leaving && e.propertyName === "transform") onExited?.();
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (leaving) return;
-          onClick?.();
+          if (leaving && e.propertyName === "transform") onExited?.(card.uid);
         }}
       >
         {/* 配图层: 卡上段的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪) */}
@@ -158,4 +159,4 @@ export function HandCard({
       </div>
     </div>
   );
-}
+});

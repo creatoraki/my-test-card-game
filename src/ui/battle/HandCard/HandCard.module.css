@@ -15,17 +15,18 @@
      左侧一条(后一张压在前一张右侧), 右半边的任何线索在一排牌里都读不到。
    ⚠ 稀有度刻意**不上色**(见 src/styles/tokens.css 的注释: 物品那套五档配色与卡牌无关, 别互相套用)。 */
 
-/* ★ .hand-slot: 每张卡外面那层**永不位移**的壳 —— 悬停命中区、层序、版式(宽高/叠压)全归它,
+/* ★ .hand-slot: 每张卡外面那层**永不位移**的壳 —— 悬停命中区、点击处理器、层序、版式(宽高/叠压)全归它,
      .hand-card 只负责视觉上的上弹/出鞘/飞入。
    ⚠ 这层是修「悬停抖动」的关键, 不能为了省一层 DOM 去掉: 聚焦位移是**半张卡高(154px)**,
      若命中区跟着卡走, 鼠标停在卡下半部时 —— 卡弹起 ⇒ 光标落到卡外 ⇒ :hover 失效 ⇒ 卡落回
      ⇒ 又盖住光标 ⇒ 无限循环地弹出/缩回。壳不动, 这个环就断了。
    ⚠ 也不能改成"给卡加个向下延伸的伪元素补命中区": .hand-card 自带 overflow:hidden + clip-path,
      任何子元素/伪元素都会被连命中区一起裁掉。
-   ⚠ 同理, **邻卡让位**(见 ui/BattleScreen.css)也只能位移 .hand-card 而不能位移这层壳。
-   尺寸与鱼鳞叠的负 margin 见 ui/BattleScreen.css 的 .hand-tray .hand-slot 段。 */
+  ⚠ 同理, **邻卡让位**(见本文件末尾)也只能位移 .hand-card 而不能位移这层壳。
+  尺寸与鱼鳞叠的负 margin 见 HandTray.module.css 与本文件末尾。 */
 .hand-slot {
   position: relative;
+  contain: layout style;
   animation: hand-deal-gate 0.8s step-end backwards;
   animation-delay: var(--deal-delay, 0ms);
 }
@@ -40,7 +41,7 @@
 }
 /* 悬停桥: 卡弹起后有半张卡高**越出壳外**, 若不补命中区, 鼠标往上追到弹起的卡面上就会掉焦落回。
    这块透明垫只在悬停时存在 ⇒ 静止时壳外的空白不吃悬停(否则鼠标扫过托盘上方就会平白弹卡)。
-   ⚠ 刻意只盖"壳上沿以上"那半张 + 2px 接缝, 不盖壳自身: 壳本身已经是命中区, 多盖一层反而会把
+  ⚠ 刻意只盖"壳上沿以上"那半张 + 26px 接缝, 不盖壳自身: 壳本身已经是命中区, 多盖一层反而会把
      右邻卡被叠压的那一条挡住, 让相邻卡难以切换悬停。
    ⚠ 不吃点击: 它没有 z-index(auto), 而卡是 z-index:1 ⇒ 弹起的卡恒在垫子之上, 点击照常落到卡上。 */
 .hand-slot:hover::after {
@@ -49,7 +50,7 @@
   left: 0;
   right: 0;
   bottom: calc(100% - 2px);
-  height: calc(var(--hand-card-h) / 2 + 2px);
+  height: calc(var(--hand-card-h) / 2 + 26px);
   pointer-events: none;
 }
 /* 出鞘中的卡不该再吃悬停(同 .hand-card.leaving 的 pointer-events:none) */
@@ -131,7 +132,7 @@
      ⚠ 过冲是双向的: 鼠标移出时回落也会轻微越过原位再归位, 这是刻意的手感。
      ⚠ filter 也要过渡 —— 卡的"厚度层"与接触影都写在 filter 里(见文件末尾), 不过渡会在悬停瞬间跳变。
      ⚠ .hand-card.leaving 自带一整条 transition, 会覆盖这里 —— 出鞘手感不受影响。 */
-  transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04), filter 0.2s, background 0.18s;
+  transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04), filter 0.2s;
 }
 /* ── 边角磨损: 两个 14px 斜切口内侧的亮边 ──
    切口是"这块板被切过"的地方, 真金属的切口边缘会被磨出一道亮边。两块很小的 radial-gradient
@@ -197,7 +198,7 @@
   --card-edge: #dbe5ec;
   --card-edge-core: #a9b7c2;
 }
-.hand-card.playable {
+.hand-slot.playable {
   cursor: pointer;
 }
 
@@ -471,7 +472,6 @@
     14px 14px,
     14px 14px;
   background-repeat: no-repeat;
-  transition: background 0.2s;
 }
 /* 斜面的下沉转折: 内缩 3px 的一圈 1px 暗线, 紧贴主环内侧。主环(亮/暗对比)+ 这道暗线
    合起来才读作一个真正的**倒角**, 而不是一圈描边。
@@ -737,7 +737,7 @@
    ⚠ 用 ::after: ::before 已被"边角磨损"占用(见文件上方)。
    ⓘ 项目里的同族范式: CharacterDetailScreen.css 的 cdSheen、CryoScene.css 的 cryoSheen。 */
 .hand-card::after {
-  content: "";
+  content: none;
   position: absolute;
   inset: 0;
   z-index: 9;
@@ -747,9 +747,11 @@
   mix-blend-mode: soft-light;
 }
 .hand-slot:not(.leaving):hover > .hand-card:not(.selected)::after {
+  content: "";
   animation: hc-sheen 0.48s ease-out;
 }
 .hand-card.selected::after {
+  content: "";
   animation: hc-sheen 0.56s ease-out;
 }
 @keyframes hc-sheen {
@@ -805,10 +807,12 @@
      该状态下突然"变薄"。静止态与打不出那两条在 ui/BattleScreen.css(静止态还要负责鱼鳞叠的
      右缘投影)。 */
 .hand-slot:not(.leaving):hover > .hand-card:not(.selected) {
+  will-change: transform, filter;
   transform: perspective(1400px) rotateX(-8deg) translateY(calc(var(--hand-card-h) / -2));
   filter: drop-shadow(0 7px 0 #05080a) drop-shadow(0 26px 30px #000e);
 }
 .hand-card.selected {
+  will-change: transform, filter;
   transform: perspective(1400px) rotateX(0deg) translateY(calc(var(--hand-card-h) / -2 - 24px));
   /* 轮廓辉光也走中性冷白 —— 它表达的是"这块板被打了光", 不是某种颜色的能量 */
   filter: drop-shadow(0 8px 0 #05080a) drop-shadow(0 0 12px #dfe9f280) drop-shadow(0 30px 34px #000e);
@@ -873,6 +877,7 @@
      (0,4,0) 的, 反光照样会扫。 */
   .hand-slot:not(.leaving):hover > .hand-card:not(.selected)::after,
   .hand-card.selected::after {
+    content: none;
     animation: none;
   }
   .hand-slot:not(.leaving):hover > .hand-card:not(.selected) {
@@ -921,7 +926,7 @@
      且**每条都自带厚度层**, 漏写的那条会让卡在该状态下突然变薄。
    ⚠ 悬浮判的是外壳 .hand-slot:hover(卡自己一弹起就脱离光标), 与 HandCard.css 的聚焦规则保持同源。 */
 :global([data-hand-tray]) .hand-slot:not(:hover) > .hand-card:not(.selected) {
-  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(3px 0 5px #000a) drop-shadow(0 7px 9px #000b);
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(2px 5px 7px #000b);
 }
 /* ★ 打不出的卡: 厚度层从 4px **减半到 2px**, 接触影收紧压暗 ⇒ 卡读作"贴死在基座上、断电"。
    这是"能不能打"在卡面上的主要表达(另一半是三层棱塌成一层暗棱, 见 ui/HandCard.css 的
@@ -980,6 +985,6 @@
 :global([data-hand-tray][data-hand-action]) .hand-slot:has(+ .hand-slot:hover) > .hand-card:not(.selected):not(.leaving) {
   transform: none;
 }
-:global([data-hand-tray][data-hand-action]) .hand-card {
+:global([data-hand-tray][data-hand-action]) .hand-slot {
   cursor: default;
 }

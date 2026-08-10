@@ -17,6 +17,7 @@ import type { Card } from "@/engine";
 //
 // ⚠ 存整个 Card 而不是 uid: 订阅方要的东西(ownerCharId / 名称 / 效果文本)卡上全有,
 //   存 uid 的话它们还得各自拿 battle.cards 回查一次, 等于又把 battle 拖成了依赖。
+//   但只需要单个字段的订阅方应使用下方的派生 selector, 避免跨卡切换时被整张 Card 引用唤醒。
 // ============================================================================
 
 interface HandFocusState {
@@ -43,3 +44,7 @@ export const clearHandHover = (card: Card): void =>
 export const resetHandHover = (): void => useStore.setState({ hovered: null });
 
 export const useHandHover = (): Card | null => useStore((s) => s.hovered);
+
+export const useHandHoverCost = (): number | null => useStore((s) => s.hovered?.cost ?? null);
+
+export const useHandHoverOwner = (): string | null => useStore((s) => s.hovered?.ownerCharId ?? null);

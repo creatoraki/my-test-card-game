@@ -41,7 +41,7 @@ export interface AnimPreset {
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
-  // 震屏档位: 下标取 CINEMA.impact.shakeAmp。0=不震(辅助系), 1=普通攻击, 2=重击。
+  // 震屏档位仅作为 pickShot 的选档输入; 实际幅度唯一由 camera/shots.ts 的 SHOTS[*].shake 决定。
   shake: 0 | 1 | 2;
 }
 
@@ -72,15 +72,6 @@ export const CINEMA = {
     //   当前 250 + 1400(1−1/1.55) ≈ 747 < 1400, 余量充足; 加大 near 或 scale 前先算这一条。
     near: 250,
     // 敌我单位(.battle-stage)恒为 0 —— 它是取景与相机数学的基准面, 不要给它加深度。
-  },
-
-  // ── 分镜节奏 ──
-  tempo: {
-    light: { lead: 140, hold: 380 },
-    normal: { lead: 200, hold: 620 },
-    heavy: { lead: 280, hold: 980 },
-    aoe: { lead: 240, hold: 820 },
-    kill: { lead: 320, hold: 1300 },
   },
 
   // 朝向 = 偏航/俯仰(转) + 平移(挪) 两者叠加。

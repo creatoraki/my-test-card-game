@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Card, Targeting, Rarity } from "@/engine";
 import { getCharacter } from "@/data";
 import { cardArt } from "@/ui/art/cardArt";
@@ -37,7 +38,7 @@ const RARITY_LABEL: Record<Rarity, string> = {
 //   悬停不同卡时下半部整块上下跳。
 // ⚠ 两个分支的根节点都要自己 stopPropagation: 面板已搬出 .battle-hud(那层统一拦了冒泡), 现在
 //   直挂在 .screen.battle 下, 不拦的话点面板会冒泡到画布的 onClick 把选中的卡取消掉。
-export function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
+export const CardInfoPanel = memo(function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
   // ⚠ hook 必须在下面的早退**之前**调用。
   const hovered = useHandHover();
   const card = hovered ?? fallbackCard;
@@ -117,4 +118,4 @@ export function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
       <div className={s["drawer-text"]}>{card.text}</div>
     </div>
   );
-}
+});

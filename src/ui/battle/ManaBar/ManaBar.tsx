@@ -1,6 +1,6 @@
 import type { BattleState } from "@/engine";
 import { RULES } from "@/engine";
-import { useHandHover } from "@/ui/battle/handFocusStore";
+import { useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import s from "./ManaBar.module.css";
 
@@ -11,9 +11,9 @@ interface Props {
 export function ManaBar({ battle }: Props) {
   const mana = battle.resources[RULES.resource.name] ?? 0;
   const maxMana = RULES.resource.perRound;
-  const hoveredCard = useHandHover();
+  const hoveredCost = useHandHoverCost();
   const crystalCount = Math.max(maxMana, mana);
-  const activeCount = Math.min(mana, hoveredCard?.cost ?? 0);
+  const activeCount = Math.min(mana, hoveredCost ?? 0);
   const activeStart = mana - activeCount;
 
   return (
@@ -22,7 +22,7 @@ export function ManaBar({ battle }: Props) {
         <ManaCrystal
           key={index}
           className={s.crystal}
-          state={hoveredCard && index >= activeStart && index < mana ? "active" : index >= mana ? "empty" : "normal"}
+          state={hoveredCost !== null && index >= activeStart && index < mana ? "active" : index >= mana ? "empty" : "normal"}
         />
       ))}
     </div>

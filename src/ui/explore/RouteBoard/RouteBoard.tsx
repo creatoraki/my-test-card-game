@@ -416,6 +416,14 @@ const ICONS: Record<NodeEventKind, ReactNode> = {
       <path d="M24 33.5v.01" strokeWidth={2.2} />
     </>
   ),
+  // 战斗: 锁定准星
+  battle: (
+    <>
+      <circle cx="24" cy="24" r="13" strokeWidth={1.5} />
+      <path d="M24 7v8M24 33v8M7 24h8M33 24h8" strokeWidth={1.5} />
+      <circle cx="24" cy="24" r="3" strokeWidth={1.6} />
+    </>
+  ),
 };
 
 // 站在地板上的事件图标: 同一份图标数据画三遍, 叠出「小物件」的体积感 ——

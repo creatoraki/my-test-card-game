@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   canPlay,
   type AnimFrame,
@@ -12,7 +12,7 @@ import { useBattleStore } from "@/store/battleStore";
 import { useRunStore } from "@/store/runStore";
 import { CombatantView, isIntentRevealed } from "@/ui/battle/CombatantView";
 import { AllyBar } from "@/ui/battle/AllyBar";
-import { HandCard } from "@/ui/battle/HandCard";
+import { HandTray } from "@/ui/battle/HandTray";
 import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
 import { VictoryPanel } from "@/ui/battle/VictoryPanel";
 import { BattleActions } from "@/ui/battle/BattleActions";
@@ -51,6 +51,7 @@ import s from "./BattleScreen.module.css";
 const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
 const CAMERA_HARD_CUT_DISTANCE = 420;
 const CAMERA_SETTLE_MS = CINEMA.aim.dur + 80;
+const DEPTH_VARS = depthVars();
 
 function safeArea(stage: HTMLElement) {
   return { x: stage.offsetLeft, y: stage.offsetTop, w: stage.offsetWidth, h: stage.offsetHeight };
@@ -134,6 +135,18 @@ export function BattleScreen() {
   const bgVideoRef = useRef<HTMLVideoElement>(null); // 背景视频(仅用于抓首帧做溢出填充)
   // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform。
   const stageScale = useStageScale(viewportRef);
+  const viewportStyle = useMemo(
+    () =>
+      ({
+        "--stage-scale": stageScale,
+        "--perspective": `${CINEMA.perspective}px`,
+      }) as React.CSSProperties,
+    [stageScale],
+  );
+  const worldStyle = useMemo(
+    () => ({ "--fx-rate": fxRate, ...DEPTH_VARS }) as React.CSSProperties,
+    [fxRate],
+  );
 
   const [animating, setAnimating] = useState(false); // 动画期间锁输入
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
@@ -144,6 +157,8 @@ export function BattleScreen() {
   const dealtUidsRef = useRef(new Set<string>()); // 已经播过飞入动画的卡 uid
   const openingDoneRef = useRef(false); // 本场战斗的首批手牌是否已发出
   const timelineRef = useRef<Timeline | null>(null);
+  const triggerPlayRef = useRef<(uid: string, primaryId?: string) => void>(() => undefined);
+  const combatantClickRef = useRef<(id: string) => void>(() => undefined);
   const cameraRig = useCameraRig({ sceneRef, worldRef, screenRef });
   const setCameraTarget = (next: Camera | null) => {
     cameraRig.setCamera(next);
@@ -298,11 +313,46 @@ export function BattleScreen() {
     });
   }, [battle]);
 
-  const handleCardExited = (uid: string) => {
+  const handleCardExited = useCallback((uid: string) => {
     dealtUidsRef.current.delete(uid);
     setRenderHand((prev) => prev.filter((e) => e.card.uid !== uid));
     setPlayingOutUid((cur) => (cur === uid ? null : cur));
-  };
+  }, []);
+
+  const isPlayerTurn = battle?.phase === "player";
+  const selectedCard = battle && selectedUid ? battle.cards[selectedUid] : null;
+  const needsFoe = selectedCard?.targeting === "foe";
+  const needsAlly = selectedCard?.targeting === "ally";
+
+  const runHandAction = useCallback(
+    (uid: string) => {
+      const next = handAction === "redraw" ? redrawCard(uid) : discardCard(uid);
+      if (next) {
+        commit(next);
+        setHandAction(null);
+        resetHandHover();
+      }
+    },
+    [commit, discardCard, handAction, redrawCard],
+  );
+
+  const onCardClick = useCallback(
+    (uid: string) => {
+      if (!battle || !isPlayerTurn || animating || handAction) return;
+      if (!canPlay(battle, uid)) return;
+      const card = battle.cards[uid];
+      if (card.targeting === "foe" || card.targeting === "ally") {
+        setSelectedUid((prev) => (prev === uid ? null : uid));
+      } else {
+        triggerPlayRef.current(uid);
+      }
+    },
+    [animating, battle, handAction, isPlayerTurn],
+  );
+
+  const onCombatantClick = useCallback((id: string) => {
+    combatantClickRef.current(id);
+  }, []);
 
   // ★ 仇恨系统已移除 —— 敌人在存活我方单位里随机挑目标, 因此不存在"预计会打谁"这件事,
   //   原先的仇恨目标高亮与它的洞察开关一并删除。
@@ -331,11 +381,6 @@ export function BattleScreen() {
 
   if (!battle) return <div className={s.loading}>加载中…</div>;
   const b = battle; // 非空别名: 供下方事件处理闭包安全引用(收窄不跨闭包)
-
-  const isPlayerTurn = battle.phase === "player";
-  const selectedCard = selectedUid ? battle.cards[selectedUid] : null;
-  const needsFoe = selectedCard?.targeting === "foe";
-  const needsAlly = selectedCard?.targeting === "ally";
 
   // 本次出牌"接收特效"的目标单位(攻击→敌人受击; 辅助→友军柔光)
   function fxTargets(uid: string, primaryId?: string): string[] {
@@ -519,7 +564,7 @@ export function BattleScreen() {
             }
             const axis = impactAxis(step, targetIds);
             cameraRig.punch(preset.punch);
-            cameraRig.impact(axis, CINEMA.impact.shakeAmp[ANIM[step.anim].shake], -axis.x * preset.roll * 0.35);
+            cameraRig.impact(axis, preset.shake, -axis.x * preset.roll * 0.35);
             if (preset.creep > 0) {
               timeline.schedule(Math.round(hold * 0.35), () => {
                 const current = focus();
@@ -597,6 +642,7 @@ export function BattleScreen() {
     const enter = aim ? { ...aim, yaw: 0, pitch: 0 } : null;
     startBatch(steps, plan.final, enter);
   }
+  triggerPlayRef.current = triggerPlay;
 
   // 结束回合: 逐步播放冲刷的敌人行动, 最后落到下一回合起始态。
   function triggerEndTurn() {
@@ -606,34 +652,14 @@ export function BattleScreen() {
     startBatch(plan.frames.map(stepFromFrame), plan.final);
   }
 
-  function runHandAction(uid: string) {
-    const next = handAction === "redraw" ? redrawCard(uid) : discardCard(uid);
-    if (next) {
-      commit(next);
-      setHandAction(null);
-      resetHandHover(); // 换掉/丢掉的那张已不在手上, 详情面板不该继续显示它
-    }
-  }
-
-  function onCardClick(uid: string) {
-    if (!isPlayerTurn || animating) return;
-    if (handAction) return;
-    if (!canPlay(b, uid)) return;
-    const card = b.cards[uid];
-    if (card.targeting === "foe" || card.targeting === "ally") {
-      setSelectedUid((prev) => (prev === uid ? null : uid));
-    } else {
-      triggerPlay(uid);
-    }
-  }
-
-  function onCombatantClick(id: string) {
+  function performCombatantClick(id: string) {
     if (!selectedUid || !selectedCard || animating) return;
     const t = b.combatants[id];
     if (!t.alive) return;
     if (needsFoe && t.team === "enemy") triggerPlay(selectedUid, id);
     else if (needsAlly && t.team === "player") triggerPlay(selectedUid, id);
   }
+  combatantClickRef.current = performCombatantClick;
 
   const enemies = battle.enemyIds.map((id) => battle.combatants[id] as Enemy);
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
@@ -658,14 +684,7 @@ export function BattleScreen() {
     <div
       className={s["battle-viewport"]}
       ref={viewportRef}
-      style={
-        {
-          "--stage-scale": stageScale,
-          // 透视距离下发给 .screen.battle 的 perspective 属性(唯一真相在 CINEMA.perspective;
-          // cameraCss 的推进量按同一个 P 反算, 两边必须是同一个数)
-          "--perspective": `${CINEMA.perspective}px`,
-        } as React.CSSProperties
-      }
+      style={viewportStyle}
     >
       <div
         className={s.battle}
@@ -707,12 +726,7 @@ export function BattleScreen() {
       <div
         className={s["battle-world"]}
         ref={worldRef}
-        style={
-          {
-            "--fx-rate": fxRate,
-            ...depthVars(),
-          } as React.CSSProperties
-        }
+        style={worldStyle}
       >
       {/* 背景层: 精确铺满世界, 素材按当前地图取(见 ui/battleBg.ts)。视频与静态图两个分支
           共用同一份 className —— 对场景相机而言二者完全等价, 都只是世界里的一张地皮。 */}
@@ -755,8 +769,8 @@ export function BattleScreen() {
               hit={hits[e.id] ?? null}
               placement={placements[i]}
               twitching={e.id === twitchId}
-              onClick={() => onCombatantClick(e.id)}
-              onHover={() => setAimFoeId(e.id)}
+              onClick={onCombatantClick}
+              onHover={setAimFoeId}
             />
           ))}
         </div>
@@ -834,34 +848,17 @@ export function BattleScreen() {
             onSelect={onCombatantClick}
           />
         </div>
-        <div className={s["hand-panel"]}>
-        {/* data-hand-tray: HandCard 的版式/厚度规则要从托盘起手选自己(见 HandCard.module.css
-            末尾那一段)。类名会被哈希、跨不过模块边界, 属性可以(样式铁律 2)。 */}
-        <div className={s["hand-tray"]} data-hand-tray data-hand-action={handAction ?? undefined}>
-          <span className={s["hand-tray-rail"]} aria-hidden="true" />
-          {renderHand.length === 0 && battle.hand.length === 0 && (
-            <div className={s["empty-hand"]}>NO CARDS</div>
-          )}
-          {renderHand.map((entry) => {
-            const c = entry.card;
-            const leaving = entry.leaving || c.uid === playingOutUid;
-            return (
-              <HandCard
-                key={c.uid}
-                card={c}
-                dealDelay={entry.dealDelay}
-                leaving={leaving}
-                playable={!leaving && isPlayerTurn && canPlay(battle, c.uid)}
-                actionBadge={handAction}
-                selected={c.uid === selectedUid}
-                onExited={() => handleCardExited(c.uid)}
-                onClick={() => onCardClick(c.uid)}
-                onAction={() => runHandAction(c.uid)}
-              />
-            );
-          })}
-        </div>
-        </div>
+        <HandTray
+          renderHand={renderHand}
+          battle={battle}
+          isPlayerTurn={isPlayerTurn}
+          handAction={handAction}
+          selectedUid={selectedUid}
+          playingOutUid={playingOutUid}
+          onCardClick={onCardClick}
+          onCardAction={runHandAction}
+          onCardExited={handleCardExited}
+        />
       </div>
 
       <PileRail battle={battle} onOpenPile={setOpenPile} />

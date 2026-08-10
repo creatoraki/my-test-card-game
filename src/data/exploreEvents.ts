@@ -1133,6 +1133,35 @@ const ECONOMY: NodeEvent[] = [
   },
 ];
 
+const BATTLE: NodeEvent[] = [
+  {
+    id: "battle-cleaning-drone",
+    kind: "battle",
+    category: "battle",
+    title: "清扫无人机",
+    description: "一台清扫无人机把探测灯对准队伍，旧指令将你们标记为待处理的污染源。",
+    energyDelta: 0,
+    depth: [2, 4],
+    effects: [{ type: "START_NODE_BATTLE", tier: "light" }],
+    choices: [
+      choice("engage", "迎战", "立刻进入战斗", "无人机的清扫臂已经锁定目标，你们只能先拆掉它。", undefined),
+    ],
+  },
+  {
+    id: "battle-scrap-crew",
+    kind: "battle",
+    category: "battle",
+    title: "废品机器人清运班组",
+    description: "几台废品机器人从堆料后方排成清运队列，机械钳上还挂着没有卸下的旧货箱。",
+    energyDelta: 0,
+    depth: [2, 4],
+    effects: [{ type: "START_NODE_BATTLE", tier: "light" }],
+    choices: [
+      choice("engage", "迎战", "立刻进入战斗", "清运班组把道路封死，所有机械臂同时转向了你们。", undefined),
+    ],
+  },
+];
+
 export interface EventPool {
   survival: NodeEvent[];
   growth: NodeEvent[];
@@ -1140,6 +1169,7 @@ export interface EventPool {
   route: NodeEvent[];
   energy: NodeEvent[];
   hazard: NodeEvent[];
+  battle: NodeEvent[];
   endgame: NodeEvent[];
 }
 
@@ -1151,6 +1181,7 @@ export const EVENT_POOLS: Record<string, EventPool> = {
     route: [],
     energy: [],
     hazard: HAZARD,
+    battle: BATTLE,
     endgame: [],
   },
 };

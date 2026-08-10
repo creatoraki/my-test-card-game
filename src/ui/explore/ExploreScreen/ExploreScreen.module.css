@@ -35,6 +35,9 @@
 .k-hazard {
   composes: k-hazard from "../styles/exploreKit.module.css";
 }
+.k-battle {
+  composes: k-battle from "../styles/exploreKit.module.css";
+}
 .k-heal {
   composes: k-heal from "../styles/exploreKit.module.css";
 }

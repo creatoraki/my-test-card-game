@@ -1,0 +1,113 @@
+/* 手牌托盘的版式与基座。卡槽/卡面自身的版式与厚度规则归 HandCard.module.css。 */
+.hand-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-right: 20px;
+  --hand-card-w: 220px;
+  --hc-text-h: 88px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
+  --hand-overlap: 78px;
+  --hand-yield: 26px;
+}
+.hand-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--hand-plate-h);
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2),
+    linear-gradient(#8a97a2, #8a97a2);
+  background-position:
+    left 18px top 0,
+    right 18px top 0,
+    left 0 bottom 0,
+    left 0 bottom 0,
+    right 0 bottom 0,
+    right 0 bottom 0;
+  background-size: 30px 2px, 30px 2px, 2px 20px, 20px 2px, 2px 20px, 20px 2px;
+  background-repeat: no-repeat;
+  opacity: 0.4;
+}
+.hand-tray {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 10px 8px;
+  overflow: visible;
+}
+.hand-tray:has([data-hand-slot]:nth-last-child(7)) {
+  --hand-overlap: 90px;
+}
+.hand-tray:has([data-hand-slot]:nth-last-child(8)) {
+  --hand-overlap: 110px;
+}
+.hand-tray:has([data-hand-slot]:nth-last-child(9)) {
+  --hand-overlap: 125px;
+}
+.hand-tray:has([data-hand-slot]:nth-last-child(10)) {
+  --hand-overlap: 135px;
+}
+.hand-tray::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--hand-plate-h);
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(#a2aeb8, #a2aeb8),
+    linear-gradient(#05080a, #05080a),
+    repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, #00000026 0 1px, transparent 1px 2px),
+    radial-gradient(40% 90% at 16% 20%, #ffffff0d, transparent 72%),
+    radial-gradient(34% 80% at 74% 40%, #ffffff08, transparent 74%),
+    repeating-linear-gradient(90deg, #ffffff06 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #1f262b, #0b0f11);
+  background-position: left top, left 1px, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  background-size: 100% 1px, 100% 1px, auto, auto, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, repeat, repeat;
+  border: 1px solid #2b3339;
+  border-bottom: 0;
+  clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%, 0 18px);
+  box-shadow: inset 0 -18px 24px #05080a99;
+}
+.hand-tray-rail {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 8px;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    #05080a 0 2px,
+    #ffffff1a 2px 3px,
+    #ffffff08 3px 4px,
+    transparent 4px 26px
+  );
+  border-top: 1px solid #05080a;
+}
+.empty-hand {
+  z-index: 1;
+  align-self: center;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #6fd2ff6b;
+}

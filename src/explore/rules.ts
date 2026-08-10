@@ -71,6 +71,12 @@ export const EXPLORE_RULES = {
   // index = 轮次 - 1。老虎机战斗签接上之前, 本表直接决定本轮打哪一场。
   battleTierByRound: ["light", "medium", "medium", "heavy", "heavy", "boss"] as readonly BattleTier[],
 
+  eventPool: {
+    recentWindowRounds: 1,
+    hazard: { minDeep: 5, minSegment: 3 },
+    battleNodes: { count: 2, depth: [2, 4] as readonly [number, number] },
+  },
+
   // ── 战斗签: 老虎机(设计文档 §2.4) ──
   slot: {
     // ⚠ 硬性 8。三连概率 = 1 / 符号数², 8 个符号 ⇒ 1.6%; 若 BOSS 轮只放 3-4 种条件,

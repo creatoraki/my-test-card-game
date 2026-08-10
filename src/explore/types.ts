@@ -51,7 +51,8 @@ export type NodeEventKind =
   | "merchant"
   | "route"
   | "energy"
-  | "hazard";
+  | "hazard"
+  | "battle";
 
 // 保底规则按「类别」而非 kind 判定(设计文档 §2.3.2), 且范围是**整张图**而不是每段。
 export type EventCategory =
@@ -61,6 +62,7 @@ export type EventCategory =
   | "route"
   | "energy"
   | "hazard"
+  | "battle"
   | "endgame";
 
 // 风险标记 —— 纯负面全图最多 2 个、高风险最多 3 个, 且都只能出现在第 3-4 推进段。
@@ -93,6 +95,7 @@ export type ExploreEffect =
   | { type: "FORGE_REMOVE" }
   | { type: "EQUIP_OFFER"; count: number; slot?: EquipSlot }
   | { type: "REFORGE_BOND"; bias?: BondBias }
+  | { type: "START_NODE_BATTLE"; tier: BattleTier }
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
 
@@ -381,6 +384,8 @@ export interface ExploreState {
   pendingEncounterId: string | null; // 战斗中: 打的是哪一场
   pendingIsBoss: boolean;
   pendingBattleTier: BattleTier | null; // 本轮推进战斗的档位(§3.1 固定表)
+  recentEventIds: string[]; // 最近若干轮已经出现过的事件, 用于生成时软冷却
+  battleSource: "round" | "node" | null;
   // ★ 下面三项是**开战瞬间的快照**(与负重快照同一时机, 设计文档 §10.1):
   //   老虎机的结果一旦定下就不该再被后续操作影响, 战斗结算读的必须是这三份。
   pendingMatchBonus: number; // 同花加成 0 / 0.5 / 1.5

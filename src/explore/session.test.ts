@@ -79,7 +79,13 @@ function toChoosing(s: ExploreState): void {
 function takeNode(s: ExploreState): void {
   arriveNode(s);
   chooseOption(s, 0);
-  if (s.phase === "resolving") confirmNode(s);
+  if (s.phase === "inBattle") {
+    finishBattle(s, true, WIN, ["scrap-bot"]);
+    s.pendingLoot = [];
+    confirmNode(s);
+  } else if (s.phase === "resolving") {
+    confirmNode(s);
+  }
 }
 
 // 披露页 → 战斗签 → 开战。转轮的三次暂停用固定 elapsedMs 喂进去, 种子一样结果就一样。
@@ -145,15 +151,13 @@ describe("节点生成与保底(设计文档 §2.3.2)", () => {
     }
   }
 
-  it("每轮恰好 20 个节点, 同一推进段内不重复", () => {
+  it("每轮恰好 20 个节点, 整张图内不重复", () => {
     for (let seed = 1; seed <= 20; seed++) {
       eachBoard(seed, (s) => {
         const rows = s.board!.nodes;
         expect(rows.flat()).toHaveLength(SEGMENTS * EXPLORE_RULES.laneCount);
-        for (const row of rows) {
-          const ids = row.map((e) => e.id);
-          expect(new Set(ids).size).toBe(ids.length);
-        }
+        const ids = rows.flat().map((e) => e.id);
+        expect(new Set(ids).size).toBe(ids.length);
       });
     }
   });
@@ -172,12 +176,13 @@ describe("节点生成与保底(设计文档 §2.3.2)", () => {
     }
   });
 
-  it("风险节点只在第 3-4 推进段, 且纯负面 ≤ 2、高风险 ≤ 3(全图配额)", () => {
+  it("风险节点只在第 3-4 推进段, 且深段至少有 5 个风险事件", () => {
     for (let seed = 1; seed <= 20; seed++) {
       eachBoard(seed, (s) => {
         const flat = s.board!.nodes.flat();
-        expect(flat.filter((e) => e.risk === "negative").length).toBeLessThanOrEqual(2);
-        expect(flat.filter((e) => e.risk === "highRisk").length).toBeLessThanOrEqual(3);
+        expect(flat.filter((e) => e.category === "hazard").length).toBeGreaterThanOrEqual(
+          EXPLORE_RULES.eventPool.hazard.minDeep,
+        );
         s.board!.nodes.slice(0, 2).forEach((row) => {
           for (const e of row) expect(e.risk).toBeUndefined();
         });
@@ -203,13 +208,15 @@ describe("节点生成与保底(设计文档 §2.3.2)", () => {
     }
   });
 
-  it("未实现的事件(disabled)不参与抽取, 战斗事件已经不存在了", () => {
+  it("未实现的事件(disabled)不参与抽取, 每轮恰好有 2 个战斗节点", () => {
     for (let seed = 1; seed <= 20; seed++) {
       eachBoard(seed, (s) => {
         for (const e of s.board!.nodes.flat()) {
           expect(e.disabled).not.toBe(true);
-          expect(e.category).not.toBe("battle");
         }
+        expect(s.board!.nodes.flat().filter((e) => e.category === "battle")).toHaveLength(
+          EXPLORE_RULES.eventPool.battleNodes.count,
+        );
       });
     }
   });
@@ -351,6 +358,41 @@ describe("阶段机", () => {
     expect(s.pendingBattleTier).toBe("light");
     expect(s.pendingIsBoss).toBe(false);
     expect(s.pendingEncounterId).toBe("n-crew");
+  });
+
+  it("节点战斗胜利回到原落点, 不推进轮次或重新生成路线图", () => {
+    const s = newSession();
+    toChoosing(s);
+    chooseEntry(s, 0);
+    arriveNode(s);
+    const lane = s.currentLane!;
+    s.board!.nodes[0][lane] = {
+      id: "test-node-battle",
+      kind: "battle",
+      category: "battle",
+      title: "测试战斗节点",
+      description: "",
+      energyDelta: 0,
+      choices: [
+        {
+          id: "engage",
+          label: "迎战",
+          desc: "",
+          energyDelta: 0,
+          effects: [{ type: "START_NODE_BATTLE", tier: "light" }],
+        },
+      ],
+    };
+    expect(chooseOption(s, 0)).toBe(true);
+    expect(s.phase).toBe("inBattle");
+    expect(s.battleSource).toBe("node");
+    expect(s.pendingEncounterId).toBe("n-crew");
+    finishBattle(s, true, WIN, ["scrap-bot"]);
+    expect(s.phase).toBe("atNode");
+    expect(s.round).toBe(1);
+    expect(s.currentSegment).toBe(1);
+    expect(s.pendingEncounterId).toBeNull();
+    expect(s.battleSource).toBeNull();
   });
 
   it("打赢推进战斗进入下一轮, 新的一轮要重新走一遍浮现与揭示", () => {

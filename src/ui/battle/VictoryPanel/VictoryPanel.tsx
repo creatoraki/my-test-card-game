@@ -102,9 +102,10 @@ export function VictoryPanel() {
       aria-modal="true"
       aria-label="战斗胜利结算"
     >
-      <section className={s["victory-panel"]}>
-        <span className={s["panel-sweep"]} aria-hidden="true" />
-        <header className={s["panel-head"]}>
+      <div className={s["panel-reveal"]}>
+        <section className={s["victory-panel"]}>
+          <span className={s["panel-sweep"]} aria-hidden="true" />
+          <header className={s["panel-head"]}>
           <div>
             <h2>战斗胜利</h2>
           </div>
@@ -118,9 +119,9 @@ export function VictoryPanel() {
               </span>
             </button>
           </div>
-        </header>
+          </header>
 
-        <div className={s["panel-content"]}>
+          <div className={s["panel-content"]}>
           <section
             className={cx(s["exp-section"], s["victory-section"])}
             style={{ "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victorySectionStagger(0))}ms` } as CSSProperties}
@@ -175,9 +176,9 @@ export function VictoryPanel() {
               />
             </section>
           </div>
-        </div>
+          </div>
 
-        <footer className={s["panel-foot"]}>
+          <footer className={s["panel-foot"]}>
           {confirmingAbandon ? (
             <div className={s["confirm-strip"]}>
               <span>放弃剩余 {pendingLoot.length} 件战利品？</span>
@@ -198,8 +199,9 @@ export function VictoryPanel() {
           >
             {pendingLoot.length ? `还有 ${pendingLoot.length} 件战利品未处理` : "继续"}
           </button>
-        </footer>
-      </section>
+          </footer>
+        </section>
+      </div>
     </div>
   );
 }

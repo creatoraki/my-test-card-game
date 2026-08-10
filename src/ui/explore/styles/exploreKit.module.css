@@ -95,6 +95,11 @@
   --expl-kind-soft: #e3aa721c;
   --expl-kind-line: #e3aa7266;
 }
+.k-battle {
+  --expl-kind: #ef7770;
+  --expl-kind-soft: #ef77701c;
+  --expl-kind-line: #ef777066;
+}
 .k-heal {
   --expl-kind: #8ac8a5;
   --expl-kind-soft: #8ac8a51c;

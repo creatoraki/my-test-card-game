@@ -18,7 +18,7 @@
 .loot-cell {
   min-width: 0;
   opacity: 0;
-  animation: vcLootIn 320ms var(--vc-ease) var(--vc-delay) forwards;
+  animation: vcLootIn 260ms var(--vc-ease) var(--vc-delay) forwards;
 }
 
 .loot-slot {
@@ -27,7 +27,7 @@
   min-height: 68px;
   background: linear-gradient(145deg, #132830, #071014);
   border-color: #6fd2ff4c;
-  transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) ease, filter var(--vc-control-ms) ease;
+  transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) var(--vc-ease), filter var(--vc-control-ms) var(--vc-ease);
 }
 
 .loot-slot:hover,
@@ -52,7 +52,7 @@
   min-height: 130px;
   display: grid;
   place-items: center;
-  color: #76939c;
+  color: #9ab8c1;
   font-size: 15px;
   letter-spacing: 2px;
 }
@@ -102,8 +102,8 @@
 
 @keyframes vcLootFly {
   from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  45% { opacity: 1; transform: translate3d(calc(var(--fly-x) * 0.5), calc(var(--fly-y) * 0.5 - 60px), 0) scale(1.18); }
-  to { opacity: 0.3; transform: translate3d(var(--fly-x), var(--fly-y), 0) scale(0.35); }
+  45% { opacity: 1; transform: translate3d(calc(var(--fly-x) * 0.5), calc(var(--fly-y) * 0.5 - 44px), 0) scale(1.18); }
+  to { opacity: 0; transform: translate3d(var(--fly-x), var(--fly-y), 0) scale(0.35); }
 }
 
 @media (prefers-reduced-motion: reduce) {

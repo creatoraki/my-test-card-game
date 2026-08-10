@@ -5,7 +5,7 @@ import type { HitFx } from "@/ui/battle/animations";
 import { unitShellAttrs } from "@/ui/battle/unitShell";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
-import { useHandHover } from "@/ui/battle/handFocusStore";
+import { useHandHoverOwner } from "@/ui/battle/handFocusStore";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { HpBar } from "@/ui/common/HpBar";
 import { StatusPips } from "@/ui/common/StatusPips";
@@ -46,7 +46,7 @@ interface Props {
 //   整个战斗界面重渲染一遍。代价是悬停变化时本组件必然重渲染, 所以下面的 AllySlot 必须
 //   用 React.memo 挡住: 三格里只有「刚失焦」和「刚聚焦」那两格的 props 真的变了。
 export function AllyBar({ allies, hits, attackerId, focusFallbackCard, targetable, onSelect }: Props) {
-  const focusCharId = (useHandHover() ?? focusFallbackCard)?.ownerCharId;
+  const focusCharId = useHandHoverOwner() ?? focusFallbackCard?.ownerCharId;
   return (
     <div className={s["ally-bar"]}>
       {Array.from({ length: ALLY_SLOTS }, (_, i) => {

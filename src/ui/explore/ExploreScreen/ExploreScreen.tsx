@@ -182,6 +182,10 @@ export function ExploreScreen() {
     if (phase === "retreated" || phase === "wiped") finishExpedition();
   }, [phase, finishExpedition]);
 
+  useEffect(() => {
+    if (phase === "inBattle") enterEncounter();
+  }, [phase, enterEncounter]);
+
   // 阶段一旦走出白名单(比如按下「探索路线」), 背包必须自己关掉 ——
   // 硬约束在 store 层, 但面板留在屏幕上会让玩家以为还能翻。
   const bagAllowed = session ? canOpenBackpack(session) : false;
@@ -328,8 +332,11 @@ export function ExploreScreen() {
   // ★ 不立刻派发: 先让被点中的那一支演完「落子」(竖条锁死 + 扫光), 另一支同时暗下去,
   //   commit 拍之后才把结算算进会话。这段停顿就是玩家读到的「我做了一个决定」。
   // ⚠ 演出中不接受第二次点击 —— 否则连点两个分支会派发两次结算。
-  const takeOption = (index: number) => {
+  const takeOption = (index: number, event?: MouseEvent<HTMLButtonElement>) => {
     if (committing != null) return;
+    if (event && landedEv?.kind === "battle" && event.detail !== 0) {
+      setTransitionOrigin(event.clientX, event.clientY);
+    }
     if (prefersReducedMotion()) {
       chooseEventOption(index);
       return;
@@ -658,7 +665,7 @@ export function ExploreScreen() {
                                     : undefined
                                 }
                                 style={{ "--i": i } as CSSProperties}
-                                onClick={() => takeOption(i)}
+                                onClick={(event) => takeOption(i, event)}
                               >
                                 <span className={s["expl-choice-bar"]} aria-hidden />
                                 <span className={s["expl-choice-index"]} aria-hidden>

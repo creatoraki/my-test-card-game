@@ -4,28 +4,50 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: #020608e6;
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  animation: vcLayerIn 240ms var(--vc-ease) forwards;
+  background: transparent;
+  backdrop-filter: blur(0) saturate(1);
+  animation: vcLayerIn var(--vc-layer-ms) var(--vc-ease) forwards;
+  box-shadow: inset 0 0 240px #0006;
   pointer-events: auto;
+}
+
+.panel-reveal {
+  position: relative;
+  width: 1240px;
+  height: 760px;
+  clip-path: inset(calc(50% - 2px) 46% calc(50% - 2px) 46%);
+  animation: vcReveal calc(var(--vc-reveal-bar-ms) + var(--vc-reveal-ms)) var(--vc-ease-pop) forwards;
+}
+
+.panel-reveal::before {
+  position: absolute;
+  z-index: 2;
+  top: calc(50% - 1.5px);
+  left: 0;
+  width: 100%;
+  height: 3px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, #d8fbff, transparent);
+  box-shadow: 0 0 18px #83e6ff;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: center;
+  animation: vcRevealBar calc(var(--vc-reveal-bar-ms) + var(--vc-reveal-ms)) var(--vc-ease-pop) forwards;
 }
 
 .victory-panel {
   position: relative;
   display: flex;
-  width: 1240px;
-  height: 760px;
+  width: 100%;
+  height: 100%;
   flex-direction: column;
   overflow: hidden;
   padding: 26px 32px 22px;
   color: #eafaff;
-  background: linear-gradient(145deg, #121b1fe8, #070c0feb);
-  border: 1px solid #6fd2ff66;
+  background: linear-gradient(145deg, #101a1ffa, #05090bfc);
+  border: 1px solid #6fd2ff8c;
   clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 22px 100%, 0 calc(100% - 22px), 0 22px);
-  box-shadow: 0 30px 90px #000e, inset 0 0 70px #69d9ff0d;
-  transform: translateY(28px) scale(0.92);
-  animation: vcPanelIn var(--vc-panel-ms) var(--vc-ease-pop) forwards;
+  box-shadow: 0 30px 90px #000e, inset 0 0 90px #69d9ff10;
 }
 
 .panel-sweep {
@@ -36,9 +58,9 @@
   width: 24%;
   height: 100%;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, #d8fbff33, transparent);
+  background: linear-gradient(90deg, transparent, #d8fbff1c, transparent);
   transform: skewX(-18deg);
-  animation: vcSweep 760ms var(--vc-ease) 140ms forwards;
+  animation: vcSweep var(--vc-sweep-ms) var(--vc-ease) calc(var(--vc-reveal-bar-ms) + var(--vc-reveal-ms)) 1 both;
 }
 
 .panel-head,
@@ -61,8 +83,9 @@
   margin: 0;
   color: #f5fdff;
   font-size: 40px;
+  font-weight: 700;
   letter-spacing: 6px;
-  text-shadow: 0 0 18px #69d9ff66;
+  text-shadow: 0 0 10px #69d9ff40;
   opacity: 0;
   transform: scale(1.14);
   animation: vcTitleIn var(--vc-title-ms) var(--vc-ease-pop) 60ms both;
@@ -75,9 +98,10 @@
 }
 
 .loot-credit {
-  color: #ffca80;
+  color: #ffd79a;
   font-size: 26px;
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
   letter-spacing: 1px;
 }
 
@@ -85,7 +109,7 @@
   position: relative;
   min-width: 180px;
   padding: 11px 14px;
-  color: #d8fbff;
+  color: #e6f8ff;
   background: #0d232bd9;
   border: 1px solid #69d9ff88;
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
@@ -109,8 +133,8 @@
   right: 0;
   width: 240px;
   padding: 12px 14px;
-  color: #bdeaf2;
-  background: #061014f7;
+  color: #d3ecf3;
+  background: #040d10fb;
   border: 1px solid #6fd2ff66;
   box-shadow: 0 15px 30px #000b;
   font-size: 14px;
@@ -164,13 +188,13 @@
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
-  color: #c4f4fc;
+  color: #dff8ff;
   font-size: 18px;
   letter-spacing: 2px;
 }
 
 .section-heading small {
-  color: #698791;
+  color: #93b3bd;
   font-size: 13px;
   letter-spacing: 1px;
   white-space: nowrap;
@@ -213,15 +237,15 @@
   gap: 12px;
   margin-right: auto;
   color: #ffcf9d;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .action-button {
   min-width: 132px;
   padding: 11px 16px;
-  color: #a9d9e3;
+  color: #cbe9f1;
   background: #0a1a20;
-  border: 1px solid #6fd2ff55;
+  border: 1px solid #6fd2ff77;
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
   cursor: pointer;
   font: inherit;
@@ -264,17 +288,18 @@
   color: #071014;
   background: #ffbd77;
   border-color: #ffe0b2;
+  box-shadow: 0 0 14px #ffbd7733;
 }
 
 .action-button.continue.is-blocked {
-  color: #a7876c;
+  color: #c6a98c;
   background: #3a3028;
   border-color: #946b4d66;
   cursor: not-allowed;
 }
 
 .action-button.continue:not(.is-blocked):not(.is-nudging) {
-  animation: vcContinueReady 2.4s ease-in-out infinite;
+  animation: vcContinueReady 900ms var(--vc-ease) 1 both;
 }
 
 .action-button.continue.is-nudging {
@@ -282,11 +307,20 @@
 }
 
 @keyframes vcLayerIn {
-  to { opacity: 1; }
+  from { backdrop-filter: blur(0) saturate(1); }
+  to { backdrop-filter: blur(10px) saturate(0.92); }
 }
 
-@keyframes vcPanelIn {
-  to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes vcReveal {
+  0% { clip-path: inset(calc(50% - 2px) 46% calc(50% - 2px) 46%); }
+  21% { clip-path: inset(calc(50% - 2px) 0); }
+  100% { clip-path: inset(0); }
+}
+
+@keyframes vcRevealBar {
+  0% { opacity: 1; transform: scaleX(0); }
+  21% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
 }
 
 @keyframes vcTitleIn {
@@ -310,7 +344,7 @@
 }
 
 @keyframes vcContinueReady {
-  0%, 100% { box-shadow: 0 0 0 #ffbd7700; }
+  0%, 100% { box-shadow: 0 0 14px #ffbd7733; }
   50% { box-shadow: 0 0 22px #ffbd7766; }
 }
 
@@ -320,6 +354,19 @@
     opacity: 1;
     animation: none;
     transform: none;
+  }
+
+  .victory-layer {
+    backdrop-filter: blur(10px) saturate(0.92);
+  }
+
+  .panel-reveal {
+    clip-path: none;
+    animation: none;
+  }
+
+  .panel-reveal::before {
+    display: none;
   }
 
   .panel-head h2,
