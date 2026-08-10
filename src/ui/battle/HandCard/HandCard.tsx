@@ -12,6 +12,7 @@ interface Props {
   card: Card;
   playable: boolean;
   selected: boolean;
+  variant?: "hand" | "pile";
   leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 HandCard.css .hand-card.leaving)
   dealDelay?: number; // 抽牌飞入的绝对延迟(ms), 由父级按批次计算
   onExited?: (uid: string) => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
@@ -35,6 +36,7 @@ interface Props {
 //   (走全站 --accent)与卡名压条左端那道归属角色竖标。
 // 本组件渲染的是**两层**: 外层 .hand-slot(不动的占位壳, 吃悬停与版式) + 内层 .hand-card(卡面本体,
 // 只做位移动画)。分层的理由见下方 return 处的注释 —— 少了这层, 悬停会无限抖动。
+// 本组件同时服务手牌托盘与牌堆弹窗, 两套版式分别锁在 [data-hand-tray] / [data-pile-grid] 下。
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.css);
 // 详情面板(CardInfoPanel)与队伍槽高亮(AllyBar)读的是本组件写进 ui/handFocusStore.ts 的悬停卡,
 // 两者各自订阅、与 BattleScreen 无关; 这里不需要上报自身矩形, 也不需要回调冒泡。
@@ -42,6 +44,7 @@ export const HandCard = memo(function HandCard({
   card,
   playable,
   selected,
+  variant = "hand",
   leaving,
   dealDelay,
   onExited,
@@ -83,15 +86,15 @@ export const HandCard = memo(function HandCard({
       //   真正需要这个值的两个订阅方(CardInfoPanel / AllyBar)会重渲染。
       // ⚠ 本组件**只写不读** store —— 一旦在这里订阅, 十张卡就会跟着悬停一起重渲染,
       //   等于把刚搬走的开销原样搬回来。卡自己的悬停视觉全部由 CSS :hover 驱动(见 HandCard.css)。
-      onMouseEnter={() => !leaving && setHandHover(card)}
-      onMouseLeave={() => clearHandHover(card)}
-      onClick={(e) => {
+      onMouseEnter={() => variant === "hand" && !leaving && setHandHover(card)}
+      onMouseLeave={() => variant === "hand" && clearHandHover(card)}
+      onClick={variant === "hand" ? (e) => {
         e.stopPropagation();
         if (leaving) return;
         onClick?.(card.uid);
-      }}
+      } : undefined}
     >
-      {actionBadge && !leaving && (
+      {variant === "hand" && actionBadge && !leaving && (
         <button
           type="button"
           className={cx(s["hc-action"], s[`hc-action-${actionBadge}`])}

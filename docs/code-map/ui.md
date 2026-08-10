@@ -101,8 +101,8 @@ src/ui/
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃操作；沿用回合、动画、手牌为空和本回合换牌次数的可用性判定。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
-| [battle/PileRail](../../src/ui/battle/PileRail/PileRail.tsx) | 三个牌堆的竖向排列与点击入口，标签已移入卡面下沿；牌堆位于右上角设置按钮下方，不随战斗场景相机移动。 |
-| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图、定高说明区和污染卡固定角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章。**卡在托盘里的版式与厚度也归本文件**，尺寸变量由 BattleScreen 下发。飞入为从右往左 800ms、按批次错峰 300ms，开局首批延迟 3s，时序常量在 `battle/animations.ts` 的 `HAND_DEAL`。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
+| [battle/PileDrawer](../../src/ui/battle/PileDrawer/PileDrawer.tsx) | 牌堆内容弹窗，按卡名排序展示，复用原尺寸 `HandCard`；悬停时由 `.scrim` 下的独立放大层浮出 1.4 倍卡面（放在滚动容器外以躲开裁切，`pointer-events: none` 避免悬停抖动）。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图、定高说明区和污染卡固定角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章。现同时服务手牌托盘与牌堆弹窗，两套版式分别锁在 `[data-hand-tray]` / `[data-pile-grid]` 下；弹窗模式（`variant="pile"`）不写 `handFocusStore`。**卡在托盘里的版式与厚度也归本文件**，尺寸变量由 BattleScreen 下发。飞入为从右往左 800ms、按批次错峰 300ms，开局首批延迟 3s，时序常量在 `battle/animations.ts` 的 `HAND_DEAL`。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；污染卡会额外说明抽牌污染效果。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
 | [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |
