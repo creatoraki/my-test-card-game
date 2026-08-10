@@ -1,0 +1,9 @@
+.rail {
+  position: absolute;
+  right: var(--canvas-pad);
+  bottom: var(--canvas-pad);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

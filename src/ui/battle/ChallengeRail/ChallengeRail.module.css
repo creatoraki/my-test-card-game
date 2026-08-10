@@ -1,49 +1,27 @@
 .rail {
   position: absolute;
-  top: var(--rail-top);
+  top: var(--canvas-pad);
   left: var(--canvas-pad);
-  z-index: 10;
-  width: var(--rail-w);
-  max-height: 432px;
-  padding: 10px 8px;
-  background: linear-gradient(160deg, #111b1fe8, #060b0de8);
-  border: 1px solid #6fd2ff4f;
-  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
-  box-shadow: 0 8px 24px #0009, inset 0 0 18px #6fd2ff0b;
-}
-.railHead {
+  z-index: 12;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 3px 8px;
-  border-bottom: 1px solid #6fd2ff3d;
-  color: #9eb3b8;
-  font-size: 9px;
-  letter-spacing: 2px;
-}
-.railHead b {
-  color: var(--accent);
-  font-size: 13px;
 }
 .items {
-  display: grid;
-  gap: 6px;
-  padding-top: 8px;
+  display: flex;
+  gap: 8px;
 }
 .item {
   position: relative;
   display: grid;
-  min-height: 47px;
+  width: 40px;
+  aspect-ratio: 1 / 1;
   place-items: center;
   cursor: help;
-  border: 1px solid #ffffff1c;
-  background: #0b1215b8;
   outline: none;
 }
 .item:hover,
 .item:focus-visible {
-  border-color: var(--accent);
-  background: #162012;
+  filter: brightness(1.15) drop-shadow(0 0 5px var(--accent));
+  transform: scale(1.06);
 }
 .icon {
   color: #eaffd0;

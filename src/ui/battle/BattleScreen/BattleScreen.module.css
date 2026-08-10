@@ -18,9 +18,7 @@
      故任何窗口尺寸下构图完全一致 —— 画布内不写 vw/vh, 见 README「设计画布」。
      画布本身的 1920×1080 与居中缩放由 .battle-viewport .battle 给(见下方「战斗终端」段)。
        --canvas-pad / --stage-gap : 画布内边距与「舞台 ↔ HUD」的间距
-       --topbar-h                 : 顶端信息条高度。★ 三处共用同一个数(信息条自身的 height、
-                                    .enemy-row 的避让 padding、卡牌详情面板的 top), 改它一处
-                                    三处一起跟上 —— 别再把 68 抄成魔数散在各条规则里。
+      --topbar-h                 : 顶部悬浮行占位高度。供 .enemy-row 避让顶部悬浮内容。
        --hud-h                    : 底部 HUD 总高(1080 的 ~27%, 对齐参考图比例)
        --hud-party-w              : HUD 左段 —— 我方 3 槽 × 160 + 2 × 10 gap。
                                     固定值: 聚焦槽变宽由其余槽位微收消化(见 .ally-bar),
@@ -37,11 +35,6 @@
   --canvas-pad: 16px;
   --stage-gap: 10px;
   --topbar-h: 56px;
-  --arch-h: 104px;
-  --arch-w: 640px;
-  --rail-w: 120px;
-  --rail-gap: 12px;
-  --rail-top: 108px;
   /* ⚠ --hud-h 直接决定场景的可见下沿(= 1080 - pad - hud-h = 804), 而 data/encounters.ts 里
      调好的敌人站位是贴着背景地面线的。264 是「参考图那条厚 HUD」与「霓虹城市的地面线仍留得住
      三台机器人」之间的折中 —— 再往上加就会开始啃掉敌人的脚。 */
@@ -65,43 +58,6 @@
   clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
 }
 
-.topbar {
-  grid-area: topbar;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  /* 与卡牌详情抽屉(.card-drawer)同款的终端面板底 */
-  background: linear-gradient(145deg, #12181bdd, #090d0fd9);
-  border: 1px solid #3b474b;
-  border-radius: 0;
-  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  padding: 8px 14px;
-}
-.topbar-left,
-.topbar-right {
-  display: flex;
-  gap: 7px;
-}
-.chip {
-  background: #0b0f11;
-  border: 1px solid #455157;
-  border-radius: 0;
-  padding: 4px 8px;
-  color: #d7e0db;
-  font-size: 11px;
-}
-/* 回合/时刻两个 chip 用 accent 描边+字色跟中性 chip 区分 */
-.round-chip,
-.tick-chip {
-  border-color: #657b20;
-  color: var(--accent);
-}
-
-.mana-bar {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
 /* ⚠ padding-top 与顶端信息条的高度咬合: 舞台顶边在 y=--canvas-pad, 信息条压到 y=--topbar-h,
    故这里至少要 (--topbar-h − --canvas-pad) 才不被压住; 再加 6px 余量。
    写成公式 ⇒ 改 --topbar-h 时这里自动跟上, 不用手算。 */
@@ -150,9 +106,6 @@
   color: var(--muted);
   padding: 8px 2px;
 }
-/* 结束回合按钮见上方「顶端信息条」段的 .end-turn-btn —— 它已从画布右下角的竖排外挂条
-   改成信息条最右端的一枚横版键, 不再需要任何独立定位。 */
-
 /* 底部 HUD 是浮在场景之上的一层: 舞台不再自裁, 推近时放大的角色会溢出到 HUD 区域, 故须显式压住。
    (.battle-scene 的 will-change:transform 已形成层叠上下文, 其内部的 z-index:1~8 不会穿透) */
 .battle > .battle-hud {
@@ -384,9 +337,9 @@
 .battle-stage {
   position: absolute;
   top: var(--canvas-pad);
-  right: calc(var(--canvas-pad) + var(--rail-w) + var(--rail-gap));
+  right: var(--canvas-pad);
   bottom: calc(var(--canvas-pad) + var(--hud-h) + var(--stage-gap));
-  left: calc(var(--canvas-pad) + var(--rail-w) + var(--rail-gap));
+  left: var(--canvas-pad);
   /* 世界内的层序: 背景 0 → 远景粒子 1 → 灯光闪烁 2 → 舞台 3 → 近景粒子 4。
      舞台被两层粒子夹住, 这就是纵深的全部来源(见 ui/AmbienceLayer.tsx)。 */
   z-index: 3;
@@ -397,53 +350,14 @@
 .battle-stage .enemy-row {
   flex: 0 0 auto;
 }
-.hud-cluster {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.topbar-right {
-  justify-content: flex-end;
-}
-/* ── 顶端信息条(ui/BattleScreen.tsx 的 .battle-topbar) ── */
-/* 法力水晶 | 换牌/丢弃 | 手牌读数 | 时刻标尺 | 结束回合 —— 一条里收齐所有**回合级**读数与操作。
-   在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏; z-index 抬过场景与调色层。
-   ★ 它**贴死画布上沿**: top/left/right 全是 0, 刻意不吃 --canvas-pad ⇒ 与顶边零缝隙,
-     读作"嵌在终端顶框上的一条状态栏"而不是浮在画面里的一块板。
-     为此 (a) **一个斜切角都不留**: 早先只切下方两角, 但那两刀落在左右边缘上, 在信息条的
-              左下/右下各啃出一个三角缺口 —— 观感就是"贴边没贴严"。整条必须是完整矩形。
-          (b) 边框只留下沿一条(左/右/上三边紧贴画布边缘, 画出来就是重复的框线)。
-   ⚠ 它盖在 .battle-stage(top: --canvas-pad) 的上沿之上 —— 敌人不会被挡住:
-     .enemy-row 的 padding-top 与本条高度咬合(见那条规则), 立绘本就从更下面起排。 */
-.battle-topbar {
+.topRight {
   position: absolute;
+  top: var(--canvas-pad);
+  right: var(--canvas-pad);
   z-index: 12;
-  left: 0;
-  right: 0;
-  top: 0;
   display: flex;
   align-items: center;
-  gap: 22px;
-  /* 高度走 .battle 上的 --topbar-h 旋钮 —— .enemy-row 的避让与详情面板的 top 都吃同一个数 */
-  height: var(--topbar-h);
-  padding: 0 26px;
-  background: linear-gradient(180deg, #0e161af5, #070c0fcc 62%, #04080ab0);
-  border-bottom: 1px solid #6fd2ff3d;
-  box-shadow: 0 6px 18px -6px #000000a6;
-}
-/* 底边一条能量细线: 与信息条同宽(不再内缩 12px —— 那是给旧切角让位的) */
-.battle-topbar::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(90deg, #6fd2ff00, #8ba63a99 22%, #6fd2ffaa 50%, #8ba63a99 78%, #6fd2ff00);
-  pointer-events: none;
-}
-.battle-topbar .mana-bar {
-  gap: 5px;
+  gap: 12px;
 }
 .hand-toolbar-actions {
   display: flex;
@@ -480,81 +394,6 @@
   stroke-linejoin: round;
   stroke-width: 2;
 }
-/* ★ 结束回合: 顶端信息条最右端的一枚横版机能键。
-   旧版是外挂在卡牌详情面板左上角的竖排条(writing-mode: vertical-rl 那套), 已整条废弃 ——
-   它浮在画布右下角、与任何一组读数都不成组; 回合级操作理应与回合级读数(法力/时刻/手牌)同处一条。
-   ⚠ 尺寸与信息条高度(68)咬合: 46 高 + 上下各 11 的余量。斜切角 8px。
-   ★ 配色刻意**不用** accent 黄绿: 界面里的黄绿是"读数/资源"的语汇(法力水晶、换牌丢弃图标、
-     时刻标尺), 结束回合是这一条里唯一的**提交型操作**, 与读数同色就淹没在里面了。改用青蓝
-     (与信息条底边、终端框线同族)——冷色在满屏黄绿中最跳, 且读作"终端上的一枚功能键"。
-   ★ 可用时常驻一圈呼吸光(endTurnPulse), 这是"该你结束回合了"的唯一视觉召唤; 禁用时熄灭。
-   ⚠ TickRuler 自带 margin-left:auto, 本键排在它之后 ⇒ 两者一起被推到最右, 不需要再写定位。 */
-.end-turn-btn {
-  position: relative;
-  flex: none;
-  min-width: 0;
-  height: 46px;
-  margin: 0;
-  padding: 0 26px;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  text-indent: 4px; /* 抵掉 letter-spacing 挂在末字后面的那一格, 让字组视觉居中 */
-  white-space: nowrap;
-  border: 1px solid #6fd2ff;
-  background: linear-gradient(180deg, #143b4e 0%, #0b1a24 46%, #081521 100%);
-  color: #d8f4ff;
-  text-shadow: 0 0 8px #6fd2ff7a;
-  box-shadow:
-    inset 0 1px 0 #b6ecff4d,
-    inset 0 0 14px #6fd2ff1f,
-    0 0 14px #6fd2ff3d;
-  transition: transform 0.08s, background 0.15s, box-shadow 0.15s, color 0.15s;
-  animation: endTurnPulse 2.2s ease-in-out infinite;
-}
-/* 键面上沿一道高光条: 把纯色块托成一枚有厚度的机能键 */
-.end-turn-btn::before {
-  content: "";
-  position: absolute;
-  inset: 1px 1px auto 1px;
-  height: 42%;
-  background: linear-gradient(180deg, #6fd2ff2e, transparent);
-  pointer-events: none;
-}
-@keyframes endTurnPulse {
-  0%, 100% { box-shadow: inset 0 1px 0 #b6ecff4d, inset 0 0 14px #6fd2ff1f, 0 0 12px #6fd2ff33; }
-  50%      { box-shadow: inset 0 1px 0 #b6ecff4d, inset 0 0 18px #6fd2ff33, 0 0 22px #6fd2ff6b; }
-}
-/* ⚠ color / border-color 必须在这条里显式写回: styles/base.css 的 button:hover:not(:disabled)
-   会把它们改成 accent 描边 + accent 字色, 那会把这枚青蓝键拉回黄绿。 */
-.end-turn-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, #1e5b76 0%, #10303f 46%, #0b2231 100%);
-  border-color: #b6ecff;
-  color: #f2fdff;
-  box-shadow:
-    inset 0 1px 0 #d6f6ff66,
-    inset 0 0 20px #6fd2ff38,
-    0 0 26px #6fd2ff85;
-  animation: none; /* 悬停接管发光, 免得呼吸动画把亮度又拉回去 */
-}
-.end-turn-btn:active:not(:disabled) {
-  transform: translateY(1px);
-}
-/* 敌方回合 / 动画播放期间: 整键断电成灰, 与手牌"打不出"那套灰化同一个语汇 */
-.end-turn-btn:disabled {
-  border-color: #46525a;
-  background: linear-gradient(180deg, #232b31, #131a1e);
-  color: #7b8a93;
-  text-shadow: none;
-  box-shadow: none;
-  animation: none;
-  cursor: not-allowed;
-}
-.end-turn-btn:disabled::before {
-  display: none;
-}
-
 /* ===================== 战斗底部 HUD(ui/BattleScreen.tsx 的 .battle-hud) ===================== */
 /* 贯穿画布全宽的一条: 我方队伍卡(左) | 手牌托盘(右侧全部)。
    几何全部由 .battle 上的 --hud-* 变量决定 —— 调构图只改那几个旋钮。
@@ -620,12 +459,8 @@
       RULES.hand.discardLeftoversOnRoundEnd 为 false ⇒ 手牌会跨回合累积到上限。
       版式必须按 10 张能排下来算, 否则最右侧的卡会溢出画布右缘。
    版式(全是设计 px):
-     横向 中段可用宽 = 1368(HUD 两列制下的 1fr) − 2×10 托盘内边距 = **1348**
-          n 张总宽 = 220 + (n−1) × (220 − 叠压量), 恒须 ≤ 1348:
-            ≤8 张 叠压 60 ⇒ 每张露 160px(72.7%), 8 张 = 1340 ✓
-             9 张 叠压 80 ⇒ 每张露 140px,        9 张 = 1340 ✓
-            10 张 叠压 95 ⇒ 每张露 125px,       10 张 = 1345 ✓
-          后两档由下方两条 :has() 规则自动切换, 见 .hand-tray:has(...)。
+     横向中段可用宽由 HUD 网格和右侧牌堆让位共同决定, 托盘内另有 2×10 padding + 72px 右侧让位。
+          n 张总宽 = 220 + (n−1) × (220 − 叠压量), 9/10 张由下方两条 :has() 规则收紧。
           静止时相邻卡互相叠压(一副握在手里的牌), 悬停置顶 + 左右邻卡让位 ⇒ 露全。
      纵向 卡 308(= 配图 220 + 说明区 88) > 托盘可用高(--hud-h 264 − 托盘下内边距 8 = 256)
           ⇒ **刻意**越出 HUD 上沿 52px(悬停再上浮半张卡高 154 ⇒ 峰值约 206px)。
@@ -642,6 +477,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  padding-right: 72px;
   --hand-card-w: 220px;
   /* ★ 卡面只有**两段实位**: 正方形配图(上) + 底部效果说明(下) ⇒ 卡高 = 卡宽 + 说明区高
      = 220 + 88 = 308, 比例 220:308 = **1:1.4**(实体卡的手感比例)。
@@ -693,10 +529,7 @@
   background-repeat: no-repeat;
   opacity: 0.4;
 }
-/* 手牌张数读数 —— HAND / 虚线 / 张数。
-   ⚠ 它原先是托盘上沿的一行(.hand-panel-head), 手牌放大后卡会越出 HUD 上沿把它整条盖住,
-     故已搬到顶端信息条 .battle-topbar 里(ui/BattleScreen.tsx), 与法力水晶/换牌丢弃/时刻标尺
-     同属全局读数区。样式相应改成一枚随内容宽的小挂件, 不再占固定高度。 */
+/* 手牌张数读数 —— HAND / 虚线 / 张数。 */
 .hand-count-readout {
   display: flex;
   align-items: center;

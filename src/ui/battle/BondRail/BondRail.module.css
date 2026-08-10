@@ -1,54 +1,28 @@
 .rail {
-  position: absolute;
-  top: var(--rail-top);
-  right: var(--canvas-pad);
-  z-index: 10;
-  width: var(--rail-w);
-  max-height: 432px;
-  padding: 10px 8px;
-  background: linear-gradient(200deg, #111b1fe8, #060b0de8);
-  border: 1px solid #8ba63a55;
-  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
-  box-shadow: 0 8px 24px #0009, inset 0 0 18px #8ba63a0b;
-}
-.railHead {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 3px 8px;
-  border-bottom: 1px solid #8ba63a4f;
-  color: #9eb3b8;
-  font-size: 9px;
-  letter-spacing: 2px;
-}
-.railHead b {
-  color: var(--accent);
-  font-size: 13px;
 }
 .items {
-  display: grid;
-  gap: 6px;
-  padding-top: 8px;
+  display: flex;
+  gap: 8px;
 }
 .item {
   position: relative;
   display: grid;
-  min-height: 47px;
+  width: 40px;
+  aspect-ratio: 1 / 1;
   place-items: center;
   cursor: help;
-  border: 1px solid #ffffff1c;
-  background: #0b1215b8;
   outline: none;
 }
 .item:hover,
 .item:focus-visible,
 .item.active {
-  border-color: var(--bond-color, var(--accent));
-  background: #162012;
+  filter: brightness(1.15) drop-shadow(0 0 5px var(--bond-color, var(--accent)));
+  transform: scale(1.06);
 }
 .icon {
-  width: 29px;
-  height: 29px;
+  width: 36px;
+  height: 36px;
   color: var(--bond-color, #eaffd0);
 }
 .count {

@@ -1,0 +1,47 @@
+.indicator {
+  position: absolute;
+  top: var(--canvas-pad);
+  left: 50%;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.roundReadout {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  color: #a8b9bc;
+  font-size: 10px;
+  letter-spacing: 3px;
+}
+.roundReadout b {
+  color: #eaffd0;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+.roundReadout i {
+  color: #6fd2ff66;
+  font-style: normal;
+}
+.roundTicks {
+  display: flex;
+  width: 190px;
+  gap: 5px;
+  margin: 4px 0 5px;
+}
+.roundTicks span {
+  flex: 1;
+  height: 3px;
+  background: #ffffff1c;
+  transform: skewX(-22deg);
+}
+.roundTicks .roundTickActive {
+  background: var(--accent);
+  box-shadow: 0 0 7px #d8f32988;
+}
+.tickRuler {
+  pointer-events: auto;
+}

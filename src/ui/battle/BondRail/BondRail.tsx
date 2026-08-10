@@ -5,11 +5,13 @@ import { RailPopover } from "@/ui/battle/RailPopover";
 import s from "./BondRail.module.css";
 
 export function BondRail({ bonds }: { bonds: BattleBondView[] }) {
+  const equippedBonds = bonds.filter((bond) => bond.count > 0);
+  if (!equippedBonds.length) return null;
+
   return (
     <aside className={s.rail} aria-label="羁绊" onClick={(event) => event.stopPropagation()}>
-      <div className={s.railHead}><span>BOND LINK</span><b>{bonds.length}</b></div>
       <div className={s.items}>
-        {bonds.map((bond) => {
+        {equippedBonds.map((bond) => {
           const activeIndex = bond.tier ? bond.def.tiers.indexOf(bond.tier) : -1;
           return (
             <div
@@ -21,7 +23,7 @@ export function BondRail({ bonds }: { bonds: BattleBondView[] }) {
             >
               <BondIcon bondId={bond.def.id} className={s.icon} title={bond.def.name} />
               <span className={s.count}>{bond.count}</span>
-              <RailPopover side="left">
+              <RailPopover side="bottom">
                 <div className={s.popHead}>
                   <strong>{bond.def.name}</strong>
                   <span>{bond.count} 点 · {bond.tier ? `Lv.${activeIndex + 1}` : "未激活"}</span>

@@ -14,11 +14,13 @@ import { CombatantView, isIntentRevealed } from "@/ui/battle/CombatantView";
 import { AllyBar } from "@/ui/battle/AllyBar";
 import { HandCard } from "@/ui/battle/HandCard";
 import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
-import { BattleHeader } from "@/ui/battle/BattleHeader";
+import { BattleActions } from "@/ui/battle/BattleActions";
 import { BondRail } from "@/ui/battle/BondRail";
 import { ChallengeRail } from "@/ui/battle/ChallengeRail";
-import { DeckColumn, type HandAction, type Pile } from "@/ui/battle/DeckColumn";
+import { DeckColumn, type HandAction } from "@/ui/battle/DeckColumn";
+import { PileRail, type Pile } from "@/ui/battle/PileRail";
 import { PileDrawer } from "@/ui/battle/PileDrawer";
+import { RoundIndicator } from "@/ui/battle/RoundIndicator";
 import { SkillCutInCard } from "@/ui/battle/SkillCutInCard";
 import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "@/ui/battle/animations";
 import { warmEnemyArt } from "@/ui/art/enemyArt";
@@ -822,17 +824,17 @@ export function BattleScreen() {
           顿帧期间压暗/反白闪照常播(世界冻结、刀光继续走)。 */}
       {dimHit && <div key={dimHit.seq} className={s["battle-dim"]} aria-hidden />}
 
-      <BattleHeader
+      <RoundIndicator
         round={battle.round}
         maxRound={12}
         tick={battle.tick}
         enemies={enemies}
-        encounterName={getEncounter(battle.encounterId).name}
-        canEndTurn={isPlayerTurn && !animating}
-        onEndTurn={triggerEndTurn}
       />
       {battleMeta && <ChallengeRail challenges={battleMeta.challenges} />}
-      {battleMeta && <BondRail bonds={battleMeta.bonds} />}
+      <div className={s.topRight}>
+        {battleMeta && <BondRail bonds={battleMeta.bonds} />}
+        <BattleActions canEndTurn={isPlayerTurn && !animating} onEndTurn={triggerEndTurn} />
+      </div>
 
       {/* ★ 底部一体化 HUD: 队伍卡 | 手牌托盘(两列; 卡牌说明面板已搬到画布右上角, 见下方)。
           刻意在 .battle-scene **之外** ⇒ 整条不跟分镜相机推近/漂移/震屏, 构图恒定。
@@ -859,7 +861,6 @@ export function BattleScreen() {
             setSelectedUid(null);
             setHandAction((current) => (current === action ? null : action));
           }}
-          onOpenPile={setOpenPile}
         />
         <div className={s["hand-panel"]}>
         {/* data-hand-tray: HandCard 的版式/厚度规则要从托盘起手选自己(见 HandCard.module.css
@@ -888,6 +889,8 @@ export function BattleScreen() {
         </div>
         </div>
       </div>
+
+      <PileRail battle={battle} onOpenPile={setOpenPile} />
 
       <PileDrawer battle={battle} pile={openPile} onClose={() => setOpenPile(null)} />
 

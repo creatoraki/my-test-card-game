@@ -2,11 +2,9 @@ import type { BattleState, Card } from "@/engine";
 import { RULES, canPlay, partyHandLimit } from "@/engine";
 import { useHandHover } from "@/ui/battle/handFocusStore";
 import { ManaCrystalIcon } from "@/ui/common/ManaCrystalIcon";
-import { PileButton } from "@/ui/battle/PileButton";
 import s from "./DeckColumn.module.css";
 
 export type HandAction = "redraw" | "discard" | null;
-export type Pile = "draw" | "discard" | "exhaust";
 
 interface Props {
   battle: BattleState;
@@ -15,7 +13,6 @@ interface Props {
   isPlayerTurn: boolean;
   animating: boolean;
   onToggleHandAction: (action: Exclude<HandAction, null>) => void;
-  onOpenPile: (pile: Pile) => void;
 }
 
 export function DeckColumn({
@@ -25,7 +22,6 @@ export function DeckColumn({
   isPlayerTurn,
   animating,
   onToggleHandAction,
-  onOpenPile,
 }: Props) {
   const hoveredCard = useHandHover();
   const focusedCard = hoveredCard ?? selectedCard;
@@ -62,9 +58,6 @@ export function DeckColumn({
 
       <div className={s.rule} />
       <div className={s.toolGrid}>
-        <PileButton label="抽牌" count={battle.draw.length} icon="▤" onClick={() => onOpenPile("draw")} />
-        <PileButton label="弃牌" count={battle.discard.length} icon="▥" onClick={() => onOpenPile("discard")} />
-        <PileButton label="消耗" count={battle.exhaust.length} icon="⌁" onClick={() => onOpenPile("exhaust")} />
         <button
           className={`${s.toolButton} ${handAction === "redraw" ? s.active : ""}`}
           type="button"
@@ -87,7 +80,6 @@ export function DeckColumn({
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" /></svg>
           <span>丢弃</span>
         </button>
-        <span className={s.emptyTool} aria-hidden />
       </div>
     </section>
   );

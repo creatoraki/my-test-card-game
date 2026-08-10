@@ -21,10 +21,26 @@
   left: calc(100% + 12px);
   transform: translateX(-8px);
 }
+.bottom {
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translate(-50%, -8px);
+}
 :global([data-rail-item]:hover) .popover,
 :global([data-rail-item]:focus-within) .popover {
   pointer-events: auto;
   opacity: 1;
   visibility: visible;
+}
+:global([data-rail-item]:hover) .left,
+:global([data-rail-item]:focus-within) .left {
   transform: translateX(0);
+}
+:global([data-rail-item]:hover) .right,
+:global([data-rail-item]:focus-within) .right {
+  transform: translateX(0);
+}
+:global([data-rail-item]:hover) .bottom,
+:global([data-rail-item]:focus-within) .bottom {
+  transform: translate(-50%, 0);
 }

@@ -132,8 +132,8 @@
    ⚠ 左缘 x=1584, 顶边 y=108: 敌人立绘最右缘 ≈1330 不撞。改 --hud-info-w 前先回头核这个数。 */
 .card-info-panel {
   position: absolute;
-  top: var(--rail-top);
-  right: calc(var(--canvas-pad) + var(--rail-w) + var(--rail-gap));
+  top: 108px;
+  right: var(--canvas-pad);
   z-index: 3;
   width: var(--hud-info-w);
   aspect-ratio: 1 / 2;

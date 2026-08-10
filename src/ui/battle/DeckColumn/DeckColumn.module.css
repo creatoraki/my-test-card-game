@@ -89,8 +89,7 @@
   justify-content: center;
   gap: 13px 8px;
 }
-.toolButton,
-.emptyTool {
+.toolButton {
   position: relative;
   display: grid;
   width: 40px;
@@ -122,19 +121,11 @@
   stroke-linejoin: round;
   stroke-width: 1.8;
 }
-.toolButton span,
-.emptyTool::after {
+.toolButton span {
   position: absolute;
   top: calc(100% + 3px);
   color: #829196;
   font-size: 8px;
   letter-spacing: 1px;
   white-space: nowrap;
-}
-.emptyTool {
-  opacity: 0.35;
-}
-.emptyTool::after {
-  content: "—";
-  color: #6fd2ff4d;
 }

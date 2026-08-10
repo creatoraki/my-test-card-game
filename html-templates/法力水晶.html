@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏法力水晶组件展示</title>
+    <style>
+        :root {
+            --bg-color: #1a1a24;
+            --card-bg: #252530;
+            --text-color: #e0e0e0;
+            
+            /* 水晶颜色变量 */
+            --crystal-primary: #00d2ff;   /* 主色 */
+            --crystal-secondary: #0077be; /* 辅色 */
+            --crystal-glow: rgba(0, 210, 255, 0.6);
+            --empty-color: #3a3a45;
+            --active-core: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            margin: 0;
+        }
+
+        h1 { margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; }
+
+        .showcase-container {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .style-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 280px;
+        }
+
+        .style-title {
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .states-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .state-label {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 10px;
+            opacity: 0.6;
+        }
+
+        /* =========================================
+           通用基础样式
+           ========================================= */
+        .crystal-wrapper {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        /* =========================================
+           样式 1: 经典奥术菱形 (Classic Diamond)
+           ========================================= */
+        .diamond .shape {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--crystal-secondary), var(--crystal-primary));
+            transform: rotate(45deg);
+            border-radius: 4px;
+            position: relative;
+            box-sizing: border-box;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* 内部高光 */
+        .diamond .shape::after {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 2px;
+        }
+
+        /* 状态: Empty */
+        .diamond.empty .shape {
+            background: var(--empty-color);
+            box-shadow: none;
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        /* 状态: Normal */
+        .diamond.normal .shape {
+            box-shadow: 0 0 10px var(--crystal-glow), inset 0 0 5px rgba(255,255,255,0.2);
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        /* 状态: Active */
+        .diamond.active .shape {
+            background: linear-gradient(135deg, var(--crystal-primary), var(--active-core));
+            box-shadow: 0 0 20px var(--crystal-primary), 0 0 40px var(--crystal-glow);
+            transform: rotate(45deg) scale(1.1);
+        }
+        
+        .diamond.active .shape::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px solid var(--active-core);
+            opacity: 0.8;
+            animation: spin-pulse 2s infinite linear;
+        }
+
+        /* =========================================
+           样式 2: 科技六边形 (Tech Hexagon)
+           ========================================= */
+        .hexagon .shape {
+            width: 44px;
+            height: 25px;
+            background: var(--crystal-secondary);
+            position: relative;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 内部核心 */
+        .hexagon .core {
+            width: 70%;
+            height: 60%;
+            background: var(--crystal-primary);
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            opacity: 0.8;
+        }
+
+        /* 状态: Empty */
+        .hexagon.empty .shape { background: #2a2a35; }
+        .hexagon.empty .core { background: #444; opacity: 0.3; }
+
+        /* 状态: Normal */
+        .hexagon.normal .shape { 
+            background: linear-gradient(90deg, #005c97, #363795);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); /* Clip-path cuts shadow, so we use filter on wrapper if needed, but here simple bg works */
+        }
+        .hexagon.normal .core {
+            background: var(--crystal-primary);
+            box-shadow: 0 0 5px var(--crystal-primary);
+        }
+
+        /* 状态: Active */
+        .hexagon.active .shape {
+            background: var(--crystal-primary);
+            filter: drop-shadow(0 0 8px var(--crystal-primary));
+        }
+        .hexagon.active .core {
+            background: #fff;
+            animation: tech-flicker 0.2s infinite alternate;
+        }
+
+        /* =========================================
+           样式 3: 自然宝珠 (Nature Orb)
+           ========================================= */
+        .orb .shape {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--crystal-primary), var(--crystal-secondary));
+            position: relative;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5);
+            transition: all 0.4s ease;
+        }
+
+        /* 表面反光 */
+        .orb .shape::before {
+            content: '';
+            position: absolute;
+            top: 10%; left: 15%;
+            width: 25%; height: 15%;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.6);
+            filter: blur(1px);
+            transform: rotate(-45deg);
+        }
+
+        /* 状态: Empty */
+        .orb.empty .shape {
+            background: radial-gradient(circle at 30% 30%, #555, #222);
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.8);
+            opacity: 0.6;
+        }
+        .orb.empty .shape::before { opacity: 0.1; }
+
+        /* 状态: Normal */
+        .orb.normal .shape {
+            box-shadow: 0 0 12px var(--crystal-glow), inset -5px -5px 10px rgba(0,0,0,0.3);
+        }
+
+        /* 状态: Active */
+        .orb.active .shape {
+            background: radial-gradient(circle at 40% 40%, #fff, var(--crystal-primary));
+            box-shadow: 0 0 25px var(--crystal-primary), 0 0 50px var(--crystal-glow);
+            transform: scale(1.05);
+        }
+        .orb.active .shape::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px dashed rgba(255,255,255,0.5);
+            animation: spin-slow 4s linear infinite;
+        }
+
+        /* =========================================
+           动画定义
+           ========================================= */
+        @keyframes breathe {
+            0%, 100% { opacity: 1; filter: brightness(1); }
+            50% { opacity: 0.85; filter: brightness(0.8); }
+        }
+
+        @keyframes spin-pulse {
+            0% { transform: rotate(0deg) scale(1); opacity: 0.8; }
+            50% { transform: rotate(180deg) scale(1.2); opacity: 0.3; }
+            100% { transform: rotate(360deg) scale(1); opacity: 0.8; }
+        }
+
+        @keyframes tech-flicker {
+            from { opacity: 0.8; }
+            to { opacity: 1; }
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 交互提示 */
+        .interactive-hint {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #888;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mana Crystal Components</h1>
+
+    <div class="showcase-container">
+        
+        <!-- 样式 1: 经典菱形 -->
+        <div class="style-card">
+            <div class="style-title">Style 1: Arcane Diamond</div>
+            <div class="states-row">
+                <div>
+                    <div class="crystal-wrapper diamond empty">
+                        <div class="shape"></div>
+                    </div>
+                    <div class="state-label">Empty</div>
+                </div>
+                <div>
+                    <div class="crystal-wrapper diamond normal">
+                        <div class="shape"></div>
+                    </div>
+                    <div class="state-label">Normal</div>
+                </div>
+                <div>
+                    <div class="crystal-wrapper diamond active">
+                        <div class="shape"></div>
+                    </div>
+                    <div class="state-label">Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 样式 2: 科技六边形 -->
+        <div class="style-card">
+            <div class="style-title">Style 2: Tech Hexagon</div>
+            <div class="states-row">
+                <div>
+                    <div class="crystal-wrapper hexagon empty">
+                        <div class="shape"><div class="core"></div></div>
+                    </div>
+                    <div class="state-label">Empty</div>
+                </div>
+                <div>
+                    <div class="crystal-wrapper hexagon normal">
+                        <div class="shape"><div class="core"></div></div>
+                    </div>
+                    <div class="state-label">Normal</div>
+                </div>
+                <div>
+                    <div class="crystal-wrapper hexagon active">
+                        <div class="shape"><div class="core"></div></div>
+                    </div>
+                    <div class="state-label">Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 样式 3: 自然宝珠 -->
+        <div class="style-card">
+            <div class="style-title">Style 3: Nature Orb</div>
+            <div class="states-row">
+                <div>
+                    <div class="crystal-wrapper orb empty">
+                        <div class="shape"></div>
+                    </div>
+                    <div class="state-label">Empty</div>
+                </div>
+                <div>
+                    <div class="crystal-wrapper orb normal">
+                        <div class="shape"></div>
+                    </div>
+                    <div class="state-label">Normal</div>
+                </div>
+                <div>
+                    <div class="crystal-wrapper orb active">
+                        <div class="shape"></div>
+                    </div>
+                    <div class="state-label">Active</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="interactive-hint">
+        💡 点击任意水晶切换状态 (Click any crystal to toggle states)
+    </div>
+
+    <script>
+        // 简单的交互脚本：点击切换状态
+        document.querySelectorAll('.crystal-wrapper').forEach(el => {
+            el.addEventListener('click', () => {
+                if (el.classList.contains('empty')) {
+                    el.classList.remove('empty');
+                    el.classList.add('normal');
+                } else if (el.classList.contains('normal')) {
+                    el.classList.remove('normal');
+                    el.classList.add('active');
+                } else if (el.classList.contains('active')) {
+                    el.classList.remove('active');
+                    el.classList.add('empty');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
