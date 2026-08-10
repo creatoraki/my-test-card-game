@@ -147,7 +147,8 @@
   width: 1920px;
   height: 1080px;
   min-height: 0;
-  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  transform: translate(-50%, -50%);
+  zoom: var(--stage-scale, 1);
   /* ★ 3D 投影就发生在这里。必须是 perspective **属性**而不是 .battle-scene 的 transform
      里写 perspective() 函数 —— 后者只对该元素自身的变换生效, 后代的 translateZ 拿不到透视,
      各纵深层就永远不会产生视差。
