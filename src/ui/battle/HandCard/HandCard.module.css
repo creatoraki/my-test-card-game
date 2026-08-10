@@ -50,6 +50,7 @@
   right: 0;
   bottom: calc(100% - 2px);
   height: calc(var(--hand-card-h) / 2 + 2px);
+  pointer-events: none;
 }
 /* 出鞘中的卡不该再吃悬停(同 .hand-card.leaving 的 pointer-events:none) */
 .hand-slot.leaving {
@@ -198,6 +199,54 @@
 }
 .hand-card.playable {
   cursor: pointer;
+}
+
+/* 模式徽章挂在不裁切的 .hand-slot 上, 避免卡面的 overflow/clip-path 把越界按钮一起裁掉。 */
+.hc-action {
+  position: absolute;
+  left: 2px;
+  bottom: calc(100% + 8px);
+  z-index: 3;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  color: var(--accent);
+  background: linear-gradient(145deg, #3b4549, #111719 68%, #080b0d);
+  border: 1px solid color-mix(in srgb, var(--accent) 78%, #eaf5f8);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  cursor: pointer;
+  animation: hc-action-in 120ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  transition: transform 0.14s ease, filter 0.14s ease, background 0.14s ease;
+}
+.hc-action:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, #566267, #1b2427 68%, #0d1214);
+}
+.hc-action:focus-visible {
+  outline: 1px solid #f4ffd4;
+  outline-offset: 2px;
+}
+.hc-action svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+@keyframes hc-action-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 /* ── ★ 打不出的卡: 「断电 + 变薄」 ──
    ⚠ 这是**玩法信息**(法力不够 / 非玩家回合)而不是装饰, 不属于任何"减少动态效果"的降级范围。
@@ -815,6 +864,10 @@
     animation: none;
     transition-duration: 0.01ms;
   }
+  .hc-action {
+    animation: none;
+    transition-duration: 0.01ms;
+  }
   /* ⚠ 必须把触发 sheen 的**那两条选择器原样重写**才关得掉 —— 写成 .hand-card::after
      (特异性 0,1,0) 是压不过 .hand-slot:not(.leaving):hover > .hand-card:not(.selected)::after
      (0,4,0) 的, 反光照样会扫。 */
@@ -917,4 +970,16 @@
 :global([data-hand-tray]) .hand-slot:has(+ .hand-slot:hover) > .hand-card:not(.selected):not(.leaving) {
   transform: translateX(calc(-1 * var(--hand-yield)));
   transition-delay: 45ms;
+}
+
+/* 模式期间整排手牌保持静止, 让上方徽章始终与对应卡槽对齐; 详情仍由右上面板提供。 */
+:global([data-hand-tray][data-hand-action]) .hand-slot:not(.leaving):hover > .hand-card:not(.selected) {
+  transform: none;
+}
+:global([data-hand-tray][data-hand-action]) .hand-slot:hover + .hand-slot > .hand-card:not(.selected):not(.leaving),
+:global([data-hand-tray][data-hand-action]) .hand-slot:has(+ .hand-slot:hover) > .hand-card:not(.selected):not(.leaving) {
+  transform: none;
+}
+:global([data-hand-tray][data-hand-action]) .hand-card {
+  cursor: default;
 }

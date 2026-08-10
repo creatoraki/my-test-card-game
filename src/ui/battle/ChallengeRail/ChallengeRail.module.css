@@ -12,7 +12,7 @@
 .item {
   position: relative;
   display: grid;
-  width: 40px;
+  width: 80px;
   aspect-ratio: 1 / 1;
   place-items: center;
   cursor: help;
@@ -25,15 +25,15 @@
 }
 .icon {
   color: #eaffd0;
-  font-size: 22px;
+  font-size: 44px;
   text-shadow: 0 0 10px #d8f32966;
 }
 .dot {
   position: absolute;
-  right: 5px;
-  bottom: 5px;
-  width: 4px;
-  height: 4px;
+  right: 10px;
+  bottom: 10px;
+  width: 8px;
+  height: 8px;
   background: var(--accent);
   box-shadow: 0 0 5px var(--accent);
 }

@@ -10,7 +10,7 @@ export function ChallengeRail({ challenges }: { challenges: BattleChallenge[] })
           <div className={s.item} data-rail-item key={challenge.id} tabIndex={0}>
             <span className={s.icon}>{challenge.icon}</span>
             <span className={s.dot} />
-            <RailPopover side="bottom">
+            <RailPopover side="bottom-left">
               <strong>{challenge.title}</strong>
               <p>{challenge.desc}</p>
               {challenge.degraded && <em>效果已降级</em>}

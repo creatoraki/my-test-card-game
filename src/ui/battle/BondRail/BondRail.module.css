@@ -3,12 +3,12 @@
 }
 .items {
   display: flex;
-  gap: 8px;
+  gap: 16px;
 }
 .item {
   position: relative;
   display: grid;
-  width: 40px;
+  width: 80px;
   aspect-ratio: 1 / 1;
   place-items: center;
   cursor: help;
@@ -21,16 +21,16 @@
   transform: scale(1.06);
 }
 .icon {
-  width: 36px;
-  height: 36px;
+  width: 72px;
+  height: 72px;
   color: var(--bond-color, #eaffd0);
 }
 .count {
   position: absolute;
-  right: 5px;
-  bottom: 4px;
+  right: 10px;
+  bottom: 8px;
   color: #c7d3cf;
-  font-size: 10px;
+  font-size: 20px;
   font-weight: 800;
 }
 .popHead {

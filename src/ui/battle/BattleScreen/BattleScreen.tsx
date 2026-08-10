@@ -653,17 +653,18 @@ export function BattleScreen() {
     startBatch(plan.frames.map(stepFromFrame), plan.final);
   }
 
+  function runHandAction(uid: string) {
+    const next = handAction === "redraw" ? redrawCard(uid) : discardCard(uid);
+    if (next) {
+      commit(next);
+      setHandAction(null);
+      resetHandHover(); // 换掉/丢掉的那张已不在手上, 详情面板不该继续显示它
+    }
+  }
+
   function onCardClick(uid: string) {
     if (!isPlayerTurn || animating) return;
-    if (handAction) {
-      const next = handAction === "redraw" ? redrawCard(uid) : discardCard(uid);
-      if (next) {
-        commit(next);
-        setHandAction(null);
-        resetHandHover(); // 换掉/丢掉的那张已不在手上, 详情面板不该继续显示它
-      }
-      return;
-    }
+    if (handAction) return;
     if (!canPlay(b, uid)) return;
     const card = b.cards[uid];
     if (card.targeting === "foe" || card.targeting === "ally") {
@@ -845,12 +846,12 @@ export function BattleScreen() {
           顿帧期间压暗/反白闪照常播(世界冻结、刀光继续走)。 */}
       {dimHit && <div key={dimHit.seq} className={s["battle-dim"]} aria-hidden />}
 
-      <RoundIndicator
+      {/* <RoundIndicator
         round={battle.round}
         maxRound={12}
         tick={battle.tick}
         enemies={enemies}
-      />
+      /> */}
       {battleMeta && <ChallengeRail challenges={battleMeta.challenges} />}
       <div className={s.topRight}>
         {battleMeta && <BondRail bonds={battleMeta.bonds} />}
@@ -887,7 +888,7 @@ export function BattleScreen() {
         <div className={s["hand-panel"]}>
         {/* data-hand-tray: HandCard 的版式/厚度规则要从托盘起手选自己(见 HandCard.module.css
             末尾那一段)。类名会被哈希、跨不过模块边界, 属性可以(样式铁律 2)。 */}
-        <div className={s["hand-tray"]} data-hand-tray>
+        <div className={s["hand-tray"]} data-hand-tray data-hand-action={handAction ?? undefined}>
           <span className={s["hand-tray-rail"]} aria-hidden="true" />
           {renderHand.length === 0 && battle.hand.length === 0 && (
             <div className={s["empty-hand"]}>NO CARDS</div>
@@ -901,10 +902,12 @@ export function BattleScreen() {
                 card={c}
                 dealDelay={entry.dealDelay}
                 leaving={leaving}
-                playable={!leaving && isPlayerTurn && (handAction !== null || canPlay(battle, c.uid))}
+                playable={!leaving && isPlayerTurn && canPlay(battle, c.uid)}
+                actionBadge={handAction}
                 selected={c.uid === selectedUid}
                 onExited={() => handleCardExited(c.uid)}
                 onClick={() => onCardClick(c.uid)}
+                onAction={() => runHandAction(c.uid)}
               />
             );
           })}

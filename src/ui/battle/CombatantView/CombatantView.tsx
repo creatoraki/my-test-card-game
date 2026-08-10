@@ -103,9 +103,9 @@ export function CombatantView({
         </div>
       </div>
 
-      {/* 立绘下方: 血条(内嵌名字 + 数值) → 护盾/BUFF-DEBUFF 一排 */}
+      {/* 立绘下方: 血条(数值) → 护盾/BUFF-DEBUFF 一排 */}
       <div className={s["combatant-info"]}>
-        <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} name={cmb.name} />
+        <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit />
 
         <div className={s["combatant-badges"]}>
           {cmb.shield > 0 && (

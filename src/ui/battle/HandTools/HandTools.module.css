@@ -1,7 +1,7 @@
 .toolGrid {
   display: grid;
-  grid-template-columns: 40px;
-  grid-auto-rows: 56px;
+  grid-template-columns: 80px;
+  grid-auto-rows: 80px;
   justify-content: center;
   gap: 10px;
 }
@@ -9,8 +9,8 @@
 .toolButton {
   position: relative;
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 80px;
+  height: 80px;
   place-items: center;
   align-content: center;
   gap: 2px;
@@ -33,8 +33,8 @@
 }
 
 .toolButton svg {
-  width: 22px;
-  height: 22px;
+  width: 44px;
+  height: 44px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -44,9 +44,10 @@
 
 .toolButton span {
   position: absolute;
-  top: calc(100% + 3px);
+  top: calc(100% + 6px);
   color: #829196;
-  font-size: 8px;
-  letter-spacing: 1px;
+  font-size: 16px;
+  letter-spacing: 2px;
+  line-height: 1;
   white-space: nowrap;
 }

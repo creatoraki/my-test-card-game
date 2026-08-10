@@ -94,10 +94,10 @@ src/ui/
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`@keyframes` 按敌人在运行时注入 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
 | [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，并通过公共污染条/状态徽章展示污染值、生病和怪癖。位于战场之外，因此不参与相机推近。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
-| [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃操作；沿用回合、动画、手牌为空和本回合换牌次数的可用性判定。 |
-| [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | Classic Fantasy 拟物卡堆，抽牌/弃牌/消耗三堆共用一份实现，尺寸和主题色通过变量区分。 |
-| [battle/PileRail](../../src/ui/battle/PileRail/PileRail.tsx) | 三个牌堆的竖向排列与点击入口；牌堆位于右上角设置按钮下方，不随战斗场景相机移动。 |
-| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图、定高说明区和污染卡固定角标。**卡在托盘里的版式与厚度也归本文件**，尺寸变量由 BattleScreen 下发。飞入为从右往左 800ms、按批次错峰 300ms，开局首批延迟 3s，时序常量在 `battle/animations.ts` 的 `HAND_DEAL`。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
+| [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃操作；沿用回合、动画、手牌为空和本回合换牌次数的可用性判定。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
+| [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
+| [battle/PileRail](../../src/ui/battle/PileRail/PileRail.tsx) | 三个牌堆的竖向排列与点击入口，标签已移入卡面下沿；牌堆位于右上角设置按钮下方，不随战斗场景相机移动。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图、定高说明区和污染卡固定角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章。**卡在托盘里的版式与厚度也归本文件**，尺寸变量由 BattleScreen 下发。飞入为从右往左 800ms、按批次错峰 300ms，开局首批延迟 3s，时序常量在 `battle/animations.ts` 的 `HAND_DEAL`。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；污染卡会额外说明抽牌污染效果。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
 | [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |
@@ -117,7 +117,7 @@ src/ui/
 | [cx.ts](../../src/ui/common/cx.ts) | 全项目唯一的 className 拼接工具。 |
 | [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，卡面比例为 320:496、插画区为 1:1、卡名位于插画下方的装饰名条中、费用球贴左上角，支持普通 / 速攻两套配色，尺寸随容器等比自适应，可省略底部统计栏。 |
 | [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；`--portrait-dx/dy`、`--bust-scale` 等由登记表行内下发。 |
-| [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）的样式也在本组件内。 |
+| [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）和 `hideLimit` 变体（战场敌人只显示蓝色当前血量，不画琥珀上限段）的样式也在本组件内。 |
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |
 | [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 展示生病与永久怪癖徽章及说明；不复用临时战斗 `StatusPips`。 |
 | [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 状态图标和层数展示。 |

@@ -3,6 +3,7 @@ import { getCharacter } from "@/data";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
+import { DiscardIcon, RedrawIcon } from "@/ui/battle/HandTools";
 import { cx } from "@/ui/common/cx";
 import s from "./HandCard.module.css";
 
@@ -14,6 +15,8 @@ interface Props {
   dealDelay?: number; // 抽牌飞入的绝对延迟(ms), 由父级按批次计算
   onExited?: () => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
   onClick?: () => void;
+  actionBadge?: "redraw" | "discard" | null;
+  onAction?: () => void;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
@@ -34,7 +37,17 @@ interface Props {
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.css);
 // 详情面板(CardInfoPanel)与队伍槽高亮(AllyBar)读的是本组件写进 ui/handFocusStore.ts 的悬停卡,
 // 两者各自订阅、与 BattleScreen 无关; 这里不需要上报自身矩形, 也不需要回调冒泡。
-export function HandCard({ card, playable, selected, leaving, dealDelay, onExited, onClick }: Props) {
+export function HandCard({
+  card,
+  playable,
+  selected,
+  leaving,
+  dealDelay,
+  onExited,
+  onClick,
+  actionBadge,
+  onAction,
+}: Props) {
   const owner = getCharacter(card.ownerCharId);
   const art = cardArt(card.id);
   const hasArt = Boolean(art);
@@ -72,6 +85,20 @@ export function HandCard({ card, playable, selected, leaving, dealDelay, onExite
       onMouseEnter={() => !leaving && setHandHover(card)}
       onMouseLeave={() => clearHandHover(card)}
     >
+      {actionBadge && !leaving && (
+        <button
+          type="button"
+          className={cx(s["hc-action"], s[`hc-action-${actionBadge}`])}
+          aria-label={actionBadge === "redraw" ? "换掉这张牌" : "丢弃这张牌"}
+          title={actionBadge === "redraw" ? "换掉这张牌" : "丢弃这张牌"}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction?.();
+          }}
+        >
+          {actionBadge === "redraw" ? <RedrawIcon /> : <DiscardIcon />}
+        </button>
+      )}
       <div
         className={cx(
           s["hand-card"],

@@ -456,7 +456,7 @@ export function ExploreScreen() {
                 />
               )}
               <div className={s["expl-member-body"]}>
-                <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} name={p.name} flush />
+                <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} flush />
                 <PollutionMeter
                   value={characters[p.charId]?.pollution ?? 0}
                   compact

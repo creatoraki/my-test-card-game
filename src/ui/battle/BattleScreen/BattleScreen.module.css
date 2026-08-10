@@ -47,6 +47,8 @@
   --pile-w: 64px;
   --pile-h: 90px;
   --pile-gap: 8px;
+  --top-control-size: 68px;
+  --top-control-gap: 8px;
   padding: var(--canvas-pad);
 }
 /* 终端边框描线 = 画布的"机框"(与 .terminal-screen::before 同款, 见 styles/layout.css),
@@ -363,6 +365,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-right:9px;
 }
 .hand-toolbar-actions {
   display: flex;

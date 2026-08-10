@@ -32,11 +32,11 @@ interface Props {
   hp: number;
   hpLimit?: number;
   maxHp: number;
-  name: string;
+  hideLimit?: boolean; // 隐藏上限段，战场敌人血条只显示蓝色当前血量
   flush?: boolean; // 我方队伍卡的贴底变体: 去描边/斜切角, 与卡框底边一体化
 }
 
-export function HpBar({ hp, hpLimit, maxHp, name, flush }: Props) {
+export function HpBar({ hp, hpLimit, maxHp, hideLimit, flush }: Props) {
   const limit = hpLimit ?? maxHp;
   const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const hpLimitPct = Math.max(0, Math.min(100, (limit / maxHp) * 100));
@@ -77,7 +77,7 @@ export function HpBar({ hp, hpLimit, maxHp, name, flush }: Props) {
     >
       <div className={s["hp-slot"]} />
 
-      <div className={s["hp-limit-fill"]} style={{ width: `${hpLimitPct}%` }} />
+      {!hideLimit && <div className={s["hp-limit-fill"]} style={{ width: `${hpLimitPct}%` }} />}
 
       {/* 扣血拖影: 残影层延迟收缩, 主填充速缩后它慢半拍追上(见 HpBar.module.css .hp-ghost) */}
       <div className={s["hp-ghost"]} style={{ width: `${hpPct}%` }} />
@@ -118,7 +118,6 @@ export function HpBar({ hp, hpLimit, maxHp, name, flush }: Props) {
         </div>
       )}
 
-      <span className={s["cmb-name"]}>{name}</span>
       <span className={s["hp-text"]}>
         {Math.max(0, hp)}/{limit}
       </span>
