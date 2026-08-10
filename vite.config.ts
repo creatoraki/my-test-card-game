@@ -7,7 +7,7 @@ import imageOptimize from "./scripts/vite-plugin-image-optimize.mjs";
 export default defineConfig({
   // imageOptimize 在 dev 与 build 下行为一致(见插件头部注释), 所以开发时看到的画质
   // 就是线上画质。OPTIMIZE=0 pnpm dev 可退回原始 PNG 做原画对比。
-  plugins: [react(), imageOptimize()],
+  plugins: [react(), imageOptimize({ quality: 94 })],
   server: {
     allowedHosts: [".trycloudflare.com"],
   },

@@ -51,10 +51,11 @@
 /* —— 首击特效层: 定位在目标立绘上居中(立绘框 150px 的中段) —— */
 .vfx {
   position: absolute;
-  top: 78px;
+  top: calc(78px * var(--place-scale, 1));
   left: 50%;
   width: 0;
   height: 0;
+  scale: var(--place-scale, 1);
   pointer-events: none;
   z-index: 7;
 }

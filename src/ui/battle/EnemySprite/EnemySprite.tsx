@@ -13,18 +13,20 @@ export function EnemySprite({
   id,
   sprite,
   alt,
+  scale = 1,
 }: {
   id: string; // enemyDefId; 用来隔离各敌人的 keyframes 名, 避免同名互相覆盖
   sprite: EnemySpriteDef;
   alt: string;
+  scale?: number;
 }) {
   const skip = new Set(sprite.skipFrames ?? []);
   // 实播帧序列(0-based 索引); skipFrames 是 1-based, 故按 i+1 过滤
   const play = Array.from({ length: sprite.frames }, (_, i) => i).filter((i) => !skip.has(i + 1));
   const stripWidth = sprite.width * sprite.frames;
-  const name = `enemySpriteIdle-${id}`;
+  const name = `enemySpriteIdle-${id}-${String(scale).replace(".", "_")}`;
 
-  const offset = (frame: number) => `-${frame * sprite.width}px`;
+  const offset = (frame: number) => `-${frame * sprite.width * scale}px`;
   // 每帧在 i/n 处落一个位置, step-end 让它原地停到下一个落点; 末尾补 100%(值同末帧),
   // 使末帧也占满自己那一格时长
   const stops = play
@@ -40,11 +42,11 @@ export function EnemySprite({
         role="img"
         aria-label={alt}
         style={{
-          width: `${sprite.width}px`,
-          height: `${sprite.height}px`,
+          width: `${sprite.width * scale}px`,
+          height: `${sprite.height * scale}px`,
           backgroundImage: `url(${sprite.src})`,
           // 拼条整体缩放到 物理帧数×渲染宽, 于是每帧正好占 sprite.width
-          backgroundSize: `${stripWidth}px ${sprite.height}px`,
+          backgroundSize: `${stripWidth * scale}px ${sprite.height * scale}px`,
           animationName: name,
           animationTimingFunction: "step-end",
           animationDuration: `calc(${play.length * sprite.frameMs}ms / max(var(--fx-rate, 1), 0.25))`,

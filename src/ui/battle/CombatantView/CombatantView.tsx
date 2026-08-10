@@ -44,10 +44,11 @@ export function CombatantView({
 
   // 敌人立绘按 enemyDefId 查登记表; 未登记的退回 CharacterPortrait 的 emoji
   const enemySprite = enemyArt(cmb.enemyDefId);
+  const placeScale = placement?.scale ?? 1;
 
   const { react, vars } = hitFxVars(hit ?? null);
 
-  // --place-*: 手工站位, dx/dy 落到 .combatant 的 translate, scale 只落到 .combatant-stage
+  // --place-*: 手工站位, dx/dy 落到 .combatant 的 translate, scale 同时下发给几何和样式
   // (不能走 transform —— 那条已被 hover/前冲/hitShake 占满, 见 CombatantView.module.css)
   if (placement) {
     if (placement.dx != null) vars["--place-dx"] = `${placement.dx}px`;
@@ -63,7 +64,7 @@ export function CombatantView({
   vars["--idle-tilt"] = `${idle.tilt}deg`;
   vars["--idle-dur"] = `${idle.dur}ms`;
   vars["--idle-delay"] = `${idle.delay}ms`;
-  vars["--shadow-w"] = `${(enemySprite?.width ?? 96) * 0.78}px`;
+  vars["--shadow-w"] = `${(enemySprite?.width ?? 96) * 0.78 * placeScale}px`;
 
   return (
     <div
@@ -83,7 +84,7 @@ export function CombatantView({
     >
       {!dead && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
 
-      {/* --place-scale 只作用于这一层: 立绘和命中特效一起放大, 血条/BUFF/意图/倒计时保持原尺寸。
+        {/* --place-scale 作用于立绘和命中特效的几何, 血条/BUFF/意图/倒计时保持原尺寸。
           HitFxLayer 必须留在这层内 —— 它相对最近的定位祖先定位, 且要跟着立绘一起缩放 */}
       {/* data-cmb-stage: 供 BattleScreen 的 computeCamera 量取景框(它要的是含体型 scale 的
           这一层, 不是外层布局盒)。类名会被 Modules 哈希, querySelector 只能认属性。 */}
@@ -92,7 +93,12 @@ export function CombatantView({
 
         <div className={s["combatant-figure"]}>
           {enemySprite ? (
-            <EnemySprite id={cmb.enemyDefId} sprite={enemySprite} alt={`${cmb.name}立绘`} />
+            <EnemySprite
+              id={cmb.enemyDefId}
+              sprite={enemySprite}
+              alt={`${cmb.name}立绘`}
+              scale={placeScale}
+            />
           ) : (
             <CharacterPortrait
               emoji={cmb.emoji}

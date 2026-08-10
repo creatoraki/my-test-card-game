@@ -11,7 +11,7 @@
    必须用独立的 translate/scale 属性而非 transform —— transform 已被三方占用(:hover、
    .attacking 的前冲、hitShake 关键帧), 写进去会被受击抖动整条覆盖掉。独立属性按
    translate → scale → transform 的固定顺序各自合成, 故前冲/抖动仍在站位基础上叠加生效。
-   dx/dy 挪整个单位(血条跟着走), scale 只落到内层的 .combatant-stage —— 见下。 */
+  dx/dy 挪整个单位(血条跟着走), scale 由 JSX 折进立绘尺寸、并由内层变量补偿布局。 */
 .combatant {
   position: relative;
   width: 156px;
@@ -19,19 +19,19 @@
   transition: transform 0.1s;
   translate: var(--place-dx, 0) var(--place-dy, 0);
 }
-/* 体型缩放层: 只有立绘和命中特效在里面, 血条/BUFF/意图/倒计时都在层外, 故大体型敌人的
-   UI 元素仍是全场统一尺寸。缩放中心取底边中点(50% 100%) —— 立绘只向上长, 脚底不离地,
-   改 scale 不必回头补 dy。scale 不影响布局盒, 故血条始终贴在 150px 取景框底边 = 脚下。 */
+/* 体型几何层: 只有立绘和命中特效在里面, 血条/BUFF/意图/倒计时都在层外, 故大体型敌人的
+  UI 元素仍是全场统一尺寸。立绘实际按最终像素渲染, 负 margin 把新增高度收回, 保持血条
+  与原先 CSS scale 方案相同的布局位置。 */
 .combatant-stage {
   position: relative;
-  scale: var(--place-scale, 1);
+  margin-bottom: calc(150px * (1 - var(--place-scale, 1)));
   transform-origin: 50% 100%;
 }
 /* 脚下的椭圆落地阴影: 把立绘"钉"在地面上 —— 没有它, 待机呼吸的上下浮动会看着像在飘。
    ⚠ 挂在 .combatant-stage 而不是 .combatant-figure: 影子不该跟着呼吸一起上下动;
    挂这层还能随 --place-scale 一起放大, 大体型敌人的影子自然更大。
    --shadow-w 由 ui/CombatantView.tsx 按立绘渲染宽下发(不是布局盒宽, 影子该跟体型走)。
-   自带一条与呼吸同周期、**反相**的缩放: 身体升起时影子收紧变淡, 落下时铺开变实。 */
+  自带一条与呼吸同周期、**反相**的缩放: 身体升起时影子收紧变淡, 落下时铺开变实。 */
 .combatant-stage::after {
   content: "";
   position: absolute;
@@ -122,11 +122,11 @@
     box-shadow: 0 0 0 1px var(--bad), 0 0 14px #ff6b6b99;
   }
 }
-/* 固定高度 + 底对齐: 立绘缩放进固定高度, 各单位血条严格对齐。
-   不设 overflow, 序列帧特效可自由溢出。 */
+/* 高度随体型变化 + 底对齐: 立绘向上长, 各单位血条仍严格对齐。
+  不设 overflow, 序列帧特效可自由溢出。 */
 .combatant-figure {
   position: relative;
-  height: 150px;
+  height: calc(150px * var(--place-scale, 1));
   display: flex;
   align-items: flex-end;
   justify-content: center;

@@ -50,6 +50,7 @@ import s from "./BattleScreen.module.css";
 
 const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
 const CAMERA_HARD_CUT_DISTANCE = 420;
+const CAMERA_SETTLE_MS = CINEMA.aim.dur + 80;
 
 function safeArea(stage: HTMLElement) {
   return { x: stage.offsetLeft, y: stage.offsetTop, w: stage.offsetWidth, h: stage.offsetHeight };
@@ -118,6 +119,8 @@ export function BattleScreen() {
   //   待选目标态里响应, 触发频率与点击同级, 代价等同于 setSelectedUid 本身。
   const [aimFoeId, setAimFoeId] = useState<string | null>(null);
   const [aim, setAim] = useState<Camera | null>(null); // 瞄准相机(null=不在瞄准态)
+  const [camera, setCamera] = useState<Camera | null>(null); // 分镜/瞄准相机目标
+  const [cameraMoving, setCameraMoving] = useState(false);
   const [spillSrc, setSpillSrc] = useState<string | null>(null); // 溢出填充图(见下方 grabSpill)
   const [hitstop, setHitstop] = useState(false);
   const [fxRate, setFxRate] = useState(1);
@@ -136,10 +139,20 @@ export function BattleScreen() {
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
   const seqRef = useRef(0); // 批次序号, 用于取消旧动画批次的定时器回调
   const hitSeqRef = useRef(0); // 受击特效序号, 递增以强制 React 重放同一目标的连续特效
+  const cameraSettleTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const cameraStateReadyRef = useRef(false);
   const dealtUidsRef = useRef(new Set<string>()); // 已经播过飞入动画的卡 uid
   const openingDoneRef = useRef(false); // 本场战斗的首批手牌是否已发出
   const timelineRef = useRef<Timeline | null>(null);
   const cameraRig = useCameraRig({ sceneRef, worldRef, screenRef });
+  const setCameraTarget = (next: Camera | null) => {
+    cameraRig.setCamera(next);
+    setCamera(next);
+  };
+  const snapCameraTarget = (next: Camera | null) => {
+    cameraRig.snap(next);
+    setCamera(next);
+  };
   const setPlaybackRate = (rate: number, persist = true) => {
     if (persist) playbackRateRef.current = rate;
     cameraRig.setTimeScale(rate);
@@ -173,7 +186,7 @@ export function BattleScreen() {
     setAttackerId(null);
     setHits({});
     setCutInCard(null);
-    cameraRig.snap(null);
+    snapCameraTarget(null);
     setAimFoeId(null);
     setAim(null);
     setHitstop(false);
@@ -186,7 +199,30 @@ export function BattleScreen() {
   }, [battleSeq]);
 
   // 卸载时取消当前批次；rig 自己负责销毁 rAF。
-  useEffect(() => () => timelineRef.current?.cancel(), []);
+  useEffect(
+    () => () => {
+      timelineRef.current?.cancel();
+      if (cameraSettleTimerRef.current !== null) {
+        window.clearTimeout(cameraSettleTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!cameraStateReadyRef.current) {
+      cameraStateReadyRef.current = true;
+      return;
+    }
+    setCameraMoving(true);
+    if (cameraSettleTimerRef.current !== null) {
+      window.clearTimeout(cameraSettleTimerRef.current);
+    }
+    cameraSettleTimerRef.current = window.setTimeout(() => {
+      cameraSettleTimerRef.current = null;
+      setCameraMoving(false);
+    }, CAMERA_SETTLE_MS);
+  }, [camera, aim]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -289,7 +325,7 @@ export function BattleScreen() {
     const on =
       !!battle && battle.phase === "player" && !animating && card?.targeting === "foe";
     const next = on ? computeAimCamera(worldRef.current, stageRef.current, aimFoeId) : null;
-    if (!animating) cameraRig.setCamera(next);
+    if (!animating) setCameraTarget(next);
     setAim((prev) => (sameCamera(prev, next) ? prev : next));
   }, [battle, selectedUid, aimFoeId, animating, stageScale, cameraRig]);
 
@@ -406,7 +442,7 @@ export function BattleScreen() {
       if (seqRef.current !== seq) return;
       commit(final);
       cameraRig.setTimeScale(1);
-      cameraRig.snap(null);
+      snapCameraTarget(null);
       cameraRig.setTuning(null);
       setPlaybackRate(1, false);
       setAttackerId(null);
@@ -439,8 +475,8 @@ export function BattleScreen() {
         run: () => {
           setAttackerId(step.actorId);
           cameraRig.setTuning(preset.rig);
-          if (index === 0 && enter) cameraRig.setCamera(enter);
-          else if (index === 0) cameraRig.setCamera(null);
+          if (index === 0 && enter) setCameraTarget(enter);
+          else if (index === 0) setCameraTarget(null);
         },
       });
       timeline.add({
@@ -449,13 +485,13 @@ export function BattleScreen() {
           const previous = index > 0 ? plans[index - 1] : null;
           const nextFocus = focus();
           if (!previous || index === 0) {
-            cameraRig.setCamera(nextFocus);
+            setCameraTarget(nextFocus);
             return;
           }
           const previousFocus = previous.preset.kind === "none" ? null : computeCamera(previous.targetIds, previous.preset);
           const hardCut = previous.preset.kind === "kill" || shouldHardCut(previous.step, step, previousFocus, nextFocus);
-          if (hardCut) cameraRig.snap(nextFocus);
-          else if (!keepCamera) cameraRig.setCamera(nextFocus);
+          if (hardCut) snapCameraTarget(nextFocus);
+          else if (!keepCamera) setCameraTarget(nextFocus);
         },
       });
       if (step.card) {
@@ -487,7 +523,7 @@ export function BattleScreen() {
             if (preset.creep > 0) {
               timeline.schedule(Math.round(hold * 0.35), () => {
                 const current = focus();
-                if (current) cameraRig.setCamera({ ...current, dy: current.dy - preset.creep });
+                if (current) setCameraTarget({ ...current, dy: current.dy - preset.creep });
               });
             }
             if (preset.hitstop > 0) {
@@ -507,7 +543,7 @@ export function BattleScreen() {
       lastActor = step.actorId;
       lastAnim = step.anim;
     });
-    timeline.add({ at: at + 260, run: () => cameraRig.setCamera(null) });
+    timeline.add({ at: at + 260, run: () => setCameraTarget(null) });
     timeline.add({ at: at + 520, run: () => undefined });
     timeline.start();
   }
@@ -651,6 +687,15 @@ export function BattleScreen() {
       <div
         className={s["battle-scene"]}
         ref={sceneRef}
+        style={{ willChange: cameraMoving ? "transform" : "auto" }}
+        onTransitionEnd={(event) => {
+          if (event.propertyName !== "transform" || event.target !== event.currentTarget) return;
+          if (cameraSettleTimerRef.current !== null) {
+            window.clearTimeout(cameraSettleTimerRef.current);
+            cameraSettleTimerRef.current = null;
+          }
+          setCameraMoving(false);
+        }}
       >
         {/* ★ 世界层: 相机之下、场景内容之上的一层。它同样包住背景 + 氛围 + 舞台,
           存在的意义是承载 rig 直接写入的空闲漂移、冲击位移与 punch 缩放。
