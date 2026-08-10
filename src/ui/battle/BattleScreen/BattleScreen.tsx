@@ -810,7 +810,7 @@ export function BattleScreen() {
         tick={battle.tick}
         enemies={enemies}
       /> */}
-      {battleMeta && <ChallengeRail challenges={battleMeta.challenges} />}
+      {battle && <ChallengeRail challenges={battle.challenges} />}
       <div className={s.topRight}>
         {battleMeta && <BondRail bonds={battleMeta.bonds} />}
         <BattleActions

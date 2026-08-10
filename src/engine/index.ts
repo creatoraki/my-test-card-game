@@ -50,3 +50,11 @@ export {
 export type { AllyInit, BattleSetup, PlayRecorder } from "./battle";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget } from "./targeting";
 export { getStatus } from "./ops";
+export {
+  CHALLENGE_DEFS,
+  CHALLENGE_PICK,
+  CHALLENGE_POOL,
+  MERCY_MAX_DAMAGE,
+  RESTRAINT_MIN_MANA,
+  earnedChallengeBonus,
+} from "./challenges";

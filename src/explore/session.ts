@@ -101,10 +101,9 @@ export function rewardMultiplier(energy: number): number {
 }
 
 // 统一掉落系数 K =(K_energy + Σ挑战加成 + 同花加成)× K_global —— **全加法合成**(设计文档 §5.1)。
-// ⚠ 挑战词条(§5.3)尚未实现, 那一项恒为 0 —— 接上时只改这一个函数。
+// 挑战加成由战斗引擎在 finishBattle 时写入 pendingChallengeBonus。
 // ★ 老虎机的两项都读**开战瞬间的快照**而不是 s.slot: 卡一旦选定, 后续任何操作都不该再改动它。
-export function dropCoefficient(s: ExploreState): number {
-  const challengeBonus = 0;
+export function dropCoefficient(s: ExploreState, challengeBonus = s.pendingChallengeBonus): number {
   const slotBonus = s.pendingMatchBonus + s.pendingDropBonus;
   return (rewardMultiplier(s.energy) + challengeBonus + slotBonus) * EXPLORE_RULES.drop.kGlobal;
 }
@@ -231,6 +230,7 @@ export function createSession(
     pendingMatchBonus: 0,
     pendingDropBonus: 0,
     pendingBattleMod: null,
+    pendingChallengeBonus: 0,
     phase: "generating", // 占位: 下面的 generateRound 会重新打一次(第一轮也走完整演出)
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
@@ -1421,9 +1421,11 @@ export function finishBattle(
   won: boolean,
   survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; maxHp?: number }[],
   enemyDefIds: string[],
+  challengeBonus = 0,
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
   const empty = { loot: 0, items: [], overflow: [] };
   if (s.phase !== "inBattle") return empty;
+  s.pendingChallengeBonus = won ? challengeBonus : 0;
 
   // 血量跨轮与跨战斗继承 —— 这是整套设计的地基
   for (const p of s.party) {
@@ -1442,6 +1444,7 @@ export function finishBattle(
     s.pendingIsBoss = false;
     s.pendingBattleTier = null;
     s.battleSource = null;
+    s.pendingChallengeBonus = 0;
     clearSlotSnapshot(s);
     logLine(s, "推进战斗失利, 远征中断");
     return empty;
@@ -1461,10 +1464,11 @@ export function finishBattle(
   const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
   addPendingLoot(s, rolled);
 
-  // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清 —— 同花加成正是靠那份快照生效的。
+  // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清 —— 同花与挑战加成正是靠快照生效的。
   s.pendingEncounterId = null;
   s.pendingIsBoss = false;
   s.pendingBattleTier = null;
+  s.pendingChallengeBonus = 0;
   clearSlotSnapshot(s);
 
   const notes: string[] = [];

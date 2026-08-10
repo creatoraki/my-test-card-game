@@ -6,6 +6,12 @@ import type { QuirkId } from "./quirks";
 
 export type Team = "player" | "enemy";
 export type Phase = "player" | "won" | "lost";
+export type ChallengeId = "restraint" | "massacre" | "mercy";
+
+export interface ChallengeRun {
+  id: ChallengeId;
+  broken: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // 目标选择
@@ -288,6 +294,9 @@ export interface BattleState {
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenPenalty 算好传入。
   //   我方命中 / 暴击 / 闪避各减这么多; 敌人不受影响(见 stats.burdenOf)。
   burdenPenalty: number;
+  // 挑战词条运行态: 本场随机到的词条与其打破状态, 以及首次击杀回合。
+  challenges: ChallengeRun[];
+  challengeKillRound: number | null;
   rngState: number;
   log: LogEntry[];
 }

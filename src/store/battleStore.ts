@@ -27,15 +27,6 @@ export interface EndPlan {
   final: BattleState;
 }
 
-export interface BattleChallenge {
-  id: string;
-  title: string;
-  icon: string;
-  desc: string;
-  degraded?: boolean;
-  dropBonus?: number;
-}
-
 export interface BattleBondView {
   def: BondDef;
   count: number;
@@ -44,7 +35,6 @@ export interface BattleBondView {
 }
 
 export interface BattleMeta {
-  challenges: BattleChallenge[];
   bonds: BattleBondView[];
 }
 

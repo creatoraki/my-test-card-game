@@ -22,6 +22,11 @@ import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { actAndRecord, buildIntent } from "./ai";
 import { advanceTick } from "./scheduler";
+import {
+  checkChallengesOnEndTurn,
+  checkMassacreOnRoundSettle,
+  rollChallenges,
+} from "./challenges";
 import { getEncounter, getEnemyDef, slotDefId } from "../data";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
@@ -152,11 +157,14 @@ export function createBattle(
     redrawsThisRound: 0,
     resources: {},
     burdenPenalty: Math.max(0, setup.burdenPenalty ?? 0),
+    challenges: [],
+    challengeKillRound: null,
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
   };
 
   state.draw = shuffle(state, Object.keys(cards));
+  state.challenges = rollChallenges(state);
   log(state, `⚔️ 遭遇战: ${enc.name}`);
 
   // 开局状态必须在 startRound 之前施加 —— startRound 会 buildIntent, 而意图预览要吃到力量加成。
@@ -284,6 +292,7 @@ export function playCard(
 // ---------------------------------------------------------------------------
 export function endRound(state: BattleState, frames?: AnimFrame[]): void {
   if (state.phase !== "player") return;
+  checkChallengesOnEndTurn(state);
 
   // 冲刷: 本回合还没行动过的存活敌人各补一次行动
   if (RULES.timeline.flushEnemiesOnRoundEnd) {
@@ -302,6 +311,7 @@ export function endRound(state: BattleState, frames?: AnimFrame[]): void {
   runRoundEnd(state); // 虚弱/易伤 -1 等
   checkEnd(state);
   if (state.phase !== "player") return;
+  checkMassacreOnRoundSettle(state);
 
   if (RULES.hand.discardLeftoversOnRoundEnd) {
     state.discard.push(...state.hand);

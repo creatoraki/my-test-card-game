@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { RULES } from "@/engine";
+import { CHALLENGE_DEFS, RULES } from "@/engine";
 import { getItemDef } from "@/data";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
@@ -20,6 +20,8 @@ export function VictoryPanel() {
   const lastDropK = useRunStore((state) => state.lastDropK);
   const lastDropTier = useRunStore((state) => state.lastDropTier);
   const lastSlotBonus = useRunStore((state) => state.lastSlotBonus);
+  const lastChallengeBonus = useRunStore((state) => state.lastChallengeBonus);
+  const lastChallenges = useRunStore((state) => state.lastChallenges);
   const confirmExpReport = useRunStore((state) => state.confirmExpReport);
   const session = useExploreStore((state) => state.session);
   const takeAllLoot = useExploreStore((state) => state.takeAllLoot);
@@ -93,7 +95,16 @@ export function VictoryPanel() {
               <span>掉落 ×{lastDropK.toFixed(2)}</span>
               <span className={s["drop-popover"]}>
                 {lastDropTier?.name ?? "未知"} ×{(lastDropTier?.rewardMultiplier ?? 0).toFixed(2)}<br />
-                战斗签 +{lastSlotBonus.toFixed(2)}
+                战斗签 +{lastSlotBonus.toFixed(2)}<br />
+                挑战 +{lastChallengeBonus.toFixed(2)}
+                {lastChallenges.length > 0 && <>
+                  <br />
+                  {lastChallenges.map((run) => (
+                    <span key={run.id}>
+                      {CHALLENGE_DEFS[run.id].title} {run.broken ? "已打破" : "达成"}<br />
+                    </span>
+                  ))}
+                </>}
               </span>
             </button>
           </div>

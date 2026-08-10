@@ -391,6 +391,8 @@ export interface ExploreState {
   pendingMatchBonus: number; // 同花加成 0 / 0.5 / 1.5
   pendingDropBonus: number; // 选中符号自带的掉落加成(「高风险收益」+0.40)
   pendingBattleMod: SlotBattleMod | null; // 选中符号的战斗条件改造
+  // 挑战奖励只有战斗结算后才知道, 由 finishBattle 写入后供掉落掷点读取。
+  pendingChallengeBonus: number;
 
   phase: ExplorePhase;
   rngState: number;

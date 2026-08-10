@@ -23,10 +23,27 @@
   filter: brightness(1.15) drop-shadow(0 0 5px var(--accent));
   transform: scale(1.06);
 }
+.item[data-state="broken"]:hover,
+.item[data-state="broken"]:focus-visible {
+  filter: none;
+  transform: none;
+}
 .icon {
   color: #eaffd0;
   font-size: 44px;
   text-shadow: 0 0 10px #d8f32966;
+}
+.stroke {
+  position: absolute;
+  width: 48px;
+  height: 4px;
+  background: #ff6b6b;
+  box-shadow: 0 0 8px #ff4f4f;
+  transform: rotate(45deg) scaleX(0);
+  transform-origin: center;
+}
+.strokeSecond {
+  transform: rotate(-45deg) scaleX(0);
 }
 .dot {
   position: absolute;
@@ -40,4 +57,63 @@
 :global(.popover) strong,
 .item strong {
   color: #eaffd0;
+}
+
+@keyframes chalStrokeDraw {
+  from { transform: rotate(45deg) scaleX(0); }
+  to { transform: rotate(45deg) scaleX(1); }
+}
+@keyframes chalStrokeDrawSecond {
+  from { transform: rotate(-45deg) scaleX(0); }
+  to { transform: rotate(-45deg) scaleX(1); }
+}
+@keyframes chalFlash {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  18%, 48%, 78% { opacity: 0.35; filter: brightness(2.2); }
+}
+@keyframes chalBreakShake {
+  0%, 100% { transform: translate(0) scale(1); }
+  25% { transform: translate(-3px, 1px) scale(1.08); }
+  50% { transform: translate(3px, -1px) scale(0.98); }
+  75% { transform: translate(-1px, 0) scale(1.03); }
+}
+
+.item[data-state="breaking"] {
+  animation: chalFlash 1s ease both, chalBreakShake 1s ease both;
+}
+.item[data-state="breaking"] .stroke {
+  animation: chalStrokeDraw 360ms ease-out forwards;
+}
+.item[data-state="breaking"] .strokeSecond {
+  animation: chalStrokeDrawSecond 360ms 90ms ease-out forwards;
+}
+.item[data-state="broken"] .stroke {
+  transform: rotate(45deg) scaleX(1);
+}
+.item[data-state="broken"] .strokeSecond {
+  transform: rotate(-45deg) scaleX(1);
+}
+.item[data-state="broken"] .icon {
+  filter: grayscale(1) brightness(0.6);
+}
+.item[data-state="broken"] .dot {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item[data-state="breaking"] {
+    animation: none;
+    filter: grayscale(1) brightness(0.6);
+  }
+  .item[data-state="breaking"] .stroke,
+  .item[data-state="breaking"] .strokeSecond {
+    animation: none;
+    transform: rotate(45deg) scaleX(1);
+  }
+  .item[data-state="breaking"] .strokeSecond {
+    transform: rotate(-45deg) scaleX(1);
+  }
+  .item[data-state="breaking"] .dot {
+    display: none;
+  }
 }

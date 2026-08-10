@@ -21,6 +21,7 @@ import { STATUS_DEFS } from "./statuses";
 import { RULES } from "./rules";
 import { rngFloat } from "./rng";
 import { addMod, critChance, defenseMultiplier, hitChance, statOf } from "./stats";
+import { noteChallengeDamage, noteChallengeKill } from "./challenges";
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -54,6 +55,7 @@ export function markDead(state: BattleState, cmb: Combatant): void {
   cmb.hp = 0;
   cmb.alive = false;
   log(state, `${cmb.emoji} ${cmb.name} 倒下了`);
+  if (cmb.team === "enemy") noteChallengeKill(state, cmb);
 }
 
 // ---------------------------------------------------------------------------
@@ -137,6 +139,7 @@ export function dealDamage(
     (dmg.blockRolled ? "(格挡)" : "") +
     (dmg.blocked > 0 ? `(护盾挡下 ${dmg.blocked})` : "");
   log(state, `${target.emoji} ${target.name} 受到 ${dmg.hpLost} 点伤害${marks}`);
+  noteChallengeDamage(state, sourceId, dmg.hpLost);
 
   // 被攻击后触发(荆棘等)
   for (const inst of [...target.statuses])

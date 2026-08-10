@@ -83,6 +83,7 @@ interface ExploreStore {
     won: boolean,
     survivors: { charId: string; hp: number; hpLimit: number; alive: boolean }[],
     enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
+    challengeBonus: number,
   ) => void;
   clear: () => void;
 
@@ -219,9 +220,9 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     mutate(get, set, (d) => retreat(d));
   },
 
-  settleBattle: (won, survivors, enemyDefIds) => {
+  settleBattle: (won, survivors, enemyDefIds, challengeBonus) => {
     mutate(get, set, (d) => {
-      finishBattle(d, won, survivors, enemyDefIds);
+      finishBattle(d, won, survivors, enemyDefIds, challengeBonus);
     });
   },
 
