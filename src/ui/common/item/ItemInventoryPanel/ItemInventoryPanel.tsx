@@ -64,6 +64,8 @@ export interface ItemInventoryPanelProps {
   footer?: ReactNode;
   panelId?: string;
   colorMap?: InventoryColorMap;
+  /** 由容器传入需要短暂高亮的物品 uid, 例如飞入背包后的落点反馈。 */
+  pulseUids?: ReadonlySet<string>;
   className?: string;
 }
 
@@ -138,6 +140,7 @@ export default function ItemInventoryPanel({
   footer,
   panelId = "item-inventory-panel",
   colorMap,
+  pulseUids,
   className,
 }: ItemInventoryPanelProps) {
   const safeRows = positiveInteger(rows, 1);
@@ -302,6 +305,7 @@ export default function ItemInventoryPanel({
                   draggable={onReorder ? true : undefined}
                   data-dragging={dragIndex === index ? "true" : undefined}
                   data-drop={dropIndex === index ? "true" : undefined}
+                  data-pulse={pulseUids?.has(stack.uid) ? "true" : undefined}
                   onDragStart={(event) => {
                     if (!onReorder) return;
                     event.dataTransfer.effectAllowed = "move";

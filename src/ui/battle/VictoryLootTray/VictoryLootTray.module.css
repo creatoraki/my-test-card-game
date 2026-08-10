@@ -1,0 +1,118 @@
+.loot-tray {
+  position: relative;
+  min-height: 210px;
+  padding: 14px;
+  background: #03090c99;
+  border: 1px solid #6fd2ff38;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.loot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.loot-cell {
+  min-width: 0;
+  opacity: 0;
+  animation: vcLootIn 320ms var(--vc-ease) var(--vc-delay) forwards;
+}
+
+.loot-slot {
+  --item-slot-icon-size: 58%;
+  width: 100%;
+  min-height: 92px;
+  background: linear-gradient(145deg, #132830, #071014);
+  border-color: #6fd2ff4c;
+  transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) ease, filter var(--vc-control-ms) ease;
+}
+
+.loot-slot:hover,
+.loot-slot:focus-visible {
+  border-color: #a9f4ff;
+  filter: drop-shadow(0 0 10px #69d9ff66);
+  transform: translateY(-2px);
+}
+
+.loot-slot:active {
+  transform: scale(0.96);
+}
+
+.is-flying {
+  opacity: 0.2;
+}
+
+.loot-empty {
+  min-height: 174px;
+  display: grid;
+  place-items: center;
+  color: #76939c;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.loot-detail {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 12px);
+  left: 0;
+  width: 100%;
+  max-height: 250px;
+  overflow: auto;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  animation: vcDetailIn 160ms var(--vc-ease) forwards;
+}
+
+.loot-detail > div {
+  max-width: none;
+  background: #061014f5;
+  border-color: #6fd2ff66;
+}
+
+.loot-fly {
+  position: fixed;
+  z-index: 100;
+  left: var(--fly-left);
+  top: var(--fly-top);
+  width: 92px;
+  pointer-events: none;
+  animation: vcLootFly var(--vc-fly-ms) var(--vc-ease) forwards;
+}
+
+.loot-fly > button {
+  width: 100%;
+}
+
+@keyframes vcLootIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vcDetailIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vcLootFly {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to { opacity: 0.6; transform: translate3d(var(--fly-x), var(--fly-y), 0) scale(0.42); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loot-cell {
+    opacity: 1;
+    animation: none;
+  }
+
+  .loot-detail {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .loot-fly {
+    animation-duration: 1ms;
+  }
+}

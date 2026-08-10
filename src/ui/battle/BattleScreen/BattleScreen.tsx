@@ -14,6 +14,7 @@ import { CombatantView, isIntentRevealed } from "@/ui/battle/CombatantView";
 import { AllyBar } from "@/ui/battle/AllyBar";
 import { HandCard } from "@/ui/battle/HandCard";
 import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
+import { VictoryPanel } from "@/ui/battle/VictoryPanel";
 import { BattleActions } from "@/ui/battle/BattleActions";
 import { BondRail } from "@/ui/battle/BondRail";
 import { ChallengeRail } from "@/ui/battle/ChallengeRail";
@@ -224,6 +225,7 @@ export function BattleScreen() {
   const end = useBattleStore((s) => s.end);
   const commit = useBattleStore((s) => s.commit);
   const resolveBattle = useRunStore((s) => s.resolveBattle);
+  const battleSettled = useRunStore((s) => s.battleSettled);
   const battleSeq = useBattleStore((s) => s.seq); // 「第几场战斗」的身份标识, 换局时重置分镜状态
   const mapId = useRunStore((s) => s.mapId);
   const bg = battleBg(mapId); // 当前地图的背景素材(视频/静态图), 未登记则回退森林
@@ -317,6 +319,11 @@ export function BattleScreen() {
     warmEnemyArt();
     warmBattleBg();
   }, []);
+
+  useEffect(() => {
+    if (!battle || battle.phase !== "won" || battleSettled) return;
+    resolveBattle();
+  }, [battle, battleSettled, resolveBattle]);
 
   // ── 溢出填充图 ──
   // 静态图背景直接复用同一个 URL(浏览器共享那份解码, 零额外成本);
@@ -927,11 +934,11 @@ export function BattleScreen() {
           同样在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏。 */}
       <CardInfoPanel fallbackCard={selectedCard} />
 
-      {/* 胜负遮罩 */}
-      {!isPlayerTurn && (
+      {/* 战败遮罩。胜利由战斗画布内的 VictoryPanel 接管, 不再跳战后小结页。 */}
+      {battle.phase === "lost" && (
         <div className={s.overlay}>
           <div className={s["overlay-card"]}>
-            <h2>{battle.phase === "won" ? "🎉 战斗胜利!" : "💀 战斗失败"}</h2>
+            <h2>💀 战斗失败</h2>
             {/* `primary` 是 styles/base.css 的**全局**按钮皮肤(button.primary), 不是本模块的类 */}
             <button className="primary" onClick={() => resolveBattle()}>
               继续
@@ -939,6 +946,8 @@ export function BattleScreen() {
           </div>
         </div>
       )}
+
+      <VictoryPanel />
 
       {/* 出牌亮相卡面: 挂在舞台层之外, 不受相机缩放/裁切影响 */}
       <SkillCutInCard card={cutInCard} />

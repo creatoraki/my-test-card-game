@@ -8,7 +8,6 @@ import { CharacterDetailScreen } from "@/ui/character/CharacterDetailScreen";
 import { SortieScreen } from "@/ui/sortie/SortieScreen";
 import { ExploreScreen } from "@/ui/explore/ExploreScreen";
 import { BattleScreen } from "@/ui/battle/BattleScreen";
-import { ExpRewardScreen } from "@/ui/result/ExpRewardScreen";
 import { EndScreen } from "@/ui/result/EndScreen";
 import { startGameAssetPreload } from "@/ui/art/assetPreloader";
 
@@ -27,8 +26,6 @@ function renderScreen(screen: Screen) {
       return <ExploreScreen />;
     case "battle":
       return <BattleScreen />;
-    case "reward":
-      return <ExpRewardScreen />;
     case "victory":
     case "defeat":
       return <EndScreen />;

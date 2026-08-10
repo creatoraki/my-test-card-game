@@ -7,7 +7,14 @@ import { create } from "zustand";
 import type { AllyInit, Ally, Card, Enemy } from "../engine";
 import { RULES, applyModifier, getStatusDef } from "../engine";
 import { BOND_DEFS, activeBonds, getCharacter, getMap, mergeMods, nextTier } from "../data";
-import { battleModifier, burdenNow, chosenSlotSymbol, energyTier, rewardMultiplier } from "../explore/session";
+import {
+  battleModifier,
+  burdenNow,
+  chosenSlotSymbol,
+  dropCoefficient,
+  energyTier,
+  rewardMultiplier,
+} from "../explore/session";
 import type { PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
 import { useBattleStore, type BattleChallenge, type BattleMeta } from "./battleStore";
@@ -38,7 +45,6 @@ export type Screen =
   | "sortie"
   | "explore"
   | "battle"
-  | "reward"
   | "victory"
   | "defeat";
 
@@ -51,6 +57,10 @@ interface RunStore {
   lastResult: RunResult | null;
   lastLoot: number; // 上一场战斗的居民积分产出(结算页展示)。⚠ 普通战斗恒为 0, 见 EXPLORE_RULES.loot
   lastDrops: ItemStack[]; // 上一场战斗掉的实物(结算页展示) —— 战斗的正经产出是这个
+  battleSettled: boolean; // 本场战斗已完成结算, 但胜利面板仍留在战斗画布内
+  lastDropK: number; // 本场掉落使用的最终倍率
+  lastDropTier: { name: string; rewardMultiplier: number } | null;
+  lastSlotBonus: number;
   // 角色详情页正在看谁。⚠ 只在 screen === "charDetail" 时有意义; 从详情返回编队时**刻意不清空**,
   // 好让退场动画期间那一页仍能渲染出内容(ScreenTransition 会把旧界面多留一个出场时长)。
   detailCharId: string | null;
@@ -248,6 +258,10 @@ export const useRunStore = create<RunStore>((set, get) => ({
   lastResult: null,
   lastLoot: 0,
   lastDrops: [],
+  battleSettled: false,
+  lastDropK: 0,
+  lastDropTier: null,
+  lastSlotBonus: 0,
   detailCharId: null,
 
   enterTown: () => {
@@ -272,6 +286,10 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastResult: null,
       lastLoot: 0,
       lastDrops: [],
+      battleSettled: false,
+      lastDropK: 0,
+      lastDropTier: null,
+      lastSlotBonus: 0,
       screen: "explore",
     });
   },
@@ -298,12 +316,16 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
   resolveBattle: () => {
     if (get().screen !== "battle") return; // 幂等护栏: 防重复触发重复发经验
+    if (get().battleSettled) return;
     const battle = useBattleStore.getState().battle;
     const session = useExploreStore.getState().session;
     if (!battle || !session?.pendingEncounterId) return;
     if (battle.phase !== "won" && battle.phase !== "lost") return;
 
     const won = battle.phase === "won";
+    const lastDropK = dropCoefficient(session);
+    const lastDropTier = energyTier(session.energy);
+    const lastSlotBonus = session.pendingMatchBonus + session.pendingDropBonus;
     // ★ 从战斗单位而非遭遇战定义里取敌人 defId —— 能量档位追加进来的敌人也该掉东西,
     //   而 EncounterDef.enemies 里没有它们。数量仍是 .length, 与旧口径一致。
     const enemyDefIds = battle.enemyIds.map((id) => (battle.combatants[id] as Enemy).enemyDefId);
@@ -335,7 +357,17 @@ export const useRunStore = create<RunStore>((set, get) => ({
     if (!won) {
       // 战败即团灭。背包已在 settleBattle 里丢干净, 这里只把寄回的落袋。
       if (after) bankEverything(after);
-      set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0, lastDrops: [] });
+      set({
+        screen: "defeat",
+        lastResult: "lost",
+        expReport: [],
+        lastLoot: 0,
+        lastDrops: [],
+        battleSettled: false,
+        lastDropK: 0,
+        lastDropTier: null,
+        lastSlotBonus: 0,
+      });
       return;
     }
 
@@ -348,34 +380,51 @@ export const useRunStore = create<RunStore>((set, get) => ({
       exp,
     );
 
-    // 本场掉了什么: 拿战斗前后的背包做差(uid 唯一, 所以差集就是新进来的那些)。
-    // ⚠ 还要算上 pendingPickup —— 背包满时掉落会落在那里, 玩家仍然「掉到了」它们。
-    const before = new Set(session.backpack.map((s) => s.uid));
-    const lastDrops = [...(after?.backpack ?? []), ...(after?.pendingPickup ?? [])].filter(
-      (s) => !before.has(s.uid),
-    );
+    const lastDrops = after?.pendingLoot ?? [];
 
     set({
-      screen: "reward",
+      screen: "battle",
+      battleSettled: true,
       expReport,
       lastResult: "won",
       lastLoot: (after?.loot ?? 0) - session.loot,
       lastDrops,
+      lastDropK,
+      lastDropTier: {
+        name: lastDropTier.name,
+        rewardMultiplier: lastDropTier.rewardMultiplier,
+      },
+      lastSlotBonus,
     });
   },
 
   confirmExpReport: () => {
     const session = useExploreStore.getState().session;
     if (!session) return set({ screen: "town" });
+    if (session.pendingLoot.length) return;
 
     if (session.phase === "cleared") {
       bankEverything(session);
       useBattleStore.getState().clear();
-      set({ screen: "victory", lastResult: "won" });
+      set({
+        screen: "victory",
+        lastResult: "won",
+        battleSettled: false,
+        lastDropK: 0,
+        lastDropTier: null,
+        lastSlotBonus: 0,
+      });
       return;
     }
     useBattleStore.getState().clear();
-    set({ screen: "explore", expReport: [] });
+    set({
+      screen: "explore",
+      expReport: [],
+      battleSettled: false,
+      lastDropK: 0,
+      lastDropTier: null,
+      lastSlotBonus: 0,
+    });
   },
 
   retreat: () => {
@@ -404,7 +453,17 @@ export const useRunStore = create<RunStore>((set, get) => ({
     if (session.phase === "wiped") {
       // 团灭: session.backpack 已被 loseEverything 清空, 但**投递口寄回的仍然算数**(§6.5)。
       bankEverything(session);
-      set({ screen: "defeat", lastResult: "lost", expReport: [], lastLoot: 0, lastDrops: [] });
+      set({
+        screen: "defeat",
+        lastResult: "lost",
+        expReport: [],
+        lastLoot: 0,
+        lastDrops: [],
+        battleSettled: false,
+        lastDropK: 0,
+        lastDropTier: null,
+        lastSlotBonus: 0,
+      });
       return;
     }
     bankEverything(session);
@@ -463,12 +522,34 @@ export const useRunStore = create<RunStore>((set, get) => ({
     useBattleStore.getState().clear();
     useExploreStore.getState().clear();
     useTownStore.getState().advanceDay();
-    set({ screen: "town", mapId: null, expReport: [], lastResult: null, lastLoot: 0, lastDrops: [] });
+    set({
+      screen: "town",
+      mapId: null,
+      expReport: [],
+      lastResult: null,
+      lastLoot: 0,
+      lastDrops: [],
+      battleSettled: false,
+      lastDropK: 0,
+      lastDropTier: null,
+      lastSlotBonus: 0,
+    });
   },
 
   backToMenu: () => {
     useBattleStore.getState().clear();
     useExploreStore.getState().clear();
-    set({ screen: "menu", mapId: null, expReport: [], lastResult: null, lastLoot: 0, lastDrops: [] });
+    set({
+      screen: "menu",
+      mapId: null,
+      expReport: [],
+      lastResult: null,
+      lastLoot: 0,
+      lastDrops: [],
+      battleSettled: false,
+      lastDropK: 0,
+      lastDropTier: null,
+      lastSlotBonus: 0,
+    });
   },
 }));

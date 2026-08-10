@@ -18,8 +18,10 @@
 - 只有一个使用方的（`.row` / `.overlay` / `.overlay-card`）直接收归那个组件，见
   [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css) 末尾；
 - 结算页的卡组摘要、战利品标签和终端骨架在
-  [EndScreen.module.css](../../src/ui/result/EndScreen/EndScreen.module.css)，战后小结在
-  [ExpRewardScreen.module.css](../../src/ui/result/ExpRewardScreen/ExpRewardScreen.module.css)；
+[EndScreen.module.css](../../src/ui/result/EndScreen/EndScreen.module.css)，战斗画布内胜利结算的黑钢面板在
+[VictoryPanel.module.css](../../src/ui/battle/VictoryPanel/VictoryPanel.module.css)、
+[VictoryExpRow.module.css](../../src/ui/battle/VictoryExpRow/VictoryExpRow.module.css) 和
+[VictoryLootTray.module.css](../../src/ui/battle/VictoryLootTray/VictoryLootTray.module.css)；
 - 确认无人使用的（`.title` / `.subtitle` / `.menu-main` / `.chip` / `.reward-cards` …）已删除。
 
 探索域的共享按钮、标签和事件类型色位于

@@ -546,6 +546,13 @@ function summarizeItems(taken: ItemStack[], overflow: ItemStack[]): string {
   return overflow.length ? `${head}（${overflow.length} 件背不动了）` : head;
 }
 
+function summarizePendingItems(stacks: ItemStack[]): string {
+  const count = new Map<string, number>();
+  for (const st of stacks) count.set(st.itemId, (count.get(st.itemId) ?? 0) + st.count);
+  const parts = [...count].map(([id, n]) => `${getItemDef(id).name} ×${n}`);
+  return parts.length ? `待拾取 ${parts.join(" · ")}` : "待拾取物品";
+}
+
 // 单条效果 → 一句结算摘要(写进节点记录与结算浮层)。
 // ⚠ RETREAT 与 END_REGION 会改变阶段, 由 chooseOption 单独处理, 不走这里。
 function rollOutcome(s: ExploreState, outcomes: EventOutcome[]): EventOutcome | null {
@@ -1394,7 +1401,7 @@ export function finishBattle(
   const k = dropCoefficient(s);
   const ctx = dropContext(s);
   const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
-  const { taken, overflow } = addItems(s, rolled);
+  addPendingLoot(s, rolled);
 
   // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清 —— 同花加成正是靠那份快照生效的。
   s.pendingEncounterId = null;
@@ -1403,7 +1410,7 @@ export function finishBattle(
 
   const notes: string[] = [];
   if (loot > 0) notes.push(`居民积分 +${loot}`);
-  if (rolled.length) notes.push(summarizeItems(taken, overflow));
+  if (rolled.length) notes.push(summarizePendingItems(rolled));
   s.pendingNotes = [["战斗胜利", ...notes].join(" · ")];
 
   const last = s.history[s.history.length - 1];
@@ -1413,13 +1420,13 @@ export function finishBattle(
     // BOSS 轮胜利 = 通关。轮次走满但不是 BOSS(理论上不会发生)也按通关收尾。
     s.phase = "cleared";
     logLine(s, "回收总控已停机");
-    return { loot, items: taken, overflow };
+    return { loot, items: rolled, overflow: [] };
   }
 
   // 下一轮: 新区域, 新的一张路由图
   s.round += 1;
   generateRound(s);
-  return { loot, items: taken, overflow };
+  return { loot, items: rolled, overflow: [] };
 }
 
 // ---------------------------------------------------------------------------

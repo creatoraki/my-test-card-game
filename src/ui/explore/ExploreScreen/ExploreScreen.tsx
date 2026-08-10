@@ -179,7 +179,7 @@ export function ExploreScreen() {
   }, [phase, round, revealMs, revealDone]);
 
   // 会话自己走到终局(坐上升降机 / 主动撤离 / 事件掉血团灭) → 交给 runStore 结算并切页。
-  // BOSS 通关走的是战斗那条路(reward → confirmExpReport), 不经过这里。
+  // BOSS 通关走的是战斗画布内的胜利结算流程, 不经过这里。
   useEffect(() => {
     if (phase === "retreated" || phase === "wiped") finishExpedition();
   }, [phase, finishExpedition]);

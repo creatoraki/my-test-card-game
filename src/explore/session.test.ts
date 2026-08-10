@@ -691,7 +691,7 @@ describe("战斗回填与团灭", () => {
     const before = s.loot;
     finishBattle(s, true, WIN, ["scrap-bot", "scrap-bot", "scrap-bot"]);
     expect(s.loot).toBe(before);
-    expect(s.backpack.length).toBeGreaterThan(0); // 枯竭档三只机械不可能一件不掉
+    expect(s.pendingLoot.length).toBeGreaterThan(0); // 枯竭档三只机械不可能一件不掉
   });
 
   it("同种子的战斗掉的东西逐件一致", () => {
@@ -699,7 +699,7 @@ describe("战斗回填与团灭", () => {
       const s = newSession(4242);
       intoBattle(s);
       finishBattle(s, true, WIN, ["scrap-bot", "radio-bot"]);
-      return s.backpack.map((x) => x.itemId);
+      return s.pendingLoot.map((x) => x.itemId);
     };
     expect(run()).toEqual(run());
   });

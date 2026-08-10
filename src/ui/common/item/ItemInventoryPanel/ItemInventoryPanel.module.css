@@ -340,6 +340,15 @@
   pointer-events: none;
 }
 
+.inventory-slot-anchor[data-pulse="true"] .inventory-slot {
+  animation: inventoryPulse 420ms var(--vc-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+@keyframes inventoryPulse {
+  0%, 100% { filter: brightness(1); }
+  35% { filter: brightness(1.8) drop-shadow(0 0 12px var(--inventory-frame-hot)); }
+}
+
 .inventory-slot.inventory-slot,
 .inventory-empty.inventory-empty {
   box-sizing: border-box;
@@ -544,5 +553,11 @@
   .inventory-corner,
   .inventory-slot.inventory-slot {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-slot-anchor[data-pulse="true"] .inventory-slot {
+    animation: none;
   }
 }
