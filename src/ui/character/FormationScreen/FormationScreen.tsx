@@ -21,7 +21,7 @@
 // ★ 本文件里所有坐标/尺寸都是「设计 px」, 直接照着 1920×1080 的设计稿填数。
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图随分辨率漂移。
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { flushSync } from "react-dom";
 import { RULES } from "@/engine";
 import { getCharacter } from "@/data";
@@ -29,7 +29,7 @@ import { useRunStore } from "@/store/runStore";
 import { deriveStats, useTownStore, type CharacterState } from "@/store/townStore";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
-import { useStageScale } from "@/ui/hooks/stage";
+import { StageCanvas } from "@/ui/app/StageCanvas";
 import { takeSharedPortrait } from "@/ui/character/sharedPortrait";
 import { CRYO_BG_ART } from "@/ui/art/sceneArt";
 import s from "./FormationScreen.module.css";
@@ -50,9 +50,6 @@ export function FormationScreen() {
   const toggleParty = useTownStore((s) => s.toggleParty);
   const enterTown = useRunStore((s) => s.enterTown);
   const openCharDetail = useRunStore((s) => s.openCharDetail);
-
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const stageScale = useStageScale(viewportRef);
 
   const size = RULES.progression.partySize;
   const full = party.length >= size;
@@ -98,17 +95,14 @@ export function FormationScreen() {
   }, [enterTown]);
 
   return (
-    // letterbox 容器: 铺满窗口, 画布之外的部分是黑边(见 .fm-viewport)
-    <div
-      className={s["fm-viewport"]}
-      ref={viewportRef}
-      style={{ "--stage-scale": stageScale } as CSSProperties}
+    <StageCanvas
+      viewportClassName={s["fm-viewport"]}
+      className={cx(s["screen"], s["fm-stage"], landingId && s["is-vt-enter"])}
     >
       {/* 画布 = 固定 1920×1080, 整体等比缩放适配窗口 ⇒ 构图永不随分辨率变。
           ⚠ 背景(.fm-bg / .fm-veil)刻意**不挂 view-transition-name**: 两页用的是同一张
             冬眠仓.png ⇒ 它们落进 root 快照, 而 root 那片区域两页像素一致, 默认交叉淡化
             因此完全看不见。"底图不动、只有元素重组"就是这么来的。 */}
-      <div className={cx(s["screen"], s["fm-stage"], landingId && s["is-vt-enter"])}>
         {/* 背景: 冬眠仓那张 16:9 场景图, 与画布同比例 ⇒ cover 只等比缩小, 无裁切无变形。 */}
         <img className={s["fm-bg"]} src={CRYO_BG_ART} alt="" draggable={false} />
         {/* 提亮层: 背景本身是浅色紫粉白, 这里再往白里推一档, 给玻璃卡挣出对比度。
@@ -190,8 +184,7 @@ export function FormationScreen() {
         <p className={s["fm-note"]} style={{ right: "72px", bottom: "56px" }}>
           点卡面查看队员详情 · 点右上角开关上阵 / 下阵 · 至少保留 1 名队员上阵
         </p>
-      </div>
-    </div>
+    </StageCanvas>
   );
 }
 

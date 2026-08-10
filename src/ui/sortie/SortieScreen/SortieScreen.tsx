@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MAPS } from "@/data";
 import { useRunStore } from "@/store/runStore";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
-import { useStageScale } from "@/ui/hooks/stage";
+import { StageCanvas } from "@/ui/app/StageCanvas";
 import { MapSelectStep } from "@/ui/sortie/MapSelectStep";
 import { PrepStep } from "@/ui/sortie/PrepStep";
 import { SortieBackdrop } from "@/ui/sortie/SortieBackdrop";
@@ -13,8 +13,6 @@ import { useSortieStepTransition } from "@/ui/sortie/sortieStepTransition";
 import s from "./SortieScreen.module.css";
 
 export function SortieScreen() {
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const stageScale = useStageScale(viewportRef);
   const step = useSortieStore((state) => state.step);
   const mapId = useSortieStore((state) => state.mapId);
   const backpack = useSortieStore((state) => state.backpack);
@@ -59,12 +57,11 @@ export function SortieScreen() {
   }, []);
 
   return (
-    <div
-      ref={viewportRef}
-      className={s.viewport}
-      style={{ "--stage-scale": stageScale } as CSSProperties}
+    <StageCanvas
+      viewportClassName={s.viewport}
+      className={s.stage}
     >
-      <main className={s.stage}>
+      <main className={s.stageContent}>
         <SortieBackdrop
           mapId={selectedMapId}
           showInfo={visibleStep === "map" || exitingStep === "map"}
@@ -102,6 +99,6 @@ export function SortieScreen() {
           onStartExpedition={startRun}
         />
       </main>
-    </div>
+    </StageCanvas>
   );
 }

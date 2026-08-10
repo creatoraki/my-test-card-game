@@ -1,7 +1,7 @@
 /* ===================== 右侧卡牌详情抽屉(战术数据面板) ===================== */
 /* 不贴屏幕边而是四周留 16px, 收起时整条连同这段留白一起滑出(translateX 多推 24px)。 */
 .card-drawer {
-  position: fixed;
+  position: absolute;
   top: 16px;
   right: 16px;
   bottom: 16px;

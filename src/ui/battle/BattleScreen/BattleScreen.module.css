@@ -6,9 +6,8 @@
    与 padding:14px, 两条都被本规则整条覆盖 ⇒ 对战斗画布毫无作用, 转 Modules 时一并去掉。
    四条 `.screen.battle` 规则因此统一降一级特异性, 而它们的竞争者全在本文件内, 层叠不变。 */
 .battle {
+  composes: canvas from "../../app/styles/stageCanvas.module.css";
   display: block;
-  position: relative;
-  height: 100%;
   /* 相机的唯一裁切边界: 推近时越出屏幕的前景/背景在此被裁掉 */
   overflow: hidden;
   /* 背景由 .battle-bg-video 承担; 这里只留深色兜底(视频解码前/失败时) */
@@ -16,7 +15,7 @@
 
   /* ★ 战斗画布的全部构图旋钮。全是设计 px(1920×1080 基准), 随 --stage-scale 一起缩放,
      故任何窗口尺寸下构图完全一致 —— 画布内不写 vw/vh, 见 README「设计画布」。
-     画布本身的 1920×1080 与居中缩放由 .battle-viewport .battle 给(见下方「战斗终端」段)。
+    画布本身的 1920×1080 与居中缩放由公共 stageCanvas 给(见下方「战斗终端」段)。
        --canvas-pad / --stage-gap : 画布内边距与「舞台 ↔ HUD」的间距
       --topbar-h                 : 顶部悬浮行占位高度。供 .enemy-row 避让顶部悬浮内容。
        --hud-h                    : 底部 HUD 总高(1080 的 ~27%, 对齐参考图比例)
@@ -141,14 +140,6 @@
    (x=960)收缩 → 可见范围变成 960±960k, 左/上留黑边、右/下被裁。translate 的百分比按自身边框盒
    算(=固定的 -960/-540px)且排在 scale 左侧(不被 k 缩放), 故任何 k 下都精确居中。 */
 .battle-viewport .battle {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1920px;
-  height: 1080px;
-  min-height: 0;
-  transform: translate(-50%, -50%);
-  zoom: var(--stage-scale, 1);
   /* ★ 3D 投影就发生在这里。必须是 perspective **属性**而不是 .battle-scene 的 transform
      里写 perspective() 函数 —— 后者只对该元素自身的变换生效, 后代的 translateZ 拿不到透视,
      各纵深层就永远不会产生视差。
@@ -746,7 +737,7 @@
 
 /* 战斗结束的全屏遮罩 + 中央卡片 */
 .overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: #000b;
   display: flex;

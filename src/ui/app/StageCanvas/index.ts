@@ -1,0 +1,1 @@
+export { StageCanvas, type StageCanvasProps } from "./StageCanvas";

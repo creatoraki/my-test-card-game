@@ -43,11 +43,11 @@ function runFfmpeg(args) {
  * @returns {import("vite").Plugin}
  */
 export default function imageOptimize({
-  quality = 80,
-  effort = 4,
-  crf = 30,
+  quality = 88,
+  effort = 6,
+  crf = 23,
   preset = "medium",
-  maxWidth = 1280,
+  maxWidth = 1920,
 } = {}) {
   const enabled = process.env.OPTIMIZE !== "0";
   if (!enabled) {

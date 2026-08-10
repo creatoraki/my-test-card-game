@@ -9,7 +9,6 @@
    而不是控制终端的亮玻璃 —— 那套是给纯白控制室用的。 */
 
 .screen {
-  height: 100%;
   padding: 14px;
 }
 .expl-kicker {
@@ -57,30 +56,17 @@
 
 /* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
 .explore-viewport {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
+  composes: viewport from "../../app/styles/stageCanvas.module.css";
   background: #000;
-}
-/* ⚠ 居中必须靠绝对定位 + translate(-50%,-50%) 而非 flex 居中(原因见 .battle-viewport 的注释)。 */
-.explore-viewport .screen {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1920px;
-  height: 1080px;
-  min-height: 0;
-  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
 }
 
 /* 画布本体。不挂 .terminal-screen ⇒ 没有渐变底/机框/导航条, 与据点、战斗一致(全屏场景页)。
    ⚠⚠ 这一层**永远不能挂 animation / opacity / filter**: 它是下面所有玻璃砖的祖先,
    一旦成为 backdrop root, backdrop-filter 就取不到背景图。入场动画一律挂叶子元素。
-   (transform 是上面那条缩放, 属于画布机制本身 —— 故本页的玻璃刻意都做成「玻璃 + 半透明渐变底」
+  (zoom 是公共画布的缩放, 属于画布机制本身 —— 故本页的玻璃刻意都做成「玻璃 + 半透明渐变底」
    的组合, 即便某些浏览器把缩放层当作 backdrop root, 也仍有底色兜住可读性。) */
 .explore-stage {
+  composes: canvas from "../../app/styles/stageCanvas.module.css";
   --expl-modal-top: 202px;
   --expl-dock-top: 702px;
   --expl-dock-max-h: 356px;
@@ -89,7 +75,6 @@
   /* ★ 背景压暗强度 —— 想调明暗**只改这一个数**(0 = 完全不压, 露出原图; 1 = 原始最暗配方)。
      0.75 ≈ 略透一点; 0.5 ≈ 背景清晰可辨、路由图仍读得清(当前值); 0.3 ≈ 图很亮, HUD 文字会开始吃力。 */
   --expl-veil: 0.65;
-  position: relative;
   overflow: hidden;
   padding: 0;
   background: #070a0c; /* 图加载前/失败时的深色兜底, 不露白 */

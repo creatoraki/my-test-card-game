@@ -29,7 +29,7 @@ import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
 import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
-import { useStageScale } from "@/ui/hooks/stage";
+import { StageCanvas } from "@/ui/app/StageCanvas";
 import { setSharedPortrait } from "@/ui/character/sharedPortrait";
 import { CRYO_BG_ART } from "@/ui/art/sceneArt";
 import s from "./CharacterDetailScreen.module.css";
@@ -117,9 +117,6 @@ export function CharacterDetailScreen() {
   const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
   const justForgedRef = useRef(false);
-
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const stageScale = useStageScale(viewportRef);
 
   // ---- 与编队页之间的共享元素过场 ----
   // ★ 本页这一侧**不需要任何运行时逻辑**: 每个名字在本页都只有一份, 全部写死在
@@ -262,14 +259,12 @@ export function CharacterDetailScreen() {
   const canUpgrade = costs.upgrade != null && cs.exp >= costs.upgrade;
 
   return (
-    <div
-      className={s["cd-viewport"]}
-      ref={viewportRef}
-      style={{ "--stage-scale": stageScale } as CSSProperties}
+    <StageCanvas
+      viewportClassName={s["cd-viewport"]}
+      className={cx(s["screen"], s["cd-stage"])}
     >
       {/* ⚠ 背景刻意**不挂 view-transition-name**: 与编队页是同一张冬眠仓.png ⇒ 落进 root 快照,
           两页那片区域像素一致, 默认交叉淡化因此完全看不见 —— 这就是"底图不动"的来源。 */}
-      <div className={cx(s["screen"], s["cd-stage"])}>
         <img className={s["cd-bg"]} src={CRYO_BG_ART} alt="" draggable={false} />
         <div className={s["cd-veil"]} />
 
@@ -471,8 +466,7 @@ export function CharacterDetailScreen() {
         >
           ← 返回编队
         </button>
-      </div>
-    </div>
+    </StageCanvas>
   );
 }
 

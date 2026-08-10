@@ -9,6 +9,7 @@
 | [index.css](../../src/styles/index.css) | 公共 CSS 唯一入口，只按 `tokens → base` 两条导入。 |
 | [tokens.css](../../src/styles/tokens.css) | 设计令牌：配色、边框、圆角，以及五档物品稀有度和对应辉光。卡牌稀有度是另一套类型，不在这里混用。 |
 | [base.css](../../src/styles/base.css) | reset、页面底纹、扫描线、按钮全家桶、表单元素和基础文字元素。 |
+| [stageCanvas.module.css](../../src/ui/app/styles/stageCanvas.module.css) | 全站 1920×1080 设计画布的 letterbox 容器与 `zoom` 几何骨架；页面样式通过 `composes` 复用。 |
 
 **全局层只剩这两个文件**（第三个全局文件是 `ui/app/viewTransition.global.css`，那里没有类名）。
 原先的 `layout.css` 与 `widgets.css` 已在模块化改造中拆解完毕：
@@ -99,7 +100,7 @@ import s from "./CombatantView.module.css";
 
 ## 设计画布
 
-[hooks/stage.ts](../../src/ui/hooks/stage.ts) 提供 `STAGE`（1920×1080 基准尺寸、最大缩放）和 `useStageScale`（基于 `ResizeObserver` 计算 letterbox 等比缩放）。战斗、主菜单和据点使用固定设计画布，画布内部坐标都是设计 px，不能使用 `vw` / `vh`，也不能按窗口宽度重新排版。
+[hooks/stage.ts](../../src/ui/hooks/stage.ts) 提供 `STAGE`（1920×1080 基准尺寸、最大缩放）和 `useStageScale`（基于 `ResizeObserver` 计算 letterbox 等比缩放，机会性吸附到设备像素并监听 DPR 变化）。各页通过 `app/StageCanvas` 复用画布骨架，画布内部坐标都是设计 px，不能使用 `vw` / `vh`，也不能按窗口宽度重新排版。
 
 战斗画布的主要旋钮在 [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css)：`--canvas-pad`、`--stage-gap`、`--hud-h`、`--hud-party-w`、`--hud-info-w`、`--hand-plate-h`、`--pile-w`、`--pile-h`、`--pile-gap`。其中 `--hand-plate-h` 继续作为托盘衬板的高度契约，`--pile-w` / `--pile-h` / `--pile-gap` 决定右上角竖排牌堆的尺寸和间距；手牌托盘不再为牌堆额外让位。`--hud-h` 会直接决定战场可见下沿，调整它前要检查敌人脚下的背景地面线。手牌宽度使用 `--hand-card-w`，卡高由配图区、顶栏和说明区推导，不要另写固定高度——这几个变量是下发给 [HandCard.module.css](../../src/ui/battle/HandCard/HandCard.module.css) 的跨组件契约（铁律 4），卡在托盘里的版式与厚度规则住在那边。
 

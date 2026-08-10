@@ -9,7 +9,7 @@
 
 ```text
 src/ui/
-├─ app/          过场编排（App.tsx 的直接依赖）
+├─ app/          过场编排与全站 StageCanvas 画布
 ├─ common/       跨域复用的组件与 cx.ts
 ├─ menu/         主菜单
 ├─ town/         据点大厅与设施场景
@@ -32,6 +32,7 @@ src/ui/
 | --- | --- |
 | [app/ScreenTransition](../../src/ui/app/ScreenTransition/ScreenTransition.tsx) | 串行执行旧界面出场 → 黑场停顿 → 新界面入场；避免两套 BattleScreen 同时挂载和视频双解码。快速切换由批次号使旧定时器失效。特效档位靠 `.is-fx` 标记类 + `s[\`screen-fx-${name}\`]` 查表。 |
 | [app/BattleTransitionCurtain](../../src/ui/app/BattleTransitionCurtain/BattleTransitionCurtain.tsx) | 探索到战斗的裂纹 Canvas、主环和 View Transition 显现；幕布层固定且不向祖先施加 transform/filter。 |
+| [app/StageCanvas](../../src/ui/app/StageCanvas/StageCanvas.tsx) | 全站 1920×1080 设计画布容器：统一管理 viewport 测量、DPR 量化的 `--stage-scale` 与布局期 `zoom`，页面通过 className 复用局部样式。 |
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
 | [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
 | [town/terminal/ControlTerminalScene](../../src/ui/town/terminal/ControlTerminalScene/ControlTerminalScene.tsx) | 控制终端：城市维护工单委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由；出击已迁移到大厅一级入口。 |
@@ -150,7 +151,7 @@ src/ui/
 | [art/assetPreloader.ts](../../src/ui/art/assetPreloader.ts) | 游戏启动时的实际美术资源清单、去重、进度和失败收口；不扫描未引用的 `assets` 文件。 |
 | [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |
 | [hooks/useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 将启动预加载状态接入 React 外部 store；主菜单等待所有资源任务 settle 后开放入口。 |
-| [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布和等比 letterbox 缩放。画布内不使用 `vw` / `vh` 或窗口断点。 |
+| [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布的等比 letterbox 缩放、设备像素量化与 DPR 监听。画布内不使用 `vw` / `vh` 或窗口断点。 |
 | [hooks/useCountUp.ts](../../src/ui/hooks/useCountUp.ts) | rAF 数值滚动；起点走 ref，减少动态效果下直接使用终值。 |
 | [hooks/useChangePulse.ts](../../src/ui/hooks/useChangePulse.ts) | 认出「同一个 key 的数值变了」并短暂高亮。物品**新进来**由格子重挂载的 CSS 动画负责，这个 hook 只管 uid 不变、`count` 改数的那种；新出现的 key 刻意不算变化，否则两边都闪会重影。 |
 | [hooks/useIdleTwitch.ts](../../src/ui/hooks/useIdleTwitch.ts) | 低频随机敌人待机小动作，只存在于 UI 局部状态。 |
@@ -168,7 +169,7 @@ src/ui/
 
 ## 战斗设计画布与相机边界
 
-战斗、主菜单和据点画布恒为 1920×1080，由 `useStageScale` 以 `k = min(容器宽/1920, 容器高/1080)` 等比缩放，超出部分留黑边。战斗舞台和底部 HUD 是兄弟矩形；`--hud-h` 直接决定敌人可见地面线，调整前必须复核站位。
+全站页面画布恒为 1920×1080，由 `StageCanvas` 以 `k = min(容器宽/1920, 容器高/1080)` 等比缩放并通过 `zoom` 布局期缩放，超出部分留黑边；常见设备像素倍数附近会向下吸附，显示器 DPR 变化会触发重测。战斗舞台和底部 HUD 是兄弟矩形；`--hud-h` 直接决定敌人可见地面线，调整前必须复核站位。
 
 战斗世界使用一个相机：背景、氛围和单位都在 `.battle-world` 内一起变换。`transform` 负责空闲漂移，独立 `translate` 负责震屏，独立 `scale` 负责冲击缩放；不要让背景和单位分别套变换。相机全程使用设计 px，`getBoundingClientRect()` 得到屏幕 px 时先经换算；相机反投影则通过世界层矩形抵消画布缩放、当前相机和漂移。
 

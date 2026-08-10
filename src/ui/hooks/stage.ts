@@ -1,14 +1,26 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 
-// 战斗画面的设计分辨率。画布(.screen.battle)恒为 1920×1080, 由 --stage-scale 等比缩放去适配
-// 窗口 —— 故画布内所有 px(站位 dx/dy、立绘尺寸、侧栏宽、字号)都是"设计 px", 与实际分辨率无关,
-// 任何窗口尺寸下构图完全一致。这是 data/encounters.ts 的手工站位能长期成立的前提。
+// 画布(.screen.battle)恒为 1920×1080, 由 --stage-scale 等比缩放去适配窗口 —— 故画布内所有 px
+// (站位 dx/dy、立绘尺寸、侧栏宽、字号)都是"设计 px", 与实际分辨率无关, 任何窗口尺寸下构图完全一致。
+// 这是 data/encounters.ts 的手工站位能长期成立的前提。
 export const STAGE = {
   width: 1920,
   height: 1080,
   // 缩放上限: 沿用改造前"最大 2560×1440, 更大的显示器四周留黑边"的取舍。想让 4K 铺满就删掉此项。
   maxScale: 2560 / 1920,
 } as const;
+
+export const PIXEL_SNAP_TOLERANCE = 0.03;
+
+// 只在 k 已经非常接近较小的整数设备像素倍数时向下吸附。
+// 缩小时(k < 1/dpr)没有可用的整数设备像素解，强行吸附会白扔掉画面尺寸，所以保持连续值。
+function snapToDevicePixels(k: number): number {
+  const dpr = window.devicePixelRatio || 1;
+  const step = 1 / dpr;
+  const floored = Math.floor(k / step) * step;
+  if (floored <= 0) return k;
+  return k - floored <= k * PIXEL_SNAP_TOLERANCE ? floored : k;
+}
 
 // 观测容器实际尺寸, 返回等比缩放系数 k = min(w/1920, h/1080)(上限 STAGE.maxScale)。
 // 观测元素而非 window: 容器是 width/height:100%, 将来外面若套了别的 chrome 也不会算错。
@@ -24,12 +36,38 @@ export function useStageScale(ref: React.RefObject<HTMLElement | null>): number 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const measure = () => setScale(fit(el.clientWidth, el.clientHeight));
     const ro = new ResizeObserver(([entry]) => {
       const box = entry.contentRect;
       setScale(fit(box.width, box.height));
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    let media = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+    const listen = () => {
+      if (media.addEventListener) {
+        media.addEventListener("change", onResolutionChange);
+      } else {
+        media.addListener?.(onResolutionChange);
+      }
+    };
+    const unlisten = () => {
+      if (media.removeEventListener) {
+        media.removeEventListener("change", onResolutionChange);
+      } else {
+        media.removeListener?.(onResolutionChange);
+      }
+    };
+    const onResolutionChange = () => {
+      measure();
+      unlisten();
+      media = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+      listen();
+    };
+    listen();
+    return () => {
+      ro.disconnect();
+      unlisten();
+    };
   }, [ref]);
 
   return scale;
@@ -37,7 +75,7 @@ export function useStageScale(ref: React.RefObject<HTMLElement | null>): number 
 
 function fit(w: number, h: number): number {
   if (w <= 0 || h <= 0) return 1;
-  return Math.min(w / STAGE.width, h / STAGE.height, STAGE.maxScale);
+  return snapToDevicePixels(Math.min(w / STAGE.width, h / STAGE.height, STAGE.maxScale));
 }
 
 // 画布局部坐标系(设计 px, 原点 = 画布左上角)里的一个矩形。

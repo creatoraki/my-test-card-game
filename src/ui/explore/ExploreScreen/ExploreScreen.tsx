@@ -64,7 +64,7 @@ import {
 import SlotReels from "@/ui/explore/SlotReels";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { useTypewriter } from "@/ui/hooks/useTypewriter";
-import { useStageScale } from "@/ui/hooks/stage";
+import { StageCanvas } from "@/ui/app/StageCanvas";
 import { mapArt, warmMapArt } from "@/ui/art/mapArt";
 import { eventArt } from "@/ui/art/eventArt";
 import { setTransitionOrigin } from "@/ui/app/transitionOrigin";
@@ -138,8 +138,6 @@ export function ExploreScreen() {
   const finishExpedition = useRunStore((s) => s.finishExpedition);
   const retreat = useRunStore((s) => s.retreat);
 
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const stageScale = useStageScale(viewportRef);
   const [bagOpen, setBagOpen] = useState(false);
   // 当前悬停的节点。浮卡只跟随悬停，不回落到当前落点。
   const [hovered, setHovered] = useState<{ seg: number; lane: number } | null>(null);
@@ -352,16 +350,12 @@ export function ExploreScreen() {
   };
 
   return (
-    <div
-      className={s["explore-viewport"]}
-      ref={viewportRef}
-      style={{ "--stage-scale": stageScale } as CSSProperties}
+    <StageCanvas
+      viewportClassName={s["explore-viewport"]}
+      className={cx(s["screen"], s["explore-stage"], locked && s["is-locked"])}
+      data-explore-stage
+      data-explore-dock={stackedModal ? "stacked" : undefined}
     >
-      <div
-        className={cx(s["screen"], s["explore-stage"], locked && s["is-locked"])}
-        data-explore-stage
-        data-explore-dock={stackedModal ? "stacked" : undefined}
-      >
         <img className={s["explore-bg"]} src={mapArt(session.mapId)} alt="" draggable={false} />
         <div className={s["explore-veil"]} aria-hidden />
 
@@ -902,7 +896,6 @@ export function ExploreScreen() {
 
         {narrationGate && session.pendingActions.length > 0 && <RewardOverlay />}
         {narrationGate && !session.pendingActions.length && <LootPickup />}
-      </div>
-    </div>
+    </StageCanvas>
   );
 }

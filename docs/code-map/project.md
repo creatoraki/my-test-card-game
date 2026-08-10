@@ -12,6 +12,8 @@
 | [src/App.tsx](../../src/App.tsx) | 顶层路由：读取 `runStore.screen`，将界面映射为组件，并交给 `ScreenTransition` 渲染。抽出 `renderScreen` 是为了过场期间继续渲染旧界面。 |
 | `scripts/` | 开发辅助脚本，不承载游戏规则。 |
 
+素材优化插件默认将图片质量设为 88、effort 设为 6，视频限制到 1920px 宽并使用 CRF 23；可通过 `OPTIMIZE=0` 跳过优化以对比原素材。
+
 启动时的美术资源预加载由 `App.tsx` 触发，资源 URL 必须登记在 `ui/art` 的对应查表或 `sceneArt.ts` 中。
 图片任务等待下载和解码完成；视频任务只等待首帧可用，浏览器是否继续下载完整文件由 `preload="auto"` 和网络策略决定。
 

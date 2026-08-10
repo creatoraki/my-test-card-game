@@ -37,7 +37,7 @@ import {
 } from "react";
 import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
-import { useStageScale } from "@/ui/hooks/stage";
+import { StageCanvas } from "@/ui/app/StageCanvas";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import {
   ENTER_TOTAL,
@@ -311,10 +311,7 @@ export function TownScreen() {
   const terminalCredits = useTownStore((s) => s.loot);
   // 生存天数: 只由 townStore.advanceDay 推进(出击打完回据点算一日), 也是商店换货的节拍器。
   const day = useTownStore((s) => s.day);
-  const viewportRef = useRef<HTMLDivElement>(null);
   const activeFacilities = FACILITIES.filter((facility) => !facility.locked).length;
-  // 复用战斗/封面那套设计画布: k = min(容器宽/1920, 容器高/1080, 2560/1920)。见 ui/stage.ts
-  const stageScale = useStageScale(viewportRef);
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [facilityId, setFacilityId] = useState<string | null>(null); // 正在进入/已进入的设施
@@ -402,32 +399,24 @@ export function TownScreen() {
   let tileCursor = 0;
 
   return (
-    // letterbox 容器: 铺满窗口, 画布之外的部分是黑边(背景色 #000, 见 .town-viewport)
-    <div
-      className={s["town-viewport"]}
-      ref={viewportRef}
-      style={{ "--stage-scale": stageScale } as CSSProperties}
+    <StageCanvas
+      viewportClassName={s["town-viewport"]}
+      className={cx(s["screen"], s["town"], s["town-splash"], phase !== "idle" && s[`is-${phase}`])}
+      data-town-stage
+      style={
+        {
+          "--cam-tx": `${cam?.tx ?? 0}px`,
+          "--cam-ty": `${cam?.ty ?? 0}px`,
+          "--cam-s": cam?.s ?? 1,
+          "--cam-ms": `${t.cam}ms`,
+          "--fac-at": `${t.at}ms`,
+          "--fac-cross": `${t.cross}ms`,
+          "--fac-back-in": `${t.back}ms`,
+          "--leave-ms": `${t.leave}ms`,
+          "--fac-zoom": reduced ? 1 : 1.04,
+        } as CSSProperties
+      }
     >
-      {/* 据点画布 = 固定 1920×1080, 整体等比缩放适配窗口 ⇒ 画面恒为 16:9、构图永不随分辨率变。 */}
-      <div
-        className={cx(s["screen"], s["town"], s["town-splash"], phase !== "idle" && s[`is-${phase}`])}
-        data-town-stage
-        style={
-          {
-            // 相机: 焦点→画框中心的仿射变换。三个分量交给 CSS 的 townCamPush 按行程百分比插值,
-            // 于是一套关键帧适配所有设施(见 ui/facilityScenes.ts 的 facilityCamera)。
-            "--cam-tx": `${cam?.tx ?? 0}px`,
-            "--cam-ty": `${cam?.ty ?? 0}px`,
-            "--cam-s": cam?.s ?? 1,
-            "--cam-ms": `${t.cam}ms`,
-            "--fac-at": `${t.at}ms`,
-            "--fac-cross": `${t.cross}ms`,
-            "--fac-back-in": `${t.back}ms`,
-            "--leave-ms": `${t.leave}ms`,
-            "--fac-zoom": reduced ? 1 : 1.04, // 设施背景淡入时的「落地」收缩量
-          } as CSSProperties
-        }
-      >
         {showHall && (
           <>
             {/* 背景层: 2560×1440 的大厅场景图, 与画布同为 16:9 ⇒ cover 只等比缩小, 无裁切无变形。
@@ -562,7 +551,6 @@ export function TownScreen() {
             </button>
           </>
         )}
-      </div>
-    </div>
+    </StageCanvas>
   );
 }

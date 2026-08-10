@@ -5,29 +5,17 @@
    ⚠ 画布内的每个 px 都是「设计 px」—— 不要在画布内写 vw/vh 或按窗口宽度的 @media。 */
 
 .screen {
-  height: 100%;
   padding: 14px;
 }
 .town {}
 
 /* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
 .town-viewport {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
+  composes: viewport from "../../app/styles/stageCanvas.module.css";
   background: #000; /* 16:9 之外的留白色 */
 }
-/* ⚠ 居中必须靠绝对定位 + translate(-50%,-50%) 而非 flex 居中, 原因见 .battle-viewport 的注释。 */
-.town-viewport .screen.town {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1920px;
-  height: 1080px;
-  min-height: 0;
-  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+.town-splash {
+  composes: canvas from "../../app/styles/stageCanvas.module.css";
 }
 /* 据点场景页: 只有背景图 + 右侧 bento 入口面板 + 角落的重置存档, 不挂 .terminal-screen
    (故无渐变底/无 ::before 机框/无导航条)。
@@ -36,7 +24,6 @@
      (styles/tokens.css 明令禁止组件重新声明全局变量名)。 */
 .town-splash {
   --town-glow: #6fe3f5;
-  position: relative;
   overflow: hidden;
   padding: 0;
   background: #070a0c; /* 图加载前/失败时的深色兜底, 不露白 */
@@ -170,7 +157,7 @@
      而不是一块半透明深色板。文字读不清时优先把 brightness 往下调(0.94 → 0.86), 别去加底色不透明度。
    ⚠ backdrop-filter 要能取到背景, 被模糊的 .town-bg / .town-veil 必须与本元素同属
      .town-splash 这一层叠上下文 —— 不要给它们套额外的 transform/filter 包装层。
-   ⚠ 整个画布挂着 scale(var(--stage-scale)), 模糊半径会跟着缩放走 —— 这是想要的(视觉比例一致)。 */
+  ⚠ 整个画布使用 zoom 缩放, 模糊半径会跟着缩放走 —— 这是想要的(视觉比例一致)。 */
 .bento-glass {
   --notch: 16px; /* 斜切角尺度, 由下面三档尺寸各自覆写; ::before/::after 也跟着它联动 */
   position: relative; /* 给 ::before / ::after / .bento-lock 定位 */

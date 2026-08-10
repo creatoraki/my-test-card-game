@@ -1,0 +1,35 @@
+/*
+ * 全站设计画布的唯一几何真相。
+ * viewport 铺满窗口并提供黑边与定位参照；canvas 始终是 1920×1080 设计 px。
+ * 画布必须用绝对定位加 translate 居中：transform 不改变布局盒，百分比位移始终按固定画布自身计算，
+ * 即使画布比窗口大也不会从左上角开始再缩放。
+ *
+ * zoom 在布局阶段缩放画布：文字、细线、clip-path 与最终设备像素一起重新栅格化，
+ * 不会像 transform: scale() 那样先把整张 1920×1080 画布栅格化后再做层级重采样。
+ */
+.viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  min-height: 0;
+  transform: translate(-50%, -50%);
+  zoom: var(--stage-scale, 1);
+}
+
+/* Firefox < 126 / 老 Safari 兜底：退回后期缩放，只牺牲清晰度，不牺牲版式。 */
+@supports not (zoom: 1) {
+  .canvas {
+    transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  }
+}

@@ -1,4 +1,5 @@
 .viewport {
+  composes: viewport from "../../app/styles/stageCanvas.module.css";
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -6,23 +7,22 @@
 }
 
 .stage {
+  composes: canvas from "../../app/styles/stageCanvas.module.css";
   --sm-ink: #eaf6f3;
   --sm-ink-dim: #8fb2ae;
   --sm-glow: #91e8dc;
   --sm-glow-hi: #c2fff6;
 
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1920px;
-  height: 1080px;
   overflow: hidden;
   color: #e8f3f1;
   background:
     linear-gradient(135deg, rgba(27, 54, 55, 0.9), rgba(5, 12, 17, 0.98) 54%),
     #071014;
-  transform: translate(-50%, -50%) scale(var(--stage-scale));
-  transform-origin: center;
+}
+
+.stageContent {
+  position: absolute;
+  inset: 0;
 }
 
 .stage::before {

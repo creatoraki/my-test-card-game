@@ -1,7 +1,6 @@
-import { useRef, type CSSProperties } from "react";
 import { useRunStore } from "@/store/runStore";
-import { useStageScale } from "@/ui/hooks/stage";
 import { useGameAssetPreload } from "@/ui/hooks/useGameAssetPreload";
+import { StageCanvas } from "@/ui/app/StageCanvas";
 import { cx } from "@/ui/common/cx";
 import { MenuStartButton } from "@/ui/menu/MenuStartButton";
 import { MENU_BG_VIDEO, MENU_TITLE_ART } from "@/ui/art/sceneArt";
@@ -10,9 +9,6 @@ import s from "./MenuScreen.module.css";
 export function MenuScreen() {
   const enterTown = useRunStore((s) => s.enterTown);
   const preload = useGameAssetPreload();
-  const viewportRef = useRef<HTMLDivElement>(null);
-  // 复用战斗那套设计画布: k = min(容器宽/1920, 容器高/1080, 2560/1920)。见 ui/stage.ts
-  const stageScale = useStageScale(viewportRef);
   const ready = preload.status === "ready";
   const loadLabel =
     preload.status === "ready"
@@ -22,18 +18,11 @@ export function MenuScreen() {
       : `正在准备美术资源 ${preload.completed} / ${preload.total}`;
 
   return (
-    // letterbox 容器: 铺满窗口, 画布之外的部分是黑边(背景色 #000, 见 .menu-viewport)
-    <div
-      className={s["menu-viewport"]}
-      ref={viewportRef}
-      style={{ "--stage-scale": stageScale } as CSSProperties}
+    <StageCanvas
+      viewportClassName={s["menu-viewport"]}
+      className={cx(s["screen"], s["menu-splash"])}
+      aria-busy={!ready}
     >
-      {/* 封面画布 = 固定 1920×1080, 整体等比缩放适配窗口 ⇒ 画面恒为 16:9、构图永不随分辨率变。
-          ★ 下面所有坐标/尺寸都是「设计 px」(1920×1080 基准), 直接照着 1920×1080 的设计稿填数就行。 */}
-      <div
-        className={cx(s["screen"], s["menu-splash"])}
-        aria-busy={!ready}
-      >
         {/* 背景层: 16:9 视频铺满画布(cover 裁切), 与战斗背景 .battle-bg-video 同款做法。 */}
         <video
           className={s["menu-bg-video"]}
@@ -79,7 +68,6 @@ export function MenuScreen() {
             {loadLabel}
           </p>
         )}
-      </div>
-    </div>
+    </StageCanvas>
   );
 }

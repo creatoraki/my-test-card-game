@@ -1,6 +1,5 @@
 /* ===================== 主菜单 ===================== */
 .screen {
-  height: 100%;
   padding: 14px;
 }
 
@@ -85,37 +84,17 @@
   color: #e7f1db;
 }
 
-/* 封面的 letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。
-   与 .battle-viewport 同一套机制(那边有完整的原理长注释), 单独写以免语义耦合。 */
+/* 封面的 letterbox 容器与设计画布骨架来自 app/styles/stageCanvas.module.css。 */
 .menu-viewport {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
+  composes: viewport from "../../app/styles/stageCanvas.module.css";
   background: #000; /* 16:9 之外的留白色 */
 }
-/* 封面画面 = 固定 1920×1080 的设计画布, 由 --stage-scale 等比缩放去适配窗口
-   (k 由 ui/stage.ts 的 ResizeObserver 算出, MenuScreen 行内下发到 .menu-viewport)。
-   ⇒ 任何分辨率下画面恒为 16:9、标题与按钮的构图逐 px 一致, 多出来的地方是黑边;
-     超过 2560×1440 不再放大(STAGE.maxScale), 与战斗画面同一取舍。
-
-   ⚠ 画布内的每个 px 都是「设计 px」—— 不要在画布内写 vw/vh 或按窗口宽度的 @media,
-     那会让构图重新随分辨率漂移。
-   ⚠ 居中必须靠绝对定位 + translate(-50%,-50%) 而非 flex 居中, 原因见 .battle-viewport 的注释。 */
-.menu-viewport .menu-splash {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1920px;
-  height: 1080px;
-  min-height: 0;
-  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+.menu-splash {
+  composes: canvas from "../../app/styles/stageCanvas.module.css";
 }
 /* 主菜单视频开屏: 纯净的电影感开屏 —— 只有一段 16:9 视频背景 + 标题图 + 开始游戏图片按钮,
    不挂 .terminal-screen(故无渐变底/无 ::before 边框装饰/无导航条)。 */
 .menu-splash {
-  position: relative;
   overflow: hidden;
   padding: 0;
   background: #070a0c; /* 视频解码前/失败时的深色兜底, 不露白 */
