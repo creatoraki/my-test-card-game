@@ -44,6 +44,7 @@ import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
 import { AmbienceGrade, AmbienceLayer } from "@/ui/battle/AmbienceLayer";
 import { resetHandHover } from "@/ui/battle/handFocusStore";
 import { useIdleTwitch } from "@/ui/hooks/useIdleTwitch";
+import { useDeathGate } from "@/ui/battle/deathChoreo";
 import { useStageScale } from "@/ui/hooks/stage";
 import { cx } from "@/ui/common/cx";
 import s from "./BattleScreen.module.css";
@@ -128,6 +129,7 @@ export function BattleScreen() {
   const [fxRate, setFxRate] = useState(1);
   const [speed2x, setSpeed2x] = useState(false);
   const playbackRateRef = useRef(1);
+  const deaths = useDeathGate(battle, { seq: battleSeq, rateRef: playbackRateRef });
   const viewportRef = useRef<HTMLDivElement>(null); // letterbox 容器(黑边区), 设计画布按它的尺寸缩放
   const screenRef = useRef<HTMLDivElement>(null); // 战斗屏幕(画布 = 唯一的裁切边界)
   const sceneRef = useRef<HTMLDivElement>(null); // ★ 场景层: 相机(推近/平移)的唯一作用对象
@@ -145,8 +147,13 @@ export function BattleScreen() {
     [stageScale],
   );
   const worldStyle = useMemo(
-    () => ({ "--fx-rate": fxRate, ...DEPTH_VARS }) as React.CSSProperties,
-    [fxRate],
+    () =>
+      ({
+        "--fx-rate": fxRate,
+        "--death-rate": playbackRateRef.current,
+        ...DEPTH_VARS,
+      }) as React.CSSProperties,
+    [fxRate, speed2x],
   );
 
   const [animating, setAnimating] = useState(false); // 动画期间锁输入
@@ -261,9 +268,9 @@ export function BattleScreen() {
   }, []);
 
   useEffect(() => {
-    if (!battle || battle.phase !== "won" || battleSettled) return;
+    if (!battle || battle.phase !== "won" || battleSettled || deaths.pending) return;
     resolveBattle();
-  }, [battle, battleSettled, resolveBattle]);
+  }, [battle, battleSettled, deaths.pending, resolveBattle]);
 
   // ── 溢出填充图 ──
   // 静态图背景直接复用同一个 URL(浏览器共享那份解码, 零额外成本);
@@ -554,6 +561,7 @@ export function BattleScreen() {
         at: hitAt,
         run: () => {
           setTelegraphId(null);
+          deaths.setImpactOffset(ANIM[step.anim].iai?.impactMs ?? 0);
           commit(step.snapshot);
           const hitSeq = ++hitSeqRef.current;
           const map: Record<string, HitFx> = {};
@@ -776,6 +784,7 @@ export function BattleScreen() {
               attacking={e.id === attackerId}
               telegraph={e.id === telegraphId}
               hit={hits[e.id] ?? null}
+              deathPhase={deaths.phaseOf(e.id)}
               placement={placements[i]}
               twitching={e.id === twitchId}
               onClick={onCombatantClick}
@@ -855,6 +864,7 @@ export function BattleScreen() {
             focusFallbackCard={selectedCard}
             targetable={isPlayerTurn && !!needsAlly}
             onSelect={onCombatantClick}
+            deathPhaseOf={deaths.phaseOf}
           />
         </div>
         <HandTray
@@ -883,7 +893,7 @@ export function BattleScreen() {
       <CardInfoPanel fallbackCard={selectedCard} />
 
       {/* 战败遮罩。胜利由战斗画布内的 VictoryPanel 接管, 不再跳战后小结页。 */}
-      {battle.phase === "lost" && (
+      {battle.phase === "lost" && !deaths.pending && (
         <div className={s.overlay}>
           <div className={s["overlay-card"]}>
             <h2>💀 战斗失败</h2>

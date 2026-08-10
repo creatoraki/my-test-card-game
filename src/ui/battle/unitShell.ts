@@ -10,10 +10,13 @@
 // ★ 那一份写在 battle/fx/HitFxLayer 与各外壳自己的 module.css 里, 靠**data 属性**跨模块
 //   命中(样式铁律 2): 类名会被 CSS Modules 哈希, 属性不会。于是 HitFxLayer 能写
 //   `[data-unit][data-react="hit"]`, 同时命中两种外壳, 而不必知道任何一方的类名。
+//   死亡表现另有 `data-death` 阶段属性: drain/vanish 期间保持活体外观, 只有 dead 才挂 `data-dead`。
 //
 // ⚠ 改这里的任何一个键 = 全库搜同名字符串, CSS 那侧没有类型保护。
 // ⚠ 属性选择器与类选择器同权(0,1,0), 所以改造前后的层叠关系逐条不变。
 // ============================================================================
+
+import type { DeathPhase } from "@/ui/battle/deathChoreo";
 
 /** 单位外壳的受击反应。null = 当前没有反应。 */
 export type UnitReact = "hit" | "bless" | null;
@@ -24,6 +27,8 @@ export type UnitSide = "enemy" | "player";
 export interface UnitShellState {
   side: UnitSide;
   dead?: boolean;
+  /** 纯 UI 的死亡表现阶段; dead 只表示闸门已放行的最终死亡态。 */
+  death?: DeathPhase;
   /** 当前出牌的施法者 —— 播前冲。 */
   attacking?: boolean;
   /** 可作为当前卡的目标 —— 播描边高亮, 并接受点击。 */
@@ -46,6 +51,7 @@ export function unitShellAttrs(state: UnitShellState): Record<string, string | u
     "data-unit": "",
     "data-side": state.side,
     "data-dead": state.dead ? "" : undefined,
+    "data-death": state.death && state.death !== "alive" ? state.death : undefined,
     "data-attacking": state.attacking ? "" : undefined,
     "data-targetable": state.targetable ? "" : undefined,
     "data-telegraph": state.telegraph ? "" : undefined,

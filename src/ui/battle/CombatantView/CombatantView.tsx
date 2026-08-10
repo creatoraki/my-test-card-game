@@ -9,6 +9,8 @@ import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { EnemySprite } from "@/ui/battle/EnemySprite";
 import { enemyArt, enemyIdle } from "@/ui/art/enemyArt";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
+import { DeathVanishFx } from "@/ui/battle/fx/DeathVanishFx";
+import { DEATH, type DeathPhase } from "@/ui/battle/deathChoreo";
 import { HpBar } from "@/ui/common/HpBar";
 import { HourglassIcon } from "./icons";
 import s from "./CombatantView.module.css";
@@ -28,6 +30,7 @@ interface Props {
   // 悬停到本单位(仅 targetable 时触发): 供瞄准运镜取朝向, 见 BattleScreen 的 aimFoeId。
   // 刻意没有配对的"离开"回调 —— 瞄准朝向是锁存的, 清除挂在 .battle-stage 上(理由见那里)。
   onHover?: (id: string) => void;
+  deathPhase?: DeathPhase;
 }
 
 // 场上的敌人单位: 无背景面板, 立绘直接浮在场景上。
@@ -43,8 +46,10 @@ export const CombatantView = memo(function CombatantView({
   twitching,
   onClick,
   onHover,
+  deathPhase,
 }: Props) {
-  const dead = !cmb.alive;
+  const phase = deathPhase ?? (!cmb.alive ? "dead" : "alive");
+  const dead = phase === "dead";
 
   // 敌人立绘按 enemyDefId 查登记表; 未登记的退回 CharacterPortrait 的 emoji
   const enemySprite = enemyArt(cmb.enemyDefId);
@@ -69,13 +74,14 @@ export const CombatantView = memo(function CombatantView({
   vars["--idle-dur"] = `${idle.dur}ms`;
   vars["--idle-delay"] = `${idle.delay}ms`;
   vars["--shadow-w"] = `${(enemySprite?.width ?? 96) * 0.78 * placeScale}px`;
+  vars["--death-vanish-ms"] = `${DEATH.vanish}ms`;
 
   return (
     <div
       data-cmb-id={cmb.id}
       // 外壳状态一律走 data-*(见 battle/unitShell.ts): fx/HitFxLayer 与 EnemySprite 都要
       // 按这些状态改自己的表现, 而它们够不着本文件被哈希的类名。
-      {...unitShellAttrs({ side: "enemy", dead, targetable, attacking, telegraph, react })}
+      {...unitShellAttrs({ side: "enemy", dead, death: phase, targetable, attacking, telegraph, react })}
       className={cx(s["combatant"], twitching && !dead && s["twitch"])}
       style={vars as React.CSSProperties}
       onClick={(e) => {
@@ -86,7 +92,7 @@ export const CombatantView = memo(function CombatantView({
         if (targetable && onHover) onHover(cmb.id);
       }}
     >
-      {telegraph && !dead && (
+      {telegraph && phase === "alive" && (
         <div className={s.telegraph}>
           {isIntentRevealed(cmb) ? cmb.intent.name : "⚠ 行动"}
         </div>
@@ -98,6 +104,7 @@ export const CombatantView = memo(function CombatantView({
           这一层, 不是外层布局盒)。类名会被 Modules 哈希, querySelector 只能认属性。 */}
       <div className={s["combatant-stage"]} data-cmb-stage>
         <HitFxLayer hit={hit ?? null} />
+        {phase === "vanish" && <DeathVanishFx />}
 
         <div className={s["combatant-figure"]}>
           {enemySprite ? (
@@ -134,7 +141,7 @@ export const CombatantView = memo(function CombatantView({
           </div>
           <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit />
         </div>
-        {!dead && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
+        {phase === "alive" && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
       </div>
 
       {dead && <div className={ub["dead-overlay"]}>☠</div>}

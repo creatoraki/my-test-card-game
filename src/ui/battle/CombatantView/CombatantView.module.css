@@ -125,8 +125,47 @@
   }
 }
 .combatant[data-dead] {
-  opacity: 0.4;
-  filter: grayscale(1);
+  opacity: 0;
+  pointer-events: none;
+}
+.combatant[data-death="drain"] {
+  /* 文档性钩子: drain 阶段保持活体外观, 只让 HpBar 自己完成掉血演出。 */
+}
+.combatant[data-death="vanish"] .combatant-figure {
+  /* animation 是简写, 必须连写以覆盖 idleBob, 否则立绘会边消散边继续呼吸。 */
+  animation: deathVanish calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
+@keyframes deathVanish {
+  0% {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+    transform: translateY(0) scale(1);
+    mask-image: linear-gradient(to top, #000 0%, #000 100%);
+    -webkit-mask-image: linear-gradient(to top, #000 0%, #000 100%);
+  }
+  34% {
+    opacity: 1;
+    filter: brightness(4.8) saturate(0);
+    transform: translateY(-4px) scale(1.02);
+  }
+  72% {
+    opacity: 0.72;
+    filter: brightness(2.8) saturate(0) blur(2px);
+    transform: translateY(-18px) scale(1.06);
+    mask-image: linear-gradient(to top, transparent 0%, transparent 56%, #000 92%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 56%, #000 92%);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1.8) saturate(0) blur(5px);
+    transform: translateY(-28px) scale(1.1);
+    mask-image: linear-gradient(to top, transparent 0%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 100%);
+  }
+}
+.combatant[data-dead] .combatant-info,
+.combatant[data-dead] .dead-overlay {
+  display: none;
 }
 .combatant[data-targetable] {
   cursor: pointer;
@@ -344,6 +383,9 @@ span.combatant-portrait {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .combatant[data-death="vanish"] .combatant-figure {
+    animation: deathVanish calc(120ms / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+  }
   .combatant-figure,
   .combatant-stage::after,
   .combatant.twitch .combatant-stage,

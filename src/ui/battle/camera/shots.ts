@@ -51,7 +51,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   foe: { kind: "foe", scale: 1.3, fit: 0.8, yaw: 3, pitch: 1, roll: 1, rig: { s: QUICK }, lead: 460, hold: 700, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
   heavy: { kind: "heavy", scale: 1.7, fit: 0.72, yaw: 5, pitch: 5, roll: 5, rig: { s: QUICK, roll: { stiffness: 150, damping: 16 } }, lead: 280, hold: 980, punch: 0.06, shake: 22, creep: 0, hitstop: 90 },
   aoe: { kind: "aoe", scale: 1.1, fit: 0.72, yaw: 8, pitch: 0, roll: 3, rig: { s: SOFT, yaw: SOFT }, lead: 240, hold: 820, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
-  kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: 1300, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
+  // DEATH.drain + DEATH.vanish = 1520ms; 击杀镜头多留 40ms 覆盖完整消散段。
+  kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: 1560, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
   iai: { kind: "iai", scale: 1.65, fit: 0.72, yaw: 5, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 210, damping: 15 } }, lead: 260, hold: 960, punch: 0.075, shake: 24, creep: 0, hitstop: 110 },
 };
 

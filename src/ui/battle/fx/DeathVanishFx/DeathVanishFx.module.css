@@ -1,0 +1,75 @@
+.death-vanish-fx {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 150px;
+  height: 150px;
+  translate: -50% 0;
+  pointer-events: none;
+  z-index: 8;
+  --death-vanish-ms: 700ms;
+}
+
+.death-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 48px;
+  height: 16px;
+  translate: -50% 50%;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ffffff, 0 0 24px #b9efff, inset 0 0 8px #ffffff;
+  animation: deathRing calc(var(--death-vanish-ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
+
+.death-motes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.death-mote {
+  position: absolute;
+  bottom: 6px;
+  display: block;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff, 0 0 12px #c7f5ff;
+  animation: deathMote calc(var(--death-vanish-ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
+
+@keyframes deathRing {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.55);
+  }
+  55% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6) translateY(-4px);
+  }
+}
+
+@keyframes deathMote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--death-drift), -92px) scale(0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .death-ring,
+  .death-mote {
+    animation-duration: 1ms;
+  }
+}
