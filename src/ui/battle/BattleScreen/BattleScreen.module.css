@@ -28,9 +28,10 @@
                                     ⚠ 它**不再是 HUD 的第三列** —— 面板已从 HUD 右下角搬到画布
                                       右上角(绝对定位, 见 ui/CardInfoPanel.css .card-info-panel),
                                       HUD 因此只剩两列, 腾出的整列宽度全部还给了手牌托盘。
-     底部 HUD 现在是两列, 剩下的宽度全给中段的手牌托盘:
-      1920 - 2×16(pad) - 500 - 12(gap) = 1396  (托盘内再吃 2×10 padding ⇒ 比旧版多 28px 余量)
-     ⚠ 左段不能随便放宽 —— 手牌卡宽 200(= 1:1 配图的边长)且最多要排下 10 张, 见 .hand-panel
+      底部 HUD 现在是两列, 中段手牌托盘的基础宽度为:
+      1920 - 2×16(pad) - 500 - 12(gap) = 1376
+      牌堆已移到右上角, 手牌托盘只保留 20px 右内边距, 卡槽可用宽约 1356。
+      ⚠ 左段不能随便放宽 —— 手牌卡宽 220(= 1:1 配图的边长)且最多要排下 10 张, 见 .hand-panel
         的版式算式。改动它就要回去重算叠压量。 */
   --canvas-pad: 16px;
   --stage-gap: 10px;
@@ -41,6 +42,11 @@
   --hud-h: 264px;
   --hud-party-w: 500px;
   --hud-info-w: 320px;
+  --hand-plate-h: 82px;
+  /* 右上角竖排牌堆的尺寸契约; 手牌托盘不再为牌堆让位。 */
+  --pile-w: 64px;
+  --pile-h: 90px;
+  --pile-gap: 8px;
   padding: var(--canvas-pad);
 }
 /* 终端边框描线 = 画布的"机框"(与 .terminal-screen::before 同款, 见 styles/layout.css),
@@ -400,7 +406,7 @@
    ⚠ 曾经的第三列「卡牌说明面板」已搬走 —— 它现在绝对定位在**画布右上角**(见
    ui/CardInfoPanel.css .card-info-panel), 不再属于这条 HUD。原因: 手牌上限实际是 10 张
   (partyHandLimit(), 见 .hand-panel 的版式算式), 旧三列时中段只有 1028px, 7 张就撑爆了。
-  面板让位后中段拿到 1396px, 10 张排得下。
+  牌堆移到右上角后, 中段托盘恢复完整宽度, 10 张通过叠压档位排下。
 
    ⚠ 它在 .battle-scene **之外** ⇒ 整条不跟分镜相机推近/平移/漂移/震屏, 构图恒定。
    由此我方单位不在 .battle-stage 内, computeCamera 按 data-cmb-id 在舞台里查我方必然落空,
@@ -480,8 +486,8 @@
       RULES.hand.discardLeftoversOnRoundEnd 为 false ⇒ 手牌会跨回合累积到上限。
       版式必须按 10 张能排下来算, 否则最右侧的卡会溢出画布右缘。
    版式(全是设计 px):
-     横向中段可用宽由 HUD 网格和右侧牌堆让位共同决定, 托盘内另有 2×10 padding + 72px 右侧让位。
-          n 张总宽 = 220 + (n−1) × (220 − 叠压量), 9/10 张由下方两条 :has() 规则收紧。
+         横向中段可用宽由 HUD 网格决定, 托盘内另有 2×10 padding + 20px 右侧内边距。
+           n 张总宽 = 220 + (n−1) × (220 − 叠压量), 叠压档位只为保留稳定的手牌节奏。
           静止时相邻卡互相叠压(一副握在手里的牌), 悬停置顶 + 左右邻卡让位 ⇒ 露全。
      纵向 卡 308(= 配图 220 + 说明区 88) > 托盘可用高(--hud-h 264 − 托盘下内边距 8 = 256)
           ⇒ **刻意**越出 HUD 上沿 52px(悬停再上浮半张卡高 154 ⇒ 峰值约 206px)。
@@ -492,13 +498,13 @@
             面板的底边(108 + 640 = 748)严丝合缝地咬在同一条线上 —— 见 ui/CardInfoPanel.css。
             改 --hand-card-w / --hc-text-h 会挪动这条线, 面板那边只是"不再对齐"而不会坏,
             但值得回去把 .card-info-panel 的 top 一起调过来。
-   改卡牌大小: 只动 --hand-card-w, 然后回去重算 --hand-overlap 那三档与 CardInfoPanel 的 top。 */
+  改卡牌大小: 只动 --hand-card-w, 然后回去重算 --hand-overlap 那五档与 CardInfoPanel 的 top。 */
 .hand-panel {
   position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding-right: 72px;
+  padding-right: 20px;
   --hand-card-w: 220px;
   /* ★ 卡面只有**两段实位**: 正方形配图(上) + 底部效果说明(下) ⇒ 卡高 = 卡宽 + 说明区高
      = 220 + 88 = 308, 比例 220:308 = **1:1.4**(实体卡的手感比例)。
@@ -513,7 +519,6 @@
   /* 相邻卡的叠压量(负 margin, 见 .hand-tray .hand-slot + .hand-slot)。
      这是 ≤8 张时的首选值, 9/10 张由下方两条 :has() 规则收紧, 算式见本段开头的版式。 */
   --hand-overlap: 78px;
-  --hand-plate-h: 82px; /* 托盘衬板高度, 角标都对齐它 */
   /* 悬停时左右邻卡各自横向让开的量(见 .hand-tray .hand-slot:hover 附近的两条让位规则)。
      ⓘ 从 22 提到 26: 悬停的卡现在会 rotateX 翘起(见 ui/HandCard.css 的聚焦段), 翘起后它的
        下缘在视觉上更宽, 22px 的空当会被吃掉一部分。 */
@@ -597,19 +602,25 @@
   /* 卡比托盘高(刻意越出 HUD 上沿) + 悬浮时还要再向上弹出 ⇒ 绝不能裁剪 */
   overflow: visible;
 }
-/* ★ 叠压量按张数收紧: 手牌能攒到 10 张(partyHandLimit, 见 .hand-panel 的版式), 而首选的
-   55px 叠压只排得下 8 张。这两条把 9/10 张的情形压回 1348px 的可用宽内。
+/* ★ 叠压量按张数收紧: 手牌能攒到 10 张(partyHandLimit, 见 .hand-panel 的版式), 保留逐档
+  让位以维持不同张数下稳定的手感；牌堆移到右上角后，托盘不再为牌堆额外让位。
    ⚠ 必须用 nth-last-child(从后数): .hand-tray 的第一个子节点是装饰用的 .hand-tray-rail
      (见 ui/BattleScreen.tsx), 从前数会整体错位一格; 卡恒为最后一批子节点, 从后数才准。
      选择器自带 [data-hand-slot] 限定 ⇒ 张数不够时数到的是 rail、规则天然不命中。
-   ⚠ 两条的先后顺序不能反: 10 张时两条都命中, 靠后者赢。
+   ⚠ 四条的先后顺序不能反: 张数越多时前面的规则也会命中, 靠后者赢。
    ⓘ 出鞘中的卡(.leaving)还在 DOM 里, 出牌瞬间张数可能短暂多算一张 ⇒ 至多让整排多收紧
      300ms 再弹回, 不会溢出, 可以接受。 */
+.hand-tray:has([data-hand-slot]:nth-last-child(7)) {
+  --hand-overlap: 90px;
+}
+.hand-tray:has([data-hand-slot]:nth-last-child(8)) {
+  --hand-overlap: 110px;
+}
 .hand-tray:has([data-hand-slot]:nth-last-child(9)) {
-  --hand-overlap: 95px;
+  --hand-overlap: 125px;
 }
 .hand-tray:has([data-hand-slot]:nth-last-child(10)) {
-  --hand-overlap: 110px;
+  --hand-overlap: 135px;
 }
 /* 托盘衬板: 手牌脚下的一块斜切角基座 —— **与卡面同料的蚀刻黑钢**。
    独立一层压在卡之下(卡带 z-index:1), 悬浮上弹的卡不受影响。
@@ -653,7 +664,7 @@
    光带跑来跑去, 它与卡面上一并删掉的巡游流光是同一个问题。底部 HUD 现在完全安静, 只有
    出牌/抽牌时才有运动。 */
 /* 卡脚下露出的那 8px: 一列等距竖刻痕, 让手牌读作"插进金属槽里"而不是浮着。
-   ⚠ 刻痕间距(26px)刻意**不与卡位对齐** —— 叠压量有三档(60/80/95, 见上方 :has() 两条),
+  ⚠ 刻痕间距(26px)刻意**不与卡位对齐** —— 叠压量有五档(78/90/110/125/135, 见上方 :has() 四条),
      对齐了也只在一种张数下成立, 反而会在切档时读作错位。取一个中性密度即可。
    ★ 每道刻痕现在是「2px 暗槽 + 1px 亮边」的**凹槽剖面**而不是一条暗线: 槽的右壁受光,
      与卡面三层棱同一套"暗槽 + 受光面"的语言。 */

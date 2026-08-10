@@ -65,7 +65,7 @@ src/ui/
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情页场景级卡牌悬浮层，固定在卡组左侧空档并放大渲染 `common/TechCard`；只负责定位和展示时机，不承载卡牌业务规则。 |
 | [character/CardView](../../src/ui/character/CardView/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、战斗签入口、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。 |
-| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、战场、底部 HUD、目标交互、分镜队列和相机。底部 HUD 为两列；左下角按钮/水晶/立绘竖向堆叠，我方前冲时按钮与水晶整体隐藏。手牌上限读取 `partyHandLimit`，敌人目标不做仇恨高亮。 |
+| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、战场、底部 HUD、目标交互、分镜队列和相机。底部 HUD 为两列；左下角按钮/水晶/立绘竖向堆叠，我方前冲时按钮与水晶整体隐藏。手牌上限读取 `partyHandLimit`，牌堆缩小后在右上角设置按钮下方竖排，手牌托盘延伸到右内缘，敌人目标不做仇恨高亮。 |
 | [result/ExpRewardScreen](../../src/ui/result/ExpRewardScreen/ExpRewardScreen.tsx) | 战后小结：实物掉落、角色经验入账、净化粒子档位和返回牌桌/结算操作。战斗胜利不直接产生居民积分。 |
 | [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算：通关、撤退和团灭共用；展示积分、带回据点的 `shipped`/`backpack` 实物和角色卡组。 |
 
@@ -95,6 +95,8 @@ src/ui/
 | [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，并通过公共污染条/状态徽章展示污染值、生病和怪癖。位于战场之外，因此不参与相机推近。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃操作；沿用回合、动画、手牌为空和本回合换牌次数的可用性判定。 |
+| [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | Classic Fantasy 拟物卡堆，抽牌/弃牌/消耗三堆共用一份实现，尺寸和主题色通过变量区分。 |
+| [battle/PileRail](../../src/ui/battle/PileRail/PileRail.tsx) | 三个牌堆的竖向排列与点击入口；牌堆位于右上角设置按钮下方，不随战斗场景相机移动。 |
 | [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图、定高说明区和污染卡固定角标。**卡在托盘里的版式与厚度也归本文件**，尺寸变量由 BattleScreen 下发。飞入为从右往左 800ms、按批次错峰 300ms，开局首批延迟 3s，时序常量在 `battle/animations.ts` 的 `HAND_DEAL`。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；污染卡会额外说明抽牌污染效果。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |

@@ -916,10 +916,11 @@ export function BattleScreen() {
 
       <PileDrawer battle={battle} pile={openPile} onClose={() => setOpenPile(null)} />
 
-      {/* ★ 卡牌说明固定面板: 画布**右上角**, 位置恒定。展示「悬停 ?? 选中」那张卡 ——
+        {/* ★ 卡牌说明固定面板: 画布**右上角**, 为右侧竖排牌堆让出一列。位置恒定。
+          展示「悬停 ?? 选中」那张卡 ——
           悬停那半它自己订阅 ui/handFocusStore.ts, 这里只把选中的传下去(理由同 AllyBar)。
-          刻意在 .battle-hud **之外**(它曾是 HUD 的第三列) —— 手牌上限实为 10 张, 面板让出那一列
-          后手牌托盘才排得下, 几何与层序的完整理由见 ui/CardInfoPanel.css .card-info-panel。
+          刻意在 .battle-hud **之外**(它曾是 HUD 的第三列) —— 牌堆移到右上角后，底部托盘不再
+          为牌堆让位, 几何与层序的完整理由见 ui/CardInfoPanel.css .card-info-panel。
           同样在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏。 */}
       <CardInfoPanel fallbackCard={selectedCard} />
 

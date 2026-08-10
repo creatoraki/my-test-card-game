@@ -99,7 +99,7 @@ import s from "./CombatantView.module.css";
 
 [hooks/stage.ts](../../src/ui/hooks/stage.ts) 提供 `STAGE`（1920×1080 基准尺寸、最大缩放）和 `useStageScale`（基于 `ResizeObserver` 计算 letterbox 等比缩放）。战斗、主菜单和据点使用固定设计画布，画布内部坐标都是设计 px，不能使用 `vw` / `vh`，也不能按窗口宽度重新排版。
 
-战斗画布的主要旋钮在 [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css)：`--canvas-pad`、`--stage-gap`、`--hud-h`、`--hud-party-w`、`--hud-info-w`。`--hud-h` 会直接决定战场可见下沿，调整它前要检查敌人脚下的背景地面线。手牌宽度使用 `--hand-card-w`，卡高由配图区、顶栏和说明区推导，不要另写固定高度——这几个变量是下发给 [HandCard.module.css](../../src/ui/battle/HandCard/HandCard.module.css) 的跨组件契约（铁律 4），卡在托盘里的版式与厚度规则住在那边。
+战斗画布的主要旋钮在 [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css)：`--canvas-pad`、`--stage-gap`、`--hud-h`、`--hud-party-w`、`--hud-info-w`、`--hand-plate-h`、`--pile-w`、`--pile-h`、`--pile-gap`。其中 `--hand-plate-h` 继续作为托盘衬板的高度契约，`--pile-w` / `--pile-h` / `--pile-gap` 决定右上角竖排牌堆的尺寸和间距；手牌托盘不再为牌堆额外让位。`--hud-h` 会直接决定战场可见下沿，调整它前要检查敌人脚下的背景地面线。手牌宽度使用 `--hand-card-w`，卡高由配图区、顶栏和说明区推导，不要另写固定高度——这几个变量是下发给 [HandCard.module.css](../../src/ui/battle/HandCard/HandCard.module.css) 的跨组件契约（铁律 4），卡在托盘里的版式与厚度规则住在那边。
 
 场景相机使用 `.battle-world` 的 `transform` / `translate` / `scale` 分工，世界、背景、氛围和单位必须作为刚体一起变换；不要让背景和单位分别套相机。画布内 `getBoundingClientRect()` 得到的是屏幕 px，定位前要换算回设计 px；相机反投影则以 `.battle-world` 的矩形抵消缩放和漂移。
 

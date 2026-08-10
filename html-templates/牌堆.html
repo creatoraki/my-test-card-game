@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡牌游戏堆叠UI组件演示</title>
+    <style>
+        /* 全局重置与布局 */
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #eee;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            gap: 60px;
+        }
+
+        h2 { margin-bottom: 20px; opacity: 0.7; font-weight: 300; letter-spacing: 2px; }
+        
+        .demo-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            transition: all 0.3s ease;
+        }
+
+        /* =========================================
+           风格 1: 经典奇幻 (Classic Fantasy)
+           特点: 拟物化、金边、羊皮纸色、厚重阴影
+           ========================================= */
+        .fantasy-theme {
+            background: radial-gradient(circle at center, #3d2b1f 0%, #1a120b 100%);
+            border: 4px solid #5c4033;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .card-pile.fantasy {
+            position: relative;
+            width: 100px;
+            height: 140px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card-pile.fantasy:hover { transform: translateY(-5px); }
+        .card-pile.fantasy:active { transform: translateY(0); }
+
+        /* 卡牌堆叠效果 */
+        .fantasy .card-stack {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 
+                2px 2px 0px #3e2723,
+                4px 4px 0px #3e2723,
+                6px 6px 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 3px solid #c5a059; /* 金边 */
+        }
+
+        /* 抽牌堆 - 卡背纹理 */
+        .fantasy.draw .card-stack {
+            background: 
+                repeating-linear-gradient(45deg, #4e342e 0px, #4e342e 10px, #3e2723 10px, #3e2723 20px);
+        }
+        .fantasy.draw .card-stack::after {
+            content: '✦';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: #c5a059;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* 弃牌堆 - 墓地/回收图标 */
+        .fantasy.discard .card-stack {
+            background: #2d2018;
+            border-color: #8d6e63;
+        }
+        .fantasy.discard .icon {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            opacity: 0.6;
+            filter: grayscale(1);
+        }
+
+        /* 消耗堆 - 火焰/销毁感 */
+        .fantasy.exhaust .card-stack {
+            background: #1a0f0a;
+            border-color: #5d4037;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.2);
+        }
+        .fantasy.exhaust .icon { color: #ff5722; }
+
+        /* 计数徽章 */
+        .fantasy .badge {
+            position: absolute;
+            bottom: -10px; right: -10px;
+            background: linear-gradient(135deg, #ffd700, #b8860b);
+            color: #3e2723;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            border: 2px solid #fff8e1;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .fantasy .label {
+            position: absolute;
+            top: -30px; left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Georgia', serif;
+            color: #c5a059;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+
+        /* =========================================
+           风格 2: 赛博朋克 (Cyberpunk / Sci-Fi)
+           特点: 霓虹发光、切角、半透明玻璃、数据流
+           ========================================= */
+        .cyber-theme {
+            background: #050510;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.05);
+        }
+
+        .card-pile.cyber {
+            position: relative;
+            width: 90px;
+            height: 130px;
+            cursor: pointer;
+            /* 切角效果 */
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.2s ease;
+        }
+        .card-pile.cyber:hover { filter: brightness(1.3); }
+        .card-pile.cyber:hover .glow-border { opacity: 1; }
+
+        .cyber .base {
+            width: 100%; height: 100%;
+            background: rgba(0, 20, 40, 0.8);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* 霓虹边框动画 */
+        .cyber .glow-border {
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, #0ff, #f0f, #0ff);
+            z-index: -1;
+            opacity: 0.5;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: opacity 0.3s;
+        }
+
+        .cyber .icon-svg {
+            width: 40px; height: 40px;
+            fill: none;
+            stroke: #0ff;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 5px #0ff);
+        }
+        .cyber.discard .icon-svg { stroke: #f0f; filter: drop-shadow(0 0 5px #f0f); }
+        .cyber.exhaust .icon-svg { stroke: #ff3333; filter: drop-shadow(0 0 5px #f00); }
+
+        .cyber .badge {
+            position: absolute;
+            top: -8px; right: -8px;
+            background: #000;
+            border: 1px solid #0ff;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            padding: 2px 8px;
+            clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+        }
+        .cyber.discard .badge { border-color: #f0f; color: #f0f; box-shadow: 0 0 10px rgba(255, 0, 255, 0.4); }
+        .cyber.exhaust .badge { border-color: #f33; color: #f33; box-shadow: 0 0 10px rgba(255, 0, 0, 0.4); }
+
+        .cyber .label {
+            position: absolute;
+            bottom: -25px; left: 0; width: 100%;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+
+        /* =========================================
+           风格 3: 极简水墨 (Zen / Minimalist)
+           特点: 圆形、柔和阴影、衬线字体、优雅动效
+           ========================================= */
+        .zen-theme {
+            background: #f4f1ea;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+        }
+        .zen-theme h2 { color: #333; }
+
+        .card-pile.zen {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .card-pile.zen:hover { transform: scale(1.08); }
+
+        .zen .circle-base {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 
+                0 4px 15px rgba(0,0,0,0.05),
+                inset 0 0 0 1px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 水墨晕染背景装饰 */
+        .zen .ink-bg {
+            position: absolute;
+            width: 150%; height: 150%;
+            background: radial-gradient(circle, rgba(0,0,0,0.03) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .zen:hover .ink-bg { opacity: 1; }
+
+        .zen .kanji {
+            font-family: "Noto Serif SC", "Songti SC", serif;
+            font-size: 32px;
+            color: #2c2c2c;
+            line-height: 1;
+            margin-bottom: 4px;
+            transition: color 0.3s;
+        }
+        
+        .zen .sub-text {
+            font-size: 10px;
+            color: #999;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .zen .count-ring {
+            position: absolute;
+            inset: 4px;
+            border-radius: 50%;
+            border: 1px dashed rgba(0,0,0,0.1);
+            pointer-events: none;
+            transition: transform 10s linear;
+        }
+        .zen:hover .count-ring { transform: rotate(180deg); }
+
+        .zen .badge {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: #2c2c2c;
+            color: #fff;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        /* Zen风格下，数字默认显示在汉字下方，hover时可以作为覆盖层或者保持原位 */
+        /* 这里我们采用更优雅的方式：数字直接整合在设计中 */
+        .zen .integrated-count {
+            font-family: "Noto Serif SC", serif;
+            font-size: 14px;
+            color: #b78a5d; /* 印泥红 */
+            margin-top: 2px;
+        }
+
+        /* 针对不同堆的微调 */
+        .zen.discard .kanji { color: #555; }
+        .zen.exhaust .kanji { color: #8b4513; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 风格 1: 经典奇幻 -->
+    <div class="demo-container fantasy-theme">
+        <h2>Classic Fantasy</h2>
+        
+        <!-- 抽牌堆 -->
+        <div class="card-pile fantasy draw" onclick="animatePile(this)">
+            <div class="label">Draw Pile</div>
+            <div class="card-stack"></div>
+            <div class="badge">24</div>
+        </div>
+
+        <!-- 弃牌堆 -->
+        <div class="card-pile fantasy discard" onclick="animatePile(this)">
+            <div class="label">Discard</div>
+            <div class="card-stack">
+                <div class="icon">♻️</div>
+            </div>
+            <div class="badge">8</div>
+        </div>
+
+        <!-- 消耗堆 -->
+        <div class="card-pile fantasy exhaust" onclick="animatePile(this)">
+            <div class="label">Exhaust</div>
+            <div class="card-stack">
+                <div class="icon">🔥</div>
+            </div>
+            <div class="badge">3</div>
+        </div>
+    </div>
+
+    <!-- 风格 2: 赛博朋克 -->
+    <div class="demo-container cyber-theme">
+        <h2>Cyberpunk HUD</h2>
+
+        <!-- 抽牌堆 -->
+        <div class="card-pile cyber draw" onclick="animatePile(this)">
+            <div class="glow-border"></div>
+            <div class="base">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M4 4h16v16H4z M8 8h8v8H8z"/></svg>
+            </div>
+            <div class="badge">24</div>
+            <div class="label">DECK</div>
+        </div>
+
+        <!-- 弃牌堆 -->
+        <div class="card-pile cyber discard" onclick="animatePile(this)">
+            <div class="glow-border"></div>
+            <div class="base">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </div>
+            <div class="badge">08</div>
+            <div class="label">BIN</div>
+        </div>
+
+        <!-- 消耗堆 -->
+        <div class="card-pile cyber exhaust" onclick="animatePile(this)">
+            <div class="glow-border"></div>
+            <div class="base">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </div>
+            <div class="badge">03</div>
+            <div class="label">VOID</div>
+        </div>
+    </div>
+
+    <!-- 风格 3: 极简水墨 -->
+    <div class="demo-container zen-theme">
+        <h2>Zen Minimalist</h2>
+
+        <!-- 抽牌堆 -->
+        <div class="card-pile zen draw" onclick="animatePile(this)">
+            <div class="circle-base">
+                <div class="ink-bg"></div>
+                <div class="count-ring"></div>
+                <div class="kanji">牌</div>
+                <div class="integrated-count">廿四</div>
+            </div>
+            <div class="sub-text" style="position:absolute; bottom:-20px; width:100%; text-align:center;">DRAW</div>
+        </div>
+
+        <!-- 弃牌堆 -->
+        <div class="card-pile zen discard" onclick="animatePile(this)">
+            <div class="circle-base">
+                <div class="ink-bg"></div>
+                <div class="count-ring"></div>
+                <div class="kanji">棄</div>
+                <div class="integrated-count">八</div>
+            </div>
+            <div class="sub-text" style="position:absolute; bottom:-20px; width:100%; text-align:center;">DISCARD</div>
+        </div>
+
+        <!-- 消耗堆 -->
+        <div class="card-pile zen exhaust" onclick="animatePile(this)">
+            <div class="circle-base">
+                <div class="ink-bg"></div>
+                <div class="count-ring"></div>
+                <div class="kanji">滅</div>
+                <div class="integrated-count">三</div>
+            </div>
+            <div class="sub-text" style="position:absolute; bottom:-20px; width:100%; text-align:center;">EXHAUST</div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的点击反馈动画
+        function animatePile(element) {
+            // 移除之前的动画类以防冲突
+            element.style.animation = 'none';
+            element.offsetHeight; /* trigger reflow */
+            
+            // 根据风格应用不同的点击反馈
+            if (element.classList.contains('fantasy')) {
+                element.style.transform = 'scale(0.95)';
+                setTimeout(() => element.style.transform = '', 150);
+            } else if (element.classList.contains('cyber')) {
+                element.style.filter = 'brightness(2) hue-rotate(90deg)';
+                setTimeout(() => element.style.filter = '', 200);
+            } else if (element.classList.contains('zen')) {
+                const ink = element.querySelector('.ink-bg');
+                ink.style.opacity = '0.8';
+                ink.style.transform = 'scale(1.5)';
+                setTimeout(() => {
+                    ink.style.opacity = '';
+                    ink.style.transform = '';
+                }, 400);
+            }
+            
+            console.log(`Clicked: ${element.className}`);
+        }
+    </script>
+</body>
+</html>
+
+
