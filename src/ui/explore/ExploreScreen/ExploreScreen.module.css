@@ -582,46 +582,66 @@
   --k-line: var(--expl-kind-line, #c9d4d266);
   pointer-events: auto;
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 0;
   width: 1060px;
   height: 560px;
-  padding: 20px;
+  padding: 0;
+  box-shadow:
+    inset 0 1px 0 #ffffff16,
+    0 28px 72px -34px #000000e8,
+    0 0 90px -40px var(--k);
   /* 从画布上方滑入(与控制终端浮层同一套语言)。⚠ 动画挂面板自己, 不挂 .expl-modal。 */
-  animation: explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards;
+  animation:
+    explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards,
+    explPanelHalo 6s ease-in-out 600ms infinite;
+}
+.expl-panel .panel-scan {
+  background-size: 100% 140%;
+  animation: explScanDrift 12s linear infinite;
 }
 .expl-panel-aside {
+  grid-row: 1 / -1;
   display: flex;
-  align-self: start;
+  align-self: stretch;
   flex-direction: column;
-  gap: 10px;
+  min-height: 0;
 }
 .expl-panel-art {
   position: relative;
   z-index: 1;
-  width: 320px;
-  height: 320px;
-  aspect-ratio: 1 / 1;
+  width: auto;
+  height: 100%;
+  aspect-ratio: auto;
   overflow: hidden;
-  border: 1px solid var(--expl-line);
   background: #0b1317;
   box-shadow:
     inset 0 0 0 1px #ffffff12,
     0 12px 28px -22px var(--expl-line);
-  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
 }
 .expl-panel-image {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.68;
-  filter: saturate(0.64) contrast(0.96) brightness(0.82);
+  opacity: 0.78;
+  filter: saturate(0.64) contrast(0.96) brightness(0.88);
+}
+.expl-panel-art::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: var(--k);
+  content: "";
+  opacity: 0.12;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
 }
 .expl-panel-art::after {
   position: absolute;
   inset: 0;
   background:
+    linear-gradient(90deg, transparent 55%, #0a0f12f2 100%),
     linear-gradient(135deg, transparent 0 54%, #ffffff12 54% 55%, transparent 55%),
     linear-gradient(180deg, #0710141a 0%, #07101438 46%, #071014d1 100%);
   content: "";
@@ -635,6 +655,16 @@
   mix-blend-mode: screen;
   pointer-events: none;
 }
+.expl-panel-art-grid::after {
+  position: absolute;
+  inset: -20% 0;
+  background: linear-gradient(180deg, transparent 42%, #ffffff1c 50%, transparent 58%);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-120%);
+  animation: explArtSweep 7s ease-in-out infinite;
+}
 .expl-panel-art-code,
 .expl-panel-art-mark {
   z-index: 1;
@@ -642,7 +672,6 @@
   text-shadow: 0 0 12px #ffffff14;
 }
 .expl-panel-art-code {
-  position: static;
   color: #93a3a2;
   font-size: 12px;
   letter-spacing: 2px;
@@ -650,9 +679,10 @@
 .expl-panel-art-mark {
   position: absolute;
   color: var(--k);
-  top: 12px;
   right: 14px;
+  bottom: 14px;
   font-size: 24px;
+  animation: explArtMarkPulse 8s ease-in-out infinite;
 }
 .expl-panel-content {
   position: relative;
@@ -663,15 +693,38 @@
   min-width: 0;
   flex-direction: column;
   gap: 12px;
-  padding: 7px 10px 4px 0;
+  padding: 28px 30px 24px;
 }
-.expl-panel-heading {
+.expl-panel-kindbar {
   flex: none;
-  height: 28px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  height: 32px;
+  gap: 16px;
+}
+.expl-panel-kind {
+  display: flex;
+  min-width: 0;
+  display: flex;
+  align-items: center;
   gap: 12px;
+}
+.expl-panel-kind-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--k);
+  box-shadow: 0 0 10px var(--k-line);
+  animation: explKindBreathe 2.4s ease-in-out infinite;
+}
+.expl-panel-kind-label {
+  color: var(--k);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  white-space: nowrap;
 }
 .expl-panel .expl-kicker {
   font-size: 13px;
@@ -686,6 +739,58 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
+}
+.expl-panel-read {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 18px),
+    transparent 100%
+  );
+}
+.expl-panel.is-merchant .expl-panel-read {
+  flex: none;
+  height: 110px;
+}
+.expl-panel-slot {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-color: var(--k-line) transparent;
+  scrollbar-width: thin;
+}
+.expl-panel.is-merchant .expl-panel-slot {
+  overflow-y: auto;
+}
+.expl-panel.is-merchant .expl-panel-slot > div {
+  flex: 1;
+  min-height: 0;
+}
+.expl-panel-act {
+  position: relative;
+  flex: none;
+  padding-top: 16px;
+  border-top: 1px solid var(--k-line);
+}
+.expl-panel-act::before {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 88px;
+  height: 2px;
+  background: var(--k);
+  box-shadow: 0 0 12px var(--k-line);
+  content: "";
+}
+.expl-panel.is-merchant .expl-panel-act {
+  display: none;
 }
 /* ── 落点 → 浮层的光柱 ──
    从落点终点卡上沿升起的一道窄光, 把「是这张卡把面板叫出来的」说清楚。
@@ -712,7 +817,6 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
-  margin-top: auto;
 }
 .expl-panel.has-choices .expl-panel-slot {
   overflow: hidden;
@@ -722,10 +826,10 @@
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 62px;
+  min-height: 66px;
   padding: 14px 18px 14px 20px;
   border: 1px solid var(--expl-line);
-  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  background: color-mix(in srgb, var(--k) 5%, #0d1418d9);
   backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
   box-shadow:
     inset 0 1px 0 #ffffff14,
@@ -761,31 +865,35 @@
   width: 4px;
   height: 100%;
   background: var(--k);
-  transform: scaleY(0);
+  opacity: 0.28;
+  transform: scaleY(1);
   transform-origin: top center;
-  transition: transform 220ms cubic-bezier(0.2, 0.72, 0.28, 1);
+  transition:
+    width 180ms ease,
+    opacity 180ms ease;
 }
-:global([data-explore-stage]) .expl-choice:hover,
-:global([data-explore-stage]) .expl-choice:focus-visible {
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled),
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) {
   transform: translateY(-3px) scale(1.02);
-  border-color: #9ed0d1;
-  color: #c7e6e2;
-  background: linear-gradient(145deg, #2a4144d9, #17282dbd);
+  border-color: var(--k);
+  color: color-mix(in srgb, var(--k) 70%, #f2f7f5);
+  background: color-mix(in srgb, var(--k) 14%, #172329e6);
   box-shadow:
     inset 0 1px 0 #ffffff1d,
-    0 0 30px -8px #83cbd2;
+    0 0 30px -8px var(--k);
   animation: explChoicePulse 1.6s ease-in-out infinite;
 }
-:global([data-explore-stage]) .expl-choice:hover .expl-choice-bar,
-:global([data-explore-stage]) .expl-choice:focus-visible .expl-choice-bar {
-  transform: scaleY(1);
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-bar,
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-bar {
+  width: 5px;
+  opacity: 1;
 }
-:global([data-explore-stage]) .expl-choice:hover .expl-choice-label,
-:global([data-explore-stage]) .expl-choice:focus-visible .expl-choice-label {
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-label,
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-label {
   letter-spacing: 2.2px;
 }
-:global([data-explore-stage]) .expl-choice:hover::before,
-:global([data-explore-stage]) .expl-choice:focus-visible::before {
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled)::before,
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled)::before {
   animation: explChoiceSweep 520ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
 }
 :global([data-explore-stage]) .expl-choice:active {
@@ -793,7 +901,25 @@
   box-shadow: inset 0 2px 6px #00000066;
   transition-duration: 90ms;
 }
+:global([data-explore-stage]) .expl-choice:active:not(:disabled)::before {
+  background: radial-gradient(circle at 50% 50%, #ffffff3d, transparent 58%);
+  animation: explChoiceActive 90ms ease-out forwards;
+}
+.expl-choice-index {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-height: 24px;
+  margin-right: 14px;
+  padding-right: 14px;
+  border-right: 1px solid var(--k-line);
+  color: color-mix(in srgb, var(--k) 70%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
 .expl-choice-label {
+  min-width: 0;
   color: #c9d6d2;
   font-size: 18px;
   font-weight: 700;
@@ -802,44 +928,87 @@
 }
 .expl-choice-cost {
   margin-left: auto;
-  padding-left: 16px;
+  padding: 3px 9px;
+  border: 1px solid var(--expl-line);
+  background: #ffffff08;
   color: #93a3a2;
   font-size: 13px;
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
+.expl-choice-arrow {
+  flex: none;
+  margin-left: 14px;
+  color: var(--k);
+  opacity: 0.35;
+  transform: translateX(0);
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+.expl-choice-label + .expl-choice-arrow {
+  margin-left: auto;
+}
+:global([data-explore-stage]) .expl-choice:hover:not(:disabled) .expl-choice-arrow,
+:global([data-explore-stage]) .expl-choice:focus-visible:not(:disabled) .expl-choice-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
 .expl-choice.is-cost-locked {
-  border-color: #d18a8a55;
-  background: linear-gradient(155deg, #24191b9e, #150f11cc);
-  opacity: 0.62;
+  border-color: #e5a3a3;
+  background: repeating-linear-gradient(135deg, #321f2299 0 5px, #24191bcc 5px 10px);
+  opacity: 0.72;
 }
 .expl-choice.is-cost-locked .expl-choice-cost {
+  border-color: #e5a3a3;
+  background: #8d3d3d1c;
   color: #e5a3a3;
 }
 .expl-panel-title {
   flex: none;
-  height: 52px;
-  overflow: hidden;
+  position: relative;
+  min-height: 74px;
+  padding-bottom: 14px;
   margin: 8px 0 0;
   color: #f2f7f5;
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 800;
   letter-spacing: 2px;
+  line-height: 1.2;
   text-shadow: 0 0 18px #ffffff10;
+}
+.expl-panel-title::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 64px;
+  height: 2px;
+  background: var(--k);
+  box-shadow: 0 0 12px var(--k-line);
+  content: "";
 }
 .expl-panel-desc {
   position: relative;
-  flex: none;
+  flex: 1;
   margin: 0;
   max-width: 700px;
-  max-height: 190px;
-  height: 190px;
+  height: 100%;
+  min-height: 0;
   overflow-y: auto;
   scrollbar-color: var(--k-line) transparent;
   scrollbar-width: thin;
   color: #c9d6d2;
   font-size: 17px;
   line-height: 1.85;
+}
+.expl-panel-desc::-webkit-scrollbar {
+  width: 4px;
+}
+.expl-panel-desc::-webkit-scrollbar-track {
+  background: transparent;
+}
+.expl-panel-desc::-webkit-scrollbar-thumb {
+  background: var(--k-line);
 }
 .expl-desc-ghost {
   position: absolute;
@@ -852,20 +1021,10 @@
   min-height: 100%;
   white-space: pre-wrap;
 }
-.expl-panel-slot {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-  overflow-y: auto;
-  scrollbar-color: var(--k-line) transparent;
-  scrollbar-width: thin;
-}
 .expl-notes {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: auto;
 }
 /* 结算摘要逐条错峰浮起(延迟由 tsx 按序号给)。单次播放, 不循环。 */
 .expl-note {
@@ -891,6 +1050,11 @@
   margin-top: 6px;
   padding-top: 14px;
   border-top: 1px solid #c8d5d31c;
+}
+.expl-panel-act .expl-panel-foot {
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: 0;
 }
 .expl-story {
   display: flex;
@@ -938,7 +1102,7 @@
   transform: translateY(-3px) scale(1.02);
   box-shadow:
     inset 0 1px 0 #ffffff1d,
-    0 0 30px -8px #83cbd2;
+    0 0 30px -8px var(--k);
   animation: explChoicePulse 1.6s ease-in-out infinite;
 }
 :global([data-explore-stage]) .expl-panel .expl-btn:active:not(:disabled) {
@@ -1021,7 +1185,14 @@
   animation-delay: 0ms;
 }
 .expl-choice.is-chosen .expl-choice-bar {
+  width: 5px;
+  opacity: 1;
   transform: scaleY(1);
+}
+.expl-choice.is-chosen .expl-choice-index {
+  border-color: var(--k);
+  color: var(--k);
+  text-shadow: 0 0 10px var(--k-line);
 }
 .expl-choice.is-chosen::after {
   position: absolute;
@@ -1057,6 +1228,62 @@
 }
 
 /* ===================== 关键帧 ===================== */
+@keyframes explScanDrift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
+@keyframes explArtSweep {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translateY(-120%);
+  }
+  30% {
+    opacity: 0.7;
+  }
+  48%,
+  100% {
+    opacity: 0;
+    transform: translateY(120%);
+  }
+}
+@keyframes explKindBreathe {
+  0%,
+  100% {
+    box-shadow: 0 0 8px var(--k-line);
+  }
+  50% {
+    box-shadow: 0 0 14px var(--k-line);
+  }
+}
+@keyframes explPanelHalo {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 #ffffff16,
+      0 28px 72px -34px #000000e8,
+      0 0 90px -40px var(--k);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 #ffffff16,
+      0 28px 72px -34px #000000e8,
+      0 0 90px -30px var(--k);
+  }
+}
+@keyframes explArtMarkPulse {
+  0%,
+  100% {
+    opacity: 0.48;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
 @keyframes explChar {
   from {
     opacity: 0;
@@ -1095,19 +1322,29 @@
     transform: translateX(120%);
   }
 }
+@keyframes explChoiceActive {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 @keyframes explChoicePulse {
   0%,
   100% {
-    border-color: #9ed0d1;
+    border-color: var(--k);
     box-shadow:
       inset 0 1px 0 #ffffff1d,
-      0 0 24px -10px #83cbd2;
+      0 0 24px -10px var(--k);
   }
   50% {
-    border-color: #d8f5f1;
+    border-color: color-mix(in srgb, var(--k) 78%, #ffffff);
     box-shadow:
       inset 0 1px 0 #ffffff2b,
-      0 0 30px -8px #83cbd2;
+      0 0 30px -8px var(--k);
   }
 }
 @keyframes explChoicesExit {
@@ -1187,8 +1424,23 @@
     transform: none;
     animation: none;
   }
+  .expl-panel .panel-scan,
+  .expl-panel-art-grid::after,
+  .expl-panel-kind-dot,
+  .expl-panel-art-mark {
+    animation: none;
+  }
   .expl-panel {
     animation: none;
+  }
+  :global([data-explore-stage]) .expl-choice:hover .expl-choice-arrow,
+  :global([data-explore-stage]) .expl-choice:focus-visible .expl-choice-arrow {
+    opacity: 1;
+    transform: none;
+  }
+  .expl-choice-index,
+  .expl-choice-arrow {
+    opacity: 1;
   }
   /* 逐字演出整套下线: 文字由 useTypewriter 直接给全文, 这里只保证它们**看得见**
      (那几条 opacity:0 的默认态必须被顶掉)。 */

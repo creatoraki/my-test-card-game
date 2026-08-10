@@ -36,6 +36,7 @@ import {
   npcChoices,
   projectedEnergy,
 } from "@/explore/session";
+import type { NodeEventKind } from "@/explore/types";
 import { getItemDef, getNpcEvent } from "@/data";
 import { countByItemId } from "@/items/inventory";
 import { useExploreStore } from "@/store/exploreStore";
@@ -106,6 +107,17 @@ const EVENT_BEAT = {
   noteStagger: 140, // 结算摘要逐条间隔
   noteTail: 260, // 最后一条播完到「确认」解锁之间的收尾
 } as const;
+
+// 事件类型的中文标识。颜色契约在 exploreKit 的 k-* 里, 这里只补「叫什么」。
+const KIND_LABEL: Record<NodeEventKind, string> = {
+  retreat: "撤离",
+  loot: "物资",
+  heal: "补给",
+  merchant: "交易",
+  route: "线路",
+  energy: "能量",
+  hazard: "风险",
+};
 
 function narrationBeats(storyCount: number, noteCount: number) {
   const storyAt = (index: number) => EVENT_BEAT.storyLead + index * EVENT_BEAT.storyStagger;
@@ -286,6 +298,7 @@ export function ExploreScreen() {
   const board = session.board;
   const ev = landedEv;
   const shop = landedShop(session);
+  const merchantEvent = Boolean(ev?.services?.length && shop);
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
   // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
@@ -560,20 +573,25 @@ export function ExploreScreen() {
                 s["expl-panel"],
                 s[`k-${ev.kind}`],
                 session.phase === "landed" && s["has-choices"],
+                merchantEvent && s["is-merchant"],
               )}
             >
               <span className={s["panel-frame"]} aria-hidden />
               <span className={s["panel-scan"]} aria-hidden />
-              <div className={s["expl-panel-aside"]} aria-hidden="true">
+              <aside className={s["expl-panel-aside"]} aria-hidden="true">
                 <div className={s["expl-panel-art"]}>
                   <img className={s["expl-panel-image"]} src={eventArt(ev.kind)} alt="" />
                   <div className={s["expl-panel-art-grid"]} />
                   <span className={s["expl-panel-art-mark"]}>◆</span>
                 </div>
-                <span className={s["expl-panel-art-code"]}>EVT / {ev.kind.toUpperCase()}</span>
-              </div>
+              </aside>
               <div className={s["expl-panel-content"]}>
-                <div className={s["expl-panel-heading"]}>
+                <div className={s["expl-panel-kindbar"]}>
+                  <div className={s["expl-panel-kind"]}>
+                    <span className={s["expl-panel-kind-dot"]} aria-hidden />
+                    <span className={s["expl-panel-kind-label"]}>{KIND_LABEL[ev.kind]}</span>
+                    <span className={s["expl-panel-art-code"]}>EVT / {ev.kind.toUpperCase()}</span>
+                  </div>
                   {/* key 挂 phase: 「待处理 → 已结算」这一跳必须被看见, 重挂一次走遍浮起动画。 */}
                   <span
                     className={cx(s["expl-panel-status"], session.phase === "resolving" && s["is-settled"])}
@@ -602,26 +620,27 @@ export function ExploreScreen() {
                       ))}
                 </h3>
                 {/* 正文逐字。aria-label 给读屏一次性的全文 —— 无障碍不该被演出拖着走。 */}
-                <p
-                  className={s["expl-panel-desc"]}
-                  ref={descScrollRef}
-                  aria-label={[ev.description, ...session.pendingStory].filter(Boolean).join("\n\n")}
-                >
-                  <span className={s["expl-desc-ghost"]} aria-hidden>
-                    {ev.description}
-                    {storyText ? `\n\n${storyText}` : ""}
-                  </span>
-                  <span className={s["expl-desc-live"]} ref={descLiveRef} aria-hidden>
-                    {desc.shown}
-                    {desc.done && storyText ? `\n\n${story.shown}` : ""}
-                    {(!desc.done || (desc.done && storyText && !story.done)) && (
-                      <span className={s["expl-caret"]} />
-                    )}
-                  </span>
-                </p>
-                <div className={s["expl-panel-slot"]}>
-                  {session.phase === "landed" ? (
-                    ev.services?.length && shop ? (
+                  <div className={s["expl-panel-read"]}>
+                    <p
+                      className={s["expl-panel-desc"]}
+                      ref={descScrollRef}
+                      aria-label={[ev.description, ...session.pendingStory].filter(Boolean).join("\n\n")}
+                    >
+                      <span className={s["expl-desc-ghost"]} aria-hidden>
+                        {ev.description}
+                        {storyText ? `\n\n${storyText}` : ""}
+                      </span>
+                      <span className={s["expl-desc-live"]} ref={descLiveRef} aria-hidden>
+                        {desc.shown}
+                        {desc.done && storyText ? `\n\n${story.shown}` : ""}
+                        {(!desc.done || (desc.done && storyText && !story.done)) && (
+                          <span className={s["expl-caret"]} />
+                        )}
+                      </span>
+                    </p>
+                  </div>
+                  {ev.services?.length && shop ? (
+                    <div className={s["expl-panel-slot"]}>
                       <MerchantPanel
                         session={session}
                         shop={shop}
@@ -629,117 +648,126 @@ export function ExploreScreen() {
                         canClose={desc.done && committing == null && !session.pendingActions.length}
                         onClose={() => takeOption(0)}
                       />
-                    ) : (
-                      // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
-                      <div
-                        className={cx(
-                          s["expl-choices"],
-                          desc.done && s["is-armed"],
-                          committing != null && s["is-closing"],
-                        )}
-                        style={
-                          { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
-                        }
-                      >
-                        {landedChoices(session).map((c, i) => {
-                          // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
-                          const state =
-                            committing == null
-                              ? undefined
-                              : committing === i
-                                ? s["is-chosen"]
-                                : s["is-dimmed"];
-                          const requiredCount = c.cost?.count ?? 0;
-                          const availableCount = c.cost
-                            ? countByItemId(session.backpack, c.cost.itemId)
-                            : 0;
-                          const costUnavailable = Boolean(c.cost && availableCount < requiredCount);
-                          return (
-                            <button
-                              key={c.id}
-                              className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
-                              type="button"
-                              disabled={!desc.done || committing != null || costUnavailable}
-                              title={
-                                c.cost
-                                  ? costUnavailable
-                                    ? "背包中没有指定食品"
-                                    : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`
-                                  : undefined
-                              }
-                              style={{ "--i": i } as CSSProperties}
-                              onClick={() => takeOption(i)}
-                            >
-                              <span className={s["expl-choice-bar"]} aria-hidden />
-                              <span className={s["expl-choice-label"]}>{c.label}</span>
-                              {c.cost && (
-                                <span className={s["expl-choice-cost"]}>
-                                  {costUnavailable ? "背包中没有指定食品" : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )
+                    </div>
                   ) : (
-                    <div className={s["expl-notes"]}>
-                      {session.pendingNotes.length ? (
-                        session.pendingNotes.map((n, i) => (
-                          <span
-                            key={i}
-                            className={s["expl-note"]}
-                            style={
-                              {
-                                animationDelay: `${beats.noteAt(i)}ms`,
-                              } as CSSProperties
-                            }
-                          >
-                            {n}
-                          </span>
-                        ))
-                      ) : (
-                        <span
-                          className={cx(s["expl-note"], s["is-muted"])}
+                    <div className={s["expl-panel-act"]}>
+                      {session.phase === "landed" ? (
+                        // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
+                        <div
+                          className={cx(
+                            s["expl-choices"],
+                            desc.done && s["is-armed"],
+                            committing != null && s["is-closing"],
+                          )}
                           style={
-                            { animationDelay: `${beats.noteAt(0)}ms` } as CSSProperties
+                            { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
                           }
                         >
-                          无结算
-                        </span>
+                          {landedChoices(session).map((c, i) => {
+                            // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
+                            const state =
+                              committing == null
+                                ? undefined
+                                : committing === i
+                                  ? s["is-chosen"]
+                                  : s["is-dimmed"];
+                            const requiredCount = c.cost?.count ?? 0;
+                            const availableCount = c.cost
+                              ? countByItemId(session.backpack, c.cost.itemId)
+                              : 0;
+                            const costUnavailable = Boolean(c.cost && availableCount < requiredCount);
+                            return (
+                              <button
+                                key={c.id}
+                                className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
+                                type="button"
+                                disabled={!desc.done || committing != null || costUnavailable}
+                                title={
+                                  c.cost
+                                    ? costUnavailable
+                                      ? "背包中没有指定食品"
+                                      : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`
+                                    : undefined
+                                }
+                                style={{ "--i": i } as CSSProperties}
+                                onClick={() => takeOption(i)}
+                              >
+                                <span className={s["expl-choice-bar"]} aria-hidden />
+                                <span className={s["expl-choice-index"]} aria-hidden>
+                                  {String(i + 1).padStart(2, "0")}
+                                </span>
+                                <span className={s["expl-choice-label"]}>{c.label}</span>
+                                {c.cost && (
+                                  <span className={s["expl-choice-cost"]}>
+                                    {costUnavailable ? "背包中没有指定食品" : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`}
+                                  </span>
+                                )}
+                                <span className={s["expl-choice-arrow"]} aria-hidden>
+                                  ▸
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <>
+                          <div className={s["expl-notes"]}>
+                            {session.pendingNotes.length ? (
+                              session.pendingNotes.map((n, i) => (
+                                <span
+                                  key={i}
+                                  className={s["expl-note"]}
+                                  style={
+                                    {
+                                      animationDelay: `${beats.noteAt(i)}ms`,
+                                    } as CSSProperties
+                                  }
+                                >
+                                  {n}
+                                </span>
+                              ))
+                            ) : (
+                              <span
+                                className={cx(s["expl-note"], s["is-muted"])}
+                                style={
+                                  { animationDelay: `${beats.noteAt(0)}ms` } as CSSProperties
+                                }
+                              >
+                                无结算
+                              </span>
+                            )}
+                          </div>
+                          {/* 结算摘要播完前确认按钮保持禁用，脚部固定在面板底边。 */}
+                          <div className={s["expl-panel-foot"]}>
+                            <span className={s["expl-panel-cost"]}>
+                              {mustReplace
+                                ? "先在背包里处理完拿不下的东西"
+                                : hasLoot
+                                  ? "先处理事件物品"
+                                  : hasPendingAction
+                                    ? "先处理事件奖励"
+                                    : "结算完毕"}
+                            </span>
+                            <button
+                              className={cx(s["expl-btn"], s["is-primary"], s["expl-confirm"])}
+                              type="button"
+                              disabled={mustReplace || hasLoot || hasPendingAction || !narrationDone}
+                              style={
+                                {
+                                  animationDelay: `${
+                                    beats.noteAt(Math.max(1, session.pendingNotes.length) - 1)
+                                  }ms`,
+                                } as CSSProperties
+                              }
+                              onClick={() => confirmNode()}
+                            >
+                              确认 ▸
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   )}
-                </div>
-                {session.phase === "resolving" && (
-                  /* 结算摘要播完前确认按钮保持禁用，脚部固定在面板底边。 */
-                  <div className={s["expl-panel-foot"]}>
-                    <span className={s["expl-panel-cost"]}>
-                      {mustReplace
-                        ? "先在背包里处理完拿不下的东西"
-                        : hasLoot
-                          ? "先处理事件物品"
-                          : hasPendingAction
-                            ? "先处理事件奖励"
-                            : "结算完毕"}
-                    </span>
-                    <button
-                      className={cx(s["expl-btn"], s["is-primary"], s["expl-confirm"])}
-                      type="button"
-                      disabled={mustReplace || hasLoot || hasPendingAction || !narrationDone}
-                      style={
-                        {
-                          animationDelay: `${
-                            beats.noteAt(Math.max(1, session.pendingNotes.length) - 1)
-                          }ms`,
-                        } as CSSProperties
-                      }
-                      onClick={() => confirmNode()}
-                    >
-                      确认 ▸
-                    </button>
-                  </div>
-                )}
               </div>
             </section>
           </div>
