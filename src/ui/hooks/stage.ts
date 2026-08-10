@@ -10,16 +10,13 @@ export const STAGE = {
   maxScale: 2560 / 1920,
 } as const;
 
-export const PIXEL_SNAP_TOLERANCE = 0.03;
-
-// 只在 k 已经非常接近较小的整数设备像素倍数时向下吸附。
-// 缩小时(k < 1/dpr)没有可用的整数设备像素解，强行吸附会白扔掉画面尺寸，所以保持连续值。
+// 只要画布能保留至少一个设备像素，就向下吸附到整数设备像素倍数。
+// 用户接受画布略小、黑边略宽来换取清晰度；缩小时(k < 1/dpr)没有可用解，所以保持连续值。
 function snapToDevicePixels(k: number): number {
   const dpr = window.devicePixelRatio || 1;
   const step = 1 / dpr;
-  const floored = Math.floor(k / step) * step;
-  if (floored <= 0) return k;
-  return k - floored <= k * PIXEL_SNAP_TOLERANCE ? floored : k;
+  if (k < step) return k;
+  return Math.floor(k * dpr) / dpr;
 }
 
 // 观测容器实际尺寸, 返回等比缩放系数 k = min(w/1920, h/1080)(上限 STAGE.maxScale)。

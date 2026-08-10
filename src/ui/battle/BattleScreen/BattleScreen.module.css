@@ -117,9 +117,11 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  position: relative; /* 设计画布的定位参照(画布绝对定位居中, 见下) */
+  position: relative; /* 战斗画布的定位参照；zoom 路径由布局居中，见下 */
   overflow: hidden;
   background: #000;
+  display: grid;
+  place-items: center;
 }
 /* 战斗画面 = 固定 1920×1080 的设计画布, 由 --stage-scale 等比缩放去适配窗口(k 由 ui/stage.ts
    的 ResizeObserver 算出, BattleScreen 行内下发到 .battle-viewport)。16:9 与"最大 2560×1440、
@@ -129,11 +131,10 @@
    (data/encounters.ts 的 dx/dy)、立绘尺寸、侧栏宽、字号在任何窗口下构图完全一致。故画布内
    不要再写 vw/vh 或按窗口宽度的 @media 断点, 那会让构图重新随分辨率漂移。
 
-   ⚠ 居中必须靠绝对定位 + translate(-50%,-50%), 不能靠 flex/grid 的 place-items:center ——
-   transform 不改变布局, 布局盒恒为 1920×1080, 在小窗口下比容器还宽; 这时 place-items:center
-   无处可居中(轨道被撑到 1920 并从容器左边缘溢出), 布局盒始终落在 [0,1920], 而 scale 绕盒子中心
-   (x=960)收缩 → 可见范围变成 960±960k, 左/上留黑边、右/下被裁。translate 的百分比按自身边框盒
-   算(=固定的 -960/-540px)且排在 scale 左侧(不被 k 缩放), 故任何 k 下都精确居中。 */
+  ⚠ Chrome/Edge 的 zoom 路径必须靠布局居中，避免 translate 把整张画布落在亚像素位置。
+  zoom 会在布局阶段缩放画布的布局盒，因此 place-items:center 按缩放后的尺寸居中；
+  老 Firefox/Safari 的 @supports not (zoom: 1) 兜底仍由公共 stageCanvas 使用绝对定位 +
+  translate(-50%,-50%) scale(k)，因为 transform: scale() 不改变布局盒。 */
 .battle-viewport .battle {
   /* ★ 3D 投影就发生在这里。必须是 perspective **属性**而不是 .battle-scene 的 transform
      里写 perspective() 函数 —— 后者只对该元素自身的变换生效, 后代的 translateZ 拿不到透视,

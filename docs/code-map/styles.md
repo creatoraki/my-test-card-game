@@ -9,7 +9,7 @@
 | [index.css](../../src/styles/index.css) | 公共 CSS 唯一入口，只按 `tokens → base` 两条导入。 |
 | [tokens.css](../../src/styles/tokens.css) | 设计令牌：配色、边框、圆角，以及五档物品稀有度和对应辉光。卡牌稀有度是另一套类型，不在这里混用。 |
 | [base.css](../../src/styles/base.css) | reset、页面底纹、扫描线、按钮全家桶、表单元素和基础文字元素。 |
-| [stageCanvas.module.css](../../src/ui/app/styles/stageCanvas.module.css) | 全站 1920×1080 设计画布的 letterbox 容器与 `zoom` 几何骨架；页面样式通过 `composes` 复用。 |
+| [stageCanvas.module.css](../../src/ui/app/styles/stageCanvas.module.css) | 全站 1920×1080 设计画布的 letterbox 容器、布局居中与 `zoom` 几何骨架；页面样式通过 `composes` 复用。 |
 
 **全局层只剩这两个文件**（第三个全局文件是 `ui/app/viewTransition.global.css`，那里没有类名）。
 原先的 `layout.css` 与 `widgets.css` 已在模块化改造中拆解完毕：
