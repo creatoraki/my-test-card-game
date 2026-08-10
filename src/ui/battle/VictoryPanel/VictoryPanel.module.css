@@ -4,27 +4,28 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: #020608d9;
+  background: #020608e6;
+  backdrop-filter: blur(6px);
   opacity: 0;
-  animation: vcLayerIn 380ms var(--vc-ease) forwards;
+  animation: vcLayerIn 240ms var(--vc-ease) forwards;
   pointer-events: auto;
 }
 
 .victory-panel {
   position: relative;
   display: flex;
-  width: 1740px;
-  height: 980px;
+  width: 1240px;
+  height: 760px;
   flex-direction: column;
   overflow: hidden;
-  padding: 34px 38px 28px;
+  padding: 26px 32px 22px;
   color: #eafaff;
   background: linear-gradient(145deg, #121b1fe8, #070c0feb);
   border: 1px solid #6fd2ff66;
   clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 22px 100%, 0 calc(100% - 22px), 0 22px);
   box-shadow: 0 30px 90px #000e, inset 0 0 70px #69d9ff0d;
-  transform: translateY(12px) scale(0.985);
-  animation: vcPanelIn 380ms var(--vc-ease) forwards;
+  transform: translateY(28px) scale(0.92);
+  animation: vcPanelIn var(--vc-panel-ms) var(--vc-ease-pop) forwards;
 }
 
 .panel-sweep {
@@ -37,7 +38,7 @@
   pointer-events: none;
   background: linear-gradient(90deg, transparent, #d8fbff33, transparent);
   transform: skewX(-18deg);
-  animation: vcSweep 760ms var(--vc-ease) 120ms forwards;
+  animation: vcSweep 760ms var(--vc-ease) 140ms forwards;
 }
 
 .panel-head,
@@ -52,30 +53,19 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 30px;
-  padding-bottom: 22px;
+  padding-bottom: 18px;
   border-bottom: 1px solid #6fd2ff33;
 }
 
-.kicker {
-  color: #83e6ff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 3px;
-}
-
 .panel-head h2 {
-  margin: 8px 0 3px;
-  color: #f5fdff;
-  font-size: 36px;
-  letter-spacing: 5px;
-  text-shadow: 0 0 18px #69d9ff66;
-}
-
-.panel-head p {
   margin: 0;
-  color: #7d9ca5;
-  font-size: 13px;
-  letter-spacing: 1px;
+  color: #f5fdff;
+  font-size: 40px;
+  letter-spacing: 6px;
+  text-shadow: 0 0 18px #69d9ff66;
+  opacity: 0;
+  transform: scale(1.14);
+  animation: vcTitleIn var(--vc-title-ms) var(--vc-ease-pop) 60ms both;
 }
 
 .head-readout {
@@ -86,14 +76,14 @@
 
 .loot-credit {
   color: #ffca80;
-  font-size: 16px;
+  font-size: 26px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
 }
 
 .drop-chip {
   position: relative;
-  min-width: 205px;
+  min-width: 180px;
   padding: 11px 14px;
   color: #d8fbff;
   background: #0d232bd9;
@@ -101,6 +91,7 @@
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
   cursor: help;
   font: inherit;
+  font-size: 16px;
   transition: border-color var(--vc-control-ms) ease, background var(--vc-control-ms) ease, transform var(--vc-control-ms) var(--vc-ease);
 }
 
@@ -122,7 +113,7 @@
   background: #061014f7;
   border: 1px solid #6fd2ff66;
   box-shadow: 0 15px 30px #000b;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
   opacity: 0;
   pointer-events: none;
@@ -138,19 +129,33 @@
 
 .panel-content {
   display: grid;
-  grid-template-columns: 1.08fr 0.75fr 0.98fr;
-  gap: 22px;
+  grid-template-columns: minmax(0, 1fr) 470px;
+  gap: 24px;
   min-height: 0;
   flex: 1;
-  padding: 22px 0;
+  padding: 18px 0;
+}
+
+.right-column {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
 }
 
 .exp-section,
 .loot-section,
 .backpack-section {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.victory-section {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: vcSectionIn var(--vc-section-ms) var(--vc-ease-pop) var(--vc-delay) both;
 }
 
 .section-heading {
@@ -158,38 +163,37 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   color: #c4f4fc;
-  font-size: 14px;
+  font-size: 18px;
   letter-spacing: 2px;
 }
 
 .section-heading small {
   color: #698791;
-  font-size: 10px;
+  font-size: 13px;
   letter-spacing: 1px;
   white-space: nowrap;
 }
 
 .exp-list {
   display: grid;
-  gap: 12px;
+  min-height: 0;
+  flex: 1;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .loot-section,
 .backpack-section {
-  overflow: visible;
-}
-
-.loot-section .hint {
-  margin: 12px 0 0;
-  color: #6c8d96;
-  font-size: 11px;
-  line-height: 1.6;
+  overflow: hidden;
 }
 
 .backpack-panel {
-  max-width: none;
+  width: 100%;
+  max-width: 460px;
+  min-height: 0;
+  margin-left: auto;
   flex: 1;
 }
 
@@ -209,7 +213,7 @@
   gap: 12px;
   margin-right: auto;
   color: #ffcf9d;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .action-button {
@@ -221,7 +225,7 @@
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 15px;
   letter-spacing: 1px;
   transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) ease, color var(--vc-control-ms) ease, background var(--vc-control-ms) ease;
 }
@@ -256,6 +260,7 @@
 
 .action-button.continue {
   min-width: 180px;
+  font-size: 17px;
   color: #071014;
   background: #ffbd77;
   border-color: #ffe0b2;
@@ -268,8 +273,12 @@
   cursor: not-allowed;
 }
 
+.action-button.continue:not(.is-blocked):not(.is-nudging) {
+  animation: vcContinueReady 2.4s ease-in-out infinite;
+}
+
 .action-button.continue.is-nudging {
-  animation: vcNudge 120ms ease-in-out;
+  animation: vcNudge var(--vc-nudge-ms, 180ms) ease-in-out;
 }
 
 @keyframes vcLayerIn {
@@ -280,6 +289,14 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes vcTitleIn {
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes vcSectionIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes vcSweep {
   from { left: -35%; opacity: 0; }
   18% { opacity: 1; }
@@ -288,8 +305,13 @@
 
 @keyframes vcNudge {
   0%, 100% { transform: translateX(0); }
-  35% { transform: translateX(-5px); }
-  70% { transform: translateX(5px); }
+  35% { transform: translateX(-6px); }
+  70% { transform: translateX(6px); }
+}
+
+@keyframes vcContinueReady {
+  0%, 100% { box-shadow: 0 0 0 #ffbd7700; }
+  50% { box-shadow: 0 0 22px #ffbd7766; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -298,6 +320,17 @@
     opacity: 1;
     animation: none;
     transform: none;
+  }
+
+  .panel-head h2,
+  .victory-section {
+    opacity: 1;
+    animation: none;
+    transform: none;
+  }
+
+  .action-button.continue {
+    animation: none;
   }
 
   .panel-sweep {

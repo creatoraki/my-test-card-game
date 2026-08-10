@@ -24,8 +24,8 @@ export function VictoryExpRow({ member, gain, fallbackExp, index }: Props) {
   const gainRatio = Math.min(1 - beforeRatio, gained / barMax);
   const displayedExp = useCountUp(
     expAfter,
-    VICTORY_CHOREO.contentDelayMs + VICTORY_CHOREO.staggerMs * index + 180,
-    VICTORY_CHOREO.expMs,
+    VICTORY_CHOREO.contentDelayMs + VICTORY_CHOREO.staggerMs * index + VICTORY_CHOREO.barDelayMs,
+    VICTORY_CHOREO.barMs,
   );
 
   return (
@@ -33,7 +33,7 @@ export function VictoryExpRow({ member, gain, fallbackExp, index }: Props) {
       className={cx(s["exp-row"], !alive && s["is-dead"])}
       style={
         {
-          "--vc-delay": victoryStagger(index),
+          "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victoryStagger(index))}ms`,
           "--vc-before": beforeRatio,
           "--vc-gain": gainRatio,
         } as CSSProperties
@@ -50,20 +50,14 @@ export function VictoryExpRow({ member, gain, fallbackExp, index }: Props) {
       </div>
       <div className={s["exp-main"]}>
         <div className={s["exp-heading"]}>
-          <div>
-            <strong>{member.name}</strong>
-            <span className={s["exp-label"]}>经验池</span>
-          </div>
-          <span className={s["exp-total"]}>{Math.round(displayedExp).toLocaleString("zh-CN")}</span>
+          <strong>{member.name}</strong>
+          <b className={s["exp-gained"]}>+{gained} EXP</b>
         </div>
         <div className={s["exp-track"]} aria-label={`${member.name}经验 ${expAfter}`}>
           <span className={s["exp-before"]} />
           <span className={s["exp-gain"]} />
         </div>
-        <div className={s["exp-foot"]}>
-          <span>{expBefore.toLocaleString("zh-CN")} → {expAfter.toLocaleString("zh-CN")}</span>
-          <b>+{gained} EXP</b>
-        </div>
+        <div className={s["exp-total"]}>{Math.round(displayedExp).toLocaleString("zh-CN")}</div>
       </div>
     </article>
   );

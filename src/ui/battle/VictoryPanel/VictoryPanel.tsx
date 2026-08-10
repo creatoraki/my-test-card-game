@@ -8,7 +8,7 @@ import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import type { ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import { useChangePulse } from "@/ui/hooks/useChangePulse";
 import { cx } from "@/ui/common/cx";
-import { victoryChoreoVars } from "@/ui/battle/victoryChoreo";
+import { VICTORY_CHOREO, victoryChoreoVars, victorySectionStagger } from "@/ui/battle/victoryChoreo";
 import { VictoryExpRow } from "@/ui/battle/VictoryExpRow";
 import { VictoryLootTray } from "@/ui/battle/VictoryLootTray";
 import s from "./VictoryPanel.module.css";
@@ -58,7 +58,7 @@ export function VictoryPanel() {
 
   useEffect(() => {
     if (!continueNudge) return;
-    const timer = window.setTimeout(() => setContinueNudge(false), 120);
+    const timer = window.setTimeout(() => setContinueNudge(false), VICTORY_CHOREO.continueNudgeMs);
     return () => window.clearTimeout(timer);
   }, [continueNudge]);
 
@@ -106,28 +106,27 @@ export function VictoryPanel() {
         <span className={s["panel-sweep"]} aria-hidden="true" />
         <header className={s["panel-head"]}>
           <div>
-            <span className={s["kicker"]}>COMBAT RECOVERY // BATTLE COMPLETE</span>
             <h2>战斗胜利</h2>
-            <p>战场已清空，处理本场回收物资后继续推进。</p>
           </div>
           <div className={s["head-readout"]}>
-            <span className={s["loot-credit"]}>居民积分 +{lastLoot}</span>
+            <span className={s["loot-credit"]}>积分 +{lastLoot}</span>
             <button className={s["drop-chip"]} type="button">
-              <span>掉落倍率 ×{lastDropK.toFixed(2)}</span>
+              <span>掉落 ×{lastDropK.toFixed(2)}</span>
               <span className={s["drop-popover"]}>
-                能量档位：{lastDropTier?.name ?? "未知"}<br />
-                档位倍率：×{(lastDropTier?.rewardMultiplier ?? 0).toFixed(2)}<br />
-                战斗签加成：+{lastSlotBonus.toFixed(2)}
+                {lastDropTier?.name ?? "未知"} ×{(lastDropTier?.rewardMultiplier ?? 0).toFixed(2)}<br />
+                战斗签 +{lastSlotBonus.toFixed(2)}
               </span>
             </button>
           </div>
         </header>
 
         <div className={s["panel-content"]}>
-          <section className={s["exp-section"]}>
+          <section
+            className={cx(s["exp-section"], s["victory-section"])}
+            style={{ "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victorySectionStagger(0))}ms` } as CSSProperties}
+          >
             <div className={s["section-heading"]}>
-              <span>队伍经验池</span>
-              <small>本场战斗经验已入账</small>
+              <span>队伍经验</span>
             </div>
             <div className={s["exp-list"]}>
               {session.party.map((member, index) => (
@@ -142,39 +141,40 @@ export function VictoryPanel() {
             </div>
           </section>
 
-          <section className={s["loot-section"]}>
-            <div className={s["section-heading"]}>
-              <span>战利品回收</span>
-              <small>{pendingLoot.length ? `${pendingLoot.length} 件待拾取` : "已全部处理"}</small>
-            </div>
-            <VictoryLootTray
-              onPicked={(uid) => setPickedUids((current) => new Set([...current, uid]))}
-            />
-            <p className={s["hint"]}>点击格子收入背包，悬浮查看物品详情。</p>
-          </section>
+          <div className={s["right-column"]}>
+            <section
+              className={cx(s["loot-section"], s["victory-section"])}
+              style={{ "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
+            >
+              <div className={s["section-heading"]}>
+                <span>战利品</span>
+                <small>{pendingLoot.length ? `${pendingLoot.length} 件待拾取` : "已清空"}</small>
+              </div>
+              <VictoryLootTray
+                onPicked={(uid) => setPickedUids((current) => new Set([...current, uid]))}
+              />
+            </section>
 
-          <section className={s["backpack-section"]}>
-            <div className={s["section-heading"]}>
-              <span>远征背包</span>
-              <small>右键丢弃 · 拖动整理</small>
-            </div>
-            <ItemInventoryPanel
-              stacks={backpack}
-              rows={4}
-              columns={6}
-              capacity={RULES.burden.backpackSlots}
-              title="回收背包"
-              kicker="BATTLE HAUL // PACK-24"
-              subtitle="战场回收物资"
-              panelId="victory-backpack-panel"
-              className={s["backpack-panel"]}
-              pulseUids={new Set([...pulsedUids, ...pickedUids])}
-              onReorder={handleReorder}
-              contextMenuItems={contextMenuItems}
-              colorMap={INVENTORY_COLORS}
-              compact
-            />
-          </section>
+            <section
+              className={cx(s["backpack-section"], s["victory-section"])}
+              style={{ "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
+            >
+              <ItemInventoryPanel
+                stacks={backpack}
+                rows={4}
+                columns={6}
+                capacity={RULES.burden.backpackSlots}
+                title="回收背包"
+                panelId="victory-backpack-panel"
+                className={s["backpack-panel"]}
+                pulseUids={new Set([...pulsedUids, ...pickedUids])}
+                onReorder={handleReorder}
+                contextMenuItems={contextMenuItems}
+                colorMap={INVENTORY_COLORS}
+                compact
+              />
+            </section>
+          </div>
         </div>
 
         <footer className={s["panel-foot"]}>
