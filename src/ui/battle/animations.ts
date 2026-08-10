@@ -127,6 +127,13 @@ export const CINEMA = {
   drift: { scale: 0.018, x: 8, y: 5, dur: 22000 },
 } as const;
 
+// 手牌发牌时序(ms)。单张飞行时长写在 HandCard.module.css 的 .hand-card animation(0.8s),
+// 这里只管「什么时候起飞」—— 两者要一起改。
+export const HAND_DEAL = {
+  stagger: 300,
+  opening: 1000,
+} as const;
+
 export const ANIM: Record<CardAnim, AnimPreset> = {
   // —— 攻击系 ——
   slash: { kind: "attack", emoji: "💥", color: "#ff6b6b", windup: 190, hold: 660, shake: 1 },

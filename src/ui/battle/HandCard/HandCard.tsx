@@ -11,7 +11,7 @@ interface Props {
   playable: boolean;
   selected: boolean;
   leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 HandCard.css .hand-card.leaving)
-  dealIndex?: number; // 抽牌飞入的错峰序号(--deal-i), 让手牌一张张依次飞入
+  dealDelay?: number; // 抽牌飞入的绝对延迟(ms), 由父级按批次计算
   onExited?: () => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
   onClick?: () => void;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
@@ -34,7 +34,7 @@ interface Props {
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.css);
 // 详情面板(CardInfoPanel)与队伍槽高亮(AllyBar)读的是本组件写进 ui/handFocusStore.ts 的悬停卡,
 // 两者各自订阅、与 BattleScreen 无关; 这里不需要上报自身矩形, 也不需要回调冒泡。
-export function HandCard({ card, playable, selected, leaving, dealIndex, onExited, onClick }: Props) {
+export function HandCard({ card, playable, selected, leaving, dealDelay, onExited, onClick }: Props) {
   const owner = getCharacter(card.ownerCharId);
   const art = cardArt(card.id);
   const hasArt = Boolean(art);
@@ -46,7 +46,7 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
     // 归属角色配色: 现在只落在**卡名压条左端那道竖标**上(见 HandCard.css .hc-title::before)。
     // ⚠ 刻意只留这一处 —— 金属刻板的卡面上配色越少越贵气, 归属辨识主要靠队伍槽本身。
     ["--owner-color" as string]: owner.color,
-    ["--deal-i" as string]: dealIndex ?? 0,
+    ["--deal-delay" as string]: `${dealDelay ?? 0}ms`,
     ...(hasArt ? { ["--hand-art" as string]: `url(${art})` } : {}),
   } as React.CSSProperties;
 
@@ -59,6 +59,7 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
     //   ⚠ 尺寸/负 margin 叠压/张数自适应等版式规则全部认这一层, 见 ui/BattleScreen.css 的 .hand-slot。
     <div
       className={cx(s["hand-slot"], selected && s.selected, leaving && s.leaving)}
+      style={handStyle}
       // data-hand-slot: 供 BattleScreen 的 `.hand-tray:has([data-hand-slot]:nth-last-child(N))`
       // 按张数收紧叠压量。类名被哈希后那条选择器够不着, 属性可以(样式铁律 2)。
       data-hand-slot
@@ -87,7 +88,6 @@ export function HandCard({ card, playable, selected, leaving, dealIndex, onExite
           card.upgraded && s.upgraded,
           card.contaminated && s.contaminated,
         )}
-        style={handStyle}
         onTransitionEnd={(e) => {
           // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
           // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。

@@ -93,7 +93,7 @@ src/ui/
 | [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：倒计时、意图、立绘、血条、护盾/状态和命中特效；站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`@keyframes` 按敌人在运行时注入 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
 | [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，并通过公共污染条/状态徽章展示污染值、生病和怪癖。位于战场之外，因此不参与相机推近。 |
-| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图、定高说明区和污染卡固定角标。**卡在托盘里的版式与厚度也归本文件**，尺寸变量由 BattleScreen 下发。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：费用/名称、1:1 配图、定高说明区和污染卡固定角标。**卡在托盘里的版式与厚度也归本文件**，尺寸变量由 BattleScreen 下发。飞入为从右往左 800ms、按批次错峰 300ms，开局首批延迟 3s，时序常量在 `battle/animations.ts` 的 `HAND_DEAL`。离场清理依赖 `transform` 过渡事件，不要换成其他属性。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；污染卡会额外说明抽牌污染效果。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
 | [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |

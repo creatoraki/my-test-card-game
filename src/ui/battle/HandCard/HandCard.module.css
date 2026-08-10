@@ -26,6 +26,17 @@
    尺寸与鱼鳞叠的负 margin 见 ui/BattleScreen.css 的 .hand-tray .hand-slot 段。 */
 .hand-slot {
   position: relative;
+  animation: hand-deal-gate 0.8s step-end backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+/* 发牌等待期与飞行途中, 槽位照常占位撑开托盘宽度, 但不接悬停/点击。 */
+@keyframes hand-deal-gate {
+  from {
+    pointer-events: none;
+  }
+  to {
+    pointer-events: auto;
+  }
 }
 /* 悬停桥: 卡弹起后有半张卡高**越出壳外**, 若不补命中区, 鼠标往上追到弹起的卡面上就会掉焦落回。
    这块透明垫只在悬停时存在 ⇒ 静止时壳外的空白不吃悬停(否则鼠标扫过托盘上方就会平白弹卡)。
@@ -110,9 +121,9 @@
   user-select: none;
   /* 斜切角 14px。⚠ 这个 14 与 .hc-edge 的六层斜口、.hc-cost 的落位是**同一个数**, 改了要一起改。 */
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  /* 抽牌: 从下方飞入到位; backwards 让错峰等待期间保持隐藏, 到位后交还悬浮/选中的 transform */
-  animation: hand-deal-in 0.32s cubic-bezier(0.18, 0.72, 0.3, 1) backwards;
-  animation-delay: calc(var(--deal-i, 0) * 65ms);
+  /* 抽牌: 从右往左慢速滑入; backwards 让错峰等待期间保持隐藏, 到位后交还悬浮/选中的 transform */
+  animation: hand-deal-in 0.8s cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
   /* ★ 220ms / 末端过冲仅 1.04 —— 这是"重"的时间表达。
      ⚠ 旧版是 180ms + 过冲 1.15: 配上 154px 的位移量, 卡读作**弹簧玩具**而不是一块厚钢板。
        金属重 ⇒ 起步稍慢、过冲更小、末端定得住。改这条数值前先想清楚要表达的重量。
@@ -662,15 +673,15 @@
   opacity: 0;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.85, 0.4), opacity 0.28s ease-in;
 }
-/* 抽牌飞入: 从下方带一点偏转飞上来, 到位时转正 —— 读作"一张牌被甩进手里"。 */
+/* 抽牌飞入: 从右侧带一点偏转滑入, 到位时转正 —— 读作"一张牌被甩进手里"。 */
 @keyframes hand-deal-in {
   from {
     opacity: 0;
-    transform: translateY(78px) rotateZ(-4deg);
+    transform: translateX(900px) rotateZ(-3deg);
   }
   to {
     opacity: 1;
-    transform: translateY(0) rotateZ(0);
+    transform: translateX(0) rotateZ(0);
   }
 }
 /* ★ 表面反光扫过(sheen): 一道宽而低对比的高光带斜掠过整张卡, **只跑一次**。

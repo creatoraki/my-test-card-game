@@ -22,7 +22,7 @@ import { PileRail, type Pile } from "@/ui/battle/PileRail";
 import { PileDrawer } from "@/ui/battle/PileDrawer";
 import { RoundIndicator } from "@/ui/battle/RoundIndicator";
 import { SkillCutInCard } from "@/ui/battle/SkillCutInCard";
-import { ANIM, CINEMA, cardAnim, moveAnim, type HitFx } from "@/ui/battle/animations";
+import { ANIM, CINEMA, HAND_DEAL, cardAnim, moveAnim, type HitFx } from "@/ui/battle/animations";
 import { warmEnemyArt } from "@/ui/art/enemyArt";
 import { warmVfxSprites } from "@/ui/art/vfxSprites";
 import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
@@ -237,7 +237,9 @@ export function BattleScreen() {
   const [openPile, setOpenPile] = useState<Pile | null>(null);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 ui/HandCard.css .hand-card 的 hand-deal-in)。
-  const [renderHand, setRenderHand] = useState<{ card: Card; leaving: boolean }[]>([]);
+  const [renderHand, setRenderHand] = useState<
+    { card: Card; leaving: boolean; dealDelay: number }[]
+  >([]);
   // 正在出牌离场的卡: 点击瞬间即开始出鞘(引擎稍后才在命中时刻把它移出手牌), 避免先缩回未选中位再飞出。
   const [playingOutUid, setPlayingOutUid] = useState<string | null>(null);
 
@@ -272,6 +274,8 @@ export function BattleScreen() {
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
   const seqRef = useRef(0); // 批次序号, 用于取消旧动画批次的定时器回调
   const hitSeqRef = useRef(0); // 受击特效序号, 递增以强制 React 重放同一目标的连续特效
+  const dealtUidsRef = useRef(new Set<string>()); // 已经播过飞入动画的卡 uid
+  const openingDoneRef = useRef(false); // 本场战斗的首批手牌是否已发出
   const timersRef = useRef<number[]>([]);
   const clearTimers = () => {
     timersRef.current.forEach((t) => clearTimeout(t));
@@ -295,6 +299,8 @@ export function BattleScreen() {
     setAimFoeId(null);
     setAim(null);
     setHitstop(false);
+    dealtUidsRef.current.clear();
+    openingDoneRef.current = false;
     setRenderHand([]); // 换战斗: 清空手牌渲染列表, 让新战斗的手牌重新飞入(不播放旧牌离场)
     setPlayingOutUid(null);
   }, [battleSeq]);
@@ -336,21 +342,33 @@ export function BattleScreen() {
   useEffect(() => {
     if (!battle) return;
     const liveSet = new Set(battle.hand);
+    const newUids = battle.hand.filter((uid) => !dealtUidsRef.current.has(uid));
+    const base = openingDoneRef.current ? 0 : HAND_DEAL.opening;
+    const delayOf = new Map(newUids.map((uid, k) => [uid, base + k * HAND_DEAL.stagger]));
+    if (newUids.length > 0) openingDoneRef.current = true;
+    newUids.forEach((uid) => dealtUidsRef.current.add(uid));
     setRenderHand((prev) => {
       const prevUids = new Set(prev.map((e) => e.card.uid));
       const merged = prev.map((e) =>
         liveSet.has(e.card.uid)
-          ? { card: battle.cards[e.card.uid], leaving: false }
-          : { card: e.card, leaving: true },
+          ? { card: battle.cards[e.card.uid], leaving: false, dealDelay: e.dealDelay }
+          : { card: e.card, leaving: true, dealDelay: e.dealDelay },
       );
       for (const uid of battle.hand) {
-        if (!prevUids.has(uid)) merged.push({ card: battle.cards[uid], leaving: false });
+        if (!prevUids.has(uid)) {
+          merged.push({
+            card: battle.cards[uid],
+            leaving: false,
+            dealDelay: delayOf.get(uid) ?? 0,
+          });
+        }
       }
       return merged;
     });
   }, [battle]);
 
   const handleCardExited = (uid: string) => {
+    dealtUidsRef.current.delete(uid);
     setRenderHand((prev) => prev.filter((e) => e.card.uid !== uid));
     setPlayingOutUid((cur) => (cur === uid ? null : cur));
   };
@@ -870,14 +888,14 @@ export function BattleScreen() {
           {renderHand.length === 0 && battle.hand.length === 0 && (
             <div className={s["empty-hand"]}>NO CARDS</div>
           )}
-          {renderHand.map((entry, i) => {
+          {renderHand.map((entry) => {
             const c = entry.card;
             const leaving = entry.leaving || c.uid === playingOutUid;
             return (
               <HandCard
                 key={c.uid}
                 card={c}
-                dealIndex={i}
+                dealDelay={entry.dealDelay}
                 leaving={leaving}
                 playable={!leaving && isPlayerTurn && (handAction !== null || canPlay(battle, c.uid))}
                 selected={c.uid === selectedUid}
