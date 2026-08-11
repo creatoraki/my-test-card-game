@@ -50,10 +50,10 @@ export const CHARACTERS: CharacterDef[] = [
     },
   },
   {
-    id: "glutton",
-    name: "大胃王",
-    emoji: "🍖",
-    color: "#ffb066",
+    id: "prophet",
+    name: "预言家",
+    emoji: "🔮",
+    color: "#b28cff",
     // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
     base: makeStats({
       maxHp: 50,
@@ -67,11 +67,11 @@ export const CHARACTERS: CharacterDef[] = [
     }),
     // 初始卡组 = 5 张同名的「基础攻击」
     startingCardIds: [
-      "glutton-basic-attack",
-      "glutton-basic-attack",
-      "glutton-basic-attack",
-      "glutton-basic-attack",
-      "glutton-basic-attack",
+      "prophet-basic-attack",
+      "prophet-basic-attack",
+      "prophet-basic-attack",
+      "prophet-basic-attack",
+      "prophet-basic-attack",
     ],
     // ⚠ 专属抽卡池待设计: 三档都空 ⇒ 锻造抽卡对本角色暂时抽不出东西(forgeDraw 会直接返回)。
     pools: { common: [], uncommon: [], rare: [] },

@@ -1,40 +1,40 @@
-import swordsmanPortrait from "@/assets/人物立绘/剑士-透明.png";
-import gluttonPortrait from "@/assets/人物立绘/大胃王-透明.png";
-import botanistPortrait from "@/assets/人物立绘/植物学家-透明.png";
+import swordsmanPortrait from "@/assets/人物立绘/剑士/default.png";
+import botanistPortrait from "@/assets/人物立绘/植物学家/default.png";
+import prophetPortrait from "@/assets/人物立绘/预言家/default.png";
 import { cx } from "@/ui/common/cx";
 import s from "./CharacterPortrait.module.css";
+
+// 所有角色立绘统一为 1152×2048 / 9:16 / 透明底 / 左右中心对称。
 
 // 角色立绘登记表(与 enemyArt.ts 同思路: 静态 import + 登记表, 按 CharacterDef.id 作键)。
 // 立绘只登记在 UI 层 —— data/characters.ts 不碰素材路径, 与 enemyArt.ts / battleBg.ts 同约定。
 interface CharacterArtDef {
   src: string;
-  // 半身取景的微调偏移(px, 正=右/下)。各角色原图里身体的水平位置、留白高低不一,
-  // 靠它把人挪回槽位中央。三套半身取景(战斗立绘 / 队伍卡 / 当前角色大卡)共用这一对参数,
+  // 半身取景的异常构图逃生舱(px, 正=右/下), 常规统一规格立绘不需要覆盖。
+  // 三套半身取景(战斗立绘 / 队伍卡 / 当前角色大卡)共用这一对参数,
   // 菜单的 .menu-portrait 全身像不受影响。
   dx?: number;
   dy?: number;
-  // 底部队伍卡半身像的个体取景倍率(默认 1 = 跟随 AllyBar 的 --bust-zoom)。
-  // 各角色原图的人物占画幅比例不一样, 同一个 --bust-zoom 下有的人显小, 靠它单独补偿。
+  // 底部队伍卡半身像的异常构图逃生舱(默认 1 = 跟随 AllyBar 的 --bust-zoom)。
   bustScale?: number;
-  // 头部取景的微调参数(zoom = 图宽相对取景窗宽的倍率; dx/dy = 缩放后的位置微调)。
-  // ⚠ 目前**没有使用方** —— 底部队伍卡已从「头部裁切的玻璃头像」改为「带框半身立绘」,
-  // 半身走上面的 dx/dy。这套参数保留登记, 留给后续需要圆头像的界面(如编队/结算页)。
+  // 头部取景参数(zoom = 图宽相对取景窗宽的倍率; dx/dy = 缩放后的位置微调)。
+  // CryoScene 的 .cryo-portrait 使用这组参数; dx/dy 仅为异常构图保留。
   head?: { zoom?: number; dx?: number; dy?: number };
 }
 
+// 统一规格下三人共用同一套取景参数; 只有将来出现非对称/异常构图的立绘才在个体条目里覆盖。
+const UNIFORM_FRAMING = {
+  dx: 0,
+  dy: 0,
+  bustScale: 1,
+  // 头部窗口(冬眠仓小头像): 统一立绘里头部位置一致, 一个 zoom 全员通用。
+  head: { zoom: 4, dx: 0, dy: 0 },
+} as const;
+
 const CHARACTER_ART: Record<string, CharacterArtDef> = {
-  // 剑士: 原图人物偏左(左手持剑外展占了画面左侧), 右移 20px 才在槽位里居中;
-  //       原图人物在画幅里偏小, 队伍卡里比其他人矮一头 ⇒ bustScale 单独放大一点
-  swordsman: {
-    src: swordsmanPortrait,
-    dx: 10,
-    bustScale: 1.25,
-    head: { zoom: 1.15, dx: 4, dy: -18 },
-  },
-  // 大胃王: 取景偏移尚未校准, 先按 0 登记, 看到实际画面后再微调
-  glutton: { src: gluttonPortrait },
-  // 植物学家: 原图头顶留白偏多, 放大后人在窗里压得偏低 ⇒ 整体上移一点
-  botanist: { src: botanistPortrait, dx: -10, bustScale: 1.35, dy: -20 },
+  swordsman: { src: swordsmanPortrait, ...UNIFORM_FRAMING },
+  prophet: { src: prophetPortrait, ...UNIFORM_FRAMING },
+  botanist: { src: botanistPortrait, ...UNIFORM_FRAMING },
 };
 
 export const CHARACTER_ART_SOURCES: readonly string[] = [...new Set(

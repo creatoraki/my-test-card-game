@@ -1848,8 +1848,7 @@
 /* ===================== 立绘取景 ===================== */
 /* CharacterPortrait 的取景规则按约定写在**消费方**的组件 CSS 里(见 CharacterPortrait.tsx 顶部)。
    冬眠仓用两套:
-     .cryo-portrait —— 小头像窗(舱位 / 待命卡 / 名册行), 走 --head-* 一族。★ 那套参数登记多时
-       一直没有使用方, 这里是第一个。
+     .cryo-portrait —— 小头像窗(舱位 / 待命卡 / 名册行), 走 --head-* 一族。
      .cryo-bust     —— 大立绘(出战槽 / 档案详情 / 已解封舱位), 走 --portrait-dx/dy 半身取景;
        基础规则(CharacterPortrait.css)已给 contain + center bottom, 这里只补尺寸与偏移。 */
 img.cryo-portrait {
@@ -1857,6 +1856,7 @@ img.cryo-portrait {
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  transform-origin: 50% 0;
   transform: scale(var(--head-zoom)) translate(var(--head-dx), var(--head-dy));
 }
 img.cryo-bust {

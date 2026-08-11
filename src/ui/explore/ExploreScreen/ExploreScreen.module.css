@@ -270,7 +270,7 @@
   min-height: 264px;
   animation: explRise 420ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   --slot-base-w: 160px;
-  --bust-zoom: 1.8;
+  --bust-zoom: 2.3;
 }
 .expl-member {
   --notch: 10px;
@@ -322,7 +322,7 @@
   position: absolute;
   left: 50%;
   top: 0;
-  width: calc(var(--slot-base-w, 120px) * var(--bust-zoom, 1.8) * var(--bust-scale, 1));
+  width: calc(var(--slot-base-w, 120px) * var(--bust-zoom, 2.3) * var(--bust-scale, 1));
   height: auto;
   max-width: none;
   object-fit: contain;

@@ -181,12 +181,12 @@ export const CARD_DEFS: CardDef[] = [
     text: "必中的断罪一击，造成 260% 攻击力的伤害并施加 2 层易伤。打出后本场移除。",
   },
 
-  // ---- 大胃王初始卡 ----
+  // ---- 预言家初始卡 ----
   // ⚠ 占位内容: 初始卡组是 5 张同名的「基础攻击」(卡面用占位素材), 专属卡牌与抽卡池设计另起。
   {
-    id: "glutton-basic-attack",
+    id: "prophet-basic-attack",
     name: "基础攻击",
-    ownerCharId: "glutton",
+    ownerCharId: "prophet",
     cost: 1,
     cardType: "normal",
     targeting: "foe",

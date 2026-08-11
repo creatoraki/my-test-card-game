@@ -10,7 +10,7 @@
   height: 316px;
   min-height: 316px;
   gap: 10px;
-  --bust-zoom: 1.8;
+  --bust-zoom: 2.3;
   --slot-base-w: 160px;
 }
 /* 覆盖 .combatant 的固定宽度: 槽宽交给 flex 均分, 高度撑满整条。
@@ -98,9 +98,9 @@
   position: absolute;
   left: 50%;
   top: 0;
-  /* --bust-scale: 单个角色的取景补偿(默认 1), 由 CHARACTER_ART 行内下发 —— 有的原图人物
-     在画幅里偏小, 同一个 --bust-zoom 下就比别人矮一头, 靠它单独放大回来 */
-  width: calc(var(--slot-base-w, 160px) * var(--bust-zoom, 1.8) * var(--bust-scale, 1));
+    /* --bust-scale: 单个角色的异常构图补偿(默认 1), 由 CHARACTER_ART 行内下发 —— 统一规格下恒为 1,
+      留作未来异常立绘的补偿位。 */
+    width: calc(var(--slot-base-w, 160px) * var(--bust-zoom, 2.3) * var(--bust-scale, 1));
   height: auto;
   max-width: none; /* 图可以宽于取景窗并向两侧溢出, 由 overflow 裁掉 */
   translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
