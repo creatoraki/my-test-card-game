@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { CINEMA } from "@/ui/battle/animations";
 import type { Camera } from "./camera";
 import { cameraCss, CAMERA_REST, CAMERA_REST_EPS } from "./camera";
 import { Impulse, Spring, type SpringTuning } from "./spring";
