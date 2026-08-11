@@ -126,7 +126,7 @@ const BOSS_SYMBOLS: SlotSymbol[] = [
     title: "总控 · 护卫编队",
     desc: "追加 1 台清运机械护卫。",
     icon: "⛨",
-    mod: { extraEnemies: ["scrap-bot"] },
+    mod: { extraEnemies: ["radio-bot"] },
   },
   {
     id: "sbs-overclock",

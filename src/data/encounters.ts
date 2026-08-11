@@ -18,6 +18,10 @@ export interface EnemyPlacement {
   // 倒计时全场统一尺寸, 不跟着放大。缩放中心是立绘底边中点, 故改 scale 时脚不离地,
   // 立绘只向上长, 不必回头补 dy。
   scale?: number;
+  // 立绘左右镜像。同一台敌人在左右两侧同时出场时, 给右侧那台开 true, 两台就"面朝彼此"
+  // 而不是排成同向的复制粘贴。只翻立绘本身 —— 血条/BUFF/意图/倒计时与命中特效都不翻转
+  // (消费方见 ui/battle/CombatantView 与 ui/battle/EnemySprite)。
+  flip?: boolean;
 }
 
 // 字符串 = 用默认排布位置; 对象 = 手工指定站位。
@@ -37,60 +41,50 @@ export function slotDefId(slot: EnemySlot): string {
 // 无偏移(字符串写法或对象只写了 id)时返回 undefined, 由 UI 走默认排布。
 export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
   if (typeof slot === "string") return undefined;
-  return slot.dx == null && slot.dy == null && slot.scale == null ? undefined : slot;
+  return slot.dx == null && slot.dy == null && slot.scale == null && slot.flip == null
+    ? undefined
+    : slot;
 }
 
+// 当前所有遭遇战统一成"两台收音机机器人, 一左一右"的临时配置(立绘验证期):
+// 左右两个槽位沿用已经和霓虹城市背景对好的 dx -125 / 245、dy 450,
+// 右侧那台开 flip 走左右镜像, 两台面朝彼此。
+// 不写 scale = 取默认 1.0(立绘高 = --foe-figure-h 原尺寸) —— 缩放中心是立绘底边中点,
+// 故去掉 scale 后脚仍落在同一条地面线上, dy 不必跟着重调。
+//
+// ⚠ 底部 HUD 改造后 dx 整体 +195(旧值 -320 / 50): 舞台不再避让左侧手牌栏
+// (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
+// 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
+const RADIO_PAIR: EnemySlot[] = [
+  { id: "radio-bot", dx: -200, dy: 250 },
+  { id: "radio-bot", dx: 200, dy: 250, flip: true },
+];
+
 export const ENCOUNTERS: EncounterDef[] = [
-  // 霓虹城市: 三台机器人散开在街上, 左右两台站得稍远, 中间的废品机器人压向镜头。
-  // 电线杆立绘细高, 给更大的 scale 撑出"高"的体型; 收音机体型接近废品, scale 取中。
-  //
-  // ⚠ 底部 HUD 改造后 dx 整体 +195(旧值 -420 / -150 / 50): 舞台不再避让左侧手牌栏
-  // (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
-  // 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
   {
     id: "n1",
     name: "废墟拾荒者",
-    enemies: [
-      { id: "pole-bot", dx: -125, dy: 350, scale: 1.0 },
-      { id: "radio-bot", dx: 45, dy: 450, scale: 0.85 },
-      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.0 },
-    ],
+    enemies: RADIO_PAIR,
   },
   // ── 废弃楼层的路由终点战(见 探索模式设计.md §8.3) ──
-  // 站位沿用 n1 那套已经和霓虹城市背景对好的坐标, 只是按人数取其中几个位置,
-  // 免得每加一场战斗都要重新对一遍地面线。
   {
     id: "n-crew",
     name: "清运班组",
-    enemies: [
-      { id: "scrap-bot", dx: -125, dy: 400, scale: 1.0 },
-      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.0 },
-    ],
+    enemies: RADIO_PAIR,
   },
   {
     id: "n-beacon",
     name: "巡回信标",
-    enemies: [
-      { id: "radio-bot", dx: -125, dy: 450, scale: 0.85 },
-      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.0 },
-    ],
+    enemies: RADIO_PAIR,
   },
   {
     id: "n-compactor",
     name: "报废压缩机",
-    enemies: [
-      { id: "pole-bot", dx: 45, dy: 350, scale: 1.25 },
-      { id: "scrap-bot", dx: -195, dy: 420, scale: 0.95 },
-      { id: "scrap-bot", dx: 285, dy: 420, scale: 0.95 },
-    ],
+    enemies: RADIO_PAIR,
   },
   {
     id: "n-boss",
     name: "回收总控",
-    enemies: [
-      { id: "pole-bot", dx: 45, dy: 330, scale: 1.35 },
-      { id: "radio-bot", dx: -215, dy: 450, scale: 0.85 },
-      { id: "scrap-bot", dx: 305, dy: 400, scale: 1.0 },
-    ],
+    enemies: RADIO_PAIR,
   },
 ];

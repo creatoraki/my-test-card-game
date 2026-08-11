@@ -113,6 +113,7 @@ export const CombatantView = memo(function CombatantView({
               sprite={enemySprite}
               alt={`${cmb.name}立绘`}
               scale={placeScale}
+              flip={placement?.flip}
             />
           ) : (
             <CharacterPortrait

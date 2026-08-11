@@ -49,8 +49,9 @@ export function enemyIdle(def: EnemySpriteDef | undefined): typeof DEFAULT_IDLE 
 }
 
 const ENEMY_ART: Record<string, EnemySpriteDef> = {
-  // 三个机器人当前共用同一张 576×1024 占位图, 这是刻意的临时素材而非复制粘贴失误;
+  // 废品/电线杆两台仍共用同一张 576×1024 占位图, 这是刻意的临时素材而非复制粘贴失误;
   // 后续换专属立绘只需重跑 scripts/alpha-bbox.mjs 并更新各自 box/渲染尺寸。
+  // 收音机机器人已换成 1:1 专属素材, 走整图 256×256 的登记方式(见下)。
   // 废品机器人: 静态单帧立绘, 运行时只显示 alpha 内容框。
   // frames: 1 是刻意的而非漏填 —— 拼条机制在单帧下自然退化成一张不动的背景图, 无需特判;
   // 此时 frameMs 只决定那条空转动画的时长, 不影响观感。
@@ -78,15 +79,16 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     // 这是为电线杆体型预留的呼吸手感, 等专属立绘到位后仍然适用。
     idle: { bob: 0, sway: 2, tilt: 1.2, dur: 3400, delay: -900 },
   },
-  // 收音机机器人: 静态单帧立绘, 运行时只显示 alpha 内容框。
-  // 渲染 131×220 —— 当前占位图与其他两个登记敌人相同, 体型差异交给 encounters.ts 的 scale。
+  // 收音机机器人: 静态单帧立绘, 源图 2048×2048 的 1:1 专属素材(不再共用占位图)。
+  // 渲染 256×256 —— 整张源图等比缩到立绘框(--foe-figure-h 256px)的 1:1 方框内, 故
+  // box 取全图而非 alpha 包围盒: 素材自带留白, 裁掉反而会破坏它与画布的构图关系。
   "radio-bot": {
     src: radioBotIdle,
     frames: 1,
     frameMs: 1000,
-    width: 131,
-    height: 220,
-    box: { sw: 576, sh: 1024, x: 13, y: 84, w: 522, h: 880 },
+    width: 256,
+    height: 256,
+    box: { sw: 2048, sh: 2048, x: 0, y: 0, w: 2048, h: 2048 },
     // 与 scrap-bot 同为机械微颤, 但错开相位与周期 —— 同场两台不该整齐划一地喘
     idle: { bob: 2.5, tilt: 0.5, dur: 3000, delay: -1400 },
   },

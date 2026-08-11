@@ -14,11 +14,13 @@ export function EnemySprite({
   sprite,
   alt,
   scale = 1,
+  flip,
 }: {
   id: string; // enemyDefId; 用来隔离各敌人的 keyframes 名, 避免同名互相覆盖
   sprite: EnemySpriteDef;
   alt: string;
   scale?: number;
+  flip?: boolean; // 左右镜像(见 data/encounters.ts 的 EnemyPlacement.flip)
 }) {
   const skip = new Set(sprite.skipFrames ?? []);
   // 实播帧序列(0-based 索引); skipFrames 是 1-based, 故按 i+1 过滤
@@ -50,6 +52,10 @@ export function EnemySprite({
           // 整张源图缩放后, 内容框通过位置偏移落到元素左上角, 元素外部自然被裁掉。
           backgroundSize: `${box.sw * k}px ${box.sh * k}px`,
           backgroundPositionY: `${-box.y * k}px`,
+          // 镜像只翻这一层: 本元素的 transform 没有被任何动画占用(待机呼吸挂在
+          // .combatant-figure, 拼条循环走 background-position), 故不会被覆盖;
+          // 翻在这里也不会带上血条/意图/命中特效。
+          transform: flip ? "scaleX(-1)" : undefined,
           animationName: name,
           animationTimingFunction: "step-end",
           animationDuration: `calc(${play.length * sprite.frameMs}ms / max(var(--fx-rate, 1), 0.25))`,

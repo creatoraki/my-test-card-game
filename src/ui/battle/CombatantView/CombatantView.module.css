@@ -14,7 +14,8 @@
   dx/dy 挪整个单位(血条跟着走), scale 由 JSX 折进立绘尺寸、并由内层变量补偿布局。 */
 .combatant {
   position: relative;
-  width: 156px;
+  /* 与 --foe-figure-h 同值 ⇒ 立绘框是 256×256 的 1:1 方框(素材本身也是 1:1)。 */
+  width: 256px;
   padding: 0;
   transition: transform 0.1s;
   translate: var(--place-dx, 0) var(--place-dy, 0);
@@ -236,7 +237,7 @@
 /* 战斗中的角色立绘取半身像: 1:1 取景框 + cover + 顶对齐, 正好截出源图上半身
   (统一立绘 1152×2048 → 取 y 0~1152, 头到上半身), 腿脚裁掉。
    取景比例由这里的宽高比决定 —— 想裁得更紧就调宽 width(会向两侧溢出), 而非改 object-position。
-   150px < .combatant 的 156px 故不溢出; flex:none 防止被 flex 压窄(压窄会连带改变取景比例)。
+   250px < .combatant 的 256px 故不溢出; flex:none 防止被 flex 压窄(压窄会连带改变取景比例)。
    注: 菜单的 .menu-portrait 不走这条, 仍用基础规则的 contain 显示全身。
 
    --portrait-dx/dy: 各角色的构图微调, 由 ui/CharacterPortrait.tsx 的登记表行内下发。
@@ -248,7 +249,7 @@
 img.combatant-portrait {
   display: block;
   flex: none;
-  width: 150px;
+  width: 250px;
   height: 100%;
   object-fit: cover;
   object-position: center top;

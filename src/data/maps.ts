@@ -52,7 +52,7 @@ export const MAPS: MapDef[] = [
       heavy: NEON_NORMAL_REEL,
       boss: NEON_BOSS_REEL,
     },
-    fillerEnemyIds: ["scrap-bot", "radio-bot"],
+    fillerEnemyIds: ["radio-bot"],
     startingEnergy: 100,
   },
   {

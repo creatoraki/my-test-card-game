@@ -7,8 +7,8 @@
 /* ⓘ 原先写作 `.combatant-figure .enemy-sprite` —— .combatant-figure 是 CombatantView 的类,
    Modules 之后够不着。本组件只在那个取景框里渲染, 去掉祖先限定后表现等价。 */
 .enemy-sprite {
-  /* 必须锁死尺寸: 本图 180px 宽于 .combatant(156px), 作为 flex 子项默认会被 shrink 压到
-     156px, 而背景仍按原尺寸从左边缘铺 → 每帧右侧被切掉。flex:none 后如约向两侧居中溢出 */
+  /* 必须锁死尺寸: 立绘可能宽于 .combatant(256px), 作为 flex 子项默认会被 shrink 压窄,
+     而背景仍按原尺寸从左边缘铺 → 每帧右侧被切掉。flex:none 后如约向两侧居中溢出 */
   flex: none;
   background-repeat: no-repeat;
   background-position-x: 0;

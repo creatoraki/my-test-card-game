@@ -7,7 +7,7 @@
 | [cards.ts](../../src/data/cards.ts) | `CardDef[]`：归属角色、费用、普通/速攻、目标、声明式效果和稀有度；攻击牌优先使用攻击力倍率。 |
 | [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、初始卡组和按稀有度分档的个人抽卡池。当前三名角色中后两名仍为占位内容。 |
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、技能、意图脚本、基础施法延迟、击杀经验和掉落表。经验写在敌人定义中，不写入掉落表。 |
-| [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale` 只供 UI 取景。 |
+| [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |
 | [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用/地区/怪物材料、消耗品与临期食品、普通装备模板；由 `data/index.ts` 与旧清单合并注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20，三张物品表都调它。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；据点随机商店仍只筛选装备与材料。 |
