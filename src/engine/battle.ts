@@ -13,6 +13,7 @@ import type {
   Enemy,
   StatBlock,
 } from "./types";
+import type { DiscardRecorder } from "./types";
 import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
 import { enemyActDelay, makeStats, partyDrawCount, partyHandLimit, partyOpeningDrawCount } from "./stats";
@@ -28,10 +29,13 @@ import {
   rollChallenges,
 } from "./challenges";
 import { getEncounter, getEnemyDef, slotDefId } from "../data";
+import { moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
+import { KEYWORD_DEFS } from "./keywords";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
   frames: AnimFrame[];
+  discardTriggers: DiscardRecorder["triggers"];
   cardSnapshot?: BattleState;
 }
 
@@ -155,6 +159,10 @@ export function createBattle(
     discard: [],
     exhaust: [],
     redrawsThisRound: 0,
+    discardsThisRound: 0,
+    playedThisRound: [],
+    lastPlayedCard: null,
+    discardResolving: [],
     resources: {},
     burdenPenalty: Math.max(0, setup.burdenPenalty ?? 0),
     challenges: [],
@@ -183,6 +191,9 @@ export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
   state.redrawsThisRound = 0;
+  state.discardsThisRound = 0;
+  state.playedThisRound = [];
+  state.lastPlayedCard = null;
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
 
   if (RULES.combat.clearShieldOnRoundStart) {
@@ -235,22 +246,21 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
   const card = state.cards[uid];
   if (!card) return false;
 
-  state.hand = state.hand.filter((id) => id !== uid);
-  state.discard.push(uid);
+  moveToDiscard(state, uid, "redraw");
   state.redrawsThisRound += 1;
   drawCards(state, 1);
   log(state, `${card.name} 已换牌`);
   return true;
 }
 
-export function discardHandCard(state: BattleState, uid: string): boolean {
+export function discardHandCard(state: BattleState, uid: string, rec?: DiscardRecorder): boolean {
   if (state.phase !== "player" || !state.hand.includes(uid)) return false;
   const card = state.cards[uid];
   if (!card) return false;
 
-  state.hand = state.hand.filter((id) => id !== uid);
-  state.discard.push(uid);
+  moveToDiscard(state, uid, "manual", rec);
   log(state, `${card.name} 已丢弃`);
+  checkEnd(state);
   return true;
 }
 
@@ -269,15 +279,35 @@ export function playCard(
   state.resources[RULES.resource.name] -= card.cost;
   state.hand = state.hand.filter((x) => x !== uid);
   log(state, `${owner.emoji} ${owner.name} 打出 ${card.name}`);
-  resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+  const discardRecorder = rec ? { triggers: rec.discardTriggers } : undefined;
+  withDiscardRecorder(discardRecorder, () => {
+    resolveEffects(state, card.effects, card.ownerCharId, primaryId);
 
-  if (card.exhaust) state.exhaust.push(uid);
-  else state.discard.push(uid);
+    if (card.exhaust) state.exhaust.push(uid);
+    else moveToDiscard(state, uid, "play");
+
+    for (const ref of card.keywords ?? []) {
+      const def = KEYWORD_DEFS[ref.id];
+      if (!def) continue;
+      const times = def.triggers(state, card, primaryId);
+      for (let i = 0; i < times; i++) resolveEffects(state, ref.effects, card.ownerCharId, primaryId);
+      def.onTriggered?.(state, card, primaryId, times);
+    }
+  });
+
+  const played = {
+    uid: card.uid,
+    cost: card.cost,
+    cardType: card.cardType,
+    ownerCharId: card.ownerCharId,
+  };
+  state.lastPlayedCard = played;
+  state.playedThisRound.push(played);
 
   checkEnd(state);
 
   // 记录"出牌结算后、敌人行动前"的快照, 供 UI 先展示出牌结果再逐个播放敌人行动。
-  if (rec) rec.cardSnapshot = structuredClone(state);
+  if (rec) rec.cardSnapshot = takeDiscardSnapshot(state) ?? structuredClone(state);
 
   if (state.phase === "player") {
     const adv =
@@ -314,8 +344,7 @@ export function endRound(state: BattleState, frames?: AnimFrame[]): void {
   checkMassacreOnRoundSettle(state);
 
   if (RULES.hand.discardLeftoversOnRoundEnd) {
-    state.discard.push(...state.hand);
-    state.hand = [];
+    for (const cardUid of [...state.hand]) moveToDiscard(state, cardUid, "roundEnd");
   }
   startRound(state);
 }

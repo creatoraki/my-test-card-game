@@ -12,7 +12,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
   return [
     {
       id: basicCardId(charId, "attack"),
-      name: "普通攻击",
+      name: "基础攻击",
       ownerCharId: charId,
       cost: 1,
       cardType: "normal",
@@ -24,7 +24,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
     },
     {
       id: basicCardId(charId, "heal"),
-      name: "普通治疗",
+      name: "基础治疗",
       ownerCharId: charId,
       cost: 1,
       cardType: "normal",
@@ -36,7 +36,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
     },
     {
       id: basicCardId(charId, "guard"),
-      name: "普通防护",
+      name: "基础防护",
       ownerCharId: charId,
       cost: 1,
       cardType: "normal",

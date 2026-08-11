@@ -7,6 +7,8 @@ import type { QuirkId } from "./quirks";
 export type Team = "player" | "enemy";
 export type Phase = "player" | "won" | "lost";
 export type ChallengeId = "restraint" | "massacre" | "mercy";
+export type DiscardReason = "manual" | "effect" | "cost" | "redraw" | "roundEnd" | "play";
+export type CounterSource = "discardsThisRound" | "fastPlaysThisRound" | "cardsPlayedThisRound";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -50,7 +52,8 @@ export type EffectType =
   | "APPLY_STATUS"
   | "APPLY_STAT_MOD"
   | "DRAW"
-  | "GAIN_RESOURCE";
+  | "GAIN_RESOURCE"
+  | "DISCARD";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -68,6 +71,11 @@ export interface EffectDescriptor {
   pct?: boolean; // APPLY_STAT_MOD: true = 百分比修正(百分点), 缺省 = 固定值修正
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
+  hits?: number; // DAMAGE: 段数, 缺省 1
+  bonusHitsFrom?: CounterSource; // DAMAGE: 每 1 点计数追加 1 段
+  maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
+  hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
+  discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
 }
 
 // ---------------------------------------------------------------------------
@@ -108,6 +116,20 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
+  onDiscard?: DiscardTrigger;
+  keywords?: CardKeywordRef[];
+}
+
+export interface DiscardTrigger {
+  mode: "useSelf" | "custom";
+  autoTarget?: "randomFoe" | "lowestHpFoe";
+  effects?: EffectDescriptor[];
+  alsoOnRoundEnd?: boolean;
+}
+
+export interface CardKeywordRef {
+  id: string;
+  effects: EffectDescriptor[];
 }
 
 // 运行期卡牌实例(带唯一 uid, 可被单独升级)
@@ -291,6 +313,20 @@ export interface BattleState {
   discard: string[];
   exhaust: string[];
   redrawsThisRound: number;
+  discardsThisRound: number;
+  playedThisRound: {
+    uid: string;
+    cost: number;
+    cardType: CardType;
+    ownerCharId: string;
+  }[];
+  lastPlayedCard: {
+    uid: string;
+    cost: number;
+    cardType: CardType;
+    ownerCharId: string;
+  } | null;
+  discardResolving: string[];
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的负重惩罚(百分点), 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenPenalty 算好传入。
@@ -312,6 +348,7 @@ export interface DamageOpts {
   fixed?: boolean; // 固定伤害: 跳过防御减伤与格挡
   mustHit?: boolean; // 必中: 跳过命中判定
   unblockable?: boolean; // 不被护盾吸收
+  hitBonus?: number; // 本次效果的命中修正(百分点)
 }
 
 export interface EngineOps {
@@ -344,6 +381,7 @@ export interface EngineOps {
     amount: number,
     pct?: boolean,
   ): void;
+  discard(state: BattleState, uid: string, reason: DiscardReason): void;
   log(state: BattleState, text: string): void;
 }
 
@@ -362,4 +400,16 @@ export interface AnimFrame {
   moveId: string; // 本次执行(或意图)的招式 id
   hits: AnimHit[]; // 需要闪特效/飘字的目标(primary / self / 群体)
   snapshot: BattleState; // 该动作结算后的完整快照(structuredClone)
+}
+
+export interface DiscardTriggerFx {
+  cardUid: string;
+  actorId: string;
+  anim?: CardAnim;
+  hits: AnimHit[];
+  snapshot: BattleState;
+}
+
+export interface DiscardRecorder {
+  triggers: DiscardTriggerFx[];
 }

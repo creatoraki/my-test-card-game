@@ -31,6 +31,17 @@ export const RULES = {
     discardLeftoversOnRoundEnd: false,
   },
 
+  discard: {
+    reasons: {
+      manual: { trigger: true, count: true },
+      effect: { trigger: true, count: true },
+      cost: { trigger: true, count: true },
+      redraw: { trigger: false, count: false },
+      roundEnd: { trigger: false, count: false },
+      play: { trigger: false, count: false },
+    },
+  },
+
   // 时刻(tick) / 敌人排程 —— 本作核心特色
   timeline: {
     startTick: 1,

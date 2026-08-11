@@ -149,6 +149,13 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     kind: "buff",
     desc: "可以看见该敌人的攻击意图。",
   },
+  aimed: {
+    id: "aimed",
+    name: "瞄准",
+    emoji: "🎯",
+    kind: "debuff",
+    desc: "下次相关词条命中时消耗。",
+  },
 };
 
 export function getStatusDef(id: string): StatusDef | undefined {

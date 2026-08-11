@@ -1,5 +1,7 @@
 // 引擎公开 API。UI / store 只从这里 import。
 
+import "./discard";
+
 export * from "./types";
 export type { CardRarity } from "./types";
 export {
@@ -51,6 +53,9 @@ export {
 export type { AllyInit, BattleSetup, PlayRecorder } from "./battle";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget } from "./targeting";
 export { getStatus } from "./ops";
+export { moveToDiscard } from "./discard";
+export { KEYWORD_DEFS } from "./keywords";
+export type { KeywordDef } from "./keywords";
 export {
   CHALLENGE_DEFS,
   CHALLENGE_PICK,

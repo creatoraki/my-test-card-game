@@ -3,12 +3,19 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { BattleState, EffectDescriptor } from "./types";
+import type { BattleState, CounterSource, EffectDescriptor } from "./types";
 import { ops } from "./ops";
 import { statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
+
+function counterOf(state: BattleState, source: CounterSource): number {
+  if (source === "discardsThisRound") return state.discardsThisRound;
+  if (source === "fastPlaysThisRound")
+    return state.playedThisRound.filter((card) => card.cardType === "fast").length;
+  return state.playedThisRound.length;
+}
 
 // 解析单条效果作用到哪些单位(相对施放者)
 export function resolveTargets(
@@ -58,14 +65,20 @@ function applyEffect(
       //   写了 multiplier ⇒ 攻击力 × 倍率, 走完整管线
       const fixed = effect.amount != null;
       const dmg = fixed ? amount : statOf(src, "attack") * (effect.multiplier ?? 1);
-      for (const id of targetIds)
-        ops.dealDamage(state, sourceId, id, dmg, {
-          isAttack: true,
-          fixed,
-          mustHit,
-          flags: effect.flags,
-          unblockable,
-        });
+      const bonus = effect.bonusHitsFrom
+        ? Math.min(counterOf(state, effect.bonusHitsFrom), effect.maxBonusHits ?? Infinity)
+        : 0;
+      const hits = Math.max(1, (effect.hits ?? 1) + bonus);
+      for (let i = 0; i < hits; i++)
+        for (const id of targetIds)
+          ops.dealDamage(state, sourceId, id, dmg, {
+            isAttack: true,
+            fixed,
+            mustHit,
+            flags: effect.flags,
+            unblockable,
+            hitBonus: effect.hitBonus,
+          });
       break;
     }
     case "GAIN_SHIELD": {
@@ -95,6 +108,25 @@ function applyEffect(
       const res = effect.resource ?? "mana";
       state.resources[res] = (state.resources[res] ?? 0) + amount;
       ops.log(state, `✨ 获得 ${amount} 点${res === "mana" ? "法力水晶" : res}`);
+      break;
+    }
+    case "DISCARD": {
+      const amountToDiscard = Math.max(0, Math.floor(effect.amount ?? 0));
+      const pick = effect.discardPick ?? "handTop";
+      if (amountToDiscard === 0 && pick !== "handAll") break;
+      let selected: string[];
+      if (pick === "handAll") selected = [...state.hand];
+      else if (pick === "handBottom") selected = state.hand.slice(-amountToDiscard);
+      else if (pick === "handRandom") {
+        selected = [];
+        const pool = [...state.hand];
+        for (let i = 0; i < amountToDiscard && pool.length > 0; i++) {
+          const uid = rngPick(state, pool);
+          selected.push(uid);
+          pool.splice(pool.indexOf(uid), 1);
+        }
+      } else selected = state.hand.slice(0, amountToDiscard);
+      for (const uid of selected) ops.discard(state, uid, "effect");
       break;
     }
   }

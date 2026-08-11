@@ -103,6 +103,7 @@ export function hitChance(
   state: BattleState,
   attacker: Combatant,
   defender: Combatant,
+  bonusPct = 0,
 ): number {
   const c = RULES.combat;
   const dodge = Math.max(0, statOf(defender, "dodgeRate") - burdenOf(state, defender));
@@ -111,7 +112,8 @@ export function hitChance(
     statOf(attacker, "hitRate") +
     statOf(attacker, "precision") -
     dodge -
-    burdenOf(state, attacker);
+    burdenOf(state, attacker) +
+    bonusPct;
   return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
 }
 

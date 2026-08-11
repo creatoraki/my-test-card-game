@@ -41,15 +41,11 @@ export const CHARACTERS: CharacterDef[] = [
     startingCardIds: basicStartingCardIds("swordsman"),
     pools: {
       common: [
-        "quick-slash",
-        "guard-stance",
-        "shield-bash",
-        "battle-cry",
-        "second-wind",
-        "heavy-cleave",
+        "snowflake",
+        "buzz",
       ],
-      uncommon: ["focused-edge", "riposte-stance"],
-      rare: ["executioner"],
+      uncommon: [],
+      rare: ["swarm"],
     },
   },
   {

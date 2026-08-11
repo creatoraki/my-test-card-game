@@ -8,6 +8,7 @@ import type {
   AnimFrame,
   BattleSetup,
   BattleState,
+  DiscardTriggerFx,
   EncounterModifier,
   PlayRecorder,
 } from "../engine";
@@ -17,8 +18,14 @@ import { createBattle, discardHandCard, endRound, playCard, redrawHandCard } fro
 // 一次出牌的动画计划: 先展示出牌结果(cardSnapshot), 再逐帧播放触发的敌人行动, 最后落到 final。
 export interface PlayPlan {
   cardSnapshot: BattleState;
+  discardTriggers: DiscardTriggerFx[];
   frames: AnimFrame[];
   final: BattleState;
+}
+
+export interface DiscardPlan {
+  final: BattleState;
+  triggers: DiscardTriggerFx[];
 }
 
 // 一次结束回合的动画计划: 逐帧播放冲刷的敌人行动, 最后落到 final(下一回合起始态)。
@@ -53,7 +60,7 @@ interface BattleStore {
   ) => void;
   play: (uid: string, targetId?: string) => PlayPlan | null;
   redrawCard: (uid: string) => BattleState | null;
-  discardCard: (uid: string) => BattleState | null;
+  discardCard: (uid: string) => DiscardPlan | null;
   end: () => EndPlan | null;
   commit: (snapshot: BattleState) => void;
   clear: () => void;
@@ -72,10 +79,15 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const b = get().battle;
     if (!b || b.phase !== "player") return null;
     const draft = structuredClone(b);
-    const rec: PlayRecorder = { frames: [] };
+    const rec: PlayRecorder = { frames: [], discardTriggers: [] };
     const ok = playCard(draft, uid, targetId, rec);
     if (!ok) return null;
-    return { cardSnapshot: rec.cardSnapshot ?? draft, frames: rec.frames, final: draft };
+    return {
+      cardSnapshot: rec.cardSnapshot ?? draft,
+      discardTriggers: rec.discardTriggers,
+      frames: rec.frames,
+      final: draft,
+    };
   },
 
   redrawCard: (uid) => {
@@ -89,7 +101,8 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const b = get().battle;
     if (!b) return null;
     const draft = structuredClone(b);
-    return discardHandCard(draft, uid) ? draft : null;
+    const triggers: DiscardTriggerFx[] = [];
+    return discardHandCard(draft, uid, { triggers }) ? { final: draft, triggers } : null;
   },
 
   end: () => {

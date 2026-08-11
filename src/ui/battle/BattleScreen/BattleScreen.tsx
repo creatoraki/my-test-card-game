@@ -5,6 +5,7 @@ import {
   type BattleState,
   type Card,
   type CardAnim,
+  type DiscardTriggerFx,
   type Enemy,
 } from "@/engine";
 import { getEncounter, getEnemyDef, slotPlacement } from "@/data";
@@ -322,9 +323,19 @@ export function BattleScreen() {
 
   const runHandAction = useCallback(
     (uid: string) => {
-      const next = handAction === "redraw" ? redrawCard(uid) : discardCard(uid);
-      if (next) {
-        commit(next);
+      if (handAction === "redraw") {
+        const next = redrawCard(uid);
+        if (next) {
+          commit(next);
+          setHandAction(null);
+          resetHandHover();
+        }
+        return;
+      }
+      const plan = discardCard(uid);
+      if (plan) {
+        if (plan.triggers.length > 0) startBatch(plan.triggers.map(stepFromDiscard), plan.final);
+        else commit(plan.final);
         setHandAction(null);
         resetHandHover();
       }
@@ -407,6 +418,10 @@ export function BattleScreen() {
     const def = getEnemyDef(f.enemyDefId);
     const move = def.moves.find((m) => m.id === f.moveId) ?? def.moves[0];
     return { actorId: f.actorId, anim: moveAnim(move), snapshot: f.snapshot, hits: f.hits };
+  }
+
+  function stepFromDiscard(t: DiscardTriggerFx): ChoreoStep {
+    return { actorId: t.actorId, anim: t.anim ?? "slash", snapshot: t.snapshot, hits: t.hits };
   }
 
   // 计算相机变换: 把给定目标(多目标取并集)聚焦到取景安全区中心并放大。
@@ -649,6 +664,7 @@ export function BattleScreen() {
     }));
     const steps: ChoreoStep[] = [
       { actorId: card.ownerCharId, anim, snapshot: plan.cardSnapshot, hits: cardHits, card },
+      ...plan.discardTriggers.map(stepFromDiscard),
       ...plan.frames.map(stepFromFrame),
     ];
 

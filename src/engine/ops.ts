@@ -96,7 +96,7 @@ export function dealDamage(
 
   // ---- 1. 命中判定 —— 只有"攻击"需要命中; 无施法者(中毒/荆棘等)与必中效果直接跳过 ----
   if (dmg.isAttack && src && !opts.mustHit) {
-    if (!roll(state, hitChance(state, src, target))) {
+    if (!roll(state, hitChance(state, src, target, opts.hitBonus ?? 0))) {
       dmg.missed = true;
       dmg.amount = 0;
       log(state, `${target.emoji} ${target.name} 闪避了这次攻击`);
@@ -248,6 +248,7 @@ export const ops: EngineOps = {
   gainShield,
   applyStatus,
   applyStatMod,
+  discard: () => undefined,
   log,
 };
 
