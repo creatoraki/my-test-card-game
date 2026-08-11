@@ -11,10 +11,10 @@
    必须用独立的 translate/scale 属性而非 transform —— transform 已被三方占用(:hover、
    .attacking 的前冲、hitShake 关键帧), 写进去会被受击抖动整条覆盖掉。独立属性按
    translate → scale → transform 的固定顺序各自合成, 故前冲/抖动仍在站位基础上叠加生效。
-  dx/dy 挪整个单位(血条跟着走), scale 由 JSX 折进立绘尺寸、并由内层变量补偿布局。 */
+  dx/dy 挪整个单位(血条跟着走), scale 由内层几何变量折进立绘尺寸、并补偿布局。 */
 .combatant {
   position: relative;
-  /* 与 --foe-figure-h 同值 ⇒ 立绘框是 256×256 的 1:1 方框(素材本身也是 1:1)。 */
+  /* 宽仍是血条/意图的布局宽; 立绘可按 --fig-w 向两侧溢出。 */
   width: 256px;
   padding: 0;
   transition: transform 0.1s;
@@ -25,7 +25,7 @@
   与原先 CSS scale 方案相同的布局位置。 */
 .combatant-stage {
   position: relative;
-  margin-bottom: calc(var(--foe-figure-h) * (1 - var(--place-scale, 1)));
+  margin-bottom: calc(var(--foe-figure-h) - var(--fig-h) + var(--foot-inset));
   transform-origin: 50% 100%;
 }
 .combatant[data-telegraph] .combatant-stage {
@@ -45,11 +45,11 @@
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -7px;
+  bottom: calc(var(--foot-inset) - 7px);
   z-index: -1;
-  width: 112px;
+  width: calc(var(--body-w) * 0.78);
   height: 22px;
-  translate: -50% 0;
+  translate: calc(-50% + var(--body-cx)) 0;
   border: 2px solid #ff5368c7;
   border-radius: 50%;
   box-shadow: 0 0 8px #ff334f99, inset 0 0 6px #ff334f66;
@@ -75,11 +75,11 @@
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -4px;
+  bottom: calc(var(--foot-inset) - 4px);
   z-index: -1;
   width: var(--shadow-w, 96px);
   height: calc(var(--shadow-w, 96px) * 0.19);
-  translate: -50% 0;
+  translate: calc(-50% + var(--body-cx)) 0;
   border-radius: 50%;
   background: radial-gradient(50% 50%, #000000a6 0%, #00000059 55%, transparent 100%);
   animation: idleShadow var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite;
@@ -204,7 +204,7 @@
   不设 overflow, 序列帧特效可自由溢出。 */
 .combatant-figure {
   position: relative;
-  height: calc(var(--foe-figure-h) * var(--place-scale, 1));
+  height: var(--fig-h);
   display: flex;
   align-items: flex-end;
   justify-content: center;

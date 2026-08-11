@@ -1,30 +1,39 @@
 import { readFileSync } from "node:fs";
 import { decodePng } from "./lib/png.mjs";
 
-const USAGE = `用法: node scripts/alpha-bbox.mjs <png...> [--alpha 8]
+const USAGE = `用法: node scripts/alpha-bbox.mjs <png...> [--alpha 8] [--frames N]
 
-  --alpha N  alpha 低于 N 的像素视作透明(默认 8)。`;
+  --alpha N   alpha 低于 N 的像素视作透明(默认 8)。
+  --frames N  横向拼条帧数; 只扫描首帧(默认 1)。`;
 
 const args = process.argv.slice(2);
-const alphaIndex = args.indexOf("--alpha");
-const alpha = alphaIndex < 0 ? 8 : Number(args[alphaIndex + 1]);
-const inputs = alphaIndex < 0
-  ? args
-  : args.filter((arg, index) => index !== alphaIndex && index !== alphaIndex + 1);
+let alpha = 8;
+let frames = 1;
+const inputs = [];
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  if (arg === "--alpha") {
+    alpha = Number(args[++i]);
+  } else if (arg === "--frames") {
+    frames = Number(args[++i]);
+  } else {
+    inputs.push(arg);
+  }
+}
 
-if (!inputs.length || !Number.isInteger(alpha) || alpha < 0 || alpha > 255) {
+if (!inputs.length || !Number.isInteger(alpha) || alpha < 0 || alpha > 255 || !Number.isInteger(frames) || frames < 1) {
   console.error(USAGE);
   process.exit(1);
 }
 
-function findAlphaBox(img, threshold) {
+function findAlphaBox(img, threshold, width) {
   if (img.colorType !== 4 && img.colorType !== 6) {
     throw new Error(`输入 PNG 不含 alpha 通道(colorType=${img.colorType})`);
   }
   const alphaOffset = img.colorType === 4 ? 1 : 3;
-  let x0 = img.w, y0 = img.h, x1 = -1, y1 = -1;
+  let x0 = width, y0 = img.h, x1 = -1, y1 = -1;
   for (let y = 0; y < img.h; y++) {
-    for (let x = 0; x < img.w; x++) {
+    for (let x = 0; x < width; x++) {
       if (img.pixels[(y * img.w + x) * img.ch + alphaOffset] < threshold) continue;
       if (x < x0) x0 = x;
       if (x > x1) x1 = x;
@@ -39,14 +48,18 @@ function findAlphaBox(img, threshold) {
 for (const input of inputs) {
   try {
     const img = decodePng(readFileSync(input));
-    const box = findAlphaBox(img, alpha);
-    const width = Math.round(220 * box.w / box.h);
+    if (img.w % frames !== 0) {
+      throw new Error(`源图宽度 ${img.w} 不能被帧数 ${frames} 整除`);
+    }
+    const frameWidth = img.w / frames;
+    const box = findAlphaBox(img, alpha, frameWidth);
+    const bottomBlank = img.h - (box.y + box.h);
     console.log(`${input}`);
-    console.log(`  源图 ${img.w}×${img.h} colorType=${img.colorType}  alpha阈值=${alpha}`);
+    console.log(`  源图 ${img.w}×${img.h} colorType=${img.colorType}  alpha阈值=${alpha}  帧数=${frames}`);
     console.log(`  包围盒 x=${box.x}, y=${box.y}, w=${box.w}, h=${box.h}`);
-    console.log(`  内容框比例 ${box.w}/${box.h} = ${(box.w / box.h).toFixed(3)}`);
-    console.log(`  基准高 220px 渲染尺寸 ${width}×220px`);
-    console.log(`  box: { sw: ${img.w}, sh: ${img.h}, x: ${box.x}, y: ${box.y}, w: ${box.w}, h: ${box.h} },`);
+    console.log(`  展示框底部留白高 = ${bottomBlank} 源图 px; 主体宽高比 = ${(box.w / box.h).toFixed(3)}`);
+    console.log(`  sheet: { w: ${img.w}, h: ${img.h} },`);
+    console.log(`  body: { x: ${box.x}, y: ${box.y}, w: ${box.w}, h: ${box.h} },`);
   } catch (error) {
     console.error(`${input}: ${error instanceof Error ? error.message : String(error)}`);
     process.exitCode = 1;

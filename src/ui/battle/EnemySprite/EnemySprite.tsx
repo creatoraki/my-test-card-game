@@ -1,5 +1,30 @@
+import { useInsertionEffect } from "react";
 import type { EnemySpriteDef } from "@/ui/art/enemyArt";
 import s from "./EnemySprite.module.css";
+
+const KEYFRAME_STYLES = new Map<string, { element: HTMLStyleElement; refs: number }>();
+
+function retainKeyframes(id: string, css: string): () => void {
+  const current = KEYFRAME_STYLES.get(id);
+  if (current) {
+    current.refs += 1;
+  } else {
+    const element = document.createElement("style");
+    element.dataset.enemySprite = id;
+    element.textContent = css;
+    document.head.appendChild(element);
+    KEYFRAME_STYLES.set(id, { element, refs: 1 });
+  }
+
+  return () => {
+    const entry = KEYFRAME_STYLES.get(id);
+    if (!entry) return;
+    entry.refs -= 1;
+    if (entry.refs > 0) return;
+    entry.element.remove();
+    KEYFRAME_STYLES.delete(id);
+  };
+}
 
 // 敌人待机立绘播放器: 单张横向拼条, 靠 background-position 无限循环。
 // 与 SpriteFx 同源思路 —— 纯 CSS 驱动, 组件内不维护播放状态; 尺寸/时序全部来自
@@ -13,24 +38,25 @@ export function EnemySprite({
   id,
   sprite,
   alt,
-  scale = 1,
   flip,
 }: {
   id: string; // enemyDefId; 用来隔离各敌人的 keyframes 名, 避免同名互相覆盖
   sprite: EnemySpriteDef;
   alt: string;
-  scale?: number;
   flip?: boolean; // 左右镜像(见 data/encounters.ts 的 EnemyPlacement.flip)
 }) {
   const skip = new Set(sprite.skipFrames ?? []);
   // 实播帧序列(0-based 索引); skipFrames 是 1-based, 故按 i+1 过滤
   const play = Array.from({ length: sprite.frames }, (_, i) => i).filter((i) => !skip.has(i + 1));
-  const { box } = sprite;
-  // k 把源图像素换算为屏幕像素: 内容框正好落入 width × height, scale 再作用于整张立绘。
-  const k = (sprite.width / box.w) * scale;
-  const name = `enemySpriteIdle-${id}-${String(scale).replace(".", "_")}`;
+  const view = sprite.view ?? {
+    x: 0,
+    y: 0,
+    w: sprite.sheet.w / sprite.frames,
+    h: sprite.sheet.h,
+  };
+  const name = `enemySpriteIdle-${id}`;
 
-  const offset = (frame: number) => `${-(box.x + frame * box.w) * k}px`;
+  const offset = (frame: number) => `calc(var(--sprite-k) * ${-(view.x + frame * view.w)})`;
   // 每帧在 i/n 处落一个位置, step-end 让它原地停到下一个落点; 末尾补 100%(值同末帧),
   // 使末帧也占满自己那一格时长
   const stops = play
@@ -38,29 +64,29 @@ export function EnemySprite({
     .join("");
   const css = `@keyframes ${name}{${stops}100%{background-position-x:${offset(play[play.length - 1])}}}`;
 
+  useInsertionEffect(() => {
+    return retainKeyframes(id, css);
+  }, [css, id]);
+
   return (
-    <>
-      <style>{css}</style>
-      <div
-        className={s["enemy-sprite"]}
-        role="img"
-        aria-label={alt}
-        style={{
-          width: `${sprite.width * scale}px`,
-          height: `${sprite.height * scale}px`,
-          backgroundImage: `url(${sprite.src})`,
-          // 整张源图缩放后, 内容框通过位置偏移落到元素左上角, 元素外部自然被裁掉。
-          backgroundSize: `${box.sw * k}px ${box.sh * k}px`,
-          backgroundPositionY: `${-box.y * k}px`,
-          // 镜像只翻这一层: 本元素的 transform 没有被任何动画占用(待机呼吸挂在
-          // .combatant-figure, 拼条循环走 background-position), 故不会被覆盖;
-          // 翻在这里也不会带上血条/意图/命中特效。
-          transform: flip ? "scaleX(-1)" : undefined,
-          animationName: name,
-          animationTimingFunction: "step-end",
-          animationDuration: `calc(${play.length * sprite.frameMs}ms / max(var(--fx-rate, 1), 0.25))`,
-        }}
-      />
-    </>
+    <div
+      className={s["enemy-sprite"]}
+      role="img"
+      aria-label={alt}
+      style={{
+        width: "var(--fig-w)",
+        height: "var(--fig-h)",
+        backgroundImage: `url(${sprite.src})`,
+        backgroundSize: `calc(var(--sprite-k) * ${sprite.sheet.w}) calc(var(--sprite-k) * ${sprite.sheet.h})`,
+        backgroundPositionY: `calc(var(--sprite-k) * ${-view.y})`,
+        // 镜像只翻这一层: 本元素的 transform 没有被任何动画占用(待机呼吸挂在
+        // .combatant-figure, 拼条循环走 background-position), 故不会被覆盖;
+        // 翻在这里也不会带上血条/意图/命中特效。
+        transform: flip ? "scaleX(-1)" : undefined,
+        animationName: name,
+        animationTimingFunction: "step-end",
+        animationDuration: `calc(${play.length * sprite.frameMs}ms / max(var(--fx-rate, 1), 0.25))`,
+      }}
+    />
   );
 }

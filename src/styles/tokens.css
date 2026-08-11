@@ -17,9 +17,9 @@
   --bad: #ff7068;
   --warn: #d8f329;
 
-   /* 场上敌人立绘框的基准高度, 遭遇战 scale 在此之上乘算。
-      现为 256px —— 立绘框是 256×256 的 1:1 方框(宽度见 ui/battle/CombatantView 的 .combatant),
-      与 1:1 立绘素材同尺寸。改这里要同步 ui/battle/animations.ts 的 sword-fall.anchorTop。 */
+   /* 场上敌人主体框的基准高度, 遭遇战 scale 在此之上乘算。
+      现为 256px —— 展示框可按素材比例变化, 主体高度统一到这个基准。
+      改这里要同步 ui/battle/animations.ts 的 sword-fall.anchorTop。 */
    --foe-figure-h: 256px;
 
   /* 物品稀有度(五档 —— 普通/精良/稀有/史诗/传说, 见 物品设计.md 第四章)。

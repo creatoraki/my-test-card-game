@@ -53,11 +53,10 @@ export const CombatantView = memo(function CombatantView({
 
   // 敌人立绘按 enemyDefId 查登记表; 未登记的退回 CharacterPortrait 的 emoji
   const enemySprite = enemyArt(cmb.enemyDefId);
-  const placeScale = placement?.scale ?? 1;
 
   const { react, vars } = hitFxVars(hit ?? null);
 
-  // --place-*: 手工站位, dx/dy 落到 .combatant 的 translate, scale 同时下发给几何和样式
+  // --place-*: 手工站位, dx/dy 落到 .combatant 的 translate, scale 由几何变量自然参与
   // (不能走 transform —— 那条已被 hover/前冲/hitShake 占满, 见 CombatantView.module.css)
   if (placement) {
     if (placement.dx != null) vars["--place-dx"] = `${placement.dx}px`;
@@ -65,15 +64,43 @@ export const CombatantView = memo(function CombatantView({
     if (placement.scale != null) vars["--place-scale"] = `${placement.scale}`;
   }
 
-  // --idle-*: 待机呼吸(逐敌人登记在 enemyArt.ts), 落在 .combatant-figure 的 transform 上。
-  // --shadow-w: 脚下椭圆落地阴影的宽度, 取立绘渲染宽 —— 影子该跟体型走, 而不是跟布局盒(144px)走。
+  // --sprite-k 到 --body-cx: 展示框与主体框的源图几何, 立绘主体高度统一到 --foe-figure-h。
+  // --shadow-w: 脚下椭圆落地阴影的宽度, 跟主体宽度走, 而不是跟布局盒宽度走。
+  if (enemySprite) {
+    const view = enemySprite.view ?? {
+      x: 0,
+      y: 0,
+      w: enemySprite.sheet.w / enemySprite.frames,
+      h: enemySprite.sheet.h,
+    };
+    const body = enemySprite.body;
+    const bodyCenterOffset =
+      (body.x + body.w / 2 - (view.x + view.w / 2)) * (placement?.flip ? -1 : 1);
+    vars["--sprite-k"] = `calc(var(--foe-figure-h) * var(--place-scale, 1) / ${body.h})`;
+    vars["--body-h"] = "calc(var(--foe-figure-h) * var(--place-scale, 1))";
+    vars["--body-w"] = `calc(var(--sprite-k) * ${body.w})`;
+    vars["--fig-w"] = `calc(var(--sprite-k) * ${view.w})`;
+    vars["--fig-h"] = `calc(var(--sprite-k) * ${view.h})`;
+    vars["--foot-inset"] =
+      `calc(var(--sprite-k) * ${view.y + view.h - (body.y + body.h)})`;
+    vars["--body-cx"] = `calc(var(--sprite-k) * ${bodyCenterOffset})`;
+  } else {
+    // emoji 兜底没有源图几何, 给 CSS 一组稳定的缺省值。
+    vars["--sprite-k"] = "1px";
+    vars["--body-h"] = "var(--foe-figure-h)";
+    vars["--body-w"] = "var(--foe-figure-h)";
+    vars["--fig-w"] = "var(--foe-figure-h)";
+    vars["--fig-h"] = "var(--foe-figure-h)";
+    vars["--foot-inset"] = "0px";
+    vars["--body-cx"] = "0px";
+  }
   const idle = enemyIdle(enemySprite);
   vars["--idle-bob"] = `${idle.bob}px`;
   vars["--idle-sway"] = `${idle.sway}px`;
   vars["--idle-tilt"] = `${idle.tilt}deg`;
   vars["--idle-dur"] = `${idle.dur}ms`;
   vars["--idle-delay"] = `${idle.delay}ms`;
-  vars["--shadow-w"] = `${(enemySprite?.width ?? 96) * 0.78 * placeScale}px`;
+  vars["--shadow-w"] = "calc(var(--body-w) * 0.78)";
   vars["--death-vanish-ms"] = `${DEATH.vanish}ms`;
 
   return (
@@ -112,7 +139,6 @@ export const CombatantView = memo(function CombatantView({
               id={cmb.enemyDefId}
               sprite={enemySprite}
               alt={`${cmb.name}立绘`}
-              scale={placeScale}
               flip={placement?.flip}
             />
           ) : (

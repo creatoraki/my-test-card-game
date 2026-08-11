@@ -1,5 +1,5 @@
 // 敌人立绘素材集中登记处(与 cardArt.ts 同思路: 静态 import + 登记表)。
-// 新增敌人立绘时只需在此登记一次, 按 EnemyDef.id 作键。
+// 新增敌人立绘时只需跑 scripts/alpha-bbox.mjs 并把 sheet/body 粘贴到这里。
 import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle.png";
 import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle.png";
 import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle.png";
@@ -12,12 +12,11 @@ export interface EnemySpriteDef {
   src: string;
   frames: number; // 拼条内的物理帧数(须能整除原图宽度); 与是否跳帧无关
   frameMs: number; // 每帧停留(ms)
-  width: number; // 单帧渲染宽(px)
-  height: number; // 单帧渲染高(px); 须与原图单帧比例一致
-  // 源图内的内容框: sw/sh 是源图总尺寸, x/y/w/h 是首帧主体的 alpha 包围盒(见 scripts/alpha-bbox.mjs)。
-  // 拼条多帧时 w 即帧宽, 第 n 帧 = x + n*w。运行时靠 background-size/position 裁切,
-  // 故素材目录只需留一张原图, 不再产出 -cut 中间件。
-  box: { sw: number; sh: number; x: number; y: number; w: number; h: number };
+  sheet: { w: number; h: number }; // 源图总尺寸
+  // 展示框: 实际绘制到屏幕的源图矩形。省略=整帧; 拼条多帧时 w 通常是帧宽。
+  view?: { x: number; y: number; w: number; h: number };
+  // 主体框: 首帧 alpha 包围盒, 只用于归一化和定位, 不裁切展示构图。
+  body: { x: number; y: number; w: number; h: number };
   skipFrames?: number[]; // 循环中要跳过的帧号(1-based, 即看图软件里的"第几张"); 省略=全播
   idle?: IdleDef; // 待机呼吸(见下); 省略则取 DEFAULT_IDLE
 }
@@ -49,46 +48,37 @@ export function enemyIdle(def: EnemySpriteDef | undefined): typeof DEFAULT_IDLE 
 }
 
 const ENEMY_ART: Record<string, EnemySpriteDef> = {
-  // 废品/电线杆两台仍共用同一张 576×1024 占位图, 这是刻意的临时素材而非复制粘贴失误;
-  // 后续换专属立绘只需重跑 scripts/alpha-bbox.mjs 并更新各自 box/渲染尺寸。
-  // 收音机机器人已换成 1:1 专属素材, 走整图 256×256 的登记方式(见下)。
-  // 废品机器人: 静态单帧立绘, 运行时只显示 alpha 内容框。
+  // 9:16 与 1:1 素材都走同一模型: view 决定展示构图, body 决定主体高度归一。
+  // 废品/电线杆两台仍共用同一张 576×1024 占位图, 这是刻意的临时素材而非复制粘贴失误。
+  // view 省略即整帧展示; body 仍由 alpha 包围盒提供脚线和体型基准。
   // frames: 1 是刻意的而非漏填 —— 拼条机制在单帧下自然退化成一张不动的背景图, 无需特判;
   // 此时 frameMs 只决定那条空转动画的时长, 不影响观感。
-  // 渲染 131×220 —— 高度撑满 .combatant-figure(--foe-figure-h), 宽度按 522/880 等比得 131。
   "scrap-bot": {
     src: scrapBotIdle,
     frames: 1,
     frameMs: 1000,
-    width: 131,
-    height: 220,
-    box: { sw: 576, sh: 1024, x: 13, y: 84, w: 522, h: 880 },
+    sheet: { w: 576, h: 1024 },
+    body: { x: 13, y: 84, w: 522, h: 880 },
     // 机械微颤: 上下 3px + 0.6° 侧倾, 像内部还有个马达在转
     idle: { bob: 3, tilt: 0.6, dur: 2600 },
   },
-  // 电线杆机器人: 静态单帧立绘, 运行时只显示 alpha 内容框。
-  // 渲染 131×220 —— 当前占位图与其他两个登记敌人相同, 体型差异交给 encounters.ts 的 scale。
-  // 体型"高"的观感靠 encounters.ts 的 scale 旋钮拉大, 立绘表只管一帧的几何。
+  // 电线杆机器人: 当前占位图与废品机器人相同, 体型差异交给 encounters.ts 的 scale。
   "pole-bot": {
     src: poleBotIdle,
     frames: 1,
     frameMs: 1000,
-    width: 131,
-    height: 220,
-    box: { sw: 576, sh: 1024, x: 13, y: 84, w: 522, h: 880 },
+    sheet: { w: 576, h: 1024 },
+    body: { x: 13, y: 84, w: 522, h: 880 },
     // 这是为电线杆体型预留的呼吸手感, 等专属立绘到位后仍然适用。
     idle: { bob: 0, sway: 2, tilt: 1.2, dur: 3400, delay: -900 },
   },
-  // 收音机机器人: 静态单帧立绘, 源图 2048×2048 的 1:1 专属素材(不再共用占位图)。
-  // 渲染 256×256 —— 整张源图等比缩到立绘框(--foe-figure-h 256px)的 1:1 方框内, 故
-  // box 取全图而非 alpha 包围盒: 素材自带留白, 裁掉反而会破坏它与画布的构图关系。
+  // 收音机机器人: 1:1 素材完整展示; body 是 alpha 包围盒, 仅用于主体归一和脚线定位。
   "radio-bot": {
     src: radioBotIdle,
     frames: 1,
     frameMs: 1000,
-    width: 256,
-    height: 256,
-    box: { sw: 2048, sh: 2048, x: 0, y: 0, w: 2048, h: 2048 },
+    sheet: { w: 2048, h: 2048 },
+    body: { x: 175, y: 186, w: 1809, h: 1619 },
     // 与 scrap-bot 同为机械微颤, 但错开相位与周期 —— 同场两台不该整齐划一地喘
     idle: { bob: 2.5, tilt: 0.5, dur: 3000, delay: -1400 },
   },

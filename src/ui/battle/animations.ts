@@ -129,7 +129,7 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
       frameMs: 70,
       width: 192, // 243:583 原始比例
       height: 460,
-      anchorTop: 249, // 对应 --foe-figure-h(256px) 的立绘框, 底对齐脚下 = 剑插地处; JS 侧手工同步点
+      anchorTop: 249, // 对应 --foe-figure-h(256px) 的脚线基准, 底对齐脚下 = 剑插地处; JS 侧手工同步点
       anchorY: 0.82,
       impactMs: 210, // 约第 3 帧砸中
     },

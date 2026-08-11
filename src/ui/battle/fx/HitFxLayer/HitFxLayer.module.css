@@ -68,8 +68,8 @@
 /* —— 首击特效层: 定位在目标立绘上居中(立绘框的中段) —— */
 .vfx {
   position: absolute;
-  top: calc(var(--foe-figure-h) * 0.52 * var(--place-scale, 1));
-  left: 50%;
+  top: calc(var(--fig-h) - var(--foot-inset) - var(--body-h) * 0.48);
+  left: calc(50% + var(--body-cx));
   width: 0;
   height: 0;
   scale: var(--place-scale, 1);

@@ -8,8 +8,8 @@
 
 // 单位是"设计 px": 战斗画面是固定 1920×1080 的设计画布, 整体等比缩放去适配窗口(见 ui/stage.ts),
 // 故这里的偏移与玩家的实际分辨率无关 —— 一次调好, 任何窗口尺寸下站位都与背景严丝合缝。
-// 立绘框基准高度由 styles/tokens.css 的 --foe-figure-h 定义, scale 是在其之上的乘数;
-// 现在 1.0 约等于立绘高 220 设计 px。基准变化时只需重新换算 scale, dx/dy 不随之移动。
+// 主体高度基准由 styles/tokens.css 的 --foe-figure-h 定义, scale 是在其之上的乘数;
+// 基准变化时只需重新换算 scale, dx/dy 不随之移动。
 export interface EnemyPlacement {
   id: string; // 敌人 def id
   dx?: number; // 相对默认位置的水平偏移(设计 px), 右为正
@@ -47,17 +47,19 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
 }
 
 // 当前所有遭遇战统一成"两台收音机机器人, 一左一右"的临时配置(立绘验证期):
-// 左右两个槽位沿用已经和霓虹城市背景对好的 dx -125 / 245、dy 450,
+// 左右两个槽位沿用已经和霓虹城市背景对好的 dx -200 / 200、dy 250,
 // 右侧那台开 flip 走左右镜像, 两台面朝彼此。
-// 不写 scale = 取默认 1.0(立绘高 = --foe-figure-h 原尺寸) —— 缩放中心是立绘底边中点,
-// 故去掉 scale 后脚仍落在同一条地面线上, dy 不必跟着重调。
+// radio-bot 新模型按主体高度归一。旧模型整图高 256px, 新模型主体高 1619px/2048px;
+// 为保持旧观感取 scale = 1619/2048 ≈ 0.7905。旧整图底部留白为
+// (2048 - 186 - 1619) × 256/2048 = 30.375px, 故 dy 从 250 减到 219.625,
+// 把新脚线拉回原地面线。后续 scale 仍以主体脚线为中心, 单独调体型无需再补 dy。
 //
 // ⚠ 底部 HUD 改造后 dx 整体 +195(旧值 -320 / 50): 舞台不再避让左侧手牌栏
 // (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
 // 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
 const RADIO_PAIR: EnemySlot[] = [
-  { id: "radio-bot", dx: -200, dy: 250 },
-  { id: "radio-bot", dx: 200, dy: 250, flip: true },
+  { id: "radio-bot", dx: -200, dy: 219.625, scale: 0.7905 },
+  { id: "radio-bot", dx: 200, dy: 219.625, scale: 0.7905, flip: true },
 ];
 
 export const ENCOUNTERS: EncounterDef[] = [

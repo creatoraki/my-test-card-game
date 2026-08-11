@@ -1,9 +1,9 @@
 .death-vanish-fx {
   position: absolute;
   left: 50%;
-  bottom: 0;
-  width: var(--foe-figure-h);
-  height: var(--foe-figure-h);
+  bottom: var(--foot-inset);
+  width: var(--fig-w);
+  height: var(--fig-h);
   translate: -50% 0;
   pointer-events: none;
   z-index: 8;
