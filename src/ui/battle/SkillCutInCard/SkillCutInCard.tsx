@@ -12,7 +12,7 @@ const CUTIN_MS = CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut;
 // 出牌「亮相」卡面浮层(仅玩家出牌): 镜头聚焦目标后, 当前技能卡从屏幕左侧飞入 → 停留 → 往右飞出渐隐。
 // 挂载即通过 CSS animation(.skill-cutin, @keyframes skill-cutin-fly)播放整段运动, 无需在组件内维护阶段。
 // 时序由 BattleScreen.runSteps 用定时器与 CINEMA.cardIn/cardHold/cardOut 对齐控制挂载/卸载。
-export function SkillCutInCard({ card }: { card: Card | null }) {
+export function SkillCutInCard({ card, fxRate }: { card: Card | null; fxRate: number }) {
   if (!card) return null;
   const art = cardArt(card.id);
 
@@ -21,7 +21,10 @@ export function SkillCutInCard({ card }: { card: Card | null }) {
     <div
       key={card.uid}
       className={cx(s["skill-cutin"], art ? s["has-art"] : s.placeholder)}
-      style={{ animationDuration: `calc(${CUTIN_MS}ms / max(var(--fx-rate, 1), 0.25))` }}
+      style={{
+        "--fx-rate": Math.max(0.25, fxRate),
+        animationDuration: `calc(${CUTIN_MS}ms / max(var(--fx-rate, 1), 0.25))`,
+      } as React.CSSProperties}
       aria-hidden
     >
       {art ? (

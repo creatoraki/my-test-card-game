@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { ambience, type AmbienceDef, type EmitterDef } from "@/ui/battle/ambience";
 import { STAGE } from "@/ui/hooks/stage";
 import { cx } from "@/ui/common/cx";
@@ -21,7 +21,7 @@ import s from "./AmbienceLayer.module.css";
 // 粒子都是软边色块, 相机推到 1.55× 也看不出这点差别, 没必要为它烧填充率。
 // ============================================================================
 
-const MAX_RES = 1.5;
+const MAX_RES = 1;
 
 interface Particle {
   x: number;
@@ -94,14 +94,34 @@ function spawn(p: Particle, def: EmitterDef, initial: boolean): void {
   }
 }
 
-export function AmbienceLayer({ mapId, paused, fxRate }: { mapId: string | null; paused: boolean; fxRate: number }) {
+export function AmbienceLayer({
+  mapId,
+  paused,
+  fxRate,
+  dofTargetsRef,
+}: {
+  mapId: string | null;
+  paused: boolean;
+  fxRate: number;
+  dofTargetsRef: React.MutableRefObject<Set<HTMLElement>>;
+}) {
   // 系统「减少动态效果」: 整层不挂载(连 rAF 都不起), 而不是挂载后再静止。
   // 检查放在外壳组件里, 内部组件的 hook 才不会变成条件调用。
   if (prefersReducedMotion()) return null;
-  return <AmbienceCanvases mapId={mapId} paused={paused} fxRate={fxRate} />;
+  return <AmbienceCanvases mapId={mapId} paused={paused} fxRate={fxRate} dofTargetsRef={dofTargetsRef} />;
 }
 
-function AmbienceCanvases({ mapId, paused, fxRate }: { mapId: string | null; paused: boolean; fxRate: number }) {
+function AmbienceCanvases({
+  mapId,
+  paused,
+  fxRate,
+  dofTargetsRef,
+}: {
+  mapId: string | null;
+  paused: boolean;
+  fxRate: number;
+  dofTargetsRef: React.MutableRefObject<Set<HTMLElement>>;
+}) {
   const def = ambience(mapId);
   const farRef = useRef<HTMLCanvasElement>(null);
   const nearRef = useRef<HTMLCanvasElement>(null);
@@ -141,10 +161,20 @@ function AmbienceCanvases({ mapId, paused, fxRate }: { mapId: string | null; pau
     }));
   }, [def]);
 
+  useLayoutEffect(() => {
+    const targets = dofTargetsRef.current;
+    const canvases = [farRef.current, nearRef.current].filter(
+      (canvas): canvas is HTMLCanvasElement => !!canvas,
+    );
+    canvases.forEach((canvas) => targets.add(canvas));
+    return () => canvases.forEach((canvas) => targets.delete(canvas));
+  }, [dofTargetsRef, has.far, has.near]);
+
   // 依赖 has.far/has.near: 某层从"无"变"有"(换地图)时画布是新挂载的 DOM 节点,
   // 必须重新取一次 2d context, 否则循环里握着的是已卸载画布的旧 context。
   useEffect(() => {
-    const res = Math.min(window.devicePixelRatio || 1, MAX_RES);
+    const hasRain = def.emitters.some((emitter) => emitter.kind === "rain");
+    const res = Math.min(window.devicePixelRatio || 1, hasRain ? MAX_RES : 0.6);
     const ctxOf = (c: HTMLCanvasElement | null) => {
       if (!c) return null;
       c.width = Math.round(STAGE.width * res);
@@ -158,12 +188,17 @@ function AmbienceCanvases({ mapId, paused, fxRate }: { mapId: string | null; pau
 
     let raf = 0;
     let last = performance.now();
+    let accumulated = 0;
+    const frameMs = hasRain ? 1000 / 30 : 1000 / 20;
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      const dt = Math.min(0.05, (now - last) / 1000); // 封顶 50ms: 切回标签页时不让粒子瞬移
+      accumulated += now - last;
       last = now;
-      if (!pausedRef.current) update(groupsRef.current, dt * fxRateRef.current);
+      if (accumulated < frameMs || pausedRef.current) return;
+      const dt = Math.min(0.05, accumulated / 1000); // 封顶 50ms: 切回标签页时不让粒子瞬移
+      accumulated = 0;
+      update(groupsRef.current, dt * fxRateRef.current);
       draw(farCtx, nearCtx, groupsRef.current);
     };
 
@@ -205,14 +240,20 @@ function AmbienceCanvases({ mapId, paused, fxRate }: { mapId: string | null; pau
         <canvas
           className={cx(s["battle-ambience"], s.far)}
           ref={farRef}
-          style={{ ...style, filter: `blur(calc(${blur.far}px + var(--dof, 0) * 2px))` }}
+          style={{
+            ...style,
+            ...(blur.far > 0 ? { filter: `blur(calc(${blur.far}px + var(--dof, 0) * 2px))` } : {}),
+          }}
         />
       )}
       {has.near && (
         <canvas
           className={cx(s["battle-ambience"], s.near)}
           ref={nearRef}
-          style={{ ...style, filter: `blur(calc(${blur.near}px + var(--dof, 0) * 6px))` }}
+          style={{
+            ...style,
+            ...(blur.near > 0 ? { filter: `blur(calc(${blur.near}px + var(--dof, 0) * 6px))` } : {}),
+          }}
         />
       )}
     </>

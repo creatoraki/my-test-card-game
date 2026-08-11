@@ -14,13 +14,27 @@ export interface Timeline {
 }
 
 export function createTimeline(seq: number, timeScale: () => number, onDone: () => void): Timeline {
-  const cues: Cue[] = [];
+  const scaledCues: Cue[] = [];
+  const unscaledCues: Cue[] = [];
   let raf = 0;
   let elapsed = 0;
   let wallElapsed = 0;
   let last = 0;
   let running = false;
-  const fired = new Set<Cue>();
+  let nextScaled = 0;
+  let nextUnscaled = 0;
+
+  const insert = (queue: Cue[], cue: Cue, nextIndex: number): number => {
+    let low = nextIndex;
+    let high = queue.length;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      if (queue[middle].at <= cue.at) low = middle + 1;
+      else high = middle;
+    }
+    queue.splice(low, 0, cue);
+    return nextIndex;
+  };
 
   const finish = () => {
     if (!running) return;
@@ -37,34 +51,38 @@ export function createTimeline(seq: number, timeScale: () => number, onDone: () 
     elapsed += delta * Math.max(0, timeScale());
     wallElapsed += delta;
     last = now;
-    let next: Cue | undefined;
-    do {
-      next = cues
-        .filter((cue) => !fired.has(cue))
-        .filter((cue) => (cue.unscaled ? wallElapsed : elapsed) >= cue.at)
-        .sort((a, b) => a.at - b.at)[0];
-      if (next) {
-        fired.add(next);
-        next.run();
+    while (true) {
+      const scaled = scaledCues[nextScaled];
+      const unscaled = unscaledCues[nextUnscaled];
+      const scaledDue = !!scaled && elapsed >= scaled.at;
+      const unscaledDue = !!unscaled && wallElapsed >= unscaled.at;
+      if (!scaledDue && !unscaledDue) break;
+      if (!unscaledDue || (scaledDue && scaled!.at <= unscaled!.at)) {
+        nextScaled += 1;
+        scaled!.run();
+      } else {
+        nextUnscaled += 1;
+        unscaled!.run();
       }
-    } while (next);
-    if (fired.size >= cues.length) finish();
+    }
+    if (nextScaled >= scaledCues.length && nextUnscaled >= unscaledCues.length) finish();
     else raf = requestAnimationFrame(frame);
   };
 
   return {
     seq,
     add(cue) {
-      cues.push(cue);
-      cues.sort((a, b) => a.at - b.at);
+      if (cue.unscaled) nextUnscaled = insert(unscaledCues, cue, nextUnscaled);
+      else nextScaled = insert(scaledCues, cue, nextScaled);
     },
     schedule(delay, run, unscaled = false) {
-      cues.push({
+      const cue = {
         at: (unscaled ? wallElapsed : elapsed) + Math.max(0, delay),
         run,
         unscaled,
-      });
-      cues.sort((a, b) => a.at - b.at);
+      };
+      if (unscaled) nextUnscaled = insert(unscaledCues, cue, nextUnscaled);
+      else nextScaled = insert(scaledCues, cue, nextScaled);
     },
     start() {
       if (running) return;
@@ -78,14 +96,17 @@ export function createTimeline(seq: number, timeScale: () => number, onDone: () 
     },
     flush() {
       if (!running) return;
-      let next: Cue | undefined;
-      do {
-        next = cues.find((cue) => !fired.has(cue));
-        if (next) {
-          fired.add(next);
-          next.run();
+      while (nextScaled < scaledCues.length || nextUnscaled < unscaledCues.length) {
+        const scaled = scaledCues[nextScaled];
+        const unscaled = unscaledCues[nextUnscaled];
+        if (!unscaled || (scaled && scaled.at <= unscaled.at)) {
+          nextScaled += 1;
+          scaled.run();
+        } else {
+          nextUnscaled += 1;
+          unscaled.run();
         }
-      } while (next);
+      }
       finish();
     },
   };

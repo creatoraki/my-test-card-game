@@ -124,7 +124,6 @@ export function BattleScreen() {
   const [aimFoeId, setAimFoeId] = useState<string | null>(null);
   const [aim, setAim] = useState<Camera | null>(null); // 瞄准相机(null=不在瞄准态)
   const [camera, setCamera] = useState<Camera | null>(null); // 分镜/瞄准相机目标
-  const [cameraMoving, setCameraMoving] = useState(false);
   const [spillSrc, setSpillSrc] = useState<string | null>(null); // 溢出填充图(见下方 grabSpill)
   const [hitstop, setHitstop] = useState(false);
   const [fxRate, setFxRate] = useState(1);
@@ -136,7 +135,9 @@ export function BattleScreen() {
   const sceneRef = useRef<HTMLDivElement>(null); // ★ 场景层: 相机(推近/平移)的唯一作用对象
   const worldRef = useRef<HTMLDivElement>(null); // ★ 世界层: 背景 + 氛围 + 舞台同在其中; 承载 rig 的漂移与冲击
   const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(敌我单位); 其布局盒 = 相机的取景安全区
+  const dofTargetsRef = useRef<Set<HTMLElement>>(new Set());
   const bgVideoRef = useRef<HTMLVideoElement>(null); // 背景视频(仅用于抓首帧做溢出填充)
+  const bgImageRef = useRef<HTMLImageElement>(null);
   // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform。
   const stageScale = useStageScale(viewportRef);
   const viewportStyle = useMemo(
@@ -166,7 +167,7 @@ export function BattleScreen() {
   const timelineRef = useRef<Timeline | null>(null);
   const triggerPlayRef = useRef<(uid: string, primaryId?: string) => void>(() => undefined);
   const combatantClickRef = useRef<(id: string) => void>(() => undefined);
-  const cameraRig = useCameraRig({ sceneRef, worldRef, screenRef });
+  const cameraRig = useCameraRig({ sceneRef, worldRef, dofTargetsRef });
   const setCameraTarget = (next: Camera | null) => {
     cameraRig.setCamera(next);
     setCamera(next);
@@ -178,7 +179,6 @@ export function BattleScreen() {
   const setPlaybackRate = (rate: number, persist = true) => {
     if (persist) playbackRateRef.current = rate;
     cameraRig.setTimeScale(rate);
-    cameraRig.setFxRate(rate);
     setFxRate(rate);
   };
 
@@ -187,7 +187,6 @@ export function BattleScreen() {
     playbackRateRef.current = next;
     setSpeed2x(next === 2);
     if (hitstop) {
-      cameraRig.setFxRate(next);
       setFxRate(next);
     } else if (animatingRef.current) {
       setPlaybackRate(next);
@@ -229,9 +228,12 @@ export function BattleScreen() {
     [],
   );
 
-  useEffect(() => {
-    return cameraRig.onRestChange((rest) => setCameraMoving(!rest));
-  }, [cameraRig]);
+  useLayoutEffect(() => {
+    const target = bg.kind === "image" ? bgImageRef.current : null;
+    if (!target) return;
+    dofTargetsRef.current.add(target);
+    return () => dofTargetsRef.current.delete(target);
+  }, [bg.kind, bg.src]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -728,7 +730,6 @@ export function BattleScreen() {
       <div
         className={s["battle-scene"]}
         ref={sceneRef}
-        style={{ willChange: cameraMoving ? "transform" : "auto" }}
       >
         {/* ★ 世界层: 相机之下、场景内容之上的一层。它同样包住背景 + 氛围 + 舞台,
           存在的意义是承载 rig 直接写入的空闲漂移、冲击位移与 punch 缩放。
@@ -757,13 +758,18 @@ export function BattleScreen() {
           onLoadedData={grabSpill}
         />
       ) : (
-        <img className={s["battle-bg-video"]} src={bg.src} alt="" />
+        <img
+          ref={bgImageRef}
+          className={cx(s["battle-bg-video"], s["battle-bg-video-dof"])}
+          src={bg.src}
+          alt=""
+        />
       )}
 
       {/* 场景氛围: 按地图登记的 Canvas 粒子(雨/光尘/雾)+ 可选的灯光闪烁。两张画布靠 z-index
           夹住舞台 —— far 在单位之下、near 在单位之上并整层失焦, 纵深由此而来。
           它在世界内 ⇒ 跟随相机与 rig 的动态位移。顿帧期间 paused, 粒子和 CSS 动画一起冻住。 */}
-      <AmbienceLayer mapId={mapId} paused={hitstop} fxRate={fxRate} />
+      <AmbienceLayer mapId={mapId} paused={hitstop} fxRate={fxRate} dofTargetsRef={dofTargetsRef} />
 
       {/* 战场舞台层: 世界里的一块子矩形(避开左侧手牌栏), 同时是相机的取景安全区。
           它不带自己的 transform —— 相机只驱动外层的 .battle-scene。 */}
@@ -907,7 +913,7 @@ export function BattleScreen() {
       <VictoryPanel />
 
       {/* 出牌亮相卡面: 挂在舞台层之外, 不受相机缩放/裁切影响 */}
-      <SkillCutInCard card={cutInCard} />
+      <SkillCutInCard card={cutInCard} fxRate={fxRate} />
       </div>
     </div>
   );

@@ -11,6 +11,7 @@
   left: 0;
   top: 0;
   pointer-events: none;
+  will-change: transform;
 }
 /* ── 两层的层序 + 纵深 ──
    far 在敌人之后、near 在敌人之前(z-index), 同时各自是 3D 场景里的一个纵深层:

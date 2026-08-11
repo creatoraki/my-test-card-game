@@ -173,6 +173,9 @@
    ⚠ 这些 transform 各自独占所在元素的 transform 属性, 别再往上面叠别的东西。 */
 .battle-scene .battle-bg-video {
   transform: translateZ(var(--depth-bg, 0)) scale(var(--depth-bg-fix, 1));
+  will-change: transform;
+}
+.battle-scene .battle-bg-video-dof {
   filter: blur(calc(var(--dof, 0) * 5px));
 }
 /* ⓘ 氛围两层(.battle-ambience.far/.near)的纵深写在 battle/AmbienceLayer.module.css ——
@@ -185,6 +188,7 @@
   inset: 0;
   transform-origin: 50% 50%;
   transform-style: preserve-3d;
+  will-change: transform;
 }
 /* 顿帧(hitstop): 粒子由 AmbienceLayer 的 paused prop 同步停更新；命中特效本身继续播放。 */
 /* ⚠ 顿帧标记从 `.battle.hitstop` 类改成了根节点上的 `data-hitstop` 属性:

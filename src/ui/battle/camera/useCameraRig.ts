@@ -7,7 +7,7 @@ import { Impulse, Spring, type SpringTuning } from "./spring";
 export interface CameraRigRefs {
   sceneRef: React.RefObject<HTMLElement>;
   worldRef: React.RefObject<HTMLElement>;
-  screenRef: React.RefObject<HTMLElement>;
+  dofTargetsRef: React.MutableRefObject<Set<HTMLElement>>;
 }
 
 export interface CameraRigApi {
@@ -17,7 +17,6 @@ export interface CameraRigApi {
   impact(axis: { x: number; y: number }, amount: number, roll: number): void;
   setTuning(tuning: Partial<Record<keyof Camera, SpringTuning>> | null): void;
   setTimeScale(scale: number): void;
-  setFxRate(rate: number): void;
   getTimeScale(): number;
   onRestChange(callback: (rest: boolean) => void): () => void;
 }
@@ -31,11 +30,10 @@ const DEFAULT_TUNING: Record<keyof Camera, SpringTuning> = {
   roll: { stiffness: 150, damping: 14 },
 };
 
-export function useCameraRig({ sceneRef, worldRef, screenRef }: CameraRigRefs): CameraRigApi {
+export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRefs): CameraRigApi {
   const targetRef = useRef<Camera>(CAMERA_REST);
   const tuningRef = useRef<Partial<Record<keyof Camera, SpringTuning>>>({});
   const timeScaleRef = useRef(1);
-  const fxRateRef = useRef(1);
   const punchRef = useRef(0);
   const idleTimeRef = useRef(0);
   const restRef = useRef(false);
@@ -44,7 +42,7 @@ export function useCameraRig({ sceneRef, worldRef, screenRef }: CameraRigRefs): 
   const wakeRef = useRef<() => void>(() => undefined);
   const mountedRef = useRef(false);
   const lastFrameRef = useRef(0);
-  const screenVarsRef = useRef<{ dof: string | null; fxRate: string | null }>({ dof: null, fxRate: null });
+  const dofRef = useRef<string | null>(null);
   const impulsesRef = useRef({ x: new Impulse(), y: new Impulse(), roll: new Impulse() });
   const springsRef = useRef<Record<keyof Camera, Spring> | null>(null);
   if (!springsRef.current) {
@@ -57,6 +55,7 @@ export function useCameraRig({ sceneRef, worldRef, screenRef }: CameraRigRefs): 
   const setRest = (rest: boolean) => {
     if (restRef.current === rest) return;
     restRef.current = rest;
+    if (sceneRef.current) sceneRef.current.style.willChange = rest ? "auto" : "transform";
     for (const callback of restListenersRef.current) callback(rest);
   };
   if (!apiRef.current) {
@@ -87,10 +86,6 @@ export function useCameraRig({ sceneRef, worldRef, screenRef }: CameraRigRefs): 
       },
       setTimeScale(scale) {
         timeScaleRef.current = Math.max(0, scale);
-        wakeRef.current();
-      },
-      setFxRate(rate) {
-        fxRateRef.current = Math.max(0.25, rate);
         wakeRef.current();
       },
       getTimeScale() { return timeScaleRef.current; },
@@ -151,17 +146,10 @@ export function useCameraRig({ sceneRef, worldRef, screenRef }: CameraRigRefs): 
         }
         if (sceneRef.current) sceneRef.current.style.transform = cameraCss(camera);
         if (worldRef.current) worldRef.current.style.transform = "";
-        if (screenRef.current) {
-          const dof = String(Math.max(0, Math.min(1, (camera.s - 1) / 0.8)));
-          if (screenVarsRef.current.dof !== dof) {
-            screenRef.current.style.setProperty("--dof", dof);
-            screenVarsRef.current.dof = dof;
-          }
-          const fxRate = String(fxRateRef.current);
-          if (screenVarsRef.current.fxRate !== fxRate) {
-            screenRef.current.style.setProperty("--fx-rate", fxRate);
-            screenVarsRef.current.fxRate = fxRate;
-          }
+        const dof = String(Math.round(Math.max(0, Math.min(1, (camera.s - 1) / 0.8)) * 4) / 4);
+        if (dofRef.current !== dof) {
+          for (const target of dofTargetsRef.current) target.style.setProperty("--dof", dof);
+          dofRef.current = dof;
         }
         setRest(true);
         return;
@@ -169,22 +157,16 @@ export function useCameraRig({ sceneRef, worldRef, screenRef }: CameraRigRefs): 
 
       if (sceneRef.current) sceneRef.current.style.transform = cameraCss(camera);
       if (worldRef.current) worldRef.current.style.transform = `translate(${idleX + impulseX}px, ${idleY + impulseY}px) scale(${1 + punchRef.current * 0.12})`;
-      if (screenRef.current) {
-        const dof = String(Math.max(0, Math.min(1, (camera.s - 1) / 0.8)));
-        if (screenVarsRef.current.dof !== dof) {
-          screenRef.current.style.setProperty("--dof", dof);
-          screenVarsRef.current.dof = dof;
-        }
-        const fxRate = String(fxRateRef.current);
-        if (screenVarsRef.current.fxRate !== fxRate) {
-          screenRef.current.style.setProperty("--fx-rate", fxRate);
-          screenVarsRef.current.fxRate = fxRate;
-        }
+      const dof = String(Math.round(Math.max(0, Math.min(1, (camera.s - 1) / 0.8)) * 4) / 4);
+      if (dofRef.current !== dof) {
+        for (const target of dofTargetsRef.current) target.style.setProperty("--dof", dof);
+        dofRef.current = dof;
       }
       rafRef.current = requestAnimationFrame(frame);
     };
     wakeRef.current = () => {
       if (!mountedRef.current) return;
+      if (sceneRef.current) sceneRef.current.style.willChange = "transform";
       setRest(false);
       if (rafRef.current === null) {
         lastFrameRef.current = performance.now();
@@ -199,7 +181,7 @@ export function useCameraRig({ sceneRef, worldRef, screenRef }: CameraRigRefs): 
       rafRef.current = null;
       wakeRef.current = () => undefined;
     };
-  }, [sceneRef, screenRef, worldRef]);
+  }, [dofTargetsRef, sceneRef, worldRef]);
 
   return apiRef.current;
 }
