@@ -3,6 +3,8 @@ import { prefersReducedMotion } from "@/ui/app/transitions";
 
 const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
 
+export const CHARGE_MS = 700;
+export const SPEND_MS = duration(360);
 export const VEIL_MS = duration(200);
 export const FRAME_MS = duration(260);
 export const FRAME_STAGGER_MS = duration(90);

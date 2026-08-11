@@ -1,0 +1,348 @@
+.brief {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.brief-intro {
+  flex: 0 0 auto;
+}
+
+.brief-kicker {
+  color: var(--cd-glow-deep);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.brief-title {
+  margin: 4px 0 0;
+  color: var(--cd-ink);
+  font-size: 30px;
+  letter-spacing: 4px;
+}
+
+.brief-sub {
+  margin: 6px 0 0;
+  color: var(--cd-ink-dim);
+  font-size: 13px;
+}
+
+.probability {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rarity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rarity-col {
+  display: flex;
+  min-height: 150px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 10px 8px;
+  color: var(--cd-ink);
+  background: #ffffff45;
+  border: 1px solid var(--cd-line);
+  font-variant-numeric: tabular-nums;
+}
+
+.rarity-label {
+  color: var(--cd-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.rarity-col svg {
+  width: 78px;
+  height: 92px;
+  color: var(--cd-glow-deep);
+}
+
+.rarity-col strong {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.rarity-col.is-empty {
+  color: var(--cd-ink-dim);
+  opacity: .48;
+}
+
+.ratio-bar {
+  display: flex;
+  width: 100%;
+  height: 8px;
+  gap: 2px;
+  overflow: hidden;
+  background: #2a1b3d16;
+  border: 1px solid var(--cd-line);
+}
+
+.ratio-seg {
+  display: block;
+  min-width: 0;
+  flex: 0 0 auto;
+  background: var(--cd-glow-deep);
+}
+
+.ratio-seg:nth-child(2) {
+  background: var(--cd-glow);
+}
+
+.ratio-seg:nth-child(3) {
+  background: #bd9ce8;
+}
+
+.ratio-seg.is-empty {
+  opacity: .24;
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.chip {
+  display: flex;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 9px;
+  color: var(--cd-ink-dim);
+  background: #ffffff65;
+  border: 1px solid var(--cd-line);
+  font-size: 11px;
+}
+
+.chip svg {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  color: var(--cd-glow-deep);
+}
+
+.chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip strong {
+  margin-left: auto;
+  color: var(--cd-ink);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chip strong.is-insufficient {
+  color: #b64262;
+}
+
+.foot {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cd-line);
+}
+
+.status {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: #b64262;
+  font-size: 12px;
+}
+
+.status svg {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+}
+
+.charge-button {
+  position: relative;
+  display: grid;
+  width: 170px;
+  height: 48px;
+  flex: 0 0 170px;
+  place-items: center;
+  padding: 8px 14px;
+  overflow: hidden;
+  color: var(--cd-ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: #ffffff91;
+  border: 1px solid var(--cd-line);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  transition: transform 180ms cubic-bezier(.2, .72, .28, 1), color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.charge-button:hover:not(:disabled) {
+  color: var(--cd-glow-deep);
+  background: #ffffffd9;
+  border-color: var(--cd-glow);
+}
+
+.charge-fill {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    repeating-linear-gradient(90deg, #ffffff2e 0 1px, transparent 1px 16px),
+    linear-gradient(180deg, #ffffff18, #bd9ce88c);
+  box-shadow: inset 0 1px 0 #ffffff80;
+  opacity: 0;
+  transform: scaleX(var(--charge, 0));
+  transform-origin: left;
+  transition: transform 180ms cubic-bezier(.2, .72, .28, 1), opacity 180ms ease;
+}
+
+.charge-sweep {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  z-index: 2;
+  width: 24%;
+  background: linear-gradient(90deg, transparent, #ffffffd1, transparent);
+  opacity: 0;
+  transform: translateX(-170%) skewX(-16deg);
+  pointer-events: none;
+}
+
+.is-holding .charge-button {
+  transform: scale(.97);
+}
+
+.is-holding .charge-fill {
+  opacity: 1;
+}
+
+.is-holding .charge-sweep {
+  opacity: .85;
+  animation: briefChargeSweep 900ms cubic-bezier(.2, .72, .28, 1) infinite;
+}
+
+.charge-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.charge-ring-track,
+.charge-ring-fill {
+  fill: none;
+}
+
+.charge-ring-track {
+  stroke: var(--cd-line);
+  stroke-width: 1;
+}
+
+.charge-ring-fill {
+  color: var(--cd-glow);
+  stroke: currentColor;
+  stroke-width: 1.5;
+  transition: stroke-dashoffset 80ms linear;
+}
+
+.charge-label {
+  position: relative;
+  z-index: 5;
+}
+
+.charge-percent {
+  position: absolute;
+  right: 12px;
+  bottom: 5px;
+  z-index: 5;
+  color: var(--cd-glow-deep);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.is-charge-ready .charge-button {
+  color: var(--cd-glow-deep);
+  border-color: var(--cd-glow);
+  box-shadow: 0 0 0 1px #ffffff80 inset, 0 0 20px -6px #bd9ce8e6;
+  animation: briefChargeReady 520ms ease-in-out infinite;
+}
+
+.is-charge-ready .charge-ring-fill {
+  filter: drop-shadow(0 0 4px #bd9ce8);
+}
+
+.charge-button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+@keyframes briefChargeSweep {
+  0% { transform: translateX(-170%) skewX(-16deg); }
+  100% { transform: translateX(620%) skewX(-16deg); }
+}
+
+@keyframes briefChargeReady {
+  0%, 100% { transform: scale(.97); }
+  50% { transform: scale(.985); }
+}
+
+@media (max-width: 900px) {
+  .brief-title {
+    font-size: 24px;
+    letter-spacing: 2px;
+  }
+
+  .rarity-col {
+    min-height: 124px;
+  }
+
+  .rarity-col svg {
+    width: 64px;
+    height: 76px;
+  }
+
+  .rarity-col strong {
+    font-size: 20px;
+  }
+
+  .chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .charge-button,
+  .charge-sweep,
+  .is-charge-ready .charge-button {
+    animation: none;
+    transition: none;
+  }
+
+  .charge-fill,
+  .charge-ring-fill {
+    transition: none;
+  }
+}

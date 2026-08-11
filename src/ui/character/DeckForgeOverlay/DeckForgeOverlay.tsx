@@ -1,6 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { prefersReducedMotion } from "@/ui/app/transitions";
-import type { Card } from "@/engine";
+import type { Card, Rarity } from "@/engine";
 import { DeckMinusGlyph, DeckPlusGlyph } from "./ForgeGlyphs";
 import { ForgeDrawStage } from "./ForgeDrawStage";
 import { ForgeRemoveStage } from "./ForgeRemoveStage";
@@ -12,10 +11,16 @@ interface Props {
   pendingDraw: string[] | null;
   deck: Card[];
   minDeckSize: number;
+  drawCost: number;
+  exp: number;
+  deckLevel: number;
+  deckSize: number;
+  hasPool: Record<Rarity, boolean>;
+  canConfirmDraw: boolean;
+  drawDisabledReason?: string;
+  onStartDraw: () => void;
   onPickDraw: (cardDefId: string) => void;
   onRemoveCard: (uid: string) => void;
-  playDrawIntro: boolean;
-  onIntroConsumed: () => void;
   onComplete: () => void;
   onClose: () => void;
 }
@@ -25,15 +30,20 @@ export function DeckForgeOverlay({
   pendingDraw,
   deck,
   minDeckSize,
+  drawCost,
+  exp,
+  deckLevel,
+  deckSize,
+  hasPool,
+  canConfirmDraw,
+  drawDisabledReason,
+  onStartDraw,
   onPickDraw,
   onRemoveCard,
-  playDrawIntro,
-  onIntroConsumed,
   onComplete,
   onClose,
 }: Props) {
-  const [intro] = useState(playDrawIntro);
-  const [busy, setBusy] = useState(() => intro && !prefersReducedMotion());
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -47,7 +57,7 @@ export function DeckForgeOverlay({
     <div
       className={s["forge-overlay"]}
       data-busy={busy ? "true" : "false"}
-      data-intro={intro ? "true" : "false"}
+      data-intro="true"
       style={{ "--veil-ms": `${VEIL_MS}ms` } as CSSProperties}
       role="dialog"
       aria-modal="true"
@@ -79,11 +89,18 @@ export function DeckForgeOverlay({
         {mode === "draw" ? (
           <ForgeDrawStage
             pendingDraw={pendingDraw}
-            playIntro={intro}
+            drawCost={drawCost}
+            exp={exp}
+            deckLevel={deckLevel}
+            deckSize={deckSize}
+            minDeckSize={minDeckSize}
+            hasPool={hasPool}
+            canConfirmDraw={canConfirmDraw}
+            drawDisabledReason={drawDisabledReason}
+            onStartDraw={onStartDraw}
             onPick={onPickDraw}
             onComplete={onComplete}
             onBusyChange={setBusy}
-            onIntroConsumed={onIntroConsumed}
           />
         ) : (
           <ForgeRemoveStage

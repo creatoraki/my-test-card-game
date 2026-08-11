@@ -10,7 +10,7 @@
 // 版面与视觉与编队页同族(同一张背景、同一套亮玻璃配方), 旋钮在 CharacterDetailScreen.css 的 --cd-*。
 // 与全项目同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts): 所有坐标都是「设计 px」。
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { deckUpgradeCost, RULES, type Rarity, type StatBlock } from "@/engine";
 import { getCharacter, getItemDef } from "@/data";
 import type { EquipSlot } from "@/items/types";
@@ -116,7 +116,6 @@ export function CharacterDetailScreen() {
   const [forgeMode, setForgeMode] = useState<"draw" | "remove" | "upgrade" | null>(null);
   const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
-  const justForgedRef = useRef(false);
 
   // ---- 与编队页之间的共享元素过场 ----
   // ★ 本页这一侧**不需要任何运行时逻辑**: 每个名字在本页都只有一份, 全部写死在
@@ -142,7 +141,6 @@ export function CharacterDetailScreen() {
   }, [invalid, closeCharDetail]);
 
   useEffect(() => {
-    justForgedRef.current = false;
     setActiveSlot(null);
     setForgeMode(null);
     setSelectedCardUid(cs?.deck[0]?.uid ?? null);
@@ -174,16 +172,6 @@ export function CharacterDetailScreen() {
     if (forgeMode === "draw" && charId) cancelDraw(charId);
     setForgeMode(null);
   }, [cancelDraw, charId, forgeMode]);
-
-  const startDraw = useCallback(() => {
-    if (!charId) return;
-    justForgedRef.current = true;
-    forgeDraw(charId);
-  }, [charId, forgeDraw]);
-
-  const consumeDrawIntro = useCallback(() => {
-    justForgedRef.current = false;
-  }, []);
 
   const finishForge = useCallback(() => {
     setForgeMode(null);
@@ -254,7 +242,7 @@ export function CharacterDetailScreen() {
     uncommon: def.pools.uncommon.length > 0,
     rare: def.pools.rare.length > 0,
   };
-  const canDraw = !cs.pendingDraw && cs.exp >= costs.draw && hasDrawPool;
+  const canConfirmDraw = !cs.pendingDraw && cs.exp >= costs.draw && hasDrawPool;
   const canRemove = cs.exp >= costs.remove && cs.deck.length > cs.minDeckSize;
   const canUpgrade = costs.upgrade != null && cs.exp >= costs.upgrade;
 
@@ -391,13 +379,15 @@ export function CharacterDetailScreen() {
                   deckLevel={cs.deckLevel}
                   deckSize={cs.deck.length}
                   minDeckSize={cs.minDeckSize}
-                  canDraw={canDraw}
+                  canDraw
                   canRemove={canRemove}
                   canOpenUpgrade={costs.upgrade != null}
-                  onDraw={() => forgeDraw(charId)}
+                  onDraw={() => setForgeMode("draw")}
                   onRemove={() => setForgeMode("remove")}
                   onUpgrade={() => setForgeMode("upgrade")}
-                  drawDisabledReason={!hasDrawPool ? "该角色暂无可抽卡池" : undefined}
+                  drawDisabledReason={
+                    !hasDrawPool ? "该角色暂无可抽卡池" : cs.exp < costs.draw ? "经验不足" : undefined
+                  }
                 />
                 <div className={s["cd-deck-content"]}>
                   <div className={s["cd-deck-grid"]} data-deck-anchor>
@@ -448,8 +438,16 @@ export function CharacterDetailScreen() {
             pendingDraw={cs.pendingDraw}
             deck={cs.deck}
             minDeckSize={cs.minDeckSize}
-            playDrawIntro={justForgedRef.current}
-            onIntroConsumed={consumeDrawIntro}
+            drawCost={costs.draw}
+            exp={cs.exp}
+            deckLevel={cs.deckLevel}
+            deckSize={cs.deck.length}
+            hasPool={hasPool}
+            canConfirmDraw={canConfirmDraw}
+            drawDisabledReason={
+              !hasDrawPool ? "该角色暂无可抽卡池" : cs.exp < costs.draw ? "经验不足" : undefined
+            }
+            onStartDraw={() => forgeDraw(charId)}
             onComplete={finishForge}
             onPickDraw={pickForgedCard}
             onRemoveCard={removeForgedCard}
