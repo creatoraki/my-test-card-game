@@ -233,7 +233,9 @@ export function BattleScreen() {
     const target = bg.kind === "image" ? bgImageRef.current : null;
     if (!target) return;
     dofTargetsRef.current.add(target);
-    return () => dofTargetsRef.current.delete(target);
+    return () => {
+      dofTargetsRef.current.delete(target);
+    };
   }, [bg.kind, bg.src]);
 
   useEffect(() => {
