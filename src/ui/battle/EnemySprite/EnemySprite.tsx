@@ -23,10 +23,12 @@ export function EnemySprite({
   const skip = new Set(sprite.skipFrames ?? []);
   // 实播帧序列(0-based 索引); skipFrames 是 1-based, 故按 i+1 过滤
   const play = Array.from({ length: sprite.frames }, (_, i) => i).filter((i) => !skip.has(i + 1));
-  const stripWidth = sprite.width * sprite.frames;
+  const { box } = sprite;
+  // k 把源图像素换算为屏幕像素: 内容框正好落入 width × height, scale 再作用于整张立绘。
+  const k = (sprite.width / box.w) * scale;
   const name = `enemySpriteIdle-${id}-${String(scale).replace(".", "_")}`;
 
-  const offset = (frame: number) => `-${frame * sprite.width * scale}px`;
+  const offset = (frame: number) => `${-(box.x + frame * box.w) * k}px`;
   // 每帧在 i/n 处落一个位置, step-end 让它原地停到下一个落点; 末尾补 100%(值同末帧),
   // 使末帧也占满自己那一格时长
   const stops = play
@@ -45,8 +47,9 @@ export function EnemySprite({
           width: `${sprite.width * scale}px`,
           height: `${sprite.height * scale}px`,
           backgroundImage: `url(${sprite.src})`,
-          // 拼条整体缩放到 物理帧数×渲染宽, 于是每帧正好占 sprite.width
-          backgroundSize: `${stripWidth * scale}px ${sprite.height * scale}px`,
+          // 整张源图缩放后, 内容框通过位置偏移落到元素左上角, 元素外部自然被裁掉。
+          backgroundSize: `${box.sw * k}px ${box.sh * k}px`,
+          backgroundPositionY: `${-box.y * k}px`,
           animationName: name,
           animationTimingFunction: "step-end",
           animationDuration: `calc(${play.length * sprite.frameMs}ms / max(var(--fx-rate, 1), 0.25))`,

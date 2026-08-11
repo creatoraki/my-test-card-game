@@ -8,6 +8,8 @@
 
 // 单位是"设计 px": 战斗画面是固定 1920×1080 的设计画布, 整体等比缩放去适配窗口(见 ui/stage.ts),
 // 故这里的偏移与玩家的实际分辨率无关 —— 一次调好, 任何窗口尺寸下站位都与背景严丝合缝。
+// 立绘框基准高度由 styles/tokens.css 的 --foe-figure-h 定义, scale 是在其之上的乘数;
+// 现在 1.0 约等于立绘高 220 设计 px。基准变化时只需重新换算 scale, dx/dy 不随之移动。
 export interface EnemyPlacement {
   id: string; // 敌人 def id
   dx?: number; // 相对默认位置的水平偏移(设计 px), 右为正
@@ -49,9 +51,9 @@ export const ENCOUNTERS: EncounterDef[] = [
     id: "n1",
     name: "废墟拾荒者",
     enemies: [
-      { id: "pole-bot", dx: -125, dy: 350, scale: 1.5 },
-      { id: "radio-bot", dx: 45, dy: 450, scale: 1.2 },
-      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.5 },
+      { id: "pole-bot", dx: -125, dy: 350, scale: 1.0 },
+      { id: "radio-bot", dx: 45, dy: 450, scale: 0.85 },
+      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.0 },
     ],
   },
   // ── 废弃楼层的路由终点战(见 探索模式设计.md §8.3) ──
@@ -61,34 +63,34 @@ export const ENCOUNTERS: EncounterDef[] = [
     id: "n-crew",
     name: "清运班组",
     enemies: [
-      { id: "scrap-bot", dx: -125, dy: 400, scale: 1.5 },
-      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.5 },
+      { id: "scrap-bot", dx: -125, dy: 400, scale: 1.0 },
+      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.0 },
     ],
   },
   {
     id: "n-beacon",
     name: "巡回信标",
     enemies: [
-      { id: "radio-bot", dx: -125, dy: 450, scale: 1.2 },
-      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.5 },
+      { id: "radio-bot", dx: -125, dy: 450, scale: 0.85 },
+      { id: "scrap-bot", dx: 245, dy: 400, scale: 1.0 },
     ],
   },
   {
     id: "n-compactor",
     name: "报废压缩机",
     enemies: [
-      { id: "pole-bot", dx: 45, dy: 350, scale: 1.8 },
-      { id: "scrap-bot", dx: -195, dy: 420, scale: 1.4 },
-      { id: "scrap-bot", dx: 285, dy: 420, scale: 1.4 },
+      { id: "pole-bot", dx: 45, dy: 350, scale: 1.25 },
+      { id: "scrap-bot", dx: -195, dy: 420, scale: 0.95 },
+      { id: "scrap-bot", dx: 285, dy: 420, scale: 0.95 },
     ],
   },
   {
     id: "n-boss",
     name: "回收总控",
     enemies: [
-      { id: "pole-bot", dx: 45, dy: 330, scale: 2 },
-      { id: "radio-bot", dx: -215, dy: 450, scale: 1.2 },
-      { id: "scrap-bot", dx: 305, dy: 400, scale: 1.5 },
+      { id: "pole-bot", dx: 45, dy: 330, scale: 1.35 },
+      { id: "radio-bot", dx: -215, dy: 450, scale: 0.85 },
+      { id: "scrap-bot", dx: 305, dy: 400, scale: 1.0 },
     ],
   },
 ];

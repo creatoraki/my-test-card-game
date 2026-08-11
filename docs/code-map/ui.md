@@ -143,7 +143,7 @@ src/ui/
 | 文件 | 作用 |
 | --- | --- |
 | [art/cardArt.ts](../../src/ui/art/cardArt.ts) | 战斗卡 id → 卡面配图。 |
-| [art/enemyArt.ts](../../src/ui/art/enemyArt.ts) | 敌人 id → 待机拼条、尺寸和 idle 参数，含预热。 |
+| [art/enemyArt.ts](../../src/ui/art/enemyArt.ts) | 敌人 id → 待机拼条、尺寸、源图内容框 `box` 和 idle 参数，含预热；运行时按 `box` 裁切原图，不再产出 `-cut` 中间图。 |
 | [art/battleBg.ts](../../src/ui/art/battleBg.ts) | 地图 id → 战斗背景素材与静态图预热。 |
 | [art/mapArt.ts](../../src/ui/art/mapArt.ts) | 地图 id → 选层预览素材；与战斗背景表分离。 |
 | [art/eventArt.ts](../../src/ui/art/eventArt.ts) | 探索事件素材查表。 |

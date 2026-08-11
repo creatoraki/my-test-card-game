@@ -2,8 +2,8 @@
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 150px;
-  height: 150px;
+  width: var(--foe-figure-h);
+  height: var(--foe-figure-h);
   translate: -50% 0;
   pointer-events: none;
   z-index: 8;
