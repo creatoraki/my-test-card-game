@@ -135,15 +135,6 @@ span.ally-portrait {
   display: flex;
   flex-direction: column;
 }
-.ally-bars > .ally-pollution {
-  flex: 0 0 auto;
-  display: grid;
-  width: 100%;
-  min-height: 20px;
-  box-sizing: border-box;
-  padding: 2px 7px 3px;
-  background: #1a110bd1;
-}
 /* ⓘ 红条 = 生命, 走公共 HpBar 的 `flush` prop。它的贴底外观(去描边/斜切角、20px 高、
    名字与数值 12px)现在住在 common/HpBar/HpBar.module.css 的 `.hp-bar.hp-flush` 一节 ——
    那是 HpBar 自己的一个变体, 不该由本文件远程改写(样式铁律 1/3)。 */

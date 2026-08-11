@@ -465,11 +465,7 @@ export function ExploreScreen() {
                 )}
                 <div className={s["expl-member-body"]}>
                   <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} flush />
-                  <PollutionMeter
-                    value={characters[p.charId]?.pollution ?? 0}
-                    compact
-                    className={s["expl-pollution"]}
-                  />
+                  <PollutionMeter value={characters[p.charId]?.pollution ?? 0} />
                 </div>
                 {!p.alive && <span className={s["expl-member-down"]}>阵亡</span>}
               </div>

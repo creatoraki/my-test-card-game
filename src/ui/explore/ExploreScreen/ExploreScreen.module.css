@@ -345,11 +345,6 @@
   width: 100%;
   min-width: 0;
 }
-.expl-member-body > .expl-pollution {
-  flex: 0 0 auto;
-  padding: 2px 7px 3px;
-  background: #1a110bd1;
-}
 .expl-slot-empty {
   flex: 1 1 0;
   min-width: 0;

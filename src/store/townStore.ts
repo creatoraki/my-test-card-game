@@ -297,7 +297,7 @@ function freshCharacter(def: CharacterDef): CharacterState {
     forgeDay: 1,
     drawUsedToday: 0,
     removeUsedToday: 0,
-    pollution: 0,
+    pollution: INITIAL_POLLUTION,
     sick: false,
     quirks: [],
   };
@@ -309,6 +309,7 @@ function freshCharacter(def: CharacterDef): CharacterState {
 // 开局就已唤醒并直接上阵的角色 id(按顺序)。
 const INITIAL_AWAKENED = ["swordsman", "prophet", "botanist"];
 const INITIAL_TEST_EXP = 2000;
+const INITIAL_POLLUTION = 30;
 
 const INITIAL_CONSUMABLE_IDS = [
   "sugar-cube-c",

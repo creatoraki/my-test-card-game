@@ -1,87 +1,61 @@
-.pollution-meter {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-  color: #f4d2a0;
-}
-.pollution-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
-  min-width: 0;
-  font-size: 10px;
-  line-height: 1;
-}
-.pollution-label {
-  color: #f0b56d;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-.pollution-head strong {
-  color: #ffe2b8;
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.pollution-track {
-  position: relative;
-  height: 4px;
-  overflow: hidden;
-  background: #1f1610;
-  border: 1px solid #f0a04b45;
-}
-.pollution-fill {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #e68a3a, #ffcc72);
-  box-shadow: 0 0 7px #ffad4c;
-  transition: width 180ms ease-out;
-}
-.pollution-meter.bar {
+.pollution-bar {
   position: relative;
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
   height: 20px;
   box-sizing: border-box;
-  align-items: center;
   padding: 0 8px;
   overflow: hidden;
-  background: linear-gradient(180deg, #06110c, #0b1b13 52%, #040b07);
-  border: 1px solid #70d69b66;
-  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  background: linear-gradient(180deg, #0c0704f2, #1a110be6 52%, #0a0603f2);
+  border: none;
+  border-top: 1px solid #ffffff1a;
+  border-radius: 0;
+  clip-path: none;
   box-shadow: inset 0 1px 3px #000c;
 }
-.pollution-meter.bar .pollution-head {
-  position: relative;
-  z-index: 2;
-  flex: 1 1 auto;
-  font-size: 10px;
-}
-.pollution-meter.bar .pollution-label,
-.pollution-meter.bar .pollution-head strong {
-  color: #d7f8df;
-  text-shadow: 0 1px 2px #000, 0 0 3px #000;
-}
-.pollution-meter.bar .pollution-track {
+
+.pollution-bar::after {
+  content: "";
   position: absolute;
   inset: 0;
-  height: auto;
-  border: 0;
-  background: #06110c;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #ffffff2e 0,
+    #ffffff0f 22%,
+    transparent 46%,
+    #0000001f 78%,
+    #00000045 100%
+  );
 }
-.pollution-meter.bar .pollution-fill {
-  background: linear-gradient(90deg, #2d9f68, #79e39c);
-  box-shadow: 0 0 8px #56d989;
+
+.pollution-slot {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #261812, #17100b 52%, #0c0704);
 }
-.pollution-meter.compact {
-  gap: 2px;
+
+.pollution-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--poll-pct, 0%);
+  background: linear-gradient(180deg, #ffffff3d, #ffffff00 42%, #00000038),
+    linear-gradient(90deg, #2d9f68, #79e39c);
+  box-shadow: 0 0 10px -1px #56d989;
+  transition: width 180ms ease-out;
 }
-.pollution-meter.compact .pollution-head {
-  font-size: 9px;
-}
-.pollution-meter.compact .pollution-head strong {
-  font-size: 9px;
-}
-.pollution-meter.compact .pollution-track {
-  height: 3px;
+
+.pollution-text {
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+  color: #ffe2b8;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
 }

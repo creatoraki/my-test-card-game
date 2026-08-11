@@ -145,11 +145,7 @@ const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetab
         {/* 一体化双条: 贴卡框底边, 自身不带圆角/描边 —— 轮廓由 .ally-frame 的 overflow 裁出 */}
         <div className={s["ally-bars"]}>
           <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} flush slowDrain />
-          <PollutionMeter
-            value={(cmb as Ally).pollution}
-            compact
-            className={s["ally-pollution"]}
-          />
+          <PollutionMeter value={(cmb as Ally).pollution} />
           <div className={s["shield-bar"]} title={`护盾 ${cmb.shield}`}>
             <div className={s["shield-fill"]} style={{ width: `${shieldPct}%` }} />
           </div>

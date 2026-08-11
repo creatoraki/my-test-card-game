@@ -325,7 +325,7 @@ export function CharacterDetailScreen() {
               <div className={s["cd-hp"]}>
                 <HpBar hp={stats.maxHp} maxHp={stats.maxHp} flush />
               </div>
-              <PollutionMeter value={cs.pollution} bar className={s["cd-pollution"]} />
+              <PollutionMeter value={cs.pollution} />
             </div>
           </div>
 
