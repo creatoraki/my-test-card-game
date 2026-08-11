@@ -3,6 +3,7 @@ import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { CINEMA } from "@/ui/battle/animations";
 import { cx } from "@/ui/common/cx";
+import { useCardText } from "@/ui/common/cardText";
 import s from "./SkillCutInCard.module.css";
 
 // 整段亮相时长: 与 runSteps 的定时器口径一致。作为 CSS animation-duration,
@@ -14,6 +15,11 @@ const CUTIN_MS = CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut;
 // 时序由 BattleScreen.runSteps 用定时器与 CINEMA.cardIn/cardHold/cardOut 对齐控制挂载/卸载。
 export function SkillCutInCard({ card, fxRate }: { card: Card | null; fxRate: number }) {
   if (!card) return null;
+  return <SkillCutInCardContent card={card} fxRate={fxRate} />;
+}
+
+function SkillCutInCardContent({ card, fxRate }: { card: Card; fxRate: number }) {
+  const text = useCardText(card);
   const art = cardArt(card.id);
 
   return (
@@ -42,7 +48,7 @@ export function SkillCutInCard({ card, fxRate }: { card: Card | null; fxRate: nu
             <span className={s["cutin-name"]}>{card.name}</span>
             <span className={s["cutin-type"]}>{card.cardType === "fast" ? "速" : "普"}</span>
           </div>
-          <div className={s["cutin-text"]}>{card.text}</div>
+          <div className={s["cutin-text"]}>{text}</div>
         </>
       )}
     </div>

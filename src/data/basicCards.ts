@@ -20,7 +20,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
       rarity: "basic",
       anim: "slash",
       effects: [{ type: "DAMAGE", multiplier: 0.9, target: "primary" }],
-      text: "选择一名敌人，挥出一击造成 90% 攻击力的伤害。",
+      text: "选择一名敌人，挥出一击造成 {0} 点伤害。",
     },
     {
       id: basicCardId(charId, "heal"),
@@ -32,7 +32,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
       rarity: "basic",
       anim: "heal",
       effects: [{ type: "HEAL", multiplier: 0.5, target: "primary" }],
-      text: "选择一名友军，回复 50% 治愈力的生命。",
+      text: "选择一名友军，回复 {0} 点生命。",
     },
     {
       id: basicCardId(charId, "guard"),
@@ -44,7 +44,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
       rarity: "basic",
       anim: "shield",
       effects: [{ type: "GAIN_SHIELD", multiplier: 0.5, target: "primary" }],
-      text: "选择一名友军，为其获得 50% 治愈力的护盾。",
+      text: "选择一名友军，为其获得 {0} 点护盾。",
     },
   ];
 }

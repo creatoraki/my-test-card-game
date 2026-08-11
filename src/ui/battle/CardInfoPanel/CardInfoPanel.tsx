@@ -4,6 +4,7 @@ import { getCharacter } from "@/data";
 import { cardArt } from "@/ui/art/cardArt";
 import { useHandHover } from "@/ui/battle/handFocusStore";
 import { cx } from "@/ui/common/cx";
+import { useCardText } from "@/ui/common/cardText";
 import s from "./CardInfoPanel.module.css";
 
 const TARGET_LABEL: Record<Targeting, string> = {
@@ -47,6 +48,12 @@ export const CardInfoPanel = memo(function CardInfoPanel({ fallbackCard }: { fal
   if (!card) {
     return null;
   }
+
+  return <CardInfoPanelContent card={card} />;
+});
+
+function CardInfoPanelContent({ card }: { card: Card }) {
+  const text = useCardText(card);
 
   const owner = getCharacter(card.ownerCharId);
   const art = cardArt(card.id);
@@ -116,7 +123,7 @@ export const CardInfoPanel = memo(function CardInfoPanel({ fallbackCard }: { fal
         )}
       </dl>
 
-      <div className={s["drawer-text"]}>{card.text}</div>
+      <div className={s["drawer-text"]}>{text}</div>
     </div>
   );
-});
+}

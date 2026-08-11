@@ -1,6 +1,7 @@
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
+import { useCardText } from "@/ui/common/cardText";
 import { cx } from "@/ui/common/cx";
 import s from "./CardView.module.css";
 
@@ -13,6 +14,7 @@ interface Props {
 
 export function CardView({ card, playable, selected, onClick }: Props) {
   const owner = getCharacter(card.ownerCharId);
+  const text = useCardText(card);
   return (
     <div
       className={cx(
@@ -28,7 +30,7 @@ export function CardView({ card, playable, selected, onClick }: Props) {
         e.stopPropagation();
         if (onClick) onClick();
       }}
-      title={card.text}
+      title={text}
     >
       <div className={s["card-head"]}>
         <span className={s["card-cost"]} title="消耗法力水晶">
@@ -46,7 +48,7 @@ export function CardView({ card, playable, selected, onClick }: Props) {
         {owner.emoji} {owner.name}
       </div>
       <div className={s["card-name"]}>{card.name}</div>
-      <div className={s["card-text"]}>{card.text}</div>
+      <div className={s["card-text"]}>{text}</div>
     </div>
   );
 }

@@ -14,6 +14,7 @@
 | [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、状态生命周期和胜负判定等原语；敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡。 |
 | [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调、状态生命周期和胜负判定等原语；敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡。 |
 | [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语，并解析 primary、self、allFoes、randomFoe 等目标；支持多段伤害、动态段数和声明式弃牌。卡牌和敌人招式共用；`amount` 固定伤害，`multiplier` 按施放者攻击力计算，二者只能选一个。 |
+| [cardText.ts](../../src/engine/cardText.ts) | 将卡牌说明中的 `{0}` / `{d0}` 占位符按施放者攻击力或治愈力渲染为具体基础数值。 |
 | [discard.ts](../../src/engine/discard.ts) | 弃牌唯一入口：迁移牌堆、按规则计数、结算「被弃置时」触发并录制表现快照。 |
 | [keywords.ts](../../src/engine/keywords.ts) | 卡牌词条注册表；统一承载共鸣、瞄准、登阶、日蚀、月蚀的待接落点。 |
 | [challenges.ts](../../src/engine/challenges.ts) | 挑战词条注册表、随机抽取、克制/大屠杀/慈悲的判定与奖励计算；由 `ops.ts` 和 `battle.ts` 接入战斗真相点。 |

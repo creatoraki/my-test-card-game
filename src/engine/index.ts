@@ -56,6 +56,8 @@ export { getStatus } from "./ops";
 export { moveToDiscard } from "./discard";
 export { KEYWORD_DEFS } from "./keywords";
 export type { KeywordDef } from "./keywords";
+export { effectDisplayValue, renderCardText } from "./cardText";
+export type { CardTextStats } from "./cardText";
 export {
   CHALLENGE_DEFS,
   CHALLENGE_PICK,

@@ -4,6 +4,7 @@
 //   只有"固定伤害"才用 amount —— 那类伤害不吃攻击力, 也不吃目标的防御与格挡。
 // 护盾/治疗可写固定 amount, 也可写治愈力倍率 multiplier, 二选一; 强度在 ops 里结算。
 // 基础卡为 1 费资源曲线底盘, rarity=basic, 不进入抽卡池也不计入稀有度限携。
+// text 支持 {0}、{1} 等效果数值占位符；{d0} 对应 onDiscard.effects[0]。
 
 import type { CardDef } from "../engine/types";
 import { makeBasicCardDefs } from "./basicCards";
@@ -25,7 +26,7 @@ export const CARD_DEFS: CardDef[] = [
     anim: "ice",
     effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary", hitBonus: 10 }],
     onDiscard: { mode: "useSelf", autoTarget: "randomFoe" },
-    text: "造成 100% 攻击力的伤害，本次命中 +10%。被丢弃时自动对随机敌人使用。",
+    text: "造成 {0} 点伤害。被丢弃时自动对随机敌人使用。",
   },
   {
     id: "buzz",
@@ -40,7 +41,7 @@ export const CARD_DEFS: CardDef[] = [
       { type: "DAMAGE", multiplier: 0.9, target: "primary" },
       { type: "DISCARD", amount: 1, discardPick: "handBottom" },
     ],
-    text: "造成 90% 攻击力的伤害，然后丢弃手牌最后一张。不推进时刻。",
+    text: "造成 {0} 点伤害，然后丢弃手牌最后一张。不推进时刻。",
   },
 
   // ---- 剑士专属抽卡池 · 稀有 ----
@@ -62,7 +63,7 @@ export const CARD_DEFS: CardDef[] = [
         target: "primary",
       },
     ],
-    text: "对一名敌人造成 3 段 60% 攻击力的伤害；本回合每丢弃过 1 张手牌，额外造成 1 段。",
+    text: "对一名敌人造成 3 段 {0} 点伤害；本回合每丢弃过 1 张手牌，额外造成 1 段。",
   },
 
 ];

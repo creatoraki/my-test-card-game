@@ -6,6 +6,7 @@ import { cardArt } from "@/ui/art/cardArt";
 import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
 import { DiscardIcon, RedrawIcon } from "@/ui/battle/HandTools";
 import { cx } from "@/ui/common/cx";
+import { useCardText } from "@/ui/common/cardText";
 import s from "./HandCard.module.css";
 
 interface Props {
@@ -55,10 +56,11 @@ export const HandCard = memo(function HandCard({
   const owner = getCharacter(card.ownerCharId);
   const art = cardArt(card.id);
   const hasArt = Boolean(art);
+  const text = useCardText(card);
   // 说明区高度固定(一排卡必须等高), 故长文本靠**降字号**消化而不是撑高卡。
   // 按字数分三档而不是 JS 实测宽高: 零测量、零布局抖动, 也不需要 useLayoutEffect;
   // 极端超长的仍会被 .hc-text 的行数截断兜住, 完整文字在右侧 CardInfoPanel 永远读得到。
-  const textSize = card.text.length <= 24 ? "lg" : card.text.length <= 44 ? "md" : "sm";
+  const textSize = text.length <= 24 ? "lg" : text.length <= 44 ? "md" : "sm";
   const handStyle = {
     // 归属角色配色: 现在只落在**卡名压条左端那道竖标**上(见 HandCard.css .hc-title::before)。
     // ⚠ 刻意只留这一处 —— 金属刻板的卡面上配色越少越贵气, 归属辨识主要靠队伍槽本身。
@@ -150,7 +152,7 @@ export const HandCard = memo(function HandCard({
         <span className={s["hc-title"]}>{card.name}</span>
 
         {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
-        <span className={cx(s["hc-text"], s[textSize])}>{card.text}</span>
+        <span className={cx(s["hc-text"], s[textSize])}>{text}</span>
 
         {/* 选中角标: 右上角一块配色三角切片。选中态**唯一**的不依赖位移的线索 ——
             鼠标移开手牌区后, 玩家仍要能一眼认出锁定的是哪张。仅 .selected 时渲染。 */}
