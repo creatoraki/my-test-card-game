@@ -23,11 +23,11 @@
   translate: var(--place-dx, 0) var(--place-dy, 0);
 }
 /* 体型几何层: 只有立绘和命中特效在里面, 血条/BUFF/意图/倒计时都在层外, 故大体型敌人的
-  UI 元素仍是全场统一尺寸。立绘实际按最终像素渲染, 负 margin 把新增高度收回, 保持血条
-  与原先 CSS scale 方案相同的布局位置。 */
+  UI 元素仍是全场统一尺寸。信息栏锚在主体脚线, 负 margin 抵消素材底部透明留白;
+  因此立绘放大时血条会随脚线下移, 不会停在 scale=1 的旧高度。 */
 .combatant-stage {
   position: relative;
-  margin-bottom: calc(var(--foe-figure-h) - var(--fig-h) + var(--foot-inset));
+  margin-bottom: calc(var(--foot-inset) * -1);
   transform-origin: 50% 100%;
 }
 .combatant[data-telegraph] .combatant-stage {

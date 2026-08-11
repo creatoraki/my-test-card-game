@@ -49,7 +49,7 @@ export function enemyIdle(def: EnemySpriteDef | undefined): typeof DEFAULT_IDLE 
 
 const ENEMY_ART: Record<string, EnemySpriteDef> = {
   // 9:16 与 1:1 素材都走同一模型: view 决定展示构图, body 决定主体高度归一。
-  // 废品/电线杆两台仍共用同一张 576×1024 占位图, 这是刻意的临时素材而非复制粘贴失误。
+  // 电线杆机器人已换成专属 9:16 立绘, 主体 1024×1546(瘦高), 体型差异由 encounters.ts 的 scale 承担。
   // view 省略即整帧展示; body 仍由 alpha 包围盒提供脚线和体型基准。
   // frames: 1 是刻意的而非漏填 —— 拼条机制在单帧下自然退化成一张不动的背景图, 无需特判;
   // 此时 frameMs 只决定那条空转动画的时长, 不影响观感。
@@ -62,14 +62,14 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     // 机械微颤: 上下 3px + 0.6° 侧倾, 像内部还有个马达在转
     idle: { bob: 3, tilt: 0.6, dur: 2600 },
   },
-  // 电线杆机器人: 当前占位图与废品机器人相同, 体型差异交给 encounters.ts 的 scale。
+  // 电线杆机器人: 已换成专属 9:16 立绘, 主体 1024×1546(瘦高), 体型差异由 encounters.ts 的 scale 承担。
   "pole-bot": {
     src: poleBotIdle,
     frames: 1,
     frameMs: 1000,
-    sheet: { w: 576, h: 1024 },
-    body: { x: 13, y: 84, w: 522, h: 880 },
-    // 这是为电线杆体型预留的呼吸手感, 等专属立绘到位后仍然适用。
+    sheet: { w: 1152, h: 2048 },
+    body: { x: 63, y: 255, w: 1024, h: 1546 },
+    // 这是为电线杆体型预留的呼吸手感, 与专属立绘匹配。
     idle: { bob: 0, sway: 2, tilt: 1.2, dur: 3400, delay: -900 },
   },
   // 收音机机器人: 1:1 素材完整展示; body 是 alpha 包围盒, 仅用于主体归一和脚线定位。

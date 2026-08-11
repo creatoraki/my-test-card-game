@@ -46,47 +46,52 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
     : slot;
 }
 
-// 当前所有遭遇战统一成"两台收音机机器人, 一左一右"的临时配置(立绘验证期):
-// 左右两个槽位沿用已经和霓虹城市背景对好的 dx -200 / 200、dy 250,
-// 右侧那台开 flip 走左右镜像, 两台面朝彼此。
+// 当前所有遭遇战统一成"两台收音机机器人夹一台电线杆机器人"的临时配置(立绘验证期):
+// 三个槽位共用 dy 219.625 地面线; 左右收音机开 flip 走左右镜像, 三台敌人面朝中间。
 // radio-bot 新模型按主体高度归一。旧模型整图高 256px, 新模型主体高 1619px/2048px;
 // 为保持旧观感取 scale = 1619/2048 ≈ 0.7905。旧整图底部留白为
 // (2048 - 186 - 1619) × 256/2048 = 30.375px, 故 dy 从 250 减到 219.625,
 // 把新脚线拉回原地面线。后续 scale 仍以主体脚线为中心, 单独调体型无需再补 dy。
 //
+// 三台时 .enemy-row 的布局宽为 3×256 + 2×20 = 808px, 相比两台的 532px,
+// 默认左槽中心从 -138 西移到 -276。dx 是相对默认槽位的偏移, 为保持两台收音机
+// 与改动前的绝对位置不变, 左侧补偿 -200 + 138 = -62, 右侧补偿 200 - 138 = 62;
+// 中间槽默认中心就是 0, 所以不补偿。以后增删敌人时, 先按布局宽变化重新计算补偿。
+//
 // ⚠ 底部 HUD 改造后 dx 整体 +195(旧值 -320 / 50): 舞台不再避让左侧手牌栏
 // (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
 // 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
-const RADIO_PAIR: EnemySlot[] = [
-  { id: "radio-bot", dx: -200, dy: 219.625, scale: 1 },
-  { id: "radio-bot", dx: 200, dy: 219.625, scale: 1, flip: true },
+const RADIO_TRIO: EnemySlot[] = [
+  { id: "radio-bot", dx: -62, dy: 219.625, scale: 1 },
+  { id: "pole-bot", dx: 0, dy: 80, scale: 1.4 },
+  { id: "radio-bot", dx: 62, dy: 219.625, scale: 1, flip: true },
 ];
 
 export const ENCOUNTERS: EncounterDef[] = [
   {
     id: "n1",
     name: "废墟拾荒者",
-    enemies: RADIO_PAIR,
+    enemies: RADIO_TRIO,
   },
   // ── 废弃楼层的路由终点战(见 探索模式设计.md §8.3) ──
   {
     id: "n-crew",
     name: "清运班组",
-    enemies: RADIO_PAIR,
+    enemies: RADIO_TRIO,
   },
   {
     id: "n-beacon",
     name: "巡回信标",
-    enemies: RADIO_PAIR,
+    enemies: RADIO_TRIO,
   },
   {
     id: "n-compactor",
     name: "报废压缩机",
-    enemies: RADIO_PAIR,
+    enemies: RADIO_TRIO,
   },
   {
     id: "n-boss",
     name: "回收总控",
-    enemies: RADIO_PAIR,
+    enemies: RADIO_TRIO,
   },
 ];
