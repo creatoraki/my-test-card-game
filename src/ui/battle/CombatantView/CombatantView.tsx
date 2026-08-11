@@ -166,7 +166,7 @@ export const CombatantView = memo(function CombatantView({
               className={s["combatant-statuses"]}
             />
           </div>
-          <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit />
+          <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit large />
         </div>
         {phase === "alive" && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
       </div>

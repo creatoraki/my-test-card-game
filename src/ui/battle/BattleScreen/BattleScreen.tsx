@@ -161,8 +161,6 @@ export function BattleScreen() {
   const animatingRef = useRef(false); // 同步守卫(避免同一时刻重复触发)
   const seqRef = useRef(0); // 批次序号, 用于取消旧动画批次的定时器回调
   const hitSeqRef = useRef(0); // 受击特效序号, 递增以强制 React 重放同一目标的连续特效
-  const cameraSettleTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
-  const cameraStateReadyRef = useRef(false);
   const dealtUidsRef = useRef(new Set<string>()); // 已经播过飞入动画的卡 uid
   const openingDoneRef = useRef(false); // 本场战斗的首批手牌是否已发出
   const timelineRef = useRef<Timeline | null>(null);
@@ -227,27 +225,13 @@ export function BattleScreen() {
   useEffect(
     () => () => {
       timelineRef.current?.cancel();
-      if (cameraSettleTimerRef.current !== null) {
-        window.clearTimeout(cameraSettleTimerRef.current);
-      }
     },
     [],
   );
 
   useEffect(() => {
-    if (!cameraStateReadyRef.current) {
-      cameraStateReadyRef.current = true;
-      return;
-    }
-    setCameraMoving(true);
-    if (cameraSettleTimerRef.current !== null) {
-      window.clearTimeout(cameraSettleTimerRef.current);
-    }
-    cameraSettleTimerRef.current = window.setTimeout(() => {
-      cameraSettleTimerRef.current = null;
-      setCameraMoving(false);
-    }, CAMERA_SETTLE_MS);
-  }, [camera, aim]);
+    return cameraRig.onRestChange((rest) => setCameraMoving(!rest));
+  }, [cameraRig]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -745,14 +729,6 @@ export function BattleScreen() {
         className={s["battle-scene"]}
         ref={sceneRef}
         style={{ willChange: cameraMoving ? "transform" : "auto" }}
-        onTransitionEnd={(event) => {
-          if (event.propertyName !== "transform" || event.target !== event.currentTarget) return;
-          if (cameraSettleTimerRef.current !== null) {
-            window.clearTimeout(cameraSettleTimerRef.current);
-            cameraSettleTimerRef.current = null;
-          }
-          setCameraMoving(false);
-        }}
       >
         {/* ★ 世界层: 相机之下、场景内容之上的一层。它同样包住背景 + 氛围 + 舞台,
           存在的意义是承载 rig 直接写入的空闲漂移、冲击位移与 punch 缩放。

@@ -4,8 +4,8 @@
 /* 护盾数值徽章 */
 .shield-badge {
   flex: 0 0 auto;
-  padding: 0 5px;
-  font-size: 12px;
+  padding: var(--badge-pad, 0 5px);
+  font-size: var(--badge-size, 12px);
   background: #1d2a3a;
   border: 1px solid #34567a;
   border-radius: 0;

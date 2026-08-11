@@ -11,6 +11,7 @@ export interface Camera {
 }
 
 export const CAMERA_REST: Camera = { s: 1, dx: 0, dy: 0, yaw: 0, pitch: 0, roll: 0 };
+export const CAMERA_REST_EPS = 0.001;
 export const AXIS = { x: STAGE.width / 2, y: STAGE.height / 2 };
 
 export function worldShift(A: { x: number; y: number }, F: { x: number; y: number }, s: number) {
@@ -21,6 +22,9 @@ export function worldShift(A: { x: number; y: number }, F: { x: number; y: numbe
 }
 
 export function cameraCss(camera: Camera): string {
+  if (Object.keys(CAMERA_REST).every((key) => Math.abs(camera[key as keyof Camera] - CAMERA_REST[key as keyof Camera]) < CAMERA_REST_EPS)) {
+    return "none";
+  }
   const z = CINEMA.perspective * (1 - 1 / camera.s);
   return `translateZ(${z}px) rotateY(${camera.yaw}deg) rotateX(${camera.pitch}deg) rotateZ(${camera.roll}deg) translate(${camera.dx}px, ${camera.dy}px)`;
 }
