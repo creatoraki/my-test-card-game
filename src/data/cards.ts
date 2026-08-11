@@ -2,47 +2,16 @@
 // ★ 攻击牌用 multiplier(攻击力倍率), 不写死点数 —— 剑士攻击力 20, 故 1.0 倍 ≈ 20 点。
 //   1 费标准攻击牌以 1.0 倍为中心(0.7~1.2); 低倍率换控制/防护/资源, 高倍率必须付代价。
 //   只有"固定伤害"才用 amount —— 那类伤害不吃攻击力, 也不吃目标的防御与格挡。
-// 护盾/治疗仍写基础值, 护盾强度与治愈力/治愈强度在 ops 里按施法者结算。
+// 护盾/治疗可写固定 amount, 也可写治愈力倍率 multiplier, 二选一; 强度在 ops 里结算。
+// 基础卡为 1 费资源曲线底盘, rarity=basic, 不进入抽卡池也不计入稀有度限携。
 
 import type { CardDef } from "../engine/types";
+import { makeBasicCardDefs } from "./basicCards";
 
 export const CARD_DEFS: CardDef[] = [
-  {
-    id: "whirlwind-slash",
-    name: "回旋斩",
-    ownerCharId: "swordsman",
-    cost: 2,
-    cardType: "normal",
-    targeting: "foe",
-    rarity: "common",
-    anim: "slash",
-    effects: [{ type: "DAMAGE", multiplier: 0.6, target: "allFoes" }],
-    text: "选择一名敌人确认施放，回旋挥剑后对所有敌人造成 60% 攻击力的伤害。",
-  },
-  {
-    id: "lightning-infused",
-    name: "雷灌",
-    ownerCharId: "swordsman",
-    cost: 1,
-    cardType: "normal",
-    targeting: "foe",
-    rarity: "common",
-    anim: "lightning",
-    effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
-    text: "选择一名敌人，降下雷击造成 100% 攻击力的伤害。",
-  },
-  {
-    id: "sky-rend",
-    name: "裂空",
-    ownerCharId: "swordsman",
-    cost: 2,
-    cardType: "normal",
-    targeting: "foe",
-    rarity: "common",
-    anim: "iai-slash",
-    effects: [{ type: "DAMAGE", multiplier: 1.7, target: "primary" }],
-    text: "选择一名敌人，挥出裂空一斩造成 170% 攻击力的伤害。",
-  },
+  ...makeBasicCardDefs("swordsman"),
+  ...makeBasicCardDefs("prophet"),
+  ...makeBasicCardDefs("botanist"),
 
   // ---- 剑士专属抽卡池 · 普通(见 CharacterDef.pools) ----
   {
@@ -181,33 +150,4 @@ export const CARD_DEFS: CardDef[] = [
     text: "必中的断罪一击，造成 260% 攻击力的伤害并施加 2 层易伤。打出后本场移除。",
   },
 
-  // ---- 预言家初始卡 ----
-  // ⚠ 占位内容: 初始卡组是 5 张同名的「基础攻击」(卡面用占位素材), 专属卡牌与抽卡池设计另起。
-  {
-    id: "prophet-basic-attack",
-    name: "基础攻击",
-    ownerCharId: "prophet",
-    cost: 1,
-    cardType: "normal",
-    targeting: "foe",
-    rarity: "common",
-    anim: "slash",
-    effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
-    text: "选择一名敌人，挥出一击造成 100% 攻击力的伤害。",
-  },
-
-  // ---- 植物学家初始卡 ----
-  // ⚠ 占位内容: 初始卡组是 5 张同名的「普通攻击」(卡面用占位素材), 专属卡牌与抽卡池设计另起。
-  {
-    id: "botanist-basic-attack",
-    name: "普通攻击",
-    ownerCharId: "botanist",
-    cost: 1,
-    cardType: "normal",
-    targeting: "foe",
-    rarity: "common",
-    anim: "slash",
-    effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
-    text: "选择一名敌人，挥出一击造成 100% 攻击力的伤害。",
-  },
 ];

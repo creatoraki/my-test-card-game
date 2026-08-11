@@ -229,7 +229,11 @@ export function deriveStats(cs: CharacterState): StatBlock {
 // ---------------------------------------------------------------------------
 export function countByRarity(deck: Card[]): Record<Rarity, number> {
   const out: Record<Rarity, number> = { common: 0, uncommon: 0, rare: 0 };
-  for (const c of deck) out[c.rarity ?? "common"] += 1;
+  for (const c of deck) {
+    const rarity = c.rarity ?? "common";
+    if (rarity === "basic") continue;
+    out[rarity] += 1;
+  }
   return out;
 }
 
@@ -727,7 +731,8 @@ export const useTownStore = create<TownStore>()(
         if (!cs?.pendingDraw?.includes(cardDefId)) return;
         const card = makeCard(cardDefId);
         // 再校验一次限携 —— 候选是抽卡那一刻算的, 期间卡组可能已经变了。
-        if (!canAddRarity(cs.deck, card.rarity ?? "common")) {
+        const rarity = card.rarity === "basic" ? "common" : card.rarity ?? "common";
+        if (!canAddRarity(cs.deck, rarity)) {
           set({ characters: { ...get().characters, [charId]: { ...cs, pendingDraw: null } } });
           return;
         }

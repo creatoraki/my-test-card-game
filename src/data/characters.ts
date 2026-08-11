@@ -4,6 +4,7 @@
 
 import type { Rarity, StatBlock } from "../engine/types";
 import { makeStats } from "../engine/stats";
+import { basicStartingCardIds } from "./basicCards";
 
 export interface CharacterDef {
   id: string;
@@ -23,11 +24,13 @@ export const CHARACTERS: CharacterDef[] = [
     name: "剑士",
     emoji: "⚔️",
     color: "#78c8ff",
-    // 首版基准: HP 50 / 攻击 20 / 防御 10 / 先手 10(《角色养成设计.md》3.0)。
+    // 首版基准: HP 50 / 攻击 20 / 治愈力 20 / 防御 10 / 先手 10(《角色养成设计.md》3.0)。
+    // 治愈力 20 使基础卡的 50% 治疗/护盾各为 10 点, 与剑士现有辅助牌同档。
     // 小队贡献 3 手牌 + 1 抽牌 —— 三人合计应为 7 / 2。
     base: makeStats({
       maxHp: 50,
       attack: 20,
+      healPower: 20,
       defense: 10,
       initiative: 10,
       critRate: 5,
@@ -35,7 +38,7 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 3,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    startingCardIds: ["whirlwind-slash", "lightning-infused", "sky-rend"],
+    startingCardIds: basicStartingCardIds("swordsman"),
     pools: {
       common: [
         "quick-slash",
@@ -58,6 +61,7 @@ export const CHARACTERS: CharacterDef[] = [
     base: makeStats({
       maxHp: 50,
       attack: 20,
+      healPower: 20,
       defense: 10,
       initiative: 10,
       critRate: 5,
@@ -65,14 +69,7 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 3,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    // 初始卡组 = 5 张同名的「基础攻击」
-    startingCardIds: [
-      "prophet-basic-attack",
-      "prophet-basic-attack",
-      "prophet-basic-attack",
-      "prophet-basic-attack",
-      "prophet-basic-attack",
-    ],
+    startingCardIds: basicStartingCardIds("prophet"),
     // ⚠ 专属抽卡池待设计: 三档都空 ⇒ 锻造抽卡对本角色暂时抽不出东西(forgeDraw 会直接返回)。
     pools: { common: [], uncommon: [], rare: [] },
   },
@@ -85,6 +82,7 @@ export const CHARACTERS: CharacterDef[] = [
     base: makeStats({
       maxHp: 50,
       attack: 20,
+      healPower: 20,
       defense: 10,
       initiative: 10,
       critRate: 5,
@@ -92,14 +90,7 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 3,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    // 初始卡组 = 5 张同名的「普通攻击」
-    startingCardIds: [
-      "botanist-basic-attack",
-      "botanist-basic-attack",
-      "botanist-basic-attack",
-      "botanist-basic-attack",
-      "botanist-basic-attack",
-    ],
+    startingCardIds: basicStartingCardIds("botanist"),
     // ⚠ 专属抽卡池待设计: 三档都空 ⇒ 锻造抽卡对本角色暂时抽不出东西(forgeDraw 会直接返回)。
     pools: { common: [], uncommon: [], rare: [] },
   },

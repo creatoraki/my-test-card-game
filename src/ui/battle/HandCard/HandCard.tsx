@@ -113,7 +113,8 @@ export const HandCard = memo(function HandCard({
           s["hand-card"],
           hasArt && s["has-art"],
           s[card.cardType],
-          // 稀有度档位 → .r-common / .r-uncommon / .r-rare。卡面上它表现为**蚀刻纹密度 + 边棱工艺**,
+          // 稀有度档位 → .r-basic / .r-common / .r-uncommon / .r-rare。basic 与 common 同为无纹,
+          // 卡面上其余档位表现为**蚀刻纹密度 + 边棱工艺**,
           // 一个像素的配色都不用(理由见 src/styles/tokens.css: 那套 --rarity-* 是物品的, 别套用)。
           // ⚠ rarity 在 CardDef 上是可选的(engine/types.ts), 缺省当 common —— 否则那张卡会一层纹都没有,
           //   与 common 看起来一样但走的是"未定义"的路径, 将来加档时容易漏。

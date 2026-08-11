@@ -1,6 +1,7 @@
 // 引擎公开 API。UI / store 只从这里 import。
 
 export * from "./types";
+export type { CardRarity } from "./types";
 export {
   RULES,
   capProb,

@@ -176,9 +176,9 @@
     0 14px
   );
 }
-/* ── ★ 稀有度三档: 只用**蚀刻纹与边棱工艺**, 零色相 ──
-   档位来自 card.rarity(common/uncommon/rare, 见 engine/types.ts), 由 ui/HandCard.tsx 拼成
-   .r-common / .r-uncommon / .r-rare 挂在卡上; 缺省当 common。
+/* ── ★ 稀有度四档: 只用**蚀刻纹与边棱工艺**, 零色相 ──
+  档位来自 card.rarity(basic/common/uncommon/rare, 见 engine/types.ts), 由 ui/HandCard.tsx 拼成
+  .r-basic / .r-common / .r-uncommon / .r-rare 挂在卡上; basic 与 common 同为无纹。
    ⚠ 刻意不上色: src/styles/tokens.css 里那套 --rarity-* 五档配色是**物品**的, 注释已明确写了
      "与卡牌稀有度无关, 别互相套用"。卡牌这三档是工艺差 —— 越稀有的板子加工得越精细。
    ⚠ 分寸: 稀有度是**背景信息**, 绝不能比费用徽章与卡名更抢眼。三档的纹理都压得很淡,

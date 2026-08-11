@@ -33,8 +33,8 @@ export interface RevealPlan {
   duration: number;
 }
 
-function rarityOf(card: Card): Rarity {
-  return card.rarity ?? "common";
+export function rarityOf(card: Card): Rarity {
+  return card.rarity === "basic" ? "common" : card.rarity ?? "common";
 }
 
 export function revealOrder(cards: Card[]): RevealPlan[] {

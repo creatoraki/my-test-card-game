@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Card, Rarity } from "@/engine";
+import type { Card } from "@/engine";
 import { cx } from "@/ui/common/cx";
 import { DeckCard } from "@/ui/character/DeckCard";
 import {
@@ -10,6 +10,7 @@ import {
   RARE_RIPPLE_MS,
   RARITY_SWEEP_MS,
   SETTLE_MS,
+  rarityOf,
 } from "./forgeChoreo";
 import s from "./ScanRevealCard.module.css";
 
@@ -30,10 +31,6 @@ export interface ScanRevealCardProps {
   selected: boolean;
   onClick: () => void;
   flight?: ScanRevealFlight;
-}
-
-function rarityOf(card: Card): Rarity {
-  return card.rarity ?? "common";
 }
 
 export function ScanRevealCard({

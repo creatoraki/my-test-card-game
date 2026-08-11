@@ -1,5 +1,5 @@
 import { memo } from "react";
-import type { Card, Targeting, Rarity } from "@/engine";
+import type { Card, CardRarity, Targeting } from "@/engine";
 import { getCharacter } from "@/data";
 import { cardArt } from "@/ui/art/cardArt";
 import { useHandHover } from "@/ui/battle/handFocusStore";
@@ -15,7 +15,8 @@ const TARGET_LABEL: Record<Targeting, string> = {
   none: "无需目标",
 };
 
-const RARITY_LABEL: Record<Rarity, string> = {
+const RARITY_LABEL: Record<CardRarity, string> = {
+  basic: "基础",
   common: "普通",
   uncommon: "优秀",
   rare: "稀有",

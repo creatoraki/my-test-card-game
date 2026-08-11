@@ -149,18 +149,22 @@ export function dealDamage(
   if (target.hp <= 0) markDead(state, target);
 }
 
-// 最终治疗 =(基础治疗 + 治愈力)×(1 + 治愈强度)。sourceId 缺省 = 无施法者, 不吃两项加成。
+// 最终治疗 =(基础治疗 + 治愈力)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力 × 倍率,
+// 此时只乘治愈强度, 避免重复叠加治愈力。sourceId 缺省 = 无施法者, 不吃两项加成。
 export function heal(
   state: BattleState,
   sourceId: string | undefined,
   targetId: string,
   amount: number,
+  opts: { scaled?: boolean } = {},
 ): void {
   const t = state.combatants[targetId];
   if (!t || !t.alive || amount <= 0) return;
   const src = sourceId ? state.combatants[sourceId] : undefined;
   let final = amount;
-  if (src) final = (amount + statOf(src, "healPower")) * (1 + statOf(src, "healBoost") / 100);
+  if (src) {
+    final = (opts.scaled ? amount : amount + statOf(src, "healPower")) * (1 + statOf(src, "healBoost") / 100);
+  }
 
   const before = t.hp;
   t.hp = Math.min(t.hpLimit, t.hp + Math.round(final));

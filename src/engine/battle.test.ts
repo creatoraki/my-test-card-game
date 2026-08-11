@@ -37,7 +37,7 @@ function battleWith(deckCardId: string, n = 12): BattleState {
 
 describe("战斗初始化", () => {
   it("回合1/时刻1, 抽开局张数, 法力水晶=每回合量, 2 个敌人", () => {
-    const b = battleWith("whirlwind-slash");
+    const b = battleWith("swordsman-basic-attack");
     expect(b.round).toBe(1);
     expect(b.tick).toBe(RULES.timeline.startTick);
     // 第 1 回合抽 partyOpeningDrawCount 张(抽到手牌上限为止)
@@ -48,7 +48,7 @@ describe("战斗初始化", () => {
   });
 
   it("我方面板来自角色基础值, 不含任何等级/加点来源", () => {
-    const b = battleWith("whirlwind-slash");
+    const b = battleWith("swordsman-basic-attack");
     const sw = b.combatants["swordsman"];
     expect(sw.maxHp).toBe(50);
     expect(statOf(sw, "attack")).toBe(20);
@@ -59,12 +59,12 @@ describe("战斗初始化", () => {
 
 describe("属性口径", () => {
   it("防御 10 ⇒ 减伤 10/(10+30)", () => {
-    const b = battleWith("whirlwind-slash");
+    const b = battleWith("swordsman-basic-attack");
     expect(defenseMultiplier(b.combatants["swordsman"])).toBeCloseTo(1 - 10 / 40, 6);
   });
 
   it("命中率截断在 5%~100% 之间", () => {
-    const b = battleWith("whirlwind-slash");
+    const b = battleWith("swordsman-basic-attack");
     const sw = b.combatants["swordsman"];
     const enemy = b.combatants[b.enemyIds[0]];
     const p = hitChance(b, sw, enemy);
@@ -74,8 +74,8 @@ describe("属性口径", () => {
 
   // 负重是我方自己背的包 —— 它只该削我方的命中/暴击, 不该顺手削掉敌人的。
   it("负重只扣我方: 我方命中下降, 敌人打我方反而更准", () => {
-    const light = battleWith("whirlwind-slash");
-    const heavy = { ...battleWith("whirlwind-slash"), burdenPenalty: 20 };
+    const light = battleWith("swordsman-basic-attack");
+    const heavy = { ...battleWith("swordsman-basic-attack"), burdenPenalty: 20 };
     const sw = heavy.combatants["swordsman"];
     const enemy = heavy.combatants[heavy.enemyIds[0]];
 
@@ -91,7 +91,7 @@ describe("属性口径", () => {
   });
 
   it("概率类属性最终值封顶在 probCapPct", () => {
-    const b = battleWith("whirlwind-slash");
+    const b = battleWith("swordsman-basic-attack");
     const sw = b.combatants["swordsman"];
     sw.mods = { flat: { critRate: 500 } };
     expect(statOf(sw, "critRate")).toBe(RULES.combat.probCapPct);
@@ -100,7 +100,7 @@ describe("属性口径", () => {
 
 describe("时刻推进(核心机制)", () => {
   it("普通牌推进 1 时刻并造成倍率伤害", () => {
-    const b = battleWith("lightning-infused"); // 雷灌: 普通牌, 1.0 倍攻击力
+    const b = battleWith("swordsman-basic-attack"); // 普通攻击: 普通牌, 0.9 倍攻击力
     const enemyId = b.enemyIds[0];
     const enemy = b.combatants[enemyId];
     const hpBefore = enemy.hp;
@@ -120,7 +120,7 @@ describe("时刻推进(核心机制)", () => {
 
 describe("回合结束冲刷: 未行动的敌人各打一次", () => {
   it("玩家不出牌直接过合, 会挨两次攻击", () => {
-    const b = battleWith("whirlwind-slash");
+    const b = battleWith("swordsman-basic-attack");
     const before = b.combatants["swordsman"].hp;
     endRound(b);
     // ★ 无仇恨 —— 敌人随机选目标; 单人上阵时两次都落在剑士身上。
@@ -131,7 +131,7 @@ describe("回合结束冲刷: 未行动的敌人各打一次", () => {
 
 describe("小队资源", () => {
   it("手牌上限与抽牌数 = 上阵角色求和 + 全队修正", () => {
-    const b = battleWith("whirlwind-slash");
+    const b = battleWith("swordsman-basic-attack");
     const sumHand = b.playerIds.reduce((s, id) => s + b.combatants[id].stats.handLimit, 0);
     const sumDraw = b.playerIds.reduce((s, id) => s + b.combatants[id].stats.drawCount, 0);
     expect(partyHandLimit(b)).toBe(sumHand + RULES.hand.partyBonusHandLimit);

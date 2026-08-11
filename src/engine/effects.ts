@@ -68,14 +68,19 @@ function applyEffect(
         });
       break;
     }
-    case "GAIN_SHIELD":
-      // amount 是基础护盾; 护盾强度在 ops.gainShield 里按施法者结算。
-      for (const id of targetIds) ops.gainShield(state, sourceId, id, amount);
+    case "GAIN_SHIELD": {
+      // amount = 固定基础护盾; multiplier = 治愈力 × 倍率。护盾强度仍在 ops 里结算。
+      const shield = effect.multiplier != null ? statOf(src, "healPower") * effect.multiplier : amount;
+      for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
-    case "HEAL":
-      // amount 是基础治疗; 治愈力与治愈强度在 ops.heal 里按施法者结算。
-      for (const id of targetIds) ops.heal(state, sourceId, id, amount);
+    }
+    case "HEAL": {
+      // amount = 固定基础治疗; multiplier = 治愈力 × 倍率。治愈强度仍在 ops 里结算。
+      const scaled = effect.multiplier != null;
+      const healing = scaled ? statOf(src, "healPower") * effect.multiplier! : amount;
+      for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;
+    }
     case "APPLY_STATUS":
       for (const id of targetIds) ops.applyStatus(state, id, effect.status!, effect.stacks ?? 0);
       break;

@@ -57,7 +57,8 @@ export interface EffectDescriptor {
   // DAMAGE 二选一(见 effects.ts):
   //   multiplier —— 攻击力倍率伤害, 走完整管线(命中/暴击/防御/格挡/护盾)
   //   amount     —— 固定伤害, 不使用攻击力, 也不吃防御与格挡(仍可被护盾吸收)
-  // 其余效果(HEAL / GAIN_SHIELD / DRAW / GAIN_RESOURCE)一律用 amount 当基础值。
+  // HEAL / GAIN_SHIELD 二选一: amount = 固定基础值, multiplier = 治愈力倍率。
+  // DRAW / GAIN_RESOURCE 使用 amount 作为基础值。
   amount?: number;
   multiplier?: number;
   target?: EffectTarget; // 默认 "primary"
@@ -74,6 +75,7 @@ export interface EffectDescriptor {
 // ---------------------------------------------------------------------------
 export type CardType = "normal" | "fast"; // normal 推进时刻, fast 不推进
 export type Rarity = "common" | "uncommon" | "rare";
+export type CardRarity = "basic" | Rarity;
 
 // 出牌动画类型(与技能绑定, 决定目标的受击/首击特效表现)。
 //   攻击系: slash 斩击 / shot 箭击 / fire 火爆 / ice 冰霜 / lightning 电击 / poison 剧毒
@@ -102,7 +104,7 @@ export interface CardDef {
   targeting: Targeting;
   effects: EffectDescriptor[];
   text: string;
-  rarity?: Rarity;
+  rarity?: CardRarity;
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
@@ -321,7 +323,13 @@ export interface EngineOps {
     opts?: DamageOpts,
   ): void;
   // sourceId 为 undefined 时按"无施法者"处理: 不吃治愈力/治愈强度/护盾强度(如再生、场景效果)。
-  heal(state: BattleState, sourceId: string | undefined, targetId: string, amount: number): void;
+  heal(
+    state: BattleState,
+    sourceId: string | undefined,
+    targetId: string,
+    amount: number,
+    opts?: { scaled?: boolean },
+  ): void;
   gainShield(
     state: BattleState,
     sourceId: string | undefined,

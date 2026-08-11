@@ -5,7 +5,8 @@
 | 文件 | 作用 |
 | --- | --- |
 | [cards.ts](../../src/data/cards.ts) | `CardDef[]`：归属角色、费用、普通/速攻、目标、声明式效果和稀有度；攻击牌优先使用攻击力倍率。 |
-| [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、初始卡组和按稀有度分档的个人抽卡池。当前三名角色中后两名仍为占位内容。 |
+| [basicCards.ts](../../src/data/basicCards.ts) | 按角色生成 3 张基础卡，并提供统一的 2 攻 + 2 治 + 1 盾初始卡组。基础卡不进入抽卡池且不计入限携。 |
+| [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、统一基础初始卡组和按稀有度分档的个人抽卡池。当前三名角色中后两名仍为占位内容。 |
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、技能、意图脚本、基础施法延迟、击杀经验和掉落表。经验写在敌人定义中，不写入掉落表。 |
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |
