@@ -262,12 +262,13 @@
 /* ===================== 左下: 队伍 ===================== */
 .expl-party {
   position: absolute;
+  z-index: 2;
   display: flex;
   flex-direction: row;
   gap: 10px;
   width: 500px;
-  height: 264px;
-  min-height: 264px;
+  height: 316px;
+  min-height: 316px;
   animation: explRise 420ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   --slot-base-w: 160px;
   --bust-zoom: 2.3;
@@ -279,9 +280,9 @@
   flex: 1 1 0;
   flex-direction: column;
   min-width: 0;
-  height: 264px;
-  min-height: 264px;
-  max-height: 264px;
+  height: 316px;
+  min-height: 316px;
+  max-height: 316px;
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--expl-line);
@@ -301,11 +302,10 @@
 }
 .expl-member-figure {
   position: relative;
-  flex: 1 1 0;
+  flex: 0 0 268px;
   width: 100%;
-  height: 0;
+  height: 268px;
   min-height: 0;
-  max-height: 240px;
   overflow: hidden;
   contain: layout paint;
 }
@@ -322,7 +322,7 @@
   position: absolute;
   left: 50%;
   top: 0;
-  width: calc(var(--slot-base-w, 120px) * var(--bust-zoom, 2.3) * var(--bust-scale, 1));
+  width: calc(var(--slot-base-w, 160px) * var(--bust-zoom, 2.3) * var(--bust-scale, 1));
   height: auto;
   max-width: none;
   object-fit: contain;
@@ -349,6 +349,21 @@
   flex: 0 0 auto;
   padding: 2px 7px 3px;
   background: #1a110bd1;
+}
+.expl-slot-empty {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 316px;
+  background: #05080a59;
+  border: 1px dashed #ffffff12;
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
 }
 /* 悬停: 整卡轻轻上浮, 描边提亮 —— 队伍是活的, 不是一张贴图。 */
 .expl-member {

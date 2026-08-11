@@ -79,6 +79,10 @@ const BOARD_LEFT = 508;
 const BOARD_TOP = 184;
 const BAG_W = 640;
 
+// 固定槽位数: 探索队伍区恒定 3 格, 与 engine/rules.ts 的 progression.partySize 对齐。
+// 人数不足时空出来的格子渲染成空槽, 保持构图稳定。
+const EXPL_PARTY_SLOTS = RULES.progression.partySize;
+
 // P1 才接入的指令。**先按最终形态排好版**, 下一轮往里填实现即可 —— 位置定下来了,
 // 玩家也提前知道这排东西将来是干什么的(设计文档 §7.3)。
 const COMMANDS = [
@@ -440,33 +444,37 @@ export function ExploreScreen() {
 
         {/* ---- 左下: 队伍 ---- */}
         <div className={cx(s["expl-party"], recede)} style={{ left: "16px", bottom: "16px" }}>
-          {session.party.map((p) => (
-            <div key={p.charId} className={cx(s["expl-member"], !p.alive && s["is-down"])}>
-              <div className={s["expl-member-figure"]}>
-                <CharacterPortrait
-                  characterId={p.charId}
-                  emoji={p.emoji}
-                  alt={`${p.name}立绘`}
-                  className={s["expl-portrait"]}
-                />
+          {Array.from({ length: EXPL_PARTY_SLOTS }, (_, i) => {
+            const p = session.party[i];
+            if (!p) return <div key={`empty${i}`} className={s["expl-slot-empty"]} />;
+            return (
+              <div key={p.charId} className={cx(s["expl-member"], !p.alive && s["is-down"])}>
+                <div className={s["expl-member-figure"]}>
+                  <CharacterPortrait
+                    characterId={p.charId}
+                    emoji={p.emoji}
+                    alt={`${p.name}立绘`}
+                    className={s["expl-portrait"]}
+                  />
+                </div>
+                {expDrops[p.charId] && (
+                  <ExpDropFx
+                    key={`${p.charId}-${expDrops[p.charId].sequence}`}
+                    amount={expDrops[p.charId].amount}
+                  />
+                )}
+                <div className={s["expl-member-body"]}>
+                  <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} flush />
+                  <PollutionMeter
+                    value={characters[p.charId]?.pollution ?? 0}
+                    compact
+                    className={s["expl-pollution"]}
+                  />
+                </div>
+                {!p.alive && <span className={s["expl-member-down"]}>阵亡</span>}
               </div>
-              {expDrops[p.charId] && (
-                <ExpDropFx
-                  key={`${p.charId}-${expDrops[p.charId].sequence}`}
-                  amount={expDrops[p.charId].amount}
-                />
-              )}
-              <div className={s["expl-member-body"]}>
-                <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} flush />
-                <PollutionMeter
-                  value={characters[p.charId]?.pollution ?? 0}
-                  compact
-                  className={s["expl-pollution"]}
-                />
-              </div>
-              {!p.alive && <span className={s["expl-member-down"]}>阵亡</span>}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* ---- 右下: 指令栏 + 背包 + 撤退 ---- */}
