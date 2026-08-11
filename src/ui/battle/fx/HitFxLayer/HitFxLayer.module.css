@@ -38,6 +38,23 @@
   100% { filter: brightness(1); }
 }
 
+/* 我方挨打: 在中性闪白上叠加红色冲击, 敌人受击仍走上面的反馈。 */
+[data-unit][data-side="player"][data-react="hit"] {
+  animation: hitShakeHard 0.5s ease, hitFlashRed 0.62s ease;
+}
+@keyframes hitShakeHard {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-11px) rotate(-2deg); }
+  35% { transform: translateX(10px) rotate(2deg); }
+  55% { transform: translateX(-7px); }
+  75% { transform: translateX(5px); }
+}
+@keyframes hitFlashRed {
+  0% { filter: brightness(2.1) saturate(2.6) sepia(0.45) hue-rotate(-28deg) drop-shadow(0 0 14px #ff2d46); }
+  42% { filter: brightness(1.2) saturate(1.6) drop-shadow(0 0 8px #ff334f); }
+  100% { filter: brightness(1); }
+}
+
 /* 目标受益(辅助牌): 柔和光晕脉冲。无面板后改用 drop-shadow, 光晕贴着立绘轮廓亮起 */
 [data-unit][data-react="bless"] {
   animation: blessGlow 0.6s ease;
@@ -133,6 +150,12 @@
    基态即常态, 故延迟期无副作用; emoji 系特效 --vfx-impact 缺省 0, 行为不变。 */
 [data-unit][data-react="hit"] {
   animation-delay: var(--vfx-impact, 0ms), var(--vfx-impact, 0ms);
+}
+
+/* 顿帧期间连受击抖动/闪红与飘字一起冻住 —— 否则画面定格了、挨打的人还在抽搐 */
+:global([data-hitstop]) [data-unit][data-react],
+:global([data-hitstop]) .float-num {
+  animation-play-state: paused;
 }
 
 /* 冲击环同步到砸中时刻。不能直接给 .vfx-attack::after 加 animation-delay:

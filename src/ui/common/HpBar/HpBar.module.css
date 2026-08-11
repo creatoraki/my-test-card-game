@@ -60,6 +60,17 @@
 .hp-bar.hp-flush .hp-text {
   font-size: 12px;
 }
+/* 缓降变体(HpBar 的 slowDrain prop): 我方队伍卡专用 —— 受击时血量可读地流失。 */
+.hp-bar.hp-drain-slow .hp-fill,
+.hp-bar.hp-drain-slow .hp-edge,
+.hp-bar.hp-drain-slow .hp-motes {
+  transition-duration: 1.6s;
+  transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+/* 残影层原本慢半拍追上主填充; 主填充变慢后整体后移。 */
+.hp-bar.hp-drain-slow .hp-ghost {
+  transition: width 0.55s ease 1.7s;
+}
 /* 玻璃罩: 顶部一道高光 + 上下内凹阴影, 把平面的填充压出弧面质感。
   z-index 压在三段填充层之上、文字(z-index:2)之下。 */
 .hp-bar::after {

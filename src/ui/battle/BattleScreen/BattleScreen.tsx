@@ -42,6 +42,7 @@ import { warmEnemyArt } from "@/ui/art/enemyArt";
 import { warmVfxSprites } from "@/ui/art/vfxSprites";
 import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
 import { AmbienceGrade, AmbienceLayer } from "@/ui/battle/AmbienceLayer";
+import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
 import { resetHandHover } from "@/ui/battle/handFocusStore";
 import { useIdleTwitch } from "@/ui/hooks/useIdleTwitch";
 import { useDeathGate } from "@/ui/battle/deathChoreo";
@@ -524,25 +525,42 @@ export function BattleScreen() {
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
       const hold = preset.hold * Math.max(0.55, 0.78 ** repeat);
       const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
-      const hitAt = at + preset.lead + cutIn;
       const focus = () => (preset.kind === "none" ? null : computeCamera(focusIds, preset));
+      // 敌人攻击必须先完成聚焦再进入蓄力, 否则 telegraph 会和镜头同时启动, 命中时镜头才刚到位。
+      const focusLead = preset.kind === "foe" ? CAMERA_SETTLE_MS : 0;
+      const actionAt = at + focusLead;
+      const hitAt = actionAt + preset.lead + cutIn;
       timeline.add({
         at,
         run: () => {
-          setAttackerId(step.actorId);
-          setTelegraphId(
-            b.enemyIds.includes(step.actorId) && preset.kind !== "none" ? step.actorId : null,
-          );
           cameraRig.setTuning(preset.rig);
-          if (index === 0 && enter) setCameraTarget(enter);
-          else if (index === 0) setCameraTarget(null);
+          if (preset.kind === "foe") {
+            setCameraTarget(focus());
+          } else {
+            setAttackerId(step.actorId);
+            setTelegraphId(
+              b.enemyIds.includes(step.actorId) && preset.kind !== "none" ? step.actorId : null,
+            );
+            if (index === 0 && enter) setCameraTarget(enter);
+            else if (index === 0) setCameraTarget(null);
+          }
         },
       });
+      if (preset.kind === "foe") {
+        timeline.add({
+          at: actionAt,
+          run: () => {
+            setAttackerId(step.actorId);
+            setTelegraphId(step.actorId);
+          },
+        });
+      }
       timeline.add({
-        at: at + preset.lead,
+        at: actionAt + preset.lead,
         run: () => {
           const previous = index > 0 ? plans[index - 1] : null;
           const nextFocus = focus();
+          if (preset.kind === "foe") return;
           if (!previous || index === 0) {
             setCameraTarget(nextFocus);
             return;
@@ -692,6 +710,10 @@ export function BattleScreen() {
   // 居合斩全屏压暗: 由 hits 派生, 与特效同挂同卸(tRestore 的 setHits({}) 自动清掉),
   // key=seq 保证连发重放。零新增 state / 计时器。
   const dimHit = Object.values(hits).find((h) => ANIM[h.anim].iai);
+  // 我方受到伤害 ⇒ 全屏血红暗角。由 hits 派生, hold 结束清空 hits 时自动卸载。
+  const hurtHit = Object.entries(hits).find(
+    ([id, h]) => battle.playerIds.includes(id) && h.float?.tone === "dmg",
+  )?.[1];
   // 我方角色前冲上浮时(data-attacking, 见 fx/HitFxLayer.module.css)，让开左下角这三块 UI
   const playerActing = !!attackerId && battle.playerIds.includes(attackerId);
 
@@ -821,6 +843,7 @@ export function BattleScreen() {
           HUD/顶栏; 不受 combatant-stage 的 scale 包含块与顿帧暂停选择器影响, 70ms
           顿帧期间压暗/反白闪照常播(世界冻结、刀光继续走)。 */}
       {dimHit && <div key={dimHit.seq} className={s["battle-dim"]} aria-hidden />}
+      {hurtHit && <HurtVignette key={hurtHit.seq} seq={hurtHit.seq} />}
 
       {/* <RoundIndicator
         round={battle.round}

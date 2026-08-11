@@ -34,9 +34,10 @@ interface Props {
   maxHp: number;
   hideLimit?: boolean; // 隐藏上限段，战场敌人血条只显示蓝色当前血量
   flush?: boolean; // 我方队伍卡的贴底变体: 去描边/斜切角, 与卡框底边一体化
+  slowDrain?: boolean; // 我方队伍卡受击时缓慢流失生命
 }
 
-export function HpBar({ hp, hpLimit, maxHp, hideLimit, flush }: Props) {
+export function HpBar({ hp, hpLimit, maxHp, hideLimit, flush, slowDrain }: Props) {
   const limit = hpLimit ?? maxHp;
   const hpPct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
   const hpLimitPct = Math.max(0, Math.min(100, (limit / maxHp) * 100));
@@ -71,7 +72,7 @@ export function HpBar({ hp, hpLimit, maxHp, hideLimit, flush }: Props) {
     // --hp-pct 同时驱动填充宽度与端头层的横向位置。端头刻意**不是** .hp-fill 的子元素:
     // 填充为了裁住流光带带了 overflow:hidden, 端头若在里面, 辉光就没法往右溢进空槽。
     <div
-      className={cx(s["hp-bar"], flush && s["hp-flush"])}
+      className={cx(s["hp-bar"], flush && s["hp-flush"], slowDrain && s["hp-drain-slow"])}
       style={{ "--hp-pct": `${hpPct}%`, "--hp-limit-pct": `${hpLimitPct}%` } as React.CSSProperties}
       title={`HP ${hp}/${limit} · 上限 ${maxHp}`}
     >

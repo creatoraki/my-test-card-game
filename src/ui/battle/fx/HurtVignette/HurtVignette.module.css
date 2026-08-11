@@ -1,0 +1,43 @@
+.hurt-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 16;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 38%,
+    #b3000f66 78%,
+    #7a0010b3 100%
+  );
+  opacity: 0;
+  animation: hurtVignette 900ms ease-out 1 both;
+}
+
+@keyframes hurtVignette {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    background-color: #ff526033;
+  }
+  24% {
+    opacity: 0.92;
+    background-color: transparent;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hurt-vignette {
+    animation-duration: 260ms;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 46%,
+      #b3000f40 82%,
+      #7a001066 100%
+    );
+  }
+}

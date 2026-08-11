@@ -67,8 +67,25 @@
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
   background: linear-gradient(180deg, #ffffff1a 0%, #ffffff05 38%, #00000080 100%);
+}
+.ally-bar .ally-slot[data-react="hit"] .ally-figure::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(ellipse at 50% 45%, #ff2d4699, #8c000f4d 60%, transparent 100%);
+  opacity: 0;
+  animation: allyHitWash 560ms ease-out 1 forwards;
+}
+@keyframes allyHitWash {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 0; }
 }
 /* 队伍卡的半身取景 —— 与 CombatantView 的 img.combatant-portrait 1:1 取景是两个不同的
    取景窗, 但共用同一套 --portrait-dx/dy 微调参数(common/CharacterPortrait 的 CHARACTER_ART)。
@@ -200,16 +217,16 @@ span.ally-portrait {
 }
 /* 队伍卡位于场景之外, 受击反馈在这里补一层卡框红闪与外扩冲击辉光。 */
 .ally-bar .ally-slot[data-react="hit"] .ally-frame {
-  animation: allyHitFrame 360ms ease-out 1;
+  animation: allyHitFrame 560ms ease-out 1;
 }
 @keyframes allyHitFrame {
   0% {
     border-color: #ff5368;
-    filter: drop-shadow(0 0 3px #ff334f) drop-shadow(0 0 7px #ff334f);
+    filter: drop-shadow(0 0 4px #ff334f) drop-shadow(0 0 10px #ff334f);
   }
   45% {
     border-color: #fff0f2;
-    filter: drop-shadow(0 0 8px #ff5368) drop-shadow(0 0 22px #ff334f);
+    filter: drop-shadow(0 0 10px #ff5368) drop-shadow(0 0 28px #ff334f);
   }
   100% {
     border-color: #6fd2ff3d;
@@ -241,5 +258,9 @@ span.ally-portrait {
     animation: none;
     border-color: #ff5368;
     filter: drop-shadow(0 0 8px #ff334f) drop-shadow(0 0 18px #ff334f);
+  }
+  .ally-bar .ally-slot[data-react="hit"] .ally-figure::before {
+    animation: none;
+    opacity: 0.28;
   }
 }
