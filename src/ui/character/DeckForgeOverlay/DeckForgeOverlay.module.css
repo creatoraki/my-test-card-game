@@ -53,6 +53,14 @@
   clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
 }
 
+.forge-modal * {
+  scrollbar-width: none;
+}
+
+.forge-modal *::-webkit-scrollbar {
+  display: none;
+}
+
 .forge-head {
   display: flex;
   flex: 0 0 auto;
