@@ -11,7 +11,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(220px, 28%);
+  width: min(196px, calc(33.333% - 20px));
   visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -46,7 +46,7 @@
 }
 
 .draw-choice {
-  width: min(220px, 100%);
+  width: min(196px, 100%);
   min-width: 0;
 }
 
@@ -60,13 +60,13 @@
 
 .draw-confirm {
   display: inline-flex;
-  min-width: 104px;
+  min-width: 130px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 9px 16px;
   color: var(--cd-ink);
-  font-size: 13px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: 1px;
   background: #ffffff91;
@@ -76,8 +76,8 @@
 }
 
 .draw-confirm svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   color: var(--cd-glow);
 }
 
@@ -91,6 +91,31 @@
 .draw-confirm:disabled {
   cursor: not-allowed;
   opacity: .42;
+}
+
+.draw-stage[data-forge-impact] {
+  animation: forgeStageShake 240ms cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.draw-stage[data-forge-impact="rare"] {
+  animation-name: forgeStageShakeRare;
+}
+
+@keyframes forgeStageShake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  18% { transform: translate3d(-4px, 1px, 0); }
+  36% { transform: translate3d(4px, -1px, 0); }
+  54% { transform: translate3d(-2px, 0, 0); }
+  72% { transform: translate3d(2px, 0, 0); }
+}
+
+@keyframes forgeStageShakeRare {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  14% { transform: translate3d(-8px, 2px, 0) rotate(-.2deg); }
+  28% { transform: translate3d(8px, -2px, 0) rotate(.2deg); }
+  42% { transform: translate3d(-5px, 1px, 0); }
+  56% { transform: translate3d(5px, -1px, 0); }
+  70% { transform: translate3d(-2px, 0, 0); }
 }
 
 @keyframes forgeExpShard {
@@ -114,13 +139,14 @@
   }
 
   .draw-choice {
-    width: min(168px, 100%);
+    width: min(176px, 100%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .draw-exp-shard,
-  .draw-confirm {
+  .draw-confirm,
+  .draw-stage[data-forge-impact] {
     animation: none;
     transition: none;
   }

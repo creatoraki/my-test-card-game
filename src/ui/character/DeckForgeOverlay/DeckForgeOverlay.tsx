@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { Card, Rarity } from "@/engine";
 import { ModalReveal, modalRevealVars, useModalReveal } from "@/ui/common/ModalReveal";
 import { DeckMinusGlyph, DeckPlusGlyph } from "./ForgeGlyphs";
@@ -61,7 +61,10 @@ export function DeckForgeOverlay({
       className={s["forge-overlay"]}
       data-busy={busy ? "true" : "false"}
       data-closing={closing ? "true" : undefined}
-      style={modalRevealVars()}
+      style={{
+        ...modalRevealVars(),
+        "--forge-w": mode === "draw" ? "680px" : "860px",
+      } as CSSProperties}
       role="dialog"
       aria-modal="true"
       aria-label={mode === "draw" ? "扩充卡组" : "精简卡组"}

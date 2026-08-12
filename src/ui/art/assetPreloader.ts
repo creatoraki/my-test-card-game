@@ -7,6 +7,7 @@ import { EVENT_ART_SOURCES } from "@/ui/art/eventArt";
 import { ENERGY_LAMP_SOURCES } from "@/ui/art/energyLampArt";
 import { ITEM_ART_SOURCES } from "@/ui/art/itemArt";
 import { MAP_ART_SOURCES } from "@/ui/art/mapArt";
+import { RARITY_CRYSTAL_SOURCES } from "@/ui/art/rarityArt";
 import { SCENE_ART_SOURCES, SCENE_VIDEO_SOURCES } from "@/ui/art/sceneArt";
 import { SLOT_ART_SOURCES } from "@/ui/art/slotArt";
 import { ALL_SPRITE_FRAMES } from "@/ui/art/vfxSprites";
@@ -40,6 +41,7 @@ const imageSources = unique([
   ...CARD_FRAME_SOURCES,
   ...EVENT_ART_SOURCES,
   ...ENERGY_LAMP_SOURCES,
+  ...RARITY_CRYSTAL_SOURCES,
   ...SLOT_ART_SOURCES,
   ...ITEM_ART_SOURCES,
   ...CHARACTER_ART_SOURCES,

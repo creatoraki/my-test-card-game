@@ -6,7 +6,7 @@ import { cx } from "@/ui/common/cx";
 import { ModalReveal, modalRevealVars, useModalReveal } from "@/ui/common/ModalReveal";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { useHoldCharge } from "@/ui/hooks/useHoldCharge";
-import { CardBackGlyph, DeckStackGlyph, ExpShardGlyph, LevelBadge, LockGlyph, MaxGlyph } from "@/ui/character/glyphs/deckGlyphs";
+import { DeckStackGlyph, ExpShardGlyph, LevelBadge, LockGlyph, MaxGlyph, RarityCrystal } from "@/ui/character/glyphs/deckGlyphs";
 import s from "./DeckUpgradeOverlay.module.css";
 
 const FILL_MS = 720;
@@ -310,7 +310,7 @@ export function DeckUpgradeOverlay({
 
         <div className={s["upg-probability"]} aria-label="稀有度抽取概率">
           <div className={s["upg-rarity-grid"]}>
-            {RARITIES.map(({ id, label }, index) => {
+            {RARITIES.map(({ id, label }) => {
               const available = view.hasPool[id];
               const current = currentChances[id];
               const next = nextChances?.[id];
@@ -328,7 +328,7 @@ export function DeckUpgradeOverlay({
                   aria-label={`${label}：${available ? percentage(current) : "无可用卡池"}`}
                 >
                   {deltaVisible && <span className={s["upg-delta"]}>{`${delta >= 0 ? "+" : ""}${percentage(delta)}`}</span>}
-                  <CardBackGlyph tier={index + 1} muted={!available} />
+                  <RarityCrystal rarity={id} muted={!available} className={s["rarity-crystal"]} />
                   <strong className={s["upg-rarity-value"]}>{available ? percentage(current) : "—"}</strong>
                 </div>
               );
@@ -359,11 +359,11 @@ export function DeckUpgradeOverlay({
           >
             <span className={s["upg-button-charge"]} aria-hidden="true" />
             <span className={s["upg-button-sweep"]} aria-hidden="true" />
-            <svg className={s["upg-button-ring"]} viewBox="0 0 112 42" preserveAspectRatio="none" aria-hidden="true">
-              <path className={s["upg-button-ring-track"]} d="M8 1h103v33l-7 7H1V8Z" pathLength="1" />
+            <svg className={s["upg-button-ring"]} viewBox="0 0 160 56" preserveAspectRatio="none" aria-hidden="true">
+              <path className={s["upg-button-ring-track"]} d="M10 1h149v43l-9 10H1V10Z" pathLength="1" />
               <path
                 className={s["upg-button-ring-fill"]}
-                d="M8 1h103v33l-7 7H1V8Z"
+                d="M10 1h149v43l-9 10H1V10Z"
                 pathLength="1"
                 strokeDasharray="1"
                 style={{ strokeDashoffset: 1 - chargeProgress }}

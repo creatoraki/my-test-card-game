@@ -1,0 +1,273 @@
+.reveal-card {
+  --rarity-glow: #edf2f8;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  isolation: isolate;
+  perspective: 1400px;
+  transition: outline-color 160ms ease, filter 220ms ease;
+}
+
+.reveal-card[data-rarity="uncommon"] {
+  --rarity-glow: #5cf07d;
+}
+
+.reveal-card[data-rarity="rare"] {
+  --rarity-glow: #bd9ce8;
+}
+
+.flip {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 320 / 496;
+  transform-style: preserve-3d;
+}
+
+.face-back,
+.face-front {
+  backface-visibility: hidden;
+}
+
+.face-back {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, transparent 0 38%, #ffffff1c 38% 40%, transparent 40% 64%, #ffffff12 64% 66%, transparent 66%),
+    #251b3b;
+  border: 1px solid #bd9ce880;
+  box-shadow: inset 0 0 0 5px #171126b8, inset 0 0 24px #bd9ce83d, 0 10px 24px -14px #2a1b3dcc;
+  transform: rotateY(0deg);
+}
+
+.face-front {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform: rotateY(180deg);
+}
+
+.front-card {
+  position: relative;
+  z-index: 1;
+}
+
+.back-pattern {
+  position: absolute;
+  inset: 12%;
+  border: 1px solid #bd9ce866;
+  clip-path: polygon(12% 0, 88% 0, 100% 10%, 100% 90%, 88% 100%, 12% 100%, 0 90%, 0 10%);
+  box-shadow: 0 0 16px #bd9ce83d;
+}
+
+.back-crystal {
+  position: relative;
+  z-index: 1;
+  width: 52%;
+  height: 52%;
+  object-fit: contain;
+  filter: grayscale(1) brightness(1.45) drop-shadow(0 0 10px #edf2f8b8);
+  opacity: .86;
+}
+
+.back-sheen {
+  position: absolute;
+  inset: -30% 0;
+  z-index: 2;
+  background: linear-gradient(105deg, transparent 38%, #ffffff45 50%, transparent 62%);
+  opacity: .35;
+  transform: translateX(-80%);
+}
+
+.reveal-card[data-phase="veil"] .flip {
+  opacity: 0;
+}
+
+.reveal-card[data-phase="back"] .flip {
+  animation: forgeCardLand var(--back-ms) var(--back-delay) cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.reveal-card[data-phase="back"] .face-back {
+  animation: forgeBackIdle 1900ms ease-in-out var(--back-delay) infinite;
+}
+
+.reveal-card[data-phase="flip"] .flip {
+  animation: forgeFlip var(--flip-ms) var(--flip-delay) cubic-bezier(.55, 0, .2, 1) both;
+}
+
+.reveal-card[data-phase="settle"] .flip,
+.reveal-card[data-phase="ready"] .flip,
+.reveal-card[data-phase="commit"] .flip {
+  transform: rotateY(180deg);
+}
+
+.flash,
+.shock {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.flash {
+  inset: -7px;
+  background: #ffffff;
+  mix-blend-mode: screen;
+}
+
+.reveal-card[data-phase="flip"] .flash {
+  animation: forgeFlash var(--impact-ms) var(--impact-delay) ease-out both;
+}
+
+.shock {
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  aspect-ratio: 1;
+  border: 2px solid var(--rarity-glow);
+  box-shadow: 0 0 14px var(--rarity-glow);
+  transform: translate(-50%, -50%) scale(.28);
+}
+
+.reveal-card[data-phase="flip"] .shock {
+  animation: forgeShock var(--impact-ms) var(--impact-delay) cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.edge-node {
+  position: absolute;
+  z-index: 6;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--rarity-glow);
+  background: #ffffffd9;
+  opacity: 0;
+  transform: scale(.35) rotate(45deg);
+  pointer-events: none;
+}
+
+.edge-top-left { top: -4px; left: -4px; }
+.edge-top-right { top: -4px; right: -4px; }
+.edge-bottom-left { bottom: -4px; left: -4px; }
+.edge-bottom-right { right: -4px; bottom: -4px; }
+
+.reveal-card[data-phase="flip"] .edge-node {
+  animation: forgeEdgeSettle var(--settle-ms) calc(var(--flip-delay) + var(--flip-ms)) cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.reveal-card[data-phase="settle"] .edge-node {
+  animation: forgeEdgeSettle var(--settle-ms) cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.reveal-card[data-phase="settle"] .edge-node,
+.reveal-card[data-phase="ready"] .edge-node {
+  opacity: 1;
+  transform: scale(1) rotate(45deg);
+}
+
+.reveal-card[data-rarity="rare"][data-phase="ready"] {
+  animation: forgeRareBreath var(--breath-ms) ease-in-out infinite;
+}
+
+.reveal-card[data-phase="dissolve"] .front-card {
+  animation: forgeDissolveCard var(--commit-ms) cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.reveal-card[data-phase="commit"].is-selected {
+  animation: forgeFlight var(--commit-ms) cubic-bezier(.2, .72, .28, 1) both;
+  outline-color: transparent;
+}
+
+.reveal-card.is-selected {
+  outline: 2px solid var(--rarity-glow);
+  outline-offset: 5px;
+}
+
+.reveal-card[data-phase="ready"]:hover {
+  filter: brightness(1.04);
+}
+
+@keyframes forgeCardLand {
+  0% { opacity: 0; transform: translateY(46px) scale(.88) rotateZ(-3deg); }
+  68% { opacity: 1; transform: translateY(-4px) scale(1.02) rotateZ(.5deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotateZ(0); }
+}
+
+@keyframes forgeBackIdle {
+  0%, 100% { transform: rotateY(-5deg); }
+  50% { transform: rotateY(5deg); }
+}
+
+@keyframes forgeFlip {
+  0% { transform: rotateY(0) scale(1); }
+  58% { transform: rotateY(92deg) scale(1.1); }
+  100% { transform: rotateY(180deg) scale(1); }
+}
+
+@keyframes forgeFlash {
+  0% { opacity: 0; transform: scale(.92); }
+  18% { opacity: .95; transform: scale(1.03); }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+@keyframes forgeShock {
+  0% { opacity: .85; transform: translate(-50%, -50%) scale(.28); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.8); }
+}
+
+@keyframes forgeEdgeSettle {
+  0% { opacity: 0; transform: scale(.35) rotate(45deg); }
+  58% { opacity: 1; transform: scale(1.16) rotate(45deg); }
+  100% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+
+@keyframes forgeRareBreath {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 15px var(--rarity-glow)); }
+}
+
+@keyframes forgeDissolveCard {
+  0% { clip-path: inset(0 0 0 0); filter: blur(0) contrast(1) saturate(1); opacity: 1; }
+  100% { clip-path: inset(0 0 100% 0); filter: blur(9px) contrast(2.2) saturate(0); opacity: 0; }
+}
+
+@keyframes forgeFlight {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  64% { opacity: .96; }
+  100% { opacity: 0; transform: translate(var(--flight-x), var(--flight-y)) scale(var(--flight-scale)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-card,
+  .flip,
+  .face-back,
+  .front-card,
+  .flash,
+  .shock,
+  .edge-node {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .flip {
+    opacity: 1 !important;
+    transform: rotateY(180deg) !important;
+  }
+
+  .flash,
+  .shock {
+    opacity: 0 !important;
+  }
+
+  .edge-node {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+
+  .reveal-card[data-phase="dissolve"] .front-card,
+  .reveal-card[data-phase="commit"].is-selected {
+    opacity: 0 !important;
+  }
+}

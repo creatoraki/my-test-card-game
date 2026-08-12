@@ -7,17 +7,19 @@ import { ExpShardGlyph } from "@/ui/character/glyphs/deckGlyphs";
 import {
   COMMIT_MS,
   EXP_FLIGHT_MS,
-  FRAME_MS,
-  FRAME_STAGGER_MS,
+  BACK_MS,
+  BACK_STAGGER_MS,
+  IMPACT_MS,
+  SHAKE_MS,
   SETTLE_MS,
   SPEND_MS,
   VEIL_MS,
   revealOrder,
 } from "./forgeChoreo";
-import { ScanRevealCard, type ScanRevealFlight, type ScanRevealPhase } from "./ScanRevealCard";
+import { ForgeRevealCard, type ForgeRevealFlight, type ForgeRevealPhase } from "./ForgeRevealCard";
 import s from "./ForgeDrawStage.module.css";
 
-type DrawStagePhase = "brief" | "spend" | "veil" | "frame" | "scan" | "settle" | "ready" | "commit";
+type DrawStagePhase = "brief" | "spend" | "veil" | "back" | "flip" | "settle" | "ready" | "commit";
 
 interface ExpFlight {
   startX: number;
@@ -42,7 +44,7 @@ interface Props {
   onBusyChange: (busy: boolean) => void;
 }
 
-function measureFlight(stage: HTMLDivElement | null, uid: string): ScanRevealFlight {
+function measureFlight(stage: HTMLDivElement | null, uid: string): ForgeRevealFlight {
   const source = Array.from(stage?.querySelectorAll<HTMLElement>("[data-forge-card]") ?? []).find(
     (element) => element.dataset.forgeCard === uid,
   );
@@ -99,20 +101,21 @@ export function ForgeDrawStage({
 }: Props) {
   const [drawCards, setDrawCards] = useState<Card[]>([]);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  const [flight, setFlight] = useState<ScanRevealFlight | null>(null);
+  const [flight, setFlight] = useState<ForgeRevealFlight | null>(null);
   const [expFlight, setExpFlight] = useState<ExpFlight | null>(null);
   const [drawFailure, setDrawFailure] = useState<string | null>(null);
   const [phase, setPhase] = useState<DrawStagePhase>(() => (pendingDraw ? "veil" : "brief"));
   const stageRef = useRef<HTMLDivElement>(null);
   const runIdRef = useRef(0);
   const drawCardsLockedRef = useRef(false);
+  const [impactRarity, setImpactRarity] = useState<Rarity | null>(null);
 
   const revealPlans = useMemo(
     () => revealOrder(drawCards).sort((left, right) => left.index - right.index),
     [drawCards],
   );
-  const frameWindowMs = FRAME_MS + Math.max(0, drawCards.length - 1) * FRAME_STAGGER_MS;
-  const scanWindowMs = revealPlans.reduce(
+  const backWindowMs = BACK_MS + Math.max(0, drawCards.length - 1) * BACK_STAGGER_MS;
+  const flipWindowMs = revealPlans.reduce(
     (latest, plan) => Math.max(latest, plan.delay + plan.duration),
     0,
   );
@@ -158,9 +161,9 @@ export function ForgeDrawStage({
       }, waitMs);
     };
 
-    if (phase === "veil" && drawCards.length > 0) advance("frame", VEIL_MS);
-    if (phase === "frame") advance("scan", frameWindowMs);
-    if (phase === "scan") advance("settle", scanWindowMs);
+    if (phase === "veil" && drawCards.length > 0) advance("back", VEIL_MS);
+    if (phase === "back") advance("flip", backWindowMs);
+    if (phase === "flip") advance("settle", flipWindowMs + IMPACT_MS);
     if (phase === "settle") advance("ready", SETTLE_MS);
     if (phase === "commit") {
       timer = window.setTimeout(() => {
@@ -172,7 +175,32 @@ export function ForgeDrawStage({
     return () => {
       if (timer != null) window.clearTimeout(timer);
     };
-  }, [drawCards.length, frameWindowMs, onComplete, phase, scanWindowMs]);
+  }, [backWindowMs, drawCards.length, flipWindowMs, onComplete, phase]);
+
+  useEffect(() => {
+    if (phase !== "flip") {
+      setImpactRarity(null);
+      return;
+    }
+
+    const runId = runIdRef.current;
+    let impactClearTimer: number | undefined;
+    const timers = revealPlans.map((plan) =>
+      window.setTimeout(() => {
+        if (runId !== runIdRef.current) return;
+        if (impactClearTimer != null) window.clearTimeout(impactClearTimer);
+        setImpactRarity(plan.card.rarity === "basic" ? "common" : plan.card.rarity ?? "common");
+        impactClearTimer = window.setTimeout(() => {
+          if (runId === runIdRef.current) setImpactRarity(null);
+        }, SHAKE_MS);
+      }, plan.delay + plan.duration * 0.58),
+    );
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      if (impactClearTimer != null) window.clearTimeout(impactClearTimer);
+    };
+  }, [phase, revealPlans]);
 
   useEffect(() => {
     return () => {
@@ -198,7 +226,12 @@ export function ForgeDrawStage({
   const showBrief = phase === "brief" || phase === "spend";
 
   return (
-    <div ref={stageRef} className={s["draw-stage"]} data-phase={phase}>
+    <div
+      ref={stageRef}
+      className={s["draw-stage"]}
+      data-phase={phase}
+      data-forge-impact={impactRarity ?? undefined}
+    >
       {expFlight && (phase === "spend" || phase === "veil") && (
         <span
           className={s["draw-exp-shard"]}
@@ -218,11 +251,11 @@ export function ForgeDrawStage({
       )}
       {phase === "spend" && drawCards[0] && (
         <div className={s["draw-measure-target"]} aria-hidden="true">
-          <ScanRevealCard
+          <ForgeRevealCard
             card={drawCards[0]}
             index={0}
             phase="ready"
-            scanMs={0}
+            flipMs={0}
             delayMs={0}
             selected={false}
             onClick={() => undefined}
@@ -247,15 +280,15 @@ export function ForgeDrawStage({
           <div className={s["draw-list"]}>
             {revealPlans.map((plan) => {
               const selected = plan.card.uid === selectedUid;
-              const cardPhase: ScanRevealPhase =
+              const cardPhase: ForgeRevealPhase =
                 phase === "commit" ? (selected ? "commit" : "dissolve") : phase;
               return (
                 <div className={s["draw-choice"]} key={plan.card.uid}>
-                  <ScanRevealCard
+                  <ForgeRevealCard
                     card={plan.card}
                     index={plan.index}
                     phase={cardPhase}
-                    scanMs={plan.duration}
+                    flipMs={plan.duration}
                     delayMs={plan.delay}
                     selected={selected}
                     flight={selected ? flight ?? undefined : undefined}

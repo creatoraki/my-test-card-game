@@ -1,4 +1,6 @@
 import type { SVGProps } from "react";
+import type { Rarity } from "@/engine";
+import { RARITY_CRYSTAL_ART } from "@/ui/art/rarityArt";
 
 const SVG_PROPS: SVGProps<SVGSVGElement> = {
   viewBox: "0 0 48 48",
@@ -16,22 +18,24 @@ function point(radius: number, angle: number) {
   };
 }
 
-export function CardBackGlyph({ tier, muted = false }: { tier: number; muted?: boolean }) {
-  const opacity = muted ? 0.42 : 1;
+export function RarityCrystal({
+  rarity,
+  muted = false,
+  className,
+}: {
+  rarity: Rarity;
+  muted?: boolean;
+  className?: string;
+}) {
   return (
-    <svg {...SVG_PROPS} aria-hidden="true" style={{ opacity }}>
-      <rect x="8" y="4" width="32" height="40" rx="4" strokeWidth="1.5" />
-      <rect x="11.5" y="7.5" width="25" height="33" rx="2.5" strokeWidth="1" opacity={tier >= 2 ? 0.9 : 0.35} />
-      <path d="m24 14 8 10-8 10-8-10 8-10Z" strokeWidth={tier >= 2 ? 1.5 : 1.1} />
-      {tier >= 2 && <path d="m24 18 4.8 6-4.8 6-4.8-6 4.8-6Z" strokeWidth="1" opacity=".76" />}
-      {tier >= 3 && (
-        <>
-          <path d="M13 13h4M31 13h4M13 35h4M31 35h4" strokeWidth="1.4" />
-          <circle cx="24" cy="24" r="2" fill="currentColor" stroke="none" />
-        </>
-      )}
-      {muted && <path d="m10 38 28-28" strokeWidth="1.4" opacity=".8" />}
-    </svg>
+    <img
+      className={className}
+      src={RARITY_CRYSTAL_ART[rarity]}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      style={muted ? { filter: "grayscale(1)", opacity: 0.4 } : undefined}
+    />
   );
 }
 

@@ -55,11 +55,11 @@ src/ui/
 | [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性仍为只读，个人卡组提供扩充、精简、升级锻造和卡面选中详情，升级改为面板确认并播放等级演出。与编队页之间是共享元素过场。 |
 | [character/DeckForgeBar](../../src/ui/character/DeckForgeBar/DeckForgeBar.tsx) | 角色详情页卡组锻造操作条：展示扩充、精简、升级三项操作及父组件传入的经验价格和禁用态；升级入口只在满级时禁用，经验校验下沉到升级面板。 |
 | [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 角色详情页卡组锻造浮层壳：只负责模式图标、遮罩、关闭锁和按模式分发；扩充/精简演出由阶段组件承载，候选与卡组状态分别保留到提交动画结束；开关演出统一走 `common/ModalReveal`。 |
-| [character/DeckForgeOverlay/ForgeDrawStage](../../src/ui/character/DeckForgeOverlay/ForgeDrawStage.tsx) | 扩充三选一阶段机：线框/扫描揭示、稀有度节奏、二次确认和向 `data-deck-anchor` 落袋飞行。 |
+| [character/DeckForgeOverlay/ForgeDrawStage](../../src/ui/character/DeckForgeOverlay/ForgeDrawStage.tsx) | 扩充三选一阶段机：水晶卡背错峰落位、按稀有度翻牌、光爆震动、二次确认和向 `data-deck-anchor` 落袋飞行。 |
 | [character/DeckForgeOverlay/ForgeRemoveStage](../../src/ui/character/DeckForgeOverlay/ForgeRemoveStage.tsx) | 精简卡组阶段：网格选中、最低张数锁定 chip、确认和逆向扫描消解。 |
-| [character/DeckForgeOverlay/ScanRevealCard](../../src/ui/character/DeckForgeOverlay/ScanRevealCard.tsx) | 扩充与精简共用的卡牌演出包装层：SVG 线框、扫描线、稀有度收尾、选择描边与消解。 |
-| [character/DeckForgeOverlay/forgeChoreo](../../src/ui/character/DeckForgeOverlay/forgeChoreo.ts) | 锻造演出的时长与揭示顺序真相点，按卡牌稀有度安排扫描节奏并提供减少动态效果降级。 |
-| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情页卡组升级浮层：展示等级徽章、卡背化稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条；开关演出统一走 `common/ModalReveal`。 |
+| [character/DeckForgeOverlay/ForgeRevealCard](../../src/ui/character/DeckForgeOverlay/ForgeRevealCard.tsx) | 扩充与精简共用的卡牌演出包装层：中性水晶卡背翻牌、稀有度光爆辉光、选择描边与消解。 |
+| [character/DeckForgeOverlay/forgeChoreo](../../src/ui/character/DeckForgeOverlay/forgeChoreo.ts) | 锻造演出的时长与揭示顺序真相点，按卡牌稀有度安排翻牌节奏、命中冲击与减少动态效果降级。 |
+| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情页卡组升级浮层：展示等级徽章、水晶稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条；开关演出统一走 `common/ModalReveal`。 |
 | [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
 | [character/EquipmentDrawer](../../src/ui/character/EquipmentDrawer/EquipmentDrawer.tsx) | 角色详情页右侧部位仓库，只展示匹配槽位的装备，点击物品立即穿戴，并展示当前装备详情。 |
 | [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情页列表卡的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面视觉由公共 `TechCard` 提供。 |
@@ -154,6 +154,7 @@ src/ui/
 | [art/slotArt.ts](../../src/ui/art/slotArt.ts) | 战斗签符号卡面查表。 |
 | [art/vfxSprites.ts](../../src/ui/art/vfxSprites.ts) | 命中特效序列帧 URL 列表和预热。 |
 | [art/sceneArt.ts](../../src/ui/art/sceneArt.ts) | 菜单、大厅、设施和商店直接使用的场景/界面素材登记。 |
+| [art/rarityArt.ts](../../src/ui/art/rarityArt.ts) | 普通、罕见、稀有水晶素材查表及预热源列表。 |
 | [art/assetLoader.ts](../../src/ui/art/assetLoader.ts) | 可复用的低优先级图片下载/解码与视频首帧预加载器；按 URL 去重，并限制图片并发以避免抢占交互资源。 |
 | [art/assetPreloader.ts](../../src/ui/art/assetPreloader.ts) | 游戏启动时的实际美术资源清单、去重、进度和失败收口；不扫描未引用的 `assets` 文件。 |
 | [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |

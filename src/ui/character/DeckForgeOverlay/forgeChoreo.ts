@@ -6,19 +6,19 @@ const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
 export const CHARGE_MS = 700;
 export const SPEND_MS = duration(360);
 export const VEIL_MS = duration(200);
-export const FRAME_MS = duration(260);
-export const FRAME_STAGGER_MS = duration(90);
+export const BACK_MS = duration(300);
+export const BACK_STAGGER_MS = duration(110);
+export const IMPACT_MS = duration(280);
+export const SHAKE_MS = duration(240);
 export const SETTLE_MS = duration(300);
 export const COMMIT_MS = duration(420);
-export const RARITY_SWEEP_MS = duration(300);
-export const RARE_RIPPLE_MS = duration(440);
 export const RARE_BREATH_MS = duration(1800);
 export const EXP_FLIGHT_MS = duration(520);
 
-export const SCAN_MS_BY_RARITY: Record<Rarity, number> = {
-  common: duration(420),
-  uncommon: duration(520),
-  rare: duration(620),
+export const FLIP_MS_BY_RARITY: Record<Rarity, number> = {
+  common: duration(460),
+  uncommon: duration(560),
+  rare: duration(700),
 };
 
 const RARITY_ORDER: Record<Rarity, number> = {
@@ -48,9 +48,9 @@ export function revealOrder(cards: Card[]): RevealPlan[] {
       return rarityDelta || left.index - right.index;
     })
     .map(({ card, index }, order) => {
-      const scanDuration = SCAN_MS_BY_RARITY[rarityOf(card)];
-      const plan = { card, index, order, delay: elapsed, duration: scanDuration };
-      elapsed += scanDuration;
+      const flipDuration = FLIP_MS_BY_RARITY[rarityOf(card)];
+      const plan = { card, index, order, delay: elapsed, duration: flipDuration };
+      elapsed += flipDuration;
       return plan;
     });
 }
@@ -58,7 +58,7 @@ export function revealOrder(cards: Card[]): RevealPlan[] {
 export function totalRevealMs(cards: Card[]): number {
   if (!cards.length) return 0;
   const plans = revealOrder(cards);
-  const frameSpan = FRAME_MS + Math.max(0, cards.length - 1) * FRAME_STAGGER_MS;
-  const scanSpan = Math.max(...plans.map((plan) => plan.delay + plan.duration), 0);
-  return VEIL_MS + frameSpan + scanSpan + SETTLE_MS;
+  const backSpan = BACK_MS + Math.max(0, cards.length - 1) * BACK_STAGGER_MS;
+  const flipSpan = Math.max(...plans.map((plan) => plan.delay + plan.duration), 0);
+  return VEIL_MS + backSpan + flipSpan + IMPACT_MS + SETTLE_MS;
 }

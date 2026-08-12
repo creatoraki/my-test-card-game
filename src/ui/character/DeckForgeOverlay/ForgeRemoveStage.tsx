@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Card } from "@/engine";
 import { ConfirmGlyph } from "./ForgeGlyphs";
 import { COMMIT_MS } from "./forgeChoreo";
-import { ScanRevealCard, type ScanRevealPhase } from "./ScanRevealCard";
+import { ForgeRevealCard, type ForgeRevealPhase } from "./ForgeRevealCard";
 import { DeckStackGlyph, LockGlyph } from "@/ui/character/glyphs/deckGlyphs";
 import { cx } from "@/ui/common/cx";
 import s from "./ForgeRemoveStage.module.css";
@@ -58,14 +58,14 @@ export function ForgeRemoveStage({ deck, minDeckSize, onRemove, onComplete, onBu
         {cards.map((card, index) => {
           const isRemoving = phase === "commit" && card.uid === selectedUid;
           const selected = phase === "ready" && card.uid === selectedUid;
-          const cardPhase: ScanRevealPhase = isRemoving ? "dissolve" : "ready";
+          const cardPhase: ForgeRevealPhase = isRemoving ? "dissolve" : "ready";
           return (
             <div className={s["remove-choice"]} key={card.uid}>
-              <ScanRevealCard
+              <ForgeRevealCard
                 card={card}
                 index={index}
                 phase={cardPhase}
-                scanMs={0}
+                flipMs={0}
                 delayMs={0}
                 selected={selected}
                 onClick={() => {

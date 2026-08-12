@@ -3,7 +3,7 @@ import type { Rarity } from "@/engine";
 import { deckRarityChances } from "@/engine";
 import { cx } from "@/ui/common/cx";
 import { useHoldCharge } from "@/ui/hooks/useHoldCharge";
-import { CardBackGlyph, DeckStackGlyph, ExpShardGlyph, LockGlyph } from "@/ui/character/glyphs/deckGlyphs";
+import { DeckStackGlyph, ExpShardGlyph, LockGlyph, RarityCrystal } from "@/ui/character/glyphs/deckGlyphs";
 import { CHARGE_MS } from "./forgeChoreo";
 import s from "./ForgeDrawBrief.module.css";
 
@@ -65,7 +65,7 @@ export function ForgeDrawBrief({
 
       <div className={s["probability"]} aria-label="稀有度抽取概率">
         <div className={s["rarity-grid"]}>
-          {RARITIES.map(({ id, label }, index) => {
+          {RARITIES.map(({ id, label }) => {
             const available = hasPool[id];
             return (
               <div
@@ -74,7 +74,7 @@ export function ForgeDrawBrief({
                 aria-label={`${label}：${available ? percentage(chances[id]) : "无可用卡池"}`}
               >
                 <span className={s["rarity-label"]}>{label}</span>
-                <CardBackGlyph tier={index + 1} muted={!available} />
+                <RarityCrystal rarity={id} muted={!available} className={s["rarity-crystal"]} />
                 <strong>{available ? percentage(chances[id]) : "—"}</strong>
               </div>
             );
@@ -131,11 +131,11 @@ export function ForgeDrawBrief({
         >
           <span className={s["charge-fill"]} aria-hidden="true" />
           <span className={s["charge-sweep"]} aria-hidden="true" />
-          <svg className={s["charge-ring"]} viewBox="0 0 112 42" preserveAspectRatio="none" aria-hidden="true">
-            <path className={s["charge-ring-track"]} d="M8 1h103v33l-7 7H1V8Z" pathLength="1" />
+          <svg className={s["charge-ring"]} viewBox="0 0 210 56" preserveAspectRatio="none" aria-hidden="true">
+            <path className={s["charge-ring-track"]} d="M10 1h199v43l-9 10H1V10Z" pathLength="1" />
             <path
               className={s["charge-ring-fill"]}
-              d="M8 1h103v33l-7 7H1V8Z"
+              d="M10 1h199v43l-9 10H1V10Z"
               pathLength="1"
               strokeDasharray="1"
               style={{ strokeDashoffset: 1 - progress }}

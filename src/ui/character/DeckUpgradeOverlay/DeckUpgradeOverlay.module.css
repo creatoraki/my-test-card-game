@@ -31,7 +31,7 @@
 }
 
 .upg-reveal {
-  width: min(860px, 100%);
+  width: min(660px, 100%);
   max-height: 92%;
 }
 
@@ -64,19 +64,19 @@
 
 .upg-title {
   margin: 0;
-  font-size: 30px;
+  font-size: 34px;
   letter-spacing: 4px;
 }
 
 .upg-close {
   display: grid;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   place-items: center;
   padding: 0;
   color: var(--cd-ink-dim);
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
   background: #ffffff82;
   border: 1px solid var(--cd-line);
@@ -146,7 +146,7 @@
   position: absolute;
   z-index: 2;
   top: 50%;
-  left: calc(50% + 104px);
+  left: calc(50% + 86px);
   width: 88px;
   height: 88px;
   color: var(--cd-glow);
@@ -159,7 +159,7 @@
   right: 22px;
   bottom: 18px;
   color: var(--cd-ink-dim);
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 2px;
 }
 
@@ -204,14 +204,18 @@
 
 .upg-chips {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.upg-chip:last-child {
+  grid-column: 1 / -1;
 }
 
 .upg-chip {
   display: flex;
   min-width: 0;
-  min-height: 48px;
+  min-height: 58px;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
@@ -220,9 +224,9 @@
 }
 
 .upg-chip svg {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   color: var(--cd-glow-deep);
 }
 
@@ -230,7 +234,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--cd-ink);
-  font-size: 20px;
+  font-size: 26px;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -252,7 +256,7 @@
 
 .upg-exp-head {
   color: var(--cd-ink-dim);
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 
@@ -331,7 +335,7 @@
 .upg-rarity-col {
   position: relative;
   display: flex;
-  min-height: 138px;
+  min-height: 164px;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
@@ -343,16 +347,16 @@
   transition: transform 220ms cubic-bezier(.2, .72, .28, 1), filter 220ms ease, background 220ms ease;
 }
 
-.upg-rarity-col svg {
-  width: 78px;
-  height: 92px;
-  color: var(--cd-glow-deep);
+.rarity-crystal {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
   transition: filter 220ms ease, transform 220ms cubic-bezier(.2, .72, .28, 1);
 }
 
 .upg-rarity-value {
   color: var(--cd-ink);
-  font-size: 24px;
+  font-size: 30px;
   line-height: 1;
 }
 
@@ -361,7 +365,7 @@
   top: 8px;
   right: 8px;
   color: var(--cd-glow-deep);
-  font-size: 11px;
+  font-size: 17px;
   font-weight: 700;
   opacity: 0;
   transform: translateY(4px);
@@ -383,15 +387,19 @@
   transform: translateY(-4px);
 }
 
-.is-filling .upg-rarity-col.is-rising svg,
-.is-levelup .upg-rarity-col.is-rising svg {
+.is-filling .upg-rarity-col.is-rising .rarity-crystal,
+.is-levelup .upg-rarity-col.is-rising .rarity-crystal {
   filter: drop-shadow(0 0 8px #bd9ce8c4);
   transform: translateY(-2px);
 }
 
 .upg-rarity-col.is-empty {
   color: var(--cd-ink-dim);
-  opacity: .48;
+}
+
+.upg-rarity-col.is-empty .rarity-crystal {
+  filter: grayscale(1);
+  opacity: .4;
 }
 
 .upg-ratio-bar {
@@ -428,7 +436,7 @@
   flex: 0 0 auto;
   padding-top: 12px;
   color: var(--cd-ink-dim);
-  font-size: 13px;
+  font-size: 19px;
   border-top: 1px solid var(--cd-line);
 }
 
@@ -449,14 +457,14 @@
 .upg-button {
   position: relative;
   display: grid;
-  width: 128px;
-  height: 48px;
-  flex: 0 0 128px;
+  width: 160px;
+  height: 56px;
+  flex: 0 0 160px;
   place-items: center;
   padding: 8px 14px;
   overflow: hidden;
   color: var(--cd-ink);
-  font-size: 13px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: 1px;
   background: #ffffff91;
@@ -516,7 +524,7 @@
   bottom: 5px;
   z-index: 5;
   color: var(--cd-glow-deep);
-  font-size: 10px;
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
   opacity: 0;
   transform: translateY(4px);
@@ -654,7 +662,7 @@
   }
 
   .upg-title {
-    font-size: 24px;
+    font-size: 28px;
     letter-spacing: 2px;
   }
 
@@ -682,21 +690,21 @@
   }
 
   .upg-chip strong {
-    font-size: 18px;
+    font-size: 24px;
   }
 
   .upg-rarity-col {
-    min-height: 116px;
+    min-height: 142px;
     gap: 6px;
   }
 
-  .upg-rarity-col svg {
-    width: 64px;
-    height: 76px;
+  .rarity-crystal {
+    width: 80px;
+    height: 80px;
   }
 
   .upg-rarity-value {
-    font-size: 20px;
+    font-size: 26px;
   }
 }
 
@@ -723,7 +731,7 @@
   .upg-exp-fill,
   .upg-exp-charge,
   .upg-rarity-col,
-  .upg-rarity-col svg,
+  .rarity-crystal,
   .upg-ratio-seg,
   .upg-button,
   .upg-button-charge,
