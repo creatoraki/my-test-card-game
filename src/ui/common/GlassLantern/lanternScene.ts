@@ -1,5 +1,6 @@
 import {
   AdditiveBlending,
+  ACESFilmicToneMapping,
   AmbientLight,
   BufferGeometry,
   CanvasTexture,
@@ -33,9 +34,9 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-const VIEW_SIZE = 3.2;
+const VIEW_SIZE = 3.5;
 const GLASS_CENTER_Y = 0.86;
-const INNER_COUNT = 140;
+const INNER_COUNT = 90;
 const OUTER_COUNT = 80;
 const COLOR_DAMP = 7;
 const MOTION_DAMP = 5;
@@ -87,6 +88,8 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   renderer.setClearColor(0x000000, 0);
   renderer.setClearAlpha(0);
   renderer.outputColorSpace = SRGBColorSpace;
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.95;
 
   const scene = new Scene();
   const camera = new OrthographicCamera(
@@ -98,7 +101,7 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
     100,
   );
   camera.position.set(5, 5.5, 5);
-  camera.lookAt(0, 0.8, 0);
+  camera.lookAt(0, 0.95, 0);
 
   const lantern = new Group();
   scene.add(lantern);
@@ -108,10 +111,10 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const glassMaterial = new MeshPhysicalMaterial({
     color: 0xffffff,
     transparent: true,
-    opacity: 0.22,
+    opacity: 0.16,
     roughness: 0.12,
     metalness: 0.12,
-    transmission: 0.55,
+    transmission: 0.7,
     thickness: 0.3,
     ior: 1.45,
     clearcoat: 0.55,
@@ -126,22 +129,22 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const innerMaterial = new MeshBasicMaterial({
     color: currentColor,
     transparent: true,
-    opacity: 0.26,
+    opacity: 0.18,
     blending: AdditiveBlending,
     depthWrite: false,
     toneMapped: false,
   });
-  const innerGlow = new Mesh(new SphereGeometry(0.6, 20, 16), innerMaterial);
+  const innerGlow = new Mesh(new SphereGeometry(0.5, 20, 16), innerMaterial);
   innerGlow.position.y = GLASS_CENTER_Y;
   innerGlow.renderOrder = 1;
   lantern.add(innerGlow);
 
   const metalMaterial = new MeshStandardMaterial({
-    color: 0x8b9ca3,
+    color: 0xb9c6cf,
     metalness: 0.84,
-    roughness: 0.22,
+    roughness: 0.3,
     emissive: currentColor,
-    emissiveIntensity: 0.32,
+    emissiveIntensity: 0.26,
   });
   const metalGeometries: BufferGeometry[] = [];
   const metalMeshes: Mesh[] = [];
@@ -149,7 +152,8 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const addMetal = (geometry: BufferGeometry, position?: Vector3, rotation?: Vector3) => {
     const mesh = new Mesh(geometry, metalMaterial);
     if (position) mesh.position.copy(position);
-    if (rotation) mesh.rotation.copy(rotation);
+    // Euler.copy 不能接收 Vector3，否则会把旋转顺序拷贝成 undefined。
+    if (rotation) mesh.rotation.set(rotation.x, rotation.y, rotation.z);
     lantern.add(mesh);
     metalGeometries.push(geometry);
     metalMeshes.push(mesh);
@@ -184,23 +188,23 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const outerParticles = createParticleField(OUTER_COUNT, true, particleTexture);
   lantern.add(innerParticles.points, outerParticles.points);
 
-  const ambient = new AmbientLight(0x9aa8b2, 0.62);
-  const key = new PointLight(currentColor, 4.2, 8, 2);
+  const ambient = new AmbientLight(0x9aa8b2, 0.5);
+  const key = new PointLight(currentColor, 2.4, 8, 2);
   key.position.set(0.8, 1.25, 1.1);
-  const fill = new PointLight(0x87cfe7, 1.8, 7, 2);
+  const fill = new PointLight(0x87cfe7, 1.1, 7, 2);
   fill.position.set(-1.2, 1.8, -1.2);
-  const backlight = new PointLight(0x5d8dff, 1.1, 8, 2);
+  const backlight = new PointLight(0x5d8dff, 0.8, 8, 2);
   backlight.position.set(0, 1.1, -2.2);
   lantern.add(ambient, key, fill, backlight);
 
   const composer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
   renderPass.clearAlpha = 0;
-  const bloomPass = new UnrealBloomPass(new Vector2(1, 1), 1.18, 0.78, 0.22);
+  const bloomPass = new UnrealBloomPass(new Vector2(1, 1), 0.55, 0.42, 0.62);
   const alphaPass = new ShaderPass({
     uniforms: {
       tDiffuse: { value: null },
-      alphaBoost: { value: 1.35 },
+      alphaBoost: { value: 1.05 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -262,16 +266,16 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
       lantern.rotation.y = time * 0.16;
       lantern.position.y = MathUtils.damp(lantern.position.y, Math.sin(time * 0.8) * 0.045, MOTION_DAMP, dt);
       innerMaterial.color.copy(currentColor);
-      innerMaterial.opacity = 0.22 + clamp(intensity, 0.1, 2) * 0.08;
+      innerMaterial.opacity = 0.15 + clamp(intensity, 0.1, 2) * 0.07;
       metalMaterial.emissive.copy(currentColor);
-      metalMaterial.emissiveIntensity = 0.24 + clamp(intensity, 0.1, 2) * 0.2;
+      metalMaterial.emissiveIntensity = 0.14 + clamp(intensity, 0.1, 2) * 0.12;
       key.color.copy(currentColor);
-      key.intensity = MathUtils.damp(key.intensity, 4.2 * intensity, 8, dt);
-      bloomPass.strength = MathUtils.damp(bloomPass.strength, 1.05 + intensity * 0.22, 8, dt);
+      key.intensity = MathUtils.damp(key.intensity, 2.4 * intensity, 8, dt);
+      bloomPass.strength = MathUtils.damp(bloomPass.strength, 0.45 + intensity * 0.18, 8, dt);
       innerParticles.material.color.copy(currentColor);
       outerParticles.material.color.copy(currentColor);
-      innerParticles.material.opacity = 0.42 + intensity * 0.12;
-      outerParticles.material.opacity = 0.34 + intensity * 0.14;
+      innerParticles.material.opacity = 0.32 + intensity * 0.12;
+      outerParticles.material.opacity = 0.26 + intensity * 0.14;
       updateParticles(innerParticles, dt, time);
       updateParticles(outerParticles, dt, time);
     },
@@ -317,7 +321,7 @@ function createParticleField(count: number, external: boolean, texture: CanvasTe
     opacity: external ? 0.4 : 0.52,
     blending: AdditiveBlending,
     depthWrite: false,
-    depthTest: false,
+    depthTest: true,
     sizeAttenuation: true,
     toneMapped: false,
   });

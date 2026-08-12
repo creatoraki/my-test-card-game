@@ -21,6 +21,7 @@ import { shuffle } from "./rng";
 import { allIds, applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
+import { cardCost } from "./cost";
 import { actAndRecord, buildIntent } from "./ai";
 import { advanceTick } from "./scheduler";
 import {
@@ -31,6 +32,7 @@ import {
 import { getEncounter, getEnemyDef, slotDefId } from "../data";
 import { moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
 import { KEYWORD_DEFS } from "./keywords";
+import { CARD_MARK_DEFS } from "./cardMarks";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -171,6 +173,8 @@ export function createBattle(
     challengeKillRound: null,
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
+    lastDiscardBatch: 0,
+    pendingChoice: null,
   };
 
   state.draw = shuffle(state, Object.keys(cards));
@@ -195,6 +199,7 @@ export function startRound(state: BattleState): void {
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
   state.discardsThisRound = 0;
+  state.lastDiscardBatch = 0;
   state.playedThisRound = [];
   state.lastPlayedCard = null;
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
@@ -241,11 +246,12 @@ export function canPlay(state: BattleState, uid: string): boolean {
   if (!card || state.phase !== "player" || !state.hand.includes(uid)) return false;
   const owner = state.combatants[card.ownerCharId];
   if (!owner || !owner.alive) return false;
-  return (state.resources[RULES.resource.name] ?? 0) >= card.cost;
+  if (state.pendingChoice) return false;
+  return (state.resources[RULES.resource.name] ?? 0) >= cardCost(state, card);
 }
 
 export function redrawHandCard(state: BattleState, uid: string): boolean {
-  if (state.phase !== "player" || state.redrawsThisRound >= 1 || !state.hand.includes(uid)) return false;
+  if (state.pendingChoice || state.phase !== "player" || state.redrawsThisRound >= 1 || !state.hand.includes(uid)) return false;
   const card = state.cards[uid];
   if (!card) return false;
 
@@ -258,7 +264,7 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
 
 // 待机: 什么都不做, 只推进时刻 —— 敌人因此可能走到行动点。每回合限 RULES.timeline.waitsPerRound 次。
 export function waitTick(state: BattleState, frames?: AnimFrame[]): boolean {
-  if (state.phase !== "player" || state.waitsThisRound >= RULES.timeline.waitsPerRound) return false;
+  if (state.pendingChoice || state.phase !== "player" || state.waitsThisRound >= RULES.timeline.waitsPerRound) return false;
   state.waitsThisRound += 1;
   log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
   advanceTick(state, RULES.timeline.waitAdvance, frames);
@@ -266,7 +272,7 @@ export function waitTick(state: BattleState, frames?: AnimFrame[]): boolean {
 }
 
 export function discardHandCard(state: BattleState, uid: string, rec?: DiscardRecorder): boolean {
-  if (state.phase !== "player" || !state.hand.includes(uid)) return false;
+  if (state.pendingChoice || state.phase !== "player" || !state.hand.includes(uid)) return false;
   const card = state.cards[uid];
   if (!card) return false;
 
@@ -288,7 +294,7 @@ export function playCard(
   if ((card.targeting === "foe" || card.targeting === "ally") && !isValidPrimary(state, card, primaryId))
     return false;
 
-  state.resources[RULES.resource.name] -= card.cost;
+  state.resources[RULES.resource.name] -= cardCost(state, card);
   state.hand = state.hand.filter((x) => x !== uid);
   log(state, `${owner.emoji} ${owner.name} 打出 ${card.name}`);
   const discardRecorder = rec ? { triggers: rec.discardTriggers } : undefined;
@@ -305,11 +311,16 @@ export function playCard(
       for (let i = 0; i < times; i++) resolveEffects(state, ref.effects, card.ownerCharId, primaryId);
       def.onTriggered?.(state, card, primaryId, times);
     }
+    for (const markId of card.marks ?? []) {
+      const mark = CARD_MARK_DEFS[markId];
+      if (mark) resolveEffects(state, mark.effects, card.ownerCharId, primaryId);
+    }
+    card.marks = [];
   });
 
   const played = {
     uid: card.uid,
-    cost: card.cost,
+    cost: cardCost(state, card),
     cardType: card.cardType,
     ownerCharId: card.ownerCharId,
   };
@@ -333,7 +344,7 @@ export function playCard(
 // 结束回合
 // ---------------------------------------------------------------------------
 export function endRound(state: BattleState, frames?: AnimFrame[]): void {
-  if (state.phase !== "player") return;
+  if (state.pendingChoice || state.phase !== "player") return;
   checkChallengesOnEndTurn(state);
 
   // 冲刷: 本回合还没行动过的存活敌人各补一次行动
@@ -359,4 +370,25 @@ export function endRound(state: BattleState, frames?: AnimFrame[]): void {
     for (const cardUid of [...state.hand]) moveToDiscard(state, cardUid, "roundEnd");
   }
   startRound(state);
+}
+
+export function resolvePendingChoice(state: BattleState, uid: string): boolean {
+  const choice = state.pendingChoice;
+  if (!choice || choice.kind !== "recoverFromDiscard") return false;
+  if (!state.discard.includes(uid) || state.hand.length >= partyHandLimit(state)) return false;
+
+  state.discard = state.discard.filter((id) => id !== uid);
+  state.hand.push(uid);
+  const card = state.cards[uid];
+  if (choice.count > 1) choice.count -= 1;
+  else state.pendingChoice = null;
+  log(state, `${card?.name ?? "卡牌"} 已从弃牌堆回到手牌`);
+  return true;
+}
+
+export function cancelPendingChoice(state: BattleState): boolean {
+  if (!state.pendingChoice) return false;
+  state.pendingChoice = null;
+  log(state, "放弃回收弃牌");
+  return true;
 }

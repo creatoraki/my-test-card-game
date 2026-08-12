@@ -285,6 +285,24 @@
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
   pointer-events: none;
 }
+.hc-mark {
+  position: absolute;
+  z-index: 8;
+  top: 38px;
+  right: 10px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #d9f3ff;
+  font-size: 14px;
+  line-height: 1;
+  text-shadow: 0 0 5px #54c8e8;
+  background: #102b35e8;
+  border: 1px solid #66d7ec;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  pointer-events: none;
+}
 /* ★ 配图层: 卡上段的正方形取景窗 —— 下边界让给 .hc-text 的实位高度, 于是它的尺寸恰是
    --hand-card-w × --hand-card-w(因为卡高被定义成 宽 + 说明区), 与 1:1 素材完全同形。
    ⚠ 用 contain 而非 cover: 1:1 图配 1:1 窗时两者等价、都无留白, 但将来若混进非正方素材,

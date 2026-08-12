@@ -88,6 +88,14 @@
 .cell {
   min-width: 0;
 }
+.cell[data-choice="true"] {
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+.cell[data-choice="true"]:hover {
+  transform: translateY(-6px);
+  filter: drop-shadow(0 0 12px #9eeeff66);
+}
 .magnify {
   position: absolute;
   z-index: 24;

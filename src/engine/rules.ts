@@ -57,6 +57,7 @@ export const RULES = {
   combat: {
     clearShieldOnRoundStart: true, // 每回合开始清空护盾
     weakMultiplier: 0.75, // 虚弱: 造成攻击伤害 ×
+    sharpMultiplier: 1.15, // 锋利: 造成攻击伤害 ×
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
 
     defenseConstant: 30, // 减伤 = 防御力 / (防御力 + 该常量)

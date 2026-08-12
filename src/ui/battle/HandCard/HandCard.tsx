@@ -1,5 +1,6 @@
 import { memo } from "react";
 import type { Card } from "@/engine";
+import { CARD_MARK_DEFS } from "@/engine";
 import { getCharacter } from "@/data";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
@@ -20,6 +21,7 @@ interface Props {
   onClick?: (uid: string) => void;
   actionBadge?: "redraw" | "discard" | null;
   onAction?: (uid: string) => void;
+  cost?: number;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
@@ -52,11 +54,13 @@ export const HandCard = memo(function HandCard({
   onClick,
   actionBadge,
   onAction,
+  cost,
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
   const art = cardArt(card.id);
   const hasArt = Boolean(art);
   const text = useCardText(card);
+  const effectiveCost = cost ?? card.cost;
   // 说明区高度固定(一排卡必须等高), 故长文本靠**降字号**消化而不是撑高卡。
   // 按字数分三档而不是 JS 实测宽高: 零测量、零布局抖动, 也不需要 useLayoutEffect;
   // 极端超长的仍会被 .hc-text 的行数截断兜住, 完整文字在右侧 CardInfoPanel 永远读得到。
@@ -88,7 +92,7 @@ export const HandCard = memo(function HandCard({
       //   真正需要这个值的两个订阅方(CardInfoPanel / AllyBar)会重渲染。
       // ⚠ 本组件**只写不读** store —— 一旦在这里订阅, 十张卡就会跟着悬停一起重渲染,
       //   等于把刚搬走的开销原样搬回来。卡自己的悬停视觉全部由 CSS :hover 驱动(见 HandCard.css)。
-      onMouseEnter={() => variant === "hand" && !leaving && setHandHover(card)}
+      onMouseEnter={() => variant === "hand" && !leaving && setHandHover(card, effectiveCost)}
       onMouseLeave={() => variant === "hand" && clearHandHover(card)}
       onClick={variant === "hand" ? (e) => {
         e.stopPropagation();
@@ -145,7 +149,7 @@ export const HandCard = memo(function HandCard({
         {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上 */}
         <span className={s["hc-cost"]} title="消耗法力水晶">
           <ManaCrystal className={s["hc-cost-crystal"]} still />
-          <span className={s["hc-cost-value"]}>{card.cost}</span>
+          <span className={s["hc-cost-value"]}>{effectiveCost}</span>
         </span>
 
         {/* 卡名压条: 贴在配图下沿的渐变浮层(透明 → 实底), 不占实位 */}
@@ -162,6 +166,15 @@ export const HandCard = memo(function HandCard({
             ☣
           </span>
         )}
+        {card.marks?.map((markId) => {
+          const mark = CARD_MARK_DEFS[markId];
+          if (!mark) return null;
+          return (
+            <span key={markId} className={s["hc-mark"]} title={`${mark.name} · ${mark.desc}`} aria-label={mark.name}>
+              {mark.emoji}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

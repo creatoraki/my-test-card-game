@@ -38,14 +38,18 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 3,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    startingCardIds: basicStartingCardIds("swordsman"),
+    startingCardIds: [...basicStartingCardIds("swordsman"), "crane-form", "buzz"],
     pools: {
       common: [
         "snowflake",
         "buzz",
+        "whetstone",
+        "mirage",
+        "firefly",
+        "gale",
       ],
-      uncommon: [],
-      rare: ["swarm"],
+      uncommon: ["swallow-return", "crane-form"],
+      rare: ["swarm", "declutter", "rift-light"],
     },
   },
   {

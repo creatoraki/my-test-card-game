@@ -32,6 +32,8 @@ export {
   burdenPenalty,
 } from "./stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
+export { cardCost } from "./cost";
+export { CARD_MARK_DEFS } from "./cardMarks";
 export {
   POLLUTION_RULES,
   QUIRK_DEFS,
@@ -50,6 +52,8 @@ export {
   redrawHandCard,
   waitTick,
   discardHandCard,
+  resolvePendingChoice,
+  cancelPendingChoice,
 } from "./battle";
 export type { AllyInit, BattleSetup, PlayRecorder } from "./battle";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget } from "./targeting";

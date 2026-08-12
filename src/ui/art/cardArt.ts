@@ -6,6 +6,7 @@ import basicGuardArt from "@/assets/skills/basic/基础护盾.png";
 import swordsmanSnowflakeArt from "@/assets/skills/swordsman/雪花.png";
 import swordsmanBuzzArt from "@/assets/skills/swordsman/蜂鸣.png";
 import swordsmanSwarmArt from "@/assets/skills/swordsman/蜂群.png";
+import swordsmanDeclutterArt from "@/assets/skills/swordsman/断舍离.png";
 
 export const CARD_ART: Record<string, string> = {
   "swordsman-basic-attack": basicAttackArt,
@@ -20,6 +21,7 @@ export const CARD_ART: Record<string, string> = {
   "snowflake": swordsmanSnowflakeArt,
   "buzz": swordsmanBuzzArt,
   "swarm": swordsmanSwarmArt,
+  "declutter": swordsmanDeclutterArt,
 };
 
 export const CARD_ART_SOURCES: readonly string[] = [...new Set(Object.values(CARD_ART))];

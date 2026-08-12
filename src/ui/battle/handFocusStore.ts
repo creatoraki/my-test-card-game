@@ -22,13 +22,15 @@ import type { Card } from "@/engine";
 
 interface HandFocusState {
   hovered: Card | null;
+  hoveredCost: number | null;
 }
 
-const useStore = create<HandFocusState>(() => ({ hovered: null }));
+const useStore = create<HandFocusState>(() => ({ hovered: null, hoveredCost: null }));
 
 // 下面三个都是**模块级函数**(不是 hook): 引用天然恒定, 于是调用方(HandCard)既不需要订阅
 // store, 也不需要 useCallback 去稳定它 —— 这正是 HandCard 能被 React.memo 挡住的前提。
-export const setHandHover = (card: Card): void => useStore.setState({ hovered: card });
+export const setHandHover = (card: Card, cost = card.cost): void =>
+  useStore.setState({ hovered: card, hoveredCost: cost });
 
 // ⚠ 只有「当前悬停的还是自己」才清空。鼠标快速划过一排卡时, 浏览器并不保证
 //   A.mouseleave 一定早于 B.mouseenter 送达; 无条件清空会把刚点亮的 B 又抹掉,
@@ -37,14 +39,14 @@ export const setHandHover = (card: Card): void => useStore.setState({ hovered: c
 //   在 battle.cards 里可能已换成一个新对象(见 BattleScreen 同步 renderHand 的 useEffect),
 //   按引用比会漏判 ⇒ 悬停态永久卡住, 详情面板再也退不回 STANDBY。
 export const clearHandHover = (card: Card): void =>
-  useStore.setState((s) => (s.hovered?.uid === card.uid ? { hovered: null } : s));
+  useStore.setState((s) => (s.hovered?.uid === card.uid ? { hovered: null, hoveredCost: null } : s));
 
 // 无条件清空: 换战斗 / 进入换牌丢弃 / 开始播出牌分镜时用 —— 那些时刻手牌本就要被换掉,
 // 留着上一张的详情是错的。
-export const resetHandHover = (): void => useStore.setState({ hovered: null });
+export const resetHandHover = (): void => useStore.setState({ hovered: null, hoveredCost: null });
 
 export const useHandHover = (): Card | null => useStore((s) => s.hovered);
 
-export const useHandHoverCost = (): number | null => useStore((s) => s.hovered?.cost ?? null);
+export const useHandHoverCost = (): number | null => useStore((s) => s.hoveredCost);
 
 export const useHandHoverOwner = (): string | null => useStore((s) => s.hovered?.ownerCharId ?? null);

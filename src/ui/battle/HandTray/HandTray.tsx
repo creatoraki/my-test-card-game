@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { BattleState, Card } from "@/engine";
-import { canPlay } from "@/engine";
+import { canPlay, cardCost } from "@/engine";
 import { HandCard } from "@/ui/battle/HandCard";
 import type { HandAction } from "@/ui/battle/HandTools";
 import s from "./HandTray.module.css";
@@ -52,6 +52,7 @@ export const HandTray = memo(function HandTray({
               leaving={leaving}
               playable={!leaving && isPlayerTurn && canPlay(battle, card.uid)}
               actionBadge={handAction}
+              cost={cardCost(battle, card)}
               selected={card.uid === selectedUid}
               onExited={onCardExited}
               onClick={onCardClick}

@@ -14,6 +14,8 @@
 | [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、状态生命周期和胜负判定等原语；敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡。 |
 | [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调、状态生命周期和胜负判定等原语；敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡。 |
 | [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语，并解析 primary、self、allFoes、randomFoe 等目标；支持多段伤害、动态段数和声明式弃牌。卡牌和敌人招式共用；`amount` 固定伤害，`multiplier` 按施放者攻击力计算，二者只能选一个。 |
+| [cost.ts](../../src/engine/cost.ts) | 卡牌生效费用唯一入口；按战斗状态计算本回合弃牌减费，并由出牌校验、记录和 UI 共享。 |
+| [cardMarks.ts](../../src/engine/cardMarks.ts) | 卡牌实例标记注册表；当前提供心眼，打出后通过统一效果解释器触发标记效果。 |
 | [cardText.ts](../../src/engine/cardText.ts) | 将卡牌说明中的 `{0}` / `{d0}` 占位符按施放者攻击力或治愈力渲染为具体基础数值。 |
 | [discard.ts](../../src/engine/discard.ts) | 弃牌唯一入口：迁移牌堆、按规则计数、结算「被弃置时」触发并录制表现快照。 |
 | [keywords.ts](../../src/engine/keywords.ts) | 卡牌词条注册表；统一承载共鸣、瞄准、登阶、日蚀、月蚀的待接落点。 |
@@ -26,7 +28,7 @@
 | [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
 | [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行：倍率预览、眩晕跳过、随机选目标、效果解释和行动后重排。每回合行动次数上限按回合开始排 1 次，行动后按剩余次数决定是否续排，用尽后 `nextActTick = null`。 |
 | [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进，处理所有到点敌人并安排下次行动；每回合行动次数用尽后 `nextActTick = null`，带死循环安全阀。 |
-| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；`waitTick` 只推进时刻并复用敌人行动排程。支持跨战斗 `startHp` 和 `EncounterModifier`；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |
+| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；`waitTick` 只推进时刻并复用敌人行动排程。支持动态费用、卡牌标记、弃牌批次和 `pendingChoice` 回收/取消 API；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |
 | [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API 出口。 |
 | [battle.test.ts](../../src/engine/battle.test.ts) | 初始化、速攻/普通牌时刻推进、中毒回合开始、回合末冲刷等核心行为测试。 |
 

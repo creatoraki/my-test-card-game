@@ -77,6 +77,21 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
       },
     },
   },
+  sharp: {
+    id: "sharp",
+    name: "锋利",
+    emoji: "🗡️",
+    kind: "buff",
+    desc: `造成的攻击伤害 ×${RULES.combat.sharpMultiplier}。每回合结束层数 -1。`,
+    hooks: {
+      modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
+        if (dmg.isAttack) dmg.amount *= RULES.combat.sharpMultiplier;
+      },
+      onRoundEnd: (c: StatusCtx) => {
+        c.inst.stacks -= 1;
+      },
+    },
+  },
   weak: {
     id: "weak",
     name: "虚弱",

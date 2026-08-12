@@ -5,13 +5,14 @@
 
 import type { BattleState, CounterSource, EffectDescriptor } from "./types";
 import { ops } from "./ops";
-import { statOf } from "./stats";
+import { partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 
 function counterOf(state: BattleState, source: CounterSource): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
+  if (source === "lastDiscardBatch") return state.lastDiscardBatch;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((card) => card.cardType === "fast").length;
   return state.playedThisRound.length;
@@ -54,6 +55,7 @@ function applyEffect(
   sourceId: string,
   targetIds: string[],
 ): void {
+  if (effect.condition === "discardedThisRound" && counterOf(state, "discardsThisRound") <= 0) return;
   const amount = effect.amount ?? 0;
   const unblockable = effect.flags?.includes("unblockable");
   const mustHit = effect.flags?.includes("mustHit");
@@ -64,7 +66,10 @@ function applyEffect(
       //   写了 amount   ⇒ 固定伤害, 不用攻击力, 不吃防御与格挡
       //   写了 multiplier ⇒ 攻击力 × 倍率, 走完整管线
       const fixed = effect.amount != null;
-      const dmg = fixed ? amount : statOf(src, "attack") * (effect.multiplier ?? 1);
+      let dmg = fixed ? amount : statOf(src, "attack") * (effect.multiplier ?? 1);
+      if (effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null) {
+        dmg *= 1 + counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer;
+      }
       const bonus = effect.bonusHitsFrom
         ? Math.min(counterOf(state, effect.bonusHitsFrom), effect.maxBonusHits ?? Infinity)
         : 0;
@@ -127,6 +132,37 @@ function applyEffect(
         }
       } else selected = state.hand.slice(0, amountToDiscard);
       for (const uid of selected) ops.discard(state, uid, "effect");
+      state.lastDiscardBatch = selected.length;
+      break;
+    }
+    case "RECOVER_FROM_DISCARD": {
+      const limit = partyHandLimit(state);
+      const count = Math.min(
+        Math.max(1, Math.floor(effect.amount ?? 1)),
+        state.discard.length,
+        limit - state.hand.length,
+      );
+      if (count <= 0 || state.pendingChoice) {
+        ops.log(state, "弃牌堆为空或手牌已满，无法回收牌");
+        break;
+      }
+      state.pendingChoice = { kind: "recoverFromDiscard", sourceCardUid: sourceId, count };
+      ops.log(state, "请选择一张弃牌堆中的牌回到手牌");
+      break;
+    }
+    case "MARK_CARDS": {
+      if (effect.markPick !== "handRandom" || !effect.mark) break;
+      const amountToMark = Math.max(0, Math.floor(effect.amount ?? 0));
+      const pool = [...state.hand];
+      for (let i = 0; i < amountToMark && pool.length > 0; i++) {
+        const uid = rngPick(state, pool);
+        const card = state.cards[uid];
+        if (card) {
+          card.marks ??= [];
+          if (!card.marks.includes(effect.mark)) card.marks.push(effect.mark);
+        }
+        pool.splice(pool.indexOf(uid), 1);
+      }
       break;
     }
   }

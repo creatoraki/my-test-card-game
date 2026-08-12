@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   canPlay,
+  cardCost,
   type AnimFrame,
   type BattleState,
   type Card,
@@ -88,6 +89,8 @@ export function BattleScreen() {
   const play = useBattleStore((s) => s.play);
   const redrawCard = useBattleStore((s) => s.redrawCard);
   const discardCard = useBattleStore((s) => s.discardCard);
+  const pickPendingChoice = useBattleStore((s) => s.pickPendingChoice);
+  const cancelPendingChoice = useBattleStore((s) => s.cancelPendingChoice);
   const end = useBattleStore((s) => s.end);
   const wait = useBattleStore((s) => s.wait);
   const commit = useBattleStore((s) => s.commit);
@@ -262,6 +265,10 @@ export function BattleScreen() {
     if (!battle || battle.phase !== "won" || battleSettled || deaths.pending) return;
     resolveBattle();
   }, [battle, battleSettled, deaths.pending, resolveBattle]);
+
+  useEffect(() => {
+    if (battle?.pendingChoice?.kind === "recoverFromDiscard") setOpenPile("discard");
+  }, [battle?.pendingChoice]);
 
   // ── 溢出填充图 ──
   // 静态图背景直接复用同一个 URL(浏览器共享那份解码, 零额外成本);
@@ -699,6 +706,22 @@ export function BattleScreen() {
     startBatch(plan.frames.map(stepFromFrame), plan.final);
   }
 
+  function pickFromDiscard(uid: string) {
+    if (!battle?.pendingChoice) return;
+    const next = pickPendingChoice(uid);
+    if (!next) return;
+    commit(next);
+    if (!next.pendingChoice) setOpenPile(null);
+  }
+
+  function closePile() {
+    if (b.pendingChoice) {
+      const next = cancelPendingChoice();
+      if (next) commit(next);
+    }
+    setOpenPile(null);
+  }
+
   function performCombatantClick(id: string) {
     if (!selectedUid || !selectedCard || animating) return;
     const t = b.combatants[id];
@@ -864,7 +887,7 @@ export function BattleScreen() {
       <div className={s.topRight}>
         {battleMeta && <BondRail bonds={battleMeta.bonds} />}
         <BattleActions
-          canEndTurn={isPlayerTurn && !animating}
+          canEndTurn={isPlayerTurn && !animating && !battle.pendingChoice}
           onEndTurn={triggerEndTurn}
           speed2x={speed2x}
           onToggleSpeed={togglePlaybackSpeed}
@@ -881,7 +904,7 @@ export function BattleScreen() {
           <HandTools
             battle={battle}
             handAction={handAction}
-            isPlayerTurn={isPlayerTurn}
+            isPlayerTurn={isPlayerTurn && !battle.pendingChoice}
             animating={animating}
             onWait={triggerWait}
             onToggle={(action) => {
@@ -903,7 +926,7 @@ export function BattleScreen() {
         <HandTray
           renderHand={renderHand}
           battle={battle}
-          isPlayerTurn={isPlayerTurn}
+          isPlayerTurn={isPlayerTurn && !battle.pendingChoice}
           handAction={handAction}
           selectedUid={selectedUid}
           playingOutUid={playingOutUid}
@@ -913,9 +936,15 @@ export function BattleScreen() {
         />
       </div>
 
-      <PileRail battle={battle} onOpenPile={setOpenPile} />
+      <PileRail battle={battle} onOpenPile={(pile) => !battle.pendingChoice && setOpenPile(pile)} />
 
-      <PileDrawer battle={battle} pile={openPile} onClose={() => setOpenPile(null)} />
+      <PileDrawer
+        battle={battle}
+        pile={openPile}
+        choiceMode={Boolean(battle.pendingChoice)}
+        onPick={pickFromDiscard}
+        onClose={closePile}
+      />
 
         {/* ★ 卡牌说明固定面板: 画布**右上角**, 为右侧竖排牌堆让出一列。位置恒定。
           展示「悬停 ?? 选中」那张卡 ——
@@ -923,7 +952,10 @@ export function BattleScreen() {
           刻意在 .battle-hud **之外**(它曾是 HUD 的第三列) —— 牌堆移到右上角后，底部托盘不再
           为牌堆让位, 几何与层序的完整理由见 ui/CardInfoPanel.css .card-info-panel。
           同样在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏。 */}
-      <CardInfoPanel fallbackCard={selectedCard} />
+      <CardInfoPanel
+        fallbackCard={selectedCard}
+        fallbackCost={selectedCard ? cardCost(battle, selectedCard) : undefined}
+      />
 
       {/* 战败遮罩。胜利由战斗画布内的 VictoryPanel 接管, 不再跳战后小结页。 */}
       {battle.phase === "lost" && !deaths.pending && (

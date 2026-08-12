@@ -1,8 +1,9 @@
 import { memo } from "react";
 import type { Card, CardRarity, Targeting } from "@/engine";
+import { CARD_MARK_DEFS } from "@/engine";
 import { getCharacter } from "@/data";
 import { cardArt } from "@/ui/art/cardArt";
-import { useHandHover } from "@/ui/battle/handFocusStore";
+import { useHandHover, useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { cx } from "@/ui/common/cx";
 import { useCardText } from "@/ui/common/cardText";
 import s from "./CardInfoPanel.module.css";
@@ -40,19 +41,26 @@ const RARITY_LABEL: Record<CardRarity, string> = {
 //   悬停不同卡时下半部整块上下跳。
 // ⚠ 两个分支的根节点都要自己 stopPropagation: 面板已搬出 .battle-hud(那层统一拦了冒泡), 现在
 //   直挂在 .screen.battle 下, 不拦的话点面板会冒泡到画布的 onClick 把选中的卡取消掉。
-export const CardInfoPanel = memo(function CardInfoPanel({ fallbackCard }: { fallbackCard: Card | null }) {
+export const CardInfoPanel = memo(function CardInfoPanel({
+  fallbackCard,
+  fallbackCost,
+}: {
+  fallbackCard: Card | null;
+  fallbackCost?: number;
+}) {
   // ⚠ hook 必须在下面的早退**之前**调用。
   const hovered = useHandHover();
+  const hoveredCost = useHandHoverCost();
   const card = hovered ?? fallbackCard;
 
   if (!card) {
     return null;
   }
 
-  return <CardInfoPanelContent card={card} />;
+  return <CardInfoPanelContent card={card} cost={hovered ? hoveredCost ?? card.cost : fallbackCost} />;
 });
 
-function CardInfoPanelContent({ card }: { card: Card }) {
+function CardInfoPanelContent({ card, cost }: { card: Card; cost?: number }) {
   const text = useCardText(card);
 
   const owner = getCharacter(card.ownerCharId);
@@ -91,7 +99,7 @@ function CardInfoPanelContent({ card }: { card: Card }) {
       <dl className={s["drawer-meta"]}>
         <div>
           <dt>消耗</dt>
-          <dd>{card.cost} 点法力</dd>
+          <dd>{cost ?? card.cost} 点法力</dd>
         </div>
         <div>
           <dt>施放确认</dt>
@@ -121,6 +129,16 @@ function CardInfoPanelContent({ card }: { card: Card }) {
             <dd>抽到时所属角色污染值 +2</dd>
           </div>
         )}
+        {card.marks?.map((markId) => {
+          const mark = CARD_MARK_DEFS[markId];
+          if (!mark) return null;
+          return (
+            <div key={markId}>
+              <dt>{mark.emoji} {mark.name}</dt>
+              <dd>{mark.desc}</dd>
+            </div>
+          );
+        })}
       </dl>
 
       <div className={s["drawer-text"]}>{text}</div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import type { BattleState, Card } from "@/engine";
+import { cardCost, type BattleState, type Card } from "@/engine";
 import { HandCard } from "@/ui/battle/HandCard";
 import s from "./PileDrawer.module.css";
 
@@ -7,7 +7,15 @@ type Pile = "draw" | "discard" | "exhaust";
 
 const LABELS: Record<Pile, string> = { draw: "抽牌堆", discard: "弃牌堆", exhaust: "消耗堆" };
 
-export function PileDrawer({ battle, pile, onClose }: { battle: BattleState; pile: Pile | null; onClose: () => void }) {
+interface Props {
+  battle: BattleState;
+  pile: Pile | null;
+  onClose: () => void;
+  choiceMode?: boolean;
+  onPick?: (uid: string) => void;
+}
+
+export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }: Props) {
   const [shown, setShown] = useState<Pile | null>(pile);
   const [closing, setClosing] = useState(false);
   const [hover, setHover] = useState<{ uid: string; x: number; y: number } | null>(null);
@@ -68,7 +76,7 @@ export function PileDrawer({ battle, pile, onClose }: { battle: BattleState; pil
         <div className={s.head}>
           <div>
             <span className={s.kicker}>PILE VIEW</span>
-            <h2>{LABELS[shown]} · {cards.length}</h2>
+            <h2>{choiceMode ? `选择回收牌 · ${cards.length}` : `${LABELS[shown]} · ${cards.length}`}</h2>
           </div>
           <button className={s.close} type="button" aria-label="关闭牌堆" onClick={requestClose}>×</button>
         </div>
@@ -80,12 +88,15 @@ export function PileDrawer({ battle, pile, onClose }: { battle: BattleState; pil
                 key={card.uid}
                 onMouseEnter={(event) => handleCellEnter(event, card)}
                 onMouseLeave={() => hover?.uid === card.uid && setHover(null)}
+                onClick={() => choiceMode && onPick?.(card.uid)}
+                data-choice={choiceMode ? "true" : undefined}
               >
                 <HandCard
                   card={card}
                   variant="pile"
                   playable
                   selected={false}
+                  cost={cardCost(battle, card)}
                   dealDelay={Math.min(index, 14) * 22}
                 />
               </div>

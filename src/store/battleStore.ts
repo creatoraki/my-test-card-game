@@ -13,7 +13,16 @@ import type {
   PlayRecorder,
 } from "../engine";
 import type { BondDef, BondTier } from "../data";
-import { createBattle, discardHandCard, endRound, playCard, redrawHandCard, waitTick } from "../engine";
+import {
+  cancelPendingChoice,
+  createBattle,
+  discardHandCard,
+  endRound,
+  playCard,
+  redrawHandCard,
+  resolvePendingChoice,
+  waitTick,
+} from "../engine";
 
 // 一次出牌的动画计划: 先展示出牌结果(cardSnapshot), 再逐帧播放触发的敌人行动, 最后落到 final。
 export interface PlayPlan {
@@ -61,6 +70,8 @@ interface BattleStore {
   play: (uid: string, targetId?: string) => PlayPlan | null;
   redrawCard: (uid: string) => BattleState | null;
   discardCard: (uid: string) => DiscardPlan | null;
+  pickPendingChoice: (uid: string) => BattleState | null;
+  cancelPendingChoice: () => BattleState | null;
   end: () => EndPlan | null;
   wait: () => EndPlan | null;
   commit: (snapshot: BattleState) => void;
@@ -104,6 +115,20 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const draft = structuredClone(b);
     const triggers: DiscardTriggerFx[] = [];
     return discardHandCard(draft, uid, { triggers }) ? { final: draft, triggers } : null;
+  },
+
+  pickPendingChoice: (uid) => {
+    const b = get().battle;
+    if (!b) return null;
+    const draft = structuredClone(b);
+    return resolvePendingChoice(draft, uid) ? draft : null;
+  },
+
+  cancelPendingChoice: () => {
+    const b = get().battle;
+    if (!b) return null;
+    const draft = structuredClone(b);
+    return cancelPendingChoice(draft) ? draft : null;
   },
 
   end: () => {

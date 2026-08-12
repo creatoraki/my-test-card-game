@@ -8,7 +8,11 @@ export type Team = "player" | "enemy";
 export type Phase = "player" | "won" | "lost";
 export type ChallengeId = "restraint" | "massacre" | "mercy";
 export type DiscardReason = "manual" | "effect" | "cost" | "redraw" | "roundEnd" | "play";
-export type CounterSource = "discardsThisRound" | "fastPlaysThisRound" | "cardsPlayedThisRound";
+export type CounterSource =
+  | "discardsThisRound"
+  | "fastPlaysThisRound"
+  | "cardsPlayedThisRound"
+  | "lastDiscardBatch";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -53,7 +57,9 @@ export type EffectType =
   | "APPLY_STAT_MOD"
   | "DRAW"
   | "GAIN_RESOURCE"
-  | "DISCARD";
+  | "DISCARD"
+  | "RECOVER_FROM_DISCARD"
+  | "MARK_CARDS";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -74,8 +80,13 @@ export interface EffectDescriptor {
   hits?: number; // DAMAGE: 段数, 缺省 1
   bonusHitsFrom?: CounterSource; // DAMAGE: 每 1 点计数追加 1 段
   maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
+  bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数追加倍率
+  bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数追加的倍率
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
+  condition?: "discardedThisRound"; // 满足本回合弃牌条件时才结算
+  mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
+  markPick?: "handRandom"; // MARK_CARDS: 从手牌随机选择
 }
 
 // ---------------------------------------------------------------------------
@@ -116,6 +127,7 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
+  costRule?: { when: "discardedThisRound"; delta: number };
   onDiscard?: DiscardTrigger;
   keywords?: CardKeywordRef[];
 }
@@ -137,6 +149,13 @@ export interface Card extends CardDef {
   uid: string;
   upgraded: boolean;
   contaminated: boolean;
+  marks?: string[];
+}
+
+export interface PendingChoice {
+  kind: "recoverFromDiscard";
+  sourceCardUid: string;
+  count: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +348,8 @@ export interface BattleState {
     ownerCharId: string;
   } | null;
   discardResolving: string[];
+  lastDiscardBatch: number;
+  pendingChoice: PendingChoice | null;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的负重惩罚(百分点), 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenPenalty 算好传入。
