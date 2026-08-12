@@ -11,10 +11,15 @@ import s from "./CharacterPortrait.module.css";
 interface CharacterArtDef {
   src: string;
   // 半身取景的异常构图逃生舱(px, 正=右/下), 常规统一规格立绘不需要覆盖。
-  // 三套半身取景(战斗立绘 / 队伍卡 / 当前角色大卡)共用这一对参数,
+  // 战斗立绘 / 队伍卡 / 角色详情 / 探索四处半身取景共用这一对参数,
+  // 编队页通过 formation.dx/dy 使用独立取景参数。
   // 菜单的 .menu-portrait 全身像不受影响。
   dx?: number;
   dy?: number;
+  // 编队页(FormationScreen 的 .fm-bust)专属取景偏移。
+  // 编队卡的取景窗宽高比/缩放与其它半身窗不同, 故允许单独覆盖;
+  // 未填的分量回退到通用的 dx/dy。
+  formation?: { dx?: number; dy?: number };
   // 底部队伍卡半身像的异常构图逃生舱(默认 1 = 跟随 AllyBar 的 --bust-zoom)。
   bustScale?: number;
   // 头部取景参数(zoom = 图宽相对取景窗宽的倍率; dx/dy = 缩放后的位置微调)。
@@ -32,7 +37,7 @@ const UNIFORM_FRAMING = {
 } as const;
 
 const CHARACTER_ART: Record<string, CharacterArtDef> = {
-  swordsman: { src: swordsmanPortrait, ...UNIFORM_FRAMING },
+  swordsman: { src: swordsmanPortrait, ...UNIFORM_FRAMING, dx: -15, dy: 10, formation: { dx: 0 } },
   prophet: { src: prophetPortrait, ...UNIFORM_FRAMING },
   botanist: { src: botanistPortrait, ...UNIFORM_FRAMING },
 };
@@ -69,6 +74,8 @@ export function CharacterPortrait({ characterId, emoji, alt, className }: Props)
           {
             "--portrait-dx": `${art.dx ?? 0}px`,
             "--portrait-dy": `${art.dy ?? 0}px`,
+            "--fm-portrait-dx": `${art.formation?.dx ?? art.dx ?? 0}px`,
+            "--fm-portrait-dy": `${art.formation?.dy ?? art.dy ?? 0}px`,
             "--bust-scale": `${art.bustScale ?? 1}`,
             "--head-zoom": `${art.head?.zoom ?? 1}`,
             "--head-dx": `${art.head?.dx ?? 0}px`,

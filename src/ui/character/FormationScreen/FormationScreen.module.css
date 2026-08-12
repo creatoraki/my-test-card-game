@@ -368,7 +368,7 @@
    保持原图宽高比(height:auto), 图宽 = 卡宽 × --fm-bust-zoom(>1 ⇒ 图比取景窗宽, 向两侧溢出),
    顶对齐 ⇒ 头留在窗内、腰以下被 overflow 裁掉, 于是"只展示上半身"且立绘足够大。
    ⚠ 不能用 contain: 那会把整个全身塞进窗里, 人反而变小 —— 这正是改版前的样子。
-   微调靠 --portrait-dx/dy(登记表见 ui/CharacterPortrait.tsx), 三套半身取景共用同一对参数。 */
+  微调靠 --fm-portrait-dx/dy(登记表见 ui/CharacterPortrait.tsx), 与战斗/队伍卡的 --portrait-dx/dy 分离。 */
 img.fm-bust {
   position: absolute;
   left: 50%;
@@ -378,7 +378,7 @@ img.fm-bust {
   max-width: none; /* 允许图宽于取景窗, 溢出部分由 overflow 裁掉 */
   object-fit: contain;
   object-position: center top;
-  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  translate: calc(-50% + var(--fm-portrait-dx, 0px)) var(--fm-portrait-dy, 0px);
   filter: drop-shadow(0 10px 22px #2a1b3d33);
 }
 /* 未登记立绘的角色退回 emoji(CharacterPortrait 的兜底分支) */
