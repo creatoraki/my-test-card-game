@@ -64,7 +64,7 @@ export function DeckForgeOverlay({
       style={{
         ...modalRevealVars(),
         "--forge-w": "1000px",
-        "--forge-h": "800px",
+        "--forge-h": mode === "remove" ? "980px" : "800px",
       } as CSSProperties}
       role="dialog"
       aria-modal="true"

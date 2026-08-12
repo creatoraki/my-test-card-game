@@ -91,17 +91,18 @@
 }
 
 .upg-body {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 
-.upg-primary {
-  display: flex;
+.upg-hero {
+  display: grid;
   min-width: 0;
-  flex-direction: column;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
   gap: 16px;
+  align-items: stretch;
 }
 
 @keyframes upgBackdropIn {
@@ -129,7 +130,7 @@
 .upg-badge-block {
   position: relative;
   display: grid;
-  min-height: 144px;
+  min-height: 160px;
   place-items: center;
   overflow: hidden;
   background: radial-gradient(circle at center, #ffffff82, transparent 62%), #ffffff45;
@@ -218,19 +219,17 @@
 
 .upg-chips {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.upg-chip:last-child {
-  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .upg-chip {
   display: flex;
   min-width: 0;
-  min-height: 58px;
-  align-items: center;
+  height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   gap: 8px;
   padding: 8px 10px;
   background: #ffffff65;
@@ -359,7 +358,7 @@
 .upg-rarity-col {
   position: relative;
   display: flex;
-  min-height: 164px;
+  min-height: 176px;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
@@ -372,15 +371,15 @@
 }
 
 .rarity-crystal {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
   transition: filter 220ms ease, transform 220ms cubic-bezier(.2, .72, .28, 1);
 }
 
 .upg-rarity-value {
   color: var(--cd-ink);
-  font-size: 30px;
+  font-size: 34px;
   line-height: 1;
 }
 
@@ -725,12 +724,11 @@
   }
 
   .upg-body {
-    display: flex;
-    flex-direction: column;
     gap: 12px;
   }
 
-  .upg-primary {
+  .upg-hero {
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
@@ -750,15 +748,11 @@
   }
 
   .upg-chips {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .upg-chip:last-child {
-    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .upg-chip strong {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .upg-rarity-col {
@@ -767,8 +761,8 @@
   }
 
   .rarity-crystal {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
   }
 
   .upg-rarity-value {

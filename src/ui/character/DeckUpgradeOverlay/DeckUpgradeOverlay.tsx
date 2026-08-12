@@ -252,7 +252,7 @@ export function DeckUpgradeOverlay({
           </header>
 
         <div className={s["upg-body"]}>
-          <div className={s["upg-primary"]}>
+          <div className={s["upg-hero"]}>
             <div className={s["upg-badge-block"]}>
               <div className={s["upg-burst"]} aria-hidden="true">
                 <span className={s["upg-ring"]} />
@@ -289,7 +289,9 @@ export function DeckUpgradeOverlay({
               </div>
             </div>
 
-            <div className={s["upg-exp"]}>
+          </div>
+
+          <div className={s["upg-exp"]}>
               <div className={s["upg-exp-head"]}>
                 <span>EXP</span>
                 <strong>
@@ -308,7 +310,6 @@ export function DeckUpgradeOverlay({
                 <div className={s["upg-exp-charge"]} aria-hidden="true" />
                 <span className={s["upg-exp-glint"]} aria-hidden="true" />
               </div>
-            </div>
           </div>
 
           <div className={s["upg-probability"]} aria-label="稀有度抽取概率">

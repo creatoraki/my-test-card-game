@@ -11,10 +11,10 @@
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
-  gap: 16px 12px;
-  padding: 8px 4px 14px;
+  gap: 22px 18px;
+  padding: 10px 4px 16px;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -109,8 +109,8 @@
 
 @media (max-width: 900px) {
   .remove-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
   }
 }
 
