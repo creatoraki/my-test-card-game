@@ -1,1 +1,1 @@
-export { VictoryLootTray } from "./VictoryLootTray";
+export { VictoryLootTray, type VictoryLootTrayHandle } from "./VictoryLootTray";

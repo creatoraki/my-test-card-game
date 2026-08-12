@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { CHALLENGE_DEFS, RULES } from "@/engine";
 import { getItemDef } from "@/data";
 import { useExploreStore } from "@/store/exploreStore";
@@ -8,9 +8,9 @@ import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import type { ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import { useChangePulse } from "@/ui/hooks/useChangePulse";
 import { cx } from "@/ui/common/cx";
-import { VICTORY_CHOREO, victoryChoreoVars, victorySectionStagger } from "@/ui/battle/victoryChoreo";
+import { victoryChoreoVars, victorySectionStagger, victoryTiming } from "@/ui/battle/victoryChoreo";
 import { VictoryExpRow } from "@/ui/battle/VictoryExpRow";
-import { VictoryLootTray } from "@/ui/battle/VictoryLootTray";
+import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/VictoryLootTray";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import s from "./VictoryPanel.module.css";
 
@@ -24,7 +24,6 @@ export function VictoryPanel() {
   const lastChallenges = useRunStore((state) => state.lastChallenges);
   const confirmExpReport = useRunStore((state) => state.confirmExpReport);
   const session = useExploreStore((state) => state.session);
-  const takeAllLoot = useExploreStore((state) => state.takeAllLoot);
   const abandonLoot = useExploreStore((state) => state.abandonLoot);
   const discardItem = useExploreStore((state) => state.discardItem);
   const reorderBackpack = useExploreStore((state) => state.reorderBackpack);
@@ -32,22 +31,41 @@ export function VictoryPanel() {
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const [continueNudge, setContinueNudge] = useState(false);
   const [pickedUids, setPickedUids] = useState<ReadonlySet<string>>(new Set());
+  const trayRef = useRef<VictoryLootTrayHandle>(null);
+  const pickedPulseTimersRef = useRef(new Map<string, number>());
   const backpack = session?.backpack ?? [];
   const pendingLoot = session?.pendingLoot ?? [];
+  const timing = victoryTiming();
   const pulseSignature = Object.fromEntries(backpack.map((stack) => [stack.uid, stack.count]));
   const pulsedUids = useChangePulse(pulseSignature);
+  const lootCountPulsed = useChangePulse({ count: pendingLoot.length }, timing.stateFadeMs);
 
   useEffect(() => {
     if (!continueNudge) return;
-    const timer = window.setTimeout(() => setContinueNudge(false), VICTORY_CHOREO.continueNudgeMs);
+    const timer = window.setTimeout(() => setContinueNudge(false), victoryTiming().continueNudgeMs);
     return () => window.clearTimeout(timer);
   }, [continueNudge]);
 
-  useEffect(() => {
-    if (!pickedUids.size) return;
-    const timer = window.setTimeout(() => setPickedUids(new Set()), 520);
-    return () => window.clearTimeout(timer);
-  }, [pickedUids]);
+  useEffect(() => () => {
+    pickedPulseTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    pickedPulseTimersRef.current.clear();
+  }, []);
+
+  const handlePicked = (uid: string) => {
+    setPickedUids((current) => new Set([...current, uid]));
+    const previousTimer = pickedPulseTimersRef.current.get(uid);
+    if (previousTimer != null) window.clearTimeout(previousTimer);
+    const timer = window.setTimeout(() => {
+      pickedPulseTimersRef.current.delete(uid);
+      setPickedUids((current) => {
+        if (!current.has(uid)) return current;
+        const next = new Set(current);
+        next.delete(uid);
+        return next;
+      });
+    }, victoryTiming().pickPulseMs);
+    pickedPulseTimersRef.current.set(uid, timer);
+  };
 
   if (!battleSettled || !session) return null;
 
@@ -113,7 +131,7 @@ export function VictoryPanel() {
           <div className={s["panel-content"]}>
           <section
             className={cx(s["exp-section"], s["victory-section"])}
-            style={{ "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victorySectionStagger(0))}ms` } as CSSProperties}
+            style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(0))}ms` } as CSSProperties}
           >
             <div className={s["section-heading"]}>
               <span>队伍经验</span>
@@ -134,20 +152,23 @@ export function VictoryPanel() {
           <div className={s["right-column"]}>
             <section
               className={cx(s["loot-section"], s["victory-section"])}
-              style={{ "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
+              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
             >
               <div className={s["section-heading"]}>
                 <span>战利品</span>
-                <small>{pendingLoot.length ? `${pendingLoot.length} 件待拾取` : "已清空"}</small>
+                <small
+                  className={s["loot-readout"]}
+                  data-pulse={lootCountPulsed.has("count") ? "true" : undefined}
+                >
+                  {pendingLoot.length ? `${pendingLoot.length} 件待拾取` : "已清空"}
+                </small>
               </div>
-              <VictoryLootTray
-                onPicked={(uid) => setPickedUids((current) => new Set([...current, uid]))}
-              />
+              <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
             </section>
 
             <section
               className={cx(s["backpack-section"], s["victory-section"])}
-              style={{ "--vc-delay": `${VICTORY_CHOREO.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
+              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
             >
               <ItemInventoryPanel
                 stacks={backpack}
@@ -168,18 +189,20 @@ export function VictoryPanel() {
           </div>
 
           <footer className={s["panel-foot"]}>
-          {confirmingAbandon ? (
-            <div className={s["confirm-strip"]}>
-              <span>放弃剩余 {pendingLoot.length} 件战利品？</span>
-              <button className={cx(s["action-button"], s["danger"])} type="button" onClick={abandonLoot}>确认放弃</button>
-              <button className={s["action-button"]} type="button" onClick={() => setConfirmingAbandon(false)}>返回</button>
-            </div>
-          ) : (
-            <>
-              <button className={cx(s["action-button"], s["primary"])} type="button" onClick={takeAllLoot} disabled={!pendingLoot.length}>全部拾取</button>
-              <button className={cx(s["action-button"], s["danger"])} type="button" onClick={() => setConfirmingAbandon(true)} disabled={!pendingLoot.length}>放弃剩余</button>
-            </>
-          )}
+          <div className={s["footer-switch"]}>
+            {confirmingAbandon ? (
+              <div key="confirm" className={cx(s["footer-state"], s["confirm-strip"])}>
+                <span>放弃剩余 {pendingLoot.length} 件战利品？</span>
+                <button className={cx(s["action-button"], s["danger"])} type="button" onClick={abandonLoot}>确认放弃</button>
+                <button className={s["action-button"]} type="button" onClick={() => setConfirmingAbandon(false)}>返回</button>
+              </div>
+            ) : (
+              <div key="actions" className={s["footer-state"]}>
+                <button className={cx(s["action-button"], s["primary"])} type="button" onClick={() => trayRef.current?.takeAll()} disabled={!pendingLoot.length}>全部拾取</button>
+                <button className={cx(s["action-button"], s["danger"])} type="button" onClick={() => setConfirmingAbandon(true)} disabled={!pendingLoot.length}>放弃剩余</button>
+              </div>
+            )}
+          </div>
           <button
             className={cx(s["action-button"], s["continue"], pendingLoot.length > 0 && s["is-blocked"], continueNudge && s["is-nudging"])}
             type="button"

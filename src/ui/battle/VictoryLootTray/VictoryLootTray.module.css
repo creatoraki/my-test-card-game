@@ -26,7 +26,7 @@
 .loot-cell {
   min-width: 0;
   opacity: 0;
-  animation: vcLootIn 260ms var(--vc-ease) var(--vc-delay) forwards;
+  animation: vcLootIn var(--vc-loot-in-ms) var(--vc-ease) var(--vc-delay) forwards;
 }
 
 .loot-slot {
@@ -49,12 +49,6 @@
   transform: scale(0.96);
 }
 
-.is-flying {
-  opacity: 0;
-  transform: scale(0.86);
-  transition: opacity var(--vc-control-ms) var(--vc-ease), transform var(--vc-control-ms) var(--vc-ease);
-}
-
 .loot-empty {
   grid-column: 1 / -1;
   min-height: 130px;
@@ -63,6 +57,8 @@
   color: #9ab8c1;
   font-size: 15px;
   letter-spacing: 2px;
+  opacity: 0;
+  animation: vcStateFadeIn var(--vc-state-ms) var(--vc-ease) both;
 }
 
 .loot-fly {
@@ -70,13 +66,15 @@
   z-index: 100;
   left: var(--fly-left);
   top: var(--fly-top);
-  width: 92px;
+  width: var(--fly-w);
+  height: var(--fly-h);
   pointer-events: none;
-  animation: vcLootFly var(--vc-fly-ms) var(--vc-ease-pop) forwards;
+  animation: vcLootFly var(--vc-fly-ms) var(--vc-ease-pop) var(--fly-delay, 0ms) both;
 }
 
 .loot-fly > button {
   width: 100%;
+  height: 100%;
 }
 
 @keyframes vcLootIn {
@@ -84,8 +82,14 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes vcStateFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes vcLootFly {
-  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  from { opacity: 0; transform: translate3d(0, 0, 0) scale(1); }
+  1% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   45% { opacity: 1; transform: translate3d(calc(var(--fly-x) * 0.5), calc(var(--fly-y) * 0.5 - 44px), 0) scale(1.18); }
   to { opacity: 0; transform: translate3d(var(--fly-x), var(--fly-y), 0) scale(0.35); }
 }
@@ -96,7 +100,13 @@
     animation: none;
   }
 
+  .loot-empty {
+    opacity: 1;
+    animation: none;
+  }
+
   .loot-fly {
     animation-duration: 1ms;
+    animation-delay: 0ms;
   }
 }

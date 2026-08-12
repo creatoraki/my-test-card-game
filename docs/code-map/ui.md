@@ -70,8 +70,8 @@ src/ui/
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
 | [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切风格的紧凑两列战斗胜利结算壳：队伍经验、掉落倍率、待拾取战利品、4×6 回收背包及继续/放弃操作。 |
 | [battle/VictoryExpRow](../../src/ui/battle/VictoryExpRow/VictoryExpRow.tsx) | 单名队员经验结算行：头像、存活/阵亡态、总经验数字、经验条增长和主视觉 `+N EXP` 演出。 |
-| [battle/VictoryLootTray](../../src/ui/battle/VictoryLootTray/VictoryLootTray.tsx) | 战斗 pendingLoot 展示与拾取交互：悬浮详情、点击飞入背包和拾取完成反馈。 |
-| [battle/victoryChoreo](../../src/ui/battle/victoryChoreo.ts) | 胜利结算面板的统一入场、分区、经验增长与拾取飞行动效时序，以及 reduced-motion 降级参数。 |
+| [battle/VictoryLootTray](../../src/ui/battle/VictoryLootTray/VictoryLootTray.tsx) | 战斗 pendingLoot 展示与拾取交互：多飞行副本、精确落格、FLIP 补位、全部拾取错峰和拾取完成反馈。 |
+| [battle/victoryChoreo](../../src/ui/battle/victoryChoreo.ts) | 胜利结算面板的统一入场、分区、经验增长与拾取飞行动效时序；`victoryTiming()` 统一下发 reduced-motion 降级参数。 |
 | [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算：通关、撤退和团灭共用；展示积分、带回据点的 `shipped`/`backpack` 实物和角色卡组。 |
 
 ## 探索域

@@ -230,6 +230,7 @@ export default function ItemInventoryPanel({
                   draggable={onReorder ? true : undefined}
                   data-dragging={dragIndex === index ? "true" : undefined}
                   data-drop={dropIndex === index ? "true" : undefined}
+                  data-inventory-uid={stack.uid}
                   data-pulse={pulseUids?.has(stack.uid) ? "true" : undefined}
                   onDragStart={(event) => {
                     if (!onReorder) return;

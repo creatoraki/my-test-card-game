@@ -192,6 +192,14 @@
   white-space: nowrap;
 }
 
+.loot-readout {
+  display: inline-block;
+}
+
+.loot-readout[data-pulse="true"] {
+  animation: vcReadoutPulse var(--vc-state-ms) var(--vc-ease) both;
+}
+
 .exp-list {
   display: grid;
   min-height: 0;
@@ -221,6 +229,20 @@
   gap: 12px;
   padding-top: 18px;
   border-top: 1px solid #6fd2ff33;
+}
+
+.footer-switch {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.footer-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: vcFooterStateIn var(--vc-state-ms) var(--vc-ease) both;
 }
 
 .confirm-strip {
@@ -291,7 +313,7 @@
 }
 
 .action-button.continue:not(.is-blocked):not(.is-nudging) {
-  animation: vcContinueReady 900ms var(--vc-ease) 1 both;
+  animation: vcContinueReady var(--vc-continue-ready-ms) var(--vc-ease) 1 both;
 }
 
 .action-button.continue.is-nudging {
@@ -335,6 +357,16 @@
   70% { transform: translateX(6px); }
 }
 
+@keyframes vcReadoutPulse {
+  from { opacity: 0.45; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vcFooterStateIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes vcContinueReady {
   0%, 100% { box-shadow: 0 0 14px #ffbd7733; }
   50% { box-shadow: 0 0 22px #ffbd7766; }
@@ -369,6 +401,11 @@
   }
 
   .action-button.continue {
+    animation: none;
+  }
+
+  .loot-readout,
+  .footer-state {
     animation: none;
   }
 
