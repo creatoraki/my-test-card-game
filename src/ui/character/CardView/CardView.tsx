@@ -34,7 +34,7 @@ export function CardView({ card, playable, selected, onClick }: Props) {
     >
       <div className={s["card-head"]}>
         <span className={s["card-cost"]} title="消耗法力水晶">
-          <ManaCrystal className={s["card-cost-crystal"]} still />
+          <ManaCrystal className={s["card-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
           <span className={s["card-cost-value"]}>{card.cost}</span>
         </span>
         <span className={s["card-type"]}>{card.cardType === "fast" ? "速攻" : "普通"}</span>

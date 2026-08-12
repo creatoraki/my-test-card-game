@@ -1,18 +1,17 @@
 import {
   AdditiveBlending,
-  ACESFilmicToneMapping,
   AmbientLight,
   BufferGeometry,
   CanvasTexture,
   Color,
   CylinderGeometry,
-  DoubleSide,
   Group,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
+  NoToneMapping,
   OrthographicCamera,
   PointLight,
   Points,
@@ -36,10 +35,13 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 
 const VIEW_SIZE = 3.5;
 const GLASS_CENTER_Y = 0.86;
-const INNER_COUNT = 90;
-const OUTER_COUNT = 80;
+const GLASS_SCALE = 0.8;
+const INNER_COUNT = 280;
+const OUTER_COUNT = 150;
 const COLOR_DAMP = 7;
 const MOTION_DAMP = 5;
+const BLOOM_RADIUS = 0.8;
+const LIGHT_GAIN = 1;
 
 interface LanternUpdate {
   time: number;
@@ -55,28 +57,14 @@ export interface LanternScene {
   dispose(): void;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  z: number;
-  vx: number;
-  vy: number;
-  vz: number;
-  life: number;
-  lifeMax: number;
-}
-
 interface ParticleField {
   points: Points;
   geometry: BufferGeometry;
   material: PointsMaterial;
   positions: Float32Array;
-  particles: Particle[];
-  external: boolean;
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const randomBetween = (min: number, max: number) => min + Math.random() * (max - min);
 
 export function createLanternScene(canvas: HTMLCanvasElement, initialColor: string): LanternScene {
   const renderer = new WebGLRenderer({
@@ -88,8 +76,7 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   renderer.setClearColor(0x000000, 0);
   renderer.setClearAlpha(0);
   renderer.outputColorSpace = SRGBColorSpace;
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.95;
+  renderer.toneMapping = NoToneMapping;
 
   const scene = new Scene();
   const camera = new OrthographicCamera(
@@ -109,17 +96,15 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const currentColor = new Color(initialColor);
   const targetColor = new Color(initialColor);
   const glassMaterial = new MeshPhysicalMaterial({
-    color: 0xffffff,
+    color: 0xe0f0ff,
     transparent: true,
-    opacity: 0.16,
+    opacity: 0.25,
     roughness: 0.12,
-    metalness: 0.12,
-    transmission: 0.7,
-    thickness: 0.3,
-    ior: 1.45,
-    clearcoat: 0.55,
-    clearcoatRoughness: 0.12,
-    side: DoubleSide,
+    metalness: 0.1,
+    clearcoat: 1,
+    clearcoatRoughness: 0.1,
+    reflectivity: 0.5,
+    ior: 1.5,
     depthWrite: false,
   });
   const glass = new Mesh(new SphereGeometry(0.88, 32, 24), glassMaterial);
@@ -129,22 +114,21 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const innerMaterial = new MeshBasicMaterial({
     color: currentColor,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.5,
     blending: AdditiveBlending,
     depthWrite: false,
     toneMapped: false,
   });
-  const innerGlow = new Mesh(new SphereGeometry(0.5, 20, 16), innerMaterial);
+  const innerGlow = new Mesh(new SphereGeometry(0.75 * GLASS_SCALE, 20, 16), innerMaterial);
   innerGlow.position.y = GLASS_CENTER_Y;
   innerGlow.renderOrder = 1;
   lantern.add(innerGlow);
 
   const metalMaterial = new MeshStandardMaterial({
-    color: 0xb9c6cf,
-    metalness: 0.84,
+    color: 0xb89a7a,
+    metalness: 0.8,
     roughness: 0.3,
-    emissive: currentColor,
-    emissiveIntensity: 0.26,
+    emissive: 0x111111,
   });
   const metalGeometries: BufferGeometry[] = [];
   const metalMeshes: Mesh[] = [];
@@ -184,27 +168,27 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   addMetal(new SphereGeometry(0.09, 12, 8), new Vector3(0.56, 1.7, 0));
 
   const particleTexture = makeParticleTexture();
-  const innerParticles = createParticleField(INNER_COUNT, false, particleTexture);
-  const outerParticles = createParticleField(OUTER_COUNT, true, particleTexture);
+  const innerParticles = createInnerParticleField(INNER_COUNT, particleTexture, currentColor);
+  const outerParticles = createOuterParticleField(OUTER_COUNT, particleTexture, currentColor);
   lantern.add(innerParticles.points, outerParticles.points);
 
-  const ambient = new AmbientLight(0x9aa8b2, 0.5);
-  const key = new PointLight(currentColor, 2.4, 8, 2);
-  key.position.set(0.8, 1.25, 1.1);
-  const fill = new PointLight(0x87cfe7, 1.1, 7, 2);
-  fill.position.set(-1.2, 1.8, -1.2);
-  const backlight = new PointLight(0x5d8dff, 0.8, 8, 2);
-  backlight.position.set(0, 1.1, -2.2);
-  lantern.add(ambient, key, fill, backlight);
+  const ambient = new AmbientLight(0x404066);
+  const pointLight = new PointLight(currentColor, 2.0 * LIGHT_GAIN, 5.5 * GLASS_SCALE, 1);
+  pointLight.position.set(0, GLASS_CENTER_Y, 0);
+  const pointLight2 = new PointLight(currentColor, 1.2 * LIGHT_GAIN, 4.5 * GLASS_SCALE, 1);
+  pointLight2.position.set(0, GLASS_CENTER_Y + 0.2 * GLASS_SCALE, 0);
+  lantern.add(ambient, pointLight, pointLight2);
 
   const composer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
   renderPass.clearAlpha = 0;
-  const bloomPass = new UnrealBloomPass(new Vector2(1, 1), 0.55, 0.42, 0.62);
+  const bloomPass = new UnrealBloomPass(new Vector2(1, 1), 1.2, BLOOM_RADIUS, 0.1);
+  bloomPass.threshold = 0.1;
+  bloomPass.radius = BLOOM_RADIUS;
   const alphaPass = new ShaderPass({
     uniforms: {
       tDiffuse: { value: null },
-      alphaBoost: { value: 1.05 },
+      alphaBoost: { value: 1.25 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -266,18 +250,17 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
       lantern.rotation.y = time * 0.16;
       lantern.position.y = MathUtils.damp(lantern.position.y, Math.sin(time * 0.8) * 0.045, MOTION_DAMP, dt);
       innerMaterial.color.copy(currentColor);
-      innerMaterial.opacity = 0.15 + clamp(intensity, 0.1, 2) * 0.07;
-      metalMaterial.emissive.copy(currentColor);
-      metalMaterial.emissiveIntensity = 0.14 + clamp(intensity, 0.1, 2) * 0.12;
-      key.color.copy(currentColor);
-      key.intensity = MathUtils.damp(key.intensity, 2.4 * intensity, 8, dt);
-      bloomPass.strength = MathUtils.damp(bloomPass.strength, 0.45 + intensity * 0.18, 8, dt);
-      innerParticles.material.color.copy(currentColor);
-      outerParticles.material.color.copy(currentColor);
-      innerParticles.material.opacity = 0.32 + intensity * 0.12;
-      outerParticles.material.opacity = 0.26 + intensity * 0.14;
-      updateParticles(innerParticles, dt, time);
-      updateParticles(outerParticles, dt, time);
+      innerMaterial.opacity = 0.5 + clamp(intensity, 0.1, 2) * 0.15;
+      pointLight.color.copy(currentColor);
+      pointLight.intensity = MathUtils.damp(pointLight.intensity, 2.0 * intensity * LIGHT_GAIN, 8, dt);
+      pointLight2.color.copy(currentColor);
+      pointLight2.intensity = MathUtils.damp(pointLight2.intensity, 1.2 * intensity * LIGHT_GAIN, 8, dt);
+      bloomPass.strength = MathUtils.damp(bloomPass.strength, 0.9 + intensity * 0.35, 8, dt);
+      updateInnerParticleColors(innerParticles, currentColor);
+      outerParticles.material.color.copy(currentColor).multiplyScalar(1.2);
+      updateInnerParticles(innerParticles, time, dt);
+      outerParticles.points.rotation.y += 0.005 * dt * 60;
+      outerParticles.points.rotation.z += 0.002 * dt * 60;
     },
 
     render() {
@@ -299,26 +282,60 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   };
 }
 
-function createParticleField(count: number, external: boolean, texture: CanvasTexture): ParticleField {
+function createInnerParticleField(count: number, texture: CanvasTexture, color: Color): ParticleField {
   const positions = new Float32Array(count * 3);
-  const particles = Array.from({ length: count }, () => ({
-    x: 0,
-    y: 0,
-    z: 0,
-    vx: 0,
-    vy: 0,
-    vz: 0,
-    life: 0,
-    lifeMax: 0,
-  }));
+  const colors = new Float32Array(count * 3);
+  for (let index = 0; index < count; index += 1) {
+    const offset = index * 3;
+    const radius = (0.5 + Math.random() * 0.7) * GLASS_SCALE;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.asin(Math.random() * 2 - 1);
+    positions[offset] = Math.cos(theta) * Math.cos(phi) * radius;
+    positions[offset + 1] = Math.sin(phi) * radius * 0.9;
+    positions[offset + 2] = Math.sin(theta) * Math.cos(phi) * radius;
+  }
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
   const material = new PointsMaterial({
     color: 0xffffff,
     map: texture,
-    size: external ? 0.048 : 0.04,
+    size: 0.12 * GLASS_SCALE,
     transparent: true,
-    opacity: external ? 0.4 : 0.52,
+    opacity: 0.9,
+    blending: AdditiveBlending,
+    depthWrite: false,
+    depthTest: true,
+    sizeAttenuation: true,
+    toneMapped: false,
+    vertexColors: true,
+  });
+  const points = new Points(geometry, material);
+  points.frustumCulled = false;
+  points.position.y = GLASS_CENTER_Y;
+  const field = { points, geometry, material, positions };
+  updateInnerParticleColors(field, color);
+  return field;
+}
+
+function createOuterParticleField(count: number, texture: CanvasTexture, color: Color): ParticleField {
+  const positions = new Float32Array(count * 3);
+  for (let index = 0; index < count; index += 1) {
+    const offset = index * 3;
+    const angle = Math.random() * Math.PI * 2;
+    const radius = (1.15 + Math.random() * 0.5) * GLASS_SCALE;
+    positions[offset] = Math.cos(angle) * radius;
+    positions[offset + 1] = (Math.random() - 0.5) * 1.8 * GLASS_SCALE;
+    positions[offset + 2] = Math.sin(angle) * radius;
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+  const material = new PointsMaterial({
+    color: color.clone().multiplyScalar(1.2),
+    map: texture,
+    size: 0.06 * GLASS_SCALE,
+    transparent: true,
+    opacity: 0.7,
     blending: AdditiveBlending,
     depthWrite: false,
     depthTest: true,
@@ -327,61 +344,40 @@ function createParticleField(count: number, external: boolean, texture: CanvasTe
   });
   const points = new Points(geometry, material);
   points.frustumCulled = false;
-  const field = { points, geometry, material, positions, particles, external };
-  particles.forEach((particle) => resetParticle(particle, external));
-  writeParticlePositions(field);
-  return field;
+  points.position.y = GLASS_CENTER_Y;
+  return { points, geometry, material, positions };
 }
 
-function resetParticle(particle: Particle, external: boolean): void {
-  particle.lifeMax = external ? randomBetween(0.5, 1.35) : randomBetween(0.8, 2.6);
-  particle.life = particle.lifeMax;
-  particle.x = randomBetween(-0.08, 0.08);
-  particle.y = randomBetween(0.3, 1.38);
-  particle.z = randomBetween(-0.08, 0.08);
-  if (external) {
-    const angle = Math.random() * Math.PI * 2;
-    const speed = randomBetween(0.28, 0.85);
-    particle.vx = Math.cos(angle) * speed;
-    particle.vy = randomBetween(0.12, 0.62);
-    particle.vz = Math.sin(angle) * speed;
-  } else {
-    particle.x = randomBetween(-0.44, 0.44);
-    particle.z = randomBetween(-0.44, 0.44);
-    particle.vx = randomBetween(-0.05, 0.05);
-    particle.vy = randomBetween(0.08, 0.22);
-    particle.vz = randomBetween(-0.05, 0.05);
+function updateInnerParticleColors(field: ParticleField, color: Color): void {
+  const colors = field.geometry.getAttribute("color");
+  if (!colors) return;
+  for (let index = 0; index < colors.array.length; index += 3) {
+    colors.array[index] = Math.min(1, color.r * 1.2 + 0.2);
+    colors.array[index + 1] = Math.min(1, color.g * 1.2 + 0.2);
+    colors.array[index + 2] = Math.min(1, color.b * 1.2 + 0.2);
   }
+  colors.needsUpdate = true;
 }
 
-function updateParticles(field: ParticleField, dt: number, time: number): void {
-  for (const particle of field.particles) {
-    particle.life -= dt;
-    if (particle.life <= 0) resetParticle(particle, field.external);
-    particle.x += particle.vx * dt;
-    particle.y += particle.vy * dt;
-    particle.z += particle.vz * dt;
-    if (field.external) {
-      particle.vy -= 0.34 * dt;
-      particle.vx *= Math.exp(-1.6 * dt);
-      particle.vz *= Math.exp(-1.6 * dt);
-    } else {
-      particle.x += Math.sin(time * 1.3 + particle.lifeMax) * 0.003 * dt;
-      particle.z += Math.cos(time * 1.1 + particle.lifeMax) * 0.003 * dt;
-    }
+function updateInnerParticles(field: ParticleField, time: number, dt: number): void {
+  field.points.rotation.y += 0.002 * dt * 60;
+  field.points.rotation.x = Math.sin(time * 0.5) * 0.05;
+  for (let index = 0; index < field.positions.length; index += 3) {
+    const x = field.positions[index];
+    const y = field.positions[index + 1];
+    const z = field.positions[index + 2];
+    const length = Math.sqrt(x * x + y * y + z * z);
+    if (length <= 0.1) continue;
+    const newLength = clamp(
+      length + Math.sin(time * 5 + index / 3) * 0.008 * GLASS_SCALE,
+      0.35 * GLASS_SCALE,
+      1.05 * GLASS_SCALE,
+    );
+    field.positions[index] = (x / length) * newLength;
+    field.positions[index + 1] = (y / length) * newLength;
+    field.positions[index + 2] = (z / length) * newLength;
   }
-  writeParticlePositions(field);
-}
-
-function writeParticlePositions(field: ParticleField): void {
-  field.particles.forEach((particle, index) => {
-    const offset = index * 3;
-    field.positions[offset] = particle.x;
-    field.positions[offset + 1] = particle.y;
-    field.positions[offset + 2] = particle.z;
-  });
-  const position = field.geometry.getAttribute("position");
-  position.needsUpdate = true;
+  field.geometry.getAttribute("position").needsUpdate = true;
 }
 
 function makeParticleTexture(): CanvasTexture {
@@ -391,13 +387,15 @@ function makeParticleTexture(): CanvasTexture {
   const context = canvas.getContext("2d");
   if (context) {
     const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, "#ffffff");
-    gradient.addColorStop(0.35, "#ffffff");
-    gradient.addColorStop(1, "transparent");
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.5, "rgba(255,200,100,0.9)");
+    gradient.addColorStop(1, "rgba(255,100,50,0)");
+    context.beginPath();
+    context.arc(32, 32, 24, 0, Math.PI * 2);
     context.fillStyle = gradient;
-    context.fillRect(0, 0, 64, 64);
+    context.fill();
   }
   const texture = new CanvasTexture(canvas);
-  texture.colorSpace = "srgb";
+  texture.colorSpace = SRGBColorSpace;
   return texture;
 }

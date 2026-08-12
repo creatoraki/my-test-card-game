@@ -1,7 +1,7 @@
 /* ===================== 手牌盘上的竖版卡(蚀刻黑钢) ===================== */
 /* 质感目标: 一块**有厚度的蚀刻黑钢板** —— 拉丝 + 噪点 + 不均匀反光斑的表面, 三层棱的真倒角,
-   卡底可见的侧面厚度 + 接触影。**卡面上没有任何色相** —— 唯一的配色只剩两处:
-   费用水晶的辉光(走全站 --accent)与卡名压条左端那道归属角色竖标。
+  卡底可见的侧面厚度 + 接触影。**卡面上没有任何色相** —— 唯一的配色只剩两处:
+  费用水晶的辉光与卡名压条左端那道归属角色竖标；速攻卡的水晶换红绿渐变，作为普/速的第二处线索。
    ⚠ 这是从旧版"发光机能贴纸"的一次整体换质: 旧版靠六层发光线条(4px 描边环 + 巡游流光 +
      全卡扫描线 + 左右刻度齿 + 顶行能量线)堆细节, 结果是卡读作一张贴在托盘上的发光贴纸。
      若将来想加细节, 优先加**表面**(纹理/斜面/污渍)而不是**线条**。
@@ -249,6 +249,16 @@
     transform: translateY(0);
   }
 }
+/* BUFF 图标行与模式徽章共用卡槽上方的落位；进入换牌/丢弃模式时由组件互斥隐藏。 */
+.hc-marks {
+  position: absolute;
+  left: 2px;
+  bottom: calc(100% + 8px);
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+  transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
+}
 /* ── ★ 打不出的卡: 「断电 + 变薄」 ──
    ⚠ 这是**玩法信息**(法力不够 / 非玩家回合)而不是装饰, 不属于任何"减少动态效果"的降级范围。
    ⚠ 旧版是 opacity .45 + .hc-edge 上一条 grayscale(1) —— 卡面中性化之后 grayscale **完全失效**
@@ -285,7 +295,7 @@
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
   pointer-events: none;
 }
-.hc-mark {
+.hc-mark-inline {
   position: absolute;
   z-index: 8;
   top: 38px;
@@ -302,6 +312,63 @@
   border: 1px solid #66d7ec;
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
   pointer-events: none;
+}
+.hc-mark {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: #d9f3ff;
+  font-size: 17px;
+  line-height: 1;
+  text-shadow: 0 0 5px #54c8e8;
+  pointer-events: auto;
+  cursor: help;
+  animation: hc-action-in 120ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.hc-mark-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #102b35e8;
+  border: 1px solid #66d7ec;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.hc-mark-tip {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 2;
+  display: flex;
+  width: 210px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 11px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  color: #c6d8e4;
+  background: linear-gradient(150deg, #212831, #141a1e 42%, #080b0d);
+  border: 1px solid #66d7ec66;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  box-shadow: 0 6px 14px #05080abf;
+  transition: opacity 120ms ease, visibility 120ms ease;
+}
+.hc-mark:hover .hc-mark-tip {
+  opacity: 1;
+  visibility: visible;
+}
+.hc-mark-tip-name {
+  color: #d9f3ff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.hc-mark-tip-desc {
+  font-size: 12px;
+  line-height: 1.4;
 }
 /* ★ 配图层: 卡上段的正方形取景窗 —— 下边界让给 .hc-text 的实位高度, 于是它的尺寸恰是
    --hand-card-w × --hand-card-w(因为卡高被定义成 宽 + 说明区), 与 1:1 素材完全同形。
@@ -586,6 +653,9 @@
        卡面已全面中性化 ⇒ 这一点黄绿是整张卡上唯一的高饱和色, 视线自然被拉到费用上 ——
        正是想要的: 费用是出牌决策里第一个要读的数。 */
   filter: drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px var(--accent));
+}
+.hand-card.fast .hc-cost-crystal {
+  filter: drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px #d68a3c);
 }
 .hc-cost-value {
   position: relative;
@@ -882,6 +952,10 @@
     animation: none;
     transition-duration: 0.01ms;
   }
+  .hc-marks {
+    animation: none;
+    transition-duration: 0.01ms;
+  }
   /* ⚠ 必须把触发 sheen 的**那两条选择器原样重写**才关得掉 —— 写成 .hand-card::after
      (特异性 0,1,0) 是压不过 .hand-slot:not(.leaving):hover > .hand-card:not(.selected)::after
      (0,4,0) 的, 反光照样会扫。 */
@@ -983,6 +1057,21 @@
   transition-delay: 45ms;
 }
 :global([data-hand-tray]) .hand-slot:has(+ .hand-slot:hover) > .hand-card:not(.selected):not(.leaving) {
+  transform: translateX(calc(-1 * var(--hand-yield)));
+  transition-delay: 45ms;
+}
+/* BUFF 图标行镜像卡面的悬停、选中和邻卡让位位移。 */
+:global([data-hand-tray]) .hand-slot:not(.leaving):hover:not(.selected) > .hc-marks {
+  transform: translateY(calc(var(--hand-card-h) / -2));
+}
+:global([data-hand-tray]) .hand-slot.selected > .hc-marks {
+  transform: translateY(calc(var(--hand-card-h) / -2 - 24px));
+}
+:global([data-hand-tray]) .hand-slot:hover + .hand-slot:not(.selected) > .hc-marks {
+  transform: translateX(var(--hand-yield));
+  transition-delay: 45ms;
+}
+:global([data-hand-tray]) .hand-slot:has(+ .hand-slot:hover):not(.selected) > .hc-marks {
   transform: translateX(calc(-1 * var(--hand-yield)));
   transition-delay: 45ms;
 }

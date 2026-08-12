@@ -8,11 +8,16 @@ interface Props {
   state?: "empty" | "normal" | "active";
   /** 关掉 normal 态的循环呼吸，只留静态辉光。卡面费用球用。 */
   still?: boolean;
+  /** 色调。mana 常规法力蓝（默认）· haste 速攻卡的红绿混合。 */
+  tone?: "mana" | "haste";
 }
 
-export function ManaCrystal({ className, state = "normal", still }: Props) {
+export function ManaCrystal({ className, state = "normal", still, tone = "mana" }: Props) {
   return (
-    <span className={cx(s.crystal, s[`is-${state}`], still && s["is-still"], className)} aria-hidden="true">
+    <span
+      className={cx(s.crystal, s[`is-${state}`], tone === "haste" && s["is-haste"], still && s["is-still"], className)}
+      aria-hidden="true"
+    >
       <span className={s.shape} />
     </span>
   );

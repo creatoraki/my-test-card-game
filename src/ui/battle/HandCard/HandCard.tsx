@@ -114,6 +114,23 @@ export const HandCard = memo(function HandCard({
           {actionBadge === "redraw" ? <RedrawIcon /> : <DiscardIcon />}
         </button>
       )}
+      {variant === "hand" && !actionBadge && !leaving && (card.marks?.length ?? 0) > 0 && (
+        <span className={s["hc-marks"]}>
+          {card.marks!.map((markId) => {
+            const mark = CARD_MARK_DEFS[markId];
+            if (!mark) return null;
+            return (
+              <span key={markId} className={s["hc-mark"]} aria-label={mark.name}>
+                <span className={s["hc-mark-icon"]} aria-hidden>{mark.emoji}</span>
+                <span className={s["hc-mark-tip"]} role="tooltip">
+                  <span className={s["hc-mark-tip-name"]}>{mark.emoji} {mark.name}</span>
+                  <span className={s["hc-mark-tip-desc"]}>{mark.desc}</span>
+                </span>
+              </span>
+            );
+          })}
+        </span>
+      )}
       <div
         className={cx(
           s["hand-card"],
@@ -148,7 +165,7 @@ export const HandCard = memo(function HandCard({
 
         {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上 */}
         <span className={s["hc-cost"]} title="消耗法力水晶">
-          <ManaCrystal className={s["hc-cost-crystal"]} still />
+          <ManaCrystal className={s["hc-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
           <span className={s["hc-cost-value"]}>{effectiveCost}</span>
         </span>
 
@@ -166,11 +183,11 @@ export const HandCard = memo(function HandCard({
             ☣
           </span>
         )}
-        {card.marks?.map((markId) => {
+        {variant === "pile" && card.marks?.map((markId) => {
           const mark = CARD_MARK_DEFS[markId];
           if (!mark) return null;
           return (
-            <span key={markId} className={s["hc-mark"]} title={`${mark.name} · ${mark.desc}`} aria-label={mark.name}>
+            <span key={markId} className={s["hc-mark-inline"]} title={`${mark.name} · ${mark.desc}`} aria-label={mark.name}>
               {mark.emoji}
             </span>
           );

@@ -42,7 +42,7 @@ function SkillCutInCardContent({ card, fxRate }: { card: Card; fxRate: number })
         <>
           <div className={s["cutin-head"]}>
             <span className={s["cutin-cost"]} title="消耗法力水晶">
-              <ManaCrystal className={s["cutin-cost-crystal"]} still />
+              <ManaCrystal className={s["cutin-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
               <span className={s["cutin-cost-value"]}>{card.cost}</span>
             </span>
             <span className={s["cutin-name"]}>{card.name}</span>
