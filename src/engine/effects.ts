@@ -18,6 +18,14 @@ function counterOf(state: BattleState, source: CounterSource): number {
   return state.playedThisRound.length;
 }
 
+function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
+  if (effect.condition === "discardedThisRound")
+    return counterOf(state, "discardsThisRound") > 0;
+  if (effect.condition === "noFastPlaysThisRound")
+    return counterOf(state, "fastPlaysThisRound") === 0;
+  return true;
+}
+
 // 解析单条效果作用到哪些单位(相对施放者)
 export function resolveTargets(
   state: BattleState,
@@ -55,7 +63,7 @@ function applyEffect(
   sourceId: string,
   targetIds: string[],
 ): void {
-  if (effect.condition === "discardedThisRound" && counterOf(state, "discardsThisRound") <= 0) return;
+  if (!conditionMet(state, effect)) return;
   const amount = effect.amount ?? 0;
   const unblockable = effect.flags?.includes("unblockable");
   const mustHit = effect.flags?.includes("mustHit");
@@ -70,10 +78,15 @@ function applyEffect(
       if (effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null) {
         dmg *= 1 + counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer;
       }
-      const bonus = effect.bonusHitsFrom
-        ? Math.min(counterOf(state, effect.bonusHitsFrom), effect.maxBonusHits ?? Infinity)
-        : 0;
-      const hits = Math.max(1, (effect.hits ?? 1) + bonus);
+      const hits = effect.hitsFrom
+        ? counterOf(state, effect.hitsFrom)
+        : Math.max(
+            1,
+            (effect.hits ?? 1) +
+              (effect.bonusHitsFrom
+                ? Math.min(counterOf(state, effect.bonusHitsFrom), effect.maxBonusHits ?? Infinity)
+                : 0),
+          );
       for (let i = 0; i < hits; i++)
         for (const id of targetIds)
           ops.dealDamage(state, sourceId, id, dmg, {
@@ -107,12 +120,14 @@ function applyEffect(
         ops.applyStatMod(state, id, effect.stat!, amount, effect.pct ?? false);
       break;
     case "DRAW":
-      drawCards(state, amount);
+      drawCards(state, effect.amountFrom ? counterOf(state, effect.amountFrom) : amount);
       break;
     case "GAIN_RESOURCE": {
       const res = effect.resource ?? "mana";
-      state.resources[res] = (state.resources[res] ?? 0) + amount;
-      ops.log(state, `✨ 获得 ${amount} 点${res === "mana" ? "法力水晶" : res}`);
+      const resourceAmount = effect.amountFrom ? counterOf(state, effect.amountFrom) : amount;
+      if (resourceAmount <= 0) break;
+      state.resources[res] = (state.resources[res] ?? 0) + resourceAmount;
+      ops.log(state, `✨ 获得 ${resourceAmount} 点${res === "mana" ? "法力水晶" : res}`);
       break;
     }
     case "DISCARD": {
@@ -160,6 +175,21 @@ function applyEffect(
         if (card) {
           card.marks ??= [];
           if (!card.marks.includes(effect.mark)) card.marks.push(effect.mark);
+        }
+        pool.splice(pool.indexOf(uid), 1);
+      }
+      break;
+    }
+    case "CONVERT_CARD_TYPE": {
+      if (effect.convertPick !== "handRandomNormal") break;
+      const amountToConvert = Math.max(0, Math.floor(effect.amount ?? 1));
+      const pool = state.hand.filter((uid) => state.cards[uid]?.cardType === "normal");
+      for (let i = 0; i < amountToConvert && pool.length > 0; i++) {
+        const uid = rngPick(state, pool);
+        const card = state.cards[uid];
+        if (card) {
+          card.cardType = effect.convertTo ?? "fast";
+          ops.log(state, `${card.name} 转换为${card.cardType === "fast" ? "速攻" : "普通"}牌`);
         }
         pool.splice(pool.indexOf(uid), 1);
       }

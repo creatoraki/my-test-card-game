@@ -130,7 +130,8 @@ export function dealDamage(
   }
 
   // ---- 6. 落到 HP ----
-  if (target.team === "player" && dmg.amount > 0) target.hpLimit = Math.max(1, target.hp);
+  if (target.team === "player" && dmg.amount > 0 && !getStatus(target, "buzhou"))
+    target.hpLimit = Math.max(1, target.hp);
   target.hp -= dmg.amount;
   dmg.hpLost = dmg.amount;
 

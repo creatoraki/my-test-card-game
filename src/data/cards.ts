@@ -187,4 +187,117 @@ export const CARD_DEFS: CardDef[] = [
     text: "丢弃所有手牌，然后造成 {0} 点伤害；每丢弃 1 张牌，伤害倍率 +50%。",
   },
 
+  // ---- 剑士专属抽卡池 · 新增普通 ----
+  {
+    id: "selfless-guard",
+    name: "舍身防护",
+    ownerCharId: "swordsman",
+    cost: 1,
+    cardType: "normal",
+    targeting: "ally",
+    rarity: "common",
+    anim: "shield",
+    effects: [
+      { type: "DISCARD", amount: 1, discardPick: "handBottom" },
+      { type: "GAIN_SHIELD", multiplier: 0.5, target: "primary" },
+    ],
+    text: "丢弃手牌最后一张，然后为一名队友获得 50% 治愈力的护盾。",
+  },
+  {
+    id: "quick-guard",
+    name: "快速防护",
+    ownerCharId: "swordsman",
+    cost: 1,
+    cardType: "fast",
+    targeting: "ally",
+    rarity: "common",
+    anim: "shield",
+    effects: [{ type: "GAIN_SHIELD", multiplier: 0.7, target: "primary" }],
+    text: "为一名队友获得 {0} 点护盾。不推进时刻。",
+  },
+  {
+    id: "autumn-rain",
+    name: "秋雨",
+    ownerCharId: "swordsman",
+    cost: 2,
+    cardType: "fast",
+    targeting: "foe",
+    rarity: "common",
+    anim: "slash",
+    effects: [
+      { type: "DAMAGE", multiplier: 1.0, target: "primary" },
+      { type: "GAIN_RESOURCE", amountFrom: "fastPlaysThisRound", resource: "mana", target: "self" },
+    ],
+    text: "造成 {0} 点伤害。本回合每使用过 1 张速攻牌，回复 1 点法力水晶。",
+  },
+  {
+    id: "spring-sprout",
+    name: "春芽",
+    ownerCharId: "swordsman",
+    cost: 1,
+    cardType: "fast",
+    targeting: "foe",
+    rarity: "common",
+    anim: "slash",
+    effects: [
+      { type: "DAMAGE", multiplier: 1.0, target: "primary" },
+      { type: "DRAW", amount: 1, condition: "noFastPlaysThisRound" },
+    ],
+    text: "造成 {0} 点伤害。本回合没有使用过其他速攻牌时抽 1 张牌。",
+  },
+
+  // ---- 剑士专属抽卡池 · 新增罕见 ----
+  {
+    id: "still-water",
+    name: "止水",
+    ownerCharId: "swordsman",
+    cost: 2,
+    cardType: "fast",
+    targeting: "foe",
+    rarity: "uncommon",
+    anim: "iai-slash",
+    effects: [
+      { type: "DAMAGE", multiplier: 2.0, target: "primary" },
+      {
+        type: "CONVERT_CARD_TYPE",
+        amount: 1,
+        convertPick: "handRandomNormal",
+        convertTo: "fast",
+      },
+    ],
+    text: "造成 {0} 点伤害，然后随机将 1 张普通手牌转换为速攻牌。不推进时刻。",
+  },
+
+  // ---- 剑士专属抽卡池 · 新增稀有 ----
+  {
+    id: "light-blade",
+    name: "光之太刀",
+    ownerCharId: "swordsman",
+    cost: 0,
+    cardType: "fast",
+    targeting: "foe",
+    rarity: "rare",
+    exhaust: true,
+    anim: "lightning",
+    effects: [
+      { type: "DAMAGE", multiplier: 0.7, hitsFrom: "fastPlaysThisRound", target: "primary" },
+    ],
+    text: "本回合每使用过 1 张速攻牌，造成 1 段 {0} 点伤害。",
+  },
+  {
+    id: "buzhou-mountain",
+    name: "不周山",
+    ownerCharId: "swordsman",
+    cost: 2,
+    cardType: "fast",
+    targeting: "ally",
+    rarity: "rare",
+    anim: "shield",
+    effects: [
+      { type: "GAIN_SHIELD", multiplier: 1.0, target: "primary" },
+      { type: "APPLY_STATUS", status: "buzhou", stacks: 3, target: "primary" },
+    ],
+    text: "为一名队友获得 {0} 点护盾，并附加 3 层不周山。",
+  },
+
 ];

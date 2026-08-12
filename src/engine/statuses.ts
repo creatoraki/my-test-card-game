@@ -92,6 +92,18 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
       },
     },
   },
+  buzhou: {
+    id: "buzhou",
+    name: "不周山",
+    emoji: "🏔️",
+    kind: "buff",
+    desc: "持续期间体力极限不会下降。每回合结束层数 -1。",
+    hooks: {
+      onRoundEnd: (c: StatusCtx) => {
+        c.inst.stacks -= 1;
+      },
+    },
+  },
   weak: {
     id: "weak",
     name: "虚弱",

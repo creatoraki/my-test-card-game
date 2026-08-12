@@ -59,7 +59,8 @@ export type EffectType =
   | "GAIN_RESOURCE"
   | "DISCARD"
   | "RECOVER_FROM_DISCARD"
-  | "MARK_CARDS";
+  | "MARK_CARDS"
+  | "CONVERT_CARD_TYPE";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -78,15 +79,19 @@ export interface EffectDescriptor {
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
   hits?: number; // DAMAGE: 段数, 缺省 1
+  hitsFrom?: CounterSource; // DAMAGE: 段数直接等于计数, 可为 0
   bonusHitsFrom?: CounterSource; // DAMAGE: 每 1 点计数追加 1 段
   maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
   bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数追加倍率
   bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数追加的倍率
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
+  amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
-  condition?: "discardedThisRound"; // 满足本回合弃牌条件时才结算
+  condition?: "discardedThisRound" | "noFastPlaysThisRound"; // 满足本回合条件时才结算
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
   markPick?: "handRandom"; // MARK_CARDS: 从手牌随机选择
+  convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
+  convertPick?: "handRandomNormal"; // CONVERT_CARD_TYPE: 从手牌普通牌中随机选择
 }
 
 // ---------------------------------------------------------------------------
