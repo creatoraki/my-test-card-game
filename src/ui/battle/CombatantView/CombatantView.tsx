@@ -183,6 +183,8 @@ export function isIntentRevealed(enemy: Enemy): boolean {
 }
 
 function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number }) {
+  if (enemy.nextActTick == null) return null;
+
   const countdown = Math.max(0, enemy.nextActTick - currentTick);
   const i = enemy.intent;
   const revealed = isIntentRevealed(enemy);

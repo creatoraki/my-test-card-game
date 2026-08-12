@@ -22,6 +22,7 @@ export interface EnemyDef {
   maxHp: number;
   castTick: number; // 技能基础延迟 D_skill; 实际间隔还要叠先手差(见 engine/stats.enemyActDelay)
   exp: number; // 击杀经验; 战后经验 = 各敌人 exp 之和 × 能量档位倍率(见 store/runStore.resolveBattle)
+  actsPerRound?: number; // 每回合行动次数上限; 缺省 1, BOSS/稀有怪可配置为 2 及以上
   // 敌人面板。未写的项为 0 —— 未写 defense 就是不减伤, 未写 dodgeRate 就是必被命中。
   // ⚠ attack 是倍率伤害的基数: 首版最弱敌人的基础伤害定在 12~15(《角色养成设计.md》3.0 与第八章)。
   stats?: Partial<StatBlock>;

@@ -27,7 +27,7 @@ function TickRuler({ tick, enemies }: Props) {
   const marks = new Map<number, number>();
   if (SHOW_ENEMY_MARKS) {
     for (const e of enemies) {
-      if (!e.alive) continue;
+      if (!e.alive || e.nextActTick == null) continue;
       marks.set(e.nextActTick, (marks.get(e.nextActTick) ?? 0) + 1);
     }
   }

@@ -134,6 +134,7 @@ export function createBattle(
       alive: true,
       castTick: Math.max(1, def.castTick + (mod?.castTickDelta ?? 0)),
       nextActTick: 0,
+      actsPerRound: Math.max(1, def.actsPerRound ?? 1),
       actsThisRound: 0,
       aiIndex: 0,
       intent: { moveId: "", name: "", emoji: "", kind: "special" },

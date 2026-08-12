@@ -26,8 +26,8 @@ function resolveDueEnemies(state: BattleState, frames?: AnimFrame[]): void {
   while (state.phase === "player") {
     const due = state.enemyIds
       .map((id) => state.combatants[id] as Enemy)
-      .filter((e) => e.alive && e.nextActTick <= state.tick)
-      .sort((a, b) => a.nextActTick - b.nextActTick);
+      .filter((e) => e.alive && e.nextActTick != null && e.nextActTick <= state.tick)
+      .sort((a, b) => (a.nextActTick as number) - (b.nextActTick as number));
     if (due.length === 0) return;
 
     for (const e of due) {

@@ -73,6 +73,14 @@ function collectMoveTargets(
   return [...set];
 }
 
+function scheduleNextAct(state: BattleState, e: Enemy): void {
+  e.actsThisRound += 1;
+  e.nextActTick =
+    e.actsThisRound < e.actsPerRound
+      ? (e.nextActTick ?? state.tick) + enemyActDelay(state, e, e.castTick)
+      : null;
+}
+
 // 敌人执行它当前的意图。返回本次行动的描述(供动画帧记录)。
 export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   const e = state.combatants[enemyId] as Enemy;
@@ -86,9 +94,8 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
     stun.stacks -= 1;
     e.statuses = e.statuses.filter((s) => s.stacks > 0);
     log(state, `💫 ${e.name} 被眩晕, 无法行动`);
-    e.actsThisRound += 1;
+    scheduleNextAct(state, e);
     e.aiIndex += 1;
-    e.nextActTick += enemyActDelay(state, e, e.castTick);
     buildIntent(state, enemyId);
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId] };
   }
@@ -107,9 +114,8 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   resolveEffects(state, move.effects, enemyId, primaryId);
 
   if (e.hp <= 0) markDead(state, e);
-  e.actsThisRound += 1;
+  scheduleNextAct(state, e);
   e.aiIndex += 1;
-  e.nextActTick += enemyActDelay(state, e, e.castTick); // 重排下次行动(先手差每次重算)
   buildIntent(state, enemyId);
   return { actorId: enemyId, enemyDefId, moveId: move.id, targetIds };
 }

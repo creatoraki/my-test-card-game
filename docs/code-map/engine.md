@@ -24,8 +24,8 @@
 | [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆，并受小队手牌上限约束。 |
 | [quirks.ts](../../src/engine/quirks.ts) | 污染阈值、每张污染卡增量、生病永久修正和怪癖注册表；永久状态不复用会在战斗结束清理的 `StatusInstance`。 |
 | [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
-| [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行：倍率预览、眩晕跳过、随机选目标、效果解释和行动后重排。 |
-| [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进，处理所有到点敌人并安排下次行动，带死循环安全阀。 |
+| [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行：倍率预览、眩晕跳过、随机选目标、效果解释和行动后重排。每回合行动次数上限按回合开始排 1 次，行动后按剩余次数决定是否续排，用尽后 `nextActTick = null`。 |
+| [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进，处理所有到点敌人并安排下次行动；每回合行动次数用尽后 `nextActTick = null`，带死循环安全阀。 |
 | [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、结束回合编排。支持跨战斗 `startHp` 和 `EncounterModifier`；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |
 | [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API 出口。 |
 | [battle.test.ts](../../src/engine/battle.test.ts) | 初始化、速攻/普通牌时刻推进、中毒回合开始、回合末冲刷等核心行为测试。 |

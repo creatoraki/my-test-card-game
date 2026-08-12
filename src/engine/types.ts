@@ -270,8 +270,9 @@ export interface Enemy extends BaseCombatant {
   team: "enemy";
   enemyDefId: string;
   castTick: number; // 技能基础延迟 D_skill; 实际间隔还要叠先手差(见 stats.enemyActDelay)
-  nextActTick: number; // 下次行动的时刻(本回合内)
-  actsThisRound: number;
+  nextActTick: number | null; // 下次行动的时刻; null = 本回合行动次数已用尽、不再排程
+  actsPerRound: number; // 每回合行动次数上限, 建局时从 EnemyDef 拷入
+  actsThisRound: number; // 本回合已完成的行动次数
   aiIndex: number; // 意图脚本指针
   intent: Intent;
 }
