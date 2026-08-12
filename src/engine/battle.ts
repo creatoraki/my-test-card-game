@@ -160,6 +160,7 @@ export function createBattle(
     discard: [],
     exhaust: [],
     redrawsThisRound: 0,
+    waitsThisRound: 0,
     discardsThisRound: 0,
     playedThisRound: [],
     lastPlayedCard: null,
@@ -192,6 +193,7 @@ export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
   state.redrawsThisRound = 0;
+  state.waitsThisRound = 0;
   state.discardsThisRound = 0;
   state.playedThisRound = [];
   state.lastPlayedCard = null;
@@ -251,6 +253,15 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
   state.redrawsThisRound += 1;
   drawCards(state, 1);
   log(state, `${card.name} 已换牌`);
+  return true;
+}
+
+// 待机: 什么都不做, 只推进时刻 —— 敌人因此可能走到行动点。每回合限 RULES.timeline.waitsPerRound 次。
+export function waitTick(state: BattleState, frames?: AnimFrame[]): boolean {
+  if (state.phase !== "player" || state.waitsThisRound >= RULES.timeline.waitsPerRound) return false;
+  state.waitsThisRound += 1;
+  log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
+  advanceTick(state, RULES.timeline.waitAdvance, frames);
   return true;
 }
 

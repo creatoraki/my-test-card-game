@@ -48,6 +48,7 @@ export {
   startRound,
   canPlay,
   redrawHandCard,
+  waitTick,
   discardHandCard,
 } from "./battle";
 export type { AllyInit, BattleSetup, PlayRecorder } from "./battle";

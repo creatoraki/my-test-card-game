@@ -89,6 +89,7 @@ export function BattleScreen() {
   const redrawCard = useBattleStore((s) => s.redrawCard);
   const discardCard = useBattleStore((s) => s.discardCard);
   const end = useBattleStore((s) => s.end);
+  const wait = useBattleStore((s) => s.wait);
   const commit = useBattleStore((s) => s.commit);
   const resolveBattle = useRunStore((s) => s.resolveBattle);
   const battleSettled = useRunStore((s) => s.battleSettled);
@@ -690,6 +691,14 @@ export function BattleScreen() {
     startBatch(plan.frames.map(stepFromFrame), plan.final);
   }
 
+  // 待机: 什么都不做, 推进 1 时刻 —— 到点的敌人行动逐步回放, 与结束回合同一条路径。
+  function triggerWait() {
+    if (animatingRef.current) return;
+    const plan = wait();
+    if (!plan) return;
+    startBatch(plan.frames.map(stepFromFrame), plan.final);
+  }
+
   function performCombatantClick(id: string) {
     if (!selectedUid || !selectedCard || animating) return;
     const t = b.combatants[id];
@@ -874,6 +883,7 @@ export function BattleScreen() {
             handAction={handAction}
             isPlayerTurn={isPlayerTurn}
             animating={animating}
+            onWait={triggerWait}
             onToggle={(action) => {
               setSelectedUid(null);
               setHandAction((current) => (current === action ? null : action));

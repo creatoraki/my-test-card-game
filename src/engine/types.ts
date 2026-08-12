@@ -314,6 +314,7 @@ export interface BattleState {
   discard: string[];
   exhaust: string[];
   redrawsThisRound: number;
+  waitsThisRound: number;
   discardsThisRound: number;
   playedThisRound: {
     uid: string;

@@ -17,3 +17,11 @@ export function DiscardIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function WaitIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 3h10M7 21h10M8 3c0 4 2 5 4 6-2 1-4 2-4 6m8-12c0 4-2 5-4 6 2 1 4 2 4 6" />
+    </svg>
+  );
+}

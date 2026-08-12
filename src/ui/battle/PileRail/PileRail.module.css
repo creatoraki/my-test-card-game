@@ -7,4 +7,5 @@
   flex-direction: column;
   align-items: flex-end;
   gap: var(--pile-gap);
+  transform: translateY(35px);
 }

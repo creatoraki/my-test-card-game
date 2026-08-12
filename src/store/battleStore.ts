@@ -13,7 +13,7 @@ import type {
   PlayRecorder,
 } from "../engine";
 import type { BondDef, BondTier } from "../data";
-import { createBattle, discardHandCard, endRound, playCard, redrawHandCard } from "../engine";
+import { createBattle, discardHandCard, endRound, playCard, redrawHandCard, waitTick } from "../engine";
 
 // 一次出牌的动画计划: 先展示出牌结果(cardSnapshot), 再逐帧播放触发的敌人行动, 最后落到 final。
 export interface PlayPlan {
@@ -62,6 +62,7 @@ interface BattleStore {
   redrawCard: (uid: string) => BattleState | null;
   discardCard: (uid: string) => DiscardPlan | null;
   end: () => EndPlan | null;
+  wait: () => EndPlan | null;
   commit: (snapshot: BattleState) => void;
   clear: () => void;
 }
@@ -111,6 +112,15 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const draft = structuredClone(b);
     const frames: AnimFrame[] = [];
     endRound(draft, frames);
+    return { frames, final: draft };
+  },
+
+  wait: () => {
+    const b = get().battle;
+    if (!b || b.phase !== "player") return null;
+    const draft = structuredClone(b);
+    const frames: AnimFrame[] = [];
+    if (!waitTick(draft, frames)) return null;
     return { frames, final: draft };
   },
 

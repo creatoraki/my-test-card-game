@@ -47,6 +47,8 @@ export const RULES = {
     startTick: 1,
     normalCardAdvance: 1,
     fastCardAdvance: 0,
+    waitAdvance: 1,
+    waitsPerRound: 1,
     // 回合结束时, 本回合还没行动过的存活敌人各自补行动一次。
     flushEnemiesOnRoundEnd: true,
   },

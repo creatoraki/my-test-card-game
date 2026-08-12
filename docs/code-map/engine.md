@@ -6,7 +6,7 @@
 | --- | --- |
 | [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、我方/敌方单位、效果、状态、战斗状态、挑战运行态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。卡牌带 `contaminated` 标记，我方单位携带污染值、生病和怪癖快照；概率与百分比存百分点整数。 |
 | [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、弃牌触发、我方/敌方单位、效果、状态、战斗状态、挑战运行态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。卡牌带 `contaminated` 标记，我方单位携带污染值、生病和怪癖快照；概率与百分比存百分点整数。 |
-| [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、时刻推进、虚弱/易伤、命中上下限、概率封顶、格挡、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
+| [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、时刻推进（含每回合待机次数）、虚弱/易伤、命中上下限、概率封顶、格挡、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
 | [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、弃牌来源触发/计数口径、时刻推进、虚弱/易伤、命中上下限、概率封顶、格挡、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、先手排程、小队手牌/抽牌和负重。属性读取必须经过 `statOf`；负重换算由 `burdenPenalty` 统一提供，且只有我方承担负重。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、效果级命中修正、先手排程、小队手牌/抽牌和负重。属性读取必须经过 `statOf`；负重换算由 `burdenPenalty` 统一提供，且只有我方承担负重。 |
@@ -26,7 +26,7 @@
 | [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
 | [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行：倍率预览、眩晕跳过、随机选目标、效果解释和行动后重排。每回合行动次数上限按回合开始排 1 次，行动后按剩余次数决定是否续排，用尽后 `nextActTick = null`。 |
 | [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进，处理所有到点敌人并安排下次行动；每回合行动次数用尽后 `nextActTick = null`，带死循环安全阀。 |
-| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、结束回合编排。支持跨战斗 `startHp` 和 `EncounterModifier`；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |
+| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；`waitTick` 只推进时刻并复用敌人行动排程。支持跨战斗 `startHp` 和 `EncounterModifier`；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |
 | [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API 出口。 |
 | [battle.test.ts](../../src/engine/battle.test.ts) | 初始化、速攻/普通牌时刻推进、中毒回合开始、回合末冲刷等核心行为测试。 |
 
