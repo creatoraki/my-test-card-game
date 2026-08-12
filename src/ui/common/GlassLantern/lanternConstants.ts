@@ -7,17 +7,20 @@ export const GROUP_BASE_Y = 0.2;
 export const INNER_COUNT = 280;
 export const OUTER_COUNT = 150;
 
+// 与原版 HTML 保持一致：strength = 0.9 + intensity * 0.35，radius 0.8，threshold 0.1。
 export const BLOOM = {
   threshold: 0.1,
-  radius: 1.2,
-  strengthBase: 0.3,
-  strengthGain: 0.4,
+  radius: 0.8, // 原版值；此前的 1.2 会把灯色大范围糊到金属外壳上
+  strengthBase: 0.9,
+  strengthGain: 0.35,
+  // 216px 画布下最宽的两级 mip 会退化成全帧平均，避免灯色无视深度染到金属外壳。
+  mipTint: [1, 1, 1, 0.45, 0.2],
 } as const;
 
 // 泛光转 alpha 的合成参数：gain 控制光晕浓度，cutoff 压掉大范围低强度的雾状染色。
 export const GLOW_ALPHA = {
   gain: 1.2,
-  cutoff: 0.12,
+  cutoff: 0.25, // 泛光回归原版后强度约 +45%，抬高门槛压掉外扩的雾状染色
   max: 0.85,
 } as const;
 
@@ -31,4 +34,6 @@ export const MATERIAL_HEX = {
 } as const;
 
 // r128 的 legacy lights 会额外应用约 pi 的光照缩放；r185 已移除 useLegacyLights。
-export const LIGHT_SCALE = Math.PI;
+// 注意：r128 的缩放对**所有**灯型（ambient / directional / point / spot / hemi）一律生效，
+// 因此新增任何灯光时都必须乘上本系数；在保留相对照明平衡的前提下整体压低 30%。
+export const LIGHT_SCALE = Math.PI * 0.7;

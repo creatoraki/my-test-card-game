@@ -10,6 +10,7 @@ import {
   PointLight,
   Scene,
   ShaderMaterial,
+  UnsignedByteType,
   Vector2,
   Vector3,
   WebGLRenderTarget,
@@ -147,8 +148,10 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const outerParticles = createOuterParticleField(particleTexture, currentColor);
   lantern.add(innerParticles.points, outerParticles.points);
 
-  const ambient = new AmbientLight(legacyColor(0x404066));
-  const backLight = new DirectionalLight(legacyColor(0x446688), 0.5);
+  // r128 legacy lights 对所有灯型统一乘 pi，环境光/平行光同样要补，否则中性底光被削弱 3.14 倍，
+  // 金属外壳会被彩色点光通吃并染成灯色。
+  const ambient = new AmbientLight(legacyColor(0x404066), LIGHT_SCALE);
+  const backLight = new DirectionalLight(legacyColor(0x446688), 0.5 * LIGHT_SCALE);
   backLight.position.set(-3, 1, -2);
   scene.add(ambient, backLight);
 
@@ -162,13 +165,30 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   pointLight2.position.set(0, 0.2, 0);
   lantern.add(pointLight, pointLight2);
 
-  const composer = new EffectComposer(renderer);
+  // r128 的 EffectComposer/UnrealBloomPass 内部 RT 是 8bit，场景在进泛光高通前被钳到 [0,1]；
+  // r185 默认 HalfFloatType，内部 AdditiveBlending 的光晕+粒子会以远超 1.0 的能量喂进泛光。
+  const composer = new EffectComposer(
+    renderer,
+    new WebGLRenderTarget(1, 1, { type: UnsignedByteType }),
+  );
   const renderPass = new RenderPass(scene, camera);
   renderPass.clearAlpha = 0;
   const alphaCapturePass = new AlphaCapturePass();
   const bloomPass = new UnrealBloomPass(new Vector2(1, 1), 1.5, 0.4, 0.85);
+  // 同上：把泛光自己的亮度/模糊 RT 也钳回 8bit。
+  const toLdr = (target: WebGLRenderTarget) => {
+    target.texture.type = UnsignedByteType;
+  };
+  toLdr(bloomPass.renderTargetBright);
+  bloomPass.renderTargetsHorizontal.forEach(toLdr);
+  bloomPass.renderTargetsVertical.forEach(toLdr);
+  // 216px 下第 4/5 级 mip 只有 14px/7px，18/22 抽头的核等于整帧求平均；
+  // 原版 1920px 下对应的是 120px/60px。原版参数不动，只按分辨率差异压暗这两级。
+  BLOOM.mipTint.forEach((tint, index) => {
+    bloomPass.bloomTintColors[index]?.set(tint, tint, tint);
+  });
   bloomPass.threshold = BLOOM.threshold;
-  bloomPass.strength = 1.2;
+  bloomPass.strength = BLOOM.strengthBase;
   bloomPass.radius = BLOOM.radius;
   const alphaPass = new ShaderPass(
     new ShaderMaterial({
