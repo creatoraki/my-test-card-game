@@ -11,7 +11,6 @@ import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { HpBar } from "@/ui/common/HpBar";
 import { StatusPips } from "@/ui/common/StatusPips";
 import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
-import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import s from "./AllyBar.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
 import ub from "@/ui/battle/styles/unitBadges.module.css";
@@ -118,21 +117,17 @@ const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetab
         if (targetable) onClick(cmb.id);
       }}
     >
-      {/* 悬空外挂的状态图标排: 不占流, 浮在卡框正上方。
-          占流会把 .vfx / .float-num 的定位一起压偏(与敌人的 .intent 同一套路)。 */}
-      <div className={s["ally-badges"]}>
-        <StatusPips statuses={cmb.statuses} />
-        <QuirkPips sick={(cmb as Ally).sick} quirks={(cmb as Ally).quirks} />
+      <div className={s["ally-status"]}>
+        <StatusPips
+          statuses={cmb.statuses}
+          shield={cmb.shield}
+          detail
+          reverse
+          popoverSide="top-right"
+        />
       </div>
 
       <div className={s["ally-frame"]}>
-        {/* 角标: 右上=护盾数值(无护盾不渲染)。★ 仇恨系统已移除, 右下角标随之取消。 */}
-        {cmb.shield > 0 && (
-          <span className={cx(ub["shield-badge"], s["ally-corner-top"])} title="护盾">
-            🛡️{cmb.shield}
-          </span>
-        )}
-
         <div className={s["ally-figure"]}>
           <CharacterPortrait
             characterId={(cmb as Ally).charId}

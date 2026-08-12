@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CHALLENGE_DEFS, type ChallengeRun } from "@/engine";
-import { RailPopover } from "@/ui/battle/RailPopover";
+import { RailPopover } from "@/ui/common/RailPopover";
 import s from "./ChallengeRail.module.css";
 
 function ChallengeItem({ run }: { run: ChallengeRun }) {

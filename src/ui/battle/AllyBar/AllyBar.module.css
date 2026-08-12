@@ -165,38 +165,14 @@ span.ally-portrait {
   box-shadow: 0 0 8px -1px #4ff0c6, inset 0 0 4px #ffffff26;
   transition: width 0.3s;
 }
-/* 角标: 右上 = 护盾数值(无护盾不渲染), 右下 = 仇恨值。绝对定位浮在立绘之上。
-   右下那枚要抬过底部双条的高度(20 + 8)。 */
-.ally-corner-top,
-.ally-corner-bot {
+/* 状态图标在卡框外, 这样上方详情浮层不会被 .ally-frame 的裁切截断。 */
+.ally-status {
   position: absolute;
-  z-index: 2;
-  right: 4px;
-  padding: 1px 5px;
-  line-height: 1.4;
-  backdrop-filter: blur(2px);
-}
-.ally-corner-top {
-  top: 4px;
-}
-.ally-corner-bot {
-  bottom: 32px;
-}
-/* 悬空外挂的状态图标排: BUFF-DEBUFF。绝对定位(不占流)浮在卡框正上方,
-   与敌人的 .intent 同一套路 —— 占流会把 .vfx / .float-num 的定位一起压偏。 */
-.ally-bar .ally-badges {
-  position: absolute;
-  z-index: 5;
-  bottom: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 3px;
-  min-height: 18px;
-  pointer-events: none;
+  top: 6px;
+  right: 6px;
+  z-index: 6;
+  pointer-events: auto;
+  --pip-box: 30px;
 }
 /* 可选中 / 仇恨目标的描边发光。
    ⚠ 不能走 box-shadow: 卡框带 clip-path, 而 clip-path 会把外阴影一起裁掉(整条不可见)。

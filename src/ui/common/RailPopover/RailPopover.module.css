@@ -31,6 +31,18 @@
   left: 0;
   transform: translateY(-8px);
 }
+.top {
+  top: auto;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translate(-50%, 8px);
+}
+.top-right {
+  top: auto;
+  right: 0;
+  bottom: calc(100% + 10px);
+  transform: translateY(8px);
+}
 :global([data-rail-item]:hover) .popover,
 :global([data-rail-item]:focus-within) .popover {
   pointer-events: auto;
@@ -51,5 +63,13 @@
 }
 :global([data-rail-item]:hover) .bottom-left,
 :global([data-rail-item]:focus-within) .bottom-left {
+  transform: translateY(0);
+}
+:global([data-rail-item]:hover) .top,
+:global([data-rail-item]:focus-within) .top {
+  transform: translate(-50%, 0);
+}
+:global([data-rail-item]:hover) .top-right,
+:global([data-rail-item]:focus-within) .top-right {
   transform: translateY(0);
 }

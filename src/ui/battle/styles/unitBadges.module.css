@@ -1,16 +1,4 @@
-/* 敌我单位共用的两枚徽章 —— ui/CombatantView.tsx(敌人)与 ui/AllyBar.tsx(我方)都会渲染,
-   故单独成文件, 由两者各自 import(Vite 自动去重)。 */
-
-/* 护盾数值徽章 */
-.shield-badge {
-  flex: 0 0 auto;
-  padding: var(--badge-pad, 0 5px);
-  font-size: var(--badge-size, 12px);
-  background: #1d2a3a;
-  border: 1px solid #34567a;
-  border-radius: 0;
-  color: #9cc4ff;
-}
+/* 敌我单位共用的阵亡叠层 —— 由 CombatantView 与 AllyBar 各自 import。 */
 
 /* 阵亡叠层(一个居中的大字符) */
 .dead-overlay {

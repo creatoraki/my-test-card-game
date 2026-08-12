@@ -1,7 +1,7 @@
 import { BondIcon } from "@/ui/common/BondIcon";
 import type { CSSProperties } from "react";
 import type { BattleBondView } from "@/store/battleStore";
-import { RailPopover } from "@/ui/battle/RailPopover";
+import { RailPopover } from "@/ui/common/RailPopover";
 import s from "./BondRail.module.css";
 
 export function BondRail({ bonds }: { bonds: BattleBondView[] }) {

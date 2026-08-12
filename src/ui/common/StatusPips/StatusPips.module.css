@@ -4,64 +4,54 @@
   gap: 3px;
   justify-content: center;
 }
+.status-pips.reverse {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
 .pip {
   position: relative;
-  padding: var(--pip-pad, 0 4px);
-  font-size: var(--pip-size, 11px);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background: #101619;
-  white-space: nowrap;
+  display: grid;
+  width: var(--pip-box, 30px);
+  height: var(--pip-box, 30px);
+  flex: 0 0 var(--pip-box, 30px);
+  place-items: center;
+  font-size: calc(var(--pip-box, 30px) * 0.55);
+  line-height: 1;
+  color: #e7f4f5;
   cursor: help;
 }
-/* 直接子代 —— 裸标签后代选择器(`.pip b`)在本组件里够用, 但 `>` 更贴合结构且不会
-   在将来嵌套内容时误伤。 */
-.pip > b {
-  margin-left: 1px;
-}
-.pip-tip {
+.pip::before {
+  content: "";
   position: absolute;
-  z-index: 9;
-  left: 50%;
-  bottom: calc(100% + 6px);
-  display: grid;
-  gap: 3px;
-  width: 170px;
-  padding: 7px 8px;
-  transform: translateX(-50%);
+  inset: 0;
+  z-index: -1;
   pointer-events: none;
-  color: #d9e7e8;
-  font-size: 11px;
-  line-height: 1.35;
-  text-align: left;
-  background: #081013f5;
-  border: 1px solid #6fd2ff66;
-  box-shadow: 0 4px 14px #000b;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 120ms ease, visibility 120ms ease;
+  background: linear-gradient(145deg, #18282ddd, #081013e8);
+  border: 1px solid var(--pip-border, var(--border));
+  backdrop-filter: blur(4px);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
-.pip-tip > strong {
-  color: #f2fbca;
-  font-size: 12px;
+.pip > b {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  z-index: 1;
+  color: #fff;
+  font-size: max(10px, calc(var(--pip-box, 30px) * 0.28));
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 1px 1px 0 #05080a, -1px -1px 0 #05080a, 1px -1px 0 #05080a, -1px 1px 0 #05080a;
 }
-.pip-tip > b {
-  margin-left: 0;
-  color: var(--accent);
-  font-size: 10px;
-}
-.pip:hover .pip-tip,
-.pip:focus-within .pip-tip {
-  opacity: 1;
-  visibility: visible;
-}
-/* ⚠ 只剩描边色在起作用: 这两条原本各自还带一个 background(#2a1717 / #16281b), 但终端皮肤层
-   后来给 .pip 重新指定了 background 且特异性相同(都是 0-1-0)、位置更靠后 ⇒ 两条底色早已失效,
-   合并时按当前实际表现删除。若想让 BUFF/DEBUFF 重新有底色区分, 把 background 加回这里即可
-   —— 现在它排在 .pip 之后, 加了就会生效。 */
 .pip-debuff {
-  border-color: #6a2f2f;
+  --pip-border: #b34c63;
 }
 .pip-buff {
-  border-color: #2f6a3f;
+  --pip-border: #3e9a72;
+}
+.pip-shield {
+  --pip-border: #34567a;
+  color: #9cc4ff;
+}
+.pip-shield::before {
+  background: linear-gradient(145deg, #1d2a3aee, #0b131de8);
 }

@@ -98,7 +98,7 @@ src/ui/
 | [unitShell.ts](../../src/ui/battle/unitShell.ts) | **单位外壳的跨组件契约**：敌人（CombatantView）与我方（AllyBar）两种外壳几何不同但演出必须一致，靠 `unitShellAttrs()` 摊出的 `data-side` / `data-death` / `data-dead` / `data-attacking` / `data-targetable` / `data-telegraph` / `data-react` 共享同一份规则。`data-dead` 只表示闸门放行后的最终死亡态。改这里要全库搜同名字符串——CSS 那侧没有类型保护。 |
 | [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：蓄力预告、血条周围的倒计时/意图/护盾/状态和命中特效；死亡表现由 `deathChoreo` 闸门下发，先完成血条再过曝消散。站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`enemyArt.ts` 登记展示框与主体框，主体高度归一后由 CSS 变量推导尺寸、脚线和帧位；`@keyframes` 按敌人 id 运行时注入并复用 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
-| [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，死亡灰化与 ☠ 由死亡闸门放行，并通过公共污染条/状态徽章展示污染值、生病和怪癖。位于战场之外，因此不参与相机推近。 |
+| [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，死亡灰化与 ☠ 由死亡闸门放行，并通过公共污染条/状态图标展示污染值、临时状态和护盾。位于战场之外，因此不参与相机推近；生病与永久怪癖仅在角色详情页展示。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃操作；沿用回合、动画、手牌为空和本回合换牌次数的可用性判定。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
@@ -112,7 +112,7 @@ src/ui/
 | [fx/SpriteFx](../../src/ui/battle/fx/SpriteFx/SpriteFx.tsx) | 一次性序列帧播放器。 |
 | [fx/IaiSlashFx](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.tsx) | `iai-slash` 居合斩程序化特效；`impactMs` 需与 CSS 关键帧同步，`animation-name` 必须留在 CSS 里（理由见 styles.md）。 |
 | [fx/DeathVanishFx](../../src/ui/battle/fx/DeathVanishFx/DeathVanishFx.tsx) | 敌方死亡的附加白光：脚下扩散光环与确定性白色光粒；只在死亡闸门的 vanish 阶段挂载，不承载战斗状态。 |
-| [styles/unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css) | 敌我共用的护盾数值与阵亡叠层两枚徽章。 |
+| [styles/unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css) | 敌我共用的阵亡叠层样式。 |
 | [animations.ts](../../src/ui/battle/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设。调演出节奏优先改这里；死亡闸门时序另见 `deathChoreo.ts`。 |
 | [ambience.ts](../../src/ui/battle/ambience.ts) | 按地图登记粒子发射器、灯光闪烁和屏幕调色。 |
 | [handFocusStore.ts](../../src/ui/battle/handFocusStore.ts) | 手牌悬停/聚焦状态，独立于 BattleScreen，避免鼠标状态和战斗状态互相污染。 |
@@ -127,8 +127,9 @@ src/ui/
 | [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；立绘统一为 1152×2048 / 9:16 / 透明底 / 左右对称，逐人 `--portrait-dx/dy`、`--bust-scale` 默认归零，仅作异常构图的补偿位。编队页取景走独立的 `formation.dx/dy`（下发为 `--fm-portrait-dx/dy`），未填写时回退通用 `dx/dy`。 |
 | [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）和 `hideLimit` 变体（战场敌人只显示蓝色当前血量，不画琥珀上限段）的样式也在本组件内。 |
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |
-| [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 展示生病与永久怪癖徽章及说明；不复用临时战斗 `StatusPips`。 |
-| [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 状态图标和层数展示；可选开启战斗敌人详情浮层，尺寸通过 `--pip-size` / `--pip-pad` 变量由父级收紧。 |
+| [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 角色详情页展示生病与永久怪癖徽章及说明；不服务战斗队伍卡，也不复用临时战斗 `StatusPips`。 |
+| [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 战斗临时状态、层数与护盾的方形玻璃图标条；支持右起换行和 `RailPopover` 详情，尺寸通过 `--pip-box` 变量由父级下发。关闭详情时保留原生 `title`。 |
+| [RailPopover](../../src/ui/common/RailPopover/RailPopover.tsx) | 跨战斗域复用的斜切角玻璃详情浮层；支持左右、下方和上方（居中 / 右对齐）定位，由 `data-rail-item` 的悬浮与键盘聚焦驱动。 |
 | [ManaCrystal](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) | 法力水晶菱形（Arcane Diamond）；`empty`/`normal`/`active` 三态受控，`still` 关闭呼吸循环；尺寸与配色经 `--mana-crystal-size` / `--crystal-*` 变量下发。 |
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 羁绊词条线框图标，无样式文件。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |

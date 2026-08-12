@@ -282,13 +282,12 @@ span.combatant-portrait {
   left: 0;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   justify-content: flex-start;
   pointer-events: auto;
 }
 .combatant-statuses {
-  --pip-size: 14px;
-  --pip-pad: 1px 6px;
+  --pip-box: 40px;
 }
 /* 血条下方的读数行: 意图(仅洞察时) + 沙漏倒计时。 */
 .combatant-readout {
@@ -326,45 +325,78 @@ span.combatant-portrait {
   }
 }
 .intent-badge {
-  background: #101619e8;
-  border: 1px solid #7a3b5b;
-  border-radius: 0;
-  padding: 1px 6px;
-  font-size: 17px;
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
   font-weight: 700;
-  white-space: nowrap;
+  color: #f5d9e4;
+}
+.intent-badge::before,
+.countdown::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(145deg, #18282ddd, #081013e8);
+  border: 1px solid var(--intent-border, var(--border));
   box-shadow: 0 2px 6px #0008;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.intent-badge > b {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  z-index: 1;
+  font-size: 12px;
+  line-height: 1;
+  text-shadow: 1px 1px 0 #05080a, -1px -1px 0 #05080a, 1px -1px 0 #05080a, -1px 1px 0 #05080a;
 }
 .intent-attack {
-  border-color: #a33;
+  --intent-border: #a33;
   color: #ff9c9c;
 }
 .intent-block {
-  border-color: #37c;
+  --intent-border: #37c;
   color: #9cc4ff;
 }
 .intent-buff {
-  border-color: #3a3;
+  --intent-border: #3a3;
   color: #9cff9c;
 }
 .intent-debuff {
-  border-color: #93c;
+  --intent-border: #93c;
   color: #e59cff;
 }
 .countdown {
+  position: relative;
   display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   align-items: center;
+  justify-content: center;
   gap: 2px;
-  font-size: 13px;
-  background: #101619e8;
-  border: 1px solid var(--border);
-  border-radius: 0;
-  padding: 0 4px;
+  box-sizing: border-box;
+  padding: 2px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
   color: var(--warn);
 }
+.countdown::before {
+  border-color: var(--border);
+}
 .hourglass {
-  width: 16px;
-  height: 16px;
+  position: relative;
+  width: 22px;
+  height: 22px;
+  z-index: 1;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -374,15 +406,16 @@ span.combatant-portrait {
 /* 意图未被揭示时, 倒计时是头顶唯一元素 → 放大加粗顶上去。
    不设 color/border-color, 让下面的 .imminent(同权重)照常覆盖成红色脉冲。 */
 .countdown.countdown-solo {
-  font-size: 15px;
-  font-weight: 700;
-  padding: 1px 7px;
-  letter-spacing: 0.5px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 .countdown.imminent {
   color: var(--bad);
-  border-color: var(--bad);
   animation: pulse 0.7s infinite;
+}
+.countdown.imminent::before {
+  border-color: var(--bad);
 }
 
 @media (prefers-reduced-motion: reduce) {

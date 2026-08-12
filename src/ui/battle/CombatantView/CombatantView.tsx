@@ -12,6 +12,7 @@ import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { DeathVanishFx } from "@/ui/battle/fx/DeathVanishFx";
 import { DEATH, type DeathPhase } from "@/ui/battle/deathChoreo";
 import { HpBar } from "@/ui/common/HpBar";
+import { RailPopover } from "@/ui/common/RailPopover";
 import { HourglassIcon } from "./icons";
 import s from "./CombatantView.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
@@ -155,14 +156,11 @@ export const CombatantView = memo(function CombatantView({
       <div className={s["combatant-info"]}>
         <div className={s["combatant-hp"]}>
           <div className={s["combatant-badges"]}>
-            {cmb.shield > 0 && (
-              <span className={ub["shield-badge"]} title="护盾">
-                🛡️{cmb.shield}
-              </span>
-            )}
             <StatusPips
               statuses={cmb.statuses}
+              shield={cmb.shield}
               detail
+              popoverSide="top"
               className={s["combatant-statuses"]}
             />
           </div>
@@ -189,10 +187,8 @@ function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number
   const i = enemy.intent;
   const revealed = isIntentRevealed(enemy);
   return (
-    // 未揭示时不给 title —— 否则 hover 就把招式名漏出去了
     <div
       className={s["combatant-readout"]}
-      title={revealed ? `意图: ${i.name}` : undefined}
     >
       {revealed && (
         <span className={cx(s["intent-badge"], s[`intent-${i.kind}`])}>
@@ -206,10 +202,21 @@ function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number
           !revealed && s["countdown-solo"],
           countdown === 0 && s["imminent"],
         )}
-        title="距离下次行动的时刻"
+        data-rail-item
+        tabIndex={0}
+        aria-label={`距离下次行动 ${countdown} 时刻`}
       >
         <HourglassIcon className={s.hourglass} />
         {countdown}
+        <RailPopover side="top">
+          <strong>下次行动</strong>
+          <p>剩余 {countdown} 时刻</p>
+          {revealed && (
+            <small>
+              意图：{i.name}{i.value != null && ` · 数值 ${i.value}`}
+            </small>
+          )}
+        </RailPopover>
       </span>
     </div>
   );
