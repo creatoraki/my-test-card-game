@@ -1,5 +1,6 @@
 // 卡牌美术大图集中登记处。手牌简写 / 详情浮窗 / 出牌亮相卡面等多处复用同一份映射,
 // 新增带美术图的卡时只需在此登记一次。
+import placeholderArt from "@/assets/占位素材.png";
 import basicAttackArt from "@/assets/skills/basic/基础攻击.png";
 import basicHealArt from "@/assets/skills/basic/基础治疗.png";
 import basicGuardArt from "@/assets/skills/basic/基础护盾.png";
@@ -24,9 +25,9 @@ export const CARD_ART: Record<string, string> = {
   "declutter": swordsmanDeclutterArt,
 };
 
-export const CARD_ART_SOURCES: readonly string[] = [...new Set(Object.values(CARD_ART))];
+export const CARD_ART_SOURCES: readonly string[] = [...new Set([...Object.values(CARD_ART), placeholderArt])];
 
-// 取某卡的美术大图 URL(无图返回 undefined)。
-export function cardArt(cardId: string): string | undefined {
-  return CARD_ART[cardId];
+// 取某卡的美术大图 URL。未登记正式素材的卡统一使用占位图。
+export function cardArt(cardId: string): string {
+  return CARD_ART[cardId] ?? placeholderArt;
 }

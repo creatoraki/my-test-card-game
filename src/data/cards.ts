@@ -41,7 +41,7 @@ export const CARD_DEFS: CardDef[] = [
       { type: "DAMAGE", multiplier: 0.9, target: "primary" },
       { type: "DISCARD", amount: 1, discardPick: "handBottom" },
     ],
-    text: "造成 {0} 点伤害，然后丢弃手牌最后一张。不推进时刻。",
+    text: "造成 {0} 点伤害，然后丢弃手牌最后一张。",
   },
 
   {
@@ -94,8 +94,8 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "common",
     anim: "slash",
     effects: [{ type: "DAMAGE", multiplier: 0.9, target: "allFoes" }],
-    onDiscard: { mode: "custom", effects: [{ type: "DRAW", amount: 2 }] },
-    text: "对所有敌人造成 {0} 点伤害。被丢弃时抽 2 张牌。",
+    onDiscard: { mode: "custom", effects: [{ type: "DRAW", amount: 1 }] },
+    text: "对所有敌人造成 {0} 点伤害。被丢弃时抽 1 张牌。",
   },
   {
     id: "swallow-return",
