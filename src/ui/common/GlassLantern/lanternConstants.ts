@@ -9,9 +9,16 @@ export const OUTER_COUNT = 150;
 
 export const BLOOM = {
   threshold: 0.1,
-  radius: 0.8,
-  strengthBase: 0.9,
-  strengthGain: 0.35,
+  radius: 1.2,
+  strengthBase: 0.3,
+  strengthGain: 0.4,
+} as const;
+
+// 泛光转 alpha 的合成参数：gain 控制光晕浓度，cutoff 压掉大范围低强度的雾状染色。
+export const GLOW_ALPHA = {
+  gain: 1.2,
+  cutoff: 0.12,
+  max: 0.85,
 } as const;
 
 export const MATERIAL_HEX = {

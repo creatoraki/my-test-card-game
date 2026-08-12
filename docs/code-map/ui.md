@@ -147,7 +147,7 @@ src/ui/
 | --- | --- |
 | [art/cardArt.ts](../../src/ui/art/cardArt.ts) | 战斗卡 id → 卡面配图。 |
 | [art/enemyArt.ts](../../src/ui/art/enemyArt.ts) | 敌人 id → 待机拼条、`sheet/view/body` 源图几何和 idle 参数，含预热；展示框保留素材构图，主体框只用于高度归一与脚线定位，不再产出 `-cut` 中间图。 |
-| [art/battleBg.ts](../../src/ui/art/battleBg.ts) | 地图 id → 战斗背景素材与静态图预热。 |
+| [art/battleBg.ts](../../src/ui/art/battleBg.ts) | 地图 id → 战斗背景静态图与预热。 |
 | [art/mapArt.ts](../../src/ui/art/mapArt.ts) | 地图 id → 选层预览素材；与战斗背景表分离。 |
 | [art/eventArt.ts](../../src/ui/art/eventArt.ts) | 探索事件素材查表。 |
 | [art/slotArt.ts](../../src/ui/art/slotArt.ts) | 战斗签符号卡面查表。 |

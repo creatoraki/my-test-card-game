@@ -11,6 +11,7 @@ import {
   Scene,
   ShaderMaterial,
   Vector2,
+  Vector3,
   WebGLRenderTarget,
   WebGLRenderer,
   type BufferGeometry,
@@ -26,6 +27,7 @@ import { legacyColor, setLegacyStyle } from "./lanternColorSpace";
 import {
   BLOOM,
   CAMERA_POS,
+  GLOW_ALPHA,
   GROUP_BASE_Y,
   LIGHT_SCALE,
   LOOK_AT,
@@ -107,6 +109,7 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   const renderer = new WebGLRenderer({
     canvas,
     alpha: true,
+    premultipliedAlpha: true,
     antialias: true,
     powerPreference: "low-power",
   });
@@ -172,6 +175,7 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
       uniforms: {
         tDiffuse: { value: null },
         originalAlpha: { value: alphaCapturePass.texture },
+        glowParams: { value: new Vector3(GLOW_ALPHA.gain, GLOW_ALPHA.cutoff, GLOW_ALPHA.max) },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -183,11 +187,17 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
       fragmentShader: `
         uniform sampler2D tDiffuse;
         uniform sampler2D originalAlpha;
+        uniform vec3 glowParams;
         varying vec2 vUv;
         void main() {
           vec4 c = texture2D(tDiffuse, vUv);
           float sourceAlpha = texture2D(originalAlpha, vUv).a;
-          gl_FragColor = vec4(c.rgb, sourceAlpha);
+          // 用泛光亮度推导光晕 alpha，压掉大范围低强度扩散。
+          float luma = max(max(c.r, c.g), c.b) * glowParams.x;
+          float glow = smoothstep(glowParams.y, 1.0, luma) * glowParams.z;
+          float a = max(sourceAlpha, glow);
+          // 预乘 alpha 合成要求 RGB 按最终 alpha 缩放，避免透明区域漏色。
+          gl_FragColor = vec4(c.rgb * a, a);
         }
       `,
     }),

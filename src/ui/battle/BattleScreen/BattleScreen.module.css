@@ -10,7 +10,7 @@
   display: block;
   /* 相机的唯一裁切边界: 推近时越出屏幕的前景/背景在此被裁掉 */
   overflow: hidden;
-  /* 背景由 .battle-bg-video 承担; 这里只留深色兜底(视频解码前/失败时) */
+  /* 背景由 .battle-bg-video 承担; 这里只留深色兜底(背景图解码前/失败时) */
   background-color: #070a0c;
 
   /* ★ 战斗画布的全部构图旋钮。全是设计 px(1920×1080 基准), 随 --stage-scale 一起缩放,
@@ -198,7 +198,7 @@
    (样式铁律 2)。这里只保留**本文件持有**的那一条。 */
 /* 溢出填充: 相机强制居中(不做边界钳制), 世界之外露出的区域由这一层兜底 —— 同一张背景的
    模糊放大副本。它在 .battle-scene 之外 ⇒ 不跟相机动, 始终铺满画布。src 见 BattleScreen
-   的 spillSrc(静态图直接复用, 视频抓首帧到 64×36 小图 —— 反正会被 blur 糊掉)。 */
+  的同一个背景 URL。 */
 .battle-bg-spill {
   position: absolute;
   inset: 0;

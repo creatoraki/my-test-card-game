@@ -2,7 +2,7 @@
 // 数据层不碰素材(见 data/maps.ts 顶部注释), 故「地图 → 预览图」的关联落在这里。
 //
 // ⚠ 与 battleBg.ts 的分工: 那边是**战斗背景**(打起来时铺满屏幕的那张), 这边是**选层时的缩略预览**。
-//   同一张地图两者可以是不同的图, 故刻意分成两张表而不是给 BattleBgDef 加字段。
+//   同一张地图两者可以是不同的图, 故刻意分成两张表。
 import ruinedFloorArt from "@/assets/场景/大楼废弃楼层.png";
 import indoorGardenArt from "@/assets/场景/室内花园.png";
 import skyTrainArt from "@/assets/场景/天空列车.png";

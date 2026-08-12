@@ -10,7 +10,7 @@ import { MAP_ART_SOURCES } from "@/ui/art/mapArt";
 import { SCENE_ART_SOURCES, SCENE_VIDEO_SOURCES } from "@/ui/art/sceneArt";
 import { SLOT_ART_SOURCES } from "@/ui/art/slotArt";
 import { ALL_SPRITE_FRAMES } from "@/ui/art/vfxSprites";
-import { BATTLE_BG_IMAGE_SOURCES, BATTLE_BG_VIDEO_SOURCES } from "@/ui/art/battleBg";
+import { BATTLE_BG_IMAGE_SOURCES } from "@/ui/art/battleBg";
 import { FACILITY_SCENES } from "@/ui/town/facilityScenes";
 
 export type AssetPreloadStatus = "idle" | "loading" | "ready";
@@ -45,7 +45,7 @@ const imageSources = unique([
   ...CHARACTER_ART_SOURCES,
 ]);
 
-const videoSources = unique([...SCENE_VIDEO_SOURCES, ...BATTLE_BG_VIDEO_SOURCES]);
+const videoSources = unique([...SCENE_VIDEO_SOURCES]);
 const PRELOAD_TASK_CONCURRENCY = 2;
 
 export const GAME_ASSET_TASKS: readonly AssetTask[] = [

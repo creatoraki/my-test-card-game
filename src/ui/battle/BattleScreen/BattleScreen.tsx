@@ -98,7 +98,7 @@ export function BattleScreen() {
   const battleSettled = useRunStore((s) => s.battleSettled);
   const battleSeq = useBattleStore((s) => s.seq); // 「第几场战斗」的身份标识, 换局时重置分镜状态
   const mapId = useRunStore((s) => s.mapId);
-  const bg = battleBg(mapId); // 当前地图的背景素材(视频/静态图), 未登记则回退森林
+  const bg = battleBg(mapId); // 当前地图的背景图, 未登记回退霓虹城市
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   // ★ 手牌**悬停**态刻意**不在这里** —— 它住在 ui/handFocusStore.ts。
@@ -129,7 +129,6 @@ export function BattleScreen() {
   const [aimFoeId, setAimFoeId] = useState<string | null>(null);
   const [aim, setAim] = useState<Camera | null>(null); // 瞄准相机(null=不在瞄准态)
   const [camera, setCamera] = useState<Camera | null>(null); // 分镜/瞄准相机目标
-  const [spillSrc, setSpillSrc] = useState<string | null>(null); // 溢出填充图(见下方 grabSpill)
   const [hitstop, setHitstop] = useState(false);
   const [fxRate, setFxRate] = useState(1);
   const [speed2x, setSpeed2x] = useState(false);
@@ -141,7 +140,6 @@ export function BattleScreen() {
   const worldRef = useRef<HTMLDivElement>(null); // ★ 世界层: 背景 + 氛围 + 舞台同在其中; 承载 rig 的漂移与冲击
   const stageRef = useRef<HTMLDivElement>(null); // 战场舞台层(敌我单位); 其布局盒 = 相机的取景安全区
   const dofTargetsRef = useRef<Set<HTMLElement>>(new Set());
-  const bgVideoRef = useRef<HTMLVideoElement>(null); // 背景视频(仅用于抓首帧做溢出填充)
   const bgImageRef = useRef<HTMLImageElement>(null);
   // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform。
   const stageScale = useStageScale(viewportRef);
@@ -234,13 +232,13 @@ export function BattleScreen() {
   );
 
   useLayoutEffect(() => {
-    const target = bg.kind === "image" ? bgImageRef.current : null;
+    const target = bgImageRef.current;
     if (!target) return;
     dofTargetsRef.current.add(target);
     return () => {
       dofTargetsRef.current.delete(target);
     };
-  }, [bg.kind, bg.src]);
+  }, [bg]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -269,26 +267,6 @@ export function BattleScreen() {
   useEffect(() => {
     if (battle?.pendingChoice?.kind === "recoverFromDiscard") setOpenPile("discard");
   }, [battle?.pendingChoice]);
-
-  // ── 溢出填充图 ──
-  // 静态图背景直接复用同一个 URL(浏览器共享那份解码, 零额外成本);
-  // 视频背景则从**已经在放的那个** <video> 抓一帧画进 64×36 的小 canvas —— 反正要被
-  // blur(36px) 糊掉, 不需要分辨率, 更不必为此挂第二个 <video>(那会双解码, 见 README)。
-  useEffect(() => {
-    setSpillSrc(bg.kind === "image" ? bg.src : null);
-  }, [bg.kind, bg.src]);
-
-  const grabSpill = () => {
-    const v = bgVideoRef.current;
-    if (!v) return;
-    const c = document.createElement("canvas");
-    c.width = 64;
-    c.height = 36;
-    const ctx = c.getContext("2d");
-    if (!ctx) return;
-    ctx.drawImage(v, 0, 0, c.width, c.height);
-    setSpillSrc(c.toDataURL());
-  };
 
   // 同步渲染列表 = 引擎手牌 + 离场中的卡。引擎手牌里消失的卡标记 leaving(出鞘渐隐, 保留原位),
   // 新增的卡追加到末尾(挂载即飞入)。leaving 卡在其离场动画结束后由 handleCardExited 移除。
@@ -770,7 +748,7 @@ export function BattleScreen() {
       >
       {/* 溢出填充: 相机强制把目标居中(不做边界钳制), 世界之外露出的区域由这一层兜底 ——
           同一张背景的模糊放大副本, 观感远好于纯黑。它在场景之外 ⇒ 不跟相机动, 始终铺满画布。 */}
-      {spillSrc && <img className={s["battle-bg-spill"]} src={spillSrc} alt="" aria-hidden="true" />}
+      <img className={s["battle-bg-spill"]} src={bg} alt="" aria-hidden="true" />
 
       {/* ★ 场景层(世界 1920×1080) = 相机的唯一作用对象。背景与敌我单位同在其中, 由同一份
           transform 驱动。★ 场景**不再是刚体**: 各层带着不同的纵深(CINEMA.depth), 相机一动
@@ -793,28 +771,14 @@ export function BattleScreen() {
         ref={worldRef}
         style={worldStyle}
       >
-      {/* 背景层: 精确铺满世界, 素材按当前地图取(见 ui/battleBg.ts)。视频与静态图两个分支
-          共用同一份 className —— 对场景相机而言二者完全等价, 都只是世界里的一张地皮。 */}
-      {bg.kind === "video" ? (
-        <video
-          ref={bgVideoRef}
-          className={s["battle-bg-video"]}
-          src={bg.src}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          onLoadedData={grabSpill}
-        />
-      ) : (
-        <img
-          ref={bgImageRef}
-          className={cx(s["battle-bg-video"], s["battle-bg-video-dof"])}
-          src={bg.src}
-          alt=""
-        />
-      )}
+      {/* 背景层: 精确铺满世界, 素材按当前地图取(见 ui/battleBg.ts)。.battle-bg-video
+          是历史遗留类名, 现在只承载静态图; 它与溢出填充共用同一个 URL。 */}
+      <img
+        ref={bgImageRef}
+        className={cx(s["battle-bg-video"], s["battle-bg-video-dof"])}
+        src={bg}
+        alt=""
+      />
 
       {/* 场景氛围: 按地图登记的 Canvas 粒子(雨/光尘/雾)+ 可选的灯光闪烁。两张画布靠 z-index
           夹住舞台 —— far 在单位之下、near 在单位之上并整层失焦, 纵深由此而来。
