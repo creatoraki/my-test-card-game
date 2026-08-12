@@ -54,7 +54,7 @@
 }
 .el-fx {
   position: absolute;
-  inset: 0;
+  inset: -20px;
   pointer-events: none;
   transition: opacity 220ms ease;
 }

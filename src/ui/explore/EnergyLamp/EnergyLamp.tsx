@@ -14,7 +14,7 @@ import { getStatusDef } from "@/engine";
 import { ENERGY_LAMP_ART, energyLampGlow } from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
 import { RailPopover } from "@/ui/common/RailPopover";
-import { FireflyFx } from "./FireflyFx";
+import { SparkFx } from "./SparkFx";
 import s from "./EnergyLamp.module.css";
 
 interface Props {
@@ -59,7 +59,7 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
           alt=""
           draggable={false}
         />
-        <FireflyFx
+        <SparkFx
           color={energyLampGlow(cur.tier)}
           intensity={crossing ? 1.65 : 1}
           className={cx(s["el-fx"], recede && s["is-recede"])}

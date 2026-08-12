@@ -1,10 +1,16 @@
 import { useEffect, useRef } from "react";
 import { prefersReducedMotion } from "@/ui/app/transitions";
-import s from "./FireflyFx.module.css";
+import s from "./SparkFx.module.css";
 
-const SIZE = 160;
-const PARTICLE_COUNT = 16;
-const MAX_SPEED = 8;
+const SIZE = 200;
+const PARTICLE_COUNT = 96;
+const CENTER_X = 100;
+const CENTER_Y = 78;
+const EMIT_INTERVAL = 0.12;
+const DRAG = 3.2;
+const GRAVITY = 40;
+const WHITE_SPRITE =
+  typeof document === "undefined" ? null : makeDotSprite("#ffffff");
 
 interface Particle {
   x: number;
@@ -12,9 +18,8 @@ interface Particle {
   vx: number;
   vy: number;
   size: number;
-  phase: number;
-  blinkSpeed: number;
   life: number;
+  lifeMax: number;
 }
 
 function rand(min: number, max: number): number {
@@ -38,54 +43,47 @@ function makeDotSprite(color: string): HTMLCanvasElement {
   return sprite;
 }
 
-function spawn(particle: Particle): void {
+function resetParticle(particle: Particle, intensity: number): void {
   const angle = Math.random() * Math.PI * 2;
-  const radius = Math.sqrt(Math.random());
-  particle.x = 80 + Math.cos(angle) * 45 * radius;
-  particle.y = 58 + Math.sin(angle) * 40 * radius;
-  particle.vx = rand(-3, 3);
-  particle.vy = rand(-3, 3);
-  particle.size = rand(5, 10);
-  particle.phase = Math.random() * Math.PI * 2;
-  particle.blinkSpeed = rand(0.8, 1.8);
-  particle.life = rand(3, 7);
+  const speed = rand(90, 260) * intensity;
+  particle.x = CENTER_X + rand(-3, 3);
+  particle.y = CENTER_Y + rand(-3, 3);
+  particle.vx = Math.cos(angle) * speed;
+  particle.vy = Math.sin(angle) * speed;
+  particle.size = rand(0.7, 1.6);
+  particle.lifeMax = rand(0.35, 0.7);
+  particle.life = particle.lifeMax;
 }
 
 function createParticles(): Particle[] {
-  return Array.from({ length: PARTICLE_COUNT }, () => {
-    const particle: Particle = {
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      size: 0,
-      phase: 0,
-      blinkSpeed: 0,
-      life: 0,
-    };
-    spawn(particle);
-    return particle;
-  });
+  return Array.from({ length: PARTICLE_COUNT }, () => ({
+    x: CENTER_X,
+    y: CENTER_Y,
+    vx: 0,
+    vy: 0,
+    size: 0,
+    life: 0,
+    lifeMax: 0,
+  }));
 }
 
-function update(particles: Particle[], dt: number, intensity: number): void {
+function emitBurst(particles: Particle[], intensity: number, cursor: { value: number }): void {
+  const count = Math.floor(rand(6, 10));
+  for (let index = 0; index < count; index += 1) {
+    resetParticle(particles[cursor.value], intensity);
+    cursor.value = (cursor.value + 1) % particles.length;
+  }
+}
+
+function update(particles: Particle[], dt: number): void {
+  const drag = Math.exp(-DRAG * dt);
   for (const particle of particles) {
+    if (particle.life <= 0) continue;
     particle.life -= dt;
-    particle.vx += (Math.random() - 0.5) * 2.4 * dt;
-    particle.vy += (Math.random() - 0.5) * 2.4 * dt;
-    const speed = Math.hypot(particle.vx, particle.vy);
-    if (speed > MAX_SPEED) {
-      const scale = MAX_SPEED / speed;
-      particle.vx *= scale;
-      particle.vy *= scale;
-    }
+    particle.vx *= drag;
+    particle.vy = particle.vy * drag + GRAVITY * dt;
     particle.x += particle.vx * dt;
     particle.y += particle.vy * dt;
-    particle.phase += particle.blinkSpeed * intensity * dt;
-
-    const dx = (particle.x - 80) / 54;
-    const dy = (particle.y - 58) / 49;
-    if (particle.life <= 0 || dx * dx + dy * dy > 1) spawn(particle);
   }
 }
 
@@ -97,22 +95,52 @@ function draw(
   ctx.clearRect(0, 0, SIZE, SIZE);
   ctx.globalCompositeOperation = "lighter";
   for (const particle of particles) {
-    const brightness = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(particle.phase));
-    const diameter = particle.size * 2;
-    ctx.globalAlpha = brightness;
+    if (particle.life <= 0) continue;
+    const progress = 1 - particle.life / particle.lifeMax;
+    const fade = Math.max(0, 1 - progress);
+    const alpha = fade * fade;
+    const speed = Math.hypot(particle.vx, particle.vy);
+    const angle = Math.atan2(particle.vy, particle.vx);
+    const length = Math.min(22, Math.max(4, speed * 0.045));
+    const thickness = particle.size * 2;
+    const glowDiameter = particle.size * 10;
+
+    ctx.globalAlpha = alpha * 0.22;
     ctx.drawImage(
       sprite,
-      particle.x - particle.size,
-      particle.y - particle.size,
-      diameter,
-      diameter,
+      particle.x - glowDiameter / 2,
+      particle.y - glowDiameter / 2,
+      glowDiameter,
+      glowDiameter,
     );
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(
+      particle.x - Math.cos(angle) * length / 2,
+      particle.y - Math.sin(angle) * length / 2,
+    );
+    ctx.rotate(angle);
+    ctx.drawImage(sprite, -length / 2, -thickness / 2, length, thickness);
+    ctx.restore();
+
+    if (WHITE_SPRITE) {
+      const coreDiameter = particle.size * 2.2;
+      ctx.globalAlpha = alpha * fade;
+      ctx.drawImage(
+        WHITE_SPRITE,
+        particle.x - coreDiameter / 2,
+        particle.y - coreDiameter / 2,
+        coreDiameter,
+        coreDiameter,
+      );
+    }
   }
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = "source-over";
 }
 
-export function FireflyFx({
+export function SparkFx({
   color,
   intensity = 1,
   paused = false,
@@ -125,7 +153,7 @@ export function FireflyFx({
 }) {
   if (prefersReducedMotion()) return null;
   return (
-    <FireflyCanvas
+    <SparkCanvas
       color={color}
       intensity={intensity}
       paused={paused}
@@ -134,7 +162,7 @@ export function FireflyFx({
   );
 }
 
-function FireflyCanvas({
+function SparkCanvas({
   color,
   intensity,
   paused,
@@ -170,17 +198,25 @@ function FireflyCanvas({
 
     let raf = 0;
     let last = performance.now();
-    let accumulated = 0;
-    const frameMs = 1000 / 30;
+    let emitElapsed = EMIT_INTERVAL;
+    const emitCursor = { value: 0 };
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      accumulated += now - last;
+      if (pausedRef.current) {
+        last = now;
+        return;
+      }
+      const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (accumulated < frameMs || pausedRef.current) return;
-      const dt = Math.min(0.05, accumulated / 1000);
-      accumulated = 0;
-      update(particlesRef.current, dt, intensityRef.current);
+      emitElapsed += dt;
+      const currentIntensity = intensityRef.current;
+      const emitInterval = EMIT_INTERVAL / currentIntensity;
+      while (emitElapsed >= emitInterval) {
+        emitElapsed -= emitInterval;
+        emitBurst(particlesRef.current, currentIntensity, emitCursor);
+      }
+      update(particlesRef.current, dt);
       if (spriteRef.current) draw(ctx, spriteRef.current, particlesRef.current);
     };
 
@@ -196,7 +232,7 @@ function FireflyCanvas({
     const onVisibility = () => (document.hidden ? stop() : start());
 
     document.addEventListener("visibilitychange", onVisibility);
-    start();
+    if (!document.hidden) start();
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       stop();
