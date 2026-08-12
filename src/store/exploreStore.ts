@@ -33,6 +33,7 @@ import {
   restEat,
   restSkip,
   chooseNpcOption,
+  cheatChangeEnergy,
   confirmNpc,
   shipHome,
   startReveal,
@@ -60,6 +61,7 @@ interface ExploreStore {
   ) => void;
   generateDone: () => void; // 浮现演出播完(UI 定时器) → sealed
   beginReveal: () => void; // 玩家按「探索路线」→ revealing。一轮只生效一次
+  cheatEnergy: (delta: number) => void;
   revealDone: () => void; // 揭示计时结束(UI 定时器)
   pickEntry: (lane: number) => void; // 选入口通道 A-E。★ 全轮唯一一次自由选择
   arrive: () => ExploreState | null; // 推进动画播完 → landed(只落点, 不结算)
@@ -137,6 +139,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   beginReveal: () => {
     mutate(get, set, (d) => startReveal(d));
+  },
+
+  cheatEnergy: (delta) => {
+    mutate(get, set, (d) => cheatChangeEnergy(d, delta));
   },
 
   revealDone: () => {

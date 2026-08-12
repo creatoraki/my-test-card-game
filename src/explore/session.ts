@@ -252,6 +252,10 @@ function changeEnergy(s: ExploreState, delta: number): void {
   s.energy = Math.max(0, Math.min(EXPLORE_RULES.energyMax, s.energy + delta));
 }
 
+export function cheatChangeEnergy(s: ExploreState, delta: number): void {
+  changeEnergy(s, delta);
+}
+
 // ---------------------------------------------------------------------------
 // 背包 —— 占格、收纳与负重(设计文档 §六)
 // ---------------------------------------------------------------------------

@@ -6,19 +6,19 @@ export const ENERGY_LAMP_ART = lamp;
 
 // 键 = EnergyTier.tier, 值 = 该档位的灯笼光色。
 const ENERGY_LAMP_GLOW: Record<number, string> = {
-  1: "#ff6d00",
-  2: "#0091ea",
-  3: "#aa00ff",
-  4: "#00c853",
-  5: "#ffab00",
+  1: "#5cf07d",
+  2: "#3fd2ff",
+  3: "#ffd447",
+  4: "#ff9836",
+  5: "#ff4a3d",
 };
 
 const ENERGY_LAMP_INTENSITY: Record<number, number> = {
-  1: 2.0,
-  2: 1.9,
+  1: 2.1,
+  2: 1.95,
   3: 1.8,
-  4: 1.9,
-  5: 2.1,
+  4: 1.65,
+  5: 1.5,
 };
 
 export const ENERGY_LAMP_SOURCES: readonly string[] = [ENERGY_LAMP_ART];

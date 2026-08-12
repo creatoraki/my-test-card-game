@@ -130,8 +130,8 @@ export function makeParticleTexture(): CanvasTexture {
   if (context) {
     const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
     gradient.addColorStop(0, "rgba(255,255,255,1)");
-    gradient.addColorStop(0.5, "rgba(255,200,100,0.9)");
-    gradient.addColorStop(1, "rgba(255,100,50,0)");
+    gradient.addColorStop(0.5, "rgba(255,255,255,0.85)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
     context.beginPath();
     context.arc(32, 32, 32, 0, Math.PI * 2);
     context.fillStyle = gradient;

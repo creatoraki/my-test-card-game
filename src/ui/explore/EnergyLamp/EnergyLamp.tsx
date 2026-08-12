@@ -51,7 +51,7 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
       data-rail-item
       tabIndex={0}
       aria-label={`净化粒子 ${energy} 点，${cur.name}`}
-      style={{ ["--energy-color" as string]: cur.color }}
+      style={{ ["--energy-color" as string]: energyLampGlow(cur.tier) }}
     >
       <div
         className={s["el-lamp"]}
