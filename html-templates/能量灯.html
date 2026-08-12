@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>3D玻璃手提灯笼 | 战棋45°正交视角 | 五档光效切换</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: "Microsoft YaHei", "苹方", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+    #info {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(15px);
+      padding: 12px 25px;
+      border-radius: 50px;
+      font-size: 16px;
+      letter-spacing: 2px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.25);
+      pointer-events: none;
+    }
+    .controls {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: rgba(20, 20, 30, 0.7);
+      backdrop-filter: blur(20px);
+      padding: 18px 25px;
+      border-radius: 60px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.3);
+      z-index: 10;
+    }
+    .color-btn {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      position: relative;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .color-btn:hover {
+      transform: scale(1.15);
+      border-color: white;
+      box-shadow: 0 0 25px currentColor;
+    }
+    .color-btn.active {
+      border: 3px solid white;
+      box-shadow: 0 0 35px currentColor, 0 0 15px currentColor;
+      transform: scale(1.1);
+    }
+    .color-btn::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: transparent;
+      pointer-events: none;
+    }
+    #btn-warm {
+      background: radial-gradient(circle at 30% 30%, #ffb74d, #e65100);
+      box-shadow: 0 0 20px #ff6d00;
+    }
+    #btn-cool {
+      background: radial-gradient(circle at 30% 30%, #81d4fa, #01579b);
+      box-shadow: 0 0 20px #0091ea;
+    }
+    #btn-mystic {
+      background: radial-gradient(circle at 30% 30%, #ce93d8, #6a1b9a);
+      box-shadow: 0 0 20px #aa00ff;
+    }
+    #btn-emerald {
+      background: radial-gradient(circle at 30% 30%, #a5d6a7, #1b5e20);
+      box-shadow: 0 0 20px #00c853;
+    }
+    #btn-golden {
+      background: radial-gradient(circle at 30% 30%, #ffe082, #f57f17);
+      box-shadow: 0 0 20px #ffab00;
+    }
+    .intensity-label {
+      color: white;
+      font-size: 13px;
+      margin-left: 5px;
+      align-self: center;
+      opacity: 0.8;
+    }
+    @media (max-width: 700px) {
+      .controls {
+        gap: 8px;
+        padding: 15px 20px;
+        bottom: 20px;
+        right: 20px;
+      }
+      .color-btn {
+        width: 38px;
+        height: 38px;
+      }
+      #info {
+        bottom: 20px;
+        left: 20px;
+        font-size: 13px;
+        padding: 8px 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="info">🏮 玻璃灯笼 · 战棋视角 <span style="color:#ffd966; margin-left:12px;">| 五档光效切换</span></div>
+  
+  <div class="controls">
+    <button id="btn-warm" class="color-btn active" title="暖橙 · 炽热"></button>
+    <button id="btn-cool" class="color-btn" title="冰蓝 · 清冷"></button>
+    <button id="btn-mystic" class="color-btn" title="紫罗兰 · 神秘"></button>
+    <button id="btn-emerald" class="color-btn" title="翡翠 · 生机"></button>
+    <button id="btn-golden" class="color-btn" title="鎏金 · 辉煌"></button>
+    <span class="intensity-label">档位 1-5</span>
+  </div>
+
+  <!-- 引入 Three.js 核心库以及扩展 -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    
+    // --- 初始化场景、正交相机（45度战棋视角）、渲染器 ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a18);
+    
+    // 添加一些微妙的星星背景效果（通过粒子系统）
+    function addStars() {
+      const starsGeo = new THREE.BufferGeometry();
+      const starsCount = 600;
+      const starsPositions = new Float32Array(starsCount * 3);
+      for (let i = 0; i < starsCount * 3; i += 3) {
+        starsPositions[i] = (Math.random() - 0.5) * 40;
+        starsPositions[i+1] = (Math.random() - 0.5) * 20 + 2;
+        starsPositions[i+2] = (Math.random() - 0.5) * 30;
+      }
+      starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
+      const starsMat = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.08,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        transparent: true,
+        opacity: 0.7
+      });
+      const stars = new THREE.Points(starsGeo, starsMat);
+      scene.add(stars);
+    }
+    addStars();
+    
+    // 正交相机：模拟战棋游戏的45度等距视角
+    const aspect = window.innerWidth / window.innerHeight;
+    const viewSize = 5.5;
+    const camera = new THREE.OrthographicCamera(
+      -viewSize * aspect, viewSize * aspect,
+      viewSize, -viewSize,
+      0.1, 50
+    );
+    
+    // 设置45度正交视角：位置从上方倾斜观察
+    camera.position.set(5, 5.5, 5);
+    camera.lookAt(0, 0.8, 0);
+    camera.updateProjectionMatrix();
+    
+    // WebGL渲染器
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance"
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor(0x0a0a18);
+    document.body.appendChild(renderer.domElement);
+    
+    // 辅助CSS2渲染器用于显示轻微标签（可选）
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    labelRenderer.domElement.style.left = '0px';
+    labelRenderer.domElement.style.pointerEvents = 'none'; // 让点击穿透
+    document.body.appendChild(labelRenderer.domElement);
+    
+    // --- 后期处理：泛光效果增强光感 ---
+    const renderScene = new RenderPass(scene, camera);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+    bloomPass.threshold = 0.1;
+    bloomPass.strength = 1.2;
+    bloomPass.radius = 0.8;
+    
+    const composer = new EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
+    
+    // --- 光源设置（基础环境光与动态点光源将在灯笼内部创建） ---
+    const ambientLight = new THREE.AmbientLight(0x404066);
+    scene.add(ambientLight);
+    
+    // 一个微弱的背光
+    const backLight = new THREE.DirectionalLight(0x446688, 0.5);
+    backLight.position.set(-3, 1, -2);
+    scene.add(backLight);
+    
+    // --- 创建地面反射平面（半透明，增加氛围） ---
+    const groundGeometry = new THREE.CircleGeometry(6, 64);
+    const groundMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1a1a3a,
+      roughness: 0.7,
+      metalness: 0.3,
+      transparent: true,
+      opacity: 0.25,
+      depthWrite: false
+    });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -1.6;
+    ground.receiveShadow = true;
+    scene.add(ground);
+    
+    // 装饰性网格线
+    const gridHelper = new THREE.GridHelper(4.5, 20, 0x335577, 0x224466);
+    gridHelper.position.y = -1.58;
+    scene.add(gridHelper);
+    
+    // --- 构建玻璃手提灯笼 ---
+    const lanternGroup = new THREE.Group();
+    lanternGroup.position.set(0, 0.2, 0);
+    
+    // 材质定义
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xe0f0ff,
+      metalness: 0.1,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.25,
+      clearcoat: 1,
+      clearcoatRoughness: 0.1,
+      reflectivity: 0.5,
+      ior: 1.5,
+      envMap: null
+    });
+    
+    const metalMaterial = new THREE.MeshStandardMaterial({
+      color: 0xc0b0a0,
+      metalness: 0.85,
+      roughness: 0.35,
+      emissive: new THREE.Color(0x111111)
+    });
+    
+    const darkMetalMaterial = new THREE.MeshStandardMaterial({
+      color: 0x4a3a2a,
+      metalness: 0.9,
+      roughness: 0.4,
+    });
+    
+    const woodMaterial = new THREE.MeshStandardMaterial({
+      color: 0x5d3a1a,
+      metalness: 0.2,
+      roughness: 0.75,
+    });
+    
+    // 1. 灯笼主体：玻璃球体（略扁）
+    const glassBody = new THREE.Mesh(new THREE.SphereGeometry(1.1, 48, 48), glassMaterial);
+    glassBody.castShadow = true;
+    glassBody.receiveShadow = true;
+    glassBody.scale.set(0.95, 0.9, 0.95);
+    lanternGroup.add(glassBody);
+    
+    // 内部发光核心（半透明球体，用于表现光晕）
+    const innerGlow = new THREE.Mesh(
+      new THREE.SphereGeometry(0.75, 32, 32),
+      new THREE.MeshBasicMaterial({ 
+        color: 0xff6600, 
+        transparent: true, 
+        opacity: 0.55,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      })
+    );
+    innerGlow.name = "innerGlow";
+    lanternGroup.add(innerGlow);
+    
+    // 2. 金属框架：垂直与水平的环
+    function addFrameRing(radius, yPos, rotationX = 0, thickness = 0.08, color = 0xc0b0a0) {
+      const torusGeo = new THREE.TorusGeometry(radius, thickness, 16, 64);
+      const torus = new THREE.Mesh(torusGeo, new THREE.MeshStandardMaterial({ color: color, metalness: 0.8, roughness: 0.3 }));
+      torus.position.y = yPos;
+      torus.rotation.x = rotationX;
+      torus.castShadow = true;
+      torus.receiveShadow = true;
+      lanternGroup.add(torus);
+      return torus;
+    }
+    
+    // 水平环
+    addFrameRing(1.02, 0.55, Math.PI/2, 0.07, 0xb89a7a);
+    addFrameRing(1.02, -0.55, Math.PI/2, 0.07, 0xb89a7a);
+    addFrameRing(0.98, 0.0, Math.PI/2, 0.06, 0xb89a7a);
+    
+    // 垂直环（经线方向）
+    const verticalRingGeo = new THREE.TorusGeometry(1.02, 0.06, 16, 64);
+    for (let i = 0; i < 4; i++) {
+      const ring = new THREE.Mesh(verticalRingGeo, new THREE.MeshStandardMaterial({ color: 0xb89a7a, metalness: 0.8, roughness: 0.3 }));
+      ring.rotation.y = (i * Math.PI) / 4;
+      ring.rotation.x = Math.PI/2;
+      ring.castShadow = true;
+      ring.receiveShadow = true;
+      lanternGroup.add(ring);
+    }
+    
+    // 3. 顶部和底部的装饰盖
+    const topCap = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.6, 0.25, 16), darkMetalMaterial);
+    topCap.position.y = 1.1;
+    topCap.castShadow = true;
+    topCap.receiveShadow = true;
+    lanternGroup.add(topCap);
+    
+    const topKnob = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16), metalMaterial);
+    topKnob.position.y = 1.32;
+    topKnob.castShadow = true;
+    lanternGroup.add(topKnob);
+    
+    const bottomCap = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.55, 0.2, 16), darkMetalMaterial);
+    bottomCap.position.y = -1.1;
+    bottomCap.castShadow = true;
+    bottomCap.receiveShadow = true;
+    lanternGroup.add(bottomCap);
+    
+    // 4. 提手 (弧形)
+    const handleCurve = new THREE.CubicBezierCurve3(
+      new THREE.Vector3(-0.7, 1.4, 0),
+      new THREE.Vector3(-0.9, 2.0, 0.2),
+      new THREE.Vector3(0.9, 2.0, -0.2),
+      new THREE.Vector3(0.7, 1.4, 0)
+    );
+    const tubeGeo = new THREE.TubeGeometry(handleCurve, 64, 0.09, 8, false);
+    const handle = new THREE.Mesh(tubeGeo, new THREE.MeshStandardMaterial({ color: 0x8b6b4d, metalness: 0.7, roughness: 0.4 }));
+    handle.castShadow = true;
+    handle.receiveShadow = true;
+    lanternGroup.add(handle);
+    
+    // 提手连接点
+    const jointGeo = new THREE.SphereGeometry(0.12, 8);
+    const jointMat = new THREE.MeshStandardMaterial({ color: 0x5a4a3a, metalness: 0.9, roughness: 0.3 });
+    const leftJoint = new THREE.Mesh(jointGeo, jointMat);
+    leftJoint.position.set(-0.7, 1.4, 0);
+    lanternGroup.add(leftJoint);
+    const rightJoint = new THREE.Mesh(jointGeo, jointMat);
+    rightJoint.position.set(0.7, 1.4, 0);
+    lanternGroup.add(rightJoint);
+    
+    scene.add(lanternGroup);
+    
+    // --- 粒子系统 (围绕灯笼内部散发) ---
+    const particleCount = 280;
+    const particlesGeo = new THREE.BufferGeometry();
+    const particlesPositions = new Float32Array(particleCount * 3);
+    const particlesColors = new Float32Array(particleCount * 3);
+    
+    // 存储粒子速度用于动画
+    const particleSpeeds = new Float32Array(particleCount);
+    
+    // 初始化粒子位置在球体内随机分布
+    for (let i = 0; i < particleCount; i++) {
+      // 球坐标随机，半径范围0.4 到 1.0
+      const radius = 0.5 + Math.random() * 0.7;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.asin((Math.random() * 2) - 1);
+      
+      particlesPositions[i * 3] = Math.cos(theta) * Math.cos(phi) * radius;
+      particlesPositions[i * 3 + 1] = Math.sin(phi) * radius * 0.9;
+      particlesPositions[i * 3 + 2] = Math.sin(theta) * Math.cos(phi) * radius;
+      
+      // 初始颜色白色，稍后根据档位更新
+      particlesColors[i * 3] = 1;
+      particlesColors[i * 3 + 1] = 0.8;
+      particlesColors[i * 3 + 2] = 0.6;
+      
+      particleSpeeds[i] = 0.008 + Math.random() * 0.025;
+    }
+    
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(particlesPositions, 3));
+    particlesGeo.setAttribute('color', new THREE.BufferAttribute(particlesColors, 3));
+    
+    const particleTexture = (() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 16;
+      canvas.height = 16;
+      const ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.arc(8, 8, 6, 0, 2*Math.PI);
+      const gradient = ctx.createRadialGradient(8, 8, 0, 8, 8, 6);
+      gradient.addColorStop(0, 'rgba(255,255,255,1)');
+      gradient.addColorStop(0.5, 'rgba(255,200,100,0.9)');
+      gradient.addColorStop(1, 'rgba(255,100,50,0)');
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      return new THREE.CanvasTexture(canvas);
+    })();
+    
+    const particlesMat = new THREE.PointsMaterial({
+      size: 0.12,
+      map: particleTexture,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9
+    });
+    
+    const particleSystem = new THREE.Points(particlesGeo, particlesMat);
+    particleSystem.name = "particleSystem";
+    lanternGroup.add(particleSystem);
+    
+    // 额外一些小火花粒子在外围
+    const sparkleGeo = new THREE.BufferGeometry();
+    const sparkleCount = 150;
+    const sparklePos = new Float32Array(sparkleCount * 3);
+    for (let i = 0; i < sparkleCount * 3; i += 3) {
+      const angle = Math.random() * Math.PI * 2;
+      const rad = 1.15 + Math.random() * 0.5;
+      sparklePos[i] = Math.cos(angle) * rad;
+      sparklePos[i+1] = (Math.random() - 0.5) * 1.8;
+      sparklePos[i+2] = Math.sin(angle) * rad;
+    }
+    sparkleGeo.setAttribute('position', new THREE.BufferAttribute(sparklePos, 3));
+    const sparkleMat = new THREE.PointsMaterial({
+      size: 0.06,
+      color: 0xffaa00,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      map: particleTexture,
+      transparent: true,
+      opacity: 0.7
+    });
+    const sparkleSystem = new THREE.Points(sparkleGeo, sparkleMat);
+    sparkleSystem.name = "sparkleSystem";
+    lanternGroup.add(sparkleSystem);
+    
+    // --- 动态点光源（位于灯笼中心）---
+    const pointLight = new THREE.PointLight(0xff6600, 1.8, 5.5);
+    pointLight.position.set(0, 0, 0);
+    pointLight.castShadow = true;
+    pointLight.shadow.mapSize.width = 512;
+    pointLight.shadow.mapSize.height = 512;
+    pointLight.shadow.bias = -0.0005;
+    lanternGroup.add(pointLight);
+    
+    // 第二个辅助光源增加氛围
+    const pointLight2 = new THREE.PointLight(0xff6600, 0.9, 4.5);
+    pointLight2.position.set(0, 0.2, 0);
+    lanternGroup.add(pointLight2);
+    
+    // --- 档位颜色与强度定义 ---
+    const colorPresets = [
+      { name: 'warm', color: new THREE.Color('#ff6d00'), intensity: 2.0, btnId: 'btn-warm' },    // 暖橙
+      { name: 'cool', color: new THREE.Color('#0091ea'), intensity: 1.9, btnId: 'btn-cool' },    // 冰蓝
+      { name: 'mystic', color: new THREE.Color('#aa00ff'), intensity: 1.8, btnId: 'btn-mystic' }, // 紫罗兰
+      { name: 'emerald', color: new THREE.Color('#00c853'), intensity: 1.9, btnId: 'btn-emerald' }, // 翡翠
+      { name: 'golden', color: new THREE.Color('#ffab00'), intensity: 2.1, btnId: 'btn-golden' }   // 鎏金
+    ];
+    
+    let currentPresetIndex = 0;
+    
+    // 更新灯笼颜色、光源、粒子颜色
+    function applyPreset(index) {
+      const preset = colorPresets[index];
+      const targetColor = preset.color;
+      const intensity = preset.intensity;
+      
+      // 更新点光源
+      pointLight.color.copy(targetColor);
+      pointLight.intensity = intensity;
+      pointLight2.color.copy(targetColor);
+      pointLight2.intensity = intensity * 0.6;
+      
+      // 更新内部光晕球体
+      if (innerGlow.material) {
+        innerGlow.material.color.copy(targetColor);
+        innerGlow.material.opacity = 0.5 + (intensity * 0.15);
+      }
+      
+      // 更新粒子系统颜色 (修改顶点颜色)
+      const colors = particlesGeo.attributes.color.array;
+      const r = targetColor.r;
+      const g = targetColor.g;
+      const b = targetColor.b;
+      for (let i = 0; i < colors.length; i += 3) {
+        // 混合白色和主色，保持明亮感
+        colors[i] = Math.min(1, r * 1.2 + 0.2);
+        colors[i+1] = Math.min(1, g * 1.2 + 0.2);
+        colors[i+2] = Math.min(1, b * 1.2 + 0.2);
+      }
+      particlesGeo.attributes.color.needsUpdate = true;
+      
+      // 更新外围火花颜色
+      sparkleSystem.material.color.copy(targetColor).multiplyScalar(1.2);
+      
+      // 更新按钮激活状态
+      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(preset.btnId);
+      if (activeBtn) activeBtn.classList.add('active');
+      
+      // 动态调整泛光强度
+      bloomPass.strength = 0.9 + intensity * 0.35;
+    }
+    
+    // 绑定按钮事件
+    document.getElementById('btn-warm').addEventListener('click', () => { currentPresetIndex = 0; applyPreset(0); });
+    document.getElementById('btn-cool').addEventListener('click', () => { currentPresetIndex = 1; applyPreset(1); });
+    document.getElementById('btn-mystic').addEventListener('click', () => { currentPresetIndex = 2; applyPreset(2); });
+    document.getElementById('btn-emerald').addEventListener('click', () => { currentPresetIndex = 3; applyPreset(3); });
+    document.getElementById('btn-golden').addEventListener('click', () => { currentPresetIndex = 4; applyPreset(4); });
+    
+    // 初始应用暖色
+    applyPreset(0);
+    
+    // --- 动画循环与粒子动态 ---
+    let clock = new THREE.Clock();
+    
+    function animate() {
+      const delta = clock.getDelta();
+      const elapsedTime = performance.now() * 0.001; // 秒为单位
+      
+      // 粒子动画：旋转与上下浮动
+      particleSystem.rotation.y += 0.002;
+      particleSystem.rotation.x = Math.sin(elapsedTime * 0.5) * 0.05;
+      
+      // 更新每个粒子的位置（产生飘动效果）
+      const positions = particlesGeo.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        // 简单径向运动模拟
+        const x = positions[i3];
+        const y = positions[i3+1];
+        const z = positions[i3+2];
+        
+        // 计算方向并稍微移动
+        const len = Math.sqrt(x*x + y*y + z*z);
+        if (len > 0.1) {
+          const nx = x / len;
+          const ny = y / len;
+          const nz = z / len;
+          // 向外或向内轻微移动
+          const speed = particleSpeeds[i];
+          let newLen = len + (Math.sin(elapsedTime * 5 + i) * 0.008);
+          newLen = Math.max(0.35, Math.min(1.05, newLen));
+          
+          positions[i3] = nx * newLen;
+          positions[i3+1] = ny * newLen;
+          positions[i3+2] = nz * newLen;
+        }
+      }
+      particlesGeo.attributes.position.needsUpdate = true;
+      
+      // 外围火花旋转
+      sparkleSystem.rotation.y += 0.005;
+      sparkleSystem.rotation.z += 0.002;
+      
+      // 灯笼整体轻微浮动
+      lanternGroup.rotation.y = Math.sin(elapsedTime * 0.3) * 0.03;
+      lanternGroup.position.y = 0.2 + Math.sin(elapsedTime * 1.5) * 0.02;
+      
+      // 渲染
+      composer.render();
+      labelRenderer.render(scene, camera);
+      
+      requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    // 窗口大小调整
+    window.addEventListener('resize', onWindowResize, false);
+    function onWindowResize() {
+      const aspect = window.innerWidth / window.innerHeight;
+      camera.left = -viewSize * aspect;
+      camera.right = viewSize * aspect;
+      camera.top = viewSize;
+      camera.bottom = -viewSize;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    
+    console.log('🏮 玻璃手提灯笼已点亮！使用右侧按钮切换五种光效档位。');
+  </script>
+</body>
+</html>

@@ -86,7 +86,7 @@ src/ui/
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`。 |
 | [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
 | [ExpDropFx](../../src/ui/explore/ExpDropFx/ExpDropFx.tsx) | 约 2 秒经验坠入飘字。由探索主屏按 `pendingExp` 增量和序号挂载，避免把动画放进带 `overflow: hidden` 的角色立绘容器。 |
-| [EnergyLamp](../../src/ui/explore/EnergyLamp/EnergyLamp.tsx) | 能量档位读数 + 档位色灯芯迸射火花特效（`SparkFx` canvas 粒子层）。 |
+| [EnergyLamp](../../src/ui/explore/EnergyLamp/EnergyLamp.tsx) | 能量档位读数 + `common/GlassLantern` 三维灯笼（档位色驱动）。 |
 | [styles/exploreKit.module.css](../../src/ui/explore/styles/exploreKit.module.css) | 探索域共享的按钮、标签和事件类型色，四个组件各自 `composes`。 |
 | [styles/explorePanel.module.css](../../src/ui/explore/styles/explorePanel.module.css) | 探索事件、拾取和奖励面板共享的暗玻璃材质、边框装饰与扫描线；三方各自 `composes`，`ExploreScreen` 通过 `data-explore-dock="stacked"` 与 CSS 变量传递上下错位契约。 |
 
@@ -124,6 +124,7 @@ src/ui/
 | [cx.ts](../../src/ui/common/cx.ts) | 全项目唯一的 className 拼接工具。 |
 | [cardText.ts](../../src/ui/common/cardText.ts) | 从战斗实时属性或城镇派生面板属性读取卡牌施放者的攻击力/治愈力，并渲染卡牌说明数值。 |
 | [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，卡面比例为 320:496、插画区为 1:1、卡名位于插画下方的装饰名条中、费用球贴左上角，支持普通 / 速攻两套配色，尺寸随容器等比自适应，可省略底部统计栏。 |
+| [GlassLantern](../../src/ui/common/GlassLantern/GlassLantern.tsx) | 可复用的透明底 3D 玻璃灯笼：正交战棋视角、粒子、点光与 Bloom 泛光，支持颜色/强度/暂停和静态图降级。 |
 | [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；立绘统一为 1152×2048 / 9:16 / 透明底 / 左右对称，逐人 `--portrait-dx/dy`、`--bust-scale` 默认归零，仅作异常构图的补偿位。编队页取景走独立的 `formation.dx/dy`（下发为 `--fm-portrait-dx/dy`），未填写时回退通用 `dx/dy`。 |
 | [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）和 `hideLimit` 变体（战场敌人只显示蓝色当前血量，不画琥珀上限段）的样式也在本组件内。 |
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |

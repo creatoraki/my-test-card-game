@@ -52,26 +52,14 @@
   height: 160px;
   flex: 0 0 auto;
 }
-.el-fx {
-  position: absolute;
-  inset: -20px;
-  pointer-events: none;
-  transition: opacity 220ms ease;
-}
-.el-fx.is-recede { opacity: 0.35; }
-.el-lamp-img {
+.el-lantern {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  user-select: none;
   animation: elLampIn 420ms ease;
   transition: opacity 220ms ease;
 }
-.el-lamp-img.is-warning { animation: elLampIn 420ms ease, elLampPulse 1.4s 420ms ease-in-out infinite; }
 .el-readout.is-recede,
-.el-lamp-img.is-recede { opacity: 0.5; }
+.el-lantern.is-recede { opacity: 0.5; }
 
 .el-tip-head,
 .el-tip-section {
@@ -103,12 +91,8 @@
 
 @keyframes elTick { from { transform: translateY(-4px); opacity: 0.2; } }
 @keyframes elLampIn { from { opacity: 0; } }
-@keyframes elLampPulse {
-  0%, 100% { opacity: 1; filter: brightness(1); }
-  50% { opacity: 0.88; filter: brightness(1.2); }
-}
 @keyframes elWarnPulse { 50% { background: color-mix(in srgb, var(--next-color) 34%, transparent); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .el-value, .el-lamp-img, .el-lamp-img.is-warning, .el-warn { animation: none; }
+  .el-value, .el-lantern, .el-warn { animation: none; }
 }

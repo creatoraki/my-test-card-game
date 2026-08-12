@@ -1,0 +1,25 @@
+.root {
+  position: relative;
+  display: block;
+  width: var(--lantern-size, 160px);
+  height: var(--lantern-size, 160px);
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+.canvas {
+  position: absolute;
+  inset: -28px;
+  width: calc(100% + 56px);
+  height: calc(100% + 56px);
+  pointer-events: none;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}

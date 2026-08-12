@@ -13,8 +13,8 @@ import { EXPLORE_RULES, ENERGY_TIERS } from "@/explore/rules";
 import { getStatusDef } from "@/engine";
 import { ENERGY_LAMP_ART, energyLampGlow } from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
+import { GlassLantern } from "@/ui/common/GlassLantern";
 import { RailPopover } from "@/ui/common/RailPopover";
-import { SparkFx } from "./SparkFx";
 import s from "./EnergyLamp.module.css";
 
 interface Props {
@@ -53,16 +53,13 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
         className={s["el-lamp"]}
         aria-hidden
       >
-        <img
-          className={cx(s["el-lamp-img"], recede && s["is-recede"], crossing && s["is-warning"])}
-          src={ENERGY_LAMP_ART}
-          alt=""
-          draggable={false}
-        />
-        <SparkFx
+        <GlassLantern
           color={energyLampGlow(cur.tier)}
           intensity={crossing ? 1.65 : 1}
-          className={cx(s["el-fx"], recede && s["is-recede"])}
+          size={160}
+          paused={recede}
+          fallbackSrc={ENERGY_LAMP_ART}
+          className={cx(s["el-lantern"], recede && s["is-recede"])}
         />
       </div>
       <div className={cx(s["el-readout"], recede && s["is-recede"])}>
