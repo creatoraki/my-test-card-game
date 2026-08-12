@@ -4,7 +4,11 @@
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 42px;
+  padding: 8px;
+}
+
+.forge-overlay[data-closing="true"] {
+  pointer-events: none;
 }
 
 .forge-backdrop {
@@ -17,14 +21,26 @@
   border: 0;
   clip-path: none;
   cursor: default;
+  opacity: 0;
+  backdrop-filter: blur(0) saturate(1);
+  animation: forgeBackdropIn calc(var(--mr-bar-ms) + var(--mr-reveal-ms)) var(--mr-ease-pop) forwards;
+}
+
+.forge-overlay[data-closing="true"] .forge-backdrop {
+  animation: forgeBackdropOut var(--mr-close-ms) var(--mr-ease-pop) forwards;
+}
+
+.forge-reveal {
+  width: min(900px, 100%);
+  max-height: 92%;
 }
 
 .forge-modal {
   position: relative;
   z-index: 1;
   display: flex;
-  width: min(900px, 100%);
-  max-height: 92%;
+  width: 100%;
+  max-height: 100%;
   min-height: 430px;
   flex-direction: column;
   gap: 16px;
@@ -81,39 +97,31 @@
   border-color: var(--cd-glow);
 }
 
-.forge-overlay[data-intro="true"] .forge-backdrop {
-  animation: forgeBackdropIn var(--veil-ms) cubic-bezier(.2, .72, .28, 1) both;
-}
-
-.forge-overlay[data-intro="true"] .forge-modal {
-  animation: forgeModalIn var(--veil-ms) cubic-bezier(.2, .72, .28, 1) both;
-}
-
 @keyframes forgeBackdropIn {
   from {
-    clip-path: circle(0 at 50% 50%);
-  }
-  to {
-    clip-path: circle(75% at 50% 50%);
-  }
-}
-
-@keyframes forgeModalIn {
-  from {
     opacity: 0;
-    clip-path: polygon(50% 0, 50% 0, 50% 100%, 50% 100%, 50% 100%, 50% 0);
-    transform: translateY(12px) scale(.96);
+    backdrop-filter: blur(0) saturate(1);
   }
   to {
     opacity: 1;
-    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
-    transform: translateY(0) scale(1);
+    backdrop-filter: blur(8px) saturate(.94);
+  }
+}
+
+@keyframes forgeBackdropOut {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(8px) saturate(.94);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0) saturate(1);
   }
 }
 
 @media (max-width: 900px) {
   .forge-overlay {
-    padding: 20px;
+    padding: 8px;
   }
 
   .forge-modal {
@@ -123,8 +131,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .forge-overlay[data-intro="true"] .forge-backdrop,
-  .forge-overlay[data-intro="true"] .forge-modal {
+  .forge-backdrop,
+  .forge-overlay[data-closing="true"] .forge-backdrop {
     animation: none;
+    opacity: 1;
+    backdrop-filter: blur(8px) saturate(.94);
   }
 }

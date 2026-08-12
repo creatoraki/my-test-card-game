@@ -200,11 +200,7 @@ export function CharacterDetailScreen() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (forgeMode === "upgrade") return;
-      if (forgeMode) {
-        closeForge();
-        return;
-      }
+      if (forgeMode) return;
       if (activeSlot) {
         setActiveSlot(null);
         return;

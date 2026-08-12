@@ -3,6 +3,7 @@ import type { Rarity } from "@/engine";
 import { deckRarityChances, deckUpgradeCost } from "@/engine";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
+import { ModalReveal, modalRevealVars, useModalReveal } from "@/ui/common/ModalReveal";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { useHoldCharge } from "@/ui/hooks/useHoldCharge";
 import { CardBackGlyph, DeckStackGlyph, ExpShardGlyph, LevelBadge, LockGlyph, MaxGlyph } from "@/ui/character/glyphs/deckGlyphs";
@@ -92,6 +93,8 @@ export function DeckUpgradeOverlay({
   const snapshotRef = useRef<Snapshot | null>(null);
   const runIdRef = useRef(0);
   const busy = phase !== "idle";
+  const closeReveal = useModalReveal(onClose, busy);
+  const closing = closeReveal.closing;
 
   const currentView: PanelView = {
     level: deckLevel,
@@ -128,11 +131,11 @@ export function DeckUpgradeOverlay({
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !busy) onClose();
+      if (event.key === "Escape" && !busy) closeReveal.requestClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [busy, onClose]);
+  }, [busy, closeReveal.requestClose]);
 
   useEffect(() => {
     if (phase !== "filling") return;
@@ -226,24 +229,27 @@ export function DeckUpgradeOverlay({
   return (
     <div
       className={cx(s["upg-overlay"], s[`is-${phase}`], phaseClass, holding && s["is-holding"], chargeReady && s["is-charge-ready"])}
+      data-closing={closing ? "true" : undefined}
       role="dialog"
       aria-modal="true"
       aria-label="卡组升级"
       style={{
+        ...modalRevealVars(),
         "--exp-pct": displayPct,
         "--fill-ms": `${fillMs}ms`,
         "--charge": chargeProgress,
         "--charge-pct": chargePct,
       } as CSSProperties}
     >
-      <button className={s["upg-backdrop"]} type="button" aria-label="关闭卡组升级" onClick={() => !busy && onClose()} />
-      <section className={s["upg-modal"]}>
-        <header className={s["upg-head"]}>
-          <h2 className={s["upg-title"]}>卡组升级</h2>
-          <button className={s["upg-close"]} type="button" onClick={() => !busy && onClose()} aria-label="关闭">
-            ×
-          </button>
-        </header>
+      <button className={s["upg-backdrop"]} type="button" aria-label="关闭卡组升级" onClick={closeReveal.requestClose} />
+      <ModalReveal closing={closing} className={s["upg-reveal"]}>
+        <section className={s["upg-modal"]}>
+          <header className={s["upg-head"]}>
+            <h2 className={s["upg-title"]}>卡组升级</h2>
+            <button className={s["upg-close"]} type="button" onClick={closeReveal.requestClose} aria-label="关闭">
+              ×
+            </button>
+          </header>
 
         <div className={s["upg-badge-block"]}>
           <div className={s["upg-burst"]} aria-hidden="true">
@@ -367,7 +373,8 @@ export function DeckUpgradeOverlay({
             {holding && <span className={s["upg-button-percent"]}>{Math.round(chargeProgress * 100)}%</span>}
           </button>
         </footer>
-      </section>
+        </section>
+      </ModalReveal>
     </div>
   );
 }
