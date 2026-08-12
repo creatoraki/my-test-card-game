@@ -9,7 +9,7 @@
 
 .remove-grid {
   display: grid;
-  min-height: 300px;
+  min-height: 0;
   flex: 1 1 auto;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-content: start;

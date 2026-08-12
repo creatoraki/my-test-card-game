@@ -64,6 +64,7 @@ export function DeckForgeOverlay({
       style={{
         ...modalRevealVars(),
         "--forge-w": "1000px",
+        "--forge-h": "800px",
       } as CSSProperties}
       role="dialog"
       aria-modal="true"
@@ -82,6 +83,7 @@ export function DeckForgeOverlay({
             <span className={s["forge-mode-icon"]} aria-hidden="true">
               {mode === "draw" ? <DeckPlusGlyph /> : <DeckMinusGlyph />}
             </span>
+            <h2 className={s["forge-title"]}>{mode === "draw" ? "扩充卡组" : "精简卡组"}</h2>
             <button
               className={s["forge-close"]}
               type="button"

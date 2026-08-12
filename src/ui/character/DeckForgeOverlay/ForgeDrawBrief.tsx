@@ -62,7 +62,6 @@ export function ForgeDrawBrief({
     >
       <div className={s["brief-intro"]}>
         <span className={s["brief-kicker"]}>DRAW PROTOCOL / 概率预览</span>
-        <h2 className={s["brief-title"]}>扩充卡组</h2>
         <p className={s["brief-sub"]}>确认后消耗经验，并从以下稀有度中抽取三张候选。</p>
       </div>
 

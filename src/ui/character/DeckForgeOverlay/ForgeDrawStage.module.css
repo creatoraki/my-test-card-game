@@ -9,7 +9,7 @@
 
 .draw-body {
   position: relative;
-  min-height: 360px;
+  min-height: 0;
   flex: 1 1 auto;
 }
 
@@ -21,6 +21,7 @@
 
 .draw-layer-brief {
   z-index: 2;
+  overflow: hidden auto;
 }
 
 .draw-layer-brief[data-leaving="true"] {
@@ -30,6 +31,7 @@
 
 .draw-layer-cards {
   z-index: 1;
+  overflow: hidden;
   animation: forgeCardsIn var(--brief-out-ms, 280ms) cubic-bezier(.2, .72, .28, 1) both;
 }
 
@@ -37,7 +39,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(248px, calc(33.333% - 20px));
+  width: min(248px, calc((100% - 56px) / 3));
   visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -62,7 +64,8 @@
 
 .draw-list {
   display: grid;
-  min-height: 360px;
+  height: 100%;
+  min-height: 0;
   flex: 1 1 auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
@@ -90,6 +93,12 @@
 .draw-stage[data-phase="ready"] .draw-actions {
   opacity: 1;
   pointer-events: auto;
+}
+
+.draw-stage[data-phase="brief"] .draw-actions,
+.draw-stage[data-phase="spend"] .draw-actions,
+.draw-stage[data-phase="veil"] .draw-actions {
+  display: none;
 }
 
 .draw-confirm {
@@ -201,7 +210,7 @@
   }
 
   .draw-measure-target {
-    width: min(176px, calc(33.333% - 20px));
+    width: min(176px, calc((100% - 20px) / 3));
   }
 }
 
