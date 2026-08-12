@@ -9,6 +9,7 @@ import {
   EXP_FLIGHT_MS,
   BACK_MS,
   BACK_STAGGER_MS,
+  BRIEF_OUT_MS,
   IMPACT_MS,
   SHAKE_MS,
   SETTLE_MS,
@@ -223,7 +224,8 @@ export function ForgeDrawStage({
     setPhase("spend");
   };
 
-  const showBrief = phase === "brief" || phase === "spend";
+  const renderBrief = phase === "brief" || phase === "spend" || phase === "veil";
+  const renderCards = phase !== "brief" && phase !== "spend";
 
   return (
     <div
@@ -231,6 +233,7 @@ export function ForgeDrawStage({
       className={s["draw-stage"]}
       data-phase={phase}
       data-forge-impact={impactRarity ?? undefined}
+      style={{ "--brief-out-ms": `${BRIEF_OUT_MS}ms` } as CSSProperties}
     >
       {expFlight && (phase === "spend" || phase === "veil") && (
         <span
@@ -249,71 +252,80 @@ export function ForgeDrawStage({
           <ExpShardGlyph />
         </span>
       )}
-      {phase === "spend" && drawCards[0] && (
-        <div className={s["draw-measure-target"]} aria-hidden="true">
-          <ForgeRevealCard
-            card={drawCards[0]}
-            index={0}
-            phase="ready"
-            flipMs={0}
-            delayMs={0}
-            selected={false}
-            onClick={() => undefined}
-          />
-        </div>
-      )}
-      {showBrief ? (
-        <ForgeDrawBrief
-          drawCost={drawCost}
-          exp={exp}
-          deckLevel={deckLevel}
-          deckSize={deckSize}
-          minDeckSize={minDeckSize}
-          hasPool={hasPool}
-          canConfirmDraw={canConfirmDraw}
-          drawDisabledReason={drawFailure ?? drawDisabledReason}
-          charging={phase === "spend"}
-          onStartDraw={startDraw}
-        />
-      ) : (
-        <>
-          <div className={s["draw-list"]}>
-            {revealPlans.map((plan) => {
-              const selected = plan.card.uid === selectedUid;
-              const cardPhase: ForgeRevealPhase =
-                phase === "commit" ? (selected ? "commit" : "dissolve") : phase;
-              return (
-                <div className={s["draw-choice"]} key={plan.card.uid}>
-                  <ForgeRevealCard
-                    card={plan.card}
-                    index={plan.index}
-                    phase={cardPhase}
-                    flipMs={plan.duration}
-                    delayMs={plan.delay}
-                    selected={selected}
-                    flight={selected ? flight ?? undefined : undefined}
-                    onClick={() => {
-                      if (phase === "ready") setSelectedUid(plan.card.uid);
-                    }}
-                  />
-                </div>
-              );
-            })}
+      <div className={s["draw-body"]}>
+        {phase === "spend" && drawCards[0] && (
+          <div className={s["draw-measure-target"]} aria-hidden="true">
+            <ForgeRevealCard
+              card={drawCards[0]}
+              index={0}
+              phase="ready"
+              flipMs={0}
+              delayMs={0}
+              selected={false}
+              onClick={() => undefined}
+            />
           </div>
-          <footer className={s["draw-actions"]}>
-            <button
-              className={s["draw-confirm"]}
-              type="button"
-              disabled={phase !== "ready" || !selectedCard}
-              aria-label="确认将所选卡牌加入卡组"
-              onClick={startCommit}
-            >
-              <ConfirmGlyph />
-              <span>确认</span>
-            </button>
-          </footer>
-        </>
-      )}
+        )}
+        {renderBrief && (
+          <div
+            className={s["draw-layer-brief"]}
+            data-leaving={phase === "veil" ? "true" : undefined}
+          >
+            <ForgeDrawBrief
+              drawCost={drawCost}
+              exp={exp}
+              deckLevel={deckLevel}
+              deckSize={deckSize}
+              minDeckSize={minDeckSize}
+              hasPool={hasPool}
+              canConfirmDraw={canConfirmDraw}
+              drawDisabledReason={drawFailure ?? drawDisabledReason}
+              charging={phase === "spend" || phase === "veil"}
+              leaving={phase === "veil"}
+              onStartDraw={startDraw}
+            />
+          </div>
+        )}
+        {renderCards && (
+          <div className={s["draw-layer-cards"]}>
+            <div className={s["draw-list"]}>
+              {revealPlans.map((plan) => {
+                const selected = plan.card.uid === selectedUid;
+                const cardPhase: ForgeRevealPhase =
+                  phase === "commit" ? (selected ? "commit" : "dissolve") : phase;
+                return (
+                  <div className={s["draw-choice"]} key={plan.card.uid}>
+                    <ForgeRevealCard
+                      card={plan.card}
+                      index={plan.index}
+                      phase={cardPhase}
+                      flipMs={plan.duration}
+                      delayMs={plan.delay}
+                      selected={selected}
+                      flight={selected ? flight ?? undefined : undefined}
+                      onClick={() => {
+                        if (phase === "ready") setSelectedUid(plan.card.uid);
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+      <footer className={s["draw-actions"]}>
+        <button
+          className={s["draw-confirm"]}
+          type="button"
+          disabled={phase !== "ready" || !selectedCard}
+          aria-label="确认将所选卡牌加入卡组"
+          onClick={startCommit}
+        >
+          <ConfirmGlyph />
+          <span>确认</span>
+        </button>
+      </footer>
     </div>
   );
 }

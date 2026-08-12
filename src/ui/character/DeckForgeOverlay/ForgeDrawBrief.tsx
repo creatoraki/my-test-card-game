@@ -28,6 +28,7 @@ interface Props {
   canConfirmDraw: boolean;
   drawDisabledReason?: string;
   charging: boolean;
+  leaving?: boolean;
   onStartDraw: () => void;
 }
 
@@ -41,6 +42,7 @@ export function ForgeDrawBrief({
   canConfirmDraw,
   drawDisabledReason,
   charging,
+  leaving = false,
   onStartDraw,
 }: Props) {
   const chances = useMemo(() => deckRarityChances(deckLevel, hasPool), [deckLevel, hasPool]);
@@ -55,6 +57,7 @@ export function ForgeDrawBrief({
   return (
     <div
       className={cx(s["brief"], holding && s["is-holding"], chargeReady && s["is-charge-ready"])}
+      data-leaving={leaving ? "true" : undefined}
       style={{ "--charge": progress } as CSSProperties}
     >
       <div className={s["brief-intro"]}>

@@ -1,9 +1,27 @@
 .brief {
   display: flex;
+  width: 100%;
+  height: 100%;
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
   gap: 16px;
+}
+
+.brief[data-leaving="true"] > * {
+  animation: forgeBriefBlockOut var(--brief-out-ms, 280ms) cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.brief[data-leaving="true"] > :nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.brief[data-leaving="true"] > :nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.brief[data-leaving="true"] > :nth-child(4) {
+  animation-delay: 120ms;
 }
 
 .brief-intro {
@@ -154,6 +172,12 @@
 
 .chip strong.is-insufficient {
   color: #b64262;
+}
+
+@media (min-width: 901px) {
+  .chips {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .foot {
@@ -313,6 +337,17 @@
   50% { transform: scale(.985); }
 }
 
+@keyframes forgeBriefBlockOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
 @media (max-width: 900px) {
   .brief-kicker {
     font-size: 15px;
@@ -363,5 +398,9 @@
   .charge-fill,
   .charge-ring-fill {
     transition: none;
+  }
+
+  .brief[data-leaving="true"] > * {
+    animation: none;
   }
 }

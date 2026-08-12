@@ -5,7 +5,8 @@ const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
 
 export const CHARGE_MS = 700;
 export const SPEND_MS = duration(360);
-export const VEIL_MS = duration(200);
+export const BRIEF_OUT_MS = duration(280);
+export const VEIL_MS = duration(280);
 export const BACK_MS = duration(300);
 export const BACK_STAGGER_MS = duration(110);
 export const IMPACT_MS = duration(280);

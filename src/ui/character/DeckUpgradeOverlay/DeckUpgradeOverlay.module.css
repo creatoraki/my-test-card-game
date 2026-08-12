@@ -31,7 +31,7 @@
 }
 
 .upg-reveal {
-  width: min(660px, 100%);
+  width: min(1000px, 100%);
   max-height: 92%;
 }
 
@@ -88,6 +88,20 @@
   color: var(--cd-glow-deep);
   background: #ffffffd9;
   border-color: var(--cd-glow);
+}
+
+.upg-body {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.upg-primary {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
 }
 
 @keyframes upgBackdropIn {
@@ -332,6 +346,16 @@
   gap: 10px;
 }
 
+.upg-probability-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--cd-ink-dim);
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
 .upg-rarity-col {
   position: relative;
   display: flex;
@@ -360,15 +384,38 @@
   line-height: 1;
 }
 
+.upg-rarity-values {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.upg-rarity-arrow {
+  color: var(--cd-ink-dim);
+  font-size: 16px;
+}
+
+.upg-rarity-next {
+  color: var(--cd-ink-dim);
+  font-size: 18px;
+  line-height: 1;
+}
+
 .upg-delta {
   position: absolute;
   top: 8px;
   right: 8px;
+  padding: 3px 6px;
   color: var(--cd-glow-deep);
   font-size: 17px;
   font-weight: 700;
-  opacity: 0;
-  transform: translateY(4px);
+  background: #ffffff91;
+  border: 1px solid var(--cd-line);
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .is-filling .upg-rarity-col.is-changed,
@@ -410,6 +457,17 @@
   overflow: hidden;
   background: #2a1b3d16;
   border: 1px solid var(--cd-line);
+}
+
+.upg-ratio-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.upg-ratio-bar.is-next {
+  opacity: .5;
+  border-style: dashed;
 }
 
 .upg-ratio-seg {
@@ -666,6 +724,16 @@
     letter-spacing: 2px;
   }
 
+  .upg-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .upg-primary {
+    gap: 12px;
+  }
+
   .upg-badge-block {
     min-height: 124px;
   }
@@ -706,6 +774,10 @@
   .upg-rarity-value {
     font-size: 26px;
   }
+
+  .upg-rarity-next {
+    font-size: 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -733,6 +805,10 @@
   .upg-rarity-col,
   .rarity-crystal,
   .upg-ratio-seg,
+  .upg-delta,
+  .upg-rarity-values,
+  .upg-rarity-arrow,
+  .upg-rarity-next,
   .upg-button,
   .upg-button-charge,
   .upg-button-percent,

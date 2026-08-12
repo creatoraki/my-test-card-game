@@ -251,97 +251,126 @@ export function DeckUpgradeOverlay({
             </button>
           </header>
 
-        <div className={s["upg-badge-block"]}>
-          <div className={s["upg-burst"]} aria-hidden="true">
-            <span className={s["upg-ring"]} />
-          </div>
-          <div className={s["upg-badge-current"]}>
-            <LevelBadge level={badgeLevel} levelMax={levelMax} />
-          </div>
-          {showLevelTransition && snapshot && (
-            <div className={s["upg-badge-target"]} aria-hidden="true">
-              <LevelBadge level={badgeTargetLevel} levelMax={levelMax} />
-            </div>
-          )}
-          {!showLevelTransition && !showNextChance && <span className={s["upg-cap"]}>已达上限</span>}
-        </div>
-
-        <div className={s["upg-chips"]}>
-          <div className={s["upg-chip"]} aria-label={`卡组 ${view.deckSize} 张，最低 ${view.minDeckSize} 张`}>
-            <DeckStackGlyph />
-            <strong>
-              {view.deckSize}/{view.minDeckSize}
-            </strong>
-          </div>
-          <div className={s["upg-chip"]} aria-label={`当前经验 ${view.exp}`}>
-            <ExpShardGlyph />
-            <strong>{view.exp}</strong>
-          </div>
-          <div className={s["upg-chip"]} aria-label={`升级所需经验 ${view.upgradeCost ?? "MAX"}`}>
-            {view.upgradeCost == null ? (
-              <MaxGlyph />
-            ) : (
-              <LevelBadge level={Math.min(levelMax, view.level + 1)} levelMax={levelMax} />
-            )}
-            <strong>{view.upgradeCost ?? "MAX"}</strong>
-          </div>
-        </div>
-
-        <div className={s["upg-exp"]}>
-          <div className={s["upg-exp-head"]}>
-            <span>EXP</span>
-            <strong>
-              {shownExp} / {view.upgradeCost == null ? "MAX" : view.upgradeCost}
-            </strong>
-          </div>
-          <div
-            className={s["upg-exp-track"]}
-            role="progressbar"
-            aria-label="卡组升级经验"
-            aria-valuemin={0}
-            aria-valuemax={view.upgradeCost ?? 1}
-            aria-valuenow={view.upgradeCost == null ? 1 : shownExp}
-          >
-            <div className={cx(s["upg-exp-fill"], pulseFull && s["is-pulse"])} />
-            <div className={s["upg-exp-charge"]} aria-hidden="true" />
-            <span className={s["upg-exp-glint"]} aria-hidden="true" />
-          </div>
-        </div>
-
-        <div className={s["upg-probability"]} aria-label="稀有度抽取概率">
-          <div className={s["upg-rarity-grid"]}>
-            {RARITIES.map(({ id, label }) => {
-              const available = view.hasPool[id];
-              const current = currentChances[id];
-              const next = nextChances?.[id];
-              const delta = next == null ? 0 : next - current;
-              const deltaVisible = showLevelTransition && available && next != null && delta !== 0;
-              return (
-                <div
-                  className={cx(
-                    s["upg-rarity-col"],
-                    !available && s["is-empty"],
-                    delta !== 0 && available && s["is-changed"],
-                    delta > 0 && available && s["is-rising"],
-                  )}
-                  key={id}
-                  aria-label={`${label}：${available ? percentage(current) : "无可用卡池"}`}
-                >
-                  {deltaVisible && <span className={s["upg-delta"]}>{`${delta >= 0 ? "+" : ""}${percentage(delta)}`}</span>}
-                  <RarityCrystal rarity={id} muted={!available} className={s["rarity-crystal"]} />
-                  <strong className={s["upg-rarity-value"]}>{available ? percentage(current) : "—"}</strong>
+        <div className={s["upg-body"]}>
+          <div className={s["upg-primary"]}>
+            <div className={s["upg-badge-block"]}>
+              <div className={s["upg-burst"]} aria-hidden="true">
+                <span className={s["upg-ring"]} />
+              </div>
+              <div className={s["upg-badge-current"]}>
+                <LevelBadge level={badgeLevel} levelMax={levelMax} />
+              </div>
+              {showLevelTransition && snapshot && (
+                <div className={s["upg-badge-target"]} aria-hidden="true">
+                  <LevelBadge level={badgeTargetLevel} levelMax={levelMax} />
                 </div>
-              );
-            })}
+              )}
+              {!showLevelTransition && !showNextChance && <span className={s["upg-cap"]}>已达上限</span>}
+            </div>
+
+            <div className={s["upg-chips"]}>
+              <div className={s["upg-chip"]} aria-label={`卡组 ${view.deckSize} 张，最低 ${view.minDeckSize} 张`}>
+                <DeckStackGlyph />
+                <strong>
+                  {view.deckSize}/{view.minDeckSize}
+                </strong>
+              </div>
+              <div className={s["upg-chip"]} aria-label={`当前经验 ${view.exp}`}>
+                <ExpShardGlyph />
+                <strong>{view.exp}</strong>
+              </div>
+              <div className={s["upg-chip"]} aria-label={`升级所需经验 ${view.upgradeCost ?? "MAX"}`}>
+                {view.upgradeCost == null ? (
+                  <MaxGlyph />
+                ) : (
+                  <LevelBadge level={Math.min(levelMax, view.level + 1)} levelMax={levelMax} />
+                )}
+                <strong>{view.upgradeCost ?? "MAX"}</strong>
+              </div>
+            </div>
+
+            <div className={s["upg-exp"]}>
+              <div className={s["upg-exp-head"]}>
+                <span>EXP</span>
+                <strong>
+                  {shownExp} / {view.upgradeCost == null ? "MAX" : view.upgradeCost}
+                </strong>
+              </div>
+              <div
+                className={s["upg-exp-track"]}
+                role="progressbar"
+                aria-label="卡组升级经验"
+                aria-valuemin={0}
+                aria-valuemax={view.upgradeCost ?? 1}
+                aria-valuenow={view.upgradeCost == null ? 1 : shownExp}
+              >
+                <div className={cx(s["upg-exp-fill"], pulseFull && s["is-pulse"])} />
+                <div className={s["upg-exp-charge"]} aria-hidden="true" />
+                <span className={s["upg-exp-glint"]} aria-hidden="true" />
+              </div>
+            </div>
           </div>
-          <div className={s["upg-ratio-bar"]} aria-hidden="true">
-            {RARITIES.map(({ id }) => (
-              <span
-                className={cx(s["upg-ratio-seg"], !view.hasPool[id] && s["is-empty"])}
-                key={id}
-                style={{ flexBasis: `${currentChances[id]}%` }}
-              />
-            ))}
+
+          <div className={s["upg-probability"]} aria-label="稀有度抽取概率">
+            <div className={s["upg-probability-head"]} aria-hidden="true">
+              <span>当前 Lv.{view.level}</span>
+              {showNextChance ? <span>下一等级 Lv.{view.level + 1}</span> : <span>MAX</span>}
+            </div>
+            <div className={s["upg-rarity-grid"]}>
+              {RARITIES.map(({ id, label }) => {
+                const available = view.hasPool[id];
+                const current = currentChances[id];
+                const next = nextChances?.[id];
+                const delta = next == null ? 0 : next - current;
+                const deltaVisible = available && next != null && delta !== 0;
+                return (
+                  <div
+                    className={cx(
+                      s["upg-rarity-col"],
+                      !available && s["is-empty"],
+                      delta !== 0 && available && s["is-changed"],
+                      delta > 0 && available && s["is-rising"],
+                    )}
+                    key={id}
+                    aria-label={`${label}：${available ? percentage(current) : "无可用卡池"}`}
+                  >
+                    {deltaVisible && <span className={s["upg-delta"]}>{`${delta >= 0 ? "+" : ""}${percentage(delta)}`}</span>}
+                    <RarityCrystal rarity={id} muted={!available} className={s["rarity-crystal"]} />
+                    <div className={s["upg-rarity-values"]}>
+                      <strong className={s["upg-rarity-value"]}>{available ? percentage(current) : "—"}</strong>
+                      {showNextChance && next != null && available && (
+                        <>
+                          <span className={s["upg-rarity-arrow"]} aria-hidden="true">→</span>
+                          <span className={s["upg-rarity-next"]}>{percentage(next)}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className={s["upg-ratio-bars"]}>
+              <div className={s["upg-ratio-bar"]} aria-hidden="true">
+                {RARITIES.map(({ id }) => (
+                  <span
+                    className={cx(s["upg-ratio-seg"], !view.hasPool[id] && s["is-empty"])}
+                    key={id}
+                    style={{ flexBasis: `${currentChances[id]}%` }}
+                  />
+                ))}
+              </div>
+              {showNextChance && nextChances && (
+                <div className={cx(s["upg-ratio-bar"], s["is-next"])} data-next aria-hidden="true">
+                  {RARITIES.map(({ id }) => (
+                    <span
+                      className={cx(s["upg-ratio-seg"], !view.hasPool[id] && s["is-empty"])}
+                      key={id}
+                      style={{ flexBasis: `${nextChances[id]}%` }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

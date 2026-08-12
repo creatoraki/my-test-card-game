@@ -7,11 +7,37 @@
   gap: 16px;
 }
 
+.draw-body {
+  position: relative;
+  min-height: 360px;
+  flex: 1 1 auto;
+}
+
+.draw-layer-brief,
+.draw-layer-cards {
+  position: absolute;
+  inset: 0;
+}
+
+.draw-layer-brief {
+  z-index: 2;
+}
+
+.draw-layer-brief[data-leaving="true"] {
+  pointer-events: none;
+  animation: forgeBriefOut var(--brief-out-ms, 280ms) cubic-bezier(.2, .72, .28, 1) both;
+}
+
+.draw-layer-cards {
+  z-index: 1;
+  animation: forgeCardsIn var(--brief-out-ms, 280ms) cubic-bezier(.2, .72, .28, 1) both;
+}
+
 .draw-measure-target {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(196px, calc(33.333% - 20px));
+  width: min(248px, calc(33.333% - 20px));
   visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -41,12 +67,12 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   justify-items: center;
-  gap: 20px;
+  gap: 28px;
   padding: 10px 8px 16px;
 }
 
 .draw-choice {
-  width: min(196px, 100%);
+  width: min(248px, 100%);
   min-width: 0;
 }
 
@@ -56,6 +82,14 @@
   justify-content: flex-end;
   padding-top: 12px;
   border-top: 1px solid var(--cd-line);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.draw-stage[data-phase="ready"] .draw-actions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .draw-confirm {
@@ -118,6 +152,30 @@
   70% { transform: translate3d(-2px, 0, 0); }
 }
 
+@keyframes forgeBriefOut {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(-10px) scale(.97);
+  }
+}
+
+@keyframes forgeCardsIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes forgeExpShard {
   0% {
     opacity: 0;
@@ -141,13 +199,23 @@
   .draw-choice {
     width: min(176px, 100%);
   }
+
+  .draw-measure-target {
+    width: min(176px, calc(33.333% - 20px));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .draw-exp-shard,
   .draw-confirm,
+  .draw-layer-brief[data-leaving="true"],
+  .draw-layer-cards,
   .draw-stage[data-forge-impact] {
     animation: none;
+    transition: none;
+  }
+
+  .draw-actions {
     transition: none;
   }
 }

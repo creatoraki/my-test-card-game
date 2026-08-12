@@ -63,7 +63,7 @@ export function DeckForgeOverlay({
       data-closing={closing ? "true" : undefined}
       style={{
         ...modalRevealVars(),
-        "--forge-w": mode === "draw" ? "680px" : "860px",
+        "--forge-w": "1000px",
       } as CSSProperties}
       role="dialog"
       aria-modal="true"
