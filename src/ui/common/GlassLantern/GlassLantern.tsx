@@ -17,7 +17,7 @@ const CANVAS_PAD = 28;
 
 export function GlassLantern({
   color,
-  intensity = 1,
+  intensity = 2,
   size = 160,
   paused = false,
   fallbackSrc,
@@ -68,13 +68,13 @@ function LanternCanvas({
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const colorRef = useRef(color);
-  const intensityRef = useRef(Math.max(0.1, intensity ?? 1));
+  const intensityRef = useRef(Math.max(0.1, intensity ?? 2));
   const sizeRef = useRef(Math.max(1, size ?? 160));
   const pausedRef = useRef(paused ?? false);
   const syncRunningRef = useRef<(() => void) | null>(null);
 
   colorRef.current = color;
-  intensityRef.current = Math.max(0.1, intensity ?? 1);
+  intensityRef.current = Math.max(0.1, intensity ?? 2);
   sizeRef.current = Math.max(1, size ?? 160);
   pausedRef.current = paused ?? false;
 

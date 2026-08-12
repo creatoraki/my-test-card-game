@@ -11,7 +11,11 @@
 import { energyTier, toNextTier } from "@/explore/session";
 import { EXPLORE_RULES, ENERGY_TIERS } from "@/explore/rules";
 import { getStatusDef } from "@/engine";
-import { ENERGY_LAMP_ART, energyLampGlow } from "@/ui/art/energyLampArt";
+import {
+  ENERGY_LAMP_ART,
+  energyLampGlow,
+  energyLampIntensity,
+} from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
 import { GlassLantern } from "@/ui/common/GlassLantern";
 import { RailPopover } from "@/ui/common/RailPopover";
@@ -55,7 +59,7 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
       >
         <GlassLantern
           color={energyLampGlow(cur.tier)}
-          intensity={crossing ? 1.65 : 1}
+          intensity={energyLampIntensity(cur.tier) * (crossing ? 1.2 : 1)}
           size={160}
           paused={recede}
           fallbackSrc={ENERGY_LAMP_ART}
