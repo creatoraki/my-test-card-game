@@ -8,10 +8,13 @@
 // ⚠ 档位阈值的真相点只有 explore/session.ts 的 energyTier(), 这里不重算。
 // ⚠ 本组件挂在 .explore-stage 内部, 尺寸全是「设计 px」(1920×1080 画布), 不写 vw/vh。
 
-import { energyTier } from "@/explore/session";
-import { EXPLORE_RULES } from "@/explore/rules";
-import { energyLampArt, energyLampGlow } from "@/ui/art/energyLampArt";
+import { energyTier, toNextTier } from "@/explore/session";
+import { EXPLORE_RULES, ENERGY_TIERS } from "@/explore/rules";
+import { getStatusDef } from "@/engine";
+import { ENERGY_LAMP_ART, energyLampGlow } from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
+import { RailPopover } from "@/ui/common/RailPopover";
+import { FireflyFx } from "./FireflyFx";
 import s from "./EnergyLamp.module.css";
 
 interface Props {
@@ -25,27 +28,41 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
   const cur = energyTier(energy);
   const after = energyTier(projected ?? energy);
   const crossing = projected != null && after.tier > cur.tier;
+  const previous = ENERGY_TIERS.find((tier) => tier.tier === cur.tier - 1);
+  const next = ENERGY_TIERS.find((tier) => tier.tier === cur.tier + 1);
+  const rangeTop = previous ? previous.min - 1 : EXPLORE_RULES.energyMax;
+  const pointsToNext = toNextTier(energy);
+  const dangers = [
+    ...(cur.extraEnemies > 0 ? [`战斗追加 ${cur.extraEnemies} 名敌人`] : []),
+    ...cur.enemyStatuses.map((status) => {
+      const name = getStatusDef(status.id)?.name ?? status.id;
+      return `敌方全体${name} +${status.stacks}`;
+    }),
+    ...(cur.castTickDelta < 0 ? [`敌方先手 +${Math.abs(cur.castTickDelta)}`] : []),
+  ];
 
   return (
-    <div className={s["energy-lamp"]} style={{ ["--energy-color" as string]: cur.color }}>
- 
-      {/* 5 张图构图完全重叠 ⇒ key 挂 tier, 换档时新图淡入盖住旧图, 看起来就是同一个装置换了光色。
-          ⚠ 装饰性图像, aria-hidden + 空 alt; 数值与档名已由左侧文字读屏播完。 */}
+    <div
+      className={s["energy-lamp"]}
+      data-rail-item
+      tabIndex={0}
+      aria-label={`净化粒子 ${energy} 点，${cur.name}`}
+      style={{ ["--energy-color" as string]: cur.color }}
+    >
       <div
         className={s["el-lamp"]}
-        style={{ ["--el-glow" as string]: energyLampGlow(cur.tier) }}
         aria-hidden
       >
-        <span
-          className={cx(s["el-halo"], recede && s["is-recede"])}
-          key={`halo-${cur.tier}`}
-        />
         <img
           className={cx(s["el-lamp-img"], recede && s["is-recede"], crossing && s["is-warning"])}
-          key={`lamp-${cur.tier}`}
-          src={energyLampArt(cur.tier)}
+          src={ENERGY_LAMP_ART}
           alt=""
           draggable={false}
+        />
+        <FireflyFx
+          color={energyLampGlow(cur.tier)}
+          intensity={crossing ? 1.65 : 1}
+          className={cx(s["el-fx"], recede && s["is-recede"])}
         />
       </div>
       <div className={cx(s["el-readout"], recede && s["is-recede"])}>
@@ -55,6 +72,29 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
           {energy}
         </strong>
       </div>
+      <RailPopover side="bottom-right">
+        <div className={s["el-tip-head"]}>
+          <strong>{cur.name}</strong>
+          <span>能量 {cur.min}-{rangeTop}</span>
+        </div>
+        {pointsToNext != null && next && (
+          <p className={s["el-tip-next"]}>
+            再掉 {pointsToNext} 点跌入「{next.name}」
+          </p>
+        )}
+        <div className={s["el-tip-section"]}>
+          <b>掉落系数 K_energy ×{cur.rewardMultiplier.toFixed(2)}</b>
+          <p>同时作用于经验、居民积分与实物掉落</p>
+        </div>
+        <div className={s["el-tip-section"]}>
+          <b>危险明细</b>
+          <ul className={s["el-tip-list"]}>
+            {(dangers.length ? dangers : ["无额外惩罚"]).map((danger) => (
+              <li key={danger}>{danger}</li>
+            ))}
+          </ul>
+        </div>
+      </RailPopover>
     </div>
   );
 }

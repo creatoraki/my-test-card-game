@@ -5,6 +5,7 @@
      直接浮在场景图上, 靠自身辉光和数字的描边保证可读性。 */
 
 .energy-lamp {
+  position: relative;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -50,26 +51,14 @@
   width: 160px;
   height: 160px;
   flex: 0 0 auto;
-  --el-glow-x: 50%;
-  --el-glow-y: 50%;
 }
-.el-halo {
+.el-fx {
   position: absolute;
-  inset: 5%;
+  inset: 0;
   pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at var(--el-glow-x) var(--el-glow-y),
-      color-mix(in srgb, var(--el-glow) 90%, white) 0 14%,
-      color-mix(in srgb, var(--el-glow) 65%, transparent) 26%,
-      transparent 46%),
-    radial-gradient(circle at var(--el-glow-x) var(--el-glow-y),
-      color-mix(in srgb, var(--el-glow) 45%, transparent) 0 18%,
-      color-mix(in srgb, var(--el-glow) 24%, transparent) 42%,
-      transparent 72%);
-  filter: blur(4px);
-  animation: elLampIn 420ms ease, elHaloBreath 3.2s ease-in-out infinite;
+  transition: opacity 220ms ease;
 }
+.el-fx.is-recede { opacity: 0.35; }
 .el-lamp-img {
   position: absolute;
   inset: 0;
@@ -77,27 +66,49 @@
   height: 100%;
   object-fit: contain;
   user-select: none;
-  filter: drop-shadow(0 0 5px var(--el-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--el-glow) 70%, transparent));
   animation: elLampIn 420ms ease;
   transition: opacity 220ms ease;
 }
 .el-lamp-img.is-warning { animation: elLampIn 420ms ease, elLampPulse 1.4s 420ms ease-in-out infinite; }
 .el-readout.is-recede,
 .el-lamp-img.is-recede { opacity: 0.5; }
-.el-halo.is-recede { opacity: 0.35; }
+
+.el-tip-head,
+.el-tip-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.el-tip-head {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.el-tip-head strong { color: var(--text); font-size: 14px; }
+.el-tip-head span { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.el-tip-next { margin: 10px 0 0; color: var(--energy-color); font-size: 12px; }
+.el-tip-section { margin-top: 10px; }
+.el-tip-section b { color: var(--text); font-size: 12px; }
+.el-tip-section p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.el-tip-list {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0 0 0 16px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
 
 @keyframes elTick { from { transform: translateY(-4px); opacity: 0.2; } }
 @keyframes elLampIn { from { opacity: 0; } }
-@keyframes elHaloBreath {
-  0%, 100% { opacity: 0.78; transform: scale(0.96); }
-  50% { opacity: 1; transform: scale(1.06); }
-}
 @keyframes elLampPulse {
-  0%, 100% { filter: drop-shadow(0 0 5px var(--el-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--el-glow) 70%, transparent)); }
-  50% { filter: drop-shadow(0 0 5px var(--el-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--el-glow) 70%, transparent)) brightness(1.25); }
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.88; filter: brightness(1.2); }
 }
 @keyframes elWarnPulse { 50% { background: color-mix(in srgb, var(--next-color) 34%, transparent); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .el-value, .el-lamp-img, .el-lamp-img.is-warning, .el-halo, .el-warn { animation: none; }
+  .el-value, .el-lamp-img, .el-lamp-img.is-warning, .el-warn { animation: none; }
 }

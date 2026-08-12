@@ -5,7 +5,7 @@ export function RailPopover({
   side,
   children,
 }: {
-  side: "left" | "right" | "bottom" | "bottom-left" | "top" | "top-right";
+  side: "left" | "right" | "bottom" | "bottom-left" | "bottom-right" | "top" | "top-right";
   children: ReactNode;
 }) {
   return <div className={`${s.popover} ${s[side]}`}>{children}</div>;

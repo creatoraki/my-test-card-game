@@ -31,6 +31,11 @@
   left: 0;
   transform: translateY(-8px);
 }
+.bottom-right {
+  top: calc(100% + 10px);
+  right: 0;
+  transform: translateY(-8px);
+}
 .top {
   top: auto;
   bottom: calc(100% + 10px);
@@ -63,6 +68,10 @@
 }
 :global([data-rail-item]:hover) .bottom-left,
 :global([data-rail-item]:focus-within) .bottom-left {
+  transform: translateY(0);
+}
+:global([data-rail-item]:hover) .bottom-right,
+:global([data-rail-item]:focus-within) .bottom-right {
   transform: translateY(0);
 }
 :global([data-rail-item]:hover) .top,
