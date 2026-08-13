@@ -19,18 +19,18 @@ const stack = (id: string) => makeItemStack(id);
 
 describe("占格", () => {
   it("一件物品一格, 装备也不例外", () => {
-    expect(occupiedSlots([stack("scrap-piece")], getItemDef)).toBe(1);
+    expect(occupiedSlots([stack("bronze-bear")], getItemDef)).toBe(1);
     expect(occupiedSlots([stack("armor-plate-c")], getItemDef)).toBe(1);
-    expect(occupiedSlots([stack("scrap-piece"), stack("prybar-c")], getItemDef)).toBe(2);
+    expect(occupiedSlots([stack("bronze-bear"), stack("prybar-c")], getItemDef)).toBe(2);
   });
 
   it("容量满了就溢出, 不会静默丢弃", () => {
-    const full = Array.from({ length: 24 }, () => stack("scrap-piece"));
+    const full = Array.from({ length: 24 }, () => stack("bronze-bear"));
     const a = addToContainer(full, [stack("armor-plate-c")], getItemDef, 24);
     expect(a.taken).toHaveLength(0);
     expect(a.overflow).toHaveLength(1);
 
-    const b = addToContainer(full.slice(0, 23), [stack("scrap-piece")], getItemDef, 24);
+    const b = addToContainer(full.slice(0, 23), [stack("bronze-bear")], getItemDef, 24);
     expect(b.taken).toHaveLength(1);
     expect(b.overflow).toHaveLength(0);
     expect(occupiedSlots(b.next, getItemDef)).toBe(24);
@@ -44,7 +44,7 @@ describe("占格", () => {
   });
 
   it("removeByUid 找不到时原样返回(调用方靠引用判断成败)", () => {
-    const list = [stack("scrap-piece")];
+    const list = [stack("bronze-bear")];
     expect(removeByUid(list, "不存在")).toBe(list);
     expect(removeByUid(list, list[0].uid)).toHaveLength(0);
   });
@@ -82,14 +82,14 @@ describe("仓库展示堆叠", () => {
 
 describe("背包排布", () => {
   it("至少铺满容量, 空位补 empty", () => {
-    const cells = layoutBackpack([stack("scrap-piece")], 24);
+    const cells = layoutBackpack([stack("bronze-bear")], 24);
     expect(cells).toHaveLength(24);
     expect(cells[0].kind).toBe("item");
     expect(cells[1].kind).toBe("empty");
   });
 
   it("装备与其余物品一样只占一格, 顺序与数组一致", () => {
-    const stacks = [stack("armor-plate-c"), stack("scrap-piece")];
+    const stacks = [stack("armor-plate-c"), stack("bronze-bear")];
     const cells = layoutBackpack(stacks, 24);
     expect(cells).toHaveLength(24);
     expect(cells[0]).toMatchObject({ kind: "item", stack: stacks[0] });
@@ -99,7 +99,7 @@ describe("背包排布", () => {
 
   // 满包时不截断: 一件东西都不能藏起来。
   it("满包时每件都有格子", () => {
-    const stacks = Array.from({ length: 24 }, () => stack("scrap-piece"));
+    const stacks = Array.from({ length: 24 }, () => stack("bronze-bear"));
     expect(occupiedSlots(stacks, getItemDef)).toBe(24);
     const cells = layoutBackpack(stacks, 24);
     expect(cells.filter((c) => c.kind === "item")).toHaveLength(24);
@@ -119,7 +119,7 @@ describe("掉落", () => {
 
   it("同种子的掉落逐件复现", () => {
     const table = [
-      { kind: "item" as const, itemId: "scrap-piece", chance: 0.6, min: 1, max: 2 },
+      { kind: "item" as const, itemId: "bronze-bear", chance: 0.6, min: 1, max: 2 },
       { kind: "family" as const, familyId: "armor-plate", chance: 0.8 },
     ];
     const ctx = {

@@ -63,6 +63,9 @@ import broadcastTuningChipArt from "@/assets/道具/材料/废弃楼层/广播�
 import breakerCeramicCoreArt from "@/assets/道具/材料/废弃楼层/断路陶芯.png";
 import magRailLiningArt from "@/assets/道具/材料/废弃楼层/磁轨衬层.png";
 import highVoltageInsulatorArt from "@/assets/道具/材料/废弃楼层/高压绝缘节.png";
+import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
+import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
+import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
 
 const VB = "0 0 48 48";
 const base = {
@@ -219,10 +222,17 @@ const MATERIAL_ART: Record<string, string> = {
   "broadcast-tuning-chip": broadcastTuningChipArt,
 };
 
+const SCRAP_ART: Record<string, string> = {
+  "bronze-bear": bronzeBearArt,
+  "silver-bear": silverBearArt,
+  "golden-bear": goldenBearArt,
+};
+
 export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
   ...Object.values(EQUIPMENT_ART),
   ...Object.values(CONSUMABLE_ART),
   ...Object.values(MATERIAL_ART),
+  ...Object.values(SCRAP_ART),
 ])];
 
 export function itemIcon(def: ItemDef): ReactNode {
@@ -230,7 +240,8 @@ export function itemIcon(def: ItemDef): ReactNode {
     EQUIPMENT_ART[def.id] ??
     (def.familyId ? CONSUMABLE_ART[def.familyId] : undefined) ??
     CONSUMABLE_ART[def.id] ??
-    MATERIAL_ART[def.id];
+    MATERIAL_ART[def.id] ??
+    SCRAP_ART[def.id];
   if (art) return <img src={art} alt="" />;
 
   const key = def.icon ?? BY_CATEGORY[def.category];

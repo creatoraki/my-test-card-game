@@ -529,7 +529,7 @@ describe("背包与负重(设计文档 §六)", () => {
     expect(backpackSlots(s)).toBe(0);
     expect(burdenNow(s)).toBe(0);
 
-    addItems(s, [makeItemStack("scrap-piece"), makeItemStack("armor-plate-c")]);
+    addItems(s, [makeItemStack("bronze-bear"), makeItemStack("armor-plate-c")]);
     expect(backpackSlots(s)).toBe(2); // 1 + 1
     expect(burdenNow(s)).toBe(2); // 每格 −1 个百分点
   });
@@ -538,7 +538,7 @@ describe("背包与负重(设计文档 §六)", () => {
     const s = newSession();
     addItems(
       s,
-      Array.from({ length: 24 }, () => makeItemStack("scrap-piece")),
+      Array.from({ length: 24 }, () => makeItemStack("bronze-bear")),
     );
     expect(backpackSlots(s)).toBe(24);
 
@@ -555,7 +555,7 @@ describe("背包与负重(设计文档 §六)", () => {
     arriveNode(s);
     chooseOption(s, 0);
     if (phaseOf(s) !== "resolving") return; // 撤离升降机 / 团灭的落点跳过
-    s.pendingPickup = [makeItemStack("scrap-piece")];
+    s.pendingPickup = [makeItemStack("bronze-bear")];
     expect(confirmNode(s)).toBe(false);
   });
 
@@ -750,8 +750,8 @@ describe("战斗回填与团灭", () => {
     const s = newSession();
     intoBattle(s);
     s.loot = 200;
-    s.backpack = [makeItemStack("scrap-piece"), makeItemStack("data-shard")];
-    s.shipped = [makeItemStack("scrap-alloy")];
+    s.backpack = [makeItemStack("bronze-bear"), makeItemStack("data-shard")];
+    s.shipped = [makeItemStack("silver-bear")];
     finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false }], ["scrap-bot"]);
     expect(s.phase).toBe("wiped");
     expect(s.loot).toBe(Math.floor(200 * EXPLORE_RULES.wipe.lootKept));

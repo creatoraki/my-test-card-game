@@ -13,36 +13,6 @@ import { withBuyValue } from "./items/pricing";
 
 const DEFS: ItemDef[] = [
 	{
-		id: "scrap-piece",
-		name: "废料碎片",
-		category: "scrap",
-		rarity: "common",
-		desc: "从废弃楼层回收的普通金属碎片，可在回收台换取居民积分。",
-		maxStack: 1,
-		sellValue: 12,
-		icon: "material",
-	},
-	{
-		id: "scrap-alloy",
-		name: "废料合金",
-		category: "scrap",
-		rarity: "fine",
-		desc: "经过分拣的高纯度废料合金，可在回收台换取居民积分。",
-		maxStack: 1,
-		sellValue: 30,
-		icon: "material",
-	},
-	{
-		id: "scrap-core",
-		name: "废料核心",
-		category: "scrap",
-		rarity: "rare",
-		desc: "从高压压缩设备中回收的完整废料核心。",
-		maxStack: 1,
-		sellValue: 80,
-		icon: "material",
-	},
-	{
 		id: "data-shard",
 		name: "数据存档",
 		category: "data",

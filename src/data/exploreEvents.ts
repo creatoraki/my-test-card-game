@@ -459,13 +459,13 @@ const GROWTH: NodeEvent[] = [
     description: "压缩塔把废旧部件按照材料纯度分成不同管道。你可以选择精细分拣、快速压缩，或者让压缩塔寻找被废料掩盖的完整物品。",
     energyDelta: 0,
     choices: [
-      choice("sort", "精细分拣", "取得废料和机械部件", "你逐个检查传送带上的废料，只保留能完整拆解的部分。", [
-        outcome("sort-a", "大多数零件已经损坏，但两块废料和一枚齿轮还可以带回据点。", items(item("scrap-piece", 2), item("standard-gear"))),
-        outcome("sort-b", "你从一堆普通碎片里找出了完整合金和一块没有漏液的电池。", items(item("scrap-alloy"), item("standard-battery"))),
+      choice("sort", "精细分拣", "取得换金物和机械部件", "你逐个检查传送带上的废料，只保留能完整拆解的部分。", [
+        outcome("sort-a", "大多数零件已经损坏，但两只铜质小熊和一枚齿轮还可以带回据点。", items(item("bronze-bear", 2), item("standard-gear"))),
+        outcome("sort-b", "你从一堆普通碎片里找出了银质小熊和一块没有漏液的电池。", items(item("silver-bear"), item("standard-battery"))),
       ]),
-      choice("compress", "启动高压压缩", "额外消耗 3 粒子，取得高品质废料", "你让压缩塔快速运行，把整条传送带上的部件一次性处理。", [
-        outcome("compress-a", "高压压缩把大量普通碎片凝成了一枚完整废料核心。", [item("scrap-core")]),
-        outcome("compress-b", "压缩塔的合金分离功能仍然有效，两块高纯度废料被推出。", [item("scrap-alloy", 2)]),
+      choice("compress", "启动高压压缩", "额外消耗 3 粒子，取得高品质换金物", "你让压缩塔快速运行，把整条传送带上的部件一次性处理。", [
+        outcome("compress-a", "高压压缩把大量普通碎片凝成了一只金质小熊。", [item("golden-bear")]),
+        outcome("compress-b", "压缩塔的合金分离功能仍然有效，两只银质小熊被推出。", [item("silver-bear", 2)]),
       ], 3),
       choice("crate", "搜索废料下方的完整货箱", "取得消耗品或公开饰品候选", "你关闭压缩带，派人打开最底部的货箱层。", [
         outcome("crate-a", "一个旧急救箱被压在废料下方，里面的医疗包和糖块仍然封装完好。", items(item("medical-kit-c"), item("sugar-cube-c"))),
