@@ -92,7 +92,8 @@ import s from "./CombatantView.module.css";
 `@keyframes` 名字**会**被哈希，同文件内的 `animation-name` 引用由构建自动改写。由此分出两种情形，写反了都是「动画静默不播」：
 
 - **关键帧写在 `module.css` 里** ⇒ `animation-name` 必须也写在 CSS 里，**不能**由 TSX 行内下发（JS 字符串构建管不着）。见
-  [IaiSlashFx.module.css](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.module.css) 的 `.iai-dot`——行内只留 `delay` / `duration`。
+  [IaiSlashFx.module.css](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.module.css) 的 `.iai-dot` 与
+  [BladeSlashFx.module.css](../../src/ui/battle/fx/BladeSlashFx/BladeSlashFx.module.css)——行内只留 `delay` / `duration`，刀光时序全部由 TSX 下发，不做百分比对表。
 - **关键帧由组件运行时注入 `<style>`**（按敌人生成、支持跳帧）⇒ 不经 Modules，名字不哈希，行内 `animationName` 正常工作。见
   [EnemySprite.tsx](../../src/ui/battle/EnemySprite/EnemySprite.tsx)。
 

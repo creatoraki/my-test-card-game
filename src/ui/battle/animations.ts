@@ -25,8 +25,8 @@ export interface SpritePreset {
   impactMs: number; // 挂载 → 真正砸中的偏移(ms), 用于同步受击抖动/冲击环
 }
 
-// 居合斩(程序化 CSS)参数。视觉几何在 IaiSlashFx.tsx / IaiSlashFx.css, 这里只放 JS 要消费的时序。
-export interface IaiPreset {
+// 程序化 CSS 特效参数。视觉几何在各自 Fx 组件中, 这里只放 JS 要消费的时序。
+export interface ProcFxPreset {
   // 挂载 → 斩击爆发的偏移(ms), = 蓄力时长(压暗+光点渐亮)。
   // runSteps 用它推迟顿帧/震屏, hitFxVars 用它推迟受击抖动/闪白与飘字。
   impactMs: number;
@@ -37,7 +37,8 @@ export interface AnimPreset {
   kind: "attack" | "support"; // attack: 目标受击特效; support: 目标柔和光效
   emoji?: string; // 首击特效图形(无 sprite/iai 时使用)
   sprite?: SpritePreset; // 序列帧特效(存在时优先于 emoji)
-  iai?: IaiPreset; // 居合斩程序化特效(与 sprite 平行的第三种渲染分支)
+  proc?: ProcFxPreset; // 程序化 CSS 特效(与 sprite 平行的第三种渲染分支)
+  screenFx?: "dim" | "flash"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
@@ -147,10 +148,21 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   "iai-slash": {
     kind: "attack",
     color: "#8fe3ff", // 青蓝主色(冲击环/受击着色/飘字), 与 sword-fall 的红形成区分
-    iai: { impactMs: 500, floatMs: 500 },
+    proc: { impactMs: 500, floatMs: 500 },
+    screenFx: "dim",
     windup: 210, // 现时序不消费, 按语义填写
     hold: 1000,
     shake: 2, // 居合重斩, 与 sword-fall 同档
+  },
+  // 刀光斩(程序化 CSS): 1.6s 三拍, 目标中心斜贯、粒子收敛、八点爆裂与刀痕消散。
+  "blade-slash": {
+    kind: "attack",
+    color: "#a8d4ff",
+    proc: { impactMs: 120, floatMs: 950 },
+    screenFx: "flash",
+    windup: 190,
+    hold: 1750,
+    shake: 1,
   },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },

@@ -1,4 +1,4 @@
-import type { IaiPreset } from "@/ui/battle/animations";
+import type { ProcFxPreset } from "@/ui/battle/animations";
 import s from "./IaiSlashFx.module.css";
 
 // 居合拔刀斩(程序化 CSS)首击特效: 蓄力光点 + 左下→右上的斩痕刃光。
@@ -19,7 +19,7 @@ const DOTS = [
   { t: 0, n: 0, size: 7, delay: 260 }, // 中心主光点最后亮起 = 蓄力顶点
 ] as const;
 
-export function IaiSlashFx({ preset }: { preset: IaiPreset }) {
+export function IaiSlashFx({ preset }: { preset: ProcFxPreset }) {
   return (
     <div className={s["iai-wrap"]}>
       <div className={s["iai-glow"]} />

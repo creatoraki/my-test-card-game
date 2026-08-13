@@ -113,6 +113,7 @@ export type CardRarity = "basic" | Rarity;
 // 出牌动画类型(与技能绑定, 决定目标的受击/首击特效表现)。
 //   攻击系: slash 斩击 / shot 箭击 / fire 火爆 / ice 冰霜 / lightning 电击 / poison 剧毒
 //           sword-fall 魔剑坠落(序列帧) / iai-slash 居合拔刀斩(程序化 CSS)
+//           blade-slash 刀光斩(程序化 CSS, 三拍)
 //   辅助系(柔和光效): heal 治疗 / shield 护盾 / buff 增益
 // 纯 UI 表现字段, 引擎逻辑不读取。UI 侧有兜底推断(见 ui/animations.ts)。
 export type CardAnim =
@@ -124,6 +125,7 @@ export type CardAnim =
   | "poison"
   | "sword-fall"
   | "iai-slash"
+  | "blade-slash"
   | "heal"
   | "shield"
   | "buff";

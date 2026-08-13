@@ -1,0 +1,251 @@
+/* 刀光斩(blade-slash): 目标中心的局部坐标特效, 外层旋转后所有几何只沿 X 轴布置。
+   所有时间由 BladeSlashFx.tsx 通过 delay/duration 下发; 关键帧名留在 CSS Modules 内。 */
+.blade-wrap {
+  --blade-len: 900px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len);
+  height: var(--blade-len);
+  transform: translate(-50%, -50%) rotate(-62deg);
+  transform-origin: center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.blade-scar,
+.blade-main,
+.blade-ghost1,
+.blade-ghost2,
+.blade-orb,
+.blade-shock,
+.blade-particle,
+.blade-beam,
+.blade-spark,
+.blade-wound {
+  position: absolute;
+  pointer-events: none;
+}
+
+.blade-scar {
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len);
+  height: 6px;
+  transform: translate(-50%, -50%) scaleX(0);
+  transform-origin: left center;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #78c8ff40, #b4e6ffb3 30%, #fffffff2 50%, #b4e6ffb3 70%, #78c8ff40);
+  box-shadow: 0 0 6px 2px #96d2ff80, 0 0 16px 5px #50a0e659, 0 0 38px 10px #286eb433;
+  opacity: 0;
+  z-index: 3;
+  animation-name: scarUnfurl, scarDissolve;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.65, 0.2, 1), cubic-bezier(0.3, 0, 0.7, 0.2);
+}
+
+.blade-main,
+.blade-ghost1,
+.blade-ghost2 {
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len);
+  height: 14px;
+  transform: translate(-50%, -50%) translateX(-900px);
+  transform-origin: center;
+  clip-path: polygon(0% 50%, 2.5% 0%, 97.5% 0%, 100% 50%, 97.5% 100%, 2.5% 100%);
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #c8e6ff99 4%, #fff 18%, #fff 50%, #fff 82%, #c8e6ff99 96%, transparent);
+  box-shadow: 0 0 4px 1px #fffffff2, 0 0 12px 3px #a0d2ffbf, 0 0 28px 6px #4696dc80, 0 0 55px 12px #2864aa4d;
+  opacity: 0;
+  z-index: 5;
+}
+.blade-main {
+  animation-name: bladeSwipe;
+}
+.blade-ghost1 {
+  height: 11px;
+  filter: blur(1px) brightness(1.3) saturate(1.4);
+  z-index: 4;
+  animation-name: bladeSwipeGhost1;
+}
+.blade-ghost2 {
+  height: 9px;
+  filter: blur(2px) brightness(1.5) saturate(1.6);
+  z-index: 4;
+  animation-name: bladeSwipeGhost2;
+}
+
+.blade-orb {
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #c0e0ff 35%, #64aae680 65%, transparent 75%);
+  box-shadow: 0 0 15px 5px #b4dcffd9, 0 0 40px 14px #50a0e673, 0 0 80px 30px #286eb440;
+  opacity: 0;
+  z-index: 6;
+  animation-name: orbCharge, orbBurst;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.3, 0.1, 0.4, 1), cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+.blade-shock {
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len);
+  height: 235px;
+  transform: translate(-50%, -50%) scaleX(0) scaleY(0.4);
+  border: 2.5px solid #a0d2ffb3;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 3px #96d2ff80, 0 0 35px 10px #4696dc4d;
+  opacity: 0;
+  z-index: 7;
+  animation-name: shockExpand;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.5, 0.2, 1);
+}
+
+.blade-particle {
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #b8dcff 45%, #64aae666 70%, transparent 80%);
+  box-shadow: 0 0 6px 2px #c8e6ffe6, 0 0 16px 5px #64b4f080;
+  transform: translate(-50%, -50%) translateX(var(--particle-start, 0px));
+  opacity: 0;
+  z-index: 7;
+  animation-name: particleConverge;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.45, 0.05, 0.3, 1);
+}
+
+.blade-beam {
+  left: 50%;
+  top: 50%;
+  height: 2.5px;
+  transform-origin: left center;
+  transform: rotate(var(--beam-angle, 0deg)) scaleX(0);
+  border-radius: 1.5px;
+  background: linear-gradient(to right, #fff 0%, #c8e4ff 35%, #78befa80 70%, transparent 100%);
+  box-shadow: 0 0 4px 1px #c8e6ffe6;
+  opacity: 0;
+  z-index: 8;
+  animation-name: beamBurst;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.6, 0.25, 1);
+}
+
+.blade-spark {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #a8d4ff 50%, #5096dc66 80%, transparent 100%);
+  box-shadow: 0 0 5px 1.5px #b4dcffd9;
+  opacity: 0;
+  z-index: 9;
+  animation-name: sparkFly;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.6, 0.3, 1);
+}
+
+.blade-wound {
+  left: 50%;
+  top: 50%;
+  height: 3px;
+  transform: translate(-50%, -50%) scaleX(0);
+  transform-origin: center;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #fffffff2 30%, #fff 50%, #fffffff2 70%, transparent);
+  box-shadow: 0 0 5px 2px #dcf0ffe6, 0 0 14px 5px #78befa8c;
+  opacity: 0;
+  z-index: 8;
+  animation-name: woundFlash;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+@keyframes scarUnfurl {
+  0% { transform: translate(-50%, -50%) scaleX(0); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
+}
+@keyframes scarDissolve {
+  0% { transform: translate(-50%, -50%) scaleX(1); opacity: 1; filter: brightness(1); }
+  25% { opacity: 0.75; filter: brightness(1.6); }
+  55% { opacity: 0.35; filter: brightness(2.2); }
+  100% { transform: translate(-50%, -50%) scaleX(1); opacity: 0; filter: brightness(3); }
+}
+@keyframes bladeSwipe {
+  0% { transform: translate(-50%, -50%) translateX(calc(-1 * var(--blade-len))); opacity: 0; }
+  6% { opacity: 1; }
+  55% { opacity: 1; filter: brightness(1.15); }
+  88% { opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) translateX(var(--blade-len)); opacity: 0; }
+}
+@keyframes bladeSwipeGhost1 {
+  0% { transform: translate(-50%, -50%) translateX(calc(-1 * var(--blade-len))); opacity: 0; }
+  5% { opacity: 0.55; }
+  70% { opacity: 0.35; }
+  100% { transform: translate(-50%, -50%) translateX(var(--blade-len)); opacity: 0; }
+}
+@keyframes bladeSwipeGhost2 {
+  0% { transform: translate(-50%, -50%) translateX(calc(-1 * var(--blade-len))); opacity: 0; }
+  5% { opacity: 0.35; }
+  80% { opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) translateX(var(--blade-len)); opacity: 0; }
+}
+@keyframes orbCharge {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  30% { opacity: 0.95; }
+  70% { transform: translate(-50%, -50%) scale(2.6); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0.9; }
+}
+@keyframes orbBurst {
+  0% { transform: translate(-50%, -50%) scale(2.8); opacity: 0.9; }
+  40% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+}
+@keyframes shockExpand {
+  0% { transform: translate(-50%, -50%) scaleX(0) scaleY(0.4); opacity: 0.9; }
+  30% { opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scaleX(1) scaleY(1); opacity: 0; }
+}
+@keyframes particleConverge {
+  0% { transform: translate(-50%, -50%) translateX(var(--particle-start, 0px)); opacity: 0; }
+  10% { opacity: 1; }
+  78% { opacity: 1; filter: brightness(1.3); }
+  95% { opacity: 0.7; filter: brightness(2); }
+  100% { transform: translate(-50%, -50%) translateX(0); opacity: 0; filter: brightness(3); }
+}
+@keyframes beamBurst {
+  0% { transform: rotate(var(--beam-angle, 0deg)) scaleX(0); opacity: 1; }
+  30% { opacity: 1; filter: brightness(1.3); }
+  100% { transform: rotate(var(--beam-angle, 0deg)) scaleX(1); opacity: 0; filter: brightness(2); }
+}
+@keyframes sparkFly {
+  0% { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity: 1; }
+  25% { opacity: 1; filter: brightness(1.4); }
+  100% { transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(0.2); opacity: 0; filter: brightness(2.5); }
+}
+@keyframes woundFlash {
+  0% { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
+  35% { opacity: 1; filter: brightness(1.5); }
+  100% { transform: translate(-50%, -50%) scaleX(1); opacity: 0; filter: brightness(2.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blade-scar,
+  .blade-main,
+  .blade-ghost1,
+  .blade-ghost2,
+  .blade-orb,
+  .blade-shock,
+  .blade-particle,
+  .blade-beam,
+  .blade-spark,
+  .blade-wound {
+    animation: none;
+  }
+}

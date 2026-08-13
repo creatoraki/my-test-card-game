@@ -95,6 +95,28 @@
   82%, 100% { opacity: 0; }                           /* 820ms 画面完全恢复 */
 }
 
+/* 刀光双闪: 关键帧百分比刻意与 BladeSlashFx 的 TS 时间轴对表, 覆盖完整 1600ms;
+   0~100ms 是第一拍, 59%~65% 约对应 950~1040ms 的爆裂余震。 */
+.battle-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: #fff;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: bladeScreenFlash 1600ms linear both;
+}
+@keyframes bladeScreenFlash {
+  0% { opacity: 0; }
+  1.1% { opacity: 0.68; }
+  6.25% { opacity: 0; }
+  59% { opacity: 0; }
+  60% { opacity: 0.4; }
+  65% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
 /* ===================== 提示条 ===================== */
 .hint-bar {
   grid-area: hint;
@@ -112,6 +134,7 @@
 .battle > .battle-hud {
   z-index: 2;
 }
+
 /* 战斗终端 */
 .battle-viewport {
   width: 100%;
@@ -422,4 +445,11 @@
 .overlay-card h2 {
   margin: 0;
   font-size: 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-dim,
+  .battle-flash {
+    animation: none;
+  }
 }

@@ -111,7 +111,8 @@ src/ui/
 | [AmbienceLayer](../../src/ui/battle/AmbienceLayer/AmbienceLayer.tsx) | 双 Canvas 粒子和氛围层；两层同时是 3D 纵深层（`translateZ` 写在自己的 module.css，纵深值由 BattleScreen 下发）。隐藏页面暂停 rAF，减少动态效果时不挂载，调色层在场景外。 |
 | [fx/HitFxLayer](../../src/ui/battle/fx/HitFxLayer/HitFxLayer.tsx) | 敌我共用命中特效和飘字；以 `hit.seq` 重挂载重播。`hitFxVars()` 返回的是 `UnitReact` 词元而非类名。 |
 | [fx/SpriteFx](../../src/ui/battle/fx/SpriteFx/SpriteFx.tsx) | 一次性序列帧播放器。 |
-| [fx/IaiSlashFx](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.tsx) | `iai-slash` 居合斩程序化特效；`impactMs` 需与 CSS 关键帧同步，`animation-name` 必须留在 CSS 里（理由见 styles.md）。 |
+| [fx/IaiSlashFx](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.tsx) | `iai-slash` 居合斩程序化特效；`proc.impactMs` 需与 CSS 关键帧同步，`animation-name` 必须留在 CSS 里（理由见 styles.md）。 |
+| [fx/BladeSlashFx](../../src/ui/battle/fx/BladeSlashFx/BladeSlashFx.tsx) | `blade-slash` 三拍刀光程序化特效；`proc` 时序由 TSX 行内下发，固定几何表保证重播稳定，关键帧名留在 CSS Modules 内。 |
 | [fx/DeathVanishFx](../../src/ui/battle/fx/DeathVanishFx/DeathVanishFx.tsx) | 敌方死亡的附加白光：脚下扩散光环与确定性白色光粒；只在死亡闸门的 vanish 阶段挂载，不承载战斗状态。 |
 | [styles/unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css) | 敌我共用的阵亡叠层样式。 |
 | [animations.ts](../../src/ui/battle/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设。调演出节奏优先改这里；死亡闸门时序另见 `deathChoreo.ts`。 |

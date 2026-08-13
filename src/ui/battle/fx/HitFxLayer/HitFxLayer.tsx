@@ -1,12 +1,18 @@
-import { ANIM, type HitFx } from "@/ui/battle/animations";
+import { ANIM, type CardAnim, type HitFx, type ProcFxPreset } from "@/ui/battle/animations";
 import type { UnitReact } from "@/ui/battle/unitShell";
 import { cx } from "@/ui/common/cx";
 import { SpriteFx } from "@/ui/battle/fx/SpriteFx";
 import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
+import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
 import s from "./HitFxLayer.module.css";
 
 // 命中表现的共用件: 敌人(CombatantView)与我方头像栏(AllyBar)都靠这两个导出, 保证两边的
 // 特效着色、命中时序、飘字完全一致 —— 只有承载它们的外壳不同(场上立绘 vs 玻璃头像卡)。
+
+const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Element>> = {
+  "iai-slash": IaiSlashFx,
+  "blade-slash": BladeSlashFx,
+};
 
 // 由 hit 推出「受击反应 + CSS 变量」, 交给单位外壳挂在根节点上。
 // ★ 返回的不再是**类名**而是 UnitReact 词元("hit" / "bless" / null): 两种外壳分属两个组件,
@@ -29,9 +35,9 @@ export function hitFxVars(hit: HitFx | null): {
     react: preset.kind === "attack" ? "hit" : "bless",
     vars: {
       "--vfx-color": preset.color,
-      "--vfx-impact": `${preset.sprite?.impactMs ?? preset.iai?.impactMs ?? 0}ms`,
-      "--vfx-float-delay": `${preset.iai?.impactMs ?? 0}ms`,
-      "--vfx-float-dur": `${preset.iai?.floatMs ?? 950}ms`,
+      "--vfx-impact": `${preset.sprite?.impactMs ?? preset.proc?.impactMs ?? 0}ms`,
+      "--vfx-float-delay": `${preset.proc?.impactMs ?? 0}ms`,
+      "--vfx-float-dur": `${preset.proc?.floatMs ?? 950}ms`,
     },
   };
 }
@@ -44,7 +50,8 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
   const preset = hit ? ANIM[hit.anim] : null;
   // 提出局部 const 保住闭包内的类型窄化(直接在 JSX 里写 preset.sprite! 会丢窄化)
   const sprite = preset?.sprite;
-  const iai = preset?.iai;
+  const proc = preset?.proc;
+  const Proc = hit ? PROC_FX[hit.anim] : undefined;
 
   return (
     <>
@@ -57,9 +64,8 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
         >
           {sprite ? (
             <SpriteFx sprite={sprite} />
-          ) : iai ? (
-            // 居合斩不设 top, 沿用 .vfx 默认 top:78px(立绘中段) ⇒ 斩痕贯穿身体
-            <IaiSlashFx preset={iai} />
+          ) : Proc && proc ? (
+            <Proc preset={proc} />
           ) : (
             <span className={s["vfx-emoji"]}>{preset.emoji}</span>
           )}

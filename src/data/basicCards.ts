@@ -18,7 +18,7 @@ export function makeBasicCardDefs(charId: string): CardDef[] {
       cardType: "normal",
       targeting: "foe",
       rarity: "basic",
-      anim: "slash",
+      anim: "blade-slash",
       effects: [{ type: "DAMAGE", multiplier: 0.9, target: "primary" }],
       text: "选择一名敌人，挥出一击造成 {0} 点伤害。",
     },

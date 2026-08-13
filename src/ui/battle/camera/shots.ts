@@ -2,7 +2,7 @@ import type { CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/animations";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "foe";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "foe";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -54,6 +54,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   // DEATH.drain + DEATH.vanish = 1520ms; 击杀镜头多留 40ms 覆盖完整消散段。
   kill: { kind: "kill", scale: 1.85, fit: 0.68, yaw: 6, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 190, damping: 16 } }, lead: 320, hold: 1560, punch: 0.08, shake: 28, creep: 20, hitstop: 140, slowmo: { scale: 0.25, ms: 320 } },
   iai: { kind: "iai", scale: 1.65, fit: 0.72, yaw: 5, pitch: 4, roll: 8, rig: { s: QUICK, roll: { stiffness: 210, damping: 15 } }, lead: 260, hold: 960, punch: 0.075, shake: 24, creep: 0, hitstop: 110 },
+  // 刀光视觉时间轴约 1600ms; hold 1800ms 给刀痕消散尾段留 170ms 卸载余量。
+  blade: { kind: "blade", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 1800, punch: 0.06, shake: 20, creep: 0, hitstop: 90 },
 };
 
 export function pickShot(ctx: ShotContext): ShotPreset {
@@ -62,6 +64,7 @@ export function pickShot(ctx: ShotContext): ShotPreset {
   if (ctx.isKill) return SHOTS.kill;
   if (ctx.targetCount >= 2) return SHOTS.aoe;
   if (ctx.anim === "iai-slash") return SHOTS.iai;
+  if (ctx.anim === "blade-slash") return SHOTS.blade;
   if (ctx.anim === "sword-fall" || ctx.shake === 2 || ctx.damageRatio >= 0.35) return SHOTS.heavy;
   if (ctx.shake === 1 && ctx.damageRatio < 0.15) return SHOTS.light;
   return SHOTS.normal;

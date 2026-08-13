@@ -574,7 +574,7 @@ export function BattleScreen() {
         at: hitAt,
         run: () => {
           setTelegraphId(null);
-          deaths.setImpactOffset(ANIM[step.anim].iai?.impactMs ?? 0);
+          deaths.setImpactOffset(ANIM[step.anim].proc?.impactMs ?? 0);
           commit(step.snapshot);
           const hitSeq = ++hitSeqRef.current;
           const map: Record<string, HitFx> = {};
@@ -585,7 +585,7 @@ export function BattleScreen() {
             map[h.id] = fx;
           }
           setHits(map);
-          const impactDelay = ANIM[step.anim].iai?.impactMs ?? 0;
+          const impactDelay = ANIM[step.anim].proc?.impactMs ?? 0;
           timeline.schedule(impactDelay, () => {
             setHitstop(preset.hitstop > 0);
             if (preset.hitstop > 0) {
@@ -727,9 +727,9 @@ export function BattleScreen() {
   //   (归属角色 = card.ownerCharId; 我方 Combatant 的 id 就是角色 id, runStore.launchBattle
   //    如此建局, fxTargets 的 case "self" 也依赖这一点。)
 
-  // 居合斩全屏压暗: 由 hits 派生, 与特效同挂同卸(tRestore 的 setHits({}) 自动清掉),
-  // key=seq 保证连发重放。零新增 state / 计时器。
-  const dimHit = Object.values(hits).find((h) => ANIM[h.anim].iai);
+  // 全屏程序化层由 hits 派生, 与特效同挂同卸(setHits({}) 自动清掉), key=seq 保证重放。
+  const dimHit = Object.values(hits).find((h) => ANIM[h.anim].screenFx === "dim");
+  const flashHit = Object.values(hits).find((h) => ANIM[h.anim].screenFx === "flash");
   // 我方受到伤害 ⇒ 全屏血红暗角。由 hits 派生, hold 结束清空 hits 时自动卸载。
   const hurtHit = Object.entries(hits).find(
     ([id, h]) => battle.playerIds.includes(id) && h.float?.tone === "dmg",
@@ -845,6 +845,7 @@ export function BattleScreen() {
           HUD/顶栏; 不受 combatant-stage 的 scale 包含块与顿帧暂停选择器影响, 70ms
           顿帧期间压暗/反白闪照常播(世界冻结、刀光继续走)。 */}
       {dimHit && <div key={dimHit.seq} className={s["battle-dim"]} aria-hidden />}
+      {flashHit && <div key={flashHit.seq} className={s["battle-flash"]} aria-hidden />}
       {hurtHit && <HurtVignette key={hurtHit.seq} seq={hurtHit.seq} />}
 
       {/* <RoundIndicator
