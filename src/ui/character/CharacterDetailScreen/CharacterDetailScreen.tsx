@@ -15,7 +15,7 @@ import { deckUpgradeCost, RULES, type Rarity, type StatBlock } from "@/engine";
 import { getCharacter, getItemDef } from "@/data";
 import type { EquipSlot } from "@/items/types";
 import { useRunStore } from "@/store/runStore";
-import { canAddRarity, deckForgeCosts, deriveStats, useTownStore } from "@/store/townStore";
+import { availablePools, deckForgeCosts, deriveStats, useTownStore } from "@/store/townStore";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckForgeBar } from "@/ui/character/DeckForgeBar";
@@ -230,14 +230,13 @@ export function CharacterDetailScreen() {
   const onField = party.includes(charId);
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
   const costs = deckForgeCosts(cs, day);
-  const hasDrawPool = (Object.keys(def.pools) as (keyof typeof def.pools)[]).some(
-    (rarity) => def.pools[rarity].length > 0 && canAddRarity(cs.deck, rarity),
-  );
+  const pools = availablePools(cs);
   const hasPool: Record<Rarity, boolean> = {
-    common: def.pools.common.length > 0,
-    uncommon: def.pools.uncommon.length > 0,
-    rare: def.pools.rare.length > 0,
+    common: pools.common.length > 0,
+    uncommon: pools.uncommon.length > 0,
+    rare: pools.rare.length > 0,
   };
+  const hasDrawPool = hasPool.common || hasPool.uncommon || hasPool.rare;
   const canConfirmDraw = !cs.pendingDraw && cs.exp >= costs.draw && hasDrawPool;
   const canRemove = cs.exp >= costs.remove && cs.deck.length > cs.minDeckSize;
   const canUpgrade = costs.upgrade != null && cs.exp >= costs.upgrade;

@@ -26,6 +26,7 @@ import {
   CHARACTERS,
   bondPool,
   getBondDef,
+  getCardDef,
   getCharacter,
   getItemDef,
   makeCard,
@@ -254,6 +255,29 @@ export function canAddRarity(deck: Card[], rarity: Rarity): boolean {
   return countByRarity(deck)[rarity] < RULES.deck.rarityCap[rarity];
 }
 
+export function countByDefId(deck: Card[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const card of deck) out[card.id] = (out[card.id] ?? 0) + 1;
+  return out;
+}
+
+export function canAddCopy(deck: Card[], defId: string): boolean {
+  const rarity = getCardDef(defId).rarity;
+  if (rarity === "basic") return true;
+  return (countByDefId(deck)[defId] ?? 0) < RULES.deck.copyCap[rarity];
+}
+
+export function availablePools(cs: CharacterState): Record<Rarity, string[]> {
+  const pools = getCharacter(cs.charId).pools;
+  const out = {} as Record<Rarity, string[]>;
+  for (const rarity of ["common", "uncommon", "rare"] as Rarity[]) {
+    out[rarity] = canAddRarity(cs.deck, rarity)
+      ? pools[rarity].filter((defId) => canAddCopy(cs.deck, defId))
+      : [];
+  }
+  return out;
+}
+
 // 按卡组等级摇一次稀有度。该档卡池为空时自动降级(rare → uncommon → common)。
 function rollRarity(level: number, pools: Record<Rarity, string[]>, rand: () => number): Rarity {
   const weights = deckRarityWeights(level);
@@ -270,15 +294,16 @@ function rollRarity(level: number, pools: Record<Rarity, string[]>, rand: () => 
 }
 
 function rollDrawOptions(cs: CharacterState): string[] | null {
-  const pools = getCharacter(cs.charId).pools;
+  const pools = availablePools(cs);
   const rarity = rollRarity(cs.deckLevel, pools, Math.random);
-  if (!canAddRarity(cs.deck, rarity)) return null;
   const pool = pools[rarity];
   if (!pool.length) return null;
-  return Array.from(
-    { length: RULES.deck.drawChoices },
-    () => pool[Math.floor(Math.random() * pool.length)],
-  );
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, Math.min(RULES.deck.drawChoices, shuffled.length));
 }
 
 // 取该角色今日的锻造用量; 跨日自动归零(懒重置, 不依赖 advanceDay)。
@@ -789,7 +814,7 @@ export const useTownStore = create<TownStore>()(
         const card = makeCard(cardDefId);
         // 再校验一次限携 —— 候选是抽卡那一刻算的, 期间卡组可能已经变了。
         const rarity = card.rarity === "basic" ? "common" : card.rarity ?? "common";
-        if (!canAddRarity(cs.deck, rarity)) {
+        if (!canAddRarity(cs.deck, rarity) || !canAddCopy(cs.deck, cardDefId)) {
           set({ characters: { ...get().characters, [charId]: { ...cs, pendingDraw: null } } });
           return;
         }

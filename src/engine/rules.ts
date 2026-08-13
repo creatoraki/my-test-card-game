@@ -102,6 +102,9 @@ export const RULES = {
     // 稀有度限携: 单个角色的个人卡组内, 每种稀有度最多携带的张数。
     // ⚠ 硬约束 —— 不能被卡组等级 / 装备 / 模组提高。
     rarityCap: { common: 20, uncommon: 6, rare: 3 } as Record<Rarity, number>,
+    // 同名卡副本上限: 个人卡组内同一张卡(同 CardDef.id)最多携带的张数。
+    // ⚠ 硬约束 —— 与 rarityCap 并存, 两者同时满足才能入卡。basic 不受限。
+    copyCap: { common: 3, uncommon: 2, rare: 1 } as Record<Rarity, number>,
 
     initialMinSize: 8, // 个人卡组的初始最小张数下限
     minSizeFloor: 5, // 下限最低可降到几张
