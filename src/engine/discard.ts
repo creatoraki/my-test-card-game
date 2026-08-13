@@ -70,7 +70,10 @@ export function moveToDiscard(
 
   const card = state.cards[uid];
   const rule = RULES.discard.reasons[reason];
-  if (rule.count) state.discardsThisRound += 1;
+  if (rule.count) {
+    state.discardsThisRound += 1;
+    state.discardsThisBattle += 1;
+  }
   if (!card || (!rule.trigger && !(reason === "roundEnd" && card.onDiscard?.alsoOnRoundEnd))) return;
   if (state.discardResolving.includes(uid)) return;
 

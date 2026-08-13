@@ -26,7 +26,7 @@ import {
   partyWaitLimit,
 } from "./stats";
 import { shuffle } from "./rng";
-import { allIds, applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
+import { applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { cardCost } from "./cost";
@@ -191,6 +191,9 @@ export function createBattle(
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
     lastDiscardBatch: 0,
+    discardsThisBattle: 0,
+    lastDiscardBatchFast: 0,
+    lastRecoverBatchFast: 0,
     pendingChoice: null,
   };
 
@@ -217,13 +220,11 @@ export function startRound(state: BattleState): void {
   state.waitsThisRound = 0;
   state.discardsThisRound = 0;
   state.lastDiscardBatch = 0;
+  state.lastDiscardBatchFast = 0;
+  state.lastRecoverBatchFast = 0;
   state.playedThisRound = [];
   state.lastPlayedCard = null;
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
-
-  if (RULES.combat.clearShieldOnRoundStart) {
-    for (const id of allIds(state)) state.combatants[id].shield = 0;
-  }
 
   const rn = RULES.resource.name;
   state.resources[rn] = partyManaPerRound(state) + (RULES.resource.carryOver ? state.resources[rn] ?? 0 : 0);

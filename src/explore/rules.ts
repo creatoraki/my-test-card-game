@@ -149,8 +149,7 @@ export const EXPLORE_RULES = {
 // ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40), 旧的
 //   「力量 +3 / 追加 2 名敌人」会让低档位变成纯亏, 玩家会本能地一个节点都不探索。
 //   故追加敌人上限 2→1、力量上限 +3→+2。
-// ⚠ 高档位刻意不给敌人「开局护盾」: RULES.combat.clearBlockOnRoundStart 会在第 1 回合
-//   开始时把护盾清空, 开局塞 block 等于什么都没做。要加硬度只能走状态(力量/荆棘/再生)。
+// ⚠ 护盾现已跨回合保留，开局护盾是可用的硬度手段；本次不调整高档位数值。
 export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 1,

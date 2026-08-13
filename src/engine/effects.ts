@@ -13,6 +13,9 @@ import { rngPick } from "./rng";
 function counterOf(state: BattleState, source: CounterSource): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
   if (source === "lastDiscardBatch") return state.lastDiscardBatch;
+  if (source === "discardsThisBattle") return state.discardsThisBattle;
+  if (source === "lastDiscardBatchFast") return state.lastDiscardBatchFast;
+  if (source === "lastRecoverBatchFast") return state.lastRecoverBatchFast;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((card) => card.cardType === "fast").length;
   return state.playedThisRound.length;
@@ -74,12 +77,13 @@ function applyEffect(
       //   写了 amount   ⇒ 固定伤害, 不用攻击力, 不吃防御与格挡
       //   写了 multiplier ⇒ 攻击力 × 倍率, 走完整管线
       const fixed = effect.amount != null;
-      let dmg = fixed ? amount : statOf(src, "attack") * (effect.multiplier ?? 1);
-      if (effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null) {
-        dmg *= 1 + counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer;
-      }
+      const bonusMult =
+        effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
+          ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
+          : 0;
+      const baseMultiplier = (effect.multiplier ?? 1) + bonusMult;
       const hits = effect.hitsFrom
-        ? counterOf(state, effect.hitsFrom)
+        ? Math.min(counterOf(state, effect.hitsFrom), effect.maxHits ?? Infinity)
         : Math.max(
             1,
             (effect.hits ?? 1) +
@@ -88,7 +92,13 @@ function applyEffect(
                 : 0),
           );
       for (let i = 0; i < hits; i++)
-        for (const id of targetIds)
+        for (const id of targetIds) {
+          const targetHasShield = state.combatants[id]?.shield > 0;
+          const damageMultiplier =
+            !fixed && effect.damageBonus?.when === "targetHasShield" && targetHasShield
+              ? baseMultiplier + effect.damageBonus.multiplier
+              : baseMultiplier;
+          const dmg = fixed ? amount * (1 + bonusMult) : statOf(src, "attack") * damageMultiplier;
           ops.dealDamage(state, sourceId, id, dmg, {
             isAttack: true,
             fixed,
@@ -97,6 +107,7 @@ function applyEffect(
             unblockable,
             hitBonus: effect.hitBonus,
           });
+        }
       break;
     }
     case "GAIN_SHIELD": {
@@ -113,8 +124,12 @@ function applyEffect(
       break;
     }
     case "APPLY_STATUS":
-      for (const id of targetIds) ops.applyStatus(state, id, effect.status!, effect.stacks ?? 0);
+    case "APPLY_STATUS": {
+      const stacks = effect.stacksFrom ? counterOf(state, effect.stacksFrom) : effect.stacks ?? 0;
+      if (stacks <= 0) break;
+      for (const id of targetIds) ops.applyStatus(state, id, effect.status!, stacks);
       break;
+    }
     case "APPLY_STAT_MOD":
       for (const id of targetIds)
         ops.applyStatMod(state, id, effect.stat!, amount, effect.pct ?? false);
@@ -146,8 +161,10 @@ function applyEffect(
           pool.splice(pool.indexOf(uid), 1);
         }
       } else selected = state.hand.slice(0, amountToDiscard);
+      const selectedFastCount = selected.filter((uid) => state.cards[uid]?.cardType === "fast").length;
       for (const uid of selected) ops.discard(state, uid, "effect");
       state.lastDiscardBatch = selected.length;
+      state.lastDiscardBatchFast = selectedFastCount;
       break;
     }
     case "RECOVER_FROM_DISCARD": {
@@ -158,7 +175,23 @@ function applyEffect(
         limit - state.hand.length,
       );
       if (count <= 0 || state.pendingChoice) {
+        state.lastRecoverBatchFast = 0;
         ops.log(state, "弃牌堆为空或手牌已满，无法回收牌");
+        break;
+      }
+      if (effect.recoverPick === "random") {
+        const pool = [...state.discard];
+        let recoveredFastCount = 0;
+        for (let i = 0; i < count && pool.length > 0; i++) {
+          const uid = rngPick(state, pool);
+          const card = state.cards[uid];
+          if (card?.cardType === "fast") recoveredFastCount += 1;
+          state.discard = state.discard.filter((id) => id !== uid);
+          state.hand.push(uid);
+          pool.splice(pool.indexOf(uid), 1);
+        }
+        state.lastRecoverBatchFast = recoveredFastCount;
+        ops.log(state, `从弃牌堆随机回收 ${count} 张牌`);
         break;
       }
       state.pendingChoice = { kind: "recoverFromDiscard", sourceCardUid: sourceId, count };
@@ -166,7 +199,16 @@ function applyEffect(
       break;
     }
     case "MARK_CARDS": {
-      if (effect.markPick !== "handRandom" || !effect.mark) break;
+      if (!effect.mark || !effect.markPick) break;
+      if (effect.markPick === "handAll") {
+        for (const uid of state.hand) {
+          const card = state.cards[uid];
+          if (!card) continue;
+          card.marks ??= [];
+          if (!card.marks.includes(effect.mark)) card.marks.push(effect.mark);
+        }
+        break;
+      }
       const amountToMark = Math.max(0, Math.floor(effect.amount ?? 0));
       const pool = [...state.hand];
       for (let i = 0; i < amountToMark && pool.length > 0; i++) {

@@ -12,7 +12,10 @@ export type CounterSource =
   | "discardsThisRound"
   | "fastPlaysThisRound"
   | "cardsPlayedThisRound"
-  | "lastDiscardBatch";
+  | "lastDiscardBatch"
+  | "discardsThisBattle"
+  | "lastDiscardBatchFast"
+  | "lastRecoverBatchFast";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -83,22 +86,26 @@ export interface EffectDescriptor {
   target?: EffectTarget; // 默认 "primary"
   status?: string; // APPLY_STATUS: 状态 id
   stacks?: number; // APPLY_STATUS: 层数
+  stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
   stat?: keyof StatBlock; // APPLY_STAT_MOD: 要修改的属性
   pct?: boolean; // APPLY_STAT_MOD: true = 百分比修正(百分点), 缺省 = 固定值修正
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
   hits?: number; // DAMAGE: 段数, 缺省 1
   hitsFrom?: CounterSource; // DAMAGE: 段数直接等于计数, 可为 0
+  maxHits?: number; // DAMAGE: 直接取段数的上限
   bonusHitsFrom?: CounterSource; // DAMAGE: 每 1 点计数追加 1 段
   maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
-  bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数追加倍率
-  bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数追加的倍率
+  bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数加算到伤害倍率上(不是乘算)
+  bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数加算的倍率
+  damageBonus?: { when: "targetHasShield"; multiplier: number }; // DAMAGE: 按目标护盾逐目标加算倍率
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
   amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
   condition?: "discardedThisRound" | "noFastPlaysThisRound"; // 满足本回合条件时才结算
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
-  markPick?: "handRandom"; // MARK_CARDS: 从手牌随机选择
+  markPick?: "handRandom" | "handAll"; // MARK_CARDS: 从手牌随机选择或全部选择
+  recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal"; // CONVERT_CARD_TYPE: 从手牌普通牌中随机选择
 }
@@ -143,7 +150,11 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
-  costRule?: { when: "discardedThisRound"; delta: number };
+  costRule?: {
+    when: "discardedThisRound" | "fastPlaysThisRound";
+    threshold?: number;
+    delta: number;
+  };
   onDiscard?: DiscardTrigger;
   keywords?: CardKeywordRef[];
 }
@@ -364,6 +375,9 @@ export interface BattleState {
   } | null;
   discardResolving: string[];
   lastDiscardBatch: number;
+  discardsThisBattle: number;
+  lastDiscardBatchFast: number;
+  lastRecoverBatchFast: number;
   pendingChoice: PendingChoice | null;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的负重惩罚(百分点), 战斗中恒定不变(《探索模式设计.md》§6.3)。
