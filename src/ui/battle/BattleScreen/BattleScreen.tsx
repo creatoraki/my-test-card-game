@@ -574,8 +574,14 @@ export function BattleScreen() {
         at: hitAt,
         run: () => {
           setTelegraphId(null);
-          deaths.setImpactOffset(ANIM[step.anim].proc?.impactMs ?? 0);
-          commit(step.snapshot);
+          const proc = ANIM[step.anim].proc;
+          const impactDelay = proc?.impactMs ?? 0;
+          if (proc?.damageAtImpact) {
+            deaths.setImpactOffset(0);
+          } else {
+            deaths.setImpactOffset(impactDelay);
+            commit(step.snapshot);
+          }
           const hitSeq = ++hitSeqRef.current;
           const map: Record<string, HitFx> = {};
           for (const h of step.hits) {
@@ -585,8 +591,8 @@ export function BattleScreen() {
             map[h.id] = fx;
           }
           setHits(map);
-          const impactDelay = ANIM[step.anim].proc?.impactMs ?? 0;
           timeline.schedule(impactDelay, () => {
+            if (proc?.damageAtImpact) commit(step.snapshot);
             setHitstop(preset.hitstop > 0);
             if (preset.hitstop > 0) {
               cameraRig.setTimeScale(0);

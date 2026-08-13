@@ -182,9 +182,10 @@
   50% { transform: scale(0.4); opacity: 0.9; }
   80%, 100% { transform: scale(9); opacity: 0; }
 }
-/* 刀光组件自带 .blade-shock 冲击波, 不需要公共环(否则会在 950ms 爆裂前重复出现)。 */
+/* 刀光组件自带 .blade-shock 冲击波。基态本身就是可见圆环, 必须 content:none 而非 animation:none,
+   否则会在 950ms 爆裂前静止显示在目标中心。 */
 .vfx-blade-slash.vfx-attack::after {
-  animation: none;
+  content: none;
 }
 /* —— 伤害/治疗飘字 —— */
 .float-num {

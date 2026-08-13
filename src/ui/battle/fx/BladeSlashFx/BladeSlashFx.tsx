@@ -167,9 +167,9 @@ const WOUNDS = [
 ] as const;
 
 export function BladeSlashFx({ preset }: { preset: ProcFxPreset }) {
-  const impactMs = Math.max(preset.impactMs, 0);
-  const convergeStart = impactMs + 300;
-  const burstStart = convergeStart + 530;
+  // 时间轴以 preset.impactMs(爆点)为锚, 第一拍固定在 0ms。
+  const burstStart = Math.max(preset.impactMs, 0);
+  const convergeStart = burstStart - 530;
   const burstStyle = (delay: number, duration: number) => ({
     animationDelay: timing(burstStart + delay),
     animationDuration: timing(duration),
@@ -183,14 +183,14 @@ export function BladeSlashFx({ preset }: { preset: ProcFxPreset }) {
       <div
         className={s["blade-scar"]}
         style={{
-          animationDelay: `${timing(0)}, ${timing(1250)}`,
+          animationDelay: `${timing(0)}, ${timing(burstStart + 300)}`,
           animationDuration: `${timing(220)}, ${timing(380)}`,
         }}
       />
       <div
         className={s["blade-orb"]}
         style={{
-          animationDelay: `${timing(810)}, ${timing(950)}`,
+          animationDelay: `${timing(burstStart - 140)}, ${timing(burstStart)}`,
           animationDuration: `${timing(140)}, ${timing(180)}`,
         }}
       />

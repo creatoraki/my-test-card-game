@@ -31,6 +31,9 @@ export interface ProcFxPreset {
   // runSteps 用它推迟顿帧/震屏, hitFxVars 用它推迟受击抖动/闪白与飘字。
   impactMs: number;
   floatMs: number; // 飘字时长(压缩): impactMs + floatMs 须小于命中特效的 hold, 否则飘字被卸载截断
+  // 掉血(commit 快照)是否推迟到 impactMs。缺省 false = 挂载即结算(历史行为, iai-slash 依赖它)。
+  // 蓄力型特效(爆点远晚于挂载)置 true, 否则血条会在爆开前就掉完。
+  damageAtImpact?: boolean;
 }
 
 export interface AnimPreset {
@@ -155,10 +158,11 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     shake: 2, // 居合重斩, 与 sword-fall 同档
   },
   // 刀光斩(程序化 CSS): 1.6s 三拍, 目标中心斜贯、粒子收敛、八点爆裂与刀痕消散。
+  // 950ms 是第三拍爆点, 与 BladeSlashFx 的 BURST_START 同源; 掉血也在此刻结算。
   "blade-slash": {
     kind: "attack",
     color: "#a8d4ff",
-    proc: { impactMs: 120, floatMs: 950 },
+    proc: { impactMs: 950, floatMs: 800, damageAtImpact: true },
     screenFx: "flash",
     windup: 190,
     hold: 1750,
