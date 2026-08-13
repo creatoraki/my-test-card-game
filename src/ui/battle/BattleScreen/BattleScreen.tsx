@@ -49,7 +49,7 @@ import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
 import { resetHandHover } from "@/ui/battle/handFocusStore";
 import { showBattleToast } from "@/ui/battle/battleToastStore";
 import { useIdleTwitch } from "@/ui/hooks/useIdleTwitch";
-import { useDeathGate } from "@/ui/battle/deathChoreo";
+import { DEATH, useDeathGate } from "@/ui/battle/deathChoreo";
 import { useStageScale } from "@/ui/hooks/stage";
 import { cx } from "@/ui/common/cx";
 import s from "./BattleScreen.module.css";
@@ -113,7 +113,7 @@ export function BattleScreen() {
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 ui/HandCard.css .hand-card 的 hand-deal-in)。
   const [renderHand, setRenderHand] = useState<
-    { card: Card; leaving: boolean; dealDelay: number }[]
+    { card: Card; leaving: boolean; purged: boolean; dealDelay: number }[]
   >([]);
   // 正在出牌离场的卡: 点击瞬间即开始出鞘(引擎稍后才在命中时刻把它移出手牌), 避免先缩回未选中位再飞出。
   const [playingOutUid, setPlayingOutUid] = useState<string | null>(null);
@@ -284,14 +284,20 @@ export function BattleScreen() {
       const prevUids = new Set(prev.map((e) => e.card.uid));
       const merged = prev.map((e) =>
         liveSet.has(e.card.uid)
-          ? { card: battle.cards[e.card.uid], leaving: false, dealDelay: e.dealDelay }
-          : { card: e.card, leaving: true, dealDelay: e.dealDelay },
+          ? { card: battle.cards[e.card.uid], leaving: false, purged: false, dealDelay: e.dealDelay }
+          : {
+              card: e.card,
+              leaving: true,
+              purged: battle.combatants[e.card.ownerCharId]?.alive === false,
+              dealDelay: e.dealDelay,
+            },
       );
       for (const uid of battle.hand) {
         if (!prevUids.has(uid)) {
           merged.push({
             card: battle.cards[uid],
             leaving: false,
+            purged: false,
             dealDelay: delayOf.get(uid) ?? 0,
           });
         }
@@ -898,6 +904,8 @@ export function BattleScreen() {
             targetable={isPlayerTurn && !!needsAlly}
             onSelect={onCombatantClick}
             deathPhaseOf={deaths.phaseOf}
+            deathRate={playbackRateRef.current}
+            deathVanishMs={DEATH.vanish}
           />
         </div>
         <HandTray

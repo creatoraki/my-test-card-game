@@ -97,7 +97,7 @@ export function createBattle(
       name: a.name,
       emoji: a.emoji,
       team: "player",
-      hp: Math.max(1, Math.min(maxHp, a.startHp ?? maxHp)),
+      hp: Math.max(0, Math.min(maxHp, a.startHp ?? maxHp)),
       hpLimit,
       maxHp,
       shield: 0,

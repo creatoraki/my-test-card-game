@@ -12,6 +12,8 @@
   gap: 10px;
   --bust-zoom: 2.3;
   --slot-base-w: 160px;
+  --death-vanish-ms: 700ms;
+  --death-rate: 1;
 }
 /* 覆盖 .combatant 的固定宽度: 槽宽交给 flex 均分, 高度撑满整条。
    flex-grow 可过渡 ⇒ 聚焦槽平滑变宽、其余槽位微收, 三槽总宽恒等于 --hud-party-w。 */
@@ -108,8 +110,130 @@
   /* 轻轻呼吸(1px, 比敌人更收敛 —— 取景窗不大, 幅度大了就成了"人在框里晃") */
   animation: allyBreathe 4200ms ease-in-out infinite;
 }
+.ally-bar .ally-slot[data-downed] .ally-frame {
+  border-color: #a83a4d;
+  background:
+    radial-gradient(ellipse at 50% 48%, #8e172b55, transparent 72%),
+    linear-gradient(180deg, #1a1015e8, #090709f5);
+  animation: allyDownedPulse 2.8s ease-in-out infinite;
+}
+.ally-bar .ally-slot[data-downed] .ally-portrait {
+  filter: grayscale(0.72) brightness(0.58) drop-shadow(0 4px 10px #000a);
+  animation-duration: 6800ms;
+}
+@keyframes allyDownedPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px #7d2239);
+  }
+  50% {
+    filter: drop-shadow(0 0 9px #c43b59) drop-shadow(0 0 18px #7d2239);
+  }
+}
+.ally-bar .ally-slot[data-death="vanish"] .ally-figure {
+  /* 必须连 breathing 一起覆盖, 否则立绘会边消解边继续呼吸。 */
+  animation: allyDeathVanish
+    calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
+.ally-bar .ally-slot[data-death="vanish"] .ally-frame {
+  animation: allyDeathFrameFlash
+    calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
+@keyframes allyDeathFrameFlash {
+  0%,
+  100% {
+    border-color: #6fd2ff3d;
+    filter: none;
+  }
+  26% {
+    border-color: #fff0f2;
+    filter: drop-shadow(0 0 9px #ff5368) drop-shadow(0 0 22px #ff334f);
+  }
+  52% {
+    border-color: #c33b51;
+    filter: drop-shadow(0 0 3px #a52c44);
+  }
+}
+@keyframes allyDeathVanish {
+  0% {
+    opacity: 1;
+    filter: none;
+    transform: translateY(0) scale(1);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 100%);
+  }
+  28% {
+    filter: brightness(4.5) grayscale(1);
+    transform: translateY(3px) scale(1.02);
+  }
+  70% {
+    opacity: 0.68;
+    filter: brightness(2.2) grayscale(1) blur(2px);
+    transform: translateY(16px) scale(1.03);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 86%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 86%);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1.5) grayscale(1) blur(5px);
+    transform: translateY(28px) scale(1.06);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 58%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 58%);
+  }
+}
 .ally-bar .ally-slot[data-dead] .ally-portrait {
   animation-play-state: paused;
+  filter: grayscale(1) brightness(0.35) drop-shadow(0 4px 10px #000a);
+}
+.ally-bar .ally-slot[data-dead] .ally-frame {
+  border-color: #5b4a52;
+  background: linear-gradient(180deg, #151316ef, #070709f5);
+}
+.ally-bar .ally-slot[data-dead] .ally-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(132deg, transparent 46%, #c6aeb755 47%, #261f24 48%, transparent 50%);
+  opacity: 0.9;
+}
+.ally-bar .ally-slot[data-dead] .ally-bars {
+  filter: brightness(0.42) saturate(0.4);
+}
+.ally-dead-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+.ally-dead-skull {
+  color: #ff5368;
+  font-size: 58px;
+  text-shadow: 0 0 8px #ff2448, 0 0 22px #8b102d;
+  opacity: 0.9;
+}
+.ally-dead-label {
+  position: absolute;
+  left: 50%;
+  bottom: 42px;
+  transform: translateX(-50%) skewX(-12deg);
+  padding: 4px 12px;
+  color: #ffd8dd;
+  background: #4b101dce;
+  border: 1px solid #e4556e;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 8px #ff2448;
+}
+.ally-dead-cracks {
+  position: absolute;
+  inset: 12% 8%;
+  background: linear-gradient(118deg, transparent 44%, #ff617955 45%, transparent 46%),
+    linear-gradient(66deg, transparent 54%, #e9466066 55%, transparent 56%),
+    linear-gradient(154deg, transparent 29%, #b9364d55 30%, transparent 31%);
+  mix-blend-mode: screen;
 }
 @keyframes allyBreathe {
   0%,
@@ -183,6 +307,18 @@ span.ally-portrait {
     filter: drop-shadow(0 0 10px var(--accent)) drop-shadow(0 0 4px var(--accent));
   }
 }
+/* 状态优先级: 濒死/死亡演出覆盖目标高亮与受击闪光, 避免 animation 简写互相抢占。 */
+.ally-bar .ally-slot[data-downed] .ally-frame {
+  animation: allyDownedPulse 2.8s ease-in-out infinite;
+}
+.ally-bar .ally-slot[data-death="vanish"] .ally-figure {
+  animation: allyDeathVanish
+    calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
+.ally-bar .ally-slot[data-death="vanish"] .ally-frame {
+  animation: allyDeathFrameFlash
+    calc(var(--death-vanish-ms, 700ms) / max(var(--death-rate, 1), 0.25)) ease-out forwards;
+}
 /* 空槽: 上阵人数少于 3 时的占位, 保持格宽恒定 */
 .ally-bar .ally-slot.empty {
   background: #05080a59;
@@ -203,5 +339,15 @@ span.ally-portrait {
   .ally-bar .ally-slot[data-react="hit"] .ally-figure::before {
     animation: none;
     opacity: 0.28;
+  }
+  .ally-bar .ally-slot[data-downed] .ally-frame {
+    animation: none;
+    filter: drop-shadow(0 0 6px #a42f4d);
+  }
+  .ally-bar .ally-slot[data-death="vanish"] .ally-figure {
+    animation: none;
+    opacity: 0;
+    filter: grayscale(1) brightness(0.35);
+    transform: translateY(28px);
   }
 }

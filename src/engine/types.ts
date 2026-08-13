@@ -215,6 +215,8 @@ export interface DamageCtx {
   blockRolled: boolean; // 本次是否触发格挡(伤害减半)
   blocked: number; // 被护盾吸收的量
   hpLost: number;
+  downed?: boolean; // 目标处于我方濒死态, 本次伤害触发死亡骰
+  fatal?: boolean; // 濒死死亡骰命中
 }
 
 export interface StatusHooks {

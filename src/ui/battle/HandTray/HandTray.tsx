@@ -8,6 +8,7 @@ import s from "./HandTray.module.css";
 interface RenderHandEntry {
   card: Card;
   leaving: boolean;
+  purged: boolean;
   dealDelay: number;
 }
 
@@ -44,6 +45,7 @@ export const HandTray = memo(function HandTray({
         {renderHand.map((entry) => {
           const { card } = entry;
           const leaving = entry.leaving || card.uid === playingOutUid;
+          const purged = entry.purged;
           const block = leaving || !isPlayerTurn ? "other" : playBlockReason(battle, card.uid);
           return (
             <HandCard
@@ -51,6 +53,7 @@ export const HandTray = memo(function HandTray({
               card={card}
               dealDelay={entry.dealDelay}
               leaving={leaving}
+              purged={purged}
               playable={block === null}
               unaffordable={block === "mana"}
               actionBadge={handAction}

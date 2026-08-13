@@ -55,7 +55,19 @@ export function markDead(state: BattleState, cmb: Combatant): void {
   cmb.hp = 0;
   cmb.alive = false;
   log(state, `${cmb.emoji} ${cmb.name} 倒下了`);
+  if (cmb.team === "player") purgeOwnerCards(state, cmb.charId, `${cmb.emoji} ${cmb.name}`);
   if (cmb.team === "enemy") noteChallengeKill(state, cmb);
+}
+
+// 死者的个人卡牌立刻退场: 抽牌堆/手牌/弃牌堆一并清空。
+// 刻意不进消耗堆, 也刻意保留 state.cards 的条目 —— UI 的手牌离场动画还要按 uid 查卡面。
+function purgeOwnerCards(state: BattleState, ownerId: string, ownerLabel: string): void {
+  const ownsCard = (uid: string) => state.cards[uid]?.ownerCharId === ownerId;
+  state.draw = state.draw.filter((uid) => !ownsCard(uid));
+  state.hand = state.hand.filter((uid) => !ownsCard(uid));
+  state.discard = state.discard.filter((uid) => !ownsCard(uid));
+  if (state.pendingChoice && ownsCard(state.pendingChoice.sourceCardUid)) state.pendingChoice = null;
+  log(state, `${ownerLabel} 的个人卡牌已清场`);
 }
 
 // ---------------------------------------------------------------------------
@@ -130,9 +142,25 @@ export function dealDamage(
   }
 
   // ---- 6. 落到 HP ----
-  if (target.team === "player" && dmg.amount > 0 && !getStatus(target, "buzhou"))
+  const downed = target.team === "player" && target.hp <= 0;
+  if (downed && dmg.amount > 0) {
+    dmg.downed = true;
+    dmg.fatal = roll(state, RULES.combat.downedDeathChance);
+    dmg.amount = 0;
+    dmg.hpLost = 0;
+    log(state, `${target.emoji} ${target.name} ${dmg.fatal ? "没能撑住" : "顶住了这次攻击"}`);
+
+    // 濒死判定仍算一次受击, 保留荆棘等 onAfterAttacked 联动, 但不产生 HP 损失。
+    for (const inst of [...target.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
+    cleanup(target);
+    if (dmg.fatal) markDead(state, target);
+    return;
+  }
+
+  if (target.team === "player" && target.hp > 0 && dmg.amount > 0 && !getStatus(target, "buzhou"))
     target.hpLimit = Math.max(1, target.hp);
-  target.hp -= dmg.amount;
+  target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
   dmg.hpLost = dmg.amount;
 
   const marks =
@@ -147,7 +175,7 @@ export function dealDamage(
     STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
   cleanup(target);
 
-  if (target.hp <= 0) markDead(state, target);
+  if (target.team !== "player" && target.hp <= 0) markDead(state, target);
 }
 
 // 最终治疗 =(基础治疗 + 治愈力)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力 × 倍率,
@@ -265,7 +293,7 @@ function runLifecycle(state: BattleState, hook: "onRoundStart" | "onRoundEnd" | 
       STATUS_DEFS[inst.id]?.hooks?.[hook]?.(ctxFor(state, id, inst));
     }
     cleanup(cmb);
-    if (cmb.hp <= 0) markDead(state, cmb);
+    if (cmb.team !== "player" && cmb.hp <= 0) markDead(state, cmb);
   }
 }
 

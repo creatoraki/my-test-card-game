@@ -17,6 +17,7 @@ interface Props {
   selected: boolean;
   variant?: "hand" | "pile";
   leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 HandCard.css .hand-card.leaving)
+  purged?: boolean; // true: 所属角色阵亡后碎裂消散
   dealDelay?: number; // 抽牌飞入的绝对延迟(ms), 由父级按批次计算
   onExited?: (uid: string) => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
   onClick?: (uid: string) => void;
@@ -51,6 +52,7 @@ export const HandCard = memo(function HandCard({
   selected,
   variant = "hand",
   leaving,
+  purged,
   dealDelay,
   onExited,
   onClick,
@@ -152,13 +154,17 @@ export const HandCard = memo(function HandCard({
           !playable && !unaffordable && s.unplayable,
           selected && s.selected,
           leaving && s.leaving,
+          purged && s.purged,
           card.upgraded && s.upgraded,
           card.contaminated && s.contaminated,
         )}
         onTransitionEnd={(e) => {
           // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
           // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。
-          if (leaving && e.propertyName === "transform") onExited?.(card.uid);
+          if (leaving && !purged && e.propertyName === "transform") onExited?.(card.uid);
+        }}
+        onAnimationEnd={(e) => {
+          if (purged && e.animationName.includes("cardShatter")) onExited?.(card.uid);
         }}
       >
         {/* 配图层: 卡上段的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪) */}
