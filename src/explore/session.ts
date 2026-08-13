@@ -143,7 +143,7 @@ export function encounterModifier(
   return {
     extraEnemies: extra,
     enemyStatuses: t.enemyStatuses.map((st) => ({ ...st })),
-    castTickDelta: t.castTickDelta,
+    moveDelayDelta: t.moveDelayDelta,
     hpMultiplier: isBoss ? 1 + EXPLORE_RULES.boss.hpPerTier * (t.tier - 1) : 1,
   };
 }
@@ -161,7 +161,7 @@ export function battleModifier(s: ExploreState, fillerEnemyIds: string[]): Encou
       ...(base.enemyStatuses ?? []),
       ...(mod.enemyStatuses ?? []).map((st) => ({ ...st })),
     ],
-    castTickDelta: (base.castTickDelta ?? 0) + (mod.castTickDelta ?? 0),
+    moveDelayDelta: (base.moveDelayDelta ?? 0) + (mod.moveDelayDelta ?? 0),
     hpMultiplier: (base.hpMultiplier ?? 1) * (mod.hpMultiplier ?? 1),
   };
 }
@@ -1370,7 +1370,7 @@ function mergeSlotMods(a?: SlotBattleMod, b?: SlotBattleMod): SlotBattleMod | nu
   return {
     extraEnemies: [...(a.extraEnemies ?? []), ...(b.extraEnemies ?? [])],
     enemyStatuses: [...(a.enemyStatuses ?? []), ...(b.enemyStatuses ?? [])],
-    castTickDelta: (a.castTickDelta ?? 0) + (b.castTickDelta ?? 0),
+    moveDelayDelta: (a.moveDelayDelta ?? 0) + (b.moveDelayDelta ?? 0),
     hpMultiplier: (a.hpMultiplier ?? 1) * (b.hpMultiplier ?? 1),
   };
 }

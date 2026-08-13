@@ -247,7 +247,7 @@ export interface StatBlock {
   critDamage: number; // 爆伤(百分点, 150 = 暴击伤害为 1.5 倍)
   precision: number; // 精准(百分点, 与命中率同向, 不封顶)
   // 节奏 / 防护 / 异常
-  initiative: number; // 先手: 敌人行动时刻 = max(1, 技能延迟 + 我方均值 − 敌方先手)
+  initiative: number; // 先手: 敌人招式发动时刻 = max(1, 招式延迟 + 我方均值 − 敌方先手)
   blockRate: number; // 格挡率(百分点, 最终值 70 封顶); 成功则本次伤害 ×RULES.combat.blockReduction
   healBoost: number; // 治愈强度(百分点): 最终治疗 ×(1 + 治愈强度/100)
   shieldBoost: number; // 护盾强度(百分点): 最终护盾 ×(1 + 护盾强度/100)
@@ -302,11 +302,10 @@ export interface Intent {
 export interface Enemy extends BaseCombatant {
   team: "enemy";
   enemyDefId: string;
-  castTick: number; // 技能基础延迟 D_skill; 实际间隔还要叠先手差(见 stats.enemyActDelay)
-  nextActTick: number | null; // 下次行动的时刻; null = 本回合行动次数已用尽、不再排程
+  moveDelayDelta: number; // 遭遇战对每次抽取招式的延迟调整
+  nextActTick: number | null; // 当前蓄力招式的发动时刻; null = 未在蓄力(行动点数已耗尽)
   actsPerRound: number; // 每回合行动次数上限, 建局时从 EnemyDef 拷入
-  actsThisRound: number; // 本回合已完成的行动次数
-  aiIndex: number; // 意图脚本指针
+  actsThisRound: number; // 本回合已消耗的行动点数
   intent: Intent;
 }
 
@@ -320,7 +319,7 @@ export type Combatant = Ally | Enemy;
 export interface EncounterModifier {
   extraEnemies?: string[]; // 追加的敌人 defId(排在原有敌人之后, 走默认站位)
   enemyStatuses?: StatusInstance[]; // 全体敌人的开局状态
-  castTickDelta?: number; // 敌人行动间隔调整, 结果钳到下限 1
+  moveDelayDelta?: number; // 每次抽招式的延迟调整, 最终延迟钳到下限 1
   hpMultiplier?: number; // 敌人 maxHp 倍率(BOSS 缩放用), 缺省 1
 }
 

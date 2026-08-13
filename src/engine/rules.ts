@@ -47,8 +47,6 @@ export const RULES = {
     waitAdvance: 1,
     waitsPerRound: 1,
     redrawsPerRound: 1,
-    // 回合结束时, 本回合还没行动过的存活敌人各自补行动一次。
-    flushEnemiesOnRoundEnd: true,
   },
 
   squadCaps: {

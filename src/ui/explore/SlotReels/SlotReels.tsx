@@ -39,8 +39,8 @@ const WINDOW = 820;
 function describeMod(mod?: SlotBattleMod): string[] {
   if (!mod) return [];
   const out: string[] = [];
-  if (mod.castTickDelta != null && mod.castTickDelta !== 0) {
-    out.push(mod.castTickDelta < 0 ? `敌方先手 +${-mod.castTickDelta}` : `敌方行动间隔 +${mod.castTickDelta}`);
+  if (mod.moveDelayDelta != null && mod.moveDelayDelta !== 0) {
+    out.push(mod.moveDelayDelta < 0 ? `敌方先手 +${-mod.moveDelayDelta}` : `敌方行动间隔 +${mod.moveDelayDelta}`);
   }
   for (const st of mod.enemyStatuses ?? []) {
     out.push(st.id === "insight" ? "公示敌方意图" : `敌方 ${st.id} +${st.stacks}`);

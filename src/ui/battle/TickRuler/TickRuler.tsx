@@ -2,7 +2,7 @@ import type { Enemy } from "@/engine";
 import { cx } from "@/ui/common/cx";
 import s from "./TickRuler.module.css";
 
-// 从当前时刻起往后画几格。8 格够覆盖大多数敌人的 castTick(3~5), 又不会把顶栏撑爆。
+// 从当前时刻起往后画几格。8 格够覆盖大多数招式延迟, 又不会把顶栏撑爆。
 const SPAN = 8;
 
 // ★ 敌人行动标记开关(语义待定)。

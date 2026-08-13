@@ -29,7 +29,7 @@ const BATTLE_SYMBOLS: SlotSymbol[] = [
     title: "节奏控制",
     desc: "敌方先手 +2 —— 它们会更早动手。",
     icon: "⏱",
-    mod: { castTickDelta: -2 },
+    mod: { moveDelayDelta: -2 },
   },
   {
     id: "sb-pressure",
@@ -46,7 +46,7 @@ const BATTLE_SYMBOLS: SlotSymbol[] = [
     title: "场景战术",
     desc: "维护平台: 敌方行动间隔 +1, 你有更多回旋余地。",
     icon: "⚙",
-    mod: { castTickDelta: 1 },
+    mod: { moveDelayDelta: 1 },
     degraded: true, // 原案是「获得 1-2 张场景特殊卡牌」, 引擎尚无场景卡机制
   },
   {
@@ -118,7 +118,7 @@ const BOSS_SYMBOLS: SlotSymbol[] = [
     title: "总控 · 优先响应",
     desc: "总控先手 +2 —— 它比你更早开始处理。",
     icon: "⏱",
-    mod: { castTickDelta: -2 },
+    mod: { moveDelayDelta: -2 },
   },
   {
     id: "sbs-escort",
@@ -151,7 +151,7 @@ const BOSS_SYMBOLS: SlotSymbol[] = [
     title: "总控 · 供电不足",
     desc: "总控最大 HP ×0.85, 但行动间隔 −1。",
     icon: "▽",
-    mod: { hpMultiplier: 0.85, castTickDelta: -1 },
+    mod: { hpMultiplier: 0.85, moveDelayDelta: -1 },
   },
   {
     id: "sbs-exposed",

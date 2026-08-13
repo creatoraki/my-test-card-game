@@ -135,10 +135,10 @@ export function partyInitiative(state: BattleState): number {
   return alive.reduce((s, c) => s + statOf(c, "initiative"), 0) / alive.length;
 }
 
-// 敌人下一次行动的间隔: T = max(1, D_skill + S_party − S_enemy)。
-export function enemyActDelay(state: BattleState, enemy: Combatant, castTick: number): number {
+// 敌人当前招式的蓄力时长: T = max(1, D_skill + S_party − S_enemy)。
+export function enemyActDelay(state: BattleState, enemy: Combatant, moveDelay: number): number {
   const delta = partyInitiative(state) - statOf(enemy, "initiative");
-  return Math.max(1, Math.round(castTick + delta));
+  return Math.max(1, Math.round(moveDelay + delta));
 }
 
 // 小队手牌上限 / 每回合基础抽牌数 —— 上阵角色属性求和 + 全队修正(《角色养成设计.md》第六章)。

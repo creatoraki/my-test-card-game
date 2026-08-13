@@ -17,7 +17,6 @@ import type { DiscardRecorder } from "./types";
 import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
 import {
-  enemyActDelay,
   makeStats,
   partyDrawCount,
   partyHandLimit,
@@ -31,8 +30,8 @@ import { allIds, applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { cardCost } from "./cost";
-import { actAndRecord, buildIntent } from "./ai";
-import { advanceTick } from "./scheduler";
+import { startCharge } from "./ai";
+import { advanceTick, flushPendingActs } from "./scheduler";
 import {
   checkChallengesOnEndTurn,
   checkMassacreOnRoundSettle,
@@ -144,11 +143,10 @@ export function createBattle(
       mods: {},
       statuses: [],
       alive: true,
-      castTick: Math.max(1, def.castTick + (mod?.castTickDelta ?? 0)),
-      nextActTick: 0,
+      moveDelayDelta: mod?.moveDelayDelta ?? 0,
+      nextActTick: null,
       actsPerRound: Math.max(1, def.actsPerRound ?? 1),
       actsThisRound: 0,
-      aiIndex: 0,
       intent: { moveId: "", name: "", emoji: "", kind: "special" },
     };
     combatants[id] = enemy;
@@ -200,7 +198,7 @@ export function createBattle(
   state.challenges = rollChallenges(state);
   log(state, `⚔️ 遭遇战: ${enc.name}`);
 
-  // 开局状态必须在 startRound 之前施加 —— startRound 会 buildIntent, 而意图预览要吃到力量加成。
+  // 开局状态必须在 startRound 之前施加 —— startRound 会抽招, 而意图预览要吃到力量加成。
   for (const st of mod?.enemyStatuses ?? []) {
     for (const id of enemyIds) applyStatus(state, id, st.id, st.stacks);
   }
@@ -234,9 +232,7 @@ export function startRound(state: BattleState): void {
     const e = state.combatants[id] as Enemy;
     if (!e.alive) continue;
     e.actsThisRound = 0;
-    // ★ 先手: 行动时刻 = max(1, 技能延迟 + 我方先手均值 − 敌方先手)
-    e.nextActTick = state.tick + enemyActDelay(state, e, e.castTick);
-    buildIntent(state, id);
+    startCharge(state, id);
   }
 
   // 第 1 回合抽开局张数(5), 之后每回合抽小队抽牌数(2), 均抽到手牌上限为止。
@@ -379,18 +375,8 @@ export function endRound(state: BattleState, frames?: AnimFrame[]): void {
   if (state.pendingChoice || state.phase !== "player") return;
   checkChallengesOnEndTurn(state);
 
-  // 冲刷: 本回合还没行动过的存活敌人各补一次行动
-  if (RULES.timeline.flushEnemiesOnRoundEnd) {
-    const pending = state.enemyIds
-      .map((id) => state.combatants[id] as Enemy)
-      .filter((e) => e.alive && e.actsThisRound === 0);
-    for (const e of pending) {
-      if (!e.alive || state.phase !== "player") break;
-      actAndRecord(state, e.id, frames); // 内部已重排 nextActTick
-      checkEnd(state);
-      if (state.phase !== "player") return;
-    }
-  }
+  // 回合结束推进时刻, 让所有尚未发动的蓄力招式依次结算。
+  flushPendingActs(state, frames);
   if (state.phase !== "player") return;
 
   runRoundEnd(state); // 虚弱/易伤 -1 等

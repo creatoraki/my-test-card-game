@@ -213,15 +213,15 @@ describe("三选一与准备卡回落", () => {
 describe("战斗条件合并", () => {
   it("能量档位与符号的改造相加/相乘, 不是二选一", () => {
     const s = newSession();
-    s.energy = 5; // 第 5 档: 敌方先手 +2(castTickDelta -2) + 追加 1 名敌人
+    s.energy = 5; // 第 5 档: 敌方先手 +2(moveDelayDelta -2) + 追加 1 名敌人
     toSlot(s);
-    const tempo = s.slot!.symbols.find((x) => x.id === "sb-tempo")!; // castTickDelta -2
+    const tempo = s.slot!.symbols.find((x) => x.id === "sb-tempo")!; // moveDelayDelta -2
     s.slot!.stopped = [tempo.id, tempo.id, tempo.id];
     s.phase = "slotChoosing";
     chooseSlotCard(s, 0);
 
     const mod = battleModifier(s, getMap("neon-city").fillerEnemyIds);
-    expect(mod.castTickDelta).toBe(-4); // 档位 -2 与符号 -2 相加
+    expect(mod.moveDelayDelta).toBe(-4); // 档位 -2 与符号 -2 相加
     expect(mod.extraEnemies?.length).toBe(1);
   });
 

@@ -210,7 +210,7 @@ export interface EnergyTier {
   min: number; // 进入该档所需的能量下限(含)
   extraEnemies: number;
   enemyStatuses: { id: string; stacks: number }[];
-  castTickDelta: number; // 敌方先手变化
+  moveDelayDelta: number; // 敌方每次抽招式的延迟变化
   rewardMultiplier: number; // 即 K_energy, 同时作用于经验与产出
 }
 
@@ -228,7 +228,7 @@ export type SlotSymbolKind = "battle" | "prep";
 // 设计文档里的「场景特殊卡牌」「首回合手牌 −1」仍未由 SlotBattleMod 承载；污染卡请求
 // 已由探索效果记录，并在 runStore 的战斗入口或远征收尾处交给城镇档案处理。
 export interface SlotBattleMod {
-  castTickDelta?: number; // 负 = 敌方先手更快, 正 = 敌方行动更慢
+  moveDelayDelta?: number; // 负 = 敌方先手更快, 正 = 敌方行动更慢
   enemyStatuses?: { id: string; stacks: number }[]; // 全体敌人的开局状态
   extraEnemies?: string[]; // 追加敌人 defId
   hpMultiplier?: number; // 敌人 maxHp 倍率

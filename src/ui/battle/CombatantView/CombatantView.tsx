@@ -174,7 +174,7 @@ export const CombatantView = memo(function CombatantView({
   );
 });
 
-// 意图默认不可见: 敌人带「洞察」标记时才揭示。数据始终存在(engine/ai.ts 照常 buildIntent),
+// 意图默认不可见: 敌人带「洞察」标记时才揭示。数据始终存在(engine/ai.ts 照常随机抽招),
 // 这里只控制显示 —— 未来的「查看意图」卡牌用 APPLY_STATUS 给敌人挂 insight 即可。
 export function isIntentRevealed(enemy: Enemy): boolean {
   return (getStatus(enemy, "insight")?.stacks ?? 0) > 0;

@@ -8,7 +8,7 @@
 | [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、弃牌触发、我方/敌方单位、效果、状态、战斗状态、挑战运行态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。卡牌带 `contaminated` 标记，我方单位携带污染值、生病和怪癖快照；概率与百分比存百分点整数。 |
 | [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、时刻推进（含每回合待机次数）、虚弱/易伤、命中上下限、概率封顶、格挡、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
 | [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、弃牌来源触发/计数口径、时刻推进、虚弱/易伤、命中上下限、概率封顶、格挡、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
-| [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、先手排程、小队手牌/抽牌/费用/换牌/待机和负重。属性读取必须经过 `statOf`；小队资源 helper 读取开战快照并应用硬上限，负重换算由 `burdenPenalty` 统一提供。 |
+| [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、按招式延迟计算先手、小队手牌/抽牌/费用/换牌/待机和负重。属性读取必须经过 `statOf`；小队资源 helper 读取开战快照并应用硬上限，负重换算由 `burdenPenalty` 统一提供。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、效果级命中修正、先手排程、小队手牌/抽牌和负重。属性读取必须经过 `statOf`；负重换算由 `burdenPenalty` 统一提供，且只有我方承担负重。 |
 | [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/抽取、Fisher–Yates 洗牌。 |
 | [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、状态生命周期和胜负判定等原语；敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡。 |
@@ -26,10 +26,10 @@
 | [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆，并受小队手牌上限约束。 |
 | [quirks.ts](../../src/engine/quirks.ts) | 污染阈值、每张污染卡增量、生病永久修正和怪癖注册表；永久状态不复用会在战斗结束清理的 `StatusInstance`。 |
 | [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
-| [ai.ts](../../src/engine/ai.ts) | 敌人意图生成与行动执行：倍率预览、眩晕跳过、随机选目标、效果解释和行动后重排。每回合行动次数上限按回合开始排 1 次，行动后按剩余次数决定是否续排，用尽后 `nextActTick = null`。 |
-| [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进，处理所有到点敌人并安排下次行动；每回合行动次数用尽后 `nextActTick = null`，带死循环安全阀。 |
-| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；`waitTick` 只推进时刻并复用敌人行动排程。支持动态费用、卡牌标记、弃牌批次和 `pendingChoice` 回收/取消 API；开局状态必须在 `startRound` 前施加，确保意图预览吃到状态修正。 |
+| [ai.ts](../../src/engine/ai.ts) | 敌人随机抽招与行动执行：按招式延迟开始蓄力、倍率预览、眩晕跳过、随机选目标和效果解释。每回合行动点在开始时补满，招式发动后按剩余行动点继续随机抽招，用尽后 `nextActTick = null`。 |
+| [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进并处理所有到点敌人；`flushPendingActs` 在回合结束继续推进时刻，直到所有蓄力招式和行动点清空，带死循环安全阀。 |
+| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；`waitTick` 只推进时刻，结束回合会清算所有敌人蓄力。支持动态费用、卡牌标记、弃牌批次和 `pendingChoice` 回收/取消 API；开局状态必须在 `startRound` 前施加，确保随机抽招的意图预览吃到状态修正。 |
 | [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API 出口。 |
-| [battle.test.ts](../../src/engine/battle.test.ts) | 初始化、速攻/普通牌时刻推进、中毒回合开始、回合末冲刷等核心行为测试。 |
+| [battle.test.ts](../../src/engine/battle.test.ts) | 初始化、速攻/普通牌时刻推进、中毒回合开始、敌人蓄力清算等核心行为测试。 |
 
-依赖方向：`data -> engine/types`；`engine` 不依赖 UI/store。修改结算口径时联读 `rules.ts`、`stats.ts`、`ops.ts`，不要从组件反推规则。
+依赖方向：`data -> engine/types`；`engine` 不依赖 UI/store。敌人招式各自声明 `delay`，AI 每次从招式池随机抽取并消耗行动点；修改结算口径时联读 `rules.ts`、`stats.ts`、`ops.ts`，不要从组件反推规则。

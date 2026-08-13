@@ -159,7 +159,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     min: 80,
     extraEnemies: 0,
     enemyStatuses: [],
-    castTickDelta: 0,
+    moveDelayDelta: 0,
     rewardMultiplier: 1.0,
   },
   {
@@ -169,7 +169,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     min: 60,
     extraEnemies: 0,
     enemyStatuses: [{ id: "strength", stacks: 1 }],
-    castTickDelta: 0,
+    moveDelayDelta: 0,
     rewardMultiplier: 1.1,
   },
   {
@@ -179,7 +179,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     min: 40,
     extraEnemies: 0,
     enemyStatuses: [{ id: "strength", stacks: 1 }],
-    castTickDelta: 0,
+    moveDelayDelta: 0,
     rewardMultiplier: 1.2,
   },
   {
@@ -189,7 +189,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     min: 20,
     extraEnemies: 1,
     enemyStatuses: [{ id: "strength", stacks: 1 }],
-    castTickDelta: -1, // 敌方先手 +1
+    moveDelayDelta: -1, // 敌方先手 +1
     rewardMultiplier: 1.35,
   },
   {
@@ -199,7 +199,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     min: 0,
     extraEnemies: 1,
     enemyStatuses: [{ id: "strength", stacks: 2 }],
-    castTickDelta: -2, // 敌方先手 +2
+    moveDelayDelta: -2, // 敌方先手 +2
     rewardMultiplier: 1.6,
   },
 ];

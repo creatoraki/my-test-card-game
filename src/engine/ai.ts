@@ -1,4 +1,4 @@
-// 敌人 AI: 意图选择(数据驱动脚本) + 行动执行。敌人招式复用效果系统。
+// 敌人 AI: 随机抽招与行动执行。敌人招式复用效果系统。
 
 import type { AnimFrame, BattleState, Enemy, Intent } from "./types";
 import { getEnemyDef, type EnemyMove } from "../data";
@@ -6,13 +6,19 @@ import { resolveEffects } from "./effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
 import { allIds, getStatus, log, markDead } from "./ops";
 import { enemyActDelay, statOf } from "./stats";
+import { rngPick } from "./rng";
 
-// 根据脚本指针刷新敌人当前意图(它下一次将要做的事)
-export function buildIntent(state: BattleState, enemyId: string): void {
+// 消耗一个行动点, 随机抽取下一招并开始蓄力。
+export function startCharge(state: BattleState, enemyId: string): void {
   const e = state.combatants[enemyId] as Enemy;
+  if (!e.alive || e.actsThisRound >= e.actsPerRound) {
+    e.nextActTick = null;
+    return;
+  }
+
   const def = getEnemyDef(e.enemyDefId);
-  const moveId = def.script[e.aiIndex % def.script.length];
-  const move = def.moves.find((m) => m.id === moveId) ?? def.moves[0];
+  const move = rngPick(state, def.moves);
+  e.actsThisRound += 1;
 
   const dmgEff = move.effects.find((x) => x.type === "DAMAGE");
   const shieldEff = move.effects.find((x) => x.type === "GAIN_SHIELD");
@@ -34,6 +40,7 @@ export function buildIntent(state: BattleState, enemyId: string): void {
     value,
   };
   e.intent = intent;
+  e.nextActTick = state.tick + enemyActDelay(state, e, move.delay + e.moveDelayDelta);
 }
 
 // 敌人行动结果 —— 供帧记录器构造动画帧(不影响引擎结算)。
@@ -73,14 +80,6 @@ function collectMoveTargets(
   return [...set];
 }
 
-function scheduleNextAct(state: BattleState, e: Enemy): void {
-  e.actsThisRound += 1;
-  e.nextActTick =
-    e.actsThisRound < e.actsPerRound
-      ? (e.nextActTick ?? state.tick) + enemyActDelay(state, e, e.castTick)
-      : null;
-}
-
 // 敌人执行它当前的意图。返回本次行动的描述(供动画帧记录)。
 export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   const e = state.combatants[enemyId] as Enemy;
@@ -94,9 +93,7 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
     stun.stacks -= 1;
     e.statuses = e.statuses.filter((s) => s.stacks > 0);
     log(state, `💫 ${e.name} 被眩晕, 无法行动`);
-    scheduleNextAct(state, e);
-    e.aiIndex += 1;
-    buildIntent(state, enemyId);
+    startCharge(state, enemyId);
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId] };
   }
 
@@ -114,9 +111,7 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   resolveEffects(state, move.effects, enemyId, primaryId);
 
   if (e.hp <= 0) markDead(state, e);
-  scheduleNextAct(state, e);
-  e.aiIndex += 1;
-  buildIntent(state, enemyId);
+  startCharge(state, enemyId);
   return { actorId: enemyId, enemyDefId, moveId: move.id, targetIds };
 }
 

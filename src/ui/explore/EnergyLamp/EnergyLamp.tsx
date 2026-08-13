@@ -42,7 +42,7 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
       const name = getStatusDef(status.id)?.name ?? status.id;
       return `敌方全体${name} +${status.stacks}`;
     }),
-    ...(cur.castTickDelta < 0 ? [`敌方先手 +${Math.abs(cur.castTickDelta)}`] : []),
+    ...(cur.moveDelayDelta < 0 ? [`敌方先手 +${Math.abs(cur.moveDelayDelta)}`] : []),
   ];
 
   return (

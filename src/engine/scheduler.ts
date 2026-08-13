@@ -36,6 +36,21 @@ function resolveDueEnemies(state: BattleState, frames?: AnimFrame[]): void {
       checkEnd(state);
       if (state.phase !== "player") return;
     }
-    if (++guard > 100) return; // 安全阀, 防止 castTick 配置异常导致死循环
+    if (++guard > 100) return; // 安全阀, 防止异常配置导致死循环
+  }
+}
+
+// 回合结束时清算所有仍在蓄力的招式。使用真实时刻推进, 以保持 runTick 生命周期口径一致。
+export function flushPendingActs(state: BattleState, frames?: AnimFrame[]): void {
+  let guard = 0;
+  while (state.phase === "player") {
+    const hasPending = state.enemyIds.some((id) => {
+      const enemy = state.combatants[id] as Enemy;
+      return enemy.alive && enemy.nextActTick != null;
+    });
+    if (!hasPending) return;
+
+    advanceTick(state, 1, frames);
+    if (++guard > 999) return;
   }
 }
