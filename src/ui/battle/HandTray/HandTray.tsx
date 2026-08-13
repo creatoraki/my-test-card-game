@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { BattleState, Card } from "@/engine";
-import { canPlay, cardCost } from "@/engine";
+import { cardCost, playBlockReason } from "@/engine";
 import { HandCard } from "@/ui/battle/HandCard";
 import type { HandAction } from "@/ui/battle/HandTools";
 import s from "./HandTray.module.css";
@@ -44,13 +44,15 @@ export const HandTray = memo(function HandTray({
         {renderHand.map((entry) => {
           const { card } = entry;
           const leaving = entry.leaving || card.uid === playingOutUid;
+          const block = leaving || !isPlayerTurn ? "other" : playBlockReason(battle, card.uid);
           return (
             <HandCard
               key={card.uid}
               card={card}
               dealDelay={entry.dealDelay}
               leaving={leaving}
-              playable={!leaving && isPlayerTurn && canPlay(battle, card.uid)}
+              playable={block === null}
+              unaffordable={block === "mana"}
               actionBadge={handAction}
               cost={cardCost(battle, card)}
               selected={card.uid === selectedUid}

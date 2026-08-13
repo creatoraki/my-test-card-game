@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  canPlay,
   cardCost,
+  playBlockReason,
   type AnimFrame,
   type BattleState,
   type Card,
@@ -16,6 +16,7 @@ import { CombatantView, isIntentRevealed } from "@/ui/battle/CombatantView";
 import { AllyBar } from "@/ui/battle/AllyBar";
 import { HandTray } from "@/ui/battle/HandTray";
 import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
+import { BattleToast } from "@/ui/battle/BattleToast";
 import { VictoryPanel } from "@/ui/battle/VictoryPanel";
 import { BattleActions } from "@/ui/battle/BattleActions";
 import { BondRail } from "@/ui/battle/BondRail";
@@ -46,6 +47,7 @@ import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
 import { AmbienceGrade, AmbienceLayer } from "@/ui/battle/AmbienceLayer";
 import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
 import { resetHandHover } from "@/ui/battle/handFocusStore";
+import { showBattleToast } from "@/ui/battle/battleToastStore";
 import { useIdleTwitch } from "@/ui/hooks/useIdleTwitch";
 import { useDeathGate } from "@/ui/battle/deathChoreo";
 import { useStageScale } from "@/ui/hooks/stage";
@@ -334,7 +336,11 @@ export function BattleScreen() {
   const onCardClick = useCallback(
     (uid: string) => {
       if (!battle || !isPlayerTurn || animating || handAction) return;
-      if (!canPlay(battle, uid)) return;
+      const block = playBlockReason(battle, uid);
+      if (block) {
+        if (block === "mana") showBattleToast("费用不足");
+        return;
+      }
       const card = battle.cards[uid];
       if (card.targeting === "foe" || card.targeting === "ally") {
         setSelectedUid((prev) => (prev === uid ? null : uid));
@@ -920,6 +926,9 @@ export function BattleScreen() {
         fallbackCard={selectedCard}
         fallbackCost={selectedCard ? cardCost(battle, selectedCard) : undefined}
       />
+
+      {/* HUD 提示挂在 .battle 而不是 .battle-scene 内：它是镜头前的屏幕层，不能跟着分镜相机推近、漂移或震屏。 */}
+      <BattleToast />
 
       {/* 战败遮罩。胜利由战斗画布内的 VictoryPanel 接管, 不再跳战后小结页。 */}
       {battle.phase === "lost" && !deaths.pending && (

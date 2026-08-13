@@ -48,8 +48,6 @@ export const VICTORY_REDUCED = {
   continueReadyMs: 0,
   stateFadeMs: 0,
   contentDelayMs: 0,
-  staggerMs: 0,
-  sectionStaggerMs: 0,
   expFloatMs: 0,
   sweepMs: 0,
   continueNudgeMs: 0,

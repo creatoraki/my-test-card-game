@@ -1,0 +1,60 @@
+.toast {
+  position: absolute;
+  top: calc(var(--topbar-h) + 48px);
+  left: 50%;
+  z-index: 13;
+  padding: 18px 34px;
+  color: #eaf7ff;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  background: linear-gradient(145deg, #121b1fe8, #070c0feb);
+  border: 1px solid #6fd2ff66;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  box-shadow: 0 10px 30px #000b;
+  transform: translateX(-50%);
+  animation: battle-toast-in-out 1600ms ease both;
+}
+
+@keyframes battle-toast-in-out {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  9% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation-name: battle-toast-fade;
+  }
+}
+
+@keyframes battle-toast-fade {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%);
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%);
+  }
+}

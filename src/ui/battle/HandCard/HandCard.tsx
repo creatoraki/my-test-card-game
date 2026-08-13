@@ -13,6 +13,7 @@ import s from "./HandCard.module.css";
 interface Props {
   card: Card;
   playable: boolean;
+  unaffordable?: boolean; // 费用不足仍可点击查看提示，不应按结构性不可用卡渲染
   selected: boolean;
   variant?: "hand" | "pile";
   leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 HandCard.css .hand-card.leaving)
@@ -46,6 +47,7 @@ interface Props {
 export const HandCard = memo(function HandCard({
   card,
   playable,
+  unaffordable,
   selected,
   variant = "hand",
   leaving,
@@ -81,7 +83,12 @@ export const HandCard = memo(function HandCard({
     //     (.hand-slot:hover::after, 见 HandCard.css)补上命中区, 故移到弹起的卡上也不会掉焦。
     //   ⚠ 尺寸/负 margin 叠压/张数自适应等版式规则全部认这一层, 见 HandTray.module.css 与本文件末尾。
     <div
-      className={cx(s["hand-slot"], playable && s.playable, selected && s.selected, leaving && s.leaving)}
+      className={cx(
+        s["hand-slot"],
+        (playable || unaffordable) && s.playable,
+        selected && s.selected,
+        leaving && s.leaving,
+      )}
       style={handStyle}
       // data-hand-slot: 供 BattleScreen 的 `.hand-tray:has([data-hand-slot]:nth-last-child(N))`
       // 按张数收紧叠压量。类名被哈希后那条选择器够不着, 属性可以(样式铁律 2)。
@@ -142,7 +149,7 @@ export const HandCard = memo(function HandCard({
           // ⚠ rarity 在 CardDef 上是可选的(engine/types.ts), 缺省当 common —— 否则那张卡会一层纹都没有,
           //   与 common 看起来一样但走的是"未定义"的路径, 将来加档时容易漏。
           s[`r-${card.rarity ?? "common"}`],
-          !playable && s.unplayable,
+          !playable && !unaffordable && s.unplayable,
           selected && s.selected,
           leaving && s.leaving,
           card.upgraded && s.upgraded,

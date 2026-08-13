@@ -241,13 +241,20 @@ function isValidPrimary(state: BattleState, card: Card, primaryId?: string): boo
   return true;
 }
 
-export function canPlay(state: BattleState, uid: string): boolean {
+// null = 可以打；mana = 只差法力；other = 结构性不可用。
+export type PlayBlock = null | "mana" | "other";
+
+export function playBlockReason(state: BattleState, uid: string): PlayBlock {
   const card = state.cards[uid];
-  if (!card || state.phase !== "player" || !state.hand.includes(uid)) return false;
+  if (!card || state.phase !== "player" || !state.hand.includes(uid)) return "other";
   const owner = state.combatants[card.ownerCharId];
-  if (!owner || !owner.alive) return false;
-  if (state.pendingChoice) return false;
-  return (state.resources[RULES.resource.name] ?? 0) >= cardCost(state, card);
+  if (!owner || !owner.alive) return "other";
+  if (state.pendingChoice) return "other";
+  return (state.resources[RULES.resource.name] ?? 0) >= cardCost(state, card) ? null : "mana";
+}
+
+export function canPlay(state: BattleState, uid: string): boolean {
+  return playBlockReason(state, uid) === null;
 }
 
 export function redrawHandCard(state: BattleState, uid: string): boolean {
