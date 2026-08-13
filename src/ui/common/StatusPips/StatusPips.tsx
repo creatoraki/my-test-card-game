@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
 import type { StatusInstance } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { cx } from "@/ui/common/cx";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { ShieldIcon } from "./icons";
 import s from "./StatusPips.module.css";
 
 export function StatusPips({
@@ -34,9 +36,11 @@ export function StatusPips({
     stacks,
     kind,
     shieldPip = false,
+    icon,
   }: {
     key: string;
-    emoji: string;
+    emoji?: string;
+    icon?: ReactNode;
     name: string;
     desc: string;
     stacks: number;
@@ -49,15 +53,15 @@ export function StatusPips({
       data-rail-item={detail ? "" : undefined}
       tabIndex={detail ? 0 : undefined}
       title={detail ? undefined : `${name}: ${desc}`}
-      aria-label={`${name}，当前层数 ${stacks}`}
+      aria-label={shieldPip ? `护盾，当前 ${stacks}` : `${name}，当前层数 ${stacks}`}
     >
-      {emoji}
-      <b>{stacks}</b>
+      {icon ?? emoji}
+      {!shieldPip && <b>{stacks}</b>}
       {detail && (
         <RailPopover side={popoverSide ?? "top"}>
           <strong>{name}</strong>
           <p>{desc}</p>
-          <small>当前层数 {stacks}</small>
+          <small>{shieldPip ? "护盾值" : "当前层数"} {stacks}</small>
         </RailPopover>
       )}
     </span>
@@ -67,7 +71,7 @@ export function StatusPips({
     <div className={cx(s["status-pips"], reverse && s.reverse, className)}>
       {shield > 0 && renderPip({
         key: "shield",
-        emoji: "🛡️",
+        icon: <ShieldIcon className={s["shield-icon"]} />,
         name: "护盾",
         desc: "吸收伤害的护盾值。",
         stacks: shield,

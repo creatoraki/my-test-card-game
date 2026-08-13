@@ -52,6 +52,11 @@
   --pip-border: #34567a;
   color: #9cc4ff;
 }
+.shield-icon {
+  display: block;
+  width: 82%;
+  height: 82%;
+}
 .pip-shield::before {
   background: linear-gradient(145deg, #1d2a3aee, #0b131de8);
 }
