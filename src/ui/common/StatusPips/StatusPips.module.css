@@ -57,6 +57,11 @@
   width: 82%;
   height: 82%;
 }
+.status-icon {
+  display: block;
+  width: 82%;
+  height: 82%;
+}
 .pip-shield::before {
   background: linear-gradient(145deg, #1d2a3aee, #0b131de8);
 }

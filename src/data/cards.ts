@@ -53,8 +53,8 @@ export const CARD_DEFS: CardDef[] = [
     targeting: "ally",
     rarity: "common",
     anim: "buff",
-    effects: [{ type: "APPLY_STATUS", status: "sharp", stacks: 3, target: "primary" }],
-    text: "为一名队友附加 3 层锋利。",
+    effects: [{ type: "APPLY_STATUS", status: "sharp", stacks: 1, target: "primary" }],
+    text: "为一名队友附加锋利。",
   },
   {
     id: "mirage",
@@ -470,9 +470,9 @@ export const CARD_DEFS: CardDef[] = [
     effects: [
       { type: "DAMAGE", multiplier: 1.3, target: "allFoes" },
       { type: "DISCARD", discardPick: "handAll" },
-      { type: "APPLY_STATUS", status: "sharp", stacksFrom: "lastDiscardBatch", target: "self" },
+      { type: "APPLY_STATUS", status: "sharp", stacks: 1, target: "self" },
     ],
-    text: "对所有敌人造成 {0} 点伤害，然后丢弃所有手牌，并获得等同于丢弃张数的锋利。",
+    text: "对所有敌人造成 {0} 点伤害，然后丢弃所有手牌，并获得锋利。",
   },
   {
     id: "divine-eye",

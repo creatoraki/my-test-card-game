@@ -3,7 +3,7 @@ import type { StatusInstance } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { cx } from "@/ui/common/cx";
 import { RailPopover } from "@/ui/common/RailPopover";
-import { ShieldIcon } from "./icons";
+import { ShieldIcon, STATUS_ICONS } from "./icons";
 import s from "./StatusPips.module.css";
 
 export function StatusPips({
@@ -80,8 +80,10 @@ export function StatusPips({
       })}
       {statuses.map((st) => {
         const def = getStatusDef(st.id);
+        const StatusIcon = STATUS_ICONS[st.id];
         return renderPip({
           key: st.id,
+          icon: StatusIcon ? <StatusIcon className={s["status-icon"]} /> : undefined,
           emoji: def?.emoji ?? "❓",
           name: def?.name ?? st.id,
           desc: def?.desc ?? "暂无说明",

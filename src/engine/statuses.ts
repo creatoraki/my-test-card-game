@@ -82,7 +82,8 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     name: "锋利",
     emoji: "🗡️",
     kind: "buff",
-    desc: `造成的攻击伤害 ×${RULES.combat.sharpMultiplier}。每回合结束层数 -1。`,
+    maxStacks: 1,
+    desc: `造成的攻击伤害 ×${RULES.combat.sharpMultiplier}。不可叠层, 每回合结束层数 -1。`,
     hooks: {
       modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
         if (dmg.isAttack) dmg.amount *= RULES.combat.sharpMultiplier;

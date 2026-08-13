@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 interface IconProps {
   className?: string;
 }
@@ -20,3 +22,18 @@ export function ShieldIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function SharpIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 100 100" aria-hidden="true">
+      <polygon points="46,28 54,28 54,58 46,58" fill="#c8c8c8" />
+      <polygon points="46,28 50,20 54,28" fill="#c8c8c8" />
+      <rect x="36" y="58" width="28" height="6" fill="#8a8a8a" />
+      <rect x="47" y="64" width="6" height="10" fill="#5a5a5a" />
+    </svg>
+  );
+}
+
+export const STATUS_ICONS: Record<string, (p: IconProps) => ReactNode> = {
+  sharp: SharpIcon,
+};

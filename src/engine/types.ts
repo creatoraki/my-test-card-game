@@ -240,6 +240,7 @@ export interface StatusDef {
   emoji: string;
   kind: StatusKind;
   desc: string;
+  maxStacks?: number; // 层数上限; 缺省 = 不封顶
   resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减
   hooks?: StatusHooks;
 }

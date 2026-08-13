@@ -245,6 +245,10 @@ export function applyStatus(
   const existing = getStatus(t, statusId);
   if (existing) existing.stacks += stacks;
   else t.statuses.push({ id: statusId, stacks });
+  if (def?.maxStacks != null) {
+    const inst = getStatus(t, statusId)!;
+    inst.stacks = Math.min(inst.stacks, def.maxStacks);
+  }
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
 }
