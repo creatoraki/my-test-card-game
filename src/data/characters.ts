@@ -26,7 +26,7 @@ export const CHARACTERS: CharacterDef[] = [
     color: "#78c8ff",
     // 首版基准: HP 50 / 攻击 20 / 治愈力 20 / 防御 10 / 先手 10(《角色养成设计.md》3.0)。
     // 治愈力 20 使基础卡的 50% 治疗/护盾各为 10 点, 与剑士现有辅助牌同档。
-    // 小队贡献 3 手牌 + 1 抽牌 —— 三人合计应为 7 / 2。
+    // 手牌上限由 RULES.hand.baseHandLimit 统一提供，角色只保留可叠加的局部修正。
     base: makeStats({
       maxHp: 50,
       attack: 20,
@@ -35,7 +35,7 @@ export const CHARACTERS: CharacterDef[] = [
       initiative: 10,
       critRate: 5,
       critDamage: 150,
-      handLimit: 3,
+      handLimit: 0,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: [...basicStartingCardIds("swordsman"), "crane-form", "buzz"],
@@ -70,7 +70,7 @@ export const CHARACTERS: CharacterDef[] = [
       initiative: 10,
       critRate: 5,
       critDamage: 150,
-      handLimit: 3,
+      handLimit: 0,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: basicStartingCardIds("prophet"),
@@ -91,7 +91,7 @@ export const CHARACTERS: CharacterDef[] = [
       initiative: 10,
       critRate: 5,
       critDamage: 150,
-      handLimit: 3,
+      handLimit: 0,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: basicStartingCardIds("botanist"),

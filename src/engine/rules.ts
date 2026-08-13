@@ -17,15 +17,12 @@ export const RULES = {
   },
 
   // 手牌 / 抽牌
-  // 小队手牌上限 = Σ上阵角色 handLimit + partyBonusHandLimit
+  // 小队手牌上限 = baseHandLimit + Σ上阵角色 handLimit
   // 小队每回合抽牌数 = partyBonusDrawCount(全队基准) + Σ上阵角色 drawCount
-  // 开局(第 1 回合)抽牌数 = openingDrawCount + Σ上阵角色 drawCount
+  // 开局(第 1 回合)抽牌数 = openingHandSize + Σ上阵角色 drawCount
   hand: {
-    // ⚠ 调试期补偿: 手牌上限设计首版基准是"三名角色合计 7 手牌", 目前角色不齐,
-    //   靠这个全队修正兜底; 三名角色到位后**归 0**。
-    partyBonusHandLimit: 4,
-    // ★ 抽牌走固定基准: 角色 drawCount 目前一律 0, 只有装备/成长才加成。
-    openingDrawCount: 5, // 开局抽 5 张
+    baseHandLimit: 7,
+    openingHandSize: 4,
     partyBonusDrawCount: 2, // 之后每回合抽 2 张
     minHandLimit: 1,
     discardLeftoversOnRoundEnd: false,
@@ -49,8 +46,15 @@ export const RULES = {
     fastCardAdvance: 0,
     waitAdvance: 1,
     waitsPerRound: 1,
+    redrawsPerRound: 1,
     // 回合结束时, 本回合还没行动过的存活敌人各自补行动一次。
     flushEnemiesOnRoundEnd: true,
+  },
+
+  squadCaps: {
+    drawCount: 5,
+    mana: 10,
+    handLimit: 10,
   },
 
   // 战斗结算 —— 顺序固定为: 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP

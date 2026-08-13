@@ -17,8 +17,8 @@
 //
 // ★ 设施内容登记在下面的 FACILITY_CONTENT: 目前有**控制终端**(ui/ControlTerminalScene.tsx ——
 //   只剩委托占位)、**冬眠仓**(ui/CryoScene.tsx —— 只剩唤醒队员)、
-//   **物资中转仓**(ui/StorageScene.tsx)与**商店**(ui/ShopScene.tsx —— 按天刷新的货架);
-//   训练室仍只有背景 +「返回据点」, 功能未做。
+//   **物资中转仓**(ui/StorageScene.tsx)、**商店**(ui/ShopScene.tsx —— 按天刷新的货架)
+//   与**训练室**(ui/TrainingScene.tsx —— 小队徽章与训练点分配)。
 //
 // ★ **不是所有砖都是设施**: Facility.kind === "screen" 的砖(目前是「编队」与「出击」)点下去
 //   不播运镜, 而是直接切到一个顶层全屏页(见下面 SCREEN_TILES 的分流表)。
@@ -59,6 +59,7 @@ import { ControlTerminalScene } from "@/ui/town/terminal/ControlTerminalScene";
 import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { StorageScene } from "@/ui/town/storage/StorageScene";
+import { TrainingScene } from "@/ui/town/training/TrainingScene";
 import { TOWN_BG_ART } from "@/ui/art/sceneArt";
 import s from "./TownScreen.module.css";
 
@@ -286,6 +287,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean) => ReactNode> = {
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   storage: (leaving) => <StorageScene leaving={leaving} />,
   shop: (leaving) => <ShopScene leaving={leaving} />,
+  training: (leaving) => <TrainingScene leaving={leaving} />,
 };
 
 // ===================== 进设施演出 =====================

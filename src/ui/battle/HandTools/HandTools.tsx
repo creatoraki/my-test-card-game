@@ -1,4 +1,5 @@
 import type { BattleState } from "@/engine";
+import { partyRedrawLimit, partyWaitLimit } from "@/engine";
 import { DiscardIcon, RedrawIcon, WaitIcon } from "./icons";
 import s from "./HandTools.module.css";
 
@@ -15,8 +16,10 @@ interface Props {
 
 export function HandTools({ battle, handAction, isPlayerTurn, animating, onToggle, onWait }: Props) {
   const canUseHandActions = isPlayerTurn && !animating && battle.hand.length > 0;
-  const redrawAvailable = canUseHandActions && battle.redrawsThisRound < 1;
-  const canWait = isPlayerTurn && !animating && battle.waitsThisRound < 1;
+  const redrawLimit = partyRedrawLimit(battle);
+  const waitLimit = partyWaitLimit(battle);
+  const redrawAvailable = canUseHandActions && battle.redrawsThisRound < redrawLimit;
+  const canWait = isPlayerTurn && !animating && battle.waitsThisRound < waitLimit;
 
   return (
     <section className={s.toolGrid} aria-label="行动操作" onClick={(event) => event.stopPropagation()}>
@@ -24,7 +27,7 @@ export function HandTools({ battle, handAction, isPlayerTurn, animating, onToggl
         className={`${s.toolButton} ${handAction === "redraw" ? s.active : ""}`}
         type="button"
         aria-label="换牌"
-        title={battle.redrawsThisRound >= 1 ? "本回合已换牌" : "换牌：选择一张手牌替换"}
+        title={`本回合换牌 ${battle.redrawsThisRound}/${redrawLimit}`}
         disabled={!redrawAvailable}
         onClick={() => onToggle("redraw")}
       >
@@ -46,7 +49,7 @@ export function HandTools({ battle, handAction, isPlayerTurn, animating, onToggl
         className={s.toolButton}
         type="button"
         aria-label="待机"
-        title={battle.waitsThisRound >= 1 ? "本回合已待机" : "待机：推进 1 时刻"}
+        title={`本回合待机 ${battle.waitsThisRound}/${waitLimit} · 推进 1 时刻`}
         disabled={!canWait}
         onClick={onWait}
       >

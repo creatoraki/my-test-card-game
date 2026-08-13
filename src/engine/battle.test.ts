@@ -134,7 +134,7 @@ describe("小队资源", () => {
     const b = battleWith("swordsman-basic-attack");
     const sumHand = b.playerIds.reduce((s, id) => s + b.combatants[id].stats.handLimit, 0);
     const sumDraw = b.playerIds.reduce((s, id) => s + b.combatants[id].stats.drawCount, 0);
-    expect(partyHandLimit(b)).toBe(sumHand + RULES.hand.partyBonusHandLimit);
+    expect(partyHandLimit(b)).toBe(sumHand + RULES.hand.baseHandLimit);
     expect(partyDrawCount(b)).toBe(sumDraw + RULES.hand.partyBonusDrawCount);
   });
 });

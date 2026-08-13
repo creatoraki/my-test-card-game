@@ -144,22 +144,38 @@ export function enemyActDelay(state: BattleState, enemy: Combatant, castTick: nu
 // 小队手牌上限 / 每回合基础抽牌数 —— 上阵角色属性求和 + 全队修正(《角色养成设计.md》第六章)。
 // ⚠ 用**建局时的全员**求和, 不随阵亡缩水: 队友倒下已经够惨了, 再砍手牌是双重惩罚。
 export function partyHandLimit(state: BattleState): number {
-  let sum: number = RULES.hand.partyBonusHandLimit;
+  let sum: number = RULES.hand.baseHandLimit + (state.squadMods.handLimit ?? 0);
   for (const id of state.playerIds) sum += state.combatants[id].stats.handLimit;
-  return Math.max(RULES.hand.minHandLimit, Math.round(sum));
+  return Math.max(
+    RULES.hand.minHandLimit,
+    Math.min(RULES.squadCaps.handLimit, Math.round(sum)),
+  );
 }
 
 export function partyDrawCount(state: BattleState): number {
-  let sum: number = RULES.hand.partyBonusDrawCount;
+  let sum: number = RULES.hand.partyBonusDrawCount + (state.squadMods.drawCount ?? 0);
+  for (const id of state.playerIds) sum += state.combatants[id].stats.drawCount;
+  return Math.max(0, Math.min(RULES.squadCaps.drawCount, Math.round(sum)));
+}
+
+// 开局(第 1 回合)初始手牌数 —— 基础值、角色 drawCount 与起手训练叠加, 不受抽牌封顶影响。
+export function partyOpeningDrawCount(state: BattleState): number {
+  let sum = RULES.hand.openingHandSize + (state.squadMods.openingHand ?? 0);
   for (const id of state.playerIds) sum += state.combatants[id].stats.drawCount;
   return Math.max(0, Math.round(sum));
 }
 
-// 开局(第 1 回合)抽牌数 —— 固定基准 5 张, 同样叠加上阵角色的 drawCount 加成。
-export function partyOpeningDrawCount(state: BattleState): number {
-  let sum: number = RULES.hand.openingDrawCount;
-  for (const id of state.playerIds) sum += state.combatants[id].stats.drawCount;
-  return Math.max(0, Math.round(sum));
+export function partyManaPerRound(state: BattleState): number {
+  const sum = RULES.resource.perRound + (state.squadMods.mana ?? 0);
+  return Math.max(0, Math.min(RULES.squadCaps.mana, Math.round(sum)));
+}
+
+export function partyRedrawLimit(state: BattleState): number {
+  return Math.max(0, Math.round(RULES.timeline.redrawsPerRound + (state.squadMods.redraws ?? 0)));
+}
+
+export function partyWaitLimit(state: BattleState): number {
+  return Math.max(0, Math.round(RULES.timeline.waitsPerRound + (state.squadMods.waits ?? 0)));
 }
 
 // 负重惩罚(百分点), 三项属性(命中/闪避/暴击)各减这么多。

@@ -18,6 +18,7 @@
 | [tradeServices.ts](../../src/data/tradeServices.ts) | 15 种交易服务的唯一目录：食品货币、标准价格、公开说明、货架类型、待办效果和随机团队 BUFF 候选。 |
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用/地区/怪物材料、消耗品、食品和三类装备按地图与服务类型筛选。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
+| [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与训练方向的唯一数据定义；提供节点成本、已投入点数和最终小队资源修正的纯函数。 |
 | [slotSymbols.ts](../../src/data/slotSymbols.ts) | 战斗签转轮符号：战斗卡、战前准备卡和 BOSS 开局条件。 |
 | [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战、低档补充敌人和转轮池。地图素材由 UI 查表。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid。 |

@@ -14,6 +14,17 @@ import { ENCOUNTERS, type EncounterDef } from "./encounters";
 import { MAPS, type MapDef } from "./maps";
 import { SLOT_SYMBOLS } from "./slotSymbols";
 import { NPC_EVENTS, getNpcEvent, type NpcEvent } from "./npcEvents";
+export {
+  SQUAD_BADGES,
+  getBadge,
+  nextNodeCost,
+  spentPoints,
+  squadModsOf,
+  type SquadBadgeDef,
+  type SquadResourceKey,
+  type SquadResourceMods,
+  type TalentTrackDef,
+} from "./squadTalents";
 
 export { CARD_DEFS } from "./cards";
 export {

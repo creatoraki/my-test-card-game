@@ -1,5 +1,5 @@
 import type { BattleState } from "@/engine";
-import { RULES } from "@/engine";
+import { RULES, partyManaPerRound } from "@/engine";
 import { useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import s from "./ManaBar.module.css";
@@ -10,7 +10,7 @@ interface Props {
 
 export function ManaBar({ battle }: Props) {
   const mana = battle.resources[RULES.resource.name] ?? 0;
-  const maxMana = RULES.resource.perRound;
+  const maxMana = partyManaPerRound(battle);
   const hoveredCost = useHandHoverCost();
   const crystalCount = Math.max(maxMana, mana);
   const activeCount = Math.min(mana, hoveredCost ?? 0);

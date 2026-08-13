@@ -6,7 +6,16 @@
 import { create } from "zustand";
 import type { AllyInit, Ally, Card, ChallengeRun, Enemy } from "../engine";
 import { RULES, applyModifier, earnedChallengeBonus } from "../engine";
-import { BOND_DEFS, activeBonds, getCharacter, getEnemyDef, getMap, mergeMods, nextTier } from "../data";
+import {
+  BOND_DEFS,
+  activeBonds,
+  getCharacter,
+  getEnemyDef,
+  getMap,
+  mergeMods,
+  nextTier,
+  squadModsOf,
+} from "../data";
 import {
   battleModifier,
   burdenNow,
@@ -87,7 +96,7 @@ interface RunStore {
 // ⚠ 这里的 maxHp **不含羁绊加成** —— 羁绊在 launchBattle 才叠。本期实装的 6 个羁绊都不改 maxHp,
 //   所以两处口径一致; 日后一旦有加 maxHp 的羁绊, 这里必须一并叠, 否则出发时的血量会对不上。
 function partySnapshot(): PartySnapshot[] {
-  const { characters, party } = useTownStore.getState();
+  const { characters, party, squadTalent } = useTownStore.getState();
   return party.map((id) => {
     const c = getCharacter(id);
     const stats = deriveStats(characters[id]);
@@ -194,9 +203,16 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   const meta = battleMeta(characters, party);
   // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个百分点数。
   const burden = burdenNow(session);
+  const squadMods = squadModsOf(squadTalent.badgeId, squadTalent.nodes);
   useBattleStore
     .getState()
-    .init(encounterId, { allies, deck: battleDeck, burdenPenalty: burden }, undefined, mod, meta);
+    .init(
+      encounterId,
+      { allies, deck: battleDeck, burdenPenalty: burden, squadMods },
+      undefined,
+      mod,
+      meta,
+    );
 }
 
 // 远征收尾的落袋 —— 积分 + 实物一起进城镇, 只有这一个出口。

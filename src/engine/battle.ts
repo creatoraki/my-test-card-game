@@ -16,7 +16,16 @@ import type {
 import type { DiscardRecorder } from "./types";
 import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
-import { enemyActDelay, makeStats, partyDrawCount, partyHandLimit, partyOpeningDrawCount } from "./stats";
+import {
+  enemyActDelay,
+  makeStats,
+  partyDrawCount,
+  partyHandLimit,
+  partyManaPerRound,
+  partyOpeningDrawCount,
+  partyRedrawLimit,
+  partyWaitLimit,
+} from "./stats";
 import { shuffle } from "./rng";
 import { allIds, applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
@@ -63,6 +72,7 @@ export interface BattleSetup {
   // ★ 开战瞬间的负重惩罚(百分点), 由探索层算好传入(engine/stats.burdenPenalty)。
   //   引擎不认识背包与占格, 只认识这一个数。缺省 0 —— 城镇试打与单元测试都走这条。
   burdenPenalty?: number;
+  squadMods?: import("./types").SquadResourceMods;
 }
 
 // ---------------------------------------------------------------------------
@@ -169,6 +179,15 @@ export function createBattle(
     discardResolving: [],
     resources: {},
     burdenPenalty: Math.max(0, setup.burdenPenalty ?? 0),
+    squadMods: {
+      openingHand: 0,
+      drawCount: 0,
+      redraws: 0,
+      waits: 0,
+      mana: 0,
+      handLimit: 0,
+      ...(setup.squadMods ?? {}),
+    },
     challenges: [],
     challengeKillRound: null,
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
@@ -209,7 +228,7 @@ export function startRound(state: BattleState): void {
   }
 
   const rn = RULES.resource.name;
-  state.resources[rn] = RULES.resource.perRound + (RULES.resource.carryOver ? state.resources[rn] ?? 0 : 0);
+  state.resources[rn] = partyManaPerRound(state) + (RULES.resource.carryOver ? state.resources[rn] ?? 0 : 0);
 
   for (const id of state.enemyIds) {
     const e = state.combatants[id] as Enemy;
@@ -258,7 +277,13 @@ export function canPlay(state: BattleState, uid: string): boolean {
 }
 
 export function redrawHandCard(state: BattleState, uid: string): boolean {
-  if (state.pendingChoice || state.phase !== "player" || state.redrawsThisRound >= 1 || !state.hand.includes(uid)) return false;
+  if (
+    state.pendingChoice ||
+    state.phase !== "player" ||
+    state.redrawsThisRound >= partyRedrawLimit(state) ||
+    !state.hand.includes(uid)
+  )
+    return false;
   const card = state.cards[uid];
   if (!card) return false;
 
@@ -269,9 +294,9 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
   return true;
 }
 
-// 待机: 什么都不做, 只推进时刻 —— 敌人因此可能走到行动点。每回合限 RULES.timeline.waitsPerRound 次。
+// 待机: 什么都不做, 只推进时刻 —— 敌人因此可能走到行动点。每回合限 partyWaitLimit 次。
 export function waitTick(state: BattleState, frames?: AnimFrame[]): boolean {
-  if (state.pendingChoice || state.phase !== "player" || state.waitsThisRound >= RULES.timeline.waitsPerRound) return false;
+  if (state.pendingChoice || state.phase !== "player" || state.waitsThisRound >= partyWaitLimit(state)) return false;
   state.waitsThisRound += 1;
   log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
   advanceTick(state, RULES.timeline.waitAdvance, frames);

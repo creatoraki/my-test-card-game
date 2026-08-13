@@ -30,6 +30,9 @@ import {
   getItemDef,
   makeCard,
   makeItemStack,
+  getBadge,
+  nextNodeCost,
+  spentPoints,
   type CharacterDef,
 } from "../data";
 import {
@@ -100,6 +103,11 @@ export interface ContaminationHit {
   cardName: string;
 }
 
+export interface SquadTalentState {
+  badgeId: string | null;
+  nodes: Record<string, number>;
+}
+
 interface TownStore {
   characters: Record<string, CharacterState>;
   // ★ 已唤醒(已解锁)的角色 id, 按唤醒先后。CHARACTERS 里不在这张名单上的都还躺在冬眠仓里。
@@ -112,6 +120,7 @@ interface TownStore {
   storage: ItemStack[];
   day: number; // 生存天数, 从第 1 日起。★ 只由 advanceDay() 推进(出击后返回据点算一日)
   shop: ShopState;
+  squadTalent: SquadTalentState;
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
@@ -123,6 +132,9 @@ interface TownStore {
   equipItem: (charId: string, uid: string) => void; // 从仓库取一件穿上
   unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
   resetProfile: () => void; // 重置存档
+  selectSquadBadge: (id: string) => void;
+  investTalent: (trackId: string) => void;
+  resetSquadTalent: () => void;
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
@@ -332,6 +344,7 @@ function freshProfile(): {
   characters: Record<string, CharacterState>;
   awakened: string[];
   party: string[];
+  squadTalent: SquadTalentState;
 } {
   const characters: Record<string, CharacterState> = {};
   for (const c of CHARACTERS) characters[c.id] = freshCharacter(c);
@@ -345,7 +358,18 @@ function freshProfile(): {
     };
   }
   // 上阵人数有上限, 初始队伍按名单顺序截断
-  return { characters, awakened, party: awakened.slice(0, RULES.progression.partySize) };
+  return {
+    characters,
+    awakened,
+    party: awakened.slice(0, RULES.progression.partySize),
+    squadTalent: { badgeId: null, nodes: {} },
+  };
+}
+
+export function squadTrainingPoints(
+  state: Pick<TownStore, "characters" | "party">,
+): number {
+  return state.party.reduce((sum, charId) => sum + (state.characters[charId]?.deckLevel ?? 0), 0);
 }
 
 export const useTownStore = create<TownStore>()(
@@ -358,6 +382,7 @@ export const useTownStore = create<TownStore>()(
       storage: [],
       day: 1,
       shop: freshShop(1),
+      squadTalent: { badgeId: null, nodes: {} },
       initialized: false,
 
       ensureProfile: () => {
@@ -381,6 +406,38 @@ export const useTownStore = create<TownStore>()(
           shop: freshShop(1),
           initialized: true,
         }),
+
+      selectSquadBadge: (id) => {
+        if (!getBadge(id)) return;
+        set({ squadTalent: { badgeId: id, nodes: {} } });
+      },
+
+      investTalent: (trackId) => {
+        const { squadTalent } = get();
+        if (!squadTalent.badgeId) return;
+        const badge = getBadge(squadTalent.badgeId);
+        const track = badge?.tracks.find((item) => item.id === trackId);
+        if (!badge || !track) return;
+        const unlocked = Math.max(0, Math.floor(squadTalent.nodes[trackId] ?? 0));
+        const cost = nextNodeCost(track, unlocked);
+        if (
+          cost == null ||
+          squadTrainingPoints(get()) - spentPoints(badge, squadTalent.nodes) < cost
+        )
+          return;
+        set({
+          squadTalent: {
+            badgeId: badge.id,
+            nodes: { ...squadTalent.nodes, [trackId]: unlocked + 1 },
+          },
+        });
+      },
+
+      resetSquadTalent: () => {
+        const { squadTalent } = get();
+        if (!squadTalent.badgeId) return;
+        set({ squadTalent: { badgeId: squadTalent.badgeId, nodes: {} } });
+      },
 
       bankLoot: (amount) => {
         if (amount <= 0) return;
@@ -819,6 +876,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v8", version: 8 },
+    { name: "town-profile-v9", version: 9 },
   ),
 );
