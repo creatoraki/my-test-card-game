@@ -1192,6 +1192,18 @@
   content: "";
   animation: hc-sheen 0.5s ease-out;
 }
+:global([data-card-detail]) .hand-slot {
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+  cursor: default;
+}
+:global([data-card-detail]) .hand-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   :global([data-pile-grid]) .hand-card {

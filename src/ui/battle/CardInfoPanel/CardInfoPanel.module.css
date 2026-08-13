@@ -110,22 +110,14 @@
 }
 
 /* ── 画布右上角: 卡牌说明固定面板(ui/CardInfoPanel.tsx) ── */
-/* 位置恒定(取代旧的悬停跟随浮窗), 描述文本自行滚动 ⇒ 版面不跳。
-   内容复用 .card-drawer 那套 .drawer-* 类, 覆盖全部 scoped 在 .card-info-panel 下。
+/* 位置恒定, 直接显示放大的手牌卡面。
 
-   ★ 宽高比锁死 1:2, 宽 = --hud-info-w(320) ⇒ 高 640。这个比例是从**内容**推出来的,
-     不是随手定的: 卡面素材恒为 1:1 方图(assets/skills/**), 于是上半部正好是一张与面板同宽的
-     正方形大卡面(296 见方), 下半部是卡名/元数据/描述 —— 一个正方形 + 一块信息区 = 1:2。
+  ★ 宽 320 = --hud-info-w, 高 = 320 × 1.4(卡牌比例), 顶边锁定在 y=108, 底边落在 y=556。
 
    ★★ 它曾是底部 HUD 的第三列(align-self:end + 向上溢出 376px), 现已整块搬到**画布右上角**并
      改为绝对定位。原因: 手牌上限实际是 10 张(partyHandLimit()), 而三列制下手牌中段只有
     1028px, 7 张就撑爆了 —— 牌堆移到右上角后，手牌托盘恢复完整中段宽度。
-   ★ 为什么锚在**上部**而不是垂直居中: top = --topbar-h + 40 = 108 ⇒ 底边落在 y=748, 而手牌
-     静止时的上沿正好也是 748(见 ui/BattleScreen.css .hand-panel 的版式算式)。两条边严丝合缝
-     地咬在同一条线上, 静止态零重叠; 垂直居中(top 220 / 底 860)反而会压进手牌静止区。
-   ⚠ 那个 +40 是**跟着手牌卡高走的从动值**, 不是随手定的边距: 手牌卡从 336 改到 308(1:1.4)后,
-     卡的静止上沿从 720 降到 748, 这里必须同步下移 28 才仍咬在同一条线上。
-     改 ui/BattleScreen.css 的 --hand-card-w / --hc-text-h 就要回来重算这个数。
+   ★ 顶边固定为 y=108, 不随卡牌高度变化; 放大卡面自然落在详情区内。
    ⚠ z-index: 3 —— 高于 .battle-hud(2), 故手牌 ≥8 张时最右侧那几张**弹起后**会被本面板盖住
      一截。这是刻意的取舍: 此刻你正在读的就是这块面板(它显示的正是那张卡), 让卡盖住它是本末倒置。
      仍低于顶端信息条(12)。
@@ -137,105 +129,15 @@
   right: calc(var(--canvas-pad) + var(--pile-w) + 16px);
   z-index: 3;
   width: var(--hud-info-w);
-  aspect-ratio: 1 / 2;
-  height: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-  padding: 10px 12px;
-  overflow: hidden;
-  background: linear-gradient(160deg, #0d1214e6, #05080af2);
-  border: 1px solid #6fd2ff3d;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-/* 顶边一条归属配色的能量线(--owner-color 由 CardInfoPanel 按卡牌归属角色下发) */
-.card-info-panel::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--owner-color, var(--accent)), transparent);
-  opacity: 0.85;
+  height: calc(var(--hud-info-w) * 1.4);
   pointer-events: none;
 }
-.card-info-panel .drawer-title {
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-/* ★ 上半部: 与面板同宽的 1:1 大卡面(296 见方)。这就是面板要 1:2 的理由。
-   object-fit: contain 与手牌卡面 .hc-art 的 background-size: contain 同一原则 ——
-   宁可留边也不裁, 素材本就是 256/512 的方图, 正常情况下一个 px 都不会留边。
-   ⚠ flex: 0 0 auto 不能省: 在 flex column 里默认 flex-shrink:1, 描述文本长时方图会被压扁,
-     1:1 就不成立了(描述区自带滚动, 该被挤的是它)。 */
-.cip-art {
-  flex: 0 0 auto;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  background: #05080a99;
-  border: 1px solid #ffffff22;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-}
-/* 无配图的卡(ui/cardArt.ts 只登记了有图的那几张)的同尺寸占位。
-   ⚠ 刻意不是"不渲染": 296px 的方块一塌, 悬停不同卡时下半部整块会上下跳。 */
-.cip-art.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background:
-    repeating-linear-gradient(45deg, #6fd2ff0f 0 1px, transparent 1px 9px),
-    linear-gradient(160deg, #0a1114cc, #05080ae6);
-  border-style: dashed;
-  border-color: #6fd2ff24;
-}
-.cip-art.empty span {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  text-indent: 4px; /* 抵消 letter-spacing 造成的视觉右偏 */
-  color: #6fd2ff5c;
-}
-/* 图下一行: 卡名 + 普/速副标题 */
-.cip-id {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.cip-name {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--owner-color, #eaf6ff);
-  text-shadow: 0 1px 3px #000c;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cip-sub {
-  font-size: 11px;
-  color: var(--muted);
-}
-/* 元数据两列排: 内容宽 296px, 两列比竖排一长条读得快 */
-.card-info-panel .drawer-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 10px;
-}
-.card-info-panel .drawer-meta > div {
-  padding-bottom: 3px;
-}
-.card-info-panel .drawer-text {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  border-radius: 0;
-  border-color: #ffffff14;
-  background: #05080a99;
+.cip-scale {
+  --hand-card-w: 220px;
+  --hand-card-h: 308px;
+  width: 220px;
+  height: 308px;
+  transform: scale(1.4545);
+  transform-origin: top left;
 }
 

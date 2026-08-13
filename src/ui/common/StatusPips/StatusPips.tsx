@@ -24,7 +24,7 @@ export function StatusPips({
   /** 从右往左排列，换行后继续向下。 */
   reverse?: boolean;
   /** 详情浮层在图标上方的对齐方式。 */
-  popoverSide?: "top" | "top-right";
+  popoverSide?: "top" | "top-right" | "top-left";
 }) {
   if (statuses.length === 0 && shield <= 0) return null;
 
@@ -56,7 +56,7 @@ export function StatusPips({
       aria-label={shieldPip ? `护盾，当前 ${stacks}` : `${name}，当前层数 ${stacks}`}
     >
       {icon ?? emoji}
-      {!shieldPip && <b>{stacks}</b>}
+      {!shieldPip && stacks > 1 && <b>{stacks}</b>}
       {detail && (
         <RailPopover side={popoverSide ?? "top"}>
           <strong>{name}</strong>

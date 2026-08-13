@@ -1,28 +1,8 @@
 import { memo } from "react";
-import type { Card, CardRarity, Targeting } from "@/engine";
-import { CARD_MARK_DEFS } from "@/engine";
-import { getCharacter } from "@/data";
-import { cardArt } from "@/ui/art/cardArt";
+import type { Card } from "@/engine";
 import { useHandHover, useHandHoverCost } from "@/ui/battle/handFocusStore";
-import { cx } from "@/ui/common/cx";
-import { useCardText } from "@/ui/common/cardText";
+import { HandCard } from "@/ui/battle/HandCard";
 import s from "./CardInfoPanel.module.css";
-
-const TARGET_LABEL: Record<Targeting, string> = {
-  foe: "敌方单体",
-  ally: "友方单体",
-  self: "自身",
-  allFoes: "全体敌人",
-  allAllies: "全体友军",
-  none: "无需目标",
-};
-
-const RARITY_LABEL: Record<CardRarity, string> = {
-  basic: "基础",
-  common: "普通",
-  uncommon: "优秀",
-  rare: "稀有",
-};
 
 // 固定卡牌说明面板: 绝对定位在**画布右上角**, 位置恒定(取代旧的悬停跟随浮窗)。
 // (它曾是底部 HUD 的第三列, 为把整列宽度让给手牌托盘而搬出, 理由见 CardInfoPanel.css。)
@@ -32,13 +12,9 @@ const RARITY_LABEL: Record<CardRarity, string> = {
 //   会把整个战斗界面重渲染一遍(完整理由见 ui/handFocusStore.ts 开头)。现在悬停变化只重渲染
 //   本组件与 AllyBar 的一格。选中变化频率低, 继续走 props 即可。
 // 无卡时不渲染占位面板, 让战斗画面把注意力还给场景。
-// 内容复用 .drawer-* 类(与 .card-drawer 共用), 样式覆盖 scoped 在 .card-info-panel 下。
+// 内容直接复用 HandCard, 保证详情卡面的排版与手牌一致。
 //
-// ★ 面板宽高比恒为 1:2(320×640, 见 CardInfoPanel.css .card-info-panel), 结构因此是「上半一张与
-//   面板同宽的 1:1 大卡面 + 下半卡名/元数据/描述」—— 卡面素材本就是方图, 比例是从这里推出来的。
-//   面板底边(y=720)与手牌静止时的上沿正好在同一条线上。
-// ⚠ 无配图的卡渲染同尺寸的 NO VISUAL 占位而不是不渲染: 否则那个 296px 见方的块会塌掉,
-//   悬停不同卡时下半部整块上下跳。
+// ★ 面板宽 320 = --hud-info-w, 高为 320 × 1.4(卡牌比例), 顶边锁定在 y=108, 底边落在 y=556。
 // ⚠ 两个分支的根节点都要自己 stopPropagation: 面板已搬出 .battle-hud(那层统一拦了冒泡), 现在
 //   直挂在 .screen.battle 下, 不拦的话点面板会冒泡到画布的 onClick 把选中的卡取消掉。
 export const CardInfoPanel = memo(function CardInfoPanel({
@@ -61,87 +37,15 @@ export const CardInfoPanel = memo(function CardInfoPanel({
 });
 
 function CardInfoPanelContent({ card, cost }: { card: Card; cost?: number }) {
-  const text = useCardText(card);
-
-  const owner = getCharacter(card.ownerCharId);
-  const art = cardArt(card.id);
-  const hasAllFoesEffect = card.effects.some((effect) => effect.target === "allFoes");
-  const hasAllAlliesEffect = card.effects.some((effect) => effect.target === "allAllies");
-
   return (
     <div
       className={s["card-info-panel"]}
-      style={{ "--owner-color": owner.color } as React.CSSProperties}
       aria-hidden
       onClick={(e) => e.stopPropagation()}
     >
-      {/* <div className={s["drawer-title"]}>战术数据 / 卡牌详情</div> */}
-
-      {/* 上半部: 与面板同宽的 1:1 大卡面(无图走同尺寸占位, 保住版面高度) */}
-      {art ? (
-        <img className={s["cip-art"]} src={art} alt={`${card.name}卡面`} />
-      ) : (
-        <div className={cx(s["cip-art"], s.empty)} aria-hidden>
-          <span>NO VISUAL</span>
-        </div>
-      )}
-
-      {/* 图下一行: 卡名 + 普/速副标题 */}
-      <div className={s["cip-id"]}>
-        <span className={s["cip-name"]}>{card.name}</span>
-        <span className={s["cip-sub"]}>
-          {card.cardType === "fast" ? "速攻 · 不推进时刻" : "普通 · 推进 1 时刻"}
-          {card.upgraded ? " · 已强化" : ""}
-          {card.contaminated ? " · 污染卡" : ""}
-        </span>
+      <div className={s["cip-scale"]} data-card-detail>
+        <HandCard card={card} variant="pile" playable selected={false} cost={cost ?? card.cost} />
       </div>
-
-      <dl className={s["drawer-meta"]}>
-        <div>
-          <dt>消耗</dt>
-          <dd>{cost ?? card.cost} 点法力</dd>
-        </div>
-        <div>
-          <dt>施放确认</dt>
-          <dd>{TARGET_LABEL[card.targeting]}</dd>
-        </div>
-        {(hasAllFoesEffect || hasAllAlliesEffect) && (
-          <div>
-            <dt>作用范围</dt>
-            <dd>{hasAllFoesEffect ? "全体敌人" : "全体友军"}</dd>
-          </div>
-        )}
-        {card.rarity && (
-          <div>
-            <dt>稀有度</dt>
-            <dd>{RARITY_LABEL[card.rarity]}</dd>
-          </div>
-        )}
-        {card.exhaust && (
-          <div>
-            <dt>消耗</dt>
-            <dd>打出后本场移除</dd>
-          </div>
-        )}
-        {card.contaminated && (
-          <div>
-            <dt>污染效果</dt>
-            <dd>抽到时所属角色污染值 +2</dd>
-          </div>
-        )}
-        {card.marks?.map((markId) => {
-          const mark = CARD_MARK_DEFS[markId];
-          if (!mark) return null;
-          return (
-            <div key={markId}>
-              <dt>{mark.emoji} {mark.name}</dt>
-              <dd>{mark.desc}</dd>
-            </div>
-          );
-        })}
-      </dl>
-
-      <div className={s["drawer-text"]}>{text}</div>
     </div>
   );
 }

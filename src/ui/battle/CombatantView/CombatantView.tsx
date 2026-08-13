@@ -161,7 +161,7 @@ export const CombatantView = memo(function CombatantView({
               statuses={cmb.statuses}
               shield={cmb.shield}
               detail
-              popoverSide="top"
+              popoverSide="top-left"
               className={s["combatant-statuses"]}
             />
           </div>

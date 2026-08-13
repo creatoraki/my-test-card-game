@@ -138,7 +138,7 @@ const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetab
           shield={cmb.shield}
           detail
           reverse
-          popoverSide="top-right"
+          popoverSide="top-left"
         />
       </div>
 
