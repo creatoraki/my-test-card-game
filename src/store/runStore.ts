@@ -161,7 +161,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   if (!session) return;
 
   applyPendingContamination(session.party.map((p) => p.charId));
-  const { characters, party } = useTownStore.getState();
+  const { characters, party, squadTalent } = useTownStore.getState();
 
   // ★ 羁绊在**开战瞬间快照**, 与负重惩罚同一个范式(见 engine/stats.burdenPenalty 的注释):
   //   局外算好, 灌进面板, 引擎不认识羁绊 —— 正如它不认识装备与背包。

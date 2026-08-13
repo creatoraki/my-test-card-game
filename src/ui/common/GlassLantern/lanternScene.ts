@@ -6,7 +6,7 @@ import {
   MathUtils,
   NoToneMapping,
   OrthographicCamera,
-  PCFSoftShadowMap,
+  PCFShadowMap,
   PointLight,
   Scene,
   ShaderMaterial,
@@ -119,7 +119,7 @@ export function createLanternScene(canvas: HTMLCanvasElement, initialColor: stri
   renderer.outputColorSpace = LinearSRGBColorSpace;
   renderer.toneMapping = NoToneMapping;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFSoftShadowMap;
+  renderer.shadowMap.type = PCFShadowMap;
 
   const scene = new Scene();
   const camera = new OrthographicCamera(

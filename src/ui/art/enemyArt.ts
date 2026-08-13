@@ -50,6 +50,7 @@ export function enemyIdle(def: EnemySpriteDef | undefined): typeof DEFAULT_IDLE 
 const ENEMY_ART: Record<string, EnemySpriteDef> = {
   // 9:16 与 1:1 素材都走同一模型: view 决定展示构图, body 决定主体高度归一。
   // 电线杆机器人已换成专属 9:16 立绘, 主体 1024×1546(瘦高), 体型差异由 encounters.ts 的 scale 承担。
+  // 废品机器人使用 1:1 立绘, 主体 1692×1982; view 省略即整帧展示。
   // view 省略即整帧展示; body 仍由 alpha 包围盒提供脚线和体型基准。
   // frames: 1 是刻意的而非漏填 —— 拼条机制在单帧下自然退化成一张不动的背景图, 无需特判;
   // 此时 frameMs 只决定那条空转动画的时长, 不影响观感。
@@ -57,8 +58,8 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     src: scrapBotIdle,
     frames: 1,
     frameMs: 1000,
-    sheet: { w: 576, h: 1024 },
-    body: { x: 13, y: 84, w: 522, h: 880 },
+    sheet: { w: 2048, h: 2048 },
+    body: { x: 326, y: 27, w: 1692, h: 1982 },
     // 机械微颤: 上下 3px + 0.6° 侧倾, 像内部还有个马达在转
     idle: { bob: 3, tilt: 0.6, dur: 2600 },
   },

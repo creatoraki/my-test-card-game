@@ -62,7 +62,7 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
 // (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
 // 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
 const RADIO_TRIO: EnemySlot[] = [
-  { id: "scrap-bot", dx: -62, dy: 219.625, scale: 1 },
+  { id: "radio-bot", dx: -62, dy: 219.625, scale: 1 },
   { id: "pole-bot", dx: 0, dy: 80, scale: 1.4 },
   { id: "radio-bot", dx: 62, dy: 219.625, scale: 1, flip: true },
 ];
