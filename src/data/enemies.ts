@@ -65,6 +65,7 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
     dropTable: [
+      { kind: "item", itemId: "bronze-bear", chance: 0.4 },
       { kind: "item", itemId: "sorting-id-chip", chance: 0.4 },
       { kind: "item", itemId: "logic-cube", chance: 0.05 },
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
@@ -101,6 +102,7 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
     dropTable: [
+      { kind: "item", itemId: "bronze-bear", chance: 0.4 },
       { kind: "item", itemId: "high-voltage-insulator", chance: 0.4 },
       { kind: "item", itemId: "logic-cube", chance: 0.05 },
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
@@ -137,6 +139,7 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
     dropTable: [
+      { kind: "item", itemId: "bronze-bear", chance: 0.4 },
       { kind: "item", itemId: "broadcast-tuning-chip", chance: 0.4 },
       { kind: "item", itemId: "logic-cube", chance: 0.05 },
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
