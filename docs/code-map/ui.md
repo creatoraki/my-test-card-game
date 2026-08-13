@@ -39,7 +39,7 @@ src/ui/
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
-| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室：初心者徽章启用、六条训练方向投资、队伍属性预览、训练点来源和整棵树重置；远征中按 `runStore.screen` 只读。 |
+| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室：两栏徽章与六条横向训练方向、整行投资、底部六格队伍属性预览、训练点来源浮层和整棵树重置；远征中按 `runStore.screen` 只读。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
 | [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按地图选择播放上下推移背景动画；目标层信息只在地图步骤挂载，并随步骤切换自然卸载。 |

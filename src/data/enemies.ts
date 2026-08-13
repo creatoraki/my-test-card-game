@@ -39,7 +39,7 @@ export const ENEMIES: EnemyDef[] = [
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 30,
     exp: 10,
-    stats: { attack: 14, defense: 5, initiative: 10, critDamage: 150 },
+    stats: { attack: 14, defense: 0, initiative: 10, critDamage: 150 },
     moves: [
       {
         id: "peck",
@@ -78,7 +78,7 @@ export const ENEMIES: EnemyDef[] = [
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 30,
     exp: 10,
-    stats: { attack: 14, defense: 5, initiative: 10, critDamage: 150 },
+    stats: { attack: 14, defense: 0, initiative: 10, critDamage: 150 },
     moves: [
       {
         id: "peck",
@@ -117,7 +117,7 @@ export const ENEMIES: EnemyDef[] = [
     emoji: "📻", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 30,
     exp: 10,
-    stats: { attack: 14, defense: 5, initiative: 10, critDamage: 150 },
+    stats: { attack: 14, defense: 0, initiative: 10, critDamage: 150 },
     moves: [
       {
         id: "peck",

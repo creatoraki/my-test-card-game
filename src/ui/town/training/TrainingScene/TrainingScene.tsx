@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { RULES, type SquadResourceMods } from "@/engine";
 import {
   SQUAD_BADGES,
@@ -150,6 +150,9 @@ export function TrainingScene({ leaving = false }: Props) {
   const resetSquadTalent = useTownStore((state) => state.resetSquadTalent);
   const screen = useRunStore((state) => state.screen);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [hoverKey, setHoverKey] = useState<SquadResourceKey | null>(null);
+  const [shakeId, setShakeId] = useState<string | null>(null);
+  const [bump, setBump] = useState<{ key: SquadResourceKey; n: number } | null>(null);
 
   const locked = screen !== "town";
   const badge = squadTalent.badgeId ? getBadge(squadTalent.badgeId) : undefined;
@@ -171,38 +174,57 @@ export function TrainingScene({ leaving = false }: Props) {
       cap: RESOURCE_CAPS[key] ?? null,
     };
   });
+  const badgeEffects = (Object.entries(activeBadge.base) as Array<[SquadResourceKey, number | undefined]>).filter(
+    ([, value]) => value != null && value !== 0,
+  );
+
+  useEffect(() => {
+    if (!shakeId) return;
+    const timer = window.setTimeout(() => setShakeId(null), 260);
+    return () => window.clearTimeout(timer);
+  }, [shakeId]);
 
   return (
     <div className={cn("tr-scene", leaving && "is-leaving")}>
-      <header className={cn("tr-header")} style={{ left: "56px", top: "42px" }}>
+      <header className={cn("tr-header")}>
         <span className={cn("tr-kicker")}>TRAINING BAY</span>
         <h2 className={cn("tr-title")}>训练室</h2>
         <p className={cn("tr-sub")}>小队天赋 · 训练点分配</p>
       </header>
 
-      <div className={cn("tr-readout")} style={{ right: "56px", top: "42px" }}>
-        <span className={cn("tr-chip-label")}>训练点</span>
-        <strong className={cn("tr-chip-value")}>{remaining} / {trainingPoints}</strong>
+      <div className={cn("tr-readout")}>
+        <span className={cn("tr-chip-label")}>剩余训练点</span>
+        <div className={cn("tr-chip-value")}>
+          <strong key={bump?.n ?? "stable"} className={cn(bump && "is-bumping")}>{remaining}</strong>
+          <span>/ {trainingPoints}</span>
+        </div>
+        <i
+          className={cn("tr-readout-meter")}
+          style={{ "--meter": `${trainingPoints ? (spent / trainingPoints) * 100 : 0}%` } as CSSProperties}
+        />
       </div>
 
       <main className={cn("tr-layout", locked && "is-locked", !squadTalent.badgeId && "is-unselected")}>
         <section className={cn("tr-badge-panel")} aria-label="小队徽章">
-          <div className={cn("tr-panel-kicker")}>SQUAD BADGE</div>
+          <div className={cn("tr-panel-kicker")}>{activeBadge.kicker}</div>
           <div className={cn("tr-badge-art")} aria-hidden>
             <BadgeGlyph />
           </div>
-          <h3 className={cn("tr-badge-name")}>{activeBadge.name}</h3>
-          <p className={cn("tr-badge-desc")}>{activeBadge.desc}</p>
-          <dl className={cn("tr-badge-meta")}>
-            <div>
-              <dt>基础改造</dt>
-              <dd>初始手牌 +1</dd>
-            </div>
-            <div>
-              <dt>适配条件</dt>
-              <dd>{activeBadge.requirement ?? "无要求"}</dd>
-            </div>
-          </dl>
+          <div className={cn("tr-badge-heading")}>
+            <h3 className={cn("tr-badge-name")}>{activeBadge.name}</h3>
+            <span className={cn("tr-info")} tabIndex={0} aria-label="查看徽章说明">
+              ⓘ
+              <span className={cn("tr-pop", "tr-badge-pop")}>
+                <strong>{activeBadge.desc}</strong>
+                <span>适配条件：{activeBadge.requirement ?? "无要求"}</span>
+              </span>
+            </span>
+          </div>
+          <div className={cn("tr-badge-effects")}>
+            {badgeEffects.length ? badgeEffects.map(([key, value]) => (
+              <span key={key}>效果：{RESOURCE_LABELS[key]} +{value}</span>
+            )) : <span>无基础加成</span>}
+          </div>
           <button
             className={cn("tr-enable")}
             type="button"
@@ -211,18 +233,20 @@ export function TrainingScene({ leaving = false }: Props) {
           >
             {squadTalent.badgeId ? "徽章已启用" : "启用徽章"}
           </button>
-          <div className={cn("tr-source")}>
+          <div className={cn("tr-source")} tabIndex={0} aria-label="查看训练点来源">
             <span>训练点来源</span>
-            {party.length ? (
-              party.map((charId) => (
-                <span key={charId} className={cn("tr-source-row")}>
-                  <strong>{characters[charId]?.deckLevel ?? 0}</strong>
-                  <span>{characters[charId] ? getCharacter(charId).name : "未知队员"} · 卡组等级</span>
-                </span>
-              ))
-            ) : (
-              <span className={cn("tr-source-empty")}>暂无上阵成员</span>
-            )}
+            <strong>{trainingPoints}</strong>
+            <span className={cn("tr-info")}>ⓘ</span>
+            <span className={cn("tr-pop", "tr-source-pop")}>
+              {party.length ? (
+                party.map((charId) => (
+                  <span key={charId} className={cn("tr-source-row")}>
+                    <strong>{characters[charId]?.deckLevel ?? 0}</strong>
+                    <span>{characters[charId] ? getCharacter(charId).name : "未知队员"} · 卡组等级</span>
+                  </span>
+                ))
+              ) : <span className={cn("tr-source-empty")}>暂无上阵成员</span>}
+            </span>
           </div>
         </section>
 
@@ -231,95 +255,108 @@ export function TrainingScene({ leaving = false }: Props) {
             const unlocked = Math.max(0, Math.min(track.costs.length, Math.floor(squadTalent.nodes[track.id] ?? 0)));
             const cost = nextNodeCost(track, unlocked);
             const affordable = cost != null && remaining >= cost;
-            const disabled = locked || !squadTalent.badgeId || !affordable;
+            const disabled = locked || !squadTalent.badgeId || cost == null;
             return (
-              <article key={track.id} className={cn("tr-track-card")} style={{ "--track-index": index } as CSSProperties}>
-                <div className={cn("tr-track-head")}>
-                  <span className={cn("tr-track-icon-wrap")}><TrackIcon track={track} /></span>
-                  <div>
-                    <h3>{track.name}</h3>
-                    <p>{track.desc}</p>
-                  </div>
-                </div>
-                <div className={cn("tr-track-progress")} aria-label={`${unlocked} / ${track.costs.length} 节点`}>
-                  {track.costs.map((nodeCost, nodeIndex) => (
-                    <span key={nodeIndex} className={cn("tr-node", nodeIndex < unlocked && "is-filled")}>
-                      {nodeIndex < unlocked ? "●" : "○"}
-                    </span>
-                  ))}
-                  <span className={cn("tr-track-count")}>{unlocked} / {track.costs.length}</span>
-                </div>
-                <div className={cn("tr-track-foot")}>
-                  <span>{unlocked >= track.costs.length ? "已精通" : `已投入 ${track.costs.slice(0, unlocked).reduce((sum, value) => sum + value, 0)} 点`}</span>
-                  <button
-                    className={cn("tr-invest")}
-                    type="button"
-                    disabled={disabled}
-                    title={
-                      locked
-                        ? "远征进行中，方案已锁定"
-                        : !squadTalent.badgeId
-                          ? "请先启用徽章"
-                          : cost == null
-                            ? "该方向已精通"
-                            : affordable
-                              ? `投资 ${cost} 点训练点`
-                              : `训练点不足，还需要 ${cost - remaining} 点`
-                    }
-                    onClick={() => investTalent(track.id)}
-                  >
-                    {cost == null ? "已精通" : `投资 · 下一级 ${cost} 点`}
-                  </button>
-                </div>
-              </article>
+              <button
+                key={track.id}
+                className={cn("tr-track", shakeId === track.id && "is-shaking")}
+                style={{ "--track-index": index } as CSSProperties}
+                type="button"
+                disabled={disabled}
+                onMouseEnter={() => setHoverKey(track.key)}
+                onMouseLeave={() => setHoverKey(null)}
+                onFocus={() => setHoverKey(track.key)}
+                onBlur={() => setHoverKey(null)}
+                onClick={() => {
+                  if (locked || !squadTalent.badgeId || cost == null) return;
+                  if (!affordable) {
+                    setShakeId(track.id);
+                    return;
+                  }
+                  investTalent(track.id);
+                  setBump({ key: track.key, n: (bump?.n ?? 0) + 1 });
+                }}
+              >
+                <span className={cn("tr-track-icon-wrap")}><TrackIcon track={track} /></span>
+                <span className={cn("tr-track-main")}>
+                  <span className={cn("tr-track-heading")}>
+                    <strong>{track.name}</strong>
+                    <span>+{track.perNode} / 级 · {RESOURCE_LABELS[track.key]}</span>
+                  </span>
+                  {/* <span className={cn("tr-pop", "tr-track-pop")}>{track.desc}</span> */}
+                </span>
+                <span className={cn("tr-track-progress")} aria-label={`${unlocked} / ${track.costs.length} 节点`}>
+                  {track.costs.map((nodeCost, nodeIndex) => {
+                    const latest = nodeIndex === unlocked - 1 && bump?.key === track.key;
+                    return (
+                      <span
+                        key={`${nodeIndex}-${latest ? bump?.n : "stable"}`}
+                        className={cn("tr-node", nodeIndex < unlocked && "is-filled", latest && "is-latest")}
+                        aria-hidden
+                      />
+                    );
+                  })}
+                </span>
+                <span className={cn("tr-track-delta")}>
+                  {unlocked >= track.costs.length ? "精通" : `+${unlocked * track.perNode}`}
+                </span>
+                <span className={cn("tr-cost", cost != null && !affordable && "is-unaffordable")}>
+                  {cost == null ? "精通" : `[${cost}]`}
+                </span>
+                <span className={cn("tr-track-arrow")} aria-hidden>▸</span>
+              </button>
             );
           })}
         </section>
-
-        <section className={cn("tr-preview")} aria-label="属性预览">
-          <div className={cn("tr-panel-kicker")}>RESOURCE PREVIEW</div>
-          <h3 className={cn("tr-preview-title")}>队伍属性预览</h3>
-          <div className={cn("tr-preview-list")}>
-            {previews.map((item) => {
-              const capped = item.cap != null && item.final >= item.cap;
-              return (
-                <div key={item.key} className={cn("tr-preview-row", capped && "is-capped")}>
-                  <div className={cn("tr-preview-name")}>{RESOURCE_LABELS[item.key]}</div>
-                  <div className={cn("tr-preview-value")}>
-                    <span>{item.base}</span>
-                    <b>→</b>
-                    <strong>{item.final}</strong>
-                  </div>
-                  <div className={cn("tr-preview-mods")}>
-                    {item.badge !== 0 && <span>徽章 +{item.badge}</span>}
-                    {item.talent !== 0 && <span>天赋 +{item.talent}</span>}
-                    {item.role !== 0 && <span>队伍 +{item.role}</span>}
-                    {capped && <em>已封顶</em>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
       </main>
+
+      <section className={cn("tr-bar")} aria-label="队伍属性预览">
+        {previews.map((item) => {
+          const capped = item.cap != null && item.final >= item.cap;
+          const totalBonus = item.badge + item.talent + item.role;
+          const isBumping = bump?.key === item.key;
+          return (
+            <div
+              key={item.key}
+              className={cn("tr-preview-cell", capped && "is-capped")}
+              data-hl={hoverKey === item.key ? "active" : undefined}
+              tabIndex={0}
+              aria-label={`${RESOURCE_LABELS[item.key]} ${item.final}`}
+              onMouseEnter={() => setHoverKey(item.key)}
+              onMouseLeave={() => setHoverKey(null)}
+              onFocus={() => setHoverKey(item.key)}
+              onBlur={() => setHoverKey(null)}
+            >
+              <span className={cn("tr-preview-name")}>{RESOURCE_LABELS[item.key]}</span>
+              <strong
+                key={`${item.key}-${isBumping ? bump?.n : "stable"}`}
+                className={cn("tr-preview-value", isBumping && "is-bumping")}
+              >
+                {item.final}
+              </strong>
+              <span className={cn("tr-preview-bonus")}>{totalBonus > 0 ? `+${totalBonus}` : "—"}</span>
+              {capped && <em>封顶</em>}
+              <span className={cn("tr-pop", "tr-preview-pop")}>
+                {item.badge !== 0 && <span>徽章 +{item.badge}</span>}
+                {item.talent !== 0 && <span>天赋 +{item.talent}</span>}
+                {item.role !== 0 && <span>队伍 +{item.role}</span>}
+                {totalBonus === 0 && <span>暂无额外加成</span>}
+              </span>
+            </div>
+          );
+        })}
+      </section>
 
       {locked && <div className={cn("tr-lock-banner")}>远征进行中，方案已锁定</div>}
 
-      <footer className={cn("tr-footer")}>
-        <div className={cn("tr-footer-meter")}>
-          <span>可用训练点</span>
-          <strong>{remaining}</strong>
-          <i style={{ "--meter": `${trainingPoints ? (spent / trainingPoints) * 100 : 0}%` } as CSSProperties} />
-        </div>
-        <button
-          className={cn("tr-reset")}
-          type="button"
-          disabled={locked || !squadTalent.badgeId || spent === 0}
-          onClick={() => setConfirmReset(true)}
-        >
-          重置分配
-        </button>
-      </footer>
+      <button
+        className={cn("tr-reset")}
+        type="button"
+        disabled={locked || !squadTalent.badgeId || spent === 0}
+        onClick={() => setConfirmReset(true)}
+      >
+        重置分配
+      </button>
 
       {confirmReset && (
         <div className={cn("tr-confirm")} role="dialog" aria-modal="true" aria-label="确认重置分配">

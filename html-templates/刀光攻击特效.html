@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>斩击特效 - 三拍节奏</title>
+    <style>
+        :root {
+            --angle: 75deg;
+            --scar-length: 160vmax;
+            --scar-half: 80vmax;
+            --container-size: 280vmax;
+            --container-half: 140vmax;
+            --slash-speed: 0.24s;
+            --scar-speed: 0.22s;
+            --converge-speed: 0.30s;
+            --burst-speed: 0.28s;
+            --dissolve-speed: 0.38s;
+            --total-time: 1.6s;
+            --flash-duration: 0.1s;
+            --shake-duration: 0.16s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0a0a0e;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+
+        /* ===== 主舞台 ===== */
+        #stage {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 1;
+        }
+        #stage.shaking {
+            animation: stage-shake var(--shake-duration) ease-out forwards;
+        }
+
+        @keyframes stage-shake {
+            0% {
+                transform: translate(0, 0);
+            }
+            10% {
+                transform: translate(-6px, 4px);
+            }
+            20% {
+                transform: translate(7px, -3px);
+            }
+            30% {
+                transform: translate(-5px, -5px);
+            }
+            40% {
+                transform: translate(4px, 4px);
+            }
+            50% {
+                transform: translate(-3px, 3px);
+            }
+            60% {
+                transform: translate(2px, -2px);
+            }
+            70% {
+                transform: translate(-1px, 1px);
+            }
+            80% {
+                transform: translate(1px, 0);
+            }
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        /* ===== 旋转容器 ===== */
+        #slash-system {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            width: var(--container-size);
+            height: var(--container-size);
+            transform: translate(-50%, -50%) rotate(var(--angle));
+            transform-origin: center center;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* ===== 刀痕 ===== */
+        #scar {
+            position: absolute;
+            left: calc(50% - var(--scar-half));
+            top: calc(50% - 3px);
+            width: var(--scar-length);
+            height: 6px;
+            background: linear-gradient(90deg,
+                    rgba(120, 200, 255, 0.25),
+                    rgba(180, 230, 255, 0.7) 30%,
+                    rgba(255, 255, 255, 0.95) 50%,
+                    rgba(180, 230, 255, 0.7) 70%,
+                    rgba(120, 200, 255, 0.25));
+            border-radius: 3px;
+            box-shadow:
+                0 0 6px 2px rgba(150, 210, 255, 0.5),
+                0 0 16px 5px rgba(80, 160, 230, 0.35),
+                0 0 38px 10px rgba(40, 110, 180, 0.2);
+            transform: scaleX(0);
+            transform-origin: left center;
+            opacity: 0;
+            z-index: 3;
+            will-change: transform, opacity;
+        }
+        #scar.active {
+            animation: scar-unfurl var(--scar-speed) cubic-bezier(0.12, 0.65, 0.2, 1) forwards;
+        }
+        @keyframes scar-unfurl {
+            0% {
+                transform: scaleX(0);
+                opacity: 0;
+            }
+            8% {
+                opacity: 1;
+            }
+            100% {
+                transform: scaleX(1);
+                opacity: 1;
+            }
+        }
+        #scar.dissolving {
+            animation: scar-dissolve var(--dissolve-speed) cubic-bezier(0.3, 0, 0.7, 0.2) forwards;
+        }
+        @keyframes scar-dissolve {
+            0% {
+                transform: scaleX(1);
+                opacity: 1;
+                filter: brightness(1);
+            }
+            25% {
+                opacity: 0.75;
+                filter: brightness(1.6);
+            }
+            55% {
+                opacity: 0.35;
+                filter: brightness(2.2);
+            }
+            100% {
+                transform: scaleX(1);
+                opacity: 0;
+                filter: brightness(3);
+            }
+        }
+
+        /* ===== 刀光本体 ===== */
+        .slash-blade {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: var(--scar-length);
+            height: 14px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(200, 230, 255, 0.6) 4%,
+                    rgba(255, 255, 255, 1) 18%,
+                    #ffffff 50%,
+                    rgba(255, 255, 255, 1) 82%,
+                    rgba(200, 230, 255, 0.6) 96%,
+                    transparent);
+            clip-path: polygon(0% 50%, 2.5% 0%, 97.5% 0%, 100% 50%, 97.5% 100%, 2.5% 100%);
+            border-radius: 2px;
+            box-shadow:
+                0 0 4px 1px rgba(255, 255, 255, 0.95),
+                0 0 12px 3px rgba(160, 210, 255, 0.75),
+                0 0 28px 6px rgba(70, 150, 220, 0.5),
+                0 0 55px 12px rgba(40, 100, 170, 0.3);
+            transform: translate(-50%, -50%) translateX(-120vmax) scaleX(1);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            will-change: transform, opacity;
+        }
+        .slash-blade.animate {
+            animation: slash-swipe var(--slash-speed) cubic-bezier(0.06, 0.75, 0.15, 1) forwards;
+        }
+        @keyframes slash-swipe {
+            0% {
+                transform: translate(-50%, -50%) translateX(-120vmax) scaleX(1);
+                opacity: 0;
+            }
+            6% {
+                opacity: 1;
+            }
+            55% {
+                opacity: 1;
+                filter: brightness(1.15);
+            }
+            88% {
+                opacity: 0.85;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(120vmax) scaleX(1);
+                opacity: 0;
+            }
+        }
+
+        /* 残影 */
+        .slash-blade.afterimage {
+            z-index: 4;
+            filter: blur(1px) brightness(1.3) saturate(1.4);
+            opacity: 0;
+        }
+        .slash-blade.afterimage.animate {
+            animation: slash-ai-1 var(--slash-speed) cubic-bezier(0.06, 0.7, 0.12, 1) 0.04s forwards;
+        }
+        @keyframes slash-ai-1 {
+            0% {
+                transform: translate(-50%, -50%) translateX(-120vmax) scaleX(1);
+                opacity: 0;
+            }
+            5% {
+                opacity: 0.55;
+            }
+            70% {
+                opacity: 0.35;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(120vmax) scaleX(1);
+                opacity: 0;
+            }
+        }
+        .slash-blade.afterimage2 {
+            z-index: 4;
+            filter: blur(2px) brightness(1.5) saturate(1.6);
+            opacity: 0;
+            height: 10px;
+        }
+        .slash-blade.afterimage2.animate {
+            animation: slash-ai-2 var(--slash-speed) cubic-bezier(0.06, 0.65, 0.1, 1) 0.08s forwards;
+        }
+        @keyframes slash-ai-2 {
+            0% {
+                transform: translate(-50%, -50%) translateX(-120vmax) scaleX(1);
+                opacity: 0;
+            }
+            5% {
+                opacity: 0.35;
+            }
+            80% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(120vmax) scaleX(1);
+                opacity: 0;
+            }
+        }
+
+        /* ===== 白色闪屏 ===== */
+        #flash {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+            mix-blend-mode: screen;
+        }
+        #flash.active {
+            animation: flash-burst var(--flash-duration) ease-out forwards;
+        }
+        @keyframes flash-burst {
+            0% {
+                opacity: 0;
+            }
+            18% {
+                opacity: 0.68;
+            }
+            60% {
+                opacity: 0.15;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* ===== 蓄力光球 ===== */
+        #charge-orb {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #c0e0ff 35%, rgba(100, 170, 230, 0.5) 65%, transparent 75%);
+            box-shadow:
+                0 0 15px 5px rgba(180, 220, 255, 0.85),
+                0 0 40px 14px rgba(80, 160, 230, 0.45),
+                0 0 80px 30px rgba(40, 110, 180, 0.25);
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index: 6;
+            will-change: transform, opacity;
+        }
+        #charge-orb.charging {
+            animation: orb-charge 0.22s cubic-bezier(0.3, 0.1, 0.4, 1) forwards;
+        }
+        @keyframes orb-charge {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            30% {
+                opacity: 0.95;
+            }
+            70% {
+                transform: translate(-50%, -50%) scale(2.6);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2.8);
+                opacity: 0.9;
+            }
+        }
+        #charge-orb.burst {
+            animation: orb-burst 0.18s cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+        }
+        @keyframes orb-burst {
+            0% {
+                transform: translate(-50%, -50%) scale(2.8);
+                opacity: 0.9;
+            }
+            40% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* ===== 收敛粒子 ===== */
+        .converge-particle {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #b8dcff 45%, rgba(100, 170, 230, 0.4) 70%, transparent 80%);
+            box-shadow:
+                0 0 6px 2px rgba(200, 230, 255, 0.9),
+                0 0 16px 5px rgba(100, 180, 240, 0.5);
+            transform: translate(-50%, -50%) translateX(var(--start-x, 0));
+            opacity: 0;
+            pointer-events: none;
+            z-index: 7;
+            will-change: transform, opacity;
+        }
+        .converge-particle.animate {
+            animation: particle-converge var(--converge-speed) cubic-bezier(0.45, 0.05, 0.3, 1) var(--delay, 0s) forwards;
+        }
+        @keyframes particle-converge {
+            0% {
+                transform: translate(-50%, -50%) translateX(var(--start-x, 0));
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            78% {
+                opacity: 1;
+                filter: brightness(1.3);
+            }
+            95% {
+                opacity: 0.7;
+                filter: brightness(2);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(0);
+                opacity: 0;
+                filter: brightness(3);
+            }
+        }
+
+        /* ===== 爆裂光束 ===== */
+        .beam {
+            position: absolute;
+            left: calc(50% + var(--x-pos, 0px));
+            top: 50%;
+            width: 38vmax;
+            height: 2.5px;
+            background: linear-gradient(to right,
+                    #ffffff 0%,
+                    #c8e4ff 35%,
+                    rgba(120, 190, 250, 0.5) 70%,
+                    transparent 100%);
+            border-radius: 1.5px;
+            box-shadow: 0 0 4px 1px rgba(200, 230, 255, 0.9);
+            transform-origin: left center;
+            transform: rotate(var(--angle, 0deg)) scaleX(0);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 8;
+            will-change: transform, opacity;
+        }
+        .beam.animate {
+            animation: beam-burst var(--burst-speed) cubic-bezier(0.12, 0.6, 0.25, 1) forwards;
+        }
+        @keyframes beam-burst {
+            0% {
+                transform: rotate(var(--angle, 0deg)) scaleX(0);
+                opacity: 1;
+            }
+            30% {
+                opacity: 1;
+                filter: brightness(1.3);
+            }
+            100% {
+                transform: rotate(var(--angle, 0deg)) scaleX(1);
+                opacity: 0;
+                filter: brightness(2);
+            }
+        }
+
+        /* ===== 爆裂火花/碎片 ===== */
+        .spark {
+            position: absolute;
+            left: calc(50% + var(--x-pos, 0px));
+            top: 50%;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #a8d4ff 50%, rgba(80, 150, 220, 0.4) 80%, transparent 100%);
+            box-shadow: 0 0 5px 1.5px rgba(180, 220, 255, 0.85);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9;
+            will-change: transform, opacity;
+        }
+        .spark.animate {
+            animation: spark-fly 0.38s cubic-bezier(0.15, 0.6, 0.3, 1) forwards;
+        }
+        @keyframes spark-fly {
+            0% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            25% {
+                opacity: 1;
+                filter: brightness(1.4);
+            }
+            100% {
+                transform: translate(-50%, -50%) translate(var(--dx, 0px), var(--dy, 0px)) scale(0.2);
+                opacity: 0;
+                filter: brightness(2.5);
+            }
+        }
+
+        /* ===== 伤口撕裂光 ===== */
+        .wound-line {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: var(--wound-length, 18vmax);
+            height: 3px;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.95) 30%,
+                    #ffffff 50%,
+                    rgba(255, 255, 255, 0.95) 70%,
+                    transparent);
+            border-radius: 2px;
+            box-shadow:
+                0 0 5px 2px rgba(220, 240, 255, 0.9),
+                0 0 14px 5px rgba(120, 190, 250, 0.55);
+            transform: translate(-50%, -50%) translateX(var(--wound-x, 0px)) scaleX(0);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 8;
+            will-change: transform, opacity;
+        }
+        .wound-line.animate {
+            animation: wound-flash 0.22s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+        }
+        @keyframes wound-flash {
+            0% {
+                transform: translate(-50%, -50%) translateX(var(--wound-x, 0px)) scaleX(0);
+                opacity: 1;
+            }
+            35% {
+                opacity: 1;
+                filter: brightness(1.5);
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(var(--wound-x, 0px)) scaleX(1);
+                opacity: 0;
+                filter: brightness(2.8);
+            }
+        }
+
+        /* ===== 冲击波 ===== */
+        #shockwave {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: var(--scar-length);
+            height: 26vmax;
+            border: 2.5px solid rgba(160, 210, 255, 0.7);
+            border-radius: 50%;
+            box-shadow:
+                0 0 10px 3px rgba(150, 210, 255, 0.5),
+                0 0 35px 10px rgba(70, 150, 220, 0.3);
+            transform: translate(-50%, -50%) scaleX(0) scaleY(0.6);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 7;
+            will-change: transform, opacity;
+        }
+        #shockwave.active {
+            animation: shockwave-expand 0.32s cubic-bezier(0.1, 0.5, 0.2, 1) forwards;
+        }
+        @keyframes shockwave-expand {
+            0% {
+                transform: translate(-50%, -50%) scaleX(0) scaleY(0.4);
+                opacity: 0.9;
+            }
+            30% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translate(-50%, -50%) scaleX(1) scaleY(1);
+                opacity: 0;
+            }
+        }
+
+        /* ===== 提示文字 ===== */
+        #hint {
+            position: fixed;
+            bottom: 4vh;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(160, 200, 240, 0.55);
+            font-size: 0.9rem;
+            letter-spacing: 0.15em;
+            pointer-events: none;
+            z-index: 100;
+            transition: opacity 0.4s;
+            font-weight: 300;
+            text-align: center;
+        }
+        #hint.hidden {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 舞台 -->
+    <div id="stage">
+        <!-- 旋转系统容器 -->
+        <div id="slash-system">
+            <!-- 刀痕 -->
+            <div id="scar"></div>
+            <!-- 蓄力光球 -->
+            <div id="charge-orb"></div>
+            <!-- 冲击波 -->
+            <div id="shockwave"></div>
+            <!-- 刀光残影2（后层） -->
+            <div id="slash-ai2" class="slash-blade afterimage2"></div>
+            <!-- 刀光残影1（中层） -->
+            <div id="slash-ai1" class="slash-blade afterimage"></div>
+            <!-- 刀光本体（前层） -->
+            <div id="slash-main" class="slash-blade"></div>
+            <!-- 粒子容器 -->
+            <div id="convergence-container"></div>
+            <!-- 爆裂特效容器 -->
+            <div id="explosion-container"></div>
+        </div>
+    </div>
+
+    <!-- 白色闪屏 -->
+    <div id="flash"></div>
+
+    <!-- 提示文字 -->
+    <div id="hint">点击屏幕触发斩击</div>
+
+    <script>
+        (function() {
+            const stage = document.getElementById('stage');
+            const slashSystem = document.getElementById('slash-system');
+            const scar = document.getElementById('scar');
+            const flash = document.getElementById('flash');
+            const shockwave = document.getElementById('shockwave');
+            const chargeOrb = document.getElementById('charge-orb');
+            const slashMain = document.getElementById('slash-main');
+            const slashAI1 = document.getElementById('slash-ai1');
+            const slashAI2 = document.getElementById('slash-ai2');
+            const convergenceContainer = document.getElementById('convergence-container');
+            const explosionContainer = document.getElementById('explosion-container');
+            const hint = document.getElementById('hint');
+
+            // ===== 时间线（毫秒） =====
+            const T = {
+                // 第一拍（0 - 320ms，约20%）
+                SLASH_START: 0,
+                SLASH_DURATION: 240,
+                FLASH_START: 0,
+                SHAKE_START: 0,
+                SCAR_START: 0,
+                SCAR_DURATION: 220,
+
+                // 第二拍（320 - 800ms，约30%）
+                PAUSE_1_START: 320,
+                PAUSE_1_DURATION: 100,
+                CONVERGE_START: 420,
+                CONVERGE_DURATION: 300,
+                FREEZE_1_DURATION: 80,
+
+                // 第三拍（800 - 1600ms，约50%）
+                PAUSE_2_START: 800,
+                PAUSE_2_DURATION: 150,
+                ORB_CHARGE_START: 810,
+                ORB_CHARGE_DURATION: 140,
+                BURST_START: 950,
+                BURST_DURATION: 280,
+                DISSOLVE_START: 1250,
+                DISSOLVE_DURATION: 380,
+                TOTAL: 1600,
+                CLEANUP: 1750,
+            };
+
+            let timeouts = [];
+            let activeElements = [];
+
+            // ===== 工具函数 =====
+            function addTimeout(fn, delay) {
+                const id = setTimeout(fn, delay);
+                timeouts.push(id);
+                return id;
+            }
+
+            function clearAllTimeouts() {
+                timeouts.forEach(t => clearTimeout(t));
+                timeouts = [];
+            }
+
+            function clearDynamicElements() {
+                // 清除收敛粒子
+                convergenceContainer.querySelectorAll('.converge-particle').forEach(el => el.remove());
+                // 清除爆裂元素
+                explosionContainer.querySelectorAll('.beam, .spark, .wound-line').forEach(el => el.remove());
+            }
+
+            function removeAllAnimateClasses() {
+                // 移除刀光动画类
+                slashMain.classList.remove('animate');
+                slashAI1.classList.remove('animate');
+                slashAI2.classList.remove('animate');
+                // 移除刀痕动画类
+                scar.classList.remove('active', 'dissolving');
+                scar.style.opacity = '0';
+                scar.style.transform = 'scaleX(0)';
+                // 移除蓄力光球动画类
+                chargeOrb.classList.remove('charging', 'burst');
+                chargeOrb.style.opacity = '0';
+                chargeOrb.style.transform = 'translate(-50%, -50%) scale(0)';
+                // 移除冲击波动画类
+                shockwave.classList.remove('active');
+                shockwave.style.opacity = '0';
+                shockwave.style.transform = 'translate(-50%, -50%) scaleX(0) scaleY(0.6)';
+                // 移除闪屏动画类
+                flash.classList.remove('active');
+                flash.style.opacity = '0';
+                // 移除舞台震动
+                stage.classList.remove('shaking');
+                stage.style.transform = 'translate(0, 0)';
+            }
+
+            function forceReflow() {
+                void slashSystem.offsetWidth;
+            }
+
+            function generateConvergeParticles() {
+                const leftPositions = [-72, -58, -45, -32, -20, -10, -4];
+                const rightPositions = [72, 58, 45, 32, 20, 10, 4];
+                const allPositions = [...leftPositions, ...rightPositions];
+
+                allPositions.forEach((startX, i) => {
+                    const particle = document.createElement('div');
+                    particle.className = 'converge-particle';
+                    const delay = Math.random() * 0.08;
+                    particle.style.setProperty('--start-x', startX + 'vmax');
+                    particle.style.setProperty('--delay', delay + 's');
+                    // 粒子大小略微随机
+                    const size = 4 + Math.random() * 5;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    convergenceContainer.appendChild(particle);
+                });
+            }
+
+            function generateExplosionEffects() {
+                const burstPoints = [-65, -45, -25, -8, 8, 25, 45, 65]; // vmax 沿刀痕路径
+                const beamAngles = [0, 35, 70, 110, 150, 190, 230, 280, 320];
+                const sparkDirs = [];
+                for (let i = 0; i < 24; i++) {
+                    const angle = (Math.PI * 2 * i) / 24 + Math.random() * 0.3;
+                    const dist = 18 + Math.random() * 45;
+                    sparkDirs.push({
+                        dx: Math.cos(angle) * dist + 'vmax',
+                        dy: Math.sin(angle) * dist * 0.55 + 'vmax',
+                    });
+                }
+
+                burstPoints.forEach((posX, bi) => {
+                    // 每个爆裂点的光束（数量略不同）
+                    const beamCount = 4 + Math.floor(Math.random() * 4);
+                    const usedAngles = [...beamAngles].sort(() => Math.random() - 0.5).slice(0, beamCount);
+                    usedAngles.forEach((ang, ai) => {
+                        const beam = document.createElement('div');
+                        beam.className = 'beam';
+                        beam.style.setProperty('--x-pos', posX + 'vmax');
+                        beam.style.setProperty('--angle', ang + 'deg');
+                        // 光束长度略微随机
+                        const len = 26 + Math.random() * 22;
+                        beam.style.width = len + 'vmax';
+                        beam.style.transitionDelay = '0s';
+                        explosionContainer.appendChild(beam);
+                    });
+
+                    // 每个爆裂点的火花/碎片
+                    const sparkCount = 6 + Math.floor(Math.random() * 6);
+                    for (let si = 0; si < sparkCount; si++) {
+                        const spark = document.createElement('div');
+                        spark.className = 'spark';
+                        spark.style.setProperty('--x-pos', posX + 'vmax');
+                        const dir = sparkDirs[(bi * sparkCount + si) % sparkDirs.length];
+                        spark.style.setProperty('--dx', dir.dx);
+                        spark.style.setProperty('--dy', dir.dy);
+                        const spSize = 3 + Math.random() * 4;
+                        spark.style.width = spSize + 'px';
+                        spark.style.height = spSize + 'px';
+                        explosionContainer.appendChild(spark);
+                    }
+
+                    // 伤口撕裂光（沿刀痕路径的短亮线）
+                    const woundCount = 2 + Math.floor(Math.random() * 3);
+                    for (let wi = 0; wi < woundCount; wi++) {
+                        const wound = document.createElement('div');
+                        wound.className = 'wound-line';
+                        const wOffset = (Math.random() - 0.5) * 14;
+                        wound.style.setProperty('--wound-x', (posX + wOffset) + 'vmax');
+                        wound.style.setProperty('--wound-length', (10 + Math.random() * 14) + 'vmax');
+                        explosionContainer.appendChild(wound);
+                    }
+                });
+
+                // 额外在中心附近增加密集的伤口撕裂光
+                for (let ci = 0; ci < 5; ci++) {
+                    const wound = document.createElement('div');
+                    wound.className = 'wound-line';
+                    wound.style.setProperty('--wound-x', (ci * 3 - 6) + 'vmax');
+                    wound.style.setProperty('--wound-length', (8 + Math.random() * 10) + 'vmax');
+                    explosionContainer.appendChild(wound);
+                }
+            }
+
+            // ===== 触发斩击 =====
+            function triggerSlash() {
+                // 1. 清理上一次特效
+                clearAllTimeouts();
+                clearDynamicElements();
+                removeAllAnimateClasses();
+                forceReflow();
+
+                // 隐藏提示
+                hint.classList.add('hidden');
+
+                // 2. 创建新的动态粒子
+                generateConvergeParticles();
+                generateExplosionEffects();
+
+                // 获取所有动态元素
+                const convergeParticles = convergenceContainer.querySelectorAll('.converge-particle');
+                const beams = explosionContainer.querySelectorAll('.beam');
+                const sparks = explosionContainer.querySelectorAll('.spark');
+                const woundLines = explosionContainer.querySelectorAll('.wound-line');
+
+                // ===== 第一拍：刀光划过 + 闪屏 + 震动 + 刀痕 =====
+                // 刀光本体
+                addTimeout(() => {
+                    slashMain.classList.add('animate');
+                    slashAI1.classList.add('animate');
+                    slashAI2.classList.add('animate');
+                }, T.SLASH_START);
+
+                // 刀痕展开
+                addTimeout(() => {
+                    scar.classList.add('active');
+                }, T.SCAR_START);
+
+                // 白色闪屏
+                addTimeout(() => {
+                    flash.classList.add('active');
+                }, T.FLASH_START);
+
+                // 屏幕震动
+                addTimeout(() => {
+                    stage.classList.add('shaking');
+                }, T.SHAKE_START);
+
+                // ===== 第二拍：停顿 + 收敛 =====
+                // 收敛粒子开始移动（在停顿之后）
+                addTimeout(() => {
+                    convergeParticles.forEach(p => {
+                        p.classList.add('animate');
+                    });
+                }, T.CONVERGE_START);
+
+                // ===== 第三拍：再次停顿 + 蓄力 + 爆裂 =====
+                // 蓄力光球
+                addTimeout(() => {
+                    chargeOrb.classList.add('charging');
+                }, T.ORB_CHARGE_START);
+
+                // 爆裂触发
+                addTimeout(() => {
+                    // 光球爆裂
+                    chargeOrb.classList.remove('charging');
+                    chargeOrb.classList.add('burst');
+
+                    // 冲击波
+                    shockwave.classList.add('active');
+
+                    // 光束
+                    beams.forEach(b => {
+                        b.classList.add('animate');
+                    });
+
+                    // 火花
+                    sparks.forEach((s, i) => {
+                        // 轻微随机延迟增加层次感
+                        const delay = Math.random() * 0.06;
+                        s.style.animationDelay = delay + 's';
+                        s.classList.add('animate');
+                    });
+
+                    // 伤口撕裂光
+                    woundLines.forEach((w, i) => {
+                        const delay = Math.random() * 0.05;
+                        w.style.animationDelay = delay + 's';
+                        w.classList.add('animate');
+                    });
+                }, T.BURST_START);
+
+                // 刀痕消散
+                addTimeout(() => {
+                    scar.classList.remove('active');
+                    scar.classList.add('dissolving');
+                }, T.DISSOLVE_START);
+
+                // 动画完全结束后的清理
+                addTimeout(() => {
+                    // 移除所有动画类（准备下次触发）
+                    removeAllAnimateClasses();
+                    clearDynamicElements();
+                    // 恢复提示
+                    hint.classList.remove('hidden');
+                    // 重置刀痕样式
+                    scar.classList.remove('dissolving');
+                    scar.style.opacity = '0';
+                    scar.style.transform = 'scaleX(0)';
+                    // 重置光球
+                    chargeOrb.classList.remove('charging', 'burst');
+                    chargeOrb.style.opacity = '0';
+                    chargeOrb.style.transform = 'translate(-50%, -50%) scale(0)';
+                    // 重置冲击波
+                    shockwave.classList.remove('active');
+                    shockwave.style.opacity = '0';
+                    shockwave.style.transform = 'translate(-50%, -50%) scaleX(0) scaleY(0.6)';
+                    // 清除刀光动画
+                    slashMain.classList.remove('animate');
+                    slashAI1.classList.remove('animate');
+                    slashAI2.classList.remove('animate');
+                    slashMain.style.opacity = '0';
+                    slashAI1.style.opacity = '0';
+                    slashAI2.style.opacity = '0';
+                    // 清除舞台震动
+                    stage.classList.remove('shaking');
+                    stage.style.transform = 'translate(0, 0)';
+                    // 清除闪屏
+                    flash.classList.remove('active');
+                    flash.style.opacity = '0';
+                }, T.CLEANUP);
+            }
+
+            // ===== 点击事件绑定 =====
+            document.body.addEventListener('click', (e) => {
+                triggerSlash();
+            });
+            document.body.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                triggerSlash();
+            }, { passive: false });
+
+            // ===== 键盘触发（空格键） =====
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerSlash();
+                }
+            });
+
+            // ===== 初始状态 =====
+            scar.style.opacity = '0';
+            scar.style.transform = 'scaleX(0)';
+            slashMain.style.opacity = '0';
+            slashAI1.style.opacity = '0';
+            slashAI2.style.opacity = '0';
+            chargeOrb.style.opacity = '0';
+            shockwave.style.opacity = '0';
+            flash.style.opacity = '0';
+
+            console.log('斩击特效已就绪 — 点击屏幕触发');
+        })();
+    </script>
+</body>
+</html>
