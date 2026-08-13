@@ -8,6 +8,15 @@ import swordsmanSnowflakeArt from "@/assets/skills/swordsman/雪花.png";
 import swordsmanBuzzArt from "@/assets/skills/swordsman/蜂鸣.png";
 import swordsmanSwarmArt from "@/assets/skills/swordsman/蜂群.png";
 import swordsmanDeclutterArt from "@/assets/skills/swordsman/断舍离.png";
+import swordsmanWhetstoneArt from "@/assets/skills/swordsman/武器研磨.png";
+import swordsmanMirageArt from "@/assets/skills/swordsman/幻陇.png";
+import swordsmanFireflyArt from "@/assets/skills/swordsman/萤火.png";
+import swordsmanGaleArt from "@/assets/skills/swordsman/岚.png";
+import swordsmanRiftLightArt from "@/assets/skills/swordsman/天隙流光.png";
+import swordsmanStillWaterArt from "@/assets/skills/swordsman/止水.png";
+import swordsmanBuzhouMountainArt from "@/assets/skills/swordsman/不周山.png";
+import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.png";
+import swordsmanMoonShadowArt from "@/assets/skills/swordsman/月影.png";
 
 export const CARD_ART: Record<string, string> = {
   "swordsman-basic-attack": basicAttackArt,
@@ -23,6 +32,15 @@ export const CARD_ART: Record<string, string> = {
   "buzz": swordsmanBuzzArt,
   "swarm": swordsmanSwarmArt,
   "declutter": swordsmanDeclutterArt,
+  "whetstone": swordsmanWhetstoneArt,
+  "mirage": swordsmanMirageArt,
+  "firefly": swordsmanFireflyArt,
+  "gale": swordsmanGaleArt,
+  "rift-light": swordsmanRiftLightArt,
+  "still-water": swordsmanStillWaterArt,
+  "buzhou-mountain": swordsmanBuzhouMountainArt,
+  "falling-sakura": swordsmanFallingSakuraArt,
+  "moon-shadow": swordsmanMoonShadowArt,
 };
 
 export const CARD_ART_SOURCES: readonly string[] = [...new Set([...Object.values(CARD_ART), placeholderArt])];
