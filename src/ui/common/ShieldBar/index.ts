@@ -1,0 +1,1 @@
+export { ShieldBar } from "./ShieldBar";

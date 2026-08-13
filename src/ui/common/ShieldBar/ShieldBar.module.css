@@ -1,0 +1,37 @@
+.shield-bar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  background: #05080ad9;
+  border: 1px solid #6fd2ff4d;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+.shield-bar.shield-flush {
+  height: 8px;
+  border: none;
+  border-top: 1px solid #ffffff12;
+  clip-path: none;
+}
+.shield-bar.shield-large {
+  height: 10px;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+/* 与生命条同款玻璃罩 */
+.shield-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff26 0, #ffffff0a 30%, transparent 60%, #00000038 100%);
+}
+/* 护盾恒定青绿, 不参与血量分档 */
+.shield-fill {
+  height: 100%;
+  background: linear-gradient(180deg, #ffffff3d, #ffffff00 42%, #00000038),
+    linear-gradient(90deg, #3dffb0, #7ef0ff);
+  box-shadow: 0 0 8px -1px #4ff0c6, inset 0 0 4px #ffffff26;
+  transition: width 0.3s;
+}

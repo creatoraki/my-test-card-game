@@ -9,6 +9,7 @@ import { cx } from "@/ui/common/cx";
 import { useHandHoverOwner } from "@/ui/battle/handFocusStore";
 import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { HpBar } from "@/ui/common/HpBar";
+import { ShieldBar } from "@/ui/common/ShieldBar";
 import { StatusPips } from "@/ui/common/StatusPips";
 import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
 import s from "./AllyBar.module.css";
@@ -96,8 +97,6 @@ interface SlotProps {
 //   特效层。⚠ 生效的前提是**所有 props 引用都稳定** —— onClick 已改为父级直接透传,
 //   cmb/hit 来自 store 与 hits 表, 悬停时不变。
 const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetable, deathPhase, onClick }: SlotProps) {
-  // 绿条 = 护盾。护盾没有上限概念, 按占最大生命的比例画并封顶 100% —— 只求「有多厚」的量感。
-  const shieldPct = Math.min(100, (cmb.shield / cmb.maxHp) * 100);
   const dead = deathPhase === "dead";
   const { react, vars } = hitFxVars(hit);
   // 归属配色: 与 HandCard 下发 --owner-color 同一套路, 聚焦高亮与手牌光晕同色呼应
@@ -141,9 +140,7 @@ const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetab
         <div className={s["ally-bars"]}>
           <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} flush slowDrain />
           <PollutionMeter value={(cmb as Ally).pollution} />
-          <div className={s["shield-bar"]} title={`护盾 ${cmb.shield}`}>
-            <div className={s["shield-fill"]} style={{ width: `${shieldPct}%` }} />
-          </div>
+          <ShieldBar shield={cmb.shield} maxHp={cmb.maxHp} flush />
         </div>
       </div>
 

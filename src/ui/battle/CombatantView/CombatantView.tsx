@@ -12,6 +12,7 @@ import { HitFxLayer, hitFxVars } from "@/ui/battle/fx/HitFxLayer";
 import { DeathVanishFx } from "@/ui/battle/fx/DeathVanishFx";
 import { DEATH, type DeathPhase } from "@/ui/battle/deathChoreo";
 import { HpBar } from "@/ui/common/HpBar";
+import { ShieldBar } from "@/ui/common/ShieldBar";
 import { RailPopover } from "@/ui/common/RailPopover";
 import { HourglassIcon } from "./icons";
 import s from "./CombatantView.module.css";
@@ -165,6 +166,7 @@ export const CombatantView = memo(function CombatantView({
             />
           </div>
           <HpBar hp={cmb.hp} hpLimit={cmb.hpLimit} maxHp={cmb.maxHp} hideLimit large />
+          <ShieldBar shield={cmb.shield} maxHp={cmb.maxHp} large hideEmpty />
         </div>
         {phase === "alive" && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
       </div>
@@ -207,7 +209,7 @@ function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number
         aria-label={`距离下次行动 ${countdown} 时刻`}
       >
         <HourglassIcon className={s.hourglass} />
-        {countdown}
+        <span className={s["countdown-num"]}>{countdown}</span>
         <RailPopover side="top">
           <strong>下次行动</strong>
           <p>剩余 {countdown} 时刻</p>

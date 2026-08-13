@@ -138,33 +138,7 @@ span.ally-portrait {
 /* ⓘ 红条 = 生命, 走公共 HpBar 的 `flush` prop。它的贴底外观(去描边/斜切角、20px 高、
    名字与数值 12px)现在住在 common/HpBar/HpBar.module.css 的 `.hp-bar.hp-flush` 一节 ——
    那是 HpBar 自己的一个变体, 不该由本文件远程改写(样式铁律 1/3)。 */
-/* 绿条 = 护盾。护盾无上限概念, 按占最大生命的比例画并封顶(见 ui/AllyBar.tsx), 只求量感;
-   没护盾时是一条空槽 —— 刻意保留空条而不是收起来, 否则四张卡的底边会高低不齐。 */
-.shield-bar {
-  position: relative;
-  flex: 0 0 auto;
-  height: 8px;
-  overflow: hidden;
-  background: #05080ad9;
-  border-top: 1px solid #ffffff12;
-}
-/* 与生命条同款玻璃罩(原本是 10% 分段刻度) */
-.shield-bar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(180deg, #ffffff26 0, #ffffff0a 30%, transparent 60%, #00000038 100%);
-}
-/* 护盾恒定青绿, 不参与血量分档 —— 与血条同一套材质语言, 只靠色相区分 */
-.shield-fill {
-  height: 100%;
-  background: linear-gradient(180deg, #ffffff3d, #ffffff00 42%, #00000038),
-    linear-gradient(90deg, #3dffb0, #7ef0ff);
-  box-shadow: 0 0 8px -1px #4ff0c6, inset 0 0 4px #ffffff26;
-  transition: width 0.3s;
-}
+/* 绿条 = 护盾, 复用 common/ShieldBar 的 flush 变体。 */
 /* 状态图标在卡框外, 这样上方详情浮层不会被 .ally-frame 的裁切截断。 */
 .ally-status {
   position: absolute;
