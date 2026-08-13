@@ -53,7 +53,7 @@ describe("战斗初始化", () => {
     expect(sw.maxHp).toBe(50);
     expect(statOf(sw, "attack")).toBe(20);
     expect(statOf(sw, "defense")).toBe(10);
-    expect(statOf(sw, "initiative")).toBe(10);
+    expect(statOf(sw, "initiative")).toBe(20);
   });
 });
 
