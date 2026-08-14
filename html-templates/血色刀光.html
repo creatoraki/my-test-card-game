@@ -1,0 +1,561 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>血色斩击特效</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%; overflow: hidden;
+            background: #080808;
+            font-family: 'Microsoft YaHei', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ===== 舞台 ===== */
+        #stage {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1;
+            transition: filter 0.15s;
+        }
+        #stage.darken { filter: brightness(0.35) saturate(1.5); }
+        #stage.shaking {
+            animation: shake 0.22s ease-out;
+        }
+
+        @keyframes shake {
+            0%   { transform: translate(0,0) rotate(0); }
+            15%  { transform: translate(-8px,6px) rotate(-0.5deg); }
+            30%  { transform: translate(7px,-5px) rotate(0.5deg); }
+            45%  { transform: translate(-5px,-6px) rotate(-0.3deg); }
+            60%  { transform: translate(5px,5px) rotate(0.3deg); }
+            75%  { transform: translate(-3px,3px) rotate(-0.2deg); }
+            90%  { transform: translate(2px,-2px) rotate(0.1deg); }
+            100% { transform: translate(0,0) rotate(0); }
+        }
+
+        /* ===== 暗角 ===== */
+        #vignette {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle, transparent 35%, rgba(0,0,0,0.85) 100%);
+            z-index: 0; pointer-events: none;
+        }
+
+        /* ===== 刀身系统 ===== */
+        #blade-system {
+            position: fixed;
+            top: -20%; left: 50%;
+            width: 320px; height: 100px;
+            transform: translateX(-50%);
+            z-index: 10; pointer-events: none;
+        }
+
+        #blade {
+            width: 100%; height: 100%;
+            position: relative;
+            clip-path: polygon(8% 100%, 0% 35%, 20% 0%, 80% 0%, 100% 35%, 92% 100%, 68% 68%, 32% 68%);
+            background: linear-gradient(180deg, #ffffff 0%, #ffaaaa 35%, #ff2222 65%, #aa0000 100%);
+            filter: drop-shadow(0 0 8px #ff0000) drop-shadow(0 0 20px #cc0000);
+            opacity: 0;
+        }
+
+        #blade-handle {
+            width: 10px; height: 45px;
+            background: linear-gradient(90deg, #333, #666, #333);
+            position: absolute;
+            bottom: -38px; left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+            box-shadow: 0 0 6px rgba(255,0,0,0.5);
+        }
+
+        #blade-afterimage {
+            width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0;
+            clip-path: polygon(8% 100%, 0% 35%, 20% 0%, 80% 0%, 100% 35%, 92% 100%, 68% 68%, 32% 68%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,50,50,0.2) 50%, transparent 100%);
+            filter: blur(4px);
+            opacity: 0;
+        }
+
+        /* ===== 刀痕系统 ===== */
+        #slash-system {
+            position: fixed; inset: 0;
+            pointer-events: none; z-index: 5; overflow: hidden;
+        }
+
+        /* 主刀痕 - 亮白色核心 */
+        #slash-core {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 130vmax; height: 10px;
+            background: linear-gradient(90deg, transparent 5%, #ffffff 25%, #ffffff 75%, transparent 95%);
+            transform: translate(-50%, -50%) rotate(-38deg) scaleX(0);
+            transform-origin: center center;
+            opacity: 0;
+            box-shadow: 0 0 12px #ff0000, 0 0 30px #cc0000, 0 0 60px #990000;
+        }
+
+        /* 刀痕裂纹 - 左半 */
+        #slash-crack-l {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 65vmax; height: 5px;
+            background: linear-gradient(90deg, transparent, #ff4444 50%, #ff8888 80%, transparent);
+            transform: translate(-50%, -50%) rotate(-38deg) translateX(-8%) scaleX(0);
+            transform-origin: right center;
+            opacity: 0;
+        }
+
+        /* 刀痕裂纹 - 右半 */
+        #slash-crack-r {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 65vmax; height: 5px;
+            background: linear-gradient(90deg, #ff8888 20%, #ff4444 50%, transparent);
+            transform: translate(-50%, -50%) rotate(-38deg) translateX(8%) scaleX(0);
+            transform-origin: left center;
+            opacity: 0;
+        }
+
+        /* 刀痕能量光晕 */
+        #slash-aura {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 110vmax; height: 80px;
+            background: linear-gradient(90deg, transparent, rgba(255,0,0,0.25) 25%, rgba(255,20,20,0.45) 50%, rgba(255,0,0,0.25) 75%, transparent);
+            transform: translate(-50%, -50%) rotate(-38deg) scaleY(0);
+            transform-origin: center center;
+            opacity: 0;
+            filter: blur(12px);
+        }
+
+        /* 刀痕疤痕 - 暗色残留 */
+        #slash-scar {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 120vmax; height: 16px;
+            background: linear-gradient(90deg, transparent, rgba(60,0,0,0.5) 8%, rgba(40,0,0,0.7) 50%, rgba(60,0,0,0.5) 92%, transparent);
+            transform: translate(-50%, -50%) rotate(-38deg) scaleX(0);
+            transform-origin: center center;
+            opacity: 0;
+            filter: blur(5px);
+        }
+
+        /* ===== 能量粒子 ===== */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* ===== 冲击波 ===== */
+        .shockwave {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 10px; height: 10px;
+            border: 3px solid rgba(255, 50, 50, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* ===== 闪屏 ===== */
+        #flash {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,80,80,0.4) 50%, transparent 100%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* ===== 提示 ===== */
+        #hint {
+            position: fixed;
+            bottom: 10vh; left: 50%;
+            transform: translateX(-50%);
+            color: rgba(200,140,140,0.55);
+            font-size: 0.95rem;
+            letter-spacing: 0.2em;
+            pointer-events: none;
+            z-index: 100;
+            transition: opacity 0.4s;
+        }
+
+        /* ============================== */
+        /* ===== 关键帧动画 ============================== */
+        /* ============================== */
+
+        /* 刀身凝聚 */
+        @keyframes blade-materialize {
+            0%   { opacity: 0; transform: rotate(-40deg) translateY(-120px) scale(0.3); }
+            50%  { opacity: 1; transform: rotate(-30deg) translateY(5px) scale(1.05); }
+            100% { opacity: 1; transform: rotate(-30deg) translateY(0) scale(1); }
+        }
+
+        /* 刀身斩击下劈 */
+        @keyframes blade-slash {
+            0%   { transform: rotate(-30deg) translateY(-80px); }
+            100% { transform: rotate(-30deg) translateY(130vh); }
+        }
+
+        /* 刀身后像 */
+        @keyframes blade-afterimage {
+            0%   { opacity: 0; transform: rotate(-30deg) translateY(-80px); }
+            15%  { opacity: 0.45; }
+            100% { transform: rotate(-30deg) translateY(130vh); opacity: 0; }
+        }
+
+        /* 刀身蓄力发光 */
+        @keyframes blade-charge-glow {
+            0%   { filter: drop-shadow(0 0 10px #ff0000) drop-shadow(0 0 25px #cc0000); }
+            50%  { filter: drop-shadow(0 0 25px #ff0000) drop-shadow(0 0 60px #cc0000) drop-shadow(0 0 100px #990000); }
+            100% { filter: drop-shadow(0 0 15px #ff0000) drop-shadow(0 0 40px #cc0000); }
+        }
+
+        /* 刀痕核心出现 */
+        @keyframes slash-core-appear {
+            0%   { transform: translate(-50%, -50%) rotate(-38deg) scaleX(0); opacity: 0; }
+            40%  { transform: translate(-50%, -50%) rotate(-38deg) scaleX(1.05); opacity: 1; }
+            100% { transform: translate(-50%, -50%) rotate(-38deg) scaleX(1); opacity: 1; }
+        }
+
+        /* 刀痕裂纹张开 - 左 */
+        @keyframes slash-crack-l-open {
+            0%   { transform: translate(-50%, -50%) rotate(-38deg) translateX(-8%) scaleX(0); opacity: 0; }
+            100% { transform: translate(-50%, -50%) rotate(-38deg) translateX(-18%) scaleX(1); opacity: 1; }
+        }
+
+        /* 刀痕裂纹张开 - 右 */
+        @keyframes slash-crack-r-open {
+            0%   { transform: translate(-50%, -50%) rotate(-38deg) translateX(8%) scaleX(0); opacity: 0; }
+            100% { transform: translate(-50%, -50%) rotate(-38deg) translateX(18%) scaleX(1); opacity: 1; }
+        }
+
+        /* 刀痕光晕脉动 */
+        @keyframes slash-aura-pulse {
+            0%   { transform: translate(-50%, -50%) rotate(-38deg) scaleY(0.4); opacity: 0; }
+            50%  { transform: translate(-50%, -50%) rotate(-38deg) scaleY(1.6); opacity: 0.85; }
+            100% { transform: translate(-50%, -50%) rotate(-38deg) scaleY(1); opacity: 0.45; }
+        }
+
+        /* 刀痕疤痕出现 */
+        @keyframes slash-scar-appear {
+            0%   { transform: translate(-50%, -50%) rotate(-38deg) scaleX(0); opacity: 0; }
+            100% { transform: translate(-50%, -50%) rotate(-38deg) scaleX(1); opacity: 0.65; }
+        }
+
+        /* 刀痕疤痕消散 */
+        @keyframes slash-scar-fade {
+            0%   { opacity: 0.65; }
+            100% { opacity: 0; }
+        }
+
+        /* 闪屏爆发 */
+        @keyframes flash-burst {
+            0%   { opacity: 0; }
+            20%  { opacity: 0.85; }
+            100% { opacity: 0; }
+        }
+
+        /* 冲击波扩散 */
+        @keyframes shockwave-expand {
+            0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; border-width: 4px; }
+            100% { transform: translate(-50%, -50%) scale(35); opacity: 0; border-width: 1px; }
+        }
+
+        /* 粒子飞出 */
+        @keyframes particle-fly {
+            0%   { transform: translate(-50%, -50%) translate(0,0) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        }
+
+        /* 能量汇聚 */
+        @keyframes energy-converge {
+            0%   { transform: translate(-50%, -50%) translate(var(--sx), var(--sy)) scale(0); opacity: 0; }
+            25%  { opacity: 1; }
+            100% { transform: translate(-50%, -50%) translate(0,0) scale(2); opacity: 0; }
+        }
+
+        /* 刀痕核心闪烁 */
+        @keyframes slash-core-flicker {
+            0%   { opacity: 1; filter: brightness(1); }
+            50%  { opacity: 0.7; filter: brightness(1.8); }
+            100% { opacity: 1; filter: brightness(1); }
+        }
+
+        /* 刀痕裂纹脉动 */
+        @keyframes slash-crack-pulse {
+            0%   { filter: brightness(1); }
+            50%  { filter: brightness(2); }
+            100% { filter: brightness(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="stage">
+        <div id="vignette"></div>
+
+        <!-- 刀身 -->
+        <div id="blade-system">
+            <div id="blade"></div>
+            <div id="blade-handle"></div>
+            <div id="blade-afterimage"></div>
+        </div>
+
+        <!-- 刀痕 -->
+        <div id="slash-system">
+            <div id="slash-core"></div>
+            <div id="slash-crack-l"></div>
+            <div id="slash-crack-r"></div>
+            <div id="slash-aura"></div>
+            <div id="slash-scar"></div>
+        </div>
+
+        <!-- 动态粒子/冲击波容器 -->
+        <div id="particles-container"></div>
+        <div id="shockwaves-container"></div>
+
+    </div>
+
+    <div id="flash"></div>
+    <div id="hint">点击屏幕触发斩击</div>
+
+    <script>
+        (function() {
+            const stage       = document.getElementById('stage');
+            const blade       = document.getElementById('blade');
+            const bladeHandle = document.getElementById('blade-handle');
+            const bladeAI     = document.getElementById('blade-afterimage');
+            const slashCore   = document.getElementById('slash-core');
+            const slashCrackL = document.getElementById('slash-crack-l');
+            const slashCrackR = document.getElementById('slash-crack-r');
+            const slashAura   = document.getElementById('slash-aura');
+            const slashScar   = document.getElementById('slash-scar');
+            const flash       = document.getElementById('flash');
+            const particlesC  = document.getElementById('particles-container');
+            const shockwavesC = document.getElementById('shockwaves-container');
+            const hint        = document.getElementById('hint');
+
+            let timeouts = [];
+
+            function addTimeout(fn, delay) {
+                const id = setTimeout(fn, delay);
+                timeouts.push(id);
+                return id;
+            }
+
+            function clearAll() {
+                timeouts.forEach(t => clearTimeout(t));
+                timeouts = [];
+                particlesC.innerHTML = '';
+                shockwavesC.innerHTML = '';
+
+                // 重置刀身
+                blade.style.animation = 'none';
+                blade.style.opacity = '0';
+                blade.style.filter = 'none';
+                bladeHandle.style.display = 'none';
+                bladeAI.style.animation = 'none';
+                bladeAI.style.opacity = '0';
+
+                // 重置刀痕
+                [slashCore, slashCrackL, slashCrackR, slashAura, slashScar].forEach(el => {
+                    el.style.animation = 'none';
+                    el.style.opacity = '0';
+                });
+
+                // 重置闪屏
+                flash.style.animation = 'none';
+                flash.style.opacity = '0';
+
+                // 重置舞台
+                stage.classList.remove('shaking');
+                stage.classList.remove('darken');
+                stage.style.filter = '';
+            }
+
+            function createEnergyOrbs(count) {
+                for (let i = 0; i < count; i++) {
+                    const orb = document.createElement('div');
+                    orb.className = 'particle';
+                    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+                    const dist = 80 + Math.random() * 100;
+                    orb.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+                    orb.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+                    const size = 3 + Math.random() * 5;
+                    orb.style.width = size + 'px';
+                    orb.style.height = size + 'px';
+                    orb.style.left = '50%';
+                    orb.style.top = '40%';
+                    orb.style.background = `radial-gradient(circle, #ffaaaa 0%, #cc0000 50%, transparent 70%)`;
+                    orb.style.boxShadow = `0 0 4px #ff0000, 0 0 10px #cc0000`;
+                    orb.style.animation = `energy-converge 0.5s ease-out ${i * 0.015}s forwards`;
+                    particlesC.appendChild(orb);
+                }
+            }
+
+            function createExplosionParticles(count) {
+                for (let i = 0; i < count; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 60 + Math.random() * 250;
+                    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                    const size = 3 + Math.random() * 8;
+                    p.style.width = size + 'px';
+                    p.style.height = size + 'px';
+                    p.style.left = '50%';
+                    p.style.top = '50%';
+                    if (Math.random() > 0.4) {
+                        p.style.background = `radial-gradient(circle, #ffcc00 0%, #ff8800 50%, transparent 80%)`;
+                        p.style.boxShadow = `0 0 4px #ffcc00, 0 0 8px #ff6600`;
+                    } else {
+                        p.style.background = `radial-gradient(circle, #ff8888 0%, #cc0000 50%, transparent 80%)`;
+                        p.style.boxShadow = `0 0 4px #ff0000, 0 0 8px #cc0000`;
+                    }
+                    const dur = 0.4 + Math.random() * 0.5;
+                    p.style.animation = `particle-fly ${dur}s ease-out forwards`;
+                    particlesC.appendChild(p);
+                }
+            }
+
+            function createShockwaves(count) {
+                for (let i = 0; i < count; i++) {
+                    const sw = document.createElement('div');
+                    sw.className = 'shockwave';
+                    sw.style.animation = `shockwave-expand 0.7s ease-out ${i * 0.12}s forwards`;
+                    shockwavesC.appendChild(sw);
+                }
+            }
+
+            function triggerSlash() {
+                clearAll();
+                void stage.offsetWidth; // 强制重排
+                hint.style.opacity = '0';
+
+                // ==========================================
+                // 第一阶段：蓄力 (0 - 500ms)
+                // ==========================================
+
+                // 0ms - 刀身凝聚出现
+                addTimeout(() => {
+                    blade.style.animation = 'blade-materialize 0.5s ease-out forwards';
+                    bladeHandle.style.display = 'block';
+                }, 0);
+
+                // 50ms - 屏幕变暗（紧张感）
+                addTimeout(() => {
+                    stage.classList.add('darken');
+                }, 50);
+
+                // 150ms - 能量粒子汇聚到刀身
+                addTimeout(() => {
+                    createEnergyOrbs(16);
+                }, 150);
+
+                // ==========================================
+                // 停顿点 (500 - 600ms) - 蓄力顶峰
+                // ==========================================
+
+                // 500ms - 刀身光芒暴涨（蓄力顶峰）
+                addTimeout(() => {
+                    blade.style.animation = 'blade-charge-glow 0.3s ease-out forwards';
+                }, 500);
+
+                // ==========================================
+                // 第二阶段：斩击 (600 - 800ms)
+                // ==========================================
+
+                // 600ms - 刀身下劈斩击
+                addTimeout(() => {
+                    blade.style.animation = 'blade-slash 0.18s ease-in forwards';
+                }, 600);
+
+                // 620ms - 后像跟随
+                addTimeout(() => {
+                    bladeAI.style.animation = 'blade-afterimage 0.22s ease-in forwards';
+                }, 620);
+
+                // ==========================================
+                // 命中瞬间 (800ms)
+                // ==========================================
+
+                // 800ms - 闪屏 + 刀痕核心出现 + 屏幕震动
+                addTimeout(() => {
+                    flash.style.animation = 'flash-burst 0.12s ease-out forwards';
+                    slashCore.style.animation = 'slash-core-appear 0.12s ease-out forwards';
+                    stage.classList.add('shaking');
+                }, 800);
+
+                // ==========================================
+                // 停顿点 (800 - 1300ms) - 命中凝固
+                // ==========================================
+
+                // 850ms - 刀痕裂纹张开
+                addTimeout(() => {
+                    slashCrackL.style.animation = 'slash-crack-l-open 0.35s ease-out forwards';
+                    slashCrackR.style.animation = 'slash-crack-r-open 0.35s ease-out forwards';
+                }, 850);
+
+                // 950ms - 刀痕光晕脉动
+                addTimeout(() => {
+                    slashAura.style.animation = 'slash-aura-pulse 0.6s ease-out forwards';
+                }, 950);
+
+                // 1050ms - 刀痕疤痕出现（暗色残留）
+                addTimeout(() => {
+                    slashScar.style.animation = 'slash-scar-appear 0.4s ease-out forwards';
+                }, 1050);
+
+                // 1200ms - 刀痕核心剧烈闪烁
+                addTimeout(() => {
+                    slashCore.style.animation = 'slash-core-flicker 0.15s ease-in-out 3';
+                }, 1200);
+
+                // ==========================================
+                // 第三阶段：伤害爆发 (1300ms)
+                // ==========================================
+
+                // 1300ms - 爆炸粒子 + 冲击波
+                addTimeout(() => {
+                    createExplosionParticles(40);
+                    createShockwaves(3);
+                }, 1300);
+
+                // ==========================================
+                // 余韵 (2000ms) - 消散
+                // ==========================================
+
+                // 2000ms - 刀痕开始消散
+                addTimeout(() => {
+                    slashCore.style.opacity = '0';
+                    slashCrackL.style.opacity = '0';
+                    slashCrackR.style.opacity = '0';
+                    slashAura.style.opacity = '0';
+                    slashScar.style.animation = 'slash-scar-fade 1.2s ease-out forwards';
+                    stage.classList.remove('darken');
+                }, 2000);
+
+                // 2800ms - 提示文字重新出现
+                addTimeout(() => {
+                    hint.style.opacity = '1';
+                }, 2800);
+            }
+
+            document.addEventListener('click', triggerSlash);
+            document.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                triggerSlash();
+            }, { passive: false });
+        })();
+    </script>
+</body>
+</html>

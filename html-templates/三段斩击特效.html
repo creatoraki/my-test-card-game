@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三段斩击特效 - V形折返 · 折返十连斩 · 延迟受击</title>
+    <style>
+        /* ==================== 设计令牌 ==================== */
+        :root {
+            --bg-deep: #07090f;
+            --bg-mid: #0d1420;
+            --neon: #78c8ff;
+            --neon-soft: rgba(120, 200, 255, 0.55);
+            --neon-dim: rgba(120, 200, 255, 0.22);
+            --text: #b8d8f0;
+            --text-dim: rgba(160, 195, 220, 0.55);
+            --panel: rgba(13, 20, 32, 0.72);
+            --line: rgba(120, 200, 255, 0.28);
+            --design-w: 1920px;
+            --design-h: 1080px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 50% 42%, #101a2a 0%, var(--bg-mid) 45%, var(--bg-deep) 100%);
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        /* ==================== 画布舞台 ==================== */
+        #stage {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #fx-canvas {
+            display: block;
+            pointer-events: none;
+        }
+
+        /* ==================== 信息覆盖层 ==================== */
+        #ui {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .panel {
+            position: absolute;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 18px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 24px rgba(60, 140, 220, 0.12) inset;
+        }
+
+        /* 左上：标题 */
+        #title-panel {
+            top: 26px;
+            left: 30px;
+        }
+
+        #title-panel h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #e8f4ff;
+            text-shadow: 0 0 14px rgba(120, 200, 255, 0.65);
+        }
+
+        #title-panel p {
+            margin-top: 4px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+        }
+
+        /* 左下：三段说明 */
+        #legend-panel {
+            bottom: 30px;
+            left: 30px;
+            font-size: 13px;
+            line-height: 1.9;
+            color: var(--text);
+        }
+
+        #legend-panel .seg {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        #legend-panel .num {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border: 1px solid var(--neon-soft);
+            border-radius: 50%;
+            font-size: 11px;
+            color: var(--neon);
+            flex: none;
+        }
+
+        #legend-panel .desc {
+            color: var(--text-dim);
+        }
+
+        #legend-panel .desc b {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* 右下：控制区 */
+        #control-panel {
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .btn {
+            appearance: none;
+            border: 1px solid var(--neon-soft);
+            background: rgba(20, 32, 52, 0.65);
+            color: #dceeff;
+            font-size: 13px;
+            letter-spacing: 2px;
+            padding: 9px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.18s, box-shadow 0.18s, transform 0.06s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(56, 110, 170, 0.45);
+            box-shadow: 0 0 18px rgba(120, 200, 255, 0.35);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        #btn-loop.is-on {
+            color: #0a1624;
+            background: var(--neon);
+            border-color: var(--neon);
+            box-shadow: 0 0 22px rgba(120, 200, 255, 0.55);
+        }
+
+        #hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            letter-spacing: 3px;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 画布舞台：全部特效绘制在 1920×1080 设计画布上，等比适配窗口 -->
+    <div id="stage">
+        <canvas id="fx-canvas"></canvas>
+    </div>
+
+    <!-- 信息覆盖层 -->
+    <div id="ui">
+        <div class="panel" id="title-panel">
+            <h1>三段斩击特效</h1>
+            <p>V形折返 · 折返十连斩 · 延迟受击</p>
+        </div>
+
+        <div class="panel" id="legend-panel">
+            <div class="seg"><span class="num">1</span><span class="desc"><b>30° 起手</b> 切过目标圆向右上，右上折返，<b>60°</b> 砍回</span></div>
+            <div class="seg"><span class="num">2</span><span class="desc"><b>突然加速</b>，围绕目标圆来回折返 <b>10 刀</b>（角度交替，非五角星）</span></div>
+            <div class="seg"><span class="num">3</span><span class="desc">静默 0.45s 后目标身上<b>延迟裂开伤口</b>：切痕 / 粒子 / 震屏</span></div>
+            <div class="seg" style="margin-top:4px;"><span class="desc" style="color:var(--text-dim);">※ 每道刀痕均为目标圆上的<b>等长弦</b>（左侧一点 → 右侧一点，不穿圆心）</span></div>
+        </div>
+
+        <div class="panel" id="control-panel">
+            <button class="btn" id="btn-replay" type="button">重放（空格）</button>
+            <button class="btn is-on" id="btn-loop" type="button">循环：开</button>
+        </div>
+
+        <div id="hint">点击画面任意处重放</div>
+    </div>
+
+    <script>
+        (() => {
+            'use strict';
+
+            /* ================================================================
+             * 模块 A：配置模块 —— 所有可调参数集中于此
+             * ================================================================ */
+            const CONFIG = {
+                design: { w: 1920, h: 1080 },
+
+                // ---- 敌人圆形化模型：所有刀痕都是等长圆弦 ----
+                // 刀痕 = 从圆左侧一点切到圆右侧一点的弦，与圆心保持 chordOffset 偏移（不过圆心），
+                // 弦长恒为 2·√(radius² - chordOffset²) ≈ 178.6px，每一道刀痕长度一致。
+                targetCircle: { radius: 100, chordOffset: 45 },
+
+                // ---- 全部 12 刀（第一段 2 刀 + 第二段 10 刀）统一配置 ----
+                // angle：刀方向与水平夹角（正值右上斜 / 负值右下斜）；side：弦偏左上(up) / 弦偏右下(down)；
+                // dur：整刀耗时；rPivot：圆外折点滑出距离；gapAfter：收刀后停顿。
+                // 折返点方位由 angle+side 组合决定：+up=右上 / -down=左上 / -up=右下 / +down=左下。
+                // 第一段两刀合并为一条折线连续扫过（无停顿，见 Geometry），dur 之和即整段时长。
+                slashes: [
+                    // ---- 第一段：V 形折返（30° 划过 → 60° 砍回，两刀轨迹总长一致、无缝衔接、极速利落）----
+                    { angle: 30, side: 'up',   dur: 0.20, rPivot: 78.75, gapAfter: 0 },
+                    { angle: 60, side: 'down', dur: 0.20, rPivot: 100,   gapAfter: 0.50 },
+                    // ---- 第二段：折返十连斩（突然加速；正负角度交替 + 四向折返点轮转，观感丰富）----
+                    { angle: 55,  side: 'up',   dur: 0.060, rPivot: 70 },   // 折返：右上
+                    { angle: -30, side: 'down', dur: 0.058, rPivot: 80 },   // 折返：左上
+                    { angle: -50, side: 'up',   dur: 0.054, rPivot: 62 },   // 折返：右下
+                    { angle: 40,  side: 'down', dur: 0.052, rPivot: 74 },   // 折返：左下
+                    { angle: 65,  side: 'up',   dur: 0.050, rPivot: 66 },   // 折返：右上
+                    { angle: -45, side: 'down', dur: 0.048, rPivot: 78 },   // 折返：左上
+                    { angle: -25, side: 'up',   dur: 0.046, rPivot: 58 },   // 折返：右下
+                    { angle: 20,  side: 'down', dur: 0.044, rPivot: 72 },   // 折返：左下
+                    { angle: 70,  side: 'up',   dur: 0.044, rPivot: 68 },   // 折返：右上
+                    { angle: -35, side: 'down', dur: 0.044, rPivot: 76 },   // 折返：左上
+                ],
+                // 第一刀起手点：沿 30° 线距第一道弦左端 100px（与第二刀出刀段等长，两刀总长一致）
+                entryPoint: [823.6, 775.65],
+
+                // ---- 第三段：延迟受击 ----
+                phase3: {
+                    delayStart: 1.40,   // 静默期开始（伤口尚未出现）
+                    delayDur: 0.45,     // 延迟时长
+                    hitTime: 1.85,      // 爆发时刻
+                    scarOpenDur: 0.09,  // 切痕张开耗时
+                    scarFadeFrom: 0.32, // 切痕开始淡出
+                    scarFadeDur: 0.40,
+                    shakeAmt: 10,       // 震屏幅度(px)
+                    shakeDecay: 7,      // 震屏衰减速率
+                    flashDur: 0.06,     // 全屏白闪时长
+                    flashAlpha: 0.16,
+                },
+
+                loopTotal: 2.60,        // 一个循环总时长(s)
+
+                // ---- 目标剪影 ----
+                target: { x: 1010, y: 740, groundY: 900, head: { x: 1010, y: 590, r: 26 } },
+                // 敌人模型居中点（圆形化模型的圆心）：所有刀痕弦都围绕这一点设计
+                center: [1010, 720],
+                core: { x: 1010, y: 720, r: 8 },   // 胸口能量核心
+
+                // ---- 随机种子：保证每次重放轨迹完全一致 ----
+                seed: 20240607,
+            };
+
+            /* ================================================================
+             * 模块 B：数学与随机工具
+             * ================================================================ */
+            const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+            const lerp = (a, b, k) => a + (b - a) * k;
+            const easeOutCubic = (k) => 1 - Math.pow(1 - k, 3);
+            /** easeOutCubic 的反函数：给定弧长比例求时间比例（用于事件时刻与刀光精确同步） */
+            const easeInverse = (p) => 1 - Math.cbrt(1 - p);
+            const TAU = Math.PI * 2;
+
+            /** 确定性伪随机数（mulberry32） */
+            function mulberry32(seed) {
+                let a = seed >>> 0;
+                return function () {
+                    a |= 0;
+                    a = (a + 0x6D2B79F5) | 0;
+                    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+                    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+                };
+            }
+
+            /* ================================================================
+             * 模块 C：轨迹几何 —— 刀组 + 弧长推进
+             * - 第一段两刀合并为一个刀组（7 段折线）：一次 easing 连续扫过，
+             *   折返点不停顿、刀速连续，V 形折返一气呵成。
+             * - 第二段每刀一个刀组，刀内三段同样按弧长连续推进。
+             * - 折返闪光 / 刀痕残影的时刻用 easeInverse 反算，与刀光精确同步。
+             * ================================================================ */
+            const Geometry = (() => {
+                const cfg = CONFIG;
+
+                /** 生成每把刀的 4 顶点折线（入刀点 → 弦端点 → 弦端点 → 折返点） */
+                function buildSlashPoints(s) {
+                    const R = cfg.targetCircle.radius;
+                    const d = cfg.targetCircle.chordOffset;
+                    const half = Math.sqrt(R * R - d * d); // 半弦长 ≈ 89.3
+                    const center = cfg.center;
+                    const rad = (s.angle * Math.PI) / 180;
+                    const u = [Math.cos(rad), -Math.sin(rad)];          // 刀方向
+                    const n = s.side === 'up'
+                        ? [-Math.sin(rad), -Math.cos(rad)]              // 弦中点偏移：左上
+                        : [Math.sin(rad), Math.cos(rad)];               // 弦中点偏移：右下
+                    const mid = [center[0] + d * n[0], center[1] + d * n[1]];
+                    const cL = [mid[0] - half * u[0], mid[1] - half * u[1]]; // 圆左侧端点
+                    const cR = [mid[0] + half * u[0], mid[1] + half * u[1]]; // 圆右侧端点
+                    let pts, pivot;
+                    if (s.side === 'up') {
+                        pivot = [cR[0] + s.rPivot * u[0], cR[1] + s.rPivot * u[1]];
+                        pts = [null, cL, cR, pivot]; // [0] 占位，由前刀终点/起点填入
+                    } else {
+                        pivot = [cL[0] - s.rPivot * u[0], cL[1] - s.rPivot * u[1]];
+                        pts = [null, cR, cL, pivot];
+                    }
+                    return { pts, pivot };
+                }
+
+                // ---- 构建全部刀 ----
+                const allSlashes = cfg.slashes.map((s) => buildSlashPoints(s));
+                allSlashes[0].pts[0] = cfg.entryPoint.slice();
+                for (let i = 1; i < allSlashes.length; i++) {
+                    allSlashes[i].pts[0] = allSlashes[i - 1].pivot.slice(); // 入刀点 = 上一刀折返点
+                }
+
+                // ---- 组装刀组：第一段两刀合并，第二段每刀独立 ----
+                const groups = [];
+                (() => {
+                    const s0 = cfg.slashes[0], s1 = cfg.slashes[1];
+                    // 合并组：7 顶点折线（entry → 弦1两端 → 折返点 → 弦2两端 → 收刀点），两刀无缝衔接
+                    const merged = allSlashes[0].pts.concat(allSlashes[1].pts.slice(1));
+                    const g = {
+                        index: 0,
+                        points: merged,
+                        segLens: merged.slice(0, -1).map((p, i) => Math.hypot(merged[i + 1][0] - p[0], merged[i + 1][1] - p[1])),
+                        start: 0,
+                        dur: s0.dur + s1.dur,
+                    };
+                    g.totalLen = g.segLens.reduce((a, b) => a + b, 0);
+                    // 折返点（刀1 折返）与收刀点（刀2 收刀）的组内弧长比例
+                    const pivot1Arc = g.segLens[0] + g.segLens[1] + g.segLens[2];
+                    g.pivots = [
+                        { frac: pivot1Arc / g.totalLen, x: allSlashes[0].pivot[0], y: allSlashes[0].pivot[1], size: 30, ttl: 0.22 },
+                        { frac: 1, x: allSlashes[1].pivot[0], y: allSlashes[1].pivot[1], size: 16, ttl: 0.18 },
+                    ];
+                    groups.push(g);
+
+                    // 第二段：每刀一个刀组
+                    let t = s0.dur + s1.dur + s1.gapAfter;
+                    for (let i = 2; i < allSlashes.length; i++) {
+                        const pts = allSlashes[i].pts;
+                        const s = cfg.slashes[i];
+                        const g2 = {
+                            index: i,
+                            points: pts,
+                            segLens: pts.slice(0, -1).map((p, j) => Math.hypot(pts[j + 1][0] - p[0], pts[j + 1][1] - p[1])),
+                            start: t,
+                            dur: s.dur,
+                        };
+                        g2.totalLen = g2.segLens.reduce((a, b) => a + b, 0);
+                        g2.pivots = [{ frac: 1, x: allSlashes[i].pivot[0], y: allSlashes[i].pivot[1], size: 11, ttl: 0.14 }];
+                        groups.push(g2);
+                        t += s.dur;
+                    }
+                })();
+                groups.forEach((g) => { g.end = g.start + g.dur; });
+
+                /** 刀组内弧长 s 处的点 */
+                function arcPoint(group, s) {
+                    let acc = 0;
+                    for (let i = 0; i < group.segLens.length; i++) {
+                        if (s <= acc + group.segLens[i]) {
+                            const k = group.segLens[i] > 0 ? (s - acc) / group.segLens[i] : 0;
+                            return [
+                                lerp(group.points[i][0], group.points[i + 1][0], k),
+                                lerp(group.points[i][1], group.points[i + 1][1], k),
+                            ];
+                        }
+                        acc += group.segLens[i];
+                    }
+                    return group.points[group.points.length - 1];
+                }
+
+                /** 折返闪光事件：时刻 = 刀光到达折返点弧长的精确时刻 */
+                const pivotEvents = [];
+                groups.forEach((g) => {
+                    g.pivots.forEach((pv) => {
+                        pivotEvents.push({
+                            x: pv.x, y: pv.y,
+                            time: g.start + g.dur * easeInverse(pv.frac),
+                            size: pv.size, ttl: pv.ttl,
+                        });
+                    });
+                });
+
+                /** 刀痕残影事件：时刻 = 刀光扫过弦中点的精确时刻 */
+                const scarEvents = [];
+                groups.forEach((g) => {
+                    // 每把刀在组内占据的段：第一段合并组 0-2 为刀1、3-5 为刀2；其余组整组为一把刀
+                    const slashIdx = g.index === 0 ? [0, 1] : [g.index];
+                    slashIdx.forEach((idx) => {
+                        // 该刀弦段在组内的段序号：合并组刀1=段1、刀2=段4；独立组=段1
+                        const segIdxInGroup = g.index === 0 ? (idx === 0 ? 1 : 4) : 1;
+                        const from = g.points[segIdxInGroup];
+                        const to = g.points[segIdxInGroup + 1];
+                        let acc = 0;
+                        for (let i = 0; i < segIdxInGroup; i++) acc += g.segLens[i];
+                        const fracMid = (acc + g.segLens[segIdxInGroup] / 2) / g.totalLen;
+                        scarEvents.push({
+                            from, to,
+                            time: g.start + g.dur * easeInverse(fracMid),
+                            index: idx,
+                        });
+                    });
+                });
+
+                /**
+                 * 主切痕（第三段伤口爆开线）：沿回折刀 60° 方向穿过敌人圆心，
+                 * 长度与所有刀痕一致（≈178.6px），中点即圆心（胸口核心爆亮点）。
+                 */
+                const scarSeg = (() => {
+                    const R = cfg.targetCircle.radius;
+                    const d = cfg.targetCircle.chordOffset;
+                    const half = Math.sqrt(R * R - d * d);
+                    const center = cfg.center;
+                    const rad = (cfg.slashes[1].angle * Math.PI) / 180;
+                    const u = [Math.cos(rad), -Math.sin(rad)];
+                    return {
+                        from: [center[0] + half * u[0], center[1] + half * u[1]], // 右上端
+                        to: [center[0] - half * u[0], center[1] - half * u[1]],   // 左下端
+                    };
+                })();
+
+                /** 时间 t 处的刀光：所在刀组、段序号与段内比例（弧长连续推进） */
+                function bladeAt(t) {
+                    for (const g of groups) {
+                        if (t >= g.start && t < g.end) {
+                            const p = clamp((t - g.start) / g.dur, 0, 1);
+                            const s = easeOutCubic(p) * g.totalLen;
+                            let acc = 0;
+                            for (let i = 0; i < g.segLens.length; i++) {
+                                if (s <= acc + g.segLens[i]) {
+                                    return {
+                                        active: true, group: g, segIdx: i,
+                                        k: g.segLens[i] > 0 ? (s - acc) / g.segLens[i] : 0,
+                                    };
+                                }
+                                acc += g.segLens[i];
+                            }
+                            return { active: true, group: g, segIdx: g.segLens.length - 1, k: 1 };
+                        }
+                    }
+                    return { active: false, group: null, segIdx: 0, k: 0 };
+                }
+
+                /** 第一段光迹淡出：刀光画完后不消失，整条 V 形路径延迟淡出至第二段开始 */
+                const phase1Fade = {
+                    start: groups[0].end,
+                    end: groups[1].start,
+                    group: groups[0],
+                };
+
+                return { groups, pivotEvents, scarEvents, scarSeg, bladeAt, arcPoint, phase1Fade };
+            })();
+
+            /* ================================================================
+             * 模块 D：一次性特效事件（爆闪 / 残痕 / 粒子 / 尘土）——全部由时间推导，纯函数式
+             * ================================================================ */
+            const Events = (() => {
+                const cfg = CONFIG;
+                const flashes = [];
+                const traces = [];
+                const rng = mulberry32(cfg.seed + 7);
+
+                // ---- 折返点闪光：时刻已按弧长反算，与刀光精确同步 ----
+                for (const pv of Geometry.pivotEvents) {
+                    flashes.push({
+                        x: pv.x, y: pv.y,
+                        t: pv.time, size: pv.size, ttl: pv.ttl,
+                    });
+                }
+
+                // ---- 刀痕残影：只留在等长圆弦上（每道刀痕长度一致）----
+                // 第一段的两道弦由「整条 V 形光迹淡出」呈现，不重复生成残痕。
+                for (const se of Geometry.scarEvents) {
+                    if (se.index < 2) continue;
+                    const isLast = se.index === cfg.slashes.length - 1;
+                    traces.push({
+                        from: se.from, to: se.to,
+                        t: se.time,
+                        ttl: isLast ? 0.22 : 0.16, // 末刀残痕在静默期缓缓消散
+                        width: 5,
+                    });
+                }
+
+                // ---- 受击爆发：切痕处大星芒（延迟结束后才出现）----
+                const scar = Geometry.scarSeg;
+                const scarMid = [
+                    (scar.from[0] + scar.to[0]) / 2,
+                    (scar.from[1] + scar.to[1]) / 2,
+                ];
+                flashes.push({
+                    x: scarMid[0], y: scarMid[1],
+                    t: cfg.phase3.hitTime, size: 48, ttl: 0.30,
+                });
+
+                // ---- 受击粒子：沿刀口方向两侧喷出 ----
+                const hitParticles = (() => {
+                    const arr = [];
+                    const dx = scar.to[0] - scar.from[0];
+                    const dy = scar.to[1] - scar.from[1];
+                    const len = Math.hypot(dx, dy) || 1;
+                    const dirX = dx / len, dirY = dy / len;      // 刀口方向
+                    const nx = -dirY, ny = dirX;                  // 法向
+                    for (let i = 0; i < 26; i++) {
+                        const t = rng();
+                        const px = lerp(scar.from[0], scar.to[0], t);
+                        const py = lerp(scar.from[1], scar.to[1], t);
+                        const speed = lerp(140, 400, rng());
+                        const along = lerp(-1, 1, rng()) * lerp(0.15, 0.55, rng()); // 沿刀口
+                        const side = (rng() < 0.5 ? -1 : 1) * lerp(0.25, 0.95, rng()); // 法向
+                        arr.push({
+                            x: px, y: py,
+                            vx: dirX * along * speed * 2 + nx * side * speed,
+                            vy: dirY * along * speed * 2 + ny * side * speed - lerp(20, 160, rng()),
+                            ttl: lerp(0.30, 0.62, rng()),
+                            size: lerp(1.4, 3.4, rng()),
+                            white: rng() < 0.55,
+                            gravity: 950,
+                        });
+                    }
+                    return arr;
+                })();
+
+                // ---- 脚下尘土 ----
+                const dust = (() => {
+                    const arr = [];
+                    const gx = cfg.target.x, gy = cfg.target.groundY;
+                    for (let i = 0; i < 9; i++) {
+                        const side = rng() < 0.5 ? -1 : 1;
+                        arr.push({
+                            x: gx + side * lerp(4, 34, rng()),
+                            y: gy - lerp(0, 8, rng()),
+                            vx: side * lerp(50, 240, rng()),
+                            vy: -lerp(30, 150, rng()),
+                            ttl: lerp(0.35, 0.6, rng()),
+                            size: lerp(2, 5, rng()),
+                            white: false,
+                            gravity: 700,
+                        });
+                    }
+                    return arr;
+                })();
+
+                return { flashes, traces, hitParticles, dust };
+            })();
+
+            /* ================================================================
+             * 模块 E：渲染器 —— 背景 / 剪影 / 刀光 / 切痕 / 粒子 / 爆闪
+             * ================================================================ */
+            const Renderer = (() => {
+                const cfg = CONFIG;
+                let ctx = null;
+
+                function init(canvas) {
+                    ctx = canvas.getContext('2d');
+                }
+
+                /** 画布等比适配：1920×1080 设计坐标 → 实际窗口（letterbox 居中） */
+                function fit() {
+                    const canvas = document.getElementById('fx-canvas');
+                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    const scale = Math.min(
+                        window.innerWidth / cfg.design.w,
+                        window.innerHeight / cfg.design.h
+                    );
+                    canvas.width = Math.round(window.innerWidth * dpr);
+                    canvas.height = Math.round(window.innerHeight * dpr);
+                    canvas.style.width = window.innerWidth + 'px';
+                    canvas.style.height = window.innerHeight + 'px';
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    ctx.scale(scale, scale);
+                    ctx.translate(
+                        (window.innerWidth / scale - cfg.design.w) / 2,
+                        (window.innerHeight / scale - cfg.design.h) / 2
+                    );
+                    return scale;
+                }
+
+                /** 背景与地面 */
+                function drawBackground(t) {
+                    ctx.clearRect(-80, -80, cfg.design.w + 160, cfg.design.h + 160);
+
+                    // 舞台底色
+                    const g = ctx.createRadialGradient(960, 470, 60, 960, 520, 900);
+                    g.addColorStop(0, 'rgba(26, 44, 70, 0.85)');
+                    g.addColorStop(0.55, 'rgba(13, 20, 32, 0.9)');
+                    g.addColorStop(1, 'rgba(7, 9, 15, 0.95)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, cfg.design.w, cfg.design.h);
+
+                    // 远景竖线网格（微弱）
+                    ctx.strokeStyle = 'rgba(120, 200, 255, 0.05)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for (let x = 120; x <= 1800; x += 120) {
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, cfg.target.groundY);
+                    }
+                    ctx.stroke();
+
+                    // 地面
+                    const ground = ctx.createLinearGradient(0, cfg.target.groundY, 0, cfg.design.h);
+                    ground.addColorStop(0, 'rgba(26, 42, 66, 0.75)');
+                    ground.addColorStop(1, 'rgba(10, 15, 26, 0.95)');
+                    ctx.fillStyle = ground;
+                    ctx.fillRect(0, cfg.target.groundY, cfg.design.w, cfg.design.h - cfg.target.groundY);
+
+                    // 地面光带
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(120, 200, 255, 0.30)';
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = 'rgba(120, 200, 255, 0.55)';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(0, cfg.target.groundY);
+                    ctx.lineTo(cfg.design.w, cfg.target.groundY);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 目标圈：敌人圆形化模型轮廓（所有刀痕均为该圆上的等长弦）
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(120, 200, 255, 0.12)';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([6, 9]);
+                    ctx.beginPath();
+                    ctx.arc(cfg.center[0], cfg.center[1], cfg.targetCircle.radius, 0, TAU);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                /** 敌人剪影（含颤抖 / 闪白 / 后仰状态） */
+                function drawEnemy(t) {
+                    const tgt = cfg.target;
+                    const delayAge = t - cfg.phase3.delayStart;
+                    const hitAge = t - cfg.phase3.hitTime;
+
+                    // 静默期：剪影微微颤抖，蓄势渐强
+                    let ox = 0, oy = 0, rot = 0;
+                    if (delayAge > 0 && hitAge <= 0) {
+                        const amp = clamp(delayAge / cfg.phase3.delayDur, 0, 1) * 2.4;
+                        ox = Math.sin(t * 83) * amp;
+                        oy = Math.cos(t * 97) * amp * 0.7;
+                    }
+                    // 爆发后：受击后仰 + 闪白
+                    if (hitAge > 0) {
+                        const decay = Math.exp(-hitAge * 3.2);
+                        rot = -0.014 * decay;
+                        oy = 3 * decay;
+                    }
+
+                    ctx.save();
+                    ctx.translate(tgt.x + ox, tgt.groundY + oy);
+                    ctx.rotate(rot);
+                    ctx.translate(-tgt.x, -tgt.groundY);
+
+                    // 脚下阴影
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.beginPath();
+                    ctx.ellipse(tgt.x, tgt.groundY + 6, 92, 14, 0, 0, TAU);
+                    ctx.fill();
+
+                    // 剪影主体
+                    const flashK = hitAge > 0 ? clamp(0.9 * Math.exp(-hitAge * 9), 0, 1) : 0;
+                    const bodyR = Math.round(lerp(11, 232, flashK));
+                    const bodyG = Math.round(lerp(18, 244, flashK));
+                    const bodyB = Math.round(lerp(32, 250, flashK));
+
+                    ctx.save();
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.shadowColor = 'rgba(120, 200, 255, 0.8)';
+                    ctx.shadowBlur = 14;
+                    ctx.strokeStyle = 'rgba(140, 210, 255, 0.6)';
+                    ctx.fillStyle = `rgb(${bodyR}, ${bodyG}, ${bodyB})`;
+                    ctx.lineWidth = 3;
+
+                    // 头
+                    ctx.beginPath();
+                    ctx.arc(tgt.head.x, tgt.head.y, tgt.head.r, 0, TAU);
+                    ctx.fill();
+                    ctx.stroke();
+                    // 身体
+                    ctx.beginPath();
+                    ctx.moveTo(984, 640);
+                    ctx.lineTo(1036, 640);
+                    ctx.lineTo(1050, 830);
+                    ctx.lineTo(970, 830);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    // 双臂
+                    ctx.lineWidth = 15;
+                    ctx.beginPath();
+                    ctx.moveTo(986, 662);
+                    ctx.lineTo(930, 760);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(1034, 662);
+                    ctx.lineTo(1090, 760);
+                    ctx.stroke();
+                    // 双腿
+                    ctx.beginPath();
+                    ctx.moveTo(990, 830);
+                    ctx.lineTo(975, tgt.groundY);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(1030, 830);
+                    ctx.lineTo(1045, tgt.groundY);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 胸口能量核心：受击后爆亮 → 熄灭
+                    if (hitAge > 0.3) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.22;
+                    }
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(150, 220, 255, 0.9)';
+                    ctx.shadowBlur = hitAge > 0 ? 26 : 12;
+                    ctx.fillStyle = hitAge > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(150, 220, 255, 0.75)';
+                    ctx.beginPath();
+                    ctx.arc(cfg.core.x, cfg.core.y, cfg.core.r * (hitAge > 0 ? 1.6 : 1), 0, TAU);
+                    ctx.fill();
+                    ctx.restore();
+                    if (hitAge > 0.3) ctx.restore();
+
+                    ctx.restore();
+                }
+
+                /** 残痕（刀划过后短暂滞留的光迹） */
+                function drawTraces(t) {
+                    for (const tr of Events.traces) {
+                        const age = t - tr.t;
+                        if (age < 0 || age > tr.ttl) continue;
+                        const alpha = 1 - age / tr.ttl;
+                        ctx.save();
+                        ctx.lineCap = 'round';
+                        ctx.strokeStyle = `rgba(150, 215, 255, ${(alpha * 0.35).toFixed(3)})`;
+                        ctx.lineWidth = tr.width;
+                        ctx.beginPath();
+                        ctx.moveTo(tr.from[0], tr.from[1]);
+                        ctx.lineTo(tr.to[0], tr.to[1]);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+
+                /** 刀光主体：沿折线路径连续扫过（拖尾跨段保留，V 形折返一气呵成） */
+                function drawBladeOnPath(group, segIdx, k) {
+                    const { points, segLens } = group;
+                    // 刀尖弧长
+                    let sTip = 0;
+                    for (let i = 0; i < segIdx; i++) sTip += segLens[i];
+                    sTip += segLens[segIdx] * k;
+                    const tip = Geometry.arcPoint(group, sTip);
+                    const sCore = Math.max(0, sTip - 90);
+                    const core = Geometry.arcPoint(group, sCore);
+
+                    ctx.save();
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+
+                    // 拖尾路径：从路径起点沿折线到刀尖（跨折返点连续）
+                    const tracePath = () => {
+                        ctx.beginPath();
+                        ctx.moveTo(points[0][0], points[0][1]);
+                        for (let i = 1; i <= segIdx; i++) {
+                            ctx.lineTo(points[i][0], points[i][1]);
+                        }
+                        ctx.lineTo(tip[0], tip[1]);
+                    };
+
+                    // 外层光晕拖尾
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(90, 170, 255, 0.35)';
+                    ctx.lineWidth = 13;
+                    ctx.shadowColor = 'rgba(120, 200, 255, 0.9)';
+                    ctx.shadowBlur = 18;
+                    tracePath();
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 中层刀光
+                    ctx.strokeStyle = 'rgba(150, 215, 255, 0.85)';
+                    ctx.lineWidth = 5.5;
+                    tracePath();
+                    ctx.stroke();
+
+                    // 亮白刀芯：从刀尖沿路径往回 90px（含跨段折线顶点）
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.lineWidth = 2.6;
+                    ctx.beginPath();
+                    ctx.moveTo(core[0], core[1]);
+                    let acc = 0;
+                    for (let i = 0; i < segIdx; i++) {
+                        acc += segLens[i];
+                        if (acc > sCore && acc < sTip) {
+                            ctx.lineTo(points[i + 1][0], points[i + 1][1]);
+                        }
+                    }
+                    ctx.lineTo(tip[0], tip[1]);
+                    ctx.stroke();
+
+                    // 刀尖亮点
+                    ctx.shadowColor = 'rgba(255, 255, 255, 0.95)';
+                    ctx.shadowBlur = 14;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(tip[0], tip[1], 3.6, 0, TAU);
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+
+                /** 全部刀光：第一段 V 形折返 + 第二段折返十连斩（统一弧长推进） */
+                function drawSlashes(t) {
+                    const st = Geometry.bladeAt(t);
+                    if (st.active) {
+                        drawBladeOnPath(st.group, st.segIdx, st.k);
+                        return;
+                    }
+                    drawPhase1Fade(t);
+                }
+
+                /** 第一段光迹延迟淡出：刀光画完后保留整条 V 形路径，淡出恰好结束于第二段开始 */
+                function drawPhase1Fade(t) {
+                    const f = Geometry.phase1Fade;
+                    if (t < f.start || t >= f.end) return;
+                    const alpha = 1 - (t - f.start) / (f.end - f.start);
+                    const pts = f.group.points;
+                    const last = pts[pts.length - 1];
+
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+
+                    const path = () => {
+                        ctx.beginPath();
+                        ctx.moveTo(pts[0][0], pts[0][1]);
+                        for (let i = 1; i < pts.length; i++) {
+                            ctx.lineTo(pts[i][0], pts[i][1]);
+                        }
+                    };
+
+                    // 外层光晕
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(90, 170, 255, 0.35)';
+                    ctx.lineWidth = 13;
+                    ctx.shadowColor = 'rgba(120, 200, 255, 0.9)';
+                    ctx.shadowBlur = 18;
+                    path();
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 中层刀光
+                    ctx.strokeStyle = 'rgba(150, 215, 255, 0.85)';
+                    ctx.lineWidth = 5.5;
+                    path();
+                    ctx.stroke();
+
+                    // 收刀点亮点（随整体一起淡出）
+                    ctx.shadowColor = 'rgba(255, 255, 255, 0.95)';
+                    ctx.shadowBlur = 14;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(last[0], last[1], 3.6, 0, TAU);
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+
+                /** 第三段：延迟切痕（伤口迟现） */
+                function drawScars(t) {
+                    const age = t - cfg.phase3.hitTime;
+                    if (age < 0) return;
+                    const open = clamp(age / cfg.phase3.scarOpenDur, 0, 1);
+                    let alpha = 1;
+                    if (age > cfg.phase3.scarFadeFrom) {
+                        alpha = 1 - (age - cfg.phase3.scarFadeFrom) / cfg.phase3.scarFadeDur;
+                    }
+                    if (alpha <= 0) return;
+
+                    const scar = Geometry.scarSeg;
+                    const mx = (scar.from[0] + scar.to[0]) / 2;
+                    const my = (scar.from[1] + scar.to[1]) / 2;
+                    const dx = scar.to[0] - scar.from[0];
+                    const dy = scar.to[1] - scar.from[1];
+                    const len = Math.hypot(dx, dy) || 1;
+                    const ux = dx / len, uy = dy / len;
+                    const nx = -uy, ny = ux;
+
+                    ctx.save();
+                    ctx.lineCap = 'round';
+                    ctx.globalAlpha = alpha;
+
+                    // 主切痕：白芯 + 蓝辉，自中心向两端张开
+                    const half = (len / 2) * open;
+                    const glow = ctx.createLinearGradient(mx - ux * half, my - uy * half, mx + ux * half, my + uy * half);
+                    glow.addColorStop(0, 'rgba(120, 200, 255, 0.9)');
+                    glow.addColorStop(0.5, 'rgba(255, 255, 255, 0.98)');
+                    glow.addColorStop(1, 'rgba(120, 200, 255, 0.9)');
+
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(150, 220, 255, 0.95)';
+                    ctx.shadowBlur = 20;
+                    ctx.strokeStyle = glow;
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(mx - ux * half, my - uy * half);
+                    ctx.lineTo(mx + ux * half, my + uy * half);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 两道次级裂痕：平行偏移，稍短
+                    for (const off of [-9, 9]) {
+                        const sLen = len * 0.72 * open;
+                        const cx = mx + nx * off;
+                        const cy = my + ny * off;
+                        ctx.strokeStyle = 'rgba(160, 220, 255, 0.75)';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(cx - ux * (sLen / 2), cy - uy * (sLen / 2));
+                        ctx.lineTo(cx + ux * (sLen / 2), cy + uy * (sLen / 2));
+                        ctx.stroke();
+                    }
+
+                    ctx.restore();
+                }
+
+                /** 粒子（受击火花 + 尘土） */
+                function drawParticles(t) {
+                    const hitAge = t - cfg.phase3.hitTime;
+                    if (hitAge > 0) {
+                        for (const p of Events.hitParticles) {
+                            const age = hitAge;
+                            if (age > p.ttl) continue;
+                            const a = 1 - age / p.ttl;
+                            const x = p.x + p.vx * age;
+                            const y = p.y + p.vy * age + 0.5 * p.gravity * age * age;
+                            ctx.save();
+                            ctx.globalAlpha = a;
+                            ctx.fillStyle = p.white ? '#ffffff' : 'rgba(150, 215, 255, 0.9)';
+                            if (p.white) {
+                                ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+                                ctx.shadowBlur = 8;
+                            }
+                            ctx.beginPath();
+                            ctx.arc(x, y, p.size, 0, TAU);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+                    // 尘土
+                    for (const d of Events.dust) {
+                        const age = hitAge;
+                        if (age < 0 || age > d.ttl) continue;
+                        const a = 1 - age / d.ttl;
+                        const x = d.x + d.vx * age;
+                        const y = d.y + d.vy * age + 0.5 * d.gravity * age * age;
+                        ctx.save();
+                        ctx.globalAlpha = a * 0.5;
+                        ctx.fillStyle = 'rgba(120, 165, 205, 0.8)';
+                        ctx.beginPath();
+                        ctx.arc(x, y, d.size, 0, TAU);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+
+                /** 爆闪星芒 */
+                function drawFlashes(t) {
+                    for (const f of Events.flashes) {
+                        const age = t - f.t;
+                        if (age < 0 || age > f.ttl) continue;
+                        const k = age / f.ttl;
+                        const r = f.size * (0.3 + k);
+                        const alpha = 1 - k;
+
+                        ctx.save();
+                        ctx.globalAlpha = alpha;
+                        ctx.strokeStyle = 'rgba(220, 245, 255, 0.95)';
+                        ctx.lineWidth = 2.5;
+                        ctx.shadowColor = 'rgba(150, 220, 255, 0.95)';
+                        ctx.shadowBlur = 16;
+                        ctx.beginPath();
+                        for (let i = 0; i < 8; i++) {
+                            const a = (i / 8) * TAU;
+                            ctx.moveTo(f.x, f.y);
+                            ctx.lineTo(f.x + Math.cos(a) * r, f.y + Math.sin(a) * r);
+                        }
+                        ctx.stroke();
+
+                        // 中心光晕
+                        const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r * 0.6);
+                        g.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                        g.addColorStop(1, 'rgba(120, 200, 255, 0)');
+                        ctx.fillStyle = g;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, r * 0.6, 0, TAU);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+
+                /** 全屏白闪 */
+                function drawScreenFlash(t) {
+                    const age = t - cfg.phase3.hitTime;
+                    if (age < 0 || age > cfg.phase3.flashDur) return;
+                    const a = cfg.phase3.flashAlpha * (1 - age / cfg.phase3.flashDur);
+                    ctx.save();
+                    ctx.fillStyle = `rgba(235, 248, 255, ${a.toFixed(3)})`;
+                    ctx.fillRect(0, 0, cfg.design.w, cfg.design.h);
+                    ctx.restore();
+                }
+
+                /** 震屏偏移 */
+                function shakeOffset(t) {
+                    const age = t - cfg.phase3.hitTime;
+                    if (age <= 0) return [0, 0];
+                    const amt = cfg.phase3.shakeAmt * Math.exp(-age * cfg.phase3.shakeDecay);
+                    if (amt < 0.15) return [0, 0];
+                    return [
+                        Math.sin(t * 140) * amt,
+                        Math.cos(t * 131) * amt,
+                    ];
+                }
+
+                /** 整帧渲染入口 */
+                function render(t) {
+                    const [sx, sy] = shakeOffset(t);
+                    ctx.save();
+                    ctx.translate(sx, sy);
+                    drawBackground(t);
+                    drawTraces(t);
+                    drawEnemy(t);
+                    drawSlashes(t);
+                    drawScars(t);
+                    drawParticles(t);
+                    drawFlashes(t);
+                    drawScreenFlash(t);
+                    ctx.restore();
+                }
+
+                return { init, fit, render };
+            })();
+
+            /* ================================================================
+             * 模块 F：时间轴与交互（播放 / 循环 / 重放）
+             * ================================================================ */
+            const Timeline = (() => {
+                let t0 = performance.now();
+                let loopEnabled = true;
+                let lastNow = t0;
+
+                function replay() {
+                    t0 = performance.now();
+                    lastNow = t0;
+                }
+
+                function toggleLoop() {
+                    loopEnabled = !loopEnabled;
+                    return loopEnabled;
+                }
+
+                function frame(now) {
+                    lastNow = now;
+                    let t = (now - t0) / 1000;
+                    if (t >= CONFIG.loopTotal) {
+                        if (loopEnabled) {
+                            replay();
+                            t = 0;
+                        } else {
+                            t = CONFIG.loopTotal;
+                        }
+                    }
+                    Renderer.render(t);
+                    requestAnimationFrame(frame);
+                }
+
+                return { replay, toggleLoop, frame, isLoop: () => loopEnabled };
+            })();
+
+            /* ================================================================
+             * 模块 G：UI 绑定（按钮 / 键盘 / 点击）
+             * ================================================================ */
+            const UI = (() => {
+                const btnReplay = document.getElementById('btn-replay');
+                const btnLoop = document.getElementById('btn-loop');
+
+                function syncLoopBtn() {
+                    const on = Timeline.isLoop();
+                    btnLoop.textContent = on ? '循环：开' : '循环：关';
+                    btnLoop.classList.toggle('is-on', on);
+                }
+
+                btnReplay.addEventListener('click', () => Timeline.replay());
+                btnLoop.addEventListener('click', () => {
+                    Timeline.toggleLoop();
+                    syncLoopBtn();
+                });
+                document.body.addEventListener('click', (e) => {
+                    // 点击画布区域重放（按钮自身已处理）
+                    if (e.target === document.body || e.target.id === 'stage' || e.target.id === 'fx-canvas') {
+                        Timeline.replay();
+                    }
+                });
+                window.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' || e.code === 'Enter') {
+                        e.preventDefault();
+                        Timeline.replay();
+                    } else if (e.code === 'KeyC') {
+                        Timeline.toggleLoop();
+                        syncLoopBtn();
+                    }
+                });
+
+                return { syncLoopBtn };
+            })();
+
+            /* ================================================================
+             * 启动
+             * ================================================================ */
+            const canvas = document.getElementById('fx-canvas');
+            Renderer.init(canvas);
+            Renderer.fit();
+            window.addEventListener('resize', () => Renderer.fit());
+            UI.syncLoopBtn();
+            requestAnimationFrame(Timeline.frame);
+        })();
+    </script>
+</body>
+</html>

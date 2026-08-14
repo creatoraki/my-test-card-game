@@ -1,0 +1,19 @@
+/* 三段斩击(tri-slash): Canvas 特效的容器样式。时序与全部视觉都在 TriSlashFx.tsx 的
+   rAF 循环里, 本文件不定义任何 @keyframes(与 docs/code-map/styles.md 哈希陷阱一节的
+   两条情形都不同: 这里根本没有关键帧, 不受哈希约束)。 */
+
+/* 画布 CSS 尺寸: 以 0×0 锚点(.vfx, 见 HitFxLayer.module.css)为中心展开。
+   尺寸经 --tri-size 变量由 TriSlashFx.tsx 下发(BASE 640 × FX_SCALE 1.2 = 768px),
+   与位图分辨率同源 —— 放大是画布整体变大 + 几何 ctx.scale, 不是 CSS 拉伸位图。 */
+.tri-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--tri-size, 768px);
+  height: var(--tri-size, 768px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* 减少动态效果: 整层不挂载 —— 外壳组件 TriSlashFx 直接 return null, 连 rAF 都不起
+   (同 AmbienceLayer 的做法)。canvas 没有 CSS 动画可压制, 这里不需要 animation:none 降级块。 */

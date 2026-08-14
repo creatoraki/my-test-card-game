@@ -209,6 +209,11 @@
 .vfx-blade-slash.vfx-attack::after {
   content: none;
 }
+/* 三段斩击组件自带折返闪光与爆闪星芒, 且爆点远晚于挂载(1.85s) —— 默认冲击环挂载即
+   扩散, 与延迟爆点对不上, 同刀光斩处理为 content:none。 */
+.vfx-tri-slash.vfx-attack::after {
+  content: none;
+}
 /* —— 伤害/治疗飘字 —— */
 .float-num {
   position: absolute;

@@ -169,6 +169,21 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     hold: 1750,
     shake: 1,
   },
+  // 三段斩击(Canvas 2D): 2.6s 三幕 —— V形折返两刀(0~0.9s) → 折返十连斩(0.9~1.4s) →
+  // 静默 0.45s 后伤口延迟裂开 + 粒子爆裂(1.85s 爆点)。几何表在
+  // fx/TriSlashFx/triSlashGeometry.ts(爆点固定 1.85s), 时间轴按 proc.impactMs 与
+  // 1850ms 的比例整体缩放, 故以后调节奏只改这里; 震屏归相机 SHOTS.tri、白闪归
+  // screenFx: "flash", 组件不做画布内震屏/白闪(与 blade-slash 分工一致)。
+  // floatMs 600 把飘字压缩到 1.85s 爆点后收尾: impactMs + floatMs = 2450 < hold。
+  "tri-slash": {
+    kind: "attack",
+    color: "#78c8ff",
+    proc: { impactMs: 1850, floatMs: 600, damageAtImpact: true },
+    screenFx: "flash",
+    windup: 190,
+    hold: 2500, // impactMs + floatMs = 2450 < hold, 飘字不被卸载截断
+    shake: 2,
+  },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
   // 护盾: 不再用 emoji, 改用护盾 BUFF 图标 SVG(见 StatusPips 的 ShieldIcon)做虚幻放大浮现。
