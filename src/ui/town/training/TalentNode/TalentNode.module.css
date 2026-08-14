@@ -1,13 +1,20 @@
-/* 单个天赋节点按钮。尺寸由父层 TalentTree 经 --tn-size 下发(铁律 4),
-   定位由父层写 left/top —— 本文件只管一颗节点的外观与五态反馈。 */
+/* 单个天赋节点按钮。尺寸与定位由父层 TalentTree 下发到 .tn-slot(铁律 4),
+   本文件只管一颗节点的外观与五态反馈。 */
+
+.tn-slot {
+  position: absolute;
+  width: var(--tn-size, 46px);
+  height: var(--tn-size, 46px);
+}
 
 .tn {
   composes: tr-tokens from "../styles/trainingKit.module.css";
   position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
-  width: var(--tn-size, 46px);
-  height: var(--tn-size, 46px);
+  width: 100%;
+  height: 100%;
   padding: 0;
   border: 1px solid var(--tr-line);
   border-radius: 50%;
@@ -26,14 +33,15 @@
 /* ── 五态 ── */
 
 .tn.is-locked {
-  border-color: #70909766;
+  border-color: #70909780;
   background: #d9e8e9aa;
   box-shadow: inset 0 1px 0 #ffffff99;
-  color: #7fa0a6;
+  color: #5d7d84;
 }
 
 .tn.is-available {
-  border-color: var(--tr-glow);
+  border-color: var(--tn-hue, var(--tr-glow));
+  color: var(--tn-deep, var(--tr-glow-deep));
 }
 
 .tn.is-unaffordable {
@@ -44,10 +52,41 @@
 
 .tn.is-active,
 .tn.is-refundable {
-  border-color: var(--tr-glow);
+  border-color: var(--tn-hue, var(--tr-glow));
   background: radial-gradient(circle at 35% 30%, #ffffff, #a9e6ec 55%, #5fc6d2);
-  box-shadow: 0 0 18px -4px var(--tr-glow), inset 0 1px 0 #ffffff;
-  color: var(--tr-ink);
+  box-shadow: 0 0 18px -4px var(--tn-hue, var(--tr-glow)), inset 0 1px 0 #ffffff;
+  color: var(--tn-deep, var(--tr-ink));
+}
+
+.tn.is-trace {
+  border-width: 2px;
+  filter: brightness(1.08);
+  box-shadow: 0 0 22px -6px var(--tn-hue, var(--tr-glow)), inset 0 1px 0 #ffffff;
+}
+
+.tn.is-unaffordable.is-trace {
+  border-color: var(--tr-warm);
+  box-shadow: 0 0 22px -6px var(--tr-warm), inset 0 1px 0 #ffffff;
+}
+
+.tn.is-major::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid var(--tn-hue, var(--tr-glow));
+  border-radius: 50%;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.tn.is-major.is-active::before,
+.tn.is-major.is-refundable::before {
+  opacity: 1;
+  box-shadow: 0 0 12px -4px var(--tn-hue, var(--tr-glow));
+}
+
+.tn.is-major.is-unaffordable::before {
+  border-color: var(--tr-warm);
 }
 
 /* 可退还: 外圈一圈缓慢呼吸的虚线环, 读作「可以摘下来」。 */
@@ -55,7 +94,7 @@
   content: "";
   position: absolute;
   inset: -7px;
-  border: 1px dashed #da7d3e99;
+  border: 1px dashed #da7d3e66;
   border-radius: 50%;
   pointer-events: none;
   animation: tnRefundBreath 2.4s ease-in-out infinite;
@@ -70,14 +109,52 @@
 :global([data-town-stage]) .tn.is-unaffordable:focus-visible,
 :global([data-town-stage]) .tn.is-refundable:hover,
 :global([data-town-stage]) .tn.is-refundable:focus-visible {
-  border-color: var(--tr-glow);
-  box-shadow: 0 0 22px -8px var(--tr-glow), 0 10px 24px -14px #123b4666;
+  border-color: var(--tn-hue, var(--tr-glow));
+  box-shadow: 0 0 22px -8px var(--tn-hue, var(--tr-glow)), 0 10px 24px -14px #123b4666;
   transform: scale(1.1);
 }
 
 :global([data-town-stage]) .tn.is-unaffordable:hover,
 :global([data-town-stage]) .tn.is-unaffordable:focus-visible {
   border-color: #da7d3e;
+  box-shadow: 0 0 22px -8px var(--tr-warm), 0 10px 24px -14px #123b4666;
+}
+
+.tn-slot .tn-refund {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid #da7d3e99;
+  border-radius: 50%;
+  background: #fff3e8;
+  box-shadow: 0 3px 10px -4px #6f402a88;
+  color: var(--tr-warm);
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.72);
+  transition: opacity 160ms ease, transform 160ms cubic-bezier(0.2, 0.72, 0.28, 1), background 160ms ease;
+}
+
+.tn-slot:hover .tn-refund,
+.tn-slot:focus-within .tn-refund {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.tn-slot .tn-refund:hover,
+.tn-slot .tn-refund:focus-visible {
+  border-color: var(--tr-warm);
+  background: #ffe7d4;
 }
 
 .tn.is-disabled {
@@ -110,7 +187,7 @@
   border-radius: 10px;
   background: #eafbfc;
   box-shadow: 0 2px 8px -3px #123b4655;
-  color: var(--tr-glow-deep);
+  color: var(--tn-deep, var(--tr-glow-deep));
   font-family: var(--font-family);
   font-size: 12px;
 }
@@ -152,6 +229,25 @@
   font-size: 12px;
 }
 
+.tn-pop-reach,
+.tn-pop-quick {
+  display: block;
+  margin-top: 7px;
+  color: #9fc9cf;
+  font-family: var(--font-family);
+  font-size: 12px;
+}
+
+.tn-pop-reach.is-over-budget {
+  color: #f0a36f;
+}
+
+.tn-pop-quick {
+  padding-top: 7px;
+  border-top: 1px solid #ffffff1a;
+  color: #d9c08e;
+}
+
 /* ── 动效 ── */
 
 /* 点亮: 缩放脉冲 + 光环扩散(由父层重挂载 key 触发重播)。 */
@@ -160,8 +256,8 @@
 }
 
 @keyframes tnNodePop {
-  0% { transform: scale(0.5); box-shadow: 0 0 0 var(--tr-glow); }
-  60% { transform: scale(1.18); box-shadow: 0 0 26px -2px var(--tr-glow); }
+  0% { transform: scale(0.5); box-shadow: 0 0 0 var(--tn-hue, var(--tr-glow)); }
+  60% { transform: scale(1.18); box-shadow: 0 0 26px -2px var(--tn-hue, var(--tr-glow)); }
   100% { transform: scale(1); }
 }
 
@@ -178,18 +274,22 @@
 }
 
 @keyframes tnRefundBreath {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.72; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tn.is-latest,
   .tn.is-shaking,
   .tn.is-refundable::after {
-    animation-duration: 1ms;
+    animation: none;
   }
 
   .tn {
+    transition: none;
+  }
+
+  .tn-slot .tn-refund {
     transition: none;
   }
 }

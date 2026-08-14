@@ -13,6 +13,7 @@ import {
   getBadge,
   getCharacter,
   getNode,
+  pathTo,
   spentPoints,
   squadModsOf,
   type SquadBadgeDef,
@@ -163,6 +164,25 @@ export function TrainingScene({ leaving = false }: Props) {
     refundTalentNode(nodeId);
   }
 
+  function handleQuickBuy(nodeId: string) {
+    if (!activeBadge || locked) return;
+    const path = pathTo(activeBadge, nodeId);
+    const activatedSet = new Set(squadTalent.nodes);
+    const pending = path.filter((node) => !activatedSet.has(node.id));
+    const cost = pending.reduce((sum, node) => sum + node.cost, 0);
+    if (!pending.length) return;
+    if (cost > remaining) {
+      setShakeId(nodeId);
+      return;
+    }
+
+    for (const node of pending) activateTalentNode(node.id);
+    const target = pending[pending.length - 1];
+    const n = (bump?.n ?? 0) + 1;
+    setBump({ key: target.key, n });
+    setPulse({ nodeId: target.id, n });
+  }
+
   return (
     <div className={cn("tr-scene", leaving && "is-leaving")}>
       <header className={cn("tr-header")}>
@@ -221,6 +241,7 @@ export function TrainingScene({ leaving = false }: Props) {
             shakeId={shakeId}
             onRequestShake={setShakeId}
             onActivate={handleActivate}
+            onQuickBuy={handleQuickBuy}
             onRefund={handleRefund}
             onHoverKey={setHoverKey}
           />

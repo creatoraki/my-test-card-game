@@ -88,14 +88,22 @@ interface TalentNodeProps {
   /** 刚激活, 播点亮动效(重挂载 key 由父层负责)。 */
   isLatest: boolean;
   isShaking: boolean;
+  /** 当前节点是否位于悬浮目标的依赖路径。 */
+  isTrace?: boolean;
+  /** 悬浮目标尚未激活时展示的整条路径成本。 */
+  reachCost?: number;
+  /** Shift+点击是否有足够训练点点亮整条路径。 */
+  canQuickBuy?: boolean;
   /** 悬浮详情的朝向: 上半棵树向下开, 下半棵树向上开。 */
   popSide: "top" | "bottom";
-  /** 定位与尺寸通道(铁律 3/4): left/top 定圆心, --tn-size 定直径, 均由父层下发。 */
+  /** 定位与尺寸通道(铁律 3/4): left/top 定圆心, --tn-size 定直径, 均由父层下发到 slot。 */
   style?: CSSProperties;
   onActivate: () => void;
+  onQuickBuy: () => void;
   onRefund: () => void;
   onShake: () => void;
   onHoverKey: (key: SquadResourceKey | null) => void;
+  onHoverNode: (nodeId: string | null) => void;
 }
 
 const STATUS_TEXT: Record<TalentNodeState, string> = {
@@ -114,12 +122,17 @@ export function TalentNode({
   disabled,
   isLatest,
   isShaking,
+  isTrace = false,
+  reachCost,
+  canQuickBuy = false,
   popSide,
   style,
   onActivate,
+  onQuickBuy,
   onRefund,
   onShake,
   onHoverKey,
+  onHoverNode,
 }: TalentNodeProps) {
   const active = state === "active" || state === "refundable";
   const refundable = state === "refundable";
@@ -128,7 +141,14 @@ export function TalentNode({
   function handleClick(event: MouseEvent<HTMLButtonElement>) {
     if (disabled) return;
     if (refundable && event.altKey) {
+      event.preventDefault();
       onRefund();
+      return;
+    }
+    if (!active && event.shiftKey) {
+      event.preventDefault();
+      if (canQuickBuy) onQuickBuy();
+      else onShake();
       return;
     }
     if (active) return;
@@ -155,37 +175,73 @@ export function TalentNode({
   }
 
   return (
-    <button
-      type="button"
-      className={cx(
-        s["tn"],
-        s[`is-${state}`],
-        isLatest && s["is-latest"],
-        isShaking && s["is-shaking"],
-        disabled && s["is-disabled"],
+    <div className={s["tn-slot"]} style={style}>
+      <button
+        type="button"
+        className={cx(
+          s["tn"],
+          s[`is-${state}`],
+          s[`is-${node.tier}`],
+          isLatest && s["is-latest"],
+          isShaking && s["is-shaking"],
+          isTrace && s["is-trace"],
+          disabled && s["is-disabled"],
+        )}
+        data-rail-item
+        aria-label={`${node.name}: ${effectLabel}, 消耗 ${node.cost} 训练点。${STATUS_TEXT[state]}`}
+        onMouseEnter={() => {
+          onHoverKey(node.key);
+          onHoverNode(node.id);
+        }}
+        onMouseLeave={() => {
+          onHoverKey(null);
+          onHoverNode(null);
+        }}
+        onFocus={() => {
+          onHoverKey(node.key);
+          onHoverNode(node.id);
+        }}
+        onBlur={() => {
+          onHoverKey(null);
+          onHoverNode(null);
+        }}
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
+        onKeyDown={handleKeyDown}
+      >
+        <span className={s["tn-icon"]} aria-hidden>
+          <TrackIcon branchId={branchId} />
+        </span>
+        <span className={s["tn-cost"]} aria-hidden>
+          {node.cost}
+        </span>
+        <RailPopover side={popSide}>
+          <strong className={s["tn-pop-name"]}>{node.name}</strong>
+          <span className={s["tn-pop-effect"]}>{effectLabel}</span>
+          <span className={s["tn-pop-status"]}>{STATUS_TEXT[state]}</span>
+          {reachCost != null && (
+            <span className={cx(s["tn-pop-reach"], !canQuickBuy && s["is-over-budget"])}>
+              点亮到此还需 {reachCost} 点
+            </span>
+          )}
+          {reachCost != null && reachCost > node.cost && (
+            <span className={s["tn-pop-quick"]}>Shift+点击 一次点亮全路径</span>
+          )}
+        </RailPopover>
+      </button>
+      {refundable && !disabled && (
+        <button
+          type="button"
+          className={s["tn-refund"]}
+          aria-label={`退还${node.name}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onRefund();
+          }}
+        >
+          −
+        </button>
       )}
-      style={style}
-      data-rail-item
-      aria-label={`${node.name}: ${effectLabel}, 消耗 ${node.cost} 训练点。${STATUS_TEXT[state]}`}
-      onMouseEnter={() => onHoverKey(node.key)}
-      onMouseLeave={() => onHoverKey(null)}
-      onFocus={() => onHoverKey(node.key)}
-      onBlur={() => onHoverKey(null)}
-      onClick={handleClick}
-      onContextMenu={handleContextMenu}
-      onKeyDown={handleKeyDown}
-    >
-      <span className={s["tn-icon"]} aria-hidden>
-        <TrackIcon branchId={branchId} />
-      </span>
-      <span className={s["tn-cost"]} aria-hidden>
-        {node.cost}
-      </span>
-      <RailPopover side={popSide}>
-        <strong className={s["tn-pop-name"]}>{node.name}</strong>
-        <span className={s["tn-pop-effect"]}>{effectLabel}</span>
-        <span className={s["tn-pop-status"]}>{STATUS_TEXT[state]}</span>
-      </RailPopover>
-    </button>
+    </div>
   );
 }

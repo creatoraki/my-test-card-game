@@ -1,4 +1,4 @@
-/* 天赋树面板: 白玻璃外框 + 头部标题 + 设计 px 舞台(1360×600)。
+/* 天赋树面板: 白玻璃外框 + 头部标题 + 设计 px 舞台(1340×580)。
    舞台内的连线/核心图形/节点坐标全部按 badge.canvas 手写, 缩放交给 StageCanvas。 */
 
 .tt {
@@ -9,7 +9,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: 10px 14px 12px;
+  padding: 10px 20px 16px;
   /* 悬浮详情可伸出面板, 不裁剪 */
   overflow: visible;
   clip-path: polygon(
@@ -60,36 +60,70 @@
 }
 
 .tt-line {
+  fill: none;
+  stroke: var(--tt-hue, var(--tr-glow));
+  stroke-linecap: round;
   stroke-width: 2;
   transition: stroke 200ms ease, opacity 200ms ease, stroke-width 200ms ease;
 }
 
-/* 前置未满足: 压暗的灰线。 */
+/* 链组用于路径预览时的整体降亮度。 */
+.tt-branch {
+  transition: opacity 200ms ease;
+}
+
+.tt-node-branch {
+  position: absolute;
+  inset: 0;
+  transition: opacity 200ms ease;
+}
+
+.tt.has-trace .tt-branch:not(.is-trace),
+.tt.has-trace .tt-label:not(.is-trace),
+.tt.has-trace .tt-node-branch:not(.is-trace) {
+  opacity: 0.38;
+}
+
+/* 前置未满足: 使用链色但降低透明度。 */
 .tt-line.is-dim {
-  stroke: #9fb7bb;
-  opacity: 0.42;
+  opacity: 0.24;
 }
 
 /* 可解锁(含点数不足): 半亮青线, 读作「通路已开」。 */
 .tt-line.is-open {
-  stroke: var(--tr-glow);
-  opacity: 0.55;
+  opacity: 0.58;
 }
 
 /* 两端均已激活: 粗亮线 + 微光。 */
 .tt-line.is-active {
-  stroke: var(--tr-glow);
   stroke-width: 3;
   opacity: 0.95;
-  filter: drop-shadow(0 0 4px #0b95a866);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--tt-hue, var(--tr-glow)) 65%, transparent));
+}
+
+.tt-line.is-trace {
+  stroke-width: 3.5;
+  opacity: 1;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--tt-hue, var(--tr-glow)) 72%, transparent));
+}
+
+.tt-line-flow {
+  fill: none;
+  stroke: var(--tt-hue, var(--tr-glow));
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 12;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: ttLineFlow 1.4s linear infinite;
 }
 
 /* ── 徽章核心图形(纯视觉, 不是节点) ── */
 
 .tt-core {
   position: absolute;
-  width: 96px;
-  height: 96px;
+  width: 80px;
+  height: 80px;
   color: var(--tr-glow);
   opacity: 0.92;
   pointer-events: none;
@@ -99,6 +133,52 @@
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 0 12px #0b95a833);
+}
+
+/* 链末标签: 空链弱化、部分点亮强调数字、全链点满实心。 */
+.tt-label {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--tt-hue, var(--tr-glow));
+  background: #f5fcfdb8;
+  box-shadow: 0 5px 14px -10px #123b4666;
+  color: var(--tt-deep, var(--tr-glow-deep));
+  font-size: 11px;
+  letter-spacing: 1px;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  transition: opacity 200ms ease, background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+.tt-label strong {
+  color: var(--tt-hue, var(--tr-glow));
+  font-family: var(--font-family);
+  font-size: 12px;
+}
+
+.tt-label.is-empty {
+  border-style: dashed;
+  opacity: 0.58;
+}
+
+.tt-label.is-progress {
+  box-shadow: 0 0 13px -7px var(--tt-hue, var(--tr-glow));
+}
+
+.tt-label.is-complete {
+  background: var(--tt-hue, var(--tr-glow));
+  box-shadow: 0 0 16px -6px var(--tt-hue, var(--tr-glow));
+  color: #f5ffff;
+}
+
+.tt-label.is-complete strong {
+  color: #f5ffff;
 }
 
 /* 远征中: 整棵树只读(降饱和, 与旧版锁定表现一致)。 */
@@ -111,6 +191,10 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes ttLineFlow {
+  to { stroke-dashoffset: -32; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tt {
     animation-duration: 1ms;
@@ -118,6 +202,16 @@
   }
 
   .tt-line {
+    transition: none;
+  }
+
+  .tt-line-flow {
+    animation: none;
+  }
+
+  .tt-branch,
+  .tt-label,
+  .tt-node-branch {
     transition: none;
   }
 }

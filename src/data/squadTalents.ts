@@ -31,7 +31,7 @@ export interface TalentNodeDef {
   cost: number; // 沿用现有 costs 数组的对应项
   requires: string[]; // 满足其一即可解锁; 空数组 = 链首, 直接可点
   x: number;
-  y: number; // 树面板内的设计 px 坐标(手写, 形成不规则形状)
+  y: number; // 树面板内的设计 px 坐标
   tier: "minor" | "major"; // 只影响节点大小/外观, 末节点用 major
   desc: string;
 }
@@ -59,10 +59,9 @@ export interface SquadBadgeDef {
 // ---------------------------------------------------------------------------
 // 方向链展开工具
 // ---------------------------------------------------------------------------
-// 一条链 = 方向定义 + 成本数组 + 一串手写坐标。首节点 requires: [] 直接可点,
+// 一条链 = 方向定义 + 成本数组 + 一串坐标。首节点 requires: [] 直接可点,
 // 其余节点 requires: [上一节点 id], 形成「点亮 → 解锁下一颗」的推进关系。
-// 坐标手写在调用处: 六条链从画布中心(徽章核心图形所在处, 纯视觉, 不是节点)向外以
-// 不同角度、不同段长发散, 链内允许折角, 形成不规则轮廓。
+// 坐标只负责表现, 不参与任何规则判定。
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI"];
 
@@ -88,6 +87,17 @@ function chain(
   });
 }
 
+// 扇形半环布局: 以画布下方的徽章核心为原点, 0° 向右, 逆时针为上。
+const FAN_ORIGIN = { x: 670, y: 540 };
+
+function fan(angleDeg: number, radii: number[]): Array<[number, number]> {
+  const angle = (angleDeg * Math.PI) / 180;
+  return radii.map((radius) => [
+    FAN_ORIGIN.x + Math.cos(angle) * radius,
+    FAN_ORIGIN.y - Math.sin(angle) * radius,
+  ]);
+}
+
 const BRANCH_EFFECTS: Record<string, string> = {
   handLimit: "手牌上限",
   redraw: "每回合换牌次数",
@@ -100,16 +110,8 @@ const BRANCH_EFFECTS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 // 初心者徽章 —— 六条链共 22 个节点, 成本严格沿用既有值
 // ---------------------------------------------------------------------------
-// 画布 1360×600, 中心 (680, 300) 是徽章核心图形。六条链的坐标全部手写:
-//   手牌扩容 → 右上(-28°), 三段直线
-//   换牌训练 → 正右(0°), 第二段后折角向下
-//   待机训练 → 右下(+25°), 末两段折回
-//   费用训练 → 左下(+153°), 末两段折回
-//   抽牌训练 → 正左(178°), 第二段后折角向上
-//   起手训练 → 左上(-152°), 三段直线
-// 链首距中心约 150~180px, 段长不一, 形成不规则轮廓。
-
-const NOVICE_CANVAS = { width: 1360, height: 600 };
+// 画布 1340×580, 徽章核心位于下方, 六条链向上呈扇面展开。
+const NOVICE_CANVAS = { width: 1340, height: 580 };
 
 const NOVICE_BRANCHES: TalentBranchDef[] = [
   { id: "handLimit", name: "手牌扩容", key: "handLimit" },
@@ -122,12 +124,12 @@ const NOVICE_BRANCHES: TalentBranchDef[] = [
 
 // ⚠ 成本数组与《初心者徽章.md》的训练方向表一一对应, 不要在这里改数值。
 const NOVICE_NODES: TalentNodeDef[] = [
-  ...chain(NOVICE_BRANCHES[0], [1, 3, 5], [[830, 240], [990, 165], [1160, 105]]),
-  ...chain(NOVICE_BRANCHES[1], [1, 2, 3], [[860, 320], [1030, 330], [1190, 385]]),
-  ...chain(NOVICE_BRANCHES[2], [1, 1, 2, 2, 2], [[850, 405], [1000, 475], [1130, 545], [1240, 505], [1320, 415]]),
-  ...chain(NOVICE_BRANCHES[3], [5, 5, 5, 8, 8], [[515, 405], [365, 480], [225, 555], [115, 520], [45, 425]]),
-  ...chain(NOVICE_BRANCHES[4], [3, 4, 5], [[500, 320], [330, 335], [175, 285]]),
-  ...chain(NOVICE_BRANCHES[5], [1, 2, 3], [[530, 240], [375, 165], [205, 110]]),
+  ...chain(NOVICE_BRANCHES[0], [1, 3, 5], fan(12, [225, 370, 565])),
+  ...chain(NOVICE_BRANCHES[1], [1, 2, 3], fan(35, [165, 340, 515])),
+  ...chain(NOVICE_BRANCHES[2], [1, 1, 2, 2, 2], fan(68, [150, 245, 339, 430, 521])),
+  ...chain(NOVICE_BRANCHES[3], [5, 5, 5, 8, 8], fan(112, [150, 245, 339, 430, 521])),
+  ...chain(NOVICE_BRANCHES[4], [3, 4, 5], fan(145, [165, 340, 515])),
+  ...chain(NOVICE_BRANCHES[5], [1, 2, 3], fan(168, [225, 370, 565])),
 ];
 
 export const SQUAD_BADGES: SquadBadgeDef[] = [
@@ -215,6 +217,30 @@ export function getBadge(id: string): SquadBadgeDef | undefined {
 
 export function getNode(badge: SquadBadgeDef, id: string): TalentNodeDef | undefined {
   return badge.nodes.find((node) => node.id === id);
+}
+
+// 从链首到目标节点的依赖路径(含自身), 多前置时沿第一条 requires 回溯。
+export function pathTo(badge: SquadBadgeDef, id: string): TalentNodeDef[] {
+  const path: TalentNodeDef[] = [];
+  const visited = new Set<string>();
+  let node = getNode(badge, id);
+
+  while (node && !visited.has(node.id)) {
+    path.unshift(node);
+    visited.add(node.id);
+    node = node.requires[0] ? getNode(badge, node.requires[0]) : undefined;
+  }
+
+  return path;
+}
+
+// 点亮到目标节点还需的训练点 = 路径上尚未激活节点的成本总和。
+export function costToReach(badge: SquadBadgeDef, activated: string[], id: string): number {
+  const activatedSet = new Set(activated);
+  return pathTo(badge, id).reduce(
+    (sum, node) => sum + (activatedSet.has(node.id) ? 0 : node.cost),
+    0,
+  );
 }
 
 // 某条方向链的节点(按 chain 生成顺序)。节点 id 约定为 `${branch.id}-${序号}`。
