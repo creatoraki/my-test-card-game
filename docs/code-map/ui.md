@@ -39,7 +39,12 @@ src/ui/
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
-| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室：两栏徽章与六条横向训练方向、整行投资、底部六格队伍属性预览、训练点来源浮层和整棵树重置；远征中按 `runStore.screen` 只读。 |
+| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架：页头、剩余训练点读数、左侧徽章条与训练点来源浮层、右侧天赋树、底部六格队伍属性预览、远征锁定横幅和重置/切换徽章两个确认弹窗；持有 `hoverKey` / `bump` / `shakeId` 状态编排，`RESOURCE_LABELS` / `RESOURCE_BASE` / `RESOURCE_CAPS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
+| [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室左侧徽章列表条：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
+| [town/training/TalentTree](../../src/ui/town/training/TalentTree/TalentTree.tsx) | 天赋树面板：底层 `<svg viewBox>` 画连线（含中心徽章核心图形到链首的连线），上层绝对定位 `TalentNode` 按钮；连线分 `is-dim` / `is-open` / `is-active` 三态，节点坐标是手写设计 px（`badge.canvas`），缩放交给 `StageCanvas`。 |
+| [town/training/TalentNode](../../src/ui/town/training/TalentNode/TalentNode.tsx) | 单个天赋节点按钮：`locked` / `available` / `unaffordable` / `active` / `refundable` 五态视觉，方向图标按 `branch.id` 查表、成本角标、点亮动效与点数不足抖动；悬浮详情复用 `common/RailPopover`，不使用原生 `title`。 |
+| [town/training/TrainingConfirm](../../src/ui/town/training/TrainingConfirm/TrainingConfirm.tsx) | 训练室通用确认弹窗，重置分配与切换徽章共用；抽自旧 `TrainingScene` 的 `.tr-confirm` 结构。 |
+| [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 训练室域共享的设计令牌（`--tr-*`）、白玻璃材质与 kicker 排版，四个组件各自 `composes`。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
 | [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按地图选择播放上下推移背景动画；目标层信息只在地图步骤挂载，并随步骤切换自然卸载。 |

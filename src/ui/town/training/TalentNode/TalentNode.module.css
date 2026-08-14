@@ -1,0 +1,195 @@
+/* 单个天赋节点按钮。尺寸由父层 TalentTree 经 --tn-size 下发(铁律 4),
+   定位由父层写 left/top —— 本文件只管一颗节点的外观与五态反馈。 */
+
+.tn {
+  composes: tr-tokens from "../styles/trainingKit.module.css";
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: var(--tn-size, 46px);
+  height: var(--tn-size, 46px);
+  padding: 0;
+  border: 1px solid var(--tr-line);
+  border-radius: 50%;
+  background: linear-gradient(150deg, #ffffffcc, #e4f5f8b8);
+  box-shadow: inset 0 1px 0 #ffffffd9, 0 8px 20px -12px #123b4666;
+  color: var(--tr-glow-deep);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    opacity 200ms ease,
+    transform 140ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+/* ── 五态 ── */
+
+.tn.is-locked {
+  border-color: #70909766;
+  background: #d9e8e9aa;
+  box-shadow: inset 0 1px 0 #ffffff99;
+  color: #7fa0a6;
+}
+
+.tn.is-available {
+  border-color: var(--tr-glow);
+}
+
+.tn.is-unaffordable {
+  border-color: #bd793e99;
+  background: linear-gradient(150deg, #fff7f0, #f5e2d2);
+  color: var(--tr-warm);
+}
+
+.tn.is-active,
+.tn.is-refundable {
+  border-color: var(--tr-glow);
+  background: radial-gradient(circle at 35% 30%, #ffffff, #a9e6ec 55%, #5fc6d2);
+  box-shadow: 0 0 18px -4px var(--tr-glow), inset 0 1px 0 #ffffff;
+  color: var(--tr-ink);
+}
+
+/* 可退还: 外圈一圈缓慢呼吸的虚线环, 读作「可以摘下来」。 */
+.tn.is-refundable::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px dashed #da7d3e99;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: tnRefundBreath 2.4s ease-in-out infinite;
+}
+
+/* ── 悬停 / 键盘聚焦 ── */
+/* 可交互的三态有抬升反馈; 已激活不可退还与前置未满足的节点不响应。 */
+
+:global([data-town-stage]) .tn.is-available:hover,
+:global([data-town-stage]) .tn.is-available:focus-visible,
+:global([data-town-stage]) .tn.is-unaffordable:hover,
+:global([data-town-stage]) .tn.is-unaffordable:focus-visible,
+:global([data-town-stage]) .tn.is-refundable:hover,
+:global([data-town-stage]) .tn.is-refundable:focus-visible {
+  border-color: var(--tr-glow);
+  box-shadow: 0 0 22px -8px var(--tr-glow), 0 10px 24px -14px #123b4666;
+  transform: scale(1.1);
+}
+
+:global([data-town-stage]) .tn.is-unaffordable:hover,
+:global([data-town-stage]) .tn.is-unaffordable:focus-visible {
+  border-color: #da7d3e;
+}
+
+.tn.is-disabled {
+  cursor: default;
+}
+
+/* ── 内部零件 ── */
+
+.tn-icon {
+  display: grid;
+  place-items: center;
+}
+
+.tn-icon svg {
+  width: calc(var(--tn-size, 46px) * 0.48);
+  height: calc(var(--tn-size, 46px) * 0.48);
+}
+
+/* 成本角标: 贴在右下的小圆片。已激活的节点不再显示。 */
+.tn-cost {
+  position: absolute;
+  right: -7px;
+  bottom: -5px;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid #28778866;
+  border-radius: 10px;
+  background: #eafbfc;
+  box-shadow: 0 2px 8px -3px #123b4655;
+  color: var(--tr-glow-deep);
+  font-family: var(--font-family);
+  font-size: 12px;
+}
+
+.tn.is-unaffordable .tn-cost {
+  border-color: #bd793e99;
+  background: #fff0e5;
+  color: var(--tr-warm);
+}
+
+.tn.is-active .tn-cost,
+.tn.is-refundable .tn-cost {
+  display: none;
+}
+
+/* ── 悬浮详情内容(RailPopover 的壳是暗玻璃, 文字用浅色) ── */
+
+.tn-pop-name {
+  display: block;
+  color: #eaf6f7;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.tn-pop-effect {
+  display: block;
+  margin-top: 4px;
+  color: #9fc9cf;
+  font-size: 12px;
+}
+
+.tn-pop-status {
+  display: block;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid #ffffff1a;
+  color: #d9c08e;
+  font-size: 12px;
+}
+
+/* ── 动效 ── */
+
+/* 点亮: 缩放脉冲 + 光环扩散(由父层重挂载 key 触发重播)。 */
+.tn.is-latest {
+  animation: tnNodePop 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+@keyframes tnNodePop {
+  0% { transform: scale(0.5); box-shadow: 0 0 0 var(--tr-glow); }
+  60% { transform: scale(1.18); box-shadow: 0 0 26px -2px var(--tr-glow); }
+  100% { transform: scale(1); }
+}
+
+/* 点数不足 / 不可退还的抖动反馈。 */
+.tn.is-shaking {
+  animation: tnShake 260ms ease both;
+}
+
+@keyframes tnShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  55% { transform: translateX(5px); }
+  78% { transform: translateX(-3px); }
+}
+
+@keyframes tnRefundBreath {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tn.is-latest,
+  .tn.is-shaking,
+  .tn.is-refundable::after {
+    animation-duration: 1ms;
+  }
+
+  .tn {
+    transition: none;
+  }
+}

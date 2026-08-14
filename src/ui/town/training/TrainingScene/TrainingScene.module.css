@@ -1,14 +1,12 @@
 /* ===================== 训练室(设施内) ===================== */
+/* 页面骨架样式: 页头 / 剩余点读数 / 左栏 / 底部预览条 / 横幅与按钮。
+   徽章列表条、树面板、节点与确认弹窗的样式各自成组件; 共享令牌与玻璃材质在
+   ../styles/trainingKit.module.css, 本文件 composes。 */
 /* 所有尺寸均为 1920×1080 设计 px。根节点只做定位容器，叶子元素独立承载动效，
    保证设施背景仍能被卡片的 backdrop-filter 采样。 */
 
 .tr-scene {
-  --tr-ink: #142d3a;
-  --tr-ink-dim: #52717a;
-  --tr-line: #1c566744;
-  --tr-glow: #0b95a8;
-  --tr-glow-deep: #066273;
-  --tr-warm: #da7d3e;
+  composes: tr-tokens from "../styles/trainingKit.module.css";
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -26,11 +24,7 @@
 
 .tr-kicker,
 .tr-panel-kicker {
-  display: block;
-  color: var(--tr-glow);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 4px;
+  composes: tr-kicker from "../styles/trainingKit.module.css";
 }
 
 .tr-title {
@@ -127,55 +121,43 @@
   pointer-events: auto;
 }
 
-.tr-badge-panel,
-.tr-track,
-.tr-bar {
-  border: 1px solid var(--tr-line);
-  background: linear-gradient(150deg, #ffffffa1, #e9f8fa75 58%, #cdebf077);
-  -webkit-backdrop-filter: blur(12px) saturate(112%) brightness(1.03);
-  backdrop-filter: blur(12px) saturate(112%) brightness(1.03);
-  box-shadow: inset 0 1px 0 #ffffffd4, 0 18px 40px -30px #123b4666;
-}
-
-.tr-badge-panel {
-  --notch: 14px;
-  position: relative;
+/* 左栏: 徽章列表条(可滚动) + 训练点来源浮层。 */
+.tr-left {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  min-width: 0;
   min-height: 0;
-  padding: 28px 26px 24px;
-  overflow: hidden;
-  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
-  animation: trRise 480ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
-.tr-badge-art {
-  display: grid;
-  place-items: center;
-  min-height: 0;
-  height: 148px;
-  margin: 14px 0 10px;
-  color: var(--tr-glow);
-  opacity: 0.92;
+.tr-rail {
+  flex: 1;
 }
 
-.tr-badge-art svg {
-  width: 112px;
-  height: 112px;
-  filter: drop-shadow(0 0 12px #0b95a833);
-}
+/* ── 训练点来源(抽自旧徽章面板底部) ── */
 
-.tr-badge-heading {
+.tr-source {
+  composes: tr-glass from "../styles/trainingKit.module.css";
+  --notch: 10px;
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex: none;
+  min-height: 54px;
+  padding: 12px 16px;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+  color: var(--tr-ink-dim);
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: help;
 }
 
-.tr-badge-name {
-  margin: 0;
+.tr-source > strong {
+  margin-left: auto;
   color: var(--tr-ink);
-  font-size: 26px;
-  letter-spacing: 4px;
+  font-family: var(--font-family);
+  font-size: 22px;
 }
 
 .tr-info {
@@ -188,50 +170,6 @@
   color: var(--tr-glow-deep);
   font-size: 16px;
   cursor: help;
-}
-
-.tr-badge-effects {
-  display: grid;
-  gap: 6px;
-  margin-top: 12px;
-  color: var(--tr-glow-deep);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.tr-enable {
-  width: 100%;
-  margin-top: 24px;
-  border-color: var(--tr-glow);
-  background: linear-gradient(135deg, #e4fbfc, #bdebf0);
-  color: var(--tr-ink);
-  font-size: 14px;
-}
-
-.tr-layout.is-unselected .tr-enable:not(:disabled) {
-  animation: trEnablePulse 1900ms ease-in-out infinite;
-}
-
-.tr-source {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 42px;
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid var(--tr-line);
-  color: var(--tr-ink-dim);
-  font-size: 14px;
-  letter-spacing: 1px;
-  cursor: help;
-}
-
-.tr-source > strong {
-  margin-left: auto;
-  color: var(--tr-ink);
-  font-family: var(--font-family);
-  font-size: 22px;
 }
 
 .tr-source .tr-info {
@@ -262,6 +200,8 @@
   color: var(--tr-ink-dim);
   opacity: 0.8;
 }
+
+/* ── 悬浮浮层(来源 / 预览格共用) ── */
 
 .tr-pop {
   position: absolute;
@@ -294,17 +234,10 @@
 .tr-info:focus .tr-pop,
 .tr-source:hover .tr-pop,
 .tr-source:focus .tr-pop,
-.tr-track:hover .tr-pop,
-.tr-track:focus-visible .tr-pop,
 .tr-preview-cell:hover .tr-pop,
 .tr-preview-cell:focus-visible .tr-pop {
   opacity: 1;
   transform: translateY(0);
-}
-
-.tr-badge-pop {
-  top: 26px;
-  left: -12px;
 }
 
 .tr-source-pop {
@@ -313,194 +246,47 @@
   min-width: 246px;
 }
 
-.tr-tracks {
-  display: grid;
-  grid-template-rows: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
+/* ── 未启用徽章时的树区空态 ── */
 
-.tr-track {
-  --notch: 10px;
+.tr-empty {
   position: relative;
   display: grid;
-  grid-template-columns: 48px minmax(190px, 1fr) auto auto auto auto;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  min-height: 0;
-  padding: 10px 16px;
-  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
-  color: var(--tr-ink);
-  text-align: left;
-  animation: trCardIn 420ms calc(130ms + var(--track-index) * 40ms) cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 180ms ease;
-}
-
-.tr-track::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 12px;
-  left: 12px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--tr-glow), transparent);
-  opacity: 0.44;
-}
-
-:global([data-town-stage]) .tr-track:hover:not(:disabled),
-.tr-track:focus-visible:not(:disabled) {
-  border-color: var(--tr-glow);
-  background: linear-gradient(150deg, #ffffffbf, #e5f9fb91 58%, #c8eef38a);
-  box-shadow: inset 0 1px 0 #ffffffeb, 0 0 22px -12px var(--tr-glow), 0 18px 42px -28px #123b4666;
-  transform: translateX(4px);
-}
-
-.tr-track:disabled {
-  cursor: default;
-}
-
-.tr-track-icon-wrap {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--tr-line);
-  color: var(--tr-glow-deep);
-  transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
-}
-
-.tr-track:hover:not(:disabled) .tr-track-icon-wrap,
-.tr-track:focus-visible:not(:disabled) .tr-track-icon-wrap {
-  border-color: var(--tr-glow);
-  color: var(--tr-glow);
-  box-shadow: 0 0 16px -8px var(--tr-glow);
-}
-
-.tr-track-icon {
-  width: 34px;
-  height: 34px;
-}
-
-.tr-track-main {
-  position: relative;
-  display: grid;
-  align-content: center;
-  min-width: 0;
-}
-
-.tr-track-heading {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  min-width: 0;
-}
-
-.tr-track-heading strong {
-  overflow: hidden;
-  color: var(--tr-ink);
-  font-size: 18px;
-  letter-spacing: 2px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tr-track-heading > span {
-  overflow: hidden;
+  place-content: center;
+  gap: 8px;
+  padding: 32px;
+  border: 1px dashed #28778877;
+  background: #ffffff5c;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   color: var(--tr-ink-dim);
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tr-track-pop {
-  top: calc(100% + 10px);
-  left: 0;
-  max-width: 360px;
-}
-
-.tr-track-progress {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 90px;
-}
-
-.tr-node {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border: 1px solid #709097;
-  background: #d9e8e9aa;
-  box-shadow: inset 0 1px 0 #ffffff99;
-}
-
-.tr-node.is-filled {
-  border-color: var(--tr-glow);
-  background: var(--tr-glow);
-  box-shadow: 0 0 9px #0b95a866, inset 0 1px 0 #d6ffffaa;
-}
-
-.tr-node.is-latest {
-  animation: trNodePop 320ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
-}
-
-.tr-track-delta {
-  min-width: 48px;
-  color: var(--tr-glow-deep);
-  font-family: var(--font-family);
-  font-size: 20px;
-  font-weight: 600;
-  text-align: right;
-}
-
-.tr-cost {
-  min-width: 48px;
-  padding: 6px 8px;
-  border: 1px solid #28778866;
-  color: var(--tr-glow-deep);
-  font-family: var(--font-family);
-  font-size: 14px;
   text-align: center;
+  animation: trRise 480ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
-.tr-cost.is-unaffordable {
-  border-color: #bd793e99;
-  background: #fff0e5aa;
-  color: var(--tr-warm);
-}
-
-.tr-track-arrow {
-  color: var(--tr-glow-deep);
+.tr-empty-title {
+  margin: 0;
+  color: var(--tr-ink);
   font-size: 24px;
-  transition: transform 180ms ease, color 180ms ease;
+  letter-spacing: 4px;
 }
 
-.tr-track:hover:not(:disabled) .tr-track-arrow,
-.tr-track:focus-visible:not(:disabled) .tr-track-arrow {
-  color: var(--tr-glow);
-  transform: translateX(4px);
+.tr-empty-sub {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 1px;
 }
 
-.tr-track.is-shaking {
-  animation: trShake 260ms ease both;
-}
-
-.tr-layout.is-unselected .tr-track,
-.tr-layout.is-unselected + .tr-bar {
-  filter: grayscale(0.85);
-  opacity: 0.48;
-}
-
-.tr-layout.is-locked .tr-badge-panel,
-.tr-layout.is-locked .tr-track,
+/* 远征中: 树区与底部预览降饱和。 */
+.tr-layout.is-locked .tr-source,
+.tr-layout.is-locked .tr-empty,
 .tr-layout.is-locked + .tr-bar {
   filter: saturate(0.55);
 }
 
+/* ── 底部六格队伍属性预览 ── */
+
 .tr-bar {
+  composes: tr-glass from "../styles/trainingKit.module.css";
   --notch: 12px;
   position: absolute;
   right: 56px;
@@ -592,6 +378,8 @@
   min-width: 150px;
 }
 
+/* ── 锁定横幅与重置按钮 ── */
+
 .tr-lock-banner {
   position: absolute;
   top: 132px;
@@ -616,89 +404,22 @@
   font-size: 14px;
 }
 
-.tr-confirm {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: grid;
-  place-items: center;
-  pointer-events: auto;
-  background: #e2f3f5a6;
-}
-
-.tr-confirm-panel {
-  width: 560px;
-  padding: 30px 34px 28px;
-  border: 1px solid var(--tr-line);
-  background: #f5fcfddf;
-  box-shadow: inset 0 1px 0 #ffffff, 0 24px 70px -30px #123b4688;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  animation: trModalIn 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-
-.tr-confirm-panel h3 {
-  margin: 10px 0 8px;
-  color: var(--tr-ink);
-  font-size: 24px;
-  letter-spacing: 3px;
-}
-
-.tr-confirm-panel p {
-  margin: 0;
-  color: var(--tr-ink-dim);
-  font-size: 14px;
-}
-
-.tr-confirm-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 26px;
-}
-
-.tr-confirm-actions button {
-  min-width: 108px;
-}
-
-.tr-confirm-primary {
-  border-color: var(--tr-glow);
-  background: linear-gradient(135deg, #dcf8fa, #a9e0e7);
-  color: var(--tr-ink);
-}
+/* ── 离场演出 ── */
 
 .tr-scene.is-leaving .tr-header,
 .tr-scene.is-leaving .tr-readout,
-.tr-scene.is-leaving .tr-badge-panel,
-.tr-scene.is-leaving .tr-track,
+.tr-scene.is-leaving .tr-layout,
 .tr-scene.is-leaving .tr-bar,
 .tr-scene.is-leaving .tr-lock-banner,
 .tr-scene.is-leaving .tr-reset {
   animation: trFade 420ms cubic-bezier(0.4, 0, 0.8, 1) forwards;
 }
 
-.tr-scene.is-leaving .tr-confirm {
-  animation: trFade 260ms ease forwards;
-}
+/* ── 关键帧 ── */
 
 @keyframes trRise {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes trCardIn {
-  from { opacity: 0; transform: translateY(18px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes trModalIn {
-  from { opacity: 0; transform: translateY(-16px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes trNodePop {
-  0% { transform: scale(0.4); box-shadow: 0 0 0 #0b95a800; }
-  55% { transform: scale(1.15); box-shadow: 0 0 16px #0b95a899; }
-  100% { transform: scale(1); box-shadow: 0 0 9px #0b95a866, inset 0 1px 0 #d6ffffaa; }
 }
 
 @keyframes trValueBump {
@@ -713,18 +434,6 @@
   100% { color: var(--tr-ink); transform: translateY(0); }
 }
 
-@keyframes trShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  55% { transform: translateX(5px); }
-  78% { transform: translateX(-3px); }
-}
-
-@keyframes trEnablePulse {
-  0%, 100% { box-shadow: 0 0 0 -8px #0b95a800; }
-  50% { box-shadow: 0 0 18px -8px var(--tr-glow); }
-}
-
 @keyframes trFade {
   to { opacity: 0; transform: translateY(-8px); }
 }
@@ -732,22 +441,16 @@
 @media (prefers-reduced-motion: reduce) {
   .tr-header,
   .tr-readout,
-  .tr-badge-panel,
-  .tr-track,
+  .tr-layout,
   .tr-bar,
   .tr-lock-banner,
   .tr-reset,
-  .tr-confirm-panel,
-  .tr-layout.is-unselected .tr-enable:not(:disabled),
-  .tr-node.is-latest,
+  .tr-empty,
   .tr-preview-value.is-bumping {
     animation-duration: 1ms;
     animation-delay: 0ms;
   }
 
-  .tr-track,
-  .tr-track-icon-wrap,
-  .tr-track-arrow,
   .tr-preview-cell,
   .tr-pop,
   .tr-readout-meter,

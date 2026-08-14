@@ -16,14 +16,19 @@ import { SLOT_SYMBOLS } from "./slotSymbols";
 import { NPC_EVENTS, getNpcEvent, type NpcEvent } from "./npcEvents";
 export {
   SQUAD_BADGES,
+  branchNodesOf,
+  canActivate,
+  canRefund,
   getBadge,
-  nextNodeCost,
+  getNode,
+  isUnlocked,
   spentPoints,
   squadModsOf,
   type SquadBadgeDef,
   type SquadResourceKey,
   type SquadResourceMods,
-  type TalentTrackDef,
+  type TalentBranchDef,
+  type TalentNodeDef,
 } from "./squadTalents";
 
 export { CARD_DEFS } from "./cards";

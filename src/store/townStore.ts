@@ -1,4 +1,4 @@
-﻿// Zustand store: 城镇档案 —— 跨远征持久的玩家资产(个人卡组 / 编队 / 经验 / 居民积分)。
+// Zustand store: 城镇档案 —— 跨远征持久的玩家资产(个人卡组 / 编队 / 经验 / 居民积分)。
 // 与 runStore 的分工: 这里存"永久拥有的东西", runStore 只存"这趟远征的进度"。
 // 依赖方向: runStore → townStore(单向); 本 store 不认识 runStore。
 // 已接 persist 中间件(localStorage), 刷新页面进度保留;「重置存档」清回初始档。
@@ -31,8 +31,10 @@ import {
   getItemDef,
   makeCard,
   makeItemStack,
+  canActivate,
+  canRefund,
   getBadge,
-  nextNodeCost,
+  getNode,
   spentPoints,
   type CharacterDef,
 } from "../data";
@@ -106,7 +108,7 @@ export interface ContaminationHit {
 
 export interface SquadTalentState {
   badgeId: string | null;
-  nodes: Record<string, number>;
+  nodes: string[]; // 已激活的节点 id(天赋树按前置依赖逐颗点亮)
 }
 
 interface TownStore {
@@ -134,7 +136,8 @@ interface TownStore {
   unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
   resetProfile: () => void; // 重置存档
   selectSquadBadge: (id: string) => void;
-  investTalent: (trackId: string) => void;
+  activateTalentNode: (nodeId: string) => void;
+  refundTalentNode: (nodeId: string) => void;
   resetSquadTalent: () => void;
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
@@ -387,7 +390,7 @@ function freshProfile(): {
     characters,
     awakened,
     party: awakened.slice(0, RULES.progression.partySize),
-    squadTalent: { badgeId: null, nodes: {} },
+    squadTalent: { badgeId: null, nodes: [] },
   };
 }
 
@@ -407,7 +410,7 @@ export const useTownStore = create<TownStore>()(
       storage: [],
       day: 1,
       shop: freshShop(1),
-      squadTalent: { badgeId: null, nodes: {} },
+      squadTalent: { badgeId: null, nodes: [] },
       initialized: false,
 
       ensureProfile: () => {
@@ -432,28 +435,42 @@ export const useTownStore = create<TownStore>()(
           initialized: true,
         }),
 
+      // 切换小队徽章。★ 切换即重置整棵树(nodes 清空, 训练点全部回到池子)——
+      //   「换徽章会丢掉已投入的点」这一确认在 UI 层做, store 只负责落账。
+      //   ⚠ locked 的占位徽章直接拒绝, UI 与 store 两层都拦。
       selectSquadBadge: (id) => {
-        if (!getBadge(id)) return;
-        set({ squadTalent: { badgeId: id, nodes: {} } });
+        const badge = getBadge(id);
+        if (!badge || badge.locked) return;
+        set({ squadTalent: { badgeId: id, nodes: [] } });
       },
 
-      investTalent: (trackId) => {
+      // 点亮一个天赋节点。校验用数据层的 canActivate:
+      //   未激活 + 前置满足 + 剩余训练点(总训练点 - 本徽章已投入)够付。
+      activateTalentNode: (nodeId) => {
         const { squadTalent } = get();
         if (!squadTalent.badgeId) return;
         const badge = getBadge(squadTalent.badgeId);
-        const track = badge?.tracks.find((item) => item.id === trackId);
-        if (!badge || !track) return;
-        const unlocked = Math.max(0, Math.floor(squadTalent.nodes[trackId] ?? 0));
-        const cost = nextNodeCost(track, unlocked);
-        if (
-          cost == null ||
-          squadTrainingPoints(get()) - spentPoints(badge, squadTalent.nodes) < cost
-        )
-          return;
+        if (!badge || !getNode(badge, nodeId)) return;
+        const remaining = squadTrainingPoints(get()) - spentPoints(badge, squadTalent.nodes);
+        if (!canActivate(badge, squadTalent.nodes, nodeId, remaining)) return;
         set({
           squadTalent: {
             badgeId: badge.id,
-            nodes: { ...squadTalent.nodes, [trackId]: unlocked + 1 },
+            nodes: [...squadTalent.nodes, nodeId],
+          },
+        });
+      },
+
+      // 单点退还。校验用 canRefund: 退还后不破坏其余节点的前置依赖。
+      refundTalentNode: (nodeId) => {
+        const { squadTalent } = get();
+        if (!squadTalent.badgeId) return;
+        const badge = getBadge(squadTalent.badgeId);
+        if (!badge || !canRefund(badge, squadTalent.nodes, nodeId)) return;
+        set({
+          squadTalent: {
+            badgeId: badge.id,
+            nodes: squadTalent.nodes.filter((id) => id !== nodeId),
           },
         });
       },
@@ -461,7 +478,7 @@ export const useTownStore = create<TownStore>()(
       resetSquadTalent: () => {
         const { squadTalent } = get();
         if (!squadTalent.badgeId) return;
-        set({ squadTalent: { badgeId: squadTalent.badgeId, nodes: {} } });
+        set({ squadTalent: { badgeId: squadTalent.badgeId, nodes: [] } });
       },
 
       bankLoot: (amount) => {
@@ -895,12 +912,14 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
-    // ⚠ v8: 新增每日锻造用量与待选卡放弃 action。旧存档不兼容, 换 key 让旧档自然失效重建。
+    // ⚠ v10: 训练室改成天赋树 —— squadTalent.nodes 由 Record<string, number>(方向级数)
+    //   改为 string[](已激活节点 id)。旧存档不兼容, 换 key 让旧档自然失效重建。
+    // v9: 新增每日锻造用量与待选卡放弃 action。旧存档不兼容, 换 key 让旧档自然失效重建。
     // v6 新增的天数 day 与商店货架 shop 也由新档完整初始化。
     //   ⇒ 据点状态条显示「第 NaN 日」、商店货架空着且刷新价算不出来。项目不做旧存档兼容,
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v9", version: 9 },
+    { name: "town-profile-v10", version: 10 },
   ),
 );
