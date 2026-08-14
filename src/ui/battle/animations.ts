@@ -38,9 +38,10 @@ export interface ProcFxPreset {
 
 export interface AnimPreset {
   kind: "attack" | "support"; // attack: 目标受击特效; support: 目标柔和光效
-  emoji?: string; // 首击特效图形(无 sprite/iai 时使用)
+  emoji?: string; // 首击特效图形(无 sprite/proc/icon 时使用)
   sprite?: SpritePreset; // 序列帧特效(存在时优先于 emoji)
   proc?: ProcFxPreset; // 程序化 CSS 特效(与 sprite 平行的第三种渲染分支)
+  icon?: "shield"; // 图标特效(复用 BUFF 图标 SVG, 优先于 emoji); 渲染映射见 HitFxLayer 的 ICON_FX
   screenFx?: "dim" | "flash"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
@@ -170,7 +171,9 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
-  shield: { kind: "support", emoji: "🛡️", color: "#6ea8fe", windup: 200, hold: 700, shake: 0 },
+  // 护盾: 不再用 emoji, 改用护盾 BUFF 图标 SVG(见 StatusPips 的 ShieldIcon)做虚幻放大浮现。
+  // hold 须 ≥ 图标动画 1s(见 HitFxLayer.module.css 的 vfxIconRise), 否则末尾帧被卸载截断。
+  shield: { kind: "support", icon: "shield", color: "#6ea8fe", windup: 200, hold: 1100, shake: 0 },
   buff: { kind: "support", emoji: "✨", color: "#ffd43b", windup: 200, hold: 700, shake: 0 },
 };
 

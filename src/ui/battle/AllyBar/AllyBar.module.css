@@ -24,6 +24,14 @@
   width: auto;
   height: 100%;
   transition: flex-grow 0.25s ease;
+  /* 命中特效层(fx/HitFxLayer 的 .vfx)的几何锚: 敌人外壳由 CombatantView 按源图几何
+     行内下发 --fig-h/--foot-inset/--body-h/--body-cx; 我方没有源图几何, 这里按布局给
+     静态值, 把特效锚点定在立绘取景窗中心(取景窗高 = 槽高 100% − 底部三条约 48px)。
+     .vfx 的 top 公式: fig-h − foot-inset − body-h×0.48 ≈ 取景窗高的 52% ≈ 其中心。 */
+  --fig-h: calc(100% - 48px);
+  --foot-inset: 0px;
+  --body-h: calc(100% - 48px);
+  --body-cx: 0px;
 }
 /* 聚焦槽(当前悬停/选中手牌的归属角色, ui/AllyBar.tsx 的 card-focus): 变宽约 +70px
    (1.85/3.85 × 480 ≈ 231px, 其余两槽各收到约 125px)。三槽总宽仍恒等于 --hud-party-w ——

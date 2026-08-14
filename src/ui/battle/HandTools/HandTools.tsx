@@ -18,6 +18,8 @@ export function HandTools({ battle, handAction, isPlayerTurn, animating, onToggl
   const canUseHandActions = isPlayerTurn && !animating && battle.hand.length > 0;
   const redrawLimit = partyRedrawLimit(battle);
   const waitLimit = partyWaitLimit(battle);
+  const redrawLeft = Math.max(0, redrawLimit - battle.redrawsThisRound);
+  const waitLeft = Math.max(0, waitLimit - battle.waitsThisRound);
   const redrawAvailable = canUseHandActions && battle.redrawsThisRound < redrawLimit;
   const canWait = isPlayerTurn && !animating && battle.waitsThisRound < waitLimit;
 
@@ -26,13 +28,16 @@ export function HandTools({ battle, handAction, isPlayerTurn, animating, onToggl
       <button
         className={`${s.toolButton} ${handAction === "redraw" ? s.active : ""}`}
         type="button"
-        aria-label="换牌"
-        title={`本回合换牌 ${battle.redrawsThisRound}/${redrawLimit}`}
+        aria-label={`换牌，本回合剩余 ${redrawLeft} 次`}
         disabled={!redrawAvailable}
         onClick={() => onToggle("redraw")}
       >
         <RedrawIcon />
-        <span>换牌</span>
+        {/* 图标右下角的剩余次数角标 */}
+        <span className={s.useBadge} data-empty={redrawLeft === 0 || undefined}>
+          {redrawLeft}
+        </span>
+        <span className={s.label}>换牌</span>
       </button>
       <button
         className={`${s.toolButton} ${handAction === "discard" ? s.active : ""}`}
@@ -43,18 +48,21 @@ export function HandTools({ battle, handAction, isPlayerTurn, animating, onToggl
         onClick={() => onToggle("discard")}
       >
         <DiscardIcon />
-        <span>丢弃</span>
+        <span className={s.label}>丢弃</span>
       </button>
       <button
         className={s.toolButton}
         type="button"
-        aria-label="待机"
-        title={`本回合待机 ${battle.waitsThisRound}/${waitLimit} · 推进 1 时刻`}
+        aria-label={`待机，本回合剩余 ${waitLeft} 次`}
         disabled={!canWait}
         onClick={onWait}
       >
         <WaitIcon />
-        <span>待机</span>
+        {/* 图标右下角的剩余次数角标 */}
+        <span className={s.useBadge} data-empty={waitLeft === 0 || undefined}>
+          {waitLeft}
+        </span>
+        <span className={s.label}>待机</span>
       </button>
     </section>
   );

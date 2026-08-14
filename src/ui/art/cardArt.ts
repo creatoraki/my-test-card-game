@@ -13,8 +13,10 @@ import swordsmanMirageArt from "@/assets/skills/swordsman/幻陇.png";
 import swordsmanFireflyArt from "@/assets/skills/swordsman/萤火.png";
 import swordsmanGaleArt from "@/assets/skills/swordsman/岚.png";
 import swordsmanRiftLightArt from "@/assets/skills/swordsman/天隙流光.png";
+import swordsmanSpringSproutArt from "@/assets/skills/swordsman/春芽.png";
 import swordsmanStillWaterArt from "@/assets/skills/swordsman/止水.png";
 import swordsmanBuzhouMountainArt from "@/assets/skills/swordsman/不周山.png";
+import swordsmanCloudVeilArt from "@/assets/skills/swordsman/云隐.png";
 import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.png";
 import swordsmanMoonShadowArt from "@/assets/skills/swordsman/月影.png";
 
@@ -37,8 +39,10 @@ export const CARD_ART: Record<string, string> = {
   "firefly": swordsmanFireflyArt,
   "gale": swordsmanGaleArt,
   "rift-light": swordsmanRiftLightArt,
+  "spring-sprout": swordsmanSpringSproutArt,
   "still-water": swordsmanStillWaterArt,
   "buzhou-mountain": swordsmanBuzhouMountainArt,
+  "cloud-veil": swordsmanCloudVeilArt,
   "falling-sakura": swordsmanFallingSakuraArt,
   "moon-shadow": swordsmanMoonShadowArt,
 };

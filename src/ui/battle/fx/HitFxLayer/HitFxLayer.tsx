@@ -1,9 +1,11 @@
+import type { ComponentType } from "react";
 import { ANIM, type CardAnim, type HitFx, type ProcFxPreset } from "@/ui/battle/animations";
 import type { UnitReact } from "@/ui/battle/unitShell";
 import { cx } from "@/ui/common/cx";
 import { SpriteFx } from "@/ui/battle/fx/SpriteFx";
 import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
 import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
+import { ShieldIcon } from "@/ui/common/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
 // 命中表现的共用件: 敌人(CombatantView)与我方头像栏(AllyBar)都靠这两个导出, 保证两边的
@@ -12,6 +14,12 @@ import s from "./HitFxLayer.module.css";
 const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Element>> = {
   "iai-slash": IaiSlashFx,
   "blade-slash": BladeSlashFx,
+};
+
+// 图标特效(与 PROC_FX 平行的分支): 复用 BUFF 图标 SVG(如护盾), 以"虚幻放大"浮现动画播放。
+// 由 ANIM[*].icon 标记启用; 与 emoji 互斥 —— icon 存在时优先渲染图标。
+const ICON_FX: Partial<Record<CardAnim, ComponentType<{ className?: string }>>> = {
+  shield: ShieldIcon,
 };
 
 // 由 hit 推出「受击反应 + CSS 变量」, 交给单位外壳挂在根节点上。
@@ -52,6 +60,7 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
   const sprite = preset?.sprite;
   const proc = preset?.proc;
   const Proc = hit ? PROC_FX[hit.anim] : undefined;
+  const Icon = hit && preset?.icon ? ICON_FX[hit.anim] : undefined;
 
   return (
     <>
@@ -66,6 +75,10 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
             <SpriteFx sprite={sprite} />
           ) : Proc && proc ? (
             <Proc preset={proc} />
+          ) : Icon ? (
+            <span className={s["vfx-icon"]}>
+              <Icon />
+            </span>
           ) : (
             <span className={s["vfx-emoji"]}>{preset.emoji}</span>
           )}

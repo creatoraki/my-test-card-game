@@ -42,7 +42,7 @@
   stroke-width: 1.8;
 }
 
-.toolButton span {
+.toolButton .label {
   position: absolute;
   top: calc(100% + 6px);
   color: #829196;
@@ -50,4 +50,30 @@
   letter-spacing: 2px;
   line-height: 1;
   white-space: nowrap;
+}
+
+/* 图标右下角的剩余使用次数角标(换牌/待机) */
+.useBadge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent, #d8f329);
+  color: #0b0f10;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  box-sizing: border-box;
+  box-shadow: 0 0 6px #00000099;
+}
+
+.useBadge[data-empty] {
+  background: #4a1d24;
+  color: #ff8a8a;
+  box-shadow: none;
 }
