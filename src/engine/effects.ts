@@ -123,7 +123,6 @@ function applyEffect(
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;
     }
-    case "APPLY_STATUS":
     case "APPLY_STATUS": {
       const stacks = effect.stacksFrom ? counterOf(state, effect.stacksFrom) : effect.stacks ?? 0;
       if (stacks <= 0) break;
