@@ -9,7 +9,7 @@
 // ⚠ 只 import 类型与规则, 不 import 引擎实现 —— ops / effects / statuses 都能安全引用它。
 // ============================================================================
 
-import type { BattleState, Combatant, StatBlock, StatModifier } from "./types";
+import type { BattleState, Combatant, SquadResourceMods, StatBlock, StatModifier } from "./types";
 import { RULES, capProb } from "./rules";
 
 // 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
@@ -143,39 +143,67 @@ export function enemyActDelay(state: BattleState, enemy: Combatant, moveDelay: n
 
 // 小队手牌上限 / 每回合基础抽牌数 —— 上阵角色属性求和 + 全队修正(《角色养成设计.md》第六章)。
 // ⚠ 用**建局时的全员**求和, 不随阵亡缩水: 队友倒下已经够惨了, 再砍手牌是双重惩罚。
-export function partyHandLimit(state: BattleState): number {
-  let sum: number = RULES.hand.baseHandLimit + (state.squadMods.handLimit ?? 0);
-  for (const id of state.playerIds) sum += state.combatants[id].stats.handLimit;
-  return Math.max(
-    RULES.hand.minHandLimit,
-    Math.min(RULES.squadCaps.handLimit, Math.round(sum)),
-  );
+export function squadHandLimit(sumCharHandLimit: number, mods: SquadResourceMods): number {
+  const sum = RULES.hand.baseHandLimit + sumCharHandLimit + mods.handLimit;
+  return Math.max(RULES.hand.minHandLimit, Math.min(RULES.squadCaps.handLimit, Math.round(sum)));
 }
 
-export function partyDrawCount(state: BattleState): number {
-  let sum: number = RULES.hand.partyBonusDrawCount + (state.squadMods.drawCount ?? 0);
-  for (const id of state.playerIds) sum += state.combatants[id].stats.drawCount;
+export function squadDrawCount(sumCharDrawCount: number, mods: SquadResourceMods): number {
+  const sum = RULES.hand.partyBonusDrawCount + sumCharDrawCount + mods.drawCount;
   return Math.max(0, Math.min(RULES.squadCaps.drawCount, Math.round(sum)));
 }
 
 // 开局(第 1 回合)初始手牌数 —— 基础值、角色 drawCount 与起手训练叠加, 不受抽牌封顶影响。
+export function squadOpeningDrawCount(sumCharDrawCount: number, mods: SquadResourceMods): number {
+  return Math.max(0, Math.round(RULES.hand.openingHandSize + sumCharDrawCount + mods.openingHand));
+}
+
+export function squadManaPerRound(mods: SquadResourceMods): number {
+  return Math.max(0, Math.min(RULES.squadCaps.mana, Math.round(RULES.resource.perRound + mods.mana)));
+}
+
+export function squadRedrawLimit(mods: SquadResourceMods): number {
+  return Math.max(0, Math.round(RULES.timeline.redrawsPerRound + mods.redraws));
+}
+
+export function squadWaitLimit(mods: SquadResourceMods): number {
+  return Math.max(0, Math.round(RULES.timeline.waitsPerRound + mods.waits));
+}
+
+export function partyHandLimit(state: BattleState): number {
+  const sumCharHandLimit = state.playerIds.reduce(
+    (sum, id) => sum + state.combatants[id].stats.handLimit,
+    0,
+  );
+  return squadHandLimit(sumCharHandLimit, state.squadMods);
+}
+
+export function partyDrawCount(state: BattleState): number {
+  const sumCharDrawCount = state.playerIds.reduce(
+    (sum, id) => sum + state.combatants[id].stats.drawCount,
+    0,
+  );
+  return squadDrawCount(sumCharDrawCount, state.squadMods);
+}
+
 export function partyOpeningDrawCount(state: BattleState): number {
-  let sum = RULES.hand.openingHandSize + (state.squadMods.openingHand ?? 0);
-  for (const id of state.playerIds) sum += state.combatants[id].stats.drawCount;
-  return Math.max(0, Math.round(sum));
+  const sumCharDrawCount = state.playerIds.reduce(
+    (sum, id) => sum + state.combatants[id].stats.drawCount,
+    0,
+  );
+  return squadOpeningDrawCount(sumCharDrawCount, state.squadMods);
 }
 
 export function partyManaPerRound(state: BattleState): number {
-  const sum = RULES.resource.perRound + (state.squadMods.mana ?? 0);
-  return Math.max(0, Math.min(RULES.squadCaps.mana, Math.round(sum)));
+  return squadManaPerRound(state.squadMods);
 }
 
 export function partyRedrawLimit(state: BattleState): number {
-  return Math.max(0, Math.round(RULES.timeline.redrawsPerRound + (state.squadMods.redraws ?? 0)));
+  return squadRedrawLimit(state.squadMods);
 }
 
 export function partyWaitLimit(state: BattleState): number {
-  return Math.max(0, Math.round(RULES.timeline.waitsPerRound + (state.squadMods.waits ?? 0)));
+  return squadWaitLimit(state.squadMods);
 }
 
 // 负重惩罚(百分点), 三项属性(命中/闪避/暴击)各减这么多。

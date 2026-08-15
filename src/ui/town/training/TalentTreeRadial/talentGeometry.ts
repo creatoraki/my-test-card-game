@@ -6,7 +6,7 @@
 
 import { branchNodesOf, type SquadBadgeDef, type TalentNodeDef } from "@/data";
 
-export const RADIAL_CANVAS = { width: 1280, height: 760 } as const;
+export const RADIAL_CANVAS = { width: 1660, height: 860 } as const;
 // 画布居中对称: 六分支全径向展开, 顶部垂直支的标签仍有余量。
 export const RADIAL_CENTER = { x: RADIAL_CANVAS.width / 2, y: RADIAL_CANVAS.height / 2 };
 
@@ -31,26 +31,56 @@ function degToRad(deg: number): number {
   return (deg * Math.PI) / 180;
 }
 
-// 分支长度随节点数微调: 长链拉长, 保证节点间距足够; 短链缩短, 不顶到画布边缘。
-function branchLength(nodeCount: number): number {
-  return 260 + nodeCount * 16;
+function branchLength(angleDeg: number): number {
+  const halfW = RADIAL_CANVAS.width / 2 - 30;
+  const halfH = RADIAL_CANVAS.height / 2 - 30;
+  const angle = degToRad(angleDeg);
+  const dirX = Math.cos(angle);
+  const dirY = Math.sin(angle);
+  const xDistance = Math.abs(dirX) > 0.0001 ? halfW / Math.abs(dirX) : Infinity;
+  const yDistance = Math.abs(dirY) > 0.0001 ? halfH / Math.abs(dirY) : Infinity;
+  return Math.max(0, Math.min(xDistance, yDistance) * 0.82 - 44);
+}
+
+const RADIAL_ANGLES = [0, 180, -90, 90, -40, -140] as const;
+
+function branchAngles(badge: SquadBadgeDef): number[] | null {
+  const { branches } = badge;
+  if (branches.length !== 6) return null;
+  const counts = branches.map((branch) => branchNodesOf(badge, branch.id).length);
+  if (counts.filter((count) => count > 0).length < 2) return null;
+  const longBranchIndices = counts
+    .map((count, index) => ({ count, index }))
+    .sort((a, b) => b.count - a.count || a.index - b.index)
+    .slice(0, 2)
+    .map(({ index }) => index);
+  const angles: number[] = [];
+  let shortIndex = 2;
+  for (let index = 0; index < branches.length; index += 1) {
+    const longIndex = longBranchIndices.indexOf(index);
+    if (longIndex >= 0) angles[index] = RADIAL_ANGLES[longIndex] ?? 0;
+    else angles[index] = RADIAL_ANGLES[shortIndex++] ?? -90;
+  }
+  return angles;
 }
 
 export function buildRadialLayout(badge: SquadBadgeDef): RadialBranchGeometry[] {
   const branches = badge.branches;
   const n = branches.length;
   const firstProgress = 0.4; // 链首离核心的距离比例
+  const plannedAngles = branchAngles(badge);
 
   return branches.map((branch, i) => {
     const nodes = branchNodesOf(badge, branch.id);
     const count = nodes.length;
-    const angleDeg = n <= 1 ? -90 : -90 + (360 / n) * i;
+    const angleDeg =
+      plannedAngles?.[i] ?? (n <= 1 ? -90 : -90 + (360 / n) * i);
     const angle = degToRad(angleDeg);
     const dirX = Math.cos(angle);
     const dirY = Math.sin(angle);
     const perpX = -Math.sin(angle);
     const perpY = Math.cos(angle);
-    const length = branchLength(count);
+    const length = branchLength(angleDeg);
     // 相邻分支的锯齿弯曲方向相反, 避免六条链读起来千篇一律。
     const bendDir = i % 2 === 0 ? 1 : -1;
     const bendOffset = 0.06 * length;
@@ -77,8 +107,8 @@ export function buildRadialLayout(badge: SquadBadgeDef): RadialBranchGeometry[] 
 
 // 节点半径: major(末节点)大一档; 链内越深越大, 与模板的递进一致。
 export function nodeRadius(node: TalentNodeDef, index: number): number {
-  if (node.tier === "major") return 22;
-  return Math.min(14 + index * 1.8, 19);
+  if (node.tier === "major") return 36;
+  return Math.min(24 + index * 2.4, 32);
 }
 
 // 六条分支的表现色(模板六色系: 橙金/棕/蓝/金/紫/绿), 按分支序号查表。

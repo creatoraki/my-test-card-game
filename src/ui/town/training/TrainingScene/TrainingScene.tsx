@@ -20,6 +20,7 @@ import { useRunStore } from "@/store/runStore";
 import { squadTrainingPoints, useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
 import { BadgeRail } from "../BadgeRail";
+import { SquadResourceBar } from "../SquadResourceBar";
 import { TalentTreeRadial } from "../TalentTreeRadial";
 import s from "./TrainingScene.module.css";
 
@@ -50,6 +51,7 @@ export function TrainingScene({ leaving = false }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(() => !squadTalent.badgeId);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [pulse, setPulse] = useState<{ nodeId: string; n: number } | null>(null);
+  const [hoverKey, setHoverKey] = useState<SquadResourceKey | null>(null);
 
   const locked = screen !== "town";
   // ⚠ 防御: 存档里的 badgeId 万一指向锁定徽章(理论上 store 已拒绝), 按「未启用」处理。
@@ -136,21 +138,25 @@ export function TrainingScene({ leaving = false }: Props) {
 
       <main className={cn("tr-stage-wrap")}>
         {activeBadge ? (
-          <TalentTreeRadial
-            badge={activeBadge}
-            activated={squadTalent.nodes}
-            remaining={remaining}
-            locked={locked}
-            resourceLabels={RESOURCE_LABELS}
-            pulse={pulse}
-            shakeId={shakeId}
-            onRequestShake={setShakeId}
-            onActivate={handleActivate}
-            onQuickBuy={handleQuickBuy}
-            onRefund={handleRefund}
-            onCoreClick={() => setDrawerOpen((open) => !open)}
-            className={s["tr-tree"]}
-          />
+          <div className={s["tr-tree-shell"]}>
+            <TalentTreeRadial
+              badge={activeBadge}
+              activated={squadTalent.nodes}
+              remaining={remaining}
+              locked={locked}
+              resourceLabels={RESOURCE_LABELS}
+              pulse={pulse}
+              shakeId={shakeId}
+              onRequestShake={setShakeId}
+              onActivate={handleActivate}
+              onQuickBuy={handleQuickBuy}
+              onRefund={handleRefund}
+              onHoverKey={setHoverKey}
+              onCoreClick={() => setDrawerOpen((open) => !open)}
+              className={s["tr-tree"]}
+            />
+            <SquadResourceBar highlightKey={hoverKey} className={s["tr-resource-bar"]} />
+          </div>
         ) : (
           <div className={cn("tr-empty")} role="status">
             <span className={cn("tr-panel-kicker")}>NO BADGE</span>

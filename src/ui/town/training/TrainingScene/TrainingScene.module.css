@@ -11,7 +11,7 @@
   pointer-events: none;
   background:
     radial-gradient(1100px 760px at 62% 44%, rgba(255, 190, 90, 0.07) 0%, transparent 70%),
-    radial-gradient(ellipse at center, #171220 0%, #0c0910 55%, #060508 100%);
+    radial-gradient(ellipse at center, transparent 48%, rgba(0, 0, 0, 0.35) 100%);
 }
 
 /* ── 背景浮升光粒 ── */
@@ -62,6 +62,21 @@
 
 .tr-tree {
   pointer-events: auto;
+}
+
+.tr-tree-shell {
+  position: relative;
+  width: 1740px;
+  height: 980px;
+  pointer-events: none;
+}
+
+.tr-resource-bar {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  z-index: 4;
+  pointer-events: none;
 }
 
 /* ── 未启用徽章时的空态 ── */

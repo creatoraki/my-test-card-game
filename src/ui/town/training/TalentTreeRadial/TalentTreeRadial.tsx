@@ -288,7 +288,7 @@ export function TalentTreeRadial({
             </filter>
           </defs>
 
-          <circle cx={RADIAL_CENTER.x} cy={RADIAL_CENTER.y} r={210} fill="url(#trr-core-halo)" />
+          <circle cx={RADIAL_CENTER.x} cy={RADIAL_CENTER.y} r={260} fill="url(#trr-core-halo)" />
 
           {/* ── 连线层(纯装饰) ── */}
           <g aria-hidden>
@@ -345,9 +345,9 @@ export function TalentTreeRadial({
               }
             }}
           >
-            <circle className={s["trr-core-pulse"]} r={34} />
-            <circle className={s["trr-core-pulse"]} r={34} style={{ animationDelay: "1.5s" }} />
-            <circle className={s["trr-core-body"]} r={36} fill="url(#trr-core-body)" />
+            <circle className={s["trr-core-pulse"]} r={46} />
+            <circle className={s["trr-core-pulse"]} r={46} style={{ animationDelay: "1.5s" }} />
+            <circle className={s["trr-core-body"]} r={48} fill="url(#trr-core-body)" />
             <g className={s["trr-core-glyph"]} transform="translate(-36, -36) scale(0.5)">
               <BadgeGlyph />
             </g>
@@ -369,11 +369,11 @@ export function TalentTreeRadial({
                   transform={`translate(${branch.labelPoint.x.toFixed(1)}, ${branch.labelPoint.y.toFixed(1)})`}
                   style={{ "--trr-hue": hue.hue, "--trr-deep": hue.deep } as CSSProperties}
                 >
-                  <rect className={s["trr-label-bg"]} x={-52} y={-17} width={104} height={34} rx={17} />
-                  <text className={s["trr-label-name"]} y={-5}>
+                  <rect className={s["trr-label-bg"]} x={-66} y={-21} width={132} height={42} rx={21} />
+                  <text className={s["trr-label-name"]} y={-6}>
                     {branch.branchIndex < badge.branches.length ? badge.branches[branch.branchIndex].name : ""}
                   </text>
-                  <text className={s["trr-label-count"]} y={12}>
+                  <text className={s["trr-label-count"]} y={14}>
                     {activeCount}/{branch.nodes.length}
                   </text>
                 </g>
@@ -434,7 +434,7 @@ export function TalentTreeRadial({
                         <circle className={s["trr-node-inner"]} r={radius - 6} />
                         <g
                           className={s["trr-node-icon"]}
-                          transform={`translate(${-(radius * 0.62)}, ${-(radius * 0.62)}) scale(${(radius * 0.62) / 24})`}
+                          transform={`translate(${-(radius * 0.78)}, ${-(radius * 0.78)}) scale(${(radius * 0.78) / 24})`}
                         >
                           <TrackIcon branchId={badge.branches[branch.branchIndex]?.id ?? ""} />
                         </g>

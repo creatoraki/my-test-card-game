@@ -1,0 +1,119 @@
+.srb {
+  composes: tr-glass tr-tokens from "../styles/trainingKit.module.css";
+  --notch: 10px;
+  box-sizing: border-box;
+  width: 360px;
+  height: 230px;
+  padding: 14px 16px 12px;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  pointer-events: none;
+  animation: srbRise 480ms 140ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.srb-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--tr-line);
+}
+
+.srb-kicker {
+  composes: tr-kicker from "../styles/trainingKit.module.css";
+  font-size: 10px;
+}
+
+.srb-title {
+  margin: 0;
+  color: var(--tr-ink);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.srb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  gap: 2px 12px;
+  height: 174px;
+  padding-top: 8px;
+}
+
+.srb-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 1px 5px;
+  border-left: 2px solid transparent;
+  color: var(--tr-ink-dim);
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.srb-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--tr-glow-deep);
+}
+
+.srb-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.srb-label {
+  overflow: hidden;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.srb-value {
+  min-width: 28px;
+  color: var(--tr-ink);
+  font-family: var(--font-family);
+  font-size: 17px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.srb-row.is-highlight {
+  border-left-color: var(--tr-glow);
+  background: rgba(255, 215, 0, 0.1);
+  color: var(--tr-ink);
+}
+
+.srb-row.is-highlight .srb-icon,
+.srb-row.is-highlight .srb-value {
+  color: var(--tr-glow);
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
+}
+
+@keyframes srbRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .srb {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+
+  .srb-row {
+    transition: none;
+  }
+}

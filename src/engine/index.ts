@@ -32,6 +32,12 @@ export {
   partyManaPerRound,
   partyRedrawLimit,
   partyWaitLimit,
+  squadHandLimit,
+  squadDrawCount,
+  squadOpeningDrawCount,
+  squadManaPerRound,
+  squadRedrawLimit,
+  squadWaitLimit,
   burdenPenalty,
 } from "./stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
