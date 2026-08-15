@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天赋树 · 卡牌游戏</title>
+    <style>
+        :root {
+            --bg: #08080f;
+            --bg2: #0d0d1a;
+            --gold: #ffd700;
+            --text: #e8e0d0;
+            --text-dim: #887e6a;
+            --tooltip-bg: rgba(15, 12, 25, 0.95);
+            --tooltip-border: rgba(255, 215, 0, 0.4);
+            --shadow-glow: 0 0 40px rgba(255, 200, 80, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, var(--bg2) 0%, var(--bg) 70%, #050508 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Georgia', 'Palatino Linotype', 'Book Antiqua', serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: default;
+            position: relative;
+        }
+
+        /* 背景粒子层 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 220, 150, 0.8) 0%, rgba(255, 180, 80, 0.3) 40%, transparent 70%);
+            animation: floatParticle linear infinite;
+            opacity: 0;
+        }
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateY(-10vh) translateX(40px) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* 主容器 */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 1200px;
+            max-width: 95vw;
+            aspect-ratio: 3/2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* SVG画布 */
+        #talent-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 30px rgba(255, 200, 100, 0.15));
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 树枝路径样式 */
+        .branch-path {
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 节点组 - 悬浮仅增强发光，不改变尺寸，避免抖动 */
+        .node-group {
+            cursor: pointer;
+            transition: filter 0.3s ease, opacity 0.3s ease;
+            pointer-events: all;
+        }
+        .node-group:hover {
+            filter: brightness(1.6) drop-shadow(0 0 25px rgba(255, 255, 220, 0.9));
+        }
+
+        /* 核心节点 */
+        .core-node {
+            cursor: pointer;
+            transition: filter 0.4s ease;
+            pointer-events: all;
+        }
+        .core-node:hover {
+            filter: brightness(1.4) drop-shadow(0 0 40px rgba(255, 215, 0, 0.9));
+        }
+        .core-node:active {
+            filter: brightness(0.8);
+        }
+
+        /* 节点光环动画 */
+        @keyframes pulseRing {
+            0% {
+                r: 22;
+                opacity: 0.8;
+            }
+            100% {
+                r: 38;
+                opacity: 0;
+            }
+        }
+        .node-pulse-ring {
+            animation: pulseRing 2.4s ease-out infinite;
+            pointer-events: none;
+        }
+        .core-pulse-ring {
+            animation: pulseRing 3s ease-out infinite;
+            pointer-events: none;
+        }
+
+        /* 流动光点 */
+        .flow-orb {
+            pointer-events: none;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9));
+        }
+
+        /* 悬浮提示 */
+        .tooltip {
+            position: fixed;
+            z-index: 100;
+            background: var(--tooltip-bg);
+            border: 1.5px solid var(--tooltip-border);
+            border-radius: 16px;
+            padding: 18px 22px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(8px) scale(0.92);
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.6),
+                0 0 40px rgba(255, 200, 100, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            max-width: 320px;
+            min-width: 220px;
+            will-change: left, top, transform, opacity;
+        }
+        .tooltip.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 12px;
+            height: 12px;
+            background: var(--tooltip-bg);
+            border-left: 1.5px solid var(--tooltip-border);
+            border-top: 1.5px solid var(--tooltip-border);
+        }
+        .tooltip-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .tooltip-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 0 20px rgba(255, 200, 100, 0.3);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+        }
+        .tooltip-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text);
+            letter-spacing: 0.5px;
+        }
+        .tooltip-tier {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        .tooltip-effect {
+            font-size: 13px;
+            color: #b8a88a;
+            line-height: 1.5;
+            margin-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 10px;
+        }
+        .tooltip-value {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 底部提示 */
+        .hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(255, 220, 160, 0.5);
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-align: center;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            font-family: 'Georgia', serif;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                max-width: 100vw;
+                aspect-ratio: 4/5;
+            }
+            .hint {
+                font-size: 11px;
+                bottom: 16px;
+            }
+            .tooltip {
+                max-width: 240px;
+                padding: 14px 16px;
+                font-size: 12px;
+            }
+        }
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100vw;
+                aspect-ratio: 3/4;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景粒子 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <svg id="talent-svg" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="rgba(255,200,100,0.08)" />
+                    <stop offset="50%" stop-color="rgba(255,200,100,0.03)" />
+                    <stop offset="100%" stop-color="transparent" />
+                </radialGradient>
+                <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="rgba(255,215,0,0.4)" />
+                    <stop offset="60%" stop-color="rgba(255,180,80,0.15)" />
+                    <stop offset="100%" stop-color="transparent" />
+                </radialGradient>
+                <radialGradient id="coreInnerGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#fff8e8" />
+                    <stop offset="40%" stop-color="#ffd700" />
+                    <stop offset="80%" stop-color="#cc8800" />
+                    <stop offset="100%" stop-color="#664400" />
+                </radialGradient>
+                <linearGradient id="branchGrad-fire" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#fff5e0" />
+                    <stop offset="30%" stop-color="#ff9944" />
+                    <stop offset="100%" stop-color="#cc3311" />
+                </linearGradient>
+                <linearGradient id="branchGrad-frost" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#f0f8ff" />
+                    <stop offset="30%" stop-color="#88ccff" />
+                    <stop offset="100%" stop-color="#2266cc" />
+                </linearGradient>
+                <linearGradient id="branchGrad-storm" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#f8f0ff" />
+                    <stop offset="30%" stop-color="#bb88ff" />
+                    <stop offset="100%" stop-color="#7733cc" />
+                </linearGradient>
+                <linearGradient id="branchGrad-holy" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#fffbe8" />
+                    <stop offset="30%" stop-color="#ffdd66" />
+                    <stop offset="100%" stop-color="#cc9900" />
+                </linearGradient>
+                <linearGradient id="branchGrad-shadow" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#e8e0f0" />
+                    <stop offset="30%" stop-color="#8866aa" />
+                    <stop offset="100%" stop-color="#331155" />
+                </linearGradient>
+                <linearGradient id="branchGrad-nature" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#f0ffe8" />
+                    <stop offset="30%" stop-color="#88dd66" />
+                    <stop offset="100%" stop-color="#338822" />
+                </linearGradient>
+                <filter id="glowFilter" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="6" result="blur" />
+                    <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+                <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="12" result="blur" />
+                    <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+                <filter id="strongGlow" x="-80%" y="-80%" width="260%" height="260%">
+                    <feGaussianBlur stdDeviation="20" result="blur" />
+                    <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+
+            <circle cx="600" cy="400" r="280" fill="url(#bgGlow)" />
+            <circle cx="600" cy="400" r="180" fill="url(#coreGlow)" />
+
+            <g id="branches-container"></g>
+            <g id="flow-orbs-container"></g>
+            <g id="nodes-container"></g>
+            <g id="core-container"></g>
+            <g id="decor-container"></g>
+        </svg>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-header">
+            <div class="tooltip-icon" id="tooltip-icon">✦</div>
+            <div>
+                <div class="tooltip-title" id="tooltip-title">天赋名称</div>
+                <div class="tooltip-tier" id="tooltip-tier">第1层 · 天赋</div>
+            </div>
+        </div>
+        <div class="tooltip-effect" id="tooltip-effect">效果描述</div>
+        <div class="tooltip-value" id="tooltip-value">数值加成</div>
+    </div>
+
+    <div class="hint" id="hint">✦ 悬浮节点查看效果 &nbsp;·&nbsp; 点击节点点亮天赋 ✦</div>
+
+    <script>
+        (function() {
+            const CX = 600;
+            const CY = 400;
+
+            const ICONS = {
+                star: 'M12,2 L14.5,8.5 L21,9 L16,13.5 L17.5,20 L12,16.5 L6.5,20 L8,13.5 L3,9 L9.5,8.5 Z',
+                cost: 'M12,2 L20,7 L17,19 L7,19 L4,7 Z M12,5 L8,8 L9,16 L15,16 L16,8 Z',
+                stink: 'M7,3 H17 V21 H7 Z M9,7 H15 V9 H9 Z M9,11 H15 V13 H9 Z M9,15 H13 V17 H9 Z M19,4 C21,3 22,5 20,7 C19,8 21,9 20,11 C18,12 17,10 18,8 C19,7 17,6 19,4 Z',
+                startingHand: 'M4,5 L15,3 L17,16 L6,18 Z M7,8 L14,7 L14.5,9 L7.5,10 Z M8,12 L15,11 L15.5,13 L8.5,14 Z M8,7 L18,6 L20,19 L9,21 Z',
+                standby: 'M6,3 H18 V6 C18,9 15,10 13,12 C15,14 18,15 18,18 V21 H6 V18 C6,15 9,14 11,12 C9,10 6,9 6,6 Z M9,6 C9,8 10.5,9 12,10 C13.5,9 15,8 15,6 Z M9,18 C9,16 10.5,15 12,14 C13.5,15 15,16 15,18 Z',
+                swap: 'M5,7 H17 L14,4 L16,2 L22,8 L16,14 L14,12 L17,9 H5 Z M19,17 H7 L10,20 L8,22 L2,16 L8,10 L10,12 L7,15 H19 Z',
+                handLimit: 'M3,13 L6,9 C7,8 8,9 8,10 V6 C8,4 11,4 11,6 V9 V5 C11,3 14,3 14,5 V9 V6 C14,4 17,4 17,6 V10 V8 C17,6 20,6 20,8 V15 C20,19 17,21 13,21 H8 C5,21 3,18 3,15 Z'
+            };
+
+            const CORE_TALENT = {
+                id: 'deck-core',
+                name: '牌组核心',
+                icon: 'star',
+                color: '#ffd166',
+                glowColor: '#ff9f1c',
+                description: '围绕牌组节奏构筑成长路径',
+                effect: '六条分支分别强化牌组的资源与操作空间',
+                value: '六项牌组属性成长',
+                branchAngles: [-90, -30, 30, 90, 150, 210],
+                branchCurves: [0.05, -0.05, 0.04, -0.04, 0.05, -0.05],
+                branchLengths: [320, 330, 325, 335, 320, 330],
+                branchNodeCounts: [4, 4, 4, 4, 4, 4],
+                branchSpread: 1.0,
+                treeStyle: 'radial'
+            };
+
+            const BRANCH_DEFS = [
+                { id: 'cost', name: '费用', icon: 'cost', color: '#ffb347', colorDark: '#b36b00',
+                    gradient: 'branchGrad-fire',
+                    nodes: [
+                        { name: '费用储备', icon: 'cost', tier: 1, effect: '扩充可支配的费用资源', value: '费用 +1' },
+                        { name: '费用回路', icon: 'cost', tier: 2, effect: '让费用在每轮结束后更稳定', value: '费用上限 +1' },
+                        { name: '节流协议', icon: 'cost', tier: 3, effect: '减少高消耗牌的资源压力', value: '高费牌消耗 -1' },
+                        { name: '富余核心', icon: 'cost', tier: 4, effect: '将额外费用转化为牌组优势', value: '费用效率提升' },
+                    ]
+                },
+                { id: 'stink', name: '臭牌数', icon: 'stink', color: '#c77d5a', colorDark: '#713f2a',
+                    gradient: 'branchGrad-shadow',
+                    nodes: [
+                        { name: '异味识别', icon: 'stink', tier: 1, effect: '更早识别牌组中的臭牌', value: '臭牌数 +1' },
+                        { name: '臭牌记录', icon: 'stink', tier: 2, effect: '记录臭牌并寻找处理机会', value: '臭牌处理效率 +1' },
+                        { name: '臭牌过滤', icon: 'stink', tier: 3, effect: '降低臭牌对抽牌节奏的干扰', value: '臭牌影响 -20%' },
+                        { name: '异味掌控', icon: 'stink', tier: 4, effect: '把臭牌转化为可控的战术资源', value: '臭牌收益提升' },
+                    ]
+                },
+                { id: 'starting-hand', name: '初始手牌数', icon: 'startingHand', color: '#66ccff', colorDark: '#2266cc',
+                    gradient: 'branchGrad-frost',
+                    nodes: [
+                        { name: '预备抽取', icon: 'startingHand', tier: 1, effect: '战斗开始时多获得一张手牌', value: '初始手牌数 +1' },
+                        { name: '快速整备', icon: 'startingHand', tier: 2, effect: '让起手牌更快形成行动方案', value: '起手选择 +1' },
+                        { name: '战术开局', icon: 'startingHand', tier: 3, effect: '起手资源更容易组成连携', value: '初始手牌质量提升' },
+                        { name: '完美起手', icon: 'startingHand', tier: 4, effect: '以充足手牌开启每场战斗', value: '初始手牌数 +2' },
+                    ]
+                },
+                { id: 'standby', name: '待机次数', icon: 'standby', color: '#ffcc44', colorDark: '#cc9900',
+                    gradient: 'branchGrad-holy',
+                    nodes: [
+                        { name: '短暂蓄势', icon: 'standby', tier: 1, effect: '获得一次额外的待机机会', value: '待机次数 +1' },
+                        { name: '稳定节拍', icon: 'standby', tier: 2, effect: '待机时保留更多行动规划', value: '待机收益提升' },
+                        { name: '从容应对', icon: 'standby', tier: 3, effect: '为关键回合保留更多缓冲', value: '待机次数 +1' },
+                        { name: '时间余裕', icon: 'standby', tier: 4, effect: '让牌组拥有更宽裕的调整空间', value: '待机上限提升' },
+                    ]
+                },
+                { id: 'swap', name: '换牌次数', icon: 'swap', color: '#aa66ff', colorDark: '#7733cc',
+                    gradient: 'branchGrad-storm',
+                    nodes: [
+                        { name: '灵活换牌', icon: 'swap', tier: 1, effect: '获得一次额外的换牌机会', value: '换牌次数 +1' },
+                        { name: '循环构筑', icon: 'swap', tier: 2, effect: '让不合适的手牌更快离开手中', value: '换牌效率 +1' },
+                        { name: '精准调度', icon: 'swap', tier: 3, effect: '换牌后更容易找到需要的卡牌', value: '换牌质量提升' },
+                        { name: '无缝轮转', icon: 'swap', tier: 4, effect: '在战斗中持续重组手牌节奏', value: '换牌次数 +2' },
+                    ]
+                },
+                { id: 'hand-limit', name: '手牌上限', icon: 'handLimit', color: '#55cc66', colorDark: '#338822',
+                    gradient: 'branchGrad-nature',
+                    nodes: [
+                        { name: '扩充牌匣', icon: 'handLimit', tier: 1, effect: '让手中可以容纳更多卡牌', value: '手牌上限 +1' },
+                        { name: '并行计划', icon: 'handLimit', tier: 2, effect: '同时保留更多不同的行动方案', value: '手牌上限 +2' },
+                        { name: '宽裕编排', icon: 'handLimit', tier: 3, effect: '减少满手牌带来的决策压力', value: '手牌上限 +3' },
+                        { name: '无限牌匣', icon: 'handLimit', tier: 4, effect: '让牌组拥有充足的战术储备', value: '手牌上限 +4' },
+                    ]
+                },
+            ];
+
+            const currentCore = CORE_TALENT;
+            let flowOrbAnimFrame = null;
+            let flowOrbs = [];
+
+            const svg = document.getElementById('talent-svg');
+            const branchesContainer = document.getElementById('branches-container');
+            const flowOrbsContainer = document.getElementById('flow-orbs-container');
+            const nodesContainer = document.getElementById('nodes-container');
+            const coreContainer = document.getElementById('core-container');
+            const decorContainer = document.getElementById('decor-container');
+            const tooltip = document.getElementById('tooltip');
+            const tooltipIcon = document.getElementById('tooltip-icon');
+            const tooltipTitle = document.getElementById('tooltip-title');
+            const tooltipTier = document.getElementById('tooltip-tier');
+            const tooltipEffect = document.getElementById('tooltip-effect');
+            const tooltipValue = document.getElementById('tooltip-value');
+            const hint = document.getElementById('hint');
+            const particlesContainer = document.getElementById('particles');
+
+            function createParticles() {
+                for (let i = 0; i < 60; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    const size = 2 + Math.random() * 5;
+                    p.style.width = size + 'px';
+                    p.style.height = size + 'px';
+                    p.style.left = Math.random() * 100 + '%';
+                    p.style.animationDuration = (8 + Math.random() * 20) + 's';
+                    p.style.animationDelay = (Math.random() * 20) + 's';
+                    p.style.opacity = '0';
+                    particlesContainer.appendChild(p);
+                }
+            }
+            createParticles();
+
+            function degToRad(deg) { return deg * Math.PI / 180; }
+
+            function computeBranchGeometry(angleDeg, curveOffset, length, spread, nodeCount) {
+                const angle = degToRad(angleDeg);
+                const spreadAdjusted = length * spread;
+                const dirX = Math.cos(angle);
+                const dirY = Math.sin(angle);
+                const perpX = -Math.sin(angle);
+                const perpY = Math.cos(angle);
+
+                const pointCount = nodeCount + 2;
+                const firstNodeProgress = 0.45;
+                const bendDirection = curveOffset < 0 ? -1 : 1;
+                const bendOffset = Math.max(Math.abs(curveOffset), 0.06) * spreadAdjusted;
+                const points = Array.from({ length: pointCount }, (_, pointIndex) => {
+                    const t = pointIndex === 0
+                        ? 0
+                        : firstNodeProgress + (1 - firstNodeProgress) * (pointIndex - 1) / (pointCount - 2);
+                    const lateralOffset = pointIndex === 0 || pointIndex === pointCount - 1
+                        ? 0
+                        : bendDirection * bendOffset * (pointIndex % 2 === 1 ? 1 : -1);
+                    return {
+                        x: CX + dirX * spreadAdjusted * t + perpX * lateralOffset,
+                        y: CY + dirY * spreadAdjusted * t + perpY * lateralOffset
+                    };
+                });
+                const segments = points.slice(0, -1).map((start, index) => {
+                    const end = points[index + 1];
+                    return {
+                        start,
+                        end,
+                        length: Math.hypot(end.x - start.x, end.y - start.y)
+                    };
+                });
+                const totalLength = segments.reduce((sum, segment) => sum + segment.length, 0);
+                return {
+                    p0: points[0],
+                    p3: points[points.length - 1],
+                    points,
+                    segments,
+                    totalLength,
+                    angle,
+                    dirX,
+                    dirY,
+                    perpX,
+                    perpY
+                };
+            }
+
+            function buildPathD(geom) {
+                return geom.points.map((point, index) => {
+                    const command = index === 0 ? 'M' : 'L';
+                    return `${command} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+                }).join(' ');
+            }
+
+            function getPolylinePoint(geom, progress) {
+                const targetDistance = Math.min(Math.max(progress, 0), 1) * geom.totalLength;
+                let traveledDistance = 0;
+                for (const segment of geom.segments) {
+                    if (targetDistance <= traveledDistance + segment.length) {
+                        const segmentProgress = segment.length === 0
+                            ? 0
+                            : (targetDistance - traveledDistance) / segment.length;
+                        return {
+                            x: segment.start.x + (segment.end.x - segment.start.x) * segmentProgress,
+                            y: segment.start.y + (segment.end.y - segment.start.y) * segmentProgress
+                        };
+                    }
+                    traveledDistance += segment.length;
+                }
+                return geom.p3;
+            }
+
+            function drawBranches(core, branchDefs) {
+                branchesContainer.innerHTML = '';
+                const paths = [];
+                core.branchAngles.forEach((angleDeg, i) => {
+                    const def = branchDefs[i % branchDefs.length];
+                    const curve = core.branchCurves[i] || 0;
+                    const length = core.branchLengths[i] || 300;
+                    const spread = core.branchSpread || 1.0;
+                    const nodeCount = core.branchNodeCounts[i] || def.nodes.length;
+                    const geom = computeBranchGeometry(angleDeg, curve, length, spread, nodeCount);
+
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', buildPathD(geom));
+                    path.setAttribute('class', 'branch-path');
+                    path.setAttribute('stroke', `url(#${def.gradient})`);
+                    path.setAttribute('stroke-width', '4.5');
+                    path.setAttribute('stroke-linecap', 'round');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('filter', 'url(#softGlow)');
+                    path.setAttribute('opacity', '0.85');
+                    path.dataset.branchIndex = i;
+                    branchesContainer.appendChild(path);
+
+                    const glowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    glowPath.setAttribute('d', buildPathD(geom));
+                    glowPath.setAttribute('class', 'branch-path');
+                    glowPath.setAttribute('stroke', def.color);
+                    glowPath.setAttribute('stroke-width', '12');
+                    glowPath.setAttribute('stroke-linecap', 'round');
+                    glowPath.setAttribute('fill', 'none');
+                    glowPath.setAttribute('filter', 'url(#glowFilter)');
+                    glowPath.setAttribute('opacity', '0.25');
+                    branchesContainer.appendChild(glowPath);
+
+                    paths.push({ geom, def, index: i });
+                });
+                return paths;
+            }
+
+            function drawNodes(core, branchDefs, branchPaths) {
+                nodesContainer.innerHTML = '';
+                branchPaths.forEach(({ geom, def, index }) => {
+                    const nodeCount = core.branchNodeCounts[index] || def.nodes.length;
+                    const branchNodes = def.nodes.slice(0, nodeCount);
+
+                    branchNodes.forEach((nodeData, nodeIdx) => {
+                        const pos = geom.points[nodeIdx + 1];
+                        const baseRadius = 16 + nodeIdx * 2.5;
+                        const radius = Math.min(baseRadius, 26);
+
+                        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        group.setAttribute('class', 'node-group');
+                        group.setAttribute('transform', `translate(${pos.x.toFixed(1)}, ${pos.y.toFixed(1)})`);
+
+                        // 外发光
+                        const outerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        outerGlow.setAttribute('r', radius + 10);
+                        outerGlow.setAttribute('fill', def.color);
+                        outerGlow.setAttribute('opacity', '0.2');
+                        outerGlow.setAttribute('filter', 'url(#strongGlow)');
+                        group.appendChild(outerGlow);
+
+                        const mainCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        mainCircle.setAttribute('r', radius);
+                        mainCircle.setAttribute('fill', 'url(#coreInnerGlow)');
+                        mainCircle.setAttribute('opacity', '0.5');
+                        group.appendChild(mainCircle);
+
+                        const colorCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        colorCircle.setAttribute('r', radius - 3);
+                        colorCircle.setAttribute('fill', def.color);
+                        colorCircle.setAttribute('opacity', '0.75');
+                        colorCircle.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+                        colorCircle.setAttribute('stroke-width', '1.5');
+                        group.appendChild(colorCircle);
+
+                        const innerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        innerGlow.setAttribute('r', radius - 6);
+                        innerGlow.setAttribute('fill', 'rgba(255,255,255,0.2)');
+                        innerGlow.setAttribute('opacity', '0.5');
+                        group.appendChild(innerGlow);
+
+                        const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        const iconScale = radius / 16;
+                        const iconData = ICONS[nodeData.icon] || ICONS.star;
+                        iconPath.setAttribute('d', iconData);
+                        iconPath.setAttribute('transform', `translate(${-12 * iconScale}, ${-12 * iconScale}) scale(${iconScale})`);
+                        iconPath.setAttribute('fill', '#fff');
+                        iconPath.setAttribute('opacity', '0.9');
+                        iconPath.setAttribute('pointer-events', 'none');
+                        group.appendChild(iconPath);
+
+                        if (nodeIdx === branchNodes.length - 1) {
+                            const pulseRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            pulseRing.setAttribute('class', 'node-pulse-ring');
+                            pulseRing.setAttribute('r', radius);
+                            pulseRing.setAttribute('fill', 'none');
+                            pulseRing.setAttribute('stroke', def.color);
+                            pulseRing.setAttribute('stroke-width', '2');
+                            pulseRing.setAttribute('opacity', '0.7');
+                            pulseRing.setAttribute('style', `animation-delay: ${index * 0.4}s`);
+                            group.appendChild(pulseRing);
+                        }
+
+                        // 事件绑定到组，但不再因缩放引起抖动
+                        group.addEventListener('mouseenter', (e) => showNodeTooltip(e, nodeData, def, nodeIdx, branchNodes.length));
+                        group.addEventListener('mouseleave', hideTooltip);
+                        group.addEventListener('mousemove', moveTooltip);
+                        group.addEventListener('click', () => onNodeClick(nodeData, def, nodeIdx));
+
+                        nodesContainer.appendChild(group);
+                    });
+                });
+            }
+
+            function drawCore(core) {
+                coreContainer.innerHTML = '';
+                const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                group.setAttribute('class', 'core-node');
+                group.setAttribute('transform', `translate(${CX}, ${CY})`);
+
+                const outerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                outerGlow.setAttribute('r', 70);
+                outerGlow.setAttribute('fill', core.glowColor);
+                outerGlow.setAttribute('opacity', '0.15');
+                outerGlow.setAttribute('filter', 'url(#strongGlow)');
+                group.appendChild(outerGlow);
+
+                const pulseRing1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                pulseRing1.setAttribute('class', 'core-pulse-ring');
+                pulseRing1.setAttribute('r', 32);
+                pulseRing1.setAttribute('fill', 'none');
+                pulseRing1.setAttribute('stroke', core.glowColor);
+                pulseRing1.setAttribute('stroke-width', '2.5');
+                pulseRing1.setAttribute('opacity', '0.6');
+                group.appendChild(pulseRing1);
+
+                const pulseRing2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                pulseRing2.setAttribute('class', 'core-pulse-ring');
+                pulseRing2.setAttribute('r', 32);
+                pulseRing2.setAttribute('fill', 'none');
+                pulseRing2.setAttribute('stroke', '#ffd700');
+                pulseRing2.setAttribute('stroke-width', '1.5');
+                pulseRing2.setAttribute('opacity', '0.4');
+                pulseRing2.setAttribute('style', 'animation-delay: 1.5s');
+                group.appendChild(pulseRing2);
+
+                const mainCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                mainCircle.setAttribute('r', 36);
+                mainCircle.setAttribute('fill', 'url(#coreInnerGlow)');
+                mainCircle.setAttribute('stroke', '#ffd700');
+                mainCircle.setAttribute('stroke-width', '3');
+                mainCircle.setAttribute('filter', 'url(#softGlow)');
+                group.appendChild(mainCircle);
+
+                const colorOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                colorOverlay.setAttribute('r', 32);
+                colorOverlay.setAttribute('fill', core.color);
+                colorOverlay.setAttribute('opacity', '0.5');
+                group.appendChild(colorOverlay);
+
+                const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const iconData = ICONS[core.icon] || ICONS.star;
+                iconPath.setAttribute('d', iconData);
+                iconPath.setAttribute('transform', 'translate(-24, -24) scale(2)');
+                iconPath.setAttribute('fill', '#fff');
+                iconPath.setAttribute('opacity', '0.95');
+                iconPath.setAttribute('pointer-events', 'none');
+                group.appendChild(iconPath);
+
+                const nameLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                nameLabel.setAttribute('y', '62');
+                nameLabel.setAttribute('text-anchor', 'middle');
+                nameLabel.setAttribute('fill', '#ffd700');
+                nameLabel.setAttribute('font-size', '16');
+                nameLabel.setAttribute('font-weight', 'bold');
+                nameLabel.setAttribute('font-family', 'Georgia, serif');
+                nameLabel.setAttribute('letter-spacing', '2');
+                nameLabel.setAttribute('filter', 'url(#glowFilter)');
+                nameLabel.textContent = core.name;
+                group.appendChild(nameLabel);
+
+                const subLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                subLabel.setAttribute('y', '82');
+                subLabel.setAttribute('text-anchor', 'middle');
+                subLabel.setAttribute('fill', 'rgba(255,255,255,0.6)');
+                subLabel.setAttribute('font-size', '10');
+                subLabel.setAttribute('font-family', 'Georgia, serif');
+                subLabel.setAttribute('letter-spacing', '3');
+                subLabel.textContent = '✦ 核心天赋 ✦';
+                group.appendChild(subLabel);
+
+                group.addEventListener('mouseenter', (e) => showCoreTooltip(e, core));
+                group.addEventListener('mouseleave', hideTooltip);
+                group.addEventListener('mousemove', moveTooltip);
+
+                coreContainer.appendChild(group);
+            }
+
+            function drawDecorations(core, branchPaths) {
+                decorContainer.innerHTML = '';
+                const ring1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                ring1.setAttribute('cx', CX);
+                ring1.setAttribute('cy', CY);
+                ring1.setAttribute('r', 52);
+                ring1.setAttribute('fill', 'none');
+                ring1.setAttribute('stroke', 'rgba(255,215,0,0.25)');
+                ring1.setAttribute('stroke-width', '1.5');
+                ring1.setAttribute('stroke-dasharray', '8 8');
+                ring1.setAttribute('filter', 'url(#glowFilter)');
+                ring1.setAttribute('opacity', '0.7');
+                decorContainer.appendChild(ring1);
+
+                const ring2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                ring2.setAttribute('cx', CX);
+                ring2.setAttribute('cy', CY);
+                ring2.setAttribute('r', 48);
+                ring2.setAttribute('fill', 'none');
+                ring2.setAttribute('stroke', 'rgba(255,200,100,0.15)');
+                ring2.setAttribute('stroke-width', '6');
+                ring2.setAttribute('filter', 'url(#softGlow)');
+                ring2.setAttribute('opacity', '0.5');
+                decorContainer.appendChild(ring2);
+
+                branchPaths.forEach(({ geom, def }) => {
+                    const { p3 } = geom;
+                    const dot1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot1.setAttribute('cx', p3.x.toFixed(1));
+                    dot1.setAttribute('cy', p3.y.toFixed(1));
+                    dot1.setAttribute('r', 8);
+                    dot1.setAttribute('fill', def.color);
+                    dot1.setAttribute('opacity', '0.6');
+                    dot1.setAttribute('filter', 'url(#softGlow)');
+                    decorContainer.appendChild(dot1);
+
+                    const dot2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot2.setAttribute('cx', p3.x.toFixed(1));
+                    dot2.setAttribute('cy', p3.y.toFixed(1));
+                    dot2.setAttribute('r', 4);
+                    dot2.setAttribute('fill', '#fff');
+                    dot2.setAttribute('opacity', '0.8');
+                    dot2.setAttribute('filter', 'url(#glowFilter)');
+                    decorContainer.appendChild(dot2);
+
+                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', (p3.x + geom.dirX * 50).toFixed(1));
+                    label.setAttribute('y', (p3.y + geom.dirY * 50).toFixed(1));
+                    label.setAttribute('text-anchor', 'middle');
+                    label.setAttribute('fill', def.color);
+                    label.setAttribute('font-size', '13');
+                    label.setAttribute('font-weight', 'bold');
+                    label.setAttribute('font-family', 'Georgia, serif');
+                    label.setAttribute('letter-spacing', '1.5');
+                    label.setAttribute('filter', 'url(#glowFilter)');
+                    label.setAttribute('opacity', '0.8');
+                    label.setAttribute('pointer-events', 'none');
+                    label.textContent = def.name;
+                    decorContainer.appendChild(label);
+                });
+            }
+
+            function setupFlowOrbs(branchPaths) {
+                flowOrbsContainer.innerHTML = '';
+                flowOrbs = [];
+                branchPaths.forEach(({ geom, def, index }) => {
+                    const orb = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    orb.setAttribute('class', 'flow-orb');
+                    orb.setAttribute('r', '3.5');
+                    orb.setAttribute('fill', '#fff');
+                    orb.setAttribute('opacity', '0.8');
+                    orb.setAttribute('filter', 'url(#glowFilter)');
+                    flowOrbsContainer.appendChild(orb);
+                    flowOrbs.push({ orb, geom, progress: Math.random() });
+                });
+            }
+
+            function animateFlowOrbs() {
+                if (!flowOrbs.length) return;
+                const speed = 0.0006;
+                flowOrbs.forEach((fo) => {
+                    fo.progress += speed;
+                    if (fo.progress > 1) fo.progress = 0;
+                    const pos = getPolylinePoint(fo.geom, fo.progress);
+                    fo.orb.setAttribute('cx', pos.x.toFixed(1));
+                    fo.orb.setAttribute('cy', pos.y.toFixed(1));
+                    fo.orb.setAttribute('opacity', (0.5 + Math.sin(fo.progress * Math.PI) * 0.5).toFixed(2));
+                });
+                flowOrbAnimFrame = requestAnimationFrame(animateFlowOrbs);
+            }
+
+            function positionTooltip(e) {
+                const oldTransform = tooltip.style.transform;
+                tooltip.style.transform = 'none';
+                const rect = tooltip.getBoundingClientRect();
+                tooltip.style.transform = oldTransform;
+
+                const margin = 20;
+                let x = e.clientX + margin;
+                let y = e.clientY - rect.height / 2;
+                if (x + rect.width > window.innerWidth - margin) x = e.clientX - rect.width - margin;
+                if (x < margin) x = margin;
+                if (y < margin) y = margin;
+                if (y + rect.height > window.innerHeight - margin) y = window.innerHeight - rect.height - margin;
+                tooltip.style.left = x + 'px';
+                tooltip.style.top = y + 'px';
+            }
+
+            function showNodeTooltip(e, nodeData, branchDef, nodeIdx, totalNodes) {
+                tooltipIcon.textContent = '✦';
+                tooltipIcon.style.background = `radial-gradient(circle, ${branchDef.color}dd, ${branchDef.colorDark})`;
+                tooltipIcon.style.boxShadow = `0 0 20px ${branchDef.color}88`;
+                tooltipTitle.textContent = nodeData.name;
+                tooltipTier.textContent = `第${nodeData.tier}层 · ${branchDef.name} · 节点${nodeIdx+1}/${totalNodes}`;
+                tooltipEffect.textContent = nodeData.effect;
+                tooltipValue.textContent = nodeData.value;
+                tooltipValue.style.color = branchDef.color;
+                tooltip.style.borderColor = branchDef.color + '88';
+                tooltip.classList.add('visible');
+                void tooltip.offsetHeight;
+                positionTooltip(e);
+            }
+
+            function showCoreTooltip(e, core) {
+                tooltipIcon.textContent = '✦';
+                tooltipIcon.style.background = `radial-gradient(circle, ${core.color}dd, ${core.glowColor})`;
+                tooltipIcon.style.boxShadow = `0 0 25px ${core.glowColor}aa`;
+                tooltipTitle.textContent = core.name;
+                tooltipTier.textContent = '核心天赋';
+                tooltipEffect.textContent = core.description + '。' + core.effect;
+                tooltipValue.textContent = core.value;
+                tooltipValue.style.color = core.color;
+                tooltip.style.borderColor = core.glowColor + 'aa';
+                tooltip.classList.add('visible');
+                void tooltip.offsetHeight;
+                positionTooltip(e);
+            }
+
+            function moveTooltip(e) {
+                if (tooltip.classList.contains('visible')) positionTooltip(e);
+            }
+
+            function hideTooltip() {
+                tooltip.classList.remove('visible');
+            }
+
+            function onNodeClick(nodeData, branchDef, nodeIdx) {
+                hint.style.opacity = '0';
+                setTimeout(() => { hint.style.opacity = '1'; }, 400);
+                hint.textContent = `✦ ${branchDef.name} - ${nodeData.name} · 已点亮 ✦`;
+            }
+
+            function renderTree() {
+                if (flowOrbAnimFrame) cancelAnimationFrame(flowOrbAnimFrame);
+                const branchPaths = drawBranches(currentCore, BRANCH_DEFS);
+                drawNodes(currentCore, BRANCH_DEFS, branchPaths);
+                drawCore(currentCore);
+                drawDecorations(currentCore, branchPaths);
+                setupFlowOrbs(branchPaths);
+                flowOrbAnimFrame = requestAnimationFrame(animateFlowOrbs);
+            }
+
+            function init() {
+                svg.style.opacity = '1';
+                svg.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                renderTree();
+
+                let resizeTimeout;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        renderTree();
+                    }, 300);
+                });
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
