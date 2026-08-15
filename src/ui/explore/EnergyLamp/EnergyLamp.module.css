@@ -18,6 +18,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
+  margin-top: -64px;
   text-align: right;
   transition: opacity 220ms ease;
 }
@@ -61,31 +62,37 @@
 .el-readout.is-recede,
 .el-lantern.is-recede { opacity: 0.5; }
 
+.el-popover {
+  top: 18px;
+  width: 520px;
+  padding: 24px 28px;
+}
+
 .el-tip-head,
 .el-tip-section {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 .el-tip-head {
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 24px;
 }
-.el-tip-head strong { color: var(--text); font-size: 14px; }
-.el-tip-head span { color: var(--muted); font-size: 11px; white-space: nowrap; }
-.el-tip-next { margin: 10px 0 0; color: var(--energy-color); font-size: 12px; }
-.el-tip-section { margin-top: 10px; }
-.el-tip-section b { color: var(--text); font-size: 12px; }
-.el-tip-section p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.el-tip-head strong { color: var(--text); font-size: 28px; }
+.el-tip-head span { color: var(--muted); font-size: 22px; white-space: nowrap; }
+.el-tip-next { margin: 20px 0 0; color: var(--energy-color); font-size: 24px; }
+.el-tip-section { margin-top: 20px; }
+.el-tip-section b { color: var(--text); font-size: 24px; }
+.el-tip-section p { margin: 0; color: var(--muted); font-size: 22px; line-height: 1.45; }
 .el-tip-list {
   display: grid;
-  gap: 3px;
+  gap: 6px;
   margin: 0;
-  padding: 0 0 0 16px;
+  padding: 0 0 0 32px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 22px;
   line-height: 1.45;
 }
 

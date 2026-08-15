@@ -5,7 +5,7 @@ export const BOT = 170;
 export const R = 92;
 export const NECK = 9;
 
-export const DRAIN_MS = 15000;
+export const DRAIN_MS = 60000;
 export const REFILL_MS = 5000;
 export const PARTICLE_COUNT = 70;
 

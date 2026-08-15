@@ -69,7 +69,7 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
           {energy}
         </strong>
       </div>
-      <RailPopover side="bottom-right">
+      <RailPopover side="left" className={s["el-popover"]}>
         <div className={s["el-tip-head"]}>
           <strong>{cur.name}</strong>
           <span>能量 {cur.min}-{rangeTop}</span>

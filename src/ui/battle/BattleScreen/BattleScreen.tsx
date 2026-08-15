@@ -21,6 +21,7 @@ import { VictoryPanel } from "@/ui/battle/VictoryPanel";
 import { BattleActions } from "@/ui/battle/BattleActions";
 import { BondRail } from "@/ui/battle/BondRail";
 import { ChallengeRail } from "@/ui/battle/ChallengeRail";
+import { TurnTicker } from "@/ui/battle/TurnTicker";
 import { HandTools, type HandAction } from "@/ui/battle/HandTools";
 import { ManaBar } from "@/ui/battle/ManaBar";
 import { PileRail, type Pile } from "@/ui/battle/PileRail";
@@ -878,6 +879,7 @@ export function BattleScreen() {
         enemies={enemies}
       /> */}
       {battle && <ChallengeRail challenges={battle.challenges} />}
+      <TurnTicker round={battle.round} tick={battle.tick} />
       <div className={s.topRight}>
         {battleMeta && <BondRail bonds={battleMeta.bonds} />}
         <BattleActions
