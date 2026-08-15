@@ -5,15 +5,18 @@ import { cx } from "@/ui/common/cx";
 import { SpriteFx } from "@/ui/battle/fx/SpriteFx";
 import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
 import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
+import { TriSlashFx } from "@/ui/battle/fx/TriSlashFx";
 import { ShieldIcon } from "@/ui/common/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
 // 命中表现的共用件: 敌人(CombatantView)与我方头像栏(AllyBar)都靠这两个导出, 保证两边的
 // 特效着色、命中时序、飘字完全一致 —— 只有承载它们的外壳不同(场上立绘 vs 玻璃头像卡)。
 
-const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Element>> = {
+// 签名允许返回 null: reduced-motion 下 proc 特效整层不挂载(如 TriSlashFx 的外壳直返 null)。
+const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Element | null>> = {
   "iai-slash": IaiSlashFx,
   "blade-slash": BladeSlashFx,
+  "tri-slash": TriSlashFx,
 };
 
 // 图标特效(与 PROC_FX 平行的分支): 复用 BUFF 图标 SVG(如护盾), 以"虚幻放大"浮现动画播放。

@@ -97,6 +97,8 @@ import s from "./CombatantView.module.css";
 - **关键帧由组件运行时注入 `<style>`**（按敌人生成、支持跳帧）⇒ 不经 Modules，名字不哈希，行内 `animationName` 正常工作。见
   [EnemySprite.tsx](../../src/ui/battle/EnemySprite/EnemySprite.tsx)。
 
+`TriSlashFx` 是第三种情形：特效画在 Canvas 上、时序全部由 rAF 驱动，组件没有任何 `@keyframes`，故完全不受哈希约束（见 [TriSlashFx.module.css](../../src/ui/battle/fx/TriSlashFx/TriSlashFx.module.css)）。
+
 `prefers-reduced-motion` 降级块放在所属组件 CSS 的末尾，与被压制的规则保持同文件。不要把所有降级规则重新集中到一个全局文件。
 
 ## 设计画布
