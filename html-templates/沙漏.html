@@ -41,11 +41,11 @@
 <h1>HOURGLASS</h1>
 <div id="stage">
   <canvas id="cv"></canvas>
-  <div id="timer">60.0 s</div>
+  <div id="timer">15.0 s</div>
 </div>
 <div class="panel">
   <button id="colorBtn"><span class="dot"></span><span class="label">粒子特效 · 鎏金</span></button>
-  <div class="tip">60 秒漏尽 · 自动倒转 · 点击按钮切换 5 档颜色</div>
+  <div class="tip">15 秒漏尽 · 5 秒反重力回流 · 自动循环 · 点击按钮切换 5 档颜色</div>
 </div>
 
 <script>
@@ -64,8 +64,8 @@ cv.width = W * dpr; cv.height = H * dpr;
 /* ========== 几何常量 ========== */
 const TOP = -170, BOT = 170;
 const R = 92, NECK = 9;
-const DRAIN_MS = 60000;
-const FLIP_MS  = 1600;
+const DRAIN_MS = 15000;
+const REFILL_MS = 5000;
 
 /* ========== 5 档颜色 ========== */
 const PALETTE = [
@@ -85,7 +85,6 @@ const shade  = (c,k) => c.map(v => v * (1-k));
 
 /* ========== 状态 ========== */
 let phase = 'drain', phaseStart = performance.now();
-let rotationTurns = 0;
 let pileApex = BOT;
 
 /* ========== 工具函数 ========== */
@@ -181,13 +180,12 @@ function drawParticles(){
 }
 
 /* ========== 沙子绘制（核心优化） ========== */
-function drawSand(f, mirrorY=false, opacity=1){
+function drawSand(topFill, opacity=1){
   ctx.save(); glassPath(); ctx.clip();
-  if(mirrorY) ctx.scale(1,-1);
   ctx.globalAlpha = opacity;
 
   /* --- 底部沙堆 --- */
-  const hBot = (1-f)*112;
+  const hBot = (1-topFill)*112;
   pileApex = BOT - hBot;
   if(hBot > .5){
     const g = ctx.createLinearGradient(0, pileApex, 0, BOT);
@@ -212,8 +210,8 @@ function drawSand(f, mirrorY=false, opacity=1){
   }
 
   /* --- 顶部沙子（受重力贴壁下沉的漏斗）--- */
-    if(f > 0.002){
-      const surfaceY = -12 - 140*f;
+    if(topFill > 0.002){
+      const surfaceY = -12 - 140*topFill;
       const craterY = 4;
       const dip = craterY - surfaceY;
       const Ws = bulbHalfWidth(surfaceY) + 4;
@@ -228,24 +226,21 @@ function drawSand(f, mirrorY=false, opacity=1){
 
       ctx.beginPath();
       ctx.moveTo(-Ws, surfaceY);
-      ctx.lineTo(Ws, surfaceY);
+      ctx.quadraticCurveTo(0, surfaceY + 2, Ws, surfaceY);
       for(let i=1;i<=STEPS;i++){
         const q = i/STEPS;
         const yy = surfaceY + (pileBaseY - surfaceY)*q;
-        ctx.lineTo(bulbHalfWidth(yy), yy);
+        const wallWidth = i === STEPS ? pileWidth : bulbHalfWidth(yy);
+        ctx.lineTo(wallWidth, yy);
       }
-      for(let i=STEPS;i>=1;i--){
+      ctx.quadraticCurveTo(pileWidth*.52, pileBaseY+2, 0, craterY);
+      ctx.quadraticCurveTo(-pileWidth*.52, pileBaseY+2, -pileWidth, pileBaseY);
+      for(let i=STEPS-1;i>=1;i--){
         const q = i/STEPS;
         const yy = surfaceY + (pileBaseY - surfaceY)*q;
         ctx.lineTo(-bulbHalfWidth(yy), yy);
       }
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(-pileWidth, pileBaseY);
-      ctx.quadraticCurveTo(-pileWidth*.52, pileBaseY+2, 0, craterY);
-      ctx.quadraticCurveTo(pileWidth*.52, pileBaseY+2, pileWidth, pileBaseY);
+      ctx.lineTo(-Ws, surfaceY);
       ctx.closePath();
       ctx.fill();
 
@@ -261,11 +256,6 @@ function drawSand(f, mirrorY=false, opacity=1){
       ctx.fillStyle = rg;
       ctx.fillRect(-Ws, surfaceY - 4, Ws * 2, dip + 20);
 
-      ctx.strokeStyle = rgba(lighten(cur,.35), .18);
-      ctx.lineWidth = 1.1;
-      ctx.beginPath();
-      ctx.ellipse(0, pileBaseY - 1, pileWidth * .72, Math.max(3, Math.min(12, (pileBaseY - craterY) * .12)), 0, 0, 7);
-      ctx.stroke();
     }
 
   if(false){ // 旧版倒三角悬挂实现，已弃用
@@ -384,15 +374,16 @@ function drawSand(f, mirrorY=false, opacity=1){
   ctx.restore();
 }
 
-/* ========== 下落沙流 ========== */
+/* ========== 沙流：向下漏出，或反重力向上回流 ========== */
 function drawStream(ts){
-  if(phase !== 'drain') return;
-  const f = Math.max(0, 1-(ts-phaseStart)/DRAIN_MS);
-  if(f <= .002 || f >= .999) return;
-  const startY = 3;
-    
-    const endY = pileApex - 2;
-    const streamLen = Math.max(8, endY - startY);
+  const isRefill = phase === 'refill';
+  const duration = isRefill ? REFILL_MS : DRAIN_MS;
+  const flowP = Math.min(1, (ts-phaseStart)/duration);
+  if(flowP <= .002 || flowP >= .999) return;
+
+  const startY = isRefill ? pileApex + 2 : 3;
+  const endY = isRefill ? 3 : pileApex - 2;
+  const streamLen = Math.max(8, Math.abs(endY - startY));
   const g = ctx.createLinearGradient(0,startY,0,endY);
   g.addColorStop(0, rgba(shade(cur,.6),.9));
   g.addColorStop(1, rgba(lighten(cur,.2),.9));
@@ -403,7 +394,8 @@ function drawStream(ts){
   ctx.shadowColor = rgba(cur,.9); ctx.shadowBlur = 6;
   ctx.fillStyle = rgba(lighten(cur,.35),1);
   for(let i=0;i<9;i++){
-    const yy = startY + 2 + ((ts*0.26)+i*47) % (streamLen-4);
+    const offset = 2 + ((ts*0.26)+i*47) % (streamLen-4);
+    const yy = isRefill ? startY - offset : startY + offset;
     const xx = Math.sin(ts*0.02+i*1.7)*1.2;
     ctx.beginPath(); ctx.arc(xx,yy,1.4,0,7); ctx.fill();
   }
@@ -459,26 +451,21 @@ let last = performance.now();
 function loop(ts){
   const dt = Math.min(.05,(ts-last)/1000); last = ts;
 
-  if(phase==='drain'){
-    if(ts-phaseStart >= DRAIN_MS){ phase='flip'; phaseStart=ts; }
-  } else if(ts-phaseStart >= FLIP_MS){
+  if(phase==='drain' && ts-phaseStart >= DRAIN_MS){
+    phase='refill'; phaseStart=ts;
+  } else if(phase==='refill' && ts-phaseStart >= REFILL_MS){
     phase='drain'; phaseStart=ts;
-    rotationTurns = (rotationTurns + 1) % 2;
   }
 
-  const f = phase==='drain' ? Math.max(0, 1-(ts-phaseStart)/DRAIN_MS) : 0;
-  const flipP = phase==='flip' ? Math.min(1,(ts-phaseStart)/FLIP_MS) : 0;
-  const rotateP = Math.min(1, flipP / .68);
-  const settleP = Math.max(0, Math.min(1, (flipP - .68) / .32));
+  const phaseDuration = phase==='drain' ? DRAIN_MS : REFILL_MS;
+  const phaseP = Math.min(1, (ts-phaseStart)/phaseDuration);
+  const topFill = phase==='drain' ? 1-phaseP : phaseP;
 
   for(let i=0;i<3;i++) cur[i] += (target[i]-cur[i])*Math.min(1,dt*6);
   updateParticles(dt,ts);
 
   const breath = 1 + .02*Math.sin(ts*.0016);
   const tilt   = .055*Math.sin(ts*.0009);
-  const flipAng= Math.PI * (rotationTurns + easeInOut(rotateP) * (phase==='flip' ? 1 : 0));
-  const currentMirror = rotationTurns === 1;
-  const nextMirror = !currentMirror;
 
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
@@ -498,17 +485,11 @@ function loop(ts){
   ctx.beginPath(); ctx.arc(0,0,160,0,7); ctx.fill(); ctx.restore();
 
   // 整体变换
-  ctx.translate(0, -26*Math.sin(Math.PI*flipP));
-  ctx.rotate(tilt + flipAng);
+  ctx.rotate(tilt);
   ctx.scale(breath, breath);
 
   glassBody();
-  if(phase==='flip' && settleP > 0){
-    drawSand(0, currentMirror, 1-settleP);
-    drawSand(1, nextMirror, settleP);
-  } else {
-    drawSand(f, currentMirror);
-  }
+  drawSand(topFill);
   drawStream(ts);
   drawParticles();
   glassShine();
@@ -519,7 +500,7 @@ function loop(ts){
 
   timerEl.textContent = phase==='drain'
     ? Math.max(0,(DRAIN_MS-(ts-phaseStart))/1000).toFixed(1)+' s'
-    : '翻转中…';
+    : '反重力回流 ' + Math.max(0,(REFILL_MS-(ts-phaseStart))/1000).toFixed(1)+' s';
 
   requestAnimationFrame(loop);
 }

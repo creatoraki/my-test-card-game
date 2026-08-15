@@ -93,6 +93,11 @@
   position: relative;
 }
 
+.areaStorage,
+.areaBackpack {
+  --item-slot-count-size: 30px;
+}
+
 .areaBackpack {
   width: 960px;
   max-width: none;

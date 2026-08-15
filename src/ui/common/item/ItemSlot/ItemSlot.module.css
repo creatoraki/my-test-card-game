@@ -114,7 +114,7 @@
   position: absolute;
   right: 3px;
   bottom: 2px;
-  font-size: 10px;
+  font-size: var(--item-slot-count-size, 10px);
   font-weight: 700;
   color: var(--text);
   text-shadow: 0 0 4px #000;
