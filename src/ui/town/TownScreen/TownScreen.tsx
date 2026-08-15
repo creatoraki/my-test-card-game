@@ -282,13 +282,16 @@ const FACILITIES: Facility[] = [
 // 设施 id → 进去之后在设施背景上渲染什么。未登记的设施仍是「只有背景 + 返回据点」的空场景。
 // ★ 实现一个新设施 = 写一个 ui/<XxxScene>.tsx + 在这里加一行, 本组件其余部分一行都不用动。
 // leaving 参数 = 返回据点的演出已开始, 交给设施组件自己做淡出(与背景交叉淡同步)。
-const FACILITY_CONTENT: Record<string, (leaving: boolean) => ReactNode> = {
+const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) => ReactNode> = {
   worklog: (leaving) => <ControlTerminalScene leaving={leaving} />,
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   storage: (leaving) => <StorageScene leaving={leaving} />,
   shop: (leaving) => <ShopScene leaving={leaving} />,
-  training: (leaving) => <TrainingScene leaving={leaving} />,
+  training: (leaving, onBack) => <TrainingScene leaving={leaving} onBack={onBack} />,
 };
+
+// 这些设施把返回动作收进自己的面板, 避免同一场景出现两个出口。
+const FACILITY_SELF_EXIT = new Set(["training"]);
 
 // ===================== 进设施演出 =====================
 // 阶段机: idle(可交互) → entering(运镜+飞出+交叉淡) → inside(设施场景) → leaving(反向) → idle。
@@ -437,9 +440,9 @@ export function TownScreen() {
 
         {/* 设施内容与「返回据点」都留到 leaving 阶段一起淡出 —— 只在 inside 时渲染的话, 大背景
             还在 700ms 的交叉淡, 上面的面板与按钮却已经硬切消失, 读起来很跳。 */}
-        {inFacility && facilityId && FACILITY_CONTENT[facilityId]?.(phase === "leaving")}
+        {inFacility && facilityId && FACILITY_CONTENT[facilityId]?.(phase === "leaving", backToTown)}
 
-        {inFacility && (
+        {inFacility && !(facilityId && FACILITY_SELF_EXIT.has(facilityId)) && (
           <button
             className={cx(s["town-facility-back"], phase === "leaving" && s["is-leaving"])}
             type="button"

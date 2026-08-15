@@ -1,83 +1,73 @@
+.srb-wrap {
+  position: relative;
+  display: inline-block;
+  overflow: visible;
+}
+
 .srb {
-  composes: tr-glass tr-tokens from "../styles/trainingKit.module.css";
-  --notch: 10px;
+  composes: tr-tokens from "../styles/trainingKit.module.css";
   box-sizing: border-box;
-  width: 360px;
-  height: 230px;
-  padding: 14px 16px 12px;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-  pointer-events: none;
+  display: flex;
+  gap: 10px;
   animation: srbRise 480ms 140ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
-.srb-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--tr-line);
-}
-
-.srb-kicker {
-  composes: tr-kicker from "../styles/trainingKit.module.css";
-  font-size: 10px;
-}
-
-.srb-title {
-  margin: 0;
-  color: var(--tr-ink);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 2px;
-}
-
 .srb-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: repeat(6, minmax(0, 1fr));
-  gap: 2px 12px;
-  height: 174px;
-  padding-top: 8px;
+  display: flex;
+  gap: 10px;
 }
 
-.srb-row {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
-  grid-column: 1 / -1;
+.srb-cell-wrap {
+  position: relative;
+  flex: 0 0 92px;
+  width: 92px;
+  height: 106px;
+}
+
+.srb-cell {
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 1px 5px;
-  border-left: 2px solid transparent;
+  justify-content: center;
+  gap: 5px;
+  width: 92px;
+  height: 106px;
+  padding: 6px 2px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--tr-ink-dim);
+  cursor: pointer;
+  overflow: visible;
   transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.srb-cell:hover,
+.srb-cell:focus-visible {
+  border-color: rgba(255, 215, 0, 0.45);
+  background: rgba(255, 215, 0, 0.08);
+  color: var(--tr-ink);
+  outline: none;
 }
 
 .srb-icon {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  color: var(--tr-glow-deep);
+  width: var(--srb-icon-size, 48px);
+  height: var(--srb-icon-size, 48px);
+  color: var(--srb-color, var(--tr-glow-deep));
 }
 
 .srb-icon svg {
-  width: 22px;
-  height: 22px;
+  width: var(--srb-icon-size, 48px);
+  height: var(--srb-icon-size, 48px);
 }
 
 .srb-label {
-  overflow: hidden;
-  font-size: 12px;
-  letter-spacing: 1px;
-  text-overflow: ellipsis;
+  color: var(--tr-ink);
+  font-size: 13px;
+  letter-spacing: 0;
+  line-height: 1.15;
   white-space: nowrap;
 }
 
@@ -87,19 +77,61 @@
   font-family: var(--font-family);
   font-size: 17px;
   font-weight: 600;
-  text-align: right;
+  line-height: 1;
+  text-align: center;
 }
 
-.srb-row.is-highlight {
-  border-left-color: var(--tr-glow);
+.srb-tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 2;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 215, 0, 0.42);
+  background: rgba(18, 13, 24, 0.94);
+  box-shadow: 0 8px 20px -12px #000, 0 0 14px -8px var(--tr-glow);
+  color: var(--tr-ink);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  pointer-events: none;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.srb-tip::after {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid rgba(255, 215, 0, 0.42);
+  border-bottom: 1px solid rgba(255, 215, 0, 0.42);
+  background: rgba(18, 13, 24, 0.94);
+  content: "";
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.srb-cell.is-highlight {
+  border-color: rgba(255, 215, 0, 0.55);
   background: rgba(255, 215, 0, 0.1);
   color: var(--tr-ink);
 }
 
-.srb-row.is-highlight .srb-icon,
-.srb-row.is-highlight .srb-value {
+.srb-cell.is-highlight .srb-icon,
+.srb-cell.is-highlight .srb-value {
   color: var(--tr-glow);
   text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
+}
+
+/* 保留横排容器的可读边界, 但不让按钮状态被外层文字表格样式稀释。 */
+.srb-cell:active {
+  transform: translateY(1px);
+}
+
+/* 兼容训练室页面在过渡期间的父级状态。 */
+.srb-cell[disabled] {
+  cursor: default;
 }
 
 @keyframes srbRise {
@@ -113,7 +145,7 @@
     animation-delay: 0ms;
   }
 
-  .srb-row {
+  .srb-cell {
     transition: none;
   }
 }

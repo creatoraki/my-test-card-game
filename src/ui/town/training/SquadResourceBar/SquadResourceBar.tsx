@@ -6,10 +6,12 @@ import {
   squadRedrawLimit,
   squadWaitLimit,
 } from "@/engine";
-import { squadModsOf, type SquadResourceKey } from "@/data";
+import { useState, type CSSProperties } from "react";
+import { getBadge, squadModsOf, type SquadResourceKey } from "@/data";
 import { deriveStats, useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
-import { TrackIcon } from "../TalentTreeRadial/icons";
+import { TRACK_ICON_SIZE, TrackIcon } from "../TalentTreeRadial/icons";
+import { branchHueOf } from "../TalentTreeRadial/talentGeometry";
 import s from "./SquadResourceBar.module.css";
 
 const RESOURCE_LABELS: Record<SquadResourceKey, string> = {
@@ -36,9 +38,11 @@ interface SquadResourceBarProps {
 }
 
 export function SquadResourceBar({ highlightKey, className }: SquadResourceBarProps) {
+  const [hoverKey, setHoverKey] = useState<SquadResourceKey | null>(null);
   const party = useTownStore((state) => state.party);
   const characters = useTownStore((state) => state.characters);
   const squadTalent = useTownStore((state) => state.squadTalent);
+  const activeBadge = squadTalent.badgeId ? getBadge(squadTalent.badgeId) : undefined;
   const mods = squadModsOf(squadTalent.badgeId, squadTalent.nodes);
   let sumCharHandLimit = 0;
   let sumCharDrawCount = 0;
@@ -60,22 +64,47 @@ export function SquadResourceBar({ highlightKey, className }: SquadResourceBarPr
   };
 
   return (
-    <section className={cx(s["srb"], className)} aria-label="小队属性">
-      <header className={s["srb-head"]}>
-        <span className={s["srb-kicker"]}>SQUAD STATUS</span>
-        <h3 className={s["srb-title"]}>小队属性</h3>
-      </header>
-      <div className={s["srb-grid"]}>
-        {RESOURCE_ROWS.map(({ key, branchId }) => (
-          <div className={cx(s["srb-row"], highlightKey === key && s["is-highlight"])} key={key}>
-            <span className={s["srb-icon"]} aria-hidden>
-              <TrackIcon branchId={branchId} />
-            </span>
-            <span className={s["srb-label"]}>{RESOURCE_LABELS[key]}</span>
-            <strong className={s["srb-value"]}>{values[key]}</strong>
-          </div>
-        ))}
-      </div>
-    </section>
+    <div className={cx(s["srb-wrap"], className)}>
+      <section className={s["srb"]} aria-label="小队属性">
+        <div className={s["srb-grid"]}>
+          {RESOURCE_ROWS.map(({ key, branchId }) => {
+            const branchIndex = activeBadge?.branches.findIndex((branch) => branch.id === branchId) ?? -1;
+            const branchColor = branchIndex >= 0 ? branchHueOf(branchIndex).hue : undefined;
+            return (
+            <div className={s["srb-cell-wrap"]} key={key}>
+              {hoverKey === key && (
+                <span className={s["srb-tip"]} role="status">
+                  {RESOURCE_LABELS[key]} · {values[key]}
+                </span>
+              )}
+              <button
+                className={cx(
+                  s["srb-cell"],
+                  (highlightKey === key || hoverKey === key) && s["is-highlight"],
+                )}
+                type="button"
+                aria-label={`${RESOURCE_LABELS[key]} ${values[key]}`}
+                onMouseEnter={() => setHoverKey(key)}
+                onMouseLeave={() => setHoverKey(null)}
+                onFocus={() => setHoverKey(key)}
+                onBlur={() => setHoverKey(null)}
+                style={
+                  branchColor
+                    ? ({ "--srb-color": branchColor, "--srb-icon-size": `${TRACK_ICON_SIZE}px` } as CSSProperties)
+                    : ({ "--srb-icon-size": `${TRACK_ICON_SIZE}px` } as CSSProperties)
+                }
+              >
+                <span className={s["srb-icon"]} aria-hidden>
+                  <TrackIcon branchId={branchId} />
+                </span>
+                <span className={s["srb-label"]}>{RESOURCE_LABELS[key]}</span>
+                <strong className={s["srb-value"]}>{values[key]}</strong>
+              </button>
+            </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }

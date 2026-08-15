@@ -2,6 +2,9 @@
 // 画法统一: 48×48 视框、stroke="currentColor"、主体 strokeWidth 3.2、陪衬 2.4 + 低透明度。
 // 内嵌在天赋树 SVG 里, 必须带显式 width/height(48), 由父级 g 的 scale 缩放。
 
+export const TRACK_ICON_VIEWBOX = 48;
+export const TRACK_ICON_SIZE = 48;
+
 const TRACK_ICONS: Record<string, (props: { className?: string }) => JSX.Element> = {
   handLimit: ({ className }) => (
     <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">

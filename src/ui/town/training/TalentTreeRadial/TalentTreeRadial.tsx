@@ -25,12 +25,14 @@ import {
   type TalentNodeDef,
 } from "@/data";
 import { cx } from "@/ui/common/cx";
-import { TrackIcon } from "./icons";
+import { TRACK_ICON_SIZE, TRACK_ICON_VIEWBOX, TrackIcon } from "./icons";
 import {
   RADIAL_CANVAS,
   RADIAL_CENTER,
   branchHueOf,
   buildRadialLayout,
+  LABEL_HALF_H,
+  LABEL_HALF_W,
   nodeRadius,
 } from "./talentGeometry";
 import s from "./TalentTreeRadial.module.css";
@@ -85,6 +87,7 @@ interface TalentTreeRadialProps {
   badge: SquadBadgeDef;
   activated: string[];
   remaining: number;
+  totalTrainingPoints: number;
   /** 远征中(或徽章未启用)整棵树只读。 */
   locked: boolean;
   resourceLabels: Record<SquadResourceKey, string>;
@@ -99,6 +102,8 @@ interface TalentTreeRadialProps {
   onHoverKey?: (key: SquadResourceKey | null) => void;
   /** 点击中央徽章核心(页面用它开关徽章切换浮层)。 */
   onCoreClick?: () => void;
+  /** 关闭 = 返回据点。 */
+  onClose?: () => void;
   /** 父组件唯一的外观通道(铁律 3)。 */
   className?: string;
 }
@@ -107,6 +112,7 @@ export function TalentTreeRadial({
   badge,
   activated,
   remaining,
+  totalTrainingPoints,
   locked,
   resourceLabels,
   pulse,
@@ -117,14 +123,11 @@ export function TalentTreeRadial({
   onRefund,
   onHoverKey,
   onCoreClick,
+  onClose,
   className,
 }: TalentTreeRadialProps) {
   const layout = useMemo(() => buildRadialLayout(badge), [badge]);
   const activeSet = useMemo(() => new Set(activated), [activated]);
-  const totalCost = useMemo(
-    () => badge.nodes.reduce((sum, node) => sum + node.cost, 0),
-    [badge],
-  );
   const spent = useMemo(() => spentPoints(badge, activated), [badge, activated]);
   const [hover, setHover] = useState<HoverInfo | null>(null);
 
@@ -135,6 +138,11 @@ export function TalentTreeRadial({
   }, [badge, hover]);
 
   const hoverNode = hover ? badge.nodes.find((node) => node.id === hover.nodeId) : undefined;
+  const hoverBranch = hoverNode
+    ? badge.branches.find((branch) => hoverNode.id.startsWith(`${branch.id}-`))
+    : undefined;
+  const hoverBranchIndex = hoverBranch ? badge.branches.indexOf(hoverBranch) : -1;
+  const hoverHue = hoverBranchIndex >= 0 ? branchHueOf(hoverBranchIndex) : undefined;
   const hoverState = hoverNode ? nodeStateOf(badge, hoverNode, activated, remaining) : null;
   const hoverReach =
     hoverNode && hoverState && hoverState !== "active" && hoverState !== "refundable"
@@ -214,16 +222,18 @@ export function TalentTreeRadial({
       aria-label="天赋树"
     >
       <header className={s["trr-head"]}>
-        <span className={s["trr-kicker"]}>{badge.kicker}</span>
-        <h3 className={s["trr-title"]}>{badge.name} · 天赋树</h3>
         <div
-          className={s["trr-counter"]}
-          aria-label={`剩余 ${remaining} 训练点, 已投入 ${spent}/${totalCost}`}
+          className={s["trr-training-points"]}
+          aria-label={`可用 ${remaining} / 总共 ${totalTrainingPoints} 训练点`}
         >
-          <span className={s["trr-counter-label"]}>剩余</span>
-          <strong>{remaining}</strong>
-          <span className={s["trr-counter-total"]}>· {spent}/{totalCost} 已投入</span>
+          <span>训练点</span>
+          <strong>{remaining}/{totalTrainingPoints}</strong>
         </div>
+          {onClose && (
+            <button className={s["trr-close"]} type="button" aria-label="返回据点" onClick={onClose}>
+              ×
+            </button>
+          )}
       </header>
 
       <div
@@ -348,7 +358,7 @@ export function TalentTreeRadial({
             <circle className={s["trr-core-pulse"]} r={46} />
             <circle className={s["trr-core-pulse"]} r={46} style={{ animationDelay: "1.5s" }} />
             <circle className={s["trr-core-body"]} r={48} fill="url(#trr-core-body)" />
-            <g className={s["trr-core-glyph"]} transform="translate(-36, -36) scale(0.5)">
+            <g className={s["trr-core-glyph"]} transform="translate(-28, -28) scale(0.7778)">
               <BadgeGlyph />
             </g>
           </g>
@@ -369,11 +379,18 @@ export function TalentTreeRadial({
                   transform={`translate(${branch.labelPoint.x.toFixed(1)}, ${branch.labelPoint.y.toFixed(1)})`}
                   style={{ "--trr-hue": hue.hue, "--trr-deep": hue.deep } as CSSProperties}
                 >
-                  <rect className={s["trr-label-bg"]} x={-66} y={-21} width={132} height={42} rx={21} />
-                  <text className={s["trr-label-name"]} y={-6}>
+                  <rect
+                    className={s["trr-label-bg"]}
+                    x={-LABEL_HALF_W}
+                    y={-LABEL_HALF_H}
+                    width={LABEL_HALF_W * 2}
+                    height={LABEL_HALF_H * 2}
+                    rx={LABEL_HALF_H}
+                  />
+                  <text className={s["trr-label-name"]} y={-8}>
                     {branch.branchIndex < badge.branches.length ? badge.branches[branch.branchIndex].name : ""}
                   </text>
-                  <text className={s["trr-label-count"]} y={14}>
+                  <text className={s["trr-label-count"]} y={17}>
                     {activeCount}/{branch.nodes.length}
                   </text>
                 </g>
@@ -434,7 +451,7 @@ export function TalentTreeRadial({
                         <circle className={s["trr-node-inner"]} r={radius - 6} />
                         <g
                           className={s["trr-node-icon"]}
-                          transform={`translate(${-(radius * 0.78)}, ${-(radius * 0.78)}) scale(${(radius * 0.78) / 24})`}
+                          transform={`translate(${-TRACK_ICON_SIZE / 2}, ${-TRACK_ICON_SIZE / 2}) scale(${TRACK_ICON_SIZE / TRACK_ICON_VIEWBOX})`}
                         >
                           <TrackIcon branchId={badge.branches[branch.branchIndex]?.id ?? ""} />
                         </g>
@@ -457,12 +474,22 @@ export function TalentTreeRadial({
             style={{ left: `${hover.x}px`, top: `${hover.y}px` }}
           >
             <div className={s["trr-tip-head"]}>
-              <span className={s["trr-tip-icon"]}>✦</span>
+              <span
+                className={s["trr-tip-icon"]}
+                style={
+                  {
+                    "--trr-tip-color": hoverHue?.hue,
+                    "--trr-tip-deep": hoverHue?.deep,
+                  } as CSSProperties
+                }
+                aria-hidden
+              >
+                <TrackIcon branchId={hoverBranch?.id ?? ""} />
+              </span>
               <div>
                 <div className={s["trr-tip-title"]}>{hoverNode.name}</div>
                 <div className={s["trr-tip-tier"]}>
-                  {badge.branches.find((branch) => hoverNode.id.startsWith(`${branch.id}-`))?.name ??
-                    "天赋"}
+                  {hoverBranch?.name ?? "天赋"}
                 </div>
               </div>
             </div>

@@ -74,9 +74,9 @@
 .tr-resource-bar {
   position: absolute;
   left: 24px;
-  bottom: 24px;
+  bottom: 108px;
   z-index: 4;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 /* ── 未启用徽章时的空态 ── */
@@ -127,6 +127,27 @@
   background: linear-gradient(135deg, rgba(88, 64, 20, 0.9), rgba(48, 32, 10, 0.9));
 }
 
+.tr-empty-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-color: rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, rgba(50, 37, 20, 0.82), rgba(20, 14, 20, 0.88));
+  color: var(--tr-glow);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.tr-empty-close:hover:not(:disabled) {
+  border-color: var(--tr-glow);
+  background: linear-gradient(135deg, rgba(80, 58, 24, 0.92), rgba(30, 20, 22, 0.94));
+  color: #fff3c4;
+  box-shadow: 0 0 18px -6px var(--tr-glow);
+}
+
 /* ── 左侧徽章切换抽屉浮层 ── */
 
 .tr-drawer {
@@ -152,24 +173,6 @@
 
 .tr-drawer.is-open {
   transform: translateX(0);
-}
-
-.tr-drawer-close {
-  position: absolute;
-  top: 18px;
-  right: -52px;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-color: rgba(255, 215, 0, 0.45);
-  background: linear-gradient(135deg, rgba(30, 22, 40, 0.92), rgba(14, 10, 20, 0.92));
-  color: #ffd700;
-  font-size: 15px;
-}
-
-.tr-drawer-close:hover:not(:disabled) {
-  border-color: var(--tr-glow);
-  color: #fff3c4;
 }
 
 .tr-drawer-rail {

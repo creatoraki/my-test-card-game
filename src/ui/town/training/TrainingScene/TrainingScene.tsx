@@ -38,9 +38,10 @@ const RESOURCE_LABELS: Record<SquadResourceKey, string> = {
 
 interface Props {
   leaving?: boolean;
+  onBack?: () => void;
 }
 
-export function TrainingScene({ leaving = false }: Props) {
+export function TrainingScene({ leaving = false, onBack }: Props) {
   const squadTalent = useTownStore((state) => state.squadTalent);
   const trainingPoints = useTownStore(squadTrainingPoints);
   const selectSquadBadge = useTownStore((state) => state.selectSquadBadge);
@@ -143,6 +144,7 @@ export function TrainingScene({ leaving = false }: Props) {
               badge={activeBadge}
               activated={squadTalent.nodes}
               remaining={remaining}
+              totalTrainingPoints={trainingPoints}
               locked={locked}
               resourceLabels={RESOURCE_LABELS}
               pulse={pulse}
@@ -153,6 +155,7 @@ export function TrainingScene({ leaving = false }: Props) {
               onRefund={handleRefund}
               onHoverKey={setHoverKey}
               onCoreClick={() => setDrawerOpen((open) => !open)}
+              onClose={onBack}
               className={s["tr-tree"]}
             />
             <SquadResourceBar highlightKey={hoverKey} className={s["tr-resource-bar"]} />
@@ -165,19 +168,16 @@ export function TrainingScene({ leaving = false }: Props) {
             <button className={cn("tr-empty-open")} type="button" onClick={() => setDrawerOpen(true)}>
               选择徽章
             </button>
+            {onBack && (
+              <button className={cn("tr-empty-close")} type="button" aria-label="返回据点" onClick={onBack}>
+                ×
+              </button>
+            )}
           </div>
         )}
       </main>
 
       <aside className={cn("tr-drawer", drawerOpen && "is-open")} aria-label="徽章切换浮层">
-        <button
-          className={cn("tr-drawer-close")}
-          type="button"
-          aria-label="关闭徽章浮层"
-          onClick={() => setDrawerOpen(false)}
-        >
-          ✕
-        </button>
         <BadgeRail
           badges={SQUAD_BADGES}
           activeId={activeBadge?.id ?? null}

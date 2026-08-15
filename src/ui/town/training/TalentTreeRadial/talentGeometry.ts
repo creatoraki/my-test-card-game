@@ -9,6 +9,8 @@ import { branchNodesOf, type SquadBadgeDef, type TalentNodeDef } from "@/data";
 export const RADIAL_CANVAS = { width: 1660, height: 860 } as const;
 // 画布居中对称: 六分支全径向展开, 顶部垂直支的标签仍有余量。
 export const RADIAL_CENTER = { x: RADIAL_CANVAS.width / 2, y: RADIAL_CANVAS.height / 2 };
+export const LABEL_HALF_W = 66;
+export const LABEL_HALF_H = 32;
 
 export interface Point {
   x: number;
@@ -23,7 +25,7 @@ export interface RadialBranchGeometry {
   pathD: string;
   /** 每颗节点的圆心。 */
   nodePoints: Point[];
-  /** 分支名标签位置(末节点沿方向再外推 44px)。 */
+  /** 分支名标签位置(末节点沿方向外推, 与铭牌矩形的方向投影保持间隙)。 */
   labelPoint: Point;
 }
 
@@ -32,14 +34,38 @@ function degToRad(deg: number): number {
 }
 
 function branchLength(angleDeg: number): number {
-  const halfW = RADIAL_CANVAS.width / 2 - 30;
-  const halfH = RADIAL_CANVAS.height / 2 - 30;
+  const halfW = RADIAL_CANVAS.width / 2 - 12;
+  const halfH = RADIAL_CANVAS.height / 2 - 12;
   const angle = degToRad(angleDeg);
   const dirX = Math.cos(angle);
   const dirY = Math.sin(angle);
   const xDistance = Math.abs(dirX) > 0.0001 ? halfW / Math.abs(dirX) : Infinity;
   const yDistance = Math.abs(dirY) > 0.0001 ? halfH / Math.abs(dirY) : Infinity;
-  return Math.max(0, Math.min(xDistance, yDistance) * 0.82 - 44);
+  const upperBound = Math.min(xDistance, yDistance);
+  const labelOffset =
+    36 + Math.abs(dirX) * LABEL_HALF_W + Math.abs(dirY) * LABEL_HALF_H + 14;
+
+  // 铭牌和末节点共用同一条分支轴线; 取两种锯齿偏移方向中更保守的最大长度。
+  function fits(length: number, bendSign: number): boolean {
+    const lateral = length * 0.06 * bendSign;
+    const perpX = -dirY;
+    const perpY = dirX;
+    const labelX = dirX * (length + labelOffset) + perpX * lateral;
+    const labelY = dirY * (length + labelOffset) + perpY * lateral;
+    return (
+      Math.abs(labelX) + LABEL_HALF_W <= halfW &&
+      Math.abs(labelY) + LABEL_HALF_H <= halfH
+    );
+  }
+
+  let low = 0;
+  let high = upperBound;
+  for (let index = 0; index < 24; index += 1) {
+    const middle = (low + high) / 2;
+    if (fits(middle, 1) && fits(middle, -1)) low = middle;
+    else high = middle;
+  }
+  return low;
 }
 
 const RADIAL_ANGLES = [0, 180, -90, 90, -40, -140] as const;
@@ -99,7 +125,10 @@ export function buildRadialLayout(badge: SquadBadgeDef): RadialBranchGeometry[] 
       .join(" ");
 
     const tail = nodePoints[count - 1];
-    const labelPoint = { x: tail.x + dirX * 44, y: tail.y + dirY * 44 };
+    const tailRadius = nodeRadius(nodes[count - 1], count - 1);
+    const labelOffset =
+      tailRadius + Math.abs(dirX) * LABEL_HALF_W + Math.abs(dirY) * LABEL_HALF_H + 14;
+    const labelPoint = { x: tail.x + dirX * labelOffset, y: tail.y + dirY * labelOffset };
 
     return { branchIndex: i, nodes, pathD, nodePoints, labelPoint };
   });
