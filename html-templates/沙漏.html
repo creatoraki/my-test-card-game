@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>沙漏 · Hourglass</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{
+    height:100%;
+    background:radial-gradient(1200px 800px at 50% 35%,#101527,#070a14 55%,#04050b);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden;
+  }
+  h1{color:#8fa3c8;font-weight:300;letter-spacing:.4em;font-size:15px;margin-bottom:10px;text-indent:.4em}
+  #stage{position:relative}
+  canvas{width:min(92vw,520px);height:auto;display:block}
+  #timer{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    color:#cfe0ff;font-size:13px;letter-spacing:.15em;opacity:.75;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    padding:4px 14px;border-radius:20px;backdrop-filter:blur(4px);pointer-events:none;
+  }
+  .panel{margin-top:14px;text-align:center}
+  #colorBtn{
+    cursor:pointer;color:#e8eefc;font-size:14px;letter-spacing:.1em;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);
+    padding:9px 22px;border-radius:24px;backdrop-filter:blur(6px);
+    display:inline-flex;align-items:center;gap:9px;
+    transition:transform .15s,box-shadow .3s,border-color .3s;
+  }
+  #colorBtn:hover{transform:translateY(-2px)}
+  #colorBtn .dot{
+    width:13px;height:13px;border-radius:50%;
+    box-shadow:0 0 10px 2px currentColor;transition:background .4s;
+  }
+  .tip{margin-top:8px;color:#5d6f92;font-size:12px;letter-spacing:.12em}
+</style>
+</head>
+<body>
+<h1>HOURGLASS</h1>
+<div id="stage">
+  <canvas id="cv"></canvas>
+  <div id="timer">60.0 s</div>
+</div>
+<div class="panel">
+  <button id="colorBtn"><span class="dot"></span><span class="label">粒子特效 · 鎏金</span></button>
+  <div class="tip">60 秒漏尽 · 自动倒转 · 点击按钮切换 5 档颜色</div>
+</div>
+
+<script>
+(() => {
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const timerEl = document.getElementById('timer');
+const btn = document.getElementById('colorBtn');
+const dot = btn.querySelector('.dot');
+const label = btn.querySelector('.label');
+
+const W = 520, H = 720;
+const dpr = Math.min(2, window.devicePixelRatio || 1);
+cv.width = W * dpr; cv.height = H * dpr;
+
+/* ========== 几何常量 ========== */
+const TOP = -170, BOT = 170;
+const R = 92, NECK = 9;
+const DRAIN_MS = 60000;
+const FLIP_MS  = 1600;
+
+/* ========== 5 档颜色 ========== */
+const PALETTE = [
+  { name:'鎏金', rgb:[255,200,110] },
+  { name:'青冥', rgb:[ 94,230,255] },
+  { name:'幻紫', rgb:[180,140,255] },
+  { name:'绯樱', rgb:[255,122,184] },
+  { name:'翠影', rgb:[124,255,158] },
+];
+let colorIdx = 0;
+let cur = [...PALETTE[0].rgb];
+let target = [...PALETTE[0].rgb];
+
+const rgba   = (c,a) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const lighten= (c,k) => c.map(v => v + (255-v)*k);
+const shade  = (c,k) => c.map(v => v * (1-k));
+
+/* ========== 状态 ========== */
+let phase = 'drain', phaseStart = performance.now();
+let pileApex = BOT;
+
+/* ========== 工具函数 ========== */
+// 沙漏半宽轮廓（指数 1.6 使颈部过渡更自然）
+function bulbHalfWidth(y){
+  const t = Math.min(1, Math.abs(y) / 170);
+  return NECK + (R - NECK) * Math.pow(t, 1.6);
+}
+
+// 玻璃裁剪路径
+function glassPath(){
+  ctx.beginPath();
+  ctx.moveTo(-R, TOP);
+  ctx.bezierCurveTo(-R, TOP+95, -NECK, -55, -NECK, 0);
+  ctx.bezierCurveTo(-NECK,  55, -R, BOT-95, -R, BOT);
+  ctx.lineTo(R, BOT);
+  ctx.bezierCurveTo(R, BOT-95, NECK, 55, NECK, 0);
+  ctx.bezierCurveTo(NECK, -55, R, TOP+95, R, TOP);
+  ctx.closePath();
+}
+
+const easeInOut = p => p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2,2)/2;
+
+/* ========== 粒子系统 ========== */
+const parts = [];
+function newParticle(randomAge){
+  let y = (Math.random()*2-1)*155;
+  if(Math.abs(y) < 28) y += (y<0?-1:1)*34;
+  const hw = bulbHalfWidth(y)*0.78;
+  return {
+    x:(Math.random()*2-1)*hw, y,
+    vy:-(3+Math.random()*9), ph:Math.random()*6.28,
+    size:.8+Math.random()*1.9,
+    life: randomAge ? Math.random()*6 : 0,
+    max: 4+Math.random()*5
+  };
+}
+for(let i=0;i<70;i++) parts.push(newParticle(true));
+
+function updateParticles(dt, ts){
+  for(let i=0;i<parts.length;i++){
+    const p = parts[i];
+    p.life += dt;
+    if(p.life > p.max){ parts[i] = newParticle(false); continue; }
+    p.y += p.vy * dt;
+    p.x += Math.sin(ts*0.0008 + p.ph) * 10 * dt;
+    const hw = bulbHalfWidth(p.y)*0.85;
+    if(p.x >  hw) p.x =  hw;
+    if(p.x < -hw) p.x = -hw;
+    if(Math.abs(p.y) > 160) p.y = Math.sign(p.y)*160;
+  }
+}
+
+function drawParticles(){
+  ctx.save(); glassPath(); ctx.clip();
+  for(const p of parts){
+    const a = Math.sin(Math.PI * Math.min(1, p.life/p.max)) * 0.9;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = rgba(lighten(cur,.3),1);
+    ctx.shadowColor = rgba(cur,.95);
+    ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ========== 沙子绘制（核心优化） ========== */
+function drawSand(f){
+  ctx.save(); glassPath(); ctx.clip();
+
+  /* --- 底部沙堆 --- */
+  const hBot = (1-f)*112;
+  pileApex = BOT - hBot;
+  if(hBot > .5){
+    const g = ctx.createLinearGradient(0, pileApex, 0, BOT);
+    g.addColorStop(0, rgba(lighten(cur,.25),.98));
+    g.addColorStop(1, rgba(shade(cur,.45),.98));
+    ctx.fillStyle = g;
+    const s = 110;
+    ctx.beginPath();
+    ctx.moveTo(-s-20, BOT+20); ctx.lineTo(-s-20, BOT);
+    ctx.quadraticCurveTo(-s*.45, pileApex+hBot*.22, 0, pileApex);
+    ctx.quadraticCurveTo( s*.45, pileApex+hBot*.22, s, BOT);
+    ctx.lineTo(s+20, BOT+20); ctx.closePath(); ctx.fill();
+    // 沉积纹理
+    ctx.strokeStyle='rgba(0,0,0,.10)'; ctx.lineWidth=1;
+    for(let i=1;i<=3;i++){
+      const yy = pileApex + hBot*i/3.6;
+      const ww = bulbHalfWidth(yy);
+      ctx.beginPath(); ctx.moveTo(-ww,yy+3);
+      ctx.quadraticCurveTo(0,yy-2,ww,yy+3); ctx.stroke();
+    }
+  }
+
+  /* --- 顶部沙子（漏斗状下凹）--- */
+  if(f > .002){
+    // 沙面整体随 f 下降
+    const surfaceY = -6 - 148*f;
+    // 下凹深度：开始小 → 中间最大 → 快漏完时收窄
+    const dipStrength = Math.sin(Math.PI * f);          // 0→1→0 钟形
+    const dip = 6 + 22 * dipStrength;                   // 6~28px
+    // 凹陷半径也随 f 变化（越接近颈部越窄）
+    const craterR = 18 + 20 * dipStrength;
+
+    const Ws = bulbHalfWidth(surfaceY) + 6;
+
+    // 沙体渐变
+    const g = ctx.createLinearGradient(0, surfaceY, 0, 8);
+    g.addColorStop(0, rgba(lighten(cur,.2),.98));
+    g.addColorStop(1, rgba(shade(cur,.5),.98));
+    ctx.fillStyle = g;
+
+    // 用多段贝塞尔精确描绘「边缘高 → 中心凹」的漏斗截面
+    ctx.beginPath();
+    ctx.moveTo(-Ws, surfaceY);
+    // 左半弧：从壁边平滑滑入凹陷底部
+    ctx.bezierCurveTo(
+      -Ws*0.55, surfaceY + dip*0.15,
+      -craterR*0.7, surfaceY + dip*0.7,
+      0, surfaceY + dip
+    );
+    // 右半弧：对称上升回壁边
+    ctx.bezierCurveTo(
+       craterR*0.7, surfaceY + dip*0.7,
+       Ws*0.55, surfaceY + dip*0.15,
+       Ws, surfaceY
+    );
+    // 向下封闭到球体底部区域
+    ctx.lineTo(Ws, 8);
+    ctx.lineTo(-Ws, 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // 凹陷内部阴影（增强立体漏斗感）
+    const rg = ctx.createRadialGradient(
+      0, surfaceY + dip, 1,
+      0, surfaceY + dip, craterR * 1.2
+    );
+    rg.addColorStop(0, 'rgba(0,0,0,.30)');
+    rg.addColorStop(.6,'rgba(0,0,0,.10)');
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(-craterR*1.5, surfaceY-4, craterR*3, dip+20);
+
+    // 凹陷边缘高光环（模拟沙粒沿斜面滑落的光泽）
+    ctx.strokeStyle = rgba(lighten(cur,.35), .25);
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(0, surfaceY + dip*0.35, craterR*0.85, dip*0.18, 0, 0, 7);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+/* ========== 下落沙流 ========== */
+function drawStream(ts){
+  if(phase !== 'drain') return;
+  const f = Math.max(0, 1-(ts-phaseStart)/DRAIN_MS);
+  if(f <= .002 || f >= .999) return;
+  const endY = pileApex - 2;
+  const g = ctx.createLinearGradient(0,0,0,endY);
+  g.addColorStop(0, rgba(shade(cur,.6),.9));
+  g.addColorStop(1, rgba(lighten(cur,.2),.9));
+  ctx.strokeStyle = g; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0,3); ctx.lineTo(0,endY); ctx.stroke();
+  // 发光沙粒
+  ctx.save();
+  ctx.shadowColor = rgba(cur,.9); ctx.shadowBlur = 6;
+  ctx.fillStyle = rgba(lighten(cur,.35),1);
+  for(let i=0;i<9;i++){
+    const yy = 4 + ((ts*0.26)+i*47) % (endY-6);
+    const xx = Math.sin(ts*0.02+i*1.7)*1.2;
+    ctx.beginPath(); ctx.arc(xx,yy,1.4,0,7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ========== 金属端盖 ========== */
+function metalRing(y,rw,rh,h,top,mid,bot,hole){
+  ctx.fillStyle = bot;
+  ctx.beginPath(); ctx.ellipse(0,y+h,rw,rh,0,0,7); ctx.fill();
+  const g = ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,mid); g.addColorStop(1,bot);
+  ctx.fillStyle = g; ctx.fillRect(-rw,y,rw*2,h);
+  ctx.fillStyle = top;
+  ctx.beginPath(); ctx.ellipse(0,y,rw,rh,0,0,7); ctx.fill();
+  if(hole){
+    ctx.fillStyle='rgba(8,12,20,.55)';
+    ctx.beginPath(); ctx.ellipse(0,y,rw-11,rh-5,0,0,7); ctx.fill();
+  }
+  ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.ellipse(0,y,rw,rh,0,0,7); ctx.stroke();
+}
+const BRASS = ['#f0d9a0','#b08d4f','#6f5426'];
+
+/* ========== 玻璃主体 & 高光 ========== */
+function glassBody(){
+  const g = ctx.createLinearGradient(0,TOP,0,BOT);
+  g.addColorStop(0,'rgba(255,255,255,.10)');
+  g.addColorStop(.5,'rgba(255,255,255,.03)');
+  g.addColorStop(1,'rgba(255,255,255,.08)');
+  glassPath(); ctx.fillStyle = g; ctx.fill();
+  glassPath(); ctx.fillStyle = rgba(cur,.05); ctx.fill();
+}
+function glassShine(){
+  ctx.save(); glassPath(); ctx.clip();
+  let g = ctx.createLinearGradient(-R,0,-R+40,0);
+  g.addColorStop(0,'rgba(255,255,255,0)');
+  g.addColorStop(.45,'rgba(255,255,255,.16)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(-R,TOP,44,BOT-TOP);
+  g = ctx.createLinearGradient(R-24,0,R,0);
+  g.addColorStop(0,'rgba(255,255,255,0)');
+  g.addColorStop(.6,'rgba(255,255,255,.10)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(R-26,TOP,26,BOT-TOP);
+  ctx.restore();
+  glassPath(); ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.6; ctx.stroke();
+  glassPath(); ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=5; ctx.stroke();
+}
+
+/* ========== 主循环 ========== */
+let last = performance.now();
+function loop(ts){
+  const dt = Math.min(.05,(ts-last)/1000); last = ts;
+
+  if(phase==='drain'){
+    if(ts-phaseStart >= DRAIN_MS){ phase='flip'; phaseStart=ts; }
+  } else if(ts-phaseStart >= FLIP_MS){
+    phase='drain'; phaseStart=ts;
+  }
+
+  const f = phase==='drain' ? Math.max(0, 1-(ts-phaseStart)/DRAIN_MS) : 0;
+  const flipP = phase==='flip' ? Math.min(1,(ts-phaseStart)/FLIP_MS) : 0;
+
+  for(let i=0;i<3;i++) cur[i] += (target[i]-cur[i])*Math.min(1,dt*6);
+  updateParticles(dt,ts);
+
+  const breath = 1 + .02*Math.sin(ts*.0016);
+  const tilt   = .055*Math.sin(ts*.0009);
+  const flipAng= Math.PI*easeInOut(flipP);
+
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(W/2, H/2);
+
+  // 环境光晕
+  let g = ctx.createRadialGradient(0,0,20,0,0,300);
+  g.addColorStop(0, rgba(cur,.14)); g.addColorStop(1, rgba(cur,0));
+  ctx.fillStyle = g; ctx.fillRect(-300,-320,600,640);
+
+  // 地面投影
+  g = ctx.createRadialGradient(0,272,10,0,272,160);
+  g.addColorStop(0,'rgba(0,0,0,.5)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.save(); ctx.translate(0,272); ctx.scale(1,.16);
+  ctx.beginPath(); ctx.arc(0,0,160,0,7); ctx.fill(); ctx.restore();
+
+  // 整体变换
+  ctx.translate(0, -26*Math.sin(Math.PI*flipP));
+  ctx.rotate(tilt + flipAng);
+  ctx.scale(breath, breath);
+
+  glassBody();
+  drawSand(f);
+  drawStream(ts);
+  drawParticles();
+  glassShine();
+  metalRing(TOP-14, R+10, 15, 12, ...BRASS, false);
+  metalRing(BOT+2,  R+10, 15, 12, ...BRASS, false);
+
+  ctx.restore();
+
+  timerEl.textContent = phase==='drain'
+    ? Math.max(0,(DRAIN_MS-(ts-phaseStart))/1000).toFixed(1)+' s'
+    : '翻转中…';
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ========== 颜色切换 ========== */
+function applyBtn(){
+  const p = PALETTE[colorIdx];
+  target = [...p.rgb];
+  dot.style.background = rgba(p.rgb,1);
+  dot.style.color = rgba(p.rgb,1);
+  btn.querySelector('.label').textContent = '粒子特效 · ' + p.name;
+  btn.style.borderColor = rgba(p.rgb,.45);
+  btn.style.boxShadow = `0 0 18px ${rgba(p.rgb,.25)}`;
+}
+btn.addEventListener('click', ()=>{ colorIdx=(colorIdx+1)%PALETTE.length; applyBtn(); });
+applyBtn();
+})();
+</script>
+</body>
+</html>

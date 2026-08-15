@@ -54,36 +54,29 @@ export function BloodSlashFx({ preset }: { preset: ProcFxPreset }) {
         <div
           className={s["blood-slash-core"]}
           style={asStyle({
-            animationDelay: `${timing(at(800))}, ${timing(at(1200))}, ${timing(at(2000))}`,
+            animationDelay: `${timing(at(800))}, ${timing(at(1200))}, ${timing(at(1900))}`,
             animationDuration: `${timing(120)}, ${timing(150)}, ${timing(1)}`,
           })}
         />
         <div
           className={s["blood-crack-left"]}
           style={asStyle({
-            animationDelay: `${timing(at(850))}, ${timing(at(2000))}`,
+            animationDelay: `${timing(at(850))}, ${timing(at(1900))}`,
             animationDuration: `${timing(350)}, ${timing(1)}`,
           })}
         />
         <div
           className={s["blood-crack-right"]}
           style={asStyle({
-            animationDelay: `${timing(at(850))}, ${timing(at(2000))}`,
+            animationDelay: `${timing(at(850))}, ${timing(at(1900))}`,
             animationDuration: `${timing(350)}, ${timing(1)}`,
           })}
         />
         <div
           className={s["blood-aura"]}
           style={asStyle({
-            animationDelay: `${timing(at(950))}, ${timing(at(2000))}`,
+            animationDelay: `${timing(at(950))}, ${timing(at(1900))}`,
             animationDuration: `${timing(600)}, ${timing(1)}`,
-          })}
-        />
-        <div
-          className={s["blood-scar"]}
-          style={asStyle({
-            animationDelay: `${timing(at(1050))}, ${timing(at(2000))}`,
-            animationDuration: `${timing(400)}, ${timing(800)}`,
           })}
         />
         {WOUNDS.map((wound, index) => (
