@@ -19,7 +19,6 @@ export function VictoryPanel() {
   const expReport = useRunStore((state) => state.expReport);
   const lastDropK = useRunStore((state) => state.lastDropK);
   const lastDropTier = useRunStore((state) => state.lastDropTier);
-  const lastSlotBonus = useRunStore((state) => state.lastSlotBonus);
   const lastChallengeBonus = useRunStore((state) => state.lastChallengeBonus);
   const lastChallenges = useRunStore((state) => state.lastChallenges);
   const confirmExpReport = useRunStore((state) => state.confirmExpReport);
@@ -113,7 +112,6 @@ export function VictoryPanel() {
               <span>掉落 ×{lastDropK.toFixed(2)}</span>
               <span className={s["drop-popover"]}>
                 {lastDropTier?.name ?? "未知"} ×{(lastDropTier?.rewardMultiplier ?? 0).toFixed(2)}<br />
-                战斗签 +{lastSlotBonus.toFixed(2)}<br />
                 挑战 +{lastChallengeBonus.toFixed(2)}
                 {lastChallenges.length > 0 && <>
                   <br />

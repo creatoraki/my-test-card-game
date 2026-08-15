@@ -1,6 +1,6 @@
 # 内容数据
 
-路径：`src/data/`。这里放可替换的卡牌、角色、敌人、遭遇战、物品、探索事件、战斗签符号和地图数据；规则计算留在 `engine/`、`explore/`、`items/`。
+路径：`src/data/`。这里放可替换的卡牌、角色、敌人、遭遇战、物品、探索事件和地图数据；规则计算留在 `engine/`、`explore/`、`items/`。
 
 | 文件 | 作用 |
 | --- | --- |
@@ -19,8 +19,7 @@
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用/地区/怪物材料、消耗品、食品和三类装备按地图与服务类型筛选。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
 | [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：每个徽章 = 方向链（`branches`，仅供图标/文案分组）+ 扇形半环坐标节点图（`nodes`，`requires` 任一满足即解锁）；初心者徽章 6 链 22 节点，其余徽章为「待开放」占位。`fan()` 负责纯坐标生成，`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` 一起作为 UI 与 store 共用的判定入口。 |
-| [slotSymbols.ts](../../src/data/slotSymbols.ts) | 战斗签转轮符号：战斗卡、战前准备卡和 BOSS 开局条件。 |
-| [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战、低档补充敌人和转轮池。地图素材由 UI 查表。 |
+| [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人。地图素材由 UI 查表。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid。 |
 
 数据层不登记素材路径，也不写流程逻辑。素材查表在 `src/ui/`；战斗、探索和物品规则分别由对应纯逻辑层维护。

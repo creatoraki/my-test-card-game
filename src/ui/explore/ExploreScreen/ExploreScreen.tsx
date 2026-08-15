@@ -34,6 +34,7 @@ import {
   landedEvent,
   npcChoices,
   projectedEnergy,
+  roundBattleEvent,
 } from "@/explore/session";
 import { getItemDef, getNpcEvent } from "@/data";
 import { countByItemId } from "@/items/inventory";
@@ -60,7 +61,6 @@ import {
   GENERATE_REDUCED_MS,
   nodeCenter,
 } from "@/ui/explore/RouteBoard";
-import SlotReels from "@/ui/explore/SlotReels";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { useTypewriter } from "@/ui/hooks/useTypewriter";
 import { StageCanvas } from "@/ui/app/StageCanvas";
@@ -92,7 +92,7 @@ const COMMANDS = [
 ] as const;
 
 // 落点事件浮层的演出节拍(ms)。★ 单一真相在这里 —— 需要给 CSS 的那几个由 tsx 内联下发,
-// 两边不各写一份(与 SlotReels 的几何常量、CryoScene 的 --content-delay 同一套做法)。
+// 两边不各写一份(与 CryoScene 的 --content-delay 同一套做法)。
 //
 // 这段时序读作一句话: **面板落定 → 标题浮字 → 正文讲完 → 选项才就位 → 落子有回响 → 结果逐条揭晓**。
 // 抵达一个落点是这个模式里唯一的叙事时刻, 值得花两三秒把它讲完; 中途不给跳过, 就是要玩家读完。
@@ -135,7 +135,7 @@ export function ExploreScreen() {
   const pushOn = useExploreStore((s) => s.pushOn);
   const leaveRegion = useExploreStore((s) => s.leaveRegion);
   const leaveDone = useExploreStore((s) => s.leaveDone);
-  const startSlot = useExploreStore((s) => s.startSlot);
+  const engageRoundBattle = useExploreStore((s) => s.engageRoundBattle);
   const enterEncounter = useRunStore((s) => s.enterEncounter);
   const finishExpedition = useRunStore((s) => s.finishExpedition);
   const retreat = useRunStore((s) => s.retreat);
@@ -212,10 +212,15 @@ export function ExploreScreen() {
   // ---- 落点浮层的演出时序 ----
   // ⚠ 这三个 hook 必须待在下面那句早退**之前**: 会话还没建好时也得照常调用, 否则 hook 顺序会变。
   const landedEv = session?.board ? landedEvent(session) : null;
-  const evDesc = landedEv?.description ?? "";
+  const panelEvent = session?.phase === "roundBattle"
+    ? roundBattleEvent(session)
+    : landedEv;
+  const evDesc = panelEvent?.description ?? "";
   // 正文逐字。text 一变就自动重置游标 ⇒ 换事件自然重播, 这里不需要额外的 key。
   const desc = useTypewriter(evDesc, EVENT_BEAT.descStart, EVENT_BEAT.descCps);
-  const storyText = session?.pendingStory.join("\n\n") ?? "";
+  const storyText = session?.phase === "roundBattle"
+    ? panelEvent?.choices?.[0]?.story ?? ""
+    : session?.pendingStory.join("\n\n") ?? "";
   const story = useTypewriter(storyText, 0, EVENT_BEAT.descCps);
   const descScrollRef = useRef<HTMLParagraphElement>(null);
   const descLiveRef = useRef<HTMLSpanElement>(null);
@@ -288,7 +293,16 @@ export function ExploreScreen() {
   if (!session || !session.board) return null;
 
   const board = session.board;
-  const ev = landedEv;
+  const ev = panelEvent ?? (session.phase === "roundBattle"
+    ? {
+        id: `round-battle-${session.round}`,
+        kind: "battle" as const,
+        category: "battle" as const,
+        title: `推进战斗 · ${BATTLE_TIER_NAME[battleTierOf(session.round)]}`,
+        description: "本轮战斗事件池暂无可用文案。",
+        energyDelta: 0,
+      }
+    : null);
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
   // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
@@ -300,7 +314,8 @@ export function ExploreScreen() {
     session.phase === "shopping" ||
     session.phase === "resolving" ||
     session.phase === "npcEvent" ||
-    session.phase === "npcResolving";
+    session.phase === "npcResolving" ||
+    session.phase === "roundBattle";
   const narrationGate =
     session.phase === "resolving" || session.phase === "npcResolving"
       ? desc.done && story.done && narrationDone
@@ -318,10 +333,15 @@ export function ExploreScreen() {
     session.phase === "resolving" ||
     session.phase === "resting" ||
     session.phase === "npcEvent" ||
-    session.phase === "npcResolving";
+    session.phase === "npcResolving" ||
+    session.phase === "roundBattle";
   const eventModalOpen =
-    session.phase === "landed" || session.phase === "shopping" || session.phase === "resolving";
+    session.phase === "landed" ||
+    session.phase === "shopping" ||
+    session.phase === "resolving" ||
+    session.phase === "roundBattle";
   const recede = focused ? s["is-recede"] : undefined;
+  const choiceReady = desc.done && (!storyText || story.done);
 
   // 浮现演出的 2 秒里整块画布不接受输入 —— 这一段是纯演出, 中途插手会让计时器与画面对不上。
   // ⚠ is-locked 只做 pointer-events, **不能**在 .explore-stage 上加 opacity/filter(见抬头约束)。
@@ -337,26 +357,20 @@ export function ExploreScreen() {
   // ⚠ 演出中不接受第二次点击 —— 否则连点两个分支会派发两次结算。
   const takeOption = (index: number, event?: MouseEvent<HTMLButtonElement>) => {
     if (committing != null) return;
-    if (event && landedEv?.kind === "battle" && event.detail !== 0) {
+    if (event && session.phase === "roundBattle" && event.detail !== 0) {
       setTransitionOrigin(event.clientX, event.clientY);
     }
     if (prefersReducedMotion()) {
-      chooseEventOption(index);
+      if (session.phase === "roundBattle") engageRoundBattle();
+      else chooseEventOption(index);
       return;
     }
     setCommitting(index);
     commitTimer.current = window.setTimeout(() => {
       commitTimer.current = null;
-      chooseEventOption(index);
+      if (session.phase === "roundBattle") engageRoundBattle();
+      else chooseEventOption(index);
     }, EVENT_BEAT.commit);
-  };
-
-  // 战斗签三选一 → 推进战斗。战斗建局在 runStore(只有它认识 battleStore)。
-  // ★ 会话的推进由 SlotReels 里的 chooseSlotCard 完成, 这里只负责「幕布 + 切页」。
-  const goBattle = (event: MouseEvent<HTMLButtonElement>) => {
-    // 键盘触发的 click 没有可用鼠标坐标(detail 为 0)，幕布会安全回退到视口中心。
-    if (event.detail !== 0) setTransitionOrigin(event.clientX, event.clientY);
-    enterEncounter();
   };
 
   return (
@@ -564,7 +578,7 @@ export function ExploreScreen() {
               className={cx(
                 s["expl-panel"],
                 s[`k-${ev.kind}`],
-                session.phase === "landed" && s["has-choices"],
+                (session.phase === "landed" || session.phase === "roundBattle") && s["has-choices"],
                 session.phase === "shopping" && s["is-shopping"],
               )}
             >
@@ -619,19 +633,22 @@ export function ExploreScreen() {
                   </div>
                   {session.phase !== "shopping" && (
                     <div className={s["expl-panel-act"]}>
-                      {session.phase === "landed" ? (
+                      {session.phase === "landed" || session.phase === "roundBattle" ? (
                         // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
                         <div
                           className={cx(
                             s["expl-choices"],
-                            desc.done && s["is-armed"],
+                            choiceReady && s["is-armed"],
                             committing != null && s["is-closing"],
                           )}
                           style={
                             { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
                           }
                         >
-                          {landedChoices(session).map((c, i) => {
+                          {(session.phase === "roundBattle"
+                            ? [{ id: "engage", label: "迎战", desc: "进入本轮推进战斗", cost: undefined }]
+                            : landedChoices(session)
+                          ).map((c, i) => {
                             // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
                             const state =
                               committing == null
@@ -649,7 +666,7 @@ export function ExploreScreen() {
                                 key={c.id}
                                 className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
                                 type="button"
-                                disabled={!desc.done || committing != null || costUnavailable}
+                                disabled={!choiceReady || committing != null || costUnavailable}
                                 title={
                                   c.cost
                                     ? costUnavailable
@@ -851,41 +868,6 @@ export function ExploreScreen() {
             </section>
           </div>
         )}
-
-        {/* ---- 本轮线路披露(routeDisclosure) ----
-            ★ 这是**教学页而不是过场**(§11.2): 没有披露, 玩家分不清「我记错了 / 我压根没记 /
-              这张图本来就记不住」。全图桥接与实际路径由 RouteBoard 画, 这里只放结论与出口。 */}
-        {session.phase === "routeDisclosure" && (
-          <div className={s["expl-modal"]}>
-            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
-              <span className={s["panel-frame"]} aria-hidden />
-              <span className={s["panel-scan"]} aria-hidden />
-              <span className={s["expl-kicker"]}>线路披露</span>
-              <h3 className={s["expl-panel-title"]}>这就是本轮的完整桥接</h3>
-              <div className={s["expl-panel-slot"]}>
-                <p className={s["expl-panel-desc"]}>
-                  亮起来的是你实际走过的路径, 压暗的是你放弃的节点。
-                  {session.entryLane != null
-                    ? `你从 ${"ABCDE"[session.entryLane]} 通道进入。`
-                    : "你没有进入这片区域。"}
-                </p>
-              </div>
-              <div className={s["expl-panel-foot"]}>
-                <span className={s["expl-panel-cost"]}>
-                  下一关：{BATTLE_TIER_NAME[tier]} 的战斗签 · 战斗只掉物品, 废料要带回据点才换积分
-                </span>
-                <button className={cx(s["expl-btn"], s["is-primary"])} type="button" onClick={() => startSlot()}>
-                  抽取战斗签 ▸
-                </button>
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* ---- 战斗签老虎机(slotSpinning / slotChoosing) ----
-            每轮的第二个关卡。动词与路由图刻意不同 —— 那边考记忆, 这边考时机(§2.4)。
-            会话推进在 SlotReels 内部完成, 这里只把「切到战斗界面」这一步传进去。 */}
-        <SlotReels onEnterBattle={goBattle} />
 
         <ShopOverlay />
 

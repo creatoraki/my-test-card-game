@@ -85,10 +85,11 @@ const shade  = (c,k) => c.map(v => v * (1-k));
 
 /* ========== 状态 ========== */
 let phase = 'drain', phaseStart = performance.now();
+let rotationTurns = 0;
 let pileApex = BOT;
 
 /* ========== 工具函数 ========== */
-// 沙漏半宽轮廓：直接沿玻璃 Bézier 采样查表，避免沙面与玻璃壁之间出现“空气墙”缝隙
+// 沙漏半宽轮廓：沿玻璃 Bézier 采样，保证粒子范围与真实玻璃一致
 const GLASS_HALF_WIDTH_LUT = (() => {
   const N = 220;
   const pts = [];
@@ -180,8 +181,10 @@ function drawParticles(){
 }
 
 /* ========== 沙子绘制（核心优化） ========== */
-function drawSand(f){
+function drawSand(f, mirrorY=false, opacity=1){
   ctx.save(); glassPath(); ctx.clip();
+  if(mirrorY) ctx.scale(1,-1);
+  ctx.globalAlpha = opacity;
 
   /* --- 底部沙堆 --- */
   const hBot = (1-f)*112;
@@ -201,14 +204,102 @@ function drawSand(f){
     ctx.strokeStyle='rgba(0,0,0,.10)'; ctx.lineWidth=1;
     for(let i=1;i<=3;i++){
       const yy = pileApex + hBot*i/3.6;
-      const ww = bulbHalfWidth(yy);
+      const qq = (yy - pileApex) / hBot;
+        const ww = s * (0.9*qq*(1-qq) + qq*qq);
       ctx.beginPath(); ctx.moveTo(-ww,yy+3);
       ctx.quadraticCurveTo(0,yy-2,ww,yy+3); ctx.stroke();
     }
   }
 
-  /* --- 顶部沙子（漏斗状下凹）--- */
-  if(f > .002){
+  /* --- 顶部沙子（受重力贴壁下沉的漏斗）--- */
+    if(f > 0.002){
+      const surfaceY = -12 - 140*f;
+      const craterY = 4;
+      const dip = craterY - surfaceY;
+      const Ws = bulbHalfWidth(surfaceY) + 4;
+      const pileBaseY = Math.max(surfaceY, -28);
+      const pileWidth = Math.max(12, bulbHalfWidth(pileBaseY) * .92);
+      const STEPS = 30;
+
+      const g = ctx.createLinearGradient(0, surfaceY, 0, 8);
+      g.addColorStop(0, rgba(lighten(cur,.2),.98));
+      g.addColorStop(1, rgba(shade(cur,.5),.98));
+      ctx.fillStyle = g;
+
+      ctx.beginPath();
+      ctx.moveTo(-Ws, surfaceY);
+      ctx.lineTo(Ws, surfaceY);
+      for(let i=1;i<=STEPS;i++){
+        const q = i/STEPS;
+        const yy = surfaceY + (pileBaseY - surfaceY)*q;
+        ctx.lineTo(bulbHalfWidth(yy), yy);
+      }
+      for(let i=STEPS;i>=1;i--){
+        const q = i/STEPS;
+        const yy = surfaceY + (pileBaseY - surfaceY)*q;
+        ctx.lineTo(-bulbHalfWidth(yy), yy);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(-pileWidth, pileBaseY);
+      ctx.quadraticCurveTo(-pileWidth*.52, pileBaseY+2, 0, craterY);
+      ctx.quadraticCurveTo(pileWidth*.52, pileBaseY+2, pileWidth, pileBaseY);
+      ctx.closePath();
+      ctx.fill();
+
+      
+      
+      const craterR = Math.max(14, Ws * .38);
+      const rg = ctx.createRadialGradient(0, craterY, 1, 0, craterY, craterR * .9);
+      rg.addColorStop(0, 'rgba(0,0,0,.10)');
+      
+      
+      
+      rg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(-Ws, surfaceY - 4, Ws * 2, dip + 20);
+
+      ctx.strokeStyle = rgba(lighten(cur,.35), .18);
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.ellipse(0, pileBaseY - 1, pileWidth * .72, Math.max(3, Math.min(12, (pileBaseY - craterY) * .12)), 0, 0, 7);
+      ctx.stroke();
+    }
+
+  if(false){ // 旧版倒三角悬挂实现，已弃用
+      const hTop = f * 112;
+      const topApex = TOP + hTop;
+      const s = 110;
+
+      const g = ctx.createLinearGradient(0, topApex, 0, TOP);
+      g.addColorStop(0, rgba(lighten(cur,.25),.98));
+      g.addColorStop(1, rgba(shade(cur,.45),.98));
+      ctx.fillStyle = g;
+
+      ctx.beginPath();
+      ctx.moveTo(-s-20, TOP-20);
+      ctx.lineTo(-s-20, TOP);
+      ctx.quadraticCurveTo(-s*.45, topApex - hTop*.22, 0, topApex);
+      ctx.quadraticCurveTo( s*.45, topApex - hTop*.22, s, TOP);
+      ctx.lineTo(s+20, TOP-20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(0,0,0,.10)';
+      ctx.lineWidth = 1;
+      for(let i=1;i<=3;i++){
+        const yy = topApex - hTop*i/3.6;
+        const qq = (yy - topApex) / (TOP - topApex);
+        const ww = s * (0.9*qq*(1-qq) + qq*qq);
+        ctx.beginPath();
+        ctx.moveTo(-ww, yy-3);
+        ctx.quadraticCurveTo(0, yy+2, ww, yy-3);
+        ctx.stroke();
+      }
+    }
+    if(false){ // 旧版“贴壁漏斗”实现，已弃用
     // 沙面整体随 f 下降
     const surfaceY = -6 - 148*f;
       // 漏斗底部固定在颈部，沙面从两侧玻璃壁向中心凹陷
@@ -298,18 +389,21 @@ function drawStream(ts){
   if(phase !== 'drain') return;
   const f = Math.max(0, 1-(ts-phaseStart)/DRAIN_MS);
   if(f <= .002 || f >= .999) return;
-  const endY = pileApex - 2;
-  const g = ctx.createLinearGradient(0,0,0,endY);
+  const startY = 3;
+    
+    const endY = pileApex - 2;
+    const streamLen = Math.max(8, endY - startY);
+  const g = ctx.createLinearGradient(0,startY,0,endY);
   g.addColorStop(0, rgba(shade(cur,.6),.9));
   g.addColorStop(1, rgba(lighten(cur,.2),.9));
   ctx.strokeStyle = g; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(0,3); ctx.lineTo(0,endY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,startY); ctx.lineTo(0,endY); ctx.stroke();
   // 发光沙粒
   ctx.save();
   ctx.shadowColor = rgba(cur,.9); ctx.shadowBlur = 6;
   ctx.fillStyle = rgba(lighten(cur,.35),1);
   for(let i=0;i<9;i++){
-    const yy = 4 + ((ts*0.26)+i*47) % (endY-6);
+    const yy = startY + 2 + ((ts*0.26)+i*47) % (streamLen-4);
     const xx = Math.sin(ts*0.02+i*1.7)*1.2;
     ctx.beginPath(); ctx.arc(xx,yy,1.4,0,7); ctx.fill();
   }
@@ -369,17 +463,22 @@ function loop(ts){
     if(ts-phaseStart >= DRAIN_MS){ phase='flip'; phaseStart=ts; }
   } else if(ts-phaseStart >= FLIP_MS){
     phase='drain'; phaseStart=ts;
+    rotationTurns = (rotationTurns + 1) % 2;
   }
 
   const f = phase==='drain' ? Math.max(0, 1-(ts-phaseStart)/DRAIN_MS) : 0;
   const flipP = phase==='flip' ? Math.min(1,(ts-phaseStart)/FLIP_MS) : 0;
+  const rotateP = Math.min(1, flipP / .68);
+  const settleP = Math.max(0, Math.min(1, (flipP - .68) / .32));
 
   for(let i=0;i<3;i++) cur[i] += (target[i]-cur[i])*Math.min(1,dt*6);
   updateParticles(dt,ts);
 
   const breath = 1 + .02*Math.sin(ts*.0016);
   const tilt   = .055*Math.sin(ts*.0009);
-  const flipAng= Math.PI*easeInOut(flipP);
+  const flipAng= Math.PI * (rotationTurns + easeInOut(rotateP) * (phase==='flip' ? 1 : 0));
+  const currentMirror = rotationTurns === 1;
+  const nextMirror = !currentMirror;
 
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
@@ -404,7 +503,12 @@ function loop(ts){
   ctx.scale(breath, breath);
 
   glassBody();
-  drawSand(f);
+  if(phase==='flip' && settleP > 0){
+    drawSand(0, currentMirror, 1-settleP);
+    drawSand(1, nextMirror, settleP);
+  } else {
+    drawSand(f, currentMirror);
+  }
   drawStream(ts);
   drawParticles();
   glassShine();

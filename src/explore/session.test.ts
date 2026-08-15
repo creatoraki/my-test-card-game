@@ -1,6 +1,6 @@
 // 探索会话。断言集中在三件事:
 //   ① 阶段机(generating → sealed → revealing → choosingEntry → advancing → landed →
-//      resolving → atNode → (推进 / 前往下一区域) → routeDisclosure → inBattle → 下一轮)
+//      resolving → atNode → (推进 / 前往下一区域) → roundBattle → inBattle → 下一轮)
 //      不会被跳步或绕过 —— 尤其是四处:
 //      · sealed → revealing 只能由玩家主动触发, 且**一轮仅此一次**(桥接不能反复看);
 //      · 入口通道只能在 choosingEntry 选一次, 之后不可再改;
@@ -38,11 +38,10 @@ import {
   pushOn,
   retreat,
   rewardMultiplier,
+  engageRoundBattle,
+  roundBattleEvent,
   shipHome,
   startReveal,
-  startSlot,
-  stopReel,
-  chooseSlotCard,
   useItem,
 } from "./session";
 import type { ExploreState, PartySnapshot } from "./types";
@@ -88,18 +87,12 @@ function takeNode(s: ExploreState): void {
   }
 }
 
-// 披露页 → 战斗签 → 开战。转轮的三次暂停用固定 elapsedMs 喂进去, 种子一样结果就一样。
-// ⚠ 停哪个符号不重要(测试只需要走进 inBattle), 但**必须真的走完三次** ——
-//   少一次就停在 slotSpinning, 后面的战斗回填会静默地什么都不做。
-function runSlot(s: ExploreState, index = 0): void {
-  startSlot(s);
-  stopReel(s, 40);
-  stopReel(s, 220);
-  stopReel(s, 505);
-  chooseSlotCard(s, index);
+// 轮次战斗事件 → 开战。
+function runRoundBattle(s: ExploreState): void {
+  engageRoundBattle(s);
 }
 
-// 走完一整轮: 选入口 → 榨满 4 个节点 → 披露 → 战斗签 → 推进战斗 → 判胜。
+// 走完一整轮: 选入口 → 榨满 4 个节点 → 轮次战斗事件 → 推进战斗 → 判胜。
 function runRound(s: ExploreState, lane = 0, nodes = SEGMENTS): void {
   toChoosing(s);
   chooseEntry(s, lane);
@@ -110,7 +103,7 @@ function runRound(s: ExploreState, lane = 0, nodes = SEGMENTS): void {
     if (i < nodes - 1 && canPushOn(s)) pushOn(s);
   }
   if (phaseOf(s) === "atNode" || phaseOf(s) === "choosingEntry") leaveRegion(s);
-  if (phaseOf(s) === "routeDisclosure") runSlot(s);
+  if (phaseOf(s) === "roundBattle") runRoundBattle(s);
   if (phaseOf(s) === "inBattle") finishBattle(s, true, WIN, ["scrap-bot", "scrap-bot"]);
 }
 
@@ -333,27 +326,25 @@ describe("阶段机", () => {
     expect(canPushOn(s)).toBe(false);
     expect(pushOn(s)).toBe(false);
     expect(leaveRegion(s)).toBe(true);
-    expect(s.phase).toBe("routeDisclosure");
+    expect(s.phase).toBe("roundBattle");
   });
 
   it("选入口阶段可以直接前往下一区域 —— 本轮 0 个节点", () => {
     const s = newSession();
     toChoosing(s);
     expect(leaveRegion(s)).toBe(true);
-    expect(s.phase).toBe("routeDisclosure");
+    expect(s.phase).toBe("roundBattle");
     expect(s.currentSegment).toBe(0);
     expect(s.history).toHaveLength(0);
   });
 
-  it("披露页 → 战斗签 → 推进战斗: 档位按轮次固定表(轻/中/中/大/大/BOSS)", () => {
+  it("轮次战斗事件 → 推进战斗: 档位按轮次固定表(轻/中/中/大/大/BOSS)", () => {
     expect(["light", "medium", "medium", "heavy", "heavy", "boss"]).toEqual([1, 2, 3, 4, 5, 6].map(battleTierOf));
     const s = newSession();
     toChoosing(s);
     leaveRegion(s);
-    // ★ 老虎机只改战斗条件与收益, **不改档位** —— 档位仍由轮次固定表决定。
-    expect(startSlot(s)).toBe(true);
-    expect(s.phase).toBe("slotSpinning");
-    runSlot(s); // 已在 slotSpinning 时 startSlot 会被拦, 后面三次暂停照常
+    expect(roundBattleEvent(s)).not.toBeNull();
+    expect(engageRoundBattle(s)).toBe(true);
     expect(s.phase).toBe("inBattle");
     expect(s.pendingBattleTier).toBe("light");
     expect(s.pendingIsBoss).toBe(false);

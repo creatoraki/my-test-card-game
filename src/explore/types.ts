@@ -8,8 +8,8 @@
 //   「继续推进」还是「前往下一区域」。净化粒子(energy)是唯一的难度轴与时限, 只降不升。
 //
 // ⚠ 战斗**不是**路由图上的终点(设计文档 §2.4): 它是每轮独立的第二个关卡。
-//   本轮线路披露完 → **战斗签老虎机**(8 符号转轮 / 3 槽位 / 同花加成 / 三选一) → 推进战斗。
-//   档位仍由轮次固定表决定(EXPLORE_RULES.battleTierByRound), 老虎机只决定**战斗条件与收益**。
+//   本轮线路走完 → **轮次战斗事件**(从地图事件池抽取, 固定只有「迎战」) → 推进战斗。
+//   档位由轮次固定表决定(EXPLORE_RULES.battleTierByRound)。
 // ============================================================================
 
 import type { DropEntry, EquipSlot, ItemStack } from "../items/types";
@@ -112,9 +112,6 @@ export interface ExploreAura {
   name: string;
   desc: string;
   mods: StatModifier;
-}
-
-export interface EventOutcome {
   id: string;
   weight?: number;
   text: string;
@@ -215,57 +212,8 @@ export interface EnergyTier {
   rewardMultiplier: number; // 即 K_energy, 同时作用于经验与产出
 }
 
-// 推进战斗档位(设计文档 §3.1)。轮次 → 档位是全局固定表, 老虎机不改它, 只改战斗条件与收益。
+// 推进战斗档位(设计文档 §3.1)。轮次 → 档位是全局固定表。
 export type BattleTier = "light" | "medium" | "heavy" | "boss";
-
-// ---------------------------------------------------------------------------
-// 战斗签: 老虎机(设计文档 §2.4)
-// ---------------------------------------------------------------------------
-// 转轮 8 个符号 = 5 张战斗卡 + 3 张战前准备卡; BOSS 轮 8 个全是 BOSS 开局条件。
-// ★ 符号数恒为 8 是硬约束: 三连概率 = 1 / 符号数², 改它等于改同花加成的基线(§2.4.4)。
-export type SlotSymbolKind = "battle" | "prep";
-
-// 符号自带的战斗条件改造。⚠ 刻意**只收现有 engine/EncounterModifier 能落地的四项** ——
-// 设计文档里的「场景特殊卡牌」「首回合手牌 −1」仍未由 SlotBattleMod 承载；污染卡请求
-// 已由探索效果记录，并在 runStore 的战斗入口或远征收尾处交给城镇档案处理。
-export interface SlotBattleMod {
-  moveDelayDelta?: number; // 负 = 敌方先手更快, 正 = 敌方行动更慢
-  enemyStatuses?: { id: string; stacks: number }[]; // 全体敌人的开局状态
-  extraEnemies?: string[]; // 追加敌人 defId
-  hpMultiplier?: number; // 敌人 maxHp 倍率
-}
-
-export interface SlotSymbol {
-  id: string;
-  kind: SlotSymbolKind;
-  title: string;
-  desc: string; // ★ 只写**真实生效**的效果, 不写引擎做不到的那一句
-  icon: string;
-  encounterId?: string; // 缺省 ⇒ 回落到 map.battleEncounters[本轮档位]
-  mod?: SlotBattleMod;
-  dropBonus?: number; // 加法并入 K(「高风险收益」+0.40, 设计文档 §8.3)
-  prepEffects?: ExploreEffect[]; // kind === "prep" 时开战前先结算的效果
-  degraded?: boolean; // 效果已按现有引擎降级 —— UI 打一个角标, 别让玩家以为是设计如此
-}
-
-// 一条转轮。★ 三条轮子的 order 与 offsetMs **必须互不相同**:
-//   同相同序时「同一时刻按三次」必出三连, 1.6% 的基线当场崩掉, 同花加成变成白送。
-export interface SlotReel {
-  order: string[]; // 本轮洗好的符号 id 顺序(长度 = symbols.length)
-  offsetMs: number; // 相位偏移
-}
-
-export interface SlotState {
-  round: number;
-  tier: BattleTier;
-  symbols: SlotSymbol[]; // 固定 8 个, 全程公开显示(§11.2: 技巧在时机不在猜测)
-  reels: SlotReel[]; // 固定 3 条
-  stopped: (string | null)[]; // 固定长度 3, 玩家从左到右依次定住
-  matchBonus: number; // 0 / 0.5 / 1.5, 第 3 个槽位定格的瞬间写入
-  chosenIndex: number | null; // 玩家从 3 张里选中的槽位
-  // 选中准备卡时随机回落到的那张战斗卡 —— 这条规则封死了「凑出全是准备卡就能避战」的漏洞。
-  resolvedBattleSymbolId: string | null;
-}
 
 // ---------------------------------------------------------------------------
 // 队伍快照 —— 探索层持有的队伍血量, 跨轮与跨战斗继承。
@@ -323,13 +271,10 @@ export type ExplorePhase =
   | "atNode" // 节点决策: 继续推进 / 前往下一区域(设计文档 §2.3.3)
   // ★ 「前往下一区域」按下之后的**离场演出**: 棋子沿本轮剩余的完整线路一路走到第 4 段终点。
   //   ⚠ 它是纯演出阶段(与 advancing 同性质): 锁交互、禁开背包、不许撤离, 由 UI 的动画
-  //     播完调 finishLeaving 才进披露页。没有剩余路线可走时(0 节点直推 / 已走满 4 段)
-  //     leaveRegion 会跳过这一相直接进 routeDisclosure。
+  //     播完调 finishLeaving 才进战斗事件。没有剩余路线可走时(0 节点直推 / 已走满 4 段)
+  //     leaveRegion 会跳过这一相直接进 roundBattle。
   | "leaving"
-  | "routeDisclosure" // 本轮结束, 披露全图桥接与实际路径
-  // ── 战斗签(设计文档 §2.4): 与路由图的动词刻意不同 —— 那边考记忆, 这边考时机 ──
-  | "slotSpinning" // 3 条转轮同时滚动, 玩家按 3 次暂停从左到右依次定住。⚠ 禁开背包(§6.3 硬约束)
-  | "slotChoosing" // 3 张卡已定住, 从中选 1 张。不限时, 可开背包, 也允许撤离(§2.4.5)
+  | "roundBattle" // 本轮结束, 展示战斗事件并等待迎战
   | "inBattle" // 本轮的推进战斗进行中
   | "cleared" // BOSS 已击杀
   | "retreated" // 主动撤退 / 走完全部轮次
@@ -380,8 +325,8 @@ export interface ExploreState {
   // ⚠ 字段先占位, 指令系统是 P1 —— 目前没有任何入口消耗它。
   lateralShiftsLeft: number;
 
-  // ---- 战斗签 ----
-  slot: SlotState | null; // 本轮的老虎机。routeDisclosure 之后建, 战斗结算完清空
+  // ---- 本轮推进战斗 ----
+  roundBattleEventId: string | null; // 本轮展示的战斗事件, 开战后清空
 
   pendingEncounterId: string | null; // 战斗中: 打的是哪一场
   pendingIsBoss: boolean;
@@ -390,9 +335,6 @@ export interface ExploreState {
   battleSource: "round" | "node" | null;
   // ★ 下面三项是**开战瞬间的快照**(与负重快照同一时机, 设计文档 §10.1):
   //   老虎机的结果一旦定下就不该再被后续操作影响, 战斗结算读的必须是这三份。
-  pendingMatchBonus: number; // 同花加成 0 / 0.5 / 1.5
-  pendingDropBonus: number; // 选中符号自带的掉落加成(「高风险收益」+0.40)
-  pendingBattleMod: SlotBattleMod | null; // 选中符号的战斗条件改造
   // 挑战奖励只有战斗结算后才知道, 由 finishBattle 写入后供掉落掷点读取。
   pendingChallengeBonus: number;
 

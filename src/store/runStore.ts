@@ -17,9 +17,9 @@ import {
   squadModsOf,
 } from "../data";
 import {
-  battleModifier,
   burdenNow,
   dropCoefficient,
+  encounterModifier,
   energyTier,
   rewardMultiplier,
 } from "../explore/session";
@@ -68,7 +68,6 @@ interface RunStore {
   battleSettled: boolean; // 本场战斗已完成结算, 但胜利面板仍留在战斗画布内
   lastDropK: number; // 本场掉落使用的最终倍率
   lastDropTier: { name: string; rewardMultiplier: number } | null;
-  lastSlotBonus: number;
   lastChallengeBonus: number;
   lastChallenges: ChallengeRun[];
   // 角色详情页正在看谁。⚠ 只在 screen === "charDetail" 时有意义; 从详情返回编队时**刻意不清空**,
@@ -154,7 +153,7 @@ function battleMeta(characters: Record<string, any>, party: string[]): BattleMet
 // - 战斗卡组 = 上阵角色个人卡组的集合。createBattle 直接引用传入的卡实例(不拷贝), 而个人卡组是
 //   城镇的持久资产, 故必须传副本, 否则战斗中的改动会污染城镇卡组。
 // - 只有存活角色参战: 本次远征内阵亡的角色不出战, 其个人卡组也一并排除。
-// - 净化粒子档位与战斗签条件经 battleModifier 注入 —— 引擎不认识能量与老虎机,
+// - 净化粒子档位经 encounterModifier 注入 —— 引擎不认识能量,
 //   只认识 EncounterModifier。
 function launchBattle(encounterId: string, isBoss: boolean): void {
   const session = useExploreStore.getState().session;
@@ -197,9 +196,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     };
   });
 
-  // ★ 能量档位的改造 + 本轮战斗签选中符号的改造, 由 battleModifier 一并合出来 ——
-  //   这里只调它一个, 分两处各算一半必然漏掉其中一半。
-  const mod = battleModifier(session, getMap(session.mapId).fillerEnemyIds);
+  const mod = encounterModifier(session.energy, session.pendingIsBoss, getMap(session.mapId).fillerEnemyIds);
   const meta = battleMeta(characters, party);
   // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个百分点数。
   const burden = burdenNow(session);
@@ -239,7 +236,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
   battleSettled: false,
   lastDropK: 0,
   lastDropTier: null,
-  lastSlotBonus: 0,
   lastChallengeBonus: 0,
   lastChallenges: [],
   detailCharId: null,
@@ -269,7 +265,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
       battleSettled: false,
       lastDropK: 0,
       lastDropTier: null,
-      lastSlotBonus: 0,
       lastChallengeBonus: 0,
       lastChallenges: [],
       screen: "explore",
@@ -309,7 +304,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const challengeBonus = won ? earnedChallengeBonus(battle) : 0;
     const lastDropK = dropCoefficient(session, challengeBonus);
     const lastDropTier = energyTier(session.energy);
-    const lastSlotBonus = session.pendingMatchBonus + session.pendingDropBonus;
     const lastChallenges = battle.challenges.map((run) => ({ ...run }));
     // ★ 从战斗单位而非遭遇战定义里取敌人 defId —— 能量档位追加进来的敌人也要计入经验与掉落,
     //   而 EncounterDef.enemies 里没有它们。
@@ -350,7 +344,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
         battleSettled: false,
         lastDropK: 0,
         lastDropTier: null,
-        lastSlotBonus: 0,
         lastChallengeBonus: 0,
         lastChallenges: [],
       });
@@ -381,7 +374,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
         name: lastDropTier.name,
         rewardMultiplier: lastDropTier.rewardMultiplier,
       },
-      lastSlotBonus,
       lastChallengeBonus: challengeBonus,
       lastChallenges,
     });
@@ -401,7 +393,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
         battleSettled: false,
         lastDropK: 0,
         lastDropTier: null,
-        lastSlotBonus: 0,
         lastChallengeBonus: 0,
         lastChallenges: [],
       });
@@ -414,7 +405,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
       battleSettled: false,
       lastDropK: 0,
       lastDropTier: null,
-      lastSlotBonus: 0,
       lastChallengeBonus: 0,
       lastChallenges: [],
     });
@@ -455,7 +445,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
         battleSettled: false,
         lastDropK: 0,
         lastDropTier: null,
-        lastSlotBonus: 0,
         lastChallengeBonus: 0,
         lastChallenges: [],
       });
@@ -527,7 +516,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
       battleSettled: false,
       lastDropK: 0,
       lastDropTier: null,
-      lastSlotBonus: 0,
       lastChallengeBonus: 0,
       lastChallenges: [],
     });
@@ -546,7 +534,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
       battleSettled: false,
       lastDropK: 0,
       lastDropTier: null,
-      lastSlotBonus: 0,
       lastChallengeBonus: 0,
       lastChallenges: [],
     });

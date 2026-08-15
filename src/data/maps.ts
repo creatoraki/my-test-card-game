@@ -7,7 +7,6 @@
 // 战斗背景见 ui/battleBg.ts, 场景氛围见 ui/ambience.ts, 三处都按下面的 id 作键。
 
 import type { BattleTier } from "../explore/types";
-import { NEON_BOSS_REEL, NEON_NORMAL_REEL } from "./slotSymbols";
 
 export interface MapDef {
   id: string;
@@ -21,11 +20,7 @@ export interface MapDef {
   eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
   // 推进战斗档位 → 遭遇战。轮次到档位的映射是全局固定表(EXPLORE_RULES.battleTierByRound),
   // 地图只负责说「本图的轻/中/大/BOSS 各是谁」。
-  // ★ 这是**档位底子**: 战斗签的符号不指定 encounterId 时就打这一场(见 data/slotSymbols.ts)。
   battleEncounters: Record<BattleTier, string>;
-  // 战斗签转轮池(设计文档 §2.4 / §9.4): 每档一组符号 id, **每组必须恰好 8 个** ——
-  // 三连概率 = 1 / 符号数², 数量不齐会让同花加成的基线在不同档位间漂移。
-  slotPoolsByTier: Record<BattleTier, string[]>;
   fillerEnemyIds: string[]; // 能量档位低时追加的敌人(第 4 档起 +1, BOSS 第 4 档起 +1 护卫)
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
 }
@@ -45,13 +40,6 @@ export const MAPS: MapDef[] = [
       heavy: "n-compactor", // 报废压缩机
       boss: "n-boss", // 回收总控
     },
-    // 轻/中/大共用同一组 8 符号(5 战斗卡 + 3 准备卡); BOSS 轮换成 8 种 BOSS 开局条件。
-    slotPoolsByTier: {
-      light: NEON_NORMAL_REEL,
-      medium: NEON_NORMAL_REEL,
-      heavy: NEON_NORMAL_REEL,
-      boss: NEON_BOSS_REEL,
-    },
     fillerEnemyIds: ["radio-bot"],
     startingEnergy: 100,
   },
@@ -68,12 +56,6 @@ export const MAPS: MapDef[] = [
       medium: "",
       heavy: "",
       boss: "",
-    },
-    slotPoolsByTier: {
-      light: [],
-      medium: [],
-      heavy: [],
-      boss: [],
     },
     fillerEnemyIds: [],
     startingEnergy: 100,
@@ -92,12 +74,6 @@ export const MAPS: MapDef[] = [
       heavy: "",
       boss: "",
     },
-    slotPoolsByTier: {
-      light: [],
-      medium: [],
-      heavy: [],
-      boss: [],
-    },
     fillerEnemyIds: [],
     startingEnergy: 100,
   },
@@ -115,12 +91,6 @@ export const MAPS: MapDef[] = [
       heavy: "",
       boss: "",
     },
-    slotPoolsByTier: {
-      light: [],
-      medium: [],
-      heavy: [],
-      boss: [],
-    },
     fillerEnemyIds: [],
     startingEnergy: 100,
   },
@@ -137,12 +107,6 @@ export const MAPS: MapDef[] = [
       medium: "",
       heavy: "",
       boss: "",
-    },
-    slotPoolsByTier: {
-      light: [],
-      medium: [],
-      heavy: [],
-      boss: [],
     },
     fillerEnemyIds: [],
     startingEnergy: 100,
