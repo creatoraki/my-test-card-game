@@ -158,8 +158,12 @@
   }
 }
 .combatant[data-dead] {
-  opacity: 0;
   pointer-events: none;
+}
+.combatant[data-dead] .combatant-figure {
+  opacity: 0;
+  visibility: hidden;
+  animation: none;
 }
 .combatant[data-death="drain"] {
   /* 文档性钩子: drain 阶段保持活体外观, 只让 HpBar 自己完成掉血演出。 */

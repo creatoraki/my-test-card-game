@@ -69,16 +69,24 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
 /** 敌人自己的戏: 先把镜头聚焦到施法者、落位后再起蓄力(见 BattleScreen 的 focusLead)。 */
 export const isFoeLedShot = (p: ShotPreset) => p.kind === "foe" || p.kind === "foeCast";
 
+// 击杀冲击只覆盖打击感参数, 取景与节拍留给动画对应的 base 预设, 避免长特效被 kill 的 hold 截断。
+function killShot(base: ShotPreset): ShotPreset {
+  if (base.hold <= SHOTS.kill.hold) return SHOTS.kill;
+  const { punch, shake, creep, hitstop, slowmo } = SHOTS.kill;
+  return { ...base, kind: "kill", punch, shake, creep, hitstop, slowmo };
+}
+
 export function pickShot(ctx: ShotContext): ShotPreset {
   if (ANIM[ctx.anim].kind === "support") return ctx.actorIsEnemy ? SHOTS.foeCast : SHOTS.none;
   if (!ctx.targetInStage) return SHOTS.foe;
-  if (ctx.isKill) return SHOTS.kill;
-  if (ctx.targetCount >= 2) return SHOTS.aoe;
-  if (ctx.anim === "iai-slash") return SHOTS.iai;
-  if (ctx.anim === "blade-slash") return SHOTS.blade;
-  if (ctx.anim === "tri-slash") return SHOTS.tri;
-  if (ctx.anim === "blood-slash") return SHOTS.blood;
-  if (ctx.anim === "sword-fall" || ctx.shake === 2 || ctx.damageRatio >= 0.35) return SHOTS.heavy;
-  if (ctx.shake === 1 && ctx.damageRatio < 0.15) return SHOTS.light;
-  return SHOTS.normal;
+  const base =
+    ctx.targetCount >= 2 ? SHOTS.aoe
+      : ctx.anim === "iai-slash" ? SHOTS.iai
+        : ctx.anim === "blade-slash" ? SHOTS.blade
+          : ctx.anim === "tri-slash" ? SHOTS.tri
+            : ctx.anim === "blood-slash" ? SHOTS.blood
+              : ctx.anim === "sword-fall" || ctx.shake === 2 || ctx.damageRatio >= 0.35 ? SHOTS.heavy
+                : ctx.shake === 1 && ctx.damageRatio < 0.15 ? SHOTS.light
+                  : SHOTS.normal;
+  return ctx.isKill ? killShot(base) : base;
 }

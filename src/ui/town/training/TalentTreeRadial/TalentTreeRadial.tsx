@@ -410,6 +410,7 @@ export function TalentTreeRadial({
                 {branch.nodes.map((node, idx) => {
                   const point = branch.nodePoints[idx];
                   const radius = nodeRadius(node, idx);
+                  const iconSize = (TRACK_ICON_SIZE * radius) / 36;
                   const state = nodeStateOf(badge, node, activated, remaining);
                   const active = state === "active" || state === "refundable";
                   const isLatest = pulse?.nodeId === node.id;
@@ -451,7 +452,7 @@ export function TalentTreeRadial({
                         <circle className={s["trr-node-inner"]} r={radius - 6} />
                         <g
                           className={s["trr-node-icon"]}
-                          transform={`translate(${-TRACK_ICON_SIZE / 2}, ${-TRACK_ICON_SIZE / 2}) scale(${TRACK_ICON_SIZE / TRACK_ICON_VIEWBOX})`}
+                          transform={`translate(${-iconSize / 2}, ${-iconSize / 2}) scale(${iconSize / TRACK_ICON_VIEWBOX})`}
                         >
                           <TrackIcon branchId={badge.branches[branch.branchIndex]?.id ?? ""} />
                         </g>

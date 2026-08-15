@@ -527,7 +527,13 @@ export function BattleScreen() {
     let lastAnim: CardAnim | null = null;
     plans.forEach(({ step, preset, targetIds, focusIds, keepCamera }, index) => {
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
-      const hold = preset.hold * Math.max(0.55, 0.78 ** repeat);
+      const fx = ANIM[step.anim];
+      const impactMs = fx.proc?.impactMs ?? fx.sprite?.impactMs ?? 0;
+      const holdFloor = Math.max(
+        fx.hold,
+        preset.kind === "kill" ? impactMs + DEATH.drain + DEATH.vanish + 40 : 0,
+      );
+      const hold = Math.max(preset.hold * Math.max(0.55, 0.78 ** repeat), holdFloor);
       const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
       const telegraphKind: TelegraphKind = ANIM[step.anim].kind === "support" ? "buff" : "attack";
       const focus = () => (preset.kind === "none" ? null : computeCamera(focusIds, preset));
@@ -587,13 +593,10 @@ export function BattleScreen() {
         run: () => {
           setTelegraph(null);
           const proc = ANIM[step.anim].proc;
-          const impactDelay = proc?.impactMs ?? 0;
-          if (proc?.damageAtImpact) {
-            deaths.setImpactOffset(0);
-          } else {
-            deaths.setImpactOffset(impactDelay);
-            commit(step.snapshot);
-          }
+          const impactDelay = impactMs;
+          // 死亡闸门要和实际扣血快照同刻启动, 不再把顿帧/慢镜额外叠到死亡表现上。
+          deaths.setImpactOffset(0);
+          if (!proc?.damageAtImpact) commit(step.snapshot);
           const hitSeq = ++hitSeqRef.current;
           const map: Record<string, HitFx> = {};
           for (const h of step.hits) {
