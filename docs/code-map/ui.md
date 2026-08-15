@@ -88,7 +88,8 @@ src/ui/
 | --- | --- |
 | [RouteBoard](../../src/ui/explore/RouteBoard/RouteBoard.tsx) | SVG 等距路由图。统一由 `sx()` / `sy()` 投影，阶段依次展示生成、封存、桥接揭示、入口选择、走线、落点和路径披露；隐藏桥接时不能读取引擎求解结果。 |
 | [NodeTip](../../src/ui/explore/NodeTip/NodeTip.tsx) | 节点悬浮详情浮卡：贴在被悬停的瓦片旁展示事件标题与描述，落位由 RouteBoard 导出的 `nodeCenter` / `NODE_ICON_TOP` 算，越界时自动左右贴边或翻到瓦片下方；只讲「这是什么」，不含粒子、风险与选项预览。 |
-| [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端面板：展示两个服务槽位、锁定货架、食品报价、物品详情、公开 BUFF 概率与关闭入口；只派发购买和离开 action，不承载交易规则。 |
+| [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端内容面板：展示两个服务槽位、锁定货架、食品报价、物品详情、公开 BUFF 概率与关闭入口；由 `ShopOverlay` 承载，只派发购买和关闭 action，不承载交易规则。 |
+| [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，承载 `MerchantPanel` 与本节点摘要；关闭交易直接回到节点决策。 |
 | [SlotReels](../../src/ui/explore/SlotReels/SlotReels.tsx) | 战斗签老虎机：全屏三列卡带和停止摇杆，使用独立舞台，不复用普通探索浮层。 |
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`。 |

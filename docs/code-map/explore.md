@@ -16,6 +16,6 @@
 | [slot.test.ts](../../src/explore/slot.test.ts) | 符号数、三轮不同相、组合数值、准备卡回落和阶段白名单。 |
 | [session.test.ts](../../src/explore/session.test.ts) | 阶段机、节点保底、粒子、能量档位、六轮闭环、血量继承、团灭、背包和投递口。 |
 
-关键边界：流程收尾链为 `routeDisclosure → slotSpinning → slotChoosing → inBattle`；节点成长链为 `resolving → pendingLoot/pendingActions → resting → npcEvent → npcResolving → atNode`。交易终端与普通分支事件并行：`arriveNode` 生成锁定货架，`shop.ts` 负责原子交易，关闭终端后再回到普通节点结算。`session.startSlot` 是路由图到战斗签的接缝，`session.chooseSlotCard` 是战斗签到战斗的接缝。store 只负责克隆和编排，不把背包规则塞进 `engine`。
+关键边界：流程收尾链为 `routeDisclosure → slotSpinning → slotChoosing → inBattle`；节点成长链为 `resolving → pendingLoot/pendingActions → resting → npcEvent → npcResolving → atNode`。交易终端与普通分支事件并行：`landed` 阶段选择带 `OPEN_SHOP` 的选项后进入 `shopping`，`shop.ts` 负责原子交易，`closeShopping` 写入成交记录后直接回到 `atNode`。`session.startSlot` 是路由图到战斗签的接缝，`session.chooseSlotCard` 是战斗签到战斗的接缝。store 只负责克隆和编排，不把背包规则塞进 `engine`。
 
 `slot.reelIndexAt` 与 [SlotReels.css](../../src/ui/SlotReels.css) 的 `slotSpin` 是同一件事的数值与表现两面，修改一处必须同步检查另一处。

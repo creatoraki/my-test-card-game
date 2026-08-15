@@ -380,6 +380,7 @@ export function canUseItem(s: ExploreState): boolean {
   return (
     s.phase === "choosingEntry" ||
     s.phase === "landed" ||
+    s.phase === "shopping" ||
     s.phase === "resolving" ||
     s.phase === "atNode"
   );
@@ -1078,8 +1079,6 @@ export function arriveNode(s: ExploreState): boolean {
   s.pendingNotes = [];
   s.pendingStory = [];
   s.phase = "landed";
-  const event = landedEvent(s);
-  if (event?.services?.length) openShop(s, event);
   return true;
 }
 
@@ -1087,9 +1086,6 @@ export function arriveNode(s: ExploreState): boolean {
 export function landedChoices(s: ExploreState): EventChoice[] {
   const ev = landedEvent(s);
   if (!ev) return [];
-  if (ev.services?.length) {
-    return [{ id: "leave", label: "关闭页面", desc: "关闭交易终端并离开", energyDelta: 0 }];
-  }
   if (ev.choices?.length) return ev.choices;
   return [
     {
@@ -1143,7 +1139,6 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 
   const energyBefore = s.energy;
   const notes: string[] = [];
-  if (ev.services?.length) notes.push(...closeShop(s));
 
   // ① 节点的基础消耗。「隐匿通道」这类效果免的就是这一份。
   if (s.freeNodes > 0) {
@@ -1151,6 +1146,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     notes.push("隐匿通道: 本节点不消耗粒子");
   } else {
     changeEnergy(s, -EXPLORE_RULES.energyPerNode);
+    notes.push(`净化粒子 −${EXPLORE_RULES.energyPerNode}`);
   }
 
   // ② 分支自己的额外增减
@@ -1161,6 +1157,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 
   let leaving = false;
   let endRegion = false;
+  let openTerminal = false;
   let nodeBattleTier: BattleTier | null = null;
   const outcome = resolveEventOutcome(s, choice);
   const effects = outcome?.effects ?? choice.effects ?? ev.effects ?? [];
@@ -1173,6 +1170,10 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     }
     if (e.type === "END_REGION") {
       endRegion = true;
+      continue;
+    }
+    if (e.type === "OPEN_SHOP") {
+      openTerminal = true;
       continue;
     }
     if (e.type === "START_NODE_BATTLE") {
@@ -1222,6 +1223,12 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     s.pendingNotes = [...notes, "本轮推进到此为止"];
   }
 
+  if (openTerminal && ev.services?.length) {
+    openShop(s, ev);
+    s.phase = "shopping";
+    return true;
+  }
+
   s.phase = "resolving";
   return true;
 }
@@ -1233,6 +1240,28 @@ export function confirmNode(s: ExploreState): boolean {
   if (s.pendingPickup.length || s.pendingLoot.length || s.pendingActions.length) return false;
   s.pendingStory = [];
   s.chuteOpen = false; // 投递口只在开启它的那个节点有效
+  const event = landedEvent(s);
+  if (event?.hiddenRest) {
+    s.restNpcId = event.hiddenRest.npcId;
+    s.phase = "resting";
+  } else {
+    s.phase = "atNode";
+  }
+  return true;
+}
+
+export function closeShopping(s: ExploreState): boolean {
+  if (s.phase !== "shopping") return false;
+  if (s.pendingPickup.length || s.pendingLoot.length || s.pendingActions.length) return false;
+  const notes = closeShop(s);
+  if (notes.length) {
+    s.pendingNotes = [...s.pendingNotes, ...notes];
+    const last = s.history[s.history.length - 1];
+    if (last) last.note = `${last.note} · ${notes.join(" · ")}`;
+    logLine(s, `交易终端: ${notes.join(" · ")}`);
+  }
+  s.pendingStory = [];
+  s.chuteOpen = false;
   const event = landedEvent(s);
   if (event?.hiddenRest) {
     s.restNpcId = event.hiddenRest.npcId;
@@ -1515,6 +1544,7 @@ export function canOpenBackpack(s: ExploreState): boolean {
     s.phase === "sealed" ||
     s.phase === "choosingEntry" ||
     s.phase === "landed" ||
+    s.phase === "shopping" ||
     s.phase === "resolving" ||
     s.phase === "resting" ||
     s.phase === "npcEvent" ||
@@ -1532,7 +1562,7 @@ export function landedEvent(s: ExploreState): NodeEvent | null {
 }
 
 export function landedShop(s: ExploreState): ShopState | null {
-  return s.phase === "landed" ? s.shop : null;
+  return s.phase === "shopping" ? s.shop : null;
 }
 
 // 「再推进一个节点, 能量会掉到哪」—— 供 atNode 的后果预告与跨档预警用(§11.2)。

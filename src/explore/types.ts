@@ -96,6 +96,7 @@ export type ExploreEffect =
   | { type: "EQUIP_OFFER"; count: number; slot?: EquipSlot }
   | { type: "REFORGE_BOND"; bias?: BondBias }
   | { type: "START_NODE_BATTLE"; tier: BattleTier }
+  | { type: "OPEN_SHOP" } // 打开本事件的交易终端, 由落点选项触发
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
 
@@ -191,7 +192,7 @@ export interface NodeEvent {
   energyDelta: number;
   effects?: ExploreEffect[];
   choices?: EventChoice[]; // 两项。缺省 = 单选项事件(等价于直接用上面的 energyDelta/effects)
-  services?: string[]; // 交易终端服务槽位, 最多两个; 有它时 choices 只由 session 生成离开项
+  services?: string[]; // 交易终端服务槽位, 最多两个; 由带 OPEN_SHOP 的选项拉起
   hiddenRest?: HiddenRest;
   // 允许出现的推进段区间(1-4, 含两端), 缺省 [1, 4]。深度分层的唯一声明处(设计文档 §2.3.2)。
   depth?: [number, number];
@@ -314,6 +315,7 @@ export type ExplorePhase =
   | "choosingEntry" // 桥接已隐去, 等玩家选入口通道。★ 全轮唯一一次自由选择
   | "advancing" // 信号沿通道向右推进中, 动画由 UI 驱动
   | "landed" // ★ 已抵达节点, **效果尚未结算**, 等玩家在浮层里选分支。不限时
+  | "shopping" // 交易终端浮层开启, 是 landed 之后与 resolving 并列的分叉相
   | "resolving" // 分支已结算完毕, 等玩家确认
   | "resting"
   | "npcEvent"

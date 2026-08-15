@@ -75,7 +75,7 @@ export function openShop(s: ExploreState, event: NodeEvent): void {
 }
 
 export function tradeQuote(s: ExploreState, slotIndex: number, stockIndex?: number): TradeQuote {
-  if (s.phase !== "landed") return invalid("当前不在交易终端页面。");
+  if (s.phase !== "shopping") return invalid("当前不在交易终端页面。");
   const shop = s.shop;
   if (!shop) return invalid("交易终端尚未接入。");
   const slot = shop.slots[slotIndex];

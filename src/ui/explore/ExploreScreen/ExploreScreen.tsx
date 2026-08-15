@@ -32,7 +32,6 @@ import {
   canRetreat,
   landedChoices,
   landedEvent,
-  landedShop,
   npcChoices,
   projectedEnergy,
 } from "@/explore/session";
@@ -45,8 +44,8 @@ import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
 import LootPickup from "@/ui/explore/LootPickup";
-import MerchantPanel from "@/ui/explore/MerchantPanel";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
+import ShopOverlay from "@/ui/explore/ShopOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import NodeTip from "@/ui/explore/NodeTip";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
@@ -127,7 +126,6 @@ export function ExploreScreen() {
   const revealDone = useExploreStore((s) => s.revealDone);
   const pickEntry = useExploreStore((s) => s.pickEntry);
   const arrive = useExploreStore((s) => s.arrive);
-  const buyFromShop = useExploreStore((s) => s.buyFromShop);
   const chooseEventOption = useRunStore((s) => s.chooseEventOption);
   const confirmNode = useExploreStore((s) => s.confirmNode);
   const restEat = useExploreStore((s) => s.restEat);
@@ -291,8 +289,6 @@ export function ExploreScreen() {
 
   const board = session.board;
   const ev = landedEv;
-  const shop = landedShop(session);
-  const merchantEvent = Boolean(ev?.services?.length && shop);
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
   // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
@@ -301,6 +297,7 @@ export function ExploreScreen() {
   const hasPendingAction = session.pendingActions.length > 0;
   const stackedModal =
     session.phase === "landed" ||
+    session.phase === "shopping" ||
     session.phase === "resolving" ||
     session.phase === "npcEvent" ||
     session.phase === "npcResolving";
@@ -317,11 +314,13 @@ export function ExploreScreen() {
   // 落点浮层开着的两个阶段: 四角 HUD 轻度后退, 把注意力收拢到面板上(不加全屏遮罩)。
   const focused =
     session.phase === "landed" ||
+    session.phase === "shopping" ||
     session.phase === "resolving" ||
     session.phase === "resting" ||
     session.phase === "npcEvent" ||
     session.phase === "npcResolving";
-  const eventModalOpen = session.phase === "landed" || session.phase === "resolving";
+  const eventModalOpen =
+    session.phase === "landed" || session.phase === "shopping" || session.phase === "resolving";
   const recede = focused ? s["is-recede"] : undefined;
 
   // 浮现演出的 2 秒里整块画布不接受输入 —— 这一段是纯演出, 中途插手会让计时器与画面对不上。
@@ -566,7 +565,7 @@ export function ExploreScreen() {
                 s["expl-panel"],
                 s[`k-${ev.kind}`],
                 session.phase === "landed" && s["has-choices"],
-                merchantEvent && s["is-merchant"],
+                session.phase === "shopping" && s["is-shopping"],
               )}
             >
               <span className={s["panel-frame"]} aria-hidden />
@@ -618,17 +617,7 @@ export function ExploreScreen() {
                       </span>
                     </p>
                   </div>
-                  {ev.services?.length && shop ? (
-                    <div className={s["expl-panel-slot"]}>
-                      <MerchantPanel
-                        session={session}
-                        shop={shop}
-                        onBuy={buyFromShop}
-                        canClose={desc.done && committing == null && !session.pendingActions.length}
-                        onClose={() => takeOption(0)}
-                      />
-                    </div>
-                  ) : (
+                  {session.phase !== "shopping" && (
                     <div className={s["expl-panel-act"]}>
                       {session.phase === "landed" ? (
                         // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
@@ -688,7 +677,7 @@ export function ExploreScreen() {
                             );
                           })}
                         </div>
-                      ) : (
+                      ) : session.phase === "resolving" ? (
                         <>
                           <div className={s["expl-notes"]}>
                             {session.pendingNotes.length ? (
@@ -744,7 +733,7 @@ export function ExploreScreen() {
                             </button>
                           </div>
                         </>
-                      )}
+                      ) : null}
                     </div>
                   )}
               </div>
@@ -897,6 +886,8 @@ export function ExploreScreen() {
             每轮的第二个关卡。动词与路由图刻意不同 —— 那边考记忆, 这边考时机(§2.4)。
             会话推进在 SlotReels 内部完成, 这里只把「切到战斗界面」这一步传进去。 */}
         <SlotReels onEnterBattle={goBattle} />
+
+        <ShopOverlay />
 
         {/* ---- 背包面板 ----
             替换模式(pendingPickup 非空)时强制打开: 「拿不拿得下」这个决定必须当场做完,

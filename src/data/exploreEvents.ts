@@ -1085,6 +1085,10 @@ const ECONOMY: NodeEvent[] = [
     description: "冷链兑换台已接入。本次可用服务：临期食品商店、医疗服务。两种服务使用不同食品货币。",
     energyDelta: 0,
     services: ["near-expiry-food-shop", "medical-service"],
+    choices: [
+      { id: "trade", label: "刷卡进入兑换台", desc: "接入冷链交易终端", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "leave", label: "不做交易，转身离开", desc: "不支付任何食品", energyDelta: 0, story: "你没有动兑换台上的任何东西。" },
+    ],
   },
   {
     id: "material-procurement-terminal",
@@ -1094,6 +1098,10 @@ const ECONOMY: NodeEvent[] = [
     description: "采购室已恢复。通用材料接受面包，地区采集材料接受炸鸡；两套货架分别锁定。",
     energyDelta: 0,
     services: ["general-material-shop", "regional-gathering-shop"],
+    choices: [
+      { id: "trade", label: "接入定向采购台", desc: "查看两套材料货架", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "leave", label: "放弃采购，继续前进", desc: "不支付任何食品", energyDelta: 0, story: "你记下采购室的坐标，却没有打开任何货架。" },
+    ],
   },
   {
     id: "specimen-exchange-locker",
@@ -1103,6 +1111,10 @@ const ECONOMY: NodeEvent[] = [
     description: "样本交换柜已开启。炸鸡可兑换怪物材料，汉堡可兑换消耗品；每类最多购买 1 件。",
     energyDelta: 0,
     services: ["monster-material-shop", "consumable-shop"],
+    choices: [
+      { id: "trade", label: "解锁样本交换柜", desc: "查看怪物材料与消耗品", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "leave", label: "不交换样本，转身离开", desc: "不支付任何食品", energyDelta: 0, story: "你让样本柜继续保持封闭，带着空手离开。" },
+    ],
   },
   {
     id: "security-gear-checkpoint",
@@ -1112,6 +1124,10 @@ const ECONOMY: NodeEvent[] = [
     description: "安保验收门已生成武器和防具货架。所有装备属性、品质和占格已公开。",
     energyDelta: 0,
     services: ["weapon-shop", "armor-shop"],
+    choices: [
+      { id: "trade", label: "刷卡查看装备货架", desc: "接入武器与防具终端", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "leave", label: "暂不验收装备", desc: "不支付任何食品", energyDelta: 0, story: "你没有触碰安保验收门，装备货架在身后重新降下。" },
+    ],
   },
   {
     id: "accessory-protocol-booth",
@@ -1121,6 +1137,10 @@ const ECONOMY: NodeEvent[] = [
     description: "校准厅提供饰品和团队协议。饰品占用背包，团队 BUFF 按本次远征常驻处理。",
     energyDelta: 0,
     services: ["accessory-shop", "random-party-buff"],
+    choices: [
+      { id: "trade", label: "接入校准协议台", desc: "查看饰品与团队协议", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "leave", label: "跳过校准，继续前进", desc: "不支付任何食品", energyDelta: 0, story: "你决定暂时不改动队伍协议，离开了校准厅。" },
+    ],
   },
   {
     id: "skill-archive-audit-terminal",
@@ -1130,6 +1150,10 @@ const ECONOMY: NodeEvent[] = [
     description: "技能档案终端已接入。抽卡使用披萨，删卡使用面包 ×2；请选择角色后再确认。",
     energyDelta: 0,
     services: ["card-draw-service", "card-remove-service"],
+    choices: [
+      { id: "trade", label: "刷卡进入审计终端", desc: "查看抽卡与删卡服务", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "leave", label: "保留当前卡组，转身离开", desc: "不支付任何食品", energyDelta: 0, story: "你合上技能档案，没有让审计终端改动卡组。" },
+    ],
   },
 ];
 

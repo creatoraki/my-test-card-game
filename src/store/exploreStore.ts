@@ -34,6 +34,7 @@ import {
   restSkip,
   chooseNpcOption,
   cheatChangeEnergy,
+  closeShopping,
   confirmNpc,
   shipHome,
   startReveal,
@@ -67,6 +68,7 @@ interface ExploreStore {
   arrive: () => ExploreState | null; // 推进动画播完 → landed(只落点, 不结算)
   pickOption: (index: number) => ExploreState | null; // 落点浮层选分支
   buyFromShop: (slotIndex: number, stockIndex?: number) => boolean;
+  closeShop: () => void;
   confirmNode: () => void; // 结算浮层「确认」→ atNode 决策
   pushOn: () => void; // 「继续推进」→ 下一个推进段
   leaveRegion: () => void; // 「前往下一区域」→ 离场行走演出(leaving), 无路可走则直接披露
@@ -164,6 +166,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
       return ok;
     });
     return ok;
+  },
+
+  closeShop: () => {
+    mutate(get, set, (d) => closeShopping(d));
   },
 
   confirmNode: () => {

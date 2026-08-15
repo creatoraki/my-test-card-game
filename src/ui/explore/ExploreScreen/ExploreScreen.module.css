@@ -707,10 +707,6 @@
     transparent 100%
   );
 }
-.expl-panel.is-merchant .expl-panel-read {
-  flex: none;
-  height: 110px;
-}
 .expl-panel-slot {
   display: flex;
   flex: 1;
@@ -719,13 +715,6 @@
   overflow-y: auto;
   scrollbar-color: var(--k-line) transparent;
   scrollbar-width: thin;
-}
-.expl-panel.is-merchant .expl-panel-slot {
-  overflow-y: auto;
-}
-.expl-panel.is-merchant .expl-panel-slot > div {
-  flex: 1;
-  min-height: 0;
 }
 .expl-panel-act {
   position: relative;
@@ -743,8 +732,9 @@
   box-shadow: 0 0 12px var(--k-line);
   content: "";
 }
-.expl-panel.is-merchant .expl-panel-act {
-  display: none;
+.expl-panel.is-shopping {
+  opacity: 0.55;
+  pointer-events: none;
 }
 /* ── 落点 → 浮层的光柱 ──
    从落点终点卡上沿升起的一道窄光, 把「是这张卡把面板叫出来的」说清楚。

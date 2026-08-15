@@ -88,10 +88,38 @@ let phase = 'drain', phaseStart = performance.now();
 let pileApex = BOT;
 
 /* ========== 工具函数 ========== */
-// 沙漏半宽轮廓（指数 1.6 使颈部过渡更自然）
+// 沙漏半宽轮廓：直接沿玻璃 Bézier 采样查表，避免沙面与玻璃壁之间出现“空气墙”缝隙
+const GLASS_HALF_WIDTH_LUT = (() => {
+  const N = 220;
+  const pts = [];
+  for(let i=0;i<=N;i++){
+    const t = i/N, mt = 1-t;
+    const y = TOP*mt*mt*mt
+            + 3*(TOP+95)*t*mt*mt
+            + 3*(-55)*t*t*mt
+            + 0*t*t*t;
+    const x = -R*mt*mt*mt
+            + 3*(-R)*t*mt*mt
+            + 3*(-NECK)*t*t*mt
+            + (-NECK)*t*t*t;
+    pts.push({ h:-y, w:-x });
+  }
+  pts.sort((a,b)=>a.h-b.h);
+  return pts;
+})();
 function bulbHalfWidth(y){
-  const t = Math.min(1, Math.abs(y) / 170);
-  return NECK + (R - NECK) * Math.pow(t, 1.6);
+  const h = Math.min(170, Math.max(0, Math.abs(y)));
+  if(h <= 0) return NECK;
+  if(h >= 170) return R;
+  let lo = 0, hi = GLASS_HALF_WIDTH_LUT.length - 1;
+  while(lo + 1 < hi){
+    const mid = (lo + hi) >> 1;
+    if(GLASS_HALF_WIDTH_LUT[mid].h <= h) lo = mid; else hi = mid;
+  }
+  const a = GLASS_HALF_WIDTH_LUT[lo], b = GLASS_HALF_WIDTH_LUT[hi];
+  const k = (h - a.h) / (b.h - a.h || 1);
+  return a.w + (b.w - a.w) * k;
+
 }
 
 // 玻璃裁剪路径
@@ -183,13 +211,20 @@ function drawSand(f){
   if(f > .002){
     // 沙面整体随 f 下降
     const surfaceY = -6 - 148*f;
+      // 漏斗底部固定在颈部，沙面从两侧玻璃壁向中心凹陷
+      const craterY = 4;
+      const dip = craterY - surfaceY;
+      const STEPS = 28;
+      const Ws = bulbHalfWidth(surfaceY) + 4;
+      const craterR = Math.max(20, Ws * .42);
+      /*
     // 下凹深度：开始小 → 中间最大 → 快漏完时收窄
     const dipStrength = Math.sin(Math.PI * f);          // 0→1→0 钟形
     const dip = 6 + 22 * dipStrength;                   // 6~28px
     // 凹陷半径也随 f 变化（越接近颈部越窄）
     const craterR = 18 + 20 * dipStrength;
 
-    const Ws = bulbHalfWidth(surfaceY) + 6;
+    */
 
     // 沙体渐变
     const g = ctx.createLinearGradient(0, surfaceY, 0, 8);
@@ -197,9 +232,24 @@ function drawSand(f){
     g.addColorStop(1, rgba(shade(cur,.5),.98));
     ctx.fillStyle = g;
 
-    // 用多段贝塞尔精确描绘「边缘高 → 中心凹」的漏斗截面
+    // 用采样折线沿玻璃轮廓内收，形成真正通到颈部的漏斗面
     ctx.beginPath();
     ctx.moveTo(-Ws, surfaceY);
+      for(let i=1;i<STEPS;i++){
+        const q = i/STEPS;
+        const yy = surfaceY + dip*q;
+        const r = bulbHalfWidth(yy) * (1 - Math.pow(q, 1.2));
+        ctx.lineTo(-r, yy);
+      }
+      ctx.lineTo(0, craterY);
+      for(let i=STEPS-1;i>0;i--){
+        const q = i/STEPS;
+        const yy = surfaceY + dip*q;
+        const r = bulbHalfWidth(yy) * (1 - Math.pow(q, 1.2));
+        ctx.lineTo(r, yy);
+      }
+      ctx.lineTo(Ws, surfaceY);
+      /*
     // 左半弧：从壁边平滑滑入凹陷底部
     ctx.bezierCurveTo(
       -Ws*0.55, surfaceY + dip*0.15,
@@ -212,13 +262,16 @@ function drawSand(f){
        Ws*0.55, surfaceY + dip*0.15,
        Ws, surfaceY
     );
-    // 向下封闭到球体底部区域
+    */
+      // 向下封闭到球体底部区域
     ctx.lineTo(Ws, 8);
     ctx.lineTo(-Ws, 8);
     ctx.closePath();
     ctx.fill();
+      /*
 
-    // 凹陷内部阴影（增强立体漏斗感）
+    */
+      // 凹陷内部阴影（增强立体漏斗感）
     const rg = ctx.createRadialGradient(
       0, surfaceY + dip, 1,
       0, surfaceY + dip, craterR * 1.2
