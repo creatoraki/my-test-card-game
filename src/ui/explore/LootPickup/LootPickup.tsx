@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
+import { useRevealPresence } from "@/ui/common/ModalReveal";
 import ItemTooltip, {
   tooltipPointFromRect,
   type TooltipPoint,
@@ -9,6 +10,7 @@ import ItemTooltip, {
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
+import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { cx } from "@/ui/common/cx";
 import s from "./LootPickup.module.css";
 
@@ -19,7 +21,11 @@ interface FlyingLoot {
   to: { left: number; top: number };
 }
 
-function LootPickup() {
+interface LootPickupProps {
+  gate: boolean;
+}
+
+function LootPickup({ gate }: LootPickupProps) {
   const pendingLoot = useExploreStore((state) => state.session?.pendingLoot ?? []);
   const takeLoot = useExploreStore((state) => state.takeLoot);
   const takeAllLoot = useExploreStore((state) => state.takeAllLoot);
@@ -28,16 +34,20 @@ function LootPickup() {
   const [flying, setFlying] = useState<FlyingLoot | null>(null);
   const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
   const [lootMessage, setLootMessage] = useState<string | null>(null);
+  const presence = useRevealPresence(
+    gate && pendingLoot.length > 0,
+    pendingLoot,
+    panelRevealCloseMs(),
+  );
+  const displayed = presence.data;
 
   useEffect(() => {
-    if (hovered && !pendingLoot.some((stack) => stack.uid === hovered.uid)) {
+    if (hovered && !displayed.some((stack) => stack.uid === hovered.uid)) {
       setHovered(null);
     }
-  }, [hovered, pendingLoot]);
+  }, [displayed, hovered]);
 
-  if (!pendingLoot.length) return null;
-
-  const displayed = pendingLoot;
+  if (!presence.mounted || !displayed.length) return null;
 
   const pick = (stack: (typeof displayed)[number]) => {
     if (flying) return;
@@ -77,8 +87,14 @@ function LootPickup() {
     : null;
 
   return (
-    <div className={s["loot-layer"]}>
-      <section className={s["loot-panel"]} aria-label="待拾取物品">
+    <div className={s["loot-layer"]} data-closing={presence.closing || undefined}>
+      <section
+        className={cx(s["loot-panel"], s["panel-reveal"])}
+        data-closing={presence.closing || undefined}
+        style={panelRevealVars()}
+        aria-label="待拾取物品"
+      >
+        <span className={s["panel-bar"]} aria-hidden />
         <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
         <header className={s["loot-head"]}>

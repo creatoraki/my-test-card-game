@@ -6,6 +6,9 @@
   place-items: center;
   pointer-events: none;
 }
+.loot-layer[data-closing="true"] .loot-panel {
+  pointer-events: none;
+}
 
 .loot-panel {
   composes: panel-shell from "../styles/explorePanel.module.css";
@@ -19,7 +22,14 @@
   overflow: hidden;
   padding: 30px 36px 24px;
   pointer-events: auto;
-  animation: loot-in 360ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.panel-reveal {
+  composes: panel-reveal from "../styles/explorePanel.module.css";
+}
+
+.panel-bar {
+  composes: panel-bar from "../styles/explorePanel.module.css";
 }
 
 .panel-frame {
@@ -173,10 +183,6 @@
   width: var(--fly-w, 74px);
   pointer-events: none;
   animation: loot-fly 430ms cubic-bezier(0.2, 0.72, 0.28, 1) forwards;
-}
-
-@keyframes loot-in {
-  from { opacity: 0; transform: translateY(18px); }
 }
 
 @keyframes loot-fly {

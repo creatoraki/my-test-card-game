@@ -22,6 +22,133 @@
   );
 }
 
+.panel-reveal {
+  animation: panelRevealIn calc(var(--pr-bar-ms) + var(--pr-expand-ms)) var(--pr-ease) forwards;
+}
+
+.panel-reveal[data-closing="true"] {
+  animation: panelRevealOut var(--pr-close-ms) var(--pr-ease) forwards;
+}
+
+.panel-bar {
+  position: absolute;
+  z-index: 2;
+  top: calc(50% - 1.5px);
+  left: 0;
+  width: 100%;
+  height: 3px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--k), transparent);
+  box-shadow: 0 0 18px var(--k);
+  transform: scaleX(0);
+  transform-origin: center;
+  animation: panelBarIn calc(var(--pr-bar-ms) + var(--pr-expand-ms)) var(--pr-ease) forwards;
+}
+
+.panel-reveal[data-closing="true"] .panel-bar {
+  animation: panelBarOut var(--pr-close-ms) var(--pr-ease) forwards;
+}
+
+/* Keep both clip paths at six matching points so the cut-corner shape interpolates cleanly. */
+@keyframes panelRevealIn {
+  0% {
+    clip-path: polygon(
+      46% calc(50% - 2px),
+      54% calc(50% - 2px),
+      54% calc(50% + 2px),
+      54% calc(50% + 2px),
+      46% calc(50% + 2px),
+      46% calc(50% - 2px)
+    );
+  }
+  21% {
+    clip-path: polygon(
+      0 calc(50% - 2px),
+      100% calc(50% - 2px),
+      100% calc(50% + 2px),
+      100% calc(50% + 2px),
+      0 calc(50% + 2px),
+      0 calc(50% - 2px)
+    );
+  }
+  100% {
+    clip-path: polygon(
+      var(--notch) 0,
+      100% 0,
+      100% calc(100% - var(--notch)),
+      calc(100% - var(--notch)) 100%,
+      0 100%,
+      0 var(--notch)
+    );
+  }
+}
+
+@keyframes panelRevealOut {
+  0% {
+    clip-path: polygon(
+      var(--notch) 0,
+      100% 0,
+      100% calc(100% - var(--notch)),
+      calc(100% - var(--notch)) 100%,
+      0 100%,
+      0 var(--notch)
+    );
+  }
+  79% {
+    clip-path: polygon(
+      0 calc(50% - 2px),
+      100% calc(50% - 2px),
+      100% calc(50% + 2px),
+      100% calc(50% + 2px),
+      0 calc(50% + 2px),
+      0 calc(50% - 2px)
+    );
+  }
+  100% {
+    clip-path: polygon(
+      46% calc(50% - 2px),
+      54% calc(50% - 2px),
+      54% calc(50% + 2px),
+      54% calc(50% + 2px),
+      46% calc(50% + 2px),
+      46% calc(50% - 2px)
+    );
+  }
+}
+
+@keyframes panelBarIn {
+  0% { opacity: 1; transform: scaleX(0); }
+  21% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+
+@keyframes panelBarOut {
+  0% { opacity: 0; transform: scaleX(1); }
+  79% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 1; transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-reveal,
+  .panel-reveal[data-closing="true"] {
+    clip-path: polygon(
+      var(--notch) 0,
+      100% 0,
+      100% calc(100% - var(--notch)),
+      calc(100% - var(--notch)) 100%,
+      0 100%,
+      0 var(--notch)
+    );
+    animation: none;
+  }
+
+  .panel-bar,
+  .panel-reveal[data-closing="true"] .panel-bar {
+    display: none;
+    animation: none;
+  }
+}
+
 .panel-frame {
   position: absolute;
   z-index: 0;

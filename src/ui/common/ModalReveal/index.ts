@@ -1,5 +1,6 @@
 export { ModalReveal } from "./ModalReveal";
 export { useModalReveal } from "./useModalReveal";
+export { useRevealPresence } from "./useRevealPresence";
 export {
   CLOSE_MS,
   EASE_POP,

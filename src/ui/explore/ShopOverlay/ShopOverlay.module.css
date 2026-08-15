@@ -6,6 +6,15 @@
   place-items: center;
   background: #050b0dcc;
   pointer-events: none;
+  transition: opacity 380ms ease;
+}
+
+.layer[data-closing="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+.layer[data-closing="true"] .panel {
+  pointer-events: none;
 }
 
 .panel {
@@ -19,7 +28,14 @@
   max-height: 760px;
   padding: 26px 30px 22px;
   pointer-events: auto;
-  animation: shop-in 360ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.panel-reveal {
+  composes: panel-reveal from "../styles/explorePanel.module.css";
+}
+
+.panel-bar {
+  composes: panel-bar from "../styles/explorePanel.module.css";
 }
 
 .frame {
@@ -90,13 +106,6 @@
   border-color: #ffffff1c;
   background: transparent;
   color: var(--muted);
-}
-
-@keyframes shop-in {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.98);
-  }
 }
 
 @media (max-width: 720px) {

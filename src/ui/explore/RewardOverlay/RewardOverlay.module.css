@@ -6,6 +6,9 @@
   place-items: center;
   pointer-events: none;
 }
+.reward-layer[data-closing="true"] .reward-panel {
+  pointer-events: none;
+}
 
 .reward-panel {
   composes: panel-shell from "../styles/explorePanel.module.css";
@@ -19,7 +22,14 @@
   overflow: hidden;
   padding: 24px 30px 22px;
   pointer-events: auto;
-  animation: reward-in 360ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.panel-reveal {
+  composes: panel-reveal from "../styles/explorePanel.module.css";
+}
+
+.panel-bar {
+  composes: panel-bar from "../styles/explorePanel.module.css";
 }
 
 .panel-frame {
@@ -303,10 +313,6 @@
 .is-primary {
   border-color: #a7c9ff99;
   background: #2b527e;
-}
-
-@keyframes reward-in {
-  from { opacity: 0; transform: translateY(18px) scale(0.985); }
 }
 
 @media (prefers-reduced-motion: reduce) {

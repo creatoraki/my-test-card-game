@@ -16,7 +16,6 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -33,13 +32,11 @@ import {
   choiceStartsBattle,
   landedChoices,
   landedEvent,
-  npcChoices,
   projectedEnergy,
   roundBattleEvent,
 } from "@/explore/session";
 import type { ChoiceCost, EventChoice, NodeEvent } from "@/explore/types";
-import { getItemDef, getNpcEvent } from "@/data";
-import { countByItemId } from "@/items/inventory";
+import { getNpcEvent } from "@/data";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
@@ -47,6 +44,7 @@ import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
 import ExploreCommandBar from "@/ui/explore/ExploreCommandBar";
+import { EventModal, NpcModal, RestModal, type EventModalView, type NpcModalView, type RestModalView } from "./ExploreModals";
 import LootPickup from "@/ui/explore/LootPickup";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import ShopOverlay from "@/ui/explore/ShopOverlay";
@@ -55,7 +53,6 @@ import NodeTip from "@/ui/explore/NodeTip";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar";
 import { PollutionMeter } from "@/ui/common/PollutionMeter";
-import ItemSlot from "@/ui/common/item/ItemSlot";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
@@ -65,10 +62,11 @@ import {
   nodeCenter,
 } from "@/ui/explore/RouteBoard";
 import { prefersReducedMotion } from "@/ui/app/transitions";
+import { useRevealPresence } from "@/ui/common/ModalReveal";
+import { panelRevealCloseMs } from "@/ui/explore/styles/panelReveal";
 import { useTypewriter } from "@/ui/hooks/useTypewriter";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { mapArt, warmMapArt } from "@/ui/art/mapArt";
-import { eventArt } from "@/ui/art/eventArt";
 import { setTransitionOrigin } from "@/ui/app/transitionOrigin";
 import { cx } from "@/ui/common/cx";
 import s from "./ExploreScreen.module.css";
@@ -108,9 +106,9 @@ const COMMANDS = [
 // 这段时序读作一句话: **面板落定 → 标题浮字 → 正文讲完 → 选项才就位 → 落子有回响 → 结果逐条揭晓**。
 // 抵达一个落点是这个模式里唯一的叙事时刻, 值得花两三秒把它讲完; 中途不给跳过, 就是要玩家读完。
 const EVENT_BEAT = {
-  titleStart: 260, // 面板下滑过半(explDrop 600ms)时标题开始浮字, 早一点才不显得等
+  titleStart: 380, // 面板横线展开过半时标题开始浮字, 早一点会被裁掉
   titleChar: 45, // 标题每字间隔
-  descStart: 560, // 正文起播 —— 压着面板落定的那一刻
+  descStart: 720, // 正文起播 —— 压着面板落定的那一刻
   descCps: 34, // 正文速度(字/秒), 标点处由 useTypewriter 自己加停顿
   choiceStagger: 90, // 选项逐个浮现的间隔
   commit: 460, // 点下选项 → 真正派发 pickOption 的「判定」停顿
@@ -242,15 +240,6 @@ export function ExploreScreen() {
       ? panelEvent?.choices?.[0]?.story ?? ""
     : session?.pendingStory.join("\n\n") ?? "";
   const story = useTypewriter(storyText, 0, EVENT_BEAT.descCps);
-  const descScrollRef = useRef<HTMLParagraphElement>(null);
-  const descLiveRef = useRef<HTMLSpanElement>(null);
-  useLayoutEffect(() => {
-    const scrollBox = descScrollRef.current;
-    const liveText = descLiveRef.current;
-    if (!scrollBox || !liveText) return;
-    scrollBox.scrollTop = Math.max(0, liveText.scrollHeight - scrollBox.clientHeight);
-  }, [desc.shown, story.shown]);
-
   // 走出 landed(结算已派发, 或整轮被别的路径打断)就把「已点下」清掉,
   // 免得下一个落点一进来两个按钮就是暗的。
   useEffect(() => {
@@ -319,35 +308,79 @@ export function ExploreScreen() {
           ? battleFreeze.current?.choices ?? []
           : [];
 
+      const currentEvent = panelEvent ?? (session?.phase === "roundBattle"
+        ? {
+            id: `round-battle-${session.round}`,
+            kind: "battle" as const,
+            category: "battle" as const,
+            title: `推进战斗 · ${BATTLE_TIER_NAME[battleTierOf(session.round)]}`,
+            description: "本轮战斗事件池暂无可用文案。",
+            energyDelta: 0,
+          }
+        : null);
+      const eventModalOpen =
+        phase === "landed" ||
+        phase === "shopping" ||
+        phase === "resolving" ||
+        phase === "roundBattle" ||
+        phase === "inBattle";
+      const restModalOpen = phase === "resting" && Boolean(currentEvent?.hiddenRest);
+      const npc = session?.restNpcId ? getNpcEvent(session.restNpcId) : undefined;
+      const npcModalOpen = (phase === "npcEvent" || phase === "npcResolving") && Boolean(npc);
+      const mustReplace = Boolean(session?.pendingPickup.length);
+      const hasLoot = Boolean(session?.pendingLoot.length);
+      const hasPendingAction = Boolean(session?.pendingActions.length);
+      const narrationGate =
+        phase === "resolving" || phase === "npcResolving"
+          ? desc.done && story.done && narrationDone
+          : true;
+      const overlayOpen = narrationGate && (hasPendingAction || hasLoot);
+      const hiddenRest = currentEvent?.hiddenRest;
+      const restFood = hiddenRest && session
+        ? session.backpack.find((stack) => stack.itemId === hiddenRest.foodItemId) ?? null
+        : null;
+
+      const eventView: EventModalView | null = session && currentEvent
+        ? {
+            session,
+            ev: currentEvent,
+            choiceList,
+            desc,
+            story,
+            storyText,
+            beats,
+            choiceReady: phase === "inBattle" || (desc.done && (!storyText || story.done)),
+            committing,
+            narrationDone,
+            mustReplace,
+            hasLoot,
+            hasPendingAction,
+            reducedMotion: prefersReducedMotion(),
+          }
+        : null;
+      const restView: RestModalView | null = session && hiddenRest
+        ? { session, hiddenRest, restFood }
+        : null;
+      const npcView: NpcModalView | null = session && npc
+        ? {
+            session,
+            npc,
+            beats,
+            hasLoot,
+            hasPendingAction,
+            narrationDone,
+          }
+        : null;
+      const eventPresence = useRevealPresence(eventModalOpen && Boolean(eventView), eventView, panelRevealCloseMs());
+      const restPresence = useRevealPresence(restModalOpen && Boolean(restView), restView, panelRevealCloseMs());
+      const npcPresence = useRevealPresence(npcModalOpen && Boolean(npcView), npcView, panelRevealCloseMs());
+
   if (!session || !session.board) return null;
 
   const board = session.board;
-  const ev = panelEvent ?? (session.phase === "roundBattle"
-    ? {
-        id: `round-battle-${session.round}`,
-        kind: "battle" as const,
-        category: "battle" as const,
-        title: `推进战斗 · ${BATTLE_TIER_NAME[battleTierOf(session.round)]}`,
-        description: "本轮战斗事件池暂无可用文案。",
-        energyDelta: 0,
-      }
-    : null);
+      const ev = currentEvent;
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
-  // 背包装不下的东西必须当场取舍(设计文档 §6.4) —— 面板强制打开, 且关不掉。
-  const mustReplace = session.pendingPickup.length > 0;
-  const hasLoot = session.pendingLoot.length > 0;
-  const hasPendingAction = session.pendingActions.length > 0;
-  const narrationGate =
-    session.phase === "resolving" || session.phase === "npcResolving"
-      ? desc.done && story.done && narrationDone
-      : true;
-  const overlayOpen = narrationGate && (hasPendingAction || hasLoot);
-  const hiddenRest = ev?.hiddenRest;
-  const restFood = hiddenRest
-    ? session.backpack.find((stack) => stack.itemId === hiddenRest.foodItemId) ?? null
-    : null;
-  const npc = session.restNpcId ? getNpcEvent(session.restNpcId) : undefined;
 
   // 落点浮层开着的两个阶段: 四角 HUD 轻度后退, 把注意力收拢到面板上(不加全屏遮罩)。
   const focused =
@@ -357,12 +390,6 @@ export function ExploreScreen() {
     session.phase === "resting" ||
     session.phase === "npcEvent" ||
     session.phase === "npcResolving" ||
-    session.phase === "roundBattle" ||
-    session.phase === "inBattle";
-  const eventModalOpen =
-    session.phase === "landed" ||
-    session.phase === "shopping" ||
-    session.phase === "resolving" ||
     session.phase === "roundBattle" ||
     session.phase === "inBattle";
   const recede = focused ? s["is-recede"] : undefined;
@@ -621,304 +648,29 @@ export function ExploreScreen() {
           </div>
         </div>
 
-        {/* ---- 落点浮层(两段式) ----
-            landed   —— 事件卡面 + 两个分支按钮。**抵达 ≠ 结算**: 落点已定、效果一件都没生效。
-            resolving —— 同一块面板原地换成结算摘要 + 确认按钮(key 不变 ⇒ 不重播入场)。
-
-            ★ 没有全屏遮罩: 压暗背景会毁掉这张废弃楼层图的气质, 也会挡住刚刚亮起来的路径 ——
-              而玩家此刻最想看的就是「我是怎么走到这个节点上的」(§11.2)。 */}
-        {eventModalOpen && ev && (
-          <div className={s["expl-modal"]} key={`${session.round}-${session.currentSegment}-${ev.id}`}>
-            <section
-              className={cx(
-                s["expl-panel"],
-                s[`k-${ev.kind}`],
-                (session.phase === "landed" || session.phase === "roundBattle" || session.phase === "inBattle") && s["has-choices"],
-                session.phase === "shopping" && s["is-shopping"],
-              )}
-            >
-              <span className={s["panel-frame"]} aria-hidden />
-              <span className={s["panel-scan"]} aria-hidden />
-              <aside className={s["expl-panel-aside"]} aria-hidden="true">
-                <div className={s["expl-panel-art"]}>
-                  <img className={s["expl-panel-image"]} src={eventArt(ev.kind)} alt="" />
-                  <div className={s["expl-panel-art-grid"]} />
-                  <span className={s["expl-panel-art-mark"]}>◆</span>
-                </div>
-              </aside>
-              <div className={s["expl-panel-content"]}>
-                {/* 标题逐字浮起: 打字机那套用在标题上太慢, 逐字**淡入**才有「名字被念出来」的分量。
-                    ⚠ 减弱动态效果时不拆 span —— 一堆 inline-block 会让标点的行内断行规则失效。 */}
-                <h3 className={s["expl-panel-title"]}>
-                  {prefersReducedMotion()
-                    ? ev.title
-                    : Array.from(ev.title).map((ch, i) => (
-                        <span
-                          key={i}
-                          className={s["expl-title-char"]}
-                          style={
-                            {
-                              animationDelay: `${EVENT_BEAT.titleStart + i * EVENT_BEAT.titleChar}ms`,
-                            } as CSSProperties
-                          }
-                        >
-                          {ch === " " ? " " : ch}
-                        </span>
-                      ))}
-                </h3>
-                {/* 正文逐字。aria-label 给读屏一次性的全文 —— 无障碍不该被演出拖着走。 */}
-                  <div className={s["expl-panel-read"]}>
-                    <p
-                      className={s["expl-panel-desc"]}
-                      ref={descScrollRef}
-                      aria-label={[ev.description, ...session.pendingStory].filter(Boolean).join("\n\n")}
-                    >
-                      <span className={s["expl-desc-ghost"]} aria-hidden>
-                        {ev.description}
-                        {storyText ? `\n\n${storyText}` : ""}
-                      </span>
-                      <span className={s["expl-desc-live"]} ref={descLiveRef} aria-hidden>
-                        {desc.shown}
-                        {desc.done && storyText ? `\n\n${story.shown}` : ""}
-                        {(!desc.done || (desc.done && storyText && !story.done)) && (
-                          <span className={s["expl-caret"]} />
-                        )}
-                      </span>
-                    </p>
-                  </div>
-                  {session.phase !== "shopping" && (
-                    <div className={s["expl-panel-act"]}>
-                      {session.phase === "landed" || session.phase === "roundBattle" || session.phase === "inBattle" ? (
-                        // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
-                        <div
-                          className={cx(
-                            s["expl-choices"],
-                            choiceReady && s["is-armed"],
-                            committing != null && s["is-closing"],
-                          )}
-                          style={
-                            { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
-                          }
-                        >
-                          {choiceList.map((c, i) => {
-                            // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
-                            const state =
-                              committing == null
-                                ? undefined
-                                : committing === i
-                                  ? s["is-chosen"]
-                                  : s["is-dimmed"];
-                            const requiredCount = c.cost?.count ?? 0;
-                            const availableCount = c.cost
-                              ? countByItemId(session.backpack, c.cost.itemId)
-                              : 0;
-                            const costUnavailable = Boolean(c.cost && availableCount < requiredCount);
-                            return (
-                              <button
-                                key={c.id}
-                                className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
-                                type="button"
-                                disabled={!choiceReady || committing != null || costUnavailable || session.phase === "inBattle"}
-                                title={
-                                  c.cost
-                                    ? costUnavailable
-                                      ? "背包中没有指定食品"
-                                      : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`
-                                    : undefined
-                                }
-                                style={{ "--i": i } as CSSProperties}
-                                onClick={(event) => takeOption(i, event)}
-                              >
-                                <span className={s["expl-choice-bar"]} aria-hidden />
-                                <span className={s["expl-choice-index"]} aria-hidden>
-                                  {String(i + 1).padStart(2, "0")}
-                                </span>
-                                <span className={s["expl-choice-label"]}>{c.label}</span>
-                                {c.cost && (
-                                  <span className={s["expl-choice-cost"]}>
-                                    {costUnavailable ? "背包中没有指定食品" : `需要 ${getItemDef(c.cost.itemId).name} ×${requiredCount}`}
-                                  </span>
-                                )}
-                                <span className={s["expl-choice-arrow"]} aria-hidden>
-                                  ▸
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : session.phase === "resolving" ? (
-                        <>
-                          <div className={s["expl-notes"]}>
-                            {session.pendingNotes.length ? (
-                              session.pendingNotes.map((n, i) => (
-                                <span
-                                  key={i}
-                                  className={s["expl-note"]}
-                                  style={
-                                    {
-                                      animationDelay: `${beats.noteAt(i)}ms`,
-                                    } as CSSProperties
-                                  }
-                                >
-                                  {n}
-                                </span>
-                              ))
-                            ) : (
-                              <span
-                                className={cx(s["expl-note"], s["is-muted"])}
-                                style={
-                                  { animationDelay: `${beats.noteAt(0)}ms` } as CSSProperties
-                                }
-                              >
-                                无结算
-                              </span>
-                            )}
-                          </div>
-                          {/* 结算摘要播完前确认按钮保持禁用，脚部固定在面板底边。 */}
-                          <div className={s["expl-panel-foot"]}>
-                            <span className={s["expl-panel-cost"]}>
-                              {mustReplace
-                                ? "先在背包里处理完拿不下的东西"
-                                : hasLoot
-                                  ? "先处理事件物品"
-                                  : hasPendingAction
-                                    ? "先处理事件奖励"
-                                    : "结算完毕"}
-                            </span>
-                            <button
-                              className={cx(s["expl-btn"], s["is-primary"], s["expl-confirm"])}
-                              type="button"
-                              disabled={mustReplace || hasLoot || hasPendingAction || !narrationDone}
-                              style={
-                                {
-                                  animationDelay: `${
-                                    beats.noteAt(Math.max(1, session.pendingNotes.length) - 1)
-                                  }ms`,
-                                } as CSSProperties
-                              }
-                              onClick={() => confirmNode()}
-                            >
-                              确认 ▸
-                            </button>
-                          </div>
-                        </>
-                      ) : null}
-                    </div>
-                  )}
-              </div>
-            </section>
-          </div>
+        {eventPresence.mounted && eventPresence.data && (
+          <EventModal
+            view={eventPresence.data}
+            closing={eventPresence.closing}
+            onTakeOption={(index, event) => takeOption(index, event)}
+            onConfirm={confirmNode}
+          />
         )}
-
-        {session.phase === "resting" && ev?.hiddenRest && (
-          <div className={s["expl-modal"]}>
-            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
-              <span className={s["panel-frame"]} aria-hidden />
-              <span className={s["panel-scan"]} aria-hidden />
-              <span className={s["expl-kicker"]}>隐藏休息 · 事件后的额外选择</span>
-              <h3 className={s["expl-panel-title"]}>要在这里休息吗？</h3>
-              <div className={s["expl-panel-slot"]}>
-                <p className={s["expl-panel-desc"]}>
-                  你可以消耗指定食品，唤来隐藏访客；也可以跳过休息，继续前往下一个节点。
-                </p>
-                {restFood ? (
-                  <div className={s["expl-rest-food"]}>
-                    <ItemSlot
-                      stack={restFood}
-                      showName={false}
-                      onClick={() => restEat(restFood.uid)}
-                    />
-                    <span>食用 {getItemDef(restFood.itemId).name}，唤来隐藏访客</span>
-                  </div>
-                ) : (
-                  <p className={s["expl-empty"]}>背包中没有指定食品。</p>
-                )}
-              </div>
-              <div className={s["expl-panel-foot"]}>
-                <span className={s["expl-panel-cost"]}>{restFood ? "食品会从背包中消耗" : "无法触发隐藏访客"}</span>
-                <button className={s["expl-btn"]} type="button" onClick={restSkip}>
-                  跳过休息
-                </button>
-              </div>
-            </section>
-          </div>
+        {restPresence.mounted && restPresence.data && (
+          <RestModal
+            view={restPresence.data}
+            closing={restPresence.closing}
+            onEat={restEat}
+            onSkip={restSkip}
+          />
         )}
-
-        {session.phase === "npcEvent" && npc && (
-          <div className={s["expl-modal"]}>
-            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
-              <span className={s["panel-frame"]} aria-hidden />
-              <span className={s["panel-scan"]} aria-hidden />
-              <span className={s["expl-kicker"]}>隐藏 NPC · 特殊事件</span>
-              <h3 className={s["expl-panel-title"]}>{npc.title}</h3>
-              <div className={s["expl-panel-slot"]}>
-                <p className={s["expl-panel-desc"]}>{npc.description}</p>
-                <div className={s["expl-decide-row"]}>
-                  {npcChoices(session).map((choice, index) => (
-                    <button
-                      className={s["expl-choice"]}
-                      type="button"
-                      key={choice.id}
-                      style={{ "--i": index } as CSSProperties}
-                      onClick={() => chooseNpcOption(index)}
-                    >
-                      <span className={s["expl-choice-bar"]} aria-hidden />
-                      <span className={s["expl-choice-label"]}>{choice.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-          </div>
-        )}
-
-        {session.phase === "npcResolving" && npc && (
-          <div className={s["expl-modal"]}>
-            <section className={cx(s["expl-panel"], s["expl-panel-decide"])}>
-              <span className={s["panel-frame"]} aria-hidden />
-              <span className={s["panel-scan"]} aria-hidden />
-              <span className={s["expl-kicker"]}>隐藏 NPC · 结果记录</span>
-              <h3 className={s["expl-panel-title"]}>{npc.title}</h3>
-              <div className={s["expl-panel-slot"]}>
-                {session.pendingStory.length > 0 && (
-                  <div className={s["expl-story"]} aria-live="polite">
-                    {session.pendingStory.map((story, index) => (
-                      <p
-                        key={`${story}-${index}`}
-                        style={{ animationDelay: `${beats.storyAt(index)}ms` } as CSSProperties}
-                      >
-                        {story}
-                      </p>
-                    ))}
-                  </div>
-                )}
-                <div className={s["expl-notes"]}>
-                  {session.pendingNotes.map((note, index) => (
-                    <span
-                      className={s["expl-note"]}
-                      key={`${note}-${index}`}
-                      style={{ animationDelay: `${beats.noteAt(index)}ms` } as CSSProperties}
-                    >
-                      {note}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className={s["expl-panel-foot"]}>
-                <span className={s["expl-panel-cost"]}>
-                  {hasLoot || hasPendingAction ? "先处理上方奖励" : "隐藏事件已结算"}
-                </span>
-                <button
-                  className={cx(s["expl-btn"], s["is-primary"])}
-                  type="button"
-                  disabled={hasLoot || hasPendingAction || !narrationDone}
-                  onClick={confirmNpc}
-                >
-                  返回路线 ▸
-                </button>
-              </div>
-            </section>
-          </div>
+        {npcPresence.mounted && npcPresence.data && (
+          <NpcModal
+            view={npcPresence.data}
+            closing={npcPresence.closing}
+            onChoose={chooseNpcOption}
+            onConfirm={confirmNpc}
+          />
         )}
 
         <ShopOverlay />
@@ -930,9 +682,9 @@ export function ExploreScreen() {
           <BackpackPanel onClose={() => setBagOpen(false)} />
         )}
 
-        {overlayOpen && <div className={s["expl-scrim"]} aria-hidden />}
-        {narrationGate && session.pendingActions.length > 0 && <RewardOverlay />}
-        {narrationGate && !session.pendingActions.length && <LootPickup />}
+        <div className={s["expl-scrim"]} data-closing={!overlayOpen || undefined} aria-hidden />
+        <RewardOverlay gate={narrationGate} />
+        <LootPickup gate={narrationGate && !session.pendingActions.length} />
     </StageCanvas>
   );
 }

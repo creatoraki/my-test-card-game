@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getCharacter, getItemDef, makeCard } from "@/data";
 import { getQuirkDef } from "@/engine";
 import type { QuirkId } from "@/engine";
+import type { ExploreState, PendingAction } from "@/explore/types";
 import { EQUIP_SLOTS, useTownStore } from "@/store/townStore";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
@@ -15,10 +16,21 @@ import ItemTooltip, {
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { cx } from "@/ui/common/cx";
+import { useRevealPresence } from "@/ui/common/ModalReveal";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
+import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import s from "./RewardOverlay.module.css";
 
-export default function RewardOverlay() {
+interface RewardView {
+  session: ExploreState;
+  action: PendingAction;
+}
+
+interface RewardOverlayProps {
+  gate: boolean;
+}
+
+export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const session = useExploreStore((state) => state.session);
   const grantExpTo = useExploreStore((state) => state.grantExpTo);
   const resolvePendingAction = useExploreStore((state) => state.resolvePendingAction);
@@ -36,20 +48,34 @@ export default function RewardOverlay() {
   const reforgeEquipped = useTownStore((state) => state.reforgeEquipped);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
 
-  const action = session?.pendingActions[0];
+  const currentAction = session?.pendingActions[0];
+  const presence = useRevealPresence<RewardView | null>(
+    gate && Boolean(session && currentAction),
+    session && currentAction ? { session, action: currentAction } : null,
+    panelRevealCloseMs(),
+  );
+  const view = presence.data;
+  const displayedSession = view?.session ?? session;
+  const action = view?.action;
   useEffect(() => {
     setSelectedChar(null);
   }, [action?.kind]);
-  if (!session || !action) return null;
+  if (!presence.mounted || !displayedSession || !action) return null;
 
-  const selectableCharacters = session.party.filter((member) => member.alive);
+  const selectableCharacters = displayedSession.party.filter((member) => member.alive);
   const chosenCharId = selectedChar && characters[selectedChar] ? selectedChar : null;
   const chosenCharacter = chosenCharId ? characters[chosenCharId] : null;
   const finish = () => resolvePendingAction();
 
   return (
-    <div className={s["reward-layer"]}>
-      <section className={s["reward-panel"]} aria-label="事件奖励">
+    <div className={s["reward-layer"]} data-closing={presence.closing || undefined}>
+      <section
+        className={cx(s["reward-panel"], s["panel-reveal"])}
+        data-closing={presence.closing || undefined}
+        style={panelRevealVars()}
+        aria-label="事件奖励"
+      >
+        <span className={s["panel-bar"]} aria-hidden />
         <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
         <header className={s["reward-head"]}>
@@ -121,7 +147,7 @@ export default function RewardOverlay() {
 
         {action.kind === "reforge" && (
           <ReforgePicker
-            backpack={session.backpack}
+            backpack={displayedSession.backpack}
             characters={party.map((id) => ({ charId: id, character: characters[id] })).filter(
               (entry): entry is { charId: string; character: NonNullable<typeof entry.character> } =>
                 Boolean(entry.character),

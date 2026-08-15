@@ -32,6 +32,12 @@
 .panel-scan {
   composes: panel-scan from "../styles/explorePanel.module.css";
 }
+.panel-reveal {
+  composes: panel-reveal from "../styles/explorePanel.module.css";
+}
+.panel-bar {
+  composes: panel-bar from "../styles/explorePanel.module.css";
+}
 .k-hazard {
   composes: k-hazard from "../styles/exploreKit.module.css";
 }
@@ -117,12 +123,17 @@
   inset: 0;
   z-index: 30;
   background: #03070ac2;
-  pointer-events: auto;
-  animation: explScrimIn 180ms ease backwards;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 380ms ease;
 }
-
-@keyframes explScrimIn {
-  from { opacity: 0; }
+.expl-scrim:not([data-closing="true"]) {
+  opacity: 1;
+  pointer-events: auto;
+}
+.expl-scrim[data-closing="true"] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ===================== 左上: 随身背包 ===================== */
@@ -584,6 +595,9 @@
   z-index: 20;
   pointer-events: none;
 }
+.expl-modal[data-closing="true"] .expl-panel {
+  pointer-events: none;
+}
 /* 画框占满左栏，图片在其中保持 1:1 并水平、垂直居中。 */
 .expl-panel {
   composes: panel-shell from "../styles/explorePanel.module.css";
@@ -601,8 +615,6 @@
     inset 0 1px 0 var(--k),
     0 28px 72px -34px #000000e8,
     0 0 90px -42px var(--k);
-  /* 从画布上方滑入(与控制终端浮层同一套语言)。⚠ 动画挂面板自己, 不挂 .expl-modal。 */
-  animation: explDrop 600ms cubic-bezier(0.18, 0.86, 0.22, 1) backwards;
 }
 .expl-panel .panel-scan {
   background-size: 100% 140%;
@@ -1292,12 +1304,6 @@
   from {
     opacity: 0;
     transform: translateY(14px);
-  }
-}
-@keyframes explDrop {
-  from {
-    opacity: 0;
-    transform: translateY(-260px);
   }
 }
 @keyframes explFade {
