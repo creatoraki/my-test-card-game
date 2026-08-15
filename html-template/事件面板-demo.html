@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事件面板 Demo · 霓虹都市</title>
+<style>
+/* ============================================================
+   事件面板 Demo —— 视觉风格：暗夜军绿战术终端（贴合《霓虹都市》）
+   模块分区：
+     1. 设计令牌        2. 基础与背景
+     3. 顶部栏(资源/切换) 4. 事件面板框架
+     5. 插图占位(1:1)   6. 标题与正文
+     7. 选项列表        8. 按钮
+     9. 结算视图        10. 动画关键帧
+     11. 悬浮提示组件    12. 提示条/飘字/响应式
+   ============================================================ */
+
+/* ---------- 1. 设计令牌 ---------- */
+:root {
+  --bg:        #080b0d;
+  --bg2:       #101418;
+  --panel:     #11161a;
+  --panel2:    #171d21;
+  --border:    #364047;
+  --text:      #e9eeeb;
+  --muted:     #849096;
+  --accent:    #d8f329;   /* 默认信号色：荧光黄绿 */
+  --good:      #8dcc3f;
+  --bad:       #ff7068;
+  --warn:      #d8f329;
+  --sig:       #d8f329;   /* 当前事件信号色，随事件类型切换 */
+  --font-cn:   "Microsoft YaHei", "PingFang SC", "Source Han Sans SC", sans-serif;
+  --font-mono: "Cascadia Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+  color-scheme: dark;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- 2. 基础与背景 ---------- */
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font-cn);
+  color: var(--text);
+  background:
+    radial-gradient(1200px 700px at 50% -10%, rgba(216, 243, 41, 0.05), transparent 60%),
+    repeating-linear-gradient(0deg,  rgba(255,255,255,0.022) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 44px),
+    var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px 40px;
+  overflow-x: hidden;
+}
+
+.stage { width: 100%; max-width: 1160px; position: relative; }
+
+/* 顶部扫描线氛围 */
+.stage::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 90;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 3px, rgba(0,0,0,0.14) 3px 4px);
+  mix-blend-mode: multiply; opacity: .35;
+}
+
+/* ---------- 3. 顶部栏 ---------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+
+.resources { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.resource-capsule {
+  position: relative;
+  display: flex; align-items: center; gap: 8px;
+  min-width: 128px; padding: 8px 14px 8px 10px;
+  background: linear-gradient(180deg, var(--panel2), var(--panel));
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  transition: border-color .25s, box-shadow .25s;
+}
+.resource-capsule:hover { border-color: var(--muted); }
+
+.resource-capsule .res-icon {
+  width: 22px; height: 22px; display: grid; place-items: center; flex: none;
+}
+.resource-capsule .res-icon svg { width: 20px; height: 20px; display: block; }
+.resource-capsule[data-res="credits"] .res-icon { color: var(--accent); }
+.resource-capsule[data-res="energy"]  .res-icon { color: #4aa3ff; }
+.resource-capsule[data-res="kits"]    .res-icon { color: #6fd08c; }
+
+.resource-capsule .res-name { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+.resource-capsule .res-value {
+  font-family: var(--font-mono); font-size: 18px; font-weight: 700;
+  color: var(--text); margin-left: auto; min-width: 30px; text-align: right;
+  transition: color .2s;
+}
+.resource-capsule.pop-hit  .res-value { color: var(--bad); }
+.resource-capsule.pop-gain .res-value { color: var(--good); }
+
+/* 资源变化飘字 */
+.res-float {
+  position: absolute; left: 50%; top: -6px; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 15px; font-weight: 700;
+  pointer-events: none; z-index: 5; white-space: nowrap;
+  animation: floatUp .9s ease-out forwards;
+}
+.res-float.neg { color: var(--bad); }
+.res-float.pos { color: var(--good); }
+
+.top-controls { display: flex; align-items: center; gap: 10px; }
+
+/* 事件类型切换 tabs */
+.tabs {
+  display: flex; border: 1px solid var(--border); border-radius: 2px;
+  background: var(--panel); overflow: hidden;
+}
+.tab {
+  appearance: none; border: none; cursor: pointer;
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px;
+  font-family: var(--font-cn); font-size: 13px; letter-spacing: 1px;
+  color: var(--muted); background: transparent;
+  border-right: 1px solid var(--border);
+  transition: background .2s, color .2s;
+}
+.tab:last-child { border-right: none; }
+.tab:hover { background: var(--panel2); color: var(--text); }
+.tab .tab-ico { font-size: 14px; }
+.tab.active {
+  color: #0b0e04; background: var(--sig); font-weight: 700;
+  text-shadow: none;
+}
+.tab.active .tab-ico { filter: brightness(.4); }
+
+.btn-reset {
+  appearance: none; cursor: pointer;
+  padding: 9px 16px;
+  font-family: var(--font-cn); font-size: 13px; letter-spacing: 1px;
+  color: var(--muted); background: var(--panel);
+  border: 1px solid var(--border); border-radius: 2px;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.btn-reset:hover { color: var(--bad); border-color: var(--bad); background: var(--panel2); }
+.btn-reset:active { transform: translateY(1px); }
+
+/* ---------- 4. 事件面板框架 ---------- */
+.panel {
+  position: relative;
+  margin-top: 18px;
+  min-height: 520px;
+  background: linear-gradient(180deg, var(--panel2), var(--panel) 40%);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.02);
+  overflow: hidden;
+}
+/* 四角括号装饰 */
+.panel::before, .panel::after {
+  content: ""; position: absolute; width: 22px; height: 22px; z-index: 6;
+  pointer-events: none;
+}
+.panel::before { top: -1px; left: -1px; border-top: 2px solid var(--sig); border-left: 2px solid var(--sig); }
+.panel::after  { bottom: -1px; right: -1px; border-bottom: 2px solid var(--sig); border-right: 2px solid var(--sig); }
+
+/* 入场动画 */
+.panel.enter { animation: panelIn .5s cubic-bezier(.2,.7,.3,1) both; }
+
+.view-event {
+  display: grid; grid-template-columns: 380px 1fr;
+  min-height: 520px;
+}
+.view-event.leaving { animation: viewOut .32s ease forwards; }
+
+.view-resolution {
+  position: absolute; inset: 0; z-index: 3;
+  display: none;
+  background:
+    radial-gradient(600px 400px at 50% 0%, rgba(216,243,41,.05), transparent 65%),
+    var(--panel);
+  flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 42px 40px 30px; overflow-y: auto;
+}
+.view-resolution.show { display: flex; animation: panelIn .38s cubic-bezier(.2,.7,.3,1) both; }
+
+/* ---------- 5. 插图占位（1:1） ---------- */
+.art-frame {
+  position: relative;
+  display: grid; place-items: center;
+  aspect-ratio: 1 / 1;
+  border-right: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.025) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.025) 50%, rgba(255,255,255,.025) 75%, transparent 75%),
+    var(--bg2);
+  background-size: 28px 28px;
+  overflow: hidden;
+}
+/* 扫描线 */
+.art-frame::before {
+  content: ""; position: absolute; left: 0; right: 0; height: 2px;
+  background: var(--sig); opacity: .7; box-shadow: 0 0 12px var(--sig);
+  animation: scanY 4.5s linear infinite; z-index: 2;
+}
+/* 中心辉光 */
+.art-frame::after {
+  content: ""; position: absolute; inset: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sig) 16%, transparent), transparent 70%);
+  animation: breathe 3.2s ease-in-out infinite;
+}
+.art-icon {
+  position: relative; z-index: 1;
+  width: 46%; height: 46%; color: var(--sig);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--sig) 55%, transparent));
+}
+.art-icon svg { width: 100%; height: 100%; display: block; }
+.art-label {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 2;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px;
+  color: var(--muted); background: rgba(8,11,13,.72); padding: 3px 8px;
+  border: 1px solid var(--border); white-space: nowrap;
+}
+.art-corner {
+  position: absolute; z-index: 2;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
+  color: var(--muted); padding: 3px 7px; background: rgba(8,11,13,.72);
+  border: 1px solid var(--border);
+}
+.art-corner.tl { top: 10px; left: 10px; }
+.art-corner.br { bottom: 10px; right: 10px; }
+
+/* ---------- 6. 标题与正文 ---------- */
+.event-main { display: flex; flex-direction: column; padding: 30px 34px 26px; min-width: 0; }
+
+.event-tag {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px;
+  color: var(--sig); border: 1px solid var(--sig); border-radius: 2px;
+  padding: 4px 10px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--sig) 25%, transparent) inset;
+}
+
+.event-title {
+  margin-top: 16px;
+  font-size: 32px; font-weight: 700; letter-spacing: 2px; line-height: 1.25;
+  color: var(--text);
+  text-shadow: 0 0 22px color-mix(in srgb, var(--sig) 30%, transparent);
+  min-height: 40px;
+}
+.event-title.typing::after,
+.event-body.typing::after,
+.res-story.typing::after {
+  content: "▌"; color: var(--sig); margin-left: 2px;
+  animation: blink .75s step-end infinite;
+}
+
+.event-body {
+  margin-top: 14px;
+  font-size: 16px; line-height: 1.9; color: var(--muted);
+  max-width: 600px; min-height: 60px;
+}
+.event-body::before { content: "▸ "; color: var(--sig); }
+
+/* ---------- 7. 选项列表 ---------- */
+.options { list-style: none; margin-top: 24px; display: flex; flex-direction: column; gap: 12px; max-width: 620px; }
+
+.option {
+  position: relative;
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 16px 13px 13px;
+  background: var(--panel);
+  border: 1px solid var(--border); border-radius: 3px;
+  cursor: pointer; user-select: none;
+  transition: border-color .18s, background .18s, transform .12s, box-shadow .18s;
+  opacity: 0; /* 由 stagger 动画接管 */
+}
+.option.in { animation: optIn .38s cubic-bezier(.2,.7,.3,1) both; }
+
+/* 未选中 hover */
+.option:not(.disabled):not(.selected):hover {
+  border-color: var(--muted);
+  background: var(--panel2);
+  transform: translateX(6px);
+}
+.option:not(.disabled):not(.selected):hover .opt-arrow { transform: translateX(4px); color: var(--sig); }
+.option:not(.disabled):not(.selected):active { transform: translateX(6px) scale(.985); }
+
+/* 选中态 */
+.option.selected {
+  border-color: var(--sig);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sig) 12%, transparent), var(--panel2) 55%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sig) 40%, transparent), 0 0 22px color-mix(in srgb, var(--sig) 22%, transparent);
+  animation: selPulse 1.8s ease-in-out infinite;
+}
+.option.selected .opt-num {
+  color: #0b0e04; background: var(--sig); border-color: var(--sig);
+  text-shadow: none;
+}
+.option.selected .opt-arrow { color: var(--sig); transform: translateX(4px); }
+.option.selected .opt-name { color: var(--text); }
+
+/* 禁用态 */
+.option.disabled {
+  cursor: not-allowed;
+  background: rgba(17,22,26,.55);
+  border-color: var(--border);
+  opacity: .55; filter: saturate(.35);
+}
+.option.disabled .opt-num { color: var(--muted); background: var(--panel2); }
+.option.disabled::after {
+  content: "×"; position: absolute; top: 6px; right: 10px;
+  color: var(--bad); font-size: 14px; font-weight: 700; opacity: .85;
+}
+.option.shake { animation: shake .4s ease; }
+
+/* 编号 */
+.opt-num {
+  flex: none; width: 30px; height: 30px;
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 15px; font-weight: 700;
+  color: var(--sig); background: var(--panel2);
+  border: 1px solid var(--border); border-radius: 2px;
+  transition: color .18s, background .18s, border-color .18s;
+}
+
+.opt-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.opt-name { font-size: 16px; font-weight: 700; letter-spacing: 1px; color: var(--text); transition: color .18s; }
+
+/* 资源消耗标签 */
+.opt-costs { display: flex; gap: 8px; flex-wrap: wrap; }
+.cost-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  padding: 2px 8px; border-radius: 2px;
+  border: 1px solid var(--border); color: var(--muted);
+}
+.cost-tag .c-ico { font-size: 12px; }
+.cost-tag[data-res="credits"] .c-ico { color: var(--accent); }
+.cost-tag[data-res="energy"]  .c-ico { color: #4aa3ff; }
+.cost-tag[data-res="kits"]    .c-ico { color: #6fd08c; }
+.cost-tag.short {
+  color: var(--bad); border-color: var(--bad);
+  animation: blink .9s step-end infinite;
+}
+
+/* 进入箭头 */
+.opt-arrow {
+  flex: none; width: 26px; text-align: center;
+  font-family: var(--font-mono); font-size: 20px; color: var(--muted);
+  transition: transform .18s, color .18s;
+}
+
+/* ---------- 8. 按钮 ---------- */
+.action-bar { margin-top: 16px; display: flex; justify-content: flex-end; }
+
+.btn-confirm {
+  appearance: none; cursor: pointer;
+  position: relative;
+  min-width: 220px; padding: 14px 28px;
+  font-family: var(--font-cn); font-size: 16px; font-weight: 700; letter-spacing: 4px;
+  color: #0b0e04; background: var(--sig);
+  border: 1px solid var(--sig); border-radius: 2px;
+  box-shadow: 0 0 0 transparent;
+  transition: transform .12s, box-shadow .2s, filter .2s;
+}
+.btn-confirm:not(:disabled):hover { filter: brightness(1.08); }
+.btn-confirm:not(:disabled):active { transform: scale(.97); }
+.btn-confirm.ready { animation: btnPulse 1.6s ease-in-out infinite; }
+.btn-confirm:disabled {
+  cursor: not-allowed; color: var(--muted);
+  background: var(--panel2); border-color: var(--border); filter: none;
+}
+/* 结算期间隐藏确认按钮 */
+.btn-confirm.gone {
+  opacity: 0; transform: translateY(10px); pointer-events: none;
+  transition: opacity .3s, transform .3s;
+}
+
+/* ---------- 9. 结算视图 ---------- */
+.res-head {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 5px;
+  color: var(--muted); border-bottom: 1px solid var(--border);
+  padding-bottom: 10px; width: 100%; max-width: 640px; text-align: center;
+}
+
+.res-story {
+  margin-top: 22px; max-width: 640px;
+  font-size: 17px; line-height: 2; color: var(--text);
+  min-height: 68px; text-align: center;
+}
+
+.res-summary {
+  margin-top: 24px; width: 100%; max-width: 640px;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 3px;
+  padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.sum-group-title {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px; color: var(--muted);
+  margin-top: 2px;
+}
+.sum-group-title + .sum-row { margin-top: -2px; }
+
+.sum-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; padding: 7px 10px;
+  border: 1px solid transparent; border-radius: 2px;
+  opacity: 0;
+}
+.sum-row.in { animation: resRowIn .34s cubic-bezier(.2,.7,.3,1) both; }
+.sum-row .s-sign { font-family: var(--font-mono); font-weight: 700; width: 16px; flex: none; }
+.sum-row.cost .s-sign { color: var(--bad); }
+.sum-row.gain .s-sign { color: var(--good); }
+.sum-row .s-name { color: var(--text); }
+.sum-row .s-name em { font-style: normal; font-size: 11px; color: var(--muted); margin-left: 8px; letter-spacing: 1px; }
+.sum-row .s-amount { font-family: var(--font-mono); font-weight: 700; margin-left: auto; }
+.sum-row.cost .s-amount { color: var(--bad); }
+.sum-row.gain .s-amount { color: var(--good); }
+
+.badge {
+  flex: none; margin-left: 10px;
+  font-size: 11px; letter-spacing: 1px; padding: 3px 8px; border-radius: 2px;
+  font-family: var(--font-cn);
+}
+.badge.pending {
+  color: var(--warn); border: 1px solid var(--warn);
+  animation: blink .8s step-end infinite;
+}
+.badge.claimed { color: var(--good); border: 1px solid var(--good); }
+
+/* 奖励待处理提示条 */
+.pending-strip {
+  margin-top: 18px; width: 100%; max-width: 640px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 12px 18px;
+  color: #0b0e04; background: var(--warn);
+  border-radius: 2px;
+  font-size: 14px; font-weight: 700; letter-spacing: 2px;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .3s, transform .3s;
+  box-shadow: 0 0 26px rgba(216,243,41,.25);
+}
+.pending-strip.show { opacity: 1; transform: none; animation: stripPulse 1.4s ease-in-out infinite; }
+.pending-strip.done {
+  background: rgba(141,204,63,.16); color: var(--good);
+  border: 1px solid var(--good);
+  box-shadow: none; animation: none;
+}
+
+.res-actions { margin-top: 22px; display: flex; gap: 12px; }
+
+.btn-claim {
+  appearance: none; cursor: pointer;
+  min-width: 200px; padding: 13px 26px;
+  font-family: var(--font-cn); font-size: 15px; font-weight: 700; letter-spacing: 3px;
+  color: #0b0e04; background: var(--good);
+  border: 1px solid var(--good); border-radius: 2px;
+  transition: transform .12s, filter .2s;
+}
+.btn-claim:hover { filter: brightness(1.08); }
+.btn-claim:active { transform: scale(.97); }
+.btn-claim.ready { animation: claimPulse 1.4s ease-in-out infinite; }
+.btn-claim:disabled { cursor: not-allowed; background: var(--panel2); color: var(--muted); border-color: var(--border); }
+
+/* ---------- 10. 动画关键帧 ---------- */
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(26px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes viewOut {
+  to { opacity: 0; transform: translateY(-14px); }
+}
+@keyframes optIn {
+  from { opacity: 0; transform: translateX(-22px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes resRowIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes selPulse {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--sig) 40%, transparent), 0 0 18px color-mix(in srgb, var(--sig) 18%, transparent); }
+  50%      { box-shadow: 0 0 0 1px color-mix(in srgb, var(--sig) 70%, transparent), 0 0 30px color-mix(in srgb, var(--sig) 38%, transparent); }
+}
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 0 12px color-mix(in srgb, var(--sig) 35%, transparent); }
+  50%      { box-shadow: 0 0 26px color-mix(in srgb, var(--sig) 70%, transparent); }
+}
+@keyframes claimPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(141, 204, 63, .3); }
+  50%      { box-shadow: 0 0 26px rgba(141, 204, 63, .65); }
+}
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes scanY {
+  0% { top: -2px; } 100% { top: 100%; }
+}
+@keyframes breathe {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.12); }
+}
+@keyframes floatUp {
+  0%   { opacity: 0; transform: translate(-50%, 6px); }
+  18%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -26px); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}
+@keyframes stripPulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(216,243,41,.22); }
+  50%      { box-shadow: 0 0 32px rgba(216,243,41,.45); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- 11. 悬浮提示组件（替代原生 title） ---------- */
+.tooltip {
+  position: fixed; z-index: 200; pointer-events: none;
+  max-width: 300px; padding: 8px 12px;
+  background: rgba(8,11,13,.94);
+  border: 1px solid var(--bad); border-radius: 2px;
+  font-size: 12px; line-height: 1.6; color: var(--text);
+  box-shadow: 0 8px 24px rgba(0,0,0,.6);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .15s;
+}
+.tooltip.show { opacity: 1; transform: none; }
+.tooltip b { color: var(--bad); font-weight: 700; }
+
+/* ---------- 12. Toast / 提示 / 响应式 ---------- */
+.toasts {
+  position: fixed; top: 20px; right: 20px; z-index: 300;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+.toast-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: rgba(17,22,26,.96); border: 1px solid var(--good); border-radius: 2px;
+  font-size: 13px; color: var(--text);
+  box-shadow: 0 10px 28px rgba(0,0,0,.55);
+  animation: toastIn .3s ease both;
+}
+
+.footer-hint {
+  margin-top: 16px; text-align: center;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; color: var(--muted);
+}
+.footer-hint kbd {
+  font-family: var(--font-mono); font-size: 11px;
+  border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
+  padding: 1px 6px; margin: 0 3px; background: var(--panel); color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .view-event { grid-template-columns: 1fr; }
+  .art-frame { border-right: none; border-bottom: 1px solid var(--border); max-width: 220px; margin: 0 auto; width: 100%; }
+  .event-main { padding: 22px 20px; }
+  .topbar { flex-direction: column; align-items: stretch; }
+  .top-controls { justify-content: space-between; }
+  .event-title { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SVG 图标库（内联 sprite，无外部资源） ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- 战斗：交叉双刀 -->
+    <symbol id="ico-combat" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square">
+        <path d="M10 54 L46 18"/>
+        <path d="M44 22 L52 14 L56 20 L46 26 Z"/>
+        <path d="M54 10 L18 46"/>
+        <path d="M22 44 L14 52 L8 56 L18 46 Z"/>
+      </g>
+    </symbol>
+    <!-- 生存：医疗十字 + 心电 -->
+    <symbol id="ico-survival" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square">
+        <path d="M32 12 L32 52 M12 32 L52 32"/>
+        <path d="M8 44 h12 l5 -10 7 18 6 -16 4 8 h14"/>
+      </g>
+    </symbol>
+    <!-- 经济：交易终端 -->
+    <symbol id="ico-economy" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square">
+        <rect x="16" y="14" width="32" height="36"/>
+        <path d="M20 6 h10 M34 6 h10"/>
+        <path d="M22 24 h20 M22 34 h20 M22 44 h12"/>
+      </g>
+    </symbol>
+    <!-- 资源：信用点 -->
+    <symbol id="ico-credits" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="4">
+        <circle cx="32" cy="32" r="16"/>
+        <path d="M32 24 v16"/>
+      </g>
+    </symbol>
+    <!-- 资源：能量 -->
+    <symbol id="ico-energy" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M37 8 L16 36 h11 L27 56 L48 27 h-12 Z"/>
+    </symbol>
+    <!-- 资源：修复剂 -->
+    <symbol id="ico-kits" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="square">
+        <path d="M32 10 v44 M10 32 h44"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="stage">
+  <!-- ============ 顶部栏：资源 / 事件类型切换 / 重置 ============ -->
+  <header class="topbar">
+    <div class="resources" id="resources">
+      <div class="resource-capsule" data-res="credits">
+        <span class="res-icon"><svg><use href="#ico-credits"/></svg></span>
+        <span class="res-name">信用点</span>
+        <span class="res-value" id="res-credits">120</span>
+      </div>
+      <div class="resource-capsule" data-res="energy">
+        <span class="res-icon"><svg><use href="#ico-energy"/></svg></span>
+        <span class="res-name">能量</span>
+        <span class="res-value" id="res-energy">8</span>
+      </div>
+      <div class="resource-capsule" data-res="kits">
+        <span class="res-icon"><svg><use href="#ico-kits"/></svg></span>
+        <span class="res-name">修复剂</span>
+        <span class="res-value" id="res-kits">3</span>
+      </div>
+    </div>
+    <div class="top-controls">
+      <div class="tabs" id="tabs" role="tablist" aria-label="事件类型切换">
+        <button class="tab active" data-event="combat" role="tab">
+          <span class="tab-ico">⚔</span>战斗
+        </button>
+        <button class="tab" data-event="survival" role="tab">
+          <span class="tab-ico">✚</span>生存
+        </button>
+        <button class="tab" data-event="economy" role="tab">
+          <span class="tab-ico">◈</span>经济
+        </button>
+      </div>
+      <button class="btn-reset" id="btn-reset">↺ 重置</button>
+    </div>
+  </header>
+
+  <!-- ============ 事件面板 ============ -->
+  <main class="panel enter" id="panel">
+
+    <!-- 事件视图：插图(1:1 占位) + 标题/正文 + 选项 -->
+    <section class="view-event" id="view-event">
+      <figure class="art-frame" id="art-frame">
+        <span class="art-corner tl">ART · PLACEHOLDER</span>
+        <span class="art-corner br">1 : 1</span>
+        <div class="art-icon" id="art-icon"></div>
+        <span class="art-label">事件插图占位 · 256×256</span>
+      </figure>
+      <div class="event-main">
+        <div class="event-tag" id="event-tag">⚔ COMBAT · 战斗</div>
+        <h1 class="event-title" id="event-title"></h1>
+        <p class="event-body" id="event-body"></p>
+        <ul class="options" id="options"></ul>
+      </div>
+    </section>
+
+    <!-- 结算视图：故事结果 + 结算摘要 + 奖励待处理 -->
+    <section class="view-resolution" id="view-resolution">
+      <div class="res-head">结算 · SETTLEMENT</div>
+      <p class="res-story" id="res-story"></p>
+      <div class="res-summary" id="res-summary"></div>
+      <div class="pending-strip" id="pending-strip">⏳ 奖励待处理 —— 处理完成后方可确认节点</div>
+      <div class="res-actions">
+        <button class="btn-claim" id="btn-claim" disabled>领取奖励</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 确认按钮 -->
+  <footer class="action-bar">
+    <button class="btn-confirm" id="btn-confirm" disabled>确认执行 ▸</button>
+  </footer>
+
+  <p class="footer-hint">
+    快捷键：<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 选择选项 · <kbd>Enter</kbd> 确认 / 领取 · <kbd>R</kbd> 重置 · 点击面板可跳过打字动画
+  </p>
+</div>
+
+<!-- 悬浮提示组件（替代原生 title） -->
+<div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true"></div>
+<!-- Toast 容器 -->
+<div class="toasts" id="toasts"></div>
+
+<script>
+(function () {
+"use strict";
+
+/* ============================================================
+   模块 1 · 事件数据（数据驱动：面板完全由本表渲染）
+   ============================================================ */
+const RES_DEF = {
+  credits: { name: "信用点", icon: "ico-credits", initial: 120, sign: "¢" },
+  energy:  { name: "能量",   icon: "ico-energy",  initial: 8,   sign: "⚡" },
+  kits:    { name: "修复剂", icon: "ico-kits",    initial: 3,   sign: "✚" },
+};
+
+const EVENTS = {
+  combat: {
+    label: "战斗", tag: "⚔ COMBAT · 战斗", icon: "ico-combat", accent: "#ff7068",
+    title: "霓虹暗巷的伏击",
+    body: "巡逻机器人的残骸还在冒烟，三名帮派枪手已经从两侧包抄过来。他们的义体在雨幕里闪着不祥的红光。终端扫描显示：没有退路，只有选择。",
+    options: [
+      {
+        name: "正面突破",
+        costs: { energy: 3, credits: 20 },
+        result: "你压低身形冲入火力网，盾式义体弹开流弹，两记贴脸斩击放倒最近的两个枪手。剩下的那个扔下武器，消失在了雨里。",
+        gains: [
+          { type: "credits", amount: 60 },
+          { type: "kits",    amount: 1 },
+        ],
+      },
+      {
+        name: "启动义体超频",
+        costs: { energy: 5 },
+        result: "肾上腺素接管了身体。世界慢了下来，你从弹道之间穿了过去，在枪手们反应过来之前，战斗已经结束了。",
+        gains: [
+          { type: "credits", amount: 30 },
+          { type: "energy",  amount: 2 },
+        ],
+      },
+      {
+        name: "缴械谈判",
+        costs: { credits: 160 },
+        result: "你把信用点甩在积水里，枪手们对视一眼，捡起钱袋缓缓后退。今晚，钱比命好说话。",
+        gains: [
+          { type: "kits",    amount: 2 },
+          { type: "credits", amount: 100 },
+        ],
+      },
+    ],
+  },
+
+  survival: {
+    label: "生存", tag: "✚ SURVIVAL · 生存", icon: "ico-survival", accent: "#8dcc3f",
+    title: "雨夜的自动诊所",
+    body: "废弃诊所深处，一台老旧的医疗终端仍在运转。屏幕闪着微光，跳出一行字：『检测到生命体征不稳定。需要服务吗？』",
+    options: [
+      {
+        name: "深度扫描修复",
+        costs: { credits: 60 },
+        result: "机械臂在你身上忙碌了十分钟。警报声逐一熄灭，你活动了一下肩膀，感觉比进门前更完整了。",
+        gains: [
+          { type: "kits", amount: 1 },
+        ],
+      },
+      {
+        name: "纳米修复协议",
+        costs: { energy: 4 },
+        result: "冰冷的纳米集群顺着接口涌入血管，伤口以肉眼可见的速度愈合。终端在旁边温馨提示：『欢迎下次光临。』",
+        gains: [
+          { type: "kits",    amount: 2 },
+          { type: "energy",  amount: 1 },
+        ],
+      },
+      {
+        name: "紧急输血协议",
+        costs: { credits: 140 },
+        result: "合成血液重新灌入你的循环系统。视野里的噪点消失了，你甚至能听清雨滴落在霓虹灯管上的声音。",
+        gains: [
+          { type: "kits",   amount: 3 },
+          { type: "energy", amount: 4 },
+        ],
+      },
+    ],
+  },
+
+  economy: {
+    label: "经济", tag: "◈ ECONOMY · 经济", icon: "ico-economy", accent: "#d8f329",
+    title: "黑市终端 7-13",
+    body: "『欢迎回来，回头客。』终端亮起货架，今晚的商品比平时更……危险。店主不在，只有一条条标好价格的条目在等你。",
+    options: [
+      {
+        name: "购买军用义体芯片",
+        costs: { credits: 150 },
+        result: "芯片到手。军用序列号已经被磨掉，但插槽传来的力量是真的。你感觉右臂比昨天重了三公斤，也强了三倍。",
+        gains: [
+          { type: "item", name: "义体芯片", tag: "装备" },
+        ],
+      },
+      {
+        name: "收购路线情报",
+        costs: { credits: 40 },
+        result: "情报贩子留下一个加密数据块。解码之后，一幅从未见过的城区地下路线图展开在你眼前——还有几个标注着『高危』的红叉。",
+        gains: [
+          { type: "item",    name: "路线情报", tag: "情报" },
+          { type: "credits", amount: 20 },
+        ],
+      },
+      {
+        name: "地下快递出货",
+        costs: { credits: 10 },
+        result: "你付了打点费，把背包里的赃物塞进运输管道。终端显示货款已到账，顺便抹掉了这笔交易的记录。",
+        gains: [
+          { type: "credits", amount: 55 },
+        ],
+      },
+    ],
+  },
+};
+
+/* ============================================================
+   模块 2 · 状态
+   ============================================================ */
+const state = {
+  cur: "combat",       // 当前事件类型
+  res: { credits: RES_DEF.credits.initial, energy: RES_DEF.energy.initial, kits: RES_DEF.kits.initial },
+  phase: "intro",      // intro | typing | options | resolving | pending | claimed
+  selected: -1,        // 选中选项下标
+  claimed: false,
+};
+
+/* ============================================================
+   模块 3 · DOM 引用
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+const dom = {
+  panel: $("panel"), viewEvent: $("view-event"), viewRes: $("view-resolution"),
+  tabs: $("tabs"), reset: $("btn-reset"),
+  artFrame: $("art-frame"), artIcon: $("art-icon"),
+  tag: $("event-tag"), title: $("event-title"), body: $("event-body"),
+  options: $("options"),
+  confirm: $("btn-confirm"),
+  story: $("res-story"), summary: $("res-summary"), strip: $("pending-strip"),
+  claim: $("btn-claim"),
+  tooltip: $("tooltip"), toasts: $("toasts"),
+};
+
+/* ============================================================
+   模块 4 · 动画引擎
+   ============================================================ */
+const Anim = {
+  /** 打字机：逐字显示，支持跳过（元素 data-skip=1 时立即补全）。
+      每次调用取新 token，旧调用在下个 tick 自毁，避免并发打字互相覆盖。 */
+  typewriter(el, text, ms) {
+    return new Promise((resolve) => {
+      const token = (el._twToken = (el._twToken || 0) + 1);
+      el.textContent = "";
+      el.dataset.skip = "0";
+      el.classList.add("typing");
+      let i = 0;
+      const timer = setInterval(() => {
+        if (el._twToken !== token) { clearInterval(timer); resolve(); return; }
+        if (el.dataset.skip === "1") { el.dataset.skip = "0"; i = text.length; }
+        if (i >= text.length) {
+          clearInterval(timer);
+          el.textContent = text;
+          el.classList.remove("typing");
+          resolve();
+          return;
+        }
+        i += 1;
+        el.textContent = text.slice(0, i);
+      }, ms);
+    });
+  },
+
+  /** 数字滚动 */
+  countUp(el, from, to, ms) {
+    return new Promise((resolve) => {
+      const start = performance.now();
+      const dur = Math.max(ms, 160);
+      const tick = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(from + (to - from) * eased);
+        if (p < 1) requestAnimationFrame(tick); else resolve();
+      };
+      requestAnimationFrame(tick);
+    });
+  },
+
+  /** 延迟 */
+  wait(ms) { return new Promise((r) => setTimeout(r, ms)); },
+
+  /** 重新触发 CSS 动画 */
+  replay(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth; // 强制回流，重启动画
+    el.classList.add(cls);
+  },
+};
+
+/** 全局跳过：点击面板即跳过当前打字动画 */
+dom.panel.addEventListener("click", () => {
+  document.querySelectorAll(".typing").forEach((el) => { el.dataset.skip = "1"; });
+});
+
+/* ============================================================
+   模块 5 · 资源系统（渲染 / 增减 / 飘字）
+   ============================================================ */
+const Res = {
+  renderValue(type, { pop } = {}) {
+    const el = $("res-" + type);
+    el.textContent = state.res[type];
+    const cap = el.closest(".resource-capsule");
+    cap.classList.remove("pop-hit", "pop-gain");
+    if (pop) { void cap.offsetWidth; }
+  },
+
+  /** 增减资源并播放数字滚动 + 飘字 */
+  async apply(type, delta) {
+    const before = state.res[type];
+    state.res[type] = Math.max(0, before + delta);
+    const el = $("res-" + type);
+    const cap = el.closest(".resource-capsule");
+
+    await Anim.countUp(el, before, state.res[type], 420);
+    cap.classList.remove("pop-hit", "pop-gain");
+    void cap.offsetWidth;
+    cap.classList.add(delta < 0 ? "pop-hit" : "pop-gain");
+
+    // 飘字
+    const f = document.createElement("span");
+    f.className = "res-float " + (delta < 0 ? "neg" : "pos");
+    f.textContent = (delta < 0 ? "−" : "+") + Math.abs(delta) + " " + RES_DEF[type].sign;
+    cap.appendChild(f);
+    f.addEventListener("animationend", () => f.remove());
+  },
+
+  reset() {
+    for (const t of Object.keys(RES_DEF)) {
+      state.res[t] = RES_DEF[t].initial;
+      $("res-" + t).textContent = state.res[t];
+      $("res-" + t).closest(".resource-capsule").classList.remove("pop-hit", "pop-gain");
+    }
+  },
+};
+
+/* ============================================================
+   模块 6 · 悬浮提示组件（禁用选项说明，替代原生 title）
+   ============================================================ */
+const Tooltip = {
+  show(html, x, y) {
+    dom.tooltip.innerHTML = html;
+    dom.tooltip.classList.add("show");
+    dom.tooltip.setAttribute("aria-hidden", "false");
+    this.move(x, y);
+  },
+  move(x, y) {
+    const r = dom.tooltip.getBoundingClientRect();
+    const pad = 12;
+    let nx = x + 16, ny = y + 18;
+    if (nx + r.width > window.innerWidth - pad) nx = x - r.width - 16;
+    if (ny + r.height > window.innerHeight - pad) ny = y - r.height - 16;
+    dom.tooltip.style.left = nx + "px";
+    dom.tooltip.style.top = ny + "px";
+  },
+  hide() {
+    dom.tooltip.classList.remove("show");
+    dom.tooltip.setAttribute("aria-hidden", "true");
+  },
+};
+
+/* ============================================================
+   模块 7 · Toast 提示
+   ============================================================ */
+function toast(text) {
+  const t = document.createElement("div");
+  t.className = "toast-item";
+  t.textContent = text;
+  dom.toasts.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = "opacity .4s";
+    t.style.opacity = "0";
+    setTimeout(() => t.remove(), 420);
+  }, 2200);
+}
+
+/* ============================================================
+   模块 8 · 视图渲染
+   ============================================================ */
+const event = () => EVENTS[state.cur];
+
+function canAfford(costs) {
+  for (const [type, amount] of Object.entries(costs)) {
+    if (state.res[type] < amount) {
+      return { ok: false, type, need: amount, have: state.res[type] };
+    }
+  }
+  return { ok: true };
+}
+
+/** 渲染插图占位（1:1）与信号色。
+    信号色挂在 documentElement 上：面板内外的 tab / 确认按钮 / 四角括号都能取到。 */
+function renderArt() {
+  const ev = event();
+  document.documentElement.style.setProperty("--sig", ev.accent);
+  dom.artIcon.innerHTML = '<svg><use href="#' + ev.icon + '"/></svg>';
+}
+
+/** 渲染选项列表 */
+function renderOptions() {
+  const ev = event();
+  dom.options.innerHTML = "";
+  ev.options.forEach((opt, i) => {
+    const li = document.createElement("li");
+    li.className = "option";
+    li.dataset.index = i;
+    li.setAttribute("role", "button");
+    li.setAttribute("aria-pressed", "false");
+
+    const short = canAfford(opt.costs);
+
+    const costTags = Object.entries(opt.costs).map(([type, amount]) => {
+      const shortThis = short.ok === false && short.type === type;
+      return '<span class="cost-tag' + (shortThis ? " short" : "") + '" data-res="' + type + '">' +
+        '<span class="c-ico">' + RES_DEF[type].sign + '</span> −' + amount + '</span>';
+    }).join("");
+
+    li.innerHTML =
+      '<div class="opt-num">' + (i + 1) + '</div>' +
+      '<div class="opt-main">' +
+        '<div class="opt-name">' + opt.name + '</div>' +
+        '<div class="opt-costs">' + costTags + '</div>' +
+      '</div>' +
+      '<div class="opt-arrow">»</div>';
+
+    if (!short.ok) {
+      li.classList.add("disabled");
+      li.dataset.tip =
+        '<b>' + RES_DEF[short.type].name + '不足</b> · 需要 ' + short.need +
+        ' / 现有 ' + short.have;
+      // 鼠标悬浮提示（组件）
+      li.addEventListener("mousemove", (e) => {
+        Tooltip.move(e.clientX, e.clientY);
+      });
+      li.addEventListener("mouseenter", (e) => {
+        Tooltip.show(li.dataset.tip, e.clientX, e.clientY);
+      });
+      li.addEventListener("mouseleave", () => Tooltip.hide());
+    }
+
+    dom.options.appendChild(li);
+  });
+}
+
+/** 渲染结算摘要 */
+function renderSummary(opt) {
+  dom.summary.innerHTML = "";
+  const ev = event();
+
+  const costTitle = document.createElement("div");
+  costTitle.className = "sum-group-title";
+  costTitle.textContent = "支出 OUT";
+  dom.summary.appendChild(costTitle);
+
+  for (const [type, amount] of Object.entries(opt.costs)) {
+    const row = document.createElement("div");
+    row.className = "sum-row cost";
+    row.innerHTML = '<span class="s-sign">−</span>' +
+      '<span class="s-name">' + RES_DEF[type].name + '</span>' +
+      '<span class="s-amount">−' + amount + ' ' + RES_DEF[type].sign + '</span>';
+    dom.summary.appendChild(row);
+  }
+
+  const gainTitle = document.createElement("div");
+  gainTitle.className = "sum-group-title";
+  gainTitle.textContent = "获得 GAIN";
+  dom.summary.appendChild(gainTitle);
+
+  opt.gains.forEach((g, gi) => {
+    const row = document.createElement("div");
+    row.className = "sum-row gain";
+    row.dataset.gain = gi;
+    if (g.type === "item") {
+      row.innerHTML = '<span class="s-sign">+</span>' +
+        '<span class="s-name">' + g.name + '<em>' + g.tag + '</em></span>' +
+        '<span class="s-amount">×1</span>' +
+        '<span class="badge pending">待处理</span>';
+    } else {
+      row.innerHTML = '<span class="s-sign">+</span>' +
+        '<span class="s-name">' + RES_DEF[g.type].name + '</span>' +
+        '<span class="s-amount">+' + g.amount + ' ' + RES_DEF[g.type].sign + '</span>' +
+        '<span class="badge pending">待处理</span>';
+    }
+    dom.summary.appendChild(row);
+  });
+}
+
+/* ============================================================
+   模块 9 · 控制器（状态机）
+   ============================================================ */
+let runId = 0; // 入场流程代号：切换/重置后旧流程在每个 await 处放弃
+
+const ctrl = {
+  /** 进入事件：重置面板状态并播放完整入场序列 */
+  async enterEvent(id) {
+    const myRun = ++runId;
+    state.cur = id;
+    state.selected = -1;
+    state.claimed = false;
+    state.phase = "intro";
+
+    // tabs 激活态
+    dom.tabs.querySelectorAll(".tab").forEach((t) => {
+      t.classList.toggle("active", t.dataset.event === id);
+    });
+
+    // 关闭结算视图、恢复事件视图
+    dom.viewRes.classList.remove("show");
+    dom.viewEvent.classList.remove("leaving");
+    dom.confirm.disabled = true;
+    dom.confirm.classList.remove("ready", "gone");
+    dom.claim.disabled = true;
+    dom.claim.classList.remove("ready");
+    dom.claim.textContent = "领取奖励";
+    dom.strip.classList.remove("show", "done");
+
+    renderArt();
+    dom.tag.textContent = event().tag;
+    dom.title.textContent = "";
+    dom.body.textContent = "";
+
+    Anim.replay(dom.panel, "enter");
+
+    state.phase = "typing";
+    await Anim.typewriter(dom.title, event().title, 30);
+    if (myRun !== runId) return; // 已被新的入场取代
+    await Anim.typewriter(dom.body, event().body, 16);
+    if (myRun !== runId) return;
+
+    // 选项依次出现
+    renderOptions();
+    state.phase = "options";
+    const items = dom.options.querySelectorAll(".option");
+    items.forEach((li, i) => {
+      setTimeout(() => li.classList.add("in"), 90 * i + 60);
+    });
+  },
+
+  /** 选择 / 取消选择选项 */
+  selectOption(i) {
+    if (state.phase !== "options" && state.phase !== "selected") return;
+    const li = dom.options.querySelector('[data-index="' + i + '"]');
+    if (!li || li.classList.contains("disabled")) {
+      // 禁用项点击：抖动反馈 + 提示组件
+      if (li && li.classList.contains("disabled")) {
+        Anim.replay(li, "shake");
+        if (li.dataset.tip) {
+          const r = li.getBoundingClientRect();
+          Tooltip.show(li.dataset.tip, r.right - 40, r.top);
+          setTimeout(() => Tooltip.hide(), 1400);
+        }
+      }
+      return;
+    }
+
+    const wasSelected = li.classList.contains("selected");
+    dom.options.querySelectorAll(".option").forEach((o) => {
+      o.classList.remove("selected");
+      o.setAttribute("aria-pressed", "false");
+    });
+
+    if (!wasSelected) {
+      li.classList.add("selected");
+      li.setAttribute("aria-pressed", "true");
+      state.selected = i;
+      state.phase = "selected";
+      dom.confirm.disabled = false;
+      dom.confirm.classList.add("ready");
+    } else {
+      state.selected = -1;
+      state.phase = "options";
+      dom.confirm.disabled = true;
+      dom.confirm.classList.remove("ready");
+    }
+  },
+
+  /** 确认：扣除消耗 → 切换结算视图 → 逐条展示结算 */
+  async confirm() {
+    if (state.selected < 0) return;
+    if (state.phase !== "options" && state.phase !== "selected") return;
+
+    const myRun = runId; // 结算流程代号：中途被重置则放弃后续步骤
+    state.phase = "resolving";
+    dom.confirm.disabled = true;
+    dom.confirm.classList.remove("ready");
+    dom.confirm.classList.add("gone"); // 结算期间隐藏确认按钮
+    Tooltip.hide();
+
+    const opt = event().options[state.selected];
+
+    // 1. 即时扣除消耗（资源条滚动 + 飘字）
+    for (const [type, amount] of Object.entries(opt.costs)) {
+      await Res.apply(type, -amount);
+      if (myRun !== runId) return;
+    }
+
+    // 2. 事件视图退场，结算视图入场
+    dom.viewEvent.classList.add("leaving");
+    await Anim.wait(280);
+    if (myRun !== runId) return;
+    dom.viewEvent.classList.remove("leaving");
+    dom.viewRes.classList.add("show");
+
+    // 3. 故事结果逐字显示
+    await Anim.typewriter(dom.story, opt.result, 20);
+    if (myRun !== runId) return;
+
+    // 4. 结算摘要逐条弹入
+    renderSummary(opt);
+    const rows = dom.summary.querySelectorAll(".sum-row");
+    rows.forEach((r, i) => {
+      setTimeout(() => r.classList.add("in"), 120 * i + 60);
+    });
+    await Anim.wait(rows.length * 120 + 300);
+    if (myRun !== runId) return;
+
+    // 5. 奖励待处理提示 + 领取按钮激活
+    dom.strip.textContent = "⏳ 奖励待处理 —— 处理完成后方可确认节点";
+    dom.strip.classList.add("show");
+    dom.claim.disabled = false;
+    dom.claim.classList.add("ready");
+    state.phase = "pending";
+  },
+
+  /** 领取奖励 */
+  async claim() {
+    if (state.phase !== "pending") return;
+    const myRun = runId;
+    state.phase = "claiming";
+    dom.claim.disabled = true;
+    dom.claim.classList.remove("ready");
+
+    const opt = event().options[state.selected];
+
+    for (let gi = 0; gi < opt.gains.length; gi++) {
+      const g = opt.gains[gi];
+      const row = dom.summary.querySelector('[data-gain="' + gi + '"]');
+      if (g.type === "item") {
+        toast("已领取：" + g.name + "（" + g.tag + "）");
+      } else {
+        await Res.apply(g.type, g.amount);
+        if (myRun !== runId) return;
+      }
+      if (row) {
+        const b = row.querySelector(".badge");
+        b.textContent = "已入账";
+        b.classList.remove("pending");
+        b.classList.add("claimed");
+      }
+      await Anim.wait(160);
+    }
+    if (myRun !== runId) return;
+
+    dom.strip.textContent = "✓ 奖励已入账 · 事件结算完成";
+    dom.strip.classList.remove("show");
+    dom.strip.classList.add("done");
+    dom.claim.textContent = "完成 · 返回事件";
+    dom.claim.disabled = false;
+    state.claimed = true;
+    state.phase = "claimed";
+  },
+
+  /** 重置：恢复资源并重播当前事件 */
+  reset() {
+    Res.reset();
+    this.enterEvent(state.cur);
+  },
+};
+
+/* ============================================================
+   模块 10 · 事件绑定与启动
+   ============================================================ */
+// 选项（事件委托：选择/取消/禁用反馈）
+dom.options.addEventListener("click", (e) => {
+  const li = e.target.closest(".option");
+  if (!li) return;
+  ctrl.selectOption(Number(li.dataset.index));
+});
+
+// 确认按钮
+dom.confirm.addEventListener("click", () => ctrl.confirm());
+
+// 领取按钮
+dom.claim.addEventListener("click", () => {
+  if (state.phase === "claimed") ctrl.reset();
+  else ctrl.claim();
+});
+
+// 事件类型切换
+dom.tabs.addEventListener("click", (e) => {
+  const tab = e.target.closest(".tab");
+  if (!tab || tab.dataset.event === state.cur) return;
+  ctrl.enterEvent(tab.dataset.event);
+});
+
+// 重置按钮
+dom.reset.addEventListener("click", () => ctrl.reset());
+
+// 键盘：1/2/3 选择、Enter 确认/领取、R 重置
+document.addEventListener("keydown", (e) => {
+  if (e.key >= "1" && e.key <= "3") ctrl.selectOption(Number(e.key) - 1);
+  else if (e.key === "Enter") {
+    if (state.phase === "pending") ctrl.claim();
+    else ctrl.confirm();
+  } else if (e.key.toLowerCase() === "r") ctrl.reset();
+});
+
+// 启动
+ctrl.enterEvent("combat");
+})();
+</script>
+</body>
+</html>

@@ -1076,6 +1076,20 @@ export function landedChoices(s: ExploreState): EventChoice[] {
   ];
 }
 
+// 这一支点下去会不会直接进战斗。随机结果只有每一支都进战斗时才算确定。
+export function choiceStartsBattle(s: ExploreState, index: number): boolean {
+  const ev = landedEvent(s);
+  const choice = landedChoices(s)[index];
+  if (!ev || !choice) return false;
+  if (choice.outcomes?.length) {
+    return choice.outcomes.every((outcome) =>
+      outcome.effects.some((effect) => effect.type === "START_NODE_BATTLE"),
+    );
+  }
+  const effects = choice.effects ?? ev.effects ?? [];
+  return effects.some((effect) => effect.type === "START_NODE_BATTLE");
+}
+
 function resolveEventOutcome(s: ExploreState, choice: EventChoice): EventOutcome | null {
   return choice.outcomes?.length ? rollOutcome(s, choice.outcomes) : null;
 }

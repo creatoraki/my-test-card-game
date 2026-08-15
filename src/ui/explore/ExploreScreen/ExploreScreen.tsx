@@ -30,12 +30,14 @@ import {
   canOpenBackpack,
   canPushOn,
   canRetreat,
+  choiceStartsBattle,
   landedChoices,
   landedEvent,
   npcChoices,
   projectedEnergy,
   roundBattleEvent,
 } from "@/explore/session";
+import type { ChoiceCost, EventChoice, NodeEvent } from "@/explore/types";
 import { getItemDef, getNpcEvent } from "@/data";
 import { countByItemId } from "@/items/inventory";
 import { useExploreStore } from "@/store/exploreStore";
@@ -83,6 +85,13 @@ const BAG_W = 640;
 // 固定槽位数: 探索队伍区恒定 3 格, 与 engine/rules.ts 的 progression.partySize 对齐。
 // 人数不足时空出来的格子渲染成空槽, 保持构图稳定。
 const EXPL_PARTY_SLOTS = RULES.progression.partySize;
+
+const ENGAGE_CHOICE: EventChoice = {
+  id: "engage",
+  label: "迎战",
+  desc: "进入本轮推进战斗",
+  energyDelta: 0,
+};
 
 // P1 才接入的指令。**先按最终形态排好版**, 下一轮往里填实现即可 —— 位置定下来了,
 // 玩家也提前知道这排东西将来是干什么的(设计文档 §7.3)。
@@ -151,7 +160,11 @@ export function ExploreScreen() {
   const commitTimer = useRef<number | null>(null);
   // 结算摘要是否已逐条播完 —— 播完之前「确认」按钮不接受点击, 否则玩家一路连点就什么都没看见。
   const [narrationDone, setNarrationDone] = useState(false);
-  const battleEventSnapshot = useRef<ReturnType<typeof roundBattleEvent>>(null);
+  const battleFreeze = useRef<{
+    event: NodeEvent;
+    choices: { id: string; label: string; cost?: ChoiceCost }[];
+    storyText: string;
+  } | null>(null);
   const previousExpRef = useRef<Record<string, number>>({});
   const expSequenceRef = useRef<Record<string, number>>({});
   const expTimersRef = useRef<Record<string, number>>({});
@@ -218,13 +231,15 @@ export function ExploreScreen() {
   const panelEvent = session?.phase === "roundBattle"
     ? roundBattleEvent(session)
     : session?.phase === "inBattle"
-      ? battleEventSnapshot.current ?? landedEv
+      ? battleFreeze.current?.event ?? landedEv
     : landedEv;
   const evDesc = panelEvent?.description ?? "";
   // 正文逐字。text 一变就自动重置游标 ⇒ 换事件自然重播, 这里不需要额外的 key。
   const desc = useTypewriter(evDesc, EVENT_BEAT.descStart, EVENT_BEAT.descCps);
-  const storyText = session?.phase === "roundBattle" || (session?.phase === "inBattle" && battleEventSnapshot.current)
-    ? panelEvent?.choices?.[0]?.story ?? ""
+  const storyText = session?.phase === "inBattle"
+    ? battleFreeze.current?.storyText ?? ""
+    : session?.phase === "roundBattle"
+      ? panelEvent?.choices?.[0]?.story ?? ""
     : session?.pendingStory.join("\n\n") ?? "";
   const story = useTypewriter(storyText, 0, EVENT_BEAT.descCps);
   const descScrollRef = useRef<HTMLParagraphElement>(null);
@@ -295,6 +310,15 @@ export function ExploreScreen() {
     [],
   );
 
+  const choiceList =
+    session?.phase === "roundBattle"
+      ? [ENGAGE_CHOICE]
+      : session?.phase === "landed"
+        ? landedChoices(session)
+        : session?.phase === "inBattle"
+          ? battleFreeze.current?.choices ?? []
+          : [];
+
   if (!session || !session.board) return null;
 
   const board = session.board;
@@ -314,14 +338,6 @@ export function ExploreScreen() {
   const mustReplace = session.pendingPickup.length > 0;
   const hasLoot = session.pendingLoot.length > 0;
   const hasPendingAction = session.pendingActions.length > 0;
-  const stackedModal =
-    session.phase === "landed" ||
-    session.phase === "shopping" ||
-    session.phase === "resolving" ||
-    session.phase === "npcEvent" ||
-    session.phase === "npcResolving" ||
-    session.phase === "roundBattle" ||
-    session.phase === "inBattle";
   const narrationGate =
     session.phase === "resolving" || session.phase === "npcResolving"
       ? desc.done && story.done && narrationDone
@@ -350,7 +366,7 @@ export function ExploreScreen() {
     session.phase === "roundBattle" ||
     session.phase === "inBattle";
   const recede = focused ? s["is-recede"] : undefined;
-  const choiceReady = desc.done && (!storyText || story.done);
+  const choiceReady = session.phase === "inBattle" || (desc.done && (!storyText || story.done));
 
   // 浮现演出的 2 秒里整块画布不接受输入 —— 这一段是纯演出, 中途插手会让计时器与画面对不上。
   // ⚠ is-locked 只做 pointer-events, **不能**在 .explore-stage 上加 opacity/filter(见抬头约束)。
@@ -366,12 +382,19 @@ export function ExploreScreen() {
   // ⚠ 演出中不接受第二次点击 —— 否则连点两个分支会派发两次结算。
   const takeOption = (index: number, event?: MouseEvent<HTMLButtonElement>) => {
     if (committing != null) return;
-    if (event && session.phase === "roundBattle" && event.detail !== 0) {
+    const battleBound =
+      session.phase === "roundBattle" ||
+      (session.phase === "landed" && choiceStartsBattle(session, index));
+    if (event && battleBound && event.detail !== 0) {
       setTransitionOrigin(event.clientX, event.clientY);
     }
     const engage = () => {
-      if (panelEvent && (session.phase === "landed" || session.phase === "roundBattle")) {
-        battleEventSnapshot.current = panelEvent;
+      if (battleBound && panelEvent) {
+        battleFreeze.current = {
+          event: panelEvent,
+          choices: choiceList.map(({ id, label, cost }) => ({ id, label, cost })),
+          storyText,
+        };
       }
       if (session.phase === "roundBattle") {
         engageRoundBattle();
@@ -380,7 +403,7 @@ export function ExploreScreen() {
         if (!result) console.warn("[explore] 选项未被会话接受", { index, phase: session.phase });
       }
     };
-    if (prefersReducedMotion()) {
+    if (battleBound || prefersReducedMotion()) {
       try {
         engage();
       } catch (err) {
@@ -408,7 +431,6 @@ export function ExploreScreen() {
       viewportClassName={s["explore-viewport"]}
       className={cx(s["screen"], s["explore-stage"], locked && s["is-locked"])}
       data-explore-stage
-      data-explore-dock={stackedModal ? "stacked" : undefined}
     >
         <img className={s["explore-bg"]} src={mapArt(session.mapId)} alt="" draggable={false} />
         <div className={s["explore-veil"]} aria-hidden />
@@ -484,23 +506,15 @@ export function ExploreScreen() {
           )}
         </div>
 
-        {session.phase === "sealed" || session.phase === "choosingEntry" ? (
+        {session.phase === "sealed" ? (
           <div className={s["expl-command-bar"]} style={{ top: `${COMMAND_BAR_TOP}px` }}>
             <div className={s["expl-command-divider"]} aria-hidden />
             <span className={s["expl-kicker"]}>本轮指令</span>
-            {session.phase === "sealed" ? (
-              <ExploreCommandBar
-                tone="probe"
-                label="探索路线"
-                onClick={beginReveal}
-              />
-            ) : (
-              <ExploreCommandBar
-                tone="leave"
-                label="直接前往下一区域"
-                onClick={() => leaveRegion()}
-              />
-            )}
+            <ExploreCommandBar
+              tone="probe"
+              label="探索路线"
+              onClick={beginReveal}
+            />
           </div>
         ) : null}
 
@@ -537,23 +551,25 @@ export function ExploreScreen() {
 
         {/* ---- 右下: 指令栏 + 背包 + 撤退 ---- */}
         <div className={cx(s["expl-actions"], recede)} style={{ right: "56px", bottom: "40px" }}>
-          {session.phase === "atNode" && (
+          {(session.phase === "atNode" || session.phase === "choosingEntry") && (
             <div className={s["expl-advance"]}>
-              <button
-                className={cx(s["expl-advance-btn"], s["is-push"])}
-                type="button"
-                disabled={!canPushOn(session)}
-                title={canPushOn(session) ? undefined : "已走满 4 个推进段, 本轮到此为止"}
-                style={{ "--i": 0 } as CSSProperties}
-                onClick={() => pushOn()}
-              >
-                <span className={s["expl-advance-ring"]} aria-hidden />
-                <span className={s["expl-advance-label"]}>继续推进</span>
-              </button>
+              {session.phase === "atNode" && (
+                <button
+                  className={cx(s["expl-advance-btn"], s["is-push"])}
+                  type="button"
+                  disabled={!canPushOn(session)}
+                  title={canPushOn(session) ? undefined : "已走满 4 个推进段, 本轮到此为止"}
+                  style={{ "--i": 0 } as CSSProperties}
+                  onClick={() => pushOn()}
+                >
+                  <span className={s["expl-advance-ring"]} aria-hidden />
+                  <span className={s["expl-advance-label"]}>继续推进</span>
+                </button>
+              )}
               <button
                 className={cx(s["expl-advance-btn"], s["is-leave"])}
                 type="button"
-                style={{ "--i": 1 } as CSSProperties}
+                style={{ "--i": session.phase === "atNode" ? 1 : 0 } as CSSProperties}
                 onClick={() => leaveRegion()}
               >
                 <span className={s["expl-advance-ring"]} aria-hidden />
@@ -617,7 +633,7 @@ export function ExploreScreen() {
               className={cx(
                 s["expl-panel"],
                 s[`k-${ev.kind}`],
-                (session.phase === "landed" || session.phase === "roundBattle") && s["has-choices"],
+                (session.phase === "landed" || session.phase === "roundBattle" || session.phase === "inBattle") && s["has-choices"],
                 session.phase === "shopping" && s["is-shopping"],
               )}
             >
@@ -672,7 +688,7 @@ export function ExploreScreen() {
                   </div>
                   {session.phase !== "shopping" && (
                     <div className={s["expl-panel-act"]}>
-                      {session.phase === "landed" || session.phase === "roundBattle" ? (
+                      {session.phase === "landed" || session.phase === "roundBattle" || session.phase === "inBattle" ? (
                         // 正文讲完之前选项只是「在那儿」而不可点(is-armed 才开闸)。
                         <div
                           className={cx(
@@ -684,10 +700,7 @@ export function ExploreScreen() {
                             { "--choice-stagger": `${EVENT_BEAT.choiceStagger}ms` } as CSSProperties
                           }
                         >
-                          {(session.phase === "roundBattle"
-                            ? [{ id: "engage", label: "迎战", desc: "进入本轮推进战斗", cost: undefined }]
-                            : landedChoices(session)
-                          ).map((c, i) => {
+                          {choiceList.map((c, i) => {
                             // ★ 选项只说「你打算怎么做」, 得失一律等结算阶段再揭晓。
                             const state =
                               committing == null
@@ -705,7 +718,7 @@ export function ExploreScreen() {
                                 key={c.id}
                                 className={cx(s["expl-choice"], state, costUnavailable && s["is-cost-locked"])}
                                 type="button"
-                                disabled={!choiceReady || committing != null || costUnavailable}
+                                disabled={!choiceReady || committing != null || costUnavailable || session.phase === "inBattle"}
                                 title={
                                   c.cost
                                     ? costUnavailable
