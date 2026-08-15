@@ -15,7 +15,7 @@ import s from "./LootPickup.module.css";
 interface FlyingLoot {
   id: number;
   stack: ItemStack;
-  from: { left: number; top: number };
+  from: { left: number; top: number; width: number };
   to: { left: number; top: number };
 }
 
@@ -49,7 +49,7 @@ function LootPickup() {
     const targetRect = target?.getBoundingClientRect();
     const accepted = takeLoot(index);
     if (!accepted) {
-      setLootMessage("背包已满，先在背包里腾出空位");
+      setLootMessage("背包已满");
       return;
     }
     setLootMessage(null);
@@ -61,7 +61,7 @@ function LootPickup() {
     setFlying({
       id,
       stack,
-      from: { left: sourceRect.left, top: sourceRect.top },
+      from: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width },
       to: {
         left: targetRect.left + targetRect.width / 2 - sourceRect.width / 2,
         top: targetRect.top + targetRect.height / 2 - sourceRect.height / 2,
@@ -83,14 +83,13 @@ function LootPickup() {
         <span className={s["panel-scan"]} aria-hidden />
         <header className={s["loot-head"]}>
           <div>
-            <span className={s["loot-kicker"]}>EVENT MATERIAL RECOVERY</span>
             <h3 className={s["loot-title"]}>发现物品</h3>
           </div>
-          <span className={s["loot-count"]}>{pendingLoot.length} 件待拾取</span>
+          <span className={s["loot-count"]}>{pendingLoot.length} 件</span>
         </header>
         <div className={s["loot-body"]}>
           <p className={s["loot-desc"]}>
-            {lootMessage ?? "点击物品将它们收入背包。放弃的物品不会进入本次远征记录。"}
+            {lootMessage ?? "点击拾取，未拾取的物品会丢失"}
           </p>
           <div className={s["loot-grid"]}>
             {displayed.map((stack) => (
@@ -108,7 +107,7 @@ function LootPickup() {
                   setHovered((current) => (current?.uid === stack.uid ? null : current))
                 }
               >
-                <ItemSlot stack={stack} onClick={() => pick(stack)} />
+                <ItemSlot stack={stack} showName={false} onClick={() => pick(stack)} />
               </div>
             ))}
           </div>
@@ -123,7 +122,7 @@ function LootPickup() {
         <footer className={s["loot-foot"]}>
           {confirming ? (
             <div className={s["loot-confirm"]}>
-              <span>放弃剩余物品？</span>
+              <span>放弃剩余？</span>
               <button className={cx(s["loot-btn"], s["is-danger"])} type="button" onClick={abandonLoot}>
                 确认放弃
               </button>
@@ -153,6 +152,7 @@ function LootPickup() {
                 "--fly-top": `${flying.from.top}px`,
                 "--fly-x": `${flying.to.left - flying.from.left}px`,
                 "--fly-y": `${flying.to.top - flying.from.top}px`,
+                "--fly-w": `${flying.from.width}px`,
               } as CSSProperties
             }
           >

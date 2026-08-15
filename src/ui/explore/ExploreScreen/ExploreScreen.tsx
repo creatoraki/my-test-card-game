@@ -812,10 +812,10 @@ export function ExploreScreen() {
                   <div className={s["expl-rest-food"]}>
                     <ItemSlot
                       stack={restFood}
-                      showName
+                      showName={false}
                       onClick={() => restEat(restFood.uid)}
                     />
-                    <span>食用 {getItemDef(restFood.itemId).name}，触发隐藏 NPC</span>
+                    <span>食用 {getItemDef(restFood.itemId).name}，唤来隐藏访客</span>
                   </div>
                 ) : (
                   <p className={s["expl-empty"]}>背包中没有指定食品。</p>

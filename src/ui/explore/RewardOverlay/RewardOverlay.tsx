@@ -677,7 +677,7 @@ function EquipOffers({
               setHovered((current) => (current?.uid === stack.uid ? null : current))
             }
           >
-            <ItemSlot stack={stack} showName onClick={() => onPick(index)} />
+            <ItemSlot stack={stack} showName={false} onClick={() => onPick(index)} />
           </div>
         ))}
       </div>
@@ -757,7 +757,7 @@ function ReforgePicker({
                   setHovered((current) => (current?.uid === stack.uid ? null : current))
                 }
               >
-                <ItemSlot stack={stack} showName onClick={() => onBackpack(stack.uid)} />
+                <ItemSlot stack={stack} showName={false} onClick={() => onBackpack(stack.uid)} />
               </div>
             ))}
           </div>
@@ -779,7 +779,7 @@ function ReforgePicker({
                   setHovered((current) => (current?.uid === stack.uid ? null : current))
                 }
               >
-                <ItemSlot stack={stack} showName onClick={() => onEquipped(charId, slot)} />
+                <ItemSlot stack={stack} showName={false} onClick={() => onEquipped(charId, slot)} />
                 <span>{getCharacter(charId).name} · {SLOT_LABEL[slot]}</span>
               </div>
             ))}
