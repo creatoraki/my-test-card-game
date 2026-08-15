@@ -71,8 +71,7 @@
 .explore-stage {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
   --expl-modal-top: 202px;
-  --expl-dock-top: 702px;
-  --expl-dock-max-h: 356px;
+  --expl-overlay-max-h: 820px;
   --expl-glow: #6fe3f5; /* 本页强调青: 与路由图横线同色, 读作「还在供电的东西」 */
   --expl-line: #ffffff24; /* 玻璃常态描边 */
   /* ★ 背景压暗强度 —— 想调明暗**只改这一个数**(0 = 完全不压, 露出原图; 1 = 原始最暗配方)。
@@ -112,6 +111,19 @@
   background:
     radial-gradient(ellipse 62% 52% at 50% 46%, #00000026, #000000b8 100%),
     linear-gradient(180deg, #05080ab8, #05080a4d 30%, #05080a99);
+}
+
+.expl-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: #03070ac2;
+  pointer-events: auto;
+  animation: explScrimIn 180ms ease backwards;
+}
+
+@keyframes explScrimIn {
+  from { opacity: 0; }
 }
 
 /* ===================== 左上: 随身背包 ===================== */
@@ -1400,12 +1412,25 @@
   cursor: not-allowed;
 }
 
-/* ── 选通道阶段的「直接前往下一区域」(本轮 0 个节点) ──
-   放在图的正下方、决策面板同一条基线上 —— 它和 atNode 的那个按钮是同一件事。 */
-.expl-skip {
+/* ── sealed / choosingEntry 的本轮推进指令 ── */
+.expl-command-bar {
   position: absolute;
   left: 50%;
-  top: 880px;
   transform: translateX(-50%);
   z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 760px;
+}
+.expl-command-divider {
+  width: 760px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #ffffff40 18%, #ffffff40 82%, transparent);
+}
+.expl-command-bar .expl-kicker {
+  color: #a9c3c5;
+  font-size: 11px;
+  letter-spacing: 5px;
 }

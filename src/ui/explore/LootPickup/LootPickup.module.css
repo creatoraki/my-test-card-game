@@ -1,7 +1,7 @@
 .loot-layer {
   position: absolute;
   inset: 0;
-  z-index: 35;
+  z-index: 36;
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -14,7 +14,9 @@
   display: flex;
   min-height: 0;
   flex-direction: column;
-  width: 560px;
+  width: 720px;
+  max-height: var(--expl-overlay-max-h);
+  overflow: hidden;
   padding: 22px 26px 18px;
   pointer-events: auto;
   animation: loot-in 360ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
@@ -26,16 +28,6 @@
 
 .panel-scan {
   composes: panel-scan from "../styles/explorePanel.module.css";
-}
-
-:global([data-explore-dock="stacked"]) .loot-layer {
-  align-content: start;
-  padding-top: var(--expl-dock-top);
-}
-
-:global([data-explore-dock="stacked"]) .loot-panel {
-  max-height: var(--expl-dock-max-h);
-  overflow: hidden;
 }
 
 .loot-head,
@@ -91,7 +83,7 @@
   scrollbar-width: thin;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
 }
 
 .loot-item {
@@ -131,6 +123,7 @@
 }
 
 .loot-btn {
+  composes: expl-btn from "../styles/exploreKit.module.css";
   min-width: 96px;
   padding: 9px 14px;
   border: 1px solid #b9d3c52e;

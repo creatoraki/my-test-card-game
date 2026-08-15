@@ -81,7 +81,7 @@ interface RunStore {
   openSortie: () => void; // 大厅「出击」砖 → 全屏出击页(选地图 + 备物资)
   // 物资准备完毕 → 进路由图。backpack = 出发时装好的物资(见 store/sortieStore)。
   startExpedition: (mapId: string, backpack?: ItemStack[]) => void;
-  chooseEventOption: (index: number) => void;
+  chooseEventOption: (index: number) => import("../explore/types").ExploreState | null;
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
   confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
@@ -273,11 +273,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
   chooseEventOption: (index) => {
     const explore = useExploreStore.getState();
-    explore.pickOption(index);
+    const result = explore.pickOption(index);
+    if (!result) return null;
     const session = useExploreStore.getState().session;
-    if (!session) return;
+    if (!session) return result;
     const hits = applyPendingContamination(session.party.map((p) => p.charId));
     if (hits.length) useExploreStore.getState().fillStoryPlaceholders(hits);
+    return result;
   },
 
   // 本轮线路披露完 → 建局开打(设计文档 §3.1 的固定档位表)。

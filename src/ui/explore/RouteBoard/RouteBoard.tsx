@@ -3,11 +3,11 @@
 // 一轮 = 一张 5 通道 × 4 推进段的图。各阶段各对应一种画面, 全部落在同一张 SVG 上:
 //   generating —— 棋盘沿推进方向(左下 → 右上)逐条浮现(起点地板 → 连线 → 节点地板), 共 GENERATE_MS; 全程不可交互。
 //                 ⚠ 桥接自始至终不出现 —— 这一段是「浮现仪式」, 不是信息展示。
-//   sealed    —— 图已浮现完、桥接仍遮蔽, 正中悬一个「探索路线」按钮。不限时。
+//   sealed    —— 图已浮现完、桥接仍遮蔽; 「探索路线」按钮在棋盘下方的画布指令条上。不限时。
 //   revealing —— **全图 4 段桥接一次性全显** + 顶部倒计时; 玩家在这 2-3 秒里用眼睛记。
 //                只能由 sealed 阶段按下按钮进入, 一轮仅此一次。
 //   choosingEntry —— 桥接整体淡出到 opacity:0(⚠ 只改 opacity, **不卸载**: DOM 里留着才不会被
-//                「查看元素」看穿); 入口通道 A-E 变成可点按钮。★ 全轮唯一一次自由选择。
+//                「查看元素」看穿); 入口通道 A-E 变成可点按钮, 画布下方保留离场指令条。
 //   advancing —— 信号沿当前推进段的折线前进: 顺主管朝右上 → 走到岔口拐上桥管 → 落到隔壁通道;
 //                **代表玩家的几何体小人跟在信号点后半步走同一条折线**(见下面的 <Pawn>)。
 //   leaving   —— **离场行走**: 玩家在 atNode 选了「前往下一区域」之后, 棋子沿本轮**剩余的整条
@@ -109,11 +109,6 @@ export const TILE_BOX_H = TILE_TOP_H + TILE_D; // 连厚度一起的按钮盒高
 export const NODE_ICON_TOP = ICON_H + TILE_TOP_H / 2;
 
 const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
-
-// 「探索路线」横条的**底边**距面板底边的距离(anchor 走 translate(-50%,-100%), 见 CSS)。
-// ⚠ 见下面挂 .rb-probe-anchor 处的长注释: 横条顶边必须留在最低那块节点地板的底沿(y ≈ 585)之下,
-//   这个数往上调就会重新遮挡段 1 · 通道 E 的节点。面板高约 702 ⇒ 底部有约 110px 的净空。
-const PROBE_BOTTOM_INSET = 6;
 
 // 信号点的行进速度(设计 px / ms)与时长夹逼。
 // ⚠ 比上一版更慢(0.75 → 0.42): §11.2 要求「足够慢地逐格经过主管与桥管」——
@@ -567,8 +562,6 @@ interface Props {
   currentSegment: number;
   /** 只在 choosingEntry 阶段可用; 由 ExploreScreen 转给 store 的 pickEntry。 */
   onPickEntry: (lane: number) => void;
-  /** 只在 sealed 阶段可用; 玩家按下「探索路线」→ store 的 beginReveal。 */
-  onStartReveal: () => void;
   /** 推进动画播完 → store 的 arrive()(会话从 advancing 进 landed)。 */
   onArrive: () => void;
   /** 离场行走播完 → store 的 leaveDone()(会话从 leaving 进 routeDisclosure)。
@@ -585,7 +578,6 @@ export function RouteBoard({
   currentLane,
   currentSegment,
   onPickEntry,
-  onStartReveal,
   onArrive,
   onLeaveDone,
   onHoverNode,
@@ -607,7 +599,6 @@ export function RouteBoard({
   //   刚选完入口、还没推进过时 currentLane 可能尚未落位, 兜底回 entryLane。
   const activeLane = entryLane == null ? null : (currentLane ?? entryLane);
   const generating = phase === "generating";
-  const sealed = phase === "sealed";
   // 桥接: 揭示期、离场行走与披露页可见。⚠ 其余阶段留在 DOM 里只改 opacity(见抬头)。
   // ★ 离场行走也显形: 人这一路要连过好几根桥, 桥还遮着的话他会读成「在空中横移」。
   //   这不算泄题 —— 本轮的选择已经全部做完了。
@@ -1069,43 +1060,6 @@ export function RouteBoard({
         </svg>
       )}
 
-      {/* ── 「探索路线」: 遮蔽态**贴在面板底边居中**的那一条横条 ──
-          它是本轮唯一进入 revealing 的入口, 按下即消失、**这一轮再也回不来**(见 session.startReveal)。
-          故意做得像个探针触发器而不是普通按钮 —— 玩家要意识到这一下是不可撤销的。
-          ⚠ 它曾经摆在面板正中(ROUTE_PANEL_H / 2), 正好压在棋盘斜带的腰上, 把中间几段节点挡掉 ——
-            而 sealed 恰恰是玩家**唯一**能从容悬停查看 20 个节点的阶段(nodesInteractive 在这一相为真),
-            挡住等于把这一相废掉。故改为贴底边: 棋盘是左下 → 右上的斜带, 面板底边中段是天然空白。
-          ⚠ PROBE_BOTTOM_INSET 这个数不能随手调大: 最低的一块**节点**地板(段 1 · 通道 E)的底沿
-            约在 y = 585, 面板高约 702 —— 横条(约 62px 高)顶边必须留在 590 以下才一个节点都不压。
-            往上挪就会重新开始遮挡。压住通道 E 起点地板的下沿是可以的: sealed 阶段起点按钮本就
-            disabled、地板本身不带任何信息, 站在上面的字母又在地板**上方**, 不会被盖到。 */}
-      {sealed && (
-        // ⚠ 居中定位挂在这层 anchor 上, **不能**挂在 button 自己身上:
-        //   全站的 base.css 有 `button:active:not(:disabled){transform:translateY(1px)}`,
-        //   特异性比单个类名高 —— 按下的瞬间它会把 translate(-50%,-50%) 整条顶掉,
-        //   按钮当场朝右下跳半个自身宽高, 从光标底下跑走, click 根本不触发。
-        //   拆成两层后按钮本体不持有 transform, 那条按下反馈就只是它本来的意思。
-        //   探针环同样挪到 anchor 上: button 有 clip-path(全站斜切角), 留在里面会被裁掉。
-        <div
-          className={s["rb-probe-anchor"]}
-          style={{
-            left: `${ROUTE_PANEL_W / 2}px`,
-            top: `${ROUTE_PANEL_H - PROBE_BOTTOM_INSET}px`,
-          }}
-        >
-          <span className={s["rb-probe-ring"]} aria-hidden />
-          <button
-            type="button"
-            className={s["rb-probe"]}
-            onClick={onStartReveal}
-            // title="向签路注入探针, 全图桥接会短暂显形 —— 本轮仅此一次"
-          >
-            <span className={s["rb-probe-label"]}>探索路线</span>
-            <span className={s["rb-probe-sep"]} aria-hidden />
-            <span className={s["rb-probe-note"]}>全图桥接仅显形一次</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

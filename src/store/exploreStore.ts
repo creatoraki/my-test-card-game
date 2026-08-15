@@ -90,7 +90,7 @@ interface ExploreStore {
   takePending: (index: number) => void; // 替换模式: 收下待取物
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
   shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
-  takeLoot: (index: number) => void;
+  takeLoot: (index: number) => boolean;
   takeAllLoot: () => void;
   abandonLoot: () => void;
   restEat: (uid: string) => void;
@@ -258,7 +258,12 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   },
 
   takeLoot: (index) => {
-    mutate(get, set, (d) => takeLoot(d, index));
+    let ok = false;
+    mutate(get, set, (d) => {
+      ok = takeLoot(d, index);
+      return ok;
+    });
+    return ok;
   },
 
   takeAllLoot: () => {

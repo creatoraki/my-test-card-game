@@ -683,8 +683,11 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       return "获得一次免费角色删卡机会";
     case "EQUIP_OFFER": {
       const offers = rollEquipOffers(s, e.count, e.slot);
-      s.pendingActions.push({ kind: "equipOffer", offers });
-      return `公开 ${offers.length} 件装备候选`;
+      if (offers.length) {
+        s.pendingActions.push({ kind: "equipOffer", offers });
+        return `公开 ${offers.length} 件装备候选`;
+      }
+      return "装备库存为空";
     }
     case "REFORGE_BOND":
       s.pendingActions.push({ kind: "reforge", bias: e.bias });
@@ -1099,16 +1102,33 @@ export function resolveChoice(s: ExploreState, choice: EventChoice, defer = true
 // ★ 粒子消耗 = 每节点固定 −3(freeNodes 可免) + 该分支自己的 energyDelta(设计文档 §4.2)。
 export function chooseOption(s: ExploreState, index: number): boolean {
   if (s.phase !== "landed" || !s.board || s.currentLane == null || s.currentSegment < 1) {
+    console.warn("[explore] 选项未被接受：当前阶段或落点无效", {
+      index,
+      phase: s.phase,
+      hasBoard: Boolean(s.board),
+      currentLane: s.currentLane,
+      currentSegment: s.currentSegment,
+    });
     return false;
   }
 
   const ev = landedEvent(s);
   const choice = landedChoices(s)[index];
-  if (!ev || !choice) return false;
+  if (!ev || !choice) {
+    console.warn("[explore] 选项未被接受：事件或选项不存在", { index, eventId: ev?.id });
+    return false;
+  }
 
   if (choice.cost) {
     const count = Math.max(1, Math.floor(choice.cost.count));
-    if (countByItemId(s.backpack, choice.cost.itemId) < count) return false;
+    if (countByItemId(s.backpack, choice.cost.itemId) < count) {
+      console.warn("[explore] 选项未被接受：消耗品不足", {
+        index,
+        itemId: choice.cost.itemId,
+        required: count,
+      });
+      return false;
+    }
     s.backpack = consumeItems(s.backpack, choice.cost.itemId, count);
   }
 
@@ -1155,8 +1175,13 @@ export function chooseOption(s: ExploreState, index: number): boolean {
       nodeBattleTier = e.tier;
       continue;
     }
-    const note = applyEffect(s, e, true);
-    if (note) notes.push(note);
+    try {
+      const note = applyEffect(s, e, true);
+      if (note) notes.push(note);
+    } catch (err) {
+      console.error("[explore] 事件效果异常（已跳过）", { effectType: e.type, error: err });
+      notes.push("事件效果异常（已跳过）");
+    }
   }
 
   s.pendingNotes = notes;

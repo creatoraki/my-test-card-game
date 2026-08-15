@@ -44,6 +44,7 @@ import { useTownStore } from "@/store/townStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
+import ExploreCommandBar from "@/ui/explore/ExploreCommandBar";
 import LootPickup from "@/ui/explore/LootPickup";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import ShopOverlay from "@/ui/explore/ShopOverlay";
@@ -76,6 +77,7 @@ import s from "./ExploreScreen.module.css";
 //   把面板往右推是为了给左上的 HUD 让位, 同时让棋盘右上角避开右上的读数列。
 const BOARD_LEFT = 508;
 const BOARD_TOP = 184;
+const COMMAND_BAR_TOP = 930;
 const BAG_W = 640;
 
 // 固定槽位数: 探索队伍区恒定 3 格, 与 engine/rules.ts 的 progression.partySize 对齐。
@@ -324,6 +326,7 @@ export function ExploreScreen() {
     session.phase === "resolving" || session.phase === "npcResolving"
       ? desc.done && story.done && narrationDone
       : true;
+  const overlayOpen = narrationGate && (hasPendingAction || hasLoot);
   const hiddenRest = ev?.hiddenRest;
   const restFood = hiddenRest
     ? session.backpack.find((stack) => stack.itemId === hiddenRest.foodItemId) ?? null
@@ -373,17 +376,30 @@ export function ExploreScreen() {
       if (session.phase === "roundBattle") {
         engageRoundBattle();
       } else {
-        chooseEventOption(index);
+        const result = chooseEventOption(index);
+        if (!result) console.warn("[explore] 选项未被会话接受", { index, phase: session.phase });
       }
     };
     if (prefersReducedMotion()) {
-      engage();
+      try {
+        engage();
+      } catch (err) {
+        console.error("[explore] 事件结算抛出异常", err);
+      } finally {
+        setCommitting(null);
+      }
       return;
     }
     setCommitting(index);
     commitTimer.current = window.setTimeout(() => {
       commitTimer.current = null;
-      engage();
+      try {
+        engage();
+      } catch (err) {
+        console.error("[explore] 事件结算抛出异常", err);
+      } finally {
+        setCommitting(null);
+      }
     }, EVENT_BEAT.commit);
   };
 
@@ -441,7 +457,6 @@ export function ExploreScreen() {
             currentLane={session.currentLane}
             currentSegment={session.currentSegment}
             onPickEntry={pickEntry}
-            onStartReveal={beginReveal}
             onArrive={onArrive}
             onLeaveDone={onLeaveDone}
             onHoverNode={onHoverNode}
@@ -468,6 +483,26 @@ export function ExploreScreen() {
             />
           )}
         </div>
+
+        {session.phase === "sealed" || session.phase === "choosingEntry" ? (
+          <div className={s["expl-command-bar"]} style={{ top: `${COMMAND_BAR_TOP}px` }}>
+            <div className={s["expl-command-divider"]} aria-hidden />
+            <span className={s["expl-kicker"]}>本轮指令</span>
+            {session.phase === "sealed" ? (
+              <ExploreCommandBar
+                tone="probe"
+                label="探索路线"
+                onClick={beginReveal}
+              />
+            ) : (
+              <ExploreCommandBar
+                tone="leave"
+                label="直接前往下一区域"
+                onClick={() => leaveRegion()}
+              />
+            )}
+          </div>
+        ) : null}
 
         {/* ---- 左下: 队伍 ---- */}
         <div className={cx(s["expl-party"], recede)} style={{ left: "16px", bottom: "16px" }}>
@@ -569,16 +604,6 @@ export function ExploreScreen() {
             </button>
           </div>
         </div>
-
-        {/* ---- 选入口阶段的「直接推进」---- 本轮 0 个节点, 设计文档 §1.2 明确允许。 */}
-        {session.phase === "choosingEntry" && (
-          <div className={s["expl-skip"]}>
-            <button className={s["expl-btn"]} type="button" onClick={() => leaveRegion()}>
-              直接前往下一区域 ▸
-              <span className={s["expl-btn-flag"]}>本轮不探索任何节点</span>
-            </button>
-          </div>
-        )}
 
         {/* ---- 落点浮层(两段式) ----
             landed   —— 事件卡面 + 两个分支按钮。**抵达 ≠ 结算**: 落点已定、效果一件都没生效。
@@ -892,6 +917,7 @@ export function ExploreScreen() {
           <BackpackPanel onClose={() => setBagOpen(false)} />
         )}
 
+        {overlayOpen && <div className={s["expl-scrim"]} aria-hidden />}
         {narrationGate && session.pendingActions.length > 0 && <RewardOverlay />}
         {narrationGate && !session.pendingActions.length && <LootPickup />}
     </StageCanvas>

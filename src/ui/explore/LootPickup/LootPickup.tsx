@@ -1,8 +1,14 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
+import ItemTooltip, {
+  tooltipPointFromRect,
+  type TooltipPoint,
+} from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
+import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
+import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { cx } from "@/ui/common/cx";
 import s from "./LootPickup.module.css";
 
@@ -20,6 +26,14 @@ function LootPickup() {
   const abandonLoot = useExploreStore((state) => state.abandonLoot);
   const [confirming, setConfirming] = useState(false);
   const [flying, setFlying] = useState<FlyingLoot | null>(null);
+  const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
+  const [lootMessage, setLootMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (hovered && !pendingLoot.some((stack) => stack.uid === hovered.uid)) {
+      setHovered(null);
+    }
+  }, [hovered, pendingLoot]);
 
   if (!pendingLoot.length) return null;
 
@@ -27,15 +41,22 @@ function LootPickup() {
 
   const pick = (stack: (typeof displayed)[number]) => {
     if (flying) return;
+    const index = pendingLoot.findIndex((item) => item.uid === stack.uid);
+    if (index < 0) return;
     const source = document.querySelector<HTMLElement>(`[data-loot-uid="${stack.uid}"]`);
     const target = document.getElementById("explore-backpack-bar");
-    if (!source || !target) {
-      takeLoot(pendingLoot.findIndex((item) => item.uid === stack.uid));
+    const sourceRect = source?.getBoundingClientRect();
+    const targetRect = target?.getBoundingClientRect();
+    const accepted = takeLoot(index);
+    if (!accepted) {
+      setLootMessage("背包已满，先在背包里腾出空位");
+      return;
+    }
+    setLootMessage(null);
+    if (!sourceRect || !targetRect) {
       return;
     }
 
-    const sourceRect = source.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
     const id = Date.now();
     setFlying({
       id,
@@ -47,10 +68,13 @@ function LootPickup() {
       },
     });
     window.setTimeout(() => {
-      takeLoot(pendingLoot.findIndex((item) => item.uid === stack.uid));
       setFlying((current) => (current?.id === id ? null : current));
     }, 430);
   };
+
+  const hoveredStack = hovered
+    ? pendingLoot.find((stack) => stack.uid === hovered.uid) ?? null
+    : null;
 
   return (
     <div className={s["loot-layer"]}>
@@ -65,15 +89,37 @@ function LootPickup() {
           <span className={s["loot-count"]}>{pendingLoot.length} 件待拾取</span>
         </header>
         <div className={s["loot-body"]}>
-          <p className={s["loot-desc"]}>点击物品将它们收入背包。放弃的物品不会进入本次远征记录。</p>
+          <p className={s["loot-desc"]}>
+            {lootMessage ?? "点击物品将它们收入背包。放弃的物品不会进入本次远征记录。"}
+          </p>
           <div className={s["loot-grid"]}>
             {displayed.map((stack) => (
-              <div className={s["loot-item"]} data-loot-uid={stack.uid} key={stack.uid}>
+              <div
+                className={s["loot-item"]}
+                data-loot-uid={stack.uid}
+                key={stack.uid}
+                onPointerEnter={(event) =>
+                  setHovered({
+                    uid: stack.uid,
+                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                  })
+                }
+                onPointerLeave={() =>
+                  setHovered((current) => (current?.uid === stack.uid ? null : current))
+                }
+              >
                 <ItemSlot stack={stack} onClick={() => pick(stack)} />
               </div>
             ))}
           </div>
         </div>
+        {hoveredStack && hovered && (
+          <ItemTooltip
+            stack={hoveredStack}
+            point={hovered.point}
+            themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)}
+          />
+        )}
         <footer className={s["loot-foot"]}>
           {confirming ? (
             <div className={s["loot-confirm"]}>

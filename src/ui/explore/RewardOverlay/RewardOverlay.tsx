@@ -8,8 +8,14 @@ import { useRunStore } from "@/store/runStore";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
 import { CardView } from "@/ui/character/CardView";
+import ItemTooltip, {
+  tooltipPointFromRect,
+  type TooltipPoint,
+} from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
+import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { cx } from "@/ui/common/cx";
+import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import s from "./RewardOverlay.module.css";
 
 export default function RewardOverlay() {
@@ -641,17 +647,48 @@ function EquipOffers({
   onPick: (index: number) => void;
   onSkip: () => void;
 }) {
+  const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
+
+  useEffect(() => {
+    if (hovered && !offers.some((stack) => stack.uid === hovered.uid)) {
+      setHovered(null);
+    }
+  }, [hovered, offers]);
+
+  const hoveredStack = hovered
+    ? offers.find((stack) => stack.uid === hovered.uid) ?? null
+    : null;
+
   return (
     <div className={s["reward-body"]}>
       <p className={s["reward-caption"]}>候选属性已在事件结算时确定，选择一件放入拾取框。</p>
       <div className={s["item-list"]}>
         {offers.map((stack, index) => (
-          <div className={s["item-choice"]} key={stack.uid}>
+          <div
+            className={s["item-choice"]}
+            key={stack.uid}
+            onPointerEnter={(event) =>
+              setHovered({
+                uid: stack.uid,
+                point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+              })
+            }
+            onPointerLeave={() =>
+              setHovered((current) => (current?.uid === stack.uid ? null : current))
+            }
+          >
             <ItemSlot stack={stack} showName onClick={() => onPick(index)} />
           </div>
         ))}
       </div>
       {!offers.length && <p className={s["reward-empty"]}>当前没有可用装备候选。</p>}
+      {hoveredStack && hovered && (
+        <ItemTooltip
+          stack={hoveredStack}
+          point={hovered.point}
+          themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)}
+        />
+      )}
       <footer className={s["reward-foot"]}>
         <span>未选择的候选不会进入背包</span>
         <button className={s["reward-btn"]} type="button" onClick={onSkip}>
@@ -684,6 +721,19 @@ function ReforgePicker({
       return stack ? [{ charId, slot, stack }] : [];
     }),
   );
+  const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
+
+  useEffect(() => {
+    const available = [...backpackEquipment, ...equipped.map((entry) => entry.stack)];
+    if (hovered && !available.some((stack) => stack.uid === hovered.uid)) {
+      setHovered(null);
+    }
+  }, [backpackEquipment, equipped, hovered]);
+
+  const hoveredStack = hovered
+    ? [...backpackEquipment, ...equipped.map((entry) => entry.stack)].find((stack) => stack.uid === hovered.uid) ?? null
+    : null;
+
   return (
     <div className={s["reward-body"]}>
       <p className={s["reward-caption"]}>
@@ -694,7 +744,21 @@ function ReforgePicker({
           <span className={s["group-label"]}>探索背包</span>
           <div className={s["item-list"]}>
             {backpackEquipment.map((stack) => (
-              <ItemSlot key={stack.uid} stack={stack} showName onClick={() => onBackpack(stack.uid)} />
+              <div
+                className={s["item-choice"]}
+                key={stack.uid}
+                onPointerEnter={(event) =>
+                  setHovered({
+                    uid: stack.uid,
+                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                  })
+                }
+                onPointerLeave={() =>
+                  setHovered((current) => (current?.uid === stack.uid ? null : current))
+                }
+              >
+                <ItemSlot stack={stack} showName onClick={() => onBackpack(stack.uid)} />
+              </div>
             ))}
           </div>
         </div>
@@ -702,7 +766,19 @@ function ReforgePicker({
           <span className={s["group-label"]}>角色装备</span>
           <div className={s["item-list"]}>
             {equipped.map(({ charId, slot, stack }) => (
-              <div className={s["equipped-choice"]} key={`${charId}-${slot}`}>
+              <div
+                className={s["equipped-choice"]}
+                key={`${charId}-${slot}`}
+                onPointerEnter={(event) =>
+                  setHovered({
+                    uid: stack.uid,
+                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                  })
+                }
+                onPointerLeave={() =>
+                  setHovered((current) => (current?.uid === stack.uid ? null : current))
+                }
+              >
                 <ItemSlot stack={stack} showName onClick={() => onEquipped(charId, slot)} />
                 <span>{getCharacter(charId).name} · {SLOT_LABEL[slot]}</span>
               </div>
@@ -711,14 +787,19 @@ function ReforgePicker({
         </div>
       </div>
       {!backpackEquipment.length && !equipped.length && (
-        <>
-          <p className={s["reward-empty"]}>没有可重铸的装备。</p>
-          <footer className={s["reward-foot"]}>
-            <span>本次羁绊重铸无法执行</span>
-            <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-          </footer>
-        </>
+        <p className={s["reward-empty"]}>没有可重铸的装备。</p>
       )}
+      {hoveredStack && hovered && (
+        <ItemTooltip
+          stack={hoveredStack}
+          point={hovered.point}
+          themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)}
+        />
+      )}
+      <footer className={s["reward-foot"]}>
+        <span>{backpackEquipment.length || equipped.length ? "未选择的装备保持原样" : "本次羁绊重铸无法执行"}</span>
+        <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
+      </footer>
     </div>
   );
 }

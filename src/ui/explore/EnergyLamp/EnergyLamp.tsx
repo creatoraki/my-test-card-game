@@ -15,6 +15,7 @@ import { energyLampGlow, energyLampIntensity } from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
 import { GlassHourglass } from "@/ui/common/GlassHourglass";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { useCountUp } from "@/ui/hooks/useCountUp";
 import s from "./EnergyLamp.module.css";
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function EnergyLamp({ energy, projected, recede = false }: Props) {
+  const shownEnergy = useCountUp(energy, 0, 360);
   const cur = energyTier(energy);
   const after = energyTier(projected ?? energy);
   const crossing = projected != null && after.tier > cur.tier;
@@ -64,9 +66,9 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
       </div>
       <div className={cx(s["el-readout"], recede && s["is-recede"])}>
         {/* <span className={s["el-label"]}>净化粒子</span> */}
-        {/* key 挂数值: 每次变动重挂一次, 走一遍跳数动画 —— 这是全屏最该被看见的变化 */}
-        <strong className={s["el-value"]} key={energy}>
-          {energy}
+        {/* 数值从上一次读数滚到新读数, 让能量结算的变化在右上角有明确反馈。 */}
+        <strong className={s["el-value"]}>
+          {shownEnergy}
         </strong>
       </div>
       <RailPopover side="left" className={s["el-popover"]}>
