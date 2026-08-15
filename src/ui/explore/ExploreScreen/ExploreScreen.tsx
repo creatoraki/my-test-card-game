@@ -45,6 +45,7 @@ import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
 import ExploreCommandBar from "@/ui/explore/ExploreCommandBar";
 import { EventModal, NpcModal, RestModal, type EventModalView, type NpcModalView, type RestModalView } from "./ExploreModals";
+import type { EventPanelScene } from "@/ui/common/EventPanel";
 import LootPickup from "@/ui/explore/LootPickup";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import ShopOverlay from "@/ui/explore/ShopOverlay";
@@ -155,6 +156,7 @@ export function ExploreScreen() {
   // 已点下但还没派发出去的那一支。★ 这个空档就是「落子的回响」——
   //   按钮先演完(竖条锁死 + 扫光掠过), 结算才发生; 少了它, 点击就只是一次表单提交。
   const [committing, setCommitting] = useState<number | null>(null);
+  const [scene, setScene] = useState<EventPanelScene>("briefing");
   const commitTimer = useRef<number | null>(null);
   // 结算摘要是否已逐条播完 —— 播完之前「确认」按钮不接受点击, 否则玩家一路连点就什么都没看见。
   const [narrationDone, setNarrationDone] = useState(false);
@@ -245,6 +247,15 @@ export function ExploreScreen() {
   useEffect(() => {
     if (phase !== "landed") setCommitting(null);
   }, [phase]);
+  useEffect(() => {
+    if (phase === "resolving" || phase === "npcResolving") {
+      setScene("result");
+    } else if (phase === "inBattle") {
+      setScene("choice");
+    } else if (phase === "landed" || phase === "roundBattle" || phase === "resting" || phase === "npcEvent" || phase === "shopping") {
+      setScene("briefing");
+    }
+  }, [phase, round, session?.currentSegment]);
   useEffect(() => () => window.clearTimeout(commitTimer.current ?? undefined), []);
 
   // 结算故事与摘要共用一条时间线: 全部播完之后才给「确认」解锁。
@@ -355,11 +366,11 @@ export function ExploreScreen() {
             mustReplace,
             hasLoot,
             hasPendingAction,
-            reducedMotion: prefersReducedMotion(),
+            scene,
           }
         : null;
       const restView: RestModalView | null = session && hiddenRest
-        ? { session, hiddenRest, restFood }
+        ? { session, hiddenRest, restFood, scene }
         : null;
       const npcView: NpcModalView | null = session && npc
         ? {
@@ -369,6 +380,7 @@ export function ExploreScreen() {
             hasLoot,
             hasPendingAction,
             narrationDone,
+            scene,
           }
         : null;
       const eventPresence = useRevealPresence(eventModalOpen && Boolean(eventView), eventView, panelRevealCloseMs());
@@ -654,6 +666,8 @@ export function ExploreScreen() {
             closing={eventPresence.closing}
             onTakeOption={(index, event) => takeOption(index, event)}
             onConfirm={confirmNode}
+            onAdvance={() => setScene("choice")}
+            onBack={() => setScene("briefing")}
           />
         )}
         {restPresence.mounted && restPresence.data && (
@@ -662,6 +676,8 @@ export function ExploreScreen() {
             closing={restPresence.closing}
             onEat={restEat}
             onSkip={restSkip}
+            onAdvance={() => setScene("choice")}
+            onBack={() => setScene("briefing")}
           />
         )}
         {npcPresence.mounted && npcPresence.data && (
@@ -670,6 +686,8 @@ export function ExploreScreen() {
             closing={npcPresence.closing}
             onChoose={chooseNpcOption}
             onConfirm={confirmNpc}
+            onAdvance={() => setScene("choice")}
+            onBack={() => setScene("briefing")}
           />
         )}
 

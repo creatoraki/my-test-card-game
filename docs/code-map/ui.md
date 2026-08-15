@@ -135,6 +135,7 @@ src/ui/
 | [cx.ts](../../src/ui/common/cx.ts) | 全项目唯一的 className 拼接工具。 |
 | [cardText.ts](../../src/ui/common/cardText.ts) | 从战斗实时属性或城镇派生面板属性读取卡牌施放者的攻击力/治愈力，并渲染卡牌说明数值。 |
 | [ModalReveal](../../src/ui/common/ModalReveal/ModalReveal.tsx) | 横线上下展开的弹窗裁切层与关闭延迟 hook；通过 CSS 变量统一入场、收回时长和减少动态效果降级。 |
+| [EventPanel](../../src/ui/common/EventPanel/EventPanel.tsx) | Luna 风格的数据驱动事件面板公共壳与情报、行动、结算三段分镜；探索弹窗与 Luna 测试页共用，面板内容样式独立于探索外层材质。 |
 | [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，卡面比例为 320:496、插画区为 1:1、卡名位于插画下方的装饰名条中、费用球贴左上角，支持普通 / 速攻两套配色，尺寸随容器等比自适应，可省略底部统计栏。 |
 | [GlassHourglass](../../src/ui/common/GlassHourglass/GlassHourglass.tsx) | `html-templates/沙漏.html` 的 2D Canvas 复刻，包含玻璃轮廓 LUT、沙堆/漏斗、沙流、悬浮粒子和黄铜端盖，支持颜色/强度/暂停与减弱动态效果降级；旧 `GlassLantern` 已移入 `_legacy`。 |
 | [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；立绘统一为 1152×2048 / 9:16 / 透明底 / 左右对称，逐人 `--portrait-dx/dy`、`--bust-scale` 默认归零，仅作异常构图的补偿位。编队页取景走独立的 `formation.dx/dy`（下发为 `--fm-portrait-dx/dy`），未填写时回退通用 `dx/dy`。 |

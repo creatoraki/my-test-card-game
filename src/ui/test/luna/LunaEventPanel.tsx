@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useTypewriter } from "@/ui/hooks/useTypewriter";
+import { EventPanel, EventPanelBriefing, EventPanelChoice, EventPanelResult } from "@/ui/common/EventPanel";
 import s from "./LunaEventPanel.module.css";
 
 type EventType = "risk" | "growth" | "survival";
@@ -195,116 +196,73 @@ export function LunaEventPanel() {
         ))}
       </div>
 
-      <div className={s.eventDemo} style={{ "--event-accent": event.accent } as CSSProperties}>
-        <header className={s.demoHeader}>
-          <div>
-            <span className={s.demoKicker}>SCENARIO LAB / 事件面板原型</span>
-            <h1>探索事件</h1>
-          </div>
-          <div className={s.headerActions}>
-            <span className={s.sceneProgress} aria-label={`当前分镜 ${scene === "briefing" ? 1 : scene === "choice" ? 2 : 3} / 3`}>
-              <i className={scene === "briefing" ? s.progressActive : ""} />
-              <i className={scene === "choice" ? s.progressActive : ""} />
-              <i className={scene === "result" ? s.progressActive : ""} />
-              <span>{scene === "briefing" ? "情报" : scene === "choice" ? "行动" : "结算"}</span>
-            </span>
-            <button type="button" className={s.resetButton} onClick={resetEvent}>
-              <span aria-hidden="true">↺</span> 重置事件
-            </button>
-          </div>
-        </header>
-
-        <main className={s.sceneViewport} data-scene={scene} key={`${eventType}-${scene}`}>
-          {scene === "briefing" && (
-            <section className={s.briefingScene} aria-label="事件情报">
-              <div className={s.scenePlaceholder} aria-label="事件插图占位区域">
-                <div className={s.sceneGrid} />
-                <div className={s.sceneOrb} />
-                <div className={s.sceneFrame}>
-                  <span>01</span>
-                  <span>VISUAL<br />PLACEHOLDER</span>
-                </div>
-                <div className={s.sceneCaption}>
-                  <span>ARCHIVE IMAGE</span>
-                  <strong>{event.sceneName}</strong>
-                </div>
-                <div className={s.sceneGlyph} aria-hidden="true">{event.icon}</div>
-              </div>
-              <div className={s.briefingCopy}>
-                <div className={s.eventLabel}><span /> {event.label}</div>
-                <h2>{event.title}</h2>
-                <p className={`${s.storySubtitle} ${!subtitle.done ? s.typingText : ""}`}>{subtitle.shown}</p>
-                <p className={`${s.storyBody} ${!body.done ? s.typingText : ""}`}>{body.shown}</p>
-                <div className={s.storyMeta}>
-                  <span><b>⌁</b> 当前区域 · 废弃楼层</span>
-                  <span><b>◷</b> 节点剩余 02</span>
-                </div>
-                <button type="button" className={s.advanceButton} onClick={() => setScene("choice")}>
-                  查看可用行动 <span aria-hidden="true">→</span>
-                </button>
-              </div>
-            </section>
-          )}
-
-          {scene === "choice" && (
-            <section className={s.choiceScene} aria-label="事件行动选择">
-              <div className={s.choiceIntro}>
-                <span className={s.sceneEyebrow}>02 / ACTION PHASE</span>
-                <h2>你要怎么做？</h2>
-                <p>选择一条行动路径。点击后立即结算事件结果。</p>
-                <div className={s.choiceSignal}><span /> 可用路径 {event.options.filter((option) => !option.disabled).length} / {event.options.length}</div>
-              </div>
-              <div className={s.optionsList}>
-                {event.options.map((option, index) => {
-                  const costClass = `cost${option.costTone[0].toUpperCase()}${option.costTone.slice(1)}` as keyof typeof s;
-                  return (
-                    <button
-                      key={option.name}
-                      type="button"
-                      className={s.option}
-                      disabled={option.disabled}
-                      onClick={() => chooseOption(index)}
-                    >
-                      <span className={s.optionNumber}>{String(index + 1).padStart(2, "0")}</span>
-                      <span className={s.optionMain}>
-                        <strong>{option.name}</strong>
-                        <span>{option.description}</span>
-                        <em className={s[costClass]}><i /> {option.cost}</em>
-                      </span>
-                      <span className={s.optionArrow} aria-hidden="true">↗</span>
-                      {option.disabled && <small className={s.disabledTag}>{option.disabledReason}</small>}
-                    </button>
-                  );
-                })}
-              </div>
-              <button type="button" className={s.backButton} onClick={() => setScene("briefing")}>
-                <span aria-hidden="true">←</span> 返回情报
-              </button>
-            </section>
-          )}
-
-          {scene === "result" && chosenOption && (
-            <section className={s.resultScene} aria-label="事件结算结果" aria-live="polite">
-              <div className={s.resultSeal}>✓</div>
-              <span className={s.sceneEyebrow}>03 / RESOLVED</span>
-              <h2>事件已结算</h2>
-              <p className={`${s.resultStory} ${!result.done ? s.typingText : ""}`}>{result.shown}</p>
-              <div className={s.summaryRow}>
-                <span>结算摘要</span>
-                <strong>{chosenOption.summary}</strong>
-              </div>
-              <div className={s.rewardNotice}>
-                <span className={s.rewardPulse} />
-                <div><strong>奖励待处理</strong><span>已加入远征奖励队列</span></div>
-                <span className={s.rewardArrow}>→</span>
-              </div>
-              <button type="button" className={s.advanceButton} onClick={resetEvent}>
-                查看事件概览 <span aria-hidden="true">↺</span>
-              </button>
-            </section>
-          )}
-        </main>
-      </div>
+      <EventPanel
+        accent={event.accent}
+        kicker="SCENARIO LAB / 事件面板原型"
+        title="探索事件"
+        scene={scene}
+        sceneKey={eventType}
+        className={s.lunaPanel}
+        headerExtra={(
+          <button type="button" className={s.resetButton} onClick={resetEvent}>
+            <span aria-hidden="true">↺</span> 重置事件
+          </button>
+        )}
+      >
+        {scene === "briefing" && (
+          <EventPanelBriefing
+            sceneName={event.sceneName}
+            glyph={event.icon}
+            heading={event.title}
+            label={event.label}
+            subtitle={subtitle.shown}
+            body={body.shown}
+            typingSubtitle={!subtitle.done}
+            typingBody={!body.done}
+            meta={[
+              { icon: "⌁", text: "当前区域 · 废弃楼层" },
+              { icon: "◷", text: "节点剩余 02" },
+            ]}
+            advanceLabel="查看可用行动"
+            onAdvance={() => setScene("choice")}
+          />
+        )}
+        {scene === "choice" && (
+          <EventPanelChoice
+            heading="你要怎么做？"
+            hint="选择一条行动路径。点击后立即结算事件结果。"
+            signal={<>可用路径 {event.options.filter((option) => !option.disabled).length} / {event.options.length}</>}
+            options={event.options.map((option) => ({
+              id: option.name,
+              name: option.name,
+              description: option.description,
+              cost: option.cost,
+              costTone: option.costTone,
+              disabled: option.disabled,
+              disabledReason: option.disabledReason,
+            }))}
+            onPick={chooseOption}
+            backLabel="返回情报"
+            onBack={() => setScene("briefing")}
+          />
+        )}
+        {scene === "result" && chosenOption && (
+          <EventPanelResult
+            seal="✓"
+            eyebrow="03 / RESOLVED"
+            heading="事件已结算"
+            story={result.shown}
+            typingStory={!result.done}
+            summaryLabel="结算摘要"
+            summaryValue={chosenOption.summary}
+            notes={[]}
+            notice={{ title: "奖励待处理", desc: "已加入远征奖励队列" }}
+            footNote="结算完毕"
+            confirmLabel="查看事件概览 ↺"
+            onConfirm={resetEvent}
+          />
+        )}
+      </EventPanel>
     </div>
   );
 }
