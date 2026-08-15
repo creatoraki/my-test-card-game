@@ -149,7 +149,7 @@ export function EventModal({ view, closing, onTakeOption, onConfirm }: EventModa
                           ? s["is-chosen"]
                           : s["is-dimmed"];
                     const requiredCount = choice.cost?.count ?? 0;
-                          onTakeOption: (index: number, event: MouseEvent<HTMLButtonElement>) => void;
+                    const availableCount = choice.cost
                       ? countByItemId(session.backpack, choice.cost.itemId)
                       : 0;
                     const costUnavailable = Boolean(choice.cost && availableCount < requiredCount);
@@ -250,7 +250,7 @@ export function RestModal({ view, closing, onEat, onSkip }: RestModalProps) {
         <h3 className={s["expl-panel-title"]}>要在这里休息吗？</h3>
         <div className={s["expl-panel-slot"]}>
           <p className={s["expl-panel-desc"]}>你可以消耗指定食品，唤来隐藏访客；也可以跳过休息，继续前往下一个节点。</p>
-                                                onClick={(event) => onTakeOption(index, event)}
+          {hiddenRest && restFood ? (
             <div className={s["expl-rest-food"]}>
               <ItemSlot stack={restFood} showName={false} onClick={() => onEat(restFood.uid)} />
               <span>食用 {getItemDef(restFood.itemId).name}，唤来隐藏访客</span>

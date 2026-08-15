@@ -1,0 +1,274 @@
+/* 事件徽记的动画层。
+   ⚠ SVG 元素做 transform 必须配 transform-box: view-box, 否则 transform-origin 会按元素自身包围盒算, 转起来会偏。
+   ★ 速度都压得很慢(18~30s): 徽记是背景信息, 一旦转快就会盖过右侧的正文。 */
+
+.sigil {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--ev);
+  overflow: visible;
+}
+
+.sigil g,
+.sigil circle,
+.sigil path,
+.sigil line,
+.sigil rect {
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+}
+
+/* ---------- 共用底盘 ---------- */
+
+.field {
+  opacity: 0;
+  animation: fieldIn 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms forwards;
+}
+
+@keyframes fieldIn {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 中心柔光: 让线稿有个「发光源」, 不至于飘在纯黑上。 */
+.haze {
+  fill: color-mix(in srgb, var(--ev) 12%, transparent);
+  stroke: none;
+  filter: blur(26px);
+  animation: haze 7s ease-in-out infinite;
+}
+
+@keyframes haze {
+  50% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+}
+
+.ticks {
+  opacity: 0.7;
+}
+
+.dashRing {
+  stroke-width: 1;
+  stroke-dasharray: 2 7;
+  opacity: 0.45;
+  animation: spin 30s linear infinite;
+}
+
+.dashRingBack {
+  stroke-width: 1;
+  stroke-dasharray: 1 12;
+  opacity: 0.3;
+  animation: spin 22s linear infinite reverse;
+}
+
+/* 游走亮弧: 用 dasharray 只留一小段可见, 再整圈转。 */
+.sweepArc {
+  stroke-width: 2;
+  stroke-dasharray: 44 509;
+  filter: drop-shadow(0 0 6px var(--ev));
+  animation: spin 9s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- 核心图形 ---------- */
+
+.core {
+  opacity: 0;
+  animation: coreIn 720ms cubic-bezier(0.16, 1, 0.3, 1) 420ms forwards;
+}
+
+@keyframes coreIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.coreDot {
+  fill: var(--ev);
+  stroke: none;
+  filter: drop-shadow(0 0 8px var(--ev));
+  animation: corePulse 3.2s ease-in-out infinite;
+}
+
+@keyframes corePulse {
+  50% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+}
+
+.spinSlow {
+  animation: spin 26s linear infinite;
+}
+
+.breathe {
+  animation: breathe 5.5s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+/* 生存: 水面三层各自平移, 相位靠不同时长错开。 */
+.waves {
+  mask-image: radial-gradient(75% 60% at 50% 45%, #000 55%, transparent 100%);
+}
+
+.wave1,
+.wave2,
+.wave3 {
+  transform-origin: center;
+}
+
+.wave1 {
+  animation: drift 7s ease-in-out infinite alternate;
+}
+
+.wave2 {
+  animation: drift 9s ease-in-out infinite alternate-reverse;
+}
+
+.wave3 {
+  animation: drift 11s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  to {
+    transform: translateX(-28px);
+  }
+}
+
+.drop1,
+.drop2 {
+  transform-origin: center;
+  opacity: 0;
+}
+
+.drop1 {
+  animation: drop 4.2s cubic-bezier(0.5, 0, 0.9, 0.5) infinite;
+}
+
+.drop2 {
+  animation: drop 4.2s cubic-bezier(0.5, 0, 0.9, 0.5) 2.1s infinite;
+}
+
+@keyframes drop {
+  0% {
+    opacity: 0;
+    transform: translateY(46px);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(140px);
+  }
+}
+
+/* 成长: 残响环 —— 同一个环放大三次依次淡出。 */
+.echoes {
+  mask-image: radial-gradient(closest-side, #000 62%, transparent 96%);
+}
+
+.echo {
+  stroke-width: 1.4;
+  opacity: 0;
+  animation: echo 4.2s ease-out infinite;
+}
+
+@keyframes echo {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.5);
+  }
+  70% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.1);
+  }
+}
+
+/* 风险: 井道整体极慢地反向轻转, 制造「往下看会晕」的错觉。 */
+.shaft {
+  animation: shaft 24s ease-in-out infinite alternate;
+}
+
+@keyframes shaft {
+  to {
+    transform: rotate(-11deg);
+  }
+}
+
+.fall {
+  animation: fall 3.6s cubic-bezier(0.45, 0, 0.85, 0.4) infinite;
+}
+
+@keyframes fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  20% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(76px) scale(0.6);
+  }
+}
+
+.knocks {
+  filter: drop-shadow(0 0 5px var(--ev));
+}
+
+.knock {
+  opacity: 0;
+  animation: knock 3.6s ease-out infinite;
+}
+
+@keyframes knock {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  8% {
+    opacity: 0.9;
+  }
+  40% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 0;
+  }
+}
