@@ -31,6 +31,7 @@ import { ANIM, CINEMA, HAND_DEAL, cardAnim, moveAnim, type HitFx } from "@/ui/ba
 import {
   choreograph,
   depthVars,
+  isFoeLedShot,
   sameCamera,
   type Camera,
   type ChoreoStep,
@@ -41,6 +42,7 @@ import {
   type Timeline,
   worldShift,
 } from "@/ui/battle/camera";
+import type { TelegraphKind } from "@/ui/battle/unitShell";
 import { warmEnemyArt } from "@/ui/art/enemyArt";
 import { warmVfxSprites } from "@/ui/art/vfxSprites";
 import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
@@ -120,7 +122,7 @@ export function BattleScreen() {
 
   // —— 出牌动画编排(纯 UI): 施法者弹出 → 顿 → 镜头推近聚焦目标 → 命中特效/飘字 → 镜头恢复/归位 ——
   const [attackerId, setAttackerId] = useState<string | null>(null); // 正在弹出的施法者
-  const [telegraphId, setTelegraphId] = useState<string | null>(null); // 正在蓄力预告的敌人
+  const [telegraph, setTelegraph] = useState<{ id: string; kind: TelegraphKind } | null>(null); // 正在蓄力预告的敌人
   const [hits, setHits] = useState<Record<string, HitFx>>({}); // 各目标当前的受击特效
   const [cutInCard, setCutInCard] = useState<Card | null>(null); // 出牌亮相卡面(仅玩家出牌; null=不展示)
   // —— 瞄准运镜(挑目标期间的常驻态, 与上面的分镜相机互斥) ——
@@ -210,7 +212,7 @@ export function BattleScreen() {
     animatingRef.current = false;
     setAnimating(false);
     setAttackerId(null);
-    setTelegraphId(null);
+    setTelegraph(null);
     setHits({});
     setCutInCard(null);
     snapCameraTarget(null);
@@ -482,7 +484,8 @@ export function BattleScreen() {
     const ty = (target.top + target.bottom) / 2;
     const ax = (actor.left + actor.right) / 2;
     const ay = (actor.top + actor.bottom) / 2;
-    const length = Math.hypot(tx - ax, ty - ay) || 1;
+    const length = Math.hypot(tx - ax, ty - ay);
+    if (length < 1) return fallback;
     return { x: (tx - ax) / length, y: (ty - ay) / length };
   }
 
@@ -503,7 +506,7 @@ export function BattleScreen() {
       cameraRig.setTuning(null);
       setPlaybackRate(1, false);
       setAttackerId(null);
-      setTelegraphId(null);
+      setTelegraph(null);
       setHits({});
       setCutInCard(null);
       setHitstop(false);
@@ -526,33 +529,36 @@ export function BattleScreen() {
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
       const hold = preset.hold * Math.max(0.55, 0.78 ** repeat);
       const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
+      const telegraphKind: TelegraphKind = ANIM[step.anim].kind === "support" ? "buff" : "attack";
       const focus = () => (preset.kind === "none" ? null : computeCamera(focusIds, preset));
       // 敌人攻击必须先完成聚焦再进入蓄力, 否则 telegraph 会和镜头同时启动, 命中时镜头才刚到位。
-      const focusLead = preset.kind === "foe" ? CAMERA_SETTLE_MS : 0;
+      const focusLead = isFoeLedShot(preset) ? CAMERA_SETTLE_MS : 0;
       const actionAt = at + focusLead;
       const hitAt = actionAt + preset.lead + cutIn;
       timeline.add({
         at,
         run: () => {
           cameraRig.setTuning(preset.rig);
-          if (preset.kind === "foe") {
+          if (isFoeLedShot(preset)) {
             setCameraTarget(focus());
           } else {
             setAttackerId(step.actorId);
-            setTelegraphId(
-              b.enemyIds.includes(step.actorId) && preset.kind !== "none" ? step.actorId : null,
+            setTelegraph(
+              b.enemyIds.includes(step.actorId) && preset.kind !== "none"
+                ? { id: step.actorId, kind: telegraphKind }
+                : null,
             );
             if (index === 0 && enter) setCameraTarget(enter);
             else if (index === 0) setCameraTarget(null);
           }
         },
       });
-      if (preset.kind === "foe") {
+      if (isFoeLedShot(preset)) {
         timeline.add({
           at: actionAt,
           run: () => {
             setAttackerId(step.actorId);
-            setTelegraphId(step.actorId);
+            setTelegraph({ id: step.actorId, kind: telegraphKind });
           },
         });
       }
@@ -561,7 +567,7 @@ export function BattleScreen() {
         run: () => {
           const previous = index > 0 ? plans[index - 1] : null;
           const nextFocus = focus();
-          if (preset.kind === "foe") return;
+          if (isFoeLedShot(preset)) return;
           if (!previous || index === 0) {
             setCameraTarget(nextFocus);
             return;
@@ -579,7 +585,7 @@ export function BattleScreen() {
       timeline.add({
         at: hitAt,
         run: () => {
-          setTelegraphId(null);
+          setTelegraph(null);
           const proc = ANIM[step.anim].proc;
           const impactDelay = proc?.impactMs ?? 0;
           if (proc?.damageAtImpact) {
@@ -624,7 +630,7 @@ export function BattleScreen() {
           });
         },
       });
-      timeline.add({ at: hitAt + hold, run: () => { setHits({}); setAttackerId(null); setTelegraphId(null); } });
+      timeline.add({ at: hitAt + hold, run: () => { setHits({}); setAttackerId(null); setTelegraph(null); } });
       at = hitAt + hold + 40;
       lastActor = step.actorId;
       lastAnim = step.anim;
@@ -819,7 +825,7 @@ export function BattleScreen() {
               currentTick={battle.tick}
               targetable={isPlayerTurn && !!needsFoe && e.alive}
               attacking={e.id === attackerId}
-              telegraph={e.id === telegraphId}
+              telegraph={telegraph?.id === e.id ? telegraph.kind : undefined}
               hit={hits[e.id] ?? null}
               deathPhase={deaths.phaseOf(e.id)}
               placement={placements[i]}

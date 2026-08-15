@@ -2,7 +2,7 @@ import type { CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/animations";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "foe";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "foe" | "foeCast";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -39,6 +39,7 @@ export interface ShotContext {
   damageRatio: number;
   isKill: boolean;
   targetInStage: boolean;
+  actorIsEnemy: boolean;
 }
 
 const SOFT: SpringTuning = { stiffness: 100, damping: 20 };
@@ -49,6 +50,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   light: { kind: "light", scale: 1.15, fit: 0.82, yaw: 2, pitch: 0, roll: 1, rig: { s: SOFT }, lead: 140, hold: 380, punch: 0.015, shake: 7, creep: 0, hitstop: 45 },
   normal: { kind: "normal", scale: 1.4, fit: 0.78, yaw: 4, pitch: 1, roll: 2, rig: { s: QUICK }, lead: 200, hold: 620, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
   foe: { kind: "foe", scale: 1.3, fit: 0.8, yaw: 3, pitch: 1, roll: 1, rig: { s: QUICK }, lead: 820, hold: 1250, punch: 0.05, shake: 20, creep: 0, hitstop: 150, slowmo: { scale: 0.35, ms: 400 } },
+  // 与 foe 同档, 两者的分歧点只在 kind; 以后想单独调轻不必再拆。
+  foeCast: { kind: "foeCast", scale: 1.3, fit: 0.8, yaw: 3, pitch: 1, roll: 1, rig: { s: QUICK }, lead: 820, hold: 1250, punch: 0.05, shake: 20, creep: 0, hitstop: 150, slowmo: { scale: 0.35, ms: 400 } },
   heavy: { kind: "heavy", scale: 1.7, fit: 0.72, yaw: 5, pitch: 5, roll: 5, rig: { s: QUICK, roll: { stiffness: 150, damping: 16 } }, lead: 280, hold: 980, punch: 0.06, shake: 22, creep: 0, hitstop: 90 },
   aoe: { kind: "aoe", scale: 1.1, fit: 0.72, yaw: 8, pitch: 0, roll: 3, rig: { s: SOFT, yaw: SOFT }, lead: 240, hold: 820, punch: 0.025, shake: 12, creep: 0, hitstop: 70 },
   // DEATH.drain + DEATH.vanish = 1520ms; 击杀镜头多留 40ms 覆盖完整消散段。
@@ -63,8 +66,11 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   blood: { kind: "blood", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2850, punch: 0.06, shake: 24, creep: 0, hitstop: 110 },
 };
 
+/** 敌人自己的戏: 先把镜头聚焦到施法者、落位后再起蓄力(见 BattleScreen 的 focusLead)。 */
+export const isFoeLedShot = (p: ShotPreset) => p.kind === "foe" || p.kind === "foeCast";
+
 export function pickShot(ctx: ShotContext): ShotPreset {
-  if (ANIM[ctx.anim].kind === "support") return SHOTS.none;
+  if (ANIM[ctx.anim].kind === "support") return ctx.actorIsEnemy ? SHOTS.foeCast : SHOTS.none;
   if (!ctx.targetInStage) return SHOTS.foe;
   if (ctx.isKill) return SHOTS.kill;
   if (ctx.targetCount >= 2) return SHOTS.aoe;

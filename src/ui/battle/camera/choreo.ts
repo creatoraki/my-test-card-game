@@ -41,6 +41,7 @@ export function choreograph(steps: ChoreoStep[], initial: BattleState | undefine
       damageRatio: Math.max(0, ...ratios),
       isKill: killed(step, index === 0 ? initial : steps[index - 1]?.snapshot),
       targetInStage: stageFocusIds.length > 0,
+      actorIsEnemy: initial?.enemyIds.includes(step.actorId) ?? false,
     });
     const previous = index > 0 ? steps[index - 1] : undefined;
     const previousFocusIds = previous

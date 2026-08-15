@@ -22,6 +22,9 @@ import type { DeathPhase } from "@/ui/battle/deathChoreo";
 /** 单位外壳的受击反应。null = 当前没有反应。 */
 export type UnitReact = "hit" | "bless" | null;
 
+/** 敌方蓄力预告的类型。 */
+export type TelegraphKind = "attack" | "buff";
+
 /** 单位外壳的阵营。决定前冲方向(敌人在上朝下冲, 我方在下朝上冲)。 */
 export type UnitSide = "enemy" | "player";
 
@@ -37,7 +40,7 @@ export interface UnitShellState {
   /** 可作为当前卡的目标 —— 播描边高亮, 并接受点击。 */
   targetable?: boolean;
   /** 敌人正在蓄力预告。 */
-  telegraph?: boolean;
+  telegraph?: TelegraphKind;
   react?: UnitReact;
 }
 
@@ -58,7 +61,7 @@ export function unitShellAttrs(state: UnitShellState): Record<string, string | u
     "data-death": state.death && state.death !== "alive" ? state.death : undefined,
     "data-attacking": state.attacking ? "" : undefined,
     "data-targetable": state.targetable ? "" : undefined,
-    "data-telegraph": state.telegraph ? "" : undefined,
+    "data-telegraph": state.telegraph ?? undefined,
     "data-react": state.react ?? undefined,
   };
 }

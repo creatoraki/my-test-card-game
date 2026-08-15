@@ -4,7 +4,7 @@ import { getStatus, type Enemy } from "@/engine";
 import { StatusPips } from "@/ui/common/StatusPips";
 import { cx } from "@/ui/common/cx";
 import type { HitFx } from "@/ui/battle/animations";
-import { unitShellAttrs } from "@/ui/battle/unitShell";
+import { unitShellAttrs, type TelegraphKind } from "@/ui/battle/unitShell";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { EnemySprite } from "@/ui/battle/EnemySprite";
 import { enemyArt, enemyIdle } from "@/ui/art/enemyArt";
@@ -24,7 +24,7 @@ interface Props {
   currentTick: number;
   targetable: boolean; // 当前是否是合法的点选目标
   attacking?: boolean; // 是否是当前出牌的施法者(前冲动画)
-  telegraph?: boolean; // 是否正在蓄力预告
+  telegraph?: TelegraphKind; // 是否正在蓄力预告
   hit?: HitFx | null; // 命中时刻下发的受击/首击特效
   placement?: EnemyPlacement; // 手工站位(贴合背景地面); 省略则用 .enemy-row 的默认排布
   twitching?: boolean; // 待机小动作(见 ui/useIdleTwitch.ts): 随机抽中时抖一下
@@ -123,7 +123,7 @@ export const CombatantView = memo(function CombatantView({
     >
       {telegraph && phase === "alive" && (
         <div className={s.telegraph}>
-          {isIntentRevealed(cmb) ? cmb.intent.name : "⚠ 行动"}
+            {isIntentRevealed(cmb) ? cmb.intent.name : telegraph === "buff" ? "✦ 蓄势" : "⚠ 行动"}
         </div>
       )}
 
