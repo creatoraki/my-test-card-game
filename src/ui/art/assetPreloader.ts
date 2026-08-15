@@ -4,7 +4,6 @@ import { CARD_FRAME_SOURCES } from "@/ui/art/cardFrame";
 import { CHARACTER_ART_SOURCES } from "@/ui/common/CharacterPortrait/CharacterPortrait";
 import { ENEMY_ART_SOURCES } from "@/ui/art/enemyArt";
 import { EVENT_ART_SOURCES } from "@/ui/art/eventArt";
-import { ENERGY_LAMP_SOURCES } from "@/ui/art/energyLampArt";
 import { ITEM_ART_SOURCES } from "@/ui/art/itemArt";
 import { MAP_ART_SOURCES } from "@/ui/art/mapArt";
 import { RARITY_CRYSTAL_SOURCES } from "@/ui/art/rarityArt";
@@ -39,7 +38,6 @@ const imageSources = unique([
   ...CARD_ART_SOURCES,
   ...CARD_FRAME_SOURCES,
   ...EVENT_ART_SOURCES,
-  ...ENERGY_LAMP_SOURCES,
   ...RARITY_CRYSTAL_SOURCES,
   ...ITEM_ART_SOURCES,
   ...CHARACTER_ART_SOURCES,

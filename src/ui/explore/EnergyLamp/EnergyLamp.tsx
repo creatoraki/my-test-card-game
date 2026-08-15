@@ -11,13 +11,9 @@
 import { energyTier, toNextTier } from "@/explore/session";
 import { EXPLORE_RULES, ENERGY_TIERS } from "@/explore/rules";
 import { getStatusDef } from "@/engine";
-import {
-  ENERGY_LAMP_ART,
-  energyLampGlow,
-  energyLampIntensity,
-} from "@/ui/art/energyLampArt";
+import { energyLampGlow, energyLampIntensity } from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
-import { GlassLantern } from "@/ui/common/GlassLantern";
+import { GlassHourglass } from "@/ui/common/GlassHourglass";
 import { RailPopover } from "@/ui/common/RailPopover";
 import s from "./EnergyLamp.module.css";
 
@@ -57,12 +53,12 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
         className={s["el-lamp"]}
         aria-hidden
       >
-        <GlassLantern
+        <GlassHourglass
           color={energyLampGlow(cur.tier)}
           intensity={energyLampIntensity(cur.tier) * (crossing ? 1.2 : 1)}
-          size={160}
+          width={180}
+          height={250}
           paused={recede}
-          fallbackSrc={ENERGY_LAMP_ART}
           className={cx(s["el-lantern"], recede && s["is-recede"])}
         />
       </div>

@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   flex-direction: column;
-  gap: 32px;
+  gap: 12px;
 }
 
 /* ── 左侧读数 ── */
@@ -48,8 +48,8 @@
 /* ── 右侧装置图 ── */
 .el-lamp {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 180px;
+  height: 250px;
   flex: 0 0 auto;
 }
 .el-lantern {

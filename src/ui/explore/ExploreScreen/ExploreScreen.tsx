@@ -149,6 +149,7 @@ export function ExploreScreen() {
   const commitTimer = useRef<number | null>(null);
   // 结算摘要是否已逐条播完 —— 播完之前「确认」按钮不接受点击, 否则玩家一路连点就什么都没看见。
   const [narrationDone, setNarrationDone] = useState(false);
+  const battleEventSnapshot = useRef<ReturnType<typeof roundBattleEvent>>(null);
   const previousExpRef = useRef<Record<string, number>>({});
   const expSequenceRef = useRef<Record<string, number>>({});
   const expTimersRef = useRef<Record<string, number>>({});
@@ -214,11 +215,13 @@ export function ExploreScreen() {
   const landedEv = session?.board ? landedEvent(session) : null;
   const panelEvent = session?.phase === "roundBattle"
     ? roundBattleEvent(session)
+    : session?.phase === "inBattle"
+      ? battleEventSnapshot.current ?? landedEv
     : landedEv;
   const evDesc = panelEvent?.description ?? "";
   // 正文逐字。text 一变就自动重置游标 ⇒ 换事件自然重播, 这里不需要额外的 key。
   const desc = useTypewriter(evDesc, EVENT_BEAT.descStart, EVENT_BEAT.descCps);
-  const storyText = session?.phase === "roundBattle"
+  const storyText = session?.phase === "roundBattle" || (session?.phase === "inBattle" && battleEventSnapshot.current)
     ? panelEvent?.choices?.[0]?.story ?? ""
     : session?.pendingStory.join("\n\n") ?? "";
   const story = useTypewriter(storyText, 0, EVENT_BEAT.descCps);
@@ -315,7 +318,8 @@ export function ExploreScreen() {
     session.phase === "resolving" ||
     session.phase === "npcEvent" ||
     session.phase === "npcResolving" ||
-    session.phase === "roundBattle";
+    session.phase === "roundBattle" ||
+    session.phase === "inBattle";
   const narrationGate =
     session.phase === "resolving" || session.phase === "npcResolving"
       ? desc.done && story.done && narrationDone
@@ -334,12 +338,14 @@ export function ExploreScreen() {
     session.phase === "resting" ||
     session.phase === "npcEvent" ||
     session.phase === "npcResolving" ||
-    session.phase === "roundBattle";
+    session.phase === "roundBattle" ||
+    session.phase === "inBattle";
   const eventModalOpen =
     session.phase === "landed" ||
     session.phase === "shopping" ||
     session.phase === "resolving" ||
-    session.phase === "roundBattle";
+    session.phase === "roundBattle" ||
+    session.phase === "inBattle";
   const recede = focused ? s["is-recede"] : undefined;
   const choiceReady = desc.done && (!storyText || story.done);
 
@@ -360,16 +366,24 @@ export function ExploreScreen() {
     if (event && session.phase === "roundBattle" && event.detail !== 0) {
       setTransitionOrigin(event.clientX, event.clientY);
     }
+    const engage = () => {
+      if (panelEvent && (session.phase === "landed" || session.phase === "roundBattle")) {
+        battleEventSnapshot.current = panelEvent;
+      }
+      if (session.phase === "roundBattle") {
+        engageRoundBattle();
+      } else {
+        chooseEventOption(index);
+      }
+    };
     if (prefersReducedMotion()) {
-      if (session.phase === "roundBattle") engageRoundBattle();
-      else chooseEventOption(index);
+      engage();
       return;
     }
     setCommitting(index);
     commitTimer.current = window.setTimeout(() => {
       commitTimer.current = null;
-      if (session.phase === "roundBattle") engageRoundBattle();
-      else chooseEventOption(index);
+      engage();
     }, EVENT_BEAT.commit);
   };
 
