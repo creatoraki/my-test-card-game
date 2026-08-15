@@ -1,0 +1,192 @@
+.blood-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1400px;
+  height: 1400px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+}
+
+.blood-slash-system,
+.blood-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.blood-slash-core,
+.blood-crack-left,
+.blood-crack-right,
+.blood-aura,
+.blood-scar,
+.blood-wound,
+.blood-orb {
+  position: absolute;
+  pointer-events: none;
+}
+
+.blood-slash-core,
+.blood-crack-left,
+.blood-crack-right,
+.blood-aura,
+.blood-scar {
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  opacity: 0;
+}
+
+.blood-slash-core {
+  width: 1300px;
+  height: 10px;
+  background: linear-gradient(90deg, transparent 5%, #ffffff 25%, #ffffff 75%, transparent 95%);
+  transform: translate(-50%, -50%) rotate(-38deg) scaleX(0);
+  box-shadow: 0 0 12px #ff0000, 0 0 30px #cc0000, 0 0 60px #990000;
+  z-index: 5;
+  animation-name: slashCoreAppear, slashCoreFlicker, slashCoreFade;
+  animation-fill-mode: forwards, forwards, forwards;
+  animation-iteration-count: 1, 3, 1;
+  animation-timing-function: ease-out, ease-in-out, linear;
+}
+
+.blood-crack-left,
+.blood-crack-right {
+  width: 650px;
+  height: 5px;
+  background: linear-gradient(90deg, transparent, #ff4444 50%, #ff8888 80%, transparent);
+  z-index: 4;
+  animation-name: slashCrackLeftOpen, slashFade;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, linear;
+}
+
+.blood-crack-left {
+  transform: translate(-50%, -50%) rotate(-38deg) translateX(-8%) scaleX(0);
+  transform-origin: right center;
+}
+
+.blood-crack-right {
+  background: linear-gradient(90deg, #ff8888 20%, #ff4444 50%, transparent);
+  transform: translate(-50%, -50%) rotate(-38deg) translateX(8%) scaleX(0);
+  transform-origin: left center;
+  animation-name: slashCrackRightOpen, slashFade;
+}
+
+.blood-aura {
+  width: 1100px;
+  height: 80px;
+  background: linear-gradient(90deg, transparent, #ff000040 25%, #ff141473 50%, #ff000040 75%, transparent);
+  transform: translate(-50%, -50%) rotate(-38deg) scaleY(0);
+  filter: blur(12px);
+  z-index: 2;
+  animation-name: slashAuraPulse, slashFade;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, linear;
+}
+
+.blood-scar {
+  width: 1200px;
+  height: 16px;
+  background: linear-gradient(90deg, transparent, #3c000080 8%, #280000b3 50%, #3c000080 92%, transparent);
+  transform: translate(-50%, -50%) rotate(-38deg) scaleX(0);
+  filter: blur(5px);
+  z-index: 1;
+  animation-name: slashScarAppear, slashScarFade;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, ease-out;
+}
+
+.blood-wound {
+  height: 3px;
+  transform: translate(-50%, -50%) rotate(var(--wound-angle, -38deg)) scaleX(0);
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #ffffff 30%, #ffdddd 50%, #ffffff 70%, transparent);
+  box-shadow: 0 0 5px 2px #ff5555e6, 0 0 14px 5px #cc00008c;
+  opacity: 0;
+  z-index: 6;
+  animation-name: woundFlash;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+.blood-orb {
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffdddd 0%, #ff5555 40%, #bb0000 68%, transparent 78%);
+  box-shadow: 0 0 4px #ff0000, 0 0 10px #cc0000;
+  transform: translate(-50%, -50%) translate(var(--orb-sx, 0px), var(--orb-sy, 0px)) scale(0);
+  opacity: 0;
+  z-index: 7;
+  animation-name: energyConverge;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+@keyframes slashCoreAppear {
+  0% { transform: translate(-50%, -50%) rotate(-38deg) scaleX(0); opacity: 0; }
+  40% { transform: translate(-50%, -50%) rotate(-38deg) scaleX(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(-38deg) scaleX(1); opacity: 1; }
+}
+
+@keyframes slashCrackLeftOpen {
+  0% { transform: translate(-50%, -50%) rotate(-38deg) translateX(-8%) scaleX(0); opacity: 0; }
+  100% { transform: translate(-50%, -50%) rotate(-38deg) translateX(-18%) scaleX(1); opacity: 1; }
+}
+
+@keyframes slashCrackRightOpen {
+  0% { transform: translate(-50%, -50%) rotate(-38deg) translateX(8%) scaleX(0); opacity: 0; }
+  100% { transform: translate(-50%, -50%) rotate(-38deg) translateX(18%) scaleX(1); opacity: 1; }
+}
+
+@keyframes slashAuraPulse {
+  0% { transform: translate(-50%, -50%) rotate(-38deg) scaleY(0.4); opacity: 0; }
+  50% { transform: translate(-50%, -50%) rotate(-38deg) scaleY(1.6); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) rotate(-38deg) scaleY(1); opacity: 0.45; }
+}
+
+@keyframes slashScarAppear {
+  0% { transform: translate(-50%, -50%) rotate(-38deg) scaleX(0); opacity: 0; }
+  100% { transform: translate(-50%, -50%) rotate(-38deg) scaleX(1); opacity: 0.65; }
+}
+
+@keyframes slashScarFade {
+  0% { opacity: 0.65; }
+  100% { opacity: 0; }
+}
+
+@keyframes slashFade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slashCoreFlicker {
+  0% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.7; filter: brightness(1.8); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+
+@keyframes woundFlash {
+  0% { transform: translate(-50%, -50%) rotate(var(--wound-angle, -38deg)) scaleX(0); opacity: 1; }
+  35% { opacity: 1; filter: brightness(1.5); }
+  100% { transform: translate(-50%, -50%) rotate(var(--wound-angle, -38deg)) scaleX(1); opacity: 0; filter: brightness(2.8); }
+}
+
+@keyframes energyConverge {
+  0% { transform: translate(-50%, -50%) translate(var(--orb-sx), var(--orb-sy)) scale(0); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(0, 0) scale(2); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blood-blade,
+  .blood-slash-core,
+  .blood-crack-left,
+  .blood-crack-right,
+  .blood-aura,
+  .blood-scar,
+  .blood-wound,
+  .blood-orb {
+    animation: none;
+  }
+}

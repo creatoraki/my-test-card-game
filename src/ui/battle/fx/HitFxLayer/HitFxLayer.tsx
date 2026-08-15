@@ -6,6 +6,7 @@ import { SpriteFx } from "@/ui/battle/fx/SpriteFx";
 import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
 import { BladeSlashFx } from "@/ui/battle/fx/BladeSlashFx";
 import { TriSlashFx } from "@/ui/battle/fx/TriSlashFx";
+import { BloodSlashFx } from "@/ui/battle/fx/BloodSlashFx";
 import { ShieldIcon } from "@/ui/common/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
@@ -17,6 +18,7 @@ const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Ele
   "iai-slash": IaiSlashFx,
   "blade-slash": BladeSlashFx,
   "tri-slash": TriSlashFx,
+  "blood-slash": BloodSlashFx,
 };
 
 // 图标特效(与 PROC_FX 平行的分支): 复用 BUFF 图标 SVG(如护盾), 以"虚幻放大"浮现动画播放。

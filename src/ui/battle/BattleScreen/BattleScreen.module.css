@@ -117,6 +117,26 @@
   100% { opacity: 0; }
 }
 
+/* 血色刀光全屏层: 同时承担蓄力压暗、800ms 刀痕命中闪和 1900ms 血花爆闪。
+   直接插值 background-color, 不使用 mix-blend-mode, 避免全屏层与地图调色叠加失控。 */
+.battle-blood {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-color: transparent;
+  animation: goreScreenGrade 2800ms linear both;
+}
+@keyframes goreScreenGrade {
+  0%, 1.8% { background-color: transparent; }
+  1.8%, 21% { background-color: #14040680; }
+  28.6% { background-color: #ffe4e480; }
+  32% { background-color: #14040680; }
+  67.9% { background-color: #ffdcdc8c; }
+  72% { background-color: #14040680; }
+  85%, 100% { background-color: transparent; }
+}
+
 /* ===================== 提示条 ===================== */
 .hint-bar {
   grid-area: hint;
@@ -449,7 +469,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .battle-dim,
-  .battle-flash {
+  .battle-flash,
+  .battle-blood {
     animation: none;
   }
 }

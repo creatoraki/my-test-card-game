@@ -122,6 +122,7 @@ export type CardRarity = "basic" | Rarity;
 //           sword-fall 魔剑坠落(序列帧) / iai-slash 居合拔刀斩(程序化 CSS)
 //           blade-slash 刀光斩(程序化 CSS, 三拍)
 //           tri-slash 三段斩击(Canvas 2D: V形折返 → 折返十连斩 → 延迟受击)
+//           blood-slash 血色刀光(程序化 CSS: 下劈 → 刀痕 → 血花爆裂)
 //   辅助系(柔和光效): heal 治疗 / shield 护盾 / buff 增益
 // 纯 UI 表现字段, 引擎逻辑不读取。UI 侧有兜底推断(见 ui/animations.ts)。
 export type CardAnim =
@@ -135,6 +136,7 @@ export type CardAnim =
   | "iai-slash"
   | "blade-slash"
   | "tri-slash"
+  | "blood-slash"
   | "heal"
   | "shield"
   | "buff";

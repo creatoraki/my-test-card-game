@@ -120,6 +120,7 @@ src/ui/
 | [fx/IaiSlashFx](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.tsx) | `iai-slash` 居合斩程序化特效；`proc.impactMs` 需与 CSS 关键帧同步，`animation-name` 必须留在 CSS 里（理由见 styles.md）。 |
 | [fx/BladeSlashFx](../../src/ui/battle/fx/BladeSlashFx/BladeSlashFx.tsx) | `blade-slash` 三拍刀光程序化特效；时间轴以 `proc.impactMs` 为爆点锚，掉血由 `damageAtImpact` 推迟到爆点；固定几何表保证重播稳定，关键帧名留在 CSS Modules 内。 |
 | [fx/TriSlashFx](../../src/ui/battle/fx/TriSlashFx/TriSlashFx.tsx) | `tri-slash` 三段斩击 Canvas 特效：几何表在 `triSlashGeometry.ts`（模块加载时算一次，种子固定），时间轴以 `proc.impactMs` 为爆点锚缩放；震屏归相机、白闪归 `screenFx`，不循环、靠 `key={hit.seq}` 重挂载重播。 |
+| [fx/BloodSlashFx](../../src/ui/battle/fx/BloodSlashFx/BloodSlashFx.tsx) | `blood-slash` 血色刀光程序化 CSS 特效；固定几何表与 `proc.impactMs` 爆点锚复刻刀身下劈、刀痕张开和血花爆裂，震屏归相机、全屏压暗/双闪归 `screenFx`。 |
 | [fx/DeathVanishFx](../../src/ui/battle/fx/DeathVanishFx/DeathVanishFx.tsx) | 敌方死亡的附加白光：脚下扩散光环与确定性白色光粒；只在死亡闸门的 vanish 阶段挂载，不承载战斗状态。 |
 | [styles/unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css) | 敌我共用的阵亡叠层样式。 |
 | [animations.ts](../../src/ui/battle/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设。调演出节奏优先改这里；死亡闸门时序另见 `deathChoreo.ts`。 |

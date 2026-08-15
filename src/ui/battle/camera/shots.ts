@@ -2,7 +2,7 @@ import type { CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/animations";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "foe";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "foe";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -59,6 +59,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   // 三段斩击视觉时间轴约 2600ms; hold 2550ms 盖住演出的尾段(命中特效 hold 2500ms 后
   // 镜头多停 50ms 再弹回)。爆点 1.85s 延迟受击, 顿帧(hitstop 110)与重震(shake 22)都在那一刻。
   tri: { kind: "tri", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2550, punch: 0.06, shake: 22, creep: 0, hitstop: 110 },
+  // 血色刀光视觉时间轴 2800ms; 比三段斩击多停 300ms 覆盖疤痕消散, 血花爆点的重震更强。
+  blood: { kind: "blood", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2850, punch: 0.06, shake: 24, creep: 0, hitstop: 110 },
 };
 
 export function pickShot(ctx: ShotContext): ShotPreset {
@@ -69,6 +71,7 @@ export function pickShot(ctx: ShotContext): ShotPreset {
   if (ctx.anim === "iai-slash") return SHOTS.iai;
   if (ctx.anim === "blade-slash") return SHOTS.blade;
   if (ctx.anim === "tri-slash") return SHOTS.tri;
+  if (ctx.anim === "blood-slash") return SHOTS.blood;
   if (ctx.anim === "sword-fall" || ctx.shake === 2 || ctx.damageRatio >= 0.35) return SHOTS.heavy;
   if (ctx.shake === 1 && ctx.damageRatio < 0.15) return SHOTS.light;
   return SHOTS.normal;
