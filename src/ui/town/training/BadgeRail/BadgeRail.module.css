@@ -45,7 +45,7 @@
   min-height: 0;
   padding: 12px 12px 14px;
   overflow-y: auto;
-  scrollbar-color: #4c7c8566 transparent;
+  scrollbar-color: rgba(255, 215, 0, 0.4) transparent;
   scrollbar-width: thin;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .br-list::-webkit-scrollbar-thumb {
-  background: #4c7c8566;
+  background: rgba(255, 215, 0, 0.4);
 }
 
 .br-item {
@@ -72,8 +72,8 @@
   min-width: 0;
   padding: 10px 14px 10px 12px;
   border: 1px solid transparent;
-  background: #ffffff66;
-  box-shadow: inset 0 1px 0 #ffffffcc;
+  background: rgba(255, 215, 0, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 235, 180, 0.1);
   clip-path: polygon(
     var(--notch) 0,
     100% 0,
@@ -143,7 +143,7 @@
   flex: none;
   margin-left: auto;
   padding: 2px 8px;
-  border: 1px solid #28778866;
+  border: 1px solid rgba(255, 215, 0, 0.35);
   color: var(--tr-glow-deep);
   font-size: 11px;
   letter-spacing: 1px;
@@ -160,8 +160,8 @@
 /* 当前徽章: 亮边 + 图标点亮。 */
 .br-item.is-active {
   border-color: var(--tr-glow);
-  background: linear-gradient(150deg, #ffffffcc, #dcf6f8b8);
-  box-shadow: inset 0 1px 0 #ffffff, 0 0 18px -10px var(--tr-glow);
+  background: linear-gradient(150deg, rgba(255, 200, 90, 0.2), rgba(255, 180, 60, 0.07));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 0 18px -10px var(--tr-glow);
 }
 
 .br-item.is-active .br-icon {
@@ -172,8 +172,8 @@
 
 .br-item.is-active .br-status {
   border-color: var(--tr-glow);
-  background: #dcf6f8;
-  color: var(--tr-glow-deep);
+  background: rgba(255, 215, 0, 0.16);
+  color: var(--tr-glow);
 }
 
 /* 待开放占位: 压暗 + 状态 chip 转暖色。 */
@@ -183,15 +183,15 @@
 }
 
 .br-item.is-locked .br-status {
-  border-color: #bd793e77;
-  background: #fff0e5aa;
+  border-color: rgba(255, 153, 68, 0.45);
+  background: rgba(255, 153, 68, 0.15);
   color: var(--tr-warm);
 }
 
 :global([data-town-stage]) .br-item:hover:not(.is-active):not(.is-locked),
 :global([data-town-stage]) .br-item:focus-visible:not(.is-active):not(.is-locked) {
   border-color: var(--tr-glow);
-  background: linear-gradient(150deg, #ffffffcc, #e5f9fb91);
+  background: linear-gradient(150deg, rgba(255, 200, 90, 0.16), rgba(255, 180, 60, 0.05));
   transform: translateX(4px);
 }
 

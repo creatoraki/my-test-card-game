@@ -8,7 +8,7 @@
   display: grid;
   place-items: center;
   pointer-events: auto;
-  background: #e2f3f5a6;
+  background: rgba(5, 4, 8, 0.72);
 }
 
 .tc-panel {
@@ -49,8 +49,8 @@
 
 .tc-primary {
   border-color: var(--tr-glow);
-  background: linear-gradient(135deg, #dcf8fa, #a9e0e7);
-  color: var(--tr-ink);
+  background: linear-gradient(135deg, #ffe9a8, #d4a017);
+  color: #221a04;
 }
 
 @keyframes tcModalIn {

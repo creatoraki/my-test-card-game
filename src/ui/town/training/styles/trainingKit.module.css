@@ -1,25 +1,25 @@
 /* 训练室域共享样式契约。
-   这里只放多个训练室组件共用的设计令牌、白玻璃材质与 kicker 排版;
+   这里只放多个训练室组件共用的设计令牌、暗玻璃材质与 kicker 排版;
    页面/面板的几何与动画归各自模块。四个组件各自 composes(样式铁律 1)。 */
 
-/* 设计令牌 —— 训练室唯一真相点。原定义在 TrainingScene 的 .tr-scene 根上,
+/* 设计令牌 —— 训练室唯一真相点(暗底金色)。原定义在 TrainingScene 的 .tr-scene 根上,
    抽到这里后场景根与各组件根各自 composes, 子元素一律读 var(--tr-*)。 */
 .tr-tokens {
-  --tr-ink: #142d3a;
-  --tr-ink-dim: #52717a;
-  --tr-line: #1c566744;
-  --tr-glow: #0b95a8;
-  --tr-glow-deep: #066273;
-  --tr-warm: #da7d3e;
+  --tr-ink: #f2e6c8;
+  --tr-ink-dim: #b09a6e;
+  --tr-line: #ffd70045;
+  --tr-glow: #ffd700;
+  --tr-glow-deep: #cc9900;
+  --tr-warm: #ff9944;
 }
 
-/* 白玻璃面板材质: 徽章条、树面板、底部预览条与确认弹窗共用。 */
+/* 暗玻璃面板材质: 徽章条、树面板、底部预览条与确认弹窗共用。 */
 .tr-glass {
   border: 1px solid var(--tr-line);
-  background: linear-gradient(150deg, #ffffffa1, #e9f8fa75 58%, #cdebf077);
-  -webkit-backdrop-filter: blur(12px) saturate(112%) brightness(1.03);
-  backdrop-filter: blur(12px) saturate(112%) brightness(1.03);
-  box-shadow: inset 0 1px 0 #ffffffd4, 0 18px 40px -30px #123b4666;
+  background: linear-gradient(150deg, rgba(30, 22, 40, 0.85), rgba(18, 13, 26, 0.75) 58%, rgba(12, 9, 17, 0.82));
+  -webkit-backdrop-filter: blur(12px) saturate(90%) brightness(0.9);
+  backdrop-filter: blur(12px) saturate(90%) brightness(0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.14), 0 18px 40px -30px #000;
 }
 
 /* kicker 排版 —— 页头与各面板标题共用。 */

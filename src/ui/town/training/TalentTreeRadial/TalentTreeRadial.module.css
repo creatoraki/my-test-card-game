@@ -1,0 +1,540 @@
+/* 天赋树面板(径向版): 半透明暗玻璃外框(背景光粒可透出) + 头部标题与剩余点读数 +
+   设计 px 舞台(1280×760)。画布中央是金色徽章核心(可点击开关徽章浮层), 六条分支绕中心
+   等角放射, 连线带渐变与流动光点; 节点未激活灰色无光, 激活点亮分支本色;
+   悬浮详情浮卡可伸出面板, 不裁剪。 */
+
+.trr {
+  composes: tr-tokens from "../styles/trainingKit.module.css";
+  --notch: 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 24px 18px;
+  border: 1px solid rgba(255, 215, 0, 0.22);
+  background: linear-gradient(
+    150deg,
+    rgba(24, 17, 34, 0.42),
+    rgba(15, 11, 22, 0.34) 58%,
+    rgba(10, 7, 15, 0.4)
+  );
+  -webkit-backdrop-filter: blur(10px) saturate(95%);
+  backdrop-filter: blur(10px) saturate(95%);
+  box-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.1), 0 24px 60px -34px #000;
+  overflow: visible;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  animation: trrRise 480ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.trr-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 2px 8px 8px;
+}
+
+.trr-kicker {
+  composes: tr-kicker from "../styles/trainingKit.module.css";
+  font-size: 12px;
+}
+
+.trr-title {
+  margin: 0;
+  color: var(--tr-ink);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+/* 右上角「已投入 N/总数」读数(模板天赋点计数的训练室版)。 */
+.trr-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-left: auto;
+  padding: 5px 14px;
+  border: 1px solid var(--tr-line);
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.14), 0 0 18px -10px var(--tr-glow);
+  color: var(--tr-ink-dim);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.trr-counter strong {
+  color: var(--tr-glow);
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 600;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+}
+
+.trr-counter-label {
+  letter-spacing: 1px;
+}
+
+.trr-counter-total {
+  color: var(--tr-ink-dim);
+}
+
+.trr-stage {
+  position: relative;
+  flex: none;
+  margin: auto;
+}
+
+.trr-svg {
+  display: block;
+  overflow: visible;
+}
+
+/* ── 连线层 ── */
+
+.trr-line {
+  fill: none;
+  stroke: var(--trr-grad, url(#trr-grad-0));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4.5;
+  opacity: 0.85;
+  filter: url("#trr-soft");
+  transition: stroke-width 200ms ease, opacity 200ms ease;
+}
+
+/* 前置未满足: 整条链压暗。 */
+.trr-line.is-dim {
+  stroke-width: 2.5;
+  opacity: 0.22;
+  filter: none;
+}
+
+/* 可解锁(含点数不足): 半亮。 */
+.trr-line.is-open {
+  opacity: 0.55;
+}
+
+/* 链末已激活: 全亮 + 微光。 */
+.trr-line.is-active {
+  opacity: 0.95;
+}
+
+/* 路径预览(悬浮): 目标链高亮, 其余链整体降亮度。 */
+.trr.has-trace .trr-branch:not(.is-trace),
+.trr.has-trace .trr-label:not(.is-trace),
+.trr.has-trace .trr-node-branch:not(.is-trace) {
+  opacity: 0.3;
+}
+
+.trr-branch,
+.trr-label,
+.trr-node-branch {
+  transition: opacity 200ms ease;
+}
+
+/* 流动光点(SMIL animateMotion 沿分支折线循环)。 */
+.trr-orb {
+  fill: #fff;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* ── 徽章核心(可点击: 开关徽章切换浮层) ── */
+
+.trr-core {
+  cursor: pointer;
+  pointer-events: all;
+  outline: none;
+  transition: filter 200ms ease;
+}
+
+.trr-core:hover {
+  filter: brightness(1.25) drop-shadow(0 0 30px rgba(255, 215, 0, 0.65));
+}
+
+.trr-core:focus-visible .trr-core-body {
+  stroke: #fff8e8;
+  stroke-width: 4.5;
+}
+
+.trr-core-pulse {
+  fill: none;
+  stroke: #ffd700;
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: trrCorePulse 3s ease-out infinite;
+}
+
+.trr-core-pulse:nth-child(2) {
+  stroke-width: 1.2;
+}
+
+.trr-core-body {
+  stroke: #ffd700;
+  stroke-width: 3;
+  filter: url("#trr-soft");
+}
+
+.trr-core-glyph {
+  color: #fff;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+}
+
+/* ── 链末标签 ── */
+
+.trr-label {
+  pointer-events: none;
+}
+
+.trr-label-bg {
+  fill: rgba(16, 12, 22, 0.88);
+  stroke: var(--trr-hue, var(--tr-glow));
+  stroke-opacity: 0.55;
+}
+
+.trr-label-name {
+  fill: var(--trr-hue, var(--tr-glow));
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-anchor: middle;
+}
+
+.trr-label-count {
+  fill: #f2e6c8;
+  font-family: var(--font-family);
+  font-size: 11px;
+  text-anchor: middle;
+}
+
+.trr-label.is-empty .trr-label-bg {
+  stroke-dasharray: 4 4;
+}
+
+.trr-label.is-complete .trr-label-bg {
+  fill: var(--trr-hue, var(--tr-glow));
+}
+
+.trr-label.is-complete .trr-label-name {
+  fill: #1a1204;
+}
+
+.trr-label.is-complete .trr-label-count {
+  fill: #1a1204;
+}
+
+/* ── 节点层 ── */
+
+.trr-node {
+  cursor: pointer;
+  outline: none;
+  --trr-icon: #8f8f98;
+  --trr-color: #55555f;
+}
+
+/* 视觉内层单独承载 CSS transform 动画, 不与外层 translate 冲突。 */
+.trr-node-visual {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 未激活: 灰色无光。 */
+.trr-node-outer {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.trr-node-main {
+  fill: #3f3f4a;
+  opacity: 0.65;
+  transition: fill 0.35s ease, opacity 0.35s ease;
+}
+
+.trr-node-color {
+  fill: var(--trr-color);
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1.5;
+  transition: fill 0.35s ease, opacity 0.35s ease, stroke 0.35s ease, stroke-width 0.35s ease;
+}
+
+.trr-node-inner {
+  fill: rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.trr-node-icon {
+  color: var(--trr-icon);
+  transition: color 0.35s ease;
+}
+
+/* 前置未满足: 比普通未激活更暗。 */
+.trr-node.is-locked {
+  opacity: 0.62;
+}
+
+/* 激活: 点亮分支本色 + 金色发光。 */
+.trr-node.is-active,
+.trr-node.is-refundable {
+  --trr-icon: #fff;
+  --trr-color: var(--trr-hue, #ffd166);
+  filter: drop-shadow(0 0 16px rgba(255, 215, 0, 0.55));
+}
+
+.trr-node.is-active .trr-node-outer,
+.trr-node.is-refundable .trr-node-outer {
+  opacity: 0.55;
+}
+
+.trr-node.is-active .trr-node-main,
+.trr-node.is-refundable .trr-node-main {
+  fill: #8a6d1f;
+  opacity: 0.9;
+}
+
+.trr-node.is-active .trr-node-color,
+.trr-node.is-refundable .trr-node-color {
+  fill: var(--trr-color);
+  stroke: #ffd700;
+  stroke-width: 2.5;
+}
+
+.trr-node.is-active .trr-node-inner,
+.trr-node.is-refundable .trr-node-inner {
+  opacity: 0.85;
+}
+
+/* 可退还: 金色虚线外环。 */
+.trr-node.is-refundable .trr-node-color {
+  stroke-dasharray: 4 3;
+}
+
+/* 悬浮 / 键盘聚焦: 轻微提亮, 未激活不发光。 */
+.trr-node:not(.is-active):not(.is-refundable):hover .trr-node-visual,
+.trr-node:not(.is-active):not(.is-refundable):focus-visible .trr-node-visual {
+  filter: brightness(1.3);
+}
+
+.trr-node.is-active:hover,
+.trr-node.is-refundable:hover {
+  filter: brightness(1.25) drop-shadow(0 0 22px rgba(255, 255, 220, 0.75));
+}
+
+.trr-node:focus-visible .trr-node-color {
+  stroke: #fff8e8;
+  stroke-width: 2.5;
+}
+
+/* 末节点激活后的呼吸脉冲环。 */
+.trr-node-pulse {
+  fill: none;
+  stroke: var(--trr-hue, #ffd700);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: trrNodePulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+/* 刚激活的点亮爆闪(重挂载 key 重播)。 */
+.trr-node.is-latest .trr-node-visual {
+  animation: trrNodeLight 520ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+/* 点数不足的抖动反馈。 */
+.trr-node.is-shaking .trr-node-visual {
+  animation: trrNodeShake 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* 远征中: 整棵树只读。 */
+.trr.is-locked {
+  filter: saturate(0.55);
+}
+
+.trr-node.is-disabled {
+  cursor: default;
+}
+
+/* ── 悬浮详情浮卡 ── */
+
+.trr-tip {
+  position: absolute;
+  z-index: 6;
+  width: max-content;
+  max-width: 320px;
+  min-width: 220px;
+  padding: 16px 18px;
+  border: 1.5px solid rgba(255, 215, 0, 0.4);
+  border-radius: 14px;
+  background: rgba(15, 12, 25, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 200, 100, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+  animation: trrTipIn 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.trr-tip.is-bottom {
+  transform: translate(-50%, 30px);
+}
+
+.trr-tip.is-top {
+  transform: translate(-50%, calc(-100% - 30px));
+}
+
+.trr-tip::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: rgba(15, 12, 25, 0.95);
+  border-left: 1.5px solid rgba(255, 215, 0, 0.4);
+  border-top: 1.5px solid rgba(255, 215, 0, 0.4);
+}
+
+.trr-tip.is-bottom::before {
+  top: -7px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.trr-tip.is-top::before {
+  bottom: -7px;
+  transform: translateX(-50%) rotate(225deg);
+}
+
+.trr-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.trr-tip-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd166dd, #b36b00);
+  box-shadow: 0 0 20px rgba(255, 200, 100, 0.35);
+  color: #fff;
+  font-size: 20px;
+}
+
+.trr-tip-title {
+  color: #f2e6c8;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.trr-tip-tier {
+  margin-top: 2px;
+  color: #887e6a;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.trr-tip-effect {
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #b8a88a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.trr-tip-status {
+  margin-top: 8px;
+  color: #ffd700;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.trr-tip-reach {
+  margin-top: 6px;
+  color: #b8a88a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── 关键帧 ── */
+
+@keyframes trrRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes trrCorePulse {
+  0% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+
+@keyframes trrNodePulse {
+  0% { opacity: 0.75; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+
+@keyframes trrNodeLight {
+  0% { filter: brightness(2.2); transform: scale(1.3); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+@keyframes trrNodeShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes trrTipIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trr {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+
+  .trr-line,
+  .trr-branch,
+  .trr-label,
+  .trr-node-branch,
+  .trr-node-outer,
+  .trr-node-main,
+  .trr-node-color,
+  .trr-node-inner,
+  .trr-node-icon {
+    transition: none;
+  }
+
+  .trr-core-pulse,
+  .trr-node-pulse,
+  .trr-node.is-latest .trr-node-visual,
+  .trr-node.is-shaking .trr-node-visual {
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
+  }
+
+  .trr-tip {
+    animation-duration: 1ms;
+  }
+}

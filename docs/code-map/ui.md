@@ -39,12 +39,13 @@ src/ui/
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
-| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架：页头、剩余训练点读数、左侧徽章条与训练点来源浮层、右侧天赋树、底部六格队伍属性预览、远征锁定横幅和重置/切换徽章两个确认弹窗；持有 `hoverKey` / `bump` / `shakeId` 状态编排，`RESOURCE_LABELS` / `RESOURCE_BASE` / `RESOURCE_CAPS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
-| [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室左侧徽章列表条：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
-| [town/training/TalentTree](../../src/ui/town/training/TalentTree/TalentTree.tsx) | 天赋树面板：以画布下方徽章核心向上展开扇形半环，底层 `<svg viewBox>` 绘制带微弧的三态连线与激活流光，上层定位 `TalentNode`；链末标签展示链名/进度，悬浮或聚焦节点通过 `pathTo` 做链路高亮与路径预览，链色由训练主题查表驱动。 |
-| [town/training/TalentNode](../../src/ui/town/training/TalentNode/TalentNode.tsx) | 单个天赋节点按钮：`locked` / `available` / `unaffordable` / `active` / `refundable` 五态视觉，方向图标按 `branch.id` 查表、链色、major 外环、成本角标、可退还 `−` 角标、点亮/抖动反馈和路径成本提示；支持右键、Alt+点击、Delete/Backspace 退还与 Shift 快捷推进，悬浮详情复用 `common/RailPopover`，不使用原生 `title`。 |
+| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，从左侧边缘滑出徽章抽屉浮层（复用 `BadgeRail`），点选即切换；剩余训练点与投入进度显示在树面板头部。持有 `drawerOpen` / `shakeId` / `pulse` 状态编排，`RESOURCE_LABELS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
+| [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
+| [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 径向天赋树面板（`html-templates/天赋树.html` 的组件化）：半透明暗玻璃面板、中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
+| 旧 `town/training/TrainingConfirm` | 训练室旧通用确认弹窗（重置分配/切换徽章共用），极简版改造移除后归档到 `ui/_legacy/training/`，零引用。 |
+| 旧 `town/training/TalentTree` / `TalentNode` | 已归档到 `ui/_legacy/training/`（白玻璃青绿扇形半环版），零引用，见该目录 README。 |
 | [town/training/TrainingConfirm](../../src/ui/town/training/TrainingConfirm/TrainingConfirm.tsx) | 训练室通用确认弹窗，重置分配与切换徽章共用；抽自旧 `TrainingScene` 的 `.tr-confirm` 结构。 |
-| [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 训练室域共享的设计令牌（`--tr-*`）、白玻璃材质与 kicker 排版，四个组件各自 `composes`。 |
+| [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 训练室域共享的设计令牌（`--tr-*`，暗底金色）、暗玻璃材质与 kicker 排版，各组件各自 `composes`。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
 | [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按地图选择播放上下推移背景动画；目标层信息只在地图步骤挂载，并随步骤切换自然卸载。 |

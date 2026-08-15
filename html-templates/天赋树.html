@@ -109,6 +109,66 @@
             filter: brightness(1.6) drop-shadow(0 0 25px rgba(255, 255, 220, 0.9));
         }
 
+        /* 节点状态：未激活灰色无光，激活后点亮 */
+        .node-group .node-outer {
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+        .node-group .node-main {
+            fill: #3f3f4a;
+            opacity: 0.65;
+            transition: fill 0.35s ease, opacity 0.35s ease;
+        }
+        .node-group .node-color {
+            fill: #55555f;
+            opacity: 0.8;
+            stroke: rgba(255, 255, 255, 0.15);
+            transition: fill 0.35s ease, opacity 0.35s ease, stroke 0.35s ease, stroke-width 0.35s ease;
+        }
+        .node-group .node-icon {
+            fill: #8f8f98;
+            opacity: 0.7;
+            transition: fill 0.35s ease, opacity 0.35s ease;
+        }
+        .node-group .node-inner {
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+        .node-group:not(.activated) .node-pulse-ring {
+            animation: none;
+            opacity: 0;
+        }
+        /* 未激活节点悬浮仅轻微提亮，不发光 */
+        .node-group:not(.activated):hover {
+            filter: brightness(1.25);
+        }
+        .node-group.activated {
+            filter: brightness(1.25) drop-shadow(0 0 16px rgba(255, 215, 0, 0.8));
+        }
+        .node-group.activated .node-main {
+            fill: url(#coreInnerGlow);
+            opacity: 0.5;
+        }
+        .node-group.activated .node-color {
+            fill: var(--node-color, #ffd166);
+            opacity: 1;
+            stroke: #ffd700;
+            stroke-width: 2.5;
+        }
+        .node-group.activated .node-icon {
+            fill: #fff;
+            opacity: 1;
+        }
+        .node-group.activated .node-outer {
+            opacity: 0.55;
+        }
+        .node-group.activated .node-inner {
+            opacity: 0.85;
+        }
+        .node-group.activated:hover {
+            filter: brightness(1.6) drop-shadow(0 0 22px rgba(255, 255, 220, 0.95));
+        }
+
         /* 核心节点 */
         .core-node {
             cursor: pointer;
@@ -233,6 +293,57 @@
             letter-spacing: 0.5px;
         }
 
+        /* 右上角天赋点计数器 */
+        .talent-counter {
+            position: fixed;
+            top: 28px;
+            right: 32px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 22px;
+            background: rgba(15, 12, 25, 0.85);
+            border: 1.5px solid rgba(255, 215, 0, 0.35);
+            border-radius: 999px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(255, 200, 100, 0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            pointer-events: none;
+            font-family: 'Georgia', serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .talent-counter .counter-label {
+            font-size: 13px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+        .talent-counter .counter-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--gold);
+            letter-spacing: 1px;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+        }
+        .talent-counter .counter-value.bump {
+            animation: counterBump 0.35s ease;
+        }
+        @keyframes counterBump {
+            0% {
+                transform: scale(1);
+            }
+            40% {
+                transform: scale(1.25);
+                color: #fff3c4;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
         /* 底部提示 */
         .hint {
             position: fixed;
@@ -263,6 +374,15 @@
                 max-width: 240px;
                 padding: 14px 16px;
                 font-size: 12px;
+            }
+            .talent-counter {
+                top: 16px;
+                right: 16px;
+                padding: 8px 16px;
+                gap: 10px;
+            }
+            .talent-counter .counter-value {
+                font-size: 16px;
             }
         }
         @media (max-width: 480px) {
@@ -375,7 +495,14 @@
         <div class="tooltip-value" id="tooltip-value">数值加成</div>
     </div>
 
-    <div class="hint" id="hint">✦ 悬浮节点查看效果 &nbsp;·&nbsp; 点击节点点亮天赋 ✦</div>
+    <div class="talent-counter" id="talent-counter">
+        <span class="counter-label">天赋点</span>
+        <span class="counter-value" id="counter-value">
+            <span id="talent-used">0</span><span>/</span><span id="talent-total">0</span>
+        </span>
+    </div>
+
+    <div class="hint" id="hint">✦ 左键激活节点 &nbsp;·&nbsp; 右键取消激活 &nbsp;·&nbsp; 悬浮查看效果 ✦</div>
 
     <script>
         (function() {
@@ -469,6 +596,8 @@
             const currentCore = CORE_TALENT;
             let flowOrbAnimFrame = null;
             let flowOrbs = [];
+            // 已激活节点集合，key 格式：分支id-节点下标
+            const activatedNodes = new Set();
 
             const svg = document.getElementById('talent-svg');
             const branchesContainer = document.getElementById('branches-container');
@@ -484,6 +613,9 @@
             const tooltipValue = document.getElementById('tooltip-value');
             const hint = document.getElementById('hint');
             const particlesContainer = document.getElementById('particles');
+            const talentUsed = document.getElementById('talent-used');
+            const talentTotal = document.getElementById('talent-total');
+            const counterValue = document.getElementById('counter-value');
 
             function createParticles() {
                 for (let i = 0; i < 60; i++) {
@@ -628,9 +760,12 @@
                         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                         group.setAttribute('class', 'node-group');
                         group.setAttribute('transform', `translate(${pos.x.toFixed(1)}, ${pos.y.toFixed(1)})`);
+                        // 记录分支颜色，激活时通过 CSS 变量恢复
+                        group.style.setProperty('--node-color', def.color);
 
                         // 外发光
                         const outerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        outerGlow.setAttribute('class', 'node-outer');
                         outerGlow.setAttribute('r', radius + 10);
                         outerGlow.setAttribute('fill', def.color);
                         outerGlow.setAttribute('opacity', '0.2');
@@ -638,12 +773,14 @@
                         group.appendChild(outerGlow);
 
                         const mainCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        mainCircle.setAttribute('class', 'node-main');
                         mainCircle.setAttribute('r', radius);
                         mainCircle.setAttribute('fill', 'url(#coreInnerGlow)');
                         mainCircle.setAttribute('opacity', '0.5');
                         group.appendChild(mainCircle);
 
                         const colorCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        colorCircle.setAttribute('class', 'node-color');
                         colorCircle.setAttribute('r', radius - 3);
                         colorCircle.setAttribute('fill', def.color);
                         colorCircle.setAttribute('opacity', '0.75');
@@ -652,12 +789,14 @@
                         group.appendChild(colorCircle);
 
                         const innerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        innerGlow.setAttribute('class', 'node-inner');
                         innerGlow.setAttribute('r', radius - 6);
                         innerGlow.setAttribute('fill', 'rgba(255,255,255,0.2)');
                         innerGlow.setAttribute('opacity', '0.5');
                         group.appendChild(innerGlow);
 
                         const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        iconPath.setAttribute('class', 'node-icon');
                         const iconScale = radius / 16;
                         const iconData = ICONS[nodeData.icon] || ICONS.star;
                         iconPath.setAttribute('d', iconData);
@@ -679,11 +818,21 @@
                             group.appendChild(pulseRing);
                         }
 
-                        // 事件绑定到组，但不再因缩放引起抖动
+                        // 重绘时恢复已激活状态
+                        const stateKey = `${def.id}-${nodeIdx}`;
+                        if (activatedNodes.has(stateKey)) {
+                            group.classList.add('activated');
+                        }
+
+                        // 事件：左键激活、右键取消激活、悬浮提示
                         group.addEventListener('mouseenter', (e) => showNodeTooltip(e, nodeData, def, nodeIdx, branchNodes.length));
                         group.addEventListener('mouseleave', hideTooltip);
                         group.addEventListener('mousemove', moveTooltip);
-                        group.addEventListener('click', () => onNodeClick(nodeData, def, nodeIdx));
+                        group.addEventListener('click', () => activateNode(group, def, nodeIdx, nodeData));
+                        group.addEventListener('contextmenu', (e) => {
+                            e.preventDefault();
+                            deactivateNode(group, def, nodeIdx, nodeData);
+                        });
 
                         nodesContainer.appendChild(group);
                     });
@@ -745,28 +894,6 @@
                 iconPath.setAttribute('pointer-events', 'none');
                 group.appendChild(iconPath);
 
-                const nameLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                nameLabel.setAttribute('y', '62');
-                nameLabel.setAttribute('text-anchor', 'middle');
-                nameLabel.setAttribute('fill', '#ffd700');
-                nameLabel.setAttribute('font-size', '16');
-                nameLabel.setAttribute('font-weight', 'bold');
-                nameLabel.setAttribute('font-family', 'Georgia, serif');
-                nameLabel.setAttribute('letter-spacing', '2');
-                nameLabel.setAttribute('filter', 'url(#glowFilter)');
-                nameLabel.textContent = core.name;
-                group.appendChild(nameLabel);
-
-                const subLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                subLabel.setAttribute('y', '82');
-                subLabel.setAttribute('text-anchor', 'middle');
-                subLabel.setAttribute('fill', 'rgba(255,255,255,0.6)');
-                subLabel.setAttribute('font-size', '10');
-                subLabel.setAttribute('font-family', 'Georgia, serif');
-                subLabel.setAttribute('letter-spacing', '3');
-                subLabel.textContent = '✦ 核心天赋 ✦';
-                group.appendChild(subLabel);
-
                 group.addEventListener('mouseenter', (e) => showCoreTooltip(e, core));
                 group.addEventListener('mouseleave', hideTooltip);
                 group.addEventListener('mousemove', moveTooltip);
@@ -785,6 +912,7 @@
                 ring1.setAttribute('stroke-width', '1.5');
                 ring1.setAttribute('stroke-dasharray', '8 8');
                 ring1.setAttribute('filter', 'url(#glowFilter)');
+                ring1.setAttribute('pointer-events', 'none');
                 ring1.setAttribute('opacity', '0.7');
                 decorContainer.appendChild(ring1);
 
@@ -796,6 +924,7 @@
                 ring2.setAttribute('stroke', 'rgba(255,200,100,0.15)');
                 ring2.setAttribute('stroke-width', '6');
                 ring2.setAttribute('filter', 'url(#softGlow)');
+                ring2.setAttribute('pointer-events', 'none');
                 ring2.setAttribute('opacity', '0.5');
                 decorContainer.appendChild(ring2);
 
@@ -902,7 +1031,7 @@
                 tooltipIcon.style.background = `radial-gradient(circle, ${core.color}dd, ${core.glowColor})`;
                 tooltipIcon.style.boxShadow = `0 0 25px ${core.glowColor}aa`;
                 tooltipTitle.textContent = core.name;
-                tooltipTier.textContent = '核心天赋';
+                tooltipTier.textContent = '';
                 tooltipEffect.textContent = core.description + '。' + core.effect;
                 tooltipValue.textContent = core.value;
                 tooltipValue.style.color = core.color;
@@ -920,10 +1049,35 @@
                 tooltip.classList.remove('visible');
             }
 
-            function onNodeClick(nodeData, branchDef, nodeIdx) {
+            function flashHint(text) {
                 hint.style.opacity = '0';
                 setTimeout(() => { hint.style.opacity = '1'; }, 400);
-                hint.textContent = `✦ ${branchDef.name} - ${nodeData.name} · 已点亮 ✦`;
+                hint.textContent = text;
+            }
+
+            function activateNode(group, branchDef, nodeIdx, nodeData) {
+                const key = `${branchDef.id}-${nodeIdx}`;
+                if (activatedNodes.has(key)) return;
+                activatedNodes.add(key);
+                group.classList.add('activated');
+                updateTalentCounter();
+                flashHint(`✦ ${branchDef.name} - ${nodeData.name} · 已激活 ✦`);
+            }
+
+            function deactivateNode(group, branchDef, nodeIdx, nodeData) {
+                const key = `${branchDef.id}-${nodeIdx}`;
+                if (!activatedNodes.has(key)) return;
+                activatedNodes.delete(key);
+                group.classList.remove('activated');
+                updateTalentCounter();
+                flashHint(`✦ ${branchDef.name} - ${nodeData.name} · 已取消激活 ✦`);
+            }
+
+            function updateTalentCounter() {
+                talentUsed.textContent = activatedNodes.size;
+                counterValue.classList.remove('bump');
+                void counterValue.offsetWidth;
+                counterValue.classList.add('bump');
             }
 
             function renderTree() {
@@ -939,7 +1093,12 @@
             function init() {
                 svg.style.opacity = '1';
                 svg.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                talentTotal.textContent = BRANCH_DEFS.reduce((sum, def) => sum + def.nodes.length, 0);
+                updateTalentCounter();
                 renderTree();
+
+                // 阻止天赋树画布上的浏览器默认右键菜单
+                svg.addEventListener('contextmenu', (e) => e.preventDefault());
 
                 let resizeTimeout;
                 window.addEventListener('resize', () => {

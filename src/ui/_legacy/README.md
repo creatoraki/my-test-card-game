@@ -8,6 +8,8 @@
 | `StartGameButton.tsx` / `.css` | 主菜单开始按钮的旧实现，已被 `menu/MenuStartButton` 取代。 |
 | `TerminalNav.tsx` / `.css` | 顶部终端导航条的占位实现，从未接入。 |
 | `StoragePicker.tsx` / `StoragePicker.module.css` / `StoragePicker.index.ts` | 出击准备旧仓库选择器，已被 `sortie/StorageInventory` 与公共 `common/item/ItemInventoryPanel` 取代。 |
+| `training/TalentTree/` / `training/TalentNode/` / `training/styles/branchTheme.ts` | 训练室旧版白玻璃青绿扇形半环天赋树（TalentTree 面板 + TalentNode 按钮）。整页改为暗底金色后被 `town/training/TalentTreeRadial`（html-templates/天赋树.html 的组件化）取代。⚠ 捡回时注意：`TalentTree.module.css` 的 `composes` 相对路径已失效，需先按五条铁律修正再移出本目录。 |
+| `training/TrainingConfirm/` | 训练室旧通用确认弹窗（重置分配/切换徽章共用）。极简版改造移除页头/左栏/底部预览与弹窗后零引用。⚠ 捡回时注意：`TrainingConfirm.module.css` 的 `composes` 相对路径已失效，需先按五条铁律修正再移出本目录。 |
 
 ## 规则
 
