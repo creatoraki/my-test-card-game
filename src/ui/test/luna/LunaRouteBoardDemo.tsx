@@ -109,6 +109,7 @@ function eventAccent(kind: NodeEventKind): string {
     energy: "#76d7dc",
     hazard: "#c15a59",
     battle: "#d58c5c",
+    empty: "#f783ac",
   };
   return colors[kind];
 }
@@ -122,6 +123,7 @@ const GLYPHS: Record<NodeEventKind, ReactNode> = {
   energy: <><path d="M17 8h14l-2 12 4 20H15l4-20z" strokeWidth={1.6} /><path d="m27 16-6 10h6l-3 7" strokeWidth={1.5} /></>,
   hazard: <><path d="M24 8 42 39H6z" strokeWidth={1.6} /><path d="M24 19v9M24 34v.1" strokeWidth={1.8} /></>,
   battle: <><circle cx="24" cy="24" r="13" strokeWidth={1.5} /><path d="M24 7v8M24 33v8M7 24h8M33 24h8" strokeWidth={1.5} /><circle cx="24" cy="24" r="3" strokeWidth={1.5} /></>,
+  empty: <><path d="M14 8h20v5l-10 11 10 11v5H14v-5l10-11-10-11z" strokeWidth={1.5} /><path d="M14 13h20M14 35h20" strokeWidth={1.2} /><path d="M20 24h8" strokeWidth={1.3} /></>,
 };
 
 function StandingIcon({ kind }: { kind: NodeEventKind }) {

@@ -24,8 +24,8 @@
 //
 // ★ landed 是「已经知道落在哪个节点上, 但什么都还没发生」的那一拍: 浮层在这里给出两个分支。
 //
-// ★ atNode 是这套玩法的核心决策点: 继续推进(再扣 3 粒子, 深段更不确定) 还是 前往下一区域。
-//   依据是玩家对自己记忆的置信度, 不是一条算术曲线 —— 所以每节点消耗固定 3 点, 不递增。
+// ★ atNode 是这套玩法的核心决策点: 继续推进(按推进段扣 3/3/4/5 粒子, 深段更贵也更不确定)
+//   还是 前往下一区域。依据是玩家对自己记忆的置信度, 深段的高消耗是它的第二道刹车。
 //
 // ⚠ 战斗不再是路由图上的终点: 每轮线路走完后展示战斗事件, 再打推进战斗。
 // ============================================================================
@@ -94,6 +94,14 @@ export function toNextTier(energy: number): number | null {
 // 即设计文档 §5.1 的 K_energy。同时作用于经验、居民积分与实物掉落。
 export function rewardMultiplier(energy: number): number {
   return energyTier(energy).rewardMultiplier;
+}
+
+// 第 seg 个推进段(1-based)的节点基础消耗 —— 分档表见 EXPLORE_RULES.energyPerNodeBySegment。
+// ⚠ 段号越界(0 = 尚未起步 / 4+ = 已走满)一律取最近一档兜底, 调用方不必自己 clamp。
+export function energyCostAt(seg: number): number {
+  const bySeg = EXPLORE_RULES.energyPerNodeBySegment;
+  const index = Math.max(1, Math.min(seg, bySeg.length)) - 1;
+  return bySeg[index];
 }
 
 // 统一掉落系数 K =(K_energy + Σ挑战加成)× K_global —— **全加法合成**(设计文档 §5.1)。
@@ -845,13 +853,13 @@ function fitsDepth(e: NodeEvent, seg: number): boolean {
 
 // 全图节点生成(设计文档 §2.3.2 / §9.3)。
 //
-// 生成顺序刻意是**从第 4 段往第 1 段填**: 风险事件只准出现在第 3-4 段,
-// 先填深段再补保底, 才能稳定满足深段风险下限。
+// ★ 风险事件**不限制推进段**: 与普通事件一起参与逐段随机填充, 位置完全随机,
+//   第 1 段也可能出风险。填充顺序从第 4 段往第 1 段走只影响落位时机, 不影响概率。
 //
 // 保底(范围是**整张图**而不是每段 —— 单个推进段允许全是坑或全是宝):
 //   · 至少 2 个生存/低风险节点, 其中至少 1 个在第 1-2 段;
 //   · 至少 3 个成长节点;
-//   · 第 3-4 段至少出现配置数量的风险事件, 不再设置风险事件上限;
+//   · 全图至少 minCount 个风险事件(位置不限, 缺了才补);
 //   · 告急档(第 4 档)起传送投递口必现; 枯竭档(第 5 档)起撤离升降机必现于第 1-2 段。
 function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
   const pool = getEventPool(poolId);
@@ -879,11 +887,8 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
     grid[seg][free[rngInt(s, free.length)]] = e;
     return true;
   };
-  // 风险节点只准出现在第 3-4 段(seg >= 2)。
-  const riskOk = (e: NodeEvent, seg: number): boolean => {
-    if (!e.risk) return true;
-    return seg + 1 >= EXPLORE_RULES.eventPool.hazard.minSegment;
-  };
+  // ★ 风险事件**不限制推进段**: 与普通事件一样参与逐段随机填充, 位置全图完全随机
+  // (数量下限由③的保底统一兜底, 见 EXPLORE_RULES.eventPool.hazard.minCount)。
 
   const locked = new Set<string>();
   const key = (seg: number, lane: number) => `${seg}:${lane}`;
@@ -918,6 +923,24 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
     if (lane >= 0) locked.add(`${seg}:${lane}`);
   }
 
+  // 空节点(设计: 每张图固定 emptyNodes.count 个, 见 rules.ts)——
+  // 与战斗节点同理是独立保底: 不进入普通池随机填格, 且锁在不同深段避免挤在一段。
+  // ⚠ 必须上锁: 否则③的保底修复会把它们当成可牺牲的填充节点换掉, 「每图恰好 N 个」就破了。
+  const emptySegments = shuffle(
+    s,
+    Array.from({ length: SEGMENTS }, (_, seg) => seg),
+  );
+  const emptyEvents = shuffle(
+    s,
+    pool.empty.filter((e) => !e.disabled && (e.minRound ?? 1) <= s.round),
+  );
+  for (let i = 0; i < Math.min(EXPLORE_RULES.eventPool.emptyNodes.count, emptyEvents.length); i++) {
+    const seg = emptySegments[i];
+    if (seg == null || !place(seg, emptyEvents[i])) continue;
+    const lane = grid[seg].findIndex((e) => e?.id === emptyEvents[i].id);
+    if (lane >= 0) locked.add(`${seg}:${lane}`);
+  }
+
   // ② 逐段填满 —— 从最深的一段开始
   for (let seg = SEGMENTS - 1; seg >= 0; seg--) {
     while (grid[seg].some((x) => !x)) {
@@ -927,13 +950,12 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
           (e) =>
             fitsDepth(e, seg) &&
             !onBoard(e.id) &&
-            !s.recentEventIds.includes(e.id) &&
-            riskOk(e, seg),
+            !s.recentEventIds.includes(e.id),
         ),
       );
       const avail = cooled.length
         ? cooled
-        : shuffle(s, all.filter((e) => fitsDepth(e, seg) && !inSegment(seg, e.id) && riskOk(e, seg)));
+        : shuffle(s, all.filter((e) => fitsDepth(e, seg) && !inSegment(seg, e.id)));
       if (!avail.length) break; // 池子撑不满这一段: 少几个节点也不该卡死生成
       place(seg, avail[0]);
     }
@@ -997,7 +1019,13 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
     }
   };
 
-  guarantee([2, 3], (e) => e.category === "hazard", EXPLORE_RULES.eventPool.hazard.minDeep);
+  // 风险保底: 全图至少 minCount 个风险事件(位置不限, 缺了才从任意段换一个补上)。
+  // ⚠ 只兜底**数量**, 不兜底位置 —— 位置完全由②的随机填充决定, 第 1 段也可能出风险。
+  guarantee(
+    [0, 1, 2, 3],
+    (e) => e.category === "hazard",
+    EXPLORE_RULES.eventPool.hazard.minCount,
+  );
   // 「第 1-2 段至少 1 个生存节点」—— 浅停必须是有价值的巩固打法(§1.4)
   guarantee([0, 1], (e) => e.category === "survival", 1);
   // 全图至少 2 个生存/低风险
@@ -1211,13 +1239,14 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   const energyBefore = s.energy;
   const notes: string[] = [];
 
-  // ① 节点的基础消耗。「隐匿通道」这类效果免的就是这一份。
+  // ① 节点的基础消耗(按推进段分档, 见 energyCostAt)。「隐匿通道」这类效果免的就是这一份。
+  const segCost = energyCostAt(s.currentSegment);
   if (s.freeNodes > 0) {
     s.freeNodes -= 1;
     notes.push("隐匿通道: 本节点不消耗粒子");
   } else {
-    changeEnergy(s, -EXPLORE_RULES.energyPerNode);
-    notes.push(`净化粒子 −${EXPLORE_RULES.energyPerNode}`);
+    changeEnergy(s, -segCost);
+    notes.push(`净化粒子 −${segCost}`);
   }
 
   // ② 分支自己的额外增减
@@ -1566,8 +1595,10 @@ export function landedShop(s: ExploreState): ShopState | null {
 }
 
 // 「再推进一个节点, 能量会掉到哪」—— 供 atNode 的后果预告与跨档预警用(§11.2)。
+// ⚠ 预告的是**下一个**节点: 已走完 currentSegment 段, 下一节点是第 currentSegment + 1 段
+//   (energyCostAt 对越界段号自行 clamp 到最后一档, 走满时显示的就是第 4 段的价)。
 export function projectedEnergy(s: ExploreState): number {
-  const cost = s.freeNodes > 0 ? 0 : EXPLORE_RULES.energyPerNode;
+  const cost = s.freeNodes > 0 ? 0 : energyCostAt(s.currentSegment + 1);
   return Math.max(0, s.energy - cost);
 }
 

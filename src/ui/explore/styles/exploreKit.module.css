@@ -130,6 +130,12 @@
   --expl-kind-soft: #d1d8d61c;
   --expl-kind-line: #d1d8d666;
 }
+/* 空节点(什么都不发生, 能量照扣): 高亮粉红, 与路线图 .k-empty 同款。 */
+.k-empty {
+  --expl-kind: #f783ac;
+  --expl-kind-soft: #f783ac1c;
+  --expl-kind-line: #f783ac66;
+}
 /* 未知节点(尚未走到): 占位浮卡的中性灰蓝, 与路线图 .k-unknown 同款、不带色相。 */
 .k-unknown {
   --expl-kind: #8b96a3;

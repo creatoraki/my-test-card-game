@@ -7,7 +7,7 @@
 //      · landed: 推进动画播完只是落点, 效果必须等玩家选完分支才生效;
 //      · currentSegment === 4 时**不得**再提供「继续推进」;
 //   ② 20 个节点的**深度分层与保底规则**成立(设计文档 §2.3.2) —— 浅停有价值、深潜有方差;
-//   ③ 能量档位(每节点 −3)、血量继承、团灭清算这些跨系统的口子表现稳定。
+//   ③ 能量档位(每节点按推进段扣 3/3/4/5)、血量继承、团灭清算这些跨系统的口子表现稳定。
 
 import { describe, expect, it } from "vitest";
 import { makeItemStack } from "../data";
@@ -169,18 +169,24 @@ describe("节点生成与保底(设计文档 §2.3.2)", () => {
     }
   });
 
-  it("风险节点只在第 3-4 推进段, 且深段至少有 5 个风险事件", () => {
+  it("风险事件位置全图随机: 不限推进段, 且全图至少 minCount 个", () => {
+    // 跨 20 种子 × 6 轮 = 120 张图统计浅段(第 1-2 段)的风险事件出现次数:
+    // 段限制放开后, 浅段应当大量出现风险事件(而不是恒为 0)。
+    let shallowRisks = 0;
     for (let seed = 1; seed <= 20; seed++) {
       eachBoard(seed, (s) => {
         const flat = s.board!.nodes.flat();
+        // 数量下限: 每图至少 minCount 个风险事件(位置不限)
         expect(flat.filter((e) => e.category === "hazard").length).toBeGreaterThanOrEqual(
-          EXPLORE_RULES.eventPool.hazard.minDeep,
+          EXPLORE_RULES.eventPool.hazard.minCount,
         );
-        s.board!.nodes.slice(0, 2).forEach((row) => {
-          for (const e of row) expect(e.risk).toBeUndefined();
-        });
+        shallowRisks += s.board!.nodes
+          .slice(0, 2)
+          .flat()
+          .filter((e) => e.category === "hazard").length;
       });
     }
+    expect(shallowRisks).toBeGreaterThan(0);
   });
 
   it("第 1-2 推进段至少有 1 个生存节点 —— 浅停必须是有价值的巩固打法", () => {
@@ -210,6 +216,18 @@ describe("节点生成与保底(设计文档 §2.3.2)", () => {
         expect(s.board!.nodes.flat().filter((e) => e.category === "battle")).toHaveLength(
           EXPLORE_RULES.eventPool.battleNodes.count,
         );
+      });
+    }
+  });
+
+  it("每轮恰好有 2 个空节点(empty), 事件互不重复", () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      eachBoard(seed, (s) => {
+        const empties = s.board!.nodes.flat().filter((e) => e.kind === "empty");
+        expect(empties).toHaveLength(EXPLORE_RULES.eventPool.emptyNodes.count);
+        expect(empties.every((e) => e.category === "empty")).toBe(true);
+        // 空节点能量照扣: 基础消耗走 chooseOption 的固定逻辑, 事件本身无额外增减
+        expect(empties.every((e) => e.energyDelta === 0)).toBe(true);
       });
     }
   });
@@ -433,7 +451,7 @@ describe("阶段机", () => {
 });
 
 describe("净化粒子(设计文档 §4.2)", () => {
-  it("每结算 1 个节点固定 −3, 再叠该分支自己的增减", () => {
+  it("每结算 1 个节点按推进段分档 −3/−3/−4/−5, 再叠该分支自己的增减", () => {
     const s = newSession();
     toChoosing(s);
     chooseEntry(s, 0);
@@ -442,7 +460,10 @@ describe("净化粒子(设计文档 §4.2)", () => {
     const before = s.energy;
     chooseOption(s, 0);
     const extra = ev.choices?.[0]?.energyDelta ?? ev.energyDelta;
-    expect(s.energy).toBe(Math.max(0, Math.min(100, before - EXPLORE_RULES.energyPerNode + extra)));
+    // 第 1 推进段(segment = 1)取分档表第 1 档
+    expect(s.energy).toBe(
+      Math.max(0, Math.min(100, before - EXPLORE_RULES.energyPerNodeBySegment[0] + extra)),
+    );
     expect(s.history[0].energyAfter).toBe(s.energy);
   });
 
@@ -493,11 +514,38 @@ describe("净化粒子(设计文档 §4.2)", () => {
 
   it("预测值 = 再推进一个节点后的能量, 不会低于 0", () => {
     const s = newSession();
-    expect(projectedEnergy(s)).toBe(s.energy - EXPLORE_RULES.energyPerNode);
+    // 尚未起步(currentSegment = 0): 下一个节点是第 1 推进段, 取分档表第 1 档
+    expect(projectedEnergy(s)).toBe(s.energy - EXPLORE_RULES.energyPerNodeBySegment[0]);
     s.energy = 2;
     expect(projectedEnergy(s)).toBe(0);
     s.freeNodes = 1;
     expect(projectedEnergy(s)).toBe(2);
+  });
+
+  it("深段节点消耗递增 —— 第 2/3/4 段分别按 3/4/5 计", () => {
+    const s = newSession();
+    toChoosing(s);
+    chooseEntry(s, 0);
+    const costs: number[] = [];
+    for (let seg = 1; seg <= 4; seg++) {
+      arriveNode(s);
+      // 换成无额外增减的测试节点, 单独验证基础消耗这一项
+      s.board!.nodes[seg - 1][s.currentLane!] = {
+        id: `test-cost-${seg}`,
+        kind: "loot",
+        category: "growth",
+        title: "测试节点",
+        description: "",
+        energyDelta: 0,
+        effects: [],
+      };
+      const before = s.energy;
+      chooseOption(s, 0);
+      costs.push(before - s.energy);
+      confirmNode(s);
+      if (seg < 4) expect(pushOn(s)).toBe(true);
+    }
+    expect(costs).toEqual([...EXPLORE_RULES.energyPerNodeBySegment]);
   });
 
   it("遭遇改造随档位加码, BOSS 还要额外吃血量缩放", () => {
@@ -657,8 +705,8 @@ describe("落点分支与撤离", () => {
     };
     const energyBefore = s.energy;
     chooseOption(s, 1);
-    // 备支自己不花能量, 但每节点固定 −3 照扣
-    expect(s.energy).toBe(energyBefore - EXPLORE_RULES.energyPerNode);
+    // 备支自己不花能量, 但每节点固定消耗照扣(第 1 段 = 分档表第 1 档)
+    expect(s.energy).toBe(energyBefore - EXPLORE_RULES.energyPerNodeBySegment[0]);
     expect(s.loot).toBe(Math.round(10 * rewardMultiplier(s.energy)));
     expect(s.history[0].note).toContain("备支");
   });

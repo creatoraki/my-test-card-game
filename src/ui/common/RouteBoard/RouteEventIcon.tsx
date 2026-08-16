@@ -78,6 +78,14 @@ const PATHS: Record<RouteIconKind, ReactElement> = {
       <path d="M18 16h9M23 12l4 4-4 4" />
     </>
   ),
+  // 空节点: 沙漏 —— 「走到了, 但什么都没有」: 只有时间在流逝, 粒子照扣不误
+  empty: (
+    <>
+      <path d="M9 4h14v3.5l-6.5 8.5 6.5 8.5V28H9v-3.5l6.5-8.5L9 7.5z" />
+      <path d="M9 7.5h14M9 24.5h14" />
+      <path d="M13 13h6M13 19h6" />
+    </>
+  ),
 };
 
 export function RouteEventIcon({ kind, className }: { kind: RouteIconKind; className?: string }) {

@@ -56,7 +56,8 @@ export type NodeEventKind =
   | "route"
   | "energy"
   | "hazard"
-  | "battle";
+  | "battle"
+  | "empty"; // 空节点: 什么都不会发生, 但每节点固定能量消耗照扣不误
 
 // 保底规则按「类别」而非 kind 判定(设计文档 §2.3.2), 且范围是**整张图**而不是每段。
 export type EventCategory =
@@ -67,9 +68,11 @@ export type EventCategory =
   | "energy"
   | "hazard"
   | "battle"
-  | "endgame";
+  | "endgame"
+  | "empty"; // 空节点(什么都不发生)的专属类别
 
-// 风险标记 —— 纯负面全图最多 2 个、高风险最多 3 个, 且都只能出现在第 3-4 推进段。
+// 风险标记 —— 位置**全图完全随机**(不限制推进段, 见 rules.ts eventPool.hazard):
+// 数量下限(每图至少 minCount 个)由生成器的保底兜底, 不再按段配额。
 export type EventRisk = "negative" | "highRisk";
 
 // 事件效果。新增一种机制 = 这里加一个成员 + session.ts 的 applyEffect 加一个分支。

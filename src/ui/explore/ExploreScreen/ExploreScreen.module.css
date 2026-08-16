@@ -62,6 +62,9 @@
 .k-retreat {
   composes: k-retreat from "../styles/exploreKit.module.css";
 }
+.k-empty {
+  composes: k-empty from "../styles/exploreKit.module.css";
+}
 
 /* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
 .explore-viewport {

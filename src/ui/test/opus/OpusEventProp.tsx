@@ -331,6 +331,17 @@ const PROPS: Record<NodeEventKind, ReactNode> = {
       <ellipse className={s["pr-ring"]} {...isoDisc(7, 11)} />
     </>
   ),
+
+  // 【全场最矮 + 什么都没有】空节点: 一块光秃秃的台座 + 台面上一圈浮尘 —— 「走到了, 但什么也没有」
+  empty: (
+    <>
+      <Box wu={9} ws={9} h={2} />
+      <ellipse className={s["pr-ring"]} {...isoDisc(5, 2)} />
+      <circle className={s["pr-mote"]} cx={isoPt(-3, 2, 8)[0]} cy={isoPt(-3, 2, 8)[1]} r={1.2} />
+      <circle className={s["pr-mote"]} cx={isoPt(3, -3, 6)[0]} cy={isoPt(3, -3, 6)[1]} r={0.9} />
+      <circle className={s["pr-mote"]} cx={isoPt(0, 3.5, 5)[0]} cy={isoPt(0, 3.5, 5)[1]} r={0.7} />
+    </>
+  ),
 };
 
 /** 站在地块顶面中心的立体物件。viewBox 的 y=0 就是脚底, 下方多留 8 给落地投影。 */

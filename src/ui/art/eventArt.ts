@@ -10,6 +10,7 @@ const EVENT_ART: Record<NodeEventKind, string> = {
   energy: placeholderArt,
   hazard: placeholderArt,
   battle: placeholderArt,
+  empty: placeholderArt,
 };
 
 export const EVENT_ART_SOURCES: readonly string[] = [...new Set(Object.values(EVENT_ART))];

@@ -22,6 +22,9 @@
 .k-retreat {
   composes: k-retreat from "../styles/exploreKit.module.css";
 }
+.k-empty {
+  composes: k-empty from "../styles/exploreKit.module.css";
+}
 /* 未知节点(尚未走到): 占位浮卡, 与路线图上同款中性灰蓝, 不带色相。 */
 .k-unknown {
   composes: k-unknown from "../styles/exploreKit.module.css";

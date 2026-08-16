@@ -61,9 +61,10 @@ export const EXPLORE_RULES = {
   // ── 净化粒子(设计文档 §4.2) ──
   startingEnergy: 100,
   energyMax: 100,
-  // ★ 唯一的固定消耗: 每结算 1 个节点事件 −3。**刻意不随深度递增** ——
-  //   刹车由「不可逆 + 深段高方差 + 记忆置信度递减」三条结构性因素承担(§2.3.3)。
-  energyPerNode: 3,
+  // ★ 唯一的固定消耗: 每结算 1 个节点事件按**推进段分档** —— 第 1-4 段依次 3 / 3 / 4 / 5。
+  //   前两段维持原价 3, 深段阶梯上调: 越往深走, 单节点代价越高(与「记忆置信度随深度
+  //   递减」同向, 双轴一起加压)。下标 = 推进段号 - 1, 段号越界时取最后一档兜底。
+  energyPerNodeBySegment: [3, 3, 4, 5],
   // 每进行 1 个战斗回合 −1。⚠ 尚未接入战斗引擎, 留常量供战斗回合钩子引用。
   energyPerBattleRound: 1,
 
@@ -73,8 +74,12 @@ export const EXPLORE_RULES = {
 
   eventPool: {
     recentWindowRounds: 1,
-    hazard: { minDeep: 5, minSegment: 3 },
+    // 风险事件(带 risk 标记的 hazard 池): **位置完全随机** —— 不再限制推进段,
+    // 只保留全图数量下限 minCount, 防止极端情况下整张图毫无风险。
+    hazard: { minCount: 2 },
     battleNodes: { count: 2, depth: [2, 4] as readonly [number, number] },
+    // 空节点(什么都不发生, 能量照扣): 每张图固定 N 个, 从空节点池随机抽取、锁在不同深段。
+    emptyNodes: { count: 2 },
   },
 
   // ── 未知节点(设计: 每张图固定隐藏 N 个节点, 走到以后才知道是什么) ──

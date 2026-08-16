@@ -544,7 +544,9 @@ const GROWTH: NodeEvent[] = [
 
 // ---------------------------------------------------------------------------
 // 风险事件 —— 见 design/关卡事件设计/废弃楼层/废弃楼层-风险事件.md
-// 10 个 negative(纯负面) + 8 个 highRisk(带正面收益)。风险配额由探索引擎统一处理。
+// 10 个 negative(纯负面) + 8 个 highRisk(带正面收益)。**位置全图完全随机**:
+// 不写 depth ⇒ 可出现在任意推进段(含第 1 段); 数量下限(每图至少 2 个)
+// 由探索引擎统一处理(见 EXPLORE_RULES.eventPool.hazard)。
 // ---------------------------------------------------------------------------
 const HAZARD: NodeEvent[] = [
   {
@@ -553,7 +555,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "西侧生物门厅",
     description:
       "你踏进门厅时，穹顶的虹膜扫描器突然亮起。墙上的员工名册还停留在三百年前，系统从扬声器里念出一个已经死去的员工姓名，并把队伍标记为“待确认的内部人员”。厚重的生物门在开启与闭合之间来回抖动，门缝里透出一线冷白的消毒光。",
@@ -577,7 +578,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "清洁机器人中转廊",
     description:
       "你刚拐过消防柜，十几架清洁无人机便从天花板的充电槽里同时脱离。它们拖着细长的紫外线灯，沿地面喷出一层会发光的消毒雾。队伍被系统识别成“移动异常源”，而背包里的每一件物品都在无人机的扫描屏上变成了“未登记垃圾”。",
@@ -606,7 +606,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "临街自适应玻璃连廊",
     description:
       "你进入连廊后，身后的玻璃门无声闭合。两侧落地玻璃把同一条走廊复制成无数个方向，远处的出口在每一面反光里都不一样。你每抬头一次，玻璃就重新计算视线，连廊像是在队伍脚下缓慢转动。",
@@ -639,7 +638,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "无菌实验室",
     description:
       "无菌实验室的外门还贴着“实验进行中”的红色封条。你推门时，室内没有人，只有一排培养舱在黑暗里缓慢呼吸。门缝释放出的纳米消毒雾在手电光下结成细丝，像有一层看不见的水正在沿着队伍的护甲往里渗。",
@@ -664,7 +662,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "访客电梯前厅",
     description:
       "电梯前厅的楼层指示灯同时显示了三个不同的楼层。你按下呼叫键，电梯几乎立刻抵达，却没有发出任何运行声。门打开后，里面不是电梯井，而是一段被拉伸的办公走廊；走廊尽头的灯光与前厅方向相反，像是电梯把某一层折叠错了位置。",
@@ -692,7 +689,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "員工健康审查室",
     description:
       "审查室的墙面没有门，只有一整块会呼吸的黑色屏幕。你踏入感应区后，屏幕亮出一张三百年前的员工脸孔，并用温和得近乎亲切的声音询问：“你为什么急着离开？”它把每一次转头、握拳和呼吸变化都标成了异常情绪。",
@@ -726,7 +722,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "超算机房冷却环廊",
     description:
       "你进入环廊时，脚下传来细碎的玻璃声。地板缝里渗出的冷却液薄得像一层水膜，沿着金属地面向机房深处流动；每一盏状态灯都被冻在半亮的位置。护甲接缝开始结霜，背包的扣件也发出轻微的脆响。",
@@ -749,7 +744,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "董事会会议室",
     description:
       "会议室的磨砂门在你面前自动打开，里面坐满了半透明的全息人影。他们围着一张空桌争论一个永远没有结论的议题，所有脸都朝向你，仿佛等了三百年才等到迟到的参会者。门锁随即播报：“请确认本次会议的出席状态。”",
@@ -779,7 +773,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "访客安检前厅",
     description:
       "前厅的接待台已经空了，只剩一枚悬浮的访客徽章在空中旋转。你刚经过地面上的感应线，四架访客无人机便从天花板降下，投出一张“来访目的”表格。它们没有足够的数据库判断队伍是谁，却足够准确地判断谁最像不该出现在这里的人。",
@@ -813,7 +806,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "negative",
-    depth: [3, 4],
     title: "货运中转廊",
     description:
       "你听见一声沉闷的“换向”提示，脚下的重量突然消失。货架从地面脱离，沿着墙面滑行；办公设备和封装箱在半空中互相撞击，像一场没有终点的货物雨。前方的门每隔几秒改变一次重力方向，门框里没有稳定的上下。",
@@ -843,7 +835,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "无菌实验室",
     description:
       "这是同一层的另一种实验室状态：你穿过无菌实验室的内门时，培养舱已经全部熄灭，只有中央样品柜还在工作。柜内的量子样品像一小块被折叠的夜空，不断把周围的温度和声音吸进去；每一次冷却泵停顿，样品柜外壁都会结出新的霜花。",
@@ -867,7 +858,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "原型制造车间",
     description:
       "车间中央的纳米打印机已经运行了三百年，却只打印出一件没有完成的黑色装置。成型臂每次落下都差一毫米，熔融材料便沿着模具边缘重新流回去。你靠近时，机器把队伍识别为“待装配零件”，数十条机械臂同时转向。",
@@ -900,7 +890,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "主算力池机房",
     description:
       "你推开机房防火门时，整面服务器墙像潮汐一样明灭。算力池把多余电力泄向废弃办公区，地面上密布的接线槽不断冒出白色电弧。空气里有烧焦塑料的气味，所有终端都在请求一个早已不存在的管理员确认。",
@@ -929,7 +918,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "企业安保原型靶场",
     description:
       "靶场的隔离门半开着，里面的模拟城市还停在一次测试开始前。你迈过门槛，墙面立刻投出红色标记，把队伍标记成“未授权入侵样本”。天花板上的炮台没有立刻开火，而是先调整角度，像在等待队伍自己选择一条更容易命中的路线。",
@@ -955,7 +943,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "机密档案库",
     description:
       "档案库没有纸张，只有一排排悬浮在黑暗里的量子封存柜。你靠近其中一柜时，柜门上浮出公司的旧徽标和一串被擦除的项目编号。锁内的资料像在呼吸，每一次脉冲都让周围的空气短暂变色，仿佛有人从数据另一端看见了队伍。",
@@ -989,7 +976,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "自动维修蜂巢间",
     description:
       "维修区的墙壁向内收缩，露出数百个正在工作的机械臂。它们没有统一的中央控制台，每一条手臂都在执行一张不同的旧工单：更换关节、拆下外壳、回收“失效部件”。你刚进入，最近的机械臂便伸过来，在护甲上投出“待维修”的黄色框线。",
@@ -1017,7 +1003,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "董事会会议室",
     description:
       "和那间不断开会的会议室不同，这里的全息人影已经全部消失，只剩桌面中央的董事会终端仍在运行。你靠近时，终端把一张张旧脸投到空气里，询问最高权限用户为何迟到。每一次失败登录都会让整面玻璃墙亮起一圈红色警戒。",
@@ -1051,7 +1036,6 @@ const HAZARD: NodeEvent[] = [
     kind: "hazard",
     category: "hazard",
     risk: "highRisk",
-    depth: [3, 4],
     title: "楼层核心供氧站",
     description:
       "供氧站位于整层的中央，透明管道从这里向四面八方伸展，通往已经没有人的办公室。你抵达时，管道里仍流动着温暖的空气，控制台却在红色警告中显示“人员配置：零”。备用舱里保存着少量医疗气体，但每一次阀门切换都会让整层的气压轻轻起伏。",
@@ -1186,6 +1170,47 @@ const BATTLE: NodeEvent[] = [
   },
 ];
 
+// 空节点(设计: 每张图固定 emptyNodes.count 个, 见 rules.ts)——
+// 「走到了, 但什么都没有」: 没有任何分支收益, 也没有任何风险,
+// 唯一的结果就是**每节点固定的净化粒子消耗照扣不误**。它们是深潜路上的白噪音,
+// 逼玩家为「这一格只是空路」的推断付出不可逆的粒子, 也是记忆压力的组成部分。
+// ⚠ 刻意不写 depth: 空节点可以出现在任意推进段, 深段遇上它比浅段更疼。
+const EMPTY: NodeEvent[] = [
+  {
+    id: "empty-vacant-corridor",
+    kind: "empty",
+    category: "empty",
+    title: "空置通道",
+    description: "这条通道里什么也没有——没有补给，没有威胁，只有一路沉默的灰。",
+    energyDelta: 0,
+    choices: [
+      choice("pass", "继续前进", "什么也没有发生", "你们穿过空荡荡的通道，脚步声在墙壁之间弹了又弹，除此之外什么也没有发生。", undefined),
+    ],
+  },
+  {
+    id: "empty-stripped-cubicle",
+    kind: "empty",
+    category: "empty",
+    title: "废弃隔间",
+    description: "隔间的门大敞着，里面早就被搬空了，连一颗螺丝钉都没留下。",
+    energyDelta: 0,
+    choices: [
+      choice("pass", "继续前进", "什么也没有发生", "你们把隔间翻了个底朝天——架子是空的，柜子是空的，连墙上的挂扣都被拆走了。", undefined),
+    ],
+  },
+  {
+    id: "empty-silent-junction",
+    kind: "empty",
+    category: "empty",
+    title: "静默岔口",
+    description: "岔口的路标指向三个方向，但每一条都安静得不像话。",
+    energyDelta: 0,
+    choices: [
+      choice("pass", "继续前进", "什么也没有发生", "你们在岔口停了一小会儿，听不到任何动静，最终随便挑了一条路继续走。", undefined),
+    ],
+  },
+];
+
 export interface EventPool {
   survival: NodeEvent[];
   growth: NodeEvent[];
@@ -1195,6 +1220,7 @@ export interface EventPool {
   hazard: NodeEvent[];
   battle: NodeEvent[];
   endgame: NodeEvent[];
+  empty: NodeEvent[]; // 空节点(什么都不发生, 能量照扣) —— 独立保底, 不进入普通填充
 }
 
 export const EVENT_POOLS: Record<string, EventPool> = {
@@ -1207,6 +1233,7 @@ export const EVENT_POOLS: Record<string, EventPool> = {
     hazard: HAZARD,
     battle: BATTLE,
     endgame: [],
+    empty: EMPTY,
   },
 };
 

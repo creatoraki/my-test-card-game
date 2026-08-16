@@ -79,6 +79,7 @@ const eventKindLabel: Record<NodeEvent["kind"], string> = {
   energy: "能量事件",
   retreat: "撤离事件",
   battle: "战斗事件",
+  empty: "空节点",
 };
 
 function EventShell({ children, view, closing }: { children: ReactNode; view: EventModalView; closing: boolean }) {
