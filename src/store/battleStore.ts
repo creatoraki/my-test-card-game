@@ -27,6 +27,7 @@ import {
 // 一次出牌的动画计划: 先展示出牌结果(cardSnapshot), 再逐帧播放触发的敌人行动, 最后落到 final。
 export interface PlayPlan {
   cardSnapshot: BattleState;
+  cardMissedTargets: string[];
   discardTriggers: DiscardTriggerFx[];
   frames: AnimFrame[];
   final: BattleState;
@@ -91,11 +92,12 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const b = get().battle;
     if (!b || b.phase !== "player") return null;
     const draft = structuredClone(b);
-    const rec: PlayRecorder = { frames: [], discardTriggers: [] };
+    const rec: PlayRecorder = { frames: [], discardTriggers: [], cardMissedTargets: [] };
     const ok = playCard(draft, uid, targetId, rec);
     if (!ok) return null;
     return {
       cardSnapshot: rec.cardSnapshot ?? draft,
+      cardMissedTargets: rec.cardMissedTargets,
       discardTriggers: rec.discardTriggers,
       frames: rec.frames,
       final: draft,

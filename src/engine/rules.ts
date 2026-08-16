@@ -64,7 +64,7 @@ export const RULES = {
     pollutionDodgePerStack: 5, // 粒子污染每层: 闪避 +5 个百分点
 
     defenseConstant: 30, // 减伤 = 防御力 / (防御力 + 该常量)
-    baseHitChance: 100, // P_base
+    baseHitChance: 90, // P_base
     hitFloorPct: 5, // 最终命中概率下限
     hitCeilPct: 100, // 最终命中概率上限
     // 暴击率 / 闪避率 / 格挡率 / 异常抗性 的**最终值**硬上限。命中率与精准不受限。

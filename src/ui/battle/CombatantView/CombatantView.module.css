@@ -359,31 +359,17 @@ span.combatant-portrait {
 }
 .hit-chance {
   position: absolute;
-  top: -30px;
+  top: -22px;
   left: 50%;
-  z-index: 6;
-  padding: 3px 9px;
+  z-index: 8;
   transform: translateX(-50%);
-  font-size: 12px;
+  font-size: 48px;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: 0.5px;
+  color: #fff;
   white-space: nowrap;
-  background: #111923e8;
-  border: 1px solid currentColor;
-  box-shadow: 0 0 10px color-mix(in srgb, currentColor 55%, transparent),
-    inset 0 0 8px color-mix(in srgb, currentColor 20%, transparent);
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  text-shadow: 0 2px 4px #000, 0 0 8px currentColor;
   pointer-events: none;
-}
-.hit-chance[data-tier="high"] {
-  color: var(--good);
-}
-.hit-chance[data-tier="mid"] {
-  color: var(--warn);
-}
-.hit-chance[data-tier="low"] {
-  color: var(--bad);
 }
 @keyframes telegraphLabel {
   0%,

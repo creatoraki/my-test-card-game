@@ -12,6 +12,7 @@ import type {
   Combatant,
   DamageCtx,
   DamageOpts,
+  DamageResult,
   EngineOps,
   StatBlock,
   StatusCtx,
@@ -79,9 +80,9 @@ export function dealDamage(
   targetId: string,
   amount: number,
   opts: DamageOpts = {},
-): void {
+): DamageResult {
   const target = state.combatants[targetId];
-  if (!target || !target.alive) return;
+  if (!target || !target.alive) return null;
 
   const dmg: DamageCtx = {
     sourceId,
@@ -112,7 +113,7 @@ export function dealDamage(
       dmg.missed = true;
       dmg.amount = 0;
       log(state, `${target.emoji} ${target.name} 闪避了这次攻击`);
-      return;
+      return "missed";
     }
   }
 
@@ -155,7 +156,7 @@ export function dealDamage(
       STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
     cleanup(target);
     if (dmg.fatal) markDead(state, target);
-    return;
+    return "hit";
   }
 
   if (target.team === "player" && target.hp > 0 && dmg.amount > 0 && !getStatus(target, "buzhou"))
@@ -176,6 +177,7 @@ export function dealDamage(
   cleanup(target);
 
   if (target.team !== "player" && target.hp <= 0) markDead(state, target);
+  return "hit";
 }
 
 // 最终治疗 =(基础治疗 + 治愈力)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力 × 倍率,

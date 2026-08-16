@@ -46,6 +46,7 @@ import { CARD_MARK_DEFS } from "./cardMarks";
 export interface PlayRecorder {
   frames: AnimFrame[];
   discardTriggers: DiscardRecorder["triggers"];
+  cardMissedTargets: string[];
   cardSnapshot?: BattleState;
 }
 
@@ -330,8 +331,14 @@ export function playCard(
   state.hand = state.hand.filter((x) => x !== uid);
   log(state, `${owner.emoji} ${owner.name} 打出 ${card.name}`);
   const discardRecorder = rec ? { triggers: rec.discardTriggers } : undefined;
+  const cardMissed = new Set<string>();
+  const cardHit = new Set<string>();
+  const mergeCardResolution = (resolution: ReturnType<typeof resolveEffects>) => {
+    resolution.missed.forEach((id) => cardMissed.add(id));
+    resolution.hit.forEach((id) => cardHit.add(id));
+  };
   withDiscardRecorder(discardRecorder, () => {
-    resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+    mergeCardResolution(resolveEffects(state, card.effects, card.ownerCharId, primaryId));
 
     if (card.exhaust) state.exhaust.push(uid);
     else moveToDiscard(state, uid, "play");
@@ -340,14 +347,16 @@ export function playCard(
       const def = KEYWORD_DEFS[ref.id];
       if (!def) continue;
       const times = def.triggers(state, card, primaryId);
-      for (let i = 0; i < times; i++) resolveEffects(state, ref.effects, card.ownerCharId, primaryId);
+      for (let i = 0; i < times; i++)
+        mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
       def.onTriggered?.(state, card, primaryId, times);
     }
     for (const markId of card.marks ?? []) {
       const mark = CARD_MARK_DEFS[markId];
-      if (mark) resolveEffects(state, mark.effects, card.ownerCharId, primaryId);
+      if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
     }
     card.marks = [];
+    if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
     flushAutoPlays(state);
   });
 

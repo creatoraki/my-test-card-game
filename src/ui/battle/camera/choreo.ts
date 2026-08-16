@@ -6,7 +6,7 @@ export interface ChoreoStep {
   actorId: string;
   anim: CardAnim;
   snapshot: BattleState;
-  hits: { id: string; hpDelta: number }[];
+  hits: { id: string; hpDelta: number; missed?: boolean }[];
   card?: Card;
 }
 

@@ -130,13 +130,12 @@ export const CombatantView = memo(function CombatantView({
         </div>
       )}
 
-      {phase === "alive" && targetable && hitChance != null && <HitChanceBadge value={hitChance} />}
-
-        {/* --place-scale 作用于立绘和命中特效的几何, 血条/BUFF/意图/倒计时保持原尺寸。
+      {/* --place-scale 作用于立绘和命中特效的几何, 血条/BUFF/意图/倒计时保持原尺寸。
           HitFxLayer 必须留在这层内 —— 它相对最近的定位祖先定位, 且要跟着立绘一起缩放 */}
       {/* data-cmb-stage: 供 BattleScreen 的 computeCamera 量取景框(它要的是含体型 scale 的
           这一层, 不是外层布局盒)。类名会被 Modules 哈希, querySelector 只能认属性。 */}
       <div className={s["combatant-stage"]} data-cmb-stage>
+        {phase === "alive" && targetable && hitChance != null && <HitChanceBadge value={hitChance} />}
         <HitFxLayer hit={hit ?? null} />
         {phase === "vanish" && <DeathVanishFx />}
 

@@ -49,6 +49,7 @@ export interface EnemyActResult {
   enemyDefId: string;
   moveId: string;
   targetIds: string[]; // 受影响单位(用于闪特效): foe→[primary]; self→[self]; 群体→解析集合; 眩晕→[self]
+  missedIds: string[];
 }
 
 // 归纳一次招式受影响的单位(用于 UI 闪特效)。在结算前按存活集合归纳, 不消耗 RNG。
@@ -85,7 +86,7 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   const e = state.combatants[enemyId] as Enemy;
   const enemyDefId = e.enemyDefId;
   if (!e.alive)
-    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [] };
+    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [], missedIds: [] };
 
   // 眩晕: 消耗 1 层, 跳过本次行动
   const stun = getStatus(e, "stun");
@@ -94,7 +95,7 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
     e.statuses = e.statuses.filter((s) => s.stacks > 0);
     log(state, `💫 ${e.name} 被眩晕, 无法行动`);
     startCharge(state, enemyId);
-    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId] };
+    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId], missedIds: [] };
   }
 
   const def = getEnemyDef(e.enemyDefId);
@@ -108,11 +109,18 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   const targetIds = collectMoveTargets(state, e, move, primaryId);
 
   log(state, `${e.emoji} ${e.name} 使用 ${move.name}`);
-  resolveEffects(state, move.effects, enemyId, primaryId);
+  const resolution = resolveEffects(state, move.effects, enemyId, primaryId);
 
   if (e.hp <= 0) markDead(state, e);
   startCharge(state, enemyId);
-  return { actorId: enemyId, enemyDefId, moveId: move.id, targetIds };
+  const hitIds = new Set(resolution.hit);
+  return {
+    actorId: enemyId,
+    enemyDefId,
+    moveId: move.id,
+    targetIds,
+    missedIds: [...new Set(resolution.missed)].filter((id) => !hitIds.has(id)),
+  };
 }
 
 // 执行一次敌人行动, 并(可选)记录一帧动画: 行动者 + 受击掉血量 + 结算后快照。
@@ -128,7 +136,11 @@ export function actAndRecord(state: BattleState, enemyId: string, frames?: AnimF
 
   const hits = res.targetIds
     .filter((id) => state.combatants[id])
-    .map((id) => ({ id, hpDelta: (beforeHp[id] ?? 0) - state.combatants[id].hp }));
+    .map((id) => ({
+      id,
+      hpDelta: (beforeHp[id] ?? 0) - state.combatants[id].hp,
+      missed: res.missedIds.includes(id),
+    }));
 
   frames.push({
     actorId: res.actorId,

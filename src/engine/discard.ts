@@ -10,6 +10,7 @@ import type {
   DiscardRecorder,
 } from "./types";
 import { resolveEffects } from "./effects";
+import type { EffectResolution } from "./effects";
 import { checkEnd, allIds, ops } from "./ops";
 import { RULES } from "./rules";
 import { rngPick } from "./rng";
@@ -46,12 +47,14 @@ function recordTrigger(
   card: Card,
   beforeHp: Record<string, number>,
   rec: DiscardRecorder,
+  resolution: EffectResolution,
   autoPlay = false,
 ): void {
   const hits: AnimHit[] = [];
   for (const id of allIds(state)) {
     const hpDelta = (beforeHp[id] ?? 0) - state.combatants[id].hp;
-    if (hpDelta !== 0) hits.push({ id, hpDelta });
+    const missed = resolution.missed.includes(id) && !resolution.hit.includes(id);
+    if (hpDelta !== 0 || missed) hits.push({ id, hpDelta, missed });
   }
   rec.triggers.push({
     cardUid: card.uid,
@@ -94,12 +97,12 @@ export function moveToDiscard(
 
   const effects = trigger?.effects ?? [];
   const primaryId = autoTarget(state, card);
-  resolveEffects(state, effects, card.ownerCharId, primaryId);
+  const resolution = resolveEffects(state, effects, card.ownerCharId, primaryId);
   checkEnd(state);
 
   state.discardResolving.pop();
   if (recorder) {
-    recordTrigger(state, card, beforeHp, recorder);
+    recordTrigger(state, card, beforeHp, recorder, resolution);
   }
 }
 
@@ -127,9 +130,9 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       if (recorder && !discardSnapshots.has(state)) discardSnapshots.set(state, structuredClone(state));
       const beforeHp: Record<string, number> = {};
       for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
-      resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+      const resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId);
       checkEnd(state);
-      if (recorder) recordTrigger(state, card, beforeHp, recorder, true);
+      if (recorder) recordTrigger(state, card, beforeHp, recorder, resolution, true);
       flushed += 1;
     }
     if (state.pendingAutoPlays.length > 0) {

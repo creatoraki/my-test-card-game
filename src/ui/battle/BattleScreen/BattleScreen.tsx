@@ -609,7 +609,9 @@ export function BattleScreen() {
           const map: Record<string, HitFx> = {};
           for (const h of step.hits) {
             const fx: HitFx = { anim: step.anim, seq: hitSeq };
-            if (ANIM[step.anim].kind === "attack" && h.hpDelta > 0) fx.float = { text: `-${h.hpDelta}`, tone: "dmg" };
+            if (h.missed) fx.float = { text: "MISS", tone: "miss" };
+            else if (ANIM[step.anim].kind === "attack" && h.hpDelta > 0)
+              fx.float = { text: `-${h.hpDelta}`, tone: "dmg" };
             else if (ANIM[step.anim].kind === "support" && h.hpDelta < 0) fx.float = { text: `+${-h.hpDelta}`, tone: "heal" };
             map[h.id] = fx;
           }
@@ -684,6 +686,7 @@ export function BattleScreen() {
     const cardHits = targets.map((id) => ({
       id,
       hpDelta: before[id] - (plan.cardSnapshot.combatants[id]?.hp ?? before[id]),
+      missed: plan.cardMissedTargets.includes(id),
     }));
     const steps: ChoreoStep[] = [
       { actorId: card.ownerCharId, anim, snapshot: plan.cardSnapshot, hits: cardHits, card },

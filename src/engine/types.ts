@@ -223,6 +223,8 @@ export interface DamageCtx {
   fatal?: boolean; // 濒死死亡骰命中
 }
 
+export type DamageResult = "missed" | "hit" | null;
+
 export interface StatusHooks {
   onRoundStart?: (c: StatusCtx) => void;
   onRoundEnd?: (c: StatusCtx) => void;
@@ -419,7 +421,7 @@ export interface EngineOps {
     targetId: string,
     amount: number,
     opts?: DamageOpts,
-  ): void;
+  ): DamageResult;
   // sourceId 为 undefined 时按"无施法者"处理: 不吃治愈力/治愈强度/护盾强度(如再生、场景效果)。
   heal(
     state: BattleState,
@@ -453,6 +455,7 @@ export interface EngineOps {
 export interface AnimHit {
   id: string; // 受影响单位
   hpDelta: number; // >0 掉血, <0 回血, 0 仅护盾/状态/自身增益(仍闪特效但不飘字)
+  missed?: boolean;
 }
 
 export interface AnimFrame {

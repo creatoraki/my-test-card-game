@@ -206,7 +206,7 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
 // 单个单位当前正在播放的受击/首击特效(由 BattleScreen 在命中时刻下发)。
 export interface HitFx {
   anim: CardAnim;
-  float?: { text: string; tone: "dmg" | "heal" }; // 飘字(伤害/治疗量), 可选
+  float?: { text: string; tone: "dmg" | "heal" | "miss" }; // 飘字(伤害/治疗量/未命中), 可选
   seq: number; // 递增序号, 用于强制重放动画
 }
 

@@ -240,6 +240,9 @@
 .float-heal {
   color: #69db7c;
 }
+.float-miss {
+  color: #fff;
+}
 @keyframes floatUp {
   0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
   14% { transform: translate(-50%, -20px) scale(1.15); opacity: 1; }

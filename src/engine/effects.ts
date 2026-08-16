@@ -10,6 +10,16 @@ import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 
+export interface EffectResolution {
+  missed: string[];
+  hit: string[];
+}
+
+function mergeResolution(target: EffectResolution, source: EffectResolution): void {
+  target.missed.push(...source.missed);
+  target.hit.push(...source.hit);
+}
+
 function counterOf(state: BattleState, source: CounterSource): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
   if (source === "lastDiscardBatch") return state.lastDiscardBatch;
@@ -65,8 +75,9 @@ function applyEffect(
   effect: EffectDescriptor,
   sourceId: string,
   targetIds: string[],
-): void {
-  if (!conditionMet(state, effect)) return;
+): EffectResolution {
+  const resolution: EffectResolution = { missed: [], hit: [] };
+  if (!conditionMet(state, effect)) return resolution;
   const amount = effect.amount ?? 0;
   const unblockable = effect.flags?.includes("unblockable");
   const mustHit = effect.flags?.includes("mustHit");
@@ -99,7 +110,7 @@ function applyEffect(
               ? baseMultiplier + effect.damageBonus.multiplier
               : baseMultiplier;
           const dmg = fixed ? amount * (1 + bonusMult) : statOf(src, "attack") * damageMultiplier;
-          ops.dealDamage(state, sourceId, id, dmg, {
+          const result = ops.dealDamage(state, sourceId, id, dmg, {
             isAttack: true,
             fixed,
             mustHit,
@@ -107,6 +118,8 @@ function applyEffect(
             unblockable,
             hitBonus: effect.hitBonus,
           });
+          if (result === "missed") resolution.missed.push(id);
+          else if (result === "hit") resolution.hit.push(id);
         }
       break;
     }
@@ -237,6 +250,7 @@ function applyEffect(
       break;
     }
   }
+  return resolution;
 }
 
 // 依次结算一张卡 / 一个招式的所有效果。
@@ -245,9 +259,11 @@ export function resolveEffects(
   effects: EffectDescriptor[],
   sourceId: string,
   primaryId: string | undefined,
-): void {
+): EffectResolution {
+  const resolution: EffectResolution = { missed: [], hit: [] };
   for (const effect of effects) {
     const targets = resolveTargets(state, effect, sourceId, primaryId);
-    applyEffect(state, effect, sourceId, targets);
+    mergeResolution(resolution, applyEffect(state, effect, sourceId, targets));
   }
+  return resolution;
 }

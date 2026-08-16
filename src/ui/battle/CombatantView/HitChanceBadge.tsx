@@ -18,7 +18,7 @@ export function HitChanceBadge({ value }: Props) {
       data-tier={tierOf(value)}
       aria-label={`命中率 ${rounded}%`}
     >
-      ⌖ {rounded}%
+      {rounded}%
     </div>
   );
 }
