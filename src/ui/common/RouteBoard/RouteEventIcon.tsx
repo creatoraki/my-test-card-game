@@ -67,7 +67,7 @@ const PATHS: Record<NodeEventKind, ReactElement> = {
   ),
 };
 
-export function QwenEventIcon({ kind, className }: { kind: NodeEventKind; className?: string }) {
+export function RouteEventIcon({ kind, className }: { kind: NodeEventKind; className?: string }) {
   return (
     <svg
       className={className}

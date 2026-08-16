@@ -2,12 +2,11 @@ import { useState } from "react";
 import { LunaRouteBoardDemo } from "../luna/LunaRouteBoardDemo";
 import { OpusEventPanel, OpusRoutePanel } from "../opus";
 import { DsEventPanel, DsRouteBoard } from "../ds";
-import { QwenRoutePanel } from "../qwen";
 import s from "./TestScreen.module.css";
 
-type TestTab = "opus" | "opus-route" | "luna" | "ds" | "ds-route" | "qwen-route";
+type TestTab = "opus" | "opus-route" | "luna" | "ds" | "ds-route";
 
-const TABS: TestTab[] = ["opus", "opus-route", "luna", "ds", "ds-route", "qwen-route"];
+const TABS: TestTab[] = ["opus", "opus-route", "luna", "ds", "ds-route"];
 
 // 页签文案与 tab 值分开: tab 值同时是 key 与 aria 标签的词根, 改文案不影响其它两处。
 const TAB_LABEL: Record<TestTab, string> = {
@@ -16,7 +15,6 @@ const TAB_LABEL: Record<TestTab, string> = {
   luna: "luna",
   ds: "ds",
   "ds-route": "ds 路线图",
-  "qwen-route": "qwen 路线图",
 };
 
 export function TestScreen() {
@@ -46,10 +44,8 @@ export function TestScreen() {
           <LunaRouteBoardDemo />
         ) : activeTab === "ds" ? (
           <DsEventPanel />
-        ) : activeTab === "ds-route" ? (
-          <DsRouteBoard />
         ) : (
-          <QwenRoutePanel />
+          <DsRouteBoard />
         )}
       </section>
     </main>

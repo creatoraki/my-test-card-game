@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { NodeEvent } from "@/explore/types";
-import { nodeCenter, NODE_ICON_TOP, ROUTE_PANEL_W, TILE_BOX_H } from "@/ui/explore/RouteBoard";
+import { nodeCenter, NODE_ICON_TOP, ROUTE_PANEL_W, TILE_BOX_H } from "@/ui/common/RouteBoard";
 import { cx } from "@/ui/common/cx";
 import s from "./NodeTip.module.css";
 

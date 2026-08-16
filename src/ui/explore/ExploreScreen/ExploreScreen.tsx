@@ -61,7 +61,7 @@ import {
   GENERATE_MS,
   GENERATE_REDUCED_MS,
   nodeCenter,
-} from "@/ui/explore/RouteBoard";
+} from "@/ui/common/RouteBoard";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { useRevealPresence } from "@/ui/common/ModalReveal";
 import { panelRevealCloseMs } from "@/ui/explore/styles/panelReveal";
@@ -76,8 +76,10 @@ import s from "./ExploreScreen.module.css";
 // ★ 等距棋盘沿「左下 → 右上」铺开, 因此包围盒的**左上角与右下角天然是空的** ——
 //   节点悬浮浮卡会贴着对应瓦片出现, 决策浮层仍落在画布中央。
 //   把面板往右推是为了给左上的 HUD 让位, 同时让棋盘右上角避开右上的读数列。
-const BOARD_LEFT = 508;
-const BOARD_TOP = 184;
+// ⚠ 这两个数跟着面板尺寸走(现为 1366×786): 左边界让开左上的背包条与队伍区,
+//   下边界必须留在 COMMAND_BAR_TOP 之上, 否则棋盘会压到本轮指令条上。
+const BOARD_LEFT = 520;
+const BOARD_TOP = 128;
 const COMMAND_BAR_TOP = 930;
 const BAG_W = 640;
 
@@ -521,6 +523,9 @@ export function ExploreScreen() {
             onArrive={onArrive}
             onLeaveDone={onLeaveDone}
             onHoverNode={onHoverNode}
+            // ⚠ 必须关掉组件自带的地面底图: 本页已经铺了全屏场景图(.explore-bg),
+            //   再开一层会在画面正中多出一块 16:9 的矩形贴图压在场景上。
+            ground={false}
           />
           {hovered && !focused && (
             <NodeTip
