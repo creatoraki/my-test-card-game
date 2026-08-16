@@ -1083,7 +1083,7 @@ export function choiceStartsBattle(s: ExploreState, index: number): boolean {
   if (!ev || !choice) return false;
   if (choice.outcomes?.length) {
     return choice.outcomes.every((outcome) =>
-      outcome.effects.some((effect) => effect.type === "START_NODE_BATTLE"),
+      (outcome.effects ?? []).some((effect) => effect.type === "START_NODE_BATTLE"),
     );
   }
   const effects = choice.effects ?? ev.effects ?? [];

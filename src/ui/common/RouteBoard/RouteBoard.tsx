@@ -53,7 +53,7 @@ import s from "./RouteBoard.module.css";
 // 两个轴向上的屏幕跨度 ⇒ 与 LANE_GAP / SEG_PITCH 直接可比: 差值就是砖缝。
 // ⚠ 砖不需要大: 砖上什么都不画(内容全在悬浮图标上), 它只是一块「站位用的台面」。
 //   砖越小, 通道之间的空地越多, 那些悬空的图标才有地方浮着 —— 现在只比连线宽一点点。
-const TILE = 52;
+const TILE = 62;
 const TILE_HALF = TILE / 2;
 // 薄片厚度(屏幕垂直方向)。⚠ 只有 4px: 再厚就从「地砖」变回「积木」, 整套概念就塌了。
 const TILE_DEPTH = 4;
