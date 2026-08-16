@@ -17,8 +17,9 @@
       不要在本文件手写任何角度: 两条变换共享斜率是「垂直」这件事成立的唯一保证。
    ⛔ 全场**没有玻璃材质**: 不用 backdrop-filter, 不用半透明磨砂底, 不用玻璃转折高光。
 
-   ★ 强调色 --k **只作用在图标上**: 地砖(砖面 / 侧壁 / 落地影 / 警示带)一律中性灰,
-     连悬停与落点也只改明度 —— 25 组铺开时画面才不会变成调色盘, 地面也才读作同一批构件。 */
+   ★ 强调色 --k 只作用在**图标**与**砖的右下那条棱**上: 砖的底色 / 侧壁 / 落地影一律中性灰,
+     悬停与落点也只改明度 —— 25 组铺开时画面才不会变成调色盘, 地面也才读作同一批构件。
+     ⇒ 浓色只许出现在「一枚图标 + 一条 2px 的边」这两笔上, 其余全是灰的。 */
 
 .root {
   --pipe: #96897a; /* 主线: 低饱和暖灰铜 =「没通电的裸金属导槽」 */
@@ -44,41 +45,54 @@
   isolation: isolate;
 }
 
-/* 辅色派生: 掺入比例刻意很低, 辅色的性格必须是「灰」, 强调色只给一点色相倾向。
+/* 辅色派生: --k1 是**悬浮图标的实际颜色**(全图唯一的发光体), 必须保住色相 ——
+   掺白比例过低(旧版 22%)会把八种事件色一起冲成近白, 色环再怎么排都读不出来。
+   现在掺到 42%: 亮度仍高于砖面一大截(读作自发光), 色相也还认得出。
+   ★ 真正吃满饱和度的是砖上那条右下发光边(.tileEdge 直接用 --k 原色) —— 浓色交给那一条棱,
+     悬浮图标就不必自己烧到最亮, 两者是「亮 vs 浓」的分工。
+   ⚠ --k2 / --k3 是地砖侧的辅色, 性格必须是「灰」, 比例照旧压得很低。
    ⚠ 这条规则只写 --k1..--k3, 不写 --k ⇒ 与 .k-* / .isSettled 等只改 --k 的规则互不打架。 */
 .node,
 .entry,
 .card {
-  --k1: color-mix(in srgb, var(--k) 22%, var(--tac-white));
+  --k1: color-mix(in srgb, var(--k) 42%, var(--tac-white));
   --k2: color-mix(in srgb, var(--k) 18%, var(--tac-grey));
   --k3: color-mix(in srgb, var(--k) 20%, var(--tac-dark));
 }
 
-/* ── 事件色: 八种事件各占一个色相, 明度/饱和度锁在同一档(HSL 大致 S≈47% / L≈45%) ──
-   ⚠ 只要有一个色相亮出去, 它就会成为画面里唯一的霓虹, 其余七种一起被压成「灰掉的」。 */
+/* ── 事件色: 八种事件各占一个色相 ──
+   ★ 排布原则(⛔ 不要退回旧版那种「八色锁死同一档 S/L」的做法: 那会让暖色区的
+     红 / 橙 / 金 / 粉 挤成同一种砖红, 危险感与区分度一起丢掉):
+     ① **色相尽量摊开**, 暖色区尤其要拉:  红 0° → 橙 33° → 金 51° 三档必须一眼可分;
+        粉色不再贴着红(旧版 330°), 整体推到 313° 的品红, 与红拉开近 50°。
+     ② 挤在一起的相邻色**再用明度补一刀**: 橙压在 L≈50%(中调), 金抬到 L≈64%(高调浅金),
+        只差 18° 的色相靠这一档明暗把界限做实。
+     ③ 危险类**独占最高饱和度**: battle 是全场唯一的纯红(S≈74%), 别的色相一律不许超过它 ——
+        「危险红」不是靠调暗调浊调出来的, 是靠**比周围都纯**读出来的。
+   ⚠ 只要有一个非危险色相亮过 battle, 它就会成为画面里的霓虹, 红色立刻退回「暗砖红」。 */
 .k-battle {
-  --k: #a83c44;
+  --k: #e03131; /* 纯红 0° · S74 L53 —— 全场最纯的一枚, 危险红 */
 }
 .k-hazard {
-  --k: #a85f3c;
+  --k: #e08a1e; /* 琥珀橙 33° · S76 L50 —— 中调, 与金色靠明度分开 */
 }
 .k-loot {
-  --k: #a8853c;
+  --k: #ead45c; /* 浅金 51° · S78 L64 —— 高调, 与橙靠明度分开 */
 }
 .k-heal {
-  --k: #3ca85f;
+  --k: #2fb45f; /* 草绿 142° */
 }
 .k-energy {
-  --k: #3c98a8;
+  --k: #1fa8bf; /* 青 189° */
 }
 .k-route {
-  --k: #3c6ba8;
+  --k: #3d7ad6; /* 蓝 216° */
 }
 .k-merchant {
-  --k: #6b4ca8;
+  --k: #9a5cd6; /* 紫罗兰 270° */
 }
 .k-retreat {
-  --k: #a83c85;
+  --k: #c93bab; /* 品红 313° —— 旧版的粉(330°)贴着红, 已整体推开 */
 }
 
 /* ── 地面 ──
@@ -328,9 +342,9 @@
    ⛔ 砖面上除了**事件类型纹理**(.faceKind)之外什么都不画: 卡面(切角内边框 / 透视网格 /
      斜向反光 / 图标)全部搬到直立的投影屏上去了, 不要再往地砖上加别的内容。
    ⛔ 也不再有玻璃: 没有 backdrop-filter, 没有半透明磨砂底, 没有转折高光。
-   ⚠ 砖的**底色 / 收边 / 外辉光**依旧全是中性灰, 一点事件色都不掺: 25 块砖是同一批地面构件,
-     唯一允许带色相的是那层纹理, 而且已经掺白降透明压到「隐隐透出」的档 ——
-     底色再跟着事件走, 地面就会变成调色盘, 全图的色彩层级就塌了。
+   ⚠ 砖的**底色 / 收边 / 外辉光**依旧全是中性灰, 一点事件色都不掺: 25 块砖是同一批地面构件。
+     允许带色相的只有两处: 那层纹理(已掺白降透明压到「隐隐透出」的档)与右下那条发光边
+     (.tileEdge, 一条 2px 的棱) —— 底色再跟着事件走, 地面就会变成调色盘, 色彩层级就塌了。
      砖的状态(悬停 / 落点 / 已结算)一律只靠**明度**表达。 */
 .tileFace {
   position: absolute;
@@ -351,6 +365,70 @@
     filter 220ms ease;
 }
 
+/* ── 发光棱: 砖上唯一一处**吃满饱和度**的事件色 ──
+   ★ 几何(⚠ 压平后哪条边跑到哪个方位, 一律按这张表来, 不要凭直觉改属性名):
+     局部 x 轴 = 推进轴(左下 → 右上), 局部 y 轴 = 通道轴(左上 → 右下) ⇒ 方盒四角压平后
+       局部左上 → 屏幕**最左**点 · 局部右上 → 屏幕**最上**点
+       局部右下 → 屏幕**最右**点 · 局部左下 → 屏幕**最下**点
+     ⇒ **bottom 边**(左下—右下) = 画面里**右下**那条棱; **left 边**(左上—左下) = **左下**那条棱。
+     这两条正是朝向观者、离视线最近的一对, 在屏幕最下那个角交汇成一个 "V" ⇒ 砖的近侧发光。
+     ⛔ 不要改成 right / top(那是背对观者的两条, 压平后跑到右上与左上去了), 也不要改成
+       border-*-color(会被 .tileFace 的 overflow:hidden 连辉光一起裁掉)。
+   ★ 为什么单独一层而不是 .tileFace::after: 砖面是 overflow:hidden 的(要裁住砖上的纹理与刻痕),
+     辉光画在里面只会剩下往砖内侧渗的半圈。这一层与砖面同级、共用同一条 --tile-matrix,
+     所以它压平后与砖严丝合缝, 但辉光可以正常往砖外溢出去。
+   ⚠ 必须 pointer-events:none: 它 inset:0 整个盖住砖面, 不关掉就把砖的命中吃光了。
+   ⚠ 两条棱的**外端**(远离交汇角那一头)要淡出: 菱形的左右两个端点是尖角, 实色一路顶到头
+     会在尖上堆出亮块; 而**交汇端**(屏幕最下那个角)两条都保持实色, "V" 的尖才咬得住。
+   ⚠ 辉光走 filter: drop-shadow(跟着那条线的形状), 不走 box-shadow(会沿整个方盒画一圈);
+     两条棱共用容器上的**同一个** filter ⇒ 抬起 / 提亮 / 熄灭的状态规则只写一遍。 */
+.tileEdge {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transform: var(--tile-matrix);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--k) 62%, transparent))
+    drop-shadow(0 0 11px color-mix(in srgb, var(--k) 34%, transparent));
+  pointer-events: none;
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    filter 220ms ease,
+    opacity 220ms ease;
+}
+/* 右下那条棱 = 局部 bottom 边。⚠ 局部**左**端是与左下棱交汇的那个角(屏幕最下点) ⇒ 亮端在左。
+   ⚠ 偏移 -1px: 压在砖的下缘上、露一线在砖外 ⇒ 读作「棱在发光」而不是「砖里画了条线」。 */
+.tileEdge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--k) 55%, var(--tac-white)) 0%,
+    var(--k) 26%,
+    var(--k) 60%,
+    transparent 100%
+  );
+}
+/* 左下那条棱 = 局部 left 边。⚠ 局部**下**端才是交汇角(屏幕最下点) ⇒ 亮端在下, 与上一条相反。 */
+.tileEdge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--k) 40%,
+    var(--k) 74%,
+    color-mix(in srgb, var(--k) 55%, var(--tac-white)) 100%
+  );
+}
+
 /* ── 事件类型标记(一) 纹理带: 只给危险 / 撤离两类 ──
    ★ 位置与尺寸沿用原来那条风险警示带(下缘满宽 9px): 平放之后它正好沿着朝观者那条棱,
      是整块砖上离视线最近、最容易被扫到的一条边。
@@ -367,7 +445,9 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* ⚠ 让开右下那条发光边(见 .tileEdge): 贴到 bottom:0 会与发光边糊在一起,
+     条纹的节奏和边的实色互相咬, 两笔都读不清。 */
+  bottom: 3px;
   height: 9px;
   /* 图案墨色: --k 先掺白提到砖面之上的明度档, 再整体降透明度。 */
   --ink: color-mix(in srgb, color-mix(in srgb, var(--k) 58%, var(--tac-white)) 62%, transparent);
@@ -467,7 +547,8 @@
   height: 100%;
 }
 
-/* 入口通道号: 浮在虚空里 —— 这是全图除详情卡外唯一一处立起来的字。 */
+/* 入口通道号: 浮在虚空里 —— 这是全图除详情卡外唯一一处立起来的字。
+   ⚠ 号上方还叠着一枚下指标(.entryCue), 两者由 .projPanel 的 grid 纵向居中排开。 */
 .entryMark {
   color: var(--k1);
   font-family: var(--font-family);
@@ -495,6 +576,13 @@
 .root .node:focus-visible .tileSlab,
 .root .node.isHovered .tileSlab {
   transform: translateY(calc(var(--tile-depth) - 6px)) var(--tile-matrix);
+}
+/* ⚠ 发光边必须跟砖面用**同一个**抬起量: 差一点点就会从棱上脱开, 变成砖底下垫了条亮线。 */
+.root .node:hover .tileEdge,
+.root .node:focus-visible .tileEdge,
+.root .node.isHovered .tileEdge {
+  transform: translateY(-6px) var(--tile-matrix);
+  filter: drop-shadow(0 0 7px var(--k)) drop-shadow(0 0 16px color-mix(in srgb, var(--k) 50%, transparent));
 }
 .root .node:hover .tileShadow,
 .root .node:focus-visible .tileShadow,
@@ -525,6 +613,9 @@
 .node.isCurrent .projPanel {
   filter: drop-shadow(0 0 15px color-mix(in srgb, var(--k) 85%, transparent));
 }
+.node.isCurrent .tileEdge {
+  filter: drop-shadow(0 0 8px var(--k)) drop-shadow(0 0 20px color-mix(in srgb, var(--k) 55%, transparent));
+}
 /* 已结算: 强调色抽成灰, 图标**减弱但不熄灭** —— 走过的砖仍然是地图的一部分。 */
 .node.isSettled {
   --k: #4f5a63;
@@ -535,13 +626,105 @@
 .node.isSettled .projPanel {
   opacity: 0.5;
 }
+/* 已结算: 边跟着熄一半 —— 灰掉的 --k 已经不浓了, 这里只再压一档亮度。 */
+.node.isSettled .tileEdge {
+  opacity: 0.45;
+  filter: none;
+}
 
 /* ===================== 入口 A-E =====================
    与事件砖同一块砖, 只换强调色 —— 入口不是事件, 不该跟任何一种事件撞色。
    入口的通道号浮在自己的位置上, 加上独占的青色与最左那一列的位置, 三条线索。 */
 .entry {
-  --k: #3c8fa8;
+  /* 冰白青: 色相与 energy 同区, 但明度高出一大档(L≈79%) ⇒ 入口是全图最亮的一处,
+     扫视时第一个被找到。⛔ 不要改成中调青(旧版 #3c8fa8): 那就跟 .k-energy 撞成一种色了。 */
+  --k: #9fe8f5;
 }
+
+/* ── 起点的可点性: 三层叠加, 目标是「不用教就知道要点这一列」 ──
+   ① 贴地脉冲环(.entryPulse) —— 地面上一圈圈荡开的波纹, 「这里是热点」;
+   ② 下指标(.entryCue)       —— 悬在通道号上方的双人字, 「往下点这块砖」;
+   ③ 按下反馈(:active)      —— 砖被按沉 2px, 点下去有回应。
+   ⛔ 这三层**只在还能点的时候在**: 选中之后 / 未到阶段 / 被封锁, 一律撤掉 ——
+      指挥玩家去点一块点不动的砖, 比没有提示更糟。
+   ⛔ 不要改用「文字提示」: 一行小字立刻需要底板衬托, 「屏」就又回来了(见 .projPanel 的禁令)。
+   ⛔⛔ 引导**只许往入口自己身上加**, 不许去压别人: 选起点这一相里试过把 20 块事件砖整体
+      压暗一档(.nodes.isWaiting), 已否掉 —— 玩家在这一相正要看清整张图的事件分布,
+      为了突出入口而把地图压黑, 是拿走了这块面板真正的信息。入口自己够亮就行。 */
+
+/* ① 贴地脉冲环: 不参与 matrix —— 尺寸直接取砖的投影包围盒(--tile-w/--tile-h 天然 2:1),
+   所以它本身就是一枚**躺在地上**的等距椭圆, 与落地影同一个平面。
+   ⚠ 一个元素 + ::before / ::after = 两圈错相的波, 单圈会读成「一个在缩放的环」而不是「在荡」。
+   ⚠ 禁闪烁审查: 环的明度**单向递减**(0.5 → 0)且伴随匀速扩散, 是波纹不是明暗脉冲 ——
+     与过桥处那圈 .ripple 同类, 允许。⛔ 但不许写成 alternate(荡回去就成了明暗来回跳)。 */
+.entryPulse {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--tile-w);
+  height: var(--tile-h);
+  margin: calc(var(--tile-h) / -2) 0 0 calc(var(--tile-w) / -2);
+  pointer-events: none;
+}
+.entryPulse::before,
+.entryPulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--k);
+  border-radius: 50%;
+  opacity: 0;
+  animation: qEntryPulse 2600ms ease-out infinite;
+}
+.entryPulse::after {
+  animation-delay: 1300ms;
+}
+@keyframes qEntryPulse {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.62);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+/* 不可点的入口(已选中 / 未到阶段 / 已封锁)一律没有波纹。 */
+.root .entry:disabled .entryPulse,
+.root .entry.isActive .entryPulse {
+  display: none;
+}
+
+/* ② 下指标: 与通道号共用 .projPanel 的 grid ⇒ 自动排在号的上方, 一起被剪切、一起浮动。
+   ⚠ 自己再叠一层**更快**的上下位移: 与砖那条 4s 的浮动错开节奏 ⇒ 读作「在敲这块砖」,
+     同步的话两者会像一个整体在飘, 指令感就没了。 */
+.entryCue {
+  display: block;
+  width: 26px;
+  height: 22px;
+  margin-bottom: 2px;
+  color: var(--k1);
+  animation: qEntryCue 1150ms ease-in-out infinite alternate;
+}
+.entryCue svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@keyframes qEntryCue {
+  from {
+    translate: 0 -4px;
+  }
+  to {
+    translate: 0 2px;
+  }
+}
+.root .entry:disabled .entryCue,
+.root .entry.isActive .entryCue {
+  display: none;
+}
+
+/* ③ 按下反馈见本段末尾的 :active 规则(必须排在 :hover 之后)。 */
 /* 入口的字比事件图标亮一档: 它是「门」, 要在扫视里第一个被找到。 */
 .entry .projPanel {
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k) 65%, transparent));
@@ -554,6 +737,7 @@
    ⚠ 图标与砖用**同一条**动画同一个负延迟: 差一点就会看成图标从砖上飘走了。 */
 .root .entry:not(:disabled) .tileFace,
 .root .entry:not(:disabled) .tileSlab,
+.root .entry:not(:disabled) .tileEdge,
 .root .entry:not(:disabled) .projPanel {
   animation: qEntryFloat 4s calc(var(--i) * -0.8s) ease-in-out infinite alternate;
 }
@@ -576,10 +760,19 @@
 .root .entry:focus-visible .tileSlab {
   animation-play-state: paused;
 }
+/* 入口的发光边: 与砖面同抬 -7px, 同样把浮动停住。 */
+.root .entry:hover:not(:disabled) .tileEdge,
+.root .entry:focus-visible .tileEdge,
+.root .entry.isActive .tileEdge {
+  transform: translateY(-7px) var(--tile-matrix);
+  filter: drop-shadow(0 0 8px var(--k)) drop-shadow(0 0 18px color-mix(in srgb, var(--k) 50%, transparent));
+  animation-play-state: paused;
+}
 .root .entry:hover:not(:disabled),
 .root .entry:focus-visible,
 .root .entry.isActive {
-  --k: color-mix(in srgb, var(--trace) 66%, #2e3a24);
+  /* ⚠ 悬停必须比常态更亮: 入口常态已经是冰白青, 掺暗色会让「选中」读成「变灰了」。 */
+  --k: color-mix(in srgb, var(--trace) 70%, var(--tac-white));
 }
 .root .entry:hover:not(:disabled) .tileSlab,
 .root .entry:focus-visible .tileSlab,
@@ -596,6 +789,7 @@
 }
 .root .entry.isActive .tileFace,
 .root .entry.isActive .tileSlab,
+.root .entry.isActive .tileEdge,
 .root .entry.isActive .projPanel {
   animation: none;
 }
@@ -623,10 +817,35 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* 断电 ⇒ 那条棱直接不亮: 封锁的入口不该在地面上留一条发光的边。 */
+.root .entry.isBlocked .tileEdge {
+  opacity: 0.28;
+  filter: none;
+}
 .root .entry.isBlocked .entryMark {
   color: var(--tac-grey);
   text-decoration: line-through;
   text-shadow: none;
+}
+
+/* ③ 按下: 砖沉到比悬停低得多的一档(常态 0 / 悬停 −7 / 按下 −2) ⇒ 手感是「压下去了」。
+   ⚠⚠ 这组规则必须留在**所有 :hover 规则之后**: 特异性相同, 谁在后面谁赢。
+     写到 :hover 前面的话, 按下时鼠标必然也悬停着 ⇒ 这一档永远出不来。 */
+.root .entry:active:not(:disabled) .tileFace {
+  transform: translateY(-2px) var(--tile-matrix);
+}
+.root .entry:active:not(:disabled) .tileSlab {
+  transform: translateY(calc(var(--tile-depth) - 2px)) var(--tile-matrix);
+}
+.root .entry:active:not(:disabled) .tileEdge {
+  transform: translateY(-2px) var(--tile-matrix);
+}
+.root .entry:active:not(:disabled) .projPanel {
+  transform: translateY(-2px) var(--proj-matrix);
+}
+.root .entry:active:not(:disabled) .tileShadow {
+  transform: translate(-50%, -50%) translateY(6px) scale(0.92);
+  opacity: 1;
 }
 
 /* ===================== 玩家棋子 =====================
@@ -796,8 +1015,18 @@
 @media (prefers-reduced-motion: reduce) {
   .root .entry:not(:disabled) .tileFace,
   .root .entry:not(:disabled) .tileSlab,
+  .root .entry:not(:disabled) .tileEdge,
   .root .entry:not(:disabled) .projPanel,
+  .entryCue,
   .pawnRing {
     animation: none;
+  }
+  /* ⚠ 波纹停掉之后不能就此消失(它的 keyframes 起点是 opacity:0): 定格成一圈**静止的光环** ——
+     减动效只是不要动, 不是把「这里可以点」这条信息一起拿掉。 */
+  .entryPulse::before,
+  .entryPulse::after {
+    animation: none;
+    opacity: 0.34;
+    transform: scale(1.3);
   }
 }

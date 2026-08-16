@@ -147,7 +147,10 @@ function Pipe({ a, b, j = 0 }: { a: [number, number]; b: [number, number]; j?: n
 //   ① 落地影   —— 2:1 的模糊椭圆, **不参与 matrix**(它本来就是地面上的一摊影子);
 //   ② 薄片侧壁 —— 与砖面同形的一片实心断面, 在**屏幕空间**下移 TILE_DEPTH ⇒ 下缘露一线厚度;
 //   ③ 砖面     —— 一块哑光小地砖(跟着 TILE_MATRIX 躺倒): 底色 + 收边 + 事件类型纹理;
-//   ④ 悬空图标 —— 沿通道轴**直立**在砖中心上方的一枚自发光图标(走 PANEL_MATRIX)。
+//   ④ 发光棱   —— 砖**朝向观者的那两条棱**(右下 = 方盒 bottom 边, 左下 = 方盒 left 边,
+//                 在屏幕最下那个角交汇成 "V"), 用吃满饱和度的事件色发光。
+//                 ★ 这是砖上唯一带浓色的一笔, 几何推导见 .tileEdge 的注释;
+//   ⑤ 悬空图标 —— 沿通道轴**直立**在砖中心上方的一枚自发光图标(走 PANEL_MATRIX)。
 //
 // ★ 图标为什么走 PANEL_MATRIX 而不是正对观者: 这一版要的是**正交视角下的立面** ——
 //   图标与地砖在画面里必须严格垂直, 才读得出「它是浮在这块地砖上方的」。所以图标跟砖一样
@@ -184,6 +187,10 @@ function TileArt({ icon, kind }: { icon: ReactNode; kind?: NodeEvent["kind"] }) 
             </span>
           ))}
       </span>
+      {/* ⚠ 发光棱同样必须在砖面**外面**: 砖面 overflow:hidden 会把往砖外溢的辉光整圈裁掉,
+          放进去就只剩往砖内侧渗的半圈光。它与砖面同级、共用 TILE_MATRIX ⇒ 压平后严丝合缝。
+          ⚠ 一个盒子画两条棱(::before / ::after), 辉光挂在盒子上 ⇒ 状态规则只需改这一层。 */}
+      <span className={s.tileEdge} aria-hidden />
       {/* ⚠ 图标必须留在砖面**外面**: 砖面 overflow:hidden 且被 TILE_MATRIX 压平,
           放进去会被裁掉一半, 剩下的一半还会跟着躺倒。 */}
       <span className={s.projPanel} aria-hidden>
@@ -203,6 +210,23 @@ function tileBox(x: number, y: number): CSSProperties {
     width: `${TILE}px`,
     height: `${TILE}px`,
   };
+}
+
+// ===================== 起点的「点我」提示标 =====================
+// 悬在通道号**上方**的一枚双人字下指标 —— 起点砖唯一的显式指令: 往下点这块砖。
+// ★ 为什么是符号而不是文字: 这一版的虚空里只允许站图标与通道号, 一行小字会立刻需要底板衬托,
+//   「屏」就又回来了。双人字是「往这里去 / 点这里」的通用语, 不需要翻译。
+// ⚠ 它跟着 PANEL_MATRIX 一起被剪切(与通道号同一个容器) ⇒ 看上去是斜的, 这是正交投影的正确读数。
+// ⚠ 只在**可点**的入口上出现(见 .entryCue): 已选中 / 未到阶段 / 已封锁的入口都不该指挥玩家点它。
+function EntryCue() {
+  return (
+    <span className={s.entryCue} aria-hidden>
+      <svg viewBox="0 0 24 20" fill="none" stroke="currentColor" strokeWidth={2.4}>
+        <path d="M4 3l8 7 8-7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 10l8 7 8-7" strokeLinecap="round" strokeLinejoin="round" opacity={0.5} />
+      </svg>
+    </span>
+  );
 }
 
 // ===================== 玩家棋子 =====================
@@ -374,6 +398,9 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
 
   const activeLane = entryLane == null ? null : lanes[Math.min(progress, SEG_COUNT)];
   const interactive = !generating && !walking;
+  // ⛔ 选起点这一相**不要压暗事件砖**: 试过给 .nodes 挂一个 isWaiting 把 20 块整体退一档,
+  //    已否掉 —— 玩家正要在这一相看清整张图的事件分布, 为了突出入口把地图压黑得不偿失。
+  //    起点的可点性全部由入口砖自己表达(脉冲环 + 下指标 + 按下反馈, 见 CSS 的入口段)。
   const hoverEv = hoverNode ? board.nodes[hoverNode.seg][hoverNode.lane] : null;
   const hoverPos = hoverNode ? nodeCenter(hoverNode.seg, hoverNode.lane) : null;
 
@@ -502,8 +529,18 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
                 setWalking(true);
               }}
             >
-              {/* 入口的全息影像里直接立着通道号 —— 立起来的字比躺在地上的好认得多 */}
-              <TileArt icon={<span className={s.entryMark}>{ENTRY_LABELS[lane] ?? lane + 1}</span>} />
+              {/* 贴地脉冲环: 从砖往外一圈圈荡开的等距波纹, 只有**还能点**的入口才有。
+                  ⚠ 必须排在 TileArt **前面**: 它是地面上的波纹, 得压在砖底下(只露出砖外那截)。 */}
+              <span className={s.entryPulse} aria-hidden />
+              {/* 入口的全息影像里立着通道号, 号上方再压一枚下指标 —— 立起来的字比躺在地上的好认得多 */}
+              <TileArt
+                icon={
+                  <>
+                    <EntryCue />
+                    <span className={s.entryMark}>{ENTRY_LABELS[lane] ?? lane + 1}</span>
+                  </>
+                }
+              />
             </button>
           );
         })}
