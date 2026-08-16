@@ -1205,6 +1205,29 @@
   animation: none;
 }
 
+/* 奖励面板的卡牌选择网格与牌堆弹窗同样使用原尺寸卡面, 但点击/悬停由外层卡格负责。
+   这里不复用 [data-pile-grid] 的 hover 变暗: 奖励面板没有放大卡, 候选必须始终全亮。 */
+:global([data-pick-grid]) .hand-slot {
+  z-index: 1;
+  flex: none;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+  cursor: pointer;
+}
+:global([data-pick-grid]) .hand-slot:hover::after {
+  content: none;
+}
+:global([data-pick-grid]) .hand-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+  animation: pile-card-in 260ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :global([data-pile-grid]) .hand-card {
     animation: none;
@@ -1219,5 +1242,8 @@
   }
   :global([data-pile-grid]) .hand-card {
     transition-duration: 0.01ms;
+  }
+  :global([data-pick-grid]) .hand-card {
+    animation: none;
   }
 }

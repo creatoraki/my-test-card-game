@@ -54,9 +54,7 @@ import RewardOverlay from "@/ui/explore/RewardOverlay";
 import ShopOverlay from "@/ui/explore/ShopOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import NodeTip from "@/ui/explore/NodeTip";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { HpBar } from "@/ui/common/HpBar";
-import { PollutionMeter } from "@/ui/common/PollutionMeter";
+import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
@@ -670,35 +668,31 @@ export function ExploreScreen() {
             if (!p) return <div key={`empty${i}`} className={s["expl-slot-empty"]} />;
             const targetable = memberUsable(p);
             return (
-              <div
+              <PartyMemberCard
                 key={p.charId}
+                charId={p.charId}
+                emoji={p.emoji}
+                name={p.name}
+                hp={p.hp}
+                hpLimit={p.hpLimit}
+                maxHp={p.maxHp}
+                pollution={characters[p.charId]?.pollution ?? 0}
+                down={!p.alive}
                 className={cx(
                   s["expl-member"],
                   targetable && s["is-targetable"],
                   !p.alive && s["is-down"],
                 )}
                 onClick={targetable ? () => applyItemUse(p.charId) : undefined}
-              >
-                <div className={s["expl-member-figure"]}>
-                  <CharacterPortrait
-                    characterId={p.charId}
-                    emoji={p.emoji}
-                    alt={`${p.name}立绘`}
-                    className={s["expl-portrait"]}
-                  />
-                </div>
-                {expDrops[p.charId] && (
+                overlay={
+                  expDrops[p.charId] ? (
                   <ExpDropFx
                     key={`${p.charId}-${expDrops[p.charId].sequence}`}
                     amount={expDrops[p.charId].amount}
                   />
-                )}
-                <div className={s["expl-member-body"]}>
-                  <HpBar hp={p.hp} hpLimit={p.hpLimit} maxHp={p.maxHp} flush />
-                  <PollutionMeter value={characters[p.charId]?.pollution ?? 0} />
-                </div>
-                {!p.alive && <span className={s["expl-member-down"]}>阵亡</span>}
-              </div>
+                  ) : null
+                }
+              />
             );
           })}
         </div>

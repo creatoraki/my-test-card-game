@@ -855,6 +855,14 @@
   scrollbar-width: thin;
 }
 
+.overlayStatic {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+}
+
 .overlayScroll::-webkit-scrollbar {
   width: 4px;
 }

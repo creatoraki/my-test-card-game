@@ -299,76 +299,6 @@
   --bust-zoom: 2.3;
 }
 .expl-member {
-  --notch: 10px;
-  position: relative;
-  display: flex;
-  flex: 1 1 0;
-  flex-direction: column;
-  min-width: 0;
-  height: 316px;
-  min-height: 316px;
-  max-height: 316px;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--expl-line);
-  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
-  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
-  box-shadow:
-    inset 0 1px 0 #ffffff14,
-    0 20px 44px -28px #000000cc;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-}
-.expl-member-figure {
-  position: relative;
-  flex: 0 0 268px;
-  width: 100%;
-  height: 268px;
-  min-height: 0;
-  overflow: hidden;
-  contain: layout paint;
-}
-.expl-member-figure::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, #ffffff1a 0%, #ffffff05 38%, #00000080 100%);
-}
-.expl-member-figure > img.expl-portrait {
-  display: block;
-  flex: none;
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: calc(var(--slot-base-w, 160px) * var(--bust-zoom, 2.3) * var(--bust-scale, 1));
-  height: auto;
-  max-width: none;
-  object-fit: contain;
-  object-position: center top;
-  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
-  filter: drop-shadow(0 4px 10px #000a);
-}
-.expl-member-figure > span.expl-portrait {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  font-size: 56px;
-}
-.expl-member-body {
-  flex: 0 0 auto;
-  width: 100%;
-  min-width: 0;
 }
 .expl-slot-empty {
   flex: 1 1 0;
@@ -401,15 +331,6 @@
   filter: grayscale(1);
   opacity: 0.5;
 }
-.expl-member-down {
-  position: absolute;
-  right: 8px;
-  top: 6px;
-  color: var(--bad);
-  font-size: 11px;
-  letter-spacing: 2px;
-}
-
 /* ===================== 消耗品使用: 目标选择 ===================== */
 /* 选择模式下: 可选中的存活成员高亮脉冲, 其余(阵亡)进一步压暗 —— 一眼分出「谁可以」。 */
 .expl-member.is-targetable {

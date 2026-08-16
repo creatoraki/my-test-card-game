@@ -14,7 +14,8 @@ import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
-import { CardView } from "@/ui/character/CardView";
+import { HandCard } from "@/ui/battle/HandCard";
+import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import ItemTooltip, {
   tooltipPointFromRect,
   type TooltipPoint,
@@ -83,6 +84,11 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const selectableCharacters = displayedSession.party.filter((member) => member.alive);
   const chosenCharId = selectedChar && characters[selectedChar] ? selectedChar : null;
   const chosenCharacter = chosenCharId ? characters[chosenCharId] : null;
+  const detailStage = action.kind === "forgeDraw"
+    ? Boolean(chosenCharacter?.pendingDraw)
+    : (action.kind === "forgeRemove" || action.kind === "cureQuirk" || action.kind === "purifyCards")
+      ? Boolean(chosenCharacter)
+      : false;
   const finish = () => resolvePendingAction();
 
   return (
@@ -101,7 +107,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
           kicker="成长协议 / REWARD"
           title={titleOf(action.kind)}
           status={<span className={s["reward-step"]}>待处理奖励</span>}
-          contentKey={`${action.kind}-${chosenCharId ?? "none"}`}
+          contentKey={`${action.kind}-${detailStage ? "detail" : "pick"}`}
         >
           {action.kind === "expOne" && (
             <CharacterPicker
@@ -300,19 +306,26 @@ function MemberList({
   selected,
   onSelect,
 }: {
-  members: { charId: string; name: string; emoji: string }[];
+  members: ExploreState["party"];
   selected: string | null;
   onSelect: (id: string) => void;
 }) {
+  const characters = useTownStore((state) => state.characters);
   return (
     <div className={s["pick-list"]}>
-      {members.map((member, index) => (
-        <EventPanelPick
+      {members.map((member) => (
+        <PartyMemberCard
           key={member.charId}
-          index={index}
-          leading={<span className={s["character-emoji"]}>{member.emoji}</span>}
+          as="button"
+          charId={member.charId}
+          emoji={member.emoji}
           name={member.name}
-          selected={selected === member.charId}
+          hp={member.hp}
+          hpLimit={member.hpLimit}
+          maxHp={member.maxHp}
+          pollution={characters[member.charId]?.pollution ?? 0}
+          down={!member.alive}
+          className={cx(s["member-choice"], selected === member.charId && s["is-selected"])}
           onClick={() => onSelect(member.charId)}
         />
       ))}
@@ -328,7 +341,7 @@ function CharacterPicker({
   onSkip,
   onConfirm,
 }: {
-  members: { charId: string; name: string; emoji: string }[];
+  members: ExploreState["party"];
   selected: string | null;
   onSelect: (id: string) => void;
   caption: string;
@@ -337,7 +350,7 @@ function CharacterPicker({
 }) {
   return (
     <EventPanelStage>
-      <EventPanelBody caption={caption}>
+      <EventPanelBody caption={caption} scroll={false}>
         {members.length ? (
           <MemberList members={members} selected={selected} onSelect={onSelect} />
         ) : (
@@ -368,7 +381,7 @@ function PartyReward({
 }) {
   return (
     <EventPanelStage>
-      <EventPanelBody caption={caption}>
+      <EventPanelBody caption={caption} scroll={!character}>
         <EventPanelNotice>确认后立即应用到当前远征的全部存活角色。</EventPanelNotice>
       </EventPanelBody>
       <EventPanelFoot note="确认后立即应用到当前远征的存活角色">
@@ -390,7 +403,7 @@ function QuirkReward({
   onSkip,
   onConfirm,
 }: {
-  members: { charId: string; name: string; emoji: string }[];
+  members: ExploreState["party"];
   selected: string | null;
   character: { quirks: QuirkId[] } | null;
   count: number;
@@ -406,11 +419,11 @@ function QuirkReward({
       : "该角色当前没有可治疗的怪癖。";
   return (
     <EventPanelStage>
-      <EventPanelBody caption={caption}>
+      <EventPanelBody caption={caption} scroll={!character}>
         {!character ? (
           <MemberList members={members} selected={selected} onSelect={onSelect} />
         ) : quirks.length ? (
-          <div className={s["pick-list"]}>
+          <div className={s["quirk-list"]}>
             {quirks.map((quirkId, index) => {
               const quirk = getQuirkDef(quirkId);
               return (
@@ -446,7 +459,7 @@ function PurifyReward({
   onSkip,
   onConfirm,
 }: {
-  members: { charId: string; name: string; emoji: string }[];
+  members: ExploreState["party"];
   selected: string | null;
   character: { deck: ReturnType<typeof makeCard>[] } | null;
   scope: "one" | "party";
@@ -476,28 +489,33 @@ function PurifyReward({
       : "该角色当前没有污染卡。";
   return (
     <EventPanelStage>
-      <EventPanelBody caption={caption}>
+      <EventPanelBody caption={caption} scroll={!character}>
         {!character ? (
           <MemberList members={members} selected={selected} onSelect={onSelect} />
         ) : contaminated.length ? (
-          <div className={s["card-list"]}>
-            {contaminated.map((card) => {
+          <div className={s["card-list"]} data-pick-grid>
+            {contaminated.map((card, index) => {
               const picked = selectedCards.includes(card.uid);
               return (
-                <div className={cx(s["card-choice"], picked && s["is-selected"])} key={card.uid}>
-                  <CardView
+                <div
+                  className={cx(s["card-choice"], picked && s["is-selected"])}
+                  key={card.uid}
+                  onClick={() => {
+                    setSelectedCards((current) =>
+                      picked
+                        ? current.filter((uid) => uid !== card.uid)
+                        : current.length < count
+                          ? [...current, card.uid]
+                          : current,
+                    );
+                  }}
+                >
+                  <HandCard
                     card={card}
+                    variant="pile"
                     playable
                     selected={picked}
-                    onClick={() => {
-                      setSelectedCards((current) =>
-                        picked
-                          ? current.filter((uid) => uid !== card.uid)
-                          : current.length < count
-                            ? [...current, card.uid]
-                            : current,
-                      );
-                    }}
+                    dealDelay={Math.min(index, 14) * 22}
                   />
                 </div>
               );
@@ -530,7 +548,7 @@ function FreeDraw({
   onSkip,
   onPick,
 }: {
-  members: { charId: string; name: string; emoji: string }[];
+  members: ExploreState["party"];
   selected: string | null;
   character: { pendingDraw: string[] | null } | null;
   onSelect: (id: string) => void;
@@ -541,7 +559,7 @@ function FreeDraw({
   if (!character?.pendingDraw) {
     return (
       <EventPanelStage>
-        <EventPanelBody caption="选择一名角色，免费生成三张角色专属卡牌。">
+        <EventPanelBody caption="选择一名角色，免费生成三张角色专属卡牌。" scroll={false}>
           {members.length ? (
             <MemberList members={members} selected={selected} onSelect={onSelect} />
           ) : (
@@ -566,10 +584,16 @@ function FreeDraw({
         caption={character.pendingDraw.length ? "三张候选卡牌已经生成，选择一张加入卡组。" : "当前角色没有可生成的卡牌候选。"}
       >
         {character.pendingDraw.length ? (
-          <div className={s["card-list"]}>
-            {character.pendingDraw.map((cardId) => (
-              <div className={s["card-choice"]} key={cardId}>
-                <CardView card={makeCard(cardId)} playable selected={false} onClick={() => onPick(cardId)} />
+          <div className={s["card-list"]} data-pick-grid>
+            {character.pendingDraw.map((cardId, index) => (
+              <div className={s["card-choice"]} key={cardId} onClick={() => onPick(cardId)}>
+                <HandCard
+                  card={makeCard(cardId)}
+                  variant="pile"
+                  playable
+                  selected={false}
+                  dealDelay={Math.min(index, 14) * 22}
+                />
               </div>
             ))}
           </div>
@@ -592,7 +616,7 @@ function FreeRemove({
   onSkip,
   onRemove,
 }: {
-  members: { charId: string; name: string; emoji: string }[];
+  members: ExploreState["party"];
   selected: string | null;
   character: { deck: ReturnType<typeof makeCard>[]; minDeckSize: number } | null;
   onSelect: (id: string) => void;
@@ -603,7 +627,7 @@ function FreeRemove({
   if (!character) {
     return (
       <EventPanelStage>
-        <EventPanelBody caption="选择一名角色，从其卡组中免费移除一张卡牌。">
+        <EventPanelBody caption="选择一名角色，从其卡组中免费移除一张卡牌。" scroll={false}>
           {members.length ? (
             <MemberList members={members} selected={selected} onSelect={onSelect} />
           ) : (
@@ -626,10 +650,16 @@ function FreeRemove({
         }
       >
         {removable.length ? (
-          <div className={s["card-list"]}>
-            {removable.map((card) => (
-              <div className={s["card-choice"]} key={card.uid}>
-                <CardView card={card} playable selected={false} onClick={() => onRemove(card.uid)} />
+          <div className={s["card-list"]} data-pick-grid>
+            {removable.map((card, index) => (
+              <div className={s["card-choice"]} key={card.uid} onClick={() => onRemove(card.uid)}>
+                <HandCard
+                  card={card}
+                  variant="pile"
+                  playable
+                  selected={false}
+                  dealDelay={Math.min(index, 14) * 22}
+                />
               </div>
             ))}
           </div>

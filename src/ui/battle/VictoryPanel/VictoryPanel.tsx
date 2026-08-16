@@ -109,7 +109,6 @@ export function VictoryPanel() {
               <span className={s["panel-kicker"]}>BATTLE CLEARED</span>
               <h2>战斗胜利</h2>
             </div>
-          </div>
           </header>
 
           <VictoryDropSection

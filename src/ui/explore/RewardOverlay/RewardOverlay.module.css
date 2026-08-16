@@ -51,11 +51,35 @@
   letter-spacing: 0.12em;
 }
 
-/* 角色 / 怪癖选择列 —— 卡片本体是 EventPanelPick(行动分镜同款), 这里只排栅格。 */
+/* 角色选择列 —— PartyMemberCard 通过变量接收奖励面板的尺寸契约。 */
 .pick-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  --slot-base-w: 200px;
+  --bust-zoom: 2.3;
+  --member-card-h: 316px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.member-choice {
+  flex: 0 0 200px;
+  cursor: pointer;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.member-choice:hover,
+.member-choice:focus-visible {
+  border-color: var(--k);
+  transform: translateY(-4px);
+  box-shadow: inset 0 1px 0 #ffffff14, 0 0 22px -10px var(--k);
+}
+
+.member-choice.is-selected {
+  border-color: var(--k);
+  box-shadow: inset 3px 0 0 var(--k), 0 0 26px -8px var(--k);
 }
 
 .character-emoji {
@@ -63,11 +87,21 @@
   line-height: 1;
 }
 
+.quirk-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .card-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, var(--hand-card-w));
   justify-items: center;
-  gap: 14px;
+  justify-content: center;
+  gap: 18px 16px;
+  --hand-card-w: 220px;
+  --hc-text-h: 88px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
 }
 
 .card-choice {
@@ -82,6 +116,7 @@
 
 .card-choice:hover {
   border-color: #a7c9ff;
+  transform: translateY(-4px);
 }
 
 .card-choice.is-selected {

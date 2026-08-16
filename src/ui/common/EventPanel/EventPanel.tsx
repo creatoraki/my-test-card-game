@@ -129,17 +129,19 @@ export function EventPanelStage({ children, className }: { children: ReactNode; 
 
 export function EventPanelBody({
   caption,
+  scroll = true,
   children,
   className,
 }: {
   caption?: ReactNode;
+  scroll?: boolean;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <div className={s.overlayBody}>
       {caption && <p className={s.overlayCaption}>{caption}</p>}
-      <div className={cx(s.overlayScroll, className)}>{children}</div>
+      <div className={cx(scroll ? s.overlayScroll : s.overlayStatic, className)}>{children}</div>
     </div>
   );
 }

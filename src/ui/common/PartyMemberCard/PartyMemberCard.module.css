@@ -1,0 +1,85 @@
+.expl-member {
+  --notch: 10px;
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  height: var(--member-card-h, 316px);
+  min-height: var(--member-card-h, 316px);
+  max-height: var(--member-card-h, 316px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--expl-line, #ffffff24);
+  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+}
+
+.expl-member-figure {
+  position: relative;
+  flex: 0 0 var(--member-figure-h, 268px);
+  width: 100%;
+  height: var(--member-figure-h, 268px);
+  min-height: 0;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.expl-member-figure::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff1a 0%, #ffffff05 38%, #00000080 100%);
+  content: "";
+}
+
+.expl-member-figure > img.expl-portrait {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(var(--slot-base-w, 160px) * var(--bust-zoom, 2.3) * var(--bust-scale, 1));
+  height: auto;
+  max-width: none;
+  object-fit: contain;
+  object-position: center top;
+  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  filter: drop-shadow(0 4px 10px #000a);
+}
+
+.expl-member-figure > span.expl-portrait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+}
+
+.expl-member-body {
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.expl-member-down {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: var(--bad, #ff6f7f);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
