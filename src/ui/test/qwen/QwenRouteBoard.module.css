@@ -22,7 +22,11 @@
      ⇒ 浓色只许出现在「一枚图标 + 一条 2px 的边」这两笔上, 其余全是灰的。 */
 
 .root {
-  --pipe: #96897a; /* 主线: 低饱和暖灰铜 =「没通电的裸金属导槽」 */
+  /* 主线: 冷中性灰 —— 与砖面同族的一条**地面刻线**。
+     ⛔ 不要改回暖铜(旧版 #96897a): 地面、砖、侧壁整套是冷灰, 浓色只许出现在棱与图标上,
+       一条暖色的线会成为画面里唯一不属于任何体系的色相, 而且它横跨全图、面积最大。
+     ⚠ 亮度压在砖面收边之下: 线是「地上刻出来的槽」, 不是发光构件, 通电了才亮(见 .isLive)。 */
+  --pipe: #7a868f;
   --bridge: #5ceaff; /* 桥接显形: 霓虹青 */
   --trace: var(--accent); /* 已走路径 / 通电 */
 
@@ -116,32 +120,41 @@
   pointer-events: none;
 }
 
-/* ── SVG 场地层 ── */
+/* ── SVG 场地层 ──
+   ⚠ 整层下移 --ground-drop: 节点中心那个坐标是**砖面**(薄片上表面)的中心, 而连线是画在
+     **地面**上的 —— 不补这一档, 线就会擦着砖的上半部飘过去(悬停把砖抬起来时反而对齐,
+     那正是这个落差的证据)。⛔ 棋子层(.pawnLayer)必须用同一个值, 否则棋子走起来会脱离线。 */
 .svg {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   overflow: visible;
+  transform: translateY(var(--ground-drop));
   pointer-events: none; /* 横跨整块面板, 不能吃掉砖的命中 */
 }
 
 /* ── 连线: 三层同几何描边(槽 > 导线 > 高光) ── */
+/* ⚠ 三层的**相对**宽度是这套做法的全部: 槽必须始终明显宽于导线(否则读成描边),
+   高光必须细于导线(否则线变成两根)。整体粗细可以一起缩放, 但这两条比例不能破。
+   ⚠ 砖才 52px 见方: 线一粗, 整张图就从「地面上的刻线网」变成「一堆管子」, 砖反而成了配件。
+     现在这一档(槽 4.4 / 线 1.5 / 光 0.7)是「看得清走向、又不跟砖抢」的平衡点。 */
 .pipeBed {
-  stroke: #01050899;
-  stroke-width: 7;
+  stroke: #030709a6;
+  stroke-width: 4.4;
   stroke-linecap: round;
   transition: stroke 220ms ease, stroke-width 220ms ease;
 }
 .pipe {
   stroke: var(--pipe);
-  stroke-width: 2.6;
+  stroke-width: 1.5;
   stroke-linecap: round;
   transition: stroke 220ms ease, stroke-width 220ms ease;
 }
+/* 高光: 冷白。⛔ 不要改回暖白(旧版 #ffe9c81f) —— 那是铜管的擦光, 这一版没有铜。 */
 .pipeGloss {
-  stroke: #ffe9c81f;
-  stroke-width: 1;
+  stroke: #dceaf21c;
+  stroke-width: 0.7;
   stroke-linecap: round;
   transform: translateY(-1px);
   transition: stroke 220ms ease;
@@ -155,16 +168,17 @@
 /* 悬停某个入口 ⇒ 那条通道整串导线通电。只是「这条通道归这个入口」的确认, 不含落点信息。 */
 .lane.isLive .pipe {
   stroke: var(--trace);
-  stroke-width: 3;
+  stroke-width: 2;
 }
 .lane.isLive .pipeBed {
   stroke: color-mix(in srgb, var(--trace) 14%, #04090d);
 }
 .lane.isLive .pipeGloss {
-  stroke: #ffffff55;
+  stroke: #ffffff4d;
 }
+/* ⚠ 通电靠**亮度 + 辉光**读, 不靠变粗: 线细了之后再加粗一档就会看见通道在「胀」。 */
 .lane.isLive {
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--trace) 40%, transparent));
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--trace) 45%, transparent));
 }
 .lane.isDim {
   opacity: 0.34;
@@ -177,22 +191,26 @@
 .bridges.isHidden {
   opacity: 0;
 }
+/* ⚠ 桥接比主线粗**半档**就够(2.1 vs 1.5): 它靠青色 + 辉光 + 朝向相反已经足够跳出来,
+   再粗就成了另一套管道系统, 与主线读不成同一张网。 */
 .bridges:not(.isHidden) .pipe {
   stroke: var(--bridge);
-  stroke-width: 3.2;
+  stroke-width: 2.1;
 }
 .bridges:not(.isHidden) .pipeGloss {
-  stroke: #ffffff88;
+  stroke: #ffffff7a;
 }
 .bridges:not(.isHidden) .bridge {
   filter: drop-shadow(0 0 7px color-mix(in srgb, var(--bridge) 62%, transparent));
 }
 
-/* ── 电流 / 走线 ── */
+/* ── 电流 / 走线 ──
+   ⚠ 跟着主线一起瘦了一圈: 走过的路径比主线粗一档(2.6 vs 1.5)就够读出「这条通了电」,
+     4px 那一档会把它下面的主线整根盖掉, 路径反而失去「沿着刻线走」的读数。 */
 .traceDone {
   fill: none;
   stroke: var(--trace);
-  stroke-width: 4;
+  stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.9;
@@ -201,7 +219,7 @@
 .traceLine {
   fill: none;
   stroke: var(--trace);
-  stroke-width: 4;
+  stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: var(--len) var(--len);
@@ -219,7 +237,7 @@
 .traceComet {
   fill: none;
   stroke: #ffffff;
-  stroke-width: 5.4;
+  stroke-width: 3.6;
   stroke-linecap: round;
   stroke-dashoffset: var(--len);
   opacity: 0.2;
@@ -229,13 +247,13 @@
 }
 .signal {
   fill: #ffffff;
-  filter: drop-shadow(0 0 10px var(--trace)) drop-shadow(0 0 20px #ffffff88);
+  filter: drop-shadow(0 0 8px var(--trace)) drop-shadow(0 0 16px #ffffff80);
 }
 /* 过桥完成处的一圈扩散环 —— 一次性播完即止, 不算闪烁。 */
 .ripple {
   fill: none;
   stroke: var(--trace);
-  stroke-width: 2;
+  stroke-width: 1.4;
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
@@ -858,6 +876,8 @@
   width: 100%;
   z-index: 3;
   overflow: visible;
+  /* ⚠ 与连线层**同一个**落差: 棋子沿着连线的路径走, 差一点点就会浮在线的上方(见 .svg)。 */
+  transform: translateY(var(--ground-drop));
   pointer-events: none;
 }
 .pawn {

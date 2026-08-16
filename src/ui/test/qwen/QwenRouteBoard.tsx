@@ -40,6 +40,15 @@ const TILE_HALF = TILE / 2;
 // 薄片厚度(屏幕垂直方向)。⚠ 只有 4px: 再厚就从「地砖」变回「积木」, 整套概念就塌了。
 const TILE_DEPTH = 4;
 
+// 砖面 → 地面的屏幕落差。★ 砖是一片**有厚度**的薄片, 节点中心那个坐标算的是砖面(= 薄片的
+// **上表面**)的中心; 而连线与棋子是**画在地面上**的东西, 两者本来就不在同一个高度上。
+// ⇒ 连线层与棋子层整体下移这一档, 线才读作「从砖底下穿过去」, 而不是擦着砖的上半部飘过。
+// ⚠ 这不是纯几何量(薄片厚度只有 TILE_DEPTH=4): 砖底下还压着一摊下移 6px 的落地影,
+//   砖的视觉重心被它一起拽下去, 实测要下移 6px 才对得齐。⛔ 不要「修正」回 TILE_DEPTH。
+// ⚠ 连线层与棋子层必须用**同一个**值: 棋子是沿着连线的路径走的, 差一点点走起来就浮在线上方。
+// ★ 悬停时砖抬起 6px, 线留在原地 ⇒ 线相对砖又沉下去一档, 这是对的: 砖被抬离了地面。
+const GROUND_DROP = 6;
+
 const LANE_GAP = 132; // 相邻通道中心距 ⇒ 砖缝 80
 const SEG_PITCH = 205; // 相邻两块地砖的推进距离 ⇒ 砖缝 153, 中间走连线
 const ENTRY_RUN = SEG_PITCH; // 起点 → 段 1 用同一个数, 四段节奏才匀
@@ -416,6 +425,7 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
     "--tile-depth": `${TILE_DEPTH}px`,
     "--proj-matrix": PANEL_MATRIX,
     "--proj-panel": `${PROJ_PANEL}px`,
+    "--ground-drop": `${GROUND_DROP}px`,
   } as CSSProperties;
 
   return (
@@ -496,7 +506,8 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
                 style={{ animationDelay: `${Math.round(r.t)}ms` } as CSSProperties}
               />
             ))}
-            <circle className={s.signal} r={9}>
+            {/* ⚠ 信号点的半径跟着线一起收: 线细了之后 9px 的点会读成「一颗球在管子上滚」。 */}
+            <circle className={s.signal} r={6}>
               <animateMotion dur={`${travelMs}ms`} path={legPath} fill="freeze" calcMode="linear" />
             </circle>
           </g>
