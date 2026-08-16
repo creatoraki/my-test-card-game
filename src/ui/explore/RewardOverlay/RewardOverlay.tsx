@@ -1,3 +1,9 @@
+// ★ 事件奖励浮层 ★ —— 事件结算后 pendingActions 逐条弹出的处理面板。
+//
+// ⚠ 版式不在这里: 外框(936×680)取自 explorePanel 的 panel-box, 页眉/正文/底栏/按钮/选择卡
+//   全部来自 ui/common/EventPanel 的原语 —— 与落点事件面板同一套设计语言,
+//   这样「选完选项 → 弹出奖励」时页眉基线与按钮行不会跳。
+//   本文件只负责: 奖励种类 → 内容与文案。
 import { useEffect, useState } from "react";
 import { getCharacter, getItemDef, makeCard } from "@/data";
 import { getQuirkDef } from "@/engine";
@@ -17,9 +23,21 @@ import ItemSlot from "@/ui/common/item/ItemSlot";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { cx } from "@/ui/common/cx";
 import { useRevealPresence } from "@/ui/common/ModalReveal";
+import {
+  EventPanelBody,
+  EventPanelButton,
+  EventPanelFoot,
+  EventPanelFrame,
+  EventPanelNotice,
+  EventPanelPick,
+  EventPanelStage,
+} from "@/ui/common/EventPanel";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import s from "./RewardOverlay.module.css";
+
+// 奖励浮层的主色。★ 只在这里出现一次, 通过 EventPanelFrame 的 accent 下发给页眉/边线/按钮。
+const REWARD_ACCENT = "#a7c9ff";
 
 interface RewardView {
   session: ExploreState;
@@ -78,172 +96,172 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
         <span className={s["panel-bar"]} aria-hidden />
         <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
-        <header className={s["reward-head"]}>
-          <div>
-            <span className={s["reward-kicker"]}>GROWTH PROTOCOL / REWARD</span>
-            <h3 className={s["reward-title"]}>{titleOf(action.kind)}</h3>
-          </div>
-          <span className={s["reward-step"]}>待处理奖励</span>
-        </header>
-
-        {action.kind === "expOne" && (
-          <CharacterPicker
-            members={selectableCharacters}
-            selected={chosenCharId}
-            onSelect={setSelectedChar}
-            caption={`选择一名存活角色，获得 ${action.amount} 点经验`}
-            onSkip={finish}
-            onConfirm={() => {
-              if (!chosenCharId) return;
-              grantExpTo(chosenCharId);
-              finish();
-            }}
-          />
-        )}
-
-        {action.kind === "forgeDraw" && (
-          <FreeDraw
-            members={selectableCharacters}
-            selected={chosenCharId}
-            character={chosenCharacter}
-            onSelect={setSelectedChar}
-            onStart={() => {
-              if (chosenCharId) grantFreeDraw(chosenCharId);
-            }}
-            onSkip={finish}
-            onPick={(cardId) => {
-              if (!chosenCharId) return;
-              pickDraw(chosenCharId, cardId);
-              finish();
-            }}
-          />
-        )}
-
-        {action.kind === "forgeRemove" && (
-          <FreeRemove
-            members={selectableCharacters}
-            selected={chosenCharId}
-            character={chosenCharacter}
-            onSelect={setSelectedChar}
-            onSkip={finish}
-            onRemove={(uid) => {
-              if (!chosenCharId) return;
-              removeCardFree(chosenCharId, uid);
-              finish();
-            }}
-          />
-        )}
-
-        {action.kind === "equipOffer" && (
-          <EquipOffers
-            offers={action.offers}
-            onPick={(index) => {
-              acceptEquipOffer(index);
-              finish();
-            }}
-            onSkip={finish}
-          />
-        )}
-
-        {action.kind === "reforge" && (
-          <ReforgePicker
-            backpack={displayedSession.backpack}
-            characters={party.map((id) => ({ charId: id, character: characters[id] })).filter(
-              (entry): entry is { charId: string; character: NonNullable<typeof entry.character> } =>
-                Boolean(entry.character),
-            )}
-            bias={action.bias}
-            onBackpack={(uid) => {
-              reforgeBackpackItem(uid);
-              finish();
-            }}
-            onEquipped={(charId, slot) => {
-              reforgeEquipped(charId, slot, action.bias);
-              finish();
-            }}
-            onSkip={finish}
-          />
-        )}
-
-        {action.kind === "healOne" && (
-          <CharacterPicker
-            members={selectableCharacters}
-            selected={chosenCharId}
-            onSelect={setSelectedChar}
-            caption={action.full ? "选择一名存活角色，将当前生命恢复至体力极限。" : `选择一名存活角色，回复 ${Math.round(action.percent * 100)}% 当前生命。`}
-            onSkip={finish}
-            onConfirm={() => {
-              if (chosenCharId) resolvePendingHeal(chosenCharId, false);
-            }}
-          />
-        )}
-
-        {action.kind === "healLimitOne" && (
-          <CharacterPicker
-            members={selectableCharacters}
-            selected={chosenCharId}
-            onSelect={setSelectedChar}
-            caption={action.full ? "选择一名存活角色，将体力极限恢复至基础最大生命。" : `选择一名存活角色，修复 ${Math.round(action.percent * 100)}% 体力极限。`}
-            onSkip={finish}
-            onConfirm={() => {
-              if (chosenCharId) resolvePendingHeal(chosenCharId, true);
-            }}
-          />
-        )}
-
-        {action.kind === "cureQuirk" && (
-          action.scope === "party" ? (
-            <PartyReward
-              caption={`全队存活角色各治疗 ${action.count} 个怪癖。`}
-              onSkip={finish}
-              onConfirm={() => resolvePendingQuirk()}
-            />
-          ) : (
-            <QuirkReward
-              members={selectableCharacters}
-              selected={chosenCharId}
-              character={chosenCharacter}
-              count={action.count}
-              onSelect={setSelectedChar}
-              onSkip={finish}
-              onConfirm={(quirkId) => resolvePendingQuirk(chosenCharId ?? undefined, quirkId)}
-            />
-          )
-        )}
-
-        {action.kind === "reducePollution" && (
-          action.scope === "party" ? (
-            <PartyReward
-              caption={`全队存活角色污染值降低 ${action.amount}。`}
-              onSkip={finish}
-              onConfirm={() => resolvePendingPollution()}
-            />
-          ) : (
+        <EventPanelFrame
+          accent={REWARD_ACCENT}
+          kicker="成长协议 / REWARD"
+          title={titleOf(action.kind)}
+          status={<span className={s["reward-step"]}>待处理奖励</span>}
+          contentKey={`${action.kind}-${chosenCharId ?? "none"}`}
+        >
+          {action.kind === "expOne" && (
             <CharacterPicker
               members={selectableCharacters}
               selected={chosenCharId}
               onSelect={setSelectedChar}
-              caption={`选择一名存活角色，污染值降低 ${action.amount}。`}
+              caption={`选择一名存活角色，获得 ${action.amount} 点经验。`}
               onSkip={finish}
               onConfirm={() => {
-                if (chosenCharId) resolvePendingPollution(chosenCharId);
+                if (!chosenCharId) return;
+                grantExpTo(chosenCharId);
+                finish();
               }}
             />
-          )
-        )}
+          )}
 
-        {action.kind === "purifyCards" && (
-          <PurifyReward
-            members={selectableCharacters}
-            selected={chosenCharId}
-            character={chosenCharacter}
-            scope={action.scope}
-            count={action.count}
-            onSelect={setSelectedChar}
-            onSkip={finish}
-            onConfirm={(uids) => resolvePendingPurification(chosenCharId ?? undefined, uids)}
-          />
-        )}
+          {action.kind === "forgeDraw" && (
+            <FreeDraw
+              members={selectableCharacters}
+              selected={chosenCharId}
+              character={chosenCharacter}
+              onSelect={setSelectedChar}
+              onStart={() => {
+                if (chosenCharId) grantFreeDraw(chosenCharId);
+              }}
+              onSkip={finish}
+              onPick={(cardId) => {
+                if (!chosenCharId) return;
+                pickDraw(chosenCharId, cardId);
+                finish();
+              }}
+            />
+          )}
+
+          {action.kind === "forgeRemove" && (
+            <FreeRemove
+              members={selectableCharacters}
+              selected={chosenCharId}
+              character={chosenCharacter}
+              onSelect={setSelectedChar}
+              onSkip={finish}
+              onRemove={(uid) => {
+                if (!chosenCharId) return;
+                removeCardFree(chosenCharId, uid);
+                finish();
+              }}
+            />
+          )}
+
+          {action.kind === "equipOffer" && (
+            <EquipOffers
+              offers={action.offers}
+              onPick={(index) => {
+                acceptEquipOffer(index);
+                finish();
+              }}
+              onSkip={finish}
+            />
+          )}
+
+          {action.kind === "reforge" && (
+            <ReforgePicker
+              backpack={displayedSession.backpack}
+              characters={party.map((id) => ({ charId: id, character: characters[id] })).filter(
+                (entry): entry is { charId: string; character: NonNullable<typeof entry.character> } =>
+                  Boolean(entry.character),
+              )}
+              bias={action.bias}
+              onBackpack={(uid) => {
+                reforgeBackpackItem(uid);
+                finish();
+              }}
+              onEquipped={(charId, slot) => {
+                reforgeEquipped(charId, slot, action.bias);
+                finish();
+              }}
+              onSkip={finish}
+            />
+          )}
+
+          {action.kind === "healOne" && (
+            <CharacterPicker
+              members={selectableCharacters}
+              selected={chosenCharId}
+              onSelect={setSelectedChar}
+              caption={action.full ? "选择一名存活角色，将当前生命恢复至体力极限。" : `选择一名存活角色，回复 ${Math.round(action.percent * 100)}% 当前生命。`}
+              onSkip={finish}
+              onConfirm={() => {
+                if (chosenCharId) resolvePendingHeal(chosenCharId, false);
+              }}
+            />
+          )}
+
+          {action.kind === "healLimitOne" && (
+            <CharacterPicker
+              members={selectableCharacters}
+              selected={chosenCharId}
+              onSelect={setSelectedChar}
+              caption={action.full ? "选择一名存活角色，将体力极限恢复至基础最大生命。" : `选择一名存活角色，修复 ${Math.round(action.percent * 100)}% 体力极限。`}
+              onSkip={finish}
+              onConfirm={() => {
+                if (chosenCharId) resolvePendingHeal(chosenCharId, true);
+              }}
+            />
+          )}
+
+          {action.kind === "cureQuirk" && (
+            action.scope === "party" ? (
+              <PartyReward
+                caption={`全队存活角色各治疗 ${action.count} 个怪癖。`}
+                onSkip={finish}
+                onConfirm={() => resolvePendingQuirk()}
+              />
+            ) : (
+              <QuirkReward
+                members={selectableCharacters}
+                selected={chosenCharId}
+                character={chosenCharacter}
+                count={action.count}
+                onSelect={setSelectedChar}
+                onSkip={finish}
+                onConfirm={(quirkId) => resolvePendingQuirk(chosenCharId ?? undefined, quirkId)}
+              />
+            )
+          )}
+
+          {action.kind === "reducePollution" && (
+            action.scope === "party" ? (
+              <PartyReward
+                caption={`全队存活角色污染值降低 ${action.amount}。`}
+                onSkip={finish}
+                onConfirm={() => resolvePendingPollution()}
+              />
+            ) : (
+              <CharacterPicker
+                members={selectableCharacters}
+                selected={chosenCharId}
+                onSelect={setSelectedChar}
+                caption={`选择一名存活角色，污染值降低 ${action.amount}。`}
+                onSkip={finish}
+                onConfirm={() => {
+                  if (chosenCharId) resolvePendingPollution(chosenCharId);
+                }}
+              />
+            )
+          )}
+
+          {action.kind === "purifyCards" && (
+            <PurifyReward
+              members={selectableCharacters}
+              selected={chosenCharId}
+              character={chosenCharacter}
+              scope={action.scope}
+              count={action.count}
+              onSelect={setSelectedChar}
+              onSkip={finish}
+              onConfirm={(uids) => resolvePendingPurification(chosenCharId ?? undefined, uids)}
+            />
+          )}
+        </EventPanelFrame>
       </section>
     </div>
   );
@@ -276,6 +294,32 @@ function titleOf(kind: string): string {
   }
 }
 
+/** 角色选择列 —— 三处奖励共用, 复用行动分镜的选择卡样式。 */
+function MemberList({
+  members,
+  selected,
+  onSelect,
+}: {
+  members: { charId: string; name: string; emoji: string }[];
+  selected: string | null;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className={s["pick-list"]}>
+      {members.map((member, index) => (
+        <EventPanelPick
+          key={member.charId}
+          index={index}
+          leading={<span className={s["character-emoji"]}>{member.emoji}</span>}
+          name={member.name}
+          selected={selected === member.charId}
+          onClick={() => onSelect(member.charId)}
+        />
+      ))}
+    </div>
+  );
+}
+
 function CharacterPicker({
   members,
   selected,
@@ -292,36 +336,24 @@ function CharacterPicker({
   onConfirm: () => void;
 }) {
   return (
-    <div className={s["reward-body"]}>
-      <p className={s["reward-caption"]}>{caption}</p>
-      {members.length ? (
-        <div className={s["character-list"]}>
-          {members.map((member) => (
-          <button
-            className={cx(s["character-choice"], selected === member.charId && s["is-selected"])}
-            type="button"
-            key={member.charId}
-            onClick={() => onSelect(member.charId)}
-          >
-            <span className={s["character-emoji"]}>{member.emoji}</span>
-            <span>{member.name}</span>
-          </button>
-          ))}
-        </div>
-      ) : (
-        <p className={s["reward-empty"]}>当前没有可用的存活角色。</p>
-      )}
-      <footer className={s["reward-foot"]}>
-        <span>{members.length ? (selected ? "目标已锁定" : "请选择角色") : "奖励无法执行"}</span>
+    <EventPanelStage>
+      <EventPanelBody caption={caption}>
         {members.length ? (
-          <button className={cx(s["reward-btn"], s["is-primary"])} type="button" disabled={!selected} onClick={onConfirm}>
-            确认奖励
-          </button>
+          <MemberList members={members} selected={selected} onSelect={onSelect} />
         ) : (
-          <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
+          <EventPanelNotice>当前没有可用的存活角色。</EventPanelNotice>
         )}
-      </footer>
-    </div>
+      </EventPanelBody>
+      <EventPanelFoot note={members.length ? (selected ? "目标已锁定" : "请选择角色") : "奖励无法执行"}>
+        {members.length ? (
+          <EventPanelButton tone="primary" disabled={!selected} onClick={onConfirm}>
+            确认奖励
+          </EventPanelButton>
+        ) : (
+          <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
+        )}
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }
 
@@ -335,18 +367,17 @@ function PartyReward({
   onConfirm: () => void;
 }) {
   return (
-    <div className={s["reward-body"]}>
-      <p className={s["reward-caption"]}>{caption}</p>
-      <footer className={s["reward-foot"]}>
-        <span>确认后立即应用到当前远征的存活角色</span>
-        <div>
-          <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-          <button className={cx(s["reward-btn"], s["is-primary"])} type="button" onClick={onConfirm}>
-            确认奖励
-          </button>
-        </div>
-      </footer>
-    </div>
+    <EventPanelStage>
+      <EventPanelBody caption={caption}>
+        <EventPanelNotice>确认后立即应用到当前远征的全部存活角色。</EventPanelNotice>
+      </EventPanelBody>
+      <EventPanelFoot note="确认后立即应用到当前远征的存活角色">
+        <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
+        <EventPanelButton tone="primary" onClick={onConfirm}>
+          确认奖励
+        </EventPanelButton>
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }
 
@@ -368,54 +399,40 @@ function QuirkReward({
   onConfirm: (quirkId: QuirkId) => void;
 }) {
   const quirks = character?.quirks ?? [];
+  const caption = !character
+    ? `选择一名存活角色，治疗 ${count} 个怪癖。`
+    : quirks.length
+      ? `选择要治疗的怪癖。当前角色可治疗 ${count} 个。`
+      : "该角色当前没有可治疗的怪癖。";
   return (
-    <div className={s["reward-body"]}>
-      {!character ? (
-        <>
-          <p className={s["reward-caption"]}>选择一名存活角色，治疗 {count} 个怪癖。</p>
-          <div className={s["character-list"]}>
-            {members.map((member) => (
-              <button
-                className={cx(s["character-choice"], selected === member.charId && s["is-selected"])}
-                type="button"
-                key={member.charId}
-                onClick={() => onSelect(member.charId)}
-              >
-                <span className={s["character-emoji"]}>{member.emoji}</span>
-                <span>{member.name}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      ) : quirks.length ? (
-        <>
-          <p className={s["reward-caption"]}>选择要治疗的怪癖。当前角色可治疗 {count} 个。</p>
-          <div className={s["quirk-list"]}>
-            {quirks.map((quirkId) => {
+    <EventPanelStage>
+      <EventPanelBody caption={caption}>
+        {!character ? (
+          <MemberList members={members} selected={selected} onSelect={onSelect} />
+        ) : quirks.length ? (
+          <div className={s["pick-list"]}>
+            {quirks.map((quirkId, index) => {
               const quirk = getQuirkDef(quirkId);
               return (
-                <button
-                  className={s["quirk-choice"]}
-                  type="button"
+                <EventPanelPick
                   key={quirkId}
+                  index={index}
+                  leading={<span className={s["character-emoji"]}>{quirk?.emoji ?? "?"}</span>}
+                  name={quirk?.name ?? quirkId}
+                  desc={quirk?.desc ?? ""}
                   onClick={() => onConfirm(quirkId)}
-                >
-                  <span>{quirk?.emoji ?? "?"}</span>
-                  <span>{quirk?.name ?? quirkId}</span>
-                  <small>{quirk?.desc ?? ""}</small>
-                </button>
+                />
               );
             })}
           </div>
-        </>
-      ) : (
-        <p className={s["reward-empty"]}>该角色当前没有可治疗的怪癖。</p>
-      )}
-      <footer className={s["reward-foot"]}>
-        <span>{character ? (quirks.length ? "选择一个怪癖即可确认" : "奖励无法执行") : "请选择角色"}</span>
-        <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-      </footer>
-    </div>
+        ) : (
+          <EventPanelNotice>该角色当前没有可治疗的怪癖。</EventPanelNotice>
+        )}
+      </EventPanelBody>
+      <EventPanelFoot note={character ? (quirks.length ? "选择一个怪癖即可确认" : "奖励无法执行") : "请选择角色"}>
+        <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }
 
@@ -452,28 +469,17 @@ function PurifyReward({
       />
     );
   }
+  const caption = !character
+    ? `选择一名存活角色，净化最多 ${count} 张污染卡。`
+    : contaminated.length
+      ? `选择最多 ${count} 张污染卡进行净化。`
+      : "该角色当前没有污染卡。";
   return (
-    <div className={s["reward-body"]}>
-      {!character ? (
-        <>
-          <p className={s["reward-caption"]}>选择一名存活角色，净化最多 {count} 张污染卡。</p>
-          <div className={s["character-list"]}>
-            {members.map((member) => (
-              <button
-                className={cx(s["character-choice"], selected === member.charId && s["is-selected"])}
-                type="button"
-                key={member.charId}
-                onClick={() => onSelect(member.charId)}
-              >
-                <span className={s["character-emoji"]}>{member.emoji}</span>
-                <span>{member.name}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      ) : contaminated.length ? (
-        <>
-          <p className={s["reward-caption"]}>选择最多 {count} 张污染卡进行净化。</p>
+    <EventPanelStage>
+      <EventPanelBody caption={caption}>
+        {!character ? (
+          <MemberList members={members} selected={selected} onSelect={onSelect} />
+        ) : contaminated.length ? (
           <div className={s["card-list"]}>
             {contaminated.map((card) => {
               const picked = selectedCards.includes(card.uid);
@@ -497,27 +503,21 @@ function PurifyReward({
               );
             })}
           </div>
-        </>
-      ) : (
-        <p className={s["reward-empty"]}>该角色当前没有污染卡。</p>
-      )}
-      <footer className={s["reward-foot"]}>
-        <span>{character ? `${selectedCards.length}/${Math.min(count, contaminated.length)} 张已选择` : "请选择角色"}</span>
-        <div>
-          <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-          {character && contaminated.length > 0 && (
-            <button
-              className={cx(s["reward-btn"], s["is-primary"])}
-              type="button"
-              disabled={!selectedCards.length}
-              onClick={() => onConfirm(selectedCards)}
-            >
-              确认净化
-            </button>
-          )}
-        </div>
-      </footer>
-    </div>
+        ) : (
+          <EventPanelNotice>该角色当前没有污染卡。</EventPanelNotice>
+        )}
+      </EventPanelBody>
+      <EventPanelFoot
+        note={character ? `${selectedCards.length}/${Math.min(count, contaminated.length)} 张已选择` : "请选择角色"}
+      >
+        <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
+        {character && contaminated.length > 0 && (
+          <EventPanelButton tone="primary" disabled={!selectedCards.length} onClick={() => onConfirm(selectedCards)}>
+            确认净化
+          </EventPanelButton>
+        )}
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }
 
@@ -538,42 +538,34 @@ function FreeDraw({
   onSkip: () => void;
   onPick: (cardId: string) => void;
 }) {
-  return (
-    <div className={s["reward-body"]}>
-      {!character?.pendingDraw ? (
-        <>
-          <p className={s["reward-caption"]}>选择一名角色，免费生成三张角色专属卡牌。</p>
+  if (!character?.pendingDraw) {
+    return (
+      <EventPanelStage>
+        <EventPanelBody caption="选择一名角色，免费生成三张角色专属卡牌。">
           {members.length ? (
-            <div className={s["character-list"]}>
-              {members.map((member) => (
-              <button
-                className={cx(s["character-choice"], selected === member.charId && s["is-selected"])}
-                type="button"
-                key={member.charId}
-                onClick={() => onSelect(member.charId)}
-              >
-                <span className={s["character-emoji"]}>{member.emoji}</span>
-                <span>{member.name}</span>
-              </button>
-              ))}
-            </div>
+            <MemberList members={members} selected={selected} onSelect={onSelect} />
           ) : (
-            <p className={s["reward-empty"]}>当前没有可用的存活角色。</p>
+            <EventPanelNotice>当前没有可用的存活角色。</EventPanelNotice>
           )}
-          <footer className={s["reward-foot"]}>
-            <span>{members.length ? (selected ? "免费锻造不消耗经验" : "请选择角色") : "奖励无法执行"}</span>
-            {members.length ? (
-              <button className={cx(s["reward-btn"], s["is-primary"])} type="button" disabled={!selected} onClick={onStart}>
-                开始锻造
-              </button>
-            ) : (
-              <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-            )}
-          </footer>
-        </>
-      ) : character.pendingDraw.length ? (
-        <>
-          <p className={s["reward-caption"]}>三张候选卡牌已经生成，选择一张加入卡组。</p>
+        </EventPanelBody>
+        <EventPanelFoot note={members.length ? (selected ? "免费锻造不消耗经验" : "请选择角色") : "奖励无法执行"}>
+          {members.length ? (
+            <EventPanelButton tone="primary" disabled={!selected} onClick={onStart}>
+              开始锻造
+            </EventPanelButton>
+          ) : (
+            <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
+          )}
+        </EventPanelFoot>
+      </EventPanelStage>
+    );
+  }
+  return (
+    <EventPanelStage>
+      <EventPanelBody
+        caption={character.pendingDraw.length ? "三张候选卡牌已经生成，选择一张加入卡组。" : "当前角色没有可生成的卡牌候选。"}
+      >
+        {character.pendingDraw.length ? (
           <div className={s["card-list"]}>
             {character.pendingDraw.map((cardId) => (
               <div className={s["card-choice"]} key={cardId}>
@@ -581,17 +573,14 @@ function FreeDraw({
               </div>
             ))}
           </div>
-        </>
-      ) : (
-        <>
-          <p className={s["reward-empty"]}>当前角色没有可生成的卡牌候选。</p>
-          <footer className={s["reward-foot"]}>
-            <span>本次免费锻造无法执行</span>
-            <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-          </footer>
-        </>
-      )}
-    </div>
+        ) : (
+          <EventPanelNotice>当前角色没有可生成的卡牌候选。</EventPanelNotice>
+        )}
+      </EventPanelBody>
+      <EventPanelFoot note={character.pendingDraw.length ? "选择一张即可完成锻造" : "本次免费锻造无法执行"}>
+        {!character.pendingDraw.length && <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>}
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }
 
@@ -611,38 +600,32 @@ function FreeRemove({
   onRemove: (uid: string) => void;
 }) {
   const removable = character && character.deck.length > character.minDeckSize ? character.deck : [];
-  return (
-    <div className={s["reward-body"]}>
-      {!character ? (
-        <>
-          <p className={s["reward-caption"]}>选择一名角色，从其卡组中免费移除一张卡牌。</p>
+  if (!character) {
+    return (
+      <EventPanelStage>
+        <EventPanelBody caption="选择一名角色，从其卡组中免费移除一张卡牌。">
           {members.length ? (
-            <div className={s["character-list"]}>
-              {members.map((member) => (
-              <button
-                className={cx(s["character-choice"], selected === member.charId && s["is-selected"])}
-                type="button"
-                key={member.charId}
-                onClick={() => onSelect(member.charId)}
-              >
-                <span className={s["character-emoji"]}>{member.emoji}</span>
-                <span>{member.name}</span>
-              </button>
-              ))}
-            </div>
+            <MemberList members={members} selected={selected} onSelect={onSelect} />
           ) : (
-            <>
-              <p className={s["reward-empty"]}>当前没有可处理的角色卡组。</p>
-              <footer className={s["reward-foot"]}>
-                <span>本次免费删卡无法执行</span>
-                <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-              </footer>
-            </>
+            <EventPanelNotice>当前没有可处理的角色卡组。</EventPanelNotice>
           )}
-        </>
-      ) : removable.length ? (
-        <>
-          <p className={s["reward-caption"]}>选择要移除的卡牌。卡组至少保留 {character.minDeckSize} 张。</p>
+        </EventPanelBody>
+        <EventPanelFoot note={members.length ? "选择角色后展开其卡组" : "本次免费删卡无法执行"}>
+          {!members.length && <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>}
+        </EventPanelFoot>
+      </EventPanelStage>
+    );
+  }
+  return (
+    <EventPanelStage>
+      <EventPanelBody
+        caption={
+          removable.length
+            ? `选择要移除的卡牌。卡组至少保留 ${character.minDeckSize} 张。`
+            : "当前角色已经达到最小卡组下限。"
+        }
+      >
+        {removable.length ? (
           <div className={s["card-list"]}>
             {removable.map((card) => (
               <div className={s["card-choice"]} key={card.uid}>
@@ -650,17 +633,14 @@ function FreeRemove({
               </div>
             ))}
           </div>
-        </>
-      ) : (
-        <>
-          <p className={s["reward-empty"]}>当前角色已经达到最小卡组下限。</p>
-          <footer className={s["reward-foot"]}>
-            <span>本次免费删卡无法执行</span>
-            <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-          </footer>
-        </>
-      )}
-    </div>
+        ) : (
+          <EventPanelNotice>当前角色已经达到最小卡组下限。</EventPanelNotice>
+        )}
+      </EventPanelBody>
+      <EventPanelFoot note={removable.length ? "点击卡牌即可移除" : "本次免费删卡无法执行"}>
+        {!removable.length && <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>}
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }
 
@@ -686,28 +666,32 @@ function EquipOffers({
     : null;
 
   return (
-    <div className={s["reward-body"]}>
-      <p className={s["reward-caption"]}>候选属性已在事件结算时确定，选择一件放入拾取框。</p>
-      <div className={s["item-list"]}>
-        {offers.map((stack, index) => (
-          <div
-            className={s["item-choice"]}
-            key={stack.uid}
-            onPointerEnter={(event) =>
-              setHovered({
-                uid: stack.uid,
-                point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
-              })
-            }
-            onPointerLeave={() =>
-              setHovered((current) => (current?.uid === stack.uid ? null : current))
-            }
-          >
-            <ItemSlot stack={stack} showName={false} onClick={() => onPick(index)} />
+    <EventPanelStage>
+      <EventPanelBody caption="候选属性已在事件结算时确定，选择一件放入拾取框。">
+        {offers.length ? (
+          <div className={s["item-list"]}>
+            {offers.map((stack, index) => (
+              <div
+                className={s["item-choice"]}
+                key={stack.uid}
+                onPointerEnter={(event) =>
+                  setHovered({
+                    uid: stack.uid,
+                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                  })
+                }
+                onPointerLeave={() =>
+                  setHovered((current) => (current?.uid === stack.uid ? null : current))
+                }
+              >
+                <ItemSlot stack={stack} showName={false} onClick={() => onPick(index)} />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      {!offers.length && <p className={s["reward-empty"]}>当前没有可用装备候选。</p>}
+        ) : (
+          <EventPanelNotice>当前没有可用装备候选。</EventPanelNotice>
+        )}
+      </EventPanelBody>
       {hoveredStack && hovered && (
         <ItemTooltip
           stack={hoveredStack}
@@ -715,13 +699,10 @@ function EquipOffers({
           themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)}
         />
       )}
-      <footer className={s["reward-foot"]}>
-        <span>未选择的候选不会进入背包</span>
-        <button className={s["reward-btn"]} type="button" onClick={onSkip}>
-          放弃候选
-        </button>
-      </footer>
-    </div>
+      <EventPanelFoot note="未选择的候选不会进入背包">
+        <EventPanelButton onClick={onSkip}>放弃候选</EventPanelButton>
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }
 
@@ -761,60 +742,62 @@ function ReforgePicker({
     : null;
 
   return (
-    <div className={s["reward-body"]}>
-      <p className={s["reward-caption"]}>
-        选择一件装备重铸羁绊{bias ? `，当前偏向${bias === "offense" ? "攻击" : "防御"}` : ""}。
-      </p>
-      <div className={s["reforge-groups"]}>
-        <div>
-          <span className={s["group-label"]}>探索背包</span>
-          <div className={s["item-list"]}>
-            {backpackEquipment.map((stack) => (
-              <div
-                className={s["item-choice"]}
-                key={stack.uid}
-                onPointerEnter={(event) =>
-                  setHovered({
-                    uid: stack.uid,
-                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
-                  })
-                }
-                onPointerLeave={() =>
-                  setHovered((current) => (current?.uid === stack.uid ? null : current))
-                }
-              >
-                <ItemSlot stack={stack} showName={false} onClick={() => onBackpack(stack.uid)} />
+    <EventPanelStage>
+      <EventPanelBody
+        caption={`选择一件装备重铸羁绊${bias ? `，当前偏向${bias === "offense" ? "攻击" : "防御"}` : ""}。`}
+      >
+        {backpackEquipment.length || equipped.length ? (
+          <div className={s["reforge-groups"]}>
+            <div>
+              <span className={s["group-label"]}>探索背包</span>
+              <div className={s["item-list"]}>
+                {backpackEquipment.map((stack) => (
+                  <div
+                    className={s["item-choice"]}
+                    key={stack.uid}
+                    onPointerEnter={(event) =>
+                      setHovered({
+                        uid: stack.uid,
+                        point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                      })
+                    }
+                    onPointerLeave={() =>
+                      setHovered((current) => (current?.uid === stack.uid ? null : current))
+                    }
+                  >
+                    <ItemSlot stack={stack} showName={false} onClick={() => onBackpack(stack.uid)} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <span className={s["group-label"]}>角色装备</span>
-          <div className={s["item-list"]}>
-            {equipped.map(({ charId, slot, stack }) => (
-              <div
-                className={s["equipped-choice"]}
-                key={`${charId}-${slot}`}
-                onPointerEnter={(event) =>
-                  setHovered({
-                    uid: stack.uid,
-                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
-                  })
-                }
-                onPointerLeave={() =>
-                  setHovered((current) => (current?.uid === stack.uid ? null : current))
-                }
-              >
-                <ItemSlot stack={stack} showName={false} onClick={() => onEquipped(charId, slot)} />
-                <span>{getCharacter(charId).name} · {SLOT_LABEL[slot]}</span>
+            </div>
+            <div>
+              <span className={s["group-label"]}>角色装备</span>
+              <div className={s["item-list"]}>
+                {equipped.map(({ charId, slot, stack }) => (
+                  <div
+                    className={s["equipped-choice"]}
+                    key={`${charId}-${slot}`}
+                    onPointerEnter={(event) =>
+                      setHovered({
+                        uid: stack.uid,
+                        point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                      })
+                    }
+                    onPointerLeave={() =>
+                      setHovered((current) => (current?.uid === stack.uid ? null : current))
+                    }
+                  >
+                    <ItemSlot stack={stack} showName={false} onClick={() => onEquipped(charId, slot)} />
+                    <span>{getCharacter(charId).name} · {SLOT_LABEL[slot]}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </div>
-      {!backpackEquipment.length && !equipped.length && (
-        <p className={s["reward-empty"]}>没有可重铸的装备。</p>
-      )}
+        ) : (
+          <EventPanelNotice>没有可重铸的装备。</EventPanelNotice>
+        )}
+      </EventPanelBody>
       {hoveredStack && hovered && (
         <ItemTooltip
           stack={hoveredStack}
@@ -822,10 +805,11 @@ function ReforgePicker({
           themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)}
         />
       )}
-      <footer className={s["reward-foot"]}>
-        <span>{backpackEquipment.length || equipped.length ? "未选择的装备保持原样" : "本次羁绊重铸无法执行"}</span>
-        <button className={s["reward-btn"]} type="button" onClick={onSkip}>结束奖励</button>
-      </footer>
-    </div>
+      <EventPanelFoot
+        note={backpackEquipment.length || equipped.length ? "未选择的装备保持原样" : "本次羁绊重铸无法执行"}
+      >
+        <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
+      </EventPanelFoot>
+    </EventPanelStage>
   );
 }

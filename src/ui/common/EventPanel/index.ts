@@ -1,8 +1,15 @@
 export {
   EventPanel,
+  EventPanelFrame,
   EventPanelBriefing,
   EventPanelChoice,
   EventPanelResult,
+  EventPanelStage,
+  EventPanelBody,
+  EventPanelFoot,
+  EventPanelNotice,
+  EventPanelButton,
+  EventPanelPick,
   type EventPanelOption,
   type EventPanelScene,
 } from "./EventPanel";

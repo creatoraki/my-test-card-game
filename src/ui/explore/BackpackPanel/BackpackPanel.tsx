@@ -1,6 +1,7 @@
 // ★ 探索页的背包面板 ★ —— 24 格网格 + 分类 tab + 实时负重读数(见 探索模式设计.md §6.4)。
 //
-// 沿用探索页的浮层语言: **无全屏遮罩**, 从画布上方滑入(与落点浮层、控制终端的吊绳面板同族)。
+// 沿用探索页的浮层语言: **无全屏遮罩**, 落在画布正中的同一个 936×680 外框里 ——
+// 与落点事件面板、事件奖励、物品拾取、交易终端同框同页眉(见 ui/common/EventPanel)。
 // ⚠ 开放时机的真相点在 explore/session.canOpenBackpack, 不在这里 —— 本组件只画结论。
 //
 // 三种模式共用同一块面板(设计文档 §6.4 明确要求「背包满时自动弹出同一面板」):
@@ -26,6 +27,14 @@ import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import ItemTabs from "@/ui/common/item/ItemTabs";
 import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
+import {
+  EventPanelBody,
+  EventPanelButton,
+  EventPanelFoot,
+  EventPanelFrame,
+  EventPanelStage,
+} from "@/ui/common/EventPanel";
+import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { cx } from "@/ui/common/cx";
 import s from "./BackpackPanel.module.css";
 
@@ -88,170 +97,183 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className={s["bp-modal"]}>
-      <section className={s["bp-panel"]}>
-        <header className={s["bp-head"]}>
-          <div>
-            <span className={s["expl-kicker"]}>随身携带</span>
-            <h3 className={s["bp-title"]}>背包</h3>
-          </div>
-
-          {/* 顶部实时读数。★ key 挂 used ⇒ 每丢一件这一行重挂一次走个跳变,
-              「边丢边看数字回升」是设计文档 §6.4 点名要有的手感。 */}
-          <div className={s["bp-readout"]} key={used}>
-            <span className={s["bp-load"]}>
-              负重 <strong className={used > 0 ? s["is-bad"] : undefined}>{used}</strong> / {
-                RULES.burden.backpackSlots
-              }
-            </span>
-            <span className={s["bp-penalty"]}>
-              命中 −{burden}% · 暴击 −{burden}% · 闪避 −{burden}%
-            </span>
-            <span className={s["bp-adapt"]}>负重适应 {Math.min(100, Math.round(adapt))}%</span>
-          </div>
-
-          {/* 替换模式下没有退路: 必须处理完待取物才能关(设计文档 §6.4) */}
-          {!replaceMode && (
-            <button className={s["bp-close"]} type="button" onClick={onClose} aria-label="关闭背包">
-              ✕
-            </button>
-          )}
-        </header>
-
-        {replaceMode && (
-          <div className={s["bp-pending"]}>
-            <span className={s["bp-pending-label"]}>
-              背包装不下 —— 丢够格子才拿得走（还差 {shortBy(pending, free)} 格）
-            </span>
-            <div className={s["bp-pending-row"]}>
-              {pending.map((st, i) => {
-                const need = stackSlots(st, getItemDef(st.itemId));
-                const ok = need <= free;
-                return (
-                  <div className={s["bp-pending-item"]} key={st.uid}>
-                    <ItemSlot stack={st} />
-                    <button
-                      className={cx(s["expl-btn"], s["is-primary"], s["bp-mini"])}
-                      type="button"
-                      disabled={!ok}
-                      onClick={() => takePending(i)}
-                    >
-                      {ok ? "拿取" : `还需 ${need - free} 格`}
-                    </button>
-                  </div>
-                );
-              })}
+      <section className={cx(s["bp-panel"], s["panel-reveal"])} style={panelRevealVars()}>
+        <span className={s["panel-bar"]} aria-hidden />
+        <span className={s["panel-frame"]} aria-hidden />
+        <span className={s["panel-scan"]} aria-hidden />
+        <EventPanelFrame
+          accent="#7fd4c4"
+          kicker="随身携带 / BACKPACK"
+          title="背包"
+          contentKey="backpack"
+          status={
+            /* 顶部实时读数。★ key 挂 used ⇒ 每丢一件这一行重挂一次走个跳变,
+               「边丢边看数字回升」是设计文档 §6.4 点名要有的手感。 */
+            <div className={s["bp-readout"]} key={used}>
+              <span className={s["bp-load"]}>
+                负重 <strong className={used > 0 ? s["is-bad"] : undefined}>{used}</strong> / {
+                  RULES.burden.backpackSlots
+                }
+              </span>
+              <span className={s["bp-penalty"]}>
+                命中 −{burden}% · 暴击 −{burden}% · 闪避 −{burden}%
+              </span>
+              <span className={s["bp-adapt"]}>负重适应 {Math.min(100, Math.round(adapt))}%</span>
             </div>
-          </div>
-        )}
+          }
+          headerExtra={
+            /* 替换模式下没有退路: 必须处理完待取物才能关(设计文档 §6.4) */
+            !replaceMode ? (
+              <button className={s["bp-close"]} type="button" onClick={onClose} aria-label="关闭背包">
+                ✕
+              </button>
+            ) : undefined
+          }
+        >
+          <EventPanelStage>
+            {/* 两条模式横幅与分类 tab 钉在内容区上方 —— 与其它浮层一样, 只允许下面的主体滚动。 */}
+            {replaceMode && (
+              <div className={s["bp-pending"]}>
+                <span className={s["bp-pending-label"]}>
+                  背包装不下 —— 丢够格子才拿得走（还差 {shortBy(pending, free)} 格）
+                </span>
+                <div className={s["bp-pending-row"]}>
+                  {pending.map((st, i) => {
+                    const need = stackSlots(st, getItemDef(st.itemId));
+                    const ok = need <= free;
+                    return (
+                      <div className={s["bp-pending-item"]} key={st.uid}>
+                        <ItemSlot stack={st} />
+                        <EventPanelButton
+                          tone="primary"
+                          className={s["bp-mini"]}
+                          disabled={!ok}
+                          onClick={() => takePending(i)}
+                        >
+                          {ok ? "拿取" : `还需 ${need - free} 格`}
+                        </EventPanelButton>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-        {chuteMode && (
-          <div className={s["bp-chute"]}>
-            <span className={s["bp-chute-label"]}>
-              传送投递口已开启 —— 选中的物品寄回据点，团灭也带得走
-            </span>
-            <button
-              className={cx(s["expl-btn"], s["is-primary"], s["bp-mini"])}
-              type="button"
-              disabled={!shipping.length}
-              onClick={() => {
-                shipHome(shipping);
-                setShipping([]);
-              }}
-            >
-              寄回 {shipping.length} 件 · 粒子 −{EXPLORE_RULES.chute.energyCost}
-            </button>
-          </div>
-        )}
+            {chuteMode && (
+              <div className={s["bp-chute"]}>
+                <span className={s["bp-chute-label"]}>
+                  传送投递口已开启 —— 选中的物品寄回据点，团灭也带得走
+                </span>
+                <EventPanelButton
+                  tone="primary"
+                  className={s["bp-mini"]}
+                  disabled={!shipping.length}
+                  onClick={() => {
+                    shipHome(shipping);
+                    setShipping([]);
+                  }}
+                >
+                  寄回 {shipping.length} 件 · 粒子 −{EXPLORE_RULES.chute.energyCost}
+                </EventPanelButton>
+              </div>
+            )}
 
-        <ItemTabs
-          stacks={backpack}
-          tab={tab}
-          equipTab={equipTab}
-          onTab={setTab}
-          onEquipTab={setEquipTab}
-        />
+            <div className={s["bp-tabs"]}>
+              <ItemTabs
+                stacks={backpack}
+                tab={tab}
+                equipTab={equipTab}
+                onTab={setTab}
+                onEquipTab={setEquipTab}
+              />
+            </div>
 
-        <div className={s["bp-body"]}>
-          <div className={s["bp-grid"]} style={{ "--bp-cols": COLS } as CSSProperties}>
-            {cells.map((cell, i) => {
-              if (cell.kind === "empty") return <EmptySlot key={i} />;
-              return (
-                <ItemSlot
-                  key={cell.stack.uid}
-                  stack={cell.stack}
-                  selected={chuteMode ? shipping.includes(cell.stack.uid) : selected === cell.stack.uid}
-                  disabled={chuteMode && !!getItemDef(cell.stack.itemId).undroppable}
-                  dimmed={!matchTab(cell.stack, tab, equipTab)}
-                  onClick={() => onSlotClick(cell.stack)}
-                />
-              );
-            })}
-          </div>
+            <EventPanelBody className={s["bp-body"]}>
+              <div className={s["bp-grid"]} style={{ "--bp-cols": COLS } as CSSProperties}>
+                {cells.map((cell, i) => {
+                  if (cell.kind === "empty") return <EmptySlot key={i} />;
+                  return (
+                    <ItemSlot
+                      key={cell.stack.uid}
+                      stack={cell.stack}
+                      selected={chuteMode ? shipping.includes(cell.stack.uid) : selected === cell.stack.uid}
+                      disabled={chuteMode && !!getItemDef(cell.stack.itemId).undroppable}
+                      dimmed={!matchTab(cell.stack, tab, equipTab)}
+                      onClick={() => onSlotClick(cell.stack)}
+                    />
+                  );
+                })}
+              </div>
 
-          <div className={s["bp-detail"]}>
-            <ItemDetail
-              stack={sel}
-              placeholder="背包里的东西都会占格子——每格让全队命中、暴击、闪避各降 1%。"
-            >
-              {sel && selDef && (
-                <>
-                  {selDef.use && (
-                    <button
-                      className={cx(s["expl-btn"], s["is-primary"], s["bp-mini"])}
-                      type="button"
-                      disabled={!canUseItem(session)}
-                      title={canUseItem(session) ? undefined : "本阶段不能使用消耗品"}
-                      onClick={doUse}
-                    >
-                      使用
-                    </button>
-                  )}
-                  {/* 丢弃**不可撤销**, 故在详情区原地二次确认 ——
-                      探索页已经是「浮层里的浮层」, 再叠一层模态读起来会很脏。 */}
-                  {selDef.undroppable ? (
-                    <p className={s["bp-locked"]}>锁死在背包上，远征途中无法卸下</p>
-                  ) : confirming === sel.uid ? (
+              <div className={s["bp-detail"]}>
+                <ItemDetail
+                  stack={sel}
+                  placeholder="背包里的东西都会占格子——每格让全队命中、暴击、闪避各降 1%。"
+                >
+                  {sel && selDef && (
                     <>
-                      <button
-                        className={cx(s["expl-btn"], s["is-danger"], s["bp-mini"])}
-                        type="button"
-                        onClick={() => {
-                          discardItem(sel.uid);
-                          setSelected(null);
-                        }}
-                      >
-                        确认丢弃
-                      </button>
-                      <button
-                        className={cx(s["expl-btn"], s["bp-mini"])}
-                        type="button"
-                        onClick={() => setConfirming(null)}
-                      >
-                        取消
-                      </button>
+                      {selDef.use && (
+                        <>
+                          <EventPanelButton
+                            tone="primary"
+                            className={s["bp-mini"]}
+                            disabled={!canUseItem(session)}
+                            onClick={doUse}
+                          >
+                            使用
+                          </EventPanelButton>
+                          {/* 原生 title 提示已去掉, 锁定理由直接写在按钮下面(项目约定: 不用 title) */}
+                          {!canUseItem(session) && <p className={s["bp-locked"]}>本阶段不能使用消耗品</p>}
+                        </>
+                      )}
+                      {/* 丢弃**不可撤销**, 故在详情区原地二次确认 ——
+                          探索页已经是「浮层里的浮层」, 再叠一层模态读起来会很脏。 */}
+                      {selDef.undroppable ? (
+                        <p className={s["bp-locked"]}>锁死在背包上，远征途中无法卸下</p>
+                      ) : confirming === sel.uid ? (
+                        <>
+                          <EventPanelButton
+                            tone="danger"
+                            className={s["bp-mini"]}
+                            onClick={() => {
+                              discardItem(sel.uid);
+                              setSelected(null);
+                            }}
+                          >
+                            确认丢弃
+                          </EventPanelButton>
+                          <EventPanelButton className={s["bp-mini"]} onClick={() => setConfirming(null)}>
+                            取消
+                          </EventPanelButton>
+                        </>
+                      ) : (
+                        <EventPanelButton className={s["bp-mini"]} onClick={() => setConfirming(sel.uid)}>
+                          丢弃
+                        </EventPanelButton>
+                      )}
                     </>
-                  ) : (
-                    <button
-                      className={cx(s["expl-btn"], s["bp-mini"])}
-                      type="button"
-                      onClick={() => setConfirming(sel.uid)}
-                    >
-                      丢弃
-                    </button>
                   )}
-                </>
+                </ItemDetail>
+              </div>
+            </EventPanelBody>
+
+            <EventPanelFoot
+              note={
+                flash ? (
+                  <span className={s["bp-flash"]}>{flash}</span>
+                ) : replaceMode ? (
+                  "先处理完待取物才能关上背包"
+                ) : (
+                  `占用 ${used} / ${RULES.burden.backpackSlots} 格`
+                )
+              }
+            >
+              {replaceMode && !pendingHasUndroppable && (
+                <EventPanelButton onClick={() => abandonPending()}>全部放弃拾取</EventPanelButton>
               )}
-            </ItemDetail>
-          </div>
-        </div>
-
-        {replaceMode && !pendingHasUndroppable && (
-          <button className={cx(s["expl-btn"], s["bp-mini"])} type="button" onClick={() => abandonPending()}>
-            全部放弃拾取
-          </button>
-        )}
-
-        {flash && <p className={s["bp-flash"]}>{flash}</p>}
+            </EventPanelFoot>
+          </EventPanelStage>
+        </EventPanelFrame>
       </section>
     </div>
   );

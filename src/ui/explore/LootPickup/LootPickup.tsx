@@ -3,6 +3,13 @@ import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRevealPresence } from "@/ui/common/ModalReveal";
+import {
+  EventPanelBody,
+  EventPanelButton,
+  EventPanelFoot,
+  EventPanelFrame,
+  EventPanelStage,
+} from "@/ui/common/EventPanel";
 import ItemTooltip, {
   tooltipPointFromRect,
   type TooltipPoint,
@@ -97,66 +104,60 @@ function LootPickup({ gate }: LootPickupProps) {
         <span className={s["panel-bar"]} aria-hidden />
         <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
-        <header className={s["loot-head"]}>
-          <div>
-            <h3 className={s["loot-title"]}>发现物品</h3>
-          </div>
-          <span className={s["loot-count"]}>{pendingLoot.length} 件</span>
-        </header>
-        <div className={s["loot-body"]}>
-          <p className={s["loot-desc"]}>
-            {lootMessage ?? "点击拾取，未拾取的物品会丢失"}
-          </p>
-          <div className={s["loot-grid"]}>
-            {displayed.map((stack) => (
-              <div
-                className={s["loot-item"]}
-                data-loot-uid={stack.uid}
-                key={stack.uid}
-                onPointerEnter={(event) =>
-                  setHovered({
-                    uid: stack.uid,
-                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
-                  })
-                }
-                onPointerLeave={() =>
-                  setHovered((current) => (current?.uid === stack.uid ? null : current))
-                }
-              >
-                <ItemSlot stack={stack} showName={false} onClick={() => pick(stack)} />
+        <EventPanelFrame
+          accent="#9be4bd"
+          kicker="事件掉落 / SALVAGE"
+          title="发现物品"
+          status={<span className={s["loot-count"]}>{pendingLoot.length} 件</span>}
+          contentKey={`loot-${displayed.length}`}
+        >
+          <EventPanelStage>
+            <EventPanelBody caption={lootMessage ?? "点击拾取，未拾取的物品会丢失。"}>
+              <div className={s["loot-grid"]}>
+                {displayed.map((stack) => (
+                  <div
+                    className={s["loot-item"]}
+                    data-loot-uid={stack.uid}
+                    key={stack.uid}
+                    onPointerEnter={(event) =>
+                      setHovered({
+                        uid: stack.uid,
+                        point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                      })
+                    }
+                    onPointerLeave={() =>
+                      setHovered((current) => (current?.uid === stack.uid ? null : current))
+                    }
+                  >
+                    <ItemSlot stack={stack} showName={false} onClick={() => pick(stack)} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-        {hoveredStack && hovered && (
-          <ItemTooltip
-            stack={hoveredStack}
-            point={hovered.point}
-            themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)}
-          />
-        )}
-        <footer className={s["loot-foot"]}>
-          {confirming ? (
-            <div className={s["loot-confirm"]}>
-              <span>放弃剩余？</span>
-              <button className={cx(s["loot-btn"], s["is-danger"])} type="button" onClick={abandonLoot}>
-                确认放弃
-              </button>
-              <button className={s["loot-btn"]} type="button" onClick={() => setConfirming(false)}>
-                返回
-              </button>
-            </div>
-          ) : (
-            <>
-              <button className={cx(s["loot-btn"], s["is-primary"])} type="button" onClick={takeAllLoot}>
-                全部拾取
-              </button>
-              <button className={s["loot-btn"]} type="button" onClick={() => setConfirming(true)}>
-                放弃剩余
-              </button>
-            </>
-          )}
-        </footer>
+            </EventPanelBody>
+            {hoveredStack && hovered && (
+              <ItemTooltip
+                stack={hoveredStack}
+                point={hovered.point}
+                themeStyle={inventoryThemeVars(EXPLORE_BACKPACK_COLORS)}
+              />
+            )}
+            {confirming ? (
+              <EventPanelFoot note="放弃剩余？未拾取的物品会永久丢失">
+                <EventPanelButton tone="danger" onClick={abandonLoot}>
+                  确认放弃
+                </EventPanelButton>
+                <EventPanelButton onClick={() => setConfirming(false)}>返回</EventPanelButton>
+              </EventPanelFoot>
+            ) : (
+              <EventPanelFoot note={`待拾取 ${pendingLoot.length} 件`}>
+                <EventPanelButton tone="primary" onClick={takeAllLoot}>
+                  全部拾取
+                </EventPanelButton>
+                <EventPanelButton onClick={() => setConfirming(true)}>放弃剩余</EventPanelButton>
+              </EventPanelFoot>
+            )}
+          </EventPanelStage>
+        </EventPanelFrame>
       </section>
       {flying && typeof document !== "undefined" &&
         createPortal(

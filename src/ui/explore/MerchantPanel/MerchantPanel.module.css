@@ -1,8 +1,11 @@
+/* 商人服务槽。★ 颜色统一读 --event-accent(由 EventPanelFrame 下发, 交易终端为金色),
+   控件观感对齐 ui/common/EventPanel 的 option / panelButton —— 不要在这里另起一套配色。 */
 .panel {
+  --accent: var(--event-accent, #d6b477);
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .head,
@@ -16,13 +19,13 @@
 .kicker,
 .counter,
 .price {
-  color: var(--expl-kind, #d6b477);
+  color: var(--accent);
   font-size: 10px;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.12em;
 }
 
 .counter {
-  color: var(--muted);
+  color: #74888a;
   white-space: nowrap;
 }
 
@@ -33,43 +36,51 @@
   min-height: 0;
 }
 
+/* 与行动分镜的 .option 同款: 1px 边 + 左上/右下切角 + 深底渐变。 */
 .slot {
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 10px;
-  padding: 12px;
-  border: 1px solid #d6b47755;
-  background: linear-gradient(150deg, #2c271e66, #101719cc);
+  padding: 13px 16px;
+  border: 1px solid #33444a;
+  background: linear-gradient(110deg, #172327, #0e161a);
   box-shadow: inset 0 1px 0 #ffffff12;
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.slot:hover:not(.sold) {
+  border-color: color-mix(in srgb, var(--accent) 70%, #33444a);
+  box-shadow: inset 0 1px 0 #ffffff12, 0 8px 22px #0005;
 }
 
 .slot.sold {
-  border-color: #ffffff1c;
+  border-color: #273337;
   opacity: 0.52;
 }
 
 .slotHead h4 {
   margin: 0;
-  color: var(--text);
-  font-size: 15px;
-  letter-spacing: 1px;
+  color: #edf5ec;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .slotHead p {
   max-width: 300px;
-  margin: 5px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.55;
+  margin: 6px 0 0;
+  color: #91a2a2;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .price {
   flex: none;
   padding: 4px 6px;
-  border: 1px solid #d6b47766;
-  background: #d6b47712;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .stock {
@@ -88,7 +99,7 @@
   padding: 5px;
   border: 1px solid #ffffff1c;
   background: #0000002b;
-  color: var(--text);
+  color: #dfe9e4;
   cursor: pointer;
   transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
 }
@@ -103,15 +114,15 @@
 
 .stockChoice:hover:not(:disabled),
 .stockChoice:focus-visible:not(:disabled) {
-  border-color: #d6b477;
-  background: #d6b47718;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   transform: translateY(-2px);
 }
 
 .stockChoice > span {
-  color: #d6b477;
+  color: var(--accent);
   font-size: 10px;
-  letter-spacing: 1px;
+  letter-spacing: 0.12em;
 }
 
 .stockChoice:disabled,
@@ -123,7 +134,7 @@
   grid-column: 1 / -1;
   padding: 12px;
   border: 1px dashed #ffffff24;
-  color: var(--muted);
+  color: #8ba0a0;
   font-size: 11px;
 }
 
@@ -138,50 +149,58 @@
   grid-template-columns: 1fr auto;
   gap: 2px 8px;
   padding: 7px 8px;
-  border-left: 2px solid #d6b477;
-  background: #d6b4770d;
+  border-left: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .buff strong {
-  color: #f0d49b;
+  color: #edf5ec;
   font-size: 12px;
 }
 
 .buff span {
-  color: #d6b477;
+  color: var(--accent);
   font-size: 11px;
 }
 
 .buff small {
   grid-column: 1 / -1;
-  color: var(--muted);
+  color: #8ba0a0;
   font-size: 10px;
 }
 
+/* 服务按钮 / 关闭按钮 —— 与 EventPanel 的 panelButton 同一套观感。 */
 .serviceButton {
-  min-height: 34px;
-  padding: 8px 12px;
-  border: 1px solid #d6b47788;
-  background: #d6b47718;
-  color: #f0d49b;
+  min-height: 38px;
+  padding: 10px 16px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, #111a1d);
+  color: #f0f6e9;
   cursor: pointer;
-  font-size: 12px;
-  letter-spacing: 1px;
-  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  font-size: 13px;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .serviceButton:hover:not(:disabled),
 .serviceButton:focus-visible:not(:disabled) {
-  border-color: #f0d49b;
-  background: #d6b47732;
-  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--accent) 24%, #111a1d);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+.serviceButton:disabled,
+.closeButton:disabled {
+  border-color: #415155;
+  background: #101719;
+  color: #647476;
+  opacity: 0.62;
 }
 
 .message {
   min-height: 18px;
   margin: 0;
-  color: #b8c8c6;
-  font-size: 11px;
+  color: #91a2a2;
+  font-size: 12px;
 }
 
 .foot {
@@ -189,38 +208,37 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 8px;
-  border-top: 1px solid #ffffff1c;
-  color: var(--muted);
-  font-size: 11px;
+  padding-top: 12px;
+  border-top: 1px solid #314149;
+  color: #74888a;
+  font-size: 12px;
+  letter-spacing: 0.08em;
 }
 
 .closeButton {
-  min-height: 30px;
-  padding: 6px 12px;
-  border: 1px solid #ffffff42;
-  background: #ffffff0b;
-  color: var(--text);
+  min-width: 132px;
+  min-height: 38px;
+  padding: 10px 16px;
+  border-color: #415155;
+  background: #111a1d;
+  color: #dbe6e2;
   cursor: pointer;
-  font-size: 11px;
-  letter-spacing: 1px;
-  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  font-size: 13px;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .closeButton:hover:not(:disabled),
 .closeButton:focus-visible:not(:disabled) {
-  border-color: #d6b477;
-  background: #d6b47718;
-  transform: translateY(-2px);
+  border-color: var(--accent);
+  color: #f0f6e9;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 15%, transparent);
+  transform: translateY(-1px);
 }
 
-.closeButton:disabled {
-  cursor: default;
-  opacity: 0.42;
-}
-
-@media (max-width: 720px) {
-  .slots {
-    grid-template-columns: 1fr;
+@media (prefers-reduced-motion: reduce) {
+  .stockChoice:hover:not(:disabled),
+  .serviceButton:hover:not(:disabled),
+  .closeButton:hover:not(:disabled) {
+    transform: none;
   }
 }

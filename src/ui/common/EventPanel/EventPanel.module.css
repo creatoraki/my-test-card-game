@@ -79,6 +79,10 @@
   line-height: 1.4;
 }
 
+.headerTitle {
+  min-width: 0;
+}
+
 .demoHeader h1 {
   margin: 7px 0 0;
   color: #f4f7ec;
@@ -815,6 +819,139 @@
   margin-top: 0;
 }
 
+/* ===================== 后续浮层的通用版式 =====================
+   事件结算之后弹出的浮层(奖励 / 拾取 / 交易 / 背包)全部落在这套骨架上:
+   Scene 撑满视口 → Body 是**唯一**的滚动区 → Foot 钉在底边(左说明右按钮)。
+   这样切浮层时页眉基线、内容起始线与按钮行的位置都不动。 */
+.overlayScene {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  animation: briefingIn 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.overlayBody {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  animation: copyIn 520ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.overlayCaption {
+  margin: 0 0 18px;
+  color: #c8d8d3;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.overlayScroll {
+  flex: 1;
+  min-height: 0;
+  padding-right: 8px;
+  overflow-y: auto;
+  scrollbar-color: color-mix(in srgb, var(--event-accent) 40%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+.overlayScroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overlayScroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--event-accent) 40%, transparent);
+}
+
+.overlayNotice {
+  margin: 0;
+  padding: 22px;
+  border: 1px dashed color-mix(in srgb, var(--event-accent) 45%, transparent);
+  color: #8ba0a0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.overlayFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #314149;
+}
+
+.overlayFootNote {
+  min-width: 0;
+  color: #74888a;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.overlayActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 浮层按钮 —— 与情报分镜的 advanceButton 同一套观感, 只是不带右箭头、不占上边距。 */
+.panelButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 132px;
+  padding: 11px 18px;
+  border-color: #415155;
+  background: #111a1d;
+  color: #dbe6e2;
+  font-size: 14px;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+}
+
+.panelButton:hover:not(:disabled) {
+  border-color: var(--event-accent);
+  color: #f0f6e9;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--event-accent) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+.panelButton:active:not(:disabled) {
+  transform: translateY(1px);
+  transition-duration: 90ms;
+}
+
+.panelButtonPrimary {
+  border-color: var(--event-accent);
+  background: color-mix(in srgb, var(--event-accent) 12%, #111a1d);
+  color: #f0f6e9;
+}
+
+.panelButtonPrimary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--event-accent) 24%, #111a1d);
+}
+
+.panelButtonDanger {
+  border-color: #a5615a;
+  color: #f0b3ab;
+}
+
+.panelButtonDanger:hover:not(:disabled) {
+  border-color: #e47970;
+  box-shadow: 0 0 22px color-mix(in srgb, #e47970 18%, transparent);
+}
+
+.panelButton:disabled {
+  border-color: #415155;
+  background: #101719;
+  color: #647476;
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 @keyframes viewportReveal {
   from { opacity: 0; clip-path: inset(0 0 0 7%); }
   to { opacity: 1; clip-path: inset(0); }
@@ -912,8 +1049,15 @@
   .resultScene,
   .option,
   .resultSeal,
-  .resultNote {
+  .resultNote,
+  .overlayScene,
+  .overlayBody {
     animation: none;
+  }
+
+  .panelButton:hover:not(:disabled),
+  .panelButton:active:not(:disabled) {
+    transform: none;
   }
 
   .sceneOrb::after,

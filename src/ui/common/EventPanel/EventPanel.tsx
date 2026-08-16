@@ -1,4 +1,16 @@
-import { useLayoutEffect, useRef, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+// ★ 事件面板 ★ —— 探索页所有「浮层」的唯一版式真相。
+//
+// 这里同时给出两层 API:
+//   · EventPanelFrame  —— 外壳(页眉 kicker + 大标题 + 右侧状态位 + 带扫光的内容视口)。
+//     事件面板本身、以及事件结算之后弹出的所有后续浮层(奖励 / 拾取 / 交易 / 背包)都用它,
+//     这样切换浮层时页眉基线、字号与内容视口的内边距完全不动, 不会有「面板跳一下」的偏移感。
+//   · EventPanelBriefing / Choice / Result —— 事件面板专属的三段分镜。
+//   · EventPanelScene / Body / Foot / Button / Pick —— 后续浮层用的通用版式原语,
+//     控件观感与三段分镜里的 advanceButton / option 保持同一套。
+//
+// ⚠ 颜色一律走 --event-accent: 各浮层保留自己的主色(奖励=蓝 / 拾取=绿 / 交易=金 / 背包=青),
+//   但着色规则只有这一份, 不要在调用方重写页眉、边线或按钮的颜色。
+import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
 import s from "./EventPanel.module.css";
 
@@ -15,6 +27,51 @@ export interface EventPanelOption {
   state?: "chosen" | "dimmed";
   leading?: ReactNode;
   index?: number;
+}
+
+interface EventPanelFrameProps {
+  accent: string;
+  kicker: string;
+  title: ReactNode;
+  /** 页眉右侧的状态位。事件面板放三段分镜进度, 后续浮层放「待处理奖励」「3 件」这类读数。 */
+  status?: ReactNode;
+  headerExtra?: ReactNode;
+  /** 换 key 会重播视口的扫光 —— 内容整块换掉时给一个新值。 */
+  contentKey?: string;
+  scene?: EventPanelScene;
+  children: ReactNode;
+  className?: string;
+}
+
+export function EventPanelFrame({
+  accent,
+  kicker,
+  title,
+  status,
+  headerExtra,
+  contentKey,
+  scene,
+  children,
+  className,
+}: EventPanelFrameProps) {
+  const style = { "--event-accent": accent } as CSSProperties;
+  return (
+    <div className={cx(s.eventDemo, className)} style={style}>
+      <header className={s.demoHeader}>
+        <div className={s.headerTitle}>
+          <span className={s.demoKicker}>{kicker}</span>
+          <h1>{title}</h1>
+        </div>
+        <div className={s.headerActions}>
+          {status}
+          {headerExtra}
+        </div>
+      </header>
+      <main className={s.sceneViewport} data-scene={scene} key={contentKey}>
+        {children}
+      </main>
+    </div>
+  );
 }
 
 interface EventPanelProps {
@@ -39,28 +96,133 @@ export function EventPanel({
   className,
 }: EventPanelProps) {
   const sceneLabel = scene === "briefing" ? "情报" : scene === "choice" ? "行动" : "结算";
-  const style = { "--event-accent": accent } as CSSProperties;
   return (
-    <div className={cx(s.eventDemo, className)} style={style}>
-      <header className={s.demoHeader}>
-        <div>
-          <span className={s.demoKicker}>{kicker}</span>
-          <h1>{title}</h1>
-        </div>
-        <div className={s.headerActions}>
-          <span className={s.sceneProgress} aria-label={`当前分镜 ${scene === "briefing" ? 1 : scene === "choice" ? 2 : 3} / 3`}>
-            <i className={scene === "briefing" ? s.progressActive : ""} />
-            <i className={scene === "choice" ? s.progressActive : ""} />
-            <i className={scene === "result" ? s.progressActive : ""} />
-            <span>{sceneLabel}</span>
-          </span>
-          {headerExtra}
-        </div>
-      </header>
-      <main className={s.sceneViewport} data-scene={scene} key={`${sceneKey}-${scene}`}>
-        {children}
-      </main>
+    <EventPanelFrame
+      accent={accent}
+      kicker={kicker}
+      title={title}
+      scene={scene}
+      contentKey={`${sceneKey}-${scene}`}
+      headerExtra={headerExtra}
+      className={className}
+      status={
+        <span className={s.sceneProgress} aria-label={`当前分镜 ${scene === "briefing" ? 1 : scene === "choice" ? 2 : 3} / 3`}>
+          <i className={scene === "briefing" ? s.progressActive : ""} />
+          <i className={scene === "choice" ? s.progressActive : ""} />
+          <i className={scene === "result" ? s.progressActive : ""} />
+          <span>{sceneLabel}</span>
+        </span>
+      }
+    >
+      {children}
+    </EventPanelFrame>
+  );
+}
+
+// ---- 后续浮层的通用版式原语 ----
+// 一层 Scene(撑满视口的纵向流) + Body(唯一的滚动区) + Foot(左说明右按钮, 与结算分镜同款)。
+// ★ 浮层内容再复杂也只允许 Body 滚动: 页眉与底栏必须钉死, 否则各浮层的按钮位置又会各说各话。
+
+export function EventPanelStage({ children, className }: { children: ReactNode; className?: string }) {
+  return <section className={cx(s.overlayScene, className)}>{children}</section>;
+}
+
+export function EventPanelBody({
+  caption,
+  children,
+  className,
+}: {
+  caption?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={s.overlayBody}>
+      {caption && <p className={s.overlayCaption}>{caption}</p>}
+      <div className={cx(s.overlayScroll, className)}>{children}</div>
     </div>
+  );
+}
+
+export function EventPanelFoot({ note, children }: { note?: ReactNode; children?: ReactNode }) {
+  return (
+    <footer className={s.overlayFoot}>
+      <span className={s.overlayFootNote}>{note}</span>
+      <div className={s.overlayActions}>{children}</div>
+    </footer>
+  );
+}
+
+export function EventPanelNotice({ children }: { children: ReactNode }) {
+  return <p className={s.overlayNotice}>{children}</p>;
+}
+
+interface EventPanelButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  tone?: "primary" | "ghost" | "danger";
+}
+
+export function EventPanelButton({ tone = "ghost", className, ...rest }: EventPanelButtonProps) {
+  return (
+    <button
+      type="button"
+      {...rest}
+      className={cx(
+        s.panelButton,
+        tone === "primary" && s.panelButtonPrimary,
+        tone === "danger" && s.panelButtonDanger,
+        className,
+      )}
+    />
+  );
+}
+
+interface EventPanelPickProps {
+  leading?: ReactNode;
+  name: ReactNode;
+  desc?: ReactNode;
+  note?: ReactNode;
+  noteTone?: "amber" | "cyan" | "red";
+  selected?: boolean;
+  disabled?: boolean;
+  index?: number;
+  onClick?: () => void;
+  className?: string;
+}
+
+/** 单张选择卡 —— 与行动分镜的 .option 同一套几何与交互, 供后续浮层的列表复用。 */
+export function EventPanelPick({
+  leading,
+  name,
+  desc,
+  note,
+  noteTone,
+  selected = false,
+  disabled = false,
+  index = 0,
+  onClick,
+  className,
+}: EventPanelPickProps) {
+  const costClass = noteTone ? s[`cost${noteTone[0].toUpperCase()}${noteTone.slice(1)}`] : "";
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      style={{ "--option-delay": `${index * 60 + 80}ms` } as CSSProperties}
+      className={cx(s.option, selected && s.optionChosen, className)}
+    >
+      {leading ? (
+        <span className={s.optionLeading}>{leading}</span>
+      ) : (
+        <span className={s.optionNumber}>{String(index + 1).padStart(2, "0")}</span>
+      )}
+      <span className={s.optionMain}>
+        <strong>{name}</strong>
+        {desc && <span>{desc}</span>}
+        {note && <em className={costClass}><i /> {note}</em>}
+      </span>
+      <span className={s.optionArrow} aria-hidden="true">↗</span>
+    </button>
   );
 }
 

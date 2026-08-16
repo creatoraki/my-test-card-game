@@ -1,3 +1,5 @@
+/* 交易终端浮层。★ 外框与页眉走事件面板同一套(panel-box + EventPanelFrame),
+   这里只留「交易」自己的东西: 主色、内容区滚动与结算记录条。 */
 .layer {
   position: absolute;
   inset: 0;
@@ -18,16 +20,10 @@
 }
 
 .panel {
-  composes: panel-shell from "../styles/explorePanel.module.css";
+  composes: panel-box from "../styles/explorePanel.module.css";
   --k: #d6b477;
   position: relative;
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  width: 1080px;
-  max-height: 760px;
-  padding: 26px 30px 22px;
-  pointer-events: auto;
+  overflow: hidden;
 }
 
 .panel-reveal {
@@ -46,42 +42,36 @@
   composes: panel-scan from "../styles/explorePanel.module.css";
 }
 
-.head,
-.body,
-.notes {
-  position: relative;
-  z-index: 1;
-}
-
-.head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #d6b47755;
-}
-
-.kicker {
+.step {
   color: #d6b477;
-  font-size: 10px;
-  letter-spacing: 2px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
 }
 
-.head h2 {
-  order: -1;
-  margin: 0;
-  color: #f2f1df;
-  font-size: 25px;
-  letter-spacing: 2px;
+/* 与其它浮层同构: 内容区是唯一的滚动区, 记录条钉在底边。 */
+.stage {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .body {
+  flex: 1;
   min-height: 0;
-  margin-top: 18px;
+  padding-right: 8px;
   overflow-y: auto;
   scrollbar-color: #d6b47766 transparent;
   scrollbar-width: thin;
+}
+
+.body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: #d6b47766;
 }
 
 .notes {
@@ -90,7 +80,7 @@
   gap: 8px;
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid #ffffff1c;
+  border-top: 1px solid #314149;
 }
 
 .notes span {
@@ -106,23 +96,4 @@
   border-color: #ffffff1c;
   background: transparent;
   color: var(--muted);
-}
-
-@media (max-width: 720px) {
-  .panel {
-    width: calc(100% - 28px);
-    max-height: calc(100% - 28px);
-    padding: 20px 18px 16px;
-  }
-
-  .head {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .head h2 {
-    order: 0;
-    font-size: 20px;
-  }
 }

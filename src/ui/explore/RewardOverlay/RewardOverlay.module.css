@@ -1,3 +1,6 @@
+/* 事件奖励浮层。★ 页眉/正文/底栏/按钮/选择卡的样式全部来自 ui/common/EventPanel ——
+   这里只留奖励自己的东西: 外框主色、角色/怪癖列的栅格、卡牌与装备候选的排布。
+   ⚠ 不要在这里重写宽高(几何见 explorePanel.module.css 的 panel-box)。 */
 .reward-layer {
   position: absolute;
   inset: 0;
@@ -11,17 +14,10 @@
 }
 
 .reward-panel {
-  composes: panel-shell from "../styles/explorePanel.module.css";
+  composes: panel-box from "../styles/explorePanel.module.css";
   --k: #a7c9ff;
   position: relative;
-  display: flex;
-  min-height: 0;
-  flex-direction: column;
-  width: 800px;
-  max-height: var(--expl-overlay-max-h);
   overflow: hidden;
-  padding: 24px 30px 22px;
-  pointer-events: auto;
 }
 
 .panel-reveal {
@@ -40,107 +36,38 @@
   composes: panel-scan from "../styles/explorePanel.module.css";
 }
 
-.reward-head,
-.reward-foot {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.reward-kicker,
-.group-label {
-  color: #8fa9cc;
-  font-size: 10px;
-  letter-spacing: 2px;
-}
-
-.reward-title {
-  margin: 5px 0 0;
-  color: #e9f2ff;
-  font-size: 25px;
-  letter-spacing: 2px;
-}
-
 .reward-step {
   color: #a7c9ff;
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
 }
 
-.reward-body {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 22px;
+.group-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #8fa9cc;
+  font-size: 10px;
+  letter-spacing: 0.12em;
 }
 
-.reward-caption {
-  margin: 0;
-  color: #c0cedd;
-  font-size: 18px;
-  line-height: 1.7;
-}
-
-.character-list {
+/* 角色 / 怪癖选择列 —— 卡片本体是 EventPanelPick(行动分镜同款), 这里只排栅格。 */
+.pick-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.character-choice {
-  display: flex;
-  align-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  min-height: 64px;
-  padding: 10px 14px;
-  border: 1px solid #a7c9ff38;
-  background: #122033;
-  color: #dce8f6;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.character-choice:hover,
-.character-choice.is-selected {
-  border-color: #a7c9ff;
-  background: #23405f;
-}
-.character-choice:hover:not(:disabled),
-.character-choice:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: 0 0 22px -12px #a7c9ff;
-}
-.character-choice:active:not(:disabled) {
-  transform: translateY(1px) scale(0.985);
-  transition-duration: 90ms;
-}
-.is-selected {
-  border-color: #a7c9ff;
-  background: #23405f;
-  box-shadow: inset 3px 0 0 var(--k), 0 0 18px -12px #a7c9ff;
 }
 
 .character-emoji {
-  font-size: 28px;
+  font-size: 24px;
+  line-height: 1;
 }
 
 .card-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   justify-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 .card-choice {
@@ -163,36 +90,6 @@
   box-shadow: inset 3px 0 0 var(--k), 0 0 18px -12px #a7c9ff;
 }
 
-.quirk-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.quirk-choice {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 5px 8px;
-  padding: 12px;
-  border: 1px solid #a7c9ff38;
-  background: #122033;
-  color: #dce8f6;
-  cursor: pointer;
-  text-align: left;
-}
-
-.quirk-choice:hover,
-.quirk-choice:focus-visible {
-  border-color: #a7c9ff;
-  background: #23405f;
-}
-
-.quirk-choice small {
-  grid-column: 2;
-  color: #9faec0;
-  font-size: 11px;
-  line-height: 1.5;
-}
 .card-choice:active {
   transform: translateY(1px) scale(0.985);
   transition-duration: 90ms;
@@ -201,14 +98,13 @@
 .item-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
-  margin-top: 10px;
+  gap: 14px;
 }
 
 .item-choice {
   --item-slot-icon-size: 74%;
   --item-slot-count-size: 22px;
-  width: 200px;
+  width: 148px;
   padding: 4px;
   border: 1px solid transparent;
   transition:
@@ -235,14 +131,14 @@
   --item-slot-icon-size: 74%;
   --item-slot-count-size: 22px;
   display: flex;
-  width: 200px;
+  width: 148px;
   flex-direction: column;
   gap: 4px;
-  color: #aebed1;
-  font-size: 15px;
-  text-align: center;
   padding: 4px;
   border: 1px solid transparent;
+  color: #aebed1;
+  font-size: 12px;
+  text-align: center;
   transition:
     transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
     border-color 180ms ease,
@@ -256,76 +152,13 @@
   gap: 24px;
 }
 
-.reward-empty {
-  margin: 0;
-  padding: 22px;
-  border: 1px dashed #a7c9ff45;
-  color: #9faec0;
-  text-align: center;
-}
-
-.reward-foot {
-  padding-top: 15px;
-  border-top: 1px solid #d8e6f51c;
-  color: #9eacc0;
-  font-size: 12px;
-}
-
-.reward-btn {
-  min-width: 108px;
-  padding: 10px 16px;
-  border: 1px solid #b5c8df3f;
-  background: #16263b;
-  color: #dbe8f7;
-  cursor: pointer;
-  transition:
-    transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease,
-    opacity 180ms ease;
-}
-
-.reward-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: #a7c9ff;
-}
-
-.reward-btn:focus-visible,
-.reward-btn:hover:not(:disabled) {
-  box-shadow: 0 0 22px -12px #a7c9ff;
-}
-
-.reward-btn:active:not(:disabled) {
-  transform: translateY(1px) scale(0.985);
-  transition-duration: 90ms;
-}
-
-.reward-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.reward-btn.is-primary {
-  border-color: #a7c9ff99;
-  background: #2b527e;
-}
-.is-primary {
-  border-color: #a7c9ff99;
-  background: #2b527e;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .reward-panel { animation: none; }
-  .character-choice:hover:not(:disabled),
-  .character-choice:active:not(:disabled),
   .card-choice:active,
   .item-choice:hover,
   .item-choice:active,
   .equipped-choice:hover,
-  .equipped-choice:active,
-  .reward-btn:hover:not(:disabled),
-  .reward-btn:active:not(:disabled) {
+  .equipped-choice:active {
     transform: none;
   }
 }

@@ -76,7 +76,7 @@
    的组合, 即便某些浏览器把缩放层当作 backdrop root, 也仍有底色兜住可读性。) */
 .explore-stage {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
-  --expl-overlay-max-h: 820px;
+  /* 浮层高度不再各写一份: 事件面板与后续浮层统一走 explorePanel 的 panel-box(936×680)。 */
   --expl-glow: #6fe3f5; /* 本页强调青: 与路由图横线同色, 读作「还在供电的东西」 */
   --expl-line: #ffffff24; /* 玻璃常态描边 */
   /* ★ 背景压暗强度 —— 想调明暗**只改这一个数**(0 = 完全不压, 露出原图; 1 = 原始最暗配方)。
@@ -600,18 +600,11 @@
 }
 /* 画框占满左栏，图片在其中保持 1:1 并水平、垂直居中。 */
 .expl-panel {
-  composes: panel-shell from "../styles/explorePanel.module.css";
+  /* 几何(936×680)由 panel-box 统一下发, 与后续浮层同框 —— 不要在这里重写宽高。 */
+  composes: panel-box from "../styles/explorePanel.module.css";
   --k: var(--expl-kind, #c9d4d2);
   --k-soft: var(--expl-kind-soft, #c9d4d21f);
   --k-line: var(--expl-kind-line, #c9d4d266);
-  pointer-events: auto;
-  width: 936px;
-  height: 680px;
-  padding: 0;
-  box-shadow:
-    inset 0 1px 0 var(--k),
-    0 28px 72px -34px #000000e8,
-    0 0 90px -42px var(--k);
 }
 
 .expl-panel .panel-scan {

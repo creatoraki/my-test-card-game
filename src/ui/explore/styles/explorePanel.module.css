@@ -22,6 +22,22 @@
   );
 }
 
+/* ★ 浮层外框的唯一尺寸真相 ★
+   落点事件面板与它之后弹出的所有浮层(奖励 / 拾取 / 交易 / 背包)共用这一个框:
+   **936 × 680, 画布正中**。尺寸各写一份就会出现「换个浮层边界跳一下」的偏移感,
+   要调大小请只改这里。内容排版交给 ui/common/EventPanel。 */
+.panel-box {
+  composes: panel-shell;
+  width: 936px;
+  height: 680px;
+  padding: 0;
+  pointer-events: auto;
+  box-shadow:
+    inset 0 1px 0 var(--k),
+    0 28px 72px -34px #000000e8,
+    0 0 90px -42px var(--k);
+}
+
 .panel-reveal {
   animation: panelRevealIn calc(var(--pr-bar-ms) + var(--pr-expand-ms)) var(--pr-ease) forwards;
 }
