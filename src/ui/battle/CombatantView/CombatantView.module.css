@@ -207,23 +207,28 @@
 .combatant[data-targetable] {
   cursor: pointer;
 }
-/* ⚠ 必须连 idleBob 一起写: animation 是简写, 只写 pulseGlow 会把待机呼吸整条抹掉。
+/* ⚠ 必须连 idleBob 一起写: animation 是简写, 只写 targetRim 会把待机呼吸整条抹掉。
    两条同时挂在这个元素上互不干扰 —— 一条动 transform, 一条动 filter。 */
 .combatant[data-targetable] .combatant-figure {
   animation:
     idleBob var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite,
-    pulseGlow 1.1s infinite;
+    targetRim 1.25s ease-in-out infinite;
 }
 .combatant[data-targetable]:hover {
   transform: translateY(-4px) scale(1.03);
 }
-@keyframes pulseGlow {
+/* 可选目标提示: 细霓虹描边, 不再做大范围糊光 —— 白热内芯紧贴立绘轮廓(1px)让边缘
+   锐利, 外圈一层提亮的 --accent 色晕(2~4px)让色相集中、清晰可辨; 峰值只多一圈
+   50% 透明度的窄色雾做呼吸, 光始终沿轮廓走, 不会糊成旧版那种 9px 大光斑。 */
+@keyframes targetRim {
   0%,
   100% {
-    filter: drop-shadow(0 0 3px var(--accent));
+    filter: drop-shadow(0 0 1px #f6ffde) drop-shadow(0 0 2px color-mix(in srgb, var(--accent) 85%, #fff));
   }
   50% {
-    filter: drop-shadow(0 0 9px var(--accent)) drop-shadow(0 0 3px var(--accent));
+    filter: drop-shadow(0 0 1px #f6ffde)
+      drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 85%, #fff))
+      drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
   }
 }
 /* 仍有盒子的小徽章(如 .countdown.imminent)用这条描边脉冲 */
@@ -492,9 +497,9 @@ span.combatant-portrait {
     opacity: 1;
     transform: none;
   }
-  /* 可选中提示不能一起停掉 —— 那是玩法信息而非装饰。去掉脉冲, 保留一圈静态描光。 */
+  /* 可选中提示不能一起停掉 —— 那是玩法信息而非装饰。去掉脉冲, 保留一圈静态细描光。 */
   .combatant[data-targetable] .combatant-figure {
     animation: none;
-    filter: drop-shadow(0 0 6px var(--accent));
+    filter: drop-shadow(0 0 1px #f6ffde) drop-shadow(0 0 3px var(--accent));
   }
 }
