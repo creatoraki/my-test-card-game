@@ -88,8 +88,8 @@ src/ui/
 | --- | --- |
 | [RouteBoard](../../src/ui/explore/RouteBoard/RouteBoard.tsx) | SVG 等距路由图。统一由 `sx()` / `sy()` 投影，阶段依次展示生成、封存、桥接揭示、入口选择、走线、落点和路径披露；隐藏桥接时不能读取引擎求解结果。 |
 | [NodeTip](../../src/ui/explore/NodeTip/NodeTip.tsx) | 节点悬浮详情浮卡：贴在被悬停的瓦片旁展示事件标题与描述，落位由 RouteBoard 导出的 `nodeCenter` / `NODE_ICON_TOP` 算，越界时自动左右贴边或翻到瓦片下方；只讲「这是什么」，不含粒子、风险与选项预览。 |
-| [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端内容面板：展示两个服务槽位、锁定货架、食品报价、物品详情、公开 BUFF 概率与关闭入口；由 `ShopOverlay` 承载，只派发购买和关闭 action，不承载交易规则。 |
-| [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，承载 `MerchantPanel` 与本节点摘要；关闭交易直接回到节点决策。 |
+| [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端内容面板：按服务槽位切 tab，图标化食品报价、持有量和确认操作；商品槽位展示图标货架与详情，随机服务展示 BUFF 概率，队伍/待办服务展示结算说明；只派发购买和关闭 action，不承载交易规则。 |
+| [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，承载 tab 化 `MerchantPanel` 与本节点摘要；只保留页眉服务摘要和节点记录条，关闭交易直接回到节点决策。 |
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`。 |
 | [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
@@ -148,6 +148,7 @@ src/ui/
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 羁绊词条线框图标，无样式文件。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
+| [item/ItemCostTag](../../src/ui/common/item/ItemCostTag/ItemCostTag.tsx) | 图标化食品报价标签：展示价格、背包持有量与缺货红框，复用 `ItemTooltip` 提供无原生 `title` 的物品详情悬浮。 |
 | [item/ItemTabs](../../src/ui/common/item/ItemTabs/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
 | [item/itemFilters.ts](../../src/ui/common/item/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |
 | [item/ItemInventoryPanel](../../src/ui/common/item/ItemInventoryPanel/ItemInventoryPanel.tsx) | 背包、仓库等物品容器共用的面板壳，提供格网、容量读数、受控选中态和 portal 物品详情。 |

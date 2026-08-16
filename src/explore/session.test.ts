@@ -232,6 +232,18 @@ describe("节点生成与保底(设计文档 §2.3.2)", () => {
     }
   });
 
+  it("最终布局计算: 同一推进段内, 同类型(kind)事件不超过 2 个", () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      eachBoard(seed, (s) => {
+        for (const row of s.board!.nodes) {
+          const counts = new Map<string, number>();
+          for (const e of row) counts.set(e.kind, (counts.get(e.kind) ?? 0) + 1);
+          for (const n of counts.values()) expect(n).toBeLessThanOrEqual(2);
+        }
+      });
+    }
+  });
+
   it("终局类事件不会在第 5 轮之前出现(枯竭档的撤离升降机除外)", () => {
     for (let seed = 1; seed <= 20; seed++) {
       eachBoard(seed, (s) => {

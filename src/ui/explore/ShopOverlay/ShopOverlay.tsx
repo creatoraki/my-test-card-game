@@ -50,19 +50,17 @@ export default function ShopOverlay() {
           accent="#d6b477"
           kicker="交易终端 / SHOPPING"
           title={displayedEvent.title}
-          status={<span className={s.step}>已成交 {displayedShop.trades} / {displayedShop.slots.length}</span>}
+          status={<span className={s.step}>交易服务 · {displayedShop.slots.length} 槽位</span>}
           contentKey={`shop-${displayedEvent.id}`}
         >
           <div className={s.stage}>
-            <div className={s.body}>
-              <MerchantPanel
-                session={displayedSession}
-                shop={displayedShop}
-                onBuy={buyFromShop}
-                canClose={canClose}
-                onClose={closeShop}
-              />
-            </div>
+            <MerchantPanel
+              session={displayedSession}
+              shop={displayedShop}
+              onBuy={buyFromShop}
+              canClose={canClose}
+              onClose={closeShop}
+            />
             <div className={s.notes} aria-live="polite">
               {displayedSession.pendingNotes.length ? (
                 displayedSession.pendingNotes.map((note, index) => <span key={`${note}-${index}`}>{note}</span>)

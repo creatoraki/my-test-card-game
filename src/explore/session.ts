@@ -861,6 +861,7 @@ function fitsDepth(e: NodeEvent, seg: number): boolean {
 //   · 至少 3 个成长节点;
 //   · 全图至少 minCount 个风险事件(位置不限, 缺了才补);
 //   · 告急档(第 4 档)起传送投递口必现; 枯竭档(第 5 档)起撤离升降机必现于第 1-2 段。
+// ★ 收尾的最终布局计算: 同一行(推进段)内, 同类型(kind)事件最多 2 个(见 finalizeRowKinds)。
 function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
   const pool = getEventPool(poolId);
   const tier = energyTier(s.energy).tier;
@@ -1034,7 +1035,7 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
   guarantee([0, 1, 2, 3], isGrowth, 3);
 
   // 池子实在填不满时先找全图未出现的事件, 再退回同段复制, 保证结构完整(20 格全满)。
-  return grid.map((row, seg) => {
+  const finalGrid = grid.map((row, seg) => {
     const filled = row.filter((e): e is NodeEvent => !!e);
     return row.map(
       (e, lane) => {
@@ -1048,6 +1049,50 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
       },
     );
   });
+
+  // ★ 最终布局计算: 同一推进段内, 同类型(kind)事件最多 2 个 —— 收尾前最后一道修正。
+  finalizeRowKinds(s, finalGrid, all, locked);
+  return finalGrid;
+}
+
+// ★ 最终布局计算: 把每一行(推进段)里超过 2 个的同类型(kind)事件换掉。
+//
+// 为什么是**收尾修正**而不是填充时过滤: 填充阶段的候选过滤要兼顾冷却/保底/锁定,
+// 再加一条「同行同 kind ≤ 2」会把候选池反复掏空, 保底与随机性互相打架; 而生成完毕后
+// 一行 5 格里同 kind 超额(3+)只可能是随机填充造成的, 换掉超额的格子即可, 不回溯。
+//
+// ⚠ 只换**未锁定**的格子: 战斗/空节点/档位必现/保底修复锁定的格子在生成期不许动
+//   (它们各自有「恰好 N 个」的硬约束, 见 pickNodes 的 locked)。锁定格本身不会造成
+//   超额 —— 战斗同行 ≤2、空节点同行 ≤1、保底每类锁定的格子 ≤ 该保底的额度 ——
+//   所以换掉未锁定的超额格, 就能把每行每类压到 ≤2, 不会修不干净。
+// ⚠ 候选只从「该段可放(fitsDepth)且全图未出现」的事件里挑, 保持「20 格全图不重复」;
+//   池子给不出候选时跳过这一格 —— 不破坏 20 格全满, 也不破坏全图唯一。
+function finalizeRowKinds(
+  s: ExploreState,
+  grid: (NodeEvent | null)[][],
+  all: NodeEvent[],
+  locked: Set<string>,
+): void {
+  for (let seg = 0; seg < grid.length; seg++) {
+    const row = grid[seg];
+    const countOf = (kind: string) => row.filter((e) => e?.kind === kind).length;
+    for (let lane = 0; lane < row.length; lane++) {
+      const e = row[lane];
+      if (!e || countOf(e.kind) <= 2 || locked.has(`${seg}:${lane}`)) continue;
+      const cand = shuffle(
+        s,
+        all.filter(
+          (x) =>
+            fitsDepth(x, seg) &&
+            !grid.some((r) => r.some((y) => y?.id === x.id)) &&
+            countOf(x.kind) < 2,
+        ),
+      )[0];
+      if (!cand) continue; // 池子给不出: 这一格保留原样, 不破坏其他约束
+      row[lane] = cand;
+      // 换入后旧 kind 计数 −1、新 kind 计数 +1 ⇒ 后续格子重新 countOf 时自然落在新分布上。
+    }
+  }
 }
 
 export function generateRound(s: ExploreState): void {

@@ -49,29 +49,12 @@
   white-space: nowrap;
 }
 
-/* 与其它浮层同构: 内容区是唯一的滚动区, 记录条钉在底边。 */
+/* MerchantPanel 内部的 EventPanelBody 是唯一滚动区, 记录条钉在底边。 */
 .stage {
   display: flex;
   height: 100%;
   min-height: 0;
   flex-direction: column;
-}
-
-.body {
-  flex: 1;
-  min-height: 0;
-  padding-right: 8px;
-  overflow-y: auto;
-  scrollbar-color: #d6b47766 transparent;
-  scrollbar-width: thin;
-}
-
-.body::-webkit-scrollbar {
-  width: 4px;
-}
-
-.body::-webkit-scrollbar-thumb {
-  background: #d6b47766;
 }
 
 .notes {
