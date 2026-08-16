@@ -146,7 +146,7 @@ function Pipe({ a, b, j = 0 }: { a: [number, number]; b: [number, number]; j?: n
 // DOM 由下往上四层:
 //   ① 落地影   —— 2:1 的模糊椭圆, **不参与 matrix**(它本来就是地面上的一摊影子);
 //   ② 薄片侧壁 —— 与砖面同形的一片实心断面, 在**屏幕空间**下移 TILE_DEPTH ⇒ 下缘露一线厚度;
-//   ③ 砖面     —— 一块**空的**哑光小地砖(跟着 TILE_MATRIX 躺倒): 底色 + 收边(+ 风险警示带);
+//   ③ 砖面     —— 一块哑光小地砖(跟着 TILE_MATRIX 躺倒): 底色 + 收边 + 事件类型纹理;
 //   ④ 悬空图标 —— 沿通道轴**直立**在砖中心上方的一枚自发光图标(走 PANEL_MATRIX)。
 //
 // ★ 图标为什么走 PANEL_MATRIX 而不是正对观者: 这一版要的是**正交视角下的立面** ——
@@ -158,12 +158,32 @@ function Pipe({ a, b, j = 0 }: { a: [number, number]; b: [number, number]; j?: n
 //   它自己必须永远是完全透明的、不画任何东西 —— 一枚悬在虚空里发光的符号, 就是全部。
 // ⛔ 砖面上不放任何文字, 也没有投影源光斑: 图标直接浮在砖上, 不是被一盏灯投出来的。
 //   ⚠ 因此砖按钮自己没有可访问名称, 调用方必须给 aria-label。
-function TileArt({ icon, risk }: { icon: ReactNode; risk?: boolean }) {
+// ★ 砖面唯一的「内容」是事件类型标记(kind 给了才画, 入口砖没有), 分两种做法:
+//   · BAND_KINDS(危险 / 撤离)—— 砖面下缘一条**纹理带**, 位置尺寸沿用原来的风险警示带。
+//     这两类是「地形告示」性质的事件(此处危险 / 此处可离场), 用警示条纹读起来最直接。
+//   · 其余六类 —— 砖面正中**平铺一枚同款事件图标**(与悬浮图标共用 QwenEventIcon 的路径),
+//     它在砖面**里面**, 跟着 TILE_MATRIX 一起被压平 ⇒ 读作「印在地面上的标记」, 不是又一枚浮标。
+//   ⛔ 两种做法都只占砖面的一小块, 不要铺满: 满铺会让每块砖变成一张花纹卡片, 地面的整体感就散了。
+//   ⚠ 砖上的标记与悬浮图标同色系但**明显更暗**(--k 掺暗灰, 见 .faceGlyph): 层次是
+//     「地面刻痕 vs 自发光符号」—— 一旦提到跟悬浮图标一样亮, 两枚图标就开始互相抢主角。
+//   ⛔ 风险度(highRisk / negative)在砖上**完全不表现**: 那是详情卡里的文字标签的事。
+const BAND_KINDS = new Set<NodeEvent["kind"]>(["hazard", "retreat"]);
+
+function TileArt({ icon, kind }: { icon: ReactNode; kind?: NodeEvent["kind"] }) {
   return (
     <>
       <span className={s.tileShadow} aria-hidden />
       <span className={s.tileSlab} aria-hidden />
-      <span className={s.tileFace} aria-hidden>{risk && <span className={s.faceRisk} />}</span>
+      <span className={s.tileFace} aria-hidden>
+        {kind &&
+          (BAND_KINDS.has(kind) ? (
+            <span className={s.faceKind} />
+          ) : (
+            <span className={s.faceGlyph}>
+              <QwenEventIcon kind={kind} />
+            </span>
+          ))}
+      </span>
       {/* ⚠ 图标必须留在砖面**外面**: 砖面 overflow:hidden 且被 TILE_MATRIX 压平,
           放进去会被裁掉一半, 剩下的一半还会跟着躺倒。 */}
       <span className={s.projPanel} aria-hidden>
@@ -508,7 +528,6 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
                 isCurrent && s.isCurrent,
                 settled && s.isSettled,
                 hovered && s.isHovered,
-                ev.risk && s[`r-${ev.risk}`],
               )}
               aria-label={`第 ${seg + 1} 推进段 · ${ev.title}`}
               style={
@@ -526,7 +545,7 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
               onFocus={() => setHoverNode({ seg, lane })}
               onBlur={() => setHoverNode(null)}
             >
-              <TileArt icon={<QwenEventIcon kind={ev.kind} />} risk={Boolean(ev.risk)} />
+              <TileArt icon={<QwenEventIcon kind={ev.kind} />} kind={ev.kind} />
             </button>
           );
         })}

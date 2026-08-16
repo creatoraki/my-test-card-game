@@ -324,12 +324,13 @@
   transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
-/* ── 砖面: 一块**空的哑光地砖**, 压平后躺在地上 ──
-   ⛔ 砖面上除了风险警示带之外**什么都不画**: 卡面(切角内边框 / 透视网格 / 斜向反光 / 图标)
-     全部搬到直立的投影屏上去了, 不要再往地砖上加任何内容。
+/* ── 砖面: 一块哑光地砖, 压平后躺在地上 ──
+   ⛔ 砖面上除了**事件类型纹理**(.faceKind)之外什么都不画: 卡面(切角内边框 / 透视网格 /
+     斜向反光 / 图标)全部搬到直立的投影屏上去了, 不要再往地砖上加别的内容。
    ⛔ 也不再有玻璃: 没有 backdrop-filter, 没有半透明磨砂底, 没有转折高光。
-   ⛔⛔ 砖上**一点事件色都不掺**(底色 / 收边 / 外辉光全是中性灰): 25 块砖是同一批地面构件,
-     颜色是「屏」的事 —— 砖一旦带色, 地面就会跟着屏一起变成调色盘, 全图的色彩层级就塌了。
+   ⚠ 砖的**底色 / 收边 / 外辉光**依旧全是中性灰, 一点事件色都不掺: 25 块砖是同一批地面构件,
+     唯一允许带色相的是那层纹理, 而且已经掺白降透明压到「隐隐透出」的档 ——
+     底色再跟着事件走, 地面就会变成调色盘, 全图的色彩层级就塌了。
      砖的状态(悬停 / 落点 / 已结算)一律只靠**明度**表达。 */
 .tileFace {
   position: absolute;
@@ -350,28 +351,72 @@
     filter 220ms ease;
 }
 
-/* 风险砖: 沿砖面下缘的一条警示带(平放之后它正好沿着朝观者那条棱)。
-   ⚠ 警示带也是中性的: 它标的是「这块地危险」, 不是事件类型 —— 靠斜纹本身读, 不靠颜色。 */
-.faceRisk {
+/* ── 事件类型标记(一) 纹理带: 只给危险 / 撤离两类 ──
+   ★ 位置与尺寸沿用原来那条风险警示带(下缘满宽 9px): 平放之后它正好沿着朝观者那条棱,
+     是整块砖上离视线最近、最容易被扫到的一条边。
+   ★ 为什么只剩这两类走条纹: 它们是「地形告示」性质的事件(此处危险 / 此处可离场),
+     警示条纹本身就是这类信息的通用语; 其余六类是「这里有个东西」, 走砖面图标(见 .faceGlyph)。
+   ⛔ **不要铺满整块砖面**, 也不要把条纹再推广回别的 kind —— 上一版八类全走条纹已经否掉了。
+   ⚠ 图案的节奏必须压在 9px 的带高之内: 节奏一大, 窄带里只剩两三个色块, 条纹就糊成一条虚线。
+   ⚠ 颜色只从 --k 掺一点点: 掺白之后再降透明度 ⇒ 砖仍读作深炭色的地面构件,
+     只是「隐隐透出这块地属于哪类事件」。掺多了地面就会跟着图标一起变成调色盘。
+   ⛔ 风险度(highRisk / negative)在砖上**不表现**: 那是详情卡里文字标签的事, 不要再加警示带。
+   ⚠ 纹理跟着砖面一起被 --tile-matrix 剪切(它在 .tileFace 里面) ⇒ 图案是**躺在地上**的,
+     斜纹的角度看上去不等于这里写的角度, 这是对的, 不要反向补偿。 */
+.faceKind {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   height: 9px;
-  background: repeating-linear-gradient(-45deg, #ffffff8a 0 3px, transparent 3px 7px);
-  opacity: 0.55;
+  /* 图案墨色: --k 先掺白提到砖面之上的明度档, 再整体降透明度。 */
+  --ink: color-mix(in srgb, color-mix(in srgb, var(--k) 58%, var(--tac-white)) 62%, transparent);
   pointer-events: none;
+  transition: opacity 220ms ease;
+}
+/* 危险: 单向粗斜纹(经典警示条) */
+.k-hazard .faceKind {
+  background: repeating-linear-gradient(-45deg, var(--ink) 0 3px, transparent 3px 7px);
+}
+/* 撤离: 稀疏宽竖块(断续的栅栏 / 闸门) */
+.k-retreat .faceKind {
+  background: repeating-linear-gradient(90deg, var(--ink) 0 4px, transparent 4px 10px);
 }
 
-/* 纯负面: 砖面整体压暗一档 + 收边提亮成实线警示边 */
-.r-negative .tileFace {
-  border-color: #ffffff5c;
-  filter: brightness(0.82);
+/* ── 事件类型标记(二) 砖面图标: 其余六类 ──
+   ★ 与悬浮图标**同一套 QwenEventIcon 路径**, 但这一枚在 .tileFace 里面 ⇒ 跟着 TILE_MATRIX
+     一起被压平, 读作「印在地面上的标记」。⚠ 因此它看上去是斜的, 这是正交投影的正确读数。
+   ★ 层次: 悬浮图标是**自发光符号**(--k1 掺白 + drop-shadow 辉光), 砖上这枚是**地面刻痕** ——
+     同色系、明度低两档、没有任何辉光。⛔ 不要给它加 drop-shadow 或提亮到 --k1:
+     一亮就变成两枚在抢主角的图标, 「浮在砖上方」的空间关系立刻读不出来。
+   ⚠ 尺寸压在 26px: 砖面才 52px 见方, 再大就顶到砖的收边、压平后会被菱形切掉边角。
+   ⚠ 描边色用 currentColor(见 QwenEventIcon), 所以这里只需要给 color。 */
+.faceGlyph {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  /* 地面刻痕色: --k 掺进暗灰 ⇒ 只比砖面底色亮一点, 色相还在, 亮度远低于悬浮图标。 */
+  color: color-mix(in srgb, var(--k) 52%, var(--tac-dark));
+  opacity: 0.9;
+  pointer-events: none;
+  transition:
+    color 220ms ease,
+    opacity 220ms ease;
 }
-/* 高风险: 警示带加密 */
-.r-highRisk .faceRisk {
-  height: 12px;
-  opacity: 0.95;
+.faceGlyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* 悬停 / 落点时砖面整体提亮, 刻痕跟着抬一档(仍然远暗于悬浮图标)。 */
+.root .node:hover .faceGlyph,
+.root .node:focus-visible .faceGlyph,
+.root .node.isHovered .faceGlyph,
+.node.isCurrent .faceGlyph {
+  color: color-mix(in srgb, var(--k) 62%, var(--tac-grey));
 }
 
 /* ===================== 悬空图标 =====================
