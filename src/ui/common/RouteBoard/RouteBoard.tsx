@@ -11,7 +11,7 @@
 //   ⛔ 除图标外**不放任何东西**(卡面、编目角标、大字符全部取消, 入口通道号除外):
 //     事件类型只由图标与事件色表达, 要读的字全部收进 ExploreScreen 的悬浮浮卡(NodeTip)。
 //   ⚠ 未知节点(见 board.hiddenNodes, 每张图固定 3 个): 走到之前砖与图标一律按 "unknown"
-//     占位类型渲染(暗灰蓝 + 问号, 见 .k-unknown), 落地(visited 包含)后才换回真实事件。
+//     占位类型渲染(蓝色 + 问号, 见 .k-unknown), 落地(visited 包含)后才换回真实事件。
 //   为什么用 DOM+CSS 而不是 SVG 重画: 质感几乎全是多层 background 渐变、clip-path 切角与
 //   mix-blend-mode 斜向高光, 用 SVG 复刻会丢掉大半; 等距投影是线性变换 ⇒ 一条 matrix 就够。
 //
