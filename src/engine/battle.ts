@@ -38,7 +38,7 @@ import {
   rollChallenges,
 } from "./challenges";
 import { getEncounter, getEnemyDef, slotDefId } from "../data";
-import { moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
+import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
 import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
 
@@ -195,6 +195,7 @@ export function createBattle(
     lastDiscardBatchFast: 0,
     lastRecoverBatchFast: 0,
     pendingChoice: null,
+    pendingAutoPlays: [],
   };
 
   state.draw = shuffle(state, Object.keys(cards));
@@ -222,6 +223,7 @@ export function startRound(state: BattleState): void {
   state.lastDiscardBatch = 0;
   state.lastDiscardBatchFast = 0;
   state.lastRecoverBatchFast = 0;
+  state.pendingAutoPlays = [];
   state.playedThisRound = [];
   state.lastPlayedCard = null;
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
@@ -307,6 +309,7 @@ export function discardHandCard(state: BattleState, uid: string, rec?: DiscardRe
 
   moveToDiscard(state, uid, "manual", rec);
   log(state, `${card.name} 已丢弃`);
+  flushAutoPlays(state, rec);
   checkEnd(state);
   return true;
 }
@@ -345,6 +348,7 @@ export function playCard(
       if (mark) resolveEffects(state, mark.effects, card.ownerCharId, primaryId);
     }
     card.marks = [];
+    flushAutoPlays(state);
   });
 
   const played = {
@@ -388,6 +392,8 @@ export function endRound(state: BattleState, frames?: AnimFrame[]): void {
   if (RULES.hand.discardLeftoversOnRoundEnd) {
     for (const cardUid of [...state.hand]) moveToDiscard(state, cardUid, "roundEnd");
   }
+  flushAutoPlays(state);
+  if (state.phase !== "player") return;
   startRound(state);
 }
 

@@ -13,9 +13,10 @@ import { resolveEffects } from "./effects";
 import { checkEnd, allIds, ops } from "./ops";
 import { RULES } from "./rules";
 import { rngPick } from "./rng";
-import { foesOf } from "./targeting";
+import { alliesOf, foesOf } from "./targeting";
 
 let activeRecorder: DiscardRecorder | undefined;
+let flushing = false;
 const discardSnapshots = new WeakMap<BattleState, BattleState>();
 
 export function withDiscardRecorder<T>(rec: DiscardRecorder | undefined, fn: () => T): T {
@@ -31,12 +32,13 @@ export function withDiscardRecorder<T>(rec: DiscardRecorder | undefined, fn: () 
 function autoTarget(state: BattleState, card: Card): string | undefined {
   const owner = state.combatants[card.ownerCharId];
   if (!owner) return undefined;
-  const foes = foesOf(state, owner);
-  if (foes.length === 0) return undefined;
-  if (card.onDiscard?.autoTarget === "lowestHpFoe") {
-    return foes.reduce((lowest, current) => (current.hp < lowest.hp ? current : lowest)).id;
+  if (card.targeting === "self") return card.ownerCharId;
+  const candidates = card.targeting === "foe" ? foesOf(state, owner) : card.targeting === "ally" ? alliesOf(state, owner) : [];
+  if (candidates.length === 0) return undefined;
+  if (card.targeting === "foe" && card.onDiscard?.autoTarget === "lowestHpFoe") {
+    return candidates.reduce((lowest, current) => (current.hp < lowest.hp ? current : lowest)).id;
   }
-  return rngPick(state, foes).id;
+  return rngPick(state, candidates).id;
 }
 
 function recordTrigger(
@@ -44,6 +46,7 @@ function recordTrigger(
   card: Card,
   beforeHp: Record<string, number>,
   rec: DiscardRecorder,
+  autoPlay = false,
 ): void {
   const hits: AnimHit[] = [];
   for (const id of allIds(state)) {
@@ -54,6 +57,7 @@ function recordTrigger(
     cardUid: card.uid,
     actorId: card.ownerCharId,
     anim: card.anim,
+    autoPlay,
     hits,
     snapshot: structuredClone(state),
   });
@@ -75,6 +79,11 @@ export function moveToDiscard(
     state.discardsThisBattle += 1;
   }
   if (!card || (!rule.trigger && !(reason === "roundEnd" && card.onDiscard?.alsoOnRoundEnd))) return;
+  const trigger = card.onDiscard;
+  if (trigger?.mode === "useSelf") {
+    state.pendingAutoPlays.push(uid);
+    return;
+  }
   if (state.discardResolving.includes(uid)) return;
 
   state.discardResolving.push(uid);
@@ -83,8 +92,7 @@ export function moveToDiscard(
   const beforeHp: Record<string, number> = {};
   for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
 
-  const trigger = card.onDiscard;
-  const effects = trigger?.mode === "useSelf" ? card.effects : trigger?.effects ?? [];
+  const effects = trigger?.effects ?? [];
   const primaryId = autoTarget(state, card);
   resolveEffects(state, effects, card.ownerCharId, primaryId);
   checkEnd(state);
@@ -92,6 +100,44 @@ export function moveToDiscard(
   state.discardResolving.pop();
   if (recorder) {
     recordTrigger(state, card, beforeHp, recorder);
+  }
+}
+
+export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void {
+  if (flushing) return;
+  flushing = true;
+  const recorder = rec ?? activeRecorder;
+  let flushed = 0;
+  try {
+    while (state.pendingAutoPlays.length > 0 && flushed < 32) {
+      const uid = state.pendingAutoPlays.shift();
+      if (!uid) continue;
+      const card = state.cards[uid];
+      if (!card || state.phase !== "player") {
+        state.pendingAutoPlays.length = 0;
+        return;
+      }
+
+      const primaryId = autoTarget(state, card);
+      if (!primaryId) {
+        state.pendingAutoPlays.length = 0;
+        return;
+      }
+
+      if (recorder && !discardSnapshots.has(state)) discardSnapshots.set(state, structuredClone(state));
+      const beforeHp: Record<string, number> = {};
+      for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
+      resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+      checkEnd(state);
+      if (recorder) recordTrigger(state, card, beforeHp, recorder, true);
+      flushed += 1;
+    }
+    if (state.pendingAutoPlays.length > 0) {
+      state.pendingAutoPlays.length = 0;
+      state.log.push({ round: state.round, tick: state.tick, text: "弃牌自动出牌达到安全上限，已停止继续结算" });
+    }
+  } finally {
+    flushing = false;
   }
 }
 

@@ -424,7 +424,13 @@ export function BattleScreen() {
   }
 
   function stepFromDiscard(t: DiscardTriggerFx): ChoreoStep {
-    return { actorId: t.actorId, anim: t.anim ?? "slash", snapshot: t.snapshot, hits: t.hits };
+    return {
+      actorId: t.actorId,
+      anim: t.anim ?? "slash",
+      snapshot: t.snapshot,
+      hits: t.hits,
+      card: t.autoPlay ? b.cards[t.cardUid] : undefined,
+    };
   }
 
   // 计算相机变换: 把给定目标(多目标取并集)聚焦到取景安全区中心并放大。

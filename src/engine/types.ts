@@ -381,6 +381,7 @@ export interface BattleState {
     ownerCharId: string;
   } | null;
   discardResolving: string[];
+  pendingAutoPlays: string[];
   lastDiscardBatch: number;
   discardsThisBattle: number;
   lastDiscardBatchFast: number;
@@ -466,6 +467,7 @@ export interface DiscardTriggerFx {
   cardUid: string;
   actorId: string;
   anim?: CardAnim;
+  autoPlay?: boolean;
   hits: AnimHit[];
   snapshot: BattleState;
 }
