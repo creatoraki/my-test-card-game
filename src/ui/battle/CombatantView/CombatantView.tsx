@@ -15,6 +15,7 @@ import { HpBar } from "@/ui/common/HpBar";
 import { ShieldBar } from "@/ui/common/ShieldBar";
 import { RailPopover } from "@/ui/common/RailPopover";
 import { HourglassIcon } from "./icons";
+import { HitChanceBadge } from "./HitChanceBadge";
 import s from "./CombatantView.module.css";
 // 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
 import ub from "@/ui/battle/styles/unitBadges.module.css";
@@ -23,6 +24,7 @@ interface Props {
   cmb: Enemy;
   currentTick: number;
   targetable: boolean; // 当前是否是合法的点选目标
+  hitChance?: number | null; // 当前选中攻击卡对该目标的命中率(百分点)
   attacking?: boolean; // 是否是当前出牌的施法者(前冲动画)
   telegraph?: TelegraphKind; // 是否正在蓄力预告
   hit?: HitFx | null; // 命中时刻下发的受击/首击特效
@@ -41,6 +43,7 @@ export const CombatantView = memo(function CombatantView({
   cmb,
   currentTick,
   targetable,
+  hitChance,
   attacking,
   telegraph,
   hit,
@@ -126,6 +129,8 @@ export const CombatantView = memo(function CombatantView({
             {isIntentRevealed(cmb) ? cmb.intent.name : telegraph === "buff" ? "✦ 蓄势" : "⚠ 行动"}
         </div>
       )}
+
+      {phase === "alive" && targetable && hitChance != null && <HitChanceBadge value={hitChance} />}
 
         {/* --place-scale 作用于立绘和命中特效的几何, 血条/BUFF/意图/倒计时保持原尺寸。
           HitFxLayer 必须留在这层内 —— 它相对最近的定位祖先定位, 且要跟着立绘一起缩放 */}

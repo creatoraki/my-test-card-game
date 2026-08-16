@@ -44,6 +44,7 @@ export {
 } from "./stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
 export { cardCost } from "./cost";
+export { cardHitChance } from "./hitPreview";
 export { CARD_MARK_DEFS } from "./cardMarks";
 export {
   POLLUTION_RULES,

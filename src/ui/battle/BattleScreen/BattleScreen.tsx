@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   cardCost,
+  cardHitChance,
   playBlockReason,
   type AnimFrame,
   type BattleState,
@@ -745,6 +746,12 @@ export function BattleScreen() {
 
   const enemies = battle.enemyIds.map((id) => battle.combatants[id] as Enemy);
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
+  // 选中一张指向敌人的攻击卡时，逐目标预览命中率；其余情况全为 null。
+  const hitPreview = needsFoe && selectedCard
+    ? Object.fromEntries(
+        battle.enemyIds.map((id) => [id, cardHitChance(battle, selectedCard, id)]),
+      )
+    : null;
   // 手工站位按槽位下标取 —— createBattle 按 enc.enemies 顺序 push enemyIds, 故两者下标一一对应。
   // 站位是纯表现, 不进 BattleState(引擎无副作用且状态要可序列化), 故在此回查遭遇战定义。
   const placements = getEncounter(battle.encounterId).enemies.map(slotPlacement);
@@ -834,6 +841,7 @@ export function BattleScreen() {
               cmb={e}
               currentTick={battle.tick}
               targetable={isPlayerTurn && !!needsFoe && e.alive}
+              hitChance={hitPreview?.[e.id] ?? null}
               attacking={e.id === attackerId}
               telegraph={telegraph?.id === e.id ? telegraph.kind : undefined}
               hit={hits[e.id] ?? null}
