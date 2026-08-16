@@ -60,5 +60,6 @@ export function makeMockBoard(seed: number): RouteBoard {
     nodes,
     revealDurationMs: 2600,
     blockedLanes: seed % 3 === 0 ? [3] : [],
+    hiddenNodes: [],
   };
 }

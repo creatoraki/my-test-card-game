@@ -56,5 +56,6 @@ export function makeLunaBoard(round: number): RouteBoard {
     nodes,
     revealDurationMs: 2400,
     blockedLanes: [4],
+    hiddenNodes: [],
   };
 }

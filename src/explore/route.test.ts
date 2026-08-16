@@ -27,6 +27,7 @@ function boardWith(seed: number, counts: readonly number[] = COUNTS): RouteBoard
     nodes: [],
     revealDurationMs: 3000,
     blockedLanes: [],
+    hiddenNodes: [],
   };
 }
 
@@ -151,6 +152,7 @@ describe("求解", () => {
       nodes: [],
       revealDurationMs: 3000,
       blockedLanes: [],
+      hiddenNodes: [],
     };
     expect(solveFullMapping(board).map((p) => p[3])).toEqual([0, 1, 2, 3, 4]);
   });

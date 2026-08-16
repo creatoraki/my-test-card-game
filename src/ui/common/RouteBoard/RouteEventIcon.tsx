@@ -5,11 +5,24 @@
 // ★ 全部用 currentColor 描边 ⇒ 颜色由面板上的 color(事件色派生的 --k1)统一给,
 //   新增事件类型只要补一条 path, 不用再碰任何颜色。
 // ⚠ 统一 viewBox 32×32、stroke-width 2、round 端点: 25 块砖同时在画面上, 线宽不齐会立刻看出来。
+//
+// ⚠ "unknown" 不是 NodeEventKind 的真实成员 —— 它是**未知节点**的占位类型(走到之前
+//   不知道真实事件, 见 EXPLORE_RULES.hiddenNodesPerBoard)。RouteBoard 渲染未知节点时
+//   把 kind 换成 "unknown" 走同一套图标/配色管线, 因此这里把它与真实类型放在一起。
 
 import type { ReactElement } from "react";
 import type { NodeEventKind } from "@/explore/types";
 
-const PATHS: Record<NodeEventKind, ReactElement> = {
+export type RouteIconKind = NodeEventKind | "unknown";
+
+const PATHS: Record<RouteIconKind, ReactElement> = {
+  // 未知: 问号 —— 走到之前唯一的身份
+  unknown: (
+    <>
+      <path d="M16 23v-1.5c0-3 4-4 4-7.5a4 4 0 0 0-8 0" />
+      <path d="M16 28v.5" />
+    </>
+  ),
   // 补给箱: 箱体 + 盖缝 + 锁扣
   loot: (
     <>
@@ -67,7 +80,7 @@ const PATHS: Record<NodeEventKind, ReactElement> = {
   ),
 };
 
-export function RouteEventIcon({ kind, className }: { kind: NodeEventKind; className?: string }) {
+export function RouteEventIcon({ kind, className }: { kind: RouteIconKind; className?: string }) {
   return (
     <svg
       className={className}

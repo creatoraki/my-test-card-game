@@ -77,6 +77,10 @@ export const EXPLORE_RULES = {
     battleNodes: { count: 2, depth: [2, 4] as readonly [number, number] },
   },
 
+  // ── 未知节点(设计: 每张图固定隐藏 N 个节点, 走到以后才知道是什么) ──
+  // 全图随机抽取, 与节点类型/深段无关; 走到(落地)后揭示真实事件。
+  hiddenNodesPerBoard: 3,
+
   // ── BOSS 的额外缩放(在档位表之上再叠一层, 读开打瞬间的能量) ──
   boss: {
     hpPerTier: 0.15, // maxHp × (1 + 0.15 × (档位-1))

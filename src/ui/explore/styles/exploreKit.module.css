@@ -130,3 +130,9 @@
   --expl-kind-soft: #d1d8d61c;
   --expl-kind-line: #d1d8d666;
 }
+/* 未知节点(尚未走到): 占位浮卡的中性灰蓝, 与路线图 .k-unknown 同款、不带色相。 */
+.k-unknown {
+  --expl-kind: #8b96a3;
+  --expl-kind-soft: #8b96a31c;
+  --expl-kind-line: #8b96a366;
+}

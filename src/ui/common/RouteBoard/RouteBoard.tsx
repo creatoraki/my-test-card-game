@@ -10,6 +10,8 @@
 //   2:1 菱形; 图标盒是同一个方盒被 PANEL_MATRIX 剪切**立起来** ⇒ 正交视角下图标与砖严格垂直。
 //   ⛔ 除图标外**不放任何东西**(卡面、编目角标、大字符全部取消, 入口通道号除外):
 //     事件类型只由图标与事件色表达, 要读的字全部收进 ExploreScreen 的悬浮浮卡(NodeTip)。
+//   ⚠ 未知节点(见 board.hiddenNodes, 每张图固定 3 个): 走到之前砖与图标一律按 "unknown"
+//     占位类型渲染(暗灰蓝 + 问号, 见 .k-unknown), 落地(visited 包含)后才换回真实事件。
 //   为什么用 DOM+CSS 而不是 SVG 重画: 质感几乎全是多层 background 渐变、clip-path 切角与
 //   mix-blend-mode 斜向高光, 用 SVG 复刻会丢掉大半; 等距投影是线性变换 ⇒ 一条 matrix 就够。
 //
@@ -221,9 +223,11 @@ function Pipe({ a, b, j = 0 }: { a: [number, number]; b: [number, number]; j?: n
 //   ⚠ 砖上的标记与悬浮图标同色系但**明显更暗**(--k 掺暗灰, 见 .faceGlyph): 层次是
 //     「地面刻痕 vs 自发光符号」—— 一旦提到跟悬浮图标一样亮, 两枚图标就开始互相抢主角。
 //   ⛔ 风险度(highRisk / negative)在砖上**完全不表现**: 那是浮卡里的文字标签的事。
-const BAND_KINDS = new Set<NodeEvent["kind"]>(["hazard", "retreat"]);
+const BAND_KINDS = new Set<NodeEvent["kind"] | "unknown">(["hazard", "retreat"]);
 
-function TileArt({ icon, kind }: { icon: ReactNode; kind?: NodeEvent["kind"] }) {
+// ⚠ unknown 是未知节点(尚未走到)的占位类型 —— 只走 faceGlyph(砖面问号刻痕),
+//   不进 BAND_KINDS 的警示条纹(它不在集合里, has() 自然为 false), 与真实事件类型同一套管线。
+function TileArt({ icon, kind }: { icon: ReactNode; kind?: NodeEvent["kind"] | "unknown" }) {
   return (
     <>
       <span className={s.tileShadow} aria-hidden />
@@ -331,8 +335,10 @@ interface Props {
   /** 离场行走播完 → store 的 leaveDone()(会话从 leaving 进 routeDisclosure)。
    *  ⚠ 没有剩余线路可走时(理论上 session 已经拦掉)本组件会立刻回调, 阶段机不会卡死。 */
   onLeaveDone: () => void;
-  /** 悬停/聚焦某个节点 → 调用方的节点悬浮浮卡。null = 移开。 */
-  onHoverNode: (at: { seg: number; lane: number } | null) => void;
+  /** 悬停/聚焦某个节点 → 调用方的节点悬浮浮卡。null = 移开。
+   *  ⚠ at.hidden = 该节点是未知节点(尚未走到, 见 board.hiddenNodes)——
+   *    调用方的浮卡必须按占位渲染, 不能把真实事件漏出去。 */
+  onHoverNode: (at: { seg: number; lane: number; hidden: boolean } | null) => void;
   /** 面板底图(16:9 场景素材 + 暗色遮罩 + 等距网格)。
    *  ⚠ 页面本身已有全屏场景时必须传 false, 否则画面中央会多出一块矩形贴图。 */
   ground?: boolean;
@@ -702,7 +708,9 @@ export function RouteBoard({
       </div>
 
       {/* ── 20 个事件节点 ──
-          ⚠ **必须按等距深度排序渲染**(见 sortedNodes)。 */}
+          ⚠ **必须按等距深度排序渲染**(见 sortedNodes)。
+          ⚠ 未知节点(board.hiddenNodes 且尚未走到): 砖与图标一律按 unknown 渲染 ——
+            真实事件藏在 nodes 里, 只有落地(visited 包含)之后才换回真身。 */}
       <div className={cx(s.nodes, !nodesInteractive && s.isInert)}>
         {sortedNodes.map(({ ev, seg, lane }) => {
           const { x, y } = nodeCenter(seg, lane);
@@ -712,19 +720,26 @@ export function RouteBoard({
           // 披露页: 玩家放弃掉的段(没走到的)整体压暗, 让「我放弃了什么」看得见
           const abandoned = disclosing && seg >= currentSegment;
           const hovered = hoverNode?.seg === seg && hoverNode?.lane === lane;
+          // 未知节点 = 在隐藏名单里且还没走到。⚠ 落点砖(landedHere)不算: 走到以后就揭示。
+          const hidden = !landedHere && board.hiddenNodes.some((h) => h.seg === seg && h.lane === lane);
+          const shownKind = hidden ? ("unknown" as const) : ev.kind;
           return (
             <button
               key={`${seg}-${lane}-${ev.id}`}
               type="button"
               className={cx(
                 s.node,
-                s[`k-${ev.kind}`],
+                s[`k-${shownKind}`],
                 isCurrent && s.isCurrent,
                 settled && s.isSettled,
                 abandoned && s.isAbandoned,
                 hovered && s.isHovered,
               )}
-              aria-label={`第 ${seg + 1} 推进段 · ${ev.title}`}
+              aria-label={
+                hidden
+                  ? `第 ${seg + 1} 推进段 · 未知节点`
+                  : `第 ${seg + 1} 推进段 · ${ev.title}`
+              }
               style={
                 {
                   ...tileBox(x, y),
@@ -737,7 +752,7 @@ export function RouteBoard({
               disabled={!nodesInteractive}
               onPointerEnter={() => {
                 setHoverNode({ seg, lane });
-                onHoverNode({ seg, lane });
+                onHoverNode({ seg, lane, hidden });
               }}
               onPointerLeave={() => {
                 setHoverNode(null);
@@ -745,14 +760,14 @@ export function RouteBoard({
               }}
               onFocus={() => {
                 setHoverNode({ seg, lane });
-                onHoverNode({ seg, lane });
+                onHoverNode({ seg, lane, hidden });
               }}
               onBlur={() => {
                 setHoverNode(null);
                 onHoverNode(null);
               }}
             >
-              <TileArt icon={<RouteEventIcon kind={ev.kind} />} kind={ev.kind} />
+              <TileArt icon={<RouteEventIcon kind={shownKind} />} kind={shownKind} />
             </button>
           );
         })}

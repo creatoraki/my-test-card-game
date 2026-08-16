@@ -698,6 +698,7 @@ const DEMO_BOARD: RouteBoardData = {
   ),
   revealDurationMs: 3000,
   blockedLanes: [4],
+  hiddenNodes: [],
 };
 
 // ===================== 悬浮详情卡 =====================

@@ -1029,14 +1029,27 @@ export function generateRound(s: ExploreState): void {
   const counts = stage.bridges.map(([lo, hi]) => lo + rngInt(s, hi - lo + 1));
 
   const nodes = pickNodes(s, map.eventPoolId);
+  const segments = generateSegments(s, LANES, EXPLORE_RULES.rowsPerSegment, counts);
+  // 每张图固定隐藏 N 个节点(全图随机抽坐标, 真实事件仍留在 nodes 里)。
+  // ⚠ 抽取放在 nodes/segments 之后: 不改变既有生成序列, 只追加一段随机消耗;
+  //   用洗牌取前 N 个 ⇒ 天然不重复。UI 在走到之前一律按未知节点渲染。
+  const hiddenCount = Math.min(EXPLORE_RULES.hiddenNodesPerBoard, SEGMENTS * LANES);
+  const hiddenNodes = shuffle(
+    s,
+    Array.from({ length: SEGMENTS * LANES }, (_, i) => ({
+      seg: Math.floor(i / LANES),
+      lane: i % LANES,
+    })),
+  ).slice(0, hiddenCount);
   const board: RouteBoard = {
     round: s.round,
     laneCount: LANES,
     rowsPerSegment: EXPLORE_RULES.rowsPerSegment,
-    segments: generateSegments(s, LANES, EXPLORE_RULES.rowsPerSegment, counts),
+    segments,
     nodes,
     revealDurationMs: stage.revealMs,
     blockedLanes: [],
+    hiddenNodes,
   };
 
   s.board = board;

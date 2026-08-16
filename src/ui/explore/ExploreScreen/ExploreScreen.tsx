@@ -163,7 +163,8 @@ export function ExploreScreen() {
   const [useFlash, setUseFlash] = useState<{ text: string; seq: number } | null>(null);
   const useFlashTimer = useRef<number | null>(null);
   // 当前悬停的节点。浮卡只跟随悬停，不回落到当前落点。
-  const [hovered, setHovered] = useState<{ seg: number; lane: number } | null>(null);
+  // ⚠ hidden = 该节点是未知节点(尚未走到): 浮卡必须按占位渲染, 不读真实事件。
+  const [hovered, setHovered] = useState<{ seg: number; lane: number; hidden: boolean } | null>(null);
   // 已点下但还没派发出去的那一支。★ 这个空档就是「落子的回响」——
   //   按钮先演完(竖条锁死 + 扫光掠过), 结算才发生; 少了它, 点击就只是一次表单提交。
   const [committing, setCommitting] = useState<number | null>(null);
@@ -252,9 +253,12 @@ export function ExploreScreen() {
     [],
   );
 
-  const onHoverNode = useCallback((at: { seg: number; lane: number } | null) => {
-    setHovered(at);
-  }, []);
+  const onHoverNode = useCallback(
+    (at: { seg: number; lane: number; hidden: boolean } | null) => {
+      setHovered(at);
+    },
+    [],
+  );
 
   const onArrive = useCallback(() => {
     arrive();
@@ -615,6 +619,7 @@ export function ExploreScreen() {
               event={board.nodes[hovered.seg][hovered.lane]}
               seg={hovered.seg}
               lane={hovered.lane}
+              hidden={hovered.hidden}
             />
           )}
           {/* 落点 → 浮层的光柱: 从落点瓦片向上升起, 把「是这个节点把面板叫出来的」说清楚。
