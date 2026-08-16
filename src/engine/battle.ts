@@ -68,9 +68,9 @@ export interface AllyInit {
 export interface BattleSetup {
   allies: AllyInit[];
   deck: Card[]; // 运行期卡牌实例(带 uid)
-  // ★ 开战瞬间的负重惩罚(百分点), 由探索层算好传入(engine/stats.burdenPenalty)。
+  // ★ 开战瞬间的有效负重点数, 由探索层算好传入(engine/stats.burdenValue)。
   //   引擎不认识背包与占格, 只认识这一个数。缺省 0 —— 城镇试打与单元测试都走这条。
-  burdenPenalty?: number;
+  burden?: number;
   squadMods?: import("./types").SquadResourceMods;
 }
 
@@ -176,7 +176,7 @@ export function createBattle(
     lastPlayedCard: null,
     discardResolving: [],
     resources: {},
-    burdenPenalty: Math.max(0, setup.burdenPenalty ?? 0),
+    burden: Math.max(0, setup.burden ?? 0),
     squadMods: {
       openingHand: 0,
       drawCount: 0,

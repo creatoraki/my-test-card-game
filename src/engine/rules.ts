@@ -60,6 +60,8 @@ export const RULES = {
     weakMultiplier: 0.75, // 虚弱: 造成攻击伤害 ×
     sharpMultiplier: 1.1, // 锋利: 造成攻击伤害 ×
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
+    pollutionDamagePerStack: 0.05, // 粒子污染每层: 造成的攻击伤害 ×
+    pollutionDodgePerStack: 5, // 粒子污染每层: 闪避 +5 个百分点
 
     defenseConstant: 30, // 减伤 = 防御力 / (防御力 + 该常量)
     baseHitChance: 100, // P_base
@@ -72,11 +74,12 @@ export const RULES = {
     downedDeathChance: 50,
   },
 
-  // 探索负重 —— 背包固定 24 格; 每占 1 格, 命中/闪避/暴击各 −1 个百分点,
-  // 实际惩罚 P = 已占格数 ×(1 − 小队负重适应)。⚠ 背包属 P1, 现在 W 恒为 0。
+  // 探索负重 —— 背包固定 24 格; 每 2 点负重命中 −1%, 每 5 点负重先手 −1。
+  // 有效负重 = 已占格数 ×(1 − 小队负重适应); 两项惩罚各自向下取整。
   burden: {
     backpackSlots: 24,
-    penaltyPerSlot: 1,
+    hitPer: 2,
+    initiativePer: 5,
   },
 
   // 角色养成 —— ★ 无等级、无属性点。角色面板固定, 经验只用于锻造个人卡组。
@@ -124,6 +127,8 @@ export const RULES = {
     amountMultiplier: 1.4,
   },
 } as const;
+
+export const POLLUTION_STATUS_ID = "pollution";
 
 // 把概率类属性(暴击/闪避/格挡/异常抗性)的最终值截到硬上限。
 export function capProb(v: number): number {

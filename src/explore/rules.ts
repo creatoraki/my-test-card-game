@@ -134,9 +134,8 @@ export const EXPLORE_RULES = {
 // 分档而非连续数值, 是因为决策发生在「跨档的那一步」——
 // 玩家看到「再推进一个节点就掉进告急」会真的停下来算一算还要不要深潜。
 //
-// ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40), 旧的
-//   「力量 +3 / 追加 2 名敌人」会让低档位变成纯亏, 玩家会本能地一个节点都不探索。
-//   故追加敌人上限 2→1、力量上限 +3→+2。
+// ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40)。
+//   粒子污染按档位 −1 层提高敌方攻击伤害与闪避, 与力量 buff 分开显示。
 // ⚠ 护盾现已跨回合保留，开局护盾是可用的硬度手段；本次不调整高档位数值。
 export const ENERGY_TIERS: EnergyTier[] = [
   {
@@ -155,7 +154,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     color: "#d8f329",
     min: 60,
     extraEnemies: 0,
-    enemyStatuses: [{ id: "strength", stacks: 1 }],
+    enemyStatuses: [{ id: "pollution", stacks: 1 }],
     moveDelayDelta: 0,
     rewardMultiplier: 1.1,
   },
@@ -165,7 +164,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     color: "#ffd43b",
     min: 40,
     extraEnemies: 0,
-    enemyStatuses: [{ id: "strength", stacks: 1 }],
+    enemyStatuses: [{ id: "pollution", stacks: 2 }],
     moveDelayDelta: 0,
     rewardMultiplier: 1.2,
   },
@@ -175,7 +174,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     color: "#ff922b",
     min: 20,
     extraEnemies: 1,
-    enemyStatuses: [{ id: "strength", stacks: 1 }],
+    enemyStatuses: [{ id: "pollution", stacks: 3 }],
     moveDelayDelta: -1, // 敌方先手 +1
     rewardMultiplier: 1.35,
   },
@@ -185,7 +184,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     color: "#ff6b6b",
     min: 0,
     extraEnemies: 1,
-    enemyStatuses: [{ id: "strength", stacks: 2 }],
+    enemyStatuses: [{ id: "pollution", stacks: 4 }],
     moveDelayDelta: -2, // 敌方先手 +2
     rewardMultiplier: 1.6,
   },

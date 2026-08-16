@@ -9,11 +9,13 @@ import {
   statOf,
   hitChance,
   critChance,
+  partyInitiative,
   defenseMultiplier,
   RULES,
 } from "./index";
 import type { AllyInit, BattleSetup, BattleState } from "./index";
 import { CHARACTERS, makeCard } from "../data";
+import { dealDamage } from "./ops";
 
 function allies(): AllyInit[] {
   return CHARACTERS.map((c) => ({
@@ -72,21 +74,62 @@ describe("属性口径", () => {
     expect(p).toBeLessThanOrEqual(RULES.combat.hitCeilPct);
   });
 
-  // 负重是我方自己背的包 —— 它只该削我方的命中/暴击, 不该顺手削掉敌人的。
-  it("负重只扣我方: 我方命中下降, 敌人打我方反而更准", () => {
+  // 负重是我方自己背的包 —— 它只削我方命中与小队先手, 不影响闪避和暴击。
+  it("负重只扣我方命中与先手", () => {
     const light = battleWith("swordsman-basic-attack");
-    const heavy = { ...battleWith("swordsman-basic-attack"), burdenPenalty: 20 };
+    const heavy = { ...battleWith("swordsman-basic-attack"), burden: 20 };
     const sw = heavy.combatants["swordsman"];
     const enemy = heavy.combatants[heavy.enemyIds[0]];
 
-    // 我方进攻: 命中被扣 20 个百分点
-    expect(hitChance(light, light.combatants["swordsman"], light.combatants[light.enemyIds[0]]) - hitChance(heavy, sw, enemy)).toBeCloseTo(20, 6);
-    // 我方暴击同样被扣, 且不会被扣成负数
-    expect(critChance(heavy, sw)).toBe(Math.max(0, statOf(sw, "critRate") - 20));
-    expect(critChance(heavy, enemy)).toBe(statOf(enemy, "critRate")); // 敌人不受影响
-    // 敌人进攻我方: 我方闪避被扣 ⇒ 敌人更容易命中(但闪避先钳到 0, 不会反向加成)
-    expect(hitChance(heavy, enemy, sw)).toBeGreaterThanOrEqual(
+    expect(
+      hitChance(light, light.combatants["swordsman"], light.combatants[light.enemyIds[0]]) -
+        hitChance(heavy, sw, enemy),
+    ).toBeCloseTo(10, 6);
+    expect(critChance(heavy, sw)).toBe(statOf(sw, "critRate"));
+    expect(hitChance(heavy, enemy, sw)).toBe(
       hitChance(light, light.combatants[light.enemyIds[0]], light.combatants["swordsman"]),
+    );
+    expect(partyInitiative(light) - partyInitiative(heavy)).toBeCloseTo(4, 6);
+  });
+
+  it("粒子污染放大攻击伤害, 且闪避加成受 70% 封顶", () => {
+    const clean = createBattle(
+      "n-crew",
+      { allies: allies(), deck: deckOf("swordsman-basic-attack") },
+      42,
+      { enemyStatuses: [] },
+    );
+    const polluted = createBattle(
+      "n-crew",
+      { allies: allies(), deck: deckOf("swordsman-basic-attack") },
+      42,
+      { enemyStatuses: [{ id: "pollution", stacks: 4 }] },
+    );
+    const cleanEnemy = clean.combatants[clean.enemyIds[0]];
+    const pollutedEnemy = polluted.combatants[polluted.enemyIds[0]];
+    const cleanAlly = clean.combatants["swordsman"];
+    const pollutedAlly = polluted.combatants["swordsman"];
+
+    dealDamage(clean, cleanEnemy.id, cleanAlly.id, 10, { isAttack: true, mustHit: true, fixed: true });
+    dealDamage(polluted, pollutedEnemy.id, pollutedAlly.id, 10, {
+      isAttack: true,
+      mustHit: true,
+      fixed: true,
+    });
+    expect(cleanAlly.hp - pollutedAlly.hp).toBe(2);
+    expect(hitChance(polluted, pollutedAlly, pollutedEnemy)).toBe(
+      hitChance(clean, cleanAlly, cleanEnemy) - 20,
+    );
+
+    pollutedEnemy.statuses[0].stacks = 20;
+    expect(hitChance(polluted, pollutedAlly, pollutedEnemy)).toBe(
+      Math.max(
+        RULES.combat.hitFloorPct,
+        RULES.combat.baseHitChance +
+          statOf(pollutedAlly, "hitRate") +
+          statOf(pollutedAlly, "precision") -
+          RULES.combat.probCapPct,
+      ),
     );
   });
 

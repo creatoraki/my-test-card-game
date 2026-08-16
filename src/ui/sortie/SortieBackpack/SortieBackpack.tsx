@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { RULES } from "@/engine";
+import { burdenHitPenalty, burdenInitiativePenalty, RULES } from "@/engine";
 import { layoutBackpack } from "@/items/inventory";
 import { useSortieStore, sortieUsedSlots } from "@/store/sortieStore";
 import { cx } from "@/ui/common/cx";
@@ -26,7 +26,8 @@ export function SortieBackpack({ className }: Props) {
   const total = RULES.burden.backpackSlots;
   const cells = layoutBackpack(backpack, total);
   const used = sortieUsedSlots(backpack);
-  const penalty = used * RULES.burden.penaltyPerSlot;
+  const hitPenalty = burdenHitPenalty(used);
+  const initiativePenalty = burdenInitiativePenalty(used);
   const fill = total > 0 ? used / total : 0;
   const level = fill >= 1 ? "full" : fill >= WARN_AT ? "warn" : "ok";
   const usedShown = useCountUp(used, 0, 260);
@@ -45,7 +46,7 @@ export function SortieBackpack({ className }: Props) {
       <div className={cx(s.bar, s[`level-${level}`])}>
         <span id="sortie-backpack-title" className={s.label}>背包</span>
         <span key={used} className={s.readout}>
-          {usedShown} / {total} · 命中 闪避 暴击 -{penalty}%
+          {usedShown} / {total} · 命中 −{hitPenalty}% · 先手 −{initiativePenalty}
         </span>
       </div>
       <div className={s.grid}>

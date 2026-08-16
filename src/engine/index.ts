@@ -38,7 +38,9 @@ export {
   squadManaPerRound,
   squadRedrawLimit,
   squadWaitLimit,
-  burdenPenalty,
+  burdenValue,
+  burdenHitPenalty,
+  burdenInitiativePenalty,
 } from "./stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
 export { cardCost } from "./cost";

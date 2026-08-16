@@ -32,7 +32,7 @@
 
 import { rngInt, shuffle } from "../engine/rng";
 import { RULES } from "../engine/rules";
-import { burdenPenalty } from "../engine/stats";
+import { burdenValue } from "../engine/stats";
 import type { EncounterModifier } from "../engine/types";
 import {
   ROLLABLE_BOND_IDS,
@@ -257,10 +257,9 @@ export function partyBurdenAdapt(s: ExploreState): number {
   return s.party.reduce((n, p) => n + (p.burdenAdapt ?? 0), 0);
 }
 
-// 当前负重惩罚(百分点): 我方命中 / 暴击 / 闪避各减这么多。
-// 换算本体在 engine/stats.burdenPenalty —— 探索页读数与开战快照共用同一个函数。
+// 当前有效负重点数。换算本体在 engine/stats.burdenValue —— 探索页读数与开战快照共用同一个函数。
 export function burdenNow(s: ExploreState): number {
-  return burdenPenalty(backpackSlots(s), partyBurdenAdapt(s));
+  return burdenValue(backpackSlots(s), partyBurdenAdapt(s));
 }
 
 // 尝试把一批物品收进背包。装不下的进 pendingPickup 并原样回传 ——

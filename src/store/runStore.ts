@@ -162,7 +162,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   applyPendingContamination(session.party.map((p) => p.charId));
   const { characters, party, squadTalent } = useTownStore.getState();
 
-  // ★ 羁绊在**开战瞬间快照**, 与负重惩罚同一个范式(见 engine/stats.burdenPenalty 的注释):
+  // ★ 羁绊在**开战瞬间快照**, 与负重同一个范式(见 engine/stats.burdenValue 的注释):
   //   局外算好, 灌进面板, 引擎不认识羁绊 —— 正如它不认识装备与背包。
   //   刻意不进 deriveStats: 那是**单角色**换算点(角色详情/编队页都在用), 而羁绊是**全队**系统,
   //   塞进去会让「看某个角色的面板」凭空多出队友装备带来的加成。
@@ -198,14 +198,14 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
 
   const mod = encounterModifier(session.energy, session.pendingIsBoss, getMap(session.mapId).fillerEnemyIds);
   const meta = battleMeta(characters, party);
-  // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个百分点数。
+  // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个有效负重点数。
   const burden = burdenNow(session);
   const squadMods = squadModsOf(squadTalent.badgeId, squadTalent.nodes);
   useBattleStore
     .getState()
     .init(
       encounterId,
-      { allies, deck: battleDeck, burdenPenalty: burden, squadMods },
+      { allies, deck: battleDeck, burden, squadMods },
       undefined,
       mod,
       meta,

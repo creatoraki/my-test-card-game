@@ -575,14 +575,21 @@ describe("净化粒子(设计文档 §4.2)", () => {
 });
 
 describe("背包与负重(设计文档 §六)", () => {
-  it("一件物品一格, 负重惩罚随占格线性上升", () => {
+  it("一件物品一格, 有效负重随占格线性上升", () => {
     const s = newSession();
     expect(backpackSlots(s)).toBe(0);
     expect(burdenNow(s)).toBe(0);
 
     addItems(s, [makeItemStack("bronze-bear"), makeItemStack("armor-plate-c")]);
     expect(backpackSlots(s)).toBe(2); // 1 + 1
-    expect(burdenNow(s)).toBe(2); // 每格 −1 个百分点
+    expect(burdenNow(s)).toBe(2); // 每格 1 点负重
+  });
+
+  it("负重适应先削减有效负重, 再由派生规则向下取整", () => {
+    const s = newSession();
+    s.party[0].burdenAdapt = 25;
+    addItems(s, [makeItemStack("bronze-bear"), makeItemStack("armor-plate-c")]);
+    expect(burdenNow(s)).toBe(1.5);
   });
 
   it("装不下的进 pendingPickup, 不会被悄悄丢掉", () => {

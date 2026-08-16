@@ -10,7 +10,7 @@
 // ============================================================================
 
 import type { BattleState, Combatant, SquadResourceMods, StatBlock, StatModifier } from "./types";
-import { RULES, capProb } from "./rules";
+import { POLLUTION_STATUS_ID, RULES, capProb } from "./rules";
 
 // 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
 export const ZERO_STATS: StatBlock = {
@@ -90,15 +90,17 @@ export function addMod(
 // 派生量
 // ---------------------------------------------------------------------------
 
-// 该单位实际承受的负重惩罚(百分点)。★ 只有我方吃 —— 背包是小队自己背的。
+// 该单位实际承受的有效负重。★ 只有我方吃 —— 背包是小队自己背的。
 export function burdenOf(state: BattleState, cmb: Combatant): number {
-  return cmb.team === "player" ? (state.burdenPenalty ?? 0) : 0;
+  return cmb.team === "player" ? state.burden : 0;
+}
+
+function pollutionDodgeOf(cmb: Combatant): number {
+  const stacks = cmb.statuses.find((status) => status.id === POLLUTION_STATUS_ID)?.stacks ?? 0;
+  return stacks * RULES.combat.pollutionDodgePerStack;
 }
 
 // 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。
-// ⚠ 负重在这里出现**两次**且方向相反: 我方进攻时命中降低, 我方挨打时闪避降低。
-//   闪避那项必须先钳到 0 再相减 —— 直接写 -(dodge - burden) 在 dodge 为 0 时会变成
-//   「负重反而给我方加命中」, 方向完全反了。
 export function hitChance(
   state: BattleState,
   attacker: Combatant,
@@ -106,20 +108,20 @@ export function hitChance(
   bonusPct = 0,
 ): number {
   const c = RULES.combat;
-  const dodge = Math.max(0, statOf(defender, "dodgeRate") - burdenOf(state, defender));
+  const dodge = capProb(statOf(defender, "dodgeRate") + pollutionDodgeOf(defender));
   const raw =
     c.baseHitChance +
     statOf(attacker, "hitRate") +
     statOf(attacker, "precision") -
     dodge -
-    burdenOf(state, attacker) +
+    burdenHitPenalty(burdenOf(state, attacker)) +
     bonusPct;
   return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
 }
 
-// 暴击概率(百分点), 已扣掉负重。ops 的暴击判定读它, 不要直接读 statOf(…, "critRate")。
-export function critChance(state: BattleState, cmb: Combatant): number {
-  return Math.max(0, statOf(cmb, "critRate") - burdenOf(state, cmb));
+// 暴击概率(百分点)。保留独立 helper 供 ops 与 UI 使用。
+export function critChance(_state: BattleState, cmb: Combatant): number {
+  return statOf(cmb, "critRate");
 }
 
 // 防御减伤后的乘数: 1 − 防御力 /(防御力 + 常量)。
@@ -132,7 +134,8 @@ export function defenseMultiplier(defender: Combatant): number {
 export function partyInitiative(state: BattleState): number {
   const alive = state.playerIds.map((id) => state.combatants[id]).filter((c) => c.alive);
   if (alive.length === 0) return 0;
-  return alive.reduce((s, c) => s + statOf(c, "initiative"), 0) / alive.length;
+  const average = alive.reduce((s, c) => s + statOf(c, "initiative"), 0) / alive.length;
+  return average - burdenInitiativePenalty(state.burden);
 }
 
 // 敌人当前招式的蓄力时长: T = max(1, D_skill + S_party − S_enemy)。
@@ -206,11 +209,17 @@ export function partyWaitLimit(state: BattleState): number {
   return squadWaitLimit(state.squadMods);
 }
 
-// 负重惩罚(百分点), 三项属性(命中/闪避/暴击)各减这么多。
-// ★ 换算的唯一真相点: 探索页的负重读数与开战时的快照都走它(见 explore/session.burdenNow)。
-//   战斗内不再重算 —— 负重在**开战瞬间快照**进 BattleState.burdenPenalty(设计文档 §6.3),
-//   否则战斗中用掉一个消耗品就会让命中率跳一下。
-export function burdenPenalty(occupiedSlots = 0, partyBurdenAdapt = 0): number {
+// 有效负重点数。探索页读数与开战时的快照都走它。
+// 战斗内不再重算 —— 负重会在开战瞬间快照进 BattleState.burden。
+export function burdenValue(occupiedSlots = 0, partyBurdenAdapt = 0): number {
   const adapt = Math.max(0, Math.min(100, partyBurdenAdapt));
-  return occupiedSlots * RULES.burden.penaltyPerSlot * (1 - adapt / 100);
+  return occupiedSlots * (1 - adapt / 100);
+}
+
+export function burdenHitPenalty(burden: number): number {
+  return Math.floor(burden / RULES.burden.hitPer);
+}
+
+export function burdenInitiativePenalty(burden: number): number {
+  return Math.floor(burden / RULES.burden.initiativePer);
 }

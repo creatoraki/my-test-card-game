@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getItemDef } from "@/data";
-import { RULES } from "@/engine";
+import { burdenHitPenalty, burdenInitiativePenalty, RULES } from "@/engine";
 import {
   backpackFree,
   backpackSlots,
@@ -73,7 +73,9 @@ export default function BackpackPanel({
 
   const used = backpackSlots(session);
   const free = backpackFree(session);
-  const burden = Math.round(burdenNow(session));
+  const burden = burdenNow(session);
+  const hitPenalty = burdenHitPenalty(burden);
+  const initiativePenalty = burdenInitiativePenalty(burden);
   const adapt = partyBurdenAdapt(session);
   const pending = session.pendingPickup;
   const replaceMode = pending.length > 0;
@@ -111,7 +113,7 @@ export default function BackpackPanel({
                 }
               </span>
               <span className={s["bp-penalty"]}>
-                命中 −{burden}% · 暴击 −{burden}% · 闪避 −{burden}%
+                命中 −{hitPenalty}% · 先手 −{initiativePenalty}
               </span>
               <span className={s["bp-adapt"]}>负重适应 {Math.min(100, Math.round(adapt))}%</span>
             </div>

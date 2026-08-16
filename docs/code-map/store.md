@@ -10,4 +10,4 @@
 | [townStore.ts](../../src/store/townStore.ts) | 持久化城镇档案：角色 profile、唤醒、编队、经验池、个人卡组、污染值、生病、怪癖、卡组锻造、免费三选一/删卡、居民积分、仓库、装备和出售，以及生存天数 `day`、商店货架 `shop` 与 `squadTalent`（`badgeId` + 已激活节点 id 数组 `nodes`，`activateTalentNode` 点亮 / `refundTalentNode` 单点退还，判定走 `data/squadTalents`）。训练点由上阵角色卡组等级之和实时计算，存档 key 为 `town-profile-v10`。 |
 | [runStore.ts](../../src/store/runStore.ts) | 远征流程总编排和界面路由。启动战斗前消费待处理污染请求并污染当前队伍个人卡组；启动战斗时合并存活队员卡组、羁绊与临时光环，计算完整面板，传入污染/疾病/怪癖与继承的三段血量；远征收尾统一消费探索 `pendingExp` 并落袋，战败、撤退与终局也不丢污染。`backToTown` 是唯一推进一日的地方。 |
 
-依赖边界：`runStore` 是探索、战斗和界面的唯一连接点；`townStore` 不直接依赖探索会话。探索层提供队伍快照，战斗只接收 `startHp`、`EncounterModifier` 和 `burdenPenalty` 等初始化数据。
+依赖边界：`runStore` 是探索、战斗和界面的唯一连接点；`townStore` 不直接依赖探索会话。探索层提供队伍快照，战斗只接收 `startHp`、`EncounterModifier` 和有效负重 `burden` 等初始化数据。

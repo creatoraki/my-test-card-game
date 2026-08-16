@@ -5,7 +5,7 @@
 // ============================================================================
 
 import type { StatusCtx, StatusDef, DamageCtx } from "./types";
-import { RULES } from "./rules";
+import { POLLUTION_STATUS_ID, RULES } from "./rules";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
   // ---- 持续伤害 ----
@@ -74,6 +74,19 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     hooks: {
       modifyOutgoingDamage: (c: StatusCtx, dmg: DamageCtx) => {
         if (dmg.isAttack) dmg.amount += c.inst.stacks;
+      },
+    },
+  },
+  pollution: {
+    id: POLLUTION_STATUS_ID,
+    name: "粒子污染",
+    emoji: "☢️",
+    kind: "buff",
+    desc: `每层: 造成的攻击伤害 +${RULES.combat.pollutionDamagePerStack * 100}%, 闪避 +${RULES.combat.pollutionDodgePerStack}%。持续存在。`,
+    hooks: {
+      modifyOutgoingDamage: (c: StatusCtx, dmg: DamageCtx) => {
+        if (dmg.isAttack)
+          dmg.amount *= 1 + RULES.combat.pollutionDamagePerStack * c.inst.stacks;
       },
     },
   },
