@@ -1,7 +1,7 @@
 .loot-tray {
   position: relative;
   min-height: 0;
-  max-height: 180px;
+  height: 180px;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -51,7 +51,7 @@
 
 .loot-empty {
   grid-column: 1 / -1;
-  min-height: 130px;
+  height: 100%;
   display: grid;
   place-items: center;
   color: #9ab8c1;

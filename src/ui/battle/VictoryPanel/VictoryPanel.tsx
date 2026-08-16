@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { CHALLENGE_DEFS, RULES } from "@/engine";
+import { RULES } from "@/engine";
 import { getItemDef } from "@/data";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
@@ -10,6 +10,7 @@ import { useChangePulse } from "@/ui/hooks/useChangePulse";
 import { cx } from "@/ui/common/cx";
 import { victoryChoreoVars, victorySectionStagger, victoryTiming } from "@/ui/battle/victoryChoreo";
 import { VictoryExpRow } from "@/ui/battle/VictoryExpRow";
+import { VictoryDropSection } from "@/ui/battle/VictoryDropSection";
 import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/VictoryLootTray";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import s from "./VictoryPanel.module.css";
@@ -104,32 +105,25 @@ export function VictoryPanel() {
         <section className={s["victory-panel"]}>
           <span className={s["panel-sweep"]} aria-hidden="true" />
           <header className={s["panel-head"]}>
-          <div>
-            <h2>战斗胜利</h2>
-          </div>
-          <div className={s["head-readout"]}>
-            <button className={s["drop-chip"]} type="button">
-              <span>掉落 ×{lastDropK.toFixed(2)}</span>
-              <span className={s["drop-popover"]}>
-                {lastDropTier?.name ?? "未知"} ×{(lastDropTier?.rewardMultiplier ?? 0).toFixed(2)}<br />
-                挑战 +{lastChallengeBonus.toFixed(2)}
-                {lastChallenges.length > 0 && <>
-                  <br />
-                  {lastChallenges.map((run) => (
-                    <span key={run.id}>
-                      {CHALLENGE_DEFS[run.id].title} {run.broken ? "已打破" : "达成"}<br />
-                    </span>
-                  ))}
-                </>}
-              </span>
-            </button>
+            <div>
+              <span className={s["panel-kicker"]}>BATTLE CLEARED</span>
+              <h2>战斗胜利</h2>
+            </div>
           </div>
           </header>
+
+          <VictoryDropSection
+            dropK={lastDropK}
+            tier={lastDropTier}
+            challenges={lastChallenges}
+            challengeBonus={lastChallengeBonus}
+            style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(0))}ms` } as CSSProperties}
+          />
 
           <div className={s["panel-content"]}>
           <section
             className={cx(s["exp-section"], s["victory-section"])}
-            style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(0))}ms` } as CSSProperties}
+            style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
           >
             <div className={s["section-heading"]}>
               <span>队伍经验</span>
@@ -150,7 +144,7 @@ export function VictoryPanel() {
           <div className={s["right-column"]}>
             <section
               className={cx(s["loot-section"], s["victory-section"])}
-              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
+              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
             >
               <div className={s["section-heading"]}>
                 <span>战利品</span>
@@ -166,7 +160,7 @@ export function VictoryPanel() {
 
             <section
               className={cx(s["backpack-section"], s["victory-section"])}
-              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
+              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
             >
               <ItemInventoryPanel
                 stacks={backpack}

@@ -1,0 +1,171 @@
+.drop-section {
+  --drop-accent: #58dcd0;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 14px;
+  padding: 10px 14px;
+  overflow: visible;
+  background: linear-gradient(105deg, #102a2d, #0c171a 56%, #101b1d);
+  border: 1px solid #405057;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  opacity: 0;
+  transform: translateX(48px);
+  animation: vcDropSlideIn var(--vc-section-ms) var(--vc-ease-pop) var(--vc-delay) both;
+}
+
+.drop-main {
+  display: flex;
+  min-width: 170px;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.label {
+  color: #9bb9b9;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+
+.value {
+  color: #f4f7ec;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 14px color-mix(in srgb, var(--drop-accent) 45%, transparent);
+  white-space: nowrap;
+}
+
+.drop-sources {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.chip {
+  --chip-accent: var(--drop-accent);
+  position: relative;
+  display: flex;
+  min-width: 104px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  color: #e9f5ed;
+  background: #071114cc;
+  border: 1px solid color-mix(in srgb, var(--chip-accent) 65%, #405057);
+  cursor: help;
+  outline: none;
+  opacity: 0;
+  transform: translateX(24px);
+  animation: vcChipSlideIn var(--vc-section-ms) var(--vc-ease-pop) calc(var(--vc-delay) + var(--chip-delay, 0ms)) both;
+}
+
+.chip:hover,
+.chip:focus-visible {
+  background: #133437;
+  border-color: var(--chip-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--chip-accent) 28%, transparent);
+}
+
+.icon {
+  flex: 0 0 auto;
+  color: var(--chip-accent);
+  font-size: 21px;
+  line-height: 1;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--chip-accent) 45%, transparent);
+}
+
+.copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.copy strong {
+  overflow: hidden;
+  color: #eef8ee;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy small {
+  color: var(--chip-accent);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.chip[data-state="broken"] {
+  --chip-accent: #778689;
+  filter: grayscale(0.7);
+  opacity: 0.42;
+  animation-name: vcChipSlideIn, vcChipBrokenIn;
+}
+
+.chip[data-state="broken"] .copy {
+  text-decoration: line-through;
+}
+
+.chip[data-state="broken"] .icon,
+.chip[data-state="broken"] .copy small {
+  color: #778689;
+  text-shadow: none;
+}
+
+@keyframes vcDropSlideIn {
+  from { opacity: 0; transform: translateX(48px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes vcChipSlideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes vcChipBrokenIn {
+  from { opacity: 0; }
+  to { opacity: 0.42; }
+}
+
+@media (max-width: 700px) {
+  .drop-section {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .drop-main,
+  .drop-sources {
+    width: 100%;
+  }
+
+  .drop-sources {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-section,
+  .chip,
+  .chip[data-state="broken"] {
+    opacity: 1;
+    animation: none;
+    transform: none;
+  }
+
+  .chip[data-state="broken"] {
+    opacity: 0.42;
+  }
+}

@@ -67,7 +67,7 @@ interface RunStore {
   lastDrops: ItemStack[]; // 上一场战斗掉的实物(结算页展示) —— 战斗的正经产出是这个
   battleSettled: boolean; // 本场战斗已完成结算, 但胜利面板仍留在战斗画布内
   lastDropK: number; // 本场掉落使用的最终倍率
-  lastDropTier: { name: string; rewardMultiplier: number } | null;
+  lastDropTier: { tier: number; name: string; color: string; rewardMultiplier: number } | null;
   lastChallengeBonus: number;
   lastChallenges: ChallengeRun[];
   // 角色详情页正在看谁。⚠ 只在 screen === "charDetail" 时有意义; 从详情返回编队时**刻意不清空**,
@@ -373,7 +373,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastDrops,
       lastDropK,
       lastDropTier: {
+        tier: lastDropTier.tier,
         name: lastDropTier.name,
+        color: lastDropTier.color,
         rewardMultiplier: lastDropTier.rewardMultiplier,
       },
       lastChallengeBonus: challengeBonus,
