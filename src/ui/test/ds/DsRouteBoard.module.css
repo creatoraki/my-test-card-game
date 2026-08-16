@@ -1,0 +1,1280 @@
+/* ===================== ds 路线图 v3 · 星图投影 =====================
+   ⚠ 每个 px 都是「设计 px」(1920×1080 画布), 不写 vw/vh。
+   ⛔ 禁闪烁: 常驻动效只用位移/旋转/缩放, 明暗一律走 transition 或一次性播完即止。
+
+   ★ 视觉身份(v3 概念, 与「桌面沙盘」彻底分家):
+     ① 场景 = 深空虚空: 深靛渐变 + 漂移星点 + 底部投影基座(光圈与同心环);
+     ② 地块 = 悬浮的能量玻璃台座: 三种造型 + 半透明顶面 + 呼吸浮动(相位错开);
+     ③ 每块台座向下垂一条**投影光柱**(事件色渐变), 读作被基座投影出来的全息体;
+     ④ 物件 = 悬浮星徽(实线环 + 旋转虚线环 + 事件线稿), 台面升起细光柱托着它;
+     ⑤ 轨道 = 能量流: 暗槽 + 冷银光带 + 匀速流动的亮斑;
+     ⑥ 整块棋盘随鼠标视差轻摆(perspective 旋转)。
+     一块砖的全部颜色由 **--k** 推出(TSX 内联下发), 换类型 = 换一个变量。 */
+
+/* ===================== 页面外壳 ===================== */
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 6px 8px 26px;
+  background: radial-gradient(60% 30% at 50% 0%, #1c2a5e26, transparent 70%);
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ffffff14;
+}
+
+.kicker {
+  display: block;
+  color: #6fe3f5;
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.title {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  padding: 9px 16px;
+  border: 1px solid #ffffff22;
+  background: linear-gradient(155deg, #131d229e, #0a1013cc);
+  color: #b9c7c9;
+  clip-path: none;
+  font-family: var(--font-family);
+  font-size: 14px;
+  letter-spacing: 2px;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease;
+}
+
+.actions button:hover {
+  border-color: #9ed0d1;
+  background: linear-gradient(145deg, #24393dd9, #16262bbd);
+  color: #d8ebe7;
+}
+
+.actions button.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* 舞台: 棋盘按设计 px 原尺寸摆放; 窗口不够宽时在舞台内横向滚动, 不缩放。 */
+.stage {
+  flex: none;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0 auto;
+  padding-top: 8px;
+}
+
+.scene {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ── 深空虚空: 星点 + 底部投影基座 ── */
+.dsrVoid {
+  position: absolute;
+  z-index: 0;
+  inset: -14px;
+  border-radius: 28px;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 46% at 78% 16%, #4a2e8f30, transparent 62%),
+    radial-gradient(54% 42% at 12% 30%, #1c4a6e2b, transparent 64%),
+    radial-gradient(140% 110% at 50% 50%, #0a0f22, #03040a 100%);
+}
+
+.dsrStars {
+  position: absolute;
+  z-index: 0;
+  inset: -14px;
+  pointer-events: none;
+}
+.dsrStars i {
+  position: absolute;
+  width: var(--sz, 1.5px);
+  height: var(--sz, 1.5px);
+  border-radius: 50%;
+  background: #cfe8ff;
+  animation: starDrift var(--dur, 20s) ease-in-out var(--del, 0s) infinite alternate;
+}
+@keyframes starDrift {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(var(--drift, 2px), -7px);
+  }
+}
+
+/* 投影基座: 棋盘下方的光圈与两道同心环 —— 「全息图是从这里打上去的」。 */
+.dsrBase {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  bottom: 26px;
+  width: 880px;
+  height: 150px;
+  margin-left: -440px;
+  pointer-events: none;
+  background: radial-gradient(50% 60% at 50% 50%, #2a6f9f2b, transparent 70%);
+}
+.dsrBase::before,
+.dsrBase::after {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  content: "";
+}
+.dsrBase::before {
+  width: 860px;
+  height: 126px;
+  border-color: #5ceaff33;
+  box-shadow:
+    inset 0 0 46px #5ceaff14,
+    0 0 24px #5ceaff12;
+}
+.dsrBase::after {
+  width: 620px;
+  height: 92px;
+  border-color: #5ceaff1c;
+}
+
+/* 视差轻摆: 整块棋盘随鼠标 perspective 旋转(CSS 变量由 JS 直写, 零重渲染)。 */
+.tiltWrap {
+  position: absolute;
+  inset: 0;
+  transform: perspective(1600px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-origin: 50% 60%;
+  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  will-change: transform;
+}
+
+/* ===================== 棋盘本体 ===================== */
+
+.dsrRoot {
+  --dsr-pipe: #7e92b5; /* 主线: 冷银光带(不再是暖铜 —— 能量流, 不是金属槽) */
+  --dsr-bridge: #5ceaff;
+  --dsr-trace: var(--accent);
+  --k: #6ea8ff;
+  position: relative;
+  isolation: isolate;
+}
+
+/* ── 场地 SVG 层 ── */
+.dsrSvg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* 能量流四层: 暗槽(bed) → 冷银光带(pipe) → 顶部高光(gloss) → 流动亮斑(flow)。 */
+.dsrPipeBed {
+  stroke: #01040acc;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition:
+    stroke 220ms ease,
+    stroke-width 220ms ease;
+}
+.dsrPipe {
+  stroke: var(--dsr-pipe);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  transition:
+    stroke 220ms ease,
+    stroke-width 220ms ease;
+}
+.dsrPipeGloss {
+  stroke: #e8f4ff26;
+  stroke-width: 1;
+  stroke-linecap: round;
+  transform: translateY(-1px);
+  transition: stroke 220ms ease;
+}
+/* 流动亮斑: 一段匀速跑过轨道的能量(dash 位移, 无明暗闪烁)。 */
+.dsrPipeFlow {
+  stroke: #9fc6ff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 12 34;
+  opacity: 0.5;
+  animation: pipeFlow 3.2s linear infinite;
+  transition:
+    stroke 220ms ease,
+    opacity 220ms ease;
+}
+@keyframes pipeFlow {
+  to {
+    stroke-dashoffset: -46;
+  }
+}
+
+.dsrLane,
+.dsrBridge {
+  filter: drop-shadow(0 1px 0 #00000077);
+  transition:
+    filter 240ms ease,
+    opacity 320ms ease;
+}
+.dsrLane.isLive .dsrPipe {
+  stroke: var(--dsr-trace);
+  stroke-width: 3;
+}
+.dsrLane.isLive .dsrPipeBed {
+  stroke: color-mix(in srgb, var(--dsr-trace) 14%, #04090d);
+}
+.dsrLane.isLive .dsrPipeGloss {
+  stroke: #ffffff55;
+}
+.dsrLane.isLive .dsrPipeFlow {
+  stroke: #eaffb0;
+  opacity: 0.9;
+}
+.dsrLane.isLive {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--dsr-trace) 40%, transparent));
+}
+.dsrLane.isDim {
+  opacity: 0.34;
+}
+
+/* 桥接: 平时留在 DOM 里只改 opacity; 显形时整组转亮青能量流。 */
+.dsrBridges {
+  transition: opacity 320ms ease;
+}
+.dsrBridges.isHidden {
+  opacity: 0;
+}
+.dsrBridges:not(.isHidden) .dsrPipe {
+  stroke: var(--dsr-bridge);
+  stroke-width: 3.2;
+}
+.dsrBridges:not(.isHidden) .dsrPipeGloss {
+  stroke: #ffffff88;
+}
+.dsrBridges:not(.isHidden) .dsrPipeFlow {
+  stroke: #b8f6ff;
+  opacity: 0.9;
+}
+.dsrBridges:not(.isHidden) .dsrBridge {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--dsr-bridge) 62%, transparent));
+}
+
+/* ── 电流 / 走线 ── */
+.dsrTraceDone {
+  fill: none;
+  stroke: var(--dsr-trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--dsr-trace) 50%, transparent));
+}
+.dsrTraceLine {
+  fill: none;
+  stroke: var(--dsr-trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--dsr-trace) 55%, transparent));
+  animation-name: dsrDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes dsrDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.dsrTraceComet {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 5.4;
+  stroke-linecap: round;
+  stroke-dashoffset: var(--len);
+  opacity: 0.2;
+  animation-name: dsrDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.dsrSignal {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 10px var(--dsr-trace)) drop-shadow(0 0 20px #ffffff88);
+}
+.dsrRipple {
+  fill: none;
+  stroke: var(--dsr-trace);
+  stroke-width: 2;
+  opacity: 0;
+  animation: dsrRippleFx 700ms ease-out forwards;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes dsrRippleFx {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+/* ===================== 格子(台座)本体 =====================
+   ⚠⚠ 台座按钮必须把全站按钮外观整套卸掉(styles/base.css): 渐变底 / clip-path 斜切角 /
+   disabled 半透明 —— 整组状态显式关掉, 用 .dsrRoot 提到全局规则之上。 */
+.dsrRoot .dsrNode,
+.dsrRoot .dsrEntry,
+.dsrRoot .dsrNode:hover:not(:disabled),
+.dsrRoot .dsrEntry:hover:not(:disabled),
+.dsrRoot .dsrNode:focus-visible,
+.dsrRoot .dsrEntry:focus-visible,
+.dsrRoot .dsrNode:active:not(:disabled),
+.dsrRoot .dsrEntry:active:not(:disabled),
+.dsrRoot .dsrNode:disabled,
+.dsrRoot .dsrEntry:disabled {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  clip-path: none;
+  opacity: 1;
+}
+
+.dsrNodes,
+.dsrEntries {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.dsrNodes {
+  z-index: 1;
+}
+.dsrEntries {
+  z-index: 2;
+}
+.dsrNodes.isInert {
+  pointer-events: none;
+}
+
+.dsrNode,
+.dsrEntry {
+  position: absolute;
+  padding: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+.dsrEntry {
+  --k: var(--dsr-bridge);
+}
+
+/* 台座整体: 悬浮呼吸(相位由 --float-del 错开)。 */
+.dsrTile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: tileFloat 5.2s ease-in-out var(--float-del, 0s) infinite alternate;
+}
+@keyframes tileFloat {
+  from {
+    transform: translateY(-4px);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+
+/* ── 台座各层材质(顺序即遮挡顺序, 与 <TileArt> 的 DOM 顺序对应) ── */
+
+/* 投影光柱: 台座底缘向下垂到「投影地板」, 事件色自上而下淡出。 */
+.dsrTileShaft {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 260ms ease;
+}
+.dsGShaftA {
+  stop-color: color-mix(in srgb, var(--k) 38%, transparent);
+}
+.dsGShaftB {
+  stop-color: transparent;
+}
+
+/* 顶面渐变(能量玻璃): 光从左上来, 事件色三档递减。 */
+.dsGTopA {
+  stop-color: color-mix(in srgb, var(--k) 30%, #243340);
+}
+.dsGTopB {
+  stop-color: color-mix(in srgb, var(--k) 20%, #18232d);
+}
+.dsGTopC {
+  stop-color: color-mix(in srgb, var(--k) 12%, #0e161d);
+}
+/* 侧面(能量壁)。 */
+.dsGSideA {
+  stop-color: color-mix(in srgb, var(--k) 12%, #0e171f);
+}
+.dsGSideB {
+  stop-color: color-mix(in srgb, var(--k) 6%, #04080c);
+}
+.dsGSiderA {
+  stop-color: color-mix(in srgb, var(--k) 16%, #1a2732);
+}
+/* 圆柱侧面: 横向渐变模拟弧面受光。 */
+.dsGSideCylA {
+  stop-color: color-mix(in srgb, var(--k) 10%, #0a121a);
+}
+.dsGSideCylB {
+  stop-color: color-mix(in srgb, var(--k) 24%, #233240);
+}
+.dsGSideCylC {
+  stop-color: color-mix(in srgb, var(--k) 10%, #0c151d);
+}
+/* 中心光池: 默认常亮。 */
+.dsGGlowA {
+  stop-color: color-mix(in srgb, var(--k) 60%, transparent);
+}
+.dsGGlowB {
+  stop-color: transparent;
+}
+
+.dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 45%, #ffffff2b);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  transition:
+    stroke 220ms ease,
+    stroke-width 220ms ease;
+}
+.dsrTileSide {
+  stroke: #00000080;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+.dsrTileFoot {
+  fill: none;
+  stroke: #01040699;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dsrTileBase {
+  fill: #080f14;
+  stroke: #00000080;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+.dsrTileBaseTop {
+  fill: #121c24;
+  stroke: #ffffff12;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.dsrTileRing {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 60%, #ffffff2e);
+  stroke-width: 2;
+  transition: stroke 220ms ease;
+}
+.dsrTileRingIn {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 34%, #ffffff1a);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 4;
+  transition: stroke 220ms ease;
+}
+.dsrTileStud {
+  fill: #0a1116cc;
+  stroke: color-mix(in srgb, var(--k) 55%, #ffffff40);
+  stroke-width: 1;
+  opacity: 0.8;
+  transition: opacity 220ms ease;
+}
+.dsrTileTick {
+  stroke: color-mix(in srgb, var(--k) 40%, #ffffff22);
+  stroke-width: 1;
+  pointer-events: none;
+}
+.dsrTileDot {
+  fill: #00000066;
+  stroke: #ffffff14;
+  stroke-width: 0.6;
+  pointer-events: none;
+}
+.dsrTileInlay {
+  fill: #050a0eb3;
+  stroke: #ffffff1a;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  transition:
+    fill 220ms ease,
+    stroke 220ms ease;
+}
+.dsrTileCrack {
+  fill: none;
+  stroke: #000000a6;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 -0.8px 0 #ffffff14);
+}
+.dsrTileHazard polyline {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 82%, #ffffff);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--k) 60%, transparent));
+}
+.dsrTileGlow {
+  opacity: 0.5;
+  transition: opacity 260ms ease;
+}
+.dsrTileRim {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1;
+  opacity: 0.13;
+}
+.dsrTileLead {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.3;
+  transition:
+    opacity 220ms ease,
+    stroke-width 220ms ease,
+    stroke 220ms ease;
+}
+.dsrTileHalo {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 78%, transparent);
+  stroke-width: 1.3;
+  stroke-dasharray: 9 7;
+  stroke-linejoin: round;
+  opacity: 0.32;
+  transition: opacity 260ms ease;
+}
+.dsrTileGlowEdge {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 80%, transparent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--k) 65%, transparent));
+  transition:
+    stroke 220ms ease,
+    opacity 220ms ease,
+    filter 220ms ease;
+}
+/* 三类台座的成色差。 */
+.sh-gain .dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 55%, #ffffff36);
+}
+.sh-threat .dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 40%, #ffffff1c);
+}
+
+/* 风险标记: 唯一允许在常态给台座再加一档的东西。 */
+.r-negative .dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 45%, transparent);
+}
+.r-negative .dsrTileHazard polyline {
+  opacity: 0.9;
+}
+.r-highRisk .dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 72%, transparent);
+  stroke-width: 1.6;
+}
+.r-highRisk .dsrTileHalo {
+  opacity: 0.6;
+}
+
+/* ── 悬浮星徽 ── */
+.dsrSigilBeam {
+  position: absolute;
+  left: 50%;
+  bottom: var(--foot);
+  width: 3px;
+  height: 34px;
+  margin-left: -1.5px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--k) 55%, transparent), transparent 92%);
+  filter: blur(1px);
+  pointer-events: none;
+  transition: background 220ms ease;
+}
+.dsrSigil {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--foot) + 30px);
+  width: 46px;
+  height: 46px;
+  margin-left: -23px;
+  color: var(--k);
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--k) 55%, transparent));
+  animation: sigilFloat 4.6s ease-in-out calc(var(--float-del, 0s) + 0.9s) infinite alternate;
+  transition:
+    translate 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    filter 220ms ease;
+}
+.dsrSigil svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.sigilRing {
+  fill: color-mix(in srgb, var(--k) 8%, transparent);
+  stroke: color-mix(in srgb, var(--k) 85%, #ffffff);
+  stroke-width: 1.4;
+}
+.sigilRingSpin {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 55%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sigilSpin 12s linear infinite;
+}
+@keyframes sigilSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* 线稿的暗部厚度(衬在主体下) —— 徽记读得出「浮起来的发光字」。 */
+.sigilDepth * {
+  stroke: #0a0f1c;
+  stroke-width: 5.5;
+  opacity: 0.85;
+}
+@keyframes sigilFloat {
+  from {
+    transform: translateY(-3px);
+  }
+  to {
+    transform: translateY(3px);
+  }
+}
+
+/* ── 台座交互态 ── */
+.dsrRoot .dsrNode:hover:not(:disabled),
+.dsrRoot .dsrNode:focus-visible,
+.dsrRoot .dsrNode.isHovered {
+  transform: translateY(-7px);
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileGlow,
+.dsrRoot .dsrNode.isHovered .dsrTileGlow {
+  opacity: 1;
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileHalo,
+.dsrRoot .dsrNode.isHovered .dsrTileHalo {
+  opacity: 0.85;
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileShaft,
+.dsrRoot .dsrNode.isHovered .dsrTileShaft {
+  opacity: 0.85;
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileGlowEdge,
+.dsrRoot .dsrNode.isHovered .dsrTileGlowEdge {
+  opacity: 1;
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--k) 80%, transparent));
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileStud,
+.dsrRoot .dsrNode.isHovered .dsrTileStud {
+  opacity: 0.95;
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileLead,
+.dsrRoot .dsrNode.isHovered .dsrTileLead {
+  opacity: 1;
+  stroke-width: 2;
+  stroke: color-mix(in srgb, var(--k) 60%, #ffffff);
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileTop,
+.dsrRoot .dsrNode.isHovered .dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 70%, transparent);
+  stroke-width: 1.5;
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrTileRing,
+.dsrRoot .dsrNode.isHovered .dsrTileRing {
+  stroke: color-mix(in srgb, var(--k) 60%, #ffffff30);
+}
+/* 星徽跟着台座一起抬 + 增亮。 */
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrSigil,
+.dsrRoot .dsrNode.isHovered .dsrSigil {
+  translate: 0 -8px;
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--k) 75%, transparent));
+}
+.dsrRoot .dsrNode:hover:not(:disabled) .dsrSigilBeam,
+.dsrRoot .dsrNode.isHovered .dsrSigilBeam {
+  background: linear-gradient(to top, color-mix(in srgb, var(--k) 75%, transparent), transparent 92%);
+}
+.dsrRoot .dsrNode:focus-visible .dsrTileHalo {
+  opacity: 1;
+}
+
+/* 当前落点: 全图唯一一块被完整点亮的格子。 */
+.dsrNode.isCurrent .dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 85%, transparent);
+  stroke-width: 1.8;
+}
+.dsrNode.isCurrent .dsrTileRing {
+  stroke: color-mix(in srgb, var(--k) 70%, #ffffff);
+}
+.dsrNode.isCurrent .dsrTileRingIn {
+  stroke: color-mix(in srgb, var(--k) 45%, transparent);
+}
+.dsrNode.isCurrent .dsrTileGlow {
+  opacity: 1;
+}
+.dsrNode.isCurrent .dsrTileHalo {
+  opacity: 1;
+}
+.dsrNode.isCurrent .dsrTileShaft {
+  opacity: 1;
+}
+.dsrNode.isCurrent .dsrTileGlowEdge {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--k) 85%, transparent));
+}
+.dsrNode.isCurrent .dsrTile {
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--k) 45%, transparent));
+}
+.dsrNode.isCurrent .dsrSigil {
+  translate: 0 -6px;
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--k) 85%, transparent));
+}
+/* 已结算: 整格转中性灰(TSX 内联换 --k)。 */
+.dsrNode.isSettled .dsrSigil {
+  filter: drop-shadow(0 0 4px #63707a66) saturate(0.6);
+}
+
+/* ===================== 入口 A-E =====================
+   ★ 入口与事件砖一眼分得开: 亮青高填充顶面 + 内嵌板 + 导向流/人字标 + 光柱 + 立体字母。 */
+.dsrEntry .dsGTopA {
+  stop-color: color-mix(in srgb, var(--k) 62%, #0d1c26);
+}
+.dsrEntry .dsGTopB {
+  stop-color: color-mix(in srgb, var(--k) 44%, #0b1720);
+}
+.dsrEntry .dsGTopC {
+  stop-color: color-mix(in srgb, var(--k) 26%, #081219);
+}
+.dsrEntry .dsGSiderA {
+  stop-color: color-mix(in srgb, var(--k) 30%, #071018);
+}
+.dsrEntry .dsGSideA {
+  stop-color: color-mix(in srgb, var(--k) 18%, #060e14);
+}
+.dsrEntry .dsrTileTop {
+  stroke: color-mix(in srgb, var(--k) 90%, transparent);
+  stroke-width: 1.6;
+}
+.dsrEntry .dsrTileInlay {
+  fill: color-mix(in srgb, var(--k) 16%, #06121a);
+  stroke: color-mix(in srgb, var(--k) 72%, transparent);
+}
+.dsrEntry .dsrTileHalo {
+  opacity: 0.85;
+}
+.dsrEntry .dsrTileLead {
+  opacity: 1;
+  stroke-width: 2.6;
+}
+.dsrEntry .dsrTile {
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--k) 34%, transparent));
+  transition: filter 240ms ease;
+}
+.dsrEntryFlow {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 85%, #ffffff);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 7 11;
+  opacity: 0.5;
+  pointer-events: none;
+  animation: dsrEntryFlow 1.1s linear infinite;
+  transition:
+    stroke 220ms ease,
+    opacity 220ms ease;
+}
+@keyframes dsrEntryFlow {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+.dsrEntryChevron {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 55%, #ffffff);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+  transition: opacity 220ms ease;
+}
+.dsrEntryBeam {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--foot) - 3px);
+  width: 58px;
+  height: 84px;
+  margin-left: -29px;
+  clip-path: polygon(16% 0, 84% 0, 62% 100%, 38% 100%);
+  background: linear-gradient(to top, color-mix(in srgb, var(--k) 52%, transparent), transparent 84%);
+  filter: blur(1.6px);
+  transform-origin: 50% 100%;
+  scale: 1 1;
+  animation: dsrBeamBreathe 3.8s ease-in-out infinite alternate;
+  pointer-events: none;
+  transition:
+    background 220ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+@keyframes dsrBeamBreathe {
+  from {
+    scale: 1 0.96;
+  }
+  to {
+    scale: 1 1.08;
+  }
+}
+.dsrEntryLetter {
+  position: absolute;
+  left: 0;
+  bottom: var(--foot);
+  width: 100%;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow:
+    0 1px 0 #0a1015,
+    0 2px 0 #0a1015,
+    0 3px 0 #080e12,
+    0 4px 0 #080e12,
+    0 10px 16px #000000cc,
+    0 0 22px color-mix(in srgb, var(--k) 60%, transparent);
+  animation: dsrEntryFloat 4s calc(var(--i) * -0.8s) ease-in-out infinite alternate;
+  transition:
+    color 220ms ease,
+    letter-spacing 220ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+@keyframes dsrEntryFloat {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+.dsrRoot .dsrEntry:hover:not(:disabled),
+.dsrRoot .dsrEntry:focus-visible,
+.dsrRoot .dsrEntry.isActive {
+  --k: var(--dsr-trace);
+  transform: translateY(-6px);
+}
+.dsrRoot .dsrEntry:hover:not(:disabled) .dsrEntryLetter,
+.dsrRoot .dsrEntry:focus-visible .dsrEntryLetter {
+  animation-play-state: paused;
+  transform: translateY(-7px);
+  color: var(--dsr-trace);
+  letter-spacing: 5px;
+}
+.dsrRoot .dsrEntry:hover:not(:disabled) .dsrEntryBeam,
+.dsrRoot .dsrEntry:focus-visible .dsrEntryBeam,
+.dsrRoot .dsrEntry.isActive .dsrEntryBeam {
+  transform: scaleY(1.24);
+}
+.dsrRoot .dsrEntry:hover:not(:disabled) .dsrEntryChevron,
+.dsrRoot .dsrEntry.isActive .dsrEntryChevron,
+.dsrRoot .dsrEntry:hover:not(:disabled) .dsrEntryFlow,
+.dsrRoot .dsrEntry.isActive .dsrEntryFlow {
+  opacity: 1;
+}
+.dsrRoot .dsrEntry:active:not(:disabled) .dsrEntryLetter {
+  transform: translateY(-2px);
+  transition-duration: 90ms;
+}
+.dsrRoot .dsrEntry.isActive .dsrEntryLetter {
+  animation: none;
+  transform: translateY(-7px);
+  color: var(--dsr-trace);
+}
+.dsrRoot .dsrEntry:disabled:not(.isActive) {
+  --k: color-mix(in srgb, var(--dsr-bridge) 70%, #6d7d88);
+  cursor: default;
+}
+.dsrRoot .dsrEntry:disabled:not(.isActive) .dsrEntryLetter {
+  color: color-mix(in srgb, var(--text) 76%, #6d7d88);
+}
+.dsrRoot .dsrEntry.isBlocked:not(.isActive) {
+  --k: #6b767c;
+  cursor: not-allowed;
+}
+.dsrRoot .dsrEntry.isBlocked .dsrEntryBeam {
+  display: none;
+}
+.dsrRoot .dsrEntry.isBlocked .dsrTile {
+  filter: none;
+}
+.dsrRoot .dsrEntry.isBlocked .dsrTileHalo {
+  opacity: 0;
+}
+.dsrRoot .dsrEntry.isBlocked .dsrTileTop {
+  stroke: #ffffff26;
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+.dsrRoot .dsrEntry.isBlocked .dsrEntryChevron,
+.dsrRoot .dsrEntry.isBlocked .dsrEntryFlow,
+.dsrRoot .dsrEntry.isBlocked .dsrTileLead {
+  stroke: #6b767c66;
+  opacity: 0.5;
+}
+.dsrRoot .dsrEntry.isBlocked .dsrEntryLetter {
+  animation: none;
+  transform: none;
+  color: #6b767c;
+  text-decoration: line-through;
+  text-shadow:
+    0 1px 0 #0a1015,
+    0 2px 0 #080e12;
+}
+
+/* ===================== 光核信使 ===================== */
+.dsrPawnLayer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+.dsrPawn {
+  transition: transform 260ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.dsrPawn.isWalking {
+  transition: none;
+}
+.dsrPawnBody {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--dsr-trace) 34%, transparent));
+}
+.dsrPawnShadow {
+  fill: #00000099;
+}
+.dsrPawnBeam {
+  fill: color-mix(in srgb, var(--dsr-trace) 34%, transparent);
+  filter: blur(2px);
+}
+.dsrPawnIdle {
+  animation: dsrPawnIdle 2.8s ease-in-out infinite alternate;
+}
+@keyframes dsrPawnIdle {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2.5px);
+  }
+}
+.dsrPawnLit {
+  fill: color-mix(in srgb, var(--dsr-trace) 60%, #ffffff);
+}
+.dsrPawnMid {
+  fill: color-mix(in srgb, var(--dsr-trace) 75%, #10251a);
+}
+.dsrPawnDark {
+  fill: color-mix(in srgb, var(--dsr-trace) 32%, #071009);
+}
+.dsrPawnCore {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 8px var(--dsr-trace)) drop-shadow(0 0 18px #ffffffaa);
+}
+
+/* ===================== 悬浮详情卡 ===================== */
+.dsrCard {
+  position: absolute;
+  z-index: 5;
+  width: 240px;
+  padding: 12px 14px 13px;
+  border: 1px solid color-mix(in srgb, var(--k) 42%, transparent);
+  border-left: 2px solid var(--k);
+  background: linear-gradient(150deg, #0f1a20f2, #080d11f7);
+  box-shadow:
+    0 18px 40px -20px #000000,
+    0 0 0 1px #00000055;
+  color: var(--text);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  animation: dsrCardIn 160ms ease-out;
+}
+@keyframes dsrCardIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 6px));
+  }
+}
+.dsrCardSeg {
+  display: block;
+  color: var(--k);
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+.dsrCardTitle {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-family);
+  font-size: 19px;
+  letter-spacing: 1px;
+}
+.dsrCardDesc {
+  margin: 6px 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dsrCardReward {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid #83cbd240;
+  color: #a9dde2;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.dsrCardRisk {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border: 1px solid #e3aa7255;
+  color: #e3aa72;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+/* ===================== 画面 HUD ===================== */
+.dsrHud {
+  position: absolute;
+  z-index: 6;
+  left: 10px;
+  top: 6px;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+  font-family: var(--font-family);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+.hudState,
+.hudEntry,
+.hudSeg {
+  padding: 4px 9px;
+  border: 1px solid #ffffff1c;
+  background: #0a1116cc;
+  white-space: nowrap;
+}
+.hudState {
+  color: #6fe3f5;
+  border-color: #6fe3f54d;
+}
+.hudEntry {
+  color: var(--accent);
+  border-color: #d8f3294d;
+}
+.hudSeg {
+  color: #849096;
+}
+
+/* ===================== 生成演出 ===================== */
+.dsrScanClip {
+  position: absolute;
+  inset: -14px;
+  overflow: hidden;
+  border-radius: 28px;
+  pointer-events: none;
+  z-index: 4;
+}
+.dsrScan {
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 130px;
+  height: 160%;
+  background: linear-gradient(90deg, transparent, #a9f0ff33 44%, #ffffff55 50%, #a9f0ff33 56%, transparent);
+  transform: skewX(-26.565deg);
+  animation: dsrScan 1900ms cubic-bezier(0.4, 0, 0.5, 1) forwards;
+}
+@keyframes dsrScan {
+  from {
+    transform: translateX(0) skewX(-26.565deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(1460px) skewX(-26.565deg);
+    opacity: 0;
+  }
+}
+.isGenerating .dsrPipe,
+.isGenerating .dsrPipeBed,
+.isGenerating .dsrPipeGloss {
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  animation: dsrDraw 300ms linear forwards;
+  animation-delay: calc(340ms + var(--j) * 260ms + var(--i) * 46ms);
+}
+.isGenerating .dsrEntry {
+  animation: dsrGenEntry 560ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
+  animation-delay: calc(var(--i) * 70ms);
+}
+@keyframes dsrGenEntry {
+  from {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+.isGenerating .dsrNode {
+  animation: dsrGenNode 520ms cubic-bezier(0.24, 1.1, 0.4, 1) backwards;
+  animation-delay: calc(560ms + var(--seg) * 280ms + var(--lane) * 40ms);
+}
+@keyframes dsrGenNode {
+  from {
+    opacity: 0;
+    transform: translateY(-34px) scale(0.92);
+  }
+}
+
+/* ===================== 底部图例 ===================== */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend i {
+  width: 10px;
+  height: 10px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.legendGain {
+  color: #41e2a4;
+}
+.legendUtil {
+  color: #b7a2ef;
+}
+.legendThreat {
+  color: #ff7a4d;
+}
+.legendEntry {
+  color: #5ceaff;
+}
+.legendTrace {
+  color: var(--accent);
+}
+
+/* ===================== 降级: 减少动态效果 ===================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .tiltWrap {
+    transform: none;
+  }
+
+  .dsrStars i,
+  .dsrTile,
+  .dsrSigil,
+  .sigilRingSpin,
+  .dsrPipeFlow,
+  .dsrEntryLetter,
+  .dsrEntryBeam,
+  .dsrEntryFlow,
+  .dsrPawnIdle {
+    animation: none;
+  }
+
+  .dsrScan {
+    animation-duration: 320ms;
+  }
+
+  .isGenerating .dsrEntry,
+  .isGenerating .dsrNode,
+  .isGenerating .dsrPipe,
+  .isGenerating .dsrPipeBed,
+  .isGenerating .dsrPipeGloss {
+    animation-duration: 120ms;
+    animation-delay: 0ms;
+  }
+}

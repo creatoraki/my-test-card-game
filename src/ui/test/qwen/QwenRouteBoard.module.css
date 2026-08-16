@@ -1,0 +1,930 @@
+/* ===================== 区域路线图(等距薄片地砖) · qwen 视觉方案 =====================
+   ⚠ 每个 px 都是「设计 px」(1920×1080 画布), 不写 vw/vh。
+   ⛔ 禁闪烁: 常驻动效只用匀速/缓动的位移与缩放, 明暗一律走 transition 或一次性播完即止。
+
+   ★ 这一版的核心是**把 EventPanel 的插画占位区平放成地砖**:
+     · 砖面 .tileFace 是一个方形盒子, 被 var(--tile-matrix) 压平成 2:1 菱形;
+       占位区的整套美工(切角内边框 / 透视网格 / 中心光球 / 角标编目小字 / 中心大字)
+       原封不动地跟着躺倒 ⇒ 读作「印在地面上的一块图版」。
+     · 厚度只有 .tileSlab 一层薄片(7px), 立体感全部压在「薄片下缘 + 落地投影」两笔上。
+   ⛔ 不要给砖加台座、加高度、加任何站立的物件 —— 那就变回 opus 版了, 本方案的全部识别度
+      就在「薄」这一个字上。
+   ⛔ 砖面上的所有斜线一律来自 var(--tile-matrix)(源头 qwenIso.ts), 不要在本文件手写角度。
+
+   ★ 一块砖的颜色由**一个强调色 --k** 派生: 事件色只出现在内边框、光球、大字、刻线这些
+     小面积零件上, 砖面本体永远是深炭色的图版底 —— 20 块砖铺开时画面才不会变成调色盘。 */
+
+.root {
+  --pipe: #96897a; /* 主线: 低饱和暖灰铜 =「没通电的裸金属导槽」 */
+  --bridge: #5ceaff; /* 桥接显形: 霓虹青 */
+  --trace: var(--accent); /* 已走路径 / 通电 */
+
+  /* ── 灰阶基准 ── */
+  --tac-white: #e8e9eb;
+  --tac-grey: #888c94;
+  --tac-dark: #3a3f47;
+  --tac-ink: #121418;
+
+  --k: #6d7b8c; /* 强调色的兜底(缺 .k-* 时用) */
+
+  /* 玻璃砖的两道内高光(顶部转折面 + 整体柔光) —— 砖的「厚」就读在这两笔上。
+     ⚠ 抽成变量是因为 box-shadow 不能叠加: 任何状态规则重写 box-shadow 时都必须把它带上,
+       漏掉一处, 那个状态下的砖就会瞬间塌成一张半透明贴纸。 */
+  --glass-inset: inset 0 10px 22px -14px #ffffffb3, inset 0 0 30px -6px #ffffff1a;
+
+  /* 直立投影的两个尺寸。⚠ --proj-h 与 QwenRouteBoard.tsx 的 PROJ_H 必须一致(见那边注释)。 */
+  --proj-h: 96px;
+  --proj-panel-h: 62px;
+  position: relative;
+  isolation: isolate;
+}
+
+/* 辅色派生: 掺入比例刻意很低, 辅色的性格必须是「灰」, 强调色只给一点色相倾向。
+   ⚠ 这条规则只写 --k1..--k3, 不写 --k ⇒ 与 .k-* / .isSettled 等只改 --k 的规则互不打架。 */
+.node,
+.entry,
+.card {
+  --k1: color-mix(in srgb, var(--k) 22%, var(--tac-white));
+  --k2: color-mix(in srgb, var(--k) 18%, var(--tac-grey));
+  --k3: color-mix(in srgb, var(--k) 20%, var(--tac-dark));
+}
+
+/* ── 事件色: 八种事件各占一个色相, 明度/饱和度锁在同一档(HSL 大致 S≈47% / L≈45%) ──
+   ⚠ 只要有一个色相亮出去, 它就会成为画面里唯一的霓虹, 其余七种一起被压成「灰掉的」。 */
+.k-battle {
+  --k: #a83c44;
+}
+.k-hazard {
+  --k: #a85f3c;
+}
+.k-loot {
+  --k: #a8853c;
+}
+.k-heal {
+  --k: #3ca85f;
+}
+.k-energy {
+  --k: #3c98a8;
+}
+.k-route {
+  --k: #3c6ba8;
+}
+.k-merchant {
+  --k: #6b4ca8;
+}
+.k-retreat {
+  --k: #a83c85;
+}
+
+/* ── 地面 ──
+   16:9 的场景占位图(cover 铺满面板)+ 一层中性暗色遮罩, 就这两层。
+   ⚠ 遮罩既不能省也不能太重: 砖面是半透明玻璃, 底图要透过它被看见 —— 压死了砖里就只剩一片黑,
+     玻璃感全靠这层遮罩留出的那点底图细节。现在这一档是「认得出场景、又不抢砖」的平衡点。
+   ⛔ 地面上**不铺任何等距网格线**, 也不加冷蓝色调的光晕层: 底图已经提供了场地的质感,
+      再叠一层规则网格会与它打架(两套纹理), 蓝调则会把砖面那点低饱和事件色全压掉。
+   ⚠ 图的地址由组件用 --board-bg 下发(资源要走打包器的 import, 不能在 CSS 里写死路径)。 */
+.ground {
+  position: absolute;
+  inset: -12px;
+  background-image:
+    radial-gradient(140% 110% at 50% 50%, #0a0b0cbf 0%, #050607e0 100%),
+    var(--board-bg);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center;
+  background-size: auto, cover;
+  mask-image: radial-gradient(115% 95% at 50% 50%, #000 42%, transparent 100%);
+  border-radius: 26px;
+  pointer-events: none;
+}
+
+/* ── SVG 场地层 ── */
+.svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: visible;
+  pointer-events: none; /* 横跨整块面板, 不能吃掉砖的命中 */
+}
+
+/* ── 连线: 三层同几何描边(槽 > 导线 > 高光) ── */
+.pipeBed {
+  stroke: #01050899;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke 220ms ease, stroke-width 220ms ease;
+}
+.pipe {
+  stroke: var(--pipe);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  transition: stroke 220ms ease, stroke-width 220ms ease;
+}
+.pipeGloss {
+  stroke: #ffe9c81f;
+  stroke-width: 1;
+  stroke-linecap: round;
+  transform: translateY(-1px);
+  transition: stroke 220ms ease;
+}
+
+.lane,
+.bridge {
+  filter: drop-shadow(0 1px 0 #00000077);
+  transition: filter 240ms ease, opacity 320ms ease;
+}
+/* 悬停某个入口 ⇒ 那条通道整串导线通电。只是「这条通道归这个入口」的确认, 不含落点信息。 */
+.lane.isLive .pipe {
+  stroke: var(--trace);
+  stroke-width: 3;
+}
+.lane.isLive .pipeBed {
+  stroke: color-mix(in srgb, var(--trace) 14%, #04090d);
+}
+.lane.isLive .pipeGloss {
+  stroke: #ffffff55;
+}
+.lane.isLive {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--trace) 40%, transparent));
+}
+.lane.isDim {
+  opacity: 0.34;
+}
+
+/* 桥接: 平时留在 DOM 里只改 opacity(卸载会让「记不住就没了」被 DevTools 绕过)。 */
+.bridges {
+  transition: opacity 320ms ease;
+}
+.bridges.isHidden {
+  opacity: 0;
+}
+.bridges:not(.isHidden) .pipe {
+  stroke: var(--bridge);
+  stroke-width: 3.2;
+}
+.bridges:not(.isHidden) .pipeGloss {
+  stroke: #ffffff88;
+}
+.bridges:not(.isHidden) .bridge {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--bridge) 62%, transparent));
+}
+
+/* ── 电流 / 走线 ── */
+.traceDone {
+  fill: none;
+  stroke: var(--trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--trace) 50%, transparent));
+}
+.traceLine {
+  fill: none;
+  stroke: var(--trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--trace) 55%, transparent));
+  animation-name: qDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes qDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.traceComet {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 5.4;
+  stroke-linecap: round;
+  stroke-dashoffset: var(--len);
+  opacity: 0.2;
+  animation-name: qDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.signal {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 10px var(--trace)) drop-shadow(0 0 20px #ffffff88);
+}
+/* 过桥完成处的一圈扩散环 —— 一次性播完即止, 不算闪烁。 */
+.ripple {
+  fill: none;
+  stroke: var(--trace);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: qRipple 700ms ease-out forwards;
+}
+@keyframes qRipple {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+/* ===================== 地砖 =====================
+   ⚠⚠ 砖按钮必须把全站按钮外观整套卸掉(styles/base.css):
+     ① `button{background}` / `button:hover` 会在砖底下垫一块深色矩形;
+     ② `button{clip-path}` 会把溢出按钮盒的砖面(菱形比方盒宽 1.79 倍)整齐切掉;
+     ③ `button:disabled{opacity:.4}` 会把整块砖半透明化 —— 不可点一律靠**颜色**表达。 */
+.root .node,
+.root .entry,
+.root .node:hover:not(:disabled),
+.root .entry:hover:not(:disabled),
+.root .node:focus-visible,
+.root .entry:focus-visible,
+.root .node:active:not(:disabled),
+.root .entry:active:not(:disabled),
+.root .node:disabled,
+.root .entry:disabled {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  clip-path: none;
+  opacity: 1;
+  outline: none;
+}
+
+.nodes,
+.entries {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.nodes {
+  z-index: 1;
+}
+.entries {
+  /* ⚠ 必须压在 .svg 之上: SVG 根元素内容虽透明, 整个盒子照样参与命中测试。 */
+  z-index: 2;
+}
+/* ⚠ 砖面自己写了 pointer-events:auto, 容器上的 none 拦不住它 —— 锁交互必须锁到砖面这一层,
+   否则生成演出/推进播放期间照样能悬停出详情卡。 */
+.nodes.isInert .tileFace,
+.nodes.isInert .projPanel {
+  pointer-events: none;
+  cursor: default;
+}
+
+/* 按钮盒 = 砖面**压平前**的方盒。压平后的菱形会溢出它 ⇒ 按钮本身不吃命中,
+   命中测试交给 .tileFace, 玩家点到的就是菱形本身(相邻砖的方盒重叠也不会互相抢)。 */
+.node,
+.entry {
+  position: absolute;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* ── 落地影: 地面上的一摊模糊椭圆, **不参与 matrix** ──
+   ⚠ 影子必须比砖略小且更钝: 与砖同宽的清晰影子会读成「第二块砖」。
+   ⚠ 玻璃砖的影子要比实心砖淡一档: 透光的东西压不出实心的影子, 影子一重, 玻璃感立刻没了。 */
+.tileShadow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--tile-w);
+  height: var(--tile-h);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #00000066, #00000033 62%, transparent 100%);
+  filter: blur(9px);
+  transform: translate(-50%, -50%) translateY(9px) scale(0.9);
+  pointer-events: none;
+  transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1), opacity 220ms ease;
+}
+
+/* ── 薄片侧壁: 与砖面同形的一片**半透明冷色玻璃切口**, 在屏幕空间下移一个厚度
+   ⇒ 只在下缘露出一线 ⇒ 读作玻璃板的断面(玻璃的断面永远比板面更绿/更亮, 不是黑边) ──
+   ⚠ translateY 必须写在 matrix **左边**(后作用于屏幕空间): 写到右边会变成沿通道轴下滑,
+     砖立刻从「有厚度」变成「错位的两张纸」。 */
+.tileSlab {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #0b1a1fb3, #24484fcc 55%, #0e2026bf);
+  transform-origin: 50% 50%;
+  transform: translateY(var(--tile-depth)) var(--tile-matrix);
+  pointer-events: none;
+  transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+/* ── 砖面: EventPanel 的 .scenePlaceholder, 压平后躺在地上, 材质改成**磨砂玻璃** ──
+   ⚠ 这一段仍然对应占位区里的同名规则(EventPanel.module.css:164-289), 差别在:
+     ① 尺寸 330 → var(--tile-size); ② --event-accent 换成 --k;
+     ③ 去掉原来那道 14px 硬投影(平放之后由 .tileShadow 接手);
+     ④ ★ 底色由不透明的深炭改成**半透明冷色 + backdrop-filter 模糊**:
+        底下的场景图会透过砖并被磨掉细节 ⇒ 每块砖都是一片压在场景上的玻璃, 而不是贴纸。
+   ★ 玻璃的三笔:
+     ① 透: 底色 alpha 压到 0.2~0.35, 真正的颜色来自 backdrop-filter 抽出来的底图;
+     ② 糊: blur 把底图细节磨掉, 砖上才有「厚度」—— 没有 blur 只是「半透明贴纸」;
+     ③ 边: 亮白细边 + 顶部一道 inset 高光 = 玻璃的转折面。
+   ⚠ alpha 不要再往上加: 一旦超过 0.5, 底图透不出来, 三笔里的「透」就废了。
+   ⚠ backdrop-filter 有代价(每块砖一次离屏模糊), 25 块已经是这套画面的上限, 别再往砖里加。 */
+.tileFace {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid #ffffff2e;
+  background:
+    radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--k) 26%, transparent), transparent 30%),
+    linear-gradient(140deg, #6e93a333 0%, #0d181d3d 55%, #34505c33 100%);
+  backdrop-filter: blur(7px) saturate(1.15) brightness(1.1);
+  box-shadow: var(--glass-inset), 0 0 20px color-mix(in srgb, var(--k) 16%, transparent);
+  transform-origin: 50% 50%;
+  transform: var(--tile-matrix);
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    filter 220ms ease;
+}
+
+.tileFace::before,
+.tileFace::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+/* 内缩一圈的切角边框 —— 占位区的招牌零件, 百分比写法在任何砖尺寸下都成立。
+   ⚠ 玻璃上的刻线要掺白: 纯事件色的细线在半透明底上会被底图吃掉。 */
+.tileFace::before {
+  inset: 6px;
+  border: 1px solid color-mix(in srgb, var(--k) 45%, #ffffff9e);
+  clip-path: polygon(
+    0 0, 17% 0, 17% 1px, 83% 1px, 83% 0, 100% 0,
+    100% 17%, calc(100% - 1px) 17%, calc(100% - 1px) 83%, 100% 83%,
+    100% 100%, 83% 100%, 83% calc(100% - 1px), 17% calc(100% - 1px), 17% 100%, 0 100%,
+    0 83%, 1px 83%, 1px 17%, 0 17%
+  );
+  transition: border-color 220ms ease;
+}
+
+/* 斜向的玻璃反光: 两道细的镜面条 + 一道宽的柔光带。
+   ⚠ 这是玻璃「有面」的关键一笔 —— 全透明的板子在画面上会消失, 靠这道反光才立得住。 */
+.tileFace::after {
+  inset: 0;
+  background:
+    linear-gradient(110deg, transparent 25%, #ffffff2e 25.2%, transparent 25.6% 67%, #ffffff1a 67.2%, transparent 67.6%),
+    linear-gradient(110deg, transparent 8%, #ffffff14 26%, transparent 46%);
+  mix-blend-mode: screen;
+}
+
+/* 投影源: 砖面正中的一圈光斑 —— 光锥就是从这里射上去的。
+   ⚠ 它在 .tileFace **内部**, 所以写成正圆即可: matrix 会把它压成躺在地上的 2:1 椭圆。
+   ⛔ 砖面上除了它与风险警示带之外**什么都不画**: 卡面(编目小字 / 大字符 / 透视网格 /
+     中心光球)全部搬到直立的投影面板上去了, 不要再往地砖上加内容。 */
+.projSource {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--k) 72%, white) 0 6%,
+    color-mix(in srgb, var(--k) 32%, transparent) 7% 38%,
+    transparent 70%
+  );
+  box-shadow: 0 0 16px color-mix(in srgb, var(--k) 60%, transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: box-shadow 240ms ease, opacity 240ms ease;
+}
+
+/* 风险砖: 沿砖面下缘的一条警示带(平放之后它正好沿着朝观者那条棱)。 */
+.faceRisk {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--k) 55%, transparent) 0 4px,
+    transparent 4px 9px
+  );
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* 纯负面: 砖面整体压暗一档 + 边框转成实心警示色 */
+.r-negative .tileFace {
+  border-color: color-mix(in srgb, var(--k) 55%, #ffffff8a);
+  filter: brightness(0.88);
+}
+/* 高风险: 警示带加密 */
+.r-highRisk .faceRisk {
+  height: 15px;
+  opacity: 0.95;
+}
+
+/* ===================== 直立投影(光锥 + 面板) =====================
+   ★ 事件内容全部在这里, 地砖只负责「站位」。
+   ⚠ 这两层都在砖面**外面**且**不参与 matrix**: 它们是立面, 不是地面。
+     它们的定位基准是按钮盒的中心(= 砖面中心), 所以一律 `bottom: 50%` 往上长。
+   ⚠ 高度改了必须同步改 QwenRouteBoard.tsx 里的 PROJ_H: 那个数负责给最远一排的面板
+     在整块面板顶上留净空, 对不上就会被切头。 */
+
+/* 光锥: 底窄顶宽的一束光, 越高越淡 —— 「这块砖正在往上投影」的全部理由。 */
+.projBeam {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 78px;
+  height: var(--proj-h);
+  margin-left: -39px;
+  clip-path: polygon(33% 100%, 67% 100%, 100% 0, 0 0);
+  background: linear-gradient(to top, color-mix(in srgb, var(--k) 46%, transparent), transparent 76%);
+  filter: blur(1.6px);
+  pointer-events: none;
+  transition: background 240ms ease, transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+/* 面板: 正对观者的一片半透明玻璃, 切掉右上/左下两个角 ⇒ 一眼是「一块屏」而不是方框。 */
+.projPanel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(50% + 16px);
+  width: 78px;
+  height: var(--proj-panel-h);
+  margin-left: -39px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--k) 45%, #ffffff8a);
+  background: linear-gradient(160deg, #8fc4d42e 0%, #0c191f66 60%, #4d7f8f2e 100%);
+  backdrop-filter: blur(3px) brightness(1.08);
+  box-shadow: inset 0 8px 18px -12px #ffffffb3, 0 0 20px color-mix(in srgb, var(--k) 26%, transparent);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  color: var(--k1);
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    opacity 240ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+/* 图标: 纯线框, 颜色继承面板的 color(事件色掺白那一档)。 */
+.projIcon {
+  display: block;
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--k) 65%, transparent));
+}
+.projIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 扫描线: 匀速自上而下扫过面板, **只在悬停/当前落点时跑** ——
+   25 块砖同时扫会让整张图闪成一片。⚠ 匀速位移, 不是明暗脉冲。 */
+.projScan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--proj-panel-h) * -1);
+  height: var(--proj-panel-h);
+  background: linear-gradient(to bottom, transparent, #ffffff2e 60%, #ffffff59 82%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes qProjScan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(var(--proj-panel-h) * 2));
+  }
+}
+
+/* 入口通道号: 立在面板上, 正读 —— 这是全图除详情卡外唯一一处正读的字。 */
+.entryMark {
+  color: var(--k1);
+  font-family: var(--font-family);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 2px;
+  text-indent: 2px; /* 抵掉 letter-spacing 在末尾多出的那一格, 字才真的居中 */
+  text-shadow: 0 0 12px var(--k);
+  transition: color 220ms ease, text-shadow 220ms ease;
+}
+
+/* ── 悬停 / 落点 / 已结算 ──
+   ⚠ 抬起量只有 6px: 薄片抬太高会露出「侧壁其实只有一层」的破绽。 */
+.root .node:hover .tileFace,
+.root .node:focus-visible .tileFace,
+.root .node.isHovered .tileFace {
+  border-color: #ffffff5c;
+  background:
+    radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--k) 34%, transparent), transparent 32%),
+    linear-gradient(140deg, #7fa4b447 0%, #10202752 55%, #3c5c6a47 100%);
+  box-shadow: var(--glass-inset), 0 0 30px color-mix(in srgb, var(--k) 30%, transparent);
+  transform: translateY(-6px) var(--tile-matrix);
+}
+.root .node:hover .tileSlab,
+.root .node:focus-visible .tileSlab,
+.root .node.isHovered .tileSlab {
+  transform: translateY(calc(var(--tile-depth) - 6px)) var(--tile-matrix);
+}
+.root .node:hover .tileShadow,
+.root .node:focus-visible .tileShadow,
+.root .node.isHovered .tileShadow {
+  transform: translate(-50%, -50%) translateY(13px) scale(0.98);
+  opacity: 0.85;
+}
+.root .node:hover .tileFace::before,
+.root .node.isHovered .tileFace::before {
+  border-color: color-mix(in srgb, var(--k) 78%, transparent);
+}
+/* ⚠ 砖抬起来的时候, 投影(光锥 + 面板)必须跟着一起抬: 投影源在砖上, 砖动而投影不动
+   会立刻读成两个互不相干的物件。抬起量与砖面严格一致。 */
+.root .node:hover .projPanel,
+.root .node:focus-visible .projPanel,
+.root .node.isHovered .projPanel,
+.root .node:hover .projBeam,
+.root .node:focus-visible .projBeam,
+.root .node.isHovered .projBeam {
+  transform: translateY(-6px);
+}
+/* 悬停: 投影整体「功率上来一档」—— 投影源更亮、光锥更实、面板边亮、扫描线开始跑。 */
+.root .node:hover .projSource,
+.root .node.isHovered .projSource {
+  box-shadow: 0 0 26px color-mix(in srgb, var(--k) 80%, transparent);
+}
+.root .node:hover .projBeam,
+.root .node.isHovered .projBeam {
+  background: linear-gradient(to top, color-mix(in srgb, var(--k) 62%, transparent), transparent 80%);
+}
+.root .node:hover .projPanel,
+.root .node:focus-visible .projPanel,
+.root .node.isHovered .projPanel {
+  border-color: var(--k1);
+  box-shadow: inset 0 8px 18px -12px #ffffffcc, 0 0 30px color-mix(in srgb, var(--k) 40%, transparent);
+}
+.root .node:hover .projScan,
+.root .node.isHovered .projScan {
+  opacity: 1;
+  animation: qProjScan 2.6s linear infinite;
+}
+.root .node:focus-visible .projPanel {
+  outline: 1px dashed var(--k1);
+  outline-offset: -3px;
+}
+
+/* 当前落点: 投影常亮 —— 边框拉到最亮 + 扫描线常驻 */
+.node.isCurrent .tileFace {
+  border-color: var(--k1);
+  box-shadow: var(--glass-inset), 0 0 34px color-mix(in srgb, var(--k) 38%, transparent);
+}
+.node.isCurrent .projPanel {
+  border-color: var(--k1);
+  box-shadow: inset 0 8px 18px -12px #ffffffcc, 0 0 34px color-mix(in srgb, var(--k) 44%, transparent);
+}
+.node.isCurrent .projScan {
+  opacity: 1;
+  animation: qProjScan 2.6s linear infinite;
+}
+.node.isCurrent .projSource {
+  box-shadow: 0 0 28px color-mix(in srgb, var(--k) 85%, transparent);
+}
+/* 已结算: 强调色抽成灰, 投影**减弱但不熄灭** —— 走过的砖仍然是地图的一部分。 */
+.node.isSettled {
+  --k: #4f5a63;
+}
+.node.isSettled .tileFace {
+  filter: saturate(0.5) brightness(0.82);
+}
+.node.isSettled .projPanel {
+  opacity: 0.5;
+}
+.node.isSettled .projBeam,
+.node.isSettled .projSource {
+  opacity: 0.42;
+}
+
+/* ===================== 入口 A-E =====================
+   与事件砖同一块砖, 只换强调色 —— 入口不是事件, 不该跟任何一种事件撞色。
+   入口的通道号立在自己的投影面板上(正读), 加上独占的青色与最左那一列的位置, 三条线索。 */
+.entry {
+  --k: #3c8fa8;
+}
+/* 入口的投影比事件砖亮一档: 它是「门」, 要在扫视里第一个被找到。 */
+.entry .projSource {
+  box-shadow: 0 0 24px color-mix(in srgb, var(--k) 70%, transparent);
+}
+.entry .projBeam {
+  background: linear-gradient(to top, color-mix(in srgb, var(--k) 56%, transparent), transparent 80%);
+}
+.entry .tileFace {
+  border-color: color-mix(in srgb, var(--k) 40%, #ffffff7a);
+}
+/* 可选入口: 极缓的上下浮动(纯位移), 一眼能在扫视里被找到。
+   ⚠ 面板与砖用**同一条**动画同一个负延迟: 差一点就会看成投影从砖上飘走了。 */
+.root .entry:not(:disabled) .tileFace,
+.root .entry:not(:disabled) .tileSlab,
+.root .entry:not(:disabled) .projPanel,
+.root .entry:not(:disabled) .projBeam {
+  animation: qEntryFloat 4s calc(var(--i) * -0.8s) ease-in-out infinite alternate;
+}
+@keyframes qEntryFloat {
+  to {
+    translate: 0 -3px;
+  }
+}
+.root .entry:hover:not(:disabled) .tileFace,
+.root .entry:focus-visible .tileFace,
+.root .entry.isActive .tileFace {
+  /* 只换 --k, 砖面全套零件同时转色。⚠ 用压暗过的 --trace, 原色直接上会成为全图唯一的霓虹。 */
+  border-color: var(--k1);
+  box-shadow: var(--glass-inset), 0 0 36px color-mix(in srgb, var(--k) 34%, transparent);
+  transform: translateY(-7px) var(--tile-matrix);
+  /* ⚠ 浮动必须停住: 悬停位移与浮动位移叠在一起会让砖在手底下抖。 */
+  animation-play-state: paused;
+}
+.root .entry:hover:not(:disabled) .tileSlab,
+.root .entry:focus-visible .tileSlab {
+  animation-play-state: paused;
+}
+.root .entry:hover:not(:disabled),
+.root .entry:focus-visible,
+.root .entry.isActive {
+  --k: color-mix(in srgb, var(--trace) 66%, #2e3a24);
+}
+.root .entry:hover:not(:disabled) .tileSlab,
+.root .entry:focus-visible .tileSlab,
+.root .entry.isActive .tileSlab {
+  transform: translateY(calc(var(--tile-depth) - 7px)) var(--tile-matrix);
+}
+/* 入口的投影跟着砖一起抬起 + 功率上一档 */
+.root .entry:hover:not(:disabled) .projPanel,
+.root .entry:focus-visible .projPanel,
+.root .entry.isActive .projPanel,
+.root .entry:hover:not(:disabled) .projBeam,
+.root .entry:focus-visible .projBeam,
+.root .entry.isActive .projBeam {
+  transform: translateY(-7px);
+  animation-play-state: paused;
+}
+.root .entry:hover:not(:disabled) .projSource,
+.root .entry:focus-visible .projSource,
+.root .entry.isActive .projSource {
+  box-shadow: 0 0 30px color-mix(in srgb, var(--k) 85%, transparent);
+}
+.root .entry:hover:not(:disabled) .projPanel,
+.root .entry:focus-visible .projPanel,
+.root .entry.isActive .projPanel {
+  border-color: var(--k1);
+  box-shadow: inset 0 8px 18px -12px #ffffffcc, 0 0 34px color-mix(in srgb, var(--k) 46%, transparent);
+}
+.root .entry:hover:not(:disabled) .projScan,
+.root .entry:focus-visible .projScan,
+.root .entry.isActive .projScan {
+  opacity: 1;
+  animation: qProjScan 2.6s linear infinite;
+}
+.root .entry.isActive .tileFace,
+.root .entry.isActive .tileSlab,
+.root .entry.isActive .projPanel,
+.root .entry.isActive .projBeam {
+  animation: none;
+}
+/* 未到可选阶段: 砖照常亮着, 只是**没通电** —— 「它还在, 只是现在不能进」。
+   ⚠ 只把主色掺灰一档, 不降 opacity: 入口是全屏第一可读的地标。 */
+.root .entry:disabled:not(.isActive) {
+  --k: #4a626c;
+}
+.root .entry:disabled .tileFace,
+.root .entry:disabled .projPanel {
+  cursor: default;
+}
+/* 被封锁: 死色 + 虚线砖面 + **投影直接断掉**(断电的登船口, 不是「淡一点的登船口」)。 */
+.root .entry.isBlocked:not(.isActive) {
+  --k: #565c63;
+}
+.root .entry.isBlocked .tileFace {
+  border-style: dashed;
+  cursor: not-allowed;
+  filter: saturate(0.3) brightness(0.8);
+}
+.root .entry.isBlocked .projSource {
+  opacity: 0.22;
+  box-shadow: none;
+}
+/* 光锥灭掉、面板只剩一个空框(投影仪还在, 但没在投) */
+.root .entry.isBlocked .projBeam {
+  display: none;
+}
+.root .entry.isBlocked .projPanel {
+  border-style: dashed;
+  background: #0b1013a6;
+  backdrop-filter: none;
+  box-shadow: none;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.root .entry.isBlocked .entryMark {
+  color: var(--tac-grey);
+  text-decoration: line-through;
+  text-shadow: none;
+}
+
+/* ===================== 玩家棋子 =====================
+   ⛔ 不做立体小人: 全平的画面里立一个人会立刻变成 opus 版。
+   这里是一枚**贴地的等距光环 + 实心核心**, 与地砖同一个平面。 */
+.pawnLayer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+.pawn {
+  transition: transform 260ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.pawn.isWalking {
+  transition: none;
+}
+.pawnBody {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--trace) 40%, transparent));
+}
+.pawnHalo {
+  fill: color-mix(in srgb, var(--trace) 16%, transparent);
+  stroke: none;
+}
+.pawnRing {
+  fill: none;
+  stroke: var(--trace);
+  stroke-width: 2.4;
+  /* 呼吸: 极缓的缩放, 纯几何变化 */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: qPawnIdle 2.8s ease-in-out infinite alternate;
+}
+@keyframes qPawnIdle {
+  from {
+    transform: scale(0.94);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+.pawnCore {
+  fill: color-mix(in srgb, var(--trace) 40%, #ffffff);
+}
+
+/* ===================== 悬浮详情卡 =====================
+   ⚠ 项目约定: 不用原生 title, 悬浮提示一律组件渲染。
+   ★ 这是全图**唯一正读**的文字层: 砖面上的编目小字是躺在地上的标记, 真要读的信息在这里。 */
+.card {
+  position: absolute;
+  z-index: 5;
+  width: 232px;
+  padding: 12px 14px 13px;
+  border: 1px solid color-mix(in srgb, var(--k) 46%, transparent);
+  border-left: 2px solid var(--k);
+  background: linear-gradient(150deg, #14171cf5, #0a0c0ffa);
+  box-shadow: 0 18px 40px -20px #000000, 0 0 0 1px #00000066;
+  color: var(--tac-white);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  animation: qCardIn 160ms ease-out;
+}
+@keyframes qCardIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 6px));
+  }
+}
+.cardSeg {
+  display: block;
+  color: var(--k);
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+.cardTitle {
+  display: block;
+  margin-top: 4px;
+  color: var(--tac-white);
+  font-family: var(--font-family);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.cardDesc {
+  margin: 6px 0 8px;
+  color: var(--tac-grey);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.cardEnergy {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--tac-grey) 34%, transparent);
+  color: color-mix(in srgb, var(--tac-white) 40%, var(--tac-grey));
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.cardRisk {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--k) 62%, transparent);
+  color: color-mix(in srgb, var(--k) 55%, var(--tac-white));
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+/* ===================== 生成演出 =====================
+   地砖沿推进方向(左下 → 右上)逐块**拍到地上**, 主线同步逐节绘制。
+   ⛔ 不做扫过全图的扫描光带: 地面换成场景图之后, 那条光带只会把底图冲白一遍。
+   ⚠ 单次播放, 播完即止 —— 不是明暗脉冲。 */
+/* 主线: 三层一起走 dashoffset 的逐节绘制, 延迟按 --i(通道) + --j(节号) 排成一个波面。 */
+.isGenerating .pipe,
+.isGenerating .pipeBed,
+.isGenerating .pipeGloss {
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  animation: qDraw 300ms linear forwards;
+  animation-delay: calc(340ms + var(--j) * 260ms + var(--i) * 46ms);
+}
+/* 砖落位: 从上方掉下来 + 影子同步收缩 ⇒ 读作「拍到地上」。
+   ⚠ 动画挂在按钮盒上(而不是 .tileFace): 砖面自己的 transform 是那条 matrix, 抢不得。 */
+.isGenerating .entry {
+  animation: qGenEntry 560ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
+  animation-delay: calc(var(--i) * 70ms);
+}
+@keyframes qGenEntry {
+  from {
+    opacity: 0;
+    translate: 0 -26px;
+  }
+}
+.isGenerating .node {
+  animation: qGenNode 520ms cubic-bezier(0.24, 1.1, 0.4, 1) backwards;
+  animation-delay: calc(600ms + var(--seg) * 300ms + var(--lane) * 42ms);
+}
+/* 投影「开机」: 砖落地之后, 光锥与面板才从地面往上展开。
+   ⚠ 延迟要比对应那块砖的落位晚一档(+160ms), 顺序才读得出「先有砖, 再有投影」。 */
+.isGenerating .entry .projPanel,
+.isGenerating .entry .projBeam {
+  animation: qGenProj 380ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
+  animation-delay: calc(var(--i) * 70ms + 300ms);
+}
+.isGenerating .node .projPanel,
+.isGenerating .node .projBeam {
+  animation: qGenProj 380ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
+  animation-delay: calc(760ms + var(--seg) * 300ms + var(--lane) * 42ms);
+}
+@keyframes qGenProj {
+  from {
+    opacity: 0;
+    transform: scaleY(0.06);
+  }
+}
+.projPanel,
+.projBeam {
+  transform-origin: 50% 100%;
+}
+
+@keyframes qGenNode {
+  from {
+    opacity: 0;
+    translate: 0 -34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .projScan,
+  .root .entry:not(:disabled) .tileFace,
+  .root .entry:not(:disabled) .tileSlab,
+  .root .entry:not(:disabled) .projPanel,
+  .root .entry:not(:disabled) .projBeam,
+  .node.isCurrent .projScan,
+  .pawnRing {
+    animation: none;
+  }
+}

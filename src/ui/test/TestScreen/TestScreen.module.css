@@ -5,6 +5,8 @@
 }
 
 .tabs {
+  position: relative;
+  z-index: 30;
   display: flex;
   align-items: stretch;
   gap: 1px;
@@ -52,6 +54,12 @@
   min-height: calc(100vh - 57px);
   padding: 28px 48px 42px;
   background: #080b0d;
+}
+
+.page:has(> div[class*="root"]) {
+  position: relative;
+  min-height: calc(100vh - 57px);
+  padding: 0;
 }
 
 @media (max-width: 520px) {

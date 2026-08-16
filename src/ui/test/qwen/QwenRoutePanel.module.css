@@ -1,0 +1,79 @@
+/* 路线图样式验收页的外壳 —— 只负责控制条与舞台留白, 不参与棋盘本身的观感。 */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 1520px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ffffff14;
+}
+
+.kicker {
+  display: block;
+  color: #6fe3f5;
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.title {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  padding: 9px 16px;
+  border: 1px solid #ffffff22;
+  background: linear-gradient(155deg, #131d229e, #0a1013cc);
+  color: #b9c7c9;
+  clip-path: none;
+  font-family: var(--font-family);
+  font-size: 14px;
+  letter-spacing: 2px;
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+}
+
+.actions button:hover {
+  border-color: #9ed0d1;
+  background: linear-gradient(145deg, #24393dd9, #16262bbd);
+  color: #d8ebe7;
+}
+
+.actions button.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* 舞台: 棋盘按设计 px 原尺寸摆放; 窗口不够宽时允许横向滚动, 不缩放 ——
+   等距棋盘一旦被非整数比例缩放, 2:1 的斜线会出现半像素毛边。 */
+.stage {
+  position: relative;
+  flex: none;
+  margin: 0 auto;
+}

@@ -1,12 +1,23 @@
 import { useState } from "react";
-import { LunaEventPanel } from "../luna";
-import { OpusEventPanel } from "../opus";
-import { DsEventPanel } from "../ds";
+import { LunaRouteBoardDemo } from "../luna/LunaRouteBoardDemo";
+import { OpusEventPanel, OpusRoutePanel } from "../opus";
+import { DsEventPanel, DsRouteBoard } from "../ds";
+import { QwenRoutePanel } from "../qwen";
 import s from "./TestScreen.module.css";
 
-type TestTab = "opus" | "luna" | "ds";
+type TestTab = "opus" | "opus-route" | "luna" | "ds" | "ds-route" | "qwen-route";
 
-const TABS: TestTab[] = ["opus", "luna", "ds"];
+const TABS: TestTab[] = ["opus", "opus-route", "luna", "ds", "ds-route", "qwen-route"];
+
+// 页签文案与 tab 值分开: tab 值同时是 key 与 aria 标签的词根, 改文案不影响其它两处。
+const TAB_LABEL: Record<TestTab, string> = {
+  opus: "opus",
+  "opus-route": "opus 路线图",
+  luna: "luna",
+  ds: "ds",
+  "ds-route": "ds 路线图",
+  "qwen-route": "qwen 路线图",
+};
 
 export function TestScreen() {
   const [activeTab, setActiveTab] = useState<TestTab>("opus");
@@ -22,17 +33,23 @@ export function TestScreen() {
             aria-current={activeTab === tab ? "page" : undefined}
             onClick={() => setActiveTab(tab)}
           >
-            {tab}
+            {TAB_LABEL[tab]}
           </button>
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
         {activeTab === "opus" ? (
           <OpusEventPanel />
+        ) : activeTab === "opus-route" ? (
+          <OpusRoutePanel />
         ) : activeTab === "luna" ? (
-          <LunaEventPanel />
-        ) : (
+          <LunaRouteBoardDemo />
+        ) : activeTab === "ds" ? (
           <DsEventPanel />
+        ) : activeTab === "ds-route" ? (
+          <DsRouteBoard />
+        ) : (
+          <QwenRoutePanel />
         )}
       </section>
     </main>

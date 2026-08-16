@@ -1,0 +1,1051 @@
+/* ===================== 区域路线图(等距瓦片) · opus 视觉重制 =====================
+   ⚠ 每个 px 都是「设计 px」(1920×1080 画布), 不写 vw/vh。
+   ⛔ 禁闪烁: 常驻动效只用匀速/缓动的位移与缩放, 明暗一律走 transition 或一次性播完即止。
+
+   ★ 这一版的核心是**格子本身**。每块砖不再是「一块被轻度染色的菱形」, 而是一件带
+     顶面渐变 / 双侧面 / 内嵌板 / 中心辉光 / 铆钉 / 前缘高光 的完整台座 —— 几何在
+     OpusRouteBoard.tsx 的 <TileArt>, 材质全在本文件。
+   ★★ 配色风格: **暗调工业赛博 / 硬核战术终端** ★★
+     ① 底是极深的炭黑(带极微弱灰调, 不是死黑), 画面绝大部分是黑的负空间;
+     ② 强调色是**压暗、低饱和**的警示色(#a83c44 那一档的暗砖红, 不是 #ff0000 的艳红),
+        只出现在描边、刻线、灯、核心这些**小面积**的地方, 绝不铺满一块面;
+     ③ 高对比来自 **冷白 ↔ 炭黑**, 不是来自高饱和霓虹: 物件本体走冷白/中灰/暗灰/炭黑的灰阶,
+        剪影因此在黑底上非常清楚, 而画面依旧冷峻;
+     ④ 辉光一律**弱辉光**: 半径小、透明度低, 不刺眼。
+   ⛔ 不要把任何一档提亮成霓虹, 也不要给大面积(台座顶面、顶棚、盖板)上强调色 ——
+      那两件事任意一件做了, 整套风格立刻塌回「满屏发光糖果」。
+
+   ★ 一块砖(连同站在上面的物件)的全部颜色由**一个强调色 --k 按公式派生出四档辅色**:
+       --k  强调色  压暗低饱和的那一档, 只给描边 / 刻线 / 灯 / 核心 / 环这类小面积零件
+       --k1 冷白    强调色掺进冷白 —— 受光棱、标识线、发光体顶面。整套里最亮的一档
+       --k2 中灰    物件顶面(受光面)
+       --k3 暗灰    物件右下受光侧面 / 台座顶面的着色底
+       --k4 炭黑    物件左下背光侧面 / 台座侧面与凹槽
+     ⇒ **新增事件类型只要写一行 --k**, 四档辅色由下面那条派生规则自动生成, 调子永远一致。
+     ⇒ 换状态(已结算 / 未启用 / 被封锁)同样只改 --k 一个值。 */
+
+.orb-root {
+  --orb-pipe: #96897a; /* 主线: 低饱和暖灰铜 =「没通电的裸金属导槽」 */
+  --orb-bridge: #5ceaff; /* 桥接显形: 霓虹青 */
+  --orb-trace: var(--accent); /* 已走路径 / 通电: 荧光黄绿 */
+  --orb-deep: #0a141c; /* 场地的底色(地面与阴影的最深处) */
+
+  /* ── 灰阶基准: 整套风格的三个锚点, 派生公式与文字层级都从这里取 ── */
+  --tac-white: #e8e9eb; /* 冷白: 最重要的信息 / 受光棱 */
+  --tac-grey: #888c94; /* 中灰: 次要信息 / 物件顶面 */
+  --tac-dark: #3a3f47; /* 暗灰: 物件背光侧面 */
+  --tac-ink: #121418; /* 深炭黑: 底色 */
+
+  --k: #6d7b8c; /* 强调色的兜底(缺 .k-* 时用) */
+  position: relative;
+  isolation: isolate;
+}
+
+/* ★ 四档辅色的**派生公式** —— 全套配色的唯一出处。
+   掺入比例刻意都很低(10~20%): 辅色的性格必须是「灰」, 强调色只负责给它一点色相倾向,
+   高对比靠的是 白→灰→暗灰→炭黑 这条灰阶本身。比例一旦调高, 物件就从「金属」变回「塑料玩具」。
+   ⚠ 这条规则只写 --k1..--k4, 不写 --k: 与 .k-* / .is-settled 等只改 --k 的规则互不打架,
+     所以特异性怎么排都不会串色。 */
+.orb-node,
+.orb-entry,
+.orb-card {
+  --k1: color-mix(in srgb, var(--k) 12%, var(--tac-white));
+  --k2: color-mix(in srgb, var(--k) 18%, var(--tac-grey));
+  --k3: color-mix(in srgb, var(--k) 20%, var(--tac-dark));
+  --k4: color-mix(in srgb, var(--k) 16%, var(--tac-ink));
+}
+
+/* ── 事件色: 八种事件各占一个色相, 每种**只写强调色这一行** ──
+   八个色相按 8 等分排开(相邻至少差 30°), 但明度/饱和度全部锁在同一档
+   (HSL 大致 S≈47% / L≈45%, 即 #a83c44 那一档的暗砖红):
+     battle 356° 暗砖红 / hazard 24° 暗赭橙 / loot 42° 暗黄铜 / heal 150° 暗苔绿
+     energy 186° 暗青   / route 214° 暗钢蓝 / merchant 265° 暗靛紫 / retreat 322° 暗品红
+   ⚠ 锁在同一档是这套风格的命门: 只要有一个色相亮出去, 它就会变成画面里唯一的霓虹,
+     其余七种一起被压成「灰掉的」。要区分靠色相, 不靠亮度。
+   ⚠ 语义(这一格对我好还是坏)不靠颜色, 靠台座造型(gain/util/threat 三种轮廓)与
+     threat 台座常驻的警示带 —— 改色相时别把这两条一起改掉。 */
+.k-battle {
+  --k: #a83c44;
+}
+.k-hazard {
+  --k: #a85f3c;
+}
+.k-loot {
+  --k: #a8853c;
+}
+.k-heal {
+  --k: #3ca85f;
+}
+.k-energy {
+  --k: #3c98a8;
+}
+.k-route {
+  --k: #3c6ba8;
+}
+.k-merchant {
+  --k: #6b4ca8;
+}
+.k-retreat {
+  --k: #a83c85;
+}
+
+/* ── 地面 ──
+   等距网格(两组 ±26.565° 的细线, 正好是 2:1 的斜率)+ 中央一圈冷光晕。
+   ⚠ 网格必须与瓦片同斜率, 否则地面与砖是两套透视, 整块棋盘会读成贴图。 */
+.orb-ground {
+  position: absolute;
+  inset: -12px;
+  background:
+    radial-gradient(120% 90% at 50% 46%, #0e2a3a80 0%, transparent 60%),
+    repeating-linear-gradient(26.565deg, #7fe6ff0d 0 1px, transparent 1px 66px),
+    repeating-linear-gradient(-26.565deg, #7fe6ff0d 0 1px, transparent 1px 66px),
+    radial-gradient(140% 110% at 50% 50%, #0c1620 0%, #04080b99 100%);
+  /* 四周淡出 ⇒ 棋盘像是浮在一片黑里的一块场地, 而不是一张贴满全屏的方格纸 */
+  mask-image: radial-gradient(115% 95% at 50% 50%, #000 42%, transparent 100%);
+  border-radius: 26px;
+  pointer-events: none;
+}
+
+/* ── SVG 场地层 ── */
+.orb-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: visible;
+  pointer-events: none; /* 横跨整块面板, 不能吃掉砖按钮的点击 */
+}
+
+/* ── 连线: 三层同几何描边 ──
+   bed(近黑轨槽, 最宽) → pipe(暖铜导线) → gloss(顶部一线高光, 最细)。
+   ⚠ 三者的宽度关系不能乱: 槽 > 电流 > 导线 > 高光, 电流跑过去要把导线整条盖住,
+     两侧只剩轨槽的一线暗边 ⇒ 读作「凹槽里的这条线被点亮了」。 */
+.orb-pipe-bed {
+  stroke: #01050899;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke 220ms ease, stroke-width 220ms ease;
+}
+.orb-pipe {
+  stroke: var(--orb-pipe);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  transition: stroke 220ms ease, stroke-width 220ms ease;
+}
+.orb-pipe-gloss {
+  stroke: #ffe9c81f;
+  stroke-width: 1;
+  stroke-linecap: round;
+  transform: translateY(-1px);
+  transition: stroke 220ms ease;
+}
+
+.orb-lane,
+.orb-bridge {
+  filter: drop-shadow(0 1px 0 #00000077);
+  transition: filter 240ms ease, opacity 320ms ease;
+}
+/* 悬停某个入口 ⇒ 那条通道整串导线通电(与电流同色同辉, 读作同一种电)。
+   ⚠ 只是「这条通道归这个入口」的确认, 不含任何落点信息。 */
+.orb-lane.is-live .orb-pipe {
+  stroke: var(--orb-trace);
+  stroke-width: 3;
+}
+.orb-lane.is-live .orb-pipe-bed {
+  stroke: color-mix(in srgb, var(--orb-trace) 14%, #04090d);
+}
+.orb-lane.is-live .orb-pipe-gloss {
+  stroke: #ffffff55;
+}
+.orb-lane.is-live {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--orb-trace) 40%, transparent));
+}
+/* 选定入口之后, 不属于玩家的那几条主线退到背景层, 把画面让给电流走线。 */
+.orb-lane.is-dim {
+  opacity: 0.34;
+}
+
+/* 桥接: 平时留在 DOM 里只改 opacity(卸载会让「记不住就没了」被 DevTools 绕过)。 */
+.orb-bridges {
+  transition: opacity 320ms ease;
+}
+.orb-bridges.is-hidden {
+  opacity: 0;
+}
+/* 显形中的桥接换成亮青 + 外辉: 与暖铜底线在**色相与明度**两个维度同时拉开,
+   一显形就是全图唯一的亮物, 玩家那几秒才挑得出「哪一段有桥」。 */
+.orb-bridges:not(.is-hidden) .orb-pipe {
+  stroke: var(--orb-bridge);
+  stroke-width: 3.2;
+}
+.orb-bridges:not(.is-hidden) .orb-pipe-gloss {
+  stroke: #ffffff88;
+}
+.orb-bridges:not(.is-hidden) .orb-bridge {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--orb-bridge) 62%, transparent));
+}
+
+/* ── 电流 / 走线 ── */
+.orb-trace-done {
+  fill: none;
+  stroke: var(--orb-trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--orb-trace) 50%, transparent));
+}
+.orb-trace-line {
+  fill: none;
+  stroke: var(--orb-trace);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--orb-trace) 55%, transparent));
+  animation-name: orbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes orbDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* 拖尾: 比亮头长得多、淡得多的一段 dash, 与亮头同速 ⇒ 「有东西在跑」有了长度感。 */
+.orb-trace-comet {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 5.4;
+  stroke-linecap: round;
+  stroke-dashoffset: var(--len);
+  opacity: 0.2;
+  animation-name: orbDraw;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.orb-signal {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 10px var(--orb-trace)) drop-shadow(0 0 20px #ffffff88);
+}
+/* 过桥完成处的一圈扩散环 —— 一次性播完即止, 不算闪烁。 */
+.orb-ripple {
+  fill: none;
+  stroke: var(--orb-trace);
+  stroke-width: 2;
+  opacity: 0;
+  animation: orbRipple 700ms ease-out forwards;
+}
+@keyframes orbRipple {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+.orb-ripple {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ===================== 格子(砖)本体 =====================
+   ⚠⚠ 砖按钮必须把全站按钮外观整套卸掉(styles/base.css):
+     ① `button{background}` / `button:hover` 会在砖底下垫一块深色矩形(悬停那条特异性 0,2,1);
+     ② `button{clip-path}` 会把**向上溢出**按钮盒的图标/字母整齐切掉;
+     ③ `button:disabled{opacity:.4}` 会把整块砖连图标一起半透明化 —— 不可点一律靠**颜色**表达。
+   故整组状态一起显式关掉, 且用 .orb-root 提到 (0,2,1) 以上。新增砖类按钮记得加进这张表。 */
+.orb-root .orb-node,
+.orb-root .orb-entry,
+.orb-root .orb-node:hover:not(:disabled),
+.orb-root .orb-entry:hover:not(:disabled),
+.orb-root .orb-node:focus-visible,
+.orb-root .orb-entry:focus-visible,
+.orb-root .orb-node:active:not(:disabled),
+.orb-root .orb-entry:active:not(:disabled),
+.orb-root .orb-node:disabled,
+.orb-root .orb-entry:disabled {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  clip-path: none;
+  opacity: 1;
+}
+
+.orb-nodes,
+.orb-entries {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.orb-nodes {
+  z-index: 1;
+}
+.orb-entries {
+  /* ⚠ 必须压在 .orb-svg 之上: SVG 根元素内容虽透明, 整个盒子照样参与命中测试。 */
+  z-index: 2;
+}
+.orb-nodes.is-inert {
+  pointer-events: none;
+}
+
+.orb-node,
+.orb-entry {
+  position: absolute;
+  padding: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+/* ⚠ 节点砖的 --k **只能**来自它自己的 .k-* 类: 这里不要再写一条兜底的 --k ——
+   .k-* 与 .orb-node 特异性相同, 谁写在后面谁赢, 兜底会把 20 块砖全刷成同一种颜色。
+   真正的兜底放在 .orb-root(祖先, 特异性无关, 只在缺 .k-* 时生效)。 */
+/* 入口的 --k 定义在下面的「入口 A-E」整段里, 与它的台座材质放在一起。 */
+.orb-tile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ── 砖的各层材质 ──
+   顺序即遮挡顺序, 与 <TileArt> 里的 DOM 顺序一一对应。 */
+
+/* ★★ 台座的成色: **深色填充** —— 它是这套 UI 里的「深色按钮」, 不是一块彩色地板 ★★
+   顶面/侧面全部落在炭黑那一档, 色相只透出一丝丝; 这块砖的可读性交给**描边与刻线**
+   (见下面的 .orb-tile-top / -rim / -lead), 那才是这套风格里承担对比的部分。
+   ⚠ 别把顶面提亮去「显示这一格的颜色」: 台座面积大, 一亮整张图就变成 20 块彩色瓷砖。
+   ⚠ 台座只有 10px 厚, 顶面与两个侧面的**明度差**是唯一的体积线索, 三者别调平。
+   ① 顶面渐变: 光从左上来 ⇒ 西角亮、东角暗。 */
+.orb-g-top-a {
+  stop-color: color-mix(in srgb, var(--k3) 34%, #16191e);
+}
+.orb-g-top-b {
+  stop-color: color-mix(in srgb, var(--k4) 62%, #101318);
+}
+.orb-g-top-c {
+  stop-color: color-mix(in srgb, var(--k4) 46%, #0b0d11);
+}
+/* ② 侧面: 左(背光)暗, 右(受光)高一档 —— 这一档差就是转角。
+   ⚠ 侧面也要留出成色: 全黑的侧面会让削薄后的台座直接消失, 只剩一个顶面贴片。 */
+.orb-g-side-a {
+  stop-color: color-mix(in srgb, var(--k4) 50%, #08090c);
+}
+.orb-g-side-b {
+  stop-color: #050608;
+}
+.orb-g-sider-a {
+  stop-color: color-mix(in srgb, var(--k4) 74%, #0d0f13);
+}
+/* ③ 中心光池: 常态就留一档弱光(台面是通电的), 悬停与当前落点再拉满。 */
+.orb-g-glow-a {
+  stop-color: color-mix(in srgb, var(--k) 60%, transparent);
+}
+.orb-g-glow-b {
+  stop-color: transparent;
+}
+
+/* 台面外框: 深色填充 + **强调色描边** —— 这套 UI 的按钮语言, 也是这块砖唯一的彩色轮廓。
+   ⚠ 掺入比例比上一版高得多(46% → 78%): 强调色本身已经压暗到 #a83c44 那一档,
+     再按老比例掺透明就彻底看不见了。「压暗」和「调淡」是两件事, 别一起做。 */
+.orb-tile-top {
+  stroke: color-mix(in srgb, var(--k) 78%, transparent);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  transition: stroke 220ms ease, stroke-width 220ms ease;
+}
+.orb-tile-side {
+  stroke: #00000080;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+.orb-tile-foot {
+  fill: none;
+  stroke: #01040699;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* 内嵌板: 顶面内缩一圈的凹陷面。它是「这块砖是实体」最省力的一笔 ——
+   有了内外两圈, 外框才读成一道有厚度的边框, 而不是一条描边。 */
+.orb-tile-inlay {
+  fill: color-mix(in srgb, var(--k4) 42%, #06070a);
+  stroke: color-mix(in srgb, var(--k) 48%, transparent);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  transition: fill 220ms ease, stroke 220ms ease;
+}
+/* ===== 三类台座各自的台面细节(几何在 TileArt, 三类的分工见那里的抬头) =====
+   ⚠ 全部是**中性**的刻线/凹槽, 不带事件色 —— 它们负责「这是哪一类地块」, 颜色只负责好坏。 */
+/* gain: 台座落在其上的**贴地外扩地台** —— 三类里唯一的双层结构。
+   ⚠ 它没有厚度(台座统一削薄之后不能再垫台阶), 全靠比地面亮一档 + 一圈事件色描边读出来。 */
+.orb-tile-base-top {
+  fill: color-mix(in srgb, var(--k4) 46%, #0d0f13);
+  stroke: color-mix(in srgb, var(--k) 46%, transparent);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+/* gain: 顶面的圆环槽 = 这一类的常驻标识(对应 threat 的警示带), 读作充电/补给环。
+   ⚠ 冷白细环 + **弱辉光**(半径 3px / 30%): 这套风格里的辉光只是「这条线是亮的」的暗示,
+     不是光效。半径一大就变成霓虹管, 整块砖的冷峻感立刻没了。 */
+.orb-tile-ring {
+  fill: none;
+  stroke: var(--k1);
+  stroke-width: 1.6;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--k) 30%, transparent));
+  transition: opacity 220ms ease;
+}
+.orb-tile-ring-in {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 68%, transparent);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 4;
+}
+/* util: 检修平台的分格刻线 = 这一类的常驻标识 */
+.orb-tile-grid {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 58%, transparent);
+  stroke-width: 1.1;
+}
+/* threat: 从缺口啃进台面的裂纹 —— 暗线 + 一道极淡的受光边, 才读得出是「裂开」而不是「画上去」 */
+.orb-tile-crack {
+  fill: none;
+  stroke: #000000a6;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 -0.8px 0 #ffffff14);
+}
+
+/* 三类台座的成色差: 收益台最完整最亮、功能台居中、威胁台最旧 —— 又一条不靠颜色的线索。
+   ⚠ 「旧」是**描边更碎更淡**, 不是整块压暗: 压暗就又成了「未激活」。 */
+.sh-gain .orb-tile-top {
+  stroke: color-mix(in srgb, var(--k) 92%, transparent);
+}
+.sh-threat .orb-tile-top {
+  stroke: color-mix(in srgb, var(--k) 62%, transparent);
+  stroke-dasharray: 26 5;
+}
+/* 中心光池: 常态一档很弱的余光, 悬停/落点也只到七成 —— 「弱辉光, 不刺眼」。 */
+.orb-tile-glow {
+  opacity: 0.22;
+  transition: opacity 260ms ease;
+}
+/* 前缘 = 朝推进方向那条棱, 一道冷白边灯 ⇒ 方向感。
+   ★ 它与下面的 -rim 是整块砖上**最亮**的两笔: 这套风格的高对比全靠冷白线打在炭黑面上。 */
+.orb-tile-lead {
+  fill: none;
+  stroke: var(--k1);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  opacity: 0.72;
+  transition: opacity 220ms ease, stroke-width 220ms ease, stroke 220ms ease;
+}
+/* 顶棱高光: 西—北—东两条受光棱的一线冷白边。
+   ⚠ 台座只有 10px 厚, 这条边是「顶面与侧面在此转折」的唯一硬信号, 别调到看不见。 */
+.orb-tile-rim {
+  fill: none;
+  stroke: var(--k1);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+/* 四角铆钉刻线: 台座的加固件 */
+.orb-tile-stud {
+  fill: none;
+  stroke: var(--k1);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  opacity: 0.45;
+  transition: opacity 220ms ease;
+}
+/* 地面蚀刻环 —— ⚠ 只有入口砖会渲染它(见 TileArt): 事件砖不再套虚线外框。
+   常态留一档淡的, 入口的各状态在下面的入口段里覆写。 */
+.orb-tile-halo {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 92%, transparent);
+  stroke-width: 1.3;
+  stroke-dasharray: 9 7;
+  stroke-linejoin: round;
+  opacity: 0.2;
+  transition: opacity 260ms ease;
+}
+/* 落地投影: 砖与地面的接触关系 */
+.orb-tile-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 76px;
+  height: 22px;
+  margin-left: -38px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #000000b0, transparent 76%);
+  filter: blur(2px);
+  pointer-events: none;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+/* 警示带: threat 台座的常驻特征(只有那一类会渲染它, 见 TileArt), 带 risk 标记时再加亮一档。
+   ⚠ 它走**强调色**而不是冷白: 这是整块砖上唯一「代表警报」的一笔, 冷白会读成普通刻线。 */
+.orb-tile-hazard polyline {
+  fill: none;
+  stroke: color-mix(in srgb, var(--k) 88%, transparent);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--k) 40%, transparent));
+}
+/* ★ 风险标记是**唯一允许在常态加重台座描边**的东西: 「这一格会伤到我」必须在扫视时就看见,
+   不能只藏在悬浮卡里。⚠ 别把这条扩散到普通事件上, 那就又回到「每格都在喊」了。 */
+.r-negative .orb-tile-top {
+  stroke: color-mix(in srgb, var(--k) 88%, transparent);
+  stroke-width: 1.5;
+}
+.r-highRisk .orb-tile-hazard polyline {
+  opacity: 0.9;
+}
+/* 高风险再叠一档: 顶面描边整圈转警示色(纯静态, 不脉冲)。
+   ⚠ 事件砖没有蚀刻环可叠了, 所以这一档只剩描边与警示带两条 —— 别再调淡。 */
+.r-highRisk .orb-tile-top {
+  stroke: color-mix(in srgb, var(--k) 92%, transparent);
+  stroke-width: 2;
+}
+
+/* 站在砖上的**立体小物件**(几何在 OpusEventProp)。
+   ⚠ 尺寸 68×68 与那边的 viewBox="-34 -60 68 68" 绑定: viewBox 里 y=0 是物件脚底、下方留 8,
+     所以容器底边要比台面中心再低 8px, 物件才正好站在砖上。改一边必须改另一边。 */
+.orb-node-prop {
+  position: absolute;
+  left: 50%;
+  /* 76 / 68 = 物件相对 viewBox 放大约 12%: 上一版物件在 96px 宽的台面上偏小, 剪影差异吃亏。 */
+  bottom: calc(var(--foot) - 9px);
+  width: 76px;
+  height: 76px;
+  margin-left: -38px;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 8px #000000aa);
+  transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1), filter 220ms ease;
+}
+
+/* ── 砖的交互态 ──
+   ⚠ 悬停反馈是**位移 + 一次性 transition**, 没有任何循环明暗。 */
+.orb-root .orb-node:hover:not(:disabled),
+.orb-root .orb-node:focus-visible,
+.orb-root .orb-node.is-hovered {
+  transform: translateY(-7px);
+}
+/* 悬停 = 深色按钮「内部透出一点点强调色」+ 描边吃满 —— 背景依旧保持深色, 不做整块提亮。 */
+.orb-root .orb-node:hover:not(:disabled) .orb-tile-glow,
+.orb-root .orb-node.is-hovered .orb-tile-glow {
+  opacity: 0.62;
+}
+.orb-root .orb-node:hover:not(:disabled) .orb-tile-stud,
+.orb-root .orb-node.is-hovered .orb-tile-stud {
+  opacity: 0.7;
+}
+.orb-root .orb-node:hover:not(:disabled) .orb-tile-lead,
+.orb-root .orb-node.is-hovered .orb-tile-lead {
+  opacity: 1;
+  stroke-width: 2;
+}
+.orb-root .orb-node:hover:not(:disabled) .orb-tile-top,
+.orb-root .orb-node.is-hovered .orb-tile-top {
+  stroke: var(--k);
+  stroke-width: 1.5;
+}
+/* 物件跟着砖一起抬起再多一点 + 一层**弱**外辉(半径与透明度都刻意压住) */
+.orb-root .orb-node:hover:not(:disabled) .orb-node-prop,
+.orb-root .orb-node.is-hovered .orb-node-prop {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 8px 10px #000000aa)
+    drop-shadow(0 0 8px color-mix(in srgb, var(--k) 32%, transparent));
+}
+.orb-root .orb-node:hover:not(:disabled) .orb-tile-shadow,
+.orb-root .orb-node.is-hovered .orb-tile-shadow {
+  transform: scale(0.86);
+  opacity: 0.72;
+}
+/* 当前落点: 全图唯一一块被完整点亮的格子(光池 + 外框 + 嵌板 + 整砖外辉一起转事件色)。
+   ★ 常态格子全是中性的, 所以这一档静态高亮足够扎眼, 不需要任何闪烁。 */
+.orb-node.is-current .orb-tile-inlay {
+  fill: color-mix(in srgb, var(--k) 26%, #05070a);
+  stroke: var(--k);
+}
+.orb-node.is-current .orb-tile-top {
+  stroke: var(--k);
+  stroke-width: 2;
+}
+.orb-node.is-current .orb-tile-rim,
+.orb-node.is-current .orb-tile-lead {
+  opacity: 1;
+}
+.orb-node.is-current .orb-tile-glow {
+  opacity: 0.75;
+}
+.orb-node.is-current .orb-node-prop {
+  filter: drop-shadow(0 6px 8px #000000aa)
+    drop-shadow(0 0 9px color-mix(in srgb, var(--k) 40%, transparent));
+}
+.orb-node.is-current .orb-tile {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k) 32%, transparent));
+}
+/* 已结算: 整格(含上面的物件)转成中性灰 —— 换 --k 一处即可, 因为物件也读同一个变量。
+   ⚠ **不降 opacity**: 降透明会把等距的前后关系读糊。 */
+/* ⚠ 灰只掉一档色相饱和, 亮度要跟其它格子持平: 压暗会让「已结算」读成「坏掉/没通电」。 */
+.orb-node.is-settled {
+  --k: #6f757e;
+}
+.orb-node.is-settled .orb-node-prop {
+  filter: drop-shadow(0 6px 8px #000000aa) saturate(0.5);
+}
+.orb-node.is-settled .orb-tile-glow {
+  opacity: 0.18;
+}
+.orb-node.is-settled .orb-tile-lead {
+  opacity: 0.4;
+  filter: none;
+}
+
+/* ===================== 入口 A-E =====================
+   ★ 入口与 20 块事件砖**必须一眼分得开** —— 靠的是零件表, 不是把它涂亮:
+     ① 更重的一圈强调色描边 + 常驻的虚线蚀刻环(事件砖已经没有这一圈了)
+     ② 顶面上指向推进方向的两枚人字标
+     ③ 从台面升起的光柱 + 比事件图标大一档的冷白立体字母
+   ⚠ 台座本身仍然是**深色填充**: 这一版不再用「高填充亮青实心」——
+     在炭黑风格里那五块会变成全图仅有的五块亮面, 直接把八种事件砖全压成背景。
+   ⚠ 配色与节点系统错开: 入口固定暗青 --k, 悬停/已选才切到 --orb-trace
+     ⇒ 「青 = 可进入的门」「黄绿 = 我选的这条」。别把常态色改成 --orb-trace, 会和「已走过」撞车。 */
+.orb-entry {
+  --k: #3c8fa8; /* 不在八色表里的暗青 —— 「门」不是事件, 不该跟任何一种事件撞色 */
+}
+.orb-entry .orb-g-top-a {
+  stop-color: color-mix(in srgb, var(--k) 26%, #12161a);
+}
+.orb-entry .orb-g-top-b {
+  stop-color: color-mix(in srgb, var(--k) 17%, #0d1114);
+}
+.orb-entry .orb-g-top-c {
+  stop-color: color-mix(in srgb, var(--k) 11%, #090c0f);
+}
+.orb-entry .orb-g-sider-a {
+  stop-color: color-mix(in srgb, var(--k) 13%, #0a0d10);
+}
+.orb-entry .orb-g-side-a {
+  stop-color: color-mix(in srgb, var(--k) 8%, #06080a);
+}
+.orb-entry .orb-tile-top {
+  stroke: var(--k);
+  stroke-width: 1.6;
+}
+.orb-entry .orb-tile-inlay {
+  fill: color-mix(in srgb, var(--k) 14%, #05070a);
+  stroke: color-mix(in srgb, var(--k) 88%, transparent);
+}
+.orb-entry .orb-tile-halo {
+  opacity: 0.7;
+}
+.orb-entry .orb-tile-stud {
+  opacity: 0.6;
+}
+.orb-entry .orb-tile-lead {
+  opacity: 1;
+  stroke-width: 2.6;
+}
+.orb-entry .orb-tile {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--k) 22%, transparent));
+  transition: filter 240ms ease;
+}
+/* 人字标: 贴地的路面标线 —— 只有描边, 没有投影 */
+.orb-entry-chevron {
+  fill: none;
+  stroke: var(--k1);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+  transition: opacity 220ms ease;
+}
+/* 光柱: 静态渐变, 悬停一次性拉高。⚠ 无循环明暗关键帧。 */
+.orb-entry-beam {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--foot) - 3px);
+  width: 58px;
+  height: 84px;
+  margin-left: -29px;
+  clip-path: polygon(16% 0, 84% 0, 62% 100%, 38% 100%);
+  /* ⚠ 弱辉光: 光柱是「这里有个门」的暗示, 不是探照灯。比例一高就成了全图最亮的东西。 */
+  background: linear-gradient(to top, color-mix(in srgb, var(--k) 34%, transparent), transparent 84%);
+  filter: blur(1.6px);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  transition: background 220ms ease, transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+/* 立体字母: 四层向下实心厚度 + 一层软投影 + 一层弱外辉。
+   ★ 冷白粗字 = 这套风格里「最重要的信息」那一档, 它必须是全图最亮的文字。 */
+.orb-entry-letter {
+  position: absolute;
+  left: 0;
+  bottom: var(--foot);
+  width: 100%;
+  color: var(--tac-white);
+  font-family: var(--font-family);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow:
+    0 1px 0 #0a1015,
+    0 2px 0 #0a1015,
+    0 3px 0 #080e12,
+    0 4px 0 #080e12,
+    0 10px 16px #000000cc,
+    0 0 12px color-mix(in srgb, var(--k) 40%, transparent);
+  animation: orbEntryFloat 4s calc(var(--i) * -0.8s) ease-in-out infinite alternate;
+  transition:
+    color 220ms ease,
+    letter-spacing 220ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+@keyframes orbEntryFloat {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+/* 悬停/已选: 只换 --k, 一整座台子(顶面/侧面/嵌板/光环/人字标/光柱/字母发光)同时转色。 */
+.orb-root .orb-entry:hover:not(:disabled),
+.orb-root .orb-entry:focus-visible,
+.orb-root .orb-entry.is-active {
+  /* 只换 --k, 四档辅色由派生公式自动跟上。
+     ⚠ 这里用的是压暗过的 --orb-trace: 原色是荧光黄绿, 直接上会成为全图唯一的霓虹。 */
+  --k: color-mix(in srgb, var(--orb-trace) 66%, #2e3a24);
+  transform: translateY(-6px);
+}
+.orb-root .orb-entry:hover:not(:disabled) .orb-entry-letter,
+.orb-root .orb-entry:focus-visible .orb-entry-letter {
+  animation-play-state: paused;
+  transform: translateY(-7px);
+  color: var(--k1);
+  letter-spacing: 5px;
+}
+.orb-root .orb-entry:hover:not(:disabled) .orb-entry-beam,
+.orb-root .orb-entry:focus-visible .orb-entry-beam,
+.orb-root .orb-entry.is-active .orb-entry-beam {
+  transform: scaleY(1.24);
+}
+.orb-root .orb-entry:hover:not(:disabled) .orb-entry-chevron,
+.orb-root .orb-entry.is-active .orb-entry-chevron {
+  opacity: 1;
+}
+.orb-root .orb-entry:active:not(:disabled) .orb-entry-letter {
+  transform: translateY(-2px);
+  transition-duration: 90ms;
+}
+.orb-root .orb-entry.is-active .orb-entry-letter {
+  animation: none;
+  transform: translateY(-7px);
+  color: var(--k1);
+}
+/* 未到可选阶段: 台子照常亮着、字母照常浮着, 只是**没通电** —— 「它还在, 只是现在不能进」。
+   ⚠ 只把主色掺灰一档, 不降 opacity: 入口是全屏第一可读的地标。
+   ⚠ 必须写 :not(.is-active): 选完之后那颗按钮同时是 is-active 与 disabled, 两者特异性相等。 */
+.orb-root .orb-entry:disabled:not(.is-active) {
+  --k: #4a626c;
+  cursor: default;
+}
+.orb-root .orb-entry:disabled:not(.is-active) .orb-entry-letter {
+  color: color-mix(in srgb, var(--tac-white) 45%, var(--tac-grey));
+}
+/* 被封锁: 死色 + 虚线顶面 + 字母划掉, 光柱直接熄掉(断电的登船台, 不是「淡一点的登船台」)。 */
+.orb-root .orb-entry.is-blocked:not(.is-active) {
+  --k: #565c63;
+  cursor: not-allowed;
+}
+.orb-root .orb-entry.is-blocked .orb-entry-beam {
+  display: none;
+}
+.orb-root .orb-entry.is-blocked .orb-tile {
+  filter: none;
+}
+.orb-root .orb-entry.is-blocked .orb-tile-halo {
+  opacity: 0;
+}
+.orb-root .orb-entry.is-blocked .orb-tile-top {
+  stroke: color-mix(in srgb, var(--tac-grey) 34%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+.orb-root .orb-entry.is-blocked .orb-entry-chevron,
+.orb-root .orb-entry.is-blocked .orb-tile-lead {
+  stroke: color-mix(in srgb, var(--tac-grey) 45%, transparent);
+  opacity: 0.5;
+}
+.orb-root .orb-entry.is-blocked .orb-entry-letter {
+  animation: none;
+  transform: none;
+  color: var(--tac-grey);
+  text-decoration: line-through;
+  text-shadow: 0 1px 0 #08090c, 0 2px 0 #060709;
+}
+
+/* ===================== 玩家棋子 ===================== */
+.orb-pawn-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+.orb-pawn {
+  transition: transform 260ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+.orb-pawn.is-walking {
+  transition: none;
+}
+.orb-pawn-body {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--orb-trace) 34%, transparent));
+}
+.orb-pawn-shadow {
+  fill: #00000099;
+}
+/* 呼吸: 极缓的上下起伏, 纯位移 */
+.orb-pawn-idle {
+  animation: orbPawnIdle 2.8s ease-in-out infinite alternate;
+}
+@keyframes orbPawnIdle {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2.5px);
+  }
+}
+/* 明暗分档沿用砖的语言: 顶面亮 / 右侧面中 / 左侧面暗 */
+.orb-pawn-lit {
+  fill: color-mix(in srgb, var(--orb-trace) 58%, #ffffff);
+}
+.orb-pawn-mid {
+  fill: color-mix(in srgb, var(--orb-trace) 72%, #10251a);
+}
+.orb-pawn-dark {
+  fill: color-mix(in srgb, var(--orb-trace) 30%, #071009);
+}
+
+/* ===================== 悬浮详情卡 =====================
+   ⚠ 项目约定: 不用原生 title, 悬浮提示一律组件渲染。
+   ★ 文字层级严格按这套风格分三档: 标题冷白粗字 / 正文中灰 / 标签更淡的灰,
+     强调色只出现在左侧那道 2px 竖条与段号小字上 —— 卡片本体依旧是炭黑。 */
+.orb-card {
+  position: absolute;
+  z-index: 5;
+  width: 232px;
+  padding: 12px 14px 13px;
+  border: 1px solid color-mix(in srgb, var(--k) 46%, transparent);
+  border-left: 2px solid var(--k);
+  background: linear-gradient(150deg, #14171cf5, #0a0c0ffa);
+  box-shadow: 0 18px 40px -20px #000000, 0 0 0 1px #00000066;
+  color: var(--tac-white);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  animation: orbCardIn 160ms ease-out;
+}
+@keyframes orbCardIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 6px));
+  }
+}
+.orb-card-seg {
+  display: block;
+  color: var(--k);
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+/* 主标题: 高亮度冷白 + 粗字, 全卡最重要的一行 */
+.orb-card-title {
+  display: block;
+  margin-top: 4px;
+  color: var(--tac-white);
+  font-family: var(--font-family);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+/* 正文: 中灰, 主动降对比 */
+.orb-card-desc {
+  margin: 6px 0 8px;
+  color: var(--tac-grey);
+  font-size: 12px;
+  line-height: 1.5;
+}
+/* 标签小字: 更淡的灰 + 灰描边, 弱化处理 */
+.orb-card-energy {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--tac-grey) 34%, transparent);
+  color: color-mix(in srgb, var(--tac-white) 40%, var(--tac-grey));
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+/* 风险标签是卡上唯一的第二处强调色: 「有代价」必须比正文重一档 */
+.orb-card-risk {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--k) 62%, transparent);
+  color: color-mix(in srgb, var(--k) 55%, var(--tac-white));
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+/* ===================== 生成演出 =====================
+   棋盘沿推进方向(左下 → 右上)逐条浮现: 入口砖 → 主线逐节绘制 → 节点砖落位,
+   一条扫描光带同步扫过全图。⚠ 单次播放, 播完即止 —— 不是明暗脉冲。 */
+.orb-scan-clip {
+  position: absolute;
+  inset: -12px;
+  overflow: hidden;
+  border-radius: 26px;
+  pointer-events: none;
+  z-index: 4;
+}
+.orb-scan {
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 130px;
+  height: 160%;
+  background: linear-gradient(90deg, transparent, #a9f0ff33 44%, #ffffff55 50%, #a9f0ff33 56%, transparent);
+  transform: skewX(-26.565deg);
+  animation: orbScan 1900ms cubic-bezier(0.4, 0, 0.5, 1) forwards;
+}
+@keyframes orbScan {
+  from {
+    transform: translateX(0) skewX(-26.565deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(1180px) skewX(-26.565deg);
+    opacity: 0;
+  }
+}
+/* 主线: 两层一起走 dashoffset 的逐节绘制, 延迟按 --i(通道) + --j(节号) 排成一个波面。 */
+.is-generating .orb-pipe,
+.is-generating .orb-pipe-bed,
+.is-generating .orb-pipe-gloss {
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  animation: orbDraw 300ms linear forwards;
+  animation-delay: calc(340ms + var(--j) * 260ms + var(--i) * 46ms);
+}
+.is-generating .orb-entry {
+  animation: orbGenEntry 560ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
+  animation-delay: calc(var(--i) * 70ms);
+}
+@keyframes orbGenEntry {
+  from {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+.is-generating .orb-node {
+  animation: orbGenNode 520ms cubic-bezier(0.24, 1.1, 0.4, 1) backwards;
+  animation-delay: calc(600ms + var(--seg) * 300ms + var(--lane) * 42ms);
+}
+@keyframes orbGenNode {
+  from {
+    opacity: 0;
+    transform: translateY(-34px) scale(0.92);
+  }
+}
+
+/* ===================== 【实验层 · 可整段删除】剥掉背景与滤镜 =====================
+   目的: 现在每块砖是「深色填充 + 多层辉光」叠出来的, 整体读作又浓又黑。
+   这一段把**填充**(台座顶面/侧面/嵌板/地台/光池/光柱)与**所有滤镜**(drop-shadow 辉光、
+   落地投影、模糊)一次性关掉, 只剩描边线稿 —— 先确认几何本身好不好看, 再决定往回加哪几层。
+   ⚠ 只覆写, 不改上面的原始规则; 验收完直接删掉这一整段即可回到原样。
+   ⚠ 特异性说明: 上面入口段用 `.orb-entry .orb-g-*`(0,2,0) 覆写过 stop-color,
+     所以这里统一用 `.orb-root .orb-entry .orb-*`(0,3,0) 起步, 保证压得住。 */
+
+/* ①② 台座填充(顶面三档 / 两个侧面 / 内嵌板 / gain 地台)已**恢复为上面的原始规则** ——
+   换成场景底图之后, 无填充的线框砖压不住图, 台座需要回到「深色实心台面」才立得住。
+   仍然保持关闭的只有下面几节: 中心光池、光柱、落地投影、全部辉光滤镜。 */
+
+/* ③ 中心光池整体熄掉(含悬停/落点/已结算三档覆写) */
+.orb-root .orb-tile-glow,
+.orb-root .orb-node:hover:not(:disabled) .orb-tile-glow,
+.orb-root .orb-node.is-hovered .orb-tile-glow,
+.orb-root .orb-node.is-current .orb-tile-glow,
+.orb-root .orb-node.is-settled .orb-tile-glow {
+  opacity: 0;
+}
+
+/* ④ 入口光柱: 本体就是一块渐变背景 + 模糊, 整个去掉 */
+.orb-root .orb-entry-beam {
+  display: none;
+}
+
+/* ⑤ 落地投影: 纯 radial 背景色块 */
+.orb-root .orb-tile-shadow {
+  display: none;
+}
+
+/* ⑥ 所有滤镜: 砖体外辉 / 物件投影与外辉 / 环与前缘的弱辉 / 裂纹受光边 */
+.orb-root .orb-tile,
+.orb-root .orb-entry .orb-tile,
+.orb-root .orb-node.is-current .orb-tile,
+.orb-root .orb-node-prop,
+.orb-root .orb-node:hover:not(:disabled) .orb-node-prop,
+.orb-root .orb-node.is-hovered .orb-node-prop,
+.orb-root .orb-node.is-current .orb-node-prop,
+.orb-root .orb-node.is-settled .orb-node-prop,
+.orb-root .orb-tile-ring,
+.orb-root .orb-tile-crack,
+.orb-root .orb-tile-hazard polyline {
+  filter: none;
+}
+
+/* ⑦ 地面: 原本的中央冷光晕 + 等距网格 + 底色渐变(「黑」的一大来源)整套换成场景占位图。
+   ⚠ cover + center: 面板不是 16:9, 图会被裁掉上下或左右, 这是临时占位, 不做适配。
+   ⚠ 原规则里的 mask-image(四周径向淡出)仍然生效 ⇒ 场景图边缘会化进黑底。
+      想看整张图的原始边缘, 把下面那行 mask-image: none 留着; 想要淡出就删掉它。 */
+/* ⚠ 压暗用**叠在图上的一层半透明黑**, 不用 filter: brightness() ——
+      filter 会连带影响这个元素的合成层, 而这里只想降底图亮度, 让砖的描边压得住。
+      想调深浅只改这一个 alpha: 40 ≈ 轻压 / 66 ≈ 现在这档 / 99 ≈ 重压。 */
+.orb-ground {
+  background:
+    linear-gradient(#00000066, #00000066),
+    url("../../../assets/占位场景素材.png") center / cover no-repeat;
+  mask-image: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-entry-letter,
+  .orb-pawn-idle {
+    animation: none;
+  }
+  .orb-scan {
+    animation-duration: 320ms;
+  }
+}
