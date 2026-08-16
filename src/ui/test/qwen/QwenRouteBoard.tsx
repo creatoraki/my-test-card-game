@@ -3,14 +3,13 @@
 // 与 explore/RouteBoard 同一套**投影与数据结构**(2:1 等距, 推进轴朝右上 / 通道轴朝右下,
 // 5 通道 × 4 推进段), 区别全在**格子的做法**上:
 //
-//   ⛔ 这一版**没有任何立体图标**, 也没有台座造型: 地面上的东西一律是平的,
-//     需要立起来的信息(事件图标)走「从砖中心往上投影出一块直立面板」这条路子。
-//   ★ 每块格子 = 把 src/ui/common/EventPanel 里那块「插画占位区」(.scenePlaceholder)
-//     **整个平放到地上**变成一块地砖: 一个方形 DOM 盒子 + 一条等距 matrix 压平 ⇒
-//     占位区的美工(底色渐变 / 切角内边框 / 透视网格 / 中心光球)原封不动地躺在地面上,
-//     薄片 + 落地投影负责把它「贴」在地上。
-//   ⛔ 砖面上**不放任何文字**(占位区那套编目角标与中心大字符全部取消):
-//     事件类型只由事件色表达, 要读的字全部收进悬停详情卡。
+//   ⛔ 这一版**没有任何立体造型**, 也没有台座: 地面上只有一块很小的薄地砖(空的、哑光的),
+//     内容是**悬在砖上方的一枚自发光图标** —— 没有屏、没有底板、没有外框, 虚空里就一个符号。
+//   ★ 每块格子 = 一块小空砖 + 一枚悬浮图标。砖是方形 DOM 盒子被 TILE_MATRIX 压平成 2:1 菱形;
+//     图标盒是同一个方盒被 PANEL_MATRIX 剪切**立起来**
+//     ⇒ 两条变换共用 qwenIso 的同一套斜率, 所以正交视角下图标与砖严格垂直。
+//   ⛔ 除图标外**不放任何东西**(占位区那套卡面、编目角标、大字符全部取消, 入口通道号除外):
+//     事件类型只由图标与事件色表达, 要读的字全部收进悬停详情卡。
 //
 //   为什么用 DOM+CSS 而不是 SVG 重画: 占位区的质感几乎全是多层 background 渐变、
 //   clip-path 切角与 mix-blend-mode 斜向高光, 用 SVG 复刻会丢掉大半。
@@ -27,30 +26,33 @@ import { cx } from "@/ui/common/cx";
 import boardBg from "@/assets/占位场景素材.png";
 import { QwenEventIcon } from "./QwenEventIcon";
 // ⚠ 投影常量与 matrix 一律从 qwenIso 取: 棋盘、连线、地砖必须共享同一套斜率。
-import { ADV_X, ADV_Y, LANE_X, LANE_Y, TILE_MATRIX, tileBounds } from "./qwenIso";
+import { ADV_X, ADV_Y, LANE_X, LANE_Y, PANEL_MATRIX, TILE_MATRIX, tileBounds } from "./qwenIso";
 import s from "./QwenRouteBoard.module.css";
 
 // ===================== 版式(设计 px) =====================
 
 // 砖面在**世界坐标**里的边长。两条世界轴都是单位向量, 所以这个数同时就是砖在
 // 两个轴向上的屏幕跨度 ⇒ 与 LANE_GAP / SEG_PITCH 直接可比: 差值就是砖缝。
-// ⚠ 砖比 opus 版大得多(54 → 104): 砖面上要读得出占位区的边框/网格/小字, 小砖会糊成一片。
-const TILE = 104;
+// ⚠ 砖不需要大: 砖上什么都不画(内容全在悬浮图标上), 它只是一块「站位用的台面」。
+//   砖越小, 通道之间的空地越多, 那些悬空的图标才有地方浮着 —— 现在只比连线宽一点点。
+const TILE = 52;
 const TILE_HALF = TILE / 2;
-// 薄片厚度(屏幕垂直方向)。⚠ 只有 7px: 再厚就从「地砖」变回「积木」, 整套概念就塌了。
-const TILE_DEPTH = 7;
+// 薄片厚度(屏幕垂直方向)。⚠ 只有 4px: 再厚就从「地砖」变回「积木」, 整套概念就塌了。
+const TILE_DEPTH = 4;
 
-const LANE_GAP = 132; // 相邻通道中心距 ⇒ 砖缝 28
-const SEG_PITCH = 205; // 相邻两块地砖的推进距离 ⇒ 砖缝 101, 中间走连线
+const LANE_GAP = 132; // 相邻通道中心距 ⇒ 砖缝 80
+const SEG_PITCH = 205; // 相邻两块地砖的推进距离 ⇒ 砖缝 153, 中间走连线
 const ENTRY_RUN = SEG_PITCH; // 起点 → 段 1 用同一个数, 四段节奏才匀
 const ENTRY_U = -100;
-const TILE_INSET = 46; // 连线两端缩进量 ⇒ 端帽塞进砖的边缘之下
+const TILE_INSET = 20; // 连线两端缩进量 ⇒ 端帽塞进砖的边缘之下(比 TILE_HALF 小 6)
 
-const { w: TILE_W, h: TILE_H } = tileBounds(TILE); // ≈ 186 × 93
+const { w: TILE_W, h: TILE_H } = tileBounds(TILE); // ≈ 93 × 46
 
-// 直立投影面板从砖面中心往上占掉的净空(光锥 + 面板, 见 CSS 的 --proj-h)。
-// ⚠ 改 CSS 里的面板高度必须同步改这里, 否则最远那一排的面板会被上边界切掉。
-const PROJ_H = 96;
+// 悬浮图标那个方盒的边长(**剪切前**)。⚠ 它**比砖还大**: 图标才是主角, 砖只是它的落脚点。
+const PROJ_PANEL = 72;
+// 图标盒从砖面中心往上占掉的净空。盒底边沿通道轴躺在地面上(左端抬起半个宽度 × 通道轴斜率),
+// 所以最高点 = 盒高 + 底边左端的抬升量。⚠ 这个数只由 PROJ_PANEL 推出, 不要手写。
+const PROJ_H = Math.round(PROJ_PANEL * (1 + LANE_Y / 2));
 
 const LANE_COUNT = 5;
 const SEG_COUNT = 4;
@@ -81,8 +83,8 @@ const S_MIN = -TILE_HALF;
 const S_TOP = S_MAX + TILE_HALF;
 const X_LO = rawX(U_MIN, S_MIN);
 const X_HI = rawX(U_MAX, S_TOP);
-// ⚠ 上边界取的是**最远那块砖的投影面板顶端**(u 最大 / s 最小 = 屏幕最高的那块砖),
-//   不是砖本身的上沿: 面板立在砖中心上方, 少算这一截就会被面板容器裁掉。
+// ⚠ 上边界取的是**最远那块砖的投影屏顶端**(u 最大 / s 最小 = 屏幕最高的那块砖),
+//   不是砖本身的上沿: 屏立在砖中心上方, 少算这一截就会被面板容器裁掉。
 const Y_LO = Math.min(rawY(U_MAX, S_MIN), rawY(TRACK_LEN, 0) - PROJ_H);
 const Y_HI = rawY(U_MIN, S_TOP) + TILE_DEPTH;
 const ORIGIN_X = PAD - X_LO;
@@ -140,36 +142,31 @@ function Pipe({ a, b, j = 0 }: { a: [number, number]; b: [number, number]; j?: n
   );
 }
 
-// ===================== 地砖 + 直立投影 =====================
-// DOM 由下往上五层:
+// ===================== 地砖 + 悬空图标 =====================
+// DOM 由下往上四层:
 //   ① 落地影   —— 2:1 的模糊椭圆, **不参与 matrix**(它本来就是地面上的一摊影子);
-//   ② 薄片侧壁 —— 与砖面同形的一片半透明玻璃断面, 在**屏幕空间**下移 TILE_DEPTH ⇒ 下缘露一线厚度;
-//   ③ 砖面     —— 一块干净的磨砂玻璃地砖(跟着 matrix 躺倒), 内部只留投影源那圈光斑;
-//   ④ 光锥     —— 从砖面中心往上发散、越高越淡的一束光;
-//   ⑤ 投影面板 —— **正对观者直立**的一块半透明面板, 事件图标画在它上面。
+//   ② 薄片侧壁 —— 与砖面同形的一片实心断面, 在**屏幕空间**下移 TILE_DEPTH ⇒ 下缘露一线厚度;
+//   ③ 砖面     —— 一块**空的**哑光小地砖(跟着 TILE_MATRIX 躺倒): 底色 + 收边(+ 风险警示带);
+//   ④ 悬空图标 —— 沿通道轴**直立**在砖中心上方的一枚自发光图标(走 PANEL_MATRIX)。
 //
-// ★ 为什么面板正对观者而不是沿某条世界轴立起来: 它是「投影出来的画面」, 不是场景里的实体牌子;
-//   投影面朝人是全息投影的常识, 也让图标保持正读 —— 沿世界轴斜切会让每个图标都歪着, 25 块砖
-//   一起歪就没法看了。
-// ⚠ 面板与光锥都**不参与 matrix**, 只有 ①②③ 躺在地上。这条边界一旦破了, 立面与地面就混成一团。
-// ⛔ 砖面上**不放任何文字, 也不再画卡面**: 地砖只剩玻璃底 + 收边 + 投影源光斑(+ 风险警示带),
-//   所有内容都上到投影面板上去。要读的详情仍然只在悬停详情卡里。
+// ★ 图标为什么走 PANEL_MATRIX 而不是正对观者: 这一版要的是**正交视角下的立面** ——
+//   图标与地砖在画面里必须严格垂直, 才读得出「它是浮在这块地砖上方的」。所以图标跟砖一样
+//   由 qwenIso 的同一套斜率剪切: 砖躺平(TILE_MATRIX), 图标立起(PANEL_MATRIX), 二者共面垂直。
+//   图标因此也跟着斜 —— 这是正交投影的正确读数, 不要给它反向补偿。
+// ⛔⛔ **画面上只剩这一枚图标**: 没有屏、没有底板、没有外框、没有网格、没有扫描线,
+//   连四个角的切角框都删了。.projPanel 只是图标的**定位容器**(尺寸 + 剪切 + 命中区),
+//   它自己必须永远是完全透明的、不画任何东西 —— 一枚悬在虚空里发光的符号, 就是全部。
+// ⛔ 砖面上不放任何文字, 也没有投影源光斑: 图标直接浮在砖上, 不是被一盏灯投出来的。
 //   ⚠ 因此砖按钮自己没有可访问名称, 调用方必须给 aria-label。
 function TileArt({ icon, risk }: { icon: ReactNode; risk?: boolean }) {
   return (
     <>
       <span className={s.tileShadow} aria-hidden />
       <span className={s.tileSlab} aria-hidden />
-      <span className={s.tileFace} aria-hidden>
-        {/* 投影源: 砖面上的一圈光斑。放在砖面**内部** ⇒ 跟着 matrix 压成 2:1 椭圆, 天然躺在地上。 */}
-        <span className={s.projSource} />
-        {risk && <span className={s.faceRisk} />}
-      </span>
-      {/* ⚠ 光锥与面板必须留在砖面**外面**: 砖面 overflow:hidden 且被 matrix 压平,
+      <span className={s.tileFace} aria-hidden>{risk && <span className={s.faceRisk} />}</span>
+      {/* ⚠ 图标必须留在砖面**外面**: 砖面 overflow:hidden 且被 TILE_MATRIX 压平,
           放进去会被裁掉一半, 剩下的一半还会跟着躺倒。 */}
-      <span className={s.projBeam} aria-hidden />
       <span className={s.projPanel} aria-hidden>
-        <span className={s.projScan} />
         <span className={s.projIcon}>{icon}</span>
       </span>
     </>
@@ -226,7 +223,7 @@ function segmentPoints(
 
 // ===================== 悬浮详情卡 =====================
 // ⚠ 不用原生 title 属性(项目约定): 悬停详情一律由组件渲染。
-// ⚠ 卡片挂在**投影面板顶端之上**(PROJ_H), 不是砖的上沿 —— 挂在砖上会把面板整个盖住。
+// ⚠ 卡片挂在**投影屏顶端之上**(PROJ_H), 不是砖的上沿 —— 挂在砖上会把屏整个盖住。
 function NodeCard({ ev, x, y, seg }: { ev: NodeEvent; x: number; y: number; seg: number }) {
   const sign = ev.energyDelta > 0 ? "+" : "";
   return (
@@ -370,6 +367,8 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
     "--tile-w": `${TILE_W.toFixed(1)}px`,
     "--tile-h": `${TILE_H.toFixed(1)}px`,
     "--tile-depth": `${TILE_DEPTH}px`,
+    "--proj-matrix": PANEL_MATRIX,
+    "--proj-panel": `${PROJ_PANEL}px`,
   } as CSSProperties;
 
   return (
@@ -483,7 +482,7 @@ export function QwenRouteBoard({ board, showBridges, generating }: Props) {
                 setWalking(true);
               }}
             >
-              {/* 入口的投影面板上直接立着通道号 —— 面板是正读的, 字母不会像躺在地上时那样难认 */}
+              {/* 入口的全息影像里直接立着通道号 —— 立起来的字比躺在地上的好认得多 */}
               <TileArt icon={<span className={s.entryMark}>{ENTRY_LABELS[lane] ?? lane + 1}</span>} />
             </button>
           );

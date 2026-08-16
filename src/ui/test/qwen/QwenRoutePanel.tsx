@@ -37,7 +37,7 @@ export function QwenRoutePanel() {
       <header className={s.head}>
         <div>
           <span className={s.kicker}>ROUTE BOARD / PROJECTION</span>
-          <h2 className={s.title}>区域路线图 · 玻璃地砖 + 直立投影</h2>
+          <h2 className={s.title}>区域路线图 · 小空地砖 + 虚空悬浮图标</h2>
         </div>
         <div className={s.actions}>
           <button type="button" onClick={replay}>
@@ -63,7 +63,7 @@ export function QwenRoutePanel() {
       </header>
 
       <p className={s.hint}>
-        地砖是平放的磨砂玻璃, 事件图标画在从砖中心投影上来的直立面板上 ·
+        地砖是一小块空的哑光薄片, 事件图标垂直悬浮在砖的正上方(没有屏、没有底板、没有外框) ·
         悬停节点看详情卡 · 悬停入口点亮整条通道 · 点入口后沿路线连播 4 段推进
       </p>
 

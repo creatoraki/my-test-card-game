@@ -32,6 +32,14 @@ export function poly(points: P2[]): string {
  *    所以砖的大小改了也不用回来动这里。CSS 里一律用 var(--tile-matrix), 不要手抄这四个数。 */
 export const TILE_MATRIX = `matrix(${ADV_X}, ${ADV_Y}, ${LANE_X}, ${LANE_Y}, 0, 0)`;
 
+/** 把一个正方形盒子**立起来**、贴着地砖的通道轴站在地面上的 CSS 变换(直立投影屏用)。
+ *  局部 x 轴 ⇒ 通道轴(与地砖朝向观者那条棱平行), 局部 y 轴 ⇒ 屏幕垂直方向(= 高度轴)。
+ *  ⇒ 屏面法线正是 −推进轴: 玩家沿推进轴走过来, 屏正对着他。
+ *  ★ 与 TILE_MATRIX 配套: 两条变换共用同一套斜率, 所以屏与砖在等距投影里严格垂直。
+ *  ⚠ 必须配 `transform-origin: 50% 100%`(底边中点): 屏是「站」在砖中心上的, 绕底边中点剪切,
+ *    底边才会精确落在地面那条通道轴线上(右端沉、左端抬, 这正是正交投影下的正确读数)。 */
+export const PANEL_MATRIX = `matrix(${LANE_X}, ${LANE_Y}, 0, 1, 0, 0)`;
+
 /** 边长 size 的方形砖面压平后的屏幕包围盒(宽 ≈ 1.788·size, 高 ≈ 0.894·size)。 */
 export function tileBounds(size: number): { w: number; h: number } {
   return { w: size * (ADV_X + LANE_X), h: size * (LANE_Y - ADV_Y) };

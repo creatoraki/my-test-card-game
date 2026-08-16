@@ -992,52 +992,274 @@
    换成场景底图之后, 无填充的线框砖压不住图, 台座需要回到「深色实心台面」才立得住。
    仍然保持关闭的只有下面几节: 中心光池、光柱、落地投影、全部辉光滤镜。 */
 
-/* ③ 中心光池整体熄掉(含悬停/落点/已结算三档覆写) */
-.orb-root .orb-tile-glow,
+/* ===== ③~⑧ 改为【霓虹灯光】方案 =====
+   ⚠ 这一整块**推翻本文件抬头的「暗调工业 / 弱辉光 / 不要霓虹」纲领** —— 是按需求换风格,
+     不是没读那段注释。验收定下来之后, 应该把抬头那段一并改写, 别让两套说明并存。
+
+   ★ 霓虹的成立条件是**反差**, 不是「整体调亮」:
+       面要真的暗(暗到接近黑), 线要真的亮(高饱和 + 白芯 + 外辉)。
+     上一版之所以「掺了白的黑、既不黑也不亮」, 是因为派生公式把强调色掺进**中性灰**
+     (掺灰 = 降饱和), 每一档都落在灰与彩之间的中间地带 —— 那是霓虹最忌讳的位置。
+   ★ 所以这一版的两条规矩:
+       ① 面(顶面/侧面/嵌板)= 强调色掺进**近黑**, 保留色相但压到很暗 ⇒ 夜色里的物体本体;
+       ② 线(描边/棱/铆钉/环/前缘)= **高饱和原色或白芯**, 且一律带外辉 ⇒ 灯管本身。
+     两者之间不留中间档 —— 中间档一多, 立刻又回到「浑浊的灰」。 */
+
+/* ③-1 八种事件色换成**高饱和霓虹管色**。色相沿用原来的 8 等分(语义不变),
+   只把饱和度推到 90~100%、明度提到 55~62% ⇒ 每一种都能当灯管发光。
+   ⚠ 特异性 (0,2,0) 才压得过原来的 .k-*(0,1,0)。 */
+.orb-root .k-battle {
+  --k: #ff2e51; /* 356° 霓虹红 */
+}
+.orb-root .k-hazard {
+  --k: #ff7a1f; /* 24° 霓虹橙 */
+}
+.orb-root .k-loot {
+  --k: #ffc21f; /* 42° 霓虹金 */
+}
+.orb-root .k-heal {
+  --k: #1fff9b; /* 150° 霓虹翠 */
+}
+.orb-root .k-energy {
+  --k: #1fdcff; /* 186° 霓虹青 */
+}
+.orb-root .k-route {
+  --k: #3d8bff; /* 214° 霓虹蓝 */
+}
+.orb-root .k-merchant {
+  --k: #a25cff; /* 265° 霓虹紫 */
+}
+.orb-root .k-retreat {
+  --k: #ff3ec8; /* 322° 霓虹品红 */
+}
+/* 入口: 不在八色表里的另一支霓虹青 —— 「门」仍然不跟任何事件撞色 */
+.orb-root .orb-entry {
+  --k: #22e0ff;
+}
+/* ⚠ 已结算必须提到 (0,3,0): 上面那批 .orb-root .k-*(0,2,0) 写在它后面, 否则会把灰盖掉。
+   已结算 = 灯灭了 ⇒ 低饱和冷灰, 这是全图唯一允许「不发光」的一档。 */
+.orb-root .orb-node.is-settled {
+  --k: #7c8794;
+}
+
+/* ③-2 派生公式改成霓虹版: 亮档往白推, 暗档往黑推, **中间不留灰档**。
+   --k1 灯芯白: 高亮灯管的芯部总是过曝发白, 只有外圈才是色相
+   --k2 灯管色: 就是强调色原色本身
+   --k3 面的受光档: 色相掺进近黑, 只留 26% ⇒ 暗, 但一眼看得出是哪种颜色的暗
+   --k4 面的背光档: 只留 11% ⇒ 近黑, 仅存一丝色偏 */
+.orb-root .orb-node,
+.orb-root .orb-entry,
+.orb-root .orb-card {
+  --k1: color-mix(in srgb, var(--k) 42%, #ffffff);
+  --k2: var(--k);
+  --k3: color-mix(in srgb, var(--k) 26%, #080a12);
+  --k4: color-mix(in srgb, var(--k) 11%, #04050b);
+}
+
+/* ③-3 台座的面: 全部落在 --k3/--k4 这两档暗色上。
+   ⇒ 想调面的明暗只改 --tile-face 里的那个百分比(现在 62%): 越大越暗。
+   ⚠ 别把面提亮去「显示这一格的颜色」—— 颜色由灯线负责; 面一亮, 灯就不发光了。 */
+.orb-root .orb-node,
+.orb-root .orb-entry {
+  --tile-face: color-mix(in srgb, var(--k3) 62%, var(--k4));
+}
+.orb-root .orb-g-top-a,
+.orb-root .orb-entry .orb-g-top-a {
+  stop-color: var(--k3);
+}
+.orb-root .orb-g-top-b,
+.orb-root .orb-entry .orb-g-top-b {
+  stop-color: var(--tile-face);
+}
+.orb-root .orb-g-top-c,
+.orb-root .orb-entry .orb-g-top-c {
+  stop-color: var(--k4);
+}
+.orb-root .orb-g-sider-a,
+.orb-root .orb-entry .orb-g-sider-a {
+  stop-color: color-mix(in srgb, var(--k4) 70%, var(--k3));
+}
+.orb-root .orb-g-side-a,
+.orb-root .orb-entry .orb-g-side-a {
+  stop-color: var(--k4);
+}
+.orb-root .orb-g-side-b {
+  stop-color: color-mix(in srgb, var(--k4) 55%, #03040a);
+}
+/* 内嵌板: 台面上最暗的一块 ⇒ 它衬得内圈那道灯线更亮 */
+.orb-root .orb-tile-inlay,
+.orb-root .orb-entry .orb-tile-inlay {
+  fill: color-mix(in srgb, var(--k4) 80%, #03040a);
+  stroke: var(--k);
+  stroke-width: 1.2;
+}
+.orb-root .orb-tile-base-top {
+  fill: color-mix(in srgb, var(--k4) 70%, #03040a);
+  stroke: var(--k);
+}
+
+/* ④ 所有「线」= 灯管: 高饱和原色 + 白芯 + 外辉。
+   ★ 这一节是整套霓虹感的来源, 砖上其余部分都只是给它当暗背景的。
+   ⇒ 嫌太亮就统一降 --lamp-glow(外辉半径), 别去调颜色 —— 一掺灰就前功尽弃。 */
+.orb-root .orb-node,
+.orb-root .orb-entry {
+  --lamp-glow: 5px;
+}
+/* 台面外框: 最粗的一根灯管 */
+.orb-root .orb-tile-top,
+.orb-root .orb-entry .orb-tile-top {
+  stroke: var(--k);
+  stroke-width: 1.6;
+  filter: drop-shadow(0 0 var(--lamp-glow) var(--k));
+}
+/* 顶棱 / 前缘 / 铆钉: 灯芯白那一档, 是砖上最亮的几笔 */
+.orb-root .orb-tile-rim,
+.orb-root .orb-tile-lead,
+.orb-root .orb-entry .orb-tile-lead {
+  stroke: var(--k1);
+  opacity: 0.95;
+  filter: drop-shadow(0 0 4px var(--k));
+}
+.orb-root .orb-tile-stud {
+  stroke: var(--k1);
+  opacity: 0.8;
+  filter: drop-shadow(0 0 3px var(--k));
+}
+/* 三类台座的常驻标识线(gain 环 / util 刻线 / threat 警示带)一并转成灯管 */
+.orb-root .orb-tile-ring {
+  stroke: var(--k1);
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px var(--k));
+}
+.orb-root .orb-tile-ring-in,
+.orb-root .orb-tile-grid {
+  stroke: var(--k);
+  filter: drop-shadow(0 0 3px var(--k));
+}
+.orb-root .orb-tile-hazard polyline {
+  stroke: var(--k);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px var(--k));
+}
+.orb-root .orb-tile-halo {
+  stroke: var(--k);
+  filter: drop-shadow(0 0 4px var(--k));
+}
+
+/* ⑤ 中心光池: 恢复并拉起来 —— 台面本身是「被下方灯带打亮的一小片」。
+   常态 0.45 / 悬停与落点接近吃满 ⇒ 悬停反馈不再只是位移。 */
+.orb-root .orb-g-glow-a {
+  stop-color: color-mix(in srgb, var(--k) 85%, transparent);
+}
+.orb-root .orb-g-glow-b {
+  stop-color: transparent;
+}
+.orb-root .orb-tile-glow {
+  opacity: 0.45;
+}
 .orb-root .orb-node:hover:not(:disabled) .orb-tile-glow,
 .orb-root .orb-node.is-hovered .orb-tile-glow,
-.orb-root .orb-node.is-current .orb-tile-glow,
+.orb-root .orb-node.is-current .orb-tile-glow {
+  opacity: 0.9;
+}
 .orb-root .orb-node.is-settled .orb-tile-glow {
-  opacity: 0;
+  opacity: 0.12; /* 灯灭了 */
 }
 
-/* ④ 入口光柱: 本体就是一块渐变背景 + 模糊, 整个去掉 */
-.orb-root .orb-entry-beam {
-  display: none;
-}
-
-/* ⑤ 落地投影: 纯 radial 背景色块 */
-.orb-root .orb-tile-shadow {
-  display: none;
-}
-
-/* ⑥ 所有滤镜: 砖体外辉 / 物件投影与外辉 / 环与前缘的弱辉 / 裂纹受光边 */
+/* ⑥ 砖体整体外辉 —— 霓虹灯会把光洒到周围空气里, 这一层就是那个「洒出去的光」。
+   两段式: 近处一圈实一点, 远处一圈大而淡。悬停/落点各再加一档。 */
 .orb-root .orb-tile,
-.orb-root .orb-entry .orb-tile,
-.orb-root .orb-node.is-current .orb-tile,
+.orb-root .orb-entry .orb-tile {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--k) 55%, transparent))
+    drop-shadow(0 0 18px color-mix(in srgb, var(--k) 28%, transparent));
+}
+.orb-root .orb-node:hover:not(:disabled) .orb-tile,
+.orb-root .orb-node.is-hovered .orb-tile,
+.orb-root .orb-node.is-current .orb-tile {
+  filter: drop-shadow(0 0 8px var(--k))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--k) 45%, transparent));
+}
+.orb-root .orb-node.is-settled .orb-tile {
+  filter: none;
+}
+/* 站在砖上的物件: 保留投影(不然会飘), 再补一层被砖上灯光染色的边缘辉 */
 .orb-root .orb-node-prop,
 .orb-root .orb-node:hover:not(:disabled) .orb-node-prop,
 .orb-root .orb-node.is-hovered .orb-node-prop,
-.orb-root .orb-node.is-current .orb-node-prop,
-.orb-root .orb-node.is-settled .orb-node-prop,
-.orb-root .orb-tile-ring,
-.orb-root .orb-tile-crack,
-.orb-root .orb-tile-hazard polyline {
-  filter: none;
+.orb-root .orb-node.is-current .orb-node-prop {
+  filter: drop-shadow(0 6px 8px #000000cc)
+    drop-shadow(0 0 10px color-mix(in srgb, var(--k) 55%, transparent));
+}
+.orb-root .orb-node.is-settled .orb-node-prop {
+  filter: drop-shadow(0 6px 8px #000000cc) saturate(0.4);
+}
+
+/* ⑦ 地面反光: 把原来的黑色落地投影换成**同色的一滩地面染色光**。
+   湿地面反光是霓虹夜景的标志性一笔, 也顺手解决了「砖浮在图上不接地」。 */
+.orb-root .orb-tile-shadow {
+  display: block;
+  width: 92px;
+  height: 30px;
+  margin-left: -46px;
+  bottom: -10px;
+  background:
+    radial-gradient(closest-side, color-mix(in srgb, var(--k) 42%, transparent), transparent 78%),
+    radial-gradient(closest-side, #000000b0, transparent 70%);
+  filter: blur(4px);
+}
+
+/* ⑧ 入口光柱: 恢复, 并换成高饱和 + 白芯的一道光 */
+.orb-root .orb-entry-beam {
+  display: block;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--k) 80%, transparent),
+    color-mix(in srgb, var(--k) 30%, transparent) 42%,
+    transparent 88%
+  );
+  filter: blur(2.4px);
+}
+/* 入口字母: 白芯 + 同色外辉 = 一块小招牌 */
+.orb-root .orb-entry-letter {
+  color: #ffffff;
+  text-shadow:
+    0 0 6px var(--k),
+    0 0 18px var(--k),
+    0 0 34px color-mix(in srgb, var(--k) 60%, transparent),
+    0 4px 10px #000000cc;
+}
+/* 悬停/已选: 直接用未压暗的 --orb-trace 原色(原规则特意掺了 #2e3a24 压暗, 霓虹版不需要)。
+   ⚠ 选择器与原规则完全一致 ⇒ 靠「后写者胜」覆盖, 改动时别动这串选择器。 */
+.orb-root .orb-entry:hover:not(:disabled),
+.orb-root .orb-entry:focus-visible,
+.orb-root .orb-entry.is-active {
+  --k: var(--orb-trace);
 }
 
 /* ⑦ 地面: 原本的中央冷光晕 + 等距网格 + 底色渐变(「黑」的一大来源)整套换成场景占位图。
    ⚠ cover + center: 面板不是 16:9, 图会被裁掉上下或左右, 这是临时占位, 不做适配。
    ⚠ 原规则里的 mask-image(四周径向淡出)仍然生效 ⇒ 场景图边缘会化进黑底。
       想看整张图的原始边缘, 把下面那行 mask-image: none 留着; 想要淡出就删掉它。 */
-/* ⚠ 压暗用**叠在图上的一层半透明黑**, 不用 filter: brightness() ——
-      filter 会连带影响这个元素的合成层, 而这里只想降底图亮度, 让砖的描边压得住。
-      想调深浅只改这一个 alpha: 40 ≈ 轻压 / 66 ≈ 现在这档 / 99 ≈ 重压。 */
+/* ★ 压暗配方直接照搬 explore/ExploreScreen 的 --expl-veil + .explore-veil:
+      场景图细节很密, 不压一层的话砖的描边会淹在墙面纹理里。
+      ① 压暗做成**独立的一层**(::after)、用 opacity 统一缩放, 而不是逐个改 alpha ——
+         这样「四角比中心更暗」的相对关系不随强度变化, 只是整体变淡;
+      ② 四角更暗、中心略透: 砖压在中心区, 四角是要让路给它的负空间。
+   ⇒ 想调明暗**只改 --orb-veil 这一个数**(0 = 完全不压露出原图, 1 = 最暗配方)。
+      0.5 ≈ 图很清楚 / 0.65 ≈ ExploreScreen 的当前值 / 0.85 ≈ 现在这档, 图退成氛围底。 */
 .orb-ground {
-  background:
-    linear-gradient(#00000066, #00000066),
-    url("../../../assets/占位场景素材.png") center / cover no-repeat;
+  --orb-veil: 0.85;
+  background: url("../../../assets/占位场景素材.png") center / cover no-repeat;
   mask-image: none;
+}
+.orb-ground::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: var(--orb-veil);
+  background:
+    radial-gradient(ellipse 62% 52% at 50% 46%, #00000026, #000000b8 100%),
+    linear-gradient(180deg, #05080ab8, #05080a4d 30%, #05080a99);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -101,14 +101,14 @@ function tileStyle(point: Point): CSSProperties {
 
 function eventAccent(kind: NodeEventKind): string {
   const colors: Record<NodeEventKind, string> = {
-    retreat: "#c7ced0",
-    loot: "#b6a27d",
-    heal: "#789b87",
-    merchant: "#958ba6",
-    route: "#819ca5",
-    energy: "#769fa6",
-    hazard: "#a83c44",
-    battle: "#b4535b",
+    retreat: "#c9ded2",
+    loot: "#d0a35a",
+    heal: "#62bf91",
+    merchant: "#b18ac8",
+    route: "#60adbd",
+    energy: "#76d7dc",
+    hazard: "#c15a59",
+    battle: "#d58c5c",
   };
   return colors[kind];
 }
@@ -151,6 +151,7 @@ function Tile({ entry = false }: { entry?: boolean }) {
       {entry && <polygon className={s.entryHalo} points={corners.map(([x, y]) => `${x},${y}`).join(" ")} />}
       <polygon className={s.tileSide} points={[base[3], base[2], base[1], bottom[1], bottom[2], bottom[3]].map(([x, y]) => `${x},${y}`).join(" ")} />
       <polygon className={s.tileTop} points={base.map(([x, y]) => `${x},${y}`).join(" ")} />
+      <polygon className={s.tileGloss} points={`${base[0][0]},${base[0][1]} ${base[1][0]},${base[1][1]} ${TILE_W * 0.67},${TILE_TOP_H * 0.33} ${TILE_W * 0.33},${TILE_TOP_H * 0.16}`} />
       <polygon className={s.tileSeam} points={top(TILE_HALF * 0.62).map(([x, y]) => `${x},${y}`).join(" ")} />
       <polyline className={entry ? s.entryEdge : s.tileEdge} points={`${base[0][0]},${base[0][1]} ${base[1][0]},${base[1][1]}`} />
       {entry && <>
@@ -298,7 +299,7 @@ export function LunaRouteBoardDemo() {
             </svg>
 
             <div className={s.entryLayer}>{ENTRY_LABELS.map((label, lane) => { const blocked = board.blockedLanes.includes(lane); const selected = entryLane === lane; const usable = phase === "revealed" && !blocked; return <button key={label} type="button" className={cx(s.entryMarker, selected && s.entrySelected, blocked && s.entryBlocked)} style={tileStyle(nodePoint(-1, lane))} disabled={!usable} aria-label={blocked ? `${label} 通道已封锁` : `选择 ${label} 通道`} onClick={() => chooseEntry(lane)}><Tile entry /><span className={s.entryBeam} aria-hidden /><span className={s.entryLetter}>{label}</span><small>{blocked ? "CLOSED" : "ENTRY"}</small></button>; })}</div>
-            <div className={s.nodeLayer}>{board.nodes.flatMap((row, segment) => row.map((event, lane) => { const visited = visitedLanes[segment] === lane; const current = currentSegment > 0 && segment === currentSegment - 1 && currentLane === lane; return <button key={`${segment}-${lane}-${event.id}`} type="button" className={cx(s.nodeMarker, visited && s.nodeVisited, current && s.nodeCurrent)} style={{ ...tileStyle(nodePoint(segment, lane)), "--kind": eventAccent(event.kind) } as CSSProperties} aria-label={`${event.title}：${event.description}`} onPointerEnter={() => setHovered(event)} onPointerLeave={() => setHovered(null)} onFocus={() => setHovered(event)} onBlur={() => setHovered(null)}><Tile /><span className={s.tileShadow} aria-hidden /><NodeProjection kind={event.kind} /><span className={s.nodeIndex}>{String(segment + 1).padStart(2, "0")}</span></button>; }))}</div>
+            <div className={s.nodeLayer}>{board.nodes.flatMap((row, segment) => row.map((event, lane) => { const visited = visitedLanes[segment] === lane; const current = currentSegment > 0 && segment === currentSegment - 1 && currentLane === lane; return <button key={`${segment}-${lane}-${event.id}`} type="button" className={cx(s.nodeMarker, visited && s.nodeVisited, current && s.nodeCurrent)} data-kind={event.kind} style={{ ...tileStyle(nodePoint(segment, lane)), "--kind": eventAccent(event.kind) } as CSSProperties} aria-label={`${event.title}：${event.description}`} onPointerEnter={() => setHovered(event)} onPointerLeave={() => setHovered(null)} onFocus={() => setHovered(event)} onBlur={() => setHovered(null)}><Tile /><span className={s.tileShadow} aria-hidden /><NodeProjection kind={event.kind} /><span className={s.nodeIndex}>{String(segment + 1).padStart(2, "0")}</span></button>; }))}</div>
           </div>
         </div>
         {hovered && <aside className={s.eventTip}><span style={{ color: eventAccent(hovered.kind) }}>{hovered.kind.toUpperCase()}</span><strong>{hovered.title}</strong><p>{hovered.description}</p></aside>}
