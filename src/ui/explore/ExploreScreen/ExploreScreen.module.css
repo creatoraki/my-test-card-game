@@ -407,6 +407,103 @@
   letter-spacing: 2px;
 }
 
+/* ===================== 消耗品使用: 目标选择 ===================== */
+/* 选择模式下: 可选中的存活成员高亮脉冲, 其余(阵亡)进一步压暗 —— 一眼分出「谁可以」。 */
+.expl-member.is-targetable {
+  cursor: pointer;
+  animation: explTargetPulse 1.6s ease-in-out infinite;
+}
+/* 落点浮层等聚焦阶段把头像压暗过(0.5), 选择模式下可选目标恢复全亮 —— 此刻它们才是主角。 */
+.expl-party.is-targeting .expl-member.is-targetable {
+  opacity: 1;
+}
+.expl-party.is-targeting .expl-member:not(.is-targetable) {
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+/* 无效目标不是交互对象: 压掉悬停上浮, 只保留可选目标的「活了」手感。 */
+.expl-party.is-targeting .expl-member:not(.is-targetable):hover {
+  transform: none;
+  border-color: var(--expl-line);
+}
+@keyframes explTargetPulse {
+  0%,
+  100% {
+    border-color: color-mix(in srgb, var(--expl-glow) 55%, transparent);
+    box-shadow:
+      inset 0 1px 0 #ffffff14,
+      0 0 0 0 #6fe3f500,
+      0 20px 44px -28px #000000cc;
+  }
+  50% {
+    border-color: var(--expl-glow);
+    box-shadow:
+      inset 0 1px 0 #ffffff14,
+      0 0 26px -4px #6fe3f5a8,
+      0 20px 44px -28px #000000cc;
+  }
+}
+/* 选择提示横幅与结算飘字, 悬在队伍区正上方。 */
+.expl-use-banner {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #6fe3f588;
+  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc,
+    0 0 24px -8px #6fe3f566;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  animation: explRise 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.expl-use-banner-kicker {
+  color: var(--expl-glow);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+.expl-use-banner-text {
+  color: var(--text);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.expl-use-banner-cancel {
+  margin-left: 6px;
+  padding: 5px 12px;
+  border: 1px solid #ffffff2e;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.expl-use-banner-cancel:hover {
+  border-color: var(--expl-glow);
+  color: var(--text);
+}
+.expl-use-flash {
+  position: absolute;
+  z-index: 6;
+  padding: 8px 14px;
+  border: 1px solid #7fd4c488;
+  background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
+  backdrop-filter: blur(12px) saturate(110%) brightness(0.94);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #000000cc;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  color: #9fe8dc;
+  font-size: 13px;
+  letter-spacing: 1px;
+  animation: explRise 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
 /* ===================== 右下: 指令栏 + 按钮 ===================== */
 .expl-actions {
   position: absolute;
@@ -679,6 +776,14 @@
   }
   .expl-advance-ring {
     display: none;
+  }
+  .expl-member.is-targetable {
+    animation: none;
+    border-color: color-mix(in srgb, var(--expl-glow) 70%, transparent);
+  }
+  .expl-use-banner,
+  .expl-use-flash {
+    animation: none;
   }
   .expl-advance-btn {
     animation: none;

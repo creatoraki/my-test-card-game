@@ -61,11 +61,20 @@ export const CATEGORY_LABEL: Record<ItemCategory, string> = {
 // ---------------------------------------------------------------------------
 // ⚠ 刻意**不**直接复用 explore/types.ts 的 ExploreEffect —— 那会让 items/ 反向依赖
 //   explore/, 进而把 townStore 也拖进探索层的类型图。explore/session.useItem 负责把
-//   这几种翻译成已有的 applyEffect 调用, 翻译表只有一处。
+//   这几种翻译成对会话的直接修改, 翻译表只有一处。
+// ★ 带「指定角色」前缀的效果需要玩家点选目标角色头像后才能生效(见 ExploreScreen 的
+//   目标选择流程); 其余效果使用后立即结算。
 export type ItemUse =
   | { kind: "healParty"; percent: number } // 全队按 maxHp 百分比回血
   | { kind: "healOneFull"; othersPercent: number } // 单人回满 + 其余按百分比
-  | { kind: "gainEnergy"; amount: number }; // 净化粒子 +
+  | { kind: "gainEnergy"; amount: number } // 净化粒子 +
+  | { kind: "healOne"; percent: number } // 指定一名存活角色按 maxHp 百分比回血
+  | { kind: "healLimitOne"; percent: number } // 指定一名存活角色修复 hpLimit 损伤
+  | { kind: "reducePollutionOne"; amount: number }; // 指定一名存活角色降低污染值(城镇侧落地)
+
+// 需要玩家点选目标角色的消耗品效果 kind。UI 据此决定是否进入头像选择流程。
+export const TARGETED_ITEM_USE_KINDS = ["healOne", "healLimitOne", "reducePollutionOne"] as const;
+export type TargetedItemUseKind = (typeof TARGETED_ITEM_USE_KINDS)[number];
 
 // ---------------------------------------------------------------------------
 // 定义与实例

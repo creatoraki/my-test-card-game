@@ -1,4 +1,4 @@
-import type { ItemDef, ItemRarity } from "../../items/types";
+import type { ItemDef, ItemRarity, ItemUse } from "../../items/types";
 import { withBuyValue } from "./pricing";
 
 const QUALITY_SUFFIX: Record<ItemRarity, string> = {
@@ -16,6 +16,12 @@ const QUALITY_LABEL: Record<ItemRarity, string> = {
   epic: "史诗",
   legendary: "传说",
 };
+
+// ★ 统一占位数值(平衡待调): 三族消耗品各稀有度先共用同一档效果,
+//   强度阶梯留到平衡轮次再填 —— 每族只改这里一个数。
+const HEAL_PERCENT = 0.25; // 糖块: 回复一名存活角色 25% 生命
+const LIMIT_REPAIR_PERCENT = 0.2; // 医疗包: 修复 20% 体力极限
+const POLLUTION_REDUCE = 10; // 圣水: 降低 10 点污染
 
 function pendingConsumable(
   id: string,
@@ -36,36 +42,61 @@ function pendingConsumable(
   };
 }
 
+// 已启用的消耗品: desc 里写死实际效果(与 use 字段同一份数值口径), 不再挂「暂不可使用」。
+function usableConsumable(
+  id: string,
+  name: string,
+  familyId: string,
+  rarity: ItemRarity,
+  desc: string,
+  use: ItemUse,
+): ItemDef {
+  return {
+    id,
+    name,
+    category: "consumable",
+    rarity,
+    desc,
+    maxStack: 1,
+    familyId,
+    icon: "consumable",
+    use,
+  };
+}
+
 const QUALITY_ORDER: ItemRarity[] = ["common", "fine", "rare", "epic", "legendary"];
 
 // ★ 与装备/材料同样过一遍 withBuyValue —— 消耗品与临期食品要在出击准备的「货柜」里卖,
 //   没有 buyValue 就没法标价也没法扣钱(货柜清单见 data/sortieStock.ts)。
 const DEFS: ItemDef[] = [
   ...QUALITY_ORDER.map((rarity) =>
-    pendingConsumable(
+    usableConsumable(
       `sugar-cube-${QUALITY_SUFFIX[rarity]}`,
       "糖块",
       "sugar-cube",
       rarity,
-      "回复一名存活角色当前生命",
+      `${QUALITY_LABEL[rarity]}级糖块：使用后回复一名存活角色 ${Math.round(HEAL_PERCENT * 100)}% 生命。`,
+      { kind: "healOne", percent: HEAL_PERCENT },
     ),
   ),
   ...QUALITY_ORDER.map((rarity) =>
-    pendingConsumable(
+    usableConsumable(
       `medical-kit-${QUALITY_SUFFIX[rarity]}`,
       "医疗包",
       "medical-kit",
       rarity,
-      "修复一名角色的体力极限损伤",
+      `${QUALITY_LABEL[rarity]}级医疗包：使用后修复一名存活角色 ${Math.round(LIMIT_REPAIR_PERCENT * 100)}% 体力极限。`,
+      { kind: "healLimitOne", percent: LIMIT_REPAIR_PERCENT },
     ),
   ),
   ...QUALITY_ORDER.map((rarity) =>
-    pendingConsumable(
+    usableConsumable(
       `holy-water-${QUALITY_SUFFIX[rarity]}`,
       "圣水",
       "holy-water",
       rarity,
-      "降低一名角色的污染值",
+      `${QUALITY_LABEL[rarity]}级圣水：使用后降低一名存活角色 ${POLLUTION_REDUCE} 点污染值。`,
+      { kind: "reducePollutionOne", amount: POLLUTION_REDUCE },
     ),
   ),
   ...QUALITY_ORDER.map((rarity) =>

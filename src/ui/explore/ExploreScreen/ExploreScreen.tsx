@@ -29,6 +29,7 @@ import {
   canOpenBackpack,
   canPushOn,
   canRetreat,
+  canUseItem,
   choiceStartsBattle,
   landedChoices,
   landedEvent,
@@ -36,7 +37,8 @@ import {
   roundBattleEvent,
 } from "@/explore/session";
 import type { ChoiceCost, EventChoice, NodeEvent } from "@/explore/types";
-import { getNpcEvent } from "@/data";
+import { getItemDef, getNpcEvent } from "@/data";
+import { TARGETED_ITEM_USE_KINDS, type ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
@@ -151,8 +153,15 @@ export function ExploreScreen() {
   const enterEncounter = useRunStore((s) => s.enterEncounter);
   const finishExpedition = useRunStore((s) => s.finishExpedition);
   const retreat = useRunStore((s) => s.retreat);
+  const useItemAction = useExploreStore((s) => s.useItem);
 
   const [bagOpen, setBagOpen] = useState(false);
+  // ---- 消耗品使用: 目标选择流程 ----
+  // useTarget 非空 = 玩家已点下「使用」, 正在等 TA 点选左下角的一名存活角色。
+  const [useTarget, setUseTarget] = useState<ItemStack | null>(null);
+  // 使用结算后的一句反馈飘字(「糖块 · 剑士 回复 25% 生命」), 定时自动消失。
+  const [useFlash, setUseFlash] = useState<{ text: string; seq: number } | null>(null);
+  const useFlashTimer = useRef<number | null>(null);
   // 当前悬停的节点。浮卡只跟随悬停，不回落到当前落点。
   const [hovered, setHovered] = useState<{ seg: number; lane: number } | null>(null);
   // 已点下但还没派发出去的那一支。★ 这个空档就是「落子的回响」——
@@ -212,6 +221,36 @@ export function ExploreScreen() {
   useEffect(() => {
     if (!bagAllowed) setBagOpen(false);
   }, [bagAllowed]);
+
+  // 目标选择跟着阶段走: 阶段一变, 「这会儿能不能用药」的答案也变了, 挂着的选择一律作废。
+  useEffect(() => {
+    setUseTarget(null);
+  }, [phase]);
+
+  // 奖励/拾取浮层拉起时, 遮罩会把队伍区挡在下面 —— 挂着的选择同样作废。
+  // ⚠ 这里直接读 session 自算, 与下方渲染用的 hasPendingAction/hasLoot 同一口径。
+  const pendingOverlayUp = Boolean(session?.pendingActions.length || session?.pendingLoot.length);
+  useEffect(() => {
+    if (pendingOverlayUp) setUseTarget(null);
+  }, [pendingOverlayUp]);
+
+  // 目标选择模式下 Esc 取消。
+  useEffect(() => {
+    if (!useTarget) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setUseTarget(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [useTarget]);
+
+  // 飘字定时器卸载时顺手撤掉, 不会有卸载后 setState。
+  useEffect(
+    () => () => {
+      if (useFlashTimer.current != null) window.clearTimeout(useFlashTimer.current);
+    },
+    [],
+  );
 
   const onHoverNode = useCallback((at: { seg: number; lane: number } | null) => {
     setHovered(at);
@@ -396,6 +435,49 @@ export function ExploreScreen() {
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
 
+  // ---- 消耗品使用 ----
+  // 结算飘字: seq 递增保证连用两件时飘字重挂, 不会因为 key 相同而丢动画。
+  const flashUseNote = (text: string) => {
+    setUseFlash((current) => ({ text, seq: (current?.seq ?? 0) + 1 }));
+    if (useFlashTimer.current != null) window.clearTimeout(useFlashTimer.current);
+    useFlashTimer.current = window.setTimeout(() => setUseFlash(null), 2200);
+  };
+
+  // 「使用」的统一入口(右键菜单与大面板按钮都走这里):
+  //   指定角色类 → 进入头像选择流程; 其余效果 → 立即结算并飘字。
+  const startItemUse = (stack: ItemStack) => {
+    const def = getItemDef(stack.itemId);
+    if (!def.use || !canUseItem(session)) return;
+    if ((TARGETED_ITEM_USE_KINDS as readonly string[]).includes(def.use.kind)) {
+      setUseTarget(stack);
+      return;
+    }
+    const note = useItemAction(stack.uid);
+    if (note) flashUseNote(note);
+  };
+
+  // 点选左下角角色头像 → 结算并退出选择流程。store 会再校验一次目标合法性。
+  const applyItemUse = (charId: string) => {
+    if (!useTarget) return;
+    const note = useItemAction(useTarget.uid, charId);
+    if (note) flashUseNote(note);
+    setUseTarget(null);
+  };
+
+  // 目标是否「用了有效果」: 除存活外还按消耗品 kind 检查当前状态 ——
+  // 满血吃糖、无损伤用医疗包、无污染用圣水都算无效目标, 头像不开放点选
+  // (设计文档《消耗品》§五: 使用前检查效果有效性, 检查失败不消耗物品)。
+  const useDef = useTarget ? getItemDef(useTarget.itemId) : null;
+  const memberUsable = (p: (typeof session.party)[number]) => {
+    if (!useDef?.use || !p.alive) return false;
+    const u = useDef.use;
+    if (u.kind === "healOne") return p.hp < p.hpLimit;
+    if (u.kind === "healLimitOne") return p.hpLimit < p.maxHp;
+    if (u.kind === "reducePollutionOne") return (characters[p.charId]?.pollution ?? 0) > 0;
+    return true;
+  };
+  const hasUsableTarget = session.party.some(memberUsable);
+
   // 落点浮层开着的两个阶段: 四角 HUD 轻度后退, 把注意力收拢到面板上(不加全屏遮罩)。
   const focused =
     session.phase === "landed" ||
@@ -479,7 +561,7 @@ export function ExploreScreen() {
         {/* ---- 左上: 随身背包(12 × 2 = 24 格) ----
             原来这里是纯文字的区域标题, 但探索途中真正需要一直看见的是物资与余量。 */}
         <div className={s["expl-bag"]} style={{ left: "12px", top: "0px", width: `${BAG_W}px` }}>
-          <BackpackBar />
+          <BackpackBar onUseItem={startItemUse} />
         </div>
 
         {/* ---- 右上: 净化粒子 ----
@@ -562,13 +644,35 @@ export function ExploreScreen() {
           </div>
         ) : null}
 
-        {/* ---- 左下: 队伍 ---- */}
-        <div className={cx(s["expl-party"], recede)} style={{ left: "16px", bottom: "16px" }}>
+        {/* ---- 左下: 队伍 ----
+            消耗品目标选择模式下, 存活成员的头像变成可选目标(高亮脉冲),
+            点击即使用; 右键/Esc/「取消」退出选择。 */}
+        <div
+          className={cx(s["expl-party"], recede, useTarget && s["is-targeting"])}
+          style={{ left: "16px", bottom: "16px" }}
+          onContextMenu={
+            useTarget
+              ? (event) => {
+                  event.preventDefault();
+                  setUseTarget(null);
+                }
+              : undefined
+          }
+        >
           {Array.from({ length: EXPL_PARTY_SLOTS }, (_, i) => {
             const p = session.party[i];
             if (!p) return <div key={`empty${i}`} className={s["expl-slot-empty"]} />;
+            const targetable = memberUsable(p);
             return (
-              <div key={p.charId} className={cx(s["expl-member"], !p.alive && s["is-down"])}>
+              <div
+                key={p.charId}
+                className={cx(
+                  s["expl-member"],
+                  targetable && s["is-targetable"],
+                  !p.alive && s["is-down"],
+                )}
+                onClick={targetable ? () => applyItemUse(p.charId) : undefined}
+              >
                 <div className={s["expl-member-figure"]}>
                   <CharacterPortrait
                     characterId={p.charId}
@@ -592,6 +696,34 @@ export function ExploreScreen() {
             );
           })}
         </div>
+
+        {/* ---- 消耗品使用: 目标选择提示 / 结算飘字 ---- */}
+        {useTarget && (
+          <div className={s["expl-use-banner"]} style={{ left: "16px", bottom: "348px" }}>
+            <span className={s["expl-use-banner-kicker"]}>使用消耗品</span>
+            <span className={s["expl-use-banner-text"]}>
+              {hasUsableTarget
+                ? `选择一名存活角色使用「${useDef?.name ?? "消耗品"}」`
+                : "没有可用目标 —— 角色当前状态无需此效果"}
+            </span>
+            <button
+              className={s["expl-use-banner-cancel"]}
+              type="button"
+              onClick={() => setUseTarget(null)}
+            >
+              取消
+            </button>
+          </div>
+        )}
+        {useFlash && (
+          <div
+            key={useFlash.seq}
+            className={s["expl-use-flash"]}
+            style={{ left: "16px", bottom: "348px" }}
+          >
+            {useFlash.text}
+          </div>
+        )}
 
         {/* ---- 右下: 指令栏 + 背包 + 撤退 ---- */}
         <div className={cx(s["expl-actions"], recede)} style={{ right: "56px", bottom: "40px" }}>
@@ -702,7 +834,15 @@ export function ExploreScreen() {
             替换模式(pendingPickup 非空)时强制打开: 「拿不拿得下」这个决定必须当场做完,
             让它跨节点就等于把决定悄悄取消掉了(session.confirmNode 也会拦一次)。 */}
         {(bagOpen || mustReplace) && canBackpack && (
-          <BackpackPanel onClose={() => setBagOpen(false)} />
+          <BackpackPanel
+            onClose={() => setBagOpen(false)}
+            onUse={(stack) => {
+              // 替换模式下背包不许关(必须当场处理完待取物), 其余情况收起面板露出队伍区,
+              // 让「点选角色」这件事发生在左下角而不是面板后面。
+              if (!mustReplace) setBagOpen(false);
+              startItemUse(stack);
+            }}
+          />
         )}
 
         <div className={s["expl-scrim"]} data-closing={!overlayOpen || undefined} aria-hidden />

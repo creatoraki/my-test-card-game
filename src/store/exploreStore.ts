@@ -5,6 +5,7 @@
 // runStore 编排, 因为只有它同时认识 battleStore 与界面路由。会话不持久化 —— 远征中途关页面即作废。
 
 import { create } from "zustand";
+import { getItemDef } from "../data";
 import type { ExploreState, PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
 import {
@@ -45,8 +46,10 @@ import {
   takePendingExp,
   useItem,
   applyEffect,
+  type ItemUseResult,
 } from "../explore/session";
 import { buyFromShop as buyFromShopFn } from "../explore/shop";
+import { useTownStore } from "./townStore";
 
 interface ExploreStore {
   session: ExploreState | null;
@@ -86,7 +89,9 @@ interface ExploreStore {
   // ---- 背包(阶段白名单的真相点在 explore/session, 这里只是转发) ----
   discardItem: (uid: string) => void;
   reorderBackpack: (uid: string, toIndex: number) => void;
-  useItem: (uid: string) => string | null; // 返回结算摘要, UI 拿去飘一条
+  // 返回完整展示文案(「物品名 · 摘要」), UI 拿去飘一条; 用不了返回 null。
+  // targetCharId 供指定角色类消耗品使用(必须传存活队员); 其余效果省略即可。
+  useItem: (uid: string, targetCharId?: string) => string | null;
   takePending: (index: number) => void; // 替换模式: 收下待取物
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
   shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
@@ -236,13 +241,32 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   },
 
   // useItem 要把摘要交回 UI, 所以不能只走 mutate 的布尔约定 —— 自己接一下返回值。
-  useItem: (uid) => {
-    let note: string | null = null;
+  // ★ 污染是城镇侧状态: 纯会话函数只算出「要降谁、降多少」, 这里转交 townStore 落地后
+  //   再按**实际降低值**重建展示文案(角色可能本来就没多少污染可降)。
+  // ⚠ 圣水的有效性检查也在这里(纯会话函数摸不到污染值): 目标没有污染可降时不消耗物品,
+  //   直接拒绝并返回 null(设计文档《消耗品》§2.3)。
+  useItem: (uid, targetCharId) => {
+    if (targetCharId) {
+      const stack = get().session?.backpack.find((x) => x.uid === uid);
+      const def = stack ? getItemDef(stack.itemId) : null;
+      if (def?.use?.kind === "reducePollutionOne") {
+        const pollution = useTownStore.getState().characters[targetCharId]?.pollution ?? 0;
+        if (pollution <= 0) return null;
+      }
+    }
+    let result: ItemUseResult | null = null;
     mutate(get, set, (d) => {
-      note = useItem(d, uid);
-      return note != null;
+      result = useItem(d, uid, targetCharId);
+      return result != null;
     });
-    return note;
+    if (!result) return null;
+    if (result.pollution) {
+      const { charId, name, amount } = result.pollution;
+      const actual = useTownStore.getState().reducePollution(charId, amount);
+      const note = actual > 0 ? `${name} 污染 −${actual}` : `${name} 没有污染值可降低`;
+      return `${result.itemName} · ${note}`;
+    }
+    return `${result.itemName} · ${result.note}`;
   },
 
   takePending: (index) => {

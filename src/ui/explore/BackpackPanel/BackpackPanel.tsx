@@ -40,10 +40,16 @@ import s from "./BackpackPanel.module.css";
 
 const COLS = 8; // 8 × 3 = 24。只影响 CSS grid 的列数, 排布本身与列数无关。
 
-export default function BackpackPanel({ onClose }: { onClose: () => void }) {
+export default function BackpackPanel({
+  onClose,
+  onUse,
+}: {
+  onClose: () => void;
+  // 「使用」由 ExploreScreen 统一接手: 目标类消耗品进入左下角头像选择流程, 其余立即生效。
+  onUse: (stack: ItemStack) => void;
+}) {
   const session = useExploreStore((s) => s.session);
   const discardItem = useExploreStore((s) => s.discardItem);
-  const useItemAction = useExploreStore((s) => s.useItem);
   const takePending = useExploreStore((s) => s.takePending);
   const abandonPending = useExploreStore((s) => s.abandonPending);
   const shipHome = useExploreStore((s) => s.shipHome);
@@ -53,7 +59,6 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null); // 丢弃二次确认的 uid
   const [shipping, setShipping] = useState<string[]>([]); // 寄件模式的勾选
-  const [flash, setFlash] = useState<string | null>(null); // 使用消耗品后的一句反馈
 
   const backpack = session?.backpack ?? [];
   const cells = useMemo(
@@ -83,16 +88,6 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
   const onSlotClick = (st: ItemStack) => {
     if (chuteMode) return toggleShip(st.uid);
     setSelected(st.uid);
-  };
-
-  const doUse = () => {
-    if (!sel) return;
-    const note = useItemAction(sel.uid);
-    if (note) {
-      setFlash(note);
-      setSelected(null);
-      window.setTimeout(() => setFlash(null), 2400);
-    }
   };
 
   return (
@@ -218,7 +213,7 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
                             tone="primary"
                             className={s["bp-mini"]}
                             disabled={!canUseItem(session)}
-                            onClick={doUse}
+                            onClick={() => sel && onUse(sel)}
                           >
                             使用
                           </EventPanelButton>
@@ -259,9 +254,7 @@ export default function BackpackPanel({ onClose }: { onClose: () => void }) {
 
             <EventPanelFoot
               note={
-                flash ? (
-                  <span className={s["bp-flash"]}>{flash}</span>
-                ) : replaceMode ? (
+                replaceMode ? (
                   "先处理完待取物才能关上背包"
                 ) : (
                   `占用 ${used} / ${RULES.burden.backpackSlots} 格`

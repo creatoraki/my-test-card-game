@@ -563,13 +563,42 @@ describe("背包与负重(设计文档 §六)", () => {
   it("消耗品用完即消失, 且不额外扣净化粒子", () => {
     const s = newSession();
     toChoosing(s);
-    addItems(s, [makeItemStack("nutrient-paste")]);
+    addItems(s, [makeItemStack("sugar-cube-c")]);
     s.party[0].hp = 10;
     const energyBefore = s.energy;
-    expect(useItem(s, s.backpack[0].uid)).not.toBeNull();
+    const result = useItem(s, s.backpack[0].uid, "swordsman");
+    expect(result).not.toBeNull();
     expect(s.backpack).toHaveLength(0);
     expect(s.party[0].hp).toBeGreaterThan(10);
     expect(s.energy).toBe(energyBefore); // 携带成本已由负重收过一次, 不重复收费
+  });
+
+  it("指定角色类消耗品必须带目标, 目标不对时物品不消耗", () => {
+    const s = newSession();
+    toChoosing(s);
+    addItems(s, [makeItemStack("sugar-cube-c")]);
+    const uid = s.backpack[0].uid;
+    expect(useItem(s, uid)).toBeNull(); // 没点选目标
+    expect(useItem(s, uid, "nobody")).toBeNull(); // 不存在的角色
+    expect(s.backpack).toHaveLength(1); // 两次失败都不该吞掉物品
+  });
+
+  it("治疗类消耗品不对阵亡角色生效", () => {
+    const s = newSession();
+    toChoosing(s);
+    addItems(s, [makeItemStack("sugar-cube-c")]);
+    s.party[0].alive = false;
+    expect(useItem(s, s.backpack[0].uid, "swordsman")).toBeNull();
+    expect(s.backpack).toHaveLength(1);
+  });
+
+  it("目标状态无效时不消耗物品(满血吃糖 / 无损伤用医疗包)", () => {
+    const s = newSession(); // PARTY 满血且无体力极限损伤
+    toChoosing(s);
+    addItems(s, [makeItemStack("sugar-cube-c"), makeItemStack("medical-kit-c")]);
+    expect(useItem(s, s.backpack[0].uid, "swordsman")).toBeNull(); // 满血
+    expect(useItem(s, s.backpack[1].uid, "swordsman")).toBeNull(); // 无体力极限损伤
+    expect(s.backpack).toHaveLength(2); // 两次检查失败都不消耗
   });
 
   it("投递口: 未开启不能寄, 开启后寄一次扣一次能量", () => {
