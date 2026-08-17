@@ -149,8 +149,17 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 0,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    startingCardIds: basicStartingCardIds("botanist"),
-    // ⚠ 专属抽卡池待设计: 三档都空 ⇒ 锻造抽卡对本角色暂时抽不出东西(forgeDraw 会直接返回)。
-    pools: { common: [], uncommon: [], rare: [] },
+    startingCardIds: [
+      ...basicStartingCardIds("botanist").slice(0, 3),
+      "continuous-shot",
+      "twin-flower",
+    ],
+    pools: {
+      common: ["continuous-shot", "recycle-shot", "twin-flower", "agave", "photosynthesis"],
+      // 植物学家的罕见卡池尚未设计。
+      uncommon: [],
+      // 植物学家的稀有卡池尚未设计。
+      rare: [],
+    },
   },
 ];

@@ -260,6 +260,14 @@
   gap: 4px;
   transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
 }
+.hc-cultivate-row {
+  left: 42px;
+}
+.hc-cultivate-ready .hc-mark-icon {
+  color: #f3ffc7;
+  border-color: #d8f56e;
+  box-shadow: 0 0 12px #c7e85f99;
+}
 /* ── ★ 打不出的卡: 「断电 + 变薄」 ──
    ⚠ 这是**玩法信息**(法力不够 / 非玩家回合)而不是装饰, 不属于任何"减少动态效果"的降级范围。
    ⚠ 旧版是 opacity .45 + .hc-edge 上一条 grayscale(1) —— 卡面中性化之后 grayscale **完全失效**

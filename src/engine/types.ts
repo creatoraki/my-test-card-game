@@ -50,13 +50,15 @@ export type Targeting = "foe" | "ally" | "self" | "allFoes" | "allAllies" | "non
 //   allAllies —— 施放者的全部队友
 //   randomFoe —— 随机一个敌人
 //   randomAlly—— 随机一个队友
+//   lowestHpAlly —— 受伤最重的存活队友
 export type EffectTarget =
   | "primary"
   | "self"
   | "allFoes"
   | "allAllies"
   | "randomFoe"
-  | "randomAlly";
+  | "randomAlly"
+  | "lowestHpAlly";
 
 // ---------------------------------------------------------------------------
 // 效果描述符 —— 声明式数据。新增机制 = 新增一个 EffectType + 一个 handler。
@@ -174,6 +176,10 @@ export interface CardDef {
   };
   onDiscard?: DiscardTrigger;
   keywords?: CardKeywordRef[];
+  cultivate?: {
+    turns: number;
+    effects: EffectDescriptor[];
+  };
 }
 
 export interface DiscardTrigger {
@@ -194,6 +200,7 @@ export interface Card extends CardDef {
   upgraded: boolean;
   contaminated: boolean;
   marks?: string[];
+  cultivateLeft?: number;
 }
 
 export interface PendingChoice {
@@ -262,6 +269,7 @@ export interface StatusDef {
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
   statMods?: Partial<StatBlock>; // 每层提供的固定属性修正
+  statModsPct?: Partial<StatBlock>; // 每层提供的百分比属性修正(百分点)
   resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减
   hooks?: StatusHooks;
 }

@@ -11,6 +11,7 @@ import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 import { starPayable } from "./cost";
 import { makeCard } from "../data";
+import { resetCultivate } from "./cultivate";
 
 export interface EffectResolution {
   missed: string[];
@@ -71,6 +72,16 @@ export function resolveTargets(
     case "randomAlly": {
       const allies = alliesOf(state, src);
       return allies.length ? [rngPick(state, allies).id] : [];
+    }
+    case "lowestHpAlly": {
+      const allies = alliesOf(state, src);
+      if (allies.length === 0) return [];
+      const target = allies.reduce((mostInjured, current) => {
+        const injured = current.maxHp - current.hp;
+        const mostInjuredAmount = mostInjured.maxHp - mostInjured.hp;
+        return injured > mostInjuredAmount ? current : mostInjured;
+      });
+      return [target.id];
     }
     default:
       return [];
@@ -216,6 +227,7 @@ function applyEffect(
           if (card?.cardType === "fast") recoveredFastCount += 1;
           state.discard = state.discard.filter((id) => id !== uid);
           state.hand.push(uid);
+          if (card) resetCultivate(card);
           pool.splice(pool.indexOf(uid), 1);
         }
         state.lastRecoverBatchFast = recoveredFastCount;
@@ -258,6 +270,7 @@ function applyEffect(
       const card = makeCard(effect.cardId);
       state.cards[card.uid] = card;
       state.hand.push(card.uid);
+      resetCultivate(card);
       ops.log(state, `${card.name} 加入手牌`);
       break;
     }

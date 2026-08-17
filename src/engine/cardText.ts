@@ -1,4 +1,4 @@
-import type { CardDef, EffectDescriptor } from "./types";
+import type { Card, EffectDescriptor } from "./types";
 
 export interface CardTextStats {
   attack: number;
@@ -34,11 +34,15 @@ export function effectDisplayValue(
   }
 }
 
-// {0} 对应 effects[0]；{d0} 预留给 onDiscard.effects[0]。
-export function renderCardText(card: CardDef, stats: CardTextStats): string {
-  return card.text.replace(/\{(d?)(\d+)\}/g, (_match, discard: string, indexText: string) => {
+// {0} 对应 effects[0]；{d0} 对应 onDiscard.effects[0]；{k0} 对应 cultivate.effects[0]。
+export function renderCardText(card: Card, stats: CardTextStats): string {
+  return card.text.replace(/\{(d|k)?(\d+|c)\}/g, (_match, kind: string | undefined, indexText: string) => {
+    if (indexText === "c") {
+      const left = card.cultivateLeft ?? card.cultivate?.turns;
+      return left == null ? "?" : left === 0 ? "✔" : String(left);
+    }
     const index = Number(indexText);
-    const effects = discard ? card.onDiscard?.effects : card.effects;
+    const effects = kind === "d" ? card.onDiscard?.effects : kind === "k" ? card.cultivate?.effects : card.effects;
     const value = effectDisplayValue(effects?.[index], stats);
     return value == null ? "?" : String(value);
   });

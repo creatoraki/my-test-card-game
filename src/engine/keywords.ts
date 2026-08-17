@@ -3,17 +3,50 @@
 // ============================================================================
 
 import type { BattleState, Card } from "./types";
+import { ops } from "./ops";
 import { RULES } from "./rules";
+
+export interface KeywordCtx {
+  primaryId?: string;
+  hitIds: string[];
+}
 
 export interface KeywordDef {
   id: string;
   name: string;
   desc: string;
-  triggers(state: BattleState, card: Card, primaryId?: string): number;
-  onTriggered?(state: BattleState, card: Card, primaryId: string | undefined, times: number): void;
+  triggers(state: BattleState, card: Card, ctx: KeywordCtx): number;
+  onTriggered?(state: BattleState, card: Card, ctx: KeywordCtx, times: number): void;
 }
 
-export const KEYWORD_DEFS: Record<string, KeywordDef> = {};
+export const KEYWORD_DEFS: Record<string, KeywordDef> = {
+  aim: {
+    id: "aim",
+    name: "瞄准",
+    desc: "攻击未被瞄准的目标时为其附加被瞄准；再次用瞄准卡命中该目标时移除被瞄准并触发额外效果。",
+    triggers: (state, card, ctx) => {
+      const candidates =
+        card.targeting === "allFoes"
+          ? [...new Set(ctx.hitIds)].filter((id) => state.combatants[id]?.team === "enemy")
+          : ctx.primaryId && ctx.hitIds.includes(ctx.primaryId)
+            ? [ctx.primaryId]
+            : [];
+      let triggered = 0;
+      for (const id of candidates) {
+        const target = state.combatants[id];
+        if (!target) continue;
+        const aimed = target.statuses.find((status) => status.id === "aimed");
+        if (aimed) {
+          ops.applyStatus(state, id, "aimed", -1);
+          triggered += 1;
+        } else {
+          ops.applyStatus(state, id, "aimed", 1);
+        }
+      }
+      return triggered;
+    },
+  },
+};
 
 export interface CardKeywordInfo {
   id: string;
@@ -36,6 +69,16 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     id: "waterfall",
     name: "瀑布",
     desc: "该牌为手牌中费用最高的牌时，触发额外效果。",
+  },
+  {
+    id: "aim",
+    name: "瞄准",
+    desc: "攻击未被瞄准的目标时为其附加被瞄准；再次用瞄准卡命中该目标时移除被瞄准并触发额外效果。",
+  },
+  {
+    id: "cultivate",
+    name: "培育",
+    desc: "该牌在手牌中每经过 1 个回合减少 1 层培育；归零后打出时触发额外效果。",
   },
 ];
 
@@ -76,6 +119,5 @@ export function cardKeywordsIn(text: string): CardKeywordInfo[] {
  * - 登阶: state.lastPlayedCard.cost < card.cost ? 1 : 0
  * - 日蚀: state.draw.slice(0, 3) 中同角色卡牌数量
  * - 月蚀: state.discard.slice(-3) 中同角色卡牌数量
- * - 瞄准: 目标有 aimed 时返回 1 并移除, 否则施加 aimed
  * - 共鸣: triggers 恒为 0, 在 onTriggered 中处理临时手牌费用强化
  */

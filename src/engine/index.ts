@@ -72,8 +72,9 @@ export type { AllyInit, BattleSetup, PlayBlock, PlayRecorder } from "./battle";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget } from "./targeting";
 export { getStatus } from "./ops";
 export { moveToDiscard } from "./discard";
+export { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
 export { CARD_KEYWORD_INFOS, KEYWORD_DEFS, cardKeywordsIn, splitCardKeywords } from "./keywords";
-export type { CardKeywordInfo, KeywordDef } from "./keywords";
+export type { CardKeywordInfo, KeywordCtx, KeywordDef } from "./keywords";
 export { effectDisplayValue, renderCardText } from "./cardText";
 export type { CardTextStats } from "./cardText";
 export {

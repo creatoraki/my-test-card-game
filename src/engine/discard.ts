@@ -15,6 +15,7 @@ import { checkEnd, allIds, ops } from "./ops";
 import { RULES } from "./rules";
 import { rngPick } from "./rng";
 import { alliesOf, foesOf } from "./targeting";
+import { resetCultivate } from "./cultivate";
 
 let activeRecorder: DiscardRecorder | undefined;
 let flushing = false;
@@ -73,10 +74,12 @@ export function moveToDiscard(
   reason: DiscardReason,
   rec?: DiscardRecorder,
 ): void {
+  const wasInHand = state.hand.includes(uid);
   state.hand = state.hand.filter((id) => id !== uid);
   if (!state.discard.includes(uid)) state.discard.push(uid);
 
   const card = state.cards[uid];
+  if (wasInHand && card) resetCultivate(card);
   const rule = RULES.discard.reasons[reason];
   if (rule.count) {
     state.discardsThisRound += 1;

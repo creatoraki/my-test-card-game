@@ -212,7 +212,17 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     name: "瞄准",
     emoji: "🎯",
     kind: "debuff",
-    desc: "下次相关词条命中时消耗。",
+    maxStacks: 1,
+    desc: "被瞄准。下次瞄准卡命中该目标时移除，并触发该卡的瞄准效果。",
+  },
+  tequila: {
+    id: "tequila",
+    name: "龙舌兰",
+    emoji: "🌵",
+    kind: "buff",
+    maxStacks: 1,
+    statModsPct: { attack: 20 },
+    desc: "攻击力 +20%。",
   },
 };
 

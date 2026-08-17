@@ -45,6 +45,11 @@ export const CARD_ART: Record<string, string> = {
   "cloud-veil": swordsmanCloudVeilArt,
   "falling-sakura": swordsmanFallingSakuraArt,
   "moon-shadow": swordsmanMoonShadowArt,
+  "continuous-shot": placeholderArt,
+  "recycle-shot": placeholderArt,
+  "twin-flower": placeholderArt,
+  "agave": placeholderArt,
+  "photosynthesis": placeholderArt,
 };
 
 export const CARD_ART_SOURCES: readonly string[] = [...new Set([...Object.values(CARD_ART), placeholderArt])];

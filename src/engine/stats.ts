@@ -74,8 +74,12 @@ export function statOf(cmb: Combatant, key: keyof StatBlock): number {
     (sum, inst) => sum + (STATUS_DEFS[inst.id]?.statMods?.[key] ?? 0) * inst.stacks,
     0,
   );
+  const statusPct = cmb.statuses.reduce(
+    (sum, inst) => sum + (STATUS_DEFS[inst.id]?.statModsPct?.[key] ?? 0) * inst.stacks,
+    0,
+  );
   const flat = cmb.stats[key] + (cmb.mods.flat?.[key] ?? 0) + statusFlat;
-  const v = flat * (1 + (cmb.mods.pct?.[key] ?? 0) / 100);
+  const v = flat * (1 + ((cmb.mods.pct?.[key] ?? 0) + statusPct) / 100);
   return CAPPED_KEYS.has(key) ? capProb(v) : v;
 }
 

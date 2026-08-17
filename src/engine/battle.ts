@@ -40,6 +40,7 @@ import { getEncounter, getEnemyDef, slotDefId } from "../data";
 import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
 import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
+import { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -217,6 +218,7 @@ export function createBattle(
 export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
+  tickCultivate(state);
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
   state.discardsThisRound = 0;
@@ -347,16 +349,22 @@ export function playCard(
   withDiscardRecorder(discardRecorder, () => {
     mergeCardResolution(resolveEffects(state, card.effects, card.ownerCharId, primaryId));
 
+    if (cultivateReady(card)) {
+      mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
+    }
+    resetCultivate(card);
+
     if (card.exhaust) state.exhaust.push(uid);
     else moveToDiscard(state, uid, "play");
 
     for (const ref of card.keywords ?? []) {
       const def = KEYWORD_DEFS[ref.id];
       if (!def) continue;
-      const times = def.triggers(state, card, primaryId);
+      const ctx = { primaryId, hitIds: [...cardHit] };
+      const times = def.triggers(state, card, ctx);
       for (let i = 0; i < times; i++)
         mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
-      def.onTriggered?.(state, card, primaryId, times);
+      def.onTriggered?.(state, card, ctx, times);
     }
     for (const markId of card.marks ?? []) {
       const mark = CARD_MARK_DEFS[markId];
@@ -425,6 +433,7 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   state.discard = state.discard.filter((id) => id !== uid);
   state.hand.push(uid);
   const card = state.cards[uid];
+  if (card) resetCultivate(card);
   if (choice.count > 1) choice.count -= 1;
   else state.pendingChoice = null;
   log(state, `${card?.name ?? "卡牌"} 已从弃牌堆回到手牌`);

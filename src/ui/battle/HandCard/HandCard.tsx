@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { Card } from "@/engine";
-import { CARD_MARK_DEFS } from "@/engine";
+import { CARD_MARK_DEFS, cultivateReady } from "@/engine";
 import { getCharacter } from "@/data";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
@@ -143,6 +143,28 @@ export const HandCard = memo(function HandCard({
               </span>
             );
           })}
+        </span>
+      )}
+      {variant === "hand" && !actionBadge && !leaving && card.cultivate && (
+        <span
+          className={cx(
+            s["hc-marks"],
+            (card.marks?.length ?? 0) > 0 && s["hc-cultivate-row"],
+          )}
+        >
+          <span className={cx(s["hc-mark"], cultivateReady(card) && s["hc-cultivate-ready"])} aria-label="培育">
+            <span className={s["hc-mark-icon"]} aria-hidden>
+              🌱{cultivateReady(card) ? "✔" : card.cultivateLeft ?? card.cultivate.turns}
+            </span>
+            <span className={s["hc-mark-tip"]} role="tooltip">
+              <span className={s["hc-mark-tip-name"]}>🌱 培育</span>
+              <span className={s["hc-mark-tip-desc"]}>
+                {cultivateReady(card)
+                  ? "已就绪：打出时触发额外效果。"
+                  : `还需经过 ${card.cultivateLeft ?? card.cultivate.turns} 个回合。`}
+              </span>
+            </span>
+          </span>
         </span>
       )}
       <div
