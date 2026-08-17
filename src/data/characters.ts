@@ -4,7 +4,7 @@
 
 import type { Rarity, StatBlock } from "../engine/types";
 import { makeStats } from "../engine/stats";
-import { basicCardId } from "./basicCards";
+import { basicCardId, basicStartingCardIds } from "./basicCards";
 
 export interface CharacterDef {
   id: string;
@@ -42,6 +42,8 @@ export const CHARACTERS: CharacterDef[] = [
       basicCardId("swordsman", "attack"),
       basicCardId("swordsman", "attack"),
       basicCardId("swordsman", "guard"),
+      "snowflake",
+      "buzz",
     ],
     pools: {
       common: [
