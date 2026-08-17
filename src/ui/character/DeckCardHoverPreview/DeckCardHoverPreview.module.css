@@ -7,3 +7,7 @@
   filter: drop-shadow(0 3px 0 #2a1b3d38) drop-shadow(0 10px 16px #2a1b3d30);
   pointer-events: none;
 }
+
+.keywords {
+  margin-top: 8px;
+}

@@ -2,6 +2,8 @@ import { memo } from "react";
 import { starlightPayment, type BattleState, type Card } from "@/engine";
 import { useHandHover, useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { HandCard } from "@/ui/battle/HandCard";
+import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
+import { useCardText } from "@/ui/common/cardText";
 import s from "./CardInfoPanel.module.css";
 
 // 固定卡牌说明面板: 绝对定位在**画布右上角**, 位置恒定(取代旧的悬停跟随浮窗)。
@@ -45,6 +47,8 @@ export const CardInfoPanel = memo(function CardInfoPanel({
 });
 
 function CardInfoPanelContent({ card, cost, starPay }: { card: Card; cost?: number; starPay: number }) {
+  const text = useCardText(card);
+
   return (
     <div
       className={s["card-info-panel"]}
@@ -61,6 +65,7 @@ function CardInfoPanelContent({ card, cost, starPay }: { card: Card; cost?: numb
           starPay={starPay}
         />
       </div>
+      <CardKeywordNotes text={text} className={s["cip-keywords"]} />
     </div>
   );
 }

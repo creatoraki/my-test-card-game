@@ -8,6 +8,7 @@ import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
 import { DiscardIcon, RedrawIcon } from "@/ui/battle/HandTools";
 import { cx } from "@/ui/common/cx";
 import { useCardText } from "@/ui/common/cardText";
+import { CardTextRich } from "@/ui/common/CardTextRich";
 import s from "./HandCard.module.css";
 
 interface Props {
@@ -196,7 +197,7 @@ export const HandCard = memo(function HandCard({
         <span className={s["hc-title"]}>{card.name}</span>
 
         {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
-        <span className={cx(s["hc-text"], s[textSize])}>{text}</span>
+        <span className={cx(s["hc-text"], s[textSize])}><CardTextRich text={text} /></span>
 
         {/* 选中角标: 右上角一块配色三角切片。选中态**唯一**的不依赖位移的线索 ——
             鼠标移开手牌区后, 玩家仍要能一眼认出锁定的是哪张。仅 .selected 时渲染。 */}

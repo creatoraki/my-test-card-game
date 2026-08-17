@@ -3,6 +3,7 @@ import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { cardArt } from "@/ui/art/cardArt";
 import { useCardText } from "@/ui/common/cardText";
+import { CardTextRich } from "@/ui/common/CardTextRich";
 import { cx } from "@/ui/common/cx";
 import { TechCard } from "@/ui/common/TechCard";
 import s from "./DeckCard.module.css";
@@ -53,7 +54,7 @@ export function DeckCard({
       <TechCard
         name={card.name}
         cost={card.cost}
-        description={text}
+        description={<CardTextRich text={text} />}
         artSrc={cardArt(card.id)}
         theme={card.cardType}
       />

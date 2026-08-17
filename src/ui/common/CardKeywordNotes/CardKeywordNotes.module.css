@@ -1,0 +1,21 @@
+.notes {
+  display: grid;
+  gap: 5px;
+  padding: 8px 10px;
+  color: #c8cde0;
+  background: #0a0e10e8;
+  border: 1px solid #3e4a4d;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.note {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 7px;
+}
+
+.note strong {
+  color: var(--accent);
+  font-weight: 800;
+}

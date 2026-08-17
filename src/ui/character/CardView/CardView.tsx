@@ -2,6 +2,7 @@ import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { useCardText } from "@/ui/common/cardText";
+import { CardTextRich } from "@/ui/common/CardTextRich";
 import { cx } from "@/ui/common/cx";
 import s from "./CardView.module.css";
 
@@ -48,7 +49,7 @@ export function CardView({ card, playable, selected, onClick }: Props) {
         {owner.emoji} {owner.name}
       </div>
       <div className={s["card-name"]}>{card.name}</div>
-      <div className={s["card-text"]}>{text}</div>
+      <div className={s["card-text"]}><CardTextRich text={text} /></div>
     </div>
   );
 }

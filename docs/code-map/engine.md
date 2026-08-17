@@ -16,7 +16,7 @@
 | [cardMarks.ts](../../src/engine/cardMarks.ts) | 卡牌实例标记注册表；提供心眼与星契，打出后通过统一效果解释器触发标记效果，星契同时被费用层识别为可用星辉支付。 |
 | [cardText.ts](../../src/engine/cardText.ts) | 将卡牌说明中的 `{0}` / `{d0}` 占位符按施放者攻击力或治愈力渲染为具体基础数值。 |
 | [discard.ts](../../src/engine/discard.ts) | 弃牌唯一入口：迁移牌堆、按规则累计本回合与整场弃牌计数；`custom` 触发立即结算，`useSelf` 进入自动出牌队列并在本次操作完成后冲刷，同时录制表现快照。 |
-| [keywords.ts](../../src/engine/keywords.ts) | 卡牌词条注册表；统一承载共鸣、瞄准、登阶、日蚀、月蚀的待接落点。 |
+| [keywords.ts](../../src/engine/keywords.ts) | 卡牌词条注册表；同时承载汇星、应星、瀑布的展示释义登记表与文本分段纯函数，并统一保留共鸣、瞄准、登阶、日蚀、月蚀的待接落点。 |
 | [challenges.ts](../../src/engine/challenges.ts) | 挑战词条注册表、随机抽取、克制/大屠杀/慈悲的判定与奖励计算；由 `ops.ts` 和 `battle.ts` 接入战斗真相点。 |
 | [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语，并解析 primary、self、allFoes、randomFoe 等目标；支持按目标护盾加伤、瀑布/高费用手牌条件、临时卡入手、体力极限恢复、持续状态、星契随机手牌筛选、计数取段数/层数/资源/抽牌、随机回收、弃牌批次速攻统计、全手牌标记和普通手牌转速攻。卡牌和敌人招式共用；`amount` 固定伤害，`multiplier` 按施放者攻击力计算，二者只能选一个。 |
 | [statuses.ts](../../src/engine/statuses.ts) | 中毒、灼烧、再生、星辉、铁壁、力量、粒子污染、锋利、不周山、虚弱、易伤、荆棘、眩晕、洞察等状态注册表。再生按层固定回复并由 `duration` 过期，铁壁按层提供防御，星辉作为应星资源标记。粒子污染永久可叠层，按层提高攻击伤害，闪避由 `stats.ts` 派生并封顶。状态通过 `ctx.ops` 调用原语，避免直接依赖引擎实现造成循环依赖。眩晕和洞察的实际处理分别在 AI 与 UI。 |

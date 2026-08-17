@@ -4,6 +4,7 @@ import { cardArt } from "@/ui/art/cardArt";
 import { CINEMA } from "@/ui/battle/animations";
 import { cx } from "@/ui/common/cx";
 import { useCardText } from "@/ui/common/cardText";
+import { CardTextRich } from "@/ui/common/CardTextRich";
 import s from "./SkillCutInCard.module.css";
 
 // 整段亮相时长: 与 runSteps 的定时器口径一致。作为 CSS animation-duration,
@@ -48,7 +49,7 @@ function SkillCutInCardContent({ card, fxRate }: { card: Card; fxRate: number })
             <span className={s["cutin-name"]}>{card.name}</span>
             <span className={s["cutin-type"]}>{card.cardType === "fast" ? "速" : "普"}</span>
           </div>
-          <div className={s["cutin-text"]}>{text}</div>
+          <div className={s["cutin-text"]}><CardTextRich text={text} /></div>
         </>
       )}
     </div>

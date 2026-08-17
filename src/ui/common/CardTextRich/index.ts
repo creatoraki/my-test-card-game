@@ -1,0 +1,1 @@
+export { CardTextRich } from "./CardTextRich";

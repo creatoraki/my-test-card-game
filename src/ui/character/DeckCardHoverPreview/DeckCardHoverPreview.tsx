@@ -1,6 +1,8 @@
 import type { Card } from "@/engine";
 import { cardArt } from "@/ui/art/cardArt";
 import { useCardText } from "@/ui/common/cardText";
+import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
+import { CardTextRich } from "@/ui/common/CardTextRich";
 import { TechCard } from "@/ui/common/TechCard";
 import s from "./DeckCardHoverPreview.module.css";
 
@@ -20,10 +22,11 @@ export function DeckCardHoverPreview({ card }: Props) {
       <TechCard
         name={card.name}
         cost={card.cost}
-        description={text}
+        description={<CardTextRich text={text} />}
         artSrc={cardArt(card.id)}
         theme={card.cardType}
       />
+      <CardKeywordNotes text={text} className={s.keywords} />
     </div>
   );
 }

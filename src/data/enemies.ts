@@ -83,9 +83,9 @@ export const ENEMIES: EnemyDef[] = [
     id: "pole-bot",
     name: "电线杆机器人",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 55,
+    maxHp: 10,
     exp: 15,
-    stats: { attack: 18, defense: 5, initiative: 20, critDamage: 150 },
+    stats: { attack: 15, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "pole-smash",
@@ -109,7 +109,7 @@ export const ENEMIES: EnemyDef[] = [
         weight: 1,
         hitBonus: 0,
         anim: "lightning",
-        effects: [{ type: "DAMAGE", multiplier: 0.9, target: "allFoes" }],
+        effects: [{ type: "DAMAGE", multiplier: 0.5, target: "allFoes" }],
       },
     ],
     dropTable: [
@@ -124,7 +124,7 @@ export const ENEMIES: EnemyDef[] = [
     id: "radio-bot",
     name: "收音机机器人",
     emoji: "📻", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 30,
+    maxHp: 5,
     exp: 10,
     stats: { attack: 14, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
@@ -150,7 +150,7 @@ export const ENEMIES: EnemyDef[] = [
         weight: 1,
         hitBonus: 0,
         anim: "shield",
-        effects: [{ type: "GAIN_SHIELD", amount: 20, target: "self" }],
+        effects: [{ type: "GAIN_SHIELD", amount: 15, target: "self" }],
       },
     ],
     dropTable: [
