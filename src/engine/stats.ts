@@ -11,6 +11,7 @@
 
 import type { BattleState, Combatant, SquadResourceMods, StatBlock, StatModifier } from "./types";
 import { POLLUTION_STATUS_ID, RULES, capProb } from "./rules";
+import { STATUS_DEFS } from "./statuses";
 
 // 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
 export const ZERO_STATS: StatBlock = {
@@ -69,7 +70,11 @@ const CAPPED_KEYS = new Set<keyof StatBlock>([
 ]);
 
 export function statOf(cmb: Combatant, key: keyof StatBlock): number {
-  const flat = cmb.stats[key] + (cmb.mods.flat?.[key] ?? 0);
+  const statusFlat = cmb.statuses.reduce(
+    (sum, inst) => sum + (STATUS_DEFS[inst.id]?.statMods?.[key] ?? 0) * inst.stacks,
+    0,
+  );
+  const flat = cmb.stats[key] + (cmb.mods.flat?.[key] ?? 0) + statusFlat;
   const v = flat * (1 + (cmb.mods.pct?.[key] ?? 0) / 100);
   return CAPPED_KEYS.has(key) ? capProb(v) : v;
 }

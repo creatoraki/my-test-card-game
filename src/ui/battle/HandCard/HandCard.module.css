@@ -663,6 +663,48 @@
   position: relative;
   z-index: 1;
 }
+.hc-star-pay {
+  position: absolute;
+  top: 20px;
+  left: 62px;
+  z-index: 7;
+  display: inline-flex;
+  min-width: 42px;
+  justify-content: center;
+  padding: 4px 5px;
+  color: #ffe9a8;
+  background: #201d13e8;
+  border: 1px solid #e9c85f99;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+.hc-star-pay-tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 3;
+  width: 190px;
+  padding: 8px 10px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  color: #f1e4bc;
+  background: linear-gradient(150deg, #2a261b, #14130f 48%, #08090a);
+  border: 1px solid #e9c85f88;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  box-shadow: 0 6px 14px #05080abf;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: opacity 120ms ease, visibility 120ms ease;
+}
+.hc-star-pay:hover .hc-star-pay-tip {
+  opacity: 1;
+  visibility: visible;
+}
 
 /* ── 卡名压条: 贴在配图下沿的渐变浮层 ── */
 /* ★ 走渐变遮罩(透明 → 实底)而不是硬色块: 卡名与配图同属"识别层", 让它从图里长出来而不是

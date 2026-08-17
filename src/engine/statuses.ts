@@ -54,14 +54,31 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     name: "再生",
     emoji: "💚",
     kind: "buff",
-    desc: "回合开始时回复等同层数的生命, 然后层数 -1。",
+    desc: `回合开始时每层回复 ${RULES.combat.regenHealPerStack} 点生命。`,
     hooks: {
       onRoundStart: (c: StatusCtx) => {
         // 施法者传 undefined —— 再生是状态自身在跳血, 不该再吃一次治愈力/治愈强度。
-        if (c.inst.stacks > 0) c.ops.heal(c.state, undefined, c.ownerId, c.inst.stacks);
-        c.inst.stacks -= 1;
+        if (c.inst.stacks > 0)
+          c.ops.heal(c.state, undefined, c.ownerId, RULES.combat.regenHealPerStack * c.inst.stacks);
       },
     },
+  },
+
+  starlight: {
+    id: "starlight",
+    name: "星辉",
+    emoji: "✨",
+    kind: "buff",
+    maxStacks: RULES.combat.starlightMax,
+    desc: "应星卡牌可以消耗星辉替代法力水晶。",
+  },
+  ironwall: {
+    id: "ironwall",
+    name: "铁壁",
+    emoji: "🛡️",
+    kind: "buff",
+    statMods: { defense: RULES.combat.ironwallDefense },
+    desc: `每层防御力 +${RULES.combat.ironwallDefense}。`,
   },
 
   // ---- 伤害修正 ----

@@ -9,6 +9,13 @@ export interface CardMarkDef {
 }
 
 export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
+  starPact: {
+    id: "starPact",
+    name: "星契",
+    emoji: "🌟",
+    desc: "这张牌可以用星辉替代法力水晶。",
+    effects: [],
+  },
   mindsEye: {
     id: "mindsEye",
     name: "心眼",

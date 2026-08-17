@@ -35,6 +35,7 @@ export function StatusPips({
     desc,
     stacks,
     kind,
+    duration,
     shieldPip = false,
     icon,
   }: {
@@ -45,6 +46,7 @@ export function StatusPips({
     desc: string;
     stacks: number;
     kind: "buff" | "debuff";
+    duration?: number;
     shieldPip?: boolean;
   }) => (
     <span
@@ -61,7 +63,10 @@ export function StatusPips({
         <RailPopover side={popoverSide ?? "top"}>
           <strong>{name}</strong>
           <p>{desc}</p>
-          <small>{shieldPip ? "护盾值" : "当前层数"} {stacks}</small>
+          <small>
+            {shieldPip ? "护盾值" : "当前层数"} {stacks}
+            {duration != null && <> · 剩余 {duration} 回合</>}
+          </small>
         </RailPopover>
       )}
     </span>
@@ -89,6 +94,7 @@ export function StatusPips({
           desc: def?.desc ?? "暂无说明",
           stacks: st.stacks,
           kind: def?.kind ?? "buff",
+          duration: st.duration,
         });
       })}
     </div>

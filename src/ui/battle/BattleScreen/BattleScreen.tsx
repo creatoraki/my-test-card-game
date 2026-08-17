@@ -970,6 +970,7 @@ export function BattleScreen() {
           为牌堆让位, 几何与层序的完整理由见 ui/CardInfoPanel.css .card-info-panel。
           同样在 .battle-scene 之外 ⇒ 不跟分镜相机推近/漂移/震屏。 */}
       <CardInfoPanel
+        battle={battle}
         fallbackCard={selectedCard}
         fallbackCost={selectedCard ? cardCost(battle, selectedCard) : undefined}
       />

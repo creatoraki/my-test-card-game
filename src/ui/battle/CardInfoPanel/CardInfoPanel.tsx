@@ -1,5 +1,5 @@
 import { memo } from "react";
-import type { Card } from "@/engine";
+import { starlightPayment, type BattleState, type Card } from "@/engine";
 import { useHandHover, useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { HandCard } from "@/ui/battle/HandCard";
 import s from "./CardInfoPanel.module.css";
@@ -18,9 +18,11 @@ import s from "./CardInfoPanel.module.css";
 // ⚠ 两个分支的根节点都要自己 stopPropagation: 面板已搬出 .battle-hud(那层统一拦了冒泡), 现在
 //   直挂在 .screen.battle 下, 不拦的话点面板会冒泡到画布的 onClick 把选中的卡取消掉。
 export const CardInfoPanel = memo(function CardInfoPanel({
+  battle,
   fallbackCard,
   fallbackCost,
 }: {
+  battle: BattleState;
   fallbackCard: Card | null;
   fallbackCost?: number;
 }) {
@@ -33,10 +35,16 @@ export const CardInfoPanel = memo(function CardInfoPanel({
     return null;
   }
 
-  return <CardInfoPanelContent card={card} cost={hovered ? hoveredCost ?? card.cost : fallbackCost} />;
+  return (
+    <CardInfoPanelContent
+      card={card}
+      cost={hovered ? hoveredCost ?? card.cost : fallbackCost}
+      starPay={starlightPayment(battle, card)}
+    />
+  );
 });
 
-function CardInfoPanelContent({ card, cost }: { card: Card; cost?: number }) {
+function CardInfoPanelContent({ card, cost, starPay }: { card: Card; cost?: number; starPay: number }) {
   return (
     <div
       className={s["card-info-panel"]}
@@ -44,7 +52,14 @@ function CardInfoPanelContent({ card, cost }: { card: Card; cost?: number }) {
       onClick={(e) => e.stopPropagation()}
     >
       <div className={s["cip-scale"]} data-card-detail>
-        <HandCard card={card} variant="pile" playable selected={false} cost={cost ?? card.cost} />
+        <HandCard
+          card={card}
+          variant="pile"
+          playable
+          selected={false}
+          cost={cost ?? card.cost}
+          starPay={starPay}
+        />
       </div>
     </div>
   );

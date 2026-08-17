@@ -72,7 +72,9 @@ export type EffectType =
   | "DISCARD"
   | "RECOVER_FROM_DISCARD"
   | "MARK_CARDS"
-  | "CONVERT_CARD_TYPE";
+  | "CONVERT_CARD_TYPE"
+  | "ADD_CARD_TO_HAND"
+  | "RESTORE_HP_LIMIT";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -86,6 +88,8 @@ export interface EffectDescriptor {
   target?: EffectTarget; // 默认 "primary"
   status?: string; // APPLY_STATUS: 状态 id
   stacks?: number; // APPLY_STATUS: 层数
+  duration?: number; // APPLY_STATUS: 剩余回合
+  cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
   stat?: keyof StatBlock; // APPLY_STAT_MOD: 要修改的属性
   pct?: boolean; // APPLY_STAT_MOD: true = 百分比修正(百分点), 缺省 = 固定值修正
@@ -102,9 +106,14 @@ export interface EffectDescriptor {
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
   amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
-  condition?: "discardedThisRound" | "noFastPlaysThisRound"; // 满足本回合条件时才结算
+  condition?:
+    | "discardedThisRound"
+    | "noFastPlaysThisRound"
+    | "waterfall"
+    | "handHasCostAtLeast"; // 满足条件时才结算
+  conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
-  markPick?: "handRandom" | "handAll"; // MARK_CARDS: 从手牌随机选择或全部选择
+  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay"; // MARK_CARDS: 手牌选择方式
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal"; // CONVERT_CARD_TYPE: 从手牌普通牌中随机选择
@@ -154,6 +163,8 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
+  starPay?: boolean; // 应星: 可用星辉替代法力水晶
+  temporary?: boolean; // 临时卡: 仅战斗内生成, 不进入抽卡池
   costRule?: {
     when: "discardedThisRound" | "fastPlaysThisRound";
     threshold?: number;
@@ -197,6 +208,7 @@ export type StatusKind = "buff" | "debuff";
 export interface StatusInstance {
   id: string;
   stacks: number;
+  duration?: number; // 剩余回合; 缺省 = 不因回合过期
 }
 
 // 传给状态钩子的上下文。ops 提供引擎原语, 使 statuses.ts 无需 import 具体实现。
@@ -247,6 +259,7 @@ export interface StatusDef {
   kind: StatusKind;
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
+  statMods?: Partial<StatBlock>; // 每层提供的固定属性修正
   resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减
   hooks?: StatusHooks;
 }
@@ -389,6 +402,7 @@ export interface BattleState {
   lastDiscardBatchFast: number;
   lastRecoverBatchFast: number;
   pendingChoice: PendingChoice | null;
+  waterfallPlay: boolean;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenValue 算好传入。
@@ -436,7 +450,7 @@ export interface EngineOps {
     targetId: string,
     amount: number,
   ): void;
-  applyStatus(state: BattleState, targetId: string, statusId: string, stacks: number): void;
+  applyStatus(state: BattleState, targetId: string, statusId: string, stacks: number, duration?: number): void;
   applyStatMod(
     state: BattleState,
     targetId: string,

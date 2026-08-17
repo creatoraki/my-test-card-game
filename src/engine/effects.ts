@@ -9,6 +9,8 @@ import { partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
+import { starPayable } from "./cost";
+import { makeCard } from "../data";
 
 export interface EffectResolution {
   missed: string[];
@@ -36,6 +38,9 @@ function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
     return counterOf(state, "discardsThisRound") > 0;
   if (effect.condition === "noFastPlaysThisRound")
     return counterOf(state, "fastPlaysThisRound") === 0;
+  if (effect.condition === "waterfall") return state.waterfallPlay;
+  if (effect.condition === "handHasCostAtLeast")
+    return state.hand.some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
   return true;
 }
 
@@ -139,7 +144,7 @@ function applyEffect(
     case "APPLY_STATUS": {
       const stacks = effect.stacksFrom ? counterOf(state, effect.stacksFrom) : effect.stacks ?? 0;
       if (stacks <= 0) break;
-      for (const id of targetIds) ops.applyStatus(state, id, effect.status!, stacks);
+      for (const id of targetIds) ops.applyStatus(state, id, effect.status!, stacks, effect.duration);
       break;
     }
     case "APPLY_STAT_MOD":
@@ -222,7 +227,10 @@ function applyEffect(
         break;
       }
       const amountToMark = Math.max(0, Math.floor(effect.amount ?? 0));
-      const pool = [...state.hand];
+      const pool = state.hand.filter((uid) => {
+        const card = state.cards[uid];
+        return card && (effect.markPick !== "handRandomNonStarPay" || !starPayable(card));
+      });
       for (let i = 0; i < amountToMark && pool.length > 0; i++) {
         const uid = rngPick(state, pool);
         const card = state.cards[uid];
@@ -234,6 +242,23 @@ function applyEffect(
       }
       break;
     }
+    case "ADD_CARD_TO_HAND": {
+      if (!effect.cardId || state.hand.length >= partyHandLimit(state)) break;
+      const card = makeCard(effect.cardId);
+      state.cards[card.uid] = card;
+      state.hand.push(card.uid);
+      ops.log(state, `${card.name} 加入手牌`);
+      break;
+    }
+    case "RESTORE_HP_LIMIT":
+      for (const id of targetIds) {
+        const target = state.combatants[id];
+        if (!target || !target.alive || amount <= 0) continue;
+        const before = target.hpLimit;
+        target.hpLimit = Math.min(target.maxHp, target.hpLimit + amount);
+        ops.log(state, `${target.emoji} ${target.name} 体力极限恢复 ${target.hpLimit - before}`);
+      }
+      break;
     case "CONVERT_CARD_TYPE": {
       if (effect.convertPick !== "handRandomNormal") break;
       const amountToConvert = Math.max(0, Math.floor(effect.amount ?? 1));

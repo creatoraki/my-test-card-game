@@ -29,7 +29,7 @@ import { shuffle } from "./rng";
 import { applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
-import { cardCost } from "./cost";
+import { cardCost, manaCostOf, starlightPayment } from "./cost";
 import { startCharge } from "./ai";
 import { advanceTick, flushPendingActs } from "./scheduler";
 import {
@@ -197,6 +197,7 @@ export function createBattle(
     lastRecoverBatchFast: 0,
     pendingChoice: null,
     pendingAutoPlays: [],
+    waterfallPlay: false,
   };
 
   state.draw = shuffle(state, Object.keys(cards));
@@ -205,7 +206,7 @@ export function createBattle(
 
   // 开局状态必须在 startRound 之前施加 —— startRound 会抽招, 而意图预览要吃到力量加成。
   for (const st of mod?.enemyStatuses ?? []) {
-    for (const id of enemyIds) applyStatus(state, id, st.id, st.stacks);
+    for (const id of enemyIds) applyStatus(state, id, st.id, st.stacks, st.duration);
   }
 
   startRound(state);
@@ -225,6 +226,7 @@ export function startRound(state: BattleState): void {
   state.lastDiscardBatchFast = 0;
   state.lastRecoverBatchFast = 0;
   state.pendingAutoPlays = [];
+  state.waterfallPlay = false;
   state.playedThisRound = [];
   state.lastPlayedCard = null;
   log(state, `—— 第 ${state.round} 回合(第 ${state.tick} 时刻)——`);
@@ -269,7 +271,7 @@ export function playBlockReason(state: BattleState, uid: string): PlayBlock {
   const owner = state.combatants[card.ownerCharId];
   if (!owner || !owner.alive) return "other";
   if (state.pendingChoice) return "other";
-  return (state.resources[RULES.resource.name] ?? 0) >= cardCost(state, card) ? null : "mana";
+  return (state.resources[RULES.resource.name] ?? 0) >= manaCostOf(state, card) ? null : "mana";
 }
 
 export function canPlay(state: BattleState, uid: string): boolean {
@@ -327,7 +329,14 @@ export function playCard(
   if ((card.targeting === "foe" || card.targeting === "ally") && !isValidPrimary(state, card, primaryId))
     return false;
 
-  state.resources[RULES.resource.name] -= cardCost(state, card);
+  const faceCost = cardCost(state, card);
+  const starPayment = starlightPayment(state, card);
+  const manaPayment = faceCost - starPayment;
+  state.waterfallPlay = state.hand
+    .filter((handUid) => handUid !== uid)
+    .every((handUid) => card.cost > (state.cards[handUid]?.cost ?? 0));
+  if (starPayment > 0) applyStatus(state, owner.id, "starlight", -starPayment);
+  state.resources[RULES.resource.name] -= manaPayment;
   state.hand = state.hand.filter((x) => x !== uid);
   log(state, `${owner.emoji} ${owner.name} 打出 ${card.name}`);
   const discardRecorder = rec ? { triggers: rec.discardTriggers } : undefined;
@@ -356,13 +365,14 @@ export function playCard(
       if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
     }
     card.marks = [];
+    state.waterfallPlay = false;
     if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
     flushAutoPlays(state);
   });
 
   const played = {
     uid: card.uid,
-    cost: cardCost(state, card),
+    cost: faceCost,
     cardType: card.cardType,
     ownerCharId: card.ownerCharId,
   };

@@ -95,8 +95,27 @@ export const CHARACTERS: CharacterDef[] = [
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: basicStartingCardIds("prophet"),
-    // ⚠ 专属抽卡池待设计: 三档都空 ⇒ 锻造抽卡对本角色暂时抽不出东西(forgeDraw 会直接返回)。
-    pools: { common: [], uncommon: [], rare: [] },
+    pools: {
+      common: [
+        "star-shatter",
+        "starfall",
+        "gravity-lens",
+        "twin-stars",
+        "ring-shot",
+        "celestial-verdict",
+        "star-curtain",
+        "brand",
+        "prayer",
+        "aurora",
+        "asteroid-belt",
+        "stellar-wind",
+        "overheal",
+        "astrometry",
+        "star-disc",
+      ],
+      uncommon: ["astrology"],
+      rare: ["traveling-lamp"],
+    },
   },
   {
     id: "botanist",

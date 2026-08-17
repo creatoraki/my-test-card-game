@@ -10,3 +10,19 @@ export function cardCost(state: BattleState, card: Card): number {
   const delta = rule && count >= (rule.threshold ?? 1) ? rule.delta : 0;
   return Math.max(0, card.cost + delta);
 }
+
+export function starPayable(card: Card): boolean {
+  return card.starPay === true || card.marks?.includes("starPact") === true;
+}
+
+export function starlightStacksOf(state: BattleState, card: Card): number {
+  return state.combatants[card.ownerCharId]?.statuses.find((status) => status.id === "starlight")?.stacks ?? 0;
+}
+
+export function starlightPayment(state: BattleState, card: Card): number {
+  return starPayable(card) ? Math.min(starlightStacksOf(state, card), cardCost(state, card)) : 0;
+}
+
+export function manaCostOf(state: BattleState, card: Card): number {
+  return cardCost(state, card) - starlightPayment(state, card);
+}

@@ -24,6 +24,7 @@ interface Props {
   actionBadge?: "redraw" | "discard" | null;
   onAction?: (uid: string) => void;
   cost?: number;
+  starPay?: number;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
@@ -59,6 +60,7 @@ export const HandCard = memo(function HandCard({
   actionBadge,
   onAction,
   cost,
+  starPay = 0,
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
   const art = cardArt(card.id);
@@ -181,6 +183,14 @@ export const HandCard = memo(function HandCard({
           <ManaCrystal className={s["hc-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
           <span className={s["hc-cost-value"]}>{effectiveCost}</span>
         </span>
+        {starPay > 0 && (
+          <span className={s["hc-star-pay"]}>
+            ✨{starPay}
+            <span className={s["hc-star-pay-tip"]} role="tooltip">
+              消耗 {starPay} 层星辉，实付 {effectiveCost - starPay} 点法力水晶
+            </span>
+          </span>
+        )}
 
         {/* 卡名压条: 贴在配图下沿的渐变浮层(透明 → 实底), 不占实位 */}
         <span className={s["hc-title"]}>{card.name}</span>

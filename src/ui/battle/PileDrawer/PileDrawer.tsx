@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { cardCost, type BattleState, type Card } from "@/engine";
+import { cardCost, starlightPayment, type BattleState, type Card } from "@/engine";
 import { HandCard } from "@/ui/battle/HandCard";
 import s from "./PileDrawer.module.css";
 
@@ -97,6 +97,7 @@ export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }
                   playable
                   selected={false}
                   cost={cardCost(battle, card)}
+                  starPay={starlightPayment(battle, card)}
                   dealDelay={Math.min(index, 14) * 22}
                 />
               </div>
@@ -106,7 +107,14 @@ export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }
       </section>
       {hoveredCard && hover && (
         <div className={s.magnify} data-pile-magnify style={{ left: hover.x, top: hover.y }}>
-          <HandCard card={hoveredCard} variant="pile" playable selected={false} />
+          <HandCard
+            card={hoveredCard}
+            variant="pile"
+            playable
+            selected={false}
+            cost={cardCost(battle, hoveredCard)}
+            starPay={starlightPayment(battle, hoveredCard)}
+          />
         </div>
       )}
     </div>

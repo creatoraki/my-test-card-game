@@ -37,7 +37,7 @@ export function getStatus(cmb: Combatant, id: string): StatusInstance | undefine
 }
 
 function cleanup(cmb: Combatant): void {
-  cmb.statuses = cmb.statuses.filter((s) => s.stacks > 0);
+  cmb.statuses = cmb.statuses.filter((s) => s.stacks > 0 && (s.duration == null || s.duration > 0));
 }
 
 function ctxFor(state: BattleState, ownerId: string, inst: StatusInstance): StatusCtx {
@@ -223,13 +223,13 @@ export function applyStatus(
   targetId: string,
   statusId: string,
   stacks: number,
+  duration?: number,
 ): void {
   const t = state.combatants[targetId];
   if (!t || !t.alive || stacks === 0) return;
   const def = STATUS_DEFS[statusId];
 
   // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续回合"中的一项(见 statuses.resistMode)。
-  // 持续回合类(duration)也落在层数上: 本作的持续回合就是层数, 故与 stacks 同处理。
   if (def && def.kind === "debuff" && stacks > 0) {
     const resist = statOf(t, "ailmentResist");
     if (resist > 0) {
@@ -245,8 +245,12 @@ export function applyStatus(
   }
 
   const existing = getStatus(t, statusId);
-  if (existing) existing.stacks += stacks;
-  else t.statuses.push({ id: statusId, stacks });
+  if (existing) {
+    existing.stacks += stacks;
+    if (duration != null) existing.duration = Math.max(existing.duration ?? 0, duration);
+  } else {
+    t.statuses.push({ id: statusId, stacks, ...(duration != null ? { duration } : {}) });
+  }
   if (def?.maxStacks != null) {
     const inst = getStatus(t, statusId)!;
     inst.stacks = Math.min(inst.stacks, def.maxStacks);
@@ -308,6 +312,13 @@ export function runRoundStart(state: BattleState): void {
 }
 export function runRoundEnd(state: BattleState): void {
   runLifecycle(state, "onRoundEnd");
+  for (const id of allIds(state)) {
+    const cmb = state.combatants[id];
+    for (const inst of cmb.statuses) {
+      if (inst.duration != null) inst.duration -= 1;
+    }
+    cleanup(cmb);
+  }
 }
 export function runTick(state: BattleState): void {
   runLifecycle(state, "onTick");

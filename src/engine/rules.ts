@@ -73,6 +73,9 @@ export const RULES = {
     blockReduction: 0.5, // 格挡成功后本次伤害 ×
     // 我方 0 血(濒死)时再次受到会落到 HP 的伤害, 按此概率死亡; 未命中则完全顶住本次伤害。
     downedDeathChance: 50,
+    starlightMax: 3,
+    regenHealPerStack: 5,
+    ironwallDefense: 5,
   },
 
   // 探索负重 —— 背包固定 24 格; 每 2 点负重命中 −1%, 每 5 点负重先手 −1。

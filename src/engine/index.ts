@@ -43,7 +43,7 @@ export {
   burdenInitiativePenalty,
 } from "./stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
-export { cardCost } from "./cost";
+export { cardCost, manaCostOf, starPayable, starlightPayment, starlightStacksOf } from "./cost";
 export { cardHitChance } from "./hitPreview";
 export { CARD_MARK_DEFS } from "./cardMarks";
 export {
