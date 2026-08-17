@@ -114,6 +114,11 @@ export const HAND_DEAL = {
   opening: 1000,
 } as const;
 
+// 弃牌下沉时长，同时供 HandCard.module.css 与 BattleScreen 时间轴消费。
+export const DISCARD = {
+  sink: 420,
+} as const;
+
 export const ANIM: Record<CardAnim, AnimPreset> = {
   // —— 攻击系 ——
   slash: { kind: "attack", emoji: "💥", color: "#ff6b6b", windup: 190, hold: 660, shake: 1 },

@@ -1,15 +1,14 @@
 // Zustand store: 包裹纯 TS 引擎, 供 UI 订阅与派发。
 // 每次操作都对战斗状态做一次 structuredClone 再修改, 保证引擎不改动 React 当前持有的对象。
-// 出牌/结束回合会连带触发敌人行动, 引擎把每次敌人行动记录成动画帧(frames);
-// store 不立即替换终态, 而是把 { frames, final } 交给 UI 逐帧回放(见 commit)。
+// 出牌/结束回合会连带触发敌人行动与弃牌触发, 引擎按发生顺序记录成 steps;
+// store 不立即替换终态, 而是把 { steps, final } 交给 UI 逐帧回放(见 commit)。
 
 import { create } from "zustand";
 import type {
-  AnimFrame,
   BattleSetup,
   BattleState,
-  DiscardTriggerFx,
   EncounterModifier,
+  FxStep,
   PlayRecorder,
 } from "../engine";
 import type { BondDef, BondTier } from "../data";
@@ -28,19 +27,18 @@ import {
 export interface PlayPlan {
   cardSnapshot: BattleState;
   cardMissedTargets: string[];
-  discardTriggers: DiscardTriggerFx[];
-  frames: AnimFrame[];
+  steps: FxStep[];
   final: BattleState;
 }
 
 export interface DiscardPlan {
   final: BattleState;
-  triggers: DiscardTriggerFx[];
+  steps: FxStep[];
 }
 
 // 一次结束回合的动画计划: 逐帧播放冲刷的敌人行动, 最后落到 final(下一回合起始态)。
 export interface EndPlan {
-  frames: AnimFrame[];
+  steps: FxStep[];
   final: BattleState;
 }
 
@@ -92,14 +90,13 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const b = get().battle;
     if (!b || b.phase !== "player") return null;
     const draft = structuredClone(b);
-    const rec: PlayRecorder = { frames: [], discardTriggers: [], cardMissedTargets: [] };
+    const rec: PlayRecorder = { steps: [], cardMissedTargets: [] };
     const ok = playCard(draft, uid, targetId, rec);
     if (!ok) return null;
     return {
       cardSnapshot: rec.cardSnapshot ?? draft,
       cardMissedTargets: rec.cardMissedTargets,
-      discardTriggers: rec.discardTriggers,
-      frames: rec.frames,
+      steps: rec.steps,
       final: draft,
     };
   },
@@ -115,8 +112,8 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const b = get().battle;
     if (!b) return null;
     const draft = structuredClone(b);
-    const triggers: DiscardTriggerFx[] = [];
-    return discardHandCard(draft, uid, { triggers }) ? { final: draft, triggers } : null;
+    const rec = { steps: [] as FxStep[] };
+    return discardHandCard(draft, uid, rec) ? { final: draft, steps: rec.steps } : null;
   },
 
   pickPendingChoice: (uid) => {
@@ -137,18 +134,18 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     const b = get().battle;
     if (!b || b.phase !== "player") return null;
     const draft = structuredClone(b);
-    const frames: AnimFrame[] = [];
-    endRound(draft, frames);
-    return { frames, final: draft };
+    const rec = { steps: [] as FxStep[] };
+    endRound(draft, rec);
+    return { steps: rec.steps, final: draft };
   },
 
   wait: () => {
     const b = get().battle;
     if (!b || b.phase !== "player") return null;
     const draft = structuredClone(b);
-    const frames: AnimFrame[] = [];
-    if (!waitTick(draft, frames)) return null;
-    return { frames, final: draft };
+    const rec = { steps: [] as FxStep[] };
+    if (!waitTick(draft, rec)) return null;
+    return { steps: rec.steps, final: draft };
   },
 
   // 逐帧提交: 每个快照都是独立对象, 直接 set 即可(仍是克隆式不可变更新)。

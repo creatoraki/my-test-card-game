@@ -56,7 +56,8 @@ function recordTrigger(
     const missed = resolution.missed.includes(id) && !resolution.hit.includes(id);
     if (hpDelta !== 0 || missed) hits.push({ id, hpDelta, missed });
   }
-  rec.triggers.push({
+  rec.steps.push({
+    kind: "discard",
     cardUid: card.uid,
     actorId: card.ownerCharId,
     anim: card.anim,
@@ -152,3 +153,4 @@ export function takeDiscardSnapshot(state: BattleState): BattleState | undefined
 
 // effects.ts 通过 ops 调用此入口，避免与本模块形成静态循环依赖。
 ops.discard = moveToDiscard;
+ops.flushAutoPlays = flushAutoPlays;

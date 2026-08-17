@@ -1,6 +1,6 @@
 // ★ 角色数据 ★ —— 角色**不设等级**, 每人一份固定基础面板(《角色养成设计.md》第一/三章)。
 // 长期成长全部来自装备与卡组锻造, 这里的数字进游戏后不会再变。
-// startingCardIds / pools 引用 cards.ts 里的卡牌 id(可重复, 表示多张)。
+// startingCardIds / pools 引用 cards/ 目录注册的卡牌 id(可重复, 表示多张)。
 
 import type { Rarity, StatBlock } from "../engine/types";
 import { makeStats } from "../engine/stats";
@@ -38,7 +38,17 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 0,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    startingCardIds: [...basicStartingCardIds("swordsman"), "crane-form", "buzz"],
+    startingCardIds: [
+      "snowflake",
+      "snowflake",
+      "snowflake",
+      "buzz",
+      "buzz",
+      "buzz",
+      "mirage",
+      "mirage",
+      "mirage",
+    ],
     pools: {
       common: [
         "snowflake",

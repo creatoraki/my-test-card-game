@@ -8,6 +8,7 @@ export interface ChoreoStep {
   snapshot: BattleState;
   hits: { id: string; hpDelta: number; missed?: boolean }[];
   card?: Card;
+  discardUid?: string;
 }
 
 export interface ShotPlan {

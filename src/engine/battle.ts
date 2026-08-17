@@ -4,16 +4,15 @@
 // ============================================================================
 
 import type {
-  AnimFrame,
   Ally,
   BattleState,
   Card,
   Combatant,
   EncounterModifier,
   Enemy,
+  FxRecorder,
   StatBlock,
 } from "./types";
-import type { DiscardRecorder } from "./types";
 import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
 import {
@@ -44,8 +43,7 @@ import { CARD_MARK_DEFS } from "./cardMarks";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
-  frames: AnimFrame[];
-  discardTriggers: DiscardRecorder["triggers"];
+  steps: FxRecorder["steps"];
   cardMissedTargets: string[];
   cardSnapshot?: BattleState;
 }
@@ -297,15 +295,15 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
 }
 
 // 待机: 什么都不做, 只推进时刻 —— 敌人因此可能走到行动点。每回合限 partyWaitLimit 次。
-export function waitTick(state: BattleState, frames?: AnimFrame[]): boolean {
+export function waitTick(state: BattleState, rec?: FxRecorder): boolean {
   if (state.pendingChoice || state.phase !== "player" || state.waitsThisRound >= partyWaitLimit(state)) return false;
   state.waitsThisRound += 1;
   log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
-  advanceTick(state, RULES.timeline.waitAdvance, frames);
+  withDiscardRecorder(rec, () => advanceTick(state, RULES.timeline.waitAdvance, rec));
   return true;
 }
 
-export function discardHandCard(state: BattleState, uid: string, rec?: DiscardRecorder): boolean {
+export function discardHandCard(state: BattleState, uid: string, rec?: FxRecorder): boolean {
   if (state.pendingChoice || state.phase !== "player" || !state.hand.includes(uid)) return false;
   const card = state.cards[uid];
   if (!card) return false;
@@ -339,7 +337,7 @@ export function playCard(
   state.resources[RULES.resource.name] -= manaPayment;
   state.hand = state.hand.filter((x) => x !== uid);
   log(state, `${owner.emoji} ${owner.name} 打出 ${card.name}`);
-  const discardRecorder = rec ? { triggers: rec.discardTriggers } : undefined;
+  const discardRecorder = rec;
   const cardMissed = new Set<string>();
   const cardHit = new Set<string>();
   const mergeCardResolution = (resolution: ReturnType<typeof resolveEffects>) => {
@@ -367,7 +365,7 @@ export function playCard(
     card.marks = [];
     state.waterfallPlay = false;
     if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
-    flushAutoPlays(state);
+    flushAutoPlays(state, rec);
   });
 
   const played = {
@@ -387,33 +385,36 @@ export function playCard(
   if (state.phase === "player") {
     const adv =
       card.cardType === "normal" ? RULES.timeline.normalCardAdvance : RULES.timeline.fastCardAdvance;
-    if (adv > 0) advanceTick(state, adv, rec?.frames);
+    if (adv > 0) withDiscardRecorder(rec, () => advanceTick(state, adv, rec));
   }
+
   return true;
 }
 
 // ---------------------------------------------------------------------------
 // 结束回合
 // ---------------------------------------------------------------------------
-export function endRound(state: BattleState, frames?: AnimFrame[]): void {
+export function endRound(state: BattleState, rec?: FxRecorder): void {
   if (state.pendingChoice || state.phase !== "player") return;
-  checkChallengesOnEndTurn(state);
+  withDiscardRecorder(rec, () => {
+    checkChallengesOnEndTurn(state);
 
-  // 回合结束推进时刻, 让所有尚未发动的蓄力招式依次结算。
-  flushPendingActs(state, frames);
-  if (state.phase !== "player") return;
+    // 回合结束推进时刻, 让所有尚未发动的蓄力招式依次结算。
+    flushPendingActs(state, rec);
+    if (state.phase !== "player") return;
 
-  runRoundEnd(state); // 虚弱/易伤 -1 等
-  checkEnd(state);
-  if (state.phase !== "player") return;
-  checkMassacreOnRoundSettle(state);
+    runRoundEnd(state); // 虚弱/易伤 -1 等
+    checkEnd(state);
+    if (state.phase !== "player") return;
+    checkMassacreOnRoundSettle(state);
 
-  if (RULES.hand.discardLeftoversOnRoundEnd) {
-    for (const cardUid of [...state.hand]) moveToDiscard(state, cardUid, "roundEnd");
-  }
-  flushAutoPlays(state);
-  if (state.phase !== "player") return;
-  startRound(state);
+    if (RULES.hand.discardLeftoversOnRoundEnd) {
+      for (const cardUid of [...state.hand]) moveToDiscard(state, cardUid, "roundEnd");
+    }
+    flushAutoPlays(state, rec);
+    if (state.phase !== "player") return;
+    startRound(state);
+  });
 }
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {

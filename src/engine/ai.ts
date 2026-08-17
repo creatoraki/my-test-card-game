@@ -1,6 +1,6 @@
 // 敌人 AI: 随机抽招与行动执行。敌人招式复用效果系统。
 
-import type { AnimFrame, BattleState, Enemy, Intent } from "./types";
+import type { BattleState, Enemy, FxRecorder, Intent } from "./types";
 import { getEnemyDef, type EnemyMove } from "../data";
 import { resolveEffects } from "./effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
@@ -130,8 +130,8 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
 }
 
 // 执行一次敌人行动, 并(可选)记录一帧动画: 行动者 + 受击掉血量 + 结算后快照。
-export function actAndRecord(state: BattleState, enemyId: string, frames?: AnimFrame[]): void {
-  if (!frames) {
+export function actAndRecord(state: BattleState, enemyId: string, fx?: FxRecorder): void {
+  if (!fx) {
     enemyAct(state, enemyId);
     return;
   }
@@ -148,7 +148,8 @@ export function actAndRecord(state: BattleState, enemyId: string, frames?: AnimF
       missed: res.missedIds.includes(id),
     }));
 
-  frames.push({
+  fx.steps.push({
+    kind: "enemy",
     actorId: res.actorId,
     enemyDefId: res.enemyDefId,
     moveId: res.moveId,

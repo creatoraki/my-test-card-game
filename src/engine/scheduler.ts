@@ -4,24 +4,24 @@
 // 调度逻辑集中在此, 以后要换成"纯先攻轴"只需替换这个模块。
 // ============================================================================
 
-import type { AnimFrame, BattleState, Enemy } from "./types";
-import { checkEnd, runTick } from "./ops";
+import type { BattleState, Enemy, FxRecorder } from "./types";
+import { checkEnd, ops, runTick } from "./ops";
 import { actAndRecord } from "./ai";
 
 // 推进 n 个时刻。每推进 1 时刻, 结算所有 nextActTick <= tick 的存活敌人。
-// frames 存在时, 每次敌人行动会记录一帧动画(供 UI 逐帧回放)。
-export function advanceTick(state: BattleState, n: number, frames?: AnimFrame[]): void {
+// fx 存在时, 每次敌人行动与其引发的弃牌触发按真实发生顺序记录。
+export function advanceTick(state: BattleState, n: number, fx?: FxRecorder): void {
   for (let step = 0; step < n; step++) {
     if (state.phase !== "player") return;
     state.tick += 1;
     runTick(state);
-    resolveDueEnemies(state, frames);
+    resolveDueEnemies(state, fx);
     checkEnd(state);
     if (state.phase !== "player") return;
   }
 }
 
-function resolveDueEnemies(state: BattleState, frames?: AnimFrame[]): void {
+function resolveDueEnemies(state: BattleState, fx?: FxRecorder): void {
   let guard = 0;
   while (state.phase === "player") {
     const due = state.enemyIds
@@ -32,7 +32,8 @@ function resolveDueEnemies(state: BattleState, frames?: AnimFrame[]): void {
 
     for (const e of due) {
       if (!e.alive || state.phase !== "player") continue;
-      actAndRecord(state, e.id, frames); // 内部已重排 nextActTick
+      actAndRecord(state, e.id, fx); // 内部已重排 nextActTick
+      ops.flushAutoPlays(state);
       checkEnd(state);
       if (state.phase !== "player") return;
     }
@@ -41,7 +42,7 @@ function resolveDueEnemies(state: BattleState, frames?: AnimFrame[]): void {
 }
 
 // 回合结束时清算所有仍在蓄力的招式。使用真实时刻推进, 以保持 runTick 生命周期口径一致。
-export function flushPendingActs(state: BattleState, frames?: AnimFrame[]): void {
+export function flushPendingActs(state: BattleState, fx?: FxRecorder): void {
   let guard = 0;
   while (state.phase === "player") {
     const hasPending = state.enemyIds.some((id) => {
@@ -50,7 +51,7 @@ export function flushPendingActs(state: BattleState, frames?: AnimFrame[]): void
     });
     if (!hasPending) return;
 
-    advanceTick(state, 1, frames);
+    advanceTick(state, 1, fx);
     if (++guard > 999) return;
   }
 }

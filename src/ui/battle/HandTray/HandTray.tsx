@@ -15,6 +15,7 @@ interface RenderHandEntry {
 interface Props {
   renderHand: RenderHandEntry[];
   battle: BattleState;
+  discardingUids: Set<string>;
   isPlayerTurn: boolean;
   handAction: HandAction;
   selectedUid: string | null;
@@ -27,6 +28,7 @@ interface Props {
 export const HandTray = memo(function HandTray({
   renderHand,
   battle,
+  discardingUids,
   isPlayerTurn,
   handAction,
   selectedUid,
@@ -53,6 +55,7 @@ export const HandTray = memo(function HandTray({
               card={card}
               dealDelay={entry.dealDelay}
               leaving={leaving}
+              discarding={discardingUids.has(card.uid)}
               purged={purged}
               playable={block === null}
               unaffordable={block === "mana"}

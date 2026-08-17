@@ -459,6 +459,7 @@ export interface EngineOps {
     pct?: boolean,
   ): void;
   discard(state: BattleState, uid: string, reason: DiscardReason): void;
+  flushAutoPlays(state: BattleState): void;
   log(state: BattleState, text: string): void;
 }
 
@@ -489,6 +490,12 @@ export interface DiscardTriggerFx {
   snapshot: BattleState;
 }
 
-export interface DiscardRecorder {
-  triggers: DiscardTriggerFx[];
+export type FxStep =
+  | ({ kind: "enemy" } & AnimFrame)
+  | ({ kind: "discard" } & DiscardTriggerFx);
+
+export interface FxRecorder {
+  steps: FxStep[];
 }
+
+export type DiscardRecorder = FxRecorder;

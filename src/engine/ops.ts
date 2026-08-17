@@ -288,6 +288,7 @@ export const ops: EngineOps = {
   applyStatus,
   applyStatMod,
   discard: () => undefined,
+  flushAutoPlays: () => undefined,
   log,
 };
 
