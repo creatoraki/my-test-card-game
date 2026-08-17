@@ -28,10 +28,12 @@ import { getCharacter } from "@/data";
 import { useRunStore } from "@/store/runStore";
 import { deriveStats, useTownStore, type CharacterState } from "@/store/townStore";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
+import { StatIcon } from "@/ui/common/StatIcon";
 import { cx } from "@/ui/common/cx";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { takeSharedPortrait } from "@/ui/character/sharedPortrait";
 import { CRYO_BG_ART } from "@/ui/art/sceneArt";
+import { SquadBondBar } from "./SquadBondBar";
 import s from "./FormationScreen.module.css";
 
 // 错峰入场的序号。CSS 用 --i 算 animation-delay(见 .fm-card 那条), 这里只负责把序号递给样式层。
@@ -134,6 +136,13 @@ export function FormationScreen() {
           </div>
         </div>
 
+        <SquadBondBar
+          className={s["fm-bonds"]}
+          characters={characters}
+          party={party}
+          style={{ left: "72px", top: "184px", width: "1776px", height: "56px" }}
+        />
+
         {/* ---- 卡片阵列 ----
             ★ 位置/尺寸旋钮全在下面的内联 style(设计 px), CSS 只负责机制(网格与卡片外观)。
               卡片是 260×650 的高楼型(≈1:2.5), auto-fill 下 1776px 宽正好排 6 列;
@@ -142,9 +151,9 @@ export function FormationScreen() {
           className={s["fm-grid"]}
           style={{
             left: "72px", // ← 距画布左边(设计 px)
-            top: "184px", // ← 落在标题/读数下方
+            top: "256px", // ← 落在标题/读数与羁绊条下方
             width: "1776px", // ← 两侧各留 72px
-            height: "770px", // ← 到底部说明栏上方
+            height: "698px", // ← 到底部说明栏上方
             gap: "20px",
           }}
         >
@@ -254,7 +263,19 @@ function CrewCard({
           {def.name}
         </span>
         <span className={s["fm-card-meta"]} style={partName("vt-fm-meta")}>
-          {Math.round(stats.maxHp)} HP · 攻 {Math.round(stats.attack)} · 卡组 Lv.{cs.deckLevel}
+          <span className={s["fm-card-stat"]}>
+            <StatIcon statKey="maxHp" className={s["fm-card-stat-icon"]} />
+            {Math.round(stats.maxHp)}
+          </span>
+          <span className={s["fm-card-stat"]}>
+            <StatIcon statKey="attack" className={s["fm-card-stat-icon"]} />
+            {Math.round(stats.attack)}
+          </span>
+          <span className={s["fm-card-stat"]}>
+            <StatIcon statKey="defense" className={s["fm-card-stat-icon"]} />
+            {Math.round(stats.defense)}
+          </span>
+          <span className={s["fm-card-level"]}>Lv.{cs.deckLevel}</span>
         </span>
         <span className={s["fm-card-go"]} style={partName("vt-fm-go")}>
           查看详情 ▸

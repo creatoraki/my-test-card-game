@@ -269,7 +269,7 @@ span.cd-bust {
   font-weight: 600;
   letter-spacing: 3px;
 }
-/* 四组竖排, 两列。⚠ 刻意没有 ＋ 按钮 —— 角色不设等级也不加点(角色养成设计.md 第一章)。 */
+/* 三组属性, 两列。⚠ 刻意没有 ＋ 按钮 —— 角色不设等级也不加点(角色养成设计.md 第一章)。 */
 .cd-stat-groups {
   display: grid;
   flex: 1 1 auto;
@@ -296,22 +296,35 @@ span.cd-bust {
   animation: cdContentIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(260ms + var(--i, 0) * 55ms);
 }
+.cd-stat-group.is-wide {
+  grid-column: 1 / -1;
+}
 .cd-stat-group-title {
   color: var(--cd-ink-dim);
   font-size: var(--cd-size-stat-title);
   letter-spacing: 2px;
   opacity: 0.8;
 }
-/* 一行属性 = 标签 + 数值 + **底边一条占比微条**。
+/* 一行属性 = 图标 + 标签 + 数值 + **底边一条占比微条**。
    ⚠ 条长的 --pct(0~1)由 TSX 给, 口径是 STAT_GROUPS 的 ref, **纯展示**不参与结算。
-   ⚠ 条画在行的底边而不是单独占一行: 四组共 17 行, 每行再多一行高度会撑爆这一栏。 */
+  ⚠ 条画在行的底边而不是单独占一行: 每行再多一行高度会撑爆这一栏。 */
+.cd-stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cd-stat-rows.is-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+}
 .cd-attr {
   position: relative;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 7px 12px;
   overflow: hidden;
   border: 1px solid #2a1b3d17;
   background: #ffffffb8;
@@ -340,6 +353,13 @@ span.cd-bust {
   color: var(--cd-ink-dim);
   font-size: var(--cd-size-attr-label);
   letter-spacing: 2px;
+}
+.cd-attr-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--cd-glow);
+  opacity: 0.62;
 }
 .cd-attr-value {
   color: var(--cd-ink);

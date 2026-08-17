@@ -165,7 +165,8 @@
 /* 去程只有 old(飞出), 回程只有 new(飞入) —— 同一份规则表自动各取一半。 */
 
 ::view-transition-old(vt-fm-header),
-::view-transition-old(vt-fm-readout) {
+::view-transition-old(vt-fm-readout),
+::view-transition-old(vt-fm-bonds) {
   animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
 ::view-transition-old(vt-fm-back),
@@ -183,6 +184,9 @@
 
 ::view-transition-new(vt-fm-header) {
   animation: vtInRise var(--vt-in) 140ms var(--vt-ease) both;
+}
+::view-transition-new(vt-fm-bonds) {
+  animation: vtInRise var(--vt-in) 160ms var(--vt-ease) both;
 }
 ::view-transition-new(vt-fm-readout) {
   animation: vtInRise var(--vt-in) 180ms var(--vt-ease) both;

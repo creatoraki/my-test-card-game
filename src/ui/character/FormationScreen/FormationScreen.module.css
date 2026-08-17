@@ -100,6 +100,15 @@
   gap: 10px;
   animation: fmRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
+.fm-bonds {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  view-transition-name: vt-fm-bonds;
+  animation: fmRise 420ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
 /* ★ 亮玻璃配方(与 CryoScene.css 顶部那份逐行一致, 改动请两边同步):
      白半透明渐变 + blur/saturate/brightness 提亮 + 顶边高光 + 远投影, 外加左上/右下斜切角。 */
 .fm-chip {
@@ -264,6 +273,7 @@
      那条路线上这些入场动画仍然是本页唯一的过渡。类由 FormationScreen.tsx 按 landingId 挂。 */
 .fm-stage.is-vt-enter .fm-header,
 .fm-stage.is-vt-enter .fm-readout,
+.fm-stage.is-vt-enter .fm-bonds,
 .fm-stage.is-vt-enter .fm-back,
 .fm-stage.is-vt-enter .fm-note,
 .fm-stage.is-vt-enter .fm-card {
@@ -336,6 +346,10 @@
   text-indent: 4px;
 }
 .fm-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   flex: 0 0 auto;
   padding: 0 12px;
   color: var(--fm-ink-dim);
@@ -343,6 +357,26 @@
   font-weight: 400;
   letter-spacing: 1px;
   line-height: 1.5;
+}
+.fm-card-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.fm-card-stat-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--fm-glow);
+  opacity: 0.72;
+}
+.fm-card-level {
+  padding: 2px 5px;
+  border: 1px solid var(--fm-line);
+  color: var(--fm-glow-deep);
+  font-size: 10px;
+  white-space: nowrap;
 }
 /* 「查看详情 ▸」: 常态半隐, hover 才浮出来 —— 六张卡各挂一行常亮提示会很吵。 */
 .fm-card-go {
@@ -530,6 +564,7 @@ span.fm-bust {
 @media (prefers-reduced-motion: reduce) {
   .fm-header,
   .fm-readout,
+  .fm-bonds,
   .fm-back,
   .fm-note,
   .fm-card {

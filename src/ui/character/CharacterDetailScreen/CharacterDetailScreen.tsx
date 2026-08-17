@@ -27,6 +27,7 @@ import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar/HpBar";
 import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
 import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
+import { StatIcon } from "@/ui/common/StatIcon";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { StageCanvas } from "@/ui/app/StageCanvas";
@@ -39,10 +40,11 @@ import s from "./CharacterDetailScreen.module.css";
 // suffix "%" 的项在数据里存的是百分点整数(见 engine/types.StatBlock)。
 //
 // ★ ref = 该项画满那条底部微条所需的值。⚠⚠ **纯展示旋钮, 不参与任何结算** —— 它既不是上限也不是
-//   平衡口径, 只决定"这条横杠画多长"。数值本身照旧原样显示, 条只是让四组面板一眼看出长短对比。
+//   平衡口径, 只决定"这条横杠画多长"。数值本身照旧原样显示, 条只是让各组面板一眼看出长短对比。
 //   百分比项默认按 100 铺满, 与 engine 里 70% 的概率封顶无关(那是结算封顶, 面板可以超)。
 const STAT_GROUPS: {
   title: string;
+  wide?: boolean;
   rows: { key: keyof StatBlock; label: string; pct?: boolean; ref?: number }[];
 }[] = [
   {
@@ -72,15 +74,9 @@ const STAT_GROUPS: {
       { key: "healBoost", label: "治愈强度", pct: true },
       { key: "shieldBoost", label: "护盾强度", pct: true },
       { key: "ailmentResist", label: "异常抗性", pct: true },
-    ],
-  },
-  {
-    title: "探索与小队",
-    rows: [
       { key: "burdenAdapt", label: "负重适应", pct: true },
-      { key: "handLimit", label: "手牌上限", ref: 12 },
-      { key: "drawCount", label: "抽牌数", ref: 8 },
     ],
+    wide: true,
   },
 ];
 
@@ -312,7 +308,7 @@ export function CharacterDetailScreen() {
             </div>
           </div>
 
-          {/* 属性栏: 装备配置置于顶部, 下方是四组竖排属性。 */}
+          {/* 属性栏: 装备配置置于顶部, 下方是三组属性。 */}
           <div className={s["cd-stats-col"]}>
             <EquipmentSlots
               className={s["cd-equipment-slots"]}
@@ -324,19 +320,26 @@ export function CharacterDetailScreen() {
             {/* <span className={s["cd-section-label"]}>面板属性 · 只读</span> */}
             <div className={s["cd-stat-groups"]}>
               {STAT_GROUPS.map((g, gi) => (
-                <div key={g.title} className={s["cd-stat-group"]} style={stagger(gi)}>
+                <div
+                  key={g.title}
+                  className={cx(s["cd-stat-group"], g.wide && s["is-wide"])}
+                  style={stagger(gi)}
+                >
                   <span className={s["cd-stat-group-title"]}>{g.title}</span>
-                  {g.rows.map((row) => (
-                    <AttrRow
-                      key={row.key}
-                      label={row.label}
-                      value={stats[row.key]}
-                      pct={row.pct}
-                      ref100={row.ref ?? (row.pct ? REF_DEFAULT_PCT : undefined)}
-                      // 与 CSS 里这一组的 animation-delay 对齐: 数字要在这一组浮现出来之后才开滚。
-                      delay={CONTENT_DELAY_MS + gi * STAGGER_MS}
-                    />
-                  ))}
+                  <div className={cx(s["cd-stat-rows"], g.wide && s["is-two-col"])}>
+                    {g.rows.map((row) => (
+                      <AttrRow
+                        key={row.key}
+                        statKey={row.key}
+                        label={row.label}
+                        value={stats[row.key]}
+                        pct={row.pct}
+                        ref100={row.ref ?? (row.pct ? REF_DEFAULT_PCT : undefined)}
+                        // 与 CSS 里这一组的 animation-delay 对齐: 数字要在这一组浮现出来之后才开滚。
+                        delay={CONTENT_DELAY_MS + gi * STAGGER_MS}
+                      />
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -466,12 +469,14 @@ export function CharacterDetailScreen() {
 // 一行属性: 标签 + 滚动数值 + 底部占比微条。
 // ⚠ 条长走 ref(见 STAT_GROUPS 顶部注释)——**纯展示**, 与结算无关; 超过 ref 的值条画满不溢出。
 function AttrRow({
+  statKey,
   label,
   value,
   pct,
   ref100,
   delay,
 }: {
+  statKey: keyof StatBlock;
   label: string;
   value: number;
   pct?: boolean;
@@ -482,6 +487,7 @@ function AttrRow({
   const fill = ref100 ? Math.max(0, Math.min(1, value / ref100)) : 0;
   return (
     <div className={s["cd-attr"]} style={{ "--pct": fill } as CSSProperties}>
+      <StatIcon statKey={statKey} className={s["cd-attr-icon"]} />
       <span className={s["cd-attr-label"]}>{label}</span>
       <strong className={s["cd-attr-value"]}>
         {shown}
