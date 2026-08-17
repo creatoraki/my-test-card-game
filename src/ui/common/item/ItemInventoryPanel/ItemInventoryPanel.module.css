@@ -307,7 +307,8 @@
 
 .inventory-grid {
   display: grid;
-  grid-template-columns: repeat(var(--inventory-columns), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--inventory-columns), var(--inventory-cell, minmax(0, 1fr)));
+  justify-content: center;
   gap: 14px;
   min-width: 0;
 }

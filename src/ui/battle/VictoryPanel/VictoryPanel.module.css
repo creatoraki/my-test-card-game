@@ -13,8 +13,8 @@
 
 .panel-reveal {
   position: relative;
-  width: 1240px;
-  height: 760px;
+  width: 1360px;
+  height: 1040px;
   clip-path: inset(calc(50% - 2px) 46% calc(50% - 2px) 46%);
   animation: vcReveal calc(var(--vc-reveal-bar-ms) + var(--vc-reveal-ms)) var(--vc-ease-pop) forwards;
 }
@@ -133,18 +133,18 @@
 
 .panel-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 470px;
-  gap: 24px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 20px;
   min-height: 0;
   flex: 1;
   padding: 18px 0;
 }
 
-.right-column {
+.top-region {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) 470px;
+  gap: 24px;
   min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 16px;
 }
 
 .exp-section,
@@ -196,17 +196,16 @@
   gap: 14px;
 }
 
-.loot-section,
-.backpack-section {
+.loot-section {
   overflow: hidden;
 }
 
 .backpack-panel {
   width: 100%;
-  max-width: 460px;
+  max-width: none;
   min-height: 0;
-  margin-left: auto;
-  flex: 1;
+  flex: none;
+  --inventory-cell: 86px;
 }
 
 .panel-foot {

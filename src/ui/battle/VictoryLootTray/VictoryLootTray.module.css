@@ -1,7 +1,8 @@
 .loot-tray {
   position: relative;
+  flex: 1;
   min-height: 0;
-  height: 180px;
+  min-height: 180px;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;

@@ -15,6 +15,9 @@ import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/Victory
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import s from "./VictoryPanel.module.css";
 
+const BACKPACK_COLUMNS = 12;
+const BACKPACK_ROWS = Math.ceil(RULES.burden.backpackSlots / BACKPACK_COLUMNS);
+
 export function VictoryPanel() {
   const battleSettled = useRunStore((state) => state.battleSettled);
   const expReport = useRunStore((state) => state.expReport);
@@ -120,27 +123,27 @@ export function VictoryPanel() {
           />
 
           <div className={s["panel-content"]}>
-          <section
-            className={cx(s["exp-section"], s["victory-section"])}
-            style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
-          >
-            <div className={s["section-heading"]}>
-              <span>队伍经验</span>
-            </div>
-            <div className={s["exp-list"]}>
-              {session.party.map((member, index) => (
-                <VictoryExpRow
-                  key={member.charId}
-                  member={member}
-                  gain={expByCharacter.get(member.charId) ?? null}
-                  fallbackExp={characters[member.charId]?.exp ?? 0}
-                  index={index}
-                />
-              ))}
-            </div>
-          </section>
+            <div className={s["top-region"]}>
+              <section
+                className={cx(s["exp-section"], s["victory-section"])}
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
+              >
+                <div className={s["section-heading"]}>
+                  <span>队伍经验</span>
+                </div>
+                <div className={s["exp-list"]}>
+                  {session.party.map((member, index) => (
+                    <VictoryExpRow
+                      key={member.charId}
+                      member={member}
+                      gain={expByCharacter.get(member.charId) ?? null}
+                      fallbackExp={characters[member.charId]?.exp ?? 0}
+                      index={index}
+                    />
+                  ))}
+                </div>
+              </section>
 
-          <div className={s["right-column"]}>
             <section
               className={cx(s["loot-section"], s["victory-section"])}
               style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
@@ -156,6 +159,7 @@ export function VictoryPanel() {
               </div>
               <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
             </section>
+            </div>
 
             <section
               className={cx(s["backpack-section"], s["victory-section"])}
@@ -163,8 +167,8 @@ export function VictoryPanel() {
             >
               <ItemInventoryPanel
                 stacks={backpack}
-                rows={4}
-                columns={6}
+                rows={BACKPACK_ROWS}
+                columns={BACKPACK_COLUMNS}
                 capacity={RULES.burden.backpackSlots}
                 title="回收背包"
                 panelId="victory-backpack-panel"
@@ -176,7 +180,6 @@ export function VictoryPanel() {
                 compact
               />
             </section>
-          </div>
           </div>
 
           <footer className={s["panel-foot"]}>
