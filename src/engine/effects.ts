@@ -41,6 +41,8 @@ function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
   if (effect.condition === "waterfall") return state.waterfallPlay;
   if (effect.condition === "handHasCostAtLeast")
     return state.hand.some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
+  if (effect.condition === "fastCardsInHandAtLeast")
+    return state.hand.filter((uid) => state.cards[uid]?.cardType === "fast").length >= (effect.conditionValue ?? 0);
   return true;
 }
 
@@ -107,6 +109,7 @@ function applyEffect(
                 ? Math.min(counterOf(state, effect.bonusHitsFrom), effect.maxBonusHits ?? Infinity)
                 : 0),
           );
+              let lifestealPool = 0;
       for (let i = 0; i < hits; i++)
         for (const id of targetIds) {
           const targetHasShield = state.combatants[id]?.shield > 0;
@@ -122,10 +125,18 @@ function applyEffect(
             flags: effect.flags,
             unblockable,
             hitBonus: effect.hitBonus,
+            onDealt:
+              effect.lifesteal != null
+                ? (hpLost) => {
+                    lifestealPool += hpLost;
+                  }
+                : undefined,
           });
           if (result === "missed") resolution.missed.push(id);
           else if (result === "hit") resolution.hit.push(id);
         }
+      if (effect.lifesteal != null && lifestealPool > 0)
+        ops.heal(state, sourceId, sourceId, lifestealPool * effect.lifesteal, { scaled: true });
       break;
     }
     case "GAIN_SHIELD": {

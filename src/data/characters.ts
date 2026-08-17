@@ -4,7 +4,7 @@
 
 import type { Rarity, StatBlock } from "../engine/types";
 import { makeStats } from "../engine/stats";
-import { basicStartingCardIds } from "./basicCards";
+import { basicCardId } from "./basicCards";
 
 export interface CharacterDef {
   id: string;
@@ -39,15 +39,9 @@ export const CHARACTERS: CharacterDef[] = [
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: [
-      "snowflake",
-      "snowflake",
-      "snowflake",
-      "buzz",
-      "buzz",
-      "buzz",
-      "mirage",
-      "mirage",
-      "mirage",
+      basicCardId("swordsman", "attack"),
+      basicCardId("swordsman", "attack"),
+      basicCardId("swordsman", "guard"),
     ],
     pools: {
       common: [
@@ -62,12 +56,15 @@ export const CHARACTERS: CharacterDef[] = [
         "torafuri",
         "cloud-veil",
         "yoroidoshi",
+        "quick-guard",
+        "demon-edge",
+        "crane-dance",
+        "wolf-sparrow",
       ],
       uncommon: [
         "swallow-return",
         "crane-form",
         "still-water",
-        "quick-guard",
         "spring-sprout",
         "zanshin",
         "issen",
@@ -104,7 +101,13 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 0,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    startingCardIds: basicStartingCardIds("prophet"),
+    startingCardIds: [
+      basicCardId("prophet", "attack"),
+      basicCardId("prophet", "attack"),
+      basicCardId("prophet", "heal"),
+      "prayer",
+      "star-shatter",
+    ],
     pools: {
       common: [
         "star-shatter",

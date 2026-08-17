@@ -103,6 +103,7 @@ export interface EffectDescriptor {
   bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数加算到伤害倍率上(不是乘算)
   bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数加算的倍率
   damageBonus?: { when: "targetHasShield"; multiplier: number }; // DAMAGE: 按目标护盾逐目标加算倍率
+  lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
   amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
@@ -110,8 +111,9 @@ export interface EffectDescriptor {
     | "discardedThisRound"
     | "noFastPlaysThisRound"
     | "waterfall"
-    | "handHasCostAtLeast"; // 满足条件时才结算
-  conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用
+    | "handHasCostAtLeast"
+    | "fastCardsInHandAtLeast"; // 满足条件时才结算
+  conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
   markPick?: "handRandom" | "handAll" | "handRandomNonStarPay"; // MARK_CARDS: 手牌选择方式
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
@@ -426,6 +428,7 @@ export interface DamageOpts {
   mustHit?: boolean; // 必中: 跳过命中判定
   unblockable?: boolean; // 不被护盾吸收
   hitBonus?: number; // 本次效果的命中修正(百分点)
+  onDealt?: (hpLost: number) => void; // 落到 HP 后回调实际掉血(未命中/濒死为 0)
 }
 
 export interface EngineOps {
