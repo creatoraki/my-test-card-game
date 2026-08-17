@@ -44,7 +44,7 @@
   clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
 }
 .hp-bar.hp-large .hp-text {
-  font-size: 14px;
+  font-size: 18px;
 }
 
 /* ── flush 变体(HpBar 的 flush prop) ──
@@ -65,7 +65,7 @@
   background: linear-gradient(180deg, #04090cc7, #0a161cc7 52%, #03080ac7);
 }
 .hp-bar.hp-flush .hp-text {
-  font-size: 12px;
+  font-size: 14px;
 }
 /* 缓降变体(HpBar 的 slowDrain prop): 我方队伍卡专用 —— 受击时血量可读地流失。 */
 .hp-bar.hp-drain-slow .hp-fill,
@@ -262,9 +262,13 @@
   z-index: 2;
   flex: 0 0 auto;
   margin-left: auto;
-  font-size: 11px;
-  font-weight: 700;
-  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+  font-family: var(--font-num);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 2px #05080a;
+  text-shadow: 0 1px 0 #000;
 }
 /* 减少动态效果: 血条的装饰性动感全停 —— 流光带 / 端头光点 / 掉血火花。
    ⚠ 光点与火花靠关键帧从 opacity:0 起步, 单停动画会让它们**永久停在起始态**并留下

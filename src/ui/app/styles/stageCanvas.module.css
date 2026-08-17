@@ -1,8 +1,8 @@
 /*
  * 全站设计画布的唯一几何真相。
  * viewport 铺满窗口并提供黑边与定位参照；canvas 始终是 1920×1080 设计 px。
- * zoom 路径使用布局居中：zoom 会在布局阶段缩放画布的布局盒，网格居中可以按缩放后的尺寸落位，
- * 避免 translate 把整张画布放到亚像素位置。transform 兜底分支仍使用绝对定位加 translate，
+ * zoom 路径使用布局定位：zoom 会在布局阶段缩放画布的布局盒，viewport padding 负责按设备像素
+ * 对齐的黑边落位，避免 translate 把整张画布放到亚像素位置。transform 兜底分支仍使用绝对定位加 translate，
  * 因为 transform: scale() 不改变布局盒，即使画布视觉上缩小，布局盒仍是完整的 1920×1080。
  *
  * zoom 在布局阶段缩放画布：文字、细线、clip-path 与最终设备像素一起重新栅格化，
@@ -16,7 +16,8 @@
   overflow: hidden;
   background: #000;
   display: grid;
-  place-items: center;
+  place-items: start;
+  padding: var(--stage-pad-y, 0px) var(--stage-pad-x, 0px);
 }
 
 .canvas {

@@ -148,14 +148,16 @@ export function BattleScreen() {
   const dofTargetsRef = useRef<Set<HTMLElement>>(new Set());
   const bgImageRef = useRef<HTMLImageElement>(null);
   // 设计画布(1920×1080)→ 屏幕的等比缩放系数。以 CSS 变量下发给 .screen.battle 的 transform。
-  const stageScale = useStageScale(viewportRef);
+  const { scale: stageScale, padX, padY } = useStageScale(viewportRef);
   const viewportStyle = useMemo(
     () =>
       ({
         "--stage-scale": stageScale,
+        "--stage-pad-x": `${padX}px`,
+        "--stage-pad-y": `${padY}px`,
         "--perspective": `${CINEMA.perspective}px`,
       }) as React.CSSProperties,
-    [stageScale],
+    [stageScale, padX, padY],
   );
   const worldStyle = useMemo(
     () =>

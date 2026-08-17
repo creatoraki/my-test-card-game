@@ -49,7 +49,8 @@
 
 战斗域的两种「单位外壳」（敌人 `CombatantView` 的 `.combatant`、我方 `AllyBar` 的 `.ally-slot`）
 共享同一套演出规则，靠 [unitShell.ts](../../src/ui/battle/unitShell.ts) 定义的 `data-*` 契约跨模块命中：
-`data-side` / `data-dead` / `data-attacking` / `data-targetable` / `data-react`。
+`data-side` / `data-dead` / `data-attacking` / `data-targetable` / `data-react`；
+受击、前冲和受益通过 `data-unit-body` 限定在立绘容器，外壳读数保持稳定。
 规则本体住在 [HitFxLayer.module.css](../../src/ui/battle/fx/HitFxLayer/HitFxLayer.module.css)。
 两枚共用徽章在 [unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css)。
 另有三处结构性 `data-*` 钩子：`data-hitstop`（顿帧，BattleScreen 挂在画布根）、

@@ -1,7 +1,8 @@
 /* ===================== 出牌攻击动画 ===================== */
-/* ⚠⚠ 本段作用在**单位外壳**上, 而外壳有两个不同的所有者: 敌人是 battle/CombatantView 的
-   .combatant, 我方是 battle/AllyBar 的 .ally-slot。CSS Modules 之后本文件够不着它们的类名,
-   所以外壳状态一律走 data 属性(样式铁律 2) —— 属性不参与哈希, 是模块边界上合法的通道。
+/* ⚠⚠ 本段作用在**单位外壳及其立绘本体**上: z-index 留在外壳, 前冲/受击/受益演出只进
+  data-unit-body 立绘层。外壳有两个不同的所有者: 敌人是 battle/CombatantView 的
+  .combatant, 我方是 battle/AllyBar 的 .ally-slot。CSS Modules 之后本文件够不着它们的类名,
+  所以外壳状态一律走 data 属性(样式铁律 2) —— 属性不参与哈希, 是模块边界上合法的通道。
    契约(唯一真相在 battle/unitShell.ts, 两个外壳都从那里取):
      data-unit            外壳标记(本段只认它的后代关系, 不直接用)
      data-side="enemy"    敌方(缺省视作我方) —— 决定前冲的方向
@@ -12,18 +13,22 @@
 /* 施法者前冲(我方在底部, 向上冲 = 朝敌人方向) */
 [data-unit][data-attacking] {
   z-index: 6;
-  transform: translateY(-18px) scale(1.06);
-  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[data-unit][data-attacking] [data-unit-body] {
+  translate: 0 -18px;
+  scale: 1.06;
+  transition: translate 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+    scale 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
   filter: brightness(1.12);
 }
 
 /* 敌人在顶部, 朝下冲 = 朝我方方向 */
-[data-unit][data-side="enemy"][data-attacking] {
-  transform: translateY(18px) scale(1.06);
+[data-unit][data-side="enemy"][data-attacking] [data-unit-body] {
+  translate: 0 18px;
 }
 
 /* 目标受击: 抖动 + 高亮闪白 */
-[data-unit][data-react="hit"] {
+[data-unit][data-react="hit"] [data-unit-body] {
   animation: hitShake 0.4s ease, hitFlash 0.42s ease;
 }
 @keyframes hitShake {
@@ -39,7 +44,7 @@
 }
 
 /* 我方挨打: 在中性闪白上叠加红色冲击, 敌人受击仍走上面的反馈。 */
-[data-unit][data-side="player"][data-react="hit"] {
+[data-unit][data-side="player"][data-react="hit"] [data-unit-body] {
   animation: hitShakeHard 0.5s ease, hitFlashRed 0.62s ease;
 }
 @keyframes hitShakeHard {
@@ -56,7 +61,7 @@
 }
 
 /* 目标受益(辅助牌): 柔和光晕脉冲。无面板后改用 drop-shadow, 光晕贴着立绘轮廓亮起 */
-[data-unit][data-react="bless"] {
+[data-unit][data-react="bless"] [data-unit-body] {
   animation: blessGlow 0.6s ease;
 }
 @keyframes blessGlow {
@@ -170,12 +175,12 @@
 /* 受击抖动/闪白推迟到剑真正砸中那一刻, 否则目标会先于剑落而抽搐。
    hit-react 挂了 hitShake + hitFlash 两条动画, animation-delay 须写两个值一一对应。
    基态即常态, 故延迟期无副作用; emoji 系特效 --vfx-impact 缺省 0, 行为不变。 */
-[data-unit][data-react="hit"] {
+[data-unit][data-react="hit"] [data-unit-body] {
   animation-delay: var(--vfx-impact, 0ms), var(--vfx-impact, 0ms);
 }
 
 /* 顿帧期间连受击抖动/闪红与飘字一起冻住 —— 否则画面定格了、挨打的人还在抽搐 */
-:global([data-hitstop]) [data-unit][data-react],
+:global([data-hitstop]) [data-unit][data-react] [data-unit-body],
 :global([data-hitstop]) .float-num {
   animation-play-state: paused;
 }
@@ -224,11 +229,15 @@
   top: 26px;
   left: 50%;
   z-index: 8;
+  font-family: var(--font-num);
   font-weight: 800;
   font-size: 64px;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 3px #05080a;
   pointer-events: none;
-  text-shadow: 0 2px 4px #000, 0 0 8px currentColor;
+  text-shadow: 0 0 10px currentColor;
   /* 聚焦镜头下停留约 1s: 快速弹出后保持可读, 末段才缓慢上浮淡出。
      延迟/时长走 CSS 变量(见 HitFxLayer.hitFxVars): 缺省值下与原 0.95s 无延迟逐帧等价;
     居合斩把飘字推迟到斩击爆发瞬间(impactMs)并压缩时长, 保证在命中特效 hold 卸载前收尾。 */
@@ -244,10 +253,10 @@
   color: #fff;
 }
 @keyframes floatUp {
-  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
-  14% { transform: translate(-50%, -20px) scale(1.15); opacity: 1; }
+  0% { transform: translate(-50%, 0) scale(0.85); opacity: 0; }
+  14% { transform: translate(-50%, -20px) scale(1.06); opacity: 1; }
   30% { transform: translate(-50%, -30px) scale(1); opacity: 1; }
   72% { transform: translate(-50%, -42px) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -80px) scale(0.95); opacity: 0; }
+  100% { transform: translate(-50%, -80px) scale(1); opacity: 0; }
 }
 

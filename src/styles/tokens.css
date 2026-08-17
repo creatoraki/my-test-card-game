@@ -11,6 +11,7 @@
 
 :root {
    --font-family: "BebasNeue", "SourceHanSansSC", "Microsoft YaHei", sans-serif;
+   --font-num: "SourceHanSansSC", "Microsoft YaHei", sans-serif;
   --bg: #080b0d;
   --bg2: #101418;
   --panel: #11161a;

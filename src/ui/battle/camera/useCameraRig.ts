@@ -56,6 +56,7 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
     if (restRef.current === rest) return;
     restRef.current = rest;
     if (sceneRef.current) sceneRef.current.style.willChange = rest ? "auto" : "transform";
+    if (worldRef.current) worldRef.current.style.willChange = rest ? "auto" : "transform";
     for (const callback of restListenersRef.current) callback(rest);
   };
   if (!apiRef.current) {
@@ -167,6 +168,7 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
     wakeRef.current = () => {
       if (!mountedRef.current) return;
       if (sceneRef.current) sceneRef.current.style.willChange = "transform";
+      if (worldRef.current) worldRef.current.style.willChange = "transform";
       setRest(false);
       if (rafRef.current === null) {
         lastFrameRef.current = performance.now();

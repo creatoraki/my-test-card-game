@@ -9,6 +9,7 @@ export default defineConfig({
   // 就是线上画质。OPTIMIZE=0 pnpm dev 可退回原始 PNG 做原画对比。
   plugins: [react(), imageOptimize({ quality: 94 })],
   server: {
+    port: 2333,
     allowedHosts: [".trycloudflare.com"],
   },
   css: {

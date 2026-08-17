@@ -10,6 +10,7 @@
 // ★ 那一份写在 battle/fx/HitFxLayer 与各外壳自己的 module.css 里, 靠**data 属性**跨模块
 //   命中(样式铁律 2): 类名会被 CSS Modules 哈希, 属性不会。于是 HitFxLayer 能写
 //   `[data-unit][data-react="hit"]`, 同时命中两种外壳, 而不必知道任何一方的类名。
+//   受击/前冲/受益的具体视觉只落在 data-unit-body 标记的立绘容器, 外壳上的血条与读数不进合成层。
 //   死亡表现另有 `data-death` 阶段属性: drain/vanish 期间保持活体外观, 只有 dead 才挂 `data-dead`。
 //   濒死是我方 alive 且 hp === 0, 与 data-death 三阶段互斥。
 //
@@ -27,6 +28,9 @@ export type TelegraphKind = "attack" | "buff";
 
 /** 单位外壳的阵营。决定前冲方向(敌人在上朝下冲, 我方在下朝上冲)。 */
 export type UnitSide = "enemy" | "player";
+
+/** 只作用于单位立绘本体的受击、前冲与受益演出标记。 */
+export const UNIT_BODY_ATTR = { "data-unit-body": "" } as const;
 
 export interface UnitShellState {
   side: UnitSide;

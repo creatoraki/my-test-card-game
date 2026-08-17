@@ -1,6 +1,8 @@
 // 卡牌定义。
 // ★ 攻击牌用 multiplier(攻击力倍率), 不写死点数 —— 剑士攻击力 20, 故 1.0 倍 ≈ 20 点。
-//   1 费标准攻击牌以 1.0 倍为中心(0.7~1.2); 低倍率换控制/防护/资源, 高倍率必须付代价。
+//   1 费标准攻击牌为 0.9 倍(可用 0.7/0.8/0.9); 只有承担额外价值时才使用 1.0/1.1。
+//   2 费标准攻击牌为 1.5 倍, 3 费标准攻击牌为 2.0 倍; 高费用牌可因范围、节奏和联动偏离。
+//   治疗/护盾基准为 1/2/3 费对应 0.5/0.8/1.2 倍治愈力, 附加效果时只做小幅让价。
 //   只有"固定伤害"才用 amount —— 那类伤害不吃攻击力, 也不吃目标的防御与格挡。
 // 护盾/治疗可写固定 amount, 也可写治愈力倍率 multiplier, 二选一; 强度在 ops 里结算。
 // 基础卡为 1 费资源曲线底盘, rarity=basic, 不进入抽卡池也不计入稀有度限携。
@@ -66,7 +68,7 @@ export const CARD_DEFS: CardDef[] = [
     targeting: "foe",
     rarity: "common",
     anim: "slash",
-    effects: [{ type: "DAMAGE", multiplier: 0.9, target: "primary" }],
+    effects: [{ type: "DAMAGE", multiplier: 0.8, target: "primary" }],
     text: "造成 {0} 点伤害。本回合丢弃过牌时费用 -1。",
   },
   {
@@ -79,7 +81,7 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "common",
     anim: "fire",
     effects: [
-      { type: "DAMAGE", multiplier: 1.6, target: "primary" },
+      { type: "DAMAGE", multiplier: 1.4, target: "primary" },
       { type: "DRAW", amount: 1, target: "self", condition: "discardedThisRound" },
     ],
     text: "造成 {0} 点伤害。本回合丢弃过牌时抽 1 张。",
@@ -107,7 +109,7 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "uncommon",
     anim: "iai-slash",
     effects: [
-      { type: "DAMAGE", multiplier: 2.0, target: "primary" },
+      { type: "DAMAGE", multiplier: 1.3, target: "primary" },
       { type: "RECOVER_FROM_DISCARD", amount: 1 },
     ],
     text: "造成 {0} 点伤害，然后从弃牌堆选择 1 张牌加入手牌。",
@@ -122,7 +124,7 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "uncommon",
     anim: "shield",
     effects: [
-      { type: "GAIN_SHIELD", multiplier: 1.0, target: "primary" },
+      { type: "GAIN_SHIELD", multiplier: 0.7, target: "primary" },
       { type: "MARK_CARDS", amount: 2, mark: "mindsEye", markPick: "handRandom" },
     ],
     text: "为一名队友获得 {0} 点护盾，并随机使 2 张手牌获得心眼。",
@@ -141,7 +143,7 @@ export const CARD_DEFS: CardDef[] = [
     effects: [
       {
         type: "DAMAGE",
-        multiplier: 0.6,
+        multiplier: 0.5,
         hits: 3,
         bonusHitsFrom: "discardsThisRound",
         target: "primary",
@@ -178,9 +180,9 @@ export const CARD_DEFS: CardDef[] = [
       { type: "DISCARD", discardPick: "handAll" },
       {
         type: "DAMAGE",
-        multiplier: 3.0,
+        multiplier: 2.5,
         bonusMultiplierFrom: "lastDiscardBatch",
-        bonusMultiplierPer: 0.5,
+        bonusMultiplierPer: 0.3,
         target: "primary",
       },
     ],
@@ -212,7 +214,7 @@ export const CARD_DEFS: CardDef[] = [
     targeting: "ally",
     rarity: "uncommon",
     anim: "shield",
-    effects: [{ type: "GAIN_SHIELD", multiplier: 0.7, target: "primary" }],
+    effects: [{ type: "GAIN_SHIELD", multiplier: 0.5, target: "primary" }],
     text: "为一名队友获得 {0} 点护盾。不推进时刻。",
   },
   {
@@ -257,7 +259,7 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "uncommon",
     anim: "iai-slash",
     effects: [
-      { type: "DAMAGE", multiplier: 2.0, target: "primary" },
+      { type: "DAMAGE", multiplier: 1.3, target: "primary" },
       {
         type: "CONVERT_CARD_TYPE",
         amount: 1,
@@ -294,7 +296,7 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "rare",
     anim: "shield",
     effects: [
-      { type: "GAIN_SHIELD", multiplier: 1.0, target: "primary" },
+      { type: "GAIN_SHIELD", multiplier: 0.7, target: "primary" },
       { type: "APPLY_STATUS", status: "buzhou", stacks: 3, target: "primary" },
     ],
     text: "为一名队友获得 {0} 点护盾，并附加 3 层不周山。",
@@ -311,7 +313,7 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "common",
     anim: "slash",
     effects: [
-      { type: "DAMAGE", multiplier: 1.5, target: "primary" },
+      { type: "DAMAGE", multiplier: 1.3, target: "primary" },
       { type: "DISCARD", amount: 1, discardPick: "handBottom" },
       { type: "GAIN_RESOURCE", amountFrom: "lastDiscardBatchFast", resource: "mana", target: "self" },
     ],
@@ -344,8 +346,8 @@ export const CARD_DEFS: CardDef[] = [
     effects: [
       {
         type: "DAMAGE",
-        multiplier: 0.8,
-        damageBonus: { when: "targetHasShield", multiplier: 0.7 },
+        multiplier: 0.7,
+        damageBonus: { when: "targetHasShield", multiplier: 0.4 },
         target: "primary",
       },
     ],
@@ -365,9 +367,9 @@ export const CARD_DEFS: CardDef[] = [
     effects: [
       {
         type: "DAMAGE",
-        multiplier: 0.8,
+        multiplier: 0.7,
         bonusMultiplierFrom: "fastPlaysThisRound",
-        bonusMultiplierPer: 0.2,
+        bonusMultiplierPer: 0.1,
         target: "primary",
       },
     ],
@@ -384,7 +386,7 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "uncommon",
     exhaust: true,
     anim: "slash",
-    effects: [{ type: "DAMAGE", multiplier: 2.0, target: "primary" }],
+    effects: [{ type: "DAMAGE", multiplier: 1.3, target: "primary" }],
     text: "造成 {0} 点伤害。本回合使用过至少 3 张速攻牌时，费用 -1。",
   },
   {
@@ -397,10 +399,10 @@ export const CARD_DEFS: CardDef[] = [
     rarity: "uncommon",
     anim: "slash",
     effects: [
-      { type: "DAMAGE", multiplier: 1.2, target: "primary" },
+      { type: "DAMAGE", multiplier: 1.0, target: "primary" },
       {
         type: "DAMAGE",
-        multiplier: 0.3,
+        multiplier: 0.2,
         hitsFrom: "discardsThisBattle",
         maxHits: 5,
         target: "primary",
@@ -420,7 +422,7 @@ export const CARD_DEFS: CardDef[] = [
     effects: [{ type: "GAIN_SHIELD", multiplier: 0.5, target: "self" }],
     onDiscard: {
       mode: "custom",
-      effects: [{ type: "GAIN_SHIELD", multiplier: 0.3, target: "allAllies" }],
+      effects: [{ type: "GAIN_SHIELD", multiplier: 0.2, target: "allAllies" }],
     },
     text: "获得 {0} 点护盾。被丢弃时，为所有队友获得 {d0} 点护盾。",
   },

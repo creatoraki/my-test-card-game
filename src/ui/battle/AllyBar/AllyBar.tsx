@@ -2,7 +2,7 @@ import { memo } from "react";
 import type { Ally, Card, Combatant } from "@/engine";
 import { getCharacter } from "@/data";
 import type { HitFx } from "@/ui/battle/animations";
-import { unitShellAttrs } from "@/ui/battle/unitShell";
+import { UNIT_BODY_ATTR, unitShellAttrs } from "@/ui/battle/unitShell";
 import { DEATH, type DeathPhase } from "@/ui/battle/deathChoreo";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
@@ -143,7 +143,7 @@ const AllySlot = memo(function AllySlot({ cmb, hit, attacking, focused, targetab
       </div>
 
       <div className={s["ally-frame"]}>
-        <div className={s["ally-figure"]}>
+        <div className={s["ally-figure"]} {...UNIT_BODY_ATTR}>
           <CharacterPortrait
             characterId={(cmb as Ally).charId}
             emoji={cmb.emoji}

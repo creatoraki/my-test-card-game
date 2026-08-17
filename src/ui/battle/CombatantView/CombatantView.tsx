@@ -4,7 +4,7 @@ import { getStatus, type Enemy } from "@/engine";
 import { StatusPips } from "@/ui/common/StatusPips";
 import { cx } from "@/ui/common/cx";
 import type { HitFx } from "@/ui/battle/animations";
-import { unitShellAttrs, type TelegraphKind } from "@/ui/battle/unitShell";
+import { UNIT_BODY_ATTR, unitShellAttrs, type TelegraphKind } from "@/ui/battle/unitShell";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { EnemySprite } from "@/ui/battle/EnemySprite";
 import { enemyArt, enemyIdle } from "@/ui/art/enemyArt";
@@ -139,7 +139,7 @@ export const CombatantView = memo(function CombatantView({
         <HitFxLayer hit={hit ?? null} />
         {phase === "vanish" && <DeathVanishFx />}
 
-        <div className={s["combatant-figure"]}>
+        <div className={s["combatant-figure"]} {...UNIT_BODY_ATTR}>
           {enemySprite ? (
             <EnemySprite
               id={cmb.enemyDefId}

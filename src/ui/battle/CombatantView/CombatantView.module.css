@@ -363,12 +363,16 @@ span.combatant-portrait {
   left: 50%;
   z-index: 8;
   transform: translateX(-50%);
+  font-family: var(--font-num);
   font-size: 48px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 3px #05080a;
   line-height: 1;
   color: #fff;
   white-space: nowrap;
-  text-shadow: 0 2px 4px #000, 0 0 8px currentColor;
+  text-shadow: 0 0 10px currentColor;
   pointer-events: none;
 }
 @keyframes telegraphLabel {

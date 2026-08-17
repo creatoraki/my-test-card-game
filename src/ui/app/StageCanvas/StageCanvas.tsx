@@ -20,13 +20,17 @@ export function StageCanvas({
   ...canvasProps
 }: StageCanvasProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
-  const stageScale = useStageScale(viewportRef);
+  const { scale: stageScale, padX, padY } = useStageScale(viewportRef);
 
   return (
     <div
       className={cx(s.viewport, viewportClassName)}
       ref={viewportRef}
-      style={{ "--stage-scale": stageScale } as CSSProperties}
+      style={{
+        "--stage-scale": stageScale,
+        "--stage-pad-x": `${padX}px`,
+        "--stage-pad-y": `${padY}px`,
+      } as CSSProperties}
     >
       <div className={cx(s.canvas, className)} {...canvasProps} style={style}>
         {children}

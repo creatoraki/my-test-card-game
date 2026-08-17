@@ -10,8 +10,14 @@ export const STAGE = {
   maxScale: 2560 / 1920,
 } as const;
 
-// 只要画布能保留至少一个设备像素，就向下吸附到整数设备像素倍数。
-// 用户接受画布略小、黑边略宽来换取清晰度；缩小时(k < 1/dpr)没有可用解，所以保持连续值。
+export interface StageLayout {
+  scale: number;
+  padX: number;
+  padY: number;
+}
+
+// 先按 DPR 吸附，再由 fit() 量化到 1920×k×dpr 为整数的缩放值。
+// 用户接受画布略小、黑边略宽来换取清晰度；极小尺寸仍由 fit() 的最终量化统一处理。
 function snapToDevicePixels(k: number): number {
   const dpr = window.devicePixelRatio || 1;
   const step = 1 / dpr;
@@ -19,24 +25,24 @@ function snapToDevicePixels(k: number): number {
   return Math.floor(k * dpr) / dpr;
 }
 
-// 观测容器实际尺寸, 返回等比缩放系数 k = min(w/1920, h/1080)(上限 STAGE.maxScale)。
+// 观测容器实际尺寸, 返回等比缩放与设备像素对齐后的 viewport padding。
 // 观测元素而非 window: 容器是 width/height:100%, 将来外面若套了别的 chrome 也不会算错。
 // 容器尚未测量到(w/h 为 0)时返回上一次的有效值, 缺省 1 —— 避免首帧闪一下 scale(0)。
-export function useStageScale(ref: React.RefObject<HTMLElement | null>): number {
-  const [scale, setScale] = useState(1);
+export function useStageScale(ref: React.RefObject<HTMLElement | null>): StageLayout {
+  const [layout, setLayout] = useState<StageLayout>({ scale: 1, padX: 0, padY: 0 });
   // 装载后同步测一次: 首帧就拿到正确的 k, 不经过 scale(1) 的闪跳
   useLayoutEffect(() => {
     const el = ref.current;
-    if (el) setScale(fit(el.clientWidth, el.clientHeight));
+    if (el) setLayout(fit(el.clientWidth, el.clientHeight));
   }, [ref]);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const measure = () => setScale(fit(el.clientWidth, el.clientHeight));
+    const measure = () => setLayout(fit(el.clientWidth, el.clientHeight));
     const ro = new ResizeObserver(([entry]) => {
-      const box = entry.contentRect;
-      setScale(fit(box.width, box.height));
+      const target = entry.target as HTMLElement;
+      setLayout(fit(target.clientWidth, target.clientHeight));
     });
     ro.observe(el);
     let media = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
@@ -67,12 +73,19 @@ export function useStageScale(ref: React.RefObject<HTMLElement | null>): number 
     };
   }, [ref]);
 
-  return scale;
+  return layout;
 }
 
-function fit(w: number, h: number): number {
-  if (w <= 0 || h <= 0) return 1;
-  return snapToDevicePixels(Math.min(w / STAGE.width, h / STAGE.height, STAGE.maxScale));
+function fit(w: number, h: number): StageLayout {
+  if (w <= 0 || h <= 0) return { scale: 1, padX: 0, padY: 0 };
+  const dpr = window.devicePixelRatio || 1;
+  const snapped = snapToDevicePixels(Math.min(w / STAGE.width, h / STAGE.height, STAGE.maxScale));
+  const scale = Math.floor(STAGE.width * snapped * dpr) / (STAGE.width * dpr);
+  return {
+    scale,
+    padX: Math.round((w - STAGE.width * scale) / 2 * dpr) / dpr,
+    padY: Math.round((h - STAGE.height * scale) / 2 * dpr) / dpr,
+  };
 }
 
 // 画布局部坐标系(设计 px, 原点 = 画布左上角)里的一个矩形。
