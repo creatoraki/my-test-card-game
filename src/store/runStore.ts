@@ -332,6 +332,11 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
     const explore = useExploreStore.getState();
     explore.settleBattle(won, survivors, enemyDefIds, challengeBonus);
+    // 战斗回合消耗(explore/rules.ts energyPerBattleRound): 打得越久, 粒子掉得越多。
+    // ★ 必须在 settleBattle 之后 —— 掉落系数/经验倍率读的是战前能量, 提前扣会削掉本场收益。
+    // ★ BOSS 战豁免(胜负均不扣): 那一场打完远征就结束了。isBoss 只能读 settleBattle
+    //   **之前**的快照 —— finishBattle 会把 pendingIsBoss 清成 false。
+    if (!session.pendingIsBoss) explore.spendBattleEnergy(battle.round);
     const after = useExploreStore.getState().session;
 
     if (!won) {

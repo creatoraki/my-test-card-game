@@ -226,6 +226,15 @@ export function cheatChangeEnergy(s: ExploreState, delta: number): void {
   changeEnergy(s, delta);
 }
 
+// 战斗回合消耗(设计文档 §4.2): 每进行 1 个战斗回合 −1 粒子。
+// ⚠ 由 store 层在 finishBattle **之后**调用 —— 掉落系数与经验倍率读的是战前能量,
+//   提前扣会削掉本场自己的收益。BOSS 战不调用本函数(那一场打完即通关)。
+export function spendBattleEnergy(s: ExploreState, rounds: number): void {
+  const cost = Math.max(0, Math.round(rounds)) * EXPLORE_RULES.energyPerBattleRound;
+  if (cost <= 0) return;
+  changeEnergy(s, -cost);
+}
+
 // ---------------------------------------------------------------------------
 // 背包 —— 占格、收纳与负重(设计文档 §六)
 // ---------------------------------------------------------------------------

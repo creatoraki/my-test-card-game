@@ -37,6 +37,7 @@ import {
   closeShopping,
   confirmNpc,
   shipHome,
+  spendBattleEnergy as spendBattleEnergyFn,
   startReveal,
   engageRoundBattle,
   takePendingContamination,
@@ -84,6 +85,8 @@ interface ExploreStore {
     enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
     challengeBonus: number,
   ) => void;
+  // 战斗回合消耗。★ 必须在 settleBattle 之后调用 —— 掉落系数与经验倍率读的是战前能量
+  spendBattleEnergy: (rounds: number) => void;
   clear: () => void;
 
   // ---- 背包(阶段白名单的真相点在 explore/session, 这里只是转发) ----
@@ -226,6 +229,12 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   settleBattle: (won, survivors, enemyDefIds, challengeBonus) => {
     mutate(get, set, (d) => {
       finishBattle(d, won, survivors, enemyDefIds, challengeBonus);
+    });
+  },
+
+  spendBattleEnergy: (rounds) => {
+    mutate(get, set, (d) => {
+      spendBattleEnergyFn(d, rounds);
     });
   },
 
