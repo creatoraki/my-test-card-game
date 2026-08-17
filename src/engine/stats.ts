@@ -10,7 +10,7 @@
 // ============================================================================
 
 import type { BattleState, Combatant, SquadResourceMods, StatBlock, StatModifier } from "./types";
-import { POLLUTION_STATUS_ID, RULES, capProb } from "./rules";
+import { OVERLOAD_STATUS_ID, RULES, capProb } from "./rules";
 import { STATUS_DEFS } from "./statuses";
 
 // 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
@@ -101,8 +101,8 @@ export function burdenOf(state: BattleState, cmb: Combatant): number {
 }
 
 function pollutionDodgeOf(cmb: Combatant): number {
-  const stacks = cmb.statuses.find((status) => status.id === POLLUTION_STATUS_ID)?.stacks ?? 0;
-  return stacks * RULES.combat.pollutionDodgePerStack;
+  const stacks = cmb.statuses.find((status) => status.id === OVERLOAD_STATUS_ID)?.stacks ?? 0;
+  return stacks * RULES.combat.overloadDodgePerStack;
 }
 
 // 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。

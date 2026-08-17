@@ -60,8 +60,8 @@ export const RULES = {
     weakMultiplier: 0.75, // 虚弱: 造成攻击伤害 ×
     sharpMultiplier: 1.1, // 锋利: 造成攻击伤害 ×
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
-    pollutionDamagePerStack: 0.05, // 粒子污染每层: 造成的攻击伤害 ×
-    pollutionDodgePerStack: 5, // 粒子污染每层: 闪避 +5 个百分点
+    overloadDamagePerStack: 0.05, // 过载每层: 造成的攻击伤害 ×
+    overloadDodgePerStack: 5, // 过载每层: 闪避 +5 个百分点
     enemyBaseHitBonus: 5, // 怪物阵营统一命中补正(百分点)
 
     defenseConstant: 30, // 减伤 = 防御力 / (防御力 + 该常量)
@@ -132,7 +132,7 @@ export const RULES = {
   },
 } as const;
 
-export const POLLUTION_STATUS_ID = "pollution";
+export const OVERLOAD_STATUS_ID = "overload";
 
 // 把概率类属性(暴击/闪避/格挡/异常抗性)的最终值截到硬上限。
 export function capProb(v: number): number {

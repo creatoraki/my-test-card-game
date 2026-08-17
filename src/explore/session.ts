@@ -130,24 +130,11 @@ function dropContext(s: ExploreState): DropContext {
   };
 }
 
-// 能量档位 → 遭遇战改造。引擎侧只认这一个结构(见 engine/types.ts EncounterModifier)。
-export function encounterModifier(
-  energy: number,
-  isBoss: boolean,
-  fillerEnemyIds: string[],
-): EncounterModifier {
+// 能量档位 → 遭遇战改造。档位只把对应的 BUFF/状态层数带入战斗。
+export function encounterModifier(energy: number): EncounterModifier {
   const t = energyTier(energy);
-  const extra: string[] = [];
-  if (fillerEnemyIds.length) {
-    // 追加敌人用确定性取模而非随机 —— 同一档位下阵容稳定, 玩家看得懂自己招来了什么
-    for (let i = 0; i < t.extraEnemies; i++) extra.push(fillerEnemyIds[i % fillerEnemyIds.length]);
-    if (isBoss && t.tier >= EXPLORE_RULES.boss.guardFromTier) extra.push(fillerEnemyIds[0]);
-  }
   return {
-    extraEnemies: extra,
     enemyStatuses: t.enemyStatuses.map((st) => ({ ...st })),
-    moveDelayDelta: t.moveDelayDelta,
-    hpMultiplier: isBoss ? 1 + EXPLORE_RULES.boss.hpPerTier * (t.tier - 1) : 1,
   };
 }
 

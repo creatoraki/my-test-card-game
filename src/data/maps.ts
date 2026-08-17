@@ -21,7 +21,6 @@ export interface MapDef {
   // 推进战斗档位 → 遭遇战。轮次到档位的映射是全局固定表(EXPLORE_RULES.battleTierByRound),
   // 地图只负责说「本图的轻/中/大/BOSS 各是谁」。
   battleEncounters: Record<BattleTier, string>;
-  fillerEnemyIds: string[]; // 能量档位低时追加的敌人(第 4 档起 +1, BOSS 第 4 档起 +1 护卫)
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
 }
 
@@ -40,7 +39,6 @@ export const MAPS: MapDef[] = [
       heavy: "n-compactor", // 报废压缩机
       boss: "n-boss", // 回收总控
     },
-    fillerEnemyIds: ["radio-bot"],
     startingEnergy: 100,
   },
   {
@@ -57,7 +55,6 @@ export const MAPS: MapDef[] = [
       heavy: "",
       boss: "",
     },
-    fillerEnemyIds: [],
     startingEnergy: 100,
   },
   {
@@ -74,7 +71,6 @@ export const MAPS: MapDef[] = [
       heavy: "",
       boss: "",
     },
-    fillerEnemyIds: [],
     startingEnergy: 100,
   },
   {
@@ -91,7 +87,6 @@ export const MAPS: MapDef[] = [
       heavy: "",
       boss: "",
     },
-    fillerEnemyIds: [],
     startingEnergy: 100,
   },
   {
@@ -108,7 +103,6 @@ export const MAPS: MapDef[] = [
       heavy: "",
       boss: "",
     },
-    fillerEnemyIds: [],
     startingEnergy: 100,
   },
 ];

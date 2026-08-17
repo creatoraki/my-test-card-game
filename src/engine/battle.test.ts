@@ -103,7 +103,7 @@ describe("属性口径", () => {
       "n-crew",
       { allies: allies(), deck: deckOf("swordsman-basic-attack") },
       42,
-      { enemyStatuses: [{ id: "pollution", stacks: 4 }] },
+      { enemyStatuses: [{ id: "overload", stacks: 4 }] },
     );
     const cleanEnemy = clean.combatants[clean.enemyIds[0]];
     const pollutedEnemy = polluted.combatants[polluted.enemyIds[0]];

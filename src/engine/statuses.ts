@@ -5,7 +5,7 @@
 // ============================================================================
 
 import type { StatusCtx, StatusDef, DamageCtx } from "./types";
-import { POLLUTION_STATUS_ID, RULES } from "./rules";
+import { OVERLOAD_STATUS_ID, RULES } from "./rules";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
   // ---- 持续伤害 ----
@@ -94,16 +94,16 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
       },
     },
   },
-  pollution: {
-    id: POLLUTION_STATUS_ID,
-    name: "粒子污染",
+  overload: {
+    id: OVERLOAD_STATUS_ID,
+    name: "过载",
     emoji: "☢️",
     kind: "buff",
-    desc: `每层: 造成的攻击伤害 +${RULES.combat.pollutionDamagePerStack * 100}%, 闪避 +${RULES.combat.pollutionDodgePerStack}%。持续存在。`,
+    desc: `每层: 造成的攻击伤害 +${RULES.combat.overloadDamagePerStack * 100}%, 闪避 +${RULES.combat.overloadDodgePerStack}%。持续存在。`,
     hooks: {
       modifyOutgoingDamage: (c: StatusCtx, dmg: DamageCtx) => {
         if (dmg.isAttack)
-          dmg.amount *= 1 + RULES.combat.pollutionDamagePerStack * c.inst.stacks;
+          dmg.amount *= 1 + RULES.combat.overloadDamagePerStack * c.inst.stacks;
       },
     },
   },

@@ -35,12 +35,10 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
   const rangeTop = previous ? previous.min - 1 : EXPLORE_RULES.energyMax;
   const pointsToNext = toNextTier(energy);
   const dangers = [
-    ...(cur.extraEnemies > 0 ? [`战斗追加 ${cur.extraEnemies} 名敌人`] : []),
     ...cur.enemyStatuses.map((status) => {
       const name = getStatusDef(status.id)?.name ?? status.id;
       return `敌方全体${name} +${status.stacks}`;
     }),
-    ...(cur.moveDelayDelta < 0 ? [`敌方先手 +${Math.abs(cur.moveDelayDelta)}`] : []),
   ];
 
   return (

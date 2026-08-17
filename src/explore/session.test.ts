@@ -560,17 +560,9 @@ describe("净化粒子(设计文档 §4.2)", () => {
     expect(costs).toEqual([...EXPLORE_RULES.energyPerNodeBySegment]);
   });
 
-  it("遭遇改造随档位加码, BOSS 还要额外吃血量缩放", () => {
-    const fillers = ["scrap-bot", "radio-bot"];
-    // EncounterModifier 的字段都是可选的(引擎侧允许只改一部分), 故断言前先兜底成空数组。
-    const extras = (energy: number, boss: boolean) =>
-      encounterModifier(energy, boss, fillers).extraEnemies?.length ?? 0;
-
-    expect(extras(0, false)).toBeGreaterThan(extras(100, false));
-    expect(encounterModifier(100, true, fillers).hpMultiplier).toBe(1);
-    expect(encounterModifier(0, true, fillers).hpMultiplier ?? 1).toBeGreaterThan(1);
-    // 第 4 档起 BOSS 追加一个护卫
-    expect(extras(0, true)).toBeGreaterThan(extras(0, false));
+  it("遭遇改造只把能量档位的 BUFF 层数带入战斗", () => {
+    expect(encounterModifier(100).enemyStatuses).toEqual([]);
+    expect(encounterModifier(0).enemyStatuses).toEqual([{ id: "overload", stacks: 4 }]);
   });
 });
 

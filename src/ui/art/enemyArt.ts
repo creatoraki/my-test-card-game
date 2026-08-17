@@ -4,6 +4,7 @@ import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle.png";
 import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle.png";
 import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle.png";
 import sweepDroneIdle from "@/assets/敌人立绘/清扫机器人/idle.png";
+import scrapMountainGuardianIdle from "@/assets/敌人立绘/垃圾山的守护者/idle.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
@@ -92,6 +93,14 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     sheet: { w: 2048, h: 2048 },
     body: { x: 0, y: 0, w: 2048, h: 2048 },
     idle: { bob: 4, sway: 2, tilt: 1, dur: 2200, delay: -500 },
+  },
+  "scrap-mountain-guardian": {
+    src: scrapMountainGuardianIdle,
+    frames: 1,
+    frameMs: 1000,
+    sheet: { w: 768, h: 768 },
+    body: { x: 0, y: 0, w: 768, h: 768 },
+    idle: { bob: 2, sway: 1, tilt: 0.5, dur: 3200, delay: -700 },
   },
 };
 

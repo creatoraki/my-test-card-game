@@ -195,4 +195,27 @@ export const ENEMIES: EnemyDef[] = [
       },
     ],
   },
+  {
+    id: "scrap-mountain-guardian",
+    name: "垃圾山的守护者",
+    emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
+    maxHp: 150,
+    exp: 80,
+    actsPerRound: 2,
+    stats: { attack: 18, defense: 2, initiative: 20, critDamage: 150 },
+    moves: [
+      {
+        id: "guardian-attack",
+        name: "普通攻击",
+        emoji: "⚔️",
+        delay: 4,
+        kind: "attack",
+        targeting: "foe",
+        weight: 1,
+        hitBonus: 0,
+        anim: "slash",
+        effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
+      },
+    ],
+  },
 ];

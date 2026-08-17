@@ -213,9 +213,7 @@ export interface EnergyTier {
   name: string;
   color: string;
   min: number; // 进入该档所需的能量下限(含)
-  extraEnemies: number;
-  enemyStatuses: { id: string; stacks: number }[];
-  moveDelayDelta: number; // 敌方每次抽招式的延迟变化
+  enemyStatuses: { id: string; stacks: number }[]; // 施加给全体敌人的 BUFF/状态层数
   rewardMultiplier: number; // 即 K_energy, 同时作用于经验与产出
 }
 

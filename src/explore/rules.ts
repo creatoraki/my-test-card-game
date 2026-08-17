@@ -86,12 +86,6 @@ export const EXPLORE_RULES = {
   // 全图随机抽取, 与节点类型/深段无关; 走到(落地)后揭示真实事件。
   hiddenNodesPerBoard: 3,
 
-  // ── BOSS 的额外缩放(在档位表之上再叠一层, 读开打瞬间的能量) ──
-  boss: {
-    hpPerTier: 0.15, // maxHp × (1 + 0.15 × (档位-1))
-    guardFromTier: 4, // 第 4 档起追加一个护卫
-  },
-
   // ── 团灭惩罚。★ 背包与积分全丢, 经验照发(经验在每场战斗后即时入账, 见 runStore)。
   //   已通过投递口寄回的物品不受影响 —— 那是背包玩法唯一的保险手段(设计文档 §6.5)。──
   wipe: {
@@ -136,16 +130,14 @@ export const EXPLORE_RULES = {
 //
 // ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40)。
 //   粒子污染按档位 −1 层提高敌方攻击伤害与闪避, 与力量 buff 分开显示。
-// ⚠ 护盾现已跨回合保留，开局护盾是可用的硬度手段；本次不调整高档位数值。
+// 能量档位只把对应的 BUFF/状态层数带入战斗；每层的实际伤害与闪避效果由 engine/statuses.ts 定义。
 export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 1,
     name: "充盈",
     color: "#8dcc3f",
     min: 80,
-    extraEnemies: 0,
     enemyStatuses: [],
-    moveDelayDelta: 0,
     rewardMultiplier: 1.0,
   },
   {
@@ -153,9 +145,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     name: "稳定",
     color: "#d8f329",
     min: 60,
-    extraEnemies: 0,
-    enemyStatuses: [{ id: "pollution", stacks: 1 }],
-    moveDelayDelta: 0,
+    enemyStatuses: [{ id: "overload", stacks: 1 }],
     rewardMultiplier: 1.1,
   },
   {
@@ -163,9 +153,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     name: "衰减",
     color: "#ffd43b",
     min: 40,
-    extraEnemies: 0,
-    enemyStatuses: [{ id: "pollution", stacks: 2 }],
-    moveDelayDelta: 0,
+    enemyStatuses: [{ id: "overload", stacks: 2 }],
     rewardMultiplier: 1.2,
   },
   {
@@ -173,9 +161,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     name: "告急",
     color: "#ff922b",
     min: 20,
-    extraEnemies: 1,
-    enemyStatuses: [{ id: "pollution", stacks: 3 }],
-    moveDelayDelta: -1, // 敌方先手 +1
+    enemyStatuses: [{ id: "overload", stacks: 3 }],
     rewardMultiplier: 1.35,
   },
   {
@@ -183,9 +169,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
     name: "枯竭",
     color: "#ff6b6b",
     min: 0,
-    extraEnemies: 1,
-    enemyStatuses: [{ id: "pollution", stacks: 4 }],
-    moveDelayDelta: -2, // 敌方先手 +2
+    enemyStatuses: [{ id: "overload", stacks: 4 }],
     rewardMultiplier: 1.6,
   },
 ];
