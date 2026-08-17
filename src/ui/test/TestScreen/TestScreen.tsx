@@ -1,20 +1,18 @@
 import { useState } from "react";
-import { LunaRouteBoardDemo } from "../luna/LunaRouteBoardDemo";
-import { OpusEventPanel, OpusRoutePanel } from "../opus";
-import { DsEventPanel, DsRouteBoard } from "../ds";
 import s from "./TestScreen.module.css";
 
-type TestTab = "opus" | "opus-route" | "luna" | "ds" | "ds-route";
+// 测试 demo 页面：多个开发者可以同时开发相同内容的组件 demo，并通过各自的 tab 进行评选。
+// 每位开发者独占一个文件夹和一个 tab，互相不干扰；AI 不得抄袭其他开发者的代码成果。
+type TestTab = "opus" | "luna" | "ds" | "qwen";
 
-const TABS: TestTab[] = ["opus", "opus-route", "luna", "ds", "ds-route"];
+const TABS: TestTab[] = ["opus", "luna", "ds", "qwen"];
 
 // 页签文案与 tab 值分开: tab 值同时是 key 与 aria 标签的词根, 改文案不影响其它两处。
 const TAB_LABEL: Record<TestTab, string> = {
   opus: "opus",
-  "opus-route": "opus 路线图",
   luna: "luna",
   ds: "ds",
-  "ds-route": "ds 路线图",
+  qwen: "qwen",
 };
 
 export function TestScreen() {
@@ -36,17 +34,7 @@ export function TestScreen() {
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
-        {activeTab === "opus" ? (
-          <OpusEventPanel />
-        ) : activeTab === "opus-route" ? (
-          <OpusRoutePanel />
-        ) : activeTab === "luna" ? (
-          <LunaRouteBoardDemo />
-        ) : activeTab === "ds" ? (
-          <DsEventPanel />
-        ) : (
-          <DsRouteBoard />
-        )}
+        {/* 各开发者的 demo 由对应文件夹自行接入，基准页面不预置任何内容。 */}
       </section>
     </main>
   );
