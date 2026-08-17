@@ -180,6 +180,7 @@ export function BattleScreen() {
   const openingDoneRef = useRef(false); // 本场战斗的首批手牌是否已发出
   const timelineRef = useRef<Timeline | null>(null);
   const discardCommitTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const vanishedUidsRef = useRef(new Set<string>());
   const triggerPlayRef = useRef<(uid: string, primaryId?: string) => void>(() => undefined);
   const combatantClickRef = useRef<(id: string) => void>(() => undefined);
   const cameraRig = useCameraRig({ sceneRef, worldRef, dofTargetsRef });
@@ -235,6 +236,7 @@ export function BattleScreen() {
     setPlayingOutUid(null);
     setDiscardingUids([]);
     discardingUidsRef.current.clear();
+    vanishedUidsRef.current.clear();
     discardCommitTimersRef.current.forEach((timer) => clearTimeout(timer));
     discardCommitTimersRef.current = [];
   }, [battleSeq]);
@@ -290,7 +292,12 @@ export function BattleScreen() {
   useEffect(() => {
     if (!battle) return;
     const liveSet = new Set(battle.hand);
-    const newUids = battle.hand.filter((uid) => !dealtUidsRef.current.has(uid));
+    for (const uid of vanishedUidsRef.current) {
+      if (!liveSet.has(uid)) vanishedUidsRef.current.delete(uid);
+    }
+    const newUids = battle.hand.filter(
+      (uid) => !dealtUidsRef.current.has(uid) && !vanishedUidsRef.current.has(uid),
+    );
     const base = openingDoneRef.current ? 0 : HAND_DEAL.opening;
     const delayOf = new Map(newUids.map((uid, k) => [uid, base + k * HAND_DEAL.stagger]));
     if (newUids.length > 0) openingDoneRef.current = true;
@@ -322,12 +329,13 @@ export function BattleScreen() {
   }, [battle]);
 
   const handleCardExited = useCallback((uid: string) => {
+    if (battle?.hand.includes(uid)) vanishedUidsRef.current.add(uid);
     dealtUidsRef.current.delete(uid);
     setRenderHand((prev) => prev.filter((e) => e.card.uid !== uid));
     setPlayingOutUid((cur) => (cur === uid ? null : cur));
     discardingUidsRef.current.delete(uid);
     setDiscardingUids((current) => current.filter((id) => id !== uid));
-  }, []);
+  }, [battle]);
 
   const markDiscarding = useCallback((uid: string) => {
     if (discardingUidsRef.current.has(uid)) return;
@@ -344,7 +352,7 @@ export function BattleScreen() {
     const timer = setTimeout(() => {
       discardCommitTimersRef.current = discardCommitTimersRef.current.filter((item) => item !== timer);
       if (seqRef.current === seq) clearDiscarding();
-    }, DISCARD.sink);
+    }, DISCARD.total);
     discardCommitTimersRef.current.push(timer);
   }, [clearDiscarding]);
 
@@ -366,12 +374,12 @@ export function BattleScreen() {
       }
       const plan = discardCard(uid);
       if (plan) {
-        markPlanDiscards(plan.final);
         if (plan.steps.length > 0) startBatch(plan.steps.map(stepFromFx), plan.final);
         else {
           const seq = ++seqRef.current;
           animatingRef.current = true;
           setAnimating(true);
+          markDiscarding(uid);
           const timer = setTimeout(() => {
             discardCommitTimersRef.current = discardCommitTimersRef.current.filter((item) => item !== timer);
             if (seqRef.current !== seq) return;
@@ -379,7 +387,7 @@ export function BattleScreen() {
             scheduleDiscardingCleanup(seq);
             animatingRef.current = false;
             setAnimating(false);
-          }, DISCARD.sink);
+          }, DISCARD.total);
           discardCommitTimersRef.current.push(timer);
         }
         setHandAction(null);
@@ -555,8 +563,23 @@ export function BattleScreen() {
     return Math.hypot(currentFocus.dx - previousFocus.dx, currentFocus.dy - previousFocus.dy) > CAMERA_HARD_CUT_DISTANCE;
   }
 
-  function runSteps(steps: ChoreoStep[], final: BattleState, seq: number, enter: Camera | null) {
+  function runSteps(
+    steps: ChoreoStep[],
+    final: BattleState,
+    seq: number,
+    enter: Camera | null,
+    excludeUid?: string,
+  ) {
     const plans = choreograph(steps, b);
+    const handSeen = new Set(b.hand);
+    if (excludeUid) handSeen.delete(excludeUid);
+    const marksAt: string[][] = [];
+    for (const [index, plan] of plans.entries()) {
+      const gone = [...handSeen].filter((uid) => !plan.step.snapshot.hand.includes(uid));
+      marksAt[index] = gone;
+      gone.forEach((uid) => handSeen.delete(uid));
+    }
+    const endMarks = [...handSeen].filter((uid) => !final.hand.includes(uid));
     const finishBatch = () => {
       if (seqRef.current !== seq) return;
       commit(final);
@@ -575,6 +598,7 @@ export function BattleScreen() {
       setAnimating(false);
     };
     if (plans.length === 0) {
+      endMarks.forEach(markDiscarding);
       if (discardingUidsRef.current.size === 0) {
         finishBatch();
         return;
@@ -582,7 +606,7 @@ export function BattleScreen() {
       const timer = setTimeout(() => {
         discardCommitTimersRef.current = discardCommitTimersRef.current.filter((item) => item !== timer);
         finishBatch();
-      }, DISCARD.sink);
+      }, DISCARD.total);
       discardCommitTimersRef.current.push(timer);
       return;
     }
@@ -607,13 +631,16 @@ export function BattleScreen() {
       const focus = () => (preset.kind === "none" ? null : computeCamera(focusIds, preset));
       // 敌人攻击必须先完成聚焦再进入蓄力, 否则 telegraph 会和镜头同时启动, 命中时镜头才刚到位。
       const focusLead = isFoeLedShot(preset) ? CAMERA_SETTLE_MS : 0;
-      const discardLead = step.discardUid ? DISCARD.sink : 0;
+      const selfMark = Boolean(step.discardUid && marksAt[index]?.includes(step.discardUid));
+      const stepMarks = (marksAt[index] ?? []).filter((uid) => !selfMark || uid !== step.discardUid);
+      const markStepDiscards = () => stepMarks.forEach(markDiscarding);
+      const discardLead = selfMark ? DISCARD.total : 0;
       const actionAt = at + discardLead + focusLead;
       const hitAt = actionAt + preset.lead + cutIn;
       timeline.add({
         at,
         run: () => {
-          if (step.discardUid) markDiscarding(step.discardUid);
+          if (selfMark) markDiscarding(step.discardUid!);
           cameraRig.setTuning(preset.rig);
           if (isFoeLedShot(preset)) {
             setCameraTarget(focus());
@@ -666,7 +693,10 @@ export function BattleScreen() {
           const impactDelay = impactMs;
           // 死亡闸门要和实际扣血快照同刻启动, 不再把顿帧/慢镜额外叠到死亡表现上。
           deaths.setImpactOffset(0);
-          if (!proc?.damageAtImpact) commit(step.snapshot);
+          if (!proc?.damageAtImpact) {
+            markStepDiscards();
+            commit(step.snapshot);
+          }
           const hitSeq = ++hitSeqRef.current;
           const map: Record<string, HitFx> = {};
           for (const h of step.hits) {
@@ -679,7 +709,10 @@ export function BattleScreen() {
           }
           setHits(map);
           timeline.schedule(impactDelay, () => {
-            if (proc?.damageAtImpact) commit(step.snapshot);
+            if (proc?.damageAtImpact) {
+              markStepDiscards();
+              commit(step.snapshot);
+            }
             setHitstop(preset.hitstop > 0);
             if (preset.hitstop > 0) {
               cameraRig.setTimeScale(0);
@@ -710,14 +743,20 @@ export function BattleScreen() {
       lastActor = step.actorId;
       lastAnim = step.anim;
     });
+    timeline.add({ at, run: () => endMarks.forEach(markDiscarding) });
     timeline.add({ at: at + 260, run: () => setCameraTarget(null) });
-    timeline.add({ at: at + 520, run: () => undefined });
+    timeline.add({ at: at + DISCARD.total + 40, run: () => undefined });
     timeline.start();
   }
 
   // 开启一个动画批次: 上锁 + 清选择, 逐步回放。空步数则直接落到终态。
   // enter: 第 0 步「顿」期间的镜头(null=回全景)。玩家出牌时传当前瞄准位, 见 triggerPlay。
-  function startBatch(steps: ChoreoStep[], final: BattleState, enter: Camera | null = null) {
+  function startBatch(
+    steps: ChoreoStep[],
+    final: BattleState,
+    enter: Camera | null = null,
+    excludeUid?: string,
+  ) {
     const seq = ++seqRef.current;
     animatingRef.current = true;
     setAnimating(true);
@@ -729,13 +768,7 @@ export function BattleScreen() {
     //   (旧实现有个遗留小毛病: 打出的那张卡 leaving 后带 pointer-events:none 且随即卸载,
     //    永远收不到 mouseleave ⇒ 右侧详情面板会一直停在这张已经打出去的卡上, 直到鼠标
     //    悬到另一张牌。想修的话在这里加一行 resetHandHover() 即可, 但那是行为变更, 单独议。)
-    runSteps(steps, final, seq, enter);
-  }
-
-  function markPlanDiscards(final: BattleState, excludeUid?: string) {
-    for (const uid of b.hand) {
-      if (uid !== excludeUid && !final.hand.includes(uid)) markDiscarding(uid);
-    }
+    runSteps(steps, final, seq, enter, excludeUid);
   }
 
   // 出牌: 先算出动画计划(含触发的敌人行动), 玩家出牌为第 0 步, 敌人行动依次接续。
@@ -750,7 +783,6 @@ export function BattleScreen() {
     const plan = play(uid, primaryId);
     if (!plan) return;
     setPlayingOutUid(uid); // 出牌成功: 立即让该卡从当前(选中弹出)位开始向右出鞘
-    markPlanDiscards(plan.final, uid);
 
     const cardHits = targets.map((id) => ({
       id,
@@ -770,7 +802,7 @@ export function BattleScreen() {
     //      推近后目标就不在画面正中了。详见 screenToWorld 的注释。
     //   转正使用短于首个命中节拍的过渡, 到量取时刻已经稳定落位。
     const enter = aim ? { ...aim, yaw: 0, pitch: 0 } : null;
-    startBatch(steps, plan.final, enter);
+    startBatch(steps, plan.final, enter, uid);
   }
   triggerPlayRef.current = triggerPlay;
 
@@ -779,7 +811,6 @@ export function BattleScreen() {
     if (animatingRef.current) return;
     const plan = end();
     if (!plan) return;
-    markPlanDiscards(plan.final);
     startBatch(plan.steps.map(stepFromFx), plan.final);
   }
 
@@ -788,7 +819,6 @@ export function BattleScreen() {
     if (animatingRef.current) return;
     const plan = wait();
     if (!plan) return;
-    markPlanDiscards(plan.final);
     startBatch(plan.steps.map(stepFromFx), plan.final);
   }
 

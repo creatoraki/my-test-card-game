@@ -114,9 +114,11 @@ export const HAND_DEAL = {
   opening: 1000,
 } as const;
 
-// 弃牌下沉时长，同时供 HandCard.module.css 与 BattleScreen 时间轴消费。
+// 弃牌演出时长(ms)。pop = 弹出到顶点, total = 弹出 + 化光消散全长,
+// 与 HandCard.module.css 的 cardDiscardBurst 关键帧一起改。
 export const DISCARD = {
-  sink: 420,
+  pop: 320,
+  total: 1000,
 } as const;
 
 export const ANIM: Record<CardAnim, AnimPreset> = {

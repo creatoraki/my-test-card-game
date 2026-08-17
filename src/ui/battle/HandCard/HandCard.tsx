@@ -18,7 +18,7 @@ interface Props {
   selected: boolean;
   variant?: "hand" | "pile";
   leaving?: boolean; // true: 出牌/丢弃后向上出鞘渐隐(见 HandCard.css .hand-card.leaving)
-  discarding?: boolean; // true: 弃牌后原地下沉翻面渐隐
+  discarding?: boolean; // true: 弃牌后弹出并化成白光消散
   purged?: boolean; // true: 所属角色阵亡后碎裂消散
   dealDelay?: number; // 抽牌飞入的绝对延迟(ms), 由父级按批次计算
   onExited?: (uid: string) => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
@@ -171,7 +171,7 @@ export const HandCard = memo(function HandCard({
         }}
         onAnimationEnd={(e) => {
           if (purged && e.animationName.includes("cardShatter")) onExited?.(card.uid);
-          if (discarding && e.animationName.includes("cardDiscardSink")) onExited?.(card.uid);
+          if (discarding && e.animationName.includes("cardDiscardBurst")) onExited?.(card.uid);
         }}
       >
         {/* 配图层: 卡上段的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪) */}

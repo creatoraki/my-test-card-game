@@ -849,32 +849,32 @@
   opacity: 0;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.85, 0.4), opacity 0.28s ease-in;
 }
-/* 弃牌: 保持原位下沉并翻面, 与出牌的向上出鞘形成明确区分。 */
+/* 弃牌: 先从原位弹出, 再过曝成白光向外化开。 */
 .hand-card.discarding {
   pointer-events: none;
-  animation: cardDiscardSink 420ms cubic-bezier(0.2, 0.7, 0.35, 1) forwards;
+  animation: cardDiscardBurst 1000ms cubic-bezier(0.16, 0.86, 0.26, 1) forwards;
   transition: none;
 }
-@keyframes cardDiscardSink {
+@keyframes cardDiscardBurst {
   0% {
     opacity: 1;
     filter: brightness(1) saturate(1);
     transform: translateY(0) rotateX(0) rotateZ(0);
   }
-  38% {
-    opacity: 0.92;
-    filter: brightness(0.78) saturate(0.35);
-    transform: translateY(22px) rotateX(32deg) rotateZ(-2deg);
+  32% {
+    opacity: 1;
+    filter: brightness(1.25) saturate(0.9);
+    transform: translateY(-90px) rotateZ(-2deg) scale(1.08);
   }
-  72% {
-    opacity: 0.45;
-    filter: brightness(0.55) grayscale(0.8) blur(1px);
-    transform: translateY(52px) rotateX(78deg) rotateZ(3deg) scale(0.94);
+  50% {
+    opacity: 0.98;
+    filter: brightness(3.2) saturate(0) contrast(0.8);
+    transform: translateY(-90px) rotateZ(0) scale(1.08);
   }
   100% {
     opacity: 0;
-    filter: brightness(0.35) grayscale(1) blur(4px);
-    transform: translateY(74px) rotateX(180deg) rotateZ(5deg) scale(0.86);
+    filter: brightness(3.2) saturate(0) contrast(0.8) blur(14px);
+    transform: translateY(-90px) rotateZ(2deg) scale(1.22);
   }
 }
 /* 所属角色阵亡后的卡牌退场: 覆盖出鞘过渡, 让卡面先红裂再抖散。 */
@@ -1062,7 +1062,7 @@
     transition-duration: 0.01ms;
   }
   .hand-card.discarding {
-    animation: cardDiscardSink 0.01ms linear forwards;
+    animation: cardDiscardBurst 0.01ms linear forwards;
   }
   .hc-action {
     animation: none;

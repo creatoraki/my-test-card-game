@@ -74,7 +74,7 @@ src/ui/
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情页场景级卡牌悬浮层，固定在卡组左侧空档并放大渲染 `common/TechCard`；只负责定位和展示时机，不承载卡牌业务规则。 |
 | [character/CardView](../../src/ui/character/CardView/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。 |
-| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告；弃牌步骤先播放 `DISCARD.sink` 对应的 `cardDiscardSink` 原地下沉翻面渐隐，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
+| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
 | [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切风格的紧凑两列战斗胜利结算壳：队伍经验、掉落来源分区、待拾取战利品、4×6 回收背包及继续/放弃操作。 |
 | [battle/VictoryDropSection](../../src/ui/battle/VictoryDropSection/VictoryDropSection.tsx) | 战斗胜利结算的掉落系数通栏分区：展示能量档位与挑战来源 chip，复用 RailPopover 提供键盘可聚焦的详情浮层，并表现已打破挑战的灰显态。 |
@@ -112,7 +112,7 @@ src/ui/
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
 | [battle/PileDrawer](../../src/ui/battle/PileDrawer/PileDrawer.tsx) | 牌堆内容弹窗，按卡名排序展示，复用原尺寸 `HandCard`；悬停时由 `.scrim` 下的独立放大层浮出 1.4 倍卡面；待选择回收时切换为弃牌堆选择模式，点击卡牌提交，关闭弹窗取消。 |
-| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放原地下沉翻面渐隐，所属角色阵亡后以 `purged` 播碎裂消散并卸载。现同时服务手牌托盘与牌堆弹窗，两套版式分别锁在 `[data-hand-tray]` / `[data-pile-grid]` 下；弹窗模式（`variant="pile"`）不写 `handFocusStore`。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，所属角色阵亡后以 `purged` 播碎裂消散并卸载。现同时服务手牌托盘与牌堆弹窗，两套版式分别锁在 `[data-hand-tray]` / `[data-pile-grid]` 下；弹窗模式（`variant="pile"`）不写 `handFocusStore`。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；显示生效费用、污染卡与卡牌标记说明。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
 | [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |
@@ -125,7 +125,7 @@ src/ui/
 | [fx/BloodSlashFx](../../src/ui/battle/fx/BloodSlashFx/BloodSlashFx.tsx) | `blood-slash` 血色刀光程序化 CSS 特效；固定几何表与 `proc.impactMs` 爆点锚复刻刀身下劈、刀痕张开和血花爆裂，震屏归相机、全屏压暗/双闪归 `screenFx`。 |
 | [fx/DeathVanishFx](../../src/ui/battle/fx/DeathVanishFx/DeathVanishFx.tsx) | 敌方死亡的附加白光：脚下扩散光环与确定性白色光粒；只在死亡闸门的 vanish 阶段挂载，不承载战斗状态。 |
 | [styles/unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css) | 敌我共用的阵亡叠层样式。 |
-| [animations.ts](../../src/ui/battle/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设；`DISCARD.sink` 与 `HandCard.module.css` 的 `cardDiscardSink` 共用弃牌下沉时长。调演出节奏优先改这里；死亡闸门时序另见 `deathChoreo.ts`。 |
+| [animations.ts](../../src/ui/battle/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设；`DISCARD.pop/total` 与 `HandCard.module.css` 的 `cardDiscardBurst` 共用弃牌弹出化光时序。调演出节奏优先改这里；死亡闸门时序另见 `deathChoreo.ts`。 |
 | [ambience.ts](../../src/ui/battle/ambience.ts) | 按地图登记粒子发射器、灯光闪烁和屏幕调色。 |
 | [handFocusStore.ts](../../src/ui/battle/handFocusStore.ts) | 手牌悬停/聚焦状态，独立于 BattleScreen，避免鼠标状态和战斗状态互相污染。 |
 
