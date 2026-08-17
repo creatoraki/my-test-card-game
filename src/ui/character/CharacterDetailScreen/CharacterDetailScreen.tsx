@@ -27,6 +27,7 @@ import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar/HpBar";
 import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
 import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
+import { SquadBondBar } from "@/ui/common/SquadBondBar";
 import { StatIcon } from "@/ui/common/StatIcon";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
@@ -222,7 +223,6 @@ export function CharacterDetailScreen() {
 
   const def = getCharacter(charId);
   const stats = deriveStats(cs);
-  const size = RULES.progression.partySize;
   const onField = party.includes(charId);
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
   const costs = deckForgeCosts(cs, day);
@@ -253,26 +253,20 @@ export function CharacterDetailScreen() {
           <h2 className={s["cd-title"]}>{def.name}</h2>
           <p className={s["cd-sub"]}>
             可用经验 {cs.exp} · 累计 {cs.expEarned} · 卡组 Lv.{cs.deckLevel}/{RULES.deck.levelMax} · 最小卡组下限{" "}
-            {cs.minDeckSize} 张
+            {cs.minDeckSize} 张 · {onField ? "出战中" : "待命"} · 上阵 {party.length}/{RULES.progression.partySize}
           </p>
           <div className={s["cd-conditions"]}>
             <QuirkPips sick={cs.sick} quirks={cs.quirks} className={s["cd-quirks"]} />
           </div>
         </header>
 
-        {/* ---- 右上: 出战状态 ---- */}
-        <div className={s["cd-readout"]} style={{ right: "72px", top: "48px" }}>
-          <div className={cx(s["cd-chip"], onField && s["is-on"])}>
-            <span className={s["cd-chip-label"]}>状态</span>
-            <strong className={s["cd-chip-value"]}>{onField ? "出战中" : "待命"}</strong>
-          </div>
-          <div className={s["cd-chip"]}>
-            <span className={s["cd-chip-label"]}>上阵</span>
-            <strong className={s["cd-chip-value"]}>
-              {party.length} / {size}
-            </strong>
-          </div>
-        </div>
+        {/* 羁绊读的是全队装备口径, 不是这名角色自己的羁绊; 换装后会即时刷新。 */}
+        <SquadBondBar
+          className={s["cd-bonds"]}
+          characters={characters}
+          party={party}
+          style={{ right: "72px", top: "48px" }}
+        />
 
         {/* ---- 主体三栏 ----
             ★ 位置/尺寸旋钮全在下面的内联 style(设计 px); CSS 只负责每一栏内部的机制。

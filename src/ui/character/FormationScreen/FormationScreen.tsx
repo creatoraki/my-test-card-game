@@ -11,8 +11,8 @@
 // ★ 版面 = 一整片**角色卡阵列**(不是「上阵槽 + 待命区」两段式):
 //   全屏的面积足够把所有已唤醒的队员一次铺开, 是否出战靠**异色边框 + 右上角开关**表达,
 //   比两个容器之间来回搬运更直观, 人数涨上去也只是多滚两行。
-//   ⚠ 上阵人数上限仍然是 RULES.progression.partySize —— 槽位没画出来了, 故必须靠右上角的
-//     「上阵 n / N」读数与满员时置灰的开关把这条规则说清楚。
+//   ⚠ 上阵人数上限仍然是 RULES.progression.partySize —— 槽位没画出来了, 规则通过卡片开关与
+//     disabled 状态表达; 右上角让给全队羁绊档位条。
 //
 // ★ 与冬眠仓同一套**亮玻璃**视觉(背景就是冬眠仓.png 那张紫粉白场景): 深紫墨文字 + 白玻璃卡,
 //   强调色深紫罗兰 #7c4dbe。旋钮全在 FormationScreen.css 的 --fm-* 里。
@@ -33,7 +33,7 @@ import { cx } from "@/ui/common/cx";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { takeSharedPortrait } from "@/ui/character/sharedPortrait";
 import { CRYO_BG_ART } from "@/ui/art/sceneArt";
-import { SquadBondBar } from "./SquadBondBar";
+import { SquadBondBar } from "@/ui/common/SquadBondBar";
 import s from "./FormationScreen.module.css";
 
 // 错峰入场的序号。CSS 用 --i 算 animation-delay(见 .fm-card 那条), 这里只负责把序号递给样式层。
@@ -118,42 +118,24 @@ export function FormationScreen() {
           <p className={s["fm-sub"]}>出战编成 · 队员一览</p>
         </header>
 
-        {/* ---- 右上: 读数 chip ---- */}
-        <div className={s["fm-readout"]} style={{ right: "72px", top: "48px" }}>
-          <div className={s["fm-chip"]}>
-            <span className={s["fm-chip-label"]}>上阵</span>
-            <strong className={s["fm-chip-value"]}>
-              {party.length} / {size}
-            </strong>
-          </div>
-          <div className={s["fm-chip"]}>
-            <span className={s["fm-chip-label"]}>待命</span>
-            <strong className={s["fm-chip-value"]}>{awakened.length - party.length}</strong>
-          </div>
-          <div className={s["fm-chip"]}>
-            <span className={s["fm-chip-label"]}>已唤醒</span>
-            <strong className={s["fm-chip-value"]}>{awakened.length}</strong>
-          </div>
-        </div>
-
         <SquadBondBar
           className={s["fm-bonds"]}
           characters={characters}
           party={party}
-          style={{ left: "72px", top: "184px", width: "1776px", height: "56px" }}
+          style={{ right: "72px", top: "48px" }}
         />
 
         {/* ---- 卡片阵列 ----
             ★ 位置/尺寸旋钮全在下面的内联 style(设计 px), CSS 只负责机制(网格与卡片外观)。
-              卡片是 260×650 的高楼型(≈1:2.5), auto-fill 下 1776px 宽正好排 6 列;
+              卡片是 260×714 的高楼型, auto-fill 下 1776px 宽正好排 6 列;
               阵列自己滚, 人再多也不会顶破版面。 */}
         <div
           className={s["fm-grid"]}
           style={{
             left: "72px", // ← 距画布左边(设计 px)
-            top: "256px", // ← 落在标题/读数与羁绊条下方
+            top: "192px", // ← 落在标题与右上羁绊条下方
             width: "1776px", // ← 两侧各留 72px
-            height: "698px", // ← 到底部说明栏上方
+            height: "762px", // ← 到底部说明栏上方
             gap: "20px",
           }}
         >

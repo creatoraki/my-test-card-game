@@ -3,17 +3,20 @@ import { activeBonds, BOND_DEFS, nextTier } from "@/data/bonds";
 import type { CharacterState } from "@/store/townStore";
 import { bondCountsOf } from "@/store/townStore";
 import { BondIcon } from "@/ui/common/BondIcon";
+import { RailPopover } from "@/ui/common/RailPopover";
 import { cx } from "@/ui/common/cx";
 import s from "./SquadBondBar.module.css";
 
 export function SquadBondBar({
   characters,
   party,
+  align = "end",
   className,
   style,
 }: {
   characters: Record<string, CharacterState>;
   party: string[];
+  align?: "start" | "end";
   className?: string;
   style?: CSSProperties;
 }) {
@@ -26,9 +29,13 @@ export function SquadBondBar({
   }, [characters, party]);
 
   return (
-    <aside className={cx(s.bar, className)} style={style} aria-label="队伍羁绊">
+    <aside
+      className={cx(s.bar, align === "start" ? s.alignStart : s.alignEnd, className)}
+      style={style}
+      aria-label="队伍羁绊"
+    >
       {bonds.length === 0 ? (
-        <p className={s.empty}>队伍装备上还没有羁绊词条 —— 去仓库给上阵队员换点带词条的装备</p>
+        <p className={s.empty}>暂无羁绊词条</p>
       ) : (
         <div className={s.items}>
           {bonds.map(({ def, count, tierIndex }) => {
@@ -37,17 +44,31 @@ export function SquadBondBar({
             return (
               <div
                 key={def.id}
-                className={cx(s.chip, activated && s.active)}
-                style={{ "--bond-color": def.color } as CSSProperties}
+                className={cx(s.item, activated && s.active)}
+                data-rail-item
                 tabIndex={0}
                 role="group"
+                style={{ "--bond-color": def.color } as CSSProperties}
                 aria-label={`${def.name}，${count} 点${activated ? `，Lv.${tierIndex + 1}` : "，未激活"}`}
               >
                 <BondIcon bondId={def.id} className={s.icon} />
-                <span className={s.name}>{def.name}</span>
-                <span className={s.count}>{count} 点</span>
-                <span className={s.level}>{activated ? `Lv.${tierIndex + 1}` : `还差 ${next ? next.count - count : 0} 点`}</span>
-                <div className={s.pop}>
+                <span className={s.count}>{count}</span>
+                <div className={s.tiers} aria-hidden="true">
+                  {def.tiers.map((tier, index) => (
+                    <span
+                      className={cx(
+                        index < tierIndex && s.passed,
+                        index === tierIndex && s.current,
+                        index > tierIndex && s.locked,
+                        tierIndex < 0 && next?.count === tier.count && s.nextTarget,
+                      )}
+                      key={tier.count}
+                    >
+                      {tier.count}
+                    </span>
+                  ))}
+                </div>
+                <RailPopover side="bottom-right" className={s.popover}>
                   <div className={s.popHead}>
                     <strong>{def.name}</strong>
                     <span>
@@ -55,7 +76,7 @@ export function SquadBondBar({
                     </span>
                   </div>
                   <p>{def.desc}</p>
-                  <div className={s.tiers}>
+                  <div className={s.popTiers}>
                     {def.tiers.map((tier, index) => (
                       <div className={index === tierIndex ? s.tierActive : ""} key={tier.count}>
                         <b>
@@ -66,7 +87,7 @@ export function SquadBondBar({
                     ))}
                   </div>
                   {!activated && next && <small>还差 {next.count - count} 点</small>}
-                </div>
+                </RailPopover>
               </div>
             );
           })}

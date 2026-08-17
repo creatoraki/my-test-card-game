@@ -27,8 +27,6 @@
   --cd-size-kicker: 15px;
   --cd-size-title: 46px;
   --cd-size-sub: 17px;
-  --cd-size-chip-label: 14px;
-  --cd-size-chip-value: 25px;
   --cd-size-section-label: 15px;
   --cd-size-stat-title: 14px;
   --cd-size-attr-label: 15px;
@@ -112,59 +110,12 @@
   justify-content: flex-start;
 }
 
-/* ===================== 右上: 读数 chip ===================== */
-.cd-readout {
+/* ===================== 右上: 羁绊档位条 ===================== */
+.cd-bonds {
   position: absolute;
-  z-index: 1;
-  display: flex;
-  gap: 10px;
-}
-/* ★ 亮玻璃配方(与 FormationScreen.css / CryoScene.css 那两份逐行一致)。 */
-.cd-chip {
-  --notch: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 136px;
-  padding: 12px 20px;
-  border: 1px solid var(--cd-line);
-  background: linear-gradient(150deg, #ffffff8f, #fbf3ff66 55%, #ecdcfa59);
-  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  box-shadow:
-    inset 0 1px 0 #ffffffd9,
-    0 18px 40px -26px #2a1b3d52;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-}
-/* 出战中: 与编队页卡片的异色边框同一条视觉语言。 */
-.cd-chip.is-on {
-  border-color: var(--cd-glow);
-  box-shadow:
-    inset 0 0 0 1px #7c4dbe33,
-    0 0 22px -8px var(--cd-glow),
-    0 18px 40px -26px #2a1b3d52;
-}
-.cd-chip.is-on .cd-chip-value {
-  color: var(--cd-glow-deep);
-}
-.cd-chip-label {
-  color: var(--cd-ink-dim);
-  font-size: var(--cd-size-chip-label);
-  letter-spacing: 2px;
-}
-.cd-chip-value {
-  color: var(--cd-ink);
-  font-family: var(--font-family);
-  font-size: var(--cd-size-chip-value);
-  font-weight: 600;
-  letter-spacing: 2px;
+  z-index: 2;
+  overflow: visible;
+  view-transition-name: vt-bonds;
 }
 
 /* ===================== 主体三栏 ===================== */
@@ -518,9 +469,6 @@ span.cd-bust {
 .cd-header {
   view-transition-name: vt-cd-header;
 }
-.cd-readout {
-  view-transition-name: vt-cd-readout;
-}
 .cd-title {
   view-transition-name: vt-char-name;
 }
@@ -564,7 +512,7 @@ span.cd-bust {
    ⚠ 属性微条的 --pct 是内联下发的, 这里只把「从 0 长出来」那段动画去掉, 条本身照旧画。 */
 @media (prefers-reduced-motion: reduce) {
   .cd-header,
-  .cd-readout,
+  .cd-bonds,
   .cd-back,
   .cd-figure-col,
   .cd-stats-col,

@@ -40,7 +40,8 @@
 
 ::view-transition-group(vt-card-panel),
 ::view-transition-group(vt-portrait),
-::view-transition-group(vt-char-name) {
+::view-transition-group(vt-char-name),
+::view-transition-group(vt-bonds) {
   animation-duration: var(--vt-morph);
   animation-timing-function: var(--vt-ease);
 }
@@ -164,9 +165,7 @@
 /* ===================== 三、编队页独有的元素 ===================== */
 /* 去程只有 old(飞出), 回程只有 new(飞入) —— 同一份规则表自动各取一半。 */
 
-::view-transition-old(vt-fm-header),
-::view-transition-old(vt-fm-readout),
-::view-transition-old(vt-fm-bonds) {
+::view-transition-old(vt-fm-header) {
   animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
 ::view-transition-old(vt-fm-back),
@@ -185,11 +184,8 @@
 ::view-transition-new(vt-fm-header) {
   animation: vtInRise var(--vt-in) 140ms var(--vt-ease) both;
 }
-::view-transition-new(vt-fm-bonds) {
+::view-transition-new(vt-bonds) {
   animation: vtInRise var(--vt-in) 160ms var(--vt-ease) both;
-}
-::view-transition-new(vt-fm-readout) {
-  animation: vtInRise var(--vt-in) 180ms var(--vt-ease) both;
 }
 ::view-transition-new(vt-fm-back) {
   animation: vtInRise var(--vt-in) 240ms var(--vt-ease) both;
@@ -324,9 +320,6 @@
 ::view-transition-new(vt-cd-header) {
   animation: vtInRise 420ms 60ms var(--vt-ease) both;
 }
-::view-transition-new(vt-cd-readout) {
-  animation: vtInRise 420ms 120ms var(--vt-ease) both;
-}
 ::view-transition-new(vt-cd-stats) {
   animation: vtInContent 420ms 200ms var(--vt-ease) both;
 }
@@ -336,8 +329,7 @@
 ::view-transition-new(vt-cd-back) {
   animation: vtInRise 420ms 240ms var(--vt-ease) both;
 }
-::view-transition-old(vt-cd-header),
-::view-transition-old(vt-cd-readout) {
+::view-transition-old(vt-cd-header) {
   animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
 ::view-transition-old(vt-cd-back) {

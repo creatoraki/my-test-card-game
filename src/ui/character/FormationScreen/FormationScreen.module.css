@@ -92,59 +92,13 @@
   letter-spacing: 2px;
 }
 
-/* ===================== 右上: 读数 chip ===================== */
-.fm-readout {
-  position: absolute;
-  z-index: 1;
-  display: flex;
-  gap: 10px;
-  animation: fmRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
+/* ===================== 右上: 羁绊档位条 ===================== */
 .fm-bonds {
   position: absolute;
   z-index: 2;
-  display: flex;
-  align-items: center;
   overflow: visible;
-  view-transition-name: vt-fm-bonds;
+  view-transition-name: vt-bonds;
   animation: fmRise 420ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-/* ★ 亮玻璃配方(与 CryoScene.css 顶部那份逐行一致, 改动请两边同步):
-     白半透明渐变 + blur/saturate/brightness 提亮 + 顶边高光 + 远投影, 外加左上/右下斜切角。 */
-.fm-chip {
-  --notch: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 116px;
-  padding: 11px 18px;
-  border: 1px solid var(--fm-line);
-  background: linear-gradient(150deg, #ffffff8f, #fbf3ff66 55%, #ecdcfa59);
-  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  box-shadow:
-    inset 0 1px 0 #ffffffd9,
-    0 18px 40px -26px #2a1b3d52;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-}
-.fm-chip-label {
-  color: var(--fm-ink-dim);
-  font-size: 11px;
-  letter-spacing: 2px;
-}
-.fm-chip-value {
-  color: var(--fm-ink);
-  font-family: var(--font-family);
-  font-size: 21px;
-  font-weight: 600;
-  letter-spacing: 2px;
 }
 
 /* ===================== 卡片阵列 ===================== */
@@ -152,14 +106,14 @@
      这里只声明机制 —— 与 .town-bento / .cryo-entries 同款分工。
    260px = 下面 .fm-card 的固定宽度。auto-fill 而不是 auto-fit: 人少的时候不该把两三张卡
    拉开摊满一整行(同 .cryo-deck-grid 的取舍)。
-   ★ 卡片是 260×650 的**高楼型**(≈1:2.5) —— 立绘竖着放才有"人站在那儿"的体量,
+  ★ 卡片是 260×714 的**高楼型** —— 立绘竖着放才有"人站在那儿"的体量,
      1776px 宽正好排 6 列(260×6 + 20×5 = 1660), 一行放得下常规队伍规模。 */
 .fm-grid {
   position: absolute;
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, 260px);
-  grid-auto-rows: 650px;
+  grid-auto-rows: 714px;
   align-content: start;
   justify-content: start;
   min-height: 0;
@@ -186,7 +140,7 @@
 
   position: relative;
   width: var(--fm-card-w);
-  height: 650px;
+  height: 714px;
   border: 1px solid var(--fm-line);
   background: linear-gradient(150deg, #ffffff9e, #fbf3ff7a 55%, #ecdcfa6b);
   -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
@@ -254,9 +208,6 @@
 .fm-header {
   view-transition-name: vt-fm-header;
 }
-.fm-readout {
-  view-transition-name: vt-fm-readout;
-}
 .fm-back {
   view-transition-name: vt-fm-back;
 }
@@ -272,7 +223,6 @@
    ⚠ 只能按"是不是飞回来的"开关, 不能一刀切删掉 —— 从据点直接进编队页走的是普通淡入淡出,
      那条路线上这些入场动画仍然是本页唯一的过渡。类由 FormationScreen.tsx 按 landingId 挂。 */
 .fm-stage.is-vt-enter .fm-header,
-.fm-stage.is-vt-enter .fm-readout,
 .fm-stage.is-vt-enter .fm-bonds,
 .fm-stage.is-vt-enter .fm-back,
 .fm-stage.is-vt-enter .fm-note,
@@ -563,7 +513,6 @@ span.fm-bust {
    完全不做过渡反而会让人以为界面闪了一下。 */
 @media (prefers-reduced-motion: reduce) {
   .fm-header,
-  .fm-readout,
   .fm-bonds,
   .fm-back,
   .fm-note,
