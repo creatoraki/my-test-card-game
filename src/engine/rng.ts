@@ -15,6 +15,24 @@ export function rngPick<T>(state: { rngState: number }, arr: T[]): T {
   return arr[rngInt(state, arr.length)];
 }
 
+// 按权重抽取。权重缺省/非正数视为 0; 总权重为 0 时退回等概率 rngPick。
+export function rngPickWeighted<T>(
+  state: { rngState: number },
+  arr: T[],
+  weightOf: (item: T) => number,
+): T {
+  const weights = arr.map((item) => Math.max(0, weightOf(item)));
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  if (total <= 0) return rngPick(state, arr);
+
+  let r = rngFloat(state) * total;
+  for (let i = 0; i < arr.length; i++) {
+    r -= weights[i];
+    if (r < 0) return arr[i];
+  }
+  return arr[arr.length - 1];
+}
+
 // Fisher–Yates 洗牌(返回新数组, 不改原数组)
 export function shuffle<T>(state: { rngState: number }, arr: T[]): T[] {
   const out = arr.slice();

@@ -6,7 +6,7 @@ import { resolveEffects } from "./effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
 import { allIds, getStatus, log, markDead } from "./ops";
 import { enemyActDelay, statOf } from "./stats";
-import { rngPick } from "./rng";
+import { rngPickWeighted } from "./rng";
 
 // 消耗一个行动点, 随机抽取下一招并开始蓄力。
 export function startCharge(state: BattleState, enemyId: string): void {
@@ -17,7 +17,7 @@ export function startCharge(state: BattleState, enemyId: string): void {
   }
 
   const def = getEnemyDef(e.enemyDefId);
-  const move = rngPick(state, def.moves);
+  const move = rngPickWeighted(state, def.moves, (m) => m.weight ?? 1);
   e.actsThisRound += 1;
 
   const dmgEff = move.effects.find((x) => x.type === "DAMAGE");
@@ -109,7 +109,13 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   const targetIds = collectMoveTargets(state, e, move, primaryId);
 
   log(state, `${e.emoji} ${e.name} 使用 ${move.name}`);
-  const resolution = resolveEffects(state, move.effects, enemyId, primaryId);
+  const moveHitBonus = move.hitBonus ?? 0;
+  const effects = moveHitBonus
+    ? move.effects.map((eff) =>
+        eff.type === "DAMAGE" && eff.hitBonus == null ? { ...eff, hitBonus: moveHitBonus } : eff,
+      )
+    : move.effects;
+  const resolution = resolveEffects(state, effects, enemyId, primaryId);
 
   if (e.hp <= 0) markDead(state, e);
   startCharge(state, enemyId);

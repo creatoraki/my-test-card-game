@@ -10,7 +10,7 @@
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、按招式延迟计算先手、小队手牌/抽牌/费用/换牌/待机和负重。属性读取必须经过 `statOf`；`squadHandLimit` / `squadDrawCount` / `squadOpeningDrawCount` / `squadManaPerRound` / `squadRedrawLimit` / `squadWaitLimit` 提供不依赖 `BattleState` 的小队资源换算，战斗 helper 在此基础上读取开战快照；`burdenValue`、`burdenHitPenalty`、`burdenInitiativePenalty` 集中提供有效负重及两项惩罚。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、效果级命中修正、先手排程、小队手牌/抽牌和负重。属性读取必须经过 `statOf`；六个 `squad*` 资源 helper 负责不依赖战斗状态的基准、加成与封顶换算；负重先由 `burdenValue` 得到有效负重点数，再由两个惩罚 helper 向下取整，且只有我方承担负重。 |
 | [hitPreview.ts](../../src/engine/hitPreview.ts) | 复用 `hitChance` 计算选中卡牌对指定目标的命中率预览；无攻击效果、必中效果或无效目标返回 `null`。 |
-| [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/抽取、Fisher–Yates 洗牌。 |
+| [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/等概率与加权抽取、Fisher–Yates 洗牌。 |
 | [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调、状态生命周期和胜负判定等原语；我方 0 血进入濒死，再受伤按 `RULES.combat.downedDeathChance` 掷死亡骰；死亡时清空该角色抽牌堆/手牌/弃牌堆卡牌。护盾在战斗内跨回合保留，仅随战斗结束消失。敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡。 |
 | [cost.ts](../../src/engine/cost.ts) | 卡牌生效费用唯一入口；按本回合弃牌或速攻出牌计数与可选阈值计算动态费用，并由出牌校验、记录和 UI 共享。 |
 | [cardMarks.ts](../../src/engine/cardMarks.ts) | 卡牌实例标记注册表；当前提供心眼，打出后通过统一效果解释器触发标记效果。 |
@@ -24,7 +24,7 @@
 | [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆，并受小队手牌上限约束。 |
 | [quirks.ts](../../src/engine/quirks.ts) | 污染阈值、每张污染卡增量、生病永久修正和怪癖注册表；永久状态不复用会在战斗结束清理的 `StatusInstance`。 |
 | [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
-| [ai.ts](../../src/engine/ai.ts) | 敌人随机抽招与行动执行：按招式延迟开始蓄力、倍率预览、眩晕跳过、随机选目标和效果解释。每回合行动点在开始时补满，招式发动后按剩余行动点继续随机抽招，用尽后 `nextActTick = null`。 |
+| [ai.ts](../../src/engine/ai.ts) | 敌人按招式权重抽招与行动执行：按招式延迟开始蓄力、倍率预览、将招式级命中修正注入 DAMAGE 效果、眩晕跳过、随机选目标和效果解释。每回合行动点在开始时补满，招式发动后按剩余行动点继续按权重抽招，用尽后 `nextActTick = null`。 |
 | [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进并处理所有到点敌人；`flushPendingActs` 在回合结束继续推进时刻，直到所有蓄力招式和行动点清空，带死循环安全阀。 |
 | [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；`waitTick` 只推进时刻，结束回合会清算所有敌人蓄力。支持动态费用、卡牌标记、弃牌批次和 `pendingChoice` 回收/取消 API；开局状态必须在 `startRound` 前施加，确保随机抽招的意图预览吃到状态修正。 |
 | [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API 出口。 |

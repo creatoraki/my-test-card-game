@@ -62,6 +62,7 @@ export const RULES = {
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
     pollutionDamagePerStack: 0.05, // 粒子污染每层: 造成的攻击伤害 ×
     pollutionDodgePerStack: 5, // 粒子污染每层: 闪避 +5 个百分点
+    enemyBaseHitBonus: 5, // 怪物阵营统一命中补正(百分点)
 
     defenseConstant: 30, // 减伤 = 防御力 / (防御力 + 该常量)
     baseHitChance: 90, // P_base

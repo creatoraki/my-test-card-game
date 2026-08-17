@@ -115,6 +115,7 @@ export function hitChance(
     statOf(attacker, "precision") -
     dodge -
     burdenHitPenalty(burdenOf(state, attacker)) +
+    (attacker.team === "enemy" ? c.enemyBaseHitBonus : 0) +
     bonusPct;
   return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
 }
