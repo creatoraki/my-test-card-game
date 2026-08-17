@@ -82,12 +82,15 @@ export function moveToDiscard(
     state.discardsThisRound += 1;
     state.discardsThisBattle += 1;
   }
-  if (!card || (!rule.trigger && !(reason === "roundEnd" && card.onDiscard?.alsoOnRoundEnd))) return;
-  const trigger = card.onDiscard;
+  const trigger = card?.onDiscard;
+  if (!card || !trigger) return;
+  if (!rule.trigger && !(reason === "roundEnd" && trigger.alsoOnRoundEnd)) return;
   if (trigger?.mode === "useSelf") {
     state.pendingAutoPlays.push(uid);
     return;
   }
+  const effects = trigger.effects ?? [];
+  if (trigger.mode === "custom" && effects.length === 0) return;
   if (state.discardResolving.includes(uid)) return;
 
   state.discardResolving.push(uid);
@@ -96,7 +99,6 @@ export function moveToDiscard(
   const beforeHp: Record<string, number> = {};
   for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
 
-  const effects = trigger?.effects ?? [];
   const primaryId = autoTarget(state, card);
   const resolution = resolveEffects(state, effects, card.ownerCharId, primaryId);
   checkEnd(state);

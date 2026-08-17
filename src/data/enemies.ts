@@ -83,7 +83,7 @@ export const ENEMIES: EnemyDef[] = [
     id: "pole-bot",
     name: "电线杆机器人",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 10,
+    maxHp: 40,
     exp: 15,
     stats: { attack: 15, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
@@ -124,7 +124,7 @@ export const ENEMIES: EnemyDef[] = [
     id: "radio-bot",
     name: "收音机机器人",
     emoji: "📻", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 5,
+    maxHp: 25,
     exp: 10,
     stats: { attack: 14, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
@@ -159,6 +159,40 @@ export const ENEMIES: EnemyDef[] = [
       { kind: "item", itemId: "logic-cube", chance: 0.05 },
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
+    ],
+  },
+  {
+    id: "sweep-drone",
+    name: "清扫无人机",
+    emoji: "🛸", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
+    maxHp: 30,
+    exp: 12,
+    stats: { attack: 14, defense: 0, initiative: 25, critDamage: 150 },
+    moves: [
+      {
+        id: "sweep-bump",
+        name: "清扫撞击",
+        emoji: "⚔️",
+        delay: 3,
+        kind: "attack",
+        targeting: "foe",
+        weight: 2,
+        hitBonus: 0,
+        anim: "slash",
+        effects: [{ type: "DAMAGE", multiplier: 0.5, target: "primary" }],
+      },
+      {
+        id: "sweep-burst",
+        name: "高压清扫",
+        emoji: "💥",
+        delay: 6,
+        kind: "attack",
+        targeting: "foe",
+        weight: 1,
+        hitBonus: 0,
+        anim: "shot",
+        effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
+      },
     ],
   },
 ];

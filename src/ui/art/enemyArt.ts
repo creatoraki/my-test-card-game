@@ -3,6 +3,7 @@
 import scrapBotIdle from "@/assets/敌人立绘/废品机器人/idle.png";
 import poleBotIdle from "@/assets/敌人立绘/电线杆机器人/idle.png";
 import radioBotIdle from "@/assets/敌人立绘/收音机机器人/idle.png";
+import sweepDroneIdle from "@/assets/敌人立绘/清扫机器人/idle.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
@@ -82,6 +83,15 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     body: { x: 175, y: 186, w: 1809, h: 1619 },
     // 与 scrap-bot 同为机械微颤, 但错开相位与周期 —— 同场两台不该整齐划一地喘
     idle: { bob: 2.5, tilt: 0.5, dur: 3000, delay: -1400 },
+  },
+  // 清扫无人机: 先按项目现有单帧 2048×2048 素材约定登记, 主体框暂取整帧。
+  "sweep-drone": {
+    src: sweepDroneIdle,
+    frames: 1,
+    frameMs: 1000,
+    sheet: { w: 2048, h: 2048 },
+    body: { x: 0, y: 0, w: 2048, h: 2048 },
+    idle: { bob: 4, sway: 2, tilt: 1, dur: 2200, delay: -500 },
   },
 };
 
