@@ -19,6 +19,7 @@ import swordsmanBuzhouMountainArt from "@/assets/skills/swordsman/不周山.png"
 import swordsmanCloudVeilArt from "@/assets/skills/swordsman/云隐.png";
 import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.png";
 import swordsmanMoonShadowArt from "@/assets/skills/swordsman/月影.png";
+import prophetEmergencyTreatmentArt from "@/assets/skills/prophet/紧急救治.png";
 
 export const CARD_ART: Record<string, string> = {
   "swordsman-basic-attack": basicAttackArt,
@@ -45,6 +46,7 @@ export const CARD_ART: Record<string, string> = {
   "cloud-veil": swordsmanCloudVeilArt,
   "falling-sakura": swordsmanFallingSakuraArt,
   "moon-shadow": swordsmanMoonShadowArt,
+  "emergency-treatment": prophetEmergencyTreatmentArt,
   "continuous-shot": placeholderArt,
   "recycle-shot": placeholderArt,
   "twin-flower": placeholderArt,

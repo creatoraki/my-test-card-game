@@ -183,8 +183,8 @@ export const PROPHET_CARD_DEFS: CardDef[] = [
     text: "为一名队友附加 2 层再生，持续 3 回合。应星。不推进时刻。",
   },
   {
-    id: "overheal",
-    name: "超量治愈",
+    id: "emergency-treatment",
+    name: "紧急救治",
     ownerCharId: "prophet",
     cost: 1,
     cardType: "normal",

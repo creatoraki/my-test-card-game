@@ -167,6 +167,20 @@
   background: #0b1215;
 }
 
+.selectButton {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.selectButton:focus-visible {
+  outline: 2px solid var(--card-accent);
+  outline-offset: 4px;
+}
+
 /* 被选中的那一张卡: 只换边框与底色, 不动尺寸, 避免网格重排。 */
 .cardOn {
   border-color: color-mix(in srgb, var(--card-accent) 62%, #2a3a40);

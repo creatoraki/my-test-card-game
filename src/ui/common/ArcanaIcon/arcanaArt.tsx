@@ -1,34 +1,18 @@
-// ★ 塔罗题材图标的「图案层」★ —— 只描述线稿本身, 不负责外框 / 网格 / 光晕。
-//
-// 每个题材给一段 100×100 viewBox 的线稿:
-//   · 主体线条不写颜色, 由 OpusArcanaIcon 的 CSS 统一上主色(stroke: currentColor)。
-//   · 需要压暗的辅助线(地面、碎屑、装饰)统一挂 data-dim, 由 CSS 降不透明度。
-//   · 需要发光的核心元素挂 data-glow。
-// 这样六张图的笔触粗细、亮度层级完全一致, 换主色不用改任何一段 path。
 import type { ReactNode } from "react";
 
-export type OpusArcanaId = "strength" | "chariot" | "fool" | "priestess" | "judgement" | "tower";
+export type ArcanaId = "strength" | "chariot" | "fool" | "priestess" | "judgement" | "tower";
 
-export interface OpusArcanaMeta {
-  id: OpusArcanaId;
-  /** 中文题材名, 作为图标右下角的主标签。 */
+export interface ArcanaMeta {
+  id: ArcanaId;
   name: string;
-  /** 英文名, 用于左上角编号旁的档案感标签。 */
   latin: string;
-  /** 大阿卡纳序号, 兼作左上角编号。 */
   code: string;
-  /** 罗马数字, 作为背景里那个半透明大字符。 */
   numeral: string;
-  /** 该题材的主色 —— 图标所有线条、光晕、边框都从这一个值派生。 */
   accent: string;
-  /** 一句话气质说明, 只在 demo 页展示, 图标本体不用。 */
   mood: string;
   art: ReactNode;
 }
 
-// ---- 复用的小零件 ----
-
-/** 放射线: 从 (cx, cy) 向外的一圈短线, 用于太阳 / 号角的鸣响 / 塔顶的冲击。 */
 function Rays({
   cx,
   cy,
@@ -67,7 +51,6 @@ function Rays({
   );
 }
 
-/** 地平线: 一条实线 + 一排短促的虚线, 六张图共用同一条基线高度。 */
 function Ground({ y = 86, x1 = 12, x2 = 88 }: { y?: number; x1?: number; x2?: number }) {
   return (
     <g data-dim="hard">
@@ -77,7 +60,6 @@ function Ground({ y = 86, x1 = 12, x2 = 88 }: { y?: number; x1?: number; x2?: nu
   );
 }
 
-/** 极简人形: 一颗头 + 躯干 + 四肢, 六张图里凡出现「人」都用这一个比例。 */
 function Figure({
   x,
   y,
@@ -101,9 +83,6 @@ function Figure({
   );
 }
 
-// ---- 六张线稿 ----
-
-// 力量: 无限符号压在狮首之上, 中间一串花环 —— 克制而非蛮力。
 const strengthArt = (
   <>
     <g data-glow="true">
@@ -130,7 +109,6 @@ const strengthArt = (
   </>
 );
 
-// 战车: 正面视角的车厢 + 星幕顶篷 + 两轮, 车前一对狮身楔形。
 const chariotArt = (
   <>
     <g data-dim="soft">
@@ -170,7 +148,6 @@ const chariotArt = (
   </>
 );
 
-// 愚者: 一步就要迈出崖沿, 肩上一根挑着行囊的杖, 手里一朵白玫瑰。
 const foolArt = (
   <>
     <Rays cx={24} cy={24} from={10} to={15} count={10} startDeg={9} />
@@ -195,7 +172,6 @@ const foolArt = (
   </>
 );
 
-// 女祭司: 两根柱子 + 垂在中间的帷幕 + 脚边的新月, 头顶三重冠。
 const priestessArt = (
   <>
     <g data-dim="soft">
@@ -230,7 +206,6 @@ const priestessArt = (
   </>
 );
 
-// 审判: 一支斜举的号角 + 十字旗, 声浪之下三个正在起身的人。
 const judgementArt = (
   <>
     <Rays cx={70} cy={34} from={16} to={26} count={9} startDeg={-96} sweepDeg={200} />
@@ -260,7 +235,6 @@ const judgementArt = (
   </>
 );
 
-// 高塔: 冠冕被一道雷劈落, 塔身裂开, 两个人从窗口坠下。
 const towerArt = (
   <>
     <g data-glow="true">
@@ -294,7 +268,16 @@ const towerArt = (
   </>
 );
 
-export const OPUS_ARCANA: OpusArcanaMeta[] = [
+export function FallbackArcanaArt() {
+  return (
+    <g transform="translate(0 0) scale(2.083333)">
+      <circle cx="24" cy="24" r="14" strokeWidth="1.2" opacity="0.45" />
+      <path d="M16 24c0-5 3-8 8-8s8 3 8 8-3 8-8 8-8-3-8-8ZM24 10v6M24 32v6" strokeWidth="1.6" />
+    </g>
+  );
+}
+
+export const ARCANA: ArcanaMeta[] = [
   {
     id: "strength",
     name: "力量",
@@ -357,10 +340,18 @@ export const OPUS_ARCANA: OpusArcanaMeta[] = [
   },
 ];
 
-export const OPUS_ARCANA_BY_ID: Record<OpusArcanaId, OpusArcanaMeta> = OPUS_ARCANA.reduce(
+export const ARCANA_BY_ID: Record<ArcanaId, ArcanaMeta> = ARCANA.reduce(
   (map, item) => {
     map[item.id] = item;
     return map;
   },
-  {} as Record<OpusArcanaId, OpusArcanaMeta>,
+  {} as Record<ArcanaId, ArcanaMeta>,
 );
+
+export function getArcana(id: string): ArcanaMeta | undefined {
+  return ARCANA_BY_ID[id as ArcanaId];
+}
+
+export function getArcanaAccent(id: string): string | undefined {
+  return getArcana(id)?.accent;
+}

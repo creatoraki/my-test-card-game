@@ -108,7 +108,7 @@ export const CHARACTERS: CharacterDef[] = [
       basicCardId("prophet", "attack"),
       basicCardId("prophet", "heal"),
       "prayer",
-      "star-shatter",
+      "emergency-treatment"
     ],
     pools: {
       common: [
@@ -124,7 +124,7 @@ export const CHARACTERS: CharacterDef[] = [
         "aurora",
         "asteroid-belt",
         "stellar-wind",
-        "overheal",
+        "emergency-treatment",
         "astrometry",
         "star-disc",
       ],

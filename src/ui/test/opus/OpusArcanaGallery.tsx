@@ -4,10 +4,11 @@
 //   3) 关掉断角框与角标后, 图案本体能不能独立成立。
 // 这个文件只是陈列台, 不含任何图标造型逻辑。
 import { useState, type CSSProperties } from "react";
+import { BOND_DEFS, nextTier } from "@/data/bonds";
 import { cx } from "@/ui/common/cx";
-import { OpusArcanaIcon } from "./OpusArcanaIcon";
-import { OpusArcanaSlot } from "./OpusArcanaSlot";
-import { OPUS_ARCANA, OPUS_ARCANA_BY_ID, type OpusArcanaId } from "./opusArcanaArt";
+import { ArcanaIcon } from "@/ui/common/ArcanaIcon";
+import { BondSlot } from "@/ui/common/BondSlot";
+import { ARCANA, ARCANA_BY_ID, type ArcanaId } from "@/ui/common/ArcanaIcon";
 import s from "./OpusArcanaGallery.module.css";
 
 const SIZES = [256, 160, 96, 64] as const;
@@ -15,13 +16,14 @@ const STRIP_SIZE = 40;
 /** 检视区里图标的固定边长 —— 与主网格的尺寸档位解耦, 换档位时对照关系不跑。 */
 const INSPECT_SIZE = 96;
 /** demo 用的当前等级, 展示容器右上角的等级角标。 */
-const DEMO_LEVEL = 5;
+const DEMO_COUNT = 5;
 
 export function OpusArcanaGallery() {
   const [size, setSize] = useState<number>(160);
   const [chrome, setChrome] = useState(true);
-  const [selectedId, setSelectedId] = useState<OpusArcanaId>(OPUS_ARCANA[0].id);
-  const selected = OPUS_ARCANA_BY_ID[selectedId];
+  const [selectedId, setSelectedId] = useState<ArcanaId>(ARCANA[0].id);
+  const selected = ARCANA_BY_ID[selectedId];
+  const selectedDef = BOND_DEFS[selectedId];
 
   return (
     <div className={s.root} style={{ "--card-min": `${Math.max(size + 60, 200)}px` } as CSSProperties}>
@@ -74,39 +76,53 @@ export function OpusArcanaGallery() {
         </div>
         <div className={s.inspectRow}>
           <div className={s.inspectSlot}>
-            <OpusArcanaIcon id={selectedId} size={INSPECT_SIZE} chrome={false} />
+            <ArcanaIcon id={selectedId} size={INSPECT_SIZE} chrome={false} />
             <span>激活 · 原样</span>
           </div>
           <div className={s.inspectSlot}>
-            <OpusArcanaIcon id={selectedId} size={INSPECT_SIZE} chrome={false} inactive />
+            <ArcanaIcon id={selectedId} size={INSPECT_SIZE} chrome={false} inactive />
             <span>未激活</span>
           </div>
           <div className={s.inspectDivider} />
           <div className={s.inspectSlot}>
-            <OpusArcanaSlot id={selectedId} level={DEMO_LEVEL} iconSize={INSPECT_SIZE} />
-            <span>激活 · 容器(名称 + 等级)</span>
+            <BondSlot
+              def={selectedDef}
+              count={DEMO_COUNT}
+              tierIndex={selectedDef.tiers.findIndex((tier) => DEMO_COUNT >= tier.count)}
+              next={nextTier(selectedDef, DEMO_COUNT)}
+              iconSize={INSPECT_SIZE}
+            />
+            <span>激活 · 羁绊槽位(名称 + 点数 + 门槛)</span>
           </div>
           <div className={s.inspectSlot}>
-            <OpusArcanaSlot id={selectedId} level={DEMO_LEVEL} iconSize={INSPECT_SIZE} inactive />
-            <span>未激活 · 容器</span>
+            <BondSlot
+              def={selectedDef}
+              count={DEMO_COUNT}
+              tierIndex={-1}
+              next={nextTier(selectedDef, DEMO_COUNT)}
+              iconSize={INSPECT_SIZE}
+            />
+            <span>未激活 · 羁绊槽位</span>
           </div>
         </div>
       </section>
 
       <div className={s.grid}>
-        {OPUS_ARCANA.map((item) => (
+        {ARCANA.map((item) => (
           <figure
             key={item.id}
             className={cx(s.card, item.id === selectedId && s.cardOn)}
             style={{ "--card-accent": item.accent } as CSSProperties}
           >
-            <OpusArcanaIcon
-              id={item.id}
-              size={size}
-              chrome={chrome}
-              selected={item.id === selectedId}
+            <button
+              type="button"
+              className={s.selectButton}
+              aria-label={`选择${item.name}`}
+              aria-pressed={item.id === selectedId}
               onClick={() => setSelectedId(item.id)}
-            />
+            >
+              <ArcanaIcon id={item.id} size={size} chrome={chrome} />
+            </button>
             <figcaption>
               <span className={s.cardName}>{item.name}</span>
               <span className={s.cardLatin}>{item.code} · {item.latin}</span>
@@ -118,9 +134,9 @@ export function OpusArcanaGallery() {
 
       <div className={s.strip}>
         <span className={s.stripTitle}>UI 尺寸检视 · {STRIP_SIZE}px · 无角标</span>
-        {OPUS_ARCANA.map((item) => (
+        {ARCANA.map((item) => (
           <div key={item.id} className={s.stripSlot}>
-            <OpusArcanaIcon id={item.id} size={STRIP_SIZE} chrome={false} />
+            <ArcanaIcon id={item.id} size={STRIP_SIZE} chrome={false} />
             <span>{item.name}</span>
           </div>
         ))}

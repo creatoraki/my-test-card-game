@@ -1,18 +1,18 @@
-/* ★ 塔罗题材图标的「外壳层」★
-   版式沿用事件面板插图占位区(.scenePlaceholder)的那一套: 深青底 + 内缩断角框 + 透视网格 +
-   主色光晕 + 左上编号 / 右下档案标签 + 一道斜扫光。
-   ⚠ 所有尺寸都从 --icon-size 派生, 因此同一份样式在 256 / 128 / 40 三档下观感一致;
-     所有颜色都从 --arcana-accent 派生, 换题材只换这一个变量。 */
+.root {
+  position: relative;
+  flex: none;
+}
+
+.root:not([data-bare="true"]) {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
 
 .icon {
   position: relative;
   flex: none;
-  /* 壳可能渲染成 <button>(可点模式), 这里把按钮默认样式一次性抹平。 */
-  padding: 0;
-  appearance: none;
-  clip-path: none;
-  width: var(--icon-size);
-  height: var(--icon-size);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border: 1px solid #43545a;
   background:
@@ -22,11 +22,6 @@
     calc(var(--icon-size) * 0.05) calc(var(--icon-size) * 0.05) 0 #060a0c,
     0 0 calc(var(--icon-size) * 0.18) color-mix(in srgb, var(--arcana-accent) 12%, transparent);
   color: var(--arcana-accent);
-}
-
-/* 无外框模式: 当图标缩到 UI 图标尺寸时只留图案与底色, 断角框和文字会糊成噪点。 */
-.icon[data-chrome="false"] {
-  box-shadow: none;
 }
 
 .icon::before,
@@ -40,10 +35,6 @@
   inset: calc(var(--icon-size) * 0.058);
   border: 1px solid color-mix(in srgb, var(--arcana-accent) 36%, transparent);
   clip-path: polygon(0 0, 17% 0, 17% 1px, 83% 1px, 83% 0, 100% 0, 100% 17%, calc(100% - 1px) 17%, calc(100% - 1px) 83%, 100% 83%, 100% 100%, 83% 100%, 83% calc(100% - 1px), 17% calc(100% - 1px), 17% 100%, 0 100%, 0 83%, 1px 83%, 1px 17%, 0 17%);
-}
-
-.icon[data-chrome="false"]::before {
-  display: none;
 }
 
 .icon::after {
@@ -64,7 +55,6 @@
   transform-origin: center bottom;
 }
 
-/* 图案背后的主色光晕 —— 代替事件面板里的 .sceneOrb, 只做氛围不参与造型。 */
 .halo {
   position: absolute;
   top: 46%;
@@ -96,7 +86,6 @@
   opacity: 0.16;
 }
 
-/* 线稿本体: 主色描边, 粗细写在 viewBox 用户单位里, 所以随尺寸等比缩放。 */
 .art {
   position: absolute;
   inset: 11%;
@@ -166,9 +155,18 @@
   letter-spacing: 0.06em;
 }
 
+.icon[data-chrome="false"] {
+  box-shadow: none;
+}
+
 .icon[data-chrome="false"] .tag,
 .icon[data-chrome="false"] .caption,
-.icon[data-chrome="false"] .numeral {
+.icon[data-chrome="false"] .numeral,
+.icon[data-bare="true"] .grid,
+.icon[data-bare="true"] .halo,
+.icon[data-bare="true"] .tag,
+.icon[data-bare="true"] .caption,
+.icon[data-bare="true"] .numeral {
   display: none;
 }
 
@@ -178,8 +176,26 @@
   height: 84%;
 }
 
-/* 未激活态 —— 只做「去色 + 压暗」, 不动任何造型 / 尺寸 / 布局,
-   这样激活与未激活两张图叠在一起像素级重合, 切换时不会跳。 */
+.icon[data-bare="true"] {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.icon[data-bare="true"]::before,
+.icon[data-bare="true"]::after {
+  display: none;
+}
+
+.icon[data-bare="true"] .art {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .icon[data-inactive="true"] {
   filter: grayscale(1) brightness(0.66) contrast(0.92);
   border-color: #3a464a;
@@ -198,37 +214,6 @@
   filter: none;
 }
 
-/* 悬浮时只让光晕与线稿亮一档, 造型不动 —— 图标要能当静态素材直接导出。 */
-.interactive {
-  cursor: pointer;
-  transition: box-shadow 180ms ease, transform 180ms ease;
-}
-
-.interactive:hover,
-.interactive:focus-visible {
-  outline: none;
-  box-shadow:
-    calc(var(--icon-size) * 0.05) calc(var(--icon-size) * 0.05) 0 #060a0c,
-    0 0 calc(var(--icon-size) * 0.28) color-mix(in srgb, var(--arcana-accent) 26%, transparent);
-  transform: translateY(calc(var(--icon-size) * -0.012));
-}
-
-.interactive:hover .halo,
-.interactive:focus-visible .halo {
-  opacity: 1;
-}
-
-.selected {
-  border-color: color-mix(in srgb, var(--arcana-accent) 70%, #43545a);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .interactive {
-    transition: none;
-  }
-
-  .interactive:hover,
-  .interactive:focus-visible {
-    transform: none;
-  }
+.icon[data-bare="true"][data-inactive="true"] {
+  box-shadow: none;
 }

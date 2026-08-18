@@ -1,17 +1,11 @@
-/* ★ 图标容器(槽位)★ —— 深青档案风的方形卡槽: 图标 + 右上角等级角标 + 底部名称条。
-   所有尺寸从 --slot-icon 派生, 换图标尺寸不用改这份样式;
-   所有颜色从 --slot-accent 派生, 换题材只换这一个变量。 */
-
 .slot {
   position: relative;
   display: flex;
+  min-width: calc(var(--slot-icon) * 1.34);
   flex-direction: column;
   align-items: center;
   gap: calc(var(--slot-icon) * 0.1);
   padding: calc(var(--slot-icon) * 0.14) calc(var(--slot-icon) * 0.12) calc(var(--slot-icon) * 0.1);
-  /* 壳可能渲染成 <button>, 这里把按钮默认样式一次性抹平。 */
-  appearance: none;
-  clip-path: none;
   border: 1px solid color-mix(in srgb, var(--slot-accent) 42%, #33454a);
   background:
     radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--slot-accent) 12%, transparent), transparent 62%),
@@ -19,9 +13,9 @@
   box-shadow: inset 0 0 calc(var(--slot-icon) * 0.3) color-mix(in srgb, var(--slot-accent) 10%, transparent);
   color: var(--slot-accent);
   font-family: var(--font-family);
+  outline: none;
 }
 
-/* 四角的短角线 —— 只做装饰, 与图标内部的断角框呼应。 */
 .slot::before,
 .slot::after {
   position: absolute;
@@ -50,8 +44,7 @@
   display: flex;
 }
 
-/* 等级角标: 压在图标右上角外沿, 尺寸随图标缩放。 */
-.level {
+.count {
   position: absolute;
   top: calc(var(--slot-icon) * -0.1);
   right: calc(var(--slot-icon) * -0.1);
@@ -78,7 +71,50 @@
   white-space: nowrap;
 }
 
-/* 未激活: 外壳与角标一起退成灰调, 图标本体的去色由 OpusArcanaIcon 自己负责。 */
+.tiers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #8a9897;
+  font-size: calc(var(--slot-icon) * 0.14);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.tiers span {
+  display: inline-flex;
+  min-width: calc(var(--slot-icon) * 0.28);
+  height: calc(var(--slot-icon) * 0.28);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+
+.tiers .passed {
+  color: var(--slot-accent);
+  opacity: 0.55;
+}
+
+.tiers .current {
+  border-color: color-mix(in srgb, var(--slot-accent) 72%, transparent);
+  background: color-mix(in srgb, var(--slot-accent) 14%, transparent);
+  color: var(--slot-accent);
+  font-weight: 700;
+}
+
+.tiers .locked {
+  color: #718080;
+  opacity: 0.72;
+}
+
+.tiers .nextTarget {
+  border-style: dashed;
+  border-color: #8a9897;
+  color: #aab8b3;
+}
+
 .slot[data-inactive="true"] {
   border-color: #33413f;
   background: linear-gradient(160deg, #131a1b, #0a0f10 76%);
@@ -86,7 +122,7 @@
   color: #6d7c7c;
 }
 
-.slot[data-inactive="true"] .level {
+.slot[data-inactive="true"] .count {
   border-color: #495656;
   box-shadow: none;
   color: #93a3a3;
@@ -96,22 +132,69 @@
   color: #8a9897;
 }
 
-.interactive {
-  cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+.popover {
+  --bond-color: var(--slot-accent);
+  width: 260px;
 }
 
-.interactive:hover,
-.interactive:focus-visible {
-  outline: none;
-  border-color: color-mix(in srgb, var(--slot-accent) 80%, #33454a);
-  box-shadow:
-    inset 0 0 calc(var(--slot-icon) * 0.3) color-mix(in srgb, var(--slot-accent) 16%, transparent),
-    0 0 calc(var(--slot-icon) * 0.18) color-mix(in srgb, var(--slot-accent) 24%, transparent);
+.popHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #6fd2ff33;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .interactive {
-    transition: none;
-  }
+.popHead strong {
+  color: var(--bond-color);
+  font-size: 15px;
+}
+
+.popHead span,
+.popTiers,
+.popover p,
+.popover small {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.popover p {
+  margin: 10px 0;
+  color: #b8c8ce;
+  line-height: 1.5;
+}
+
+.popTiers {
+  display: grid;
+  gap: 5px;
+}
+
+.popTiers > div {
+  display: grid;
+  gap: 2px;
+  padding: 5px 7px;
+  border-left: 2px solid transparent;
+  color: #9fb3bb;
+}
+
+.popTiers > div.tierActive {
+  border-left-color: var(--bond-color);
+  background: color-mix(in srgb, var(--bond-color) 12%, transparent);
+  color: #eef7f8;
+}
+
+.popTiers b {
+  color: inherit;
+  font-size: 11px;
+}
+
+.popTiers span {
+  line-height: 1.4;
+}
+
+.popover small {
+  display: block;
+  margin-top: 9px;
+  color: var(--bond-color);
 }
