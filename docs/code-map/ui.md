@@ -149,7 +149,9 @@ src/ui/
 | [RailPopover](../../src/ui/common/RailPopover/RailPopover.tsx) | 跨战斗域复用的斜切角玻璃详情浮层；支持左右、下方和上方（居中 / 右对齐）定位，由 `data-rail-item` 的悬浮与键盘聚焦驱动。 |
 | [ManaCrystal](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) | 法力水晶菱形（Arcane Diamond）；`empty`/`normal`/`active` 三态受控，`still` 关闭呼吸循环；尺寸与配色经 `--mana-crystal-size` / `--crystal-*` 变量下发。 |
 | [ArcanaIcon](../../src/ui/common/ArcanaIcon/ArcanaIcon.tsx) | 羁绊塔罗图标公共展示组件；支持完整档案壳、无壳图案和 bare 纯线稿模式，未知 id 回退中性环徽。 |
-| [BondSlot](../../src/ui/common/BondSlot/BondSlot.tsx) | 羁绊槽位公共展示组件：点数、名称、3/6/9 门槛条与 `RailPopover` 详情浮层；不读 store、不承载羁绊规则。 |
+| [BondSlot](../../src/ui/common/BondSlot/BondSlot.tsx) | 羁绊槽位公共展示组件：点数、名称、3/6/9 门槛条与 `RailPopover` 详情浮层；战斗页 `BondRail` 专用，编队/详情页走 `BondShowcase`；不读 store、不承载羁绊规则。 |
+| [BondShowcase](../../src/ui/common/BondShowcase/BondShowcase.tsx) | 编队页与角色详情页的巨型羁绊图标展示：96px 图标、点数角标、档位微标与 `RailPopover` 详情浮层；不读 store、不承载羁绊规则。 |
+| [BondTooltip](../../src/ui/common/BondTooltip/BondTooltip.tsx) | 羁绊详情浮层内部内容：名称、主题描述、各档位效果与未激活时的差距提示。 |
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 兼容旧调用点的羁绊图标适配器，转发到 `ArcanaIcon` 的 bare 模式。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |

@@ -59,8 +59,8 @@
     radial-gradient(ellipse at 50% 46%, transparent 52%, #2a1b3d1a 100%);
 }
 
-/* ===================== 左上: 标题 ===================== */
-/* 与冬眠仓同构: 不做成卡片, 只靠一道左侧竖线把三行拢在一起。 */
+/* ===================== 左上: 面包屑与标题 ===================== */
+/* 与冬眠仓同构: 不做成卡片, 只靠一道左侧竖线把路径、标题和说明拢在一起。 */
 .fm-header {
   position: absolute;
   z-index: 1;
@@ -68,17 +68,25 @@
   border-left: 2px solid var(--fm-glow);
   animation: fmRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
-/* ⚠ 刻意没有 text-shadow 外发光: 那是暗底上的手法, 压在浅紫背景上只会糊出一圈脏边。 */
-.fm-kicker {
-  display: block;
-  color: var(--fm-glow);
-  font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 5px;
+.fm-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
 }
+.fm-crumb-separator {
+  color: var(--fm-ink-dim);
+  font-size: 14px;
+}
+.fm-crumb-current {
+  color: var(--fm-glow);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+/* ⚠ 刻意没有 text-shadow 外发光: 那是暗底上的手法, 压在浅紫背景上只会糊出一圈脏边。 */
 .fm-title {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   color: var(--fm-ink);
   font-size: 42px;
   font-weight: 700;
@@ -107,7 +115,8 @@
    260px = 下面 .fm-card 的固定宽度。auto-fill 而不是 auto-fit: 人少的时候不该把两三张卡
    拉开摊满一整行(同 .cryo-deck-grid 的取舍)。
   ★ 卡片是 260×714 的**高楼型** —— 立绘竖着放才有"人站在那儿"的体量,
-     1776px 宽正好排 6 列(260×6 + 20×5 = 1660), 一行放得下常规队伍规模。 */
+       1776px 宽正好排 6 列(260×6 + 20×5 = 1660), 一行放得下常规队伍规模;
+       新的 216px 起点与 786px 高度为阵列腾出底部空间。 */
 .fm-grid {
   position: absolute;
   z-index: 1;
@@ -211,9 +220,6 @@
 .fm-back {
   view-transition-name: vt-fm-back;
 }
-.fm-note {
-  view-transition-name: vt-fm-note;
-}
 
 /* ⚠⚠ 从详情页飞回来的那一次挂载, 必须关掉本页**自己**的入场动画(fmRise / fmCardIn):
      1. ::view-transition-new(...) 是**活的**渲染, 不是静态位图 —— 元素自己的入场动画会照播,
@@ -225,7 +231,6 @@
 .fm-stage.is-vt-enter .fm-header,
 .fm-stage.is-vt-enter .fm-bonds,
 .fm-stage.is-vt-enter .fm-back,
-.fm-stage.is-vt-enter .fm-note,
 .fm-stage.is-vt-enter .fm-card {
   animation: none;
 }
@@ -451,19 +456,18 @@ span.fm-bust {
   opacity: 1; /* 覆盖全局的 0.4: 这里靠配色表达"不可点", 不靠整体变淡 */
 }
 
-/* ===================== 角落 ===================== */
-/* 返回按钮: 与冬眠仓的「返回据点」同款描边玻璃, 不跟卡片阵列抢注意力。 */
+/* ===================== 面包屑返回 ===================== */
+/* 返回按钮: 压到标题路径尺度, 不跟卡片阵列抢注意力。 */
 .fm-back {
-  position: absolute;
   z-index: 1;
   --notch: 10px;
-  padding: 12px 26px;
+  padding: 6px 14px;
   border: 1px solid var(--fm-line);
   background: #ffffffab;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   color: var(--fm-ink);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 4px;
   text-indent: 4px;
@@ -486,19 +490,10 @@ span.fm-bust {
   border-color: var(--fm-glow);
   background: #ffffffe0;
   color: var(--fm-glow-deep);
-  transform: translateX(-4px);
+  transform: none;
 }
 .fm-stage .fm-back:active {
-  transform: translateX(-4px) translateY(1px);
-}
-.fm-note {
-  position: absolute;
-  z-index: 1;
-  margin: 0;
-  color: var(--fm-ink-dim);
-  font-size: 13px;
-  letter-spacing: 1px;
-  animation: fmRise 420ms 240ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  transform: translateY(1px);
 }
 
 /* ===================== 入场 ===================== */
@@ -515,7 +510,6 @@ span.fm-bust {
   .fm-header,
   .fm-bonds,
   .fm-back,
-  .fm-note,
   .fm-card {
     animation: fmFade 140ms linear backwards;
     animation-delay: 0ms;

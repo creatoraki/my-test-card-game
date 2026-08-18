@@ -5,7 +5,7 @@
    ⚠ 全局 base.css 的 `button:hover:not(:disabled)` 特异性是 (0,2,1), 单个类选择器压不住 ——
      故本文件所有按钮的 hover/active 规则一律带 `.cd-stage ` 前缀(同 FormationScreen.css)。
 
-   ★ 为什么不与 FormationScreen.css 共用一套类: 两页的**尺度**不同(那边是 260×360 的卡阵,
+  ★ 为什么不与 FormationScreen.css 共用一套类: 两页的**尺度**不同(那边是 260×714 的卡阵,
      这边是 420 宽的立绘栏 + 两列属性 + 卡组网格), 共用只会让任何一边的微调牵动另一边。
      共用的只有配方与色值 —— 改配色时两个文件的 --fm-* / --cd-* 要一起改。 */
 
@@ -62,7 +62,7 @@
     radial-gradient(ellipse at 50% 46%, transparent 52%, #2a1b3d1a 100%);
 }
 
-/* ===================== 左上: 身份 ===================== */
+/* ===================== 左上: 面包屑与身份 ===================== */
 /* ⚠⚠ 本页所有带 view-transition-name 的元素都**不再写自己的入场动画** ——
    本页只有一个入口(编队页点卡), 走的是 View Transition, 飞入统一由
    app/viewTransition.global.css 的 ::view-transition-new(vt-cd-*) 负责。
@@ -77,6 +77,26 @@
   max-width: 900px;
   padding-left: 18px;
   border-left: 2px solid var(--cd-glow);
+}
+.cd-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+}
+.cd-crumb-separator {
+  color: var(--cd-ink-dim);
+  font-size: 14px;
+}
+.cd-crumb-current {
+  max-width: 420px;
+  overflow: hidden;
+  color: var(--cd-glow);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cd-kicker {
   display: block;
@@ -415,18 +435,17 @@ span.cd-bust {
   filter: drop-shadow(0 12px 18px #2a1b3d3d);
 }
 
-/* ===================== 角落 ===================== */
+/* ===================== 面包屑返回 ===================== */
 .cd-back {
-  position: absolute;
   z-index: 1;
   --notch: 10px;
-  padding: 14px 30px;
+  padding: 6px 14px;
   border: 1px solid var(--cd-line);
   background: #ffffffab;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   color: var(--cd-ink);
-  font-size: var(--cd-size-back);
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 4px;
   text-indent: 4px;
@@ -448,10 +467,10 @@ span.cd-bust {
   border-color: var(--cd-glow);
   background: #ffffffe0;
   color: var(--cd-glow-deep);
-  transform: translateX(-4px);
+  transform: none;
 }
 .cd-stage .cd-back:active {
-  transform: translateX(-4px) translateY(1px);
+  transform: translateY(1px);
 }
 
 /* ===================== 与编队页之间的共享元素过场 ===================== */

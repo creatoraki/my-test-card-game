@@ -3,20 +3,11 @@ import type { BondDef, BondTier } from "@/data/bonds";
 import { ArcanaIcon, getArcanaAccent } from "@/ui/common/ArcanaIcon";
 import { BondTooltip } from "@/ui/common/BondTooltip";
 import { RailPopover } from "@/ui/common/RailPopover";
+import type { RailPopoverSide } from "@/ui/common/BondSlot";
 import { cx } from "@/ui/common/cx";
-import s from "./BondSlot.module.css";
+import s from "./BondShowcase.module.css";
 
-export type RailPopoverSide =
-  | "left"
-  | "right"
-  | "bottom"
-  | "bottom-left"
-  | "bottom-right"
-  | "top"
-  | "top-left"
-  | "top-right";
-
-export interface BondSlotProps {
+export interface BondShowcaseProps {
   def: BondDef;
   count: number;
   tierIndex: number;
@@ -26,26 +17,25 @@ export interface BondSlotProps {
   className?: string;
 }
 
-export function BondSlot({
+export function BondShowcase({
   def,
   count,
   tierIndex,
   next = null,
-  iconSize = 48,
+  iconSize = 96,
   popoverSide = "bottom",
   className,
-}: BondSlotProps) {
+}: BondShowcaseProps) {
   const inactive = tierIndex < 0;
   const accent = getArcanaAccent(def.id) ?? def.color;
   const style = {
     "--slot-icon": `${iconSize}px`,
     "--slot-accent": accent,
-    "--bond-color": accent,
   } as CSSProperties;
 
   return (
     <div
-      className={cx(s.slot, className)}
+      className={cx(s.showcase, className)}
       style={style}
       data-inactive={inactive}
       data-rail-item
@@ -57,22 +47,9 @@ export function BondSlot({
         <ArcanaIcon id={def.id} size={iconSize} chrome={false} inactive={inactive} accent={accent} />
         <span className={s.count} aria-hidden="true">{count}</span>
       </div>
-      <span className={s.name}>{def.name}</span>
-      <div className={s.tiers} aria-hidden="true">
-        {def.tiers.map((tier, index) => (
-          <span
-            className={cx(
-              index < tierIndex && s.passed,
-              index === tierIndex && s.current,
-              index > tierIndex && s.locked,
-              index > tierIndex && next?.count === tier.count && s.nextTarget,
-            )}
-            key={tier.count}
-          >
-            {tier.count}
-          </span>
-        ))}
-      </div>
+      <span className={s.tier} aria-hidden="true">
+        {inactive ? "未激活" : `Lv.${tierIndex + 1}`}
+      </span>
       <RailPopover side={popoverSide} className={s.popover}>
         <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} />
       </RailPopover>

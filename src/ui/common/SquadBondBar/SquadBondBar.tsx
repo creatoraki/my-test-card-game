@@ -2,7 +2,7 @@ import { useMemo, type CSSProperties } from "react";
 import { activeBonds, BOND_DEFS, nextTier } from "@/data/bonds";
 import type { CharacterState } from "@/store/townStore";
 import { bondCountsOf } from "@/store/townStore";
-import { BondSlot } from "@/ui/common/BondSlot";
+import { BondShowcase } from "@/ui/common/BondShowcase";
 import { cx } from "@/ui/common/cx";
 import s from "./SquadBondBar.module.css";
 
@@ -10,12 +10,14 @@ export function SquadBondBar({
   characters,
   party,
   align = "end",
+  iconSize = 96,
   className,
   style,
 }: {
   characters: Record<string, CharacterState>;
   party: string[];
   align?: "start" | "end";
+  iconSize?: number;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -40,13 +42,13 @@ export function SquadBondBar({
           {bonds.map(({ def, count, tierIndex }) => {
             const next = nextTier(def, count);
             return (
-              <BondSlot
+              <BondShowcase
                 key={def.id}
                 def={def}
                 count={count}
                 tierIndex={tierIndex}
                 next={next}
-                iconSize={48}
+                iconSize={iconSize}
                 popoverSide="bottom-right"
               />
             );

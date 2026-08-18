@@ -15,6 +15,7 @@
 //     disabled 状态表达; 右上角让给全队羁绊档位条。
 //
 // ★ 与冬眠仓同一套**亮玻璃**视觉(背景就是冬眠仓.png 那张紫粉白场景): 深紫墨文字 + 白玻璃卡,
+//   左上是面包屑返回, 右上是 96px 巨型羁绊图标; 名称/效果只在悬浮浮层显示。
 //   强调色深紫罗兰 #7c4dbe。旋钮全在 FormationScreen.css 的 --fm-* 里。
 //
 // 与大厅/战斗同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts):
@@ -87,7 +88,7 @@ export function FormationScreen() {
     [party, awakened],
   );
 
-  // Esc 返回据点。与左下角那颗按钮同一个出口。
+  // Esc 返回据点。与左上面包屑按钮同一个出口。
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") enterTown();
@@ -111,11 +112,17 @@ export function FormationScreen() {
             ⚠ 不是压暗层 —— 压暗会毁掉这张图的气质(与 CryoScene 同一条取舍)。 */}
         <div className={s["fm-veil"]} />
 
-        {/* ---- 左上: 标题 ---- */}
+        {/* ---- 左上: 面包屑与标题 ---- */}
         <header className={s["fm-header"]} style={{ left: "72px", top: "48px" }}>
-          <span className={s["fm-kicker"]}>SQUAD FORMATION</span>
+          <nav className={s["fm-crumb"]} aria-label="编队路径">
+            <button className={s["fm-back"]} type="button" onClick={() => enterTown()}>
+              ← 据点
+            </button>
+            <span className={s["fm-crumb-separator"]} aria-hidden="true">▸</span>
+            <span className={s["fm-crumb-current"]}>编队</span>
+          </nav>
           <h2 className={s["fm-title"]}>编队</h2>
-          <p className={s["fm-sub"]}>出战编成 · 队员一览</p>
+          <p className={s["fm-sub"]}>出战编成 · 队员一览 · 点卡面看详情 · 点右上开关上阵 / 下阵 · 至少留 1 人上阵</p>
         </header>
 
         <SquadBondBar
@@ -133,9 +140,9 @@ export function FormationScreen() {
           className={s["fm-grid"]}
           style={{
             left: "72px", // ← 距画布左边(设计 px)
-            top: "192px", // ← 落在标题与右上羁绊条下方
+            top: "216px", // ← 落在标题与右上羁绊条下方
             width: "1776px", // ← 两侧各留 72px
-            height: "762px", // ← 到底部说明栏上方
+            height: "786px", // ← 到画布底部前留出余量
             gap: "20px",
           }}
         >
@@ -161,20 +168,6 @@ export function FormationScreen() {
           )}
         </div>
 
-        {/* ---- 左下: 返回 ---- */}
-        <button
-          className={s["fm-back"]}
-          style={{ left: "72px", bottom: "48px" }}
-          type="button"
-          onClick={() => enterTown()}
-        >
-          ← 返回据点
-        </button>
-
-        {/* ---- 右下: 规则说明 ---- */}
-        <p className={s["fm-note"]} style={{ right: "72px", bottom: "56px" }}>
-          点卡面查看队员详情 · 点右上角开关上阵 / 下阵 · 至少保留 1 名队员上阵
-        </p>
     </StageCanvas>
   );
 }

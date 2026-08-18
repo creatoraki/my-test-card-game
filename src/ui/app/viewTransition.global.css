@@ -168,9 +168,8 @@
 ::view-transition-old(vt-fm-header) {
   animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
-::view-transition-old(vt-fm-back),
-::view-transition-old(vt-fm-note) {
-  animation: vtOutDown var(--vt-out) var(--vt-ease-out) both;
+::view-transition-old(vt-fm-back) {
+  animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
 /* 被点那张卡上的文字与角标: 单独命名就是为了**不被 vt-card-panel 的位图一起拉伸**成
    详情立绘栏的形状 —— 它们在详情页没有对应物, 该干脆地淡掉。 */
@@ -188,10 +187,7 @@
   animation: vtInRise var(--vt-in) 160ms var(--vt-ease) both;
 }
 ::view-transition-new(vt-fm-back) {
-  animation: vtInRise var(--vt-in) 240ms var(--vt-ease) both;
-}
-::view-transition-new(vt-fm-note) {
-  animation: vtInRise var(--vt-in) 280ms var(--vt-ease) both;
+  animation: vtInRise var(--vt-in) 100ms var(--vt-ease) both;
 }
 ::view-transition-new(vt-fm-meta),
 ::view-transition-new(vt-fm-go),
@@ -327,13 +323,13 @@
   animation: vtInContent 420ms 260ms var(--vt-ease) both;
 }
 ::view-transition-new(vt-cd-back) {
-  animation: vtInRise 420ms 240ms var(--vt-ease) both;
+  animation: vtInRise 420ms 100ms var(--vt-ease) both;
 }
 ::view-transition-old(vt-cd-header) {
   animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
 ::view-transition-old(vt-cd-back) {
-  animation: vtOutDown var(--vt-out) var(--vt-ease-out) both;
+  animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
 /* 两栏内容按"离展示柜由近及远"错峰退场 —— 属性栏先走, 卡组栏后走。 */
 ::view-transition-old(vt-cd-stats) {

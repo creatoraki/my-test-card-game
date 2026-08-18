@@ -1,0 +1,65 @@
+.tooltip {
+  --bond-color: var(--slot-accent, #6fd2ff);
+}
+
+.popHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #6fd2ff33;
+}
+
+.popHead strong {
+  color: var(--bond-color);
+  font-size: 15px;
+}
+
+.popHead span,
+.popTiers,
+.tooltip p,
+.tooltip small {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.tooltip p {
+  margin: 10px 0;
+  color: #b8c8ce;
+  line-height: 1.5;
+}
+
+.popTiers {
+  display: grid;
+  gap: 5px;
+}
+
+.popTiers > div {
+  display: grid;
+  gap: 2px;
+  padding: 5px 7px;
+  border-left: 2px solid transparent;
+  color: #9fb3bb;
+}
+
+.popTiers > div.tierActive {
+  border-left-color: var(--bond-color);
+  background: color-mix(in srgb, var(--bond-color) 12%, transparent);
+  color: #eef7f8;
+}
+
+.popTiers b {
+  color: inherit;
+  font-size: 11px;
+}
+
+.popTiers span {
+  line-height: 1.4;
+}
+
+.tooltip small {
+  display: block;
+  margin-top: 9px;
+  color: var(--bond-color);
+}

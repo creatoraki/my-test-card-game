@@ -7,7 +7,8 @@
 // ★ 装备槽是本页的即时操作区: 点击部位后右侧切换对应仓库, 穿戴/卸下直接复用 townStore。
 //   角色状态在这里仅作展示, 编队调整统一从编队页完成。
 //
-// 版面与视觉与编队页同族(同一张背景、同一套亮玻璃配方), 旋钮在 CharacterDetailScreen.css 的 --cd-*。
+// 版面与视觉与编队页同族(同一张背景、同一套亮玻璃配方), 左上用面包屑返回编队,
+// 右上羁绊是 96px 巨型图标, 旋钮在 CharacterDetailScreen.css 的 --cd-*。
 // 与全项目同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts): 所有坐标都是「设计 px」。
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
@@ -193,7 +194,7 @@ export function CharacterDetailScreen() {
     setActiveSlot(slot);
   }, []);
 
-  // Esc 返回编队页。与左下角那颗按钮同一个出口(都走 back, 才能一并触发返回的飞行)。
+  // Esc 返回编队页。与左上面包屑按钮同一个出口(都走 back, 才能一并触发返回的飞行)。
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
@@ -247,9 +248,15 @@ export function CharacterDetailScreen() {
         <img className={s["cd-bg"]} src={CRYO_BG_ART} alt="" draggable={false} />
         <div className={s["cd-veil"]} />
 
-        {/* ---- 左上: 身份 ---- */}
+        {/* ---- 左上: 面包屑与身份 ---- */}
         <header className={s["cd-header"]} style={{ left: "72px", top: "48px" }}>
-          <span className={s["cd-kicker"]}>SUBJECT / {def.id.toUpperCase()}</span>
+          <nav className={s["cd-crumb"]} aria-label="角色路径">
+            <button className={s["cd-back"]} type="button" onClick={back}>
+              ← 编队
+            </button>
+            <span className={s["cd-crumb-separator"]} aria-hidden="true">▸</span>
+            <span className={s["cd-crumb-current"]}>{def.name}</span>
+          </nav>
           <h2 className={s["cd-title"]}>{def.name}</h2>
           <p className={s["cd-sub"]}>
             可用经验 {cs.exp} · 累计 {cs.expEarned} · 卡组 Lv.{cs.deckLevel}/{RULES.deck.levelMax} · 最小卡组下限{" "}
@@ -275,9 +282,9 @@ export function CharacterDetailScreen() {
           className={s["cd-body"]}
           style={{
             left: "72px",
-            top: "192px",
+            top: "216px",
             width: "1776px",
-            height: "740px",
+            height: "764px",
             gap: "24px",
             gridTemplateColumns: "420px 600px 1fr",
           }}
@@ -447,15 +454,6 @@ export function CharacterDetailScreen() {
           />
         ) : null}
 
-        {/* ---- 左下: 返回 ---- */}
-        <button
-          className={s["cd-back"]}
-          style={{ left: "72px", bottom: "48px" }}
-          type="button"
-          onClick={back}
-        >
-          ← 返回编队
-        </button>
     </StageCanvas>
   );
 }
