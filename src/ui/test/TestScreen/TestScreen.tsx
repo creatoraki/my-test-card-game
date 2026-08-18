@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { OpusArcanaGallery } from "@/ui/test/opus";
+import { TarotIconDemo } from "@/ui/test/luna";
+import { DsTarotArtDemo } from "@/ui/test/ds";
 import s from "./TestScreen.module.css";
 
 // 测试 demo 页面：多个开发者可以同时开发相同内容的组件 demo，并通过各自的 tab 进行评选。
@@ -34,7 +37,9 @@ export function TestScreen() {
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
-        {/* 各开发者的 demo 由对应文件夹自行接入，基准页面不预置任何内容。 */}
+        {activeTab === "opus" && <OpusArcanaGallery />}
+        {activeTab === "luna" && <TarotIconDemo />}
+        {activeTab === "ds" && <DsTarotArtDemo />}
       </section>
     </main>
   );

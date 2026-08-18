@@ -1,0 +1,19 @@
+/* 塔罗素材图标的展示外壳。
+   图标本体是自包含 SVG(无文字、无网格/扫光等线饰), 这里的样式负责
+   demo 展示时的外壳观感(边框 / 硬投影 / 主色辉光), 复刻 EventPanel .scenePlaceholder。 */
+
+/* demo 展示外壳 —— 与事件占位区同一套 1:1 面板观感 */
+.iconShell {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid #43545a;
+  box-shadow: 10px 10px 0 #060a0c, 0 0 42px color-mix(in srgb, var(--bond-accent) 12%, transparent);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.iconShell:hover {
+  border-color: color-mix(in srgb, var(--bond-accent) 70%, #43545a);
+  box-shadow: 10px 10px 0 #060a0c, 0 0 52px color-mix(in srgb, var(--bond-accent) 26%, transparent);
+  transform: translateY(-3px);
+}

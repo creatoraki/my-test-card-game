@@ -1,0 +1,188 @@
+/* 塔罗羁绊素材图标 demo 页 —— 深色档案终端风格, 与 EventPanel 的版式语言一致。 */
+
+.root {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(100%, 1160px);
+  min-height: 640px;
+  padding: 30px 36px 26px;
+  border: 1px solid #3b4d53;
+  background:
+    radial-gradient(circle at 12% 10%, #b06cf014, transparent 30%),
+    radial-gradient(circle at 88% 86%, #5ec8ff10, transparent 32%),
+    linear-gradient(150deg, #111b1e 0%, #0c1215 46%, #0a0f12 100%);
+  color: #edf3ef;
+  box-shadow: 0 22px 70px #0009, 0 0 0 1px #ffffff05;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #405057;
+}
+
+.headerTitle {
+  min-width: 0;
+}
+
+.kicker {
+  display: block;
+  color: #d6f238;
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.header h1 {
+  margin: 7px 0 0;
+  color: #f4f7ec;
+  font-family: var(--font-family);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.06em;
+}
+
+.subtitle {
+  max-width: 520px;
+  margin: 11px 0 0;
+  color: #7d9191;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.headerStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 3px;
+}
+
+.statusStamp {
+  padding: 7px 11px;
+  border: 1px solid #d6f23866;
+  color: #d6f238;
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.statusCount {
+  color: #687c7e;
+  font-family: var(--font-family);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: center;
+  gap: 34px 30px;
+  min-height: 0;
+  padding: 30px 0 26px;
+}
+
+.card {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  animation: cardIn 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.card:nth-child(2) { animation-delay: 60ms; }
+.card:nth-child(3) { animation-delay: 120ms; }
+.card:nth-child(4) { animation-delay: 180ms; }
+.card:nth-child(5) { animation-delay: 240ms; }
+.card:nth-child(6) { animation-delay: 300ms; }
+
+.cardMeta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cardArcana {
+  color: color-mix(in srgb, var(--bond-accent) 80%, #b9c8c2);
+  font-family: var(--font-family);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.cardName {
+  color: #f0f6ec;
+  font-family: var(--font-family);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+}
+
+.cardDesc {
+  color: #8a9d9c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.cardTier {
+  width: fit-content;
+  margin-top: 3px;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--bond-accent) 42%, transparent);
+  color: color-mix(in srgb, var(--bond-accent) 74%, #dce8e2);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 15px;
+  border-top: 1px solid #314149;
+}
+
+.footerNote {
+  color: #687c7e;
+  font-family: var(--font-family);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.footerText {
+  color: #a9bdb6;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.footerGlyph {
+  margin-left: auto;
+  color: #d6f238;
+  font-size: 13px;
+  text-shadow: 0 0 10px #d6f23888;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .sheet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

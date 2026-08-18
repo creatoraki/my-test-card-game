@@ -1,0 +1,117 @@
+/* ★ 图标容器(槽位)★ —— 深青档案风的方形卡槽: 图标 + 右上角等级角标 + 底部名称条。
+   所有尺寸从 --slot-icon 派生, 换图标尺寸不用改这份样式;
+   所有颜色从 --slot-accent 派生, 换题材只换这一个变量。 */
+
+.slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--slot-icon) * 0.1);
+  padding: calc(var(--slot-icon) * 0.14) calc(var(--slot-icon) * 0.12) calc(var(--slot-icon) * 0.1);
+  /* 壳可能渲染成 <button>, 这里把按钮默认样式一次性抹平。 */
+  appearance: none;
+  clip-path: none;
+  border: 1px solid color-mix(in srgb, var(--slot-accent) 42%, #33454a);
+  background:
+    radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--slot-accent) 12%, transparent), transparent 62%),
+    linear-gradient(160deg, #14211f, #0a1013 76%);
+  box-shadow: inset 0 0 calc(var(--slot-icon) * 0.3) color-mix(in srgb, var(--slot-accent) 10%, transparent);
+  color: var(--slot-accent);
+  font-family: var(--font-family);
+}
+
+/* 四角的短角线 —— 只做装饰, 与图标内部的断角框呼应。 */
+.slot::before,
+.slot::after {
+  position: absolute;
+  width: calc(var(--slot-icon) * 0.14);
+  height: calc(var(--slot-icon) * 0.14);
+  content: "";
+  pointer-events: none;
+}
+
+.slot::before {
+  top: 3px;
+  left: 3px;
+  border-top: 1px solid currentColor;
+  border-left: 1px solid currentColor;
+}
+
+.slot::after {
+  right: 3px;
+  bottom: 3px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+}
+
+.frame {
+  position: relative;
+  display: flex;
+}
+
+/* 等级角标: 压在图标右上角外沿, 尺寸随图标缩放。 */
+.level {
+  position: absolute;
+  top: calc(var(--slot-icon) * -0.1);
+  right: calc(var(--slot-icon) * -0.1);
+  display: grid;
+  min-width: calc(var(--slot-icon) * 0.3);
+  height: calc(var(--slot-icon) * 0.3);
+  padding: 0 calc(var(--slot-icon) * 0.05);
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--slot-accent) 78%, #0a1013);
+  background: #0a1215;
+  box-shadow: 0 0 calc(var(--slot-icon) * 0.12) color-mix(in srgb, var(--slot-accent) 34%, transparent);
+  color: color-mix(in srgb, var(--slot-accent) 82%, white);
+  font-family: Georgia, serif;
+  font-size: calc(var(--slot-icon) * 0.19);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.name {
+  color: #eff6e9;
+  font-size: calc(var(--slot-icon) * 0.15);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* 未激活: 外壳与角标一起退成灰调, 图标本体的去色由 OpusArcanaIcon 自己负责。 */
+.slot[data-inactive="true"] {
+  border-color: #33413f;
+  background: linear-gradient(160deg, #131a1b, #0a0f10 76%);
+  box-shadow: none;
+  color: #6d7c7c;
+}
+
+.slot[data-inactive="true"] .level {
+  border-color: #495656;
+  box-shadow: none;
+  color: #93a3a3;
+}
+
+.slot[data-inactive="true"] .name {
+  color: #8a9897;
+}
+
+.interactive {
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.interactive:hover,
+.interactive:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--slot-accent) 80%, #33454a);
+  box-shadow:
+    inset 0 0 calc(var(--slot-icon) * 0.3) color-mix(in srgb, var(--slot-accent) 16%, transparent),
+    0 0 calc(var(--slot-icon) * 0.18) color-mix(in srgb, var(--slot-accent) 24%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive {
+    transition: none;
+  }
+}

@@ -1,0 +1,243 @@
+/* opus tab 的图标 demo 版式 —— 只是给六张图标搭个陈列台, 观感跟随事件面板的深青档案风。 */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(100%, 1120px);
+  max-height: calc(100vh - 122px);
+  padding: 20px 22px 22px;
+  overflow: auto;
+  border: 1px solid #2f4046;
+  background: linear-gradient(160deg, #111d20, #0a1013 78%);
+  box-shadow: 0 16px 45px #0008;
+  color: #dfe9e4;
+  font-family: var(--font-family);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #2c3d43;
+}
+
+.kicker {
+  display: block;
+  color: #d6f238;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.header h2 {
+  margin: 7px 0 0;
+  color: #f2f7ee;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+.headerNote {
+  max-width: 340px;
+  color: #7c8f90;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: right;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlLabel {
+  color: #6f8385;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+.controls button {
+  min-width: 54px;
+  padding: 5px 10px;
+  border: 1px solid #33454a;
+  background: #0d1518;
+  color: #93a5a4;
+  clip-path: none;
+  font-family: var(--font-family);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.controls button:hover {
+  border-color: #4d6165;
+  color: #dbe7e2;
+}
+
+.controls button.on {
+  border-color: #d6f238;
+  background: #d6f2381a;
+  color: #d6f238;
+}
+
+/* ---- 选中检视区 ---- */
+
+.inspect {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px 16px;
+  border: 1px solid #2a3a40;
+  border-left: 2px solid var(--card-accent);
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--card-accent) 9%, transparent), transparent 58%),
+    #0b1215;
+}
+
+.inspectHead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.inspectName {
+  color: #f0f6ec;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.inspectLatin {
+  color: var(--card-accent);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.inspectRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.inspectSlot {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.inspectSlot > span {
+  color: #7b8d8e;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.inspectDivider {
+  align-self: stretch;
+  width: 1px;
+  min-height: 60px;
+  background: linear-gradient(#2a3a40, transparent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min, 260px), 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px 14px;
+  border: 1px solid #2a3a40;
+  background: #0b1215;
+}
+
+/* 被选中的那一张卡: 只换边框与底色, 不动尺寸, 避免网格重排。 */
+.cardOn {
+  border-color: color-mix(in srgb, var(--card-accent) 62%, #2a3a40);
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--card-accent) 12%, transparent), transparent 62%),
+    #0b1215;
+}
+
+.card figcaption {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  text-align: center;
+}
+
+.cardName {
+  color: #f0f6ec;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.cardLatin {
+  color: var(--card-accent);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.cardMood {
+  color: #7b8d8e;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid #2a3a40;
+  background:
+    repeating-linear-gradient(45deg, #0e1619 0 6px, #0b1215 6px 12px);
+}
+
+.stripTitle {
+  margin-right: 6px;
+  color: #6f8385;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+.stripSlot {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.stripSlot span {
+  color: #8b9c9c;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 720px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerNote {
+    text-align: left;
+  }
+}
