@@ -1,1 +1,6 @@
-export { BondSlot, type BondSlotProps, type RailPopoverSide } from "./BondSlot";
+export {
+  BondSlot,
+  type BondSlotProps,
+  type BondSlotVariant,
+  type RailPopoverSide,
+} from "./BondSlot";

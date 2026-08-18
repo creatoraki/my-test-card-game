@@ -18,8 +18,9 @@ export function BondRail({ bonds }: { bonds: BattleBondView[] }) {
               count={bond.count}
               tierIndex={activeIndex}
               next={bond.next}
-              iconSize={56}
-              popoverSide="bottom"
+              iconSize={80}
+              variant="compact"
+              popoverSide="bottom-right"
             />
           );
         })}

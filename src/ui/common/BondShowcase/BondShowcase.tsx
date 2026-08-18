@@ -28,6 +28,7 @@ export function BondShowcase({
 }: BondShowcaseProps) {
   const inactive = tierIndex < 0;
   const accent = getArcanaAccent(def.id) ?? def.color;
+  const tierTotal = def.tiers.length;
   const style = {
     "--slot-icon": `${iconSize}px`,
     "--slot-accent": accent,
@@ -41,14 +42,16 @@ export function BondShowcase({
       data-rail-item
       tabIndex={0}
       role="group"
-      aria-label={`${def.name}，${count} 点${inactive ? "，未激活" : `，Lv.${tierIndex + 1}`}`}
+      aria-label={`${def.name}，${count} 点${inactive ? "，未激活" : `，Lv.${tierIndex + 1}/${tierTotal}`}`}
     >
       <div className={s.frame}>
-        <ArcanaIcon id={def.id} size={iconSize} chrome={false} inactive={inactive} accent={accent} />
+        <ArcanaIcon id={def.id} size={Math.round(iconSize * 0.76)} bare accent="var(--slot-ink)" />
         <span className={s.count} aria-hidden="true">{count}</span>
       </div>
-      <span className={s.tier} aria-hidden="true">
-        {inactive ? "未激活" : `Lv.${tierIndex + 1}`}
+      <span className={s.pips} aria-hidden="true">
+        {Array.from({ length: tierTotal }, (_, i) => (
+          <i key={i} className={cx(s.pip, i <= tierIndex && s.pipOn)} />
+        ))}
       </span>
       <RailPopover side={popoverSide} className={s.popover}>
         <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} />

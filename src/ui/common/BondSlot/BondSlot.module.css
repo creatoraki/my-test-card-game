@@ -132,6 +132,42 @@
   color: #8a9897;
 }
 
+/* compact：外壳完全让位，只保留方形图标本体与点数角标 */
+.slot[data-variant="compact"] {
+  min-width: 0;
+  padding: 0;
+  gap: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.slot[data-variant="compact"]::before,
+.slot[data-variant="compact"]::after {
+  display: none;
+}
+
+.slot[data-variant="compact"] .frame {
+  width: var(--slot-icon);
+  height: var(--slot-icon);
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.slot[data-variant="compact"]:hover .frame,
+.slot[data-variant="compact"]:focus-visible .frame {
+  filter: drop-shadow(0 0 calc(var(--slot-icon) * 0.16) color-mix(in srgb, var(--slot-accent) 46%, transparent));
+  transform: translateY(calc(var(--slot-icon) * -0.03));
+}
+
+.slot[data-variant="compact"] .count {
+  top: auto;
+  right: calc(var(--slot-icon) * -0.06);
+  bottom: calc(var(--slot-icon) * -0.06);
+  min-width: calc(var(--slot-icon) * 0.28);
+  height: calc(var(--slot-icon) * 0.28);
+  font-size: calc(var(--slot-icon) * 0.18);
+}
+
 .popover {
   --bond-color: var(--slot-accent);
   width: 260px;
