@@ -107,7 +107,7 @@ export const CHARACTERS: CharacterDef[] = [
       basicCardId("prophet", "attack"),
       basicCardId("prophet", "attack"),
       basicCardId("prophet", "heal"),
-      "prayer",
+      "star-shatter",
       "emergency-treatment"
     ],
     pools: {
