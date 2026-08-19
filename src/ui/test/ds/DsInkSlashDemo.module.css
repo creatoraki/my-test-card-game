@@ -1,0 +1,445 @@
+/* 墨韵·剑意斩 demo 页 —— 深色档案终端风格(与塔罗素材图标页同一套版式语言),
+   但配色换成水墨三族: 墨(近黑灰) / 纸(暖白) / 朱(印章红)。 */
+
+.root {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(100%, 1240px);
+  min-height: 640px;
+  padding: 30px 36px 26px;
+  border: 1px solid #3b3d38;
+  background:
+    radial-gradient(circle at 14% 8%, #e9e2cf0f, transparent 30%),
+    radial-gradient(circle at 86% 90%, #a8382a12, transparent 34%),
+    linear-gradient(150deg, #121417 0%, #0d0f11 46%, #0a0b0d 100%);
+  color: #ede9dc;
+  box-shadow: 0 22px 70px #0009, 0 0 0 1px #ffffff05;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #3d3c33;
+}
+
+.headerTitle {
+  min-width: 0;
+}
+
+.kicker {
+  display: block;
+  color: #a8382a;
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.header h1 {
+  margin: 7px 0 0;
+  color: #f4efdf;
+  font-family: var(--font-family);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.06em;
+}
+
+.subtitle {
+  max-width: 560px;
+  margin: 11px 0 0;
+  color: #8b8574;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.headerStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 3px;
+}
+
+.statusStamp {
+  padding: 7px 11px;
+  border: 1px solid #a8382a66;
+  color: #cf6a4a;
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.statusCount {
+  color: #6f6b5e;
+  font-family: var(--font-family);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+/* —— 主体: 左舞台 + 右控制台 —— */
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  min-height: 0;
+  padding: 26px 0;
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 460px;
+  overflow: hidden;
+  border: 1px solid #3b3a2f;
+  background:
+    radial-gradient(120% 90% at 50% 42%, #16191d 0%, #0e1113 52%, #090b0d 100%);
+  box-shadow: inset 0 0 60px #00000080;
+}
+
+/* 取景框四角刻度(纯装饰) */
+.stage::before,
+.stage::after {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+  z-index: 3;
+}
+.stage::before {
+  top: 10px;
+  left: 10px;
+  border-top: 1px solid #6b5b3e66;
+  border-left: 1px solid #6b5b3e66;
+}
+.stage::after {
+  right: 10px;
+  bottom: 10px;
+  border-right: 1px solid #6b5b3e66;
+  border-bottom: 1px solid #6b5b3e66;
+}
+
+/* 受击木桩: 纯 CSS 造型(树干渐变 + 两道年轮带 + 木纹), 不依赖图片素材 */
+.stagePost {
+  position: relative;
+  z-index: 1;
+  width: 96px;
+  height: 230px;
+  border: 1px solid #4a3a24;
+  border-radius: 16px 16px 8px 8px;
+  background-image:
+    linear-gradient(#0000 0 58px, #00000038 58px 61px, #0000 61px 156px, #0000002b 156px 159px, #0000 159px),
+    repeating-linear-gradient(90deg, #ffffff05 0 2px, #0000 2px 5px),
+    linear-gradient(90deg, #171008, #2c2012 26%, #3d2e18 50%, #251a0c 76%, #130d06);
+  box-shadow:
+    inset 0 0 0 1px #ffffff0d,
+    inset 0 10px 16px -10px #000000b3,
+    0 18px 34px -14px #000000d9;
+}
+
+/* 桩顶截面 */
+.stagePost::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 74px;
+  height: 18px;
+  transform: translateX(-50%);
+  border: 1px solid #54422a;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #4a3820, #2a1d0d);
+  box-shadow: inset 0 2px 4px #ffffff1a;
+}
+
+/* 桩脚阴影池 */
+.stageShadow {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 116px);
+  width: 210px;
+  height: 34px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #00000099, #0000 68%);
+  filter: blur(7px);
+  pointer-events: none;
+}
+
+/* 特效层: 铺满舞台, 内部 wrap 以舞台中心(=木桩中点)为爆点 */
+.fxLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 舞台角落的小标签 */
+.stageTag {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 2;
+  color: #6f6b5e;
+  font-family: var(--font-family);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  pointer-events: none;
+}
+
+/* —— 控制台 —— */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #33342d;
+  background: linear-gradient(160deg, #121418, #0d0f11);
+}
+
+.strikeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid #6b5b3e;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #23252a, #17191d);
+  color: #f0ead9;
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 80ms ease;
+}
+
+.strikeBtn:hover {
+  border-color: #b8a878;
+  background: linear-gradient(180deg, #2b2e34, #1b1d22);
+  box-shadow: 0 0 0 1px #b8a87826, 0 8px 26px -10px #000000d9;
+}
+
+.strikeBtn:active {
+  transform: translateY(1px);
+}
+
+.strikeBtn:focus-visible {
+  outline: 1px solid #d8cfae;
+  outline-offset: 2px;
+}
+
+/* 按钮里的一小笔"墨" */
+.strikeBrush {
+  width: 20px;
+  height: 9px;
+  border-radius: 60% 40% 55% 45% / 55% 45% 60% 40%;
+  background: linear-gradient(90deg, #05060a, #1c1e23);
+  box-shadow: 0 0 0 1px #3a3c42;
+  transform: rotate(-18deg);
+}
+
+.rateGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rateLabel {
+  margin-right: auto;
+  color: #8b8574;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.rateBtn {
+  min-width: 44px;
+  padding: 6px 10px;
+  border: 1px solid #3f423d;
+  border-radius: 4px;
+  background: transparent;
+  color: #9aa08f;
+  font-family: var(--font-num);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+}
+
+.rateBtn:hover {
+  border-color: #8a8268;
+  color: #e8e2d1;
+}
+
+.rateBtn.rateActive {
+  border-color: #a8382a;
+  background: #a8382a1f;
+  color: #e08567;
+}
+
+.rateBtn:focus-visible {
+  outline: 1px solid #d8cfae;
+  outline-offset: 1px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+  margin: 0;
+  color: #7d8577;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+/* 播放中的呼吸圆点: 只用缩放, 不闪明暗(遵守项目"常驻动效禁闪烁"约定) */
+.statusLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #e8e2d1;
+}
+
+.statusLive::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a8382a;
+  box-shadow: 0 0 8px #a8382a99;
+  animation: liveBreathe 900ms ease-in-out infinite alternate;
+}
+
+@keyframes liveBreathe {
+  from { transform: scale(0.7); }
+  to { transform: scale(1.25); }
+}
+
+/* 幕次说明 */
+.acts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actRow {
+  display: grid;
+  grid-template-columns: 10px 44px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid #26282b;
+}
+
+.actDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.actInk {
+  border: 1px solid #4a4d54;
+  background: #17181d;
+}
+
+.actCinnabar {
+  background: #a8382a;
+  box-shadow: 0 0 8px #a8382a80;
+}
+
+.actPaper {
+  background: #e9e2cf;
+}
+
+.actName {
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #e8e2d1;
+}
+
+.actTime {
+  font-family: var(--font-num);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-align: right;
+  color: #6f6b5e;
+}
+
+.actDesc {
+  grid-column: 2 / 4;
+  color: #8b8574;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* —— 页脚 —— */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 15px;
+  border-top: 1px solid #2c2e28;
+}
+
+.footerNote {
+  color: #6f6b5e;
+  font-family: var(--font-family);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.footerText {
+  color: #a9a490;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.footerGlyph {
+  margin-left: auto;
+  color: #a8382a;
+  font-family: var(--font-family);
+  font-size: 15px;
+  text-shadow: 0 0 10px #a8382a88;
+}
+
+@media (max-width: 1020px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+
+  .stage {
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 560px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerStatus {
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusLive::before {
+    animation: none;
+  }
+}

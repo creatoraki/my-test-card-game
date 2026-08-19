@@ -1,0 +1,327 @@
+/* ============================================================================
+   墨韵 · 剑意斩 —— ds 专属水墨风斩击特效(纯 CSS 关键帧, 无序列帧素材)。
+
+   四幕节奏(时间全部由 DsInkSlashFx.tsx 以 preset.impactMs 为爆墨锚点下发):
+   ① 蓄意   挂载 → 爆墨前 620ms: 宣纸微光铺开 + 中心墨晕凝聚;
+   ② 横扫   爆墨前 780 → 280ms: 湿墨晕 + 浓墨剑身 + 枯笔飞白, 斜上 42° 挑斩;
+   ③ 爆墨   impactMs 一拍: 纸裂白闪 + 墨环涟漪 + 墨点飞溅 + 朱砂印落款;
+   ④ 收锋   impactMs + 180 → +1150ms: 剑痕墨迹洇开渐干, 飞溅墨点沉定。
+
+   剑意走势统一 -42deg(与血光/刀光的横向或 -38deg 刻意错开), 全屏只此一个角度。
+   干湿对比 = 三层: 湿墨晕(blur 大, 半透明) + 浓墨剑身(blur 小, 近黑) + 枯笔飞白
+   (mask 打断成断续留白)。颜色只用三族: 墨(近黑灰)、纸(暖白)、朱(印章红)。
+   ⚠ 与战斗侧 fx 完全独立 —— 本文件不引用任何 battle 代码, 供 test/ds 页签展示。
+   ============================================================================ */
+
+.ink-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1400px;
+  height: 1400px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* —— 全部几何层: 都以 (50%, 50%) 为锚, 由各自关键帧搬运 —— */
+.ink-paper-glow,
+.ink-charge,
+.ink-blade-wet,
+.ink-blade-core,
+.ink-dry,
+.ink-wake,
+.ink-swell,
+.ink-tear-glow,
+.ink-tear,
+.ink-ripple,
+.ink-seal,
+.ink-scar,
+.ink-drop {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* ── ① 蓄意: 宣纸微光(全画布) + 墨晕凝聚(中心) ── */
+.ink-paper-glow {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 50%, #e9e2cf2e 0%, #e9e2cf14 42%, #e9e2cf00 68%);
+  animation-name: inkPaperGlow;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+.ink-charge {
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, #05060a 0%, #0c0d10cc 38%, #17181d66 62%, #17181d00 78%);
+  filter: blur(9px);
+  animation-name: inkCharge;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* ── ② 横扫: 湿墨晕(宽软) → 浓墨剑身(锐) → 枯笔飞白(断续) ── */
+.ink-blade-wet {
+  width: 1000px;
+  height: 110px;
+  background: linear-gradient(90deg, #05060a00 4%, #17181d59 30%, #10111666 55%, #17181d4d 85%, #05060a00 100%);
+  filter: blur(10px);
+  animation-name: inkStrokeSweep;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.05, 0.7, 0.3, 1);
+}
+
+.ink-blade-core {
+  width: 1000px;
+  height: 24px;
+  /* 深底 + 三处墨渍色斑, 让笔锋不是一根死板的条 */
+  background-image:
+    radial-gradient(circle at 18% 50%, #05060a99 0%, #05060a00 38%),
+    radial-gradient(circle at 46% 50%, #05060a88 0%, #05060a00 30%),
+    radial-gradient(circle at 76% 50%, #05060a77 0%, #05060a00 34%),
+    linear-gradient(90deg, #05060a00 0%, #16171c 7%, #0c0d10 42%, #121318 88%, #05060a00 100%);
+  filter: blur(0.7px);
+  animation-name: inkStrokeSweep;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.05, 0.7, 0.3, 1);
+}
+
+.ink-dry {
+  height: 9px;
+  background: #15161b;
+  filter: blur(0.6px);
+  /* 打断成断续的"飞白": 墨在纸上擦过留下的空白 */
+  mask-image: linear-gradient(90deg,
+    #000 0 10%, #0000 10% 24%, #000 24% 38%, #0000 38% 52%,
+    #000 52% 66%, #0000 66% 80%, #000 80% 92%, #0000 92% 100%);
+  -webkit-mask-image: linear-gradient(90deg,
+    #000 0 10%, #0000 10% 24%, #000 24% 38%, #0000 38% 52%,
+    #000 52% 66%, #0000 66% 80%, #000 80% 92%, #0000 92% 100%);
+  animation-name: inkDrySweep;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.08, 0.6, 0.3, 1);
+}
+
+/* 横扫后的余韵: 一道宽软的墨痕残影, 把"剑过"与"爆墨"两拍接起来 */
+.ink-wake {
+  width: 900px;
+  height: 56px;
+  background: linear-gradient(90deg, #0a0b0e00, #0d0e12b3 40%, #12131899 70%, #0a0b0e00);
+  filter: blur(14px);
+  animation-name: inkWakeFade;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* 爆墨前的蓄势: 中心暗涌缓缓涨大 */
+.ink-swell {
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, #0b0c0f 0%, #1213188c 45%, #17181d2e 68%, #17181d00 80%);
+  filter: blur(14px);
+  animation-name: inkSwell;
+  animation-fill-mode: both;
+  animation-timing-function: ease-in;
+}
+
+/* ── ③ 爆墨: 纸裂白闪(宣纸被剑意刺穿) ── */
+/* 裂口外的一圈柔光(独立于 clip-path, 不会被裁成尖角) */
+.ink-tear-glow {
+  width: 520px;
+  height: 400px;
+  background: radial-gradient(circle, #f3eddd80 0%, #f3eddd2b 46%, #f3eddd00 72%);
+  filter: blur(16px);
+  animation-name: inkTearGlow;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+.ink-tear {
+  width: 420px;
+  height: 300px;
+  clip-path: polygon(
+    12% 0%, 34% 6%, 52% 0%, 71% 9%, 88% 2%, 100% 18%,
+    93% 38%, 100% 58%, 89% 76%, 97% 92%, 78% 100%, 58% 93%,
+    38% 100%, 20% 92%, 4% 100%, 0% 78%, 9% 58%, 0% 36%, 6% 18%
+  );
+  background: #f3eddd;
+  filter: blur(0.4px);
+  box-shadow: 0 0 70px 26px #f3eddd59, 0 0 140px 60px #f3eddd2b;
+  animation-name: inkTear;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* 墨环涟漪: 一滴浓墨砸进纸面荡开的圈 */
+.ink-ripple {
+  width: 340px;
+  height: 340px;
+  border: 2px solid #0a0b0e;
+  border-radius: 50%;
+  box-shadow: 0 0 18px 4px #0a0b0e59, inset 0 0 22px 6px #0a0b0e40;
+  animation-name: inkRipple;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.1, 0.5, 0.25, 1);
+}
+
+/* 朱印落款: 爆墨点旁一枚小小朱砂方印 —— 剑意的"落款" */
+.ink-seal {
+  left: calc(50% + 132px);
+  top: calc(50% + 58px);
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(145deg, #b6452f 0%, #9c2f22 60%, #8a271c 100%);
+  border: 2px solid #e9e0c8;
+  box-shadow: 0 0 0 2px #a8382a66, 0 0 22px 6px #a8382a4d;
+  animation-name: inkSealStamp, inkSealFade;
+  animation-fill-mode: both, forwards;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.2), ease-in;
+}
+
+/* ── ④ 收锋: 剑痕墨迹先画出, 再洇开渐干 ── */
+.ink-scar {
+  width: 520px;
+  height: 14px;
+  background: linear-gradient(90deg, transparent, #101116 6%, #1a1b20 50%, #101116 94%, transparent);
+  filter: blur(1.5px);
+  animation-name: inkScarDraw, inkScarDry;
+  animation-fill-mode: both, forwards;
+  animation-timing-function: ease-out, ease-in;
+}
+
+/* 墨点飞溅: 形态、落点、大小在 TSX 里按表下发(--drop-dx/--drop-dy) */
+.ink-drop {
+  border-radius: 50%;
+  background: radial-gradient(circle, #26292e 0%, #101216 52%, #05060a 100%);
+  animation-name: inkDropFly, inkDropSoak;
+  animation-fill-mode: both, forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.55, 0.3, 1), ease-out;
+}
+
+/* ============================ 关键帧 ============================ */
+
+/* 宣纸微光: 挂载时轻铺一层暖白 */
+@keyframes inkPaperGlow {
+  0%   { transform: translate(-50%, -50%) scale(0.96); opacity: 0; }
+  25%  { opacity: 0.45; }
+  70%  { opacity: 0.3; }
+  100% { transform: translate(-50%, -50%) scale(1.02); opacity: 0; }
+}
+
+/* 墨晕凝聚: 中心墨团涨大后消散, 让位给剑身 */
+@keyframes inkCharge {
+  0%   { transform: translate(-50%, -50%) scale(0.25); opacity: 0; }
+  30%  { opacity: 0.75; }
+  80%  { opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(1.45); opacity: 0; }
+}
+
+/* 剑身横扫: 沿 -42deg 从下左斜挑到上右, 起笔快、收锋慢(笔意) */
+@keyframes inkStrokeSweep {
+  0%   { transform: translate(-50%, -50%) rotate(-42deg) translateX(-130%); opacity: 0; }
+  10%  { opacity: 1; }
+  60%  { opacity: 1; }
+  86%  { opacity: 0.92; }
+  100% { transform: translate(-50%, -50%) rotate(-42deg) translateX(130%); opacity: 0; }
+}
+
+/* 枯笔飞白: 短一截、走快一步, 紧随剑身后缘擦过 */
+@keyframes inkDrySweep {
+  0%   { transform: translate(-50%, -50%) rotate(-42deg) translateX(-340%); opacity: 0; }
+  12%  { opacity: 0.8; }
+  70%  { opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) rotate(-42deg) translateX(340%); opacity: 0; }
+}
+
+/* 墨痕余韵: 剑过留痕, 缓缓拉长淡去 */
+@keyframes inkWakeFade {
+  0%   { transform: translate(-50%, -50%) rotate(-42deg) translateX(0) scaleX(0.4); opacity: 0; }
+  30%  { opacity: 0.5; }
+  70%  { opacity: 0.32; }
+  100% { transform: translate(-50%, -50%) rotate(-42deg) translateX(60%) scaleX(1); opacity: 0; }
+}
+
+/* 蓄势暗涌 */
+@keyframes inkSwell {
+  0%   { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+  55%  { opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.25); opacity: 0; }
+}
+
+/* 纸裂白闪 */
+@keyframes inkTear {
+  0%   { transform: translate(-50%, -50%) scale(0.78); opacity: 0; filter: blur(2px); }
+  18%  { opacity: 0.95; filter: blur(0.5px); }
+  45%  { opacity: 0.8; filter: blur(0.5px); }
+  100% { transform: translate(-50%, -50%) scale(1.14); opacity: 0; filter: blur(4px); }
+}
+
+/* 纸裂柔光 */
+@keyframes inkTearGlow {
+  0%   { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+  20%  { opacity: 0.55; }
+  60%  { opacity: 0.35; }
+  100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+}
+
+/* 墨环涟漪 */
+@keyframes inkRipple {
+  0%   { transform: translate(-50%, -50%) scale(0.18); opacity: 0.5; filter: blur(1px); }
+  55%  { opacity: 0.3; filter: blur(2px); }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; filter: blur(5px); }
+}
+
+/* 朱印按下(微过冲) → 淡出 */
+@keyframes inkSealStamp {
+  0%   { transform: translate(-50%, -50%) rotate(5deg) scale(0.2); opacity: 0; }
+  60%  { opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) rotate(5deg) scale(1.06); opacity: 0.95; }
+}
+@keyframes inkSealFade {
+  0%   { transform: translate(-50%, -50%) rotate(5deg) scale(1.06); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) rotate(5deg) scale(1.12); opacity: 0; }
+}
+
+/* 墨痕画出 → 洇开变淡(像墨在纸上慢慢干透) */
+@keyframes inkScarDraw {
+  0%   { transform: translate(-50%, -50%) rotate(-42deg) scaleX(0); opacity: 0; }
+  100% { transform: translate(-50%, -50%) rotate(-42deg) scaleX(1); opacity: 0.85; }
+}
+@keyframes inkScarDry {
+  0%   { transform: translate(-50%, -50%) rotate(-42deg) scaleX(1) scaleY(1); opacity: 0.85; filter: blur(1.5px); }
+  100% { transform: translate(-50%, -50%) rotate(-42deg) scaleX(1) scaleY(1.6); opacity: 0; filter: blur(4px); }
+}
+
+/* 墨点: 先飞溅到落点, 再洇开沉定(像滴在宣纸上吸水化开) */
+@keyframes inkDropFly {
+  0%   { transform: translate(-50%, -50%) translate(0, 0) scale(0.9); opacity: 0; }
+  12%  { opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(var(--drop-dx), var(--drop-dy)) scale(1.05); opacity: 1; }
+}
+@keyframes inkDropSoak {
+  0%   { transform: translate(-50%, -50%) translate(var(--drop-dx), var(--drop-dy)) scale(1.05); opacity: 1; filter: blur(0); }
+  100% { transform: translate(-50%, -50%) translate(var(--drop-dx), var(--drop-dy)) scale(1.7); opacity: 0.28; filter: blur(2.5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-paper-glow,
+  .ink-charge,
+  .ink-blade-wet,
+  .ink-blade-core,
+  .ink-dry,
+  .ink-wake,
+  .ink-swell,
+  .ink-tear-glow,
+  .ink-tear,
+  .ink-ripple,
+  .ink-seal,
+  .ink-scar,
+  .ink-drop {
+    animation: none;
+  }
+}

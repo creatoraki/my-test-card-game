@@ -1,0 +1,420 @@
+/* ============================================================================
+   霓虹数据·交叉斩 —— 质感层。几何与时序在 neonCrossGeometry.ts / NeonCrossFx.tsx,
+   这里只负责「长什么样」: 霓虹色、辉光、模糊与关键帧曲线。
+
+   整层 screen 混色: 这一击是自发光的数据体, 应该「加」在场景上而不是「盖」住场景。
+   ============================================================================ */
+
+.neon-wrap {
+  /* 纺锤轮廓: 中段满高、两端收成尖。两刀的辉光层与拖影层共用, 改这一处即改全部刀形。
+     等宽光带读起来是激光棒, 两端收尖才是斩击 —— 这是「像不像斩」的第一决定因素。 */
+  --blade-taper: polygon(
+    0% 50%, 3% 14%, 13% 0%, 87% 0%, 97% 14%,
+    100% 50%, 97% 86%, 87% 100%, 13% 100%, 3% 86%
+  );
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1400px;
+  height: 1400px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+  mix-blend-mode: screen;
+}
+
+/* 色调令牌: 两刀与所有碎屑都只认这两个变量, 换配色改这三块即可。 */
+.neon-wrap [data-tone="cyan"] {
+  --tone: #6ef4ff;
+  --tone-deep: #0fa6ff;
+}
+
+.neon-wrap [data-tone="magenta"] {
+  --tone: #ff6ae4;
+  --tone-deep: #c81fb0;
+}
+
+.neon-wrap [data-tone="white"] {
+  --tone: #ffffff;
+  --tone-deep: #9fe6ff;
+}
+
+/* ── 预警层 ───────────────────────────────────────────────────────────── */
+
+.neon-field {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 760px;
+  height: 760px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #0fa6ff2e 0%, #c81fb01f 45%, transparent 72%),
+    repeating-linear-gradient(0deg, #6ef4ff12 0 1px, transparent 1px 14px);
+  opacity: 0;
+  animation-name: neonFieldIn, neonFieldOut;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, ease-in;
+}
+
+.neon-scan {
+  position: absolute;
+  left: 50%;
+  height: 2px;
+  transform: translateX(-50%) scaleX(0.2);
+  background: linear-gradient(90deg, transparent, #6ef4ff 20%, #ffffff 50%, #ff6ae4 80%, transparent);
+  box-shadow: 0 0 8px #0fa6ffa6;
+  opacity: 0;
+  animation-name: neonScanSweep;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in-out;
+}
+
+/* ── 两刀 ─────────────────────────────────────────────────────────────── */
+
+/* wrapper 只做旋转: 内层三条各自从左端 scaleX 扫出, 这样「扫」和「转」互不干扰。 */
+.neon-blade,
+.neon-crack {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len, 1500px);
+  height: 0;
+  transform: translate(-50%, -50%) rotate(var(--blade-angle, 0deg));
+}
+
+.neon-blade i,
+.neon-crack i {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  display: block;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.neon-blade i {
+  transform-origin: left center;
+}
+
+.neon-blade-glow {
+  /* clip-path 作用在本地盒模型、transform 之后才缩放, 所以 scaleX(0→1) 的扫出不受影响,
+     尖端会跟着刀身一起拉开。只给这两条「靠 blur 出体量」的层收尖: 刀芯与裂痕的辉光是
+     box-shadow, 会被 clip-path 一并裁掉, 且它们本身只有 2.5/5px, 收尖也看不出来。 */
+  clip-path: var(--blade-taper);
+  height: 20px;
+  transform: translateY(-50%) scaleX(0);
+  background: linear-gradient(90deg, transparent 2%, var(--tone-deep) 30%, var(--tone) 50%, var(--tone-deep) 70%, transparent 98%);
+  filter: blur(9px);
+  animation-name: neonBladeSweep, neonBladeFade;
+  animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1), ease-out;
+  z-index: 2;
+}
+
+.neon-blade-core {
+  height: 2.5px;
+  transform: translateY(-50%) scaleX(0);
+  /* 白芯收窄到中段: 亮度集中在刀腹、两端只剩细弱色尾, 与收尖轮廓互相强化。 */
+  background: linear-gradient(90deg, transparent 3%, var(--tone) 26%, #ffffff 44%, #ffffff 56%, var(--tone) 74%, transparent 97%);
+  box-shadow: 0 0 5px var(--tone), 0 0 12px var(--tone-deep);
+  animation-name: neonBladeSweep, neonBladeFade;
+  animation-timing-function: cubic-bezier(0.05, 0.9, 0.2, 1), ease-out;
+  z-index: 6;
+}
+
+/* 拖影: 比刀芯宽、跟随晚, 提供「速度线」而不是第二刀。 */
+.neon-blade-ghost {
+  clip-path: var(--blade-taper);
+  height: 7px;
+  transform: translateY(-50%) scaleX(0);
+  background: linear-gradient(90deg, transparent, var(--tone) 40%, #ffffffcc 55%, transparent 92%);
+  filter: blur(3px);
+  animation-name: neonBladeGhost;
+  animation-timing-function: ease-out;
+  z-index: 4;
+}
+
+.neon-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 1px;
+  background: var(--tone);
+  box-shadow: 0 0 6px var(--tone), 0 0 16px var(--tone-deep);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--spark-angle, 0deg))
+    translateX(var(--spark-along, 0px))
+    rotate(calc(-1 * var(--spark-angle, 0deg)))
+    translate(0, 0)
+    scale(0.2);
+  opacity: 0;
+  z-index: 7;
+  animation-name: neonSparkBurst;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+/* ── 交点白核与色差错位 ───────────────────────────────────────────────── */
+
+.neon-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, #ffffff 0%, #d6faff 26%, #6ef4ffa6 48%, #ff6ae44d 66%, transparent 78%);
+  box-shadow: 0 0 30px #6ef4ffcc, 0 0 70px #ff6ae480;
+  opacity: 0;
+  z-index: 8;
+  animation-name: neonCoreForm, neonCoreBlow;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.2, 1.4, 0.4, 1), ease-out;
+}
+
+.neon-core-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid #9fe6ff;
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  z-index: 7;
+  animation-name: neonRingOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+/* 坏帧: 横向撕开一条并做 RGB 错位。青/品红双影是「色差」的最省成本表达。 */
+.neon-glitch {
+  position: absolute;
+  left: 50%;
+  width: 900px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, #6ef4ff5e 18%, #ffffff42 50%, #ff6ae45e 82%, transparent);
+  box-shadow: inset 0 0 24px #0fa6ff4d;
+  opacity: 0;
+  z-index: 9;
+  animation-name: neonGlitchShift;
+  animation-fill-mode: forwards;
+  animation-timing-function: steps(4, end);
+}
+
+/* ── 十字裂痕 ─────────────────────────────────────────────────────────── */
+
+.neon-crack i {
+  height: 5px;
+  transform: translateY(-50%) scaleX(0.3) scaleY(0.2);
+  transform-origin: center center;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent 6%, var(--tone-deep) 24%, #ffffff 50%, var(--tone-deep) 76%, transparent 94%);
+  box-shadow: 0 0 8px var(--tone), 0 0 22px var(--tone-deep);
+  animation-name: neonCrackOpen, neonCrackBlow;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1), ease-out;
+  z-index: 5;
+}
+
+/* ── 爆点 ─────────────────────────────────────────────────────────────── */
+
+.neon-shock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 26px #6ef4ffe6, inset 0 0 26px #ff6ae4a6;
+  transform: translate(-50%, -50%) scale(0.1);
+  opacity: 0;
+  z-index: 8;
+  animation-name: neonShockOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.2, 1);
+}
+
+.neon-pixel {
+  position: absolute;
+  background: var(--tone);
+  box-shadow: 0 0 8px var(--tone-deep);
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  opacity: 0;
+  z-index: 9;
+  animation-name: neonPixelBurst;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.75, 0.25, 1);
+}
+
+.neon-shard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--tone) 45%, #ffffff 70%, transparent);
+  box-shadow: 0 0 8px var(--tone-deep);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--shard-angle, 0deg))
+    translateX(var(--shard-offset, 0px))
+    scaleX(0.3);
+  opacity: 0;
+  z-index: 9;
+  animation-name: neonShardFly;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.05, 0.8, 0.2, 1);
+}
+
+/* ── 关键帧 ───────────────────────────────────────────────────────────── */
+
+@keyframes neonFieldIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes neonFieldOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes neonScanSweep {
+  0% { opacity: 0; transform: translateX(-50%) scaleX(0.2); }
+  18% { opacity: var(--scan-opacity, 0.4); transform: translateX(-50%) scaleX(1); }
+  76% { opacity: var(--scan-opacity, 0.4); }
+  100% { opacity: 0; transform: translateX(-50%) scaleX(1.08); }
+}
+
+@keyframes neonBladeSweep {
+  0% { opacity: 1; transform: translateY(-50%) scaleX(0); filter: brightness(2.4); }
+  60% { opacity: 1; transform: translateY(-50%) scaleX(1); }
+  100% { opacity: 1; transform: translateY(-50%) scaleX(1); filter: brightness(1); }
+}
+
+@keyframes neonBladeFade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes neonBladeGhost {
+  0% { opacity: 0.9; transform: translateY(-50%) scaleX(0); }
+  45% { opacity: 0.5; transform: translateY(-50%) scaleX(1); }
+  100% { opacity: 0; transform: translateY(-50%) scaleX(1); }
+}
+
+@keyframes neonSparkBurst {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-along))
+      rotate(calc(-1 * var(--spark-angle))) translate(0, 0) scale(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-along))
+      rotate(calc(-1 * var(--spark-angle)))
+      translate(calc(var(--spark-dx) * 0.25), calc(var(--spark-dy) * 0.25)) scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-along))
+      rotate(calc(-1 * var(--spark-angle)))
+      translate(var(--spark-dx), var(--spark-dy)) scale(0.2);
+  }
+}
+
+@keyframes neonCoreForm {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+  55% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
+  100% { opacity: 0.92; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes neonCoreBlow {
+  0% { opacity: 0.92; transform: translate(-50%, -50%) scale(1); }
+  35% { opacity: 1; transform: translate(-50%, -50%) scale(2.1); filter: brightness(2.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+}
+
+@keyframes neonRingOut {
+  0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.2); border-width: 3px; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); border-width: 1px; }
+}
+
+@keyframes neonGlitchShift {
+  0% { opacity: 0; transform: translateX(-50%); }
+  25% { opacity: 0.9; transform: translateX(calc(-50% + var(--glitch-dx))); }
+  60% { opacity: 0.55; transform: translateX(calc(-50% - var(--glitch-dx) * 0.6)); }
+  100% { opacity: 0; transform: translateX(-50%); }
+}
+
+@keyframes neonCrackOpen {
+  0% { opacity: 0; transform: translateY(-50%) scaleX(0.3) scaleY(0.2); }
+  30% { opacity: 0.85; }
+  100% { opacity: 1; transform: translateY(-50%) scaleX(1) scaleY(1); }
+}
+
+@keyframes neonCrackBlow {
+  0% { opacity: 1; transform: translateY(-50%) scaleX(1) scaleY(1); }
+  25% { opacity: 1; transform: translateY(-50%) scaleX(1.04) scaleY(2); filter: brightness(2.6); }
+  100% { opacity: 0; transform: translateY(-50%) scaleX(1.04) scaleY(0.4); }
+}
+
+@keyframes neonShockOut {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
+}
+
+@keyframes neonPixelBurst {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+  12% { opacity: 1; transform: translate(-50%, -50%) rotate(0deg) scale(1.15); }
+  100% {
+    opacity: 0;
+    transform:
+      translate(calc(-50% + var(--pixel-dx)), calc(-50% + var(--pixel-dy)))
+      rotate(var(--pixel-rot)) scale(0.15);
+  }
+}
+
+@keyframes neonShardFly {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--shard-angle)) translateX(var(--shard-offset)) scaleX(0.3);
+  }
+  18% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--shard-angle))
+      translateX(calc(var(--shard-offset) + var(--shard-distance) * 0.3)) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--shard-angle))
+      translateX(calc(var(--shard-offset) + var(--shard-distance))) scaleX(0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-field,
+  .neon-scan,
+  .neon-blade i,
+  .neon-crack i,
+  .neon-spark,
+  .neon-core,
+  .neon-core-ring,
+  .neon-glitch,
+  .neon-shock,
+  .neon-pixel,
+  .neon-shard {
+    animation: none;
+  }
+}
