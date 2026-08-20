@@ -215,6 +215,18 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     hold: 2500, // impactMs + floatMs = 2300 < hold, 飘字不被截断; 也盖住 total 2200
     shake: 2,
   },
+  // 流光·三段斩(程序化 CSS): 起手顿住 → 崩断转场 → 六连乱舞 → 斩痕爆点。
+  // 2200ms 爆点与 TripleSlashFx/tripleSlashGeometry.ts 的 TRIPLE_TIMELINE.impact 同源;
+  // 掉血/飘字/顿帧/重震都锚在这一拍, 震屏归相机 SHOTS.triple, 白闪归 screenFx。
+  "triple-strike": {
+    kind: "attack",
+    color: "#ffd27a", // 亮金主色, 与几何表 [data-tone="gold"] 同色
+    proc: { impactMs: 2200, floatMs: 600, damageAtImpact: true },
+    screenFx: "flash",
+    windup: 190,
+    hold: 2900, // impactMs + floatMs = 2800 < hold, 也盖住 total 2700
+    shake: 2,
+  },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
   // 护盾: 不再用 emoji, 改用护盾 BUFF 图标 SVG(见 StatusPips 的 ShieldIcon)做虚幻放大浮现。

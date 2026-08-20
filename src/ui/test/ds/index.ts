@@ -6,3 +6,12 @@ export { DsInkSlashFx, INK_SLASH_PRESET, type InkSlashPreset } from "./DsInkSlas
 export { DsInkSlashDemo } from "./DsInkSlashDemo";
 export { DsTripleSlashFx } from "./DsTripleSlashFx";
 export { DsTripleSlashDemo } from "./DsTripleSlashDemo";
+export {
+  CultivatingPlantBuffIcon,
+  CultivatedPlantBuffIcon,
+  SharpBuffIcon,
+  MindEyeBuffIcon,
+  ShieldBuffIcon,
+  type PlantBuffIconProps,
+} from "./DsPlantBuffIcons";
+export { DsPlantBuffDemo } from "./DsPlantBuffIcons";

@@ -1,0 +1,234 @@
+/* ds / 培育·植物 BUFF 图标陈列台 —— 深翡翠主题底, 与图标本身的翡翠绿体系呼应。 */
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-height: 100%;
+  padding: 26px 32px 34px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #1d3b2c 0%, transparent 62%),
+    #08140e;
+  color: #dcefe2;
+  font-family: var(--font-family);
+}
+
+/* ── 头部 ─────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.header h2 {
+  margin: 4px 0 0;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #f0f7ef;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: #cfe6d4;
+}
+
+.headerNote {
+  max-width: 620px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #8fb39d;
+}
+
+.headerNote b {
+  font-weight: 500;
+  color: #f5cd6e;
+}
+
+/* ── 图标卡片 ─────────────────────────────────────────────────────── */
+
+.gallery {
+  display: flex;
+  align-items: stretch;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 220px;
+  max-width: 340px;
+  margin: 0;
+  padding: 20px 22px 18px;
+  border: 1px solid #2c4a3a;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #12291c 0%, #0d1f15 100%);
+  box-shadow: 0 18px 40px #0000004d;
+}
+
+/* 1:1 图标槽: 统一中性深色盘, 与背框同调 —— 辨识度全部留给图标主体 */
+.iconSlot {
+  display: grid;
+  place-items: center;
+  width: 168px;
+  aspect-ratio: 1;
+  border-radius: 22px;
+  background: radial-gradient(circle at 50% 38%, #232b34 0%, #0c0f14 82%);
+  box-shadow:
+    inset 0 0 0 1px #3a444f,
+    inset 0 10px 24px #00000038,
+    0 16px 34px #00000059;
+}
+
+.icon {
+  width: 86%;
+  height: 86%;
+}
+
+/* 卡片边框弱主题色: 只做 demo 分组装饰, 不参与图标辨识 */
+.growingCard {
+  border-color: #2f5c42;
+}
+
+.doneCard {
+  border-color: #5c4a22;
+}
+
+.sharpCard {
+  border-color: #33506b;
+}
+
+.mindCard {
+  border-color: #4a3f78;
+}
+
+.shieldCard {
+  border-color: #2f5d76;
+}
+
+.card figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.badge {
+  padding: 3px 12px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+}
+
+.growingCard .badge {
+  border-color: #9fe0b566;
+  background: #9fe0b514;
+  color: #9fe0b5;
+}
+
+.doneCard .badge {
+  border-color: #f5cd6e66;
+  background: #f5cd6e14;
+  color: #f5cd6e;
+}
+
+.sharpCard .badge {
+  border-color: #dcecff66;
+  background: #dcecff14;
+  color: #dcecff;
+}
+
+.mindCard .badge {
+  border-color: #ffe9a866;
+  background: #ffe9a814;
+  color: #ffe9a8;
+}
+
+.shieldCard .badge {
+  border-color: #bfe8f466;
+  background: #bfe8f414;
+  color: #bfe8f4;
+}
+
+.card h3 {
+  margin: 10px 0 0;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #f2f7f0;
+}
+
+.card p {
+  margin: 8px 0 0;
+  max-width: 300px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: #8fb39d;
+}
+
+/* ── 设计要点条 ───────────────────────────────────────────────────── */
+
+.notes {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid #2c4a3a;
+  background: #0f2318;
+}
+
+.notesTitle {
+  flex: none;
+  padding-top: 2px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: #f5cd6e;
+}
+
+.notes ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notes li {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #a9c9b4;
+}
+
+.notes li b {
+  font-weight: 500;
+  color: #eaf5ec;
+}
+
+@media (max-width: 1080px) {
+  .root {
+    padding: 18px 14px 28px;
+  }
+
+  .card {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon {
+    animation: none;
+  }
+}

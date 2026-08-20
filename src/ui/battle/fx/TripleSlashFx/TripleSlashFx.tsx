@@ -1,6 +1,6 @@
 // ============================================================================
 // 流光·三段斩(triple-strike) —— 程序化 CSS 斩击特效(ds 专属, 纯 CSS 关键帧)。
-// 本副本是 demo 陈列用, battle/fx/TripleSlashFx 是战斗正式件, 两者已分家。
+// 本副本是战斗正式件, test/ds 下的同名副本是 demo 陈列用, 两者已分家。
 //
 // 动画设计理念与霓虹数据·交叉斩(opus/NeonCrossFx)相同:
 //   · 时间轴节奏一致: 起手 → 斩击段 → 静默蓄压 → 爆点 → 收尾;
@@ -72,7 +72,7 @@ const openerDurations = (sweepMs: number) =>
     .map((duration) => timing(duration))
     .join(", ");
 
-export function DsTripleSlashFx({ preset }: { preset: ProcFxPreset }) {
+export function TripleSlashFx({ preset }: { preset: ProcFxPreset }) {
   // 整条时间轴按「表里的爆点」与「preset 要求的爆点」之差平移, 掉血/飘字才对得上爆裂帧。
   const offset = preset.impactMs - TRIPLE_TIMELINE.impact;
   const at = (timelineMs: number) => Math.max(0, offset + timelineMs);

@@ -1,0 +1,298 @@
+/* 战斗三态 BUFF 图标(锋利 / 护盾 / 心眼) · 厚涂版的皮肤层。
+   ★ 尺寸不写死: 1:1 由 aspect-ratio 保证, 实际大小交给调用方的槽位。
+   ★ 动画全部锁在 .animated 下 —— animated=false 与 prefers-reduced-motion 是两条
+     独立的关停路径, 都必须能停。
+   ★ 类名与关键帧一律 cb- 前缀: 培育两态用的是 ce- / cs-, 五枚并排陈列时不能互相污染。
+   ⚠ SVG 元素做 transform 必须先给 transform-box: fill-box, 否则原点是整个 SVG 的
+     用户坐标原点(左上角), 缩放会把图形甩出画布。 */
+
+/* ⚠ overflow 必须是 hidden: 这几枚图标要摆进偏暗的场景图上, 外框就是它们的边界。
+   组件内部已经把内容裁进 INNER_FRAME, 这里是第二道闸 —— 两道都不能省。 */
+.emblem {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.aura,
+.blade,
+.spark,
+.field,
+.shield,
+.band,
+.core,
+.crest,
+.crown,
+.eye,
+.iris,
+.pupil,
+.scan,
+.sight {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 框内光池跟着整体呼吸。幅度只给 1.05 —— 光池半径 46, 再大就要顶到内沿(半宽 55)的裁切线上。 */
+.animated .aura {
+  animation: cb-aura-breathe 3.4s ease-in-out infinite;
+}
+
+/* ── 锋利 ─────────────────────────────────────────────── */
+
+/* 刃身极缓地上下浮一点: 幅度大了就成了"在抖", 锋利要稳。 */
+.animated .blade {
+  animation: cb-blade-float 4.6s ease-in-out infinite;
+}
+
+/* 刃口是整枚图标的亮度峰值, 让它周期性再亮一档 —— 反光扫过的意思。 */
+.animated .edge {
+  animation: cb-edge-glint 3.2s ease-in-out infinite;
+}
+
+/* 火花: 转 + 胀缩同步, 星形转起来才像在迸而不是贴着。 */
+.animated .spark {
+  animation: cb-spark-flare 2.4s ease-in-out infinite;
+}
+
+/* 风刃靠 dashoffset 往刃尖方向流。虚线写在 CSS 而不是属性上:
+   它只是动效的载体, 不参与图形的语义。 */
+.wind path {
+  stroke-dasharray: 13 9;
+}
+
+.animated .wind path {
+  animation: cb-wind-flow 1.9s linear infinite;
+}
+
+.animated .wind path:last-child {
+  animation-delay: 0.5s;
+}
+
+/* ── 护盾 ─────────────────────────────────────────────── */
+
+/* 能量场极慢地转。快一点就成了"加载中", 护盾要的是"一直在那" */
+.animated .field {
+  animation: cb-field-spin 26s linear infinite;
+}
+
+/* 虚线本身再逆着流一道, 和整圈的慢转叠出两层速度。 */
+.animated .fieldDash {
+  animation: cb-field-flow 3.6s linear infinite;
+}
+
+/* 盾体呼吸: 幅度压到 1.02 —— 盾是"厚"的东西, 大幅缩放会让它变软。 */
+.animated .shield {
+  animation: cb-shield-breathe 3.8s ease-in-out infinite;
+}
+
+/* 扫带从盾底扫到盾顶, 尾段停在盾外(被盾形裁掉), 所以看起来是"扫过一次就没了"。 */
+.animated .band {
+  animation: cb-band-sweep 4.2s ease-in-out infinite;
+}
+
+/* ── 心眼 ─────────────────────────────────────────────── */
+
+/* 虹膜呼吸 + 竖瞳单独收缩: 两条错开周期, 才像在"对焦"而不是整只眼在缩放。 */
+.animated .iris {
+  animation: cb-iris-breathe 4.4s ease-in-out infinite;
+}
+
+.animated .pupil {
+  animation: cb-pupil-focus 3.1s ease-in-out infinite;
+}
+
+/* 扫描线纯粹是动效的产物: 停下来时它会正好横在瞳孔上, 像给眼睛划了一刀,
+   所以静态一律不画, 只在动画里由关键帧把它亮起来。 */
+.scan {
+  opacity: 0;
+}
+
+/* 扫描线上下扫过虹膜, 被虹膜裁在里面。 */
+.animated .scan {
+  animation: cb-scan-sweep 3.6s ease-in-out infinite;
+}
+
+/* 额饰与眼下光芒一明一暗错峰, 把"在看"这件事分摊到上下两处。 */
+.animated .crown {
+  animation: cb-glint-pulse 2.8s ease-in-out infinite;
+}
+
+.animated .sight {
+  animation: cb-glint-pulse 2.8s ease-in-out infinite;
+  animation-delay: 1.4s;
+}
+
+/* 盾心亮点与三枚共用的明灭。 */
+.animated .core {
+  animation: cb-core-glow 2.6s ease-in-out infinite;
+}
+
+/* ── 关键帧 ───────────────────────────────────────────── */
+
+@keyframes cb-aura-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes cb-blade-float {
+  0%,
+  100% {
+    transform: translateY(0.8px);
+  }
+  50% {
+    transform: translateY(-1.4px);
+  }
+}
+
+@keyframes cb-edge-glint {
+  0%,
+  55%,
+  100% {
+    opacity: 0.7;
+  }
+  72% {
+    opacity: 1;
+  }
+}
+
+@keyframes cb-spark-flare {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: rotate(0deg) scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1.12);
+  }
+}
+
+@keyframes cb-wind-flow {
+  0% {
+    stroke-dashoffset: 44;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cb-field-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cb-field-flow {
+  0% {
+    stroke-dashoffset: 34;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cb-shield-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* 起点在盾底以下、终点在盾顶以上: 两端都在盾外, 中间那一程才是可见的一次扫过。 */
+@keyframes cb-band-sweep {
+  0%,
+  12% {
+    transform: translateY(38px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  88%,
+  100% {
+    transform: translateY(-36px);
+    opacity: 0;
+  }
+}
+
+@keyframes cb-iris-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes cb-pupil-focus {
+  0%,
+  100% {
+    transform: scaleY(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scaleY(0.62);
+    opacity: 1;
+  }
+}
+
+@keyframes cb-scan-sweep {
+  0% {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+  20%,
+  80% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+@keyframes cb-glint-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes cb-core-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.88);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+/* 系统级「减少动态效果」优先于组件的 animated 开关。 */
+@media (prefers-reduced-motion: reduce) {
+  .emblem,
+  .emblem * {
+    animation: none !important;
+  }
+}

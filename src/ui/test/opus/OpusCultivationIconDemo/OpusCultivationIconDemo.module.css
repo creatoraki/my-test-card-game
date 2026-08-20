@@ -1,0 +1,310 @@
+/* 图标陈列台的皮肤。颜色一律取 styles/tokens.css 的全局令牌, 这里不新造配色。 */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 28px 40px;
+  color: var(--text);
+  font-family: var(--font-family);
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+}
+
+.head p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 13px;
+}
+
+/* 段内小标题: 比页头 h1 低一档, 但和它共用 .head 的排版。 */
+.sectionTitle {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0.08em;
+}
+
+/* ── 控制台 ───────────────────────────────────────────── */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.groupLabel {
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+/* 整组失效: 厚涂版配色内建, 「主色」这组开关对它无效。
+   置灰而不是隐藏 —— 让人看得见「这里有一组开关, 只是这版用不上」。 */
+.groupMuted {
+  opacity: 0.45;
+}
+
+.groupNote {
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 11px;
+}
+
+.chip {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel2);
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.chip:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.chip:disabled {
+  cursor: not-allowed;
+}
+
+.chipOn {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+/* ── 背景档位 ─────────────────────────────────────────── */
+
+/* 场景图档: 图路径由组件行内注入, 这里只定位。压一层暗罩 ——
+   真实场景里图标不会贴在原图亮度上, 底下总有一层暗罩。 */
+.bg-scene {
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 2000px rgb(0 0 0 / 45%);
+}
+
+.bg-dark {
+  background: var(--bg);
+}
+
+.bg-panel {
+  background: var(--panel2);
+}
+
+/* 亮底档专门用来验「发光在浅背景上会不会消失」。 */
+.bg-light {
+  background: #dfe6e2;
+}
+
+/* ── 大图并排 ─────────────────────────────────────────── */
+
+.stage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* 三枚一排。列数变了但列宽仍靠 1fr 均分, 大图会自己缩 —— 这一栏的目的是**并排比对**,
+   等宽比"每枚都够大"更重要。 */
+.stageTriple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.hero {
+  inline-size: 240px;
+  max-inline-size: 100%;
+}
+
+.name {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin: 4px 0 0;
+  font-size: 19px;
+  letter-spacing: 0.06em;
+}
+
+.name em {
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: 0.18em;
+}
+
+.desc {
+  max-inline-size: 34ch;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 12.5px;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.beats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.beats li {
+  padding: 2px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 11px;
+}
+
+/* ── 尺寸阶梯 ─────────────────────────────────────────── */
+
+.scaleBar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.scaleRow {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.rowLabel {
+  flex: none;
+  inline-size: 88px;
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.scaleItems {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.scaleItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+/* 图标 1:1 由组件自己保证, 这里只给宽度。 */
+.scaleBox {
+  flex: none;
+}
+
+.scaleItem small {
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-size: 10px;
+}
+
+/* ── 状态条情境 ───────────────────────────────────────── */
+
+.context {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 18px 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.pips {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel2);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.pipPlain {
+  color: var(--muted);
+}
+
+/* 图标自带外框, 槽位就不该再套一层边 —— 两层框叠在一起在 28px 下会糊成一个厚边。
+   这也是正式接入时的用法: 直接把图标铺满槽位。 */
+.pipFramed {
+  border: none;
+  background: none;
+}
+
+.pipIcon {
+  inline-size: 22px;
+}
+
+/* 自带框的那版直接铺满槽位, 边界由图标自己给。 */
+.pipFramed .pipIcon {
+  inline-size: 100%;
+}
+
+.pip b {
+  position: absolute;
+  inset-inline-end: -3px;
+  inset-block-end: -4px;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: 10px;
+  font-weight: 700;
+}

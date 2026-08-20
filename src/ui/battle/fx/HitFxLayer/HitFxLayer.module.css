@@ -227,6 +227,10 @@
 .vfx-neon-cross.vfx-attack::after {
   content: none;
 }
+/* 流光·三段斩自带 triple-shock 冲击环, 且爆点延迟到 2200ms; 默认环挂载即扩散会提前穿帮。 */
+.vfx-triple-strike.vfx-attack::after {
+  content: none;
+}
 /* —— 伤害/治疗飘字 —— */
 .float-num {
   position: absolute;

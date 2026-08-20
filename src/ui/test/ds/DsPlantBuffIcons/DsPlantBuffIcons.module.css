@@ -1,0 +1,323 @@
+/* ds / BUFF 图标 v6「厚涂方框」 —— 厚涂主体 + 克制动效。
+   所有动画挂在 `.animated` 作用域下: animated=false 或 prefers-reduced-motion
+   两条关停路径都能生效。坐标以 128×128 viewBox 为基准, transform-origin 用 64px 64px。
+   ⚠ SVG 元素做 transform 必须先给 transform-box: fill-box, 否则原点是整个 SVG 的
+     用户坐标原点(左上角), 缩放会把图形甩出画布。 */
+
+/* ⚠ overflow 必须是 hidden: 图标要摆进偏暗的场景图上, 外框就是它的边界。
+   组件内部已经把内容裁进 INNER_FRAME, 这里是第二道闸 —— 两道都不能省。 */
+.plate {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.sprout,
+.seed,
+.tipGlow,
+.bloom,
+.pistil,
+.core,
+.aura,
+.halo > circle,
+.blade,
+.pupilPulse,
+.corePulse {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 芽从壳里长出来, 摆动的支点在根部(形的底边)而不是自身中心。 */
+.sprout {
+  transform-origin: 50% 100%;
+}
+
+/* ── 光池: 框内弥散光的呼吸 ─────────────────────────────────────── */
+
+.animated .aura {
+  animation: dbAuraBreathe 3.2s ease-in-out infinite;
+}
+
+@keyframes dbAuraBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ── 培育中: 进度弧 / 游标 / 芽 / 壳 / 芽尖 ──────────────────────── */
+
+/* 进度弧: 断口固定, dashoffset 缓慢流动让弧头贴着刻度前进。 */
+.animated .arcFlow {
+  animation: dbArcDrift 9s linear infinite;
+}
+
+@keyframes dbArcDrift {
+  to {
+    stroke-dashoffset: -289.03;
+  }
+}
+
+.animated .headPulse {
+  animation: dbHeadPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes dbHeadPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 整株芽: 极缓的左右摆动, 支点在根部 —— 参考风格把呼吸改成摆, 幅度压到 ±1.2°。 */
+.animated .sprout {
+  animation: dbSproutSway 5.2s ease-in-out infinite;
+}
+
+@keyframes dbSproutSway {
+  0%,
+  100% {
+    transform: rotate(-1.2deg);
+  }
+  50% {
+    transform: rotate(1.2deg);
+  }
+}
+
+/* 种子壳: 呼吸胀缩, 与芽尖的明灭错开节拍。 */
+.animated .seed {
+  animation: dbSeedBreathe 3.8s ease-in-out infinite;
+}
+
+@keyframes dbSeedBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+/* 芽尖热点: 唯一高亮源的明灭, 幅度比完成态大 —— 暗底上才看得出在跳。 */
+.animated .tipGlow {
+  animation: dbTipGlow 2.6s ease-in-out infinite;
+}
+
+@keyframes dbTipGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── 培育完成: 完成环 / 光环 / 花冠 / 花心 ───────────────────────── */
+
+.animated .doneRing {
+  animation: dbDoneRing 2.4s ease-in-out infinite;
+}
+
+@keyframes dbDoneRing {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 光环: 两圈错峰外推(第二圈的延迟由组件内联 style 给)。
+   默认 opacity 0, 只有动画在推它; 关掉动画时由 .plate:not(.animated) 给回静态可见度。 */
+.halo > circle {
+  opacity: 0;
+}
+
+.plate:not(.animated) .halo > circle {
+  opacity: 0.28;
+}
+
+.plate:not(.animated) .halo > circle:last-child {
+  opacity: 0;
+}
+
+.animated .halo > circle {
+  animation: dbHaloPulse 2.4s ease-out infinite;
+}
+
+@keyframes dbHaloPulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.8);
+  }
+  70% {
+    opacity: 0.14;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+/* 花冠: 极缓的摆动 + 微缩放, 8 瓣阵列让旋转看得见。 */
+.animated .bloom {
+  animation: dbBloomSettle 4.4s ease-in-out infinite;
+}
+
+@keyframes dbBloomSettle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.03) rotate(2.4deg);
+  }
+}
+
+.animated .pistil .core {
+  animation: dbCorePulse 2.6s ease-in-out infinite;
+}
+
+@keyframes dbCorePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+/* ── 锋利: 刀身微摆 / 金星 ───────────────────────────────────────── */
+
+/* 刀: 竖直纹章位上的极缓摆动, 幅度比芽更小 —— 它是「立住」的, 不是「长着」的。 */
+.animated .blade {
+  animation: dbBladeSway 7s ease-in-out infinite;
+}
+
+@keyframes dbBladeSway {
+  0%,
+  100% {
+    transform: rotate(-0.8deg);
+  }
+  50% {
+    transform: rotate(0.8deg);
+  }
+}
+
+.animated .starPulse {
+  animation: dbStarPulse 3.4s ease-in-out infinite;
+}
+
+@keyframes dbStarPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── 心眼: 棱光 / 光晕 / 瞳孔 ────────────────────────────────────── */
+
+.animated .beam {
+  animation: dbBeam 3.8s ease-in-out infinite;
+}
+
+@keyframes dbBeam {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animated .eyeGlow {
+  animation: dbEyeGlow 3.6s ease-in-out infinite;
+}
+
+@keyframes dbEyeGlow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animated .pupilPulse {
+  animation: dbPupil 3s ease-in-out infinite;
+}
+
+@keyframes dbPupil {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+/* ── 护盾: 柔光 / 核心 ───────────────────────────────────────────── */
+
+.animated .shieldGlow {
+  animation: dbShieldGlow 3.8s ease-in-out infinite;
+}
+
+@keyframes dbShieldGlow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animated .corePulse {
+  animation: dbShieldCore 3.4s ease-in-out infinite;
+}
+
+@keyframes dbShieldCore {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* 系统级「减少动态效果」优先于组件的 animated 开关。 */
+@media (prefers-reduced-motion: reduce) {
+  .plate,
+  .plate * {
+    animation: none !important;
+  }
+
+  /* 光环默认 opacity:0, 停掉动画后要手动给回静态可见度, 否则完成态少一圈。 */
+  .halo > circle {
+    opacity: 0.28;
+  }
+}

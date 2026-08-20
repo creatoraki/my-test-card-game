@@ -1,0 +1,189 @@
+/* 「培育植物」BUFF 图标 · 厚涂版的皮肤层。
+   ★ 尺寸不写死: 1:1 由 aspect-ratio 保证, 实际大小交给调用方的槽位。
+   ★ 动画全部锁在 .animated 下 —— animated=false 与 prefers-reduced-motion 是两条
+     独立的关停路径, 都必须能停。
+   ★ 类名与关键帧一律 ce- 前缀: 线稿版用的是 cs-, 两套并排陈列时不能互相污染。
+   ⚠ SVG 元素做 transform 必须先给 transform-box: fill-box, 否则原点是整个 SVG 的
+     用户坐标原点(左上角), 缩放会把图形甩出画布。 */
+
+/* ⚠ overflow 必须是 hidden: 这枚图标要摆进偏暗的场景图上, 外框就是它的边界。
+   组件内部已经把内容裁进 INNER_FRAME, 这里是第二道闸 —— 两道都不能省。 */
+.emblem {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.soil,
+.seed,
+.sprout,
+.bloom,
+.pistil,
+.core,
+.aura,
+.halo > circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 芽从土里长出来, 摆动的支点在根部(形的底边)而不是自身中心。 */
+.sprout {
+  transform-origin: 50% 100%;
+}
+
+/* ── 培育中 ───────────────────────────────────────────── */
+
+/* 摆幅比上一版小一半: 这版的芽左右严格对称, 大角度摇摆会立刻破坏对称感 —— 只留一点活气。 */
+.animated .sprout {
+  animation: ce-sway 5.2s ease-in-out infinite;
+}
+
+/* 胚珠在土里胀缩, 幅度小、周期慢, 与胚芯的明灭错开节拍。 */
+.animated .seed {
+  animation: ce-breathe 3.8s ease-in-out infinite;
+}
+
+/* 胚珠是这枚图标唯一的亮点, 所以明灭幅度给得比完成态大 —— 暗底上才看得出在跳。 */
+.animated .core {
+  animation: ce-core-glow 2.6s ease-in-out infinite;
+}
+
+/* 顶苞高光: 唯一还在"跳"的小点, 与胚珠一暗一明遥相呼应。 */
+.animated .tip {
+  animation: ce-head-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── 培育完成 ─────────────────────────────────────────── */
+
+/* 光环本体靠动画从中心推出去; 关掉动画它就永远看不见, 所以静态态要单独给回一档。 */
+.halo > circle {
+  opacity: 0;
+}
+
+.emblem:not(.animated) .halo > circle {
+  opacity: 0.28;
+}
+
+.emblem:not(.animated) .halo > circle:last-child {
+  opacity: 0;
+}
+
+.animated .halo > circle {
+  animation: ce-halo-pulse 2.4s ease-out infinite;
+}
+
+.animated .doneRing {
+  animation: ce-arc-breathe 2.4s ease-in-out infinite;
+}
+
+.animated .bloom {
+  animation: ce-bloom-settle 4.4s ease-in-out infinite;
+}
+
+/* 框内光池跟着整体呼吸: 「亮」是完成态的主要标识, 让它有活气。
+   幅度只给 1.05 —— 光池半径 46, 再大就要顶到内沿(半宽 55)的裁切线上了。 */
+.animated .aura {
+  animation: ce-aura-breathe 3.2s ease-in-out infinite;
+}
+
+/* ── 关键帧 ───────────────────────────────────────────── */
+
+@keyframes ce-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes ce-sway {
+  0%,
+  100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
+@keyframes ce-core-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes ce-arc-breathe {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ce-head-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ce-halo-pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.8);
+  }
+  70% {
+    opacity: 0.14;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+@keyframes ce-bloom-settle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.03) rotate(2.4deg);
+  }
+}
+
+@keyframes ce-aura-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 系统级「减少动态效果」优先于组件的 animated 开关。 */
+@media (prefers-reduced-motion: reduce) {
+  .emblem,
+  .emblem * {
+    animation: none !important;
+  }
+
+  /* 光环默认 opacity:0, 停掉动画后要手动给回静态可见度, 否则完成态少一圈。 */
+  .halo > circle {
+    opacity: 0.28;
+  }
+}

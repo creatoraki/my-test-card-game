@@ -1,0 +1,186 @@
+/* 「培育植物」BUFF 图标的皮肤层。
+   ★ 尺寸不写死: 1:1 由 aspect-ratio 保证, 实际大小交给调用方的槽位。
+   ★ 动画全部锁在 .animated 下 —— animated=false 与 prefers-reduced-motion 是两条
+     独立的关停路径, 都必须能停。
+   ⚠ SVG 元素做 transform 必须先给 transform-box: fill-box, 否则原点是整个 SVG 的
+     用户坐标原点(左上角), 缩放会把图形甩出画布。 */
+
+.sigil {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  overflow: visible;
+  color: inherit;
+}
+
+.frame,
+.ticks {
+  color: inherit;
+}
+
+/* ── 培育中 ───────────────────────────────────────────── */
+
+.progress {
+  stroke-linecap: round;
+}
+
+.pod,
+.sprout,
+.roots,
+.bloom,
+.pistil,
+.halo > circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 须根从荚底垂下, 摆动的支点在顶端而不是自身中心。 */
+.roots {
+  transform-origin: 50% 0%;
+}
+
+.animated .pod {
+  animation: cs-breathe 3s ease-in-out infinite;
+}
+
+.animated .sprout {
+  animation: cs-breathe 3s ease-in-out infinite;
+  animation-delay: -0.6s;
+}
+
+.animated .roots {
+  animation: cs-root-sway 5.2s ease-in-out infinite;
+}
+
+.animated .progress {
+  animation: cs-arc-breathe 3.4s ease-in-out infinite;
+}
+
+.animated .progressHead {
+  animation: cs-head-pulse 1.8s ease-in-out infinite;
+}
+
+.animated .core {
+  animation: cs-core-glow 2.6s ease-in-out infinite;
+}
+
+/* ── 培育完成 ─────────────────────────────────────────── */
+
+.doneRing {
+  opacity: 0.95;
+}
+
+/* 光环本体靠动画从 0 推出去; 关掉动画时它就永远看不见了, 所以静态态要单独给回一档。 */
+.halo > circle {
+  opacity: 0;
+}
+
+.sigil:not(.animated) .halo > circle {
+  opacity: 0.22;
+}
+
+.sigil:not(.animated) .halo > circle:last-child {
+  opacity: 0;
+}
+
+.animated .doneRing {
+  animation: cs-arc-breathe 2.4s ease-in-out infinite;
+}
+
+/* 两圈错峰外推, 拼成一条连续的余韵而不是一下一下的闪。 */
+.animated .halo > circle {
+  animation: cs-halo-pulse 2.4s ease-out infinite;
+}
+
+.animated .bloom {
+  animation: cs-bloom-settle 4.4s ease-in-out infinite;
+}
+
+/* ── 关键帧 ───────────────────────────────────────────── */
+
+@keyframes cs-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes cs-root-sway {
+  0%,
+  100% {
+    transform: rotate(-1.4deg);
+  }
+  50% {
+    transform: rotate(1.4deg);
+  }
+}
+
+@keyframes cs-arc-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes cs-head-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes cs-core-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes cs-halo-pulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+  70% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes cs-bloom-settle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.025) rotate(2.2deg);
+  }
+}
+
+/* 系统级「减少动态效果」优先于组件的 animated 开关。 */
+@media (prefers-reduced-motion: reduce) {
+  .sigil *,
+  .sigil {
+    animation: none !important;
+  }
+
+  /* 光环本体默认 opacity:0, 停掉动画后要手动给回一个静态可见度, 否则完成态少一圈。 */
+  .halo > circle {
+    opacity: 0.22;
+  }
+}

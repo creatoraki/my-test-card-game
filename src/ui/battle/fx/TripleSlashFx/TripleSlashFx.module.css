@@ -1,0 +1,576 @@
+/* ============================================================================
+   流光·三段斩 —— 质感层。几何与时序在 tripleSlashGeometry.ts / TripleSlashFx.tsx,
+   这里只负责「长什么样」: 银白金剑光、灼痕、毛刺与碎屑。
+
+   与霓虹(细激光收尖)不同: 刀身是**弧刃** —— 中段鼓、两端收尖的月牙形,
+   三刀逐刀变亮(银白 → 亮金 → 白炽)。整层 screen 混色: 剑光是自发光体,
+   应「加」在场景上而不是「盖」住场景。
+   ============================================================================ */
+
+.triple-wrap {
+  /* 弧刃轮廓: 中段饱满、两端收尖 —— 不是霓虹的对称纺锤, 是弯月形的剑刃。
+     辉光层与拖影层共用, 改这一处即改全部刀形。 */
+  --blade-taper: polygon(
+    0% 50%, 6% 28%, 20% 12%, 50% 4%, 82% 10%, 96% 26%,
+    100% 50%, 96% 74%, 82% 90%, 50% 96%, 20% 88%, 6% 72%
+  );
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1400px;
+  height: 1400px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+  mix-blend-mode: screen;
+}
+
+/* 色调令牌: 三刀与所有碎屑都只认这两个变量, 换配色改这三块即可。 */
+.triple-wrap [data-tone="silver"] {
+  --tone: #dce9ff;
+  --tone-deep: #8fa8d9;
+}
+
+.triple-wrap [data-tone="gold"] {
+  --tone: #ffd27a;
+  --tone-deep: #e89a2e;
+}
+
+.triple-wrap [data-tone="white"] {
+  --tone: #ffffff;
+  --tone-deep: #ffe9c4;
+}
+
+/* ── 斩击段 ───────────────────────────────────────────────────────────── */
+
+/* wrapper 只做旋转: 内层三条各自从左端 scaleX 扫出, 这样「扫」和「转」互不干扰。 */
+.triple-blade,
+.triple-ghost,
+.triple-scar,
+.triple-mantle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len, 1500px);
+  height: 0;
+  transform: translate(-50%, -50%) rotate(var(--blade-angle, 0deg));
+}
+
+.triple-blade i,
+.triple-ghost i,
+.triple-scar i,
+.triple-mantle i {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  display: block;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.triple-blade i {
+  width: 100%;
+  transform-origin: left center;
+}
+
+/* 起手刀辉光: 四拍 —— 扫出(0-130, 可见地劈出) → 悬停脉动(150-380, 顿住的
+   一瞬) → 压刀蓄力(380-460, 原地压薄沉暗的预备动作) → 崩断(460-520, 本体
+   炸白后交给碎段)。辉光与刀芯只在后两拍分家: 辉光吃重模糊, 刀芯吃轻的,
+   否则刀芯糊掉就没有「刃」了。
+   ★ 后两拍一律不做位移: 刀是一条沿刀角的线, 沿自身方向平移在画面里等于没动
+     (两端都在画面外), 能看见的只有厚度(scaleY)与亮度的变化。 */
+.triple-blade-glow {
+  clip-path: var(--blade-taper);
+  height: var(--blade-glow-h, 30px);
+  transform: translateY(-50%) translateX(0) scaleX(0) scaleY(1);
+  background: linear-gradient(90deg, transparent 2%, var(--tone-deep) 28%, var(--tone) 50%, var(--tone-deep) 72%, transparent 98%);
+  animation-name: tripleBladeSweep, tripleBladeHold, tripleBladeWindGlow, tripleBladeShatterGlow;
+  animation-timing-function: ease-out, ease-in-out, ease-in, cubic-bezier(0.2, 0, 0.1, 1);
+  z-index: 9;
+}
+
+.triple-blade-core {
+  height: var(--blade-core-h, 2.5px);
+  transform: translateY(-50%) translateX(0) scaleX(0) scaleY(1);
+  /* 白炽刀芯: 中段亮到发白, 两端只留色尾 —— 连击的每一刀都要「白得刺眼」。 */
+  background: linear-gradient(90deg, transparent 3%, var(--tone) 24%, #ffffff 42%, #ffffff 58%, var(--tone) 76%, transparent 97%);
+  box-shadow: 0 0 5px var(--tone), 0 0 14px var(--tone-deep);
+  animation-name: tripleBladeSweep, tripleBladeHold, tripleBladeWindCore, tripleBladeShatterCore;
+  animation-timing-function: ease-out, ease-in-out, ease-in, cubic-bezier(0.2, 0, 0.1, 1);
+  z-index: 9;
+}
+
+/* 拖影: 比刀芯宽、跟随晚, 提供「速度线」而不是第二刀; 只有起手刀渲染。
+   厚度由 geometry 的 trailHeight 下发(按辉光比例算好, 不做 CSS calc 乘法)。 */
+.triple-blade-trail {
+  clip-path: var(--blade-taper);
+  height: var(--blade-trail-h, 18px);
+  transform: translateY(-50%) scaleX(0);
+  background: linear-gradient(90deg, transparent, var(--tone) 40%, #ffffff99 55%, transparent 92%);
+  filter: blur(3px);
+  animation-name: tripleBladeTrail;
+  animation-timing-function: ease-out;
+  z-index: 4;
+}
+
+/* 六连快刀: 两拍 —— 扫出(ease-out, 刀锋从刀尾到刀尖可见地推进 130ms)
+   → 消散(ease-out 平滑渐隐并沿刀身继续前滑 90px, 是挥过后的余势)。 */
+.triple-blade-flurry-glow,
+.triple-blade-flurry-core {
+  width: 100%;
+  transform: translateY(-50%) translateX(0) scaleX(0);
+  transform-origin: left center;
+  animation-name: tripleFlurrySweep, tripleFlurryFade;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, ease-out;
+}
+
+.triple-blade-flurry-glow {
+  clip-path: var(--blade-taper);
+  height: var(--blade-glow-h, 18px);
+  background: linear-gradient(90deg, transparent 3%, var(--tone-deep) 30%, var(--tone) 50%, var(--tone-deep) 70%, transparent 97%);
+  filter: blur(6px);
+  z-index: 2;
+}
+
+.triple-blade-flurry-core {
+  height: var(--blade-core-h, 1.5px);
+  background: linear-gradient(90deg, transparent 4%, #ffffff 40%, #ffffff 60%, transparent 96%);
+  box-shadow: 0 0 4px var(--tone), 0 0 10px var(--tone-deep);
+  z-index: 6;
+}
+
+/* 残影: 首刀甩出时分裂出的半透明弧刃, wrapper 自身从首刀角旋到六连刀角 ——
+   「一刀化多刀」。刻意做得弱(低不透明度 + 大模糊): 它是轨迹提示, 不是刀。
+   z-index 3: 压在六连辉光(2)之上、拖影(4)之下, 不与任何实刀抢焦点。 */
+.triple-ghost {
+  animation-name: tripleGhostFan;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  z-index: 3;
+}
+
+.triple-ghost i {
+  clip-path: var(--blade-taper);
+  width: 100%;
+  height: 26px;
+  transform: translateY(-50%) scaleX(1);
+  transform-origin: center;
+  background: linear-gradient(90deg, transparent 4%, #8fa8d9 30%, #ffe9c4 50%, #8fa8d9 70%, transparent 96%);
+  filter: blur(10px);
+  animation-name: tripleGhostFade;
+  animation-timing-function: ease-out;
+}
+
+/* 碎段: 首刀崩断后的刀身残片。沿刀身铺满可见区, 各段垂直于刀身弹开 + 翻转,
+   同时糊掉淡出。transform 链: 转到刀角 → 沿刀身定位 → 垂直弹开 → 自身翻转。
+   z-index 9: 与首刀本体同级, 盖得住随后劈出的六连辉光(2)。 */
+.triple-shard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  clip-path: var(--blade-taper);
+  width: var(--shard-len, 180px);
+  height: var(--shard-h, 26px);
+  background: linear-gradient(90deg, transparent 2%, #e89a2e 20%, #ffd27a 40%, #ffffff 50%, #ffd27a 60%, #e89a2e 80%, transparent 98%);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--shard-angle, 0deg))
+    translateX(var(--shard-along, 0px))
+    translateY(0)
+    rotate(0deg)
+    scaleX(1);
+  opacity: 0;
+  z-index: 9;
+  animation-name: tripleShardBurst;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.75, 0.25, 1);
+}
+
+/* 收束环: 从画面外向目标中心急速塌缩的一道细环 —— 转场里唯一的「视线绳」,
+   把观众从首刀那条 38° 斜线拽回中心, 六连才有一个统一的爆发原点。 */
+.triple-gather {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 1.5px solid #ffe9c4;
+  box-shadow: 0 0 18px #ffd27a99, inset 0 0 12px #ffd27a66;
+  transform: translate(-50%, -50%) scale(4);
+  opacity: 0;
+  z-index: 7;
+  animation-name: tripleGather;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 出鞘白闪: 收束环塌完、留白屏息之后, 中心才骤亮又骤灭, 50ms ——
+   它炸开的那一刻六连第一刀正好从白闪里劈出(时长在 TripleSlashFx.tsx 的
+   IGNITE_MS)。 */
+.triple-ignite {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #ffe9c4 40%, transparent 72%);
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  z-index: 10;
+  animation-name: tripleIgnite;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+.triple-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 6px var(--tone), 0 0 14px var(--tone-deep);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--spark-angle, 0deg))
+    translateX(var(--spark-along, 0px))
+    rotate(calc(-1 * var(--spark-angle, 0deg)))
+    translate(0, 0)
+    scale(0.2);
+  opacity: 0;
+  /* z-index 10: 火花永远在刀光(含崩断的起手刀 9)之上闪烁。 */
+  z-index: 10;
+  animation-name: tripleSparkBurst;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+/* ── 斩痕与毛刺 ───────────────────────────────────────────────────────── */
+
+/* 斩痕: 沿刀角方向的灼痕, 中心亮两端暗。爆点前渗光加深, 爆点炸亮后熄灭。 */
+.triple-scar i {
+  left: 50%;
+  height: 4px;
+  transform: translate(-50%, -50%) scaleX(0.25);
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent 6%, #e89a2e 22%, #ffd27a 44%, #ffffff 50%, #ffd27a 56%, #e89a2e 78%, transparent 94%);
+  box-shadow: 0 0 8px #ffd27a, 0 0 20px #e89a2e;
+  animation-name: tripleScarIn, tripleScarBlow;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1), ease-out;
+  z-index: 5;
+}
+
+/* 毛刺: 从斩痕垂直侧伸出的细裂线, 让刀口有撕裂的毛边。
+   transform 链: 自身 scaleX(0→1) → 转到垂直侧 → 沿刀身定位 → 转回刀角。 */
+.triple-splinter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--sp-len, 40px);
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ffd27a, #e89a2e);
+  box-shadow: 0 0 6px #e89a2e99;
+  transform-origin: left center;
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--sp-angle, 0deg))
+    translateX(var(--sp-along, 0px))
+    rotate(var(--sp-side, 90deg))
+    scaleX(0);
+  opacity: 0;
+  z-index: 5;
+  animation-name: tripleSplinterSpurt, tripleSplinterFade;
+  animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1), ease-out;
+}
+
+/* ── 爆点 ─────────────────────────────────────────────────────────────── */
+
+/* 三芒: 沿三刀方向射出的三角形光芒, 替代「圆形冲击环」给出刀向的方向感。 */
+.triple-mantle i {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scaleX(0);
+  transform-origin: left center;
+  clip-path: polygon(0 50%, 100% 0%, 100% 100%);
+  background: linear-gradient(90deg, #ffffff 0%, #ffd27a 55%, transparent 100%);
+  filter: blur(1px);
+  animation-name: tripleMantleShot;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.2, 1);
+  z-index: 8;
+}
+
+.triple-shock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 26px #ffd27ae6, inset 0 0 26px #dce9ffa6;
+  transform: translate(-50%, -50%) scale(0.1);
+  opacity: 0;
+  z-index: 8;
+  animation-name: tripleShockOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.2, 1);
+}
+
+/* 碎片: 沿归属刀向锥形飞出的细长残片 —— 顺着刀的方向飞。 */
+.triple-fragment {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--tone) 45%, #ffffff 72%, transparent);
+  box-shadow: 0 0 8px var(--tone-deep);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--fr-angle, 0deg))
+    translateX(var(--fr-offset, 0px))
+    scaleX(0.3);
+  opacity: 0;
+  z-index: 9;
+  animation-name: tripleFragmentFly;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.05, 0.8, 0.2, 1);
+}
+
+/* 余烬: 爆点后散落的小亮点, 上浮后沉降熄灭。 */
+.triple-ash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  background: #ffd27a;
+  box-shadow: 0 0 6px #ffd27a;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  z-index: 9;
+  animation-name: tripleAshSettle;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+/* ── 关键帧 ───────────────────────────────────────────────────────────── */
+
+/* 剑气相关已移除: 预警段改为「起手一刀 + 顿住 + 六连爆发」, 无预兆演出。 */
+
+/* 起手刀扫出: 0-52% 刀锋推进到 82% 长, 52%-100% 缓慢砍到底并收束亮度。 */
+@keyframes tripleBladeSweep {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(0) scaleY(1); filter: brightness(2.2); }
+  52% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(0.82) scaleY(1); filter: brightness(1.6); }
+  100% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(1); filter: brightness(1); }
+}
+
+/* 起手刀悬停脉动: 顿住的一瞬 —— 刀光不动, 亮度起伏, 危险在静止里。 */
+@keyframes tripleBladeHold {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(1); filter: brightness(1); }
+  50% { filter: brightness(1.55); }
+  100% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(1); filter: brightness(1.1); }
+}
+
+/* 压刀蓄力: 刀身原地压薄、亮度沉下去 —— 动画的预备动作, 观众看到「沉」就知道
+   下一拍要「炸」, 六连才不是毫无征兆地冒出来。压薄(scaleY)是垂直于刀身的,
+   所以在画面里实实在在看得见。 */
+@keyframes tripleBladeWindGlow {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(1); filter: blur(0px) brightness(1.1); }
+  100% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(0.7); filter: blur(3px) brightness(0.6); }
+}
+
+@keyframes tripleBladeWindCore {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(1); filter: brightness(1.1); }
+  100% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(0.7); filter: brightness(0.65); }
+}
+
+/* 崩断: 压到最薄的刀身骤然炸白、向外撑开一下, 本体在 60ms 内交棒给碎段 ——
+   观众读到的是「刀裂了」, 而不是「刀不见了」。本体不做任何位移, 位移全部由
+   碎段沿垂直于刀身的方向承担(那是这套几何里最扎实的可见运动)。 */
+@keyframes tripleBladeShatterGlow {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(0.7); filter: blur(2px) brightness(3); }
+  100% { opacity: 0; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(1.5); filter: blur(10px) brightness(1.2); }
+}
+
+@keyframes tripleBladeShatterCore {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(0.7); filter: blur(0px) brightness(3); }
+  100% { opacity: 0; transform: translateY(-50%) translateX(0) scaleX(1) scaleY(1.5); filter: blur(4px) brightness(1.2); }
+}
+
+/* 碎段崩飞: 起手一帧就炸白(断口的高光), 随后沿垂直方向弹开、翻转、糊掉。 */
+@keyframes tripleShardBurst {
+  0% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--shard-angle)) translateX(var(--shard-along))
+      translateY(0) rotate(0deg) scaleX(1);
+    filter: blur(1px) brightness(2.8) drop-shadow(0 0 10px #ffd27a);
+  }
+  30% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--shard-angle)) translateX(var(--shard-along))
+      translateY(calc(var(--shard-push) * 0.45)) rotate(calc(var(--shard-spin) * 0.4)) scaleX(0.96);
+    filter: blur(2px) brightness(1.7) drop-shadow(0 0 7px #e89a2e);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--shard-angle)) translateX(var(--shard-along))
+      translateY(var(--shard-push)) rotate(var(--shard-spin)) scaleX(0.72);
+    filter: blur(7px) brightness(0.85) drop-shadow(0 0 0 transparent);
+  }
+}
+
+/* 残影扇开: wrapper 整体从首刀角旋到六连某一刀的角度, 内层同时淡出 ——
+   观众看到的是首刀的轨迹**扇开成**六连的轨迹, 实刀随后沿轨迹劈实。 */
+@keyframes tripleGhostFan {
+  0% { transform: translate(-50%, -50%) rotate(var(--ghost-from, 0deg)); }
+  100% { transform: translate(-50%, -50%) rotate(var(--ghost-to, 0deg)); }
+}
+
+@keyframes tripleGhostFade {
+  0% { opacity: 0; transform: translateY(-50%) scaleX(0.94); }
+  24% { opacity: var(--ghost-op, 0.3); transform: translateY(-50%) scaleX(1); }
+  100% { opacity: 0; transform: translateY(-50%) scaleX(0.85); }
+}
+
+/* 收束环: 由外向内塌缩 —— 与爆点那个由内向外的 tripleShockOut 正好相反,
+   一个「吸」一个「放」, 转场与爆点在读法上就分得开。 */
+@keyframes tripleGather {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(4); }
+  30% { opacity: 0.85; transform: translate(-50%, -50%) scale(2.4); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.22); }
+}
+
+@keyframes tripleIgnite {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  40% { opacity: 1; transform: translate(-50%, -50%) scale(1.6); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* 六连快刀·扫出: 0-10% 点亮并起手, 10%-55% 刀锋从刀尾推进到 70% 长(肉眼
+   可见的扫), 55%-100% 缓慢砍到底并收束亮度 —— 有「斩」的过程, 不是整条
+   斜线瞬现。 */
+@keyframes tripleFlurrySweep {
+  0% { opacity: 0; transform: translateY(-50%) translateX(0) scaleX(0); filter: brightness(2.6); }
+  10% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(0.08); filter: brightness(2.2); }
+  55% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(0.7); filter: brightness(1.8); }
+  100% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1); filter: brightness(1.5); }
+}
+
+/* 六连快刀·消散: 平滑渐隐 + 沿刀身继续前滑, 像刀挥过目标后带着余势离开。 */
+@keyframes tripleFlurryFade {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0) scaleX(1); filter: brightness(1.5); }
+  100% { opacity: 0; transform: translateY(-50%) translateX(90px) scaleX(1.06); filter: brightness(1); }
+}
+
+@keyframes tripleBladeTrail {
+  0% { opacity: 0.9; transform: translateY(-50%) scaleX(0); }
+  45% { opacity: 0.5; transform: translateY(-50%) scaleX(1); }
+  100% { opacity: 0; transform: translateY(-50%) scaleX(1); }
+}
+
+@keyframes tripleSparkBurst {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-along))
+      rotate(calc(-1 * var(--spark-angle))) translate(0, 0) scale(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-along))
+      rotate(calc(-1 * var(--spark-angle)))
+      translate(calc(var(--spark-dx) * 0.25), calc(var(--spark-dy) * 0.25)) scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-along))
+      rotate(calc(-1 * var(--spark-angle)))
+      translate(var(--spark-dx), var(--spark-dy)) scale(0.2);
+  }
+}
+
+/* 斩痕渗光: 静默段从暗到亮, 像伤口在缓缓灼开。 */
+@keyframes tripleScarIn {
+  0% { opacity: 0; transform: translate(-50%, -50%) scaleX(0.25); filter: brightness(0.5); }
+  100% { opacity: 0.95; transform: translate(-50%, -50%) scaleX(1); filter: brightness(1); }
+}
+
+/* 斩痕炸亮: 爆点时所有刀痕一起烧到最亮, 再暗成余痕。 */
+@keyframes tripleScarBlow {
+  0% { opacity: 0.95; transform: translate(-50%, -50%) scaleX(1); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scaleX(1.06) scaleY(2.2); filter: brightness(2.8); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(1.06) scaleY(0.4); }
+}
+
+@keyframes tripleSplinterSpurt {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--sp-angle)) translateX(var(--sp-along)) rotate(var(--sp-side)) scaleX(0); }
+  100% { opacity: 0.9; transform: translate(-50%, -50%) rotate(var(--sp-angle)) translateX(var(--sp-along)) rotate(var(--sp-side)) scaleX(1); }
+}
+
+@keyframes tripleSplinterFade {
+  from { opacity: 0.9; }
+  to { opacity: 0; }
+}
+
+@keyframes tripleMantleShot {
+  0% { opacity: 1; transform: translate(-50%, -50%) scaleX(0); }
+  22% { opacity: 0.95; transform: translate(-50%, -50%) scaleX(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(1); }
+}
+
+@keyframes tripleShockOut {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
+}
+
+@keyframes tripleFragmentFly {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--fr-angle)) translateX(var(--fr-offset)) scaleX(0.3);
+  }
+  18% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--fr-angle))
+      translateX(calc(var(--fr-offset) + var(--fr-distance) * 0.3)) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--fr-angle))
+      translateX(calc(var(--fr-offset) + var(--fr-distance))) scaleX(0.5);
+  }
+}
+
+@keyframes tripleAshSettle {
+  0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.6); }
+  18% { opacity: 1; transform: translate(-50%, -50%) translate(calc(var(--ash-dx) * 0.2), calc(var(--ash-dy) * 0.2)) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--ash-dx), var(--ash-dy)) scale(0.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .triple-blade i,
+  .triple-ghost,
+  .triple-ghost i,
+  .triple-shard,
+  .triple-gather,
+  .triple-ignite,
+  .triple-scar i,
+  .triple-splinter,
+  .triple-mantle i,
+  .triple-shock,
+  .triple-fragment,
+  .triple-ash {
+    animation: none;
+  }
+}
