@@ -7,8 +7,8 @@
 // 这套图标就是这几个题材的 1:1 美术素材占位: 替换正式立绘时只动 DsTarotArt 的 MOTIFS。
 import type { CSSProperties } from "react";
 import { getBondDef, type BondDef } from "@/data/bonds";
-import { DsTarotArt } from "./DsTarotArt";
-import artS from "./DsTarotArt.module.css";
+import { DsTarotArt } from "../DsTarotArt";
+import artS from "../DsTarotArt/DsTarotArt.module.css";
 import s from "./DsTarotArtDemo.module.css";
 
 const SHEET_ORDER = ["strength", "chariot", "judgement", "priestess", "tower", "fool"];

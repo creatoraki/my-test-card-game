@@ -36,7 +36,7 @@ import type {
 } from "@/explore/types";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
-import { ADV_X, ADV_Y, LANE_X, LANE_Y, poly, type P2 } from "./dsIso";
+import { ADV_X, ADV_Y, LANE_X, LANE_Y, poly, type P2 } from "../dsIso";
 import s from "./DsRouteBoard.module.css";
 
 // ===================== 版式(设计 px) =====================

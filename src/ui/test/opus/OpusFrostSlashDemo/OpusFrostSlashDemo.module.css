@@ -1,0 +1,340 @@
+/* opus / frost-shatter demo 陈列台。特效自身的样式在 FrostShatterFx.module.css, 这里只有外壳。 */
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  min-height: 100%;
+  padding: 26px 32px 34px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #16202e 0%, transparent 62%),
+    #070910;
+  color: #dfe6f2;
+  font-family: var(--font-family);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.header h2 {
+  margin: 4px 0 0;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #eef4ff;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: #bfe9ff;
+}
+
+.headerNote {
+  max-width: 560px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #8e9bb0;
+}
+
+.headerNote b {
+  font-weight: 500;
+  color: #d7c2ff;
+}
+
+/* ── 控制台 ─────────────────────────────────────────────────────────── */
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border: 1px solid #23303f;
+  background: #0d131c;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlLabel {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: #71809a;
+}
+
+.controls button {
+  min-width: 62px;
+  padding: 7px 14px;
+  border: 1px solid #2a3849;
+  background: #101823;
+  color: #9fadc2;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  clip-path: none;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.controls button:hover {
+  border-color: #bfe9ff66;
+  color: #e2f2ff;
+}
+
+.controls button.on {
+  border-color: #bfe9ff;
+  background: #bfe9ff14;
+  color: #bfe9ff;
+}
+
+.controls button.play {
+  border-color: #8a6cff;
+  background: #8a6cff1f;
+  color: #cbb9ff;
+}
+
+.controls button.play:hover {
+  background: #8a6cff33;
+  color: #eae2ff;
+}
+
+.controls button:focus-visible {
+  outline: 1px solid #bfe9ff;
+  outline-offset: 2px;
+}
+
+/* ── 舞台 ───────────────────────────────────────────────────────────── */
+
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stage {
+  position: relative;
+  flex: 1 1 720px;
+  min-width: 380px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid #263447;
+  background: #04070c;
+  /* 内层按 1920×1080 世界坐标搭, 靠容器宽度等比缩放 —— 特效几何是世界 px 写死的,
+     这里保证 demo 与实战舞台的相对尺寸一致。 */
+  container-type: size;
+}
+
+.canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  transform: scale(calc(100cqw / 1920));
+  transform-origin: top left;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 比 neon 版更冷: 略降饱和 + 蓝移, 场景先「冷下来」特效才压得住。 */
+  filter: brightness(0.5) saturate(0.6) contrast(1.06) hue-rotate(-8deg);
+}
+
+/* 地面辉光: 把两个立绘钉在同一条脚线上, 免得看起来在飘。 */
+.ground {
+  position: absolute;
+  left: 50%;
+  bottom: 214px;
+  width: 1500px;
+  height: 210px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, #4aa8ff21 0%, transparent 68%);
+}
+
+.actor,
+.target {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+.actor {
+  left: 300px;
+  bottom: 250px;
+  filter: brightness(0.72) drop-shadow(0 12px 22px #000000a6);
+}
+
+.targetSlot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 256px;
+  height: 256px;
+  transform: translate(-50%, -50%);
+}
+
+.target {
+  left: 0;
+  bottom: 0;
+  filter: drop-shadow(0 12px 22px #000000a6);
+}
+
+.targetHit {
+  animation-name: frostDemoHit;
+  animation-duration: 420ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* 伤害飘字: 只是把「爆点在哪一帧」标出来, 不追求与正式飘字同款。 */
+.float {
+  position: absolute;
+  left: 50%;
+  top: -20px;
+  transform: translate(-50%, 0);
+  color: #ffffff;
+  font-size: 54px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 12px #bfe9ff, 0 0 30px #8a6cff;
+  opacity: 0;
+  animation-name: frostDemoFloat;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+  z-index: 20;
+}
+
+/* 全屏闪: 两拍 —— 冰晶核成形一帧冰蓝闪, 爆点一帧近白闪。 */
+.flash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, #bfe9ff 0%, #ffffff 50%, #d7c2ff 100%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  z-index: 30;
+  animation-name: frostDemoFlashA, frostDemoFlashB;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, ease-out;
+}
+
+/* ── 时间轴读数 ─────────────────────────────────────────────────────── */
+
+.timeline {
+  flex: 0 1 320px;
+  min-width: 260px;
+  padding: 16px 18px;
+  border: 1px solid #23303f;
+  background: #0d131c;
+}
+
+.timeline ol {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 2px 10px;
+  padding-left: 12px;
+  border-left: 2px solid #2a3849;
+}
+
+.timeline li.beatImpact {
+  border-left-color: #8a6cff;
+}
+
+.beatTime {
+  font-size: 12px;
+  color: #bfe9ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.beatName {
+  font-size: 13px;
+  color: #dfe6f2;
+}
+
+.beatDesc {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #808fa6;
+}
+
+.note {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #23303f;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #71809a;
+}
+
+/* 受击: 冻硬一下再散开 —— 先是发白发僵的一帧, 抖动幅度比 neon 版收一点。 */
+@keyframes frostDemoHit {
+  0% { transform: translate(0, 0); filter: brightness(1) drop-shadow(0 12px 22px #000000a6); }
+  12% { transform: translate(22px, -6px); filter: brightness(3) saturate(0.2) drop-shadow(0 0 24px #bfe9ff); }
+  28% { transform: translate(-14px, 5px); filter: brightness(2) saturate(0.5) drop-shadow(0 0 18px #8a6cff); }
+  46% { transform: translate(10px, -3px); }
+  68% { transform: translate(-5px, 2px); }
+  100% { transform: translate(0, 0); filter: brightness(1) drop-shadow(0 12px 22px #000000a6); }
+}
+
+@keyframes frostDemoFloat {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(0.7); }
+  18% { opacity: 1; transform: translate(-50%, -12px) scale(1.15); }
+  40% { transform: translate(-50%, -26px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -76px) scale(0.95); }
+}
+
+@keyframes frostDemoFlashA {
+  0% { opacity: 0.42; }
+  100% { opacity: 0; }
+}
+
+@keyframes frostDemoFlashB {
+  0% { opacity: 0.7; }
+  30% { opacity: 0.35; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 1080px) {
+  .root {
+    padding: 18px 14px 28px;
+  }
+
+  .timeline {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .targetHit,
+  .float,
+  .flash {
+    animation: none;
+  }
+}

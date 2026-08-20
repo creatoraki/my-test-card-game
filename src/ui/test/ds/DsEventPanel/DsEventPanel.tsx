@@ -15,7 +15,7 @@ import { prefersReducedMotion } from "@/ui/app/transitions";
 import { useTypewriter } from "@/ui/hooks/useTypewriter";
 import { cx } from "@/ui/common/cx";
 import placeholderArt from "@/assets/占位素材.png";
-import { EVENT_CONTENT, EVENT_TYPE_LABELS, type DsEvent, type DsEventType } from "./dsEventData";
+import { EVENT_CONTENT, EVENT_TYPE_LABELS, type DsEvent, type DsEventType } from "../dsEventData";
 import s from "./DsEventPanel.module.css";
 
 type Phase = "intro" | "choosing" | "committing" | "resolving";

@@ -31,7 +31,7 @@
 
 import type { ReactNode } from "react";
 import type { NodeEventKind } from "@/explore/types";
-import { isoBox, isoDisc, isoPt, poly, type P2 } from "./opusIso";
+import { isoBox, isoDisc, isoPt, poly, type P2 } from "../opusIso";
 import s from "./OpusEventProp.module.css";
 
 // 一个长方体的三个可见面。z 序天然正确: 先画两个侧面, 顶面压在上面。

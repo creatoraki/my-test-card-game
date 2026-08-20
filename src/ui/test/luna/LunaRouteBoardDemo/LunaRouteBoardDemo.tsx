@@ -3,7 +3,7 @@ import { traceSegment } from "@/explore/route";
 import type { NodeEvent, NodeEventKind, RouteSegment } from "@/explore/types";
 import { cx } from "@/ui/common/cx";
 import sceneBackground from "@/assets/占位场景素材.png";
-import { makeLunaBoard } from "./lunaRouteMock";
+import { makeLunaBoard } from "../lunaRouteMock";
 import s from "./LunaRouteBoardDemo.module.css";
 
 type Point = [number, number];

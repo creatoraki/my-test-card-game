@@ -1,5 +1,7 @@
-export * from "./OpusEventPanel";
-export * from "./OpusRoutePanel";
-export { OpusArcanaGallery } from "./OpusArcanaGallery";
-export { OpusNeonSlashDemo } from "./OpusNeonSlashDemo";
-export { NeonCrossFx } from "./NeonCrossFx";
+export * from "./OpusEventPanel/index";
+export * from "./OpusRoutePanel/index";
+export { OpusArcanaGallery } from "./OpusArcanaGallery/index";
+export { OpusNeonSlashDemo } from "./OpusNeonSlashDemo/index";
+export { NeonCrossFx } from "./NeonCrossFx/index";
+export { OpusFrostSlashDemo } from "./OpusFrostSlashDemo/index";
+export { FrostShatterFx } from "./FrostShatterFx/index";

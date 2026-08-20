@@ -27,9 +27,9 @@ import type {
   RouteSegment,
 } from "@/explore/types";
 import { cx } from "@/ui/common/cx";
-import { OpusEventProp } from "./OpusEventProp";
+import { OpusEventProp } from "../OpusEventProp";
 // ⚠ 投影常量与 poly 一律从 opusIso 取: 棋盘、地块、立体物件、棋子必须共享同一套斜率。
-import { ADV_X, ADV_Y, LANE_X, LANE_Y, poly } from "./opusIso";
+import { ADV_X, ADV_Y, LANE_X, LANE_Y, poly } from "../opusIso";
 import s from "./OpusRouteBoard.module.css";
 
 // ===================== 版式(设计 px) =====================

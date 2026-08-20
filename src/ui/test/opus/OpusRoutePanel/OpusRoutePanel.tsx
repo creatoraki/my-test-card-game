@@ -3,8 +3,8 @@
 // ⚠ 重播演出与换图都靠 key 重挂: 组件内部的推进状态因此一并清空, 不需要额外的复位接口。
 
 import { useCallback, useEffect, useState } from "react";
-import { OpusRouteBoard, OPUS_GENERATE_MS, OPUS_PANEL_W, OPUS_PANEL_H } from "./OpusRouteBoard";
-import { makeMockBoard } from "./opusRouteMock";
+import { OpusRouteBoard, OPUS_GENERATE_MS, OPUS_PANEL_W, OPUS_PANEL_H } from "../OpusRouteBoard";
+import { makeMockBoard } from "../opusRouteMock";
 import s from "./OpusRoutePanel.module.css";
 
 export function OpusRoutePanel() {

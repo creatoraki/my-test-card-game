@@ -1,0 +1,1 @@
+﻿export { DsTarotArtDemo } from "./DsTarotArtDemo";

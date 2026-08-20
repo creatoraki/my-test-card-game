@@ -1,0 +1,529 @@
+/* ============================================================================
+   霜结·碎冰交叉斩 —— 质感层。几何与时序在 frostShatterGeometry.ts / FrostShatterFx.tsx,
+   这里只负责「长什么样」: 寒色、霜纹、折射高光与关键帧曲线。
+
+   整层 screen 混色: 冰是自发光的高光体, 应该「加」在场景上而不是「盖」住场景。
+   ============================================================================ */
+
+.frost-wrap {
+  /* 冰棱轮廓: 与 neon 的圆润纺锤刻意相反 —— 折线硬角, 中段最厚、两端斜切成锐尖,
+     再在腹部咬出两个小缺口, 读起来像一片削出来的冰刃而不是一条光带。
+     两刀的辉光层与拖影层共用, 改这一处即改全部刀形。 */
+  --blade-taper: polygon(
+    0% 50%, 6% 26%, 22% 4%, 40% 12%, 58% 0%, 80% 10%, 94% 30%,
+    100% 50%, 94% 70%, 80% 90%, 58% 100%, 40% 88%, 22% 96%, 6% 74%
+  );
+  /* 霜结纹理: 叠在辉光上的细密斜纹, 让刀身有「结了一层霜」的颗粒而不是纯净光。 */
+  --frost-weave: repeating-linear-gradient(
+    62deg, #ffffff2e 0 1px, transparent 1px 7px
+  );
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1400px;
+  height: 1400px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+  mix-blend-mode: screen;
+}
+
+/* 色调令牌: 两刀与所有碎屑都只认这两个变量, 换配色改这三块即可。 */
+.frost-wrap [data-tone="ice"] {
+  --tone: #bfe9ff;
+  --tone-deep: #4aa8ff;
+}
+
+.frost-wrap [data-tone="violet"] {
+  --tone: #d7c2ff;
+  --tone-deep: #8a6cff;
+}
+
+.frost-wrap [data-tone="white"] {
+  --tone: #ffffff;
+  --tone-deep: #cfe9ff;
+}
+
+/* ── 预警层 ───────────────────────────────────────────────────────────── */
+
+.frost-field {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 760px;
+  height: 760px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #4aa8ff2b 0%, #8a6cff1c 44%, transparent 72%),
+    conic-gradient(from 0deg, #bfe9ff14 0deg 12deg, transparent 12deg 30deg);
+  opacity: 0;
+  animation-name: frostFieldIn, frostFieldOut;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, ease-in;
+}
+
+/* 霜纹: 自中心向外爬的针状结晶, 尾端收尖(clip-path 与刀身同族但更细长)。 */
+.frost-rime {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: left center;
+  transform: translate(0, -50%) rotate(var(--rime-angle, 0deg)) scaleX(0);
+  clip-path: polygon(0% 50%, 12% 0%, 88% 26%, 100% 50%, 88% 74%, 12% 100%);
+  background: linear-gradient(90deg, #eaf7ff 0%, #bfe9ffcc 45%, #4aa8ff66 78%, transparent);
+  box-shadow: 0 0 10px #4aa8ff8c;
+  opacity: 0;
+  animation-name: frostRimeCreep;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.25, 0.8, 0.3, 1);
+}
+
+/* ── 两刀 ─────────────────────────────────────────────────────────────── */
+
+/* wrapper 只做旋转: 内层三条各自从左端 scaleX 扫出, 这样「扫」和「转」互不干扰。 */
+.frost-blade,
+.frost-crack {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len, 1500px);
+  height: 0;
+  transform: translate(-50%, -50%) rotate(var(--blade-angle, 0deg));
+}
+
+.frost-blade i,
+.frost-crack i {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  display: block;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.frost-blade i {
+  transform-origin: left center;
+}
+
+.frost-blade-glow {
+  /* clip-path 作用在本地盒模型、transform 之后才缩放, 所以 scaleX(0→1) 的扫出不受影响,
+     锐尖会跟着刀身一起拉开。blur 比 neon 小一档: 冰刃要保留棱角, 糊开就成光棒了。 */
+  clip-path: var(--blade-taper);
+  height: 22px;
+  transform: translateY(-50%) scaleX(0);
+  background:
+    var(--frost-weave),
+    linear-gradient(90deg, transparent 2%, var(--tone-deep) 28%, var(--tone) 50%, var(--tone-deep) 72%, transparent 98%);
+  filter: blur(6px);
+  animation-name: frostBladeSweep, frostBladeFade;
+  animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1), ease-out;
+  z-index: 2;
+}
+
+.frost-blade-core {
+  height: 2.5px;
+  transform: translateY(-50%) scaleX(0);
+  /* 白芯收窄到中段: 亮度集中在刀腹、两端只剩细弱色尾, 与锐尖轮廓互相强化。 */
+  background: linear-gradient(90deg, transparent 3%, var(--tone) 26%, #ffffff 44%, #ffffff 56%, var(--tone) 74%, transparent 97%);
+  box-shadow: 0 0 5px var(--tone), 0 0 14px var(--tone-deep);
+  animation-name: frostBladeSweep, frostBladeFade;
+  animation-timing-function: cubic-bezier(0.05, 0.9, 0.2, 1), ease-out;
+  z-index: 6;
+}
+
+/* 拖影: 比刀芯宽、跟随晚, 提供「寒气尾流」而不是第二刀。 */
+.frost-blade-ghost {
+  clip-path: var(--blade-taper);
+  height: 9px;
+  transform: translateY(-50%) scaleX(0);
+  background: linear-gradient(90deg, transparent, var(--tone) 38%, #ffffffcc 55%, transparent 92%);
+  filter: blur(4px);
+  animation-name: frostBladeGhost;
+  animation-timing-function: ease-out;
+  z-index: 4;
+}
+
+/* 霜屑: 菱形小粒, 迸出后带重力下坠(dy 在几何表里已加偏置)。 */
+.frost-mote {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: var(--tone);
+  box-shadow: 0 0 6px var(--tone), 0 0 16px var(--tone-deep);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--mote-angle, 0deg))
+    translateX(var(--mote-along, 0px))
+    rotate(calc(-1 * var(--mote-angle, 0deg)))
+    translate(0, 0)
+    scale(0.2);
+  opacity: 0;
+  z-index: 7;
+  animation-name: frostMoteBurst;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+/* ── 交点冰晶核与结霜脉冲 ─────────────────────────────────────────────── */
+
+.frost-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, #ffffff 0%, #eaf7ff 26%, #bfe9ffa6 48%, #8a6cff4d 68%, transparent 78%);
+  box-shadow: 0 0 30px #bfe9ffcc, 0 0 74px #8a6cff80;
+  opacity: 0;
+  z-index: 8;
+  animation-name: frostCoreForm, frostCoreBlow;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.2, 1.4, 0.4, 1), ease-out;
+}
+
+/* 六芒星辉: conic 的六个亮扇区 + 硬角 clip, 是「结晶」区别于「光球」的关键一笔。 */
+.frost-core-star {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 300px;
+  height: 300px;
+  clip-path: polygon(
+    50% 0%, 58% 38%, 96% 25%, 66% 50%, 96% 75%, 58% 62%,
+    50% 100%, 42% 62%, 4% 75%, 34% 50%, 4% 25%, 42% 38%
+  );
+  background: conic-gradient(
+    from 90deg,
+    #ffffff 0deg, #bfe9ff33 24deg, #ffffffcc 60deg, #8a6cff33 84deg,
+    #ffffff 120deg, #bfe9ff33 144deg, #ffffffcc 180deg, #8a6cff33 204deg,
+    #ffffff 240deg, #bfe9ff33 264deg, #ffffffcc 300deg, #8a6cff33 324deg, #ffffff 360deg
+  );
+  transform: translate(-50%, -50%) rotate(-24deg) scale(0.2);
+  opacity: 0;
+  filter: blur(0.5px);
+  z-index: 7;
+  animation-name: frostStarFlare;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.9, 0.3, 1);
+}
+
+.frost-core-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid #cfe9ff;
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  z-index: 7;
+  animation-name: frostRingOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+/* 结霜脉冲: 一圈圈错峰外推的寒气环, 对应 neon 那边的色差坏帧。 */
+.frost-pulse {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--tone);
+  transform: translate(-50%, -50%) scale(0.15);
+  opacity: 0;
+  z-index: 6;
+  animation-name: frostPulseOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.75, 0.25, 1);
+}
+
+/* ── 十字龟裂 ─────────────────────────────────────────────────────────── */
+
+.frost-crack i {
+  height: 6px;
+  transform: translateY(-50%) scaleX(0.3) scaleY(0.2);
+  transform-origin: center center;
+  /* 不圆角: 冰裂是折线断口, 带圆角就成了光带。 */
+  background: linear-gradient(90deg, transparent 6%, var(--tone-deep) 24%, #ffffff 50%, var(--tone-deep) 76%, transparent 94%);
+  box-shadow: 0 0 8px var(--tone), 0 0 24px var(--tone-deep);
+  animation-name: frostCrackOpen, frostCrackBlow;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1), ease-out;
+  z-index: 5;
+}
+
+/* 两条分叉: 主裂缝之外各挑一个小角度的支线, 龟裂才不是一根直棍。
+   继承主线的动画名与行内 delay/duration, 所以与主线严格同拍。 */
+.frost-crack i::before,
+.frost-crack i::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  height: 100%;
+  background: inherit;
+  box-shadow: inherit;
+}
+
+.frost-crack i::before {
+  left: 16%;
+  width: 34%;
+  transform: translateY(-50%) rotate(7deg) scaleY(0.7);
+  transform-origin: left center;
+}
+
+.frost-crack i::after {
+  right: 14%;
+  width: 30%;
+  transform: translateY(-50%) rotate(-9deg) scaleY(0.6);
+  transform-origin: right center;
+}
+
+/* ── 爆点 ─────────────────────────────────────────────────────────────── */
+
+.frost-shock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 26px #bfe9ffe6, inset 0 0 26px #8a6cffa6;
+  transform: translate(-50%, -50%) scale(0.1);
+  opacity: 0;
+  z-index: 8;
+  animation-name: frostShockOut;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.2, 1);
+}
+
+/* 冰晶碎块: 三种多边形轮廓 + 斜向折射高光, 读起来是实体冰而不是发光方块。 */
+.frost-chunk {
+  position: absolute;
+  background: linear-gradient(135deg, #ffffff 0%, var(--tone) 40%, var(--tone-deep) 100%);
+  box-shadow: 0 0 10px var(--tone-deep);
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  opacity: 0;
+  z-index: 9;
+  animation-name: frostChunkBurst;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.75, 0.25, 1);
+}
+
+.frost-chunk[data-shape="0"] {
+  clip-path: polygon(50% 0%, 100% 82%, 8% 100%);
+}
+
+.frost-chunk[data-shape="1"] {
+  clip-path: polygon(50% 0%, 100% 46%, 56% 100%, 0% 58%);
+}
+
+.frost-chunk[data-shape="2"] {
+  clip-path: polygon(38% 0%, 100% 22%, 86% 76%, 30% 100%, 0% 44%);
+}
+
+.frost-splinter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 3px;
+  clip-path: polygon(0% 50%, 10% 0%, 100% 42%, 100% 58%, 10% 100%);
+  background: linear-gradient(90deg, transparent, var(--tone) 45%, #ffffff 72%, transparent);
+  box-shadow: 0 0 8px var(--tone-deep);
+  transform:
+    translate(-50%, -50%)
+    rotate(var(--splinter-angle, 0deg))
+    translateX(var(--splinter-offset, 0px))
+    scaleX(0.3);
+  opacity: 0;
+  z-index: 9;
+  animation-name: frostSplinterFly;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.05, 0.8, 0.2, 1);
+}
+
+/* 收尾寒气雾: 爆点后浮起再化掉, 给整条时间轴一个「凉下来」的尾巴。 */
+.frost-mist {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 720px;
+  height: 520px;
+  transform: translate(-50%, -50%) scale(0.7);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, #dff2ff3d 0%, #8a6cff1f 46%, transparent 74%);
+  filter: blur(14px);
+  opacity: 0;
+  z-index: 3;
+  animation-name: frostMistDrift;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+/* ── 关键帧 ───────────────────────────────────────────────────────────── */
+
+@keyframes frostFieldIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes frostFieldOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes frostRimeCreep {
+  0% { opacity: 0; transform: translate(0, -50%) rotate(var(--rime-angle)) scaleX(0); }
+  22% { opacity: var(--rime-opacity, 0.4); }
+  70% { opacity: var(--rime-opacity, 0.4); transform: translate(0, -50%) rotate(var(--rime-angle)) scaleX(1); }
+  100% { opacity: 0; transform: translate(0, -50%) rotate(var(--rime-angle)) scaleX(1.06); }
+}
+
+@keyframes frostBladeSweep {
+  0% { opacity: 1; transform: translateY(-50%) scaleX(0); filter: brightness(2.4); }
+  60% { opacity: 1; transform: translateY(-50%) scaleX(1); }
+  100% { opacity: 1; transform: translateY(-50%) scaleX(1); filter: brightness(1); }
+}
+
+@keyframes frostBladeFade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes frostBladeGhost {
+  0% { opacity: 0.9; transform: translateY(-50%) scaleX(0); }
+  45% { opacity: 0.5; transform: translateY(-50%) scaleX(1); }
+  100% { opacity: 0; transform: translateY(-50%) scaleX(1); }
+}
+
+@keyframes frostMoteBurst {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--mote-angle)) translateX(var(--mote-along))
+      rotate(calc(-1 * var(--mote-angle))) translate(0, 0) scale(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--mote-angle)) translateX(var(--mote-along))
+      rotate(calc(-1 * var(--mote-angle)))
+      translate(calc(var(--mote-dx) * 0.25), calc(var(--mote-dy) * 0.2)) scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--mote-angle)) translateX(var(--mote-along))
+      rotate(calc(-1 * var(--mote-angle)))
+      translate(var(--mote-dx), var(--mote-dy)) scale(0.2);
+  }
+}
+
+@keyframes frostCoreForm {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+  55% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
+  100% { opacity: 0.92; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes frostCoreBlow {
+  0% { opacity: 0.92; transform: translate(-50%, -50%) scale(1); }
+  35% { opacity: 1; transform: translate(-50%, -50%) scale(2.1); filter: brightness(2.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+}
+
+@keyframes frostStarFlare {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-24deg) scale(0.2); }
+  30% { opacity: 0.85; transform: translate(-50%, -50%) rotate(-6deg) scale(1.05); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(14deg) scale(1.35); }
+}
+
+@keyframes frostRingOut {
+  0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.2); border-width: 3px; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); border-width: 1px; }
+}
+
+@keyframes frostPulseOut {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.15); }
+  22% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(var(--pulse-scale, 1.6)); }
+}
+
+@keyframes frostCrackOpen {
+  0% { opacity: 0; transform: translateY(-50%) scaleX(0.3) scaleY(0.2); }
+  30% { opacity: 0.85; }
+  100% { opacity: 1; transform: translateY(-50%) scaleX(1) scaleY(1); }
+}
+
+@keyframes frostCrackBlow {
+  0% { opacity: 1; transform: translateY(-50%) scaleX(1) scaleY(1); }
+  25% { opacity: 1; transform: translateY(-50%) scaleX(1.04) scaleY(2.2); filter: brightness(2.6); }
+  100% { opacity: 0; transform: translateY(-50%) scaleX(1.04) scaleY(0.4); }
+}
+
+@keyframes frostShockOut {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
+}
+
+@keyframes frostChunkBurst {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+  12% { opacity: 1; transform: translate(-50%, -50%) rotate(0deg) scale(1.15); }
+  100% {
+    opacity: 0;
+    transform:
+      translate(calc(-50% + var(--chunk-dx)), calc(-50% + var(--chunk-dy)))
+      rotate(var(--chunk-rot)) scale(0.2);
+  }
+}
+
+@keyframes frostSplinterFly {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--splinter-angle)) translateX(var(--splinter-offset)) scaleX(0.3);
+  }
+  18% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%) rotate(var(--splinter-angle))
+      translateX(calc(var(--splinter-offset) + var(--splinter-distance) * 0.3)) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%) rotate(var(--splinter-angle))
+      translateX(calc(var(--splinter-offset) + var(--splinter-distance))) scaleX(0.5);
+  }
+}
+
+@keyframes frostMistDrift {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  25% { opacity: 0.9; transform: translate(-50%, -54%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -62%) scale(1.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frost-field,
+  .frost-rime,
+  .frost-blade i,
+  .frost-crack i,
+  .frost-mote,
+  .frost-core,
+  .frost-core-star,
+  .frost-core-ring,
+  .frost-pulse,
+  .frost-shock,
+  .frost-chunk,
+  .frost-splinter,
+  .frost-mist {
+    animation: none;
+  }
+}

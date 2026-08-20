@@ -4,7 +4,7 @@
 // (= 木桩中点), 每次点击"执笔·挥斩"用 key 重挂载重播; 倍速只改 --fx-rate 一个
 // CSS 变量, 特效组件的 timing() 会整体缩放全部动画(不改任何动画代码)。
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { DsInkSlashFx, INK_SLASH_PRESET } from "./DsInkSlashFx";
+import { DsInkSlashFx, INK_SLASH_PRESET } from "../DsInkSlashFx";
 import s from "./DsInkSlashDemo.module.css";
 
 const RATES = [0.5, 1, 2] as const;

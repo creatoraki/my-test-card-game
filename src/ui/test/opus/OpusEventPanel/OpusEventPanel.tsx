@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useTypewriter } from "@/ui/hooks/useTypewriter";
-import { EventSigil } from "./EventSigil";
+import { EventSigil } from "../EventSigil";
 import {
   EVENT_DEMOS,
   EVENT_KINDS,
@@ -10,7 +10,7 @@ import {
   type EventKind,
   type EventOption,
   type ResourceId,
-} from "./eventData";
+} from "../eventData";
 import s from "./OpusEventPanel.module.css";
 
 // 事件面板 demo。

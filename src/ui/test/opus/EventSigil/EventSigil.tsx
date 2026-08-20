@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { EventKind } from "./eventData";
+import type { EventKind } from "../eventData";
 import s from "./EventSigil.module.css";
 
 // 事件徽记 —— 用 SVG 现画的事件示意图, 顶掉「贴一张位图」的做法。
