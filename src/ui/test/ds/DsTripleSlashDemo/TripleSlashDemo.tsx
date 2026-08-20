@@ -37,8 +37,14 @@ const RATES = [
 
 const BEATS = [
   { at: TRIPLE_TIMELINE.opener, name: "起手一刀", desc: "亮金重刃沿 38° 快速劈出, 扫完悬停" },
-  { at: TRIPLE_TIMELINE.hold, name: "顿住", desc: "刀光静止, 亮度脉动 —— 危险的一瞬" },
-  { at: TRIPLE_TIMELINE.flurry, name: "六连爆发", desc: "六道不同轨迹斩击 180ms 内乱舞, 角度跨 200°" },
+  { at: TRIPLE_TIMELINE.hold, name: "顿住", desc: "刀光悬停脉动 —— 危险在静止里" },
+  { at: TRIPLE_TIMELINE.wind, name: "压刀蓄力", desc: "刀身原地压薄、亮度沉下 —— 爆发前的预备动作" },
+  {
+    at: TRIPLE_TIMELINE.shatter,
+    name: "崩断扇散",
+    desc: "首刀炸白后碎成五段垂直弹开, 残影扇向六连角度, 光环塌缩收拢视线, 中心白闪引出六连",
+  },
+  { at: TRIPLE_TIMELINE.flurry, name: "六连爆发", desc: "六道不同轨迹斩击逐刀劈出, 角度跨 200°, 扫完即灭" },
   { at: TRIPLE_TIMELINE.scars, name: "斩痕渗光", desc: "六道斩痕依次加深, 毛刺裂开(为爆点蓄压)" },
   { at: TRIPLE_TIMELINE.impact, name: "爆点", desc: "六芒冲击 + 碎片沿六向四散(掉血结算点)" },
   { at: TRIPLE_TIMELINE.total, name: "收尾", desc: "斩痕余辉熄灭, 火花余烬沉降" },

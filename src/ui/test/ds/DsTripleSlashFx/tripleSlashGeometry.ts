@@ -11,7 +11,7 @@
 // 但动作设计与霓虹交叉斩完全不同 —— 霓虹是**双刀交叉**(对称双线 + 交点凝聚),
 // 三段斩是**乱舞连斩**(一「暴」字):
 //   · 起手一刀沿 38° 快速劈出并悬停(顿住的一瞬是危险, 不是预兆);
-//   · 六道不同轨迹的斩击在 180ms 内爆发, 角度跨 200° 乱舞;
+//   · 六道不同轨迹的斩击逐刀爆发, 角度跨 200° 乱舞;
 //   · 六连斩完目标上留下六道斩痕, 静默渗光蓄压, 爆点六芒冲击 + 碎片沿六向飞散。
 // 想换一套碎裂布局只改 SEED。
 // ============================================================================
@@ -42,10 +42,13 @@ const TONES: readonly TripleTone[] = ["silver", "silver", "gold", "gold", "white
 export const TRIPLE_TIMELINE = {
   opener: 0, // 起手一刀: 沿 38° 快速劈出, 扫完即悬停
   hold: 150, // 顿住: 刀光悬停的静止时刻 —— 危险的一瞬, 不是预兆
-  flurry: 250, // 六连爆发: 六道不同轨迹斩击, 180ms 内乱舞完
-  scars: 500, // 斩痕渗光: 六道斩痕缓缓加深(为爆点蓄压的静默段)
-  impact: 1700, // 爆点: 六芒冲击 + 碎片沿六向四散(掉血结算点)
-  total: 2200, // 收尾: 斩痕余辉熄灭, 火花余烬沉降
+  wind: 380, // 压刀蓄力: 刀光回抽压低、亮度沉下 —— 爆发前的预备动作
+  shatter: 460, // 崩断退场: 首刀原地碎成数段弹开 + 残影扇开 + 崩断火花 (收束环 = shatter + 10)
+  ignite: 850, // 出鞘白闪: 中心骤亮一瞬(50ms), 六连第一刀随后从这枚白闪里劈出
+  flurry: 880, // 六连爆发: 崩断后留白 420ms 再爆发 —— 崩断余波散尽、屏息一瞬, 白闪引路、刀再出鞘
+  scars: 1800, // 斩痕渗光: 六道斩痕缓缓加深(为爆点蓄压的静默段)
+  impact: 2200, // 爆点: 六芒冲击 + 碎片沿六向四散(掉血结算点)
+  total: 2700, // 收尾: 斩痕余辉熄灭, 火花余烬沉降
 } as const;
 
 /** 斩线长度(px)。够长才能斜贯出 1400 见方的图层, 不在画面内看到断头。 */
@@ -53,32 +56,35 @@ export const BLADE_LENGTH = 1500;
 
 // ── 斩击表: 起手一刀 + 六连乱舞 ───────────────────────────────────────────
 // kind 决定渲染形态: opener 是「决定性的一击」——粗、慢(130ms)、亮金、
-// 带拖影, 扫完后悬停(150-250ms)再淡出; flurry 是「乱舞快刀」——细、快
-// (50ms/刀, 26ms 间隔, 相互重叠)、银白/白炽, 扫完即灭。
-// 六连角度 -58° → 142° 跨 200°, 轨迹各不相同, 覆盖目标大半个圆周。
+// 带拖影, 扫完后悬停(150-380ms) → 压刀蓄力 → 原地崩断(见文件末尾的
+// 「转场段」); flurry 是「乱舞快刀」——细、
+// 190ms/刀(扫出 130ms + 渐隐 60ms)、140ms 间隔相互重叠、银白/白炽,
+// 扫完即灭。六连角度 -58° → 142° 跨 200°, 轨迹各不相同, 覆盖目标大半个圆周。
 export interface TripleStrike {
   kind: "opener" | "flurry";
   angle: number;
   tone: TripleTone;
   at: number; // 起手时刻(ms)
   sweepMs: number; // 刀身扫出时长(ms)
+  fadeMs: number; // 扫完后的渐隐时长(ms); flurry 总动画时长 = sweepMs + fadeMs
   glowHeight: number; // 辉光层厚度(px)
   coreHeight: number; // 刀芯厚度(px)
   trailHeight: number; // 拖影层厚度(px, 只有 opener 渲染拖影)
 }
 
 export const SLASHES: readonly TripleStrike[] = [
-  { kind: "opener", angle: 38, tone: "gold", at: TRIPLE_TIMELINE.opener, sweepMs: 130, glowHeight: 34, coreHeight: 3, trailHeight: 22 },
-  { kind: "flurry", angle: -58, tone: "silver", at: 250, sweepMs: 50, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
-  { kind: "flurry", angle: -18, tone: "white", at: 276, sweepMs: 50, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
-  { kind: "flurry", angle: 22, tone: "silver", at: 302, sweepMs: 50, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
-  { kind: "flurry", angle: 62, tone: "white", at: 328, sweepMs: 50, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
-  { kind: "flurry", angle: 102, tone: "silver", at: 354, sweepMs: 50, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
-  { kind: "flurry", angle: 142, tone: "white", at: 380, sweepMs: 50, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
+  { kind: "opener", angle: 38, tone: "gold", at: TRIPLE_TIMELINE.opener, sweepMs: 130, fadeMs: 0, glowHeight: 34, coreHeight: 3, trailHeight: 22 },
+  { kind: "flurry", angle: -58, tone: "silver", at: 880, sweepMs: 130, fadeMs: 60, glowHeight: 24, coreHeight: 2.2, trailHeight: 0 },
+  { kind: "flurry", angle: -18, tone: "white", at: 1020, sweepMs: 130, fadeMs: 60, glowHeight: 21, coreHeight: 1.8, trailHeight: 0 },
+  { kind: "flurry", angle: 22, tone: "silver", at: 1160, sweepMs: 130, fadeMs: 60, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
+  { kind: "flurry", angle: 62, tone: "white", at: 1300, sweepMs: 130, fadeMs: 60, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
+  { kind: "flurry", angle: 102, tone: "silver", at: 1440, sweepMs: 130, fadeMs: 60, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
+  { kind: "flurry", angle: 142, tone: "white", at: 1580, sweepMs: 130, fadeMs: 60, glowHeight: 18, coreHeight: 1.5, trailHeight: 0 },
 ];
 
 // ── 火花: 沿刀锋迸出的短促亮点 ────────────────────────────────────────────
-// 起手刀 4 颗, 六连每刀 2 颗(刀太快要不了太多); 全部跟着刀锋走。
+// 起手刀 4 颗跟刀锋, 六连每刀 2 颗。收刀瞬间的火花不在这里 —— 那是转场演出的
+// 一部分, 归 SHATTER_SPARKS(见文件末尾的「转场段」)。
 export interface TripleSpark {
   blade: number; // 归属第几刀(索引到 SLASHES)
   along: number; // 沿刀身的位置(px, 以刀身中点为 0)
@@ -91,7 +97,7 @@ export interface TripleSpark {
 
 export const SPARKS: readonly TripleSpark[] = SLASHES.flatMap((blade, index) => {
   const count = blade.kind === "opener" ? 4 : 2;
-  return Array.from({ length: count }, (_, i) => {
+  const sparks = Array.from({ length: count }, (_, i) => {
     const along = -320 + i * 200 + between(-24, 24);
     return {
       blade: index,
@@ -103,6 +109,7 @@ export const SPARKS: readonly TripleSpark[] = SLASHES.flatMap((blade, index) => 
       delay: Math.round(between(0, 34)),
     };
   });
+  return sparks;
 });
 
 // ── 斩痕: 六连在目标上留下的灼痕, 静默段依次渗光加深, 爆点一起炸亮 ────────
@@ -190,3 +197,90 @@ export const ASHES: readonly TripleAsh[] = Array.from({ length: 12 }, () => ({
   size: Math.round(between(2, 5)),
   delay: Math.round(between(140, 340)),
 }));
+
+// ── 转场段: 首刀退场 → 六连爆发的衔接 ─────────────────────────────────────
+// 首刀不是「消失」而是「被崩碎」: 压刀蓄力(wind) → 原地崩断成数段、各段沿垂直
+// 于刀身的方向弹开(shatter), 崩断的同时留下三道扇向六连角度的残影, 光环塌缩
+// 把视线收回目标中心, 中心出鞘白闪(ignite)炸开, 六连第一刀正好从白闪里劈出。
+//
+// ★ 这一段的硬约束: **所有位移必须钳在可见区(± 320px)内, 且不能沿刀身方向**。
+//   刀身长 1500px, 横跨中心 ± 750px —— 两端本来就在画面外, 所以
+//   「沿刀身平移」在画面里等于没动, 「沿刀身收缩」则是一两帧就掠过中心的闪。
+//   这套几何下只有三种运动真正看得见: 绕中心旋转、垂直于刀身的位移、原地的
+//   厚度/亮度变化。之前的抽刃退场就是踩了这个坑, 别再写回去。
+//
+// 注意: 以下几张表刻意放在文件末尾 —— rnd() 是顺序敏感的定点流, 插在中间会
+// 把 SCARS / SPLINTERS / FRAGMENTS / ASHES 的既有布局整体挪位。
+
+// ── 残影: 首刀甩出时分裂出的半透明弧刃, 各自旋到六连前三刀的角度并淡出 ────
+// 「一刀化多刀」—— 让观众先看到首刀的轨迹**扇开成**六连的轨迹, 实刀再沿着
+// 这些轨迹劈实。残影是弱层(低不透明度 + 大模糊), 不与实刀抢视觉权重。
+// fadeMs 280: 残影在六连第一刀劈出(880ms)前约 100ms 就淡尽 —— 六连起手时
+// 画面必须是干净的, 观众才看得清六连每一刀的扫出; 残影和实刀同框会互相
+// 抢读, 变成一屏横线而不是「扇开 → 劈实」的接力。
+export interface TripleAfterimage {
+  toAngle: number; // 扇开到的角度(deg) = 六连对应刀的角度
+  delay: number; // 相对 shatter
+  fadeMs: number;
+  opacity: number; // 峰值不透明度, 逐道递减
+}
+
+export const AFTERIMAGES: readonly TripleAfterimage[] = SLASHES.slice(1, 4).map((blade, index) => ({
+  toAngle: blade.angle,
+  delay: index * 26,
+  fadeMs: 280,
+  opacity: Number((0.34 - index * 0.07).toFixed(2)),
+}));
+
+// ── 崩断火花: 刀身碎开的那一刻从断口迸出的亮点, 沿可见区四散 ───────────────
+// dx/dy 是**世界坐标**(CSS 里 rotate 之后又转了回来), 所以这里就该四散,
+// 不该带方向性 —— 方向性交给碎段自己的垂直弹开。
+export interface TripleShatterSpark {
+  along: number; // 沿首刀刀身的位置(px, 以刀身中点为 0, 钳在可见区内)
+  dx: number;
+  dy: number;
+  size: number;
+  tone: TripleTone;
+  delay: number; // 相对 shatter
+}
+
+export const SHATTER_SPARKS: readonly TripleShatterSpark[] = Array.from({ length: 8 }, (_, index) => ({
+  along: Math.round(-300 + index * 86 + between(-22, 22)),
+  dx: Math.round(between(-95, 95)),
+  dy: Math.round(between(-95, 95)),
+  size: Math.round(between(4, 8)),
+  tone: pickOne(TONES),
+  delay: Math.round((index / 8) * 60 + between(0, 16)),
+}));
+
+// ── 碎段: 首刀崩断后的刀身残片, 各段沿垂直于刀身的方向弹开并翻转淡出 ───────
+// 5 段首尾略有重叠地铺满可见区(± 320px), 断口从中段先裂、向两端扩散 ——
+// 「刀是从被挡住的那一点崩开的」。垂直弹开是这套几何里最扎实的可见运动。
+export interface TripleShard {
+  along: number; // 沿刀身的位置(px, 以刀身中点为 0)
+  length: number; // 碎段长度(px)
+  height: number; // 碎段厚度(px)
+  side: 1 | -1; // 往刀身的哪一侧弹
+  push: number; // 垂直于刀身的弹开距离(px)
+  spin: number; // 弹开时的翻转角(deg)
+  delay: number; // 相对 shatter
+  fadeMs: number;
+}
+
+export const OPENER_SHARDS: readonly TripleShard[] = Array.from({ length: 5 }, (_, index) => {
+  const along = Math.round(-320 + index * 160 + between(-14, 14));
+  return {
+    along,
+    // 段长 > 段距(160): 相邻碎段留一点重叠, 崩断的第一帧才没有缝。
+    length: Math.round(between(172, 196)),
+    height: Math.round(between(20, 32)),
+    side: (index % 2 === 0 ? 1 : -1) as 1 | -1,
+    push: Math.round(between(38, 82)),
+    spin: Math.round(between(-10, 10)),
+    delay: Math.round((Math.abs(along) / 320) * 46 + between(0, 12)),
+    // fadeMs 220-260: 碎段最晚 ~780ms 散尽, 给六连第一刀(880ms)留足 100ms 的
+    // 干净空档 —— 碎段是完整的不透明刀段, 若活到六连起手, 会盖住六连辉光
+    // (z-index 9 vs 2), 六连看起来就是一堆横线而不是逐刀扫出。
+    fadeMs: Math.round(between(220, 260)),
+  };
+});

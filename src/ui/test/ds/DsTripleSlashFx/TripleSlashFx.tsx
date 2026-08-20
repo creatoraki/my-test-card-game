@@ -9,7 +9,10 @@
 // 但动作设计完全不同 —— 霓虹是「双刀交叉」的张开构图, 三段斩是「乱舞连斩」
 // 的爆发构图:
 //   · 起手一刀沿 38° 快速劈出并悬停(顿住的一瞬是危险, 不是预兆);
-//   · 六道不同轨迹的斩击在 180ms 内爆发, 角度跨 200° 乱舞, 扫完即灭;
+//   · 悬停尾段是一整段转场演出, 不是切镜: 压刀蓄力(wind) → 首刀原地崩断成
+//     五段、各段垂直于刀身弹开(shatter) + 扇向六连角度的残影 + 光环由外向内
+//     塌缩收拢视线 → 中心出鞘白闪(ignite)先炸开、六连第一刀随后从白闪里劈出;
+//   · 六道不同轨迹的斩击逐刀爆发, 角度跨 200° 乱舞, 扫完即灭;
 //   · 六连斩完目标上留下六道斩痕, 静默渗光蓄压, 爆点六芒冲击 + 碎片沿六向飞散。
 //
 // 时间轴与几何全在 tripleSlashGeometry.ts; 本文件只做「表 → DOM + 行内时序」
@@ -19,10 +22,13 @@
 import type { CSSProperties } from "react";
 import type { ProcFxPreset } from "@/ui/battle/animations";
 import {
+  AFTERIMAGES,
   ASHES,
   BLADE_LENGTH,
   FRAGMENTS,
   MANTLES,
+  OPENER_SHARDS,
+  SHATTER_SPARKS,
   SCARS,
   SLASHES,
   SPARKS,
@@ -37,10 +43,40 @@ const timing = (milliseconds: number) =>
 
 const asStyle = (style: Record<string, string | number>) => style as CSSProperties;
 
+/** 崩断时长(ms): 本体只闪这一下就交棒给碎段, 短才像「裂」而不像「淡出」。 */
+const SHATTER_MS = 60;
+
+/** 收束环时长(ms): 崩断后 200ms 内急速塌缩收拢视线, 然后**留白屏息**一段
+    (白闪 850ms 才炸) —— 环是「收」的指令, 收完就消失, 不跟白闪抢拍。 */
+const GATHER_MS = 200;
+
+/** 出鞘白闪时长(ms): 收束环塌完、留白屏息后的那一瞬骤亮 —— 稍微留足一点,
+    观众才读得到「白闪引路、六连随后」的顺序, 太短会闪成噪点。 */
+const IGNITE_MS = 50;
+
+// 起手刀四拍(扫出 / 悬停 / 压刀蓄力 / 崩断)的时序。辉光与刀芯跑的是不同的
+// 关键帧(模糊量不同), 但拍点必须逐毫秒一致, 所以时序在这里写一次。
+const openerDelays = (at: (timelineMs: number) => number) =>
+  [TRIPLE_TIMELINE.opener, TRIPLE_TIMELINE.hold, TRIPLE_TIMELINE.wind, TRIPLE_TIMELINE.shatter]
+    .map((beat) => timing(at(beat)))
+    .join(", ");
+
+const openerDurations = (sweepMs: number) =>
+  [
+    sweepMs,
+    TRIPLE_TIMELINE.wind - TRIPLE_TIMELINE.hold,
+    TRIPLE_TIMELINE.shatter - TRIPLE_TIMELINE.wind,
+    SHATTER_MS,
+  ]
+    .map((duration) => timing(duration))
+    .join(", ");
+
 export function DsTripleSlashFx({ preset }: { preset: ProcFxPreset }) {
   // 整条时间轴按「表里的爆点」与「preset 要求的爆点」之差平移, 掉血/飘字才对得上爆裂帧。
   const offset = preset.impactMs - TRIPLE_TIMELINE.impact;
   const at = (timelineMs: number) => Math.max(0, offset + timelineMs);
+  // 碎段、残影、崩断火花都长在首刀那条线上, 角度只认表里的首刀, 不硬编。
+  const opener = SLASHES[0]!;
 
   return (
     <div
@@ -64,16 +100,16 @@ export function DsTripleSlashFx({ preset }: { preset: ProcFxPreset }) {
           <i
             className={blade.kind === "opener" ? s["triple-blade-glow"] : s["triple-blade-flurry-glow"]}
             style={asStyle({
-              // 起手刀三拍: 扫出 → 悬停脉动 → 六连起手时淡出(被乱舞吞没);
-              // 六连刀一拍: 快扫即灭。
+              // 起手刀四拍: 扫出 → 悬停脉动 → 压刀蓄力 → 崩断;
+              // 六连刀两拍: 扫出(快出) → 消散(平滑渐隐 + 前滑余势)。
               animationDelay:
                 blade.kind === "opener"
-                  ? `${timing(at(blade.at - 30))}, ${timing(at(TRIPLE_TIMELINE.hold))}, ${timing(at(TRIPLE_TIMELINE.flurry))}`
-                  : timing(at(blade.at)),
+                  ? openerDelays(at)
+                  : `${timing(at(blade.at))}, ${timing(at(blade.at + blade.sweepMs))}`,
               animationDuration:
                 blade.kind === "opener"
-                  ? `${timing(blade.sweepMs + 30)}, ${timing(TRIPLE_TIMELINE.flurry - TRIPLE_TIMELINE.hold)}, ${timing(120)}`
-                  : timing(90),
+                  ? openerDurations(blade.sweepMs)
+                  : `${timing(blade.sweepMs)}, ${timing(blade.fadeMs)}`,
             })}
           />
           <i
@@ -81,12 +117,12 @@ export function DsTripleSlashFx({ preset }: { preset: ProcFxPreset }) {
             style={asStyle({
               animationDelay:
                 blade.kind === "opener"
-                  ? `${timing(at(blade.at))}, ${timing(at(TRIPLE_TIMELINE.hold))}, ${timing(at(TRIPLE_TIMELINE.flurry))}`
-                  : timing(at(blade.at)),
+                  ? openerDelays(at)
+                  : `${timing(at(blade.at))}, ${timing(at(blade.at + blade.sweepMs))}`,
               animationDuration:
                 blade.kind === "opener"
-                  ? `${timing(blade.sweepMs)}, ${timing(TRIPLE_TIMELINE.flurry - TRIPLE_TIMELINE.hold)}, ${timing(110)}`
-                  : timing(90),
+                  ? openerDurations(blade.sweepMs)
+                  : `${timing(blade.sweepMs)}, ${timing(blade.fadeMs)}`,
             })}
           />
           {blade.kind === "opener" && (
@@ -121,6 +157,80 @@ export function DsTripleSlashFx({ preset }: { preset: ProcFxPreset }) {
           />
         );
       })}
+
+      {/* 转场段(首刀退场 → 六连爆发): 碎段崩飞 + 残影扇开 + 崩断火花 + 收束环 +
+           出鞘白闪。这一段不动任何后续锚点, 全部塞在原本空着的悬停尾段里。
+           节奏: 460ms 崩断 → 碎段/残影/火花一路散到 ~870ms(六连起手前才散尽),
+           收束环 470-670ms 急速塌缩收视线, 670-850ms 留白屏息, 850ms 白闪引路,
+           880ms 六连第一刀从白闪里劈出 —— 转场是「散场 + 屏息」, 不是「换台」。 */}
+      {OPENER_SHARDS.map((shard, index) => (
+        <span
+          key={`shard-${index}`}
+          className={s["triple-shard"]}
+          style={asStyle({
+            "--shard-angle": `${opener.angle}deg`,
+            "--shard-along": `${shard.along}px`,
+            "--shard-len": `${shard.length}px`,
+            "--shard-h": `${shard.height}px`,
+            // push 带上 side 的符号: 正负决定往刀身的哪一侧弹。
+            "--shard-push": `${shard.push * shard.side}px`,
+            "--shard-spin": `${shard.spin}deg`,
+            animationDelay: timing(at(TRIPLE_TIMELINE.shatter + shard.delay)),
+            animationDuration: timing(shard.fadeMs),
+          })}
+        />
+      ))}
+      {AFTERIMAGES.map((ghost, index) => (
+        <div
+          key={`ghost-${index}`}
+          className={s["triple-ghost"]}
+          style={asStyle({
+            "--ghost-from": `${opener.angle}deg`,
+            "--ghost-to": `${ghost.toAngle}deg`,
+            "--ghost-op": ghost.opacity,
+            animationDelay: timing(at(TRIPLE_TIMELINE.shatter + ghost.delay)),
+            animationDuration: timing(ghost.fadeMs),
+          })}
+        >
+          <i
+            style={asStyle({
+              animationDelay: timing(at(TRIPLE_TIMELINE.shatter + ghost.delay)),
+              animationDuration: timing(ghost.fadeMs),
+            })}
+          />
+        </div>
+      ))}
+      {SHATTER_SPARKS.map((spark, index) => (
+        <span
+          key={`shatter-spark-${index}`}
+          className={s["triple-spark"]}
+          data-tone={spark.tone}
+          style={asStyle({
+            width: spark.size,
+            height: spark.size,
+            "--spark-angle": `${opener.angle}deg`,
+            "--spark-along": `${spark.along}px`,
+            "--spark-dx": `${spark.dx}px`,
+            "--spark-dy": `${spark.dy}px`,
+            animationDelay: timing(at(TRIPLE_TIMELINE.shatter + spark.delay)),
+            animationDuration: timing(300),
+          })}
+        />
+      ))}
+      <div
+        className={s["triple-gather"]}
+        style={asStyle({
+          animationDelay: timing(at(TRIPLE_TIMELINE.shatter + 10)),
+          animationDuration: timing(GATHER_MS),
+        })}
+      />
+      <div
+        className={s["triple-ignite"]}
+        style={asStyle({
+          animationDelay: timing(at(TRIPLE_TIMELINE.ignite)),
+          animationDuration: timing(IGNITE_MS),
+        })}
+      />
 
       {/* 斩痕: 六连在目标上留下的灼痕, 静默段依次渗光加深, 爆点一起炸亮后熄灭。
           毛刺从斩痕两侧伸出, 让刀口有「撕裂」的毛边。 */}

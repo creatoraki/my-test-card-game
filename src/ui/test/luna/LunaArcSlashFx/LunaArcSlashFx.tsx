@@ -23,29 +23,29 @@ export function LunaArcSlashFx({ preset }: { preset: ProcFxPreset }) {
       />
 
       <div
-        className={s["luna-arc"]}
+        className={s["luna-scar-system"]}
         data-tone={LUNA_SLASH.tone}
-        style={asStyle({ "--arc-angle": `${LUNA_SLASH.angle}deg` })}
+        style={asStyle({ "--scar-angle": `${LUNA_SLASH.angle}deg` })}
       >
         <i
-          className={s["luna-arc-halo"]}
+          className={s["luna-scar-aura"]}
           style={asStyle({
-            animationDelay: timing(at(LUNA_SLASH.at - 72)),
-            animationDuration: timing(560),
+            animationDelay: timing(at(LUNA_SLASH.at - 90)),
+            animationDuration: timing(700),
           })}
         />
         <i
-          className={s["luna-arc-edge"]}
+          className={s["luna-scar-main"]}
           style={asStyle({
-            animationDelay: timing(at(LUNA_SLASH.at)),
-            animationDuration: timing(520),
+            animationDelay: timing(at(LUNA_SLASH.at - 30)),
+            animationDuration: timing(760),
           })}
         />
         <i
-          className={s["luna-arc-echo"]}
+          className={s["luna-scar-glint"]}
           style={asStyle({
-            animationDelay: timing(at(LUNA_SLASH.at + 110)),
-            animationDuration: timing(620),
+            animationDelay: timing(at(LUNA_TIMELINE.contact - 90)),
+            animationDuration: timing(430),
           })}
         />
       </div>
@@ -72,6 +72,7 @@ export function LunaArcSlashFx({ preset }: { preset: ProcFxPreset }) {
       <div
         className={s["luna-cut"]}
         style={asStyle({
+          "--cut-angle": `${LUNA_SLASH.angle}deg`,
           animationDelay: timing(at(LUNA_TIMELINE.impact)),
           animationDuration: timing(340),
         })}
@@ -83,14 +84,6 @@ export function LunaArcSlashFx({ preset }: { preset: ProcFxPreset }) {
           animationDuration: timing(220),
         })}
       />
-      <div
-        className={s["luna-ring"]}
-        style={asStyle({
-          animationDelay: timing(at(LUNA_TIMELINE.afterglow)),
-          animationDuration: timing(420),
-        })}
-      />
-
       {EMBERS.map((ember, index) => (
         <span
           key={`ember-${index}`}
