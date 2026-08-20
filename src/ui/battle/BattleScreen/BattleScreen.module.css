@@ -137,6 +137,28 @@
   85%, 100% { background-color: transparent; }
 }
 
+/* 霓虹交叉斩全屏坏帧: 百分比按 2200ms 总时长换算, 改 NEON_TIMELINE 须同步改这里。 */
+.battle-glitch {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: #ffffff;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: neonScreenGlitch 2200ms linear both;
+}
+@keyframes neonScreenGlitch {
+  0%, 42% { opacity: 0; background-color: #ffffff; }
+  43.2% { opacity: 0.35; background-color: #dfffff; }
+  44.8% { opacity: 0; }
+  76% { opacity: 0; background-color: #ffffff; }
+  77.3% { opacity: 0.58; background-color: #fff1ff; }
+  79.5% { opacity: 0.12; background-color: #cfffff; }
+  83% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
 /* ===================== 提示条 ===================== */
 .hint-bar {
   grid-area: hint;
@@ -469,7 +491,8 @@
 @media (prefers-reduced-motion: reduce) {
   .battle-dim,
   .battle-flash,
-  .battle-blood {
+  .battle-blood,
+  .battle-glitch {
     animation: none;
   }
 }

@@ -2,7 +2,7 @@ import type { CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/animations";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "foe" | "foeCast";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "neon" | "foe" | "foeCast";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -64,6 +64,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   tri: { kind: "tri", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2550, punch: 0.06, shake: 22, creep: 0, hitstop: 110 },
   // 血色刀光视觉时间轴 2800ms; 比三段斩击多停 300ms 覆盖疤痕消散, 血花爆点的重震更强。
   blood: { kind: "blood", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2850, punch: 0.06, shake: 24, creep: 0, hitstop: 110 },
+  // 霓虹交叉斩视觉 2200ms; hold 2350 覆盖像素碎片收尾, 爆点 1700ms 对齐重震与顿帧。
+  neon: { kind: "neon", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2350, punch: 0.06, shake: 22, creep: 0, hitstop: 100 },
 };
 
 /** 敌人自己的戏: 先把镜头聚焦到施法者、落位后再起蓄力(见 BattleScreen 的 focusLead)。 */
@@ -85,6 +87,7 @@ export function pickShot(ctx: ShotContext): ShotPreset {
         : ctx.anim === "blade-slash" ? SHOTS.blade
           : ctx.anim === "tri-slash" ? SHOTS.tri
             : ctx.anim === "blood-slash" ? SHOTS.blood
+              : ctx.anim === "neon-cross" ? SHOTS.neon
               : ctx.anim === "sword-fall" || ctx.shake === 2 || ctx.damageRatio >= 0.35 ? SHOTS.heavy
                 : ctx.shake === 1 && ctx.damageRatio < 0.15 ? SHOTS.light
                   : SHOTS.normal;

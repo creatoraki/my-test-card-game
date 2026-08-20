@@ -869,6 +869,7 @@ export function BattleScreen() {
   const dimHit = Object.values(hits).find((h) => ANIM[h.anim].screenFx === "dim");
   const flashHit = Object.values(hits).find((h) => ANIM[h.anim].screenFx === "flash");
   const bloodHit = Object.values(hits).find((h) => ANIM[h.anim].screenFx === "blood");
+  const glitchHit = Object.values(hits).find((h) => ANIM[h.anim].screenFx === "glitch");
   // 我方受到伤害 ⇒ 全屏血红暗角。由 hits 派生, hold 结束清空 hits 时自动卸载。
   const hurtHit = Object.entries(hits).find(
     ([id, h]) => battle.playerIds.includes(id) && h.float?.tone === "dmg",
@@ -987,6 +988,7 @@ export function BattleScreen() {
       {dimHit && <div key={dimHit.seq} className={s["battle-dim"]} aria-hidden />}
       {flashHit && <div key={flashHit.seq} className={s["battle-flash"]} aria-hidden />}
       {bloodHit && <div key={bloodHit.seq} className={s["battle-blood"]} aria-hidden />}
+      {glitchHit && <div key={glitchHit.seq} className={s["battle-glitch"]} aria-hidden />}
       {hurtHit && <HurtVignette key={hurtHit.seq} seq={hurtHit.seq} />}
 
       {/* <RoundIndicator

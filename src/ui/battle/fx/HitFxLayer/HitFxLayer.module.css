@@ -223,6 +223,10 @@
 .vfx-blood-slash.vfx-attack::after {
   content: none;
 }
+/* 霓虹交叉斩自带 neon-shock 冲击环, 且爆点延迟到 1700ms; 默认环挂载即扩散会提前穿帮。 */
+.vfx-neon-cross.vfx-attack::after {
+  content: none;
+}
 /* —— 伤害/治疗飘字 —— */
 .float-num {
   position: absolute;

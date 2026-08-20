@@ -42,7 +42,7 @@ export interface AnimPreset {
   sprite?: SpritePreset; // 序列帧特效(存在时优先于 emoji)
   proc?: ProcFxPreset; // 程序化 CSS 特效(与 sprite 平行的第三种渲染分支)
   icon?: "shield"; // 图标特效(复用 BUFF 图标 SVG, 优先于 emoji); 渲染映射见 HitFxLayer 的 ICON_FX
-  screenFx?: "dim" | "flash" | "blood"; // 可选的场景外全屏层
+  screenFx?: "dim" | "flash" | "blood" | "glitch"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
@@ -200,6 +200,19 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     screenFx: "blood",
     windup: 210,
     hold: 2800,
+    shake: 2,
+  },
+  // 霓虹数据·交叉斩(程序化 CSS): 2.2s 四拍 —— 扫描线锁定 → 双刀交叉贯穿 →
+  // 白核凝聚 + 色差坏帧 → 静默张开后像素崩解。1700ms 是爆点, 与
+  // fx/NeonCrossFx/neonCrossGeometry.ts 的 NEON_TIMELINE.impact 同源;
+  // 掉血/飘字/顿帧/重震都锚在这一拍。
+  "neon-cross": {
+    kind: "attack",
+    color: "#6ef4ff", // 青蓝主色(冲击环/受击着色/飘字), 与品红刃形成对撞
+    proc: { impactMs: 1700, floatMs: 600, damageAtImpact: true },
+    screenFx: "glitch",
+    windup: 190,
+    hold: 2500, // impactMs + floatMs = 2300 < hold, 飘字不被截断; 也盖住 total 2200
     shake: 2,
   },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
