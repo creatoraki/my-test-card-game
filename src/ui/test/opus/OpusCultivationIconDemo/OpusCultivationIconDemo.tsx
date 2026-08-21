@@ -1,6 +1,6 @@
 // opus tab 的 demo: 「培育植物 / 培育完成」两枚 BUFF 图标的陈列台。
 //
-// 这个文件只做「陈列 + 控制台」, 图标本体在 ../CultivationSigil(线稿版) 与 ../CultivationEmblem(厚涂版),
+// 这个文件只做「陈列 + 控制台」, 图标本体在 ../CultivationSigil(线稿版) 与 common/BuffIcon(厚涂版),
 // 三者互不知道对方的存在 —— 图标可以直接被正式 UI 引用, 不会把 demo 的 state 带过去。
 //
 // 陈列台刻意做了四件事, 都是判断一枚 BUFF 图标能不能上线的硬指标:
@@ -13,7 +13,7 @@ import { useState, type ReactElement } from "react";
 import sceneBackground from "@/assets/占位场景素材.png";
 import { cx } from "@/ui/common/cx";
 import { InsightEmblem, KeenEmblem, WardEmblem } from "../CombatEmblem";
-import { CultivatedEmblem, CultivatingEmblem } from "../CultivationEmblem";
+import { CultivatedEmblem, CultivatingEmblem } from "@/ui/common/BuffIcon";
 import { CultivatedSigil, CultivatingSigil } from "../CultivationSigil";
 import s from "./OpusCultivationIconDemo.module.css";
 

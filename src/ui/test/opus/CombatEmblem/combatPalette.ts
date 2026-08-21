@@ -20,9 +20,9 @@
 // ⚠ 配色写死不吃 currentColor: 厚涂的立体感来自同一块面上明面/暗面/高光**三档的相对关系**,
 //   单一变量替换不了三档; 而且色相本身就是语义, 不该让调用方改掉。
 
-import type { EmblemPalette } from "../CultivationEmblem/emblemPalette";
+import type { EmblemPalette } from "@/ui/common/BuffIcon/emblemPalette";
 
-export type { EmblemPalette, GradientSpec } from "../CultivationEmblem/emblemPalette";
+export type { EmblemPalette, GradientSpec } from "@/ui/common/BuffIcon/emblemPalette";
 
 // ── 锋利: 冷钢 · 极高对比 · 见血 ──────────────────────────────────
 //

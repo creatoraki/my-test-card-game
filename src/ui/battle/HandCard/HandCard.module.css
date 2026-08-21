@@ -264,7 +264,6 @@
   left: 42px;
 }
 .hc-cultivate-ready .hc-mark-icon {
-  color: #f3ffc7;
   border-color: #d8f56e;
   box-shadow: 0 0 12px #c7e85f99;
 }
@@ -345,6 +344,36 @@
   background: #102b35e8;
   border: 1px solid #66d7ec;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.hc-cultivate-icon {
+  background: transparent;
+  clip-path: none;
+}
+.hc-cultivate-emblem {
+  position: absolute;
+  inset: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+}
+.hc-mark-count {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  min-width: 12px;
+  height: 14px;
+  padding: 0 2px;
+  place-items: center;
+  color: #effff9;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 1px 2px #000;
+  background: #07131be8;
+  border: 1px solid #b1f3df;
+  border-radius: 4px;
+  pointer-events: none;
 }
 .hc-mark-tip {
   position: absolute;

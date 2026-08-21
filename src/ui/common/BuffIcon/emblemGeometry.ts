@@ -10,7 +10,7 @@
 // ⚠ 外框是**硬边界**: 任何新加的形都必须落在 INNER_FRAME 以内。这一条不是审美偏好 ——
 //   图标要摆进偏暗的场景图上, 一旦有元素溢出框外, 它就没有边界了, 会直接糊进背景里。
 
-import { CENTER, SIGIL_VIEWBOX } from "../CultivationSigil/cultivationGeometry";
+import { CENTER, SIGIL_VIEWBOX } from "@/ui/test/opus/CultivationSigil/cultivationGeometry";
 
 export {
   CENTER,
@@ -19,7 +19,7 @@ export {
   PETAL_ANGLES,
   petalPath,
   polarPoint,
-} from "../CultivationSigil/cultivationGeometry";
+} from "@/ui/test/opus/CultivationSigil/cultivationGeometry";
 
 // ── 共用外框: 满幅 1:1 圆角方形 ───────────────────────────────────
 //

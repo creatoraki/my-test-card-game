@@ -34,7 +34,7 @@ export {
   INNER_FRAME,
   insetFrame,
   type FrameRect,
-} from "../CultivationEmblem/emblemGeometry";
+} from "@/ui/common/BuffIcon/emblemGeometry";
 
 // ══ 锋利 · 斜置 40° 的一把刀 ══════════════════════════════════════
 //

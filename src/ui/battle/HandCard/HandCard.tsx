@@ -2,6 +2,7 @@ import { memo } from "react";
 import type { Card } from "@/engine";
 import { CARD_MARK_DEFS, cultivateReady } from "@/engine";
 import { getCharacter } from "@/data";
+import { CultivatedEmblem, CultivatingEmblem } from "@/ui/common/BuffIcon";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
@@ -153,11 +154,18 @@ export const HandCard = memo(function HandCard({
           )}
         >
           <span className={cx(s["hc-mark"], cultivateReady(card) && s["hc-cultivate-ready"])} aria-label="培育">
-            <span className={s["hc-mark-icon"]} aria-hidden>
-              🌱{cultivateReady(card) ? "✔" : card.cultivateLeft ?? card.cultivate.turns}
+            <span className={cx(s["hc-mark-icon"], s["hc-cultivate-icon"])} aria-hidden>
+              {cultivateReady(card) ? (
+                <CultivatedEmblem className={s["hc-cultivate-emblem"]} label={null} />
+              ) : (
+                <CultivatingEmblem className={s["hc-cultivate-emblem"]} label={null} />
+              )}
+              {!cultivateReady(card) && (
+                <span className={s["hc-mark-count"]}>{card.cultivateLeft ?? card.cultivate.turns}</span>
+              )}
             </span>
             <span className={s["hc-mark-tip"]} role="tooltip">
-              <span className={s["hc-mark-tip-name"]}>🌱 培育</span>
+              <span className={s["hc-mark-tip-name"]}>培育</span>
               <span className={s["hc-mark-tip-desc"]}>
                 {cultivateReady(card)
                   ? "已就绪：打出时触发额外效果。"
