@@ -188,14 +188,19 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
   },
 
   // ---- 控制 ----
-  // 眩晕的效果在 ai.ts 的 enemyAct 里处理(行动时消耗 1 层并跳过), 这里只提供显示定义。
+  // 敌人由 ai.ts 在行动时机消耗眩晕; 我方在回合结束结算, 避免同一层被扣两次。
   stun: {
     id: "stun",
     name: "眩晕",
     emoji: "💫",
     kind: "debuff",
-    desc: "无法行动。行动时机到来时消耗 1 层并跳过该次行动。",
+    desc: "无法行动。敌人行动时机到来时消耗 1 层并跳过; 我方角色本回合无法打出其卡牌, 回合结束层数 -1。",
     resistMode: "chance", // 开关型控制 ⇒ 异常抗性抵抗的是"是否被施加"
+    hooks: {
+      onRoundEnd: (c: StatusCtx) => {
+        if (c.state.combatants[c.ownerId]?.team === "player") c.inst.stacks -= 1;
+      },
+    },
   },
 
   // ---- 情报 ----

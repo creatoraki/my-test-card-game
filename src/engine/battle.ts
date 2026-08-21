@@ -270,6 +270,7 @@ export function playBlockReason(state: BattleState, uid: string): PlayBlock {
   if (!card || state.phase !== "player" || !state.hand.includes(uid)) return "other";
   const owner = state.combatants[card.ownerCharId];
   if (!owner || !owner.alive) return "other";
+  if (owner.statuses.some((status) => status.id === "stun" && status.stacks > 0)) return "other";
   if (state.pendingChoice) return "other";
   return (state.resources[RULES.resource.name] ?? 0) >= manaCostOf(state, card) ? null : "mana";
 }

@@ -8,7 +8,8 @@ export function cardCost(state: BattleState, card: Card): number {
       ? state.playedThisRound.filter((played) => played.cardType === "fast").length
       : 0;
   const delta = rule && count >= (rule.threshold ?? 1) ? rule.delta : 0;
-  return Math.max(0, card.cost + delta);
+  const heavy = card.marks?.includes("heavy") ? 1 : 0;
+  return Math.max(0, card.cost + delta + heavy);
 }
 
 export function starPayable(card: Card): boolean {

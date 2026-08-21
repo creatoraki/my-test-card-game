@@ -10,6 +10,7 @@ import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 import { starPayable } from "./cost";
+import { CARD_MARK_DEFS } from "./cardMarks";
 import { makeCard } from "../data";
 import { resetCultivate } from "./cultivate";
 
@@ -259,7 +260,10 @@ function applyEffect(
         const card = state.cards[uid];
         if (card) {
           card.marks ??= [];
-          if (!card.marks.includes(effect.mark)) card.marks.push(effect.mark);
+          if (!card.marks.includes(effect.mark)) {
+            card.marks.push(effect.mark);
+            ops.log(state, `${card.name} 被标记为${CARD_MARK_DEFS[effect.mark]?.name ?? effect.mark}`);
+          }
         }
         pool.splice(pool.indexOf(uid), 1);
       }
