@@ -87,13 +87,14 @@ const SPECS: { key: IconKey; name: string; sub: string; notes: Record<VersionKey
 
 /**
  * 战斗三态。与培育两态**同规格不同族**: 外框、viewBox、内沿裁切完全一致(可互换槽位),
- * 但配色内建、没有线稿版 —— 所以它们只跟「动画」「背景」两组开关联动, 不吃「版本」「主色」。
+ * 但配色内建、没有线稿版, 而且**是静态图标** —— 所以它们只跟「背景」这一组开关联动,
+ * 「版本」「主色」「动画」三组都不吃。render 因此不收参数。
  */
 const COMBAT_SPECS: {
   key: string;
   name: string;
   sub: string;
-  render: (animated: boolean) => ReactElement;
+  render: () => ReactElement;
   desc: string;
   beats: string[];
 }[] = [
@@ -101,25 +102,40 @@ const COMBAT_SPECS: {
     key: "keen",
     name: "锋利",
     sub: "KEEN",
-    render: (animated) => <KeenEmblem animated={animated} />,
-    desc: "一把没有柄的窄长刃立在磨刀台上，刃尖迸一点火花。三枚里唯一的竖长剪影；性格是对比而不是亮度——底盘近黑、刃口近白，中间几乎不留过渡档。",
-    beats: ["竖长剪影 · 无环", "右刃口近白亮边", "全冷调 + 一点赤红", "风刃 1.9s 流动"],
+    render: () => <KeenEmblem />,
+    desc: "剪影从竖直改成斜置 40° 的对角。刃面上原本摞着「血槽 + 受光斜面 + 中脊」三条形，这一版并成一刀两面——沿中轴切开的背光左半与受光右半，交界自己就是中脊。四道锋芒线、四角寒芒、四道缠绳、第二滴血珠全部砍掉，换成一道贯穿画面的斜弧光。血从三处减到两处（刃身下段一抹 + 一滴垂血珠），亮点只剩右刃口那一条白。",
+    beats: [
+      "构成线 · 对角（整刀 rotate 40° + 一道贯穿弧光）",
+      "一刀两面 · 交界自成中脊，不再单画线",
+      "件数 12 → 4：刀 / 柄 / 弧光 / 血",
+      "血珠不跟着转 · 受的是重力不是刀的倾角",
+    ],
   },
   {
     key: "ward",
     name: "护盾",
     sub: "WARD",
-    render: (animated) => <WardEmblem animated={animated} />,
-    desc: "正面朝外的盾，外圈套一圈六边能量场。三枚里只有它带外环，20px 下有环／无环比盾里画了什么快得多；靛底压暖金盾面，冷暖对冲让盾跳出来。",
-    beats: ["上宽下尖剪影 · 满环", "六边能量场 26s 慢转", "冷色扫带 4.2s 扫过", "盾心暖白爆点"],
+    render: () => <WardEmblem />,
+    desc: "剪影不动，里面全部重来。三层同心套娃换成两刀分面：一条横腰线压在盾最宽处切上下（上段打磨受光、下段沉），盾脊切左右（右受光、左背光），交叉出四个明度块——金属的体积是这么来的，不是在盾上画阴影。配件从「六铆钉 + 两侧光弧 + 三条交叉脉 + 五边形套五边形」砍到两件：双肩两枚铆钉 + 菱心四向刻线。",
+    beats: [
+      "构成线 · 横腰线（对位培育中那条地平线）",
+      "两刀交叉分面 · 四个明度块，全是半透叠加",
+      "菱心正压腰线上 · 把上下两段缝住",
+      "件数 14 → 5，铆钉 6 → 2",
+    ],
   },
   {
     key: "insight",
     name: "心眼",
     sub: "INSIGHT",
-    render: (animated) => <InsightEmblem animated={animated} />,
-    desc: "横躺的杏仁眼、竖瞳、额上一枚三点冠。整体亮度是三枚里最低的——「看透」的表达是收不是放，一枚亮眼睛落在暗背景里比满屏发光更像在盯着人。",
-    beats: ["横椭圆剪影 · 无环", "深紫底 + 紫青虹膜", "竖瞳 3.1s 对焦", "虹膜内扫描线"],
+    render: () => <InsightEmblem />,
+    desc: "剪影不动，周边重来。上一版拿额冠 + 四角睫线 + 上下轴线 + 虹膜内环 + 十二条纤维把「第三只眼」解释了五遍；这一版并成上下两道大弧（眉弧 / 承光弧），一件形同时干三件事——吃掉上下空白、给这枚自己的构成线、暗示这不是普通眼睛。厚涂只留大块的那几件：上睑投影、主副双高光、下眶反光；纤维减到 8 条并压沉，纹理不该被读成放射线。",
+    beats: [
+      "构成线 · 上下双弧夹一横眼",
+      "配件 5 件 → 2 道弧",
+      "厚涂只留大块 · 上睑投影 / 双高光 / 下眶反光",
+      "虹膜纤维 12 → 8 条，且更沉",
+    ],
   },
 ];
 
@@ -301,16 +317,23 @@ export function OpusCultivationIconDemo() {
       <header className={s.head}>
         <h2 className={s.sectionTitle}>战斗 BUFF 图标 · 锋利 / 护盾 / 心眼</h2>
         <p>
-          与培育两态同规格（viewBox 128×128、同一套三圈外框、内容全部裁在内沿以内），可直接互换槽位；
-          区分压在剪影长宽比、有环／无环、色相三条线上，任意一条单独拿掉都还能认。配色内建，不吃外层
-          color。
+          与培育两态同规格（viewBox 128×128、同一套三圈外框、内容全部裁在内沿以内），可直接互换槽位。
+          <b>本轮按培育两态的美学整体重画</b>：上一版的病不在画得糙，在画得多——锋芒线、寒芒、缠绳、
+          铆钉、光弧、交叉脉、虹膜纤维、额冠、睫线，每件单看都有道理，堆在 128 见方里就是一地碎屑，
+          缩到 32px 全糊。抄培育版的四条：<b>构图只留三件形</b>、<b>明暗靠「面」不靠「线」</b>
+          （每个主体切成明暗两面，交界自成脊）、<b>一条贯穿画面的构成线</b>
+          （锋利＝对角／护盾＝横腰线／心眼＝上下双弧，与培育中的地平线、培育完成的中心放射互不重复）、
+          <b>全枚只留一个亮点</b>（刃口一条白／菱心爆点／瞳心一粒）。
+          区分仍压在剪影（斜刃／宽盾／横眼）与主题色（钢青带血／全蓝／金白）两条线上，
+          任意一条单独拿掉都还能认。主题色是指定的，配色内建，不吃外层 color；
+          <b>这三枚是静态图标，上面的「动画」开关对它们无效。</b>
         </p>
       </header>
 
       <section className={cx(s.stage, s.stageTriple, s[`bg-${backdrop}`])} style={backdropStyle}>
         {COMBAT_SPECS.map((spec) => (
           <article key={spec.key} className={s.card}>
-            <div className={s.hero}>{spec.render(animated)}</div>
+            <div className={s.hero}>{spec.render()}</div>
             <h2 className={s.name}>
               {spec.name}
               <em>{spec.sub}</em>
@@ -334,7 +357,7 @@ export function OpusCultivationIconDemo() {
               {SIZES.map((size) => (
                 <div key={size} className={s.scaleItem}>
                   <div className={s.scaleBox} style={{ inlineSize: size }}>
-                    {spec.render(animated)}
+                    {spec.render()}
                   </div>
                   <small>{size}</small>
                 </div>
@@ -350,7 +373,7 @@ export function OpusCultivationIconDemo() {
         <div className={s.pips}>
           {COMBAT_SPECS.map((spec, i) => (
             <span key={spec.key} className={cx(s.pip, s.pipFramed)}>
-              <span className={s.pipIcon}>{spec.render(animated)}</span>
+              <span className={s.pipIcon}>{spec.render()}</span>
               {i === 1 ? <b>12</b> : null}
             </span>
           ))}

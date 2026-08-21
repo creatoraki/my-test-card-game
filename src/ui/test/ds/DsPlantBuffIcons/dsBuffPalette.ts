@@ -6,12 +6,13 @@
 // ★ 五枚图标各持一套**独立复合配色**, 不是同一色相的深浅梯度:
 //   培育中 = 深靛底 + 暖褐壳 + 青绿芽(冷·暗·内敛);
 //   培育完成 = 深赭底 + 金橙瓣 + 黄绿尖(暖·亮·外放);
-//   锋利 = 深钢蓝底 + 银白刃 + 金星(锐·冷);
-//   心眼 = 深紫底 + 品红紫虹膜 + 金白棱光(聚·艳);
-//   护盾 = 深青底 + 青蓝盾 + 亮白核(沉·稳)。
+//   锋利 = 冰蓝底 + 钢青双面 + 霓虹红血(锐·冷);
+//   心眼 = 深紫黑底 + 金白双环虹膜 + 香槟金光芒(聚·艳);
+//   护盾 = 深蓝底 + 霓虹青能量线 + 白心宝石(沉·稳)。
 //   这样即使去掉形状, 光看五块色斑也能分辨 —— 小尺寸下最快的区分信号。
-// ★ v6 外框规则: 满幅圆角方框的**外亮边**(ink.rim)是图标在暗场景上的边界本身,
-//   所以比 v5 的深色 rim 整体提亮一档, 并按色相走 —— 连框都参与语义区分。
+// ★ v9 外框规则: 满幅圆角方框的**外亮边**(ink.rim)是图标在暗场景上的边界本身,
+//   按色相走 —— 连框都参与语义区分; 战斗三态的发光与饱和整体比 v8 推高一档,
+//   「霓虹宝石徽章」感主要来自 高饱和渐变 + 宝石白心 + 霓虹能量线 三件套。
 // ⚠ 这里只描述渐变的「形状与色标」, 具体的 <defs> id 由组件在运行时拼(useId), 不进这一层。
 
 export type GradientStop = {
@@ -215,77 +216,159 @@ export const DONE_PALETTE: BuffPalette = {
   },
 };
 
-// ── 锋利: 锐 · 冷 ────────────────────────────────────────────────
+// ── 锋利: 冷钢 · 霓虹红血 · 极高对比 ──────────────────────────────
+//
+// 主题色钢青。性格是**对比**而不是亮度: 镞面背光侧压到近黑, 右刃口给到近白,
+// 中间几乎不设过渡档。血红是**落点**不是主色 —— 血只出现在尖端与血槽,
+// 与冷钢的面积比约 10:1; 若是整枚转暗红, 并排时护盾(全蓝)心眼(金白)就成了
+// 红蓝金三原色, 而且暗红压在暗场景图上会直接糊掉。
+// ★ v9 霓虹化: 底盘与钢面整体提亮一档(冷钢蓝更饱和), 血槽内嵌一道**霓虹红线**
+//   (bloodGlow), 收口宝石白心烧到赤红, 外发光改冰蓝(glow) ——
+//   血分两档(blood 主档 + 渐变暗档)依然是「湿的」。
 
 export const SHARP_PALETTE: BuffPalette = {
   gradients: [
+    // 底盘: 中心略亮的一个坑, 冷钢灰蓝。
     {
       key: "plate",
       kind: "radial",
       cx: "50%",
-      cy: "40%",
+      cy: "42%",
       r: "62%",
       stops: [
-        { offset: "0%", color: "#1d3148" },
-        { offset: "58%", color: "#13202f" },
-        { offset: "100%", color: "#0a1119" },
+        { offset: "0%", color: "#2a4160" },
+        { offset: "55%", color: "#16233a" },
+        { offset: "100%", color: "#050a12" },
       ],
     },
-    // 刀身: 亮面在左(受光), 暗面在右 —— 银白到钢蓝, 刃口一侧最亮。
+    // 第一层 外廓: 上亮下暗的暗钢。最外那层本来就该是最暗的。
     {
-      key: "blade",
+      key: "outer",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#6d88a6" },
+        { offset: "45%", color: "#2a3d54" },
+        { offset: "100%", color: "#0c1522" },
+      ],
+    },
+    // 第二层 左主面(背光): 一路压暗, 给环境反光留位置。
+    {
+      key: "faceL",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#38506b" },
+        { offset: "60%", color: "#1a2b40" },
+        { offset: "100%", color: "#0a1420" },
+      ],
+    },
+    // 第二层 右主面(受光): 光源在右上, 高光全压在这一面。
+    {
+      key: "faceR",
       kind: "linear",
       x1: "0%",
       y1: "0%",
       x2: "100%",
       y2: "0%",
       stops: [
-        { offset: "0%", color: "#f8fcff" },
-        { offset: "55%", color: "#c7d6e4" },
-        { offset: "100%", color: "#8fa6bc" },
+        { offset: "0%", color: "#7e9cba" },
+        { offset: "45%", color: "#c8def2" },
+        { offset: "80%", color: "#f2f8ff" },
+        { offset: "100%", color: "#ffffff" },
       ],
     },
-    // 刀镡与柄: 深钢蓝, 比刀身沉一档。
+    // 第三层 内芯: 再推亮一档的亮钢。
     {
-      key: "hilt",
+      key: "core",
       kind: "linear",
       y1: "0%",
       y2: "100%",
       stops: [
-        { offset: "0%", color: "#3a5674" },
-        { offset: "100%", color: "#16222f" },
+        { offset: "0%", color: "#f0f7ff" },
+        { offset: "55%", color: "#a9c2da" },
+        { offset: "100%", color: "#5a7696" },
       ],
     },
-    // 剑尖金星: 聚焦点。
+    // 血槽: 凹槽底部积着一层暗血 —— 钢青渐渐转暗红, 这是「血槽」的字面意思。
     {
-      key: "star",
+      key: "fuller",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#0a121c" },
+        { offset: "45%", color: "#1c1216" },
+        { offset: "100%", color: "#541019" },
+      ],
+    },
+    // 尖端血渍: 上缘薄(透出钢) → 下缘厚(近黑红)。血是积下来的, 所以下面重。
+    {
+      key: "blood",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#ff5566" },
+        { offset: "42%", color: "#c21a2c" },
+        { offset: "100%", color: "#45080f" },
+      ],
+    },
+    // 收口宝石: 全冷画面里唯一的暖, 从白心烧到赤红。
+    {
+      key: "gem",
       kind: "radial",
       stops: [
-        { offset: "0%", color: "#fff6d8" },
-        { offset: "45%", color: "#ffd166", opacity: 0.9 },
-        { offset: "100%", color: "#ffb347", opacity: 0 },
+        { offset: "0%", color: "#ffffff" },
+        { offset: "30%", color: "#ffdcc9" },
+        { offset: "68%", color: "#ff5d45" },
+        { offset: "100%", color: "#a81028" },
+      ],
+    },
+    // 套筒: 比镞身沉一档的青铜钢, 免得横向的套筒抢过竖向的镞身。
+    {
+      key: "socket",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#9db8d2" },
+        { offset: "45%", color: "#465f7a" },
+        { offset: "100%", color: "#0f1a28" },
       ],
     },
   ],
-  glow: { color: "#dcecff", blur: 1.8, opacity: 0.6 },
+  glow: { color: "#6fc3ff", blur: 2.2, opacity: 0.85 },
   ink: {
-    /** 外框亮边: 冷银, 与刀身同一系。 */
-    rim: "#6b93b8",
-    /** 刀身外轮廓。 */
-    bladeRim: "#2e4154",
-    /** 刃口亮边。 */
-    edge: "#ffffff",
-    /** 剑脊线。 */
-    ridge: "#7e97ad",
-    /** 柄头金珠。 */
-    gold: "#ffd166",
-    goldLit: "#fff3b0",
-    /** 剑尖聚焦实心点。 */
-    hilite: "#fff3cd",
+    /** 外框亮边: 冰蓝, 与钢面同族更霓虹一档。 */
+    rim: "#8fd0ff",
+    /** 分层描边: 各层镞形与套筒靠它彼此分开。 */
+    deep: "#04070d",
+    /** 右刃口亮边与宝石内菱 —— 整枚图标的亮度峰值就在这条线上。 */
+    light: "#ffffff",
+    /** 左刃口暗边与背光面。 */
+    shade: "#0e1a28",
+    /** 射线、碎片与套筒能量节点。 */
+    accent: "#bfe6ff",
+    /** 血流主档: 沿血槽下淌的那道。 */
+    blood: "#d91f35",
+    /** 血槽霓虹能量线: 槽内那道发光的红线。 */
+    bloodGlow: "#ff5d70",
+    /** 左下环境反光: 背光面不死黑, 左缘才不会和底盘粘在一起。 */
+    bounce: "#9cc4e8",
   },
 };
 
-// ── 心眼: 聚 · 艳 ────────────────────────────────────────────────
+// ── 心眼: 金 + 白 · 五枚里最亮 ────────────────────────────────────
+//
+// 主题色金与白。金负责「贵」、白负责「亮」, 两者之间不留第三个色相 ——
+// 眼底是白金渐变, 虹膜是纯金, 瞳心是纯白, 底盘压到近黑褐, 让金白整个浮起来。
+// 与培育完成那枚暖橙金的区分: 这枚是**冷金(香槟色)**, 白的占比大得多, 底盘也更黑。
+// ★ v9 霓虹化: 底盘从深褐转**深紫黑**(与培育完成的暖褐底拉开), 三角加一层
+//   中三角金白渐变主体 + 双层虹膜(外金环 iris / 内白环 irisInner),
+//   瞳心透光加强, 顶点宝石白到金, 外发光香槟金。
 
 export const MIND_PALETTE: BuffPalette = {
   gradients: [
@@ -293,76 +376,142 @@ export const MIND_PALETTE: BuffPalette = {
       key: "plate",
       kind: "radial",
       cx: "50%",
-      cy: "42%",
+      cy: "46%",
       r: "62%",
       stops: [
-        { offset: "0%", color: "#2a2145" },
-        { offset: "58%", color: "#191331" },
-        { offset: "100%", color: "#0d0918" },
+        { offset: "0%", color: "#3a2a55" },
+        { offset: "55%", color: "#1f1433" },
+        { offset: "100%", color: "#0a0512" },
       ],
     },
-    // 金属环带: 上亮下暗的紫铜感, 做出环的圆柱厚度。
+    // 中三角(眼底主体): 左上纯白 → 右下沉金。白占大半 —— 五枚里最亮的一枚。
     {
-      key: "ring",
+      key: "triMid",
+      kind: "linear",
+      x1: "10%",
+      y1: "0%",
+      x2: "90%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#fffdf4" },
+        { offset: "38%", color: "#f7e4b0" },
+        { offset: "74%", color: "#d8a94f" },
+        { offset: "100%", color: "#7a5420" },
+      ],
+    },
+    // 右半受光切面: 一层极淡的白, 从顶往下收。
+    {
+      key: "facetLit",
       kind: "linear",
       y1: "0%",
       y2: "100%",
       stops: [
-        { offset: "0%", color: "#a97cf0" },
-        { offset: "55%", color: "#6e3fc4" },
-        { offset: "100%", color: "#3a1d75" },
+        { offset: "0%", color: "#ffffff", opacity: 0.2 },
+        { offset: "100%", color: "#ffffff", opacity: 0 },
       ],
     },
-    // 虹膜: 品红紫到深紫。
+    // 左半背光切面: 金字塔背光的一面, 靠它和受光面切出体积。
+    {
+      key: "facetShade",
+      kind: "linear",
+      x1: "100%",
+      y1: "0%",
+      x2: "0%",
+      y2: "0%",
+      stops: [
+        { offset: "0%", color: "#1a0f05", opacity: 0.35 },
+        { offset: "100%", color: "#1a0f05", opacity: 0.08 },
+      ],
+    },
+    // 虹膜外环: 心亮金 → 沿沉褐金, 球面感全靠这条。
     {
       key: "iris",
       kind: "radial",
-      cx: "50%",
-      cy: "50%",
-      r: "62%",
+      cx: "40%",
+      cy: "32%",
+      r: "78%",
       stops: [
-        { offset: "0%", color: "#e0a8ff" },
-        { offset: "55%", color: "#b06ef2" },
-        { offset: "100%", color: "#7d35e0" },
+        { offset: "0%", color: "#fffdf0" },
+        { offset: "30%", color: "#ffe9a8" },
+        { offset: "66%", color: "#e0b24a" },
+        { offset: "100%", color: "#7a5410" },
       ],
     },
-    // 瞳孔聚焦点。
+    // 虹膜内环: 比外环再推亮一档的白金 —— 双层环的亮度差让眼球「鼓」起来。
     {
-      key: "pupil",
+      key: "irisInner",
+      kind: "radial",
+      cx: "42%",
+      cy: "34%",
+      r: "80%",
+      stops: [
+        { offset: "0%", color: "#ffffff" },
+        { offset: "55%", color: "#fff3cf" },
+        { offset: "100%", color: "#efd488" },
+      ],
+    },
+    // 瞳心透光: 纯白爆点。整枚图标的亮度峰值。
+    {
+      key: "pupilGlow",
       kind: "radial",
       stops: [
-        { offset: "0%", color: "#fff6d8" },
-        { offset: "45%", color: "#ffdf7e", opacity: 0.9 },
-        { offset: "100%", color: "#ffb347", opacity: 0 },
+        { offset: "0%", color: "#ffffff" },
+        { offset: "45%", color: "#fff2c4" },
+        { offset: "100%", color: "#ffd96e", opacity: 0.3 },
       ],
     },
-    // 洞察棱光: 金白向上。
+    // 顶点宝石: 三角尖的收口, 白到金。
     {
-      key: "beam",
+      key: "apex",
       kind: "linear",
-      y1: "100%",
-      y2: "0%",
+      y1: "0%",
+      y2: "100%",
       stops: [
-        { offset: "0%", color: "#ffe066", opacity: 0.55 },
-        { offset: "100%", color: "#fff6d8", opacity: 0.05 },
+        { offset: "0%", color: "#ffffff" },
+        { offset: "55%", color: "#ffe7a4" },
+        { offset: "100%", color: "#d8a94f" },
+      ],
+    },
+    // 托带: 沉金, 把整枚压稳。
+    {
+      key: "banner",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#a37a2e" },
+        { offset: "55%", color: "#6e5420" },
+        { offset: "100%", color: "#33260c" },
       ],
     },
   ],
-  glow: { color: "#b06ef2", blur: 2.2, opacity: 0.75 },
+  glow: { color: "#ffd970", blur: 2.4, opacity: 0.85 },
   ink: {
-    /** 外框亮边: 紫罗兰, 与眼同系。 */
-    rim: "#8a6fd0",
-    /** 环带左上受光弧。 */
-    ringLit: "#e0c4ff",
-    /** 眼窝底: 环带内圆挖出的深色(比虹膜再沉一档)。 */
-    socket: "#170b2e",
-    /** 瞳孔实心与高光。 */
-    pupilSolid: "#3d1266",
-    hilite: "#fff3cd",
+    /** 外框亮边: 香槟金。 */
+    rim: "#e8c879",
+    /** 分层描边: 外三角 / 中三角 / 虹膜三层靠它彼此分开。 */
+    deep: "#160f04",
+    /** 右缘亮边、虹膜内环亮线、瞳孔描边与瞳心透光 —— 这枚的「白」全走这一个色。 */
+    light: "#ffffff",
+    /** 外三角暗底与左半背光。 */
+    shade: "#241a09",
+    /** 光芒射线、托带上缘与托带中央小菱。 */
+    accent: "#ffe7a4",
+    /** 虹膜放射纹: 比虹膜沉两档的褐金 —— 亮了就变成放射线, 沉了才是「深度」。 */
+    fiber: "#8c661f",
+    /** 左下环境反光: 近黑底盘上把中三角的左沿重新切出来。 */
+    bounce: "#c9a049",
   },
 };
 
-// ── 护盾: 沉 · 稳 ────────────────────────────────────────────────
+// ── 护盾: 全蓝 · 体量最大 ─────────────────────────────────────────
+//
+// 主题色蓝。整枚统一在海军蓝 → 天青蓝 → 白蓝的一条明度阶上, 不掺暖色 ——
+// 蓝这件事要成立, 靠的是「整枚只有蓝」, 掺一点金就会变回靛金对冲。
+// 同心圆之间的明暗关系: 外环最暗 → 盾面中亮 → 内盘最亮 → 盾心宝石爆点, 一路往里推。
+// ★ v9 霓虹化: 外环加一道**霓虹青细环**(ink.energy 一族), 盾面能量导管与
+//   盾心辉光环都用霓虹青, 盾心六边形换成**菱形宝石**(core 白心爆点),
+//   外发光改电光蓝 —— 冷蓝底的唯一暖色只有宝石白心, 蓝才立得住。
 
 export const SHIELD_PALETTE: BuffPalette = {
   gradients: [
@@ -370,47 +519,104 @@ export const SHIELD_PALETTE: BuffPalette = {
       key: "plate",
       kind: "radial",
       cx: "50%",
-      cy: "42%",
+      cy: "44%",
       r: "62%",
       stops: [
-        { offset: "0%", color: "#16384a" },
-        { offset: "58%", color: "#0e2531" },
-        { offset: "100%", color: "#071318" },
+        { offset: "0%", color: "#16406e" },
+        { offset: "55%", color: "#0a1e3c" },
+        { offset: "100%", color: "#030a14" },
       ],
     },
-    // 盾面: 左上受光的青蓝。
+    // 外环: 最外的一层, 暗底金属环。
+    {
+      key: "rim",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#2a5a94" },
+        { offset: "50%", color: "#10345e" },
+        { offset: "100%", color: "#061226" },
+      ],
+    },
+    // 盾面: 底部深蓝 → 顶部亮蓝。上亮下暗, 与右上光源一致。
     {
       key: "face",
-      kind: "radial",
-      cx: "38%",
-      cy: "30%",
-      r: "80%",
+      kind: "linear",
+      y1: "100%",
+      y2: "0%",
       stops: [
-        { offset: "0%", color: "#9fe4ff" },
-        { offset: "55%", color: "#56bde8" },
-        { offset: "100%", color: "#2a8fc4" },
+        { offset: "0%", color: "#0c2e58" },
+        { offset: "36%", color: "#1e63a6" },
+        { offset: "74%", color: "#4fa8e8" },
+        { offset: "100%", color: "#bce8ff" },
       ],
     },
-    // 核心: 亮白热点。
+    // 上缘受光切面: 盖在盾面上沿的月牙亮片。切面而不是渐变 —— 金属靠「面」分明暗。
+    {
+      key: "facetLit",
+      kind: "linear",
+      y1: "0%",
+      y2: "100%",
+      stops: [
+        { offset: "0%", color: "#e6f8ff", opacity: 0.55 },
+        { offset: "58%", color: "#7fc2f5", opacity: 0.2 },
+        { offset: "100%", color: "#7fc2f5", opacity: 0 },
+      ],
+    },
+    // 左半背光切面: 明暗交界压在竖中线上, 交界那一侧最重。
+    {
+      key: "facetShade",
+      kind: "linear",
+      x1: "100%",
+      y1: "0%",
+      x2: "0%",
+      y2: "0%",
+      stops: [
+        { offset: "0%", color: "#00101f", opacity: 0.5 },
+        { offset: "100%", color: "#00101f", opacity: 0.12 },
+      ],
+    },
+    // 内盘: 比盾面再推亮一档, 嵌套的第三层永远是最亮的那层。
+    {
+      key: "innerShield",
+      kind: "linear",
+      y1: "100%",
+      y2: "0%",
+      stops: [
+        { offset: "0%", color: "#1a4e84" },
+        { offset: "45%", color: "#3f92d4" },
+        { offset: "85%", color: "#93d4ff" },
+        { offset: "100%", color: "#eaf9ff" },
+      ],
+    },
+    // 盾心宝石: 白心爆点, 整枚图标的亮度峰值。
     {
       key: "core",
       kind: "radial",
       stops: [
         { offset: "0%", color: "#ffffff" },
-        { offset: "45%", color: "#dff4ff", opacity: 0.9 },
-        { offset: "100%", color: "#9fe4ff", opacity: 0 },
+        { offset: "38%", color: "#dff4ff" },
+        { offset: "75%", color: "#5fc2f5" },
+        { offset: "100%", color: "#1a5ca0" },
       ],
     },
   ],
-  glow: { color: "#56bde8", blur: 2, opacity: 0.7 },
+  glow: { color: "#3fd4ff", blur: 2.4, opacity: 0.9 },
   ink: {
-    /** 外框亮边: 青蓝, 与盾同系。 */
-    rim: "#4a9cc0",
-    /** 盾体外描边。 */
-    faceRim: "#155d85",
-    /** 核心描边与光芒。 */
-    coreRim: "#2f9fd8",
-    /** 盾面受光高光。 */
-    hilite: "#ffffff",
+    /** 外框亮边: 冰蓝, 和盾面同族。 */
+    rim: "#6fc4f5",
+    /** 分层描边: 各层圆与宝石靠它彼此分开。 */
+    deep: "#00101f",
+    /** 受光边、内盘亮线、宝石内菱与白心。 */
+    light: "#eaf9ff",
+    /** 背光切面与暗部。 */
+    shade: "#0a2140",
+    /** 外环细环线、刻线与能量节点亮心。 */
+    accent: "#cfeaff",
+    /** 霓虹青: 能量导管、盾心辉光环、力场内弧与节点外圈细环。 */
+    energy: "#37d8ff",
+    /** 外环左下环境反光 —— 暗环不能死黑, 否则盾的左缘会和底盘粘在一起。 */
+    bounce: "#63a8e8",
   },
 };

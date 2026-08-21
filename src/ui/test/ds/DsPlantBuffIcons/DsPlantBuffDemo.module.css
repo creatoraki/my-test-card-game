@@ -105,15 +105,15 @@
 }
 
 .sharpCard {
-  border-color: #33506b;
+  border-color: #3d5a75;
 }
 
 .mindCard {
-  border-color: #4a3f78;
+  border-color: #6e5c2e;
 }
 
 .shieldCard {
-  border-color: #2f5d76;
+  border-color: #2d5580;
 }
 
 .card figcaption {
@@ -156,9 +156,9 @@
 }
 
 .shieldCard .badge {
-  border-color: #bfe8f466;
-  background: #bfe8f414;
-  color: #bfe8f4;
+  border-color: #a9cdf266;
+  background: #a9cdf214;
+  color: #a9cdf2;
 }
 
 .card h3 {

@@ -75,7 +75,7 @@ export function PlantCultivationBuffDemo() {
               <span>锋利</span>
             </div>
             <h3>锋芒 · 贯穿</h3>
-            <p>刀锋压缩成一道赤金切线，攻击更接近防御的薄弱处。</p>
+            <p>剑锋沿着能量轨迹出鞘，攻击更接近防御的薄弱处。</p>
           </div>
         </article>
 

@@ -1,4 +1,6 @@
-/* ds / BUFF 图标 v6「厚涂方框」 —— 厚涂主体 + 克制动效。
+/* ds / BUFF 图标 v8「厚涂方框」 —— 厚涂主体 + 克制动效。
+   ★ 动画只服务于培育两态; 战斗三态(锋利 / 心眼 / 护盾)是**静态图标**,
+     这一层不为它们保留任何 keyframes —— 形靠三层同心 + 切面明暗立住, 不靠动效撑。
    所有动画挂在 `.animated` 作用域下: animated=false 或 prefers-reduced-motion
    两条关停路径都能生效。坐标以 128×128 viewBox 为基准, transform-origin 用 64px 64px。
    ⚠ SVG 元素做 transform 必须先给 transform-box: fill-box, 否则原点是整个 SVG 的
@@ -20,10 +22,7 @@
 .pistil,
 .core,
 .aura,
-.halo > circle,
-.blade,
-.pupilPulse,
-.corePulse {
+.halo > circle {
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -200,116 +199,7 @@
   }
 }
 
-/* ── 锋利: 刀身微摆 / 金星 ───────────────────────────────────────── */
-
-/* 刀: 竖直纹章位上的极缓摆动, 幅度比芽更小 —— 它是「立住」的, 不是「长着」的。 */
-.animated .blade {
-  animation: dbBladeSway 7s ease-in-out infinite;
-}
-
-@keyframes dbBladeSway {
-  0%,
-  100% {
-    transform: rotate(-0.8deg);
-  }
-  50% {
-    transform: rotate(0.8deg);
-  }
-}
-
-.animated .starPulse {
-  animation: dbStarPulse 3.4s ease-in-out infinite;
-}
-
-@keyframes dbStarPulse {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* ── 心眼: 棱光 / 光晕 / 瞳孔 ────────────────────────────────────── */
-
-.animated .beam {
-  animation: dbBeam 3.8s ease-in-out infinite;
-}
-
-@keyframes dbBeam {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.animated .eyeGlow {
-  animation: dbEyeGlow 3.6s ease-in-out infinite;
-}
-
-@keyframes dbEyeGlow {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.animated .pupilPulse {
-  animation: dbPupil 3s ease-in-out infinite;
-}
-
-@keyframes dbPupil {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.06);
-    opacity: 1;
-  }
-}
-
-/* ── 护盾: 柔光 / 核心 ───────────────────────────────────────────── */
-
-.animated .shieldGlow {
-  animation: dbShieldGlow 3.8s ease-in-out infinite;
-}
-
-@keyframes dbShieldGlow {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.animated .corePulse {
-  animation: dbShieldCore 3.4s ease-in-out infinite;
-}
-
-@keyframes dbShieldCore {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-}
-
-/* 系统级「减少动态效果」优先于组件的 animated 开关。 */
+/* ── 系统级「减少动态效果」优先于组件的 animated 开关。 ────────────── */
 @media (prefers-reduced-motion: reduce) {
   .plate,
   .plate * {
