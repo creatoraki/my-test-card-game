@@ -38,6 +38,7 @@ src/ui/
 | [town/terminal/ControlTerminalScene](../../src/ui/town/terminal/ControlTerminalScene/ControlTerminalScene.tsx) | 控制终端：城市维护工单委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由；出击已迁移到大厅一级入口。 |
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
+| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱：选择角色与个人卡组，向普通卡装配或从卡牌槽位拆卸成品模组；模组效果直接落到卡实例的 `cardType`，仓库模组不占用装配后的仓库格。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
 | [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，从左侧边缘滑出徽章抽屉浮层（复用 `BadgeRail`），点选即切换；剩余训练点与投入进度显示在树面板头部。持有 `drawerOpen` / `shakeId` / `pulse` 状态编排，`RESOURCE_LABELS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |

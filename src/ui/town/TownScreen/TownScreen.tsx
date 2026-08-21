@@ -59,6 +59,7 @@ import { ControlTerminalScene } from "@/ui/town/terminal/ControlTerminalScene";
 import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { StorageScene } from "@/ui/town/storage/StorageScene";
+import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
 import { TrainingScene } from "@/ui/town/training/TrainingScene";
 import { TOWN_BG_ART } from "@/ui/art/sceneArt";
 import s from "./TownScreen.module.css";
@@ -233,8 +234,7 @@ const FACILITIES: Facility[] = [
     id: "assembly",
     name: "模块装配舱",
     icon: <AssemblyIcon />,
-    size: "sm",
-    locked: true,
+    size: "md",
   },
   {
     id: "worklog",
@@ -286,6 +286,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   worklog: (leaving) => <ControlTerminalScene leaving={leaving} />,
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   storage: (leaving) => <StorageScene leaving={leaving} />,
+  assembly: (leaving) => <AssemblyScene leaving={leaving} />,
   shop: (leaving) => <ShopScene leaving={leaving} />,
   training: (leaving, onBack) => <TrainingScene leaving={leaving} onBack={onBack} />,
 };
@@ -494,7 +495,7 @@ export function TownScreen() {
                 //   三行都使用不同的横向拼接比例, 让入口像由独立模块临时拼装而成。
                 gridTemplateAreas: `
                   "formation formation cryo     cryo     worklog worklog"
-                  "training  training  training  assembly medical  medical"
+                  "training  training  assembly  assembly medical  medical"
                   "storage   storage   shop      shop     sortie  sortie"
                 `,
               }}

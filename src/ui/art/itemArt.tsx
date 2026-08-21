@@ -95,6 +95,16 @@ const MaterialIcon = () => (
   </svg>
 );
 
+// 成品模组: 六角螺母 + 中心接点
+const ModuleIcon = () => (
+  <svg {...base}>
+    <path d="M24 8 37 15.5v15L24 40 11 32.5v-15Z" opacity=".45" />
+    <path d="M24 14 31 18v8l-7 4-7-4v-8Z" />
+    <circle cx="24" cy="22" r="2.5" />
+    <path d="M24 8v6M37 15.5l-6 3.5M37 30.5l-6-3.5M24 40v-10M11 32.5l6-3.5M11 17.5l6 3.5" opacity=".65" />
+  </svg>
+);
+
 // 武器: 竖直的撬棒/短刃 + 缠绕的握把线
 const WeaponIcon = () => (
   <svg {...base}>
@@ -145,6 +155,7 @@ const ConsumableIcon = () => (
 const ICONS: Record<string, () => ReactNode> = {
   scrap: ScrapIcon,
   material: MaterialIcon,
+  module: ModuleIcon,
   weapon: WeaponIcon,
   armor: ArmorIcon,
   trinket: TrinketIcon,
@@ -156,6 +167,7 @@ const ICONS: Record<string, () => ReactNode> = {
 const BY_CATEGORY: Record<ItemCategory, string> = {
   scrap: "scrap",
   material: "material",
+  module: "module",
   equipment: "armor",
   data: "data",
   consumable: "consumable",

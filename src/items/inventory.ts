@@ -141,9 +141,10 @@ export function mergeStacksForDisplay(stacks: ItemStack[], getDef: GetDef): Item
 const CATEGORY_RANK: Record<string, number> = {
   equipment: 0,
   consumable: 1,
-  material: 2,
-  data: 3,
-  scrap: 4,
+  module: 2,
+  material: 3,
+  data: 4,
+  scrap: 5,
 };
 
 export function sortStacks(stacks: ItemStack[], getDef: GetDef, rarityRank: (r: string) => number) {

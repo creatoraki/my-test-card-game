@@ -15,6 +15,7 @@ export type EquipTab = "all" | EquipSlot;
 export const ITEM_TABS: { id: ItemTab; label: string }[] = [
   { id: "all", label: "全部" },
   { id: "equipment", label: "装备" },
+  { id: "module", label: "模组" },
   { id: "consumable", label: "消耗品" },
   { id: "material", label: "模组材料" },
   { id: "data", label: "数据存档" },

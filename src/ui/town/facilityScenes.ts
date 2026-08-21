@@ -16,6 +16,7 @@ import { STAGE } from "@/ui/hooks/stage";
 import { preloadImage } from "@/ui/art/assetLoader";
 import {
   CRYO_BG_ART,
+  ASSEMBLY_BG_ART,
   SHOP_BG_ART,
   STORAGE_BG_ART,
   TRAINING_BG_ART,
@@ -42,6 +43,7 @@ export const FACILITY_SCENES: Record<string, FacilityScene> = {
   // 物资中转仓取大厅左上那片货架/管线区 —— 与另外三处分居四个不同象限,
   // 四段运镜才不会看着像同一个镜头。
   storage: { bg: STORAGE_BG_ART, focus: { x: 430, y: 200 }, scale: 1.8 },
+  assembly: { bg: ASSEMBLY_BG_ART, focus: { x: 660, y: 320 }, scale: 1.8 },
   // 商店取**画面正中偏下**: 另外四处已经把四个象限占满, 第五段运镜必须落在剩下的那块
   // 中央区域, 否则读起来就是在重复某一段镜头。
   // (scale 1.8 下的钳制安全区是 x∈[533,1387]、y∈[300,780], 这个焦点不触边, 镜头不会贴边停。)

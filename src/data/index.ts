@@ -68,7 +68,15 @@ export {
   DESIGN_ITEM_DEFS,
   EQUIPMENT_ITEM_DEFS,
   MATERIAL_ITEM_DEFS,
+  MODULE_ITEM_DEFS,
 } from "./items/index";
+export {
+  CARD_MODULES,
+  canEquipModule,
+  getCardModule,
+  recomputeCardModule,
+  type CardModuleDef,
+} from "./cardModules";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";

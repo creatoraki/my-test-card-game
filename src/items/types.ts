@@ -35,7 +35,8 @@ export const RARITY_LABEL: Record<ItemRarity, string> = {
 // 与《探索模式设计.md》§6.1 的物品类别表一一对应。
 export type ItemCategory =
   | "scrap" // 废料: 带回据点的回收台出售, 换居民积分
-  | "material" // 模组材料: 制造与装配关键词模组(模组系统未实现, 先当收藏品)
+  | "material" // 模组材料: 制造成品模组的原料, 不等同于可直接装配的 module
+  | "module" // 成品模组: 装配到卡牌上; 与制造模组的 material 原料不同
   | "equipment" // 装备: 穿戴或分解
   | "data" // 数据存档: 回城解锁叙事, 不直接兑换积分
   | "consumable"; // 消耗品: 探索途中使用
@@ -51,6 +52,7 @@ export const SLOT_LABEL: Record<EquipSlot, string> = {
 export const CATEGORY_LABEL: Record<ItemCategory, string> = {
   scrap: "废料",
   material: "模组材料",
+  module: "模组",
   equipment: "装备",
   data: "数据存档",
   consumable: "消耗品",

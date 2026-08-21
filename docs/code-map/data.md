@@ -10,7 +10,9 @@
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、招式及各自延迟、招式权重与招式级命中修正、每回合行动次数上限、击杀经验和掉落表；两台已投放敌人各带 2 个差异化招式，先手统一 20、与角色基础先手持平，故 `delay` 字段即最终蓄力时刻数。经验写在敌人定义中，不写入掉落表。 |
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |
-| [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用/地区/怪物材料、消耗品与临期食品、普通装备模板；由 `data/index.ts` 与旧清单合并注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20，三张物品表都调它。 |
+| [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用/地区/怪物材料、消耗品与临期食品、普通装备模板及成品模组；由 `data/index.ts` 与旧清单合并注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20，三张物品表都调它。 |
+| [items/modules.ts](../../src/data/items/modules.ts) | 成品模组物品定义；当前登记 1 件用于测试的速攻模组，不填购买/回收价格，因此不会进入商店或回收台。 |
+| [cardModules.ts](../../src/data/cardModules.ts) | 卡牌模组注册表与唯一效果落点；按卡牌定义校验装备条件，重算时只还原并覆盖白名单字段，保留卡牌强化后的名称、效果和文案。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；据点随机商店仍只筛选装备与材料。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
 | [shop.ts](../../src/data/shop.ts) | 据点商店：等级配置 `SHOP_LEVELS`、线性递增的刷新计价 `shopRefreshCost`、货架生成 `rollShopStock`。上架资格看 `buyValue`；随机刻意用 `Math.random`，不进探索的可复现种子链。 |

@@ -205,6 +205,7 @@ export interface Card extends CardDef {
   contaminated: boolean;
   marks?: string[];
   cultivateLeft?: number;
+  cardModule?: { uid: string; itemId: string } | null;
 }
 
 export interface PendingChoice {

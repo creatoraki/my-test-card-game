@@ -104,6 +104,9 @@ export default function ItemDetail({
       {def.category === "material" && (
         <p className={cx(s["item-detail-note"], s["is-locked"])}>关键词模组尚未开放，先存进仓库。</p>
       )}
+      {def.category === "module" && (
+        <p className={s["item-detail-note"]}>成品模组：装配后从仓库移出，拆卸时原样退回。</p>
+      )}
       {def.category === "data" && (
         <p className={cx(s["item-detail-note"], s["is-locked"])}>叙事解锁尚未开放，先存进仓库。</p>
       )}

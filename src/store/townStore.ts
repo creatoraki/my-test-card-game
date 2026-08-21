@@ -31,6 +31,8 @@ import {
   getItemDef,
   makeCard,
   makeItemStack,
+  canEquipModule,
+  recomputeCardModule,
   canActivate,
   canRefund,
   getBadge,
@@ -134,6 +136,8 @@ interface TownStore {
   sellItem: (uid: string) => void; // 回收台: 按 sellValue 出售换居民积分
   equipItem: (charId: string, uid: string) => void; // 从仓库取一件穿上
   unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
+  equipCardModule: (charId: string, cardUid: string, moduleUid: string) => void;
+  unequipCardModule: (charId: string, cardUid: string) => void;
   resetProfile: () => void; // 重置存档
   selectSquadBadge: (id: string) => void;
   activateTalentNode: (nodeId: string) => void;
@@ -363,9 +367,9 @@ const INITIAL_CONSUMABLE_IDS = [
 ] as const;
 
 function freshStorage(): ItemStack[] {
-  return INITIAL_CONSUMABLE_IDS.flatMap((itemId) =>
+  return [makeItemStack("rush-module"), ...INITIAL_CONSUMABLE_IDS.flatMap((itemId) =>
     Array.from({ length: 3 }, () => makeItemStack(itemId)),
-  );
+  )];
 }
 
 function freshProfile(): {
@@ -553,6 +557,49 @@ export const useTownStore = create<TownStore>()(
           characters: {
             ...characters,
             [charId]: { ...cs, equipped: { ...cs.equipped, [slot]: null } },
+          },
+        });
+      },
+
+      equipCardModule: (charId, cardUid, moduleUid) => {
+        const { storage, characters } = get();
+        const cs = characters[charId];
+        const moduleStack = storage.find((stack) => stack.uid === moduleUid);
+        const card = cs?.deck.find((entry) => entry.uid === cardUid);
+        if (!cs || !card || card.cardModule || !moduleStack) return;
+        if (getItemDef(moduleStack.itemId).category !== "module") return;
+        if (!canEquipModule(card, moduleStack.itemId)) return;
+
+        const nextCard = { ...card, cardModule: { uid: moduleStack.uid, itemId: moduleStack.itemId } };
+        recomputeCardModule(nextCard);
+        set({
+          storage: removeByUid(storage, moduleUid),
+          characters: {
+            ...characters,
+            [charId]: {
+              ...cs,
+              deck: cs.deck.map((entry) => (entry.uid === cardUid ? nextCard : entry)),
+            },
+          },
+        });
+      },
+
+      unequipCardModule: (charId, cardUid) => {
+        const { storage, characters } = get();
+        const cs = characters[charId];
+        const card = cs?.deck.find((entry) => entry.uid === cardUid);
+        if (!cs || !card?.cardModule) return;
+
+        const nextCard = { ...card, cardModule: null };
+        recomputeCardModule(nextCard);
+        set({
+          storage: [...storage, { uid: card.cardModule.uid, itemId: card.cardModule.itemId, count: 1 }],
+          characters: {
+            ...characters,
+            [charId]: {
+              ...cs,
+              deck: cs.deck.map((entry) => (entry.uid === cardUid ? nextCard : entry)),
+            },
           },
         });
       },
