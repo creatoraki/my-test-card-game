@@ -95,13 +95,14 @@ const MaterialIcon = () => (
   </svg>
 );
 
-// 成品模组: 六角螺母 + 中心接点
+// 成品模组: 四角断线框、六角承载环、轨道核心与四向引脚
 const ModuleIcon = () => (
   <svg {...base}>
-    <path d="M24 8 37 15.5v15L24 40 11 32.5v-15Z" opacity=".45" />
-    <path d="M24 14 31 18v8l-7 4-7-4v-8Z" />
-    <circle cx="24" cy="22" r="2.5" />
-    <path d="M24 8v6M37 15.5l-6 3.5M37 30.5l-6-3.5M24 40v-10M11 32.5l6-3.5M11 17.5l6 3.5" opacity=".65" />
+    <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" opacity=".45" />
+    <path d="M24 10 35 16v16L24 38 13 32V16Z" strokeWidth="1.6" />
+    <circle cx="24" cy="24" r="7" strokeDasharray="2.5 2.5" opacity=".7" />
+    <circle cx="24" cy="24" r="2.5" />
+    <path d="M24 4v6M44 24h-9M24 44v-6M4 24h6" opacity=".6" />
   </svg>
 );
 

@@ -1278,21 +1278,24 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 
   const energyBefore = s.energy;
   const notes: string[] = [];
+  const historyNotes: string[] = [];
 
   // ① 节点的基础消耗(按推进段分档, 见 energyCostAt)。「隐匿通道」这类效果免的就是这一份。
   const segCost = energyCostAt(s.currentSegment);
   if (s.freeNodes > 0) {
     s.freeNodes -= 1;
-    notes.push("隐匿通道: 本节点不消耗粒子");
+    historyNotes.push("隐匿通道: 本节点不消耗粒子");
   } else {
     changeEnergy(s, -segCost);
-    notes.push(`净化粒子 −${segCost}`);
+    historyNotes.push(`净化粒子 −${segCost}`);
   }
 
   // ② 分支自己的额外增减
   if (choice.energyDelta !== 0) {
     changeEnergy(s, choice.energyDelta);
-    notes.push(`净化粒子 ${choice.energyDelta > 0 ? "+" : ""}${choice.energyDelta}`);
+    const note = `净化粒子 ${choice.energyDelta > 0 ? "+" : ""}${choice.energyDelta}`;
+    notes.push(note);
+    historyNotes.push(note);
   }
 
   let leaving = false;
@@ -1322,7 +1325,10 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     }
     try {
       const note = applyEffect(s, e, true);
-      if (note) notes.push(note);
+      if (note) {
+        notes.push(note);
+        historyNotes.push(note);
+      }
     } catch (err) {
       console.error("[explore] 事件效果异常（已跳过）", { effectType: e.type, error: err });
       notes.push("事件效果异常（已跳过）");
@@ -1340,7 +1346,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     choiceIndex: index,
     energyBefore,
     energyAfter: s.energy,
-    note: [choice.label, notes.join(" · ") || "无结算"].join(" · "),
+    note: [choice.label, historyNotes.join(" · ") || "无结算"].join(" · "),
   });
   logLine(s, `第 ${s.round} 轮 · 第 ${s.currentSegment} 段: ${ev.title} · ${choice.label}`);
 

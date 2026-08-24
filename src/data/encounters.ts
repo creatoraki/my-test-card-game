@@ -1,6 +1,11 @@
 // 遭遇战数据 —— enemies 引用 enemies.ts 的敌人 id(可重复, createBattle 会自动加 A/B/C 后缀)。
 // 遭遇战的编排顺序不在此定义 —— 见 maps.ts, 由 MapDef.sequence 串成一次远征。
 //
+// ★ 本文件是「战斗配置模板」的登记处(废弃楼层首图): 根据 enemies.ts 的小怪/精英/BOSS 分层,
+//   用 4 种小怪自由组合出轻/中战斗模板, 用 2 种精英撑起"重"档位模板, 再加 1 个 BOSS 收束战。
+//   同一张模板可被多张战斗事件卡复用(见 design/关卡事件设计/废弃楼层/废弃楼层-战斗事件.md §四),
+//   多张事件卡引用同一模板时, 敌人编队、数量、站位与强度完全相同, 差异只来自卡面叙事。
+//
 // 站位: 敌人默认由 .enemy-row 的 flex 水平居中自动排布; 想让某场战斗的敌人贴合背景地面时,
 // 把该槽位从 "id" 字符串改写成 { id, dx, dy, scale } 对象 —— 两种写法可在同一数组里混用,
 // 字符串等价于 { id } (无偏移)。坐标是"相对默认位置推开多少设计 px", 不是绝对坐标, 故未标注的
@@ -46,60 +51,79 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
     : slot;
 }
 
-// 当前所有遭遇战统一成"两台收音机机器人夹一台电线杆机器人"的临时配置(立绘验证期):
-// 三个槽位共用 dy 219.625 地面线; 左右收音机开 flip 走左右镜像, 三台敌人面朝中间。
-// radio-bot 新模型按主体高度归一。旧模型整图高 256px, 新模型主体高 1619px/2048px;
-// 为保持旧观感取 scale = 1619/2048 ≈ 0.7905。旧整图底部留白为
-// (2048 - 186 - 1619) × 256/2048 = 30.375px, 故 dy 从 250 减到 219.625,
-// 把新脚线拉回原地面线。后续 scale 仍以主体脚线为中心, 单独调体型无需再补 dy。
-//
-// 三台时 .enemy-row 的布局宽为 3×256 + 2×20 = 808px, 相比两台的 532px,
-// 默认左槽中心从 -138 西移到 -276。dx 是相对默认槽位的偏移, 为保持两台收音机
-// 与改动前的绝对位置不变, 左侧补偿 -200 + 138 = -62, 右侧补偿 200 - 138 = 62;
-// 中间槽默认中心就是 0, 所以不补偿。以后增删敌人时, 先按布局宽变化重新计算补偿。
-//
-// ⚠ 底部 HUD 改造后 dx 整体 +195(旧值 -320 / 50): 舞台不再避让左侧手牌栏
-// (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
-// 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
-// 当前是新立绘验证用的两人编队: 维修蜘蛛 + 红绿灯机器人。两台走默认槽位(dx 省略),
-// 共用 219.625 的地面线; 立绘主体高度已由 enemyArt.ts 的 body 归一, scale 只调体型:
-// 蜘蛛趴得低给 0.85, 红绿灯是立柱式单位给 1.15。
-const RADIO_TRIO: EnemySlot[] = [
-  { id: "maintenance-spider", dy: 219.625, scale: 0.85 },
-  { id: "traffic-light-bot", dy: 219.625, scale: 1.15 },
-  // { id: "sweep-drone", dx: -62, dy: 219.625, scale: 1.2 },
-  // { id: "pole-bot", dx: 0, dy: 80, scale: 1.4 },
-  // { id: "radio-bot", dx: 62, dy: 219.625, scale: 1, flip: true },
-  // { id: "scrap-mountain-guardian", dx: 0, dy: -60, scale: 2.4 },
-];
+// ---------------------------------------------------------------------------
+// 站位常量 —— 废弃楼层战斗背景的地面线。立绘主体高度已由 enemyArt.ts 的 body 归一,
+// dy 219.625 把各立绘脚线统一压到同一地面线上; scale 只调体型(脚不离地)。
+// 已知体型基准(供上面各模板乘用): 清扫无人机 1.2 / 收音机 1 / 红绿灯 1.15 /
+// 维修蜘蛛 0.85 / 电线杆(瘦高)1.4 / 废品机器人 1 / 垃圾山的守护者(单人 BOSS)2.4。
+// ---------------------------------------------------------------------------
+const GROUND_DY = 219.625;
 
-// { id: "scrap-mountain-guardian", dx: 0, dy: -60, scale: 2.4 }, BOSS 参数
+// 批量生成"站在地面线上、体型固定"的槽位(可额外指定 flip)。
+function g(id: string, scale: number, flip = false): EnemyPlacement {
+  return { id, dy: GROUND_DY, scale, flip };
+}
+
+// ── 小怪战斗模板(轻/中, 单场 2-3 只, 只用 4 种小怪) ──────────────────────────
+
+// 轻战斗 · 教学: 侦察 + 高速机动。教玩家看意图、理解"敌人掉落按各自结算"。
+const CREW = [g("sweep-drone", 1.2), g("radio-bot", 1)];
+// 轻战斗 · 纯机动: 两台高速无人机, 教玩家专一处理一个目标类型。
+const SWEEP = [g("sweep-drone", 1.2), g("sweep-drone", 1.2, true)];
+// 中战斗 · 控制+暴露+机动: 红绿灯控制、收音机易伤、无人机突破, 教玩家判断先杀谁。
+const BEACON = [g("radio-bot", 1, true), g("traffic-light-bot", 1.15), g("sweep-drone", 1.2)];
+// 中战斗 · 支援+控制+暴露: 蜘蛛奶、红绿灯控、收音机暴露, 走"拖节奏"路线。
+const PATROL = [g("radio-bot", 1, true), g("maintenance-spider", 0.85), g("traffic-light-bot", 1.15)];
+
+// ── 精英战斗模板(重, 单场 2-3 只, 至少含 1 只精英) ──────────────────────────
+
+// 重战斗 · 双精英正面对撞: 废品压块 + 高压电网, 玩家要同时处理封罐/护甲与升压/穿刺。
+const COMPACTOR = [g("scrap-bot", 1), g("pole-bot", 1.4)];
+// 重战斗 · 高压精英被支援保护: 电线杆 + 维修蜘蛛 + 收音机, 教玩家先清支援再碰精英。
+const ELITE_GUARD = [g("radio-bot", 1, true), g("pole-bot", 1.4), g("maintenance-spider", 0.85)];
+
+// ── BOSS 战(单场 1 只) ──────────────────────────────────────────────────────
+
+const BOSS_SLOT: EnemyPlacement = { id: "scrap-mountain-guardian", dy: -60, scale: 2.4 };
 
 export const ENCOUNTERS: EncounterDef[] = [
-  {
-    id: "n1",
-    name: "废墟拾荒者",
-    enemies: RADIO_TRIO,
-  },
-  // ── 废弃楼层的路由终点战(见 探索模式设计.md §8.3) ──
+  // ── 小怪战(轻) ──
   {
     id: "n-crew",
     name: "清运班组",
-    enemies: RADIO_TRIO,
+    enemies: CREW,
   },
+  {
+    id: "n-sweep",
+    name: "清扫网",
+    enemies: SWEEP,
+  },
+  // ── 小怪战(中) ──
   {
     id: "n-beacon",
     name: "巡回信标",
-    enemies: RADIO_TRIO,
+    enemies: BEACON,
   },
+  {
+    id: "n-patrol",
+    name: "维修巡线",
+    enemies: PATROL,
+  },
+  // ── 精英战(重) ──
   {
     id: "n-compactor",
     name: "报废压缩机",
-    enemies: RADIO_TRIO,
+    enemies: COMPACTOR,
   },
+  {
+    id: "n-elite-guard",
+    name: "高压拦截",
+    enemies: ELITE_GUARD,
+  },
+  // ── BOSS 收束战 ──
   {
     id: "n-boss",
     name: "回收总控",
-    enemies: RADIO_TRIO,
+    enemies: [BOSS_SLOT],
   },
 ];

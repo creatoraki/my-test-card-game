@@ -34,10 +34,10 @@ export const MAPS: MapDef[] = [
     roundCount: 6,
     eventPoolId: "ruined-floor",
     battleEncounters: {
-      light: "n-crew", // 清运班组
-      medium: "n-beacon", // 巡回信标
-      heavy: "n-compactor", // 报废压缩机
-      boss: "n-boss", // 回收总控
+      light: "n-crew", // 清运班组 (小怪×2, 轻)
+      medium: "n-beacon", // 巡回信标 (小怪×3, 中)
+      heavy: "n-compactor", // 报废压缩机 (精英×2, 重)
+      boss: "n-boss", // 回收总控 (垃圾山的守护者, BOSS)
     },
     startingEnergy: 100,
   },

@@ -12,6 +12,7 @@ import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
+import { EventPanelButton, EventPanelFrame } from "@/ui/common/EventPanel";
 import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import ItemTooltip, {
@@ -20,14 +21,15 @@ import ItemTooltip, {
 } from "@/ui/common/item/ItemTooltip";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { cx } from "@/ui/common/cx";
+import { AssemblyBench } from "../AssemblyBench";
 import s from "./AssemblyScene.module.css";
+import { AssembleIcon, AssemblyIcon, CloseIcon, DetachIcon } from "./icons";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
 
 const PANEL_OUT_MS = 600;
 const PANEL_OUT_REDUCED_MS = 180;
-const CONTENT_DELAY_MS = 560;
 const PANEL_SIZE = { w: 1480, h: 760 };
 
 interface Props {
@@ -186,43 +188,78 @@ export function AssemblyScene({ leaving = false }: Props) {
         >
           <section
             className={cn("asm-panel")}
+            data-closing={closing}
             onClick={(event) => event.stopPropagation()}
             style={{
               width: `${PANEL_SIZE.w}px`,
               height: `${PANEL_SIZE.h}px`,
-              "--content-delay": `${CONTENT_DELAY_MS}ms`,
             } as CSSProperties}
           >
-            <PanelHead onClose={closePanel} />
-            <div className={cn("asm-body")}>
-              <CharacterRail
-                awakened={awakened}
-                characters={characters}
-                selected={charId}
-                onSelect={(id) => {
-                  setCharId(id);
-                  setCardUid(characters[id]?.deck[0]?.uid ?? null);
-                }}
-              />
-              <DeckPanel
-                deck={currentDeck}
-                selectedUid={selectedCard?.uid ?? null}
-                moduleStacks={moduleStacks}
-                onSelect={setCardUid}
-              />
-              <ModulePanel
-                card={selectedCard}
-                installedStack={installedStack}
-                moduleStacks={moduleStacks}
-                selectedModuleUid={moduleUid}
-                onSelectModule={setModuleUid}
-                onAction={action}
-                actionDisabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
-                reason={reason}
-                onShowTooltip={showTooltip}
-                onHideTooltip={() => setHoveredItem(null)}
-              />
-            </div>
+            <span className={cn("asm-panel-bar")} aria-hidden />
+            <span className={cn("asm-panel-frame")} aria-hidden />
+            <span className={cn("asm-panel-scan")} aria-hidden />
+            <EventPanelFrame
+              accent="#e59b3f"
+              kicker="ASSEMBLY"
+              title="卡牌模组装配"
+              status={<span className={cn("asm-panel-status")}>库存 {moduleStacks.length} · 已装配 {installedCount}</span>}
+              headerExtra={
+                <button className={cn("asm-close-button")} type="button" onClick={closePanel} aria-label="关闭装配舱">
+                  <CloseIcon />
+                </button>
+              }
+              contentKey={charId}
+              className={cn("asm-event-frame")}
+            >
+              <div className={cn("asm-body")}>
+                <div className={cn("asm-left")}>
+                  <CharacterRail
+                    awakened={awakened}
+                    characters={characters}
+                    selected={charId}
+                    onSelect={(id) => {
+                      setCharId(id);
+                      setCardUid(characters[id]?.deck[0]?.uid ?? null);
+                    }}
+                  />
+                  <DeckPanel
+                    deck={currentDeck}
+                    selectedUid={selectedCard?.uid ?? null}
+                    moduleStacks={moduleStacks}
+                    onSelect={setCardUid}
+                  />
+                </div>
+                <div className={cn("asm-center")}>
+                  <AssemblyBench
+                    card={selectedCard}
+                    installedStack={installedStack}
+                    candidate={selectedModule ?? null}
+                    onShowTooltip={showTooltip}
+                    onHideTooltip={() => setHoveredItem(null)}
+                  />
+                  <div className={cn("asm-action-row")}>
+                    <EventPanelButton
+                      className={cn("asm-action-button")}
+                      tone={selectedCard?.cardModule ? "danger" : "primary"}
+                      disabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
+                      onClick={action}
+                    >
+                      {selectedCard?.cardModule ? <><DetachIcon /> 拆卸</> : <><AssembleIcon /> 装配</>}
+                    </EventPanelButton>
+                    <span className={cn("asm-reason")}>{reason || "模组将直接写入卡牌实例。"}</span>
+                  </div>
+                </div>
+                <ModulePanel
+                  card={selectedCard}
+                  installedStack={installedStack}
+                  moduleStacks={moduleStacks}
+                  selectedModuleUid={moduleUid}
+                  onSelectModule={setModuleUid}
+                  onShowTooltip={showTooltip}
+                  onHideTooltip={() => setHoveredItem(null)}
+                />
+              </div>
+            </EventPanelFrame>
           </section>
         </div>
       )}
@@ -236,20 +273,6 @@ function Readout({ label, value }: { label: string; value: number }) {
     <div className={cn("asm-chip")}>
       <span className={cn("asm-chip-label")}>{label}</span>
       <strong className={cn("asm-chip-value")}>{value}</strong>
-    </div>
-  );
-}
-
-function PanelHead({ onClose }: { onClose: () => void }) {
-  return (
-    <div className={cn("asm-panel-head")}>
-      <div>
-        <span className={cn("asm-kicker")}>ASSEMBLY</span>
-        <h3 className={cn("asm-panel-title")}>卡牌模组装配</h3>
-      </div>
-      <button className={cn("asm-close")} type="button" onClick={onClose} aria-label="关闭">
-        ✕
-      </button>
     </div>
   );
 }
@@ -333,43 +356,24 @@ function DeckPanel({
 }
 
 function ModulePanel({
-  card,
   installedStack,
   moduleStacks,
   selectedModuleUid,
   onSelectModule,
-  onAction,
-  actionDisabled,
-  reason,
   onShowTooltip,
   onHideTooltip,
 }: {
-  card?: Card;
   installedStack: ItemStack | null;
   moduleStacks: ItemStack[];
   selectedModuleUid: string | null;
   onSelectModule: (uid: string) => void;
-  onAction: () => void;
-  actionDisabled: boolean;
-  reason: string;
   onShowTooltip: (event: ReactPointerEvent<HTMLDivElement>, stack: ItemStack) => void;
   onHideTooltip: () => void;
 }) {
   const detailStack = installedStack ?? moduleStacks.find((stack) => stack.uid === selectedModuleUid) ?? null;
   return (
-    <aside className={cn("asm-module-panel")}>
-      <div className={cn("asm-slot-head")}>
-        <span className={cn("asm-section-label")}>MODULE SLOT</span>
-        <span className={cn("asm-column-note")}>{card ? card.name : "未选择卡牌"}</span>
-      </div>
-      <div
-        className={cn("asm-installed-slot")}
-        onPointerEnter={(event) => installedStack && onShowTooltip(event, installedStack)}
-        onPointerLeave={onHideTooltip}
-      >
-        {installedStack ? <ItemSlot stack={installedStack} showName={false} /> : <span className={cn("asm-empty-slot")}>EMPTY</span>}
-      </div>
-      <div className={cn("asm-module-stock-head")}>
+    <aside className={cn("asm-right")}>
+      <div className={cn("asm-column-head")}>
         <span className={cn("asm-section-label")}>WAREHOUSE MODULES</span>
         <span className={cn("asm-column-note")}>{moduleStacks.length} 件</span>
       </div>
@@ -391,27 +395,6 @@ function ModulePanel({
         ))}
       </div>
       <ItemDetail stack={detailStack} placeholder="选择仓库模组查看详情。" className={cn("asm-detail")} />
-      <div className={cn("asm-action-row")}>
-        <button
-          className={cn("asm-action", card?.cardModule && "is-remove")}
-          type="button"
-          disabled={actionDisabled}
-          onClick={onAction}
-        >
-          {card?.cardModule ? "拆卸" : "装配"}
-        </button>
-        <span className={cn("asm-reason")}>{reason || "模组将直接写入卡牌实例。"}</span>
-      </div>
     </aside>
-  );
-}
-
-function AssemblyIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path d="M24 6 39.6 15v18L24 42 8.4 33V15L24 6Z" strokeWidth={1.2} opacity={0.38} />
-      <path d="M24 13 33 18.5v11L24 35l-9-5.5v-11L24 13Z" strokeWidth={1.6} />
-      <circle cx="24" cy="24" r="3" strokeWidth={1.6} />
-    </svg>
   );
 }

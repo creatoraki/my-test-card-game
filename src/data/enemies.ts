@@ -2,6 +2,12 @@
 // 招式的 effects 复用与卡牌相同的效果系统。
 // 招式 weight 控制抽取相对权重, hitBonus 是该招 DAMAGE 效果的命中修正(百分点)。
 // 立绘不在此登记 —— 见 ui/enemyArt.ts, 按 id 查表(与 cardArt.ts 同约定, 数据层不碰素材)。
+//
+// ★ 敌人分层(废弃楼层首图, 详见 design/敌人技能设计/废弃楼层敌人技能设计.md):
+//   小怪(4 种): radio-bot / sweep-drone / maintenance-spider / traffic-light-bot —— 单只弱, 靠 2-3 只编队形成压力。
+//   精英(2 种): scrap-bot / pole-bot —— 高血高攻、每回合 1 行动, 用独立机制(封罐/升压)撑起"重"档位。
+//   BOSS(1 种): scrap-mountain-guardian —— 每回合 2 行动 + 自定义 ai 状态机(见下方 ai 字段)。
+//   层级强度参考: 小怪 maxHp 约 25-35, 精英约 60-70, BOSS 150; 攻击 小怪 12-14 / 精英 16-17 / BOSS 18。
 
 import type { CardAnim, EffectDescriptor, EnemyAiScript, StatBlock, Targeting } from "../engine/types";
 import type { DropEntry } from "../items/types";
@@ -39,67 +45,86 @@ export interface EnemyDef {
 
 export const ENEMIES: EnemyDef[] = [
   {
+    // ⭐ 精英怪: 废品压块机 —— 高血高攻、每回合 1 行动(与 BOSS 的 2 行动区分开)。
+    // 主题是「压缩废品」: 用护甲吸收伤害、用封罐堵住玩家手牌, 靠压板重砸形成稳定的正面压力。
     id: "scrap-bot",
     name: "废品机器人",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 30,
-    exp: 10,
-    stats: { attack: 14, defense: 0, initiative: 10, critDamage: 150 },
+    maxHp: 62,
+    exp: 28,
+    stats: { attack: 16, defense: 2, initiative: 14, critDamage: 150 },
     moves: [
       {
-        id: "peck",
-        name: "啄击",
-        emoji: "⚔️",
-        delay: 3,
+        id: "scrap-crush",
+        name: "压板重砸",
+        emoji: "🔨",
+        delay: 4,
         kind: "attack",
         targeting: "foe",
         weight: 2,
         hitBonus: 0,
-        effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
+        anim: "slash",
+        effects: [{ type: "DAMAGE", multiplier: 1.25, target: "primary" }],
       },
       {
-        id: "spore",
-        name: "喷孢子",
-        emoji: "🤢",
-        delay: 3,
-        kind: "debuff",
+        id: "scrap-spray",
+        name: "废料喷流",
+        emoji: "💥",
+        delay: 6,
+        kind: "attack",
         targeting: "foe",
         weight: 1,
         hitBonus: 0,
-        anim: "poison",
-        effects: [
-          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
-          { type: "APPLY_STATUS", status: "weak", stacks: 2, target: "primary" },
-        ],
+        anim: "shot",
+        effects: [{ type: "DAMAGE", multiplier: 0.5, target: "allFoes" }],
       },
       {
-        id: "scrap-overload",
-        name: "超载灌注",
-        emoji: "🪨",
-        delay: 4,
+        id: "scrap-compress",
+        name: "压缩封罐",
+        emoji: "🧱",
+        delay: 5,
         kind: "debuff",
         targeting: "foe",
         weight: 1,
         hitBonus: 0,
         anim: "buff",
-        effects: [{ type: "MARK_CARDS", mark: "heavy", markPick: "handRandom", amount: 1 }],
+        effects: [
+          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
+          { type: "MARK_CARDS", mark: "heavy", markPick: "handRandom", amount: 1 },
+        ],
+      },
+      {
+        id: "scrap-plating",
+        name: "碎料护甲",
+        emoji: "🛡️",
+        delay: 7,
+        kind: "block",
+        targeting: "self",
+        weight: 1,
+        hitBonus: 0,
+        anim: "shield",
+        // 精英的自我生存手段: 把废料压成暂时护甲, 抬升本场生存线。
+        effects: [{ type: "GAIN_SHIELD", amount: 20, target: "self" }],
       },
     ],
     dropTable: [
       { kind: "item", itemId: "bronze-bear", chance: 0.4 },
-      { kind: "item", itemId: "sorting-id-chip", chance: 0.4 },
+      { kind: "item", itemId: "sorting-id-chip", chance: 0.5 },
       { kind: "item", itemId: "logic-cube", chance: 0.05 },
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
     ],
   },
   {
+    // ⭐ 精英怪: 高压电网核心 —— 高血高攻、每回合 1 行动。
+    // 主题是「升压增援」: 自身能过载升压叠力量与护甲, 再用麻痹电流打断节奏、
+    // 电弧急放横扫全场, 形成"蓄力 → 爆发"的高压压迫, 逼迫玩家优先处理它。
     id: "pole-bot",
     name: "电线杆机器人",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 40,
-    exp: 15,
-    stats: { attack: 15, defense: 0, initiative: 20, critDamage: 150 },
+    maxHp: 70,
+    exp: 32,
+    stats: { attack: 17, defense: 3, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "pole-smash",
@@ -111,11 +136,11 @@ export const ENEMIES: EnemyDef[] = [
         weight: 2,
         hitBonus: 0,
         anim: "slash",
-        effects: [{ type: "DAMAGE", multiplier: 1.1, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 1.3, target: "primary" }],
       },
       {
         id: "pole-arc",
-        name: "电弧放电",
+        name: "电弧急放",
         emoji: "⚡",
         delay: 6,
         kind: "attack",
@@ -123,7 +148,7 @@ export const ENEMIES: EnemyDef[] = [
         weight: 1,
         hitBonus: 0,
         anim: "lightning",
-        effects: [{ type: "DAMAGE", multiplier: 0.5, target: "allFoes" }],
+        effects: [{ type: "DAMAGE", multiplier: 0.6, target: "allFoes" }],
       },
       {
         id: "pole-paralyze",
@@ -140,21 +165,38 @@ export const ENEMIES: EnemyDef[] = [
           { type: "APPLY_STATUS", status: "stun", stacks: 1, target: "primary" },
         ],
       },
+      {
+        id: "pole-boost",
+        name: "升压过载",
+        emoji: "💪",
+        delay: 8,
+        kind: "buff",
+        targeting: "self",
+        weight: 1,
+        hitBonus: 0,
+        anim: "buff",
+        // 蓄力技: 叠 2 层力量 + 12 护甲, 下一个行动段的伤害明显抬升 —— 给玩家击杀窗口。
+        effects: [
+          { type: "APPLY_STATUS", status: "strength", stacks: 2, target: "self" },
+          { type: "GAIN_SHIELD", amount: 12, target: "self" },
+        ],
+      },
     ],
     dropTable: [
       { kind: "item", itemId: "bronze-bear", chance: 0.4 },
-      { kind: "item", itemId: "high-voltage-insulator", chance: 0.4 },
+      { kind: "item", itemId: "high-voltage-insulator", chance: 0.5 },
       { kind: "item", itemId: "logic-cube", chance: 0.05 },
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
     ],
   },
   {
+    // 小怪 · 巡回侦察/支援: 低生命, 靠天线充能自保、干扰噪波放大同场敌方的出手价值。
     id: "radio-bot",
     name: "收音机机器人",
     emoji: "📻", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 25,
-    exp: 10,
+    maxHp: 27,
+    exp: 11,
     stats: { attack: 14, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
@@ -206,10 +248,11 @@ export const ENEMIES: EnemyDef[] = [
     ],
   },
   {
+    // 小怪 · 轻型机动骚扰: 高先手, 用高压清扫点名、破盾旋刃惩罚厚盾目标, 制造节奏压力。
     id: "sweep-drone",
     name: "清扫无人机",
     emoji: "🛸", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 30,
+    maxHp: 32,
     exp: 12,
     stats: { attack: 14, defense: 0, initiative: 25, critDamage: 150 },
     moves: [
@@ -259,13 +302,13 @@ export const ENEMIES: EnemyDef[] = [
     ],
   },
   {
+    // 小怪 · 支援位: 自身输出偏低(attack 12), 靠治疗与护盾把同场机械的有效血量拉起来。
+    // 先手 22 略高于清运小怪 —— 支援要抢在挨打之后、下一波攻势之前补上。
     id: "maintenance-spider",
     name: "维修蜘蛛",
     emoji: "🕷️", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 28,
+    maxHp: 30,
     exp: 12,
-    // 支援位: 自身输出偏低(attack 12), 靠治疗与护盾把同场机械的有效血量拉起来。
-    // 先手 22 略高于清运小怪 —— 支援要抢在挨打之后、下一波攻势之前补上。
     stats: { attack: 12, defense: 1, initiative: 22, critDamage: 150 },
     moves: [
       {
@@ -317,10 +360,12 @@ export const ENEMIES: EnemyDef[] = [
     ],
   },
   {
+    // 小怪 · 纯控制位: 三招全是负面, 伤害倍率刻意压得很低(0.3/0.4/0),
+    // 威胁来自易伤放大同场输出、眩晕打断节奏与沉重标记堵手牌, 而不是它自己的伤害。
     id: "traffic-light-bot",
     name: "红绿灯机器人",
     emoji: "🚦", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 35,
+    maxHp: 34,
     exp: 14,
     // 纯控制位: 三招全是负面, 伤害倍率刻意压得很低(0.3/0.4/0),
     // 威胁来自易伤放大同场输出、眩晕打断节奏与沉重标记堵手牌, 而不是它自己的伤害。
@@ -381,6 +426,8 @@ export const ENEMIES: EnemyDef[] = [
     ],
   },
   {
+    // ⭐ BOSS: 垃圾山的守护者 —— 废弃楼层第 6 轮收束战, 单人出战。
+    // 每回合 2 行动 + 自定义 ai 状态机(以我方护盾为输入、招式链为输出, 见 design/敌人技能设计/boss技能编排.md)。
     id: "scrap-mountain-guardian",
     name: "垃圾山的守护者",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
