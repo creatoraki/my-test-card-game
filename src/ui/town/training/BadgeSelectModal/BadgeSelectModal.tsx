@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
 import type { SquadBadgeDef, SquadResourceKey } from "@/data";
 import { cx } from "@/ui/common/cx";
+import { badgeThemeVars } from "../styles/badgeTheme";
 import { BadgeGlyph } from "./badgeGlyphs";
 import s from "./BadgeSelectModal.module.css";
 
@@ -43,7 +44,6 @@ export function BadgeSelectModal({
     if (activeId && badges.some((badge) => badge.id === activeId)) return activeId;
     return badges.find((badge) => !badge.locked)?.id ?? badges[0]?.id ?? null;
   });
-  const selectableBadges = badges.filter((badge) => !badge.locked);
   const selectedBadge = badges.find((badge) => badge.id === selectedId) ?? badges[0];
   const activeBadge = badges.find((badge) => badge.id === activeId);
   const canConfirm = Boolean(selectedBadge && !locked && !selectedBadge.locked && selectedBadge.id !== activeId);
@@ -56,20 +56,19 @@ export function BadgeSelectModal({
         return;
       }
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      if (locked || selectableBadges.length === 0) return;
+      if (badges.length === 0) return;
       event.preventDefault();
-      const currentIndex = Math.max(0, selectableBadges.findIndex((badge) => badge.id === selectedId));
+      const currentIndex = Math.max(0, badges.findIndex((badge) => badge.id === selectedId));
       const direction = event.key === "ArrowRight" ? 1 : -1;
-      const nextIndex = (currentIndex + direction + selectableBadges.length) % selectableBadges.length;
-      setSelectedId(selectableBadges[nextIndex].id);
+      const nextIndex = (currentIndex + direction + badges.length) % badges.length;
+      setSelectedId(badges[nextIndex].id);
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [canConfirm, locked, onClose, onConfirm, selectableBadges, selectedBadge, selectedId]);
+  }, [badges, onClose, selectedId]);
 
   function selectBadge(badge: SquadBadgeDef) {
-    if (locked || badge.locked) return;
     setSelectedId(badge.id);
   }
 
@@ -89,6 +88,13 @@ export function BadgeSelectModal({
       ? `${selectedBadge.desc}${selectedBadge.requirement ? ` 解锁条件: ${selectedBadge.requirement}` : ""}`
       : `${baseSummary(selectedBadge, resourceLabels)}${selectedBadge.id !== activeId && spentPoints > 0 ? ` · 切换将退还 ${spentPoints} 点训练点` : ""}`
     : "暂无可用徽章";
+  const confirmHint = locked
+    ? "远征中无法更换徽章"
+    : selectedBadge?.locked
+      ? "该徽章尚未解锁"
+      : selectedBadge?.id === activeId
+        ? "该徽章已启用"
+        : "暂无可用徽章";
 
   return (
     <div className={s["bsm-scrim"]} onMouseDown={closeFromScrim} role="presentation">
@@ -117,7 +123,7 @@ export function BadgeSelectModal({
             const isActive = badge.id === activeId;
             const isSelected = badge.id === selectedId;
             const status = isActive ? "已启用" : badge.locked ? "待开放" : "可选";
-            const cardStyle = { "--card-delay": `${index * 55}ms` } as CSSProperties;
+            const cardStyle = { ...badgeThemeVars(badge.id), "--card-delay": `${index * 55}ms` } as CSSProperties;
             return (
               <button
                 key={badge.id}
@@ -125,7 +131,6 @@ export function BadgeSelectModal({
                 className={cx(s["bsm-card"], isSelected && s["is-selected"], isActive && s["is-active"], badge.locked && s["is-locked"])}
                 style={cardStyle}
                 aria-pressed={isSelected}
-                aria-disabled={locked || badge.locked || undefined}
                 onClick={() => selectBadge(badge)}
               >
                 <span className={s["bsm-art-wrap"]} aria-hidden="true">
@@ -142,22 +147,25 @@ export function BadgeSelectModal({
           })}
         </div>
 
-        <footer className={s["bsm-foot"]}>
+        <footer className={s["bsm-foot"]} style={selectedBadge ? badgeThemeVars(selectedBadge.id) : undefined}>
           <div className={s["bsm-detail"]}>
             <span className={s["bsm-detail-label"]}>SELECTED PROFILE</span>
             <strong>{selectedBadge?.name ?? "暂无可用徽章"}</strong>
             <p>{detail}</p>
           </div>
-          <div className={s["bsm-actions"]}>
-            <button type="button" className={s["bsm-cancel"]} onClick={onClose}>取消</button>
-            <button
-              type="button"
-              className={s["bsm-confirm"]}
-              disabled={!canConfirm}
-              onClick={() => selectedBadge && onConfirm(selectedBadge)}
-            >
-              启用该徽章
-            </button>
+          <div className={s["bsm-action-column"]}>
+            {!canConfirm && <span className={s["bsm-hint"]}>{confirmHint}</span>}
+            <div className={s["bsm-actions"]}>
+              <button type="button" className={s["bsm-cancel"]} onClick={onClose}>取消</button>
+              <button
+                type="button"
+                className={s["bsm-confirm"]}
+                disabled={!canConfirm}
+                onClick={() => selectedBadge && onConfirm(selectedBadge)}
+              >
+                启用该徽章
+              </button>
+            </div>
           </div>
         </footer>
       </section>

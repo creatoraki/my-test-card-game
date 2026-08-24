@@ -35,6 +35,7 @@ import {
   LABEL_HALF_W,
   nodeRadius,
 } from "./talentGeometry";
+import { badgeThemeVars } from "../styles/badgeTheme";
 import s from "./TalentTreeRadial.module.css";
 
 // 一次性读取(项目惯例, 不监听变化)。
@@ -219,6 +220,7 @@ export function TalentTreeRadial({
   return (
     <section
       className={cx(s["trr"], locked && s["is-locked"], hover && s["has-trace"], className)}
+      style={badgeThemeVars(badge.id)}
       aria-label="天赋树"
     >
       <header className={s["trr-head"]}>
@@ -247,14 +249,14 @@ export function TalentTreeRadial({
         >
           <defs>
             <radialGradient id="trr-core-body" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fff8e8" />
-              <stop offset="40%" stopColor="#ffd700" />
-              <stop offset="80%" stopColor="#cc8800" />
-              <stop offset="100%" stopColor="#664400" />
+              <stop offset="0%" stopColor="var(--badge-ink, #f2e6c8)" />
+              <stop offset="45%" stopColor="var(--badge-hue, #ffd700)" />
+              <stop offset="82%" stopColor="var(--badge-deep, #cc8800)" />
+              <stop offset="100%" stopColor="color-mix(in srgb, var(--badge-deep, #cc8800) 45%, #120d1a)" />
             </radialGradient>
             <radialGradient id="trr-core-halo" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(255,215,0,0.35)" />
-              <stop offset="60%" stopColor="rgba(255,180,80,0.12)" />
+              <stop offset="0%" stopColor="color-mix(in srgb, var(--badge-hue, #ffd700) 20%, transparent)" />
+              <stop offset="60%" stopColor="color-mix(in srgb, var(--badge-hue, #ffd700) 7%, transparent)" />
               <stop offset="100%" stopColor="transparent" />
             </radialGradient>
             {layout.map((branch) => {
@@ -268,7 +270,7 @@ export function TalentTreeRadial({
                   x2="100%"
                   y2="0%"
                 >
-                  <stop offset="0%" stopColor="#fff5e0" />
+                  <stop offset="0%" stopColor="var(--badge-ink, #f2e6c8)" />
                   <stop offset="30%" stopColor={hue.hue} />
                   <stop offset="100%" stopColor={hue.deep} />
                 </linearGradient>
@@ -298,7 +300,7 @@ export function TalentTreeRadial({
             </filter>
           </defs>
 
-          <circle cx={RADIAL_CENTER.x} cy={RADIAL_CENTER.y} r={260} fill="url(#trr-core-halo)" />
+          <circle cx={RADIAL_CENTER.x} cy={RADIAL_CENTER.y} r={210} fill="url(#trr-core-halo)" />
 
           {/* ── 连线层(纯装饰) ── */}
           <g aria-hidden>

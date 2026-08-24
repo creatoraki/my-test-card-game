@@ -173,22 +173,22 @@
 }
 
 .trr-core:hover {
-  filter: brightness(1.25) drop-shadow(0 0 30px rgba(255, 215, 0, 0.65));
+  filter: brightness(1.12) drop-shadow(0 0 16px color-mix(in srgb, var(--badge-hue, #ffd700) 40%, transparent));
 }
 
 .trr-core:focus-visible .trr-core-body {
-  stroke: #fff8e8;
-  stroke-width: 4.5;
+  stroke: var(--badge-ink, #f2e6c8);
+  stroke-width: 3.4;
 }
 
 .trr-core-pulse {
   fill: none;
-  stroke: #ffd700;
-  stroke-width: 2;
+  stroke: var(--badge-hue, #ffd700);
+  stroke-width: 1.4;
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  animation: trrCorePulse 3s ease-out infinite;
+  animation: trrCorePulse 4.5s ease-out infinite;
 }
 
 .trr-core-pulse:nth-child(2) {
@@ -196,14 +196,14 @@
 }
 
 .trr-core-body {
-  stroke: #ffd700;
-  stroke-width: 3;
-  filter: url("#trr-soft");
+  stroke: var(--badge-hue, #ffd700);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--badge-hue, #ffd700) 30%, transparent));
 }
 
 .trr-core-glyph {
-  color: #fff;
-  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  color: var(--badge-ink, #f2e6c8);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--badge-hue, #ffd700) 42%, transparent));
 }
 
 /* ── 链末标签 ── */

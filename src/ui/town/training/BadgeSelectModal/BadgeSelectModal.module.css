@@ -112,7 +112,7 @@
   min-height: 190px;
   padding: 12px 16px;
   border: 1px solid var(--tr-line);
-  background: color-mix(in srgb, var(--tr-glow) 5%, transparent);
+  background: color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 5%, transparent);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tr-ink) 10%, transparent);
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
   color: var(--tr-ink);
@@ -124,34 +124,39 @@
 .bsm-card::before {
   position: absolute;
   inset: 8px;
-  border: 1px solid color-mix(in srgb, var(--tr-glow) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 20%, transparent);
   clip-path: polygon(0 0, 17% 0, 17% 1px, 83% 1px, 83% 0, 100% 0, 100% 17%, calc(100% - 1px) 17%, calc(100% - 1px) 83%, 100% 83%, 100% 100%, 83% 100%, 83% calc(100% - 1px), 17% calc(100% - 1px), 17% 100%, 0 100%, 0 83%, 1px 83%, 1px 17%, 0 17%);
   content: "";
   pointer-events: none;
 }
 
-.bsm-card:hover:not(.is-active):not(.is-locked),
-.bsm-card:focus-visible:not(.is-active):not(.is-locked) {
-  border-color: var(--tr-glow);
-  background: color-mix(in srgb, var(--tr-glow) 12%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tr-ink) 18%, transparent), 0 0 22px -12px var(--tr-glow);
+.bsm-card:hover:not(.is-active),
+.bsm-card:focus-visible:not(.is-active) {
+  border-color: var(--badge-hue, var(--tr-glow));
+  background: color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 12%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tr-ink) 18%, transparent), 0 0 18px -11px var(--badge-hue, var(--tr-glow));
   transform: translateY(-4px);
 }
 
 .bsm-card.is-selected {
-  border-color: var(--tr-glow);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--tr-glow) 18%, transparent), color-mix(in srgb, var(--tr-glow-deep) 9%, transparent));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tr-ink) 20%, transparent), 0 0 28px -12px var(--tr-glow);
+  border-color: var(--badge-hue, var(--tr-glow));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 18%, transparent), color-mix(in srgb, var(--badge-deep, var(--tr-glow-deep)) 9%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tr-ink) 20%, transparent), 0 0 22px -11px var(--badge-hue, var(--tr-glow));
 }
 
 .bsm-card.is-active .bsm-chip {
-  background: color-mix(in srgb, var(--tr-glow) 18%, transparent);
-  color: var(--tr-glow);
+  background: color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 18%, transparent);
+  color: var(--badge-hue, var(--tr-glow));
 }
 
 .bsm-card.is-locked {
-  filter: saturate(.3);
-  opacity: .48;
+  filter: saturate(.55);
+  opacity: .62;
+}
+
+.bsm-card.is-locked.is-selected {
+  filter: none;
+  opacity: .9;
 }
 
 .bsm-art-wrap {
@@ -165,8 +170,8 @@
   width: min(100%, 190px);
   height: auto;
   aspect-ratio: 1;
-  color: var(--tr-glow);
-  filter: drop-shadow(0 0 15px color-mix(in srgb, var(--tr-glow) 22%, transparent));
+  color: var(--badge-hue, var(--tr-glow));
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 14%, transparent));
 }
 
 .bsm-card-copy {
@@ -180,7 +185,7 @@
 
 .bsm-card-kicker {
   overflow: hidden;
-  color: var(--tr-glow);
+  color: var(--badge-hue, var(--tr-glow));
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -213,15 +218,15 @@
   position: absolute;
   right: 14px;
   bottom: 10px;
-  color: var(--tr-glow);
+  color: var(--badge-hue, var(--tr-glow));
   font-size: 18px;
   opacity: 0;
   transform: translate(-4px, 4px);
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.bsm-card:hover:not(.is-locked) .bsm-card-arrow,
-.bsm-card:focus-visible:not(.is-locked) .bsm-card-arrow,
+.bsm-card:hover .bsm-card-arrow,
+.bsm-card:focus-visible .bsm-card-arrow,
 .bsm-card.is-selected .bsm-card-arrow {
   opacity: .9;
   transform: translate(0, 0);
@@ -244,6 +249,10 @@
   min-width: 0;
 }
 
+.bsm-detail-label {
+  color: var(--badge-hue, var(--tr-glow));
+}
+
 .bsm-detail strong {
   color: var(--tr-ink);
   font-size: 17px;
@@ -264,6 +273,20 @@
   gap: 10px;
 }
 
+.bsm-action-column {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.bsm-hint {
+  color: var(--tr-warm);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
 .bsm-cancel,
 .bsm-confirm {
   min-width: 132px;
@@ -278,14 +301,14 @@
 }
 
 .bsm-confirm {
-  border-color: var(--tr-glow);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tr-glow) 28%, transparent), color-mix(in srgb, var(--tr-glow-deep) 18%, transparent));
-  color: var(--tr-glow);
+  border-color: var(--badge-hue, var(--tr-glow));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 28%, transparent), color-mix(in srgb, var(--badge-deep, var(--tr-glow-deep)) 18%, transparent));
+  color: var(--badge-hue, var(--tr-glow));
 }
 
 .bsm-confirm:hover:not(:disabled) {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--tr-glow) 38%, transparent), color-mix(in srgb, var(--tr-glow-deep) 24%, transparent));
-  box-shadow: 0 0 18px -7px var(--tr-glow);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 38%, transparent), color-mix(in srgb, var(--badge-deep, var(--tr-glow-deep)) 24%, transparent));
+  box-shadow: 0 0 15px -8px var(--badge-hue, var(--tr-glow));
 }
 
 .bsg-grid {
@@ -313,7 +336,7 @@
 
 .bsg-core,
 .bsg-breathe {
-  filter: drop-shadow(0 0 7px var(--tr-glow));
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 45%, transparent));
   transform-box: fill-box;
   transform-origin: center;
   animation: bsgBreathe 4.2s ease-in-out infinite;
@@ -354,8 +377,8 @@
 }
 
 @keyframes bsgBreathe {
-  0%, 100% { opacity: .78; transform: scale(.97); }
-  50% { opacity: 1; transform: scale(1.035); }
+  0%, 100% { opacity: .72; transform: scale(.98); }
+  50% { opacity: .92; transform: scale(1.02); }
 }
 
 @keyframes bsgSpin {
