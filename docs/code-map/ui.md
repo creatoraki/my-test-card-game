@@ -1,3 +1,5 @@
+| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。持有 `drawerOpen` / `shakeId` / `pulse` 状态编排，`RESOURCE_LABELS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
+| [town/training/BadgeSelectModal](../../src/ui/town/training/BadgeSelectModal/BadgeSelectModal.tsx) | 训练室徽章选择 modal：大图 SVG 徽章卡片网格、选中预览与底栏两步确认；`badgeGlyphs` 按徽章 id 查表绘制主体图形。只接收 props 与回调，不读 store，支持锁定态与键盘选择。 |
 | [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，卡面比例为 320:496、插画区为 1:1、卡名位于插画下方的装饰名条中、费用球贴左上角，支持普通 / 速攻两套配色，尺寸随容器等比自适应，可省略底部统计栏。 |
 # React 视图层
 

@@ -5,6 +5,7 @@
 /* 设计令牌 —— 训练室唯一真相点(暗底金色)。原定义在 TrainingScene 的 .tr-scene 根上,
    抽到这里后场景根与各组件根各自 composes, 子元素一律读 var(--tr-*)。 */
 .tr-tokens {
+  --tr-bg-deep: #0c0911;
   --tr-ink: #f2e6c8;
   --tr-ink-dim: #b09a6e;
   --tr-line: #ffd70045;

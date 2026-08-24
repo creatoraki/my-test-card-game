@@ -2,7 +2,7 @@
 //
 // 原页头 / 剩余点读数 / 左栏徽章条 / 底部六格属性预览 / 锁定横幅 / 重置与确认弹窗
 // 全部移除; 剩余训练点与投入进度显示在树面板头部。徽章切换改为点击天赋树中央的
-// 徽章核心节点, 从左侧边缘滑出徽章抽屉浮层, 点选即切换(已投入点会随切换返还清空)。
+// 徽章核心节点, 弹出居中的选择 modal; 选中后经底栏确认切换(已投入点会随切换返还清空)。
 // 解锁、退还、花费的规则判定全部来自 @/data/squadTalents 的纯函数, 本文件不重写规则。
 
 import { useEffect, useMemo, useState } from "react";
@@ -19,7 +19,7 @@ import {
 import { useRunStore } from "@/store/runStore";
 import { squadTrainingPoints, useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
-import { BadgeRail } from "../BadgeRail";
+import { BadgeSelectModal } from "../BadgeSelectModal";
 import { SquadResourceBar } from "../SquadResourceBar";
 import { TalentTreeRadial } from "../TalentTreeRadial";
 import s from "./TrainingScene.module.css";
@@ -48,7 +48,7 @@ export function TrainingScene({ leaving = false, onBack }: Props) {
   const activateTalentNode = useTownStore((state) => state.activateTalentNode);
   const refundTalentNode = useTownStore((state) => state.refundTalentNode);
   const screen = useRunStore((state) => state.screen);
-  // 未启用徽章时抽屉默认展开, 引导首次选择。
+  // 未启用徽章时 modal 默认展开, 引导首次选择。
   const [drawerOpen, setDrawerOpen] = useState(() => !squadTalent.badgeId);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [pulse, setPulse] = useState<{ nodeId: string; n: number } | null>(null);
@@ -79,8 +79,8 @@ export function TrainingScene({ leaving = false, onBack }: Props) {
     return () => window.clearTimeout(timer);
   }, [shakeId]);
 
-  // 抽屉点选徽章: 锁定/当前徽章不响应; 直接切换(store 侧清空本徽章投入, 训练点返还)。
-  function pickBadge(picked: SquadBadgeDef) {
+  // modal 确认徽章: 锁定/当前徽章不响应; store 侧清空本徽章投入并返还训练点。
+  function confirmBadge(picked: SquadBadgeDef) {
     if (locked || picked.locked || picked.id === squadTalent.badgeId) return;
     selectSquadBadge(picked.id);
     setPulse(null);
@@ -164,7 +164,7 @@ export function TrainingScene({ leaving = false, onBack }: Props) {
           <div className={cn("tr-empty")} role="status">
             <span className={cn("tr-panel-kicker")}>NO BADGE</span>
             <h3 className={cn("tr-empty-title")}>尚未启用徽章</h3>
-            <p className={cn("tr-empty-sub")}>从左侧选择一枚小队徽章, 天赋树将在这里展开。</p>
+            <p className={cn("tr-empty-sub")}>点击下方按钮选择一枚小队徽章, 天赋树将在这里展开。</p>
             <button className={cn("tr-empty-open")} type="button" onClick={() => setDrawerOpen(true)}>
               选择徽章
             </button>
@@ -177,16 +177,17 @@ export function TrainingScene({ leaving = false, onBack }: Props) {
         )}
       </main>
 
-      <aside className={cn("tr-drawer", drawerOpen && "is-open")} aria-label="徽章切换浮层">
-        <BadgeRail
+      {drawerOpen && (
+        <BadgeSelectModal
           badges={SQUAD_BADGES}
           activeId={activeBadge?.id ?? null}
           locked={locked}
           resourceLabels={RESOURCE_LABELS}
-          onPick={pickBadge}
-          className={s["tr-drawer-rail"]}
+          spentPoints={spent}
+          onConfirm={confirmBadge}
+          onClose={() => setDrawerOpen(false)}
         />
-      </aside>
+      )}
     </div>
   );
 }
