@@ -22,5 +22,9 @@ export function chooseRandomTarget(state: BattleState, enemyId: string): string 
   const enemy = state.combatants[enemyId];
   const candidates = foesOf(state, enemy); // 敌人的 foe = 我方
   if (candidates.length === 0) return undefined;
-  return rngPick(state, candidates).id;
+  const taunted = candidates.filter((candidate) => {
+    const status = candidate.statuses.find((entry) => entry.id === "taunt");
+    return status && status.stacks > 0 && (status.appliedRound == null || status.appliedRound < state.round);
+  });
+  return rngPick(state, taunted.length > 0 ? taunted : candidates).id;
 }

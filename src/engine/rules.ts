@@ -73,6 +73,7 @@ export const RULES = {
     blockReduction: 0.5, // 格挡成功后本次伤害 ×
     // 我方 0 血(濒死)时再次受到会落到 HP 的伤害, 按此概率死亡; 未命中则完全顶住本次伤害。
     downedDeathChance: 50,
+    poisonDamagePerStack: 5,
     starlightMax: 3,
     regenHealPerStack: 5,
     ironwallDefense: 5,

@@ -348,11 +348,13 @@ export function playCard(
     resolution.hit.forEach((id) => cardHit.add(id));
   };
   withDiscardRecorder(discardRecorder, () => {
-    mergeCardResolution(resolveEffects(state, card.effects, card.ownerCharId, primaryId));
+    const cultivated = cultivateReady(card);
+    const cultivateMode = card.cultivate?.mode ?? "append";
+    const activeEffects = cultivated && cultivateMode === "replace" ? card.cultivate!.effects : card.effects;
+    mergeCardResolution(resolveEffects(state, activeEffects, card.ownerCharId, primaryId));
 
-    if (cultivateReady(card)) {
+    if (cultivated && cultivateMode !== "replace")
       mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
-    }
     resetCultivate(card);
 
     if (card.exhaust) state.exhaust.push(uid);

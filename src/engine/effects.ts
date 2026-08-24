@@ -11,6 +11,7 @@ import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 import { starPayable } from "./cost";
 import { CARD_MARK_DEFS } from "./cardMarks";
+import { getStatusDef } from "./statuses";
 
 export interface EffectResolution {
   missed: string[];
@@ -55,6 +56,17 @@ export function resolveTargets(
 ): string[] {
   const src = state.combatants[sourceId];
   const t = effect.target ?? "primary";
+  const pickUnique = (candidates: ReturnType<typeof foesOf>): string[] => {
+    const pool = [...candidates];
+    const selected: string[] = [];
+    const count = Math.max(1, Math.floor(effect.targetCount ?? 1));
+    for (let i = 0; i < count && pool.length > 0; i++) {
+      const target = rngPick(state, pool);
+      selected.push(target.id);
+      pool.splice(pool.indexOf(target), 1);
+    }
+    return selected;
+  };
   switch (t) {
     case "primary":
       return primaryId && state.combatants[primaryId]?.alive ? [primaryId] : [];
@@ -66,11 +78,11 @@ export function resolveTargets(
       return alliesOf(state, src).map((c) => c.id);
     case "randomFoe": {
       const foes = foesOf(state, src);
-      return foes.length ? [rngPick(state, foes).id] : [];
+      return foes.length ? pickUnique(foes) : [];
     }
     case "randomAlly": {
       const allies = alliesOf(state, src);
-      return allies.length ? [rngPick(state, allies).id] : [];
+      return allies.length ? pickUnique(allies) : [];
     }
     case "lowestHpAlly": {
       const allies = alliesOf(state, src);
@@ -128,10 +140,14 @@ function applyEffect(
             effect.damageBonus &&
             ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
               (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield));
+          const aimedBonus =
+            effect.aimedMultiplier != null && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
+              ? effect.aimedMultiplier
+              : baseMultiplier;
           const damageMultiplier =
             bonusApplies
-              ? baseMultiplier + effect.damageBonus.multiplier
-              : baseMultiplier;
+              ? aimedBonus + effect.damageBonus.multiplier
+              : aimedBonus;
           const dmg = fixed ? amount * (1 + bonusMult) : statOf(src, "attack") * damageMultiplier;
           const result = ops.dealDamage(state, sourceId, id, dmg, {
             isAttack: true,
@@ -182,9 +198,24 @@ function applyEffect(
       break;
     }
     case "APPLY_STATUS": {
-      const stacks = effect.stacksFrom ? counterOf(state, effect.stacksFrom) : effect.stacks ?? 0;
-      if (stacks <= 0) break;
-      for (const id of targetIds) ops.applyStatus(state, id, effect.status!, stacks, effect.duration);
+      if (!effect.status) break;
+      const generatedData = effect.statusDataFrom
+        ? {
+            ...effect.statusData,
+            [effect.statusDataFrom.key]: src
+              ? statOf(src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
+              : 0,
+          }
+        : effect.statusData;
+      for (const id of targetIds) {
+        const aimedBonus =
+          effect.aimedStacks && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
+            ? effect.aimedStacks
+            : 0;
+        const stacks = (effect.stacksFrom ? counterOf(state, effect.stacksFrom) : effect.stacks ?? 0) + aimedBonus;
+        if (stacks > 0)
+          ops.applyStatus(state, id, effect.status, stacks, effect.duration, generatedData, sourceId);
+      }
       break;
     }
     case "APPLY_STAT_MOD":
@@ -303,6 +334,18 @@ function applyEffect(
         ops.log(state, `${target.emoji} ${target.name} 体力极限恢复 ${target.hpLimit - before}`);
       }
       break;
+    case "REMOVE_STATUS": {
+      const kind = effect.statusKind ?? "debuff";
+      for (const id of targetIds) {
+        const target = state.combatants[id];
+        if (!target) continue;
+        target.statuses = target.statuses.filter((status) => {
+          const def = getStatusDef(status.id);
+          return kind !== "all" && def?.kind !== kind;
+        });
+      }
+      break;
+    }
     case "CONVERT_CARD_TYPE": {
       if (effect.convertPick !== "handRandomNormal") break;
       const amountToConvert = Math.max(0, Math.floor(effect.amount ?? 1));

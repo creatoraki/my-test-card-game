@@ -77,7 +77,8 @@ export type EffectType =
   | "MARK_CARDS"
   | "CONVERT_CARD_TYPE"
   | "ADD_CARD_TO_HAND"
-  | "RESTORE_HP_LIMIT";
+  | "RESTORE_HP_LIMIT"
+  | "REMOVE_STATUS";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -90,8 +91,13 @@ export interface EffectDescriptor {
   multiplier?: number;
   target?: EffectTarget; // 默认 "primary"
   status?: string; // APPLY_STATUS: 状态 id
+  statusKind?: StatusKind | "all"; // REMOVE_STATUS: 要移除的状态种类
+  statusData?: Record<string, number>; // APPLY_STATUS: 状态的结构化运行时参数
+  statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
+  aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
   duration?: number; // APPLY_STATUS: 剩余回合
+  targetCount?: number; // randomFoe / randomAlly: 无放回随机目标数
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
   stat?: keyof StatBlock; // APPLY_STAT_MOD: 要修改的属性
@@ -99,14 +105,15 @@ export interface EffectDescriptor {
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
   hits?: number; // DAMAGE: 段数, 缺省 1
+  aimedMultiplier?: number; // DAMAGE: 目标已有瞄准时使用的伤害倍率
   hitsFrom?: CounterSource; // DAMAGE: 段数直接等于计数, 可为 0
   maxHits?: number; // DAMAGE: 直接取段数的上限
   bonusHitsFrom?: CounterSource; // DAMAGE: 每 1 点计数追加 1 段
   maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
   bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数加算到伤害倍率上(不是乘算)
   bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数加算的倍率
-    damageBonus?: { when: "targetHasShield" | "targetHasNoShield"; multiplier: number }; // DAMAGE: 按目标护盾逐目标加算倍率
-    cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
+  damageBonus?: { when: "targetHasShield" | "targetHasNoShield"; multiplier: number }; // DAMAGE: 按目标护盾逐目标加算倍率
+  cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
   amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
@@ -185,6 +192,7 @@ export interface CardDef {
   cultivate?: {
     turns: number;
     effects: EffectDescriptor[];
+    mode?: "append" | "replace";
   };
 }
 
@@ -225,6 +233,9 @@ export interface StatusInstance {
   id: string;
   stacks: number;
   duration?: number; // 剩余回合; 缺省 = 不因回合过期
+  data?: Record<string, number>; // 状态的结构化运行时参数
+  sourceId?: string; // 施加该状态的单位, 供持续效果读取施法者属性
+  appliedRound?: number; // durationStartsNextRound 状态用于跳过施加当回合的递减
 }
 
 // 传给状态钩子的上下文。ops 提供引擎原语, 使 statuses.ts 无需 import 具体实现。
@@ -266,7 +277,7 @@ export interface StatusHooks {
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
 //   chance   —— 按抗性掷判定, 成功则本次完全不施加(眩晕这类开关型控制)
 //   stacks   —— 按抗性削减层数(中毒这类按层数结算的异常)
-//   duration —— 按抗性削减持续回合(本作的持续回合即层数, 与 stacks 同处理)
+//   duration —— 按抗性削减持续回合(显式 duration 优先, 否则按层数处理)
 export type ResistMode = "chance" | "stacks" | "duration";
 
 export interface StatusDef {
@@ -276,6 +287,7 @@ export interface StatusDef {
   kind: StatusKind;
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
+  durationStartsNextRound?: boolean; // 持续效果从下一回合开始计时
   statMods?: Partial<StatBlock>; // 每层提供的固定属性修正
   statModsPct?: Partial<StatBlock>; // 每层提供的百分比属性修正(百分点)
   resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减
@@ -478,6 +490,7 @@ export interface DamageOpts {
 }
 
 export interface EngineOps {
+  getStat(state: BattleState, targetId: string, stat: keyof StatBlock): number;
   dealDamage(
     state: BattleState,
     sourceId: string | undefined,
@@ -499,7 +512,15 @@ export interface EngineOps {
     targetId: string,
     amount: number,
   ): void;
-  applyStatus(state: BattleState, targetId: string, statusId: string, stacks: number, duration?: number): void;
+  applyStatus(
+    state: BattleState,
+    targetId: string,
+    statusId: string,
+    stacks: number,
+    duration?: number,
+    data?: Record<string, number>,
+    sourceId?: string,
+  ): void;
   applyStatMod(
     state: BattleState,
     targetId: string,

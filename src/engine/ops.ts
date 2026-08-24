@@ -232,6 +232,8 @@ export function applyStatus(
   statusId: string,
   stacks: number,
   duration?: number,
+  data?: Record<string, number>,
+  sourceId?: string,
 ): void {
   const t = state.combatants[targetId];
   if (!t || !t.alive || stacks === 0) return;
@@ -247,7 +249,9 @@ export function applyStatus(
           return;
         }
       } else if (def.resistMode === "stacks" || def.resistMode === "duration") {
-        stacks = Math.max(1, Math.round(stacks * (1 - resist / 100)));
+        if (def.resistMode === "duration" && duration != null)
+          duration = Math.max(1, Math.round(duration * (1 - resist / 100)));
+        else stacks = Math.max(1, Math.round(stacks * (1 - resist / 100)));
       }
     }
   }
@@ -256,8 +260,18 @@ export function applyStatus(
   if (existing) {
     existing.stacks += stacks;
     if (duration != null) existing.duration = Math.max(existing.duration ?? 0, duration);
+    if (data) existing.data = { ...existing.data, ...data };
+    if (sourceId) existing.sourceId = sourceId;
+    if (duration != null && def?.durationStartsNextRound) existing.appliedRound = state.round;
   } else {
-    t.statuses.push({ id: statusId, stacks, ...(duration != null ? { duration } : {}) });
+    t.statuses.push({
+      id: statusId,
+      stacks,
+      ...(duration != null ? { duration } : {}),
+      ...(data ? { data: { ...data } } : {}),
+      ...(sourceId ? { sourceId } : {}),
+      ...(duration != null && def?.durationStartsNextRound ? { appliedRound: state.round } : {}),
+    });
   }
   if (def?.maxStacks != null) {
     const inst = getStatus(t, statusId)!;
@@ -290,6 +304,10 @@ export function applyStatMod(
 
 // 供状态钩子使用的原语集合
 export const ops: EngineOps = {
+  getStat: (state, targetId, stat) => {
+    const target = state.combatants[targetId];
+    return target ? statOf(target, stat) : 0;
+  },
   dealDamage,
   heal,
   gainShield,
@@ -325,7 +343,8 @@ export function runRoundEnd(state: BattleState): void {
   for (const id of allIds(state)) {
     const cmb = state.combatants[id];
     for (const inst of cmb.statuses) {
-      if (inst.duration != null) inst.duration -= 1;
+      if (inst.duration != null && !(STATUS_DEFS[inst.id]?.durationStartsNextRound && inst.appliedRound === state.round))
+        inst.duration -= 1;
     }
     cleanup(cmb);
   }

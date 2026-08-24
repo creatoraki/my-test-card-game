@@ -24,6 +24,12 @@ export function effectDisplayValue(
         ? Math.round(stats.healPower * effect.multiplier)
         : effect.amount ?? null;
     case "APPLY_STATUS":
+      if (effect.statusDataFrom) {
+        const sourceValue =
+          effect.statusDataFrom.stat === "healPower" ? stats.healPower : effect.statusDataFrom.stat === "attack" ? stats.attack : 0;
+        return Math.round(sourceValue * effect.statusDataFrom.multiplier);
+      }
+      return effect.amount ?? 0;
     case "APPLY_STAT_MOD":
     case "DRAW":
     case "GAIN_RESOURCE":

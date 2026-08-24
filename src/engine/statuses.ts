@@ -16,12 +16,12 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     name: "中毒",
     emoji: "☠️",
     kind: "debuff",
-    desc: "回合开始时受到等同层数的伤害(无视护盾), 然后层数 -1。",
+    desc: `回合开始时每层受到 ${RULES.combat.poisonDamagePerStack} 点伤害(无视护盾), 然后层数 -1。`,
     resistMode: "stacks", // 中毒按层数结算 ⇒ 异常抗性削减层数
     hooks: {
       onRoundStart: (c: StatusCtx) => {
         if (c.inst.stacks > 0)
-          c.ops.dealDamage(c.state, undefined, c.ownerId, c.inst.stacks, {
+            c.ops.dealDamage(c.state, undefined, c.ownerId, c.inst.stacks * RULES.combat.poisonDamagePerStack, {
             flags: ["poison"],
             fixed: true,
             unblockable: true,
@@ -261,6 +261,76 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     statModsPct: { attack: 20 },
     desc: "攻击力 +20%。",
+  },
+  armorBreak: {
+    id: "armorBreak",
+    name: "破甲",
+    emoji: "🩹",
+    kind: "debuff",
+    statMods: { defense: -5 },
+    resistMode: "duration",
+    desc: "防御力 -5。",
+  },
+  attackDown: {
+    id: "attackDown",
+    name: "萎靡",
+    emoji: "📉",
+    kind: "debuff",
+    statModsPct: { attack: -15 },
+    resistMode: "duration",
+    desc: "攻击力 -15%。",
+  },
+  cactusCounterattack: {
+    id: "cactusCounterattack",
+    name: "仙人掌",
+    emoji: "🌵",
+    kind: "buff",
+    maxStacks: 1,
+    desc: "拥有护盾时被攻击后, 对攻击者造成其攻击力 30% 的反伤。",
+    hooks: {
+      onAfterAttacked: (c: StatusCtx, dmg: DamageCtx) => {
+        if (!dmg.isAttack || dmg.blocked <= 0 || !dmg.sourceId || dmg.sourceId === c.ownerId) return;
+        const attacker = c.state.combatants[dmg.sourceId];
+        if (!attacker) return;
+        c.ops.dealDamage(c.state, c.ownerId, dmg.sourceId, c.ops.getStat(c.state, dmg.sourceId, "attack") * 0.3 * c.inst.stacks, {
+          flags: ["cactus"],
+          fixed: true,
+        });
+      },
+    },
+  },
+  vitality: {
+    id: "vitality",
+    name: "生机",
+    emoji: "🌱",
+    kind: "buff",
+    durationStartsNextRound: true,
+    desc: "每回合开始时回复施加者治愈力 20% 的生命。",
+    hooks: {
+      onRoundStart: (c: StatusCtx) => {
+        const healAmount = c.inst.data?.healAmount ?? 0;
+        if (healAmount > 0 && c.inst.stacks > 0)
+          c.ops.heal(c.state, c.inst.sourceId, c.ownerId, healAmount * c.inst.stacks, { scaled: true });
+      },
+    },
+  },
+  defenseUp: {
+    id: "defenseUp",
+    name: "坚固",
+    emoji: "🛡️",
+    kind: "buff",
+    maxStacks: 1,
+    statModsPct: { defense: 20 },
+    desc: "防御力 +20%。",
+  },
+  taunt: {
+    id: "taunt",
+    name: "嘲讽",
+    emoji: "💢",
+    kind: "buff",
+    maxStacks: 1,
+    durationStartsNextRound: true,
+    desc: "下一回合敌人优先攻击该目标。",
   },
 };
 
