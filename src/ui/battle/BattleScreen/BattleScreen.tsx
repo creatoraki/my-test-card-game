@@ -11,7 +11,7 @@ import {
   type FxStep,
   type Enemy,
 } from "@/engine";
-import { getEncounter, getEnemyDef, slotPlacement } from "@/data";
+import { getEncounter, getEnemyDef, slotPlacement, type EnemyPlacement } from "@/data";
 import { useBattleStore } from "@/store/battleStore";
 import { useRunStore } from "@/store/runStore";
 import { CombatantView, isIntentRevealed } from "@/ui/battle/CombatantView";
@@ -68,7 +68,18 @@ function safeArea(stage: HTMLElement) {
   return { x: stage.offsetLeft, y: stage.offsetTop, w: stage.offsetWidth, h: stage.offsetHeight };
 }
 
-function computeAimCamera(world: HTMLElement | null, stage: HTMLElement | null, foeId: string | null): Camera | null {
+function placementOf(battle: BattleState | null, id: string): EnemyPlacement | undefined {
+  if (!battle) return undefined;
+  const index = battle.enemyIds.indexOf(id);
+  return index >= 0 ? slotPlacement(getEncounter(battle.encounterId).enemies[index]) : undefined;
+}
+
+function computeAimCamera(
+  world: HTMLElement | null,
+  stage: HTMLElement | null,
+  foeId: string | null,
+  placement?: EnemyPlacement,
+): Camera | null {
   if (!world || !stage) return null;
   const safe = safeArea(stage);
   const A = { x: safe.x + safe.w / 2, y: safe.y + safe.h / 2 };
@@ -76,7 +87,7 @@ function computeAimCamera(world: HTMLElement | null, stage: HTMLElement | null, 
   let yaw = 0;
   let pitch = 0;
   const F = { ...A };
-  const box = foeId ? unitWorldBox(world, foeId) : null;
+  const box = foeId ? unitWorldBox(world, foeId, placement) : null;
   if (box) {
     const offX = (box.left + box.right) / 2 - A.x;
     const offY = (box.top + box.bottom) / 2 - A.y;
@@ -439,7 +450,14 @@ export function BattleScreen() {
     const card = battle && selectedUid ? battle.cards[selectedUid] : null;
     const on =
       !!battle && battle.phase === "player" && !animating && card?.targeting === "foe";
-    const next = on ? computeAimCamera(worldRef.current, stageRef.current, aimFoeId) : null;
+    const next = on
+      ? computeAimCamera(
+          worldRef.current,
+          stageRef.current,
+          aimFoeId,
+          aimFoeId ? placementOf(battle, aimFoeId) : undefined,
+        )
+      : null;
     if (!animating) setCameraTarget(next);
     setAim((prev) => (sameCamera(prev, next) ? prev : next));
   }, [battle, selectedUid, aimFoeId, animating, stageScale, cameraRig]);
@@ -508,9 +526,7 @@ export function BattleScreen() {
     // 目标并集包围盒(世界坐标)
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     for (const id of focusIds) {
-      const index = b.enemyIds.indexOf(id);
-      const placement = index >= 0 ? slotPlacement(getEncounter(b.encounterId).enemies[index]) : undefined;
-      const w = unitWorldBox(world, id, placement);
+      const w = unitWorldBox(world, id, placementOf(b, id));
       if (!w) continue;
       left = Math.min(left, w.left);
       top = Math.min(top, w.top);
@@ -544,8 +560,8 @@ export function BattleScreen() {
     const world = worldRef.current;
     const fallback = b.enemyIds.includes(step.actorId) ? { x: 0, y: 1 } : { x: 0, y: -1 };
     if (!world) return fallback;
-    const target = targetIds.map((id) => unitWorldBox(world, id)).find(Boolean);
-    const actor = unitWorldBox(world, step.actorId);
+    const target = targetIds.map((id) => unitWorldBox(world, id, placementOf(b, id))).find(Boolean);
+    const actor = unitWorldBox(world, step.actorId, placementOf(b, step.actorId));
     if (!target || !actor) return fallback;
     const tx = (target.left + target.right) / 2;
     const ty = (target.top + target.bottom) / 2;

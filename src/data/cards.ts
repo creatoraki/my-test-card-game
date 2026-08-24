@@ -5,6 +5,7 @@ import { makeBasicCardDefs } from "./basicCards";
 import { BOTANIST_CARD_DEFS } from "./cards/botanist";
 import { PROPHET_CARD_DEFS } from "./cards/prophet";
 import { SWORDSMAN_CARD_DEFS } from "./cards/swordsman";
+import { NEUTRAL_CARD_DEFS } from "./cards/neutral";
 
 export const CARD_DEFS: CardDef[] = [
   ...makeBasicCardDefs("swordsman"),
@@ -13,4 +14,5 @@ export const CARD_DEFS: CardDef[] = [
   ...SWORDSMAN_CARD_DEFS,
   ...PROPHET_CARD_DEFS,
   ...BOTANIST_CARD_DEFS,
+  ...NEUTRAL_CARD_DEFS,
 ];

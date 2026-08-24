@@ -66,6 +66,7 @@ export type EffectTarget =
 export type EffectType =
   | "DAMAGE"
   | "GAIN_SHIELD"
+  | "DRAIN_SHIELD"
   | "HEAL"
   | "APPLY_STATUS"
   | "APPLY_STAT_MOD"
@@ -104,7 +105,8 @@ export interface EffectDescriptor {
   maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
   bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数加算到伤害倍率上(不是乘算)
   bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数加算的倍率
-  damageBonus?: { when: "targetHasShield"; multiplier: number }; // DAMAGE: 按目标护盾逐目标加算倍率
+    damageBonus?: { when: "targetHasShield" | "targetHasNoShield"; multiplier: number }; // DAMAGE: 按目标护盾逐目标加算倍率
+    cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
   amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
@@ -258,6 +260,7 @@ export interface StatusHooks {
   modifyOutgoingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 施放者身上的状态
   modifyIncomingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上的状态
   onAfterAttacked?: (c: StatusCtx, dmg: DamageCtx) => void; // 荆棘等
+  onShieldBroken?: (c: StatusCtx) => void; // 护盾被伤害击破时
 }
 
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
@@ -357,6 +360,36 @@ export interface Enemy extends BaseCombatant {
   actsPerRound: number; // 每回合行动次数上限, 建局时从 EnemyDef 拷入
   actsThisRound: number; // 本回合已消耗的行动点数
   intent: Intent;
+  aiMemory?: EnemyAiMemory;
+}
+
+export interface EnemyAiMemory {
+  lastMoveId?: string;
+  actsSinceRecycle: number;
+  hammerCooldown: number;
+  openingDone: boolean;
+  justBrokeShell: boolean;
+}
+
+export interface EnemyAiScript {
+  openingMoveId: string;
+  recycleMoveId: string;
+  shredMoveId: string;
+  hammerMoveId: string;
+  breatherMoveIds: string[];
+  breatherWeights: Record<string, number>;
+  successors: Record<string, Record<string, number>>;
+  thresholds: {
+    soloShield: number;
+    partyShield: number;
+    nearZeroShield: number;
+    imbalanceRatio: number;
+    concentration: number;
+  };
+  hammerOverride: number;
+  hammerCooldown: number;
+  recycleInsurance: number;
+  brittleShredBias: number;
 }
 
 export type Combatant = Ally | Enemy;
@@ -474,6 +507,7 @@ export interface EngineOps {
     amount: number,
     pct?: boolean,
   ): void;
+  addCardToHand(state: BattleState, cardId: string, ownerCharId?: string): void;
   discard(state: BattleState, uid: string, reason: DiscardReason): void;
   flushAutoPlays(state: BattleState): void;
   log(state: BattleState, text: string): void;

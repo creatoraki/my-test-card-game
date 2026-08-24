@@ -4,8 +4,10 @@
 // 新增一个状态 = 在此加一条定义。
 // ============================================================================
 
-import type { StatusCtx, StatusDef, DamageCtx } from "./types";
+import type { Enemy, StatusCtx, StatusDef, DamageCtx } from "./types";
 import { OVERLOAD_STATUS_ID, RULES } from "./rules";
+import { alliesOf } from "./targeting";
+import { rngPick } from "./rng";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
   // ---- 持续伤害 ----
@@ -120,6 +122,37 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
       },
       onRoundEnd: (c: StatusCtx) => {
         c.inst.stacks -= 1;
+      },
+    },
+  },
+  chargedShell: {
+    id: "chargedShell",
+    name: "充能外壳",
+    emoji: "🔋",
+    kind: "buff",
+    maxStacks: 1,
+    desc: `造成的攻击伤害 ×${RULES.combat.chargedShellDamageMultiplier}。护盾被击破时眩晕 1 层并掉落一张随机归属的废料弹片。`,
+    hooks: {
+      modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
+        if (dmg.isAttack) dmg.amount *= RULES.combat.chargedShellDamageMultiplier;
+      },
+      onShieldBroken: (c: StatusCtx) => {
+        const owner = c.state.combatants[c.ownerId];
+        if (!owner || owner.team !== "enemy") return;
+        const allies = alliesOf(c.state, owner);
+        c.ops.applyStatus(c.state, c.ownerId, "stun", 1);
+        if (allies.length > 0)
+          c.ops.addCardToHand(c.state, "scrap-shrapnel", rngPick(c.state, allies).charId);
+        c.inst.stacks = 0;
+        const enemy = owner as Enemy;
+        enemy.aiMemory ??= {
+          actsSinceRecycle: 0,
+          hammerCooldown: 0,
+          openingDone: true,
+          justBrokeShell: false,
+        };
+        enemy.aiMemory.justBrokeShell = true;
+        c.ops.log(c.state, `${owner.emoji} ${owner.name} 的充能外壳被击破`);
       },
     },
   },

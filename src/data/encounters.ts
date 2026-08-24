@@ -61,11 +61,16 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
 // ⚠ 底部 HUD 改造后 dx 整体 +195(旧值 -320 / 50): 舞台不再避让左侧手牌栏
 // (左边缘 406 → 16), 水平中心因此西移 195px —— 加回去才让敌人停在与改造前**完全相同**的
 // 绝对位置上(背景没动, 地面线也没动)。dy 不变, 垂直方向舞台顶边未变。
+// 当前是新立绘验证用的两人编队: 维修蜘蛛 + 红绿灯机器人。两台走默认槽位(dx 省略),
+// 共用 219.625 的地面线; 立绘主体高度已由 enemyArt.ts 的 body 归一, scale 只调体型:
+// 蜘蛛趴得低给 0.85, 红绿灯是立柱式单位给 1.15。
 const RADIO_TRIO: EnemySlot[] = [
+  { id: "maintenance-spider", dy: 219.625, scale: 0.85 },
+  { id: "traffic-light-bot", dy: 219.625, scale: 1.15 },
   // { id: "sweep-drone", dx: -62, dy: 219.625, scale: 1.2 },
   // { id: "pole-bot", dx: 0, dy: 80, scale: 1.4 },
   // { id: "radio-bot", dx: 62, dy: 219.625, scale: 1, flip: true },
-  { id: "scrap-mountain-guardian", dx: 0, dy: -60, scale: 2.4 },
+  // { id: "scrap-mountain-guardian", dx: 0, dy: -60, scale: 2.4 },
 ];
 
 // { id: "scrap-mountain-guardian", dx: 0, dy: -60, scale: 2.4 }, BOSS 参数

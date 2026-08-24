@@ -6,6 +6,7 @@ import { log } from "./ops";
 import { partyHandLimit } from "./stats";
 import { registerPollutedCardDraw } from "./pollution";
 import { resetCultivate } from "./cultivate";
+import { makeCard } from "../data";
 
 // 抽 n 张(受小队手牌上限限制)。抽牌堆空则把弃牌堆洗回。
 export function drawCards(state: BattleState, n: number): void {
@@ -29,4 +30,14 @@ export function drawCards(state: BattleState, n: number): void {
     drawn++;
   }
   if (drawn > 0) log(state, `🃏 抽了 ${drawn} 张牌`);
+}
+
+export function addCardToHand(state: BattleState, cardId: string, ownerCharId?: string): void {
+  if (state.hand.length >= partyHandLimit(state)) return;
+  const card = makeCard(cardId);
+  if (ownerCharId) card.ownerCharId = ownerCharId;
+  state.cards[card.uid] = card;
+  state.hand.push(card.uid);
+  resetCultivate(card);
+  log(state, `${card.name} 加入手牌`);
 }

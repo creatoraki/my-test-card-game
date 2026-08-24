@@ -76,6 +76,8 @@ export const RULES = {
     starlightMax: 3,
     regenHealPerStack: 5,
     ironwallDefense: 5,
+    chargedShellDamageMultiplier: 1.5,
+    shieldRecycleBonus: 30,
   },
 
   // 探索负重 —— 背包固定 24 格; 每 2 点负重命中 −1%, 每 5 点负重先手 −1。

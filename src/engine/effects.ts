@@ -11,8 +11,6 @@ import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 import { starPayable } from "./cost";
 import { CARD_MARK_DEFS } from "./cardMarks";
-import { makeCard } from "../data";
-import { resetCultivate } from "./cultivate";
 
 export interface EffectResolution {
   missed: string[];
@@ -125,8 +123,13 @@ function applyEffect(
       for (let i = 0; i < hits; i++)
         for (const id of targetIds) {
           const targetHasShield = state.combatants[id]?.shield > 0;
+          const bonusApplies =
+            !fixed &&
+            effect.damageBonus &&
+            ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
+              (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield));
           const damageMultiplier =
-            !fixed && effect.damageBonus?.when === "targetHasShield" && targetHasShield
+            bonusApplies
               ? baseMultiplier + effect.damageBonus.multiplier
               : baseMultiplier;
           const dmg = fixed ? amount * (1 + bonusMult) : statOf(src, "attack") * damageMultiplier;
@@ -149,6 +152,20 @@ function applyEffect(
         }
       if (effect.lifesteal != null && lifestealPool > 0)
         ops.heal(state, sourceId, sourceId, lifestealPool * effect.lifesteal, { scaled: true });
+      break;
+    }
+    case "DRAIN_SHIELD": {
+      let drained = 0;
+      for (const id of targetIds) {
+        const target = state.combatants[id];
+        if (!target || !target.alive) continue;
+        drained += target.shield;
+        target.shield = 0;
+      }
+      if (drained > 0 || amount > 0) {
+        ops.gainShield(state, sourceId, sourceId, drained + amount);
+        ops.log(state, `${src.name} 回收了 ${drained} 点护盾`);
+      }
       break;
     }
     case "GAIN_SHIELD": {
@@ -270,12 +287,11 @@ function applyEffect(
       break;
     }
     case "ADD_CARD_TO_HAND": {
-      if (!effect.cardId || state.hand.length >= partyHandLimit(state)) break;
-      const card = makeCard(effect.cardId);
-      state.cards[card.uid] = card;
-      state.hand.push(card.uid);
-      resetCultivate(card);
-      ops.log(state, `${card.name} 加入手牌`);
+      if (!effect.cardId) break;
+      const allies = src ? alliesOf(state, src) : [];
+      if (effect.cardOwner === "randomAlly" && allies.length === 0) break;
+      const ownerCharId = effect.cardOwner === "randomAlly" ? rngPick(state, allies).charId : undefined;
+      ops.addCardToHand(state, effect.cardId, ownerCharId);
       break;
     }
     case "RESTORE_HP_LIMIT":

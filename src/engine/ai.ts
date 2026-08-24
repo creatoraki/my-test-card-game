@@ -7,6 +7,7 @@ import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
 import { allIds, getStatus, log, markDead } from "./ops";
 import { enemyActDelay, statOf } from "./stats";
 import { rngPickWeighted } from "./rng";
+import { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 
 // 消耗一个行动点, 随机抽取下一招并开始蓄力。
 export function startCharge(state: BattleState, enemyId: string): void {
@@ -17,7 +18,10 @@ export function startCharge(state: BattleState, enemyId: string): void {
   }
 
   const def = getEnemyDef(e.enemyDefId);
-  const move = rngPickWeighted(state, def.moves, (m) => m.weight ?? 1);
+  const move = def.ai
+    ? pickScriptedMove(state, e, def)
+    : rngPickWeighted(state, def.moves, (m) => m.weight ?? 1);
+  if (def.ai) updateAiMemory(e, move, def.ai);
   e.actsThisRound += 1;
 
   const dmgEff = move.effects.find((x) => x.type === "DAMAGE");
@@ -99,10 +103,16 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   }
 
   const def = getEnemyDef(e.enemyDefId);
-  const move = def.moves.find((m) => m.id === e.intent.moveId) ?? def.moves[0];
+  const scriptedMove = def.ai && e.aiMemory?.justBrokeShell ? pickScriptedMove(state, e, def) : undefined;
+  const move = scriptedMove ?? def.moves.find((m) => m.id === e.intent.moveId) ?? def.moves[0];
+  if (scriptedMove) {
+    e.intent = { moveId: move.id, name: move.name, emoji: move.emoji, kind: move.kind };
+    updateAiMemory(e, move, def.ai);
+  }
 
   let primaryId: string | undefined;
-  if (move.targeting === "foe") primaryId = chooseRandomTarget(state, enemyId);
+  if (move.targeting === "foe")
+    primaryId = pickScriptedTarget(state, e, move) ?? chooseRandomTarget(state, enemyId);
   else if (move.targeting === "ally") primaryId = enemyId; // 简化: 支援自身
 
   // 在结算前归纳受影响单位(此时目标仍存活, 死掉的目标也应闪特效)

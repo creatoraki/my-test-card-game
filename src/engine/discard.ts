@@ -16,6 +16,7 @@ import { RULES } from "./rules";
 import { rngPick } from "./rng";
 import { alliesOf, foesOf } from "./targeting";
 import { resetCultivate } from "./cultivate";
+import { addCardToHand } from "./deck";
 
 let activeRecorder: DiscardRecorder | undefined;
 let flushing = false;
@@ -159,3 +160,4 @@ export function takeDiscardSnapshot(state: BattleState): BattleState | undefined
 // effects.ts 通过 ops 调用此入口，避免与本模块形成静态循环依赖。
 ops.discard = moveToDiscard;
 ops.flushAutoPlays = flushAutoPlays;
+ops.addCardToHand = addCardToHand;

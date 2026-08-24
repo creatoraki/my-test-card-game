@@ -135,6 +135,7 @@ export function dealDamage(
   dmg.amount = Math.max(0, Math.round(dmg.amount));
 
   // ---- 5. 护盾吸收 ----
+  const shieldBefore = target.shield;
   if (!opts.unblockable && target.shield > 0) {
     const absorbed = Math.min(target.shield, dmg.amount);
     target.shield -= absorbed;
@@ -154,6 +155,9 @@ export function dealDamage(
     // 濒死判定仍算一次受击, 保留荆棘等 onAfterAttacked 联动, 但不产生 HP 损失。
     for (const inst of [...target.statuses])
       STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
+    if (shieldBefore > 0 && target.shield === 0)
+      for (const inst of [...target.statuses])
+        STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
     cleanup(target);
     if (dmg.fatal) markDead(state, target);
     return "hit";
@@ -175,6 +179,9 @@ export function dealDamage(
   // 被攻击后触发(荆棘等)
   for (const inst of [...target.statuses])
     STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
+  if (shieldBefore > 0 && target.shield === 0)
+    for (const inst of [...target.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
   cleanup(target);
 
   if (target.team !== "player" && target.hp <= 0) markDead(state, target);
@@ -288,6 +295,7 @@ export const ops: EngineOps = {
   gainShield,
   applyStatus,
   applyStatMod,
+  addCardToHand: () => undefined,
   discard: () => undefined,
   flushAutoPlays: () => undefined,
   log,

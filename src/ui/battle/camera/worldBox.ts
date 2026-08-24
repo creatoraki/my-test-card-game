@@ -24,9 +24,9 @@ export function unitWorldBox(world: HTMLElement, id: string, placement?: EnemyPl
   if (!combatant) return null;
   const stage = combatant.querySelector<HTMLElement>("[data-cmb-stage]") ?? combatant;
   const position = layoutPosition(world, stage);
-  const scale = placement?.scale ?? 1;
-  const width = stage.offsetWidth * scale;
-  const height = stage.offsetHeight * scale;
+  // 体型缩放已烘进 --fig-h 的布局高度，这里再乘 placement.scale 会造成双倍缩放。
+  const width = stage.offsetWidth;
+  const height = stage.offsetHeight;
   const dx = placement?.dx ?? 0;
   const dy = placement?.dy ?? 0;
   const centerX = position.x + stage.offsetWidth / 2 + dx;
