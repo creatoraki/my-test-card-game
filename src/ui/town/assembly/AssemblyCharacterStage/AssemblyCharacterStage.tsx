@@ -1,11 +1,8 @@
-import { useEffect, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import { getCharacter } from "@/data";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
-import { ArrowLeftIcon, ArrowRightIcon } from "../AssemblyScene/icons";
 import s from "./AssemblyCharacterStage.module.css";
-
-const PAGE_SIZE = 3;
 
 interface Props {
   awakened: string[];
@@ -16,26 +13,22 @@ interface Props {
 export function AssemblyCharacterStage({ awakened, selected, onSelect }: Props) {
   const selectedId = selected || awakened[0];
   const selectedCharacter = selectedId ? getCharacter(selectedId) : null;
-  const pageCount = Math.max(1, Math.ceil(awakened.length / PAGE_SIZE));
   const selectedIndex = selectedId ? awakened.indexOf(selectedId) : -1;
-  const [page, setPage] = useState(0);
+  const selectedRef = useRef<HTMLButtonElement | null>(null);
 
+  // 缩略条改成一条横向滚动的胶片, 选中项由代码滚进可视区 —— 顶掉了原来那套分页按钮 + 「01 / 02」指示器。
   useEffect(() => {
-    if (selectedIndex >= 0) setPage(Math.floor(selectedIndex / PAGE_SIZE));
-    else setPage((currentPage) => Math.min(currentPage, pageCount - 1));
-  }, [pageCount, selectedIndex]);
+    selectedRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [selectedId]);
 
-  const currentPage = Math.min(page, pageCount - 1);
-  const pageCharacters = awakened.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
-  const goToPage = (nextPage: number) => setPage(Math.max(0, Math.min(nextPage, pageCount - 1)));
-  const onNavigationKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "ArrowLeft" && currentPage > 0) {
-      event.preventDefault();
-      goToPage(currentPage - 1);
-    } else if (event.key === "ArrowRight" && currentPage < pageCount - 1) {
-      event.preventDefault();
-      goToPage(currentPage + 1);
-    }
+  const onListKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (selectedIndex < 0) return;
+    const step = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
+    if (!step) return;
+    const nextIndex = selectedIndex + step;
+    if (nextIndex < 0 || nextIndex >= awakened.length) return;
+    event.preventDefault();
+    onSelect(awakened[nextIndex]);
   };
 
   return (
@@ -51,63 +44,49 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect }: Props) 
         ) : (
           <span className={s.emptyPortrait} aria-hidden="true" />
         )}
-      </div>
-      <div className={s.heading}>
-        <span className={s.kicker}>CURRENT OPERATOR</span>
-        <strong>{selectedCharacter?.name ?? "未选择角色"}</strong>
-      </div>
-      <div className={s.characterNav} onKeyDown={onNavigationKeyDown} aria-label="角色分页">
-        <div className={s.pagination}>
-          <button
-            className={s.pageButton}
-            type="button"
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 0}
-            aria-label="上一页角色"
-          >
-            <ArrowLeftIcon />
-          </button>
-          <span className={s.pageIndicator} aria-live="polite">
-            {String(currentPage + 1).padStart(2, "0")} / {String(pageCount).padStart(2, "0")}
-          </span>
-          <button
-            className={s.pageButton}
-            type="button"
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === pageCount - 1}
-            aria-label="下一页角色"
-          >
-            <ArrowRightIcon />
-          </button>
-        </div>
-        <div className={s.characterList} role="list" tabIndex={0} aria-label="可用角色">
-        {pageCharacters.map((id) => {
-          const character = getCharacter(id);
-          const isSelected = id === selectedId;
-          return (
-            <button
-              key={id}
-              className={cx(s.character, isSelected && s.selected)}
-              type="button"
-              role="listitem"
-              aria-label={`选择${character.name}`}
-              aria-pressed={isSelected}
-              onClick={() => onSelect(id)}
-              style={{ "--character-color": character.color } as CSSProperties}
-            >
-              <CharacterPortrait
-                characterId={id}
-                emoji={character.emoji}
-                alt=""
-                className={s.thumbnail}
-              />
-              <span className={s.index}>{String(awakened.indexOf(id) + 1).padStart(2, "0")}</span>
-            </button>
-          );
-        })}
+        <div className={s.nameplate}>
+          <strong className={s.name}>{selectedCharacter?.name ?? "未选择角色"}</strong>
+          {awakened.length > 0 && selectedIndex >= 0 && (
+            <span className={s.rank}>{selectedIndex + 1} / {awakened.length}</span>
+          )}
         </div>
       </div>
-      {!awakened.length && <p className={s.empty}>暂无可用角色</p>}
+      {awakened.length ? (
+        <div
+          className={s.characterList}
+          role="list"
+          tabIndex={0}
+          aria-label="可用角色"
+          onKeyDown={onListKeyDown}
+        >
+          {awakened.map((id) => {
+            const character = getCharacter(id);
+            const isSelected = id === selectedId;
+            return (
+              <button
+                key={id}
+                ref={isSelected ? selectedRef : undefined}
+                className={cx(s.character, isSelected && s.selected)}
+                type="button"
+                role="listitem"
+                aria-label={`选择${character.name}`}
+                aria-pressed={isSelected}
+                onClick={() => onSelect(id)}
+                style={{ "--character-color": character.color } as CSSProperties}
+              >
+                <CharacterPortrait
+                  characterId={id}
+                  emoji={character.emoji}
+                  alt=""
+                  className={s.thumbnail}
+                />
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className={s.empty}>暂无可用角色</p>
+      )}
     </aside>
   );
 }

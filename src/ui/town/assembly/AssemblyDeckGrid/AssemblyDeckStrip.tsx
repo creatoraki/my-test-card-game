@@ -16,7 +16,7 @@ export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect }: 
   return (
     <section className={s.gridPanel} data-assembly-deck-grid aria-label="卡组浏览">
       <div className={s.heading}>
-        <span className={s.kicker}>CARD DECK</span>
+        <span className={s.kicker}>卡组</span>
         <span className={s.count}>{deck.length} 张</span>
       </div>
       {deck.length ? (

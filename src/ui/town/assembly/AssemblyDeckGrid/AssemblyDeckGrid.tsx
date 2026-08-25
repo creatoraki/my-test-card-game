@@ -3,6 +3,7 @@ import type { ItemStack } from "@/items/types";
 import { canEquipModule } from "@/data";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { cx } from "@/ui/common/cx";
+import { CardModuleIcon } from "../AssemblyScene/icons";
 import s from "./AssemblyDeckGrid.module.css";
 
 interface Props {
@@ -16,7 +17,7 @@ export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect }: 
   return (
     <section className={s.gridPanel} data-assembly-deck-grid aria-label="卡组浏览">
       <div className={s.heading}>
-        <span className={s.kicker}>CARD DECK</span>
+        <span className={s.kicker}>卡组</span>
         <span className={s.count}>{deck.length} 张</span>
       </div>
       {deck.length ? (
@@ -38,7 +39,11 @@ export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect }: 
                   onClick={() => onSelect(card.uid)}
                   className={s.deckCard}
                 />
-                {card.cardModule && <span className={s.moduleMark} aria-label="已装配模组" />}
+                {card.cardModule && (
+                  <span className={s.moduleMark} role="img" aria-label="已装配模组">
+                    <CardModuleIcon />
+                  </span>
+                )}
               </div>
             );
           })}

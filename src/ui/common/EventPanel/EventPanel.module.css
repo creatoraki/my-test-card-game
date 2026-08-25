@@ -22,33 +22,21 @@
   box-shadow: inset 0 -40px 90px #00000030, 0 22px 70px #0009, 0 0 0 1px #ffffff05;
 }
 
-.eventDemo::before,
-.eventDemo::after {
+/* ⚠ 这里原本还有一个 .eventDemo::after —— 面板右上角那盏会缓慢漂移的氛围灯
+   (width:32% / height:118% 的竖长方形 + box-shadow 辉光 + mix-blend-mode: screen)。
+   外阴影只画在边框盒外侧, 于是这个竖长条的左右两边各投出一条贯穿面板全高的亮带,
+   在背景板上读起来就是两道莫名其妙的竖纹。该效果已确认为不需要的视觉, 整层删除,
+   连同 ambientLightDrift 关键帧。背景板的光只由 .eventDemo 自身 background 里的
+   那几层 radial-gradient 提供, 不要再引入独立的矩形发光层。 */
+.eventDemo::before {
   position: absolute;
   z-index: -1;
+  inset: 0;
   content: "";
   pointer-events: none;
-}
-
-.eventDemo::before {
-  inset: 0;
   opacity: 0.46;
   background: radial-gradient(circle at 8% 12%, #f4ffffb8 0 1px, transparent 1.5px);
   mix-blend-mode: screen;
-}
-
-.eventDemo::after {
-  top: -9%;
-  right: 7%;
-  width: 32%;
-  height: 118%;
-  background:
-    radial-gradient(circle at 78% 15%, color-mix(in srgb, var(--event-accent) 50%, white) 0 1px, color-mix(in srgb, var(--event-accent) 18%, transparent) 2%, transparent 23%),
-    radial-gradient(ellipse at 78% 15%, color-mix(in srgb, var(--event-accent) 22%, transparent), transparent 52%);
-  box-shadow: 0 0 32px color-mix(in srgb, var(--event-accent) 18%, transparent), -110px 75px 100px #7ee7ff12;
-  mix-blend-mode: screen;
-  opacity: 0.55;
-  animation: ambientLightDrift 12s ease-in-out infinite alternate;
 }
 
 .demoHeader {
@@ -873,11 +861,6 @@
   to { opacity: 1; clip-path: inset(0); }
 }
 
-@keyframes ambientLightDrift {
-  from { opacity: 0.42; transform: translate3d(0, 0, 0) rotate(0deg); }
-  to { opacity: 0.68; transform: translate3d(-12px, 5px, 0) rotate(-1deg); }
-}
-
 @keyframes briefingIn {
   from { opacity: 0; transform: translateX(-28px); }
   to { opacity: 1; transform: translateX(0); }
@@ -946,7 +929,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sceneViewport,
-  .eventDemo::after,
   .briefingScene,
   .briefingScene .scenePlaceholder,
   .briefingScene .briefingCopy,

@@ -44,6 +44,17 @@ export function DetachIcon() {
   );
 }
 
+/** 卡面右上角的「已装配模组」徽章图标 —— 芯片本体 + 四面引脚, 小尺寸下轮廓仍然读得出来。 */
+export function CardModuleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="7" y="7" width="10" height="10" rx="1.6" />
+      <circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none" />
+      <path d="M10 3.5V7M14 3.5V7M10 17v3.5M14 17v3.5M3.5 10H7M3.5 14H7M17 10h3.5M17 14h3.5" />
+    </svg>
+  );
+}
+
 export function AssemblyIcon() {
   return (
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

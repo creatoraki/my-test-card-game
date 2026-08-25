@@ -14,18 +14,19 @@
   gap: 12px;
 }
 
+/* 同 ModuleRack: 中文标题不吃英文 kicker 那套 10px/0.14em。 */
 .kicker {
-  color: var(--asm-magenta, #ff55a8);
+  color: var(--asm-select, #9fe8ff);
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.06em;
 }
 
 .count,
 .empty {
   color: var(--muted, #849096);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .track {
@@ -35,10 +36,11 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
   gap: 14px;
-  padding: 4px 8px 10px 4px;
+  /* 内边距要吃得下选中角标的 -6px 外扩和它的 5px 发光, 否则边缘那列会被 overflow 裁掉。 */
+  padding: 10px 10px 12px 10px;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-color: color-mix(in srgb, var(--asm-magenta, #ff55a8) 46%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--asm-select, #9fe8ff) 46%, transparent) transparent;
   scrollbar-width: thin;
 }
 
@@ -50,19 +52,50 @@
   transition: opacity 180ms ease;
 }
 
+/* 选中态改成四角括号: 只画四个 L 形角, 不勾整圈。
+   整圈实线边框在这里必然难看 —— 卡面是 18px 圆角, 外框是直角, 两条弧线永远对不齐。
+   八条 linear-gradient 各占一个角的一条边, 位置用 0/100% 定位, 尺寸用 长×粗 控制。 */
 .card[data-selected="true"]::before {
+  --mk-c: var(--asm-select, #9fe8ff);
+  --mk-w: 2px;
+  --mk-len: 26px;
+  --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
   position: absolute;
-  inset: -4px;
-  z-index: 2;
-  border: 1px solid var(--asm-magenta, #ff55a8);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--asm-magenta, #ff55a8) 48%, transparent);
+  inset: -6px;
+  /* ⚠ 必须压过 .deckCard 的 z-index:3 —— 角标是 26px 长的实条, 从外框往**里**长,
+     排在卡片下面的话只有露在外面那 6px 可见, 剩下 20px 全被不透明卡面吃掉。 */
+  z-index: 5;
+  background:
+    var(--mk-bar) 0 0 / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 0 0 / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 100% 0 / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 100% 0 / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 100% 100% / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 100% 100% / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 0 100% / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 0 100% / var(--mk-w) var(--mk-len) no-repeat;
+  /* drop-shadow 跟随角标形状发光; 换成 box-shadow 会沿整个矩形边界画一圈, 等于又回到实线框。 */
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--mk-c) 70%, transparent));
   content: "";
   pointer-events: none;
+  /* data-selected 成立 ⟺ DeckCard 自己也在 is-selected 的 -4px 位移上, 角标必须跟着走。 */
+  transform: translateY(-4px);
+  animation: markSnap 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 
-.card[data-selected="true"] > button {
-  outline: 2px solid var(--asm-magenta, #ff55a8);
-  outline-offset: 2px;
+/* DeckCard 自带一圈 --owner-color 的 outline(角色色)。装配面板用 --asm-select 表示「当前选中」,
+   两套颜色叠在同一张卡上就是三重描边, 这里把组件自带的那圈压掉, 只留角标。
+   特异性 0,3,0 > 组件内 .deck-card.is-selected 的 0,2,0, 不依赖样式表先后顺序。 */
+.card[data-selected="true"] .deckCard[aria-pressed="true"] {
+  outline: none;
+  border-radius: 0;
+}
+
+@keyframes markSnap {
+  from {
+    opacity: 0;
+    scale: 1.05;
+  }
 }
 
 .deckCard {
@@ -75,18 +108,40 @@
   filter: saturate(0.35);
 }
 
+/* 「已装配」徽章。钉在插画区右上角: 卡面左上是能量球、y≈62% 起是卡名条和描述区,
+   右上角是唯一不压任何信息的位置。尺寸用百分比, 卡片随列宽缩放时徽章同步缩放。 */
 .moduleMark {
   position: absolute;
-  right: 7px;
-  bottom: 8px;
-  z-index: 3;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--asm-cyan, #58efc7);
-  background: #13201e;
-  box-shadow: 0 0 8px var(--asm-cyan, #58efc7);
-  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+  top: 3%;
+  right: 3.5%;
+  z-index: 4;
+  display: grid;
+  width: 17%;
+  aspect-ratio: 1;
+  place-items: center;
+  color: #06171a;
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--asm-cyan, #58efc7) 92%, white), var(--asm-cyan, #58efc7) 62%, color-mix(in srgb, var(--asm-cyan, #58efc7) 72%, #0b2b28));
+  border: 1px solid color-mix(in srgb, var(--asm-cyan, #58efc7) 60%, white);
+  box-shadow:
+    0 0 0 2px #08161ab8,
+    0 0 16px -1px color-mix(in srgb, var(--asm-cyan, #58efc7) 78%, transparent),
+    0 3px 8px #000000a6;
+  clip-path: polygon(28% 0, 100% 0, 100% 72%, 72% 100%, 0 100%, 0 28%);
   pointer-events: none;
+  transition: transform 160ms ease;
+}
+
+.moduleMark svg {
+  width: 62%;
+  height: 62%;
+}
+
+/* DeckCard 在 hover / 选中时会 translateY(-4px), 徽章挂在外层 wrapper 上不会跟着走,
+   这里补一份同样的位移, 否则徽章会从卡角上「掉队」。 */
+.card:hover .moduleMark,
+.card[data-selected="true"] .moduleMark {
+  transform: translateY(-4px);
 }
 
 .empty {
@@ -95,7 +150,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card {
+  .card,
+  .moduleMark {
     transition: none;
+  }
+
+  .card:hover .moduleMark,
+  .card[data-selected="true"] .moduleMark {
+    transform: none;
+  }
+
+  .card[data-selected="true"]::before {
+    transform: none;
+    animation: none;
   }
 }

@@ -25,7 +25,7 @@ export function AssemblyModuleRack({
   return (
     <aside className={s.rack} aria-label="仓库模组">
       <div className={s.heading}>
-        <span className={s.kicker}>MODULE RACK</span>
+        <span className={s.kicker}>模组仓库</span>
         <span className={s.count}>{moduleStacks.length} 件</span>
       </div>
       {moduleStacks.length ? (
@@ -38,7 +38,7 @@ export function AssemblyModuleRack({
                 key={stack.uid}
                 className={cx(s.option, !compatible && s.incompatible, selected && s.selected)}
                 data-compatible={compatible}
-                onPointerEnter={(event) => onShowTooltip(event, stack)}
+                onPointerEnter={(event) => onShowTooltip(event.currentTarget, stack)}
                 onPointerLeave={onHideTooltip}
                 onFocus={(event) => onShowTooltip(event.currentTarget, stack)}
                 onBlur={(event) => {

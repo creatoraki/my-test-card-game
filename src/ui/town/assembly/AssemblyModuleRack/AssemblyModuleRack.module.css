@@ -5,7 +5,6 @@
   align-content: start;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
-  padding-left: 18px;
   overflow: hidden;
 }
 
@@ -16,17 +15,18 @@
   gap: 8px;
 }
 
+/* 原本是给英文小字号 kicker 调的 10px/0.14em, 换成中文后字太小, 这里放大并收窄字距。 */
 .kicker {
   color: var(--asm-cyan, var(--event-accent, #58efc7));
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.06em;
 }
 
 .count {
   color: var(--muted, #849096);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .grid {
@@ -35,7 +35,9 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-content: start;
   gap: 10px;
-  padding: 3px 6px 10px 0;
+  /* ⚠ 这圈内边距不能删: .option.selected::after 是 inset:-4px 的角标, 还带 4px 发光,
+     而 .rack 上是 overflow:hidden —— 没有余量, 边缘那列的角标会被整条裁掉。 */
+  padding: 8px 8px 10px 8px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-color: color-mix(in srgb, var(--asm-cyan, #58efc7) 44%, transparent) transparent;
@@ -63,13 +65,35 @@
   filter: none;
 }
 
+/* 与卡组选中态同一套语言: 四角括号, 不勾整圈。角标短一些以匹配格子尺寸。 */
 .option.selected::after {
+  --mk-c: var(--asm-select, #9fe8ff);
+  --mk-w: 2px;
+  --mk-len: 15px;
+  --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
   position: absolute;
-  inset: -3px;
-  border: 1px solid var(--asm-magenta, #ff55a8);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--asm-magenta, #ff55a8) 46%, transparent);
+  inset: -4px;
+  z-index: 2;
+  background:
+    var(--mk-bar) 0 0 / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 0 0 / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 100% 0 / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 100% 0 / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 100% 100% / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 100% 100% / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 0 100% / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 0 100% / var(--mk-w) var(--mk-len) no-repeat;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--mk-c) 70%, transparent));
   content: "";
   pointer-events: none;
+  animation: markSnap 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+@keyframes markSnap {
+  from {
+    opacity: 0;
+    scale: 1.06;
+  }
 }
 
 .slot {
@@ -78,13 +102,20 @@
   width: 100%;
 }
 
+/* ItemSlot 选中时把自身边框染成 --accent, 这里把它对齐到面板的选中色, 与角标同色。 */
+.option.selected .slot {
+  --accent: var(--asm-select, #9fe8ff);
+}
+
 .compatibility {
   position: absolute;
   right: 4px;
   bottom: 4px;
-  padding: 2px 3px;
+  /* 压过选中角标(z-index:2), 否则右下角那条角标会盖住「可用 / 不匹配」。 */
+  z-index: 3;
+  padding: 2px 4px;
   color: #c5d8c4;
-  font-size: 8px;
+  font-size: 10px;
   background: #11201bd9;
   pointer-events: none;
 }
@@ -135,5 +166,9 @@
   .option:hover,
   .option:focus-within {
     transform: none;
+  }
+
+  .option.selected::after {
+    animation: none;
   }
 }

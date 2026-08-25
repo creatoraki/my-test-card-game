@@ -1,24 +1,31 @@
 .stage {
   --stage-accent: var(--character-color, var(--asm-cyan, var(--event-accent, #58efc7)));
-  --slot-base-w: 132px;
+  /* ⚠ 立绘宽度改用**百分比**基准: 44% × 2.2 ≈ 96.8% —— 与旧的 132px × 2.2 在 300px 容器里
+     完全等价, 但从此随容器缩放。各角色的 --bust-scale / --portrait-dx 校准值仍然成立。 */
+  --slot-base-w: 44%;
   --bust-zoom: 2.2;
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 12px;
-  align-content: start;
   padding-right: 18px;
 }
 
+/* ⚠ 立绘框是 3:4 的, 宽度又被左栏列宽卡死, 所以「吃满高度」只能是**在比例内取最大**:
+   宽度撑满列宽 → 高度由 3:4 推出 → max-height 兜底防止超出剩余空间, 再上下居中。
+   直接写 height:100% 会让 height 压过 aspect-ratio, 框被拉成细长条、立绘吊在顶部。 */
 .viewport {
   position: relative;
   display: flex;
-  width: min(100%, 300px);
-  height: 400px;
+  width: 100%;
+  height: auto;
   min-height: 0;
   align-items: flex-end;
+  align-self: center;
   justify-content: center;
+  justify-self: center;
+  max-height: 100%;
   overflow: hidden;
   aspect-ratio: 3 / 4;
   border: 1px solid color-mix(in srgb, var(--stage-accent) 58%, #7f9394);
@@ -61,96 +68,63 @@
   content: "";
 }
 
-.heading {
-  display: grid;
-  gap: 3px;
-  padding-left: 3px;
+/* 角色名压在立绘底部, 省掉外面那块独立的「小标签 + 名字」双行区。 */
+.nameplate {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 26px 14px 11px;
+  background: linear-gradient(to top, #060d0fee 16%, #060d0f8f 58%, transparent);
+  pointer-events: none;
 }
 
-.kicker {
-  color: var(--stage-accent);
-  font-family: var(--font-family);
-  font-size: 9px;
-  letter-spacing: 0.15em;
-}
-
-.heading strong {
+.name {
+  min-width: 0;
   overflow: hidden;
   color: var(--text);
-  font-size: 22px;
+  font-size: 21px;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-shadow: 0 2px 8px #000;
 }
 
-.characterNav {
-  display: grid;
-  min-height: 0;
-  gap: 7px;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.pageButton {
-  display: grid;
-  width: 28px;
-  height: 24px;
-  place-items: center;
-  padding: 0;
+.rank {
+  flex: 0 0 auto;
   color: var(--stage-accent);
-  background: #0d191d;
-  border: 1px solid #4c7379;
-  cursor: pointer;
-  transition: border-color 160ms ease, color 160ms ease, opacity 160ms ease;
-}
-
-.pageButton svg {
-  width: 16px;
-  height: 16px;
-}
-
-.pageButton:hover:not(:disabled),
-.pageButton:focus-visible {
-  color: var(--asm-magenta, #ff55a8);
-  border-color: var(--asm-magenta, #ff55a8);
-}
-
-.pageButton:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.pageIndicator {
-  color: var(--asm-ink-dim, #8fa9ae);
   font-family: var(--font-family);
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
 }
 
 .characterList {
-  display: grid;
-  min-height: 108px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  min-width: 0;
   gap: 8px;
-  padding: 3px;
-  overflow: hidden;
+  padding: 3px 0 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
   outline: none;
+  scrollbar-color: color-mix(in srgb, var(--asm-cyan, #58efc7) 44%, transparent) transparent;
+  scrollbar-width: thin;
 }
 
 .characterList:focus-visible {
-  outline: 1px solid var(--asm-magenta, #ff55a8);
+  outline: 1px solid var(--asm-select, #9fe8ff);
   outline-offset: 3px;
 }
 
 .character {
   position: relative;
   display: grid;
-  width: 100%;
-  height: 104px;
+  flex: 0 0 84px;
+  height: 108px;
   align-items: end;
   justify-items: center;
   padding: 0;
@@ -182,7 +156,8 @@
 }
 
 .thumbnail {
-  --slot-base-w: 46px;
+  /* 同样换成百分比基准, 格子宽度再变也不会把半身像截歪。 */
+  --slot-base-w: 47%;
   --bust-zoom: 2.15;
   position: absolute;
   top: 0;
@@ -194,14 +169,8 @@
   opacity: 0.82;
 }
 
-.index {
-  position: absolute;
-  right: 4px;
-  bottom: 3px;
-  color: #f4f8ed;
-  font-family: var(--font-family);
-  font-size: 10px;
-  text-shadow: 0 1px 4px #000;
+.character.selected .thumbnail {
+  opacity: 1;
 }
 
 .empty {
@@ -211,8 +180,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .character,
-  .pageButton {
+  .character {
     transition: none;
   }
 

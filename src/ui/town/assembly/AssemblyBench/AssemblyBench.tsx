@@ -50,10 +50,7 @@ export function AssemblyBench({
   return (
     <section className={cx(s.bench, className)} data-state={state} aria-label="紧凑装配台">
       <div className={s.benchHeader}>
-        <div>
-          <span className={s.kicker}>ASSEMBLY BENCH</span>
-          <strong>模组连接控制台</strong>
-        </div>
+        <strong>装配台</strong>
         <span className={s.state} aria-live="polite">{stateLabel}</span>
       </div>
       <div className={s.benchSurface}>
@@ -75,11 +72,10 @@ export function AssemblyBench({
             )}
             <span className={s.slotMark}>{installedStack ? "装配中" : "模组槽"}</span>
           </div>
-          <span className={s.moduleTag}>MODULE</span>
         </div>
       </div>
+      {/* 底部只留动作按钮 —— 原来的提示语和右上角状态标签说的是同一件事, 白占一行。 */}
       <div className={s.benchFooter}>
-        <span className={s.footerHint}>{state === "invalid" ? "当前卡牌无法接入此模组" : "选择候选模组后确认"}</span>
         <EventPanelButton
           className={s.actionButton}
           tone={installedStack ? "danger" : "primary"}

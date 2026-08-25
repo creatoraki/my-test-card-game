@@ -31,7 +31,8 @@ export interface EventPanelOption {
 
 interface EventPanelFrameProps {
   accent: string;
-  kicker: string;
+  /** 省略则页眉只留大标题 —— 给那些标题本身已经说清楚、再加一行小字纯属重复的浮层。 */
+  kicker?: string;
   title: ReactNode;
   /** 页眉右侧的状态位。事件面板放三段分镜进度, 后续浮层放「待处理奖励」「3 件」这类读数。 */
   status?: ReactNode;
@@ -59,7 +60,7 @@ export function EventPanelFrame({
     <div className={cx(s.eventDemo, className)} style={style}>
       <header className={s.demoHeader}>
         <div className={s.headerTitle}>
-          <span className={s.demoKicker}>{kicker}</span>
+          {kicker && <span className={s.demoKicker}>{kicker}</span>}
           <h1>{title}</h1>
         </div>
         <div className={s.headerActions}>
