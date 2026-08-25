@@ -38,7 +38,6 @@
 }
 
 .kicker,
-.cardTag,
 .moduleTag {
   color: color-mix(in srgb, var(--bench-accent) 72%, #d7e3dc);
   font-family: var(--font-family);
@@ -66,15 +65,13 @@
 .benchSurface {
   display: grid;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(54px, 0.42fr) minmax(78px, 0.62fr);
   align-items: center;
-  gap: 12px;
+  justify-items: center;
   padding: 12px 10px;
   background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--bench-accent) 13%, transparent), transparent 68%), #0d191d;
   border: 1px solid #ffffff16;
 }
 
-.cardStage,
 .moduleStage {
   position: relative;
   display: grid;
@@ -82,83 +79,8 @@
   justify-items: center;
 }
 
-.cardStage {
-  min-height: 84px;
-  align-content: center;
-  gap: 7px;
-  padding: 10px 9px;
-  background: #0d191d;
-  border: 1px solid #4c7379;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  justify-self: center;
-}
-
-.cardName {
-  width: 100%;
-  overflow: hidden;
-  color: #e8f7f7;
-  font-size: 15px;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cardTag,
 .moduleTag {
   margin-top: 7px;
-}
-
-.cardStage .cardTag {
-  margin-top: 0;
-}
-
-.cardMeta {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  color: #8fa9ae;
-  font-size: 10px;
-}
-
-.cardCost {
-  display: grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
-  color: #07171b;
-  font-family: var(--font-family);
-  font-size: 11px;
-  font-weight: 800;
-  background: var(--asm-frame, #52cfff);
-  border-radius: 50%;
-}
-
-.connection {
-  position: relative;
-  display: flex;
-  height: 46px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.connectionLine {
-  position: absolute;
-  right: 0;
-  left: 0;
-  height: 2px;
-  background: #718082;
-  box-shadow: 0 0 8px #71808266;
-}
-
-.connectionNode {
-  position: relative;
-  z-index: 1;
-  width: 9px;
-  height: 9px;
-  background: #718082;
-  border: 1px solid #c7d6d0;
-  transform: rotate(45deg);
 }
 
 .moduleSlot {
@@ -258,38 +180,13 @@
   transform: rotate(45deg);
 }
 
-.bench[data-state="ready"] .connectionLine,
-.bench[data-state="ready"] .connectionNode {
-  background: #6fba88;
-  border-color: #c9f1c8;
-  box-shadow: 0 0 10px #6fba88;
-}
-
-.bench[data-state="ready"] .connectionLine {
-  animation: connectionPulse 520ms ease-out;
-}
-
 .bench[data-state="ready"] .moduleSlot {
   border-color: #6fba88;
   box-shadow: inset 0 0 18px #0d2b1d, 0 0 18px #6fba884d;
 }
 
-.bench[data-state="invalid"] .connectionLine,
-.bench[data-state="invalid"] .connectionNode {
-  background: #e47970;
-  border-color: #f2a097;
-  box-shadow: 0 0 8px #e47970;
-}
-
 .bench[data-state="invalid"] .moduleSlot {
   border-color: #e47970;
-}
-
-.bench[data-state="installed"] .connectionLine,
-.bench[data-state="installed"] .connectionNode {
-  background: var(--asm-frame, #52cfff);
-  border-color: #c5f3ff;
-  box-shadow: 0 0 9px var(--asm-frame, #52cfff);
 }
 
 .bench[data-state="installed"] .moduleSlot {
@@ -302,13 +199,3 @@
   border-color: #e4797080;
 }
 
-@keyframes connectionPulse {
-  from { opacity: 0.35; transform: scaleX(0.5); transform-origin: left; }
-  to { opacity: 1; transform: scaleX(1); transform-origin: left; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bench[data-state="ready"] .connectionLine {
-    animation: none;
-  }
-}

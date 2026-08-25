@@ -42,7 +42,7 @@ src/ui/
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱场景编排：订阅据点状态，维护角色、卡牌、模组选择与关闭动画，派发装配/拆卸 action，并统一管理模组 tooltip；不承载四区内容的具体布局和展示。 |
 | [town/assembly/AssemblyCharacterStage](../../src/ui/town/assembly/AssemblyCharacterStage/AssemblyCharacterStage.tsx) | 左侧角色舞台：展示当前角色立绘、角色切换缩略按钮和空状态；只接收角色列表与选择回调，不读取 store。 |
-| [town/assembly/AssemblyBench](../../src/ui/town/assembly/AssemblyBench/AssemblyBench.tsx) | 右栏紧凑装配工作台：展示当前卡牌摘要、候选/已装配模组槽位和装配状态，派发装配/拆卸按钮与物品 tooltip 回调；不直接操作 store。 |
+| [town/assembly/AssemblyBench](../../src/ui/town/assembly/AssemblyBench/AssemblyBench.tsx) | 右栏紧凑装配工作台：展示单一模组插槽、当前已装配模组和装配状态，派发装配/拆卸按钮与物品 tooltip 回调；候选模组由模组仓架展示；不直接操作 store。 |
 | [town/assembly/AssemblyModuleRack](../../src/ui/town/assembly/AssemblyModuleRack/AssemblyModuleRack.tsx) | 右栏滚动模组仓架：以稳定网格展示库存模组，表达选中与兼容性状态，保留键盘聚焦和 tooltip 路径；不承载装配规则。 |
 | [town/assembly/AssemblyDeckGrid](../../src/ui/town/assembly/AssemblyDeckGrid/AssemblyDeckStrip.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：常驻货架面板 + 装备/材料 tab，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |

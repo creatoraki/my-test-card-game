@@ -47,8 +47,6 @@ export function AssemblyBench({
           ? "可装配"
           : "类型不匹配"
         : "选择模组";
-  const moduleStack = installedStack ?? candidate;
-
   return (
     <section className={cx(s.bench, className)} data-state={state} aria-label="紧凑装配台">
       <div className={s.benchHeader}>
@@ -59,20 +57,6 @@ export function AssemblyBench({
         <span className={s.state} aria-live="polite">{stateLabel}</span>
       </div>
       <div className={s.benchSurface}>
-        <div className={s.cardStage}>
-          <span className={s.cardTag}>CARD SUMMARY</span>
-          <strong className={s.cardName}>{card?.name ?? "未选择卡牌"}</strong>
-          <div className={s.cardMeta}>
-            <span>{card ? (card.cardType === "fast" ? "速攻" : "普通") : "等待选择"}</span>
-            <span className={s.cardCost}>{card?.cost ?? "--"}</span>
-          </div>
-        </div>
-        <div className={s.connection} aria-hidden="true">
-          <span className={s.connectionLine} />
-          <span className={s.connectionNode} />
-          <span className={s.connectionNode} />
-          <span className={s.connectionNode} />
-        </div>
         <div className={s.moduleStage}>
           <div
             className={s.moduleSlot}
@@ -84,8 +68,8 @@ export function AssemblyBench({
             onFocus={(event) => installedStack && onShowTooltip?.(event.currentTarget, installedStack)}
             onBlur={onHideTooltip}
           >
-            {moduleStack ? (
-              <span className={s.moduleIcon}>{itemIcon(getItemDef(moduleStack.itemId))}</span>
+            {installedStack ? (
+              <span className={s.moduleIcon}>{itemIcon(getItemDef(installedStack.itemId))}</span>
             ) : (
               <span className={s.slotPlaceholder} aria-hidden="true" />
             )}
