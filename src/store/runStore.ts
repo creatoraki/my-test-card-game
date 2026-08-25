@@ -216,8 +216,21 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
 // ★ 团灭时 session.backpack 与 session.loot 已被 explore/session.loseEverything 清零,
 //   所以这里**无条件**调用即可: 惩罚的真相点只在 EXPLORE_RULES.wipe 一处, 不在这里再判一次。
 //   投递口寄回的 shipped 不受团灭影响, 因此照样入仓 —— 那是背包玩法唯一的保险手段(§6.5)。
-function bankEverything(session: { loot: number; backpack: ItemStack[]; shipped: ItemStack[] }) {
+function bankEverything(session: {
+  loot: number;
+  backpack: ItemStack[];
+  shipped: ItemStack[];
+  party: { charId: string; hp: number }[];
+}) {
   const town = useTownStore.getState();
+  town.syncExpeditionStatus(
+    session.party.map((member) => ({
+      charId: member.charId,
+      hp: member.hp,
+      // 污染值始终由城镇侧即时维护，这里在回城时和最终 HP 一起明确落档。
+      pollution: town.characters[member.charId]?.pollution ?? 0,
+    })),
+  );
   town.bankLoot(session.loot);
   town.deposit([...session.shipped, ...session.backpack]);
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());

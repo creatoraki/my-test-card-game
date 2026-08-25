@@ -62,6 +62,7 @@ export const EQUIP_SLOTS: EquipSlot[] = ["weapon", "armor", "trinket"];
 
 export interface CharacterState {
   charId: string;
+  hp: number; // 上次远征回城时记录的当前 HP
   exp: number; // ★ 可用经验池(不再有等级, 也不再回落); 锻造直接从这里扣
   expEarned: number; // 累计获得的经验(纯展示用)
   deck: Card[]; // 个人卡组(实例); 战斗卡组 = 上阵角色个人卡组的集合
@@ -154,6 +155,9 @@ interface TownStore {
   syncBattleConditions: (
     conditions: { charId: string; pollution: number; sick: boolean; quirks: string[] }[],
   ) => void; // 战斗结束回填污染、疾病和怪癖
+  syncExpeditionStatus: (
+    conditions: { charId: string; hp: number; pollution: number }[],
+  ) => void; // 回城时回填本趟远征最终 HP 与污染值
 
   // ---- 天数与商店 ----
   advanceDay: () => void; // 推进一日 + 重摇货架(由 runStore.backToTown 调用)
@@ -335,6 +339,7 @@ export function deckForgeCosts(cs: CharacterState, day: number): {
 function freshCharacter(def: CharacterDef): CharacterState {
   return {
     charId: def.id,
+    hp: Math.max(1, Math.round(def.base.maxHp)),
     exp: 0,
     expEarned: 0,
     deck: def.startingCardIds.map((cid) => makeCard(cid)),
@@ -767,6 +772,25 @@ export const useTownStore = create<TownStore>()(
             continue;
           }
           characters[condition.charId] = { ...cs, pollution, sick: condition.sick, quirks };
+          changed = true;
+        }
+        if (changed) set({ characters });
+      },
+
+      syncExpeditionStatus: (conditions) => {
+        const characters = { ...get().characters };
+        let changed = false;
+        for (const condition of conditions) {
+          const cs = characters[condition.charId];
+          if (!cs) continue;
+          const maxHp = Math.max(1, Math.round(deriveStats(cs).maxHp));
+          const hp = Math.max(0, Math.min(maxHp, Math.round(condition.hp)));
+          const pollution = Math.max(
+            0,
+            Math.min(POLLUTION_RULES.threshold - 1, Math.floor(condition.pollution)),
+          );
+          if (cs.hp === hp && cs.pollution === pollution) continue;
+          characters[condition.charId] = { ...cs, hp, pollution };
           changed = true;
         }
         if (changed) set({ characters });
