@@ -32,6 +32,8 @@ const RESOURCE_ROWS: Array<{ key: SquadResourceKey; branchId: string }> = [
   { key: "handLimit", branchId: "handLimit" },
 ];
 
+const RESOURCE_ICON_SIZE = Math.round(TRACK_ICON_SIZE * 1.2);
+
 interface SquadResourceBarProps {
   highlightKey: SquadResourceKey | null;
   className?: string;
@@ -90,8 +92,8 @@ export function SquadResourceBar({ highlightKey, className }: SquadResourceBarPr
                 onBlur={() => setHoverKey(null)}
                 style={
                   branchColor
-                    ? ({ "--srb-color": branchColor, "--srb-icon-size": `${TRACK_ICON_SIZE}px` } as CSSProperties)
-                    : ({ "--srb-icon-size": `${TRACK_ICON_SIZE}px` } as CSSProperties)
+                    ? ({ "--srb-color": branchColor, "--srb-icon-size": `${RESOURCE_ICON_SIZE}px` } as CSSProperties)
+                    : ({ "--srb-icon-size": `${RESOURCE_ICON_SIZE}px` } as CSSProperties)
                 }
               >
                 <span className={s["srb-icon"]} aria-hidden>

@@ -249,14 +249,23 @@ export function TalentTreeRadial({
         >
           <defs>
             <radialGradient id="trr-core-body" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="var(--badge-ink, #f2e6c8)" />
-              <stop offset="45%" stopColor="var(--badge-hue, #ffd700)" />
-              <stop offset="82%" stopColor="var(--badge-deep, #cc8800)" />
-              <stop offset="100%" stopColor="color-mix(in srgb, var(--badge-deep, #cc8800) 45%, #120d1a)" />
+              <stop
+                offset="0%"
+                stopColor="color-mix(in srgb, var(--badge-ink, #f2e6c8) 34%, #253044)"
+              />
+              <stop
+                offset="45%"
+                stopColor="color-mix(in srgb, var(--badge-hue, #ffd700) 56%, #182235)"
+              />
+              <stop
+                offset="82%"
+                stopColor="color-mix(in srgb, var(--badge-deep, #cc8800) 45%, #111827)"
+              />
+              <stop offset="100%" stopColor="#0f1622" />
             </radialGradient>
             <radialGradient id="trr-core-halo" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="color-mix(in srgb, var(--badge-hue, #ffd700) 20%, transparent)" />
-              <stop offset="60%" stopColor="color-mix(in srgb, var(--badge-hue, #ffd700) 7%, transparent)" />
+              <stop offset="0%" stopColor="color-mix(in srgb, var(--badge-hue, #ffd700) 10%, transparent)" />
+              <stop offset="60%" stopColor="color-mix(in srgb, var(--badge-hue, #ffd700) 3%, transparent)" />
               <stop offset="100%" stopColor="transparent" />
             </radialGradient>
             {layout.map((branch) => {
@@ -360,7 +369,7 @@ export function TalentTreeRadial({
             <circle className={s["trr-core-pulse"]} r={46} />
             <circle className={s["trr-core-pulse"]} r={46} style={{ animationDelay: "1.5s" }} />
             <circle className={s["trr-core-body"]} r={48} fill="url(#trr-core-body)" />
-            <g className={s["trr-core-glyph"]} transform="translate(-28, -28) scale(0.7778)">
+            <g className={s["trr-core-glyph"]} transform="translate(-39.6, -39.6) scale(1.1)">
               <BadgeGlyph />
             </g>
           </g>
