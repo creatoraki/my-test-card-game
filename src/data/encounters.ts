@@ -59,28 +59,40 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
 // ---------------------------------------------------------------------------
 const GROUND_DY = 219.625;
 
-// 批量生成"站在地面线上、体型固定"的槽位(可额外指定 flip)。
-function g(id: string, scale: number, flip = false): EnemyPlacement {
-  return { id, dy: GROUND_DY, scale, flip };
+// 批量生成"站在地面线上、体型固定"的槽位(可额外指定水平偏移与 flip)。
+function g(id: string, scale: number, dx = 0, flip = false): EnemyPlacement {
+  return { id, dx, dy: GROUND_DY, scale, flip };
 }
 
 // ── 小怪战斗模板(轻/中, 单场 2-3 只, 只用 4 种小怪) ──────────────────────────
 
 // 轻战斗 · 教学: 侦察 + 高速机动。教玩家看意图、理解"敌人掉落按各自结算"。
-const CREW = [g("sweep-drone", 1.2), g("radio-bot", 1)];
+const CREW = [g("sweep-drone", 1.2, -96), g("radio-bot", 1, 96)];
 // 轻战斗 · 纯机动: 两台高速无人机, 教玩家专一处理一个目标类型。
-const SWEEP = [g("sweep-drone", 1.2), g("sweep-drone", 1.2, true)];
+const SWEEP = [g("sweep-drone", 1.2, -96), g("sweep-drone", 1.2, 96, true)];
 // 中战斗 · 控制+暴露+机动: 红绿灯控制、收音机易伤、无人机突破, 教玩家判断先杀谁。
-const BEACON = [g("radio-bot", 1, true), g("traffic-light-bot", 1.15), g("sweep-drone", 1.2)];
+const BEACON = [
+  g("radio-bot", 1, -120, true),
+  g("traffic-light-bot", 1.15),
+  g("sweep-drone", 1.2, 120),
+];
 // 中战斗 · 支援+控制+暴露: 蜘蛛奶、红绿灯控、收音机暴露, 走"拖节奏"路线。
-const PATROL = [g("radio-bot", 1, true), g("maintenance-spider", 0.85), g("traffic-light-bot", 1.15)];
+const PATROL = [
+  g("radio-bot", 1, -120, true),
+  g("maintenance-spider", 0.85),
+  g("traffic-light-bot", 1.15, 120),
+];
 
 // ── 精英战斗模板(重, 单场 2-3 只, 至少含 1 只精英) ──────────────────────────
 
 // 重战斗 · 双精英正面对撞: 废品压块 + 高压电网, 玩家要同时处理封罐/护甲与升压/穿刺。
-const COMPACTOR = [g("scrap-bot", 1), g("pole-bot", 1.4)];
+const COMPACTOR = [g("scrap-bot", 1, -96), g("pole-bot", 1.4, 96)];
 // 重战斗 · 高压精英被支援保护: 电线杆 + 维修蜘蛛 + 收音机, 教玩家先清支援再碰精英。
-const ELITE_GUARD = [g("radio-bot", 1, true), g("pole-bot", 1.4), g("maintenance-spider", 0.85)];
+const ELITE_GUARD = [
+  g("radio-bot", 1, -120, true),
+  g("pole-bot", 1.4),
+  g("maintenance-spider", 0.85, 120),
+];
 
 // ── BOSS 战(单场 1 只) ──────────────────────────────────────────────────────
 

@@ -231,6 +231,10 @@
   outline: 1px solid #f4ffd4;
   outline-offset: 2px;
 }
+.hc-action-discard {
+  color: #ff626b;
+  border-color: #ff626b;
+}
 .hc-action svg {
   width: 20px;
   height: 20px;
@@ -239,6 +243,10 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
+}
+.hc-action-discard svg {
+  color: #ff626b;
+  filter: drop-shadow(0 0 7px #ff4f5a99);
 }
 @keyframes hc-action-in {
   from {
@@ -261,10 +269,9 @@
   transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
 }
 .hc-cultivate-row {
-  left: 42px;
+  left: 52px;
 }
 .hc-cultivate-ready .hc-mark-icon {
-  border-color: #d8f56e;
   box-shadow: 0 0 12px #c7e85f99;
 }
 /* ── ★ 打不出的卡: 「断电 + 变薄」 ──
@@ -310,26 +317,28 @@
   top: 38px;
   right: 10px;
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   color: #d9f3ff;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1;
   text-shadow: 0 0 5px #54c8e8;
-  background: #102b35e8;
-  border: 1px solid #66d7ec;
+  background: #102b3566;
+  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  backdrop-filter: blur(8px) saturate(130%);
+  box-shadow: inset 0 1px 0 #ffffff38, inset 0 -1px 3px #0000004d, 0 4px 12px #00000059;
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
   pointer-events: none;
 }
 .hc-mark {
   position: relative;
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   color: #d9f3ff;
-  font-size: 17px;
+  font-size: 21px;
   line-height: 1;
   text-shadow: 0 0 5px #54c8e8;
   pointer-events: auto;
@@ -341,12 +350,14 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: #102b35e8;
-  border: 1px solid #66d7ec;
+  background: #102b3566;
+  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  backdrop-filter: blur(8px) saturate(130%);
+  box-shadow: inset 0 1px 0 #ffffff38, inset 0 -1px 3px #0000004d, 0 4px 12px #00000059;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }
 .hc-cultivate-icon {
-  background: transparent;
+  background: #102b3566;
   clip-path: none;
 }
 .hc-cultivate-emblem {
@@ -357,22 +368,15 @@
 }
 .hc-mark-count {
   position: absolute;
-  right: 1px;
-  bottom: 0;
+  right: 2px;
+  bottom: 1px;
   z-index: 1;
-  display: grid;
-  min-width: 12px;
-  height: 14px;
-  padding: 0 2px;
-  place-items: center;
   color: #effff9;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1;
   text-shadow: 0 1px 2px #000;
-  background: #07131be8;
-  border: 1px solid #b1f3df;
-  border-radius: 4px;
+  white-space: nowrap;
   pointer-events: none;
 }
 .hc-mark-tip {
