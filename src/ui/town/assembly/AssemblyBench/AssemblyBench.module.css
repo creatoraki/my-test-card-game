@@ -1,290 +1,325 @@
 .bench {
-  --bench-accent: var(--event-accent, #e59b3f);
+  --bench-accent: var(--asm-frame, var(--event-accent, #52cfff));
   position: relative;
-  width: min(100%, 500px);
-  aspect-ratio: 1;
+  display: grid;
+  min-width: 0;
   min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px;
   overflow: hidden;
   border: 1px solid #43545a;
   background:
-    radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--bench-accent) 18%, transparent), transparent 28%),
+    radial-gradient(circle at 42% 52%, color-mix(in srgb, var(--bench-accent) 12%, transparent), transparent 33%),
     linear-gradient(140deg, #172427, #0b1114 60%, #11191c);
-  box-shadow: 14px 14px 0 #060a0c, 0 0 45px color-mix(in srgb, var(--bench-accent) 10%, transparent);
+  box-shadow: inset 0 0 30px #0007, 10px 10px 0 #060a0c;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
 }
 
-.bench::before,
-.bench::after {
+.bench::before {
   position: absolute;
+  inset: 14px;
+  border: 1px solid color-mix(in srgb, var(--bench-accent) 26%, transparent);
   content: "";
   pointer-events: none;
 }
 
-.bench::before {
-  inset: 19px;
-  border: 1px solid color-mix(in srgb, var(--bench-accent) 36%, transparent);
-  clip-path: polygon(0 0, 17% 0, 17% 1px, 83% 1px, 83% 0, 100% 0, 100% 17%, calc(100% - 1px) 17%, calc(100% - 1px) 83%, 100% 83%, 100% 100%, 83% 100%, 83% calc(100% - 1px), 17% calc(100% - 1px), 17% 100%, 0 100%, 0 83%, 1px 83%, 1px 17%, 0 17%);
-}
-
-.bench::after {
-  inset: 0;
-  background: linear-gradient(110deg, transparent 25%, #ffffff09 25.2%, transparent 25.5% 67%, #ffffff05 67.2%, transparent 67.5%);
-  mix-blend-mode: screen;
-}
-
-.benchGrid {
-  position: absolute;
-  inset: 0;
-  opacity: 0.42;
-  background:
-    linear-gradient(#b6d8d115 1px, transparent 1px),
-    linear-gradient(90deg, #b6d8d115 1px, transparent 1px);
-  background-size: 10% 16%;
-  transform: perspective(500px) rotateX(54deg) scale(1.3) translateY(16%);
-  transform-origin: center bottom;
-}
-
-.benchFrame,
-.benchCaption,
-.cardNode,
-.moduleNode {
-  position: absolute;
+.benchHeader,
+.benchSurface,
+.benchFooter {
+  position: relative;
   z-index: 1;
-  color: color-mix(in srgb, var(--bench-accent) 70%, #d7e3dc);
-  font-family: var(--font-family);
-  letter-spacing: 0.12em;
 }
 
-.benchFrame {
-  top: 29px;
-  left: 29px;
+.benchHeader,
+.benchFooter {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 8px;
-  line-height: 1.6;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.benchFrame span:first-child {
-  padding: 2px 4px;
-  border: 1px solid currentColor;
-  font-size: 9px;
-}
-
-.benchCaption {
-  right: 29px;
-  bottom: 27px;
+.benchHeader > div {
   display: grid;
+  min-width: 0;
   gap: 3px;
-  text-align: right;
-  font-size: 8px;
-  line-height: 1.6;
 }
 
-.benchCaption span {
-  color: #819092;
-  font-size: 7px;
+.kicker,
+.cardTag,
+.moduleTag {
+  color: color-mix(in srgb, var(--bench-accent) 72%, #d7e3dc);
+  font-family: var(--font-family);
+  font-size: 9px;
+  letter-spacing: 0.13em;
 }
 
-.benchCaption strong {
-  color: #eff6e9;
-  font-size: 10px;
-}
-
-.benchDiagram {
-  position: absolute;
-  z-index: 0;
-  top: 50%;
-  left: 50%;
-  width: 92%;
-  height: auto;
-  overflow: visible;
-  transform: translate(-50%, -50%);
-}
-
-.diagramCard,
-.diagramModule,
-.diagramCardDetail,
-.diagramModuleDetail,
-.diagramPipe,
-.diagramPipeNode,
-.diagramCore {
-  stroke: color-mix(in srgb, var(--bench-accent) 72%, white);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.diagramCard,
-.diagramModule {
-  stroke-width: 1.3;
-  opacity: 0.7;
-}
-
-.diagramCardDetail,
-.diagramModuleDetail {
-  stroke-width: 1;
-  opacity: 0.42;
-}
-
-.diagramPipe {
-  stroke-width: 1.8;
-  stroke-dasharray: 7 5;
-  animation: benchPipeFlow 1.4s linear infinite;
-}
-
-.diagramPipeNode {
-  stroke-width: 1.2;
-  opacity: 0.68;
-}
-
-.diagramCore {
-  fill: color-mix(in srgb, var(--bench-accent) 65%, white);
-  stroke-width: 1.4;
-  filter: drop-shadow(0 0 5px var(--bench-accent));
-}
-
-.bench[data-state="empty"] .diagramPipe {
-  stroke: #708082;
-  opacity: 0.55;
-}
-
-.bench[data-state="invalid"] .diagramPipe,
-.bench[data-state="invalid"] .diagramPipeNode {
-  stroke: #e47970;
-}
-
-.bench[data-state="invalid"] .diagramCore {
-  fill: #e47970;
-  stroke: #f2a097;
-  filter: drop-shadow(0 0 5px #e47970);
-}
-
-.bench[data-state="ready"] .diagramPipe,
-.bench[data-state="installed"] .diagramPipe {
-  stroke-dasharray: none;
-}
-
-.cardNode,
-.moduleNode {
-  top: 39%;
-  display: grid;
-  gap: 5px;
-  width: 26%;
-  text-align: center;
-  transform: translateY(-50%);
-}
-
-.cardNode {
-  left: 6%;
-}
-
-.moduleNode {
-  right: 6%;
-}
-
-.nodeKicker {
-  color: #819092;
-  font-size: 7px;
-}
-
-.cardNode strong,
-.moduleNode strong {
+.benchHeader strong {
   overflow: hidden;
   color: #eff6e9;
-  font-size: 10px;
-  line-height: 1.35;
+  font-size: 17px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.moduleNode small {
-  color: #e47970;
-  font-size: 7px;
+.state {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  color: #c5d8c4;
+  font-size: 11px;
+  background: #11201bd9;
+  border: 1px solid #6fba884c;
 }
 
-.moduleIcon,
-.slotIcon {
+.benchSurface {
   display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(54px, 0.42fr) minmax(78px, 0.62fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  background:
+    linear-gradient(#b6d8d10d 1px, transparent 1px),
+    linear-gradient(90deg, #b6d8d10d 1px, transparent 1px);
+  background-size: 28px 28px;
+  border: 1px solid #ffffff16;
+}
+
+.cardStage,
+.moduleStage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+}
+
+.cardStage {
+  min-height: 84px;
+  align-content: center;
+  gap: 7px;
+  padding: 10px 9px;
+  background: #0d191d;
+  border: 1px solid #4c7379;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  justify-self: center;
+}
+
+.cardName {
+  width: 100%;
+  overflow: hidden;
+  color: #e8f7f7;
+  font-size: 15px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardTag,
+.moduleTag {
+  margin-top: 7px;
+}
+
+.cardStage .cardTag {
+  margin-top: 0;
+}
+
+.cardMeta {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  color: #8fa9ae;
+  font-size: 10px;
+}
+
+.cardCost {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: #07171b;
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--asm-frame, #52cfff);
+  border-radius: 50%;
+}
+
+.connection {
+  position: relative;
+  display: flex;
+  height: 46px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.connectionLine {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: #718082;
+  box-shadow: 0 0 8px #71808266;
+}
+
+.connectionNode {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  background: #718082;
+  border: 1px solid #c7d6d0;
+  transform: rotate(45deg);
+}
+
+.moduleSlot {
+  position: relative;
+  display: grid;
+  width: 78px;
+  height: 78px;
+  place-items: center;
+  background: #0c1417dd;
+  border: 1px solid #718082;
+  box-shadow: inset 0 0 18px #000b;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  cursor: default;
+}
+
+.moduleSlot:focus-visible {
+  outline: 2px solid var(--bench-accent);
+  outline-offset: 3px;
+}
+
+.moduleIcon {
+  display: grid;
+  width: 56px;
+  height: 56px;
   place-items: center;
   color: var(--bench-accent);
 }
 
-.moduleIcon {
-  width: 28px;
-  height: 28px;
-  margin: 0 auto;
-}
-
 .moduleIcon svg,
-.slotIcon svg,
-.moduleIcon img,
-.slotIcon img {
+.moduleIcon img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-.benchSlot {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 50%;
-  display: grid;
-  width: 70px;
-  height: 70px;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--bench-accent) 76%, white);
-  background: #0c1417d9;
-  box-shadow: 0 0 24px color-mix(in srgb, var(--bench-accent) 25%, transparent), inset 0 0 16px #0008;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  transform: translate(-50%, -50%);
-}
-
-.slotIcon {
-  width: 38px;
-  height: 38px;
-}
-
-.slotOrb {
-  position: relative;
-  width: 25px;
-  aspect-ratio: 1;
-  border: 1px solid #9aaba6;
+.slotPlaceholder {
+  width: 32px;
+  height: 32px;
+  border: 1px dashed #8b9b9d;
   border-radius: 50%;
-  background: radial-gradient(circle, #cbd9cb 0 4%, color-mix(in srgb, var(--bench-accent) 24%, transparent) 5% 28%, transparent 65%);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--bench-accent) 65%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--bench-accent) 18%, transparent);
 }
 
-.slotOrb::after {
+.slotMark {
   position: absolute;
-  inset: -8px;
-  border: 1px dashed color-mix(in srgb, var(--bench-accent) 70%, transparent);
-  border-radius: 50%;
-  content: "";
-  animation: benchOrbSpin 10s linear infinite;
-}
-
-.slotLabel {
-  position: absolute;
-  bottom: -18px;
-  color: #819092;
+  right: 7px;
+  bottom: 6px;
+  left: 7px;
+  color: #8c9b9b;
   font-family: var(--font-family);
-  font-size: 7px;
-  letter-spacing: 0.12em;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.benchFooter {
+  align-items: center;
+  padding: 0 4px;
+}
+
+.footerHint {
+  min-width: 0;
+  overflow: hidden;
+  color: #819092;
+  font-size: 11px;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-@keyframes benchPipeFlow {
-  to { stroke-dashoffset: -24; }
+.actionButton {
+  min-width: 88px;
+  height: 34px;
+  padding: 5px 10px;
+  font-size: 12px;
 }
 
-@keyframes benchOrbSpin {
-  to { transform: rotate(360deg); }
+.actionButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.emptyCard {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 320 / 496;
+  place-items: center;
+  background: #0b1214aa;
+  border: 1px dashed #718082;
+  border-radius: 12px;
+}
+
+.emptyCard span {
+  width: 30%;
+  aspect-ratio: 1;
+  border: 1px dashed #aab9b4;
+  transform: rotate(45deg);
+}
+
+.bench[data-state="ready"] .connectionLine,
+.bench[data-state="ready"] .connectionNode {
+  background: #6fba88;
+  border-color: #c9f1c8;
+  box-shadow: 0 0 10px #6fba88;
+}
+
+.bench[data-state="ready"] .connectionLine {
+  animation: connectionPulse 520ms ease-out;
+}
+
+.bench[data-state="ready"] .moduleSlot {
+  border-color: #6fba88;
+  box-shadow: inset 0 0 18px #0d2b1d, 0 0 18px #6fba884d;
+}
+
+.bench[data-state="invalid"] .connectionLine,
+.bench[data-state="invalid"] .connectionNode {
+  background: #e47970;
+  border-color: #f2a097;
+  box-shadow: 0 0 8px #e47970;
+}
+
+.bench[data-state="invalid"] .moduleSlot {
+  border-color: #e47970;
+}
+
+.bench[data-state="installed"] .connectionLine,
+.bench[data-state="installed"] .connectionNode {
+  background: var(--asm-frame, #52cfff);
+  border-color: #c5f3ff;
+  box-shadow: 0 0 9px var(--asm-frame, #52cfff);
+}
+
+.bench[data-state="installed"] .moduleSlot {
+  border-color: var(--asm-frame, #52cfff);
+  box-shadow: inset 0 0 18px #102e3b, 0 0 18px color-mix(in srgb, var(--asm-frame, #52cfff) 30%, transparent);
+}
+
+.bench[data-state="invalid"] .state {
+  color: #f0a39a;
+  border-color: #e4797080;
+}
+
+@keyframes connectionPulse {
+  from { opacity: 0.35; transform: scaleX(0.5); transform-origin: left; }
+  to { opacity: 1; transform: scaleX(1); transform-origin: left; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .diagramPipe,
-  .slotOrb::after {
+  .bench[data-state="ready"] .connectionLine {
     animation: none;
   }
 }

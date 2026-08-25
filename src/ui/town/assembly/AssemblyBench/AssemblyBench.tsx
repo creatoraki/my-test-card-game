@@ -1,72 +1,110 @@
 import type { Card } from "@/engine";
 import { canEquipModule, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import type { PointerEvent as ReactPointerEvent } from "react";
 import { itemIcon } from "@/ui/art/itemArt";
+import { EventPanelButton } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
+import { AssembleIcon, DetachIcon } from "../AssemblyScene/icons";
 import s from "./AssemblyBench.module.css";
+
+type BenchState = "empty" | "ready" | "invalid" | "installed";
 
 interface Props {
   card?: Card;
   installedStack: ItemStack | null;
   candidate: ItemStack | null;
   className?: string;
-  onShowTooltip?: (event: ReactPointerEvent<HTMLDivElement>, stack: ItemStack) => void;
+  actionDisabled: boolean;
+  onAction: () => void;
+  onShowTooltip?: (element: HTMLElement, stack: ItemStack) => void;
   onHideTooltip?: () => void;
 }
 
-export function AssemblyBench({ card, installedStack, candidate, className, onShowTooltip, onHideTooltip }: Props) {
+export function AssemblyBench({
+  card,
+  installedStack,
+  candidate,
+  className,
+  actionDisabled,
+  onAction,
+  onShowTooltip,
+  onHideTooltip,
+}: Props) {
   const candidateUsable = Boolean(card && candidate && canEquipModule(card, candidate.itemId));
-  const state = installedStack
+  const state: BenchState = installedStack
     ? "installed"
     : candidate && !candidateUsable
       ? "invalid"
       : candidateUsable
         ? "ready"
         : "empty";
+  const stateLabel = installedStack
+    ? "已装配"
+    : !card
+      ? "先选择卡牌"
+      : candidate
+        ? candidateUsable
+          ? "可装配"
+          : "类型不匹配"
+        : "选择模组";
   const moduleStack = installedStack ?? candidate;
 
   return (
-    <section className={cx(s.bench, className)} data-state={state} aria-label="中央装配台">
-      <div className={s.benchGrid} aria-hidden="true" />
-      <div className={s.benchFrame} aria-hidden="true">
-        <span>01</span>
-        <span>BENCH<br />STATUS</span>
+    <section className={cx(s.bench, className)} data-state={state} aria-label="紧凑装配台">
+      <div className={s.benchHeader}>
+        <div>
+          <span className={s.kicker}>ASSEMBLY BENCH</span>
+          <strong>模组连接控制台</strong>
+        </div>
+        <span className={s.state} aria-live="polite">{stateLabel}</span>
       </div>
-      <svg className={s.benchDiagram} viewBox="0 0 480 360" fill="none" aria-hidden="true">
-        <path className={s.diagramCard} d="M36 82h74l17 17v162l-17 17H36l-17-17V99Z" />
-        <path className={s.diagramCardDetail} d="M39 113h48M39 132h34M39 151h55M39 215h37" />
-        <path className={s.diagramPipe} d="M127 180h73m150 0h74" />
-        <path className={s.diagramPipeNode} d="M184 180h16v-16h80v16h16" />
-        <path className={s.diagramModule} d="m352 99 46 26v110l-46 26-46-26V125Z" />
-        <path className={s.diagramModuleDetail} d="m352 133 20 12v40l-20 12-20-12v-40Z" />
-        <circle className={s.diagramCore} cx="352" cy="165" r="6" />
-      </svg>
-
-      <div className={s.cardNode}>
-        <span className={s.nodeKicker}>CARD INSTANCE</span>
-        <strong>{card?.name ?? "NO CARD"}</strong>
+      <div className={s.benchSurface}>
+        <div className={s.cardStage}>
+          <span className={s.cardTag}>CARD SUMMARY</span>
+          <strong className={s.cardName}>{card?.name ?? "未选择卡牌"}</strong>
+          <div className={s.cardMeta}>
+            <span>{card ? (card.cardType === "fast" ? "速攻" : "普通") : "等待选择"}</span>
+            <span className={s.cardCost}>{card?.cost ?? "--"}</span>
+          </div>
+        </div>
+        <div className={s.connection} aria-hidden="true">
+          <span className={s.connectionLine} />
+          <span className={s.connectionNode} />
+          <span className={s.connectionNode} />
+          <span className={s.connectionNode} />
+        </div>
+        <div className={s.moduleStage}>
+          <div
+            className={s.moduleSlot}
+            tabIndex={installedStack ? 0 : -1}
+            role={installedStack ? "button" : undefined}
+            aria-label={installedStack ? "查看已装配模组详情" : undefined}
+            onPointerEnter={(event) => installedStack && onShowTooltip?.(event.currentTarget, installedStack)}
+            onPointerLeave={onHideTooltip}
+            onFocus={(event) => installedStack && onShowTooltip?.(event.currentTarget, installedStack)}
+            onBlur={onHideTooltip}
+          >
+            {moduleStack ? (
+              <span className={s.moduleIcon}>{itemIcon(getItemDef(moduleStack.itemId))}</span>
+            ) : (
+              <span className={s.slotPlaceholder} aria-hidden="true" />
+            )}
+            <span className={s.slotMark}>{installedStack ? "装配中" : "模组槽"}</span>
+          </div>
+          <span className={s.moduleTag}>MODULE</span>
+        </div>
       </div>
-      <div className={s.moduleNode}>
-        <span className={s.nodeKicker}>MODULE INPUT</span>
-        {moduleStack ? <span className={s.moduleIcon}>{itemIcon(getItemDef(moduleStack.itemId))}</span> : <strong>NO MODULE</strong>}
-        {candidate && !candidateUsable && !installedStack && <small>TYPE MISMATCH</small>}
-      </div>
-      <div
-        className={s.benchSlot}
-        onPointerEnter={(event) => installedStack && onShowTooltip?.(event, installedStack)}
-        onPointerLeave={onHideTooltip}
-      >
-        {installedStack ? (
-          <span className={s.slotIcon}>{itemIcon(getItemDef(installedStack.itemId))}</span>
-        ) : (
-          <span className={s.slotOrb} aria-hidden="true" />
-        )}
-        <span className={s.slotLabel}>{installedStack ? "INSTALLED" : "SLOT / A-01"}</span>
-      </div>
-      <div className={s.benchCaption}>
-        <span>ARCHIVE / {card?.name ?? "UNASSIGNED"}</span>
-        <strong>{state === "invalid" ? "MODULE REJECTED" : state === "empty" ? "AWAITING INPUT" : "LINK READY"}</strong>
+      <div className={s.benchFooter}>
+        <span className={s.footerHint}>{state === "invalid" ? "当前卡牌无法接入此模组" : "选择候选模组后确认"}</span>
+        <EventPanelButton
+          className={s.actionButton}
+          tone={installedStack ? "danger" : "primary"}
+          disabled={actionDisabled}
+          onClick={onAction}
+          aria-label={installedStack ? "拆卸当前卡牌模组" : "装配选中的卡牌模组"}
+        >
+          {installedStack ? <><DetachIcon /> 拆卸</> : <><AssembleIcon /> 装配</>}
+        </EventPanelButton>
       </div>
     </section>
   );

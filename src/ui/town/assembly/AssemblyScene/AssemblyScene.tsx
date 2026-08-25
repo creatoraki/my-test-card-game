@@ -4,33 +4,30 @@ import {
   useMemo,
   useState,
   type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
-import { canEquipModule, getCharacter, getItemDef } from "@/data";
-import type { Card } from "@/engine";
+import { canEquipModule, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import { prefersReducedMotion } from "@/ui/app/transitions";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { EventPanelButton, EventPanelFrame } from "@/ui/common/EventPanel";
-import ItemDetail from "@/ui/common/item/ItemDetail";
-import ItemSlot from "@/ui/common/item/ItemSlot";
+import { EventPanelFrame } from "@/ui/common/EventPanel";
 import ItemTooltip, {
   tooltipPointFromRect,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { DeckCard } from "@/ui/character/DeckCard";
 import { cx } from "@/ui/common/cx";
 import { AssemblyBench } from "../AssemblyBench";
+import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
+import { AssemblyDeckGrid } from "../AssemblyDeckGrid";
+import { AssemblyModuleRack } from "../AssemblyModuleRack";
 import s from "./AssemblyScene.module.css";
-import { AssembleIcon, AssemblyIcon, CloseIcon, DetachIcon } from "./icons";
+import { AssemblyIcon, CloseIcon } from "./icons";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
 
 const PANEL_OUT_MS = 600;
 const PANEL_OUT_REDUCED_MS = 180;
-const PANEL_SIZE = { w: 1480, h: 760 };
+const PANEL_SIZE = { w: 1600, h: 920 };
 
 interface Props {
   leaving?: boolean;
@@ -110,18 +107,6 @@ export function AssemblyScene({ leaving = false }: Props) {
 
   const cardCanUseSelectedModule =
     !!selectedCard && !!selectedModule && canEquipModule(selectedCard, selectedModule.itemId);
-  const reason = selectedCard?.cardModule
-    ? ""
-    : !selectedCard
-      ? "先选择一张卡牌"
-      : !moduleStacks.length
-        ? "仓库中没有可用模组"
-        : !selectedModule
-          ? "先选择一个仓库模组"
-          : !cardCanUseSelectedModule
-            ? "只有定义类型为普通的卡牌可以装配"
-            : "";
-
   const action = () => {
     if (!selectedCard) return;
     if (selectedCard.cardModule) {
@@ -131,8 +116,8 @@ export function AssemblyScene({ leaving = false }: Props) {
     }
   };
 
-  const showTooltip = (event: ReactPointerEvent<HTMLDivElement>, stack: ItemStack) => {
-    setHoveredItem({ stack, point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()) });
+  const showTooltip = (element: HTMLElement, stack: ItemStack) => {
+    setHoveredItem({ stack, point: tooltipPointFromRect(element.getBoundingClientRect()) });
   };
 
   return (
@@ -195,11 +180,10 @@ export function AssemblyScene({ leaving = false }: Props) {
               height: `${PANEL_SIZE.h}px`,
             } as CSSProperties}
           >
-            <span className={cn("asm-panel-bar")} aria-hidden />
             <span className={cn("asm-panel-frame")} aria-hidden />
             <span className={cn("asm-panel-scan")} aria-hidden />
             <EventPanelFrame
-              accent="#e59b3f"
+              accent="#52cfff"
               kicker="ASSEMBLY"
               title="卡牌模组装配"
               status={<span className={cn("asm-panel-status")}>库存 {moduleStacks.length} · 已装配 {installedCount}</span>}
@@ -208,56 +192,42 @@ export function AssemblyScene({ leaving = false }: Props) {
                   <CloseIcon />
                 </button>
               }
-              contentKey={charId}
               className={cn("asm-event-frame")}
             >
               <div className={cn("asm-body")}>
-                <div className={cn("asm-left")}>
-                  <CharacterRail
-                    awakened={awakened}
-                    characters={characters}
-                    selected={charId}
-                    onSelect={(id) => {
-                      setCharId(id);
-                      setCardUid(characters[id]?.deck[0]?.uid ?? null);
-                    }}
-                  />
-                  <DeckPanel
-                    deck={currentDeck}
-                    selectedUid={selectedCard?.uid ?? null}
-                    moduleStacks={moduleStacks}
-                    onSelect={setCardUid}
-                  />
-                </div>
-                <div className={cn("asm-center")}>
+                <AssemblyCharacterStage
+                  awakened={awakened}
+                  selected={charId}
+                  onSelect={(id) => {
+                    setCharId(id);
+                    setCardUid(characters[id]?.deck[0]?.uid ?? null);
+                  }}
+                />
+                <AssemblyDeckGrid
+                  deck={currentDeck}
+                  selectedUid={selectedCard?.uid ?? null}
+                  moduleStacks={moduleStacks}
+                  onSelect={setCardUid}
+                />
+                <div className={cn("asm-right-column")}>
                   <AssemblyBench
                     card={selectedCard}
                     installedStack={installedStack}
                     candidate={selectedModule ?? null}
+                    actionDisabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
+                    onAction={action}
                     onShowTooltip={showTooltip}
                     onHideTooltip={() => setHoveredItem(null)}
                   />
-                  <div className={cn("asm-action-row")}>
-                    <EventPanelButton
-                      className={cn("asm-action-button")}
-                      tone={selectedCard?.cardModule ? "danger" : "primary"}
-                      disabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
-                      onClick={action}
-                    >
-                      {selectedCard?.cardModule ? <><DetachIcon /> 拆卸</> : <><AssembleIcon /> 装配</>}
-                    </EventPanelButton>
-                    <span className={cn("asm-reason")}>{reason || "模组将直接写入卡牌实例。"}</span>
-                  </div>
+                  <AssemblyModuleRack
+                    card={selectedCard}
+                    moduleStacks={moduleStacks}
+                    selectedModuleUid={moduleUid}
+                    onSelect={setModuleUid}
+                    onShowTooltip={showTooltip}
+                    onHideTooltip={() => setHoveredItem(null)}
+                  />
                 </div>
-                <ModulePanel
-                  card={selectedCard}
-                  installedStack={installedStack}
-                  moduleStacks={moduleStacks}
-                  selectedModuleUid={moduleUid}
-                  onSelectModule={setModuleUid}
-                  onShowTooltip={showTooltip}
-                  onHideTooltip={() => setHoveredItem(null)}
-                />
               </div>
             </EventPanelFrame>
           </section>
@@ -274,127 +244,5 @@ function Readout({ label, value }: { label: string; value: number }) {
       <span className={cn("asm-chip-label")}>{label}</span>
       <strong className={cn("asm-chip-value")}>{value}</strong>
     </div>
-  );
-}
-
-function CharacterRail({
-  awakened,
-  characters,
-  selected,
-  onSelect,
-}: {
-  awakened: string[];
-  characters: Record<string, { charId: string }>;
-  selected: string;
-  onSelect: (charId: string) => void;
-}) {
-  return (
-    <aside className={cn("asm-characters")}>
-      <span className={cn("asm-section-label")}>PERSONNEL</span>
-      <div className={cn("asm-character-list")}>
-        {awakened.map((id) => {
-          const character = getCharacter(id);
-          return (
-            <button
-              key={id}
-              className={cn("asm-character", id === selected && "is-selected")}
-              type="button"
-              onClick={() => onSelect(id)}
-              style={{ "--character-color": character.color } as CSSProperties}
-            >
-              <CharacterPortrait
-                characterId={id}
-                emoji={character.emoji}
-                alt={character.name}
-                className={cn("asm-portrait")}
-              />
-              <span className={cn("asm-character-name")}>{character.name}</span>
-              <span className={cn("asm-character-count")}>{characters[id]?.charId === id ? "ONLINE" : ""}</span>
-            </button>
-          );
-        })}
-      </div>
-    </aside>
-  );
-}
-
-function DeckPanel({
-  deck,
-  selectedUid,
-  moduleStacks,
-  onSelect,
-}: {
-  deck: Card[];
-  selectedUid: string | null;
-  moduleStacks: ItemStack[];
-  onSelect: (uid: string) => void;
-}) {
-  return (
-    <section className={cn("asm-deck")}>
-      <div className={cn("asm-column-head")}>
-        <span className={cn("asm-section-label")}>CARD ARRAY</span>
-        <span className={cn("asm-column-note")}>{deck.length} 张卡牌</span>
-      </div>
-      <div className={cn("asm-card-grid")}>
-        {deck.map((card, index) => {
-          const usable = !!card.cardModule || moduleStacks.some((stack) => canEquipModule(card, stack.itemId));
-          return (
-            <div key={card.uid} className={cn("asm-card-wrap", !usable && "is-dimmed")}>
-              <DeckCard
-                card={card}
-                selected={card.uid === selectedUid}
-                index={index}
-                onClick={() => onSelect(card.uid)}
-              />
-              {card.cardModule && <span className={cn("asm-installed-badge")}>已装配</span>}
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function ModulePanel({
-  installedStack,
-  moduleStacks,
-  selectedModuleUid,
-  onSelectModule,
-  onShowTooltip,
-  onHideTooltip,
-}: {
-  installedStack: ItemStack | null;
-  moduleStacks: ItemStack[];
-  selectedModuleUid: string | null;
-  onSelectModule: (uid: string) => void;
-  onShowTooltip: (event: ReactPointerEvent<HTMLDivElement>, stack: ItemStack) => void;
-  onHideTooltip: () => void;
-}) {
-  const detailStack = installedStack ?? moduleStacks.find((stack) => stack.uid === selectedModuleUid) ?? null;
-  return (
-    <aside className={cn("asm-right")}>
-      <div className={cn("asm-column-head")}>
-        <span className={cn("asm-section-label")}>WAREHOUSE MODULES</span>
-        <span className={cn("asm-column-note")}>{moduleStacks.length} 件</span>
-      </div>
-      <div className={cn("asm-module-grid")}>
-        {moduleStacks.map((stack) => (
-          <div
-            key={stack.uid}
-            className={cn("asm-module-option", stack.uid === selectedModuleUid && "is-selected")}
-            onPointerEnter={(event) => onShowTooltip(event, stack)}
-            onPointerLeave={onHideTooltip}
-          >
-            <ItemSlot
-              stack={stack}
-              showName={false}
-              selected={stack.uid === selectedModuleUid}
-              onClick={() => onSelectModule(stack.uid)}
-            />
-          </div>
-        ))}
-      </div>
-      <ItemDetail stack={detailStack} placeholder="选择仓库模组查看详情。" className={cn("asm-detail")} />
-    </aside>
   );
 }

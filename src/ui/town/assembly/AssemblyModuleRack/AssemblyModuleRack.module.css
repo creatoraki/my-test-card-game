@@ -1,0 +1,140 @@
+.rack {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  padding-left: 18px;
+  overflow: hidden;
+  border-left: 1px solid #314149;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kicker {
+  color: var(--asm-cyan, var(--event-accent, #58efc7));
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.count {
+  color: var(--muted, #849096);
+  font-size: 11px;
+}
+
+.grid {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+  padding: 3px 6px 10px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: color-mix(in srgb, var(--asm-cyan, #58efc7) 44%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+.option {
+  position: relative;
+  min-width: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.option:hover,
+.option:focus-within {
+  transform: translateY(-3px);
+}
+
+.option.incompatible {
+  opacity: 0.42;
+  filter: saturate(0.3);
+}
+
+.option.selected {
+  opacity: 1;
+  filter: none;
+}
+
+.option.selected::after {
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--asm-magenta, #ff55a8);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--asm-magenta, #ff55a8) 46%, transparent);
+  content: "";
+  pointer-events: none;
+}
+
+.slot {
+  --item-slot-icon-size: 62%;
+  --item-slot-count-size: 12px;
+  width: 100%;
+}
+
+.compatibility {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 2px 3px;
+  color: #c5d8c4;
+  font-size: 8px;
+  background: #11201bd9;
+  pointer-events: none;
+}
+
+.option.incompatible .compatibility {
+  color: #f0a39a;
+  background: #2b1719dd;
+}
+
+.option[data-compatible="true"] .compatibility {
+  color: var(--asm-cyan, #58efc7);
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  color: var(--muted, #849096);
+  font-size: 11px;
+  text-align: center;
+  border: 1px dashed #ffffff1f;
+}
+
+.emptySlot {
+  width: 42px;
+  aspect-ratio: 1;
+  border: 1px dashed #819092;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option {
+    transition: none;
+  }
+
+  .option:hover,
+  .option:focus-within {
+    transform: none;
+  }
+}

@@ -17,6 +17,7 @@ interface Props {
   //   抽掉格子会让玩家失去空间感, 也看不出还剩多少地方。
   dimmed?: boolean;
   disabled?: boolean;
+  "aria-label"?: string;
   onClick?: () => void;
   /** 调用方的布局类(格子在网格里怎么占位)。格子自身的外观一律由本组件持有。 */
   className?: string;
@@ -28,6 +29,7 @@ export default function ItemSlot({
   showName = true,
   dimmed,
   disabled,
+  "aria-label": ariaLabel,
   onClick,
   className,
 }: Props) {
@@ -45,6 +47,7 @@ export default function ItemSlot({
         dimmed && s["is-dimmed"],
         className,
       )}
+      aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
       // title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}

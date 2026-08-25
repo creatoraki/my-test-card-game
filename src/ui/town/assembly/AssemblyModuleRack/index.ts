@@ -1,0 +1,1 @@
+export { AssemblyModuleRack } from "./AssemblyModuleRack";

@@ -7,6 +7,24 @@ export function CloseIcon() {
   );
 }
 
+export function ArrowLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m14 5-7 7 7 7" />
+      <path d="M8 12h9" opacity=".55" />
+    </svg>
+  );
+}
+
+export function ArrowRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m10 5 7 7-7 7" />
+      <path d="M7 12h9" opacity=".55" />
+    </svg>
+  );
+}
+
 export function AssembleIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
