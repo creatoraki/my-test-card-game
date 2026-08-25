@@ -44,7 +44,7 @@ export function StorageInventory({ className }: Props) {
       stacks={visible}
       rows={1}
       columns={CELLS}
-      kicker="SORTIE // STORAGE"
+      kicker="出击物资 // 仓库"
       title="仓库"
       compact
       subtitle={notice ?? "SELECT TO LOAD"}

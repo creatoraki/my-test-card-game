@@ -22,8 +22,6 @@
 
 .asm-header {
   position: absolute;
-  padding-left: 16px;
-  border-left: 2px solid var(--asm-glow);
   pointer-events: none;
 }
 
@@ -67,7 +65,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 9px 14px;
-  background: linear-gradient(150deg, #1b171459, #12100e73 55%, #0d0b0a80);
+  background: radial-gradient(ellipse at 18% 0%, color-mix(in srgb, var(--asm-glow) 12%, transparent), transparent 52%), #12100e99;
   border: 1px solid var(--asm-line);
   box-shadow: inset 0 1px 0 #ffffff1f, 0 18px 40px -26px #000000a8;
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
@@ -102,7 +100,7 @@
   gap: 18px;
   padding: 0 24px;
   color: var(--asm-ink);
-  background: linear-gradient(150deg, #1b171459, #12100e73 55%, #0d0b0a80);
+  background: radial-gradient(ellipse at 18% 0%, color-mix(in srgb, var(--asm-glow) 12%, transparent), transparent 52%), #12100e99;
   border: 1px solid var(--asm-line);
   box-shadow: inset 0 1px 0 #ffffff1f, 0 18px 40px -26px #000000a8;
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
@@ -175,7 +173,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #03060766;
+  background: #030607;
   pointer-events: auto;
 }
 
@@ -187,55 +185,45 @@
   overflow: hidden;
   color: var(--asm-ink);
   border: 1px solid color-mix(in srgb, var(--event-accent) 18%, #ffffff20);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--event-accent) 7%, #0e161acc), #070b0dfa);
-  box-shadow: inset 0 1px 0 var(--event-accent), 0 28px 72px -34px #000000e8, 0 0 90px -42px var(--event-accent);
+  background:
+    radial-gradient(circle at 9% 11%, color-mix(in srgb, var(--event-accent) 70%, white) 0 1.5%, color-mix(in srgb, var(--event-accent) 28%, transparent) 3%, transparent 19%),
+    radial-gradient(ellipse 52% 46% at 100% 0%, #b5eaff2b, transparent 72%),
+    radial-gradient(ellipse 46% 44% at 82% 78%, color-mix(in srgb, var(--event-accent) 16%, transparent), transparent 72%),
+    radial-gradient(ellipse 62% 34% at 34% 112%, #f5bd6818, transparent 72%),
+    #0c1215;
+  box-shadow: inset 0 -40px 90px #00000030, 0 28px 72px -34px #000000e8, 0 0 90px -42px var(--event-accent);
   backdrop-filter: blur(18px) saturate(104%) brightness(0.82);
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
   animation: asm-reveal-in 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
-.asm-panel-frame,
-.asm-panel-scan {
+.asm-panel::before,
+.asm-panel::after {
   position: absolute;
+  z-index: 0;
+  content: "";
   pointer-events: none;
 }
 
-.asm-panel-frame {
-  z-index: 0;
+.asm-panel::before {
   inset: 0;
-}
-
-.asm-panel-frame::before,
-.asm-panel-frame::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-}
-
-.asm-panel-frame::before {
-  inset: 7px;
-  border: 1px solid color-mix(in srgb, var(--event-accent) 25%, #ffffff14);
-}
-
-.asm-panel-frame::after {
-  background:
-    linear-gradient(var(--event-accent), var(--event-accent)) left top / 22px 2px no-repeat,
-    linear-gradient(var(--event-accent), var(--event-accent)) left top / 2px 22px no-repeat,
-    linear-gradient(var(--event-accent), var(--event-accent)) right top / 22px 2px no-repeat,
-    linear-gradient(var(--event-accent), var(--event-accent)) right top / 2px 22px no-repeat,
-    linear-gradient(var(--event-accent), var(--event-accent)) left bottom / 22px 2px no-repeat,
-    linear-gradient(var(--event-accent), var(--event-accent)) left bottom / 2px 22px no-repeat,
-    linear-gradient(var(--event-accent), var(--event-accent)) right bottom / 22px 2px no-repeat,
-    linear-gradient(var(--event-accent), var(--event-accent)) right bottom / 2px 22px no-repeat;
-  opacity: 0.5;
-}
-
-.asm-panel-scan {
-  z-index: 0;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 6px);
-  opacity: 0.16;
+  opacity: 0.48;
+  background: radial-gradient(circle at 9% 11%, #f4ffffb8 0 1px, transparent 1.5px);
   mix-blend-mode: screen;
+}
+
+.asm-panel::after {
+  top: -9%;
+  right: 6%;
+  width: 40%;
+  height: 118%;
+  opacity: 0.52;
+  background:
+    radial-gradient(circle at 78% 15%, color-mix(in srgb, var(--event-accent) 50%, white) 0 1px, color-mix(in srgb, var(--event-accent) 18%, transparent) 2%, transparent 23%),
+    radial-gradient(ellipse at 78% 15%, color-mix(in srgb, var(--event-accent) 22%, transparent), transparent 52%);
+  box-shadow: 0 0 32px color-mix(in srgb, var(--event-accent) 18%, transparent), -110px 75px 100px #7ee7ff12;
+  mix-blend-mode: screen;
+  animation: asm-panel-light 12s ease-in-out infinite alternate;
 }
 
 .asm-event-frame {
@@ -260,7 +248,6 @@
   z-index: 1;
   min-height: 48px;
   padding-bottom: 13px;
-  border-bottom: 1px solid #405057;
 }
 
 .asm-event-frame > header h1 {
@@ -345,6 +332,11 @@
   to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
 }
 
+@keyframes asm-panel-light {
+  from { opacity: 0.4; transform: translate3d(0, 0, 0) rotate(0deg); }
+  to { opacity: 0.7; transform: translate3d(-12px, 5px, 0) rotate(-1deg); }
+}
+
 @keyframes asm-reveal-out {
   from { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
   to { opacity: 0; transform: scale(0.97) translateY(16px); filter: blur(3px); }
@@ -360,7 +352,8 @@
   .asm-readout,
   .asm-entry,
   .asm-body,
-  .asm-panel {
+  .asm-panel,
+  .asm-panel::after {
     animation: none;
   }
 

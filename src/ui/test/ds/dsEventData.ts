@@ -27,7 +27,7 @@ export interface DsOption {
 
 export interface DsEvent {
   type: DsEventType;
-  /** 档案标签，如「RISK EVENT / 07」。 */
+  /** 档案标签，例如「风险事件 / 07」。 */
   label: string;
   title: string;
   description: string;
@@ -47,12 +47,12 @@ export const EVENT_TYPE_LABELS: Record<DsEventType, string> = {
 export const EVENT_CONTENT: Record<DsEventType, DsEvent> = {
   hazard: {
     type: "hazard",
-    label: "RISK EVENT / 07",
+    label: "风险事件 / 07",
     title: "数据风暴眼",
     description:
       "废弃楼层的通讯井里卷起一团数据风暴。碎玻璃悬浮在半空，被染成琥珀色的电弧沿墙面爬行。风暴眼深处似乎裹着什么东西，每一次靠近，警报的频率都会更快。",
     accent: "#e3aa72",
-    sceneName: "STORM EYE / 07",
+    sceneName: "风暴核心 / 07",
     options: [
       {
         id: "deploy-beacon",
@@ -92,12 +92,12 @@ export const EVENT_CONTENT: Record<DsEventType, DsEvent> = {
   },
   growth: {
     type: "growth",
-    label: "GROWTH EVENT / 03",
+    label: "成长事件 / 03",
     title: "地下温室",
     description:
       "透明穹顶下的培育舱还亮着微弱的暖光。那株陌生植物的根系缠住了供能管线，叶片在无风的空间里轻轻起伏，像是在等待一个愿意伸手的人。",
     accent: "#8ac8a5",
-    sceneName: "GLASSHOUSE 03",
+    sceneName: "地下温室 03",
     options: [
       {
         id: "harvest",
@@ -137,12 +137,12 @@ export const EVENT_CONTENT: Record<DsEventType, DsEvent> = {
   },
   trade: {
     type: "trade",
-    label: "TRADE EVENT / 12",
+    label: "交易事件 / 12",
     title: "废弃货栈拍卖",
     description:
       "锈蚀的传送带把一个个货箱送进拍卖区。电子屏上的报价不断跳动，几个裹着旧斗篷的买家站在阴影里，用沉默竞价。这里的规矩只有一条：落锤之前，什么都可以谈。",
     accent: "#b8a9d1",
-    sceneName: "AUCTION DECK 12",
+    sceneName: "货栈拍卖区 12",
     options: [
       {
         id: "bid-battery",

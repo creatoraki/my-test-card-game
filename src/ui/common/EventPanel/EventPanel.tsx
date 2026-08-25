@@ -271,14 +271,9 @@ export function EventPanelBriefing({
       <div className={s.scenePlaceholder} aria-label="事件插图占位区域">
         {art ?? (
           <>
-            <div className={s.sceneGrid} />
             <div className={s.sceneOrb} />
-            <div className={s.sceneFrame}>
-              <span>01</span>
-              <span>VISUAL<br />PLACEHOLDER</span>
-            </div>
             <div className={s.sceneCaption}>
-              <span>ARCHIVE IMAGE</span>
+              <span>事件档案</span>
               <strong>{sceneName}</strong>
             </div>
             <div className={s.sceneGlyph} aria-hidden="true">{glyph}</div>
@@ -286,7 +281,7 @@ export function EventPanelBriefing({
         )}
       </div>
       <div className={s.briefingCopy}>
-        {label && <div className={s.eventLabel}><span /> {label}</div>}
+        {label && <div className={s.eventLabel}>{label}</div>}
         {heading && <h2>{heading}</h2>}
         <div className={[s.storySubtitle, typingSubtitle ? s.typingText : ""].filter(Boolean).join(" ")}>{subtitle}</div>
         <p className={[s.storyBody, typingBody ? s.typingText : ""].filter(Boolean).join(" ")} ref={bodyRef}>{body}</p>
@@ -333,7 +328,7 @@ export function EventPanelChoice({
   return (
     <section className={s.choiceScene} aria-label="事件行动选择">
       <div className={s.choiceIntro}>
-        <span className={s.sceneEyebrow}>02 / ACTION PHASE</span>
+        <span className={s.sceneEyebrow}>02 / 行动阶段</span>
         <h2>{heading}</h2>
         <p>{hint}</p>
         <div className={s.choiceSignal}><span /> {signal}</div>

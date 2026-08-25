@@ -48,7 +48,7 @@ export default function ShopOverlay() {
         <span className={s.scan} aria-hidden />
         <EventPanelFrame
           accent="#d6b477"
-          kicker="交易终端 / SHOPPING"
+          kicker="交易终端 / 商店"
           title={displayedEvent.title}
           status={<span className={s.step}>交易服务 · {displayedShop.slots.length} 槽位</span>}
           contentKey={`shop-${displayedEvent.id}`}

@@ -123,7 +123,7 @@ export function AssemblyScene({ leaving = false }: Props) {
   return (
     <div className={cn("asm-scene", leaving && "is-leaving")}>
       <header className={cn("asm-header")} style={{ left: "56px", top: "42px" }}>
-        <span className={cn("asm-kicker")}>MODULE BAY</span>
+        <span className={cn("asm-kicker")}>模块装配舱</span>
         <h2 className={cn("asm-title")}>模块装配舱</h2>
         <p className={cn("asm-sub")}>卡牌模组装配 · 拆卸</p>
       </header>
@@ -180,11 +180,9 @@ export function AssemblyScene({ leaving = false }: Props) {
               height: `${PANEL_SIZE.h}px`,
             } as CSSProperties}
           >
-            <span className={cn("asm-panel-frame")} aria-hidden />
-            <span className={cn("asm-panel-scan")} aria-hidden />
             <EventPanelFrame
               accent="#52cfff"
-              kicker="ASSEMBLY"
+              kicker="装配模块"
               title="卡牌模组装配"
               status={<span className={cn("asm-panel-status")}>库存 {moduleStacks.length} · 已装配 {installedCount}</span>}
               headerExtra={

@@ -198,7 +198,7 @@ export function LunaEventPanel() {
 
       <EventPanel
         accent={event.accent}
-        kicker="SCENARIO LAB / 事件面板原型"
+        kicker="场景实验室 / 事件面板原型"
         title="探索事件"
         scene={scene}
         sceneKey={eventType}

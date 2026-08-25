@@ -9,7 +9,6 @@
   gap: 12px;
   align-content: start;
   padding-right: 18px;
-  border-right: 1px solid #314149;
 }
 
 .viewport {
@@ -24,25 +23,10 @@
   aspect-ratio: 3 / 4;
   border: 1px solid color-mix(in srgb, var(--stage-accent) 58%, #7f9394);
   background:
-    linear-gradient(90deg, transparent 49.6%, #ffffff14 50%, transparent 50.4%),
-    linear-gradient(0deg, transparent 49.6%, #ffffff0d 50%, transparent 50.4%),
     radial-gradient(ellipse at 50% 78%, color-mix(in srgb, var(--stage-accent) 24%, transparent), transparent 58%),
     #101a1d;
   box-shadow: inset 0 0 35px #000a, 0 0 24px color-mix(in srgb, var(--stage-accent) 12%, transparent);
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-
-.viewportGrid {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(#d5e6e312 1px, transparent 1px),
-    linear-gradient(90deg, #d5e6e312 1px, transparent 1px);
-  background-size: 24px 24px;
-  opacity: 0.6;
-  transform: perspective(360px) rotateX(54deg) scale(1.3) translateY(24%);
-  transform-origin: center bottom;
-  pointer-events: none;
 }
 
 .portrait {
@@ -55,17 +39,6 @@
   max-width: none;
   translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
   filter: drop-shadow(0 4px 10px #000a);
-}
-
-.viewportMarker {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
-  height: 1px;
-  background: var(--stage-accent);
-  box-shadow: 0 0 12px var(--stage-accent);
-  opacity: 0.72;
 }
 
 .emptyPortrait {

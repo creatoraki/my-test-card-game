@@ -104,7 +104,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
         <span className={s["panel-scan"]} aria-hidden />
         <EventPanelFrame
           accent={REWARD_ACCENT}
-          kicker="成长协议 / REWARD"
+          kicker="成长协议 / 奖励"
           title={titleOf(action.kind)}
           status={<span className={s["reward-step"]}>待处理奖励</span>}
           contentKey={`${action.kind}-${detailStage ? "detail" : "pick"}`}

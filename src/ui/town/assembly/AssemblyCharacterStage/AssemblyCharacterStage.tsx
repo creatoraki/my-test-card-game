@@ -41,7 +41,6 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect }: Props) 
   return (
     <aside className={s.stage} aria-label="角色选择">
       <div className={s.viewport} style={{ "--character-color": selectedCharacter?.color } as CSSProperties}>
-        <span className={s.viewportGrid} aria-hidden="true" />
         {selectedCharacter ? (
           <CharacterPortrait
             characterId={selectedCharacter.id}
@@ -52,7 +51,6 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect }: Props) 
         ) : (
           <span className={s.emptyPortrait} aria-hidden="true" />
         )}
-        <span className={s.viewportMarker} aria-hidden="true" />
       </div>
       <div className={s.heading}>
         <span className={s.kicker}>CURRENT OPERATOR</span>

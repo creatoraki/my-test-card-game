@@ -100,7 +100,7 @@ export default function BackpackPanel({
         <span className={s["panel-scan"]} aria-hidden />
         <EventPanelFrame
           accent="#7fd4c4"
-          kicker="随身携带 / BACKPACK"
+          kicker="随身携带 / 背包"
           title="背包"
           contentKey="backpack"
           status={

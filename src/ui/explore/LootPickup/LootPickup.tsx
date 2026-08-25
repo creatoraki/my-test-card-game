@@ -106,7 +106,7 @@ function LootPickup({ gate }: LootPickupProps) {
         <span className={s["panel-scan"]} aria-hidden />
         <EventPanelFrame
           accent="#9be4bd"
-          kicker="事件掉落 / SALVAGE"
+          kicker="事件掉落 / 回收"
           title="发现物品"
           status={<span className={s["loot-count"]}>{pendingLoot.length} 件</span>}
           contentKey={`loot-${displayed.length}`}

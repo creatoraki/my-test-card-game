@@ -83,12 +83,12 @@ export function DsEventPanel() {
     <div className={s.eventDemo} style={{ "--ds-accent": event.accent } as CSSProperties}>
       <header className={s.demoHeader}>
         <div>
-          <span className={s.demoKicker}>DS EVENT PANEL / 事件面板原型</span>
+          <span className={s.demoKicker}>事件面板 / 交互原型</span>
           <h1>事件抉择</h1>
         </div>
         <div className={s.headerActions}>
           <span className={s.liveStatus}>
-            <i aria-hidden="true" /> LIVE · {EVENT_TYPE_LABELS[eventType]}
+            <i aria-hidden="true" /> 实时 · {EVENT_TYPE_LABELS[eventType]}
           </span>
           <button type="button" className={s.resetButton} onClick={() => rerun(eventType)}>
             <span aria-hidden="true">↺</span> 重置演出
@@ -235,7 +235,7 @@ function EventPanelStage({ event, closing, onConfirmed }: PanelStageProps) {
           <span className={s.artSweep} aria-hidden="true" />
           <span className={s.artMark} aria-hidden="true">◆</span>
           <span className={s.artCaption}>
-            <em>ARCHIVE IMAGE</em>
+            <em>事件档案</em>
             <strong>{event.sceneName}</strong>
           </span>
         </div>
@@ -277,7 +277,7 @@ function EventPanelStage({ event, closing, onConfirmed }: PanelStageProps) {
               <header className={s.resultHead}>
                 <span className={s.resultIcon} aria-hidden="true">◈</span>
                 <div>
-                  <span className={s.sectionKicker}>OUTCOME / 故事结果</span>
+                  <span className={s.sectionKicker}>结算结果 / 故事结果</span>
                   <h3>选择已生效</h3>
                 </div>
               </header>
