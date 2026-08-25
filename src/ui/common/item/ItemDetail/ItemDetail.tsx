@@ -3,7 +3,7 @@
 // 故用 children 插槽让调用方自己塞。本组件只负责「这件东西是什么」。
 
 import type { ReactNode } from "react";
-import { getBondDef, getItemDef } from "@/data";
+import { getBondDef, getCardModule, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { StatBlock } from "@/engine";
 import type { ItemStack } from "@/items/types";
@@ -59,6 +59,8 @@ export default function ItemDetail({
   // def.affinity = 羁绊饰品的固定羁绊; stack.affinity = 掉落时 roll 出的随机羁绊。
   // 本期只会有后者, 但两者的展示是同一套, 先一并取。
   const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
+  // 模组的装配条件独立成字段展示 —— 正文只说装配后的效果, 条件不再混在 desc 里。
+  const cardModule = def.category === "module" ? getCardModule(def.id) : undefined;
   const mods = def.mods;
   const rows: { label: string; value: string; good: boolean }[] = [];
   for (const k of STAT_KEYS) {
@@ -104,8 +106,11 @@ export default function ItemDetail({
       {def.category === "material" && (
         <p className={cx(s["item-detail-note"], s["is-locked"])}>关键词模组尚未开放，先存进仓库。</p>
       )}
-      {def.category === "module" && (
-        <p className={s["item-detail-note"]}>成品模组：装配后从仓库移出，拆卸时原样退回。</p>
+      {cardModule && (
+        <dl className={s["item-detail-field"]}>
+          <dt>装配条件</dt>
+          <dd>{cardModule.equipText}</dd>
+        </dl>
       )}
       {def.category === "data" && (
         <p className={cx(s["item-detail-note"], s["is-locked"])}>叙事解锁尚未开放，先存进仓库。</p>

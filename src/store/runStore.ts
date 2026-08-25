@@ -11,6 +11,7 @@ import {
   activeBonds,
   getCharacter,
   getEnemyDef,
+  getItemDef,
   getMap,
   mergeMods,
   nextTier,
@@ -18,13 +19,14 @@ import {
 } from "../data";
 import {
   burdenNow,
+  canOpenBackpack,
   dropCoefficient,
   encounterModifier,
   energyTier,
   rewardMultiplier,
 } from "../explore/session";
 import type { PartySnapshot } from "../explore/types";
-import type { ItemStack } from "../items/types";
+import type { EquipSlot, ItemStack } from "../items/types";
 import { useBattleStore, type BattleMeta } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
 import {
@@ -85,6 +87,11 @@ interface RunStore {
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
   confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
+  // ---- 远征途中换装(探索页的角色档案 Modal) ----
+  // 装备槽在城镇侧、背包在探索侧, 两边只有本 store 同时认识 —— 故编排放在这里。
+  // 返回 false = 没做任何改动(阶段不允许 / 背包装不下 / 目标非法), UI 据此飘一条提示。
+  equipFromBackpack: (charId: string, uid: string) => boolean;
+  unequipToBackpack: (charId: string, slot: EquipSlot) => boolean;
   retreat: () => void; // 主动撤离 → 落袋回城
   finishExpedition: () => void; // 会话自行走到终局(升降机/轮次走完/团灭) → 结算页
   backToTown: () => void;
@@ -118,6 +125,17 @@ function partySnapshot(): PartySnapshot[] {
       },
     };
   });
+}
+
+// 换装之后把这名角色的快照对齐到新的面板值。
+// ★ 只裁不补(见 explore/session.syncPartyVitals): 上限跟着装备走, 当前血量不因换装回复。
+// ⚠ 口径必须与 partySnapshot() 一致(同样是 deriveStats 的局外值、同样不含羁绊), 否则
+//   出击时算一套、途中换装又算另一套, 血量上限会在开战瞬间跳一下。
+function syncMemberStats(charId: string): void {
+  const cs = useTownStore.getState().characters[charId];
+  if (!cs) return;
+  const stats = deriveStats(cs);
+  useExploreStore.getState().syncPartyVitals(charId, stats.maxHp, stats.burdenAdapt);
 }
 
 function applyPendingContamination(charIds: string[]): ContaminationHit[] {
@@ -432,6 +450,47 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastChallengeBonus: 0,
       lastChallenges: [],
     });
+  },
+
+  // 背包 → 装备槽。★ 顺序是刻意的: **先**把新件从背包取走再校验旧件放不放得下 ——
+  // 同类装备互换时净占格为 0, 反过来先放旧件会在满包时误判为"装不下"。
+  // 任何一步失败都把背包恢复原状(新件刚腾出的格子必然还在, 放回必成)。
+  equipFromBackpack: (charId, uid) => {
+    const explore = useExploreStore.getState();
+    const session = explore.session;
+    if (!session || !canOpenBackpack(session)) return false;
+    if (!session.party.some((p) => p.charId === charId)) return false;
+    const stack = session.backpack.find((st) => st.uid === uid);
+    if (!stack) return false;
+    const def = getItemDef(stack.itemId);
+    if (def.category !== "equipment" || !def.slot) return false;
+
+    const taken = explore.takeBackpackItem(uid);
+    if (!taken) return false;
+    const town = useTownStore.getState();
+    const old = town.characters[charId]?.equipped?.[def.slot] ?? null;
+    if (old && !useExploreStore.getState().putBackpackItems([old])) {
+      useExploreStore.getState().putBackpackItems([taken]); // 回滚
+      return false;
+    }
+    town.wearStack(charId, taken);
+    syncMemberStats(charId);
+    return true;
+  },
+
+  // 装备槽 → 背包。★ 先校验容量再卸 —— 满包时不能出现"卸下来了但没地方放"的中间态。
+  unequipToBackpack: (charId, slot) => {
+    const explore = useExploreStore.getState();
+    const session = explore.session;
+    if (!session || !canOpenBackpack(session)) return false;
+    if (!session.party.some((p) => p.charId === charId)) return false;
+    const town = useTownStore.getState();
+    const stack = town.characters[charId]?.equipped?.[slot];
+    if (!stack) return false;
+    if (!explore.putBackpackItems([stack])) return false;
+    town.takeOffStack(charId, slot);
+    syncMemberStats(charId);
+    return true;
   },
 
   retreat: () => {

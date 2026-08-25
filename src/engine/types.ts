@@ -130,6 +130,7 @@ export interface EffectDescriptor {
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal"; // CONVERT_CARD_TYPE: 从手牌普通牌中随机选择
+  fromModule?: string; // 由卡牌模组追加的效果标记(模组 itemId); 纯标记, 引擎结算不读取
 }
 
 // ---------------------------------------------------------------------------

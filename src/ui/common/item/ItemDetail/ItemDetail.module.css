@@ -121,6 +121,28 @@
   color: var(--bad);
 }
 
+/* 独立字段行(目前只有模组的「装配条件」)。与属性表同一套上下描边的读法,
+   但值是文字而不是数字, 故不做 tabular-nums 与好/坏配色。 */
+.item-detail-field {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 0;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.item-detail-field dt {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+.item-detail-field dd {
+  margin: 0;
+  color: var(--accent2);
+  text-align: right;
+}
+
 /* 羁绊词条 —— 刻意用 accent 描边框起来: 同一件装备的属性人人都有,
    词条才是构筑里真正要挑的那一项, 得比属性表更抢眼。 */
 .item-detail-bond {

@@ -1,20 +1,23 @@
 .stage {
   --stage-accent: var(--character-color, var(--asm-cyan, var(--event-accent, #58efc7)));
   /* ⚠ 立绘宽度改用**百分比**基准: 44% × 2.2 ≈ 96.8% —— 与旧的 132px × 2.2 在 300px 容器里
-     完全等价, 但从此随容器缩放。各角色的 --bust-scale / --portrait-dx 校准值仍然成立。 */
+     完全等价, 但从此随容器缩放。--bust-scale 是纯倍率, 跟着缩放没问题;
+     --portrait-dx/dy 是 px, **不**能直接照搬到小框, 详见 .portrait 上的 --frame-k 说明。 */
   --slot-base-w: 44%;
   --bust-zoom: 2.2;
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
+  /* 第一行交给立绘框的自然高度(由列宽 × 3:4 得出), 剩下的全部归角色列表 ——
+     这样立绘框顶边就钉在本列顶部, 与右边卡组区的标题行同一条基线。 */
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
   padding-right: 18px;
 }
 
-/* ⚠ 立绘框是 3:4 的, 宽度又被左栏列宽卡死, 所以「吃满高度」只能是**在比例内取最大**:
-   宽度撑满列宽 → 高度由 3:4 推出 → max-height 兜底防止超出剩余空间, 再上下居中。
-   直接写 height:100% 会让 height 压过 aspect-ratio, 框被拉成细长条、立绘吊在顶部。 */
+/* ⚠ 立绘框是 3:4 的, 宽度被左栏列宽卡死 → 高度只能由宽度推出, 不能反过来。
+   直接写 height:100% 会让 height 压过 aspect-ratio, 框被拉成细长条、立绘吊在顶部。
+   align-self 必须是 start(不能 center): 居中会让顶边下沉, 就和卡组区的顶边错开了。 */
 .viewport {
   position: relative;
   display: flex;
@@ -22,10 +25,8 @@
   height: auto;
   min-height: 0;
   align-items: flex-end;
-  align-self: center;
+  align-self: start;
   justify-content: center;
-  justify-self: center;
-  max-height: 100%;
   overflow: hidden;
   aspect-ratio: 3 / 4;
   border: 1px solid color-mix(in srgb, var(--stage-accent) 58%, #7f9394);
@@ -36,7 +37,13 @@
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 
+/* ⚠ --portrait-dx/dy 是**固定 px**(CharacterPortrait 登记表下发, 剑士 -15/10, 其余为 0),
+   而本文件的两个取景框立绘宽度差了 4 倍多(大框≈370px / 小框≈88px)。
+   同一个 -15px 在小框里的相对偏移是大框的约 4.2 倍 —— 直接照搬会把小框的角色顶到左边。
+   所以这里给每个取景配一个 --frame-k, 把 dx/dy 按各自立绘尺寸等比缩放:
+   大框取景已校准正确, k=1; 小框立绘宽约为大框的 24%, k=0.24。 */
 .portrait {
+  --frame-k: 1;
   position: absolute;
   top: 0;
   left: 50%;
@@ -44,7 +51,9 @@
   width: calc(var(--slot-base-w) * var(--bust-zoom) * var(--bust-scale, 1));
   height: auto;
   max-width: none;
-  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  translate:
+    calc(-50% + var(--portrait-dx, 0px) * var(--frame-k))
+    calc(var(--portrait-dy, 0px) * var(--frame-k));
   filter: drop-shadow(0 4px 10px #000a);
 }
 
@@ -103,16 +112,19 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 一排 4 个的多排网格, 纵向滚动。滚动条视觉由 .asm-panel 统一隐藏。 */
 .characterList {
-  display: flex;
+  display: grid;
   min-width: 0;
+  min-height: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
   gap: 8px;
-  padding: 3px 0 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  /* 这圈内边距是给格子 hover 时的 -3px 位移和外发光留的, 否则会被 overflow 裁掉。 */
+  padding: 4px;
+  overflow-x: hidden;
+  overflow-y: auto;
   outline: none;
-  scrollbar-color: color-mix(in srgb, var(--asm-cyan, #58efc7) 44%, transparent) transparent;
-  scrollbar-width: thin;
 }
 
 .characterList:focus-visible {
@@ -123,8 +135,8 @@
 .character {
   position: relative;
   display: grid;
-  flex: 0 0 84px;
-  height: 108px;
+  width: 100%;
+  aspect-ratio: 84 / 108;
   align-items: end;
   justify-items: center;
   padding: 0;
@@ -159,13 +171,17 @@
   /* 同样换成百分比基准, 格子宽度再变也不会把半身像截歪。 */
   --slot-base-w: 47%;
   --bust-zoom: 2.15;
+  /* 小框立绘宽 ≈ 大框的 24%, dx/dy 同比缩到 24% —— 见 .portrait 上方的说明。 */
+  --frame-k: 0.24;
   position: absolute;
   top: 0;
   left: 50%;
   width: calc(var(--slot-base-w) * var(--bust-zoom) * var(--bust-scale, 1));
   height: auto;
   max-width: none;
-  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  translate:
+    calc(-50% + var(--portrait-dx, 0px) * var(--frame-k))
+    calc(var(--portrait-dy, 0px) * var(--frame-k));
   opacity: 0.82;
 }
 

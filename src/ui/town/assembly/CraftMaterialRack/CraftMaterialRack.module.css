@@ -1,0 +1,119 @@
+.rack {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  overflow: hidden;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kicker {
+  color: var(--asm-cyan, var(--event-accent, #58efc7));
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.count {
+  color: var(--muted, #849096);
+  font-size: 12px;
+}
+
+.grid {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+  /* 与模组仓库同理: 选中/需求角标是 inset:-4px, 没有这圈余量边缘一列会被裁掉。 */
+  padding: 8px 8px 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.option {
+  position: relative;
+  min-width: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.option:hover,
+.option:focus-within {
+  transform: translateY(-3px);
+}
+
+/* 本次配方用不到的材料压暗 —— 与模组仓库的「不匹配」同一套语言。 */
+.option:not(.required) {
+  opacity: 0.45;
+  filter: saturate(0.3);
+}
+
+.option.required .slot {
+  --accent: var(--asm-select, #9fe8ff);
+}
+
+.stock {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 3;
+  padding: 2px 4px;
+  color: #c5d8c4;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  background: #11201bd9;
+  pointer-events: none;
+}
+
+.option.required .stock {
+  color: var(--asm-cyan, #58efc7);
+}
+
+.option.lacking .stock {
+  color: #f0a39a;
+  background: #2b1719dd;
+}
+
+.slot {
+  --item-slot-icon-size: 62%;
+  --item-slot-count-size: 12px;
+  width: 100%;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  color: var(--muted, #849096);
+  font-size: 11px;
+  text-align: center;
+  border: 1px dashed #ffffff1f;
+}
+
+.emptySlot {
+  width: 42px;
+  aspect-ratio: 1;
+  border: 1px dashed #819092;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option {
+    transition: none;
+  }
+
+  .option:hover,
+  .option:focus-within {
+    transform: none;
+  }
+}

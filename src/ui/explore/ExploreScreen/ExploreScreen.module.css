@@ -315,8 +315,10 @@
     0 10px
   );
 }
-/* 悬停: 整卡轻轻上浮, 描边提亮 —— 队伍是活的, 不是一张贴图。 */
+/* 悬停: 整卡轻轻上浮, 描边提亮 —— 队伍是活的, 不是一张贴图。
+   ★ 恒可点击: 消耗品选目标时是「用在他身上」, 其余时候打开角色档案(见 ExploreScreen 的点击分流)。 */
 .expl-member {
+  cursor: pointer;
   transition:
     opacity 220ms ease,
     transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1),
@@ -343,6 +345,7 @@
 }
 .expl-party.is-targeting .expl-member:not(.is-targetable) {
   opacity: 0.35;
+  cursor: default;
   filter: grayscale(0.6);
 }
 /* 无效目标不是交互对象: 压掉悬停上浮, 只保留可选目标的「活了」手感。 */
@@ -413,7 +416,9 @@
 }
 .expl-use-flash {
   position: absolute;
-  z-index: 6;
+  /* ⚠ 必须高于角色档案 Modal(32): 换装的成功/失败反馈就用这条飘字, 被遮罩盖住就白飘了。
+     它落在画布最左侧(left:16px), 而面板从 x=160 起 ⇒ 只压在暗遮罩上, 不挡面板内容。 */
+  z-index: 40;
   padding: 8px 14px;
   border: 1px solid #7fd4c488;
   background: linear-gradient(155deg, #0f171c9e, #0a1013cc);
@@ -747,4 +752,11 @@
   color: #a9c3c5;
   font-size: 11px;
   letter-spacing: 5px;
+}
+
+/* 角色档案 Modal(common/CharacterModal)的层序。
+   外壳自带 z-index: 3, 那是装配舱场景里的层数 —— 探索画布上要压过路由图、四角 HUD 与
+   .expl-scrim(30), 故在这里就地抬到 32。几何沿用外壳的 inset: 0。 */
+.expl-character-modal {
+  z-index: 32;
 }

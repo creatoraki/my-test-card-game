@@ -1,0 +1,206 @@
+.bench {
+  --bench-accent: var(--asm-frame, var(--event-accent, #52cfff));
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid #43545a;
+  background:
+    radial-gradient(circle at 42% 52%, color-mix(in srgb, var(--bench-accent) 12%, transparent), transparent 33%),
+    #0b1114;
+  box-shadow: inset 0 0 30px #0007, 10px 10px 0 #060a0c;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.benchHeader,
+.benchSurface,
+.benchFooter {
+  position: relative;
+  z-index: 1;
+}
+
+.benchHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.benchHeader strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #eff6e9;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.state {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  color: #c5d8c4;
+  font-size: 12px;
+  background: #11201bd9;
+  border: 1px solid #6fba884c;
+}
+
+.bench[data-state="blocked"] .state {
+  color: #f0a39a;
+  border-color: #e4797080;
+}
+
+.benchSurface {
+  display: grid;
+  min-height: 0;
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  padding: 12px 12px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--bench-accent) 13%, transparent), transparent 68%), #0d191d;
+  border: 1px solid #ffffff16;
+}
+
+.moduleSlot {
+  position: relative;
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+  background: #0c1417dd;
+  border: 1px solid #718082;
+  box-shadow: inset 0 0 18px #000b;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  cursor: default;
+}
+
+.moduleSlot:focus-visible {
+  outline: 2px solid var(--bench-accent);
+  outline-offset: 3px;
+}
+
+.bench[data-state="ready"] .moduleSlot {
+  border-color: var(--bench-accent);
+  box-shadow: inset 0 0 18px #1a1208, 0 0 18px color-mix(in srgb, var(--bench-accent) 32%, transparent);
+}
+
+.moduleIcon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  color: var(--bench-accent);
+}
+
+.moduleIcon svg,
+.moduleIcon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.slotPlaceholder {
+  width: 32px;
+  height: 32px;
+  border: 1px dashed #8b9b9d;
+  border-radius: 50%;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--bench-accent) 18%, transparent);
+}
+
+.slotMark {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  left: 6px;
+  overflow: hidden;
+  color: #8c9b9b;
+  font-family: var(--font-family);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.costList {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.costRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 9px;
+  color: #f0a39a;
+  font-size: 13px;
+  background: #2b171933;
+  border-left: 2px solid #e4797080;
+}
+
+.costRow[data-ok="true"] {
+  color: #d8e6df;
+  background: #11201b66;
+  border-left-color: color-mix(in srgb, var(--bench-accent) 66%, transparent);
+}
+
+.costName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.costValue {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.costHave {
+  color: var(--asm-ink-dim, #8fa9ae);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.costEmpty {
+  padding: 6px 9px;
+  color: var(--muted, #849096);
+  font-size: 12px;
+}
+
+.benchFooter {
+  display: grid;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.shortage {
+  margin: 0;
+  color: #f0a39a;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.actionButton {
+  width: 100%;
+  height: 38px;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+.actionButton svg {
+  width: 16px;
+  height: 16px;
+}

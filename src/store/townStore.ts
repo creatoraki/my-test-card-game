@@ -33,6 +33,8 @@ import {
   makeItemStack,
   canEquipModule,
   recomputeCardModule,
+  craftCheck,
+  getModuleRecipe,
   canActivate,
   canRefund,
   getBadge,
@@ -137,8 +139,14 @@ interface TownStore {
   sellItem: (uid: string) => void; // 回收台: 按 sellValue 出售换居民积分
   equipItem: (charId: string, uid: string) => void; // 从仓库取一件穿上
   unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
+  // ---- 不经仓库的两个原子操作 ----
+  // ★ 远征途中换装(探索页的角色档案)要把物品在**背包**与槽位之间搬, 与仓库无关。
+  //   编排在 runStore(唯一同时认识城镇与探索的那一层), 这里只负责槽位这一半。
+  wearStack: (charId: string, stack: ItemStack) => ItemStack | null; // 穿上, 返回被替下的旧件
+  takeOffStack: (charId: string, slot: EquipSlot) => ItemStack | null; // 卸下并交出
   equipCardModule: (charId: string, cardUid: string, moduleUid: string) => void;
   unequipCardModule: (charId: string, cardUid: string) => void;
+  craftModule: (charId: string, itemId: string) => void;
   resetProfile: () => void; // 重置存档
   selectSquadBadge: (id: string) => void;
   activateTalentNode: (nodeId: string) => void;
@@ -371,10 +379,19 @@ const INITIAL_CONSUMABLE_IDS = [
   "fruit-juice-c",
 ] as const;
 
+// 模组制造的测试材料。开局给足, 两种模组各造一次之后还剩余量。
+const INITIAL_MATERIAL_IDS = ["logic-cube", "standard-gear", "standard-battery"] as const;
+
 function freshStorage(): ItemStack[] {
-  return [makeItemStack("rush-module"), ...INITIAL_CONSUMABLE_IDS.flatMap((itemId) =>
-    Array.from({ length: 3 }, () => makeItemStack(itemId)),
-  )];
+  return [
+    makeItemStack("rush-module"),
+    ...INITIAL_CONSUMABLE_IDS.flatMap((itemId) =>
+      Array.from({ length: 3 }, () => makeItemStack(itemId)),
+    ),
+    ...INITIAL_MATERIAL_IDS.flatMap((itemId) =>
+      Array.from({ length: 6 }, () => makeItemStack(itemId)),
+    ),
+  ];
 }
 
 function freshProfile(): {
@@ -536,34 +553,54 @@ export const useTownStore = create<TownStore>()(
       // ⚠ 同一角色的同类槽位只能有一件; 不同角色可以各装一件同类装备。
       equipItem: (charId, uid) => {
         const { storage, characters } = get();
-        const cs = characters[charId];
         const st = storage.find((s) => s.uid === uid);
-        if (!cs || !st) return;
+        if (!st || !characters[charId]) return;
         const def = getItemDef(st.itemId);
         if (def.category !== "equipment" || !def.slot) return;
-
-        const old = cs.equipped[def.slot];
-        set({
-          storage: old ? [...removeByUid(storage, uid), { ...old }] : removeByUid(storage, uid),
-          characters: {
-            ...characters,
-            [charId]: { ...cs, equipped: { ...cs.equipped, [def.slot]: { ...st } } },
-          },
-        });
+        // ⚠ 守卫全部走完才动手: 先把物品从仓库拿走再穿 —— 反过来的话 wearStack 交回的旧件
+        //   会被这次 set 的 storage 快照(仍含新件)覆盖掉。
+        set({ storage: removeByUid(storage, uid) });
+        const old = get().wearStack(charId, st);
+        if (old) set({ storage: [...get().storage, old] });
       },
 
       unequipItem: (charId, slot) => {
-        const { storage, characters } = get();
+        const st = get().takeOffStack(charId, slot);
+        if (!st) return;
+        set({ storage: [...get().storage, st] });
+      },
+
+      // 穿上一件**已经在调用方手里**的装备(不从仓库取)。返回被替下的旧件, 由调用方决定它去哪。
+      wearStack: (charId, stack) => {
+        const { characters } = get();
+        const cs = characters[charId];
+        if (!cs) return null;
+        const def = getItemDef(stack.itemId);
+        if (def.category !== "equipment" || !def.slot) return null;
+
+        const old = cs.equipped[def.slot];
+        set({
+          characters: {
+            ...characters,
+            [charId]: { ...cs, equipped: { ...cs.equipped, [def.slot]: { ...stack } } },
+          },
+        });
+        return old ? { ...old } : null;
+      },
+
+      // 卸下并把物品交出去(不进仓库)。槽位本来就空则返回 null, 不做任何改动。
+      takeOffStack: (charId, slot) => {
+        const { characters } = get();
         const cs = characters[charId];
         const st = cs?.equipped?.[slot];
-        if (!cs || !st) return;
+        if (!cs || !st) return null;
         set({
-          storage: [...storage, { ...st }],
           characters: {
             ...characters,
             [charId]: { ...cs, equipped: { ...cs.equipped, [slot]: null } },
           },
         });
+        return { ...st };
       },
 
       equipCardModule: (charId, cardUid, moduleUid) => {
@@ -609,6 +646,39 @@ export const useTownStore = create<TownStore>()(
         });
       },
 
+      // ---- 模组制造 ----
+      // 选定角色 → 按配方扣该角色经验与仓库材料 → 产出模组进仓库。
+      // ⚠ 可行性判定统一走 data/moduleCrafting 的 craftCheck, UI 的置灰读的是同一个函数。
+      craftModule: (charId, itemId) => {
+        const { storage, characters } = get();
+        const cs = characters[charId];
+        const recipe = getModuleRecipe(charId, itemId);
+        if (!cs || !recipe) return;
+        if (!craftCheck(recipe, cs.exp, storage).ok) return;
+
+        // 逐堆扣材料: 仓库存的是逐 uid 的独立堆, 扣空的堆整堆移除。
+        let nextStorage = storage;
+        for (const material of recipe.materials) {
+          let left = material.count;
+          for (const stack of nextStorage.filter((entry) => entry.itemId === material.itemId)) {
+            if (left <= 0) break;
+            const take = Math.min(left, stack.count);
+            left -= take;
+            nextStorage =
+              take >= stack.count
+                ? removeByUid(nextStorage, stack.uid)
+                : nextStorage.map((entry) =>
+                    entry.uid === stack.uid ? { ...entry, count: entry.count - take } : entry,
+                  );
+          }
+        }
+
+        set({
+          storage: [...nextStorage, makeItemStack(recipe.itemId)],
+          // expEarned 是累计获得量, 只增不减 —— 消费只动可用经验池。
+          characters: { ...characters, [charId]: { ...cs, exp: cs.exp - recipe.exp } },
+        });
+      },
       toggleParty: (charId) => {
         const { party, characters, awakened } = get();
         if (!characters[charId]) return;
@@ -991,6 +1061,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v10", version: 10 },
+    { name: "town-profile-v11", version: 11 },
   ),
 );

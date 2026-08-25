@@ -40,8 +40,6 @@
   padding: 8px 8px 10px 8px;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-color: color-mix(in srgb, var(--asm-cyan, #58efc7) 44%, transparent) transparent;
-  scrollbar-width: thin;
 }
 
 .option {

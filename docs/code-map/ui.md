@@ -40,7 +40,12 @@ src/ui/
 | [town/terminal/ControlTerminalScene](../../src/ui/town/terminal/ControlTerminalScene/ControlTerminalScene.tsx) | 控制终端：城市维护工单委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由；出击已迁移到大厅一级入口。 |
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
-| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱场景编排：订阅据点状态，维护角色、卡牌、模组选择与关闭动画，派发装配/拆卸 action，并统一管理模组 tooltip；不承载四区内容的具体布局和展示。 |
+| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱场景编排：右侧两个抽屉入口（模组装配 / 模组制造），维护当前打开的弹窗与关闭动画；装配弹窗在此订阅据点状态、派发装配/拆卸 action 并统一管理模组 tooltip；制造弹窗整体交给 CraftPanel。 |
+| 旧 `town/assembly/AssemblyPanelShell` | 舱内弹窗的通用外壳已提升为公共件 [`common/PanelShell`](../../src/ui/common/PanelShell/PanelShell.tsx)（见「公共组件」一节），装配舱与制造弹窗改为从 `@/ui/common/PanelShell` 引用，样式规则一行未改。 |
+| [town/assembly/CraftPanel](../../src/ui/town/assembly/CraftPanel/CraftPanel.tsx) | 模组制造弹窗：注入熔炉琥珀配色，订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与装配弹窗一致。 |
+| [town/assembly/CraftRecipeGrid](../../src/ui/town/assembly/CraftRecipeGrid/CraftRecipeGrid.tsx) | 中央制造清单：列出当前角色可造的模组与「材料齐备 / 材料不足 / 经验不足」状态；判定结果由面板算好传入，组件不读 store。 |
+| [town/assembly/CraftBench](../../src/ui/town/assembly/CraftBench/CraftBench.tsx) | 右栏制造台：产出预览、经验与材料消耗清单、缺料提示与制造按钮；按钮禁用条件直接来自 `craftCheck`。 |
+| [town/assembly/CraftMaterialRack](../../src/ui/town/assembly/CraftMaterialRack/CraftMaterialRack.tsx) | 右栏材料仓库：展示当前角色配方涉及的材料库存与本次需求量，未被选中配方使用的材料压暗。 |
 | [town/assembly/AssemblyCharacterStage](../../src/ui/town/assembly/AssemblyCharacterStage/AssemblyCharacterStage.tsx) | 左侧角色舞台：展示当前角色立绘、角色切换缩略按钮和空状态；只接收角色列表与选择回调，不读取 store。 |
 | [town/assembly/AssemblyBench](../../src/ui/town/assembly/AssemblyBench/AssemblyBench.tsx) | 右栏紧凑装配工作台：展示单一模组插槽、当前已装配模组和装配状态，派发装配/拆卸按钮与物品 tooltip 回调；候选模组由模组仓架展示；不直接操作 store。 |
 | [town/assembly/AssemblyModuleRack](../../src/ui/town/assembly/AssemblyModuleRack/AssemblyModuleRack.tsx) | 右栏滚动模组仓架：以稳定网格展示库存模组，表达选中与兼容性状态，保留键盘聚焦和 tooltip 路径；不承载装配规则。 |
@@ -67,7 +72,7 @@ src/ui/
 | [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域两块物品面板的调色板真相点：仓库冷银白透玻璃 / 背包黑玻璃熔橙。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
 | [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队视图，复用角色立绘和卡组显示。 |
-| [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性仍为只读，个人卡组提供扩充、精简、升级锻造和卡面选中详情，升级改为面板确认并播放等级演出。与编队页之间是共享元素过场。 |
+| [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性仍为只读（分组表已抽到 `common/statGroups.ts`，与角色档案 Modal 共用），个人卡组提供扩充、精简、升级锻造和卡面选中详情，升级改为面板确认并播放等级演出。与编队页之间是共享元素过场。 |
 | [character/DeckForgeBar](../../src/ui/character/DeckForgeBar/DeckForgeBar.tsx) | 角色详情页卡组锻造操作条：展示扩充、精简、升级三项操作及父组件传入的经验价格和禁用态；升级入口只在满级时禁用，经验校验下沉到升级面板。 |
 | [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 角色详情页卡组锻造浮层壳：只负责模式图标、遮罩、关闭锁和按模式分发；扩充/精简演出由阶段组件承载，候选与卡组状态分别保留到提交动画结束；开关演出统一走 `common/ModalReveal`。 |
 | [character/DeckForgeOverlay/ForgeDrawStage](../../src/ui/character/DeckForgeOverlay/ForgeDrawStage.tsx) | 扩充三选一阶段机：水晶卡背错峰落位、按稀有度翻牌、光爆震动、二次确认和向 `data-deck-anchor` 落袋飞行。 |
@@ -80,8 +85,8 @@ src/ui/
 | [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情页列表卡的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面视觉由公共 `TechCard` 提供。 |
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情页场景级卡牌悬浮层，固定在卡组左侧空档并放大渲染 `common/TechCard`；只负责定位和展示时机，不承载卡牌业务规则。 |
 | [character/CardView](../../src/ui/character/CardView/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
-| [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。 |
-| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
+| [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」。 |
+| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板；点左下角队伍卡打开只读的 `common/CharacterModal`（属性取战斗单位 `stats`，卡组/装备取城镇档案，Esc 优先关它再轮到「跳过演出」）。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
 | [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切风格的紧凑两列战斗胜利结算壳：队伍经验、掉落来源分区、待拾取战利品、4×6 回收背包及继续/放弃操作。 |
 | [battle/VictoryDropSection](../../src/ui/battle/VictoryDropSection/VictoryDropSection.tsx) | 战斗胜利结算的掉落系数通栏分区：展示能量档位与挑战来源 chip，复用 RailPopover 提供键盘可聚焦的详情浮层，并表现已打破挑战的灰显态。 |
@@ -114,7 +119,7 @@ src/ui/
 | [unitShell.ts](../../src/ui/battle/unitShell.ts) | **单位外壳的跨组件契约**：敌人（CombatantView）与我方（AllyBar）两种外壳几何不同但演出必须一致，靠 `unitShellAttrs()` 摊出的 `data-side` / `data-death` / `data-dead` / `data-downed` / `data-attacking` / `data-targetable` / `data-telegraph` / `data-react` 共享同一份规则。`data-downed` 表示我方仍存活但 HP 为 0 的濒死态；`data-dead` 只表示闸门放行后的最终死亡态。改这里要全库搜同名字符串——CSS 那侧没有类型保护。 |
 | [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：蓄力预告、血条周围的倒计时/意图/护盾/状态和命中特效；可选目标头顶显示本次攻击命中率徽章；死亡表现由 `deathChoreo` 闸门下发，先完成血条再过曝消散。站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`enemyArt.ts` 登记展示框与主体框，主体高度归一后由 CSS 变量推导尺寸、脚线和帧位；`@keyframes` 按敌人 id 运行时注入并复用 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
-| [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，濒死暗红态与死亡灰化、下沉消解、裂纹和 ☠ 由死亡闸门/外壳属性驱动，并通过公共污染条/状态图标展示污染值、临时状态和护盾。位于战场之外，因此不参与相机推近；生病与永久怪癖仅在角色详情页展示。 |
+| [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，濒死暗红态与死亡灰化、下沉消解、裂纹和 ☠ 由死亡闸门/外壳属性驱动，并通过公共污染条/状态图标展示污染值、临时状态和护盾。位于战场之外，因此不参与相机推近；生病与永久怪癖仅在角色详情页展示。点击分流：待选友军目标时是「选目标」，其余时候经 `onOpenDetail` 打开角色档案 Modal（两个回调都必须由父级直接透传，否则打穿 `AllySlot` 的 memo）。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
@@ -145,6 +150,9 @@ src/ui/
 | [cardText.ts](../../src/ui/common/cardText.ts) | 从战斗实时属性或城镇派生面板属性读取卡牌施放者的攻击力/治愈力，并渲染卡牌说明数值。 |
 | [CardTextRich](../../src/ui/common/CardTextRich/CardTextRich.tsx) | 将卡牌说明按引擎词条登记表分段，统一高亮汇星、应星、瀑布等特殊词条。 |
 | [CardKeywordNotes](../../src/ui/common/CardKeywordNotes/CardKeywordNotes.tsx) | 按卡牌说明中实际出现的词条展示紧凑释义列表；无词条时不渲染。 |
+| [PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx) | 功能弹窗通用外壳：模态遮罩、切角面板、边框装饰层与 `EventPanelFrame` 收口，导出关闭动画时长与默认面板尺寸（1600×920，可用 `size` 覆盖）。原为装配舱私有件，现由装配舱、制造弹窗与角色档案 Modal 共用；配色只靠外层覆盖 `--asm-*` 变量，场景未下发时吃组件自带的青蓝默认值，层序由调用方经 `className` 压。 |
+| [CharacterModal](../../src/ui/common/CharacterModal/CharacterModal.tsx) | 角色档案 Modal：立绘/三段血量/污染/怪癖、只读属性表（分组来自 `common/statGroups.ts`）、装备三槽与只读卡组平铺（`common/TechCard`）。不读 store、不含规则，全部靠 props 与回调；传 `swap` 即开放与容器的装备互换（探索界面），不传即全只读（战斗界面），战斗另可传 `statuses` 展示临时状态与护盾。 |
+| [statGroups.ts](../../src/ui/common/statGroups.ts) | 面板属性的分组、文案与条长 `ref` 旋钮，角色详情页与角色档案 Modal 共用的唯一真相点；`ref` 是纯展示旋钮，不参与任何结算。 |
 | [ModalReveal](../../src/ui/common/ModalReveal/ModalReveal.tsx) | 横线上下展开的弹窗裁切层与关闭延迟 hook；通过 CSS 变量统一入场、收回时长和减少动态效果降级。 |
 | [EventPanel](../../src/ui/common/EventPanel/EventPanel.tsx) | Luna 风格的数据驱动事件面板公共壳与情报、行动、结算三段分镜；探索弹窗与 Luna 测试页共用，面板内容样式独立于探索外层材质。 |
 | [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，卡面比例为 320:496、插画区为 1:1、卡名位于插画下方的装饰名条中、费用球贴左上角，支持普通 / 速攻两套配色，尺寸随容器等比自适应，可省略底部统计栏。 |
@@ -163,7 +171,8 @@ src/ui/
 | [BondTooltip](../../src/ui/common/BondTooltip/BondTooltip.tsx) | 羁绊详情浮层内部内容：名称、主题描述、各档位效果与未激活时的差距提示。 |
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 兼容旧调用点的羁绊图标适配器，转发到 `ArcanaIcon` 的 bare 模式。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
-| [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
+| [art/moduleGlyphs](../../src/ui/art/moduleGlyphs.tsx) | 成品模组的专属徽记：`MODULE_THEMES` 三档配色（hue/deep/ink）+ 每件模组一套分层 SVG，由 `itemArt.itemIcon` 在模组类别上优先命中；未登记的模组回落到通用 ModuleIcon。设计逻辑与小队徽章 `badgeGlyphs` 一致。 |
+| [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；模组另有独立的「装配条件」字段，文案读 `data/cardModules` 的 `equipText`。操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
 | [item/ItemCostTag](../../src/ui/common/item/ItemCostTag/ItemCostTag.tsx) | 图标化食品报价标签：展示价格、背包持有量与缺货红框，复用 `ItemTooltip` 提供无原生 `title` 的物品详情悬浮。 |
 | [item/ItemTabs](../../src/ui/common/item/ItemTabs/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
 | [item/itemFilters.ts](../../src/ui/common/item/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |

@@ -48,7 +48,6 @@ export function PrepStep({ active, entering, exiting }: Props) {
         <span className={s.statusLabel}>终端积分</span>
         <strong className={s.statusValue}>{credits.toLocaleString()}</strong>
         <span className={s.statusNotice} role="status">{notice}</span>
-        <span className={s.statusCapacity}>已装 {backpack.length} 堆</span>
       </div>
       <div className={cx(s.side, entering && s.sideEntering, exiting && s.sideExiting)}>
         <StorageInventory className={s.areaStorage} />

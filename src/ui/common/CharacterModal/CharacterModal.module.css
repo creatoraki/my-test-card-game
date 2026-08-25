@@ -1,0 +1,340 @@
+/* 角色档案 Modal 的内容层样式。
+   外壳(遮罩 / 切角面板 / 页眉 / 装饰边框)全在 common/PanelShell.module.css, 这里只管面板**内部**。
+   主色一律读 --asm-frame(由 CharacterModal 通过 themeStyle 下发), 不硬编码任何强调色。 */
+
+.cm-body {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  /* 左立绘 / 中属性 / 右装备+卡组。与装配舱弹窗同一节奏(400 / 1fr / 410), 这里右栏更宽,
+     因为它要同时放三个装备槽与卡组平铺。 */
+  grid-template-columns: 360px minmax(0, 1fr) 520px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 18px 22px;
+  animation: cm-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+/* ── 左栏: 立绘与状态 ── */
+.cm-profile {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
+  gap: 14px;
+}
+
+.cm-vitrine {
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  border: 1px solid color-mix(in srgb, var(--asm-frame, #52cfff) 26%, #ffffff18);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 8%, color-mix(in srgb, var(--asm-frame, #52cfff) 14%, transparent), transparent 70%),
+    linear-gradient(180deg, #0d1518cc, #070c0ecc);
+}
+
+.cm-bust {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 12%;
+}
+
+.cm-vitrine[data-down] .cm-bust {
+  filter: grayscale(0.85) brightness(0.6);
+}
+
+.cm-down-label {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  padding: 4px 14px;
+  transform: translateX(-50%);
+  border: 1px solid #ff6b6b66;
+  background: #1a0b0bcc;
+  color: #ff9b9b;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+}
+
+.cm-vitals {
+  display: grid;
+  gap: 6px;
+}
+
+.cm-vitals-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--asm-ink, #e8f7f7);
+  font-size: 15px;
+}
+
+.cm-vitals-label,
+.cm-vitals-note {
+  color: #8fa9ae;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+/* ── 通用小标题 ── */
+.cm-block {
+  display: grid;
+  gap: 8px;
+}
+
+.cm-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cm-block-title {
+  color: color-mix(in srgb, var(--asm-frame, #52cfff) 72%, #ffffff);
+  font-size: 12px;
+  letter-spacing: 0.24em;
+}
+
+.cm-block-note {
+  color: #8fa9ae;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.cm-block-note.is-warn {
+  color: #f0b429;
+}
+
+.cm-status-pips {
+  --pip-box: 30px;
+}
+
+.cm-quirks {
+  flex-wrap: wrap;
+}
+
+/* ── 中栏: 属性 ── */
+.cm-stats {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.cm-stat-groups {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.cm-stat-group {
+  padding: 12px 14px 14px;
+  border: 1px solid #ffffff12;
+  background: linear-gradient(180deg, #0e1719a8, #0a1012a8);
+}
+
+.cm-stat-group-title {
+  display: block;
+  margin-bottom: 10px;
+  color: #8fa9ae;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+}
+
+.cm-stat-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.cm-stat-rows.is-two-col {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 18px;
+}
+
+.cm-attr {
+  position: relative;
+  display: grid;
+  align-items: center;
+  grid-template-columns: 20px 1fr auto;
+  gap: 8px;
+  padding-bottom: 6px;
+}
+
+/* 底部占比微条。⚠ 纯展示(见 common/statGroups.ts 的注释), 与任何结算无关。 */
+.cm-attr::after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--asm-frame, #52cfff) 70%, transparent) calc(var(--pct, 0) * 100%),
+    #ffffff10 calc(var(--pct, 0) * 100%)
+  );
+}
+
+.cm-attr-icon {
+  width: 18px;
+  height: 18px;
+  color: color-mix(in srgb, var(--asm-frame, #52cfff) 62%, #ffffff);
+}
+
+.cm-attr-label {
+  color: #b9cdd1;
+  font-size: 13px;
+}
+
+.cm-attr-value {
+  color: var(--asm-ink, #e8f7f7);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 右栏: 装备 + 卡组 ── */
+.cm-right-column {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+}
+
+.cm-equip {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  border: 1px solid #ffffff12;
+  background: linear-gradient(180deg, #0e1719a8, #0a1012a8);
+}
+
+.cm-slot-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.cm-slot {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.cm-slot-label {
+  color: #8fa9ae;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.cm-slot-box {
+  display: contents;
+}
+
+.cm-slot-item,
+.cm-candidate-item {
+  width: 84px;
+  height: 84px;
+}
+
+.cm-slot-empty {
+  display: grid;
+  width: 84px;
+  height: 84px;
+  place-items: center;
+  border: 1px dashed #ffffff24;
+  background: #0a0f1180;
+  color: #55686c;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+}
+
+.cm-slot.is-active .cm-slot-empty {
+  border-color: color-mix(in srgb, var(--asm-frame, #52cfff) 60%, transparent);
+  color: color-mix(in srgb, var(--asm-frame, #52cfff) 80%, #ffffff);
+}
+
+.cm-slot-off {
+  padding: 2px 10px;
+  border: 1px solid #ffffff20;
+  background: #10181acc;
+  color: #b9cdd1;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.cm-slot-off:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--asm-frame, #52cfff) 60%, transparent);
+  color: var(--asm-ink, #e8f7f7);
+}
+
+.cm-slot-off:disabled {
+  opacity: 0.4;
+}
+
+.cm-candidates {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-top: 4px;
+  border-top: 1px solid #ffffff10;
+}
+
+.cm-candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.cm-candidate {
+  display: grid;
+  justify-items: center;
+}
+
+.cm-empty-text {
+  margin: 10px 0 4px;
+  color: #6f8286;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.cm-deck {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.cm-deck-grid {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.cm-deck-cell {
+  min-width: 0;
+}
+
+/* 卡面按格宽等比缩放(TechCard 自身是 320:496 的比例盒)。只读展示, 不做悬浮放大。 */
+.cm-deck-card {
+  width: 100%;
+}
+
+@keyframes cm-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-body {
+    animation: none;
+  }
+}

@@ -11,6 +11,7 @@
 
 import type { ReactNode } from "react";
 import type { ItemCategory, ItemDef } from "@/items/types";
+import { ModuleGlyph, hasModuleGlyph } from "./moduleGlyphs";
 import deflectionBladeArt from "@/assets/道具/装备/武器/偏折盾刃.png";
 import crossSwordArt from "@/assets/道具/装备/武器/十字剑.png";
 import dawnSaberArt from "@/assets/道具/装备/武器/曙光军刀.png";
@@ -256,6 +257,10 @@ export function itemIcon(def: ItemDef): ReactNode {
     MATERIAL_ART[def.id] ??
     SCRAP_ART[def.id];
   if (art) return <img src={art} alt="" />;
+
+  // 成品模组各有专属徽记与配色(见 moduleGlyphs), 不跟随稀有度 currentColor;
+  // 未登记徽记的模组继续走下面的通用 ModuleIcon。
+  if (def.category === "module" && hasModuleGlyph(def.id)) return <ModuleGlyph moduleId={def.id} />;
 
   const key = def.icon ?? BY_CATEGORY[def.category];
   const Icon = ICONS[key] ?? ICONS[BY_CATEGORY[def.category]];

@@ -39,10 +39,10 @@ import {
 } from "@/explore/session";
 import type { ChoiceCost, EventChoice, NodeEvent } from "@/explore/types";
 import { getItemDef, getNpcEvent } from "@/data";
-import { TARGETED_ITEM_USE_KINDS, type ItemStack } from "@/items/types";
+import { SLOT_LABEL, TARGETED_ITEM_USE_KINDS, type EquipSlot, type ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
-import { useTownStore } from "@/store/townStore";
+import { deriveStats, useTownStore } from "@/store/townStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
@@ -55,6 +55,8 @@ import ShopOverlay from "@/ui/explore/ShopOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import NodeTip from "@/ui/explore/NodeTip";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
+import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
+import { PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
@@ -153,8 +155,15 @@ export function ExploreScreen() {
   const finishExpedition = useRunStore((s) => s.finishExpedition);
   const retreat = useRunStore((s) => s.retreat);
   const useItemAction = useExploreStore((s) => s.useItem);
+  const equipFromBackpack = useRunStore((s) => s.equipFromBackpack);
+  const unequipToBackpack = useRunStore((s) => s.unequipToBackpack);
 
   const [bagOpen, setBagOpen] = useState(false);
+  // ---- 角色档案 Modal(点左下角队伍卡打开) ----
+  // ★ 远征途中**唯一**能换装的地方: 装备与背包在这里互换(战斗界面的同一块 Modal 是只读的)。
+  // detailClosing 是两段式关闭的第一段: 先播退场, PANEL_OUT_MS 后才真正卸载。
+  const [detailCharId, setDetailCharId] = useState<string | null>(null);
+  const [detailClosing, setDetailClosing] = useState(false);
   // ---- 消耗品使用: 目标选择流程 ----
   // useTarget 非空 = 玩家已点下「使用」, 正在等 TA 点选左下角的一名存活角色。
   const [useTarget, setUseTarget] = useState<ItemStack | null>(null);
@@ -243,6 +252,28 @@ export function ExploreScreen() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [useTarget]);
+
+  // 档案 Modal: 第二段关闭(退场动画播完再卸载)与 Esc 关闭。
+  const closeDetail = useCallback(() => setDetailClosing(true), []);
+
+  useEffect(() => {
+    if (!detailClosing) return;
+    const ms = prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
+    const timer = window.setTimeout(() => {
+      setDetailCharId(null);
+      setDetailClosing(false);
+    }, ms);
+    return () => window.clearTimeout(timer);
+  }, [detailClosing]);
+
+  useEffect(() => {
+    if (!detailCharId) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeDetail();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [closeDetail, detailCharId]);
 
   // 飘字定时器卸载时顺手撤掉, 不会有卸载后 setState。
   useEffect(
@@ -467,6 +498,36 @@ export function ExploreScreen() {
     setUseTarget(null);
   };
 
+  // ---- 远征途中换装 ----
+  // 规则全在 runStore.equipFromBackpack / unequipToBackpack(它同时认识装备槽与背包);
+  // 这里只负责把失败原因飘一条出来。开放时机与背包按钮同一条硬约束(canOpenBackpack)。
+  const detailMember = detailCharId
+    ? session.party.find((p) => p.charId === detailCharId) ?? null
+    : null;
+  const detailCharacter = detailCharId ? characters[detailCharId] : undefined;
+  const equipCandidates = session.backpack.filter(
+    (stack) => getItemDef(stack.itemId).category === "equipment",
+  );
+  const swapDisabledReason = !canBackpack
+    ? "本阶段不可换装"
+    : detailMember && !detailMember.alive
+      ? "阵亡角色不可换装"
+      : undefined;
+  const handleEquip = (uid: string) => {
+    if (!detailCharId) return;
+    // ⚠ 名字必须在派发**之前**取: 换装成功后这一堆就不在背包里了(getItemDef 对未知 id 会抛)。
+    const stack = session.backpack.find((st) => st.uid === uid);
+    if (!stack) return;
+    const name = getItemDef(stack.itemId).name;
+    if (equipFromBackpack(detailCharId, uid)) flashUseNote(`已装备 ${name}`);
+    else flashUseNote("换装失败 —— 背包放不下换下来的装备");
+  };
+  const handleUnequip = (slot: EquipSlot) => {
+    if (!detailCharId) return;
+    if (!unequipToBackpack(detailCharId, slot)) flashUseNote("背包已满 —— 无法卸下装备");
+    else flashUseNote(`已卸下${SLOT_LABEL[slot]}`);
+  };
+
   // 目标是否「用了有效果」: 除存活外还按消耗品 kind 检查当前状态 ——
   // 满血吃糖、无损伤用医疗包、无污染用圣水都算无效目标, 头像不开放点选
   // (设计文档《消耗品》§五: 使用前检查效果有效性, 检查失败不消耗物品)。
@@ -683,7 +744,17 @@ export function ExploreScreen() {
                   targetable && s["is-targetable"],
                   !p.alive && s["is-down"],
                 )}
-                onClick={targetable ? () => applyItemUse(p.charId) : undefined}
+                // 点击分流: 消耗品选目标模式下是「用在他身上」, 其余时候打开角色档案(可换装)。
+                onClick={
+                  targetable
+                    ? () => applyItemUse(p.charId)
+                    : useTarget
+                      ? undefined
+                      : () => {
+                          setDetailClosing(false);
+                          setDetailCharId(p.charId);
+                        }
+                }
                 overlay={
                   expDrops[p.charId] ? (
                   <ExpDropFx
@@ -829,6 +900,38 @@ export function ExploreScreen() {
         )}
 
         <ShopOverlay />
+
+        {/* ---- 角色档案(点左下角队伍卡打开) ----
+            ★ 远征途中唯一能换装的地方: 三个装备槽与背包互换, 规则全在 runStore。
+            属性走 deriveStats 的局外口径(与出击/开战快照同一套算法), 血量读会话快照 ——
+            换装后由 runStore 同步上限, 当前血量不回复。 */}
+        {detailCharId && detailCharacter && (
+          <CharacterModal
+            charId={detailCharId}
+            stats={deriveStats(detailCharacter)}
+            vitals={{
+              hp: detailMember?.hp ?? 0,
+              hpLimit: detailMember?.hpLimit ?? 1,
+              maxHp: detailMember?.maxHp ?? 1,
+            }}
+            pollution={detailCharacter.pollution}
+            sick={detailCharacter.sick}
+            quirks={detailCharacter.quirks}
+            down={!detailMember?.alive}
+            deck={detailCharacter.deck}
+            equipped={detailCharacter.equipped}
+            swap={{
+              candidates: equipCandidates,
+              disabledReason: swapDisabledReason,
+              onEquip: handleEquip,
+              onUnequip: handleUnequip,
+            }}
+            accent={MODAL_ACCENT.explore}
+            closing={detailClosing}
+            onClose={closeDetail}
+            className={s["expl-character-modal"]}
+          />
+        )}
 
         {/* ---- 背包面板 ----
             替换模式(pendingPickup 非空)时强制打开: 「拿不拿得下」这个决定必须当场做完,

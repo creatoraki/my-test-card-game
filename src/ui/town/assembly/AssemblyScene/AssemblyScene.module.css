@@ -78,6 +78,9 @@
 .asm-entries {
   position: absolute;
   display: grid;
+  /* 两个功能入口上下排布, 各占一行(容器高度按 88×2 + gap 给)。 */
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 12px;
   pointer-events: none;
 }
 
@@ -158,133 +161,6 @@
   font-size: 20px;
 }
 
-.asm-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #03060790;
-  pointer-events: auto;
-}
-
-.asm-panel {
-  --notch: 14px;
-  --event-accent: var(--asm-frame);
-  position: relative;
-  z-index: 2;
-  overflow: hidden;
-  color: var(--asm-ink);
-  border: 1px solid color-mix(in srgb, var(--event-accent) 18%, #ffffff20);
-  background:
-    radial-gradient(circle at 9% 11%, color-mix(in srgb, var(--event-accent) 70%, white) 0 1.5%, color-mix(in srgb, var(--event-accent) 28%, transparent) 3%, transparent 19%),
-    radial-gradient(ellipse 52% 46% at 100% 0%, #b5eaff2b, transparent 72%),
-    radial-gradient(ellipse 46% 44% at 82% 78%, color-mix(in srgb, var(--event-accent) 16%, transparent), transparent 72%),
-    radial-gradient(ellipse 62% 34% at 34% 112%, #f5bd6818, transparent 72%),
-    /* ⚠ 打底色**必须**留这档透明度: 它和下面那行 backdrop-filter 是一套的 ——
-       底色让背后的据点场景透一点上来, backdrop-filter 再把透上来的那点糊成色块,
-       于是通透感来自光和色、而不是能读出内容的实像。把它改回不透明的 #0c1215,
-       背后就完全封死, 下面那行 backdrop-filter 也会随之变成不产生任何效果的死代码。 */
-    #0c1215bd;
-  box-shadow: inset 0 -40px 90px #00000030, 0 28px 72px -34px #000000e8, 0 0 90px -42px var(--event-accent);
-  /* ⚠ 生效前提: 祖先里不能有 transform/filter, 否则那个祖先会成为 backdrop root, 本层就取不到
-     据点场景。.asm-modal 与 .asm-scene 目前都是干净的; 面板**自己**的 asm-reveal-in
-     (transform + filter)不影响自己的 backdrop-filter, 可以放心留着。 */
-  /* 打底色透明度从 e0 降到 bd 后, 背后透上来的量变大 —— 这里同步加大模糊、压低亮度,
-     把透上来的部分继续压成「光和色」, 面板上的正文对比度才不会被背景亮处吃掉。 */
-  -webkit-backdrop-filter: blur(24px) saturate(104%) brightness(0.68);
-  backdrop-filter: blur(24px) saturate(104%) brightness(0.68);
-  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
-  animation: asm-reveal-in 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
-}
-
-/* ⚠ 这里原本还有一个 .asm-panel::after —— 与 EventPanel 的 .eventDemo::after 同源的
-   右上角漂移氛围灯(width:40% / height:118% 的竖长方形 + box-shadow 辉光 + screen 混合)。
-   外阴影只画在边框盒外侧, 竖长条左右各投出一条贯穿面板全高的亮带; 又因为 .asm-event-frame
-   把 EventPanelFrame 自带的不透明底改成了 transparent, 这两道亮带会原样透到背景板上。
-   该效果已确认为不需要的视觉, 整层删除, 连同 asm-panel-light 关键帧。 */
-.asm-panel::before {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  content: "";
-  pointer-events: none;
-  opacity: 0.48;
-  background: radial-gradient(circle at 9% 11%, #f4ffffb8 0 1px, transparent 1.5px);
-  mix-blend-mode: screen;
-}
-
-.asm-event-frame {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  padding: 22px 28px 24px;
-  overflow: hidden;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.asm-event-frame::before,
-.asm-event-frame::after {
-  display: none;
-}
-
-/* 页眉已去掉 kicker(它和大标题说的是同一件事), 这里同步收掉为其预留的那档高度。 */
-.asm-event-frame > header {
-  position: relative;
-  z-index: 1;
-  min-height: 0;
-  padding-bottom: 12px;
-}
-
-.asm-event-frame > header h1 {
-  margin-top: 0;
-  font-size: 26px;
-  letter-spacing: 0.04em;
-}
-
-.asm-panel-status {
-  color: #9baba7;
-  font-family: var(--font-family);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-.asm-close-button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  padding: 0;
-  border: 1px solid #415155;
-  background: #111a1d;
-  color: #8da09d;
-  transition: border-color 180ms ease, color 180ms ease, transform 180ms ease;
-}
-
-.asm-close-button svg {
-  width: 19px;
-  height: 19px;
-}
-
-.asm-close-button:hover {
-  border-color: var(--event-accent);
-  color: #f0f6e9;
-  transform: rotate(90deg);
-}
-
-.asm-event-frame > main {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  min-height: 0;
-  padding-top: 16px;
-}
-
 .asm-body {
   display: grid;
   min-width: 0;
@@ -311,23 +187,9 @@
   animation: asm-fade 300ms ease-in both;
 }
 
-.asm-modal.is-closing .asm-panel {
-  animation: asm-reveal-out 600ms cubic-bezier(0.55, 0, 0.9, 0.35) forwards;
-}
-
 @keyframes asm-rise {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes asm-reveal-in {
-  from { opacity: 0; transform: scale(0.96) translateY(20px); filter: blur(4px); }
-  to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-}
-
-@keyframes asm-reveal-out {
-  from { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-  to { opacity: 0; transform: scale(0.97) translateY(16px); filter: blur(3px); }
 }
 
 @keyframes asm-fade {
@@ -339,18 +201,12 @@
   .asm-header,
   .asm-readout,
   .asm-entry,
-  .asm-body,
-  .asm-panel {
+  .asm-body {
     animation: none;
   }
 
   .asm-entry,
-  .asm-rim,
-  .asm-close-button {
+  .asm-rim {
     transition: none;
-  }
-
-  .asm-close-button:hover {
-    transform: none;
   }
 }

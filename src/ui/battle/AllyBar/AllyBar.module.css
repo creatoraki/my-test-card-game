@@ -19,6 +19,8 @@
    flex-grow 可过渡 ⇒ 聚焦槽平滑变宽、其余槽位微收, 三槽总宽恒等于 --hud-party-w。 */
 .ally-bar .ally-slot {
   position: relative;
+  /* 槽位恒可点击: 待选友军目标时是「选目标」, 其余时候打开角色档案(见 AllyBar.tsx 的点击分流)。 */
+  cursor: pointer;
   flex: 1 1 0;
   min-width: 0;
   width: auto;

@@ -9,11 +9,13 @@ import {
   type CardAnim,
   type DiscardTriggerFx,
   type FxStep,
+  type Ally,
   type Enemy,
 } from "@/engine";
 import { getEncounter, getEnemyDef, slotPlacement, type EnemyPlacement } from "@/data";
 import { useBattleStore } from "@/store/battleStore";
 import { useRunStore } from "@/store/runStore";
+import { useTownStore } from "@/store/townStore";
 import { CombatantView, isIntentRevealed } from "@/ui/battle/CombatantView";
 import { AllyBar } from "@/ui/battle/AllyBar";
 import { HandTray } from "@/ui/battle/HandTray";
@@ -56,6 +58,9 @@ import { showBattleToast } from "@/ui/battle/battleToastStore";
 import { useIdleTwitch } from "@/ui/hooks/useIdleTwitch";
 import { DEATH, useDeathGate } from "@/ui/battle/deathChoreo";
 import { useStageScale } from "@/ui/hooks/stage";
+import { CharacterModal } from "@/ui/common/CharacterModal";
+import { PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
+import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
 import s from "./BattleScreen.module.css";
 
@@ -63,6 +68,8 @@ const clamp = (v: number, lim: number) => Math.max(-lim, Math.min(lim, v));
 const CAMERA_HARD_CUT_DISTANCE = 420;
 const CAMERA_SETTLE_MS = CINEMA.aim.dur + 80;
 const DEPTH_VARS = depthVars();
+// 城镇档案缺失时的空装备位(理论上不会发生, 兜底避免 Modal 崩)。常量提到模块层, 引用稳定。
+const EMPTY_EQUIPPED = { weapon: null, armor: null, trinket: null };
 
 function safeArea(stage: HTMLElement) {
   return { x: stage.offsetLeft, y: stage.offsetTop, w: stage.offsetWidth, h: stage.offsetHeight };
@@ -116,6 +123,7 @@ export function BattleScreen() {
   const battleSettled = useRunStore((s) => s.battleSettled);
   const battleSeq = useBattleStore((s) => s.seq); // 「第几场战斗」的身份标识, 换局时重置分镜状态
   const mapId = useRunStore((s) => s.mapId);
+  const townCharacters = useTownStore((s) => s.characters); // 档案 Modal 的卡组与装备来源
   const bg = battleBg(mapId); // 当前地图的背景图, 未登记回退霓虹城市
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
@@ -126,6 +134,10 @@ export function BattleScreen() {
   //   现在由那两个组件各自订阅, 本组件对悬停完全无感。⚠ 别再把它搬回来。
   const [handAction, setHandAction] = useState<HandAction>(null);
   const [openPile, setOpenPile] = useState<Pile | null>(null);
+  // 角色档案 Modal(点左下角队伍卡打开)。战斗内**全只读** —— 换装在探索界面做, 见 ExploreScreen。
+  // detailClosing 是两段式关闭的第一段: 先播退场, PANEL_OUT_MS 后才真正卸载。
+  const [detailCharId, setDetailCharId] = useState<string | null>(null);
+  const [detailClosing, setDetailClosing] = useState(false);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 ui/HandCard.css .hand-card 的 hand-deal-in)。
   const [renderHand, setRenderHand] = useState<
@@ -226,6 +238,8 @@ export function BattleScreen() {
     resetHandHover();
     setHandAction(null);
     setOpenPile(null);
+    setDetailCharId(null);
+    setDetailClosing(false);
     timelineRef.current?.cancel();
     timelineRef.current = null;
     seqRef.current++;
@@ -270,15 +284,34 @@ export function BattleScreen() {
     };
   }, [bg]);
 
+  const closeDetail = useCallback(() => setDetailClosing(true), []);
+
+  // 档案 Modal 的第二段关闭: 退场动画播完再卸载, 否则动画会被直接剪掉。
+  useEffect(() => {
+    if (!detailClosing) return;
+    const ms = prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
+    const timer = window.setTimeout(() => {
+      setDetailCharId(null);
+      setDetailClosing(false);
+    }, ms);
+    return () => window.clearTimeout(timer);
+  }, [detailClosing]);
+
+  // Esc / 空格跳过演出。⚠ 档案 Modal 打开时 Esc 先归它 —— 关掉之后才恢复「跳过演出」。
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (detailCharId && event.key === "Escape") {
+        event.preventDefault();
+        closeDetail();
+        return;
+      }
       if (!animatingRef.current || (event.key !== "Escape" && event.code !== "Space")) return;
       event.preventDefault();
       timelineRef.current?.flush();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [closeDetail, detailCharId]);
 
   // 预热序列帧特效素材: 帧图是 12 个独立请求, 不预热首次播放会逐帧闪。
   // 敌人待机立绘同理(拼条单文件但体积大), 不预热则进战斗首帧空白。
@@ -428,6 +461,12 @@ export function BattleScreen() {
 
   const onCombatantClick = useCallback((id: string) => {
     combatantClickRef.current(id);
+  }, []);
+
+  // ⚠ 必须是稳定引用: AllyBar 把它原样透传给 React.memo 的 AllySlot(见该文件注释)。
+  const openDetail = useCallback((id: string) => {
+    setDetailClosing(false);
+    setDetailCharId(id);
   }, []);
 
   // ★ 仇恨系统已移除 —— 敌人在存活我方单位里随机挑目标, 因此不存在"预计会打谁"这件事,
@@ -865,6 +904,10 @@ export function BattleScreen() {
 
   const enemies = battle.enemyIds.map((id) => battle.combatants[id] as Enemy);
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
+  // 档案 Modal 的两份数据源: 战斗单位(实时血量/状态/生效面板)与城镇档案(卡组/装备)。
+  // ⓘ 我方 Combatant 的 id 就是角色 id(见 runStore.launchBattle), 故可以直接查。
+  const detailCombatant = detailCharId ? battle.combatants[detailCharId] : null;
+  const detailCharacter = detailCharId ? townCharacters[detailCharId] : undefined;
   // 选中一张指向敌人的攻击卡时，逐目标预览命中率；其余情况全为 null。
   const hitPreview = needsFoe && selectedCard
     ? Object.fromEntries(
@@ -1051,6 +1094,7 @@ export function BattleScreen() {
             focusFallbackCard={selectedCard}
             targetable={isPlayerTurn && !!needsAlly}
             onSelect={onCombatantClick}
+            onOpenDetail={openDetail}
             deathPhaseOf={deaths.phaseOf}
             deathRate={playbackRateRef.current}
             deathVanishMs={DEATH.vanish}
@@ -1109,6 +1153,33 @@ export function BattleScreen() {
       )}
 
       <VictoryPanel />
+
+      {/* 角色档案: 点左下角队伍卡打开。★ 战斗内**全只读**(不传 swap) —— 换装只在探索界面开放。
+          挂在 .battle-scene **之外** ⇒ 不跟分镜相机推近/漂移/震屏, 与 HUD 同族。
+          属性取战斗单位的 stats(含羁绊与光环, 即这场战斗真正生效的面板), 卡组/装备/污染
+          取城镇档案 —— 战斗中它们不会变。 */}
+      {detailCharId && detailCombatant && (
+        <CharacterModal
+          charId={detailCharId}
+          stats={detailCombatant.stats}
+          vitals={{
+            hp: detailCombatant.hp,
+            hpLimit: detailCombatant.hpLimit,
+            maxHp: detailCombatant.maxHp,
+            shield: detailCombatant.shield,
+          }}
+          pollution={(detailCombatant as Ally).pollution ?? 0}
+          sick={(detailCombatant as Ally).sick ?? false}
+          quirks={(detailCombatant as Ally).quirks ?? []}
+          statuses={detailCombatant.statuses}
+          down={!detailCombatant.alive || detailCombatant.hp <= 0}
+          deck={detailCharacter?.deck ?? []}
+          equipped={detailCharacter?.equipped ?? EMPTY_EQUIPPED}
+          closing={detailClosing}
+          onClose={closeDetail}
+          className={s["character-modal"]}
+        />
+      )}
 
       {/* 出牌亮相卡面: 挂在舞台层之外, 不受相机缩放/裁切影响 */}
       <SkillCutInCard card={cutInCard} fxRate={fxRate} />

@@ -79,7 +79,7 @@
 
 .sb-slice-art {
   position: absolute;
-  top: 50%;
+  top: 42%;
   left: 50%;
   z-index: 0;
   display: grid;
@@ -109,36 +109,28 @@
   height: 100%;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  justify-content: flex-end;
+  padding-bottom: 16px;
+  gap: 4px;
   transform: skewX(calc(-1 * var(--band-skew)));
 }
 
-.sb-slice-no {
-  color: #ffffffad;
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 5px;
-  text-indent: 5px;
-  text-shadow: 0 1px 8px #000000b3;
-}
-
 .sb-slice-name {
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 700;
   letter-spacing: 7px;
   text-indent: 7px;
-  text-shadow: 0 2px 14px #000000cc;
+  text-shadow: 0 2px 14px #000000e6, 0 0 24px #000000b3;
   white-space: nowrap;
 }
 
 .sb-slice-price {
   color: var(--sm-glow);
   font-family: var(--font-family);
-  font-size: 12px;
+  font-size: 20px;
+  font-weight: 600;
   letter-spacing: 2px;
-  text-shadow: 0 1px 8px #000000b3;
+  text-shadow: 0 2px 12px #000000e6, 0 0 20px #000000b3;
 }
 
 .sb-step .sb-slice:hover {
@@ -163,10 +155,6 @@
 .sb-is-on .sb-slice-art {
   opacity: 0.58;
   filter: drop-shadow(0 0 24px #91e8dc99) saturate(1.12);
-}
-
-.sb-is-on .sb-slice-no {
-  color: var(--sm-glow-hi);
 }
 
 .sb-slice.sb-cant .sb-slice-price {

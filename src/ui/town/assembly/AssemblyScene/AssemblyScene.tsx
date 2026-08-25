@@ -5,11 +5,10 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-import { canEquipModule, getItemDef } from "@/data";
+import { canEquipModule, getItemDef, recipesOfCharacter } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import { prefersReducedMotion } from "@/ui/app/transitions";
-import { EventPanelFrame } from "@/ui/common/EventPanel";
 import ItemTooltip, {
   tooltipPointFromRect,
   type TooltipPoint,
@@ -19,15 +18,20 @@ import { AssemblyBench } from "../AssemblyBench";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { AssemblyDeckGrid } from "../AssemblyDeckGrid";
 import { AssemblyModuleRack } from "../AssemblyModuleRack";
+import {
+  PanelShell,
+  PANEL_OUT_MS,
+  PANEL_OUT_REDUCED_MS,
+} from "@/ui/common/PanelShell";
+import { CRAFT_ACCENT, CraftPanel } from "../CraftPanel";
 import s from "./AssemblyScene.module.css";
-import { AssemblyIcon, CloseIcon } from "./icons";
+import { AssemblyIcon, CraftIcon } from "./icons";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
 
-const PANEL_OUT_MS = 600;
-const PANEL_OUT_REDUCED_MS = 180;
-const PANEL_SIZE = { w: 1600, h: 920 };
+/** 舱内的功能弹窗。两个弹窗共用 common/PanelShell, 只有配色与内容不同。 */
+type PanelId = "assembly" | "craft";
 
 interface Props {
   leaving?: boolean;
@@ -44,7 +48,7 @@ export function AssemblyScene({ leaving = false }: Props) {
   const awakened = useTownStore((state) => state.awakened);
   const equipCardModule = useTownStore((state) => state.equipCardModule);
   const unequipCardModule = useTownStore((state) => state.unequipCardModule);
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [openPanel, setOpenPanel] = useState<PanelId | null>(null);
   const [closing, setClosing] = useState(false);
   const [charId, setCharId] = useState(awakened[0] ?? "");
   const [cardUid, setCardUid] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export function AssemblyScene({ leaving = false }: Props) {
     if (!closing) return;
     const ms = prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
     const timeoutId = window.setTimeout(() => {
-      setPanelOpen(false);
+      setOpenPanel(null);
       setClosing(false);
       setHoveredItem(null);
     }, ms);
@@ -65,13 +69,13 @@ export function AssemblyScene({ leaving = false }: Props) {
   }, [closing]);
 
   useEffect(() => {
-    if (!panelOpen) return;
+    if (!openPanel) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") closePanel();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closePanel, panelOpen]);
+  }, [closePanel, openPanel]);
 
   useEffect(() => {
     if (awakened.length && !awakened.includes(charId)) setCharId(awakened[0]);
@@ -95,6 +99,11 @@ export function AssemblyScene({ leaving = false }: Props) {
   const installedCount = Object.values(characters).reduce(
     (count, character) => count + character.deck.filter((card) => card.cardModule).length,
     0,
+  );
+  // 入口副标题用的是「全体已唤醒角色能造的模组种类数」, 与弹窗里按角色分栏无关。
+  const craftableCount = useMemo(
+    () => new Set(awakened.flatMap((id) => recipesOfCharacter(id).map((recipe) => recipe.itemId))).size,
+    [awakened],
   );
 
   useEffect(() => {
@@ -124,7 +133,7 @@ export function AssemblyScene({ leaving = false }: Props) {
     <div className={cn("asm-scene", leaving && "is-leaving")}>
       <header className={cn("asm-header")} style={{ left: "56px", top: "42px" }}>
         <h2 className={cn("asm-title")}>模块装配舱</h2>
-        <p className={cn("asm-sub")}>模组装配 · 拆卸</p>
+        <p className={cn("asm-sub")}>模组装配 · 拆卸 · 制造</p>
       </header>
 
       <div className={cn("asm-readout")} style={{ right: "56px", top: "42px" }}>
@@ -139,12 +148,12 @@ export function AssemblyScene({ leaving = false }: Props) {
             right: "0px",
             top: "138px",
             width: "460px",
-            height: "88px",
+            height: "188px",
             "--peek": "252px",
           } as CSSProperties
         }
       >
-        <button className={cn("asm-entry")} type="button" onClick={() => setPanelOpen(true)}>
+        <button className={cn("asm-entry")} type="button" onClick={() => setOpenPanel("assembly")}>
           <span className={cn("asm-rim")} aria-hidden />
           <span className={cn("asm-entry-icon")} aria-hidden>
             <AssemblyIcon />
@@ -157,78 +166,76 @@ export function AssemblyScene({ leaving = false }: Props) {
             ▸
           </span>
         </button>
+        {/* 制造入口自带琥珀色辉光 —— 抽屉滑出时的色就是弹窗打开后的主色。 */}
+        <button
+          className={cn("asm-entry")}
+          type="button"
+          style={{ "--asm-glow": CRAFT_ACCENT } as CSSProperties}
+          onClick={() => setOpenPanel("craft")}
+        >
+          <span className={cn("asm-rim")} aria-hidden />
+          <span className={cn("asm-entry-icon")} aria-hidden>
+            <CraftIcon />
+          </span>
+          <span className={cn("asm-entry-text")}>
+            <span className={cn("asm-entry-name")}>模组制造</span>
+            <span className={cn("asm-entry-desc")}>{craftableCount} 种模组可造</span>
+          </span>
+          <span className={cn("asm-entry-go")} aria-hidden>
+            ▸
+          </span>
+        </button>
       </div>
 
-      {panelOpen && (
-        <div
-          className={cn("asm-modal", closing && "is-closing")}
-          onClick={closePanel}
-          style={
-            {
-              "--panel-w": `${PANEL_SIZE.w}px`,
-              "--panel-h": `${PANEL_SIZE.h}px`,
-            } as CSSProperties
-          }
+      {openPanel === "assembly" && (
+        <PanelShell
+          accent="#52cfff"
+          title="模组装配"
+          status={`库存 ${moduleStacks.length} · 已装配 ${installedCount}`}
+          closeLabel="关闭装配舱"
+          closing={closing}
+          onClose={closePanel}
         >
-          <section
-            className={cn("asm-panel")}
-            data-closing={closing}
-            onClick={(event) => event.stopPropagation()}
-            style={{
-              width: `${PANEL_SIZE.w}px`,
-              height: `${PANEL_SIZE.h}px`,
-            } as CSSProperties}
-          >
-            <EventPanelFrame
-              accent="#52cfff"
-              title="模组装配"
-              status={<span className={cn("asm-panel-status")}>库存 {moduleStacks.length} · 已装配 {installedCount}</span>}
-              headerExtra={
-                <button className={cn("asm-close-button")} type="button" onClick={closePanel} aria-label="关闭装配舱">
-                  <CloseIcon />
-                </button>
-              }
-              className={cn("asm-event-frame")}
-            >
-              <div className={cn("asm-body")}>
-                <AssemblyCharacterStage
-                  awakened={awakened}
-                  selected={charId}
-                  onSelect={(id) => {
-                    setCharId(id);
-                    setCardUid(characters[id]?.deck[0]?.uid ?? null);
-                  }}
-                />
-                <AssemblyDeckGrid
-                  deck={currentDeck}
-                  selectedUid={selectedCard?.uid ?? null}
-                  moduleStacks={moduleStacks}
-                  onSelect={setCardUid}
-                />
-                <div className={cn("asm-right-column")}>
-                  <AssemblyBench
-                    card={selectedCard}
-                    installedStack={installedStack}
-                    candidate={selectedModule ?? null}
-                    actionDisabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
-                    onAction={action}
-                    onShowTooltip={showTooltip}
-                    onHideTooltip={() => setHoveredItem(null)}
-                  />
-                  <AssemblyModuleRack
-                    card={selectedCard}
-                    moduleStacks={moduleStacks}
-                    selectedModuleUid={moduleUid}
-                    onSelect={setModuleUid}
-                    onShowTooltip={showTooltip}
-                    onHideTooltip={() => setHoveredItem(null)}
-                  />
-                </div>
-              </div>
-            </EventPanelFrame>
-          </section>
-        </div>
+          <div className={cn("asm-body")}>
+            <AssemblyCharacterStage
+              awakened={awakened}
+              selected={charId}
+              onSelect={(id) => {
+                setCharId(id);
+                setCardUid(characters[id]?.deck[0]?.uid ?? null);
+              }}
+            />
+            <AssemblyDeckGrid
+              deck={currentDeck}
+              selectedUid={selectedCard?.uid ?? null}
+              moduleStacks={moduleStacks}
+              onSelect={setCardUid}
+            />
+            <div className={cn("asm-right-column")}>
+              <AssemblyBench
+                card={selectedCard}
+                installedStack={installedStack}
+                candidate={selectedModule ?? null}
+                actionDisabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
+                onAction={action}
+                onShowTooltip={showTooltip}
+                onHideTooltip={() => setHoveredItem(null)}
+              />
+              <AssemblyModuleRack
+                card={selectedCard}
+                moduleStacks={moduleStacks}
+                selectedModuleUid={moduleUid}
+                onSelect={setModuleUid}
+                onShowTooltip={showTooltip}
+                onHideTooltip={() => setHoveredItem(null)}
+              />
+            </div>
+          </div>
+        </PanelShell>
       )}
+
+      {openPanel === "craft" && <CraftPanel closing={closing} onClose={closePanel} />}
+
       {hoveredItem && <ItemTooltip stack={hoveredItem.stack} point={hoveredItem.point} />}
     </div>
   );

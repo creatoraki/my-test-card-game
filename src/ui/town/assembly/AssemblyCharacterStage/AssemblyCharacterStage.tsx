@@ -4,6 +4,9 @@ import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { cx } from "@/ui/common/cx";
 import s from "./AssemblyCharacterStage.module.css";
 
+/** 与 .characterList 的 grid-template-columns 保持一致 —— 上下键要按整行跨。 */
+const COLUMNS = 4;
+
 interface Props {
   awakened: string[];
   selected: string;
@@ -16,14 +19,23 @@ export function AssemblyCharacterStage({ awakened, selected, onSelect }: Props) 
   const selectedIndex = selectedId ? awakened.indexOf(selectedId) : -1;
   const selectedRef = useRef<HTMLButtonElement | null>(null);
 
-  // 缩略条改成一条横向滚动的胶片, 选中项由代码滚进可视区 —— 顶掉了原来那套分页按钮 + 「01 / 02」指示器。
+  // 缩略图是可纵向滚动的多排网格, 选中项由代码滚进可视区 —— 顶掉了原来那套分页按钮 + 「01 / 02」指示器。
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [selectedId]);
 
   const onListKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (selectedIndex < 0) return;
-    const step = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
+    const step =
+      event.key === "ArrowLeft"
+        ? -1
+        : event.key === "ArrowRight"
+          ? 1
+          : event.key === "ArrowUp"
+            ? -COLUMNS
+            : event.key === "ArrowDown"
+              ? COLUMNS
+              : 0;
     if (!step) return;
     const nextIndex = selectedIndex + step;
     if (nextIndex < 0 || nextIndex >= awakened.length) return;

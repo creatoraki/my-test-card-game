@@ -1,0 +1,176 @@
+.grid {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  overflow: hidden;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kicker {
+  color: var(--asm-select, #9fe8ff);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.count {
+  color: var(--muted, #849096);
+  font-size: 12px;
+}
+
+.list {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: 12px;
+  /* 选中角标是 inset:-4px 的四角括号, 这圈内边距给它留出不被裁掉的余量。 */
+  padding: 6px 8px 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.entry {
+  position: relative;
+  display: grid;
+  align-items: center;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 12px 14px;
+  text-align: left;
+  color: var(--asm-ink, #e8f7f7);
+  background:
+    radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--asm-frame, #52cfff) 12%, transparent), transparent 58%),
+    #0c1417d9;
+  border: 1px solid var(--asm-line, #8ad8e52e);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.entry:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--asm-frame, #52cfff) 60%, transparent);
+}
+
+/* 材料/经验不够时压暗, 但仍可点选 —— 玩家要能看清缺什么。 */
+.entry.blocked {
+  opacity: 0.62;
+}
+
+.entry.selected {
+  opacity: 1;
+}
+
+/* 与卡组、模组仓库同一套选中语言: 四角括号, 不勾整圈。 */
+.entry.selected::after {
+  --mk-c: var(--asm-select, #9fe8ff);
+  --mk-w: 2px;
+  --mk-len: 18px;
+  --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
+  position: absolute;
+  inset: -4px;
+  z-index: 2;
+  background:
+    var(--mk-bar) 0 0 / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 0 0 / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 100% 0 / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 100% 0 / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 100% 100% / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 100% 100% / var(--mk-w) var(--mk-len) no-repeat,
+    var(--mk-bar) 0 100% / var(--mk-len) var(--mk-w) no-repeat,
+    var(--mk-bar) 0 100% / var(--mk-w) var(--mk-len) no-repeat;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--mk-c) 70%, transparent));
+  content: "";
+  pointer-events: none;
+}
+
+.icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  color: var(--asm-frame, #52cfff);
+  background: #0a1013cc;
+  border: 1px solid var(--asm-line, #8ad8e52e);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.icon svg,
+.icon img {
+  display: block;
+  width: 62%;
+  height: 62%;
+  object-fit: contain;
+}
+
+.info {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.name {
+  color: var(--asm-ink, #e8f7f7);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+.desc {
+  color: var(--asm-ink-dim, #8fa9ae);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.status {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  color: #f0a39a;
+  font-size: 12px;
+  white-space: nowrap;
+  background: #2b1719dd;
+  border: 1px solid #e4797080;
+}
+
+.status[data-ok="true"] {
+  color: var(--asm-cyan, #58efc7);
+  background: #11201bd9;
+  border-color: #6fba884c;
+}
+
+.empty {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 8px;
+  color: var(--muted, #849096);
+  font-size: 12px;
+  text-align: center;
+  border: 1px dashed #ffffff1f;
+}
+
+.emptySlot {
+  width: 48px;
+  aspect-ratio: 1;
+  border: 1px dashed #819092;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry {
+    transition: none;
+  }
+
+  .entry:hover {
+    transform: none;
+  }
+}

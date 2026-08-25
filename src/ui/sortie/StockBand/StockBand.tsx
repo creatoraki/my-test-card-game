@@ -115,7 +115,6 @@ export function StockBand({ active, className, entering, onNoticeChange, wheelTa
               >
                 <span className={s["sb-slice-art"]}>{itemIcon(def)}</span>
                 <span className={s["sb-slice-copy"]}>
-                  <span className={s["sb-slice-no"]}>{`ITEM-${String(index + 1).padStart(2, "0")}`}</span>
                   <strong className={s["sb-slice-name"]}>{def.name}</strong>
                   <span className={s["sb-slice-price"]}>{price} 积分</span>
                 </span>

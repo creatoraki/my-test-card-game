@@ -1,0 +1,30 @@
+/* 三栏节奏与「模组装配」的 .asm-body 保持一致: 左角色 / 中清单 / 右上制造台 + 右下材料仓库。 */
+.body {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 400px minmax(0, 1fr) 410px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 18px 22px;
+  animation: craft-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.rightColumn {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  /* 制造台比装配台多了一列消耗清单, 高度略放宽一点。 */
+  grid-template-rows: minmax(250px, 274px) minmax(0, 1fr);
+  gap: 14px;
+}
+
+@keyframes craft-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body {
+    animation: none;
+  }
+}

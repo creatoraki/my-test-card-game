@@ -1,6 +1,8 @@
+import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
 import type { ItemStack } from "@/items/types";
 import { canEquipModule } from "@/data";
+import { getModuleTheme } from "@/ui/art/moduleGlyphs";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { cx } from "@/ui/common/cx";
 import { CardModuleIcon } from "../AssemblyScene/icons";
@@ -40,7 +42,17 @@ export function AssemblyDeckGrid({ deck, selectedUid, moduleStacks, onSelect }: 
                   className={s.deckCard}
                 />
                 {card.cardModule && (
-                  <span className={s.moduleMark} role="img" aria-label="已装配模组">
+                  // 徽章染成该模组的主色 —— 卡面上不点开也能认出装的是哪一件。
+                  <span
+                    className={s.moduleMark}
+                    role="img"
+                    aria-label="已装配模组"
+                    style={
+                      {
+                        "--asm-cyan": getModuleTheme(card.cardModule.itemId)?.hue,
+                      } as CSSProperties
+                    }
+                  >
                     <CardModuleIcon />
                   </span>
                 )}

@@ -1,0 +1,276 @@
+/* 通用功能弹窗外壳 —— 模态遮罩 + 切角面板 + 边框装饰层 + EventPanelFrame 收口。
+   ★ 这些规则最早写在 AssemblyScene.module.css, 后抽成装配舱两个弹窗共用的 AssemblyPanelShell;
+   战斗与探索的角色档案 Modal 也要这套视觉语言, 故整体提升到 common/, 规则一行未改。
+   主色一律走 --asm-frame / --event-accent —— 换配色只需在外层元素上覆盖 --asm-* 变量,
+   不必复制任何一条规则; 场景没有下发这些变量时吃这里写死的默认值(青蓝)。 */
+.asm-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #03060790;
+  pointer-events: auto;
+}
+
+.asm-panel {
+  --notch: 14px;
+  --event-accent: var(--asm-frame, #52cfff);
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  color: var(--asm-ink, #e8f7f7);
+  border: 1px solid color-mix(in srgb, var(--event-accent) 18%, #ffffff20);
+  background:
+    /* 左上角的氛围光。★ 只要朦胧的晕, **不要**灯芯 ——
+       原本这里是 `70%accent+white 0 1.5%` 的实心亮核 + 3% 处硬转折, 那个 hard stop
+       会在角上烧出一个能一眼看见的白点。现在从中心就开始连续衰减, 没有任何硬边。 */
+    radial-gradient(circle at 9% 11%, color-mix(in srgb, var(--event-accent) 24%, transparent), transparent 24%),
+    radial-gradient(ellipse 52% 46% at 100% 0%, #b5eaff2b, transparent 72%),
+    radial-gradient(ellipse 46% 44% at 82% 78%, color-mix(in srgb, var(--event-accent) 16%, transparent), transparent 72%),
+    radial-gradient(ellipse 62% 34% at 34% 112%, #f5bd6818, transparent 72%),
+    /* ⚠ 打底色**必须**留这档透明度: 它和下面那行 backdrop-filter 是一套的 ——
+       底色让背后的据点场景透一点上来, backdrop-filter 再把透上来的那点糊成色块,
+       于是通透感来自光和色、而不是能读出内容的实像。把它改回不透明的 #0c1215,
+       背后就完全封死, 下面那行 backdrop-filter 也会随之变成不产生任何效果的死代码。 */
+    #0c1215bd;
+  box-shadow: inset 0 -40px 90px #00000030, 0 28px 72px -34px #000000e8, 0 0 90px -42px var(--event-accent);
+  /* ⚠ 生效前提: 祖先里不能有 transform/filter, 否则那个祖先会成为 backdrop root, 本层就取不到
+     据点场景。.asm-modal 与 .asm-scene 目前都是干净的; 面板**自己**的 asm-reveal-in
+     (transform + filter)不影响自己的 backdrop-filter, 可以放心留着。 */
+  /* 打底色透明度从 e0 降到 bd 后, 背后透上来的量变大 —— 这里同步加大模糊、压低亮度,
+     把透上来的部分继续压成「光和色」, 面板上的正文对比度才不会被背景亮处吃掉。 */
+  -webkit-backdrop-filter: blur(24px) saturate(104%) brightness(0.68);
+  backdrop-filter: blur(24px) saturate(104%) brightness(0.68);
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+  animation: asm-reveal-in 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+/* ⚠ 这里原本还有一个 .asm-panel::after —— 与 EventPanel 的 .eventDemo::after 同源的
+   右上角漂移氛围灯(width:40% / height:118% 的竖长方形 + box-shadow 辉光 + screen 混合)。
+   外阴影只画在边框盒外侧, 竖长条左右各投出一条贯穿面板全高的亮带; 又因为 .asm-event-frame
+   把 EventPanelFrame 自带的不透明底改成了 transparent, 这两道亮带会原样透到背景板上。
+   该效果已确认为不需要的视觉, 整层删除, 连同 asm-panel-light 关键帧。 */
+/* ⚠ 这里原本还有一个 .asm-panel::before —— 叠在上面那圈氛围光正中心的 1px 白色高光点
+   (screen 混合), 也就是「灯芯」。已确认为不需要的视觉, 整层删除。
+   左上角现在只剩背景第一层那圈无硬边的晕。 */
+
+/* ── 面板内滚动条一律不可见 ──
+   卡组、模组仓库、角色列表都是滚动容器。这里统一收口, 而不是各组件各写一遍:
+   以后往面板里加新的滚动区, 不用记得再补一次。
+   滚动本身**照常可用**(滚轮/触控板/键盘), 隐藏的只是滚动条的视觉。 */
+.asm-panel * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.asm-panel *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* ── 边框装饰层 ──
+   全部贴着面板四边内侧画。.asm-panel 有 clip-path, 任何越出面板轮廓的部分都会被裁掉,
+   所以这里没有一个元素是往外扩的。整层 pointer-events:none, 不参与命中测试。 */
+.asm-deco {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 顶边常亮的一道微光, 给扫描光束打底 —— 没有它, 光束扫过之后顶边会显得空。 */
+.asm-deco::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--event-accent) 38%, transparent) 22%, color-mix(in srgb, var(--event-accent) 38%, transparent) 78%, transparent);
+  content: "";
+}
+
+/* 左上 / 右下切角的斜边强调线。
+   clip-path 的斜边由 (14,0)→(0,14) 构成: 长 14√2≈19.8px, 中点 (7,7), 倾角 -45°。
+   这条 22×2 的亮线就压在那条斜边上, 再沿法线往面板内侧推 2px, 免得一半被 clip-path 削掉。 */
+.asm-deco-notch {
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--event-accent), transparent);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--event-accent) 55%, transparent);
+  rotate: -45deg;
+}
+
+.asm-deco-notch.is-tl {
+  top: 0;
+  left: 0;
+  translate: -2.6px 7.4px;
+}
+
+.asm-deco-notch.is-br {
+  right: 0;
+  bottom: 0;
+  translate: 2.6px -7.4px;
+}
+
+/* 上下边缘的刻度组: 一条 repeating-linear-gradient 画出等距短竖线, 12px 一格。 */
+.asm-deco-ticks {
+  position: absolute;
+  width: 196px;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--event-accent) 52%, transparent) 0 1px,
+    transparent 1px 12px
+  );
+  opacity: 0.6;
+}
+
+.asm-deco-ticks.is-top {
+  top: 0;
+  left: 56px;
+}
+
+.asm-deco-ticks.is-bottom {
+  right: 56px;
+  bottom: 0;
+}
+
+/* 沿上下边缘循环扫过的光束。宽度 34%, 位移到 300% 刚好走完整条边(100/34≈294%)。 */
+.asm-deco-scan {
+  position: absolute;
+  left: 0;
+  width: 34%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--event-accent) 92%, white), transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--event-accent) 50%, transparent);
+  animation: asm-scan 5.4s linear infinite;
+}
+
+.asm-deco-scan.is-top {
+  top: 0;
+}
+
+/* 底边反向跑, 再错开半个周期 —— 两条同向同步会显得像在「刷屏」。 */
+.asm-deco-scan.is-bottom {
+  bottom: 0;
+  animation-direction: reverse;
+  animation-delay: -2.7s;
+}
+
+@keyframes asm-scan {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.asm-event-frame {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 22px 28px 24px;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.asm-event-frame::before,
+.asm-event-frame::after {
+  display: none;
+}
+
+/* 页眉已去掉 kicker(它和大标题说的是同一件事), 这里同步收掉为其预留的那档高度。 */
+.asm-event-frame > header {
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+  padding-bottom: 12px;
+}
+
+.asm-event-frame > header h1 {
+  margin-top: 0;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+}
+
+.asm-panel-status {
+  color: #9baba7;
+  font-family: var(--font-family);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.asm-close-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #415155;
+  background: #111a1d;
+  color: #8da09d;
+  transition: border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.asm-close-button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.asm-close-button:hover {
+  border-color: var(--event-accent);
+  color: #f0f6e9;
+  transform: rotate(90deg);
+}
+
+.asm-event-frame > main {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 0;
+  padding-top: 16px;
+}
+
+.asm-modal.is-closing .asm-panel {
+  animation: asm-reveal-out 600ms cubic-bezier(0.55, 0, 0.9, 0.35) forwards;
+}
+
+@keyframes asm-reveal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(20px); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+@keyframes asm-reveal-out {
+  from { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+  to { opacity: 0; transform: scale(0.97) translateY(16px); filter: blur(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asm-panel {
+    animation: none;
+  }
+
+  .asm-close-button {
+    transition: none;
+  }
+
+  /* 扫描光束停在边上做静态高光, 而不是整条抹掉 —— 装饰还在, 只是不动了。 */
+  .asm-deco-scan {
+    animation: none;
+    opacity: 0.45;
+  }
+
+  .asm-close-button:hover {
+    transform: none;
+  }
+}

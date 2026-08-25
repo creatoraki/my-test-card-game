@@ -30,6 +30,7 @@ import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
 import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import { SquadBondBar } from "@/ui/common/SquadBondBar";
 import { StatIcon } from "@/ui/common/StatIcon";
+import { REF_DEFAULT_PCT, STAT_GROUPS } from "@/ui/common/statGroups";
 import { cx } from "@/ui/common/cx";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { StageCanvas } from "@/ui/app/StageCanvas";
@@ -38,51 +39,8 @@ import { CRYO_BG_ART } from "@/ui/art/sceneArt";
 import s from "./CharacterDetailScreen.module.css";
 
 // ===================== 属性表 =====================
-// 只读面板分组。★ 角色不设等级也不加点 —— 这些数字进游戏后不会再变, 长期成长看装备与卡组。
-// suffix "%" 的项在数据里存的是百分点整数(见 engine/types.StatBlock)。
-//
-// ★ ref = 该项画满那条底部微条所需的值。⚠⚠ **纯展示旋钮, 不参与任何结算** —— 它既不是上限也不是
-//   平衡口径, 只决定"这条横杠画多长"。数值本身照旧原样显示, 条只是让各组面板一眼看出长短对比。
-//   百分比项默认按 100 铺满, 与 engine 里 70% 的概率封顶无关(那是结算封顶, 面板可以超)。
-const STAT_GROUPS: {
-  title: string;
-  wide?: boolean;
-  rows: { key: keyof StatBlock; label: string; pct?: boolean; ref?: number }[];
-}[] = [
-  {
-    title: "生存与输出",
-    rows: [
-      { key: "maxHp", label: "生命", ref: 120 },
-      { key: "attack", label: "攻击力", ref: 30 },
-      { key: "defense", label: "防御力", ref: 30 },
-      { key: "healPower", label: "治愈力", ref: 30 },
-    ],
-  },
-  {
-    title: "命中与暴击",
-    rows: [
-      { key: "hitRate", label: "命中率", pct: true },
-      { key: "dodgeRate", label: "闪避率", pct: true },
-      { key: "critRate", label: "暴击率", pct: true },
-      { key: "critDamage", label: "爆伤", pct: true, ref: 250 },
-      { key: "precision", label: "精准", pct: true },
-    ],
-  },
-  {
-    title: "节奏与防护",
-    rows: [
-      { key: "initiative", label: "先手", ref: 20 },
-      { key: "blockRate", label: "格挡", pct: true },
-      { key: "healBoost", label: "治愈强度", pct: true },
-      { key: "shieldBoost", label: "护盾强度", pct: true },
-      { key: "ailmentResist", label: "异常抗性", pct: true },
-      { key: "burdenAdapt", label: "负重适应", pct: true },
-    ],
-    wide: true,
-  },
-];
-
-const REF_DEFAULT_PCT = 100; // pct 项没写 ref 时的铺满值
+// ★ 分组与 ref 旋钮已抽到 ui/common/statGroups.ts —— 角色详情页与角色档案 Modal 共用同一份,
+//   两处不再各写一遍。suffix "%" 的项在数据里存的是百分点整数(见 engine/types.StatBlock)。
 
 // 内容错峰入场的公共起点(ms)。⚠ 与 CharacterDetailScreen.css 里 cdContentIn 的 animation-delay
 // 起点是同一个数, 改一处要改两处 —— JS 只有数值滚动的起跑时间要跟它对齐。

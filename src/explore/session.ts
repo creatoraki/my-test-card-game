@@ -310,6 +310,50 @@ export function discardStack(s: ExploreState, uid: string): boolean {
   return true;
 }
 
+// ---------------------------------------------------------------------------
+// 远征途中换装(探索页角色档案)用的三个搬运函数。
+// ⚠ 它们只搬背包与队伍快照 —— 装备到底穿在谁身上是**城镇侧**的状态, 由 runStore 编排两边。
+// ---------------------------------------------------------------------------
+
+// 按 uid 把一整堆从背包取出并交给调用方。取不到返回 null, 背包不变。
+export function takeFromBackpack(s: ExploreState, uid: string): ItemStack | null {
+  const st = findByUid(s.backpack, uid);
+  if (!st) return null;
+  const next = removeByUid(s.backpack, uid);
+  if (next === s.backpack) return null;
+  s.backpack = next;
+  return { ...st };
+}
+
+// 把物品收进背包。★ 容量一律校验: 只要有一件装不下就**整体失败**且背包一格不动 ——
+// 换装是原子操作, 不允许出现"新的穿上了、旧的没地方放"的中间态。
+export function putIntoBackpack(s: ExploreState, stacks: ItemStack[]): boolean {
+  const r = addToContainer(s.backpack, stacks, getItemDef, RULES.burden.backpackSlots);
+  if (r.overflow.length) return false;
+  s.backpack = r.next;
+  return true;
+}
+
+// 换装后同步队伍快照。★ 只裁不补(产品口径): 装备变强不回血, 变弱也不会把人打死。
+//   hpLimit 是"当前可治疗上限"= 生命上限减去永久损伤, 故随上限增减同步平移, 损伤本身保留。
+export function syncPartyVitals(
+  s: ExploreState,
+  charId: string,
+  maxHp: number,
+  burdenAdapt: number,
+): boolean {
+  const member = s.party.find((p) => p.charId === charId);
+  if (!member) return false;
+  const nextMax = Math.max(1, Math.round(maxHp));
+  const delta = nextMax - member.maxHp;
+  member.maxHp = nextMax;
+  member.hpLimit = Math.max(1, Math.min(nextMax, member.hpLimit + delta));
+  member.hp = Math.max(member.alive ? 1 : 0, Math.min(member.hp, member.hpLimit));
+  // 负重适应也随装备变 —— 探索页的负重读数与开战快照都读它(见 partyBurdenAdapt)。
+  member.burdenAdapt = burdenAdapt;
+  return true;
+}
+
 // 背包重排序 —— 背包是紧凑数组, 数组顺序 = 玩家看到的格位顺序。
 // 把 uid 那一堆抽出来, 插到目标格位上(后面的整体后移), 不是两两交换。
 export function reorderBackpack(s: ExploreState, uid: string, toIndex: number): boolean {

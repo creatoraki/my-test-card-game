@@ -39,6 +39,9 @@ import {
   shipHome,
   spendBattleEnergy as spendBattleEnergyFn,
   startReveal,
+  syncPartyVitals as syncPartyVitalsFn,
+  takeFromBackpack,
+  putIntoBackpack,
   engageRoundBattle,
   takePendingContamination,
   takePending,
@@ -92,6 +95,10 @@ interface ExploreStore {
   // ---- 背包(阶段白名单的真相点在 explore/session, 这里只是转发) ----
   discardItem: (uid: string) => void;
   reorderBackpack: (uid: string, toIndex: number) => void;
+  // ---- 远征途中换装的三块搬运(编排在 runStore, 这里同样只是转发) ----
+  takeBackpackItem: (uid: string) => ItemStack | null; // 取出一整堆交给调用方
+  putBackpackItems: (stacks: ItemStack[]) => boolean; // 收进背包, 容量不够整体失败
+  syncPartyVitals: (charId: string, maxHp: number, burdenAdapt: number) => void;
   // 返回完整展示文案(「物品名 · 摘要」), UI 拿去飘一条; 用不了返回 null。
   // targetCharId 供指定角色类消耗品使用(必须传存活队员); 其余效果省略即可。
   useItem: (uid: string, targetCharId?: string) => string | null;
@@ -247,6 +254,29 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   reorderBackpack: (uid, toIndex) => {
     mutate(get, set, (d) => reorderBackpackFn(d, uid, toIndex));
+  },
+
+  // takeBackpackItem 要把取出的那一堆交回给编排层, 故与 useItem 同样自己接返回值。
+  takeBackpackItem: (uid) => {
+    let taken: ItemStack | null = null;
+    mutate(get, set, (d) => {
+      taken = takeFromBackpack(d, uid);
+      return taken != null;
+    });
+    return taken;
+  },
+
+  putBackpackItems: (stacks) => {
+    let ok = false;
+    mutate(get, set, (d) => {
+      ok = putIntoBackpack(d, stacks);
+      return ok;
+    });
+    return ok;
+  },
+
+  syncPartyVitals: (charId, maxHp, burdenAdapt) => {
+    mutate(get, set, (d) => syncPartyVitalsFn(d, charId, maxHp, burdenAdapt));
   },
 
   // useItem 要把摘要交回 UI, 所以不能只走 mutate 的布尔约定 —— 自己接一下返回值。

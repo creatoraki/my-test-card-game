@@ -77,6 +77,15 @@ export {
   recomputeCardModule,
   type CardModuleDef,
 } from "./cardModules";
+export {
+  MODULE_RECIPES,
+  craftCheck,
+  getModuleRecipe,
+  materialCount,
+  recipesOfCharacter,
+  type CraftCheck,
+  type ModuleRecipe,
+} from "./moduleCrafting";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";

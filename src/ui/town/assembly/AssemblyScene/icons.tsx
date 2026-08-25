@@ -66,3 +66,16 @@ export function AssemblyIcon() {
     </svg>
   );
 }
+
+/** 「模组制造」入口图标 —— 熔炉腔体 + 锤头, 与 AssemblyIcon 同为 48 视图的线条风格。 */
+export function CraftIcon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" opacity=".45" />
+      <path d="M13 34h22l-3-13H16Z" />
+      <path d="M18 21V16a6 6 0 0 1 12 0v5" opacity=".7" />
+      <path d="M20 27h8" opacity=".6" />
+      <path d="M24 34v6M18 40h12" opacity=".5" />
+    </svg>
+  );
+}
