@@ -13,12 +13,14 @@
     0 28px 72px -34px #000000e8;
   backdrop-filter: blur(18px) saturate(104%) brightness(0.82);
   clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
+    var(--panel-shape,
+      var(--notch) 0,
+      100% 0,
+      100% calc(100% - var(--notch)),
+      calc(100% - var(--notch)) 100%,
+      0 100%,
+      0 var(--notch)
+    )
   );
 }
 
@@ -65,36 +67,46 @@
   animation: panelBarOut var(--pr-close-ms) var(--pr-ease) forwards;
 }
 
-/* Keep both clip paths at six matching points so the cut-corner shape interpolates cleanly. */
+/* ★ 形状可被调用方替换 ★
+   三个关键帧的多边形都写成 var(--panel-shape / -line / -seed, 兜底) ——
+   兜底就是原来的切角矩形(奖励 / 拾取 / 交易 / 背包继续吃它, 观感不变);
+   落点事件面板通过 inline style 注入自己的不规则轮廓(见 ui/explore/NotchedFrame)。
+   ⚠ 无论换成什么形状, 完整态 / 中缝态 / 种子态**必须同顶点数**, 否则 clip-path 不插值、动画会跳。 */
 @keyframes panelRevealIn {
   0% {
     clip-path: polygon(
-      46% calc(50% - 2px),
-      54% calc(50% - 2px),
-      54% calc(50% + 2px),
-      54% calc(50% + 2px),
-      46% calc(50% + 2px),
-      46% calc(50% - 2px)
+      var(--panel-shape-seed,
+        46% calc(50% - 2px),
+        54% calc(50% - 2px),
+        54% calc(50% + 2px),
+        54% calc(50% + 2px),
+        46% calc(50% + 2px),
+        46% calc(50% - 2px)
+      )
     );
   }
   21% {
     clip-path: polygon(
-      0 calc(50% - 2px),
-      100% calc(50% - 2px),
-      100% calc(50% + 2px),
-      100% calc(50% + 2px),
-      0 calc(50% + 2px),
-      0 calc(50% - 2px)
+      var(--panel-shape-line,
+        0 calc(50% - 2px),
+        100% calc(50% - 2px),
+        100% calc(50% + 2px),
+        100% calc(50% + 2px),
+        0 calc(50% + 2px),
+        0 calc(50% - 2px)
+      )
     );
   }
   100% {
     clip-path: polygon(
-      var(--notch) 0,
-      100% 0,
-      100% calc(100% - var(--notch)),
-      calc(100% - var(--notch)) 100%,
-      0 100%,
-      0 var(--notch)
+      var(--panel-shape,
+        var(--notch) 0,
+        100% 0,
+        100% calc(100% - var(--notch)),
+        calc(100% - var(--notch)) 100%,
+        0 100%,
+        0 var(--notch)
+      )
     );
   }
 }
@@ -102,32 +114,38 @@
 @keyframes panelRevealOut {
   0% {
     clip-path: polygon(
-      var(--notch) 0,
-      100% 0,
-      100% calc(100% - var(--notch)),
-      calc(100% - var(--notch)) 100%,
-      0 100%,
-      0 var(--notch)
+      var(--panel-shape,
+        var(--notch) 0,
+        100% 0,
+        100% calc(100% - var(--notch)),
+        calc(100% - var(--notch)) 100%,
+        0 100%,
+        0 var(--notch)
+      )
     );
   }
   79% {
     clip-path: polygon(
-      0 calc(50% - 2px),
-      100% calc(50% - 2px),
-      100% calc(50% + 2px),
-      100% calc(50% + 2px),
-      0 calc(50% + 2px),
-      0 calc(50% - 2px)
+      var(--panel-shape-line,
+        0 calc(50% - 2px),
+        100% calc(50% - 2px),
+        100% calc(50% + 2px),
+        100% calc(50% + 2px),
+        0 calc(50% + 2px),
+        0 calc(50% - 2px)
+      )
     );
   }
   100% {
     clip-path: polygon(
-      46% calc(50% - 2px),
-      54% calc(50% - 2px),
-      54% calc(50% + 2px),
-      54% calc(50% + 2px),
-      46% calc(50% + 2px),
-      46% calc(50% - 2px)
+      var(--panel-shape-seed,
+        46% calc(50% - 2px),
+        54% calc(50% - 2px),
+        54% calc(50% + 2px),
+        54% calc(50% + 2px),
+        46% calc(50% + 2px),
+        46% calc(50% - 2px)
+      )
     );
   }
 }
@@ -148,12 +166,14 @@
   .panel-reveal,
   .panel-reveal[data-closing="true"] {
     clip-path: polygon(
-      var(--notch) 0,
-      100% 0,
-      100% calc(100% - var(--notch)),
-      calc(100% - var(--notch)) 100%,
-      0 100%,
-      0 var(--notch)
+      var(--panel-shape,
+        var(--notch) 0,
+        100% 0,
+        100% calc(100% - var(--notch)),
+        calc(100% - var(--notch)) 100%,
+        0 100%,
+        0 var(--notch)
+      )
     );
     animation: none;
   }

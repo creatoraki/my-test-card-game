@@ -14,6 +14,7 @@ import {
   type EventPanelScene,
 } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
+import { NotchedFrame, eventPanelShapeVars } from "@/ui/explore/NotchedFrame";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import s from "./ExploreScreen.module.css";
 
@@ -89,9 +90,11 @@ function EventShell({ children, view, closing }: { children: ReactNode; view: Ev
       <section
         className={cx(s["expl-panel"], s[`k-${ev.kind}`], s["panel-reveal"], session.phase === "shopping" && s["is-shopping"])}
         data-closing={closing || undefined}
-        style={panelRevealVars()}
+        style={{ ...panelRevealVars(), ...eventPanelShapeVars() }}
       >
         <span className={s["panel-bar"]} aria-hidden />
+        {/* 不规则外框的描边层 —— clip-path 会切掉 CSS border, 轮廓只能由它来画。 */}
+        <NotchedFrame />
         <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
         {children}
@@ -143,6 +146,7 @@ export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, 
         title={eventKindLabel[ev.kind]}
         scene={view.scene}
         sceneKey={`${session.round}-${session.currentSegment}-${ev.id}`}
+        className={s["expl-event-frame"]}
       >
         {briefing && (
           <EventPanelBriefing

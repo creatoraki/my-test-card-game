@@ -624,13 +624,41 @@
 .expl-modal[data-closing="true"] .expl-panel {
   pointer-events: none;
 }
-/* 画框占满左栏，图片在其中保持 1:1 并水平、垂直居中。 */
+/* ★ 事件面板是唯一的不规则外框 ★
+   四条边各带一组矩形凹陷 / 外凸(顶点见 ui/explore/NotchedFrame/panelShape.ts),
+   形状经 inline style 的 --panel-shape* 下发给 panel-shell 的 clip-path 与开场动画。
+   ⚠ 这里破例重写宽高: 外凸要真的凸到 936×680 之外, 所以元素四周各留 --panel-bump,
+   由 padding 顶回去 —— **内容区仍是 936×680**, 与奖励 / 拾取 / 交易 / 背包同框不跳。 */
 .expl-panel {
-  /* 几何(936×680)由 panel-box 统一下发, 与后续浮层同框 —— 不要在这里重写宽高。 */
-  composes: panel-box from "../styles/explorePanel.module.css";
+  /* 只取材质(panel-shell), 不取 panel-box 的 936×680 —— 尺寸这里自己算,
+     免得两条同权重规则谁后写谁赢。内容区仍是 936×680, 由 CONTENT 常量保证。 */
+  composes: panel-shell from "../styles/explorePanel.module.css";
+  box-sizing: border-box;
+  width: var(--panel-outer-w);
+  height: var(--panel-outer-h);
+  padding: var(--panel-bump);
+  pointer-events: auto;
+  /* 描边与顶部高光都由 NotchedFrame 画: clip-path 会把矩形 border 切成碎线, 留着反而脏。 */
+  border-color: transparent;
+  box-shadow:
+    0 28px 72px -34px #000000e8,
+    0 0 90px -42px var(--k);
   --k: var(--expl-kind, #c9d4d2);
   --k-soft: var(--expl-kind-soft, #c9d4d21f);
   --k-line: var(--expl-kind-line, #c9d4d266);
+}
+
+/* 原有的 7px 内框与四角角标继续贴着 936×680 的内容矩形 ——
+   外侧不规则轮廓 + 内侧规则内框, 两层轮廓正是要的层次感。 */
+.expl-panel .panel-frame {
+  inset: var(--panel-bump);
+}
+
+/* 中和 EventPanel 自带的 1px 矩形描边与底色: 面板材质与轮廓统一由外壳给,
+   否则内容区会画出一个规则矩形, 和新轮廓打架。 */
+.expl-panel .expl-event-frame {
+  border-color: transparent;
+  background: radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--event-accent) 10%, transparent), transparent 30%);
 }
 
 .expl-panel .panel-scan {
