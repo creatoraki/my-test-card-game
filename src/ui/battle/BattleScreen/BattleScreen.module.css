@@ -459,13 +459,6 @@
   justify-content: center;
 }
 
-/* 角色档案 Modal(common/CharacterModal)的层序。
-   外壳自带 z-index: 3, 那是装配舱场景里的层数 —— 战斗画布上要压过 HUD(2)、牌堆(4)与
-   全屏特效, 但仍低于战败遮罩(20), 故在这里就地抬到 15。几何沿用外壳的 inset: 0。 */
-.character-modal {
-  z-index: 15;
-}
-
 /* 战斗结束的全屏遮罩 + 中央卡片 */
 .overlay {
   position: absolute;

@@ -29,8 +29,6 @@ interface Props {
   focusFallbackCard: Card | null;
   targetable: boolean; // 当前是否处于「选择一名友军」的状态
   onSelect: (id: string) => void;
-  // 非选目标态下点击槽位 → 打开角色档案 Modal(战斗内只读)。
-  onOpenDetail: (id: string) => void;
   deathPhaseOf: (id: string) => DeathPhase;
   deathRate?: number;
   deathVanishMs?: number;
@@ -58,7 +56,6 @@ export function AllyBar({
   focusFallbackCard,
   targetable,
   onSelect,
-  onOpenDetail,
   deathPhaseOf,
   deathRate = 1,
   deathVanishMs = DEATH.vanish,
@@ -84,7 +81,6 @@ export function AllyBar({
             // ⚠ 直接透传而不是 `() => onSelect(cmb.id)` —— 内联箭头每次渲染都是新引用,
             //   会让下面的 React.memo 永远命中不了。id 改由 AllySlot 自己带上。
             onClick={onSelect}
-            onOpenDetail={onOpenDetail}
           />
         );
       })}
@@ -100,7 +96,6 @@ interface SlotProps {
   targetable: boolean;
   deathPhase: DeathPhase;
   onClick: (id: string) => void; // 收 id 而非零参闭包, 才能让父级透传同一个引用(见上)
-  onOpenDetail: (id: string) => void; // 同上, 非选目标态下的点击出口
 }
 
 // 单个角色槽: 描边卡框 + 半身立绘, 底部红(生命)/绿(护盾)双条, 右上/右下两枚角标。
@@ -124,7 +119,6 @@ const AllySlot = memo(function AllySlot({
   targetable,
   deathPhase,
   onClick,
-  onOpenDetail,
 }: SlotProps) {
   const dead = deathPhase === "dead";
   const downed = cmb.alive && cmb.hp <= 0;
@@ -141,11 +135,10 @@ const AllySlot = memo(function AllySlot({
       {...unitShellAttrs({ side: "player", dead, downed, death: deathPhase, targetable, attacking, react })}
       className={cx(s["ally-slot"], focused && s["card-focus"])}
       style={{ "--owner-color": ownerColor, ...vars } as React.CSSProperties}
-      // 点击分流: 待选友军目标时仍是「选目标」(既有行为一字未改), 其余时候打开角色档案。
+      // 只有在卡牌要求选择友军时响应点击, 普通状态下角色卡保持纯展示。
       onClick={(e) => {
         e.stopPropagation();
         if (targetable) onClick(cmb.id);
-        else onOpenDetail(cmb.id);
       }}
     >
       <div className={s["ally-status"]}>

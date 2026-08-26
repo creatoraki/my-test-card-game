@@ -19,8 +19,7 @@
    flex-grow 可过渡 ⇒ 聚焦槽平滑变宽、其余槽位微收, 三槽总宽恒等于 --hud-party-w。 */
 .ally-bar .ally-slot {
   position: relative;
-  /* 槽位恒可点击: 待选友军目标时是「选目标」, 其余时候打开角色档案(见 AllyBar.tsx 的点击分流)。 */
-  cursor: pointer;
+  cursor: default;
   flex: 1 1 0;
   min-width: 0;
   width: auto;
@@ -34,6 +33,9 @@
   --foot-inset: 0px;
   --body-h: calc(100% - 48px);
   --body-cx: 0px;
+}
+.ally-bar .ally-slot[data-targetable] {
+  cursor: pointer;
 }
 /* 聚焦槽(当前悬停/选中手牌的归属角色, ui/AllyBar.tsx 的 card-focus): 变宽约 +70px
    (1.85/3.85 × 480 ≈ 231px, 其余两槽各收到约 125px)。三槽总宽仍恒等于 --hud-party-w ——

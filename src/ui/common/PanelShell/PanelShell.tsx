@@ -31,7 +31,7 @@ interface Props {
 /**
  * 通用功能弹窗外壳: 遮罩、切角面板、边框装饰层与页眉收口。
  *
- * ★ 原名 AssemblyPanelShell, 住在 town/assembly 下。战斗与探索的角色档案 Modal 也要这套
+ * ★ 原名 AssemblyPanelShell, 住在 town/assembly 下。探索场景的角色档案 Modal 也要这套
  *   视觉语言, 故整体提升到 common/。样式一行未改 —— 只把 --asm-* 变量补上默认值,
  *   装配舱内仍吃场景根上的变量(视觉逐像素不变), 其他场景吃默认值。
  */
