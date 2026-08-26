@@ -11,7 +11,7 @@ import {
   EventPanelStage,
 } from "@/ui/common/EventPanel";
 import ItemTooltip, {
-  tooltipPointFromRect,
+  tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
@@ -122,7 +122,7 @@ function LootPickup({ gate }: LootPickupProps) {
                     onPointerEnter={(event) =>
                       setHovered({
                         uid: stack.uid,
-                        point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                        point: tooltipPointFromElement(event.currentTarget),
                       })
                     }
                     onPointerLeave={() =>

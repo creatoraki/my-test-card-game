@@ -96,6 +96,17 @@ export interface DesignBox {
   bottom: number;
 }
 
+// 画布当前生效的 CSS zoom(见 app/styles/stageCanvas.module.css 的 .canvas)。
+// ⚠ 标准化后的 CSS zoom 有一条反直觉的规则: zoom 子树内 getBoundingClientRect() 返回的是
+//   **未乘 zoom 的设计 px**, 不是屏幕 px —— 浏览器为此才补了 Element.currentCSSZoom。
+//   所以画布内元素的矩形要拿去给 body 上的 fixed 图层(浮窗、飞行动画)定位时, 必须先乘回它。
+//   老浏览器走 @supports not (zoom: 1) 的 transform 兜底分支: 那里 getBoundingClientRect()
+//   本来就是屏幕 px, 而 currentCSSZoom 缺失 ⇒ 回落到 1, 换算恒等, 两条分支都正确。
+export function cssZoomOf(el: Element): number {
+  const zoom = (el as HTMLElement & { currentCSSZoom?: number }).currentCSSZoom;
+  return typeof zoom === "number" && zoom > 0 ? zoom : 1;
+}
+
 // getBoundingClientRect() 量到的是屏幕 px; 画布内的元素要用它定位时必须先换算回设计 px,
 // 否则会连同 --stage-scale 被再缩放一次。canvas = .screen.battle 的屏幕矩形, k = 当前缩放。
 export function toDesignBox(rect: DOMRect, canvas: DOMRect, k: number): DesignBox {

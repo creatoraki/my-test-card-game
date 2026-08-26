@@ -2,7 +2,7 @@ import { useState, type PointerEvent } from "react";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
-import ItemTooltip, { tooltipPointFromRect, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
+import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
 import s from "./ItemCostTag.module.css";
 
@@ -30,7 +30,7 @@ export default function ItemCostTag({
   const label = `${def.name} ×${count}${showOwned && owned != null ? `，持有 ${owned}` : ""}`;
 
   const showTooltip = (event: PointerEvent<HTMLSpanElement>) => {
-    setPoint(tooltipPointFromRect(event.currentTarget.getBoundingClientRect()));
+    setPoint(tooltipPointFromElement(event.currentTarget));
   };
 
   return (

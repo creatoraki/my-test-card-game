@@ -14,7 +14,7 @@ import { getCharacter } from "@/data";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { PanelShell } from "@/ui/common/PanelShell";
 import ItemTooltip, {
-  tooltipPointFromRect,
+  tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { ModalDeck } from "./parts/ModalDeck";
@@ -78,7 +78,7 @@ export function CharacterModal({
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
 
   const showTooltip = (element: HTMLElement, stack: ItemStack) => {
-    setHovered({ stack, point: tooltipPointFromRect(element.getBoundingClientRect()) });
+    setHovered({ stack, point: tooltipPointFromElement(element) });
   };
   const hideTooltip = () => setHovered(null);
 

@@ -17,7 +17,7 @@ import { SLOT_LABEL } from "@/items/types";
 import { HandCard } from "@/ui/battle/HandCard";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import ItemTooltip, {
-  tooltipPointFromRect,
+  tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
@@ -707,7 +707,7 @@ function EquipOffers({
                 onPointerEnter={(event) =>
                   setHovered({
                     uid: stack.uid,
-                    point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                    point: tooltipPointFromElement(event.currentTarget),
                   })
                 }
                 onPointerLeave={() =>
@@ -788,7 +788,7 @@ function ReforgePicker({
                     onPointerEnter={(event) =>
                       setHovered({
                         uid: stack.uid,
-                        point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                        point: tooltipPointFromElement(event.currentTarget),
                       })
                     }
                     onPointerLeave={() =>
@@ -810,7 +810,7 @@ function ReforgePicker({
                     onPointerEnter={(event) =>
                       setHovered({
                         uid: stack.uid,
-                        point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                        point: tooltipPointFromElement(event.currentTarget),
                       })
                     }
                     onPointerLeave={() =>

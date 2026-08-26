@@ -3,7 +3,7 @@ import { craftCheck, getModuleRecipe, recipesOfCharacter, type CraftCheck } from
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import ItemTooltip, {
-  tooltipPointFromRect,
+  tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
@@ -68,7 +68,7 @@ export function CraftPanel({ closing, onClose }: Props) {
   const check = recipe ? (checks[recipe.itemId] ?? null) : null;
 
   const showTooltip = (element: HTMLElement, stack: ItemStack) => {
-    setHoveredItem({ stack, point: tooltipPointFromRect(element.getBoundingClientRect()) });
+    setHoveredItem({ stack, point: tooltipPointFromElement(element) });
   };
 
   return (

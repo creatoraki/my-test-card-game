@@ -11,6 +11,7 @@ import { mergeStacksForDisplay, sortStacks } from "@/items/inventory";
 import { RARITY_ORDER, type ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import ItemDetail from "@/ui/common/item/ItemDetail";
+import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot/ItemSlot";
 import ItemTabs from "@/ui/common/item/ItemTabs/ItemTabs";
 import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
@@ -22,9 +23,11 @@ const GRID_GAP = 10;
 const GRID_HOVER_BLEED = 4;
 const PANEL_HORIZONTAL_PADDING = 52;
 const PANEL_FIXED_HEIGHT = 262;
+// 设计 px(1920×1080 画布基准); 参与屏幕边界判断前一律乘 point.zoom。
 const TOOLTIP_WIDTH = 260;
 const TOOLTIP_ESTIMATED_HEIGHT = 300;
 const TOOLTIP_GAP = 18;
+const TOOLTIP_MARGIN = 12;
 export interface WarehousePanelPosition {
   side?: "left" | "right";
   top?: number;
@@ -59,22 +62,10 @@ const DEFAULT_POSITION: ResolvedWarehousePanelPosition = {
   offset: 56,
 };
 
-interface TooltipPoint {
-  x: number;
-  y: number;
-}
-
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
 
 const positiveInteger = (value: number | undefined, fallback: number) =>
   Number.isFinite(value) ? Math.max(1, Math.floor(value as number)) : fallback;
-
-function tooltipPointFromRect(rect: DOMRect): TooltipPoint {
-  return {
-    x: rect.right,
-    y: rect.top + rect.height / 2,
-  };
-}
 
 export default function WarehousePanel({
   open,
@@ -156,7 +147,7 @@ export default function WarehousePanel({
   };
 
   const handleFocus = (stack: ItemStack, event: FocusEvent<HTMLDivElement>) => {
-    showTooltip(stack, tooltipPointFromRect(event.currentTarget.getBoundingClientRect()));
+    showTooltip(stack, tooltipPointFromElement(event.currentTarget));
   };
 
   const style = {
@@ -231,7 +222,7 @@ export default function WarehousePanel({
                 className={s["warehouse-cell"]}
                 key={stack.uid}
                 onPointerEnter={(event) =>
-                  showTooltip(stack, tooltipPointFromRect(event.currentTarget.getBoundingClientRect()))
+                  showTooltip(stack, tooltipPointFromElement(event.currentTarget))
                 }
                 onPointerLeave={() => {
                   setHoveredUid((current) => (current === stack.uid ? null : current));
@@ -280,15 +271,22 @@ function WarehouseTooltip({
 }) {
   if (typeof document === "undefined") return null;
 
-  const right = point.x + TOOLTIP_GAP;
+  // 屏幕 px 下的实际占位: 内层跟着画布 zoom 一起缩, 边界判断也要用缩过的尺寸。
+  const zoom = point.zoom;
+  const width = TOOLTIP_WIDTH * zoom;
+  const height = TOOLTIP_ESTIMATED_HEIGHT * zoom;
+  const gap = TOOLTIP_GAP * zoom;
+  const margin = TOOLTIP_MARGIN * zoom;
+
+  const right = point.x + gap;
   const left =
-    right + TOOLTIP_WIDTH <= window.innerWidth - 12
-      ? right
-      : Math.max(12, point.x - TOOLTIP_WIDTH - TOOLTIP_GAP);
+    right + width <= window.innerWidth - margin ? right : Math.max(margin, point.x - width - gap);
   const top = Math.min(
-    Math.max(12, point.y - 44),
-    Math.max(12, window.innerHeight - TOOLTIP_ESTIMATED_HEIGHT - 12),
+    Math.max(margin, point.y - 44 * zoom),
+    Math.max(margin, window.innerHeight - height - margin),
   );
+  // 高度上限: 窗口高度是屏幕 px, 内层长度单位是设计 px, 故先除回 zoom。
+  const maxHeight = Math.min(TOOLTIP_ESTIMATED_HEIGHT, (window.innerHeight - margin * 2) / zoom);
 
   return createPortal(
     <div
@@ -296,11 +294,17 @@ function WarehouseTooltip({
       style={{ left: `${left}px`, top: `${top}px` }}
       role="tooltip"
     >
-      <ItemDetail
-        stack={stack}
-        className={s["warehouse-tooltip-detail"]}
-        placeholder="选择一件物品查看详情"
-      />
+      {/* 画布缩放跟随层: 内容照旧写设计 px, 由这一层 zoom 缩到当前画布比例。 */}
+      <div
+        className={s["warehouse-tooltip-zoom"]}
+        style={{ zoom, "--tooltip-max-h": `${maxHeight}px` } as CSSProperties}
+      >
+        <ItemDetail
+          stack={stack}
+          className={s["warehouse-tooltip-detail"]}
+          placeholder="选择一件物品查看详情"
+        />
+      </div>
     </div>,
     document.body,
   );

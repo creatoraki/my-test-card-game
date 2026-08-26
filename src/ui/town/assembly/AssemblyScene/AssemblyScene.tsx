@@ -10,7 +10,7 @@ import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import ItemTooltip, {
-  tooltipPointFromRect,
+  tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
@@ -126,7 +126,7 @@ export function AssemblyScene({ leaving = false }: Props) {
   };
 
   const showTooltip = (element: HTMLElement, stack: ItemStack) => {
-    setHoveredItem({ stack, point: tooltipPointFromRect(element.getBoundingClientRect()) });
+    setHoveredItem({ stack, point: tooltipPointFromElement(element) });
   };
 
   return (

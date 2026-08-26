@@ -10,7 +10,7 @@ import { occupiedSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import ItemContextMenu, { type ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import ItemTooltip, {
-  tooltipPointFromRect,
+  tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
@@ -264,11 +264,11 @@ export default function ItemInventoryPanel({
                     setMenu({ x: event.clientX, y: event.clientY, items });
                   }}
                   onPointerEnter={(event) =>
-                    showTooltip(stack, tooltipPointFromRect(event.currentTarget.getBoundingClientRect()))
+                    showTooltip(stack, tooltipPointFromElement(event.currentTarget))
                   }
                   onPointerLeave={() => hideTooltip(stack.uid)}
                   onFocus={(event: FocusEvent<HTMLDivElement>) =>
-                    showTooltip(stack, tooltipPointFromRect(event.currentTarget.getBoundingClientRect()))
+                    showTooltip(stack, tooltipPointFromElement(event.currentTarget))
                   }
                   onBlur={() => hideTooltip(stack.uid)}
                 >

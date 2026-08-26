@@ -1,9 +1,14 @@
+/* 定位层: 恒在 body 上、不吃任何 zoom, left/top 是真实屏幕 px。宽度由内层撑出。 */
 .item-tooltip {
   position: fixed;
   z-index: 1000;
-  width: 260px;
   pointer-events: none;
   filter: drop-shadow(0 14px 24px #000000cc);
+}
+
+/* 缩放层: inline style 下发 zoom = 画布当前缩放, 内部一切长度继续按设计 px 书写。 */
+.item-tooltip-zoom {
+  width: 260px;
 }
 
 .item-tooltip-detail.item-tooltip-detail {
@@ -18,7 +23,9 @@
   box-sizing: border-box;
   width: 100%;
   height: auto;
-  max-height: min(300px, calc(100vh - 24px));
+  /* 上限由 JS 下发(已把屏幕 px 的窗口高度换算回设计 px), 不能直接写 100vh:
+     视口单位不随 zoom 缩放, 在缩放层里会被当成设计 px 再放大一遍。 */
+  max-height: var(--tooltip-max-h, 300px);
   padding: 12px;
   overflow-y: auto;
   background:

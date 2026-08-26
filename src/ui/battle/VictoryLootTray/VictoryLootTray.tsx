@@ -3,7 +3,7 @@ import { createPortal, flushSync } from "react-dom";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
 import ItemTooltip, {
-  tooltipPointFromRect,
+  tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
@@ -172,7 +172,7 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
               onPointerEnter={(event) =>
                 setHovered({
                   uid: stack.uid,
-                  point: tooltipPointFromRect(event.currentTarget.getBoundingClientRect()),
+                  point: tooltipPointFromElement(event.currentTarget),
                 })
               }
               onPointerLeave={() =>
