@@ -13,6 +13,7 @@
 import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
 import { neonFrameClass } from "./NeonFrame";
+import { SceneSkyline } from "./SceneArt";
 import s from "./EventPanel.module.css";
 
 export type EventPanelScene = "briefing" | "choice" | "result";
@@ -273,6 +274,8 @@ export function EventPanelBriefing({
       <div className={s.scenePlaceholder} aria-label="事件插图占位区域">
         {art ?? (
           <>
+            {/* ★ 天际线在最前面 —— DOM 靠前 = 层级靠后, 光球与中央符号必须压在它之上。 */}
+            <SceneSkyline />
             <div className={s.sceneOrb} />
             <div className={s.sceneFrame}>
               <span>01</span>

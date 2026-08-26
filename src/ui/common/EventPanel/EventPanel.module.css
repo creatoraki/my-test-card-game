@@ -277,6 +277,7 @@
 .sceneCaption {
   right: 29px;
   bottom: 27px;
+  z-index: 1; /* 天际线剪影在它下面 —— 没有这行, 右下角两行小字会被楼体压住。 */
   display: grid;
   gap: 3px;
   text-align: right;
