@@ -7,7 +7,7 @@
 // ★ 逐件差异化定价仍然可行: def 自己写了 buyValue 就以它为准(见 withBuyValue 的 ??)。
 //
 // 数值口径(对照《游戏设定.md》的积分体量): 解封一名冬眠队员 = 150 积分,
-// 一件普通装备 120 ≈ 队员的 4/5 —— 早期买装备是真金白银的取舍, 不是顺手就能扫货。
+// 一件普通装备 200 ≈ 队员的 4/3 —— 早期买装备是真金白银的取舍, 不是顺手就能扫货。
 // 1 级商店只出普通档, 高档位先填好, 日后开高级商店不必回来改结构。
 //
 // ⚠ 消耗品(含临期食品)走的是**一口价**, 不吃稀有度阶梯 —— 它们不在据点商店卖, 而在
@@ -21,11 +21,19 @@
 import type { ItemDef, ItemRarity } from "../../items/types";
 
 export const EQUIP_BUY_BY_RARITY: Record<ItemRarity, number> = {
-  common: 120,
+  common: 200,
   fine: 260,
   rare: 520,
   epic: 950,
   legendary: 1700,
+};
+
+export const EQUIP_SELL_BY_RARITY: Record<ItemRarity, number> = {
+  common: 50,
+  fine: 110,
+  rare: 220,
+  epic: 400,
+  legendary: 720,
 };
 
 export const MATERIAL_BUY_BY_RARITY: Record<ItemRarity, number> = {
@@ -39,20 +47,23 @@ export const MATERIAL_BUY_BY_RARITY: Record<ItemRarity, number> = {
 // 未单独配置价格的消耗品使用此基础价。已配置价格的消耗品由自身 ItemDef.buyValue 覆盖。
 export const CONSUMABLE_BUY_VALUE = 20;
 
-// 只给装备、材料与消耗品标价 —— 废料是卖给回收台的(sellValue), 数据存档本期不上架,
+// 只给装备、材料与消耗品标价 —— 废料与装备可卖给回收台(sellValue), 数据存档本期不上架,
 // 它保持 buyValue 缺省。
 export function withBuyValue(defs: ItemDef[]): ItemDef[] {
   return defs.map((d) => {
     if (d.category === "consumable") {
       return { ...d, buyValue: d.buyValue ?? CONSUMABLE_BUY_VALUE };
     }
-    const table =
-      d.category === "equipment"
-        ? EQUIP_BUY_BY_RARITY
-        : d.category === "material"
-          ? MATERIAL_BUY_BY_RARITY
-          : null;
-    if (!table) return d;
-    return { ...d, buyValue: d.buyValue ?? table[d.rarity] };
+    if (d.category === "equipment") {
+      return {
+        ...d,
+        buyValue: d.buyValue ?? EQUIP_BUY_BY_RARITY[d.rarity],
+        sellValue: d.sellValue ?? EQUIP_SELL_BY_RARITY[d.rarity],
+      };
+    }
+    if (d.category === "material") {
+      return { ...d, buyValue: d.buyValue ?? MATERIAL_BUY_BY_RARITY[d.rarity] };
+    }
+    return d;
   });
 }

@@ -597,6 +597,11 @@
     animation-delay: 180ms;
 }
 
+.sx-root .sx-grid.is-entering .sx-cell:nth-child(6),
+.sx-root .sx-grid.is-leaving .sx-cell:nth-child(6) {
+    animation-delay: 225ms;
+}
+
 .sx-root .sx-cell {
     position: relative;
     display: flex;

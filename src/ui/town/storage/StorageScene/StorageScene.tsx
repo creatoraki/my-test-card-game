@@ -91,7 +91,7 @@ export function StorageScene({ leaving = false }: Props) {
       {/* ---- 左上: 场景标题 ---- */}
       <header className={cn("stor-header")} style={{ left: "56px", top: "42px" }}>
         <h2 className={cn("stor-title")}>物资中转仓</h2>
-        <p className={cn("stor-sub")}>库存管理 · 废料回收</p>
+        <p className={cn("stor-sub")}>库存管理 · 物资回收</p>
       </header>
 
       {/* ---- 右上: 两枚读数 chip ---- */}
@@ -310,7 +310,7 @@ function InventoryPanel({
 }
 
 // ===================== 浮层 ②: 回收台 =====================
-// 设计文档 §6.1: 探索层不产出货币, **废料必须带回据点出售**才换成居民积分。
+// 设计文档 §6.1: 探索层不产出货币, **可回收物资必须带回据点出售**才换成居民积分。
 function RecyclePanel({
   stacks,
   loot,
@@ -321,7 +321,10 @@ function RecyclePanel({
   onSell: (uid: string) => void;
 }) {
   const sellable = stacks.filter((st) => getItemDef(st.itemId).sellValue);
+  const [tab, setTab] = useState<ItemTab>("all");
+  const [equipTab, setEquipTab] = useState<EquipTab>("all");
   const [picked, setPicked] = useState<string[]>([]);
+  const shown = sellable.filter((st) => matchTab(st, tab, equipTab));
 
   // 卖掉的东西会从 stacks 里消失, 勾选表得跟着收敛, 否则「已选 3 件」会一直挂着卖不掉的幽灵。
   useEffect(() => {
@@ -344,21 +347,32 @@ function RecyclePanel({
         {sellable.length ? (
           <>
             <p className={cn("stor-note")}>
-              废料在这里换成居民积分——这是探索层产出变成城镇通货的唯一途径。
+              废料与装备在这里换成居民积分——这是探索层产出变成城镇通货的唯一途径。
             </p>
-            <div className={cn("stor-grid")}>
-              {sellable.map((st) => (
-                <ItemSlot
-                  key={st.uid}
-                  stack={st}
-                  selected={picked.includes(st.uid)}
-                  onClick={() => toggle(st.uid)}
-                />
-              ))}
-            </div>
+            <ItemTabs
+              stacks={sellable}
+              tab={tab}
+              equipTab={equipTab}
+              onTab={setTab}
+              onEquipTab={setEquipTab}
+            />
+            {shown.length ? (
+              <div className={cn("stor-grid")}>
+                {shown.map((st) => (
+                  <ItemSlot
+                    key={st.uid}
+                    stack={st}
+                    selected={picked.includes(st.uid)}
+                    onClick={() => toggle(st.uid)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className={cn("stor-empty")}>该分类没有可回收物资。</p>
+            )}
           </>
         ) : (
-          <p className={cn("stor-empty")}>没有可回收的物资。废料从远征里带回来。</p>
+          <p className={cn("stor-empty")}>没有可回收的物资。请从远征里带回废料或装备。</p>
         )}
       </div>
       <div className={cn("stor-panel-foot")}>

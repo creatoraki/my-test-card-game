@@ -566,7 +566,7 @@ export const useTownStore = create<TownStore>()(
         return { ...st };
       },
 
-      // 回收台。⚠ 只有填了 sellValue 的物品(目前是废料)能卖 ——
+      // 回收台。⚠ 只有填了 sellValue 的物品(目前是废料与装备)能卖 ——
       // 模组材料与数据存档留着有别的用处, 卖掉会让日后接模组系统时无货可用。
       sellItem: (uid) => {
         const { storage, loot } = get();

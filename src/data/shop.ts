@@ -43,7 +43,7 @@ export interface ShopLevel {
 
 export const SHOP_LEVELS: Record<number, ShopLevel> = {
   1: {
-    equipCount: 5,
+    equipCount: 6,
     materialCount: 3,
     // 1 级只出普通品质。写成权重而不是布尔, 是为了 2 级直接改数就能出精良档。
     weights: { common: 100, fine: 0, rare: 0, epic: 0, legendary: 0 },
