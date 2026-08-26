@@ -42,6 +42,7 @@ const STORAGE_THEME = {
   "--asm-line": "#f2e6d82e",
   "--asm-ink": "#f2e6d8",
   "--asm-ink-dim": "#a5937f",
+  "--event-panel-title-size": "56px",
 } as CSSProperties;
 
 type PanelId = "inventory" | "recycle";
@@ -271,6 +272,7 @@ function InventoryPanel({
             equipTab={equipTab}
             onTab={setTab}
             onEquipTab={setEquipTab}
+            className={cn("stor-inventory-tabs")}
           />
           <StockGrid
             stacks={displayStacks}
@@ -281,7 +283,11 @@ function InventoryPanel({
             empty="中转仓是空的 —— 从远征活着回来才会有东西进来。"
           />
         </div>
-        <ItemDetail stack={sel} placeholder="仓库不设上限，带回来多少放多少。">
+        <ItemDetail
+          stack={sel}
+          placeholder="仓库不设上限，带回来多少放多少。"
+          className={cn("stor-inventory-detail")}
+        >
           {sel &&
             (confirming === sel.uid ? (
               <>

@@ -206,13 +206,59 @@
   gap: 12px;
 }
 
+.stor-inventory-tabs {
+  --item-tabs-gap: 10px;
+  --item-tab-row-gap: 10px;
+  --item-tab-gap: 8px;
+  --item-tab-padding: 9px 18px;
+  --item-tab-font-size: 20px;
+  --item-tab-count-min-width: 23px;
+  --item-tab-count-size: 16px;
+  --item-tab-sub-indent: 18px;
+  --item-tab-sub-padding: 7px 14px;
+  --item-tab-sub-font-size: 17px;
+}
+
+.stor-inventory-detail {
+  --item-detail-gap: 15px;
+  --item-detail-padding: 20px;
+  --item-detail-head-gap: 16px;
+  --item-detail-icon-width: 104px;
+  --item-detail-name-size: 24px;
+  --item-detail-mult-size: 18px;
+  --item-detail-tags-gap: 6px 12px;
+  --item-detail-tags-margin: 8px 0 0;
+  --item-detail-tags-size: 15px;
+  --item-detail-desc-size: 17px;
+  --item-detail-desc-line-height: 1.6;
+  --item-detail-stats-size: 16px;
+  --item-detail-field-padding: 12px 0;
+  --item-detail-field-size: 16px;
+  --item-detail-bond-head-gap: 9px;
+  --item-detail-bond-head-size: 17px;
+  --item-detail-bond-desc-size: 15px;
+  --item-detail-bond-desc-line-height: 1.6;
+  --item-detail-note-size: 15px;
+}
+
 /* 仓库网格: 无格数上限，用 auto-fill 流式铺 + 滚动。 */
 .stor-grid {
+  --item-slot-notch: 20px;
+  --item-slot-pad: 14px 10px;
+  --item-slot-gap: 8px;
+  --item-slot-corner: 30px;
+  --item-slot-icon-size: 70%;
+  --item-slot-name-size: 24px;
+  --item-slot-count-size: 26px;
+  --item-slot-bond-size: 44px;
+
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(auto-fill, 270px);
+  justify-content: start;
+  gap: 20px;
   min-height: 0;
   overflow-y: auto;
+  padding-top: 4px;
   padding-right: 4px;
 }
 

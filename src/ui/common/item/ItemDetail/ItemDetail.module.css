@@ -6,10 +6,10 @@
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--item-detail-gap, 10px);
 
   height: 100%;
-  padding: 14px;
+  padding: var(--item-detail-padding, 14px);
   overflow-y: auto;
 
   background: #00000030;
@@ -38,7 +38,7 @@
   justify-content: center;
 }
 .item-detail-idle {
-  font-size: 12px;
+  font-size: var(--item-detail-idle-size, 12px);
   color: var(--muted);
   text-align: center;
 }
@@ -46,7 +46,7 @@
 .item-detail-head {
   display: flex;
   flex-direction: var(--item-detail-head-direction, row);
-  gap: 11px;
+  gap: var(--item-detail-head-gap, 11px);
   align-items: flex-start;
 }
 
@@ -65,20 +65,20 @@
 
 .item-detail-name {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--item-detail-name-size, 15px);
   color: var(--rr);
 }
 .item-detail-mult {
-  font-size: 12px;
+  font-size: var(--item-detail-mult-size, 12px);
   color: var(--muted);
 }
 
 .item-detail-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 8px;
-  margin: 5px 0 0;
-  font-size: 11px;
+  gap: var(--item-detail-tags-gap, 4px 8px);
+  margin: var(--item-detail-tags-margin, 5px 0 0);
+  font-size: var(--item-detail-tags-size, 11px);
   color: var(--muted);
 }
 .item-detail-rarity {
@@ -87,8 +87,8 @@
 
 .item-detail-desc {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.65;
+  font-size: var(--item-detail-desc-size, 12px);
+  line-height: var(--item-detail-desc-line-height, 1.65);
   color: var(--text);
   opacity: 0.82;
 }
@@ -105,7 +105,7 @@
 .item-detail-stats > div {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: var(--item-detail-stats-size, 12px);
 }
 .item-detail-stats dt {
   color: var(--muted);
@@ -128,8 +128,8 @@
   justify-content: space-between;
   gap: 10px;
   margin: 0;
-  padding: 9px 0;
-  font-size: 12px;
+  padding: var(--item-detail-field-padding, 9px 0);
+  font-size: var(--item-detail-field-size, 12px);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -156,10 +156,10 @@
 }
 .item-detail-bond-head {
   display: flex;
-  gap: 7px;
+  gap: var(--item-detail-bond-head-gap, 7px);
   align-items: baseline;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--item-detail-bond-head-size, 13px);
 }
 .item-detail-bond-icon {
   flex: none;
@@ -182,14 +182,14 @@
 }
 .item-detail-bond-desc {
   margin: 0;
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: var(--item-detail-bond-desc-size, 11px);
+  line-height: var(--item-detail-bond-desc-line-height, 1.6);
   color: var(--muted);
 }
 
 .item-detail-note {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--item-detail-note-size, 11px);
   color: var(--accent2);
 }
 .item-detail-note.is-locked {

@@ -4,22 +4,22 @@
 .item-tabs {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--item-tabs-gap, 6px);
 }
 
 .item-tab-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--item-tab-row-gap, 6px);
 }
 
 .item-tab {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--item-tab-gap, 5px);
 
-  padding: 5px 11px;
-  font-size: 12px;
+  padding: var(--item-tab-padding, 5px 11px);
+  font-size: var(--item-tab-font-size, 12px);
   color: var(--muted);
 
   background: #ffffff08;
@@ -46,9 +46,9 @@
 }
 
 .item-tab-count {
-  min-width: 15px;
+  min-width: var(--item-tab-count-min-width, 15px);
   padding: 0 3px;
-  font-size: 10px;
+  font-size: var(--item-tab-count-size, 10px);
   font-variant-numeric: tabular-nums;
   text-align: center;
   background: #00000038;
@@ -60,10 +60,10 @@
 
 /* 二级 tab(装备槽位)比一级小一号, 读起来才是「从属」而不是「并列」 */
 .item-tab-row.is-sub {
-  padding-left: 12px;
+  padding-left: var(--item-tab-sub-indent, 12px);
   border-left: 1px solid var(--border);
 }
 .item-tab.is-sub {
-  padding: 3px 9px;
-  font-size: 11px;
+  padding: var(--item-tab-sub-padding, 3px 9px);
+  font-size: var(--item-tab-sub-font-size, 11px);
 }

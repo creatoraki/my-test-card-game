@@ -80,7 +80,7 @@
   margin: 7px 0 0;
   color: #f4f7ec;
   font-family: var(--font-family);
-  font-size: 42px;
+  font-size: var(--event-panel-title-size, 42px);
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.06em;

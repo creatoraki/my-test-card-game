@@ -13,17 +13,24 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: var(--item-slot-gap, 2px);
 
   aspect-ratio: 1;
   min-width: 0;
-  padding: 4px 3px;
+  padding: var(--item-slot-pad, 4px 3px);
 
   color: var(--rr); /* ★ 图标靠 currentColor 吃这一行, 于是自动染上稀有度色 */
   background: linear-gradient(160deg, var(--rg), transparent 62%);
   border: 1px solid transparent;
   border-radius: 3px;
-  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  clip-path: polygon(
+    var(--item-slot-notch, 7px) 0,
+    100% 0,
+    100% calc(100% - var(--item-slot-notch, 7px)),
+    calc(100% - var(--item-slot-notch, 7px)) 100%,
+    0 100%,
+    0 var(--item-slot-notch, 7px)
+  );
 
   cursor: pointer;
   transition:
@@ -71,8 +78,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  border-top: 9px solid var(--rr);
-  border-right: 9px solid transparent;
+  border-top: var(--item-slot-corner, 9px) solid var(--rr);
+  border-right: var(--item-slot-corner, 9px) solid transparent;
 }
 
 .item-slot:hover {
@@ -101,7 +108,7 @@
 .item-slot-name {
   max-width: 100%;
   overflow: hidden;
-  font-size: 9px;
+  font-size: var(--item-slot-name-size, 9px);
   line-height: 1.15;
   color: var(--text);
   text-align: center;
@@ -125,8 +132,8 @@
   position: absolute;
   top: 2px;
   left: 3px;
-  width: 16px;
-  height: 16px;
+  width: var(--item-slot-bond-size, 16px);
+  height: var(--item-slot-bond-size, 16px);
   line-height: 1;
   pointer-events: none;
 }
