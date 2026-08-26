@@ -93,7 +93,7 @@ function EventShell({ children, view, closing }: { children: ReactNode; view: Ev
         style={{ ...panelRevealVars(), ...eventPanelShapeVars() }}
       >
         <span className={s["panel-bar"]} aria-hidden />
-        {/* 不规则外框的描边层 —— clip-path 会切掉 CSS border, 轮廓只能由它来画。 */}
+        {/* 外框的描边层 —— clip-path 会切掉 CSS border, 轮廓只能由它来画。 */}
         <NotchedFrame />
         <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />

@@ -1,7 +1,7 @@
-// 事件面板的不规则外轮廓描边层。
+// 事件面板的外轮廓描边层。
 //
-// 为什么要单独一层: 面板靠 clip-path 裁出凹凸外形, 而 clip-path 会把 CSS border 一并切掉 ——
-// 凹凸的那些边上就没有描边了。于是把轮廓交给 SVG 画: 与裁切用的是同一份顶点(panelShape.ts),
+// 为什么要单独一层: 面板的外形靠 clip-path 裁出(形状见 panelShape.ts), 而 clip-path 会把 CSS
+// border 一并切掉 —— 外框上就没有描边了。于是把轮廓交给 SVG 画: 与裁切用的是同一份顶点,
 // 描线永远贴着裁切边。同时再画一条内缩 5px 的"回声"轮廓, 给外框做出层次。
 import type { CSSProperties } from "react";
 import { BUMP, OUTER, buildOutline, projectToSlit, toPath, toPolygon } from "./panelShape";
