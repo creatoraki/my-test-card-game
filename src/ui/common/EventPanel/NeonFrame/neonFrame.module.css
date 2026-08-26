@@ -1,0 +1,58 @@
+/* ★ 面板外层霓虹灯管 ★ —— 只负责 EventPanelFrame 最外圈那一道边的观感, 不碰内部任何版式。
+ *
+ * 分工:
+ *   · .neonFrame 自身   —— 灯管的「光」: 外侧三层辉光 + 内侧漫射 + 顶部受光 / 底部沉影。
+ *   · .neonFrame::after —— 灯管的「管」: 一圈 1px 的同色系方向性渐变环(左上亮 → 右下深)。
+ *
+ * ⚠ 取色一律从 --event-accent 派生, 各浮层换主色时灯管自动跟着换,
+ *   不要在调用方写死任何一个灯管色; 需要调观感就改下面这四个色阶变量。
+ */
+.neonFrame {
+  /* 同色系四色阶: 受光高光 → 灯管本体 → 背光副色 → 沉影深副色 */
+  --neon-hi: color-mix(in srgb, var(--event-accent) 42%, #ffffff);
+  --neon-core: color-mix(in srgb, var(--event-accent) 85%, #ffffff);
+  --neon-dim: color-mix(in srgb, var(--event-accent) 58%, #06181c);
+  --neon-deep: color-mix(in srgb, var(--event-accent) 30%, #040f12);
+
+  border: 1px solid var(--neon-dim);
+  box-shadow:
+    /* 外侧: 由紧到松三层辉光, 让灯管的光渗到背景场景上 */
+    0 0 0 1px color-mix(in srgb, var(--event-accent) 20%, transparent),
+    0 0 12px color-mix(in srgb, var(--event-accent) 26%, transparent),
+    0 0 34px color-mix(in srgb, var(--event-accent) 13%, transparent),
+    /* 面板与背景之间的落影 —— 把整块板从场景里抬起来 */
+    0 24px 72px #000a,
+    /* 内侧: 灯管往板内的漫射, 边缘亮、中心衰减 */
+    inset 0 0 28px color-mix(in srgb, var(--event-accent) 9%, transparent),
+    /* 顶部受光 / 底部沉影 —— 立体感的主要来源, 负 spread 把光压在贴边一条 */
+    inset 0 24px 40px -30px var(--neon-hi),
+    inset 0 -28px 44px -30px var(--neon-deep);
+}
+
+/* 灯管本体: 用 border-box 渐变 + 遮罩挖空 padding-box, 只留下 1px 的环。
+   渐变角度 148deg ≈ 左上打光, 于是同一根灯管左上偏白、右下沉入同色系暗副色。 */
+.neonFrame::after {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(
+      148deg,
+      var(--neon-hi) 0%,
+      var(--neon-core) 16%,
+      var(--neon-dim) 46%,
+      var(--neon-deep) 74%,
+      var(--neon-dim) 100%
+    ) border-box;
+  -webkit-mask:
+    linear-gradient(#000 0 0) padding-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) padding-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}

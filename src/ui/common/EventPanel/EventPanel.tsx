@@ -12,6 +12,7 @@
 //   但着色规则只有这一份, 不要在调用方重写页眉、边线或按钮的颜色。
 import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
+import { neonFrameClass } from "./NeonFrame";
 import s from "./EventPanel.module.css";
 
 export type EventPanelScene = "briefing" | "choice" | "result";
@@ -57,7 +58,7 @@ export function EventPanelFrame({
 }: EventPanelFrameProps) {
   const style = { "--event-accent": accent } as CSSProperties;
   return (
-    <div className={cx(s.eventDemo, className)} style={style}>
+    <div className={cx(s.eventDemo, neonFrameClass, className)} style={style}>
       <header className={s.demoHeader}>
         <div className={s.headerTitle}>
           {kicker && <span className={s.demoKicker}>{kicker}</span>}

@@ -11,13 +11,15 @@
   min-height: 0;
   padding: 28px 34px 32px;
   overflow: hidden;
-  border: 1px solid #3b4d53;
   background:
     radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--event-accent) 12%, transparent), transparent 27%),
     linear-gradient(115deg, #111b1e 0%, var(--panel-bg) 44%, #0a0f12 100%);
   color: #edf3ef;
-  box-shadow: 0 22px 70px #0009, 0 0 0 1px #ffffff05;
 }
+
+/* ⚠ 最外圈的 border / box-shadow 不在这里写 —— 它们整体归 NeonFrame/neonFrame.module.css 的
+   .neonFrame 管(EventPanelFrame 会把这个类拼到同一个元素上)。两边都写会因为同为单类选择器、
+   胜负只取决于打包顺序而互相盖掉, 所以这里一条都不留。 */
 
 /* ⚠ 这里原本还有一个 .eventDemo::after —— 面板右上角那盏会缓慢漂移的氛围灯
    (width:32% / height:118% 的竖长方形 + box-shadow 辉光 + mix-blend-mode: screen)。
