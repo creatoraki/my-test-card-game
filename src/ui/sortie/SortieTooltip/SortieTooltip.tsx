@@ -1,39 +1,26 @@
 import { createPortal } from "react-dom";
+import { useRef } from "react";
 import type { ItemStack } from "@/items/types";
 import ItemDetail from "@/ui/common/item/ItemDetail";
+import { tooltipStyle, useTooltipPlacement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
 import s from "./SortieTooltip.module.css";
 
-const TOOLTIP_WIDTH = 260;
-const TOOLTIP_ESTIMATED_HEIGHT = 300;
-const TOOLTIP_GAP = 18;
-
 interface Props {
   stack: ItemStack;
-  anchor: DOMRect;
+  /** 由 tooltipPointFromElement() 从触发元素算出 —— 设计 px + 所属画布。 */
+  point: TooltipPoint;
 }
 
-export function SortieTooltip({ stack, anchor }: Props) {
-  if (typeof document === "undefined") return null;
-
-  const right = anchor.right + TOOLTIP_GAP;
-  const left =
-    right + TOOLTIP_WIDTH <= window.innerWidth - 12
-      ? right
-      : Math.max(12, anchor.left - TOOLTIP_WIDTH - TOOLTIP_GAP);
-  const top = Math.min(
-    Math.max(12, anchor.top + anchor.height / 2 - TOOLTIP_ESTIMATED_HEIGHT / 2),
-    Math.max(12, window.innerHeight - TOOLTIP_ESTIMATED_HEIGHT - 12),
-  );
+/** 出击背包的物品浮卡。定位与 ItemTooltip 共用同一套实现, 只有配色不同。 */
+export function SortieTooltip({ stack, point }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+  const placement = useTooltipPlacement(point, ref);
 
   return createPortal(
-    <div
-      className={cx(s.tooltip)}
-      style={{ left: `${left}px`, top: `${top}px` }}
-      role="tooltip"
-    >
+    <div className={cx(s.tooltip)} ref={ref} style={tooltipStyle(placement)} role="tooltip">
       <ItemDetail stack={stack} className={s.detail} />
     </div>,
-    document.body,
+    point.host,
   );
 }

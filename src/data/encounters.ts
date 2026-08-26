@@ -64,23 +64,33 @@ function g(id: string, scale: number, dx = 0, flip = false): EnemyPlacement {
   return { id, dx, dy: GROUND_DY, scale, flip };
 }
 
-// ── 小怪战斗模板(轻/中, 单场 2-3 只, 只用 4 种小怪) ──────────────────────────
+// ── 小怪战斗模板(轻 3 只 / 中 4 只, 只用 4 种小怪) ───────────────────────────
 
 // 轻战斗 · 教学: 侦察 + 高速机动。教玩家看意图、理解"敌人掉落按各自结算"。
-const CREW = [g("sweep-drone", 1.2, -96), g("radio-bot", 1, 96)];
-// 轻战斗 · 纯机动: 两台高速无人机, 教玩家专一处理一个目标类型。
-const SWEEP = [g("sweep-drone", 1.2, -96), g("sweep-drone", 1.2, 96, true)];
+const CREW = [
+  g("sweep-drone", 1.2, -120),
+  g("radio-bot", 1, 0),
+  g("maintenance-spider", 0.85, 120),
+];
+// 轻战斗 · 纯机动: 两台高速无人机与一台支援单位, 教玩家专一处理一个目标类型。
+const SWEEP = [
+  g("sweep-drone", 1.2, -120),
+  g("radio-bot", 1, 0),
+  g("sweep-drone", 1.2, 120, true),
+];
 // 中战斗 · 控制+暴露+机动: 红绿灯控制、收音机易伤、无人机突破, 教玩家判断先杀谁。
 const BEACON = [
-  g("radio-bot", 1, -120, true),
-  g("traffic-light-bot", 1.15),
-  g("sweep-drone", 1.2, 120),
+  g("radio-bot", 1, -180, true),
+  g("traffic-light-bot", 1.15, -60),
+  g("sweep-drone", 1.2, 60),
+  g("maintenance-spider", 0.85, 180),
 ];
 // 中战斗 · 支援+控制+暴露: 蜘蛛奶、红绿灯控、收音机暴露, 走"拖节奏"路线。
 const PATROL = [
-  g("radio-bot", 1, -120, true),
-  g("maintenance-spider", 0.85),
-  g("traffic-light-bot", 1.15, 120),
+  g("radio-bot", 1, -180, true),
+  g("maintenance-spider", 0.85, -60),
+  g("traffic-light-bot", 1.15, 60),
+  g("sweep-drone", 1.2, 180),
 ];
 
 // ── 精英战斗模板(重, 单场 2-3 只, 至少含 1 只精英) ──────────────────────────

@@ -7,6 +7,7 @@ import { useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot/ItemSlot";
 import { useChangePulse } from "@/ui/hooks/useChangePulse";
+import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
 import s from "./StoragePicker.module.css";
 
@@ -24,7 +25,7 @@ export function StoragePicker({ className }: Props) {
   const storage = useTownStore((state) => state.storage);
   const takeFromStorage = useSortieStore((state) => state.takeFromStorage);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  const [tooltip, setTooltip] = useState<{ uid: string; rect: DOMRect } | null>(null);
+  const [tooltip, setTooltip] = useState<{ uid: string; point: TooltipPoint } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const visible = useMemo(
     () =>
@@ -69,11 +70,11 @@ export function StoragePicker({ className }: Props) {
               key={stack.uid}
               className={cx(s.slotAnchor, pulsed.has(stack.uid) && s.pulse)}
               onPointerEnter={(event) =>
-                setTooltip({ uid: stack.uid, rect: event.currentTarget.getBoundingClientRect() })
+                setTooltip({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget) })
               }
               onPointerLeave={() => hideTooltip(stack.uid)}
               onFocus={(event) =>
-                setTooltip({ uid: stack.uid, rect: event.currentTarget.getBoundingClientRect() })
+                setTooltip({ uid: stack.uid, point: tooltipPointFromElement(event.currentTarget) })
               }
               onBlur={() => hideTooltip(stack.uid)}
             >
@@ -92,7 +93,7 @@ export function StoragePicker({ className }: Props) {
           ),
         )}
       </div>
-      {tooltipStack && tooltip && <SortieTooltip stack={tooltipStack} anchor={tooltip.rect} />}
+      {tooltipStack && tooltip && <SortieTooltip stack={tooltipStack} point={tooltip.point} />}
     </section>
   );
 }

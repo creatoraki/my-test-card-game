@@ -1,5 +1,7 @@
+/* 定位层: 挂在设计画布内部(见 SortieTooltip.tsx 的 portal 目标), left/top 是设计 px,
+   缩放由画布的 zoom 统一负责。 */
 .tooltip {
-  position: fixed;
+  position: absolute;
   z-index: 1000;
   width: 260px;
   pointer-events: none;
@@ -18,7 +20,8 @@
   box-sizing: border-box;
   width: 100%;
   height: auto;
-  max-height: min(300px, calc(100vh - 24px));
+  /* 上限由 JS 下发(画布高度减留白, 设计 px): 视口单位不随画布 zoom 缩放, 不能写 100vh。 */
+  max-height: var(--tooltip-max-h, 300px);
   padding: 12px;
   overflow-y: auto;
   background:

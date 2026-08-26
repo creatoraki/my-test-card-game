@@ -96,12 +96,32 @@ export interface DesignBox {
   bottom: number;
 }
 
+// 画布内的元素 → 它所属的那张设计画布(带 data-stage-canvas 标记, 见 app/StageCanvas)。
+// 找不到就回落到 document.body —— 那里没有 zoom, 下面的归一化恒等, 同一套代码照样正确。
+export function stageHostOf(el: Element): HTMLElement {
+  return el.closest<HTMLElement>("[data-stage-canvas]") ?? document.body;
+}
+
+/**
+ * host 的 getBoundingClientRect() 坐标系相对「设计 px」的倍率。
+ *
+ * ★ 画布内元素要给浮层定位时, 一律走这条路: 锚点矩形与 host 矩形取自**同一套坐标系**,
+ *   两者相减再除以本函数的返回值, 就得到画布局部的设计 px —— 全程不需要知道
+ *   「CSS zoom 子树里 getBoundingClientRect() 到底带不带 zoom」。
+ * ⚠ 这条约定在不同浏览器/版本上并不一致(zoom 分支 vs @supports not (zoom:1) 的 transform
+ *   兜底分支也不同), 一旦判反, zoom===1 的大窗口下恒等看不出问题, 窗口一小浮层就跑飞。
+ *   所以新代码**不要**依赖 currentCSSZoom, 用这里的归一化。
+ * host.clientWidth 是不含 zoom 的布局宽度: 画布恒为 1920, body 则是视口宽。
+ */
+export function designScaleOf(host: HTMLElement): number {
+  const width = host.clientWidth;
+  const rect = host.getBoundingClientRect();
+  return width > 0 && rect.width > 0 ? rect.width / width : 1;
+}
+
 // 画布当前生效的 CSS zoom(见 app/styles/stageCanvas.module.css 的 .canvas)。
-// ⚠ 标准化后的 CSS zoom 有一条反直觉的规则: zoom 子树内 getBoundingClientRect() 返回的是
-//   **未乘 zoom 的设计 px**, 不是屏幕 px —— 浏览器为此才补了 Element.currentCSSZoom。
-//   所以画布内元素的矩形要拿去给 body 上的 fixed 图层(浮窗、飞行动画)定位时, 必须先乘回它。
-//   老浏览器走 @supports not (zoom: 1) 的 transform 兜底分支: 那里 getBoundingClientRect()
-//   本来就是屏幕 px, 而 currentCSSZoom 缺失 ⇒ 回落到 1, 换算恒等, 两条分支都正确。
+// ⚠ 仅在确实需要「CSS zoom 值本身」时用。要做坐标换算请用上面的 designScaleOf() ——
+//   它不依赖 currentCSSZoom 的语义, 两条渲染分支上都正确。
 export function cssZoomOf(el: Element): number {
   const zoom = (el as HTMLElement & { currentCSSZoom?: number }).currentCSSZoom;
   return typeof zoom === "number" && zoom > 0 ? zoom : 1;

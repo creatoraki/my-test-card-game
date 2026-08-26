@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type FocusEvent,
@@ -11,7 +12,12 @@ import { mergeStacksForDisplay, sortStacks } from "@/items/inventory";
 import { RARITY_ORDER, type ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import ItemDetail from "@/ui/common/item/ItemDetail";
-import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
+import {
+  tooltipPointFromElement,
+  tooltipStyle,
+  useTooltipPlacement,
+  type TooltipPoint,
+} from "@/ui/common/item/ItemTooltip";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot/ItemSlot";
 import ItemTabs from "@/ui/common/item/ItemTabs/ItemTabs";
 import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
@@ -23,11 +29,8 @@ const GRID_GAP = 10;
 const GRID_HOVER_BLEED = 4;
 const PANEL_HORIZONTAL_PADDING = 52;
 const PANEL_FIXED_HEIGHT = 262;
-// 设计 px(1920×1080 画布基准); 参与屏幕边界判断前一律乘 point.zoom。
-const TOOLTIP_WIDTH = 260;
-const TOOLTIP_ESTIMATED_HEIGHT = 300;
-const TOOLTIP_GAP = 18;
-const TOOLTIP_MARGIN = 12;
+// 浮卡顶边相对锚点的上移量(设计 px): 本浮卡贴着物品格顶部对齐, 不像 ItemTooltip 那样居中。
+const TOOLTIP_TOP_OFFSET = 44;
 export interface WarehousePanelPosition {
   side?: "left" | "right";
   top?: number;
@@ -269,43 +272,24 @@ function WarehouseTooltip({
   point: TooltipPoint;
   leaving: boolean;
 }) {
-  if (typeof document === "undefined") return null;
-
-  // 屏幕 px 下的实际占位: 内层跟着画布 zoom 一起缩, 边界判断也要用缩过的尺寸。
-  const zoom = point.zoom;
-  const width = TOOLTIP_WIDTH * zoom;
-  const height = TOOLTIP_ESTIMATED_HEIGHT * zoom;
-  const gap = TOOLTIP_GAP * zoom;
-  const margin = TOOLTIP_MARGIN * zoom;
-
-  const right = point.x + gap;
-  const left =
-    right + width <= window.innerWidth - margin ? right : Math.max(margin, point.x - width - gap);
-  const top = Math.min(
-    Math.max(margin, point.y - 44 * zoom),
-    Math.max(margin, window.innerHeight - height - margin),
-  );
-  // 高度上限: 窗口高度是屏幕 px, 内层长度单位是设计 px, 故先除回 zoom。
-  const maxHeight = Math.min(TOOLTIP_ESTIMATED_HEIGHT, (window.innerHeight - margin * 2) / zoom);
+  // 定位与 ItemTooltip 共用同一套实现(挂进设计画布、按画布边界翻转夹取), 这里只是换了皮:
+  // 多一层退场动画类与 placeholder 文案。
+  const ref = useRef<HTMLDivElement>(null);
+  const placement = useTooltipPlacement(point, ref, TOOLTIP_TOP_OFFSET);
 
   return createPortal(
     <div
       className={cx(s["warehouse-tooltip"], leaving && s["is-leaving"])}
-      style={{ left: `${left}px`, top: `${top}px` }}
+      ref={ref}
+      style={tooltipStyle(placement)}
       role="tooltip"
     >
-      {/* 画布缩放跟随层: 内容照旧写设计 px, 由这一层 zoom 缩到当前画布比例。 */}
-      <div
-        className={s["warehouse-tooltip-zoom"]}
-        style={{ zoom, "--tooltip-max-h": `${maxHeight}px` } as CSSProperties}
-      >
-        <ItemDetail
-          stack={stack}
-          className={s["warehouse-tooltip-detail"]}
-          placeholder="选择一件物品查看详情"
-        />
-      </div>
+      <ItemDetail
+        stack={stack}
+        className={s["warehouse-tooltip-detail"]}
+        placeholder="选择一件物品查看详情"
+      />
     </div>,
-    document.body,
+    point.host,
   );
 }

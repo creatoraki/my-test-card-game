@@ -360,15 +360,15 @@ export const ENEMIES: EnemyDef[] = [
     ],
   },
   {
-    // 小怪 · 纯控制位: 三招全是负面, 伤害倍率刻意压得很低(0.3/0.4/0),
-    // 威胁来自易伤放大同场输出、眩晕打断节奏与沉重标记堵手牌, 而不是它自己的伤害。
+    // 小怪 · 控制 + 骚扰半输出位: 三招都带负面效果, 同时保留稳定的伤害压力。
+    // 威胁来自易伤放大同场输出、眩晕打断节奏、沉重标记堵手牌与自身伤害。
     id: "traffic-light-bot",
     name: "红绿灯机器人",
     emoji: "🚦", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
     maxHp: 34,
     exp: 14,
-    // 纯控制位: 三招全是负面, 伤害倍率刻意压得很低(0.3/0.4/0),
-    // 威胁来自易伤放大同场输出、眩晕打断节奏与沉重标记堵手牌, 而不是它自己的伤害。
+    // 控制 + 骚扰半输出位: 三招都带负面效果, 同时保留稳定的伤害压力。
+    // 威胁来自易伤放大同场输出、眩晕打断节奏、沉重标记堵手牌与自身伤害。
     stats: { attack: 13, defense: 0, initiative: 18, critDamage: 150 },
     moves: [
       {
@@ -382,7 +382,7 @@ export const ENEMIES: EnemyDef[] = [
         hitBonus: 0,
         anim: "shot",
         effects: [
-          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.8, target: "primary" },
           { type: "APPLY_STATUS", status: "vulnerable", stacks: 2, target: "primary" },
         ],
       },
@@ -397,7 +397,7 @@ export const ENEMIES: EnemyDef[] = [
         hitBonus: 0,
         anim: "lightning",
         effects: [
-          { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.7, target: "primary" },
           { type: "APPLY_STATUS", status: "stun", stacks: 1, target: "primary" },
         ],
       },
@@ -411,9 +411,12 @@ export const ENEMIES: EnemyDef[] = [
         weight: 1,
         hitBonus: 0,
         anim: "buff",
-        // 无伤害的纯堵牌招: 2 张手牌费用 +1 且打出后移除, 比 scrap-overload 更重,
+        // 2 张手牌费用 +1 且打出后移除, 比 scrap-overload 更重,
         // 相应地蓄力也更长(5 对 4)。
-        effects: [{ type: "MARK_CARDS", mark: "heavy", markPick: "handRandom", amount: 2 }],
+        effects: [
+          { type: "DAMAGE", multiplier: 0.5, target: "primary" },
+          { type: "MARK_CARDS", mark: "heavy", markPick: "handRandom", amount: 2 },
+        ],
       },
     ],
     dropTable: [

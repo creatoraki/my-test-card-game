@@ -948,6 +948,8 @@ export function BattleScreen() {
         // 顿帧标记走属性: 要冻住的动画分属 EnemySprite / CombatantView / 本文件三处,
         // 属性不参与 Modules 哈希, 是唯一能跨模块命中的通道(样式铁律 2)。
         data-hitstop={hitstop ? "" : undefined}
+        // 战斗画布没走公共的 StageCanvas 组件, 故在这里自己补上画布身份标记(含义见 StageCanvas)。
+        data-stage-canvas=""
         ref={screenRef}
         onClick={() => setSelectedUid(null)}
       >

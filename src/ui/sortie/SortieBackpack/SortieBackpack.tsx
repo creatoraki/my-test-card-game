@@ -6,6 +6,7 @@ import { cx } from "@/ui/common/cx";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot/ItemSlot";
 import { useChangePulse } from "@/ui/hooks/useChangePulse";
 import { useCountUp } from "@/ui/hooks/useCountUp";
+import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
 import s from "./SortieBackpack.module.css";
 
@@ -22,7 +23,7 @@ export function SortieBackpack({ className }: Props) {
   const backpack = useSortieStore((state) => state.backpack);
   const putBack = useSortieStore((state) => state.putBack);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  const [tooltip, setTooltip] = useState<{ uid: string; rect: DOMRect } | null>(null);
+  const [tooltip, setTooltip] = useState<{ uid: string; point: TooltipPoint } | null>(null);
   const total = RULES.burden.backpackSlots;
   const cells = layoutBackpack(backpack, total);
   const used = sortieUsedSlots(backpack);
@@ -56,11 +57,11 @@ export function SortieBackpack({ className }: Props) {
               key={cell.stack.uid}
               className={cx(s.slotAnchor, pulsed.has(cell.stack.uid) && s.pulse)}
               onPointerEnter={(event) =>
-                setTooltip({ uid: cell.stack.uid, rect: event.currentTarget.getBoundingClientRect() })
+                setTooltip({ uid: cell.stack.uid, point: tooltipPointFromElement(event.currentTarget) })
               }
               onPointerLeave={() => hideTooltip(cell.stack.uid)}
               onFocus={(event) =>
-                setTooltip({ uid: cell.stack.uid, rect: event.currentTarget.getBoundingClientRect() })
+                setTooltip({ uid: cell.stack.uid, point: tooltipPointFromElement(event.currentTarget) })
               }
               onBlur={() => hideTooltip(cell.stack.uid)}
             >
@@ -79,7 +80,7 @@ export function SortieBackpack({ className }: Props) {
           ),
         )}
       </div>
-      {tooltipStack && tooltip && <SortieTooltip stack={tooltipStack} anchor={tooltip.rect} />}
+      {tooltipStack && tooltip && <SortieTooltip stack={tooltipStack} point={tooltip.point} />}
     </section>
   );
 }
