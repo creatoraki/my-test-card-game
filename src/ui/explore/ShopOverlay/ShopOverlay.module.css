@@ -34,10 +34,6 @@
   composes: panel-bar from "../styles/explorePanel.module.css";
 }
 
-.frame {
-  composes: panel-frame from "../styles/explorePanel.module.css";
-}
-
 .scan {
   composes: panel-scan from "../styles/explorePanel.module.css";
 }

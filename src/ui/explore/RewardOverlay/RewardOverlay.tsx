@@ -100,7 +100,6 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
         aria-label="事件奖励"
       >
         <span className={s["panel-bar"]} aria-hidden />
-        <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
         <EventPanelFrame
           accent={REWARD_ACCENT}

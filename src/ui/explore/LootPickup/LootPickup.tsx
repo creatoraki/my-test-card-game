@@ -102,7 +102,6 @@ function LootPickup({ gate }: LootPickupProps) {
         aria-label="待拾取物品"
       >
         <span className={s["panel-bar"]} aria-hidden />
-        <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
         <EventPanelFrame
           accent="#9be4bd"

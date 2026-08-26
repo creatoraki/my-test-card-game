@@ -96,7 +96,6 @@ export default function BackpackPanel({
     <div className={s["bp-modal"]}>
       <section className={cx(s["bp-panel"], s["panel-reveal"])} style={panelRevealVars()}>
         <span className={s["panel-bar"]} aria-hidden />
-        <span className={s["panel-frame"]} aria-hidden />
         <span className={s["panel-scan"]} aria-hidden />
         <EventPanelFrame
           accent="#7fd4c4"

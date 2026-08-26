@@ -147,23 +147,22 @@
 .briefingScene {
   display: grid;
   grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.1fr);
-  align-items: center;
+  align-items: start;
   gap: 58px;
   animation: briefingIn 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* 错位布局 —— 插图往下沉、文案往上提, 两侧顶边刻意不齐, 读起来才有分镜的节奏感。
+/* 错位布局 —— 插图贴顶、文案下沉, 两侧顶边刻意不齐, 读起来才有分镜的节奏感。
    ★ 位移只能用 position: relative + top, 不能用 transform:
    两边都挂着 artIn / copyIn 入场动画(both), 动画收尾会把 transform 锁死成自己的终值, 写在
    这里的 translateY 会被整条盖掉。top 不参与 transform 通道, 与入场动画互不干扰。 */
 .briefingScene .scenePlaceholder {
-  top: 30px;
   animation: artIn 720ms 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .briefingScene .briefingCopy {
   position: relative;
-  top: -16px;
+  top: 40px;
   animation: copyIn 600ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -172,47 +171,16 @@
   width: 330px;
   aspect-ratio: 1;
   overflow: hidden;
-  border: 1px solid #43545a;
   background:
     radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--event-accent) 18%, transparent), transparent 26%),
     linear-gradient(140deg, #172427, #0b1114 60%, #11191c);
   box-shadow: 14px 14px 0 #060a0c, 0 0 45px color-mix(in srgb, var(--event-accent) 10%, transparent);
 }
 
-.scenePlaceholder::before,
 .scenePlaceholder::after {
   position: absolute;
   content: "";
   pointer-events: none;
-}
-
-/* 四角边框 —— ★ 只能用「八条背景短杠」画, 不要退回 border + clip-path 挖空的老写法。
-   老写法是画满一圈 1px 边再用 clip-path 把中段那 1px 切掉: 边框和切口都是 1px,
-   在整块画布被 transform 缩放的小尺寸页面下两者的栅格化取整不一致, 中段会剩下一条
-   半透明的残边, 于是四个角看着「连成了一整圈线」。这里的短杠是画出来的, 中段压根不存在,
-   任何缩放下都不会连线。臂长再用 min() 压住: 最长 26px, 且不超过短边的 30%,
-   保证对角两条臂加起来永远够不着(60% < 100%)。 */
-.scenePlaceholder::before {
-  --bracket-color: color-mix(in srgb, var(--event-accent) 36%, transparent);
-  --bracket-arm: min(26px, 30%);
-  --bracket-weight: 1px;
-  inset: 19px;
-  background-image:
-    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
-    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
-    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
-    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0);
-  background-position:
-    left top, left top,
-    right top, right top,
-    left bottom, left bottom,
-    right bottom, right bottom;
-  background-size:
-    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
-    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
-    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
-    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm);
-  background-repeat: no-repeat;
 }
 
 .scenePlaceholder::after {

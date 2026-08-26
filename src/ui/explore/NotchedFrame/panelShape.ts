@@ -1,7 +1,6 @@
-// ★ 落点事件面板的外轮廓真相 ★
+// ★ 落点事件面板的形状真相 ★
 //
-// 这里是事件面板外框形状的唯一来源 —— clip-path 的多边形、SVG 描边的路径、开场动画的中缝态
-// 全部由同一份顶点表生成, 保证三者永远对得上。
+// 这里是事件面板形状的唯一来源 —— clip-path 的多边形与开场动画的中缝态全部由同一份顶点表生成。
 //
 // 当前造型: 规则矩形。四条边的凹凸节奏表(EDGES)全为空, buildOutline 于是只吐出四个角点。
 // 保留这套参数化机制而不是写死矩形, 是为了以后想再给某条边加造型时只需往 EDGES 里填一段 Notch,
@@ -90,11 +89,6 @@ export function buildOutline(inset = 0): Point[] {
 /** 顶点 → clip-path polygon() 的参数串(不含 polygon 本身, 便于塞进 CSS 变量)。 */
 export function toPolygon(points: Point[]): string {
   return points.map((point) => `${round(point.x)}px ${round(point.y)}px`).join(", ");
-}
-
-/** 顶点 → SVG path 的 d(闭合)。 */
-export function toPath(points: Point[]): string {
-  return `${points.map((point, index) => `${index === 0 ? "M" : "L"}${round(point.x)} ${round(point.y)}`).join(" ")} Z`;
 }
 
 /**

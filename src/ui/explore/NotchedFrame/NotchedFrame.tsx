@@ -1,17 +1,11 @@
-// 事件面板的外轮廓描边层。
+// 事件面板的形状变量。
 //
-// 为什么要单独一层: 面板的外形靠 clip-path 裁出(形状见 panelShape.ts), 而 clip-path 会把 CSS
-// border 一并切掉 —— 外框上就没有描边了。于是把轮廓交给 SVG 画: 与裁切用的是同一份顶点,
-// 描线永远贴着裁切边。同时再画一条内缩 5px 的"回声"轮廓, 给外框做出层次。
+// 面板的外形靠 clip-path 裁出(形状见 panelShape.ts), 开场与关闭动画也复用同一份顶点。
 import type { CSSProperties } from "react";
-import { BUMP, OUTER, buildOutline, projectToSlit, toPath, toPolygon } from "./panelShape";
-import s from "./NotchedFrame.module.css";
+import { BUMP, OUTER, buildOutline, projectToSlit, toPolygon } from "./panelShape";
 
 /** 裁切用的原始轮廓。 */
 const OUTLINE = buildOutline(0);
-/** 描边用的轮廓内缩半个线宽 —— 否则 1px 线的外半边会被面板自己的 clip-path 切掉。 */
-const STROKE = buildOutline(0.5);
-const ECHO = buildOutline(5);
 
 const SHAPE_VARS = {
   "--panel-bump": `${BUMP}px`,
@@ -29,14 +23,4 @@ const SHAPE_VARS = {
  */
 export function eventPanelShapeVars(): CSSProperties {
   return SHAPE_VARS;
-}
-
-/** 轮廓描边。放在面板内部, 会被面板自身的 clip-path 一起裁切, 因而与开场动画同步长出来。 */
-export function NotchedFrame() {
-  return (
-    <svg className={s.frame} viewBox={`0 0 ${OUTER.w} ${OUTER.h}`} preserveAspectRatio="none" aria-hidden focusable="false">
-      <path className={s.echo} d={toPath(ECHO)} />
-      <path className={s.line} d={toPath(STROKE)} />
-    </svg>
-  );
 }

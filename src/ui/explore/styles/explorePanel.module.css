@@ -2,7 +2,7 @@
 .panel-shell {
   --notch: 14px;
   position: relative;
-  border: 1px solid color-mix(in srgb, var(--k) 18%, #ffffff20);
+  border: 0;
   background: linear-gradient(
     160deg,
     color-mix(in srgb, var(--k) 7%, #0e161acc),
@@ -28,49 +28,13 @@
    落点事件面板与它之后弹出的所有浮层(奖励 / 拾取 / 交易 / 背包)共用这一个框:
    **936 × 680, 画布正中**。尺寸各写一份就会出现「换个浮层边界跳一下」的偏移感,
    要调大小请只改这里。内容排版交给 ui/common/EventPanel。 */
-.panel-box {
-  composes: panel-shell;
-  width: 936px;
-  height: 680px;
-  padding: 0;
-  pointer-events: auto;
-  box-shadow:
-    inset 0 1px 0 var(--k),
-    0 28px 72px -34px #000000e8,
-    0 0 90px -42px var(--k);
-}
-
-.panel-reveal {
-  animation: panelRevealIn calc(var(--pr-bar-ms) + var(--pr-expand-ms)) var(--pr-ease) forwards;
-}
-
-.panel-reveal[data-closing="true"] {
-  animation: panelRevealOut var(--pr-close-ms) var(--pr-ease) forwards;
-}
-
-.panel-bar {
-  position: absolute;
-  z-index: 2;
-  top: calc(50% - 1.5px);
-  left: 0;
-  width: 100%;
-  height: 3px;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, var(--k), transparent);
-  box-shadow: 0 0 18px var(--k);
-  transform: scaleX(0);
-  transform-origin: center;
-  animation: panelBarIn calc(var(--pr-bar-ms) + var(--pr-expand-ms)) var(--pr-ease) forwards;
-}
-
-.panel-reveal[data-closing="true"] .panel-bar {
   animation: panelBarOut var(--pr-close-ms) var(--pr-ease) forwards;
 }
 
 /* ★ 形状可被调用方替换 ★
    三个关键帧的多边形都写成 var(--panel-shape / -line / -seed, 兜底) ——
    兜底就是原来的切角矩形(奖励 / 拾取 / 交易 / 背包继续吃它, 观感不变);
-   落点事件面板通过 inline style 注入自己的轮廓(见 ui/explore/NotchedFrame)。
+  落点事件面板通过 inline style 注入自己的轮廓。
    ⚠ 无论换成什么形状, 完整态 / 中缝态 / 种子态**必须同顶点数**, 否则 clip-path 不插值、动画会跳。 */
 @keyframes panelRevealIn {
   0% {
@@ -183,40 +147,6 @@
     display: none;
     animation: none;
   }
-}
-
-.panel-frame {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  pointer-events: none;
-}
-
-.panel-frame::before,
-.panel-frame::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  pointer-events: none;
-}
-
-.panel-frame::before {
-  inset: 7px;
-  border: 1px solid color-mix(in srgb, var(--k) 25%, #ffffff14);
-}
-
-.panel-frame::after {
-  background:
-    linear-gradient(var(--k), var(--k)) left top / 22px 2px no-repeat,
-    linear-gradient(var(--k), var(--k)) left top / 2px 22px no-repeat,
-    linear-gradient(var(--k), var(--k)) right top / 22px 2px no-repeat,
-    linear-gradient(var(--k), var(--k)) right top / 2px 22px no-repeat,
-    linear-gradient(var(--k), var(--k)) left bottom / 22px 2px no-repeat,
-    linear-gradient(var(--k), var(--k)) left bottom / 2px 22px no-repeat,
-    linear-gradient(var(--k), var(--k)) right bottom / 22px 2px no-repeat,
-    linear-gradient(var(--k), var(--k)) right bottom / 2px 22px no-repeat,
-    linear-gradient(var(--k), var(--k)) 18px 0 / 120px 2px no-repeat;
-  opacity: 0.5;
 }
 
 .panel-scan {
