@@ -71,7 +71,7 @@ export type ItemUse =
   | { kind: "healOneFull"; othersPercent: number } // 单人回满 + 其余按百分比
   | { kind: "gainEnergy"; amount: number } // 净化粒子 +
   | { kind: "healOne"; percent: number } // 指定一名存活角色按 maxHp 百分比回血
-  | { kind: "healLimitOne"; percent: number } // 指定一名存活角色修复 hpLimit 损伤
+  | { kind: "healLimitOne"; amount: number } // 指定一名存活角色修复 hpLimit 损伤
   | { kind: "reducePollutionOne"; amount: number }; // 指定一名存活角色降低污染值(城镇侧落地)
 
 // 需要玩家点选目标角色的消耗品效果 kind。UI 据此决定是否进入头像选择流程。

@@ -452,8 +452,9 @@ export function useItem(s: ExploreState, uid: string, targetCharId?: string): It
       const target = aliveTargetOf(s, targetCharId);
       if (!target) return null;
       if (target.hpLimit >= target.maxHp) return null; // 没有体力极限损伤(§2.2: 无合法目标)
-      target.hpLimit = Math.min(target.maxHp, target.hpLimit + Math.ceil(target.maxHp * u.percent));
-      note = `${target.name} 体力极限修复 ${Math.round(u.percent * 100)}%`;
+      const amount = Math.max(0, Math.floor(u.amount));
+      target.hpLimit = Math.min(target.maxHp, target.hpLimit + amount);
+      note = `${target.name} 体力极限修复 ${amount} 点`;
       break;
     }
     case "reducePollutionOne": {

@@ -13,13 +13,10 @@
   overflow: hidden;
   border: 1px solid #3b4d53;
   background:
-    radial-gradient(circle at 8% 12%, color-mix(in srgb, var(--event-accent) 70%, white) 0 1.5%, color-mix(in srgb, var(--event-accent) 28%, transparent) 3%, transparent 19%),
-    radial-gradient(ellipse 52% 46% at 100% 0%, #b5eaff2b, transparent 72%),
-    radial-gradient(ellipse 46% 44% at 82% 78%, color-mix(in srgb, var(--event-accent) 16%, transparent), transparent 72%),
-    radial-gradient(ellipse 62% 34% at 34% 112%, #f5bd6818, transparent 72%),
-    #0c1215;
+    radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--event-accent) 12%, transparent), transparent 27%),
+    linear-gradient(115deg, #111b1e 0%, var(--panel-bg) 44%, #0a0f12 100%);
   color: #edf3ef;
-  box-shadow: inset 0 -40px 90px #00000030, 0 22px 70px #0009, 0 0 0 1px #ffffff05;
+  box-shadow: 0 22px 70px #0009, 0 0 0 1px #ffffff05;
 }
 
 /* ⚠ 这里原本还有一个 .eventDemo::after —— 面板右上角那盏会缓慢漂移的氛围灯
@@ -27,15 +24,17 @@
    外阴影只画在边框盒外侧, 于是这个竖长条的左右两边各投出一条贯穿面板全高的亮带,
    在背景板上读起来就是两道莫名其妙的竖纹。该效果已确认为不需要的视觉, 整层删除,
    连同 ambientLightDrift 关键帧。背景板的光只由 .eventDemo 自身 background 里的
-   那几层 radial-gradient 提供, 不要再引入独立的矩形发光层。 */
+   那几层 radial-gradient 和 ::before 的细纹提供, 不要再引入独立的矩形发光层。 */
 .eventDemo::before {
   position: absolute;
   z-index: -1;
   inset: 0;
   content: "";
   pointer-events: none;
-  opacity: 0.46;
-  background: radial-gradient(circle at 8% 12%, #f4ffffb8 0 1px, transparent 1.5px);
+  opacity: 0.35;
+  background:
+    linear-gradient(115deg, transparent 0 18%, #ffffff03 18.1% 18.3%, transparent 18.4% 54%, #ffffff04 54.1% 54.25%, transparent 54.35%),
+    repeating-linear-gradient(0deg, transparent 0 5px, #ffffff03 5px 6px);
   mix-blend-mode: screen;
 }
 
@@ -45,12 +44,14 @@
   justify-content: space-between;
   gap: 24px;
   padding-bottom: 21px;
+  border-bottom: 1px solid #405057;
 }
 
 .demoKicker,
 .sceneEyebrow,
 .eventLabel,
 .sceneProgress,
+.sceneFrame,
 .sceneCaption,
 .storyMeta,
 .choiceSignal,
@@ -120,6 +121,20 @@
   animation: viewportReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.sceneViewport::before {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: -18%;
+  width: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--event-accent), transparent);
+  box-shadow: 0 0 16px var(--event-accent);
+  content: "";
+  pointer-events: none;
+  animation: scanReveal 650ms 120ms ease-out both;
+}
+
 .briefingScene,
 .choiceScene,
 .resultScene {
@@ -151,8 +166,39 @@
   border: 1px solid #43545a;
   background:
     radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--event-accent) 18%, transparent), transparent 26%),
-    #0b1114;
+    linear-gradient(140deg, #172427, #0b1114 60%, #11191c);
   box-shadow: 14px 14px 0 #060a0c, 0 0 45px color-mix(in srgb, var(--event-accent) 10%, transparent);
+}
+
+.scenePlaceholder::before,
+.scenePlaceholder::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.scenePlaceholder::before {
+  inset: 19px;
+  border: 1px solid color-mix(in srgb, var(--event-accent) 36%, transparent);
+  clip-path: polygon(0 0, 17% 0, 17% 1px, 83% 1px, 83% 0, 100% 0, 100% 17%, calc(100% - 1px) 17%, calc(100% - 1px) 83%, 100% 83%, 100% 100%, 83% 100%, 83% calc(100% - 1px), 17% calc(100% - 1px), 17% 100%, 0 100%, 0 83%, 1px 83%, 1px 17%, 0 17%);
+}
+
+.scenePlaceholder::after {
+  inset: 0;
+  background: linear-gradient(110deg, transparent 25%, #ffffff09 25.2%, transparent 25.5% 67%, #ffffff05 67.2%, transparent 67.5%);
+  mix-blend-mode: screen;
+}
+
+.sceneGrid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.42;
+  background:
+    linear-gradient(#b6d8d115 1px, transparent 1px),
+    linear-gradient(90deg, #b6d8d115 1px, transparent 1px);
+  background-size: 12.5% 12.5%;
+  transform: perspective(500px) rotateX(54deg) scale(1.3) translateY(16%);
+  transform-origin: center bottom;
 }
 
 .sceneOrb {
@@ -161,11 +207,46 @@
   left: 50%;
   width: 36%;
   aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--event-accent) 80%, white);
   border-radius: 50%;
   background: radial-gradient(circle, color-mix(in srgb, var(--event-accent) 65%, white) 0 3%, color-mix(in srgb, var(--event-accent) 26%, transparent) 4% 27%, transparent 65%);
   box-shadow: 0 0 14px var(--event-accent), 0 0 70px color-mix(in srgb, var(--event-accent) 35%, transparent);
   transform: translate(-50%, -50%);
   animation: orbFloat 4.5s ease-in-out infinite;
+}
+
+.sceneOrb::before,
+.sceneOrb::after {
+  position: absolute;
+  inset: 14%;
+  border: 1px solid color-mix(in srgb, var(--event-accent) 70%, transparent);
+  border-radius: 50%;
+  content: "";
+}
+
+.sceneOrb::after {
+  inset: -22%;
+  border-style: dashed;
+  opacity: 0.65;
+  animation: spin 18s linear infinite;
+}
+
+.sceneFrame {
+  position: absolute;
+  top: 29px;
+  left: 29px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: color-mix(in srgb, var(--event-accent) 70%, #d7e3dc);
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.sceneFrame span:first-child {
+  padding: 2px 4px;
+  border: 1px solid currentColor;
+  font-size: 9px;
 }
 
 .sceneCaption {
@@ -228,6 +309,13 @@
   color: var(--event-accent);
   font-size: 10px;
   font-weight: 800;
+}
+
+.eventLabel span {
+  width: 24px;
+  height: 1px;
+  background: var(--event-accent);
+  box-shadow: 0 0 8px var(--event-accent);
 }
 
 .storySubtitle {
@@ -330,6 +418,8 @@
 }
 
 .choiceIntro {
+  padding-left: 9px;
+  border-left: 2px solid var(--event-accent);
   animation: copyIn 520ms 130ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -388,7 +478,7 @@
   padding: 13px 16px 13px 0;
   overflow: hidden;
   border: 1px solid #33444a;
-  background: radial-gradient(ellipse at 0 50%, color-mix(in srgb, var(--event-accent) 8%, transparent), transparent 56%), #0e161a;
+  background: linear-gradient(110deg, #172327, #0e161a);
   color: #dfe9e4;
   text-align: left;
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
@@ -409,7 +499,7 @@
 .option:hover:not(:disabled):not([aria-disabled="true"]),
 .option:focus-visible:not(:disabled):not([aria-disabled="true"]) {
   border-color: color-mix(in srgb, var(--event-accent) 70%, #33444a);
-  background: radial-gradient(ellipse at 0 50%, color-mix(in srgb, var(--event-accent) 18%, transparent), transparent 56%), #111c20;
+  background: linear-gradient(110deg, color-mix(in srgb, var(--event-accent) 12%, #172327), #111c20);
   box-shadow: 0 8px 22px #0005;
   transform: translateX(5px);
 }
@@ -521,13 +611,23 @@
 .optionChosen {
   opacity: 1;
   border-color: var(--event-accent);
-  background: radial-gradient(ellipse at 0 50%, color-mix(in srgb, var(--event-accent) 22%, transparent), transparent 58%), #172329e6;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--event-accent) 18%, transparent), #172329e6);
   box-shadow: 0 18px 34px -24px var(--event-accent), inset 0 1px 0 #ffffff1a;
   animation: optionCommit 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
 }
 
 .optionChosen::before {
   opacity: 1;
+}
+
+.optionChosen::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 38%, #ffffff33 50%, transparent 62%);
+  content: "";
+  pointer-events: none;
+  transform: translateX(-120%);
+  animation: optionSheen 460ms cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
 }
 
 .optionChosen .optionNumber,
@@ -861,6 +961,12 @@
   to { opacity: 1; clip-path: inset(0); }
 }
 
+@keyframes scanReveal {
+  from { left: -18%; opacity: 0; }
+  20% { opacity: 1; }
+  to { left: 100%; opacity: 0; }
+}
+
 @keyframes briefingIn {
   from { opacity: 0; transform: translateX(-28px); }
   to { opacity: 1; transform: translateX(0); }
@@ -902,6 +1008,10 @@
   to { transform: translateY(0); }
 }
 
+@keyframes optionSheen {
+  to { transform: translateX(120%); }
+}
+
 @keyframes noteEnter {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -917,6 +1027,10 @@
   50% { transform: translate(-50%, -50%) scale(1.04); }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes statusPulse {
   0%, 100% { opacity: 0.55; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.15); }
@@ -929,6 +1043,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sceneViewport,
+  .sceneViewport::before,
   .briefingScene,
   .briefingScene .scenePlaceholder,
   .briefingScene .briefingCopy,
@@ -950,6 +1065,7 @@
   }
 
   .sceneOrb,
+  .sceneOrb::after,
   .rewardPulse,
   .typingText::after {
     animation: none;

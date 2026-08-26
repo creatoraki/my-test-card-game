@@ -320,6 +320,21 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+/* 带伤: 生命那一格转告警色 —— 编队页扫一眼就能看出谁还没缓过来。
+   ⚠ 只染这一格(含图标), 不动其它属性格, 否则整条 meta 都在闪, 反而失去指示意义。 */
+.fm-card-stat.is-wounded {
+  color: var(--bad);
+}
+.fm-card-stat.is-wounded .fm-card-stat-icon {
+  color: var(--bad);
+  opacity: 0.9;
+}
+/* 体力极限也被打掉时的补充读数。比主数值小一号并压暗, 排在同一格里不另占位置。 */
+.fm-card-stat-limit {
+  margin-left: 2px;
+  font-size: 10px;
+  opacity: 0.75;
+}
 .fm-card-stat-icon {
   width: 14px;
   height: 14px;

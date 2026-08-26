@@ -16,7 +16,7 @@ import { deckUpgradeCost, RULES, type Rarity, type StatBlock } from "@/engine";
 import { getCharacter, getItemDef } from "@/data";
 import type { EquipSlot } from "@/items/types";
 import { useRunStore } from "@/store/runStore";
-import { availablePools, deckForgeCosts, deriveStats, useTownStore } from "@/store/townStore";
+import { availablePools, deckForgeCosts, deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckForgeBar } from "@/ui/character/DeckForgeBar";
@@ -182,6 +182,9 @@ export function CharacterDetailScreen() {
 
   const def = getCharacter(charId);
   const stats = deriveStats(cs);
+  // ★ 血条读**存档**里的三段值, 不是面板上限: 上一趟远征打掉的血与体力极限是永久损伤,
+  //   据点里看到的就该是伤后的样子(vitalsOf 顺带把装备变动导致的越界夹回来)。
+  const vitals = vitalsOf(cs);
   const onField = party.includes(charId);
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
   const costs = deckForgeCosts(cs, day);
@@ -261,7 +264,7 @@ export function CharacterDetailScreen() {
             </div>
             <div className={s["cd-status-bars"]}>
               <div className={s["cd-hp"]}>
-                <HpBar hp={stats.maxHp} maxHp={stats.maxHp} flush />
+                <HpBar hp={vitals.hp} hpLimit={vitals.hpLimit} maxHp={vitals.maxHp} flush />
               </div>
               <PollutionMeter value={cs.pollution} />
             </div>

@@ -102,7 +102,7 @@
   transform: translateX(var(--slide));
   pointer-events: auto;
   transition: transform 260ms cubic-bezier(0.2, 0.72, 0.28, 1), border-color 180ms ease, box-shadow 180ms ease;
-  animation: storRise 520ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation: storEntryRise 520ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .stor-entry:nth-child(1) {
@@ -308,10 +308,24 @@
   }
 }
 
+@keyframes storEntryRise {
+  from {
+    opacity: 0;
+    transform: translateX(var(--slide)) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(var(--slide)) translateY(0);
+  }
+}
+
 .stor-scene.is-leaving .stor-header,
-.stor-scene.is-leaving .stor-readout,
-.stor-scene.is-leaving .stor-entry {
+.stor-scene.is-leaving .stor-readout {
   animation: storFade 300ms ease-in both;
+}
+
+.stor-scene.is-leaving .stor-entry {
+  animation: storEntryFade 300ms ease-in both;
 }
 
 @keyframes storFade {
@@ -322,6 +336,17 @@
   to {
     opacity: 0;
     transform: translateY(10px);
+  }
+}
+
+@keyframes storEntryFade {
+  from {
+    opacity: 1;
+    transform: translateX(var(--slide)) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(var(--slide)) translateY(10px);
   }
 }
 

@@ -68,9 +68,9 @@ function g(id: string, scale: number, dx = 0, flip = false): EnemyPlacement {
 
 // 轻战斗 · 教学: 侦察 + 高速机动。教玩家看意图、理解"敌人掉落按各自结算"。
 const CREW = [
-  g("sweep-drone", 1.2, -120),
+  g("sweep-drone", 1.2, 120, true),
   g("radio-bot", 1, 0),
-  g("maintenance-spider", 0.85, 120),
+  g("maintenance-spider", 0.85, -120),
 ];
 // 轻战斗 · 纯机动: 两台高速无人机与一台支援单位, 教玩家专一处理一个目标类型。
 const SWEEP = [
@@ -80,15 +80,15 @@ const SWEEP = [
 ];
 // 中战斗 · 控制+暴露+机动: 红绿灯控制、收音机易伤、无人机突破, 教玩家判断先杀谁。
 const BEACON = [
-  g("radio-bot", 1, -180, true),
+  g("radio-bot", 1, 180),
   g("traffic-light-bot", 1.15, -60),
   g("sweep-drone", 1.2, 60),
-  g("maintenance-spider", 0.85, 180),
+  g("maintenance-spider", 0.85, -180),
 ];
 // 中战斗 · 支援+控制+暴露: 蜘蛛奶、红绿灯控、收音机暴露, 走"拖节奏"路线。
 const PATROL = [
-  g("radio-bot", 1, -180, true),
-  g("maintenance-spider", 0.85, -60),
+  g("radio-bot", 1, -60, true),
+  g("maintenance-spider", 0.85, -180),
   g("traffic-light-bot", 1.15, 60),
   g("sweep-drone", 1.2, 180),
 ];
@@ -99,9 +99,9 @@ const PATROL = [
 const COMPACTOR = [g("scrap-bot", 1, -96), g("pole-bot", 1.4, 96)];
 // 重战斗 · 高压精英被支援保护: 电线杆 + 维修蜘蛛 + 收音机, 教玩家先清支援再碰精英。
 const ELITE_GUARD = [
-  g("radio-bot", 1, -120, true),
+  g("radio-bot", 1, 120),
   g("pole-bot", 1.4),
-  g("maintenance-spider", 0.85, 120),
+  g("maintenance-spider", 0.85, -120),
 ];
 
 // ── BOSS 战(单场 1 只) ──────────────────────────────────────────────────────

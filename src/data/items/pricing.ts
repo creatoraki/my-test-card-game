@@ -36,8 +36,7 @@ export const MATERIAL_BUY_BY_RARITY: Record<ItemRarity, number> = {
   legendary: 600,
 };
 
-// 货柜一口价。★ 刻意不做成 Record<ItemRarity, number>: 消耗品的稀有度是**效果强度**的档位,
-// 不是稀缺度; 而货柜只卖普通档, 一个数就够。日后开高级货柜再换成表也不迟。
+// 未单独配置价格的消耗品使用此基础价。已配置价格的消耗品由自身 ItemDef.buyValue 覆盖。
 export const CONSUMABLE_BUY_VALUE = 20;
 
 // 只给装备、材料与消耗品标价 —— 废料是卖给回收台的(sellValue), 数据存档本期不上架,

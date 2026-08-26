@@ -64,7 +64,10 @@ export const EQUIP_SLOTS: EquipSlot[] = ["weapon", "armor", "trinket"];
 
 export interface CharacterState {
   charId: string;
+  // ★ 生命三段中的前两段是**持久资产**: 远征打掉的血与体力极限都是永久损伤, 跨日传承。
+  //   第三段 maxHp 不存 —— 它由 deriveStats(角色基础 + 装备)现算, 存两份必然对不上。
   hp: number; // 上次远征回城时记录的当前 HP
+  hpLimit: number; // 上次远征回城时记录的体力极限(hp ≤ hpLimit ≤ deriveStats().maxHp)
   exp: number; // ★ 可用经验池(不再有等级, 也不再回落); 锻造直接从这里扣
   expEarned: number; // 累计获得的经验(纯展示用)
   deck: Card[]; // 个人卡组(实例); 战斗卡组 = 上阵角色个人卡组的集合
@@ -164,8 +167,8 @@ interface TownStore {
     conditions: { charId: string; pollution: number; sick: boolean; quirks: string[] }[],
   ) => void; // 战斗结束回填污染、疾病和怪癖
   syncExpeditionStatus: (
-    conditions: { charId: string; hp: number; pollution: number }[],
-  ) => void; // 回城时回填本趟远征最终 HP 与污染值
+    conditions: { charId: string; hp: number; hpLimit: number; pollution: number }[],
+  ) => void; // 回城时回填本趟远征最终 HP、体力极限与污染值(三者都是永久损伤)
 
   // ---- 天数与商店 ----
   advanceDay: () => void; // 推进一日 + 重摇货架(由 runStore.backToTown 调用)
@@ -254,6 +257,31 @@ export function deriveStats(cs: CharacterState): StatBlock {
   }
   out.maxHp = Math.max(1, out.maxHp);
   return out;
+}
+
+// 局外生命三段的**唯一**换算点: 存档里的 hp / hpLimit 叠上现算的 maxHp。
+// ★ 存档里那两段是上一趟远征留下的永久损伤; maxHp 则跟着装备/怪癖实时浮动 ——
+//   所以卸掉一件加血装之后, 旧的 hpLimit 可能反而高过 maxHp, 必须在这里夹一次。
+// ⚠ 出击快照(runStore.partySnapshot)、城镇 UI 与远征换装同步都走这一个函数,
+//   各写一套夹取逻辑迟早对不上。
+export function vitalsOf(cs: CharacterState): { hp: number; hpLimit: number; maxHp: number } {
+  const maxHp = Math.max(1, Math.round(deriveStats(cs).maxHp));
+  const hpLimit = Math.max(1, Math.min(maxHp, Math.round(cs.hpLimit ?? maxHp)));
+  const hp = Math.max(1, Math.min(hpLimit, Math.round(cs.hp ?? hpLimit)));
+  return { hp, hpLimit, maxHp };
+}
+
+// 装备换过之后把存档里的生命三段跟着平移。
+// ★ 口径与远征途中的 explore/session.syncPartyVitals **完全一致**: hpLimit 读作
+//   「生命上限 − 永久损伤」, 故随上限增减同步平移, 损伤量本身保留; 当前 HP 只裁不补
+//   (装备变强不回血, 变弱也不会把人打死)。
+// ⚠ 少了这一步, 远征打掉 20 点极限后回城穿上一件 +20 生命的装备, 损伤会凭空翻倍成 40 点。
+// ⚠ 调用点只有 wearStack / takeOffStack 两个原子操作 —— equipItem / unequipItem 复用它们。
+function shiftVitals(before: CharacterState, after: CharacterState): CharacterState {
+  const prev = vitalsOf(before);
+  const nextMax = Math.max(1, Math.round(deriveStats(after).maxHp));
+  const hpLimit = Math.max(1, Math.min(nextMax, prev.hpLimit + (nextMax - prev.maxHp)));
+  return { ...after, hpLimit, hp: Math.max(1, Math.min(hpLimit, prev.hp)) };
 }
 
 // ---------------------------------------------------------------------------
@@ -348,6 +376,7 @@ function freshCharacter(def: CharacterDef): CharacterState {
   return {
     charId: def.id,
     hp: Math.max(1, Math.round(def.base.maxHp)),
+    hpLimit: Math.max(1, Math.round(def.base.maxHp)),
     exp: 0,
     expEarned: 0,
     deck: def.startingCardIds.map((cid) => makeCard(cid)),
@@ -582,7 +611,10 @@ export const useTownStore = create<TownStore>()(
         set({
           characters: {
             ...characters,
-            [charId]: { ...cs, equipped: { ...cs.equipped, [def.slot]: { ...stack } } },
+            [charId]: shiftVitals(cs, {
+              ...cs,
+              equipped: { ...cs.equipped, [def.slot]: { ...stack } },
+            }),
           },
         });
         return old ? { ...old } : null;
@@ -597,7 +629,7 @@ export const useTownStore = create<TownStore>()(
         set({
           characters: {
             ...characters,
-            [charId]: { ...cs, equipped: { ...cs.equipped, [slot]: null } },
+            [charId]: shiftVitals(cs, { ...cs, equipped: { ...cs.equipped, [slot]: null } }),
           },
         });
         return { ...st };
@@ -847,6 +879,10 @@ export const useTownStore = create<TownStore>()(
         if (changed) set({ characters });
       },
 
+      // 回城落档 —— 生命三段里的前两段在这里变成永久损伤。
+      // ★ 保底 1: 阵亡角色回城记为 HP 1 / 体力极限 1(设计决策), 极度虚弱但仍可编队出击,
+      //   不会因为城镇暂无治疗手段而永久报废。
+      // ⚠ 夹取顺序是 hpLimit ≤ maxHp, 再 hp ≤ hpLimit —— 三段的不变式只在这一处维护。
       syncExpeditionStatus: (conditions) => {
         const characters = { ...get().characters };
         let changed = false;
@@ -854,13 +890,14 @@ export const useTownStore = create<TownStore>()(
           const cs = characters[condition.charId];
           if (!cs) continue;
           const maxHp = Math.max(1, Math.round(deriveStats(cs).maxHp));
-          const hp = Math.max(0, Math.min(maxHp, Math.round(condition.hp)));
+          const hpLimit = Math.max(1, Math.min(maxHp, Math.round(condition.hpLimit)));
+          const hp = Math.max(1, Math.min(hpLimit, Math.round(condition.hp)));
           const pollution = Math.max(
             0,
             Math.min(POLLUTION_RULES.threshold - 1, Math.floor(condition.pollution)),
           );
-          if (cs.hp === hp && cs.pollution === pollution) continue;
-          characters[condition.charId] = { ...cs, hp, pollution };
+          if (cs.hp === hp && cs.hpLimit === hpLimit && cs.pollution === pollution) continue;
+          characters[condition.charId] = { ...cs, hp, hpLimit, pollution };
           changed = true;
         }
         if (changed) set({ characters });
@@ -1053,6 +1090,8 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v12: CharacterState 新增 hpLimit —— 远征打掉的体力极限现在跨日持久化。
+    //   旧档没有这个字段, 换 key 让旧档自然失效重建。
     // ⚠ v10: 训练室改成天赋树 —— squadTalent.nodes 由 Record<string, number>(方向级数)
     //   改为 string[](已激活节点 id)。旧存档不兼容, 换 key 让旧档自然失效重建。
     // v9: 新增每日锻造用量与待选卡放弃 action。旧存档不兼容, 换 key 让旧档自然失效重建。
@@ -1061,6 +1100,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v11", version: 11 },
+    { name: "town-profile-v12", version: 12 },
   ),
 );

@@ -272,7 +272,12 @@ export function EventPanelBriefing({
       <div className={s.scenePlaceholder} aria-label="事件插图占位区域">
         {art ?? (
           <>
+            <div className={s.sceneGrid} />
             <div className={s.sceneOrb} />
+            <div className={s.sceneFrame}>
+              <span>01</span>
+              <span>插图<br />占位</span>
+            </div>
             <div className={s.sceneCaption}>
               <span>事件档案</span>
               <strong>{sceneName}</strong>
@@ -282,7 +287,7 @@ export function EventPanelBriefing({
         )}
       </div>
       <div className={s.briefingCopy}>
-        {label && <div className={s.eventLabel}>{label}</div>}
+        {label && <div className={s.eventLabel}><span /> {label}</div>}
         {heading && <h2>{heading}</h2>}
         <div className={[s.storySubtitle, typingSubtitle ? s.typingText : ""].filter(Boolean).join(" ")}>{subtitle}</div>
         <p className={[s.storyBody, typingBody ? s.typingText : ""].filter(Boolean).join(" ")} ref={bodyRef}>{body}</p>

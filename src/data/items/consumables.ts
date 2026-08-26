@@ -19,9 +19,12 @@ const QUALITY_LABEL: Record<ItemRarity, string> = {
 
 // ★ 统一占位数值(平衡待调): 三族消耗品各稀有度先共用同一档效果,
 //   强度阶梯留到平衡轮次再填 —— 每族只改这里一个数。
-const HEAL_PERCENT = 0.25; // 糖块: 回复一名存活角色 25% 生命
-const LIMIT_REPAIR_PERCENT = 0.2; // 医疗包: 修复 20% 体力极限
-const POLLUTION_REDUCE = 10; // 圣水: 降低 10 点污染
+const HEAL_PERCENT = 0.2;
+const LIMIT_REPAIR_AMOUNT = 10;
+const POLLUTION_REDUCE = 15;
+const SUGAR_CUBE_BUY_VALUE = 30;
+const MEDICAL_KIT_BUY_VALUE = 200;
+const HOLY_WATER_BUY_VALUE = 50;
 
 function pendingConsumable(
   id: string,
@@ -50,6 +53,7 @@ function usableConsumable(
   rarity: ItemRarity,
   desc: string,
   use: ItemUse,
+  buyValue: number,
 ): ItemDef {
   return {
     id,
@@ -61,6 +65,7 @@ function usableConsumable(
     familyId,
     icon: "consumable",
     use,
+    buyValue,
   };
 }
 
@@ -77,6 +82,7 @@ const DEFS: ItemDef[] = [
       rarity,
       `${QUALITY_LABEL[rarity]}级糖块：使用后回复一名存活角色 ${Math.round(HEAL_PERCENT * 100)}% 生命。`,
       { kind: "healOne", percent: HEAL_PERCENT },
+      SUGAR_CUBE_BUY_VALUE,
     ),
   ),
   ...QUALITY_ORDER.map((rarity) =>
@@ -85,8 +91,9 @@ const DEFS: ItemDef[] = [
       "医疗包",
       "medical-kit",
       rarity,
-      `${QUALITY_LABEL[rarity]}级医疗包：使用后修复一名存活角色 ${Math.round(LIMIT_REPAIR_PERCENT * 100)}% 体力极限。`,
-      { kind: "healLimitOne", percent: LIMIT_REPAIR_PERCENT },
+      `${QUALITY_LABEL[rarity]}级医疗包：使用后修复一名存活角色 ${LIMIT_REPAIR_AMOUNT} 点体力极限。`,
+      { kind: "healLimitOne", amount: LIMIT_REPAIR_AMOUNT },
+      MEDICAL_KIT_BUY_VALUE,
     ),
   ),
   ...QUALITY_ORDER.map((rarity) =>
@@ -97,6 +104,7 @@ const DEFS: ItemDef[] = [
       rarity,
       `${QUALITY_LABEL[rarity]}级圣水：使用后降低一名存活角色 ${POLLUTION_REDUCE} 点污染值。`,
       { kind: "reducePollutionOne", amount: POLLUTION_REDUCE },
+      HOLY_WATER_BUY_VALUE,
     ),
   ),
   ...QUALITY_ORDER.map((rarity) =>

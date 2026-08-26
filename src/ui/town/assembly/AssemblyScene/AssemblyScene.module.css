@@ -16,7 +16,6 @@
 
 .asm-header,
 .asm-readout,
-.asm-entry,
 .asm-body {
   animation: asm-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
@@ -102,6 +101,7 @@
   transform: translateX(var(--slide));
   pointer-events: auto;
   transition: transform 260ms cubic-bezier(0.2, 0.72, 0.28, 1), border-color 180ms ease, box-shadow 180ms ease;
+  animation: asm-entry-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 :global([data-town-stage]) .asm-entry:hover {
@@ -182,14 +182,28 @@
 }
 
 .asm-scene.is-leaving .asm-header,
-.asm-scene.is-leaving .asm-readout,
-.asm-scene.is-leaving .asm-entry {
+.asm-scene.is-leaving .asm-readout {
   animation: asm-fade 300ms ease-in both;
+}
+
+.asm-scene.is-leaving .asm-entry {
+  animation: asm-entry-fade 300ms ease-in both;
 }
 
 @keyframes asm-rise {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* 抽屉专用的入场/退场: 关键帧保留收起位的横向位移, 避免动画覆盖 --slide。 */
+@keyframes asm-entry-rise {
+  from { opacity: 0; transform: translateX(var(--slide)) translateY(12px); }
+  to { opacity: 1; transform: translateX(var(--slide)) translateY(0); }
+}
+
+@keyframes asm-entry-fade {
+  from { opacity: 1; transform: translateX(var(--slide)) translateY(0); }
+  to { opacity: 0; transform: translateX(var(--slide)) translateY(10px); }
 }
 
 @keyframes asm-fade {

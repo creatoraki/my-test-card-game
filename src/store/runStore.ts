@@ -33,6 +33,7 @@ import {
   bondCountsOf,
   deriveStats,
   useTownStore,
+  vitalsOf,
   type ContaminationHit,
   type ExpGain,
 } from "./townStore";
@@ -99,6 +100,8 @@ interface RunStore {
 }
 
 // 上阵角色 → 探索层的队伍快照。血量在整趟远征里由 exploreStore 持有并跨战斗继承。
+// ★ 出发时**不回满**: 当前 HP 与体力极限直接读城镇存档(vitalsOf) —— 上一趟远征留下的
+//   是永久损伤, 跨日传承。据点暂无治疗手段, 唯一的恢复途径是远征途中的消耗品与生存事件。
 // ⚠ 这里的 maxHp **不含羁绊加成** —— 羁绊在 launchBattle 才叠。本期实装的 6 个羁绊都不改 maxHp,
 //   所以两处口径一致; 日后一旦有加 maxHp 的羁绊, 这里必须一并叠, 否则出发时的血量会对不上。
 function partySnapshot(): PartySnapshot[] {
@@ -106,14 +109,14 @@ function partySnapshot(): PartySnapshot[] {
   return party.map((id) => {
     const c = getCharacter(id);
     const stats = deriveStats(characters[id]);
-    const maxHp = Math.max(1, Math.round(stats.maxHp));
+    const vitals = vitalsOf(characters[id]);
     return {
       charId: id,
       name: c.name,
       emoji: c.emoji,
-      hp: maxHp,
-      hpLimit: maxHp,
-      maxHp,
+      hp: vitals.hp,
+      hpLimit: vitals.hpLimit,
+      maxHp: vitals.maxHp,
       alive: true,
       // ★ 负重适应随快照一起带进探索层 —— 之后算负重惩罚就不用回头来问 townStore 了。
       burdenAdapt: stats.burdenAdapt,
@@ -234,17 +237,20 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
 // ★ 团灭时 session.backpack 与 session.loot 已被 explore/session.loseEverything 清零,
 //   所以这里**无条件**调用即可: 惩罚的真相点只在 EXPLORE_RULES.wipe 一处, 不在这里再判一次。
 //   投递口寄回的 shipped 不受团灭影响, 因此照样入仓 —— 那是背包玩法唯一的保险手段(§6.5)。
+// ★ 生命三段的前两段一并落档: 撤离/通关/团灭都走这里, 所以「打掉的血与体力极限跨日传承」
+//   这条规则只有这一个出口。阵亡成员按 1/1 保底(夹取在 townStore.syncExpeditionStatus)。
 function bankEverything(session: {
   loot: number;
   backpack: ItemStack[];
   shipped: ItemStack[];
-  party: { charId: string; hp: number }[];
+  party: { charId: string; hp: number; hpLimit: number; alive: boolean }[];
 }) {
   const town = useTownStore.getState();
   town.syncExpeditionStatus(
     session.party.map((member) => ({
       charId: member.charId,
-      hp: member.hp,
+      hp: member.alive ? member.hp : 1,
+      hpLimit: member.alive ? member.hpLimit : 1,
       // 污染值始终由城镇侧即时维护，这里在回城时和最终 HP 一起明确落档。
       pollution: town.characters[member.charId]?.pollution ?? 0,
     })),

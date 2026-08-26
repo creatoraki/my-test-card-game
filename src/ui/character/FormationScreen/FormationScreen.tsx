@@ -27,7 +27,7 @@ import { flushSync } from "react-dom";
 import { RULES } from "@/engine";
 import { getCharacter } from "@/data";
 import { useRunStore } from "@/store/runStore";
-import { deriveStats, useTownStore, type CharacterState } from "@/store/townStore";
+import { deriveStats, useTownStore, vitalsOf, type CharacterState } from "@/store/townStore";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { StatIcon } from "@/ui/common/StatIcon";
 import { cx } from "@/ui/common/cx";
@@ -199,6 +199,7 @@ function CrewCard({
 }) {
   const def = getCharacter(cs.charId);
   const stats = deriveStats(cs);
+  const vitals = vitalsOf(cs);
 
   // 禁用口径与 townStore.toggleParty 的兜底规则一一对应 —— 那边会静默 return,
   // 这里把原因用 title 说出来, 免得点了没反应像是界面坏了。
@@ -238,9 +239,15 @@ function CrewCard({
           {def.name}
         </span>
         <span className={s["fm-card-meta"]} style={partName("vt-fm-meta")}>
-          <span className={s["fm-card-stat"]}>
+          {/* ★ 这一格显示的是「当前生命 / 面板上限」而非单纯的上限:
+              远征打掉的血是永久损伤, 编队时就得看见谁还带着伤, 而不是点进详情页才发现。
+              带伤时整格转成告警色, 体力极限也被打掉时再补一段 /极限 —— 见 townStore.vitalsOf。 */}
+          <span className={cx(s["fm-card-stat"], vitals.hp < vitals.maxHp && s["is-wounded"])}>
             <StatIcon statKey="maxHp" className={s["fm-card-stat-icon"]} />
-            {Math.round(stats.maxHp)}
+            {vitals.hp}/{vitals.maxHp}
+            {vitals.hpLimit < vitals.maxHp && (
+              <span className={s["fm-card-stat-limit"]}>极限 {vitals.hpLimit}</span>
+            )}
           </span>
           <span className={s["fm-card-stat"]}>
             <StatIcon statKey="attack" className={s["fm-card-stat-icon"]} />
