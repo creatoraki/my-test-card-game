@@ -622,7 +622,8 @@
   pointer-events: none;
 }
 /* 事件面板保留独立轮廓尺寸, 形状经 inline style 的 --panel-shape* 下发给
-  panel-shell 的 clip-path 与开场动画; 内容区仍是 936×680。 */
+  panel-shell 的 clip-path 与开场动画; 内容区仍是 936×680。可见外边线只有这一道,
+  颜色由 --expl-panel-line 单点下发; 内层 .expl-event-frame 透明是刻意为之。 */
 .expl-panel {
   /* 只取材质(panel-shell), 不取 panel-box 的 936×680 —— 尺寸这里自己算,
      免得两条同权重规则谁后写谁赢。内容区仍是 936×680, 由 CONTENT 常量保证。 */
@@ -631,6 +632,7 @@
   width: var(--panel-outer-w);
   height: var(--panel-outer-h);
   padding: var(--panel-bump);
+  border: 1px solid var(--expl-panel-line);
   pointer-events: auto;
   box-shadow:
     0 28px 72px -34px #000000e8,
@@ -638,10 +640,12 @@
   --k: var(--expl-kind, #c9d4d2);
   --k-soft: var(--expl-kind-soft, #c9d4d21f);
   --k-line: var(--expl-kind-line, #c9d4d266);
+  --expl-panel-line: #e0473f;
 }
 
 /* 中和 EventPanel 自带的 1px 矩形描边与底色: 面板材质与轮廓统一由外壳给,
-   否则内容区会画出一个规则矩形, 和新轮廓打架。 */
+   否则内容区会画出一个规则矩形, 和新轮廓打架。想改外框颜色请改 .expl-panel 的
+   --expl-panel-line。 */
 .expl-panel .expl-event-frame {
   border-color: transparent;
   background: radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--event-accent) 10%, transparent), transparent 30%);

@@ -171,16 +171,42 @@
   width: 330px;
   aspect-ratio: 1;
   overflow: hidden;
+  border: 1px solid #43545a99;
   background:
     radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--event-accent) 18%, transparent), transparent 26%),
     linear-gradient(140deg, #172427, #0b1114 60%, #11191c);
   box-shadow: 14px 14px 0 #060a0c, 0 0 45px color-mix(in srgb, var(--event-accent) 10%, transparent);
 }
 
+.scenePlaceholder::before,
 .scenePlaceholder::after {
   position: absolute;
   content: "";
   pointer-events: none;
+}
+
+.scenePlaceholder::before {
+  --bracket-color: color-mix(in srgb, var(--event-accent) 78%, #fff 22%);
+  --bracket-arm: min(26px, 30%);
+  --bracket-weight: 2px;
+  inset: 19px;
+  filter: drop-shadow(0 0 3px var(--event-accent)) drop-shadow(0 0 8px color-mix(in srgb, var(--event-accent) 70%, transparent));
+  background-image:
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0);
+  background-position:
+    left top, left top,
+    right top, right top,
+    left bottom, left bottom,
+    right bottom, right bottom;
+  background-size:
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm);
+  background-repeat: no-repeat;
 }
 
 .scenePlaceholder::after {
