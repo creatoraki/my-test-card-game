@@ -273,7 +273,6 @@ export function EventPanelBriefing({
       <div className={s.scenePlaceholder} aria-label="事件插图占位区域">
         {art ?? (
           <>
-            <div className={s.sceneGrid} />
             <div className={s.sceneOrb} />
             <div className={s.sceneFrame}>
               <span>01</span>

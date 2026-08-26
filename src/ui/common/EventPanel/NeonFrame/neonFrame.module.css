@@ -8,22 +8,25 @@
  *   不要在调用方写死任何一个灯管色; 需要调观感就改下面这四个色阶变量。
  */
 .neonFrame {
-  /* 同色系四色阶: 受光高光 → 灯管本体 → 背光副色 → 沉影深副色 */
-  --neon-hi: color-mix(in srgb, var(--event-accent) 42%, #ffffff);
-  --neon-core: color-mix(in srgb, var(--event-accent) 85%, #ffffff);
-  --neon-dim: color-mix(in srgb, var(--event-accent) 58%, #06181c);
-  --neon-deep: color-mix(in srgb, var(--event-accent) 30%, #040f12);
+  /* 同色系四色阶: 受光高光 → 灯管本体 → 背光副色 → 沉影深副色
+     ★ 高光与本体一律往「暖灰 / 板色」里调, 不要用纯 #ffffff 提亮:
+     纯白会把主色本来就偏冷的色相再往冷里推, 整根灯管读起来又冷又刺眼。 */
+  --neon-hi: color-mix(in srgb, var(--event-accent) 30%, #c8ccc6);
+  --neon-core: color-mix(in srgb, var(--event-accent) 52%, #2a3336);
+  --neon-dim: color-mix(in srgb, var(--event-accent) 34%, #06181c);
+  --neon-deep: color-mix(in srgb, var(--event-accent) 18%, #040f12);
 
   border: 1px solid var(--neon-dim);
   box-shadow:
-    /* 外侧: 由紧到松三层辉光, 让灯管的光渗到背景场景上 */
-    0 0 0 1px color-mix(in srgb, var(--event-accent) 20%, transparent),
-    0 0 12px color-mix(in srgb, var(--event-accent) 26%, transparent),
-    0 0 34px color-mix(in srgb, var(--event-accent) 13%, transparent),
+    /* 外侧: 由紧到松三层辉光, 让灯管的光渗到背景场景上。
+       ⚠ 这三层的浓度是「淡到刚好能看出是发光的」, 调高会立刻变成惹眼的灯箱, 不要往上加。 */
+    0 0 0 1px color-mix(in srgb, var(--event-accent) 10%, transparent),
+    0 0 12px color-mix(in srgb, var(--event-accent) 13%, transparent),
+    0 0 34px color-mix(in srgb, var(--event-accent) 7%, transparent),
     /* 面板与背景之间的落影 —— 把整块板从场景里抬起来 */
     0 24px 72px #000a,
     /* 内侧: 灯管往板内的漫射, 边缘亮、中心衰减 */
-    inset 0 0 28px color-mix(in srgb, var(--event-accent) 9%, transparent),
+    inset 0 0 28px color-mix(in srgb, var(--event-accent) 5%, transparent),
     /* 顶部受光 / 底部沉影 —— 立体感的主要来源, 负 spread 把光压在贴边一条 */
     inset 0 24px 40px -30px var(--neon-hi),
     inset 0 -28px 44px -30px var(--neon-deep);
