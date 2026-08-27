@@ -15,6 +15,7 @@ import {
 } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
 import { eventPanelShapeVars } from "@/ui/explore/NotchedFrame";
+import { eventKindLabel } from "@/ui/explore/eventKindLabel";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import s from "./ExploreScreen.module.css";
 
@@ -70,18 +71,6 @@ interface EventModalProps {
   onAdvance: () => void;
   onBack: () => void;
 }
-
-const eventKindLabel: Record<NodeEvent["kind"], string> = {
-  hazard: "风险事件",
-  loot: "成长事件",
-  heal: "生存事件",
-  merchant: "经济事件",
-  route: "路线事件",
-  energy: "能量事件",
-  retreat: "撤离事件",
-  battle: "战斗事件",
-  empty: "空节点",
-};
 
 function EventShell({ children, view, closing }: { children: ReactNode; view: EventModalView; closing: boolean }) {
   const { session, ev } = view;

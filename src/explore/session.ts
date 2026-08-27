@@ -1350,7 +1350,6 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     s.backpack = consumeItems(s.backpack, choice.cost.itemId, count);
   }
 
-  const energyBefore = s.energy;
   const notes: string[] = [];
   const historyNotes: string[] = [];
 
@@ -1358,10 +1357,8 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   const segCost = energyCostAt(s.currentSegment);
   if (s.freeNodes > 0) {
     s.freeNodes -= 1;
-    historyNotes.push("隐匿通道: 本节点不消耗粒子");
   } else {
     changeEnergy(s, -segCost);
-    historyNotes.push(`净化粒子 −${segCost}`);
   }
 
   // ② 分支自己的额外增减
@@ -1369,7 +1366,6 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     changeEnergy(s, choice.energyDelta);
     const note = `净化粒子 ${choice.energyDelta > 0 ? "+" : ""}${choice.energyDelta}`;
     notes.push(note);
-    historyNotes.push(note);
   }
 
   let leaving = false;
@@ -1401,7 +1397,9 @@ export function chooseOption(s: ExploreState, index: number): boolean {
       const note = applyEffect(s, e, true);
       if (note) {
         notes.push(note);
-        historyNotes.push(note);
+        if (e.type !== "MODIFY_ENERGY" && e.type !== "SKIP_NODE_COST" && e.type !== "OPEN_CHUTE") {
+          historyNotes.push(note);
+        }
       }
     } catch (err) {
       console.error("[explore] 事件效果异常（已跳过）", { effectType: e.type, error: err });
@@ -1412,6 +1410,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   s.pendingNotes = notes;
   // 记录里带上所选分支 —— 结算页回顾整趟远征时, 玩家要读得出自己当时做了什么决定。
   s.history.push({
+    slot: "node",
     round: s.round,
     segment: s.currentSegment - 1,
     lane: s.currentLane,
@@ -1419,9 +1418,8 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     eventTitle: ev.title,
     eventKind: ev.kind,
     choiceIndex: index,
-    energyBefore,
-    energyAfter: s.energy,
-    note: [choice.label, historyNotes.join(" · ") || "无结算"].join(" · "),
+    choiceLabel: choice.label,
+    notes: historyNotes,
   });
   logLine(s, `第 ${s.round} 轮 · 第 ${s.currentSegment} 段: ${ev.title} · ${choice.label}`);
 
@@ -1483,7 +1481,7 @@ export function closeShopping(s: ExploreState): boolean {
   if (notes.length) {
     s.pendingNotes = [...s.pendingNotes, ...notes];
     const last = s.history[s.history.length - 1];
-    if (last) last.note = `${last.note} · ${notes.join(" · ")}`;
+    if (last?.slot === "node") last.notes.push(...notes);
     logLine(s, `交易终端: ${notes.join(" · ")}`);
   }
   s.pendingStory = [];
@@ -1562,6 +1560,18 @@ export function engageRoundBattle(s: ExploreState): boolean {
   if (!encounterId) return false;
   const eventTitle = roundBattleEvent(s)?.title ?? BATTLE_TIER_NAME[tier];
 
+  s.history.push({
+    slot: "battle",
+    round: s.round,
+    segment: -1,
+    lane: -1,
+    eventId: s.roundBattleEventId ?? "",
+    eventTitle,
+    eventKind: "battle",
+    choiceIndex: -1,
+    choiceLabel: "",
+    notes: [],
+  });
   s.pendingBattleTier = tier;
   s.pendingEncounterId = encounterId;
   s.pendingIsBoss = tier === "boss";
@@ -1621,6 +1631,13 @@ export function finishBattle(
   }
 
   if (!won) {
+    if (s.battleSource === "round") {
+      const last = s.history[s.history.length - 1];
+      if (last?.slot === "battle") {
+        last.battleResult = "lose";
+        last.notes = ["战斗失利 · 远征中断"];
+      }
+    }
     s.phase = "wiped";
     loseEverything(s);
     s.pendingEncounterId = null;
@@ -1635,6 +1652,7 @@ export function finishBattle(
 
   s.stats.kills += enemyDefIds.length;
   const wasBoss = s.pendingIsBoss;
+  const wasRoundBattle = s.battleSource === "round";
   const wasNodeBattle = s.battleSource === "node";
   const mult = rewardMultiplier(s.energy);
   // ⚠ 设计文档 §6.1: 战斗胜利**只掉物品**。perEnemy 已归零, 这里只剩 BOSS 的通关奖励。
@@ -1663,7 +1681,14 @@ export function finishBattle(
   s.pendingNotes = [["战斗胜利", ...notes].join(" · ")];
 
   const last = s.history[s.history.length - 1];
-  if (last && notes.length) last.note = `${last.note} · ${notes.join(" · ")}`;
+  if (wasRoundBattle) {
+    if (last?.slot === "battle") {
+      last.battleResult = "win";
+      last.notes = ["战斗胜利"];
+    }
+  } else if (wasNodeBattle && last?.slot === "node" && notes.length) {
+    last.notes.push(...notes);
+  }
 
   if (wasNodeBattle) {
     s.battleSource = null;

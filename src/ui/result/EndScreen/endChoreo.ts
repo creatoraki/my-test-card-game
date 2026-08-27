@@ -8,8 +8,8 @@ export const END_CHOREO = {
   feedStartMs: 420,
   sliceDropMs: 300,
   sliceHoldMs: 420,
-  sliceH: 96,
-  visibleSlices: 9,
+  sliceH: 152,
+  visibleSlices: 7,
 } as const;
 
 const END_REDUCED = {
@@ -31,5 +31,5 @@ export function endStepMs(total: number) {
   const fullStepMs = timing.sliceDropMs + timing.sliceHoldMs;
   if (!total || !fullStepMs) return 0;
 
-  return Math.max(480, Math.min(fullStepMs, fullStepMs * Math.min(1, 12 / total)));
+  return Math.max(480, Math.min(fullStepMs, fullStepMs * Math.min(1, 8 / total)));
 }

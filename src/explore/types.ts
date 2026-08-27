@@ -264,17 +264,20 @@ export interface PartySnapshot {
 // ---------------------------------------------------------------------------
 // 远征记录 —— 每结算一个节点一条, 结算页据此回顾整趟远征
 // ---------------------------------------------------------------------------
+export type HistorySlot = "node" | "battle";
+
 export interface NodeHistoryEntry {
+  slot: HistorySlot;
   round: number;
-  segment: number; // 0-3
-  lane: number; // 抵达该节点时所处通道
+  segment: number; // node: 0-3; battle: -1
+  lane: number; // battle: -1
   eventId: string;
   eventTitle: string;
   eventKind: NodeEventKind;
   choiceIndex: number;
-  energyBefore: number;
-  energyAfter: number;
-  note: string;
+  choiceLabel: string;
+  notes: string[];
+  battleResult?: "win" | "lose";
 }
 
 export interface ExpeditionStats {
@@ -323,7 +326,7 @@ export interface ExploreState {
 
   party: PartySnapshot[];
   auras: ExploreAura[];
-  // 结算页唯一数据来源; 节点数与推进轮数分别从 history.length / round 现算。
+  // 结算页唯一数据来源; 节点数从 history 的 node 条目、推进轮数从 round 现算。
   stats: ExpeditionStats;
   history: NodeHistoryEntry[];
 

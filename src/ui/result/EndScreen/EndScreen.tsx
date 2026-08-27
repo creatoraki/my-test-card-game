@@ -1,5 +1,5 @@
 ﻿// 远征结算 —— 通关 / 撤离 / 团灭三种收场共用一页。
-// 主角是「远征记录」: session.history 每段一条(落在哪个终点、能量掉到多少),
+// 主角是「远征记录」: session.history 同时记录节点结算与轮末遭遇战,
 // 一趟远征结束时那一列就是完整的故事, 比任何汇总数字都更值得看。
 
 import { useExploreStore } from "@/store/exploreStore";

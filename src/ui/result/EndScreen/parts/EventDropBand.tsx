@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
-import { energyTier } from "@/explore/session";
 import type { NodeHistoryEntry } from "@/explore/types";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
+import { RouteEventIcon } from "@/ui/common/RouteBoard/RouteEventIcon";
+import { eventKindLabel } from "@/ui/explore/eventKindLabel";
 import { endStepMs, endTiming } from "../endChoreo";
 import s from "./EventDropBand.module.css";
 
@@ -93,25 +94,35 @@ export function EventDropBand({ history }: Props) {
 }
 
 function BandSlice({ entry, fresh }: { entry: NodeHistoryEntry; fresh: boolean }) {
-  const tierColor = energyTier(entry.energyAfter).color;
-  const energyDown = entry.energyAfter < entry.energyBefore;
+  const meta =
+    entry.slot === "battle"
+      ? `R${entry.round} · 轮末遭遇战`
+      : `R${entry.round} · 第${entry.segment + 1}段 · ${ENTRY_LABELS[entry.lane] ?? entry.lane + 1}通道`;
+  const summary = [entry.choiceLabel, ...entry.notes].filter(Boolean).join(" · ") || "无额外结算";
+  const result = entry.slot === "battle" ? entry.battleResult : undefined;
 
   return (
     <article
-      className={cx(s["slice"], s[`k-${entry.eventKind ?? "unknown"}`], fresh && s["is-fresh"])}
-      style={{ "--tier-color": tierColor } as CSSProperties}
+      className={cx(
+        s["slice"],
+        s[`k-${entry.eventKind ?? "unknown"}`],
+        result === "win" && s["is-win"],
+        result === "lose" && s["is-lose"],
+        fresh && s["is-fresh"],
+      )}
+      data-result={result}
     >
-      <div className={s["slice-meta"]}>
-        <span className={s["slice-mark"]}>R{entry.round}-{entry.segment + 1}</span>
-        <span className={s["slice-lane"]}>{ENTRY_LABELS[entry.lane] ?? entry.lane + 1}通道</span>
+      <div className={s["slice-badge"]}>
+        <RouteEventIcon kind={entry.eventKind} />
       </div>
-      <span className={s["slice-copy"]}>
-        <strong>{entry.eventTitle}</strong>
-        <small>{entry.note}</small>
-      </span>
-      <span className={cx(s["slice-energy"], energyDown ? s["is-down"] : s["is-flat"])}>
-        {entry.energyBefore} → {entry.energyAfter}
-      </span>
+      <div className={s["slice-copy"]}>
+        <div className={s["slice-meta"]}>
+          <span>{meta}</span>
+          <em>{eventKindLabel[entry.eventKind]}</em>
+        </div>
+        <strong className={s["slice-title"]}>{entry.eventTitle}</strong>
+        <small>{summary}</small>
+      </div>
     </article>
   );
 }

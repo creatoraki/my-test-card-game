@@ -379,6 +379,13 @@ describe("阶段机", () => {
     expect(s.pendingBattleTier).toBe("light");
     expect(s.pendingIsBoss).toBe(false);
     expect(s.pendingEncounterId).toBe("n-crew");
+    finishBattle(s, true, WIN, ["scrap-bot"]);
+    const last = s.history[s.history.length - 1];
+    expect(last).toMatchObject({
+      slot: "battle",
+      battleResult: "win",
+      notes: ["战斗胜利"],
+    });
   });
 
   it("节点战斗胜利回到原落点, 不推进轮次或重新生成路线图", () => {
@@ -476,7 +483,7 @@ describe("净化粒子(设计文档 §4.2)", () => {
     expect(s.energy).toBe(
       Math.max(0, Math.min(100, before - EXPLORE_RULES.energyPerNodeBySegment[0] + extra)),
     );
-    expect(s.history[0].energyAfter).toBe(s.energy);
+    expect(s.history[0].slot).toBe("node");
   });
 
   it("「隐匿通道」的免费节点会顶掉基础消耗, 且只顶指定次数", () => {
@@ -719,7 +726,7 @@ describe("落点分支与撤离", () => {
     // 备支自己不花能量, 但每节点固定消耗照扣(第 1 段 = 分档表第 1 档)
     expect(s.energy).toBe(energyBefore - EXPLORE_RULES.energyPerNodeBySegment[0]);
     expect(s.loot).toBe(Math.round(10 * rewardMultiplier(s.energy)));
-    expect(s.history[0].note).toContain("备支");
+    expect(s.history[0].choiceLabel).toContain("备支");
   });
 
   it("END_REGION 效果直接把本轮推进推到走满 —— 之后只能前往下一区域", () => {
