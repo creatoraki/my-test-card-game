@@ -3,7 +3,7 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(min-content, 1fr);
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -123,6 +123,10 @@
   animation: viewportReveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.eventDemo[data-variant="rest"] .sceneViewport {
+  padding-top: 12px;
+}
+
 .sceneViewport::before {
   position: absolute;
   z-index: 2;
@@ -147,6 +151,8 @@
 .briefingScene {
   display: grid;
   grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.1fr);
+  height: auto;
+  min-height: 100%;
   align-items: start;
   gap: 58px;
   animation: briefingIn 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -164,6 +170,14 @@
   position: relative;
   top: 40px;
   animation: copyIn 600ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.eventDemo[data-variant="rest"] .briefingScene {
+  min-height: 0;
+}
+
+.eventDemo[data-variant="rest"] .briefingCopy {
+  top: 20px;
 }
 
 .scenePlaceholder {
@@ -346,6 +360,12 @@
   line-height: 1.7;
 }
 
+.eventDemo[data-variant="rest"] .storySubtitle:empty {
+  min-height: 0;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+
 .storyBody {
   max-width: 350px;
   max-height: 156px;
@@ -386,6 +406,10 @@
   font-size: 10px;
 }
 
+.eventDemo[data-variant="rest"] .storyMeta {
+  margin-top: 12px;
+}
+
 .storyMeta b {
   margin-right: 5px;
   color: var(--event-accent);
@@ -405,6 +429,10 @@
   background: color-mix(in srgb, var(--event-accent) 12%, #111a1d);
   color: #f0f6e9;
   font-size: 14px;
+}
+
+.eventDemo[data-variant="rest"] .advanceButton {
+  margin-top: 14px;
 }
 
 .advanceButton span {
@@ -434,6 +462,10 @@
   align-items: center;
   gap: 56px;
   animation: choiceIn 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.eventDemo[data-variant="rest"] .choiceScene {
+  align-items: start;
 }
 
 .choiceIntro {
@@ -488,6 +520,10 @@
   animation: optionsIn 520ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.eventDemo[data-variant="rest"] .optionsList {
+  gap: 7px;
+}
+
 .option {
   display: grid;
   grid-template-columns: 39px minmax(0, 1fr) 29px;
@@ -503,6 +539,12 @@
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
   transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
   animation: optionEnter 420ms var(--option-delay, 100ms) both;
+}
+
+.eventDemo[data-variant="rest"] .option {
+  min-height: 78px;
+  padding-top: 9px;
+  padding-bottom: 9px;
 }
 
 .option::before {
@@ -558,6 +600,10 @@
 
 .optionLeading :global(.item-slot) {
   width: 70px;
+}
+
+.eventDemo[data-variant="rest"] .optionLeading :global(.item-slot) {
+  width: 56px;
 }
 
 .optionMain {
@@ -680,6 +726,10 @@
   color: #809293;
   clip-path: none;
   font-size: 11px;
+}
+
+.eventDemo[data-variant="rest"] .backButton {
+  margin-top: 10px;
 }
 
 .backButton span {

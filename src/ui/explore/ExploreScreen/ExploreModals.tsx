@@ -216,6 +216,7 @@ export function RestModal({ view, closing, onEat, onSkip, onAdvance, onBack }: R
           title="隐藏休息"
           scene={view.scene}
           sceneKey={`rest-${hiddenRest.foodItemId}`}
+          variant="rest"
           className={s["rest-panel"]}
         >
           {view.scene === "briefing" ? (

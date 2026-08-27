@@ -208,6 +208,11 @@
   animation: pile-card-in 260ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
   animation-delay: var(--deal-delay, 0ms);
 }
+/* 悬停不上弹: 放大与四角选中框由外层卡格(VictoryCardOffer .candidate)承担 */
+:global([data-pick-grid]) :global([data-hand-slot]):not([data-leaving]):hover > :global([data-hand-card]):not([data-selected]) {
+  transform: none;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+}
 
 /* 据点卡组复用固定像素卡面, 缩放交给外层 data-deck-card, 避免字号与装饰被拉伸。 */
 :global([data-deck-card]) {

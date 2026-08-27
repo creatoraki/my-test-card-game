@@ -74,10 +74,24 @@
 
 .candidate:hover,
 .candidate:focus-visible {
-  border-color: #8df0d077;
   outline: none;
-  transform: translateY(-4px);
+  transform: scale(1.05);
+  z-index: 2;
   filter: drop-shadow(0 0 12px #65e0be55);
+}
+
+.cardWrap {
+  position: relative;
+  display: block;
+}
+
+.selectFrame {
+  display: none;
+}
+
+.candidate:hover .selectFrame,
+.candidate:focus-visible .selectFrame {
+  display: block;
 }
 
 .owner {
@@ -120,8 +134,8 @@
 }
 
 @keyframes offerCardIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; translate: 0 16px; }
+  to { opacity: 1; translate: 0 0; }
 }
 
 @media (max-width: 720px) {

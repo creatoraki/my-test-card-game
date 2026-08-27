@@ -44,6 +44,7 @@ interface EventPanelFrameProps {
   scene?: EventPanelScene;
   children: ReactNode;
   className?: string;
+  variant?: "rest";
 }
 
 export function EventPanelFrame({
@@ -56,10 +57,11 @@ export function EventPanelFrame({
   scene,
   children,
   className,
+  variant,
 }: EventPanelFrameProps) {
   const style = { "--event-accent": accent } as CSSProperties;
   return (
-    <div className={cx(s.eventDemo, neonFrameClass, className)} style={style}>
+    <div className={cx(s.eventDemo, neonFrameClass, className)} data-variant={variant} style={style}>
       <header className={s.demoHeader}>
         <div className={s.headerTitle}>
           {kicker && <span className={s.demoKicker}>{kicker}</span>}
@@ -86,6 +88,7 @@ interface EventPanelProps {
   headerExtra?: ReactNode;
   children: ReactNode;
   className?: string;
+  variant?: "rest";
 }
 
 export function EventPanel({
@@ -97,6 +100,7 @@ export function EventPanel({
   headerExtra,
   children,
   className,
+  variant,
 }: EventPanelProps) {
   const sceneLabel = scene === "briefing" ? "情报" : scene === "choice" ? "行动" : "结算";
   return (
@@ -108,6 +112,7 @@ export function EventPanel({
       contentKey={`${sceneKey}-${scene}`}
       headerExtra={headerExtra}
       className={className}
+      variant={variant}
       status={
         <span className={s.sceneProgress} aria-label={`当前分镜 ${scene === "briefing" ? 1 : scene === "choice" ? 2 : 3} / 3`}>
           <i className={scene === "briefing" ? s.progressActive : ""} />

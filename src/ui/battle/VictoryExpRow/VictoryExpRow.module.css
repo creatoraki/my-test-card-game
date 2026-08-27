@@ -2,9 +2,9 @@
   --row-accent: #69d9ff;
   display: flex;
   min-height: 0;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
-  padding: 18px 20px;
+  padding: 14px 16px;
   background: linear-gradient(135deg, #101d23f2, #071014f7);
   border: 1px solid #6fd2ff42;
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
@@ -14,9 +14,9 @@
 
 .portrait-frame {
   position: relative;
-  flex: 0 0 104px;
-  width: 104px;
-  height: 104px;
+  flex: 0 0 84px;
+  width: 84px;
+  height: 84px;
   overflow: hidden;
   background: #061014;
   border: 1px solid var(--row-accent);
@@ -47,15 +47,19 @@
 }
 
 .exp-heading strong {
+  min-width: 0;
+  overflow: hidden;
   color: #f2fbff;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 1px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .exp-gained {
   color: #a9f4ff;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: 1px;
   text-shadow: 0 0 8px #69d9ff55;
@@ -66,16 +70,16 @@
 
 .exp-total {
   justify-content: flex-end;
-  margin-top: 10px;
+  margin-top: 6px;
   color: #e8feff;
-  font-size: 19px;
+  font-size: 17px;
   font-variant-numeric: tabular-nums;
 }
 
 .exp-track {
   position: relative;
-  height: 16px;
-  margin-top: 15px;
+  height: 14px;
+  margin-top: 10px;
   overflow: hidden;
   background: #020709;
   border: 1px solid #6fd2ff33;

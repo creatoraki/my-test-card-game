@@ -2,6 +2,7 @@ import { useExploreStore } from "@/store/exploreStore";
 import { useTownStore } from "@/store/townStore";
 import { getCharacter, makeCard } from "@/data";
 import { HandCard } from "@/ui/battle/HandCard";
+import { CardSelectFrame } from "@/ui/common/CardSelectFrame";
 import { cx } from "@/ui/common/cx";
 import type { CardOfferCandidate } from "@/explore/types";
 import s from "./VictoryCardOffer.module.css";
@@ -27,7 +28,10 @@ function OfferCard({ offer, index, onPick }: { offer: CardOfferCandidate; index:
         <span className={s.ownerMark} style={{ backgroundColor: character.color }} aria-hidden="true" />
         <span>{character.name}</span>
       </div>
-      <HandCard card={card} playable selected={false} variant="pile" />
+      <span className={s.cardWrap}>
+        <HandCard card={card} playable selected={false} variant="pile" />
+        <CardSelectFrame className={s.selectFrame} />
+      </span>
       <span className={s.pickLabel}>选择这张</span>
     </div>
   );
