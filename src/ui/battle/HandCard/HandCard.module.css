@@ -8,7 +8,7 @@
 
    ── 卡面承载的四个维度(全部零色相) ──
      费用 / 卡名 / 效果  → 文字与浮层(决策三要素)
-     普 / 速             → **剪影**: 速攻卡左上是双折阶梯斜口 + 左边棱开一道断口(见 .hand-card.fast)
+    普 / 速             → **费用水晶配色**(唯一线索, 见 .hc-cost-crystal)
      稀有度 common/uncommon/rare → **蚀刻纹密度 + 边棱工艺**(见 .r-* 三段)
      可打出 / 打不出     → **厚度**: 打不出的卡棱塌了、厚度层减半 ⇒ 读作"贴死在基座上、断电"
   ⚠ 普/速的线索必须落在**左边缘与左上角** —— 静止时相邻卡叠压 78/90/110/125/135px, 每张卡只露出
@@ -79,13 +79,13 @@
      .hand-card::after   9    ★ 表面反光扫过(sheen) —— 反光是**表面**现象, 必须盖住卡上的一切
    ⚠ 卡面上仍**没有**普/速文字与目标范围 —— 那些留给右侧 CardInfoPanel; 卡面只承载
      "打不打得起 / 是什么 / 干什么"。
-   ★ 普/速与稀有度现在**有**卡面线索, 但都不是文字也不是颜色: 普/速看**剪影**(见 .hand-card.fast),
+  ★ 普/速与稀有度现在**有**卡面线索: 普/速看**费用水晶配色**(见 .hand-card.fast .hc-cost-crystal),
      稀有度看**蚀刻纹与边棱工艺**(见 .r-common / .r-uncommon / .r-rare)。 */
 /* ★ --card-edge / --card-edge-core: 卡面上唯一的"框色"旋钮, 但它们是**亮度**而不是色相 ——
    一对中性冷灰金属(高光棱 + 芯面)。稀有度改它们的亮度档, 选中态把它们整体推到抛光亮金属。
    ⚠ 旧版这里是 --card-hue(普通青蓝 #6fd2ff / 速攻品红紫 #da77f2), 是全站唯一不走
      src/styles/tokens.css 的配色, 一排手牌读作外来物。现已整条删除 —— 卡面**零色相**,
-     普/速改由剪影承担(见下方 .hand-card.fast), 稀有度由蚀刻纹与边棱工艺承担(见 .r-* 三段)。
+    普/速改由费用水晶配色承担(见 .hand-card.fast .hc-cost-crystal), 稀有度由蚀刻纹与边棱工艺承担(见 .r-* 三段)。
    ⚠ 归属角色配色 --owner-color 只剩卡名压条左端那道竖标(见 .hc-title::before);
      另一处允许的颜色是费用水晶的辉光(--accent, 见 .hc-cost-crystal)。除此之外别再撒色。
    ⚠ 本条 border 只是 clip 之后的兜底细边; 真正的描边是 .hc-edge 那圈跟着斜切角走的三层棱。 */
@@ -148,33 +148,6 @@
   background:
     radial-gradient(16px 16px at 7px 7px, #ffffff26, transparent 70%),
     radial-gradient(16px 16px at calc(100% - 7px) calc(100% - 7px), #ffffff1c, transparent 70%);
-}
-/* ── ★ 速攻卡: 靠**剪影**区分, 一个像素的色相都不用 ──
-   ⚠⚠ 线索必须落在**左上角与左边缘**: 静止时相邻卡叠压 78/90/110/125/135px(见
-     ui/BattleScreen.css 的 --hand-overlap 五档), 每张卡只露出左侧一条 —— 右半边的任何区别在一排牌里都看不到。
-   ★ 做法: 在左边棱上开一道 7px 深的**梯形咬口**(y 从 68 到 112), 像板材上冲出来的导流槽。
-   ⚠⚠ 刻意**不动左上那个 14px 斜口** —— 试过把它加大到 26px, 结果是费用徽章被削掉一角:
-     徽章落位 left/top 12px, 而 26px 斜口的边界是 x+y=26, 徽章左上角 (12,12) 落在线外 ⇒ 被裁。
-     斜切量 14 与徽章的 12 是绑死的一对(见 .hc-cost 的注释), 谁都不能单独动。
-     咬口开在边棱中段则完全避开徽章(徽章占 y 12~58, 咬口从 68 起), 是纯加法。
-   ⓘ 白赚的一条: 咬口会把 .hc-edge 的左边棱**从中间裁断**, 那道"断口"不必另外画 —— clip-path
-     对伪元素同样生效, 边棱自然缺一截。这正是想要的第二处剪影线索。
-   ⚠ 旧版把速攻卡整块底色染成偏紫, 与金属质感冲突(一排手牌里出现两种材质); 中间一版改成只换
-     --card-hue 的色相差, 但那仍是全站唯一的越界配色。现在收敛成纯剪影, 卡底与普通卡完全同料。
-   ⚠ 后四个顶点与 .hand-card 的基础 clip-path 逐字一致, 改 14px 斜切量时两条要一起改。 */
-.hand-card.fast {
-  clip-path: polygon(
-    14px 0,
-    100% 0,
-    100% calc(100% - 14px),
-    calc(100% - 14px) 100%,
-    0 100%,
-    0 112px,
-    7px 104px,
-    7px 76px,
-    0 68px,
-    0 14px
-  );
 }
 /* ── ★ 稀有度四档: 只用**蚀刻纹与边棱工艺**, 零色相 ──
   档位来自 card.rarity(basic/common/uncommon/rare, 见 engine/types.ts), 由 ui/HandCard.tsx 拼成
@@ -291,7 +264,16 @@
 }
 
 .hand-card.contaminated {
-  --pollution-crack: #d8402f;
+  --pollution-crack: #e04a36;
+  --pollution-stain: #6d1a12;
+  --card-edge: #b56e5d;
+  --card-edge-core: #75443a;
+  --card-edge-dark: #63342e;
+  --card-edge-dark-core: #321c1c;
+}
+.hand-card.contaminated .hc-title::before {
+  background: var(--pollution-crack);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--pollution-crack) 78%, transparent);
 }
 .hc-mark-inline {
   position: absolute;
@@ -1018,8 +1000,7 @@
    drop-shadow(0 7px 0 #05080a) 是**卡的侧面厚度**, 不是影子: 零模糊 + 纯位移 ⇒ 渲染出的是一块
    与卡同形的实色, 从卡下缘露出 7px, 读作金属板的截面。
    ⚠ 只能走 filter: drop-shadow —— 卡带 clip-path(斜切角), box-shadow 会被连投影一起裁掉,
-     而 drop-shadow 是对**裁剪后的形状**求影, 厚度层因此会完美跟着两个斜口(以及速攻卡左边棱
-     那道咬口)拐弯。
+    而 drop-shadow 是对**裁剪后的形状**求影, 厚度层因此会完美跟着两个斜口拐弯。
    ⚠ 四条 filter 规则(静止 / 打不出 / 悬停 / 选中)彼此**互斥**, 靠 :not() 保证永不同时命中 ——
      filter 不会叠加, 后命中的会整条覆盖。故每一条都要**自带厚度层**, 漏写的那一条会让卡在
      该状态下突然"变薄"。静止态与打不出那两条在 ui/BattleScreen.css(静止态还要负责鱼鳞叠的
@@ -1046,6 +1027,12 @@
   /* ② 四角 L 卡扣同步提亮 ⇒ 读作"卡扣咬合" */
   --frame-lit: #f0f6fa;
   --frame-core: #a9b7c2;
+}
+.hand-card.contaminated.selected {
+  --card-edge: #b56e5d;
+  --card-edge-core: #75443a;
+  --card-edge-dark: #63342e;
+  --card-edge-dark-core: #321c1c;
 }
 /* ③ 卡底整体提亮一档(受光渐变换更亮的一组, 其余八层不动) */
 .hand-card.selected {
