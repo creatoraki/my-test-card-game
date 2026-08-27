@@ -1,0 +1,256 @@
+/* ── 配图层: 卡上段的正方形取景窗 —— 下边界让给 .hc-text 的实位高度, 于是它的尺寸恰是
+   --hand-card-w × --hand-card-w(因为卡高被定义为 宽 + 说明区), 与 1:1 素材完全同形。
+   ⚠ 用 contain 而非 cover: 1:1 图配 1:1 窗时两者等价、都无留白, 但将来若混进非正方素材,
+     contain 会留边而 cover 会裁 —— 本作的原则是**宁可留边也不裁**。
+   ⚠ 本层的**几何**不因边框/浮层改动: 它们都是压在它上面的叠加层, 而不是把它缩小。
+     素材作画时避开左上角 46×46 与下沿 30px 那两块(费用徽章与卡名压条会压上来)。 */
+.hc-art {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--hc-text-h, 88px);
+  background-image: var(--hand-art);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+/* 配图与金属卡底之间垫一层极淡的暗角, 让图"沉"进卡里而不是浮在表面 */
+.hc-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 100% at 50% 40%, transparent 55%, #05080a80);
+}
+
+/* ── 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘 ── */
+/* ★ 这是卡面上最重要的一块**立体件** —— 实体卡的"角钉"。它是浮层(不占实位), 正是卡高能从
+   336 压到 308(1:1.4)的原因。
+   ⚠ 落位 left/top 12px 是从斜切量 14px 推的: 徽章的左上角必须落在斜口**内侧**, 否则会被
+     .hand-card 的 clip-path 削掉一角。改 14px 斜切要回来核这个 12。
+   ⚠ 不能让它越出卡外做成"挂件": .hand-card 自带 overflow:hidden + clip-path, 越出的部分
+     连同它的命中区一起会被裁掉。
+   ⚠ 底盘用 box-shadow 是**安全**的 —— 被裁的只有 .hand-card 自身的 clip-path 边界之外,
+     徽章整个在内侧, 它的内/外阴影都完整可见。(卡**自己**的投影才必须走 filter, 见文件末尾。) */
+.hc-cost {
+  position: absolute;
+  z-index: 6;
+  left: 12px;
+  top: 12px;
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #f4f8fb;
+  font-weight: 800;
+  font-size: 20px;
+  /* ⚠ 旧版这两道投影是偏蓝的(#02152f / #0a3a6e), 跟着已删除的青蓝 --card-hue 来的。
+     卡面中性化后换成纯暗色, 否则数字周围会浮起一圈蓝雾。 */
+  text-shadow: 0 1px 2px #05080a, 0 0 6px #05080acc;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  /* 全站无圆角 ⇒ 徽章也走斜切角(8px, 比卡的 14 小一号), 与整体倒角语言一致 */
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+/* 水晶尺寸通过 CSS 变量下发；徽章 46 见方, 水晶 34 见方 ⇒ 四周各余 6px。 */
+.hc-cost-crystal {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  --mana-crystal-size: 34px;
+  /* 比通用 .mana-crystal 更重的投影 + 辉光 —— 水晶是卡面上**唯一**允许发光的实体件。
+     ★ 辉光色走全站令牌 --accent(src/styles/tokens.css 的荧光黄绿), 与整站归队。
+       卡面已全面中性化 ⇒ 这一点黄绿是整张卡上唯一的高饱和色, 视线自然被拉到费用上 ——
+       正是想要的: 费用是出牌决策里第一个要读的数。 */
+  filter: drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px var(--accent));
+}
+:global([data-hand-card][data-card-type="fast"]) .hc-cost-crystal {
+  filter: drop-shadow(0 2px 3px #01132ee6) drop-shadow(0 0 5px #d68a3c);
+}
+.hc-cost-value {
+  position: relative;
+  z-index: 1;
+}
+.hc-star-pay {
+  position: absolute;
+  top: 20px;
+  left: 62px;
+  z-index: 7;
+  display: inline-flex;
+  min-width: 42px;
+  justify-content: center;
+  padding: 4px 5px;
+  color: #ffe9a8;
+  background: #201d13e8;
+  border: 1px solid #e9c85f99;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+.hc-star-pay-tip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 3;
+  width: 190px;
+  padding: 8px 10px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  color: #f1e4bc;
+  background: linear-gradient(150deg, #2a261b, #14130f 48%, #08090a);
+  border: 1px solid #e9c85f88;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  box-shadow: 0 6px 14px #05080abf;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: opacity 120ms ease, visibility 120ms ease;
+}
+.hc-star-pay:hover .hc-star-pay-tip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ── 卡名压条: 贴在配图下沿的渐变浮层 ── */
+/* ★ 走渐变遮罩(透明 → 实底)而不是硬色块: 卡名与配图同属"识别层", 让它从图里长出来而不是
+   盖一条上去。高度 30px, 下沿正好压在 .hc-art 的底边(= 说明区上沿)。
+   ⚠ 它是浮层, **不占实位** —— 一旦给它实位高度, 卡高就回到 336, 1:1.4 的比例就没了。 */
+.hc-title {
+  position: absolute;
+  z-index: 5;
+  left: 3px;
+  right: 3px;
+  bottom: var(--hc-text-h, 88px);
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 14px;
+  background: linear-gradient(180deg, transparent, #05080ab8 40%, #05080aef);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #eaf6ff;
+  text-shadow: 0 1px 3px #000e, 0 0 8px #000a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* ⚠ 字距刻意为 0: 旧版的 letter-spacing:1px 是给拉丁字母排的, 中文卡名被它拉散,
+   两字名(如"斩击")会读作两个孤立的字。 */
+/* 归属角色配色: 压条左端一道 3px 竖标 —— 卡面上 --owner-color 仅存的一处 */
+.hc-title::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  background: var(--owner-color, #6fd2ff);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--owner-color, #6fd2ff) 70%, transparent);
+}
+:global([data-hand-card][data-contaminated]) .hc-title::before {
+  background: var(--pollution-crack);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--pollution-crack) 78%, transparent);
+}
+/* 升级卡的卡名: 中性亮金属 + 加粗。
+   ⚠ 旧版是 color: var(--warn)(荧光黄绿) —— 卡面中性化后, 那会成为卡上突兀的第二处高饱和色,
+     且与费用水晶的辉光同色 ⇒ 两个不相干的信号读作同一件事。改用**亮度**表达升级。
+   ⓘ 升级的第二处线索是左上的凿痕(见 .hand-card.upgraded .hc-frame::after)。 */
+:global([data-hand-card][data-upgraded]) .hc-title {
+  color: #f4fafe;
+  font-weight: 800;
+}
+
+/* ── 底部效果说明: card.text 原样一段 ── */
+/* 卡的**唯一**一块实位信息区。与卡底同族的金属面, 靠上沿一道亮线 + 一道暗线的斜面转折
+   与配图切开(读作"下沉了一级的凹槽"), 而不是靠边框圈起来。
+   ★ 高度**固定**(--hc-text-h): 一排手牌必须等高, 否则顶端参差不齐。文字长短由 .lg/.md/.sm
+     三档字号消化(档位在 ui/HandCard.tsx 里按字数派生), 极端超长的靠行数截断兜底 ——
+     完整文字在右侧 CardInfoPanel 永远读得到, 这里丢几个字不影响决策。
+   ⚠ 与旧版不同, 这块**不再内缩 4px + 切角** —— 它现在是卡的下半身本身, 直接铺到卡的左右边缘,
+     由 .hc-edge 的斜面环从外侧兜住。少一圈内缩, 一排卡看过去更整。 */
+.hc-text {
+  position: absolute;
+  z-index: 4;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  height: calc(var(--hc-text-h, 88px) - 3px);
+  padding: 9px 12px;
+  overflow: hidden;
+  /* 上沿的斜面转折(1px 亮 + 其下 1px 暗)走**背景图层**而不是 ::before —— 本元素是 -webkit-box
+     (见下方行数截断), 伪元素会被当成一个盒子参与排版、吃掉一行。第三层才是底色。 */
+  background:
+    linear-gradient(#5e6a73, #5e6a73),
+    linear-gradient(#05080a, #05080a),
+    linear-gradient(180deg, #161b1e, #0a0d0f);
+  background-position: left top, left 1px, 0 0;
+  background-size: 100% 1px, 100% 1px, auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+  color: #c6d8e4;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: justify;
+  /* 行数截断: -webkit-box 那套是唯一能按**行**截断并给省略号的写法(Chromium/WebKit/Firefox 均支持) */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+/* 三档字号 + 对应的可容纳行数(区域净高 = 88 − 3 − 2×9 = 67px)。
+   档位阈值见 ui/HandCard.tsx 的 textSize —— 改这里的字号就要回去核那两个字数阈值。
+   ⓘ 卡高虽从 336 降到 308, 但这块的净高反而从 66 涨到 67(顶行那 52px 实位省下来后, 说明区
+     从 84 加到了 88) ⇒ 三档字号与字数阈值**一个都不用改**。 */
+.hc-text.lg {
+  font-size: 13px;
+  -webkit-line-clamp: 3;
+}
+.hc-text.md {
+  font-size: 12px;
+  -webkit-line-clamp: 4;
+}
+.hc-text.sm {
+  font-size: 11px;
+  -webkit-line-clamp: 4;
+}
+
+/* 选中态仍只改说明区上沿的亮度, 与卡面其余选中态保持同源。 */
+:global([data-hand-card][data-selected]) .hc-text {
+  background:
+    linear-gradient(#e4edf4, #e4edf4),
+    linear-gradient(#05080a, #05080a),
+    linear-gradient(180deg, #202930, #0c1013);
+  background-position: left top, left 2px, 0 0;
+  background-size: 100% 2px, 100% 1px, auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+}
+
+/* ── 选中角标: 右上角一块抛光亮金属三角 ── */
+/* ★ 存在的理由是**功能**而非装饰: 选中态必须在鼠标离开手牌区之后仍读得出。位移与辉光在一排
+   卡里可能被相邻卡的悬停抢走注意力, 一块实心三角是零歧义的标记。仅 .selected 时渲染
+   (见 ui/HandCard.tsx), 故这里不需要写显隐。 */
+/* ⚠ 旧版这块是 --card-hue 的实心配色三角。中性化后改成**抛光亮金属**三角 + 一道凿刻的
+   锁定横槽 —— 靠亮度与工艺而不是色相把它从卡面上跳出来。 */
+.hc-selected-mark {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+  background:
+    /* 锁定刻痕: 两道短横槽(暗) */
+    linear-gradient(#05080a, #05080a),
+    linear-gradient(#05080a, #05080a),
+    linear-gradient(225deg, #f4fafe, #7e8d99);
+  background-position: right 4px top 9px, right 4px top 13px, 0 0;
+  background-size: 11px 1px, 8px 1px, auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  box-shadow: -1px 1px 4px #05080ab3;
+}

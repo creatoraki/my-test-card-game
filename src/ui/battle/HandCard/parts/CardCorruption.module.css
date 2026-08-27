@@ -19,6 +19,7 @@
 
 .cracks {
   z-index: 7;
+  animation: corruptionBreath 7.5s ease-in-out infinite;
 }
 
 .cracks svg {
@@ -27,28 +28,40 @@
   height: 100%;
 }
 
-.crackShadow,
-.mainCracks,
-.branchCracks {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.crackDepth,
+.crackFill,
+.crackHair {
+  stroke: none;
 }
 
-.crackShadow {
-  stroke: #0a0405;
-  stroke-width: 3;
-  opacity: 0.55;
-}
-
-.mainCracks {
-  stroke: var(--pollution-crack, #d8402f);
-  stroke-width: 1.6;
-  opacity: 0.85;
-}
-
-.branchCracks {
-  stroke: var(--pollution-crack, #d8402f);
-  stroke-width: 1;
+.crackDepth {
+  fill: #070304;
   opacity: 0.6;
+}
+
+.crackFill {
+  fill: var(--pollution-crack, #d8402f);
+  opacity: 0.85;
+  filter: drop-shadow(0 0 1.6px color-mix(in srgb, var(--pollution-crack, #d8402f) 60%, transparent));
+}
+
+.crackHair {
+  fill: var(--pollution-crack, #d8402f);
+  opacity: 0.5;
+}
+
+@keyframes corruptionBreath {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cracks {
+    animation: none;
+  }
 }

@@ -1,0 +1,272 @@
+/* ============================================================================
+   手牌盘里的版式与厚度 —— 原先住在 battle/BattleScreen.module.css。
+   它们全是「这张卡在托盘里长什么样」, 归属本组件; 之前写在那边只是因为选择器要从
+   .hand-tray 起手。CSS Modules 之后 .hand-slot / .hand-card / .selected / .leaving /
+   .unplayable 都是**本文件**的局部类, 那边根本够不着 —— 于是整块迁回来, 把外来的
+   `.hand-tray` 换成 `:global([data-hand-tray])`(属性不参与哈希, 样式铁律 2),
+   其余选择器一字未动 ⇒ 特异性与层叠关系逐条不变。
+   ⚠ --hand-card-w / --hand-card-h / --hand-overlap / --hand-yield 由 BattleScreen 的
+   .hand-panel 下发(样式铁律 4 的跨组件变量契约), 改尺寸去那边。
+   ============================================================================ */
+/* ★ 版式挂在**外壳** .hand-slot 上, 不再挂在卡自己身上 —— 卡悬停时要上弹半张卡高, 壳必须留在
+  原位当命中区, 否则会无限抖动(完整理由见 HandCard.module.css 开头的 .hand-slot 段)。
+   卡撑满壳 ⇒ 静止时两者同框, 版式算式一个字都不用改。 */
+:global([data-hand-tray]) :global([data-hand-slot]) {
+  z-index: 1;
+  flex: none;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+}
+:global([data-hand-tray]) :global([data-hand-card]) {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+/* ★ 静止态的 filter: **卡厚 + 右缘投影 + 接触影**, 三段合成"一块躺在金属基座上的厚板"。
+     ① drop-shadow(0 4px 0 #05080a) —— 零模糊纯位移 ⇒ 渲染出与卡同形的实色, 从卡下缘露出 4px,
+        读作金属板的**侧面截面**(不是影子)。
+     ② drop-shadow(3px 0 5px #000a) —— 右缘投影, 叠压时让"谁压着谁"读得出来, 否则一排卡糊成一块。
+     ③ drop-shadow(0 7px 9px #000b) —— 接触影, 把卡从基座上托起来。
+   ⚠ 必须走 filter: drop-shadow —— 卡带 clip-path(斜切角), box-shadow 会连投影一起被裁掉
+     (同 .ally-slot.card-focus .ally-frame 的发光, 那里是同一个坑)。drop-shadow 是对**裁剪后
+     的形状**求影, 厚度层因此会完美跟着两个斜口拐弯。
+  ⚠ 用 :not() 排除掉悬浮/选中态, 是为了不与 HandCard.motion.module.css 里那两条同名 filter 抢
+     —— filter 不叠加, 后命中的整条覆盖。三条规则靠 :not() 保证永不同时命中,
+     且**每条都自带厚度层**, 漏写的那条会让卡在该状态下突然变薄。
+  ⚠ 悬浮判的是外壳 .hand-slot:hover(卡自己一弹起就脱离光标), 与 HandCard.motion.module.css 的聚焦规则保持同源。 */
+:global([data-hand-tray]) :global([data-hand-slot]):not(:hover) > :global([data-hand-card]):not([data-selected]) {
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(2px 5px 7px #000b);
+}
+/* ★ 打不出的卡: 厚度层从 4px **减半到 2px**, 接触影收紧压暗 ⇒ 卡读作"贴死在基座上、断电"。
+  这是"能不能打"在卡面上的主要表达(另一半是三层棱塌成一层暗棱, 见 HandCard.module.css 的
+   .hand-card.unplayable)。
+   ⚠ 旧版靠 .hc-edge 上的 grayscale(1), 卡面配色中性化后那条完全失效(整圈本来就是灰的), 已删除。
+   ⚠ 必须排掉悬停与选中: 打不出的卡仍然可以被悬停看详情, 那时应该走悬停那条(厚度 7px)。
+     filter 不叠加、后命中的整条覆盖, 所以这条与上一条靠 :not(:hover) 天然互斥,
+     只需再自带一次厚度层即可 —— 漏写会让打不出的卡在静止时突然没有厚度。 */
+:global([data-hand-tray]) :global([data-hand-slot]):not(:hover) > :global([data-hand-card][data-unplayable]):not([data-selected]) {
+  filter: drop-shadow(0 2px 0 #05080a) drop-shadow(0 3px 5px #000c);
+}
+/* ★ 鱼鳞叠: 负 margin 把每张卡往左拉进前一张。同为 z-index:1 ⇒ 谁在 DOM 后面谁在上,
+   于是自然形成"从左往右依次压过去"的一副手牌。
+   叠压量的下限见 .hand-panel 的 --hand-overlap 注释。 */
+:global([data-hand-tray]) :global([data-hand-slot]) + :global([data-hand-slot]) {
+  margin-left: calc(-1 * var(--hand-overlap));
+}
+/* 悬浮/选中必须置顶: 否则被右邻卡压住的那一条永远看不见, 违背「配图完整展示」。
+  与 HandCard.motion.module.css 里的上浮合起来 ⇒ 悬停即露全卡。
+   ⚠ 挂在**壳**上而不是卡上: 卡弹起后已脱离光标, 判卡会让层序跟着抖动。 */
+:global([data-hand-tray]) :global([data-hand-slot]):hover,
+:global([data-hand-tray]) :global([data-hand-slot][data-selected]) {
+  z-index: 6;
+}
+/* ★ 邻卡让位: 悬停时左右两张邻居各自横向让开 --hand-yield, 给弹起的那张腾出呼吸的空当。
+   旧版只靠 z-index 把悬停卡盖上去, 一排卡在视觉上仍是挤成一坨的, 被抽出的那张读作"浮在
+   一堵墙前面"而不是"从一副牌里被抽出来"。
+
+   ⚠⚠ 让位的必须是 .hand-card(卡)而**不是** .hand-slot(壳) —— 壳一动就改变命中区,
+    会重新引发 HandCard.module.css 开头记录的那个悬停抖动死循环(壳移开 ⇒ 光标落到壳外 ⇒
+     :hover 失效 ⇒ 壳移回 ⇒ 又盖住光标)。壳恒定不动是这套交互的地基。
+   ⚠ 用 :not(.selected):not(.leaving) 排除掉那两种态 —— 它们各自有自带的 transform
+     (上弹 / 出鞘), 被这里的 translateX 整条覆盖就会原地不动或飞错方向。
+   ⚠ 左邻靠 :has(+ .hand-slot:hover) 反查。:has() 在本文件已用于叠压量三档(见上方两条), 可放心用。
+  ⚠ 过渡曲线跟 .hand-card 自带的那条走(见 HandCard.module.css), 这里只给终点值与延迟。
+
+   ★ 45ms 的 transition-delay 是**因果的时间表达**: 先是那张卡被抽起来, 邻卡**随后**被挤开。
+     零延迟时两件事同时发生, 读作"一排卡同时闪开"—— 那是 UI 的语言; 有了这一档极短的滞后,
+     它才读作"一张牌顶开了旁边两张"的连锁物理反应。
+   ⚠ 延迟只加在**让位**上, 不能加到被悬停那张卡自己身上 —— 悬停反馈必须是零延迟的,
+     否则手感会立刻发黏。 */
+:global([data-hand-tray]) :global([data-hand-slot]):hover + :global([data-hand-slot]) > :global([data-hand-card]):not([data-selected]):not([data-leaving]) {
+  transform: translateX(var(--hand-yield));
+  transition-delay: 45ms;
+}
+:global([data-hand-tray]) :global([data-hand-slot]):has(+ :global([data-hand-slot]):hover) > :global([data-hand-card]):not([data-selected]):not([data-leaving]) {
+  transform: translateX(calc(-1 * var(--hand-yield)));
+  transition-delay: 45ms;
+}
+
+/* 模式期间整排手牌保持静止, 让上方徽章始终与对应卡槽对齐; 详情仍由右上面板提供。 */
+:global([data-hand-tray][data-hand-action]) :global([data-hand-slot]):not([data-leaving]):hover > :global([data-hand-card]):not([data-selected]) {
+  transform: none;
+}
+:global([data-hand-tray][data-hand-action]) :global([data-hand-slot]):hover + :global([data-hand-slot]) > :global([data-hand-card]):not([data-selected]):not([data-leaving]),
+:global([data-hand-tray][data-hand-action]) :global([data-hand-slot]):has(+ :global([data-hand-slot]):hover) > :global([data-hand-card]):not([data-selected]):not([data-leaving]) {
+  transform: none;
+}
+:global([data-hand-tray][data-hand-action]) :global([data-hand-slot]) {
+  cursor: default;
+}
+
+/* ============================================================================
+   牌堆弹窗里的版式与厚度 —— 这里必须和上面的 [data-hand-tray] 平行维护一份。
+   HandCard 的卡面本体故意不分叉, 但手牌的鱼鳞叠压、上浮和飞入门控都只属于托盘;
+   弹窗需要原尺寸独立成格, 且悬停反馈交给外层放大卡承担。
+   --hand-card-w / --hc-text-h / --hand-card-h 由 PileDrawer 的网格下发, 与 HandTray
+   的跨组件变量契约保持一致。
+   ============================================================================ */
+:global([data-pile-grid]) :global([data-hand-slot]) {
+  z-index: 1;
+  flex: none;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+  cursor: default;
+}
+:global([data-pile-grid]) :global([data-hand-slot]):hover::after {
+  content: none;
+}
+:global([data-pile-grid]) :global([data-hand-card]) {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+  animation: pile-card-in 260ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
+  transition-property: opacity;
+  transition-duration: 160ms;
+}
+@keyframes pile-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+:global([data-pile-grid]) :global([data-hand-slot]):not([data-leaving]):hover > :global([data-hand-card]):not([data-selected]) {
+  transform: none;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+  opacity: 0.35;
+}
+:global([data-pile-magnify]) :global([data-hand-slot]) {
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+}
+:global([data-pile-magnify]) :global([data-hand-card]) {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+}
+:global([data-pile-magnify]) :global([data-hand-card]) {
+  animation: none;
+}
+:global([data-pile-magnify]) :global([data-hand-card])::after {
+  content: "";
+  animation: hc-sheen 0.5s ease-out;
+}
+@keyframes hc-sheen {
+  from {
+    opacity: 0;
+    transform: translateX(-115%);
+  }
+  28% {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(115%);
+  }
+}
+:global([data-card-detail]) :global([data-hand-slot]) {
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+  cursor: default;
+}
+:global([data-card-detail]) :global([data-hand-card]) {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: none;
+}
+
+/* 奖励面板的卡牌选择网格与牌堆弹窗同样使用原尺寸卡面, 但点击/悬停由外层卡格负责。
+   这里不复用 [data-pile-grid] 的 hover 变暗: 奖励面板没有放大卡, 候选必须始终全亮。 */
+:global([data-pick-grid]) :global([data-hand-slot]) {
+  z-index: 1;
+  flex: none;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+  cursor: pointer;
+}
+:global([data-pick-grid]) :global([data-hand-slot]):hover::after {
+  content: none;
+}
+:global([data-pick-grid]) :global([data-hand-card]) {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+  animation: pile-card-in 260ms cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+
+/* 据点卡组复用固定像素卡面, 缩放交给外层 data-deck-card, 避免字号与装饰被拉伸。 */
+:global([data-deck-card]) {
+  --hand-card-w: 220px;
+  --hc-text-h: 88px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
+}
+:global([data-deck-card]) :global([data-hand-slot]) {
+  z-index: 1;
+  flex: none;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+  cursor: inherit;
+}
+:global([data-deck-card]) :global([data-hand-slot]):hover::after {
+  content: none;
+}
+:global([data-deck-card]) :global([data-hand-card]) {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+  animation: none;
+  transition: none;
+}
+/* 据点是静态浏览: 战斗的悬停/选中上弹与反光一律不带过来,
+   位移/放大交给外层(character/DeckCard), 这里只把卡面本体钉在原位。 */
+:global([data-deck-card]) :global([data-hand-slot]):not([data-leaving]):hover > :global([data-hand-card]):not([data-selected]),
+:global([data-deck-card]) :global([data-hand-card][data-selected]) {
+  transform: none;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+}
+:global([data-deck-card]) :global([data-hand-slot]):not([data-leaving]):hover > :global([data-hand-card]):not([data-selected])::after,
+:global([data-deck-card]) :global([data-hand-card][data-selected])::after {
+  content: none;
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-pile-grid]) :global([data-hand-card]) {
+    animation: none;
+  }
+  :global([data-pile-magnify]) :global([data-hand-card])::after {
+    content: none;
+    animation: none;
+  }
+  :global([data-pile-grid]) :global([data-hand-slot]):not([data-leaving]):hover > :global([data-hand-card]):not([data-selected]) {
+    transform: none;
+    filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+  }
+  :global([data-pile-grid]) :global([data-hand-card]) {
+    transition-duration: 0.01ms;
+  }
+  :global([data-pick-grid]) :global([data-hand-card]) {
+    animation: none;
+  }
+  :global([data-deck-card]) :global([data-hand-card]) {
+    animation: none;
+  }
+}
