@@ -647,6 +647,33 @@
   background: radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--event-accent) 10%, transparent), transparent 30%);
 }
 
+/* 隐藏休息只有两条行动，但第一条带物品格；压缩这组内容的纵向占用，避免第二条行动被视口裁掉。 */
+.rest-panel .sceneViewport {
+  padding-top: 12px;
+}
+
+.rest-panel .choiceScene {
+  align-items: start;
+}
+
+.rest-panel .optionsList {
+  gap: 7px;
+}
+
+.rest-panel .option {
+  min-height: 78px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.rest-panel .optionLeading :global(.item-slot) {
+  width: 56px;
+}
+
+.rest-panel .backButton {
+  margin-top: 10px;
+}
+
 .expl-panel .panel-scan {
   background-size: 100% 140%;
   opacity: 0.16;

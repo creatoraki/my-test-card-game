@@ -3,7 +3,7 @@ import { energyTier } from "@/explore/session";
 import type { NodeHistoryEntry } from "@/explore/types";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
-import { endTiming } from "../endChoreo";
+import { endStepMs, endTiming } from "../endChoreo";
 import s from "./EventDropBand.module.css";
 
 const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
@@ -14,39 +14,46 @@ interface Props {
 
 export function EventDropBand({ history }: Props) {
   const total = history.length;
+  const timerRef = useRef<number | null>(null);
   const [dropped, setDropped] = useState(() => (prefersReducedMotion() ? total : 0));
   const complete = dropped >= total;
   const timing = endTiming();
-  const shift = -Math.max(0, dropped - timing.visibleSlices) * (timing.sliceH + 6);
+  const stepMs = endStepMs(total);
 
   useEffect(() => {
     setDropped(prefersReducedMotion() ? total : 0);
     if (!total || prefersReducedMotion()) return;
 
-    let interval: number | undefined;
-    const start = window.setTimeout(() => {
-      interval = window.setInterval(() => {
-        setDropped((current) => {
-          const next = Math.min(total, current + 1);
-          if (next >= total && interval != null) window.clearInterval(interval);
-          return next;
-        });
-      }, timing.dropStepMs);
-    }, timing.feedStartMs);
+    let cancelled = false;
+    const schedule = (next: number, delay: number) => {
+      timerRef.current = window.setTimeout(() => {
+        timerRef.current = null;
+        if (cancelled) return;
+        setDropped(next);
+        if (next < total) schedule(next + 1, stepMs);
+      }, delay);
+    };
+
+    schedule(1, timing.feedStartMs);
 
     return () => {
-      window.clearTimeout(start);
-      if (interval != null) window.clearInterval(interval);
+      cancelled = true;
+      if (timerRef.current != null) window.clearTimeout(timerRef.current);
+      timerRef.current = null;
     };
-  }, [timing.dropStepMs, timing.feedStartMs, total]);
+  }, [stepMs, timing.feedStartMs, total]);
 
-  const showAll = () => setDropped(total);
+  const showAll = () => {
+    if (timerRef.current != null) window.clearTimeout(timerRef.current);
+    timerRef.current = null;
+    setDropped(total);
+  };
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     showAll();
   };
-  const visible = history.slice(0, dropped);
+  const visible = history.slice(0, dropped).slice(-(timing.visibleSlices + 2)).reverse();
 
   return (
     <section
@@ -64,14 +71,18 @@ export function EventDropBand({ history }: Props) {
       </div>
       <div className={s["band-window"]}>
         <div
+          key={dropped}
           className={s["band-list"]}
-          style={{ "--shift": shift } as CSSProperties}
+          style={{
+            "--slice-drop": `${timing.sliceDropMs}ms`,
+            "--slice-h": `${timing.sliceH}px`,
+          } as CSSProperties}
         >
           {visible.map((entry, index) => (
             <BandSlice
               key={`${entry.round}-${entry.segment}-${entry.lane}-${entry.eventId}-${index}`}
               entry={entry}
-              fresh={index === visible.length - 1}
+              fresh={index === 0}
             />
           ))}
         </div>
@@ -87,7 +98,7 @@ function BandSlice({ entry, fresh }: { entry: NodeHistoryEntry; fresh: boolean }
 
   return (
     <article
-      className={cx(s["slice"], fresh && s["is-fresh"])}
+      className={cx(s["slice"], s[`k-${entry.eventKind ?? "unknown"}`], fresh && s["is-fresh"])}
       style={{ "--tier-color": tierColor } as CSSProperties}
     >
       <div className={s["slice-meta"]}>

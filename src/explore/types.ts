@@ -270,6 +270,7 @@ export interface NodeHistoryEntry {
   lane: number; // 抵达该节点时所处通道
   eventId: string;
   eventTitle: string;
+  eventKind: NodeEventKind;
   choiceIndex: number;
   energyBefore: number;
   energyAfter: number;

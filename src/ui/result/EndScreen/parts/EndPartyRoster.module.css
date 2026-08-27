@@ -34,25 +34,24 @@
 }
 
 .roster-list {
+  --slot-base-w: 160px;
+  --bust-zoom: 2.3;
   display: flex;
   flex: 1;
   flex-direction: row;
   align-items: flex-end;
-  gap: 14px;
+  gap: 10px;
   overflow: hidden;
 }
 
 .member {
-  flex: 0 0 200px;
-  width: 200px;
+  flex: 0 0 160px;
+  width: 160px;
   animation: rosterIn 520ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--roster-delay, 0ms) both;
 }
 
 .member-card {
-  --member-card-h: 220px;
-  --member-figure-h: 180px;
-  width: 200px;
-  height: 220px;
+  width: 100%;
 }
 
 .is-wiped .member-card {

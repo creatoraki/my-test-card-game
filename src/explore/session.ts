@@ -1417,6 +1417,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     lane: s.currentLane,
     eventId: ev.id,
     eventTitle: ev.title,
+    eventKind: ev.kind,
     choiceIndex: index,
     energyBefore,
     energyAfter: s.energy,
