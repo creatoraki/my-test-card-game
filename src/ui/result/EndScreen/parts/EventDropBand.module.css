@@ -1,0 +1,202 @@
+.band {
+  --band-skew: -10.08deg;
+  --slice-h: 96px;
+  --slice-gap: 6px;
+  --band-cyan: #7de1e8;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: skewX(var(--band-skew));
+  transform-origin: 50% 0;
+  border-right: 1px solid #ffffff61;
+  border-left: 1px solid #ffffff61;
+  background: linear-gradient(180deg, #06111624, #02070b45 72%, #02050770);
+  box-shadow: 0 0 60px -18px #00000099;
+  outline: none;
+  animation: bandEnter 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.band:focus-visible {
+  box-shadow: 0 0 0 2px #7de1e866, 0 0 60px -18px #00000099;
+}
+
+.band-counter {
+  position: absolute;
+  top: 22px;
+  right: 28px;
+  left: 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  transform: skewX(calc(-1 * var(--band-skew)));
+  color: #a9c4c3;
+  text-shadow: 0 2px 14px #000000e6;
+}
+
+.band-counter span {
+  color: var(--band-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.band-counter strong {
+  color: #f2f6ed;
+  font-size: 17px;
+}
+
+.band-counter small {
+  margin-left: auto;
+  color: #d8b45c;
+  font-family: var(--font-num);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.band-window {
+  position: absolute;
+  top: 72px;
+  right: 0;
+  bottom: 22px;
+  left: 0;
+  overflow: hidden;
+}
+
+.band-list {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  transform: translateY(calc(var(--shift) * 1px));
+  transition: transform 420ms cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+.slice {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: var(--slice-h);
+  grid-template-columns: 78px minmax(0, 1fr) 116px;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 var(--slice-gap);
+  padding: 0 24px;
+  overflow: hidden;
+  border: 1px solid #ffffff32;
+  border-radius: 0;
+  background: linear-gradient(160deg, #ffffff2e, #ffffff12 55%, #ffffff24);
+  -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
+  backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 #ffffff59,
+    inset 0 -1px 0 #ffffff26,
+    0 22px 46px -28px #000000cc;
+  color: #dce8e4;
+  clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
+}
+
+.slice::after {
+  position: absolute;
+  inset: 0;
+  border-left: 3px solid var(--tier-color, var(--band-cyan));
+  content: "";
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.slice-meta,
+.slice-copy,
+.slice-energy {
+  transform: skewX(calc(-1 * var(--band-skew)));
+}
+
+.slice-meta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.slice-mark {
+  color: #d8b45c;
+  font-family: var(--font-num);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.slice-lane {
+  overflow: hidden;
+  color: var(--tier-color, var(--band-cyan));
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slice-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.slice-copy strong,
+.slice-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slice-copy strong {
+  color: #eef6f0;
+  font-size: 16px;
+  text-shadow: 0 2px 14px #000000e6;
+}
+
+.slice-copy small {
+  color: #9db2b0;
+  font-size: 11px;
+}
+
+.slice-energy {
+  color: var(--tier-color, var(--band-cyan));
+  font-family: var(--font-num);
+  font-size: 14px;
+  text-align: right;
+  text-shadow: 0 2px 12px #000000e6;
+  white-space: nowrap;
+}
+
+.slice-energy.is-down::before { content: "↓ "; }
+.slice-energy.is-flat::before { content: "· "; }
+
+.slice.is-fresh {
+  animation: entryDrop 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.band-empty {
+  margin: 34px 0;
+  transform: skewX(calc(-1 * var(--band-skew)));
+  color: #91a5a3;
+  font-size: 13px;
+  text-align: center;
+}
+
+@keyframes bandEnter {
+  from { transform: translateX(520px) skewX(var(--band-skew)); }
+  to { transform: skewX(var(--band-skew)); }
+}
+
+@keyframes entryDrop {
+  from { opacity: 0; transform: translateY(-40px); filter: brightness(1.8); }
+  76% { transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); filter: brightness(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band,
+  .slice.is-fresh { animation: none; }
+
+  .band-list { transition: none; }
+}

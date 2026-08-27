@@ -8,6 +8,7 @@ import worklogBg from "@/assets/场景/控制终端.png";
 import storageBg from "@/assets/场景/物资中转仓.png";
 import assemblyBg from "@/assets/场景/模组装配仓.png";
 import shopBg from "@/assets/场景/商店.png";
+import expeditionResultBg from "@/assets/场景/远征结算.png";
 import productTrayArt from "@/assets/道具/商品托盘.png";
 
 export const SCENE_ART_SOURCES: readonly string[] = [
@@ -20,6 +21,7 @@ export const SCENE_ART_SOURCES: readonly string[] = [
   storageBg,
   assemblyBg,
   shopBg,
+  expeditionResultBg,
   productTrayArt,
 ];
 
@@ -35,4 +37,5 @@ export const WORKLOG_BG_ART = worklogBg;
 export const STORAGE_BG_ART = storageBg;
 export const ASSEMBLY_BG_ART = assemblyBg;
 export const SHOP_BG_ART = shopBg;
+export const EXPEDITION_RESULT_BG_ART = expeditionResultBg;
 export const PRODUCT_TRAY_ART = productTrayArt;

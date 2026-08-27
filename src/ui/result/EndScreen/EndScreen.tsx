@@ -6,10 +6,10 @@ import { getMap } from "@/data";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
-import { mapArt } from "@/ui/art/mapArt";
+import { EXPEDITION_RESULT_BG_ART } from "@/ui/art/sceneArt";
 import { cx } from "@/ui/common/cx";
 import { StageCanvas } from "@/ui/app/StageCanvas";
-import { EventDropFeed } from "./parts/EventDropFeed";
+import { EventDropBand } from "./parts/EventDropBand";
 import { EndHaulPanel } from "./parts/EndHaulPanel";
 import { EndPartyRoster } from "./parts/EndPartyRoster";
 import { EndTrophyRail } from "./parts/EndTrophyRail";
@@ -41,7 +41,7 @@ export function EndScreen() {
       data-end-stage=""
       data-explore-stage=""
     >
-      <img className={s["end-bg"]} src={mapArt(mapId ?? "neon-city")} alt="" draggable={false} />
+      <img className={s["end-bg"]} src={EXPEDITION_RESULT_BG_ART} alt="" draggable={false} />
       <div className={s["end-veil"]} aria-hidden="true" />
 
       <header className={s["end-header"]}>
@@ -56,13 +56,19 @@ export function EndScreen() {
         </div>
       </header>
 
-      <main className={s["end-layout"]}>
-        <EndPartyRoster members={summary.roster} wiped={summary.wiped} />
-        <div className={s["end-center"]}>
+      <main className={s["end-content"]}>
+        <div className={s["end-trophy-slot"]}>
           <EndTrophyRail trophies={summary.trophies} wiped={summary.wiped} />
+        </div>
+        <div className={s["end-haul-slot"]}>
           <EndHaulPanel haul={summary.haul} salvageValue={summary.salvageValue} wiped={summary.wiped} />
         </div>
-        <EventDropFeed history={session?.history ?? []} />
+        <div className={s["end-roster-slot"]}>
+          <EndPartyRoster members={summary.roster} wiped={summary.wiped} />
+        </div>
+        <div className={s["end-band-slot"]}>
+          <EventDropBand history={session?.history ?? []} />
+        </div>
       </main>
 
       <button className={cx(s["end-action"], s["expl-btn"], s["is-primary"])} onClick={backToTown}>

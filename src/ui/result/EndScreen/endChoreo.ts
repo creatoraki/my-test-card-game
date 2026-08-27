@@ -6,9 +6,9 @@ export const END_CHOREO = {
   trophyStagger: 110,
   trophyCountMs: 520,
   feedStartMs: 420,
-  dropStepMs: 170,
-  rowH: 56,
-  visibleRows: 10,
+  dropStepMs: 150,
+  sliceH: 96,
+  visibleSlices: 9,
 } as const;
 
 const END_REDUCED = {

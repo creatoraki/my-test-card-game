@@ -13,11 +13,8 @@ export function EndPartyRoster({ members, wiped }: Props) {
   return (
     <section className={cx(s["roster"], wiped && s["is-wiped"])} aria-label="队伍状态">
       <header className={s["roster-header"]}>
-        <div>
-          <span>队伍状态</span>
-          <h2>归队成员</h2>
-        </div>
-        <small>{members.length} 人</small>
+        <span>队伍状态</span>
+        <h2>归队成员 <small>· {members.length} 人</small></h2>
       </header>
       <div className={s["roster-list"]}>
         {members.length ? (

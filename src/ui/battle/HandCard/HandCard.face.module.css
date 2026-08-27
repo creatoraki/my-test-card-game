@@ -228,3 +228,28 @@
   background-size: 100% 2px, 100% 1px, auto;
   background-repeat: no-repeat, no-repeat, repeat;
 }
+
+/* 污染卡的说明区: 腐蚀从边框沿环贯通到卡下半身 —— 底色由中性黑金属换成
+   135° 黑→暗红, 走向与 .hc-edge 的污染沿环(左上 0% → 右下 100%)同向。
+   ⚠ 三层结构与基础 .hc-text 完全一致(1px 亮线 / 1px 暗线 / 底色), 这里只换颜色;
+     position/size/repeat 必须一起写, 多重背景的这三项不会按层继承。 */
+:global([data-hand-card][data-contaminated]) .hc-text {
+  background:
+    linear-gradient(var(--pe-1), var(--pe-1)),
+    linear-gradient(#0a0304, #0a0304),
+    linear-gradient(135deg, #12080a, #2a0d0c 45%, #4a120e);
+  background-position: left top, left 1px, 0 0;
+  background-size: 100% 1px, 100% 1px, auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+}
+
+/* 污染卡的选中态: 与中性卡同源 —— 只把上沿转折加粗提亮、底色整体抬一档, 仍是红的。 */
+:global([data-hand-card][data-contaminated][data-selected]) .hc-text {
+  background:
+    linear-gradient(#ff9a80, #ff9a80),
+    linear-gradient(#0a0304, #0a0304),
+    linear-gradient(135deg, #1d0e10, #3c1413 45%, #661c15);
+  background-position: left top, left 2px, 0 0;
+  background-size: 100% 2px, 100% 1px, auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+}

@@ -400,7 +400,7 @@ function freshCharacter(def: CharacterDef): CharacterState {
     hpLimit: Math.max(1, Math.round(def.base.maxHp)),
     exp: 0,
     expEarned: 0,
-    deck: def.startingCardIds.map((cid) => ({ ...makeCard(cid), contaminated: true })),
+    deck: def.startingCardIds.map((cid) => ({ ...makeCard(cid)})),
     deckLevel: 1,
     minDeckSize: RULES.deck.initialMinSize,
     equipped: { weapon: null, armor: null, trinket: null },

@@ -4,7 +4,7 @@ import type { NodeHistoryEntry } from "@/explore/types";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
 import { endTiming } from "../endChoreo";
-import s from "./EventDropFeed.module.css";
+import s from "./EventDropBand.module.css";
 
 const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
 
@@ -12,14 +12,14 @@ interface Props {
   history: NodeHistoryEntry[];
 }
 
-export function EventDropFeed({ history }: Props) {
+export function EventDropBand({ history }: Props) {
   const total = history.length;
   const [dropped, setDropped] = useState(() => (prefersReducedMotion() ? total : 0));
-  const feedWindowRef = useRef<HTMLDivElement>(null);
   const complete = dropped >= total;
+  const timing = endTiming();
+  const shift = -Math.max(0, dropped - timing.visibleSlices) * (timing.sliceH + 6);
 
   useEffect(() => {
-    const timing = endTiming();
     setDropped(prefersReducedMotion() ? total : 0);
     if (!total || prefersReducedMotion()) return;
 
@@ -38,11 +38,7 @@ export function EventDropFeed({ history }: Props) {
       window.clearTimeout(start);
       if (interval != null) window.clearInterval(interval);
     };
-  }, [total]);
-
-  useEffect(() => {
-    if (complete) feedWindowRef.current?.scrollTo({ top: 0 });
-  }, [complete]);
+  }, [timing.dropStepMs, timing.feedStartMs, total]);
 
   const showAll = () => setDropped(total);
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -50,54 +46,59 @@ export function EventDropFeed({ history }: Props) {
     event.preventDefault();
     showAll();
   };
-  const visible = history.slice(0, dropped).reverse();
+  const visible = history.slice(0, dropped);
 
   return (
     <section
-      className={s["feed"]}
+      className={cx(s["band"], complete && s["is-complete"])}
       aria-label="远征记录"
       role="button"
       tabIndex={0}
       onClick={showAll}
       onKeyDown={handleKeyDown}
     >
-      <header className={s["feed-header"]}>
-        <div>
-          <span>事件回放</span>
-          <h2>远征记录</h2>
-        </div>
-        <strong>{Math.min(dropped, total)} / {total}</strong>
-      </header>
-      <div ref={feedWindowRef} className={cx(s["feed-window"], complete && s["is-complete"])}>
-        <div key={dropped} className={s["feed-stack"]}>
+      <div className={s["band-counter"]}>
+        <span>事件回放</span>
+        <strong>远征记录</strong>
+        <small>{Math.min(dropped, total)} / {total}</small>
+      </div>
+      <div className={s["band-window"]}>
+        <div
+          className={s["band-list"]}
+          style={{ "--shift": shift } as CSSProperties}
+        >
           {visible.map((entry, index) => (
-            <FeedEntry
+            <BandSlice
               key={`${entry.round}-${entry.segment}-${entry.lane}-${entry.eventId}-${index}`}
               entry={entry}
-              fresh={index === 0}
+              fresh={index === visible.length - 1}
             />
           ))}
         </div>
-        {!total && <p className={s["feed-empty"]}>本趟没有已结算节点</p>}
+        {!total && <p className={s["band-empty"]}>本趟没有已结算节点</p>}
       </div>
     </section>
   );
 }
 
-function FeedEntry({ entry, fresh }: { entry: NodeHistoryEntry; fresh: boolean }) {
+function BandSlice({ entry, fresh }: { entry: NodeHistoryEntry; fresh: boolean }) {
   const tierColor = energyTier(entry.energyAfter).color;
+  const energyDown = entry.energyAfter < entry.energyBefore;
+
   return (
     <article
-      className={cx(s["feed-entry"], fresh && s["is-fresh"])}
+      className={cx(s["slice"], fresh && s["is-fresh"])}
       style={{ "--tier-color": tierColor } as CSSProperties}
     >
-      <span className={s["feed-mark"]}>R{entry.round}-{entry.segment + 1}</span>
-      <span className={s["feed-lane"]}>{ENTRY_LABELS[entry.lane] ?? entry.lane + 1}通道</span>
-      <span className={s["feed-event"]}>
+      <div className={s["slice-meta"]}>
+        <span className={s["slice-mark"]}>R{entry.round}-{entry.segment + 1}</span>
+        <span className={s["slice-lane"]}>{ENTRY_LABELS[entry.lane] ?? entry.lane + 1}通道</span>
+      </div>
+      <span className={s["slice-copy"]}>
         <strong>{entry.eventTitle}</strong>
         <small>{entry.note}</small>
       </span>
-      <span className={cx(s["feed-energy"], entry.energyAfter < entry.energyBefore ? s["is-down"] : s["is-flat"])}>
+      <span className={cx(s["slice-energy"], energyDown ? s["is-down"] : s["is-flat"])}>
         {entry.energyBefore} → {entry.energyAfter}
       </span>
     </article>
