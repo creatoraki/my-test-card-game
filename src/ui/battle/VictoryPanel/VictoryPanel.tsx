@@ -116,7 +116,7 @@ export function VictoryPanel() {
     >
       <div className={s["panel-stage"]}>
         <div className={s["panel-reveal"]}>
-        <section className={s["victory-panel"]}>
+          <section className={s["victory-panel"]}>
           <span className={s["panel-sweep"]} aria-hidden="true" />
           <header className={s["panel-head"]}>
             <div>
@@ -190,33 +190,33 @@ export function VictoryPanel() {
 
           </div>
           <VictoryCardOffer />
-        </section>
-      </div>
-      <div className={s["floating-actions"]}>
-        <div className={s["footer-switch"]}>
-          {confirmingAbandon ? (
-            <div key="confirm" className={cx(s["footer-state"], s["confirm-strip"])}>
-              <span>放弃剩余 {pendingRewardCount} 项奖励？</span>
-              <button className={cx(s["action-button"], s["danger"])} type="button" onClick={handleAbandon}>确认放弃</button>
-              <button className={s["action-button"]} type="button" onClick={() => setConfirmingAbandon(false)}>返回</button>
+          <footer className={s["panel-footer"]}>
+            <div className={s["footer-switch"]}>
+              {confirmingAbandon ? (
+                <div key="confirm" className={cx(s["footer-state"], s["confirm-strip"])}>
+                  <span>放弃剩余 {pendingRewardCount} 项奖励？</span>
+                  <button className={cx(s["action-button"], s["danger"])} type="button" onClick={handleAbandon}>确认放弃</button>
+                  <button className={s["action-button"]} type="button" onClick={() => setConfirmingAbandon(false)}>返回</button>
+                </div>
+              ) : (
+                <div key="actions" className={s["footer-state"]}>
+                  <button className={cx(s["action-button"], s["primary"])} type="button" onClick={() => trayRef.current?.takeAll()} disabled={!pendingLoot.length}>全部拾取</button>
+                  <button className={cx(s["action-button"], s["danger"])} type="button" onClick={() => setConfirmingAbandon(true)} disabled={!pendingRewardCount}>放弃剩余</button>
+                </div>
+              )}
             </div>
-          ) : (
-            <div key="actions" className={s["footer-state"]}>
-              <button className={cx(s["action-button"], s["primary"])} type="button" onClick={() => trayRef.current?.takeAll()} disabled={!pendingLoot.length}>全部拾取</button>
-              <button className={cx(s["action-button"], s["danger"])} type="button" onClick={() => setConfirmingAbandon(true)} disabled={!pendingRewardCount}>放弃剩余</button>
-            </div>
-          )}
+            <button
+              className={cx(s["action-button"], s["continue"], pendingRewardCount > 0 && s["is-blocked"], continueNudge && s["is-nudging"])}
+              type="button"
+              aria-disabled={pendingRewardCount > 0}
+              onClick={handleContinue}
+            >
+              {pendingRewardCount ? `还有 ${pendingRewardCount} 项奖励未处理` : "继续"}
+            </button>
+          </footer>
+          </section>
         </div>
-        <button
-          className={cx(s["action-button"], s["continue"], pendingRewardCount > 0 && s["is-blocked"], continueNudge && s["is-nudging"])}
-          type="button"
-          aria-disabled={pendingRewardCount > 0}
-          onClick={handleContinue}
-        >
-          {pendingRewardCount ? `还有 ${pendingRewardCount} 项奖励未处理` : "继续"}
-        </button>
       </div>
-    </div>
     </div>
   );
 }

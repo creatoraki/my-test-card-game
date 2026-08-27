@@ -1,27 +1,16 @@
 .loot-tray {
   position: relative;
+  width: 100%;
   min-height: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   padding: 12px;
   background: #03090c99;
   border: 1px solid #6fd2ff38;
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
 
-.loot-tray::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
-}
-
 .loot-grid {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-rows: auto;
-  grid-auto-columns: 132px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -62,42 +51,14 @@
   box-shadow: inset 0 3px 10px #00000080;
 }
 
-.loot-fly {
-  position: fixed;
-  z-index: 100;
-  left: var(--fly-left);
-  top: var(--fly-top);
-  width: var(--fly-w);
-  height: var(--fly-h);
-  pointer-events: none;
-  animation: vcLootFly var(--vc-fly-ms) var(--vc-ease-pop) var(--fly-delay, 0ms) both;
-}
-
-.loot-fly > button {
-  width: 100%;
-  height: 100%;
-}
-
 @keyframes vcLootIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes vcLootFly {
-  from { opacity: 0; transform: translate3d(0, 0, 0) scale(1); }
-  1% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  45% { opacity: 1; transform: translate3d(calc(var(--fly-x) * 0.5), calc(var(--fly-y) * 0.5 - 44px), 0) scale(1.18); }
-  to { opacity: 0; transform: translate3d(var(--fly-x), var(--fly-y), 0) scale(0.35); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .loot-cell {
     opacity: 1;
     animation: none;
-  }
-
-  .loot-fly {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
   }
 }

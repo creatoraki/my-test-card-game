@@ -14,7 +14,7 @@
 .panel-stage {
   position: relative;
   width: 1360px;
-  height: 1040px;
+  height: 900px;
 }
 
 .panel-reveal {
@@ -212,45 +212,45 @@
   overflow: hidden;
 }
 
-.floating-actions {
-  position: absolute;
-  right: -168px;
-  bottom: 22px;
-  z-index: 5;
+.panel-footer {
+  position: relative;
+  z-index: 3;
   display: flex;
-  width: 150px;
-  min-width: 0;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #405057;
 }
 
 .footer-switch {
   display: flex;
   min-width: 0;
-  width: 100%;
+  flex: 1;
 }
 
 .footer-state {
   display: flex;
-  width: 100%;
-  flex-direction: column;
+  width: auto;
+  flex-direction: row;
   gap: 12px;
   animation: vcFooterStateIn var(--vc-state-ms) var(--vc-ease) both;
 }
 
 .confirm-strip {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 12px;
-  align-items: stretch;
+  align-items: center;
   color: #ffcf9d;
   font-size: 15px;
   text-align: center;
 }
 
 .action-button {
-  width: 100%;
-  min-width: 0;
+  width: auto;
+  min-width: 140px;
   padding: 16px 12px;
   color: #cbe9f1;
   background: #0a1a20;
@@ -292,7 +292,8 @@
 }
 
 .action-button.continue {
-  padding: 22px 12px;
+  min-width: 220px;
+  padding: 18px 28px;
   font-size: 22px;
   color: #071014;
   background: #ffbd77;
