@@ -10,7 +10,6 @@ import {
   FLIP_MS_BY_RARITY,
   IMPACT_MS,
   RARE_BREATH_MS,
-  SETTLE_MS,
   rarityOf,
 } from "./forgeChoreo";
 import s from "./ForgeRevealCard.module.css";
@@ -52,7 +51,6 @@ export function ForgeRevealCard({
     "--back-delay": `${index * BACK_STAGGER_MS}ms`,
     "--impact-ms": `${IMPACT_MS}ms`,
     "--impact-delay": `${delayMs + (flipMs || FLIP_MS_BY_RARITY[rarity]) * 0.58}ms`,
-    "--settle-ms": `${SETTLE_MS}ms`,
     "--breath-ms": `${RARE_BREATH_MS}ms`,
     "--commit-ms": `${COMMIT_MS}ms`,
     "--flight-x": `${flight?.x ?? 0}px`,
@@ -86,10 +84,6 @@ export function ForgeRevealCard({
       </div>
       <span className={s["flash"]} aria-hidden="true" />
       <span className={s["shock"]} aria-hidden="true" />
-      <span className={cx(s["edge-node"], s["edge-top-left"])} aria-hidden="true" />
-      <span className={cx(s["edge-node"], s["edge-top-right"])} aria-hidden="true" />
-      <span className={cx(s["edge-node"], s["edge-bottom-left"])} aria-hidden="true" />
-      <span className={cx(s["edge-node"], s["edge-bottom-right"])} aria-hidden="true" />
     </div>
   );
 }
