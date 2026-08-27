@@ -2,7 +2,7 @@ import { getItemDef } from "@/data";
 import type { ExploreState, PartySnapshot } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
 import type { RunResult } from "@/store/runStore";
-import type { CharacterState } from "@/store/townStore";
+import { vitalsOf, type CharacterState } from "@/store/townStore";
 
 export type EndTrophyTone = "gold" | "cyan" | "green" | "red";
 
@@ -78,10 +78,14 @@ export function buildEndSummary(
     ],
     salvageValue,
     haul,
-    roster: (session?.party ?? []).map((member) => ({
-      ...member,
-      pollution: characters[member.charId]?.pollution ?? 0,
-    })),
+    roster: (session?.party ?? []).map((member) => {
+      const character = characters[member.charId];
+      return {
+        ...member,
+        maxHp: character ? vitalsOf(character).maxHp : member.maxHp,
+        pollution: character?.pollution ?? 0,
+      };
+    }),
     wiped,
   };
 }

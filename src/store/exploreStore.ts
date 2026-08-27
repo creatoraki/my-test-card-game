@@ -96,7 +96,7 @@ interface ExploreStore {
   retreatNow: () => void;
   settleBattle: (
     won: boolean,
-    survivors: { charId: string; hp: number; hpLimit: number; alive: boolean }[],
+    survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; limitLoss: number }[],
     enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
     challengeBonus: number,
   ) => void;

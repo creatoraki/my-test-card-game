@@ -51,7 +51,7 @@ const PARTY: PartySnapshot[] = [
 ];
 
 const SEGMENTS = EXPLORE_RULES.segmentsPerRound;
-const WIN = [{ charId: "swordsman", hp: 70, alive: true }];
+const WIN = [{ charId: "swordsman", hp: 70, alive: true, limitLoss: 0 }];
 
 // ⚠ 直接写 s.phase !== "x" 会让 TS 顺着上一处早退把类型收窄成单个字面量, 后面的比较就成了
 // 「两个字面量无交集」的编译错误。会话是被纯函数就地改的, 收窄在这里没有意义 —— 统一走这个取值器。
@@ -797,7 +797,7 @@ describe("战斗回填与团灭", () => {
   it("战斗后血量写回队伍, 下一轮以此开局", () => {
     const s = newSession();
     intoBattle(s);
-    finishBattle(s, true, [{ charId: "swordsman", hp: 23, alive: true }], ["scrap-bot"]);
+    finishBattle(s, true, [{ charId: "swordsman", hp: 23, alive: true, limitLoss: 0 }], ["scrap-bot"]);
     expect(s.party[0].hp).toBe(23);
     expect(s.party[0].alive).toBe(true);
     expect(s.round).toBe(2);
@@ -831,7 +831,7 @@ describe("战斗回填与团灭", () => {
     s.loot = 200;
     s.backpack = [makeItemStack("bronze-bear"), makeItemStack("data-shard")];
     s.shipped = [makeItemStack("silver-bear")];
-    finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false }], ["scrap-bot"]);
+    finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false, limitLoss: 0 }], ["scrap-bot"]);
     expect(s.phase).toBe("wiped");
     expect(s.loot).toBe(Math.floor(200 * EXPLORE_RULES.wipe.lootKept));
     expect(s.backpack).toEqual([]);

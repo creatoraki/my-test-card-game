@@ -1603,7 +1603,7 @@ export function retreat(s: ExploreState): boolean {
 export function finishBattle(
   s: ExploreState,
   won: boolean,
-  survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; maxHp?: number }[],
+  survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; limitLoss: number }[],
   enemyDefIds: string[],
   challengeBonus = 0,
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
@@ -1615,9 +1615,8 @@ export function finishBattle(
   for (const p of s.party) {
     const found = survivors.find((x) => x.charId === p.charId);
     if (!found) continue;
-    p.maxHp = Math.max(1, Math.round(found.maxHp ?? p.maxHp));
-    p.hpLimit = Math.max(1, Math.min(p.maxHp, Math.round(found.hpLimit ?? p.hpLimit)));
-    p.hp = Math.min(p.maxHp, Math.max(0, found.hp));
+    p.hpLimit = Math.max(1, Math.min(p.maxHp, p.hpLimit - Math.max(0, Math.round(found.limitLoss))));
+    p.hp = Math.max(0, Math.min(p.hpLimit, Math.round(found.hp)));
     p.alive = found.alive && found.hp > 0;
   }
 

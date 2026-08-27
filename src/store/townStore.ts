@@ -827,10 +827,11 @@ export const useTownStore = create<TownStore>()(
         const cs = get().characters[charId];
         if (!cs?.quirks.length) return null;
         const target = quirkId && cs.quirks.includes(quirkId) ? quirkId : cs.quirks[0];
+        const next = { ...cs, quirks: cs.quirks.filter((id) => id !== target) };
         set({
           characters: {
             ...get().characters,
-            [charId]: { ...cs, quirks: cs.quirks.filter((id) => id !== target) },
+            [charId]: shiftVitals(cs, next),
           },
         });
         return target;
@@ -893,7 +894,8 @@ export const useTownStore = create<TownStore>()(
           ) {
             continue;
           }
-          characters[condition.charId] = { ...cs, pollution, sick: condition.sick, quirks };
+          const next = { ...cs, pollution, sick: condition.sick, quirks };
+          characters[condition.charId] = shiftVitals(cs, next);
           changed = true;
         }
         if (changed) set({ characters });
