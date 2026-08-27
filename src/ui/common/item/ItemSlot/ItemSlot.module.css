@@ -39,6 +39,19 @@
     opacity 0.16s ease;
 }
 
+/* 父级 clip-path 会裁掉两个斜切缺口处的光晕，不额外沿斜边包边。 */
+.item-slot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 3px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 var(--item-slot-halo, 10px) var(--rg),
+    inset 0 0 var(--item-slot-halo-core, 3px) var(--rg);
+}
+
 .item-slot:hover {
   transform: translateY(-2px);
 }
@@ -76,6 +89,7 @@
 .item-slot.r-legendary::before {
   content: "";
   position: absolute;
+  z-index: 1;
   top: 0;
   left: 0;
   border-top: var(--item-slot-corner, 9px) solid var(--rr);
@@ -94,6 +108,8 @@
 
 /* ── 内容 ── */
 .item-slot-icon {
+  position: relative;
+  z-index: 1;
   display: block;
   width: var(--item-slot-icon-size, 46%);
   line-height: 0;
@@ -106,6 +122,8 @@
 }
 
 .item-slot-name {
+  position: relative;
+  z-index: 1;
   max-width: 100%;
   overflow: hidden;
   font-size: var(--item-slot-name-size, 9px);
@@ -119,6 +137,7 @@
 
 .item-slot-count {
   position: absolute;
+  z-index: 1;
   right: 3px;
   bottom: 2px;
   font-size: var(--item-slot-count-size, 10px);
@@ -130,6 +149,7 @@
 /* 羁绊词条角标 —— 放左上角, 与右下角的数量角标错开互不遮挡 */
 .item-slot-bond {
   position: absolute;
+  z-index: 1;
   top: 2px;
   left: 3px;
   width: var(--item-slot-bond-size, 16px);
@@ -144,6 +164,9 @@
   background: #0000002e;
   border: 1px dashed #ffffff1f;
   box-shadow: none;
+}
+.item-slot.is-empty::after {
+  content: none;
 }
 .item-slot.is-empty:hover {
   transform: none;
