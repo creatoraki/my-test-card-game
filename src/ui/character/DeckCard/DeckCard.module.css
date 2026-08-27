@@ -34,7 +34,7 @@
 }
 
 .deck-card:focus-visible {
-    outline: 2px solid var(--owner-color, var(--cd-glow));
+    outline: 1px solid var(--csf-neon, #4fd8ff);
     outline-offset: 3px;
     background: transparent;
 }

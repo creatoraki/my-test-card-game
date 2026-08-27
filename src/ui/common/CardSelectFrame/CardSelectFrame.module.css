@@ -4,48 +4,105 @@
   z-index: 12;
   overflow: visible;
   pointer-events: none;
-  filter: drop-shadow(0 0 6px #dfe9f2a6);
+  --csf-size: 26px;
+  --csf-inset: 2px;
+  --csf-thickness: 2px;
+  --csf-core: #f2fdff;
+  --csf-neon: #4fd8ff;
+  --csf-neon-deep: #12a8e8;
+  --csf-bevel: 14px;
+  --csf-bevel-scaled: calc(var(--csf-bevel) * var(--deck-card-scale, 1));
+  --csf-size-scaled: calc(var(--csf-size) * var(--deck-card-scale, 1));
+  --csf-inset-scaled: calc(var(--csf-inset) * var(--deck-card-scale, 1));
+  --csf-thickness-scaled: calc(var(--csf-thickness) * var(--deck-card-scale, 1));
+  filter:
+    drop-shadow(0 0 2px var(--csf-neon))
+    drop-shadow(0 0 6px var(--csf-neon))
+    drop-shadow(0 0 14px var(--csf-neon))
+    drop-shadow(0 0 26px var(--csf-neon-deep));
+  animation: cardSelectFrameBreath 2.4s ease-in-out infinite alternate;
 }
 
 .corner {
   position: absolute;
-  width: var(--csf-size, 16px);
-  height: var(--csf-size, 16px);
-  border-width: 2px;
-  border-style: solid;
-  border-color: #f0f6fa;
+  width: var(--csf-size-scaled);
+  height: var(--csf-size-scaled);
+  --csf-corner-bevel: 0px;
+  --csf-line-width: var(--csf-thickness-scaled);
+  --csf-line-color: var(--csf-core);
+  --csf-horizontal-position: left;
+  --csf-horizontal-cross-position: top;
+  --csf-vertical-position: left;
+  --csf-vertical-cross-position: top;
+  --csf-diagonal-position: left;
+  --csf-diagonal-cross-position: top;
+  background:
+    linear-gradient(var(--csf-line-color), var(--csf-line-color)) no-repeat var(--csf-horizontal-position) var(--csf-horizontal-cross-position) / calc(100% - var(--csf-corner-bevel)) var(--csf-line-width),
+    linear-gradient(var(--csf-line-color), var(--csf-line-color)) no-repeat var(--csf-vertical-position) var(--csf-vertical-cross-position) / var(--csf-line-width) calc(100% - var(--csf-corner-bevel)),
+    linear-gradient(135deg, transparent 50%, var(--csf-line-color) 50% calc(50% + var(--csf-line-width)), transparent calc(50% + var(--csf-line-width))) no-repeat var(--csf-diagonal-position) var(--csf-diagonal-cross-position) / var(--csf-corner-bevel) var(--csf-corner-bevel);
   animation: cardSelectFrameIn 120ms cubic-bezier(.2, .72, .28, 1) both;
 }
 
+.corner::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  --csf-line-width: calc(var(--csf-thickness-scaled) + 2px);
+  --csf-line-color: color-mix(in srgb, var(--csf-neon) 70%, transparent);
+  background:
+    linear-gradient(var(--csf-line-color), var(--csf-line-color)) no-repeat var(--csf-horizontal-position) var(--csf-horizontal-cross-position) / calc(100% - var(--csf-corner-bevel)) var(--csf-line-width),
+    linear-gradient(var(--csf-line-color), var(--csf-line-color)) no-repeat var(--csf-vertical-position) var(--csf-vertical-cross-position) / var(--csf-line-width) calc(100% - var(--csf-corner-bevel)),
+    linear-gradient(135deg, transparent 50%, var(--csf-line-color) 50% calc(50% + var(--csf-line-width)), transparent calc(50% + var(--csf-line-width))) no-repeat var(--csf-diagonal-position) var(--csf-diagonal-cross-position) / var(--csf-corner-bevel) var(--csf-corner-bevel);
+  pointer-events: none;
+}
+
 .is-tl {
-  top: calc(var(--csf-offset, 5px) * -1);
-  left: calc(var(--csf-offset, 5px) * -1);
-  border-right: 0;
-  border-bottom: 0;
+  top: var(--csf-inset-scaled);
+  left: var(--csf-inset-scaled);
+  --csf-corner-bevel: var(--csf-bevel-scaled);
+  --csf-horizontal-position: right;
+  --csf-horizontal-cross-position: top;
+  --csf-vertical-position: left;
+  --csf-vertical-cross-position: bottom;
+  --csf-diagonal-position: left;
+  --csf-diagonal-cross-position: top;
   transform-origin: bottom right;
 }
 
 .is-tr {
-  top: calc(var(--csf-offset, 5px) * -1);
-  right: calc(var(--csf-offset, 5px) * -1);
-  border-bottom: 0;
-  border-left: 0;
+  top: var(--csf-inset-scaled);
+  right: var(--csf-inset-scaled);
+  --csf-horizontal-position: left;
+  --csf-horizontal-cross-position: top;
+  --csf-vertical-position: right;
+  --csf-vertical-cross-position: top;
+  --csf-diagonal-position: right;
+  --csf-diagonal-cross-position: top;
   transform-origin: bottom left;
 }
 
 .is-bl {
-  bottom: calc(var(--csf-offset, 5px) * -1);
-  left: calc(var(--csf-offset, 5px) * -1);
-  border-top: 0;
-  border-right: 0;
+  bottom: var(--csf-inset-scaled);
+  left: var(--csf-inset-scaled);
+  --csf-horizontal-position: left;
+  --csf-horizontal-cross-position: bottom;
+  --csf-vertical-position: left;
+  --csf-vertical-cross-position: top;
+  --csf-diagonal-position: left;
+  --csf-diagonal-cross-position: bottom;
   transform-origin: top right;
 }
 
 .is-br {
-  right: calc(var(--csf-offset, 5px) * -1);
-  bottom: calc(var(--csf-offset, 5px) * -1);
-  border-top: 0;
-  border-left: 0;
+  right: var(--csf-inset-scaled);
+  bottom: var(--csf-inset-scaled);
+  --csf-corner-bevel: var(--csf-bevel-scaled);
+  --csf-horizontal-position: left;
+  --csf-horizontal-cross-position: bottom;
+  --csf-vertical-position: right;
+  --csf-vertical-cross-position: top;
+  --csf-diagonal-position: right;
+  --csf-diagonal-cross-position: bottom;
   transform-origin: top left;
 }
 
@@ -60,7 +117,36 @@
   }
 }
 
+@keyframes cardSelectFrameBreath {
+  from {
+    opacity: .78;
+    filter:
+      drop-shadow(0 0 1px var(--csf-neon))
+      drop-shadow(0 0 4px var(--csf-neon))
+      drop-shadow(0 0 10px var(--csf-neon))
+      drop-shadow(0 0 18px var(--csf-neon-deep));
+  }
+  to {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 2px var(--csf-core))
+      drop-shadow(0 0 6px var(--csf-neon))
+      drop-shadow(0 0 14px var(--csf-neon))
+      drop-shadow(0 0 26px var(--csf-neon-deep));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .frame {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 2px var(--csf-neon))
+      drop-shadow(0 0 6px var(--csf-neon))
+      drop-shadow(0 0 14px var(--csf-neon))
+      drop-shadow(0 0 26px var(--csf-neon-deep));
+    animation: none;
+  }
+
   .corner {
     animation: none;
   }
