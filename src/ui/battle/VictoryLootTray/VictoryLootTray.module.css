@@ -16,6 +16,12 @@
   gap: 12px;
 }
 
+.loot-cell,
+.empty-slot {
+  aspect-ratio: 1;
+  min-height: 104px;
+}
+
 .loot-cell {
   min-width: 0;
   opacity: 0;
@@ -25,7 +31,8 @@
 .loot-slot {
   --item-slot-icon-size: 72%;
   width: 100%;
-  min-height: 104px;
+  height: 100%;
+  aspect-ratio: auto;
   /* background: linear-gradient(145deg, #132830, #071014); */
   border-color: #6fd2ff4c;
   transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) var(--vc-ease), filter var(--vc-control-ms) var(--vc-ease);
@@ -45,10 +52,7 @@
 .empty-slot {
   box-sizing: border-box;
   width: 100%;
-  min-height: 104px;
-  background:
-    repeating-linear-gradient(135deg, transparent 0 8px, #6fd2ff24 8px 9px),
-    #071a2480;
+  background: #071a2480;
   border: 1px dashed #6fd2ff4c;
   box-shadow: inset 0 3px 10px #00000080;
 }
