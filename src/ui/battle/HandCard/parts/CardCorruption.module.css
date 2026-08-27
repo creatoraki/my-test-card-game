@@ -1,0 +1,31 @@
+.corruption {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: block;
+  pointer-events: none;
+}
+
+.corruption svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mainCracks,
+.branchCracks {
+  fill: none;
+  stroke: var(--pollution-crack, #d8402f);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mainCracks {
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.branchCracks {
+  stroke-width: 0.6;
+  opacity: 0.3;
+}

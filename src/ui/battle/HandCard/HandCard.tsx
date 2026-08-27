@@ -7,6 +7,7 @@ import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
 import { DiscardIcon, RedrawIcon } from "@/ui/battle/HandTools";
+import { CardCorruption } from "./parts/CardCorruption";
 import { cx } from "@/ui/common/cx";
 import { useCardText } from "@/ui/common/cardText";
 import { CardTextRich } from "@/ui/common/CardTextRich";
@@ -212,6 +213,7 @@ export const HandCard = memo(function HandCard({
 
         {/* 描边环: 跟着 14px 斜切角走的金属斜面(上/左受光 + 下/右背光, 见 HandCard.css .hc-edge) */}
         <span className={s["hc-edge"]} aria-hidden />
+        {card.contaminated && <CardCorruption />}
 
         {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上 */}
         <span className={s["hc-cost"]} title="消耗法力水晶">
@@ -236,11 +238,6 @@ export const HandCard = memo(function HandCard({
         {/* 选中角标: 右上角一块配色三角切片。选中态**唯一**的不依赖位移的线索 ——
             鼠标移开手牌区后, 玩家仍要能一眼认出锁定的是哪张。仅 .selected 时渲染。 */}
         {selected && <span className={s["hc-selected-mark"]} aria-hidden />}
-        {card.contaminated && (
-          <span className={s["hc-pollution-mark"]} title="污染卡 · 抽到时污染值 +2" aria-label="污染卡">
-            ☣
-          </span>
-        )}
         {variant === "pile" && card.marks?.map((markId) => {
           const mark = CARD_MARK_DEFS[markId];
           if (!mark) return null;

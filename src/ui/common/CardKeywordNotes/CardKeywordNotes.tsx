@@ -5,15 +5,17 @@ import s from "./CardKeywordNotes.module.css";
 interface Props {
   text: string;
   className?: string;
+  additionalNotes?: ReadonlyArray<{ id: string; name: string; desc: string }>;
 }
 
-export function CardKeywordNotes({ text, className }: Props) {
+export function CardKeywordNotes({ text, className, additionalNotes }: Props) {
   const keywords = cardKeywordsIn(text);
-  if (keywords.length === 0) return null;
+  const notes = [...keywords, ...(additionalNotes ?? [])];
+  if (notes.length === 0) return null;
 
   return (
     <div className={cx(s.notes, className)}>
-      {keywords.map((keyword) => (
+      {notes.map((keyword) => (
         <div key={keyword.id} className={s.note}>
           <strong>{keyword.name}</strong>
           <span>{keyword.desc}</span>

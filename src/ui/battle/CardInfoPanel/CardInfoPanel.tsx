@@ -65,7 +65,15 @@ function CardInfoPanelContent({ card, cost, starPay }: { card: Card; cost?: numb
           starPay={starPay}
         />
       </div>
-      <CardKeywordNotes text={text} className={s["cip-keywords"]} />
+      <CardKeywordNotes
+        text={text}
+        className={s["cip-keywords"]}
+        additionalNotes={card.contaminated ? [{
+          id: "pollution",
+          name: "污染",
+          desc: "抽到这张牌时污染值 +2",
+        }] : undefined}
+      />
     </div>
   );
 }
