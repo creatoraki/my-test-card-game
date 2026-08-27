@@ -212,9 +212,6 @@
   --card-edge-core: #c2ced8;
   --card-edge-dark: #8e9ca7;
   --card-edge-dark-core: #5c6871;
-  /* ② 四角 L 卡扣同步提亮 ⇒ 读作"卡扣咬合" */
-  --frame-lit: #f0f6fa;
-  --frame-core: #a9b7c2;
 }
 :global([data-hand-card][data-contaminated][data-selected]) {
   --card-edge: #b56e5d;
@@ -222,7 +219,7 @@
   --card-edge-dark: #63342e;
   --card-edge-dark-core: #321c1c;
 }
-/* ③ 卡底整体提亮一档(受光渐变换更亮的一组, 其余八层不动) */
+/* ② 卡底整体提亮一档(受光渐变换更亮的一组, 其余八层不动) */
 :global([data-hand-card][data-selected]) {
   background:
     var(--card-etch),

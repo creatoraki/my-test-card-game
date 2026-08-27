@@ -6,6 +6,7 @@ import { cardArt } from "@/ui/art/cardArt";
 import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
 import { DiscardIcon, RedrawIcon } from "@/ui/battle/HandTools";
 import { CardCorruption } from "./parts/CardCorruption";
+import { PollutionVirusMark } from "./parts/PollutionVirusMark";
 import { CardMarks } from "./parts/CardMarks";
 import { cx } from "@/ui/common/cx";
 import { useCardText } from "@/ui/common/cardText";
@@ -168,12 +169,13 @@ export const HandCard = memo(function HandCard({
         {/* 配图层: 卡上段的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪) */}
         {hasArt && <span className={f["hc-art"]} aria-hidden />}
 
-        {/* 机框层: 四角 L 卡扣(金属亮色)。纯装饰, 不吃点击 */}
+        {/* 机框层: 升级卡凿痕的挂载层。纯装饰, 不吃点击 */}
         <span className={s["hc-frame"]} aria-hidden />
 
         {/* 描边环: 跟着 14px 斜切角走的金属斜面(上/左受光 + 下/右背光, 见 HandCard.module.css .hc-edge) */}
         <span className={s["hc-edge"]} aria-hidden />
         {card.contaminated && <CardCorruption />}
+        {card.contaminated && <PollutionVirusMark />}
 
         {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上 */}
         <span className={f["hc-cost"]} aria-label="消耗法力水晶">

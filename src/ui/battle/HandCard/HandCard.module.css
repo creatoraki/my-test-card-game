@@ -111,7 +111,7 @@
    ── 卡内层序(z-index, 由下往上) ──
      .hand-card::before auto  边角磨损(两个斜切口内侧的亮边)
      .hc-art            auto  配图(DOM 在 ::before 之后 ⇒ 压住它, 磨损只在配图外的金属面可见)
-     .hc-frame           3    四角 L 卡扣(实体铆件); ::after 是升级卡的凿痕
+    .hc-frame           3    升级凿痕(原四角 L 卡扣已删); ::after 是升级卡的凿痕
      .hc-text            4    底部效果说明
      .hc-title           5    卡名压条(压在配图下沿的渐变浮层)
      .hc-cost            6    费用徽章(嵌在左上斜口内侧的立体金属圆盘)
@@ -228,53 +228,18 @@
   --card-edge-dark-core: #321c1c;
 }
 
-/* ── 机框层: 四角 L 卡扣 ── */
+/* ── 机框层: 升级凿痕的挂载层 ── */
 /* ⚠ 旧版这层还叠了一整张全卡扫描线(repeating-linear-gradient), 已删除 —— 扫描线是"发光屏幕"的
    语言, 与金属刻板的拉丝表面直接打架(两套纹理叠在一起读作脏)。表面纹理现在只由 .hand-card
    自身的拉丝渐变承担。 */
+/* 右上/左下的 L 形金属卡扣已移除, 为污染卡右上角的病毒符号让位;
+  .hc-frame 本体仍保留, 仅由 ::after 承载升级卡凿痕。 */
 .hc-frame {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
   overflow: hidden;
-}
-/* L 形卡扣**只放在两个直角**(右上 / 左下)。
-   ⚠ 另两个角(左上 / 右下)是 14px 斜切角, 那里放 L 卡扣会跟斜口打架 —— 它们的处理交给
-     .hc-edge 主环的两块配色斜口。于是四个角各司其职、还构成对角对称。
-   ⚠ 卡扣是**结构件**(铆在板子上的角铁), 不是发光元件, 故走中性金属而不是任何配色。
-   ★ 每条 L 边现在是 3px 而不是 2px, 且**自带明暗**(1px 亮边 + 2px 芯) —— 与整圈边棱同一套
-     "高光棱 + 芯面"的语言, 读作真的铆件。
-   ⚠ 旧版整层 opacity: 0.5, 半透明的细线又碎又弱, 远看只剩一点脏。现在不透明度给满,
-     厚重感由**明暗**而不是**淡化**来控制。 */
-.hc-frame::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    /* A 组: 1px 亮边(压在芯上, 朝卡心的一侧) */
-    linear-gradient(var(--frame-lit, #b3c0ca), var(--frame-lit, #b3c0ca)),
-    linear-gradient(var(--frame-lit, #b3c0ca), var(--frame-lit, #b3c0ca)),
-    linear-gradient(var(--frame-lit, #b3c0ca), var(--frame-lit, #b3c0ca)),
-    linear-gradient(var(--frame-lit, #b3c0ca), var(--frame-lit, #b3c0ca)),
-    /* B 组: 3px 芯 */
-    linear-gradient(var(--frame-core, #6b7883), var(--frame-core, #6b7883)),
-    linear-gradient(var(--frame-core, #6b7883), var(--frame-core, #6b7883)),
-    linear-gradient(var(--frame-core, #6b7883), var(--frame-core, #6b7883)),
-    linear-gradient(var(--frame-core, #6b7883), var(--frame-core, #6b7883));
-  /* 内缩 9px: 落在 .hc-edge 三层棱(0~3px)之外, 与它之间留出空当。
-     亮边组比芯组多缩 2px ⇒ 亮边落在芯的内侧(朝卡心), 符合左上光源。 */
-  background-position:
-    right 11px top 11px,
-    right 11px top 11px,
-    left 11px bottom 11px,
-    left 11px bottom 11px,
-    right 9px top 9px,
-    right 9px top 9px,
-    left 9px bottom 9px,
-    left 9px bottom 9px;
-  background-size: 18px 1px, 1px 18px, 18px 1px, 1px 18px, 18px 3px, 3px 18px, 18px 3px, 3px 18px;
-  background-repeat: no-repeat;
 }
 /* 升级卡的凿痕: 左上斜口内侧两道短斜刻 —— 像在板子上凿了记号。
    ⚠ 走 .hc-frame::after(该伪元素未被占用)而不是新开 DOM; 定位避开费用徽章(徽章占 12~58)。 */
