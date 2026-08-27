@@ -20,6 +20,26 @@ import swordsmanCloudVeilArt from "@/assets/skills/swordsman/云隐.png";
 import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.png";
 import swordsmanMoonShadowArt from "@/assets/skills/swordsman/月影.png";
 import prophetEmergencyTreatmentArt from "@/assets/skills/prophet/紧急救治.png";
+import botanistContinuousShotArt from "@/assets/skills/botanist/双重射击.png";
+import botanistRecycleShotArt from "@/assets/skills/botanist/回收射击.png";
+import botanistTwinFlowerArt from "@/assets/skills/botanist/双生花.png";
+import botanistAgaveArt from "@/assets/skills/botanist/龙舌兰.png";
+import botanistPhotosynthesisArt from "@/assets/skills/botanist/光合储能.png";
+import botanistThornLashArt from "@/assets/skills/botanist/荆棘鞭击.png";
+import botanistSporeCloudArt from "@/assets/skills/botanist/孢子云雾.png";
+import botanistVineEntangleArt from "@/assets/skills/botanist/藤蔓缠绕.png";
+import botanistCactusArmorArt from "@/assets/skills/botanist/仙人掌护甲.png";
+import botanistInsectTrapArt from "@/assets/skills/botanist/食虫陷阱.png";
+import botanistSaltMossArt from "@/assets/skills/botanist/盐青苔.png";
+import botanistRootBondArt from "@/assets/skills/botanist/根系联结.png";
+import botanistPoisonMushroomArt from "@/assets/skills/botanist/毒蘑菇孢子.png";
+import botanistIvyShelterArt from "@/assets/skills/botanist/常春藤庇护.png";
+import botanistWitherSporeArt from "@/assets/skills/botanist/枯萎孢子.png";
+import botanistPurifyNectarArt from "@/assets/skills/botanist/净化甘露.png";
+import botanistBloodVineArt from "@/assets/skills/botanist/汲血蔓.png";
+import botanistGuidingCrownArt from "@/assets/skills/botanist/引路棘冠.png";
+import botanistNewLeafArt from "@/assets/skills/botanist/新叶萌发.png";
+import botanistChaoticSpikeArt from "@/assets/skills/botanist/乱刺散射.png";
 
 export const CARD_ART: Record<string, string> = {
   "swordsman-basic-attack": basicAttackArt,
@@ -47,11 +67,26 @@ export const CARD_ART: Record<string, string> = {
   "falling-sakura": swordsmanFallingSakuraArt,
   "moon-shadow": swordsmanMoonShadowArt,
   "emergency-treatment": prophetEmergencyTreatmentArt,
-  "continuous-shot": placeholderArt,
-  "recycle-shot": placeholderArt,
-  "twin-flower": placeholderArt,
-  "agave": placeholderArt,
-  "photosynthesis": placeholderArt,
+  "continuous-shot": botanistContinuousShotArt,
+  "recycle-shot": botanistRecycleShotArt,
+  "twin-flower": botanistTwinFlowerArt,
+  "agave": botanistAgaveArt,
+  "photosynthesis": botanistPhotosynthesisArt,
+  "thorn-lash": botanistThornLashArt,
+  "spore-cloud": botanistSporeCloudArt,
+  "vine-entangle": botanistVineEntangleArt,
+  "cactus-armor": botanistCactusArmorArt,
+  "insect-trap": botanistInsectTrapArt,
+  "salt-moss": botanistSaltMossArt,
+  "root-bond": botanistRootBondArt,
+  "poison-mushroom": botanistPoisonMushroomArt,
+  "ivy-shelter": botanistIvyShelterArt,
+  "wither-spore": botanistWitherSporeArt,
+  "purify-nectar": botanistPurifyNectarArt,
+  "blood-vine": botanistBloodVineArt,
+  "guiding-crown": botanistGuidingCrownArt,
+  "new-leaf": botanistNewLeafArt,
+  "chaotic-spike": botanistChaoticSpikeArt,
 };
 
 export const CARD_ART_SOURCES: readonly string[] = [...new Set([...Object.values(CARD_ART), placeholderArt])];
