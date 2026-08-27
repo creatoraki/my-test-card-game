@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { cx } from "@/ui/common/cx";
+import { CardSelectFrame } from "@/ui/common/CardSelectFrame";
 import { HandCard } from "@/ui/battle/HandCard";
 import s from "./DeckCard.module.css";
 
@@ -54,8 +55,9 @@ export function DeckCard({
       aria-pressed={selected}
     >
       <span data-deck-card>
-        <HandCard card={card} variant="pile" playable selected={selected} />
+        <HandCard card={card} variant="pile" playable selected={false} />
       </span>
+      {selected && <CardSelectFrame />}
     </button>
   );
 }

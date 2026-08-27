@@ -228,29 +228,3 @@
   background-size: 100% 2px, 100% 1px, auto;
   background-repeat: no-repeat, no-repeat, repeat;
 }
-
-/* ── 选中角标: 右上角一块抛光亮金属三角 ── */
-/* ★ 存在的理由是**功能**而非装饰: 选中态必须在鼠标离开手牌区之后仍读得出。位移与辉光在一排
-   卡里可能被相邻卡的悬停抢走注意力, 一块实心三角是零歧义的标记。仅 .selected 时渲染
-   (见 ui/HandCard.tsx), 故这里不需要写显隐。 */
-/* ⚠ 旧版这块是 --card-hue 的实心配色三角。中性化后改成**抛光亮金属**三角 + 一道凿刻的
-   锁定横槽 —— 靠亮度与工艺而不是色相把它从卡面上跳出来。 */
-.hc-selected-mark {
-  position: absolute;
-  z-index: 8;
-  right: 0;
-  top: 0;
-  width: 26px;
-  height: 26px;
-  pointer-events: none;
-  background:
-    /* 锁定刻痕: 两道短横槽(暗) */
-    linear-gradient(#05080a, #05080a),
-    linear-gradient(#05080a, #05080a),
-    linear-gradient(225deg, #f4fafe, #7e8d99);
-  background-position: right 4px top 9px, right 4px top 13px, 0 0;
-  background-size: 11px 1px, 8px 1px, auto;
-  background-repeat: no-repeat, no-repeat, repeat;
-  clip-path: polygon(100% 0, 100% 100%, 0 0);
-  box-shadow: -1px 1px 4px #05080ab3;
-}

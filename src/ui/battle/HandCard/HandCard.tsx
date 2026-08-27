@@ -197,9 +197,6 @@ export const HandCard = memo(function HandCard({
         {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
         <span className={cx(f["hc-text"], f[textSize])}><CardTextRich text={text} /></span>
 
-        {/* 选中角标: 右上角一块配色三角切片。选中态**唯一**的不依赖位移的线索 ——
-            鼠标移开手牌区后, 玩家仍要能一眼认出锁定的是哪张。仅 .selected 时渲染。 */}
-        {selected && <span className={f["hc-selected-mark"]} aria-hidden />}
       </div>
     </div>
   );

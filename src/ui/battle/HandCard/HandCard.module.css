@@ -117,7 +117,6 @@
      .hc-cost            6    费用徽章(嵌在左上斜口内侧的立体金属圆盘)
      .hc-edge            7    ★ 三层棱的倒角环 —— **必须在最上**, 才能绕着说明区外侧完整画一圈,
                               让它读作"嵌进框里"而不是"贴上去"; ::after 是稀有卡的角部加固件。
-     .hc-selected-mark   8    选中角标
      .hand-card::after   9    ★ 表面反光扫过(sheen) —— 反光是**表面**现象, 必须盖住卡上的一切
    ⚠ 卡面上仍**没有**普/速文字与目标范围 —— 那些留给右侧 CardInfoPanel; 卡面只放
      "打不打得起 / 是什么 / 干什么"。
@@ -135,6 +134,7 @@
   --card-edge-core: #7d8b96;
   --card-edge-dark: #3a444b;
   --card-edge-dark-core: #1d2429;
+  --card-edge-groove: #05080a;
   --card-etch: none;
   position: relative;
   flex: none;
@@ -222,10 +222,40 @@
 .hand-card.contaminated {
   --pollution-crack: #e04a36;
   --pollution-stain: #6d1a12;
-  --card-edge: #b56e5d;
-  --card-edge-core: #75443a;
-  --card-edge-dark: #63342e;
-  --card-edge-dark-core: #321c1c;
+  /* 端点沿环从左上到右下排列为 0 / 中 / 100 三个色站, 让腐蚀方向进入边框本身。 */
+  --pe-0: #241417;
+  --pe-1: #8c3a2c;
+  --pe-2: #ff5a3c;
+  --pec-0: #150c0e;
+  --pec-1: #5a231b;
+  --pec-2: #b83420;
+  /* 稀有卡角板仍读 --card-edge*, 与新环的中段同族。 */
+  --card-edge: #8c3a2c;
+  --card-edge-core: #5a231b;
+  --card-edge-dark: #6b2a21;
+  --card-edge-dark-core: #401711;
+  --card-edge-groove: #180608;
+}
+
+/* 污染卡的环沿左上 0% → 中段 → 右下 100% 走色。
+   这里只覆写 background-image; position / size / repeat 继承基础 .hc-edge,
+   改斜切角时不必在这里同步几何。 */
+.hand-card.contaminated .hc-edge {
+  background-image:
+    /* ── A 组: 高光棱(最外 1px) ── */
+    linear-gradient(90deg, var(--pe-0), var(--pe-1)),
+    linear-gradient(180deg, var(--pe-1), var(--pe-2)),
+    linear-gradient(90deg, var(--pe-1), var(--pe-2)),
+    linear-gradient(180deg, var(--pe-0), var(--pe-1)),
+    linear-gradient(135deg, transparent 50%, var(--pe-0) 50% calc(50% + 1px), transparent calc(50% + 1px)),
+    linear-gradient(135deg, transparent 50%, var(--pe-2) 50% calc(50% + 1px), transparent calc(50% + 1px)),
+    /* ── B 组: 金属芯面(3px) ── */
+    linear-gradient(90deg, var(--pec-0), var(--pec-1)),
+    linear-gradient(180deg, var(--pec-1), var(--pec-2)),
+    linear-gradient(90deg, var(--pec-1), var(--pec-2)),
+    linear-gradient(180deg, var(--pec-0), var(--pec-1)),
+    linear-gradient(135deg, transparent 50%, var(--pec-0) 50% calc(50% + 3px), transparent calc(50% + 3px)),
+    linear-gradient(135deg, transparent 50%, var(--pec-2) 50% calc(50% + 3px), transparent calc(50% + 3px));
 }
 
 /* ── 机框层: 升级凿痕的挂载层 ── */
@@ -348,10 +378,10 @@
   position: absolute;
   inset: 3px;
   background-image:
-    linear-gradient(#05080a, #05080a),
-    linear-gradient(#05080a, #05080a),
-    linear-gradient(#05080a, #05080a),
-    linear-gradient(#05080a, #05080a);
+    linear-gradient(var(--card-edge-groove), var(--card-edge-groove)),
+    linear-gradient(var(--card-edge-groove), var(--card-edge-groove)),
+    linear-gradient(var(--card-edge-groove), var(--card-edge-groove)),
+    linear-gradient(var(--card-edge-groove), var(--card-edge-groove));
   background-position:
     right 0 top 0,
     right 0 top 0,

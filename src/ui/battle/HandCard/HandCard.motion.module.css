@@ -204,9 +204,8 @@
 }
 /* ── 选中态的其余表达: 全部靠**亮度**, 不靠色相 ── */
 /* ① 整圈三层棱推到抛光亮金属。
-   ⚠ 只需覆写那四个变量 —— .hc-edge 的十二层 background-image 全部引用它们, 于是几何
-     一个字都不用重复。旧版这里要把六层逐字抄一遍再换色, 极易写漏一层导致环缺边;
-     换成变量之后这个坑消失了。改 .hc-edge 的几何时**不再**需要同步这里。 */
+  污染卡在这里覆写沿环左上 0% / 中段 / 右下 100% 的六个端点变量, 而不是旧的 --card-edge*;
+  --card-edge* 仍保留给稀有卡角板。改 .hc-edge 的几何时**不再**需要同步这里。 */
 :global([data-hand-card][data-selected]) {
   --card-edge: #f0f6fa;
   --card-edge-core: #c2ced8;
@@ -214,10 +213,16 @@
   --card-edge-dark-core: #5c6871;
 }
 :global([data-hand-card][data-contaminated][data-selected]) {
-  --card-edge: #b56e5d;
-  --card-edge-core: #75443a;
-  --card-edge-dark: #63342e;
-  --card-edge-dark-core: #321c1c;
+  --pe-0: #3a2024;
+  --pe-1: #b8503c;
+  --pe-2: #ff7a5c;
+  --pec-0: #241518;
+  --pec-1: #7a3428;
+  --pec-2: #d94a31;
+  --card-edge: #b8503c;
+  --card-edge-core: #7a3428;
+  --card-edge-dark: #8f3b2e;
+  --card-edge-dark-core: #572018;
 }
 /* ② 卡底整体提亮一档(受光渐变换更亮的一组, 其余八层不动) */
 :global([data-hand-card][data-selected]) {

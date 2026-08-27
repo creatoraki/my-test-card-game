@@ -51,52 +51,6 @@
   transition: opacity 180ms ease;
 }
 
-/* 选中态改成四角括号: 只画四个 L 形角, 不勾整圈。
-   整圈实线边框在这里必然难看 —— 卡面是 18px 圆角, 外框是直角, 两条弧线永远对不齐。
-   八条 linear-gradient 各占一个角的一条边, 位置用 0/100% 定位, 尺寸用 长×粗 控制。 */
-.card[data-selected="true"]::before {
-  --mk-c: var(--asm-select, #9fe8ff);
-  --mk-w: 2px;
-  --mk-len: 26px;
-  --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
-  position: absolute;
-  inset: -6px;
-  /* ⚠ 必须压过 .deckCard 的 z-index:3 —— 角标是 26px 长的实条, 从外框往**里**长,
-     排在卡片下面的话只有露在外面那 6px 可见, 剩下 20px 全被不透明卡面吃掉。 */
-  z-index: 5;
-  background:
-    var(--mk-bar) 0 0 / var(--mk-len) var(--mk-w) no-repeat,
-    var(--mk-bar) 0 0 / var(--mk-w) var(--mk-len) no-repeat,
-    var(--mk-bar) 100% 0 / var(--mk-len) var(--mk-w) no-repeat,
-    var(--mk-bar) 100% 0 / var(--mk-w) var(--mk-len) no-repeat,
-    var(--mk-bar) 100% 100% / var(--mk-len) var(--mk-w) no-repeat,
-    var(--mk-bar) 100% 100% / var(--mk-w) var(--mk-len) no-repeat,
-    var(--mk-bar) 0 100% / var(--mk-len) var(--mk-w) no-repeat,
-    var(--mk-bar) 0 100% / var(--mk-w) var(--mk-len) no-repeat;
-  /* drop-shadow 跟随角标形状发光; 换成 box-shadow 会沿整个矩形边界画一圈, 等于又回到实线框。 */
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--mk-c) 70%, transparent));
-  content: "";
-  pointer-events: none;
-  /* data-selected 成立 ⟺ DeckCard 自己也在 is-selected 的 -4px 位移上, 角标必须跟着走。 */
-  transform: translateY(-4px);
-  animation: markSnap 180ms cubic-bezier(0.2, 0.72, 0.28, 1);
-}
-
-/* DeckCard 自带一圈 --owner-color 的 outline(角色色)。装配面板用 --asm-select 表示「当前选中」,
-   两套颜色叠在同一张卡上就是三重描边, 这里把组件自带的那圈压掉, 只留角标。
-   特异性 0,3,0 > 组件内 .deck-card.is-selected 的 0,2,0, 不依赖样式表先后顺序。 */
-.card[data-selected="true"] .deckCard[aria-pressed="true"] {
-  outline: none;
-  border-radius: 0;
-}
-
-@keyframes markSnap {
-  from {
-    opacity: 0;
-    scale: 1.05;
-  }
-}
-
 .deckCard {
   position: relative;
   z-index: 3;
@@ -159,8 +113,4 @@
     transform: none;
   }
 
-  .card[data-selected="true"]::before {
-    transform: none;
-    animation: none;
-  }
 }

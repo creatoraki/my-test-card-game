@@ -33,12 +33,6 @@
     background: transparent;
 }
 
-.deck-card.is-selected {
-    outline: 2px solid var(--owner-color, var(--cd-glow));
-    outline-offset: 2px;
-    border-radius: 0;
-}
-
 .deck-card:focus-visible {
     outline: 2px solid var(--owner-color, var(--cd-glow));
     outline-offset: 3px;

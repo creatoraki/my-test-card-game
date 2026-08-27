@@ -36,7 +36,7 @@
   justify-content: center;
   align-content: start;
   gap: 14px;
-  padding: 4px 8px 10px 4px;
+  padding: 4px 8px 10px 8px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-color: color-mix(in srgb, var(--asm-select, #9fe8ff) 46%, transparent) transparent;

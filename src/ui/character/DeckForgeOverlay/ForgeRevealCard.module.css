@@ -191,6 +191,11 @@
   transform: scale(1) rotate(45deg);
 }
 
+.reveal-card.is-selected .edge-node {
+  opacity: 0;
+  animation: none;
+}
+
 .reveal-card[data-rarity="rare"][data-phase="ready"] {
   animation: forgeRareBreath var(--breath-ms) ease-in-out infinite;
 }
@@ -201,12 +206,6 @@
 
 .reveal-card[data-phase="commit"].is-selected {
   animation: forgeFlight var(--commit-ms) cubic-bezier(.2, .72, .28, 1) both;
-  outline-color: transparent;
-}
-
-.reveal-card.is-selected {
-  outline: 2px solid var(--rarity-glow);
-  outline-offset: 5px;
 }
 
 .reveal-card[data-phase="ready"]:hover {
