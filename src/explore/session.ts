@@ -180,6 +180,7 @@ export function createSession(
     roundCount: map.roundCount,
     board: null,
     party: party.map((p) => ({ ...p })),
+    stats: { kills: 0, expTotal: 0, pickups: 0, energySpent: 0 },
     history: [],
     // 出发时带进来的物资(货柜买的 + 从仓库拿的)。★ 拷贝一份: 准备界面那边还持有原数组,
     // 会话开始后两边不能再互相影响。
@@ -228,8 +229,14 @@ function logLine(s: ExploreState, text: string): void {
   s.log.push(text);
 }
 
+function countPickup(s: ExploreState, amount: number): void {
+  s.stats.pickups += Math.max(0, amount);
+}
+
 function changeEnergy(s: ExploreState, delta: number): void {
-  s.energy = Math.max(0, Math.min(EXPLORE_RULES.energyMax, s.energy + delta));
+  const before = s.energy;
+  s.energy = Math.max(0, Math.min(EXPLORE_RULES.energyMax, before + delta));
+  s.stats.energySpent += Math.max(0, before - s.energy);
 }
 
 export function cheatChangeEnergy(s: ExploreState, delta: number): void {
@@ -276,6 +283,7 @@ export function addItems(
 ): { taken: ItemStack[]; overflow: ItemStack[] } {
   const r = addToContainer(s.backpack, stacks, getItemDef, RULES.burden.backpackSlots);
   s.backpack = r.next;
+  countPickup(s, r.taken.length);
   if (r.overflow.length) s.pendingPickup = [...s.pendingPickup, ...r.overflow];
   return { taken: r.taken, overflow: r.overflow };
 }
@@ -290,6 +298,7 @@ export function takeLoot(s: ExploreState, index: number): boolean {
   const result = addToContainer(s.backpack, [st], getItemDef, RULES.burden.backpackSlots);
   if (!result.taken.length) return false;
   s.backpack = result.next;
+  countPickup(s, result.taken.length);
   s.pendingLoot = s.pendingLoot.filter((_, i) => i !== index);
   return true;
 }
@@ -503,6 +512,7 @@ export function takePending(s: ExploreState, index: number): boolean {
   const r = addToContainer(s.backpack, [st], getItemDef, RULES.burden.backpackSlots);
   if (!r.taken.length) return false;
   s.backpack = r.next;
+  countPickup(s, r.taken.length);
   s.pendingPickup = s.pendingPickup.filter((_, i) => i !== index);
   return true;
 }
@@ -829,6 +839,13 @@ export function grantExpTo(s: ExploreState, charId: string): boolean {
   const target = s.party.find((p) => p.charId === charId && p.alive);
   if (!target) return false;
   s.pendingExp[charId] = (s.pendingExp[charId] ?? 0) + action.amount;
+  return true;
+}
+
+export function recordExpGain(s: ExploreState, amount: number): boolean {
+  const gained = Math.max(0, Math.floor(amount));
+  if (!gained) return false;
+  s.stats.expTotal += gained;
   return true;
 }
 
@@ -1616,6 +1633,7 @@ export function finishBattle(
     return empty;
   }
 
+  s.stats.kills += enemyDefIds.length;
   const wasBoss = s.pendingIsBoss;
   const wasNodeBattle = s.battleSource === "node";
   const mult = rewardMultiplier(s.energy);

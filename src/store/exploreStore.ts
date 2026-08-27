@@ -25,6 +25,7 @@ import {
   finishLeaving,
   finishReveal,
   grantExpTo,
+  recordExpGain,
   leaveRegion,
   pushOn,
   reorderBackpack as reorderBackpackFn,
@@ -128,6 +129,7 @@ interface ExploreStore {
   chooseNpcOption: (index: number) => void;
   confirmNpc: () => void;
   grantExpTo: (charId: string) => void;
+  recordExpGain: (amount: number) => void;
   resolvePendingHealing: (charId: string, limit: boolean) => void;
   resolvePendingAction: () => void;
   acceptEquipOffer: (index: number) => void;
@@ -424,6 +426,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   grantExpTo: (charId) => {
     mutate(get, set, (d) => grantExpTo(d, charId));
+  },
+
+  recordExpGain: (amount) => {
+    mutate(get, set, (d) => recordExpGain(d, amount));
   },
 
   resolvePendingHealing: (charId, limit) => {

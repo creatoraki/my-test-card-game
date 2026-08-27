@@ -258,6 +258,7 @@ function bankEverything(session: {
   town.bankLoot(session.loot);
   town.deposit([...session.shipped, ...session.backpack]);
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
+  useExploreStore.getState().recordExpGain(exp.reduce((total, gain) => total + gain.gained, 0));
   if (exp.length) {
     useRunStore.setState({ expReport: exp });
   }
@@ -404,6 +405,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const expReport = town.grantExp(
       session.party.filter((p) => p.alive).map((p) => p.charId),
       exp,
+    );
+    useExploreStore.getState().recordExpGain(
+      expReport.reduce((total, gain) => total + gain.gained, 0),
     );
 
     const lastDrops = after?.pendingLoot ?? [];

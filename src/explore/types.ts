@@ -276,6 +276,13 @@ export interface NodeHistoryEntry {
   note: string;
 }
 
+export interface ExpeditionStats {
+  kills: number;
+  expTotal: number;
+  pickups: number;
+  energySpent: number;
+}
+
 // ---------------------------------------------------------------------------
 // 会话状态 —— 完全可序列化(无函数), 可 structuredClone。
 // ---------------------------------------------------------------------------
@@ -315,6 +322,8 @@ export interface ExploreState {
 
   party: PartySnapshot[];
   auras: ExploreAura[];
+  // 结算页唯一数据来源; 节点数与推进轮数分别从 history.length / round 现算。
+  stats: ExpeditionStats;
   history: NodeHistoryEntry[];
 
   // ---- 实物背包(设计文档 §六) ----

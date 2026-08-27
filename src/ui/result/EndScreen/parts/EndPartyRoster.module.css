@@ -1,0 +1,79 @@
+.roster {
+  composes: panel-shell from "../../../../ui/explore/styles/explorePanel.module.css";
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
+  padding: 24px;
+  --k: #d8b45c;
+  --roster-line: #ffffff2a;
+  --roster-accent: #d8b45c;
+}
+
+.roster-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--roster-line);
+}
+
+.roster-header span {
+  color: var(--roster-accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.roster-header h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.roster-header small {
+  color: #8fa8a8;
+  font-family: var(--font-num);
+  font-size: 13px;
+}
+
+.roster-list {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 16px;
+}
+
+.member {
+  flex: 0 0 220px;
+  width: 100%;
+  animation: rosterIn 520ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--roster-delay, 0ms) both;
+}
+
+.member-card {
+  width: 100%;
+  height: 220px;
+}
+
+.is-wiped .member-card {
+  filter: saturate(0.55) brightness(0.62);
+}
+
+.empty {
+  margin: auto 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+@keyframes rosterIn {
+  from { opacity: 0; transform: translateX(-18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member { animation: none; }
+}

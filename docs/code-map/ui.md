@@ -95,7 +95,13 @@ src/ui/
 | [battle/VictoryBoonTray](../../src/ui/battle/VictoryBoonTray/VictoryBoonTray.tsx) | 战斗胜利额外奖励托盘：展示治疗露珠、卡牌奖励和随机装备箱，复用 RailPopover 提供详情，并派发拾取动作。 |
 | [battle/VictoryCardOffer](../../src/ui/battle/VictoryCardOffer/VictoryCardOffer.tsx) | 卡牌奖励候选层：按存活角色展示候选卡牌，复用 `HandCard` 卡面，选择后将卡牌加入对应角色卡组。 |
 | [battle/victoryChoreo](../../src/ui/battle/victoryChoreo.ts) | 胜利结算面板的统一入场、分区、经验增长与拾取飞行动效时序；`victoryTiming()` 统一下发 reduced-motion 降级参数。 |
-| [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算：通关、撤退和团灭共用；展示积分、带回据点的 `shipped`/`backpack` 实物和角色卡组。 |
+| [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算：通过 `StageCanvas` 编排通关、撤退和团灭三种结果；组合队伍状态、战果统计、带回据点物资与事件回放，支持统计数字和事件逐条入场，团灭保留已投递物资。 |
+| [result/EndScreen/endSummary](../../src/ui/result/EndScreen/endSummary.ts) | 远征结算纯视图模型：汇总 `ExpeditionStats`、真实带回物资、废料换金价值、队伍污染和团灭状态；不读 store、不承载结算副作用。 |
+| [result/EndScreen/endChoreo](../../src/ui/result/EndScreen/endChoreo.ts) | 结算页统一入场、数字滚动和事件流时序；`endTiming()` 按 reduced-motion 将演出时序归零。 |
+| [result/EndScreen/EndPartyRoster](../../src/ui/result/EndScreen/parts/EndPartyRoster.tsx) | 结算页左侧队伍状态：复用 `PartyMemberCard` 展示立绘、血量、污染和阵亡态，按成员错峰入场。 |
+| [result/EndScreen/EndTrophyRail](../../src/ui/result/EndScreen/parts/EndTrophyRail.tsx) | 结算页中央战果统计：展示击杀、经验、换金物、积分、节点、轮数、拾取件数和能量消耗，数字使用统一 count-up。 |
+| [result/EndScreen/EventDropFeed](../../src/ui/result/EndScreen/parts/EventDropFeed.tsx) | 结算页右侧事件回放：按节点历史逐条落位，固定十行窗口，完成后可滚动浏览，点击或键盘确认可跳过演出。 |
+| [result/EndScreen/EndHaulPanel](../../src/ui/result/EndScreen/parts/EndHaulPanel.tsx) | 结算页中央物资回收面板：复用只读 `ItemInventoryPanel` 展示 `shipped` 与 `backpack`，按废料 `sellValue` 汇总换金价值。 |
 
 ## 探索域
 
