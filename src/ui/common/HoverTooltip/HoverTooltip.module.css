@@ -2,6 +2,10 @@
   composes: item-tooltip item-tooltip-detail from "../item/ItemTooltip/ItemTooltip.module.css";
 }
 
+.hover-tooltip.hover-tooltip {
+  width: min(260px, calc(100% - 24px));
+}
+
 .hover-tooltip strong {
   display: block;
   color: var(--inventory-text, #ffffff);
