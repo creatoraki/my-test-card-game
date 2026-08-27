@@ -1,7 +1,9 @@
 .reveal-card {
   --rarity-glow: #edf2f8;
   position: relative;
-  width: calc(220px * var(--deck-card-scale, 1));
+  /* 尺寸契约: 必须与 DeckCard.module.css 的 .deck-card 同式。 */
+  width: calc(var(--card-w) * var(--deck-card-scale, 1));
+  height: calc(var(--card-h) * var(--deck-card-scale, 1));
   min-width: 0;
   isolation: isolate;
   perspective: 1400px;
@@ -19,7 +21,7 @@
 .flip {
   position: relative;
   width: 100%;
-  aspect-ratio: 220 / 308;
+  height: 100%;
   transform-style: preserve-3d;
 }
 

@@ -30,6 +30,12 @@
       改这里要同步 ui/battle/animations.ts 的 sword-fall.anchorTop。 */
    --foe-figure-h: 256px;
 
+   /* 卡面标准尺寸: 220 见方的配图区 + 88 的说明区 = 308, 比例 1:1.4。
+      与 HandCard.layout.module.css 的 [data-deck-card] 契约是同一个数, 改这里要一起改。
+      缩放走 --deck-card-scale, 不要改这两个基准。 */
+   --card-w: 220px;
+   --card-h: 308px;
+
   /* 物品稀有度(五档 —— 普通/精良/稀有/史诗/传说, 见 物品设计.md 第四章)。
      ⚠ 与**卡牌**稀有度无关: 卡牌那套是三档且刻意没有配色, 别互相套用。
      每档两个变量: 主色(边框/名称/图标) + 辉光(外发光与角标底)。

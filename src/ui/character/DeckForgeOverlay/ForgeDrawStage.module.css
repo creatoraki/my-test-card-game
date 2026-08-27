@@ -39,8 +39,6 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: calc(220px * var(--deck-card-scale));
-  --deck-card-scale: 1.127;
   visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -76,8 +74,6 @@
 }
 
 .draw-choice {
-  width: calc(220px * var(--deck-card-scale));
-  --deck-card-scale: 1.127;
   min-width: 0;
 }
 
@@ -207,13 +203,6 @@
     padding-inline: 0;
   }
 
-  .draw-choice {
-    --deck-card-scale: 0.8;
-  }
-
-  .draw-measure-target {
-    --deck-card-scale: 0.8;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

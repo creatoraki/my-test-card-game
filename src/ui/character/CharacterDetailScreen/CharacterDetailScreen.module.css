@@ -358,15 +358,12 @@ span.cd-bust {
 
 .cd-deck-head {
   display: flex;
-  grid-template-columns: repeat(3, 220px);
   align-items: flex-start;
   justify-content: center;
   gap: 12px;
-  padding-bottom: 10px;
   padding: 8px 0 4px;
 }
 
-  --deck-card-scale: 1;
 .cd-deck-sub {
   margin: 5px 0 0;
   color: var(--cd-ink-dim);
