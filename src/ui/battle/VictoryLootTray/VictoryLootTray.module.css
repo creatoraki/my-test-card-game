@@ -1,7 +1,9 @@
 .loot-tray {
+  box-sizing: border-box;
   position: relative;
   width: 100%;
-  min-height: 0;
+  min-height: 130px;
+  flex: 0 0 auto;
   padding: 12px;
   background: #03090c99;
   border: 1px solid #6fd2ff38;
