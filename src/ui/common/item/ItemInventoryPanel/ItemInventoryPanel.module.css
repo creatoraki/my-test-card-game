@@ -364,9 +364,9 @@
   --item-slot-icon-size: 72%;
 
   padding: 4px 3px;
-  background:
+  /* background:
     radial-gradient(circle at center, var(--inventory-slot-hover), transparent 70%),
-    var(--inventory-slot);
+    var(--inventory-slot); */
   border: 1px solid var(--inventory-slot-border);
   box-shadow: inset 0 3px 10px #000000b3;
   transition:
@@ -379,9 +379,9 @@
 .inventory-slot.inventory-slot:hover,
 .inventory-slot.inventory-slot:focus-visible {
   z-index: 1;
-  background:
+  /* background:
     radial-gradient(circle at center, var(--inventory-slot-hover), transparent 70%),
-    var(--inventory-slot);
+    var(--inventory-slot); */
   border-color: var(--inventory-frame);
   box-shadow:
     0 0 25px var(--inventory-panel-glow),

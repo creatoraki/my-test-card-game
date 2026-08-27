@@ -92,9 +92,9 @@
 .slot {
   --item-slot-icon-size: 72%;
   padding: 4px 3px;
-  background:
+  /* background:
     radial-gradient(circle at center, var(--inventory-slot-hover), transparent 70%),
-    var(--inventory-slot);
+    var(--inventory-slot); */
   border: 1px solid var(--inventory-slot-border);
   box-shadow: inset 0 3px 10px #000000b3;
 }
