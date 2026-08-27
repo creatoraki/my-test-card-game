@@ -63,12 +63,12 @@ function ShopItemTile({
     <button
       type="button"
       className={cls}
+      aria-label={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
       onClick={handleClick}
       onPointerEnter={handleHoverStart}
       onPointerLeave={handleHoverEnd}
       onFocus={handleHoverStart}
       onBlur={handleHoverEnd}
-      title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
     >
       <img className={s["sx-tile-tray"]} src={PRODUCT_TRAY_ART} alt="" aria-hidden="true" />
       <span ref={handleIconRef} className={s["sx-tile-icon"]}>

@@ -38,7 +38,7 @@
   color: var(--sx-ink);
   background:
     linear-gradient(160deg, #ffffff14, transparent 46%),
-    radial-gradient(ellipse 100% 35% at 50% 0%, #8279ff22, transparent 76%),
+    radial-gradient(ellipse 100% 35% at 50% 0%, #d6b47722, transparent 76%),
     linear-gradient(145deg, #171a2dbf, #080b13d9);
   border: 1px solid #e4e7ff38;
   border-radius: 20px 12px 22px 14px;
@@ -47,7 +47,7 @@
     inset 0 1px 0 #ffffff36,
     inset 0 -24px 32px -30px #00000080,
     0 12px 25px -18px #000000f2,
-    0 0 22px -16px #8279ffb3;
+    0 0 22px -16px #d6b477b3;
   -webkit-backdrop-filter: blur(16px) saturate(120%) brightness(0.82);
   backdrop-filter: blur(16px) saturate(120%) brightness(0.82);
 }
@@ -74,7 +74,7 @@
   inset: 0;
   background:
     repeating-linear-gradient(94deg, transparent 0 15px, #ffffff08 15px 16px),
-    radial-gradient(circle at 18% 24%, #8279ff2b 0 1px, transparent 2px),
+    radial-gradient(circle at 18% 24%, #d6b4772b 0 1px, transparent 2px),
     radial-gradient(circle at 78% 68%, #ffffff18 0 1px, transparent 2px);
   content: "";
   pointer-events: none;
@@ -128,14 +128,14 @@
   perspective: 760px;
   background:
     radial-gradient(ellipse 70% 18% at 50% 88%, color-mix(in srgb, var(--sx-rr) 34%, transparent), transparent 75%),
-    radial-gradient(ellipse 80% 66% at 50% 35%, #8279ff2b, transparent 75%),
+    radial-gradient(ellipse 80% 66% at 50% 35%, #d6b4772b, transparent 75%),
     linear-gradient(145deg, #222546b8, #080b14c9 58%);
   border: 1px solid #e4e7ff38;
   border-radius: 15px 9px 16px 10px;
   box-shadow:
     inset 0 1px 0 #ffffff38,
     inset 0 -25px 35px -30px #000000b3,
-    0 0 18px -14px color-mix(in srgb, var(--sx-rr) 72%, #8279ff 28%);
+    0 0 18px -14px color-mix(in srgb, var(--sx-rr) 72%, #d6b477 28%);
   /* ★ 这里原本还有一层 backdrop-filter: blur(10px)。它叠在 .sx-card 已经模糊过的底子上,
      模糊叠模糊几乎看不出差别, 却让展示台成为独立的 backdrop root —— 每次换商品
      都要连它一起重建并重采样。删掉后视觉不变, 少一个合成层。 */
@@ -194,7 +194,7 @@
   line-height: 0;
   transform: perspective(740px) rotateY(-8deg) rotateX(3deg) translate3d(0, 0, 12px);
   transform-style: preserve-3d;
-  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 7px color-mix(in srgb, var(--sx-rr) 34%, #8279ff 20%));
+  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 7px color-mix(in srgb, var(--sx-rr) 34%, #d6b477 20%));
   animation: sxShowcase 4.8s ease-in-out infinite;
   /* filter 是**静态**的, 可以被烘进图层一次性栅格化, 之后 sxShowcase 只动 transform。
      显式声明 will-change 免得浏览器在每次换商品后重新判断要不要提层。 */
@@ -214,7 +214,7 @@
     inset 0 1px 0 #ffffff42,
     inset 0 -18px 22px -20px var(--sx-rr),
     0 4px 8px -6px #000000f2,
-    0 0 15px -10px color-mix(in srgb, var(--sx-rr) 72%, #8279ff 28%);
+    0 0 15px -10px color-mix(in srgb, var(--sx-rr) 72%, #d6b477 28%);
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   content: "";
   transform: translateZ(-10px);

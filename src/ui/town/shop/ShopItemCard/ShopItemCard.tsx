@@ -77,7 +77,7 @@ export default function ShopItemCard({
             <span
               className={s["sx-card-bond"]}
               style={{ "--sx-bond": bond.color } as CSSProperties}
-              title={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
+              aria-label={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
             >
               <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
               <span className={s["sx-card-bond-name"]}>{bond.name}</span>

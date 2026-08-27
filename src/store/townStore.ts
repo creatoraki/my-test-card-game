@@ -93,12 +93,11 @@ export interface ShopState {
   level: number; // 设施等级, 默认 1; 提升入口本期不开放
   day: number; // 这批货是哪一天上的(与 TownStore.day 比对, 只作护栏与展示)
   refreshes: number; // 今日已花积分刷新的次数 → 决定下次刷新价(隔日归 0)
-  equip: ShopSlot[];
-  material: ShopSlot[];
+  slots: ShopSlot[];
 }
 
 function freshShop(day: number, level = DEFAULT_SHOP_LEVEL): ShopState {
-  return { level, day, refreshes: 0, ...rollShopStock(level) };
+  return { level, day, refreshes: 0, slots: rollShopStock(level) };
 }
 
 // 战后经验结算报告条目(交给结算/胜利界面展示)
@@ -932,7 +931,7 @@ export const useTownStore = create<TownStore>()(
       advanceDay: () => {
         const { day, shop } = get();
         const next = day + 1;
-        set({ day: next, shop: { ...shop, day: next, refreshes: 0, ...rollShopStock(shop.level) } });
+        set({ day: next, shop: { ...shop, day: next, refreshes: 0, slots: rollShopStock(shop.level) } });
       },
 
       // 花积分立刻重摇货架。价格随当日刷新次数线性上涨, 隔日由 advanceDay 归零。
@@ -942,7 +941,7 @@ export const useTownStore = create<TownStore>()(
         if (loot < cost) return; // 护栏与 awaken 同写法: 买不起就什么都不发生
         set({
           loot: loot - cost,
-          shop: { ...shop, refreshes: shop.refreshes + 1, ...rollShopStock(shop.level) },
+          shop: { ...shop, refreshes: shop.refreshes + 1, slots: rollShopStock(shop.level) },
         });
       },
 
@@ -950,17 +949,15 @@ export const useTownStore = create<TownStore>()(
       //   实例化推迟到这一刻(uid 此时才发), 羁绊词条沿用上架时摇好的那条。
       buyShopItem: (key) => {
         const { shop, loot, storage } = get();
-        const inEquip = shop.equip.some((s) => s.key === key);
-        const list = inEquip ? shop.equip : shop.material;
-        const slot = list.find((s) => s.key === key);
+        const slot = shop.slots.find((s) => s.key === key);
         if (!slot || slot.sold || loot < slot.price) return;
 
-        const next = list.map((s) => (s.key === key ? { ...s, sold: true } : s));
+        const next = shop.slots.map((s) => (s.key === key ? { ...s, sold: true } : s));
         set({
           loot: loot - slot.price,
           // 仓库无上限, 与 deposit 同写法直接追加, 不必走 addToContainer。
           storage: [...storage, makeItemStack(slot.itemId, 1, slot.affinity)],
-          shop: inEquip ? { ...shop, equip: next } : { ...shop, material: next },
+          shop: { ...shop, slots: next },
         });
       },
 
@@ -1125,6 +1122,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v13: 商店货架合并为 slots, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v12: CharacterState 新增 hpLimit —— 远征打掉的体力极限现在跨日持久化。
     //   旧档没有这个字段, 换 key 让旧档自然失效重建。
     // ⚠ v10: 训练室改成天赋树 —— squadTalent.nodes 由 Record<string, number>(方向级数)
@@ -1135,6 +1133,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v12", version: 12 },
+    { name: "town-profile-v13", version: 13 },
   ),
 );

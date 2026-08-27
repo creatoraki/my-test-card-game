@@ -1,1094 +1,376 @@
 .sx-root {
-    --sx-ink: #f3f5ff;
-    --sx-muted: #a9b1c7;
-    --sx-dim: #77819a;
-    --sx-line: #d8ddff2e;
-    --sx-line-strong: #e8ebff4f;
-    --sx-frame: #7e78e8;
-    --sx-frame-hot: #c7c1ff;
-    --sx-action: #e8ebff;
-    --sx-action-hot: #ffffff;
-    --sx-action-ink: #0d1020;
-    --sx-electric: #847cff;
-    --sx-electric-hot: #b8b0ff;
-    --sx-alert: #ff819d;
-    --sx-notch: 20px;
+  --event-accent: #d6b477;
+  --sx-ink: #edf3ef;
+  --sx-muted: #8ea09d;
+  --sx-dim: #657677;
+  --sx-line: #405057;
+  --sx-line-strong: #405057;
+  --sx-frame: #d6b477;
+  --sx-frame-hot: #f0d49b;
+  --sx-action: #d9d8c4;
+  --sx-action-hot: #f0f6e9;
+  --sx-action-ink: #17130d;
+  --sx-electric: #d6b477;
+  --sx-electric-hot: #f0d49b;
+  --sx-alert: #e47970;
+  --sx-notch: 20px;
 
-    position: absolute;
-    z-index: 2;
-    inset: 0;
-    color: var(--sx-ink);
-    font-family: var(--font-family);
-    pointer-events: none;
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  color: var(--sx-ink);
+  font-family: var(--font-family);
+  pointer-events: none;
 }
 
 .sx-root .sx-control {
-    all: unset;
-    box-sizing: border-box;
-    cursor: pointer;
-    font-family: inherit;
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .sx-root .sx-control:disabled {
-    cursor: not-allowed;
+  cursor: not-allowed;
 }
 
 .sx-root .sx-control:focus-visible {
-    outline: 2px solid var(--sx-action-hot);
-    outline-offset: 4px;
+  outline: 2px solid var(--sx-action-hot);
+  outline-offset: 4px;
 }
 
 .sx-root .sx-warehouse-trigger {
-    position: absolute;
-    z-index: 5;
-    top: 42px;
-    right: 56px;
-    display: inline-flex;
-    min-width: 126px;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 18px;
-    color: var(--sx-action);
-    background:
-        linear-gradient(135deg, #ffffff1c, transparent 52%),
-        linear-gradient(145deg, #171a2db8, #080b13b3);
-    border: 1px solid #d8ddff52;
-    border-radius: 14px 8px 15px 9px;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-    box-shadow:
-        inset 0 1px 0 #ffffff35,
-        0 9px 20px -16px #000000f2,
-        0 0 18px -13px #8279ffbf;
-    -webkit-backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
-    backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    pointer-events: auto;
-    transition:
-        color 160ms ease,
-        background 160ms ease,
-        border-color 160ms ease,
-        box-shadow 160ms ease,
-        transform 160ms ease;
+  position: absolute;
+  z-index: 5;
+  top: 42px;
+  right: 56px;
+  display: inline-flex;
+  min-width: 126px;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  color: var(--sx-action);
+  background:
+    linear-gradient(135deg, #ffffff1c, transparent 52%),
+    linear-gradient(145deg, #252018d9, #080b0db3);
+  border: 1px solid #d6b47766;
+  border-radius: 0;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  box-shadow:
+    inset 0 1px 0 #ffffff35,
+    0 9px 20px -16px #000000f2,
+    0 0 18px -13px #d6b477bf;
+  -webkit-backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
+  backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  pointer-events: auto;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .sx-root .sx-warehouse-trigger:hover,
 .sx-root .sx-warehouse-trigger:focus-visible,
 .sx-root .sx-warehouse-trigger.is-active {
-    color: var(--sx-action-hot);
-    background:
-        linear-gradient(135deg, #ffffff32, transparent 52%),
-        linear-gradient(145deg, #302d64d9, #0c1020d1);
-    border-color: var(--sx-frame-hot);
-    box-shadow:
-        inset 0 1px 0 #ffffff5e,
-        0 11px 22px -15px #000000f2,
-        0 0 0 1px #a69fff52,
-        0 0 22px -10px #8279ffe6;
-    transform: translateY(-3px);
-}
-
-.sx-root .sx-warehouse-trigger:focus-visible {
-    outline: 2px solid var(--sx-action-hot);
-    outline-offset: 4px;
+  color: var(--sx-action-hot);
+  background:
+    linear-gradient(135deg, #ffffff32, transparent 52%),
+    linear-gradient(145deg, #4a3d26d9, #0c100ed1);
+  border-color: var(--sx-frame-hot);
+  box-shadow:
+    inset 0 1px 0 #ffffff5e,
+    0 11px 22px -15px #000000f2,
+    0 0 0 1px #d6b47752,
+    0 0 22px -10px #d6b477e6;
+  transform: translateY(-3px);
 }
 
 .sx-root .sx-warehouse-icon {
-    display: grid;
-    width: 21px;
-    height: 21px;
-    place-items: center;
-    color: var(--sx-electric-hot);
-    font-size: 23px;
-    line-height: 1;
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  color: var(--sx-electric-hot);
+  font-size: 23px;
+  line-height: 1;
 }
 
 .sx-root .sx-header {
-    position: absolute;
-    z-index: 1;
-    width: 380px;
-    padding: 14px 20px 15px 22px;
-    background:
-        linear-gradient(135deg, #ffffff18, transparent 48%),
-        radial-gradient(ellipse 90% 120% at 100% 0, #8279ff24, transparent 68%),
-        linear-gradient(160deg, #111528b8, #080b12a6);
-    border: 1px solid #e7eaff38;
-    border-left: 3px solid var(--sx-electric-hot);
-    border-bottom-color: #8b91c847;
-    border-radius: 16px 9px 17px 10px;
-    box-shadow:
-        inset 0 1px 0 #ffffff33,
-        inset 0 -18px 24px -24px #7771ff4d,
-        0 13px 28px -24px #000000e6,
-        0 0 20px -18px #8279ffb3;
-    -webkit-backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
-    backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
-    clip-path: polygon(10px 0, 100% 0, calc(100% - 7px) 100%, 0 100%, 0 10px);
-    pointer-events: none;
-    animation: sxHeaderIn 560ms 120ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
+  position: absolute;
+  z-index: 1;
+  width: 380px;
+  padding: 14px 20px 15px 22px;
+  background:
+    radial-gradient(ellipse 90% 120% at 100% 0, #d6b47724, transparent 68%),
+    linear-gradient(160deg, #111b1eb8, #080d0fa6);
+  border: 1px solid #43545a99;
+  border-left: 2px solid var(--event-accent);
+  border-radius: 0;
+  box-shadow:
+    inset 0 1px 0 #ffffff33,
+    0 13px 28px -24px #000000e6,
+    0 0 20px -18px #d6b477b3;
+  -webkit-backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
+  backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 7px) 100%, 0 100%, 0 10px);
+  pointer-events: none;
+  animation: sxHeaderIn 560ms 120ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
 }
 
 .sx-root .sx-kicker {
-    display: block;
-    color: var(--sx-electric-hot);
-    font-family: var(--font-family);
-    font-variant-numeric: tabular-nums;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    line-height: 1.2;
-    text-transform: uppercase;
+  display: block;
+  color: var(--event-accent);
+  font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
 .sx-root .sx-title {
-    margin: 8px 0 0;
-    color: var(--sx-action-hot);
-    font-size: 44px;
-    font-weight: 700;
-    letter-spacing: 6px;
-    line-height: 1;
-    text-shadow: 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
+  margin: 7px 0 0;
+  color: #f4f7ec;
+  font-family: var(--font-family);
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-shadow: 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
 }
 
 .sx-root .sx-sub {
-    margin: 10px 0 0;
-    color: var(--sx-muted);
-    font-size: 14px;
-    letter-spacing: 2px;
+  margin: 10px 0 0;
+  color: var(--sx-muted);
+  font-size: 14px;
+  letter-spacing: 0.12em;
 }
 
 .sx-root .sx-stage {
-    --sx-stage-right: 56px;
-    --sx-panel-tilt: -4deg;
+  --sx-stage-right: 56px;
+  --sx-panel-tilt: -4deg;
 
-    position: absolute;
-    z-index: 3;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: var(--sx-stage-right);
-    perspective: 1500px;
-    perspective-origin: calc(100% - var(--sx-stage-right)) 50%;
-    pointer-events: none;
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--sx-stage-right);
+  perspective: 1500px;
+  perspective-origin: calc(100% - var(--sx-stage-right)) 50%;
+  pointer-events: none;
 }
 
 .sx-root .sx-display-group {
-    display: flex;
-    height: var(--panel-h);
-    flex: 0 0 auto;
-    align-items: flex-start;
-    transform: rotateY(var(--sx-panel-tilt)) rotateX(0.7deg);
-    transform-origin: right center;
-    transform-style: preserve-3d;
-}
-
-.sx-root .sx-side-rail {
-    display: flex;
-    width: 84px;
-    height: var(--panel-h);
-    flex: 0 0 84px;
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-end;
-    padding-top: 42px;
-    pointer-events: none;
-}
-
-.sx-root .sx-side-plaque {
-    --sx-plaque-notch: 12px;
-    --sx-plaque-delay: 680ms;
-
-    position: relative;
-    display: flex;
-    width: 82px;
-    height: 154px;
-    flex: 0 0 154px;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 13px;
-    overflow: hidden;
-    color: var(--sx-muted);
-    background:
-        linear-gradient(135deg, #ffffff12, transparent 48%),
-        radial-gradient(ellipse 90% 100% at 100% 0, #8179ff1c, transparent 72%),
-        linear-gradient(165deg, #111528b3, #080b12a6);
-    border: 1px solid #e5e9ff30;
-    border-radius: 15px 9px 17px 10px;
-    clip-path: polygon(var(--sx-plaque-notch) 0,
-            100% 0,
-            100% calc(100% - var(--sx-plaque-notch)),
-            calc(100% - var(--sx-plaque-notch)) 100%,
-            0 100%,
-            0 var(--sx-plaque-notch));
-    box-shadow:
-        inset 0 1px 0 #ffffff2e,
-        -5px 8px 20px -18px #000000e6,
-        0 0 16px -14px #8279ffcc;
-    -webkit-backdrop-filter: blur(12px) saturate(125%) brightness(0.8);
-    backdrop-filter: blur(12px) saturate(125%) brightness(0.8);
-    pointer-events: auto;
-    transform: translateX(0) translateZ(0);
-    transform-origin: right center;
-    transition:
-        color 180ms ease,
-        background 180ms ease,
-        border-color 180ms ease,
-        box-shadow 180ms ease,
-        transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
-    animation: sxPlaqueIn 520ms var(--sx-plaque-delay) cubic-bezier(0.16, 0.86, 0.24, 1) both;
-}
-
-.sx-root .sx-side-plaque:nth-child(2) {
-    --sx-plaque-delay: 740ms;
-}
-
-.sx-root .sx-side-plaque::before {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 2px;
-    background: linear-gradient(180deg, transparent, var(--sx-electric) 30%, #ffffff 58%, transparent 88%);
-    content: "";
-    opacity: 0.72;
-}
-
-.sx-root .sx-side-plaque::after {
-    position: absolute;
-    inset: 7px;
-    border: 1px solid #a5a9ff2e;
-    border-radius: 10px 6px 12px 7px;
-    content: "";
-    transform: rotate(-1deg);
-    transition: border-color 180ms ease, transform 220ms ease;
-}
-
-.sx-root .sx-side-plaque:hover:not(:disabled),
-.sx-root .sx-side-plaque:focus-visible {
-    color: var(--sx-action-hot);
-    background:
-        linear-gradient(135deg, #ffffff28, transparent 48%),
-        radial-gradient(ellipse 90% 100% at 100% 0, #9b91ff3d, transparent 72%),
-        linear-gradient(165deg, #1a1d3bd1, #0b0e19c7);
-    border-color: var(--sx-electric-hot);
-    box-shadow:
-        inset 0 1px 0 #ffffff52,
-        -7px 10px 24px -18px #000000f2,
-        0 0 0 1px #a69fff59,
-        0 0 22px -12px #8279ffd9;
-    transform: translateX(6px) translateZ(10px);
-}
-
-.sx-root .sx-side-plaque:hover:not(:disabled)::after,
-.sx-root .sx-side-plaque:focus-visible::after {
-    border-color: var(--sx-electric-hot);
-    transform: rotate(1deg) scale(1.02);
-}
-
-.sx-root .sx-side-plaque.is-active,
-.sx-root .sx-side-plaque.is-active:hover:not(:disabled) {
-    color: var(--sx-action-hot);
-    background:
-        linear-gradient(135deg, #ffffff30, transparent 43%),
-        radial-gradient(ellipse 110% 90% at 80% 20%, #9186ff4a, transparent 70%),
-        linear-gradient(165deg, #202044e0, #0b0f1dd1);
-    border-color: var(--sx-frame-hot);
-    box-shadow:
-        inset 0 1px 0 #ffffff5e,
-        -8px 11px 26px -18px #000000f2,
-        0 0 0 2px #9f98ff52,
-        0 0 24px -10px #8279ffe6;
-    transform: translateX(10px) translateZ(12px);
-}
-
-.sx-root .sx-side-plaque-label {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    writing-mode: vertical-rl;
-    text-shadow: 1px 1px 0 #ffffff80;
+  display: flex;
+  height: var(--panel-h);
+  flex: 0 0 auto;
+  align-items: flex-start;
+  transform: rotateY(var(--sx-panel-tilt)) rotateX(0.7deg);
+  transform-origin: right center;
+  transform-style: preserve-3d;
 }
 
 .sx-root .sx-panel {
-    position: relative;
-    display: flex;
-    min-width: 0;
-    min-height: 0;
-    flex: 0 0 var(--panel-w);
-    flex-direction: column;
-    padding: 30px 32px 26px;
-    overflow: hidden;
-    isolation: isolate;
-    background:
-        radial-gradient(ellipse 70% 44% at 8% 4%, #ffffff17, transparent 72%),
-        radial-gradient(ellipse 52% 65% at 94% 94%, #4e7dff1c, transparent 74%),
-        repeating-linear-gradient(0deg, transparent 0 5px, #e9ecff0a 5px 6px),
-        linear-gradient(145deg, #111528c2, #080b13b3 58%, #0b1220bf);
-    border: 1px solid #d9ddff3d;
-    border-radius: 22px 13px 24px 15px;
-    box-shadow:
-        inset 0 1px 0 #ffffff3b,
-        inset 18px 0 36px -34px #958cff42,
-        0 15px 35px -24px #000000f2,
-        0 0 0 1px #8279ff24,
-        0 0 34px -26px #8279ffb3;
-    clip-path: polygon(var(--sx-notch) 0,
-            100% 0,
-            100% calc(100% - var(--sx-notch)),
-            calc(100% - var(--sx-notch)) 100%,
-            0 100%,
-            0 var(--sx-notch));
-    -webkit-backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
-    backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
-    pointer-events: auto;
-    animation: sxPanelIn 680ms var(--content-delay) cubic-bezier(0.16, 0.86, 0.24, 1) both;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 0 0 var(--panel-w);
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--event-accent) 12%, transparent), transparent 27%),
+    linear-gradient(115deg, #111b1e 0%, #0c1215 44%, #0a0f12 100%);
+  border: 1px solid #43545a99;
+  border-radius: 0;
+  box-shadow:
+    inset 0 1px 0 #ffffff25,
+    0 15px 35px -24px #000000f2,
+    0 0 34px -26px #d6b477b3;
+  clip-path: polygon(var(--sx-notch) 0, 100% 0, 100% calc(100% - var(--sx-notch)), calc(100% - var(--sx-notch)) 100%, 0 100%, 0 var(--sx-notch));
+  -webkit-backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
+  backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
+  pointer-events: auto;
+  animation: sxPanelIn 680ms var(--content-delay) cubic-bezier(0.16, 0.86, 0.24, 1) both;
 }
 
 .sx-root .sx-panel::before {
-    position: absolute;
-    z-index: 0;
-    inset: 0;
-    background:
-        repeating-linear-gradient(92deg, transparent 0 12px, #ffffff08 12px 13px),
-        repeating-linear-gradient(0deg, transparent 0 23px, #a29aff12 23px 25px),
-        radial-gradient(circle at 70% 30%, #ffffff24 0 1px, transparent 2px);
-    content: "";
-    pointer-events: none;
-    opacity: 0.75;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 0 18%, #ffffff03 18.1% 18.3%, transparent 18.4% 54%, #ffffff04 54.1% 54.25%, transparent 54.35%),
+    repeating-linear-gradient(0deg, transparent 0 5px, #ffffff03 5px 6px);
+  content: "";
+  pointer-events: none;
 }
 
 .sx-root .sx-panel::after {
-    position: absolute;
-    right: 26px;
-    bottom: 0;
-    left: 26px;
-    z-index: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--sx-frame) 18%, #ffffff 50%, var(--sx-frame) 82%, transparent);
-    content: "";
-    opacity: 0.56;
+  position: absolute;
+  right: 26px;
+  bottom: 0;
+  left: 26px;
+  z-index: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--event-accent) 18%, #ffffff 50%, var(--event-accent) 82%, transparent);
+  content: "";
+  opacity: 0.56;
 }
 
-.sx-root .sx-panel>*:not(.sx-panel-rim) {
-    position: relative;
-    z-index: 1;
+.sx-root .sx-event-frame {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 30px 32px 26px;
+  background: transparent;
+  border: 0;
 }
 
-.sx-root .sx-panel-rim {
-    position: absolute;
-    z-index: 2;
-    inset: 10px;
-    overflow: hidden;
-    pointer-events: none;
-    border: 1px solid #ffffff35;
-    border-radius: 14px 9px 16px 10px;
-    opacity: 0.92;
-    transform: rotate(0.08deg);
+.sx-root .sx-event-stage {
+  min-height: 0;
 }
 
-.sx-root .sx-panel-rim::before {
-    position: absolute;
-    inset: -1px;
-    border: 2px solid transparent;
-    border-radius: inherit;
-    border-image: conic-gradient(from 0deg,
-            transparent 0deg,
-            transparent 302deg,
-            #8279ff70 326deg,
-            #ffffff 346deg,
-            #5ed5ff9c 358deg,
-            transparent 360deg) 1;
-    content: "";
-    filter: drop-shadow(0 0 3px #8279ff8c) drop-shadow(0 0 7px #5ed5ff4d);
-}
-
-.sx-root .sx-panel-rim::after {
-    position: absolute;
-    inset: 8px;
-    border: 1px solid #b9b6ff26;
-    border-radius: 9px 6px 11px 7px;
-    content: "";
-    transform: rotate(-0.16deg);
-}
-
-.sx-root .sx-panel-head {
-    display: flex;
-    min-height: 70px;
-    flex: 0 0 auto;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 28px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--sx-line-strong);
-    transform: none;
-}
-
-.sx-root .sx-panel-head-text {
-    min-width: 190px;
-}
-
-.sx-root .sx-panel-title {
-    margin: 7px 0 0;
-    color: var(--sx-action-hot);
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    line-height: 1;
-    text-shadow: 0 2px 12px #000000c7, 1px 1px 0 #ffffff24;
-}
-
-.sx-root .sx-readout {
-    display: flex;
-    min-width: 0;
-    align-items: flex-end;
-    gap: 0;
-    padding: 8px 6px;
-    background:
-        linear-gradient(135deg, #ffffff14, transparent 58%),
-        #080b14a6;
-    border: 1px solid #e5e8ff33;
-    border-radius: 12px 8px 13px 9px;
-}
-
-.sx-root .sx-readout>div {
-    display: flex;
-    min-width: 122px;
-    flex-direction: column;
-    gap: 5px;
-    padding: 0 14px;
-}
-
-.sx-root .sx-readout>div+div {
-    border-left: 1px solid var(--sx-line);
-}
-
-.sx-root .sx-readout span,
-.sx-root .sx-readout em {
-    color: var(--sx-muted);
-    font-size: 12px;
-    font-style: normal;
-    letter-spacing: 2px;
-    white-space: nowrap;
-}
-
-.sx-root .sx-readout strong {
-    color: var(--sx-action-hot);
-    font-size: 20px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 1px;
-    line-height: 1;
-    white-space: nowrap;
-    text-shadow: 0 2px 10px #000000bf;
-}
-
-.sx-root .sx-readout em {
-    color: var(--sx-action);
-    font-size: 11px;
-    letter-spacing: 1px;
+.sx-root .sx-status {
+  color: var(--event-accent);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
 }
 
 .sx-root .sx-body {
-    display: grid;
-    min-height: 0;
-    flex: 1 1 auto;
-    grid-template-columns: minmax(0, 1fr) 318px;
-    gap: 28px;
-    padding: 22px 0 18px;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) 318px;
+  gap: 28px;
+  padding: 22px 0 18px;
 }
 
 .sx-root .sx-main {
-    display: flex;
-    min-width: 0;
-    min-height: 0;
-    flex-direction: column;
-    gap: 21px;
-    overflow-y: auto;
-    scrollbar-width: none;
-    padding: 10px 10px 10px 2px;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 10px 10px 10px 2px;
 }
 
 .sx-root .sx-main::-webkit-scrollbar {
-    display: none;
-}
-
-.sx-root .sx-row {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 11px;
-}
-
-.sx-root .sx-row-label {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    margin: 0;
-    color: var(--sx-action);
-    font-family: var(--font-family);
-    font-variant-numeric: tabular-nums;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-shadow: 0 1px 5px #000000c7;
-}
-
-.sx-root .sx-row-label::before {
-    width: 7px;
-    height: 7px;
-    flex: 0 0 7px;
-    background: var(--sx-electric);
-    border: 2px solid #ffffff99;
-    border-radius: 50%;
-    box-shadow: 0 0 0 2px #1117192b;
-    content: "";
-}
-
-.sx-root .sx-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-    align-content: start;
-}
-
-.sx-root .sx-grid.is-entering.is-forward {
-    animation: sxShelfEnterForward 520ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
-}
-
-.sx-root .sx-grid.is-entering.is-backward {
-    animation: sxShelfEnterBackward 520ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
-}
-
-.sx-root .sx-grid.is-leaving.is-forward {
-    animation: sxShelfLeaveForward 500ms cubic-bezier(0.72, 0, 0.84, 0.36) both;
-}
-
-.sx-root .sx-grid.is-leaving.is-backward {
-    animation: sxShelfLeaveBackward 500ms cubic-bezier(0.72, 0, 0.84, 0.36) both;
-}
-
-.sx-root .sx-grid.is-entering .sx-cell {
-    animation: sxCellIn 480ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
-}
-
-.sx-root .sx-grid.is-leaving .sx-cell {
-    animation: sxCellOut 360ms cubic-bezier(0.72, 0, 0.84, 0.36) both;
-}
-
-.sx-root .sx-grid.is-entering .sx-cell:nth-child(2),
-.sx-root .sx-grid.is-leaving .sx-cell:nth-child(2) {
-    animation-delay: 45ms;
-}
-
-.sx-root .sx-grid.is-entering .sx-cell:nth-child(3),
-.sx-root .sx-grid.is-leaving .sx-cell:nth-child(3) {
-    animation-delay: 90ms;
-}
-
-.sx-root .sx-grid.is-entering .sx-cell:nth-child(4),
-.sx-root .sx-grid.is-leaving .sx-cell:nth-child(4) {
-    animation-delay: 135ms;
-}
-
-.sx-root .sx-grid.is-entering .sx-cell:nth-child(5),
-.sx-root .sx-grid.is-leaving .sx-cell:nth-child(5) {
-    animation-delay: 180ms;
-}
-
-.sx-root .sx-grid.is-entering .sx-cell:nth-child(6),
-.sx-root .sx-grid.is-leaving .sx-cell:nth-child(6) {
-    animation-delay: 225ms;
-}
-
-.sx-root .sx-cell {
-    position: relative;
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 9px;
-    align-items: center;
-}
-
-.sx-root .sx-cell.is-sold::after {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 9px;
-    height: 9px;
-    border-top: 1px solid var(--sx-alert);
-    border-right: 1px solid var(--sx-alert);
-    content: "";
-    opacity: 0.9;
-    animation: sxSoldStamp 480ms 80ms ease both;
-}
-
-.sx-root .sx-price {
-    --sx-price-ink: var(--sx-action);
-
-    position: relative;
-    display: inline-flex;
-    min-width: 88px;
-    gap: 7px;
-    align-items: center;
-    justify-content: center;
-    padding: 7px 14px;
-    color: var(--sx-price-ink);
-    background:
-        linear-gradient(135deg, #ffffff1c, transparent 48%),
-        linear-gradient(160deg, #1a1d39c7, #080b13b8);
-    border: 1px solid color-mix(in srgb, var(--sx-price-ink) 46%, var(--sx-electric) 54%);
-    border-radius: 12px 8px 13px 9px;
-    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-    font-size: 14px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 1px;
-    line-height: 1;
-    /* ★ 不再过渡 background: 价格牌带 backdrop-filter, 过渡多层渐变等于每帧
-       重绘 + 重采样背景。底色直接切换, 视线焦点本来就在扫光与位移上。 */
-    transition:
-        border-color 160ms ease,
-        box-shadow 160ms ease,
-        color 160ms ease,
-        transform 120ms ease;
-    box-shadow:
-        inset 0 1px 0 #ffffff35,
-        0 5px 12px -10px #000000f2,
-        0 0 14px -12px #8279ffd9;
-    -webkit-backdrop-filter: blur(10px) saturate(120%) brightness(0.82);
-    backdrop-filter: blur(10px) saturate(120%) brightness(0.82);
-    transform: rotate(-0.4deg);
-}
-
-.sx-root .sx-price::before {
-    color: var(--sx-price-ink);
-    content: "◈";
-    font-size: 10px;
-    opacity: 0.85;
-}
-
-.sx-root .sx-price strong {
-    font-size: 16px;
-    font-weight: 700;
-}
-
-/* 扫光带。★ 以前是一层 220% 宽的渐变靠 background-position 过渡 620ms —— 那是纯主线程
-   重绘, 而价格牌本身还带 backdrop-filter, 一次悬浮要连着重采样背景。
-   现在换成实体光带走 transform: 宽度取 220%, 位移量按背景百分比定位的等效换算
-   (P × (100% − 220%) 再除以自身宽度)得到 −65.45% → 10.91%, 轨迹与改动前一致。 */
-.sx-root .sx-price.is-ready::after {
-    position: absolute;
-    top: 1px;
-    bottom: 1px;
-    left: 1px;
-    width: 220%;
-    background: linear-gradient(112deg, transparent 42%, #ffffffb3 49%, transparent 56%);
-    border-radius: inherit;
-    content: "";
-    pointer-events: none;
-    opacity: 0;
-    transform: translateX(-65.45%);
-    transition: opacity 160ms ease, transform 620ms ease;
-}
-
-.sx-root .sx-price.is-ready:hover:not(:disabled),
-.sx-root .sx-price.is-ready:focus-visible {
-    color: var(--sx-action-ink);
-    background:
-        linear-gradient(135deg, #ffffff45, transparent 48%),
-        linear-gradient(160deg, #554c9bd9, #171a38d9);
-    border-color: var(--sx-action-hot);
-    box-shadow:
-        inset 0 1px 0 #ffffff78,
-        0 7px 15px -10px #000000f2,
-        0 0 0 1px #ffffff52,
-        0 0 20px -10px #9a91ffe6;
-    transform: translateY(-3px) rotate(0.4deg);
-}
-
-.sx-root .sx-price.is-ready:hover:not(:disabled)::after,
-.sx-root .sx-price.is-ready:focus-visible::after {
-    opacity: 0.72;
-    transform: translateX(10.91%);
-}
-
-.sx-root .sx-price.is-ready:hover:not(:disabled)::before,
-.sx-root .sx-price.is-ready:focus-visible::before {
-    color: var(--sx-action-ink);
-}
-
-.sx-root .sx-price.is-ready:active:not(:disabled) {
-    box-shadow: inset 0 3px 8px -5px #704c248a, 0 0 0 transparent;
-    transform: translateY(1px) rotate(-0.4deg) scale(0.96);
-}
-
-.sx-root .sx-price.is-poor,
-.sx-root .sx-price.is-sold {
-    --sx-price-ink: var(--sx-muted);
-
-    color: var(--sx-price-ink);
-    background: #121722b8;
-    border-color: #b7bfd52e;
-    opacity: 1;
-}
-
-.sx-root .sx-price.is-poor {
-    --sx-price-ink: var(--sx-alert);
-    background: #351622b8;
-    border-color: #ff819d80;
-}
-
-.sx-root .sx-price.is-sold .sx-price-sold {
-    color: var(--sx-muted);
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-decoration: line-through;
-}
-
-.sx-root .sx-empty {
-    margin: 0;
-    padding: 34px 12px;
-    color: var(--sx-muted);
-    font-size: 14px;
-    letter-spacing: 2px;
-    line-height: 1.7;
-    text-align: center;
-}
-
-.sx-root .sx-foot {
-    display: flex;
-    min-height: 58px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding-top: 14px;
-    border-top: 1px solid var(--sx-line-strong);
-}
-
-.sx-root .sx-note {
-    margin: 0;
-    color: var(--sx-muted);
-    font-size: 13px;
-    letter-spacing: 1px;
+  display: none;
 }
 
 .sx-root .sx-refresh {
-    position: relative;
-    display: inline-flex;
-    min-width: 220px;
-    flex: 0 0 auto;
-    gap: 13px;
-    align-items: center;
-    padding: 13px 18px;
-    color: var(--sx-action);
-    background:
-        linear-gradient(135deg, #ffffff1e, transparent 52%),
-        linear-gradient(135deg, #24234ed1, #090d18bf);
-    border: 1px solid #d8d5ff66;
-    border-radius: 15px 9px 16px 10px;
-    clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
-    box-shadow:
-        inset 0 1px 0 #ffffff45,
-        0 8px 18px -14px #000000f2,
-        0 0 16px -12px #8279ffc7;
-    -webkit-backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
-    backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
-    transition:
-        background 160ms ease,
-        border-color 160ms ease,
-        box-shadow 160ms ease,
-        transform 120ms ease;
-    /* ⚠ 这条呼吸光晕**故意**留着动画 filter: drop-shadow。按钮带 clip-path(切角),
-       而 clip-path 会连伪元素的外发光一起裁掉 —— 把光晕搬进 ::before 就看不见了,
-       那不是性能优化而是改设计。代价是一颗小按钮的持续重绘, 与货架悬浮不是一个量级。 */
-    animation: sxRefreshPulse 4.8s ease-in-out infinite;
-}
-
-.sx-root .sx-refresh::after {
-    position: absolute;
-    right: 10px;
-    bottom: 6px;
-    left: 10px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--sx-electric-hot), #ffffff, var(--sx-electric-hot), transparent);
-    content: "";
-    opacity: 0.4;
-}
-
-.sx-root .sx-refresh:hover:not(:disabled),
-.sx-root .sx-refresh:focus-visible {
-    color: var(--sx-action-hot);
-    background:
-        linear-gradient(135deg, #ffffff30, transparent 52%),
-        linear-gradient(135deg, #514a9bd9, #161a39d1);
-    border-color: var(--sx-action-hot);
-    box-shadow:
-        inset 0 2px 0 #ffffff78,
-        inset 0 -2px 0 #6d66c766,
-        0 10px 20px -14px #000000f2,
-        0 0 0 1px #ffffff4d,
-        0 0 22px -10px #9a91ffe6;
-    animation: none;
-}
-
-.sx-root .sx-refresh:active:not(:disabled) {
-    box-shadow: inset 0 3px 9px -4px #704c248a;
-    transform: translateY(2px);
-    animation: none;
-}
-
-.sx-root .sx-refresh:disabled {
-    color: #737b92;
-    background: #0d111bb3;
-    border-color: #d8ddff1f;
-    box-shadow: inset 0 1px 0 #ffffff1f, 0 4px 12px -12px #000000e6;
-    opacity: 1;
-    animation: none;
+  min-width: 220px;
+  gap: 13px;
+  padding: 13px 18px;
 }
 
 .sx-root .sx-refresh-icon {
-    display: block;
-    flex: 0 0 auto;
-    font-size: 20px;
-    line-height: 1;
-    transition: transform 360ms cubic-bezier(0.2, 0.78, 0.24, 1);
+  display: block;
+  flex: 0 0 auto;
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 360ms cubic-bezier(0.2, 0.78, 0.24, 1);
 }
 
 .sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon,
 .sx-root .sx-refresh:focus-visible .sx-refresh-icon {
-    transform: rotate(180deg);
-}
-
-.sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-cost,
-.sx-root .sx-refresh:focus-visible .sx-refresh-cost {
-    color: var(--sx-action-hot);
+  transform: rotate(180deg);
 }
 
 .sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
-    transform: rotate(250deg) scale(0.9);
+  transform: rotate(250deg) scale(0.9);
 }
 
 .sx-root .sx-refresh-label {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 3px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
 .sx-root .sx-refresh-cost {
-    position: relative;
-    margin-left: auto;
-    padding-left: 13px;
-    color: var(--sx-action);
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 1px;
+  position: relative;
+  margin-left: auto;
+  padding-left: 13px;
+  color: var(--event-accent);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
 }
 
 .sx-root .sx-refresh-cost::before {
-    position: absolute;
-    top: 1px;
-    bottom: 1px;
-    left: 0;
-    width: 1px;
-    background: var(--sx-electric-hot);
-    content: "";
-    opacity: 0.45;
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 0;
+  width: 1px;
+  background: var(--event-accent);
+  content: "";
+  opacity: 0.45;
 }
 
 .sx-root .sx-refresh:disabled .sx-refresh-cost {
-    color: var(--sx-alert);
+  color: #e47970;
 }
 
 .sx-root.is-leaving .sx-header,
-.sx-root.is-leaving .sx-panel,
-.sx-root.is-leaving .sx-side-plaque {
-    animation: sxLeave 420ms ease both;
+.sx-root.is-leaving .sx-panel {
+  animation: sxLeave 420ms ease both;
 }
 
 @keyframes sxHeaderIn {
-    from {
-        opacity: 0;
-        transform: translateY(18px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes sxPanelIn {
-    from {
-        opacity: 0;
-        transform: translateX(120px) translateZ(-30px);
-    }
+  from {
+    opacity: 0;
+    transform: translateX(120px) translateZ(-30px);
+  }
 
-    78% {
-        opacity: 1;
-        transform: translateX(-10px) translateZ(8px);
-    }
+  78% {
+    opacity: 1;
+    transform: translateX(-10px) translateZ(8px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateX(0) translateZ(0);
-    }
-}
-
-@keyframes sxPlaqueIn {
-    from {
-        opacity: 0;
-        translate: -26px 0;
-    }
-
-    72% {
-        opacity: 1;
-        translate: 4px 0;
-    }
-
-    to {
-        opacity: 1;
-        translate: 0 0;
-    }
-}
-
-@keyframes sxShelfEnterForward {
-    from {
-        opacity: 0;
-        transform: translateX(48px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes sxShelfEnterBackward {
-    from {
-        opacity: 0;
-        transform: translateX(-48px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes sxShelfLeaveForward {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(-48px);
-    }
-}
-
-@keyframes sxShelfLeaveBackward {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(48px);
-    }
-}
-
-@keyframes sxCellIn {
-    from {
-        opacity: 0;
-        transform: translateY(14px) rotateX(5deg);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) rotateX(0);
-    }
-}
-
-@keyframes sxCellOut {
-    from {
-        opacity: 1;
-        transform: translateY(0) rotateX(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(-8px) rotateX(-4deg);
-    }
-}
-
-@keyframes sxSoldStamp {
-    from {
-        opacity: 0;
-        transform: scale(2) rotate(18deg);
-    }
-
-    60% {
-        opacity: 1;
-        transform: scale(1) rotate(0);
-    }
-
-    to {
-        opacity: 0.9;
-        transform: scale(1) rotate(0);
-    }
-}
-
-@keyframes sxRefreshPulse {
-
-    0%,
-    100% {
-        filter: drop-shadow(0 5px 10px #8279ff38);
-    }
-
-    50% {
-        filter: drop-shadow(0 7px 15px #9a91ff66);
-    }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateZ(0);
+  }
 }
 
 @keyframes sxLeave {
-    to {
-        opacity: 0;
-        transform: translateX(44px);
-    }
+  to {
+    opacity: 0;
+    transform: translateX(44px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sx-root .sx-header,
+  .sx-root .sx-panel,
+  .sx-root .sx-refresh-icon {
+    animation: none;
+    transition: none;
+  }
 
-    .sx-root .sx-header,
-    .sx-root .sx-panel,
-    .sx-root .sx-side-plaque,
-    .sx-root .sx-grid.is-entering,
-    .sx-root .sx-grid.is-leaving,
-    .sx-root .sx-grid.is-entering .sx-cell,
-    .sx-root .sx-grid.is-leaving .sx-cell,
-    .sx-root .sx-cell.is-sold::after,
-    .sx-root .sx-refresh:not(:disabled) {
-        animation: none;
-    }
-
-    .sx-root .sx-panel-rim::before {
-        animation: none;
-    }
-
-    .sx-root .sx-side-plaque,
-    .sx-root .sx-refresh,
-    .sx-root .sx-refresh-icon {
-        transition: none;
-    }
-
-    .sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon,
-    .sx-root .sx-refresh:focus-visible .sx-refresh-icon,
-    .sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
-        transform: none;
-    }
+  .sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon,
+  .sx-root .sx-refresh:focus-visible .sx-refresh-icon,
+  .sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
+    transform: none;
+  }
 }

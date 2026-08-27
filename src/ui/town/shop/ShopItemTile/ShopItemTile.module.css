@@ -68,7 +68,7 @@
   box-shadow:
     inset 0 1px 0 #ffffff30,
     0 9px 19px -17px #000000f2,
-    0 0 14px -12px #8279ffb3;
+    0 0 14px -12px #d6b477b3;
   -webkit-backdrop-filter: blur(12px) saturate(115%) brightness(0.8);
   backdrop-filter: blur(12px) saturate(115%) brightness(0.8);
   /* 常驻提升为合成层: 一屏最多 6 格, 显存代价可忽略, 换来悬浮变换不再触发重新栅格化。
@@ -113,7 +113,7 @@
   box-shadow:
     inset 0 1px 0 #ffffff30,
     0 12px 20px -15px #000000f2,
-    0 0 20px -10px color-mix(in srgb, var(--sx-rr) 66%, #8279ff 34%);
+    0 0 20px -10px color-mix(in srgb, var(--sx-rr) 66%, #d6b477 34%);
   transform: translateY(-5px) rotateX(2deg) rotateY(-1.5deg) rotateZ(0.3deg);
 }
 
@@ -122,7 +122,7 @@
   box-shadow:
     inset 0 1px 0 #ffffff5c,
     0 11px 20px -15px #000000f2,
-    0 0 22px -10px #8279ffd9;
+    0 0 22px -10px #d6b477d9;
 }
 
 :global([data-shop-root]) .sx-tile.is-selected:hover:not(:disabled),
@@ -148,7 +148,7 @@
   object-fit: contain;
   object-position: center bottom;
   opacity: 0.48;
-  filter: saturate(0.7) contrast(0.95) drop-shadow(0 3px 5px #00000099) drop-shadow(0 0 8px #8279ff2e);
+  filter: saturate(0.7) contrast(0.95) drop-shadow(0 3px 5px #00000099) drop-shadow(0 0 8px #d6b4772e);
   transform: translateX(-50%) translateZ(-4px);
   transition: opacity 180ms ease, transform 220ms ease;
 }
@@ -195,7 +195,7 @@
 
 :global([data-shop-root]) .sx-tile:hover:not(:disabled) .sx-tile-icon,
 :global([data-shop-root]) .sx-tile:focus-visible .sx-tile-icon {
-  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 8px color-mix(in srgb, var(--sx-rr) 32%, #8279ff 18%));
+  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 8px color-mix(in srgb, var(--sx-rr) 32%, #d6b477 18%));
   transform: translateY(-9px) translateZ(18px) rotateZ(-1deg);
 }
 
@@ -205,7 +205,7 @@
 }
 
 :global([data-shop-root]) .sx-tile.is-selected .sx-tile-icon {
-  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 9px color-mix(in srgb, var(--sx-rr) 38%, #8279ff 22%));
+  filter: drop-shadow(0 4px 4px #000000aa) drop-shadow(0 0 9px color-mix(in srgb, var(--sx-rr) 38%, #d6b477 22%));
 }
 
 :global([data-shop-root]) .sx-tile.is-sold,

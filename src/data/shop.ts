@@ -36,21 +36,20 @@ export interface ShopSlot {
 // ★ 等级提升本期不开放(没有升级入口), 但等级本身是真的字段 ——
 //   日后开升级只需在这张表里加 2/3 级两行, 生成逻辑一行不用动。
 export interface ShopLevel {
-  equipCount: number; // 每次刷新上架几件装备
-  materialCount: number; // 每次刷新上架几件材料
+  slotCount: number; // 每次刷新上架几件商品
   weights: Record<ItemRarity, number>; // 品质概率分布(相对权重, 不必凑 100)
 }
 
 export const SHOP_LEVELS: Record<number, ShopLevel> = {
   1: {
-    equipCount: 6,
-    materialCount: 3,
+    slotCount: 6,
     // 1 级只出普通品质。写成权重而不是布尔, 是为了 2 级直接改数就能出精良档。
     weights: { common: 100, fine: 0, rare: 0, epic: 0, legendary: 0 },
   },
 };
 
 export const DEFAULT_SHOP_LEVEL = 1;
+export const SHOP_EQUIP_CHANCE = 0.7;
 
 export const shopLevel = (level: number): ShopLevel =>
   SHOP_LEVELS[level] ?? SHOP_LEVELS[DEFAULT_SHOP_LEVEL];
@@ -106,32 +105,42 @@ function pickByWeight(pool: ItemDef[], weights: Record<ItemRarity, number>, rand
   return last.defs[pickIndex(last.defs.length, rand)];
 }
 
-// 摇 n 个格子。★ 同一批货架内 itemId **不重复** —— 一排 5 件同款曙光军刀不成其为货架。
-//   池子确实不够时(如某档只有 2 件却要摆 3 个)才放宽重复, 否则会摆不满。
-function rollSlots(
-  prefix: string,
-  n: number,
-  pool: ItemDef[],
-  weights: Record<ItemRarity, number>,
-  rand: () => number,
+// 摇一整个货架。调用方只有 townStore(advanceDay / refreshShop / 建档)。
+export function rollShopStock(
+  level: number,
+  rand: () => number = Math.random,
 ): ShopSlot[] {
+  const cfg = shopLevel(level);
   const out: ShopSlot[] = [];
-  if (!pool.length) return out;
   const used = new Set<string>();
 
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < cfg.slotCount; i++) {
+    let pool = rand() < SHOP_EQUIP_CHANCE ? EQUIP_POOL : MATERIAL_POOL;
+    if (!pool.length) pool = pool === EQUIP_POOL ? MATERIAL_POOL : EQUIP_POOL;
+    if (!pool.length) continue;
+
     let def: ItemDef | undefined;
     // 有限次重试而不是 while(true): 池子被抽干时也必须停下来。
     for (let tries = 0; tries < 24; tries++) {
-      const candidate = pickByWeight(pool, weights, rand);
+      const candidate = pickByWeight(pool, cfg.weights, rand);
       if (!candidate) break;
       def = candidate;
       if (!used.has(candidate.id)) break;
     }
+    if (def && used.has(def.id)) {
+      const unusedPool = pool.filter((candidate) => !used.has(candidate.id));
+      if (unusedPool.length) {
+        def = pickByWeight(unusedPool, cfg.weights, rand);
+      } else {
+        const fallbackPool = pool === EQUIP_POOL ? MATERIAL_POOL : EQUIP_POOL;
+        const unusedFallbackPool = fallbackPool.filter((candidate) => !used.has(candidate.id));
+        if (unusedFallbackPool.length) def = pickByWeight(unusedFallbackPool, cfg.weights, rand);
+      }
+    }
     if (!def) continue;
     used.add(def.id);
     out.push({
-      key: `${prefix}-${i}`,
+      key: `sl-${i}`,
       itemId: def.id,
       // 词条与掉落同规则: affinityRollable 的装备各带 1 条随机羁绊(《羁绊设计概览.md》§2.1)。
       affinity:
@@ -143,16 +152,4 @@ function rollSlots(
     });
   }
   return out;
-}
-
-// 摇一整个货架。调用方只有 townStore(advanceDay / refreshShop / 建档)。
-export function rollShopStock(
-  level: number,
-  rand: () => number = Math.random,
-): { equip: ShopSlot[]; material: ShopSlot[] } {
-  const cfg = shopLevel(level);
-  return {
-    equip: rollSlots("eq", cfg.equipCount, EQUIP_POOL, cfg.weights, rand),
-    material: rollSlots("mt", cfg.materialCount, MATERIAL_POOL, cfg.weights, rand),
-  };
 }
