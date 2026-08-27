@@ -4,7 +4,6 @@ import { getItemDef } from "@/data";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
-import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import type { ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import { useChangePulse } from "@/ui/hooks/useChangePulse";
 import { cx } from "@/ui/common/cx";
@@ -14,7 +13,7 @@ import { VictoryDropSection } from "@/ui/battle/VictoryDropSection";
 import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/VictoryLootTray";
 import { VictoryBoonTray } from "@/ui/battle/VictoryBoonTray/VictoryBoonTray";
 import { VictoryCardOffer } from "@/ui/battle/VictoryCardOffer/VictoryCardOffer";
-import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
+import { VictoryBackpack } from "@/ui/battle/VictoryBackpack";
 import s from "./VictoryPanel.module.css";
 
 const BACKPACK_COLUMNS = 8;
@@ -177,19 +176,14 @@ export function VictoryPanel() {
                 className={cx(s["backpack-section"], s["victory-section"])}
                 style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(4))}ms` } as CSSProperties}
               >
-                <ItemInventoryPanel
+                <VictoryBackpack
                   stacks={backpack}
                   rows={BACKPACK_ROWS}
                   columns={BACKPACK_COLUMNS}
                   capacity={RULES.burden.backpackSlots}
-                  title="回收背包"
-                  panelId="victory-backpack-panel"
-                  className={s["backpack-panel"]}
                   pulseUids={new Set([...pulsedUids, ...pickedUids])}
                   onReorder={handleReorder}
                   contextMenuItems={contextMenuItems}
-                  colorMap={VICTORY_INVENTORY_COLORS}
-                  compact
                 />
               </section>
             </main>

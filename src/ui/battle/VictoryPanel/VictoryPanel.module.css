@@ -213,14 +213,6 @@
   overflow: hidden;
 }
 
-.backpack-panel {
-  width: 100%;
-  max-width: none;
-  min-height: 0;
-  flex: none;
-  --inventory-cell: minmax(0, 1fr);
-}
-
 .floating-actions {
   position: absolute;
   right: -168px;
