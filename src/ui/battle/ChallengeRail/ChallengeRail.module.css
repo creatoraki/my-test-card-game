@@ -15,7 +15,7 @@
   width: 80px;
   aspect-ratio: 1 / 1;
   place-items: center;
-  cursor: help;
+  cursor: default;
   outline: none;
 }
 .item:hover,
