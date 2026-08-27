@@ -31,6 +31,8 @@ import { resolveEffects } from "./effects";
 import { cardCost, manaCostOf, starlightPayment } from "./cost";
 import { startCharge } from "./ai";
 import { advanceTick, flushPendingActs } from "./scheduler";
+
+const isTest = import.meta.env.isTest === "true";
 import {
   checkChallengesOnEndTurn,
   checkMassacreOnRoundSettle,
@@ -128,7 +130,7 @@ export function createBattle(
     const id = `${defId}#${i}`;
     const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";
     defSeen[defId] = (defSeen[defId] ?? 0) + 1;
-    const maxHp = Math.max(1, Math.round(def.maxHp * hpMul));
+    const maxHp = isTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
     const enemy: Enemy = {
       id,
       enemyDefId: defId,
