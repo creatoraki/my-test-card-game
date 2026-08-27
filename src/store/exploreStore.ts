@@ -6,11 +6,12 @@
 
 import { create } from "zustand";
 import { getItemDef } from "../data";
-import type { ExploreState, PartySnapshot } from "../explore/types";
+import type { CardOfferCandidate, ExploreState, PartySnapshot } from "../explore/types";
 import type { ItemStack } from "../items/types";
 import {
   abandonPending,
   abandonLoot,
+  addPendingLoot,
   acceptEquipOffer,
   arriveNode,
   chooseEntry,
@@ -18,6 +19,7 @@ import {
   confirmNode,
   createSession,
   discardStack,
+  dropContext,
   finishBattle,
   finishGenerating,
   finishLeaving,
@@ -52,7 +54,16 @@ import {
   applyEffect,
   type ItemUseResult,
 } from "../explore/session";
+import {
+  abandonBoons,
+  healPartyFlat,
+  openCardOffer,
+  rollEquipCrate,
+  takeBoon,
+  takeCardOffer,
+} from "../explore/boons";
 import { buyFromShop as buyFromShopFn } from "../explore/shop";
+import { EXPLORE_RULES } from "../explore/rules";
 import { useTownStore } from "./townStore";
 
 interface ExploreStore {
@@ -108,6 +119,10 @@ interface ExploreStore {
   takeLoot: (index: number) => boolean;
   takeAllLoot: () => void;
   abandonLoot: () => void;
+  takeBoonAction: (uid: string) => string | null;
+  openCardOffer: (offers: CardOfferCandidate[]) => void;
+  clearCardOffer: () => void;
+  abandonBoons: () => void;
   restEat: (uid: string) => void;
   restSkip: () => void;
   chooseNpcOption: (index: number) => void;
@@ -335,6 +350,60 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   abandonLoot: () => {
     mutate(get, set, (d) => abandonLoot(d));
+  },
+
+  takeBoonAction: (uid) => {
+    let summary: string | null = null;
+    mutate(get, set, (d) => {
+      const boon = takeBoon(d, uid);
+      if (!boon) return false;
+      const kind = boon.kind;
+
+      if (kind === "healDew") {
+        const affected = healPartyFlat(d, EXPLORE_RULES.boons.healDewAmount);
+        summary = affected
+          ? `治疗露珠已拾取 · ${affected} 名队员恢复 ${EXPLORE_RULES.boons.healDewAmount} 点生命`
+          : "治疗露珠已拾取 · 当前没有队员需要治疗";
+        return true;
+      }
+
+      if (kind === "equipCrate") {
+        const stack = rollEquipCrate(d, dropContext(d, boon.dropK));
+        if (!stack) {
+          summary = "随机装备箱已拾取 · 当前没有可用装备";
+          return true;
+        }
+        addPendingLoot(d, [stack]);
+        summary = `随机装备箱已开启 · ${getItemDef(stack.itemId).name} 已加入战利品`;
+        return true;
+      }
+
+      const offers = useTownStore.getState().rollPartyDrawOffers(
+        d.party.filter((member) => member.alive).map((member) => member.charId),
+      );
+      if (!offers.length) {
+        summary = "卡牌奖励已拾取 · 当前没有可加入的卡牌";
+        return true;
+      }
+      openCardOffer(d, offers);
+      summary = `卡牌奖励已拾取 · 获得 ${offers.length} 张候选卡牌`;
+      return true;
+    });
+    return summary;
+  },
+
+  openCardOffer: (offers) => {
+    mutate(get, set, (d) => {
+      openCardOffer(d, offers);
+    });
+  },
+
+  clearCardOffer: () => {
+    mutate(get, set, (d) => takeCardOffer(d) != null);
+  },
+
+  abandonBoons: () => {
+    mutate(get, set, (d) => abandonBoons(d));
   },
 
   restEat: (uid) => {

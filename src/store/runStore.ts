@@ -430,7 +430,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
   confirmExpReport: () => {
     const session = useExploreStore.getState().session;
     if (!session) return set({ screen: "town" });
-    if (session.pendingLoot.length) return;
+    if (session.pendingLoot.length || session.pendingBoons.length || session.pendingCardOffer) return;
 
     if (session.phase === "cleared") {
       bankEverything(session);

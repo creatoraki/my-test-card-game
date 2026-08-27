@@ -12,6 +12,8 @@ import { victoryChoreoVars, victorySectionStagger, victoryTiming } from "@/ui/ba
 import { VictoryExpRow } from "@/ui/battle/VictoryExpRow";
 import { VictoryDropSection } from "@/ui/battle/VictoryDropSection";
 import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/VictoryLootTray";
+import { VictoryBoonTray } from "@/ui/battle/VictoryBoonTray/VictoryBoonTray";
+import { VictoryCardOffer } from "@/ui/battle/VictoryCardOffer/VictoryCardOffer";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import s from "./VictoryPanel.module.css";
 
@@ -28,6 +30,7 @@ export function VictoryPanel() {
   const confirmExpReport = useRunStore((state) => state.confirmExpReport);
   const session = useExploreStore((state) => state.session);
   const abandonLoot = useExploreStore((state) => state.abandonLoot);
+  const abandonBoons = useExploreStore((state) => state.abandonBoons);
   const discardItem = useExploreStore((state) => state.discardItem);
   const reorderBackpack = useExploreStore((state) => state.reorderBackpack);
   const characters = useTownStore((state) => state.characters);
@@ -38,6 +41,9 @@ export function VictoryPanel() {
   const pickedPulseTimersRef = useRef(new Map<string, number>());
   const backpack = session?.backpack ?? [];
   const pendingLoot = session?.pendingLoot ?? [];
+  const pendingBoons = session?.pendingBoons ?? [];
+  const pendingCardOffer = session?.pendingCardOffer ?? null;
+  const pendingRewardCount = pendingLoot.length + pendingBoons.length + (pendingCardOffer ? 1 : 0);
   const timing = victoryTiming();
   const pulseSignature = Object.fromEntries(backpack.map((stack) => [stack.uid, stack.count]));
   const pulsedUids = useChangePulse(pulseSignature);
@@ -88,11 +94,16 @@ export function VictoryPanel() {
     },
   ];
   const handleContinue = () => {
-    if (pendingLoot.length) {
+    if (pendingRewardCount) {
       setContinueNudge(true);
       return;
     }
     confirmExpReport();
+  };
+  const handleAbandon = () => {
+    abandonLoot();
+    abandonBoons();
+    setConfirmingAbandon(false);
   };
 
   return (
@@ -109,7 +120,7 @@ export function VictoryPanel() {
           <span className={s["panel-sweep"]} aria-hidden="true" />
           <header className={s["panel-head"]}>
             <div>
-              <span className={s["panel-kicker"]}>BATTLE CLEARED</span>
+              <span className={s["panel-kicker"]}>战斗结算</span>
               <h2>战斗胜利</h2>
             </div>
           </header>
@@ -144,26 +155,31 @@ export function VictoryPanel() {
                 </div>
               </section>
 
-            <section
-              className={cx(s["loot-section"], s["victory-section"])}
-              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
-            >
-              <div className={s["section-heading"]}>
-                <span>战利品</span>
-                <small
-                  className={s["loot-readout"]}
-                  data-pulse={lootCountPulsed.has("count") ? "true" : undefined}
-                >
-                  {pendingLoot.length ? `${pendingLoot.length} 件待拾取` : "已清空"}
-                </small>
-              </div>
-              <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
-            </section>
+            <div className={s["loot-stack"]}>
+              <VictoryBoonTray
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
+              />
+              <section
+                className={cx(s["loot-section"], s["victory-section"])}
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
+              >
+                <div className={s["section-heading"]}>
+                  <span>战利品</span>
+                  <small
+                    className={s["loot-readout"]}
+                    data-pulse={lootCountPulsed.has("count") ? "true" : undefined}
+                  >
+                    {pendingLoot.length ? `${pendingLoot.length} 件待拾取` : "已清空"}
+                  </small>
+                </div>
+                <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
+              </section>
+            </div>
             </div>
 
             <section
               className={cx(s["backpack-section"], s["victory-section"])}
-              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
+              style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(4))}ms` } as CSSProperties}
             >
               <ItemInventoryPanel
                 stacks={backpack}
@@ -186,26 +202,27 @@ export function VictoryPanel() {
           <div className={s["footer-switch"]}>
             {confirmingAbandon ? (
               <div key="confirm" className={cx(s["footer-state"], s["confirm-strip"])}>
-                <span>放弃剩余 {pendingLoot.length} 件战利品？</span>
-                <button className={cx(s["action-button"], s["danger"])} type="button" onClick={abandonLoot}>确认放弃</button>
+                <span>放弃剩余 {pendingRewardCount} 项奖励？</span>
+                <button className={cx(s["action-button"], s["danger"])} type="button" onClick={handleAbandon}>确认放弃</button>
                 <button className={s["action-button"]} type="button" onClick={() => setConfirmingAbandon(false)}>返回</button>
               </div>
             ) : (
               <div key="actions" className={s["footer-state"]}>
                 <button className={cx(s["action-button"], s["primary"])} type="button" onClick={() => trayRef.current?.takeAll()} disabled={!pendingLoot.length}>全部拾取</button>
-                <button className={cx(s["action-button"], s["danger"])} type="button" onClick={() => setConfirmingAbandon(true)} disabled={!pendingLoot.length}>放弃剩余</button>
+                <button className={cx(s["action-button"], s["danger"])} type="button" onClick={() => setConfirmingAbandon(true)} disabled={!pendingRewardCount}>放弃剩余</button>
               </div>
             )}
           </div>
           <button
-            className={cx(s["action-button"], s["continue"], pendingLoot.length > 0 && s["is-blocked"], continueNudge && s["is-nudging"])}
+            className={cx(s["action-button"], s["continue"], pendingRewardCount > 0 && s["is-blocked"], continueNudge && s["is-nudging"])}
             type="button"
-            aria-disabled={pendingLoot.length > 0}
+            aria-disabled={pendingRewardCount > 0}
             onClick={handleContinue}
           >
-            {pendingLoot.length ? `还有 ${pendingLoot.length} 件战利品未处理` : "继续"}
+            {pendingRewardCount ? `还有 ${pendingRewardCount} 项奖励未处理` : "继续"}
           </button>
           </footer>
+          <VictoryCardOffer />
         </section>
       </div>
     </div>

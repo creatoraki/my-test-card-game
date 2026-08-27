@@ -6,7 +6,7 @@ import type { EquipSlot, ItemDef, ItemStack } from "../items/types";
 import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
 import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
-import { DESIGN_ITEM_DEFS } from "./items/index";
+import { DESIGN_ITEM_DEFS, EQUIPMENT_ITEM_DEFS } from "./items/index";
 import { CHARACTERS, type CharacterDef } from "./characters";
 import { ENEMIES, type EnemyDef } from "./enemies";
 import { ENCOUNTERS, type EncounterDef } from "./encounters";
@@ -165,7 +165,7 @@ export function getItemFamily(familyId: string): ItemDef[] {
 // 卡实例会随城镇档案持久化到 localStorage, 刷新后继续发号 ——
 // 不能用会归零的内存计数器, 否则新卡 uid 会撞上存档里的旧卡。
 // 物品实例(仓库)同理, 故两者共用这个发号器, 只换前缀。
-function newUid(prefix = "c"): string {
+export function newUid(prefix = "c"): string {
   return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? `${prefix}-${crypto.randomUUID()}`
     : `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;

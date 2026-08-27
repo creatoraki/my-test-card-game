@@ -11,6 +11,7 @@
 
 import type { CardAnim, EffectDescriptor, EnemyAiScript, StatBlock, Targeting } from "../engine/types";
 import type { DropEntry } from "../items/types";
+import type { BoonEntry } from "../explore/types";
 
 export interface EnemyMove {
   id: string;
@@ -114,6 +115,11 @@ export const ENEMIES: EnemyDef[] = [
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
     ],
+    boonTable: [
+      { kind: "healDew", chance: 0.5 },
+      { kind: "equipCrate", chance: 0.3 },
+      { kind: "cardOffer", chance: 0.3 },
+    ],
   },
   {
     // ⭐ 精英怪: 高压电网核心 —— 高血高攻、每回合 1 行动。
@@ -189,15 +195,20 @@ export const ENEMIES: EnemyDef[] = [
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
     ],
+    boonTable: [
+      { kind: "healDew", chance: 0.5 },
+      { kind: "equipCrate", chance: 0.3 },
+      { kind: "cardOffer", chance: 0.3 },
+    ],
   },
   {
     // 小怪 · 巡回侦察/支援: 低生命, 靠天线充能自保、干扰噪波放大同场敌方的出手价值。
     id: "radio-bot",
     name: "收音机机器人",
     emoji: "📻", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 27,
+    maxHp: 42,
     exp: 11,
-    stats: { attack: 14, defense: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 12, defense: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "radio-peck",
@@ -246,15 +257,20 @@ export const ENEMIES: EnemyDef[] = [
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
     ],
+    boonTable: [
+      { kind: "healDew", chance: 0.3 },
+      { kind: "equipCrate", chance: 0.1 },
+      { kind: "cardOffer", chance: 0.15 },
+    ],
   },
   {
     // 小怪 · 轻型机动骚扰: 高先手, 用高压清扫点名、破盾旋刃惩罚厚盾目标, 制造节奏压力。
     id: "sweep-drone",
     name: "清扫无人机",
     emoji: "🛸", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 32,
+    maxHp: 48,
     exp: 12,
-    stats: { attack: 14, defense: 0, initiative: 25, critDamage: 150 },
+    stats: { attack: 12, defense: 0, initiative: 25, critDamage: 150 },
     moves: [
       {
         id: "sweep-bump",
@@ -278,7 +294,7 @@ export const ENEMIES: EnemyDef[] = [
         weight: 1,
         hitBonus: 0,
         anim: "shot",
-        effects: [{ type: "DAMAGE", multiplier: 1.8, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 1.5, target: "primary" }],
       },
       {
         id: "sweep-shred",
@@ -300,6 +316,11 @@ export const ENEMIES: EnemyDef[] = [
         ],
       },
     ],
+    boonTable: [
+      { kind: "healDew", chance: 0.3 },
+      { kind: "equipCrate", chance: 0.1 },
+      { kind: "cardOffer", chance: 0.15 },
+    ],
   },
   {
     // 小怪 · 支援位: 自身输出偏低(attack 12), 靠治疗与护盾把同场机械的有效血量拉起来。
@@ -307,7 +328,7 @@ export const ENEMIES: EnemyDef[] = [
     id: "maintenance-spider",
     name: "维修蜘蛛",
     emoji: "🕷️", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 30,
+    maxHp: 46,
     exp: 12,
     stats: { attack: 12, defense: 1, initiative: 22, critDamage: 150 },
     moves: [
@@ -358,6 +379,11 @@ export const ENEMIES: EnemyDef[] = [
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
     ],
+    boonTable: [
+      { kind: "healDew", chance: 0.3 },
+      { kind: "equipCrate", chance: 0.1 },
+      { kind: "cardOffer", chance: 0.15 },
+    ],
   },
   {
     // 小怪 · 控制 + 骚扰半输出位: 三招都带负面效果, 同时保留稳定的伤害压力。
@@ -365,7 +391,7 @@ export const ENEMIES: EnemyDef[] = [
     id: "traffic-light-bot",
     name: "红绿灯机器人",
     emoji: "🚦", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 34,
+    maxHp: 52,
     exp: 14,
     // 控制 + 骚扰半输出位: 三招都带负面效果, 同时保留稳定的伤害压力。
     // 威胁来自易伤放大同场输出、眩晕打断节奏、沉重标记堵手牌与自身伤害。
@@ -426,6 +452,11 @@ export const ENEMIES: EnemyDef[] = [
       { kind: "item", itemId: "logic-cube", chance: 0.05 },
       { kind: "item", itemId: "standard-gear", chance: 0.05 },
       { kind: "item", itemId: "standard-battery", chance: 0.05 },
+    ],
+    boonTable: [
+      { kind: "healDew", chance: 0.3 },
+      { kind: "equipCrate", chance: 0.1 },
+      { kind: "cardOffer", chance: 0.15 },
     ],
   },
   {
@@ -524,5 +555,10 @@ export const ENEMIES: EnemyDef[] = [
         effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
       },
     ],
+      boonTable: [
+        { kind: "healDew", chance: 0.8 },
+        { kind: "equipCrate", chance: 1 },
+        { kind: "cardOffer", chance: 1 },
+      ],
   },
 ];

@@ -16,6 +16,24 @@
 import type { DropEntry, EquipSlot, ItemStack } from "../items/types";
 import type { StatModifier } from "../engine/types";
 
+export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate";
+
+export interface BoonEntry {
+  kind: BattleBoonKind;
+  chance: number;
+}
+
+export interface PendingBoon {
+  uid: string;
+  kind: BattleBoonKind;
+  dropK: number;
+}
+
+export interface CardOfferCandidate {
+  charId: string;
+  cardDefId: string;
+}
+
 // ---------------------------------------------------------------------------
 // 路由图
 // ---------------------------------------------------------------------------
@@ -309,6 +327,8 @@ export interface ExploreState {
   // ⚠ 刻意**不**做成 phase: 它会叠加在 landed / resolving 之上, 做成阶段会把阶段机撑爆。
   pendingPickup: ItemStack[];
   pendingLoot: ItemStack[];
+  pendingBoons: PendingBoon[];
+  pendingCardOffer: CardOfferCandidate[] | null;
   pendingExp: Record<string, number>;
   pendingActions: PendingAction[];
   pendingStory: string[];

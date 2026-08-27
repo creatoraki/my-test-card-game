@@ -59,6 +59,7 @@ import {
 } from "../items/inventory";
 import type { ItemRarity, ItemStack } from "../items/types";
 import { generateSegments, lanePath, traceSegment } from "./route";
+import { rollBoons } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
 import type {
@@ -118,15 +119,22 @@ export function qualityWeights(k: number): Record<ItemRarity, number> {
   return { ...last.w };
 }
 
+const EQUIPMENT_FAMILY_IDS = [...new Set(
+  equipmentDefsBySlot()
+    .map((def) => def.familyId)
+    .filter((familyId): familyId is string => Boolean(familyId)),
+)];
+
 // 掉落所需的上下文。★ 唯一一处把 data 层的注册表接进物品层的地方。
-function dropContext(s: ExploreState): DropContext {
+export function dropContext(s: ExploreState, k = dropCoefficient(s)): DropContext {
   return {
-    weights: qualityWeights(dropCoefficient(s)),
+    weights: qualityWeights(k),
     getDef: getItemDef,
     getFamily: getItemFamily,
     makeStack: (itemId, count, affinity) => makeItemStack(itemId, count, affinity),
     // ★ 随机羁绊词条的抽取池 —— 只含**已实装**的羁绊, 见 data/bonds.ts 的说明。
     affinityPool: ROLLABLE_BOND_IDS,
+    equipmentFamilyIds: EQUIPMENT_FAMILY_IDS,
   };
 }
 
@@ -178,8 +186,10 @@ export function createSession(
     backpack: initialBackpack.map((st) => ({ ...st })),
     shipped: [],
     pendingPickup: [],
-      auras: [],
+    auras: [],
     pendingLoot: [],
+    pendingBoons: [],
+    pendingCardOffer: null,
     pendingExp: {},
     pendingActions: [],
     pendingStory: [],
@@ -270,7 +280,7 @@ export function addItems(
   return { taken: r.taken, overflow: r.overflow };
 }
 
-function addPendingLoot(s: ExploreState, stacks: ItemStack[]): void {
+export function addPendingLoot(s: ExploreState, stacks: ItemStack[]): void {
   s.pendingLoot = [...s.pendingLoot, ...stacks];
 }
 
@@ -611,6 +621,8 @@ function loseEverything(s: ExploreState): void {
   s.backpack = [];
   s.pendingPickup = [];
   s.pendingLoot = [];
+  s.pendingBoons = [];
+  s.pendingCardOffer = null;
   s.pendingExp = {};
   s.pendingActions = [];
   s.chuteOpen = false;
@@ -1617,6 +1629,7 @@ export function finishBattle(
   const ctx = dropContext(s);
   const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
   addPendingLoot(s, rolled);
+  s.pendingBoons = rollBoons(s, enemyDefIds.map((id) => getEnemyDef(id).boonTable), k);
 
   // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清挑战加成。
   s.pendingEncounterId = null;
@@ -1628,6 +1641,7 @@ export function finishBattle(
   const notes: string[] = [];
   if (loot > 0) notes.push(`居民积分 +${loot}`);
   if (rolled.length) notes.push(summarizePendingItems(rolled));
+  if (s.pendingBoons.length) notes.push(`额外奖励 ×${s.pendingBoons.length}`);
   s.pendingNotes = [["战斗胜利", ...notes].join(" · ")];
 
   const last = s.history[s.history.length - 1];

@@ -21,6 +21,8 @@ export interface DropContext {
   //   items/ 是纯 TS 层, 不能 import data/(依赖方向是 data → items), 与 getDef/getFamily 同理。
   //   空数组 = 不 roll 词条(单元测试与不关心羁绊的调用方直接传 [])。
   affinityPool: string[];
+  // 装备箱从 data 层递进来的装备族列表, items 层不自行扫描内容注册表。
+  equipmentFamilyIds?: string[];
 }
 
 // 掷件数: finalChance = base × K。结果 >1 时, 整数部分为保底件数, 小数部分再掷一次

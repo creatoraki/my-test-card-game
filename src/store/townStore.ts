@@ -181,6 +181,8 @@ interface TownStore {
   cancelDraw: (charId: string) => void; // 放弃待选卡, 不退还已支付的经验
   grantFreeDraw: (charId: string) => void; // 不消耗经验 → 出 drawChoices 张候选
   pickDraw: (charId: string, cardDefId: string) => void; // 3 选 1 落袋, 清 pendingDraw
+  rollPartyDrawOffers: (charIds: string[]) => { charId: string; cardDefId: string }[];
+  pickPartyDraw: (charId: string, cardDefId: string) => boolean;
   removeCard: (charId: string, uid: string) => void; // 花 removeCost 经验删一张卡
   removeCardFree: (charId: string, uid: string) => void; // 不消耗经验删一张卡
   reforgeEquipped: (charId: string, slot: EquipSlot, bias?: BondBias) => void;
@@ -351,6 +353,25 @@ function rollDrawOptions(cs: CharacterState): string[] | null {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled.slice(0, Math.min(RULES.deck.drawChoices, shuffled.length));
+}
+
+function rollPartyDrawOption(cs: CharacterState): string | null {
+  const pools = availablePools(cs);
+  const rarity = rollRarity(cs.deckLevel, pools, Math.random);
+  const pool = pools[rarity];
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+}
+
+function addCardToDeck(cs: CharacterState, cardDefId: string): boolean {
+  const card = makeCard(cardDefId);
+  const rarity = card.rarity === "basic" ? "common" : card.rarity ?? "common";
+  if (!canAddRarity(cs.deck, rarity) || !canAddCopy(cs.deck, cardDefId)) return false;
+  cs.deck = [...cs.deck, card];
+  return true;
+}
+
+function cardBelongsToCharacter(cs: CharacterState, cardDefId: string): boolean {
+  return Object.values(getCharacter(cs.charId).pools).some((pool) => pool.includes(cardDefId));
 }
 
 // 取该角色今日的锻造用量; 跨日自动归零(懒重置, 不依赖 advanceDay)。
@@ -1006,19 +1027,33 @@ export const useTownStore = create<TownStore>()(
       pickDraw: (charId, cardDefId) => {
         const cs = get().characters[charId];
         if (!cs?.pendingDraw?.includes(cardDefId)) return;
-        const card = makeCard(cardDefId);
         // 再校验一次限携 —— 候选是抽卡那一刻算的, 期间卡组可能已经变了。
-        const rarity = card.rarity === "basic" ? "common" : card.rarity ?? "common";
-        if (!canAddRarity(cs.deck, rarity) || !canAddCopy(cs.deck, cardDefId)) {
+        const next = { ...cs, deck: [...cs.deck] };
+        if (!addCardToDeck(next, cardDefId)) {
           set({ characters: { ...get().characters, [charId]: { ...cs, pendingDraw: null } } });
           return;
         }
         set({
           characters: {
             ...get().characters,
-            [charId]: { ...cs, deck: [...cs.deck, card], pendingDraw: null },
+            [charId]: { ...next, pendingDraw: null },
           },
         });
+      },
+
+      rollPartyDrawOffers: (charIds) => charIds.flatMap((charId) => {
+        const cs = get().characters[charId];
+        const cardDefId = cs ? rollPartyDrawOption(cs) : null;
+        return cardDefId ? [{ charId, cardDefId }] : [];
+      }),
+
+      pickPartyDraw: (charId, cardDefId) => {
+        const cs = get().characters[charId];
+        if (!cs || !cardBelongsToCharacter(cs, cardDefId)) return false;
+        const next = { ...cs, deck: [...cs.deck] };
+        if (!addCardToDeck(next, cardDefId)) return false;
+        set({ characters: { ...get().characters, [charId]: next } });
+        return true;
       },
 
       removeCard: (charId, uid) => {
