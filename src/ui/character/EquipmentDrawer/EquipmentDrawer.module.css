@@ -66,7 +66,7 @@
 .equipment-drawer-body {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) 235px;
+  grid-template-columns: minmax(0, 1fr) 200px;
   gap: 12px;
   min-height: 0;
 }
@@ -108,23 +108,26 @@
 
 .equipment-candidates-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
-  gap: 8px;
+  gap: 10px;
 }
 
 .equipment-candidate {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
   align-items: stretch;
 }
 
 .equipment-candidate-slot.equipment-candidate-slot {
   --item-slot-icon-size: 90%;
+  --item-slot-name-size: 11px;
+  --item-slot-notch: 10px;
+  --item-slot-corner: 12px;
   width: 100%;
-  min-height: 84px;
+  min-height: 120px;
   aspect-ratio: 1;
   background: #ffffff99;
   border-color: #2a1b3d24;
@@ -139,7 +142,7 @@
 
 .equipment-candidate-action {
   color: var(--cd-ink-dim);
-  font-size: 9px;
+  font-size: 11px;
   text-align: center;
   letter-spacing: 1px;
 }
