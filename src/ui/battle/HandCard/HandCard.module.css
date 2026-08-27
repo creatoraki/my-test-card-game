@@ -1350,6 +1350,18 @@
   animation: none;
   transition: none;
 }
+/* 据点是静态浏览: 战斗的悬停/选中上弹与反光一律不带过来,
+   位移/放大交给外层(character/DeckCard), 这里只把卡面本体钉在原位。 */
+:global([data-deck-card]) .hand-slot:not(.leaving):hover > .hand-card:not(.selected),
+:global([data-deck-card]) .hand-card.selected {
+  transform: none;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+}
+:global([data-deck-card]) .hand-slot:not(.leaving):hover > .hand-card:not(.selected)::after,
+:global([data-deck-card]) .hand-card.selected::after {
+  content: none;
+  animation: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   :global([data-pile-grid]) .hand-card {

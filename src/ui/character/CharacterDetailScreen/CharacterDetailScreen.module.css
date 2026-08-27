@@ -413,13 +413,13 @@ span.cd-bust {
 .cd-deck-grid::-webkit-scrollbar {
   display: none;
 }
-/* 每张卡外面套一格: 翻入动画挂在这层, 不去动 HandCard 自己的样式(那是跨界面共用件)。
+/* 每张卡外面套一格: 翻入动画挂在这层, HandCard 的据点覆盖集中在 [data-deck-card]。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
 .cd-deck-cell {
   min-width: 0;
   animation: cdCardFlipIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(320ms + var(--i, 0) * 28ms);
-  transition: transform 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
+  transition: filter 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 @keyframes cdCardFlipIn {
   from {
@@ -432,8 +432,7 @@ span.cd-bust {
   }
 }
 .cd-deck-cell:hover {
-  transform: translateY(-6px);
-  filter: drop-shadow(0 12px 18px #2a1b3d3d);
+  filter: drop-shadow(0 6px 10px #2a1b3d2e);
 }
 
 /* ===================== 面包屑返回 ===================== */
@@ -549,7 +548,7 @@ span.cd-bust {
     transform: none;
   }
   .cd-deck-cell:hover {
-    transform: none;
+    filter: none;
   }
   /* ⚠ 与编队页之间的共享元素过场不需要在这里兜底: resolveTransition 已经短路成零时长,
      根本不会调 startViewTransition, ::view-transition-* 伪元素连生成都不会生成。

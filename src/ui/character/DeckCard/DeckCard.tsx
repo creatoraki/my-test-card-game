@@ -10,6 +10,7 @@ interface Props {
   selected: boolean;
   index: number;
   className?: string;
+  focusStyle?: "lift" | "zoom";
   onClick: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -22,6 +23,7 @@ export function DeckCard({
   selected,
   index,
   className,
+  focusStyle = "lift",
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -31,7 +33,12 @@ export function DeckCard({
   const owner = getCharacter(card.ownerCharId);
   return (
     <button
-      className={cx(s["deck-card"], className, selected && s["is-selected"])}
+      className={cx(
+        s["deck-card"],
+        className,
+        focusStyle === "zoom" && s["is-zoom"],
+        selected && s["is-selected"],
+      )}
       type="button"
       style={
         {

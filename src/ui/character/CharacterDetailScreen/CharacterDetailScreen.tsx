@@ -356,6 +356,7 @@ export function CharacterDetailScreen() {
                         <DeckCard
                           card={card}
                           index={i}
+                          focusStyle="zoom"
                           selected={card.uid === selectedCardUid}
                           onClick={() => setSelectedCardUid(card.uid)}
                           onMouseEnter={() => setHoveredCardUid(card.uid)}
