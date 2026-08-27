@@ -358,14 +358,15 @@ span.cd-bust {
 
 .cd-deck-head {
   display: flex;
-  flex: 0 0 auto;
+  grid-template-columns: repeat(3, 220px);
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--cd-line);
+  padding: 8px 0 4px;
 }
 
+  --deck-card-scale: 1;
 .cd-deck-sub {
   margin: 5px 0 0;
   color: var(--cd-ink-dim);
@@ -412,7 +413,7 @@ span.cd-bust {
 .cd-deck-grid::-webkit-scrollbar {
   display: none;
 }
-/* 每张卡外面套一格: 翻入动画挂在这层, 不去动 CardView 自己的样式(那是跨界面共用件)。
+/* 每张卡外面套一格: 翻入动画挂在这层, 不去动 HandCard 自己的样式(那是跨界面共用件)。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
 .cd-deck-cell {
   min-width: 0;

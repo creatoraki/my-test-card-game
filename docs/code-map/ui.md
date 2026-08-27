@@ -1,6 +1,5 @@
 | [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。持有 `drawerOpen` / `shakeId` / `pulse` 状态编排，`RESOURCE_LABELS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
 | [town/training/BadgeSelectModal](../../src/ui/town/training/BadgeSelectModal/BadgeSelectModal.tsx) | 训练室徽章选择 modal：大图 SVG 徽章卡片网格、选中预览与底栏两步确认；`badgeGlyphs` 按徽章 id 查表绘制主体图形。只接收 props 与回调，不读 store，支持锁定态与键盘选择。 |
-| [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，卡面比例为 320:496、插画区为 1:1、卡名位于插画下方的装饰名条中、费用球贴左上角，支持普通 / 速攻两套配色，尺寸随容器等比自适应，可省略底部统计栏。 |
 # React 视图层
 
 路径：`src/ui/`。组件只负责展示、交互和派发 action，不承载战斗、探索、物品或养成规则。图片素材只通过 `art/` 的查表引用，`data/` 不直接引用素材路径。
@@ -82,9 +81,8 @@ src/ui/
 | [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情页卡组升级浮层：展示等级徽章、水晶稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条；开关演出统一走 `common/ModalReveal`。 |
 | [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
 | [character/EquipmentDrawer](../../src/ui/character/EquipmentDrawer/EquipmentDrawer.tsx) | 角色详情页右侧部位仓库，只展示匹配槽位的装备，点击物品立即穿戴，并展示当前装备详情。 |
-| [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情页列表卡的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面视觉由公共 `TechCard` 提供。 |
-| [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情页场景级卡牌悬浮层，固定在卡组左侧空档并放大渲染 `common/TechCard`；只负责定位和展示时机，不承载卡牌业务规则。 |
-| [character/CardView](../../src/ui/character/CardView/CardView.tsx) | 编队/抽卡界面的单卡视图，展示费用、标签、归属、描述和选择状态。 |
+| [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情页与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放。 |
+| [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情页场景级卡牌悬浮层，固定在卡组左侧空档并放大渲染 `HandCard`；只负责定位和展示时机，不承载卡牌业务规则。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
@@ -132,7 +130,7 @@ src/ui/
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
 | [battle/PileDrawer](../../src/ui/battle/PileDrawer/PileDrawer.tsx) | 牌堆内容弹窗，按卡名排序展示，复用原尺寸 `HandCard`；悬停时由 `.scrim` 下的独立放大层浮出 1.4 倍卡面；待选择回收时切换为弃牌堆选择模式，点击卡牌提交，关闭弹窗取消。 |
-| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，所属角色阵亡后以 `purged` 播碎裂消散并卸载。现同时服务手牌托盘与牌堆弹窗，两套版式分别锁在 `[data-hand-tray]` / `[data-pile-grid]` 下；弹窗模式（`variant="pile"`）不写 `handFocusStore`。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，所属角色阵亡后以 `purged` 播碎裂消散并卸载。现同时服务手牌托盘、牌堆弹窗和据点卡组，两套战斗版式锁在 `[data-hand-tray]` / `[data-pile-grid]` 下，据点版式锁在 `[data-deck-card]` 下；弹窗与据点模式（`variant="pile"`）不写 `handFocusStore`。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；显示生效费用、污染卡与卡牌标记说明。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
 | [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |
@@ -159,11 +157,10 @@ src/ui/
 | [CardTextRich](../../src/ui/common/CardTextRich/CardTextRich.tsx) | 将卡牌说明按引擎词条登记表分段，统一高亮汇星、应星、瀑布等特殊词条。 |
 | [CardKeywordNotes](../../src/ui/common/CardKeywordNotes/CardKeywordNotes.tsx) | 按卡牌说明中实际出现的词条展示紧凑释义列表；无词条时不渲染。 |
 | [PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx) | 功能弹窗通用外壳：模态遮罩、切角面板、边框装饰层与 `EventPanelFrame` 收口，导出关闭动画时长与默认面板尺寸（1600×920，可用 `size` 覆盖）。原为装配舱私有件，现由装配舱、制造弹窗与角色档案 Modal 共用；配色只靠外层覆盖 `--asm-*` 变量，场景未下发时吃组件自带的青蓝默认值，层序由调用方经 `className` 压。 |
-| [CharacterModal](../../src/ui/common/CharacterModal/CharacterModal.tsx) | 角色档案 Modal：立绘/三段血量/污染/怪癖、只读属性表（分组来自 `common/statGroups.ts`）、装备三槽与只读卡组平铺（`common/TechCard`）。不读 store、不含规则，全部靠 props 与回调；传 `swap` 即开放与容器的装备互换，默认装备区只读；可按调用方需要传入临时状态与护盾。 |
+| [CharacterModal](../../src/ui/common/CharacterModal/CharacterModal.tsx) | 角色档案 Modal：立绘/三段血量/污染/怪癖、只读属性表（分组来自 `common/statGroups.ts`）、装备三槽与只读卡组平铺（`HandCard`）。不读 store、不含规则，全部靠 props 与回调；传 `swap` 即开放与容器的装备互换，默认装备区只读；可按调用方需要传入临时状态与护盾。 |
 | [statGroups.ts](../../src/ui/common/statGroups.ts) | 面板属性的分组、文案与条长 `ref` 旋钮，角色详情页与角色档案 Modal 共用的唯一真相点；`ref` 是纯展示旋钮，不参与任何结算。 |
 | [ModalReveal](../../src/ui/common/ModalReveal/ModalReveal.tsx) | 横线上下展开的弹窗裁切层与关闭延迟 hook；通过 CSS 变量统一入场、收回时长和减少动态效果降级。 |
 | [EventPanel](../../src/ui/common/EventPanel/EventPanel.tsx) | Luna 风格的数据驱动事件面板公共壳与情报、行动、结算三段分镜；探索弹窗与 Luna 测试页共用，面板内容样式独立于探索外层材质。 |
-| [TechCard](../../src/ui/common/TechCard/TechCard.tsx) | 白色科技风静态卡牌展示框，卡面比例为 320:496、插画区为 1:1、卡名位于插画下方的装饰名条中、费用球贴左上角，支持普通 / 速攻两套配色，尺寸随容器等比自适应，可省略底部统计栏。 |
 | [GlassHourglass](../../src/ui/common/GlassHourglass/GlassHourglass.tsx) | `html-templates/沙漏.html` 的 2D Canvas 复刻，包含玻璃轮廓 LUT、沙堆/漏斗、沙流、悬浮粒子和黄铜端盖，支持颜色/强度/暂停与减弱动态效果降级；旧 `GlassLantern` 已移入 `_legacy`。 |
 | [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；立绘统一为 1152×2048 / 9:16 / 透明底 / 左右对称，逐人 `--portrait-dx/dy`、`--bust-scale` 默认归零，仅作异常构图的补偿位。编队页取景走独立的 `formation.dx/dy`（下发为 `--fm-portrait-dx/dy`），未填写时回退通用 `dx/dy`。 |
 | [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）和 `hideLimit` 变体（战场敌人只显示蓝色当前血量，不画琥珀上限段）的样式也在本组件内。 |

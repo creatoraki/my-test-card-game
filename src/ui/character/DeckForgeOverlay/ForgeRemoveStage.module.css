@@ -11,11 +11,13 @@
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, max-content);
+  justify-content: center;
   align-content: start;
   gap: 22px 18px;
   padding: 10px 4px 16px;
   overflow-y: auto;
+  --deck-card-scale: 1.127;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -109,7 +111,8 @@
 
 @media (max-width: 900px) {
   .remove-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, max-content);
+    --deck-card-scale: 0.8;
     gap: 14px 12px;
   }
 }

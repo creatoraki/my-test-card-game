@@ -1,7 +1,7 @@
 .reveal-card {
   --rarity-glow: #edf2f8;
   position: relative;
-  width: 100%;
+  width: calc(220px * var(--deck-card-scale, 1));
   min-width: 0;
   isolation: isolate;
   perspective: 1400px;
@@ -19,7 +19,7 @@
 .flip {
   position: relative;
   width: 100%;
-  aspect-ratio: 320 / 496;
+  aspect-ratio: 220 / 308;
   transform-style: preserve-3d;
 }
 

@@ -3,11 +3,23 @@
   z-index: 4;
   top: 206px;
   left: 716px;
-  width: 360px;
+  width: 320px;
+  min-height: 448px;
+  --deck-card-scale: 1.4545;
   filter: drop-shadow(0 3px 0 #2a1b3d38) drop-shadow(0 10px 16px #2a1b3d30);
   pointer-events: none;
 }
 
+.deck-card-hover-preview [data-deck-card] {
+  display: block;
+  width: 220px;
+  height: 308px;
+  transform: scale(var(--deck-card-scale));
+  transform-origin: top left;
+}
+
 .keywords {
-  margin-top: 8px;
+  position: absolute;
+  top: calc(308px * var(--deck-card-scale) + 8px);
+  width: 100%;
 }

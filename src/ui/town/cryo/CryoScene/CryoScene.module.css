@@ -1438,10 +1438,10 @@
   gap: 10px;
   min-height: 0;
 }
-/* 118px = ui/CardView.css 里 .card 的固定宽度。auto-fill 而不是 auto-fit:
+/* 卡片栏采用独立固定宽度。auto-fill 而不是 auto-fit:
    卡少的时候不该把两三张卡拉开摊满一整行。 */
 .cryo-deck-grid {
-  /* 跨组件尺寸契约: 与 CardView.module.css 的 --cv-card-w 保持一致。 */
+  /* 跨组件尺寸契约: 保持冷冻舱卡片栏自身的 --cv-card-w。 */
   --cv-card-w: 118px;
   flex: 1 1 auto;
   display: grid;
@@ -1453,7 +1453,7 @@
   overflow-y: auto;
   perspective: 900px; /* 给下面的翻入一点透视, 否则 rotateY 看起来只是被压扁 */
 }
-/* 每张卡外面套一格: 翻入动画挂在这层, 不去动 CardView 自己的样式(那是跨界面共用件)。
+/* 每张卡外面套一格: 翻入动画挂在这层, 不去动卡面自己的样式。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。
    ⚠ 这里只覆写 name/duration/delay 三个**长写**属性, 缓动与 fill-mode: backwards 继续吃上面
      「错峰入场」那条 shorthand 的值 —— 别在这里写 animation 简写, 那会把 backwards 冲掉。 */

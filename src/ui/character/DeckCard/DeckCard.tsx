@@ -1,11 +1,8 @@
 import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
-import { cardArt } from "@/ui/art/cardArt";
-import { useCardText } from "@/ui/common/cardText";
-import { CardTextRich } from "@/ui/common/CardTextRich";
 import { cx } from "@/ui/common/cx";
-import { TechCard } from "@/ui/common/TechCard";
+import { HandCard } from "@/ui/battle/HandCard";
 import s from "./DeckCard.module.css";
 
 interface Props {
@@ -32,8 +29,6 @@ export function DeckCard({
   onBlur,
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
-  const text = useCardText(card);
-
   return (
     <button
       className={cx(s["deck-card"], className, selected && s["is-selected"])}
@@ -51,13 +46,9 @@ export function DeckCard({
       onBlur={onBlur}
       aria-pressed={selected}
     >
-      <TechCard
-        name={card.name}
-        cost={card.cost}
-        description={<CardTextRich text={text} />}
-        artSrc={cardArt(card.id)}
-        theme={card.cardType}
-      />
+      <span data-deck-card>
+        <HandCard card={card} variant="pile" playable selected={selected} />
+      </span>
     </button>
   );
 }

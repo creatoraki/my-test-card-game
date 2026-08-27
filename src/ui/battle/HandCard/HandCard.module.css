@@ -1324,6 +1324,33 @@
   animation-delay: var(--deal-delay, 0ms);
 }
 
+/* 据点卡组复用固定像素卡面, 缩放交给外层 data-deck-card, 避免字号与装饰被拉伸。 */
+:global([data-deck-card]) {
+  --hand-card-w: 220px;
+  --hc-text-h: 88px;
+  --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
+}
+:global([data-deck-card]) .hand-slot {
+  z-index: 1;
+  flex: none;
+  width: var(--hand-card-w);
+  height: var(--hand-card-h);
+  animation: none;
+  cursor: inherit;
+}
+:global([data-deck-card]) .hand-slot:hover::after {
+  content: none;
+}
+:global([data-deck-card]) .hand-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 0 #05080a) drop-shadow(0 6px 10px #000b);
+  animation: none;
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :global([data-pile-grid]) .hand-card {
     animation: none;
@@ -1340,6 +1367,9 @@
     transition-duration: 0.01ms;
   }
   :global([data-pick-grid]) .hand-card {
+    animation: none;
+  }
+  :global([data-deck-card]) .hand-card {
     animation: none;
   }
 }

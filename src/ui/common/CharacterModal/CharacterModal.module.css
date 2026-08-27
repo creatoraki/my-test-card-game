@@ -313,19 +313,25 @@
   display: grid;
   min-height: 0;
   align-content: start;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, 154px);
   gap: 10px;
   overflow-y: auto;
   padding-right: 2px;
+  --deck-card-scale: 0.7;
 }
 
 .cm-deck-cell {
-  min-width: 0;
+  width: 154px;
+  height: 216px;
 }
 
-/* 卡面按格宽等比缩放(TechCard 自身是 320:496 的比例盒)。只读展示, 不做悬浮放大。 */
-.cm-deck-card {
-  width: 100%;
+/* 只读卡组沿用固定像素卡面, 外层缩放后占位 154×216, 不做悬浮放大。 */
+.cm-deck-cell [data-deck-card] {
+  display: block;
+  width: 220px;
+  height: 308px;
+  transform: scale(var(--deck-card-scale));
+  transform-origin: top left;
 }
 
 @keyframes cm-rise {

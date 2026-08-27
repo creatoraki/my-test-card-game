@@ -1,9 +1,7 @@
 import type { Card } from "@/engine";
-import { cardArt } from "@/ui/art/cardArt";
 import { useCardText } from "@/ui/common/cardText";
 import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
-import { CardTextRich } from "@/ui/common/CardTextRich";
-import { TechCard } from "@/ui/common/TechCard";
+import { HandCard } from "@/ui/battle/HandCard";
 import s from "./DeckCardHoverPreview.module.css";
 
 interface Props {
@@ -19,13 +17,9 @@ export function DeckCardHoverPreview({ card }: Props) {
       aria-label={`${card.name}卡牌详情`}
       aria-live="polite"
     >
-      <TechCard
-        name={card.name}
-        cost={card.cost}
-        description={<CardTextRich text={text} />}
-        artSrc={cardArt(card.id)}
-        theme={card.cardType}
-      />
+      <span data-deck-card>
+        <HandCard card={card} variant="pile" playable selected={false} />
+      </span>
       <CardKeywordNotes text={text} className={s.keywords} />
     </div>
   );

@@ -1,8 +1,8 @@
 .deck-card {
     position: relative;
     display: block;
-    width: 100%;
-    aspect-ratio: 320 / 496;
+    width: calc(220px * var(--deck-card-scale, 1));
+    height: calc(308px * var(--deck-card-scale, 1));
     min-width: 0;
     align-self: start;
     padding: 0;
@@ -18,6 +18,14 @@
     transition: transform 160ms ease;
 }
 
+.deck-card [data-deck-card] {
+    display: block;
+    width: 220px;
+    height: 308px;
+    transform: scale(var(--deck-card-scale, 1));
+    transform-origin: top left;
+}
+
 .deck-card:hover:not(:disabled),
 .deck-card:focus-visible,
 .deck-card.is-selected {
@@ -28,7 +36,7 @@
 .deck-card.is-selected {
     outline: 2px solid var(--owner-color, var(--cd-glow));
     outline-offset: 2px;
-    border-radius: 18px;
+    border-radius: 0;
 }
 
 .deck-card:focus-visible {

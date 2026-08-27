@@ -39,7 +39,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(248px, calc((100% - 56px) / 3));
+  width: calc(220px * var(--deck-card-scale));
+  --deck-card-scale: 1.127;
   visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -75,7 +76,8 @@
 }
 
 .draw-choice {
-  width: min(248px, 100%);
+  width: calc(220px * var(--deck-card-scale));
+  --deck-card-scale: 1.127;
   min-width: 0;
 }
 
@@ -206,11 +208,11 @@
   }
 
   .draw-choice {
-    width: min(176px, 100%);
+    --deck-card-scale: 0.8;
   }
 
   .draw-measure-target {
-    width: min(176px, calc((100% - 20px) / 3));
+    --deck-card-scale: 0.8;
   }
 }
 

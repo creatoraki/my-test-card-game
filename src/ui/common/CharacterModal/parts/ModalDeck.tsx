@@ -1,13 +1,10 @@
 // 档案右栏下半: 个人卡组的**只读**平铺。
 //
 // ⚠ 刻意不用 character/DeckCard —— 那是角色详情页的交互外壳(按钮语义、选中态、锻造入场动画)。
-//   这里一张卡都不可点, 直接用公共卡面 common/TechCard 即可。
+//   这里一张卡都不可点, 直接复用 HandCard 的固定卡面即可。
 
 import type { Card } from "@/engine";
-import { cardArt } from "@/ui/art/cardArt";
-import { CardTextRich } from "@/ui/common/CardTextRich";
-import { useCardText } from "@/ui/common/cardText";
-import { TechCard } from "@/ui/common/TechCard";
+import { HandCard } from "@/ui/battle/HandCard";
 import s from "../CharacterModal.module.css";
 
 export function ModalDeck({ deck }: { deck: Card[] }) {
@@ -28,17 +25,11 @@ export function ModalDeck({ deck }: { deck: Card[] }) {
 }
 
 function DeckTile({ card }: { card: Card }) {
-  const text = useCardText(card);
   return (
     <div className={s["cm-deck-cell"]}>
-      <TechCard
-        name={card.name}
-        cost={card.cost}
-        description={<CardTextRich text={text} />}
-        artSrc={cardArt(card.id)}
-        theme={card.cardType}
-        className={s["cm-deck-card"]}
-      />
+      <span data-deck-card>
+        <HandCard card={card} variant="pile" playable selected={false} />
+      </span>
     </div>
   );
 }
