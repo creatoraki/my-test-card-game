@@ -33,7 +33,7 @@
   --item-slot-icon-size: 72%;
   width: 100%;
   min-height: 104px;
-  background: linear-gradient(145deg, #132830, #071014);
+  /* background: linear-gradient(145deg, #132830, #071014); */
   border-color: #6fd2ff4c;
   transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) var(--vc-ease), filter var(--vc-control-ms) var(--vc-ease);
 }
