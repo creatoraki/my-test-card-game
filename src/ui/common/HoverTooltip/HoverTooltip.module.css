@@ -1,0 +1,37 @@
+.hover-tooltip {
+  composes: item-tooltip item-tooltip-detail from "../item/ItemTooltip/ItemTooltip.module.css";
+}
+
+.hover-tooltip strong {
+  display: block;
+  color: var(--inventory-text, #ffffff);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+}
+
+.hover-tooltip p {
+  margin: 8px 0 0;
+  color: var(--inventory-muted, #b6c7c9);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.hover-tooltip small,
+.hover-tooltip em {
+  display: block;
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+.hover-tooltip small {
+  color: var(--inventory-accent-alt, #75e1d4);
+}
+
+.hover-tooltip em {
+  color: #ff819d;
+  font-style: normal;
+}

@@ -43,9 +43,10 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(var(--victory-bp-columns), 64px);
+  grid-template-columns: repeat(var(--victory-bp-columns), minmax(0, 1fr));
   gap: 10px;
-  justify-content: center;
+  flex: 1;
+  align-content: center;
   padding: 12px;
   background: #00000066;
   border: 1px solid #6fd2ff24;
@@ -54,7 +55,6 @@
 
 .anchor {
   position: relative;
-  width: 64px;
   aspect-ratio: 1;
 }
 

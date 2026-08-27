@@ -16,7 +16,7 @@ import { VictoryCardOffer } from "@/ui/battle/VictoryCardOffer/VictoryCardOffer"
 import { VictoryBackpack } from "@/ui/battle/VictoryBackpack";
 import s from "./VictoryPanel.module.css";
 
-const BACKPACK_COLUMNS = 8;
+const BACKPACK_COLUMNS = 12;
 const BACKPACK_ROWS = Math.ceil(RULES.burden.backpackSlots / BACKPACK_COLUMNS);
 
 export function VictoryPanel() {

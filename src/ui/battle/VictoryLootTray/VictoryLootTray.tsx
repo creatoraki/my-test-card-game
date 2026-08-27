@@ -188,7 +188,9 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
             </div>
           ))
         ) : (
-          <div className={s["loot-empty"]}>战利品已处理完毕</div>
+          Array.from({ length: 8 }, (_, index) => (
+            <div className={s["empty-slot"]} key={`empty-${index}`} aria-hidden="true" />
+          ))
         )}
       </div>
       {hoveredStack && hovered && (

@@ -86,7 +86,7 @@ src/ui/
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
-| [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切风格的紧凑两列战斗胜利结算壳：队伍经验、掉落来源分区、额外奖励、待拾取战利品、8×3 回收背包及继续/放弃操作；统一阻止未处理奖励离开。 |
+| [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切风格的紧凑两列战斗胜利结算壳：队伍经验、掉落来源分区、额外奖励、待拾取战利品、12×2 回收背包及继续/放弃操作；统一阻止未处理奖励离开。 |
 | [battle/VictoryDropSection](../../src/ui/battle/VictoryDropSection/VictoryDropSection.tsx) | 战斗胜利结算的掉落系数通栏分区：展示能量档位与挑战来源 chip，复用 RailPopover 提供键盘可聚焦的详情浮层，并表现已打破挑战的灰显态。 |
 | [battle/VictoryExpRow](../../src/ui/battle/VictoryExpRow/VictoryExpRow.tsx) | 单名队员经验结算行：头像、存活/阵亡态、总经验数字、经验条增长和主视觉 `+N EXP` 演出。 |
 | [battle/VictoryLootTray](../../src/ui/battle/VictoryLootTray/VictoryLootTray.tsx) | 战斗 pendingLoot 展示与拾取交互：多飞行副本、精确落格、FLIP 补位、全部拾取错峰和拾取完成反馈。 |
