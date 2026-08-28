@@ -10,6 +10,7 @@ import ItemTooltip, {
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
+import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
 import s from "./VictoryBackpack.module.css";
 
 export interface VictoryBackpackProps {
@@ -100,16 +101,14 @@ export default function VictoryBackpack({
       style={style}
       aria-labelledby="victory-backpack-title"
     >
-      <header className={s.heading}>
-        <h2 id="victory-backpack-title">回收背包</h2>
-        <span className={s.readout}>
-          <strong>{displayedOccupied}</strong>
-          <em>/ {displayedCapacity}</em>
-        </span>
-      </header>
-
-      <div className={s.grid} role="group" aria-label="回收背包格位">
-        {cells.map((stack, index) =>
+      <div className={s.row}>
+        <VictoryPlaque
+          label="回收背包"
+          titleId="victory-backpack-title"
+          readout={`${displayedOccupied}/${displayedCapacity}`}
+        />
+        <div className={s.grid} role="group" aria-label="回收背包格位">
+          {cells.map((stack, index) =>
           stack ? (
             <div
               key={stack.uid}
@@ -189,7 +188,8 @@ export default function VictoryBackpack({
               <EmptySlot className={s.empty} />
             </div>
           ),
-        )}
+          )}
+        </div>
       </div>
 
       {hoveredStack && hoveredItem && (

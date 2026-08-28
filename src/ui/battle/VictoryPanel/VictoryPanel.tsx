@@ -14,6 +14,7 @@ import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/Victory
 import { VictoryBoonTray } from "@/ui/battle/VictoryBoonTray/VictoryBoonTray";
 import { VictoryCardOffer } from "@/ui/battle/VictoryCardOffer/VictoryCardOffer";
 import { VictoryBackpack } from "@/ui/battle/VictoryBackpack";
+import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
 import s from "./VictoryPanel.module.css";
 
 const BACKPACK_COLUMNS = 12;
@@ -159,16 +160,14 @@ export function VictoryPanel() {
                   className={cx(s["loot-section"], s["victory-section"])}
                   style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
                 >
-                  <div className={s["section-heading"]}>
-                    <span>战利品</span>
-                    <small
-                      className={s["loot-readout"]}
-                      data-pulse={lootCountPulsed.has("count") ? "true" : undefined}
-                    >
-                      {pendingLoot.length ? `${pendingLoot.length} 件待拾取` : "已清空"}
-                    </small>
+                  <div className={s["section-row"]}>
+                    <VictoryPlaque
+                      label="战利品"
+                      readout={pendingLoot.length ? `${pendingLoot.length} 件` : "已清空"}
+                      pulse={lootCountPulsed.has("count")}
+                    />
+                    <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
                   </div>
-                  <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
                 </section>
               </div>
 

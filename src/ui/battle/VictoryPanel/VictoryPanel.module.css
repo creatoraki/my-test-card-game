@@ -174,30 +174,13 @@
   animation: vcSectionIn var(--vc-section-ms) var(--vc-ease-pop) var(--vc-delay) both;
 }
 
-.section-heading {
+.section-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: stretch;
   gap: 10px;
-  margin-bottom: 10px;
-  color: #dff8ff;
-  font-size: 18px;
-  letter-spacing: 2px;
-}
-
-.section-heading small {
-  color: #93b3bd;
-  font-size: 13px;
-  letter-spacing: 1px;
-  white-space: nowrap;
-}
-
-.loot-readout {
-  display: inline-block;
-}
-
-.loot-readout[data-pulse="true"] {
-  animation: vcReadoutPulse var(--vc-state-ms) var(--vc-ease) both;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
 }
 
 .exp-list {
@@ -353,10 +336,6 @@
   70% { transform: translateX(6px); }
 }
 
-@keyframes vcReadoutPulse {
-  from { opacity: 0.45; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 @keyframes vcFooterStateIn {
   from { opacity: 0; transform: translateY(4px); }

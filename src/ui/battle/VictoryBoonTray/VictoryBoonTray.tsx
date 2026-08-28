@@ -4,8 +4,11 @@ import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import { victoryStagger } from "@/ui/battle/victoryChoreo";
+import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
 import type { BattleBoonKind, PendingBoon } from "@/explore/types";
-import { CardOfferIcon, EquipCrateIcon, HealDewIcon } from "./boonIcons";
+import cardOfferArt from "@/assets/通用素材/卡牌奖励.png";
+import healDewArt from "@/assets/通用素材/治疗露珠.png";
+import equipCrateArt from "@/assets/通用素材/装备宝箱.png";
 import s from "./VictoryBoonTray.module.css";
 
 interface Props {
@@ -14,26 +17,25 @@ interface Props {
 
 const VICTORY_TOOLTIP_THEME = inventoryThemeVars(VICTORY_INVENTORY_COLORS);
 
-const BOON_META: Record<BattleBoonKind, {
-  Icon: ({ className }: { className?: string }) => JSX.Element;
-  name: string;
-  desc: string;
-}> = {
+const BOON_META: Record<BattleBoonKind, { name: string; desc: string }> = {
   healDew: {
-    Icon: HealDewIcon,
     name: "治疗露珠",
     desc: "拾取后，所有存活队员恢复 5 点生命，不会复活阵亡队员。",
   },
   cardOffer: {
-    Icon: CardOfferIcon,
     name: "卡牌奖励",
     desc: "为每名存活队员生成 1 张候选卡牌，选择其中 1 张加入对应角色卡组。",
   },
   equipCrate: {
-    Icon: EquipCrateIcon,
     name: "随机装备箱",
     desc: "开启后按本场掉落系数生成 1 件随机装备，并尝试附加 1 条羁绊。",
   },
+};
+
+const BOON_ART: Record<BattleBoonKind, string> = {
+  healDew: healDewArt,
+  cardOffer: cardOfferArt,
+  equipCrate: equipCrateArt,
 };
 
 function activate(event: KeyboardEvent<HTMLDivElement>, onActivate: () => void): void {
@@ -45,7 +47,6 @@ function activate(event: KeyboardEvent<HTMLDivElement>, onActivate: () => void):
 
 function BoonCell({ boon, index, onTake }: { boon: PendingBoon; index: number; onTake: (uid: string) => void }) {
   const meta = BOON_META[boon.kind];
-  const Icon = meta.Icon;
   const { point, bind } = useHoverTooltip();
   return (
     <div
@@ -59,7 +60,7 @@ function BoonCell({ boon, index, onTake }: { boon: PendingBoon; index: number; o
       onClick={() => onTake(boon.uid)}
       onKeyDown={(event) => activate(event, () => onTake(boon.uid))}
     >
-      <Icon className={s.icon} />
+      <img className={s.icon} src={BOON_ART[boon.kind]} alt="" draggable={false} />
       {point && (
         <HoverTooltip point={point} themeStyle={VICTORY_TOOLTIP_THEME}>
           <strong>{meta.name}</strong>
@@ -77,16 +78,18 @@ export function VictoryBoonTray({ style }: Props) {
 
   return (
     <section className={s.tray} style={style} aria-label="战斗胜利额外奖励">
-      <div className={s.heading}>
-        <span>额外奖励</span>
-        <small>{pendingBoons.length ? `${pendingBoons.length} 项待拾取` : "已清空"}</small>
-      </div>
-      <div className={s.grid}>
-        {pendingBoons.length ? (
-          pendingBoons.map((boon, index) => <BoonCell key={boon.uid} boon={boon} index={index} onTake={takeBoon} />)
-        ) : (
-          <div className={s.empty} aria-hidden="true" />
-        )}
+      <div className={s.row}>
+        <VictoryPlaque
+          label="额外奖励"
+          readout={pendingBoons.length ? `${pendingBoons.length} 项` : "已清空"}
+        />
+        <div className={s.grid}>
+          {pendingBoons.length ? (
+            pendingBoons.map((boon, index) => <BoonCell key={boon.uid} boon={boon} index={index} onTake={takeBoon} />)
+          ) : (
+            <div className={s.empty} aria-hidden="true" />
+          )}
+        </div>
       </div>
     </section>
   );
