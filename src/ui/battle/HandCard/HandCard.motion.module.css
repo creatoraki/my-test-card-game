@@ -1,5 +1,5 @@
 /* ── 聚焦 / 出鞘 / 抽入 ── */
-/* 悬停桥: 卡弹起后有半张卡高**越出壳外**, 若不补命中区, 鼠标往上追到弹起的卡面上就会掉焦落回。
+/* 悬停桥: 卡弹起后有 36px **越出壳外**, 若不补命中区, 鼠标往上追到弹起的卡面上就会掉焦落回。
    这块透明垫只在悬停时存在 ⇒ 静止时壳外的空白不吃悬停(否则鼠标扫过托盘上方就会平白弹卡)。
   ⚠ 刻意只盖"壳上沿以上"那半张 + 26px 接缝, 不盖壳自身: 壳本身已经是命中区, 多盖一层反而会把
      右邻卡被叠压的那一条挡住, 让相邻卡难以切换悬停。
@@ -10,7 +10,7 @@
   left: 0;
   right: 0;
   bottom: calc(100% - 2px);
-  height: calc(var(--hand-card-h) / 2 + 26px);
+  height: calc(var(--hand-hover-lift) + 26px);
   pointer-events: none;
 }
 /* 出鞘中的卡不该再吃悬停(同 .hand-card.leaving 的 pointer-events:none) */
@@ -25,15 +25,15 @@
 }
 
 /* 出牌/丢弃: 向上出鞘 → 渐隐。用过渡(而非关键帧)从"当前"位置飞出——
-   若牌处于选中弹出态, 直接从弹出位继续上移出鞘, 不会先缩回未选中位再飞。
+  若牌处于选中弹出态, 直接从弹出位继续上移出鞘, 不会先缩回未选中位再飞。
    ⚠ 必须继续走 transform(而非独立的 translate 属性): ui/HandCard.tsx 的 onTransitionEnd
    判的就是 propertyName === "transform", 换属性会让离场的卡永远留在渲染列表里。 */
 :global([data-hand-card][data-leaving]) {
   pointer-events: none;
   animation: none;
-  /* 位移量跟着卡高**与悬浮弹出幅度**走: 出牌的那张多半正处在悬浮/选中位(半张卡高 = 154px),
-     终点必须比它高出足够一截才仍读作"整张飞出去" —— 恒定再留 90px 行程 ⇒ 约 244px。
-     写成公式而不是死数, 卡高一变它自己就跟上了。
+    /* 出牌的那张多半正处在悬浮/选中位(悬停 20px / 选中 44px),
+      终点必须比它高出足够一截才仍读作"整张飞出去" —— 终点仍按卡高算, 恒定再留 90px 行程 ⇒ 约 244px。
+      写成公式而不是死数, 卡高一变它自己就跟上了; 不要让出鞘距离跟着悬停旋钮缩短。
      ★ 加了 rotateZ(-3deg): 一块被抽走的钢板不会笔直平移出去, 一点点偏转就足以读作"被拿走"。
      ⚠⚠ rotateZ 必须与 translateY 写在**同一条 transform** 里 —— ui/HandCard.tsx 的
        onTransitionEnd 判的是 propertyName === "transform", 拆成独立的 rotate 属性会让离场的卡
@@ -122,7 +122,7 @@
     transform: translateX(0) rotateZ(0);
   }
 }
-/* ★ 表面反光扫过(sheen): 一道宽而低对比的高光带斜掠过整张卡, **只跑一次**。
+/* ★ 选中反馈的表面反光扫过(sheen): 一道宽而低对比的高光带斜掠过整张卡, **只跑一次**。
    ⓘ 这正是本文件下方那条"若将来想给卡加动态, 优先做反光随视角移动"的注释所指的方向:
      它表达的是**卡动了、光跟着变**, 而不是卡自己在发光 —— 后者就是旧版被整条删掉的
      巡游流光/扫描线那套"发光贴纸"观感。所以它必须是一次性的, 千万别改成 infinite。
@@ -139,10 +139,6 @@
   opacity: 0;
   background: linear-gradient(105deg, transparent 36%, #ffffff 45%, #dceaf5 50%, transparent 60%);
   mix-blend-mode: soft-light;
-}
-:global([data-hand-slot]:not([data-leaving])):hover > :global([data-hand-card]:not([data-selected]))::after {
-  content: "";
-  animation: hc-sheen 0.48s ease-out;
 }
 :global([data-hand-card][data-selected])::after {
   content: "";
@@ -171,11 +167,12 @@
 
                 位移            姿态              厚度   接触影      表面
      静止        0              正对              4px    紧贴小影    —
-     悬停       -154px          正对              7px    远而散      一道反光扫过
-     选中       -178px          正对 = "举正了"   8px    最远最散    反光 + 整圈抛光亮棱
+    悬停        -36px          正对              7px    远而散      —
+    选中        -60px          正对 = "举正了"   8px    最远最散    反光 + 整圈抛光亮棱
 
    ★ **高度差**是配色中性化后选中态最强的线索: 悬停与选中都保持牌面清晰正对，选中再多抬高一档。
-     这个区别不吃任何颜色, 且在鼠标移开后依然成立。
+     这个区别不吃任何颜色, 且在鼠标移开后依然成立。幅度收小后, 悬停与静止的区分更依赖厚度 4→7px
+     与接触影从紧贴到远而散, 下方三条 filter 规则一个都不能动。
    ★ **厚度随高度增加**是"离手高度"最直接的表达。旧版三态是 4/5/5px, 差到几乎看不见;
      现在 4/7/8px 配合接触影从"紧贴"到"远而散", 卡才真的读作被托起来了。
 
@@ -194,11 +191,11 @@
      该状态下突然"变薄"。静止态与打不出那两条在 HandCard.layout.module.css(静止态还要负责鱼鳞叠的
      右缘投影)。 */
 :global([data-hand-slot]:not([data-leaving])):hover > :global([data-hand-card]:not([data-selected])) {
-  transform: translateY(calc(var(--hand-card-h) / -2));
+  transform: translateY(calc(-1 * var(--hand-hover-lift)));
   filter: drop-shadow(0 7px 0 #05080a) drop-shadow(0 26px 30px #000e);
 }
 :global([data-hand-card][data-selected]) {
-  transform: translateY(calc(var(--hand-card-h) / -2 - 24px));
+  transform: translateY(calc(-1 * var(--hand-hover-lift) - 24px));
   /* 轮廓辉光也走中性冷白 —— 它表达的是"这块板被打了光", 不是某种颜色的能量 */
   filter: drop-shadow(0 8px 0 #05080a) drop-shadow(0 0 12px #dfe9f280) drop-shadow(0 30px 34px #000e);
 }
@@ -258,18 +255,15 @@
     animation: none;
     transition-duration: 0.01ms;
   }
-  /* ⚠ 必须把触发 sheen 的**那两条选择器原样重写**才关得掉 —— 写成 .hand-card::after
-     (特异性 0,1,0) 是压不过 .hand-slot:not(.leaving):hover > .hand-card:not(.selected)::after
-     (0,4,0) 的, 反光照样会扫。 */
-  :global([data-hand-slot]:not([data-leaving])):hover > :global([data-hand-card]:not([data-selected]))::after,
+    /* 选中态的 sheen 也要在减少动态效果时关闭。 */
   :global([data-hand-card][data-selected])::after {
     content: none;
     animation: none;
   }
   :global([data-hand-slot]:not([data-leaving])):hover > :global([data-hand-card]:not([data-selected])) {
-    transform: translateY(calc(var(--hand-card-h) / -2));
+    transform: translateY(calc(-1 * var(--hand-hover-lift)));
   }
   :global([data-hand-card][data-selected]) {
-    transform: translateY(calc(var(--hand-card-h) / -2 - 24px));
+    transform: translateY(calc(-1 * var(--hand-hover-lift) - 24px));
   }
 }

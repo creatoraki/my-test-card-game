@@ -141,10 +141,10 @@
 
 /* BUFF 图标行镜像卡面的悬停、选中和邻卡让位位移。 */
 :global([data-hand-tray]) :global([data-hand-slot]):not([data-leaving]):hover:not([data-selected]) > :global([data-card-marks]) {
-  transform: translateY(calc(var(--hand-card-h) / -2));
+  transform: translateY(calc(-1 * var(--hand-hover-lift)));
 }
 :global([data-hand-tray]) :global([data-hand-slot][data-selected]) > :global([data-card-marks]) {
-  transform: translateY(calc(var(--hand-card-h) / -2 - 24px));
+  transform: translateY(calc(-1 * var(--hand-hover-lift) - 24px));
 }
 :global([data-hand-tray]) :global([data-hand-slot]):hover + :global([data-hand-slot]):not([data-selected]) > :global([data-card-marks]) {
   transform: translateX(var(--hand-yield));

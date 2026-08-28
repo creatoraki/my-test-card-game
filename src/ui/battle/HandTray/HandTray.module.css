@@ -8,7 +8,9 @@
   --hand-card-w: 220px;
   --hc-text-h: 88px;
   --hand-card-h: calc(var(--hand-card-w) + var(--hc-text-h));
-  --hand-overlap: 78px;
+    /* 总宽 = 卡宽 + (n - 1) × (卡宽 - 叠压), 各档目标约 1300px 封顶。
+      叠压下限保留鱼鳞叠的重叠感, 不能让卡完全分开, 否则左边缘线索会失去连续性。 */
+  --hand-overlap: 30px;
   --hand-yield: 26px;
 }
 .hand-panel::before {
@@ -50,16 +52,16 @@
   overflow: visible;
 }
 .hand-tray:has([data-hand-slot]:nth-last-child(7)) {
-  --hand-overlap: 90px;
+  --hand-overlap: 40px;
 }
 .hand-tray:has([data-hand-slot]:nth-last-child(8)) {
-  --hand-overlap: 110px;
+  --hand-overlap: 66px;
 }
 .hand-tray:has([data-hand-slot]:nth-last-child(9)) {
-  --hand-overlap: 125px;
+  --hand-overlap: 86px;
 }
 .hand-tray:has([data-hand-slot]:nth-last-child(10)) {
-  --hand-overlap: 135px;
+  --hand-overlap: 100px;
 }
 .hand-tray::before {
   content: "";
