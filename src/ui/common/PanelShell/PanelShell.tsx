@@ -49,7 +49,7 @@ export function PanelShell({
 }: Props) {
   return (
     <div
-      className={cn("asm-modal", closing && "is-closing", className)}
+      className={cx(cn("asm-modal", closing && "is-closing"), className)}
       onClick={onClose}
       style={
         {
