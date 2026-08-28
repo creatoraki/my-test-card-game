@@ -66,6 +66,8 @@ import { TrainingScene } from "@/ui/town/training/TrainingScene";
 import { TOWN_BG_ART } from "@/ui/art/sceneArt";
 import s from "./TownScreen.module.css";
 
+const isTest = import.meta.env.isTest === "true";
+
 // ===================== 设施图标 =====================
 // 全部是线框风内联 SVG —— 刻意不用 emoji: emoji 在 Windows 上会渲染成彩色贴纸, 和暗色科技风冲突。
 // 颜色由父级 .bento-icon 的 color 决定(stroke="currentColor"), 故 hover 变色/发光只改一处。
@@ -335,6 +337,9 @@ function flyVars(fly: FlyOut, delay = fly.delay, ms = fly.ms): CSSProperties {
 
 export function TownScreen() {
   const resetProfile = useTownStore((s) => s.resetProfile);
+  const awakened = useTownStore((s) => s.awakened);
+  const grantExp = useTownStore((s) => s.grantExp);
+  const bankLoot = useTownStore((s) => s.bankLoot);
   const bgmEnabled = useBgmEnabled();
   const sfxEnabled = useSfxEnabled();
   const openFormation = useRunStore((s) => s.openFormation);
@@ -384,6 +389,12 @@ export function TownScreen() {
       },
       reduced ? FACILITY_CINEMA.reduced : FACILITY_CINEMA.leave,
     );
+  }
+
+  function grantTestRewards() {
+    if (!isTest) return;
+    grantExp(awakened, 2000);
+    bankLoot(10000);
   }
 
   const inCinema = phase === "entering" || phase === "leaving";
@@ -597,6 +608,18 @@ export function TownScreen() {
               <SoundIcon muted={!sfxEnabled} />
               <span>{sfxEnabled ? "音效开启" : "音效关闭"}</span>
             </button>
+
+            {isTest && (
+              <button
+                className={cx(s["town-reset"], s["town-test-reward"], inCinema && s["is-flying"])}
+                style={inCinema ? fly(FLY_RESET, 9) : undefined}
+                type="button"
+                aria-label="发放测试奖励"
+                onClick={grantTestRewards}
+              >
+                测试奖励
+              </button>
+            )}
 
             <button
               className={cx(s["town-reset"], inCinema && s["is-flying"])}

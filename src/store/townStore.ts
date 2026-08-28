@@ -443,7 +443,7 @@ function freshStorage(): ItemStack[] {
   ];
 }
 
-function freshProfile(): {
+function freshProfile(includeInitialExp = true): {
   characters: Record<string, CharacterState>;
   awakened: string[];
   party: string[];
@@ -453,12 +453,14 @@ function freshProfile(): {
   for (const c of CHARACTERS) characters[c.id] = freshCharacter(c);
   // 名单里不存在的 id 直接忽略, 保证改角色数据时这里不会崩
   const awakened = INITIAL_AWAKENED.filter((id) => characters[id]);
-  for (const charId of awakened) {
-    characters[charId] = {
-      ...characters[charId],
-      exp: INITIAL_TEST_EXP,
-      expEarned: INITIAL_TEST_EXP,
-    };
+  if (includeInitialExp) {
+    for (const charId of awakened) {
+      characters[charId] = {
+        ...characters[charId],
+        exp: INITIAL_TEST_EXP,
+        expEarned: INITIAL_TEST_EXP,
+      };
+    }
   }
   // 上阵人数有上限, 初始队伍按名单顺序截断
   return {
@@ -502,8 +504,8 @@ export const useTownStore = create<TownStore>()(
 
       resetProfile: () =>
         set({
-          ...freshProfile(),
-          loot: 10000,
+          ...freshProfile(false),
+          loot: 0,
           storage: freshStorage(),
           day: 1,
           shop: freshShop(1),

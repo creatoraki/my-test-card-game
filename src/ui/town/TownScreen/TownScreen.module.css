@@ -409,6 +409,16 @@
   color: #eaf6f8;
 }
 
+.town-test-reward {
+  bottom: 160px;
+  border-color: #d8f32950;
+  color: #e3f375;
+}
+.town-splash .town-test-reward:hover {
+  border-color: #d8f329a6;
+  color: #f6ffba;
+}
+
 .town-audio-toggle {
   position: absolute;
   left: 44px;
