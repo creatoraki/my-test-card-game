@@ -91,7 +91,7 @@ const DEFS: ItemDef[] = [
       "医疗包",
       "medical-kit",
       rarity,
-      `${QUALITY_LABEL[rarity]}级医疗包：使用后修复一名存活角色 ${LIMIT_REPAIR_AMOUNT} 点体力极限。`,
+      `${QUALITY_LABEL[rarity]}级医疗包：使用后修复一名存活角色 ${LIMIT_REPAIR_AMOUNT} 点体力极限，并回复等值当前生命。`,
       { kind: "healLimitOne", amount: LIMIT_REPAIR_AMOUNT },
       MEDICAL_KIT_BUY_VALUE,
     ),

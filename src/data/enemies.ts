@@ -42,6 +42,7 @@ export interface EnemyDef {
   // 掉落表(《探索模式设计.md》§5.2)。chance 是基准概率, 结算时乘统一掉落系数 K。
   //   chance 是**基准**概率, 结算时乘统一掉落系数 K; kind: "family" 的条目才吃 qualityBias。
   dropTable?: DropEntry[];
+  boonTable?: BoonEntry[];
 }
 
 export const ENEMIES: EnemyDef[] = [

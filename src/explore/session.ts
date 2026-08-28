@@ -472,8 +472,11 @@ export function useItem(s: ExploreState, uid: string, targetCharId?: string): It
       if (!target) return null;
       if (target.hpLimit >= target.maxHp) return null; // 没有体力极限损伤(§2.2: 无合法目标)
       const amount = Math.max(0, Math.floor(u.amount));
+      const before = target.hpLimit;
       target.hpLimit = Math.min(target.maxHp, target.hpLimit + amount);
-      note = `${target.name} 体力极限修复 ${amount} 点`;
+      const restored = target.hpLimit - before;
+      target.hp = Math.min(target.hpLimit, target.hp + restored);
+      note = `${target.name} 体力极限修复 ${restored} 点，当前生命回复等值`;
       break;
     }
     case "reducePollutionOne": {
@@ -813,6 +816,8 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       return "获得一次免费装备羁绊重铸";
     case "START_NODE_BATTLE":
       return `进入${BATTLE_TIER_NAME[e.tier]}`;
+    case "OPEN_SHOP":
+      return "打开交易终端";
     // 这两个由 chooseOption 拦截, 走不到这里; 列出来让 switch 保持穷尽
     case "END_REGION":
     case "RETREAT":
@@ -863,14 +868,16 @@ export function resolvePendingAction(s: ExploreState): boolean {
 
 export function resolvePendingHealing(s: ExploreState, charId: string, limit: boolean): boolean {
   const action = s.pendingActions[0];
-  if (!action || (limit ? action.kind !== "healLimitOne" : action.kind !== "healOne")) return false;
+  if (!action) return false;
   const target = s.party.find((p) => p.charId === charId && p.alive);
   if (!target) return false;
   if (limit) {
+    if (action.kind !== "healLimitOne") return false;
     target.hpLimit = action.full
       ? target.maxHp
       : Math.min(target.maxHp, target.hpLimit + Math.ceil(target.maxHp * action.percent));
   } else {
+    if (action.kind !== "healOne") return false;
     target.hp = Math.min(
       target.hpLimit,
       action.full ? target.hpLimit : target.hp + Math.ceil(target.maxHp * action.percent),

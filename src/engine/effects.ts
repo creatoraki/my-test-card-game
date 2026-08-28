@@ -331,7 +331,9 @@ function applyEffect(
         if (!target || !target.alive || amount <= 0) continue;
         const before = target.hpLimit;
         target.hpLimit = Math.min(target.maxHp, target.hpLimit + amount);
-        ops.log(state, `${target.emoji} ${target.name} 体力极限恢复 ${target.hpLimit - before}`);
+        const restored = target.hpLimit - before;
+        ops.heal(state, undefined, id, restored);
+        ops.log(state, `${target.emoji} ${target.name} 体力极限恢复 ${restored}`);
       }
       break;
     case "REMOVE_STATUS": {

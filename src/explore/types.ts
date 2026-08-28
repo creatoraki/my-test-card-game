@@ -137,6 +137,9 @@ export interface ExploreAura {
   name: string;
   desc: string;
   mods: StatModifier;
+}
+
+export interface EventOutcome {
   id: string;
   weight?: number;
   text: string;
