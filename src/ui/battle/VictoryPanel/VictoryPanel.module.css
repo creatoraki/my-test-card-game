@@ -91,14 +91,14 @@
   mix-blend-mode: screen;
 }
 
-.victory-panel::after {
+/* .victory-panel::after {
   top: 0;
   right: 7%;
   width: 1px;
   height: 100%;
   background: linear-gradient(transparent, color-mix(in srgb, var(--victory-accent) 40%, transparent), transparent);
   opacity: 0.45;
-}
+} */
 
 .panel-edge {
   position: absolute;
