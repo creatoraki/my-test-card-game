@@ -6,9 +6,8 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  /* 左立绘 / 中属性 / 右装备+卡组。与装配舱弹窗同一节奏(400 / 1fr / 410), 这里右栏更宽,
-     因为它要同时放三个装备槽与卡组平铺。 */
-  grid-template-columns: 360px minmax(0, 1fr) 520px;
+    /* 左立绘 / 中装备+属性 / 右卡组。 */
+    grid-template-columns: 340px minmax(0, 1fr) 520px;
   grid-template-rows: minmax(0, 1fr);
   gap: 18px 22px;
   animation: cm-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
@@ -114,7 +113,15 @@
   flex-wrap: wrap;
 }
 
-/* ── 中栏: 属性 ── */
+/* ── 中栏: 装备 + 属性 ── */
+.cm-center-column {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+}
+
 .cm-stats {
   display: grid;
   min-height: 0;
@@ -126,19 +133,19 @@
   display: grid;
   min-height: 0;
   align-content: start;
-  gap: 14px;
+  gap: 10px;
   overflow-y: auto;
 }
 
 .cm-stat-group {
-  padding: 12px 14px 14px;
+  padding: 8px 12px 10px;
   border: 1px solid #ffffff12;
   background: linear-gradient(180deg, #0e1719a8, #0a1012a8);
 }
 
 .cm-stat-group-title {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: #8fa9ae;
   font-size: 12px;
   letter-spacing: 0.2em;
@@ -146,21 +153,21 @@
 
 .cm-stat-rows {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .cm-stat-rows.is-two-col {
   grid-template-columns: 1fr 1fr;
-  gap: 8px 18px;
+  gap: 6px 16px;
 }
 
 .cm-attr {
   position: relative;
   display: grid;
   align-items: center;
-  grid-template-columns: 20px 1fr auto;
+  grid-template-columns: 18px 1fr auto;
   gap: 8px;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
 /* 底部占比微条。⚠ 纯展示(见 common/statGroups.ts 的注释), 与任何结算无关。 */
@@ -195,15 +202,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 右栏: 装备 + 卡组 ── */
-.cm-right-column {
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 14px;
-}
-
 .cm-equip {
   display: grid;
   gap: 10px;
@@ -215,7 +213,7 @@
 .cm-slot-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 14px;
 }
 
 .cm-slot {
@@ -226,24 +224,28 @@
 
 .cm-slot-label {
   color: #8fa9ae;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.18em;
 }
 
 .cm-slot-box {
-  display: contents;
+  display: grid;
 }
 
-.cm-slot-item,
-.cm-candidate-item {
-  width: 84px;
-  height: 84px;
+.cm-slot-item {
+  --item-slot-icon-size: 56%;
+  --item-slot-name-size: 12px;
+  --item-slot-notch: 10px;
+  --item-slot-bond-size: 20px;
+  --item-slot-count-size: 12px;
+  width: 132px;
+  height: 132px;
 }
 
 .cm-slot-empty {
   display: grid;
-  width: 84px;
-  height: 84px;
+  width: 132px;
+  height: 132px;
   place-items: center;
   border: 1px dashed #ffffff24;
   background: #0a0f1180;
@@ -257,44 +259,6 @@
   color: color-mix(in srgb, var(--asm-frame, #52cfff) 80%, #ffffff);
 }
 
-.cm-slot-off {
-  padding: 2px 10px;
-  border: 1px solid #ffffff20;
-  background: #10181acc;
-  color: #b9cdd1;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  transition: border-color 160ms ease, color 160ms ease;
-}
-
-.cm-slot-off:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--asm-frame, #52cfff) 60%, transparent);
-  color: var(--asm-ink, #e8f7f7);
-}
-
-.cm-slot-off:disabled {
-  opacity: 0.4;
-}
-
-.cm-candidates {
-  max-height: 200px;
-  overflow-y: auto;
-  padding-top: 4px;
-  border-top: 1px solid #ffffff10;
-}
-
-.cm-candidate-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-  gap: 8px;
-  padding-top: 8px;
-}
-
-.cm-candidate {
-  display: grid;
-  justify-items: center;
-}
-
 .cm-empty-text {
   margin: 10px 0 4px;
   color: #6f8286;
@@ -303,6 +267,7 @@
 }
 
 .cm-deck {
+  position: relative;
   display: grid;
   min-height: 0;
   grid-template-rows: auto minmax(0, 1fr);
@@ -325,13 +290,30 @@
   height: 216px;
 }
 
-/* 只读卡组沿用固定像素卡面, 外层缩放后占位 154×216, 不做悬浮放大。 */
+/* 只读卡组沿用固定像素卡面, 外层缩放后占位 154×216。 */
 .cm-deck-cell [data-deck-card] {
   display: block;
   width: 220px;
   height: 308px;
   transform: scale(var(--deck-card-scale));
   transform-origin: top left;
+}
+
+.cm-deck-hover-preview {
+  position: absolute;
+  z-index: 4;
+  top: 28px;
+  left: -242px;
+  width: 220px;
+  height: 308px;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 16px #000000b8);
+}
+
+.cm-deck-hover-preview [data-deck-card] {
+  display: block;
+  width: 220px;
+  height: 308px;
 }
 
 @keyframes cm-rise {

@@ -1,0 +1,87 @@
+.picker {
+  position: absolute;
+  z-index: 1001;
+  box-sizing: border-box;
+  width: 360px;
+  max-height: var(--picker-max-h, 300px);
+  padding: 12px 14px 14px;
+  overflow-y: auto;
+  border: 1px solid color-mix(in srgb, var(--asm-frame, #52cfff) 42%, #ffffff28);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--asm-frame, #52cfff) 12%, transparent), transparent 52%),
+    linear-gradient(155deg, #0e1719f2, #070d0ff2);
+  color: #e8f7f7;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  filter: drop-shadow(0 14px 24px #000000cc);
+}
+
+.pickerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pickerTitle {
+  color: color-mix(in srgb, var(--asm-frame, #52cfff) 78%, #ffffff);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+}
+
+.pickerNote {
+  color: #8fa9ae;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-align: right;
+}
+
+.pickerNote.isWarn {
+  color: #f0b429;
+}
+
+.candidateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #ffffff10;
+}
+
+.candidate {
+  display: grid;
+  justify-items: center;
+}
+
+.pickerItem {
+  width: 84px;
+  height: 84px;
+}
+
+.emptyText {
+  margin: 12px 0 4px;
+  color: #6f8286;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.slotOff {
+  margin-top: 12px;
+  padding: 2px 10px;
+  border: 1px solid #ffffff20;
+  background: #10181acc;
+  color: #b9cdd1;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.slotOff:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--asm-frame, #52cfff) 60%, transparent);
+  color: #e8f7f7;
+}
+
+.slotOff:disabled {
+  opacity: 0.4;
+}

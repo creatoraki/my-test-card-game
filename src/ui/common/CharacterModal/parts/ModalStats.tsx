@@ -15,7 +15,7 @@ export function ModalStats({ stats }: { stats: StatBlock }) {
         {STAT_GROUPS.map((group) => (
           <div key={group.title} className={cx(s["cm-stat-group"], group.wide && s["is-wide"])}>
             <span className={s["cm-stat-group-title"]}>{group.title}</span>
-            <div className={cx(s["cm-stat-rows"], group.wide && s["is-two-col"])}>
+            <div className={cx(s["cm-stat-rows"], s["is-two-col"])}>
               {group.rows.map((row) => (
                 <AttrRow key={row.key} row={row} value={stats[row.key]} />
               ))}

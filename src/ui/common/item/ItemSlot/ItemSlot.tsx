@@ -2,6 +2,7 @@
 // 稀有度边框/角标/图标/数量全在这里, 两边不各画一遍。
 // 稀有度配色读 styles/tokens.css 的 --rarity-* 令牌, 组件里不硬编码颜色。
 
+import type { MouseEvent } from "react";
 import type { ItemStack } from "@/items/types";
 import { getBondDef, getItemDef } from "@/data";
 import { BondIcon } from "@/ui/common/BondIcon";
@@ -18,7 +19,7 @@ interface Props {
   dimmed?: boolean;
   disabled?: boolean;
   "aria-label"?: string;
-  onClick?: () => void;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   /** 调用方的布局类(格子在网格里怎么占位)。格子自身的外观一律由本组件持有。 */
   className?: string;
 }

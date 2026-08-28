@@ -112,16 +112,17 @@ export function CharacterModal({
           statuses={statuses}
           down={down}
         />
-        <ModalStats stats={stats} />
-        <div className={s["cm-right-column"]}>
+        <div className={s["cm-center-column"]}>
           <ModalEquip
             equipped={equipped}
             swap={swap}
+            accent={accent}
             onShowTooltip={showTooltip}
             onHideTooltip={hideTooltip}
           />
-          <ModalDeck deck={deck} />
+          <ModalStats stats={stats} />
         </div>
+        <ModalDeck deck={deck} />
       </div>
 
       {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
