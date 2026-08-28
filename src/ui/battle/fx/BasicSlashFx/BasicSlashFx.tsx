@@ -1,9 +1,9 @@
 // ============================================================================
-// 快斩·单刀弧斩(quick-slash) —— 程序化 CSS 斩击特效(基础档位)。
+// 快斩·单刀弧斩(basic-slash) —— 程序化 CSS 斩击特效(基础档位)。
 //
 // 定位与 blade-slash / blood-slash / neon-cross 那批「大招级」特效不同: 它是给
 // 普通攻击每回合都放的底特效, 总长只有 560ms, 层数刻意压到最少。分层逻辑照旧 ——
-// 时间轴与几何全在 quickSlashGeometry.ts, 本文件只做「表 → DOM + 行内时序」的
+// 时间轴与几何全在 basicSlashGeometry.ts, 本文件只做「表 → DOM + 行内时序」的
 // 纯映射, 不含随机与状态; 震屏 / 全屏闪 / 顿帧按项目分工归相机 SHOTS 与 screenFx,
 // 组件内不做。
 //
@@ -20,11 +20,11 @@ import type { ProcFxPreset } from "@/ui/battle/animations";
 import {
   BLADE,
   DEBRIS,
-  QUICK_TIMELINE,
+  BASIC_TIMELINE,
   SHOCK,
   SPARKS,
-} from "./quickSlashGeometry";
-import s from "./QuickSlashFx.module.css";
+} from "./basicSlashGeometry";
+import s from "./BasicSlashFx.module.css";
 
 // 与 BladeSlashFx / FrostShatterFx 同源的速率钩子: --fx-rate 变大 = 整体加速。
 const timing = (milliseconds: number) =>
@@ -32,14 +32,14 @@ const timing = (milliseconds: number) =>
 
 const asStyle = (style: Record<string, string | number>) => style as CSSProperties;
 
-export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
+export function BasicSlashFx({ preset }: { preset: ProcFxPreset }) {
   // 整条时间轴按「表里的爆点」与「preset 要求的爆点」之差平移, 掉血/飘字才对得上爆帧。
-  const offset = preset.impactMs - QUICK_TIMELINE.impact;
+  const offset = preset.impactMs - BASIC_TIMELINE.impact;
   const at = (timelineMs: number) => Math.max(0, offset + timelineMs);
 
   return (
     <div
-      className={s["quick-wrap"]}
+      className={s["basic-wrap"]}
       style={asStyle({
         "--blade-len": `${BLADE.length}px`,
         "--blade-thick": `${BLADE.thickness}px`,
@@ -48,34 +48,34 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
     >
       {/* 预兆: 一条极细白线沿斩线由长收紧到一点。唯一的 anticipation, 只给 60ms。 */}
       <i
-        className={s["quick-telegraph"]}
+        className={s["basic-telegraph"]}
         style={asStyle({
-          animationDelay: timing(at(QUICK_TIMELINE.telegraph)),
+          animationDelay: timing(at(BASIC_TIMELINE.telegraph)),
           animationDuration: timing(140),
         })}
       />
 
       {/* 刀身。wrapper 只旋转, 内层三条(辉光 / 刀芯 / 拖影)各自从左端扫出。
           刀芯的第二条动画是爆点那一帧的加粗回弹。 */}
-      <div className={s["quick-blade"]}>
+      <div className={s["basic-blade"]}>
         <i
-          className={s["quick-blade-glow"]}
+          className={s["basic-blade-glow"]}
           style={asStyle({
-            animationDelay: `${timing(at(QUICK_TIMELINE.blade - 20))}, ${timing(at(QUICK_TIMELINE.decay))}`,
+            animationDelay: `${timing(at(BASIC_TIMELINE.blade - 20))}, ${timing(at(BASIC_TIMELINE.decay))}`,
             animationDuration: `${timing(90)}, ${timing(240)}`,
           })}
         />
         <i
-          className={s["quick-blade-core"]}
+          className={s["basic-blade-core"]}
           style={asStyle({
-            animationDelay: `${timing(at(QUICK_TIMELINE.blade))}, ${timing(at(QUICK_TIMELINE.impact))}, ${timing(at(QUICK_TIMELINE.decay))}`,
-            animationDuration: `${timing(60)}, ${timing(90)}, ${timing(QUICK_TIMELINE.total - QUICK_TIMELINE.decay)}`,
+            animationDelay: `${timing(at(BASIC_TIMELINE.blade))}, ${timing(at(BASIC_TIMELINE.impact))}, ${timing(at(BASIC_TIMELINE.decay))}`,
+            animationDuration: `${timing(60)}, ${timing(90)}, ${timing(BASIC_TIMELINE.total - BASIC_TIMELINE.decay)}`,
           })}
         />
         <i
-          className={s["quick-blade-ghost"]}
+          className={s["basic-blade-ghost"]}
           style={asStyle({
-            animationDelay: timing(at(QUICK_TIMELINE.blade + 30)),
+            animationDelay: timing(at(BASIC_TIMELINE.blade + 30)),
             animationDuration: timing(260),
           })}
         />
@@ -83,9 +83,9 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
 
       {/* 爆点白核: 过冲到最大再急收, 尺度落差就是「闪断」的来源。 */}
       <div
-        className={s["quick-core"]}
+        className={s["basic-core"]}
         style={asStyle({
-          animationDelay: timing(at(QUICK_TIMELINE.impact)),
+          animationDelay: timing(at(BASIC_TIMELINE.impact)),
           animationDuration: timing(180),
         })}
       />
@@ -94,10 +94,10 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
       {[0, 180].map((side) => (
         <i
           key={`wedge-${side}`}
-          className={s["quick-wedge"]}
+          className={s["basic-wedge"]}
           style={asStyle({
             "--wedge-angle": `${BLADE.angle + 90 + side}deg`,
-            animationDelay: timing(at(QUICK_TIMELINE.impact)),
+            animationDelay: timing(at(BASIC_TIMELINE.impact)),
             animationDuration: timing(220),
           })}
         />
@@ -105,13 +105,13 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
 
       {/* 冲击环: 沿斩线拉扁的椭圆, 读作「一刀划过去」而非「原地爆炸」。 */}
       <div
-        className={s["quick-shock"]}
+        className={s["basic-shock"]}
         style={asStyle({
           width: SHOCK.size,
           height: SHOCK.size,
           "--shock-stretch": SHOCK.stretch,
           "--shock-scale": SHOCK.scale,
-          animationDelay: timing(at(QUICK_TIMELINE.impact)),
+          animationDelay: timing(at(BASIC_TIMELINE.impact)),
           animationDuration: timing(280),
         })}
       />
@@ -119,7 +119,7 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
       {SPARKS.map((spark, index) => (
         <span
           key={`spark-${index}`}
-          className={s["quick-spark"]}
+          className={s["basic-spark"]}
           data-tone={spark.tone}
           style={asStyle({
             width: spark.length,
@@ -127,7 +127,7 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
             "--spark-offset": `${spark.offset}px`,
             "--spark-distance": `${spark.distance}px`,
             "--spark-drop": `${spark.drop}px`,
-            animationDelay: timing(at(QUICK_TIMELINE.impact + spark.delay)),
+            animationDelay: timing(at(BASIC_TIMELINE.impact + spark.delay)),
             animationDuration: timing(300),
           })}
         />
@@ -136,7 +136,7 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
       {DEBRIS.map((debris, index) => (
         <span
           key={`debris-${index}`}
-          className={s["quick-debris"]}
+          className={s["basic-debris"]}
           data-tone={debris.tone}
           style={asStyle({
             width: debris.size,
@@ -145,7 +145,7 @@ export function QuickSlashFx({ preset }: { preset: ProcFxPreset }) {
             "--debris-dx": `${debris.dx}px`,
             "--debris-dy": `${debris.dy}px`,
             "--debris-rot": `${debris.rotate}deg`,
-            animationDelay: timing(at(QUICK_TIMELINE.impact + debris.delay)),
+            animationDelay: timing(at(BASIC_TIMELINE.impact + debris.delay)),
             animationDuration: timing(360),
           })}
         />

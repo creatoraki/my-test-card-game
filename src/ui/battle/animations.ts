@@ -227,6 +227,19 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     hold: 2900, // impactMs + floatMs = 2800 < hold, 也盖住 total 2700
     shake: 2,
   },
+  // 快斩·单刀弧斩(程序化 CSS): 560ms 四拍 —— 刀路预兆 → 刃出 → 60ms 停顿 → 爆点 + 余韵。
+  // 与上面那批 2 秒级大招不同, 这是**基础档位**: 给普通攻击每回合放, 靠停顿/曲线/方向
+  // 撑打击感而非铺陈。200ms 爆点与 fx/BasicSlashFx/basicSlashGeometry.ts 的
+  // BASIC_TIMELINE.impact 同源; 掉血/飘字锚在这一拍。刻意不配 screenFx、不占专属运镜档,
+  // 高频特效抢镜比不够华丽更伤。
+  "basic-slash": {
+    kind: "attack",
+    color: "#dce8ff", // 中性冷钢, 与质感层 --tone 同色: 它要能当所有普通攻击的底, 不带元素属性
+    proc: { impactMs: 200, floatMs: 380, damageAtImpact: true },
+    windup: 190,
+    hold: 700, // impactMs + floatMs = 580 < hold, 也盖住 total 560, 飘字与末尾帧都不被截断
+    shake: 1,
+  },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
   // 护盾: 不再用 emoji, 改用护盾 BUFF 图标 SVG(见 StatusPips 的 ShieldIcon)做虚幻放大浮现。

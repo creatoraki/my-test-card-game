@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { DsFastSlashDemo } from "@/ui/test/ds";
 import { TarotIconDemo } from "@/ui/test/luna/TarotIconDemo/TarotIconDemo";
-import { OpusQuickSlashDemo } from "@/ui/test/opus";
 import s from "./TestScreen.module.css";
 
 // 测试 demo 页面：多个开发者可以同时开发相同内容的组件 demo，并通过各自的 tab 进行评选。
@@ -37,7 +36,6 @@ export function TestScreen() {
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
-        {activeTab === "opus" ? <OpusQuickSlashDemo /> : null}
         {activeTab === "ds" ? <DsFastSlashDemo /> : null}
         {activeTab === "luna" ? <TarotIconDemo /> : null}
       </section>

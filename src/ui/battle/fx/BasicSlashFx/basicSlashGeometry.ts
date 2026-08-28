@@ -1,10 +1,10 @@
 // ============================================================================
-// 快斩·单刀弧斩(quick-slash)的几何表与时间轴锚点。
+// 快斩·单刀弧斩(basic-slash)的几何表与时间轴锚点。
 //
 // 这是「基础档位」特效: 对标 animations.ts 里 slash 的 emoji, 每回合都要放,
 // 所以设计目标不是华丽而是 —— 短、读得懂、砸得实。分层沿用同目录
 // frost-shatter / neon-cross 的三段式(几何表 → 纯映射组件 → 质感 CSS),
-// 这里只放「画在哪、飞多远、什么时候动」, 质感留给 QuickSlashFx.module.css。
+// 这里只放「画在哪、飞多远、什么时候动」, 质感留给 BasicSlashFx.module.css。
 //
 // 随机布局用固定种子在模块加载时烘一次, 不在渲染期算:
 //   1) 重播(key 换新)时布局逐 px 相同, 便于逐帧比对调参;
@@ -30,14 +30,14 @@ const rnd = mulberry32(SEED);
 const between = (min: number, max: number) => min + rnd() * (max - min);
 
 /** 两级冷钢色。刃芯与近爆点的东西取 white, 外围余韵取 steel, 由 CSS 的 [data-tone] 落地。 */
-export type QuickTone = "steel" | "white";
+export type BasicTone = "steel" | "white";
 
 // ── 时间轴(ms, 以 impact 为爆点锚) ─────────────────────────────────────────
 // 组件按 preset.impactMs 与 impact 的差值整体平移, 所以调节奏只改这一张表。
 //
 // ★ 打击感的关键是 blade→impact 之间那 60ms: 刀扫完**不立刻**炸。
 //   这一小段留白是冲击读数的唯一来源, 压掉它整个特效就会糊成一团光。
-export const QUICK_TIMELINE = {
+export const BASIC_TIMELINE = {
   telegraph: 0, // 刀路预兆: 一条极细白线沿斩线收紧, 让眼睛先知道刀从哪来
   blade: 140, // 刃出: 弧形斩痕自左上向右下贯出, 60ms 走完
   impact: 200, // 爆点: 白核过冲 + 楔形冲击 + 火花扇(掉血结算点)
@@ -59,17 +59,17 @@ const NORMAL = BLADE.angle + 90;
 const FAN = 35; // 双扇区半角(deg): 只往斩线两侧炸, 不做 360° 均匀放射
 
 // ── 火花: 爆点时沿斩线法线两侧扇形迸出的细长条 ────────────────────────────
-export interface QuickSpark {
+export interface BasicSpark {
   angle: number; // 迸射朝向(deg)
   length: number;
   distance: number; // 沿朝向飞出的距离(px)
   offset: number; // 出生点距中心的距离(px)
   drop: number; // 末端重力下坠(px), 让火花不是纯直线放射
-  tone: QuickTone;
+  tone: BasicTone;
   delay: number; // 相对 impact
 }
 
-export const SPARKS: readonly QuickSpark[] = Array.from({ length: 18 }, (_, index) => {
+export const SPARKS: readonly BasicSpark[] = Array.from({ length: 18 }, (_, index) => {
   // 偶数走法线正向扇区, 奇数走反向扇区 —— 两片对称的扇, 中间留出刀身。
   const side = index % 2 === 0 ? 0 : 180;
   const spread = between(-FAN, FAN);
@@ -86,17 +86,17 @@ export const SPARKS: readonly QuickSpark[] = Array.from({ length: 18 }, (_, inde
 });
 
 // ── 碎屑: 沿刀身迸出的小方块, 补足火花之外的「削下来一块」的实体感 ─────────
-export interface QuickDebris {
+export interface BasicDebris {
   along: number; // 沿刀身的位置(px, 以刀身中点为 0)
   size: number;
   dx: number;
   dy: number; // 已含 +34 重力偏置: 碎屑是「掉」下去的
   rotate: number;
-  tone: QuickTone;
+  tone: BasicTone;
   delay: number; // 相对 impact
 }
 
-export const DEBRIS: readonly QuickDebris[] = Array.from({ length: 10 }, (_, index) => {
+export const DEBRIS: readonly BasicDebris[] = Array.from({ length: 10 }, (_, index) => {
   const along = -160 + index * 36 + between(-14, 14);
   return {
     along: Math.round(along),

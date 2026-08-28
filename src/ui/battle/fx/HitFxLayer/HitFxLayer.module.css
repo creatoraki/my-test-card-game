@@ -231,6 +231,11 @@
 .vfx-triple-strike.vfx-attack::after {
   content: none;
 }
+/* 快斩自带 basic-shock 扁椭圆冲击环(沿斩线拉扁 2.2 倍), 且爆点延迟到 200ms;
+   默认环挂载即扩散, 既会提前 200ms 穿帮, 又和拉扁的方向读数打架。 */
+.vfx-basic-slash.vfx-attack::after {
+  content: none;
+}
 /* —— 伤害/治疗飘字 —— */
 .float-num {
   position: absolute;

@@ -148,6 +148,7 @@ export type CardRarity = "basic" | Rarity;
 //           blood-slash 血色刀光(程序化 CSS: 下劈 → 刀痕 → 血花爆裂)
 //           neon-cross 霓虹数据·交叉斩(程序化 CSS: 双刀交叉 → 白核坏帧 → 像素崩解)
 //           triple-strike 流光·三段斩(程序化 CSS: 起手一刀顿住 → 崩断转场 → 六连乱舞 → 斩痕爆点)
+//           basic-slash 快斩·单刀弧斩(程序化 CSS: 预兆 → 刃出 → 60ms 停顿 → 爆点，总长 560ms，普通攻击底特效)
 //   辅助系(柔和光效): heal 治疗 / shield 护盾 / buff 增益
 // 纯 UI 表现字段, 引擎逻辑不读取。UI 侧有兜底推断(见 ui/animations.ts)。
 export type CardAnim =
@@ -164,6 +165,7 @@ export type CardAnim =
   | "blood-slash"
   | "neon-cross"
   | "triple-strike"
+  | "basic-slash"
   | "heal"
   | "shield"
   | "buff";
