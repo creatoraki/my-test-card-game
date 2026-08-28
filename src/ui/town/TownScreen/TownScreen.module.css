@@ -409,6 +409,41 @@
   color: #eaf6f8;
 }
 
+.town-audio-toggle {
+  position: absolute;
+  left: 44px;
+  bottom: 76px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 142px;
+  padding: 7px 14px;
+  border: 1px solid #ffffff1f;
+  background: #05090b8c;
+  color: #c7e7eb;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+.town-audio-toggle svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.town-audio-toggle[data-muted="true"] {
+  color: #95a8ad;
+}
+.town-splash .town-audio-toggle:hover {
+  background: #071316c7;
+  border-color: #6fe3f5a6;
+  color: #eafcff;
+}
+
 /* ===================== 进设施演出 ===================== */
 /* 一次「进设施」= 三件事同时发生, 三者各管各的属性、互不覆盖:
      ① 相机推近   → .town-bg / .town-veil 的 transform

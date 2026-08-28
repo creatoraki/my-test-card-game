@@ -1,6 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRunStore } from "@/store/runStore";
-import { bgmForScreen, playBgm } from "@/ui/audio";
+import {
+  bgmForScreen,
+  getBgmEnabled,
+  playBgm,
+  subscribeBgmEnabled,
+  toggleBgm,
+} from "@/ui/audio";
 
 export function useBgm(enabled = true): void {
   const screen = useRunStore((state) => state.screen);
@@ -10,3 +16,9 @@ export function useBgm(enabled = true): void {
     playBgm(bgmForScreen(screen));
   }, [enabled, screen]);
 }
+
+export function useBgmEnabled(): boolean {
+  return useSyncExternalStore(subscribeBgmEnabled, getBgmEnabled, getBgmEnabled);
+}
+
+export { toggleBgm };

@@ -12,6 +12,8 @@ const fadeFrames: Partial<Record<BgmId, number>> = {};
 let currentBgm: BgmId | null = null;
 let requestedBgm: BgmId | null = null;
 let unlockHandler: (() => void) | null = null;
+let bgmEnabled = true;
+const bgmEnabledListeners = new Set<() => void>();
 
 function createAudio(id: BgmId): HTMLAudioElement {
   const audio = new Audio(BGM_TRACKS[id].src);
@@ -91,8 +93,23 @@ function requestPlayback(id: BgmId): void {
   }
 }
 
+function resumeBgm(id: BgmId): void {
+  const audio = audioById[id];
+  cancelFade(id);
+  audio.volume = 0;
+  requestPlayback(id);
+  fadeTo(id, BGM_TRACKS[id].volume);
+}
+
 export function playBgm(id: BgmId): void {
   requestedBgm = id;
+  if (!bgmEnabled) {
+    if (currentBgm !== id) {
+      currentBgm = id;
+      if (id === "battle") audioById[id].currentTime = 0;
+    }
+    return;
+  }
   if (currentBgm === id) return;
 
   const previousBgm = currentBgm;
@@ -109,6 +126,37 @@ export function playBgm(id: BgmId): void {
   nextAudio.volume = 0;
   requestPlayback(id);
   fadeTo(id, BGM_TRACKS[id].volume);
+}
+
+export function getBgmEnabled(): boolean {
+  return bgmEnabled;
+}
+
+export function subscribeBgmEnabled(listener: () => void): () => void {
+  bgmEnabledListeners.add(listener);
+  return () => bgmEnabledListeners.delete(listener);
+}
+
+export function setBgmEnabled(enabled: boolean): void {
+  if (bgmEnabled === enabled) return;
+  bgmEnabled = enabled;
+
+  if (!enabled) {
+    removeUnlockListeners();
+    for (const id of Object.keys(audioById) as BgmId[]) {
+      cancelFade(id);
+      audioById[id].pause();
+      audioById[id].volume = 0;
+    }
+  } else if (requestedBgm) {
+    resumeBgm(requestedBgm);
+  }
+
+  bgmEnabledListeners.forEach((listener) => listener());
+}
+
+export function toggleBgm(): void {
+  setBgmEnabled(!bgmEnabled);
 }
 
 export function stopAllBgm(): void {

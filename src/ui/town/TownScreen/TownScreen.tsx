@@ -39,6 +39,7 @@ import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { prefersReducedMotion } from "@/ui/app/transitions";
+import { toggleBgm, useBgmEnabled } from "@/ui/hooks/useBgm";
 import {
   ENTER_TOTAL,
   FACILITY_CINEMA,
@@ -207,6 +208,17 @@ function SortieIcon() {
   );
 }
 
+function MusicIcon({ muted }: { muted: boolean }) {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 35V12l22-5v23" strokeWidth={1.8} />
+      <circle cx="11" cy="36" r="6" strokeWidth={1.8} />
+      <circle cx="33" cy="31" r="6" strokeWidth={1.8} />
+      {muted && <path d="m7 9 34 31" strokeWidth={2.4} />}
+    </svg>
+  );
+}
+
 interface Facility {
   id: string; // 同时就是 grid-area 名, 与下面 gridTemplateAreas 里的词一一对应
   name: string;
@@ -312,6 +324,7 @@ function flyVars(fly: FlyOut, delay = fly.delay, ms = fly.ms): CSSProperties {
 
 export function TownScreen() {
   const resetProfile = useTownStore((s) => s.resetProfile);
+  const bgmEnabled = useBgmEnabled();
   const openFormation = useRunStore((s) => s.openFormation);
   const openSortie = useRunStore((s) => s.openSortie);
   const terminalCredits = useTownStore((s) => s.loot);
@@ -546,6 +559,19 @@ export function TownScreen() {
                 );
               })}
             </div>
+
+            <button
+              className={cx(s["town-audio-toggle"], inCinema && s["is-flying"])}
+              style={inCinema ? fly(FLY_RESET, 9) : undefined}
+              type="button"
+              aria-label={bgmEnabled ? "关闭音乐" : "播放音乐"}
+              aria-pressed={bgmEnabled}
+              data-muted={!bgmEnabled}
+              onClick={toggleBgm}
+            >
+              <MusicIcon muted={!bgmEnabled} />
+              <span>{bgmEnabled ? "音乐播放中" : "音乐已关闭"}</span>
+            </button>
 
             <button
               className={cx(s["town-reset"], inCinema && s["is-flying"])}
