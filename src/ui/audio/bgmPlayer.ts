@@ -1,6 +1,8 @@
 import { BGM_TRACKS, type BgmId } from "./bgmTracks";
 
 const FADE_MS = 600;
+const clampVolume = (value: number) =>
+  Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
 
 const audioById: Record<BgmId, HTMLAudioElement> = {
   town: createAudio("town"),
@@ -40,11 +42,15 @@ function fadeTo(id: BgmId, targetVolume: number, onComplete?: () => void): void 
     return;
   }
 
-  const startedAt = performance.now();
+  let startedAt: number | null = null;
   const tick = (now: number) => {
-    const progress = Math.min(1, (now - startedAt) / FADE_MS);
-    audio.volume = startVolume + (targetVolume - startVolume) * progress;
+    startedAt ??= now;
+    const progress = Math.min(1, Math.max(0, (now - startedAt) / FADE_MS));
+    audio.volume = clampVolume(
+      startVolume + (targetVolume - startVolume) * progress,
+    );
     if (progress >= 1) {
+      audio.volume = clampVolume(targetVolume);
       delete fadeFrames[id];
       onComplete?.();
       return;
