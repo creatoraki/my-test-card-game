@@ -1,6 +1,5 @@
 import { preloadImage, preloadVideo, scheduleLowPriority } from "@/ui/art/assetLoader";
 import { CARD_ART_SOURCES } from "@/ui/art/cardArt";
-import { CARD_FRAME_SOURCES } from "@/ui/art/cardFrame";
 import { CHARACTER_ART_SOURCES } from "@/ui/common/CharacterPortrait/CharacterPortrait";
 import { ENEMY_ART_SOURCES } from "@/ui/art/enemyArt";
 import { EVENT_ART_SOURCES } from "@/ui/art/eventArt";
@@ -36,7 +35,6 @@ const imageSources = unique([
   ...ENEMY_ART_SOURCES,
   ...ALL_SPRITE_FRAMES,
   ...CARD_ART_SOURCES,
-  ...CARD_FRAME_SOURCES,
   ...EVENT_ART_SOURCES,
   ...RARITY_CRYSTAL_SOURCES,
   ...ITEM_ART_SOURCES,

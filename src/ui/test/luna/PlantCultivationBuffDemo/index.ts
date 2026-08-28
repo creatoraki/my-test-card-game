@@ -1,1 +1,0 @@
-export { PlantCultivationBuffDemo } from "./PlantCultivationBuffDemo";

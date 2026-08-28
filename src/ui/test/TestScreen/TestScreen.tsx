@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { PlantCultivationBuffDemo } from "@/ui/test/luna";
-import { DsPlantBuffDemo } from "@/ui/test/ds";
-import { OpusCultivationIconDemo } from "@/ui/test/opus";
+import { DsFastSlashDemo } from "@/ui/test/ds";
+import { TarotIconDemo } from "@/ui/test/luna/TarotIconDemo/TarotIconDemo";
+import { OpusQuickSlashDemo } from "@/ui/test/opus";
 import s from "./TestScreen.module.css";
 
 // 测试 demo 页面：多个开发者可以同时开发相同内容的组件 demo，并通过各自的 tab 进行评选。
 // 每位开发者独占一个文件夹和一个 tab，互相不干扰；AI 不得抄袭其他开发者的代码成果。
-type TestTab = "opus" | "luna" | "ds" | "qwen";
+type TestTab = "opus" | "ds" | "qwen" | "luna";
 
-const TABS: TestTab[] = ["opus", "luna", "ds", "qwen"];
+const TABS: TestTab[] = ["opus", "ds", "qwen", "luna"];
 
 // 页签文案与 tab 值分开: tab 值同时是 key 与 aria 标签的词根, 改文案不影响其它两处。
 const TAB_LABEL: Record<TestTab, string> = {
   opus: "opus",
-  luna: "luna",
   ds: "ds",
   qwen: "qwen",
+  luna: "luna",
 };
 
 export function TestScreen() {
@@ -37,9 +37,9 @@ export function TestScreen() {
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
-        {activeTab === "opus" ? <OpusCultivationIconDemo /> : null}
-        {activeTab === "luna" ? <PlantCultivationBuffDemo /> : null}
-        {activeTab === "ds" ? <DsPlantBuffDemo /> : null}
+        {activeTab === "opus" ? <OpusQuickSlashDemo /> : null}
+        {activeTab === "ds" ? <DsFastSlashDemo /> : null}
+        {activeTab === "luna" ? <TarotIconDemo /> : null}
       </section>
     </main>
   );

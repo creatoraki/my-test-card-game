@@ -1,0 +1,301 @@
+/* ============================================================================
+   快斩·单刀弧斩 —— 质感层。几何与时序在 quickSlashGeometry.ts / QuickSlashFx.tsx,
+   这里只负责「长什么样」: 银白冷钢配色、弧形刃、以及那几条决定打击感的曲线。
+
+   配色刻意取中性冷钢(#dce8ff), 避开已被占用的红(sword-fall)、青(iai/neon)、
+   金(triple) —— 它要能当所有普通攻击的底特效, 不能自带元素属性。
+
+   整层 screen 混色: 刀光是自发光的高光体, 应该「加」在场景上而不是「盖」住场景。
+   ============================================================================ */
+
+.quick-wrap {
+  /* 弧形刃轮廓: 上缘外弓、下缘内弓, 两端收成锐尖 —— 一条「弯」的刃, 比直光带更像挥砍。
+     三层(辉光/刀芯/拖影)共用, 改这一处即改全部刀形。 */
+  --blade-arc: polygon(
+    0% 62%, 12% 30%, 30% 11%, 50% 4%, 70% 11%, 88% 30%, 100% 62%,
+    88% 54%, 70% 36%, 50% 29%, 30% 36%, 12% 54%
+  );
+  --tone: #dce8ff;
+  --tone-deep: #7f9fd8;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1400px;
+  height: 1400px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+  mix-blend-mode: screen;
+}
+
+/* 色调令牌: 火花与碎屑只认这两个变量, 换配色改这两块即可。 */
+.quick-wrap [data-tone="steel"] {
+  --tone: #dce8ff;
+  --tone-deep: #7f9fd8;
+}
+
+.quick-wrap [data-tone="white"] {
+  --tone: #ffffff;
+  --tone-deep: #cfdcf5;
+}
+
+/* ── 预兆: 唯一的 anticipation, 只给一条细线和 140ms ────────────────────── */
+
+.quick-telegraph {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len, 1200px);
+  height: 2px;
+  margin-top: -1px;
+  transform: translateX(-50%) rotate(var(--blade-angle, 28deg)) scaleX(1.05);
+  background: linear-gradient(90deg, transparent 0%, #ffffff 46%, #ffffffcc 54%, transparent 100%);
+  box-shadow: 0 0 10px #dce8ff99;
+  opacity: 0;
+  animation-name: quickTelegraph;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.1, 1);
+}
+
+/* ── 刀身: wrapper 只旋转, 三层各自从左端扫出 ──────────────────────────── */
+
+.quick-blade {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len, 1200px);
+  height: 0;
+  transform: translateX(-50%) rotate(var(--blade-angle, 28deg));
+}
+
+.quick-blade > i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  clip-path: var(--blade-arc);
+  transform-origin: left center;
+  opacity: 0;
+  animation-fill-mode: forwards, forwards, forwards;
+}
+
+/* 辉光层: 最厚最虚, 负责「这一刀有质量」的体积感。 */
+.quick-blade-glow {
+  height: calc(var(--blade-thick, 26px) * 4);
+  margin-top: calc(var(--blade-thick, 26px) * -2);
+  background: linear-gradient(90deg, transparent 0%, #7f9fd866 22%, #dce8ffb3 50%, #7f9fd866 78%, transparent 100%);
+  filter: blur(9px);
+  animation-name: quickSweep, quickGlowOut;
+  /* 起手极快、尾部缓收 —— 快特效里曲线比时长更决定手感。 */
+  animation-timing-function: cubic-bezier(0.05, 0.85, 0.15, 1), ease-in;
+}
+
+/* 刀芯: 近白的实体刃, 爆点那一帧会被加粗一档(冲击回传到刀上)。 */
+.quick-blade-core {
+  height: calc(var(--blade-thick, 26px) * 1.6);
+  margin-top: calc(var(--blade-thick, 26px) * -0.8);
+  background: linear-gradient(90deg, transparent 0%, #ffffff80 18%, #ffffff 50%, #ffffff80 82%, transparent 100%);
+  box-shadow: 0 0 18px #dce8ffcc;
+  animation-name: quickSweep, quickCorePunch, quickCoreTear;
+  animation-timing-function: cubic-bezier(0.05, 0.85, 0.15, 1), cubic-bezier(0.2, 0, 0.2, 1), ease-in;
+}
+
+/* 拖影: 比刀芯更长更淡, 晚 30ms 起, 制造「刀已经过去了」的残留。 */
+.quick-blade-ghost {
+  height: calc(var(--blade-thick, 26px) * 2.4);
+  margin-top: calc(var(--blade-thick, 26px) * -1.2);
+  background: linear-gradient(90deg, transparent 0%, #dce8ff33 30%, #dce8ff8c 52%, transparent 92%);
+  filter: blur(3px);
+  animation-name: quickGhost;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.2, 1);
+}
+
+/* ── 爆点 ─────────────────────────────────────────────────────────────── */
+
+/* 白核: 过冲到最大再急收, 尺度落差就是「闪断」的来源。 */
+.quick-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220px;
+  height: 220px;
+  margin: -110px 0 0 -110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #ffffffcc 26%, #dce8ff66 52%, transparent 74%);
+  opacity: 0;
+  animation-name: quickCoreFlash;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.9, 0.3, 1);
+}
+
+/* 楔形冲击: 沿斩线法线的两片尖角, 把「力往哪边推」明写出来。 */
+.quick-wedge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 300px;
+  height: 190px;
+  margin-top: -95px;
+  clip-path: polygon(0% 50%, 62% 0%, 100% 50%, 62% 100%, 44% 50%);
+  background: linear-gradient(90deg, #ffffffe6 0%, #dce8ff99 46%, transparent 92%);
+  transform-origin: left center;
+  transform: rotate(var(--wedge-angle, 118deg)) scaleX(0.2);
+  opacity: 0;
+  animation-name: quickWedge;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.05, 0.8, 0.2, 1);
+}
+
+/* 冲击环: 沿斩线拉扁的椭圆。正圆读作「原地爆炸」, 拉扁才读作「一刀划过去」。 */
+.quick-shock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #dce8ff80, inset 0 0 14px #dce8ff66;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--blade-angle, 28deg)) scaleX(var(--shock-stretch, 2.2));
+  animation-name: quickShock;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.05, 0.85, 0.2, 1);
+}
+
+/* 火花: 针状细条, 只往斩线法线两侧的双扇区炸。
+   transform 链首位的 translateY 走的是未旋转坐标系 = 真正的重力下坠。 */
+.quick-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  clip-path: polygon(0% 50%, 26% 0%, 100% 34%, 100% 66%, 26% 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--tone-deep) 28%, var(--tone) 100%);
+  box-shadow: 0 0 8px var(--tone);
+  transform-origin: left center;
+  opacity: 0;
+  animation-name: quickSpark;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.08, 0.8, 0.25, 1);
+}
+
+/* 碎屑: 沿刀身削下来的小块, 带自转与重力。 */
+.quick-debris {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  clip-path: polygon(12% 0%, 100% 26%, 78% 100%, 0% 72%);
+  background: linear-gradient(140deg, var(--tone) 0%, var(--tone-deep) 100%);
+  box-shadow: 0 0 7px var(--tone);
+  opacity: 0;
+  animation-name: quickDebris;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+}
+
+/* ── 关键帧 ───────────────────────────────────────────────────────────── */
+
+/* 预兆线由长收紧到一点: 视线被「收」到命中点上, 下一帧刀才落。 */
+@keyframes quickTelegraph {
+  0% { opacity: 0; transform: translateX(-50%) rotate(var(--blade-angle, 28deg)) scaleX(1.06); }
+  34% { opacity: 0.55; }
+  100% { opacity: 0; transform: translateX(-50%) rotate(var(--blade-angle, 28deg)) scaleX(0.06); }
+}
+
+/* 刃出: 从左端 60ms 扫满。scaleX 起步不取 0, 免得头几帧薄成一根线看不见。 */
+@keyframes quickSweep {
+  0% { opacity: 0; transform: translateY(0) scaleX(0.06); }
+  16% { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scaleX(1); }
+}
+
+/* 爆点加粗: 刀身瞬间胖一圈再回弹, 冲击从命中点回传到刀上。 */
+@keyframes quickCorePunch {
+  0% { transform: translateY(0) scaleX(1) scaleY(1.7); }
+  46% { transform: translateY(0) scaleX(1) scaleY(1.16); }
+  100% { transform: translateY(0) scaleX(1) scaleY(1); }
+}
+
+/* 余韵: 刀痕稍稍拉长再撕细消失(ease-in = 越到后面越快, 与刃出正好相反)。 */
+@keyframes quickCoreTear {
+  0% { opacity: 1; transform: translateY(0) scaleX(1) scaleY(1); }
+  100% { opacity: 0; transform: translateY(0) scaleX(1.08) scaleY(0.12); }
+}
+
+@keyframes quickGlowOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes quickGhost {
+  0% { opacity: 0; transform: translateY(0) scaleX(0.2); }
+  22% { opacity: 0.75; }
+  100% { opacity: 0; transform: translateY(0) scaleX(1.12); }
+}
+
+@keyframes quickCoreFlash {
+  0% { opacity: 0; transform: scale(0.2); }
+  14% { opacity: 1; transform: scale(1.15); }
+  38% { opacity: 0.7; transform: scale(0.72); }
+  100% { opacity: 0; transform: scale(0.2); }
+}
+
+@keyframes quickWedge {
+  0% { opacity: 0; transform: rotate(var(--wedge-angle, 118deg)) scaleX(0.16); }
+  18% { opacity: 0.9; }
+  100% { opacity: 0; transform: rotate(var(--wedge-angle, 118deg)) scaleX(1.35); }
+}
+
+@keyframes quickShock {
+  0% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) rotate(var(--blade-angle, 28deg))
+      scaleX(var(--shock-stretch, 2.2)) scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--blade-angle, 28deg))
+      scaleX(var(--shock-stretch, 2.2)) scale(var(--shock-scale, 2.6));
+  }
+}
+
+@keyframes quickSpark {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(var(--spark-angle, 0deg))
+      translateX(var(--spark-offset, 0px)) scaleX(0.3);
+  }
+  14% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--spark-drop, 0px)) rotate(var(--spark-angle, 0deg))
+      translateX(calc(var(--spark-offset, 0px) + var(--spark-distance, 0px))) scaleX(1);
+  }
+}
+
+@keyframes quickDebris {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(var(--blade-angle, 28deg))
+      translateX(var(--debris-along, 0px)) rotate(0deg);
+  }
+  12% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(var(--debris-dx, 0px), var(--debris-dy, 0px))
+      rotate(var(--blade-angle, 28deg)) translateX(var(--debris-along, 0px))
+      rotate(var(--debris-rot, 0deg));
+  }
+}
+
+/* 减弱动效: 只留一帧刀痕作为「这里被打了」的提示, 不做扫出与迸射。 */
+@media (prefers-reduced-motion: reduce) {
+  .quick-wrap * {
+    animation: none !important;
+  }
+
+  .quick-blade-core {
+    opacity: 0.8;
+    transform: translateY(0) scaleX(1);
+  }
+}

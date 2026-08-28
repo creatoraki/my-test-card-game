@@ -1,0 +1,261 @@
+/* 疾锋·快斩(fast-slash): 目标中心的局部坐标特效。外层不旋转, 刀刃/刀痕/亮点
+   各自从 var(--blade-angle) 起刀; 所有时间由 DsFastSlashFx.tsx 通过 delay/duration
+   下发, 关键帧名留在 CSS Modules 内。配色为中性银白, 与青蓝系斩击拉开。 */
+
+.fast-wrap {
+  --blade-len: 1400px;
+  --blade-angle: 35deg;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1200px;
+  height: 1200px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: visible;
+}
+
+.fast-charge,
+.fast-scar,
+.fast-blade,
+.fast-ghost1,
+.fast-ghost2,
+.fast-shock,
+.fast-burst,
+.fast-wound,
+.fast-dot {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ── 起手微光: 出刀前的直觉, 中心一点慢慢亮起 ────────────────────────── */
+
+.fast-charge {
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -50%) scale(0.3);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #eef4ff 40%, #b9c8e666 70%, transparent 78%);
+  box-shadow: 0 0 12px 4px #ffffff99, 0 0 32px 10px #9fb6d94d;
+  opacity: 0;
+  z-index: 2;
+  animation-name: fastChargeGlow, fastChargeFade;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, ease-out;
+}
+
+/* ── 刀痕: 随刀展开的细线, 全场留到最后 ─────────────────────────────── */
+
+.fast-scar {
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len);
+  height: 5px;
+  transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(0);
+  transform-origin: center;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #ffffff00, #ffffff52 28%, #ffffffe6 50%, #ffffff52 72%, #ffffff00);
+  box-shadow: 0 0 8px 2px #ffffffa6, 0 0 22px 6px #8ea9d14d;
+  opacity: 0;
+  z-index: 3;
+  animation-name: fastScarUnfurl, fastScarFade;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.65, 0.2, 1), ease-in;
+}
+
+/* ── 刀刃三件套: 银白刃芯 + 双残影抢速 ──────────────────────────────── */
+
+.fast-blade,
+.fast-ghost1,
+.fast-ghost2 {
+  left: 50%;
+  top: 50%;
+  width: var(--blade-len);
+  height: 12px;
+  transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) translateX(calc(-1 * var(--blade-len)));
+  transform-origin: center;
+  clip-path: polygon(0% 50%, 2.5% 0%, 97.5% 0%, 100% 50%, 97.5% 100%, 2.5% 100%);
+  border-radius: 2px;
+  opacity: 0;
+  z-index: 5;
+}
+
+.fast-blade {
+  background: linear-gradient(90deg, transparent, #dfe9ffcc 4%, #ffffff 18%, #ffffff 50%, #ffffff 82%, #dfe9ffcc 96%, transparent);
+  box-shadow: 0 0 4px 1px #ffffff, 0 0 14px 4px #c6d4ee, 0 0 34px 8px #7e94b866;
+  animation-name: fastBladeSwipe;
+}
+
+.fast-ghost1 {
+  height: 10px;
+  filter: blur(1px) brightness(1.25) saturate(1.3);
+  background: linear-gradient(90deg, transparent, #cfdcf2cc 4%, #ffffff 50%, #cfdcf2cc 96%, transparent);
+  box-shadow: 0 0 10px 3px #e6edfa;
+  z-index: 4;
+  animation-name: fastGhostSwipe1;
+}
+
+.fast-ghost2 {
+  height: 8px;
+  filter: blur(2px) brightness(1.4) saturate(1.5);
+  background: linear-gradient(90deg, transparent, #c2d2ecb3 4%, #fffffff2 50%, #c2d2ecb3 96%, transparent);
+  box-shadow: 0 0 14px 5px #eef2fa;
+  z-index: 4;
+  animation-name: fastGhostSwipe2;
+}
+
+/* ── 爆点: 冲击环 + 中心白爆(40ms 顿帧后炸开, 是掉血结算的那一拍) ────── */
+
+.fast-shock {
+  left: 50%;
+  top: 50%;
+  width: 820px;
+  height: 200px;
+  transform: translate(-50%, -50%) scaleX(0) scaleY(0.4);
+  border: 2.5px solid #ffffffb3;
+  border-radius: 50%;
+  box-shadow: 0 0 12px 3px #ffffff8c, 0 0 40px 12px #96aecd4d;
+  opacity: 0;
+  z-index: 7;
+  animation-name: fastShockExpand;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.5, 0.2, 1);
+}
+
+.fast-burst {
+  left: 50%;
+  top: 50%;
+  width: 130px;
+  height: 130px;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #eef4ff 38%, #cfdcf080 66%, transparent 78%);
+  box-shadow: 0 0 24px 8px #ffffffcc, 0 0 64px 22px #95aacd59;
+  opacity: 0;
+  z-index: 8;
+  animation-name: fastBurstFlash;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+/* ── 刀痕亮点: 沿斩线依次闪亮, 中心先亮、向两端错峰 ─────────────────── */
+
+.fast-wound {
+  left: 50%;
+  top: 50%;
+  height: 3px;
+  transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(0);
+  transform-origin: center;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #ffffff 30%, #ffffff 50%, #ffffff 70%, transparent);
+  box-shadow: 0 0 5px 2px #ffffffe6, 0 0 15px 5px #9db2d180;
+  opacity: 0;
+  z-index: 6;
+  animation-name: fastWoundFlash;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* ── 白点飞溅: 沿刀锋方向弹开 ───────────────────────────────────────── */
+
+.fast-dot {
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #e8eefb 48%, #b9c6e466 72%, transparent 82%);
+  box-shadow: 0 0 6px 2px #ffffffd9;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  z-index: 9;
+  animation-name: fastDotFly;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.15, 0.6, 0.3, 1);
+}
+
+/* ── 关键帧 ─────────────────────────────────────────────────────────── */
+
+/* 起手: 微光从暗到最亮, 130ms 后开始让位(180ms 起灭, 让爆点白核接棒)。 */
+@keyframes fastChargeGlow {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  55% { opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(1.7); opacity: 1; }
+}
+
+@keyframes fastChargeFade {
+  0% { transform: translate(-50%, -50%) scale(1.7); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+@keyframes fastScarUnfurl {
+  0% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(0); opacity: 1; }
+  30% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(1); opacity: 1; }
+}
+
+@keyframes fastScarFade {
+  0% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(1); opacity: 1; filter: brightness(1); }
+  30% { opacity: 0.7; filter: brightness(1.8); }
+  70% { opacity: 0.25; filter: brightness(2.4); }
+  100% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(1); opacity: 0; filter: brightness(3); }
+}
+
+/* 刀刃: 160ms 匀速走完全程 —— 快刀的「快」来自速度, 不来自淡出。 */
+@keyframes fastBladeSwipe {
+  0% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) translateX(calc(-1 * var(--blade-len))); opacity: 0; }
+  8% { opacity: 1; }
+  60% { opacity: 1; filter: brightness(1.1); }
+  90% { opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) translateX(var(--blade-len)); opacity: 0; }
+}
+
+@keyframes fastGhostSwipe1 {
+  0% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) translateX(calc(-1 * var(--blade-len))); opacity: 0; }
+  6% { opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) translateX(var(--blade-len)); opacity: 0; }
+}
+
+@keyframes fastGhostSwipe2 {
+  0% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) translateX(calc(-1 * var(--blade-len))); opacity: 0; }
+  5% { opacity: 0.38; }
+  92% { opacity: 0.16; }
+  100% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) translateX(var(--blade-len)); opacity: 0; }
+}
+
+/* 冲击环: 快速张开, 前段带着「顿帧后炸开」的爆发感。 */
+@keyframes fastShockExpand {
+  0% { transform: translate(-50%, -50%) scaleX(0) scaleY(0.4); opacity: 1; }
+  25% { opacity: 0.85; filter: brightness(1.4); }
+  100% { transform: translate(-50%, -50%) scaleX(1) scaleY(1); opacity: 0; }
+}
+
+@keyframes fastBurstFlash {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  35% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+}
+
+@keyframes fastWoundFlash {
+  0% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(0); opacity: 1; }
+  35% { opacity: 1; filter: brightness(1.5); }
+  100% { transform: translate(-50%, -50%) rotate(var(--blade-angle, 35deg)) scaleX(1); opacity: 0; filter: brightness(2.8); }
+}
+
+@keyframes fastDotFly {
+  0% { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity: 1; }
+  25% { opacity: 1; filter: brightness(1.4); }
+  100% { transform: translate(-50%, -50%) translate(var(--dot-dx, 0px), var(--dot-dy, 0px)) scale(0.25); opacity: 0; filter: brightness(2.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fast-charge,
+  .fast-scar,
+  .fast-blade,
+  .fast-ghost1,
+  .fast-ghost2,
+  .fast-shock,
+  .fast-burst,
+  .fast-wound,
+  .fast-dot {
+    animation: none;
+  }
+}
