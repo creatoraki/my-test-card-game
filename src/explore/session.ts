@@ -367,7 +367,8 @@ export function syncPartyVitals(
   const delta = nextMax - member.maxHp;
   member.maxHp = nextMax;
   member.hpLimit = Math.max(1, Math.min(nextMax, member.hpLimit + delta));
-  member.hp = Math.max(member.alive ? 1 : 0, Math.min(member.hp, member.hpLimit));
+  const floor = member.alive && member.hp > 0 ? 1 : 0;
+  member.hp = Math.max(floor, Math.min(member.hp, member.hpLimit));
   // 负重适应也随装备变 —— 探索页的负重读数与开战快照都读它(见 partyBurdenAdapt)。
   member.burdenAdapt = burdenAdapt;
   return true;
@@ -1634,7 +1635,7 @@ export function finishBattle(
     if (!found) continue;
     p.hpLimit = Math.max(1, Math.min(p.maxHp, p.hpLimit - Math.max(0, Math.round(found.limitLoss))));
     p.hp = Math.max(0, Math.min(p.hpLimit, Math.round(found.hp)));
-    p.alive = found.alive && found.hp > 0;
+    p.alive = found.alive;
   }
 
   if (!won) {
