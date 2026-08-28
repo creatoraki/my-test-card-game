@@ -113,7 +113,7 @@
      压掉配图左上角约 46×46 与下沿一条 30px 是刻意的取舍: 换来 1:1.4 的比例, 且素材本就留了边。
 
    ── 卡内层序(z-index, 由下往上) ──
-     .hand-card::before auto  边角磨损(两个斜切口内侧的亮边)
+    .hand-card::before auto  边角磨损(两个斜切口内侧的亮边)
      .hc-art            auto  配图(DOM 在 ::before 之后 ⇒ 压住它, 磨损只在配图外的金属面可见)
     .hc-frame           3    升级凿痕(原四角 L 卡扣已删); ::after 是升级卡的凿痕
      .hc-text            4    底部效果说明
@@ -121,11 +121,75 @@
      .hc-cost            6    费用徽章(嵌在左上斜口内侧的立体金属圆盘)
      .hc-edge            7    ★ 三层棱的倒角环 —— **必须在最上**, 才能绕着说明区外侧完整画一圈,
                               让它读作"嵌进框里"而不是"贴上去"; ::after 是稀有卡的角部加固件。
-     .hand-card::after   9    ★ 表面反光扫过(sheen) —— 反光是**表面**现象, 必须盖住卡上的一切
+    .hand-card::after   9    ★ 表面反光扫过(sheen) —— 反光是**表面**现象, 必须盖住卡上的一切
    ⚠ 卡面上仍**没有**普/速文字与目标范围 —— 那些留给右侧 CardInfoPanel; 卡面只放
      "打不打得起 / 是什么 / 干什么"。
   ★ 普/速与稀有度现在**有**卡面线索: 普/速看**费用水晶配色**(见 .hc-cost-crystal),
      稀有度看**蚀刻纹与边棱工艺**(见 .r-common / .r-uncommon / .r-rare)。 */
+/* mover 负责整组卡层的合成位移; 卡面本体只保留离场与发牌动画, 不再承担悬停投影。 */
+.hc-mover {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
+}
+
+.hc-shadow-rest,
+.hc-shadow-lift,
+.hc-thickness {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+
+.hc-shadow-rest {
+  z-index: 0;
+  background: #000b;
+  filter: var(--hc-rest-filter, blur(3px));
+  opacity: var(--hc-rest-opacity, 1);
+  transform: var(--hc-rest-transform, translate(2px, 5px));
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.hc-shadow-lift {
+  z-index: 0;
+  background: var(--hc-lift-color, #000e);
+  filter: blur(15px);
+  opacity: var(--hc-lift-opacity, 0);
+  transform: var(--hc-lift-transform, translateY(26px));
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.hc-thickness {
+  z-index: 1;
+  background: #05080a;
+  opacity: var(--hc-thickness-opacity, 1);
+  transform: var(--hc-thickness-transform, translateY(4px));
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+/* 只有战斗手牌会从右侧飞入，其他复用卡面不应继承这段门控。 */
+:global([data-hand-tray]) .hc-shadow-rest,
+:global([data-hand-tray]) .hc-thickness {
+  animation: hand-deal-shadow-gate 0.8s step-end backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+
+@keyframes hand-deal-shadow-gate {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-hand-tray]) .hc-shadow-rest,
+  :global([data-hand-tray]) .hc-thickness {
+    animation: none;
+  }
+}
+
 /* ★ --card-edge / --card-edge-core: 卡面上唯一的"框色"旋钮, 但它们是**亮度**而不是色相 ——
    一对中性冷灰金属(高光棱 + 芯面)。稀有度改它们的亮度档, 选中态把它们整体推到抛光亮金属。
    ⚠ 旧版这里是 --card-hue(普通青蓝 #6fd2ff / 速攻品红紫 #da77f2), 是全站唯一不走
@@ -141,6 +205,7 @@
   --card-edge-groove: #05080a;
   --card-etch: none;
   position: relative;
+  z-index: 2;
   flex: none;
   overflow: hidden;
   /* ★ 蚀刻黑钢的表面, 自上而下五层(全走 background-image, 零额外 DOM):
@@ -168,7 +233,8 @@
   /* 斜切角 14px。⚠ 这个 14 与 .hc-edge 的六层斜口、.hc-cost 的落位是**同一个数**, 改了要一起改。 */
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
   /* 抽牌动画由 HandCard.motion.module.css 持有, 避免跨 CSS Module 引用关键帧。 */
-  transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04), filter 0.2s;
+  filter: none;
+  transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
 }
 /* ── 边角磨损: 两个 14px 斜切口内侧的亮边 ──
    切口是"这块板被切过"的地方, 真金属的切口边缘会被磨出一道亮边。两块很小的 radial-gradient

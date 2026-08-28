@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { BattleState } from "@/engine";
 import { RULES, partyManaPerRound } from "@/engine";
 import { useHandHoverCost } from "@/ui/battle/handFocusStore";
@@ -8,7 +9,7 @@ interface Props {
   battle: BattleState;
 }
 
-export function ManaBar({ battle }: Props) {
+export const ManaBar = memo(function ManaBar({ battle }: Props) {
   const mana = battle.resources[RULES.resource.name] ?? 0;
   const maxMana = partyManaPerRound(battle);
   const hoveredCost = useHandHoverCost();
@@ -27,4 +28,4 @@ export function ManaBar({ battle }: Props) {
       ))}
     </div>
   );
-}
+});

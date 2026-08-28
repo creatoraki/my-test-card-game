@@ -139,6 +139,7 @@
   height: 308px;
   transform: scale(1.4545);
   transform-origin: top left;
+  will-change: transform;
 }
 
 /* 放大卡面视觉底边为 y=556; 释义块按面板自身 top=108 加卡面高度 448 再留 12px 定位。 */

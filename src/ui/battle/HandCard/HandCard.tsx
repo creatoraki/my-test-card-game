@@ -47,8 +47,8 @@ interface Props {
 // ★ 卡面上**没有任何色相**(见 HandCard.module.css 开头): 普/速靠**费用水晶配色**区分,
 //   稀有度靠**蚀刻纹与边棱工艺**分三档, 能不能打靠**厚度**。唯一的两点颜色是费用水晶的辉光
 //   (走全站 --accent)与卡名压条左端那道归属角色竖标。
-// 本组件渲染的是**两层**: 外层 .hand-slot(不动的占位壳, 吃悬停与版式) + 内层 .hand-card(卡面本体,
-// 只做位移动画)。分层的理由见下方 return 处的注释 —— 少了这层, 悬停会无限抖动。
+// 本组件渲染的是**三层**: 外层 .hand-slot(不动的占位壳, 吃悬停与版式) + .hc-mover(唯一的
+// 悬停位移层) + .hand-card(卡面本体, 只做离场/发牌动画)。分层的理由见下方 return 处的注释。
 // 本组件同时服务手牌托盘与牌堆弹窗, 两套版式分别锁在 [data-hand-tray] / [data-pile-grid] 下。
 // 卡之间是鱼鳞叠(负 margin), 悬浮时向上弹出半张卡高 + 置顶露出完整卡面(**不放大**, 见 HandCard.motion.module.css);
 // 详情面板(CardInfoPanel)与队伍槽高亮(AllyBar)读的是本组件写进 ui/handFocusStore.ts 的悬停卡,
@@ -105,6 +105,9 @@ export const HandCard = memo(function HandCard({
       // data-hand-slot: 供 BattleScreen 的 `.hand-tray:has([data-hand-slot]:nth-last-child(N))`
       // 按张数收紧叠压量。类名被哈希后那条选择器够不着, 属性可以(样式铁律 2)。
       data-hand-slot
+      data-unplayable={!playable && !unaffordable ? "" : undefined}
+      data-discarding={discarding ? "" : undefined}
+      data-purged={purged ? "" : undefined}
       // ★ 悬停**直接写进 ui/handFocusStore.ts**, 不再经由 props 冒泡到 BattleScreen。
       //   这是战斗画面最重要的一条性能约束: 旧写法是 onHover → BattleScreen 的 setHoveredUid,
       //   一次顶层 setState ⇒ 全屏组件树重渲染, 而鼠标扫过一排卡每跨一张就有两次。现在只有
@@ -133,39 +136,43 @@ export const HandCard = memo(function HandCard({
         </button>
       )}
       <CardMarks card={card} variant={variant} actionBadge={actionBadge} leaving={leaving} />
-      <div
-        className={cx(
-          s["hand-card"],
-          // 稀有度档位 → .r-basic / .r-common / .r-uncommon / .r-rare。basic 与 common 同为无纹,
-          // 卡面上其余档位表现为**蚀刻纹密度 + 边棱工艺**,
-          // 一个像素的配色都不用(理由见 src/styles/tokens.css: 那套 --rarity-* 是物品的, 别套用)。
-          // ⚠ rarity 在 CardDef 上是可选的(engine/types.ts), 缺省当 common —— 否则那张卡会一层纹都没有,
-          //   与 common 看起来一样但走的是"未定义"的路径, 将来加档时容易漏。
-          s[`r-${card.rarity ?? "common"}`],
-          !playable && !unaffordable && s.unplayable,
-          card.upgraded && s.upgraded,
-          card.contaminated && s.contaminated,
-        )}
-        data-hand-card
-        data-card-type={card.cardType}
-        data-rarity={card.rarity ?? "common"}
-        data-selected={selected ? "" : undefined}
-        data-leaving={leaving ? "" : undefined}
-        data-unplayable={!playable && !unaffordable ? "" : undefined}
-        data-discarding={discarding ? "" : undefined}
-        data-purged={purged ? "" : undefined}
-        data-upgraded={card.upgraded ? "" : undefined}
-        data-contaminated={card.contaminated ? "" : undefined}
-        onTransitionEnd={(e) => {
-          // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
-          // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。
-          if (leaving && !discarding && !purged && e.propertyName === "transform") onExited?.(card.uid);
-        }}
-        onAnimationEnd={(e) => {
-          if (purged && e.animationName.includes("cardShatter")) onExited?.(card.uid);
-          if (discarding && e.animationName.includes("cardDiscardBurst")) onExited?.(card.uid);
-        }}
-      >
+      <div className={s["hc-mover"]} data-hand-mover>
+        <span className={s["hc-shadow-rest"]} data-hand-shadow-rest aria-hidden />
+        <span className={s["hc-shadow-lift"]} data-hand-shadow-lift aria-hidden />
+        <span className={s["hc-thickness"]} data-hand-thickness aria-hidden />
+        <div
+          className={cx(
+            s["hand-card"],
+            // 稀有度档位 → .r-basic / .r-common / .r-uncommon / .r-rare。basic 与 common 同为无纹,
+            // 卡面上其余档位表现为**蚀刻纹密度 + 边棱工艺**,
+            // 一个像素的配色都不用(理由见 src/styles/tokens.css: 那套 --rarity-* 是物品的, 别套用)。
+            // ⚠ rarity 在 CardDef 上是可选的(engine/types.ts), 缺省当 common —— 否则那张卡会一层纹都没有,
+            //   与 common 看起来一样但走的是"未定义"的路径, 将来加档时容易漏。
+            s[`r-${card.rarity ?? "common"}`],
+            !playable && !unaffordable && s.unplayable,
+            card.upgraded && s.upgraded,
+            card.contaminated && s.contaminated,
+          )}
+          data-hand-card
+          data-card-type={card.cardType}
+          data-rarity={card.rarity ?? "common"}
+          data-selected={selected ? "" : undefined}
+          data-leaving={leaving ? "" : undefined}
+          data-unplayable={!playable && !unaffordable ? "" : undefined}
+          data-discarding={discarding ? "" : undefined}
+          data-purged={purged ? "" : undefined}
+          data-upgraded={card.upgraded ? "" : undefined}
+          data-contaminated={card.contaminated ? "" : undefined}
+          onTransitionEnd={(e) => {
+            // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
+            // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。
+            if (leaving && !discarding && !purged && e.propertyName === "transform") onExited?.(card.uid);
+          }}
+          onAnimationEnd={(e) => {
+            if (purged && e.animationName.includes("cardShatter")) onExited?.(card.uid);
+            if (discarding && e.animationName.includes("cardDiscardBurst")) onExited?.(card.uid);
+          }}
+        >
         {/* 配图层: 卡上段的正方形取景窗, 整幅 1:1 素材完整展示(不裁剪) */}
         {hasArt && <span className={f["hc-art"]} aria-hidden />}
 
@@ -197,6 +204,7 @@ export const HandCard = memo(function HandCard({
         {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
         <span className={cx(f["hc-text"], f[textSize])}><CardTextRich text={text} /></span>
 
+        </div>
       </div>
     </div>
   );

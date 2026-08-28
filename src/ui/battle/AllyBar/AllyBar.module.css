@@ -19,6 +19,7 @@
    flex-grow 可过渡 ⇒ 聚焦槽平滑变宽、其余槽位微收, 三槽总宽恒等于 --hud-party-w。 */
 .ally-bar .ally-slot {
   position: relative;
+  contain: layout style;
   cursor: default;
   flex: 1 1 0;
   min-width: 0;
@@ -48,15 +49,32 @@
    ⚠ 全局 box-sizing: border-box ⇒ 描边 1px→5px 不改变槽位外框尺寸, 只吃掉内部 4px, 不会跳版。 */
 .ally-bar .ally-slot.card-focus .ally-frame {
   border-color: var(--owner-color, var(--accent));
-  border-width: 5px;
+  box-shadow:
+    0 6px 18px #000a,
+    inset 0 0 0 4px var(--owner-color, var(--accent)),
+    inset 0 0 26px #0a1a2359;
+}
+.ally-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border: 1px solid var(--owner-color, var(--accent));
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   filter: drop-shadow(0 0 4px var(--owner-color, var(--accent)))
     drop-shadow(0 0 16px color-mix(in srgb, var(--owner-color, var(--accent)) 75%, transparent));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.ally-bar .ally-slot.card-focus .ally-glow {
+  opacity: 1;
 }
 /* 卡框: 槽位的可见主体。
    overflow + clip-path 一起把立绘与双条裁进同一个轮廓 = 双条与卡框一体化(条自身不带角)。
    刻意不挂 backdrop-filter: 立绘画在本层之上, 磨砂只会糊到背景视频、糊不到人, 徒增开销。 */
 .ally-frame {
   position: relative;
+  z-index: 1;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -66,8 +84,8 @@
   box-shadow: 0 6px 18px #000a, inset 0 0 26px #0a1a2359;
   /* 与全局硬边风格一致的斜切角 */
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  /* 聚焦点亮/熄灭的平滑过渡(card-focus): 描边由 1px 加粗到 5px 也要跟着过渡, 否则会"啪"地一跳 */
-  transition: border-color 0.2s, border-width 0.2s, filter 0.2s;
+  /* 聚焦点亮/熄灭的平滑过渡: 描边粗细由 inset box-shadow 表达, 不参与布局。 */
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 /* 半身取景窗: 立绘贴在卡框底色之上, 由本窗裁出上半身 */
 .ally-figure {

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cx } from "@/ui/common/cx";
 import s from "./ManaCrystal.module.css";
 
@@ -12,7 +13,7 @@ interface Props {
   tone?: "mana" | "haste";
 }
 
-export function ManaCrystal({ className, state = "normal", still, tone = "mana" }: Props) {
+export const ManaCrystal = memo(function ManaCrystal({ className, state = "normal", still, tone = "mana" }: Props) {
   return (
     <span
       className={cx(s.crystal, s[`is-${state}`], tone === "haste" && s["is-haste"], still && s["is-still"], className)}
@@ -21,4 +22,4 @@ export function ManaCrystal({ className, state = "normal", still, tone = "mana" 
       <span className={s.shape} />
     </span>
   );
-}
+});

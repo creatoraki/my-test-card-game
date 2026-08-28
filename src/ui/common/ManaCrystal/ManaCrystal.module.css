@@ -19,7 +19,7 @@
   justify-content: center;
   align-items: center;
   flex: 0 0 auto;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, opacity 0.3s ease;
 }
 
 /* 速攻卡的费用水晶：红→绿对角，沿用水晶本体的几何与辉光。 */
@@ -37,7 +37,11 @@
   border-radius: calc(4px * var(--_u));
   position: relative;
   box-sizing: border-box;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition:
+    transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    background 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .shape::after {
@@ -76,6 +80,7 @@
   inset: calc(-4px * var(--_u));
   border: 2px solid var(--_core);
   opacity: 0.8;
+  will-change: transform, opacity;
   animation: spin-pulse 2s infinite linear;
 }
 
@@ -84,8 +89,8 @@
 }
 
 @keyframes breathe {
-  0%, 100% { opacity: 1; filter: brightness(1); }
-  50% { opacity: 0.85; filter: brightness(0.8); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
 }
 
 @keyframes spin-pulse {

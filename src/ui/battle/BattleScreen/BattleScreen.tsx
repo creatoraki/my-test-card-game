@@ -134,6 +134,7 @@ export function BattleScreen() {
   // 正在出牌离场的卡: 点击瞬间即开始出鞘(引擎稍后才在命中时刻把它移出手牌), 避免先缩回未选中位再飞出。
   const [playingOutUid, setPlayingOutUid] = useState<string | null>(null);
   const [discardingUids, setDiscardingUids] = useState<string[]>([]);
+  const discardingUidSet = useMemo(() => new Set(discardingUids), [discardingUids]);
   const discardingUidsRef = useRef(new Set<string>());
 
   // —— 出牌动画编排(纯 UI): 施法者弹出 → 顿 → 镜头推近聚焦目标 → 命中特效/飘字 → 镜头恢复/归位 ——
@@ -257,6 +258,7 @@ export function BattleScreen() {
     () => () => {
       timelineRef.current?.cancel();
       discardCommitTimersRef.current.forEach((timer) => clearTimeout(timer));
+      resetHandHover();
     },
     [],
   );
@@ -1062,7 +1064,7 @@ export function BattleScreen() {
         <HandTray
           renderHand={renderHand}
           battle={battle}
-          discardingUids={new Set(discardingUids)}
+          discardingUids={discardingUidSet}
           isPlayerTurn={isPlayerTurn && !battle.pendingChoice}
           handAction={handAction}
           selectedUid={selectedUid}

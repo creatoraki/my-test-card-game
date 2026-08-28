@@ -27,10 +27,34 @@ interface HandFocusState {
 
 const useStore = create<HandFocusState>(() => ({ hovered: null, hoveredCost: null }));
 
+type PendingHover = { card: Card; cost: number } | null;
+
+// 鼠标跨卡时 leave/enter 会在同一帧内成对到达；先收集最后状态，再只提交一次 store 更新。
+let pendingHover: PendingHover | undefined;
+let pendingFrame: number | null = null;
+
+function commitPendingHover() {
+  pendingFrame = null;
+  const next = pendingHover;
+  pendingHover = undefined;
+  if (next) {
+    useStore.setState({ hovered: next.card, hoveredCost: next.cost });
+  } else {
+    useStore.setState({ hovered: null, hoveredCost: null });
+  }
+}
+
+function scheduleHoverCommit() {
+  if (pendingFrame !== null) return;
+  pendingFrame = requestAnimationFrame(commitPendingHover);
+}
+
 // 下面三个都是**模块级函数**(不是 hook): 引用天然恒定, 于是调用方(HandCard)既不需要订阅
 // store, 也不需要 useCallback 去稳定它 —— 这正是 HandCard 能被 React.memo 挡住的前提。
-export const setHandHover = (card: Card, cost = card.cost): void =>
-  useStore.setState({ hovered: card, hoveredCost: cost });
+export const setHandHover = (card: Card, cost = card.cost): void => {
+  pendingHover = { card, cost };
+  scheduleHoverCommit();
+};
 
 // ⚠ 只有「当前悬停的还是自己」才清空。鼠标快速划过一排卡时, 浏览器并不保证
 //   A.mouseleave 一定早于 B.mouseenter 送达; 无条件清空会把刚点亮的 B 又抹掉,
@@ -38,12 +62,23 @@ export const setHandHover = (card: Card, cost = card.cost): void =>
 // ⚠ 比的是 **uid 而不是对象同一性**: 引擎每次 commit 都会产出新的 BattleState, 手上同一张卡
 //   在 battle.cards 里可能已换成一个新对象(见 BattleScreen 同步 renderHand 的 useEffect),
 //   按引用比会漏判 ⇒ 悬停态永久卡住, 详情面板再也退不回 STANDBY。
-export const clearHandHover = (card: Card): void =>
-  useStore.setState((s) => (s.hovered?.uid === card.uid ? { hovered: null, hoveredCost: null } : s));
+export const clearHandHover = (card: Card): void => {
+  const current = pendingHover === undefined ? useStore.getState().hovered : pendingHover?.card;
+  if (current?.uid !== card.uid) return;
+  pendingHover = null;
+  scheduleHoverCommit();
+};
 
 // 无条件清空: 换战斗 / 进入换牌丢弃 / 开始播出牌分镜时用 —— 那些时刻手牌本就要被换掉,
 // 留着上一张的详情是错的。
-export const resetHandHover = (): void => useStore.setState({ hovered: null, hoveredCost: null });
+export const resetHandHover = (): void => {
+  if (pendingFrame !== null) {
+    cancelAnimationFrame(pendingFrame);
+    pendingFrame = null;
+  }
+  pendingHover = undefined;
+  useStore.setState({ hovered: null, hoveredCost: null });
+};
 
 export const useHandHover = (): Card | null => useStore((s) => s.hovered);
 

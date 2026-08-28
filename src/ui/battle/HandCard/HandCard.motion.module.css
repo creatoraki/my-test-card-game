@@ -4,7 +4,7 @@
   ⚠ 刻意只盖"壳上沿以上"那半张 + 26px 接缝, 不盖壳自身: 壳本身已经是命中区, 多盖一层反而会把
      右邻卡被叠压的那一条挡住, 让相邻卡难以切换悬停。
    ⚠ 不吃点击: 它没有 z-index(auto), 而卡是 z-index:1 ⇒ 弹起的卡恒在垫子之上, 点击照常落到卡上。 */
-:global([data-hand-slot]):hover::after {
+:global([data-hand-slot])::after {
   content: "";
   position: absolute;
   left: 0;
@@ -12,6 +12,9 @@
   bottom: calc(100% - 2px);
   height: calc(var(--hand-hover-lift) + 26px);
   pointer-events: none;
+}
+:global([data-hand-slot]):hover::after {
+  pointer-events: auto;
 }
 /* 出鞘中的卡不该再吃悬停(同 .hand-card.leaving 的 pointer-events:none) */
 :global([data-hand-slot][data-leaving]) {
@@ -76,6 +79,7 @@
   animation: cardShatter 420ms cubic-bezier(0.2, 0.75, 0.35, 1) forwards;
   transition: none;
 }
+
 @keyframes cardShatter {
   0% {
     opacity: 1;
@@ -190,14 +194,27 @@
      filter 不会叠加, 后命中的会整条覆盖。故每一条都要**自带厚度层**, 漏写的那一条会让卡在
      该状态下突然"变薄"。静止态与打不出那两条在 HandCard.layout.module.css(静止态还要负责鱼鳞叠的
      右缘投影)。 */
-:global([data-hand-slot]:not([data-leaving])):hover > :global([data-hand-card]:not([data-selected])) {
+:global([data-hand-slot]:not([data-leaving]):not([data-selected])):hover > :global([data-hand-mover]) {
   transform: translateY(calc(-1 * var(--hand-hover-lift)));
-  filter: drop-shadow(0 7px 0 #05080a) drop-shadow(0 26px 30px #000e);
+  --hc-rest-opacity: 0;
+  --hc-lift-opacity: 1;
+  --hc-thickness-transform: translateY(7px);
 }
-:global([data-hand-card][data-selected]) {
+:global([data-hand-slot][data-selected]) > :global([data-hand-mover]) {
   transform: translateY(calc(-1 * var(--hand-hover-lift) - 24px));
-  /* 轮廓辉光也走中性冷白 —— 它表达的是"这块板被打了光", 不是某种颜色的能量 */
-  filter: drop-shadow(0 8px 0 #05080a) drop-shadow(0 0 12px #dfe9f280) drop-shadow(0 30px 34px #000e);
+  --hc-rest-opacity: 0;
+  --hc-lift-opacity: 1;
+  --hc-lift-color: #dfe9f240;
+  --hc-lift-transform: translateY(30px);
+  --hc-thickness-transform: translateY(8px);
+}
+/* 离场时卡面自己飞出, 影子留在 mover 里则会穿帮, 故三层一起隐去。 */
+:global([data-hand-slot][data-leaving]) > :global([data-hand-mover]),
+:global([data-hand-slot][data-discarding]) > :global([data-hand-mover]),
+:global([data-hand-slot][data-purged]) > :global([data-hand-mover]) {
+  --hc-rest-opacity: 0;
+  --hc-lift-opacity: 0;
+  --hc-thickness-opacity: 0;
 }
 /* ── 选中态的其余表达: 全部靠**亮度**, 不靠色相 ── */
 /* ① 整圈三层棱推到抛光亮金属。
@@ -260,10 +277,18 @@
     content: none;
     animation: none;
   }
-  :global([data-hand-slot]:not([data-leaving])):hover > :global([data-hand-card]:not([data-selected])) {
+  :global([data-hand-mover]) {
+    transition-duration: 0.01ms;
+  }
+  :global([data-hand-shadow-rest]),
+  :global([data-hand-shadow-lift]),
+  :global([data-hand-thickness]) {
+    transition-duration: 0.01ms;
+  }
+  :global([data-hand-slot]:not([data-leaving]):not([data-selected])):hover > :global([data-hand-mover]) {
     transform: translateY(calc(-1 * var(--hand-hover-lift)));
   }
-  :global([data-hand-card][data-selected]) {
+  :global([data-hand-slot][data-selected]) > :global([data-hand-mover]) {
     transform: translateY(calc(-1 * var(--hand-hover-lift) - 24px));
   }
 }

@@ -141,6 +141,7 @@ const AllySlot = memo(function AllySlot({
         if (targetable) onClick(cmb.id);
       }}
     >
+      <span className={s["ally-glow"]} aria-hidden="true" />
       <div className={s["ally-status"]}>
         <StatusPips
           statuses={cmb.statuses}

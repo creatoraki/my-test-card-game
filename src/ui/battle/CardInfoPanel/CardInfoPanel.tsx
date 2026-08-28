@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useDeferredValue } from "react";
 import { starlightPayment, type BattleState, type Card } from "@/engine";
 import { useHandHover, useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { HandCard } from "@/ui/battle/HandCard";
@@ -31,7 +31,9 @@ export const CardInfoPanel = memo(function CardInfoPanel({
   // ⚠ hook 必须在下面的早退**之前**调用。
   const hovered = useHandHover();
   const hoveredCost = useHandHoverCost();
-  const card = hovered ?? fallbackCard;
+  const deferredHovered = useDeferredValue(hovered);
+  const deferredHoveredCost = useDeferredValue(hoveredCost);
+  const card = deferredHovered ?? fallbackCard;
 
   if (!card) {
     return null;
@@ -40,13 +42,21 @@ export const CardInfoPanel = memo(function CardInfoPanel({
   return (
     <CardInfoPanelContent
       card={card}
-      cost={hovered ? hoveredCost ?? card.cost : fallbackCost}
+      cost={deferredHovered ? deferredHoveredCost ?? card.cost : fallbackCost}
       starPay={starlightPayment(battle, card)}
     />
   );
 });
 
-function CardInfoPanelContent({ card, cost, starPay }: { card: Card; cost?: number; starPay: number }) {
+const CardInfoPanelContent = memo(function CardInfoPanelContent({
+  card,
+  cost,
+  starPay,
+}: {
+  card: Card;
+  cost?: number;
+  starPay: number;
+}) {
   const text = useCardText(card);
 
   return (
@@ -76,4 +86,4 @@ function CardInfoPanelContent({ card, cost, starPay }: { card: Card; cost?: numb
       />
     </div>
   );
-}
+});
