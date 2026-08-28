@@ -5,11 +5,13 @@
   bottom: calc(100% + 8px);
   z-index: 3;
   display: flex;
-  gap: 4px;
+  gap: 6px;
   transition: transform 0.22s cubic-bezier(0.16, 0.86, 0.26, 1.04);
+  animation: hc-marks-deal-in 0.8s cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
 }
 .hc-cultivate-row {
-  left: 52px;
+  left: 64px;
 }
 .hc-cultivate-ready .hc-mark-icon {
   box-shadow: 0 0 12px #c7e85f99;
@@ -37,11 +39,11 @@
 .hc-mark {
   position: relative;
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   place-items: center;
   color: #d9f3ff;
-  font-size: 21px;
+  font-size: 27px;
   line-height: 1;
   text-shadow: 0 0 5px #54c8e8;
   pointer-events: auto;
@@ -57,7 +59,7 @@
   -webkit-backdrop-filter: blur(8px) saturate(130%);
   backdrop-filter: blur(8px) saturate(130%);
   box-shadow: inset 0 1px 0 #ffffff38, inset 0 -1px 3px #0000004d, 0 4px 12px #00000059;
-  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
 .hc-cultivate-icon {
   background: #102b3566;
@@ -75,7 +77,7 @@
   bottom: 1px;
   z-index: 1;
   color: #effff9;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
   line-height: 1;
   text-shadow: 0 1px 2px #000;
@@ -126,6 +128,16 @@
     transform: translateY(0);
   }
 }
+@keyframes hc-marks-deal-in {
+  from {
+    opacity: 0;
+    transform: translateX(900px) rotateZ(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateZ(0);
+  }
+}
 
 /* BUFF 图标行镜像卡面的悬停、选中和邻卡让位位移。 */
 :global([data-hand-tray]) :global([data-hand-slot]):not([data-leaving]):hover:not([data-selected]) > :global([data-card-marks]) {
@@ -145,6 +157,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hc-marks {
+    animation: none;
     transition-duration: 0.01ms;
   }
   .hc-mark {
