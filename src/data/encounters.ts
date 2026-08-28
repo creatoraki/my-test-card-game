@@ -53,65 +53,72 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
 
 // ---------------------------------------------------------------------------
 // 站位常量 —— 废弃楼层战斗背景的地面线。立绘主体高度已由 enemyArt.ts 的 body 归一,
-// dy 219.625 把各立绘脚线统一压到同一地面线上; scale 只调体型(脚不离地)。
-// 已知体型基准(供上面各模板乘用): 清扫无人机 1.2 / 收音机 1 / 红绿灯 1.15 /
-// 维修蜘蛛 0.72 / 电线杆(瘦高)1.4 / 废品机器人 1 / 垃圾山的守护者(单人 BOSS)2.4。
+// dy 220 把各立绘脚线统一压到同一地面线上; scale 只调体型(脚不离地)。
+// 遭遇战模板的立绘缩放统一为 1; 清扫无人机与维修蜘蛛按轻型单位额外使用 1.1。
 // ---------------------------------------------------------------------------
-const GROUND_DY = 219.625;
-const SPIDER_DY = GROUND_DY + 80 ;
+const GROUND_DY = 220;
+const SPIDER_DY = GROUND_DY - 80;
 
-// 批量生成"站在地面线上、体型固定"的槽位(可额外指定水平偏移与 flip)。
-function g(id: string, scale: number, dx = 0, flip = false): EnemyPlacement {
-  return { id, dx, dy: GROUND_DY, scale, flip };
-}
+// 统一生成敌人站位：默认站在地面线上，可按单个敌人覆盖 dx/dy/scale/flip。
+type EnemyPlacementOptions = Omit<EnemyPlacement, "id">;
 
-function spider(dx: number): EnemyPlacement {
-  return { id: "maintenance-spider", dx, dy: SPIDER_DY, scale: 0.8 };
+function placeEnemy(id: string, options: EnemyPlacementOptions = {}): EnemyPlacement {
+  return {
+    id,
+    dx: 0,
+    dy: GROUND_DY,
+    scale: 1,
+    flip: false,
+    ...options,
+  };
 }
 
 // ── 小怪战斗模板(轻 3 只 / 中 4 只, 只用 4 种小怪) ───────────────────────────
 
 // 轻战斗 · 教学: 侦察 + 高速机动。教玩家看意图、理解"敌人掉落按各自结算"。
 const CREW = [
-  g("radio-bot", 1, -120),
-  spider(0),
-  g("sweep-drone", 1.2, 120, true),
+  placeEnemy("maintenance-spider", { dx: -120, dy: GROUND_DY - 60, scale: 1.1 }),
+  placeEnemy("radio-bot", { scale: 0.7, dy: GROUND_DY + 30 }),
+  placeEnemy("sweep-drone", { dx: 120, dy: GROUND_DY - 80, scale: 1.2, flip: true }),
 ];
 // 轻战斗 · 纯机动: 两台高速无人机与一台支援单位, 教玩家专一处理一个目标类型。
 const SWEEP = [
-  g("radio-bot", 1, -120),
-  g("sweep-drone", 1.2, 0),
-  g("sweep-drone", 1.2, 120, true),
+  placeEnemy("radio-bot", { dx: -120 }),
+  placeEnemy("sweep-drone", { scale: 1.1 }),
+  placeEnemy("sweep-drone", { dx: 120, scale: 1.1, flip: true }),
 ];
 // 中战斗 · 控制+暴露+机动: 红绿灯控制、收音机易伤、无人机突破, 教玩家判断先杀谁。
 const BEACON = [
-  g("radio-bot", 1, -180),
-  g("traffic-light-bot", 1.15, -60),
-  spider(60),
-  g("sweep-drone", 1.2, 180),
+  placeEnemy("radio-bot", { dx: -180 }),
+  placeEnemy("traffic-light-bot", { dx: -60 }),
+  placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("sweep-drone", { dx: 180, scale: 1.1 }),
 ];
 // 中战斗 · 支援+控制+暴露: 蜘蛛奶、红绿灯控、收音机暴露, 走"拖节奏"路线。
 const PATROL = [
-  g("radio-bot", 1, -180, true),
-  g("traffic-light-bot", 1.15, -60),
-  spider(60),
-  g("sweep-drone", 1.2, 180),
+  placeEnemy("radio-bot", { dx: -180, flip: true }),
+  placeEnemy("traffic-light-bot", { dx: -60 }),
+  placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("sweep-drone", { dx: 180, scale: 1.1 }),
 ];
 
 // ── 精英战斗模板(重, 单场 2-3 只, 至少含 1 只精英) ──────────────────────────
 
 // 重战斗 · 双精英正面对撞: 废品压块 + 高压电网, 玩家要同时处理封罐/护甲与升压/穿刺。
-const COMPACTOR = [g("scrap-bot", 1, -96), g("pole-bot", 1.4, 96)];
+const COMPACTOR = [
+  placeEnemy("scrap-bot", { dx: -96 }),
+  placeEnemy("pole-bot", { dx: 96 }),
+];
 // 重战斗 · 高压精英被支援保护: 电线杆 + 维修蜘蛛 + 收音机, 教玩家先清支援再碰精英。
 const ELITE_GUARD = [
-  g("radio-bot", 1, -120),
-  spider(0),
-  g("pole-bot", 1.4, 120),
+  placeEnemy("radio-bot", { dx: -120 }),
+  placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("pole-bot", { dx: 120 }),
 ];
 
 // ── BOSS 战(单场 1 只) ──────────────────────────────────────────────────────
 
-const BOSS_SLOT: EnemyPlacement = { id: "scrap-mountain-guardian", dy: -60, scale: 2.4 };
+const BOSS_SLOT = placeEnemy("scrap-mountain-guardian", { dy: -60 });
 
 export const ENCOUNTERS: EncounterDef[] = [
   // ── 小怪战(轻) ──

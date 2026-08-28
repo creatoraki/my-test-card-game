@@ -13,12 +13,9 @@ import { DeathVanishFx } from "@/ui/battle/fx/DeathVanishFx";
 import { DEATH, type DeathPhase } from "@/ui/battle/deathChoreo";
 import { HpBar } from "@/ui/common/HpBar";
 import { ShieldBar } from "@/ui/common/ShieldBar";
-import { RailPopover } from "@/ui/common/RailPopover";
 import { HourglassIcon } from "./icons";
 import { HitChanceBadge } from "./HitChanceBadge";
 import s from "./CombatantView.module.css";
-// 敌我两种外壳共用的两枚徽章。同域共享样式模块, 双方各自 import(样式铁律 1)。
-import ub from "@/ui/battle/styles/unitBadges.module.css";
 
 interface Props {
   cmb: Enemy;
@@ -175,7 +172,6 @@ export const CombatantView = memo(function CombatantView({
         {phase === "alive" && <EnemyIntent enemy={cmb} currentTick={currentTick} />}
       </div>
 
-      {dead && <div className={ub["dead-overlay"]}>☠</div>}
     </div>
   );
 });
@@ -208,21 +204,10 @@ function EnemyIntent({ enemy, currentTick }: { enemy: Enemy; currentTick: number
           !revealed && s["countdown-solo"],
           countdown === 0 && s["imminent"],
         )}
-        data-rail-item
-        tabIndex={0}
         aria-label={`距离下次行动 ${countdown} 时刻`}
       >
         <HourglassIcon className={s.hourglass} />
         <span className={s["countdown-num"]}>{countdown}</span>
-        <RailPopover side="top">
-          <strong>下次行动</strong>
-          <p>剩余 {countdown} 时刻</p>
-          {revealed && (
-            <small>
-              意图：{i.name}{i.value != null && ` · 数值 ${i.value}`}
-            </small>
-          )}
-        </RailPopover>
       </span>
     </div>
   );

@@ -200,8 +200,7 @@
     -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 100%);
   }
 }
-.combatant[data-dead] .combatant-info,
-.combatant[data-dead] .dead-overlay {
+.combatant[data-dead] .combatant-info {
   display: none;
 }
 .combatant[data-targetable] {
@@ -484,8 +483,11 @@ span.combatant-portrait {
 .countdown-num {
   z-index: 1;
   display: flex;
+  height: 30px;
   align-items: center;
+  margin-right: 3px;
   line-height: 1;
+  transform: translateY(2px);
   font-variant-numeric: tabular-nums;
 }
 .countdown.imminent {

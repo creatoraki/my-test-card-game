@@ -88,23 +88,23 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     // 与 scrap-bot 同为机械微颤, 但错开相位与周期 —— 同场两台不该整齐划一地喘
     idle: { bob: 2.5, tilt: 0.5, dur: 3000, delay: -1400 },
   },
-  // 清扫无人机: 先按项目现有单帧 2048×2048 素材约定登记, 主体框暂取整帧。
+  // 清扫无人机: 9:16 竖版立绘, 主体高度配合遭遇战 scale 1.1 约为 282px, 血条上收约 64px。
   "sweep-drone": {
     src: sweepDroneIdle,
     frames: 1,
     frameMs: 1000,
-    sheet: { w: 2048, h: 2048 },
-    body: { x: 0, y: 0, w: 2048, h: 2048 },
+    sheet: { w: 1152, h: 2048 },
+    body: { x: 64, y: 160, w: 1024, h: 1536 },
     idle: { bob: 4, sway: 2, tilt: 1, dur: 2200, delay: -500 },
   },
-  // 维修蜘蛛: 1:1 素材整帧展示, 主体 1362×1222(横宽的爬行体型)。
+  // 维修蜘蛛: 9:16 瘦高立绘, 主体框留出底部约 64px 的脚线留白, 让血条贴近脚底。
   "maintenance-spider": {
     src: maintenanceSpiderIdle,
     frames: 1,
     frameMs: 1000,
-    sheet: { w: 1536, h: 1536 },
-    body: { x: 92, y: 191, w: 1362, h: 1222 },
-    // 八足支撑: 上下几乎不动, 靠左右微摆 + 轻微侧倾模拟腿部调整重心
+    sheet: { w: 1152, h: 2048 },
+    body: { x: 0, y: 248, w: 1152, h: 1440 },
+    // 主体框底部到画布底部的留白经归一化后约为 64px, 八足支撑仍用轻微横摆与侧倾调整重心
     idle: { bob: 1.5, sway: 3, tilt: 0.8, dur: 2400, delay: -600 },
   },
   // 红绿灯机器人: 1:1 素材整帧展示, 主体 1250×996; 底部留白 301px 由 body 归一自动吃掉。
