@@ -53,6 +53,7 @@ import { AmbienceGrade, AmbienceLayer } from "@/ui/battle/AmbienceLayer";
 import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
 import { resetHandHover } from "@/ui/battle/handFocusStore";
 import { showBattleToast } from "@/ui/battle/battleToastStore";
+import { playSfx } from "@/ui/audio";
 import { useIdleTwitch } from "@/ui/hooks/useIdleTwitch";
 import { DEATH, useDeathGate } from "@/ui/battle/deathChoreo";
 import { useStageScale } from "@/ui/hooks/stage";
@@ -154,6 +155,7 @@ export function BattleScreen() {
   const [fxRate, setFxRate] = useState(1);
   const [speed2x, setSpeed2x] = useState(false);
   const playbackRateRef = useRef(1);
+	  const defeatSoundPlayedRef = useRef(false);
   const deaths = useDeathGate(battle, { seq: battleSeq, rateRef: playbackRateRef });
   const viewportRef = useRef<HTMLDivElement>(null); // letterbox 容器(黑边区), 设计画布按它的尺寸缩放
   const screenRef = useRef<HTMLDivElement>(null); // 战斗屏幕(画布 = 唯一的裁切边界)
@@ -248,6 +250,7 @@ export function BattleScreen() {
     setPlayingOutUid(null);
     setDiscardingUids([]);
     discardingUidsRef.current.clear();
+    defeatSoundPlayedRef.current = false;
     vanishedUidsRef.current.clear();
     discardCommitTimersRef.current.forEach((timer) => clearTimeout(timer));
     discardCommitTimersRef.current = [];
@@ -296,6 +299,17 @@ export function BattleScreen() {
     if (!battle || battle.phase !== "won" || battleSettled || deaths.pending) return;
     resolveBattle();
   }, [battle, battleSettled, deaths.pending, resolveBattle]);
+
+  useEffect(() => {
+    if (!battle || battle.phase !== "lost") {
+      defeatSoundPlayedRef.current = false;
+      return;
+    }
+    if (!deaths.pending && !defeatSoundPlayedRef.current) {
+      defeatSoundPlayedRef.current = true;
+      playSfx("defeat");
+    }
+  }, [battle, deaths.pending]);
 
   useEffect(() => {
     if (battle?.pendingChoice?.kind === "recoverFromDiscard") setOpenPile("discard");
@@ -659,6 +673,7 @@ export function BattleScreen() {
       timeline.add({
         at,
         run: () => {
+          if (step.card) playSfx("cardPlay");
           if (selfMark) markDiscarding(step.discardUid!);
           cameraRig.setTuning(preset.rig);
           if (isFoeLedShot(preset)) {
@@ -707,6 +722,8 @@ export function BattleScreen() {
       timeline.add({
         at: hitAt,
         run: () => {
+          const damage = Math.max(0, ...step.hits.map((hit) => hit.hpDelta));
+          playSfx("hit", { damage });
           setTelegraph(null);
           const proc = ANIM[step.anim].proc;
           const impactDelay = impactMs;

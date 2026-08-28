@@ -11,6 +11,7 @@ import { BattleScreen } from "@/ui/battle/BattleScreen";
 import { EndScreen } from "@/ui/result/EndScreen";
 import { startGameAssetPreload } from "@/ui/art/assetPreloader";
 import { useBgm } from "@/ui/hooks/useBgm";
+import { useSfx } from "@/ui/hooks/useSfx";
 import { TestScreen } from "@/ui/test/TestScreen";
 
 // 界面 → 组件。抽成纯函数是为了让 ScreenTransition 能在出场期间继续渲染「旧」界面。
@@ -40,6 +41,7 @@ function renderScreen(screen: Screen) {
 export default function App() {
   const isTestPage = new URLSearchParams(window.location.search).get("page") === "test";
   useBgm(!isTestPage);
+  useSfx(!isTestPage);
 
   useEffect(() => {
     if (isTestPage) return;

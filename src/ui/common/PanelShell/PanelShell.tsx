@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { playSfx } from "@/ui/audio";
 import { EventPanelFrame } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
 import s from "./PanelShell.module.css";
@@ -47,6 +48,10 @@ export function PanelShell({
   className,
   children,
 }: Props) {
+  useEffect(() => {
+    playSfx("panel");
+  }, []);
+
   return (
     <div
       className={cx(cn("asm-modal", closing && "is-closing"), className)}
@@ -83,6 +88,7 @@ export function PanelShell({
             <button
               className={cn("asm-close-button")}
               type="button"
+              data-sfx="back"
               onClick={onClose}
               aria-label={closeLabel}
             >

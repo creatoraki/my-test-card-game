@@ -41,6 +41,7 @@ export function VictoryButton({
         className={s.button}
         disabled={disabled}
         aria-disabled={blocked || undefined}
+        data-sfx={tone === "neutral" ? undefined : "confirm"}
         onClick={onClick}
       >
         <span className={s.label}>{children}</span>

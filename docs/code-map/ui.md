@@ -11,7 +11,7 @@
 ```text
 src/ui/
 ├─ app/          过场编排与全站 StageCanvas 画布
-├─ audio/        BGM 播放器与曲目查表
+├─ audio/        BGM 播放器与程序化音效合成
 ├─ common/       跨域复用的组件与 cx.ts
 ├─ menu/         主菜单
 ├─ town/         据点大厅与设施场景
@@ -202,12 +202,19 @@ src/ui/
 | [art/sceneArt.ts](../../src/ui/art/sceneArt.ts) | 菜单、大厅、设施和商店直接使用的场景/界面素材登记。 |
 | [audio/bgmPlayer.ts](../../src/ui/audio/bgmPlayer.ts) | 模块级 BGM 单例播放器：据点/战斗双轨交叉淡变、据点续播与自动播放解锁。 |
 | [audio/bgmTracks.ts](../../src/ui/audio/bgmTracks.ts) | BGM 曲目资源查表与界面到曲目的映射；只有战斗界面使用战斗曲。 |
+| [audio/sfx/sfxTypes.ts](../../src/ui/audio/sfx/sfxTypes.ts) | 程序化音效 ID、配方层和播放参数类型。 |
+| [audio/sfx/sfxSynth.ts](../../src/ui/audio/sfx/sfxSynth.ts) | Web Audio 合成原语：音调、噪声、扫频与颗粒串；不包含具体音效语义。 |
+| [audio/sfx/sfxRecipes.ts](../../src/ui/audio/sfx/sfxRecipes.ts) | 全部音效配方与音色参数的唯一调音入口。 |
+| [audio/sfx/sfxPlayer.ts](../../src/ui/audio/sfx/sfxPlayer.ts) | 懒创建 AudioContext、总线压缩、音效开关持久化、自动解锁、节流和并发控制。 |
+| [audio/sfx/sfxDelegate.ts](../../src/ui/audio/sfx/sfxDelegate.ts) | 全局交互元素事件委托：悬浮、点击、禁用态与 data-sfx 覆盖。 |
+| [audio/sfx/index.ts](../../src/ui/audio/sfx/index.ts) | 程序化音效公共出口。 |
 | [art/rarityArt.ts](../../src/ui/art/rarityArt.ts) | 普通、罕见、稀有水晶素材查表及预热源列表。 |
 | [art/assetLoader.ts](../../src/ui/art/assetLoader.ts) | 可复用的低优先级图片下载/解码与视频首帧预加载器；按 URL 去重，并限制图片并发以避免抢占交互资源。 |
 | [art/assetPreloader.ts](../../src/ui/art/assetPreloader.ts) | 游戏启动时的实际美术资源清单、去重、进度和失败收口；不扫描未引用的 `assets` 文件。 |
 | [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |
 | [hooks/useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 将启动预加载状态接入 React 外部 store；主菜单等待所有资源任务 settle 后开放入口。 |
 | [hooks/useBgm.ts](../../src/ui/hooks/useBgm.ts) | 订阅 `runStore.screen` 并驱动据点/战斗 BGM 切换；测试页可关闭。 |
+| [hooks/useSfx.ts](../../src/ui/hooks/useSfx.ts) | 安装全局音效委托并订阅独立音效开关；测试页可关闭。 |
 | [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布的等比 letterbox 缩放、设备像素量化与 DPR 监听；另提供 `stageHostOf`（由画布内元素找到 `[data-stage-canvas]`）与 `designScaleOf`（把 `getBoundingClientRect()` 归一化回设计 px）。画布内不使用 `vw` / `vh` 或窗口断点。 |
 | [hooks/useCountUp.ts](../../src/ui/hooks/useCountUp.ts) | rAF 数值滚动；起点走 ref，减少动态效果下直接使用终值。 |
 | [hooks/useChangePulse.ts](../../src/ui/hooks/useChangePulse.ts) | 认出「同一个 key 的数值变了」并短暂高亮。物品**新进来**由格子重挂载的 CSS 动画负责，这个 hook 只管 uid 不变、`count` 改数的那种；新出现的 key 刻意不算变化，否则两边都闪会重影。 |

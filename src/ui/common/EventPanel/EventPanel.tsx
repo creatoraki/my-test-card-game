@@ -175,6 +175,7 @@ export function EventPanelButton({ tone = "ghost", className, ...rest }: EventPa
   return (
     <button
       type="button"
+      data-sfx={tone === "primary" || tone === "danger" ? "confirm" : undefined}
       {...rest}
       className={cx(
         s.panelButton,
@@ -406,7 +407,7 @@ export function EventPanelChoice({
         })}
       </div>
       {backLabel && onBack && (
-        <button type="button" className={s.backButton} onClick={onBack}>
+        <button type="button" className={s.backButton} data-sfx="back" onClick={onBack}>
           <span aria-hidden="true">←</span> {backLabel}
         </button>
       )}

@@ -6,6 +6,7 @@ import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
 import type { ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import { useChangePulse } from "@/ui/hooks/useChangePulse";
+import { playSfx } from "@/ui/audio";
 import { cx } from "@/ui/common/cx";
 import { victoryChoreoVars, victorySectionStagger, victoryTiming } from "@/ui/battle/victoryChoreo";
 import { VictoryExpRow } from "@/ui/battle/VictoryExpRow";
@@ -39,6 +40,7 @@ export function VictoryPanel() {
   const [confirmingAbandon, setConfirmingAbandon] = useState(false);
   const [continueNudge, setContinueNudge] = useState(false);
   const [pickedUids, setPickedUids] = useState<ReadonlySet<string>>(new Set());
+  const victorySoundPlayedRef = useRef(false);
   const trayRef = useRef<VictoryLootTrayHandle>(null);
   const pickedPulseTimersRef = useRef(new Map<string, number>());
   const backpack = session?.backpack ?? [];
@@ -49,6 +51,17 @@ export function VictoryPanel() {
   const timing = victoryTiming();
   const pulseSignature = Object.fromEntries(backpack.map((stack) => [stack.uid, stack.count]));
   const pulsedUids = useChangePulse(pulseSignature);
+
+  useEffect(() => {
+    const hasVictory = battleSettled && Boolean(session);
+    if (!hasVictory) {
+      victorySoundPlayedRef.current = false;
+      return;
+    }
+    if (victorySoundPlayedRef.current) return;
+    victorySoundPlayedRef.current = true;
+    playSfx("victory");
+  }, [battleSettled, session]);
 
   useEffect(() => {
     if (!continueNudge) return;

@@ -40,6 +40,7 @@ import { useTownStore } from "@/store/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { toggleBgm, useBgmEnabled } from "@/ui/hooks/useBgm";
+import { toggleSfx, useSfxEnabled } from "@/ui/hooks/useSfx";
 import {
   ENTER_TOTAL,
   FACILITY_CINEMA,
@@ -219,6 +220,16 @@ function MusicIcon({ muted }: { muted: boolean }) {
   );
 }
 
+function SoundIcon({ muted }: { muted: boolean }) {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 20h8l10-8v24l-10-8H8z" strokeWidth={1.8} />
+      {!muted && <path d="M31 18c3 3 3 9 0 12M35 13c6 6 6 16 0 22" strokeWidth={1.5} opacity={0.72} />}
+      {muted && <path d="m8 9 33 31" strokeWidth={2.4} />}
+    </svg>
+  );
+}
+
 interface Facility {
   id: string; // 同时就是 grid-area 名, 与下面 gridTemplateAreas 里的词一一对应
   name: string;
@@ -325,6 +336,7 @@ function flyVars(fly: FlyOut, delay = fly.delay, ms = fly.ms): CSSProperties {
 export function TownScreen() {
   const resetProfile = useTownStore((s) => s.resetProfile);
   const bgmEnabled = useBgmEnabled();
+  const sfxEnabled = useSfxEnabled();
   const openFormation = useRunStore((s) => s.openFormation);
   const openSortie = useRunStore((s) => s.openSortie);
   const terminalCredits = useTownStore((s) => s.loot);
@@ -571,6 +583,19 @@ export function TownScreen() {
             >
               <MusicIcon muted={!bgmEnabled} />
               <span>{bgmEnabled ? "音乐播放中" : "音乐已关闭"}</span>
+            </button>
+
+            <button
+              className={cx(s["town-audio-toggle"], s["town-sfx-toggle"], inCinema && s["is-flying"])}
+              style={inCinema ? fly(FLY_RESET, 9) : undefined}
+              type="button"
+              aria-label={sfxEnabled ? "关闭音效" : "开启音效"}
+              aria-pressed={sfxEnabled}
+              data-muted={!sfxEnabled}
+              onClick={toggleSfx}
+            >
+              <SoundIcon muted={!sfxEnabled} />
+              <span>{sfxEnabled ? "音效开启" : "音效关闭"}</span>
             </button>
 
             <button

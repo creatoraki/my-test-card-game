@@ -1,6 +1,7 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
+import { playSfx } from "@/ui/audio";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { clearHandHover, setHandHover } from "@/ui/battle/handFocusStore";
@@ -79,6 +80,12 @@ export const HandCard = memo(function HandCard({
   // 按字数分三档而不是 JS 实测宽高: 零测量、零布局抖动, 也不需要 useLayoutEffect;
   // 极端超长的仍会被 .hc-text 的行数截断兜住, 完整文字在右侧 CardInfoPanel 永远读得到。
   const textSize = text.length <= 24 ? "lg" : text.length <= 44 ? "md" : "sm";
+  useEffect(() => {
+    if (variant !== "hand" || dealDelay === undefined) return;
+    const timer = window.setTimeout(() => playSfx("cardDraw"), Math.max(0, dealDelay));
+    return () => window.clearTimeout(timer);
+  }, [card.uid, dealDelay, variant]);
+
   const handStyle = {
     // 归属角色配色: 现在只落在**卡名压条左端那道竖标**上(见 HandCard.face.module.css .hc-title::before)。
     // ⚠ 刻意只留这一处 —— 金属刻板的卡面上配色越少越贵气, 归属辨识主要靠队伍槽本身。

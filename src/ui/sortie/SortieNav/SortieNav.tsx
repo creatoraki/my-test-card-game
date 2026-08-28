@@ -36,6 +36,7 @@ export function SortieNav({
       <button
         className={s.back}
         type="button"
+        data-sfx="back"
         onClick={onBack}
         disabled={disabled}
       >
@@ -46,6 +47,7 @@ export function SortieNav({
       <button
         className={s.confirm}
         type="button"
+        data-sfx="confirm"
         onClick={onNext}
         disabled={nextDisabled}
       >

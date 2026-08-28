@@ -3,10 +3,12 @@ import type { TransitionOrigin } from "@/ui/app/transitionOrigin";
 import {
   BATTLE_CRACK_DRAW_MS,
   BATTLE_CRACK_HOLD_MS,
+  BATTLE_RIPPLE_START_MS,
   BATTLE_RIPPLE_EXIT_MS,
   BATTLE_RIPPLE_MS,
 } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
+import { playSfx } from "@/ui/audio";
 import s from "./BattleTransitionCurtain.module.css";
 
 interface Props {
@@ -247,12 +249,15 @@ function tracePolygon(ctx: CanvasRenderingContext2D, poly: Point[]): void {
   ctx.closePath();
 }
 
-function CrackCanvas({ origin }: { origin: TransitionOrigin | null }) {
+function CrackCanvas({ phase, origin }: { phase: Props["phase"]; origin: TransitionOrigin | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+	    if (phase !== "exit") return;
+	    playSfx("shatter");
+	    const rippleTimer = window.setTimeout(() => playSfx("ripple"), BATTLE_RIPPLE_START_MS);
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return () => window.clearTimeout(rippleTimer);
     const rect = canvas.getBoundingClientRect();
     const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
     const width = Math.max(1, rect.width);
@@ -370,8 +375,11 @@ function CrackCanvas({ origin }: { origin: TransitionOrigin | null }) {
     };
 
     animationFrame = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [origin]);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.clearTimeout(rippleTimer);
+    };
+  }, [origin, phase]);
 
   return <canvas ref={canvasRef} className={s["battle-transition-cracks"]} aria-hidden />;
 }
@@ -408,7 +416,7 @@ export function BattleTransitionCurtain({ phase, origin }: Props) {
       style={style}
       aria-hidden
     >
-      <CrackCanvas origin={origin} />
+      <CrackCanvas phase={phase} origin={origin} />
       <span className={s["battle-transition-black"]} />
       <span className={s["battle-transition-ring"]} />
       <span className={s["battle-transition-particles"]}>
