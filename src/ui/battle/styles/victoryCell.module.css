@@ -20,7 +20,7 @@
   display: grid;
   grid-template-columns: repeat(var(--victory-cols, 1), var(--victory-cell-size, 84px));
   grid-auto-rows: var(--victory-cell-size, 84px);
-  gap: 10px;
+  gap: var(--victory-cell-gap, 10px);
   min-height: 0;
   justify-content: start;
   align-content: center;

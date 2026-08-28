@@ -18,7 +18,6 @@
 }
 
 .grid {
-  --victory-cell-size: 84px;
   --victory-empty-tint: var(--inventory-empty-slot);
   --victory-empty-line: var(--inventory-slot-border);
   flex: 1;

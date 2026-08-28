@@ -24,7 +24,7 @@
   display: flex;
   min-width: 0;
   min-height: 0;
-  flex: 1;
+  flex: 0 0 var(--victory-tray-4);
   flex-direction: column;
   padding: 12px;
   background: #03090c99;
@@ -34,7 +34,6 @@
 
 .grid {
   --victory-cols: 4;
-  --victory-cell-size: 96px;
   --victory-empty-tint: #07151366;
   --victory-empty-line: #47706b88;
   flex: 1;

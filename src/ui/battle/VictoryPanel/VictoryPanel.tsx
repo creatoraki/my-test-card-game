@@ -18,7 +18,7 @@ import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
 import { VictoryBackdrop } from "./VictoryBackdrop";
 import s from "./VictoryPanel.module.css";
 
-const BACKPACK_COLUMNS = 8;
+const BACKPACK_COLUMNS = 12;
 const BACKPACK_ROWS = Math.ceil(RULES.burden.backpackSlots / BACKPACK_COLUMNS);
 
 export function VictoryPanel() {
@@ -154,23 +154,21 @@ export function VictoryPanel() {
                 </div>
               </section>
 
-              <div className={s["loot-stack"]}>
-                <VictoryBoonTray
-                  style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
-                />
-                <section
-                  className={cx(s["loot-section"], s["victory-section"])}
-                  style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
-                >
-                  <div className={s["section-row"]}>
-                    <VictoryPlaque
-                      label="战利品"
-                      variant="loot"
-                    />
-                    <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
-                  </div>
-                </section>
-              </div>
+              <VictoryBoonTray
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
+              />
+              <section
+                className={cx(s["loot-section"], s["victory-section"])}
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
+              >
+                <div className={s["section-row"]}>
+                  <VictoryPlaque
+                    label="战利品"
+                    variant="loot"
+                  />
+                  <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
+                </div>
+              </section>
 
               <section
                 className={cx(s["backpack-section"], s["victory-section"])}

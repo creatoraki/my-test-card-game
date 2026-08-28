@@ -15,7 +15,6 @@
 
 .loot-grid {
   --victory-cols: 8;
-  --victory-cell-size: 96px;
   --victory-empty-tint: #2b1d1080;
   --victory-empty-line: #9c7a4a99;
   min-height: 0;
