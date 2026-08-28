@@ -16,7 +16,8 @@
 .loot-grid {
   --victory-cols: 8;
   --victory-empty-tint: #2b1d1080;
-  --victory-empty-line: #9c7a4a99;
+  --victory-empty-line: #ffb86b55;
+  --victory-empty-glow: #ffb86b12;
   min-height: 0;
   flex: 1;
 }

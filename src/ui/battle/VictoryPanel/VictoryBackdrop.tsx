@@ -1,89 +1,94 @@
 import { useId } from "react";
 import {
-  ANTENNAS,
-  BEACONS,
-  FAR_SKYLINE,
-  MID_SKYLINE,
+  ARCS,
+  CORNER_MARKS,
   MOTES,
-  NEAR_SKYLINE,
-  RAIN,
-  WINDOWS,
+  NODES,
 } from "./victoryBackdropGeometry";
 import s from "./VictoryBackdrop.module.css";
 
 export function VictoryBackdrop() {
   const uid = useId();
-  const domeId = `victoryBackdropDome-${uid}`;
-  const horizonId = `victoryBackdropHorizon-${uid}`;
+  const dotPatternId = `victoryBackdropDots-${uid}`;
+  const topLightId = `victoryBackdropTopLight-${uid}`;
+  const readoutShadeId = `victoryBackdropReadout-${uid}`;
   const settleId = `victoryBackdropSettle-${uid}`;
-  const glowId = `victoryBackdropGlow-${uid}`;
+  const nodeGlowId = `victoryBackdropNodeGlow-${uid}`;
+  const cornerGlowId = `victoryBackdropCornerGlow-${uid}`;
 
   return (
     <svg className={s.backdrop} viewBox="0 0 1360 1030" aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id={domeId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.08" />
-          <stop offset="48%" stopColor="currentColor" stopOpacity="0.035" />
+        <pattern id={dotPatternId} width="34" height="34" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.9" fill="currentColor" opacity="0.05" />
+        </pattern>
+        <radialGradient id={topLightId} cx="50%" cy="0%" r="100%">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
+          <stop offset="58%" stopColor="currentColor" stopOpacity="0.035" />
           <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-        </linearGradient>
-        <linearGradient id={horizonId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
-          <stop offset="42%" stopColor="currentColor" stopOpacity="0.4" />
-          <stop offset="58%" stopColor="currentColor" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={readoutShadeId} gradientUnits="userSpaceOnUse" cx="680" cy="560" r="720">
+          <stop offset="0%" stopColor="#05090b" stopOpacity="0.34" />
+          <stop offset="62%" stopColor="#05090b" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#05090b" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={settleId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#070c0f" stopOpacity="0" />
-          <stop offset="42%" stopColor="#070c0f" stopOpacity="0.48" />
-          <stop offset="100%" stopColor="#070c0f" stopOpacity="0.96" />
+          <stop offset="0%" stopColor="#05090b" stopOpacity="0.08" />
+          <stop offset="42%" stopColor="#05090b" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#05090b" stopOpacity="0.94" />
         </linearGradient>
-        <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+        <filter id={nodeGlowId} x="-80%" y="-80%" width="260%" height="260%">
           <feGaussianBlur stdDeviation="3" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
+        <filter id={cornerGlowId} x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="60" />
+        </filter>
       </defs>
 
-      <rect className={s.domeGlow} x="0" y="0" width="1360" height="640" fill={`url(#${domeId})`} />
-      <ellipse className={s.cloud} cx="280" cy="360" rx="260" ry="120" fill="currentColor" opacity="0.16" />
-      <ellipse className={`${s.cloud} ${s.toneAlt}`} cx="1090" cy="420" rx="280" ry="130" fill="currentColor" opacity="0.16" />
+      <rect className={s.dotField} x="0" y="0" width="1360" height="1030" fill={`url(#${dotPatternId})`} />
+      <ellipse className={s.topLight} cx="680" cy="0" rx="430" ry="450" fill={`url(#${topLightId})`} />
 
-      <path d={FAR_SKYLINE} fill="currentColor" opacity="0.14" />
-      <rect className={s.horizonGlow} x="0" y="548" width="1360" height="168" fill={`url(#${horizonId})`} />
-      <path className={s.midEdge} d={MID_SKYLINE} fill="#0a1013" stroke="currentColor" strokeWidth="1.4" />
-      <path className={s.nearEdge} d={NEAR_SKYLINE} fill="#070c0f" stroke="currentColor" strokeWidth="1.8" />
-
-      <g className={s.antennas} stroke="currentColor" strokeWidth="0.9">
-        {ANTENNAS.map(([x, yTop, yBase]) => (
-          <line key={`${x}-${yTop}`} x1={x} y1={yTop} x2={x} y2={yBase} />
-        ))}
-      </g>
-      <g className={s.beacons} filter={`url(#${glowId})`}>
-        {BEACONS.map(([cx, cy, r]) => (
-          <circle key={`${cx}-${cy}`} className={s.beacon} cx={cx} cy={cy} r={r} fill="currentColor" />
+      <g className={s.arcField}>
+        {ARCS.map(([d, tone, opacity, strokeWidth]) => (
+          <path
+            key={d}
+            className={`${s.arc} ${tone === 1 ? s.toneAlt : ""}`}
+            d={d}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            opacity={opacity}
+          />
         ))}
       </g>
 
-      <g className={`${s.windows} ${s.windowsA}`} filter={`url(#${glowId})`}>
-        {WINDOWS.filter(([, , , tone]) => tone === 0).map(([x, y, opacity]) => (
-          <rect key={`${x}-${y}`} x={x} y={y} width="4" height="7" rx="0.5" fill="currentColor" opacity={opacity} />
-        ))}
-      </g>
-      <g className={`${s.windows} ${s.windowsB} ${s.toneAlt}`} filter={`url(#${glowId})`}>
-        {WINDOWS.filter(([, , , tone]) => tone === 1).map(([x, y, opacity]) => (
-          <rect key={`${x}-${y}`} x={x} y={y} width="4" height="7" rx="0.5" fill="currentColor" opacity={opacity} />
+      <g className={s.nodes} filter={`url(#${nodeGlowId})`}>
+        {NODES.map(([cx, cy, r, tone], index) => (
+          <g key={`${cx}-${cy}`} className={`${s.node} ${tone === 1 ? s.toneAlt : ""}`} style={{ animationDelay: `${index * 0.38}s` }}>
+            {index % 3 === 1 ? (
+              <rect x={cx - r} y={cy - r} width={r * 2} height={r * 2} fill="currentColor" transform={`rotate(45 ${cx} ${cy})`} />
+            ) : (
+              <circle cx={cx} cy={cy} r={r} fill="currentColor" />
+            )}
+          </g>
         ))}
       </g>
 
-      <g className={s.rain} stroke="currentColor" strokeWidth="0.8">
-        {RAIN.map(([x1, y1, x2, y2]) => (
-          <line key={`${x1}-${y1}`} x1={x1} y1={y1} x2={x2} y2={y2} />
-        ))}
+      <path className={s.trace} d={ARCS[1][0]} pathLength="1" stroke="currentColor" />
+      <path className={`${s.trace} ${s.toneAlt}`} d={ARCS[3][0]} pathLength="1" stroke="currentColor" />
+
+      <rect className={s.readoutShade} x="80" y="280" width="1200" height="610" fill={`url(#${readoutShadeId})`} />
+      <g className={s.cornerGlows}>
+        <ellipse cx="0" cy="0" rx="230" ry="180" fill="currentColor" opacity="0.18" filter={`url(#${cornerGlowId})`} />
+        <ellipse className={s.toneAlt} cx="1360" cy="1030" rx="230" ry="180" fill="currentColor" opacity="0.18" filter={`url(#${cornerGlowId})`} />
       </g>
-      <g className={s.scanLine}>
-        <line x1="24" y1="620" x2="1336" y2="620" stroke="currentColor" strokeWidth="1" />
+      <g className={s.cornerMarks}>
+        {CORNER_MARKS.map(([d, tone]) => (
+          <path key={d} className={tone === 1 ? s.toneAlt : ""} d={d} />
+        ))}
       </g>
       <g className={s.motes}>
         {MOTES.map(([cx, cy, r]) => (
@@ -91,7 +96,7 @@ export function VictoryBackdrop() {
         ))}
       </g>
 
-      <rect x="0" y="620" width="1360" height="410" fill={`url(#${settleId})`} />
+      <rect className={s.settleShade} x="0" y="760" width="1360" height="270" fill={`url(#${settleId})`} />
     </svg>
   );
 }

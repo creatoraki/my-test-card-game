@@ -14,61 +14,60 @@
   color: var(--victory-accent-2);
 }
 
-.domeGlow {
-  opacity: 0.9;
+.dotField {
+  opacity: 1;
 }
 
-.cloud {
-  filter: blur(38px);
-  transform-box: fill-box;
-  transform-origin: center;
+.topLight {
+  opacity: 1;
 }
 
-.horizonGlow {
-  animation: horizonBreath 9s ease-in-out infinite;
+.arcField {
+  animation: arcBreath 10s ease-in-out infinite;
 }
 
-.midEdge {
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--victory-accent) 58%, transparent));
-  opacity: 0.9;
+.arc {
+  fill: none;
+  filter: drop-shadow(0 0 4px currentColor);
 }
 
-.nearEdge {
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--victory-accent) 76%, transparent));
-  opacity: 0.96;
+.trace {
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 0.012 0.988;
+  stroke-width: 4;
+  opacity: 0.2;
+  filter: drop-shadow(0 0 5px currentColor);
+  animation: traceRun 14s linear infinite;
 }
 
-.antennas {
-  opacity: 0.62;
+.nodes {
+  overflow: visible;
 }
 
-.beacon {
-  animation: beaconBlink 3.6s ease-in-out infinite;
+.node {
+  opacity: 0.14;
+  animation: nodeBlink 4.8s ease-in-out infinite;
 }
 
-.windows {
-  opacity: 0.9;
+.readoutShade,
+.settleShade {
+  pointer-events: none;
 }
 
-.windowsA {
-  animation: windowsFlickerA 4.2s ease-in-out infinite;
+.cornerGlows {
+  overflow: visible;
 }
 
-.windowsB {
-  animation: windowsFlickerB 5.8s ease-in-out 1.3s infinite;
-}
-
-.rain {
-  opacity: 0.09;
-}
-
-.scanLine {
-  opacity: 0.42;
-  animation: scanSweep 14s ease-in-out infinite;
+.cornerMarks {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.2;
 }
 
 .motes {
-  animation: moteRise 16s linear infinite;
+  opacity: 0.16;
 }
 
 @keyframes vcBackdropIn {
@@ -76,41 +75,20 @@
   to { opacity: 1; }
 }
 
-@keyframes horizonBreath {
-  0%, 100% { opacity: 0.65; }
+@keyframes arcBreath {
+  0%, 100% { opacity: 0.74; }
   50% { opacity: 1; }
 }
 
-@keyframes windowsFlickerA {
-  0%, 100% { opacity: 0.62; }
-  42% { opacity: 0.86; }
-  58% { opacity: 0.72; }
+@keyframes nodeBlink {
+  0%, 100% { opacity: 0.07; }
+  48% { opacity: 0.2; }
+  62% { opacity: 0.13; }
 }
 
-@keyframes windowsFlickerB {
-  0%, 100% { opacity: 0.52; }
-  36% { opacity: 0.76; }
-  66% { opacity: 0.64; }
-}
-
-@keyframes beaconBlink {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
-
-@keyframes scanSweep {
-  0% { opacity: 0; transform: translateY(-34px); }
-  20% { opacity: 0.34; }
-  50% { opacity: 0.52; transform: translateY(34px); }
-  80% { opacity: 0.3; }
-  100% { opacity: 0; transform: translateY(-34px); }
-}
-
-@keyframes moteRise {
-  0% { opacity: 0; transform: translateY(0); }
-  25% { opacity: 0.72; }
-  75% { opacity: 0.38; }
-  100% { opacity: 0; transform: translateY(-62px); }
+@keyframes traceRun {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -119,19 +97,13 @@
     animation: none;
   }
 
-  .horizonGlow,
-  .windowsA,
-  .windowsB,
-  .beacon,
-  .scanLine,
-  .motes {
+  .arcField,
+  .trace,
+  .node {
     animation: none;
   }
 
-  .horizonGlow { opacity: 0.82; }
-  .windowsA { opacity: 0.78; }
-  .windowsB { opacity: 0.66; }
-  .beacon { opacity: 0.68; }
-  .scanLine { opacity: 0.32; }
-  .motes { opacity: 0.5; }
+  .arcField { opacity: 0.86; }
+  .trace { opacity: 0.18; }
+  .node { opacity: 0.13; }
 }

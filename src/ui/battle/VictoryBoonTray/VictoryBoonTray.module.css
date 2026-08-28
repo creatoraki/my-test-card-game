@@ -35,7 +35,8 @@
 .grid {
   --victory-cols: 4;
   --victory-empty-tint: #07151366;
-  --victory-empty-line: #47706b88;
+  --victory-empty-line: #58dcd055;
+  --victory-empty-glow: #58dcd012;
   flex: 1;
   min-width: 0;
 }

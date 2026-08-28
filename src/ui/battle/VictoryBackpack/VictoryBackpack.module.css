@@ -19,7 +19,8 @@
 
 .grid {
   --victory-empty-tint: var(--inventory-empty-slot);
-  --victory-empty-line: var(--inventory-slot-border);
+  --victory-empty-line: color-mix(in srgb, var(--victory-accent-2, #ff77c8) 34%, transparent);
+  --victory-empty-glow: #ff77c810;
   flex: 1;
   min-width: 0;
   align-content: center;
