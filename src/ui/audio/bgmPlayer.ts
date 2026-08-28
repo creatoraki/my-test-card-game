@@ -1,8 +1,25 @@
 import { BGM_TRACKS, type BgmId } from "./bgmTracks";
 
 const FADE_MS = 600;
+const BGM_ENABLED_STORAGE_KEY = "neon-city-bgm-enabled";
 const clampVolume = (value: number) =>
   Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
+
+function readBgmEnabled(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return window.localStorage.getItem(BGM_ENABLED_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+function persistBgmEnabled(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(BGM_ENABLED_STORAGE_KEY, String(enabled));
+  } catch {}
+}
 
 const audioById: Record<BgmId, HTMLAudioElement> = {
   town: createAudio("town"),
@@ -14,7 +31,7 @@ const fadeFrames: Partial<Record<BgmId, number>> = {};
 let currentBgm: BgmId | null = null;
 let requestedBgm: BgmId | null = null;
 let unlockHandler: (() => void) | null = null;
-let bgmEnabled = true;
+let bgmEnabled = readBgmEnabled();
 const bgmEnabledListeners = new Set<() => void>();
 
 function createAudio(id: BgmId): HTMLAudioElement {
@@ -146,6 +163,7 @@ export function subscribeBgmEnabled(listener: () => void): () => void {
 export function setBgmEnabled(enabled: boolean): void {
   if (bgmEnabled === enabled) return;
   bgmEnabled = enabled;
+  persistBgmEnabled(enabled);
 
   if (!enabled) {
     removeUnlockListeners();
