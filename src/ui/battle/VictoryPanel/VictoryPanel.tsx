@@ -15,6 +15,7 @@ import { VictoryBoonTray } from "@/ui/battle/VictoryBoonTray/VictoryBoonTray";
 import { VictoryCardOffer } from "@/ui/battle/VictoryCardOffer/VictoryCardOffer";
 import { VictoryBackpack } from "@/ui/battle/VictoryBackpack";
 import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
+import { VictoryButton } from "@/ui/battle/VictoryButton";
 import { VictoryBackdrop } from "./VictoryBackdrop";
 import s from "./VictoryPanel.module.css";
 
@@ -191,25 +192,30 @@ export function VictoryPanel() {
             <div className={s["footer-switch"]}>
               {confirmingAbandon ? (
                 <div key="confirm" className={cx(s["footer-state"], s["confirm-strip"])}>
-                  <span>放弃剩余 {pendingRewardCount} 项奖励？</span>
-                  <button className={cx(s["action-button"], s["danger"])} type="button" onClick={handleAbandon}>确认放弃</button>
-                  <button className={s["action-button"]} type="button" onClick={() => setConfirmingAbandon(false)}>返回</button>
+                  <span className={s["footer-kicker"]}>放弃剩余 {pendingRewardCount} 项奖励？</span>
+                  <VictoryButton tone="danger" onClick={handleAbandon}>确认放弃</VictoryButton>
+                  <VictoryButton onClick={() => setConfirmingAbandon(false)}>返回</VictoryButton>
                 </div>
               ) : (
                 <div key="actions" className={s["footer-state"]}>
-                  <button className={cx(s["action-button"], s["primary"])} type="button" onClick={() => trayRef.current?.takeAll()} disabled={!pendingLoot.length}>全部拾取</button>
-                  <button className={cx(s["action-button"], s["danger"])} type="button" onClick={() => setConfirmingAbandon(true)} disabled={!pendingRewardCount}>放弃剩余</button>
+                  <VictoryButton tone="danger" disabled={!pendingRewardCount} onClick={() => setConfirmingAbandon(true)}>放弃剩余</VictoryButton>
+                  <VictoryButton tone="primary" disabled={!pendingLoot.length} onClick={() => trayRef.current?.takeAll()}>全部拾取</VictoryButton>
                 </div>
               )}
             </div>
-            <button
-              className={cx(s["action-button"], s["continue"], pendingRewardCount > 0 && s["is-blocked"], continueNudge && s["is-nudging"])}
-              type="button"
-              aria-disabled={pendingRewardCount > 0}
-              onClick={handleContinue}
-            >
-              {pendingRewardCount ? `还有 ${pendingRewardCount} 项奖励未处理` : "继续"}
-            </button>
+            <span className={s["footer-divider"]} aria-hidden="true" />
+            <div className={s["footer-commit"]}>
+              <VictoryButton
+                tone="continue"
+                size="lg"
+                ring={pendingRewardCount === 0}
+                blocked={pendingRewardCount > 0}
+                className={cx(continueNudge && s["is-nudging"])}
+                onClick={handleContinue}
+              >
+                继续
+              </VictoryButton>
+            </div>
           </footer>
           </section>
         </div>

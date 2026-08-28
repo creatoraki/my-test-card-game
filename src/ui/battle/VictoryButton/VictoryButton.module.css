@@ -1,0 +1,166 @@
+.anchor {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: 0 0 auto;
+  --vb-k: var(--victory-accent);
+}
+
+.anchor.primary {
+  --vb-k: #83e6ff;
+}
+
+.anchor.danger {
+  --vb-k: var(--victory-accent-2);
+}
+
+.anchor.continue {
+  --vb-k: #ffbd77;
+}
+
+.anchor.isBlocked {
+  --vb-k: #6d5a49;
+}
+
+.button {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 168px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 13px 26px;
+  color: #eafcff;
+  border: 2px solid var(--vb-k);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--vb-k) 22%, #0b1216) 0%,
+    #0b1216f2 62%,
+    color-mix(in srgb, var(--vb-k) 14%, #0b1216) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 #ffffff33,
+    inset 0 0 26px -6px color-mix(in srgb, var(--vb-k) 45%, transparent);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color var(--vc-control-ms) var(--vc-ease),
+    box-shadow var(--vc-control-ms) var(--vc-ease),
+    background var(--vc-control-ms) var(--vc-ease),
+    transform var(--vc-control-ms) var(--vc-ease);
+}
+
+.glow {
+  position: absolute;
+  z-index: 0;
+  inset: -2px;
+  pointer-events: none;
+  background: var(--vb-k);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  filter: blur(12px);
+  opacity: 0.34;
+  transition: opacity var(--vc-control-ms) var(--vc-ease);
+}
+
+.label {
+  color: #eafcff;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  line-height: 1.2;
+  text-indent: 5px;
+  text-shadow: 0 0 14px color-mix(in srgb, var(--vb-k) 70%, transparent);
+  white-space: nowrap;
+}
+
+.lg .button {
+  min-width: 264px;
+  padding: 16px 34px;
+}
+
+.lg .label {
+  font-size: 22px;
+}
+
+.button:hover:not(:disabled),
+.button:focus-visible:not(:disabled) {
+  border-color: #eafcff;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--vb-k) 34%, #0b1216) 0%,
+    #12222acc 62%,
+    color-mix(in srgb, var(--vb-k) 22%, #0b1216) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 #ffffff47,
+    inset 0 0 30px -6px color-mix(in srgb, var(--vb-k) 65%, transparent);
+  transform: translateY(-1px);
+}
+
+.anchor:hover .glow,
+.anchor:focus-within .glow {
+  opacity: 0.58;
+}
+
+.button:focus-visible {
+  outline: 2px solid #eafcff;
+  outline-offset: 3px;
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.isBlocked .button {
+  cursor: not-allowed;
+}
+
+.anchor.isDisabled .glow,
+.anchor.isBlocked .glow {
+  opacity: 0;
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.ring {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--vb-k) 55%, transparent);
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  animation: victoryButtonRing 2600ms var(--vc-ease) infinite;
+}
+
+@keyframes victoryButtonRing {
+  from {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.26);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .glow {
+    transition: none;
+  }
+
+  .ring {
+    display: none;
+  }
+}

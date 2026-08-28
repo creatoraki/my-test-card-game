@@ -216,6 +216,7 @@
   position: relative;
   z-index: 3;
   display: flex;
+  min-height: 108px;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -227,106 +228,50 @@
 
 .footer-switch {
   display: flex;
-  min-width: 0;
-  flex: 1;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .footer-state {
   display: flex;
   width: auto;
   flex-direction: row;
-  gap: 12px;
+  gap: 14px;
   animation: vcFooterStateIn var(--vc-state-ms) var(--vc-ease) both;
 }
 
 .confirm-strip {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
   align-items: center;
+}
+
+.footer-divider {
+  width: 1px;
+  flex: 0 0 1px;
+  align-self: stretch;
+  margin: 4px 8px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--victory-accent) 55%, transparent) 50%, transparent);
+}
+
+.footer-commit {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.footer-kicker {
+  display: block;
+  min-height: 14px;
   color: #ffcf9d;
-  font-size: 15px;
-  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
   text-shadow: 0 1px 3px #000a;
 }
 
-.action-button {
-  width: auto;
-  min-width: 140px;
-  padding: 16px 12px;
-  color: #cbe9f1;
-  background: linear-gradient(180deg, #0c2029e0, #061218e0);
-  border: 1px solid color-mix(in srgb, var(--victory-accent) 45%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--victory-accent) 30%, transparent),
-    0 0 12px color-mix(in srgb, var(--victory-accent) 14%, transparent);
-  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-  cursor: pointer;
-  font: inherit;
-  font-size: 17px;
-  letter-spacing: 1px;
-  text-shadow: 0 0 8px color-mix(in srgb, var(--victory-accent) 40%, transparent);
-  transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) ease, color var(--vc-control-ms) ease, box-shadow var(--vc-control-ms) ease;
-}
-
-.action-button:hover:not(:disabled),
-.action-button:focus-visible:not(:disabled) {
-  color: #f0fdff;
-  border-color: #d8fbff;
-  box-shadow:
-    inset 0 1px 0 #d8fbff66,
-    0 0 20px color-mix(in srgb, var(--victory-accent) 30%, transparent);
-  transform: translateY(-2px);
-}
-
-.action-button:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.action-button:disabled {
-  cursor: default;
-  opacity: 0.38;
-  box-shadow: none;
-}
-
-.action-button.primary {
-  color: #061014;
-  background: #83e6ff;
-  border-color: #d8fbff;
-  box-shadow: 0 0 18px #83e6ff55;
-}
-
-.action-button.danger {
-  color: #ffd0ec;
-  border-color: color-mix(in srgb, var(--victory-accent-2) 55%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--victory-accent-2) 30%, transparent),
-    0 0 14px #ff77c828;
-}
-
-.action-button.continue {
-  min-width: 220px;
-  padding: 18px 28px;
-  font-size: 22px;
-  color: #071014;
-  background: #ffbd77;
-  border-color: #ffe0b2;
-  box-shadow: 0 0 22px #ffbd7744;
-}
-
-.action-button.continue.is-blocked {
-  color: #c6a98c;
-  background: #3a3028;
-  border-color: #946b4d66;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.action-button.continue:not(:disabled):not(.is-blocked):not(.is-nudging) {
-  animation: vcContinueReady var(--vc-continue-ready-ms) var(--vc-ease) 1 both;
-}
-
-.action-button.continue.is-nudging {
+.is-nudging {
   animation: vcNudge var(--vc-nudge-ms, 180ms) ease-in-out;
 }
 
@@ -373,11 +318,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes vcContinueReady {
-  0%, 100% { box-shadow: 0 0 22px #ffbd7744; }
-  50% { box-shadow: 0 0 30px #ffbd7760; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .victory-layer,
   .victory-panel {
@@ -406,10 +346,7 @@
     transform: none;
   }
 
-  .action-button.continue {
-    animation: none;
-  }
-
+  .is-nudging,
   .loot-readout,
   .footer-state {
     animation: none;
