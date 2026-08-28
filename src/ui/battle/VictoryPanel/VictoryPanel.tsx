@@ -15,9 +15,10 @@ import { VictoryBoonTray } from "@/ui/battle/VictoryBoonTray/VictoryBoonTray";
 import { VictoryCardOffer } from "@/ui/battle/VictoryCardOffer/VictoryCardOffer";
 import { VictoryBackpack } from "@/ui/battle/VictoryBackpack";
 import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
+import { VictoryBackdrop } from "./VictoryBackdrop";
 import s from "./VictoryPanel.module.css";
 
-const BACKPACK_COLUMNS = 12;
+const BACKPACK_COLUMNS = 8;
 const BACKPACK_ROWS = Math.ceil(RULES.burden.backpackSlots / BACKPACK_COLUMNS);
 
 export function VictoryPanel() {
@@ -47,7 +48,6 @@ export function VictoryPanel() {
   const timing = victoryTiming();
   const pulseSignature = Object.fromEntries(backpack.map((stack) => [stack.uid, stack.count]));
   const pulsedUids = useChangePulse(pulseSignature);
-  const lootCountPulsed = useChangePulse({ count: pendingLoot.length }, timing.stateFadeMs);
 
   useEffect(() => {
     if (!continueNudge) return;
@@ -118,6 +118,8 @@ export function VictoryPanel() {
       <div className={s["panel-stage"]}>
         <div className={s["panel-reveal"]}>
           <section className={s["victory-panel"]}>
+          <VictoryBackdrop />
+          <span className={s["panel-edge"]} aria-hidden="true" />
           <span className={s["panel-sweep"]} aria-hidden="true" />
           <header className={s["panel-head"]}>
             <div>
@@ -163,8 +165,7 @@ export function VictoryPanel() {
                   <div className={s["section-row"]}>
                     <VictoryPlaque
                       label="战利品"
-                      readout={pendingLoot.length ? `${pendingLoot.length} 件` : "已清空"}
-                      pulse={lootCountPulsed.has("count")}
+                      variant="loot"
                     />
                     <VictoryLootTray ref={trayRef} onPicked={handlePicked} />
                   </div>
@@ -179,7 +180,6 @@ export function VictoryPanel() {
                   stacks={backpack}
                   rows={BACKPACK_ROWS}
                   columns={BACKPACK_COLUMNS}
-                  capacity={RULES.burden.backpackSlots}
                   pulseUids={new Set([...pulsedUids, ...pickedUids])}
                   onReorder={handleReorder}
                   contextMenuItems={contextMenuItems}

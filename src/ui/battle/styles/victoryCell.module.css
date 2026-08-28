@@ -1,0 +1,46 @@
+.cell,
+.empty {
+  box-sizing: border-box;
+  width: var(--victory-cell-size, 84px);
+  height: var(--victory-cell-size, 84px);
+  min-width: 0;
+  min-height: 0;
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
+}
+
+.grid {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(var(--victory-cols, 1), var(--victory-cell-size, 84px));
+  grid-auto-rows: var(--victory-cell-size, 84px);
+  gap: 10px;
+  min-height: 0;
+  justify-content: start;
+  align-content: center;
+}
+
+.empty {
+  display: block;
+  background: transparent;
+  border: 0;
+  cursor: default;
+}
+
+.grid .empty.empty {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 8px,
+      var(--victory-empty-line, #47706b88) 8px 9px
+    ),
+    var(--victory-empty-tint, #07151366);
+  border: 1px dashed var(--victory-empty-line, #47706b88);
+  box-shadow: inset 0 3px 10px #00000080;
+}

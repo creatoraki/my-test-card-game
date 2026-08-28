@@ -14,23 +14,36 @@
   align-items: stretch;
   gap: 10px;
   min-width: 0;
+  min-height: 0;
+  flex: 1;
+}
+
+.boon-tray {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 12px;
+  background: #03090c99;
+  border: 1px solid #6fd2ff38;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
 
 .grid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 64px;
-  gap: 8px;
+  --victory-cols: 4;
+  --victory-cell-size: 96px;
+  --victory-empty-tint: #07151366;
+  --victory-empty-line: #47706b88;
+  flex: 1;
   min-width: 0;
-  min-height: 68px;
-  justify-content: start;
 }
 
 .cell {
   position: relative;
   display: grid;
-  width: 64px;
-  height: 64px;
   place-items: center;
   padding: 0;
   color: #dff8f1;
@@ -61,17 +74,6 @@
   height: 80%;
   object-fit: contain;
   image-rendering: auto;
-}
-
-.empty {
-  box-sizing: border-box;
-  width: 64px;
-  height: 64px;
-  background:
-    repeating-linear-gradient(135deg, transparent 0 8px, #47706b44 8px 9px),
-    #07151366;
-  border: 1px dashed #47706b88;
-  box-shadow: inset 0 3px 10px #00000080;
 }
 
 @keyframes vcBoonSectionIn {

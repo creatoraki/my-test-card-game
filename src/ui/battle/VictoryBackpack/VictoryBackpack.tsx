@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState, type CSSProperties, type FocusEvent } from "react";
-import { getItemDef } from "@/data";
-import { occupiedSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import ItemContextMenu, { type ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
 import ItemTooltip, {
@@ -11,13 +9,14 @@ import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
+import { cx } from "@/ui/common/cx";
+import victoryCell from "@/ui/battle/styles/victoryCell.module.css";
 import s from "./VictoryBackpack.module.css";
 
 export interface VictoryBackpackProps {
   stacks: readonly ItemStack[];
   rows: number;
   columns: number;
-  capacity: number;
   pulseUids?: ReadonlySet<string>;
   onReorder?: (fromIndex: number, toIndex: number) => void;
   contextMenuItems?: (stack: ItemStack) => ContextMenuItem[];
@@ -35,7 +34,6 @@ export default function VictoryBackpack({
   stacks,
   rows,
   columns,
-  capacity,
   pulseUids,
   onReorder,
   contextMenuItems,
@@ -69,17 +67,10 @@ export default function VictoryBackpack({
     ],
     [cellCount, stacks],
   );
-  const displayedOccupied = useMemo(
-    () => occupiedSlots(Array.from(stacks), getItemDef),
-    [stacks],
-  );
-  const displayedCapacity = Number.isFinite(capacity)
-    ? Math.max(0, Math.floor(capacity))
-    : cellCount;
   const themeStyle = inventoryThemeVars(VICTORY_INVENTORY_COLORS, safeColumns);
   const style = {
     ...themeStyle,
-    "--victory-bp-columns": safeColumns,
+    "--victory-cols": safeColumns,
   } as CSSProperties;
   const hoveredStack = hoveredItem
     ? stacks.find((stack) => stack.uid === hoveredItem.uid) ?? null
@@ -105,14 +96,14 @@ export default function VictoryBackpack({
         <VictoryPlaque
           label="回收背包"
           titleId="victory-backpack-title"
-          readout={`${displayedOccupied}/${displayedCapacity}`}
+          variant="backpack"
         />
-        <div className={s.grid} role="group" aria-label="回收背包格位">
+        <div className={cx(victoryCell.grid, s.grid)} role="group" aria-label="回收背包格位">
           {cells.map((stack, index) =>
           stack ? (
             <div
               key={stack.uid}
-              className={s.anchor}
+              className={cx(victoryCell.cell, s.anchor)}
               draggable={onReorder ? true : undefined}
               data-dragging={dragIndex === index ? "true" : undefined}
               data-drop={dropIndex === index ? "true" : undefined}
@@ -167,7 +158,7 @@ export default function VictoryBackpack({
           ) : (
             <div
               key={`empty-${index}`}
-              className={s.anchor}
+              className={cx(victoryCell.cell, s.anchor)}
               data-drop={dropIndex === index ? "true" : undefined}
               onDragOver={(event) => {
                 if (dragIndex == null || !onReorder) return;
@@ -185,7 +176,7 @@ export default function VictoryBackpack({
                 setDropIndex(null);
               }}
             >
-              <EmptySlot className={s.empty} />
+              <EmptySlot className={victoryCell.empty} />
             </div>
           ),
           )}

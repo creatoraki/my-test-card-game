@@ -43,6 +43,7 @@
 
 .victory-panel {
   --victory-accent: #58dcd0;
+  --victory-accent-2: #ff77c8;
   position: relative;
   isolation: isolate;
   display: flex;
@@ -53,11 +54,17 @@
   padding: 26px 32px 22px;
   color: #eafaff;
   background:
-    radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--victory-accent) 12%, transparent), transparent 27%),
+    radial-gradient(ellipse at 50% -12%, color-mix(in srgb, var(--victory-accent) 18%, transparent), transparent 48%),
+    radial-gradient(ellipse at 50% 108%, #05090b 0%, transparent 48%),
     linear-gradient(115deg, #111b1e 0%, #0c1215 44%, #0a0f12 100%);
   border: 1px solid #3b4d53;
   clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 22px 100%, 0 calc(100% - 22px), 0 22px);
-  box-shadow: 0 22px 70px #0009, 0 0 0 1px #ffffff05, inset 0 0 90px #69d9ff10;
+  box-shadow:
+    0 22px 70px #0009,
+    0 0 0 1px #ffffff05,
+    inset 0 90px 120px -70px color-mix(in srgb, var(--victory-accent) 11%, transparent),
+    inset 0 -120px 140px -60px #05090b,
+    inset 0 0 90px #69d9ff10;
 }
 
 .victory-panel::before,
@@ -86,6 +93,16 @@
   opacity: 0.45;
 }
 
+.panel-edge {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--victory-accent) 48%, transparent);
+  clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 22px 100%, 0 calc(100% - 22px), 0 22px);
+  opacity: 0.72;
+}
+
 .panel-sweep {
   position: absolute;
   z-index: 2;
@@ -111,7 +128,8 @@
   justify-content: space-between;
   gap: 30px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #405057;
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, #405057 18%, #9bd9d3 50%, #405057 82%, transparent) 1;
 }
 
 .panel-kicker {
@@ -146,16 +164,16 @@
   display: grid;
   width: 100%;
   height: 100%;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   min-height: 0;
 }
 
 .loot-stack {
-  display: flex;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
-  flex-direction: column;
   gap: 14px;
 }
 
@@ -204,7 +222,8 @@
   gap: 16px;
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid #405057;
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, #405057 18%, #9bd9d3 50%, #405057 82%, transparent) 1;
 }
 
 .footer-switch {

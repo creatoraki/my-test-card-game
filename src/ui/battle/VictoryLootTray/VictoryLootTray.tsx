@@ -10,6 +10,7 @@ import { cx } from "@/ui/common/cx";
 import { victoryStagger } from "@/ui/battle/victoryChoreo";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
+import victoryCell from "@/ui/battle/styles/victoryCell.module.css";
 import s from "./VictoryLootTray.module.css";
 
 const LOOT_SLOT_COUNT = 8;
@@ -63,11 +64,11 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
 
   return (
     <div className={s["loot-tray"]}>
-      <div className={s["loot-grid"]} aria-label="待拾取战利品">
+      <div className={cx(victoryCell.grid, s["loot-grid"])} aria-label="待拾取战利品">
         {cells.map((stack, index) => (
           stack ? (
             <div
-              className={s["loot-cell"]}
+              className={cx(victoryCell.cell, s["loot-cell"])}
               data-loot-uid={stack.uid}
               key={stack.uid}
               style={{
@@ -88,13 +89,13 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
             >
               <ItemSlot
                 stack={stack}
-                showName
+                showName={false}
                 onClick={() => pick(stack)}
                 className={cx(s["loot-slot"])}
               />
             </div>
           ) : (
-            <div className={s["empty-slot"]} key={`empty-${index}`} aria-hidden="true" />
+            <div className={cx(victoryCell.empty, s["empty-slot"])} key={`empty-${index}`} aria-hidden="true" />
           )
         ))}
       </div>

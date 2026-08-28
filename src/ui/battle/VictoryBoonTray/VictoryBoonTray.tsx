@@ -5,10 +5,12 @@ import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
 import { victoryStagger } from "@/ui/battle/victoryChoreo";
 import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
+import { cx } from "@/ui/common/cx";
 import type { BattleBoonKind, PendingBoon } from "@/explore/types";
 import cardOfferArt from "@/assets/通用素材/卡牌奖励.png";
 import healDewArt from "@/assets/通用素材/治疗露珠.png";
 import equipCrateArt from "@/assets/通用素材/装备宝箱.png";
+import victoryCell from "@/ui/battle/styles/victoryCell.module.css";
 import s from "./VictoryBoonTray.module.css";
 
 interface Props {
@@ -16,6 +18,7 @@ interface Props {
 }
 
 const VICTORY_TOOLTIP_THEME = inventoryThemeVars(VICTORY_INVENTORY_COLORS);
+const BOON_SLOT_COUNT = 4;
 
 const BOON_META: Record<BattleBoonKind, { name: string; desc: string }> = {
   healDew: {
@@ -50,7 +53,7 @@ function BoonCell({ boon, index, onTake }: { boon: PendingBoon; index: number; o
   const { point, bind } = useHoverTooltip();
   return (
     <div
-      className={s.cell}
+      className={cx(victoryCell.cell, s.cell)}
       data-boon-kind={boon.kind}
       tabIndex={0}
       {...bind}
@@ -75,20 +78,26 @@ function BoonCell({ boon, index, onTake }: { boon: PendingBoon; index: number; o
 export function VictoryBoonTray({ style }: Props) {
   const pendingBoons = useExploreStore((state) => state.session?.pendingBoons ?? []);
   const takeBoon = useExploreStore((state) => state.takeBoonAction);
+  const cells = [
+    ...pendingBoons,
+    ...Array.from({ length: Math.max(0, BOON_SLOT_COUNT - pendingBoons.length) }, () => null),
+  ];
 
   return (
     <section className={s.tray} style={style} aria-label="战斗胜利额外奖励">
       <div className={s.row}>
         <VictoryPlaque
           label="额外奖励"
-          readout={pendingBoons.length ? `${pendingBoons.length} 项` : "已清空"}
+          variant="boon"
         />
-        <div className={s.grid}>
-          {pendingBoons.length ? (
-            pendingBoons.map((boon, index) => <BoonCell key={boon.uid} boon={boon} index={index} onTake={takeBoon} />)
-          ) : (
-            <div className={s.empty} aria-hidden="true" />
-          )}
+        <div className={s["boon-tray"]}>
+          <div className={cx(victoryCell.grid, s.grid)}>
+            {cells.map((boon, index) => boon ? (
+              <BoonCell key={boon.uid} boon={boon} index={index} onTake={takeBoon} />
+            ) : (
+              <div className={victoryCell.empty} key={`empty-${index}`} aria-hidden="true" />
+            ))}
+          </div>
         </div>
       </div>
     </section>
