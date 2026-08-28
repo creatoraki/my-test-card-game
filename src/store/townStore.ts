@@ -310,7 +310,7 @@ export function countByDefId(deck: Card[]): Record<string, number> {
 }
 
 export function canAddCopy(deck: Card[], defId: string): boolean {
-  const rarity = getCardDef(defId).rarity;
+  const rarity = getCardDef(defId).rarity ?? "common";
   if (rarity === "basic") return true;
   return (countByDefId(deck)[defId] ?? 0) < RULES.deck.copyCap[rarity];
 }
@@ -981,9 +981,10 @@ export const useTownStore = create<TownStore>()(
       forgeDraw: (charId) => {
         const cs = get().characters[charId];
         const { day } = get();
-        const usage = cs ? todayUsage(cs, day) : null;
-        const cost = usage ? drawCostToday(usage.draw) : 0;
-        if (!cs || cs.pendingDraw || cs.exp < cost) return;
+        if (!cs) return;
+        const usage = todayUsage(cs, day);
+        const cost = drawCostToday(usage.draw);
+        if (cs.pendingDraw || cs.exp < cost) return;
 
         const options = rollDrawOptions(cs);
         if (!options) return;
@@ -1058,9 +1059,10 @@ export const useTownStore = create<TownStore>()(
       removeCard: (charId, uid) => {
         const cs = get().characters[charId];
         const { day } = get();
-        const usage = cs ? todayUsage(cs, day) : null;
-        const cost = usage ? removeCostToday(usage.remove) : 0;
-        if (!cs || cs.exp < cost) return;
+        if (!cs) return;
+        const usage = todayUsage(cs, day);
+        const cost = removeCostToday(usage.remove);
+        if (cs.exp < cost) return;
         if (cs.deck.length <= cs.minDeckSize) return; // 卡组不能低于最小下限
         if (!cs.deck.some((c) => c.uid === uid)) return;
         set({
