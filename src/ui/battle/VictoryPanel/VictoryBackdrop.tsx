@@ -31,7 +31,7 @@ export function VictoryBackdrop() {
           <stop offset="0%" stopColor="#05090b" stopOpacity="0.34" />
           <stop offset="62%" stopColor="#05090b" stopOpacity="0.18" />
           <stop offset="100%" stopColor="#05090b" stopOpacity="0" />
-        </linearGradient>
+        </radialGradient>
         <linearGradient id={settleId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#05090b" stopOpacity="0.08" />
           <stop offset="42%" stopColor="#05090b" stopOpacity="0.5" />
