@@ -1,5 +1,5 @@
 import { rngInt, shuffle } from "../engine/rng";
-import { getItemDef, getTradeService, makeItemStack } from "../data";
+import { getItemDef, getTradeService, makeRolledItemStack } from "../data";
 import { tradeStockDefs } from "../data/tradeStock";
 import { addToContainer, countByItemId, consumeItems, occupiedSlots, stackSlots } from "../items/inventory";
 import { RULES } from "../engine/rules";
@@ -37,7 +37,7 @@ function stockFor(s: ExploreState, serviceId: string): ItemStack[] {
   }
   return shuffle(s, defs)
     .slice(0, 2)
-    .map((def) => makeItemStack(def.id));
+    .map((def) => makeRolledItemStack(s, def.id));
 }
 
 function hasServiceTarget(s: ExploreState, serviceId: string): boolean {

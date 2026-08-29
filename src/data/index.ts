@@ -1,7 +1,9 @@
 // 数据注册表 —— 所有内容按 id 索引; 引擎/store 通过这些 getter 取数据。
 
 import type { Card, CardDef } from "../engine/types";
+import { rngInt } from "../engine/rng";
 import { RULES } from "../engine/rules";
+import { rollAffinity } from "../items/drops";
 import type { EquipSlot, ItemDef, ItemStack } from "../items/types";
 import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
@@ -12,6 +14,7 @@ import { ENEMIES, type EnemyDef } from "./enemies";
 import { ENCOUNTERS, type EncounterDef } from "./encounters";
 import { MAPS, type MapDef } from "./maps";
 import { NPC_EVENTS, getNpcEvent, type NpcEvent } from "./npcEvents";
+import { ROLLABLE_BOND_IDS } from "./bonds";
 export {
   SQUAD_BADGES,
   branchNodesOf,
@@ -175,6 +178,16 @@ export function newUid(prefix = "c"): string {
 export function makeItemStack(itemId: string, count = 1, affinity?: string): ItemStack {
   getItemDef(itemId); // 存在性校验: 打错 id 要在这里炸, 而不是等 UI 渲染时才发现
   return { uid: newUid("i"), itemId, count: Math.max(1, count), affinity };
+}
+
+// 实例化一件物品并按规则掷羁绊词条。非 affinityRollable 的物品不消耗 RNG。
+export function makeRolledItemStack(
+  rng: { rngState: number },
+  itemId: string,
+  count = 1,
+): ItemStack {
+  const def = getItemDef(itemId);
+  return makeItemStack(itemId, count, rollAffinity(def, ROLLABLE_BOND_IDS, (n) => rngInt(rng, n)));
 }
 
 export function makeCard(defId: string, upgraded = false): Card {

@@ -64,15 +64,15 @@ export function pickByQuality(
   return last.defs[rngInt(rng, last.defs.length)];
 }
 
-// 掷一条随机羁绊词条(《羁绊设计概览.md》§2.1: 普通武器/防具/饰品各提供 1 条随机羁绊)。
-// ★ 稀有度**不影响**词条数量 —— 普通到传说, 同一件装备模型都只给 1 条。
-function rollAffinity(
-  rng: { rngState: number },
+// 掷一条随机羁绊词条(《羁绊设计概览.md》§2.1)。稀有度不影响词条数量。
+// pickIndex 由调用方提供随机源: 探索侧传 engine/rng 的种子链, 据点商店传 Math.random。
+export function rollAffinity(
   def: ItemDef,
-  ctx: DropContext,
+  pool: string[],
+  pickIndex: (n: number) => number,
 ): string | undefined {
-  if (!def.affinityRollable || !ctx.affinityPool.length) return undefined;
-  return ctx.affinityPool[rngInt(rng, ctx.affinityPool.length)];
+  if (!def.affinityRollable || !pool.length) return undefined;
+  return pool[pickIndex(pool.length)];
 }
 
 // 掷一整张掉落表 → 若干 ItemStack。★ 每件一个 stack(与首版 maxStack: 1 一致);
@@ -102,7 +102,9 @@ export function rollDropTable(
       if (def.maxStack <= 1) {
         // ⚠ 词条**逐件**掷, 且必须走 rngInt(同一条种子链) —— 否则同种子的一趟远征
         //   掉的东西不再逐件一致, 本模块顶部的可复现承诺当场作废。
-        for (let n = 0; n < count; n++) out.push(ctx.makeStack(def.id, 1, rollAffinity(rng, def, ctx)));
+        for (let n = 0; n < count; n++) {
+          out.push(ctx.makeStack(def.id, 1, rollAffinity(def, ctx.affinityPool, (n) => rngInt(rng, n))));
+        }
       } else {
         out.push(ctx.makeStack(def.id, count));
       }

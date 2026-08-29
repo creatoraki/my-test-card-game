@@ -45,6 +45,7 @@ import {
   getItemDef,
   getItemFamily,
   getMap,
+  makeRolledItemStack,
   makeItemStack,
 } from "../data";
 import { rollDropTable, type DropContext } from "../items/drops";
@@ -700,7 +701,7 @@ function rollOutcome(s: ExploreState, outcomes: EventOutcome[]): EventOutcome | 
 function rollEquipOffers(s: ExploreState, count: number, slot?: import("../items/types").EquipSlot): ItemStack[] {
   return shuffle(s, equipmentDefsBySlot(slot))
     .slice(0, Math.max(0, count))
-    .map((def) => makeItemStack(def.id, 1));
+    .map((def) => makeRolledItemStack(s, def.id, 1));
 }
 
 function deferEffectLoot(s: ExploreState, stacks: ItemStack[]): string {
@@ -737,7 +738,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       // 指名实物 ⇒ **不**吃掉落系数: 事件写死给几件就是几件, K 只作用于随机掉落表。
       const count = Math.max(1, e.count ?? 1);
       const def = getItemDef(e.itemId);
-      const made = Array.from({ length: count }, () => makeItemStack(e.itemId, 1));
+      const made = Array.from({ length: count }, () => makeRolledItemStack(s, e.itemId, 1));
       if (defer) return deferEffectLoot(s, made);
       const { taken, overflow } = addItems(s, made);
       return overflow.length
@@ -747,7 +748,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
     case "FORCE_ITEM": {
       const count = Math.max(1, e.count ?? 1);
       const def = getItemDef(e.itemId);
-      const made = Array.from({ length: count }, () => makeItemStack(e.itemId, 1));
+      const made = Array.from({ length: count }, () => makeRolledItemStack(s, e.itemId, 1));
       const { taken, overflow } = addItems(s, made);
       return overflow.length
         ? `强制拾取 ${def.name} ×${count}（背包已满, 必须腾出 ${overflow.length} 格）`
