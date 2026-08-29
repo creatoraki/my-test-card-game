@@ -103,11 +103,11 @@ export function useDeathGate(
       if (current) continue;
 
       phasesRef.current.set(cmb.id, "drain");
-      playSfx("death");
       changed = true;
       const vanishTimer = window.setTimeout(() => {
         if (phasesRef.current.get(cmb.id) !== "drain") return;
         phasesRef.current.set(cmb.id, "vanish");
+        playSfx("death");
         redraw((version) => version + 1);
       }, (impactOffset + drain) / rate);
       const deadTimer = window.setTimeout(() => {

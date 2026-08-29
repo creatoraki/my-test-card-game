@@ -30,6 +30,7 @@ import { PileRail, type Pile } from "@/ui/battle/PileRail";
 import { PileDrawer } from "@/ui/battle/PileDrawer";
 import { RoundIndicator } from "@/ui/battle/RoundIndicator";
 import { SkillCutInCard } from "@/ui/battle/SkillCutInCard";
+import { attackSfxCue, impactSfxCue } from "@/ui/battle/animSfx";
 import { ANIM, CINEMA, DISCARD, HAND_DEAL, cardAnim, moveAnim, type HitFx } from "@/ui/battle/animations";
 import {
   choreograph,
@@ -670,10 +671,17 @@ export function BattleScreen() {
       const discardLead = selfMark ? DISCARD.total : 0;
       const actionAt = at + discardLead + focusLead;
       const hitAt = actionAt + preset.lead + cutIn;
+      const attackCue = attackSfxCue(step.anim);
+      const impactCue = impactSfxCue(step.anim);
+      if (attackCue) {
+        timeline.add({
+          at: Math.max(actionAt, hitAt + impactMs - attackCue.leadMs),
+          run: () => playSfx(attackCue.id),
+        });
+      }
       timeline.add({
         at,
         run: () => {
-          if (step.card) playSfx("cardPlay");
           if (selfMark) markDiscarding(step.discardUid!);
           cameraRig.setTuning(preset.rig);
           if (isFoeLedShot(preset)) {
@@ -722,8 +730,6 @@ export function BattleScreen() {
       timeline.add({
         at: hitAt,
         run: () => {
-          const damage = Math.max(0, ...step.hits.map((hit) => hit.hpDelta));
-          playSfx("hit", { damage });
           setTelegraph(null);
           const proc = ANIM[step.anim].proc;
           const impactDelay = impactMs;
@@ -745,6 +751,10 @@ export function BattleScreen() {
           }
           setHits(map);
           timeline.schedule(impactDelay, () => {
+            if (impactCue) {
+              const damage = Math.max(0, ...step.hits.map((hit) => hit.hpDelta));
+              playSfx(impactCue.id, { damage });
+            }
             if (proc?.damageAtImpact) {
               markStepDiscards();
               commit(step.snapshot);
