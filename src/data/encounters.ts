@@ -66,23 +66,36 @@ const T2_BEACON = [
 ];
 
 const T3_PATROL = [
+  placeEnemy("traffic-light-bot", { dx: -150 }),
+  placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
+];
+
+const T3_BLOCKADE = [
+  placeEnemy("traffic-light-bot", { dx: -150 }),
+  placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("radio-bot", { dx: 150, scale: 0.7, dy: GROUND_DY + 30, flip: true }),
+];
+
+const T4_PATROL = [
   placeEnemy("radio-bot", { dx: -180, flip: true }),
   placeEnemy("traffic-light-bot", { dx: -60 }),
   placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
   placeEnemy("sweep-drone", { dx: 180, scale: 1.1, flip: true }),
 ];
 
-const T3_BLOCKADE = [
+const T4_BLOCKADE = [
   placeEnemy("traffic-light-bot", { dx: -180 }),
   placeEnemy("sweep-drone", { dx: -60, scale: 1.1 }),
   placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("radio-bot", { dx: 180, scale: 0.7, dy: GROUND_DY + 30, flip: true }),
+  placeEnemy("scrap-bot", { dx: 180, flip: true }),
 ];
 
 const T4_ELITE_GUARD = [
-  placeEnemy("radio-bot", { dx: -120 }),
-  placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("pole-bot", { dx: 120, flip: true }),
+  placeEnemy("radio-bot", { dx: -180 }),
+  placeEnemy("maintenance-spider", { dx: -60, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("pole-bot", { dx: 60, flip: true }),
+  placeEnemy("sweep-drone", { dx: 180, scale: 1.1, flip: true }),
 ];
 
 const T4_COMPACTOR = [
@@ -99,6 +112,8 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-t2-beacon", name: "巡回信标", enemies: T2_BEACON },
   { id: "n-t3-patrol", name: "维修巡线", enemies: T3_PATROL },
   { id: "n-t3-blockade", name: "路口封锁", enemies: T3_BLOCKADE },
+  { id: "n-t4-patrol", name: "四方清运", enemies: T4_PATROL },
+  { id: "n-t4-blockade", name: "路口压制", enemies: T4_BLOCKADE },
   { id: "n-t4-elite-guard", name: "高压拦截", enemies: T4_ELITE_GUARD },
   { id: "n-t4-compactor", name: "报废压缩机", enemies: T4_COMPACTOR },
   { id: "n-t5-boss", name: "回收总控", enemies: T5_BOSS },

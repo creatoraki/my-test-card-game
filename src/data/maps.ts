@@ -38,7 +38,7 @@ export const MAPS: MapDef[] = [
       t1: ["n-t1-scout", "n-t1-sweep"],
       t2: ["n-t2-crew", "n-t2-beacon"],
       t3: ["n-t3-patrol", "n-t3-blockade"],
-      t4: ["n-t4-elite-guard", "n-t4-compactor"],
+      t4: ["n-t4-patrol", "n-t4-blockade", "n-t4-elite-guard", "n-t4-compactor"],
       t5: ["n-t5-boss"],
     },
     startingEnergy: 100,
