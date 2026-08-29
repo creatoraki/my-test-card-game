@@ -11,9 +11,9 @@
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |
 | [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用/地区/怪物材料、消耗品与临期食品、普通装备模板及成品模组；由 `data/index.ts` 与旧清单合并注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20，三张物品表都调它。 |
-| [items/modules.ts](../../src/data/items/modules.ts) | 成品模组物品定义；当前登记速攻模组与弃牌模组，均不填购买/回收价格，因此不会进入商店或回收台。 |
-| [cardModules.ts](../../src/data/cardModules.ts) | 卡牌模组注册表与唯一效果落点；按卡牌定义校验装备条件（速攻模组=普通牌、弃牌模组=2 费及以上，两者都排除剑士自己的卡）。重算时白名单字段还原后覆盖，追加式效果按 `fromModule` 标记剥离再叠加、文案按登记后缀剥离再拼接，保留卡牌强化后的名称、效果和文案。 |
-| [moduleCrafting.ts](../../src/data/moduleCrafting.ts) | 模组制造配方表：每条配方登记产出模组、制造者角色、经验消耗与材料清单；`craftCheck` 是可行性判定的唯一真相点，store 护栏与 UI 置灰共用它。 |
+| [items/modules.ts](../../src/data/items/modules.ts) | 成品模组物品定义；登记速攻、弃牌、落差、卫星、借星、瞄准和催熟模组，均不填购买/回收价格，因此不会进入商店或回收台。 |
+| [cardModules.ts](../../src/data/cardModules.ts) | 卡牌模组注册表与唯一效果落点；按卡牌定义校验七种模组的费用、角色、攻击效果和词条限制。重算时费用与白名单字段还原后覆盖，前置/追加效果和词条均按 `fromModule` 标记剥离再叠加，文案按登记后缀剥离再拼接，保留卡牌强化后的名称、效果和文案。 |
+| [moduleCrafting.ts](../../src/data/moduleCrafting.ts) | 模组制造配方表：为剑士、预言家、植物学家登记七条配方，包含产出模组、制造者角色、经验消耗与材料清单；`craftCheck` 是可行性判定的唯一真相点，store 护栏与 UI 置灰共用它。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；据点随机商店仍只筛选装备与材料。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
 | [shop.ts](../../src/data/shop.ts) | 据点商店：等级配置 `SHOP_LEVELS`、线性递增的刷新计价 `shopRefreshCost`、货架生成 `rollShopStock`。上架资格看 `buyValue`；随机刻意用 `Math.random`，不进探索的可复现种子链。 |

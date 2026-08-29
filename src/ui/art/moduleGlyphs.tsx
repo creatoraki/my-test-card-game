@@ -25,6 +25,14 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
   "rush-module": { hue: "#4fd1ff", deep: "#0a6f9c", ink: "#d6f4ff" },
   // 弃牌 = 品红紫。丢弃/回收一侧的语义色, 与电蓝在小图标上也拉得开。
   "discard-module": { hue: "#c86bff", deep: "#5f2394", ink: "#eddaff" },
+  // 落差 = 断裂橙红。费用下坠与沉重标记需要更有冲击力的警示色。
+  "gap-module": { hue: "#ff876d", deep: "#963c3b", ink: "#ffe4c9" },
+  // 卫星 = 靛蓝与金色。星辉角色模组共用夜空色系, 以亮色区分回响方向。
+  "satellite-module": { hue: "#7d8dff", deep: "#35418f", ink: "#ffe49a" },
+  "starloan-module": { hue: "#e8bb5b", deep: "#765320", ink: "#fff2bd" },
+  // 植物系模组 = 青绿, 与星辉系拉开颜色距离。
+  "aim-module": { hue: "#5de0c0", deep: "#176d69", ink: "#d8fff1" },
+  "ripen-module": { hue: "#a4d85d", deep: "#4b7b32", ink: "#f2ffc9" },
 };
 
 interface ArtProps {
@@ -52,6 +60,58 @@ const ART: Record<string, (props: ArtProps) => ReactNode> = {
       <rect x="24" y="22" width="14" height="19" rx="2" fill={`url(#${coreId})`} stroke="var(--mg-deep)" strokeWidth="1.5" transform="rotate(14 31 31)" />
       <path d="M9 24v10M9 34l-3-3M9 34l3-3" stroke="var(--mg-ink)" strokeWidth="1.6" opacity=".9" />
       <circle className={s.breathe} cx="31" cy="31" r="3.4" fill={`url(#${coreId})`} stroke="var(--mg-ink)" strokeWidth="1.2" />
+    </>
+  ),
+  // 落差模组: 阶梯断裂后向下坠落的方块。
+  "gap-module": ({ coreId }) => (
+    <>
+      <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" stroke="var(--mg-deep)" strokeWidth="1.3" opacity=".55" />
+      <path d="M10 15h9v6h8M38 33h-9v-6h-8" stroke="var(--mg-deep)" strokeWidth="1.7" opacity=".9" />
+      <path className={s.core} d="m15 13 12 4v8l-12-4Z" fill={`url(#${coreId})`} stroke="var(--mg-hue)" strokeWidth="1.7" />
+      <path d="m21 27 12 4v8l-12-4Z" fill={`url(#${coreId})`} stroke="var(--mg-hue)" strokeWidth="1.7" />
+      <path d="M36 17v9M36 26l-3-3M36 26l3-3" stroke="var(--mg-ink)" strokeWidth="1.5" />
+      <circle className={s.breathe} cx="27" cy="25" r="3.2" fill={`url(#${coreId})`} stroke="var(--mg-ink)" strokeWidth="1.2" />
+    </>
+  ),
+  // 卫星模组: 被小卫星环绕的星核。
+  "satellite-module": ({ coreId }) => (
+    <>
+      <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" stroke="var(--mg-deep)" strokeWidth="1.3" opacity=".55" />
+      <ellipse className={s.spin} cx="24" cy="24" rx="15" ry="8" transform="rotate(-28 24 24)" stroke="var(--mg-deep)" strokeWidth="1.4" opacity=".9" />
+      <path className={s.core} d="m24 12 3.5 8.5L36 24l-8.5 3.5L24 36l-3.5-8.5L12 24l8.5-3.5Z" fill={`url(#${coreId})`} stroke="var(--mg-hue)" strokeWidth="1.7" />
+      <circle cx="12" cy="31" r="2.2" fill="var(--mg-ink)" stroke="var(--mg-hue)" strokeWidth="1" />
+      <circle cx="35" cy="17" r="2.2" fill="var(--mg-ink)" stroke="var(--mg-hue)" strokeWidth="1" />
+      <circle className={s.breathe} cx="24" cy="24" r="3" fill={`url(#${coreId})`} stroke="var(--mg-ink)" strokeWidth="1.2" />
+    </>
+  ),
+  // 借星模组: 星点在两道相向箭头之间交换。
+  "starloan-module": ({ coreId }) => (
+    <>
+      <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" stroke="var(--mg-deep)" strokeWidth="1.3" opacity=".55" />
+      <path d="M11 19h20l-4-4M37 29H17l4 4" stroke="var(--mg-deep)" strokeWidth="1.6" />
+      <path className={s.core} d="m24 10 3.2 9.2L37 22.5l-9.8 3.3L24 35l-3.2-9.2L11 22.5l9.8-3.3Z" fill={`url(#${coreId})`} stroke="var(--mg-hue)" strokeWidth="1.7" />
+      <path d="M17 24h14M24 17v14" stroke="var(--mg-ink)" strokeWidth="1.1" opacity=".9" />
+      <circle className={s.breathe} cx="24" cy="24" r="3.2" fill={`url(#${coreId})`} stroke="var(--mg-ink)" strokeWidth="1.2" />
+    </>
+  ),
+  // 瞄准模组: 叠在能量核上的准星。
+  "aim-module": ({ coreId }) => (
+    <>
+      <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" stroke="var(--mg-deep)" strokeWidth="1.3" opacity=".55" />
+      <circle className={s.core} cx="24" cy="24" r="12" fill={`url(#${coreId})`} stroke="var(--mg-hue)" strokeWidth="1.7" />
+      <path d="M24 8v8M24 32v8M8 24h8M32 24h8" stroke="var(--mg-deep)" strokeWidth="1.8" />
+      <circle cx="24" cy="24" r="6" stroke="var(--mg-ink)" strokeWidth="1.3" />
+      <circle className={s.breathe} cx="24" cy="24" r="2.8" fill="var(--mg-ink)" />
+    </>
+  ),
+  // 催熟模组: 穿过生长环的嫩芽。
+  "ripen-module": ({ coreId }) => (
+    <>
+      <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" stroke="var(--mg-deep)" strokeWidth="1.3" opacity=".55" />
+      <path className={s.core} d="M24 38V22c0-6 4-10 10-11 0 6-3 10-10 11Z" fill={`url(#${coreId})`} stroke="var(--mg-hue)" strokeWidth="1.7" />
+      <path d="M24 29c-7 0-10-4-10-10 6 0 10 3 10 10Z" fill={`url(#${coreId})`} stroke="var(--mg-hue)" strokeWidth="1.5" />
+      <path d="M12 15c3-3 7-4 11-4M36 15c-3-3-7-4-11-4" stroke="var(--mg-deep)" strokeWidth="1.3" opacity=".85" />
+      <circle className={s.breathe} cx="24" cy="22" r="3" fill={`url(#${coreId})`} stroke="var(--mg-ink)" strokeWidth="1.2" />
     </>
   ),
 };

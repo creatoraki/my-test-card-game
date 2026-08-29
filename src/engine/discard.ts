@@ -80,7 +80,10 @@ export function moveToDiscard(
   if (!state.discard.includes(uid)) state.discard.push(uid);
 
   const card = state.cards[uid];
-  if (wasInHand && card) resetCultivate(card);
+  if (wasInHand && card) {
+    resetCultivate(card);
+    card.marks = card.marks?.filter((mark) => mark !== "heavy");
+  }
   const rule = RULES.discard.reasons[reason];
   if (rule.count) {
     state.discardsThisRound += 1;

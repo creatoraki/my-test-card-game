@@ -199,6 +199,7 @@ export function createBattle(
     pendingChoice: null,
     pendingAutoPlays: [],
     waterfallPlay: false,
+    playValueBonusPct: 0,
   };
 
   state.draw = shuffle(state, Object.keys(cards));
@@ -350,6 +351,7 @@ export function playCard(
     resolution.hit.forEach((id) => cardHit.add(id));
   };
   withDiscardRecorder(discardRecorder, () => {
+    state.playValueBonusPct = 0;
     const cultivated = cultivateReady(card);
     const cultivateMode = card.cultivate?.mode ?? "append";
     const activeEffects = cultivated && cultivateMode === "replace" ? card.cultivate!.effects : card.effects;
@@ -377,6 +379,7 @@ export function playCard(
     }
     card.marks = [];
     state.waterfallPlay = false;
+    state.playValueBonusPct = 0;
     if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
     flushAutoPlays(state, rec);
   });

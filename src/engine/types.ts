@@ -78,7 +78,9 @@ export type EffectType =
   | "CONVERT_CARD_TYPE"
   | "ADD_CARD_TO_HAND"
   | "RESTORE_HP_LIMIT"
-  | "REMOVE_STATUS";
+  | "REMOVE_STATUS"
+  | "VALUE_BOOST"
+  | "CULTIVATE_TICK";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -96,8 +98,11 @@ export interface EffectDescriptor {
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
   aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
+  boostSource?: "spendPartyStarlight" | "primaryAimed"; // VALUE_BOOST: 数值加成来源
+  boostPct?: number; // VALUE_BOOST: 每次成功触发增加的百分点
   duration?: number; // APPLY_STATUS: 剩余回合
   targetCount?: number; // randomFoe / randomAlly: 无放回随机目标数
+  targetHasStatus?: string; // randomFoe / randomAlly: 只从带指定状态的目标中抽取
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
   stat?: keyof StatBlock; // APPLY_STAT_MOD: 要修改的属性
@@ -126,7 +131,7 @@ export interface EffectDescriptor {
     | "fastCardsInHandAtLeast"; // 满足条件时才结算
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
-  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay"; // MARK_CARDS: 手牌选择方式
+  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom"; // MARK_CARDS: 手牌选择方式
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal"; // CONVERT_CARD_TYPE: 从手牌普通牌中随机选择
@@ -209,6 +214,7 @@ export interface DiscardTrigger {
 export interface CardKeywordRef {
   id: string;
   effects: EffectDescriptor[];
+  fromModule?: string;
 }
 
 // 运行期卡牌实例(带唯一 uid, 可被单独升级)
@@ -467,6 +473,7 @@ export interface BattleState {
   lastRecoverBatchFast: number;
   pendingChoice: PendingChoice | null;
   waterfallPlay: boolean;
+  playValueBonusPct: number;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenValue 算好传入。

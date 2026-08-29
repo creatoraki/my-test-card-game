@@ -9,9 +9,10 @@ import { partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
-import { starPayable } from "./cost";
+import { cardCost, starPayable } from "./cost";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { getStatusDef } from "./statuses";
+import { advanceCultivate, resetCultivate } from "./cultivate";
 
 export interface EffectResolution {
   missed: string[];
@@ -57,7 +58,9 @@ export function resolveTargets(
   const src = state.combatants[sourceId];
   const t = effect.target ?? "primary";
   const pickUnique = (candidates: ReturnType<typeof foesOf>): string[] => {
-    const pool = [...candidates];
+    const pool = candidates.filter((candidate) =>
+      !effect.targetHasStatus || candidate.statuses.some((status) => status.id === effect.targetHasStatus),
+    );
     const selected: string[] = [];
     const count = Math.max(1, Math.floor(effect.targetCount ?? 1));
     for (let i = 0; i < count && pool.length > 0; i++) {
@@ -148,7 +151,10 @@ function applyEffect(
             bonusApplies
               ? aimedBonus + effect.damageBonus.multiplier
               : aimedBonus;
-          const dmg = fixed ? amount * (1 + bonusMult) : statOf(src, "attack") * damageMultiplier;
+          const valueMultiplier = 1 + state.playValueBonusPct / 100;
+          const dmg = fixed
+            ? amount * (1 + bonusMult) * valueMultiplier
+            : statOf(src, "attack") * damageMultiplier * valueMultiplier;
           const result = ops.dealDamage(state, sourceId, id, dmg, {
             isAttack: true,
             fixed,
@@ -186,15 +192,59 @@ function applyEffect(
     }
     case "GAIN_SHIELD": {
       // amount = 固定基础护盾; multiplier = 治愈力 × 倍率。护盾强度仍在 ops 里结算。
-      const shield = effect.multiplier != null ? statOf(src, "healPower") * effect.multiplier : amount;
+      const shield =
+        (effect.multiplier != null ? statOf(src, "healPower") * effect.multiplier : amount) *
+        (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
     }
     case "HEAL": {
       // amount = 固定基础治疗; multiplier = 治愈力 × 倍率。治愈强度仍在 ops 里结算。
       const scaled = effect.multiplier != null;
-      const healing = scaled ? statOf(src, "healPower") * effect.multiplier! : amount;
+      const healing =
+        (scaled ? statOf(src, "healPower") * effect.multiplier! : amount) *
+        (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
+      break;
+    }
+    case "VALUE_BOOST": {
+      const boostPct = effect.boostPct ?? 0;
+      if (boostPct <= 0) break;
+      if (effect.boostSource === "spendPartyStarlight") {
+        let spent = 0;
+        for (const id of state.playerIds) {
+          const ally = state.combatants[id];
+          if (!ally?.alive) continue;
+          const starlight = ally.statuses.find((status) => status.id === "starlight");
+          if (!starlight || starlight.stacks <= 0) continue;
+          ops.applyStatus(state, id, "starlight", -1);
+          spent += 1;
+        }
+        state.playValueBonusPct += spent * boostPct;
+        break;
+      }
+      if (effect.boostSource === "primaryAimed") {
+        const primaryId = targetIds.find((id) => state.combatants[id]?.alive) ?? foesOf(state, src)[0]?.id;
+        if (primaryId && state.combatants[primaryId].statuses.some((status) => status.id === "aimed"))
+          state.playValueBonusPct += boostPct;
+      }
+      break;
+    }
+    case "CULTIVATE_TICK": {
+      const amountToTick = Math.max(1, Math.floor(effect.amount ?? 1));
+      const pool = state.hand.filter((uid) => {
+        const card = state.cards[uid];
+        return card?.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) > 0;
+      });
+      for (let i = 0; i < amountToTick && pool.length > 0; i++) {
+        const uid = rngPick(state, pool);
+        const card = state.cards[uid];
+        if (card) {
+          advanceCultivate(card, 1);
+          ops.log(state, `${card.name} 的培育层数 -1`);
+        }
+        pool.splice(pool.indexOf(uid), 1);
+      }
       break;
     }
     case "APPLY_STATUS": {
@@ -299,6 +349,22 @@ function applyEffect(
         break;
       }
       const amountToMark = Math.max(0, Math.floor(effect.amount ?? 0));
+      if (effect.markPick === "handHighestCostRandom") {
+        const candidates = state.hand
+          .map((uid) => state.cards[uid])
+          .filter((card) => card != null);
+        const highestCost = Math.max(...candidates.map((card) => cardCost(state, card)), -Infinity);
+        const highest = candidates.filter((card) => cardCost(state, card) === highestCost);
+        const card = highest.length > 0 ? rngPick(state, highest) : undefined;
+        if (card) {
+          card.marks ??= [];
+          if (!card.marks.includes(effect.mark)) {
+            card.marks.push(effect.mark);
+            ops.log(state, `${card.name} 被标记为${CARD_MARK_DEFS[effect.mark]?.name ?? effect.mark}`);
+          }
+        }
+        break;
+      }
       const pool = state.hand.filter((uid) => {
         const card = state.cards[uid];
         return card && (effect.markPick !== "handRandomNonStarPay" || !starPayable(card));

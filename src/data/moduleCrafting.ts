@@ -27,6 +27,51 @@ export const MODULE_RECIPES: ModuleRecipe[] = [
       { itemId: "logic-cube", count: 2 },
     ],
   },
+  {
+    itemId: "gap-module",
+    charId: "prophet",
+    exp: 200,
+    materials: [
+      { itemId: "standard-gear", count: 3 },
+      { itemId: "logic-cube", count: 2 },
+    ],
+  },
+  {
+    itemId: "satellite-module",
+    charId: "prophet",
+    exp: 200,
+    materials: [
+      { itemId: "light-guide-film", count: 2 },
+      { itemId: "standard-battery", count: 3 },
+    ],
+  },
+  {
+    itemId: "starloan-module",
+    charId: "prophet",
+    exp: 200,
+    materials: [
+      { itemId: "identification-prism", count: 2 },
+      { itemId: "logic-cube", count: 3 },
+    ],
+  },
+  {
+    itemId: "aim-module",
+    charId: "botanist",
+    exp: 200,
+    materials: [
+      { itemId: "light-guide-film", count: 3 },
+      { itemId: "identification-prism", count: 2 },
+    ],
+  },
+  {
+    itemId: "ripen-module",
+    charId: "botanist",
+    exp: 200,
+    materials: [
+      { itemId: "packaging-gel", count: 3 },
+      { itemId: "standard-battery", count: 2 },
+    ],
+  },
 ];
 
 export function recipesOfCharacter(charId: string): ModuleRecipe[] {
