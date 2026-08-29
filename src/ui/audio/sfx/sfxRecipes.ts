@@ -30,6 +30,14 @@ export const SFX_RECIPES: Partial<Record<SfxId, SfxRecipe>> = {
       { kind: "noise", durationMs: 115, gain: 0.045, filter: { type: "bandpass", frequency: 900, endFrequency: 2600, q: 1.1 } },
     ],
   },
+  slash: {
+    layers: [
+      { kind: "noise", durationMs: 105, gain: 0.095, attackMs: 1, releaseMs: 82, filter: { type: "bandpass", frequency: 2800, endFrequency: 7600, q: 1.6 } },
+      { kind: "sweep", waveform: "triangle", from: 6800, to: 2100, durationMs: 76, gain: 0.055, attackMs: 1, releaseMs: 58 },
+      { kind: "tone", waveform: "sine", frequency: 5400, endFrequency: 2900, durationMs: 58, gain: 0.032, delayMs: 14, attackMs: 1, releaseMs: 44 },
+    ],
+    throttleMs: 90,
+  },
   victory: {
     layers: [
       { kind: "tone", waveform: "sine", frequency: 523, durationMs: 180, gain: 0.12, releaseMs: 100 },

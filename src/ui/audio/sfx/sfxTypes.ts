@@ -10,6 +10,7 @@ export const SFX_IDS = [
   "cardDraw",
   "heal",
   "hit",
+  "slash",
   "victory",
   "defeat",
   "death",

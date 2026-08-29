@@ -1,5 +1,6 @@
 import type { SfxId } from "./sfxTypes";
 import buttonClick from "../../../assets/sounds/音效/点击.mp3";
+import bladeSlashSound from "../../../assets/sounds/音效/锐利刀锋.wav";
 import healSound from "../../../assets/sounds/音效/治疗.mp3";
 import panelOpen from "../../../assets/sounds/音效/弹出弹窗.wav";
 import cardSlash from "../../../assets/sounds/音效/单次斩击.ogg";
@@ -13,6 +14,9 @@ export interface SfxSample {
   srcs: readonly string[];
   gain: number;
   throttleMs?: number;
+  offsetMs?: number;
+  durationMs?: number;
+  fadeOutMs?: number;
 }
 
 export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
@@ -22,6 +26,7 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   cardPlay: { srcs: [cardSlash], gain: 0.42 },
   heal: { srcs: [healSound], gain: 0.42 },
   hit: { srcs: [hitSound], gain: 0.42 },
+  slash: { srcs: [bladeSlashSound], gain: 0.48, durationMs: 310, fadeOutMs: 70, throttleMs: 340 },
   death: { srcs: [deathSound], gain: 0.46, throttleMs: 120 },
   pickup: { srcs: [pickupSound], gain: 0.38 },
   pickupAll: { srcs: [pickupAllSound], gain: 0.44 },
@@ -87,13 +92,26 @@ export function playSample(
   const gain = context.createGain();
   source.buffer = buffer;
   source.playbackRate.value = pitchScale;
-  gain.gain.value = sample.gain * gainScale;
+  const startOffset = Math.min(Math.max(0, sample.offsetMs ?? 0) / 1000, buffer.duration);
+  const maxDuration = Math.max(0, buffer.duration - startOffset);
+  const clipDuration = Math.min((sample.durationMs ?? maxDuration * 1000) / 1000, maxDuration);
+  const outputDuration = clipDuration / Math.max(pitchScale, 0.01);
+  const gainValue = sample.gain * gainScale;
+  const fadeOut = Math.min((sample.fadeOutMs ?? 0) / 1000, outputDuration * 0.45);
+  const startAt = context.currentTime;
+
+  gain.gain.setValueAtTime(gainValue, startAt);
+  if (fadeOut > 0) {
+    gain.gain.setValueAtTime(gainValue, startAt + outputDuration - fadeOut);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + outputDuration);
+  }
   source.connect(gain);
   gain.connect(destination);
-  source.start();
+  source.start(startAt, startOffset, clipDuration);
 }
 
 export function sampleDurationMs(sample: SfxSample): number {
+  if (sample.durationMs !== undefined) return Math.max(100, sample.durationMs);
   const knownDurations = sample.srcs
     .map((src) => decodedSamples.get(src)?.duration ?? 0)
     .filter((duration) => duration > 0);

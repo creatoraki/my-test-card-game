@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import type { TransitionOrigin } from "@/ui/app/transitionOrigin";
 import {
   BATTLE_CRACK_DRAW_MS,
@@ -252,7 +252,7 @@ function tracePolygon(ctx: CanvasRenderingContext2D, poly: Point[]): void {
 function CrackCanvas({ phase, origin }: { phase: Props["phase"]; origin: TransitionOrigin | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
 	    if (phase !== "exit") return;
 	    playSfx("shatter");
 	    const rippleTimer = window.setTimeout(() => playSfx("ripple"), BATTLE_RIPPLE_START_MS);

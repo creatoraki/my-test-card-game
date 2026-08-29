@@ -1,0 +1,260 @@
+.root {
+  --lime: #d6f238;
+  --mist: #8ba19b;
+  --ink: #070c0e;
+  --panel: #111a1c;
+  width: min(100%, 940px);
+  overflow: hidden;
+  border: 1px solid #405257;
+  background:
+    linear-gradient(90deg, #d6f23808 1px, transparent 1px),
+    linear-gradient(#d6f23808 1px, transparent 1px),
+    radial-gradient(circle at 78% 38%, #d6f23814, transparent 24%),
+    var(--ink);
+  background-size: 32px 32px, 32px 32px, auto, auto;
+  box-shadow: 0 24px 72px #000a;
+  color: #edf5ef;
+  animation: enter 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px 34px 24px;
+  border-bottom: 1px solid #304046;
+  background: #0b1214e8;
+}
+
+.kicker,
+.duration,
+.status span,
+.controls p {
+  margin: 0;
+  color: var(--mist);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.header h1 {
+  margin: 8px 0 6px;
+  color: #f6faed;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.description {
+  margin: 0;
+  color: #9aaba5;
+  font-size: 14px;
+}
+
+.duration {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid #4c604d;
+  color: var(--lime);
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  min-height: 300px;
+  place-items: center;
+  overflow: hidden;
+}
+
+.stage::before,
+.stage::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.stage::before {
+  width: 420px;
+  height: 420px;
+  border: 1px solid #d6f23822;
+  border-radius: 50%;
+  transform: perspective(420px) rotateX(62deg);
+}
+
+.stage::after {
+  width: 66%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d6f2386e, transparent);
+}
+
+.target {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 92px;
+  height: 92px;
+  place-items: center;
+  border: 1px solid #9db6a14d;
+  background: #0d1719;
+  box-shadow: 0 0 0 10px #d6f23808;
+  transform: rotate(45deg);
+}
+
+.targetCore {
+  width: 25px;
+  height: 25px;
+  border: 1px solid var(--lime);
+  background: #d6f2381c;
+  box-shadow: 0 0 20px #d6f23882;
+}
+
+.targetLine {
+  position: absolute;
+  width: 125%;
+  height: 1px;
+  background: #d6f23838;
+  transform: rotate(-45deg);
+}
+
+.targetLine:last-child {
+  transform: rotate(45deg);
+}
+
+.fxFrame {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  pointer-events: none;
+  transform: scale(0.54);
+  transform-origin: center;
+}
+
+.root[data-playback="最终爆发"] .target {
+  border-color: #f7ffe5;
+  box-shadow: 0 0 0 18px #d6f23816, 0 0 44px #d6f238;
+  animation: impact 190ms ease-out both;
+}
+
+.status {
+  position: absolute;
+  right: 24px;
+  bottom: 20px;
+  display: grid;
+  gap: 4px;
+  min-width: 92px;
+  padding-left: 11px;
+  border-left: 2px solid #4a5b57;
+}
+
+.status strong {
+  color: var(--lime);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 34px;
+  border-top: 1px solid #304046;
+  background: var(--panel);
+}
+
+.playButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid #d6f238;
+  background: #d6f238;
+  color: #10170b;
+  font-weight: 800;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.playButton:hover:not(:disabled) {
+  background: #efffb1;
+  transform: translateY(-2px);
+}
+
+.playButton:disabled {
+  border-color: #5d6f52;
+  background: #35402d;
+  color: #a5b19a;
+  cursor: wait;
+}
+
+.playButton:focus-visible {
+  outline: 2px solid #f5ffe1;
+  outline-offset: 3px;
+}
+
+.playIcon {
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid currentColor;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes impact {
+  0% {
+    transform: rotate(45deg) scale(1);
+  }
+
+  35% {
+    transform: rotate(45deg) scale(1.14);
+  }
+
+  100% {
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+@media (max-width: 620px) {
+  .header,
+  .controls {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stage {
+    min-height: 260px;
+  }
+
+  .controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .status {
+    right: 18px;
+    bottom: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root[data-playback="最终爆发"] .target {
+    animation: none;
+  }
+}
