@@ -27,6 +27,8 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   heal: { srcs: [healSound], gain: 0.42 },
   hit: { srcs: [hitSound], gain: 0.42 },
   slash: { srcs: [bladeSlashSound], gain: 0.48, durationMs: 310, fadeOutMs: 70, throttleMs: 340 },
+  // keenEdge: 同一条采样放到 2450ms —— 用上 470ms 的撞击峰与其后的金属余鸣(opus demo 用)。
+  keenEdge: { srcs: [bladeSlashSound], gain: 0.5, durationMs: 2450, fadeOutMs: 350, throttleMs: 400 },
   death: { srcs: [deathSound], gain: 0.46, throttleMs: 120 },
   pickup: { srcs: [pickupSound], gain: 0.38 },
   pickupAll: { srcs: [pickupAllSound], gain: 0.44 },

@@ -1,0 +1,353 @@
+/* 锐利刀锋斩(keen-edge)。所有时间由 KeenEdgeFx.tsx 通过 delay/duration 下发,
+   这里只放外观与关键帧。外层旋转后, 内部几何一律沿 X 轴布置。
+
+   配色: 冷蓝白锐化版 —— 刃芯纯白, 外沿冷蓝, 余鸣期偏冷白, 不掺暖色。 */
+
+.wrap {
+  --keen-len: 900px;
+  --keen-core: #ffffff;
+  --keen-edge: #bfe4ff;
+  --keen-deep: #4a9ce6;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--keen-len);
+  height: var(--keen-len);
+  transform: translate(-50%, -50%) rotate(-58deg);
+  transform-origin: center;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.tell,
+.scar,
+.core,
+.shock,
+.blade,
+.ghost1,
+.ghost2,
+.mote,
+.spark,
+.wound,
+.ripple,
+.resonance,
+.dust {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ── 起势层: 对应音效 0–190ms 的低幅起势 ────────────────────────────── */
+
+.tell {
+  left: 50%;
+  top: 50%;
+  width: var(--keen-len);
+  height: 2px;
+  transform: translate(-50%, -50%) scaleX(0.2);
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, #7fc4ff66 24%, #cfeaffb3 50%, #7fc4ff66 76%, transparent);
+  opacity: 0;
+  z-index: 2;
+  animation-name: keenTellIn, keenTellOut;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.25, 0.7, 0.3, 1), ease-out;
+}
+
+.mote {
+  left: 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--keen-core) 0%, var(--keen-edge) 42%, #4a9ce666 70%, transparent 80%);
+  box-shadow: 0 0 6px 2px #cfeaffcc, 0 0 14px 4px #4a9ce680;
+  transform: translate(-50%, -50%) translateX(var(--mote-start, 0px));
+  opacity: 0;
+  z-index: 6;
+  animation-name: keenMoteConverge;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.5, 0.02, 0.28, 1);
+}
+
+/* ── 刀身层: 对应音效 190–430ms 的加速段 ────────────────────────────── */
+
+.blade,
+.ghost1,
+.ghost2 {
+  left: 50%;
+  top: 50%;
+  width: var(--keen-len);
+  height: 11px;
+  transform: translate(-50%, -50%) translateX(-900px);
+  transform-origin: center;
+  /* 比 blade-slash 更尖的柳叶形: 前后各收 6%, 中段更薄, 读起来更「锐」。 */
+  clip-path: polygon(0% 50%, 6% 8%, 94% 8%, 100% 50%, 94% 92%, 6% 92%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #bfe4ff80 3%,
+    var(--keen-core) 16%,
+    var(--keen-core) 84%,
+    #bfe4ff80 97%,
+    transparent
+  );
+  box-shadow: 0 0 3px 1px #ffffffee, 0 0 10px 2px #bfe4ffcc, 0 0 24px 5px #4a9ce68c, 0 0 48px 11px #2a6db44d;
+  opacity: 0;
+  z-index: 8;
+}
+
+.blade {
+  animation-name: keenSwipe;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.62, 0.02, 0.2, 1);
+}
+
+.ghost1 {
+  height: 8px;
+  filter: blur(1px) brightness(1.35) saturate(1.2);
+  z-index: 7;
+  animation-name: keenSwipeGhost1;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.62, 0.02, 0.2, 1);
+}
+
+.ghost2 {
+  height: 6px;
+  filter: blur(2.4px) brightness(1.5) saturate(1.35);
+  z-index: 7;
+  animation-name: keenSwipeGhost2;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.62, 0.02, 0.2, 1);
+}
+
+.scar {
+  left: 50%;
+  top: 50%;
+  width: var(--keen-len);
+  height: 4px;
+  transform: translate(-50%, -50%) scaleX(0);
+  transform-origin: left center;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #7fc4ff33, #bfe4ffb3 28%, #fffffff2 50%, #bfe4ffb3 72%, #7fc4ff33);
+  box-shadow: 0 0 5px 2px #a6d8ff80, 0 0 14px 4px #4a9ce659, 0 0 34px 9px #2a6db433;
+  opacity: 0;
+  z-index: 4;
+  animation-name: keenScarUnfurl, keenScarDissolve;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.72, 0.18, 1), ease-in;
+}
+
+/* ── 爆点层: 对应音效 430–570ms 的撞击峰 ────────────────────────────── */
+
+.core {
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--keen-core) 0%, #d8eeff 34%, #4a9ce680 64%, transparent 76%);
+  box-shadow: 0 0 14px 5px #cfeaffdd, 0 0 38px 13px #4a9ce673, 0 0 78px 28px #2a6db440;
+  opacity: 0;
+  z-index: 9;
+  animation-name: keenCoreCharge, keenCoreBurst;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.5, 1), cubic-bezier(0.12, 0.72, 0.28, 1);
+}
+
+.shock {
+  left: 50%;
+  top: 50%;
+  width: var(--keen-len);
+  height: 210px;
+  transform: translate(-50%, -50%) scaleX(0) scaleY(0.35);
+  border: 2px solid #bfe4ffb3;
+  border-radius: 50%;
+  box-shadow: 0 0 9px 3px #a6d8ff80, 0 0 30px 9px #4a9ce64d;
+  opacity: 0;
+  z-index: 9;
+  animation-name: keenShock;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.08, 0.55, 0.2, 1);
+}
+
+.spark {
+  top: 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--keen-core) 0%, var(--keen-edge) 48%, #4a9ce666 72%, transparent 82%);
+  box-shadow: 0 0 5px 2px #d8eeffe6, 0 0 14px 4px #6fb4f080;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  z-index: 10;
+  animation-name: keenSpark;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.14, 0.72, 0.25, 1);
+}
+
+.wound {
+  top: 50%;
+  height: 2px;
+  transform: translate(-50%, -50%) rotate(90deg) scaleX(0);
+  transform-origin: center;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, #ffffffe6 42%, #bfe4ffcc 62%, transparent);
+  box-shadow: 0 0 6px 2px #bfe4ff99;
+  opacity: 0;
+  z-index: 10;
+  animation-name: keenWound;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+/* ── 余鸣层: 对应音效 570–1400ms 的金属颤鸣 ─────────────────────────── */
+
+.resonance {
+  height: 1px;
+  transform: translate(-50%, -50%);
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, #e6f4ffcc 46%, #bfe4ff99 66%, transparent);
+  filter: blur(0.4px);
+  opacity: 0;
+  z-index: 5;
+  animation-name: keenResonance;
+  animation-fill-mode: forwards;
+  animation-timing-function: linear;
+}
+
+.ripple {
+  left: 50%;
+  top: 50%;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%) scale(0.2);
+  border: 1px solid #cfeaff73;
+  border-radius: 50%;
+  box-shadow: inset 0 0 12px 2px #4a9ce633;
+  opacity: 0;
+  z-index: 3;
+  animation-name: keenRipple;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.12, 0.6, 0.25, 1);
+}
+
+/* ── 衰减层: 对应音效 1400–2450ms 的缓降与消散 ──────────────────────── */
+
+.dust {
+  border-radius: 50%;
+  background: radial-gradient(circle, #eaf6ff 0%, #a6d8ff 50%, transparent 78%);
+  box-shadow: 0 0 5px 1px #bfe4ff66;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  z-index: 5;
+  animation-name: keenDustFall;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.3, 0.1, 0.5, 1);
+}
+
+/* ── 关键帧 ─────────────────────────────────────────────────────────── */
+
+@keyframes keenTellIn {
+  0% { opacity: 0; transform: translate(-50%, -50%) scaleX(0.15); }
+  100% { opacity: 0.55; transform: translate(-50%, -50%) scaleX(1); }
+}
+
+@keyframes keenTellOut {
+  0% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+@keyframes keenMoteConverge {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateX(var(--mote-start, 0px)) scale(0.5); }
+  30% { opacity: 0.9; }
+  85% { opacity: 1; transform: translate(-50%, -50%) translateX(0) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateX(0) scale(0.4); }
+}
+
+@keyframes keenSwipe {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateX(-880px) scaleX(0.35); }
+  10% { opacity: 1; }
+  55% { transform: translate(-50%, -50%) translateX(0) scaleX(1); }
+  82% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateX(760px) scaleX(0.5); }
+}
+
+@keyframes keenSwipeGhost1 {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateX(-880px) scaleX(0.4); }
+  14% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateX(700px) scaleX(0.6); }
+}
+
+@keyframes keenSwipeGhost2 {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateX(-880px) scaleX(0.45); }
+  18% { opacity: 0.45; }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateX(640px) scaleX(0.7); }
+}
+
+@keyframes keenScarUnfurl {
+  0% { opacity: 0; transform: translate(-50%, -50%) scaleX(0); }
+  20% { opacity: 1; }
+  100% { opacity: 0.9; transform: translate(-50%, -50%) scaleX(1); }
+}
+
+@keyframes keenScarDissolve {
+  0% { opacity: 0.9; filter: blur(0); }
+  100% { opacity: 0; filter: blur(3px); }
+}
+
+@keyframes keenCoreCharge {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+  55% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.7); }
+  100% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes keenCoreBurst {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(4.6); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(7.4); }
+}
+
+@keyframes keenShock {
+  0% { opacity: 0.85; transform: translate(-50%, -50%) scaleX(0.1) scaleY(0.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(1.15) scaleY(1); }
+}
+
+@keyframes keenSpark {
+  0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.4); }
+  12% { opacity: 1; transform: translate(-50%, -50%) translate(calc(var(--spark-dx) * 0.3), calc(var(--spark-dy) * 0.3)) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx), var(--spark-dy)) scale(0.25); }
+}
+
+@keyframes keenWound {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(90deg) scaleX(0); }
+  18% { opacity: 1; transform: translate(-50%, -50%) rotate(90deg) scaleX(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(90deg) scaleX(0.85); }
+}
+
+/* 颤鸣: 高频明暗抖动 + 纵向 1px 微颤, 幅度整体缓降 —— 与声音的嗡鸣同步。 */
+@keyframes keenResonance {
+  0% { opacity: 0; transform: translate(-50%, -50%) scaleX(0.6); }
+  8% { opacity: 0.85; transform: translate(-50%, -52%) scaleX(1); }
+  16% { opacity: 0.35; transform: translate(-50%, -48%) scaleX(0.94); }
+  26% { opacity: 0.8; transform: translate(-50%, -51%) scaleX(1); }
+  36% { opacity: 0.3; transform: translate(-50%, -49%) scaleX(0.92); }
+  48% { opacity: 0.68; transform: translate(-50%, -51%) scaleX(0.98); }
+  60% { opacity: 0.26; transform: translate(-50%, -49%) scaleX(0.9); }
+  74% { opacity: 0.45; transform: translate(-50%, -50%) scaleX(0.94); }
+  88% { opacity: 0.16; transform: translate(-50%, -50%) scaleX(0.88); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(0.8); }
+}
+
+@keyframes keenRipple {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  18% { opacity: 0.5; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(calc(2.1 * var(--ripple-scale, 1))); }
+}
+
+@keyframes keenDustFall {
+  0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.6); }
+  18% { opacity: 0.7; transform: translate(-50%, -50%) translate(calc(var(--dust-drift) * 0.35), 14px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--dust-drift), 68px) scale(0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrap {
+    display: none;
+  }
+}

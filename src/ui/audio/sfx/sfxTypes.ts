@@ -11,6 +11,7 @@ export const SFX_IDS = [
   "heal",
   "hit",
   "slash",
+  "keenEdge",
   "victory",
   "defeat",
   "death",

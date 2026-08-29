@@ -9,3 +9,5 @@ export { OpusCultivationIconDemo } from "./OpusCultivationIconDemo/index";
 export { CultivatingSigil, CultivatedSigil } from "./CultivationSigil/index";
 export { KeenEmblem, WardEmblem, InsightEmblem } from "./CombatEmblem/index";
 export { OpusGrowthPlateDemo } from "./OpusGrowthPlateDemo/index";
+export { OpusKeenEdgeDemo } from "./OpusKeenEdgeDemo/index";
+export { KeenEdgeFx } from "./KeenEdgeFx/index";
