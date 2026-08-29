@@ -101,13 +101,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
     name: "过载",
     emoji: "☢️",
     kind: "buff",
-    desc: `每层: 造成的攻击伤害 +${RULES.combat.overloadDamagePerStack * 100}%, 闪避 +${RULES.combat.overloadDodgePerStack}%。持续存在。`,
-    hooks: {
-      modifyOutgoingDamage: (c: StatusCtx, dmg: DamageCtx) => {
-        if (dmg.isAttack)
-          dmg.amount *= 1 + RULES.combat.overloadDamagePerStack * c.inst.stacks;
-      },
-    },
+    desc: `每层: 闪避 +${RULES.combat.overloadDodgePerStack}%。持续存在。`,
   },
   sharp: {
     id: "sharp",
