@@ -20,6 +20,7 @@ import { STAT_LABEL } from "@/ui/common/item/ItemDetail";
 import { BondIcon } from "@/ui/common/BondIcon";
 import { itemIcon } from "@/ui/art/itemArt";
 import { cx } from "@/ui/common/cx";
+import { isPercentStat } from "@/ui/common/statGroups";
 import s from "./ShopItemCard.module.css";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
@@ -46,8 +47,18 @@ export default function ShopItemCard({
   for (const k of STAT_KEYS) {
     const flat = mods?.flat?.[k];
     const pct = mods?.pct?.[k];
-    if (flat) rows.push({ label: STAT_LABEL[k] ?? k, value: signed(flat), good: flat > 0 });
-    if (pct) rows.push({ label: `${STAT_LABEL[k] ?? k}(%)`, value: signed(pct), good: pct > 0 });
+    if (flat)
+      rows.push({
+        label: STAT_LABEL[k] ?? k,
+        value: `${signed(flat)}${isPercentStat(k) ? "%" : ""}`,
+        good: flat > 0,
+      });
+    if (pct)
+      rows.push({
+        label: STAT_LABEL[k] ?? k,
+        value: `${signed(pct)}${isPercentStat(k) ? "%" : ""}`,
+        good: pct > 0,
+      });
   }
 
   return (

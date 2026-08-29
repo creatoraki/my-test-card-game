@@ -14,14 +14,12 @@ import type { ItemCategory, ItemDef } from "@/items/types";
 import { ModuleGlyph, hasModuleGlyph } from "./moduleGlyphs";
 import deflectionBladeArt from "@/assets/道具/装备/武器/太刀.png";
 import crossSwordArt from "@/assets/道具/装备/武器/盾斧.png";
-import dawnSaberArt from "@/assets/道具/装备/武器/军刀.png";
 import huntingRifleArt from "@/assets/道具/装备/武器/狙击枪.png";
 import glassDaggerArt from "@/assets/道具/装备/武器/匕首.png";
 import armorPiercingCrossbowArt from "@/assets/道具/装备/武器/弩.png";
 import quickstrikeGauntletArt from "@/assets/道具/装备/武器/拳套.png";
 import hunterLongbowArt from "@/assets/道具/装备/武器/弓箭.png";
 import heavyCannonArt from "@/assets/道具/装备/武器/火炮.png";
-import shockMaulArt from "@/assets/道具/装备/武器/锤子.png";
 import cityDefenseHeavyArmorArt from "@/assets/道具/装备/防具/城防重甲.png";
 import compositeArmorArt from "@/assets/道具/装备/防具/复合护甲.png";
 import guardPlateArt from "@/assets/道具/装备/防具/护卫板甲.png";
@@ -176,11 +174,9 @@ const BY_CATEGORY: Record<ItemCategory, string> = {
 };
 
 const EQUIPMENT_ART: Record<string, string> = {
-  "dawn-saber": dawnSaberArt,
   "armor-piercing-crossbow": armorPiercingCrossbowArt,
   "hunting-rifle": huntingRifleArt,
   "quickstrike-gauntlet": quickstrikeGauntletArt,
-  "shock-maul": shockMaulArt,
   "cross-sword": crossSwordArt,
   "glass-dagger": glassDaggerArt,
   "heavy-cannon": heavyCannonArt,

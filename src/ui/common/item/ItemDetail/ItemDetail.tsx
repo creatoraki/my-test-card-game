@@ -11,6 +11,7 @@ import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { BondIcon } from "@/ui/common/BondIcon";
 import { cx } from "@/ui/common/cx";
 import { itemIcon } from "@/ui/art/itemArt";
+import { isPercentStat } from "@/ui/common/statGroups";
 import s from "./ItemDetail.module.css";
 
 // 属性中文名。⚠ 与 CryoScene 的队员档案是同一套口径, 改名要一起改。
@@ -20,6 +21,7 @@ export const STAT_LABEL: Partial<Record<keyof StatBlock, string>> = {
   attack: "攻击力",
   healPower: "治愈力",
   defense: "防御力",
+  armorPen: "穿甲",
   hitRate: "命中率",
   dodgeRate: "闪避率",
   critRate: "暴击率",
@@ -66,8 +68,18 @@ export default function ItemDetail({
   for (const k of STAT_KEYS) {
     const flat = mods?.flat?.[k];
     const pct = mods?.pct?.[k];
-    if (flat) rows.push({ label: STAT_LABEL[k] ?? k, value: signed(flat), good: flat > 0 });
-    if (pct) rows.push({ label: `${STAT_LABEL[k] ?? k}(%)`, value: signed(pct), good: pct > 0 });
+    if (flat)
+      rows.push({
+        label: STAT_LABEL[k] ?? k,
+        value: `${signed(flat)}${isPercentStat(k) ? "%" : ""}`,
+        good: flat > 0,
+      });
+    if (pct)
+      rows.push({
+        label: STAT_LABEL[k] ?? k,
+        value: `${signed(pct)}${isPercentStat(k) ? "%" : ""}`,
+        good: pct > 0,
+      });
   }
 
   return (

@@ -27,6 +27,7 @@ export const STAT_GROUPS: StatGroup[] = [
       { key: "maxHp", label: "生命", ref: 120 },
       { key: "attack", label: "攻击力", ref: 30 },
       { key: "defense", label: "防御力", ref: 30 },
+      { key: "armorPen", label: "穿甲", ref: 20 },
       { key: "healPower", label: "治愈力", ref: 30 },
     ],
   },
@@ -53,6 +54,11 @@ export const STAT_GROUPS: StatGroup[] = [
     wide: true,
   },
 ];
+
+/** 从属性分组的展示标记推导单位，避免各个详情组件维护重复清单。 */
+export function isPercentStat(key: keyof StatBlock): boolean {
+  return STAT_GROUPS.some((group) => group.rows.some((row) => row.key === key && row.pct === true));
+}
 
 /** pct 项没写 ref 时的铺满值。 */
 export const REF_DEFAULT_PCT = 100;

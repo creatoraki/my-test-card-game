@@ -65,6 +65,18 @@ describe("属性口径", () => {
     expect(defenseMultiplier(b.combatants["swordsman"])).toBeCloseTo(1 - 10 / 40, 6);
   });
 
+  it("穿甲抵扣目标防御且不产生负防御", () => {
+    const b = battleWith("swordsman-basic-attack");
+    const attacker = b.combatants[b.enemyIds[0]];
+    const defender = b.combatants["swordsman"];
+
+    attacker.mods = { flat: { armorPen: 6 } };
+    expect(defenseMultiplier(defender, attacker)).toBeCloseTo(1 - 4 / 34, 6);
+
+    attacker.mods = { flat: { armorPen: 99 } };
+    expect(defenseMultiplier(defender, attacker)).toBe(1);
+  });
+
   it("命中率截断在 5%~100% 之间", () => {
     const b = battleWith("swordsman-basic-attack");
     const sw = b.combatants["swordsman"];
@@ -127,8 +139,7 @@ describe("属性口径", () => {
         RULES.combat.hitFloorPct,
         RULES.combat.baseHitChance +
           statOf(pollutedAlly, "hitRate") +
-          statOf(pollutedAlly, "precision") -
-          RULES.combat.probCapPct,
+          -RULES.combat.probCapPct,
       ),
     );
   });

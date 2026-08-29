@@ -52,9 +52,9 @@ export const ENEMIES: EnemyDef[] = [
     id: "scrap-bot",
     name: "废品机器人",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 62,
+    maxHp: 47,
     exp: 28,
-    stats: { attack: 16, defense: 2, initiative: 14, critDamage: 150 },
+    stats: { attack: 16, defense: 12, initiative: 14, critDamage: 150 },
     moves: [
       {
         id: "scrap-crush",
@@ -129,9 +129,9 @@ export const ENEMIES: EnemyDef[] = [
     id: "pole-bot",
     name: "电线杆机器人",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 70,
+    maxHp: 62,
     exp: 32,
-    stats: { attack: 17, defense: 3, initiative: 20, critDamage: 150 },
+    stats: { attack: 17, defense: 7, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "pole-smash",
@@ -207,9 +207,9 @@ export const ENEMIES: EnemyDef[] = [
     id: "radio-bot",
     name: "收音机机器人",
     emoji: "📻", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 42,
+    maxHp: 41,
     exp: 11,
-    stats: { attack: 12, defense: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 12, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "radio-peck",
@@ -269,9 +269,9 @@ export const ENEMIES: EnemyDef[] = [
     id: "sweep-drone",
     name: "清扫无人机",
     emoji: "🛸", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 48,
+    maxHp: 38,
     exp: 12,
-    stats: { attack: 12, defense: 0, initiative: 25, critDamage: 150 },
+    stats: { attack: 12, defense: 0, dodgeRate: 20, initiative: 25, critDamage: 150 },
     moves: [
       {
         id: "sweep-bump",
@@ -329,9 +329,9 @@ export const ENEMIES: EnemyDef[] = [
     id: "maintenance-spider",
     name: "维修蜘蛛",
     emoji: "🕷️", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 46,
+    maxHp: 39,
     exp: 12,
-    stats: { attack: 12, defense: 1, initiative: 22, critDamage: 150 },
+    stats: { attack: 12, defense: 2, dodgeRate: 12, initiative: 22, critDamage: 150 },
     moves: [
       {
         id: "spider-bite",
@@ -392,11 +392,11 @@ export const ENEMIES: EnemyDef[] = [
     id: "traffic-light-bot",
     name: "红绿灯机器人",
     emoji: "🚦", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 52,
+    maxHp: 43,
     exp: 14,
     // 控制 + 骚扰半输出位: 三招都带负面效果, 同时保留稳定的伤害压力。
     // 威胁来自易伤放大同场输出、眩晕打断节奏、沉重标记堵手牌与自身伤害。
-    stats: { attack: 13, defense: 0, initiative: 18, critDamage: 150 },
+    stats: { attack: 13, defense: 6, initiative: 18, critDamage: 150 },
     moves: [
       {
         id: "signal-yellow",
@@ -466,10 +466,10 @@ export const ENEMIES: EnemyDef[] = [
     id: "scrap-mountain-guardian",
     name: "垃圾山的守护者",
     emoji: "🤖", // 兜底: ui/enemyArt.ts 未登记立绘时才会显示
-    maxHp: 150,
+    maxHp: 114,
     exp: 80,
     actsPerRound: 2,
-    stats: { attack: 18, defense: 2, initiative: 20, critDamage: 150 },
+    stats: { attack: 18, defense: 12, initiative: 20, critDamage: 150 },
     ai: {
       openingMoveId: "guardian-recycle",
       recycleMoveId: "guardian-recycle",

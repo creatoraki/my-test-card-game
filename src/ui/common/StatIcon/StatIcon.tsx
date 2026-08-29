@@ -22,6 +22,12 @@ const ICONS: Partial<Record<keyof StatBlock, () => ReactNode>> = {
   defense: () => (
     <path d="M24 42S9 35 9 21V11l15-5 15 5v10c0 14-15 21-15 21Z" strokeWidth={1.8} />
   ),
+  armorPen: () => (
+    <>
+      <path d="M24 41S11 34 11 22V12l13-5 13 5v10c0 12-13 19-13 19Z" strokeWidth={1.8} />
+      <path d="M7 24h27M28 17l8 7-8 7" strokeWidth={1.8} />
+    </>
+  ),
   healPower: () => (
     <>
       <path d="M18 8h12M18 40h12M16 12h16v24H16Z" strokeWidth={1.8} />

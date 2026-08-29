@@ -3,27 +3,15 @@ import { withBuyValue } from "./pricing";
 
 const DEFS: ItemDef[] = [
   {
-    id: "dawn-saber",
-    name: "军刀",
-    category: "equipment",
-    rarity: "common",
-    desc: "普通级武器模板：提高攻击力与命中率。",
-    maxStack: 1,
-    slot: "weapon",
-    familyId: "dawn-saber",
-    mods: { flat: { attack: 2 }, pct: { hitRate: 6 } },
-    icon: "weapon",
-  },
-  {
     id: "armor-piercing-crossbow",
-    name: "弩",
+    name: "穿甲弩",
     category: "equipment",
     rarity: "common",
-    desc: "普通级武器模板：提高攻击力与精准。",
+    desc: "普通级武器模板：提高攻击力、命中率与穿甲。",
     maxStack: 1,
     slot: "weapon",
     familyId: "armor-piercing-crossbow",
-    mods: { flat: { attack: 2 }, pct: { precision: 8 } },
+    mods: { flat: { attack: 1, hitRate: 3, armorPen: 6 } },
     icon: "weapon",
   },
   {
@@ -35,7 +23,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "weapon",
     familyId: "hunting-rifle",
-    mods: { flat: { attack: 1 }, pct: { critRate: 8, critDamage: 35 } },
+    mods: { flat: { attack: 1, critRate: 10, critDamage: 35 } },
     icon: "weapon",
   },
   {
@@ -51,18 +39,6 @@ const DEFS: ItemDef[] = [
     icon: "weapon",
   },
   {
-    id: "shock-maul",
-    name: "锤子",
-    category: "equipment",
-    rarity: "common",
-    desc: "普通级武器模板：提高攻击力与爆伤。",
-    maxStack: 1,
-    slot: "weapon",
-    familyId: "shock-maul",
-    mods: { flat: { attack: 2 }, pct: { critDamage: 50 } },
-    icon: "weapon",
-  },
-  {
     id: "cross-sword",
     name: "盾斧",
     category: "equipment",
@@ -71,7 +47,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "weapon",
     familyId: "cross-sword",
-    mods: { flat: { maxHp: 12, attack: 4, initiative: -5 } },
+    mods: { flat: { maxHp: 30, attack: 3, initiative: -5 } },
     icon: "weapon",
   },
   {
@@ -83,7 +59,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "weapon",
     familyId: "glass-dagger",
-    mods: { flat: { maxHp: -25, defense: -4, attack: 2 }, pct: { critRate: 12, critDamage: 30 } },
+    mods: { flat: { maxHp: -25, defense: -4, attack: 2, critRate: 12, critDamage: 30 } },
     icon: "weapon",
   },
   {
@@ -91,11 +67,11 @@ const DEFS: ItemDef[] = [
     name: "火炮",
     category: "equipment",
     rarity: "common",
-    desc: "普通级极端武器模板：提高攻击力和爆伤，但降低命中率与先手。",
+    desc: "普通级极端武器模板：提高攻击力、暴击率与爆伤，但降低命中率与先手。",
     maxStack: 1,
     slot: "weapon",
     familyId: "heavy-cannon",
-    mods: { flat: { attack: 5, initiative: -2 }, pct: { critDamage: 30, hitRate: -10 } },
+    mods: { flat: { attack: 4, critRate: 12, critDamage: 40, hitRate: -10, initiative: -2 } },
     icon: "weapon",
   },
   {
@@ -103,11 +79,11 @@ const DEFS: ItemDef[] = [
     name: "弓箭",
     category: "equipment",
     rarity: "common",
-    desc: "普通级极端武器模板：提高精准、暴击率与攻击力，但降低防御力与最大生命值。",
+    desc: "普通级固定武器模板：提高攻击力、暴击率与爆伤。",
     maxStack: 1,
     slot: "weapon",
     familyId: "hunter-longbow",
-    mods: { flat: { attack: 1, defense: -4, maxHp: -20 }, pct: { precision: 12, critRate: 8 } },
+    mods: { flat: { attack: 2, critRate: 3, critDamage: 50 } },
     icon: "weapon",
   },
   {
@@ -115,11 +91,11 @@ const DEFS: ItemDef[] = [
     name: "太刀",
     category: "equipment",
     rarity: "common",
-    desc: "普通级极端武器模板：提高攻击力、闪避率与格挡率，但降低最大生命值与命中率。",
+    desc: "普通级固定武器模板：提高攻击力与命中率。",
     maxStack: 1,
     slot: "weapon",
     familyId: "deflection-blade",
-    mods: { flat: { attack: 2, maxHp: -20 }, pct: { dodgeRate: 6, blockRate: 4, hitRate: -6 } },
+    mods: { flat: { attack: 2, hitRate: 3 } },
     icon: "weapon",
   },
   {
@@ -155,7 +131,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "guard-plate",
-    mods: { flat: { defense: 5 }, pct: { blockRate: 5 } },
+    mods: { flat: { defense: 5, blockRate: 5 } },
     icon: "armor",
   },
   {
@@ -167,7 +143,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "hazmat-suit",
-    mods: { flat: { defense: 2 }, pct: { ailmentResist: 10 } },
+    mods: { flat: { defense: 2, ailmentResist: 10 } },
     icon: "armor",
   },
   {
@@ -179,7 +155,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "mobile-armor",
-    mods: { flat: { defense: 2 }, pct: { dodgeRate: 5 } },
+    mods: { flat: { defense: 2, dodgeRate: 5 } },
     icon: "armor",
   },
   {
@@ -191,7 +167,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "buffer-coat",
-    mods: { flat: { defense: 3 }, pct: { shieldBoost: 8 } },
+    mods: { flat: { defense: 3, shieldBoost: 8 } },
     icon: "armor",
   },
   {
@@ -227,7 +203,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "fire-control-armor",
-    mods: { flat: { attack: 1, defense: 1 }, pct: { hitRate: 5 } },
+    mods: { flat: { attack: 1, defense: 1, hitRate: 5 } },
     icon: "armor",
   },
   {
@@ -239,7 +215,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "raider-light-armor",
-    mods: { flat: { attack: 1, defense: 1 }, pct: { critRate: 6 } },
+    mods: { flat: { attack: 1, defense: 1, critRate: 6 } },
     icon: "armor",
   },
   {
@@ -251,7 +227,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "tactical-goggles",
-    mods: { flat: { attack: 1 }, pct: { hitRate: 5, precision: 5 } },
+    mods: { flat: { attack: 1, hitRate: 5, precision: 5 } },
     icon: "trinket",
   },
   {
@@ -263,7 +239,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "polarized-core",
-    mods: { flat: { defense: 2, attack: 1 }, pct: { shieldBoost: 6 } },
+    mods: { flat: { defense: 2, attack: 1, shieldBoost: 6 } },
     icon: "trinket",
   },
   {
@@ -275,7 +251,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "quickstep-watch",
-    mods: { flat: { initiative: 2 }, pct: { dodgeRate: 5, critRate: 6 } },
+    mods: { flat: { initiative: 2, dodgeRate: 5, critRate: 6 } },
     icon: "trinket",
   },
   {
@@ -287,7 +263,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "medical-pendant",
-    mods: { flat: { healPower: 3, maxHp: 8 }, pct: { healBoost: 8 } },
+    mods: { flat: { healPower: 3, maxHp: 8, healBoost: 8 } },
     icon: "trinket",
   },
   {
@@ -299,7 +275,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "resource-chip",
-    mods: { flat: { handLimit: 1, drawCount: 1 }, pct: { burdenAdapt: 10 } },
+    mods: { flat: { handLimit: 1, drawCount: 1, burdenAdapt: 10 } },
     icon: "trinket",
   },
   {
@@ -311,7 +287,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "reaction-charm",
-    mods: { flat: { defense: 2 }, pct: { blockRate: 5, ailmentResist: 8 } },
+    mods: { flat: { defense: 2, blockRate: 5, ailmentResist: 8 } },
     icon: "trinket",
   },
   {
@@ -323,7 +299,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "critical-prism",
-    mods: { flat: { attack: 1 }, pct: { critRate: 8, critDamage: 20 } },
+    mods: { flat: { attack: 1, critRate: 8, critDamage: 20 } },
     icon: "trinket",
   },
   {
@@ -347,7 +323,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "breach-beacon",
-    mods: { flat: { attack: 2 }, pct: { precision: 6, hitRate: 5 } },
+    mods: { flat: { attack: 2, precision: 6, hitRate: 5 } },
     icon: "trinket",
   },
   {
@@ -359,15 +335,15 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "burden-module",
-    mods: { flat: { defense: 1 }, pct: { burdenAdapt: 15, dodgeRate: 4 } },
+    mods: { flat: { defense: 1, burdenAdapt: 15, dodgeRate: 4 } },
     icon: "trinket",
   },
 ];
 
-// 本表 30 件全部掉落时 roll 一条随机羁绊词条(《羁绊设计概览.md》§2.1:
+// 本表 28 件全部掉落时 roll 一条随机羁绊词条(《羁绊设计概览.md》§2.1:
 // 普通武器/防具/饰品各提供 1 条随机羁绊; 稀有度**不**增加词条数量)。
 // ★ 在这里统一打标而不是逐条写 affinityRollable —— 这张表里每一件都是普通装备,
-//   逐条写 30 遍只会让「漏写一条」变成沉默的 bug(那件装备会永远不带词条)。
+//   逐条写 28 遍只会让「漏写一条」变成沉默的 bug(那件装备会永远不带词条)。
 //   日后若出现不给随机词条的装备(如羁绊饰品), 再改成逐条声明。
 // 商店挂牌价同样在这里统一打标(见 ./pricing.ts), 理由与 affinityRollable 相同。
 export const EQUIPMENT_ITEM_DEFS: ItemDef[] = withBuyValue(

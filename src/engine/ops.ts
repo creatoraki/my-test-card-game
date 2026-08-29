@@ -125,7 +125,7 @@ export function dealDamage(
 
   // ---- 3. 防御减伤 / 4. 格挡(固定伤害两段都跳过) ----
   if (!dmg.fixed) {
-    dmg.amount *= defenseMultiplier(target);
+    dmg.amount *= defenseMultiplier(target, src);
     if (roll(state, statOf(target, "blockRate"))) {
       dmg.blockRolled = true;
       dmg.amount *= RULES.combat.blockReduction;

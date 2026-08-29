@@ -19,6 +19,7 @@ export const ZERO_STATS: StatBlock = {
   attack: 0,
   healPower: 0,
   defense: 0,
+  armorPen: 0,
   hitRate: 0,
   dodgeRate: 0,
   critRate: 0,
@@ -118,11 +119,11 @@ export function hitChance(
 ): number {
   const c = RULES.combat;
   const dodge = capProb(statOf(defender, "dodgeRate") + pollutionDodgeOf(defender));
+  const effectiveDodge = Math.max(0, dodge - statOf(attacker, "precision"));
   const raw =
     c.baseHitChance +
     statOf(attacker, "hitRate") +
-    statOf(attacker, "precision") -
-    dodge -
+    -effectiveDodge -
     burdenHitPenalty(burdenOf(state, attacker)) +
     (attacker.team === "enemy" ? c.enemyBaseHitBonus : 0) +
     bonusPct;
@@ -135,8 +136,9 @@ export function critChance(_state: BattleState, cmb: Combatant): number {
 }
 
 // 防御减伤后的乘数: 1 − 防御力 /(防御力 + 常量)。
-export function defenseMultiplier(defender: Combatant): number {
-  const def = Math.max(0, statOf(defender, "defense"));
+export function defenseMultiplier(defender: Combatant, attacker?: Combatant): number {
+  const pen = attacker ? Math.max(0, statOf(attacker, "armorPen")) : 0;
+  const def = Math.max(0, statOf(defender, "defense") - pen);
   return 1 - def / (def + RULES.combat.defenseConstant);
 }
 

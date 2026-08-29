@@ -308,12 +308,13 @@ export interface StatBlock {
   attack: number; // 攻击力: 攻击牌伤害 = 攻击力 × 倍率
   healPower: number; // 治愈力: 治疗基础值 + 该值
   defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)，初始防御力通常为 10
+  armorPen: number; // 穿甲(固定整数): 结算时抵扣目标防御力, 有效防御力不低于 0
   // 命中 / 回避 / 暴击
   hitRate: number; // 命中率(百分点)
   dodgeRate: number; // 闪避率(百分点, 最终值 70 封顶)
   critRate: number; // 暴击率(百分点, 最终值 70 封顶)
   critDamage: number; // 爆伤(百分点, 150 = 暴击伤害为 1.5 倍)
-  precision: number; // 精准(百分点, 与命中率同向, 不封顶)
+  precision: number; // 精准(百分点, 只抵消目标闪避, 不封顶)
   // 节奏 / 防护 / 异常
   initiative: number; // 先手: 敌人招式发动时刻 = max(1, 招式延迟 + 我方均值 − 敌方先手)
   blockRate: number; // 格挡率(百分点, 最终值 70 封顶); 成功则本次伤害 ×RULES.combat.blockReduction
@@ -329,8 +330,8 @@ export interface StatBlock {
 // 属性修正层。最终属性 = (基础 + flat) × (1 + pct/100)。
 // 装备(局外常驻)与卡牌/状态(战斗内)都用这个结构, 只是生命周期不同。
 export interface StatModifier {
-  flat?: Partial<StatBlock>;
-  pct?: Partial<StatBlock>; // 百分点; 同名 pct 默认相加
+  flat?: Partial<StatBlock>; // 固定值; 装备的百分点属性也放这里
+  pct?: Partial<StatBlock>; // 按基数放大的百分比; 同名 pct 默认相加
 }
 
 // ---------------------------------------------------------------------------
