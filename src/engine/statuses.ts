@@ -4,9 +4,8 @@
 // 新增一个状态 = 在此加一条定义。
 // ============================================================================
 
-import type { Enemy, StatusCtx, StatusDef, DamageCtx } from "./types";
+import type { Ally, StatusCtx, StatusDef, DamageCtx } from "./types";
 import { OVERLOAD_STATUS_ID, RULES } from "./rules";
-import { alliesOf } from "./targeting";
 import { rngPick } from "./rng";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
@@ -133,12 +132,14 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
       onShieldBroken: (c: StatusCtx) => {
         const owner = c.state.combatants[c.ownerId];
         if (!owner || owner.team !== "enemy") return;
-        const allies = alliesOf(c.state, owner);
+        const allies = c.state.playerIds
+          .map((id) => c.state.combatants[id])
+          .filter((combatant): combatant is Ally => combatant.alive && combatant.team === "player");
         c.ops.applyStatus(c.state, c.ownerId, "stun", 1);
         if (allies.length > 0)
           c.ops.addCardToHand(c.state, "scrap-shrapnel", rngPick(c.state, allies).charId);
         c.inst.stacks = 0;
-        const enemy = owner as Enemy;
+        const enemy = owner;
         enemy.aiMemory ??= {
           actsSinceRecycle: 0,
           hammerCooldown: 0,
