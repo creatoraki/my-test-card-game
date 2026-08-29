@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { BattleState } from "@/engine";
+import { playSfx } from "@/ui/audio";
 
 export type DeathPhase = "alive" | "drain" | "vanish" | "dead";
 
@@ -102,6 +103,7 @@ export function useDeathGate(
       if (current) continue;
 
       phasesRef.current.set(cmb.id, "drain");
+      playSfx("death");
       changed = true;
       const vanishTimer = window.setTimeout(() => {
         if (phasesRef.current.get(cmb.id) !== "drain") return;

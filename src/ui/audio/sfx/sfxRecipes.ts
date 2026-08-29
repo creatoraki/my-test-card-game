@@ -1,25 +1,6 @@
-import type { SfxRecipe } from "./sfxTypes";
+import type { SfxId, SfxRecipe } from "./sfxTypes";
 
-export const SFX_RECIPES: Record<import("./sfxTypes").SfxId, SfxRecipe> = {
-  hover: {
-    throttleMs: 60,
-    layers: [
-      { kind: "tone", waveform: "sine", frequency: 1480, durationMs: 38, gain: 0.075, releaseMs: 28 },
-      {
-        kind: "noise",
-        durationMs: 24,
-        gain: 0.018,
-        delayMs: 3,
-        filter: { type: "bandpass", frequency: 2300, q: 4 },
-      },
-    ],
-  },
-  click: {
-    layers: [
-      { kind: "sweep", waveform: "triangle", from: 460, to: 180, durationMs: 70, gain: 0.12, releaseMs: 36 },
-      { kind: "noise", durationMs: 18, gain: 0.035, filter: { type: "highpass", frequency: 1800, q: 0.6 } },
-    ],
-  },
+export const SFX_RECIPES: Partial<Record<SfxId, SfxRecipe>> = {
   confirm: {
     layers: [
       { kind: "tone", waveform: "sine", frequency: 440, durationMs: 125, gain: 0.13, releaseMs: 70 },
@@ -38,12 +19,6 @@ export const SFX_RECIPES: Record<import("./sfxTypes").SfxId, SfxRecipe> = {
       { kind: "tone", waveform: "sine", frequency: 92, endFrequency: 68, durationMs: 115, gain: 0.12, attackMs: 2, releaseMs: 78 },
     ],
   },
-  panel: {
-    layers: [
-      { kind: "sweep", waveform: "sine", from: 180, to: 920, durationMs: 240, gain: 0.09, releaseMs: 100 },
-      { kind: "noise", durationMs: 170, gain: 0.028, delayMs: 45, filter: { type: "bandpass", frequency: 2100, endFrequency: 4600, q: 1.4 } },
-    ],
-  },
   shatter: {
     layers: [
       { kind: "sweep", waveform: "sine", from: 150, to: 42, durationMs: 220, gain: 0.26, releaseMs: 130 },
@@ -57,21 +32,9 @@ export const SFX_RECIPES: Record<import("./sfxTypes").SfxId, SfxRecipe> = {
       { kind: "noise", durationMs: 980, gain: 0.025, delayMs: 40, filter: { type: "lowpass", frequency: 180, endFrequency: 80, q: 0.5 }, releaseMs: 360 },
     ],
   },
-  cardPlay: {
-    layers: [
-      { kind: "noise", durationMs: 220, gain: 0.09, filter: { type: "bandpass", frequency: 520, endFrequency: 3400, q: 1.2 } },
-      { kind: "tone", waveform: "triangle", frequency: 720, endFrequency: 380, durationMs: 125, gain: 0.09, delayMs: 18, releaseMs: 80 },
-    ],
-  },
   cardDraw: {
     layers: [
       { kind: "noise", durationMs: 115, gain: 0.045, filter: { type: "bandpass", frequency: 900, endFrequency: 2600, q: 1.1 } },
-    ],
-  },
-  hit: {
-    layers: [
-      { kind: "sweep", waveform: "sine", from: 125, to: 48, durationMs: 180, gain: 0.19, releaseMs: 110 },
-      { kind: "noise", durationMs: 140, gain: 0.095, delayMs: 8, filter: { type: "bandpass", frequency: 480, endFrequency: 180, q: 0.9 }, releaseMs: 72 },
     ],
   },
   victory: {

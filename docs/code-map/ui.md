@@ -202,10 +202,11 @@ src/ui/
 | [art/sceneArt.ts](../../src/ui/art/sceneArt.ts) | 菜单、大厅、设施和商店直接使用的场景/界面素材登记。 |
 | [audio/bgmPlayer.ts](../../src/ui/audio/bgmPlayer.ts) | 模块级 BGM 单例播放器：据点/战斗双轨交叉淡变、据点续播与自动播放解锁。 |
 | [audio/bgmTracks.ts](../../src/ui/audio/bgmTracks.ts) | BGM 曲目资源查表与界面到曲目的映射；只有战斗界面使用战斗曲。 |
-| [audio/sfx/sfxTypes.ts](../../src/ui/audio/sfx/sfxTypes.ts) | 程序化音效 ID、配方层和播放参数类型。 |
+| [audio/sfx/sfxTypes.ts](../../src/ui/audio/sfx/sfxTypes.ts) | 音效 ID、配方层和播放参数类型。 |
+| [audio/sfx/sfxSamples.ts](../../src/ui/audio/sfx/sfxSamples.ts) | 真实音效采样查表、变体选择、解码缓存和预热播放。 |
 | [audio/sfx/sfxSynth.ts](../../src/ui/audio/sfx/sfxSynth.ts) | Web Audio 合成原语：音调、噪声、扫频与颗粒串；不包含具体音效语义。 |
-| [audio/sfx/sfxRecipes.ts](../../src/ui/audio/sfx/sfxRecipes.ts) | 全部音效配方与音色参数的唯一调音入口。 |
-| [audio/sfx/sfxPlayer.ts](../../src/ui/audio/sfx/sfxPlayer.ts) | 懒创建 AudioContext、总线压缩、音效开关持久化、自动解锁、节流和并发控制。 |
+| [audio/sfx/sfxRecipes.ts](../../src/ui/audio/sfx/sfxRecipes.ts) | 合成兜底音效配方与音色参数的唯一调音入口。 |
+| [audio/sfx/sfxPlayer.ts](../../src/ui/audio/sfx/sfxPlayer.ts) | 采样优先、合成兜底的播放器；负责懒创建 AudioContext、总线压缩、音效开关持久化、自动解锁、节流和并发控制。 |
 | [audio/sfx/sfxDelegate.ts](../../src/ui/audio/sfx/sfxDelegate.ts) | 全局交互元素事件委托：悬浮、点击、禁用态与 data-sfx 覆盖。 |
 | [audio/sfx/index.ts](../../src/ui/audio/sfx/index.ts) | 程序化音效公共出口。 |
 | [art/rarityArt.ts](../../src/ui/art/rarityArt.ts) | 普通、罕见、稀有水晶素材查表及预热源列表。 |

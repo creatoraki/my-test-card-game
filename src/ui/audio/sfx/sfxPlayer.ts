@@ -1,6 +1,7 @@
 import { playLayer } from "./sfxSynth";
 import { SFX_RECIPES } from "./sfxRecipes";
-import type { PlaySfxOptions, SfxId } from "./sfxTypes";
+import { playSample, preloadSfxSamples, sampleDurationMs, SFX_SAMPLES } from "./sfxSamples";
+import type { PlaySfxOptions, SfxId, SfxRecipe } from "./sfxTypes";
 
 const SFX_ENABLED_STORAGE_KEY = "neon-city-sfx-enabled";
 const MASTER_GAIN = 0.38;
@@ -87,6 +88,7 @@ function ensureAudioBus(): { context: AudioContext; destination: GainNode } | nu
     compressor.release.value = 0.18;
     masterGain.connect(compressor);
     compressor.connect(audioContext.destination);
+    preloadSfxSamples(audioContext);
   }
 
   if (!masterGain) return null;
@@ -94,9 +96,9 @@ function ensureAudioBus(): { context: AudioContext; destination: GainNode } | nu
   return { context: audioContext, destination: masterGain };
 }
 
-function recipeDurationMs(id: SfxId): number {
+function recipeDurationMs(recipe: SfxRecipe): number {
   return Math.max(
-    ...SFX_RECIPES[id].layers.map((layer) => {
+    ...recipe.layers.map((layer) => {
       const delay = layer.delayMs ?? 0;
       return delay + layer.durationMs + (layer.kind === "burst" ? layer.spreadMs : 0) + 80;
     }),
@@ -104,8 +106,8 @@ function recipeDurationMs(id: SfxId): number {
   );
 }
 
-function recipeVoiceCost(id: SfxId): number {
-  return SFX_RECIPES[id].layers.reduce(
+function recipeVoiceCost(recipe: SfxRecipe): number {
+  return recipe.layers.reduce(
     (total, layer) => total + (layer.kind === "burst" ? layer.countMax : 1),
     0,
   );
@@ -113,12 +115,14 @@ function recipeVoiceCost(id: SfxId): number {
 
 export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
   if (!sfxEnabled) return;
+  const sample = SFX_SAMPLES[id];
   const recipe = SFX_RECIPES[id];
+  if (!sample && !recipe) return;
   const now = performance.now();
-  const throttleMs = recipe.throttleMs ?? 30;
+  const throttleMs = sample?.throttleMs ?? recipe?.throttleMs ?? 30;
   if (now - (lastPlayedAt.get(id) ?? -Infinity) < throttleMs) return;
 
-  const voiceCost = recipeVoiceCost(id);
+  const voiceCost = sample ? 1 : recipeVoiceCost(recipe);
   if (activeVoices + voiceCost > MAX_ACTIVE_VOICES) return;
   const bus = ensureAudioBus();
   if (!bus) return;
@@ -127,11 +131,16 @@ export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
   activeVoices += voiceCost;
   window.setTimeout(() => {
     activeVoices = Math.max(0, activeVoices - voiceCost);
-  }, recipeDurationMs(id));
+  }, sample ? sampleDurationMs(sample) : recipeDurationMs(recipe));
 
   const damagePitch = options.damage === undefined ? 1 : 1 + clamp(options.damage, 0, 50) * 0.008;
   const pitchScale = clamp((options.pitch ?? 1) * damagePitch, 0.5, 2.2);
   const gainScale = clamp(options.volume ?? 1, 0, 1);
+  if (sample) {
+    playSample(bus.context, bus.destination, sample, { pitchScale, gainScale });
+    return;
+  }
+
   for (const layer of recipe.layers) {
     playLayer(bus.context, bus.destination, layer, { pitchScale, gainScale });
   }

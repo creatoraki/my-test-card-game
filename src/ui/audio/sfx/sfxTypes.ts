@@ -12,6 +12,9 @@ export const SFX_IDS = [
   "hit",
   "victory",
   "defeat",
+  "death",
+  "pickup",
+  "pickupAll",
 ] as const;
 
 export type SfxId = (typeof SFX_IDS)[number];

@@ -117,6 +117,7 @@ function LootPickup({ gate }: LootPickupProps) {
                   <div
                     className={s["loot-item"]}
                     data-loot-uid={stack.uid}
+                    data-sfx="pickup"
                     key={stack.uid}
                     onPointerEnter={(event) =>
                       setHovered({
@@ -149,7 +150,7 @@ function LootPickup({ gate }: LootPickupProps) {
               </EventPanelFoot>
             ) : (
               <EventPanelFoot note={`待拾取 ${pendingLoot.length} 件`}>
-                <EventPanelButton tone="primary" onClick={takeAllLoot}>
+                <EventPanelButton tone="primary" onClick={takeAllLoot} data-sfx="pickupAll">
                   全部拾取
                 </EventPanelButton>
                 <EventPanelButton onClick={() => setConfirming(true)}>放弃剩余</EventPanelButton>

@@ -14,12 +14,12 @@ function interactiveFrom(event: Event): InteractiveElement | null {
 }
 
 function overrideOf(element: Element): SfxId | null {
-  const value = element.getAttribute("data-sfx");
+  const value = element.closest("[data-sfx]")?.getAttribute("data-sfx");
   return value && isSfxId(value) ? value : null;
 }
 
 function isMuted(element: Element): boolean {
-  return element.getAttribute("data-sfx") === "off";
+  return element.closest("[data-sfx]")?.getAttribute("data-sfx") === "off";
 }
 
 function isDisabled(element: InteractiveElement): boolean {
