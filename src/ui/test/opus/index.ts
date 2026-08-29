@@ -8,3 +8,4 @@ export { FrostShatterFx } from "./FrostShatterFx/index";
 export { OpusCultivationIconDemo } from "./OpusCultivationIconDemo/index";
 export { CultivatingSigil, CultivatedSigil } from "./CultivationSigil/index";
 export { KeenEmblem, WardEmblem, InsightEmblem } from "./CombatEmblem/index";
+export { OpusGrowthPlateDemo } from "./OpusGrowthPlateDemo/index";

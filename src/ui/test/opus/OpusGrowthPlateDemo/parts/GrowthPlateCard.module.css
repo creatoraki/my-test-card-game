@@ -1,0 +1,77 @@
+.plate {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  container-type: inline-size;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--plate-accent) 46%, #405057);
+  background:
+    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--plate-accent) 13%, transparent), transparent 36%),
+    #0a1012;
+  color: var(--plate-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--plate-accent) 22%, transparent),
+    0 0 26px color-mix(in srgb, var(--plate-accent) 11%, transparent);
+}
+
+/* 小尺寸档: 去掉网格与内发光, 只留线框本身, 用来判断剪影还认不认得出。 */
+.plateBare {
+  border-color: #37464a;
+  background: #0a1012;
+  box-shadow: none;
+}
+
+.gridLines {
+  position: absolute;
+  inset: 12%;
+  border: 1px solid color-mix(in srgb, var(--plate-accent) 40%, transparent);
+  opacity: 0.4;
+  background:
+    linear-gradient(#b6d8d115 1px, transparent 1px),
+    linear-gradient(90deg, #b6d8d115 1px, transparent 1px);
+  background-size: 20% 20%;
+  transform: perspective(300px) rotateX(54deg) scale(1.25) translateY(17%);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  z-index: 3;
+  padding: 2px 4px;
+  border: 1px solid currentColor;
+  color: color-mix(in srgb, var(--plate-accent) 72%, #d7e3dc);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+/* 层数角标压右下角: 那里是画面最空的一块, 不会盖住芽尖或果心。 */
+.stack,
+.badge {
+  position: absolute;
+  right: 6%;
+  bottom: 5%;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  min-inline-size: 30%;
+  padding: 0 4%;
+  border: 1px solid color-mix(in srgb, var(--plate-accent) 68%, transparent);
+  background: #060b0dee;
+  color: var(--plate-accent);
+  font-family: var(--font-family);
+  font-weight: 800;
+  line-height: 1.5;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--plate-accent) 55%, transparent);
+}
+
+.stack {
+  font-size: 26cqw;
+}
+
+.badge {
+  font-size: 13cqw;
+  letter-spacing: 0.08em;
+}

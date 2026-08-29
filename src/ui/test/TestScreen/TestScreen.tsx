@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DsFastSlashDemo } from "@/ui/test/ds";
+import { OpusGrowthPlateDemo } from "@/ui/test/opus";
 import { TarotIconDemo } from "@/ui/test/luna/TarotIconDemo/TarotIconDemo";
 import s from "./TestScreen.module.css";
 
@@ -36,6 +37,7 @@ export function TestScreen() {
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
+        {activeTab === "opus" ? <OpusGrowthPlateDemo /> : null}
         {activeTab === "ds" ? <DsFastSlashDemo /> : null}
         {activeTab === "luna" ? <TarotIconDemo /> : null}
       </section>

@@ -1,0 +1,209 @@
+.root {
+  --ink: #080d10;
+  --line: #405057;
+  --text: #edf3ef;
+  --stamp: #4fd8c8;
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 1160px);
+  padding: 34px 38px 40px;
+  overflow: hidden;
+  border: 1px solid #3b4d53;
+  background:
+    radial-gradient(circle at 12% 16%, color-mix(in srgb, var(--stamp) 11%, transparent), transparent 28%),
+    linear-gradient(122deg, #132124, var(--ink) 62%, #0a0f12);
+  color: var(--text);
+  box-shadow: 0 22px 70px #000b, 0 0 0 1px #ffffff05;
+  animation: plateIn 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.kicker,
+.headerStamp,
+.blockHead span {
+  font-family: var(--font-family);
+  letter-spacing: 0.14em;
+}
+
+.kicker {
+  color: #728686;
+  font-size: 8px;
+}
+
+.header h1 {
+  margin: 12px 0 8px;
+  color: #f5f8ee;
+  font-family: var(--font-family);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.header p {
+  max-width: 620px;
+  margin: 0;
+  color: #849a96;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.headerStamp {
+  display: grid;
+  align-items: end;
+  gap: 8px;
+  color: #728686;
+  font-size: 8px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.headerStamp strong {
+  color: var(--stamp);
+  font-family: var(--font-family);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  padding: 26px 0 4px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.cardMeta strong {
+  display: block;
+  font-family: var(--font-family);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.cardMeta p {
+  margin: 10px 0 0;
+  color: #849a96;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.block {
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.blockHead {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.blockHead h2 {
+  margin: 0;
+  color: #f4f7ec;
+  font-family: var(--font-family);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.blockHead span {
+  color: #687c7d;
+  font-size: 9px;
+}
+
+.stackRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.stackItem {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.stackItem small {
+  color: #849a96;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+/* 培育 → 成熟 之间的过渡箭头, 纯装饰。 */
+.arrow {
+  position: relative;
+  align-self: center;
+  width: 34px;
+  height: 1px;
+  margin-bottom: 22px;
+  background: linear-gradient(90deg, #4fd8c8, #d6f238);
+}
+
+.arrow::after {
+  position: absolute;
+  top: -3px;
+  right: 0;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid #d6f238;
+  border-right: 1px solid #d6f238;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.ladder {
+  display: grid;
+  gap: 22px;
+}
+
+@keyframes plateIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .root {
+    padding: 24px 20px 28px;
+  }
+
+  .headerStamp {
+    display: none;
+  }
+
+  .card {
+    grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none;
+  }
+}
