@@ -11,6 +11,7 @@
   justify-content: space-between;
   gap: 16px;
   height: 38px;
+  animation: trophyHeaderIn 360ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--trophy-header-delay, 900ms) both;
 }
 
 .trophies-header span {
@@ -27,11 +28,6 @@
   color: var(--text);
   font-size: 18px;
   font-weight: 700;
-}
-
-.trophies-header small {
-  color: #8fa8a8;
-  font-size: 11px;
 }
 
 .trophy-grid {
@@ -136,7 +132,36 @@
   to { left: 125%; opacity: 0; }
 }
 
+@keyframes trophyHeaderIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes trophyOut {
+  from { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+  to { opacity: 0; transform: translateY(-12px) scale(0.96); filter: brightness(0.55); }
+}
+
+@keyframes trophyHeaderOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-12px); }
+}
+
+[data-end-phase="leaving"] .trophies-header {
+  animation: trophyHeaderOut 180ms ease-in var(--end-trophy-out-delay, 480ms) both;
+}
+
+[data-end-phase="leaving"] .trophy {
+  animation: trophyOut 260ms ease-in var(--trophy-out-delay, 480ms) both;
+}
+
+[data-end-phase="leaving"] .trophy::after {
+  animation: none;
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .trophies-header,
   .trophy,
   .trophy::after { animation: none; }
 }

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import { cx } from "@/ui/common/cx";
+import { endExitTiming, endTiming } from "../endChoreo";
 import type { EndRosterMember } from "../endSummary";
 import s from "./EndPartyRoster.module.css";
 
@@ -10,8 +11,15 @@ interface Props {
 }
 
 export function EndPartyRoster({ members, wiped }: Props) {
+  const timing = endTiming();
+  const exitTiming = endExitTiming();
+
   return (
-    <section className={cx(s["roster"], wiped && s["is-wiped"])} aria-label="队伍状态">
+    <section
+      className={cx(s["roster"], wiped && s["is-wiped"])}
+      aria-label="队伍状态"
+      style={{ "--roster-header-delay": `${timing.rosterStartMs}ms` } as CSSProperties}
+    >
       <header className={s["roster-header"]}>
         <span>队伍状态</span>
         <h2>归队成员 <small>· {members.length} 人</small></h2>
@@ -22,7 +30,12 @@ export function EndPartyRoster({ members, wiped }: Props) {
             <div
               key={member.charId}
               className={s["member"]}
-              style={{ "--roster-delay": `${index * 90}ms` } as CSSProperties}
+              style={
+                {
+                  "--roster-delay": `${timing.rosterStartMs + timing.rosterStagger * index}ms`,
+                  "--roster-out-delay": `${exitTiming.rosterOut + (members.length - 1 - index) * exitTiming.rosterOutStagger}ms`,
+                } as CSSProperties
+              }
             >
               <PartyMemberCard
                 charId={member.charId}

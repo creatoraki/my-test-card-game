@@ -57,6 +57,8 @@ export const FX = {
   none: { name: "none", ms: 0 },
   fadeOut: { name: "fade-out", ms: 240 },
   fadeIn: { name: "fade-in", ms: 240 },
+  endSettleOut: { name: "end-settle-out", ms: 720 },
+  endSettleIn: { name: "end-settle-in", ms: 780 },
   zoomIn: { name: "zoom-in", ms: 280 },
   zoomOut: { name: "zoom-out", ms: 220 },
   slideUp: { name: "slide-up", ms: 280 },
@@ -93,6 +95,9 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
     curtain: "battle-ripple",
   },
   "reward>explore": { hold: 140 },
+
+  "victory>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
+  "defeat>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
 
   // ★ 编队 ↔ 角色详情: **原生 View Transition 的共享元素过场**, 不是全屏特效。
   //   两页背景是同一张冬眠仓.png ⇒ 未命名的一切落进 root 快照, 它的默认交叉淡化因此

@@ -44,7 +44,7 @@
   background: linear-gradient(180deg, #06111624, #02070b45 72%, #02050770);
   box-shadow: 0 0 60px -18px #00000099;
   outline: none;
-  animation: bandEnter 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+  animation: bandEnter 460ms cubic-bezier(0.2, 0.72, 0.28, 1) var(--end-band-delay, 2400ms) both;
 }
 
 .band:focus-visible {
@@ -264,6 +264,11 @@
   to { transform: skewX(var(--band-skew)); }
 }
 
+@keyframes bandExit {
+  from { opacity: 1; transform: skewX(var(--band-skew)); }
+  to { opacity: 0; transform: translateX(520px) skewX(var(--band-skew)); }
+}
+
 @keyframes entryDrop {
   from { opacity: 0; transform: translateY(-44px); filter: brightness(1.8); }
   76% { transform: translateY(4px); }
@@ -273,6 +278,10 @@
 @keyframes bandPush {
   from { transform: translateY(calc(-1 * (var(--slice-h) + var(--slice-gap)))); }
   to { transform: translateY(0); }
+}
+
+[data-end-phase="leaving"] .band {
+  animation: bandExit 360ms ease-in var(--end-band-out-delay, 80ms) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

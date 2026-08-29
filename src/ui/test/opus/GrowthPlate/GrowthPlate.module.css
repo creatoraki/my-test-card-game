@@ -1,0 +1,28 @@
+/* 图标本体自己的定位与发光。外框、网格、角标一律不在这里 —— 那些属于陈列台。 */
+
+.artwork {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 72%;
+  overflow: visible;
+  color: color-mix(in srgb, currentColor 86%, white);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 42%, transparent));
+  transform: translate(-50%, -50%);
+}
+
+.artShadow {
+  color: #040709;
+  opacity: 0.85;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 8%;
+  z-index: 1;
+  width: 84%;
+  height: 84%;
+  overflow: visible;
+  opacity: 0.26;
+}

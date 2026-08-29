@@ -33,6 +33,17 @@
   pointer-events: none;
 }
 
+.end-stage::after {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  background: #ffffff;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  animation: endStageFlash 180ms ease-out var(--end-verdict-delay, 320ms) both;
+}
+
 .end-bg,
 .end-veil {
   position: absolute;
@@ -48,6 +59,7 @@
   filter: saturate(0.82) contrast(1.04) brightness(0.78);
   user-select: none;
   -webkit-user-drag: none;
+  animation: bgPushIn var(--end-bg-ms, 2400ms) ease-out both;
 }
 
 .end-veil {
@@ -55,6 +67,7 @@
   background:
     radial-gradient(ellipse 58% 72% at 46% 48%, transparent 0%, #02050742 78%, #020507a6 100%),
     linear-gradient(180deg, #0205077a 0%, transparent 22%, transparent 74%, #020507c7 100%);
+  animation: veilLift var(--end-bg-ms, 2400ms) ease-out both;
 }
 
 .end-stage > .end-content {
@@ -69,10 +82,20 @@
 }
 
 .end-trophy-slot,
+.end-verdict-slot,
 .end-haul-slot,
 .end-roster-slot,
 .end-band-slot {
   position: absolute;
+}
+
+.end-verdict-slot {
+  top: 384px;
+  left: var(--left-x);
+  width: 500px;
+  height: 150px;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .end-trophy-slot {
@@ -90,6 +113,7 @@
   height: 540px;
   z-index: 2;
   pointer-events: auto;
+  animation: haulRise 520ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--end-haul-delay, 2050ms) both;
 }
 
 .end-roster-slot {
@@ -124,7 +148,7 @@
   font-size: 16px;
   letter-spacing: 4px;
   --notch: 14px;
-  animation: endActionIn 360ms 260ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: endActionIn 360ms var(--end-action-delay, 3200ms) cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 .end-action span {
@@ -176,7 +200,76 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes bgPushIn {
+  from { opacity: 0.38; transform: scale(1.06); }
+  to { opacity: 0.9; transform: scale(1); }
+}
+
+@keyframes veilLift {
+  from { opacity: 1; filter: brightness(0.18); }
+  to { opacity: 1; filter: brightness(1); }
+}
+
+@keyframes haulRise {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes endStageFlash {
+  0%, 100% { opacity: 0; }
+  24% { opacity: 0.42; }
+}
+
+@keyframes endBgOut {
+  from { opacity: 0.9; transform: scale(1); filter: saturate(0.82) contrast(1.04) brightness(0.78); }
+  to { opacity: 0; transform: scale(1.02); filter: saturate(0.5) contrast(1.04) brightness(0.45); }
+}
+
+@keyframes endVeilOut {
+  from { opacity: 1; filter: brightness(1); }
+  to { opacity: 1; filter: brightness(0.35); }
+}
+
+@keyframes haulDropOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(28px); }
+}
+
+@keyframes verdictRiseOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-12px); }
+}
+
+@keyframes actionOut {
+  from { opacity: 1; transform: translateY(0) scaleY(1); }
+  to { opacity: 0; transform: translateY(8px) scaleY(0.86); }
+}
+
+[data-end-phase="leaving"] .end-bg {
+  animation: endBgOut 350ms ease-in var(--end-bg-out-delay, 800ms) both;
+}
+
+[data-end-phase="leaving"] .end-veil {
+  animation: endVeilOut 350ms ease-in var(--end-bg-out-delay, 800ms) both;
+}
+
+[data-end-phase="leaving"] .end-verdict-slot {
+  animation: verdictRiseOut 280ms ease-in var(--end-verdict-out-delay, 700ms) both;
+}
+
+[data-end-phase="leaving"] .end-haul-slot {
+  animation: haulDropOut 300ms ease-in var(--end-haul-out-delay, 200ms) both;
+}
+
+[data-end-phase="leaving"] .end-action {
+  animation: actionOut 180ms ease-in var(--end-action-out-delay, 0ms) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .end-action { animation: none; }
+  .end-bg,
+  .end-veil,
+  .end-haul-slot,
+  .end-action,
+  .end-stage::after { animation: none; }
   .end-action-gold::before { display: none; }
 }

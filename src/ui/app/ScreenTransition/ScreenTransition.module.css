@@ -39,6 +39,33 @@
   animation-name: screen-fade-in;
 }
 
+@keyframes screen-end-settle-out {
+  from {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+  }
+  to {
+    opacity: 0;
+    filter: brightness(0.25) saturate(0.35);
+  }
+}
+@keyframes screen-end-settle-in {
+  from {
+    opacity: 0;
+    filter: brightness(0.4) saturate(0.7);
+  }
+  to {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+  }
+}
+.screen-fx-end-settle-out {
+  animation-name: screen-end-settle-out;
+}
+.screen-fx-end-settle-in {
+  animation-name: screen-end-settle-in;
+}
+
 /* ── 「不做任何事」的占位动效 ──
    ★ 它是刻意的空规则, 不要以为漏写了 keyframes。
    用途: 探索 → 战斗那条路线的画面由 BattleTransitionCurtain 在包裹层**之上**演,
