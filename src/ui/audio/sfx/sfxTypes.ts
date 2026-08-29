@@ -1,5 +1,4 @@
 export const SFX_IDS = [
-  "hover",
   "click",
   "confirm",
   "back",
@@ -9,6 +8,7 @@ export const SFX_IDS = [
   "ripple",
   "cardPlay",
   "cardDraw",
+  "heal",
   "hit",
   "victory",
   "defeat",

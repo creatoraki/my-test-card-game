@@ -172,7 +172,7 @@
   animation: vfxPop 0.6s ease-out forwards;
 }
 
-/* 受击抖动/闪白推迟到剑真正砸中那一刻, 否则目标会先于剑落而抽搐。
+/* 受击抖动/闪白推迟到特效真正命中那一刻。
    hit-react 挂了 hitShake + hitFlash 两条动画, animation-delay 须写两个值一一对应。
    基态即常态, 故延迟期无副作用; emoji 系特效 --vfx-impact 缺省 0, 行为不变。 */
 [data-unit][data-react="hit"] [data-unit-body] {
@@ -185,22 +185,9 @@
   animation-play-state: paused;
 }
 
-/* 冲击环同步到砸中时刻。不能直接给 .vfx-attack::after 加 animation-delay:
-   ringPop 是 forwards 且基态就是一个可见实心环, 延迟期它会静止杵在那儿;
-   改 fill-mode:both 又会在延迟期显示 from 态的小点。故把延迟烘进关键帧。 */
-.vfx-sword-fall.vfx-attack::after {
-  animation: swordFallRing 660ms ease-out forwards;
-}
-@keyframes swordFallRing {
-  /* 32% ≈ impactMs(210ms) / 660ms: 砸中前完全透明 */
-  0%, 31% { transform: scale(0.4); opacity: 0; }
-  32% { transform: scale(0.4); opacity: 0.9; }
-  /* 收尾 scale 跟随剑的尺寸走(14px 基座 × 13 ≈ 182px), 剑放大到 2 倍后环也翻倍, 否则比例失衡 */
-  100% { transform: scale(13); opacity: 0; }
-}
 /* 居合斩的冲击环: 同法把延迟烘进关键帧(50% = 500ms 斩击时刻)。
    ⓘ 原先住在 fx/IaiSlashFx/IaiSlashFx.module.css —— 但 .vfx-* 一族是**本文件**的类,
-     那边够不着(样式铁律 1), 故迁来与上面 sword-fall 的那圈环并排。 */
+     那边够不着(样式铁律 1), 故迁来此处。 */
 .vfx-iai-slash.vfx-attack::after {
   animation: iaiRing 1000ms ease-out forwards;
 }

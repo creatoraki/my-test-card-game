@@ -24,6 +24,9 @@ export function attackSfxCue(anim: CardAnim): AnimSfxCue | null {
 }
 
 export function impactSfxCue(anim: CardAnim): AnimSfxCue | null {
+  if (anim === "heal") {
+    return { id: "heal", leadMs: 0 };
+  }
   if (ANIM[anim].kind !== "attack") return null;
   return {
     id: "hit",

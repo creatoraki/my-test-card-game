@@ -7,7 +7,6 @@ import { ITEM_ART_SOURCES } from "@/ui/art/itemArt";
 import { MAP_ART_SOURCES } from "@/ui/art/mapArt";
 import { RARITY_CRYSTAL_SOURCES } from "@/ui/art/rarityArt";
 import { SCENE_ART_SOURCES, SCENE_VIDEO_SOURCES } from "@/ui/art/sceneArt";
-import { ALL_SPRITE_FRAMES } from "@/ui/art/vfxSprites";
 import { BATTLE_BG_IMAGE_SOURCES } from "@/ui/art/battleBg";
 import { FACILITY_SCENES } from "@/ui/town/facilityScenes";
 
@@ -33,7 +32,6 @@ const imageSources = unique([
   ...MAP_ART_SOURCES,
   ...Object.values(FACILITY_SCENES).map((scene) => scene.bg),
   ...ENEMY_ART_SOURCES,
-  ...ALL_SPRITE_FRAMES,
   ...CARD_ART_SOURCES,
   ...EVENT_ART_SOURCES,
   ...RARITY_CRYSTAL_SOURCES,

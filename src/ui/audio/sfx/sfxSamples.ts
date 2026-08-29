@@ -1,8 +1,6 @@
 import type { SfxId } from "./sfxTypes";
-import buttonHoverOne from "../../../assets/sounds/音效/按钮悬浮1.wav";
-import buttonHoverTwo from "../../../assets/sounds/音效/按钮悬浮2.wav";
-import buttonClickOne from "../../../assets/sounds/音效/按钮点击1.wav";
-import buttonClickTwo from "../../../assets/sounds/音效/按钮点击2.wav";
+import buttonClick from "../../../assets/sounds/音效/点击.mp3";
+import healSound from "../../../assets/sounds/音效/治疗.mp3";
 import panelOpen from "../../../assets/sounds/音效/弹出弹窗.wav";
 import cardSlash from "../../../assets/sounds/音效/单次斩击.ogg";
 import hitSound from "../../../assets/sounds/音效/被攻击.wav";
@@ -17,10 +15,10 @@ export interface SfxSample {
 }
 
 export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
-  hover: { srcs: [buttonHoverOne, buttonHoverTwo], gain: 0.3, throttleMs: 60 },
-  click: { srcs: [buttonClickOne, buttonClickTwo], gain: 0.36 },
+  click: { srcs: [buttonClick], gain: 0.36 },
   panel: { srcs: [panelOpen], gain: 0.38 },
   cardPlay: { srcs: [cardSlash], gain: 0.42 },
+  heal: { srcs: [healSound], gain: 0.42 },
   hit: { srcs: [hitSound], gain: 0.42 },
   death: { srcs: [deathSound], gain: 0.46, throttleMs: 120 },
   pickup: { srcs: [pickupSound], gain: 0.38 },

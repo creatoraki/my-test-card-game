@@ -10,8 +10,7 @@ import trafficLightBotIdle from "@/assets/敌人立绘/红绿灯机器人/idle.p
 import { preloadImage } from "@/ui/art/assetLoader";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
-// 注意这与 animations.ts 的 SpritePreset 是两套并列机制: 那套是逐帧独立图、播一次即停的
-// 命中特效; 这套是单张拼条 + background-position 无限循环的待机(可按 skipFrames 挑帧)。
+// 单张拼条以 background-position 无限循环播放待机动画(可按 skipFrames 挑帧)。
 export interface EnemySpriteDef {
   src: string;
   frames: number; // 拼条内的物理帧数(须能整除原图宽度); 与是否跳帧无关
@@ -139,7 +138,7 @@ export const ENEMY_ART_SOURCES: readonly string[] = [...new Set(
 let warmed = false;
 
 // 预热: strip 单文件约 640KB, 远超 Vite 4KB 内联阈值 → 独立请求, 不预热则进战斗首帧空白。
-// 幂等, StrictMode 下 effect 双调用也安全(与 vfxSprites.ts warmVfxSprites 同写法)。
+// 幂等, StrictMode 下 effect 双调用也安全。
 export function warmEnemyArt(): void {
   if (warmed) return;
   warmed = true;

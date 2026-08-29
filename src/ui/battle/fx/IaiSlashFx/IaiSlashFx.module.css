@@ -92,7 +92,7 @@
 
 /* ⓘ 居合斩的冲击环(.vfx-iai-slash.vfx-attack::after + @keyframes iaiRing)已迁去
    fx/HitFxLayer/HitFxLayer.module.css —— .vfx-* 一族是 HitFxLayer 的类, 本文件够不着
-   (样式铁律 1)。与 sword-fall 的那圈环并排放着, 两条同源规则终于在同一处。 */
+  (样式铁律 1)。 */
 
 /* 减少动态效果: 刃光/辉光/光点整段静默(基态 opacity:0 ⇒ 什么都不出现)。
    全屏压暗层 .battle-dim 在 ui/BattleScreen.css 里同步处理。 */

@@ -2,7 +2,7 @@ import type { ProcFxPreset } from "@/ui/battle/animations";
 import s from "./IaiSlashFx.module.css";
 
 // 居合拔刀斩(程序化 CSS)首击特效: 蓄力光点 + 左下→右上的斩痕刃光。
-// 与 SpriteFx 同模式 —— 组件零状态, 挂载即播、卸载即停, key={hit.seq} 重挂载即重播;
+// 组件零状态, 挂载即播、卸载即停, key={hit.seq} 重挂载即重播;
 // 全部时序由 CSS 动画驱动, 爆发时刻通过行内 animation-delay 与预设 impactMs 硬同步。
 // 几何: 外层 .iai-wrap 旋转 -45° ⇒ 容器局部 X 轴即"左下→右上"对角线, 刃光/光点
 // 只需沿局部 X 轴布置(见 IaiSlashFx.css 的 iai 系样式)。

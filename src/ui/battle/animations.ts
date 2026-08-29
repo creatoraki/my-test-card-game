@@ -6,24 +6,11 @@
 
 import type { Card, CardAnim } from "@/engine";
 import { CARD_DEFS, type EnemyMove } from "@/data";
-import { SWORD_FALL_FRAMES } from "@/ui/art/vfxSprites";
 
 // 卡牌定义表的 anim 索引: 卡实例随城镇档案持久化(localStorage), 实例上固化的 anim
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
 // 解析。不走 getCardDef: 它对未知 id 直接 throw, 而存档可能残留已删定义的旧卡。
 const DEF_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.anim]));
-
-// 序列帧特效参数。几何/时序集中在此(而非散落 CSS), 保证「登记一次」即可调。
-// 由 ui/SpriteFx.tsx 行内下发给逐帧 <img>。
-export interface SpritePreset {
-  frames: readonly string[]; // 逐帧图 URL(按播放顺序)
-  frameMs: number; // 每帧停留(ms); 总时长须小于命中特效的 hold, 否则末尾帧会被卸载截断
-  width: number; // 渲染宽(px)
-  height: number; // 渲染高(px); 须与原图比例一致
-  anchorTop: number; // .vfx 图层相对卡面顶边的下移量(px), 决定冲击点落在目标何处
-  anchorY: number; // 冲击点在帧内的纵向位置(0~1), 用于把它对到锚点
-  impactMs: number; // 挂载 → 真正砸中的偏移(ms), 用于同步受击抖动/冲击环
-}
 
 // 程序化 CSS 特效参数。视觉几何在各自 Fx 组件中, 这里只放 JS 要消费的时序。
 export interface ProcFxPreset {
@@ -39,8 +26,7 @@ export interface ProcFxPreset {
 export interface AnimPreset {
   kind: "attack" | "support"; // attack: 目标受击特效; support: 目标柔和光效
   emoji?: string; // 首击特效图形(无 sprite/proc/icon 时使用)
-  sprite?: SpritePreset; // 序列帧特效(存在时优先于 emoji)
-  proc?: ProcFxPreset; // 程序化 CSS 特效(与 sprite 平行的第三种渲染分支)
+  proc?: ProcFxPreset; // 程序化 CSS 特效
   icon?: "shield"; // 图标特效(复用 BUFF 图标 SVG, 优先于 emoji); 渲染映射见 HitFxLayer 的 ICON_FX
   screenFx?: "dim" | "flash" | "blood" | "glitch"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
@@ -129,41 +115,18 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   ice: { kind: "attack", emoji: "❄️", color: "#66d9e8", windup: 210, hold: 720, shake: 1 },
   lightning: { kind: "attack", emoji: "⚡", color: "#a5d8ff", windup: 130, hold: 600, shake: 1 },
   poison: { kind: "attack", emoji: "☠️", color: "#94d82d", windup: 190, hold: 720, shake: 1 },
-  // 魔剑坠落(序列帧): 12 帧 × 70ms = 840ms, 在命中特效 hold 内播完, 不循环。
-  // height 460 ≈ 4.8 倍身位; 帧上方约 247px(帧高 53.7%)是 00-02 的凝聚段(剑位于帧内
-  // 5%~37%), 露出多少取决于敌人头顶的净空。裁切边界现在在 .screen.battle(整屏)而非
-  // 舞台, 故凝聚段可向上越过舞台顶边、延伸到顶栏区域, 比改造前多露一截;
-  // 要让它完整可见仍需加 ui/BattleScreen.css 里 .enemy-row 的 padding-top(现 42px), 代价是
-  // 敌人不再贴舞台顶 —— 目前维持现状, 属「不动布局换更大剑」的明确取舍, 非 bug。
-  // 调 impactMs 时记得同步改 ui/HitFxLayer.css 里 swordFallRing 的百分比。
-  "sword-fall": {
-    kind: "attack",
-    color: "#ff4d4d", // 与素材红色剑光同色系(供闪白/冲击环/飘字着色)
-    sprite: {
-      frames: SWORD_FALL_FRAMES,
-      frameMs: 70,
-      width: 192, // 243:583 原始比例
-      height: 460,
-      anchorTop: 249, // 对应 --foe-figure-h(256px) 的脚线基准, 底对齐脚下 = 剑插地处; JS 侧手工同步点
-      anchorY: 0.82,
-      impactMs: 210, // 约第 3 帧砸中
-    },
-    windup: 210,
-    hold: 840,
-    shake: 2, // 重击档: 巨剑砸地理应把镜头震一下
-  },
   // 居合拔刀斩(程序化 CSS): 全屏压暗 → 光点由暗渐亮蓄力 → 500ms 斩痕从左下向右上
   // 贯出 + 青白反白闪 + 顿帧震屏, 整段压在命中特效 hold 内。视觉在 IaiSlashFx.tsx
   // 与 ui/IaiSlashFx.css 的 iai 系关键帧(百分比按 1000ms 总时长换算, 50% = impactMs 500)。
   // 调 impactMs 时须同步改 ui/IaiSlashFx.css 里 iaiBlade/iaiGlow/iaiRing/iaiScreenDim 的百分比。
   "iai-slash": {
     kind: "attack",
-    color: "#8fe3ff", // 青蓝主色(冲击环/受击着色/飘字), 与 sword-fall 的红形成区分
+    color: "#8fe3ff", // 青蓝主色(冲击环/受击着色/飘字)
     proc: { impactMs: 500, floatMs: 500 },
     screenFx: "dim",
     windup: 210, // 现时序不消费, 按语义填写
     hold: 1000,
-    shake: 2, // 居合重斩, 与 sword-fall 同档
+    shake: 2,
   },
   // 刀光斩(程序化 CSS): 1.6s 三拍, 目标中心斜贯、粒子收敛、八点爆裂与刀痕消散。
   // 950ms 是第三拍爆点, 与 BladeSlashFx 的 BURST_START 同源; 掉血也在此刻结算。

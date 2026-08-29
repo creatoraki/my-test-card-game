@@ -147,7 +147,7 @@ export type CardRarity = "basic" | Rarity;
 
 // 出牌动画类型(与技能绑定, 决定目标的受击/首击特效表现)。
 //   攻击系: slash 斩击 / shot 箭击 / fire 火爆 / ice 冰霜 / lightning 电击 / poison 剧毒
-//           sword-fall 魔剑坠落(序列帧) / iai-slash 居合拔刀斩(程序化 CSS)
+//           iai-slash 居合拔刀斩(程序化 CSS)
 //           blade-slash 刀光斩(程序化 CSS, 三拍)
 //           tri-slash 三段斩击(Canvas 2D: V形折返 → 折返十连斩 → 延迟受击)
 //           blood-slash 血色刀光(程序化 CSS: 下劈 → 刀痕 → 血花爆裂)
@@ -163,7 +163,6 @@ export type CardAnim =
   | "ice"
   | "lightning"
   | "poison"
-  | "sword-fall"
   | "iai-slash"
   | "blade-slash"
   | "tri-slash"

@@ -48,7 +48,6 @@ import {
 } from "@/ui/battle/camera";
 import type { TelegraphKind } from "@/ui/battle/unitShell";
 import { warmEnemyArt } from "@/ui/art/enemyArt";
-import { warmVfxSprites } from "@/ui/art/vfxSprites";
 import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
 import { AmbienceGrade, AmbienceLayer } from "@/ui/battle/AmbienceLayer";
 import { HurtVignette } from "@/ui/battle/fx/HurtVignette";
@@ -287,11 +286,9 @@ export function BattleScreen() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // 预热序列帧特效素材: 帧图是 12 个独立请求, 不预热首次播放会逐帧闪。
-  // 敌人待机立绘同理(拼条单文件但体积大), 不预热则进战斗首帧空白。
+  // 敌人待机立绘是大体积拼条文件, 不预热则进战斗首帧空白。
   // 放在进战斗时(而非模块顶层)以免菜单界面白付流量; 到首次命中前预留加载余量。
   useEffect(() => {
-    warmVfxSprites();
     warmEnemyArt();
     warmBattleBg();
   }, []);
@@ -654,7 +651,7 @@ export function BattleScreen() {
     plans.forEach(({ step, preset, targetIds, focusIds, keepCamera }, index) => {
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
       const fx = ANIM[step.anim];
-      const impactMs = fx.proc?.impactMs ?? fx.sprite?.impactMs ?? 0;
+      const impactMs = fx.proc?.impactMs ?? 0;
       const holdFloor = Math.max(
         fx.hold,
         preset.kind === "kill" ? impactMs + DEATH.drain + DEATH.vanish + 40 : 0,

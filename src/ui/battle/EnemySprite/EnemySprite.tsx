@@ -27,7 +27,7 @@ function retainKeyframes(id: string, css: string): () => void {
 }
 
 // 敌人待机立绘播放器: 单张横向拼条, 靠 background-position 无限循环。
-// 与 SpriteFx 同源思路 —— 纯 CSS 驱动, 组件内不维护播放状态; 尺寸/时序全部来自
+// 纯 CSS 驱动, 组件内不维护播放状态; 尺寸/时序全部来自
 // enemyArt.ts 的登记表, 此处只负责下发。
 //
 // 不用 steps(n) 线性推进, 而是为每个实播帧生成一个显式落点的 @keyframes + step-end:

@@ -91,7 +91,7 @@ export function pickShot(ctx: ShotContext): ShotPreset {
             : ctx.anim === "blood-slash" ? SHOTS.blood
               : ctx.anim === "neon-cross" ? SHOTS.neon
               : ctx.anim === "triple-strike" ? SHOTS.triple
-              : ctx.anim === "sword-fall" || ctx.shake === 2 || ctx.damageRatio >= 0.35 ? SHOTS.heavy
+              : ctx.shake === 2 || ctx.damageRatio >= 0.35 ? SHOTS.heavy
                 : ctx.shake === 1 && ctx.damageRatio < 0.15 ? SHOTS.light
                   : SHOTS.normal;
   return ctx.isKill ? killShot(base) : base;
