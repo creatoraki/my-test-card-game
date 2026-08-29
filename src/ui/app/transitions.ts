@@ -42,9 +42,10 @@ export interface TransitionSpec {
 // 旧路线图由 View Transition 快照承担玻璃主体，BattleTransitionCurtain 负责表面裂痕与冲击反馈。
 export const BATTLE_CRACK_DRAW_MS = 1000;
 export const BATTLE_CRACK_HOLD_MS = 500;
-export const BATTLE_RIPPLE_MS = 1500;
+export const BATTLE_SHATTER_SFX_MS = 2900;
 export const BATTLE_RIPPLE_START_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS;
-export const BATTLE_RIPPLE_EXIT_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_MS + BATTLE_RIPPLE_MS;
+export const BATTLE_RIPPLE_MS = BATTLE_SHATTER_SFX_MS - BATTLE_RIPPLE_START_MS;
+export const BATTLE_RIPPLE_EXIT_MS = BATTLE_SHATTER_SFX_MS;
 
 // ── 可用特效登记处 ──
 // 新增一种特效 = 这里加一项 + app/ScreenTransition/ScreenTransition.module.css 加一段同名 keyframes。

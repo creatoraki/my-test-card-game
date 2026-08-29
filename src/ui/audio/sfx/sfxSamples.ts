@@ -7,6 +7,7 @@ import hitSound from "../../../assets/sounds/音效/被攻击.wav";
 import deathSound from "../../../assets/sounds/音效/死亡音效.ogg";
 import pickupSound from "../../../assets/sounds/音效/单次拾取.wav";
 import pickupAllSound from "../../../assets/sounds/音效/全部拾取.wav";
+import shatterSound from "../../../assets/sounds/音效/玻璃碎裂.wav";
 
 export interface SfxSample {
   srcs: readonly string[];
@@ -17,6 +18,7 @@ export interface SfxSample {
 export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   click: { srcs: [buttonClick], gain: 0.36 },
   panel: { srcs: [panelOpen], gain: 0.38 },
+  shatter: { srcs: [shatterSound], gain: 0.42 },
   cardPlay: { srcs: [cardSlash], gain: 0.42 },
   heal: { srcs: [healSound], gain: 0.42 },
   hit: { srcs: [hitSound], gain: 0.42 },

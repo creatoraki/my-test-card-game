@@ -19,13 +19,6 @@ export const SFX_RECIPES: Partial<Record<SfxId, SfxRecipe>> = {
       { kind: "tone", waveform: "sine", frequency: 92, endFrequency: 68, durationMs: 115, gain: 0.12, attackMs: 2, releaseMs: 78 },
     ],
   },
-  shatter: {
-    layers: [
-      { kind: "sweep", waveform: "sine", from: 150, to: 42, durationMs: 220, gain: 0.26, releaseMs: 130 },
-      { kind: "noise", durationMs: 360, gain: 0.15, filter: { type: "highpass", frequency: 1350, endFrequency: 4200, q: 0.7 } },
-      { kind: "burst", countMin: 10, countMax: 16, frequencyMin: 1800, frequencyMax: 5200, durationMs: 54, gain: 0.065, spreadMs: 420, delayMs: 100, releaseMs: 34 },
-    ],
-  },
   ripple: {
     layers: [
       { kind: "sweep", waveform: "triangle", from: 58, to: 34, durationMs: 1220, gain: 0.2, releaseMs: 420 },
