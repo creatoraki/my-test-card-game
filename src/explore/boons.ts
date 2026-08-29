@@ -1,6 +1,6 @@
 import { newUid } from "../data";
 import { rngInt } from "../engine/rng";
-import { pickByQuality, rollCount, type DropContext } from "../items/drops";
+import { pickByQuality, rollAffinity, rollCount, type DropContext } from "../items/drops";
 import type { ItemStack } from "../items/types";
 import { EXPLORE_RULES } from "./rules";
 import type {
@@ -58,9 +58,7 @@ export function rollEquipCrate(s: ExploreState, ctx: DropContext): ItemStack | n
   if (!familyIds.length) return null;
   const familyId = familyIds[rngInt(s, familyIds.length)];
   const def = pickByQuality(s, ctx.getFamily(familyId), ctx.weights);
-  const affinity = def.affinityRollable && ctx.affinityPool.length
-    ? ctx.affinityPool[rngInt(s, ctx.affinityPool.length)]
-    : undefined;
+  const affinity = rollAffinity(def, ctx.affinityPool, (n) => rngInt(s, n));
   return ctx.makeStack(def.id, 1, affinity);
 }
 

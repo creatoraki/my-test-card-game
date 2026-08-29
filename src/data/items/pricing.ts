@@ -1,7 +1,7 @@
 // ============================================================================
 // 商店挂牌价 —— 按「类别 × 稀有度」的基价表。
 //
-// ★ 单一真相: 装备与材料分散在三张表里(items/equipment.ts、items/materials.ts、
+// ★ 单一真相: 装备与材料分散在三张表里(items/equipment/index.ts、items/materials.ts、
 //   旧表 data/items.ts), 三处都调本文件的 withBuyValue() 统一打标 ——
 //   逐条手写价格只会让「漏写一条」变成沉默的 bug(那件东西会永远不上架)。
 // ★ 逐件差异化定价仍然可行: def 自己写了 buyValue 就以它为准(见 withBuyValue 的 ??)。

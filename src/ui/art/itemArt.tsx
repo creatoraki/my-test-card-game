@@ -248,6 +248,7 @@ export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
 export function itemIcon(def: ItemDef): ReactNode {
   const art =
     EQUIPMENT_ART[def.id] ??
+    (def.familyId ? EQUIPMENT_ART[def.familyId] : undefined) ??
     (def.familyId ? CONSUMABLE_ART[def.familyId] : undefined) ??
     CONSUMABLE_ART[def.id] ??
     MATERIAL_ART[def.id] ??

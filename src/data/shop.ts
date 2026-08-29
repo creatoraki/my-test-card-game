@@ -12,6 +12,7 @@
 // ============================================================================
 
 import type { ItemDef, ItemRarity } from "../items/types";
+import { rollAffinity } from "../items/drops";
 import { RARITY_ORDER } from "../items/types";
 import { ROLLABLE_BOND_IDS } from "./bonds";
 import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
@@ -143,10 +144,7 @@ export function rollShopStock(
       key: `sl-${i}`,
       itemId: def.id,
       // 词条与掉落同规则: affinityRollable 的装备各带 1 条随机羁绊(《羁绊设计概览.md》§2.1)。
-      affinity:
-        def.affinityRollable && ROLLABLE_BOND_IDS.length
-          ? ROLLABLE_BOND_IDS[pickIndex(ROLLABLE_BOND_IDS.length, rand)]
-          : undefined,
+      affinity: rollAffinity(def, ROLLABLE_BOND_IDS, (n) => pickIndex(n, rand)),
       price: def.buyValue ?? 0,
       sold: false,
     });
