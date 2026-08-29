@@ -20,9 +20,9 @@ export const MINION_ENEMIES: EnemyDef[] = [
     id: "radio-bot",
     name: "收音机机器人",
     emoji: "📻",
-    maxHp: 45,
+    maxHp: 35,
     exp: 11,
-    stats: { attack: 14, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 12, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "radio-peck",
@@ -56,7 +56,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         weight: 1,
         anim: "shot",
         effects: [
-          { type: "DAMAGE", multiplier: 0.3, target: "primary" },
+          { type: "DAMAGE", multiplier: 0.5, target: "primary" },
           { type: "APPLY_STATUS", status: "vulnerable", stacks: 2, target: "primary" },
         ],
       },
@@ -72,7 +72,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     id: "sweep-drone",
     name: "清扫无人机",
     emoji: "🛸",
-    maxHp: 45,
+    maxHp: 40,
     exp: 12,
     stats: { attack: 14, defense: 0, dodgeRate: 0, initiative: 22, critDamage: 150 },
     moves: [
@@ -96,7 +96,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         targeting: "foe",
         weight: 1,
         anim: "shot",
-        effects: [{ type: "DAMAGE", multiplier: 1.8, target: "primary" }],
+        effects: [{ type: "DAMAGE", multiplier: 0.8, target: "primary" }],
       },
       {
         id: "sweep-shred",
@@ -110,9 +110,9 @@ export const MINION_ENEMIES: EnemyDef[] = [
         effects: [
           {
             type: "DAMAGE",
-            multiplier: 0.8,
+            multiplier: 0.6,
             target: "primary",
-            damageBonus: { when: "targetHasShield", multiplier: 0.8 },
+            damageBonus: { when: "targetHasShield", multiplier: 0.2 },
           },
         ],
       },
@@ -172,7 +172,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     id: "traffic-light-bot",
     name: "红绿灯机器人",
     emoji: "🚦",
-    maxHp: 45,
+    maxHp: 40,
     exp: 14,
     stats: { attack: 14, defense: 0, dodgeRate: 0, initiative: 19, critDamage: 150 },
     moves: [
