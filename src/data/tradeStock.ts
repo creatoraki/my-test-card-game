@@ -57,9 +57,15 @@ export function tradeStockDefs(kind: TradeStockKind, mapId: string): ItemDef[] {
     );
   }
   if (kind === "food") return defsByIds(FOOD_IDS);
-  if (kind === "equip-weapon") return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon");
-  if (kind === "equip-armor") return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "armor");
-  if (kind === "equip-trinket") return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "trinket");
+  if (kind === "equip-weapon") {
+    return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon" && COMMON_RARITIES.has(def.rarity));
+  }
+  if (kind === "equip-armor") {
+    return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "armor" && COMMON_RARITIES.has(def.rarity));
+  }
+  if (kind === "equip-trinket") {
+    return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "trinket" && COMMON_RARITIES.has(def.rarity));
+  }
 
   const ids = STOCK_IDS_BY_MAP[mapId]?.[kind] ?? GENERIC_IDS[kind];
   return defsByIds(ids);
