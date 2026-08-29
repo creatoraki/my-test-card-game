@@ -70,9 +70,38 @@ export const EXPLORE_RULES = {
   // 那一场打完远征就结束了, 再扣只是在通关瞬间制造一次无用的档位跌落。
   energyPerBattleRound: 1,
 
-  // ── 推进战斗档位表(设计文档 §3.1) ──
-  // index = 轮次 - 1, 直接决定本轮推进战斗档位。
-  battleTierByRound: ["light", "medium", "medium", "heavy", "heavy", "boss"] as readonly BattleTier[],
+  // ── 推进战斗档位权重(设计文档 §3.1) ──
+  // index = 轮次 - 1。本轮生成时只抽一次, 结果写入 ExploreState.roundBattleTier。
+  battleTierWeights: [
+    [{ tier: "t1", weight: 1 }],
+    [
+      { tier: "t1", weight: 45 },
+      { tier: "t2", weight: 35 },
+      { tier: "t3", weight: 20 },
+    ],
+    [
+      { tier: "t1", weight: 25 },
+      { tier: "t2", weight: 35 },
+      { tier: "t3", weight: 30 },
+      { tier: "t4", weight: 10 },
+    ],
+    [
+      { tier: "t1", weight: 10 },
+      { tier: "t2", weight: 30 },
+      { tier: "t3", weight: 40 },
+      { tier: "t4", weight: 20 },
+    ],
+    [
+      { tier: "t2", weight: 20 },
+      { tier: "t3", weight: 40 },
+      { tier: "t4", weight: 40 },
+    ],
+    [{ tier: "t5", weight: 1 }],
+  ] as readonly { tier: BattleTier; weight: number }[][],
+  nodeBattleTierWeights: [
+    { tier: "t1", weight: 60 },
+    { tier: "t2", weight: 40 },
+  ] as readonly { tier: BattleTier; weight: number }[],
 
   eventPool: {
     recentWindowRounds: 1,

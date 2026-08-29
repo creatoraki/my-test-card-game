@@ -7,11 +7,11 @@ const DEFS: ItemDef[] = [
     name: "穿甲弩",
     category: "equipment",
     rarity: "common",
-    desc: "普通级武器模板：提高攻击力、命中率与穿甲。",
+    desc: "普通级武器模板：提高攻击力与穿甲。",
     maxStack: 1,
     slot: "weapon",
     familyId: "armor-piercing-crossbow",
-    mods: { flat: { attack: 1, hitRate: 3, armorPen: 6 } },
+    mods: { flat: { attack: 3, armorPen: 4 } },
     icon: "weapon",
   },
   {
@@ -23,7 +23,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "weapon",
     familyId: "hunting-rifle",
-    mods: { flat: { attack: 1, critRate: 10, critDamage: 35 } },
+    mods: { flat: { attack: 2, hitRate: 3, critRate: 10, critDamage: 30 } },
     icon: "weapon",
   },
   {
@@ -31,11 +31,11 @@ const DEFS: ItemDef[] = [
     name: "拳套",
     category: "equipment",
     rarity: "common",
-    desc: "普通级武器模板：提高攻击力与先手。",
+    desc: "普通级武器模板：提高攻击力、命中率与先手。",
     maxStack: 1,
     slot: "weapon",
     familyId: "quickstrike-gauntlet",
-    mods: { flat: { attack: 2, initiative: 4 } },
+    mods: { flat: { attack: 2, hitRate: 3, initiative: 4 } },
     icon: "weapon",
   },
   {
@@ -43,11 +43,11 @@ const DEFS: ItemDef[] = [
     name: "盾斧",
     category: "equipment",
     rarity: "common",
-    desc: "普通级极端武器模板：提高攻击力与最大生命值，但大幅降低先手。",
+    desc: "普通级极端武器模板：提高攻击力、穿甲与最大生命值，但降低先手。",
     maxStack: 1,
     slot: "weapon",
     familyId: "cross-sword",
-    mods: { flat: { maxHp: 30, attack: 3, initiative: -5 } },
+    mods: { flat: { attack: 3, armorPen: 2, maxHp: 20, initiative: -5 } },
     icon: "weapon",
   },
   {
@@ -55,11 +55,11 @@ const DEFS: ItemDef[] = [
     name: "匕首",
     category: "equipment",
     rarity: "common",
-    desc: "普通级极端武器模板：提高攻击力、暴击率与爆伤，但降低最大生命值与防御力。",
+    desc: "普通级极端武器模板：提高攻击力、命中率与暴击率，但降低最大生命值与防御力。",
     maxStack: 1,
     slot: "weapon",
     familyId: "glass-dagger",
-    mods: { flat: { maxHp: -25, defense: -4, attack: 2, critRate: 12, critDamage: 30 } },
+    mods: { flat: { attack: 3, hitRate: 5, critRate: 12, maxHp: -20, defense: -3 } },
     icon: "weapon",
   },
   {
@@ -67,11 +67,11 @@ const DEFS: ItemDef[] = [
     name: "火炮",
     category: "equipment",
     rarity: "common",
-    desc: "普通级极端武器模板：提高攻击力、暴击率与爆伤，但降低命中率与先手。",
+    desc: "普通级极端武器模板：大幅提高攻击力与穿甲，但降低命中率与先手。",
     maxStack: 1,
     slot: "weapon",
     familyId: "heavy-cannon",
-    mods: { flat: { attack: 4, critRate: 12, critDamage: 40, hitRate: -10, initiative: -2 } },
+    mods: { flat: { attack: 5, armorPen: 3, hitRate: -12, initiative: -2 } },
     icon: "weapon",
   },
   {
@@ -79,11 +79,11 @@ const DEFS: ItemDef[] = [
     name: "弓箭",
     category: "equipment",
     rarity: "common",
-    desc: "普通级固定武器模板：提高攻击力、暴击率与爆伤。",
+    desc: "普通级固定武器模板：提高攻击力、穿甲、暴击率与爆伤。",
     maxStack: 1,
     slot: "weapon",
     familyId: "hunter-longbow",
-    mods: { flat: { attack: 2, critRate: 3, critDamage: 50 } },
+    mods: { flat: { attack: 2, armorPen: 2, critRate: 8, critDamage: 40 } },
     icon: "weapon",
   },
   {
@@ -95,7 +95,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "weapon",
     familyId: "deflection-blade",
-    mods: { flat: { attack: 2, hitRate: 3 } },
+    mods: { flat: { attack: 3, hitRate: 5 } },
     icon: "weapon",
   },
   {
@@ -107,7 +107,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "city-defense-heavy-armor",
-    mods: { flat: { defense: 4, maxHp: 15 } },
+    mods: { flat: { defense: 5, maxHp: 8 } },
     icon: "armor",
   },
   {
@@ -119,7 +119,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "composite-armor",
-    mods: { flat: { defense: 3, maxHp: 20 } },
+    mods: { flat: { defense: 3, maxHp: 12 } },
     icon: "armor",
   },
   {
@@ -131,7 +131,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "guard-plate",
-    mods: { flat: { defense: 5, blockRate: 5 } },
+    mods: { flat: { defense: 6, blockRate: 6 } },
     icon: "armor",
   },
   {
@@ -143,7 +143,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "hazmat-suit",
-    mods: { flat: { defense: 2, ailmentResist: 10 } },
+    mods: { flat: { defense: 5, ailmentResist: 12, maxHp: 4 } },
     icon: "armor",
   },
   {
@@ -155,7 +155,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "mobile-armor",
-    mods: { flat: { defense: 2, dodgeRate: 5 } },
+    mods: { flat: { defense: 4, dodgeRate: 8, maxHp: 2 } },
     icon: "armor",
   },
   {
@@ -167,7 +167,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "buffer-coat",
-    mods: { flat: { defense: 3, shieldBoost: 8 } },
+    mods: { flat: { defense: 4, shieldBoost: 12 } },
     icon: "armor",
   },
   {
@@ -179,7 +179,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "life-support-armor",
-    mods: { flat: { defense: 2, maxHp: 25 } },
+    mods: { flat: { defense: 2, maxHp: 8, blockRate: 4 } },
     icon: "armor",
   },
   {
@@ -191,7 +191,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "assault-exoskeleton",
-    mods: { flat: { attack: 2, defense: 1 } },
+    mods: { flat: { attack: 2, defense: 3, initiative: 2 } },
     icon: "armor",
   },
   {
@@ -203,7 +203,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "fire-control-armor",
-    mods: { flat: { attack: 1, defense: 1, hitRate: 5 } },
+    mods: { flat: { attack: 2, defense: 2, hitRate: 5 } },
     icon: "armor",
   },
   {
@@ -215,7 +215,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "armor",
     familyId: "raider-light-armor",
-    mods: { flat: { attack: 1, defense: 1, critRate: 6 } },
+    mods: { flat: { attack: 2, defense: 2, critRate: 8 } },
     icon: "armor",
   },
   {
@@ -227,7 +227,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "tactical-goggles",
-    mods: { flat: { attack: 1, hitRate: 5, precision: 5 } },
+    mods: { flat: { attack: 2, hitRate: 5, precision: 8 } },
     icon: "trinket",
   },
   {
@@ -239,7 +239,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "polarized-core",
-    mods: { flat: { defense: 2, attack: 1, shieldBoost: 6 } },
+    mods: { flat: { defense: 3, attack: 1, shieldBoost: 12, maxHp: 2 } },
     icon: "trinket",
   },
   {
@@ -251,7 +251,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "quickstep-watch",
-    mods: { flat: { initiative: 2, dodgeRate: 5, critRate: 6 } },
+    mods: { flat: { initiative: 5, dodgeRate: 8, critRate: 6 } },
     icon: "trinket",
   },
   {
@@ -263,7 +263,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "medical-pendant",
-    mods: { flat: { healPower: 3, maxHp: 8, healBoost: 8 } },
+    mods: { flat: { healPower: 4, maxHp: 8, healBoost: 12 } },
     icon: "trinket",
   },
   {
@@ -275,7 +275,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "resource-chip",
-    mods: { flat: { handLimit: 1, drawCount: 1, burdenAdapt: 10 } },
+    mods: { flat: { handLimit: 1, drawCount: 1, burdenAdapt: 10, maxHp: 3 } },
     icon: "trinket",
   },
   {
@@ -287,7 +287,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "reaction-charm",
-    mods: { flat: { defense: 2, blockRate: 5, ailmentResist: 8 } },
+    mods: { flat: { defense: 3, blockRate: 8, ailmentResist: 8 } },
     icon: "trinket",
   },
   {
@@ -299,7 +299,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "critical-prism",
-    mods: { flat: { attack: 1, critRate: 8, critDamage: 20 } },
+    mods: { flat: { attack: 2, critRate: 12, critDamage: 50 } },
     icon: "trinket",
   },
   {
@@ -311,7 +311,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "life-thorn-ring",
-    mods: { flat: { maxHp: 15, defense: 1, healPower: 2 } },
+    mods: { flat: { maxHp: 8, defense: 3, healPower: 4 } },
     icon: "trinket",
   },
   {
@@ -323,7 +323,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "breach-beacon",
-    mods: { flat: { attack: 2, precision: 6, hitRate: 5 } },
+    mods: { flat: { attack: 2, precision: 8, hitRate: 5 } },
     icon: "trinket",
   },
   {
@@ -335,7 +335,7 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     slot: "trinket",
     familyId: "burden-module",
-    mods: { flat: { defense: 1, burdenAdapt: 15, dodgeRate: 4 } },
+    mods: { flat: { defense: 2, burdenAdapt: 20, dodgeRate: 4, maxHp: 4 } },
     icon: "trinket",
   },
 ];

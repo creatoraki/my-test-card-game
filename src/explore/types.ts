@@ -10,7 +10,7 @@
 //
 // ⚠ 战斗**不是**路由图上的终点(设计文档 §2.4): 它是每轮独立的第二个关卡。
 //   本轮线路走完 → **轮次战斗事件**(从地图事件池抽取, 固定只有「迎战」) → 推进战斗。
-//   档位由轮次固定表决定(EXPLORE_RULES.battleTierByRound)。
+//   档位在生成本轮时抽定并写入 ExploreState.roundBattleTier。
 // ============================================================================
 
 import type { DropEntry, EquipSlot, ItemStack } from "../items/types";
@@ -120,7 +120,7 @@ export type ExploreEffect =
   | { type: "FORGE_REMOVE" }
   | { type: "EQUIP_OFFER"; count: number; slot?: EquipSlot }
   | { type: "REFORGE_BOND"; bias?: BondBias }
-  | { type: "START_NODE_BATTLE"; tier: BattleTier }
+  | { type: "START_NODE_BATTLE"; tier?: BattleTier }
   | { type: "OPEN_SHOP" } // 打开本事件的交易终端, 由落点选项触发
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
   | { type: "RETREAT" }; // 立即结束远征, 收益带回
@@ -238,8 +238,8 @@ export interface EnergyTier {
   rewardMultiplier: number; // 即 K_energy, 同时作用于经验与产出
 }
 
-// 推进战斗档位(设计文档 §3.1)。轮次 → 档位是全局固定表。
-export type BattleTier = "light" | "medium" | "heavy" | "boss";
+// 推进战斗档位。轮次只决定抽取权重, 具体结果在生成本轮时写入状态。
+export type BattleTier = "t1" | "t2" | "t3" | "t4" | "t5";
 
 // ---------------------------------------------------------------------------
 // 队伍快照 —— 探索层持有的队伍血量, 跨轮与跨战斗继承。
@@ -325,6 +325,7 @@ export interface ExploreState {
 
   round: number; // 当前轮号, 从 1 起
   roundCount: number; // 固定 6
+  roundBattleTier: BattleTier; // 本轮生成时抽定的推进战斗档位
   board: RouteBoard | null;
 
   party: PartySnapshot[];
@@ -371,7 +372,7 @@ export interface ExploreState {
 
   pendingEncounterId: string | null; // 战斗中: 打的是哪一场
   pendingIsBoss: boolean;
-  pendingBattleTier: BattleTier | null; // 本轮推进战斗的档位(§3.1 固定表)
+  pendingBattleTier: BattleTier | null; // 当前战斗的档位
   recentEventIds: string[]; // 最近若干轮已经出现过的事件, 用于生成时软冷却
   battleSource: "round" | "node" | null;
   // ★ 下面三项是**开战瞬间的快照**(与负重快照同一时机, 设计文档 §10.1):

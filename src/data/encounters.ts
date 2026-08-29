@@ -1,35 +1,13 @@
-// 遭遇战数据 —— enemies 引用 enemies.ts 的敌人 id(可重复, createBattle 会自动加 A/B/C 后缀)。
-// 遭遇战的编排顺序不在此定义 —— 见 maps.ts, 由 MapDef.sequence 串成一次远征。
-//
-// ★ 本文件是「战斗配置模板」的登记处(废弃楼层首图): 根据 enemies.ts 的小怪/精英/BOSS 分层,
-//   用 4 种小怪自由组合出轻/中战斗模板, 用 2 种精英撑起"重"档位模板, 再加 1 个 BOSS 收束战。
-//   同一张模板可被多张战斗事件卡复用(见 design/关卡事件设计/废弃楼层/废弃楼层-战斗事件.md §四),
-//   多张事件卡引用同一模板时, 敌人编队、数量、站位与强度完全相同, 差异只来自卡面叙事。
-//
-// 站位: 敌人默认由 .enemy-row 的 flex 水平居中自动排布; 想让某场战斗的敌人贴合背景地面时,
-// 把该槽位从 "id" 字符串改写成 { id, dx, dy, scale } 对象 —— 两种写法可在同一数组里混用,
-// 字符串等价于 { id } (无偏移)。坐标是"相对默认位置推开多少设计 px", 不是绝对坐标, 故未标注的
-// 遭遇战行为完全不变。消费方见 ui/CombatantView.tsx(下发 CSS 变量)与 ui/CombatantView.css(.combatant)。
+// 遭遇战数据 —— enemies 引用敌人 id，站位只供战斗 UI 取景。
 
-// 单位是"设计 px": 战斗画面是固定 1920×1080 的设计画布, 整体等比缩放去适配窗口(见 ui/stage.ts),
-// 故这里的偏移与玩家的实际分辨率无关 —— 一次调好, 任何窗口尺寸下站位都与背景严丝合缝。
-// 主体高度基准由 styles/tokens.css 的 --foe-figure-h 定义, scale 是在其之上的乘数;
-// 基准变化时只需重新换算 scale, dx/dy 不随之移动。
 export interface EnemyPlacement {
-  id: string; // 敌人 def id
-  dx?: number; // 相对默认位置的水平偏移(设计 px), 右为正
-  dy?: number; // 相对默认位置的垂直偏移(设计 px), 下为正 —— 往下 = 站得更靠近镜头
-  // 体型/远近透视缩放, 缺省 1。只作用于立绘与命中特效 —— 血条、护盾/BUFF 图标、意图、
-  // 倒计时全场统一尺寸, 不跟着放大。缩放中心是立绘底边中点, 故改 scale 时脚不离地,
-  // 立绘只向上长, 不必回头补 dy。
+  id: string;
+  dx?: number;
+  dy?: number;
   scale?: number;
-  // 立绘左右镜像。同一台敌人在左右两侧同时出场时, 给右侧那台开 true, 两台就"面朝彼此"
-  // 而不是排成同向的复制粘贴。只翻立绘本身 —— 血条/BUFF/意图/倒计时与命中特效都不翻转
-  // (消费方见 ui/battle/CombatantView 与 ui/battle/EnemySprite)。
   flip?: boolean;
 }
 
-// 字符串 = 用默认排布位置; 对象 = 手工指定站位。
 export type EnemySlot = string | EnemyPlacement;
 
 export interface EncounterDef {
@@ -38,12 +16,10 @@ export interface EncounterDef {
   enemies: EnemySlot[];
 }
 
-// 两个 slot 取值器 —— 引擎只关心打谁(slotDefId), UI 只关心站哪(slotPlacement)。
 export function slotDefId(slot: EnemySlot): string {
   return typeof slot === "string" ? slot : slot.id;
 }
 
-// 无偏移(字符串写法或对象只写了 id)时返回 undefined, 由 UI 走默认排布。
 export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
   if (typeof slot === "string") return undefined;
   return slot.dx == null && slot.dy == null && slot.scale == null && slot.flip == null
@@ -51,15 +27,9 @@ export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
     : slot;
 }
 
-// ---------------------------------------------------------------------------
-// 站位常量 —— 废弃楼层战斗背景的地面线。立绘主体高度已由 enemyArt.ts 的 body 归一,
-// dy 220 把各立绘脚线统一压到同一地面线上; scale 只调体型(脚不离地)。
-// 遭遇战模板的立绘缩放统一为 1; 清扫无人机与维修蜘蛛按轻型单位额外使用 1.1。
-// ---------------------------------------------------------------------------
 const GROUND_DY = 220;
 const SPIDER_DY = GROUND_DY - 80;
 
-// 统一生成敌人站位：默认站在地面线上，可按单个敌人覆盖 dx/dy/scale/flip。
 type EnemyPlacementOptions = Omit<EnemyPlacement, "id">;
 
 function placeEnemy(id: string, options: EnemyPlacementOptions = {}): EnemyPlacement {
@@ -73,91 +43,63 @@ function placeEnemy(id: string, options: EnemyPlacementOptions = {}): EnemyPlace
   };
 }
 
-// ── 小怪战斗模板(轻 3 只 / 中 4 只, 只用 4 种小怪) ───────────────────────────
+const T1_SCOUT = [
+  placeEnemy("maintenance-spider", { dx: -100, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("radio-bot", { dx: 100, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
+];
 
-// 轻战斗 · 教学: 侦察 + 高速机动。教玩家看意图、理解"敌人掉落按各自结算"。
-const CREW = [
-  placeEnemy("maintenance-spider", { dx: -120, dy: GROUND_DY - 60, scale: 1.1 }),
+const T1_SWEEP = [
+  placeEnemy("sweep-drone", { dx: -100, scale: 1.1 }),
+  placeEnemy("traffic-light-bot", { dx: 100, flip: true }),
+];
+
+const T2_CREW = [
+  placeEnemy("maintenance-spider", { dx: -150, dy: SPIDER_DY, scale: 1.1 }),
   placeEnemy("radio-bot", { scale: 0.7, dy: GROUND_DY + 30 }),
-  placeEnemy("sweep-drone", { dx: 120, dy: GROUND_DY - 80, scale: 1.2, flip: true }),
+  placeEnemy("sweep-drone", { dx: 150, scale: 1.2, flip: true }),
 ];
-// 轻战斗 · 纯机动: 两台高速无人机与一台支援单位, 教玩家专一处理一个目标类型。
-const SWEEP = [
-  placeEnemy("radio-bot", { dx: -120 }),
-  placeEnemy("sweep-drone", { scale: 1.1 }),
-  placeEnemy("sweep-drone", { dx: 120, scale: 1.1, flip: true }),
+
+const T2_BEACON = [
+  placeEnemy("radio-bot", { dx: -150 }),
+  placeEnemy("traffic-light-bot"),
+  placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
 ];
-// 中战斗 · 控制+暴露+机动: 红绿灯控制、收音机易伤、无人机突破, 教玩家判断先杀谁。
-const BEACON = [
-  placeEnemy("radio-bot", { dx: -180 }),
-  placeEnemy("traffic-light-bot", { dx: -60 }),
-  placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("sweep-drone", { dx: 180, scale: 1.1 }),
-];
-// 中战斗 · 支援+控制+暴露: 蜘蛛奶、红绿灯控、收音机暴露, 走"拖节奏"路线。
-const PATROL = [
+
+const T3_PATROL = [
   placeEnemy("radio-bot", { dx: -180, flip: true }),
   placeEnemy("traffic-light-bot", { dx: -60 }),
   placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("sweep-drone", { dx: 180, scale: 1.1 }),
+  placeEnemy("sweep-drone", { dx: 180, scale: 1.1, flip: true }),
 ];
 
-// ── 精英战斗模板(重, 单场 2-3 只, 至少含 1 只精英) ──────────────────────────
-
-// 重战斗 · 双精英正面对撞: 废品压块 + 高压电网, 玩家要同时处理封罐/护甲与升压/穿刺。
-const COMPACTOR = [
-  placeEnemy("scrap-bot", { dx: -96 }),
-  placeEnemy("pole-bot", { dx: 96 }),
+const T3_BLOCKADE = [
+  placeEnemy("traffic-light-bot", { dx: -180 }),
+  placeEnemy("sweep-drone", { dx: -60, scale: 1.1 }),
+  placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("radio-bot", { dx: 180, scale: 0.7, dy: GROUND_DY + 30, flip: true }),
 ];
-// 重战斗 · 高压精英被支援保护: 电线杆 + 维修蜘蛛 + 收音机, 教玩家先清支援再碰精英。
-const ELITE_GUARD = [
+
+const T4_ELITE_GUARD = [
   placeEnemy("radio-bot", { dx: -120 }),
   placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("pole-bot", { dx: 120 }),
+  placeEnemy("pole-bot", { dx: 120, flip: true }),
 ];
 
-// ── BOSS 战(单场 1 只) ──────────────────────────────────────────────────────
+const T4_COMPACTOR = [
+  placeEnemy("scrap-bot", { dx: -96 }),
+  placeEnemy("pole-bot", { dx: 96, flip: true }),
+];
 
-const BOSS_SLOT = placeEnemy("scrap-mountain-guardian", { dy: -60 });
+const T5_BOSS = [placeEnemy("scrap-mountain-guardian", { dy: -60 })];
 
 export const ENCOUNTERS: EncounterDef[] = [
-  // ── 小怪战(轻) ──
-  {
-    id: "n-crew",
-    name: "清运班组",
-    enemies: CREW,
-  },
-  {
-    id: "n-sweep",
-    name: "清扫网",
-    enemies: SWEEP,
-  },
-  // ── 小怪战(中) ──
-  {
-    id: "n-beacon",
-    name: "巡回信标",
-    enemies: BEACON,
-  },
-  {
-    id: "n-patrol",
-    name: "维修巡线",
-    enemies: PATROL,
-  },
-  // ── 精英战(重) ──
-  {
-    id: "n-compactor",
-    name: "报废压缩机",
-    enemies: COMPACTOR,
-  },
-  {
-    id: "n-elite-guard",
-    name: "高压拦截",
-    enemies: ELITE_GUARD,
-  },
-  // ── BOSS 收束战 ──
-  {
-    id: "n-boss",
-    name: "回收总控",
-    enemies: [BOSS_SLOT],
-  },
+  { id: "n-t1-scout", name: "初遇侦察", enemies: T1_SCOUT },
+  { id: "n-t1-sweep", name: "双机清扫", enemies: T1_SWEEP },
+  { id: "n-t2-crew", name: "清运班组", enemies: T2_CREW },
+  { id: "n-t2-beacon", name: "巡回信标", enemies: T2_BEACON },
+  { id: "n-t3-patrol", name: "维修巡线", enemies: T3_PATROL },
+  { id: "n-t3-blockade", name: "路口封锁", enemies: T3_BLOCKADE },
+  { id: "n-t4-elite-guard", name: "高压拦截", enemies: T4_ELITE_GUARD },
+  { id: "n-t4-compactor", name: "报废压缩机", enemies: T4_COMPACTOR },
+  { id: "n-t5-boss", name: "回收总控", enemies: T5_BOSS },
 ];

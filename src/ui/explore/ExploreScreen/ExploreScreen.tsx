@@ -399,7 +399,7 @@ export function ExploreScreen() {
             id: `round-battle-${session.round}`,
             kind: "battle" as const,
             category: "battle" as const,
-            title: `推进战斗 · ${BATTLE_TIER_NAME[battleTierOf(session.round)]}`,
+            title: `推进战斗 · ${BATTLE_TIER_NAME[battleTierOf(session)]}`,
             description: "本轮战斗事件池暂无可用文案。",
             energyDelta: 0,
           }
@@ -561,7 +561,7 @@ export function ExploreScreen() {
   //   会让画面与阶段机各说各话(session 层对这一相也一律不放行)。
   const locked = session.phase === "generating" || session.phase === "leaving";
 
-  const tier = battleTierOf(session.round);
+  const tier = battleTierOf(session);
 
   // 落点分支 → 应用。
   // ★ 不立刻派发: 先让被点中的那一支演完「落子」(竖条锁死 + 扫光), 另一支同时暗下去,

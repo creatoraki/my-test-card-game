@@ -1,7 +1,7 @@
 // 地图数据 —— 一张地图 = 一趟由 6 轮「区域路由图 + 推进战斗」组成的远征
 // (见 探索模式设计.md §3.1 / §9.4 / explore/session.ts)。
-// 地图提供四样东西: 走几轮、节点事件从哪个池抽、四个战斗档位各打哪一场、起始净化粒子。
-// ★ 战斗档位只决定「本图该档位打哪一场遭遇战」—— 不追加敌人、不改敌方面板;
+// 地图提供四样东西: 走几轮、节点事件从哪个池抽、五个战斗档位各有哪些遭遇战、起始净化粒子。
+// ★ 战斗档位只决定「本图该档位从哪几场遭遇战中抽取」—— 不追加敌人、不改敌方面板;
 //   能量档位对战斗的影响仅通过 encounterModifier 注入敌方开局状态(过载层数)与掉落系数。
 //
 // 地图配图不在此登记 —— 数据层不碰素材; 选层预览图见 ui/mapArt.ts,
@@ -19,9 +19,9 @@ export interface MapDef {
   // ── 区域推进 ──
   roundCount: number; // 一趟走几轮(标准 6)
   eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
-  // 推进战斗档位 → 遭遇战。轮次到档位的映射是全局固定表(EXPLORE_RULES.battleTierByRound),
-  // 地图只负责说「本图的轻/中/大/BOSS 各是谁」。
-  battleEncounters: Record<BattleTier, string>;
+  // 推进战斗档位 → 遭遇战候选。轮次到档位的权重是全局表(EXPLORE_RULES.battleTierWeights),
+  // 地图只负责登记每个档位的战斗模板。
+  battleEncounters: Record<BattleTier, string[]>;
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
 }
 
@@ -35,10 +35,11 @@ export const MAPS: MapDef[] = [
     roundCount: 6,
     eventPoolId: "ruined-floor",
     battleEncounters: {
-      light: "n-crew", // 清运班组 (小怪×2, 轻)
-      medium: "n-beacon", // 巡回信标 (小怪×3, 中)
-      heavy: "n-compactor", // 报废压缩机 (精英×2, 重)
-      boss: "n-boss", // 回收总控 (垃圾山的守护者, BOSS)
+      t1: ["n-t1-scout", "n-t1-sweep"],
+      t2: ["n-t2-crew", "n-t2-beacon"],
+      t3: ["n-t3-patrol", "n-t3-blockade"],
+      t4: ["n-t4-elite-guard", "n-t4-compactor"],
+      t5: ["n-t5-boss"],
     },
     startingEnergy: 100,
   },
@@ -51,10 +52,11 @@ export const MAPS: MapDef[] = [
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
-      light: "",
-      medium: "",
-      heavy: "",
-      boss: "",
+      t1: [],
+      t2: [],
+      t3: [],
+      t4: [],
+      t5: [],
     },
     startingEnergy: 100,
   },
@@ -67,10 +69,11 @@ export const MAPS: MapDef[] = [
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
-      light: "",
-      medium: "",
-      heavy: "",
-      boss: "",
+      t1: [],
+      t2: [],
+      t3: [],
+      t4: [],
+      t5: [],
     },
     startingEnergy: 100,
   },
@@ -83,10 +86,11 @@ export const MAPS: MapDef[] = [
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
-      light: "",
-      medium: "",
-      heavy: "",
-      boss: "",
+      t1: [],
+      t2: [],
+      t3: [],
+      t4: [],
+      t5: [],
     },
     startingEnergy: 100,
   },
@@ -99,10 +103,11 @@ export const MAPS: MapDef[] = [
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
-      light: "",
-      medium: "",
-      heavy: "",
-      boss: "",
+      t1: [],
+      t2: [],
+      t3: [],
+      t4: [],
+      t5: [],
     },
     startingEnergy: 100,
   },

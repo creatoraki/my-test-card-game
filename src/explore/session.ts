@@ -147,18 +147,42 @@ export function encounterModifier(energy: number): EncounterModifier {
 }
 
 // 能量档位的改造, 合并成引擎认识的那一个结构。
-// 本轮推进战斗的档位(设计文档 §3.1 的固定表)。
-export function battleTierOf(round: number): BattleTier {
-  const table = EXPLORE_RULES.battleTierByRound;
-  return table[Math.min(Math.max(round, 1), table.length) - 1];
+// 本轮推进战斗的档位。档位在 generateRound 时抽定, 后续读取不再消耗 RNG。
+export function battleTierOf(s: ExploreState): BattleTier {
+  return s.roundBattleTier;
 }
 
 export const BATTLE_TIER_NAME: Record<BattleTier, string> = {
-  light: "轻战斗",
-  medium: "中战斗",
-  heavy: "大战斗",
-  boss: "BOSS 战",
+  t1: "难度1",
+  t2: "难度2",
+  t3: "难度3",
+  t4: "难度4",
+  t5: "难度5 · BOSS",
 };
+
+function pickWeighted<T extends { weight: number }>(s: ExploreState, options: readonly T[]): T {
+  const total = options.reduce((sum, option) => sum + Math.max(0, option.weight), 0);
+  if (total <= 0) return options[0];
+  let roll = rngInt(s, Math.ceil(total * 1000)) / 1000;
+  for (const option of options) {
+    roll -= Math.max(0, option.weight);
+    if (roll < 0) return option;
+  }
+  return options[options.length - 1];
+}
+
+function roundBattleTier(s: ExploreState): BattleTier {
+  const rows = EXPLORE_RULES.battleTierWeights[Math.min(Math.max(s.round, 1), EXPLORE_RULES.battleTierWeights.length) - 1];
+  return pickWeighted(s, rows).tier;
+}
+
+function pickNodeBattleTier(s: ExploreState): BattleTier {
+  return pickWeighted(s, EXPLORE_RULES.nodeBattleTierWeights).tier;
+}
+
+function encounterForTier(s: ExploreState, tier: BattleTier): string | null {
+  return shuffle(s, getMap(s.mapId).battleEncounters[tier] ?? [])[0] ?? null;
+}
 
 // ---------------------------------------------------------------------------
 // 建立会话
@@ -178,6 +202,7 @@ export function createSession(
     loot: 0,
     round: 1,
     roundCount: map.roundCount,
+    roundBattleTier: "t1",
     board: null,
     party: party.map((p) => ({ ...p })),
     stats: { kills: 0, expTotal: 0, pickups: 0, energySpent: 0 },
@@ -1175,6 +1200,7 @@ function finalizeRowKinds(
 export function generateRound(s: ExploreState): void {
   const map = getMap(s.mapId);
   const stage = roundStageOf(s.round);
+  s.roundBattleTier = roundBattleTier(s);
   // 每段桥接数在本轮次给定的区间里各掷一次 —— 递增曲线由区间表本身保证(rules.rounds)
   const counts = stage.bridges.map(([lo, hi]) => lo + rngInt(s, hi - lo + 1));
 
@@ -1398,7 +1424,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
       continue;
     }
     if (e.type === "START_NODE_BATTLE") {
-      nodeBattleTier = e.tier;
+      nodeBattleTier = e.tier ?? pickNodeBattleTier(s);
       continue;
     }
     try {
@@ -1441,7 +1467,8 @@ export function chooseOption(s: ExploreState, index: number): boolean {
 
   if (nodeBattleTier) {
     s.pendingBattleTier = nodeBattleTier;
-    s.pendingEncounterId = getMap(s.mapId).battleEncounters[nodeBattleTier];
+    s.pendingEncounterId = encounterForTier(s, nodeBattleTier);
+    if (!s.pendingEncounterId) return false;
     s.pendingIsBoss = false;
     s.battleSource = "node";
     s.phase = "inBattle";
@@ -1563,8 +1590,8 @@ export function roundBattleEvent(s: ExploreState): NodeEvent | null {
 
 export function engageRoundBattle(s: ExploreState): boolean {
   if (s.phase !== "roundBattle") return false;
-  const tier = battleTierOf(s.round);
-  const encounterId = getMap(s.mapId).battleEncounters[tier];
+  const tier = battleTierOf(s);
+  const encounterId = encounterForTier(s, tier);
   if (!encounterId) return false;
   const eventTitle = roundBattleEvent(s)?.title ?? BATTLE_TIER_NAME[tier];
 
@@ -1582,7 +1609,7 @@ export function engageRoundBattle(s: ExploreState): boolean {
   });
   s.pendingBattleTier = tier;
   s.pendingEncounterId = encounterId;
-  s.pendingIsBoss = tier === "boss";
+  s.pendingIsBoss = tier === "t5";
   s.battleSource = "round";
   s.phase = "inBattle";
   s.roundBattleEventId = null;

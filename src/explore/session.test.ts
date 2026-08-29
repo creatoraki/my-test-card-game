@@ -368,17 +368,29 @@ describe("阶段机", () => {
     expect(s.history).toHaveLength(0);
   });
 
-  it("轮次战斗事件 → 推进战斗: 档位按轮次固定表(轻/中/中/大/大/BOSS)", () => {
-    expect(["light", "medium", "medium", "heavy", "heavy", "boss"]).toEqual([1, 2, 3, 4, 5, 6].map(battleTierOf));
+  it("轮次战斗事件 → 推进战斗: 首尾档位固定, 中间档位按权重抽取", () => {
+    const tiers = ["t1", "t2", "t3", "t4"] as const;
     const s = newSession();
+    expect(battleTierOf(s)).toBe("t1");
+    for (const round of [2, 3, 4, 5]) {
+      s.round = round;
+      generateRound(s);
+      expect(tiers).toContain(battleTierOf(s));
+    }
+    s.round = 6;
+    generateRound(s);
+    expect(battleTierOf(s)).toBe("t5");
+
+    s.round = 1;
+    generateRound(s);
     toChoosing(s);
     leaveRegion(s);
     expect(roundBattleEvent(s)).not.toBeNull();
     expect(engageRoundBattle(s)).toBe(true);
     expect(s.phase).toBe("inBattle");
-    expect(s.pendingBattleTier).toBe("light");
+    expect(s.pendingBattleTier).toBe("t1");
     expect(s.pendingIsBoss).toBe(false);
-    expect(s.pendingEncounterId).toBe("n-crew");
+    expect(["n-t1-scout", "n-t1-sweep"]).toContain(s.pendingEncounterId);
     finishBattle(s, true, WIN, ["scrap-bot"]);
     const last = s.history[s.history.length - 1];
     expect(last).toMatchObject({
@@ -407,14 +419,14 @@ describe("阶段机", () => {
           label: "迎战",
           desc: "",
           energyDelta: 0,
-          effects: [{ type: "START_NODE_BATTLE", tier: "light" }],
+          effects: [{ type: "START_NODE_BATTLE" }],
         },
       ],
     };
     expect(chooseOption(s, 0)).toBe(true);
     expect(s.phase).toBe("inBattle");
     expect(s.battleSource).toBe("node");
-    expect(s.pendingEncounterId).toBe("n-crew");
+    expect(["n-t1-scout", "n-t1-sweep"]).toContain(s.pendingEncounterId);
     finishBattle(s, true, WIN, ["scrap-bot"]);
     expect(s.phase).toBe("atNode");
     expect(s.round).toBe(1);

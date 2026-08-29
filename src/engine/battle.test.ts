@@ -34,7 +34,7 @@ function deckOf(cardId: string, n: number) {
 
 function battleWith(deckCardId: string, n = 12): BattleState {
   const setup: BattleSetup = { allies: allies(), deck: deckOf(deckCardId, n) };
-  return createBattle("n-crew", setup, 42);
+  return createBattle("n-t1-scout", setup, 42);
 }
 
 describe("战斗初始化", () => {
@@ -106,13 +106,13 @@ describe("属性口径", () => {
 
   it("粒子污染放大攻击伤害, 且闪避加成受 70% 封顶", () => {
     const clean = createBattle(
-      "n-crew",
+      "n-t1-scout",
       { allies: allies(), deck: deckOf("swordsman-basic-attack") },
       42,
       { enemyStatuses: [] },
     );
     const polluted = createBattle(
-      "n-crew",
+      "n-t1-scout",
       { allies: allies(), deck: deckOf("swordsman-basic-attack") },
       42,
       { enemyStatuses: [{ id: "overload", stacks: 4 }] },
