@@ -27,6 +27,7 @@ const audioById: Record<BgmId, HTMLAudioElement> = {
 };
 
 const fadeFrames: Partial<Record<BgmId, number>> = {};
+const rewindPending = new Set<BgmId>();
 
 let currentBgm: BgmId | null = null;
 let requestedBgm: BgmId | null = null;
@@ -119,6 +120,11 @@ function requestPlayback(id: BgmId): void {
 function resumeBgm(id: BgmId): void {
   const audio = audioById[id];
   cancelFade(id);
+  if (rewindPending.has(id)) {
+    audio.pause();
+    audio.currentTime = 0;
+    rewindPending.delete(id);
+  }
   audio.volume = 0;
   requestPlayback(id);
   fadeTo(id, BGM_TRACKS[id].volume);
@@ -137,6 +143,13 @@ export function playBgm(id: BgmId): void {
 
   const previousBgm = currentBgm;
   currentBgm = id;
+
+  if (rewindPending.has(id)) {
+    cancelFade(id);
+    audioById[id].pause();
+    audioById[id].currentTime = 0;
+    rewindPending.delete(id);
+  }
 
   if (previousBgm) {
     fadeTo(previousBgm, 0, () => {
@@ -183,14 +196,30 @@ export function toggleBgm(): void {
   setBgmEnabled(!bgmEnabled);
 }
 
-export function stopAllBgm(): void {
+export function stopAllBgm(options: { rewind?: boolean; fade?: boolean } = {}): void {
+  const shouldRewind = options.rewind === true;
+  const shouldFade = options.fade === true;
   requestedBgm = null;
   currentBgm = null;
   removeUnlockListeners();
 
   for (const id of Object.keys(audioById) as BgmId[]) {
     cancelFade(id);
-    audioById[id].pause();
-    audioById[id].volume = 0;
+    const audio = audioById[id];
+    if (shouldRewind) rewindPending.add(id);
+    else rewindPending.delete(id);
+    const pause = () => {
+      audio.pause();
+      if (shouldRewind) {
+        audio.currentTime = 0;
+        rewindPending.delete(id);
+      }
+    };
+    if (shouldFade && !audio.paused && audio.volume > 0) {
+      fadeTo(id, 0, pause);
+    } else {
+      pause();
+      audio.volume = 0;
+    }
   }
 }

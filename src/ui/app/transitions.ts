@@ -87,6 +87,9 @@ export const SCREEN_FX: Partial<Record<Screen, Partial<TransitionSpec>>> = {};
 //   "town>battle": { exit: FX.zoomOut, hold: 220 },
 //   "battle>reward": { enter: FX.slideUp },
 export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionSpec>>> = {
+  "sortie>elevator": DEFAULT_TRANSITION,
+  "elevator>explore": { ...DEFAULT_TRANSITION, hold: 200 },
+
   // 探索牌桌 → 战斗: 路线图保持清晰成为玻璃，点击处炸出中性白/黑的冲击断裂网格（碎片留在原位），随后黑色涟漪从同一点替换为战斗。
   // 包裹层必须 stay: 它是 BattleScreen 的祖先，不能挂 transform；旧场景快照只做极轻微外扩。
   "explore>battle": {

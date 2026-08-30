@@ -9,6 +9,7 @@ export const BGM_TRACKS: Record<BgmId, { src: string; volume: number }> = {
   battle: { src: battleBgm, volume: 0.5 },
 };
 
-export function bgmForScreen(screen: Screen): BgmId {
+export function bgmForScreen(screen: Screen): BgmId | null {
+  if (screen === "elevator") return null;
   return screen === "battle" ? "battle" : "town";
 }

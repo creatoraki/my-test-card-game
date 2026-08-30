@@ -22,7 +22,7 @@ export function SortieScreen() {
   const cancel = useSortieStore((state) => state.cancel);
   const clear = useSortieStore((state) => state.clear);
   const party = useTownStore((state) => state.party);
-  const startExpedition = useRunStore((state) => state.startExpedition);
+  const beginDescent = useRunStore((state) => state.beginDescent);
   const enterTown = useRunStore((state) => state.enterTown);
   const [selectedMapId, setSelectedMapId] = useState(MAPS[0]?.id ?? "");
   const { visibleStep, exitingStep, transitioning, intro } = useSortieStepTransition(step);
@@ -48,9 +48,9 @@ export function SortieScreen() {
 
   const startRun = useCallback(() => {
     if (!mapId) return;
-    startExpedition(mapId, backpack);
+    beginDescent(mapId, backpack);
     clear();
-  }, [backpack, clear, mapId, startExpedition]);
+  }, [backpack, beginDescent, clear, mapId]);
 
   const selectMap = useCallback((nextMapId: string) => {
     setSelectedMapId(nextMapId);

@@ -5,6 +5,7 @@ import {
   getBgmEnabled,
   playBgm,
   subscribeBgmEnabled,
+  stopAllBgm,
   toggleBgm,
 } from "@/ui/audio";
 
@@ -13,7 +14,12 @@ export function useBgm(enabled = true): void {
 
   useEffect(() => {
     if (!enabled) return;
-    playBgm(bgmForScreen(screen));
+    const id = bgmForScreen(screen);
+    if (!id) {
+      stopAllBgm({ fade: true, rewind: true });
+      return;
+    }
+    playBgm(id);
   }, [enabled, screen]);
 }
 

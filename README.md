@@ -78,6 +78,7 @@ my-test-card-game/
    │  ├─ app/              # 过场编排：ScreenTransition、战斗裂纹幕布、编队↔详情共享元素过场
    │  ├─ audio/            # BGM 播放器与程序化音效合成
    │  ├─ common/           # 跨域复用组件：立绘、血条、状态图标、物品格/详情/分类 tab
+   │  ├─ elevator/         # 出击后的电梯下降过场
    │  ├─ menu/ town/ character/ explore/ battle/ result/  # 各功能域的页面与私有子组件
    │  │  ├─ town/assembly/  # 模块装配舱
    │  │  └─ town/training/  # 训练室与小队徽章分配

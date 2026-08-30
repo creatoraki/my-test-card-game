@@ -17,6 +17,7 @@ src/ui/
 ├─ town/         据点大厅与设施场景
 ├─ character/    编队 / 角色详情 / 单卡视图
 ├─ sortie/       出击地图选择与物资准备
+├─ elevator/     电梯下降过场
 ├─ explore/      探索主界面与其私有子组件
 ├─ battle/       战斗画布与其私有子组件、演出预设
 ├─ result/       战后小结与远征结算
@@ -67,6 +68,7 @@ src/ui/
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在斜跨玻璃选择带中切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左侧斜切货柜带，右侧一上一下紧贴格网的仓库与背包；只向子组件下发位置类和交互状态。 |
+| [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击后的电梯下降纯演出页：有声自动播放失败时静音重试，视频结束或不可播放时进入探索；不可跳过且不承载探索规则。 |
 | [sortie/StockBand](../../src/ui/sortie/StockBand/StockBand.tsx) | 出击货柜斜切滚动带：固定清单、不限量购买消耗品，支持滚轮/方向键滚动与高亮片二次点击购买；步骤切换时由真实 DOM 动画滑入，避免玻璃快照参与过场。 |
 | [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；1×4 格，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
 | [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域两块物品面板的调色板真相点：仓库冷银白透玻璃 / 背包黑玻璃熔橙。 |
@@ -201,7 +203,7 @@ src/ui/
 | [art/vfxSprites.ts](../../src/ui/art/vfxSprites.ts) | 命中特效序列帧 URL 列表和预热。 |
 | [art/sceneArt.ts](../../src/ui/art/sceneArt.ts) | 菜单、大厅、设施和商店直接使用的场景/界面素材登记。 |
 | [audio/bgmPlayer.ts](../../src/ui/audio/bgmPlayer.ts) | 模块级 BGM 单例播放器：据点/战斗双轨交叉淡变、据点续播与自动播放解锁。 |
-| [audio/bgmTracks.ts](../../src/ui/audio/bgmTracks.ts) | BGM 曲目资源查表与界面到曲目的映射；只有战斗界面使用战斗曲。 |
+| [audio/bgmTracks.ts](../../src/ui/audio/bgmTracks.ts) | BGM 曲目资源查表与界面到曲目的映射；只有战斗界面使用战斗曲，电梯场景返回 null 表示停播。 |
 | [audio/sfx/sfxTypes.ts](../../src/ui/audio/sfx/sfxTypes.ts) | 音效 ID、配方层和播放参数类型。 |
 | [audio/sfx/sfxSamples.ts](../../src/ui/audio/sfx/sfxSamples.ts) | 真实音效采样查表、变体选择、解码缓存和预热播放。 |
 | [audio/sfx/sfxSynth.ts](../../src/ui/audio/sfx/sfxSynth.ts) | Web Audio 合成原语：音调、噪声、扫频与颗粒串；不包含具体音效语义。 |
@@ -214,7 +216,7 @@ src/ui/
 | [art/assetPreloader.ts](../../src/ui/art/assetPreloader.ts) | 游戏启动时的实际美术资源清单、去重、进度和失败收口；不扫描未引用的 `assets` 文件。 |
 | [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |
 | [hooks/useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 将启动预加载状态接入 React 外部 store；主菜单等待所有资源任务 settle 后开放入口。 |
-| [hooks/useBgm.ts](../../src/ui/hooks/useBgm.ts) | 订阅 `runStore.screen` 并驱动据点/战斗 BGM 切换；测试页可关闭。 |
+| [hooks/useBgm.ts](../../src/ui/hooks/useBgm.ts) | 订阅 `runStore.screen` 并驱动据点/战斗 BGM 切换；电梯场景返回 null 表示停播；测试页可关闭。 |
 | [hooks/useSfx.ts](../../src/ui/hooks/useSfx.ts) | 安装全局音效委托并订阅独立音效开关；测试页可关闭。 |
 | [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布的等比 letterbox 缩放、设备像素量化与 DPR 监听；另提供 `stageHostOf`（由画布内元素找到 `[data-stage-canvas]`）与 `designScaleOf`（把 `getBoundingClientRect()` 归一化回设计 px）。画布内不使用 `vw` / `vh` 或窗口断点。 |
 | [hooks/useCountUp.ts](../../src/ui/hooks/useCountUp.ts) | rAF 数值滚动；起点走 ref，减少动态效果下直接使用终值。 |
