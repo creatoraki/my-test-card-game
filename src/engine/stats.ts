@@ -18,6 +18,8 @@ export const ZERO_STATS: StatBlock = {
   maxHp: 0,
   attack: 0,
   healPower: 0,
+  lowCostMastery: 0,
+  highCostMastery: 0,
   defense: 0,
   armorPen: 0,
   hitRate: 0,
@@ -82,6 +84,22 @@ export function statOf(cmb: Combatant, key: keyof StatBlock): number {
   const flat = cmb.stats[key] + (cmb.mods.flat?.[key] ?? 0) + statusFlat;
   const v = flat * (1 + ((cmb.mods.pct?.[key] ?? 0) + statusPct) / 100);
   return CAPPED_KEYS.has(key) ? capProb(v) : v;
+}
+
+export function masteryBonusOf(state: BattleState, cmb: Combatant): number {
+  const key =
+    state.activeCardCost != null && state.activeCardCost <= RULES.combat.lowCostApMax
+      ? "lowCostMastery"
+      : "highCostMastery";
+  return state.activeCardCost == null ? 0 : statOf(cmb, key);
+}
+
+export function offenseStatOf(
+  state: BattleState,
+  cmb: Combatant,
+  key: "attack" | "healPower",
+): number {
+  return statOf(cmb, key) + masteryBonusOf(state, cmb);
 }
 
 // 往战斗内修正里写一笔(卡牌 / 状态 / 场景效果都走这里)。

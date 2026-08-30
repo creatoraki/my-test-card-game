@@ -21,6 +21,8 @@ export const STAT_LABEL: Partial<Record<keyof StatBlock, string>> = {
   maxHp: "生命上限",
   attack: "攻击力",
   healPower: "治愈力",
+  lowCostMastery: "低费精通",
+  highCostMastery: "高费精通",
   defense: "防御力",
   armorPen: "穿甲",
   hitRate: "命中率",

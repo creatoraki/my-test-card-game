@@ -34,6 +34,19 @@ const ICONS: Partial<Record<keyof StatBlock, () => ReactNode>> = {
       <path d="M24 17v14M17 24h14" strokeWidth={1.8} />
     </>
   ),
+  lowCostMastery: () => (
+    <>
+      <path d="m27 6-12 18h9l-3 18 12-21h-9l3-15Z" strokeWidth={1.8} />
+      <circle cx="10" cy="14" r="2" strokeWidth={1.8} />
+    </>
+  ),
+  highCostMastery: () => (
+    <>
+      <path d="m28 5-13 19h10l-4 19 14-23H25l3-15Z" strokeWidth={1.8} />
+      <circle cx="9" cy="13" r="2" strokeWidth={1.8} />
+      <circle cx="39" cy="13" r="2" strokeWidth={1.8} />
+    </>
+  ),
   hitRate: () => (
     <>
       <circle cx="24" cy="24" r="13" strokeWidth={1.8} />

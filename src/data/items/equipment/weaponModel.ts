@@ -1,5 +1,5 @@
 import type { StatBlock } from "../../../engine/types";
-import type { ItemDef, ItemRarity } from "../../../items/types";
+import type { ItemDef } from "../../../items/types";
 import { assertModelValid } from "../../../items/equipRoll";
 import { RARITY_ORDER } from "../../../items/types";
 
@@ -7,7 +7,9 @@ export interface WeaponFamily {
   familyId: string;
   name: string;
   desc: string;
-  affixes: [keyof StatBlock, keyof StatBlock, keyof StatBlock];
+  affixes:
+    | [keyof StatBlock, keyof StatBlock]
+    | [keyof StatBlock, keyof StatBlock, keyof StatBlock];
   drawback?: keyof StatBlock;
 }
 
@@ -20,10 +22,14 @@ function createAffixes(
   index: number,
   extreme: boolean,
 ) {
-  const maxBySlot = extreme
-    ? [6 + index * 4, 5 + index * 3, 3 + index * 2]
-    : [5 + index * 3, 4 + index * 2, 3 + index];
-  const minBySlot = [2, 2, 1];
+  const maxBySlot = stats.length === 2
+    ? extreme
+      ? [7 + index * 5, 6 + index * 4]
+      : [6 + index * 4, 6 + index * 3]
+    : extreme
+      ? [6 + index * 4, 5 + index * 3, 3 + index * 2]
+      : [5 + index * 3, 4 + index * 2, 3 + index];
+  const minBySlot = stats.length === 2 ? [3, 2] : [2, 2, 1];
   const weights = [3, 2, 1];
   return stats.map((stat, slot) => ({
     stat,

@@ -312,6 +312,8 @@ export interface StatBlock {
   maxHp: number; // 最大生命。★ 战斗中的实时上限读 Combatant.maxHp, 这里只是声明来源
   attack: number; // 攻击力: 攻击牌伤害 = 攻击力 ÷ RULES.combat.attackDivisor × 倍率
   healPower: number; // 治愈力: 治疗基础值 + 该值
+  lowCostMastery: number; // 低费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
+  highCostMastery: number; // 高费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
   defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)，角色基础防御力为 0
   armorPen: number; // 穿甲(固定整数): 结算时抵扣目标防御力, 有效防御力不低于 0
   // 命中 / 回避 / 暴击
@@ -473,6 +475,7 @@ export interface BattleState {
   pendingChoice: PendingChoice | null;
   waterfallPlay: boolean;
   playValueBonusPct: number;
+  activeCardCost: number | null;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenValue 算好传入。

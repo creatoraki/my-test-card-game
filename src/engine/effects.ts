@@ -1,4 +1,3 @@
-import { addMod, attackDamage, statOf } from "./stats";
 // ============================================================================
 // 效果解释器 —— 把声明式 EffectDescriptor 翻译成引擎原语调用。
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
@@ -6,7 +5,7 @@ import { addMod, attackDamage, statOf } from "./stats";
 
 import type { BattleState, CounterSource, EffectDescriptor } from "./types";
 import { ops } from "./ops";
-import { partyHandLimit, statOf } from "./stats";
+import { addMod, attackDamage, offenseStatOf, partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
@@ -155,7 +154,7 @@ function applyEffect(
           const valueMultiplier = 1 + state.playValueBonusPct / 100;
           const dmg = fixed
             ? amount * (1 + bonusMult) * valueMultiplier
-            : attackDamage(statOf(src, "attack"), damageMultiplier) * valueMultiplier;
+            : attackDamage(offenseStatOf(state, src, "attack"), damageMultiplier) * valueMultiplier;
           const result = ops.dealDamage(state, sourceId, id, dmg, {
             isAttack: true,
             fixed,
@@ -194,7 +193,7 @@ function applyEffect(
     case "GAIN_SHIELD": {
       // amount = 固定基础护盾; multiplier = 治愈力 × 倍率。护盾强度仍在 ops 里结算。
       const shield =
-        (effect.multiplier != null ? statOf(src, "healPower") * effect.multiplier : amount) *
+        (effect.multiplier != null ? offenseStatOf(state, src, "healPower") * effect.multiplier : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
@@ -203,7 +202,7 @@ function applyEffect(
       // amount = 固定基础治疗; multiplier = 治愈力 × 倍率。治愈强度仍在 ops 里结算。
       const scaled = effect.multiplier != null;
       const healing =
-        (scaled ? statOf(src, "healPower") * effect.multiplier! : amount) *
+        (scaled ? offenseStatOf(state, src, "healPower") * effect.multiplier! : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;
@@ -254,7 +253,9 @@ function applyEffect(
         ? {
             ...effect.statusData,
             [effect.statusDataFrom.key]: src
-              ? statOf(src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
+              ? effect.statusDataFrom.stat === "attack" || effect.statusDataFrom.stat === "healPower"
+                ? offenseStatOf(state, src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
+                : statOf(src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
               : 0,
           }
         : effect.statusData;

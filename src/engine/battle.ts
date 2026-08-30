@@ -200,6 +200,7 @@ export function createBattle(
     pendingAutoPlays: [],
     waterfallPlay: false,
     playValueBonusPct: 0,
+    activeCardCost: null,
   };
 
   state.draw = shuffle(state, Object.keys(cards));
@@ -352,36 +353,41 @@ export function playCard(
   };
   withDiscardRecorder(discardRecorder, () => {
     state.playValueBonusPct = 0;
-    const cultivated = cultivateReady(card);
-    const cultivateMode = card.cultivate?.mode ?? "append";
-    const activeEffects = cultivated && cultivateMode === "replace" ? card.cultivate!.effects : card.effects;
-    mergeCardResolution(resolveEffects(state, activeEffects, card.ownerCharId, primaryId));
+    state.activeCardCost = faceCost;
+    try {
+      const cultivated = cultivateReady(card);
+      const cultivateMode = card.cultivate?.mode ?? "append";
+      const activeEffects = cultivated && cultivateMode === "replace" ? card.cultivate!.effects : card.effects;
+      mergeCardResolution(resolveEffects(state, activeEffects, card.ownerCharId, primaryId));
 
-    if (cultivated && cultivateMode !== "replace")
-      mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
-    resetCultivate(card);
+      if (cultivated && cultivateMode !== "replace")
+        mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
+      resetCultivate(card);
 
-    if (card.exhaust) state.exhaust.push(uid);
-    else moveToDiscard(state, uid, "play");
+      if (card.exhaust) state.exhaust.push(uid);
+      else moveToDiscard(state, uid, "play");
 
-    for (const ref of card.keywords ?? []) {
-      const def = KEYWORD_DEFS[ref.id];
-      if (!def) continue;
-      const ctx = { primaryId, hitIds: [...cardHit] };
-      const times = def.triggers(state, card, ctx);
-      for (let i = 0; i < times; i++)
-        mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
-      def.onTriggered?.(state, card, ctx, times);
+      for (const ref of card.keywords ?? []) {
+        const def = KEYWORD_DEFS[ref.id];
+        if (!def) continue;
+        const ctx = { primaryId, hitIds: [...cardHit] };
+        const times = def.triggers(state, card, ctx);
+        for (let i = 0; i < times; i++)
+          mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
+        def.onTriggered?.(state, card, ctx, times);
+      }
+      for (const markId of card.marks ?? []) {
+        const mark = CARD_MARK_DEFS[markId];
+        if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
+      }
+      card.marks = [];
+      state.waterfallPlay = false;
+      state.playValueBonusPct = 0;
+      if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
+      flushAutoPlays(state, rec);
+    } finally {
+      state.activeCardCost = null;
     }
-    for (const markId of card.marks ?? []) {
-      const mark = CARD_MARK_DEFS[markId];
-      if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
-    }
-    card.marks = [];
-    state.waterfallPlay = false;
-    state.playValueBonusPct = 0;
-    if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
-    flushAutoPlays(state, rec);
   });
 
   const played = {

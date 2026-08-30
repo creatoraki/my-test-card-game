@@ -1,10 +1,12 @@
 import type { StatBlock } from "../engine/types";
-import type { EquipModelDef, EquipRoll, ItemDef } from "./types";
+import type { EquipAffixDef, EquipModelDef, EquipRoll, ItemDef } from "./types";
 
 export const AFFIX_SCALE: Partial<Record<keyof StatBlock, number>> = {
   maxHp: 1,
   attack: 1,
   healPower: 1,
+  lowCostMastery: 1,
+  highCostMastery: 1,
   critRate: 2,
   critDamage: 2,
   hitRate: 1,

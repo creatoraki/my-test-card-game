@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { getCharacter } from "@/data";
-import { renderCardText, statOf, type BattleState, type Card, type CardTextStats } from "@/engine";
+import { cardCost, renderCardText, statOf, type BattleState, type Card, type CardTextStats } from "@/engine";
 import { useBattleStore } from "@/store/battleStore";
 import { deriveStats, useTownStore } from "@/store/townStore";
 
 function battleStatOfOwner(
   battle: BattleState | null,
   ownerCharId: string,
-  key: "attack" | "healPower",
+  key: "attack" | "healPower" | "lowCostMastery" | "highCostMastery",
 ): number {
   if (!battle) return -1;
   for (const id of battle.playerIds) {
@@ -22,6 +22,8 @@ function battleStatOfOwner(
 export function useCardTextStats(ownerCharId: string): CardTextStats {
   const battleAttack = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "attack"));
   const battleHealPower = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "healPower"));
+  const battleLowCostMastery = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "lowCostMastery"));
+  const battleHighCostMastery = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "highCostMastery"));
   const characterState = useTownStore((state) => state.characters[ownerCharId]);
   const panelStats = useMemo(
     () => (characterState ? deriveStats(characterState) : getCharacter(ownerCharId).base),
@@ -30,14 +32,26 @@ export function useCardTextStats(ownerCharId: string): CardTextStats {
 
   return useMemo(
     () =>
-      battleAttack >= 0 && battleHealPower >= 0
-        ? { attack: battleAttack, healPower: battleHealPower }
-        : { attack: panelStats.attack, healPower: panelStats.healPower },
-    [battleAttack, battleHealPower, panelStats],
+      battleAttack >= 0 && battleHealPower >= 0 && battleLowCostMastery >= 0 && battleHighCostMastery >= 0
+        ? {
+            attack: battleAttack,
+            healPower: battleHealPower,
+            lowCostMastery: battleLowCostMastery,
+            highCostMastery: battleHighCostMastery,
+          }
+        : {
+            attack: panelStats.attack,
+            healPower: panelStats.healPower,
+            lowCostMastery: panelStats.lowCostMastery,
+            highCostMastery: panelStats.highCostMastery,
+          },
+    [battleAttack, battleHealPower, battleLowCostMastery, battleHighCostMastery, panelStats],
   );
 }
 
 export function useCardText(card: Card): string {
   const stats = useCardTextStats(card.ownerCharId);
-  return useMemo(() => renderCardText(card, stats), [card, stats]);
+  const battle = useBattleStore((state) => state.battle);
+  const cost = cardCost(battle, card);
+  return useMemo(() => renderCardText(card, stats, cost), [card, stats, cost]);
 }

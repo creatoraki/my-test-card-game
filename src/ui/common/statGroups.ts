@@ -29,6 +29,8 @@ export const STAT_GROUPS: StatGroup[] = [
       { key: "defense", label: "防御力", ref: 30 },
       { key: "armorPen", label: "穿甲", ref: 20 },
       { key: "healPower", label: "治愈力", ref: 30 },
+      { key: "lowCostMastery", label: "低费精通", ref: 20 },
+      { key: "highCostMastery", label: "高费精通", ref: 20 },
     ],
   },
   {
