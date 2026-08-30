@@ -1,5 +1,6 @@
 import { newUid } from "../data";
 import { rngInt } from "../engine/rng";
+import { rollEquipment } from "../items/equipRoll";
 import { pickByQuality, rollAffinity, rollCount, type DropContext } from "../items/drops";
 import type { ItemStack } from "../items/types";
 import { EXPLORE_RULES } from "./rules";
@@ -59,7 +60,10 @@ export function rollEquipCrate(s: ExploreState, ctx: DropContext): ItemStack | n
   const familyId = familyIds[rngInt(s, familyIds.length)];
   const def = pickByQuality(s, ctx.getFamily(familyId), ctx.weights);
   const affinity = rollAffinity(def, ctx.affinityPool, (n) => rngInt(s, n));
-  return ctx.makeStack(def.id, 1, affinity);
+  return ctx.makeStack(def.id, 1, {
+    affinity,
+    roll: rollEquipment(def, (n) => rngInt(s, n)),
+  });
 }
 
 export function openCardOffer(s: ExploreState, offers: CardOfferCandidate[]): void {

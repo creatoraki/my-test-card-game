@@ -15,7 +15,8 @@ import type { CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { ItemStack } from "@/items/types";
-import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
+import { rollToFlat } from "@/items/equipRoll";
+import { CATEGORY_LABEL, RARITY_LABEL, RARITY_ORDER, SLOT_LABEL } from "@/items/types";
 import { STAT_LABEL } from "@/ui/common/item/ItemDetail";
 import { BondIcon } from "@/ui/common/BondIcon";
 import { itemIcon } from "@/ui/art/itemArt";
@@ -24,6 +25,7 @@ import { isPercentStat } from "@/ui/common/statGroups";
 import s from "./ShopItemCard.module.css";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+const affixRole = (weight: number) => (weight === 3 ? "主" : weight === 2 ? "副" : "三");
 
 export default function ShopItemCard({
   stack,
@@ -42,11 +44,12 @@ export default function ShopItemCard({
 
   const def = getItemDef(stack.itemId);
   const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
-  const mods = def.mods;
+  const flatMods = stack.roll ? rollToFlat(stack.roll) : def.mods?.flat;
+  const pctMods = def.mods?.pct;
   const rows: { label: string; value: string; good: boolean }[] = [];
   for (const k of STAT_KEYS) {
-    const flat = mods?.flat?.[k];
-    const pct = mods?.pct?.[k];
+    const flat = flatMods?.[k];
+    const pct = pctMods?.[k];
     if (flat)
       rows.push({
         label: STAT_LABEL[k] ?? k,
@@ -103,6 +106,37 @@ export default function ShopItemCard({
         </p>
 
         <p className={s["sx-card-desc"]}>{def.desc}</p>
+
+        {def.model && stack.roll && (
+          <>
+            <p className={s["sx-card-note"]}>
+              {RARITY_ORDER.indexOf(def.rarity) + 1}阶 · 模型值 {stack.roll.budget}
+            </p>
+            <dl className={s["sx-card-stats"]}>
+              {def.model.affixes.map((affix) => (
+                <div key={affix.stat}>
+                  <dt>{affixRole(affix.weight)}词条 · {STAT_LABEL[affix.stat] ?? affix.stat}</dt>
+                  <dd className={s["is-good"]}>{stack.roll.points[affix.stat] ?? 0} 点</dd>
+                </div>
+              ))}
+            </dl>
+            {def.model.drawbacks && stack.roll.cost != null && (
+              <>
+                <dl className={s["sx-card-stats"]}>
+                  {def.model.drawbacks.map((affix) => (
+                    <div key={affix.stat}>
+                      <dt>代价 · {STAT_LABEL[affix.stat] ?? affix.stat}</dt>
+                      <dd className={s["is-bad"]}>{stack.roll.points[affix.stat] ?? 0} 点</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className={s["sx-card-note"]}>
+                  代价 {stack.roll.cost} 点 · 返还 {Math.round(stack.roll.cost * (def.model.costRefund ?? 0.7))} 点
+                </p>
+              </>
+            )}
+          </>
+        )}
 
         {rows.length > 0 && (
           <dl className={s["sx-card-stats"]}>

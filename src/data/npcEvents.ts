@@ -127,10 +127,7 @@ export const NPC_EVENTS: Record<string, NpcEvent> = {
       ]),
       choice("equipment-access", "申请董事会装备权限", "你提交装备调拨申请，让投影打开董事会的私有装备库。", "从私有装备库中选一件", [
         outcome("equipment-access-a", "私有装备库向队伍开放，三件装备的全部属性公开展示。", [{ type: "EQUIP_OFFER", count: 3 }]),
-        outcome("equipment-access-b", "投影重新签发一件装备的随机羁绊，并将资源芯片作为会议补偿送出。", [
-          { type: "REFORGE_BOND" },
-          { type: "GAIN_ITEM", itemId: "resource-chip" },
-        ]),
+        outcome("equipment-access-b", "投影重新签发一件装备的随机羁绊，但没有留下其他可用物品。", [{ type: "REFORGE_BOND" }]),
       ]),
     ],
   },

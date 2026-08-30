@@ -20,6 +20,7 @@ export {
   makeStats,
   addStats,
   applyModifier,
+  attackDamage,
   statOf,
   hitChance,
   critChance,

@@ -62,12 +62,6 @@ export const TRADE_SERVICES: TradeServiceDef[] = [
   service("weapon-shop", "武器商店服务", "goods", "hamburger", 1, "展示 2 件武器，选择 1 件；装备占 2 格。", {
     stockKind: "equip-weapon",
   }),
-  service("armor-shop", "防具商店服务", "goods", "pizza", 1, "展示 2 件防具，选择 1 件；装备占 2 格。", {
-    stockKind: "equip-armor",
-  }),
-  service("accessory-shop", "饰品商店服务", "goods", "fried-chicken", 1, "展示 2 件饰品，选择 1 件；装备占 2 格。", {
-    stockKind: "equip-trinket",
-  }),
   service("card-draw-service", "抽卡服务", "pending", "pizza", 1, "指定角色后获得 3 张专属卡牌候选，选择 1 张加入待办奖励。", {
     effects: [{ type: "FORGE_DRAW" }],
   }),

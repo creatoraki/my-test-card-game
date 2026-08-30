@@ -132,7 +132,7 @@ export function dropContext(s: ExploreState, k = dropCoefficient(s)): DropContex
     weights: qualityWeights(k),
     getDef: getItemDef,
     getFamily: getItemFamily,
-    makeStack: (itemId, count, affinity) => makeItemStack(itemId, count, affinity),
+    makeStack: (itemId, count, extra) => makeItemStack(itemId, count, extra),
     // ★ 随机羁绊词条的抽取池 —— 只含**已实装**的羁绊, 见 data/bonds.ts 的说明。
     affinityPool: ROLLABLE_BOND_IDS,
     equipmentFamilyIds: EQUIPMENT_FAMILY_IDS,

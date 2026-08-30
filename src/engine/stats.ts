@@ -142,6 +142,10 @@ export function defenseMultiplier(defender: Combatant, attacker?: Combatant): nu
   return 1 - def / (def + RULES.combat.defenseConstant);
 }
 
+export function attackDamage(attack: number, multiplier: number): number {
+  return (attack / RULES.combat.attackDivisor) * multiplier;
+}
+
 // 我方小队先手均值 S_party —— 只算**存活**的上阵角色, 有人阵亡节奏就会变。
 export function partyInitiative(state: BattleState): number {
   const alive = state.playerIds.map((id) => state.combatants[id]).filter((c) => c.alive);

@@ -53,25 +53,26 @@ describe("战斗初始化", () => {
     const b = battleWith("swordsman-basic-attack");
     const sw = b.combatants["swordsman"];
     expect(sw.maxHp).toBe(50);
-    expect(statOf(sw, "attack")).toBe(20);
-    expect(statOf(sw, "defense")).toBe(10);
+    expect(statOf(sw, "attack")).toBe(100);
+    expect(statOf(sw, "defense")).toBe(0);
     expect(statOf(sw, "initiative")).toBe(20);
   });
 });
 
 describe("属性口径", () => {
-  it("防御 10 ⇒ 减伤 10/(10+30)", () => {
+  it("防御 0 ⇒ 不产生减伤", () => {
     const b = battleWith("swordsman-basic-attack");
-    expect(defenseMultiplier(b.combatants["swordsman"])).toBeCloseTo(1 - 10 / 40, 6);
+    expect(defenseMultiplier(b.combatants["swordsman"])).toBe(1);
   });
 
   it("穿甲抵扣目标防御且不产生负防御", () => {
     const b = battleWith("swordsman-basic-attack");
     const attacker = b.combatants[b.enemyIds[0]];
     const defender = b.combatants["swordsman"];
+    defender.mods = { flat: { defense: 10 } };
 
     attacker.mods = { flat: { armorPen: 6 } };
-    expect(defenseMultiplier(defender, attacker)).toBeCloseTo(1 - 4 / 34, 6);
+    expect(defenseMultiplier(defender, attacker)).toBeCloseTo(1 - 4 / 54, 6);
 
     attacker.mods = { flat: { armorPen: 99 } };
     expect(defenseMultiplier(defender, attacker)).toBe(1);
@@ -160,7 +161,7 @@ describe("时刻推进(核心机制)", () => {
     const hpBefore = enemy.hp;
     playCard(b, b.hand[0], enemyId);
     expect(b.tick).toBe(2); // +1
-    // 剑士攻击力 20, 敌人有 0~5 点防御 ⇒ 掉血在 (0, 20] 之间(可能因闪避为 0, 因暴击更高)
+    // 剑士攻击力 100, 经过除数 5 后的基础倍率伤害为 20；敌人有 0~5 点防御。
     expect(enemy.hp).toBeLessThanOrEqual(hpBefore);
     expect(hpBefore - enemy.hp).toBeLessThanOrEqual(Math.round(20 * 1.5));
   });

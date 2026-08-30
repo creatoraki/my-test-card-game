@@ -9,14 +9,19 @@
 // ============================================================================
 
 import { rngFloat, rngInt } from "../engine/rng";
-import type { DropEntry, ItemDef, ItemRarity, ItemStack } from "./types";
+import { rollEquipment } from "./equipRoll";
+import type { DropEntry, EquipRoll, ItemDef, ItemRarity, ItemStack } from "./types";
 import { RARITY_ORDER } from "./types";
 
 export interface DropContext {
   weights: Record<ItemRarity, number>; // 已按 qualityBias 选好的那一行权重
   getDef: (itemId: string) => ItemDef;
   getFamily: (familyId: string) => ItemDef[];
-  makeStack: (itemId: string, count: number, affinity?: string) => ItemStack;
+  makeStack: (
+    itemId: string,
+    count: number,
+    extra?: { affinity?: string; roll?: EquipRoll },
+  ) => ItemStack;
   // 随机羁绊词条的抽取池(羁绊 id)。★ 由调用方从 data 层递进来 ——
   //   items/ 是纯 TS 层, 不能 import data/(依赖方向是 data → items), 与 getDef/getFamily 同理。
   //   空数组 = 不 roll 词条(单元测试与不关心羁绊的调用方直接传 [])。
@@ -103,7 +108,12 @@ export function rollDropTable(
         // ⚠ 词条**逐件**掷, 且必须走 rngInt(同一条种子链) —— 否则同种子的一趟远征
         //   掉的东西不再逐件一致, 本模块顶部的可复现承诺当场作废。
         for (let n = 0; n < count; n++) {
-          out.push(ctx.makeStack(def.id, 1, rollAffinity(def, ctx.affinityPool, (n) => rngInt(rng, n))));
+          out.push(
+            ctx.makeStack(def.id, 1, {
+              affinity: rollAffinity(def, ctx.affinityPool, (n) => rngInt(rng, n)),
+              roll: rollEquipment(def, (n) => rngInt(rng, n)),
+            }),
+          );
         }
       } else {
         out.push(ctx.makeStack(def.id, count));

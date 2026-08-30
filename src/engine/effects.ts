@@ -1,3 +1,4 @@
+import { addMod, attackDamage, statOf } from "./stats";
 // ============================================================================
 // 效果解释器 —— 把声明式 EffectDescriptor 翻译成引擎原语调用。
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
@@ -118,7 +119,7 @@ function applyEffect(
     case "DAMAGE": {
       // amount 与 multiplier 二选一(见 types.EffectDescriptor):
       //   写了 amount   ⇒ 固定伤害, 不用攻击力, 不吃防御与格挡
-      //   写了 multiplier ⇒ 攻击力 × 倍率, 走完整管线
+      //   写了 multiplier ⇒ 攻击力 ÷ 5 × 倍率, 走完整管线
       const fixed = effect.amount != null;
       const bonusMult =
         effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
@@ -154,7 +155,7 @@ function applyEffect(
           const valueMultiplier = 1 + state.playValueBonusPct / 100;
           const dmg = fixed
             ? amount * (1 + bonusMult) * valueMultiplier
-            : statOf(src, "attack") * damageMultiplier * valueMultiplier;
+            : attackDamage(statOf(src, "attack"), damageMultiplier) * valueMultiplier;
           const result = ops.dealDamage(state, sourceId, id, dmg, {
             isAttack: true,
             fixed,

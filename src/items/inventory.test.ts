@@ -129,7 +129,8 @@ describe("掉落", () => {
       >,
       getDef: getItemDef,
       getFamily: getItemFamily,
-      makeStack: (id: string, n: number, affinity?: string) => makeItemStack(id, n, affinity),
+      makeStack: (id: string, n: number, extra?: { affinity?: string; roll?: ItemStack["roll"] }) =>
+        makeItemStack(id, n, extra),
       // 羁绊词条也走同一条种子链 —— 一并纳入复现口径
       affinityPool: ROLLABLE_BOND_IDS,
     };

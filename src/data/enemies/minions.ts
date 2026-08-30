@@ -22,7 +22,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     emoji: "📻",
     maxHp: 35,
     exp: 11,
-    stats: { attack: 12, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "radio-peck",
@@ -74,7 +74,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     emoji: "🛸",
     maxHp: 40,
     exp: 12,
-    stats: { attack: 14, defense: 0, dodgeRate: 0, initiative: 22, critDamage: 150 },
+    stats: { attack: 70, defense: 0, dodgeRate: 0, initiative: 22, critDamage: 150 },
     moves: [
       {
         id: "sweep-bump",
@@ -125,7 +125,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     emoji: "🕷️",
     maxHp: 45,
     exp: 12,
-    stats: { attack: 12, defense: 0, dodgeRate: 0, initiative: 21, critDamage: 150 },
+    stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 21, critDamage: 150 },
     moves: [
       {
         id: "spider-bite",
@@ -174,7 +174,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     emoji: "🚦",
     maxHp: 40,
     exp: 14,
-    stats: { attack: 14, defense: 0, dodgeRate: 0, initiative: 19, critDamage: 150 },
+    stats: { attack: 70, defense: 0, dodgeRate: 0, initiative: 19, critDamage: 150 },
     moves: [
       {
         id: "signal-yellow",

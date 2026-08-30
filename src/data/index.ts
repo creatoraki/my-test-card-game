@@ -4,6 +4,7 @@ import type { Card, CardDef } from "../engine/types";
 import { rngInt } from "../engine/rng";
 import { RULES } from "../engine/rules";
 import { rollAffinity } from "../items/drops";
+import { rollEquipment } from "../items/equipRoll";
 import type { EquipSlot, ItemDef, ItemStack } from "../items/types";
 import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
@@ -175,9 +176,19 @@ export function newUid(prefix = "c"): string {
 }
 
 // 物品实例化。⚠ uid 会随仓库进 localStorage, 所以同样走 newUid 而不是内存计数器。
-export function makeItemStack(itemId: string, count = 1, affinity?: string): ItemStack {
+export function makeItemStack(
+  itemId: string,
+  count = 1,
+  extra: { affinity?: string; roll?: ItemStack["roll"] } = {},
+): ItemStack {
   getItemDef(itemId); // 存在性校验: 打错 id 要在这里炸, 而不是等 UI 渲染时才发现
-  return { uid: newUid("i"), itemId, count: Math.max(1, count), affinity };
+  return {
+    uid: newUid("i"),
+    itemId,
+    count: Math.max(1, count),
+    affinity: extra.affinity,
+    roll: extra.roll,
+  };
 }
 
 // 实例化一件物品并按规则掷羁绊词条。非 affinityRollable 的物品不消耗 RNG。
@@ -187,7 +198,10 @@ export function makeRolledItemStack(
   count = 1,
 ): ItemStack {
   const def = getItemDef(itemId);
-  return makeItemStack(itemId, count, rollAffinity(def, ROLLABLE_BOND_IDS, (n) => rngInt(rng, n)));
+  return makeItemStack(itemId, count, {
+    affinity: rollAffinity(def, ROLLABLE_BOND_IDS, (n) => rngInt(rng, n)),
+    roll: rollEquipment(def, (n) => rngInt(rng, n)),
+  });
 }
 
 export function makeCard(defId: string, upgraded = false): Card {

@@ -1,4 +1,5 @@
 import type { Card, EffectDescriptor } from "./types";
+import { attackDamage } from "./stats";
 
 export interface CardTextStats {
   attack: number;
@@ -17,7 +18,7 @@ export function effectDisplayValue(
     case "DAMAGE":
       return effect.amount != null
         ? effect.amount
-        : Math.round(stats.attack * (effect.multiplier ?? 1));
+        : Math.round(attackDamage(stats.attack, effect.multiplier ?? 1));
     case "HEAL":
     case "GAIN_SHIELD":
       return effect.multiplier != null

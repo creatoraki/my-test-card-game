@@ -6,6 +6,7 @@ import { resolveEffects } from "./effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
 import { allIds, getStatus, log, markDead } from "./ops";
 import { enemyActDelay, statOf } from "./stats";
+import { attackDamage, enemyActDelay, statOf } from "./stats";
 import { rngPickWeighted } from "./rng";
 import { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 
@@ -32,7 +33,7 @@ export function startCharge(state: BattleState, enemyId: string): void {
   let value: number | undefined;
   if (dmgEff) {
     const base =
-      dmgEff.amount != null ? dmgEff.amount : statOf(e, "attack") * (dmgEff.multiplier ?? 1);
+      dmgEff.amount != null ? dmgEff.amount : attackDamage(statOf(e, "attack"), dmgEff.multiplier ?? 1);
     value = Math.round(base + str);
   } else if (shieldEff) value = shieldEff.amount ?? 0;
 

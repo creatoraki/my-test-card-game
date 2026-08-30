@@ -49,6 +49,7 @@ import {
   type ShopSlot,
 } from "../data/shop";
 import { removeByUid } from "../items/inventory";
+import { rollToFlat } from "../items/equipRoll";
 import type { EquipSlot, ItemStack } from "../items/types";
 import type { BondBias } from "../explore/types";
 
@@ -200,12 +201,12 @@ export function equipModsOf(cs: CharacterState): EquipmentMods {
   for (const slot of EQUIP_SLOTS) {
     const st = cs.equipped?.[slot];
     if (!st) continue;
-    const mods = getItemDef(st.itemId).mods;
-    if (!mods) continue;
-    for (const [k, v] of Object.entries(mods.flat ?? {}) as [keyof StatBlock, number][]) {
+    const def = getItemDef(st.itemId);
+    const flatMods = st.roll ? rollToFlat(st.roll) : def.mods?.flat;
+    if (flatMods) for (const [k, v] of Object.entries(flatMods) as [keyof StatBlock, number][]) {
       flat[k] = (flat[k] ?? 0) + v;
     }
-    for (const [k, v] of Object.entries(mods.pct ?? {}) as [keyof StatBlock, number][]) {
+    for (const [k, v] of Object.entries(def.mods?.pct ?? {}) as [keyof StatBlock, number][]) {
       pct[k] = (pct[k] ?? 0) + v;
     }
   }
@@ -960,7 +961,10 @@ export const useTownStore = create<TownStore>()(
         set({
           loot: loot - slot.price,
           // 仓库无上限, 与 deposit 同写法直接追加, 不必走 addToContainer。
-          storage: [...storage, makeItemStack(slot.itemId, 1, slot.affinity)],
+          storage: [
+            ...storage,
+            makeItemStack(slot.itemId, 1, { affinity: slot.affinity, roll: slot.roll }),
+          ],
           shop: { ...shop, slots: next },
         });
       },

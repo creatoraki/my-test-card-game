@@ -63,7 +63,8 @@ export const RULES = {
     overloadDodgePerStack: 2, // 过载每层: 闪避 +2 个百分点
     enemyBaseHitBonus: 5, // 怪物阵营统一命中补正(百分点)
 
-    defenseConstant: 30, // 减伤 = 防御力 / (防御力 + 该常量)
+    defenseConstant: 50, // 减伤 = 防御力 / (防御力 + 该常量)
+    attackDivisor: 5,
     baseHitChance: 100, // P_base
     hitFloorPct: 5, // 最终命中概率下限
     hitCeilPct: 100, // 最终命中概率上限

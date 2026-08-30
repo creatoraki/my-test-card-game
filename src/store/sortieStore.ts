@@ -71,7 +71,9 @@ function refundStack(
   //   只有本会话内部的定位需要它, 而这一刻它已经离开本会话了。
   const rest = stack.count - refundCount;
   if (rest > 0) {
-    useTownStore.getState().deposit([makeItemStack(stack.itemId, rest, stack.affinity)]);
+    useTownStore
+      .getState()
+      .deposit([makeItemStack(stack.itemId, rest, { affinity: stack.affinity, roll: stack.roll })]);
   }
 
   const nextBought = { ...bought };

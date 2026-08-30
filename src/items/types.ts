@@ -81,6 +81,27 @@ export type TargetedItemUseKind = (typeof TARGETED_ITEM_USE_KINDS)[number];
 // ---------------------------------------------------------------------------
 // 定义与实例
 // ---------------------------------------------------------------------------
+export interface EquipAffixDef {
+  stat: keyof StatBlock;
+  min: number;
+  max: number;
+  weight: number;
+}
+
+export interface EquipModelDef {
+  budget: { min: number; max: number };
+  blockMax: number;
+  affixes: EquipAffixDef[];
+  drawbacks?: EquipAffixDef[];
+  costRefund?: number;
+}
+
+export interface EquipRoll {
+  budget: number;
+  points: Partial<Record<keyof StatBlock, number>>;
+  cost?: number;
+}
+
 export interface ItemDef {
   id: string;
   name: string;
@@ -107,6 +128,7 @@ export interface ItemDef {
   slot?: EquipSlot;
   // 形状刻意与 townStore.EquipmentMods / engine 的 StatModifier 完全一致 ⇒ 穿戴时直接合并。
   mods?: { flat?: Partial<StatBlock>; pct?: Partial<StatBlock> };
+  model?: EquipModelDef;
   // ★ 随机羁绊词条本期不实现(《物品设计.md》第五/六章), 字段先留:
   //   affinity = 羁绊饰品的固定羁绊; affinityRollable = 掉落时是否 roll 一条随机羁绊。
   affinity?: string;
@@ -126,6 +148,7 @@ export interface ItemStack {
   itemId: string;
   count: number; // 1..def.maxStack
   affinity?: string; // 掉落时 roll 出的随机羁绊。⚠ 本期只存不生效
+  roll?: EquipRoll;
 }
 
 // ---------------------------------------------------------------------------

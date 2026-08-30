@@ -86,4 +86,5 @@ const asStack = (slot: ShopSlot): ItemStack => ({
   itemId: slot.itemId,
   count: 1,
   affinity: slot.affinity,
+  roll: slot.roll,
 });

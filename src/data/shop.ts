@@ -11,8 +11,9 @@
 //   探索那条「同种子逐件复现」的种子链。硬造一个 rngState 只会污染那条承诺。
 // ============================================================================
 
-import type { ItemDef, ItemRarity } from "../items/types";
+import type { EquipRoll, ItemDef, ItemRarity } from "../items/types";
 import { rollAffinity } from "../items/drops";
+import { rollEquipment } from "../items/equipRoll";
 import { RARITY_ORDER } from "../items/types";
 import { ROLLABLE_BOND_IDS } from "./bonds";
 import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
@@ -27,6 +28,7 @@ export interface ShopSlot {
   key: string; // 货架格键(React key + 购买定位)。货架整批替换, 故只需批内唯一
   itemId: string;
   affinity?: string; // 装备**上架时**就 roll 好的随机羁绊 —— 玩家能看着词条挑货
+  roll?: EquipRoll;
   price: number; // 挂牌价快照: 日后改基价表, 存档里这批货的标价不会跟着漂
   sold: boolean; // 已售出: 保留占位, 当日不补货
 }
@@ -145,6 +147,7 @@ export function rollShopStock(
       itemId: def.id,
       // 词条与掉落同规则: affinityRollable 的装备各带 1 条随机羁绊(《羁绊设计概览.md》§2.1)。
       affinity: rollAffinity(def, ROLLABLE_BOND_IDS, (n) => pickIndex(n, rand)),
+      roll: rollEquipment(def, (n) => pickIndex(n, rand)),
       price: def.buyValue ?? 0,
       sold: false,
     });

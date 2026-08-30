@@ -22,7 +22,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
     emoji: "🤖",
     maxHp: 95,
     exp: 30,
-    stats: { attack: 17, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 85, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "scrap-crush",
@@ -85,7 +85,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
     emoji: "🤖",
     maxHp: 100,
     exp: 32,
-    stats: { attack: 18, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 90, defense: 4, dodgeRate: 0, initiative: 20, critDamage: 150 },
     moves: [
       {
         id: "pole-smash",

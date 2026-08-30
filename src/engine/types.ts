@@ -310,9 +310,9 @@ export interface StatusDef {
 export interface StatBlock {
   // 生存与输出
   maxHp: number; // 最大生命。★ 战斗中的实时上限读 Combatant.maxHp, 这里只是声明来源
-  attack: number; // 攻击力: 攻击牌伤害 = 攻击力 × 倍率
+  attack: number; // 攻击力: 攻击牌伤害 = 攻击力 ÷ RULES.combat.attackDivisor × 倍率
   healPower: number; // 治愈力: 治疗基础值 + 该值
-  defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)，初始防御力通常为 10
+  defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)，角色基础防御力为 0
   armorPen: number; // 穿甲(固定整数): 结算时抵扣目标防御力, 有效防御力不低于 0
   // 命中 / 回避 / 暴击
   hitRate: number; // 命中率(百分点)

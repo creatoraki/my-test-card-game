@@ -7,9 +7,7 @@ export type TradeStockKind =
   | "material-monster"
   | "consumable"
   | "food"
-  | "equip-weapon"
-  | "equip-armor"
-  | "equip-trinket";
+  | "equip-weapon";
 
 const FOOD_IDS = ["milk", "bread", "cola", "hamburger", "fried-chicken", "pizza"];
 const REGIONAL_IDS = [
@@ -37,8 +35,6 @@ const GENERIC_IDS: Record<TradeStockKind, string[]> = {
   consumable: [],
   food: FOOD_IDS,
   "equip-weapon": [],
-  "equip-armor": [],
-  "equip-trinket": [],
 };
 
 const ALL_DEFS = [...MATERIAL_ITEM_DEFS, ...CONSUMABLE_ITEM_DEFS, ...EQUIPMENT_ITEM_DEFS];
@@ -59,12 +55,6 @@ export function tradeStockDefs(kind: TradeStockKind, mapId: string): ItemDef[] {
   if (kind === "food") return defsByIds(FOOD_IDS);
   if (kind === "equip-weapon") {
     return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon" && COMMON_RARITIES.has(def.rarity));
-  }
-  if (kind === "equip-armor") {
-    return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "armor" && COMMON_RARITIES.has(def.rarity));
-  }
-  if (kind === "equip-trinket") {
-    return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "trinket" && COMMON_RARITIES.has(def.rarity));
   }
 
   const ids = STOCK_IDS_BY_MAP[mapId]?.[kind] ?? GENERIC_IDS[kind];

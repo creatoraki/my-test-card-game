@@ -8,7 +8,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
     maxHp: 200,
     exp: 80,
     actsPerRound: 2,
-    stats: { attack: 20, defense: 8, dodgeRate: 0, initiative: 20, critDamage: 150 },
+    stats: { attack: 100, defense: 8, dodgeRate: 0, initiative: 20, critDamage: 150 },
     ai: {
       openingMoveId: "guardian-recycle",
       recycleMoveId: "guardian-recycle",

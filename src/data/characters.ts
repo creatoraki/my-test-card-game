@@ -24,14 +24,14 @@ export const CHARACTERS: CharacterDef[] = [
     name: "剑士",
     emoji: "⚔️",
     color: "#78c8ff",
-    // 首版基准: HP 50 / 攻击 20 / 治愈力 20 / 防御 10 / 先手 20(《角色养成设计.md》3.0)。
+    // 首版基准: HP 50 / 攻击 100 / 治愈力 20 / 防御 0 / 先手 20(《角色养成设计.md》3.0)。
     // 治愈力 20 使基础卡的 50% 治疗/护盾各为 10 点, 与剑士现有辅助牌同档。
     // 手牌上限由 RULES.hand.baseHandLimit 统一提供，角色只保留可叠加的局部修正。
     base: makeStats({
       maxHp: 50,
-      attack: 20,
+      attack: 100,
       healPower: 20,
-      defense: 10,
+      defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,
@@ -94,9 +94,9 @@ export const CHARACTERS: CharacterDef[] = [
     // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
     base: makeStats({
       maxHp: 50,
-      attack: 20,
+      attack: 100,
       healPower: 20,
-      defense: 10,
+      defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,
@@ -140,9 +140,9 @@ export const CHARACTERS: CharacterDef[] = [
     // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
     base: makeStats({
       maxHp: 50,
-      attack: 20,
+      attack: 100,
       healPower: 20,
-      defense: 10,
+      defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,

@@ -191,14 +191,10 @@ const SURVIVAL: NodeEvent[] = [
     energyDelta: 0,
     choices: [
       choice("decontaminate", "启动全队消毒", "全队治疗 12%，污染值降低 8", "你让消毒仓对全队的装备和生命读数做一次同步处理。", [{ type: "HEAL_PARTY", percent: 0.12 }, { type: "REDUCE_POLLUTION", scope: "party", amount: 8 }]),
-      choice("supplies", "拆取维护架上的急救匣", "获得医疗包 ×2，或获得医疗包与圣水", "你放弃打开防具箱，转而拆下维护架上的备用组件，把它们留作之后的治疗手段。", [
+      choice("supplies", "拆取维护架上的急救匣", "获得医疗包 ×2，或获得医疗包与圣水", "你拆下维护架上的备用组件，把它们留作之后的治疗手段。", [
         outcome("supplies-a", "两只医疗包被送到出口，消毒仓没有改变队伍状态。", [item("medical-kit-c", 2)]),
         outcome("supplies-b", "医疗包和圣水一起被识别，净化液填满了备用槽。", [item("medical-kit-c"), item("holy-water-c")]),
       ]),
-      choice("pizza", "用披萨换取高级装备处理", "需要 披萨 ×1；防具候选 2 选 1，或随机防具并全队治疗 15%", "你用披萨启动消毒仓的高级装备协议。", [
-        outcome("pizza-a", "两件防具完成消毒并被列为候选，属性信息完整公开。", [equip(2, "armor")]),
-        outcome("pizza-b", "消毒仓随机推出一件防具，同时释放恢复雾气。", [equip(1, "armor"), { type: "HEAL_PARTY", percent: 0.15 }]),
-      ], 0, cost("pizza")),
     ],
   },
 ];
@@ -310,8 +306,8 @@ const GROWTH: NodeEvent[] = [
         outcome("key-a", "该角色被终端标记为关键员工，并得到了一份个人成长档案和导电印墨。", [oneExp(27), item("conductive-ink")]),
         outcome("key-b", "终端恢复了该角色最完整的岗位记录，密集的个人训练让他获得明显成长。", [oneExp(35)]),
       ]),
-      choice("assets", "撕毁绩效报告，改查资产", "寻找资源芯片或机械部件", "你放弃经验结算，拆开审计终端，寻找被隐藏的部门资产。", [
-        outcome("assets-a", "终端底部藏着一枚用于管理部门物资的资源芯片。", [item("resource-chip")]),
+      choice("assets", "撕毁绩效报告，改查资产", "寻找部门资产或机械部件", "你放弃经验结算，拆开审计终端，寻找被隐藏的部门资产。", [
+        outcome("assets-a", "终端底部只剩下一份无法使用的资产记录。", []),
         outcome("assets-b", "资产柜里没有完整装备，但两种机械部件仍然可以带走。", items(item("mag-rail-lining"), item("standard-gear"))),
       ]),
     ],
@@ -369,9 +365,9 @@ const GROWTH: NodeEvent[] = [
     description: "十几条机械臂正在搬运空箱子。控制台要求队伍选择一种调度方式：亲自分工、交给系统，或者让所有机械臂同时执行最大负荷任务。",
     energyDelta: 0,
     choices: [
-      choice("manual", "亲自给机械臂分工", "取得磁轨衬层、齿轮或资源芯片", "你逐条设定机械臂的目标，避免它们互相抢夺运输路线。", [
+      choice("manual", "亲自给机械臂分工", "取得磁轨衬层、齿轮或检查隐藏货箱", "你逐条设定机械臂的目标，避免它们互相抢夺运输路线。", [
         outcome("manual-a", "机械臂从停机轨道上拆下完整衬层，并将一枚齿轮送到交付台。", items(item("mag-rail-lining"), item("standard-gear"))),
-        outcome("manual-b", "精确调度让一只隐藏货箱被找了出来，里面保存着资源芯片。", [item("resource-chip")]),
+        outcome("manual-b", "精确调度让一只隐藏货箱被找了出来，但里面只剩无法使用的旧设备。", []),
       ]),
       choice("auto", "让系统自动安排任务", "公开装备候选或获取消耗品", "你关闭手动控制，让中央调度系统自行判断队伍最需要什么。", [
         outcome("auto-a", "系统把装备货箱列为最高优先级，三件装备被送到队伍面前。", [equip(3)]),
@@ -418,9 +414,9 @@ const GROWTH: NodeEvent[] = [
         outcome("watch-a", "完整回放展示了队伍协作、目标切换和资源分配，全队都获得了训练经验。", [partyExp(12)]),
         outcome("watch-b", "回放结束后，系统根据观察结果生成了三张适合角色专属卡池的候选卡牌。", [{ type: "FORGE_DRAW" }]),
       ]),
-      choice("replay", "亲自重演一段战术", "集中培养一名角色并可能取得资源芯片", "你选择一名角色进入投影场景，让他独自完成一段高压训练。", [
+      choice("replay", "亲自重演一段战术", "集中培养一名角色并可能取得额外训练反馈", "你选择一名角色进入投影场景，让他独自完成一段高压训练。", [
         outcome("replay-a", "该角色完成了完整的战术回放，所有训练反馈都被写入他的个人档案。", [oneExp(34)]),
-        outcome("replay-b", "回放中途出现错误，但角色仍完成了训练，系统额外留下了一枚资源芯片。", [oneExp(22), item("resource-chip")]),
+        outcome("replay-b", "回放中途出现错误，但角色仍完成了训练并获得额外反馈。", [oneExp(22)]),
       ]),
       choice("projector", "拆掉战术投影仪", "取得光导材料或电池", "你放弃训练，直接打开投影仪的核心外壳。", [
         outcome("projector-a", "投影仪的光学层中保存着一段完整薄膜，逻辑模块里还嵌着一枚魔方。", items(item("light-guide-film"), item("logic-cube"))),
@@ -433,17 +429,13 @@ const GROWTH: NodeEvent[] = [
     kind: "loot",
     category: "growth",
     title: "装备展示与试穿厅",
-    description: "展示厅里的装备没有被锁在黑箱中，而是以全息投影的方式公开显示。系统允许队伍选择查看武器、防具，或者直接校准现有装备。",
+    description: "展示厅里的装备没有被锁在黑箱中，而是以全息投影的方式公开显示。系统允许队伍查看武器，或者直接校准现有装备。",
     energyDelta: 0,
     hiddenRest: { foodItemId: "fried-chicken", npcId: "npc-mobile-mechanic" },
     choices: [
       choice("weapon", "查看武器展柜", "公开 2 或 3 件武器候选", "你要求系统只显示适合武器槽的装备。", [
         outcome("weapon-a", "三件武器的攻击、命中和暴击属性被完整投影，你从中选走一件。", [equip(3, "weapon")]),
         outcome("weapon-b", "展厅只找到两件武器，但维护台同时推出了一枚齿轮。", [equip(2, "weapon"), item("standard-gear")]),
-      ]),
-      choice("defense", "查看防具展柜", "公开防具或饰品候选", "你让展示厅关闭武器投影，寻找防具和饰品库存。", [
-        outcome("defense-a", "两件防具的生命、防御和规则属性全部公开，系统没有隐藏任何负面属性。", [equip(2, "armor")]),
-        outcome("defense-b", "饰品柜比防具柜保存得更好，三件饰品连同羁绊信息一起显示出来。", [equip(3, "trinket")]),
       ]),
       choice("calibration", "启动羁绊校准台", "重铸装备并取得维护材料", "你把一件现有装备放入校准台，让它重新生成随机羁绊。", [
         outcome("calibration-a", "校准台生成了新的随机羁绊，剩余墨料被装入一支可携带容器。", [{ type: "REFORGE_BOND" }, item("conductive-ink")]),
@@ -467,9 +459,9 @@ const GROWTH: NodeEvent[] = [
         outcome("compress-a", "高压压缩把大量普通碎片凝成了一只金质小熊。", [item("golden-bear")]),
         outcome("compress-b", "压缩塔的合金分离功能仍然有效，两只银质小熊被推出。", [item("silver-bear", 2)]),
       ], 3),
-      choice("crate", "搜索废料下方的完整货箱", "取得消耗品或公开饰品候选", "你关闭压缩带，派人打开最底部的货箱层。", [
+      choice("crate", "搜索废料下方的完整货箱", "取得消耗品或检查废弃设备", "你关闭压缩带，派人打开最底部的货箱层。", [
         outcome("crate-a", "一个旧急救箱被压在废料下方，里面的医疗包和糖块仍然封装完好。", items(item("medical-kit-c"), item("sugar-cube-c"))),
-        outcome("crate-b", "货箱底部藏着企业员工饰品，两件物品的属性和羁绊信息全部公开。", [equip(2, "trinket")]),
+        outcome("crate-b", "货箱底部只剩已经失效的员工设备，无法带走。", []),
       ]),
     ],
   },
@@ -491,7 +483,7 @@ const GROWTH: NodeEvent[] = [
       ]),
       choice("hardware", "拆掉备份阵列", "取得冷却材料、电池或导电材料", "你停止备份，直接拆下服务器中的可用硬件。", [
         outcome("hardware-a", "服务器散热层里保存着冷却微晶，能源仓中还留有一块电池。", items(item("cooling-microcrystal"), item("standard-battery"))),
-        outcome("hardware-b", "数据线路上的导电墨料和一枚资源管理芯片被完整取出。", items(item("conductive-ink"), item("resource-chip"))),
+        outcome("hardware-b", "数据线路上的导电墨料被完整取出。", [item("conductive-ink")]),
       ]),
     ],
   },
@@ -526,9 +518,9 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 0,
     hiddenRest: { foodItemId: "pizza", npcId: "npc-board-projection" },
     choices: [
-      choice("strategy", "进入战略席位", "公开装备候选或获得免费重铸与资源芯片", "你坐到会议桌前，让系统把队伍登记为战略项目组。", [
+      choice("strategy", "进入战略席位", "公开装备候选或获得免费重铸", "你坐到会议桌前，让系统把队伍登记为战略项目组。", [
         outcome("strategy-a", "董事会投影批准了战略资产调拨，三件装备的全部资料被公开。", [equip(3)]),
-        outcome("strategy-b", "投影没有批准新装备，却允许你重新生成一件装备的随机羁绊，并发放资源芯片。", [{ type: "REFORGE_BOND" }, item("resource-chip")]),
+        outcome("strategy-b", "投影没有批准新装备，却允许你重新生成一件装备的随机羁绊。", [{ type: "REFORGE_BOND" }]),
       ]),
       choice("report", "提交季度成长报告", "全队或一名角色获得成长评估", "你选择全队或一名角色作为报告对象，把行动经历交给董事会系统。", [
         outcome("report-a", "董事会认可了团队完成度，全队获得了一次正式成长评估。", [partyExp(14)]),
@@ -876,11 +868,11 @@ const HAZARD: NodeEvent[] = [
         chance("jam-b", 50, "机械臂反复挣扎，冲击沿平台传到队伍；全队损失 10% HP 后，卡住的机械臂终于停下。", [dmg(0.1)]),
         chance("jam-c", 20, "机械臂挣扎时撞开医疗包，冲击让全队损失 12% HP；你们同时带走医疗包 ×1。", [dmg(0.12), item("medical-kit-c")]),
       ]),
-      choice("restart", "强制重启打印机", "重启生产线，可能受伤、消耗粒子或获得破阵信标", "你把整条生产线重新上电，赌系统会从最初工单恢复。", [
+      choice("restart", "强制重启打印机", "重启生产线，可能受伤或消耗粒子", "你把整条生产线重新上电，赌系统会从最初工单恢复。", [
         chance("restart-a", 10, "打印机从最初工单重新启动，却在完成自检前自行停机；队伍没有受到额外影响。", []),
         chance("restart-b", 25, "所有机械臂同时落下，队伍被高压震动波及；全队损失 10% HP 后退到安全线外。", [dmg(0.1)]),
         chance("restart-c", 35, "打印舱在重启过程中爆裂，队伍损失 18% HP，并额外消耗 4 点粒子压住失控的供能线。", [dmg(0.18), energy(-4)]),
-        chance("restart-d", 30, "打印机重新识别了旧订单，爆裂的废弃模块撞伤队伍；全队损失 25% HP，但从回收槽中带走破阵信标 ×1。", [dmg(0.25), item("breach-beacon")]),
+        chance("restart-d", 30, "打印机重新识别了旧订单，爆裂的废弃模块撞伤队伍；全队损失 25% HP 后才停机。", [dmg(0.25)]),
       ]),
     ],
   },
@@ -928,11 +920,11 @@ const HAZARD: NodeEvent[] = [
         chance("safe-line-b", 25, "标线反复重新校准，队伍额外消耗 5 点粒子等待通道稳定后通过。", [energy(-5)]),
         chance("safe-line-c", 20, "安全标线在尽头指向一处维护槽，你们从里面取出数据存档 ×1，然后离开靶场。", [item("data-shard")]),
       ]),
-      choice("fire-zone", "穿过测试射击区", "主动进入射击区，可能受伤或获得城防重甲", "你主动踏进模拟城市，让炮台把火力集中到队伍身上。", [
+      choice("fire-zone", "穿过测试射击区", "主动进入射击区，可能受伤或发现废弃设备", "你主动踏进模拟城市，让炮台把火力集中到队伍身上。", [
         chance("fire-zone-a", 10, "你们踩着炮台的射击间隔穿过模拟城市，测试系统没有命中队伍。", []),
         chance("fire-zone-b", 35, "炮台的模拟弹道擦过队伍，全队损失 12% HP 后冲出测试射击区。", [dmg(0.12)]),
         chance("fire-zone-c", 25, "队伍在核心区被连续火力压住，全队损失 20% HP 后才穿过最后一道标线。", [dmg(0.2)]),
-        chance("fire-zone-d", 30, "炮台在出口前完成最后一轮锁定，全队损失 25% HP；回收槽随后弹出城防重甲 ×1。", [dmg(0.25), item("city-defense-heavy-armor")]),
+        chance("fire-zone-d", 30, "炮台在出口前完成最后一轮锁定，全队损失 25% HP；回收槽随后弹出一组已经失效的装甲部件。", [dmg(0.25)]),
       ]),
     ],
   },
@@ -1017,16 +1009,16 @@ const HAZARD: NodeEvent[] = [
         chance("forge-b", 25, "终端识破了不完整的授权，清除脉冲污染了{实际角色名}的卡牌《{实际卡牌名1}》和《{实际卡牌名2}》。", [contaminate(2)]),
         chance("forge-c", 15, "伪造权限短暂成立，终端释放出 12 点净化粒子；撤销权限时，卡牌《{实际卡牌名}》被污染，受影响角色为{实际角色名}。", [energy(12), contaminate(1)]),
       ]),
-      choice("cache", "利用会议缓存", "读取会议缓存，可能消耗粒子或获得破阵信标", "你不碰权限验证，转而从会议投影的缓存里寻找已经打开的通道。", [
+      choice("cache", "利用会议缓存", "读取会议缓存，可能消耗粒子或找到废弃设备", "你不碰权限验证，转而从会议投影的缓存里寻找已经打开的通道。", [
         chance("cache-a", 50, "会议缓存里还留着一条未关闭的通道，你们沿着投影缺口离开终端，没有额外损失。", []),
         chance("cache-b", 30, "缓存数据已经残缺，队伍额外消耗 6 点粒子解码后才找到出口。", [energy(-6)]),
-        chance("cache-c", 20, "会议投影结束时，一件破阵信标从残留设备中短暂显形；你们带走破阵信标 ×1。", [item("breach-beacon")]),
+        chance("cache-c", 20, "会议投影结束时，一件废弃设备从残留缓存中短暂显形，但已经无法使用。", []),
       ]),
-      choice("seize", "强制夺取终端权限", "强行夺权，可能受伤或获得破阵信标", "你把手掌压上终端核心，直接让自己的生物信号覆盖旧董事会。", [
+      choice("seize", "强制夺取终端权限", "强行夺权，可能受伤或打开废弃设备槽", "你把手掌压上终端核心，直接让自己的生物信号覆盖旧董事会。", [
         chance("seize-a", 10, "生物信号覆盖了旧董事会权限，终端停止安保脉冲；队伍成功夺取控制权，没有额外损失。", []),
         chance("seize-b", 50, "终端释放安保脉冲把队伍推开，全队损失 10% HP 后，核心恢复静默。", [dmg(0.1)]),
         chance("seize-c", 20, "夺权失败触发连续安保脉冲，全队损失 20% HP 后才从终端核心撤手。", [dmg(0.2)]),
-        chance("seize-d", 20, "安保脉冲让全队损失 10% HP，但终端被迫打开附近的设备槽；你们带走破阵信标 ×1。", [dmg(0.1), item("breach-beacon")]),
+        chance("seize-d", 20, "安保脉冲让全队损失 10% HP，但终端被迫打开附近的设备槽；里面只剩无法使用的废弃设备。", [dmg(0.1)]),
       ]),
     ],
   },
@@ -1105,11 +1097,11 @@ const ECONOMY: NodeEvent[] = [
     kind: "merchant",
     category: "economy",
     title: "安保装备验收门",
-    description: "安保验收门已生成武器和防具货架。所有装备属性、品质和占格已公开。",
+    description: "安保验收门已生成武器货架。所有武器属性、品质和占格已公开。",
     energyDelta: 0,
-    services: ["weapon-shop", "armor-shop"],
+    services: ["weapon-shop"],
     choices: [
-      { id: "trade", label: "刷卡查看装备货架", desc: "接入武器与防具终端", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "trade", label: "刷卡查看武器货架", desc: "接入武器终端", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
       { id: "leave", label: "暂不验收装备", desc: "不支付任何食品", energyDelta: 0, story: "你没有触碰安保验收门，装备货架在身后重新降下。" },
     ],
   },
@@ -1117,13 +1109,13 @@ const ECONOMY: NodeEvent[] = [
     id: "accessory-protocol-booth",
     kind: "merchant",
     category: "economy",
-    title: "饰品校准与团队协议台",
-    description: "校准厅提供饰品和团队协议。饰品占用背包，团队 BUFF 按本次远征常驻处理。",
+    title: "团队协议台",
+    description: "校准厅提供团队协议。团队 BUFF 按本次远征常驻处理。",
     energyDelta: 0,
-    services: ["accessory-shop", "random-party-buff"],
+    services: ["random-party-buff"],
     choices: [
-      { id: "trade", label: "接入校准协议台", desc: "查看饰品与团队协议", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
-      { id: "leave", label: "跳过校准，继续前进", desc: "不支付任何食品", energyDelta: 0, story: "你决定暂时不改动队伍协议，离开了校准厅。" },
+      { id: "trade", label: "接入团队协议台", desc: "查看团队 BUFF", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "leave", label: "跳过协议，继续前进", desc: "不支付任何食品", energyDelta: 0, story: "你决定暂时不改动队伍协议，离开了校准厅。" },
     ],
   },
   {
