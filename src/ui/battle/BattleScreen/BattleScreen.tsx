@@ -434,12 +434,14 @@ export function BattleScreen() {
       }
       const card = battle.cards[uid];
       if (card.targeting === "foe" || card.targeting === "ally") {
-        setSelectedUid((prev) => (prev === uid ? null : uid));
+        const selecting = selectedUid !== uid;
+        setSelectedUid(selecting ? uid : null);
+        if (selecting) playSfx("cardSelect");
       } else {
         triggerPlayRef.current(uid);
       }
     },
-    [animating, battle, handAction, isPlayerTurn],
+    [animating, battle, handAction, isPlayerTurn, selectedUid],
   );
 
   const onCombatantClick = useCallback((id: string) => {

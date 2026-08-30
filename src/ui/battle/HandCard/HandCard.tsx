@@ -121,7 +121,11 @@ export const HandCard = memo(function HandCard({
       //   真正需要这个值的两个订阅方(CardInfoPanel / AllyBar)会重渲染。
       // ⚠ 本组件**只写不读** store —— 一旦在这里订阅, 十张卡就会跟着悬停一起重渲染,
       //   等于把刚搬走的开销原样搬回来。卡自己的悬停视觉全部由 CSS :hover 驱动(见 HandCard.motion.module.css)。
-      onMouseEnter={() => variant === "hand" && !leaving && setHandHover(card, effectiveCost)}
+      onMouseEnter={() => {
+        if (variant !== "hand" || leaving) return;
+        playSfx("cardHover");
+        setHandHover(card, effectiveCost);
+      }}
       onMouseLeave={() => variant === "hand" && clearHandHover(card)}
       onClick={variant === "hand" ? (e) => {
         e.stopPropagation();
