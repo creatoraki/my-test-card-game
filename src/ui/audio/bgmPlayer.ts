@@ -32,6 +32,7 @@ const rewindPending = new Set<BgmId>();
 
 let currentBgm: BgmId | null = null;
 let requestedBgm: BgmId | null = null;
+let bgmSuspended = false;
 let unlockHandler: (() => void) | null = null;
 let bgmEnabled = readBgmEnabled();
 const bgmEnabledListeners = new Set<() => void>();
@@ -133,6 +134,7 @@ function resumeBgm(id: BgmId): void {
 
 export function playBgm(id: BgmId): void {
   requestedBgm = id;
+  if (bgmSuspended) return;
   if (!bgmEnabled) {
     if (currentBgm !== id) {
       currentBgm = id;
@@ -186,7 +188,7 @@ export function setBgmEnabled(enabled: boolean): void {
       audioById[id].pause();
       audioById[id].volume = 0;
     }
-  } else if (requestedBgm) {
+  } else if (requestedBgm && !bgmSuspended) {
     resumeBgm(requestedBgm);
   }
 
@@ -195,6 +197,16 @@ export function setBgmEnabled(enabled: boolean): void {
 
 export function toggleBgm(): void {
   setBgmEnabled(!bgmEnabled);
+}
+
+export function setBgmSuspended(suspended: boolean): void {
+  if (bgmSuspended === suspended) return;
+  bgmSuspended = suspended;
+  if (suspended) {
+    stopAllBgm({ rewind: true });
+  } else if (requestedBgm) {
+    playBgm(requestedBgm);
+  }
 }
 
 function stopAudio(id: BgmId, options: { rewind?: boolean; fade?: boolean }): void {

@@ -1,7 +1,7 @@
 import type { Screen } from "@/store/runStore";
 import battleBgm from "@/assets/sounds/普通战斗bgm.mp3";
 import townBgm from "@/assets/sounds/据点bgm.mp3";
-import elevatorDescentBgm from "@/assets/sounds/电梯下降.mp3";
+import elevatorDescentBgm from "@/assets/sounds/电梯下降循环.mp3";
 
 export type BgmId = "town" | "battle" | "elevator";
 

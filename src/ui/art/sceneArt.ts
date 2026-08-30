@@ -1,5 +1,5 @@
 import menuBgVideo from "@/assets/通用素材/菜单.mp4";
-import elevatorDescentVideo from "@/assets/通用素材/电梯下降.mp4";
+import elevatorDescentVideo from "@/assets/通用素材/电梯下降循环.mp4";
 import menuTitle from "@/assets/通用素材/霓虹都市.png";
 import startGameArt from "@/assets/通用素材/开始游戏.png";
 import townBg from "@/assets/场景/大厅.png";

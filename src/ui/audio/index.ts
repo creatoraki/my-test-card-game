@@ -1,6 +1,7 @@
 export {
 	getBgmEnabled,
 	playBgm,
+	setBgmSuspended,
 	setBgmEnabled,
 	stopAllBgm,
 	stopBgm,
