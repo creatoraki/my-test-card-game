@@ -1,13 +1,13 @@
 // 敌人 AI: 随机抽招与行动执行。敌人招式复用效果系统。
 
-import type { BattleState, Enemy, FxRecorder, Intent } from "./types";
+import type { AnimHit, BattleState, Enemy, FxRecorder, Intent } from "./types";
 import { getEnemyDef, type EnemyMove } from "../data";
 import { resolveEffects } from "./effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
 import { allIds, getStatus, log, markDead } from "./ops";
-import { enemyActDelay, statOf } from "./stats";
 import { attackDamage, enemyActDelay, statOf } from "./stats";
 import { rngPickWeighted } from "./rng";
+import { withHitRecorder } from "./animHits";
 import { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 
 // 消耗一个行动点, 随机抽取下一招并开始蓄力。
@@ -149,15 +149,28 @@ export function actAndRecord(state: BattleState, enemyId: string, fx?: FxRecorde
   const beforeHp: Record<string, number> = {};
   for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
 
-  const res = enemyAct(state, enemyId);
+  let res!: ReturnType<typeof enemyAct>;
+  const recorded = withHitRecorder(() => {
+    res = enemyAct(state, enemyId);
+  });
 
-  const hits = res.targetIds
-    .filter((id) => state.combatants[id])
-    .map((id) => ({
-      id,
-      hpDelta: (beforeHp[id] ?? 0) - state.combatants[id].hp,
-      missed: res.missedIds.includes(id),
-    }));
+  // 逐段明细优先(多段招式据此飘多个数字/多声受击); 招式声明的目标里没被记录到的
+  // (只吃护盾/状态、或闪避后无 HP 变化), 再按快照前后差值补齐 —— 与改造前口径一致。
+  const byId = new Map<string, AnimHit>(recorded.map((hit) => [hit.id, hit]));
+  const hits: AnimHit[] = [
+    ...res.targetIds
+      .filter((id) => state.combatants[id])
+      .map(
+        (id) =>
+          byId.get(id) ?? {
+            id,
+            hpDelta: (beforeHp[id] ?? 0) - state.combatants[id].hp,
+            missed: res.missedIds.includes(id),
+          },
+      ),
+    // 招式目标之外也被记录到的单位(荆棘反伤打回施法者、吸血自愈等)照样给特效与飘字。
+    ...recorded.filter((hit) => !res.targetIds.includes(hit.id)),
+  ];
 
   fx.steps.push({
     kind: "enemy",

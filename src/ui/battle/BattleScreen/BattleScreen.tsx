@@ -5,6 +5,7 @@ import {
   cardHitChance,
   playBlockReason,
   type AnimFrame,
+  type AnimHit,
   type BattleState,
   type Card,
   type CardAnim,
@@ -33,6 +34,7 @@ import { RoundIndicator } from "@/ui/battle/RoundIndicator";
 import { SkillCutInCard } from "@/ui/battle/SkillCutInCard";
 import { attackSfxCue, impactSfxCue } from "@/ui/battle/animSfx";
 import { ANIM, CINEMA, DISCARD, HAND_DEAL, cardAnim, moveAnim, type HitFx } from "@/ui/battle/animations";
+import { buildHitFx, impactSfxPlan } from "@/ui/battle/hitFloats";
 import {
   choreograph,
   depthVars,
@@ -738,20 +740,19 @@ export function BattleScreen() {
             commit(step.snapshot);
           }
           const hitSeq = ++hitSeqRef.current;
-          const map: Record<string, HitFx> = {};
-          for (const h of step.hits) {
-            const fx: HitFx = { anim: step.anim, seq: hitSeq };
-            if (h.missed) fx.float = { text: "MISS", tone: "miss" };
-            else if (ANIM[step.anim].kind === "attack" && h.hpDelta > 0)
-              fx.float = { text: `-${h.hpDelta}`, tone: "dmg" };
-            else if (ANIM[step.anim].kind === "support" && h.hpDelta < 0) fx.float = { text: `+${-h.hpDelta}`, tone: "heal" };
-            map[h.id] = fx;
-          }
-          setHits(map);
+          setHits(buildHitFx(step.hits, step.anim, hitSeq));
           timeline.schedule(impactDelay, () => {
             if (impactCue) {
-              const damage = Math.max(0, ...step.hits.map((hit) => hit.hpDelta));
-              playSfx(impactCue.id, { damage, pitch: impactCue.pitch, volume: impactCue.volume });
+              // 每目标 × 每段各一声, 依次错开(playSfx 有 30ms 节流, 同刻连播会被丢弃)。
+              // ⚠ 必须走 unscaled(墙钟)排期: 下一句就要开顿帧(timeScale=0), 走缩放时间轴的话
+              //   后续几声会被冻在顿帧里, 顿帧结束才补出来 —— 打击感彻底散架。采样本身也不会
+              //   随慢镜变慢, 音画只在爆点那一刻对齐即可。
+              for (const tick of impactSfxPlan(step.hits, impactCue, step.anim)) {
+                const play = () =>
+                  playSfx(impactCue.id, { damage: tick.damage, pitch: impactCue.pitch, volume: tick.volume });
+                if (tick.delayMs === 0) play();
+                else timeline.schedule(tick.delayMs, play, true);
+              }
             }
             if (proc?.damageAtImpact) {
               markStepDiscards();
@@ -820,19 +821,21 @@ export function BattleScreen() {
     if (animatingRef.current) return;
     const card = b.cards[uid];
     const anim = cardAnim(card);
-    const targets = fxTargets(uid, primaryId);
-    const before: Record<string, number> = {};
-    for (const id of targets) before[id] = b.combatants[id]?.hp ?? 0;
 
     const plan = play(uid, primaryId);
     if (!plan) return;
     setPlayingOutUid(uid); // 出牌成功: 立即让该卡从当前(选中弹出)位开始向右出鞘
 
-    const cardHits = targets.map((id) => ({
-      id,
-      hpDelta: before[id] - (plan.cardSnapshot.combatants[id]?.hp ?? before[id]),
-      missed: plan.cardMissedTargets.includes(id),
-    }));
+    // 命中列表以引擎回传的 plan.cardHits 为准 —— 它带逐段明细, 且覆盖 lowestHpAlly /
+    // randomAlly / 培育追加效果这些从卡牌定义反推不出来的目标。
+    // fxTargets 只补「没有 HP 变化」的目标(纯护盾/纯状态卡), 让它们照旧闪一下特效。
+    const hitIds = new Set(plan.cardHits.map((hit) => hit.id));
+    const cardHits: AnimHit[] = [
+      ...plan.cardHits,
+      ...fxTargets(uid, primaryId)
+        .filter((id) => !hitIds.has(id))
+        .map((id) => ({ id, hpDelta: 0, missed: plan.cardMissedTargets.includes(id) })),
+    ];
     const steps: ChoreoStep[] = [
       { actorId: card.ownerCharId, anim, snapshot: plan.cardSnapshot, hits: cardHits, card },
       ...plan.steps.map(stepFromFx),
@@ -921,7 +924,7 @@ export function BattleScreen() {
   const glitchHit = Object.values(hits).find((h) => ANIM[h.anim].screenFx === "glitch");
   // 我方受到伤害 ⇒ 全屏血红暗角。由 hits 派生, hold 结束清空 hits 时自动卸载。
   const hurtHit = Object.entries(hits).find(
-    ([id, h]) => battle.playerIds.includes(id) && h.float?.tone === "dmg",
+    ([id, h]) => battle.playerIds.includes(id) && h.floats.some((float) => float.tone === "dmg"),
   )?.[1];
   // 我方角色前冲上浮时(data-attacking, 见 fx/HitFxLayer.module.css)，让开左下角这三块 UI
   const playerActing = !!attackerId && battle.playerIds.includes(attackerId);

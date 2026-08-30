@@ -1,5 +1,6 @@
-import type { ComponentType } from "react";
-import { ANIM, type CardAnim, type HitFx, type ProcFxPreset } from "@/ui/battle/animations";
+import type { ComponentType, CSSProperties } from "react";
+import type { CardAnim } from "@/engine";
+import { ANIM, type HitFx, type ProcFxPreset } from "@/ui/battle/animations";
 import type { UnitReact } from "@/ui/battle/unitShell";
 import { cx } from "@/ui/common/cx";
 import { IaiSlashFx } from "@/ui/battle/fx/IaiSlashFx";
@@ -90,11 +91,19 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
           )}
         </div>
       )}
-      {hit?.float && (
-        <div key={`f${hit.seq}`} className={cx(s["float-num"], s[`float-${hit.float.tone}`])}>
-          {hit.float.text}
+      {/* 飘字。多段伤害 = 多条, 原地依次弹出(delayMs 见 hitFloats.ts)。
+          外层 .float-slot 只负责定位与叠序, 位移动画仍全归 .float-num 的 floatUp ——
+          两层分开才不用去改那条被居合斩等特效依赖的关键帧。 */}
+      {hit?.floats.map((float, index) => (
+        <div key={`f${hit.seq}-${index}`} className={s["float-slot"]}>
+          <div
+            className={cx(s["float-num"], s[`float-${float.tone}`])}
+            style={{ "--vfx-float-stagger": `${float.delayMs}ms` } as CSSProperties}
+          >
+            {float.text}
+          </div>
         </div>
-      )}
+      ))}
     </>
   );
 }

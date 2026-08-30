@@ -5,6 +5,7 @@
 
 import type {
   Ally,
+  AnimHit,
   BattleState,
   Card,
   Combatant,
@@ -43,12 +44,16 @@ import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder
 import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
+import { withHitRecorder } from "./animHits";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
   steps: FxRecorder["steps"];
   cardMissedTargets: string[];
   cardSnapshot?: BattleState;
+  // 本次出牌真实影响到的单位与逐段明细(见 animHits.ts)。UI 据此飘字与播音效 ——
+  // 不要再从卡牌定义反推目标: lowestHpAlly / randomAlly / 培育追加效果都推不出来。
+  cardHits?: AnimHit[];
 }
 
 export interface AllyInit {
@@ -351,44 +356,52 @@ export function playCard(
     resolution.missed.forEach((id) => cardMissed.add(id));
     resolution.hit.forEach((id) => cardHit.add(id));
   };
-  withDiscardRecorder(discardRecorder, () => {
-    state.playValueBonusPct = 0;
-    state.activeCardCost = faceCost;
-    try {
-      const cultivated = cultivateReady(card);
-      const cultivateMode = card.cultivate?.mode ?? "append";
-      const activeEffects = cultivated && cultivateMode === "replace" ? card.cultivate!.effects : card.effects;
-      mergeCardResolution(resolveEffects(state, activeEffects, card.ownerCharId, primaryId));
-
-      if (cultivated && cultivateMode !== "replace")
-        mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
-      resetCultivate(card);
-
-      if (card.exhaust) state.exhaust.push(uid);
-      else moveToDiscard(state, uid, "play");
-
-      for (const ref of card.keywords ?? []) {
-        const def = KEYWORD_DEFS[ref.id];
-        if (!def) continue;
-        const ctx = { primaryId, hitIds: [...cardHit] };
-        const times = def.triggers(state, card, ctx);
-        for (let i = 0; i < times; i++)
-          mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
-        def.onTriggered?.(state, card, ctx, times);
-      }
-      for (const markId of card.marks ?? []) {
-        const mark = CARD_MARK_DEFS[markId];
-        if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
-      }
-      card.marks = [];
-      state.waterfallPlay = false;
+  // 本次出牌真实打到/治到了谁, 每个目标分了几段 —— 逐段由 ops.dealDamage / ops.heal 上报。
+  // ⚠ 刻意不做「快照前后 HP 差」的兜底扫描: 弃牌联动与自动出牌在结算过程中也会改 HP,
+  //   而它们各自会产出独立的动画步(见 discard.ts), 兜底扫描会让同一笔伤害飘两次。
+  //   引擎里 HP 的写入口只有 dealDamage / heal(markDead 与 maxHp 修正除外), 记录器已经全覆盖。
+  const cardHits = withHitRecorder(() => {
+    withDiscardRecorder(discardRecorder, () => {
       state.playValueBonusPct = 0;
-      if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
-      flushAutoPlays(state, rec);
-    } finally {
-      state.activeCardCost = null;
-    }
+      state.activeCardCost = faceCost;
+      try {
+        const cultivated = cultivateReady(card);
+        const cultivateMode = card.cultivate?.mode ?? "append";
+        const activeEffects = cultivated && cultivateMode === "replace" ? card.cultivate!.effects : card.effects;
+        mergeCardResolution(resolveEffects(state, activeEffects, card.ownerCharId, primaryId));
+
+        if (cultivated && cultivateMode !== "replace")
+          mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
+        resetCultivate(card);
+
+        if (card.exhaust) state.exhaust.push(uid);
+        else moveToDiscard(state, uid, "play");
+
+        for (const ref of card.keywords ?? []) {
+          const def = KEYWORD_DEFS[ref.id];
+          if (!def) continue;
+          const ctx = { primaryId, hitIds: [...cardHit] };
+          const times = def.triggers(state, card, ctx);
+          for (let i = 0; i < times; i++)
+            mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
+          def.onTriggered?.(state, card, ctx, times);
+        }
+        for (const markId of card.marks ?? []) {
+          const mark = CARD_MARK_DEFS[markId];
+          if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
+        }
+        card.marks = [];
+        state.waterfallPlay = false;
+        state.playValueBonusPct = 0;
+        if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
+        flushAutoPlays(state, rec);
+      } finally {
+        state.activeCardCost = null;
+      }
+    });
   });
+  // 只吃护盾/状态、没有 HP 变化的目标不在这里补 —— 它们由 UI 侧的 fxTargets 兜底闪特效。
+  if (rec) rec.cardHits = cardHits;
 
   const played = {
     uid: card.uid,

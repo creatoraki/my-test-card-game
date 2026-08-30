@@ -12,6 +12,7 @@ import type {
 import { resolveEffects } from "./effects";
 import type { EffectResolution } from "./effects";
 import { checkEnd, allIds, ops } from "./ops";
+import { fillMissingHits, withHitRecorder } from "./animHits";
 import { RULES } from "./rules";
 import { rngPick } from "./rng";
 import { alliesOf, foesOf } from "./targeting";
@@ -52,12 +53,15 @@ function recordTrigger(
   rec: DiscardRecorder,
   resolution: EffectResolution,
   autoPlay = false,
+  recorded: AnimHit[] = [],
 ): void {
-  const hits: AnimHit[] = [];
+  // 逐段明细优先(带 parts, 供 UI 飘多个数字); 记录器没覆盖到的目标(只吃护盾/状态、
+  // 或 HP 经状态结算变动)再用「快照前后 HP 差」补齐, 与改造前的口径一致。
+  const hits = fillMissingHits(state, beforeHp, [...recorded]);
   for (const id of allIds(state)) {
-    const hpDelta = (beforeHp[id] ?? 0) - state.combatants[id].hp;
-    const missed = resolution.missed.includes(id) && !resolution.hit.includes(id);
-    if (hpDelta !== 0 || missed) hits.push({ id, hpDelta, missed });
+    if (hits.some((hit) => hit.id === id)) continue;
+    if (resolution.missed.includes(id) && !resolution.hit.includes(id))
+      hits.push({ id, hpDelta: 0, missed: true });
   }
   rec.steps.push({
     kind: "discard",
@@ -108,12 +112,15 @@ export function moveToDiscard(
   for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
 
   const primaryId = autoTarget(state, card);
-  const resolution = resolveEffects(state, effects, card.ownerCharId, primaryId);
+  let resolution!: EffectResolution;
+  const recorded = withHitRecorder(() => {
+    resolution = resolveEffects(state, effects, card.ownerCharId, primaryId);
+  });
   checkEnd(state);
 
   state.discardResolving.pop();
   if (recorder) {
-    recordTrigger(state, card, beforeHp, recorder, resolution);
+    recordTrigger(state, card, beforeHp, recorder, resolution, false, recorded);
   }
 }
 
@@ -143,14 +150,17 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
       const previousCardCost = state.activeCardCost;
       state.activeCardCost = cardCost(state, card);
-      let resolution: EffectResolution;
+      let resolution!: EffectResolution;
+      let recorded: AnimHit[] = [];
       try {
-        resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+        recorded = withHitRecorder(() => {
+          resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+        });
       } finally {
         state.activeCardCost = previousCardCost;
       }
       checkEnd(state);
-      if (recorder) recordTrigger(state, card, beforeHp, recorder, resolution, true);
+      if (recorder) recordTrigger(state, card, beforeHp, recorder, resolution, true, recorded);
       flushed += 1;
     }
     if (state.pendingAutoPlays.length > 0) {

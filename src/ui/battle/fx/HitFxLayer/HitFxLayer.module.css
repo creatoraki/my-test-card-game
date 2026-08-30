@@ -228,11 +228,20 @@
   content: none;
 }
 /* —— 伤害/治疗飘字 —— */
-.float-num {
+/* 飘字定位槽。多段伤害会同时挂多条飘字, 它们必须**共用同一个锚点**原地依次弹出,
+   所以定位与叠序留在这一层, 位移动画全归内层 .float-num —— 这样 floatUp 关键帧里的
+   translate(-50%, …) 不用动(居合斩等特效的时序注释都是按它写的)。 */
+.float-slot {
   position: absolute;
   top: 26px;
   left: 50%;
   z-index: 8;
+  pointer-events: none;
+}
+.float-num {
+  position: absolute;
+  top: 0;
+  left: 0;
   font-family: var(--font-num);
   font-weight: 800;
   font-size: 64px;
@@ -244,8 +253,11 @@
   text-shadow: 0 0 10px currentColor;
   /* 聚焦镜头下停留约 1s: 快速弹出后保持可读, 末段才缓慢上浮淡出。
      延迟/时长走 CSS 变量(见 HitFxLayer.hitFxVars): 缺省值下与原 0.95s 无延迟逐帧等价;
-    居合斩把飘字推迟到斩击爆发瞬间(impactMs)并压缩时长, 保证在命中特效 hold 卸载前收尾。 */
-  animation: floatUp var(--vfx-float-dur, 0.95s) ease-out var(--vfx-float-delay, 0ms) both;
+     居合斩把飘字推迟到斩击爆发瞬间(impactMs)并压缩时长, 保证在命中特效 hold 卸载前收尾。
+     多段伤害再叠一层 --vfx-float-stagger(逐条 +120ms, 见 hitFloats.ts), 于是几个数字
+     在同一位置依次弹出。 */
+  animation: floatUp var(--vfx-float-dur, 0.95s) ease-out
+    calc(var(--vfx-float-delay, 0ms) + var(--vfx-float-stagger, 0ms)) both;
 }
 .float-dmg {
   color: #ff6b6b;

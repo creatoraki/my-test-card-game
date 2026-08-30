@@ -225,10 +225,17 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
   buff: { kind: "support", emoji: "✨", color: "#ffd43b", windup: 200, hold: 700, shake: 0 },
 };
 
+// 一条飘字。多段伤害每段一条, 靠 delayMs 依次弹出(见 hitFloats.ts)。
+export interface FloatText {
+  text: string;
+  tone: "dmg" | "heal" | "miss";
+  delayMs: number; // 相对本次命中的额外延迟, 叠加在 --vfx-float-delay 之上
+}
+
 // 单个单位当前正在播放的受击/首击特效(由 BattleScreen 在命中时刻下发)。
 export interface HitFx {
   anim: CardAnim;
-  float?: { text: string; tone: "dmg" | "heal" | "miss" }; // 飘字(伤害/治疗量/未命中), 可选
+  floats: FloatText[]; // 飘字(伤害/治疗量/未命中), 空数组 = 不飘字
   seq: number; // 递增序号, 用于强制重放动画
 }
 

@@ -23,6 +23,7 @@ import { RULES } from "./rules";
 import { rngFloat } from "./rng";
 import { addMod, critChance, defenseMultiplier, hitChance, offenseStatOf, statOf } from "./stats";
 import { noteChallengeDamage, noteChallengeKill } from "./challenges";
+import { recordHitPart } from "./animHits";
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -113,6 +114,7 @@ export function dealDamage(
       dmg.missed = true;
       dmg.amount = 0;
       log(state, `${target.emoji} ${target.name} 闪避了这次攻击`);
+      recordHitPart(targetId, 0, true);
       return "missed";
     }
   }
@@ -160,6 +162,7 @@ export function dealDamage(
         STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
     cleanup(target);
     if (dmg.fatal) markDead(state, target);
+    recordHitPart(targetId, 0);
     return "hit";
   }
 
@@ -168,6 +171,7 @@ export function dealDamage(
   target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
   dmg.hpLost = dmg.amount;
   opts.onDealt?.(dmg.hpLost);
+  recordHitPart(targetId, dmg.hpLost);
 
   const marks =
     (dmg.crit ? " 暴击!" : "") +
@@ -245,6 +249,8 @@ export function heal(
   const before = t.hp;
   t.hp = Math.min(t.hpLimit, t.hp + Math.round(final));
   log(state, `${t.emoji} ${t.name} 回复 ${t.hp - before} 点生命`);
+  // 满血时 t.hp - before = 0: 仍记一段(hpDelta 0), 保证目标照样闪治疗光效, 只是不飘数字。
+  recordHitPart(targetId, before - t.hp);
 }
 
 // 最终护盾 = 基础护盾 ×(1 + 护盾强度)。sourceId 缺省 = 无施法者, 不吃护盾强度。
