@@ -15,7 +15,7 @@ import type { CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { ItemStack } from "@/items/types";
-import { rollToFlat } from "@/items/equipRoll";
+import { rollPerfectness, rollToFlat } from "@/items/equipRoll";
 import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { STAT_LABEL } from "@/ui/common/item/ItemDetail";
 import { BondIcon } from "@/ui/common/BondIcon";
@@ -64,10 +64,6 @@ export default function ShopItemCard({
         good: pct > 0,
       });
   }
-  if (stack.roll) {
-    rows.push({ label: "完美度", value: `${stack.roll.budget}`, good: true });
-  }
-
   return (
     // ★ 外壳与内容**必须**分开: 外壳(.sx-card)是这一栏唯一的 backdrop-filter 承载者,
     //   它要跨商品切换存活下来。以前整张卡挂在 ShopScene 的 key 上, 鼠标每划过一格
@@ -90,25 +86,33 @@ export default function ShopItemCard({
             {stack.count > 1 && <span className={s["sx-card-mult"]}> ×{stack.count}</span>}
           </h4>
 
-          {/* 羁绊标签与名称同排，固定在标题行右侧。 */}
-          {bond && (
-            <span
-              className={s["sx-card-bond"]}
-              style={{ "--sx-bond": bond.color } as CSSProperties}
-              aria-label={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
-              data-rail-item
-              tabIndex={0}
-              role="group"
-            >
-              <span className={s["sx-card-bond-trigger"]}>
-                <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
-                <span className={s["sx-card-bond-name"]}>{bond.name}</span>
+          <div className={s["sx-card-title-meta"]}>
+            {stack.roll && (
+              <span className={s["sx-card-perfectness"]} aria-label={`完美度 ${rollPerfectness(def, stack.roll)}`}>
+                完美度 {rollPerfectness(def, stack.roll)}
               </span>
-              <RailPopover side="bottom-right" className={s["sx-card-bond-popover"]}>
-                <BondTooltip def={bond} count={1} tierIndex={-1} next={bond.tiers[0]} />
-              </RailPopover>
-            </span>
-          )}
+            )}
+
+            {/* 羁绊标签与完美度同排，固定在标题行右侧。 */}
+            {bond && (
+              <span
+                className={s["sx-card-bond"]}
+                style={{ "--sx-bond": bond.color } as CSSProperties}
+                aria-label={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
+                data-rail-item
+                tabIndex={0}
+                role="group"
+              >
+                <span className={s["sx-card-bond-trigger"]}>
+                  <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
+                  <span className={s["sx-card-bond-name"]}>{bond.name}</span>
+                </span>
+                <RailPopover side="bottom-right" className={s["sx-card-bond-popover"]}>
+                  <BondTooltip def={bond} count={1} tierIndex={-1} next={bond.tiers[0]} />
+                </RailPopover>
+              </span>
+            )}
+          </div>
         </div>
 
         <p className={s["sx-card-tags"]}>

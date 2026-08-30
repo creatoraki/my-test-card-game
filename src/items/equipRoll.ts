@@ -132,6 +132,11 @@ export function rollEquipment(def: ItemDef, pick: (n: number) => number): EquipR
   return { budget, cost: cost || undefined, points };
 }
 
+export function rollPerfectness(def: ItemDef, roll: EquipRoll): number {
+  if (!def.model || roll.cost == null) return roll.budget;
+  return roll.budget - calculateRefund(def.model, roll.cost);
+}
+
 export function upgradeEquipment(
   roll: EquipRoll,
   nextDef: ItemDef,
