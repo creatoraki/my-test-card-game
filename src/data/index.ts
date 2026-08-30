@@ -65,7 +65,7 @@ export {
   type EnemyPlacement,
   type EnemySlot,
 } from "./encounters";
-export { MAPS, type MapDef } from "./maps";
+export { MAPS, mapEquipRarities, type MapDef } from "./maps";
 export { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
 export {
   CONSUMABLE_ITEM_DEFS,

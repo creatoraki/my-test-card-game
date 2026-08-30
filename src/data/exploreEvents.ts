@@ -307,7 +307,7 @@ const GROWTH: NodeEvent[] = [
         outcome("key-b", "终端恢复了该角色最完整的岗位记录，密集的个人训练让他获得明显成长。", [oneExp(35)]),
       ]),
       choice("assets", "撕毁绩效报告，改查资产", "寻找部门资产或机械部件", "你放弃经验结算，拆开审计终端，寻找被隐藏的部门资产。", [
-        outcome("assets-a", "终端底部只剩下一份无法使用的资产记录。", []),
+        outcome("assets-a", "终端底部留下一枚部门物资魔方。", [item("logic-cube")]),
         outcome("assets-b", "资产柜里没有完整装备，但两种机械部件仍然可以带走。", items(item("mag-rail-lining"), item("standard-gear"))),
       ]),
     ],
@@ -367,7 +367,7 @@ const GROWTH: NodeEvent[] = [
     choices: [
       choice("manual", "亲自给机械臂分工", "取得磁轨衬层、齿轮或检查隐藏货箱", "你逐条设定机械臂的目标，避免它们互相抢夺运输路线。", [
         outcome("manual-a", "机械臂从停机轨道上拆下完整衬层，并将一枚齿轮送到交付台。", items(item("mag-rail-lining"), item("standard-gear"))),
-        outcome("manual-b", "精确调度让一只隐藏货箱被找了出来，但里面只剩无法使用的旧设备。", []),
+        outcome("manual-b", "精确调度让一只隐藏货箱被找了出来，里面保存着一枚可用电池。", [item("standard-battery")]),
       ]),
       choice("auto", "让系统自动安排任务", "公开装备候选或获取消耗品", "你关闭手动控制，让中央调度系统自行判断队伍最需要什么。", [
         outcome("auto-a", "系统把装备货箱列为最高优先级，三件装备被送到队伍面前。", [equip(3)]),
@@ -461,7 +461,7 @@ const GROWTH: NodeEvent[] = [
       ], 3),
       choice("crate", "搜索废料下方的完整货箱", "取得消耗品或检查废弃设备", "你关闭压缩带，派人打开最底部的货箱层。", [
         outcome("crate-a", "一个旧急救箱被压在废料下方，里面的医疗包和糖块仍然封装完好。", items(item("medical-kit-c"), item("sugar-cube-c"))),
-        outcome("crate-b", "货箱底部只剩已经失效的员工设备，无法带走。", []),
+        outcome("crate-b", "货箱底部藏着企业员工饰品，两件物品的属性和羁绊信息全部公开。", [equip(2, "trinket")]),
       ]),
     ],
   },
@@ -924,7 +924,7 @@ const HAZARD: NodeEvent[] = [
         chance("fire-zone-a", 10, "你们踩着炮台的射击间隔穿过模拟城市，测试系统没有命中队伍。", []),
         chance("fire-zone-b", 35, "炮台的模拟弹道擦过队伍，全队损失 12% HP 后冲出测试射击区。", [dmg(0.12)]),
         chance("fire-zone-c", 25, "队伍在核心区被连续火力压住，全队损失 20% HP 后才穿过最后一道标线。", [dmg(0.2)]),
-        chance("fire-zone-d", 30, "炮台在出口前完成最后一轮锁定，全队损失 25% HP；回收槽随后弹出一组已经失效的装甲部件。", [dmg(0.25)]),
+        chance("fire-zone-d", 30, "炮台在出口前完成最后一轮锁定，全队损失 25% HP；回收槽随后弹出复合护甲 ×1。", [dmg(0.25), item("composite-armor-common")]),
       ]),
     ],
   },
@@ -1012,13 +1012,13 @@ const HAZARD: NodeEvent[] = [
       choice("cache", "利用会议缓存", "读取会议缓存，可能消耗粒子或找到废弃设备", "你不碰权限验证，转而从会议投影的缓存里寻找已经打开的通道。", [
         chance("cache-a", 50, "会议缓存里还留着一条未关闭的通道，你们沿着投影缺口离开终端，没有额外损失。", []),
         chance("cache-b", 30, "缓存数据已经残缺，队伍额外消耗 6 点粒子解码后才找到出口。", [energy(-6)]),
-        chance("cache-c", 20, "会议投影结束时，一件废弃设备从残留缓存中短暂显形，但已经无法使用。", []),
+        chance("cache-c", 20, "会议投影结束时，一件破阵信标从残留设备中短暂显形；你们带走破阵信标 ×1。", [item("breach-beacon-common")]),
       ]),
       choice("seize", "强制夺取终端权限", "强行夺权，可能受伤或打开废弃设备槽", "你把手掌压上终端核心，直接让自己的生物信号覆盖旧董事会。", [
         chance("seize-a", 10, "生物信号覆盖了旧董事会权限，终端停止安保脉冲；队伍成功夺取控制权，没有额外损失。", []),
         chance("seize-b", 50, "终端释放安保脉冲把队伍推开，全队损失 10% HP 后，核心恢复静默。", [dmg(0.1)]),
         chance("seize-c", 20, "夺权失败触发连续安保脉冲，全队损失 20% HP 后才从终端核心撤手。", [dmg(0.2)]),
-        chance("seize-d", 20, "安保脉冲让全队损失 10% HP，但终端被迫打开附近的设备槽；里面只剩无法使用的废弃设备。", [dmg(0.1)]),
+        chance("seize-d", 20, "安保脉冲让全队损失 10% HP，但终端被迫打开附近的设备槽；你们带走破阵信标 ×1。", [dmg(0.1), item("breach-beacon-common")]),
       ]),
     ],
   },

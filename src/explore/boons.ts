@@ -58,7 +58,9 @@ export function rollEquipCrate(s: ExploreState, ctx: DropContext): ItemStack | n
   const familyIds = ctx.equipmentFamilyIds ?? [];
   if (!familyIds.length) return null;
   const familyId = familyIds[rngInt(s, familyIds.length)];
-  const def = pickByQuality(s, ctx.getFamily(familyId), ctx.weights);
+  const family = ctx.getFamily(familyId);
+  const eligible = family.filter((def) => ctx.equipRarities?.includes(def.rarity) ?? true);
+  const def = pickByQuality(s, eligible.length ? eligible : family, ctx.weights);
   const affinity = rollAffinity(def, ctx.affinityPool, (n) => rngInt(s, n));
   return ctx.makeStack(def.id, 1, {
     affinity,

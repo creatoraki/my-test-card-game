@@ -28,6 +28,8 @@ export interface DropContext {
   affinityPool: string[];
   // 装备箱从 data 层递进来的装备族列表, items 层不自行扫描内容注册表。
   equipmentFamilyIds?: string[];
+  // 地图允许的装备稀有度档, 由 data 层按 RARITY_ORDER 前缀递进。
+  equipRarities?: ItemRarity[];
 }
 
 // 掷件数: finalChance = base × K。结果 >1 时, 整数部分为保底件数, 小数部分再掷一次

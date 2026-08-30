@@ -1,8 +1,9 @@
-import { type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useEffect, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import type { EventChoice, ExploreState, NodeEvent, NpcEventLike } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
 import { getItemDef } from "@/data";
 import { npcChoices } from "@/explore/session";
+import { playSfx } from "@/ui/audio";
 import { countByItemId } from "@/items/inventory";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import {
@@ -18,6 +19,12 @@ import { eventPanelShapeVars } from "@/ui/explore/NotchedFrame";
 import { eventKindLabel } from "@/ui/explore/eventKindLabel";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import s from "./ExploreScreen.module.css";
+
+function usePanelOpenSfx() {
+  useEffect(() => {
+    playSfx("panel");
+  }, []);
+}
 
 export interface TextBeat {
   shown: string;
@@ -90,6 +97,7 @@ function EventShell({ children, view, closing }: { children: ReactNode; view: Ev
 }
 
 export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, onBack }: EventModalProps) {
+  usePanelOpenSfx();
   const { session, ev } = view;
   const shopping = session.phase === "shopping";
   const briefing = view.scene === "briefing";
@@ -192,6 +200,7 @@ interface RestModalProps {
 }
 
 export function RestModal({ view, closing, onEat, onSkip, onAdvance, onBack }: RestModalProps) {
+  usePanelOpenSfx();
   const { restFood, hiddenRest } = view;
   const options: EventPanelOption[] = [
     {
@@ -256,6 +265,7 @@ interface NpcModalProps {
 }
 
 export function NpcModal({ view, closing, onChoose, onConfirm, onAdvance, onBack }: NpcModalProps) {
+  usePanelOpenSfx();
   const { session, npc } = view;
   const resolving = session.phase === "npcResolving";
   const story: ReactNode = session.pendingStory.length ? (

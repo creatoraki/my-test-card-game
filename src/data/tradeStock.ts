@@ -1,5 +1,6 @@
 import type { ItemDef, ItemRarity } from "../items/types";
 import { CONSUMABLE_ITEM_DEFS, EQUIPMENT_ITEM_DEFS, MATERIAL_ITEM_DEFS } from "./items/index";
+import { mapEquipRarities } from "./maps";
 
 export type TradeStockKind =
   | "material-general"
@@ -54,7 +55,8 @@ export function tradeStockDefs(kind: TradeStockKind, mapId: string): ItemDef[] {
   }
   if (kind === "food") return defsByIds(FOOD_IDS);
   if (kind === "equip-weapon") {
-    return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon" && COMMON_RARITIES.has(def.rarity));
+    const allowedRarities = mapEquipRarities(mapId);
+    return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon" && allowedRarities.includes(def.rarity));
   }
 
   const ids = STOCK_IDS_BY_MAP[mapId]?.[kind] ?? GENERIC_IDS[kind];

@@ -8,6 +8,7 @@
 // 战斗背景见 ui/battleBg.ts, 场景氛围见 ui/ambience.ts, 三处都按下面的 id 作键。
 
 import type { BattleTier } from "../explore/types";
+import { RARITY_ORDER, type ItemRarity } from "../items/types";
 
 export interface MapDef {
   id: string;
@@ -15,6 +16,7 @@ export interface MapDef {
   desc: string;
   difficulty: number; // 1-5, UI 渲染成星级
   emoji: string; // 无地图配图时的占位图标
+  maxEquipRarity: ItemRarity; // 本图装备产出的最高阶, 按 RARITY_ORDER 前缀截断
 
   // ── 区域推进 ──
   roundCount: number; // 一趟走几轮(标准 6)
@@ -32,6 +34,7 @@ export const MAPS: MapDef[] = [
     desc: "废弃的旧城灯牌仍亮着。清运机械还在照着旧指令拾荒, 把活人也算作了废品。",
     difficulty: 3,
     emoji: "🌆",
+    maxEquipRarity: "common",
     roundCount: 6,
     eventPoolId: "ruined-floor",
     battleEncounters: {
@@ -49,6 +52,7 @@ export const MAPS: MapDef[] = [
     desc: "尚未配置事件与怪物场景。",
     difficulty: 3,
     emoji: "🌿",
+    maxEquipRarity: "common",
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
@@ -66,6 +70,7 @@ export const MAPS: MapDef[] = [
     desc: "尚未配置事件与怪物场景。",
     difficulty: 3,
     emoji: "🚆",
+    maxEquipRarity: "common",
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
@@ -83,6 +88,7 @@ export const MAPS: MapDef[] = [
     desc: "尚未配置事件与怪物场景。",
     difficulty: 3,
     emoji: "🌉",
+    maxEquipRarity: "common",
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
@@ -100,6 +106,7 @@ export const MAPS: MapDef[] = [
     desc: "尚未配置事件与怪物场景。",
     difficulty: 3,
     emoji: "🌇",
+    maxEquipRarity: "common",
     roundCount: 6,
     eventPoolId: "",
     battleEncounters: {
@@ -112,3 +119,9 @@ export const MAPS: MapDef[] = [
     startingEnergy: 100,
   },
 ];
+
+export function mapEquipRarities(mapId: string): ItemRarity[] {
+  const map = MAPS.find((candidate) => candidate.id === mapId);
+  if (!map) throw new Error(`未知地图: ${mapId}`);
+  return RARITY_ORDER.slice(0, RARITY_ORDER.indexOf(map.maxEquipRarity) + 1);
+}

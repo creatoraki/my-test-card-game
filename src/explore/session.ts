@@ -45,10 +45,11 @@ import {
   getItemDef,
   getItemFamily,
   getMap,
+  mapEquipRarities,
   makeRolledItemStack,
   makeItemStack,
 } from "../data";
-import { rollDropTable, type DropContext } from "../items/drops";
+import { pickByQuality, rollDropTable, type DropContext } from "../items/drops";
 import {
   addToContainer,
   countByItemId,
@@ -136,6 +137,7 @@ export function dropContext(s: ExploreState, k = dropCoefficient(s)): DropContex
     // ★ 随机羁绊词条的抽取池 —— 只含**已实装**的羁绊, 见 data/bonds.ts 的说明。
     affinityPool: ROLLABLE_BOND_IDS,
     equipmentFamilyIds: EQUIPMENT_FAMILY_IDS,
+    equipRarities: mapEquipRarities(s.mapId),
   };
 }
 
@@ -700,9 +702,23 @@ function rollOutcome(s: ExploreState, outcomes: EventOutcome[]): EventOutcome | 
 }
 
 function rollEquipOffers(s: ExploreState, count: number, slot?: import("../items/types").EquipSlot): ItemStack[] {
-  return shuffle(s, equipmentDefsBySlot(slot))
+  const familyIds = [
+    ...new Set(
+      equipmentDefsBySlot(slot)
+        .map((def) => def.familyId)
+        .filter((familyId): familyId is string => Boolean(familyId)),
+    ),
+  ];
+  const allowedRarities = mapEquipRarities(s.mapId);
+  const weights = qualityWeights(dropCoefficient(s));
+  return shuffle(s, familyIds)
     .slice(0, Math.max(0, count))
-    .map((def) => makeRolledItemStack(s, def.id, 1));
+    .map((familyId) => {
+      const family = getItemFamily(familyId);
+      const eligible = family.filter((def) => allowedRarities.includes(def.rarity));
+      const def = pickByQuality(s, eligible.length ? eligible : family, weights);
+      return makeRolledItemStack(s, def.id, 1);
+    });
 }
 
 function deferEffectLoot(s: ExploreState, stacks: ItemStack[]): string {
