@@ -85,7 +85,7 @@ export const SCREEN_FX: Partial<Record<Screen, Partial<TransitionSpec>>> = {};
 // ── 按路线配置(最高优先级) ──
 // 键为 `${from}>${to}`。例:
 //   "town>battle": { exit: FX.zoomOut, hold: 220 },
-//   "battle>reward": { enter: FX.slideUp },
+//   "battle>victory": { enter: FX.slideUp },
 export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionSpec>>> = {
   "sortie>elevator": DEFAULT_TRANSITION,
   "elevator>explore": { ...DEFAULT_TRANSITION, hold: 500 },
@@ -98,8 +98,6 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
     hold: 0,
     curtain: "battle-ripple",
   },
-  "reward>explore": { hold: 140 },
-
   "victory>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
   "defeat>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
 
