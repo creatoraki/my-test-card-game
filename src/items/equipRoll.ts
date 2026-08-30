@@ -22,6 +22,7 @@ export const COST_ALLOWED_STATS: ReadonlySet<keyof StatBlock> = new Set([
   "healPower",
   "critDamage",
   "hitRate",
+  "defense",
 ]);
 
 function randomInt(min: number, max: number, pick: (n: number) => number): number {

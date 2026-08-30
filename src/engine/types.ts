@@ -314,7 +314,7 @@ export interface StatBlock {
   healPower: number; // 治愈力: 治疗基础值 + 该值
   lowCostMastery: number; // 低费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
   highCostMastery: number; // 高费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
-  defense: number; // 防御力: 减伤 = 防御力 / (防御力 + RULES.combat.defenseConstant)，角色基础防御力为 0
+  defense: number; // 防御力: 正值按防御力 / (防御力 + 常量)减伤，负值增伤；穿甲只抵扣正防御，角色基础防御力为 0
   armorPen: number; // 穿甲(固定整数): 结算时抵扣目标防御力, 有效防御力不低于 0
   // 命中 / 回避 / 暴击
   hitRate: number; // 命中率(百分点)

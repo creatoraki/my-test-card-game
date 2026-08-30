@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import type { ItemCategory, ItemDef } from "@/items/types";
 import { ModuleGlyph, hasModuleGlyph } from "./moduleGlyphs";
 import deflectionBladeArt from "@/assets/道具/装备/武器/太刀.png";
+import saberArt from "@/assets/道具/装备/武器/军刀.png";
 import crossSwordArt from "@/assets/道具/装备/武器/盾斧.png";
 import huntingRifleArt from "@/assets/道具/装备/武器/狙击枪.png";
 import glassDaggerArt from "@/assets/道具/装备/武器/匕首.png";
@@ -20,6 +21,9 @@ import armorPiercingCrossbowArt from "@/assets/道具/装备/武器/弩.png";
 import quickstrikeGauntletArt from "@/assets/道具/装备/武器/拳套.png";
 import hunterLongbowArt from "@/assets/道具/装备/武器/弓箭.png";
 import heavyCannonArt from "@/assets/道具/装备/武器/火炮.png";
+import crystalOrbArt from "@/assets/道具/装备/武器/水晶球.png";
+import warHammerArt from "@/assets/道具/装备/武器/锤子.png";
+import spellbookArt from "@/assets/道具/装备/武器/魔法书.png";
 import cityDefenseHeavyArmorArt from "@/assets/道具/装备/防具/城防重甲.png";
 import compositeArmorArt from "@/assets/道具/装备/防具/复合护甲.png";
 import guardPlateArt from "@/assets/道具/装备/防具/护卫板甲.png";
@@ -182,6 +186,10 @@ const EQUIPMENT_ART: Record<string, string> = {
   "heavy-cannon": heavyCannonArt,
   "hunter-longbow": hunterLongbowArt,
   "deflection-blade": deflectionBladeArt,
+  saber: saberArt,
+  "crystal-orb": crystalOrbArt,
+  "war-hammer": warHammerArt,
+  spellbook: spellbookArt,
   "city-defense-heavy-armor": cityDefenseHeavyArmorArt,
   "composite-armor": compositeArmorArt,
   "guard-plate": guardPlateArt,

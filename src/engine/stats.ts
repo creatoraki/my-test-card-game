@@ -153,11 +153,14 @@ export function critChance(_state: BattleState, cmb: Combatant): number {
   return statOf(cmb, "critRate");
 }
 
-// 防御减伤后的乘数: 1 − 防御力 /(防御力 + 常量)。
+// 防御减伤后的乘数: 正防御减伤, 负防御增伤; 穿甲只抵扣正防御。
 export function defenseMultiplier(defender: Combatant, attacker?: Combatant): number {
   const pen = attacker ? Math.max(0, statOf(attacker, "armorPen")) : 0;
-  const def = Math.max(0, statOf(defender, "defense") - pen);
-  return 1 - def / (def + RULES.combat.defenseConstant);
+  const rawDefense = statOf(defender, "defense");
+  const effectiveDefense = rawDefense >= 0
+    ? Math.max(0, rawDefense - pen)
+    : rawDefense;
+  return 1 - effectiveDefense / (Math.abs(effectiveDefense) + RULES.combat.defenseConstant);
 }
 
 export function attackDamage(attack: number, multiplier: number): number {
