@@ -19,6 +19,8 @@ import { rollToFlat } from "@/items/equipRoll";
 import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { STAT_LABEL } from "@/ui/common/item/ItemDetail";
 import { BondIcon } from "@/ui/common/BondIcon";
+import { BondTooltip } from "@/ui/common/BondTooltip";
+import { RailPopover } from "@/ui/common/RailPopover";
 import { itemIcon } from "@/ui/art/itemArt";
 import { cx } from "@/ui/common/cx";
 import { isPercentStat } from "@/ui/common/statGroups";
@@ -62,6 +64,9 @@ export default function ShopItemCard({
         good: pct > 0,
       });
   }
+  if (stack.roll) {
+    rows.push({ label: "完美度", value: `${stack.roll.budget}`, good: true });
+  }
 
   return (
     // ★ 外壳与内容**必须**分开: 外壳(.sx-card)是这一栏唯一的 backdrop-filter 承载者,
@@ -91,9 +96,17 @@ export default function ShopItemCard({
               className={s["sx-card-bond"]}
               style={{ "--sx-bond": bond.color } as CSSProperties}
               aria-label={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
+              data-rail-item
+              tabIndex={0}
+              role="group"
             >
-              <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
-              <span className={s["sx-card-bond-name"]}>{bond.name}</span>
+              <span className={s["sx-card-bond-trigger"]}>
+                <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
+                <span className={s["sx-card-bond-name"]}>{bond.name}</span>
+              </span>
+              <RailPopover side="bottom-right" className={s["sx-card-bond-popover"]}>
+                <BondTooltip def={bond} count={1} tierIndex={-1} next={bond.tiers[0]} />
+              </RailPopover>
             </span>
           )}
         </div>

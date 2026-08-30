@@ -275,22 +275,27 @@
 }
 
 .sx-card-bond {
+  position: relative;
   display: inline-flex;
   min-width: 0;
   max-width: 48%;
   flex: 0 1 auto;
+  margin-left: auto;
+  color: var(--sx-bond, var(--sx-action));
+}
+
+.sx-card-bond-trigger {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
   gap: 5px;
   align-items: center;
-  margin-left: auto;
-  overflow: hidden;
   padding: 4px 9px 4px 6px;
-  color: var(--sx-bond, var(--sx-action));
   background: color-mix(in srgb, var(--sx-bond, var(--sx-action)) 15%, #0d1120);
   border: 1px solid color-mix(in srgb, var(--sx-bond, var(--sx-action)) 58%, #ffffff 42%);
   border-radius: 10px 6px 11px 7px;
   box-shadow: inset 0 1px 0 #ffffff2e, 0 4px 8px -7px #000000e6;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-  cursor: help;
 }
 
 .sx-card-bond-icon {
@@ -308,6 +313,10 @@
   letter-spacing: 1px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sx-card-bond-popover {
+  --bond-color: var(--sx-bond);
 }
 
 .sx-card-desc {
