@@ -14,10 +14,14 @@ export const AFFIX_SCALE: Partial<Record<keyof StatBlock, number>> = {
   armorPen: 1,
   initiative: 0.5,
   defense: 1,
+  dodgeRate: 2,
+  blockRate: 2,
+  ailmentResist: 2,
 };
 
 export const COST_ALLOWED_STATS: ReadonlySet<keyof StatBlock> = new Set([
   "maxHp",
+  "attack",
   "initiative",
   "healPower",
   "critDamage",

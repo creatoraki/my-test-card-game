@@ -1,7 +1,7 @@
 import type { ItemDef } from "../../../items/types";
-import { expandWeaponTiers, type WeaponFamily } from "./weaponModel";
+import { expandEquipTiers, WEAPON_PRESET, type EquipFamily } from "./equipModel";
 
-const WEAPON_FAMILIES: WeaponFamily[] = [
+const WEAPON_FAMILIES: EquipFamily[] = [
   {
     familyId: "deflection-blade",
     name: "太刀",
@@ -80,4 +80,6 @@ const WEAPON_FAMILIES: WeaponFamily[] = [
   },
 ];
 
-export const WEAPON_ITEM_DEFS: ItemDef[] = WEAPON_FAMILIES.flatMap(expandWeaponTiers);
+export const WEAPON_ITEM_DEFS: ItemDef[] = WEAPON_FAMILIES.flatMap((family) =>
+  expandEquipTiers(family, WEAPON_PRESET),
+);

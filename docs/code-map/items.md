@@ -12,4 +12,4 @@
 
 物品稀有度与战斗卡牌稀有度是两套类型，即使都有 `common` / `rare` 也不能互相混用。装备占格、负重和仓库穿戴由本层容器函数与 `explore/session`、`townStore` 组合；穿在身上的装备不占仓库格。
 
-武器族的五档模型声明与模板展开位于 [weaponModel.ts](../../src/data/items/equipment/weaponModel.ts)，内容表位于 `data/items/equipment/weapons.ts`。
+装备族的五档模型展开位于 [equipModel.ts](../../src/data/items/equipment/equipModel.ts)，内容表分别位于 `data/items/equipment/weapons.ts` 与 `data/items/equipment/armor.ts`。

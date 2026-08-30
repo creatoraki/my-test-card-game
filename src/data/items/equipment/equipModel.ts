@@ -1,9 +1,9 @@
 import type { StatBlock } from "../../../engine/types";
-import type { ItemDef } from "../../../items/types";
+import type { EquipSlot, ItemDef } from "../../../items/types";
 import { assertModelValid } from "../../../items/equipRoll";
 import { RARITY_ORDER } from "../../../items/types";
 
-export interface WeaponFamily {
+export interface EquipFamily {
   familyId: string;
   name: string;
   desc: string;
@@ -13,13 +13,21 @@ export interface WeaponFamily {
   drawback?: keyof StatBlock;
 }
 
+export interface EquipSlotPreset {
+  slot: EquipSlot;
+  icon: string;
+}
+
+export const WEAPON_PRESET: EquipSlotPreset = { slot: "weapon", icon: "weapon" };
+export const ARMOR_PRESET: EquipSlotPreset = { slot: "armor", icon: "armor" };
+
 const STANDARD_BUDGET_MAX = [10, 15, 20, 25, 30];
 const BUDGET_ROLLS = 2; // 取两次预算的较小值，压低满完美度出现率。
 const DRAWBACK_COST = [3, 3, 4, 4, 5];
 const DRAWBACK_REFUND = [2, 2, 3, 3, 4];
 
 function createAffixes(
-  stats: WeaponFamily["affixes"],
+  stats: EquipFamily["affixes"],
   index: number,
   extreme: boolean,
 ) {
@@ -40,13 +48,16 @@ function createAffixes(
   }));
 }
 
-function createDrawback(stat: WeaponFamily["drawback"], index: number) {
+function createDrawback(stat: EquipFamily["drawback"], index: number) {
   if (!stat) return undefined;
   const cost = DRAWBACK_COST[index];
   return [{ stat, min: cost, max: cost, weight: 1 }];
 }
 
-export function expandWeaponTiers(family: WeaponFamily): ItemDef[] {
+export function expandEquipTiers(
+  family: EquipFamily,
+  preset: EquipSlotPreset,
+): ItemDef[] {
   const extreme = Boolean(family.drawback);
   return RARITY_ORDER.map((rarity, index) => {
     const def: ItemDef = {
@@ -56,9 +67,9 @@ export function expandWeaponTiers(family: WeaponFamily): ItemDef[] {
       rarity,
       desc: family.desc,
       maxStack: 1,
-      slot: "weapon",
+      slot: preset.slot,
       familyId: family.familyId,
-      icon: "weapon",
+      icon: preset.icon,
       model: {
         budget: {
           min: 5 + index * 4,
