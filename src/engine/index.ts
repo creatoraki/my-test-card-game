@@ -21,6 +21,8 @@ export {
   addStats,
   applyModifier,
   attackDamage,
+  masteryBonusOf,
+  offenseStatOf,
   statOf,
   hitChance,
   critChance,

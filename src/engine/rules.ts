@@ -65,6 +65,7 @@ export const RULES = {
 
     defenseConstant: 50, // 减伤 = 防御力 / (防御力 + 该常量)
     attackDivisor: 5,
+    lowCostApMax: 1,
     baseHitChance: 100, // P_base
     hitFloorPct: 5, // 最终命中概率下限
     hitCeilPct: 100, // 最终命中概率上限

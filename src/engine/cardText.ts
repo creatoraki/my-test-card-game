@@ -1,9 +1,13 @@
 import type { Card, EffectDescriptor } from "./types";
 import { attackDamage } from "./stats";
+import { cardCost } from "./cost";
+import { RULES } from "./rules";
 
 export interface CardTextStats {
   attack: number;
   healPower: number;
+  lowCostMastery: number;
+  highCostMastery: number;
 }
 
 // 显示的是减伤前的基础值。伤害在 ops.dealDamage 中还会经过暴击、防御、格挡和 Math.round，
@@ -42,7 +46,14 @@ export function effectDisplayValue(
 }
 
 // {0} 对应 effects[0]；{d0} 对应 onDiscard.effects[0]；{k0} 对应 cultivate.effects[0]。
-export function renderCardText(card: Card, stats: CardTextStats): string {
+export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost(null, card)): string {
+  const mastery =
+    cost <= RULES.combat.lowCostApMax ? stats.lowCostMastery : stats.highCostMastery;
+  const effectiveStats: CardTextStats = {
+    ...stats,
+    attack: stats.attack + mastery,
+    healPower: stats.healPower + mastery,
+  };
   return card.text.replace(/\{(d|k)?(\d+|c)\}/g, (_match, kind: string | undefined, indexText: string) => {
     if (indexText === "c") {
       const left = card.cultivateLeft ?? card.cultivate?.turns;
@@ -50,7 +61,7 @@ export function renderCardText(card: Card, stats: CardTextStats): string {
     }
     const index = Number(indexText);
     const effects = kind === "d" ? card.onDiscard?.effects : kind === "k" ? card.cultivate?.effects : card.effects;
-    const value = effectDisplayValue(effects?.[index], stats);
+    const value = effectDisplayValue(effects?.[index], effectiveStats);
     return value == null ? "?" : String(value);
   });
 }

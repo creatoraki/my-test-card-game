@@ -17,6 +17,7 @@ import { rngPick } from "./rng";
 import { alliesOf, foesOf } from "./targeting";
 import { resetCultivate } from "./cultivate";
 import { addCardToHand } from "./deck";
+import { cardCost } from "./cost";
 
 let activeRecorder: DiscardRecorder | undefined;
 let flushing = false;
@@ -140,7 +141,14 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       if (recorder && !discardSnapshots.has(state)) discardSnapshots.set(state, structuredClone(state));
       const beforeHp: Record<string, number> = {};
       for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
-      const resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+      const previousCardCost = state.activeCardCost;
+      state.activeCardCost = cardCost(state, card);
+      let resolution: EffectResolution;
+      try {
+        resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+      } finally {
+        state.activeCardCost = previousCardCost;
+      }
       checkEnd(state);
       if (recorder) recordTrigger(state, card, beforeHp, recorder, resolution, true);
       flushed += 1;

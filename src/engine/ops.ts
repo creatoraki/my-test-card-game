@@ -21,7 +21,7 @@ import type {
 import { STATUS_DEFS } from "./statuses";
 import { RULES } from "./rules";
 import { rngFloat } from "./rng";
-import { addMod, critChance, defenseMultiplier, hitChance, statOf } from "./stats";
+import { addMod, critChance, defenseMultiplier, hitChance, offenseStatOf, statOf } from "./stats";
 import { noteChallengeDamage, noteChallengeKill } from "./challenges";
 
 export function log(state: BattleState, text: string): void {
@@ -202,7 +202,7 @@ export function heal(
   const src = sourceId ? state.combatants[sourceId] : undefined;
   let final = amount;
   if (src) {
-    final = (opts.scaled ? amount : amount + statOf(src, "healPower")) * (1 + statOf(src, "healBoost") / 100);
+    final = (opts.scaled ? amount : amount + offenseStatOf(state, src, "healPower")) * (1 + statOf(src, "healBoost") / 100);
   }
 
   const before = t.hp;
