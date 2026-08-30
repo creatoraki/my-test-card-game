@@ -89,8 +89,9 @@ export interface EquipAffixDef {
 }
 
 export interface EquipModelDef {
-  budget: { min: number; max: number };
+  budget: { min: number; max: number; rolls?: number };
   blockMax: number;
+  blockMin?: number;
   affixes: EquipAffixDef[];
   drawbacks?: EquipAffixDef[];
   costRefund?: number;

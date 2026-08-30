@@ -29,6 +29,18 @@ function randomInt(min: number, max: number, pick: (n: number) => number): numbe
   return min + pick(max - min + 1);
 }
 
+function rollBudgetBase(
+  budget: EquipModelDef["budget"],
+  pick: (n: number) => number,
+): number {
+  const rolls = budget.rolls ?? 1;
+  let result = Infinity;
+  for (let attempt = 0; attempt < rolls; attempt += 1) {
+    result = Math.min(result, randomInt(budget.min, budget.max, pick));
+  }
+  return result;
+}
+
 function calculateRefund(model: EquipModelDef, cost: number): number {
   return model.costRefundFlat ?? Math.round(cost * (model.costRefund ?? 0.7));
 }
@@ -58,7 +70,11 @@ function distribute(
     if (!available.length) throw new Error("装备模型容量不足以容纳模型值");
     const affix = weightedPick(available, pick);
     const room = affix.max - (points[affix.stat] ?? 0);
-    const size = Math.min(remain, room, randomInt(2, model.blockMax, pick));
+    const size = Math.min(
+      remain,
+      room,
+      randomInt(model.blockMin ?? 1, model.blockMax, pick),
+    );
     points[affix.stat] = (points[affix.stat] ?? 0) + size;
     remain -= size;
   }
@@ -78,8 +94,12 @@ export function assertModelValid(def: ItemDef): void {
   if (
     !Number.isInteger(model.budget.min) ||
     !Number.isInteger(model.budget.max) ||
+    (model.budget.rolls != null &&
+      (!Number.isInteger(model.budget.rolls) || model.budget.rolls < 1)) ||
     !Number.isInteger(model.blockMax) ||
-    model.blockMax < 2 ||
+    (model.blockMin != null &&
+      (!Number.isInteger(model.blockMin) || model.blockMin < 1)) ||
+    model.blockMax < (model.blockMin ?? 1) ||
     model.budget.min > model.budget.max ||
     minSum > model.budget.min ||
     maxSum < model.budget.max + maxRefund ||
@@ -126,7 +146,7 @@ export function rollEquipment(def: ItemDef, pick: (n: number) => number): EquipR
     cost += rolledCost;
   }
   const refund = calculateRefund(def.model, cost);
-  const budget = randomInt(def.model.budget.min, def.model.budget.max, pick) + refund;
+  const budget = rollBudgetBase(def.model.budget, pick) + refund;
   const minPoints = def.model.affixes.reduce((sum, affix) => sum + affix.min, 0);
   distribute(def.model, points, budget - minPoints, pick);
   return { budget, cost: cost || undefined, points };

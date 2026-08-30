@@ -14,6 +14,7 @@ export interface WeaponFamily {
 }
 
 const STANDARD_BUDGET_MAX = [10, 15, 20, 25, 30];
+const BUDGET_ROLLS = 2; // 取两次预算的较小值，压低满完美度出现率。
 const DRAWBACK_COST = [3, 3, 4, 4, 5];
 const DRAWBACK_REFUND = [2, 2, 3, 3, 4];
 
@@ -62,8 +63,9 @@ export function expandWeaponTiers(family: WeaponFamily): ItemDef[] {
         budget: {
           min: 5 + index * 4,
           max: STANDARD_BUDGET_MAX[index],
+          rolls: BUDGET_ROLLS,
         },
-        blockMax: 2 + index,
+        blockMax: 3 + index,
         affixes: createAffixes(family.affixes, index, extreme),
         drawbacks: createDrawback(family.drawback, index),
         ...(family.drawback ? { costRefundFlat: DRAWBACK_REFUND[index] } : {}),
