@@ -2,7 +2,7 @@ import type { CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/animations";
 import type { SpringTuning } from "./spring";
 
-export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "neon" | "triple" | "foe" | "foeCast";
+export type ShotKind = "none" | "light" | "normal" | "heavy" | "aoe" | "kill" | "iai" | "blade" | "tri" | "blood" | "neon" | "triple" | "keen" | "foe" | "foeCast";
 
 export interface ShotPreset {
   kind: ShotKind;
@@ -68,6 +68,8 @@ export const SHOTS: Record<ShotKind, ShotPreset> = {
   neon: { kind: "neon", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2350, punch: 0.06, shake: 22, creep: 0, hitstop: 100 },
   // 流光·三段斩视觉 2700ms; hold 2950 覆盖命中特效 2900ms, 爆点 2200ms 对齐重震与顿帧。
   triple: { kind: "triple", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 2950, punch: 0.06, shake: 22, creep: 0, hitstop: 110 },
+  // 锐利刀锋斩视觉 1750ms; hold 1900 覆盖命中特效 1800ms, 爆点 336ms 对齐重震与顿帧。
+  keen: { kind: "keen", scale: 1.5, fit: 0.74, yaw: 5, pitch: 3, roll: 5, rig: { s: QUICK }, lead: 240, hold: 1900, punch: 0.06, shake: 22, creep: 0, hitstop: 100 },
 };
 
 /** 敌人自己的戏: 先把镜头聚焦到施法者、落位后再起蓄力(见 BattleScreen 的 focusLead)。 */
@@ -91,6 +93,7 @@ export function pickShot(ctx: ShotContext): ShotPreset {
             : ctx.anim === "blood-slash" ? SHOTS.blood
               : ctx.anim === "neon-cross" ? SHOTS.neon
               : ctx.anim === "triple-strike" ? SHOTS.triple
+              : ctx.anim === "keen-edge" ? SHOTS.keen
               : ctx.shake === 2 || ctx.damageRatio >= 0.35 ? SHOTS.heavy
                 : ctx.shake === 1 && ctx.damageRatio < 0.15 ? SHOTS.light
                   : SHOTS.normal;

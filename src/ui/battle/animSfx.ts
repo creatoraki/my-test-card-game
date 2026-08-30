@@ -7,19 +7,33 @@ import { ANIM } from "./animations";
 export interface AnimSfxCue {
   id: SfxId;
   leadMs: number;
+  pitch?: number;
+  volume?: number;
 }
 
-type AnimSfxOverride = Partial<Record<"attack" | "impact", number>>;
+interface AnimSfxOverride {
+  attack?: AnimSfxCue | null;
+  impact?: AnimSfxCue | null;
+}
 
 const ANIM_SFX_OVERRIDES: Partial<Record<CardAnim, AnimSfxOverride>> = {
-  "basic-slash": { attack: 80 },
+  "basic-slash": { attack: { id: "cardPlay", leadMs: 80 } },
+  // 锐利刀锋斩整段就是这条采样: 挂载瞬间起播, 采样自带的 470ms 撞击峰经 pitch 1.4 后
+  // 恰好落在 336ms 的视觉爆点上(leadMs = KEEN_PLAY.impact ⇒ BattleScreen 排到 hitAt + 0)。
+  // 采样已含撞击峰与金属余鸣, 故不再叠 cardPlay(出刀) 与 hit(受击)。
+  "keen-edge": {
+    attack: { id: "keenEdge", leadMs: 336, pitch: 1.4, volume: 0.9 },
+    impact: null,
+  },
 };
 
 export function attackSfxCue(anim: CardAnim): AnimSfxCue | null {
   if (ANIM[anim].kind !== "attack") return null;
+  const override = ANIM_SFX_OVERRIDES[anim];
+  if (override && "attack" in override) return override.attack;
   return {
     id: "cardPlay",
-    leadMs: ANIM_SFX_OVERRIDES[anim]?.attack ?? 120,
+    leadMs: 120,
   };
 }
 
@@ -28,8 +42,10 @@ export function impactSfxCue(anim: CardAnim): AnimSfxCue | null {
     return { id: "heal", leadMs: 0 };
   }
   if (ANIM[anim].kind !== "attack") return null;
+  const override = ANIM_SFX_OVERRIDES[anim];
+  if (override && "impact" in override) return override.impact;
   return {
     id: "hit",
-    leadMs: ANIM_SFX_OVERRIDES[anim]?.impact ?? 0,
+    leadMs: 0,
   };
 }

@@ -203,6 +203,20 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     hold: 700, // impactMs + floatMs = 580 < hold, 也盖住 total 560, 飘字与末尾帧都不被截断
     shake: 1,
   },
+  // 锐利刀锋斩(程序化 CSS): 1.75s 六拍 —— 聚光起势 → 刀光横扫 → 爆点 → 金属余鸣 → 缓降 → 消散。
+  // 它是**按音效做的**: 时间轴逐拍对齐 锐利刀锋.wav 的实测包络, 再整体按 KEEN_RATE(1.4) 加速,
+  // 采样侧用同样的 pitch 跟着快, 撞击峰才仍落在 336ms 的爆点上(见 animSfx 的 keen-edge 覆盖)。
+  // 336 / 1750 与 fx/KeenEdgeFx/keenEdgeGeometry.ts 的 KEEN_PLAY.impact / .total 同源;
+  // 掉血/飘字锚在爆点, 震屏归相机 SHOTS.keen、白闪归 screenFx: "flash", 组件不做这两件事。
+  "keen-edge": {
+    kind: "attack",
+    color: "#bfe4ff", // 冷蓝白锐化版, 与 KeenEdgeFx.module.css 的 --keen-edge 同色
+    proc: { impactMs: 336, floatMs: 600, damageAtImpact: true },
+    screenFx: "flash",
+    windup: 190,
+    hold: 1800, // impactMs + floatMs = 936 < hold, 也盖住 total 1750, 余鸣与光尘尾段不被截断
+    shake: 2,
+  },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
   // 护盾: 不再用 emoji, 改用护盾 BUFF 图标 SVG(见 StatusPips 的 ShieldIcon)做虚幻放大浮现。

@@ -674,7 +674,7 @@ export function BattleScreen() {
       if (attackCue) {
         timeline.add({
           at: Math.max(actionAt, hitAt + impactMs - attackCue.leadMs),
-          run: () => playSfx(attackCue.id),
+          run: () => playSfx(attackCue.id, { pitch: attackCue.pitch, volume: attackCue.volume }),
         });
       }
       timeline.add({
@@ -751,7 +751,7 @@ export function BattleScreen() {
           timeline.schedule(impactDelay, () => {
             if (impactCue) {
               const damage = Math.max(0, ...step.hits.map((hit) => hit.hpDelta));
-              playSfx(impactCue.id, { damage });
+              playSfx(impactCue.id, { damage, pitch: impactCue.pitch, volume: impactCue.volume });
             }
             if (proc?.damageAtImpact) {
               markStepDiscards();
