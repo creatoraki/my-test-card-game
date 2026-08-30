@@ -94,6 +94,7 @@ export interface EquipModelDef {
   affixes: EquipAffixDef[];
   drawbacks?: EquipAffixDef[];
   costRefund?: number;
+  costRefundFlat?: number;
 }
 
 export interface EquipRoll {

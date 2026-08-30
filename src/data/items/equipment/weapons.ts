@@ -17,8 +17,8 @@ const WEAPON_FAMILIES: WeaponFamily[] = [
   {
     familyId: "quickstrike-gauntlet",
     name: "拳套",
-    desc: "强化攻击节奏与先手优势的速攻武器模板。",
-    affixes: ["attack", "initiative", "hitRate"],
+    desc: "强化攻击节奏与战地续航的速攻武器模板。",
+    affixes: ["attack", "initiative", "healPower"],
   },
   {
     familyId: "hunting-rifle",
@@ -37,21 +37,21 @@ const WEAPON_FAMILIES: WeaponFamily[] = [
     name: "匕首",
     desc: "以生命与防御为代价换取暴击和命中的极端武器模板。",
     affixes: ["critRate", "attack", "hitRate"],
-    drawbacks: ["maxHp"],
+    drawback: "maxHp",
   },
   {
     familyId: "heavy-cannon",
     name: "火炮",
-    desc: "极端武器模板：集中提高攻击力与穿甲，代价是命中率与先手。",
+    desc: "极端武器模板：集中提高攻击力与穿甲，代价是命中率。",
     affixes: ["attack", "armorPen", "critDamage"],
-    drawbacks: ["hitRate", "initiative"],
+    drawback: "hitRate",
   },
   {
     familyId: "cross-sword",
     name: "盾斧",
-    desc: "以先手为代价换取攻击力、生命与穿甲的极端武器模板。",
-    affixes: ["maxHp", "attack", "armorPen"],
-    drawbacks: ["initiative"],
+    desc: "以先手为代价换取生命、治愈与攻击的守护型极端武器模板。",
+    affixes: ["maxHp", "healPower", "attack"],
+    drawback: "initiative",
   },
 ];
 
