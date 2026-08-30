@@ -8,7 +8,7 @@ import { STAT_KEYS } from "@/engine";
 import type { StatBlock } from "@/engine";
 import { rollToFlat } from "@/items/equipRoll";
 import type { ItemStack } from "@/items/types";
-import { CATEGORY_LABEL, RARITY_LABEL, RARITY_ORDER, SLOT_LABEL } from "@/items/types";
+import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { BondIcon } from "@/ui/common/BondIcon";
 import { cx } from "@/ui/common/cx";
 import { itemIcon } from "@/ui/art/itemArt";
@@ -103,37 +103,6 @@ export default function ItemDetail({
 
       <p className={s["item-detail-desc"]}>{def.desc}</p>
 
-      {def.model && stack.roll && (
-        <>
-          <p className={s["item-detail-note"]}>
-            {RARITY_ORDER.indexOf(def.rarity) + 1}阶 · 模型值 {stack.roll.budget}
-          </p>
-          <dl className={s["item-detail-stats"]}>
-            {def.model.affixes.map((affix) => (
-              <div key={affix.stat}>
-                <dt>{affixRole(affix.weight)}词条 · {STAT_LABEL[affix.stat] ?? affix.stat}</dt>
-                <dd className={s["is-good"]}>{stack.roll.points[affix.stat] ?? 0} 点</dd>
-              </div>
-            ))}
-          </dl>
-          {def.model.drawbacks && stack.roll.cost != null && (
-            <>
-              <dl className={s["item-detail-stats"]}>
-                {def.model.drawbacks.map((affix) => (
-                  <div key={affix.stat}>
-                    <dt>代价 · {STAT_LABEL[affix.stat] ?? affix.stat}</dt>
-                    <dd className={s["is-bad"]}>{stack.roll.points[affix.stat] ?? 0} 点</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className={s["item-detail-note"]}>
-                代价 {stack.roll.cost} 点 · 返还 {Math.round(stack.roll.cost * (def.model.costRefund ?? 0.7))} 点
-              </p>
-            </>
-          )}
-        </>
-      )}
-
       {rows.length > 0 && (
         <dl className={s["item-detail-stats"]}>
           {rows.map((r) => (
@@ -145,9 +114,6 @@ export default function ItemDetail({
         </dl>
       )}
 
-      {def.sellValue != null && (
-        <p className={s["item-detail-note"]}>回收台售价 {def.sellValue * stack.count} 居民积分</p>
-      )}
       {def.category === "material" && (
         <p className={cx(s["item-detail-note"], s["is-locked"])}>关键词模组尚未开放，先存进仓库。</p>
       )}
@@ -187,4 +153,3 @@ export default function ItemDetail({
 }
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
-const affixRole = (weight: number) => (weight === 3 ? "主" : weight === 2 ? "副" : "三");

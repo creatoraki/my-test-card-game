@@ -16,7 +16,7 @@ import { getBondDef, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { ItemStack } from "@/items/types";
 import { rollToFlat } from "@/items/equipRoll";
-import { CATEGORY_LABEL, RARITY_LABEL, RARITY_ORDER, SLOT_LABEL } from "@/items/types";
+import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { STAT_LABEL } from "@/ui/common/item/ItemDetail";
 import { BondIcon } from "@/ui/common/BondIcon";
 import { itemIcon } from "@/ui/art/itemArt";
@@ -25,7 +25,6 @@ import { isPercentStat } from "@/ui/common/statGroups";
 import s from "./ShopItemCard.module.css";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
-const affixRole = (weight: number) => (weight === 3 ? "主" : weight === 2 ? "副" : "三");
 
 export default function ShopItemCard({
   stack,
@@ -107,37 +106,6 @@ export default function ShopItemCard({
 
         <p className={s["sx-card-desc"]}>{def.desc}</p>
 
-        {def.model && stack.roll && (
-          <>
-            <p className={s["sx-card-note"]}>
-              {RARITY_ORDER.indexOf(def.rarity) + 1}阶 · 模型值 {stack.roll.budget}
-            </p>
-            <dl className={s["sx-card-stats"]}>
-              {def.model.affixes.map((affix) => (
-                <div key={affix.stat}>
-                  <dt>{affixRole(affix.weight)}词条 · {STAT_LABEL[affix.stat] ?? affix.stat}</dt>
-                  <dd className={s["is-good"]}>{stack.roll.points[affix.stat] ?? 0} 点</dd>
-                </div>
-              ))}
-            </dl>
-            {def.model.drawbacks && stack.roll.cost != null && (
-              <>
-                <dl className={s["sx-card-stats"]}>
-                  {def.model.drawbacks.map((affix) => (
-                    <div key={affix.stat}>
-                      <dt>代价 · {STAT_LABEL[affix.stat] ?? affix.stat}</dt>
-                      <dd className={s["is-bad"]}>{stack.roll.points[affix.stat] ?? 0} 点</dd>
-                    </div>
-                  ))}
-                </dl>
-                <p className={s["sx-card-note"]}>
-                  代价 {stack.roll.cost} 点 · 返还 {Math.round(stack.roll.cost * (def.model.costRefund ?? 0.7))} 点
-                </p>
-              </>
-            )}
-          </>
-        )}
-
         {rows.length > 0 && (
           <dl className={s["sx-card-stats"]}>
             {rows.map((r) => (
@@ -149,11 +117,8 @@ export default function ShopItemCard({
           </dl>
         )}
 
-        {/* 脚注 —— 售价与各类"尚未开放"提示折叠进同一块最弱字号里, 不再各占一行主文本 */}
+        {/* 脚注 —— 各类"尚未开放"提示折叠进同一块最弱字号里, 不再各占一行主文本 */}
         <div className={s["sx-card-foot"]}>
-          {def.sellValue != null && (
-            <span className={s["sx-card-note"]}>回收台售价 {def.sellValue * stack.count}</span>
-          )}
           {def.category === "material" && (
             <span className={cx(s["sx-card-note"], s["is-locked"])}>关键词模组尚未开放，先存进仓库。</span>
           )}
