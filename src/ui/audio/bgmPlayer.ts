@@ -23,6 +23,7 @@ function persistBgmEnabled(enabled: boolean): void {
 
 const audioById: Record<BgmId, HTMLAudioElement> = {
   town: createAudio("town"),
+  explore: createAudio("explore"),
   battle: createAudio("battle"),
   elevator: createAudio("elevator"),
 };
