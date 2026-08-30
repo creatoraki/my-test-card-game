@@ -20,6 +20,7 @@ export interface EquipSlotPreset {
 
 export const WEAPON_PRESET: EquipSlotPreset = { slot: "weapon", icon: "weapon" };
 export const ARMOR_PRESET: EquipSlotPreset = { slot: "armor", icon: "armor" };
+export const TRINKET_PRESET: EquipSlotPreset = { slot: "trinket", icon: "trinket" };
 
 const STANDARD_BUDGET_MAX = [10, 15, 20, 25, 30];
 const BUDGET_ROLLS = 2; // 取两次预算的较小值，压低满完美度出现率。

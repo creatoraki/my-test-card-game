@@ -249,8 +249,7 @@ export function partyWaitLimit(state: BattleState): number {
 // 有效负重点数。探索页读数与开战时的快照都走它。
 // 战斗内不再重算 —— 负重会在开战瞬间快照进 BattleState.burden。
 export function burdenValue(occupiedSlots = 0, partyBurdenAdapt = 0): number {
-  const adapt = Math.max(0, Math.min(100, partyBurdenAdapt));
-  return occupiedSlots * (1 - adapt / 100);
+  return Math.max(0, occupiedSlots - Math.max(0, partyBurdenAdapt));
 }
 
 export function burdenHitPenalty(burden: number): number {

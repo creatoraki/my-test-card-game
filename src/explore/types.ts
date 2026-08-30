@@ -253,7 +253,7 @@ export interface PartySnapshot {
   hpLimit: number;
   maxHp: number;
   alive: boolean; // 本次远征内阵亡即无法再出战, 回城镇后复原
-  // 负重适应(百分点)。★ 由 runStore.partySnapshot() 一次性填好 ——
+  // 负重适应(固定值)。★ 由 runStore.partySnapshot() 一次性填好 ——
   // 探索层因此自足: 算负重惩罚不用回头去问 townStore, UI 与开战两处也不会各算一份。
   burdenAdapt: number;
   tradeEligibility?: {

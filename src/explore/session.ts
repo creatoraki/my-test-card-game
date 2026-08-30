@@ -290,13 +290,14 @@ export function backpackFree(s: ExploreState): number {
   return RULES.burden.backpackSlots - backpackSlots(s);
 }
 
-// 小队负重适应 A = min(100%, Σ 上阵角色负重适应)(《角色养成设计.md》)。
+// 小队负重适应 A = Σ 上阵角色负重适应(《角色养成设计.md》)。
 // ⚠ 算**全员**而不只是存活者 —— 东西是开局就背上的, 队友倒下不会让包变轻。
 export function partyBurdenAdapt(s: ExploreState): number {
   return s.party.reduce((n, p) => n + (p.burdenAdapt ?? 0), 0);
 }
 
-// 当前有效负重点数。换算本体在 engine/stats.burdenValue —— 探索页读数与开战快照共用同一个函数。
+// 当前有效负重点数。小队合计后按格抵扣，下限由 burdenValue 截到 0。
+// 探索页读数与开战快照共用同一个函数。
 export function burdenNow(s: ExploreState): number {
   return burdenValue(backpackSlots(s), partyBurdenAdapt(s));
 }

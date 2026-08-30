@@ -114,7 +114,7 @@ export default function BackpackPanel({
               <span className={s["bp-penalty"]}>
                 命中 −{hitPenalty}% · 先手 −{initiativePenalty}
               </span>
-              <span className={s["bp-adapt"]}>负重适应 {Math.min(100, Math.round(adapt))}%</span>
+              <span className={s["bp-adapt"]}>负重适应 {Math.round(adapt)} 格</span>
             </div>
           }
           headerExtra={

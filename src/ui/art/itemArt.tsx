@@ -43,7 +43,6 @@ import criticalPrismArt from "@/assets/道具/装备/饰品/暴击棱镜.png";
 import lifeThornRingArt from "@/assets/道具/装备/饰品/生命棘环.png";
 import breachBeaconArt from "@/assets/道具/装备/饰品/破阵信标.png";
 import burdenModuleArt from "@/assets/道具/装备/饰品/负重模块.png";
-import resourceChipArt from "@/assets/道具/装备/饰品/资源芯片.png";
 import medicalKitArt from "@/assets/道具/消耗品/医疗包.png";
 import holyWaterArt from "@/assets/道具/消耗品/圣水.png";
 import fruitJuiceArt from "@/assets/道具/消耗品/果汁.png";
@@ -204,7 +203,6 @@ const EQUIPMENT_ART: Record<string, string> = {
   "polarized-core": polarizedCoreArt,
   "quickstep-watch": quickstepWatchArt,
   "medical-pendant": medicalPendantArt,
-  "resource-chip": resourceChipArt,
   "reaction-charm": reactionCharmArt,
   "critical-prism": criticalPrismArt,
   "life-thorn-ring": lifeThornRingArt,

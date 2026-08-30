@@ -51,7 +51,7 @@ export const STAT_GROUPS: StatGroup[] = [
       { key: "healBoost", label: "治愈强度", pct: true },
       { key: "shieldBoost", label: "护盾强度", pct: true },
       { key: "ailmentResist", label: "异常抗性", pct: true },
-      { key: "burdenAdapt", label: "负重适应", pct: true },
+      { key: "burdenAdapt", label: "负重适应" },
     ],
     wide: true,
   },

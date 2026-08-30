@@ -596,11 +596,18 @@ describe("背包与负重(设计文档 §六)", () => {
     expect(burdenNow(s)).toBe(2); // 每格 1 点负重
   });
 
-  it("负重适应先削减有效负重, 再由派生规则向下取整", () => {
+  it("负重适应按固定格数削减有效负重", () => {
     const s = newSession();
-    s.party[0].burdenAdapt = 25;
+    s.party[0].burdenAdapt = 1;
     addItems(s, [makeItemStack("bronze-bear"), makeItemStack("armor-plate-c")]);
-    expect(burdenNow(s)).toBe(1.5);
+    expect(burdenNow(s)).toBe(1);
+  });
+
+  it("负重适应超过占格时有效负重归零", () => {
+    const s = newSession();
+    s.party[0].burdenAdapt = 3;
+    addItems(s, [makeItemStack("bronze-bear"), makeItemStack("armor-plate-c")]);
+    expect(burdenNow(s)).toBe(0);
   });
 
   it("装不下的进 pendingPickup, 不会被悄悄丢掉", () => {
