@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useRunStore } from "@/store/runStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
+import { playBgm, stopBgm } from "@/ui/audio";
 import { ELEVATOR_DESCENT_VIDEO } from "@/ui/art/sceneArt";
 import s from "./ElevatorScene.module.css";
 
@@ -16,29 +17,25 @@ export function ElevatorScene() {
   };
 
   useEffect(() => {
+    playBgm("elevator");
     const video = videoRef.current;
     if (!video) {
       finish();
-      return;
+      return () => stopBgm("elevator", { fade: true, rewind: true });
     }
 
-    video.muted = false;
+    video.muted = true;
     try {
-      void video
-        .play()
-        .catch(() => {
-          video.muted = true;
-          return video.play();
-        })
-        .catch(finish);
+      void video.play().catch(() => undefined);
     } catch {
-      video.muted = true;
-      try {
-        void video.play().catch(finish);
-      } catch {
-        finish();
-      }
+      finish();
     }
+
+    return () => {
+      video.pause();
+      video.currentTime = 0;
+      stopBgm("elevator", { fade: true, rewind: true });
+    };
   }, [finishDescent]);
 
   return (
@@ -47,6 +44,8 @@ export function ElevatorScene() {
         ref={videoRef}
         className={s.video}
         src={ELEVATOR_DESCENT_VIDEO}
+        muted
+        autoPlay
         playsInline
         preload="auto"
         onEnded={finish}

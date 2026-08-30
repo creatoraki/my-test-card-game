@@ -3,6 +3,7 @@ export {
 	playBgm,
 	setBgmEnabled,
 	stopAllBgm,
+	stopBgm,
 	subscribeBgmEnabled,
 	toggleBgm,
 } from "./bgmPlayer";

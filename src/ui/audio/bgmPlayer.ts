@@ -24,6 +24,7 @@ function persistBgmEnabled(enabled: boolean): void {
 const audioById: Record<BgmId, HTMLAudioElement> = {
   town: createAudio("town"),
   battle: createAudio("battle"),
+  elevator: createAudio("elevator"),
 };
 
 const fadeFrames: Partial<Record<BgmId, number>> = {};
@@ -37,7 +38,7 @@ const bgmEnabledListeners = new Set<() => void>();
 
 function createAudio(id: BgmId): HTMLAudioElement {
   const audio = new Audio(BGM_TRACKS[id].src);
-  audio.loop = true;
+  audio.loop = BGM_TRACKS[id].loop ?? true;
   audio.preload = "auto";
   audio.volume = 0;
   return audio;
@@ -135,7 +136,7 @@ export function playBgm(id: BgmId): void {
   if (!bgmEnabled) {
     if (currentBgm !== id) {
       currentBgm = id;
-      if (id === "battle") audioById[id].currentTime = 0;
+      if (id === "battle" || id === "elevator") audioById[id].currentTime = 0;
     }
     return;
   }
@@ -158,7 +159,7 @@ export function playBgm(id: BgmId): void {
   }
 
   const nextAudio = audioById[id];
-  if (id === "battle") nextAudio.currentTime = 0;
+  if (id === "battle" || id === "elevator") nextAudio.currentTime = 0;
   nextAudio.volume = 0;
   requestPlayback(id);
   fadeTo(id, BGM_TRACKS[id].volume);
@@ -196,30 +197,44 @@ export function toggleBgm(): void {
   setBgmEnabled(!bgmEnabled);
 }
 
-export function stopAllBgm(options: { rewind?: boolean; fade?: boolean } = {}): void {
+function stopAudio(id: BgmId, options: { rewind?: boolean; fade?: boolean }): void {
   const shouldRewind = options.rewind === true;
   const shouldFade = options.fade === true;
+  cancelFade(id);
+
+  const audio = audioById[id];
+  if (shouldRewind) rewindPending.add(id);
+  else rewindPending.delete(id);
+  const pause = () => {
+    audio.pause();
+    if (shouldRewind) {
+      audio.currentTime = 0;
+      rewindPending.delete(id);
+    }
+  };
+  if (shouldFade && !audio.paused && audio.volume > 0) {
+    fadeTo(id, 0, pause);
+  } else {
+    pause();
+    audio.volume = 0;
+  }
+}
+
+export function stopBgm(id: BgmId, options: { rewind?: boolean; fade?: boolean } = {}): void {
+  if (requestedBgm === id) {
+    requestedBgm = null;
+    removeUnlockListeners();
+  }
+  if (currentBgm === id) currentBgm = null;
+  stopAudio(id, options);
+}
+
+export function stopAllBgm(options: { rewind?: boolean; fade?: boolean } = {}): void {
   requestedBgm = null;
   currentBgm = null;
   removeUnlockListeners();
 
   for (const id of Object.keys(audioById) as BgmId[]) {
-    cancelFade(id);
-    const audio = audioById[id];
-    if (shouldRewind) rewindPending.add(id);
-    else rewindPending.delete(id);
-    const pause = () => {
-      audio.pause();
-      if (shouldRewind) {
-        audio.currentTime = 0;
-        rewindPending.delete(id);
-      }
-    };
-    if (shouldFade && !audio.paused && audio.volume > 0) {
-      fadeTo(id, 0, pause);
-    } else {
-      pause();
-      audio.volume = 0;
-    }
+    stopAudio(id, options);
   }
 }
