@@ -9,6 +9,9 @@ import deathSound from "../../../assets/sounds/音效/死亡音效.ogg";
 import pickupSound from "../../../assets/sounds/音效/单次拾取.wav";
 import pickupAllSound from "../../../assets/sounds/音效/全部拾取.wav";
 import shatterSound from "../../../assets/sounds/音效/玻璃碎裂.wav";
+import cardHoverSound from "../../../assets/sounds/音效/悬浮卡牌.mp3";
+import shieldSound from "../../../assets/sounds/音效/护盾.mp3";
+import cardSelectSound from "../../../assets/sounds/音效/选中卡牌.mp3";
 
 export interface SfxSample {
   srcs: readonly string[];
@@ -24,7 +27,10 @@ export const SFX_SAMPLES: Partial<Record<SfxId, SfxSample>> = {
   panel: { srcs: [panelOpen], gain: 0.38 },
   shatter: { srcs: [shatterSound], gain: 0.42 },
   cardPlay: { srcs: [cardSlash], gain: 0.42 },
+  cardHover: { srcs: [cardHoverSound], gain: 0.38, throttleMs: 45 },
+  cardSelect: { srcs: [cardSelectSound], gain: 0.42 },
   heal: { srcs: [healSound], gain: 0.42 },
+  shield: { srcs: [shieldSound], gain: 0.42 },
   hit: { srcs: [hitSound], gain: 0.42 },
   slash: { srcs: [bladeSlashSound], gain: 0.48, durationMs: 310, fadeOutMs: 70, throttleMs: 340 },
   // keenEdge: 同一条采样放到 2450ms —— keen-edge 攻击特效与 opus demo 共用。
