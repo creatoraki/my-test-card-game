@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { getBondDef, getCardModule, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { StatBlock } from "@/engine";
-import { rollToFlat } from "@/items/equipRoll";
+import { rollPerfectness, rollToFlat } from "@/items/equipRoll";
 import type { ItemStack } from "@/items/types";
 import { CATEGORY_LABEL, RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { BondIcon } from "@/ui/common/BondIcon";
@@ -99,6 +99,9 @@ export default function ItemDetail({
             <span className={s["item-detail-rarity"]}>{RARITY_LABEL[def.rarity]}</span>
             <span>{CATEGORY_LABEL[def.category]}</span>
             {def.slot && <span>{SLOT_LABEL[def.slot]}</span>}
+            {def.category === "equipment" && stack.roll && (
+              <span className={s["item-detail-perfectness"]}>完美度 {rollPerfectness(def, stack.roll)}</span>
+            )}
           </p>
         </div>
       </div>

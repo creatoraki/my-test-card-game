@@ -1,6 +1,6 @@
 .picker {
   position: absolute;
-  z-index: 1001;
+  z-index: 999;
   box-sizing: border-box;
   width: 360px;
   max-height: var(--picker-max-h, 300px);

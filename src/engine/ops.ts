@@ -188,6 +188,43 @@ export function dealDamage(
   return "hit";
 }
 
+// 预览命中后的确定性伤害: 应用状态修正与防御, 忽略命中/暴击/格挡/护盾等随机或吸收结果。
+// UI 需要的是“命中时会打多少”, 而不是提前掷一次战斗 RNG。
+export function previewDamage(
+  state: BattleState,
+  sourceId: string | undefined,
+  targetId: string,
+  amount: number,
+  opts: Pick<DamageOpts, "flags" | "isAttack" | "fixed"> = {},
+): number | null {
+  const target = state.combatants[targetId];
+  if (!target || !target.alive) return null;
+
+  const dmg: DamageCtx = {
+    sourceId,
+    targetId,
+    amount,
+    flags: opts.flags ?? [],
+    isAttack: opts.isAttack ?? false,
+    fixed: opts.fixed ?? false,
+    missed: false,
+    crit: false,
+    blockRolled: false,
+    blocked: 0,
+    hpLost: 0,
+  };
+  const src = sourceId ? state.combatants[sourceId] : undefined;
+  if (src) {
+    for (const inst of [...src.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
+  }
+  for (const inst of [...target.statuses])
+    STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
+
+  if (!dmg.fixed) dmg.amount *= defenseMultiplier(target, src);
+  return Math.max(0, Math.round(dmg.amount));
+}
+
 // 最终治疗 =(基础治疗 + 治愈力)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力 × 倍率,
 // 此时只乘治愈强度, 避免重复叠加治愈力。sourceId 缺省 = 无施法者, 不吃两项加成。
 export function heal(

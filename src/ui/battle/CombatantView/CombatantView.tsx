@@ -22,6 +22,7 @@ interface Props {
   currentTick: number;
   targetable: boolean; // 当前是否是合法的点选目标
   hitChance?: number | null; // 当前选中攻击卡对该目标的命中率(百分点)
+  damagePreview?: number | null; // 当前选中攻击卡命中后对该目标的确定性伤害
   attacking?: boolean; // 是否是当前出牌的施法者(前冲动画)
   telegraph?: TelegraphKind; // 是否正在蓄力预告
   hit?: HitFx | null; // 命中时刻下发的受击/首击特效
@@ -41,6 +42,7 @@ export const CombatantView = memo(function CombatantView({
   currentTick,
   targetable,
   hitChance,
+  damagePreview,
   attacking,
   telegraph,
   hit,
@@ -132,7 +134,9 @@ export const CombatantView = memo(function CombatantView({
       {/* data-cmb-stage: 供 BattleScreen 的 computeCamera 量取景框(它要的是含体型 scale 的
           这一层, 不是外层布局盒)。类名会被 Modules 哈希, querySelector 只能认属性。 */}
       <div className={s["combatant-stage"]} data-cmb-stage>
-        {phase === "alive" && targetable && hitChance != null && <HitChanceBadge value={hitChance} />}
+        {phase === "alive" && targetable && hitChance != null && (
+          <HitChanceBadge value={hitChance} damage={damagePreview} />
+        )}
         <HitFxLayer hit={hit ?? null} />
         {phase === "vanish" && <DeathVanishFx />}
 

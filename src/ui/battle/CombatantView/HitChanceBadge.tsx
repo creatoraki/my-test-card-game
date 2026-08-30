@@ -2,6 +2,7 @@ import s from "./CombatantView.module.css";
 
 interface Props {
   value: number;
+  damage?: number | null;
 }
 
 function tierOf(value: number): "high" | "mid" | "low" {
@@ -10,15 +11,16 @@ function tierOf(value: number): "high" | "mid" | "low" {
   return "low";
 }
 
-export function HitChanceBadge({ value }: Props) {
+export function HitChanceBadge({ value, damage }: Props) {
   const rounded = Math.round(value);
+  const damageText = damage == null ? "" : `${Math.max(0, Math.round(damage))}`;
   return (
     <div
       className={s["hit-chance"]}
       data-tier={tierOf(value)}
-      aria-label={`命中率 ${rounded}%`}
+      aria-label={damageText ? `预期伤害 ${damageText}，命中率 ${rounded}%` : `命中率 ${rounded}%`}
     >
-      {rounded}%
+      {damageText ? `${damageText}(${rounded}%)` : `${rounded}%`}
     </div>
   );
 }

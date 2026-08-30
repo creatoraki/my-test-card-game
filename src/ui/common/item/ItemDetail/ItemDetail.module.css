@@ -85,6 +85,11 @@
   color: var(--rr);
 }
 
+.item-detail-perfectness {
+  color: var(--rr);
+  font-variant-numeric: tabular-nums;
+}
+
 .item-detail-desc {
   margin: 0;
   font-size: var(--item-detail-desc-size, 12px);
