@@ -126,6 +126,7 @@ export interface EffectDescriptor {
   condition?:
     | "discardedThisRound"
     | "noFastPlaysThisRound"
+    | "noPlaysThisRound"
     | "waterfall"
     | "handHasCostAtLeast"
     | "fastCardsInHandAtLeast"; // 满足条件时才结算

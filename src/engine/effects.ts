@@ -40,6 +40,8 @@ function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
     return counterOf(state, "discardsThisRound") > 0;
   if (effect.condition === "noFastPlaysThisRound")
     return counterOf(state, "fastPlaysThisRound") === 0;
+  if (effect.condition === "noPlaysThisRound")
+    return counterOf(state, "cardsPlayedThisRound") === 0;
   if (effect.condition === "waterfall") return state.waterfallPlay;
   if (effect.condition === "handHasCostAtLeast")
     return state.hand.some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
