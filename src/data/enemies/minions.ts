@@ -13,7 +13,7 @@ const COMMON_DROPS: DropEntry[] = [
 const LOW_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.3 },
   { kind: "equipCrate", chance: 0.1 },
-  { kind: "moduleCrate", chance: 0.9 },
+  { kind: "moduleCrate", chance: 0.05 },
   { kind: "cardOffer", chance: 0.15 },
 ];
 

@@ -87,16 +87,31 @@ function collectMoveTargets(
   return [...set];
 }
 
+// 一次行动的拍点阶段结果。拆出来是为了让 actAndRecord 能把 DOT 掉血单独录成一帧。
+export interface TempoPhase {
+  stunnedBefore: boolean; // 拍点处理**前**是否眩晕(1 拍眩晕靠它确实跳过本次行动)
+  alive: boolean; // 拍点结算后是否仍存活; false = 被 DOT 打死, 本次行动取消
+}
+
+// 行动前推进敌人节拍(DOT/HOT 在此结算)。顺序不可调换: 先读眩晕快照, 再跑拍点。
+export function runEnemyTempoPhase(state: BattleState, enemyId: string): TempoPhase {
+  const e = state.combatants[enemyId] as Enemy;
+  if (!e.alive) return { stunnedBefore: false, alive: false };
+  const stunnedBefore = (getStatus(e, "stun")?.stacks ?? 0) > 0;
+  return { stunnedBefore, alive: runEnemyTempo(state, enemyId) };
+}
+
 // 敌人执行它当前的意图。返回本次行动的描述(供动画帧记录)。
-export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
+// phase 已在外部跑过时直接复用, 不再重复推进节拍。
+export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase): EnemyActResult {
   const e = state.combatants[enemyId] as Enemy;
   const enemyDefId = e.enemyDefId;
   if (!e.alive)
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [], missedIds: [] };
 
-  // 在行动前推进敌人节拍; 眩晕要读取拍点处理前的状态, 以保证 1 拍眩晕确实跳过本次行动。
-  const stunned = (getStatus(e, "stun")?.stacks ?? 0) > 0;
-  if (!runEnemyTempo(state, enemyId))
+  const tempoPhase = phase ?? runEnemyTempoPhase(state, enemyId);
+  const stunned = tempoPhase.stunnedBefore;
+  if (!tempoPhase.alive)
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [], missedIds: [] };
 
   const stun = getStatus(e, "stun");
@@ -149,12 +164,22 @@ export function actAndRecord(state: BattleState, enemyId: string, fx?: FxRecorde
     enemyAct(state, enemyId);
     return;
   }
+  // 第一段: 拍点(DOT/HOT)。单独成帧, 播在出招之前 —— 玩家才看得到"先中毒掉血, 再挥拳"。
+  let phase!: TempoPhase;
+  const tempoHits = withHitRecorder(() => {
+    phase = runEnemyTempoPhase(state, enemyId);
+  });
+  if (tempoHits.length)
+    fx.steps.push({ kind: "tempo", ownerId: enemyId, hits: tempoHits, snapshot: structuredClone(state) });
+  if (!phase.alive) return; // 被 DOT 打死: 只留拍点帧, 不再出招
+
+  // 第二段: 招式本体。beforeHp 必须在这里采样, 否则兜底差值会把上面的 DOT 掉血重复算进来。
   const beforeHp: Record<string, number> = {};
   for (const id of allIds(state)) beforeHp[id] = state.combatants[id].hp;
 
   let res!: ReturnType<typeof enemyAct>;
   const recorded = withHitRecorder(() => {
-    res = enemyAct(state, enemyId);
+    res = enemyAct(state, enemyId, phase);
   });
 
   // 逐段明细优先(多段招式据此飘多个数字/多声受击); 招式声明的目标里没被记录到的

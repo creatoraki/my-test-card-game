@@ -28,7 +28,7 @@ import {
 } from "./stats";
 import { shuffle } from "./rng";
 import { applyStatus, checkEnd, log } from "./ops";
-import { runAllyTempo } from "./statusLifecycle";
+import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { cardCost, manaCostOf, starlightPayment } from "./cost";
@@ -446,6 +446,19 @@ export function playCard(
 // ---------------------------------------------------------------------------
 // 结束回合
 // ---------------------------------------------------------------------------
+// 我方拍点(DOT/HOT)。带记录器时逐个单位录一帧, 让掉血/回血逐个演出而不是数字突变。
+function runAllyTempoRecorded(state: BattleState, rec?: FxRecorder): void {
+  if (!rec) {
+    runAllyTempo(state);
+    return;
+  }
+  for (const id of allyTempoIds(state)) {
+    if (!state.combatants[id]?.alive) continue;
+    const hits = withHitRecorder(() => runOwnerTempo(state, id));
+    if (hits.length) rec.steps.push({ kind: "tempo", ownerId: id, hits, snapshot: structuredClone(state) });
+  }
+}
+
 export function endRound(state: BattleState, rec?: FxRecorder): void {
   if (state.pendingChoice || state.phase !== "player") return;
   withDiscardRecorder(rec, () => {
@@ -455,7 +468,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     flushPendingActs(state, rec);
     if (state.phase !== "player") return;
 
-    runAllyTempo(state);
+    runAllyTempoRecorded(state, rec);
     checkEnd(state);
     if (state.phase !== "player") return;
     checkMassacreOnRoundSettle(state);

@@ -9,6 +9,7 @@ export interface ChoreoStep {
   hits: { id: string; hpDelta: number; missed?: boolean }[];
   card?: Card;
   discardUid?: string;
+  kind?: "tempo"; // 拍点(DOT/HOT)结算帧: 只演受击/回复, 不播施法者前冲
 }
 
 export interface ShotPlan {

@@ -27,10 +27,18 @@ function runTempo(state: BattleState, ownerId: string): void {
   cmb.tempo = tempo;
 }
 
+// 单个我方单位的拍点。分单位暴露是为了让回合结束能逐个录动画帧。
+export function runOwnerTempo(state: BattleState, ownerId: string): void {
+  runTempo(state, ownerId);
+}
+
 export function runAllyTempo(state: BattleState): void {
-  for (const id of state.playerIds) {
-    if (state.combatants[id].alive) runTempo(state, id);
-  }
+  for (const id of allyTempoIds(state)) runTempo(state, id);
+}
+
+// 本次回合结束需要结算拍点的我方单位(取快照, 避免结算途中集合变化)。
+export function allyTempoIds(state: BattleState): string[] {
+  return state.playerIds.filter((id) => state.combatants[id]?.alive);
 }
 
 export function runEnemyTempo(state: BattleState, enemyId: string): boolean {

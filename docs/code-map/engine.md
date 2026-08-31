@@ -21,12 +21,12 @@
 | [challenges.ts](../../src/engine/challenges.ts) | 挑战词条注册表、随机抽取、克制/大屠杀/慈悲的判定与奖励计算；由 `ops.ts` 和 `battle.ts` 接入战斗真相点。 |
 | [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语，并解析 primary、self、allFoes、randomFoe、lowestHpAlly 等目标；随机目标支持按状态过滤，支持护盾回收、按目标有盾/无盾加伤、瀑布/高费用手牌条件、按随机存活角色归属的临时卡入手、培育初始化与递减、体力极限恢复、出牌期临时面板 `PLAY_STAT_BONUS`（目标恒为施放者，写进 `mods` 后记入 `state.playStatMods`，由 `battle.playCard` 在出牌结束逆向撤回）、持续状态、按施放者属性缩放状态层数、星契随机手牌筛选、计数取段数/层数/资源/抽牌、随机回收、弃牌批次速攻统计、全手牌标记和普通手牌转速攻，并提供本次出牌的星辉消耗/瞄准数值加成。卡牌和敌人招式共用；`amount` 固定伤害，`multiplier` 按施放者攻击力计算，二者只能选一个。 |
 | [statuses/](../../src/engine/statuses/) | 状态定义分表：`dot.ts` 负责持续伤害/治疗与反伤, `buffs.ts` 负责增益, `debuffs.ts` 负责减益, `control.ts` 负责控制, `stacking.ts` 负责状态叠加策略、有效层数与分段独立计时, `index.ts` 合并并提供注册表。DOT/HOT 通过 `onTempo` 声明, 状态行为只经 `ctx.ops` 调用引擎原语。 |
-| [statusLifecycle.ts](../../src/engine/statusLifecycle.ts) | 状态节拍唯一驱动入口：我方在回合结束推进一拍, 敌人在行动前按规则推进一拍；按 DOT/HOT → 衰减 → 清理顺序处理状态, 并负责敌人 DOT 致死和 tick 钩子。 |
+| [statusLifecycle.ts](../../src/engine/statusLifecycle.ts) | 状态节拍唯一驱动入口：我方在回合结束推进一拍, 敌人在行动前按规则推进一拍；按 DOT/HOT → 衰减 → 清理顺序处理状态, 并负责敌人 DOT 致死和 tick 钩子。`runOwnerTempo` 按单位暴露拍点, 供回合结束逐个录动画帧。 |
 | [targeting.ts](../../src/engine/targeting.ts) | 存活单位、敌我查询和随机目标选择。普通敌人优先在存活的嘲讽目标中等概率随机选取，没有嘲讽时从全部存活我方中随机选取；脚本敌人的强制目标由 `ai.ts` 保持优先。 |
 | [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆，并受小队手牌上限约束；通过 `addCardToHand` 统一实例化并加入临时卡。 |
 | [quirks.ts](../../src/engine/quirks.ts) | 污染阈值、每张污染卡增量、生病永久修正和怪癖注册表；永久状态不复用会在战斗结束清理的 `StatusInstance`。 |
 | [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
-| [ai.ts](../../src/engine/ai.ts) | 敌人按招式权重抽招与行动执行：脚本敌人经 `enemyScript.ts` 按护盾状态和 AI 记忆选招，普通敌人保持随机抽招；按招式延迟开始蓄力、倍率预览、将招式级命中修正注入 DAMAGE 效果、行动前推进状态节拍、眩晕跳过、随机或最高护盾目标选择和效果解释。每回合行动点在开始时补满，招式发动后按剩余行动点继续选招，用尽后 `nextActTick = null`。 |
+| [ai.ts](../../src/engine/ai.ts) | 敌人按招式权重抽招与行动执行：脚本敌人经 `enemyScript.ts` 按护盾状态和 AI 记忆选招，普通敌人保持随机抽招；按招式延迟开始蓄力、倍率预览、将招式级命中修正注入 DAMAGE 效果、行动前推进状态节拍(`runEnemyTempoPhase` 拆出, 供 `actAndRecord` 把 DOT/HOT 单独录成一帧播在出招之前)、眩晕跳过、随机或最高护盾目标选择和效果解释。每回合行动点在开始时补满，招式发动后按剩余行动点继续选招，用尽后 `nextActTick = null`。 |
 | [enemyScript.ts](../../src/engine/enemyScript.ts) | 可序列化敌人行动脚本的纯逻辑：按我方护盾状态、后继权重和回收/喘息/重锤约束选择招式，更新行动记忆，并支持按最高护盾选择目标。 |
 | [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进并处理所有到点敌人；`flushPendingActs` 在回合结束继续推进时刻，直到所有蓄力招式和行动点清空，带死循环安全阀；敌人帧与敌人行动后触发的弃牌步骤都写入同一个 `FxRecorder`。 |
 | [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；`waitTick` 只推进时刻，结束回合会清算所有敌人蓄力。支持动态费用、应星自动支付、唯一最高费瀑布、卡牌标记、弃牌批次和 `pendingChoice` 回收/取消 API；出牌推进时刻、结束回合清算与回合结束弃牌共享 recorder，按真实发生顺序产出 `FxStep[]`；开局状态必须在 `startRound` 前施加，确保随机抽招的意图预览吃到状态修正。 |
