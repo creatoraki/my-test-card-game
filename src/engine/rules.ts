@@ -57,6 +57,7 @@ export const RULES = {
 
   // 战斗结算 —— 顺序固定为: 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP；护盾跨回合保留，仅随战斗结束消失。
   combat: {
+    enemyTempoPerAct: true, // 敌人状态是否按每次行动推进; false = 每回合首次行动前推进一次
     weakMultiplier: 0.7, // 虚弱: 造成攻击伤害 ×
     sharpMultiplier: 1.1, // 锋利: 造成攻击伤害 ×
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×

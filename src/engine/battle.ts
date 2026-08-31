@@ -26,7 +26,8 @@ import {
   partyWaitLimit,
 } from "./stats";
 import { shuffle } from "./rng";
-import { applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
+import { applyStatus, checkEnd, log } from "./ops";
+import { runAllyTempo } from "./statusLifecycle";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { cardCost, manaCostOf, starlightPayment } from "./cost";
@@ -112,6 +113,7 @@ export function createBattle(
       mods: {},
       statuses: [],
       alive: true,
+      tempo: 0,
       pollution: Math.max(0, Math.min(99, Math.round(a.pollution ?? 0))),
       sick: a.sick ?? false,
       quirks: [...(a.quirks ?? [])],
@@ -150,6 +152,7 @@ export function createBattle(
       mods: {},
       statuses: [],
       alive: true,
+      tempo: 0,
       moveDelayDelta: mod?.moveDelayDelta ?? 0,
       nextActTick: null,
       actsPerRound: Math.max(1, def.actsPerRound ?? 1),
@@ -255,7 +258,6 @@ export function startRound(state: BattleState): void {
   const want = state.round === 1 ? partyOpeningDrawCount(state) : partyDrawCount(state);
   drawCards(state, Math.max(0, Math.min(want, limit - state.hand.length)));
 
-  runRoundStart(state); // 中毒/再生等在回合开始结算
   checkEnd(state);
 }
 
@@ -438,7 +440,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     flushPendingActs(state, rec);
     if (state.phase !== "player") return;
 
-    runRoundEnd(state); // 虚弱/易伤 -1 等
+    runAllyTempo(state);
     checkEnd(state);
     if (state.phase !== "player") return;
     checkMassacreOnRoundSettle(state);

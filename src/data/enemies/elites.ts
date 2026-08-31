@@ -120,7 +120,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         anim: "lightning",
         effects: [
           { type: "DAMAGE", multiplier: 0.4, target: "primary" },
-          { type: "APPLY_STATUS", status: "stun", stacks: 1, target: "primary" },
+          { type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary" },
         ],
       },
       {

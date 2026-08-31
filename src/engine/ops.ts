@@ -37,11 +37,11 @@ export function getStatus(cmb: Combatant, id: string): StatusInstance | undefine
   return cmb.statuses.find((s) => s.id === id);
 }
 
-function cleanup(cmb: Combatant): void {
+export function cleanup(cmb: Combatant): void {
   cmb.statuses = cmb.statuses.filter((s) => s.stacks > 0 && (s.duration == null || s.duration > 0));
 }
 
-function ctxFor(state: BattleState, ownerId: string, inst: StatusInstance): StatusCtx {
+export function ctxFor(state: BattleState, ownerId: string, inst: StatusInstance): StatusCtx {
   return { state, ownerId, inst, ops };
 }
 
@@ -101,12 +101,13 @@ export function dealDamage(
 
   // ---- 0. 状态修正(力量 +, 虚弱 ×, 易伤 ×) —— 在命中判定之前完成基础值调整 ----
   const src = sourceId ? state.combatants[sourceId] : undefined;
-  if (src) {
+  if (src && !opts.pure) {
     for (const inst of [...src.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
   }
-  for (const inst of [...target.statuses])
-    STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
+  if (!opts.pure)
+    for (const inst of [...target.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
 
   // ---- 1. 命中判定 —— 只有"攻击"需要命中; 无施法者(中毒/荆棘等)与必中效果直接跳过 ----
   if (dmg.isAttack && src && !opts.mustHit) {
@@ -218,12 +219,13 @@ export function previewDamage(
     hpLost: 0,
   };
   const src = sourceId ? state.combatants[sourceId] : undefined;
-  if (src) {
+  if (src && !opts.pure) {
     for (const inst of [...src.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
   }
-  for (const inst of [...target.statuses])
-    STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
+  if (!opts.pure)
+    for (const inst of [...target.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
 
   if (!dmg.fixed) dmg.amount *= defenseMultiplier(target, src);
   return Math.max(0, Math.round(dmg.amount));
@@ -282,7 +284,7 @@ export function applyStatus(
   if (!t || !t.alive || stacks === 0) return;
   const def = STATUS_DEFS[statusId];
 
-  // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续回合"中的一项(见 statuses.resistMode)。
+  // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续拍数"中的一项(见 statuses.resistMode)。
   if (def && def.kind === "debuff" && stacks > 0) {
     const resist = statOf(t, "ailmentResist");
     if (resist > 0) {
@@ -305,7 +307,7 @@ export function applyStatus(
     if (duration != null) existing.duration = Math.max(existing.duration ?? 0, duration);
     if (data) existing.data = { ...existing.data, ...data };
     if (sourceId) existing.sourceId = sourceId;
-    if (duration != null && def?.durationStartsNextRound) existing.appliedRound = state.round;
+    existing.appliedAt = t.tempo;
   } else {
     t.statuses.push({
       id: statusId,
@@ -313,7 +315,7 @@ export function applyStatus(
       ...(duration != null ? { duration } : {}),
       ...(data ? { data: { ...data } } : {}),
       ...(sourceId ? { sourceId } : {}),
-      ...(duration != null && def?.durationStartsNextRound ? { appliedRound: state.round } : {}),
+      appliedAt: t.tempo,
     });
   }
   if (def?.maxStacks != null) {
@@ -361,40 +363,6 @@ export const ops: EngineOps = {
   flushAutoPlays: () => undefined,
   log,
 };
-
-// ---------------------------------------------------------------------------
-// 状态生命周期 —— 在回合/时刻边界统一驱动所有单位身上的状态钩子。
-// ---------------------------------------------------------------------------
-function runLifecycle(state: BattleState, hook: "onRoundStart" | "onRoundEnd" | "onTick"): void {
-  for (const id of allIds(state)) {
-    const cmb = state.combatants[id];
-    if (!cmb.alive) continue;
-    for (const inst of [...cmb.statuses]) {
-      if (!cmb.alive) break;
-      STATUS_DEFS[inst.id]?.hooks?.[hook]?.(ctxFor(state, id, inst));
-    }
-    cleanup(cmb);
-    if (cmb.team !== "player" && cmb.hp <= 0) markDead(state, cmb);
-  }
-}
-
-export function runRoundStart(state: BattleState): void {
-  runLifecycle(state, "onRoundStart");
-}
-export function runRoundEnd(state: BattleState): void {
-  runLifecycle(state, "onRoundEnd");
-  for (const id of allIds(state)) {
-    const cmb = state.combatants[id];
-    for (const inst of cmb.statuses) {
-      if (inst.duration != null && !(STATUS_DEFS[inst.id]?.durationStartsNextRound && inst.appliedRound === state.round))
-        inst.duration -= 1;
-    }
-    cleanup(cmb);
-  }
-}
-export function runTick(state: BattleState): void {
-  runLifecycle(state, "onTick");
-}
 
 // ---------------------------------------------------------------------------
 // 胜负判定

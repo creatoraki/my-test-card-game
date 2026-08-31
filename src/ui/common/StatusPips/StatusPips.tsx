@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { StatusInstance } from "@/engine";
+import type { StatusInstance, Team } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { cx } from "@/ui/common/cx";
 import { RailPopover } from "@/ui/common/RailPopover";
@@ -13,11 +13,12 @@ export function StatusPips({
   shield = 0,
   reverse = false,
   popoverSide,
+  team = "player",
 }: {
   statuses: StatusInstance[];
   /** 调用方的布局类(这一排在自己的槽位里怎么占位)。图标外观一律由本组件持有。 */
   className?: string;
-  /** 开启 RailPopover 详情；关闭时保留原生 title。 */
+  /** 开启 RailPopover 详情；关闭时仅保留无障碍标签。 */
   detail?: boolean;
   /** 护盾作为状态条首项渲染。 */
   shield?: number;
@@ -25,6 +26,8 @@ export function StatusPips({
   reverse?: boolean;
   /** 详情浮层在图标上方的对齐方式。 */
   popoverSide?: "top" | "top-right" | "top-left";
+  /** 状态持有者阵营, 用于将节拍解释为回合或敌人行动。 */
+  team?: Team;
 }) {
   if (statuses.length === 0 && shield <= 0) return null;
 
@@ -51,21 +54,30 @@ export function StatusPips({
   }) => (
     <span
       key={key}
-      className={cx(s.pip, s[`pip-${kind}`], shieldPip && s["pip-shield"])}
+      className={cx(
+        s.pip,
+        s[`pip-${kind}`],
+        shieldPip && s["pip-shield"],
+        !shieldPip && stacks === 1 && duration != null && s["pip-duration"],
+      )}
       data-rail-item={detail ? "" : undefined}
       tabIndex={detail ? 0 : undefined}
-      title={detail ? undefined : `${name}: ${desc}`}
-      aria-label={shieldPip ? `护盾，当前 ${stacks}` : `${name}，当前层数 ${stacks}`}
+      aria-label={
+        shieldPip
+          ? `护盾，当前 ${stacks}`
+          : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${team === "enemy" ? "次行动" : "回合"}` : ""}`
+      }
     >
       {icon ?? emoji}
       {!shieldPip && stacks > 1 && <b>{stacks}</b>}
+      {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
       {detail && (
         <RailPopover side={popoverSide ?? "top"}>
           <strong>{name}</strong>
           <p>{desc}</p>
           <small>
             {shieldPip ? "护盾值" : "当前层数"} {stacks}
-            {duration != null && <> · 剩余 {duration} 回合</>}
+            {duration != null && <> · 剩余 {duration} {team === "enemy" ? "次行动" : "回合"}</>}
           </small>
         </RailPopover>
       )}

@@ -260,7 +260,7 @@ export const SWORDSMAN_CARD_DEFS: CardDef[] = [
     anim: "shield",
     effects: [
       { type: "GAIN_SHIELD", multiplier: 0.8, target: "primary" },
-      { type: "APPLY_STATUS", status: "buzhou", stacks: 3, duration: 3, target: "primary" },
+      { type: "APPLY_STATUS", status: "buzhou", stacks: 1, duration: 3, target: "primary" },
     ],
     text: "为一名队友获得 {0} 点护盾，并附加持续 3 回合的不周山。",
   },

@@ -57,7 +57,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         anim: "shot",
         effects: [
           { type: "DAMAGE", multiplier: 0.5, target: "primary" },
-          { type: "APPLY_STATUS", status: "vulnerable", stacks: 2, target: "primary" },
+          { type: "APPLY_STATUS", status: "vulnerable", stacks: 1, duration: 2, target: "primary" },
         ],
       },
     ],
@@ -187,7 +187,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         anim: "shot",
         effects: [
           { type: "DAMAGE", multiplier: 0.8, target: "primary" },
-          { type: "APPLY_STATUS", status: "vulnerable", stacks: 2, target: "primary" },
+          { type: "APPLY_STATUS", status: "vulnerable", stacks: 1, duration: 2, target: "primary" },
         ],
       },
       {
@@ -201,7 +201,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         anim: "lightning",
         effects: [
           { type: "DAMAGE", multiplier: 0.7, target: "primary" },
-          { type: "APPLY_STATUS", status: "stun", stacks: 1, target: "primary" },
+          { type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary" },
         ],
       },
       {

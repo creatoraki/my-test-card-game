@@ -5,6 +5,7 @@ import { getEnemyDef, type EnemyMove } from "../data";
 import { resolveEffects } from "./effects";
 import { alliesOf, chooseRandomTarget, foesOf } from "./targeting";
 import { allIds, getStatus, log, markDead } from "./ops";
+import { runEnemyTempo } from "./statusLifecycle";
 import { attackDamage, enemyActDelay, statOf } from "./stats";
 import { rngPickWeighted } from "./rng";
 import { withHitRecorder } from "./animHits";
@@ -93,11 +94,13 @@ export function enemyAct(state: BattleState, enemyId: string): EnemyActResult {
   if (!e.alive)
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [], missedIds: [] };
 
-  // 眩晕: 消耗 1 层, 跳过本次行动
+  // 在行动前推进敌人节拍; 眩晕要读取拍点处理前的状态, 以保证 1 拍眩晕确实跳过本次行动。
+  const stunned = (getStatus(e, "stun")?.stacks ?? 0) > 0;
+  if (!runEnemyTempo(state, enemyId))
+    return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [], missedIds: [] };
+
   const stun = getStatus(e, "stun");
-  if (stun) {
-    stun.stacks -= 1;
-    e.statuses = e.statuses.filter((s) => s.stacks > 0);
+  if (stunned || stun) {
     log(state, `💫 ${e.name} 被眩晕, 无法行动`);
     startCharge(state, enemyId);
     return { actorId: enemyId, enemyDefId, moveId: e.intent.moveId, targetIds: [enemyId], missedIds: [] };

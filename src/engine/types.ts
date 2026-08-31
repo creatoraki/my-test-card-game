@@ -100,7 +100,7 @@ export interface EffectDescriptor {
   aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
   boostSource?: "spendPartyStarlight" | "primaryAimed"; // VALUE_BOOST: 数值加成来源
   boostPct?: number; // VALUE_BOOST: 每次成功触发增加的百分点
-  duration?: number; // APPLY_STATUS: 剩余回合
+  duration?: number; // APPLY_STATUS: 剩余拍数
   targetCount?: number; // randomFoe / randomAlly: 无放回随机目标数
   targetHasStatus?: string; // randomFoe / randomAlly: 只从带指定状态的目标中抽取
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
@@ -243,10 +243,10 @@ export type StatusKind = "buff" | "debuff";
 export interface StatusInstance {
   id: string;
   stacks: number;
-  duration?: number; // 剩余回合; 缺省 = 不因回合过期
+  duration?: number; // 剩余拍数; 缺省 = 不因节拍过期
   data?: Record<string, number>; // 状态的结构化运行时参数
   sourceId?: string; // 施加该状态的单位, 供持续效果读取施法者属性
-  appliedRound?: number; // durationStartsNextRound 状态用于跳过施加当回合的递减
+  appliedAt?: number; // 施加时持有者的节拍号, 用于跳过施加当拍的处理
 }
 
 // 传给状态钩子的上下文。ops 提供引擎原语, 使 statuses.ts 无需 import 具体实现。
@@ -276,8 +276,7 @@ export interface DamageCtx {
 export type DamageResult = "missed" | "hit" | null;
 
 export interface StatusHooks {
-  onRoundStart?: (c: StatusCtx) => void;
-  onRoundEnd?: (c: StatusCtx) => void;
+  onTempo?: (c: StatusCtx) => void;
   onTick?: (c: StatusCtx) => void;
   modifyOutgoingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 施放者身上的状态
   modifyIncomingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上的状态
@@ -288,7 +287,7 @@ export interface StatusHooks {
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
 //   chance   —— 按抗性掷判定, 成功则本次完全不施加(眩晕这类开关型控制)
 //   stacks   —— 按抗性削减层数(中毒这类按层数结算的异常)
-//   duration —— 按抗性削减持续回合(显式 duration 优先, 否则按层数处理)
+//   duration —— 按抗性削减持续拍数(显式 duration 优先, 否则按层数处理)
 export type ResistMode = "chance" | "stacks" | "duration";
 
 export interface StatusDef {
@@ -298,7 +297,7 @@ export interface StatusDef {
   kind: StatusKind;
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
-  durationStartsNextRound?: boolean; // 持续效果从下一回合开始计时
+  decay?: "one" | "half"; // 每拍层数衰减; 缺省 = 不衰减
   statMods?: Partial<StatBlock>; // 每层提供的固定属性修正
   statModsPct?: Partial<StatBlock>; // 每层提供的百分比属性修正(百分点)
   resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减
@@ -360,6 +359,7 @@ export interface BaseCombatant {
   mods: StatModifier; // 战斗内修正(卡牌/状态/场景), 战斗结束即弃
   statuses: StatusInstance[];
   alive: boolean;
+  tempo: number; // 已行进的持有者节拍数, 建局为 0
 }
 
 export interface Ally extends BaseCombatant {
@@ -501,6 +501,7 @@ export interface DamageOpts {
   fixed?: boolean; // 固定伤害: 跳过防御减伤与格挡
   mustHit?: boolean; // 必中: 跳过命中判定
   unblockable?: boolean; // 不被护盾吸收
+  pure?: boolean; // 跳过施放者与目标的伤害状态修正
   hitBonus?: number; // 本次效果的命中修正(百分点)
   onDealt?: (hpLost: number) => void; // 落到 HP 后回调实际掉血(未命中/濒死为 0)
 }
