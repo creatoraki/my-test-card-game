@@ -1,1 +1,1 @@
-export { StockBand } from "./StockBand";
+export { default as StockBand } from "./StockBand";

@@ -117,3 +117,5 @@ export function StockBand({ active, className, entering, onNoticeChange, wheelTa
     </section>
   );
 }
+
+export default StockBand;
