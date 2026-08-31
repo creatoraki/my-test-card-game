@@ -7,11 +7,13 @@ const COMMON_DROPS: DropEntry[] = [
   { kind: "item", itemId: "logic-cube", chance: 0.05 },
   { kind: "item", itemId: "standard-gear", chance: 0.05 },
   { kind: "item", itemId: "standard-battery", chance: 0.05 },
+  { kind: "item", itemId: "module-crate-t1", chance: 0.03 },
 ];
 
 const LOW_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.3 },
   { kind: "equipCrate", chance: 0.1 },
+  { kind: "moduleCrate", chance: 0.9 },
   { kind: "cardOffer", chance: 0.15 },
 ];
 

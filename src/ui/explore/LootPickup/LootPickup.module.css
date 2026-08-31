@@ -1,7 +1,9 @@
 .loot-layer {
   position: absolute;
   inset: 0;
-  z-index: 36;
+  /* 必须压过背包面板(z-index: 40): 在背包里开模组箱时, 开出的模组直接进待拾取框,
+     盖在背包下面的话玩家会以为东西丢了。 */
+  z-index: 44;
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -45,6 +47,7 @@
 }
 
 .loot-item {
+  position: relative;
   --item-slot-icon-size: 74%;
   --item-slot-count-size: 24px;
   min-width: 0;

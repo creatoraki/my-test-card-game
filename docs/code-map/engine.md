@@ -9,7 +9,7 @@
 | [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、弃牌来源触发/计数口径、时刻推进、虚弱/易伤、命中上下限、概率封顶、格挡、我方濒死死亡骰、星辉上限、铁壁防御、护盾战斗内常驻规则、负重、养成和卡组锻造规则；平衡调整优先看这里。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、状态 `statMods` / `statModsPct`、命中/暴击/防御、按招式延迟计算先手、小队手牌/抽牌/费用/换牌/待机和负重。属性读取必须经过 `statOf`；`squadHandLimit` / `squadDrawCount` / `squadOpeningDrawCount` / `squadManaPerRound` / `squadRedrawLimit` / `squadWaitLimit` 提供不依赖 `BattleState` 的小队资源换算，战斗 helper 在此基础上读取开战快照；`burdenValue`、`burdenHitPenalty`、`burdenInitiativePenalty` 集中提供有效负重及两项惩罚。 |
 | [stats.ts](../../src/engine/stats.ts) | 属性结算唯一入口：面板合并、战斗内修正、命中/暴击/防御、效果级命中修正、先手排程、小队手牌/抽牌和负重。属性读取必须经过 `statOf`；六个 `squad*` 资源 helper 负责不依赖战斗状态的基准、加成与封顶换算；负重先由 `burdenValue` 得到有效负重点数，再由两个惩罚 helper 向下取整，且只有我方承担负重。 |
-| [hitPreview.ts](../../src/engine/hitPreview.ts) | 复用 `hitChance` 计算选中卡牌对指定目标的命中率预览；成熟培育替换卡读取成熟效果；无攻击效果、必中效果或无效目标返回 `null`。 |
+| [hitPreview.ts](../../src/engine/hitPreview.ts) | 复用 `hitChance` 计算选中卡牌对指定目标的命中率预览；成熟培育替换卡读取成熟效果；无攻击效果、必中效果或无效目标返回 `null`；预览前把本卡的 `PLAY_STAT_BONUS` 临时写进施放者面板、算完原样撤回，保证攻击力/穿甲/命中类模组的预览数字与实际结算一致。 |
 | [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/等概率与加权抽取、Fisher–Yates 洗牌。 |
 | [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调和胜负判定等原语；状态实例支持持续拍数、结构化数据、来源记录与清理，并提供状态上下文及护盾击破钩子；我方 0 血进入濒死，再受伤按 `RULES.combat.downedDeathChance` 掷死亡骰；死亡时清空该角色抽牌堆/手牌/弃牌堆卡牌。护盾在战斗内跨回合保留，仅随战斗结束消失。敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡, 纯伤害跳过伤害状态修正。 |
 | [cost.ts](../../src/engine/cost.ts) | 卡牌生效费用唯一入口；按本回合弃牌或速攻出牌计数与可选阈值计算动态费用，叠加标记级费用修正，并提供应星/星契的星辉抵扣与 UI 角标用量。 |
@@ -19,7 +19,7 @@
 | [cultivate.ts](../../src/engine/cultivate.ts) | 培育卡实例的生命周期：进手与离手重置、回合开始递减、按指定步长递减和归零就绪判定。 |
 | [keywords.ts](../../src/engine/keywords.ts) | 卡牌词条注册表；已实现瞄准的命中目标判定与触发次数结算，同时承载汇星、应星、瀑布、瞄准、培育的展示释义登记表与文本分段纯函数，并保留共鸣、登阶、日蚀、月蚀的待接落点。 |
 | [challenges.ts](../../src/engine/challenges.ts) | 挑战词条注册表、随机抽取、克制/大屠杀/慈悲的判定与奖励计算；由 `ops.ts` 和 `battle.ts` 接入战斗真相点。 |
-| [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语，并解析 primary、self、allFoes、randomFoe、lowestHpAlly 等目标；随机目标支持按状态过滤，支持护盾回收、按目标有盾/无盾加伤、瀑布/高费用手牌条件、按随机存活角色归属的临时卡入手、培育初始化与递减、体力极限恢复、持续状态、按施放者属性缩放状态层数、星契随机手牌筛选、计数取段数/层数/资源/抽牌、随机回收、弃牌批次速攻统计、全手牌标记和普通手牌转速攻，并提供本次出牌的星辉消耗/瞄准数值加成。卡牌和敌人招式共用；`amount` 固定伤害，`multiplier` 按施放者攻击力计算，二者只能选一个。 |
+| [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语，并解析 primary、self、allFoes、randomFoe、lowestHpAlly 等目标；随机目标支持按状态过滤，支持护盾回收、按目标有盾/无盾加伤、瀑布/高费用手牌条件、按随机存活角色归属的临时卡入手、培育初始化与递减、体力极限恢复、出牌期临时面板 `PLAY_STAT_BONUS`（目标恒为施放者，写进 `mods` 后记入 `state.playStatMods`，由 `battle.playCard` 在出牌结束逆向撤回）、持续状态、按施放者属性缩放状态层数、星契随机手牌筛选、计数取段数/层数/资源/抽牌、随机回收、弃牌批次速攻统计、全手牌标记和普通手牌转速攻，并提供本次出牌的星辉消耗/瞄准数值加成。卡牌和敌人招式共用；`amount` 固定伤害，`multiplier` 按施放者攻击力计算，二者只能选一个。 |
 | [statuses/](../../src/engine/statuses/) | 状态定义分表：`dot.ts` 负责持续伤害/治疗与反伤, `buffs.ts` 负责增益, `debuffs.ts` 负责减益, `control.ts` 负责控制, `stacking.ts` 负责状态叠加策略、有效层数与分段独立计时, `index.ts` 合并并提供注册表。DOT/HOT 通过 `onTempo` 声明, 状态行为只经 `ctx.ops` 调用引擎原语。 |
 | [statusLifecycle.ts](../../src/engine/statusLifecycle.ts) | 状态节拍唯一驱动入口：我方在回合结束推进一拍, 敌人在行动前按规则推进一拍；按 DOT/HOT → 衰减 → 清理顺序处理状态, 并负责敌人 DOT 致死和 tick 钩子。 |
 | [targeting.ts](../../src/engine/targeting.ts) | 存活单位、敌我查询和随机目标选择。普通敌人优先在存活的嘲讽目标中等概率随机选取，没有嘲讽时从全部存活我方中随机选取；脚本敌人的强制目标由 `ai.ts` 保持优先。 |

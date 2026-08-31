@@ -10,6 +10,8 @@ import type { BattleBoonKind, PendingBoon } from "@/explore/types";
 import cardOfferArt from "@/assets/通用素材/卡牌奖励.png";
 import healDewArt from "@/assets/通用素材/治疗露珠.png";
 import equipCrateArt from "@/assets/通用素材/装备宝箱.png";
+// TODO 美术: 模组箱暂用占位素材, 补正式图后只换这一行。
+import moduleCrateArt from "@/assets/占位素材.png";
 import victoryCell from "@/ui/battle/styles/victoryCell.module.css";
 import s from "./VictoryBoonTray.module.css";
 
@@ -33,12 +35,17 @@ const BOON_META: Record<BattleBoonKind, { name: string; desc: string }> = {
     name: "随机装备箱",
     desc: "开启后按本场掉落系数生成 1 件随机装备，并尝试附加 1 条羁绊。",
   },
+  moduleCrate: {
+    name: "1 阶模组箱",
+    desc: "开启后随机开出 1 件 1 阶通用模组，模组进入待拾取战利品。",
+  },
 };
 
 const BOON_ART: Record<BattleBoonKind, string> = {
   healDew: healDewArt,
   cardOffer: cardOfferArt,
   equipCrate: equipCrateArt,
+  moduleCrate: moduleCrateArt,
 };
 
 function activate(event: KeyboardEvent<HTMLDivElement>, onActivate: () => void): void {

@@ -60,6 +60,7 @@ import {
   healPartyFlat,
   openCardOffer,
   rollEquipCrate,
+  rollModuleCrate,
   takeBoon,
   takeCardOffer,
 } from "../explore/boons";
@@ -118,6 +119,8 @@ interface ExploreStore {
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
   shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
   takeLoot: (index: number) => boolean;
+  /** 待拾取的模组直接装到某张卡上(不进背包, 不占格)。成功返回 true。 */
+  installLootModule: (lootUid: string, charId: string, cardUid: string) => boolean;
   takeAllLoot: () => void;
   abandonLoot: () => void;
   takeBoonAction: (uid: string) => string | null;
@@ -346,6 +349,20 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     return ok;
   },
 
+  // 「装载」通路: 模组不落背包直接上卡。★ 卡组是城镇侧的持久数据, 所以装配本身走 townStore;
+  //   这里只负责在装成之后把这件模组从待拾取框里划掉 —— 装失败(条件不符/卡已有模组)则原样留着。
+  installLootModule: (lootUid, charId, cardUid) => {
+    const stack = get().session?.pendingLoot.find((item) => item.uid === lootUid);
+    if (!stack) return false;
+    if (getItemDef(stack.itemId).category !== "module") return false;
+    if (!useTownStore.getState().installModuleStack(charId, cardUid, stack)) return false;
+    mutate(get, set, (d) => {
+      d.pendingLoot = d.pendingLoot.filter((item) => item.uid !== lootUid);
+      return true;
+    });
+    return true;
+  },
+
   takeAllLoot: () => {
     mutate(get, set, (d) => takeAllLoot(d));
   },
@@ -366,6 +383,17 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
         summary = affected
           ? `治疗露珠已拾取 · ${affected} 名队员恢复 ${EXPLORE_RULES.boons.healDewAmount} 点生命`
           : "治疗露珠已拾取 · 当前没有队员需要治疗";
+        return true;
+      }
+
+      if (kind === "moduleCrate") {
+        const stack = rollModuleCrate(d, dropContext(d, boon.dropK));
+        if (!stack) {
+          summary = "1 阶模组箱已拾取 · 当前没有可用模组";
+          return true;
+        }
+        addPendingLoot(d, [stack]);
+        summary = `1 阶模组箱已开启 · ${getItemDef(stack.itemId).name} 已加入战利品`;
         return true;
       }
 

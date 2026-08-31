@@ -23,6 +23,7 @@
 }
 
 .loot-cell {
+  position: relative;
   min-width: 0;
   opacity: 0;
   animation: vcLootIn var(--vc-loot-in-ms) var(--vc-ease) var(--vc-delay) forwards;

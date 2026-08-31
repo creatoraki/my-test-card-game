@@ -12,6 +12,7 @@
 // ============================================================================
 
 import type { CSSProperties, ReactNode } from "react";
+import { GENERIC_T1_MODULE_ART, GENERIC_T1_MODULE_THEMES } from "./moduleGlyphsGenericT1";
 import s from "./moduleGlyphs.module.css";
 
 export interface ModuleTheme {
@@ -33,6 +34,8 @@ export const MODULE_THEMES: Record<string, ModuleTheme> = {
   // 植物系模组 = 青绿, 与星辉系拉开颜色距离。
   "aim-module": { hue: "#5de0c0", deep: "#176d69", ink: "#d8fff1" },
   "ripen-module": { hue: "#a4d85d", deep: "#4b7b32", ink: "#f2ffc9" },
+  // 通用模组按「改的是哪一项」分色, 清单在 moduleGlyphsGenericT1.tsx。
+  ...GENERIC_T1_MODULE_THEMES,
 };
 
 interface ArtProps {
@@ -114,6 +117,7 @@ const ART: Record<string, (props: ArtProps) => ReactNode> = {
       <circle className={s.breathe} cx="24" cy="22" r="3" fill={`url(#${coreId})`} stroke="var(--mg-ink)" strokeWidth="1.2" />
     </>
   ),
+  ...GENERIC_T1_MODULE_ART,
 };
 
 export function hasModuleGlyph(moduleId: string): boolean {

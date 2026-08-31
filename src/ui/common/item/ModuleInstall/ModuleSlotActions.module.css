@@ -1,0 +1,70 @@
+/* 模组格子的悬浮双按钮 —— 贴在图标格的上/下边框上, 悬停或键盘聚焦时淡入。
+   父元素是调用方的格子包裹层(战利品盘 .loot-cell / 拾取框 .loot-item),
+   这里用 `:hover > .actions` 这种不依赖父类名的写法, 两处接线都不用再写一遍显隐。 */
+
+.actions {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px;
+  pointer-events: none;
+}
+
+.btn {
+  max-width: 100%;
+  padding: 2px 10px;
+  color: #eafaff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  background: #06131aee;
+  border: 1px solid #6fd2ffaa;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 140ms ease,
+    transform 140ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.btn:first-child {
+  transform: translateY(-4px);
+}
+
+.btn:last-child {
+  transform: translateY(4px);
+}
+
+:hover > .actions > .btn,
+:focus-within > .actions > .btn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.btn:hover:not(:disabled) {
+  color: #06171a;
+  background: #a9f4ff;
+  border-color: #a9f4ff;
+}
+
+.btn:disabled {
+  color: #7f939b;
+  border-color: #4a5b63;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: opacity 140ms ease;
+    transform: none;
+  }
+}

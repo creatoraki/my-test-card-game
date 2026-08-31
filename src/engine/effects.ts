@@ -44,7 +44,9 @@ function sourceStatValue(state: BattleState, source: Combatant | undefined, stat
   return statOf(source, stat);
 }
 
-function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
+// ★ 导出给 hitPreview 复用 —— 预览要判定条件型 PLAY_STAT_BONUS 当前是否成立,
+//   两边各写一份的话条件枚举一改就会漏。
+export function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
   if (effect.condition === "discardedThisRound")
     return counterOf(state, "discardsThisRound") > 0;
   if (effect.condition === "noFastPlaysThisRound")
@@ -285,6 +287,15 @@ function applyEffect(
       for (const id of targetIds)
         ops.applyStatMod(state, id, effect.stat!, amount, effect.pct ?? false);
       break;
+    // 出牌期临时面板 —— 目标恒为施放者(不读 target), 写进 mods 后记一笔台账,
+    // 由 battle.playCard 在出牌结束时逆向撤回。走 mods ⇒ 所有 statOf 读取自动吃到。
+    case "PLAY_STAT_BONUS": {
+      if (!effect.stat || !src || amount === 0) break;
+      const pct = effect.pct ?? false;
+      ops.applyStatMod(state, sourceId, effect.stat, amount, pct);
+      state.playStatMods.push({ targetId: sourceId, stat: effect.stat, amount, pct });
+      break;
+    }
     case "DRAW":
       drawCards(state, effect.amountFrom ? counterOf(state, effect.amountFrom) : amount);
       break;

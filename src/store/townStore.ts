@@ -150,6 +150,8 @@ interface TownStore {
   wearStack: (charId: string, stack: ItemStack) => ItemStack | null; // 穿上, 返回被替下的旧件
   takeOffStack: (charId: string, slot: EquipSlot) => ItemStack | null; // 卸下并交出
   equipCardModule: (charId: string, cardUid: string, moduleUid: string) => void;
+  /** 直接把一件**不在仓库里**的模组装到卡上(远征途中从待拾取框直接装载)。成功返回 true。 */
+  installModuleStack: (charId: string, cardUid: string, stack: ItemStack) => boolean;
   unequipCardModule: (charId: string, cardUid: string) => void;
   craftModule: (charId: string, itemId: string) => void;
   resetProfile: () => void; // 重置存档
@@ -670,18 +672,26 @@ export const useTownStore = create<TownStore>()(
       },
 
       equipCardModule: (charId, cardUid, moduleUid) => {
-        const { storage, characters } = get();
+        const moduleStack = get().storage.find((stack) => stack.uid === moduleUid);
+        if (!moduleStack) return;
+        // ★ 先装、装成了才扣仓库 —— 校验全在 installModuleStack 里, 这里不重复一遍。
+        if (get().installModuleStack(charId, cardUid, moduleStack))
+          set({ storage: removeByUid(get().storage, moduleUid) });
+      },
+
+      // 模组来源无关的装配核心。仓库装配与远征途中「从战利品直接装载」共用同一份校验,
+      // 差别只在调用方要不要把这件模组从某个容器里扣掉。
+      installModuleStack: (charId, cardUid, moduleStack) => {
+        const { characters } = get();
         const cs = characters[charId];
-        const moduleStack = storage.find((stack) => stack.uid === moduleUid);
         const card = cs?.deck.find((entry) => entry.uid === cardUid);
-        if (!cs || !card || card.cardModule || !moduleStack) return;
-        if (getItemDef(moduleStack.itemId).category !== "module") return;
-        if (!canEquipModule(card, moduleStack.itemId)) return;
+        if (!cs || !card || card.cardModule) return false;
+        if (getItemDef(moduleStack.itemId).category !== "module") return false;
+        if (!canEquipModule(card, moduleStack.itemId)) return false;
 
         const nextCard = { ...card, cardModule: { uid: moduleStack.uid, itemId: moduleStack.itemId } };
         recomputeCardModule(nextCard);
         set({
-          storage: removeByUid(storage, moduleUid),
           characters: {
             ...characters,
             [charId]: {
@@ -690,6 +700,7 @@ export const useTownStore = create<TownStore>()(
             },
           },
         });
+        return true;
       },
 
       unequipCardModule: (charId, cardUid) => {

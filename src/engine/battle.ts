@@ -17,6 +17,7 @@ import type {
 import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
 import {
+  addMod,
   makeStats,
   partyDrawCount,
   partyHandLimit,
@@ -208,6 +209,7 @@ export function createBattle(
     pendingAutoPlays: [],
     waterfallPlay: false,
     playValueBonusPct: 0,
+    playStatMods: [],
     activeCardCost: null,
   };
 
@@ -329,6 +331,16 @@ export function discardHandCard(state: BattleState, uid: string, rec?: FxRecorde
   return true;
 }
 
+// 撤回本次出牌期间写进面板的 PLAY_STAT_BONUS。★ 逐条按相反数写回 mods 再清台账,
+// 与写入端严格对称 —— 出牌开始与出牌结束各调一次(后者兜底异常路径)。
+function revertPlayStatMods(state: BattleState): void {
+  for (const entry of state.playStatMods) {
+    const target = state.combatants[entry.targetId];
+    if (target) addMod(target, entry.stat, -entry.amount, entry.pct);
+  }
+  state.playStatMods = [];
+}
+
 export function playCard(
   state: BattleState,
   uid: string,
@@ -365,6 +377,7 @@ export function playCard(
   const cardHits = withHitRecorder(() => {
     withDiscardRecorder(discardRecorder, () => {
       state.playValueBonusPct = 0;
+      revertPlayStatMods(state);
       state.activeCardCost = faceCost;
       try {
         const cultivated = cultivateReady(card);
@@ -395,6 +408,8 @@ export function playCard(
         card.marks = [];
         state.waterfallPlay = false;
         state.playValueBonusPct = 0;
+        // ⚠ 必须在 flushAutoPlays 之前撤回: 自动出牌是另一张牌的结算, 不该继承本卡的临时面板。
+        revertPlayStatMods(state);
         if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
         flushAutoPlays(state, rec);
       } finally {

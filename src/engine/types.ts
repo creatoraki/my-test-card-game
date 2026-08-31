@@ -80,6 +80,9 @@ export type EffectType =
   | "RESTORE_HP_LIMIT"
   | "REMOVE_STATUS"
   | "VALUE_BOOST"
+  // 本次出牌结算期间临时改写**施放者**面板, 出牌结束逆向撤回(见 battle.playCard)。
+  // 与 APPLY_STAT_MOD 的区别: 后者写进 Combatant.mods 后本场战斗永久留存。
+  | "PLAY_STAT_BONUS"
   | "CULTIVATE_TICK";
 
 export interface EffectDescriptor {
@@ -107,8 +110,8 @@ export interface EffectDescriptor {
   targetHasStatus?: string; // randomFoe / randomAlly: 只从带指定状态的目标中抽取
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
-  stat?: keyof StatBlock; // APPLY_STAT_MOD: 要修改的属性
-  pct?: boolean; // APPLY_STAT_MOD: true = 百分比修正(百分点), 缺省 = 固定值修正
+  stat?: keyof StatBlock; // APPLY_STAT_MOD / PLAY_STAT_BONUS: 要修改的属性
+  pct?: boolean; // APPLY_STAT_MOD / PLAY_STAT_BONUS: true = 百分比修正(百分点), 缺省 = 固定值修正
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
   hits?: number; // DAMAGE: 段数, 缺省 1
@@ -493,6 +496,9 @@ export interface BattleState {
   pendingChoice: PendingChoice | null;
   waterfallPlay: boolean;
   playValueBonusPct: number;
+  // 本次出牌期间临时写进施放者面板的加成台账(PLAY_STAT_BONUS)。
+  // ★ 出牌结束逐条逆向撤回后清空 —— 它不是场上 buff, 结算完不留痕。
+  playStatMods: { targetId: string; stat: keyof StatBlock; amount: number; pct: boolean }[];
   activeCardCost: number | null;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。

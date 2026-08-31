@@ -94,8 +94,8 @@ src/ui/
 | [battle/VictoryPlaque](../../src/ui/battle/VictoryPlaque/VictoryPlaque.tsx) | 胜利结算区域共享铭牌：96px 独立材质铭牌与逐字竖排标题，按额外奖励、战利品、回收背包区分外观。 |
 | [battle/VictoryDropSection](../../src/ui/battle/VictoryDropSection/VictoryDropSection.tsx) | 战斗胜利结算的掉落系数通栏分区：展示能量档位与挑战来源 chip，复用 RailPopover 提供键盘可聚焦的详情浮层，并表现已打破挑战的灰显态。 |
 | [battle/VictoryExpRow](../../src/ui/battle/VictoryExpRow/VictoryExpRow.tsx) | 单名队员经验结算行：头像、存活/阵亡态、总经验数字、经验条增长和主视觉 `+N EXP` 演出。 |
-| [battle/VictoryLootTray](../../src/ui/battle/VictoryLootTray/VictoryLootTray.tsx) | 战斗 pendingLoot 展示与拾取交互：固定八格、固定边长与间距的托盘，逐件或全部拾取，并通过回调触发回收背包的脉冲反馈。 |
-| [battle/VictoryBoonTray](../../src/ui/battle/VictoryBoonTray/VictoryBoonTray.tsx) | 战斗胜利额外奖励托盘：展示治疗露珠、卡牌奖励和随机装备箱，复用 RailPopover 提供详情，并派发拾取动作。 |
+| [battle/VictoryLootTray](../../src/ui/battle/VictoryLootTray/VictoryLootTray.tsx) | 战斗 pendingLoot 展示与拾取交互：固定八格、固定边长与间距的托盘，逐件或全部拾取，并通过回调触发回收背包的脉冲反馈；模组不直接拾取，改由 `useLootModuleActions` 弹「装载 / 收入背包」菜单。 |
+| [battle/VictoryBoonTray](../../src/ui/battle/VictoryBoonTray/VictoryBoonTray.tsx) | 战斗胜利额外奖励托盘：展示治疗露珠、卡牌奖励、随机装备箱和 1 阶模组箱，复用 RailPopover 提供详情，并派发拾取动作。 |
 | [battle/VictoryCardOffer](../../src/ui/battle/VictoryCardOffer/VictoryCardOffer.tsx) | 卡牌奖励候选层：按存活角色展示候选卡牌，复用 `HandCard` 卡面，选择后将卡牌加入对应角色卡组。 |
 | [battle/victoryChoreo](../../src/ui/battle/victoryChoreo.ts) | 胜利结算面板的统一入场、分区、经验增长与交互反馈时序；`victoryTiming()` 统一下发 reduced-motion 降级参数。 |
 | [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算：通过 `StageCanvas` 编排通关、撤退和团灭三种结果；组合队伍状态、战果统计、带回据点物资与事件回放，支持统计数字和事件逐条入场，团灭保留已投递物资。 |
@@ -115,7 +115,7 @@ src/ui/
 | [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端内容面板：按服务槽位切 tab，图标化食品报价、持有量和确认操作；商品槽位展示图标货架与详情，随机服务展示 BUFF 概率，队伍/待办服务展示结算说明；只派发购买和关闭 action，不承载交易规则。 |
 | [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，承载 tab 化 `MerchantPanel` 与本节点摘要；只保留页眉服务摘要和节点记录条，关闭交易直接回到节点决策。 |
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
-| [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`。 |
+| [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`；模组走 `useLootModuleActions` 的两按钮菜单，可选择直接装载。 |
 | [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
 | [ExpDropFx](../../src/ui/explore/ExpDropFx/ExpDropFx.tsx) | 约 2 秒经验坠入飘字。由探索主屏按 `pendingExp` 增量和序号挂载，避免把动画放进带 `overflow: hidden` 的角色立绘容器。 |
 | [EnergyLamp](../../src/ui/explore/EnergyLamp/EnergyLamp.tsx) | 能量档位读数 + `common/GlassHourglass` 沙漏（档位色驱动）。 |
@@ -183,6 +183,8 @@ src/ui/
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 兼容旧调用点的羁绊图标适配器，转发到 `ArcanaIcon` 的 bare 模式。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
 | [art/moduleGlyphs](../../src/ui/art/moduleGlyphs.tsx) | 成品模组的专属徽记：`MODULE_THEMES` 三档配色（hue/deep/ink）+ 每件模组一套分层 SVG，由 `itemArt.itemIcon` 在模组类别上优先命中；未登记的模组回落到通用 ModuleIcon。设计逻辑与小队徽章 `badgeGlyphs` 一致。 |
+| [item/ModuleInstall](../../src/ui/common/item/ModuleInstall/) | 待拾取模组的「装载 / 拾取」接线：`useLootModuleActions` 判定物品是不是模组并托管弹窗状态（拾取动作由调用方传入，战利品盘与拾取框各接一次）；`ModuleSlotActions` 是贴在格子上下边框的两个悬浮按钮（悬停淡入，父格需 `position: relative`）；`ModuleInstallDialog` 是原地装配弹窗，只列本趟远征的出战队员，装配走 `exploreStore.installLootModule`。 |
+| [art/moduleGlyphsGenericT1](../../src/ui/art/moduleGlyphsGenericT1.tsx) | 1 阶通用模组的徽记与配色，按「改的是哪一项」分色；由 `moduleGlyphs` 合并进主表，清单加长时主表不膨胀。 |
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；模组另有独立的「装配条件」字段，文案读 `data/cardModules` 的 `equipText`。操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
 | [item/ItemTooltip](../../src/ui/common/item/ItemTooltip/ItemTooltip.tsx) | 物品详情悬浮层：`tooltipPointFromElement` 把触发元素归一化成「所属画布 + 设计 px 锚点」，`useTooltipPlacement` 实测浮层真实尺寸后在画布边界内翻转夹取，浮层 portal 进画布内部。换皮版浮卡（商店仓库、出击背包）共用这两个导出，不要再抄一份定位算法。 |
 | [item/ItemCostTag](../../src/ui/common/item/ItemCostTag/ItemCostTag.tsx) | 图标化食品报价标签：展示价格、背包持有量与缺货红框，复用 `ItemTooltip` 提供无原生 `title` 的物品详情悬浮。 |
