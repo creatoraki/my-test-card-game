@@ -108,7 +108,7 @@ export const CHARACTERS: CharacterDef[] = [
       basicCardId("prophet", "attack"),
       basicCardId("prophet", "heal"),
       "star-shatter",
-      "emergency-treatment"
+      "gravity-lens"
     ],
     pools: {
       common: [
@@ -152,7 +152,7 @@ export const CHARACTERS: CharacterDef[] = [
     startingCardIds: [
       ...basicStartingCardIds("botanist").slice(0, 3),
       "continuous-shot",
-      "twin-flower",
+      "insect-trap",
     ],
     pools: {
       common: [
