@@ -4,6 +4,9 @@
 //   · 模组来自**待拾取框**而不是仓库 —— 装成了就不占背包格, 取消则仍留在待拾取框。
 //   · 角色只列**本趟远征的出战队伍**, 没带出来的人不在这儿装。
 // 阵亡队员仍然列出但不可选: 卡组还在, 但这趟远征他已经用不上了。
+//
+// 布局口径: 模组信息(效果 / 条件)压成头部下方一条紧凑信息带, 剩余高度全部留给卡牌区 ——
+// 玩家在这儿真正要做的判断是「装到哪张牌上」, 卡面越大越好挑。
 
 import { useMemo, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
@@ -12,6 +15,7 @@ import type { Card } from "@/engine";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
 import { useTownStore } from "@/store/townStore";
+import { itemIcon } from "@/ui/art/itemArt";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { cx } from "@/ui/common/cx";
 import s from "./ModuleInstallDialog.module.css";
@@ -54,6 +58,7 @@ export function ModuleInstallDialog({ stack, onClose }: Props) {
       <div className={s.backdrop} onClick={onClose} aria-hidden />
       <section className={s.panel}>
         <header className={s.head}>
+          <span className={s.icon} aria-hidden>{itemIcon(def)}</span>
           <div className={s.title}>
             <span className={s.kicker}>原地装配</span>
             <strong>{def.name}</strong>
@@ -63,55 +68,67 @@ export function ModuleInstallDialog({ stack, onClose }: Props) {
           </button>
         </header>
 
-        <p className={s.condition}>
-          装配条件：{moduleDef?.equipText ?? "无"}
-          <span className={s.hint}>只有满足条件、且还空着模组槽的卡牌可选。</span>
-        </p>
+        {/* 效果与条件并排一条 —— 效果是「装上去有什么用」, 条件是「哪些牌能装」。 */}
+        <dl className={s.info}>
+          <div className={s.infoCol}>
+            <dt>装配效果</dt>
+            <dd>{def.desc}</dd>
+          </div>
+          <div className={s.infoCol}>
+            <dt>装配条件</dt>
+            <dd>
+              {moduleDef?.equipText ?? "无"}
+              <span className={s.hint}>只有满足条件、且还空着模组槽的卡牌可选。</span>
+            </dd>
+          </div>
+        </dl>
 
-        <div className={s.chars}>
-          {party.map((member) => (
-            <button
-              key={member.charId}
-              className={cx(s.charTab, charId === member.charId && s.isActive)}
-              type="button"
-              disabled={!member.alive}
-              onClick={() => {
-                setCharId(member.charId);
-                setCardUid(null);
-              }}
-              style={{ "--owner-color": getCharacter(member.charId).color } as CSSProperties}
-            >
-              {getCharacter(member.charId).name}
-              {!member.alive && <span className={s.downed}>阵亡</span>}
-            </button>
-          ))}
-        </div>
+        <div className={s.stage}>
+          <div className={s.chars}>
+            {party.map((member) => (
+              <button
+                key={member.charId}
+                className={cx(s.charTab, charId === member.charId && s.isActive)}
+                type="button"
+                disabled={!member.alive}
+                onClick={() => {
+                  setCharId(member.charId);
+                  setCardUid(null);
+                }}
+                style={{ "--owner-color": getCharacter(member.charId).color } as CSSProperties}
+              >
+                {getCharacter(member.charId).name}
+                {!member.alive && <span className={s.downed}>阵亡</span>}
+              </button>
+            ))}
+          </div>
 
-        <div className={s.deck} role="list">
-          {deck.length ? (
-            deck.map((card, index) => {
-              const usable = equippable.has(card.uid);
-              return (
-                <div
-                  key={card.uid}
-                  className={cx(s.card, !usable && s.dimmed)}
-                  role="listitem"
-                  data-selected={card.uid === cardUid ? "true" : undefined}
-                >
-                  <DeckCard
-                    card={card}
-                    selected={card.uid === cardUid}
-                    index={index}
-                    onClick={() => usable && setCardUid(card.uid)}
-                    className={s.deckCard}
-                  />
-                  {card.cardModule && <span className={s.installed}>已装模组</span>}
-                </div>
-              );
-            })
-          ) : (
-            <p className={s.empty}>该角色没有卡牌。</p>
-          )}
+          <div className={s.deck} role="list">
+            {deck.length ? (
+              deck.map((card, index) => {
+                const usable = equippable.has(card.uid);
+                return (
+                  <div
+                    key={card.uid}
+                    className={cx(s.card, !usable && s.dimmed)}
+                    role="listitem"
+                    data-selected={card.uid === cardUid ? "true" : undefined}
+                  >
+                    <DeckCard
+                      card={card}
+                      selected={card.uid === cardUid}
+                      index={index}
+                      onClick={() => usable && setCardUid(card.uid)}
+                      className={s.deckCard}
+                    />
+                    {card.cardModule && <span className={s.installed}>已装模组</span>}
+                  </div>
+                );
+              })
+            ) : (
+              <p className={s.empty}>该角色没有卡牌。</p>
+            )}
+          </div>
         </div>
 
         <footer className={s.foot}>

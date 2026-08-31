@@ -22,6 +22,12 @@
   flex: 1;
 }
 
+/* 提权解除 victoryCell.cell 的斜切裁剪 —— 否则模组的悬浮按钮跨不出右边框。
+   斜切外观由内部 ItemSlot 自己的 clip-path 提供, 视觉不变。 */
+.loot-cell.loot-cell {
+  clip-path: none;
+}
+
 .loot-cell {
   position: relative;
   min-width: 0;
