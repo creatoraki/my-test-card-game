@@ -150,11 +150,7 @@ export const CHARACTERS: CharacterDef[] = [
     startingCardIds: [
       ...basicStartingCardIds("botanist").slice(0, 3),
       "continuous-shot",
-<<<<<<< HEAD
-      "insect-trap",
-=======
       "poison-mushroom",
->>>>>>> 90b58b0ab5e1e560c15b65f579582feb15261e11
     ],
     pools: {
       common: [
