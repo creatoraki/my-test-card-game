@@ -16,7 +16,7 @@
 import type { DropEntry, EquipSlot, ItemStack } from "../items/types";
 import type { StatModifier } from "../engine/types";
 
-export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate";
+export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate" | "moduleCrate";
 
 export interface BoonEntry {
   kind: BattleBoonKind;

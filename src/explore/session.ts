@@ -61,7 +61,7 @@ import {
 } from "../items/inventory";
 import type { ItemRarity, ItemStack } from "../items/types";
 import { generateSegments, lanePath, traceSegment } from "./route";
-import { rollBoons } from "./boons";
+import { rollBoons, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
 import type {
@@ -175,6 +175,10 @@ function pickWeighted<T extends { weight: number }>(s: ExploreState, options: re
 }
 
 function roundBattleTier(s: ExploreState): BattleTier {
+  const map = getMap(s.mapId);
+  if (map.battleTierByRound?.length) {
+    return map.battleTierByRound[Math.min(s.round - 1, map.battleTierByRound.length - 1)];
+  }
   const rows = EXPLORE_RULES.battleTierWeights[Math.min(Math.max(s.round, 1), EXPLORE_RULES.battleTierWeights.length) - 1];
   return pickWeighted(s, rows).tier;
 }
@@ -516,6 +520,15 @@ export function useItem(s: ExploreState, uid: string, targetCharId?: string): It
       // 这里只记录「要降谁、降多少」, 由 store 按实际落地值重建文案。
       pollution = { charId: target.charId, name: target.name, amount: Math.max(0, Math.floor(u.amount)) };
       note = `${target.name} 污染 −${pollution.amount}`;
+      break;
+    }
+    case "openModuleCrate": {
+      // 开箱产出走**待拾取框**而不是直接进背包: 箱子占 1 格、模组也占 1 格,
+      // 直接塞背包会在背包刚好满时把开出的模组顶掉, 进拾取框玩家还能自己腾格子。
+      const stack = rollModuleCrate(s, dropContext(s));
+      if (!stack) return null;
+      addPendingLoot(s, [stack]);
+      note = `开出 ${getItemDef(stack.itemId).name}，已放入待拾取框`;
       break;
     }
     default: {

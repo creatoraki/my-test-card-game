@@ -350,6 +350,7 @@ const GROWTH: NodeEvent[] = [
       choice("interface", "拆取空接口", "取得工业材料", "你不处理现有装备，而是把没有安装模组的接口拆下来。", [
         outcome("interface-a", "空接口里还残留着导电墨料，旁边的逻辑槽中卡着一枚魔方。", items(item("conductive-ink"), item("logic-cube"))),
         outcome("interface-b", "维护盒中保存着封装凝胶和两枚备用齿轮。", items(item("packaging-gel"), item("standard-gear", 2))),
+        outcome("interface-c", "接口底座下压着一只没拆封的通用模组箱，封条还是完好的。", [item("module-crate-t1")]),
       ]),
       choice("test", "运行跨角色卡组测试", "获得免费卡组锻造或删卡机会", "你选择一名角色作为测试者，让系统检查他的卡组是否适合承载其他关键词模组。", [
         outcome("test-a", "测试台将角色卡组重新排序，三张可以承担新机制的专属卡牌候选浮现出来。", [{ type: "FORGE_DRAW" }]),

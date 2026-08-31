@@ -65,19 +65,32 @@ export {
   type EnemyPlacement,
   type EnemySlot,
 } from "./encounters";
-export { MAPS, mapEquipRarities, type MapDef } from "./maps";
+export {
+  MAPS,
+  isMapUnlocked,
+  mapEquipRarities,
+  mapLockReason,
+  type MapDef,
+} from "./maps";
 export { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
 export {
   CONSUMABLE_ITEM_DEFS,
   DESIGN_ITEM_DEFS,
   EQUIPMENT_ITEM_DEFS,
+  GENERIC_MODULE_FAMILY,
+  GENERIC_MODULE_ITEM_DEFS,
   MATERIAL_ITEM_DEFS,
+  MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
 } from "./items/index";
 export {
   CARD_MODULES,
+  GENERIC_T1_MODULE_IDS,
   canEquipModule,
   getCardModule,
+  hasDamageEffect,
+  hasScaledDamage,
+  hasScaledSupport,
   recomputeCardModule,
   type CardModuleDef,
 } from "./cardModules";

@@ -1,9 +1,35 @@
 import type { BattleState, Card, EffectDescriptor } from "./types";
 import { cardCost } from "./cost";
 import { cultivateReady } from "./cultivate";
+import { conditionMet } from "./effects";
 import { previewDamage } from "./ops";
-import { attackDamage, hitChance, statOf } from "./stats";
+import { addMod, attackDamage, hitChance, statOf } from "./stats";
 import { RULES } from "./rules";
+
+// 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
+// ★ 预览必须把它算进去, 否则装了攻击力/穿甲/命中模组后预览数字与实际结果对不上。
+function playStatBonusesOf(state: BattleState, card: Card): EffectDescriptor[] {
+  const cultivated = cultivateReady(card) && card.cultivate?.mode === "replace";
+  const activeEffects = cultivated ? card.cultivate?.effects ?? [] : card.effects;
+  return [
+    ...activeEffects,
+    ...(card.keywords?.flatMap((keyword) => keyword.effects) ?? []),
+  ].filter((effect) => effect.type === "PLAY_STAT_BONUS" && effect.stat && conditionMet(state, effect));
+}
+
+// 把临时面板写进施放者 mods → 跑预览 → 原样撤回。
+// ⚠ 刻意走 mods 而不是给 previewDamage 逐项开参数: 穿甲/命中/精准都藏在 statOf 后面,
+//   逐项开口子要改的地方远比这一进一出多。整段同步执行, 结束后 state 与调用前完全一致。
+function withPlayStatBonuses<T>(state: BattleState, card: Card, run: () => T): T {
+  const attacker = state.combatants[card.ownerCharId];
+  const bonuses = attacker ? playStatBonusesOf(state, card) : [];
+  for (const effect of bonuses) addMod(attacker, effect.stat!, effect.amount ?? 0, effect.pct ?? false);
+  try {
+    return run();
+  } finally {
+    for (const effect of bonuses) addMod(attacker, effect.stat!, -(effect.amount ?? 0), effect.pct ?? false);
+  }
+}
 
 function firstDamageEffect(card: Card): EffectDescriptor | undefined {
   const cultivated = cultivateReady(card) && card.cultivate?.mode === "replace";
@@ -44,7 +70,7 @@ export function cardHitChance(state: BattleState, card: Card, targetId: string):
   const target = state.combatants[targetId];
   if (!attacker || !target || !target.alive) return null;
 
-  return hitChance(state, attacker, target, effect.hitBonus ?? 0);
+  return withPlayStatBonuses(state, card, () => hitChance(state, attacker, target, effect.hitBonus ?? 0));
 }
 
 // 返回命中后的单段确定性伤害; 暴击、格挡和护盾吸收不计入预览。
@@ -54,31 +80,33 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
   const target = state.combatants[targetId];
   if (!effect || !attacker || !target || !target.alive) return null;
 
-  const fixed = effect.amount != null;
-  const bonusMult =
-    effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
-      ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
-      : 0;
-  const baseMultiplier = (effect.multiplier ?? 1) + bonusMult;
-  const targetHasShield = target.shield > 0;
-  const bonusApplies =
-    !fixed &&
-    effect.damageBonus &&
-    ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
-      (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield));
-  const aimedBonus =
-    effect.aimedMultiplier != null && target.statuses.some((status) => status.id === "aimed")
-      ? effect.aimedMultiplier
-      : baseMultiplier;
-  const damageMultiplier = bonusApplies ? aimedBonus + effect.damageBonus!.multiplier : aimedBonus;
-  const valueMultiplier = 1 + state.playValueBonusPct / 100;
-  const rawDamage = fixed
-    ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier
-    : attackDamage(cardAttack(state, card), damageMultiplier) * valueMultiplier;
+  return withPlayStatBonuses(state, card, () => {
+    const fixed = effect.amount != null;
+    const bonusMult =
+      effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
+        ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
+        : 0;
+    const baseMultiplier = (effect.multiplier ?? 1) + bonusMult;
+    const targetHasShield = target.shield > 0;
+    const bonusApplies =
+      !fixed &&
+      effect.damageBonus &&
+      ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
+        (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield));
+    const aimedBonus =
+      effect.aimedMultiplier != null && target.statuses.some((status) => status.id === "aimed")
+        ? effect.aimedMultiplier
+        : baseMultiplier;
+    const damageMultiplier = bonusApplies ? aimedBonus + effect.damageBonus!.multiplier : aimedBonus;
+    const valueMultiplier = 1 + state.playValueBonusPct / 100;
+    const rawDamage = fixed
+      ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier
+      : attackDamage(cardAttack(state, card), damageMultiplier) * valueMultiplier;
 
-  return previewDamage(state, attacker.id, target.id, rawDamage, {
-    isAttack: true,
-    fixed,
-    flags: effect.flags,
+    return previewDamage(state, attacker.id, target.id, rawDamage, {
+      isAttack: true,
+      fixed,
+      flags: effect.flags,
+    });
   });
 }

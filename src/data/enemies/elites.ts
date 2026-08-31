@@ -7,11 +7,13 @@ const ELITE_DROPS: DropEntry[] = [
   { kind: "item", itemId: "logic-cube", chance: 0.05 },
   { kind: "item", itemId: "standard-gear", chance: 0.05 },
   { kind: "item", itemId: "standard-battery", chance: 0.05 },
+  { kind: "item", itemId: "module-crate-t1", chance: 0.08 },
 ];
 
 const ELITE_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.5 },
   { kind: "equipCrate", chance: 0.3 },
+  { kind: "moduleCrate", chance: 0.15 },
   { kind: "cardOffer", chance: 0.3 },
 ];
 
@@ -120,7 +122,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         anim: "lightning",
         effects: [
           { type: "DAMAGE", multiplier: 0.4, target: "primary" },
-          { type: "APPLY_STATUS", status: "stun", stacks: 1, target: "primary" },
+          { type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary" },
         ],
       },
       {

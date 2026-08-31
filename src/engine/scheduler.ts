@@ -5,7 +5,8 @@
 // ============================================================================
 
 import type { BattleState, Enemy, FxRecorder } from "./types";
-import { checkEnd, ops, runTick } from "./ops";
+import { checkEnd, ops } from "./ops";
+import { runTick } from "./statusLifecycle";
 import { actAndRecord } from "./ai";
 
 // 推进 n 个时刻。每推进 1 时刻, 结算所有 nextActTick <= tick 的存活敌人。

@@ -21,9 +21,10 @@ import type {
 import { STATUS_DEFS } from "./statuses";
 import { RULES } from "./rules";
 import { rngFloat } from "./rng";
-import { addMod, critChance, defenseMultiplier, hitChance, offenseStatOf, statOf } from "./stats";
+import { addMod, critChance, defenseMultiplier, healValue, hitChance, offenseStatOf, statOf } from "./stats";
 import { noteChallengeDamage, noteChallengeKill } from "./challenges";
 import { recordHitPart } from "./animHits";
+import { capStatusStacks, mergeStatus, syncSegments } from "./statuses/stacking";
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -37,12 +38,12 @@ export function getStatus(cmb: Combatant, id: string): StatusInstance | undefine
   return cmb.statuses.find((s) => s.id === id);
 }
 
-function cleanup(cmb: Combatant): void {
+export function cleanup(cmb: Combatant): void {
   cmb.statuses = cmb.statuses.filter((s) => s.stacks > 0 && (s.duration == null || s.duration > 0));
 }
 
-function ctxFor(state: BattleState, ownerId: string, inst: StatusInstance): StatusCtx {
-  return { state, ownerId, inst, ops };
+export function ctxFor(state: BattleState, ownerId: string, inst: StatusInstance, stacks = inst.stacks): StatusCtx {
+  return { state, ownerId, inst, stacks, ops };
 }
 
 // 掷一次百分点概率(0~100)。走战斗 RNG, 保证同种子可复现。
@@ -101,12 +102,13 @@ export function dealDamage(
 
   // ---- 0. 状态修正(力量 +, 虚弱 ×, 易伤 ×) —— 在命中判定之前完成基础值调整 ----
   const src = sourceId ? state.combatants[sourceId] : undefined;
-  if (src) {
+  if (src && !opts.pure) {
     for (const inst of [...src.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
   }
-  for (const inst of [...target.statuses])
-    STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
+  if (!opts.pure)
+    for (const inst of [...target.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
 
   // ---- 1. 命中判定 —— 只有"攻击"需要命中; 无施法者(中毒/荆棘等)与必中效果直接跳过 ----
   if (dmg.isAttack && src && !opts.mustHit) {
@@ -218,18 +220,19 @@ export function previewDamage(
     hpLost: 0,
   };
   const src = sourceId ? state.combatants[sourceId] : undefined;
-  if (src) {
+  if (src && !opts.pure) {
     for (const inst of [...src.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
   }
-  for (const inst of [...target.statuses])
-    STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
+  if (!opts.pure)
+    for (const inst of [...target.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
 
   if (!dmg.fixed) dmg.amount *= defenseMultiplier(target, src);
   return Math.max(0, Math.round(dmg.amount));
 }
 
-// 最终治疗 =(基础治疗 + 治愈力)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力 × 倍率,
+// 最终治疗 =(基础治疗 + 治愈力÷healDivisor)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力÷healDivisor × 倍率,
 // 此时只乘治愈强度, 避免重复叠加治愈力。sourceId 缺省 = 无施法者, 不吃两项加成。
 export function heal(
   state: BattleState,
@@ -243,7 +246,9 @@ export function heal(
   const src = sourceId ? state.combatants[sourceId] : undefined;
   let final = amount;
   if (src) {
-    final = (opts.scaled ? amount : amount + offenseStatOf(state, src, "healPower")) * (1 + statOf(src, "healBoost") / 100);
+    final =
+      (opts.scaled ? amount : amount + healValue(offenseStatOf(state, src, "healPower"))) *
+      (1 + statOf(src, "healBoost") / 100);
   }
 
   const before = t.hp;
@@ -282,7 +287,7 @@ export function applyStatus(
   if (!t || !t.alive || stacks === 0) return;
   const def = STATUS_DEFS[statusId];
 
-  // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续回合"中的一项(见 statuses.resistMode)。
+  // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续拍数"中的一项(见 statuses.resistMode)。
   if (def && def.kind === "debuff" && stacks > 0) {
     const resist = statOf(t, "ailmentResist");
     if (resist > 0) {
@@ -301,25 +306,26 @@ export function applyStatus(
 
   const existing = getStatus(t, statusId);
   if (existing) {
-    existing.stacks += stacks;
-    if (duration != null) existing.duration = Math.max(existing.duration ?? 0, duration);
+    mergeStatus(existing, def ?? { id: statusId, name: statusId, emoji: "", kind: "buff", desc: "" }, stacks, duration, t.tempo);
     if (data) existing.data = { ...existing.data, ...data };
     if (sourceId) existing.sourceId = sourceId;
-    if (duration != null && def?.durationStartsNextRound) existing.appliedRound = state.round;
   } else {
-    t.statuses.push({
+    const instance: StatusInstance = {
       id: statusId,
       stacks,
       ...(duration != null ? { duration } : {}),
       ...(data ? { data: { ...data } } : {}),
       ...(sourceId ? { sourceId } : {}),
-      ...(duration != null && def?.durationStartsNextRound ? { appliedRound: state.round } : {}),
-    });
+      appliedAt: t.tempo,
+    };
+    if (def?.stackMode === "segments") {
+      instance.segments = [{ stacks, ...(duration != null ? { duration } : {}), appliedAt: t.tempo }];
+      syncSegments(instance);
+    }
+    t.statuses.push(instance);
   }
-  if (def?.maxStacks != null) {
-    const inst = getStatus(t, statusId)!;
-    inst.stacks = Math.min(inst.stacks, def.maxStacks);
-  }
+  const inst = getStatus(t, statusId)!;
+  if (def) capStatusStacks(inst, def);
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
 }
@@ -361,40 +367,6 @@ export const ops: EngineOps = {
   flushAutoPlays: () => undefined,
   log,
 };
-
-// ---------------------------------------------------------------------------
-// 状态生命周期 —— 在回合/时刻边界统一驱动所有单位身上的状态钩子。
-// ---------------------------------------------------------------------------
-function runLifecycle(state: BattleState, hook: "onRoundStart" | "onRoundEnd" | "onTick"): void {
-  for (const id of allIds(state)) {
-    const cmb = state.combatants[id];
-    if (!cmb.alive) continue;
-    for (const inst of [...cmb.statuses]) {
-      if (!cmb.alive) break;
-      STATUS_DEFS[inst.id]?.hooks?.[hook]?.(ctxFor(state, id, inst));
-    }
-    cleanup(cmb);
-    if (cmb.team !== "player" && cmb.hp <= 0) markDead(state, cmb);
-  }
-}
-
-export function runRoundStart(state: BattleState): void {
-  runLifecycle(state, "onRoundStart");
-}
-export function runRoundEnd(state: BattleState): void {
-  runLifecycle(state, "onRoundEnd");
-  for (const id of allIds(state)) {
-    const cmb = state.combatants[id];
-    for (const inst of cmb.statuses) {
-      if (inst.duration != null && !(STATUS_DEFS[inst.id]?.durationStartsNextRound && inst.appliedRound === state.round))
-        inst.duration -= 1;
-    }
-    cleanup(cmb);
-  }
-}
-export function runTick(state: BattleState): void {
-  runLifecycle(state, "onTick");
-}
 
 // ---------------------------------------------------------------------------
 // 胜负判定

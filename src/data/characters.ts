@@ -24,13 +24,13 @@ export const CHARACTERS: CharacterDef[] = [
     name: "剑士",
     emoji: "⚔️",
     color: "#78c8ff",
-    // 首版基准: HP 50 / 攻击 100 / 治愈力 20 / 防御 0 / 先手 20(《角色养成设计.md》3.0)。
-    // 治愈力 20 使基础卡的 50% 治疗/护盾各为 10 点, 与剑士现有辅助牌同档。
+    // 首版基准: HP 50 / 攻击 100 / 治愈力 100 / 防御 0 / 先手 20(《角色养成设计.md》3.0)。
+    // 治愈力按 ÷5 结算(RULES.combat.healDivisor), 100 治愈力使基础卡的 50% 治疗/护盾各为 10 点。
     // 手牌上限由 RULES.hand.baseHandLimit 统一提供，角色只保留可叠加的局部修正。
     base: makeStats({
       maxHp: 50,
       attack: 100,
-      healPower: 20,
+      healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
@@ -56,9 +56,7 @@ export const CHARACTERS: CharacterDef[] = [
         "selfless-guard",
         "autumn-rain",
         "torafuri",
-        "cloud-veil",
         "yoroidoshi",
-        "quick-guard",
         "demon-edge",
         "crane-dance",
         "wolf-sparrow",
@@ -95,7 +93,7 @@ export const CHARACTERS: CharacterDef[] = [
     base: makeStats({
       maxHp: 50,
       attack: 100,
-      healPower: 20,
+      healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
@@ -141,7 +139,7 @@ export const CHARACTERS: CharacterDef[] = [
     base: makeStats({
       maxHp: 50,
       attack: 100,
-      healPower: 20,
+      healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
@@ -152,7 +150,11 @@ export const CHARACTERS: CharacterDef[] = [
     startingCardIds: [
       ...basicStartingCardIds("botanist").slice(0, 3),
       "continuous-shot",
+<<<<<<< HEAD
       "insect-trap",
+=======
+      "poison-mushroom",
+>>>>>>> 90b58b0ab5e1e560c15b65f579582feb15261e11
     ],
     pools: {
       common: [

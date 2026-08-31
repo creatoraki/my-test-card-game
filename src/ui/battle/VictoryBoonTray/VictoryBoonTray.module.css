@@ -22,9 +22,10 @@
   box-sizing: border-box;
   position: relative;
   display: flex;
+  width: 100%;
   min-width: 0;
   min-height: 0;
-  flex: 0 0 var(--victory-tray-4);
+  flex: 1 1 auto;
   flex-direction: column;
   padding: 12px;
   background: #03090c99;
@@ -32,13 +33,34 @@
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
 }
 
+/* 额外奖励单行横排, 数量不限; 排不下就横向滚动(不换行, 也不撑高面板)。 */
 .grid {
-  --victory-cols: 4;
   --victory-empty-tint: #07151366;
   --victory-empty-line: #58dcd055;
   --victory-empty-glow: #58dcd012;
   flex: 1;
   min-width: 0;
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--victory-cell-size, 84px);
+  padding: 4px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #58dcd066 transparent;
+}
+
+.grid::-webkit-scrollbar {
+  height: 5px;
+}
+
+.grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grid::-webkit-scrollbar-thumb {
+  background: #58dcd066;
+  border-radius: 3px;
 }
 
 .cell {

@@ -52,6 +52,12 @@
   --pip-border: #34567a;
   color: #9cc4ff;
 }
+.pip-duration {
+  --pip-border: #b98a43;
+}
+.pip-duration > b {
+  color: #ffd98a;
+}
 .shield-icon {
   display: block;
   width: 82%;

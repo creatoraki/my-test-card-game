@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { MAPS } from "@/data";
+import { isMapUnlocked, MAPS, mapLockReason } from "@/data";
 import { useRunStore } from "@/store/runStore";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
@@ -22,10 +22,15 @@ export function SortieScreen() {
   const cancel = useSortieStore((state) => state.cancel);
   const clear = useSortieStore((state) => state.clear);
   const party = useTownStore((state) => state.party);
+  const clearedMaps = useTownStore((state) => state.clearedMaps);
   const beginDescent = useRunStore((state) => state.beginDescent);
   const enterTown = useRunStore((state) => state.enterTown);
-  const [selectedMapId, setSelectedMapId] = useState(MAPS[0]?.id ?? "");
+  const [selectedMapId, setSelectedMapId] = useState(
+    () => MAPS.find((map) => isMapUnlocked(map.id, clearedMaps))?.id ?? MAPS[0]?.id ?? "",
+  );
   const { visibleStep, exitingStep, transitioning, intro } = useSortieStepTransition(step);
+  const selectedLocked = !isMapUnlocked(selectedMapId, clearedMaps);
+  const lockReason = mapLockReason(selectedMapId, clearedMaps);
 
   useEffect(() => {
     open();
@@ -68,6 +73,7 @@ export function SortieScreen() {
           infoEntering={visibleStep === "map" && transitioning}
           infoExiting={exitingStep === "map"}
           intro={intro}
+          lockReason={lockReason}
         />
         <SortieStepViewport
           visibleStep={visibleStep}
@@ -77,6 +83,7 @@ export function SortieScreen() {
               entering={visibleStep === "map" && transitioning}
               intro={intro}
               selectedMapId={selectedMapId}
+              clearedMaps={clearedMaps}
               onSelectMap={selectMap}
             />
           }
@@ -92,7 +99,7 @@ export function SortieScreen() {
         <SortieNav
           step={visibleStep}
           disabled={transitioning}
-          canConfirmMap={party.length > 0}
+          canConfirmMap={party.length > 0 && !selectedLocked}
           onBackToTown={leave}
           onBackToMap={backToMap}
           onConfirmMap={() => pickMap(selectedMapId)}

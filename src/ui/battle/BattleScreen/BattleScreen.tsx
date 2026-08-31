@@ -10,6 +10,7 @@ import {
   type Card,
   type CardAnim,
   type DiscardTriggerFx,
+  type TempoFx,
   type FxStep,
   type Enemy,
 } from "@/engine";
@@ -527,8 +528,22 @@ export function BattleScreen() {
     };
   }
 
+  // 拍点(DOT/HOT)结算 → 一步。只在持有者自己身上演受击/回复, 不播前冲。
+  function stepFromTempo(t: TempoFx): ChoreoStep {
+    const hurt = t.hits.some((hit) => hit.hpDelta > 0);
+    return {
+      kind: "tempo",
+      actorId: t.ownerId,
+      anim: hurt ? "poison" : "heal",
+      snapshot: t.snapshot,
+      hits: t.hits,
+    };
+  }
+
   function stepFromFx(fx: FxStep): ChoreoStep {
-    return fx.kind === "enemy" ? stepFromFrame(fx) : stepFromDiscard(fx);
+    if (fx.kind === "enemy") return stepFromFrame(fx);
+    if (fx.kind === "tempo") return stepFromTempo(fx);
+    return stepFromDiscard(fx);
   }
 
   // 计算相机变换: 把给定目标(多目标取并集)聚焦到取景安全区中心并放大。
@@ -664,6 +679,8 @@ export function BattleScreen() {
       const hold = Math.max(preset.hold * Math.max(0.55, 0.78 ** repeat), holdFloor);
       const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
       const telegraphKind: TelegraphKind = ANIM[step.anim].kind === "support" ? "buff" : "attack";
+      // 拍点(DOT/HOT)帧: 掉血/回血发生在单位自己身上, 不该播"施法者前冲 + 蓄力预告"。
+      const isTempo = step.kind === "tempo";
       const focus = () => (preset.kind === "none" ? null : computeCamera(focusIds, preset));
       // 敌人攻击必须先完成聚焦再进入蓄力, 否则 telegraph 会和镜头同时启动, 命中时镜头才刚到位。
       const focusLead = isFoeLedShot(preset) ? CAMERA_SETTLE_MS : 0;
@@ -689,18 +706,20 @@ export function BattleScreen() {
           if (isFoeLedShot(preset)) {
             setCameraTarget(focus());
           } else {
-            setAttackerId(step.actorId);
-            setTelegraph(
-              b.enemyIds.includes(step.actorId) && preset.kind !== "none"
-                ? { id: step.actorId, kind: telegraphKind }
-                : null,
-            );
+            if (!isTempo) {
+              setAttackerId(step.actorId);
+              setTelegraph(
+                b.enemyIds.includes(step.actorId) && preset.kind !== "none"
+                  ? { id: step.actorId, kind: telegraphKind }
+                  : null,
+              );
+            }
             if (index === 0 && enter) setCameraTarget(enter);
             else if (index === 0) setCameraTarget(null);
           }
         },
       });
-      if (isFoeLedShot(preset)) {
+      if (isFoeLedShot(preset) && !isTempo) {
         timeline.add({
           at: actionAt,
           run: () => {

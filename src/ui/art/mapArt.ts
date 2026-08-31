@@ -11,6 +11,7 @@ import cityZenithArt from "@/assets/场景/城市天顶.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
 const MAP_ART: Record<string, string> = {
+  "tutorial": ruinedFloorArt,
   // 废弃楼层 = 废弃大楼内部, 与这张等距废弃楼层图最贴。
   "neon-city": ruinedFloorArt,
   "indoor-garden": indoorGardenArt,

@@ -1,1 +1,1 @@
-export { MapSelectStep } from "./MapSelectStep";
+export { default as MapSelectStep } from "./MapSelectStep";

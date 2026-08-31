@@ -24,7 +24,7 @@ export function chooseRandomTarget(state: BattleState, enemyId: string): string 
   if (candidates.length === 0) return undefined;
   const taunted = candidates.filter((candidate) => {
     const status = candidate.statuses.find((entry) => entry.id === "taunt");
-    return status && status.stacks > 0 && (status.appliedRound == null || status.appliedRound < state.round);
+    return status && status.stacks > 0;
   });
   return rngPick(state, taunted.length > 0 ? taunted : candidates).id;
 }

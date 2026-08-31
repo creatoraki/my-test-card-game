@@ -165,6 +165,7 @@ export const CombatantView = memo(function CombatantView({
             <StatusPips
               statuses={cmb.statuses}
               shield={cmb.shield}
+              team={cmb.team}
               detail
               popoverSide="top-left"
               className={s["combatant-statuses"]}

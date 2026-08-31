@@ -57,6 +57,7 @@ export const RULES = {
 
   // 战斗结算 —— 顺序固定为: 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP；护盾跨回合保留，仅随战斗结束消失。
   combat: {
+    enemyTempoPerAct: true, // 敌人状态是否按每次行动推进; false = 每回合首次行动前推进一次
     weakMultiplier: 0.7, // 虚弱: 造成攻击伤害 ×
     sharpMultiplier: 1.1, // 锋利: 造成攻击伤害 ×
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
@@ -64,7 +65,8 @@ export const RULES = {
     enemyBaseHitBonus: 5, // 怪物阵营统一命中补正(百分点)
 
     defenseConstant: 50, // 减伤 = 防御力 / (防御力 + 该常量)
-    attackDivisor: 5,
+    attackDivisor: 5, // 攻击牌伤害 = 攻击力 ÷ 该值 × 倍率
+    healDivisor: 5, // 治疗/护盾基础值 = 治愈力 ÷ 该值 × 倍率
     lowCostApMax: 1,
     baseHitChance: 100, // P_base
     hitFloorPct: 5, // 最终命中概率下限
@@ -74,9 +76,7 @@ export const RULES = {
     blockReduction: 0.5, // 格挡成功后本次伤害 ×
     // 我方 0 血(濒死)时再次受到会落到 HP 的伤害, 按此概率死亡; 未命中则完全顶住本次伤害。
     downedDeathChance: 50,
-    poisonDamagePerStack: 5,
     starlightMax: 3,
-    regenHealPerStack: 5,
     ironwallDefense: 5,
     chargedShellDamageMultiplier: 1.5,
     shieldRecycleBonus: 30,

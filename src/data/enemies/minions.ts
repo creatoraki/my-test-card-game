@@ -7,11 +7,13 @@ const COMMON_DROPS: DropEntry[] = [
   { kind: "item", itemId: "logic-cube", chance: 0.05 },
   { kind: "item", itemId: "standard-gear", chance: 0.05 },
   { kind: "item", itemId: "standard-battery", chance: 0.05 },
+  { kind: "item", itemId: "module-crate-t1", chance: 0.03 },
 ];
 
 const LOW_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.3 },
   { kind: "equipCrate", chance: 0.1 },
+  { kind: "moduleCrate", chance: 0.05 },
   { kind: "cardOffer", chance: 0.15 },
 ];
 
@@ -57,7 +59,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         anim: "shot",
         effects: [
           { type: "DAMAGE", multiplier: 0.5, target: "primary" },
-          { type: "APPLY_STATUS", status: "vulnerable", stacks: 2, target: "primary" },
+          { type: "APPLY_STATUS", status: "vulnerable", stacks: 1, duration: 2, target: "primary" },
         ],
       },
     ],
@@ -187,7 +189,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         anim: "shot",
         effects: [
           { type: "DAMAGE", multiplier: 0.8, target: "primary" },
-          { type: "APPLY_STATUS", status: "vulnerable", stacks: 2, target: "primary" },
+          { type: "APPLY_STATUS", status: "vulnerable", stacks: 1, duration: 2, target: "primary" },
         ],
       },
       {
@@ -201,7 +203,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         anim: "lightning",
         effects: [
           { type: "DAMAGE", multiplier: 0.7, target: "primary" },
-          { type: "APPLY_STATUS", status: "stun", stacks: 1, target: "primary" },
+          { type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary" },
         ],
       },
       {

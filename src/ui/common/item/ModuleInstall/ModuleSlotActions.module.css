@@ -1,0 +1,87 @@
+/* 模组格子的悬浮双按钮 —— 竖排贴在图标格的右下角、向右跨出边框, 悬停或键盘聚焦时淡入。
+   父元素是调用方的格子包裹层(战利品盘 .loot-cell / 拾取框 .loot-item),
+   这里用 `:hover > .actions` 这种不依赖父类名的写法, 两处接线都不用再写一遍显隐。
+   ⚠ 包裹层若带 clip-path 会把跨出去的部分裁掉 —— 战利品盘已在 .loot-cell 上解除。 */
+
+.actions {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  /* 向右平移, 让按钮跨出格子右边框。 */
+  transform: translateX(12px);
+  pointer-events: none;
+}
+
+.btn {
+  max-width: 100%;
+  padding: 2px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  border-style: solid;
+  border-width: 1px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(6px);
+  pointer-events: none;
+  transition:
+    opacity 140ms ease,
+    transform 140ms cubic-bezier(0.2, 0.72, 0.28, 1),
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+/* 两条去向各一套配色: 装载=紫(改造卡牌), 拾取=青蓝(收进背包)。 */
+.btn:first-child {
+  background: #5a3a8cee;
+  border-color: #b48cff;
+}
+
+.btn:last-child {
+  background: #1c6f8cee;
+  border-color: #6fd2ff;
+}
+
+:hover > .actions > .btn,
+:focus-within > .actions > .btn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.btn:first-child:hover:not(:disabled) {
+  background: #7a52b8ee;
+  border-color: #d6bcff;
+}
+
+.btn:last-child:hover:not(:disabled) {
+  background: #2b93b4ee;
+  border-color: #a9f4ff;
+}
+
+.btn:disabled {
+  color: #7f939b;
+  background: #101a1eee;
+  border-color: #4a5b63;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: opacity 140ms ease;
+    transform: none;
+  }
+
+  :hover > .actions > .btn,
+  :focus-within > .actions > .btn {
+    transform: none;
+  }
+}

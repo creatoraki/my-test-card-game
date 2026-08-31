@@ -104,13 +104,13 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		anim: "poison",
 		effects: [
 			{ type: "DAMAGE", multiplier: 0.4, target: "allFoes" },
-			{ type: "APPLY_STATUS", status: "poison", stacks: 1, target: "allFoes" },
+			{ type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.3 }, duration: 2, target: "allFoes" },
 		],
 		cultivate: {
 			turns: 2,
-			effects: [{ type: "APPLY_STATUS", status: "poison", stacks: 1, target: "allFoes" }],
+			effects: [{ type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.15 }, duration: 2, target: "allFoes" }],
 		},
-		text: "对所有敌人造成 {0} 点伤害并附加 1 层中毒。培育 {c}：中毒层数额外 +1。",
+		text: "对所有敌人造成 {0} 点伤害并附加 {1} 层中毒(持续 2 回合)。培育 {c}：额外附加 {k0} 层中毒。",
 	},
 	{
 		id: "vine-entangle",
@@ -209,10 +209,10 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		anim: "poison",
 		effects: [
 			{ type: "DAMAGE", multiplier: 0.4, target: "primary" },
-			{ type: "APPLY_STATUS", status: "poison", stacks: 1, aimedStacks: 1, target: "primary" },
+			{ type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.3 }, duration: 2, aimedStacksMultiplier: 2, target: "primary" },
 		],
 		keywords: [{ id: "aim", effects: [] }],
-		text: "造成 {0} 点伤害并附加 1 层中毒。瞄准：中毒层数翻倍。",
+		text: "造成 {0} 点伤害并附加 {1} 层中毒(持续 2 回合)。瞄准：中毒层数翻倍。",
 	},
 	{
 		id: "ivy-shelter",

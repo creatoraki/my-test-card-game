@@ -150,6 +150,14 @@
   filter: none;
 }
 
+.sm-slice[data-locked="true"] .sm-slice-art {
+  filter: saturate(0.08) brightness(0.58);
+}
+
+.sm-slice[data-locked="true"] .sm-slice-name {
+  color: #ffffff99;
+}
+
 .sm-is-on .sm-slice-no {
   color: var(--sm-glow-hi);
 }

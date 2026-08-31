@@ -6,6 +6,7 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
+import { useLootModuleActions } from "@/ui/common/item/ModuleInstall";
 import { cx } from "@/ui/common/cx";
 import { victoryStagger } from "@/ui/battle/victoryChoreo";
 import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
@@ -43,6 +44,9 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
     takeLoot(index);
     onPicked?.(stack.uid);
   };
+
+  // 模组在格子上直接露出「装载 / 拾取」两个悬浮按钮; 其余物品维持点一下就拾取。
+  const moduleActions = useLootModuleActions({ onTake: pick });
 
   const takeAll = () => {
     setHovered(null);
@@ -90,15 +94,20 @@ const VictoryLootTray = forwardRef<VictoryLootTrayHandle, Props>(function Victor
               <ItemSlot
                 stack={stack}
                 showName={false}
-                onClick={() => pick(stack)}
+                onClick={() => {
+                  if (moduleActions.handleClick(stack)) return;
+                  pick(stack);
+                }}
                 className={cx(s["loot-slot"])}
               />
+              {moduleActions.renderActions(stack)}
             </div>
           ) : (
             <div className={cx(victoryCell.empty, s["empty-slot"])} key={`empty-${index}`} aria-hidden="true" />
           )
         ))}
       </div>
+      {moduleActions.overlay}
       {hoveredStack && hovered && (
         <ItemTooltip
           stack={hoveredStack}

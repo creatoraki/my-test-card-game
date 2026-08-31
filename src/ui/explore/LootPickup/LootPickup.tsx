@@ -15,6 +15,7 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
+import { useLootModuleActions } from "@/ui/common/item/ModuleInstall";
 import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
@@ -54,9 +55,7 @@ function LootPickup({ gate }: LootPickupProps) {
     }
   }, [displayed, hovered]);
 
-  if (!presence.mounted || !displayed.length) return null;
-
-  const pick = (stack: (typeof displayed)[number]) => {
+  const pick = (stack: ItemStack) => {
     if (flying) return;
     const index = pendingLoot.findIndex((item) => item.uid === stack.uid);
     if (index < 0) return;
@@ -89,6 +88,11 @@ function LootPickup({ gate }: LootPickupProps) {
     }, 430);
   };
 
+  // 模组不走「点一下就拾取」: 格子上直接给出「装载 / 拾取」两个悬浮按钮(见 ModuleInstall)。
+  const moduleActions = useLootModuleActions({ onTake: pick });
+
+  if (!presence.mounted || !displayed.length) return null;
+
   const hoveredStack = hovered
     ? pendingLoot.find((stack) => stack.uid === hovered.uid) ?? null
     : null;
@@ -111,7 +115,12 @@ function LootPickup({ gate }: LootPickupProps) {
           contentKey={`loot-${displayed.length}`}
         >
           <EventPanelStage>
-            <EventPanelBody caption={lootMessage ?? "点击拾取，未拾取的物品会丢失。"}>
+            <EventPanelBody
+              caption={
+                lootMessage ??
+                "点击拾取，未拾取的物品会丢失；模组可以选择直接装载。"
+              }
+            >
               <div className={s["loot-grid"]}>
                 {displayed.map((stack) => (
                   <div
@@ -129,7 +138,14 @@ function LootPickup({ gate }: LootPickupProps) {
                       setHovered((current) => (current?.uid === stack.uid ? null : current))
                     }
                   >
-                    <ItemSlot stack={stack} showName={false} onClick={() => pick(stack)} />
+                    <ItemSlot
+                      stack={stack}
+                      showName={false}
+                      onClick={() => {
+                        if (!moduleActions.handleClick(stack)) pick(stack);
+                      }}
+                    />
+                    {moduleActions.renderActions(stack)}
                   </div>
                 ))}
               </div>
@@ -159,6 +175,7 @@ function LootPickup({ gate }: LootPickupProps) {
           </EventPanelStage>
         </EventPanelFrame>
       </section>
+      {moduleActions.overlay}
       {flying && typeof document !== "undefined" &&
         createPortal(
           <div

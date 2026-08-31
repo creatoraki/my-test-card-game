@@ -3,9 +3,9 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { BattleState, CounterSource, EffectDescriptor } from "./types";
+import type { BattleState, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
 import { ops } from "./ops";
-import { addMod, attackDamage, offenseStatOf, partyHandLimit, statOf } from "./stats";
+import { addMod, attackDamage, healValue, offenseStatOf, partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
@@ -35,11 +35,24 @@ function counterOf(state: BattleState, source: CounterSource): number {
   return state.playedThisRound.length;
 }
 
-function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
+// 由施法者属性换算出的数值(层数 / 状态参数)。★ 攻击力与治愈力都是 100 基准面板,
+// 一律先 ÷ 各自的 divisor 再乘卡牌倍率, 与伤害/治疗的口径保持一致。
+function sourceStatValue(state: BattleState, source: Combatant | undefined, stat: keyof StatBlock): number {
+  if (!source) return 0;
+  if (stat === "attack") return attackDamage(offenseStatOf(state, source, stat), 1);
+  if (stat === "healPower") return healValue(offenseStatOf(state, source, stat));
+  return statOf(source, stat);
+}
+
+// ★ 导出给 hitPreview 复用 —— 预览要判定条件型 PLAY_STAT_BONUS 当前是否成立,
+//   两边各写一份的话条件枚举一改就会漏。
+export function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
   if (effect.condition === "discardedThisRound")
     return counterOf(state, "discardsThisRound") > 0;
   if (effect.condition === "noFastPlaysThisRound")
     return counterOf(state, "fastPlaysThisRound") === 0;
+  if (effect.condition === "noPlaysThisRound")
+    return counterOf(state, "cardsPlayedThisRound") === 0;
   if (effect.condition === "waterfall") return state.waterfallPlay;
   if (effect.condition === "handHasCostAtLeast")
     return state.hand.some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
@@ -191,18 +204,18 @@ function applyEffect(
       break;
     }
     case "GAIN_SHIELD": {
-      // amount = 固定基础护盾; multiplier = 治愈力 × 倍率。护盾强度仍在 ops 里结算。
+      // amount = 固定基础护盾; multiplier = 治愈力÷healDivisor × 倍率。护盾强度仍在 ops 里结算。
       const shield =
-        (effect.multiplier != null ? offenseStatOf(state, src, "healPower") * effect.multiplier : amount) *
+        (effect.multiplier != null ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier) : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
     }
     case "HEAL": {
-      // amount = 固定基础治疗; multiplier = 治愈力 × 倍率。治愈强度仍在 ops 里结算。
+      // amount = 固定基础治疗; multiplier = 治愈力÷healDivisor × 倍率。治愈强度仍在 ops 里结算。
       const scaled = effect.multiplier != null;
       const healing =
-        (scaled ? offenseStatOf(state, src, "healPower") * effect.multiplier! : amount) *
+        (scaled ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier!) : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;
@@ -252,19 +265,19 @@ function applyEffect(
       const generatedData = effect.statusDataFrom
         ? {
             ...effect.statusData,
-            [effect.statusDataFrom.key]: src
-              ? effect.statusDataFrom.stat === "attack" || effect.statusDataFrom.stat === "healPower"
-                ? offenseStatOf(state, src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
-                : statOf(src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
-              : 0,
+            [effect.statusDataFrom.key]: sourceStatValue(state, src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier,
           }
         : effect.statusData;
       for (const id of targetIds) {
-        const aimedBonus =
-          effect.aimedStacks && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
-            ? effect.aimedStacks
-            : 0;
-        const stacks = (effect.stacksFrom ? counterOf(state, effect.stacksFrom) : effect.stacks ?? 0) + aimedBonus;
+        const aimed = state.combatants[id]?.statuses.some((status) => status.id === "aimed");
+        const baseStacks = effect.stacksFromStat
+          ? Math.round(sourceStatValue(state, src, effect.stacksFromStat.stat) * effect.stacksFromStat.multiplier)
+          : effect.stacksFrom
+            ? counterOf(state, effect.stacksFrom)
+            : effect.stacks ?? 0;
+        const aimedStacks = effect.aimedStacks && aimed ? effect.aimedStacks : 0;
+        const aimedMultiplier = effect.aimedStacksMultiplier != null && aimed ? effect.aimedStacksMultiplier : 1;
+        const stacks = Math.round(baseStacks * aimedMultiplier) + aimedStacks;
         if (stacks > 0)
           ops.applyStatus(state, id, effect.status, stacks, effect.duration, generatedData, sourceId);
       }
@@ -274,6 +287,15 @@ function applyEffect(
       for (const id of targetIds)
         ops.applyStatMod(state, id, effect.stat!, amount, effect.pct ?? false);
       break;
+    // 出牌期临时面板 —— 目标恒为施放者(不读 target), 写进 mods 后记一笔台账,
+    // 由 battle.playCard 在出牌结束时逆向撤回。走 mods ⇒ 所有 statOf 读取自动吃到。
+    case "PLAY_STAT_BONUS": {
+      if (!effect.stat || !src || amount === 0) break;
+      const pct = effect.pct ?? false;
+      ops.applyStatMod(state, sourceId, effect.stat, amount, pct);
+      state.playStatMods.push({ targetId: sourceId, stat: effect.stat, amount, pct });
+      break;
+    }
     case "DRAW":
       drawCards(state, effect.amountFrom ? counterOf(state, effect.amountFrom) : amount);
       break;

@@ -25,9 +25,34 @@ export interface MapDef {
   // 地图只负责登记每个档位的战斗模板。
   battleEncounters: Record<BattleTier, string[]>;
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
+  /** 覆盖全局档位权重; 下标 = 轮次 - 1, 越界时沿用最后一档。 */
+  battleTierByRound?: readonly BattleTier[];
+  /** 需要先通关这张地图才开放。 */
+  requiresClear?: string;
+  /** 内容未就绪, 一律锁死。 */
+  locked?: boolean;
 }
 
 export const MAPS: MapDef[] = [
+  {
+    id: "tutorial",
+    name: "新手关卡",
+    desc: "训练场的警示灯逐一亮起。先熟悉路线、卡牌与战斗节奏, 再把脚步交给真正危险的楼层。",
+    difficulty: 1,
+    emoji: "🧭",
+    maxEquipRarity: "common",
+    roundCount: 3,
+    eventPoolId: "ruined-floor",
+    battleEncounters: {
+      t1: ["n-t1-scout", "n-t1-sweep"],
+      t2: ["n-t2-crew", "n-t2-beacon"],
+      t3: ["n-t3-patrol", "n-t3-blockade"],
+      t4: ["n-t4-patrol", "n-t4-blockade", "n-t4-elite-guard", "n-t4-compactor"],
+      t5: ["n-t5-boss"],
+    },
+    battleTierByRound: ["t1", "t2", "t3"],
+    startingEnergy: 100,
+  },
   {
     id: "neon-city",
     name: "废弃楼层",
@@ -44,6 +69,7 @@ export const MAPS: MapDef[] = [
       t4: ["n-t4-patrol", "n-t4-blockade", "n-t4-elite-guard", "n-t4-compactor"],
       t5: ["n-t5-boss"],
     },
+    requiresClear: "tutorial",
     startingEnergy: 100,
   },
   {
@@ -62,6 +88,7 @@ export const MAPS: MapDef[] = [
       t4: [],
       t5: [],
     },
+    locked: true,
     startingEnergy: 100,
   },
   {
@@ -80,6 +107,7 @@ export const MAPS: MapDef[] = [
       t4: [],
       t5: [],
     },
+    locked: true,
     startingEnergy: 100,
   },
   {
@@ -98,6 +126,7 @@ export const MAPS: MapDef[] = [
       t4: [],
       t5: [],
     },
+    locked: true,
     startingEnergy: 100,
   },
   {
@@ -116,9 +145,28 @@ export const MAPS: MapDef[] = [
       t4: [],
       t5: [],
     },
+    locked: true,
     startingEnergy: 100,
   },
 ];
+
+export function isMapUnlocked(mapId: string, clearedMaps: readonly string[]): boolean {
+  const map = MAPS.find((candidate) => candidate.id === mapId);
+  if (!map || map.locked) return false;
+  return !map.requiresClear || clearedMaps.includes(map.requiresClear);
+}
+
+export function mapLockReason(mapId: string, clearedMaps: readonly string[]): string | null {
+  const map = MAPS.find((candidate) => candidate.id === mapId);
+  if (!map || !isMapUnlocked(mapId, clearedMaps)) {
+    if (map?.requiresClear) {
+      const requiredMap = MAPS.find((candidate) => candidate.id === map.requiresClear);
+      return requiredMap ? `通关${requiredMap.name}后开放` : "暂未开放";
+    }
+    return "暂未开放";
+  }
+  return null;
+}
 
 export function mapEquipRarities(mapId: string): ItemRarity[] {
   const map = MAPS.find((candidate) => candidate.id === mapId);

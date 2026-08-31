@@ -80,6 +80,9 @@ export type EffectType =
   | "RESTORE_HP_LIMIT"
   | "REMOVE_STATUS"
   | "VALUE_BOOST"
+  // 本次出牌结算期间临时改写**施放者**面板, 出牌结束逆向撤回(见 battle.playCard)。
+  // 与 APPLY_STAT_MOD 的区别: 后者写进 Combatant.mods 后本场战斗永久留存。
+  | "PLAY_STAT_BONUS"
   | "CULTIVATE_TICK";
 
 export interface EffectDescriptor {
@@ -97,16 +100,18 @@ export interface EffectDescriptor {
   statusData?: Record<string, number>; // APPLY_STATUS: 状态的结构化运行时参数
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
+  stacksFromStat?: { stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 层数 = 施法者属性 × 倍率
   aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
+  aimedStacksMultiplier?: number; // APPLY_STATUS: 目标已有瞄准时层数倍率
   boostSource?: "spendPartyStarlight" | "primaryAimed"; // VALUE_BOOST: 数值加成来源
   boostPct?: number; // VALUE_BOOST: 每次成功触发增加的百分点
-  duration?: number; // APPLY_STATUS: 剩余回合
+  duration?: number; // APPLY_STATUS: 剩余拍数
   targetCount?: number; // randomFoe / randomAlly: 无放回随机目标数
   targetHasStatus?: string; // randomFoe / randomAlly: 只从带指定状态的目标中抽取
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
-  stat?: keyof StatBlock; // APPLY_STAT_MOD: 要修改的属性
-  pct?: boolean; // APPLY_STAT_MOD: true = 百分比修正(百分点), 缺省 = 固定值修正
+  stat?: keyof StatBlock; // APPLY_STAT_MOD / PLAY_STAT_BONUS: 要修改的属性
+  pct?: boolean; // APPLY_STAT_MOD / PLAY_STAT_BONUS: true = 百分比修正(百分点), 缺省 = 固定值修正
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
   hits?: number; // DAMAGE: 段数, 缺省 1
@@ -126,6 +131,7 @@ export interface EffectDescriptor {
   condition?:
     | "discardedThisRound"
     | "noFastPlaysThisRound"
+    | "noPlaysThisRound"
     | "waterfall"
     | "handHasCostAtLeast"
     | "fastCardsInHandAtLeast"; // 满足条件时才结算
@@ -239,13 +245,23 @@ export interface PendingChoice {
 // ---------------------------------------------------------------------------
 export type StatusKind = "buff" | "debuff";
 
+export type StackMode = "add" | "max" | "segments";
+export type RefreshMode = "max" | "override" | "keep";
+
+export interface StatusSegment {
+  stacks: number;
+  duration?: number;
+  appliedAt: number;
+}
+
 export interface StatusInstance {
   id: string;
   stacks: number;
-  duration?: number; // 剩余回合; 缺省 = 不因回合过期
+  duration?: number; // 剩余拍数; 缺省 = 不因节拍过期
   data?: Record<string, number>; // 状态的结构化运行时参数
   sourceId?: string; // 施加该状态的单位, 供持续效果读取施法者属性
-  appliedRound?: number; // durationStartsNextRound 状态用于跳过施加当回合的递减
+  appliedAt?: number; // 施加时持有者的节拍号, 用于跳过施加当拍的处理
+  segments?: StatusSegment[]; // stackMode="segments" 专用; stacks/duration 为派生汇总值
 }
 
 // 传给状态钩子的上下文。ops 提供引擎原语, 使 statuses.ts 无需 import 具体实现。
@@ -253,6 +269,7 @@ export interface StatusCtx {
   state: BattleState;
   ownerId: string;
   inst: StatusInstance;
+  stacks: number;
   ops: EngineOps;
 }
 
@@ -275,8 +292,7 @@ export interface DamageCtx {
 export type DamageResult = "missed" | "hit" | null;
 
 export interface StatusHooks {
-  onRoundStart?: (c: StatusCtx) => void;
-  onRoundEnd?: (c: StatusCtx) => void;
+  onTempo?: (c: StatusCtx) => void;
   onTick?: (c: StatusCtx) => void;
   modifyOutgoingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 施放者身上的状态
   modifyIncomingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上的状态
@@ -287,7 +303,7 @@ export interface StatusHooks {
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
 //   chance   —— 按抗性掷判定, 成功则本次完全不施加(眩晕这类开关型控制)
 //   stacks   —— 按抗性削减层数(中毒这类按层数结算的异常)
-//   duration —— 按抗性削减持续回合(显式 duration 优先, 否则按层数处理)
+//   duration —— 按抗性削减持续拍数(显式 duration 优先, 否则按层数处理)
 export type ResistMode = "chance" | "stacks" | "duration";
 
 export interface StatusDef {
@@ -297,7 +313,9 @@ export interface StatusDef {
   kind: StatusKind;
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
-  durationStartsNextRound?: boolean; // 持续效果从下一回合开始计时
+  decay?: "one" | "half"; // 每拍层数衰减; 缺省 = 不衰减
+  stackMode?: StackMode; // 同种状态再次施加时的层数合并方式
+  refreshMode?: RefreshMode; // 同种状态再次施加时的持续拍数合并方式
   statMods?: Partial<StatBlock>; // 每层提供的固定属性修正
   statModsPct?: Partial<StatBlock>; // 每层提供的百分比属性修正(百分点)
   resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减
@@ -313,7 +331,7 @@ export interface StatBlock {
   // 生存与输出
   maxHp: number; // 最大生命。★ 战斗中的实时上限读 Combatant.maxHp, 这里只是声明来源
   attack: number; // 攻击力: 攻击牌伤害 = 攻击力 ÷ RULES.combat.attackDivisor × 倍率
-  healPower: number; // 治愈力: 治疗基础值 + 该值
+  healPower: number; // 治愈力: 治疗/护盾基础值 = 治愈力 ÷ RULES.combat.healDivisor × 倍率
   lowCostMastery: number; // 低费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
   highCostMastery: number; // 高费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
   defense: number; // 防御力: 正值按防御力 / (防御力 + 常量)减伤，负值增伤；穿甲只抵扣正防御，角色基础防御力为 0
@@ -359,6 +377,7 @@ export interface BaseCombatant {
   mods: StatModifier; // 战斗内修正(卡牌/状态/场景), 战斗结束即弃
   statuses: StatusInstance[];
   alive: boolean;
+  tempo: number; // 已行进的持有者节拍数, 建局为 0
 }
 
 export interface Ally extends BaseCombatant {
@@ -477,6 +496,9 @@ export interface BattleState {
   pendingChoice: PendingChoice | null;
   waterfallPlay: boolean;
   playValueBonusPct: number;
+  // 本次出牌期间临时写进施放者面板的加成台账(PLAY_STAT_BONUS)。
+  // ★ 出牌结束逐条逆向撤回后清空 —— 它不是场上 buff, 结算完不留痕。
+  playStatMods: { targetId: string; stat: keyof StatBlock; amount: number; pct: boolean }[];
   activeCardCost: number | null;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
@@ -500,6 +522,7 @@ export interface DamageOpts {
   fixed?: boolean; // 固定伤害: 跳过防御减伤与格挡
   mustHit?: boolean; // 必中: 跳过命中判定
   unblockable?: boolean; // 不被护盾吸收
+  pure?: boolean; // 跳过施放者与目标的伤害状态修正
   hitBonus?: number; // 本次效果的命中修正(百分点)
   onDealt?: (hpLost: number) => void; // 落到 HP 后回调实际掉血(未命中/濒死为 0)
 }
@@ -585,9 +608,18 @@ export interface DiscardTriggerFx {
   snapshot: BattleState;
 }
 
+// 拍点(DOT/HOT)结算单独成一帧 —— 敌人在出招**之前**先掉毒血, 我方在回合结束逐个结算。
+// 合进行动帧的话飘字会挤在招式命中之后, 玩家看不出"先中毒再挥拳"的先后。
+export interface TempoFx {
+  ownerId: string; // 结算拍点的单位
+  hits: AnimHit[]; // DOT 掉血 / HOT 回血
+  snapshot: BattleState; // 拍点结算后的完整快照(structuredClone)
+}
+
 export type FxStep =
   | ({ kind: "enemy" } & AnimFrame)
-  | ({ kind: "discard" } & DiscardTriggerFx);
+  | ({ kind: "discard" } & DiscardTriggerFx)
+  | ({ kind: "tempo" } & TempoFx);
 
 export interface FxRecorder {
   steps: FxStep[];

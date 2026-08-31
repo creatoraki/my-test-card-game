@@ -1,5 +1,5 @@
-import type { Card, EffectDescriptor } from "./types";
-import { attackDamage } from "./stats";
+import type { Card, EffectDescriptor, StatBlock } from "./types";
+import { attackDamage, healValue } from "./stats";
 import { cardCost } from "./cost";
 import { RULES } from "./rules";
 
@@ -8,6 +8,14 @@ export interface CardTextStats {
   healPower: number;
   lowCostMastery: number;
   highCostMastery: number;
+}
+
+// 由属性换算出的展示值(层数 / 状态参数)。与 effects.sourceStatValue 同口径:
+// 攻击力/治愈力都是 100 基准面板, 先 ÷ 各自的 divisor 再乘倍率; 其它属性卡面暂不支持。
+function statScaledValue(stats: CardTextStats, stat: keyof StatBlock, multiplier: number): number {
+  if (stat === "attack") return attackDamage(stats.attack, multiplier);
+  if (stat === "healPower") return healValue(stats.healPower, multiplier);
+  return 0;
 }
 
 // 显示的是减伤前的基础值。伤害在 ops.dealDamage 中还会经过暴击、防御、格挡和 Math.round，
@@ -26,14 +34,13 @@ export function effectDisplayValue(
     case "HEAL":
     case "GAIN_SHIELD":
       return effect.multiplier != null
-        ? Math.round(stats.healPower * effect.multiplier)
+        ? Math.round(healValue(stats.healPower, effect.multiplier))
         : effect.amount ?? null;
     case "APPLY_STATUS":
-      if (effect.statusDataFrom) {
-        const sourceValue =
-          effect.statusDataFrom.stat === "healPower" ? stats.healPower : effect.statusDataFrom.stat === "attack" ? stats.attack : 0;
-        return Math.round(sourceValue * effect.statusDataFrom.multiplier);
-      }
+      if (effect.stacksFromStat)
+        return Math.round(statScaledValue(stats, effect.stacksFromStat.stat, effect.stacksFromStat.multiplier));
+      if (effect.statusDataFrom)
+        return Math.round(statScaledValue(stats, effect.statusDataFrom.stat, effect.statusDataFrom.multiplier));
       return effect.amount ?? 0;
     case "APPLY_STAT_MOD":
     case "DRAW":

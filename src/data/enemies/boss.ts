@@ -81,7 +81,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
         anim: "buff",
         effects: [
           { type: "DAMAGE", multiplier: 0.35, target: "primary" },
-          { type: "APPLY_STATUS", status: "weak", stacks: 2, target: "primary" },
+          { type: "APPLY_STATUS", status: "weak", stacks: 1, duration: 2, target: "primary" },
         ],
       },
       {
@@ -98,6 +98,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
     boonTable: [
       { kind: "healDew", chance: 0.8 },
       { kind: "equipCrate", chance: 1 },
+      { kind: "moduleCrate", chance: 0.5 },
       { kind: "cardOffer", chance: 1 },
     ],
   },

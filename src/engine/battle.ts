@@ -17,6 +17,7 @@ import type {
 import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
 import {
+  addMod,
   makeStats,
   partyDrawCount,
   partyHandLimit,
@@ -26,7 +27,8 @@ import {
   partyWaitLimit,
 } from "./stats";
 import { shuffle } from "./rng";
-import { applyStatus, checkEnd, log, runRoundEnd, runRoundStart } from "./ops";
+import { applyStatus, checkEnd, log } from "./ops";
+import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { cardCost, manaCostOf, starlightPayment } from "./cost";
@@ -112,6 +114,7 @@ export function createBattle(
       mods: {},
       statuses: [],
       alive: true,
+      tempo: 0,
       pollution: Math.max(0, Math.min(99, Math.round(a.pollution ?? 0))),
       sick: a.sick ?? false,
       quirks: [...(a.quirks ?? [])],
@@ -150,6 +153,7 @@ export function createBattle(
       mods: {},
       statuses: [],
       alive: true,
+      tempo: 0,
       moveDelayDelta: mod?.moveDelayDelta ?? 0,
       nextActTick: null,
       actsPerRound: Math.max(1, def.actsPerRound ?? 1),
@@ -205,6 +209,7 @@ export function createBattle(
     pendingAutoPlays: [],
     waterfallPlay: false,
     playValueBonusPct: 0,
+    playStatMods: [],
     activeCardCost: null,
   };
 
@@ -255,7 +260,6 @@ export function startRound(state: BattleState): void {
   const want = state.round === 1 ? partyOpeningDrawCount(state) : partyDrawCount(state);
   drawCards(state, Math.max(0, Math.min(want, limit - state.hand.length)));
 
-  runRoundStart(state); // 中毒/再生等在回合开始结算
   checkEnd(state);
 }
 
@@ -327,6 +331,16 @@ export function discardHandCard(state: BattleState, uid: string, rec?: FxRecorde
   return true;
 }
 
+// 撤回本次出牌期间写进面板的 PLAY_STAT_BONUS。★ 逐条按相反数写回 mods 再清台账,
+// 与写入端严格对称 —— 出牌开始与出牌结束各调一次(后者兜底异常路径)。
+function revertPlayStatMods(state: BattleState): void {
+  for (const entry of state.playStatMods) {
+    const target = state.combatants[entry.targetId];
+    if (target) addMod(target, entry.stat, -entry.amount, entry.pct);
+  }
+  state.playStatMods = [];
+}
+
 export function playCard(
   state: BattleState,
   uid: string,
@@ -363,6 +377,7 @@ export function playCard(
   const cardHits = withHitRecorder(() => {
     withDiscardRecorder(discardRecorder, () => {
       state.playValueBonusPct = 0;
+      revertPlayStatMods(state);
       state.activeCardCost = faceCost;
       try {
         const cultivated = cultivateReady(card);
@@ -393,6 +408,8 @@ export function playCard(
         card.marks = [];
         state.waterfallPlay = false;
         state.playValueBonusPct = 0;
+        // ⚠ 必须在 flushAutoPlays 之前撤回: 自动出牌是另一张牌的结算, 不该继承本卡的临时面板。
+        revertPlayStatMods(state);
         if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
         flushAutoPlays(state, rec);
       } finally {
@@ -429,6 +446,19 @@ export function playCard(
 // ---------------------------------------------------------------------------
 // 结束回合
 // ---------------------------------------------------------------------------
+// 我方拍点(DOT/HOT)。带记录器时逐个单位录一帧, 让掉血/回血逐个演出而不是数字突变。
+function runAllyTempoRecorded(state: BattleState, rec?: FxRecorder): void {
+  if (!rec) {
+    runAllyTempo(state);
+    return;
+  }
+  for (const id of allyTempoIds(state)) {
+    if (!state.combatants[id]?.alive) continue;
+    const hits = withHitRecorder(() => runOwnerTempo(state, id));
+    if (hits.length) rec.steps.push({ kind: "tempo", ownerId: id, hits, snapshot: structuredClone(state) });
+  }
+}
+
 export function endRound(state: BattleState, rec?: FxRecorder): void {
   if (state.pendingChoice || state.phase !== "player") return;
   withDiscardRecorder(rec, () => {
@@ -438,7 +468,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     flushPendingActs(state, rec);
     if (state.phase !== "player") return;
 
-    runRoundEnd(state); // 虚弱/易伤 -1 等
+    runAllyTempoRecorded(state, rec);
     checkEnd(state);
     if (state.phase !== "player") return;
     checkMassacreOnRoundSettle(state);
