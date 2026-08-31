@@ -21,7 +21,7 @@ import type {
 import { STATUS_DEFS } from "./statuses";
 import { RULES } from "./rules";
 import { rngFloat } from "./rng";
-import { addMod, critChance, defenseMultiplier, hitChance, offenseStatOf, statOf } from "./stats";
+import { addMod, critChance, defenseMultiplier, healValue, hitChance, offenseStatOf, statOf } from "./stats";
 import { noteChallengeDamage, noteChallengeKill } from "./challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, syncSegments } from "./statuses/stacking";
@@ -232,7 +232,7 @@ export function previewDamage(
   return Math.max(0, Math.round(dmg.amount));
 }
 
-// 最终治疗 =(基础治疗 + 治愈力)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力 × 倍率,
+// 最终治疗 =(基础治疗 + 治愈力÷healDivisor)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力÷healDivisor × 倍率,
 // 此时只乘治愈强度, 避免重复叠加治愈力。sourceId 缺省 = 无施法者, 不吃两项加成。
 export function heal(
   state: BattleState,
@@ -246,7 +246,9 @@ export function heal(
   const src = sourceId ? state.combatants[sourceId] : undefined;
   let final = amount;
   if (src) {
-    final = (opts.scaled ? amount : amount + offenseStatOf(state, src, "healPower")) * (1 + statOf(src, "healBoost") / 100);
+    final =
+      (opts.scaled ? amount : amount + healValue(offenseStatOf(state, src, "healPower"))) *
+      (1 + statOf(src, "healBoost") / 100);
   }
 
   const before = t.hp;

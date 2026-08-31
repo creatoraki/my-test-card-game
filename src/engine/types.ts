@@ -328,7 +328,7 @@ export interface StatBlock {
   // 生存与输出
   maxHp: number; // 最大生命。★ 战斗中的实时上限读 Combatant.maxHp, 这里只是声明来源
   attack: number; // 攻击力: 攻击牌伤害 = 攻击力 ÷ RULES.combat.attackDivisor × 倍率
-  healPower: number; // 治愈力: 治疗基础值 + 该值
+  healPower: number; // 治愈力: 治疗/护盾基础值 = 治愈力 ÷ RULES.combat.healDivisor × 倍率
   lowCostMastery: number; // 低费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
   highCostMastery: number; // 高费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
   defense: number; // 防御力: 正值按防御力 / (防御力 + 常量)减伤，负值增伤；穿甲只抵扣正防御，角色基础防御力为 0

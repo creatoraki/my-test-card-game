@@ -65,7 +65,8 @@ export const RULES = {
     enemyBaseHitBonus: 5, // 怪物阵营统一命中补正(百分点)
 
     defenseConstant: 50, // 减伤 = 防御力 / (防御力 + 该常量)
-    attackDivisor: 5,
+    attackDivisor: 5, // 攻击牌伤害 = 攻击力 ÷ 该值 × 倍率
+    healDivisor: 5, // 治疗/护盾基础值 = 治愈力 ÷ 该值 × 倍率
     lowCostApMax: 1,
     baseHitChance: 100, // P_base
     hitFloorPct: 5, // 最终命中概率下限

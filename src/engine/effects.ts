@@ -5,7 +5,7 @@
 
 import type { BattleState, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
 import { ops } from "./ops";
-import { addMod, attackDamage, offenseStatOf, partyHandLimit, statOf } from "./stats";
+import { addMod, attackDamage, healValue, offenseStatOf, partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
@@ -35,11 +35,13 @@ function counterOf(state: BattleState, source: CounterSource): number {
   return state.playedThisRound.length;
 }
 
+// 由施法者属性换算出的数值(层数 / 状态参数)。★ 攻击力与治愈力都是 100 基准面板,
+// 一律先 ÷ 各自的 divisor 再乘卡牌倍率, 与伤害/治疗的口径保持一致。
 function sourceStatValue(state: BattleState, source: Combatant | undefined, stat: keyof StatBlock): number {
   if (!source) return 0;
-  return stat === "attack" || stat === "healPower"
-    ? offenseStatOf(state, source, stat)
-    : statOf(source, stat);
+  if (stat === "attack") return attackDamage(offenseStatOf(state, source, stat), 1);
+  if (stat === "healPower") return healValue(offenseStatOf(state, source, stat));
+  return statOf(source, stat);
 }
 
 function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
@@ -200,18 +202,18 @@ function applyEffect(
       break;
     }
     case "GAIN_SHIELD": {
-      // amount = 固定基础护盾; multiplier = 治愈力 × 倍率。护盾强度仍在 ops 里结算。
+      // amount = 固定基础护盾; multiplier = 治愈力÷healDivisor × 倍率。护盾强度仍在 ops 里结算。
       const shield =
-        (effect.multiplier != null ? offenseStatOf(state, src, "healPower") * effect.multiplier : amount) *
+        (effect.multiplier != null ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier) : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
     }
     case "HEAL": {
-      // amount = 固定基础治疗; multiplier = 治愈力 × 倍率。治愈强度仍在 ops 里结算。
+      // amount = 固定基础治疗; multiplier = 治愈力÷healDivisor × 倍率。治愈强度仍在 ops 里结算。
       const scaled = effect.multiplier != null;
       const healing =
-        (scaled ? offenseStatOf(state, src, "healPower") * effect.multiplier! : amount) *
+        (scaled ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier!) : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;

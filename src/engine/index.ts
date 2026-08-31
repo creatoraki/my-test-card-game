@@ -21,6 +21,7 @@ export {
   addStats,
   applyModifier,
   attackDamage,
+  healValue,
   masteryBonusOf,
   offenseStatOf,
   statOf,
