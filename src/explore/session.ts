@@ -175,6 +175,10 @@ function pickWeighted<T extends { weight: number }>(s: ExploreState, options: re
 }
 
 function roundBattleTier(s: ExploreState): BattleTier {
+  const map = getMap(s.mapId);
+  if (map.battleTierByRound?.length) {
+    return map.battleTierByRound[Math.min(s.round - 1, map.battleTierByRound.length - 1)];
+  }
   const rows = EXPLORE_RULES.battleTierWeights[Math.min(Math.max(s.round, 1), EXPLORE_RULES.battleTierWeights.length) - 1];
   return pickWeighted(s, rows).tier;
 }

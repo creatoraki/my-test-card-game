@@ -462,6 +462,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
     if (session.phase === "cleared") {
       bankEverything(session);
+      useTownStore.getState().markMapCleared(session.mapId);
       useBattleStore.getState().clear();
       set({
         screen: "victory",
@@ -568,6 +569,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
       return;
     }
     bankEverything(session);
+    if (session.phase === "cleared") {
+      useTownStore.getState().markMapCleared(session.mapId);
+    }
     set({
       screen: "victory",
       lastResult: session.phase === "cleared" ? "won" : "retreat",

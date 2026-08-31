@@ -65,7 +65,13 @@ export {
   type EnemyPlacement,
   type EnemySlot,
 } from "./encounters";
-export { MAPS, mapEquipRarities, type MapDef } from "./maps";
+export {
+  MAPS,
+  isMapUnlocked,
+  mapEquipRarities,
+  mapLockReason,
+  type MapDef,
+} from "./maps";
 export { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
 export {
   CONSUMABLE_ITEM_DEFS,

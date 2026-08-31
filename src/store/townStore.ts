@@ -125,6 +125,7 @@ interface TownStore {
   // ⚠ characters 仍是**全量**建档(见 freshProfile) —— 「有没有解锁」只看这里, 各处取
   //   characters[id] 才不必判空。上阵资格 = 在这张名单上。
   awakened: string[];
+  clearedMaps: string[]; // 已通关的地图 id
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize, 且必须 ⊆ awakened
   loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
   // ★ 物资中转仓: **不设上限**(与背包的 24 格形成对照)。远征活着回来才有东西进来。
@@ -135,6 +136,7 @@ interface TownStore {
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
+  markMapCleared: (mapId: string) => void; // 记录通关地图, 已记录则保持不变
   bankLoot: (amount: number) => void; // 远征结束落袋
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
@@ -447,6 +449,7 @@ function freshStorage(): ItemStack[] {
 function freshProfile(includeInitialExp = true): {
   characters: Record<string, CharacterState>;
   awakened: string[];
+  clearedMaps: string[];
   party: string[];
   squadTalent: SquadTalentState;
 } {
@@ -467,6 +470,7 @@ function freshProfile(includeInitialExp = true): {
   return {
     characters,
     awakened,
+    clearedMaps: [],
     party: awakened.slice(0, RULES.progression.partySize),
     squadTalent: { badgeId: null, nodes: [] },
   };
@@ -483,6 +487,7 @@ export const useTownStore = create<TownStore>()(
     (set, get) => ({
       characters: {},
       awakened: [],
+      clearedMaps: [],
       party: [],
       loot: 10000,
       storage: [],
@@ -501,6 +506,12 @@ export const useTownStore = create<TownStore>()(
           shop: freshShop(1),
           initialized: true,
         });
+      },
+
+      markMapCleared: (mapId) => {
+        const { clearedMaps } = get();
+        if (clearedMaps.includes(mapId)) return;
+        set({ clearedMaps: [...clearedMaps, mapId] });
       },
 
       resetProfile: () =>
@@ -1132,6 +1143,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v14: 新增 clearedMaps, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v13: 商店货架合并为 slots, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v12: CharacterState 新增 hpLimit —— 远征打掉的体力极限现在跨日持久化。
     //   旧档没有这个字段, 换 key 让旧档自然失效重建。
@@ -1143,6 +1155,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v13", version: 13 },
+    { name: "town-profile-v14", version: 14 },
   ),
 );

@@ -110,6 +110,11 @@
   text-shadow: 0 0 18px #91e8dc3d, 0 1px 8px #000000b3;
 }
 
+.lockReason {
+  color: #ffd08a;
+  font-weight: 700;
+}
+
 @keyframes rise {
   from {
     opacity: 0;

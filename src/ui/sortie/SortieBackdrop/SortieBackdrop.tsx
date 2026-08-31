@@ -12,6 +12,7 @@ interface Props {
   intro: boolean;
   infoEntering?: boolean;
   infoExiting?: boolean;
+  lockReason?: string | null;
 }
 
 interface BackgroundLayer {
@@ -26,6 +27,7 @@ export function SortieBackdrop({
   intro,
   infoEntering = false,
   infoExiting = false,
+  lockReason = null,
 }: Props) {
   const map = MAPS.find((candidate) => candidate.id === mapId) ?? MAPS[0];
   const directionRef = useRef<1 | -1>(1);
@@ -97,6 +99,7 @@ export function SortieBackdrop({
             </span>
             <span>{map.roundCount} 轮</span>
             <span>粒子 {map.startingEnergy}</span>
+            {lockReason && <span className={s.lockReason}>{lockReason}</span>}
           </div>
         </header>
       )}
