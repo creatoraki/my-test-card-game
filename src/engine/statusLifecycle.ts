@@ -2,6 +2,7 @@ import { STATUS_DEFS } from "./statuses";
 import { RULES } from "./rules";
 import type { BattleState } from "./types";
 import { allIds, cleanup, ctxFor, markDead } from "./ops";
+import { effectiveStacks, tickStatus } from "./statuses/stacking";
 
 function runTempo(state: BattleState, ownerId: string): void {
   const cmb = state.combatants[ownerId];
@@ -11,16 +12,15 @@ function runTempo(state: BattleState, ownerId: string): void {
   const tempo = cmb.team === "enemy" ? cmb.tempo + 1 : cmb.tempo;
   for (const inst of [...cmb.statuses]) {
     if (!cmb.alive) break;
-    if (inst.appliedAt === tempo) continue;
-    STATUS_DEFS[inst.id]?.hooks?.onTempo?.(ctxFor(state, ownerId, inst));
+    const def = STATUS_DEFS[inst.id];
+    if (!def) continue;
+    const stacks = effectiveStacks(inst, def, tempo);
+    if (stacks > 0) def.hooks?.onTempo?.(ctxFor(state, ownerId, inst, stacks));
   }
 
   for (const inst of [...cmb.statuses]) {
-    if (inst.appliedAt === tempo) continue;
     const def = STATUS_DEFS[inst.id];
-    if (def?.decay === "one") inst.stacks -= 1;
-    if (def?.decay === "half") inst.stacks = Math.floor(inst.stacks / 2);
-    if (inst.duration != null) inst.duration -= 1;
+    if (def) tickStatus(inst, def, tempo);
   }
   cleanup(cmb);
   if (cmb.team === "enemy" && cmb.hp <= 0) markDead(state, cmb);

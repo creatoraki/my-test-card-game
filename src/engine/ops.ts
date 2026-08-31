@@ -24,6 +24,7 @@ import { rngFloat } from "./rng";
 import { addMod, critChance, defenseMultiplier, hitChance, offenseStatOf, statOf } from "./stats";
 import { noteChallengeDamage, noteChallengeKill } from "./challenges";
 import { recordHitPart } from "./animHits";
+import { capStatusStacks, mergeStatus, syncSegments } from "./statuses/stacking";
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -41,8 +42,8 @@ export function cleanup(cmb: Combatant): void {
   cmb.statuses = cmb.statuses.filter((s) => s.stacks > 0 && (s.duration == null || s.duration > 0));
 }
 
-export function ctxFor(state: BattleState, ownerId: string, inst: StatusInstance): StatusCtx {
-  return { state, ownerId, inst, ops };
+export function ctxFor(state: BattleState, ownerId: string, inst: StatusInstance, stacks = inst.stacks): StatusCtx {
+  return { state, ownerId, inst, stacks, ops };
 }
 
 // 掷一次百分点概率(0~100)。走战斗 RNG, 保证同种子可复现。
@@ -303,25 +304,26 @@ export function applyStatus(
 
   const existing = getStatus(t, statusId);
   if (existing) {
-    existing.stacks += stacks;
-    if (duration != null) existing.duration = Math.max(existing.duration ?? 0, duration);
+    mergeStatus(existing, def ?? { id: statusId, name: statusId, emoji: "", kind: "buff", desc: "" }, stacks, duration, t.tempo);
     if (data) existing.data = { ...existing.data, ...data };
     if (sourceId) existing.sourceId = sourceId;
-    existing.appliedAt = t.tempo;
   } else {
-    t.statuses.push({
+    const instance: StatusInstance = {
       id: statusId,
       stacks,
       ...(duration != null ? { duration } : {}),
       ...(data ? { data: { ...data } } : {}),
       ...(sourceId ? { sourceId } : {}),
       appliedAt: t.tempo,
-    });
+    };
+    if (def?.stackMode === "segments") {
+      instance.segments = [{ stacks, ...(duration != null ? { duration } : {}), appliedAt: t.tempo }];
+      syncSegments(instance);
+    }
+    t.statuses.push(instance);
   }
-  if (def?.maxStacks != null) {
-    const inst = getStatus(t, statusId)!;
-    inst.stacks = Math.min(inst.stacks, def.maxStacks);
-  }
+  const inst = getStatus(t, statusId)!;
+  if (def) capStatusStacks(inst, def);
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
 }

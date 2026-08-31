@@ -179,8 +179,8 @@ export const PROPHET_CARD_DEFS: CardDef[] = [
     rarity: "common",
     starPay: true,
     anim: "buff",
-    effects: [{ type: "APPLY_STATUS", status: "regen", stacks: 2, duration: 3, target: "primary" }],
-    text: "为一名队友附加 2 层再生，持续 3 回合。应星。不推进时刻。",
+    effects: [{ type: "APPLY_STATUS", status: "regen", stacksFromStat: { stat: "healPower", multiplier: 0.2 }, duration: 3, target: "primary" }],
+    text: "为一名队友附加 {0} 层再生，持续 3 回合。应星。不推进时刻。",
   },
   {
     id: "emergency-treatment",

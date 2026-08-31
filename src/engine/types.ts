@@ -97,7 +97,9 @@ export interface EffectDescriptor {
   statusData?: Record<string, number>; // APPLY_STATUS: 状态的结构化运行时参数
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
+  stacksFromStat?: { stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 层数 = 施法者属性 × 倍率
   aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
+  aimedStacksMultiplier?: number; // APPLY_STATUS: 目标已有瞄准时层数倍率
   boostSource?: "spendPartyStarlight" | "primaryAimed"; // VALUE_BOOST: 数值加成来源
   boostPct?: number; // VALUE_BOOST: 每次成功触发增加的百分点
   duration?: number; // APPLY_STATUS: 剩余拍数
@@ -240,6 +242,15 @@ export interface PendingChoice {
 // ---------------------------------------------------------------------------
 export type StatusKind = "buff" | "debuff";
 
+export type StackMode = "add" | "max" | "segments";
+export type RefreshMode = "max" | "override" | "keep";
+
+export interface StatusSegment {
+  stacks: number;
+  duration?: number;
+  appliedAt: number;
+}
+
 export interface StatusInstance {
   id: string;
   stacks: number;
@@ -247,6 +258,7 @@ export interface StatusInstance {
   data?: Record<string, number>; // 状态的结构化运行时参数
   sourceId?: string; // 施加该状态的单位, 供持续效果读取施法者属性
   appliedAt?: number; // 施加时持有者的节拍号, 用于跳过施加当拍的处理
+  segments?: StatusSegment[]; // stackMode="segments" 专用; stacks/duration 为派生汇总值
 }
 
 // 传给状态钩子的上下文。ops 提供引擎原语, 使 statuses.ts 无需 import 具体实现。
@@ -254,6 +266,7 @@ export interface StatusCtx {
   state: BattleState;
   ownerId: string;
   inst: StatusInstance;
+  stacks: number;
   ops: EngineOps;
 }
 
@@ -298,6 +311,8 @@ export interface StatusDef {
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
   decay?: "one" | "half"; // 每拍层数衰减; 缺省 = 不衰减
+  stackMode?: StackMode; // 同种状态再次施加时的层数合并方式
+  refreshMode?: RefreshMode; // 同种状态再次施加时的持续拍数合并方式
   statMods?: Partial<StatBlock>; // 每层提供的固定属性修正
   statModsPct?: Partial<StatBlock>; // 每层提供的百分比属性修正(百分点)
   resistMode?: ResistMode; // 仅 debuff 需要; 缺省 = 不可被异常抗性削减

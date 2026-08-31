@@ -3,7 +3,7 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { BattleState, CounterSource, EffectDescriptor } from "./types";
+import type { BattleState, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
 import { ops } from "./ops";
 import { addMod, attackDamage, offenseStatOf, partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
@@ -33,6 +33,13 @@ function counterOf(state: BattleState, source: CounterSource): number {
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((card) => card.cardType === "fast").length;
   return state.playedThisRound.length;
+}
+
+function sourceStatValue(state: BattleState, source: Combatant | undefined, stat: keyof StatBlock): number {
+  if (!source) return 0;
+  return stat === "attack" || stat === "healPower"
+    ? offenseStatOf(state, source, stat)
+    : statOf(source, stat);
 }
 
 function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
@@ -254,19 +261,19 @@ function applyEffect(
       const generatedData = effect.statusDataFrom
         ? {
             ...effect.statusData,
-            [effect.statusDataFrom.key]: src
-              ? effect.statusDataFrom.stat === "attack" || effect.statusDataFrom.stat === "healPower"
-                ? offenseStatOf(state, src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
-                : statOf(src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier
-              : 0,
+            [effect.statusDataFrom.key]: sourceStatValue(state, src, effect.statusDataFrom.stat) * effect.statusDataFrom.multiplier,
           }
         : effect.statusData;
       for (const id of targetIds) {
-        const aimedBonus =
-          effect.aimedStacks && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
-            ? effect.aimedStacks
-            : 0;
-        const stacks = (effect.stacksFrom ? counterOf(state, effect.stacksFrom) : effect.stacks ?? 0) + aimedBonus;
+        const aimed = state.combatants[id]?.statuses.some((status) => status.id === "aimed");
+        const baseStacks = effect.stacksFromStat
+          ? Math.round(sourceStatValue(state, src, effect.stacksFromStat.stat) * effect.stacksFromStat.multiplier)
+          : effect.stacksFrom
+            ? counterOf(state, effect.stacksFrom)
+            : effect.stacks ?? 0;
+        const aimedStacks = effect.aimedStacks && aimed ? effect.aimedStacks : 0;
+        const aimedMultiplier = effect.aimedStacksMultiplier != null && aimed ? effect.aimedStacksMultiplier : 1;
+        const stacks = Math.round(baseStacks * aimedMultiplier) + aimedStacks;
         if (stacks > 0)
           ops.applyStatus(state, id, effect.status, stacks, effect.duration, generatedData, sourceId);
       }
