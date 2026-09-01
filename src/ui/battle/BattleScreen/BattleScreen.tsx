@@ -433,6 +433,8 @@ export function BattleScreen() {
       const block = playBlockReason(battle, uid);
       if (block) {
         if (block === "mana") showBattleToast("费用不足");
+        // 被动卡永远打不出去, 点了要给个说法, 否则读作"点击没反应"。
+        else if (battle.cards[uid]?.cardType === "passive") showBattleToast("被动卡无法打出");
         return;
       }
       const card = battle.cards[uid];

@@ -27,7 +27,8 @@ import {
   partyWaitLimit,
 } from "./stats";
 import { shuffle } from "./rng";
-import { applyStatus, checkEnd, log } from "./ops";
+import { applyStatus, checkEnd, log, ops } from "./ops";
+import { STATUS_DEFS } from "./statuses";
 import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
@@ -45,6 +46,7 @@ import { getEncounter, getEnemyDef, slotDefId } from "../data";
 import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
 import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
+import { isPassive, playableHandUids, recycleHandPassives } from "./passive";
 import { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
 import { withHitRecorder } from "./animHits";
 
@@ -211,6 +213,10 @@ export function createBattle(
     playValueBonusPct: 0,
     playStatMods: [],
     activeCardCost: null,
+    activeCardStacks: 0,
+    passiveEventCardUid: null,
+    lastDiscardBatchCost: 0,
+    lastConvertBatch: 0,
   };
 
   state.draw = shuffle(state, Object.keys(cards));
@@ -229,6 +235,18 @@ export function createBattle(
 // ---------------------------------------------------------------------------
 // 回合开始
 // ---------------------------------------------------------------------------
+// 我方存活单位身上带 onRoundStart 的状态各触发一次。
+function runRoundStartHooks(state: BattleState): void {
+  for (const id of state.playerIds) {
+    const unit = state.combatants[id];
+    if (!unit?.alive) continue;
+    for (const inst of [...unit.statuses]) {
+      const hook = STATUS_DEFS[inst.id]?.hooks?.onRoundStart;
+      if (hook) hook({ state, ownerId: id, inst, stacks: inst.stacks, ops });
+    }
+  }
+}
+
 export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
@@ -239,6 +257,8 @@ export function startRound(state: BattleState): void {
   state.lastDiscardBatch = 0;
   state.lastDiscardBatchFast = 0;
   state.lastRecoverBatchFast = 0;
+  state.lastDiscardBatchCost = 0;
+  state.lastConvertBatch = 0;
   state.pendingAutoPlays = [];
   state.waterfallPlay = false;
   state.playedThisRound = [];
@@ -254,6 +274,9 @@ export function startRound(state: BattleState): void {
     e.actsThisRound = 0;
     startCharge(state, id);
   }
+
+  // 状态的回合开始钩子(罗生门等)。★ 必须排在抽牌之前 —— 它们大多是"回合开始时抽牌"。
+  runRoundStartHooks(state);
 
   // 第 1 回合抽开局张数(5), 之后每回合抽小队抽牌数(2), 均抽到手牌上限为止。
   const limit = partyHandLimit(state);
@@ -281,6 +304,7 @@ export type PlayBlock = null | "mana" | "other";
 export function playBlockReason(state: BattleState, uid: string): PlayBlock {
   const card = state.cards[uid];
   if (!card || state.phase !== "player" || !state.hand.includes(uid)) return "other";
+  if (isPassive(card)) return "other"; // 被动卡不可打出, 只在手中生效
   const owner = state.combatants[card.ownerCharId];
   if (!owner || !owner.alive) return "other";
   if (owner.statuses.some((status) => status.id === "stun" && status.stacks > 0)) return "other";
@@ -356,7 +380,8 @@ export function playCard(
   const faceCost = cardCost(state, card);
   const starPayment = starlightPayment(state, card);
   const manaPayment = faceCost - starPayment;
-  state.waterfallPlay = state.hand
+  // 瀑布只看"能打出的手牌" —— 被动卡无费用, 不参与任何费用比较。
+  state.waterfallPlay = playableHandUids(state)
     .filter((handUid) => handUid !== uid)
     .every((handUid) => card.cost > (state.cards[handUid]?.cost ?? 0));
   if (starPayment > 0) applyStatus(state, owner.id, "starlight", -starPayment);
@@ -379,6 +404,7 @@ export function playCard(
       state.playValueBonusPct = 0;
       revertPlayStatMods(state);
       state.activeCardCost = faceCost;
+      state.activeCardStacks = card.discardStacks ?? 0;
       try {
         const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
@@ -406,6 +432,7 @@ export function playCard(
           if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
         }
         card.marks = [];
+        card.discardStacks = 0; // 累计层数只在"未打出"期间有效, 打出即清零
         state.waterfallPlay = false;
         state.playValueBonusPct = 0;
         // ⚠ 必须在 flushAutoPlays 之前撤回: 自动出牌是另一张牌的结算, 不该继承本卡的临时面板。
@@ -414,6 +441,7 @@ export function playCard(
         flushAutoPlays(state, rec);
       } finally {
         state.activeCardCost = null;
+        state.activeCardStacks = 0;
       }
     });
   });
@@ -476,6 +504,8 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     if (RULES.hand.discardLeftoversOnRoundEnd) {
       for (const cardUid of [...state.hand]) moveToDiscard(state, cardUid, "roundEnd");
     }
+    // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
+    recycleHandPassives(state, rec);
     flushAutoPlays(state, rec);
     if (state.phase !== "player") return;
     startRound(state);

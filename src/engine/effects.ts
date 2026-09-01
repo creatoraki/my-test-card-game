@@ -3,7 +3,7 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { BattleState, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
+import type { BattleState, Card, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
 import { ops } from "./ops";
 import { addMod, attackDamage, healValue, offenseStatOf, partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
@@ -13,6 +13,7 @@ import { cardCost, starPayable } from "./cost";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { getStatusDef } from "./statuses";
 import { advanceCultivate, resetCultivate } from "./cultivate";
+import { isPassive, playableHandUids } from "./passive";
 
 export interface EffectResolution {
   missed: string[];
@@ -30,6 +31,8 @@ function counterOf(state: BattleState, source: CounterSource): number {
   if (source === "discardsThisBattle") return state.discardsThisBattle;
   if (source === "lastDiscardBatchFast") return state.lastDiscardBatchFast;
   if (source === "lastRecoverBatchFast") return state.lastRecoverBatchFast;
+  if (source === "lastDiscardBatchCost") return state.lastDiscardBatchCost;
+  if (source === "lastConvertBatch") return state.lastConvertBatch;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((card) => card.cardType === "fast").length;
   return state.playedThisRound.length;
@@ -54,10 +57,11 @@ export function conditionMet(state: BattleState, effect: EffectDescriptor): bool
   if (effect.condition === "noPlaysThisRound")
     return counterOf(state, "cardsPlayedThisRound") === 0;
   if (effect.condition === "waterfall") return state.waterfallPlay;
+  // ★ 手牌口径的条件一律走 playableHandUids —— 被动卡无费用、不可打出, 不参与统计。
   if (effect.condition === "handHasCostAtLeast")
-    return state.hand.some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
+    return playableHandUids(state).some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
   if (effect.condition === "fastCardsInHandAtLeast")
-    return state.hand.filter((uid) => state.cards[uid]?.cardType === "fast").length >= (effect.conditionValue ?? 0);
+    return playableHandUids(state).filter((uid) => state.cards[uid]?.cardType === "fast").length >= (effect.conditionValue ?? 0);
   return true;
 }
 
@@ -115,6 +119,23 @@ export function resolveTargets(
   }
 }
 
+// 治疗/护盾的计数加算倍率(与 DAMAGE 的 bonusMultiplierFrom / bonusMultiplierPer 同口径)。
+function supportBonusMultiplier(state: BattleState, effect: EffectDescriptor): number {
+  return effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
+    ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
+    : 0;
+}
+
+// 击杀触发的子效果。单独成函数是为了让 DAMAGE 分支只写一行, 语义也和主效果解耦。
+function applyOnKill(
+  state: BattleState,
+  effects: EffectDescriptor[],
+  sourceId: string,
+  killedId: string,
+): EffectResolution {
+  return resolveEffects(state, effects, sourceId, killedId);
+}
+
 function applyEffect(
   state: BattleState,
   effect: EffectDescriptor,
@@ -137,7 +158,11 @@ function applyEffect(
         effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
           ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
           : 0;
-      const baseMultiplier = (effect.multiplier ?? 1) + bonusMult;
+      const selfStackMult =
+        effect.bonusMultiplierPerSelfStack != null
+          ? state.activeCardStacks * effect.bonusMultiplierPerSelfStack
+          : 0;
+      const baseMultiplier = (effect.multiplier ?? 1) + bonusMult + selfStackMult;
       const hits = effect.hitsFrom
         ? Math.min(counterOf(state, effect.hitsFrom), effect.maxHits ?? Infinity)
         : Math.max(
@@ -150,19 +175,22 @@ function applyEffect(
               let lifestealPool = 0;
       for (let i = 0; i < hits; i++)
         for (const id of targetIds) {
-          const targetHasShield = state.combatants[id]?.shield > 0;
+          const targetUnit = state.combatants[id];
+          const targetHasShield = targetUnit?.shield > 0;
+          const hpPct = targetUnit && targetUnit.maxHp > 0 ? (targetUnit.hp / targetUnit.maxHp) * 100 : 100;
           const bonusApplies =
             !fixed &&
             effect.damageBonus &&
             ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
-              (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield));
+              (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield) ||
+              (effect.damageBonus.when === "targetHpBelowPct" && hpPct < (effect.damageBonus.value ?? 0)));
           const aimedBonus =
             effect.aimedMultiplier != null && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
               ? effect.aimedMultiplier
               : baseMultiplier;
           const damageMultiplier =
             bonusApplies
-              ? aimedBonus + effect.damageBonus.multiplier
+              ? aimedBonus + (effect.damageBonus?.multiplier ?? 0)
               : aimedBonus;
           const valueMultiplier = 1 + state.playValueBonusPct / 100;
           const dmg = fixed
@@ -184,9 +212,22 @@ function applyEffect(
           });
           if (result === "missed") resolution.missed.push(id);
           else if (result === "hit") resolution.hit.push(id);
+          // 击杀触发: 本段把目标打死时结算一次, 主目标 = 被击杀者。
+          if (effect.onKill?.length && result !== null && targetUnit?.alive === false)
+            mergeResolution(resolution, applyOnKill(state, effect.onKill, sourceId, id));
         }
       if (effect.lifesteal != null && lifestealPool > 0)
         ops.heal(state, sourceId, sourceId, lifestealPool * effect.lifesteal, { scaled: true });
+      break;
+    }
+    // 失去生命: 不是伤害 —— 不吃护盾/防御/格挡/命中/暴击, 也不触发受击类钩子。
+    case "LOSE_HP": {
+      for (const id of targetIds) {
+        const target = state.combatants[id];
+        if (!target?.alive) continue;
+        const lost = effect.pctOfCurrentHp != null ? target.hp * effect.pctOfCurrentHp : amount;
+        if (lost > 0) ops.loseHp(state, id, lost);
+      }
       break;
     }
     case "DRAIN_SHIELD": {
@@ -205,8 +246,11 @@ function applyEffect(
     }
     case "GAIN_SHIELD": {
       // amount = 固定基础护盾; multiplier = 治愈力÷healDivisor × 倍率。护盾强度仍在 ops 里结算。
+      // bonusMultiplierFrom / Per 与 DAMAGE 同口径: 按计数**加算**到倍率上(鲸鸢按转换张数给盾)。
+      const shieldMultiplier =
+        effect.multiplier != null ? effect.multiplier + supportBonusMultiplier(state, effect) : null;
       const shield =
-        (effect.multiplier != null ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier) : amount) *
+        (shieldMultiplier != null ? healValue(offenseStatOf(state, src, "healPower"), shieldMultiplier) : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
@@ -214,8 +258,9 @@ function applyEffect(
     case "HEAL": {
       // amount = 固定基础治疗; multiplier = 治愈力÷healDivisor × 倍率。治愈强度仍在 ops 里结算。
       const scaled = effect.multiplier != null;
+      const healMultiplier = scaled ? effect.multiplier! + supportBonusMultiplier(state, effect) : 0;
       const healing =
-        (scaled ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier!) : amount) *
+        (scaled ? healValue(offenseStatOf(state, src, "healPower"), healMultiplier) : amount) *
         (1 + state.playValueBonusPct / 100);
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;
@@ -324,9 +369,15 @@ function applyEffect(
         }
       } else selected = state.hand.slice(0, amountToDiscard);
       const selectedFastCount = selected.filter((uid) => state.cards[uid]?.cardType === "fast").length;
+      // ★ 费用合计必须在丢弃**之前**统计: 丢弃后卡还在 state.cards, 但动态费用的计数已经变了。
+      const selectedCost = selected.reduce((sum, uid) => {
+        const card = state.cards[uid];
+        return sum + (card ? cardCost(state, card) : 0);
+      }, 0);
       for (const uid of selected) ops.discard(state, uid, "effect");
       state.lastDiscardBatch = selected.length;
       state.lastDiscardBatchFast = selectedFastCount;
+      state.lastDiscardBatchCost = selectedCost;
       break;
     }
     case "RECOVER_FROM_DISCARD": {
@@ -363,8 +414,23 @@ function applyEffect(
     }
     case "MARK_CARDS": {
       if (!effect.mark || !effect.markPick) break;
+      // 被动卡打不出来, 标记永远不会结算 ⇒ 一律不进候选池。
+      const markable = playableHandUids(state);
+      // eventCard: 触发本次被动的那张牌(天眼给"刚抽到的牌"打心眼)。
+      if (effect.markPick === "eventCard") {
+        const uid = state.passiveEventCardUid;
+        const target = uid ? state.cards[uid] : undefined;
+        if (target && !isPassive(target) && state.hand.includes(target.uid)) {
+          target.marks ??= [];
+          if (!target.marks.includes(effect.mark)) {
+            target.marks.push(effect.mark);
+            ops.log(state, `${target.name} 被标记为${CARD_MARK_DEFS[effect.mark]?.name ?? effect.mark}`);
+          }
+        }
+        break;
+      }
       if (effect.markPick === "handAll") {
-        for (const uid of state.hand) {
+        for (const uid of markable) {
           const card = state.cards[uid];
           if (!card) continue;
           card.marks ??= [];
@@ -374,7 +440,7 @@ function applyEffect(
       }
       const amountToMark = Math.max(0, Math.floor(effect.amount ?? 0));
       if (effect.markPick === "handHighestCostRandom") {
-        const candidates = state.hand
+        const candidates = markable
           .map((uid) => state.cards[uid])
           .filter((card) => card != null);
         const highestCost = Math.max(...candidates.map((card) => cardCost(state, card)), -Infinity);
@@ -389,7 +455,7 @@ function applyEffect(
         }
         break;
       }
-      const pool = state.hand.filter((uid) => {
+      const pool = markable.filter((uid) => {
         const card = state.cards[uid];
         return card && (effect.markPick !== "handRandomNonStarPay" || !starPayable(card));
       });
@@ -439,18 +505,36 @@ function applyEffect(
       break;
     }
     case "CONVERT_CARD_TYPE": {
+      const convertTo = effect.convertTo ?? "fast";
+      const logConvert = (card: Card) =>
+        ops.log(state, `${card.name} 转换为${card.cardType === "fast" ? "速攻" : "普通"}牌`);
+      // handAllFast: 一次性转换全部速攻手牌, 张数记进 lastConvertBatch 供后续效果按量结算(鲸鸢)。
+      if (effect.convertPick === "handAllFast") {
+        const targets = playableHandUids(state).filter((uid) => state.cards[uid]?.cardType === "fast");
+        for (const uid of targets) {
+          const card = state.cards[uid];
+          if (!card) continue;
+          card.cardType = convertTo;
+          logConvert(card);
+        }
+        state.lastConvertBatch = targets.length;
+        break;
+      }
       if (effect.convertPick !== "handRandomNormal") break;
       const amountToConvert = Math.max(0, Math.floor(effect.amount ?? 1));
-      const pool = state.hand.filter((uid) => state.cards[uid]?.cardType === "normal");
+      const pool = playableHandUids(state).filter((uid) => state.cards[uid]?.cardType === "normal");
+      let converted = 0;
       for (let i = 0; i < amountToConvert && pool.length > 0; i++) {
         const uid = rngPick(state, pool);
         const card = state.cards[uid];
         if (card) {
-          card.cardType = effect.convertTo ?? "fast";
-          ops.log(state, `${card.name} 转换为${card.cardType === "fast" ? "速攻" : "普通"}牌`);
+          card.cardType = convertTo;
+          logConvert(card);
+          converted += 1;
         }
         pool.splice(pool.indexOf(uid), 1);
       }
+      state.lastConvertBatch = converted;
       break;
     }
   }

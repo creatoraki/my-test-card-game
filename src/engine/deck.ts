@@ -2,7 +2,7 @@
 
 import type { BattleState } from "./types";
 import { shuffle } from "./rng";
-import { log } from "./ops";
+import { log, ops } from "./ops";
 import { partyHandLimit } from "./stats";
 import { registerPollutedCardDraw } from "./pollution";
 import { resetCultivate } from "./cultivate";
@@ -28,9 +28,13 @@ export function drawCards(state: BattleState, n: number): void {
       registerPollutedCardDraw(state, card);
     }
     drawn++;
+    // 每抽到一张牌就分发一次被动事件(天眼等) —— 经 ops 间接调用, 避免与 passive.ts 循环。
+    ops.firePassive(state, { type: "cardDrawn", cardUid: uid });
   }
   if (drawn > 0) log(state, `🃏 抽了 ${drawn} 张牌`);
 }
+
+ops.draw = drawCards;
 
 export function addCardToHand(state: BattleState, cardId: string, ownerCharId?: string): void {
   if (state.hand.length >= partyHandLimit(state)) return;

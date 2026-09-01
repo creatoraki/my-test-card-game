@@ -72,6 +72,9 @@ export const HandCard = memo(function HandCard({
   starPay = 0,
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
+  // 被动卡: 无费用、不可打出 —— 卡面上把费用徽章换成"被动"铭牌, 且**不走不可用压暗**,
+  // 它不是"现在打不了", 而是"从来就不用打"(见 engine/passive.ts)。
+  const passive = card.cardType === "passive";
   const art = cardArt(card.id);
   const hasArt = Boolean(art);
   const text = useCardText(card);
@@ -104,7 +107,7 @@ export const HandCard = memo(function HandCard({
     <div
       className={cx(
         s["hand-slot"],
-        (playable || unaffordable) && s.playable,
+        (playable || unaffordable || passive) && s.playable,
       )}
       style={handStyle}
       data-selected={selected ? "" : undefined}
@@ -112,7 +115,8 @@ export const HandCard = memo(function HandCard({
       // data-hand-slot: 供 BattleScreen 的 `.hand-tray:has([data-hand-slot]:nth-last-child(N))`
       // 按张数收紧叠压量。类名被哈希后那条选择器够不着, 属性可以(样式铁律 2)。
       data-hand-slot
-      data-unplayable={!playable && !unaffordable ? "" : undefined}
+      data-unplayable={!playable && !unaffordable && !passive ? "" : undefined}
+      data-passive={passive ? "" : undefined}
       data-discarding={discarding ? "" : undefined}
       data-purged={purged ? "" : undefined}
       // ★ 悬停**直接写进 ui/handFocusStore.ts**, 不再经由 props 冒泡到 BattleScreen。
@@ -160,7 +164,7 @@ export const HandCard = memo(function HandCard({
             // ⚠ rarity 在 CardDef 上是可选的(engine/types.ts), 缺省当 common —— 否则那张卡会一层纹都没有,
             //   与 common 看起来一样但走的是"未定义"的路径, 将来加档时容易漏。
             s[`r-${card.rarity ?? "common"}`],
-            !playable && !unaffordable && s.unplayable,
+            !playable && !unaffordable && !passive && s.unplayable,
             card.upgraded && s.upgraded,
             card.contaminated && s.contaminated,
           )}
@@ -169,7 +173,8 @@ export const HandCard = memo(function HandCard({
           data-rarity={card.rarity ?? "common"}
           data-selected={selected ? "" : undefined}
           data-leaving={leaving ? "" : undefined}
-          data-unplayable={!playable && !unaffordable ? "" : undefined}
+          data-unplayable={!playable && !unaffordable && !passive ? "" : undefined}
+          data-passive={passive ? "" : undefined}
           data-discarding={discarding ? "" : undefined}
           data-purged={purged ? "" : undefined}
           data-upgraded={card.upgraded ? "" : undefined}
@@ -195,12 +200,19 @@ export const HandCard = memo(function HandCard({
         {card.contaminated && <CardCorruption />}
         {card.contaminated && <PollutionVirusMark />}
 
-        {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上 */}
-        <span className={f["hc-cost"]} aria-label="消耗法力水晶">
-          <ManaCrystal className={f["hc-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
-          <span className={f["hc-cost-value"]}>{effectiveCost}</span>
-        </span>
-        {starPay > 0 && (
+        {/* 费用徽章: 嵌在配图左上斜口内侧的立体金属圆盘, 数字压在水晶中央桌面上。
+            被动卡无费用 ⇒ 同一位置换成刻字铭牌, 卡面上不出现任何水晶。 */}
+        {passive ? (
+          <span className={f["hc-passive"]} aria-label="被动卡，无法打出">
+            被动
+          </span>
+        ) : (
+          <span className={f["hc-cost"]} aria-label="消耗法力水晶">
+            <ManaCrystal className={f["hc-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
+            <span className={f["hc-cost-value"]}>{effectiveCost}</span>
+          </span>
+        )}
+        {!passive && starPay > 0 && (
           <span className={f["hc-star-pay"]}>
             ✨{starPay}
             <span className={f["hc-star-pay-tip"]} role="tooltip">

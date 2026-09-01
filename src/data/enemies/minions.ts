@@ -3,6 +3,7 @@ import type { DropEntry } from "../../items/types";
 import type { EnemyDef } from "./types";
 
 const COMMON_DROPS: DropEntry[] = [
+  { kind: "item", itemId: "green-crystal", chance: 0.35 },
   { kind: "item", itemId: "bronze-bear", chance: 0.4 },
   { kind: "item", itemId: "logic-cube", chance: 0.05 },
   { kind: "item", itemId: "standard-gear", chance: 0.05 },
@@ -63,11 +64,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
-    dropTable: [
-      ...COMMON_DROPS.slice(0, 1),
-      { kind: "item", itemId: "broadcast-tuning-chip", chance: 0.4 },
-      ...COMMON_DROPS.slice(1),
-    ],
+    dropTable: COMMON_DROPS,
     boonTable: LOW_BOONS,
   },
   {
@@ -119,6 +116,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
+    dropTable: COMMON_DROPS,
     boonTable: LOW_BOONS,
   },
   {
@@ -163,11 +161,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         effects: [{ type: "GAIN_SHIELD", amount: 12, target: "randomAlly" }],
       },
     ],
-    dropTable: [
-      ...COMMON_DROPS.slice(0, 1),
-      { kind: "item", itemId: "self-healing-wire", chance: 0.4 },
-      ...COMMON_DROPS.slice(1),
-    ],
+    dropTable: COMMON_DROPS,
     boonTable: LOW_BOONS,
   },
   {
@@ -221,11 +215,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
-    dropTable: [
-      ...COMMON_DROPS.slice(0, 1),
-      { kind: "item", itemId: "high-voltage-insulator", chance: 0.4 },
-      ...COMMON_DROPS.slice(1),
-    ],
+    dropTable: COMMON_DROPS,
     boonTable: LOW_BOONS,
   },
 ];

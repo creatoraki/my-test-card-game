@@ -56,15 +56,6 @@ import breadArt from "@/assets/道具/临期食品/面包.png";
 import batteryArt from "@/assets/道具/材料/通用材料/电池.png";
 import cubeArt from "@/assets/道具/材料/通用材料/魔方.png";
 import gearArt from "@/assets/道具/材料/通用材料/齿轮.png";
-import lightGuideFilmArt from "@/assets/道具/材料/废弃楼层/光导薄膜.png";
-import coolingMicrocrystalArt from "@/assets/道具/材料/废弃楼层/冷却微晶.png";
-import sortingIdChipArt from "@/assets/道具/材料/废弃楼层/分拣识别片.png";
-import conductiveInkArt from "@/assets/道具/材料/废弃楼层/导电印墨.png";
-import packagingGelArt from "@/assets/道具/材料/废弃楼层/封装凝胶.png";
-import broadcastTuningChipArt from "@/assets/道具/材料/废弃楼层/广播校频片.png";
-import breakerCeramicCoreArt from "@/assets/道具/材料/废弃楼层/断路陶芯.png";
-import magRailLiningArt from "@/assets/道具/材料/废弃楼层/磁轨衬层.png";
-import highVoltageInsulatorArt from "@/assets/道具/材料/废弃楼层/高压绝缘节.png";
 import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
 import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
 import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
@@ -227,16 +218,24 @@ const MATERIAL_ART: Record<string, string> = {
   "logic-cube": cubeArt,
   "standard-gear": gearArt,
   "standard-battery": batteryArt,
-  "breaker-ceramic-core": breakerCeramicCoreArt,
-  "cooling-microcrystal": coolingMicrocrystalArt,
-  "light-guide-film": lightGuideFilmArt,
-  "packaging-gel": packagingGelArt,
-  "conductive-ink": conductiveInkArt,
-  "mag-rail-lining": magRailLiningArt,
-  "sorting-id-chip": sortingIdChipArt,
-  "high-voltage-insulator": highVoltageInsulatorArt,
-  "broadcast-tuning-chip": broadcastTuningChipArt,
 };
+
+// 水晶: 三种同为普通品级, **颜色是它们唯一的区分信息** —— 所以刻意不吃 currentColor
+// (那会让三种水晶按稀有度渲染成一模一样的图标), 而是按 id 固定取色。
+// 日后有了美术资源, 把这里换成 MATERIAL_ART 里的 <img> 条目即可。
+const CRYSTAL_COLOR: Record<string, string> = {
+  "green-crystal": "#4ade80",
+  "blue-crystal": "#60a5fa",
+  "red-crystal": "#f87171",
+};
+
+const CrystalIcon = ({ color }: { color: string }) => (
+  <svg {...base} stroke={color}>
+    <path d="M24 7 34 19 24 41 14 19Z" strokeWidth="1.8" />
+    <path d="M14 19h20M24 7v34" opacity=".55" />
+    <path d="M19 13 24 19 29 13" opacity=".4" />
+  </svg>
+);
 
 const SCRAP_ART: Record<string, string> = {
   "bronze-bear": bronzeBearArt,
@@ -260,6 +259,9 @@ export function itemIcon(def: ItemDef): ReactNode {
     MATERIAL_ART[def.id] ??
     SCRAP_ART[def.id];
   if (art) return <img src={art} alt="" />;
+
+  const crystalColor = CRYSTAL_COLOR[def.id];
+  if (crystalColor) return <CrystalIcon color={crystalColor} />;
 
   // 成品模组各有专属徽记与配色(见 moduleGlyphs), 不跟随稀有度 currentColor;
   // 未登记徽记的模组继续走下面的通用 ModuleIcon。

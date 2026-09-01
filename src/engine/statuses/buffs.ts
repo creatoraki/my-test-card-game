@@ -46,6 +46,32 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "max",
     desc: `每层: 闪避 +${RULES.combat.overloadDodgePerStack}%。持续存在。`,
   },
+  // 罗生门 —— 回合开始抽 1; 期间首次被攻击时消耗自身, 闪避该次攻击并抽 2。
+  rashomon: {
+    id: "rashomon",
+    name: "罗生门",
+    emoji: "⛩️",
+    kind: "buff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "override",
+    desc: "回合开始时抽 1 张牌；受到攻击时消耗本状态，闪避这次攻击并抽 2 张牌。",
+    hooks: {
+      onRoundStart: (c: StatusCtx) => {
+        c.ops.draw(c.state, 1);
+      },
+      modifyIncomingDamage: (c: StatusCtx, dmg: DamageCtx) => {
+        if (!dmg.isAttack || c.inst.stacks <= 0 || dmg.missed) return;
+        dmg.missed = true;
+        dmg.amount = 0;
+        c.inst.stacks = 0; // 归零后由状态清理流程移除
+        c.inst.duration = 0;
+        const owner = c.state.combatants[c.ownerId];
+        if (owner) c.ops.log(c.state, `${owner.emoji} ${owner.name} 借罗生门闪避了这次攻击`);
+        c.ops.draw(c.state, 2);
+      },
+    },
+  },
   sharp: {
     id: "sharp",
     name: "锋利",

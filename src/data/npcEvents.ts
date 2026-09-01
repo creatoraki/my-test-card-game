@@ -72,9 +72,8 @@ export const NPC_EVENTS: Record<string, NpcEvent> = {
         ]),
       ]),
       choice("maintenance", "申请光学维护", "你让接待 AI 暂停大厅扫描，打开访客专用的光学维护槽。", "领取光学维护成果", [
-        outcome("maintenance-a", "安检玻璃打开维护槽，两种光学材料被送到队伍面前。", [
-          { type: "GAIN_ITEM", itemId: "light-guide-film" },
-          { type: "GAIN_ITEM", itemId: "conductive-ink" },
+        outcome("maintenance-a", "安检玻璃打开维护槽，维护槽里的两枚逻辑魔方被送到队伍面前。", [
+          { type: "GAIN_ITEM", itemId: "logic-cube", count: 2 },
         ]),
         outcome("maintenance-b", "接待 AI 将装备送进光学校准台，新的随机羁绊在光线中生成。", [{ type: "REFORGE_BOND" }]),
       ]),
@@ -86,9 +85,9 @@ export const NPC_EVENTS: Record<string, NpcEvent> = {
     description: "温室深处走出一个由植物维护程序组成的机械人。它闻了闻汉堡，说：高热量样本，可交换一次培育成果。",
     choices: [
       choice("harvest", "交换成熟培育物", "你把汉堡递给培育员，让它从根系中挑选成熟的工业材料。", "领取培育材料", [
-        outcome("harvest-a", "培育员从根系中取出两枚已经成熟的冷却微晶。", [{ type: "GAIN_ITEM", itemId: "cooling-microcrystal", count: 2 }]),
-        outcome("harvest-b", "温室没有足够的微晶，但培育员交出了凝胶和一支净化用圣水。", [
-          { type: "GAIN_ITEM", itemId: "packaging-gel" },
+        outcome("harvest-a", "培育员从根系中取出两块仍有余电的电池。", [{ type: "GAIN_ITEM", itemId: "standard-battery", count: 2 }]),
+        outcome("harvest-b", "温室没有足够的储备，但培育员交出了一枚齿轮和一支净化用圣水。", [
+          { type: "GAIN_ITEM", itemId: "standard-gear" },
           { type: "GAIN_ITEM", itemId: "holy-water-c" },
         ]),
       ]),
@@ -109,9 +108,9 @@ export const NPC_EVENTS: Record<string, NpcEvent> = {
       ]),
       choice("workshop", "打开维修仓库", "你让维修商打开随行仓库，检查其中仍能使用的装备。", "从维修仓库中选一件", [
         outcome("workshop-a", "维修商打开随行仓库，三件装备的属性和羁绊全部公开。", [{ type: "EQUIP_OFFER", count: 3 }]),
-        outcome("workshop-b", "仓库只有两件装备，但维修商将一段磁轨衬层作为拆装补偿交给队伍。", [
+        outcome("workshop-b", "仓库只有两件装备，但维修商将一枚标准齿轮作为拆装补偿交给队伍。", [
           { type: "EQUIP_OFFER", count: 2 },
-          { type: "GAIN_ITEM", itemId: "mag-rail-lining" },
+          { type: "GAIN_ITEM", itemId: "standard-gear" },
         ]),
       ]),
     ],

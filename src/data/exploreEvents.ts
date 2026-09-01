@@ -210,8 +210,8 @@ const GROWTH: NodeEvent[] = [
     hiddenRest: { foodItemId: "milk", npcId: "npc-night-canteen" },
     choices: [
       choice("blueprint", "按照旧图纸逐层拆解", "取出断路陶芯与备用电池", "你先确认断电顺序，再按照图纸逐层拆下绝缘部件。", [
-        outcome("blueprint-a", "最外层的柜体已经烧毁，但深处的陶芯仍然完整，你还在备用槽里找到了电池。", items(item("breaker-ceramic-core"), item("standard-battery"))),
-        outcome("blueprint-b", "两个备用回路都没有被高压击穿，你顺利取出了两枚完整陶芯。", [item("breaker-ceramic-core", 2)]),
+        outcome("blueprint-a", "最外层的柜体已经烧毁，但深处的传动组件仍然完整，你还在备用槽里找到了电池。", items(item("standard-gear"), item("standard-battery"))),
+        outcome("blueprint-b", "两个备用回路都没有被高压击穿，你顺利拆下了两枚完整齿轮。", [item("standard-gear", 2)]),
       ]),
       choice("current", "让备用电流跑完一轮", "额外消耗 3 粒子，训练全队或一名角色", "你重新接通备用回路，让系统自行演算最安全的电力分配方式。", [
         outcome("current-a", "电流演算变成了一次全队协同训练，终端还从维修槽里推出一枚齿轮。", items(partyExp(10), item("standard-gear"))),
@@ -232,15 +232,15 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 2,
     choices: [
       choice("scrape", "关闭窄阀，慢慢刮取微晶", "额外消耗 2 粒子，采集冷却微晶", "你把冷却液流量压到最低，从管壁上刮取已经稳定的结晶层。", [
-        outcome("scrape-a", "第一段管线上的结晶保存得很好，旁边的检修槽还留着一枚逻辑魔方。", items(item("cooling-microcrystal"), item("logic-cube"))),
-        outcome("scrape-b", "你找到一段长期无人触碰的旧管道，一次取下了两块完整微晶。", [item("cooling-microcrystal", 2)]),
+        outcome("scrape-a", "第一段管线上的备用电源保存得很好，旁边的检修槽还留着一枚逻辑魔方。", items(item("standard-battery"), item("logic-cube"))),
+        outcome("scrape-b", "你找到一段长期无人触碰的旧管道，一次取下了两块完好电池。", [item("standard-battery", 2)]),
       ], 2),
-      choice("log", "打开高压回流，读取热工日志", "全队获得经验或公开 2 件装备候选", "你不直接采集材料，而是让高压回流带动终端重新启动，读取冷却系统过去的运行记录。", [
-        outcome("log-a", "热工日志里包含完整的设备协同记录，全队都从中学到了新的维护方法。", [partyExp(12), item("cooling-microcrystal")]),
+      choice("log", "打开高压回流，读取热工日志", "全队获得经验或公开 2 件装备候选", "你不直接拆取部件，而是让高压回流带动终端重新启动，读取冷却系统过去的运行记录。", [
+        outcome("log-a", "热工日志里包含完整的设备协同记录，全队都从中学到了新的维护方法，顺手还带走一块备用电池。", [partyExp(12), item("standard-battery")]),
         outcome("log-b", "超算机房把一批遗留装备登记在冷却系统名下，两件装备的完整信息同时显示出来。", [equip(2)]),
       ]),
       choice("bypass", "切换到备用维护回路", "获得一枚微晶或一次免费羁绊重铸", "你让备用回路接管冷却工作，打开一条从未登记的维护路径。", [
-        outcome("bypass-a", "备用管线的结晶层没有被污染，你完整取出了一枚冷却微晶。", [item("cooling-microcrystal")]),
+        outcome("bypass-a", "备用管线的储能仓没有被污染，你完整取出了一块电池。", [item("standard-battery")]),
         outcome("bypass-b", "维护终端允许你重新生成一件装备的随机羁绊。", [{ type: "REFORGE_BOND" }]),
       ]),
     ],
@@ -258,12 +258,12 @@ const GROWTH: NodeEvent[] = [
         outcome("deck-b", "系统发现一张重复的旧工序卡，你可以趁印刷台清理时将它永久删除。", [{ type: "FORGE_REMOVE" }]),
       ]),
       choice("archive", "把错版纸张改造成训练档案", "全队或一名角色获得经验并取得材料", "你不直接操作卡组，而是把错版纸张中的可读信息重新排列。", [
-        outcome("archive-a", "大量错版内容被重新拼成一份团队训练档案，印刷台还吐出一管导电印墨。", items(partyExp(9), item("conductive-ink"))),
+        outcome("archive-a", "大量错版内容被重新拼成一份团队训练档案，印刷台还吐出一枚逻辑魔方。", items(partyExp(9), item("logic-cube"))),
         outcome("archive-b", "你将最完整的个人记录交给一名队员，剩余纸张中找到了一枚逻辑魔方。", items(oneExp(25), item("logic-cube"))),
       ]),
       choice("printer", "拆下印刷头", "拆取导电印墨或封装配件", "你关闭印刷程序，打开机器外壳，寻找仍有使用价值的部件。", [
-        outcome("printer-a", "两个备用墨盒还没有完全固化，你将其中的功能性墨料全部收集起来。", [item("conductive-ink", 2)]),
-        outcome("printer-b", "印刷头旁边的维护盒里保存着封装凝胶和一枚备用齿轮。", items(item("packaging-gel"), item("standard-gear"))),
+        outcome("printer-a", "两个备用控制盒都没有锁死，你把里面的逻辑魔方全部取走。", [item("logic-cube", 2)]),
+        outcome("printer-b", "印刷头旁边的维护盒里保存着一块电池和一枚备用齿轮。", items(item("standard-battery"), item("standard-gear"))),
       ]),
     ],
   },
@@ -303,12 +303,12 @@ const GROWTH: NodeEvent[] = [
         outcome("team-b", "系统恢复了一份完整的季度报告，全队获得了额外的训练反馈。", [partyExp(15)]),
       ]),
       choice("key", "指定关键员工", "集中培养一名角色", "你选择一名角色，把所有绩效数据集中归入他的个人档案。", [
-        outcome("key-a", "该角色被终端标记为关键员工，并得到了一份个人成长档案和导电印墨。", [oneExp(27), item("conductive-ink")]),
+        outcome("key-a", "该角色被终端标记为关键员工，并得到了一份个人成长档案和一枚逻辑魔方。", [oneExp(27), item("logic-cube")]),
         outcome("key-b", "终端恢复了该角色最完整的岗位记录，密集的个人训练让他获得明显成长。", [oneExp(35)]),
       ]),
       choice("assets", "撕毁绩效报告，改查资产", "寻找部门资产或机械部件", "你放弃经验结算，拆开审计终端，寻找被隐藏的部门资产。", [
         outcome("assets-a", "终端底部留下一枚部门物资魔方。", [item("logic-cube")]),
-        outcome("assets-b", "资产柜里没有完整装备，但两种机械部件仍然可以带走。", items(item("mag-rail-lining"), item("standard-gear"))),
+        outcome("assets-b", "资产柜里没有完整装备，但两枚标准齿轮仍然可以带走。", [item("standard-gear", 2)]),
       ]),
     ],
   },
@@ -321,13 +321,13 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 0,
     hiddenRest: { foodItemId: "cola", npcId: "npc-vip-reception" },
     choices: [
-      choice("green", "沿绿色反射线前进", "采集材料或公开装备候选", "你跟随玻璃上最稳定的绿色光线，不触碰任何主动扫描面。", [
-        outcome("green-a", "绿色光路最终通向维护槽，你取下了一段薄膜和一份未固化凝胶。", items(item("light-guide-film"), item("packaging-gel"))),
+      choice("green", "沿绿色反射线前进", "拆取材料或公开装备候选", "你跟随玻璃上最稳定的绿色光线，不触碰任何主动扫描面。", [
+        outcome("green-a", "绿色光路最终通向维护槽，你取下了一枚逻辑魔方和一块备用电池。", items(item("logic-cube"), item("standard-battery"))),
         outcome("green-b", "光线把你们引到隐藏装备柜，三件装备在安检屏上完整公开。", [equip(3)]),
       ]),
       choice("shutdown", "强行关闭全部玻璃扫描", "额外消耗 2 粒子，获得材料或重铸机会", "你将便携电源接入安检总线，短暂关闭大厅的识别系统。", [
-        outcome("shutdown-a", "扫描系统停止后，整排维护槽都可以安全打开，你取出了两段完整薄膜。", [item("light-guide-film", 2)]),
-        outcome("shutdown-b", "关闭系统同时解锁了装备校准端口，你重新生成了一件装备的随机羁绊，并取走了维护墨料。", [{ type: "REFORGE_BOND" }, item("conductive-ink")]),
+        outcome("shutdown-a", "扫描系统停止后，整排维护槽都可以安全打开，你取出了两枚逻辑魔方。", [item("logic-cube", 2)]),
+        outcome("shutdown-b", "关闭系统同时解锁了装备校准端口，你重新生成了一件装备的随机羁绊，并取走了校准用的逻辑魔方。", [{ type: "REFORGE_BOND" }, item("logic-cube")]),
       ], 2),
       choice("vip", "把身份伪装成高级访客", "获得删卡机会或公开 2 件装备候选", "你让终端读取旧时代的访客协议，尝试获得更高权限。", [
         outcome("vip-a", "高级访客协议允许你把一张卡牌登记为无效项目并永久移除。", [{ type: "FORGE_REMOVE" }]),
@@ -348,8 +348,8 @@ const GROWTH: NodeEvent[] = [
         outcome("calibrate-b", "校准器重新排列接口结构，新的羁绊更偏向防御和生存。", [{ type: "REFORGE_BOND", bias: "defense" }]),
       ]),
       choice("interface", "拆取空接口", "取得工业材料", "你不处理现有装备，而是把没有安装模组的接口拆下来。", [
-        outcome("interface-a", "空接口里还残留着导电墨料，旁边的逻辑槽中卡着一枚魔方。", items(item("conductive-ink"), item("logic-cube"))),
-        outcome("interface-b", "维护盒中保存着封装凝胶和两枚备用齿轮。", items(item("packaging-gel"), item("standard-gear", 2))),
+        outcome("interface-a", "空接口里卡着一枚魔方，旁边的逻辑槽中还留着一枚。", [item("logic-cube", 2)]),
+        outcome("interface-b", "维护盒中保存着一块电池和两枚备用齿轮。", items(item("standard-battery"), item("standard-gear", 2))),
         outcome("interface-c", "接口底座下压着一只没拆封的通用模组箱，封条还是完好的。", [item("module-crate-t1")]),
       ]),
       choice("test", "运行跨角色卡组测试", "获得免费卡组锻造或删卡机会", "你选择一名角色作为测试者，让系统检查他的卡组是否适合承载其他关键词模组。", [
@@ -367,7 +367,7 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 0,
     choices: [
       choice("manual", "亲自给机械臂分工", "取得磁轨衬层、齿轮或检查隐藏货箱", "你逐条设定机械臂的目标，避免它们互相抢夺运输路线。", [
-        outcome("manual-a", "机械臂从停机轨道上拆下完整衬层，并将一枚齿轮送到交付台。", items(item("mag-rail-lining"), item("standard-gear"))),
+        outcome("manual-a", "机械臂从停机轨道上拆下两枚完整齿轮，并送到交付台。", [item("standard-gear", 2)]),
         outcome("manual-b", "精确调度让一只隐藏货箱被找了出来，里面保存着一枚可用电池。", [item("standard-battery")]),
       ]),
       choice("auto", "让系统自动安排任务", "公开装备候选或获取消耗品", "你关闭手动控制，让中央调度系统自行判断队伍最需要什么。", [
@@ -390,8 +390,8 @@ const GROWTH: NodeEvent[] = [
     hiddenRest: { foodItemId: "hamburger", npcId: "npc-greenhouse-keeper" },
     choices: [
       choice("roots", "剪取成熟根系", "采集冷却微晶和封装凝胶", "你只剪下已经完成生长周期的部分，保留培育架继续运转。", [
-        outcome("roots-a", "成熟根系表面附着着冷却结晶，根部还分泌出少量工业封装凝胶。", items(item("cooling-microcrystal"), item("packaging-gel"))),
-        outcome("roots-b", "你找到一排无人采收的低温根系，一次取得两块微晶。", [item("cooling-microcrystal", 2)]),
+        outcome("roots-a", "成熟根系缠着一块仍有余电的电池，根部还卷进了一枚齿轮。", items(item("standard-battery"), item("standard-gear"))),
+        outcome("roots-b", "你找到一排无人采收的低温根系，一次取得两块电池。", [item("standard-battery", 2)]),
       ]),
       choice("nutrition", "重启植物营养程序", "额外消耗 2 粒子，取得团队或个人训练成果", "你把营养系统重新接通，让植物架把残余能量转化为可读取的生长记录。", [
         outcome("nutrition-a", "植物生长记录变成了一堂全队观察课，营养仓还送出一颗糖块。", [partyExp(10), item("sugar-cube-c")]),
@@ -420,7 +420,7 @@ const GROWTH: NodeEvent[] = [
         outcome("replay-b", "回放中途出现错误，但角色仍完成了训练并获得额外反馈。", [oneExp(22)]),
       ]),
       choice("projector", "拆掉战术投影仪", "取得光导材料或电池", "你放弃训练，直接打开投影仪的核心外壳。", [
-        outcome("projector-a", "投影仪的光学层中保存着一段完整薄膜，逻辑模块里还嵌着一枚魔方。", items(item("light-guide-film"), item("logic-cube"))),
+        outcome("projector-a", "投影仪的逻辑模块里嵌着一枚魔方，备用槽中还压着另一枚。", [item("logic-cube", 2)]),
         outcome("projector-b", "训练厅的备用电池组没有被使用，你将两块电池从投影仪底座中拆出。", [item("standard-battery", 2)]),
       ]),
     ],
@@ -439,8 +439,8 @@ const GROWTH: NodeEvent[] = [
         outcome("weapon-b", "展厅只找到两件武器，但维护台同时推出了一枚齿轮。", [equip(2, "weapon"), item("standard-gear")]),
       ]),
       choice("calibration", "启动羁绊校准台", "重铸装备并取得维护材料", "你把一件现有装备放入校准台，让它重新生成随机羁绊。", [
-        outcome("calibration-a", "校准台生成了新的随机羁绊，剩余墨料被装入一支可携带容器。", [{ type: "REFORGE_BOND" }, item("conductive-ink")]),
-        outcome("calibration-b", "装备完成重新校准，封装柜将一管工业凝胶作为维护补偿送出。", [{ type: "REFORGE_BOND" }, item("packaging-gel")]),
+        outcome("calibration-a", "校准台生成了新的随机羁绊，剩余的校准魔方被一并装进背包。", [{ type: "REFORGE_BOND" }, item("logic-cube")]),
+        outcome("calibration-b", "装备完成重新校准，封装柜将一块备用电池作为维护补偿送出。", [{ type: "REFORGE_BOND" }, item("standard-battery")]),
       ]),
     ],
   },
@@ -483,8 +483,8 @@ const GROWTH: NodeEvent[] = [
         outcome("personal-b", "镜像过程中发现了一张低效卡牌，系统允许你将它从个人卡组中移除。", [oneExp(24), { type: "FORGE_REMOVE" }]),
       ]),
       choice("hardware", "拆掉备份阵列", "取得冷却材料、电池或导电材料", "你停止备份，直接拆下服务器中的可用硬件。", [
-        outcome("hardware-a", "服务器散热层里保存着冷却微晶，能源仓中还留有一块电池。", items(item("cooling-microcrystal"), item("standard-battery"))),
-        outcome("hardware-b", "数据线路上的导电墨料被完整取出。", [item("conductive-ink")]),
+        outcome("hardware-a", "服务器散热层里卡着一枚齿轮，能源仓中还留有一块电池。", items(item("standard-gear"), item("standard-battery"))),
+        outcome("hardware-b", "数据线路末端的逻辑魔方被完整取出。", [item("logic-cube")]),
       ]),
     ],
   },
@@ -506,7 +506,7 @@ const GROWTH: NodeEvent[] = [
       ]),
       choice("vending", "拆走休息室的饮料机核心", "取得果汁、电池或工业材料", "你放弃搜寻储物柜，打开饮料机后方的能源核心。", [
         outcome("vending-a", "饮料机的冷藏仓还保存着一瓶果汁，能源核心中则留有一块电池。", items(item("fruit-juice-c"), item("standard-battery"))),
-        outcome("vending-b", "饮料机的维护接口中没有食品，但两种工业材料仍然可以被完整拆下。", items(item("conductive-ink"), item("packaging-gel"))),
+        outcome("vending-b", "饮料机的维护接口中没有食品，但一枚魔方和一块电池仍然可以被完整拆下。", items(item("logic-cube"), item("standard-battery"))),
       ]),
     ],
   },
@@ -986,7 +986,7 @@ const HAZARD: NodeEvent[] = [
         chance("overclock-a", 10, "所有工单同时争抢优先级，维修蜂巢短暂死锁；机械臂停止后，队伍从平台间穿过，没有额外损失。", []),
         chance("overclock-b", 30, "工单争抢抽走 8 点粒子，异常维修信号还污染了{实际角色名}的卡牌《{实际卡牌名}》。", [energy(-8), contaminate(1)]),
         chance("overclock-c", 30, "机械臂群在平台间掀起金属风暴，全队损失 15% HP 后，蜂巢的供能暂时中断。", [dmg(0.15)]),
-        chance("overclock-d", 30, "蜂巢失控地争抢电力，队伍额外消耗 10 点粒子；卡牌《{实际卡牌名}》被污染，但你们从维修台带走导电印墨 ×1。受影响角色为{实际角色名}。", [energy(-10), contaminate(1), item("conductive-ink")]),
+        chance("overclock-d", 30, "蜂巢失控地争抢电力，队伍额外消耗 10 点粒子；卡牌《{实际卡牌名}》被污染，但你们从维修台带走魔方 ×1。受影响角色为{实际角色名}。", [energy(-10), contaminate(1), item("logic-cube")]),
       ]),
     ],
   },
@@ -1072,9 +1072,9 @@ const ECONOMY: NodeEvent[] = [
     kind: "merchant",
     category: "economy",
     title: "材料定向采购台",
-    description: "采购室已恢复。通用材料接受面包，地区采集材料接受炸鸡；两套货架分别锁定。",
+    description: "采购室已恢复。通用材料接受面包，水晶接受炸鸡；两套货架分别锁定。",
     energyDelta: 0,
-    services: ["general-material-shop", "regional-gathering-shop"],
+    services: ["general-material-shop", "crystal-shop"],
     choices: [
       { id: "trade", label: "接入定向采购台", desc: "查看两套材料货架", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
       { id: "leave", label: "放弃采购，继续前进", desc: "不支付任何食品", energyDelta: 0, story: "你记下采购室的坐标，却没有打开任何货架。" },
@@ -1085,11 +1085,11 @@ const ECONOMY: NodeEvent[] = [
     kind: "merchant",
     category: "economy",
     title: "生物样本交换柜",
-    description: "样本交换柜已开启。炸鸡可兑换怪物材料，汉堡可兑换消耗品；每类最多购买 1 件。",
+    description: "样本交换柜已开启。炸鸡可兑换水晶，汉堡可兑换消耗品；每类最多购买 1 件。",
     energyDelta: 0,
-    services: ["monster-material-shop", "consumable-shop"],
+    services: ["crystal-shop", "consumable-shop"],
     choices: [
-      { id: "trade", label: "解锁样本交换柜", desc: "查看怪物材料与消耗品", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
+      { id: "trade", label: "解锁样本交换柜", desc: "查看水晶与消耗品", energyDelta: 0, effects: [{ type: "OPEN_SHOP" }] },
       { id: "leave", label: "不交换样本，转身离开", desc: "不支付任何食品", energyDelta: 0, story: "你让样本柜继续保持封闭，带着空手离开。" },
     ],
   },

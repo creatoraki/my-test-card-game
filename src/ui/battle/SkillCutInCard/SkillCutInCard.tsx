@@ -47,7 +47,7 @@ function SkillCutInCardContent({ card, fxRate }: { card: Card; fxRate: number })
               <span className={s["cutin-cost-value"]}>{card.cost}</span>
             </span>
             <span className={s["cutin-name"]}>{card.name}</span>
-            <span className={s["cutin-type"]}>{card.cardType === "fast" ? "速" : "普"}</span>
+            <span className={s["cutin-type"]}>{card.cardType === "fast" ? "速" : card.cardType === "passive" ? "被" : "普"}</span>
           </div>
           <div className={s["cutin-text"]}><CardTextRich text={text} /></div>
         </>

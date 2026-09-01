@@ -7,7 +7,14 @@ import type { QuirkId } from "./quirks";
 export type Team = "player" | "enemy";
 export type Phase = "player" | "won" | "lost";
 export type ChallengeId = "restraint" | "massacre" | "mercy";
-export type DiscardReason = "manual" | "effect" | "cost" | "redraw" | "roundEnd" | "play";
+export type DiscardReason =
+  | "manual"
+  | "effect"
+  | "cost"
+  | "redraw"
+  | "roundEnd"
+  | "play"
+  | "passiveEnd"; // 回合结束把手牌里的被动卡收进弃牌堆; 不计数也不触发弃牌联动
 export type CounterSource =
   | "discardsThisRound"
   | "fastPlaysThisRound"
@@ -15,7 +22,9 @@ export type CounterSource =
   | "lastDiscardBatch"
   | "discardsThisBattle"
   | "lastDiscardBatchFast"
-  | "lastRecoverBatchFast";
+  | "lastRecoverBatchFast"
+  | "lastDiscardBatchCost"
+  | "lastConvertBatch";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -80,6 +89,7 @@ export type EffectType =
   | "RESTORE_HP_LIMIT"
   | "REMOVE_STATUS"
   | "VALUE_BOOST"
+  | "LOSE_HP"
   // 本次出牌结算期间临时改写**施放者**面板, 出牌结束逆向撤回(见 battle.playCard)。
   // 与 APPLY_STAT_MOD 的区别: 后者写进 Combatant.mods 后本场战斗永久留存。
   | "PLAY_STAT_BONUS"
@@ -122,7 +132,15 @@ export interface EffectDescriptor {
   maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
   bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数加算到伤害倍率上(不是乘算)
   bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数加算的倍率
-  damageBonus?: { when: "targetHasShield" | "targetHasNoShield"; multiplier: number }; // DAMAGE: 按目标护盾逐目标加算倍率
+  // DAMAGE: 按目标状况逐目标加算倍率。targetHpBelowPct 用 value 传阈值(百分比)。
+  damageBonus?: {
+    when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct";
+    multiplier: number;
+    value?: number;
+  };
+  bonusMultiplierPerSelfStack?: number; // DAMAGE: 每 1 层本卡实例累计(state.activeCardStacks)加算的倍率
+  onKill?: EffectDescriptor[]; // DAMAGE: 本次效果把某个目标打死时结算一次(主目标 = 被击杀者)
+  pctOfCurrentHp?: number; // LOSE_HP: 按目标当前生命的比例失去生命(0.1 = 10%)
   cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
@@ -137,17 +155,19 @@ export interface EffectDescriptor {
     | "fastCardsInHandAtLeast"; // 满足条件时才结算
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
-  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom"; // MARK_CARDS: 手牌选择方式
+  // MARK_CARDS: 手牌选择方式。eventCard = 触发本次被动的那张牌(state.passiveEventCardUid)。
+  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard";
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
-  convertPick?: "handRandomNormal"; // CONVERT_CARD_TYPE: 从手牌普通牌中随机选择
+  convertPick?: "handRandomNormal" | "handAllFast"; // CONVERT_CARD_TYPE: 手牌普通牌随机 / 全部速攻牌
   fromModule?: string; // 由卡牌模组追加的效果标记(模组 itemId); 纯标记, 引擎结算不读取
 }
 
 // ---------------------------------------------------------------------------
 // 卡牌
 // ---------------------------------------------------------------------------
-export type CardType = "normal" | "fast"; // normal 推进时刻, fast 不推进
+export type CardType = "normal" | "fast" | "passive";
+// normal 推进时刻, fast 不推进, passive 被动卡(无费用/不可打出/持在手中自动生效)
 export type Rarity = "common" | "uncommon" | "rare";
 export type CardRarity = "basic" | Rarity;
 
@@ -201,7 +221,11 @@ export interface CardDef {
     when: "discardedThisRound" | "fastPlaysThisRound";
     threshold?: number;
     delta: number;
+    per?: boolean; // true = 每 1 点计数都叠加一次 delta(线性), 缺省 = 达到阈值时只叠加一次
   };
+  // 按卡牌实例的累计层数(Card.discardStacks)调整费用, 达到 atLeast 时叠加 delta。
+  stackCostRule?: { atLeast: number; delta: number };
+  passive?: PassiveDef; // 被动卡: 持在手中时按事件自动结算
   onDiscard?: DiscardTrigger;
   keywords?: CardKeywordRef[];
   cultivate?: {
@@ -211,8 +235,23 @@ export interface CardDef {
   };
 }
 
+// 被动卡的驻留触发。cardDiscarded = 每有一张牌被丢弃, cardDrawn = 每抽到一张牌。
+export type PassiveTriggerId = "cardDiscarded" | "cardDrawn";
+
+export interface PassiveDef {
+  on: PassiveTriggerId;
+  effects: EffectDescriptor[];
+}
+
+// 一次被动事件。cardUid = 触发事件的那张牌(被丢弃的 / 刚抽到的)。
+export interface PassiveEvent {
+  type: PassiveTriggerId;
+  cardUid: string;
+}
+
 export interface DiscardTrigger {
-  mode: "useSelf" | "custom";
+  mode: "useSelf" | "custom" | "returnToHand";
+  maxStacks?: number; // returnToHand: 累计层数上限(写进 Card.discardStacks)
   autoTarget?: "randomFoe" | "lowestHpFoe";
   effects?: EffectDescriptor[];
   alsoOnRoundEnd?: boolean;
@@ -231,6 +270,7 @@ export interface Card extends CardDef {
   contaminated: boolean;
   marks?: string[];
   cultivateLeft?: number;
+  discardStacks?: number; // returnToHand 类弃牌触发的累计层数; 打出后清零
   cardModule?: { uid: string; itemId: string } | null;
 }
 
@@ -298,6 +338,7 @@ export interface StatusHooks {
   modifyIncomingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上的状态
   onAfterAttacked?: (c: StatusCtx, dmg: DamageCtx) => void; // 荆棘等
   onShieldBroken?: (c: StatusCtx) => void; // 护盾被伤害击破时
+  onRoundStart?: (c: StatusCtx) => void; // 我方回合开始(抽牌之前)
 }
 
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
@@ -500,6 +541,12 @@ export interface BattleState {
   // ★ 出牌结束逐条逆向撤回后清空 —— 它不是场上 buff, 结算完不留痕。
   playStatMods: { targetId: string; stat: keyof StatBlock; amount: number; pct: boolean }[];
   activeCardCost: number | null;
+  // 当前结算卡的实例累计层数(Card.discardStacks)。与 activeCardCost 同生命周期。
+  activeCardStacks: number;
+  // 被动卡结算窗口内, 触发本次事件的那张牌 uid(供 markPick: "eventCard" 定位)。
+  passiveEventCardUid: string | null;
+  lastDiscardBatchCost: number;
+  lastConvertBatch: number;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenValue 算好传入。
@@ -566,9 +613,12 @@ export interface EngineOps {
     amount: number,
     pct?: boolean,
   ): void;
+  loseHp(state: BattleState, targetId: string, amount: number): void;
   addCardToHand(state: BattleState, cardId: string, ownerCharId?: string): void;
-  discard(state: BattleState, uid: string, reason: DiscardReason): void;
+  discard(state: BattleState, uid: string, reason: DiscardReason, rec?: FxRecorder): void;
   flushAutoPlays(state: BattleState): void;
+  draw(state: BattleState, n: number): void;
+  firePassive(state: BattleState, event: PassiveEvent, rec?: FxRecorder): void;
   log(state: BattleState, text: string): void;
 }
 

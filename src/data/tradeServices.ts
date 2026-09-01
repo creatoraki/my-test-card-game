@@ -41,11 +41,8 @@ export const TRADE_SERVICES: TradeServiceDef[] = [
   service("near-expiry-food-shop", "临期食品商店", "goods", "cola", 1, "从 2 种食品中选择 1 种 ×1；候选不包含当前支付的可乐。", {
     stockKind: "food",
   }),
-  service("regional-gathering-shop", "地区特色采集材料商店", "goods", "fried-chicken", 1, "展示 2 种本地区采集材料，选择 1 种 ×1；材料占 1 格。", {
-    stockKind: "material-regional",
-  }),
-  service("monster-material-shop", "怪物材料商店", "goods", "fried-chicken", 1, "展示 2 种本地图怪物材料，选择 1 种 ×1；材料占 1 格。", {
-    stockKind: "material-monster",
+  service("crystal-shop", "水晶交易站", "goods", "fried-chicken", 1, "展示 2 种水晶，选择 1 种 ×1；水晶占 1 格。", {
+    stockKind: "crystal",
   }),
   service("consumable-shop", "消耗品商店", "goods", "hamburger", 1, "展示 2 种消耗品，选择 1 种 ×1；消耗品占 1 格。", {
     stockKind: "consumable",

@@ -5,19 +5,12 @@ import basicAttackArt from "@/assets/skills/basic/基础攻击.png";
 import basicHealArt from "@/assets/skills/basic/基础治疗.png";
 import basicGuardArt from "@/assets/skills/basic/基础护盾.png";
 import swordsmanSnowflakeArt from "@/assets/skills/swordsman/雪花.png";
-import swordsmanBuzzArt from "@/assets/skills/swordsman/蜂鸣.png";
-import swordsmanSwarmArt from "@/assets/skills/swordsman/蜂群.png";
 import swordsmanDeclutterArt from "@/assets/skills/swordsman/断舍离.png";
 import swordsmanWhetstoneArt from "@/assets/skills/swordsman/武器研磨.png";
-import swordsmanMirageArt from "@/assets/skills/swordsman/幻陇.png";
-import swordsmanFireflyArt from "@/assets/skills/swordsman/萤火.png";
 import swordsmanGaleArt from "@/assets/skills/swordsman/岚.png";
 import swordsmanRiftLightArt from "@/assets/skills/swordsman/天隙流光.png";
 import swordsmanSpringSproutArt from "@/assets/skills/swordsman/春芽.png";
-import swordsmanStillWaterArt from "@/assets/skills/swordsman/止水.png";
-import swordsmanBuzhouMountainArt from "@/assets/skills/swordsman/不周山.png";
 import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.png";
-import swordsmanMoonShadowArt from "@/assets/skills/swordsman/月影.png";
 import prophetEmergencyTreatmentArt from "@/assets/skills/prophet/紧急救治.png";
 import botanistContinuousShotArt from "@/assets/skills/botanist/双重射击.png";
 import botanistRecycleShotArt from "@/assets/skills/botanist/回收射击.png";
@@ -51,19 +44,12 @@ export const CARD_ART: Record<string, string> = {
   "botanist-basic-heal": basicHealArt,
   "botanist-basic-guard": basicGuardArt,
   "snowflake": swordsmanSnowflakeArt,
-  "buzz": swordsmanBuzzArt,
-  "swarm": swordsmanSwarmArt,
   "declutter": swordsmanDeclutterArt,
   "whetstone": swordsmanWhetstoneArt,
-  "mirage": swordsmanMirageArt,
-  "firefly": swordsmanFireflyArt,
   "gale": swordsmanGaleArt,
   "rift-light": swordsmanRiftLightArt,
   "spring-sprout": swordsmanSpringSproutArt,
-  "still-water": swordsmanStillWaterArt,
-  "buzhou-mountain": swordsmanBuzhouMountainArt,
   "falling-sakura": swordsmanFallingSakuraArt,
-  "moon-shadow": swordsmanMoonShadowArt,
   "emergency-treatment": prophetEmergencyTreatmentArt,
   "continuous-shot": botanistContinuousShotArt,
   "recycle-shot": botanistRecycleShotArt,

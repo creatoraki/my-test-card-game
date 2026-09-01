@@ -110,6 +110,14 @@ export function dealDamage(
     for (const inst of [...target.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
 
+  // 状态钩子可以直接判定"这次攻击被闪避"(罗生门)。★ 必须排在命中掷骰之前短路,
+  // 否则闪避会被后续掷骰覆盖, 也会白白消耗一次战斗 RNG。
+  if (dmg.missed) {
+    dmg.amount = 0;
+    recordHitPart(targetId, 0, true);
+    return "missed";
+  }
+
   // ---- 1. 命中判定 —— 只有"攻击"需要命中; 无施法者(中毒/荆棘等)与必中效果直接跳过 ----
   if (dmg.isAttack && src && !opts.mustHit) {
     if (!roll(state, hitChance(state, src, target, opts.hitBonus ?? 0))) {
@@ -192,6 +200,21 @@ export function dealDamage(
 
   if (target.team !== "player" && target.hp <= 0) markDead(state, target);
   return "hit";
+}
+
+// 失去生命 —— 不是伤害: 不吃护盾/防御/格挡/命中/暴击, 也不触发受击与护盾击破钩子。
+// 我方仍走濒死与体力极限口径, 敌人归零即死。血坏这类"自残"代价走这里。
+export function loseHp(state: BattleState, targetId: string, amount: number): void {
+  const target = state.combatants[targetId];
+  const lost = Math.max(0, Math.round(amount));
+  if (!target || !target.alive || lost <= 0) return;
+
+  if (target.team === "player" && target.hp > 0 && !getStatus(target, "buzhou"))
+    target.hpLimit = Math.max(1, Math.min(target.hpLimit, target.hp));
+  target.hp = target.team === "player" ? Math.max(0, target.hp - lost) : target.hp - lost;
+  recordHitPart(targetId, lost);
+  log(state, `${target.emoji} ${target.name} 失去 ${lost} 点生命`);
+  if (target.team !== "player" && target.hp <= 0) markDead(state, target);
 }
 
 // 预览命中后的确定性伤害: 应用状态修正与防御, 忽略命中/暴击/格挡/护盾等随机或吸收结果。
@@ -362,9 +385,12 @@ export const ops: EngineOps = {
   gainShield,
   applyStatus,
   applyStatMod,
+  loseHp,
   addCardToHand: () => undefined,
   discard: () => undefined,
   flushAutoPlays: () => undefined,
+  draw: () => undefined,
+  firePassive: () => undefined,
   log,
 };
 

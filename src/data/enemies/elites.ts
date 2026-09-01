@@ -3,6 +3,7 @@ import type { DropEntry } from "../../items/types";
 import type { EnemyDef } from "./types";
 
 const ELITE_DROPS: DropEntry[] = [
+  { kind: "item", itemId: "blue-crystal", chance: 0.6 },
   { kind: "item", itemId: "bronze-bear", chance: 0.4 },
   { kind: "item", itemId: "logic-cube", chance: 0.05 },
   { kind: "item", itemId: "standard-gear", chance: 0.05 },
@@ -74,11 +75,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         effects: [{ type: "GAIN_SHIELD", amount: 12, target: "self" }],
       },
     ],
-    dropTable: [
-      ...ELITE_DROPS.slice(0, 1),
-      { kind: "item", itemId: "sorting-id-chip", chance: 0.5 },
-      ...ELITE_DROPS.slice(1),
-    ],
+    dropTable: ELITE_DROPS,
     boonTable: ELITE_BOONS,
   },
   {
@@ -140,11 +137,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
-    dropTable: [
-      ...ELITE_DROPS.slice(0, 1),
-      { kind: "item", itemId: "high-voltage-insulator", chance: 0.5 },
-      ...ELITE_DROPS.slice(1),
-    ],
+    dropTable: ELITE_DROPS,
     boonTable: ELITE_BOONS,
   },
 ];

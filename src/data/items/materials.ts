@@ -1,7 +1,17 @@
 import type { ItemDef } from "../../items/types";
 import { withBuyValue } from "./pricing";
 
-const DEFS: ItemDef[] = [
+// ============================================================================
+// 材料表 —— 掉落物只分三类, 本文件负责其中两类(第三类换金物见 ./scrap.ts):
+//   ① 通用材料(魔方/齿轮/电池): 全地图怪物基础掉落, 用于制造模组。可上架据点商店。
+//   ② 水晶(绿/蓝/红): 按敌人档位掉落(小怪/精英/首领), 回城升级建筑。
+//
+// ★ 水晶**刻意不过 withBuyValue** ⇒ 没有 buyValue ⇒ data/shop.ts 的候选池
+//   (筛选条件是「填了 buyValue」)自然把它排除, 不需要再写一张黑名单。
+//   同理不写 sellValue ⇒ 回收台不收水晶。
+// ============================================================================
+
+const GENERAL_DEFS: ItemDef[] = [
   {
     id: "logic-cube",
     name: "魔方",
@@ -29,142 +39,41 @@ const DEFS: ItemDef[] = [
     maxStack: 1,
     icon: "material",
   },
+];
+
+// 水晶没有品级 —— 三种同为 common, 颜色是它们唯一的区分信息(图标固定取色, 不随稀有度)。
+const CRYSTAL_DEFS: ItemDef[] = [
   {
-    id: "breaker-ceramic-core",
-    name: "断路陶芯",
+    id: "green-crystal",
+    name: "绿色水晶",
     category: "material",
-    rarity: "fine",
-    desc: "从废弃楼层配电柜和维修拆解工位取得的高压隔离组件。",
+    rarity: "common",
+    desc: "从普通机械单元核心中析出的绿色结晶，带回据点用于升级建筑。不参与制造，回收台不收。",
     maxStack: 1,
     icon: "material",
   },
   {
-    id: "cooling-microcrystal",
-    name: "冷却微晶",
+    id: "blue-crystal",
+    name: "蓝色水晶",
     category: "material",
-    rarity: "fine",
-    desc: "从超算机房冷却管路外壁刮取的稳定结晶层。",
+    rarity: "common",
+    desc: "只在精英级机械体内部成型的蓝色结晶，带回据点用于升级建筑。不参与制造，回收台不收。",
     maxStack: 1,
     icon: "material",
   },
   {
-    id: "light-guide-film",
-    name: "光导薄膜",
+    id: "red-crystal",
+    name: "红色水晶",
     category: "material",
-    rarity: "fine",
-    desc: "从自适应玻璃维护槽中抽出的企业级光学膜。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "packaging-gel",
-    name: "封装凝胶",
-    category: "material",
-    rarity: "fine",
-    desc: "从无菌实验室和冷链配给线的封装头中收集的工业凝胶。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "conductive-ink",
-    name: "导电印墨",
-    category: "material",
-    rarity: "fine",
-    desc: "清理线路打印头和维护模板后得到的功能性导电墨料。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "mag-rail-lining",
-    name: "磁轨衬层",
-    category: "material",
-    rarity: "fine",
-    desc: "从货运中转廊停机轨道接触面剥离的磁性复合层。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "sorting-id-chip",
-    name: "分拣识别片",
-    category: "material",
-    rarity: "fine",
-    desc: "废品机器人用于判断物体类别的旧式识别组件。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "high-voltage-insulator",
-    name: "高压绝缘节",
-    category: "material",
-    rarity: "fine",
-    desc: "电线杆机器人连接高压线路与机械支架的隔离部件。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "broadcast-tuning-chip",
-    name: "广播校频片",
-    category: "material",
-    rarity: "fine",
-    desc: "收音机机器人维持广播频段稳定的校频组件。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "dust-capture-mesh",
-    name: "微尘捕集网",
-    category: "material",
-    rarity: "fine",
-    desc: "清扫无人机内部用于过滤楼层微尘的多层捕集网。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "self-healing-wire",
-    name: "自愈焊丝",
-    category: "material",
-    rarity: "fine",
-    desc: "维修蜘蛛使用的低温自愈焊接材料，可用于微小结构修补。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "magnetic-pole-shoe",
-    name: "磁吸极靴",
-    category: "material",
-    rarity: "fine",
-    desc: "磁吸搬运机末端的定向磁吸接触部件。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "hydraulic-memory-valve",
-    name: "液压记忆阀",
-    category: "material",
-    rarity: "rare",
-    desc: "重载压缩机记录压力阶段并重复执行压缩流程的核心阀组。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "maintenance-authority-seal",
-    name: "维护权限印章",
-    category: "material",
-    rarity: "rare",
-    desc: "维修主管机使用的实体权限校验模块，可被旧终端识别。",
-    maxStack: 1,
-    icon: "material",
-  },
-  {
-    id: "identification-prism",
-    name: "识别棱镜",
-    category: "material",
-    rarity: "rare",
-    desc: "安保回收机用于读取目标特征并投射分类标记的光学部件。",
+    rarity: "common",
+    desc: "首领级机械体的能量炉残留物，带回据点用于升级建筑。不参与制造，回收台不收。",
     maxStack: 1,
     icon: "material",
   },
 ];
 
-// 商店挂牌价统一打标(见 ./pricing.ts): 逐条手写价格, 漏一条就是一件永不上架的材料。
-export const MATERIAL_ITEM_DEFS: ItemDef[] = withBuyValue(DEFS);
+// 商店挂牌价统一打标(见 ./pricing.ts)。
+export const GENERAL_MATERIAL_DEFS: ItemDef[] = withBuyValue(GENERAL_DEFS);
+export const CRYSTAL_ITEM_DEFS: ItemDef[] = CRYSTAL_DEFS;
+
+export const MATERIAL_ITEM_DEFS: ItemDef[] = [...GENERAL_MATERIAL_DEFS, ...CRYSTAL_ITEM_DEFS];

@@ -11,7 +11,7 @@ import {
 
 export { CONSUMABLE_ITEM_DEFS } from "./consumables";
 export { EQUIPMENT_ITEM_DEFS } from "./equipment";
-export { MATERIAL_ITEM_DEFS } from "./materials";
+export { CRYSTAL_ITEM_DEFS, GENERAL_MATERIAL_DEFS, MATERIAL_ITEM_DEFS } from "./materials";
 export { BURDEN_ITEM_DEFS } from "./burden";
 export { SCRAP_ITEM_DEFS } from "./scrap";
 export {

@@ -1,4 +1,15 @@
+import type { DropEntry } from "../../items/types";
 import type { EnemyDef } from "./types";
+
+// 首领必掉红水晶(见 items/materials.ts 的档位口径), 换金物与通用材料按首领体量放宽。
+const BOSS_DROPS: DropEntry[] = [
+  { kind: "item", itemId: "red-crystal", chance: 1 },
+  { kind: "item", itemId: "golden-bear", chance: 0.5 },
+  { kind: "item", itemId: "silver-bear", chance: 0.6 },
+  { kind: "item", itemId: "logic-cube", chance: 0.3 },
+  { kind: "item", itemId: "standard-gear", chance: 0.3 },
+  { kind: "item", itemId: "standard-battery", chance: 0.3 },
+];
 
 export const BOSS_ENEMIES: EnemyDef[] = [
   {
@@ -95,6 +106,7 @@ export const BOSS_ENEMIES: EnemyDef[] = [
         effects: [{ type: "DAMAGE", multiplier: 1.0, target: "primary" }],
       },
     ],
+    dropTable: BOSS_DROPS,
     boonTable: [
       { kind: "healDew", chance: 0.8 },
       { kind: "equipCrate", chance: 1 },

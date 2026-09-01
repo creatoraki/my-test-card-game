@@ -253,3 +253,25 @@
   background-size: 100% 2px, 100% 1px, auto;
   background-repeat: no-repeat, no-repeat, repeat;
 }
+
+/* 被动卡铭牌 —— 占费用徽章的位置(左上斜口内侧), 但是一块刻字钢牌而不是水晶:
+   被动卡没有费用可读, 留个空水晶会让人以为是 0 费可打的牌。 */
+.hc-passive {
+  position: absolute;
+  z-index: 6;
+  left: 12px;
+  top: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 7px;
+  color: #dfe7ee;
+  background: #10161ce6;
+  border: 1px solid #8fa3b366;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  line-height: 1;
+  text-shadow: 0 1px 2px #05080a;
+}

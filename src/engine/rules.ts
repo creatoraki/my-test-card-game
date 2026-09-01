@@ -35,6 +35,7 @@ export const RULES = {
       cost: { trigger: true, count: true },
       redraw: { trigger: false, count: false },
       roundEnd: { trigger: false, count: false },
+      passiveEnd: { trigger: false, count: false },
       play: { trigger: false, count: false },
     },
   },

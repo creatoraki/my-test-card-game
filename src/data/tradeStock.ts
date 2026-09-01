@@ -1,42 +1,21 @@
 import type { ItemDef, ItemRarity } from "../items/types";
-import { CONSUMABLE_ITEM_DEFS, EQUIPMENT_ITEM_DEFS, MATERIAL_ITEM_DEFS } from "./items/index";
+import {
+  CONSUMABLE_ITEM_DEFS,
+  CRYSTAL_ITEM_DEFS,
+  EQUIPMENT_ITEM_DEFS,
+  GENERAL_MATERIAL_DEFS,
+  MATERIAL_ITEM_DEFS,
+} from "./items/index";
 import { mapEquipRarities } from "./maps";
 
 export type TradeStockKind =
   | "material-general"
-  | "material-regional"
-  | "material-monster"
+  | "crystal"
   | "consumable"
   | "food"
   | "equip-weapon";
 
 const FOOD_IDS = ["milk", "bread", "cola", "hamburger", "fried-chicken", "pizza"];
-const REGIONAL_IDS = [
-  "breaker-ceramic-core",
-  "cooling-microcrystal",
-  "light-guide-film",
-  "packaging-gel",
-  "conductive-ink",
-  "mag-rail-lining",
-];
-const GENERAL_IDS = ["logic-cube", "standard-gear", "standard-battery"];
-
-const STOCK_IDS_BY_MAP: Record<string, Partial<Record<TradeStockKind, string[]>>> = {
-  "neon-city": {
-    "material-general": GENERAL_IDS,
-    "material-regional": REGIONAL_IDS,
-    "material-monster": MATERIAL_ITEM_DEFS.slice(9).map((def) => def.id),
-  },
-};
-
-const GENERIC_IDS: Record<TradeStockKind, string[]> = {
-  "material-general": GENERAL_IDS,
-  "material-regional": REGIONAL_IDS,
-  "material-monster": MATERIAL_ITEM_DEFS.slice(9).map((def) => def.id),
-  consumable: [],
-  food: FOOD_IDS,
-  "equip-weapon": [],
-};
 
 const ALL_DEFS = [...MATERIAL_ITEM_DEFS, ...CONSUMABLE_ITEM_DEFS, ...EQUIPMENT_ITEM_DEFS];
 const DEF_BY_ID = new Map(ALL_DEFS.map((def) => [def.id, def]));
@@ -58,7 +37,8 @@ export function tradeStockDefs(kind: TradeStockKind, mapId: string): ItemDef[] {
     const allowedRarities = mapEquipRarities(mapId);
     return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon" && allowedRarities.includes(def.rarity));
   }
-
-  const ids = STOCK_IDS_BY_MAP[mapId]?.[kind] ?? GENERIC_IDS[kind];
-  return defsByIds(ids);
+  // 材料只剩两类, 全地图共用同一份清单 —— 通用材料跨地图产出, 水晶按敌人档位产出,
+  // 两者都不再有地区专属池, 所以这里不需要按 mapId 分表。
+  if (kind === "crystal") return CRYSTAL_ITEM_DEFS;
+  return GENERAL_MATERIAL_DEFS;
 }

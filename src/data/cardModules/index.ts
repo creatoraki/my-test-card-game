@@ -23,6 +23,8 @@ export function getCardModule(itemId: string): CardModuleDef | undefined {
 export function canEquipModule(card: Card, itemId: string): boolean {
   const module = getCardModule(itemId);
   if (!module) return false;
+  // 被动卡不可打出, 装模组没有意义 —— 统一在入口挡掉, 免得每条 canEquip 各写一遍。
+  if (getCardDef(card.id).cardType === "passive") return false;
   return module.canEquip(getCardDef(card.id));
 }
 
