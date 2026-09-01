@@ -2,11 +2,15 @@
 //
 // ★ 规则一概不在这里: 能不能换、换完谁进背包, 全由调用方的 swap 回调决定。
 //   swap 缺省 = 只读(战斗界面就是这么用的), 槽位不再是按钮, 也不渲染候选列。
+//
+// 槽位只画图标(部位文字已移除, 部位信息留在 aria-label 与悬浮 Tooltip),
+// 外层 div 常驻挂 InteractiveHint 四角提示 —— 宿主三条契约由 .cm-slot 的样式保证。
 
 import { useState } from "react";
 import { getItemDef } from "@/data";
 import { SLOT_LABEL, type EquipSlot, type ItemStack } from "@/items/types";
 import ItemSlot from "@/ui/common/item/ItemSlot";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { cx } from "@/ui/common/cx";
 import { ModalEquipPicker } from "./ModalEquipPicker";
 import s from "../CharacterModal.module.css";
@@ -62,8 +66,11 @@ export function ModalEquip({ equipped, swap, accent, onShowTooltip, onHideToolti
           const stack = equipped[slot];
           const active = openSlot?.slot === slot;
           return (
-            <div key={slot} className={cx(s["cm-slot"], active && s["is-active"])}>
-              <span className={s["cm-slot-label"]}>{SLOT_LABEL[slot]}</span>
+            <div
+              key={slot}
+              className={cx(s["cm-slot"], active && s["is-active"])}
+              data-interactive-hint=""
+            >
               {stack ? (
                 <div
                   className={s["cm-slot-box"]}
@@ -92,6 +99,7 @@ export function ModalEquip({ equipped, swap, accent, onShowTooltip, onHideToolti
                   空
                 </button>
               )}
+              <InteractiveHint className={s["cm-slot-hint"]} />
             </div>
           );
         })}

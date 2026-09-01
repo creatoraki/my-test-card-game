@@ -1,0 +1,129 @@
+/* 「可点击」四角 L 型激活边框 —— 全站统一的可交互提示。
+   与 CardSelectFrame 的区别: 那边是**卡牌已选中**(青蓝、常驻、带卡牌斜角),
+   这边是**这里能点**(天蓝、悬浮才出、直角 L)。两套语义不要互相套用。
+
+   ★ 跨模块契约(铁律 4) —— 宿主元素必须满足三条:
+     ① position: relative           (提示层按宿主定位)
+     ② 挂 data-interactive-hint 属性 (显隐由它的 :hover / :focus 驱动, 铁律 2)
+     ③ 自身不能 overflow: hidden     (四角画在容器**外部**, 会被裁掉)
+   可调旋钮(由调用方通过 className 覆盖):
+     --ihint-offset     外扩距离, 默认 6px
+     --ihint-size       L 臂长, 默认 18px
+     --ihint-thickness  线宽, 默认 2px
+     --ihint-neon / --ihint-neon-deep / --ihint-core  配色 */
+
+.hint {
+  position: absolute;
+  z-index: 12;
+  inset: calc(-1 * var(--ihint-offset, 6px));
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+  --ihint-size: 18px;
+  --ihint-thickness: 2px;
+  --ihint-core: #ecf8ff;
+  --ihint-neon: #4fbfff;
+  --ihint-neon-deep: #0f83d8;
+}
+
+.corner {
+  position: absolute;
+  width: var(--ihint-size);
+  height: var(--ihint-size);
+  --ihint-line-width: var(--ihint-thickness);
+  --ihint-line-color: var(--ihint-core);
+  --ihint-horizontal-position: left;
+  --ihint-horizontal-cross-position: top;
+  --ihint-vertical-position: left;
+  --ihint-vertical-cross-position: top;
+  background:
+    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-horizontal-position) var(--ihint-horizontal-cross-position) / 100% var(--ihint-line-width),
+    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-vertical-position) var(--ihint-vertical-cross-position) / var(--ihint-line-width) 100%;
+}
+
+/* 外圈半透明蓝, 让 L 角在亮背景上也读得出来。 */
+.corner::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  --ihint-line-width: calc(var(--ihint-thickness) + 2px);
+  --ihint-line-color: color-mix(in srgb, var(--ihint-neon) 65%, transparent);
+  background:
+    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-horizontal-position) var(--ihint-horizontal-cross-position) / 100% var(--ihint-line-width),
+    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-vertical-position) var(--ihint-vertical-cross-position) / var(--ihint-line-width) 100%;
+  pointer-events: none;
+}
+
+.is-tl {
+  top: 0;
+  left: 0;
+  --ihint-horizontal-position: left;
+  --ihint-horizontal-cross-position: top;
+  --ihint-vertical-position: left;
+  --ihint-vertical-cross-position: top;
+}
+
+.is-tr {
+  top: 0;
+  right: 0;
+  --ihint-horizontal-position: right;
+  --ihint-horizontal-cross-position: top;
+  --ihint-vertical-position: right;
+  --ihint-vertical-cross-position: top;
+}
+
+.is-bl {
+  bottom: 0;
+  left: 0;
+  --ihint-horizontal-position: left;
+  --ihint-horizontal-cross-position: bottom;
+  --ihint-vertical-position: left;
+  --ihint-vertical-cross-position: bottom;
+}
+
+.is-br {
+  right: 0;
+  bottom: 0;
+  --ihint-horizontal-position: right;
+  --ihint-horizontal-cross-position: bottom;
+  --ihint-vertical-position: right;
+  --ihint-vertical-cross-position: bottom;
+}
+
+/* ★ 显隐读宿主状态(铁律 2)。用直接子选择器, 避免宿主嵌套时外层悬浮点亮内层提示。
+   ⚠ 关键帧写在本文件里, animation-name 必须也留在 CSS —— 不能由 TSX 行内下发。 */
+:global([data-interactive-hint]:hover) > .hint,
+:global([data-interactive-hint]:focus-visible) > .hint,
+:global([data-interactive-hint]:focus-within) > .hint {
+  opacity: 1;
+  animation: interactiveHintBreath 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes interactiveHintBreath {
+  from {
+    filter:
+      drop-shadow(0 0 1px var(--ihint-neon))
+      drop-shadow(0 0 4px var(--ihint-neon))
+      drop-shadow(0 0 10px var(--ihint-neon-deep));
+  }
+  to {
+    filter:
+      drop-shadow(0 0 2px var(--ihint-core))
+      drop-shadow(0 0 7px var(--ihint-neon))
+      drop-shadow(0 0 18px var(--ihint-neon))
+      drop-shadow(0 0 30px var(--ihint-neon-deep));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-interactive-hint]:hover) > .hint,
+  :global([data-interactive-hint]:focus-visible) > .hint,
+  :global([data-interactive-hint]:focus-within) > .hint {
+    animation: none;
+    filter:
+      drop-shadow(0 0 2px var(--ihint-neon))
+      drop-shadow(0 0 8px var(--ihint-neon))
+      drop-shadow(0 0 20px var(--ihint-neon-deep));
+  }
+}

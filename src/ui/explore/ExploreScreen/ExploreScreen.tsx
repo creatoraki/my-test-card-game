@@ -55,6 +55,7 @@ import ShopOverlay from "@/ui/explore/ShopOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import NodeTip from "@/ui/explore/NodeTip";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
 import { PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
 import {
@@ -728,42 +729,55 @@ export function ExploreScreen() {
             const p = session.party[i];
             if (!p) return <div key={`empty${i}`} className={s["expl-slot-empty"]} />;
             const targetable = memberUsable(p);
+            // 「这一格现在能点吗」只算一次: onClick 与四角可点击提示共用同一个结论,
+            // 免得两处判断日后走偏(出现「亮了却点不动」或反过来)。
+            const clickable = targetable || !useTarget;
             return (
-              <PartyMemberCard
+              // ⚠ 这层壳只为「把四角提示画到卡的外面」而存在:
+              //   .expl-member 自带 overflow:hidden + clip-path 切角, 画在卡内部会被裁掉。
+              //   壳必须保持干净(不加 transform/opacity/filter/animation), 否则卡的
+              //   backdrop-filter 取不到背景图 —— 见本文件顶部与 module.css 的玻璃约束。
+              <div
                 key={p.charId}
-                charId={p.charId}
-                emoji={p.emoji}
-                name={p.name}
-                hp={p.hp}
-                hpLimit={p.hpLimit}
-                maxHp={p.maxHp}
-                pollution={characters[p.charId]?.pollution ?? 0}
-                down={!p.alive}
-                className={cx(
-                  s["expl-member"],
-                  targetable && s["is-targetable"],
-                  !p.alive && s["is-down"],
-                )}
-                // 点击分流: 消耗品选目标模式下是「用在他身上」, 其余时候打开角色档案(可换装)。
-                onClick={
-                  targetable
-                    ? () => applyItemUse(p.charId)
-                    : useTarget
+                className={s["expl-member-hit"]}
+                {...(clickable ? { "data-interactive-hint": "" } : null)}
+              >
+                <PartyMemberCard
+                  charId={p.charId}
+                  emoji={p.emoji}
+                  name={p.name}
+                  hp={p.hp}
+                  hpLimit={p.hpLimit}
+                  maxHp={p.maxHp}
+                  pollution={characters[p.charId]?.pollution ?? 0}
+                  down={!p.alive}
+                  className={cx(
+                    s["expl-member"],
+                    targetable && s["is-targetable"],
+                    !p.alive && s["is-down"],
+                  )}
+                  // 点击分流: 消耗品选目标模式下是「用在他身上」, 其余时候打开角色档案(可换装)。
+                  onClick={
+                    !clickable
                       ? undefined
-                      : () => {
-                          setDetailClosing(false);
-                          setDetailCharId(p.charId);
-                        }
-                }
-                overlay={
-                  expDrops[p.charId] ? (
-                  <ExpDropFx
-                    key={`${p.charId}-${expDrops[p.charId].sequence}`}
-                    amount={expDrops[p.charId].amount}
-                  />
-                  ) : null
-                }
-              />
+                      : targetable
+                        ? () => applyItemUse(p.charId)
+                        : () => {
+                            setDetailClosing(false);
+                            setDetailCharId(p.charId);
+                          }
+                  }
+                  overlay={
+                    expDrops[p.charId] ? (
+                    <ExpDropFx
+                      key={`${p.charId}-${expDrops[p.charId].sequence}`}
+                      amount={expDrops[p.charId].amount}
+                    />
+                    ) : null
+                  }
+                />
+                {clickable && <InteractiveHint className={s["expl-member-hint"]} />}
+              </div>
             );
           })}
         </div>

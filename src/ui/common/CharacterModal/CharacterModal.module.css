@@ -216,16 +216,18 @@
   gap: 14px;
 }
 
+/* 槽位不再写部位文字, 部位只留在 aria-label 与悬浮 Tooltip 里。
+   position: relative 是 InteractiveHint 的宿主契约①(见 common/InteractiveHint 文件头)。 */
 .cm-slot {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: 6px;
 }
 
-.cm-slot-label {
-  color: #8fa9ae;
-  font-size: 12px;
-  letter-spacing: 0.18em;
+/* 四角提示的几何: 槽间 gap 14px、.cm-equip 内边距 12/14px, 外扩 4px 不会压到邻槽或面板边。 */
+.cm-slot-hint {
+  --ihint-offset: 4px;
+  --ihint-size: 16px;
 }
 
 .cm-slot-box {
@@ -233,19 +235,19 @@
 }
 
 .cm-slot-item {
-  --item-slot-icon-size: 56%;
-  --item-slot-name-size: 12px;
-  --item-slot-notch: 10px;
-  --item-slot-bond-size: 20px;
-  --item-slot-count-size: 12px;
-  width: 132px;
-  height: 132px;
+  --item-slot-icon-size: 72%;
+  --item-slot-name-size: 13px;
+  --item-slot-notch: 12px;
+  --item-slot-bond-size: 24px;
+  --item-slot-count-size: 13px;
+  width: 176px;
+  height: 176px;
 }
 
 .cm-slot-empty {
   display: grid;
-  width: 132px;
-  height: 132px;
+  width: 176px;
+  height: 176px;
   place-items: center;
   border: 1px dashed #ffffff24;
   background: #0a0f1180;

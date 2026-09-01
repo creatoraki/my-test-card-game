@@ -297,6 +297,26 @@
 }
 .expl-member {
 }
+/* 队伍卡的定位壳 —— 存在的唯一理由是把「可点击」四角提示画到卡的**外面**:
+   .expl-member 自带 overflow:hidden + clip-path 切角, 提示画在卡内部会被裁掉。
+   ⚠ 这层必须保持干净: 不能加 transform / opacity / filter / animation, 否则卡的
+     backdrop-filter 取不到背景图(本文件 146-158 行的玻璃约束)。
+   .expl-member 原本的 flex:1 1 0 由这层接管, 卡在壳里退化为块级铺满, 版式不变。 */
+.expl-member-hit {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* 四角提示的几何(契约见 common/InteractiveHint/InteractiveHint.module.css 文件头)。
+   卡自己悬停时上浮 4px, 提示层跟着走同一段位移, 免得边框和卡脱节。 */
+.expl-member-hint {
+  --ihint-offset: 6px;
+  --ihint-size: 20px;
+  transition: transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+.expl-member-hit:hover .expl-member-hint {
+  transform: translateY(-4px);
+}
 .expl-slot-empty {
   flex: 1 1 0;
   min-width: 0;

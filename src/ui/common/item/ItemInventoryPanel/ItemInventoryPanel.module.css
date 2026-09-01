@@ -323,6 +323,20 @@
   aspect-ratio: 1;
 }
 
+/* 「可点击」四角提示的几何(契约见 common/InteractiveHint/InteractiveHint.module.css 文件头)。
+   ⚠ 外扩只给 3px: 网格 gap 最窄 8px、托盘内边距 9px, 再大就会与邻格互相压、
+     或被 .inventory-panel 的 overflow:hidden 切掉。
+   格子悬停时自身放大 1.04, 提示层跟着走同一段缩放, 免得边框和格子脱节。 */
+.inventory-slot-hint {
+  --ihint-offset: 3px;
+  --ihint-size: 12px;
+  transition: transform 160ms ease;
+}
+
+.inventory-slot-anchor:hover > .inventory-slot-hint {
+  transform: scale(1.04);
+}
+
 .inventory-slot-anchor[data-dragging="true"] {
   opacity: 0.35;
 }

@@ -61,6 +61,8 @@ export default function BackpackBar({
       panelId="explore-backpack-bar"
       colorMap={EXPLORE_BACKPACK_COLORS}
       selectedUid={null}
+      // 阶段不允许动背包时不给「可点击」提示 —— 亮了却点不动比不亮更糟。
+      slotHint={editable}
       onReorder={
         editable
           ? (from, to) => {

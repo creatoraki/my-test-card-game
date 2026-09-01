@@ -14,6 +14,7 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { cx } from "@/ui/common/cx";
 import { inventoryThemeVars, type InventoryColorMap } from "@/ui/common/item/inventoryTheme";
 import s from "./ItemInventoryPanel.module.css";
@@ -49,6 +50,8 @@ export interface ItemInventoryPanelProps {
   colorMap?: InventoryColorMap;
   /** 由容器传入需要短暂高亮的物品 uid, 例如飞入背包后的落点反馈。 */
   pulseUids?: ReadonlySet<string>;
+  /** 开启后, 悬浮到**有物品**的格子时在格外浮出统一的「可点击」四角提示; 空格不给提示。 */
+  slotHint?: boolean;
   className?: string;
 }
 
@@ -87,6 +90,7 @@ export default function ItemInventoryPanel({
   panelId = "item-inventory-panel",
   colorMap,
   pulseUids,
+  slotHint = false,
   className,
 }: ItemInventoryPanelProps) {
   const safeRows = positiveInteger(rows, 1);
@@ -232,6 +236,7 @@ export default function ItemInventoryPanel({
                   data-drop={dropIndex === index ? "true" : undefined}
                   data-inventory-uid={stack.uid}
                   data-pulse={pulseUids?.has(stack.uid) ? "true" : undefined}
+                  {...(slotHint ? { "data-interactive-hint": "" } : null)}
                   onDragStart={(event) => {
                     if (!onReorder) return;
                     event.dataTransfer.effectAllowed = "move";
@@ -282,6 +287,7 @@ export default function ItemInventoryPanel({
                       activeSelectedUid === stack.uid && s["inventory-slot-selected"],
                     )}
                   />
+                  {slotHint && <InteractiveHint className={s["inventory-slot-hint"]} />}
                 </div>
               ) : (
                 <div
