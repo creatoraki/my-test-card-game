@@ -1,4 +1,41 @@
-// BorderGlow 的纯计算工具：颜色解析、CSS 变量拼装与补间动画。
+// BorderGlow 的纯计算工具：颜色解析、CSS 变量拼装、指针几何与补间动画。
+
+export interface PointerGeometry {
+  /** 0..1：指针贴近边缘的程度（1 = 正压在边缘上） */
+  edge: number;
+  /** 0..360：指针相对卡面中心的角度（deg） */
+  angle: number;
+}
+
+/**
+ * 把指针屏幕坐标换算成卡面自身坐标系下的边缘贴近度与角度。
+ *
+ * 原组件内 getCenterOfElement / getEdgeProximity / getCursorAngle 三个几何函数的
+ * zoom 归并实现：全程只用「比例」而不使用 rect 的绝对尺寸语义 ——
+ * 先对 rect（含变换后的轴对齐包围盒）归一化得到 nx/ny（同一坐标系内相减，免疫
+ * CSS zoom），再用 offsetWidth/offsetHeight 还原到卡面自身坐标系（宽高比正确，
+ * 避免 .bento 带 rotateX/rotateY 时 conic-gradient 角度系统性偏移）。
+ * 在 zoom=1、无旋转的环境下，结果与旧的 rect 算法逐位一致。
+ */
+export function pointerGeometry(el: HTMLElement, clientX: number, clientY: number): PointerGeometry {
+  const rect = el.getBoundingClientRect();
+  // -0.5..0.5：相对中心的归一化偏移，同一坐标系相减，免疫 zoom 与变换包围盒
+  const nx = rect.width !== 0 ? (clientX - rect.left) / rect.width - 0.5 : 0;
+  const ny = rect.height !== 0 ? (clientY - rect.top) / rect.height - 0.5 : 0;
+  // 还原成卡面自身坐标系：缩放等比 ⇒ 宽高比恒定，offsetWidth/Height 与 zoom 无关
+  const dx = nx * el.offsetWidth;
+  const dy = ny * el.offsetHeight;
+
+  let angle = 0;
+  if (dx !== 0 || dy !== 0) {
+    angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+    if (angle < 0) angle += 360;
+  }
+  // 与原 getEdgeProximity 数学等价：1/min(kx,ky) ⇒ max(|nx|,|ny|) * 2，clamp 到 0..1
+  const edge = Math.min(Math.max(Math.max(Math.abs(nx), Math.abs(ny)) * 2, 0), 1);
+
+  return { edge, angle };
+}
 
 /** 解析 "40 80 80" 形式的 HSL 数值串。 */
 export function parseHSL(hslStr: string): { h: number; s: number; l: number } {

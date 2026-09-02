@@ -21,9 +21,12 @@ const GLOW = {
 const PICKED_GLOW_INTENSITY = 1.4;
 const BOARD_TILT = 9;
 const WALL_SHADOW = 0.6;
+// 进据点时六块砖各自播一圈入场扫光；想关掉改成 false（TownBento 随 showHall 挂载，
+// 每次进据点都会重新播放一次）
+const SWEEP_ON_MOUNT = true;
 const LAYOUT = {
-  right: 96,
-  bottom: 72,
+  right: 56,
+  bottom: 40,
   width: 980,
   height: 520,
   gap: 12,
@@ -89,6 +92,8 @@ export function TownBento({ onOpen, brickClassName, brickStyle: getBrickStyle, p
                 ariaLabel={facility.name}
                 onClick={facility.locked ? undefined : () => onOpen(facility)}
                 active={picked}
+                screenFixed
+                animated={SWEEP_ON_MOUNT}
                 edgeSensitivity={GLOW.edgeSensitivity}
                 glowColor={GLOW.glowColor}
                 backgroundColor={GLOW.backgroundColor}
@@ -99,7 +104,7 @@ export function TownBento({ onOpen, brickClassName, brickStyle: getBrickStyle, p
                 glowIntensity={picked ? PICKED_GLOW_INTENSITY : GLOW.glowIntensity}
                 coneSpread={GLOW.coneSpread}
                 fillOpacity={GLOW.fillOpacity}
-                colors={GLOW.colors}
+                colors={[...GLOW.colors]}
               >
                 <span className={bodyClass}>
                   {facility.locked ? <span className={s.lockedTag}>未开放</span> : null}

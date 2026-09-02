@@ -6,6 +6,7 @@ import {
   easeInCubic,
   easeOutCubic,
   isLightColor,
+  pointerGeometry,
 } from "./borderGlowUtils";
 import s from "./BorderGlow.module.css";
 
@@ -36,6 +37,8 @@ export interface BorderGlowProps {
   coneSpread?: number;
   /** 挂载时自动播放一圈扫光 */
   animated?: boolean;
+  /** 运行在带 CSS zoom 的画布内时开启：绘制长度按 --stage-scale 反向补偿，保持屏幕像素恒定 */
+  screenFixed?: boolean;
   /** 强制点亮，等同 hover 态 */
   active?: boolean;
   /** 常亮边缘光效；悬浮时仍切换为跟随指针的光锥 */
@@ -62,6 +65,7 @@ export function BorderGlow({
   glowIntensity = 1.0,
   coneSpread = 25,
   animated = false,
+  screenFixed = false,
   active = false,
   persistent = false,
   colors = ["#c084fc", "#f472b6", "#38bdf8"],
@@ -69,63 +73,29 @@ export function BorderGlow({
 }: BorderGlowProps) {
   const cardRef = useRef<HTMLElement>(null);
 
-  const getCenterOfElement = useCallback((el: HTMLElement) => {
-    const { width, height } = el.getBoundingClientRect();
-    return [width / 2, height / 2];
+  // 扫光 effect 的依赖只收敛到 [animated]，active/persistent 用 ref 读最新值，
+  // 避免点击/常亮态翻转触发 effect 重跑、在演出中途重播入场扫光。
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const persistentRef = useRef(persistent);
+  persistentRef.current = persistent;
+
+  const handlePointerMove = useCallback((e: PointerEvent<HTMLElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const { edge, angle } = pointerGeometry(card, e.clientX, e.clientY);
+
+    card.style.setProperty("--edge-proximity", `${(edge * 100).toFixed(3)}`);
+    card.style.setProperty("--cursor-angle", `${angle.toFixed(3)}deg`);
   }, []);
-
-  const getEdgeProximity = useCallback(
-    (el: HTMLElement, x: number, y: number) => {
-      const [cx, cy] = getCenterOfElement(el);
-      const dx = x - cx;
-      const dy = y - cy;
-      let kx = Infinity;
-      let ky = Infinity;
-      if (dx !== 0) kx = cx / Math.abs(dx);
-      if (dy !== 0) ky = cy / Math.abs(dy);
-      return Math.min(Math.max(1 / Math.min(kx, ky), 0), 1);
-    },
-    [getCenterOfElement],
-  );
-
-  const getCursorAngle = useCallback(
-    (el: HTMLElement, x: number, y: number) => {
-      const [cx, cy] = getCenterOfElement(el);
-      const dx = x - cx;
-      const dy = y - cy;
-      if (dx === 0 && dy === 0) return 0;
-      const radians = Math.atan2(dy, dx);
-      let degrees = radians * (180 / Math.PI) + 90;
-      if (degrees < 0) degrees += 360;
-      return degrees;
-    },
-    [getCenterOfElement],
-  );
-
-  const handlePointerMove = useCallback(
-    (e: PointerEvent<HTMLElement>) => {
-      const card = cardRef.current;
-      if (!card) return;
-
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      const edge = getEdgeProximity(card, x, y);
-      const angle = getCursorAngle(card, x, y);
-
-      card.style.setProperty("--edge-proximity", `${(edge * 100).toFixed(3)}`);
-      card.style.setProperty("--cursor-angle", `${angle.toFixed(3)}deg`);
-    },
-    [getEdgeProximity, getCursorAngle],
-  );
 
   const handlePointerLeave = useCallback(() => {
     const card = cardRef.current;
     if (!card) return;
-    if (persistent) card.style.setProperty("--edge-proximity", "100");
+    if (persistentRef.current) card.style.setProperty("--edge-proximity", "100");
     else card.style.removeProperty("--edge-proximity");
-  }, [persistent]);
+  }, []);
 
   useEffect(() => {
     if (!animated || !cardRef.current) return;
@@ -151,7 +121,7 @@ export function BorderGlow({
         end: 0,
         onUpdate: (v) => card.style.setProperty("--edge-proximity", `${v}`),
         onEnd: () => {
-          card.style.setProperty("--edge-proximity", persistent ? "100" : "0");
+          card.style.setProperty("--edge-proximity", persistentRef.current ? "100" : "0");
           card.classList.remove(s.sweepActive);
         },
       }),
@@ -159,15 +129,16 @@ export function BorderGlow({
 
     return () => {
       cancels.forEach((cancel) => cancel());
-      if (!active) card.classList.remove(s.sweepActive);
+      if (!activeRef.current) card.classList.remove(s.sweepActive);
     };
-  }, [active, animated, persistent]);
+  }, [animated]);
 
   const isLight = lightSurface ?? isLightColor(backgroundColor);
   const classNames = [
     s.borderGlowCard,
     glass ? s.glass : "",
     isLight ? s.light : "",
+    screenFixed ? s.screenFixed : "",
     active ? s.sweepActive : "",
     persistent ? s.persistent : "",
     className,

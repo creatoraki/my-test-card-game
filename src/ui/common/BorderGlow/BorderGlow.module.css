@@ -6,6 +6,9 @@
   --border-radius: 28px;
   --glow-padding: 40px;
   --cone-spread: 25;
+  /* 绘制长度补偿系数：默认 1（跟随画布等比缩放）；
+     开 .screenFixed 后按 --stage-scale 反向补偿，使光效在屏幕上像素恒定 */
+  --glow-comp: 1;
 
   position: relative;
   padding: 0;
@@ -31,6 +34,12 @@
   box-shadow:
     rgb(24 24 27 / 4%) 0 1px 2px,
     rgb(24 24 27 / 5%) 0 8px 24px;
+}
+
+/* 运行在带 CSS zoom 的画布内：--stage-scale 由 StageCanvas 下发并级联到后代，
+   画布外不存在该变量时回落 1。绘制长度乘补偿即可在屏幕上恒定，不动布局尺寸。 */
+.screenFixed {
+  --glow-comp: calc(1 / var(--stage-scale, 1));
 }
 
 .light::after,
@@ -68,7 +77,7 @@
 
 /* 彩色网格渐变描边 */
 .borderGlowCard::before {
-  border: 1px solid transparent;
+  border: calc(1px * var(--glow-comp)) solid transparent;
   background:
     linear-gradient(var(--card-bg, #120f17) 0 100%) padding-box,
     linear-gradient(rgb(255 255 255 / 0%) 0% 100%) border-box,
@@ -122,7 +131,7 @@
 
 /* 外发光层 */
 .borderGlowCard > .edgeLight {
-  inset: calc(var(--glow-padding) * -1);
+  inset: calc(var(--glow-padding) * var(--glow-comp) * -1);
   pointer-events: none;
   z-index: 1;
 
@@ -138,22 +147,22 @@
 .borderGlowCard > .edgeLight::before {
   content: "";
   position: absolute;
-  inset: var(--glow-padding);
+  inset: calc(var(--glow-padding) * var(--glow-comp));
   border-radius: inherit;
   box-shadow:
-    inset 0 0 0 1px var(--glow-color, hsl(40deg 80% 80% / 100%)),
-    inset 0 0 1px 0 var(--glow-color-60, hsl(40deg 80% 80% / 60%)),
-    inset 0 0 3px 0 var(--glow-color-50, hsl(40deg 80% 80% / 50%)),
-    inset 0 0 6px 0 var(--glow-color-40, hsl(40deg 80% 80% / 40%)),
-    inset 0 0 15px 0 var(--glow-color-30, hsl(40deg 80% 80% / 30%)),
-    inset 0 0 25px 2px var(--glow-color-20, hsl(40deg 80% 80% / 20%)),
-    inset 0 0 50px 2px var(--glow-color-10, hsl(40deg 80% 80% / 10%)),
-    0 0 1px 0 var(--glow-color-60, hsl(40deg 80% 80% / 60%)),
-    0 0 3px 0 var(--glow-color-50, hsl(40deg 80% 80% / 50%)),
-    0 0 6px 0 var(--glow-color-40, hsl(40deg 80% 80% / 40%)),
-    0 0 15px 0 var(--glow-color-30, hsl(40deg 80% 80% / 30%)),
-    0 0 25px 2px var(--glow-color-20, hsl(40deg 80% 80% / 20%)),
-    0 0 50px 2px var(--glow-color-10, hsl(40deg 80% 80% / 10%));
+    inset 0 0 0 calc(1px * var(--glow-comp)) var(--glow-color, hsl(40deg 80% 80% / 100%)),
+    inset 0 0 calc(1px * var(--glow-comp)) 0 var(--glow-color-60, hsl(40deg 80% 80% / 60%)),
+    inset 0 0 calc(3px * var(--glow-comp)) 0 var(--glow-color-50, hsl(40deg 80% 80% / 50%)),
+    inset 0 0 calc(6px * var(--glow-comp)) 0 var(--glow-color-40, hsl(40deg 80% 80% / 40%)),
+    inset 0 0 calc(15px * var(--glow-comp)) 0 var(--glow-color-30, hsl(40deg 80% 80% / 30%)),
+    inset 0 0 calc(25px * var(--glow-comp)) calc(2px * var(--glow-comp)) var(--glow-color-20, hsl(40deg 80% 80% / 20%)),
+    inset 0 0 calc(50px * var(--glow-comp)) calc(2px * var(--glow-comp)) var(--glow-color-10, hsl(40deg 80% 80% / 10%)),
+    0 0 calc(1px * var(--glow-comp)) 0 var(--glow-color-60, hsl(40deg 80% 80% / 60%)),
+    0 0 calc(3px * var(--glow-comp)) 0 var(--glow-color-50, hsl(40deg 80% 80% / 50%)),
+    0 0 calc(6px * var(--glow-comp)) 0 var(--glow-color-40, hsl(40deg 80% 80% / 40%)),
+    0 0 calc(15px * var(--glow-comp)) 0 var(--glow-color-30, hsl(40deg 80% 80% / 30%)),
+    0 0 calc(25px * var(--glow-comp)) calc(2px * var(--glow-comp)) var(--glow-color-20, hsl(40deg 80% 80% / 20%)),
+    0 0 calc(50px * var(--glow-comp)) calc(2px * var(--glow-comp)) var(--glow-color-10, hsl(40deg 80% 80% / 10%));
 }
 
 .inner {
