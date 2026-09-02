@@ -1,0 +1,42 @@
+.hall { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 18px; height: 700px; min-height: 0; }
+.catalog, .detail { min-height: 0; background: #08131266; border: 1px solid var(--museum-line); }
+.catalog { padding: 16px; overflow: auto; }
+.detail { padding: 16px; overflow: auto; }
+.section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.kicker { color: var(--museum-accent); font-size: 11px; letter-spacing: 0.16em; }
+.section-head h3 { margin: 5px 0 0; color: var(--museum-ink); font-size: 22px; letter-spacing: 0.12em; }
+.count { color: var(--museum-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.enemy-groups { display: flex; flex-direction: column; gap: 22px; margin-top: 18px; }
+.enemy-group h4 { display: flex; align-items: baseline; gap: 9px; margin: 0 0 10px; padding-bottom: 6px; color: var(--museum-ink); border-bottom: 1px solid var(--museum-line); font-size: 15px; letter-spacing: 0.12em; }
+.enemy-group h4 small { color: var(--museum-dim); font-size: 11px; font-weight: 400; letter-spacing: 0; }
+.enemy-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.enemy-button, .locked-enemy { display: flex; min-width: 0; height: 165px; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding: 8px; color: var(--museum-ink); background: #0b191788; border: 1px solid #b8e5d51c; cursor: var(--cursor-pointer); transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.enemy-button:hover, .enemy-button:focus-visible, .enemy-button.is-selected { border-color: var(--museum-accent); box-shadow: 0 0 18px -8px var(--museum-accent); transform: translateY(-3px); }
+.enemy-button:focus-visible, .locked-enemy:focus-visible { outline: 1px solid var(--museum-accent); outline-offset: 3px; }
+.enemy-button > span:last-child, .locked-enemy > span:last-child { max-width: 100%; overflow: hidden; color: var(--museum-ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.enemy-figure { display: grid; width: 100%; height: 125px; place-items: end center; overflow: hidden; }
+.enemy-figure > div { max-width: 100%; }
+.enemy-emoji { display: grid; height: 125px; place-items: center; font-size: 42px; filter: grayscale(0.2); }
+.locked-enemy { color: var(--museum-dim); }
+.locked-enemy > div { width: 100%; height: 125px; }
+.locked-enemy:hover > div { border-color: var(--museum-accent); }
+.enemy-detail { display: flex; flex-direction: column; gap: 12px; }
+.detail-portrait { display: grid; height: 180px; place-items: end center; overflow: hidden; background: radial-gradient(ellipse at center bottom, #6ed6b81a, transparent 70%), #06100f66; border: 1px solid var(--museum-line); }
+.detail-portrait .enemy-figure { width: 200px; height: 178px; }
+.detail-portrait .enemy-figure > div { transform: scale(1.55); transform-origin: bottom center; }
+.detail-emoji { font-size: 72px; }
+.detail-head h4 { margin: 5px 0 0; color: var(--museum-ink); font-size: 22px; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 10px 0; border-top: 1px solid var(--museum-line); border-bottom: 1px solid var(--museum-line); }
+.facts div { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+.facts dt { color: var(--museum-dim); }
+.facts dd { margin: 0; color: var(--museum-ink); font-variant-numeric: tabular-nums; }
+.moves h5 { margin: 0 0 7px; color: var(--museum-accent); font-size: 12px; letter-spacing: 0.1em; }
+.move { padding: 8px 0; border-top: 1px solid #b8e5d51c; }
+.move-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.move-name { color: var(--museum-ink); font-size: 12px; }
+.move-kind { color: var(--museum-accent); font-size: 10px; }
+.move p { margin: 4px 0; color: var(--museum-dim); font-size: 11px; line-height: 1.5; }
+.move small { color: #91aaa399; font-size: 10px; font-variant-numeric: tabular-nums; }
+.empty { display: grid; height: 100%; margin: 0; place-items: center; color: var(--museum-dim); font-size: 13px; }
+
+@media (prefers-reduced-motion: reduce) { .enemy-button, .locked-enemy { transition: none; } .enemy-button:hover, .enemy-button:focus-visible, .enemy-button.is-selected { transform: none; } }

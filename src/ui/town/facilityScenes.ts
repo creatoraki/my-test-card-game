@@ -21,6 +21,7 @@ import {
   STORAGE_BG_ART,
   TRAINING_BG_ART,
   WORKLOG_BG_ART,
+  MUSEUM_BG_ART,
 } from "@/ui/art/sceneArt";
 
 // ── 设施场景登记处 ──
@@ -48,6 +49,7 @@ export const FACILITY_SCENES: Record<string, FacilityScene> = {
   // 中央区域, 否则读起来就是在重复某一段镜头。
   // (scale 1.8 下的钳制安全区是 x∈[533,1387]、y∈[300,780], 这个焦点不触边, 镜头不会贴边停。)
   shop: { bg: SHOP_BG_ART, focus: { x: 860, y: 740 }, scale: 1.8 },
+  museum: { bg: MUSEUM_BG_ART, focus: { x: 980, y: 470 }, scale: 1.8 },
 };
 
 export const hasFacilityScene = (id: string): boolean => id in FACILITY_SCENES;

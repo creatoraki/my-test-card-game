@@ -1,0 +1,45 @@
+.museum-root {
+  --museum-ink: #e7f2ed;
+  --museum-dim: #91aaa3;
+  --museum-line: #b8e5d533;
+  --museum-accent: #6ed6b8;
+  --museum-gold: #e8b86a;
+}
+
+.museum-content {
+  min-height: 0;
+  color: var(--museum-ink);
+}
+
+.museum-kicker {
+  color: var(--museum-accent);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.museum-locked {
+  display: grid;
+  place-items: center;
+  color: #9aaba755;
+  background:
+    linear-gradient(135deg, #ffffff05 25%, transparent 25% 50%, #ffffff05 50% 75%, transparent 75%) 0 0 / 12px 12px,
+    #101a1a;
+  border: 1px solid #8ca8a822;
+}
+
+.museum-locked-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: #b9ccc655;
+  font-size: 22px;
+  border: 1px solid #a8c4bc33;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .museum-locked {
+    background: #101a1a;
+  }
+}

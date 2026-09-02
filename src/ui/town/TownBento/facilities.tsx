@@ -3,7 +3,7 @@ import {
   AssemblyIcon,
   CryoIcon,
   FormationIcon,
-  MedicalIcon,
+  MuseumIcon,
   ShopIcon,
   SortieIcon,
   StorageIcon,
@@ -92,12 +92,11 @@ export const TOWN_FACILITIES: TownFacility[] = [
     size: "md",
   },
   {
-    id: "medical",
-    name: "生物维护舱",
-    icon: <MedicalIcon />,
+    id: "museum",
+    name: "博物馆",
+    icon: <MuseumIcon />,
     brick: { col: 8, colEnd: 13, row: 4, rowEnd: 5, lift: 2 },
     size: "md",
-    locked: true,
   },
 ];
 

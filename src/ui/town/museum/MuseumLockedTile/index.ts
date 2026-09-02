@@ -1,0 +1,1 @@
+export { MuseumLockedTile } from "./MuseumLockedTile";

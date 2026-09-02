@@ -130,6 +130,12 @@ export interface SquadTalentState {
   nodes: string[]; // 已激活的节点 id(天赋树按前置依赖逐颗点亮)
 }
 
+export interface CodexState {
+  items: string[];
+  cards: string[];
+  enemies: string[];
+}
+
 interface TownStore {
   characters: Record<string, CharacterState>;
   // ★ 已唤醒(已解锁)的角色 id, 按唤醒先后。CHARACTERS 里不在这张名单上的都还躺在冬眠仓里。
@@ -145,10 +151,12 @@ interface TownStore {
   shop: ShopState;
   nutrition: NutritionState;
   squadTalent: SquadTalentState;
+  codex: CodexState;
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
   markMapCleared: (mapId: string) => void; // 记录通关地图, 已记录则保持不变
+  recordCodex: (patch: Partial<CodexState>) => void;
   bankLoot: (amount: number) => void; // 远征结束落袋
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
@@ -470,6 +478,7 @@ function freshProfile(includeInitialExp = true): {
   clearedMaps: string[];
   party: string[];
   squadTalent: SquadTalentState;
+  codex: CodexState;
 } {
   const characters: Record<string, CharacterState> = {};
   for (const c of CHARACTERS) characters[c.id] = freshCharacter(c);
@@ -491,6 +500,7 @@ function freshProfile(includeInitialExp = true): {
     clearedMaps: [],
     party: awakened.slice(0, RULES.progression.partySize),
     squadTalent: { badgeId: null, nodes: [] },
+    codex: { items: [], cards: [], enemies: [] },
   };
 }
 
@@ -513,6 +523,7 @@ export const useTownStore = create<TownStore>()(
       shop: freshShop(1),
       nutrition: { techs: [], occupants: [] },
       squadTalent: { badgeId: null, nodes: [] },
+      codex: { items: [], cards: [], enemies: [] },
       initialized: false,
 
       ensureProfile: () => {
@@ -532,6 +543,21 @@ export const useTownStore = create<TownStore>()(
         const { clearedMaps } = get();
         if (clearedMaps.includes(mapId)) return;
         set({ clearedMaps: [...clearedMaps, mapId] });
+      },
+
+      recordCodex: (patch) => {
+        const current = get().codex;
+        const next: CodexState = {
+          items: patch.items?.length ? [...new Set([...current.items, ...patch.items])] : current.items,
+          cards: patch.cards?.length ? [...new Set([...current.cards, ...patch.cards])] : current.cards,
+          enemies: patch.enemies?.length ? [...new Set([...current.enemies, ...patch.enemies])] : current.enemies,
+        };
+        if (
+          next.items.length === current.items.length &&
+          next.cards.length === current.cards.length &&
+          next.enemies.length === current.enemies.length
+        ) return;
+        set({ codex: next });
       },
 
       resetProfile: () =>
@@ -1231,6 +1257,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v16: 新增博物馆图鉴累计名单, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v15: 新增营养舱科技与疗养名单, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v14: 新增 clearedMaps, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v13: 商店货架合并为 slots, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1244,6 +1271,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v15", version: 15 },
+    { name: "town-profile-v16", version: 16 },
   ),
 );

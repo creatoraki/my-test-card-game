@@ -1,0 +1,12 @@
+.locked-tile {
+  composes: museum-locked from "../styles/museumKit.module.css";
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  aspect-ratio: 1;
+}
+
+.locked-mark {
+  composes: museum-locked-mark from "../styles/museumKit.module.css";
+}

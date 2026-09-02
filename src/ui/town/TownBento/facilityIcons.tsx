@@ -65,12 +65,12 @@ export function WorkOrderIcon() {
   );
 }
 
-export function MedicalIcon() {
+export function MuseumIcon() {
   return (
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <rect x="6" y="14" width="36" height="20" rx="10" strokeWidth={1.2} opacity={0.38} />
-      <path d="M24 18v12M18 24h12" strokeWidth={1.8} />
-      <path d="M2.5 24h3.5M42 24h3.5" strokeWidth={1.4} />
+      <path d="M6 17 24 6l18 11" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
+      <path d="M8 17h32M11 17v22M19.5 17v22M28.5 17v22M37 17v22M6 39h36" strokeWidth={1.6} />
+      <path d="M14 12h20" strokeWidth={1.2} opacity={0.6} />
     </svg>
   );
 }

@@ -1,0 +1,1 @@
+export { MuseumScene } from "./MuseumScene";

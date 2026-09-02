@@ -8,14 +8,15 @@
 // ★ 入口布局由 TownBento 负责: 12 条微列 × 4 行错缝拼法, 砖块各自 translateZ 投影, 底板整体带透视倾斜。
 //   跨格几何、设施顺序和光效参数都收在 TownBento 模块, 本页只负责阶段机与入口分流。
 //
-// ★ 点击冬眠仓 / 训练室 / 控制终端 / 物资中转仓 / 商店会播一段「进设施」演出
+// ★ 点击冬眠仓 / 训练室 / 控制终端 / 物资中转仓 / 商店 / 博物馆会播一段「进设施」演出
 //   (见下方 enterFacility 与 ui/facilityScenes.ts):
 //   镜头推向该设施在大厅里的位置并放大 → 界面元素逐个错峰飞出 → 大厅背景淡出、设施背景淡入。
 //
 // ★ 设施内容登记在下面的 FACILITY_CONTENT: 目前有**控制终端**(ui/ControlTerminalScene.tsx ——
 //   只剩委托占位)、**冬眠仓**(ui/CryoScene.tsx —— 只剩唤醒队员)、
 //   **物资中转仓**(ui/StorageScene.tsx)、**商店**(ui/ShopScene.tsx —— 按天刷新的货架)
-//   与**训练室**(ui/TrainingScene.tsx —— 小队徽章与训练点分配)。
+//   、**训练室**(ui/TrainingScene.tsx —— 小队徽章与训练点分配)与**博物馆**(ui/museum ——
+//   物品、卡牌、怪物的永久图鉴)。
 //
 // ★ **不是所有砖都是设施**: Facility.kind === "screen" 的砖(目前是「编队」与「出击」)点下去
 //   不播运镜, 而是直接切到一个顶层全屏页(见下面 SCREEN_TILES 的分流表)。
@@ -61,6 +62,7 @@ import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { StorageScene } from "@/ui/town/storage/StorageScene";
 import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
 import { TrainingScene } from "@/ui/town/training/TrainingScene";
+import { MuseumScene } from "@/ui/town/museum";
 import { TOWN_BG_ART } from "@/ui/art/sceneArt";
 import s from "./TownScreen.module.css";
 
@@ -98,6 +100,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   assembly: (leaving) => <AssemblyScene leaving={leaving} />,
   shop: (leaving) => <ShopScene leaving={leaving} />,
   training: (leaving, onBack) => <TrainingScene leaving={leaving} onBack={onBack} />,
+  museum: (leaving) => <MuseumScene leaving={leaving} />,
 };
 
 // 这些设施把返回动作收进自己的面板, 避免同一场景出现两个出口。
