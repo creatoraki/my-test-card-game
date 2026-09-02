@@ -11,7 +11,7 @@ const GLOW = {
   colors: ["#c084fc", "#f472b6", "#38bdf8"],
   backgroundColor: "rgb(20 17 28 / 55%)",
   glass: true,
-  glassBlur: 25,
+  glassBlur: 12,
   borderRadius: 8,
   glowRadius: 25,
   glowIntensity: 1,

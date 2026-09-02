@@ -49,11 +49,21 @@
   z-index: -1;
 }
 
-.borderGlowCard:not(:hover):not(.sweepActive)::before,
-.borderGlowCard:not(:hover):not(.sweepActive)::after,
-.borderGlowCard:not(:hover):not(.sweepActive) > .edgeLight {
+.borderGlowCard:not(:hover):not(.sweepActive):not(.persistent)::before,
+.borderGlowCard:not(:hover):not(.sweepActive):not(.persistent)::after,
+.borderGlowCard:not(:hover):not(.sweepActive):not(.persistent) > .edgeLight {
   opacity: 0;
   transition: opacity 0.75s ease-in-out;
+}
+
+.persistent {
+  --edge-proximity: 100;
+}
+
+.persistent:not(:hover):not(.sweepActive)::before,
+.persistent:not(:hover):not(.sweepActive)::after,
+.persistent:not(:hover):not(.sweepActive) > .edgeLight {
+  mask-image: none;
 }
 
 /* 彩色网格渐变描边 */

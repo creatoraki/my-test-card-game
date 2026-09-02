@@ -38,6 +38,8 @@ export interface BorderGlowProps {
   animated?: boolean;
   /** 强制点亮，等同 hover 态 */
   active?: boolean;
+  /** 常亮边缘光效；悬浮时仍切换为跟随指针的光锥 */
+  persistent?: boolean;
   colors?: string[];
   fillOpacity?: number;
 }
@@ -61,6 +63,7 @@ export function BorderGlow({
   coneSpread = 25,
   animated = false,
   active = false,
+  persistent = false,
   colors = ["#c084fc", "#f472b6", "#38bdf8"],
   fillOpacity = 0.5,
 }: BorderGlowProps) {
@@ -117,6 +120,13 @@ export function BorderGlow({
     [getEdgeProximity, getCursorAngle],
   );
 
+  const handlePointerLeave = useCallback(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    if (persistent) card.style.setProperty("--edge-proximity", "100");
+    else card.style.removeProperty("--edge-proximity");
+  }, [persistent]);
+
   useEffect(() => {
     if (!animated || !cardRef.current) return;
     const card = cardRef.current;
@@ -140,7 +150,10 @@ export function BorderGlow({
         start: 100,
         end: 0,
         onUpdate: (v) => card.style.setProperty("--edge-proximity", `${v}`),
-        onEnd: () => card.classList.remove(s.sweepActive),
+        onEnd: () => {
+          card.style.setProperty("--edge-proximity", persistent ? "100" : "0");
+          card.classList.remove(s.sweepActive);
+        },
       }),
     ];
 
@@ -148,10 +161,17 @@ export function BorderGlow({
       cancels.forEach((cancel) => cancel());
       if (!active) card.classList.remove(s.sweepActive);
     };
-  }, [active, animated]);
+  }, [active, animated, persistent]);
 
   const isLight = lightSurface ?? isLightColor(backgroundColor);
-  const classNames = [s.borderGlowCard, glass ? s.glass : "", isLight ? s.light : "", active ? s.sweepActive : "", className]
+  const classNames = [
+    s.borderGlowCard,
+    glass ? s.glass : "",
+    isLight ? s.light : "",
+    active ? s.sweepActive : "",
+    persistent ? s.persistent : "",
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -159,7 +179,7 @@ export function BorderGlow({
     ...style,
     "--card-bg": backgroundColor,
     "--glass-blur": `${glassBlur}px`,
-    "--edge-proximity": active ? "100" : undefined,
+    "--edge-proximity": active || persistent ? "100" : undefined,
     "--edge-sensitivity": edgeSensitivity,
     "--border-radius": `${borderRadius}px`,
     "--glow-padding": `${glowRadius}px`,
@@ -177,6 +197,7 @@ export function BorderGlow({
         aria-label={ariaLabel}
         onClick={onClick}
         onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
         className={classNames}
         style={rootStyle}
       >
@@ -192,6 +213,7 @@ export function BorderGlow({
       aria-label={ariaLabel}
       onClick={onClick}
       onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       className={classNames}
       style={rootStyle}
     >

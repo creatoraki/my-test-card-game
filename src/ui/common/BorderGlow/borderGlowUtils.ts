@@ -7,6 +7,33 @@ export function parseHSL(hslStr: string): { h: number; s: number; l: number } {
   return { h: parseFloat(match[1]), s: parseFloat(match[2]), l: parseFloat(match[3]) };
 }
 
+/** 把十六进制颜色转换成 BorderGlow 使用的 HSL 数值串。 */
+export function hexToHslTriplet(hex: string): string {
+  const value = hex.trim().replace(/^#/, "");
+  const normalized = value.length === 3 ? value.split("").map((char) => char + char).join("") : value;
+  if (!/^[\da-f]{6}$/i.test(normalized)) return "40 80 72";
+
+  const red = parseInt(normalized.slice(0, 2), 16) / 255;
+  const green = parseInt(normalized.slice(2, 4), 16) / 255;
+  const blue = parseInt(normalized.slice(4, 6), 16) / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const delta = max - min;
+  const lightness = (max + min) / 2;
+  const saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
+  let hue = 0;
+
+  if (delta !== 0) {
+    if (max === red) hue = 60 * (((green - blue) / delta) % 6);
+    else if (max === green) hue = 60 * ((blue - red) / delta + 2);
+    else hue = 60 * ((red - green) / delta + 4);
+  }
+
+  return `${Math.round((hue + 360) % 360)} ${Math.round(saturation * 100)} ${Math.round(
+    Math.max(62, Math.min(82, lightness * 100)),
+  )}`;
+}
+
 /** 按强度生成一组不同透明度的发光色变量。 */
 export function buildGlowVars(glowColor: string, intensity: number): Record<string, string> {
   const { h, s, l } = parseHSL(glowColor);
