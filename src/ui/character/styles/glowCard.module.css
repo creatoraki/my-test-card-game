@@ -2,7 +2,7 @@
  * 编队卡与角色详情立绘栏共用的 BorderGlow 窗内材质。
  *
  * 跨组件契约:
- * --gc-color: 角色色, 由使用方下发, 角旗与上阵名字读取。
+ * --gc-color: 角色色, 由使用方下发, 上阵态的角色色名字读取。
  * --gc-focus: 立绘取景锚点, 默认 50% 6%。
  *
  * 立绘取景规则必须保持 (0,2,0): CharacterPortrait.module.css 的基础
@@ -60,22 +60,6 @@
   );
 }
 
-.glow-card-flag {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  padding: 7px 26px 7px 12px;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
-  background: linear-gradient(100deg, var(--gc-color), color-mix(in srgb, var(--gc-color) 55%, #071015));
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--gc-color) 45%, transparent);
-  color: #06131a;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  pointer-events: none;
-}
-
 .glow-card-name {
   position: absolute;
   right: 0;
@@ -99,10 +83,6 @@
   left: 34px;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgb(245 248 244 / 0.34) 22%, rgb(245 248 244 / 0.34) 78%, transparent);
-}
-
-.glow-card.is-on .glow-card-name {
-  color: var(--gc-color);
 }
 
 .glow-card-toggle {

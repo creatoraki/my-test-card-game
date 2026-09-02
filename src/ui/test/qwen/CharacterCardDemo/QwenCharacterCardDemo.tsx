@@ -22,7 +22,8 @@ export function QwenCharacterCardDemo() {
         <p className={s.kicker}>qwen 试验台 / 角色卡</p>
         <h1>角色立绘 · 边缘光晕卡</h1>
         <p className={s.description}>
-          透明底立绘浮在磨砂玻璃卡面之上，悬浮时触发 3D 倾斜与视差；上阵角色以左上角斜切角旗标识。默认前 3 人上阵；队伍最多 3 人，且至少保留 1 人。
+          透明底立绘浮在磨砂玻璃卡面之上，未上阵卡悬浮触发跟随鼠标的光锥；上阵角色以常亮边缘光与角色色名字标识，悬浮不灭。
+          默认前 3 人上阵；队伍最多 3 人，且至少保留 1 人。
         </p>
       </header>
 
@@ -57,7 +58,7 @@ export function QwenCharacterCardDemo() {
           })}
         </div>
         <div className={s.stageFooter}>
-          <span className={s.footerHint}>上阵以角旗与常亮边缘光标识，悬浮触发 3D 视差</span>
+          <span className={s.footerHint}>未上阵悬浮触发跟手光锥；上阵卡常亮保持不灭</span>
           <button type="button" className={s.replay} onClick={() => setSweepKey((value) => value + 1)}>
             ↻ 回放入场扫光
           </button>

@@ -1,7 +1,9 @@
 /* 一张编队卡。276×772 的高楼型 —— 立绘竖着放才有"人站在那儿"的体量。
    ⚠ 本文件里每个 px 都是「设计 px」(1920×1080 画布内), 不要写 vw/vh。
-   ★ 窗内材质(取景窗、scrim、角旗、动作条)全部来自 character/styles/glowCard.module.css,
+   ★ 窗内材质(取景窗、scrim、动作条)全部来自 character/styles/glowCard.module.css,
      与详情态立绘共用同一套配方; 本文件只声明编队态自己的尺度、入场与飞散。
+     上阵态不挂角旗 —— 「出战」由常亮边缘光 + 角色色名字 + 动作条文字表达
+     (与 CharacterCardDemo 的演示观感一致)。
    ★ 时长旋钮(--fm-*-ms)由 FormationScreen 从 formationMorph/morphChoreo.ts 下发,
      「减少动态效果」时那边已经把数值归零 ⇒ 这里不需要再写一份 @media 兜底。 */
 
@@ -77,10 +79,6 @@
 
 .bust {
   composes: glow-card-portrait from "../../styles/glowCard.module.css";
-}
-
-.flag {
-  composes: glow-card-flag from "../../styles/glowCard.module.css";
 }
 
 /* ── 上阵 / 下阵动作条 ──

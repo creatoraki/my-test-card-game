@@ -52,7 +52,6 @@ export function CharacterCard({
         <div className={s.body}>
           <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.portrait} />
           <div className={s.scrim} aria-hidden="true" />
-          {active ? <div className={s.flag}>上阵</div> : null}
           <div className={s.info}>
             <span className={s.name}>{name}</span>
             <span className={s.toggleWrap} {...(disabledReason ? tooltipBind : {})}>

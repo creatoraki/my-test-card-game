@@ -90,16 +90,28 @@ export function CrewCard({
       }
       data-crew-card={cs.charId}
     >
+      {/* ★ 上阵态的表达: 常亮边缘光 + 角色色名字 + 更浓的网格填充, 不放角旗。
+          ★ 上阵底色 = **角色色与深底的不透明混合**, 直接呈现角色专属配色:
+          页面底图是亮紫粉白场景, 半透明玻璃会把背景透进来与角色色搅成浑浊混合色;
+          底色做实(不透明)后背景不再透入, 每张上阵卡一眼可辨自己的角色色。
+          (若角色色浓度不合适, 调下面的 30% 即可, 范围建议 18% ~ 45%。)
+          ★ 上阵卡的常亮是**锁定**的(followPointer=false): 悬浮期间整圈照常、不塌成光锥,
+          上阵的背景色/常亮永不熄灭; 只有**未上阵**的卡悬浮时光锥跟随鼠标。
+          ★ screenFixed: 本页跑在 StageCanvas 的 CSS zoom 画布里, 光效绘制长度按
+          --stage-scale 反向补偿(与据点 TownBento 同款, 否则外扩光随画布缩放失真)。
+          ⚠ backgroundColor 显式赋值必须写在 {...CHARACTER_CARD_GLOW} 展开之后,
+          否则会被展开值里的默认半透明底覆盖。 */}
       <BorderGlow
         className={s.glow}
         persistent={onField}
         followPointer={!onField}
         animated={false}
+        screenFixed
         fillOpacity={onField ? 0.3 : 0.2}
         {...CHARACTER_CARD_GLOW}
         {...glow}
         backgroundColor={
-          onField ? "color-mix(in srgb, var(--gc-color) 24%, #091318)" : CHARACTER_CARD_GLOW.backgroundColor
+          onField ? "color-mix(in srgb, var(--gc-color) 30%, #0b1a21)" : CHARACTER_CARD_GLOW.backgroundColor
         }
       >
         <div className={s.body}>
@@ -113,12 +125,6 @@ export function CrewCard({
             <span className={s.scrim} aria-hidden="true" />
             <span className={s.name}>{def.name}</span>
           </button>
-
-          {onField && (
-            <span className={s.flag} role="img" aria-label="出战中">
-              上阵
-            </span>
-          )}
 
           <span className={s["toggle-slot"]} {...bind}>
             <button className={s.toggle} type="button" disabled={blocked} onClick={onToggle}>
