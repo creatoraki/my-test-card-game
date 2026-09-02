@@ -72,7 +72,7 @@
   background: linear-gradient(145deg, #15302d, #071513 76%);
   border: 1px solid #6fd2b477;
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   opacity: 0;
   animation: vcBoonIn var(--vc-loot-in-ms) var(--vc-ease) var(--vc-delay) both;
   transition: transform var(--vc-control-ms) var(--vc-ease), border-color var(--vc-control-ms) ease, filter var(--vc-control-ms) ease;

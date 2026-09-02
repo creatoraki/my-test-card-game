@@ -173,7 +173,7 @@
   border: 0;
   background: none;
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
 .selectButton:focus-visible {

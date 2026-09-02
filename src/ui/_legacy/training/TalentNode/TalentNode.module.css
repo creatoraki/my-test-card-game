@@ -158,7 +158,7 @@
 }
 
 .tn.is-disabled {
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 /* ── 内部零件 ── */

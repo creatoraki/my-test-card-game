@@ -107,7 +107,7 @@
 
 .locked {
   opacity: 0.45;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 .lockedTag {

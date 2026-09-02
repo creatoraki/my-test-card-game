@@ -27,7 +27,7 @@
   border-radius: 2px;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     color 0.14s ease,
     border-color 0.14s ease,

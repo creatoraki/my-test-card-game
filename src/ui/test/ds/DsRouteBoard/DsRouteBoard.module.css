@@ -405,7 +405,7 @@
   position: absolute;
   padding: 0;
   pointer-events: auto;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 .dsrEntry {
@@ -955,7 +955,7 @@
 }
 .dsrRoot .dsrEntry:disabled:not(.isActive) {
   --k: color-mix(in srgb, var(--dsr-bridge) 70%, #6d7d88);
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 .dsrRoot .dsrEntry:disabled:not(.isActive) .dsrEntryLetter {
   color: color-mix(in srgb, var(--text) 76%, #6d7d88);

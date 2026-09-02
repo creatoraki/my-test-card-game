@@ -363,7 +363,7 @@
 .nodes.isInert .tileFace,
 .nodes.isInert .projPanel {
   pointer-events: none;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 /* 按钮盒 = 砖面**压平前**的方盒。压平后的菱形会溢出它 ⇒ 按钮本身不吃命中,
@@ -423,7 +423,7 @@
   transform-origin: 50% 50%;
   transform: var(--tile-matrix);
   pointer-events: auto;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
     box-shadow 220ms ease,
@@ -593,7 +593,7 @@
   transform-origin: 50% 100%;
   transform: var(--proj-matrix);
   pointer-events: auto;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     filter 220ms ease,
     opacity 240ms ease,
@@ -879,7 +879,7 @@
 }
 .root .entry:disabled .tileFace,
 .root .entry:disabled .projPanel {
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 /* 被封锁: 死色 + 虚线砖面 + **悬浮的字近乎熄灭**(断电的登船口, 不是「淡一点的登船口」)。 */
 .root .entry.isBlocked:not(.isActive) {

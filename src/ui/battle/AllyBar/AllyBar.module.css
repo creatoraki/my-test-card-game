@@ -20,7 +20,7 @@
 .ally-bar .ally-slot {
   position: relative;
   contain: layout style;
-  cursor: default;
+  cursor: var(--cursor-default);
   flex: 1 1 0;
   min-width: 0;
   width: auto;
@@ -36,7 +36,7 @@
   --body-cx: 0px;
 }
 .ally-bar .ally-slot[data-targetable] {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 /* 聚焦槽(当前悬停/选中手牌的归属角色, ui/AllyBar.tsx 的 card-focus): 变宽约 +70px
    (1.85/3.85 × 480 ≈ 231px, 其余两槽各收到约 125px)。三槽总宽仍恒等于 --hud-party-w ——

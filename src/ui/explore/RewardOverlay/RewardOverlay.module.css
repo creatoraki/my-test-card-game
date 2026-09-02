@@ -59,7 +59,7 @@
 
 .member-choice {
   flex: 0 0 200px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     transform 180ms cubic-bezier(0.2, 0.72, 0.28, 1),
     border-color 180ms ease,

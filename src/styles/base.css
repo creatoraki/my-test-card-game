@@ -16,6 +16,11 @@
   font-display: swap;
 }
 
+:root {
+  --cursor-default: url("../assets/通用素材/鼠标默认.png") 3 3, default;
+  --cursor-pointer: url("../assets/通用素材/鼠标可点击.png") 3 3, pointer;
+}
+
 * {
   box-sizing: border-box;
   -webkit-user-select: none;
@@ -47,6 +52,7 @@ body {
     linear-gradient(90deg, #050708e6, #12171ae6),
     repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 5px);
   color: var(--text);
+  cursor: var(--cursor-default);
   font-family: var(--font-family);
   font-size: 14px;
   letter-spacing: 0;
@@ -57,7 +63,7 @@ body {
 button {
   position: relative;
   font-family: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   border: 1px solid #536068;
   border-radius: 0;
   background: linear-gradient(135deg, #20282d, #11161a);

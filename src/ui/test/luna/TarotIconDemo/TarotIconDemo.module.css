@@ -117,7 +117,7 @@
   background: #0b1316;
   color: var(--text);
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   animation: cardIn 520ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--card-index, 0) * 55ms) both;
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
@@ -144,7 +144,7 @@
 
 .stateCard {
   width: 100%;
-  cursor: default;
+  cursor: var(--cursor-default);
   animation: none;
 }
 

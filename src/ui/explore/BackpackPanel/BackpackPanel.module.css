@@ -92,7 +92,7 @@
   color: #91a2a2;
   background: #ffffff0a;
   border: 1px solid #415155;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 :global([data-explore-stage]) .bp-close:hover:not(:disabled) {
   color: #edf5ec;

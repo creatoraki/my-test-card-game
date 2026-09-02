@@ -18,7 +18,7 @@
   position: absolute; /* right/bottom 生效的前提, 相对 1920×1080 的 .menu-splash 画布定位 */
   z-index: 2; /* 压在标题(1)之上, 确保可点 */
   line-height: 0; /* 去掉 inline 图片底下的基线空隙, 盒子才严丝合缝贴着图 */
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   user-select: none;
 
   --fx: 0.35; /* ← 空闲强度: 牌匾自己微微「通着电」, 安静不抢标题 */

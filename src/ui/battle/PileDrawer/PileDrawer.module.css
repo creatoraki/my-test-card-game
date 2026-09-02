@@ -89,7 +89,7 @@
   min-width: 0;
 }
 .cell[data-choice="true"] {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: transform 140ms ease, filter 140ms ease;
 }
 .cell[data-choice="true"]:hover {

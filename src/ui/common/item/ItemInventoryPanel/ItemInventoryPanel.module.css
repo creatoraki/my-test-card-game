@@ -419,7 +419,7 @@
 
 .inventory-empty.inventory-empty {
   display: block;
-  cursor: default;
+  cursor: var(--cursor-default);
   background:
     repeating-linear-gradient(135deg, transparent 0 8px, var(--inventory-empty-slot) 8px 9px),
     var(--inventory-empty-slot);

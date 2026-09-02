@@ -32,7 +32,7 @@
     0 var(--item-slot-notch, 7px)
   );
 
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     transform 0.12s ease,
     box-shadow 0.16s ease,
@@ -160,7 +160,7 @@
 
 /* ── 空格 / 死格 ── */
 .item-slot.is-empty {
-  cursor: default;
+  cursor: var(--cursor-default);
   background: #0000002e;
   border: 1px dashed #ffffff1f;
   box-shadow: none;

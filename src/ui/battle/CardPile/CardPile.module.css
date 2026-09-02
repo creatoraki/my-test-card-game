@@ -14,7 +14,7 @@
   background: transparent;
   color: #e9eeeb;
   font-family: var(--font-family);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   overflow: visible;
 }
 
@@ -297,7 +297,7 @@
 
 .pile:disabled {
   opacity: 0.55;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 .pile.empty {

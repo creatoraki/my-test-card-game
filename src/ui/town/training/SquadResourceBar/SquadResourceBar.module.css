@@ -37,7 +37,7 @@
   border: 1px solid transparent;
   background: transparent;
   color: var(--tr-ink-dim);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   overflow: visible;
   transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
 }
@@ -131,7 +131,7 @@
 
 /* 兼容训练室页面在过渡期间的父级状态。 */
 .srb-cell[disabled] {
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 @keyframes srbRise {

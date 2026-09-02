@@ -13,7 +13,7 @@
     background: transparent;
     border: 0;
     border-radius: 0;
-    cursor: pointer;
+    cursor: var(--cursor-pointer);
     animation: deckCardIn 400ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
     animation-delay: calc(100ms + var(--i, 0) * 24ms);
     transition: transform 160ms ease;

@@ -105,7 +105,7 @@
   --hc-thickness-transform: translateY(4px);
 }
 :global([data-hand-tray][data-hand-action]) :global([data-hand-slot]) {
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 /* ============================================================================
@@ -121,7 +121,7 @@
   width: var(--hand-card-w);
   height: var(--hand-card-h);
   animation: none;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 :global([data-pile-grid]) :global([data-hand-slot]):hover::after {
   content: none;
@@ -187,7 +187,7 @@
   width: var(--hand-card-w);
   height: var(--hand-card-h);
   animation: none;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 :global([data-card-detail]) :global([data-hand-card]) {
   position: relative;
@@ -204,7 +204,7 @@
   width: var(--hand-card-w);
   height: var(--hand-card-h);
   animation: none;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 :global([data-pick-grid]) :global([data-hand-slot]):hover::after {
   content: none;

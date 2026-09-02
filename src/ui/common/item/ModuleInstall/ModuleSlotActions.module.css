@@ -28,7 +28,7 @@
   white-space: nowrap;
   border-style: solid;
   border-width: 1px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   opacity: 0;
   transform: translateX(6px);
   pointer-events: none;

@@ -145,7 +145,7 @@
   background: #ffffff08;
   border: 1px solid #ffffff22;
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: transform 180ms ease, border-color 180ms ease, opacity 180ms ease;
 }
 

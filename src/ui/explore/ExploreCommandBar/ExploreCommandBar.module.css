@@ -32,7 +32,7 @@
     0 0 30px -4px color-mix(in srgb, var(--cmd-k) 55%, transparent),
     0 26px 48px -22px #000000f2;
   color: var(--text);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     border-color 220ms ease,
     box-shadow 220ms ease,

@@ -335,7 +335,7 @@
 /* 悬停: 整卡轻轻上浮, 描边提亮 —— 队伍是活的, 不是一张贴图。
    ★ 恒可点击: 消耗品选目标时是「用在他身上」, 其余时候打开角色档案(见 ExploreScreen 的点击分流)。 */
 .expl-member {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     opacity 220ms ease,
     transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1),
@@ -353,7 +353,7 @@
 /* ===================== 消耗品使用: 目标选择 ===================== */
 /* 选择模式下: 可选中的存活成员高亮脉冲, 其余(阵亡)进一步压暗 —— 一眼分出「谁可以」。 */
 .expl-member.is-targetable {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   animation: explTargetPulse 1.6s ease-in-out infinite;
 }
 /* 落点浮层等聚焦阶段把头像压暗过(0.5), 选择模式下可选目标恢复全亮 —— 此刻它们才是主角。 */
@@ -362,7 +362,7 @@
 }
 .expl-party.is-targeting .expl-member:not(.is-targetable) {
   opacity: 0.35;
-  cursor: default;
+  cursor: var(--cursor-default);
   filter: grayscale(0.6);
 }
 /* 无效目标不是交互对象: 压掉悬停上浮, 只保留可选目标的「活了」手感。 */
@@ -425,7 +425,7 @@
   font: inherit;
   font-size: 12px;
   letter-spacing: 2px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 .expl-use-banner-cancel:hover {
   border-color: var(--expl-glow);
@@ -546,7 +546,7 @@
     0 0 26px -4px color-mix(in srgb, var(--adv-k) 55%, transparent),
     0 26px 48px -22px #000000f2;
   color: var(--text);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   animation: explRise 340ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(var(--i, 0) * 90ms);
   transition:

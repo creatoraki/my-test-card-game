@@ -39,7 +39,7 @@
   pointer-events: auto;
   background: none;
   border: 0;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
 /* 键盘焦点必须看得见 —— 牌面在 canvas 里, DOM 这边只剩这一圈能提示"焦点在哪块牌上"。

@@ -109,7 +109,7 @@
   font-family: inherit;
   font-size: 15px;
   letter-spacing: 0.14em;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: color 260ms ease;
 }
 
@@ -141,7 +141,7 @@
   font-family: inherit;
   font-size: 13px;
   letter-spacing: 0.14em;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: color 200ms ease, border-color 200ms ease, background 200ms ease;
 }
 
@@ -553,7 +553,7 @@
   clip-path: none;
   font-family: inherit;
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition:
     border-color 260ms ease,
     background 260ms ease,
@@ -979,7 +979,7 @@
   font-size: 12px;
   letter-spacing: 0.14em;
   white-space: nowrap;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 200ms ease, color 200ms ease;
 }
 
@@ -1002,7 +1002,7 @@
   font-family: inherit;
   font-size: 16px;
   letter-spacing: 0.2em;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 240ms ease, color 240ms ease, box-shadow 260ms ease, transform 200ms ease;
 }
 

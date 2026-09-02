@@ -166,7 +166,7 @@
 /* ── 徽章核心(可点击: 开关徽章切换浮层) ── */
 
 .trr-core {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   pointer-events: all;
   outline: none;
   transition: filter 200ms ease;
@@ -253,7 +253,7 @@
 /* ── 节点层 ── */
 
 .trr-node {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   outline: none;
   --trr-icon: #e2e2ea;
   --trr-color: #3a3a44;
@@ -380,7 +380,7 @@
 }
 
 .trr-node.is-disabled {
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 /* ── 悬浮详情浮卡 ── */

@@ -31,7 +31,7 @@
   border: 1px solid #33444a;
   background: linear-gradient(110deg, #172327, #0e161a);
   color: #dfe9e4;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   text-align: left;
   transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, opacity 180ms ease;
 }
@@ -170,7 +170,7 @@
   border: 1px solid color-mix(in srgb, var(--rarity) 46%, #ffffff1c);
   background: linear-gradient(145deg, color-mix(in srgb, var(--rarity) 15%, #101719), #090f12);
   color: var(--rarity);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
@@ -221,7 +221,7 @@
 }
 
 .tile:disabled {
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 
 .r-common { --rarity: var(--rarity-common); }

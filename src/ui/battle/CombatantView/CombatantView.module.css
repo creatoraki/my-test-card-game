@@ -204,7 +204,7 @@
   display: none;
 }
 .combatant[data-targetable] {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 /* ⚠ 必须连 idleBob 一起写: animation 是简写, 只写 targetRim 会把待机呼吸整条抹掉。
    两条同时挂在这个元素上互不干扰 —— 一条动 transform, 一条动 filter。 */

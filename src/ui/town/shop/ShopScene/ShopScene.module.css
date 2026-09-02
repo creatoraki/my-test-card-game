@@ -26,7 +26,7 @@
 .sx-root .sx-control {
   all: unset;
   box-sizing: border-box;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   font-family: inherit;
 }
 

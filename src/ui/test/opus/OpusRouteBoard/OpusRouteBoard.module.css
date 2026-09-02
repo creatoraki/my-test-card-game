@@ -300,7 +300,7 @@
   position: absolute;
   padding: 0;
   pointer-events: auto;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 /* ⚠ 节点砖的 --k **只能**来自它自己的 .k-* 类: 这里不要再写一条兜底的 --k ——
@@ -763,7 +763,7 @@
    ⚠ 必须写 :not(.is-active): 选完之后那颗按钮同时是 is-active 与 disabled, 两者特异性相等。 */
 .orb-root .orb-entry:disabled:not(.is-active) {
   --k: #4a626c;
-  cursor: default;
+  cursor: var(--cursor-default);
 }
 .orb-root .orb-entry:disabled:not(.is-active) .orb-entry-letter {
   color: color-mix(in srgb, var(--tac-white) 45%, var(--tac-grey));

@@ -52,7 +52,7 @@
     0 100%,
     0 var(--sx-tile-notch)
   );
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   perspective: 650px;
   transform: translateY(0) rotateX(0deg) rotateY(0deg);
   transform-origin: center bottom;
@@ -215,7 +215,7 @@
   background: linear-gradient(150deg, #171b27a6, #080b12a6);
   border-color: #aeb7d52e;
   box-shadow: none;
-  cursor: default;
+  cursor: var(--cursor-default);
   filter: saturate(0.25);
   opacity: 0.6;
   transform: none;

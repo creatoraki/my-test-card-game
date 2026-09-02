@@ -45,7 +45,7 @@
 }
 .hand-slot.playable {
   /* playable 表示卡槽可点；费用不足的卡也保留该类，以便点击后显示提示。 */
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
 /* 模式徽章挂在不裁切的 .hand-slot 上, 避免卡面的 overflow/clip-path 把越界按钮一起裁掉。 */
@@ -63,7 +63,7 @@
   background: linear-gradient(145deg, #3b4549, #111719 68%, #080b0d);
   border: 1px solid color-mix(in srgb, var(--accent) 78%, #eaf5f8);
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   animation: hc-action-in 120ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   transition: transform 0.14s ease, filter 0.14s ease, background 0.14s ease;
 }

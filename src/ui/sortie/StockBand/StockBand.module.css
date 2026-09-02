@@ -76,7 +76,7 @@
     inset 0 -1px 0 #ffffff26,
     0 22px 46px -28px #000000cc;
   color: var(--sm-ink);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   opacity: 0.55;
   transition: opacity 0.28s ease, box-shadow 0.28s ease, transform 0.28s cubic-bezier(0.2, 0.72, 0.28, 1);
 }
