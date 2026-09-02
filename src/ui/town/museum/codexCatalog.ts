@@ -5,6 +5,8 @@ import type { CodexState } from "@/store/townStore";
 import { RARITY_ORDER, type ItemDef, type ItemStack } from "@/items/types";
 import { ITEM_TABS } from "@/ui/common/item/itemFilters";
 
+export { ENEMIES };
+
 const CATEGORY_ORDER = new Map(ITEM_TABS.map((tab, index) => [tab.id, index]));
 const CARD_RARITY_ORDER: Record<string, number> = { basic: 0, common: 1, uncommon: 2, rare: 3 };
 
