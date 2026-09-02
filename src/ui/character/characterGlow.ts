@@ -3,8 +3,8 @@ import { hexToHslTriplet } from "@/ui/common/BorderGlow/borderGlowUtils";
 
 export const CHARACTER_CARD_GLOW = {
   glass: true,
-  glassBlur: 20,
-  backgroundColor: "rgb(9 19 24 / 0.34)",
+  glassBlur: 13,
+  backgroundColor: "rgb(9 19 24 / 0.16)",
   borderRadius: 16,
   glowRadius: 30,
   glowIntensity: 1.08,
