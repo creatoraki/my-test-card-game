@@ -7,8 +7,9 @@
 // 地图配图不在此登记 —— 数据层不碰素材; 选层预览图见 ui/mapArt.ts,
 // 战斗背景见 ui/battleBg.ts, 场景氛围见 ui/ambience.ts, 三处都按下面的 id 作键。
 
-import type { BattleTier } from "../explore/types";
+import type { BattleTier, RouteBoardPlan } from "../explore/types";
 import { RARITY_ORDER, type ItemRarity } from "../items/types";
+import { TUTORIAL_ROUND_PLANS } from "./tutorialRoute";
 
 export interface MapDef {
   id: string;
@@ -21,6 +22,10 @@ export interface MapDef {
   // ── 区域推进 ──
   roundCount: number; // 一趟走几轮(标准 6)
   eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
+  /** 固定轮次棋盘; 下标 = 轮次 - 1, 缺省轮次仍走随机生成。 */
+  roundPlans?: readonly RouteBoardPlan[];
+  /** 通关后不再出现在地图选择带, 但不影响已开始的远征。 */
+  hideAfterClear?: boolean;
   // 推进战斗档位 → 遭遇战候选。轮次到档位的权重是全局表(EXPLORE_RULES.battleTierWeights),
   // 地图只负责登记每个档位的战斗模板。
   battleEncounters: Record<BattleTier, string[]>;
@@ -42,7 +47,9 @@ export const MAPS: MapDef[] = [
     emoji: "🧭",
     maxEquipRarity: "common",
     roundCount: 3,
-    eventPoolId: "ruined-floor",
+    eventPoolId: "tutorial",
+    roundPlans: TUTORIAL_ROUND_PLANS,
+    hideAfterClear: true,
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep"],
       t2: ["n-t2-crew", "n-t2-beacon"],
@@ -149,6 +156,10 @@ export const MAPS: MapDef[] = [
     startingEnergy: 100,
   },
 ];
+
+export function visibleMaps(clearedMaps: readonly string[]): MapDef[] {
+  return MAPS.filter((map) => !map.hideAfterClear || !clearedMaps.includes(map.id));
+}
 
 export function isMapUnlocked(mapId: string, clearedMaps: readonly string[]): boolean {
   const map = MAPS.find((candidate) => candidate.id === mapId);

@@ -64,6 +64,7 @@ import {
   ROUTE_PANEL_W,
   GENERATE_MS,
   GENERATE_REDUCED_MS,
+  boardShift,
   nodeCenter,
 } from "@/ui/common/RouteBoard";
 import { prefersReducedMotion } from "@/ui/app/transitions";
@@ -466,6 +467,7 @@ export function ExploreScreen() {
   if (!session || !session.board) return null;
 
   const board = session.board;
+  const routeShift = boardShift(board.laneCount, board.segments.length);
       const ev = currentEvent;
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
@@ -681,6 +683,7 @@ export function ExploreScreen() {
               seg={hovered.seg}
               lane={hovered.lane}
               hidden={hovered.hidden}
+              shift={routeShift}
             />
           )}
           {/* 落点 → 浮层的光柱: 从落点瓦片向上升起, 把「是这个节点把面板叫出来的」说清楚。
@@ -689,9 +692,9 @@ export function ExploreScreen() {
             <div
               className={cx(s["expl-beam"], s[`k-${ev?.kind ?? "route"}`])}
               style={{
-                left: `${nodeCenter(session.currentSegment - 1, session.currentLane).x - 3}px`,
-                top: `${nodeCenter(session.currentSegment - 1, session.currentLane).y}px`,
-                height: `${ROUTE_PANEL_H - nodeCenter(session.currentSegment - 1, session.currentLane).y}px`,
+                left: `${nodeCenter(session.currentSegment - 1, session.currentLane).x + routeShift.dx - 3}px`,
+                top: `${nodeCenter(session.currentSegment - 1, session.currentLane).y + routeShift.dy}px`,
+                height: `${ROUTE_PANEL_H - nodeCenter(session.currentSegment - 1, session.currentLane).y - routeShift.dy}px`,
               }}
               aria-hidden
             />

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { isMapUnlocked, MAPS, mapLockReason } from "@/data";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { isMapUnlocked, mapLockReason, visibleMaps } from "@/data";
 import { useRunStore } from "@/store/runStore";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
@@ -23,14 +23,18 @@ export function SortieScreen() {
   const clear = useSortieStore((state) => state.clear);
   const party = useTownStore((state) => state.party);
   const clearedMaps = useTownStore((state) => state.clearedMaps);
+  const maps = useMemo(() => visibleMaps(clearedMaps), [clearedMaps]);
   const beginDescent = useRunStore((state) => state.beginDescent);
   const enterTown = useRunStore((state) => state.enterTown);
-  const [selectedMapId, setSelectedMapId] = useState(
-    () => MAPS.find((map) => isMapUnlocked(map.id, clearedMaps))?.id ?? MAPS[0]?.id ?? "",
-  );
+  const [selectedMapId, setSelectedMapId] = useState(() => maps[0]?.id ?? "");
   const { visibleStep, exitingStep, transitioning, intro } = useSortieStepTransition(step);
   const selectedLocked = !isMapUnlocked(selectedMapId, clearedMaps);
   const lockReason = mapLockReason(selectedMapId, clearedMaps);
+
+  useEffect(() => {
+    if (maps.some((map) => map.id === selectedMapId)) return;
+    setSelectedMapId(maps[0]?.id ?? "");
+  }, [maps, selectedMapId]);
 
   useEffect(() => {
     open();
@@ -68,6 +72,7 @@ export function SortieScreen() {
     >
       <main className={s.stageContent}>
         <SortieBackdrop
+          maps={maps}
           mapId={selectedMapId}
           showInfo={visibleStep === "map" || exitingStep === "map"}
           infoEntering={visibleStep === "map" && transitioning}
@@ -79,6 +84,7 @@ export function SortieScreen() {
           visibleStep={visibleStep}
           map={
             <MapSelectStep
+              maps={maps}
               active={visibleStep === "map" && !transitioning}
               entering={visibleStep === "map" && transitioning}
               intro={intro}

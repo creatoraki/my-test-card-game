@@ -42,6 +42,7 @@ export {
   getEventPool,
   type EventPool,
 } from "./exploreEvents";
+export { TUTORIAL_EVENT_POOL } from "./tutorialEvents";
 export { CHARACTERS, type CharacterDef } from "./characters";
 export {
   BOND_DEFS,
@@ -67,6 +68,7 @@ export {
 } from "./encounters";
 export {
   MAPS,
+  visibleMaps,
   isMapUnlocked,
   mapEquipRarities,
   mapLockReason,

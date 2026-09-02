@@ -61,7 +61,7 @@ import {
 } from "../items/inventory";
 import type { ItemRarity, ItemStack } from "../items/types";
 import { generateSegments, lanePath, traceSegment } from "./route";
-import { rollBoons, rollModuleCrate } from "./boons";
+import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
 import type {
@@ -784,6 +784,18 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
         ? `强制拾取 ${def.name} ×${count}（背包已满, 必须腾出 ${overflow.length} 格）`
         : `强制拾取 ${def.name} ×${taken.length}`;
     }
+    case "GRANT_EQUIP": {
+      const stack = rollEquipCrate(s, dropContext(s));
+      if (!stack) return "装备库存为空";
+      addPendingLoot(s, [stack]);
+      return `获得随机装备「${getItemDef(stack.itemId).name}」，已放入待拾取框`;
+    }
+    case "GRANT_MODULE": {
+      const stack = rollModuleCrate(s, dropContext(s));
+      if (!stack) return "模组库存为空";
+      addPendingLoot(s, [stack]);
+      return `获得随机模组「${getItemDef(stack.itemId).name}」，已放入待拾取框`;
+    }
     case "ROLL_DROP": {
       const rolled = rollDropTable(s, e.table, dropCoefficient(s), dropContext(s));
       if (!rolled.length) return "什么也没找到";
@@ -977,6 +989,7 @@ function roundStageOf(round: number) {
 
 const SEGMENTS = EXPLORE_RULES.segmentsPerRound;
 const LANES = EXPLORE_RULES.laneCount;
+const segCountOf = (s: ExploreState) => s.board?.segments.length ?? SEGMENTS;
 
 // 事件允许出现在第 seg 个推进段(0-based)吗 —— depth 是 1-based 的闭区间。
 function fitsDepth(e: NodeEvent, seg: number): boolean {
@@ -1231,40 +1244,75 @@ function finalizeRowKinds(
 export function generateRound(s: ExploreState): void {
   const map = getMap(s.mapId);
   const stage = roundStageOf(s.round);
-  s.roundBattleTier = roundBattleTier(s);
-  // 每段桥接数在本轮次给定的区间里各掷一次 —— 递增曲线由区间表本身保证(rules.rounds)
-  const counts = stage.bridges.map(([lo, hi]) => lo + rngInt(s, hi - lo + 1));
+  const plan = map.roundPlans?.[s.round - 1];
+  let laneCount = LANES;
+  let rowsPerSegment = EXPLORE_RULES.rowsPerSegment;
+  let nodes: NodeEvent[][];
+  let segments: RouteBoard["segments"];
+  let hiddenNodes: RouteBoard["hiddenNodes"];
+  let revealDurationMs = stage.revealMs;
 
-  const nodes = pickNodes(s, map.eventPoolId);
-  const segments = generateSegments(s, LANES, EXPLORE_RULES.rowsPerSegment, counts);
-  // 每张图固定隐藏 N 个节点(全图随机抽坐标, 真实事件仍留在 nodes 里)。
-  // ⚠ 抽取放在 nodes/segments 之后: 不改变既有生成序列, 只追加一段随机消耗;
-  //   用洗牌取前 N 个 ⇒ 天然不重复。UI 在走到之前一律按未知节点渲染。
-  const hiddenCount = Math.min(EXPLORE_RULES.hiddenNodesPerBoard, SEGMENTS * LANES);
-  const hiddenNodes = shuffle(
-    s,
-    Array.from({ length: SEGMENTS * LANES }, (_, i) => ({
-      seg: Math.floor(i / LANES),
-      lane: i % LANES,
-    })),
-  ).slice(0, hiddenCount);
+  if (plan) {
+    laneCount = plan.laneCount;
+    rowsPerSegment = plan.rowsPerSegment ?? EXPLORE_RULES.rowsPerSegment;
+    if (plan.nodes.length !== plan.bridges.length) {
+      throw new Error(`地图 ${map.id} 第 ${s.round} 轮蓝图的节点段数与桥接段数不一致`);
+    }
+    const pool = getEventPool(map.eventPoolId);
+    const eventIndex = new Map(Object.values(pool).flat().map((event) => [event.id, event]));
+    nodes = plan.nodes.map((row, seg) => {
+      if (row.length !== laneCount) {
+        throw new Error(`地图 ${map.id} 第 ${s.round} 轮蓝图第 ${seg + 1} 段通道数不一致`);
+      }
+      return row.map((eventId) => {
+        const event = eventIndex.get(eventId);
+        if (!event) throw new Error(`地图 ${map.id} 蓝图引用了未知事件: ${eventId}`);
+        return event;
+      });
+    });
+    segments = plan.bridges.map((bridges, index) => ({ index, bridges: bridges.map((bridge) => ({ ...bridge })) }));
+    hiddenNodes = [];
+    revealDurationMs = plan.revealMs ?? stage.revealMs;
+    s.roundBattleTier = plan.battleTier ?? roundBattleTier(s);
+    s.recentEventIds = [...s.recentEventIds];
+  } else {
+    s.roundBattleTier = roundBattleTier(s);
+    // 每段桥接数在本轮次给定的区间里各掷一次 —— 递增曲线由区间表本身保证(rules.rounds)
+    const counts = stage.bridges.map(([lo, hi]) => lo + rngInt(s, hi - lo + 1));
+
+    nodes = pickNodes(s, map.eventPoolId);
+    segments = generateSegments(s, LANES, EXPLORE_RULES.rowsPerSegment, counts);
+    // 每张图固定隐藏 N 个节点(全图随机抽坐标, 真实事件仍留在 nodes 里)。
+    // ⚠ 抽取放在 nodes/segments 之后: 不改变既有生成序列, 只追加一段随机消耗;
+    //   用洗牌取前 N 个 ⇒ 天然不重复。UI 在走到之前一律按未知节点渲染。
+    const hiddenCount = Math.min(EXPLORE_RULES.hiddenNodesPerBoard, SEGMENTS * LANES);
+    hiddenNodes = shuffle(
+      s,
+      Array.from({ length: SEGMENTS * LANES }, (_, i) => ({
+        seg: Math.floor(i / LANES),
+        lane: i % LANES,
+      })),
+    ).slice(0, hiddenCount);
+  }
   const board: RouteBoard = {
     round: s.round,
-    laneCount: LANES,
-    rowsPerSegment: EXPLORE_RULES.rowsPerSegment,
+    laneCount,
+    rowsPerSegment,
     segments,
     nodes,
-    revealDurationMs: stage.revealMs,
+    revealDurationMs,
     blockedLanes: [],
     hiddenNodes,
   };
 
   s.board = board;
-  const recentWindow = Math.max(0, EXPLORE_RULES.eventPool.recentWindowRounds);
-  const recent = [...s.recentEventIds, ...nodes.flat().map((event) => event.id)];
-  s.recentEventIds = recentWindow
-    ? recent.slice(-recentWindow * SEGMENTS * LANES)
-    : [];
+  if (!plan) {
+    const recentWindow = Math.max(0, EXPLORE_RULES.eventPool.recentWindowRounds);
+    const recent = [...s.recentEventIds, ...nodes.flat().map((event) => event.id)];
+    s.recentEventIds = recentWindow
+      ? recent.slice(-recentWindow * SEGMENTS * LANES)
+      : [];
+  }
   s.entryLane = null;
   s.currentLane = null;
   s.currentSegment = 0;
@@ -1319,7 +1367,7 @@ export function chooseEntry(s: ExploreState, lane: number): boolean {
 // 推进动画播完 —— **只落点, 不结算**。效果要等玩家在浮层里挑完分支才生效(见 chooseOption)。
 export function arriveNode(s: ExploreState): boolean {
   if (s.phase !== "advancing" || !s.board || s.currentLane == null) return false;
-  if (s.currentSegment >= SEGMENTS) return false;
+  if (s.currentSegment >= segCountOf(s)) return false;
   const seg = s.board.segments[s.currentSegment];
   s.currentLane = traceSegment(seg, s.currentLane, s.board.rowsPerSegment).laneOut;
   s.currentSegment += 1;
@@ -1509,7 +1557,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   // 「逆流净化机」: 立即结束本轮推进。把 currentSegment 直接推到走满, atNode 因此
   // 只剩「前往下一区域」一个出口 —— 不需要为它单开一个状态位。
   if (endRegion) {
-    s.currentSegment = SEGMENTS;
+    s.currentSegment = segCountOf(s);
     s.pendingNotes = [...notes, "本轮推进到此为止"];
   }
 
@@ -1564,7 +1612,7 @@ export function closeShopping(s: ExploreState): boolean {
 
 // 还能不能继续推进 —— currentSegment === 4 时 atNode **不得**提供「继续推进」(设计文档 §9.2)。
 export function canPushOn(s: ExploreState): boolean {
-  return s.phase === "atNode" && s.currentSegment < SEGMENTS;
+  return s.phase === "atNode" && s.currentSegment < segCountOf(s);
 }
 
 // 「继续推进」: 信号进入下一个推进段。
@@ -1584,7 +1632,7 @@ export function pushOn(s: ExploreState): boolean {
 //     ② 已走满 4 段 —— 剩余路线长度为 0。
 export function leaveRegion(s: ExploreState): boolean {
   if (s.phase !== "atNode" && s.phase !== "choosingEntry") return false;
-  const hasWalk = s.phase === "atNode" && s.entryLane != null && s.currentSegment < SEGMENTS;
+  const hasWalk = s.phase === "atNode" && s.entryLane != null && s.currentSegment < segCountOf(s);
   s.phase = hasWalk ? "leaving" : "roundBattle";
   if (!hasWalk) pickRoundBattleEvent(s);
   return true;
@@ -1601,7 +1649,7 @@ export function finishLeaving(s: ExploreState): boolean {
 
 // 本轮剩余没走的节点数 —— atNode 的「前往下一区域」按钮要拿它做后果预告(§11.2)。
 export function remainingNodes(s: ExploreState): number {
-  return Math.max(0, SEGMENTS - s.currentSegment);
+  return Math.max(0, segCountOf(s) - s.currentSegment);
 }
 
 // ---------------------------------------------------------------------------

@@ -22,6 +22,8 @@
      ⇒ 浓色只许出现在「一枚图标 + 一条 2px 的边」这两笔上, 其余全是灰的。 */
 
 .root {
+  --board-dx: 0px;
+  --board-dy: 0px;
   /* 主线: 冷中性灰 —— 与砖面同族的一条**地面刻线**。
      ⛔ 不要改回暖铜(旧版 #96897a): 地面、砖、侧壁整套是冷灰, 浓色只许出现在棱与图标上,
        一条暖色的线会成为画面里唯一不属于任何体系的色相, 而且它横跨全图、面积最大。
@@ -140,7 +142,7 @@
   top: 0;
   width: 100%;
   overflow: visible;
-  transform: translateY(var(--ground-drop));
+  transform: translate(var(--board-dx), calc(var(--ground-drop) + var(--board-dy)));
   pointer-events: none; /* 横跨整块面板, 不能吃掉砖的命中 */
 }
 
@@ -349,6 +351,7 @@
   top: 0;
   width: 100%;
   height: 100%;
+  transform: translate(var(--board-dx), var(--board-dy));
   pointer-events: none;
 }
 .nodes {
@@ -938,7 +941,7 @@
   z-index: 3;
   overflow: visible;
   /* ⚠ 与连线层**同一个**落差: 棋子沿着连线的路径走, 差一点点就会浮在线的上方(见 .svg)。 */
-  transform: translateY(var(--ground-drop));
+  transform: translate(var(--board-dx), calc(var(--ground-drop) + var(--board-dy)));
   pointer-events: none;
 }
 .pawn {

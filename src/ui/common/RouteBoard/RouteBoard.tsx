@@ -147,6 +147,22 @@ const ORIGIN_Y = PAD - Y_LO;
 export const ROUTE_PANEL_W = Math.round(X_HI - X_LO + PAD * 2);
 export const ROUTE_PANEL_H = Math.round(Y_HI - Y_LO + PAD * 2);
 
+/** 小于 5×4 的棋盘在固定尺寸面板里的居中位移(屏幕像素)。 */
+export function boardShift(laneCount: number, segCount: number): { dx: number; dy: number } {
+  if (laneCount === LANE_COUNT && segCount === SEG_COUNT) return { dx: 0, dy: 0 };
+
+  const uMax = nodeU(Math.max(-1, segCount - 1));
+  const sMax = Math.max(0, laneCount - 1) * LANE_GAP;
+  const boardXLo = rawX(ENTRY_U - TILE_HALF, -TILE_HALF);
+  const boardXHi = rawX(uMax + TILE_HALF, sMax + TILE_HALF);
+  const boardYLo = Math.min(rawY(uMax + TILE_HALF, -TILE_HALF), rawY(uMax, 0) - PROJ_H);
+  const boardYHi = rawY(ENTRY_U - TILE_HALF, sMax + TILE_HALF) + TILE_DEPTH;
+  return {
+    dx: (X_LO + X_HI - boardXLo - boardXHi) / 2,
+    dy: (Y_LO + Y_HI - boardYLo - boardYHi) / 2,
+  };
+}
+
 function sx(u: number, sv: number): number {
   return ORIGIN_X + rawX(u, sv);
 }
@@ -395,13 +411,13 @@ export function RouteBoard({
 
   // 正在推进的那一段(0-based)。advancing 时 currentSegment 尚未 +1, 它就是本段段号。
   const legPoints = useMemo<[number, number][]>(() => {
-    if (!advancing || currentLane == null || currentSegment >= SEG_COUNT) return [];
+    if (!advancing || currentLane == null || currentSegment >= board.segments.length) return [];
     return segmentPoints(board.segments[currentSegment], currentLane, rows, currentSegment);
   }, [advancing, board, currentLane, currentSegment, rows]);
 
   // 已经走完的那些段 —— 落点确定后保持点亮, 玩家要能一直看到「我是怎么走到这里的」。
   // 披露页则把整条路径(含尚未走的部分)一起描出来(设计文档 §2.3.3)。
-  const doneSegments = disclosing ? SEG_COUNT : currentSegment;
+  const doneSegments = disclosing ? board.segments.length : currentSegment;
   const donePoints = useMemo<[number, number][]>(() => {
     if (entryLane == null) return [];
     const out: [number, number][] = [];
@@ -417,10 +433,10 @@ export function RouteBoard({
   // ★ 离场行走的路线 = 本轮**剩下的全部推进段**接成的一条折线(当前落点 → 第 4 段终点)。
   //   与 donePoints 同一套算法, 只是起点从 currentSegment 开始接着往下走。
   const walkPoints = useMemo<[number, number][]>(() => {
-    if (!leaving || entryLane == null || currentSegment >= SEG_COUNT) return [];
+    if (!leaving || entryLane == null || currentSegment >= board.segments.length) return [];
     let lane = currentSegment === 0 ? entryLane : (currentLane ?? entryLane);
     const out: [number, number][] = [];
-    for (let i = currentSegment; i < SEG_COUNT; i++) {
+    for (let i = currentSegment; i < board.segments.length; i++) {
       const pts = segmentPoints(board.segments[i], lane, rows, i);
       out.push(...(out.length ? pts.slice(1) : pts));
       lane = traceSegment(board.segments[i], lane, rows).laneOut;
@@ -493,10 +509,10 @@ export function RouteBoard({
     //   照旧回落到 currentSegment-1 的话, 披露浮层弹出的同一帧他会倒退回中途那块砖。
     if (disclosing) {
       let lane = entryLane;
-      for (let i = 0; i < SEG_COUNT; i++) {
+      for (let i = 0; i < board.segments.length; i++) {
         lane = traceSegment(board.segments[i], lane, rows).laneOut;
       }
-      return nodeCenter(SEG_COUNT - 1, lane);
+      return nodeCenter(board.segments.length - 1, lane);
     }
     if (currentSegment === 0 || currentLane == null) return nodeCenter(-1, entryLane);
     return nodeCenter(currentSegment - 1, currentLane);
@@ -540,6 +556,8 @@ export function RouteBoard({
     "--proj-matrix": PANEL_MATRIX,
     "--proj-panel": `${PROJ_PANEL}px`,
     "--ground-drop": `${GROUND_DROP}px`,
+    "--board-dx": `${boardShift(board.laneCount, board.segments.length).dx}px`,
+    "--board-dy": `${boardShift(board.laneCount, board.segments.length).dy}px`,
   } as CSSProperties;
 
   return (
@@ -571,7 +589,7 @@ export function RouteBoard({
           const live = hoverLane === lane;
           const dim = activeLane != null && lane !== activeLane;
           const runs: [number, number][] = [];
-          for (let seg = 0; seg < SEG_COUNT; seg++) {
+          for (let seg = 0; seg < board.segments.length; seg++) {
             runs.push([nodeU(seg - 1) + TILE_INSET, nodeU(seg) - TILE_INSET]);
           }
           return (
@@ -745,7 +763,7 @@ export function RouteBoard({
               style={
                 {
                   ...tileBox(x, y),
-                  "--i": seg * LANE_COUNT + lane,
+                  "--i": seg * board.laneCount + lane,
                   "--seg": seg,
                   "--lane": lane,
                 } as CSSProperties

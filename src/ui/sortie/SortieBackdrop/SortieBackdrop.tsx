@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { MAPS } from "@/data";
+import type { MapDef } from "@/data";
 import { mapArt, warmMapArt } from "@/ui/art/mapArt";
 import { cx } from "@/ui/common/cx";
 import s from "./SortieBackdrop.module.css";
@@ -7,6 +7,7 @@ import s from "./SortieBackdrop.module.css";
 const BACKGROUND_SLIDE_MS = 460;
 
 interface Props {
+  maps: readonly MapDef[];
   mapId: string;
   showInfo: boolean;
   intro: boolean;
@@ -22,6 +23,7 @@ interface BackgroundLayer {
 }
 
 export function SortieBackdrop({
+  maps,
   mapId,
   showInfo,
   intro,
@@ -29,11 +31,11 @@ export function SortieBackdrop({
   infoExiting = false,
   lockReason = null,
 }: Props) {
-  const map = MAPS.find((candidate) => candidate.id === mapId) ?? MAPS[0];
+  const map = maps.find((candidate) => candidate.id === mapId) ?? maps[0];
   const directionRef = useRef<1 | -1>(1);
   const sequenceRef = useRef(0);
   const [layers, setLayers] = useState<BackgroundLayer[]>(() => [
-    { id: MAPS[0]?.id ?? "", seq: 0, dir: 1 },
+    { id: maps[0]?.id ?? "", seq: 0, dir: 1 },
   ]);
 
   useEffect(warmMapArt, []);
@@ -43,8 +45,8 @@ export function SortieBackdrop({
       const currentId = previous[previous.length - 1]?.id;
       if (currentId === mapId) return previous;
 
-      const from = MAPS.findIndex((candidate) => candidate.id === currentId);
-      const to = MAPS.findIndex((candidate) => candidate.id === mapId);
+      const from = maps.findIndex((candidate) => candidate.id === currentId);
+      const to = maps.findIndex((candidate) => candidate.id === mapId);
       directionRef.current = to >= from ? 1 : -1;
       sequenceRef.current += 1;
       return [
@@ -52,7 +54,7 @@ export function SortieBackdrop({
         { id: mapId, seq: sequenceRef.current, dir: directionRef.current },
       ];
     });
-  }, [mapId]);
+  }, [mapId, maps]);
 
   useEffect(() => {
     if (layers.length < 2) return;

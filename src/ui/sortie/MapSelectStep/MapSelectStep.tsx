@@ -1,5 +1,5 @@
 import { type CSSProperties } from "react";
-import { isMapUnlocked, MAPS, mapLockReason } from "@/data";
+import { isMapUnlocked, mapLockReason, type MapDef } from "@/data";
 import { cx } from "@/ui/common/cx";
 import { mapArt } from "@/ui/art/mapArt";
 import { COPY_COUNT, MIDDLE_COPY, useInfiniteBand } from "@/ui/sortie/hooks";
@@ -7,6 +7,7 @@ import { MapLockChains } from "./MapLockChains";
 import s from "./MapSelectStep.module.css";
 
 interface Props {
+  maps: readonly MapDef[];
   active: boolean;
   entering: boolean;
   intro: boolean;
@@ -15,9 +16,8 @@ interface Props {
   onSelectMap: (mapId: string) => void;
 }
 
-const MAP_COUNT = MAPS.length;
-
 export function MapSelectStep({
+  maps,
   active,
   entering,
   intro,
@@ -25,16 +25,17 @@ export function MapSelectStep({
   clearedMaps,
   onSelectMap,
 }: Props) {
-  const selected = MAPS.find((map) => map.id === selectedMapId) ?? MAPS[0];
-  const selectedIndex = selected ? Math.max(0, MAPS.findIndex((map) => map.id === selected.id)) : 0;
+  const selected = maps.find((map) => map.id === selectedMapId) ?? maps[0];
+  const selectedIndex = selected ? Math.max(0, maps.findIndex((map) => map.id === selected.id)) : 0;
+  const mapCount = maps.length;
 
   const { virtualIndex, isMoving, isResetting, shift, listRef, select, onWheel, onListTransitionEnd } =
     useInfiniteBand({
       active,
-      count: MAP_COUNT,
+      count: mapCount,
       selectedIndex,
       onSelect: (index) => {
-        const nextId = MAPS[index]?.id;
+        const nextId = maps[index]?.id;
         if (nextId) onSelectMap(nextId);
       },
     });
@@ -61,8 +62,8 @@ export function MapSelectStep({
           onTransitionEnd={onListTransitionEnd}
         >
           {Array.from({ length: COPY_COUNT }, (_, copy) =>
-            MAPS.map((map, index) => {
-              const itemIndex = copy * MAP_COUNT + index;
+            maps.map((map, index) => {
+              const itemIndex = copy * mapCount + index;
               const isCurrent = itemIndex === virtualIndex;
               const isSemantic = copy === MIDDLE_COPY;
               const locked = !isMapUnlocked(map.id, clearedMaps);

@@ -51,15 +51,27 @@ export interface RouteSegment {
 
 export interface RouteBoard {
   round: number; // 本轮轮号(从 1 起)
-  laneCount: number; // 固定 5
+  laneCount: number; // 当前棋盘入口通道数
   rowsPerSegment: number; // 每段内桥接可占用的横向位置数(一屏硬约束, §9.3)
-  segments: RouteSegment[]; // 固定 4 段
-  nodes: NodeEvent[][]; // [segmentIndex][lane], 共 4 × 5 = 20
+  segments: RouteSegment[]; // 当前棋盘推进段
+  nodes: NodeEvent[][]; // [segmentIndex][lane]
   revealDurationMs: number; // 全图桥接一次性揭示的时长
   blockedLanes: number[]; // 被「塌落的隔断」等 debuff 封锁的入口通道(不可选)
   // 本轮固定隐藏的节点(全图随机抽 3 个, 见 EXPLORE_RULES.hiddenNodesPerBoard)。
   // 生成时**只记录坐标**; 真实事件仍留在 nodes 里, UI 在走到之前一律按未知节点渲染。
   hiddenNodes: { seg: number; lane: number }[];
+}
+
+/** 固定节点图蓝图 —— 有它的轮次不走随机生成，整张图逐格照抄。 */
+export interface RouteBoardPlan {
+  laneCount: number;
+  rowsPerSegment?: number;
+  /** [segIndex] = 该段的固定桥接；数组长度 = 本层推进段数。 */
+  bridges: readonly (readonly RouteBridge[])[];
+  /** [segIndex][lane] = 节点事件 id。 */
+  nodes: readonly (readonly string[])[];
+  revealMs?: number;
+  battleTier?: BattleTier;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,6 +128,8 @@ export type ExploreEffect =
   | { type: "GRANT_AURA"; aura: ExploreAura }
   | { type: "GAIN_EXP_PARTY"; amount: number }
   | { type: "GAIN_EXP_ONE"; amount: number }
+  | { type: "GRANT_EQUIP" }
+  | { type: "GRANT_MODULE" }
   | { type: "FORGE_DRAW" }
   | { type: "FORGE_REMOVE" }
   | { type: "EQUIP_OFFER"; count: number; slot?: EquipSlot }
@@ -357,7 +371,7 @@ export interface ExploreState {
   // ---- 本轮推进状态 ----
   entryLane: number | null; // 本轮选定的入口通道, choosingEntry 之后不可再改
   currentLane: number | null; // 信号当前所处通道
-  currentSegment: number; // 已抵达的推进段数, 0 = 尚未进入第 1 段, 4 = 已走满
+  currentSegment: number; // 已抵达的推进段数, 0 = 尚未进入第 1 段, 达到棋盘段数 = 已走满
   freeNodes: number; // 「隐匿通道」: 接下来几个节点免除基础粒子消耗
   pendingNotes: string[]; // 本节点结算摘要, 供 resolving 浮层展示
   pendingContaminationCount: number; // 尚未交给 townStore 应用的污染卡数量

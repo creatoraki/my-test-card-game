@@ -19,20 +19,23 @@ interface Props {
   lane: number;
   /** 未知节点(尚未走到, 见 board.hiddenNodes): 浮卡按占位渲染, 不读真实事件。 */
   hidden?: boolean;
+  shift?: { dx: number; dy: number };
 }
 
-export function NodeTip({ event, seg, lane, hidden = false }: Props) {
+export function NodeTip({ event, seg, lane, hidden = false, shift = { dx: 0, dy: 0 } }: Props) {
   const { x, y } = nodeCenter(seg, lane);
+  const shiftedX = x + shift.dx;
+  const shiftedY = y + shift.dy;
   const align: HorizontalAlign =
-    x < TIP_W / 2 + 8
+    shiftedX < TIP_W / 2 + 8
       ? "left"
-      : x > ROUTE_PANEL_W - TIP_W / 2 - 8
+      : shiftedX > ROUTE_PANEL_W - TIP_W / 2 - 8
         ? "right"
         : "center";
-  const flipDown = y - NODE_ICON_TOP < TIP_MAX_H;
+  const flipDown = shiftedY - NODE_ICON_TOP < TIP_MAX_H;
   const style = {
-    left: `${x}px`,
-    top: `${flipDown ? y + TILE_BOX_H : y - NODE_ICON_TOP - 10}px`,
+    left: `${shiftedX}px`,
+    top: `${flipDown ? shiftedY + TILE_BOX_H : shiftedY - NODE_ICON_TOP - 10}px`,
   } as CSSProperties;
 
   return (

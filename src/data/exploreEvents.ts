@@ -1,50 +1,22 @@
-import type { StatModifier } from "../engine/types";
-import type { EventChoice, ExploreEffect, NodeEvent } from "../explore/types";
-
-const outcome = (id: string, text: string, effects: ExploreEffect[]) => ({
-  id,
-  weight: 1,
-  text,
-  effects,
-});
-
-const choice = (
-  id: string,
-  label: string,
-  desc: string,
-  story: string,
-  outcomes: EventChoice["outcomes"],
-  energyDelta = 0,
-  choiceCost?: EventChoice["cost"],
-): EventChoice => ({ id, label, desc, story, energyDelta, cost: choiceCost, outcomes });
-
-const item = (itemId: string, count = 1): ExploreEffect => ({ type: "GAIN_ITEM", itemId, count });
-const dmg = (percent: number): ExploreEffect => ({ type: "DAMAGE_PARTY_PERCENT", percent });
-const energy = (amount: number): ExploreEffect => ({ type: "MODIFY_ENERGY", amount });
-const contaminate = (count = 1): ExploreEffect => ({ type: "CONTAMINATE_CARDS", count });
-const burden = (count = 1): ExploreEffect => ({ type: "FORCE_ITEM", itemId: "heavy-burden", count });
-const heal = (percent: number): ExploreEffect => ({ type: "HEAL_PARTY", percent });
-const items = (...effects: ExploreEffect[]): ExploreEffect[] => effects;
-const partyExp = (amount: number): ExploreEffect => ({ type: "GAIN_EXP_PARTY", amount });
-const oneExp = (amount: number): ExploreEffect => ({ type: "GAIN_EXP_ONE", amount });
-const equip = (count: number, slot?: "weapon" | "armor" | "trinket"): ExploreEffect => ({
-  type: "EQUIP_OFFER",
-  count,
-  slot,
-});
-const cost = (itemId: string, count = 1) => ({ itemId, count });
-const aura = (id: string, name: string, desc: string, mods: StatModifier) => ({
-  type: "GRANT_AURA" as const,
-  aura: { id, name, desc, mods },
-});
-
-// 风险事件的概率结果: w 直接写设计文档里的百分数, 每个策略内累加为 100。
-const chance = (id: string, w: number, text: string, effects: ExploreEffect[]) => ({
-  id,
-  weight: w,
-  text,
-  effects,
-});
+import type { NodeEvent } from "../explore/types";
+import {
+  aura,
+  burden,
+  chance,
+  choice,
+  contaminate,
+  cost,
+  dmg,
+  energy,
+  equip,
+  heal,
+  item,
+  items,
+  oneExp,
+  outcome,
+  partyExp,
+} from "./exploreEventKit";
+import { TUTORIAL_EVENT_POOL } from "./tutorialEvents";
 
 const SURVIVAL: NodeEvent[] = [
   {
@@ -1217,6 +1189,7 @@ export interface EventPool {
 }
 
 export const EVENT_POOLS: Record<string, EventPool> = {
+  tutorial: TUTORIAL_EVENT_POOL,
   "ruined-floor": {
     survival: SURVIVAL,
     growth: GROWTH,
