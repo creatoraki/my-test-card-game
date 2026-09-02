@@ -107,7 +107,7 @@
 
 /* BorderGlow 的内容容器（.inner）自带 overflow:auto，
    小砖里会冒出滚动条，这里统一压掉并让卡面撑满整块砖。 */
-.card > div {
+.card > span {
   height: 100%;
   overflow: hidden;
 }

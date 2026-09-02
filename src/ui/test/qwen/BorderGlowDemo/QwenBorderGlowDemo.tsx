@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BorderGlow } from "./BorderGlow";
+import { BorderGlow } from "@/ui/common/BorderGlow";
 import { FACILITY_CARDS, brickStyle } from "./facilityCards";
 import { FieldGroup, OptionField, RangeField } from "./DemoFields";
 import s from "./QwenBorderGlowDemo.module.css";

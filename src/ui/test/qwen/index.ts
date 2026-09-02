@@ -1,1 +1,1 @@
-export { BorderGlow, QwenBorderGlowDemo } from "./BorderGlowDemo/index";
+export { QwenBorderGlowDemo } from "./BorderGlowDemo/index";

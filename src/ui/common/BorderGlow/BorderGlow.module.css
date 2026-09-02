@@ -8,13 +8,15 @@
   --cone-spread: 25;
 
   position: relative;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 15%);
   border-radius: var(--border-radius);
   isolation: isolate;
   transform: translate3d(0, 0, 0.01px);
   display: grid;
-  border: 1px solid rgb(255 255 255 / 15%);
   background: var(--card-bg, #120f17);
   overflow: visible;
+  clip-path: none;
   box-shadow:
     rgba(0, 0, 0, 0.1) 0 1px 2px,
     rgba(0, 0, 0, 0.1) 0 2px 4px,

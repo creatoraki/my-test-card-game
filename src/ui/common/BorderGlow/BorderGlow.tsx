@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, type ReactNode, type CSSProperties } from "react";
+import { useRef, useCallback, useEffect, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import {
   animateValue,
   buildGlowVars,
@@ -14,6 +14,10 @@ export interface BorderGlowProps {
   className?: string;
   /** 外部内联样式：与组件自己写的 CSS 变量合并（如放进 grid 时指定 grid-area） */
   style?: CSSProperties;
+  /** 根节点标签：默认 div；传 button 时内部固定 type="button" */
+  as?: "div" | "button";
+  onClick?: () => void;
+  ariaLabel?: string;
   /** 边缘灵敏度：越大越贴近边缘才发光 */
   edgeSensitivity?: number;
   /** 发光色，"色相 饱和度 亮度" 数值串 */
@@ -32,6 +36,8 @@ export interface BorderGlowProps {
   coneSpread?: number;
   /** 挂载时自动播放一圈扫光 */
   animated?: boolean;
+  /** 强制点亮，等同 hover 态 */
+  active?: boolean;
   colors?: string[];
   fillOpacity?: number;
 }
@@ -40,6 +46,9 @@ export function BorderGlow({
   children,
   className = "",
   style,
+  as = "div",
+  onClick,
+  ariaLabel,
   edgeSensitivity = 30,
   glowColor = "40 80 80",
   backgroundColor = "#120F17",
@@ -51,10 +60,11 @@ export function BorderGlow({
   glowIntensity = 1.0,
   coneSpread = 25,
   animated = false,
+  active = false,
   colors = ["#c084fc", "#f472b6", "#38bdf8"],
   fillOpacity = 0.5,
 }: BorderGlowProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
 
   const getCenterOfElement = useCallback((el: HTMLElement) => {
     const { width, height } = el.getBoundingClientRect();
@@ -90,7 +100,7 @@ export function BorderGlow({
   );
 
   const handlePointerMove = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
+    (e: PointerEvent<HTMLElement>) => {
       const card = cardRef.current;
       if (!card) return;
 
@@ -136,37 +146,57 @@ export function BorderGlow({
 
     return () => {
       cancels.forEach((cancel) => cancel());
-      card.classList.remove(s.sweepActive);
+      if (!active) card.classList.remove(s.sweepActive);
     };
-  }, [animated]);
+  }, [active, animated]);
 
   const isLight = lightSurface ?? isLightColor(backgroundColor);
-  const classNames = [s.borderGlowCard, glass ? s.glass : "", isLight ? s.light : "", className]
+  const classNames = [s.borderGlowCard, glass ? s.glass : "", isLight ? s.light : "", active ? s.sweepActive : "", className]
     .filter(Boolean)
     .join(" ");
 
+  const rootStyle = {
+    ...style,
+    "--card-bg": backgroundColor,
+    "--glass-blur": `${glassBlur}px`,
+    "--edge-proximity": active ? "100" : undefined,
+    "--edge-sensitivity": edgeSensitivity,
+    "--border-radius": `${borderRadius}px`,
+    "--glow-padding": `${glowRadius}px`,
+    "--cone-spread": coneSpread,
+    "--fill-opacity": fillOpacity,
+    ...buildGlowVars(glowColor, glowIntensity),
+    ...buildGradientVars(colors),
+  } as CSSProperties;
+
+  if (as === "button") {
+    return (
+      <button
+        ref={cardRef as React.RefObject<HTMLButtonElement>}
+        type="button"
+        aria-label={ariaLabel}
+        onClick={onClick}
+        onPointerMove={handlePointerMove}
+        className={classNames}
+        style={rootStyle}
+      >
+        <span className={s.edgeLight} />
+        <span className={s.inner}>{children}</span>
+      </button>
+    );
+  }
+
   return (
     <div
-      ref={cardRef}
+      ref={cardRef as React.RefObject<HTMLDivElement>}
+      aria-label={ariaLabel}
+      onClick={onClick}
       onPointerMove={handlePointerMove}
       className={classNames}
-      style={
-        {
-          ...style,
-          "--card-bg": backgroundColor,
-          "--glass-blur": `${glassBlur}px`,
-          "--edge-sensitivity": edgeSensitivity,
-          "--border-radius": `${borderRadius}px`,
-          "--glow-padding": `${glowRadius}px`,
-          "--cone-spread": coneSpread,
-          "--fill-opacity": fillOpacity,
-          ...buildGlowVars(glowColor, glowIntensity),
-          ...buildGradientVars(colors),
-        } as React.CSSProperties
-      }
+      style={rootStyle}
     >
       <span className={s.edgeLight} />
-      <div className={s.inner}>{children}</div>
+      <span className={s.inner}>{children}</span>
     </div>
   );
 }

@@ -1,15 +1,12 @@
-// 据点(大厅) —— 远征之间的常驻中枢, 现在是一张沉浸式场景页: 大厅背景图 + 右侧一块 bento 玻璃面板。
+// 据点(大厅) —— 远征之间的常驻中枢: 大厅背景图 + 右下 12×4 错缝立体 bento 入口。
 //
 // 与主菜单同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/stage.ts):
 // ★ 本文件里所有坐标/尺寸都是「设计 px」(1920×1080 基准), 直接照着 1920×1080 的设计稿填数就行,
 //   任何分辨率下构图逐 px 一致, 画布之外露出的是黑边。
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图重新随分辨率漂移。
 //
-// ★ 入口布局 = 右侧 718×590 的 **bento 马赛克**: 9 块尺寸各不相同的半透明毛玻璃砖, 靠 10px 缝隙
-//   拼出一个三行、外轮廓规则的矩形。编队 / 训练室 / 冬眠仓(真入口)占较大的块, 未开放设施是小块 ——
-//   可用性靠面积表达, 不必额外加说明。马赛克本身由下面内联 style 的 gridTemplateAreas 定义。
-//   ⚠ 控制终端已开放但仍占小块(worklog), 与「面积=可用性」的约定暂时不符, 想强调它就调
-//     gridTemplateAreas 里 worklog 占的格数。
+// ★ 入口布局由 TownBento 负责: 12 条微列 × 4 行错缝拼法, 砖块各自 translateZ 投影, 底板整体带透视倾斜。
+//   跨格几何、设施顺序和光效参数都收在 TownBento 模块, 本页只负责阶段机与入口分流。
 //
 // ★ 点击冬眠仓 / 训练室 / 控制终端 / 物资中转仓 / 商店会播一段「进设施」演出
 //   (见下方 enterFacility 与 ui/facilityScenes.ts):
@@ -30,6 +27,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -49,7 +47,6 @@ import {
   FLY_RESET,
   FLY_STATUS,
   FLY_TILES,
-  PICK_FLASH,
   facilityCamera,
   flyBackDelay,
   hasFacilityScene,
@@ -57,6 +54,7 @@ import {
   type FlyOut,
 } from "@/ui/town/facilityScenes";
 import { cx } from "@/ui/common/cx";
+import { TownBento, TOWN_FACILITIES, type TownFacility } from "@/ui/town/TownBento";
 import { ControlTerminalScene } from "@/ui/town/terminal/ControlTerminalScene";
 import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
@@ -67,149 +65,6 @@ import { TOWN_BG_ART } from "@/ui/art/sceneArt";
 import s from "./TownScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";
-
-// ===================== 设施图标 =====================
-// 全部是线框风内联 SVG —— 刻意不用 emoji: emoji 在 Windows 上会渲染成彩色贴纸, 和暗色科技风冲突。
-// 颜色由父级 .bento-icon 的 color 决定(stroke="currentColor"), 故 hover 变色/发光只改一处。
-// 画法统一: 48×48 视框, 外轮廓 strokeWidth 1.2 + opacity .38 当陪衬, 主体 strokeWidth 1.6。
-
-// 编队: 一个居中靠前的主位 + 两侧各一个副位, 读作「三人一队的编成」。
-// (原先长在 CryoScene 里, 编队独立成页后随入口一起搬到大厅。)
-function FormationIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      {/* 编成框: 压低透明度当陪衬 */}
-      <path d="M5 10h38v28H5z" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
-      {/* 中间主位: 头 + 肩 */}
-      <circle cx="24" cy="19" r="4" strokeWidth={1.6} />
-      <path d="M18 31c0-3.6 2.7-6 6-6s6 2.4 6 6" strokeWidth={1.6} />
-      {/* 两侧副位: 小一号 */}
-      <circle cx="12" cy="21" r="3" strokeWidth={1.4} opacity={0.72} />
-      <path d="M7.5 31c0-2.8 2-4.6 4.5-4.6s4.5 1.8 4.5 4.6" strokeWidth={1.4} opacity={0.72} />
-      <circle cx="36" cy="21" r="3" strokeWidth={1.4} opacity={0.72} />
-      <path d="M31.5 31c0-2.8 2-4.6 4.5-4.6s4.5 1.8 4.5 4.6" strokeWidth={1.4} opacity={0.72} />
-    </svg>
-  );
-}
-
-// 冬眠仓(设定里的「低温维生区」): 六角雪花。
-const CRYO_ARM = "M24 24V7M24 12.5l-4.5-4.5M24 12.5l4.5-4.5M24 18l-3.5-3.5M24 18l3.5-3.5";
-
-function CryoIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      {/* 外圈六边形: 维生舱的轮廓, 压低透明度当陪衬 */}
-      <path
-        d="M24 3 5.8 13.5v21L24 45l18.2-10.5v-21L24 3Z"
-        strokeWidth={1.2}
-        strokeLinejoin="round"
-        opacity={0.38}
-      />
-      {/* 六根雪花臂: 同一段路径旋转 6 次(每 60°), 绕画心 24,24 */}
-      {[0, 60, 120, 180, 240, 300].map((deg) => (
-        <path key={deg} d={CRYO_ARM} strokeWidth={1.6} transform={`rotate(${deg} 24 24)`} />
-      ))}
-    </svg>
-  );
-}
-
-// 训练室(设定里的「作业模拟间」): 同心靶环 + 十字准星。
-function TrainingIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <circle cx="24" cy="24" r="17" strokeWidth={1.2} opacity={0.38} />
-      <circle cx="24" cy="24" r="10.5" strokeWidth={1.6} />
-      <circle cx="24" cy="24" r="3.4" strokeWidth={1.6} />
-      {/* 四向准星刻线: 穿过外圈, 读作「瞄准中」 */}
-      <path d="M24 2.5v8M24 37.5v8M2.5 24h8M37.5 24h8" strokeWidth={1.6} />
-    </svg>
-  );
-}
-
-// 模块装配舱: 套嵌的六角螺母 —— 读作「可拆装的模块」。
-function AssemblyIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path
-        d="M24 6 39.6 15v18L24 42 8.4 33V15L24 6Z"
-        strokeWidth={1.2}
-        strokeLinejoin="round"
-        opacity={0.38}
-      />
-      <path
-        d="M24 13 33 18.5v11L24 35l-9-5.5v-11L24 13Z"
-        strokeWidth={1.6}
-        strokeLinejoin="round"
-      />
-      <circle cx="24" cy="24" r="3" strokeWidth={1.6} />
-    </svg>
-  );
-}
-
-// 控制终端: 立式终端屏 + 三条长短不一的工单列表行。
-function WorkOrderIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <rect x="7" y="9" width="34" height="26" rx="2" strokeWidth={1.2} opacity={0.38} />
-      {/* 长短错落的三行 = 一张待办工单, 比等长三行更像「列表」 */}
-      <path d="M14 17h13M14 22h20M14 27h9" strokeWidth={1.6} />
-      <path d="M19 35v5M29 35v5M15 41h18" strokeWidth={1.4} />
-    </svg>
-  );
-}
-
-// 生物维护舱: 横置维生胶囊 + 医疗十字, 两端各一截管线接口。
-function MedicalIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <rect x="6" y="14" width="36" height="20" rx="10" strokeWidth={1.2} opacity={0.38} />
-      <path d="M24 18v12M18 24h12" strokeWidth={1.8} />
-      <path d="M2.5 24h3.5M42 24h3.5" strokeWidth={1.4} />
-    </svg>
-  );
-}
-
-// 物资中转仓: 2×2 货格, 左下一格已被占用 —— 读作「库存」而不是空网格。
-function StorageIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <rect x="8" y="8" width="32" height="32" strokeWidth={1.2} opacity={0.38} />
-      <path d="M24 8v32M8 24h32" strokeWidth={1.4} />
-      <rect x="11" y="27" width="10" height="10" strokeWidth={1.6} />
-    </svg>
-  );
-}
-
-// 商店: 遮阳篷 + 柜台, 篷下挂一枚价签 —— 读作「摆出来卖的货」而不是仓库。
-function ShopIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      {/* 店面外框: 压低透明度当陪衬 */}
-      <path d="M7 20v21h34V20" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
-      {/* 遮阳篷: 三折的波浪边 */}
-      <path
-        d="M4 20 7.5 9h33L44 20Z"
-        strokeWidth={1.6}
-        strokeLinejoin="round"
-      />
-      <path d="M17.3 9v11M30.7 9v11" strokeWidth={1.2} opacity={0.6} />
-      {/* 柜台上的价签 */}
-      <path d="M21 26h9v9h-9z" strokeWidth={1.6} strokeLinejoin="round" />
-      <circle cx="27" cy="29.5" r="1.2" strokeWidth={1.4} />
-    </svg>
-  );
-}
-
-// 出击: 下降舱门 + 下行箭头, 从控制终端搬到大厅一级入口。
-function SortieIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path d="M8 5h32v38H8z" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} />
-      <path d="M14 10h20v17H14z" strokeWidth={1.6} strokeLinejoin="round" />
-      <path d="M24 10v27M18 32l6 7 6-7" strokeWidth={1.6} />
-    </svg>
-  );
-}
 
 function MusicIcon({ muted }: { muted: boolean }) {
   return (
@@ -231,77 +86,6 @@ function SoundIcon({ muted }: { muted: boolean }) {
     </svg>
   );
 }
-
-interface Facility {
-  id: string; // 同时就是 grid-area 名, 与下面 gridTemplateAreas 里的词一一对应
-  name: string;
-  icon: ReactNode;
-  size: "lg" | "md" | "sm"; // 只影响图标/字号/斜切角尺度, 砖块几何由 grid 决定
-  locked?: boolean; // 未开放占位: 降亮 + 右上角挂「未开放」小标 + hover 反馈弱一档
-  // 点下去发生什么。缺省 "scene" = 播进设施运镜、在大厅内挂载设施场景(FACILITY_CONTENT);
-  // "screen" = 直接切到一个顶层全屏页(走 ScreenTransition), 不播运镜也不需要设施背景。
-  // ⚠ "screen" 的砖不必登记进 FACILITY_SCENES / FACILITY_CONTENT。
-  kind?: "scene" | "screen";
-}
-
-// 六个设施。名称与功能一律照抄 游戏设定.md 第四节「据点设施」表:
-// 低温维生区 → 冬眠仓 / 作业模拟间 → 训练室, 其余四个直接用设定里的原名。
-const FACILITIES: Facility[] = [
-  { id: "cryo", name: "冬眠仓", icon: <CryoIcon />, size: "md" },
-  {
-    id: "formation",
-    name: "编队",
-    icon: <FormationIcon />,
-    size: "md",
-    kind: "screen", // ★ 唯一一块不是设施的砖: 直接切到全屏编队页(ui/FormationScreen.tsx)
-  },
-  {
-    id: "assembly",
-    name: "模块装配舱",
-    icon: <AssemblyIcon />,
-    size: "md",
-  },
-  {
-    id: "worklog",
-    name: "控制终端",
-    icon: <WorkOrderIcon />,
-    size: "sm",
-  },
-  {
-    id: "medical",
-    name: "生物维护舱",
-    icon: <MedicalIcon />,
-    size: "md",
-    locked: true,
-  },
-  {
-    id: "training",
-    name: "训练室",
-    icon: <TrainingIcon />,
-    size: "lg",
-  },
-  {
-    id: "storage",
-    name: "物资中转仓",
-    icon: <StorageIcon />,
-    size: "sm",
-  },
-  // ★ 商店独占马赛克第三行 —— 它是唯一按「天」变化的设施, 给它一条横贯的整条砖,
-  //   进大厅一眼就能看出今天有没有去看过货。
-  {
-    id: "shop",
-    name: "商店",
-    icon: <ShopIcon />,
-    size: "md",
-  },
-  {
-    id: "sortie",
-    name: "出击",
-    icon: <SortieIcon />,
-    size: "lg",
-    kind: "screen",
-  },
-];
 
 // ===================== 设施内容登记处 =====================
 // 设施 id → 进去之后在设施背景上渲染什么。未登记的设施仍是「只有背景 + 返回据点」的空场景。
@@ -347,7 +131,7 @@ export function TownScreen() {
   const terminalCredits = useTownStore((s) => s.loot);
   // 生存天数: 只由 townStore.advanceDay 推进(出击打完回据点算一日), 也是商店换货的节拍器。
   const day = useTownStore((s) => s.day);
-  const activeFacilities = FACILITIES.filter((facility) => !facility.locked).length;
+   const activeFacilities = TOWN_FACILITIES.filter((facility) => !facility.locked).length;
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [facilityId, setFacilityId] = useState<string | null>(null); // 正在进入/已进入的设施
@@ -434,11 +218,21 @@ export function TownScreen() {
         ? flyVars(spec, flyBackDelay(backIdx), FACILITY_CINEMA.leaveFlyIn)
         : flyVars(spec);
 
-  // 未被点击的 7 块砖依次取用 FLY_TILES 的参数; 被点击的那块走 FLY_PICKED(最后飞)。
-  // ⚠ 飞回次序编号(fly 的第二参数)是**全局**排的: 砖占 0..7(被点的那块恒为 0),
-  //   「重置存档」8, 信息条 9。再加设施砖时这两个数要跟着往后挪, 并复核 flyBackDelay
-  //   的末位是否还在 FACILITY_CINEMA.leave 之内。
-  let tileCursor = 0;
+   // 飞出参数按设施阅读序预先排好, 回调里 O(1) 查表; 被点的砖最后飞出。
+   const flyById = useMemo(() => {
+     const result: Record<string, { spec: FlyOut; backIdx: number }> = {};
+    if (!facilityId) return result;
+     let tileCursor = 0;
+     TOWN_FACILITIES.forEach((facility) => {
+       if (facility.id === facilityId) {
+         result[facility.id] = { spec: FLY_PICKED, backIdx: 0 };
+         return;
+       }
+       const spec = FLY_TILES[tileCursor++];
+       result[facility.id] = { spec, backIdx: FLY_TILES.length - tileCursor + 1 };
+     });
+     return result;
+   }, [facilityId]);
 
   return (
     <StageCanvas
@@ -508,80 +302,27 @@ export function TownScreen() {
               <div className={s["town-status-item"]}>
                 <span className={s["town-status-label"]}>启用设施</span>
                 <strong className={s["town-status-value"]}>
-                  {activeFacilities} / {FACILITIES.length}
+                  {activeFacilities} / {TOWN_FACILITIES.length}
                 </strong>
               </div>
             </section>
 
-            {/* bento 面板: 位置/尺寸/马赛克排布的旋钮全在下面内联 style(设计 px), 直接改数值即可。
-              6 列原始宽度合计 770 + 5×10 缝 = 820 宽; 3 行原始高度合计 400 + 2×10 缝 = 420 高。
-                改列宽/行高时记得同步 width/height, 否则最后一列/行会被拉伸或留空。 */}
-            <div
-              className={s["town-bento"]}
-              style={{
-                right: "96px", // ← 距画布右边距离(设计 px)
-                bottom: "72px", // ← 距画布底边距离(设计 px)
-                width: "820px", // ← 区域总宽 = 各列宽 + 缝
-                height: "420px", // ← 区域总高 = 各行高 + 缝
-                gap: "10px", // ← 砖块之间的缝隙
-                gridTemplateColumns: "136px 152px 127px 145px 124px 86px",
-                gridTemplateRows: "120px 165px 115px",
-                // ★ 马赛克本体: 同名格连成一块砖 ⇒ 9 块尺寸互不相同, 外轮廓仍是规则矩形。
-                //   词必须与 FACILITIES 的 id 完全一致。
-                //   三行都使用不同的横向拼接比例, 让入口像由独立模块临时拼装而成。
-                gridTemplateAreas: `
-                  "formation formation cryo     cryo     worklog worklog"
-                  "training  training  assembly  assembly medical  medical"
-                  "storage   storage   shop      shop     sortie  sortie"
-                `,
+            <TownBento
+              pickedId={phase === "entering" ? facilityId : null}
+              brickClassName={() => (inCinema ? s["is-flying"] : undefined)}
+              brickStyle={(id) => {
+                const flight = flyById[id];
+                return inCinema && flight ? fly(flight.spec, flight.backIdx) : undefined;
               }}
-            >
-              {FACILITIES.map((f) => {
-                // 被点击的那块最后飞出(飞前先亮一下当确认反馈); 其余按马赛克阅读序依次取参数。
-                const picked = f.id === facilityId;
-                const spec = picked ? FLY_PICKED : FLY_TILES[tileCursor++ % FLY_TILES.length];
-                const backIdx = picked ? 0 : FLY_TILES.length - (tileCursor - 1);
-                // 锁定块仍是未开放占位: 不挂 onClick, 但刻意不加 disabled, 好让 hover 反馈照常生效。
-                // 切页的砖(kind:"screen")不需要设施场景登记, 故不走 hasFacilityScene 那一关。
-                const toScreen = f.kind === "screen";
-                const openable = !f.locked && (toScreen || hasFacilityScene(f.id));
-                return (
-                  <button
-                    key={f.id}
-                    className={cx(
-                      s["bento-glass"],
-                      s[`is-${f.size}`],
-                      f.locked && s["is-locked"],
-                      inCinema && s["is-flying"],
-                      picked && phase === "entering" && s["is-picked"],
-                    )}
-                    style={{
-                      gridArea: f.id,
-                      ...(inCinema ? fly(spec, backIdx) : {}),
-                      ...(picked ? ({ "--pick-ms": `${PICK_FLASH}ms` } as CSSProperties) : {}),
-                    }}
-                    type="button"
-                    onClick={
-                      !openable
-                        ? undefined
-                        : toScreen
-                          ? // 切页: 不播运镜 —— 那套演出的落点是「大厅内的某个设施」, 而全屏页
-                            // 与大厅不是同一张画布, 推镜过去再硬切反而读作两次转场。
-                            // ⚠ 仍要卡 phase: 进设施演出途中不该被一次切页打断。
-                            () =>
-                              phase === "idle" &&
-                              (f.id === "formation" ? openFormation() : openSortie())
-                          : () => enterFacility(f.id)
-                    }
-                  >
-                    <span className={s["bento-rim"]} aria-hidden />
-                    <span className={s["bento-icon"]}>{f.icon}</span>
-                    <span className={s["bento-name"]}>{f.name}</span>
-                    {f.locked && <span className={s["bento-lock"]}>未开放</span>}
-                  </button>
-                );
-              })}
-            </div>
+              onOpen={(facility: TownFacility) => {
+                if (phase !== "idle") return;
+                if (facility.kind === "screen") {
+                  facility.id === "formation" ? openFormation() : openSortie();
+                  return;
+                }
+                enterFacility(facility.id);
+              }}
+            />
 
             <button
               className={cx(s["town-audio-toggle"], inCinema && s["is-flying"])}

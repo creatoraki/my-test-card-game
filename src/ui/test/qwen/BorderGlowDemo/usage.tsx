@@ -1,4 +1,4 @@
-import { BorderGlow } from "./BorderGlow";
+import { BorderGlow } from "@/ui/common/BorderGlow";
 
 export function BorderGlowUsage() {
   return (
