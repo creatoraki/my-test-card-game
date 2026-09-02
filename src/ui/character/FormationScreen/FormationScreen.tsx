@@ -17,7 +17,7 @@
 // ★ 卡面文字**只有角色名**: 数值一律去详情页看 —— 高楼型卡的体量全给立绘与上阵状态,
 //   六张并排时才扫得出"现在带谁出门"。
 // ★★ 卡面结构是「一扇顶满整卡的取景窗 + 窗内底部的浮动信息层」: 角色名与上阵/下阵动作条
-//   都**浮在取景窗内部**(靠 .fm-card-figure::after 那层渐变托底), 卡片边框内不再有第二块
+//   都**浮在取景窗内部**(靠共享 kit 的 scrim 托底), 卡片边框内不再有第二块
 //   独立的白色文字区 —— 那正是旧版底部文字与边框割裂感的来源。
 //
 // ★ 与冬眠仓同一套**亮玻璃**视觉(背景就是冬眠仓.png 那张紫粉白场景): 深紫墨文字 + 白玻璃卡,
@@ -34,6 +34,8 @@ import { RULES } from "@/engine";
 import { getCharacter } from "@/data";
 import { useRunStore } from "@/store/runStore";
 import { useTownStore, type CharacterState } from "@/store/townStore";
+import { CHARACTER_CARD_GLOW, characterGlow } from "@/ui/character/characterGlow";
+import { BorderGlow } from "@/ui/common/BorderGlow";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import { cx } from "@/ui/common/cx";
@@ -200,31 +202,20 @@ function CrewCard({
 }: {
   cs: CharacterState;
   index: number;
-  onField: boolean; // 是否已上阵 → 异色边框
-  lastOne: boolean; // 场上只剩这一个人了(下阵会被 store 拒绝)
-  full: boolean; // 上阵人数已满
+  onField: boolean;
+  lastOne: boolean;
+  full: boolean;
   size: number;
-  shared: boolean; // 本次过场里与详情页配对的就是这张卡 → 挂共享的 view-transition-name
+  shared: boolean;
   onOpen: () => void;
   onToggle: () => void;
 }) {
   const def = getCharacter(cs.charId);
-
-  // 禁用口径与 townStore.toggleParty 的兜底规则一一对应 —— 那边会静默 return,
-  // 这里把原因用悬浮提示说出来, 免得点了没反应像是界面坏了。
-  // ⚠ 提示挂在**外层 .fm-toggle-slot** 而不是按钮上: 按钮 disabled 之后浏览器不再派发指针事件,
-  //   绑在它身上的 onPointerEnter 永远不会触发 —— 恰恰是要说明原因的那一态收不到。
+  const glow = characterGlow(def.color);
   const blocked = onField ? lastOne : full;
   const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
   const { point, bind } = useHoverTooltip();
 
-  // ---- 共享元素过场的命名(规则见 app/viewTransition.global.css) ----
-  // ★ 配对的那张卡: 面板/立绘窗/角色名分别与详情页的立绘栏/展示柜/大标题**同名** ⇒ 形变;
-  //   卡上那些详情页没有对应物的零件(状态带、开关)各自单独命名 ⇒ 干脆淡掉。
-  //   ⚠ 单独命名不是可选项: 不给名字它们会被烘进卡面板那张位图, 跟着一起被拉伸成
-  //     立绘栏的形状, 文字会糊成一条。
-  // ★ 其余的卡: 按索引各拿一个名, 好让 CSS 那张延迟表做出依次错位的退场。
-  //   ⚠ 超出 VT_CARD_SLOTS 的给 "none" 而不是回绕取模 —— 撞名会让浏览器放弃整次过场。
   const panelName = shared
     ? "vt-card-panel"
     : index < VT_CARD_SLOTS
@@ -233,67 +224,51 @@ function CrewCard({
   const partName = (name: string) => ({ viewTransitionName: shared ? name : "none" }) as CSSProperties;
 
   return (
-    <div
+    <BorderGlow
       className={cx(s["fm-card"], onField && s["is-on"])}
-      style={{ ...stagger(index), viewTransitionName: panelName }}
+      style={{ ...stagger(index), viewTransitionName: panelName, "--gc-color": def.color } as CSSProperties}
+      persistent={onField}
+      followPointer={!onField}
+      animated={false}
+      fillOpacity={onField ? 0.3 : 0.2}
+      {...CHARACTER_CARD_GLOW}
+      {...glow}
+      backgroundColor={
+        onField ? "color-mix(in srgb, var(--gc-color) 24%, #091318)" : CHARACTER_CARD_GLOW.backgroundColor
+      }
     >
-      {/* 卡面主体 = 一扇**顶满整卡**的取景窗。角色名不再是窗下方的独立文字块, 而是压在
-          窗内底部的浮动层(定位与托底渐变都在 CSS), 于是边框内只有一块连续的画面。 */}
-      <button className={s["fm-card-main"]} type="button" onClick={onOpen}>
-        {/* 立绘取景窗: 顶满整卡, 立绘放大后顶对齐 ⇒ 只露上半身(尺寸在 CSS 的 --fm-bust-zoom)。 */}
-        <span className={s["fm-card-figure"]} style={partName("vt-portrait")}>
+      <div className={s["fm-card-body"]} style={partName("vt-portrait")}>
+        <button className={s["fm-card-main"]} type="button" onClick={onOpen}>
           <CharacterPortrait
             characterId={def.id}
             emoji={def.emoji}
             alt={def.name}
             className={s["fm-bust"]}
           />
-        </span>
-        <span className={s["fm-card-name"]} style={partName("vt-char-name")}>
-          {def.name}
-        </span>
-      </button>
-
-      {/* 出战徽标: 咬住卡片左上角的一枚**实心三角**, 是"这人在队里"最远视距的那一档信号。
-          ★ 从旧版顶部整条实心带改过来 —— 带子横穿卡顶会把立绘的头部压掉一截, 三角只占角落,
-            与 .fm-card.is-on 的深紫粗边连成同一道轮廓。
-          ⚠ 纯展示, 不接受点击(pointer-events 在 CSS 里关掉), 免得挡住卡面按钮。
-          ⚠ 三角内只放得下一个字, 完整语义交给 aria-label。 */}
-      {onField && (
-        <span
-          className={s["fm-card-flag"]}
-          style={partName("vt-fm-flag")}
-          role="img"
-          aria-label="出战中"
-        >
-          <span className={s["fm-card-flag-text"]} aria-hidden="true">
-            战
+          <span className={s["fm-card-scrim"]} aria-hidden="true" />
+          <span className={s["fm-card-name"]} style={partName("vt-char-name")}>
+            {def.name}
           </span>
-        </span>
-      )}
-
-      {/* 上阵/下阵动作条: 卡片底部的一整条按钮, 与卡面主体是**同级**元素(不是嵌套),
-          故点它不会进详情。⚠⚠ 两态尺寸/位置完全一致, 只换配色与符号 —— 若两态高度不同,
-          每点一次开关卡面就跳一格, 那正是要消除的闪动。 */}
-      <span className={s["fm-toggle-slot"]} style={partName("vt-fm-toggle")} {...bind}>
-        <button
-          className={cx(s["fm-toggle"], onField && s["is-on"])}
-          type="button"
-          disabled={blocked}
-          onClick={onToggle}
-        >
-          <span className={s["fm-toggle-mark"]} aria-hidden="true">
-            {onField ? "−" : "+"}
-          </span>
-          <span className={s["fm-toggle-text"]}>{onField ? "下阵" : "上阵"}</span>
         </button>
-        {blocked && point && (
-          <HoverTooltip point={point}>
-            <strong>{onField ? "无法下阵" : "无法上阵"}</strong>
-            <p>{reason}</p>
-          </HoverTooltip>
+
+        {onField && (
+          <span className={s["fm-card-flag"]} style={partName("vt-fm-flag")} role="img" aria-label="出战中">
+            上阵
+          </span>
         )}
-      </span>
-    </div>
+
+        <span className={s["fm-toggle-slot"]} style={partName("vt-fm-toggle")} {...bind}>
+          <button className={s["fm-toggle"]} type="button" disabled={blocked} onClick={onToggle}>
+            {onField ? "下阵" : "上阵"}
+          </button>
+          {blocked && point && (
+            <HoverTooltip point={point}>
+              <strong>{onField ? "无法下阵" : "无法上阵"}</strong>
+              <p>{reason}</p>
+            </HoverTooltip>
+          )}
+        </span>
+      </div>
+    </BorderGlow>
   );
 }

@@ -58,16 +58,8 @@
 }
 
 /* ---- 立绘 ---- */
-/* ⚠⚠ 这是整套过场唯一的硬伤, 改之前先读: 两页的**取景规则根本不同** ——
-   编队卡是「半身」(图放大到卡宽 1.5 倍、顶对齐、腰以下被 overflow 裁掉),
-   详情展示柜是「全身 contain、底对齐」。View Transition 抓的是**位图**, 无法重新取景,
-   所以中间帧必然是两张取景不同的图在交叉淡化, 人物大小对不齐。
-   两条缓解手段:
-     1. 下面的 cover + 两端各自的 object-position —— 让每张快照贴着自己那端的锚点边铺满
-        形变中的盒子(半身图贴顶、全身图贴底), 与真身的对齐方式一致;
-     2. --vt-cross(180ms) 远短于 --vt-morph(460ms) —— 错位窗口一闪而过, 大部分时间里
-        屏幕上只有"正确的那一张"在跟着盒子长大。
-   ⚠ 别改成 contain: 那会在盒子里留出空白边, 与真身(铺满取景窗)对不上, 交接处会闪一下。 */
+/* 两端现在都由 glowCard.module.css 提供同一套 cover + 顶部取景规则,
+  因此共享元素形变期间可以保持人物大小与锚点一致。 */
 ::view-transition-old(vt-portrait),
 ::view-transition-new(vt-portrait) {
   width: 100%;
@@ -79,7 +71,7 @@
   object-position: center top; /* 半身取景是顶对齐的 */
 }
 ::view-transition-new(vt-portrait) {
-  object-position: center bottom; /* 展示柜是底对齐的 */
+  object-position: center top;
 }
 
 /* ---- 卡面板 → 立绘栏 ---- */

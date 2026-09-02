@@ -22,11 +22,9 @@ import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckForgeBar } from "@/ui/character/DeckForgeBar";
 import { DeckForgeOverlay } from "@/ui/character/DeckForgeOverlay";
 import { DeckUpgradeOverlay } from "@/ui/character/DeckUpgradeOverlay";
+import { CharacterFigureColumn } from "@/ui/character/CharacterFigureColumn";
 import { EquipmentDrawer } from "@/ui/character/EquipmentDrawer";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { HpBar } from "@/ui/common/HpBar/HpBar";
-import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
 import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import { SquadBondBar } from "@/ui/common/SquadBondBar";
 import { StatIcon } from "@/ui/common/StatIcon";
@@ -251,24 +249,14 @@ export function CharacterDetailScreen() {
           }}
         >
           {/* 立绘栏 */}
-          <div className={s["cd-figure-col"]}>
-            {/* 立绘展示柜 = 与编队卡立绘窗配对的那一端(view-transition-name: vt-portrait,
-                写在 CSS 里)。⚠ 这里不需要 ref 也不需要任何测量 —— 位置全归浏览器算。 */}
-            <div className={cx(s["cd-figure"], s["cd-vitrine"])}>
-              <CharacterPortrait
-                characterId={def.id}
-                emoji={def.emoji}
-                alt={def.name}
-                className={s["cd-bust"]}
-              />
-            </div>
-            <div className={s["cd-status-bars"]}>
-              <div className={s["cd-hp"]}>
-                <HpBar hp={vitals.hp} hpLimit={vitals.hpLimit} maxHp={vitals.maxHp} flush />
-              </div>
-              <PollutionMeter value={cs.pollution} />
-            </div>
-          </div>
+          <CharacterFigureColumn
+            characterId={def.id}
+            emoji={def.emoji}
+            name={def.name}
+            color={def.color}
+            vitals={vitals}
+            pollution={cs.pollution}
+          />
 
           {/* 属性栏: 装备配置置于顶部, 下方是三组属性。 */}
           <div className={s["cd-stats-col"]}>

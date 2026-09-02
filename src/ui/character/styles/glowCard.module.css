@@ -1,0 +1,137 @@
+/*
+ * 编队卡与角色详情立绘栏共用的 BorderGlow 窗内材质。
+ *
+ * 跨组件契约:
+ * --gc-color: 角色色, 由使用方下发, 角旗与上阵名字读取。
+ * --gc-focus: 立绘取景锚点, 默认 50% 6%。
+ *
+ * 立绘取景规则必须保持 (0,2,0): CharacterPortrait.module.css 的基础
+ * .portrait-image 只有 (0,1,0), CSS Modules 的注入顺序不保证, 不能靠写在后面覆盖。
+ * .glow-card > span:last-child 会伸进 BorderGlow 的内部 .inner 结构; 这是既有的
+ * BorderGlow 使用约定, 用于让内部窗口铺满并裁切外发光。
+ */
+.glow-card {
+  width: 100%;
+  height: 100%;
+}
+
+.glow-card > span:last-child {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.glow-card-body {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+.glow-card-body .glow-card-portrait {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--gc-focus, 50% 6%);
+}
+
+.glow-card-body span.glow-card-portrait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 120px;
+  font-size: 96px;
+}
+
+.glow-card-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgb(4 11 15 / 0.86) 0%,
+    rgb(4 11 15 / 0.54) 24%,
+    rgb(4 11 15 / 0.18) 45%,
+    transparent 66%
+  );
+}
+
+.glow-card-flag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  padding: 7px 26px 7px 12px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+  background: linear-gradient(100deg, var(--gc-color), color-mix(in srgb, var(--gc-color) 55%, #071015));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--gc-color) 45%, transparent);
+  color: #06131a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  pointer-events: none;
+}
+
+.glow-card-name {
+  position: absolute;
+  right: 0;
+  bottom: 70px;
+  left: 0;
+  z-index: 2;
+  padding: 0 12px;
+  color: #f5f8f4;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.55);
+  text-align: center;
+}
+
+.glow-card-name::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  right: 34px;
+  left: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(245 248 244 / 0.34) 22%, rgb(245 248 244 / 0.34) 78%, transparent);
+}
+
+.glow-card.is-on .glow-card-name {
+  color: var(--gc-color);
+}
+
+.glow-card-toggle {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 42px;
+  padding: 9px 12px;
+  overflow: hidden;
+  border: 1px solid rgb(183 207 202 / 0.42);
+  background: rgb(7 16 20 / 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #dce8e3;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.glow-card-toggle:hover:not(:disabled),
+.glow-card-toggle:focus-visible {
+  border-color: var(--gc-color);
+  background: color-mix(in srgb, var(--gc-color) 18%, #071014);
+  color: #ffffff;
+  outline: none;
+}
+
+.glow-card-toggle:disabled {
+  border-color: rgb(183 207 202 / 0.2);
+  color: #73827f;
+  opacity: 1;
+}

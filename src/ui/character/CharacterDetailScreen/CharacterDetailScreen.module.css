@@ -1,13 +1,12 @@
 /* ===================== 角色详情页(一级全屏页) ===================== */
-/* 与编队页(FormationScreen.css)同族: 同一张紫粉白背景、同一套「亮玻璃 + 深紫墨字」配方,
+/* 与编队页(FormationScreen.css)同族: 同一张紫粉白背景、同一套角色色暗玻璃配方,
    固定 1920×1080 画布 + --stage-scale 等比缩放。
    ⚠ 本文件里每个 px 都是「设计 px」: 不要写 vw/vh, 不要按窗口宽度做 @media。
    ⚠ 全局 base.css 的 `button:hover:not(:disabled)` 特异性是 (0,2,1), 单个类选择器压不住 ——
      故本文件所有按钮的 hover/active 规则一律带 `.cd-stage ` 前缀(同 FormationScreen.css)。
 
-  ★ 为什么不与 FormationScreen.css 共用一套类: 两页的**尺度**不同(那边是 260×714 的卡阵,
-     这边是 420 宽的立绘栏 + 两列属性 + 卡组网格), 共用只会让任何一边的微调牵动另一边。
-     共用的只有配方与色值 —— 改配色时两个文件的 --fm-* / --cd-* 要一起改。 */
+    ★ 两页共用的 BorderGlow 窗内配方与颜色契约集中在 character/styles/glowCard.module.css;
+      本文件只负责详情页自身的尺度、版面和属性/卡组工作区。 */
 
 .cd-viewport {
   composes: viewport from "../../app/styles/stageCanvas.module.css";
@@ -149,7 +148,6 @@
 }
 /* ⚠ 三栏的入场动画已移交给 ::view-transition-new(vt-card-panel / vt-cd-stats / vt-cd-deck),
    理由见本文件 .cd-header 上方那段。 */
-.cd-figure-col,
 .cd-stats-col,
 .cd-deck-col {
   display: flex;
@@ -165,64 +163,11 @@
 }
 
 /* ---- 立绘栏 ---- */
-/* 取景窗吃掉这一栏除按钮/说明之外的全部高度。 */
-/* ★ 边框 / 阴影 / 四角角片整套材质来自 character/styles/metalFrame.module.css ——
-   与编队页卡框是**同一份**配方, 两端同源才能保证共享元素过场(vt-portrait)飞行途中
-   边框不会忽粗忽细、忽银忽紫。
-   ⚠ 这里只保留「窗内」的东西(打光背景 + 布局): 凡是画在边上的都归 kit 管, 别再加描边,
-     也别再补 inset 高光 —— kit 的六层光影已经把内壁受光/反光算进去了。 */
-.cd-figure {
-  composes: metal-frame from "../styles/metalFrame.module.css";
-  position: relative;
-  display: flex;
-  flex: 1 1 auto;
-  align-items: flex-end;
-  justify-content: center;
-  min-height: 0;
-  overflow: hidden;
-  /* 舱内打光: 底部一团淡紫, 把立绘从浅底里托起来 */
-  background:
-    radial-gradient(88% 56% at 50% 104%, #c79ce85c, transparent 70%),
-    #f8f2fdc4;
-}
-/* 冷冻取景窗 = 金属边框 + 四角角片(kit 的 metal-corners) + 一道斜向玻璃反光。
-   ⚠ 四角角片**不再**是本文件那八段紫色刻线: 旧写法四个角一样亮, 与有光向的边框对不上,
-     这正是"角标跟边框不统一"的根源。现在角片与边框是从同一块受光面上切出来的。
-   ⚠ 玻璃反光的光向(112deg 从左上扫下来)与金属渐变(152deg)同侧, 两者不打架。 */
-.cd-vitrine {
-  composes: metal-corners from "../styles/metalFrame.module.css";
-}
-.cd-vitrine::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background: linear-gradient(112deg, #ffffff00 42%, #ffffff2e 50%, #ffffff00 58%);
-}
-/* .cd-bust 走 --portrait-dx/dy 的半身取景(登记表见 ui/CharacterPortrait.tsx);
-   基础规则(CharacterPortrait.css)已给 contain + center bottom, 这里只补尺寸与偏移。 */
-img.cd-bust {
-  width: 100%;
-  height: 100%;
-  transform: translate(var(--portrait-dx), var(--portrait-dy));
-}
-/* 未登记立绘的角色退回 emoji(CharacterPortrait 的兜底分支) */
-span.cd-bust {
-  align-self: center;
-  margin-bottom: 60px;
-  font-size: 96px;
-}
+/* 立绘卡、取景窗与状态条由 CharacterFigureColumn 负责;
+   共享 BorderGlow 窗内配方见 character/styles/glowCard.module.css。 */
 
 .cd-equipment-slots {
   view-transition-name: vt-cd-equipment;
-}
-
-.cd-status-bars {
-  display: grid;
-  flex: 0 0 auto;
-  gap: 8px;
-  width: 100%;
 }
 /* ---- 属性栏 ---- */
 .cd-section-label {
@@ -469,7 +414,7 @@ span.cd-bust {
      本页每个名字都只有一份, 故全部写死, TSX 侧不需要任何运行时逻辑。
    ★ 三个名字与编队页**同名** ⇒ 浏览器把它们配对成形变:
        vt-card-panel  ← 编队页被点那张卡的外壳 .fm-card
-       vt-portrait    ← 那张卡的立绘取景窗 .fm-card-figure
+      vt-portrait    ← 那张卡的立绘取景窗 .fm-card-body
        vt-char-name   ← 那张卡的角色名 .fm-card-name
      其余 vt-cd-* 在编队页没有对应物 ⇒ 只生成 new(飞入) 或只生成 old(飞出)。
   ⚠ 立绘栏里的状态条跟随 vt-card-panel 一起过场, 不额外挂共享元素名字, 避免把一整组状态拆散。
@@ -481,12 +426,7 @@ span.cd-bust {
 .cd-title {
   view-transition-name: vt-char-name;
 }
-.cd-figure-col {
-  view-transition-name: vt-card-panel;
-}
-.cd-figure {
-  view-transition-name: vt-portrait;
-}
+/* vt-card-panel / vt-portrait 由 CharacterFigureColumn.module.css 挂载。 */
 .cd-stats-col {
   view-transition-name: vt-cd-stats;
 }
@@ -523,7 +463,6 @@ span.cd-bust {
   .cd-header,
   .cd-bonds,
   .cd-back,
-  .cd-figure-col,
   .cd-stats-col,
   .cd-deck-col,
   .cd-stat-group,

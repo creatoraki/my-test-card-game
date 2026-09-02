@@ -13,14 +13,10 @@ interface CharacterArtDef {
   src: string;
   // 半身取景的异常构图逃生舱(px, 正=右/下), 常规统一规格立绘不需要覆盖。
   // 战斗立绘 / 队伍卡 / 角色详情 / 探索四处半身取景共用这一对参数,
-  // 编队页通过 formation.dx/dy 使用独立取景参数。
+  // 各页面通过自己的取景类控制尺寸与锚点。
   // 菜单的 .menu-portrait 全身像不受影响。
   dx?: number;
   dy?: number;
-  // 编队页(FormationScreen 的 .fm-bust)专属取景偏移。
-  // 编队卡的取景窗宽高比/缩放与其它半身窗不同, 故允许单独覆盖;
-  // 未填的分量回退到通用的 dx/dy。
-  formation?: { dx?: number; dy?: number };
   // 底部队伍卡半身像的异常构图逃生舱(默认 1 = 跟随 AllyBar 的 --bust-zoom)。
   bustScale?: number;
   // 头部取景参数(zoom = 图宽相对取景窗宽的倍率; dx/dy = 缩放后的位置微调)。
@@ -38,7 +34,7 @@ const UNIFORM_FRAMING = {
 } as const;
 
 const CHARACTER_ART: Record<string, CharacterArtDef> = {
-  swordsman: { src: swordsmanPortrait, ...UNIFORM_FRAMING, dx: -15, dy: 10, formation: { dx: 0 } },
+  swordsman: { src: swordsmanPortrait, ...UNIFORM_FRAMING, dx: -15, dy: 10 },
   prophet: { src: prophetPortrait, ...UNIFORM_FRAMING },
   botanist: { src: botanistPortrait, ...UNIFORM_FRAMING },
   // ⚠ 立绘文件名是 idle.png(其余三人是 default.png), 取景先照统一规格走, 有异常构图再单独覆盖。
@@ -64,7 +60,7 @@ export function CharacterPortrait({ characterId, emoji, alt, className }: Props)
     //   调用者的类名。当前的六套取景各自住在使用方的 module.css 里:
     //     combatant-portrait → 战斗立绘半身像(1:1 cover) — battle/CombatantView
     //     ally-portrait      → 底部队伍卡半身(--bust-zoom × --bust-scale) — battle/AllyBar
-    //     fm-bust / cd-bust / cryo-portrait / exp-portrait / menu-portrait → 各页自持
+    //     fm-bust / figure portrait / cryo-portrait / exp-portrait / menu-portrait → 各页自持
     //   不传 className ⇒ 只吃本文件的基础规则(全身 contain)。
     // 下发的这组 --portrait-* / --bust-scale / --head-* 是**跨组件契约**(样式铁律 4):
     // CSS 变量不受 Modules 哈希影响, 是模块边界上唯一合法的通道。改名要连同所有取景一起改。
@@ -77,8 +73,6 @@ export function CharacterPortrait({ characterId, emoji, alt, className }: Props)
           {
             "--portrait-dx": `${art.dx ?? 0}px`,
             "--portrait-dy": `${art.dy ?? 0}px`,
-            "--fm-portrait-dx": `${art.formation?.dx ?? art.dx ?? 0}px`,
-            "--fm-portrait-dy": `${art.formation?.dy ?? art.dy ?? 0}px`,
             "--bust-scale": `${art.bustScale ?? 1}`,
             "--head-zoom": `${art.head?.zoom ?? 1}`,
             "--head-dx": `${art.head?.dx ?? 0}px`,
