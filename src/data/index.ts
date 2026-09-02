@@ -105,6 +105,20 @@ export {
   type CraftCheck,
   type ModuleRecipe,
 } from "./moduleCrafting";
+export {
+  NUTRITION_MAX_LEVEL,
+  NUTRITION_TECHS,
+  NUTRITION_TREAT_COST,
+  isTechAvailable,
+  nutritionHeal,
+  nutritionLevel,
+  nutritionPods,
+  nutritionTechCheck,
+  nutritionTechsOfTier,
+  type NutritionTech,
+  type NutritionTechCheck,
+  type NutritionTechKind,
+} from "./nutritionPod";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";

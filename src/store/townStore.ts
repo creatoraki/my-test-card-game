@@ -41,6 +41,12 @@ import {
   getNode,
   spentPoints,
   type CharacterDef,
+  isTechAvailable,
+  nutritionHeal,
+  nutritionPods,
+  nutritionTechCheck,
+  NUTRITION_TECHS,
+  NUTRITION_TREAT_COST,
 } from "../data";
 import {
   DEFAULT_SHOP_LEVEL,
@@ -48,7 +54,7 @@ import {
   shopRefreshCost,
   type ShopSlot,
 } from "../data/shop";
-import { removeByUid } from "../items/inventory";
+import { consumeItems, removeByUid } from "../items/inventory";
 import { rollToFlat } from "../items/equipRoll";
 import type { EquipSlot, ItemStack } from "../items/types";
 import type { BondBias } from "../explore/types";
@@ -97,6 +103,11 @@ export interface ShopState {
   slots: ShopSlot[];
 }
 
+export interface NutritionState {
+  techs: string[];
+  occupants: { charId: string; heal: number; day: number }[];
+}
+
 function freshShop(day: number, level = DEFAULT_SHOP_LEVEL): ShopState {
   return { level, day, refreshes: 0, slots: rollShopStock(level) };
 }
@@ -132,6 +143,7 @@ interface TownStore {
   storage: ItemStack[];
   day: number; // 生存天数, 从第 1 日起。★ 只由 advanceDay() 推进(出击后返回据点算一日)
   shop: ShopState;
+  nutrition: NutritionState;
   squadTalent: SquadTalentState;
   initialized: boolean;
 
@@ -161,6 +173,8 @@ interface TownStore {
   resetSquadTalent: () => void;
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
+  admitToNutritionPod: (charId: string) => void; // 营养舱: 扣积分并安排次日治疗
+  researchNutritionTech: (techId: string) => void; // 营养舱: 研究舱位或治疗量科技
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
   grantExpEach: (byChar: Record<string, number>) => ExpGain[]; // 按角色分别发经验
   contaminateCards: (charIds: string[], count: number, each?: boolean) => ContaminationHit[]; // 随机污染队伍个人卡组中的未污染卡
@@ -497,6 +511,7 @@ export const useTownStore = create<TownStore>()(
       storage: [],
       day: 1,
       shop: freshShop(1),
+      nutrition: { techs: [], occupants: [] },
       squadTalent: { badgeId: null, nodes: [] },
       initialized: false,
 
@@ -508,6 +523,7 @@ export const useTownStore = create<TownStore>()(
           storage: freshStorage(),
           day: 1,
           shop: freshShop(1),
+          nutrition: { techs: [], occupants: [] },
           initialized: true,
         });
       },
@@ -525,6 +541,7 @@ export const useTownStore = create<TownStore>()(
           storage: freshStorage(),
           day: 1,
           shop: freshShop(1),
+          nutrition: { techs: [], occupants: [] },
           initialized: true,
         }),
 
@@ -759,8 +776,9 @@ export const useTownStore = create<TownStore>()(
         });
       },
       toggleParty: (charId) => {
-        const { party, characters, awakened } = get();
+        const { party, characters, awakened, nutrition } = get();
         if (!characters[charId]) return;
+        if (nutrition.occupants.some((occupant) => occupant.charId === charId)) return;
         if (party.includes(charId)) {
           if (party.length <= 1) return; // 至少保留 1 人上阵
           set({ party: party.filter((id) => id !== charId) });
@@ -779,6 +797,48 @@ export const useTownStore = create<TownStore>()(
         const cost = RULES.progression.awakenCost;
         if (!characters[charId] || awakened.includes(charId) || loot < cost) return;
         set({ awakened: [...awakened, charId], loot: loot - cost });
+      },
+
+      admitToNutritionPod: (charId) => {
+        const { awakened, characters, day, loot, nutrition, party } = get();
+        const cs = characters[charId];
+        if (!cs || !awakened.includes(charId)) return;
+        if (nutrition.occupants.some((occupant) => occupant.charId === charId)) return;
+        if (nutrition.occupants.length >= nutritionPods(nutrition.techs)) return;
+        if (loot < NUTRITION_TREAT_COST) return;
+
+        const vitals = vitalsOf(cs);
+        if (vitals.hpLimit >= vitals.maxHp) return;
+        if (party.includes(charId) && party.length <= 1) return;
+
+        set({
+          loot: loot - NUTRITION_TREAT_COST,
+          party: party.filter((id) => id !== charId),
+          nutrition: {
+            ...nutrition,
+            occupants: [
+              ...nutrition.occupants,
+              { charId, heal: nutritionHeal(nutrition.techs), day },
+            ],
+          },
+        });
+      },
+
+      researchNutritionTech: (techId) => {
+        const { loot, nutrition, storage } = get();
+        const tech = NUTRITION_TECHS.find((entry) => entry.id === techId);
+        if (!tech || !isTechAvailable(tech, nutrition.techs)) return;
+        if (!nutritionTechCheck(tech, loot, storage).ok) return;
+
+        let nextStorage = storage;
+        for (const material of tech.materials) {
+          nextStorage = consumeItems(nextStorage, material.itemId, material.count);
+        }
+        set({
+          loot: loot - tech.loot,
+          storage: nextStorage,
+          nutrition: { ...nutrition, techs: [...nutrition.techs, tech.id] },
+        });
       },
 
       // 发经验。★ 没有等级也没有升级 —— 经验只是进池子, 等玩家拿去锻造卡组。
@@ -958,9 +1018,24 @@ export const useTownStore = create<TownStore>()(
       //   (出击打完从结算页回据点)。从主菜单进据点不算一日, 故 enterTown 不调它。
       // ⚠「隔日重置」在这里一次做完: 换新货 + 刷新次数归零。UI 不再判日期。
       advanceDay: () => {
-        const { day, shop } = get();
+        const { day, shop, characters, nutrition } = get();
         const next = day + 1;
-        set({ day: next, shop: { ...shop, day: next, refreshes: 0, slots: rollShopStock(shop.level) } });
+        const nextCharacters = { ...characters };
+        for (const occupant of nutrition.occupants) {
+          const cs = nextCharacters[occupant.charId];
+          if (!cs) continue;
+          const vitals = vitalsOf(cs);
+          nextCharacters[occupant.charId] = {
+            ...cs,
+            hpLimit: Math.min(vitals.maxHp, vitals.hpLimit + occupant.heal),
+          };
+        }
+        set({
+          day: next,
+          characters: nextCharacters,
+          nutrition: { ...nutrition, occupants: [] },
+          shop: { ...shop, day: next, refreshes: 0, slots: rollShopStock(shop.level) },
+        });
       },
 
       // 花积分立刻重摇货架。价格随当日刷新次数线性上涨, 隔日由 advanceDay 归零。
@@ -1156,6 +1231,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v15: 新增营养舱科技与疗养名单, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v14: 新增 clearedMaps, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v13: 商店货架合并为 slots, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v12: CharacterState 新增 hpLimit —— 远征打掉的体力极限现在跨日持久化。
@@ -1168,6 +1244,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v14", version: 14 },
+    { name: "town-profile-v15", version: 15 },
   ),
 );

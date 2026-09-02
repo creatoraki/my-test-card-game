@@ -39,7 +39,10 @@ src/ui/
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
 | [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
 | [town/terminal/ControlTerminalScene](../../src/ui/town/terminal/ControlTerminalScene/ControlTerminalScene.tsx) | 控制终端：城市维护工单委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由；出击已迁移到大厅一级入口。 |
-| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓：编队、队员档案和唤醒浮层；属性面板、卡组、舱位状态和角色切换演出都在这里。 |
+| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与浮层路由；维护唤醒/营养舱当前面板、关闭演出和受控尺寸，不承载具体功能内容。 |
+| [town/cryo/CryoPanelShell](../../src/ui/town/cryo/CryoPanelShell/CryoPanelShell.tsx) | 冬眠仓浮层公共壳：透明点击层、顶部吊绳、冷凝氛围、标题头、关闭按钮和开合动画；通过 `size` 与 CSS 变量传递设计尺寸。 |
+| [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 冬眠唤醒面板：舱位阵列、密封舱详情、唤醒费用和解封操作；只接收场景传入的角色数据与回调。 |
+| [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 营养舱面板：疗养舱位、队员三段血量、体力极限损伤提示、科技材料和研究操作；直接订阅城镇状态，规则判定复用 `data/nutritionPod`。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱场景编排：右侧两个抽屉入口（模组装配 / 模组制造），维护当前打开的弹窗与关闭动画；装配弹窗在此订阅据点状态、派发装配/拆卸 action 并统一管理模组 tooltip；制造弹窗整体交给 CraftPanel。 |
 | 旧 `town/assembly/AssemblyPanelShell` | 舱内弹窗的通用外壳已提升为公共件 [`common/PanelShell`](../../src/ui/common/PanelShell/PanelShell.tsx)（见「公共组件」一节），装配舱与制造弹窗改为从 `@/ui/common/PanelShell` 引用，样式规则一行未改。 |

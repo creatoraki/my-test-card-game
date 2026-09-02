@@ -1,0 +1,334 @@
+/* 冬眠仓浮层公共皮肤。动画关键帧与引用它们的规则放在同一 CSS Module。 */
+
+.modal {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.modal::before,
+.modal::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 30px;
+  height: 1080px;
+  bottom: calc(50% + var(--panel-h) / 2 - 12px);
+  pointer-events: none;
+  background:
+    linear-gradient(160deg, #fdf7ff, #cbb6dd 55%, #9179a8) no-repeat bottom center / 26px 18px,
+    linear-gradient(#8a72a3, #8a72a3) no-repeat center calc(100% - 18px) / 12px 6px,
+    linear-gradient(90deg, transparent calc(50% - 3px), #2a1b3d26 calc(50% - 3px), #2a1b3d99 calc(50% - 1.5px), #faf4ff 50%, #2a1b3d99 calc(50% + 1.5px), #2a1b3d26 calc(50% + 3px), transparent calc(50% + 3px));
+  filter: drop-shadow(0 4px 8px #2a1b3d29);
+  animation: panelIn 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+.modal::before {
+  left: calc(50% - var(--panel-w) * 0.34 - 15px);
+}
+
+.modal::after {
+  right: calc(50% - var(--panel-w) * 0.34 - 15px);
+}
+
+.modal.is-closing::before,
+.modal.is-closing::after {
+  animation: panelOut 600ms cubic-bezier(0.55, 0, 0.9, 0.35) both;
+}
+
+.panel {
+  --notch: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  padding: 26px 30px 22px;
+  border: 1px solid #2a1b3d33;
+  background: linear-gradient(155deg, #ffffffc4, #fbf4ffb0 52%, #f0e2fb9e);
+  -webkit-backdrop-filter: blur(26px) saturate(118%) brightness(1.06);
+  backdrop-filter: blur(26px) saturate(118%) brightness(1.06);
+  box-shadow: inset 0 1px 0 #ffffff, 0 0 0 1px #ffffff5c, 0 46px 100px -36px #1a0e29b8;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+  animation: panelIn 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+.panel > *:not(.ambience) {
+  position: relative;
+  z-index: 1;
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  left: -60%;
+  top: -60%;
+  z-index: 2;
+  width: 60%;
+  height: 220%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, #ffffff8c 48%, transparent);
+  transform: rotate(18deg);
+  animation: land 720ms 520ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+}
+
+.ambience {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fog {
+  position: absolute;
+  width: 78%;
+  height: 78%;
+}
+
+.fog-a {
+  left: -14%;
+  bottom: -22%;
+  background: radial-gradient(50% 50% at 50% 50%, #c79ce826, transparent 70%);
+  animation: fogA 24s ease-in-out infinite alternate;
+}
+
+.fog-b {
+  right: -18%;
+  top: -26%;
+  background: radial-gradient(50% 50% at 50% 50%, #b98adf1f, transparent 70%);
+  animation: fogB 31s ease-in-out infinite alternate;
+}
+
+.scanlines {
+  position: absolute;
+  inset: -6px 0;
+  background: repeating-linear-gradient(0deg, #2a1b3d0a 0 1px, transparent 1px 6px);
+  animation: scan 40s linear infinite;
+}
+
+.motes {
+  position: absolute;
+  inset: 0;
+}
+
+.mote {
+  position: absolute;
+  bottom: -8px;
+  left: calc(6% + var(--i) * 11%);
+  width: calc(3px + var(--i) * 0.5px);
+  height: calc(3px + var(--i) * 0.5px);
+  background: radial-gradient(circle, #ffffff, #d9c2f2 55%, transparent 72%);
+  opacity: 0;
+  animation: moteFloat calc(15s + var(--i) * 0.9s) linear infinite;
+  animation-delay: calc(var(--i) * -2.4s);
+}
+
+.panelHead {
+  position: relative;
+  flex: 0 0 auto;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #2a1b3d1f;
+  animation: contentIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: var(--content-delay, 560ms);
+}
+
+.panelTitle {
+  margin: 4px 0 0;
+  color: var(--cryo-ink);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 5px;
+}
+
+.kicker {
+  display: block;
+  color: var(--cryo-glow);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.close {
+  position: absolute;
+  right: -6px;
+  top: -4px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #2a1b3d24;
+  background: #ffffffab;
+  color: var(--cryo-ink-dim);
+  font-size: 15px;
+  clip-path: none;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.close:hover {
+  border-color: var(--cryo-glow);
+  background: #ffffffd9;
+  color: var(--cryo-glow-deep);
+  transform: rotate(90deg);
+}
+
+.panelFoot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #2a1b3d1f;
+}
+
+.note {
+  margin: 0;
+  color: var(--cryo-ink-dim);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.primary {
+  --notch: 12px;
+  position: relative;
+  flex: 0 0 auto;
+  overflow: hidden;
+  padding: 14px 32px;
+  border: 1px solid #7c4dbe;
+  background: linear-gradient(135deg, #9560d8, #5b3488);
+  color: #faf6ff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+  transition: background 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
+}
+
+.primary:hover:not(:disabled) {
+  border-color: #b98adf;
+  background: linear-gradient(135deg, #a877e6, #6b3f9c);
+  box-shadow: 0 0 26px -6px var(--cryo-glow), 0 16px 34px -18px #55307f;
+}
+
+.primary:disabled {
+  border-color: #2a1b3d1f;
+  background: linear-gradient(135deg, #cbb9e0, #a795bd);
+  box-shadow: none;
+}
+
+.vitrine {
+  position: relative;
+}
+
+.vitrine::before,
+.vitrine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.vitrine::before {
+  background: linear-gradient(112deg, #ffffff00 42%, #ffffff2e 50%, #ffffff00 58%);
+}
+
+.vitrine::after {
+  inset: 3px;
+  background:
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left top / 8px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left top / 1px 8px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right top / 8px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right top / 1px 8px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left bottom / 8px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left bottom / 1px 8px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right bottom / 8px 1px,
+    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right bottom / 1px 8px;
+}
+
+.content {
+  animation: contentIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: var(--content-delay, 560ms);
+}
+
+@keyframes panelIn {
+  from { transform: translateY(-1080px); }
+  84% { transform: translateY(16px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes panelOut {
+  from { transform: translateY(0); }
+  to { transform: translateY(-1080px); }
+}
+
+@keyframes land {
+  from { opacity: 0.9; transform: rotate(18deg) translateX(0); }
+  to { opacity: 0; transform: rotate(18deg) translateX(320%); }
+}
+
+@keyframes fogA {
+  to { transform: translate3d(9%, -6%, 0); }
+}
+
+@keyframes fogB {
+  to { transform: translate3d(-7%, 8%, 0); }
+}
+
+@keyframes scan {
+  to { transform: translateY(6px); }
+}
+
+@keyframes moteFloat {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  12% { opacity: 0.3; }
+  88% { opacity: 0.24; }
+  100% { opacity: 0; transform: translate3d(26px, -100%, 0); }
+}
+
+@keyframes contentIn {
+  from { opacity: 0; filter: blur(4px); transform: translateY(16px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal::before,
+  .modal::after,
+  .panel,
+  .panelHead,
+  .content {
+    animation: fadeIn 180ms ease-out both;
+  }
+
+  .modal.is-closing::before,
+  .modal.is-closing::after,
+  .modal.is-closing .panel {
+    animation: fadeOut 180ms ease-in both;
+  }
+
+  .ambience,
+  .panel::after {
+    display: none;
+  }
+
+  .close:hover,
+  .primary:hover:not(:disabled) {
+    transform: none;
+  }
+}

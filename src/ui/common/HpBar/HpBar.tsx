@@ -75,7 +75,7 @@ export function HpBar({ hp, hpLimit, maxHp, hideLimit, flush, slowDrain, large }
     <div
       className={cx(s["hp-bar"], flush && s["hp-flush"], slowDrain && s["hp-drain-slow"], large && s["hp-large"])}
       style={{ "--hp-pct": `${hpPct}%`, "--hp-limit-pct": `${hpLimitPct}%` } as React.CSSProperties}
-      title={`HP ${hp}/${limit} · 上限 ${maxHp}`}
+      aria-label={`生命 ${hp}/${limit}，体力极限 ${limit}，最大生命 ${maxHp}`}
     >
       <div className={s["hp-slot"]} />
 
