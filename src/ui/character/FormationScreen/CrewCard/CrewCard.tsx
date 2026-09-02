@@ -67,8 +67,6 @@ export function CrewCard({
     if (shell) onOpen(shell);
   };
 
-  const distance = offset ? Math.abs(offset.dx) + Math.abs(offset.dy) : 0;
-
   return (
     <div
       className={cx(
@@ -84,7 +82,6 @@ export function CrewCard({
           "--i": index,
           "--dx": offset?.dx ?? 0,
           "--dy": offset?.dy ?? 0,
-          "--dist": distance,
           "--gc-color": def.color,
         } as CSSProperties
       }

@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { BACK_MORPH_MS, FIGURE_RECT, MORPH_MS, designRectOf, type Rect } from "./morphChoreo";
+import { BACK_GATHER_MS, BACK_MORPH_MS, FIGURE_RECT, MORPH_MS, designRectOf, type Rect } from "./morphChoreo";
 
 export interface Flight {
   charId: string;
@@ -41,6 +41,7 @@ export function useFormationMorph() {
   const [state, setState] = useState<MorphState>(IDLE);
   const stateRef = useRef(state);
   stateRef.current = state;
+  const finishTimerRef = useRef<number | null>(null);
 
   // 进详情: 点击那一刻量下这张卡的位置, 同步提交换态 —— 必须 flushSync,
   // 否则 MorphFlyer 拿到的起点会是"卡阵已经开始飞散之后"的位置。
@@ -90,8 +91,21 @@ export function useFormationMorph() {
     );
   }, [state.phase, state.flight, state.charId]);
 
-  // 飞行结束: 收起副本, 亮出目标元素。
+  // 飞行结束: 回程还要给卡阵留出收拢动画的时长。
   const finishFlight = useCallback(() => {
+    if (stateRef.current.phase === "toRoster") {
+      if (finishTimerRef.current !== null) return;
+      finishTimerRef.current = window.setTimeout(() => {
+        finishTimerRef.current = null;
+        setState((prev) =>
+          prev.phase === "toRoster"
+            ? { mode: "roster", phase: "idle", charId: null, flight: null }
+            : prev,
+        );
+      }, BACK_GATHER_MS);
+      return;
+    }
+
     setState((prev) =>
       prev.phase === "idle"
         ? prev
@@ -103,6 +117,13 @@ export function useFormationMorph() {
           },
     );
   }, []);
+
+  useEffect(
+    () => () => {
+      if (finishTimerRef.current !== null) window.clearTimeout(finishTimerRef.current);
+    },
+    [],
+  );
 
   // 兜底: 万一 MorphFlyer 没挂上(例如目标角色在过场中途被移出名册), 也不能把页面卡在过场态。
   useEffect(() => {

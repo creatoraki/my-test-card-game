@@ -116,18 +116,18 @@
 }
 
 /* ===================== 飞散 / 收拢 ===================== */
-/* ★ 方向量 --dx/--dy 是「本卡与被点那张卡的列距/行距」, --dist 是两者之和 ——
-     于是同一条 keyframes 就能让整片阵列**以被点的那张为原点**向外炸开, 越远的越晚起步、
-     推得越远。这正是伪元素方案做不到的那一档: ::view-transition-* 拿不到元素身上的 --i。 */
+/* ★ 方向量 --dx/--dy 是「本卡与被点那张卡的列距/行距」 ——
+     于是同一条 keyframes 就能让整片阵列**以被点的那张为原点**向外炸开、推得越远。
+     去程统一从清场时刻开始, 回程统一在飞行结束后渐显。 */
 .is-scatter-out {
   animation: crewScatterOut var(--fm-scatter-ms, 320ms) cubic-bezier(0.4, 0, 0.9, 0.5) both;
-  animation-delay: calc(var(--dist, 0) * var(--fm-scatter-stagger, 26ms));
+  animation-delay: 0ms;
   pointer-events: none;
 }
 
 .is-scatter-in {
   animation: crewScatterIn var(--fm-gather-ms, 260ms) cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  animation-delay: calc(var(--dist, 0) * var(--fm-scatter-stagger, 26ms));
+  animation-delay: var(--fm-gather-delay, 0ms);
   pointer-events: none;
 }
 

@@ -37,10 +37,10 @@ import { SquadHud } from "./SquadHud";
 import { MorphFlyer } from "./formationMorph/MorphFlyer";
 import {
   BACK_GATHER_MS,
+  BACK_MORPH_MS,
   PANEL_DELAY_MS,
   PANEL_GROW_MS,
   SCATTER_MS,
-  SCATTER_STAGGER_MS,
 } from "./formationMorph/morphChoreo";
 import { useFormationMorph } from "./formationMorph/useFormationMorph";
 import s from "./FormationScreen.module.css";
@@ -115,8 +115,8 @@ export function FormationScreen() {
       style={
         {
           "--fm-scatter-ms": `${SCATTER_MS}ms`,
-          "--fm-scatter-stagger": `${SCATTER_STAGGER_MS}ms`,
           "--fm-gather-ms": `${BACK_GATHER_MS}ms`,
+          "--fm-gather-delay": `${morph.phase === "toRoster" ? BACK_MORPH_MS : 0}ms`,
           "--fm-panel-ms": `${PANEL_GROW_MS}ms`,
           "--fm-panel-delay": `${PANEL_DELAY_MS}ms`,
         } as CSSProperties
@@ -170,6 +170,7 @@ export function FormationScreen() {
           fromRadius={flight.reverse ? FIGURE_RADIUS : CARD_RADIUS}
           toRadius={flight.reverse ? CARD_RADIUS : FIGURE_RADIUS}
           reverse={flight.reverse}
+          delay={flight.reverse ? 0 : SCATTER_MS}
           ms={flight.ms}
           onDone={morph.finishFlight}
         />

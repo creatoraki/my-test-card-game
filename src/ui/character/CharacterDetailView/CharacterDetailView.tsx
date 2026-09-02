@@ -162,7 +162,7 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
         sick={cs.sick}
         quirks={cs.quirks}
         onField={party.includes(charId)}
-        hidden={morphing}
+        hidden={morphing || leaving}
         style={{
           left: `${FIGURE_RECT.x}px`,
           top: `${FIGURE_RECT.y}px`,

@@ -16,7 +16,6 @@ const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
 // ---- 时长 ----
 export const MORPH_MS = duration(620); // 被点卡 → 立绘栏的滑动 + 展宽
 export const SCATTER_MS = duration(320); // 其余卡飞散
-export const SCATTER_STAGGER_MS = duration(26); // 按与被点卡的列距错峰
 export const PANEL_DELAY_MS = duration(340); // 右侧工作区起裂时刻
 export const PANEL_GROW_MS = duration(280); // 右侧工作区裂开生长
 // ⚠⚠ PANEL_DELAY + PANEL_GROW 必须 ≤ MORPH_MS: 飞行一结束 phase 就回 idle, is-growing 类随之摘掉,

@@ -29,6 +29,7 @@ interface Props {
   toRadius: number;
   /** true = 回程(立绘 → 卡)。只决定中间帧先收窄还是先滑动。 */
   reverse: boolean;
+  delay?: number;
   ms: number;
   onDone: () => void;
 }
@@ -52,6 +53,7 @@ export function MorphFlyer({
   fromRadius,
   toRadius,
   reverse,
+  delay = 0,
   ms,
   onDone,
 }: Props) {
@@ -66,7 +68,7 @@ export function MorphFlyer({
     if (!shell) return;
     // 「减少动态效果」: 时长已被 morphChoreo 归零 ⇒ 不起动画, 直接交接。
     if (ms <= 0 || typeof shell.animate !== "function") {
-      const timer = window.setTimeout(() => doneRef.current(), 0);
+      const timer = window.setTimeout(() => doneRef.current(), delay);
       return () => window.clearTimeout(timer);
     }
 
@@ -74,7 +76,12 @@ export function MorphFlyer({
       ? { x: from.x, y: from.y, w: to.w, h: to.h }
       : { x: to.x, y: to.y, w: from.w, h: to.h };
     const midOffset = reverse ? 1 - MORPH_SLIDE_SPLIT : MORPH_SLIDE_SPLIT;
-    const options: KeyframeAnimationOptions = { duration: ms, easing: MORPH_EASE, fill: "both" };
+    const options: KeyframeAnimationOptions = {
+      duration: ms,
+      delay,
+      easing: MORPH_EASE,
+      fill: "both",
+    };
     const shellAnim = shell.animate(
       [
         { ...box(from), borderRadius: `${fromRadius}px`, offset: 0 },
@@ -95,14 +102,14 @@ export function MorphFlyer({
     };
     shellAnim.addEventListener("finish", finish);
     // 兜底: 标签页在动画期间被切走时 finish 事件可能迟到, 超时后照样交接。
-    const guard = window.setTimeout(finish, ms + 120);
+    const guard = window.setTimeout(finish, delay + ms + 120);
 
     return () => {
       window.clearTimeout(guard);
       shellAnim.cancel();
       nameAnim?.cancel();
     };
-  }, [from, to, fromFontSize, toFontSize, fromRadius, toRadius, reverse, ms]);
+  }, [from, to, fromFontSize, toFontSize, fromRadius, toRadius, reverse, delay, ms]);
 
   return (
     <div

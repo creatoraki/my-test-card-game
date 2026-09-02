@@ -25,7 +25,7 @@ interface Props {
   sick: boolean;
   quirks: readonly QuirkId[];
   onField: boolean;
-  /** 过场期间由飞行层代演。 */
+  /** 去回程期间由飞行层代演。 */
   hidden: boolean;
   /** 由 CharacterDetailView 从 FIGURE_RECT 下发的设计 px 版面坐标。 */
   style?: CSSProperties;
