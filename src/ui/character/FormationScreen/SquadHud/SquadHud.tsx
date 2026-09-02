@@ -1,8 +1,8 @@
-// 编队页的常驻顶带 —— 返回角标 + 小队徽章盘 + 小队羁绊。
+// 编队页的常驻 HUD —— 通栏亮玻璃面板里的小队徽章盘与小队羁绊, 左下角另放返回按钮。
 //
 // ★★ 它**跨越两种态**: 编队态与详情态共用同一份 DOM, 重组过场期间原地不动。
 //   「不动的东西」才让中间那一场重组显得是重组 —— 若连边框角落一起飞, 观众就失去了参照系。
-// ★ 返回角标只有一个箭头, 没有文字: 这一页要留给队伍列表。
+// ★ 面板只承载徽章与羁绊; 返回按钮退到左下角, 用低对比文字态给队伍列表让出主视觉。
 //   ⚠ 悬浮提示走 HoverTooltip 组件, 不用原生 title(全项目铁律)。
 
 import type { CSSProperties } from "react";
@@ -11,6 +11,7 @@ import type { CharacterState } from "@/store/townStore";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import { SquadBondBar } from "@/ui/common/SquadBondBar";
 import { cx } from "@/ui/common/cx";
+import { HudPanel } from "../HudPanel";
 import { SquadBadgeDial } from "../SquadBadgeDial";
 import s from "./SquadHud.module.css";
 
@@ -46,15 +47,7 @@ export function SquadHud({
     <div className={cx(s.hud, className)} style={style}>
       <span className={s["back-slot"]} {...bind}>
         <button className={s.back} type="button" onClick={onBack} aria-label={backLabel}>
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-            <path
-              d="M15 5 8 12l7 7"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          ← {backLabel}
         </button>
         {point && (
           <HoverTooltip point={point}>
@@ -64,15 +57,26 @@ export function SquadHud({
         )}
       </span>
 
-      <SquadBadgeDial
-        className={s.dial}
-        badge={badge}
-        remaining={remaining}
-        total={total}
-        onClick={onBadgeClick}
-      />
-
-      <SquadBondBar className={s.bonds} characters={characters} party={party} />
+      <HudPanel className={s.band}>
+        <SquadBadgeDial
+          className={s.dial}
+          badge={badge}
+          remaining={remaining}
+          total={total}
+          onClick={onBadgeClick}
+        />
+        <span className={s.divider} aria-hidden="true" />
+        <div className={s["bond-group"]}>
+          <span className={s["bond-label"]}>小队羁绊</span>
+          <SquadBondBar
+            className={s.bonds}
+            characters={characters}
+            party={party}
+            align="end"
+            iconSize={96}
+          />
+        </div>
+      </HudPanel>
     </div>
   );
 }

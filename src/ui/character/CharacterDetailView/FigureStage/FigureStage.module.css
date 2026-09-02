@@ -1,13 +1,10 @@
-/* 立绘出血栏。⚠ 这四个数就是 formationMorph/morphChoreo.ts 的 FIGURE_RECT, 改一处要改两处 ——
-   飞行层的落点是常量而不是测量值(理由见那边的注释)。 */
+/* 立绘取景窗。版面坐标由 CharacterDetailView 从 formationMorph/morphChoreo.ts 的 FIGURE_RECT
+   下发, 本文件只管与 CrewCard 共用的材质、身份信息和落地发光。 */
 .stage {
   position: absolute;
-  top: 0;
-  left: 0;
   z-index: 1;
-  width: 780px;
-  height: 1080px;
-  overflow: hidden;
+  border-radius: 16px;
+  background: rgb(8 18 23 / 0.36);
 }
 
 /* 过场期间让位给飞行层。⚠ 用 visibility 而不是卸载: 版面里的其他块(工作区)正在按这一栏的
@@ -16,54 +13,42 @@
   visibility: hidden;
 }
 
-/* ⚠ 取景规则必须是 (0,2,0), 理由同 glowCard.module.css: 基础 .portrait-image 是 (0,1,0),
-   CSS Modules 注入顺序不保证, 单类选择器压不住。 */
-.stage .bust {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: var(--gc-focus, 50% 6%);
+.glow {
+  composes: glow-card from "../../styles/glowCard.module.css";
 }
 
-.stage span.bust {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 200px;
-  font-size: 180px;
+.body {
+  composes: glow-card-body from "../../styles/glowCard.module.css";
 }
 
-.fade-top {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 210px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, #f3ecfaf2 0%, #f3ecfa8c 46%, transparent 100%);
+.bust {
+  composes: glow-card-portrait from "../../styles/glowCard.module.css";
 }
 
 .scrim {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgb(4 11 15 / 0.9) 0%,
-    rgb(4 11 15 / 0.62) 22%,
-    rgb(4 11 15 / 0.2) 44%,
-    transparent 64%
-  );
+  composes: glow-card-scrim from "../../styles/glowCard.module.css";
 }
 
-/* 身份块压在图的下部。⚠ 左边距 72 与画布左侧留白同一口径, 与顶带的返回角标对得上。 */
+/* BorderGlow 的三层发光在详情框落地后淡入; 终值继续由 BorderGlow 的 opacity 级联提供。 */
+.stage:not(.is-hidden) .glow::before,
+.stage:not(.is-hidden) .glow::after,
+.stage:not(.is-hidden) .glow > span:first-child {
+  animation: figureGlowIn 320ms 40ms ease backwards;
+}
+
+@keyframes figureGlowIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 身份块压在图的下部, 与外壳同一组 24px 内缩。 */
 .identity {
   position: absolute;
-  right: 60px;
-  bottom: 64px;
-  left: 72px;
+  right: 24px;
+  bottom: 28px;
+  left: 24px;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -82,11 +67,11 @@
   gap: 18px;
 }
 
-/* 72px 与 MorphFlyer 的 toFontSize 是同一个数 —— 飞行层的名字正是插值到这个字号落地的。 */
+/* 44px 与 MorphFlyer 的 toFontSize 是同一个数 —— 飞行层的名字正是插值到这个字号落地的。 */
 .name {
   margin: 0;
   color: #f5f8f4;
-  font-size: 72px;
+  font-size: 44px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-shadow: 0 4px 22px rgb(0 0 0 / 0.6);
@@ -109,7 +94,7 @@
 .bars {
   display: grid;
   gap: 10px;
-  max-width: 520px;
+  max-width: 100%;
 }
 
 .hp {

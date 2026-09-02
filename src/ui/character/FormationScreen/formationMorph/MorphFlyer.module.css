@@ -1,5 +1,5 @@
 /* 飞行层: 画布内绝对定位, 压在两态之上、HUD 之下。
-   ⚠ 尺寸/位置由 WAAPI 逐帧写在内联样式上, 这里只声明材质。 */
+  ⚠ 尺寸/位置由 WAAPI 的三段关键帧逐帧写在内联样式上, 这里只声明材质。 */
 /* ⚠ z-index 必须**低于常驻顶带**(SquadHud 是 6): 落地后接手的 FigureStage 在顶带之下,
    飞行途中若压在顶带之上, 交接那一刻顶带会突然弹到前面来。5 = 高于卡阵(1)与详情栏(2)、低于顶带。 */
 .flyer {
@@ -29,19 +29,6 @@
   justify-content: center;
   padding-bottom: 120px;
   font-size: 96px;
-}
-
-/* 顶部白纱: 与 FigureStage 的 .fade-top 同款, 但高度按比例给 —— 飞行途中盒子高度一直在变,
-   固定 210px 在卡片尺度上会糊掉半张脸。20% × 1080 ≈ 216, 落地时与详情态基本重合。 */
-.fade-top {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 1;
-  height: 20%;
-  pointer-events: none;
-  background: linear-gradient(to bottom, #f3ecfaf2 0%, #f3ecfa8c 46%, transparent 100%);
 }
 
 .scrim {

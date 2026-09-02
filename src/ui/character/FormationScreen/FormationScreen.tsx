@@ -3,17 +3,17 @@
 //   而是与 explore / battle 平级的顶层界面, 切换由 ui/ScreenTransition 负责。
 //
 // ★★ 角色详情**不再是另一个 screen**: 它是本页的第二种态。点卡不跳页, 而是同一张画布里
-//   做一次元素重组 —— 卡阵以被点那张为原点飞散, 那一张由飞行层连续放大成左半屏的出血立绘,
-//   右半屏的工作区从卡阵原地裂开生长。编排全在 formationMorph/, 与 runStore 无关。
+//   做一次元素重组 —— 卡阵以被点那张为原点飞散, 那一张由飞行层先滑到左侧、再横向展宽成
+//   立绘取景窗, 右侧工作区从同一条水平带裂开生长。编排全在 formationMorph/, 与 runStore 无关。
 //   (旧版走的是原生 View Transition 的共享元素过场; 伪元素挂在文档根上拿不到元素的 --i,
 //    错峰只能靠一张手写的延迟表, 做不出按距离飞散这一档 —— 那套已随本次改版删除。)
 //
-// ★ 版面只留三样东西 + 一个返回角标:
+// ★ 版面只留三样东西 + 一个返回按钮:
 //     队伍列表(CrewGrid) · 小队徽章(SquadBadgeDial, 兼训练点待办提醒) · 小队羁绊(SquadBondBar)。
 //   面包屑、巨型标题与整行说明文字全部撤掉 —— 那些占掉了 216px 的顶部空间, 而这一页
 //   真正要看的是人。
-// ★ 徽章与羁绊住在**常驻顶带**(SquadHud): 两态共用同一份 DOM, 重组期间原地不动,
-//   给这场形变留一个参照系。
+// ★ 徽章与羁绊住在**常驻通栏面板**(SquadHud): 两态共用同一份 DOM, 重组期间原地不动,
+//   给这场形变留一个参照系; 返回按钮退到左下角。
 //
 // ★ 与冬眠仓同一套**亮玻璃**视觉(背景就是冬眠仓.png 那张紫粉白场景): 深紫墨文字 + 白玻璃卡,
 //   强调色深紫罗兰 #7c4dbe。
@@ -47,11 +47,11 @@ import s from "./FormationScreen.module.css";
 
 // 飞行层两端的字号与圆角 —— 与两侧的实际样式对齐:
 //   21px / 16px = 卡面(glowCard.module.css 的 .glow-card-name 与 CHARACTER_CARD_GLOW.borderRadius)
-//   72px /  0px = 详情态立绘(FigureStage.module.css 的 .name, 出血无圆角)
+//   44px / 16px = 详情态立绘取景窗(FigureStage.module.css 的 .name 与 .stage)
 const CARD_FONT = 21;
 const CARD_RADIUS = 16;
-const FIGURE_FONT = 72;
-const FIGURE_RADIUS = 0;
+const FIGURE_FONT = 44;
+const FIGURE_RADIUS = 16;
 
 export function FormationScreen() {
   const characters = useTownStore((state) => state.characters);
@@ -131,9 +131,8 @@ export function FormationScreen() {
 
       {morph.showRoster && (
         <CrewGrid
-          // 盒子外扩 36px 是给外发光让位; 卡片带仍从 (76, 200) 起, 水平带为 200..972,
-          // 与详情态工作区的对应关系不变。
-          style={{ left: "40px", top: "164px", width: "1840px", height: "876px", gap: "20px" }}
+          // 盒子外扩 36px 是给外发光让位; 卡片带从 (76, 196) 起, 水平带为 196..968。
+          style={{ left: "40px", top: "160px", width: "1840px", height: "844px", gap: "20px" }}
           roster={roster}
           characters={characters}
           party={party}
@@ -176,7 +175,7 @@ export function FormationScreen() {
         />
       )}
 
-      {/* 常驻顶带: 返回角标 + 小队徽章 + 小队羁绊。两态共用, 过场期间原地不动。 */}
+      {/* 常驻 HUD: 通栏面板里的徽章与羁绊, 左下角返回按钮。两态共用, 过场期间原地不动。 */}
       <SquadHud
         onBack={back}
         backLabel={morph.mode === "detail" ? "返回编队" : "返回据点"}

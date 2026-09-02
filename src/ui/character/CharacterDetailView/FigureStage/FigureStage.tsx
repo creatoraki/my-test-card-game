@@ -1,12 +1,13 @@
-// 详情态左栏 —— 一张出血到画布边缘的立绘大图, 身份与状态压在图的下半部。
+// 详情态左栏 —— 一张与编队卡共用取景壳的立绘窗, 身份与状态压在图的下半部。
 //
-// ★ 出血(0,0,780,1080)是刻意的: 编队卡是一扇 276 宽的取景窗, 点进来之后同一张图铺满整个左半屏,
-//   "卡片长成了人" 这句话是靠这一步说出来的。⚠ 这个矩形同时是 morphChoreo.FIGURE_RECT ——
-//   飞行层的落点常量, 改这里必须一起改那里。
+// ★ 立绘窗(76,196,434,772)与编队卡保持同高: 卡片飞到左侧后原地横向展宽, 只露出原本被裁掉的
+//   部分, 人物大小不变。矩形由 CharacterDetailView 从 morphChoreo.FIGURE_RECT 下发。
 // ★ 过场期间(hidden)整栏让位: 此刻画面上的立绘是飞行层的副本, 两份同时在场会露馅。
 
 import type { CSSProperties } from "react";
 import type { QuirkId } from "@/engine";
+import { CHARACTER_CARD_GLOW, characterGlow } from "@/ui/character/characterGlow";
+import { BorderGlow } from "@/ui/common/BorderGlow";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HpBar } from "@/ui/common/HpBar/HpBar";
 import { PollutionMeter } from "@/ui/common/PollutionMeter/PollutionMeter";
@@ -26,6 +27,8 @@ interface Props {
   onField: boolean;
   /** 过场期间由飞行层代演。 */
   hidden: boolean;
+  /** 由 CharacterDetailView 从 FIGURE_RECT 下发的设计 px 版面坐标。 */
+  style?: CSSProperties;
 }
 
 export function FigureStage({
@@ -39,30 +42,43 @@ export function FigureStage({
   quirks,
   onField,
   hidden,
+  style,
 }: Props) {
+  const glow = characterGlow(color);
+
   return (
     <div
       className={cx(s.stage, hidden && s["is-hidden"])}
-      style={{ "--gc-color": color } as CSSProperties}
+      style={{ "--gc-color": color, ...style } as CSSProperties}
     >
-      <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.bust} />
-      {/* 顶部往上淡出: 立绘出血到画布顶边, 不收一下会顶到常驻顶带的返回角标与徽章盘。 */}
-      <span className={s["fade-top"]} aria-hidden="true" />
-      <span className={s.scrim} aria-hidden="true" />
+      <BorderGlow
+        className={s.glow}
+        {...CHARACTER_CARD_GLOW}
+        {...glow}
+        persistent
+        followPointer={false}
+        animated={false}
+        fillOpacity={onField ? 0.3 : 0.2}
+      >
+        <div className={s.body}>
+          <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.bust} />
+          <span className={s.scrim} aria-hidden="true" />
 
-      <div className={s.identity}>
-        <div className={s["name-row"]}>
-          <h2 className={s.name}>{name}</h2>
-          <span className={cx(s.tag, onField && s["is-on"])}>{onField ? "出战中" : "待命"}</span>
-        </div>
-        <div className={s.bars}>
-          <div className={s.hp}>
-            <HpBar hp={vitals.hp} hpLimit={vitals.hpLimit} maxHp={vitals.maxHp} flush />
+          <div className={s.identity}>
+            <div className={s["name-row"]}>
+              <h2 className={s.name}>{name}</h2>
+              <span className={cx(s.tag, onField && s["is-on"])}>{onField ? "出战中" : "待命"}</span>
+            </div>
+            <div className={s.bars}>
+              <div className={s.hp}>
+                <HpBar hp={vitals.hp} hpLimit={vitals.hpLimit} maxHp={vitals.maxHp} flush />
+              </div>
+              <PollutionMeter value={pollution} />
+            </div>
+            <QuirkPips sick={sick} quirks={quirks} className={s.quirks} />
           </div>
-          <PollutionMeter value={pollution} />
         </div>
-        <QuirkPips sick={sick} quirks={quirks} className={s.quirks} />
-      </div>
+      </BorderGlow>
     </div>
   );
 }

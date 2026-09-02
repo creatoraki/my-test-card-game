@@ -20,5 +20,5 @@
      CSS Modules 的注入顺序不保证, 同特异性会赌运气(同 glowCard.module.css 里那条说明)。 */
 .view .card-preview {
   top: 210px;
-  left: 452px;
+  left: 132px;
 }

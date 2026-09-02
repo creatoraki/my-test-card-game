@@ -1,6 +1,6 @@
 // 角色详情态 —— 编队页内的第二种态(不是独立页面), 由 FormationScreen 装配。
 //
-// ★ 版面两栏: 左半屏是出血的立绘大图(FigureStage), 右半屏是一块可切换的工作区(Workbench,
+// ★ 版面两栏: 左侧是 434×772 的立绘取景窗(FigureStage), 右侧是一块可切换的工作区(Workbench,
 //   属性 / 装备 / 卡组)。旧版三栏并排把每一块都压得太小, 现在一次只做一件事。
 // ★ 属性面板是**只读**的(角色不设等级也不加点); 个人卡组开放扩充、精简、升级三项锻造;
 //   装备穿戴/卸下直接落 townStore。编队调整统一回编队态完成。
@@ -16,6 +16,7 @@ import { availablePools, deckForgeCosts, deriveStats, useTownStore, vitalsOf } f
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckForgeOverlay } from "@/ui/character/DeckForgeOverlay";
 import { DeckUpgradeOverlay } from "@/ui/character/DeckUpgradeOverlay";
+import { FIGURE_RECT } from "@/ui/character/FormationScreen/formationMorph/morphChoreo";
 import { cx } from "@/ui/common/cx";
 import { FigureStage } from "./FigureStage";
 import { DeckPanel } from "./Workbench/DeckPanel";
@@ -162,11 +163,17 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
         quirks={cs.quirks}
         onField={party.includes(charId)}
         hidden={morphing}
+        style={{
+          left: `${FIGURE_RECT.x}px`,
+          top: `${FIGURE_RECT.y}px`,
+          width: `${FIGURE_RECT.w}px`,
+          height: `${FIGURE_RECT.h}px`,
+        }}
       />
 
-      {/* ★ 与编队态卡阵占同一条水平带(y 196..1008) —— 重组时工作区正是在卡阵原地长出来的。 */}
+      {/* ★ 与编队态卡阵占同一条水平带(y 196..968) —— 重组时工作区正是在卡阵原地长出来的。 */}
       <Workbench
-        style={{ left: "828px", top: "196px", width: "1020px", height: "812px" }}
+        style={{ left: "550px", top: "196px", width: "1282px", height: "772px" }}
         tab={tab}
         onTabChange={setTab}
         exp={cs.exp}

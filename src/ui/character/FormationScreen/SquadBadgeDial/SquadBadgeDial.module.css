@@ -11,8 +11,8 @@
 .disc {
   position: relative;
   display: grid;
-  width: 128px;
-  height: 128px;
+  width: 104px;
+  height: 104px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
@@ -50,8 +50,8 @@
 }
 
 .glyph {
-  width: 104px;
-  height: 104px;
+  width: 86px;
+  height: 86px;
 }
 
 .blank {
@@ -92,14 +92,14 @@
   top: -4px;
   right: -4px;
   display: grid;
-  min-width: 34px;
-  height: 34px;
+  min-width: 30px;
+  height: 30px;
   place-items: center;
   padding: 0 8px;
-  border-radius: 17px;
+  border-radius: 15px;
   background: linear-gradient(140deg, #f4c96a 0%, #d9901c 100%);
   color: #241503;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.02em;
   box-shadow: 0 6px 16px -6px rgb(217 144 28 / 0.8);

@@ -1,5 +1,4 @@
-/* 常驻顶带。⚠ 设计 px。三块各自绝对定位 —— 顶带本身不占布局, 卡阵与详情栏都从 y=196 起,
-   两态的主体因此落在同一条水平带上, 重组时"工作区正好从卡阵原地长出来"。 */
+/* 常驻 HUD。⚠ 设计 px。徽章与羁绊收进同一条通栏亮玻璃面板, 两态共用且保持不动。 */
 .hud {
   position: absolute;
   inset: 0;
@@ -13,32 +12,24 @@
 
 .back-slot {
   position: absolute;
-  top: 48px;
-  left: 56px;
+  bottom: 24px;
+  left: 76px;
   display: block;
 }
 
-/* 返回角标: 斜切角亮玻璃方块, 只有一个箭头。 */
+/* 返回按钮: 左下角低对比幽灵文字态, 不再抢占顶带的视觉焦点。 */
 .back {
-  --notch: 10px;
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
+  display: inline-flex;
+  height: 44px;
+  align-items: center;
+  gap: 8px;
   padding: 0;
-  border: 1px solid #2a1b3d24;
-  background: #ffffffab;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #2a1b3d;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
+  border: 1px solid transparent;
+  background: transparent;
+  color: #6b5b82;
+  font-size: 15px;
+  letter-spacing: 4px;
+  clip-path: none;
   transition:
     background 150ms ease,
     border-color 150ms ease,
@@ -48,8 +39,8 @@
 
 /* ⚠ (0,3,0) 压住全局 `button:hover:not(:disabled)` 的 (0,2,1) —— 否则悬浮会被刷成暗底 HUD 配方。 */
 .hud .back-slot .back:hover {
-  border-color: #7c4dbe;
-  background: #ffffffe0;
+  border-color: #7c4dbe38;
+  background: #ffffff5c;
   color: #55307f;
   transform: none;
 }
@@ -58,19 +49,53 @@
   transform: translateY(1px);
 }
 
-.dial {
+.band {
   position: absolute;
-  top: 40px;
-  left: 132px;
-  animation: hudRise 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  top: 24px;
+  left: 76px;
+  width: 1756px;
+  height: 148px;
+  box-sizing: border-box;
+  padding: 0 24px;
+  animation: hudRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.band > div {
+  align-items: center;
+  gap: 24px;
+}
+
+.dial {
+  flex: 0 0 auto;
+}
+
+.divider {
+  width: 1px;
+  height: 84px;
+  flex: 0 0 auto;
+  background: #2a1b3d1f;
+}
+
+.bond-group {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 24px;
+}
+
+.bond-label {
+  margin-right: auto;
+  color: #6b5b82;
+  font-size: 14px;
+  letter-spacing: 4px;
+  white-space: nowrap;
 }
 
 .bonds {
-  position: absolute;
-  top: 48px;
-  right: 72px;
+  min-width: 0;
+  flex: 1 1 auto;
   overflow: visible;
-  animation: hudRise 420ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 @keyframes hudRise {
@@ -82,8 +107,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .back,
-  .dial,
-  .bonds {
+  .band {
     animation: hudFade 140ms linear backwards;
   }
 }
