@@ -171,10 +171,9 @@
 ::view-transition-old(vt-fm-back) {
   animation: vtOutUp var(--vt-out) var(--vt-ease-out) both;
 }
-/* 被点那张卡上的文字与角标: 单独命名就是为了**不被 vt-card-panel 的位图一起拉伸**成
-   详情立绘栏的形状 —— 它们在详情页没有对应物, 该干脆地淡掉。 */
-::view-transition-old(vt-fm-meta),
-::view-transition-old(vt-fm-go),
+/* 被点那张卡上的出战三角徽标与底部动作条: 单独命名就是为了**不被 vt-card-panel 的位图一起拉伸**成
+   详情立绘栏的形状 —— 它们在详情页没有对应物, 该干脆地淡掉。
+   (卡面原先的数值行与「查看详情」已从编队页撤掉, 对应的 vt-fm-meta / vt-fm-go 一并删除。) */
 ::view-transition-old(vt-fm-toggle),
 ::view-transition-old(vt-fm-flag) {
   animation: vtOutFade 140ms linear both;
@@ -189,8 +188,6 @@
 ::view-transition-new(vt-fm-back) {
   animation: vtInRise var(--vt-in) 100ms var(--vt-ease) both;
 }
-::view-transition-new(vt-fm-meta),
-::view-transition-new(vt-fm-go),
 ::view-transition-new(vt-fm-toggle),
 ::view-transition-new(vt-fm-flag) {
   animation: vtInFade 220ms 300ms linear both;

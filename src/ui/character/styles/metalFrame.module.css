@@ -1,0 +1,163 @@
+/* ===================== 角色框材质 kit: 冷银镀层 + 紫辉 ===================== */
+/* 编队页卡框(.fm-card)与角色详情页立绘展示柜(.cd-figure)共用的**唯一一份**边框材质。
+   ★ 为什么要单独一份: 这两页刻意不共用类(尺度不同, 见两页 css 文件头), 但材质配方若各写
+     一遍, 改配色就永远要改两处 —— 更糟的是两端一旦不同步, 共享元素过场(vt-card-panel /
+     vt-portrait)飞到一半就会出现"边框忽粗忽细、忽银忽紫"。故配方集中在这里, 两页 composes。
+     同族先例: explore/styles/exploreKit.module.css。
+
+   ★★ 整套材质只有一个核心思想: **一块被打光的金属, 而不是四条描边**。
+     所有金属面(四条边 + 四个角片)共享同一条 152deg 渐变 ⇒ 左上受光、右下背光,
+     于是顶边天然比底边亮、左上角片天然比右下角片亮。角标与边框"统一"就是从这来的,
+     靠给角标调一个接近边框的颜色是永远调不出来的。
+
+   ⚠ 色阶全部走 --mf-* 自定义属性 ⇒ 状态变体(悬停蓝 / 上阵紫)只要覆盖这组变量,
+     边框与四个角片就会**一起**换色, 层数一条不加 —— 这正是 FormationScreen.css 立下的
+     「悬停只换色、不加层」规矩(否则观感会变成"银框外面又套了一圈蓝")。 */
+
+/* ★★ 六个色阶先用 @property 注册成 <color> —— 只为一件事: **让它们可过渡**。
+   自定义属性默认是"离散"类型, 不注册的话悬停换色是一帧硬切; 注册后浏览器知道这是颜色,
+   `transition: --mf-mid 180ms` 才会真的插值, 观感与改版前那条 border-color 过渡一致。
+   ⚠ inherits: true 是必须的: 角片画在 ::after 上, 要继承宿主元素上正在插值的那个值。
+   ⚠ @property 是**文档级**规则, 不受 CSS Modules 作用域影响, 全项目只该注册这一次。 */
+@property --mf-lit {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fffdff;
+}
+@property --mf-sheen {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e8ddf6;
+}
+@property --mf-mid {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #bcabd8;
+}
+@property --mf-shade {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #8d7ab0;
+}
+@property --mf-deep {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #5d4a80;
+}
+@property --mf-halo {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #7c4dbe;
+}
+
+.metal-frame {
+  /* ---- 冷银镀层色阶(常态) ---- */
+  --mf-lit: #fffdff; /* 受光最亮 */
+  --mf-sheen: #e8ddf6; /* 高光过渡 */
+  --mf-mid: #bcabd8; /* 中间调银紫 */
+  --mf-shade: #8d7ab0; /* 暗面 */
+  --mf-deep: #5d4a80; /* 最深棱线 */
+  --mf-halo: #7c4dbe; /* 外溢紫辉, 与两页的 --fm-glow / --cd-glow 同色 */
+  --mf-w: 2px; /* 边框厚度; 角片厚度 --mf-t 与它对齐 ⇒ 同一支笔画的 */
+
+  /* ★★ 镀层本身: 整套材质**只有这一条渐变**, 边框与四角角片都从它上面取色。
+     ⚠ 绝不要在角片那边另写一条"色阶相同但色停不同"的渐变 —— 那正是改版前
+       "角标与边框脱节"的成因: 同一个角上, 边框取到的是暗面而角片取到中间调,
+       两者永远对不上。共享变量 + 下面对齐坐标系, 才是"同一块金属"。 */
+  --mf-plating: linear-gradient(
+    152deg,
+    var(--mf-lit) 0%,
+    var(--mf-sheen) 14%,
+    var(--mf-mid) 34%,
+    var(--mf-shade) 50%,
+    var(--mf-sheen) 63%,
+    var(--mf-mid) 80%,
+    var(--mf-deep) 100%
+  );
+
+  /* ⚠ border-color 必须留 transparent: border-image 铺的是渐变, 一旦这里给实色,
+     不支持 border-image 的环境会直接露出那个实色。 */
+  border: var(--mf-w) solid transparent;
+  border-image: var(--mf-plating) 1;
+  /* 六层光影, 缺一层就掉回"贴了一条线"的观感:
+     ①内壁玻璃亮线 把金属与画面隔开, 免得立绘直接怼在金属上
+     ②顶内壁受光   ③底内壁反光 —— 这两条一起把 2px 的边读成"有厚度的壳"
+     ④接触暗线     紧贴框子的一线暗影 ⇒ "落在平面上"而不是"浮在空中"
+     ⑤中距柔投影   真正把框子从背景里抬起来的那一层
+     ⑥紫环境辉     底部一圈极淡的紫, 与页面紫罗兰主色同族, 冷银才不显得脏灰 */
+  box-shadow:
+    inset 0 0 0 1px #ffffff8c,
+    inset 0 2px 3px -2px #fffffff0,
+    inset 0 -9px 14px -12px #5d4a8066,
+    0 1px 2px #2a1b3d33,
+    0 20px 44px -26px #2a1b3d85,
+    0 0 36px -16px var(--mf-halo);
+}
+
+/* ---- 四角加厚段(角标) ---- */
+/* ★★ 这不是"嵌在框里的一枚角标", 而是**边框自己在四个角上变厚的那一段** ——
+   两件事保证它与边框浑然一体, 缺一件都会立刻读成两个零件:
+     ① 同一条 --mf-plating 渐变 + 与 border-box 重合的坐标系
+        ⇒ 角片上每一点的颜色, 就是边框长在那个位置时的颜色;
+     ② --mf-gap: 0 —— 角片**紧咬边框内沿**, 中间不留任何缝隙。
+   ⚠⚠ 第二条是这次返工的重点: 只要留着缝(旧版是 5px), 哪怕颜色算得再准, 两块金属之间
+     隔着一条底色, 观感就永远是"框里又贴了四个小角标", 而不是"这条边在角上加厚了"。
+     真想要内嵌式角标, 是把 --mf-gap 调回 4~6px, 但那时就得接受它是**另一个**零件。
+   ⚠ 不要退回"八段 linear-gradient 直接画在 background 上"的旧写法: 那样每一段都是
+     独立的色块, 四个角一样亮, 与有光向的边框永远对不上。 */
+/* ⚠ metal-corners 必须与 metal-frame **成对**用在同一个元素上: 角片的颜色、厚度、光向
+   全部来自 metal-frame 声明的 --mf-plating / --mf-w, 单独用会拿不到镀层。 */
+.metal-corners {
+  position: relative;
+}
+.metal-corners::after {
+  content: "";
+  position: absolute;
+  /* ★★ 盒子刻意撑到与 **border-box 完全重合**(向外让出一个边框宽), 而不是缩在里面 ——
+     只有这样, 角片上的每一点采样到的才是"边框长在这个位置会是什么颜色"。
+     渐变盒一旦缩进, 152deg 这条斜线的起止点就跟着挪, 四个角与紧邻的那段边框立刻脱节。
+     ⚠ 溢出的那一圈是全透明的(被 mask 吃掉), 不会盖住边框, 也不影响宿主的 overflow:hidden。 */
+  inset: calc(var(--mf-w) * -1);
+  /* z-index 2: 压在画面之上, 但**低于**编队卡左上角那枚出战三角(z-index 3) ——
+     三角 74px 的直角边完整盖住左上角片, 两者不会打架。 */
+  z-index: 2;
+  pointer-events: none;
+  --mf-c: 26px; /* 角片臂长: 咬住内沿后不再是"小刻线", 要长到读得出是边框的一段 */
+  /* 角片厚度 = 边框厚度 + 1px。⚠ 不能等于边框厚: 那样角上只是"边框继续往里长了一层",
+     完全看不出加厚; 多这 1px 才有"四角被包了一道"的读数, 又不至于变成另一条边。 */
+  --mf-t: calc(var(--mf-w) + 1px);
+  --mf-gap: 0px; /* ★ 紧咬边框内沿, 不留缝 —— 一体感的来源, 见上方 ⚠⚠ */
+  --mf-o: calc(var(--mf-w) + var(--mf-gap)); /* 从 border-box 边缘算起的实际内缩 */
+  --mf-m: linear-gradient(#000, #000);
+  /* 与边框**同一条**渐变、同一坐标系 ⇒ 左上角片天然亮、右下角片天然暗, 与边框严丝合缝。 */
+  background: var(--mf-plating);
+  /* 八段: 四个角各一横一竖。⚠ 多层 mask 默认 add 合成, 不要动 mask-composite。 */
+  -webkit-mask:
+    var(--mf-m) no-repeat left var(--mf-o) top var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat left var(--mf-o) top var(--mf-o) / var(--mf-t) var(--mf-c),
+    var(--mf-m) no-repeat right var(--mf-o) top var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat right var(--mf-o) top var(--mf-o) / var(--mf-t) var(--mf-c),
+    var(--mf-m) no-repeat left var(--mf-o) bottom var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat left var(--mf-o) bottom var(--mf-o) / var(--mf-t) var(--mf-c),
+    var(--mf-m) no-repeat right var(--mf-o) bottom var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat right var(--mf-o) bottom var(--mf-o) / var(--mf-t) var(--mf-c);
+  mask:
+    var(--mf-m) no-repeat left var(--mf-o) top var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat left var(--mf-o) top var(--mf-o) / var(--mf-t) var(--mf-c),
+    var(--mf-m) no-repeat right var(--mf-o) top var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat right var(--mf-o) top var(--mf-o) / var(--mf-t) var(--mf-c),
+    var(--mf-m) no-repeat left var(--mf-o) bottom var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat left var(--mf-o) bottom var(--mf-o) / var(--mf-t) var(--mf-c),
+    var(--mf-m) no-repeat right var(--mf-o) bottom var(--mf-o) / var(--mf-c) var(--mf-t),
+    var(--mf-m) no-repeat right var(--mf-o) bottom var(--mf-o) / var(--mf-t) var(--mf-c);
+  /* ⚠ 刻意**不给角片任何投影**: 它是边框的一部分, 不是浮在画面上的贴片。
+     一加 drop-shadow, 角片下面就出现一道边框没有的暗边, 立刻又被读成两个零件。
+     它内侧要的那点分界, 由边框自己的 inset 白线在角上被"包住"自然形成。 */
+}
+
+/* ⚠ 状态变体(编队页的悬停蓝 / 上阵紫)**不在这里** —— 它们是编队页专属的信号语义,
+   写法是在 FormationScreen.module.css 里直接覆盖上面这组 --mf-* 色阶, 见那边
+   `.fm-stage .fm-card:hover` 与 `.fm-card.is-on`。
+   ⚠ 之所以不做成本文件的 .is-hot / .is-live 两个类: 悬停态挂在 :hover 伪类上,
+     CSS Modules 的 composes 只能用在类本身, 复合选择器里用不了 ⇒ 半套能 composes、
+     半套只能手写, 反而更容易走偏。 */

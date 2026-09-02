@@ -166,7 +166,13 @@
 
 /* ---- 立绘栏 ---- */
 /* 取景窗吃掉这一栏除按钮/说明之外的全部高度。 */
+/* ★ 边框 / 阴影 / 四角角片整套材质来自 character/styles/metalFrame.module.css ——
+   与编队页卡框是**同一份**配方, 两端同源才能保证共享元素过场(vt-portrait)飞行途中
+   边框不会忽粗忽细、忽银忽紫。
+   ⚠ 这里只保留「窗内」的东西(打光背景 + 布局): 凡是画在边上的都归 kit 管, 别再加描边,
+     也别再补 inset 高光 —— kit 的六层光影已经把内壁受光/反光算进去了。 */
 .cd-figure {
+  composes: metal-frame from "../styles/metalFrame.module.css";
   position: relative;
   display: flex;
   flex: 1 1 auto;
@@ -174,14 +180,18 @@
   justify-content: center;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--cd-line);
   /* 舱内打光: 底部一团淡紫, 把立绘从浅底里托起来 */
   background:
     radial-gradient(88% 56% at 50% 104%, #c79ce85c, transparent 70%),
     #f8f2fdc4;
-  box-shadow: inset 0 1px 0 #ffffffd9;
 }
-/* 冷冻取景窗: 四角刻线 + 一道斜向玻璃反光(与 .cryo-vitrine 同款, 只是尺度更大)。 */
+/* 冷冻取景窗 = 金属边框 + 四角角片(kit 的 metal-corners) + 一道斜向玻璃反光。
+   ⚠ 四角角片**不再**是本文件那八段紫色刻线: 旧写法四个角一样亮, 与有光向的边框对不上,
+     这正是"角标跟边框不统一"的根源。现在角片与边框是从同一块受光面上切出来的。
+   ⚠ 玻璃反光的光向(112deg 从左上扫下来)与金属渐变(152deg)同侧, 两者不打架。 */
+.cd-vitrine {
+  composes: metal-corners from "../styles/metalFrame.module.css";
+}
 .cd-vitrine::before {
   content: "";
   position: absolute;
@@ -189,23 +199,6 @@
   z-index: 2;
   pointer-events: none;
   background: linear-gradient(112deg, #ffffff00 42%, #ffffff2e 50%, #ffffff00 58%);
-}
-/* 四角刻线: 用两层 conic 太绕, 直接用八段线性渐变画在四个角上。 */
-.cd-vitrine::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left top / 14px 1px,
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left top / 1px 14px,
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right top / 14px 1px,
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right top / 1px 14px,
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left bottom / 14px 1px,
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat left bottom / 1px 14px,
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right bottom / 14px 1px,
-    linear-gradient(#7c4dbe66, #7c4dbe66) no-repeat right bottom / 1px 14px;
 }
 /* .cd-bust 走 --portrait-dx/dy 的半身取景(登记表见 ui/CharacterPortrait.tsx);
    基础规则(CharacterPortrait.css)已给 contain + center bottom, 这里只补尺寸与偏移。 */

@@ -22,7 +22,7 @@ import { STATUS_DEFS } from "./statuses";
 import { RULES } from "./rules";
 import { rngFloat } from "./rng";
 import { addMod, critChance, defenseMultiplier, healValue, hitChance, offenseStatOf, statOf } from "./stats";
-import { noteChallengeDamage, noteChallengeKill } from "./challenges";
+import { checkChallengesOnWin, noteChallengeDamage, noteChallengeKill } from "./challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, syncSegments } from "./statuses/stacking";
 
@@ -188,7 +188,7 @@ export function dealDamage(
     (dmg.blockRolled ? "(格挡)" : "") +
     (dmg.blocked > 0 ? `(护盾挡下 ${dmg.blocked})` : "");
   log(state, `${target.emoji} ${target.name} 受到 ${dmg.hpLost} 点伤害${marks}`);
-  noteChallengeDamage(state, sourceId, dmg.hpLost);
+  noteChallengeDamage(state, sourceId, targetId, dmg.hpLost);
 
   // 被攻击后触发(荆棘等)
   for (const inst of [...target.statuses])
@@ -403,6 +403,7 @@ export function checkEnd(state: BattleState): void {
   const enemiesAlive = state.enemyIds.some((id) => state.combatants[id].alive);
   if (!enemiesAlive) {
     state.phase = "won";
+    checkChallengesOnWin(state);
     log(state, "🎉 战斗胜利!");
   } else if (!playersAlive) {
     state.phase = "lost";

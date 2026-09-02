@@ -89,5 +89,6 @@ export {
   CHALLENGE_POOL,
   MERCY_MAX_DAMAGE,
   RESTRAINT_MIN_MANA,
+  ROTATION_MIN_OWNERS,
   earnedChallengeBonus,
 } from "./challenges";

@@ -9,10 +9,16 @@
 // 设定依据: 游戏设定.md 第四节据点设施表 —— 编成小队原属冬眠仓, 独立成页后冬眠仓只留「唤醒」。
 //
 // ★ 版面 = 一整片**角色卡阵列**(不是「上阵槽 + 待命区」两段式):
-//   全屏的面积足够把所有已唤醒的队员一次铺开, 是否出战靠**异色边框 + 右上角开关**表达,
-//   比两个容器之间来回搬运更直观, 人数涨上去也只是多滚两行。
+//   全屏的面积足够把所有已唤醒的队员一次铺开, 是否出战靠**深紫粗边 + 左上角三角徽标 +
+//   底部动作条**表达, 比两个容器之间来回搬运更直观, 人数涨上去也只是多滚两行。
 //   ⚠ 上阵人数上限仍然是 RULES.progression.partySize —— 槽位没画出来了, 规则通过卡片开关与
 //     disabled 状态表达; 右上角让给全队羁绊档位条。
+//   ⚠⚠ 卡片**站位在进本页那一刻定死**(见组件里的 baseOrder), 上阵/下阵只换外观不换位置。
+// ★ 卡面文字**只有角色名**: 数值一律去详情页看 —— 高楼型卡的体量全给立绘与上阵状态,
+//   六张并排时才扫得出"现在带谁出门"。
+// ★★ 卡面结构是「一扇顶满整卡的取景窗 + 窗内底部的浮动信息层」: 角色名与上阵/下阵动作条
+//   都**浮在取景窗内部**(靠 .fm-card-figure::after 那层渐变托底), 卡片边框内不再有第二块
+//   独立的白色文字区 —— 那正是旧版底部文字与边框割裂感的来源。
 //
 // ★ 与冬眠仓同一套**亮玻璃**视觉(背景就是冬眠仓.png 那张紫粉白场景): 深紫墨文字 + 白玻璃卡,
 //   左上是面包屑返回, 右上是 96px 巨型羁绊图标; 名称/效果只在悬浮浮层显示。
@@ -27,9 +33,9 @@ import { flushSync } from "react-dom";
 import { RULES } from "@/engine";
 import { getCharacter } from "@/data";
 import { useRunStore } from "@/store/runStore";
-import { deriveStats, useTownStore, vitalsOf, type CharacterState } from "@/store/townStore";
+import { useTownStore, type CharacterState } from "@/store/townStore";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { StatIcon } from "@/ui/common/StatIcon";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import { cx } from "@/ui/common/cx";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { takeSharedPortrait } from "@/ui/character/sharedPortrait";
@@ -81,12 +87,17 @@ export function FormationScreen() {
     [leavingId, openCharDetail],
   );
 
-  // 展示顺序: 上阵的按 party 次序排在最前, 其余待命者按唤醒先后接在后面。
-  // ⚠ 上阵/下阵会让卡片换位置 —— 这是刻意的: 阵容永远聚在左上角, 一眼看得到"现在带谁出门"。
-  const roster = useMemo(
-    () => [...party, ...awakened.filter((id) => !party.includes(id))],
-    [party, awakened],
-  );
+  // ★ 展示顺序在**挂载那一刻**定死: 上阵者按 party 次序在前, 其余待命者按唤醒先后接在后面。
+  // ⚠⚠ 刻意**不依赖 party** —— 上阵/下阵只换卡片外观, 绝不让它在网格里跳位置。
+  //   旧版把 party 放进依赖, 每次 toggle 整片阵列重排, 观感就是"闪了一下重新渲染"。
+  //   下次进本页(含从详情页返回时的重新挂载)才会重新按当前阵容排一次。
+  const [baseOrder] = useState(() => [...party, ...awakened.filter((id) => !party.includes(id))]);
+  // 本页停留期间 awakened 若有增减, 只做"删掉消失的、把新人追加到末尾", 已有的一律不重排。
+  const roster = useMemo(() => {
+    const kept = baseOrder.filter((id) => awakened.includes(id));
+    const added = awakened.filter((id) => !baseOrder.includes(id));
+    return added.length ? [...kept, ...added] : kept;
+  }, [baseOrder, awakened]);
 
   // Esc 返回据点。与左上面包屑按钮同一个出口。
   useEffect(() => {
@@ -122,7 +133,7 @@ export function FormationScreen() {
             <span className={s["fm-crumb-current"]}>编队</span>
           </nav>
           <h2 className={s["fm-title"]}>编队</h2>
-          <p className={s["fm-sub"]}>出战编成 · 队员一览 · 点卡面看详情 · 点右上开关上阵 / 下阵 · 至少留 1 人上阵</p>
+          <p className={s["fm-sub"]}>出战编成 · 队员一览 · 点卡面看详情与数值 · 点卡底动作条上阵 / 下阵 · 至少留 1 人上阵</p>
         </header>
 
         <SquadBondBar
@@ -173,9 +184,9 @@ export function FormationScreen() {
 }
 
 // ===================== 角色卡 =====================
-// ⚠⚠ 外壳是 div 而**不是 button**: 卡面本身要能点(进详情), 右上角还有一个开关也要能点,
+// ⚠⚠ 外壳是 div 而**不是 button**: 卡面本身要能点(进详情), 底部的动作条也要能点,
 //   而 button 里嵌 button 是非法 HTML(浏览器会把内层拆出去, 点击行为随之乱掉)。
-//   故做成「div 外壳 + 两个同级 button」: .fm-card-main 铺满整卡, .fm-toggle 绝对定位压在它上面。
+//   故做成「div 外壳 + 两个同级 button」: .fm-card-main 铺满整卡, .fm-toggle-slot 绝对定位压在它底部。
 function CrewCard({
   cs,
   index,
@@ -198,17 +209,18 @@ function CrewCard({
   onToggle: () => void;
 }) {
   const def = getCharacter(cs.charId);
-  const stats = deriveStats(cs);
-  const vitals = vitalsOf(cs);
 
   // 禁用口径与 townStore.toggleParty 的兜底规则一一对应 —— 那边会静默 return,
-  // 这里把原因用 title 说出来, 免得点了没反应像是界面坏了。
+  // 这里把原因用悬浮提示说出来, 免得点了没反应像是界面坏了。
+  // ⚠ 提示挂在**外层 .fm-toggle-slot** 而不是按钮上: 按钮 disabled 之后浏览器不再派发指针事件,
+  //   绑在它身上的 onPointerEnter 永远不会触发 —— 恰恰是要说明原因的那一态收不到。
   const blocked = onField ? lastOne : full;
   const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
+  const { point, bind } = useHoverTooltip();
 
   // ---- 共享元素过场的命名(规则见 app/viewTransition.global.css) ----
   // ★ 配对的那张卡: 面板/立绘窗/角色名分别与详情页的立绘栏/展示柜/大标题**同名** ⇒ 形变;
-  //   卡上那些详情页没有对应物的零件(数值、"查看详情"、角标、开关)各自单独命名 ⇒ 干脆淡掉。
+  //   卡上那些详情页没有对应物的零件(状态带、开关)各自单独命名 ⇒ 干脆淡掉。
   //   ⚠ 单独命名不是可选项: 不给名字它们会被烘进卡面板那张位图, 跟着一起被拉伸成
   //     立绘栏的形状, 文字会糊成一条。
   // ★ 其余的卡: 按索引各拿一个名, 好让 CSS 那张延迟表做出依次错位的退场。
@@ -225,8 +237,10 @@ function CrewCard({
       className={cx(s["fm-card"], onField && s["is-on"])}
       style={{ ...stagger(index), viewTransitionName: panelName }}
     >
+      {/* 卡面主体 = 一扇**顶满整卡**的取景窗。角色名不再是窗下方的独立文字块, 而是压在
+          窗内底部的浮动层(定位与托底渐变都在 CSS), 于是边框内只有一块连续的画面。 */}
       <button className={s["fm-card-main"]} type="button" onClick={onOpen}>
-        {/* 立绘取景窗: 顶满卡宽的一扇窗, 立绘放大后顶对齐 ⇒ 只露上半身(尺寸在 CSS 的 --fm-bust-zoom)。 */}
+        {/* 立绘取景窗: 顶满整卡, 立绘放大后顶对齐 ⇒ 只露上半身(尺寸在 CSS 的 --fm-bust-zoom)。 */}
         <span className={s["fm-card-figure"]} style={partName("vt-portrait")}>
           <CharacterPortrait
             characterId={def.id}
@@ -238,49 +252,48 @@ function CrewCard({
         <span className={s["fm-card-name"]} style={partName("vt-char-name")}>
           {def.name}
         </span>
-        <span className={s["fm-card-meta"]} style={partName("vt-fm-meta")}>
-          {/* ★ 这一格显示的是「当前生命 / 面板上限」而非单纯的上限:
-              远征打掉的血是永久损伤, 编队时就得看见谁还带着伤, 而不是点进详情页才发现。
-              带伤时整格转成告警色, 体力极限也被打掉时再补一段 /极限 —— 见 townStore.vitalsOf。 */}
-          <span className={cx(s["fm-card-stat"], vitals.hp < vitals.maxHp && s["is-wounded"])}>
-            <StatIcon statKey="maxHp" className={s["fm-card-stat-icon"]} />
-            {vitals.hp}/{vitals.maxHp}
-            {vitals.hpLimit < vitals.maxHp && (
-              <span className={s["fm-card-stat-limit"]}>极限 {vitals.hpLimit}</span>
-            )}
-          </span>
-          <span className={s["fm-card-stat"]}>
-            <StatIcon statKey="attack" className={s["fm-card-stat-icon"]} />
-            {Math.round(stats.attack)}
-          </span>
-          <span className={s["fm-card-stat"]}>
-            <StatIcon statKey="defense" className={s["fm-card-stat-icon"]} />
-            {Math.round(stats.defense)}
-          </span>
-          <span className={s["fm-card-level"]}>Lv.{cs.deckLevel}</span>
-        </span>
-        <span className={s["fm-card-go"]} style={partName("vt-fm-go")}>
-          查看详情 ▸
-        </span>
       </button>
 
-      {/* 上阵状态标: 纯展示, 不接受点击(pointer-events 在 CSS 里关掉), 免得挡住卡面。 */}
+      {/* 出战徽标: 咬住卡片左上角的一枚**实心三角**, 是"这人在队里"最远视距的那一档信号。
+          ★ 从旧版顶部整条实心带改过来 —— 带子横穿卡顶会把立绘的头部压掉一截, 三角只占角落,
+            与 .fm-card.is-on 的深紫粗边连成同一道轮廓。
+          ⚠ 纯展示, 不接受点击(pointer-events 在 CSS 里关掉), 免得挡住卡面按钮。
+          ⚠ 三角内只放得下一个字, 完整语义交给 aria-label。 */}
       {onField && (
-        <span className={s["fm-card-flag"]} style={partName("vt-fm-flag")}>
-          出战中
+        <span
+          className={s["fm-card-flag"]}
+          style={partName("vt-fm-flag")}
+          role="img"
+          aria-label="出战中"
+        >
+          <span className={s["fm-card-flag-text"]} aria-hidden="true">
+            战
+          </span>
         </span>
       )}
 
-      <button
-        className={cx(s["fm-toggle"], onField && s["is-on"])}
-        type="button"
-        disabled={blocked}
-        title={blocked ? reason : undefined}
-        style={partName("vt-fm-toggle")}
-        onClick={onToggle}
-      >
-        {onField ? "下阵" : "上阵"}
-      </button>
+      {/* 上阵/下阵动作条: 卡片底部的一整条按钮, 与卡面主体是**同级**元素(不是嵌套),
+          故点它不会进详情。⚠⚠ 两态尺寸/位置完全一致, 只换配色与符号 —— 若两态高度不同,
+          每点一次开关卡面就跳一格, 那正是要消除的闪动。 */}
+      <span className={s["fm-toggle-slot"]} style={partName("vt-fm-toggle")} {...bind}>
+        <button
+          className={cx(s["fm-toggle"], onField && s["is-on"])}
+          type="button"
+          disabled={blocked}
+          onClick={onToggle}
+        >
+          <span className={s["fm-toggle-mark"]} aria-hidden="true">
+            {onField ? "−" : "+"}
+          </span>
+          <span className={s["fm-toggle-text"]}>{onField ? "下阵" : "上阵"}</span>
+        </button>
+        {blocked && point && (
+          <HoverTooltip point={point}>
+            <strong>{onField ? "无法下阵" : "无法上阵"}</strong>
+            <p>{reason}</p>
+          </HoverTooltip>
+        )}
+      </span>
     </div>
   );
 }

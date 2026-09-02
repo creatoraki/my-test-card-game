@@ -6,7 +6,18 @@ import type { QuirkId } from "./quirks";
 
 export type Team = "player" | "enemy";
 export type Phase = "player" | "won" | "lost";
-export type ChallengeId = "restraint" | "massacre" | "mercy";
+export type ChallengeId =
+  | "restraint"
+  | "massacre"
+  | "mercy"
+  | "rotation"
+  | "blitz"
+  | "slow_start"
+  | "untouched"
+  | "no_redraw"
+  | "low_cost"
+  | "focus_fire"
+  | "tempo";
 export type DiscardReason =
   | "manual"
   | "effect"
@@ -556,6 +567,10 @@ export interface BattleState {
   // 挑战词条运行态: 本场随机到的词条与其打破状态, 以及首次击杀回合。
   challenges: ChallengeRun[];
   challengeKillRound: number | null;
+  // 聚焦: 本回合我方实际打掉过血的敌人 id; 出现第二个即打破。每回合开始重置。
+  challengeFocusTargetId: string | null;
+  // 抢拍: 已对哪一回合做过判定 —— 保证每回合只在敌人第一次行动前判一次。
+  challengeEnemyActRound: number | null;
   rngState: number;
   log: LogEntry[];
 }

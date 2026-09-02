@@ -8,6 +8,7 @@ import type { BattleState, Enemy, FxRecorder } from "./types";
 import { checkEnd, ops } from "./ops";
 import { runTick } from "./statusLifecycle";
 import { actAndRecord } from "./ai";
+import { noteChallengeEnemyAct } from "./challenges";
 
 // 推进 n 个时刻。每推进 1 时刻, 结算所有 nextActTick <= tick 的存活敌人。
 // fx 存在时, 每次敌人行动与其引发的弃牌触发按真实发生顺序记录。
@@ -33,6 +34,7 @@ function resolveDueEnemies(state: BattleState, fx?: FxRecorder): void {
 
     for (const e of due) {
       if (!e.alive || state.phase !== "player") continue;
+      noteChallengeEnemyAct(state); // 抢拍: 每回合第一次敌人行动前查一次法力余额
       actAndRecord(state, e.id, fx); // 内部已重排 nextActTick
       ops.flushAutoPlays(state);
       checkEnd(state);

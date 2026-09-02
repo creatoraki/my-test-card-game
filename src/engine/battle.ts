@@ -40,6 +40,8 @@ const isTest = import.meta.env.isTest === "true";
 import {
   checkChallengesOnEndTurn,
   checkMassacreOnRoundSettle,
+  noteChallengePlay,
+  noteChallengeRedraw,
   rollChallenges,
 } from "./challenges";
 import { getEncounter, getEnemyDef, slotDefId } from "../data";
@@ -201,6 +203,8 @@ export function createBattle(
     },
     challenges: [],
     challengeKillRound: null,
+    challengeFocusTargetId: null,
+    challengeEnemyActRound: null,
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
     lastDiscardBatch: 0,
@@ -253,6 +257,7 @@ export function startRound(state: BattleState): void {
   tickCultivate(state);
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
+  state.challengeFocusTargetId = null;
   state.discardsThisRound = 0;
   state.lastDiscardBatch = 0;
   state.lastDiscardBatchFast = 0;
@@ -330,6 +335,7 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
   moveToDiscard(state, uid, "redraw");
   state.redrawsThisRound += 1;
   drawCards(state, 1);
+  noteChallengeRedraw(state);
   log(state, `${card.name} 已换牌`);
   return true;
 }
@@ -456,6 +462,7 @@ export function playCard(
   };
   state.lastPlayedCard = played;
   state.playedThisRound.push(played);
+  noteChallengePlay(state, card, faceCost);
 
   checkEnd(state);
 
