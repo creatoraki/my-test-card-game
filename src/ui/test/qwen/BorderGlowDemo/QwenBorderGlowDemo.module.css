@@ -1,0 +1,347 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 1420px;
+  color: #edf2ef;
+}
+
+.header h1 {
+  margin: 6px 0 8px;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.kicker {
+  margin: 0;
+  color: #d6f238;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+}
+
+.description {
+  max-width: 70ch;
+  margin: 0;
+  color: #92a09f;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 48px;
+  align-items: start;
+}
+
+/* 舞台：外发光会溢出砖块边界，padding 留够溢出空间，别让它被裁掉。
+   perspective 挂在这层，底板才能整体侧过去；后墙 .stageArt 没有 transform，
+   不受透视影响，始终是块平的墙。 */
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px;
+  perspective: 1500px;
+  perspective-origin: 50% 42%;
+}
+
+/* ===================== bento 马赛克 ===================== */
+/* 12 条等宽微列 × 4 行的底板。每块砖按列线 / 行线跨格（几何写在 facilityCards.tsx 的
+   brick 字段里），微列的作用是把「切分点」做细：上下相邻两行的竖缝因此可以错开
+   （6/10 → 6/10 → 5/10 → 4/8），行高也刻意不等（高 / 矮 / 中 / 高）。
+   九块严丝合缝铺满 12×4，外轮廓仍是一个规则大矩形。
+
+   立体：底板整体侧过去（--board-tilt 由滑杆给），自身再挂一层 perspective 给砖块用，
+   于是每块砖的 translateZ 是在「正对底板」的视角下算的，只表现为往前顶出、不额外扭曲。
+   底板本身不开 preserve-3d，砖块仍按 DOM 顺序绘制 —— 数组是从左上到右下排的，
+   投影朝右下打，正好落在后画的邻砖底下被盖住，只在 14px 缝里露出来。 */
+.bento {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  max-width: 1020px;
+  gap: 14px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 124px 76px 104px 132px;
+  perspective: 1600px;
+  transform: rotateX(calc(var(--board-tilt, 9) * 0.42deg)) rotateY(calc(var(--board-tilt, 9) * -1deg));
+  transform-origin: 50% 50%;
+}
+
+/* ===================== 卡面 ===================== */
+/* 每块砖是一个纯 div 网格项，跨格（grid-column / grid-row）由 tsx 内联在这层。
+   BorderGlow 只负责撑满这块砖并画光效，布局与视觉互不干涉。
+
+   立体分两件事：
+   1) translateZ 按 --brick-lift 把砖往观众方向顶出，配合底板的 perspective
+      产生「九块离墙高低不一」的积木感；
+   2) 投影用 box-shadow 而不是模糊的实心块 —— 外投影天然被裁在盒子外侧，
+      不会垫在卡面底下被毛玻璃采样成脏色，露出来的正好是打在后墙上的那一截。
+   圆角跟着卡面圆角滑杆走，否则投影会露出方角。 */
+.brick {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--brick-radius, 8px);
+  transform: translateZ(calc(var(--brick-lift, 0) * 1px));
+  box-shadow:
+    /* 接触影：短而实，把砖脚压在墙上 */
+    calc(var(--brick-lift, 0) * 0.22px) calc(var(--brick-lift, 0) * 0.34px)
+      calc(4px + var(--brick-lift, 0) * 0.28px)
+      rgb(2 4 10 / calc(var(--wall-shadow, 0.6) * 0.5)),
+    /* 主投影：随离墙高度拉远、发散、加深 */
+    calc(var(--brick-lift, 0) * 0.52px) calc(var(--brick-lift, 0) * 0.8px)
+      calc(12px + var(--brick-lift, 0) * 0.85px) calc(var(--brick-lift, 0) * 0.05px)
+      rgb(2 4 10 / calc(var(--wall-shadow, 0.6) * (0.3 + var(--brick-lift, 0) / 68)));
+}
+
+.card {
+  height: 100%;
+}
+
+/* BorderGlow 的内容容器（.inner）自带 overflow:auto，
+   小砖里会冒出滚动条，这里统一压掉并让卡面撑满整块砖。 */
+.card > div {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 砖上只有图标 + 名称：图标居中偏上，名称压在下方 */
+.cardBody {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  overflow: hidden;
+  color: #e8e3f5;
+  text-align: center;
+}
+
+/* 矮砖（如装配舱那条 76px 的横条）改横排：图标在左、名称在右，避免竖着堆挤成一团 */
+.cardInline {
+  flex-direction: row;
+}
+
+.cardBodyLight {
+  color: #26232e;
+}
+
+.cardIcon {
+  display: block;
+  color: inherit;
+  opacity: 0.88;
+}
+
+.cardIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cardName {
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* 三档尺度：图标与名称跟着砖块面积走 */
+.cardLg {
+  padding: 20px;
+  gap: 14px;
+}
+
+.cardLg .cardIcon {
+  width: 56px;
+  height: 56px;
+}
+
+.cardLg .cardName {
+  font-size: 20px;
+}
+
+.cardMd {
+  padding: 14px;
+  gap: 10px;
+}
+
+.cardMd .cardIcon {
+  width: 38px;
+  height: 38px;
+}
+
+.cardMd .cardName {
+  font-size: 15px;
+}
+
+.cardSm {
+  padding: 10px;
+  gap: 7px;
+}
+
+.cardSm .cardIcon {
+  width: 26px;
+  height: 26px;
+}
+
+.cardSm .cardName {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+/* 未开放占位：整体降亮 + 右上角挂小标 */
+.locked {
+  opacity: 0.45;
+}
+
+.lockedTag {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  opacity: 0.7;
+}
+
+/* ===================== 参数面板 ===================== */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid #354249;
+  border-radius: 10px;
+  background: #101619;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.group legend {
+  padding: 0 0 10px;
+  color: #849294;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.fieldHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  color: #c3cdcb;
+}
+
+.fieldValue {
+  color: #d6f238;
+  font-variant-numeric: tabular-nums;
+}
+
+.field input[type="range"] {
+  width: 100%;
+  height: 2px;
+  accent-color: #d6f238;
+  background: #354249;
+}
+
+.optionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #354249;
+  border-radius: 6px;
+  background: transparent;
+  color: #92a09f;
+  font-family: inherit;
+  font-size: 12px;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.option:hover {
+  border-color: #55666c;
+  color: #dce8e3;
+}
+
+.optionActive {
+  border-color: #d6f238;
+  background: #d6f2380f;
+  color: #d6f238;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #ffffff26;
+  border-radius: 3px;
+}
+
+.replay {
+  padding: 10px 14px;
+  border: 1px solid #d6f238;
+  border-radius: 6px;
+  background: #d6f2380f;
+  color: #d6f238;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  transition: background 150ms ease;
+}
+
+.replay:hover {
+  background: #d6f2381f;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .stage {
+    padding: 28px;
+  }
+}
+
+/* 舞台背景不裁切外发光，因此圆角画在图案本身上 */
+.stageArt {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background-color: #0b1013;
+  background-image:
+    radial-gradient(at 22% 26%, #7c3aed80 0, transparent 46%),
+    radial-gradient(at 78% 20%, #f472b666 0, transparent 42%),
+    radial-gradient(at 68% 78%, #22d3ee59 0, transparent 44%),
+    radial-gradient(at 18% 82%, #d6f23840 0, transparent 40%),
+    repeating-linear-gradient(90deg, #ffffff14 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, #ffffff14 0 1px, transparent 1px 44px);
+}

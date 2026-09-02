@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DsFastSlashDemo } from "@/ui/test/ds";
 import { OpusKeenEdgeDemo } from "@/ui/test/opus";
+import { QwenBorderGlowDemo } from "@/ui/test/qwen";
 import { SlashSfxDemo } from "@/ui/test/luna/SlashSfxDemo/SlashSfxDemo";
 import { TarotIconDemo } from "@/ui/test/luna/TarotIconDemo/TarotIconDemo";
 import s from "./TestScreen.module.css";
@@ -40,6 +41,7 @@ export function TestScreen() {
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
         {activeTab === "opus" ? <OpusKeenEdgeDemo /> : null}
         {activeTab === "ds" ? <DsFastSlashDemo /> : null}
+        {activeTab === "qwen" ? <QwenBorderGlowDemo /> : null}
         {activeTab === "luna" ? <SlashSfxDemo /> : null}
       </section>
     </main>

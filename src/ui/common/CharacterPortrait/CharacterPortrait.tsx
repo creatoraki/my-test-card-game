@@ -1,6 +1,7 @@
 import swordsmanPortrait from "@/assets/人物立绘/剑士/default.png";
 import botanistPortrait from "@/assets/人物立绘/植物学家/default.png";
 import prophetPortrait from "@/assets/人物立绘/预言家/default.png";
+import alchemistPortrait from "@/assets/人物立绘/炼金术士/idle.png";
 import { cx } from "@/ui/common/cx";
 import s from "./CharacterPortrait.module.css";
 
@@ -40,6 +41,8 @@ const CHARACTER_ART: Record<string, CharacterArtDef> = {
   swordsman: { src: swordsmanPortrait, ...UNIFORM_FRAMING, dx: -15, dy: 10, formation: { dx: 0 } },
   prophet: { src: prophetPortrait, ...UNIFORM_FRAMING },
   botanist: { src: botanistPortrait, ...UNIFORM_FRAMING },
+  // ⚠ 立绘文件名是 idle.png(其余三人是 default.png), 取景先照统一规格走, 有异常构图再单独覆盖。
+  alchemist: { src: alchemistPortrait, ...UNIFORM_FRAMING },
 };
 
 export const CHARACTER_ART_SOURCES: readonly string[] = [...new Set(

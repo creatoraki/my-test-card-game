@@ -11,6 +11,7 @@ export const CARD_DEFS: CardDef[] = [
   ...makeBasicCardDefs("swordsman"),
   ...makeBasicCardDefs("prophet"),
   ...makeBasicCardDefs("botanist"),
+  ...makeBasicCardDefs("alchemist"),
   ...SWORDSMAN_CARD_DEFS,
   ...PROPHET_CARD_DEFS,
   ...BOTANIST_CARD_DEFS,
