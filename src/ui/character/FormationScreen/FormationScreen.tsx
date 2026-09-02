@@ -131,10 +131,9 @@ export function FormationScreen() {
 
       {morph.showRoster && (
         <CrewGrid
-          // 版面旋钮(设计 px): 两侧各留 72, 顶带以下 196 起, 到画布底前留 72 的余量。
-          // ⚠ 这条水平带(196..1008)与详情态工作区**完全一致** —— 重组时工作区从卡阵原地长出来
-          //   靠的就是这个巧合不是巧合。
-          style={{ left: "72px", top: "196px", width: "1776px", height: "812px", gap: "20px" }}
+          // 盒子外扩 36px 是给外发光让位; 卡片带仍从 (76, 200) 起, 水平带为 200..972,
+          // 与详情态工作区的对应关系不变。
+          style={{ left: "40px", top: "164px", width: "1840px", height: "876px", gap: "20px" }}
           roster={roster}
           characters={characters}
           party={party}

@@ -3,6 +3,7 @@ import { BorderGlow } from "@/ui/common/BorderGlow";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import { cx } from "@/ui/common/cx";
+import { CHARACTER_CARD_GLOW } from "@/ui/character/characterGlow";
 import s from "./CharacterCard.module.css";
 
 export interface CharacterCardProps {
@@ -10,7 +11,8 @@ export interface CharacterCardProps {
   name: string;
   emoji: string;
   glowColor: string;
-  gradientColors: string[];
+  /** ⚠ 键名与 BorderGlow 的 colors prop 保持一致, 理由见 characterGlow() 的注释。 */
+  colors: string[];
   active: boolean;
   disabledReason?: string;
   onToggle: () => void;
@@ -22,31 +24,25 @@ export function CharacterCard({
   name,
   emoji,
   glowColor,
-  gradientColors,
+  colors,
   active,
   disabledReason,
   onToggle,
   animated = false,
 }: CharacterCardProps) {
   const { point, bind: tooltipBind } = useHoverTooltip();
-  const cardStyle = { "--char-color": gradientColors[0] } as CSSProperties;
+  const cardStyle = { "--char-color": colors[0] } as CSSProperties;
 
   return (
     <div className={cx(s.slot, active && s.active)} style={cardStyle}>
       <BorderGlow
         className={s.card}
-        glass
-        glassBlur={20}
+        {...CHARACTER_CARD_GLOW}
         persistent={active}
         followPointer={!active}
         animated={animated}
         glowColor={glowColor}
-        colors={gradientColors}
-        backgroundColor="rgb(9 19 24 / 0.34)"
-        borderRadius={16}
-        glowRadius={30}
-        glowIntensity={1.08}
-        coneSpread={18}
+        colors={colors}
         fillOpacity={active ? 0.3 : 0.2}
       >
         <div className={s.body}>

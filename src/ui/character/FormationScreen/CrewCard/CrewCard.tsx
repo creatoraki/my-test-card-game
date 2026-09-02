@@ -90,29 +90,22 @@ export function CrewCard({
       }
       data-crew-card={cs.charId}
     >
-      {/* ★ 上阵态的表达: 常亮边缘光 + 角色色名字 + 更浓的网格填充, 不放角旗。
-          ★ 上阵底色 = **角色色与深底的不透明混合**, 直接呈现角色专属配色:
-          页面底图是亮紫粉白场景, 半透明玻璃会把背景透进来与角色色搅成浑浊混合色;
-          底色做实(不透明)后背景不再透入, 每张上阵卡一眼可辨自己的角色色。
-          (若角色色浓度不合适, 调下面的 30% 即可, 范围建议 18% ~ 45%。)
+      {/* ★ 上阵态的表达: 常亮边缘光 + 角色色名字 + 更浓的填充(0.3 vs 0.2)。
+          ★ 底色必须保持半透明: BorderGlow 的 ::after 会以它作为 soft-light 混合基底,
+          做成不透明会吃掉渐变原色; 卡片背后的深底由 .card 负责。
           ★ 上阵卡的常亮是**锁定**的(followPointer=false): 悬浮期间整圈照常、不塌成光锥,
           上阵的背景色/常亮永不熄灭; 只有**未上阵**的卡悬浮时光锥跟随鼠标。
-          ★ screenFixed: 本页跑在 StageCanvas 的 CSS zoom 画布里, 光效绘制长度按
-          --stage-scale 反向补偿(与据点 TownBento 同款, 否则外扩光随画布缩放失真)。
-          ⚠ backgroundColor 显式赋值必须写在 {...CHARACTER_CARD_GLOW} 展开之后,
-          否则会被展开值里的默认半透明底覆盖。 */}
+          ⚠⚠ {...glow} 展开的键名必须与 BorderGlow 的 prop 逐字相同(glowColor / colors):
+          JSX 展开不做多余属性检查, 名字错一个字母就静默落回默认的紫/粉/天蓝三色,
+          四张卡会渲染成同一道"极光"。characterGlow() 的返回类型已用 Pick<> 锁死。 */}
       <BorderGlow
         className={s.glow}
+        {...CHARACTER_CARD_GLOW}
+        {...glow}
         persistent={onField}
         followPointer={!onField}
         animated={false}
-        screenFixed
         fillOpacity={onField ? 0.3 : 0.2}
-        {...CHARACTER_CARD_GLOW}
-        {...glow}
-        backgroundColor={
-          onField ? "color-mix(in srgb, var(--gc-color) 30%, #0b1a21)" : CHARACTER_CARD_GLOW.backgroundColor
-        }
       >
         <div className={s.body}>
           <button className={s.main} type="button" onClick={open}>

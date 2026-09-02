@@ -11,9 +11,9 @@
   align-content: start;
   justify-content: start;
   min-height: 0;
-  padding: 4px;
+  /* overflow-y: auto 会让横向 visible 计算成 auto; 36px 给 30px 外扩光留出 6px 余量。 */
+  padding: 36px;
   overflow-y: auto;
-  /* 飞散时卡片会溢出网格边界, 溢出方向不该被裁掉 —— 但纵向仍要能滚, 故只放开横向。 */
   overflow-x: visible;
   scrollbar-width: none;
 }
@@ -31,7 +31,4 @@
   letter-spacing: 2px;
 }
 
-/* ⚠ 为什么飞散位移刻意压在 46px/列以内(见 CrewCard.module.css 的 crewScatterOut):
-   本容器要能纵向滚动 ⇒ overflow-y: auto, 而 CSS 规定一轴非 visible 时另一轴的 visible 会
-   计算成 auto ⇒ 横向同样会裁切。位移小 + 失焦淡出足够读出"阵列让开", 卡片在还没碰到
-   边界时透明度已经归零, 裁切因此看不见。真要大幅横飞就得把滚动交给外层, 不值当。 */
+/* 本容器要能纵向滚动, 因此横向也会裁切; 内边距已为 BorderGlow 的外扩边缘光留出完整空间。 */

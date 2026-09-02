@@ -7,7 +7,7 @@ export interface CharacterCardData {
   name: string;
   emoji: string;
   glowColor: string;
-  gradientColors: string[];
+  colors: string[];
 }
 
 export const CHARACTER_CARDS: CharacterCardData[] = CHARACTERS.map((character) => {
