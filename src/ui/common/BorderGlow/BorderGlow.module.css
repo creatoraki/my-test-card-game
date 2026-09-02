@@ -7,8 +7,11 @@
   --glow-padding: 40px;
   --cone-spread: 25;
   /* 绘制长度补偿系数：默认 1（跟随画布等比缩放）；
-     开 .screenFixed 后按 --stage-scale 反向补偿，使光效在屏幕上像素恒定 */
+     开 .screenFixed 后按 --stage-scale 反向补偿，使光效在屏幕上像素恒定。
+     ⚠ calc 只做单次乘/除 —— 浏览器会丢弃链式运算（如 a * b * c 整条无效），
+     负号系数单独拆成 --glow-neg，避免 .edgeLight 的负 inset 因链式乘法失效。 */
   --glow-comp: 1;
+  --glow-neg: -1;
 
   position: relative;
   padding: 0;
@@ -40,6 +43,7 @@
    画布外不存在该变量时回落 1。绘制长度乘补偿即可在屏幕上恒定，不动布局尺寸。 */
 .screenFixed {
   --glow-comp: calc(1 / var(--stage-scale, 1));
+  --glow-neg: calc(-1 / var(--stage-scale, 1));
 }
 
 .light::after,
@@ -72,6 +76,13 @@
 .persistent:not(:hover):not(.sweepActive)::before,
 .persistent:not(:hover):not(.sweepActive)::after,
 .persistent:not(:hover):not(.sweepActive) > .edgeLight {
+  mask-image: none;
+}
+
+/* followPointer=false：常亮环在悬浮期间也不切换成指针光锥 */
+.borderGlowCard.lockGlow.persistent::before,
+.borderGlowCard.lockGlow.persistent::after,
+.borderGlowCard.lockGlow.persistent > .edgeLight {
   mask-image: none;
 }
 
@@ -131,7 +142,15 @@
 
 /* 外发光层 */
 .borderGlowCard > .edgeLight {
-  inset: calc(var(--glow-padding) * var(--glow-comp) * -1);
+  /* 外扩盒必须完全由 inset 决定 —— 免疫宿主把卡片直接子元素统一设
+     width/height:100% + overflow:hidden 的规则（如据点 TownBento 的 .card > *）：
+     固定宽高会让负 inset 只平移不放大、overflow:hidden 裁掉外扩，
+     光效会缩成「从容器左上角开始的缩小矩形」。 */
+  width: auto;
+  height: auto;
+  overflow: visible;
+  /* 负 inset 外扩出卡面：--glow-neg = -1（默认）或 -1/--stage-scale（补偿） */
+  inset: calc(var(--glow-padding) * var(--glow-neg));
   pointer-events: none;
   z-index: 1;
 

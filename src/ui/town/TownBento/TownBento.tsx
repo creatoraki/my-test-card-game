@@ -11,7 +11,7 @@ const GLOW = {
   colors: ["#c084fc", "#f472b6", "#38bdf8"],
   backgroundColor: "rgb(20 17 28 / 55%)",
   glass: true,
-  glassBlur: 12,
+  glassBlur: 0,
   borderRadius: 8,
   glowRadius: 25,
   glowIntensity: 1,
@@ -23,7 +23,7 @@ const BOARD_TILT = 9;
 const WALL_SHADOW = 0.6;
 // 进据点时六块砖各自播一圈入场扫光；想关掉改成 false（TownBento 随 showHall 挂载，
 // 每次进据点都会重新播放一次）
-const SWEEP_ON_MOUNT = true;
+const SWEEP_ON_MOUNT = false;
 const LAYOUT = {
   right: 56,
   bottom: 40,

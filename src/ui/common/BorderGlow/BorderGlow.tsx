@@ -43,6 +43,8 @@ export interface BorderGlowProps {
   active?: boolean;
   /** 常亮边缘光效；悬浮时仍切换为跟随指针的光锥 */
   persistent?: boolean;
+  /** 悬浮时边缘光是否跟随指针；关掉后 persistent 的整圈常亮在悬浮期间也不会塌成光锥 */
+  followPointer?: boolean;
   colors?: string[];
   fillOpacity?: number;
 }
@@ -68,6 +70,7 @@ export function BorderGlow({
   screenFixed = false,
   active = false,
   persistent = false,
+  followPointer = true,
   colors = ["#c084fc", "#f472b6", "#38bdf8"],
   fillOpacity = 0.5,
 }: BorderGlowProps) {
@@ -79,16 +82,32 @@ export function BorderGlow({
   activeRef.current = active;
   const persistentRef = useRef(persistent);
   persistentRef.current = persistent;
+  // 入场扫光是否仍在播放 + 它的取消句柄：指针一动就终止扫光、交还控制权，
+  // 否则动画的 rAF 会逐帧覆盖 --cursor-angle/--edge-proximity，光锥被动画拽着走。
+  const sweepRunningRef = useRef(false);
+  const sweepCancelRef = useRef<(() => void) | null>(null);
 
-  const handlePointerMove = useCallback((e: PointerEvent<HTMLElement>) => {
-    const card = cardRef.current;
-    if (!card) return;
+  const handlePointerMove = useCallback(
+    (e: PointerEvent<HTMLElement>) => {
+      if (!followPointer) return;
+      const card = cardRef.current;
+      if (!card) return;
 
-    const { edge, angle } = pointerGeometry(card, e.clientX, e.clientY);
+      // 入场扫光未播完时指针已介入：终止扫光，让光锥立即跟随指针。
+      if (sweepRunningRef.current) {
+        sweepRunningRef.current = false;
+        sweepCancelRef.current?.();
+        sweepCancelRef.current = null;
+        card.classList.remove(s.sweepActive);
+      }
 
-    card.style.setProperty("--edge-proximity", `${(edge * 100).toFixed(3)}`);
-    card.style.setProperty("--cursor-angle", `${angle.toFixed(3)}deg`);
-  }, []);
+      const { edge, angle } = pointerGeometry(card, e.clientX, e.clientY);
+
+      card.style.setProperty("--edge-proximity", `${(edge * 100).toFixed(3)}`);
+      card.style.setProperty("--cursor-angle", `${angle.toFixed(3)}deg`);
+    },
+    [followPointer],
+  );
 
   const handlePointerLeave = useCallback(() => {
     const card = cardRef.current;
@@ -108,6 +127,7 @@ export function BorderGlow({
 
     card.classList.add(s.sweepActive);
     card.style.setProperty("--cursor-angle", `${angleStart}deg`);
+    sweepRunningRef.current = true;
 
     const cancels = [
       animateValue({ duration: 500, onUpdate: (v) => card.style.setProperty("--edge-proximity", `${v}`) }),
@@ -123,12 +143,17 @@ export function BorderGlow({
         onEnd: () => {
           card.style.setProperty("--edge-proximity", persistentRef.current ? "100" : "0");
           card.classList.remove(s.sweepActive);
+          sweepRunningRef.current = false;
+          sweepCancelRef.current = null;
         },
       }),
     ];
+    sweepCancelRef.current = () => cancels.forEach((cancel) => cancel());
 
     return () => {
       cancels.forEach((cancel) => cancel());
+      sweepRunningRef.current = false;
+      sweepCancelRef.current = null;
       if (!activeRef.current) card.classList.remove(s.sweepActive);
     };
   }, [animated]);
@@ -141,6 +166,7 @@ export function BorderGlow({
     screenFixed ? s.screenFixed : "",
     active ? s.sweepActive : "",
     persistent ? s.persistent : "",
+    !followPointer ? s.lockGlow : "",
     className,
   ]
     .filter(Boolean)

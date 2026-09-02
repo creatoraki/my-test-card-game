@@ -28,31 +28,34 @@ export function CharacterCard({
   onToggle,
   animated = false,
 }: CharacterCardProps) {
-  const { point, bind } = useHoverTooltip();
+  const { point, bind: tooltipBind } = useHoverTooltip();
   const cardStyle = { "--char-color": gradientColors[0] } as CSSProperties;
 
   return (
-    <div className={cx(s.slot, active && s.slotActive)} style={cardStyle}>
+    <div className={cx(s.slot, active && s.active)} style={cardStyle}>
       <BorderGlow
         className={s.card}
+        glass
+        glassBlur={20}
         persistent={active}
+        followPointer={!active}
         animated={animated}
         glowColor={glowColor}
         colors={gradientColors}
-        backgroundColor="#0b1216"
-        borderRadius={12}
-        glowRadius={28}
+        backgroundColor="rgb(9 19 24 / 0.34)"
+        borderRadius={16}
+        glowRadius={30}
         glowIntensity={1.08}
         coneSpread={18}
-        fillOpacity={0.28}
+        fillOpacity={active ? 0.3 : 0.2}
       >
         <div className={s.body}>
           <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.portrait} />
-          <div className={s.veil} aria-hidden="true" />
+          <div className={s.scrim} aria-hidden="true" />
+          {active ? <div className={s.flag}>上阵</div> : null}
           <div className={s.info}>
             <span className={s.name}>{name}</span>
-            <span className={cx(s.state, active && s.stateActive)}>{active ? "已上阵" : "待命"}</span>
-            <span className={s.toggleWrap} {...(disabledReason ? bind : {})}>
+            <span className={s.toggleWrap} {...(disabledReason ? tooltipBind : {})}>
               <button
                 type="button"
                 className={s.toggle}
