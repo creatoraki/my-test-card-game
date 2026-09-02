@@ -2,13 +2,14 @@ import { useState, type CSSProperties } from "react";
 import { getCharacter } from "@/data";
 import { HandCard } from "@/ui/battle/HandCard";
 import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
+import { CardBack } from "@/ui/common/CardBack";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
+import { DeckCard } from "@/ui/character/DeckCard";
 import { useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
 import { CARD_GROUPS, CARD_CATALOG, CARD_RARITY_LABEL, cardFor } from "../codexCatalog";
-import { MuseumLockedTile } from "../MuseumLockedTile";
 import s from "./MuseumCardHall.module.css";
 
-const CARD_STYLE = { "--hand-card-w": "154px", "--hc-text-h": "72px", "--hand-card-h": "226px" } as CSSProperties;
 const DETAIL_CARD_STYLE = { "--hand-card-w": "248px", "--hc-text-h": "96px", "--hand-card-h": "344px" } as CSSProperties;
 
 export function MuseumCardHall() {
@@ -32,28 +33,28 @@ export function MuseumCardHall() {
                 {group.cards.map((def, index) => {
                   const isRecorded = recorded.includes(def.id);
                   return isRecorded ? (
-                    <button
-                      key={def.id}
-                      type="button"
-                      className={cx(s["card-button"], selectedId === def.id && s["is-selected"])}
-                      style={{ "--i": index } as CSSProperties}
-                      aria-label={`查看${def.name}详情`}
-                      onClick={() => setSelectedId(def.id)}
-                    >
-                      <span data-deck-card style={CARD_STYLE}>
-                        <HandCard card={cardFor(def.id)} variant="pile" playable selected={false} />
-                      </span>
-                    </button>
+                    <div key={def.id} className={s["card-anchor"]} data-interactive-hint="">
+                      <DeckCard
+                        card={cardFor(def.id)}
+                        index={index}
+                        selected={selectedId === def.id}
+                        aria-label={`查看${def.name}详情`}
+                        onClick={() => setSelectedId(def.id)}
+                      />
+                      <InteractiveHint className={s["card-hint"]} />
+                    </div>
                   ) : (
-                    <button
-                      key={def.id}
-                      type="button"
-                      className={s["locked-card"]}
-                      aria-label={`未收录卡牌：${def.name}`}
-                      onClick={() => setSelectedId(def.id)}
-                    >
-                      <MuseumLockedTile />
-                    </button>
+                    <div key={def.id} className={s["card-anchor"]} data-interactive-hint="">
+                      <button
+                        type="button"
+                        className={s["locked-card"]}
+                        aria-label={`未收录卡牌：${def.name}`}
+                        onClick={() => setSelectedId(def.id)}
+                      >
+                        <CardBack />
+                      </button>
+                      <InteractiveHint className={s["card-hint"]} />
+                    </div>
                   );
                 })}
               </div>

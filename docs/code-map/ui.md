@@ -61,7 +61,7 @@ src/ui/
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 径向天赋树面板（`html-templates/天赋树.html` 的组件化）：半透明暗玻璃面板、中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 训练室左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
-| [town/museum](../../src/ui/town/museum/index.ts) | 博物馆设施：使用 `codexCatalog` 生成物品、非临时卡牌和三档敌人目录，展示永久收录进度；`MuseumScene` 编排三个入口与共享 `PanelShell`，三个展厅各自持有筛选、选中态和详情栏。未收录条目统一显示压暗剪影，卡牌与敌人分别复用 `HandCard`、`EnemySprite`。 |
+| [town/museum](../../src/ui/town/museum/index.ts) | 博物馆设施：使用 `codexCatalog` 生成物品、非临时卡牌和三档敌人目录，展示永久收录进度；`MuseumScene` 编排三个入口与共享 `PanelShell`，三个展厅各自持有筛选、选中态和详情栏。物品展厅使用 1:1 方格，卡牌展厅使用原尺寸大卡与未收录卡背，三个展厅的全部条目统一挂 `InteractiveHint`。 |
 | 旧 `town/training/TrainingConfirm` | 训练室旧通用确认弹窗（重置分配/切换徽章共用），极简版改造移除后归档到 `ui/_legacy/training/`，零引用。 |
 | 旧 `town/training/TalentTree` / `TalentNode` | 已归档到 `ui/_legacy/training/`（白玻璃青绿扇形半环版），零引用，见该目录 README。 |
 | [town/training/TrainingConfirm](../../src/ui/town/training/TrainingConfirm/TrainingConfirm.tsx) | 训练室通用确认弹窗，重置分配与切换徽章共用；抽自旧 `TrainingScene` 的 `.tr-confirm` 结构。 |
@@ -172,6 +172,7 @@ src/ui/
 | 文件 | 作用 |
 | --- | --- |
 | [cx.ts](../../src/ui/common/cx.ts) | 全项目唯一的 className 拼接工具。 |
+| [CardBack](../../src/ui/common/CardBack/CardBack.tsx) | 从扩充卡组抽出的水晶卡背公共组件，由 `ForgeRevealCard` 与博物馆卡牌展厅共用。 |
 | [cardText.ts](../../src/ui/common/cardText.ts) | 从战斗实时属性或城镇派生面板属性读取卡牌施放者的攻击力/治愈力，并渲染卡牌说明数值。 |
 | [CardTextRich](../../src/ui/common/CardTextRich/CardTextRich.tsx) | 将卡牌说明按引擎词条登记表分段，统一高亮汇星、应星、瀑布等特殊词条。 |
 | [CardKeywordNotes](../../src/ui/common/CardKeywordNotes/CardKeywordNotes.tsx) | 按卡牌说明中实际出现的词条展示紧凑释义列表；无词条时不渲染。 |

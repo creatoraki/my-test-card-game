@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import type { EnemyDef } from "@/data";
 import { enemyArt } from "@/ui/art/enemyArt";
 import { EnemySprite } from "@/ui/battle/EnemySprite";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
 import { ENEMY_GROUPS, ENEMIES } from "../codexCatalog";
@@ -29,27 +30,31 @@ export function MuseumEnemyHall() {
                 {group.enemies.map((enemy) => {
                   const isRecorded = recorded.includes(enemy.id);
                   return isRecorded ? (
-                    <button
-                      key={enemy.id}
-                      type="button"
-                      className={cx(s["enemy-button"], selectedId === enemy.id && s["is-selected"])}
-                      aria-label={`查看${enemy.name}详情`}
-                      onClick={() => setSelectedId(enemy.id)}
-                    >
-                      <EnemyThumb enemy={enemy} />
-                      <span>{enemy.name}</span>
-                    </button>
+                    <div key={enemy.id} className={s["enemy-anchor"]} data-interactive-hint="">
+                      <button
+                        type="button"
+                        className={cx(s["enemy-button"], selectedId === enemy.id && s["is-selected"])}
+                        aria-label={`查看${enemy.name}详情`}
+                        onClick={() => setSelectedId(enemy.id)}
+                      >
+                        <EnemyThumb enemy={enemy} />
+                        <span>{enemy.name}</span>
+                      </button>
+                      <InteractiveHint className={s["enemy-hint"]} />
+                    </div>
                   ) : (
-                    <button
-                      key={enemy.id}
-                      type="button"
-                      className={s["locked-enemy"]}
-                      aria-label={`未收录敌人：${enemy.name}`}
-                      onClick={() => setSelectedId(enemy.id)}
-                    >
-                      <MuseumLockedTile />
-                      <span>{enemy.name}</span>
-                    </button>
+                    <div key={enemy.id} className={s["enemy-anchor"]} data-interactive-hint="">
+                      <button
+                        type="button"
+                        className={s["locked-enemy"]}
+                        aria-label={`未收录敌人：${enemy.name}`}
+                        onClick={() => setSelectedId(enemy.id)}
+                      >
+                        <MuseumLockedTile />
+                        <span>{enemy.name}</span>
+                      </button>
+                      <InteractiveHint className={s["enemy-hint"]} />
+                    </div>
                   );
                 })}
               </div>

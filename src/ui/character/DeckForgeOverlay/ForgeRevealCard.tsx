@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
-import { RARITY_CRYSTAL_ART } from "@/ui/art/rarityArt";
 import { cx } from "@/ui/common/cx";
+import { CardBack } from "@/ui/common/CardBack";
 import { DeckCard } from "@/ui/character/DeckCard";
 import {
   BACK_MS,
@@ -67,11 +67,7 @@ export function ForgeRevealCard({
       style={style}
     >
       <div className={s["flip"]}>
-        <div className={s["face-back"]} aria-hidden="true">
-          <span className={s["back-pattern"]} />
-          <img className={s["back-crystal"]} src={RARITY_CRYSTAL_ART.common} alt="" draggable={false} />
-          <span className={s["back-sheen"]} />
-        </div>
+        <CardBack className={s["face-back"]} />
         <div className={s["face-front"]}>
           <DeckCard
             card={card}

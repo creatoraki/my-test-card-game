@@ -10,6 +10,8 @@
 .enemy-group h4 { display: flex; align-items: baseline; gap: 9px; margin: 0 0 10px; padding-bottom: 6px; color: var(--museum-ink); border-bottom: 1px solid var(--museum-line); font-size: 15px; letter-spacing: 0.12em; }
 .enemy-group h4 small { color: var(--museum-dim); font-size: 11px; font-weight: 400; letter-spacing: 0; }
 .enemy-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.enemy-anchor { position: relative; min-width: 0; }
+.enemy-hint { --ihint-offset: 5px; --ihint-size: 18px; }
 .enemy-button, .locked-enemy { display: flex; min-width: 0; height: 165px; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding: 8px; color: var(--museum-ink); background: #0b191788; border: 1px solid #b8e5d51c; cursor: var(--cursor-pointer); transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
 .enemy-button:hover, .enemy-button:focus-visible, .enemy-button.is-selected { border-color: var(--museum-accent); box-shadow: 0 0 18px -8px var(--museum-accent); transform: translateY(-3px); }
 .enemy-button:focus-visible, .locked-enemy:focus-visible { outline: 1px solid var(--museum-accent); outline-offset: 3px; }

@@ -1,4 +1,5 @@
 .deck-card {
+    --deck-card-hover-transform: translateY(-4px);
     position: relative;
     display: block;
     /* 全站卡牌尺寸的落地点，外层容器不要再自己计算 220/308。 */
@@ -30,7 +31,7 @@
 .deck-card:hover:not(:disabled),
 .deck-card:focus-visible,
 .deck-card.is-selected {
-    transform: translateY(-4px);
+    transform: var(--deck-card-hover-transform);
     background: transparent;
 }
 
@@ -41,10 +42,14 @@
 }
 
 /* 据点的静态浏览态: 不抬起, 只微微放大一档。 */
+.deck-card.is-zoom {
+    --deck-card-hover-transform: scale(1.02);
+}
+
 .deck-card.is-zoom:hover:not(:disabled),
 .deck-card.is-zoom:focus-visible,
 .deck-card.is-zoom.is-selected {
-    transform: scale(1.02);
+    transform: var(--deck-card-hover-transform);
 }
 
 @keyframes deckCardIn {
