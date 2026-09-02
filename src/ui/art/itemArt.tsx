@@ -56,6 +56,9 @@ import breadArt from "@/assets/道具/临期食品/面包.png";
 import batteryArt from "@/assets/道具/材料/通用材料/电池.png";
 import cubeArt from "@/assets/道具/材料/通用材料/魔方.png";
 import gearArt from "@/assets/道具/材料/通用材料/齿轮.png";
+import greenCrystalArt from "@/assets/道具/材料/通用材料/绿色水晶.png";
+import blueCrystalArt from "@/assets/道具/材料/通用材料/蓝色水晶.png";
+import redCrystalArt from "@/assets/道具/材料/通用材料/红色水晶.png";
 import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
 import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
 import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
@@ -218,6 +221,9 @@ const MATERIAL_ART: Record<string, string> = {
   "logic-cube": cubeArt,
   "standard-gear": gearArt,
   "standard-battery": batteryArt,
+  "green-crystal": greenCrystalArt,
+  "blue-crystal": blueCrystalArt,
+  "red-crystal": redCrystalArt,
 };
 
 // 水晶: 三种同为普通品级, **颜色是它们唯一的区分信息** —— 所以刻意不吃 currentColor
@@ -229,6 +235,7 @@ const CRYSTAL_COLOR: Record<string, string> = {
   "red-crystal": "#f87171",
 };
 
+// 没有素材时仍保留颜色 SVG 兜底, 避免资源加载失败时出现空图标。
 const CrystalIcon = ({ color }: { color: string }) => (
   <svg {...base} stroke={color}>
     <path d="M24 7 34 19 24 41 14 19Z" strokeWidth="1.8" />

@@ -435,6 +435,7 @@ const INITIAL_CONSUMABLE_IDS = [
 
 // 模组制造的测试材料。开局给足, 两种模组各造一次之后还剩余量。
 const INITIAL_MATERIAL_IDS = ["logic-cube", "standard-gear", "standard-battery"] as const;
+const INITIAL_CRYSTAL_IDS = ["green-crystal", "blue-crystal", "red-crystal"] as const;
 
 function freshStorage(): ItemStack[] {
   return [
@@ -445,6 +446,7 @@ function freshStorage(): ItemStack[] {
     ...INITIAL_MATERIAL_IDS.flatMap((itemId) =>
       Array.from({ length: 6 }, () => makeItemStack(itemId)),
     ),
+    ...INITIAL_CRYSTAL_IDS.map((itemId) => makeItemStack(itemId)),
   ];
 }
 
