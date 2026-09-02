@@ -1,0 +1,95 @@
+/* 常驻顶带。⚠ 设计 px。三块各自绝对定位 —— 顶带本身不占布局, 卡阵与详情栏都从 y=196 起,
+   两态的主体因此落在同一条水平带上, 重组时"工作区正好从卡阵原地长出来"。 */
+.hud {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+.back-slot {
+  position: absolute;
+  top: 48px;
+  left: 56px;
+  display: block;
+}
+
+/* 返回角标: 斜切角亮玻璃方块, 只有一个箭头。 */
+.back {
+  --notch: 10px;
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #2a1b3d24;
+  background: #ffffffab;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #2a1b3d;
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+  animation: hudRise 420ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+/* ⚠ (0,3,0) 压住全局 `button:hover:not(:disabled)` 的 (0,2,1) —— 否则悬浮会被刷成暗底 HUD 配方。 */
+.hud .back-slot .back:hover {
+  border-color: #7c4dbe;
+  background: #ffffffe0;
+  color: #55307f;
+  transform: none;
+}
+
+.hud .back-slot .back:active {
+  transform: translateY(1px);
+}
+
+.dial {
+  position: absolute;
+  top: 40px;
+  left: 132px;
+  animation: hudRise 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.bonds {
+  position: absolute;
+  top: 48px;
+  right: 72px;
+  overflow: visible;
+  animation: hudRise 420ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+@keyframes hudRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back,
+  .dial,
+  .bonds {
+    animation: hudFade 140ms linear backwards;
+  }
+}
+
+@keyframes hudFade {
+  from {
+    opacity: 0;
+  }
+}

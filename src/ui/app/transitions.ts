@@ -6,10 +6,9 @@
 // 一次切换 = 旧界面出场(exit) → 黑场停顿(hold) → 新界面入场(enter), 串行执行。
 // 出场与入场各自独立可配, 见 TransitionSpec。
 //
-// ★ 例外: 标了 viewTransition 的路线走**原生 View Transitions API**, 不适用上面这条模型 ——
-//   没有 exit/hold/enter 三段, 也没有任何 JS 定时器(收尾靠 transition.finished)。
-//   那类路线的**时长与画面一律在 CSS 里**(app/viewTransition.global.css), "时长唯一真相在 TS"
-//   这条规矩对它们不成立: 动的是 ::view-transition-* 伪元素, TS 根本够不着。
+// ★ 例外: 标了 curtain: "battle-ripple" 的探索→战斗路线额外借用原生 View Transitions API
+//   抓一张旧场景快照来做裂纹涟漪, 那一段的画面在 ScreenTransition.module.css 的
+//   ::view-transition-*(root) 规则里(收窄到 data-vt-route="explore>battle")。
 // ============================================================================
 
 import type { Screen } from "@/store/runStore";
@@ -29,13 +28,6 @@ export interface TransitionSpec {
   enter: ScreenFx; // 新界面入场
   hold: number; // ms: 出场结束到入场开始之间的黑场停顿
   curtain?: string; // 可选全屏幕布层特效名 → .screen-curtain.curtain-<name>
-  /**
-   * 走原生 View Transitions API(document.startViewTransition)。
-   * ⚠ 置 true 后 exit/enter/hold 全部**不生效** —— 界面交换是一次原子提交, 中间没有三段式,
-   *   动画由 app/viewTransition.global.css 里的 ::view-transition-* 规则负责。
-   * 用于「共享元素」型过场: 两页各自给对应元素挂同名 view-transition-name, 浏览器自动配对形变。
-   */
-  viewTransition?: boolean;
 }
 
 // 探索 → 战斗专用演出严格分三段：场景玻璃受击 → 裂纹停留 → 黑色涟漪吞没旧场景。
@@ -101,16 +93,11 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
   "victory>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
   "defeat>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
 
-  // ★ 编队 ↔ 角色详情: **原生 View Transition 的共享元素过场**, 不是全屏特效。
-  //   两页背景是同一张冬眠仓.png ⇒ 未命名的一切落进 root 快照, 它的默认交叉淡化因此
-  //   完全看不见, "底图不动、只有元素重组"的错觉自然成立。
-  //     被点的卡面板/立绘/角色名 与 详情页的立绘栏/展示柜/大标题 **同名** ⇒ 浏览器自动形变;
-  //     两页各自独有的元素(标题、读数、其余卡、属性栏、卡组栏)各挂各的名 ⇒ 各演各的飞出/飞入。
-  //   编排见 app/ScreenTransition/ScreenTransition.tsx 的 viewTransition 分支, 画面见 app/viewTransition.global.css。
-  //   ⚠ exit/enter/hold 在这条分支里不读, 填 none/0 只是为了满足类型。
-  //   ⚠ 两条路线刻意同参: 来回对称, 空间关系才立得住。
-  "formation>charDetail": { exit: FX.none, enter: FX.none, hold: 0, viewTransition: true },
-  "charDetail>formation": { exit: FX.none, enter: FX.none, hold: 0, viewTransition: true },
+  // ⚠ 这里曾经有 formation ↔ charDetail 两条 viewTransition 路线(原生共享元素过场)。
+  //   角色详情已改成编队页内部的一种态, 不再是 screen ⇒ 那两条路线连同
+  //   app/viewTransition.global.css 一并删除。重组编排现在住在
+  //   ui/character/FormationScreen/formationMorph/。
+  //   ⚠ viewTransition 这个字段本身留着: explore>battle 的裂纹涟漪仍然要用(见下面的 curtain)。
 };
 
 const NO_TRANSITION: TransitionSpec = { exit: FX.none, enter: FX.none, hold: 0 };
@@ -133,6 +120,5 @@ export function resolveTransition(from: Screen, to: Screen): TransitionSpec {
     enter: route?.enter ?? SCREEN_FX[to]?.enter ?? DEFAULT_TRANSITION.enter,
     hold: route?.hold ?? DEFAULT_TRANSITION.hold,
     curtain: route?.curtain ?? DEFAULT_TRANSITION.curtain,
-    viewTransition: route?.viewTransition ?? SCREEN_FX[to]?.viewTransition,
   };
 }

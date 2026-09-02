@@ -79,9 +79,10 @@
 /* 探索→战斗用 View Transitions API：旧快照作为清晰的镜面场景保留，新快照在
   ScreenTransition 的同步 update 中生成，再由 JS 对 ::view-transition-new(root) 做从点击点
   向外的黑色涟漪裁切。默认 CSS 动画必须关闭，避免浏览器内建淡入与自定义替换叠加。
-   ⚠⚠ 必须靠 [data-vt-route] 收窄到**这一条路线**: 项目里还有别的 VT 路线(编队 ↔ 角色详情,
-     见 app/viewTransition.global.css), 那边指望 root 走浏览器默认的交叉淡化。无差别写法会把
-     那边的底图淡化一起掐掉, 表现为背景在过场瞬间硬切。标记由 ScreenTransition.tsx 挂/摘。 */
+   ⚠⚠ 仍然靠 [data-vt-route] 收窄到**这一条路线**: 这些是文档根上的伪元素, 不属于任何一页,
+     无差别写法会掐掉将来任何一条 VT 路线的 root 默认淡化(表现为背景在过场瞬间硬切)。
+     曾经的编队 ↔ 角色详情就是被它坑过的那一条 —— 那条路线已改成同页元素重组不再走 VT,
+     但收窄这条规矩要留着。标记由 ScreenTransition.tsx 挂/摘。 */
 :root[data-vt-route="explore>battle"]::view-transition-old(root),
 :root[data-vt-route="explore>battle"]::view-transition-new(root) {
   animation: none;

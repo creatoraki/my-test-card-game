@@ -1,0 +1,37 @@
+/* 卡阵。⚠ 版面坐标(left/top/width/height)由 FormationScreen 的内联 style 给 ——
+   与 .town-bento 同款分工: TSX 管构图, CSS 管机制。
+   ★ auto-fill 而不是 auto-fit: 人少的时候不该把两三张卡拉开摊满一整行。
+   ★ 276 + 20 = 296, 1776 / 296 ⇒ 6 列。⚠ 这个 6 与 CrewGrid.tsx 的 COLS 是同一个事实。 */
+.grid {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 276px);
+  grid-auto-rows: 772px;
+  align-content: start;
+  justify-content: start;
+  min-height: 0;
+  padding: 4px;
+  overflow-y: auto;
+  /* 飞散时卡片会溢出网格边界, 溢出方向不该被裁掉 —— 但纵向仍要能滚, 故只放开横向。 */
+  overflow-x: visible;
+  scrollbar-width: none;
+}
+
+.grid::-webkit-scrollbar {
+  display: none;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 80px;
+  color: #6b5b82;
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+/* ⚠ 为什么飞散位移刻意压在 46px/列以内(见 CrewCard.module.css 的 crewScatterOut):
+   本容器要能纵向滚动 ⇒ overflow-y: auto, 而 CSS 规定一轴非 visible 时另一轴的 visible 会
+   计算成 auto ⇒ 横向同样会裁切。位移小 + 失焦淡出足够读出"阵列让开", 卡片在还没碰到
+   边界时透明度已经归零, 裁切因此看不见。真要大幅横飞就得把滚动交给外层, 不值当。 */

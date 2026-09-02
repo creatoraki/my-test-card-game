@@ -1,0 +1,126 @@
+/* 属性面板。两栏改三栏: 右半屏比旧版的 600px 中栏宽得多, 一行三组正好不留空。 */
+.groups {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: start;
+  gap: 16px;
+  min-height: 0;
+  padding: 2px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.groups::-webkit-scrollbar {
+  display: none;
+}
+
+/* ⚠ 起点 160ms / 步长 55ms 与 StatsPanel.tsx 的 CONTENT_DELAY_MS、STAGGER_MS 是同两个数
+   (那边靠它们算数值滚动的起跑时间), 改一处要改两处。 */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: statGroupIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(160ms + var(--i, 0) * 55ms);
+}
+
+/* 「节奏与防护」那一组行数多, 独占一整行并在内部分两列。 */
+.group.is-wide {
+  grid-column: 1 / -1;
+}
+
+.group-title {
+  color: #6b5b82;
+  font-size: 14px;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rows.is-two-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 16px;
+}
+
+.attr {
+  position: relative;
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: auto 1fr auto;
+  padding: 10px 14px;
+  overflow: hidden;
+  border: 1px solid #2a1b3d17;
+  background: #ffffffbf;
+}
+
+/* 底边占比微条: 从 0 长到 --pct。⚠ 条长走 ref —— 纯展示, 与结算无关; 超过 ref 画满不溢出。 */
+.attr::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  content: "";
+  background: linear-gradient(90deg, #55307f, #7c4dbe);
+  opacity: 0.72;
+  transform: scaleX(var(--pct, 0));
+  transform-origin: left;
+  animation: attrBarGrow 620ms 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.attr-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: #7c4dbe;
+  opacity: 0.62;
+}
+
+.attr-label {
+  color: #6b5b82;
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+.attr-value {
+  color: #2a1b3d;
+  font-family: var(--font-family);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+@keyframes statGroupIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes attrBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group,
+  .attr::after {
+    animation-duration: 140ms;
+    animation-delay: 0ms;
+  }
+}

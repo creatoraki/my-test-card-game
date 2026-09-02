@@ -38,13 +38,13 @@ import {
   type ExpGain,
 } from "./townStore";
 
-// ★ "formation"(编队) 与 "charDetail"(角色详情) 是据点的**一级全屏页**, 不是设施内浮层 ——
+// ★ "formation"(编队) 是据点的**一级全屏页**, 不是设施内浮层 ——
 //   入口在大厅 bento 的「编队」砖(见 ui/TownScreen.tsx), 冬眠仓只剩「冬眠唤醒」。
-//   回据点走 ScreenTransition 的默认淡出淡入; 两页之间走**原生 View Transition 的共享元素
-//   过场**(ROUTE_FX 里 viewTransition: true): 被点那张卡的面板/立绘/角色名与详情页的
-//   立绘栏/展示柜/大标题挂同名 view-transition-name, 浏览器自动配对形变。
-//   ⚠ 「回程该给哪张卡挂共享名」由 ui/sharedPortrait.ts 单独递送 —— 纯表现层数据,
-//   刻意不进本 store(会被持久化, 且订阅者要为一个只活半秒的值重渲染)。
+//   回据点走 ScreenTransition 的默认淡出淡入。
+//   ⚠⚠ **角色详情不是一个 screen**: 它是编队页内部的第二种态, 点卡不跳页, 由
+//   ui/character/FormationScreen/formationMorph 做一次同页元素重组。旧版曾经是
+//   screen === "charDetail" + 原生 View Transition 共享元素过场, 已随那次改版整体删除 ——
+//   本 store 因此不该再出现 detailCharId 之类的表现层字段。
 // ★ "sortie"(出击) 同样是据点的一级全屏页: 入口在大厅 bento 的「出击」砖, 内部分两步
 //   (选地图 → 备物资, step 存在 store/sortieStore 里)。它取代了原先埋在控制终端设施内的
 //   「下降舱」抽屉 —— 出击是核心动线, 不该要玩家先播 2s 进设施运镜才找得到。
@@ -53,7 +53,6 @@ export type Screen =
   | "menu"
   | "town"
   | "formation"
-  | "charDetail"
   | "sortie"
   | "elevator"
   | "explore"
@@ -75,14 +74,9 @@ interface RunStore {
   lastDropTier: { tier: number; name: string; color: string; rewardMultiplier: number } | null;
   lastChallengeBonus: number;
   lastChallenges: ChallengeRun[];
-  // 角色详情页正在看谁。⚠ 只在 screen === "charDetail" 时有意义; 从详情返回编队时**刻意不清空**,
-  // 好让退场动画期间那一页仍能渲染出内容(ScreenTransition 会把旧界面多留一个出场时长)。
-  detailCharId: string | null;
 
   enterTown: () => void;
-  openFormation: () => void; // 大厅「编队」砖 → 全屏编队页
-  openCharDetail: (charId: string) => void; // 编队页点卡面 → 全屏角色详情页
-  closeCharDetail: () => void; // 详情页返回编队页
+  openFormation: () => void; // 大厅「编队」砖 → 全屏编队页(角色详情是它内部的一种态, 不占 screen)
   openSortie: () => void; // 大厅「出击」砖 → 全屏出击页(选地图 + 备物资)
   // 物资准备完毕 → 进路由图。backpack = 出发时装好的物资(见 store/sortieStore)。
   startExpedition: (mapId: string, backpack?: ItemStack[]) => void;
@@ -281,7 +275,6 @@ export const useRunStore = create<RunStore>((set, get) => ({
   lastDropTier: null,
   lastChallengeBonus: 0,
   lastChallenges: [],
-  detailCharId: null,
   pendingDescent: null,
 
   enterTown: () => {
@@ -290,11 +283,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({ screen: "town" });
   },
 
-  // ★ 编队/详情是纯查看与编成, 不碰探索层, 故这三个 action 只切 screen ——
+  // ★ 编队是纯查看与编成, 不碰探索层, 故这个 action 只切 screen ——
   //   不要在这里 clear() 任何东西, 否则从据点绕一圈编队回来会莫名重置。
   openFormation: () => set({ screen: "formation" }),
-  openCharDetail: (charId) => set({ screen: "charDetail", detailCharId: charId }),
-  closeCharDetail: () => set({ screen: "formation" }),
   // ⚠ 会话本身由 ui/sortie 那边 open() —— 这里只切页, 与 openFormation 保持同一粒度。
   openSortie: () => set({ screen: "sortie" }),
 

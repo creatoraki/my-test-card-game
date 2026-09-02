@@ -1,0 +1,24 @@
+/* 角色详情态。⚠ 本层铺满编队页的 1920×1080 画布, 每个 px 都是「设计 px」。
+   ★ 背景不在这里 —— 两态共用 FormationScreen 那张冬眠仓底图与提亮层, 底图从头到尾不动,
+     动的只有卡阵与本层的元素。这正是「元素重组」而不是「换页」的观感来源。 */
+.view {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+/* 回程: 整层不再接收指针事件 —— 卡阵已经回到场上, 点击该落到卡上。 */
+.is-leaving {
+  pointer-events: none;
+}
+
+/* 卡面详情浮卡的落点。
+   ⚠ DeckCardHoverPreview 自带的坐标是给旧版三栏版面调的(卡组在最右一栏), 两栏版面里那个位置
+     正好压在工作区上、把卡组盖住。这里把它挪到立绘右侧的空档: 浮卡是临时的, 短暂盖住立绘
+     右半边可以接受, 盖住正在挑的卡不行。
+   ⚠ 必须写成 (0,2,0): 组件自带的 .deck-card-hover-preview 也是单个类 (0,1,0),
+     CSS Modules 的注入顺序不保证, 同特异性会赌运气(同 glowCard.module.css 里那条说明)。 */
+.view .card-preview {
+  top: 210px;
+  left: 452px;
+}

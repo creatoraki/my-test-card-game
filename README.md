@@ -76,7 +76,7 @@ my-test-card-game/
    ├─ data/                # 内容数据
    ├─ store/               # 状态与持久化
    ├─ ui/                  # React 视图层，按功能域分目录（详见 docs/code-map/ui.md）
-   │  ├─ app/              # 过场编排：ScreenTransition、战斗裂纹幕布、编队↔详情共享元素过场
+   │  ├─ app/              # 过场编排：ScreenTransition、战斗裂纹幕布、1920×1080 设计画布
    │  ├─ audio/            # BGM 播放器与程序化音效合成
    │  ├─ common/           # 跨域复用组件：立绘、血条、状态图标、物品格/详情/分类 tab
    │  ├─ elevator/         # 出击后的电梯下降过场

@@ -1,0 +1,86 @@
+.panel {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  animation: deckIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.readout {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.readout span {
+  padding: 4px 12px;
+  border: 1px solid #2a1b3d1f;
+  background: #ffffffa6;
+  color: #55307f;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+/* 右半屏比旧版的第三栏宽, 一行放得下 5 张。 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-content: start;
+  justify-content: stretch;
+  gap: 14px 10px;
+  min-height: 0;
+  padding: 8px 8px 4px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  perspective: 900px; /* 给下面的翻入一点透视, 否则 rotateY 看起来只是被压扁 */
+}
+
+.grid::-webkit-scrollbar {
+  display: none;
+}
+
+/* 每张卡外面套一格: 翻入动画挂在这层, HandCard 的据点覆盖集中在 [data-deck-card]。
+   ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
+.cell {
+  min-width: 0;
+  animation: deckCardFlipIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(180ms + var(--i, 0) * 28ms);
+  transition: filter 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.cell:hover {
+  filter: drop-shadow(0 6px 10px #2a1b3d2e);
+}
+
+@keyframes deckCardFlipIn {
+  from {
+    opacity: 0;
+    transform: rotateY(-14deg) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0) translateY(0);
+  }
+}
+
+@keyframes deckIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .cell {
+    animation-duration: 140ms;
+    animation-delay: 0ms;
+  }
+}

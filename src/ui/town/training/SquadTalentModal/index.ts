@@ -1,0 +1,1 @@
+export { SquadTalentModal } from "./SquadTalentModal";

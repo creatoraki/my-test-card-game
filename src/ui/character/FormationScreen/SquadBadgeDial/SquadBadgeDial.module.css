@@ -1,0 +1,163 @@
+/* 徽章盘。⚠ 设计 px; 版面坐标由 SquadHud 给, 本文件只管这一枚的材质与提醒态。
+   ★ 圆盘刻意做成**暗底**: BadgeGlyph 的线稿是给训练室那套暗底金色画的(描边是亮色),
+     压在本页浅紫白的场景上会糊掉 —— 给它一枚深色圆盘既保住原图的读感, 又在浅底上自成焦点。 */
+.dial {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  --dial-alert: #e0a52a;
+}
+
+.disc {
+  position: relative;
+  display: grid;
+  width: 128px;
+  height: 128px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--badge-hue, #ffc21a) 46%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #241a33 0%, #150e21 62%, #0d0817 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 18px 36px -22px rgb(42 27 61 / 0.9);
+  clip-path: none;
+  color: var(--badge-ink, #ffe9a8);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+/* ⚠ 全局 base.css 的 `button:hover:not(:disabled)` 是 (0,2,1) —— 用 (0,3,0) 压住它,
+   否则这枚圆盘悬浮时会被刷成暗底 HUD 的方形渐变按钮。 */
+.dial .disc:hover,
+.dial .disc:focus-visible {
+  border-color: var(--badge-hue, #ffc21a);
+  background: radial-gradient(circle at 50% 38%, #2c2140 0%, #180f26 62%, #0d0817 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 0 0 6px color-mix(in srgb, var(--badge-hue, #ffc21a) 16%, transparent),
+    0 18px 36px -20px rgb(42 27 61 / 0.9);
+  color: var(--badge-ink, #ffe9a8);
+  outline: none;
+  transform: none;
+}
+
+.dial .disc:active {
+  transform: translateY(1px);
+}
+
+.glyph {
+  width: 104px;
+  height: 104px;
+}
+
+.blank {
+  color: #6b5b82;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+/* 提醒环: 只在有未分配训练点时呼吸。 */
+.ring {
+  position: absolute;
+  inset: -7px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.is-alert .ring {
+  border-color: color-mix(in srgb, var(--dial-alert) 62%, transparent);
+  animation: dialBreathe 2.4s ease-in-out infinite;
+}
+
+@keyframes dialBreathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--dial-alert) 40%, transparent);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 22px 6px color-mix(in srgb, var(--dial-alert) 30%, transparent);
+    opacity: 1;
+  }
+}
+
+/* 角标: 未分配点数。 */
+.pip {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  min-width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0 8px;
+  border-radius: 17px;
+  background: linear-gradient(140deg, #f4c96a 0%, #d9901c 100%);
+  color: #241503;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 16px -6px rgb(217 144 28 / 0.8);
+  animation: dialPip 1.6s ease-in-out infinite;
+}
+
+@keyframes dialPip {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.name {
+  color: #2a1b3d;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  white-space: nowrap;
+}
+
+.points {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b5b82;
+  font-size: 14px;
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+.points.is-alert {
+  color: #a8730d;
+}
+
+.pending {
+  padding: 2px 9px;
+  border: 1px solid color-mix(in srgb, var(--dial-alert) 52%, transparent);
+  background: color-mix(in srgb, var(--dial-alert) 16%, #ffffff);
+  color: #7d5405;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-alert .ring,
+  .pip {
+    animation: none;
+  }
+}

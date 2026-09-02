@@ -1,4 +1,6 @@
-| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。持有 `drawerOpen` / `shakeId` / `pulse` 状态编排，`RESOURCE_LABELS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
+| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。**徽章与天赋的全部交互住在 `useSquadTalent`**（本场景只剩光粒背景与 `drawerOpen`）。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
+| [town/training/useSquadTalent](../../src/ui/town/training/useSquadTalent.ts) | 徽章/天赋交互层：当前徽章、剩余点、远征只读判定，以及点亮 / 退还 / Shift 快捷点亮整条路径 / 切换徽章四个动作与抖动、脉冲反馈；`RESOURCE_LABELS` 在此维护。训练室场景与编队页的分配弹窗共用同一份，规则判定仍全部来自 `data/squadTalents`。 |
+| [town/training/SquadTalentModal](../../src/ui/town/training/SquadTalentModal/SquadTalentModal.tsx) | 训练点分配弹窗：编队页点小队徽章直接开这一层，内部与训练室是同一棵 `TalentTreeRadial` + `SquadResourceBar` + `BadgeSelectModal`。⚠ 根节点必须 `composes: tr-tokens`——那三个组件的配色都读 `--tr-*`。 |
 | [town/training/BadgeSelectModal](../../src/ui/town/training/BadgeSelectModal/BadgeSelectModal.tsx) | 训练室徽章选择 modal：大图 SVG 徽章卡片网格、选中预览与底栏两步确认；`badgeGlyphs` 按徽章 id 查表绘制主体图形。只接收 props 与回调，不读 store，支持锁定态与键盘选择。 |
 # React 视图层
 
@@ -55,7 +57,7 @@ src/ui/
 | [town/assembly/AssemblyModuleRack](../../src/ui/town/assembly/AssemblyModuleRack/AssemblyModuleRack.tsx) | 右栏滚动模组仓架：以稳定网格展示库存模组，表达选中与兼容性状态，保留键盘聚焦和 tooltip 路径；不承载装配规则。 |
 | [town/assembly/AssemblyDeckGrid](../../src/ui/town/assembly/AssemblyDeckGrid/AssemblyDeckStrip.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：EventPanel 同源的常驻六格混合货架，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShelfGrid`、`ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
-| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，从左侧边缘滑出徽章抽屉浮层（复用 `BadgeRail`），点选即切换；剩余训练点与投入进度显示在树面板头部。持有 `drawerOpen` / `shakeId` / `pulse` 状态编排，`RESOURCE_LABELS` 在此维护。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
+| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。徽章与天赋的全部交互住在 `useSquadTalent`（与编队页的 `SquadTalentModal` 共用）。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 径向天赋树面板（`html-templates/天赋树.html` 的组件化）：半透明暗玻璃面板、中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 训练室左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
@@ -77,19 +79,26 @@ src/ui/
 | [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；1×4 格，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
 | [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域两块物品面板的调色板真相点：仓库冷银白透玻璃 / 背包黑玻璃熔橙。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
-| [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队视图，复用角色立绘和卡组显示。 |
-| [character/CharacterDetailScreen](../../src/ui/character/CharacterDetailScreen/CharacterDetailScreen.tsx) | 角色详情视图：展示立绘、污染值、生病和永久怪癖；中央属性区顶部放置三类装备槽，点击部位后右侧切换对应仓库并即时穿戴/卸下；属性仍为只读（分组表已抽到 `common/statGroups.ts`，与角色档案 Modal 共用），个人卡组提供扩充、精简、升级锻造和卡面选中详情，升级改为面板确认并播放等级演出。与编队页之间是共享元素过场。 |
-| [character/DeckForgeBar](../../src/ui/character/DeckForgeBar/DeckForgeBar.tsx) | 角色详情页卡组锻造操作条：展示扩充、精简、升级三项操作及父组件传入的经验价格和禁用态；升级入口只在满级时禁用，经验校验下沉到升级面板。 |
-| [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 角色详情页卡组锻造浮层壳：只负责模式图标、遮罩、关闭锁和按模式分发；扩充/精简演出由阶段组件承载，候选与卡组状态分别保留到提交动画结束；开关演出统一走 `common/ModalReveal`。 |
+| [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队页壳：只装配画布与冬眠仓底图，页面上只有三样东西 + 一个返回角标（队伍列表 / 小队徽章 / 小队羁绊）。**角色详情不是另一个 screen**，而是本页的第二种态，两态切换由 `formationMorph/` 做同页元素重组。卡片站位在挂载时定死（`baseOrder`），本页全程不卸载 ⇒ 从详情态回来不会重排。 |
+| [character/FormationScreen/SquadHud](../../src/ui/character/FormationScreen/SquadHud/SquadHud.tsx) | 常驻顶带：返回角标（只有箭头，提示走 `HoverTooltip`）+ 小队徽章盘 + `common/SquadBondBar`。两态共用同一份 DOM，重组期间原地不动，给形变留参照系。 |
+| [character/FormationScreen/SquadBadgeDial](../../src/ui/character/FormationScreen/SquadBadgeDial/SquadBadgeDial.tsx) | 小队徽章盘 + 训练点读数，兼本页的待办提醒位：有未分配训练点时金色呼吸环 + 数字角标脉冲 + 读数转金；点击开 `town/training/SquadTalentModal`。徽章图形与配色复用训练室的 `badgeGlyphs` / `badgeTheme`。 |
+| [character/FormationScreen/CrewGrid](../../src/ui/character/FormationScreen/CrewGrid/CrewGrid.tsx) | 队伍列表卡阵（276×772 一行 6 列）。按与被点卡的列距/行距给每张卡下发飞散方向量 `--dx/--dy/--dist`，整片阵列以被点那张为原点炸开或收拢。 |
+| [character/FormationScreen/CrewCard](../../src/ui/character/FormationScreen/CrewCard/CrewCard.tsx) | 一张编队卡：整卡取景窗 + 窗内浮动角色名 + 上阵三角旗 + 上阵/下阵动作条（受限时出 `HoverTooltip`）。窗内材质来自 `character/styles/glowCard.module.css`；`data-crew-card` 是回程飞行认领落点的唯一通道。 |
+| [character/FormationScreen/formationMorph](../../src/ui/character/FormationScreen/formationMorph/useFormationMorph.ts) | 两态态机 + FLIP 编排：`mode`(roster/detail) × `phase`(idle/toDetail/toRoster)，过场期间两态同时挂载。去程落点是常量 `FIGURE_RECT`，回程落点在卡阵挂载后于 `useLayoutEffect` 里量。时长与设计 px 换算在 `morphChoreo.ts`，飞行副本在 `MorphFlyer.tsx`（WAAPI 动 left/top/width/height，与立绘栏瞬时交接）。 |
+| [character/CharacterDetailView](../../src/ui/character/CharacterDetailView/CharacterDetailView.tsx) | 角色详情态（编队页内的第二种态，不是 screen）：左半屏出血立绘大图，右半屏可切换工作区。属性只读（分组表在 `common/statGroups.ts`，与角色档案 Modal 共用）；装备穿戴/卸下与卡组扩充/精简/升级直接落 `townStore`；锻造浮层挂在本态根层。 |
+| [character/CharacterDetailView/FigureStage](../../src/ui/character/CharacterDetailView/FigureStage/FigureStage.tsx) | 详情态左栏：0,0,780,1080 的出血立绘 + 角色名 72px + 三段血条 / 污染 / 怪癖。⚠ 这个矩形就是 `morphChoreo.FIGURE_RECT`，改一处要改两处。 |
+| [character/CharacterDetailView/Workbench](../../src/ui/character/CharacterDetailView/Workbench/Workbench.tsx) | 详情态右栏工作区外壳：属性 / 装备 / 卡组三个 tab，内容由使用方作为 children 传入；入场是「从左边缘裂开生长」，与卡阵占同一条水平带（y 196..1008）。三块面板分别是 `StatsPanel` / `EquipPanel` / `DeckPanel`。 |
+| [character/DeckForgeBar](../../src/ui/character/DeckForgeBar/DeckForgeBar.tsx) | 角色详情态卡组页的锻造操作条：展示扩充、精简、升级三项操作及父组件传入的经验价格和禁用态；升级入口只在满级时禁用，经验校验下沉到升级面板。 |
+| [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 角色详情态卡组锻造浮层壳：只负责模式图标、遮罩、关闭锁和按模式分发；扩充/精简演出由阶段组件承载，候选与卡组状态分别保留到提交动画结束；开关演出统一走 `common/ModalReveal`。 |
 | [character/DeckForgeOverlay/ForgeDrawStage](../../src/ui/character/DeckForgeOverlay/ForgeDrawStage.tsx) | 扩充三选一阶段机：水晶卡背错峰落位、按稀有度翻牌、光爆震动、二次确认和向 `data-deck-anchor` 落袋飞行。 |
 | [character/DeckForgeOverlay/ForgeRemoveStage](../../src/ui/character/DeckForgeOverlay/ForgeRemoveStage.tsx) | 精简卡组阶段：网格选中、最低张数锁定 chip、确认和逆向扫描消解。 |
 | [character/DeckForgeOverlay/ForgeRevealCard](../../src/ui/character/DeckForgeOverlay/ForgeRevealCard.tsx) | 扩充与精简共用的卡牌演出包装层：中性水晶卡背翻牌、稀有度光爆辉光、选择描边与消解。 |
 | [character/DeckForgeOverlay/forgeChoreo](../../src/ui/character/DeckForgeOverlay/forgeChoreo.ts) | 锻造演出的时长与揭示顺序真相点，按卡牌稀有度安排翻牌节奏、命中冲击与减少动态效果降级。 |
-| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情页卡组升级浮层：展示等级徽章、水晶稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条；开关演出统一走 `common/ModalReveal`。 |
-| [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
-| [character/EquipmentDrawer](../../src/ui/character/EquipmentDrawer/EquipmentDrawer.tsx) | 角色详情页右侧部位仓库，只展示匹配槽位的装备，点击物品立即穿戴，并展示当前装备详情。 |
-| [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情页与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放。 |
-| [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情页场景级卡牌悬浮层，固定在卡组左侧空档并放大渲染 `HandCard`；只负责定位和展示时机，不承载卡牌业务规则。 |
+| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情态卡组升级浮层：展示等级徽章、水晶稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条；开关演出统一走 `common/ModalReveal`。 |
+| [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情态装备页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
+| [character/EquipmentDrawer](../../src/ui/character/EquipmentDrawer/EquipmentDrawer.tsx) | 角色详情态装备页的部位仓库（在装备槽下方展开），只展示匹配槽位的装备，点击物品立即穿戴，并展示当前装备详情。 |
+| [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情态与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放。 |
+| [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
@@ -134,7 +143,7 @@ src/ui/
 | [unitShell.ts](../../src/ui/battle/unitShell.ts) | **单位外壳的跨组件契约**：敌人（CombatantView）与我方（AllyBar）两种外壳几何不同但演出必须一致，靠 `unitShellAttrs()` 摊出的 `data-side` / `data-death` / `data-dead` / `data-downed` / `data-attacking` / `data-targetable` / `data-telegraph` / `data-react` 共享同一份规则。`data-downed` 表示我方仍存活但 HP 为 0 的濒死态；`data-dead` 只表示闸门放行后的最终死亡态。改这里要全库搜同名字符串——CSS 那侧没有类型保护。 |
 | [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：蓄力预告、血条周围的倒计时/意图/护盾/状态和命中特效；可选目标头顶显示本次攻击命中率徽章；死亡表现由 `deathChoreo` 闸门下发，先完成血条再过曝消散。站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`enemyArt.ts` 登记展示框与主体框，主体高度归一后由 CSS 变量推导尺寸、脚线和帧位；`@keyframes` 按敌人 id 运行时注入并复用 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
-| [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，濒死暗红态与死亡灰化、下沉消解、裂纹和 ☠ 由死亡闸门/外壳属性驱动，并通过公共污染条/状态图标展示污染值、临时状态和护盾。位于战场之外，因此不参与相机推近；生病与永久怪癖仅在角色详情页展示。仅在待选友军目标时响应点击，其余状态下为纯展示。 |
+| [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，濒死暗红态与死亡灰化、下沉消解、裂纹和 ☠ 由死亡闸门/外壳属性驱动，并通过公共污染条/状态图标展示污染值、临时状态和护盾。位于战场之外，因此不参与相机推近；生病与永久怪癖仅在角色详情态展示。仅在待选友军目标时响应点击，其余状态下为纯展示。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
@@ -168,7 +177,7 @@ src/ui/
 | [CardKeywordNotes](../../src/ui/common/CardKeywordNotes/CardKeywordNotes.tsx) | 按卡牌说明中实际出现的词条展示紧凑释义列表；无词条时不渲染。 |
 | [PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx) | 功能弹窗通用外壳：模态遮罩、切角面板、边框装饰层与 `EventPanelFrame` 收口，导出关闭动画时长与默认面板尺寸（1600×920，可用 `size` 覆盖）。原为装配舱私有件，现由装配舱、制造弹窗与角色档案 Modal 共用；配色只靠外层覆盖 `--asm-*` 变量，场景未下发时吃组件自带的青蓝默认值，层序由调用方经 `className` 压。 |
 | [CharacterModal](../../src/ui/common/CharacterModal/CharacterModal.tsx) | 角色档案 Modal：立绘/三段血量/污染/怪癖、只读属性表（分组来自 `common/statGroups.ts`）、中列装备三槽与右列只读卡组平铺（`HandCard`）。不读 store、不含规则，全部靠 props 与回调；传 `swap` 即可点击装备槽打开画布内候选浮层并与容器互换，默认装备区只读；可按调用方需要传入临时状态与护盾。装备槽不写部位文字（部位只留在 `aria-label` 与悬浮 Tooltip），槽位 176×176 并常驻挂 `InteractiveHint` 四角悬浮提示。 |
-| [statGroups.ts](../../src/ui/common/statGroups.ts) | 面板属性的分组、文案与条长 `ref` 旋钮，角色详情页与角色档案 Modal 共用的唯一真相点；`ref` 是纯展示旋钮，不参与任何结算。 |
+| [statGroups.ts](../../src/ui/common/statGroups.ts) | 面板属性的分组、文案与条长 `ref` 旋钮，角色详情态与角色档案 Modal 共用的唯一真相点；`ref` 是纯展示旋钮，不参与任何结算。 |
 | [InteractiveHint](../../src/ui/common/InteractiveHint/InteractiveHint.tsx) | 全站统一的「这里可以点」提示：悬浮时在宿主容器**外侧**四角浮出直角 L 型天蓝呼吸边框。纯装饰层（`aria-hidden` + `pointer-events: none`），零 JS —— 显隐由自己的 CSS 读宿主 `:hover` / `:focus-visible` / `:focus-within`。宿主三条硬要求：`position: relative`、挂 `data-interactive-hint`、自身不能 `overflow: hidden`；几何与配色经 `--ihint-offset` / `--ihint-size` / `--ihint-thickness` / `--ihint-neon` 下发。与 `CardSelectFrame` 的青蓝「已选中」是两套语义，不要互相套用。 |
 | [ModalReveal](../../src/ui/common/ModalReveal/ModalReveal.tsx) | 横线上下展开的弹窗裁切层与关闭延迟 hook；通过 CSS 变量统一入场、收回时长和减少动态效果降级。 |
 | [EventPanel](../../src/ui/common/EventPanel/EventPanel.tsx) | Luna 风格的数据驱动事件面板公共壳与情报、行动、结算三段分镜；探索弹窗与 Luna 测试页共用，面板内容样式独立于探索外层材质。 |
@@ -176,14 +185,14 @@ src/ui/
 | [CharacterPortrait](../../src/ui/common/CharacterPortrait/CharacterPortrait.tsx) | 角色立绘查表，缺素材时回退 emoji。**取景一律由调用方通过 `className` 传入**，组件不认识任何调用者；立绘统一为 1152×2048 / 9:16 / 透明底 / 左右对称，逐人 `--portrait-dx/dy`、`--bust-scale` 默认归零，仅作异常构图的补偿位。编队页取景走独立的 `formation.dx/dy`（下发为 `--fm-portrait-dx/dy`），未填写时回退通用 `dx/dy`。 |
 | [HpBar](../../src/ui/common/HpBar/HpBar.tsx) | 敌人和我方共用血条；按剩余血量分三档，流光、端头辉光和掉血火花保持固定池。`flush` 变体（队伍卡贴底）和 `hideLimit` 变体（战场敌人只显示蓝色当前血量，不画琥珀上限段）的样式也在本组件内。 |
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |
-| [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 角色详情页展示生病与永久怪癖徽章及说明；不服务战斗队伍卡，也不复用临时战斗 `StatusPips`。 |
+| [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 角色详情态展示生病与永久怪癖徽章及说明；不服务战斗队伍卡，也不复用临时战斗 `StatusPips`。 |
 | [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 战斗临时状态、层数与护盾的方形玻璃图标条；支持右起换行和 `RailPopover` 详情，尺寸通过 `--pip-box` 变量由父级下发。关闭详情时保留原生 `title`。 |
 | [RailPopover](../../src/ui/common/RailPopover/RailPopover.tsx) | 跨战斗域复用的斜切角玻璃详情浮层；支持左右、下方和上方（居中 / 右对齐）定位，由 `data-rail-item` 的悬浮与键盘聚焦驱动。 |
 | [ManaCrystal](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) | 法力水晶菱形（Arcane Diamond）；`empty`/`normal`/`active` 三态受控，`still` 关闭呼吸循环；尺寸与配色经 `--mana-crystal-size` / `--crystal-*` 变量下发。 |
 | [ArcanaIcon](../../src/ui/common/ArcanaIcon/ArcanaIcon.tsx) | 羁绊塔罗图标公共展示组件；支持完整档案壳、无壳图案和 bare 纯线稿模式，未知 id 回退中性环徽。 |
 | [BuffIcon](../../src/ui/common/BuffIcon/CultivationEmblem.tsx) | 培育两态 BUFF 图标（厚涂拟物，viewBox 128×128、自带 1:1 圆角外框）；配色内建不吃外层 color，尺寸由调用方槽位决定。 |
 | [BondSlot](../../src/ui/common/BondSlot/BondSlot.tsx) | 羁绊槽位公共展示组件：点数、名称、3/6/9 门槛条与 `RailPopover` 详情浮层；战斗页 `BondRail` 专用，编队/详情页走 `BondShowcase`；不读 store、不承载羁绊规则。 |
-| [BondShowcase](../../src/ui/common/BondShowcase/BondShowcase.tsx) | 编队页与角色详情页的巨型羁绊图标展示：96px 图标、点数角标、档位微标与 `RailPopover` 详情浮层；不读 store、不承载羁绊规则。 |
+| [BondShowcase](../../src/ui/common/BondShowcase/BondShowcase.tsx) | 编队页(含角色详情态)的巨型羁绊图标展示：96px 图标、点数角标、档位微标与 `RailPopover` 详情浮层；不读 store、不承载羁绊规则。 |
 | [BondTooltip](../../src/ui/common/BondTooltip/BondTooltip.tsx) | 羁绊详情浮层内部内容：名称、主题描述、各档位效果与未激活时的差距提示。 |
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 兼容旧调用点的羁绊图标适配器，转发到 `ArcanaIcon` 的 bare 模式。 |
 | [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
@@ -238,8 +247,7 @@ src/ui/
 | --- | --- |
 | [app/transitions.ts](../../src/ui/app/transitions.ts) | 过场预设、默认时长、按界面/路线解析；探索到战斗的裂纹涟漪时长只在这里配置。 |
 | [app/transitionOrigin.ts](../../src/ui/app/transitionOrigin.ts) | 一次性缓存点击坐标，仅用于视觉过场，不进入 Zustand。 |
-| [app/viewTransition.global.css](../../src/ui/app/viewTransition.global.css) | 编队 ↔ 角色详情、出击选层 ↔ 物资准备的共享元素过场。全局普通 CSS（无类名，只有文档根伪元素）。 |
-| [character/sharedPortrait.ts](../../src/ui/character/sharedPortrait.ts) | 编队与角色详情之间共享立绘元素的 View Transition 标识。 |
+| [character/FormationScreen/formationMorph/morphChoreo.ts](../../src/ui/character/FormationScreen/formationMorph/morphChoreo.ts) | 编队 ↔ 角色详情的重组时长、立绘出血矩形与「窗口 px → 设计 px」换算。⚠ 这两态**不再是两个 screen**，故不走 `transitions.ts`；旧的 `app/viewTransition.global.css` 与 `character/sharedPortrait.ts` 已随那次改版删除（伪元素挂在文档根上拿不到元素的 `--i`，错峰只能靠手写延迟表，做不出按距离飞散）。 |
 | [town/facilityScenes.ts](../../src/ui/town/facilityScenes.ts) | 据点进设施的推镜时序、飞出参数与设施背景图。 |
 
 ## 战斗设计画布与相机边界

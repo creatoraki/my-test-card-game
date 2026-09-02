@@ -133,7 +133,7 @@
    ⚠ soft-light 混合 ⇒ 它只调制卡面已有的明暗(金属该亮的地方更亮), 不会在暗处凭空加白雾。
    ⚠ 被 .hand-card 的 overflow:hidden + clip-path 裁住 ⇒ 反光自然跟着卡形与斜口/咬口走, 免费。
    ⚠ 用 ::after: ::before 已被"边角磨损"占用(见 HandCard.module.css)。
-   ⓘ 项目里的同族范式: CharacterDetailScreen.css 的 cdSheen、CryoScene.css 的 cryoSheen。 */
+   ⓘ 项目里的同族范式: CryoScene.css 的 cryoSheen。 */
 :global([data-hand-card])::after {
   content: none;
   position: absolute;

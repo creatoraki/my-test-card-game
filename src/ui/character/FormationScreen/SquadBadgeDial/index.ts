@@ -1,0 +1,1 @@
+export { SquadBadgeDial } from "./SquadBadgeDial";

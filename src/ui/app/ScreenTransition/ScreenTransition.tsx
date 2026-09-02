@@ -22,9 +22,6 @@ import {
   type TransitionSpec,
 } from "@/ui/app/transitions";
 import s from "./ScreenTransition.module.css";
-// ⚠ 全局普通 CSS, 刻意不转 Modules: 里面只有 :root 变量与 ::view-transition-* 文档根伪元素,
-//   没有一个类名 —— 哈希无从谈起。见 app/viewTransition.global.css 的文件头。
-import "@/ui/app/viewTransition.global.css";
 
 interface Props {
   screen: Screen; // 目标界面(来自 runStore)
@@ -37,7 +34,7 @@ type ViewTransitionDocument = Document & {
   startViewTransition?: (update: () => void) => { ready: Promise<void>; finished: Promise<void> };
 };
 
-// 过场期间挂在 <html> 上的路线标记, 形如 data-vt-route="formation>charDetail"。
+// 过场期间挂在 <html> 上的路线标记, 形如 data-vt-route="explore>battle"。
 // ★ ::view-transition-* 是**文档根**上的伪元素, 不属于任何一页 ⇒ CSS 只能靠它区分
 //   "这次是哪条路线在过场"。没有它, 探索→战斗那套 root 规则会无差别命中所有 VT 路线。
 const VT_ROUTE_ATTR = "vtRoute";
@@ -76,41 +73,10 @@ export function ScreenTransition({ screen, render }: Props) {
 
     const next = resolveTransition(shown, screen);
 
-    // ── 原生 View Transition 路线(编队 ↔ 角色详情的共享元素过场) ──
-    // ⚠ 必须排在下面那条「零时长早退」**之前**: 这类路线的 exit/enter 都是 0(时长归 CSS),
-    //   落进早退分支就变成瞬切了。
-    if (next.viewTransition) {
-      clearTimers();
-      const seq = ++seqRef.current;
-      const root = document.documentElement;
-      // update 回调里必须**同步**提交新 DOM, 浏览器才能在这一帧抓到新界面的快照。
-      const commit = () => flushSync(() => setShown(screen));
-      const viewDocument = document as ViewTransitionDocument;
-      const transition = !prefersReducedMotion()
-        ? viewDocument.startViewTransition?.(commit)
-        : undefined;
-
-      // 降级(浏览器不支持 / 系统要求减少动效): 直接瞬切, 不做任何动画。
-      if (!transition) {
-        commit();
-        setPhase("idle");
-        setSpec(null);
-        return;
-      }
-
-      // ⚠ 必须在 startViewTransition **之后、await 之前**同步挂上: 旧快照已经抓完(抓的是像素,
-      //   与本属性无关), 而伪元素的样式是在动画阶段才解析的, 此刻挂上正好赶得及。
-      root.dataset[VT_ROUTE_ATTR] = `${shown}>${screen}`;
-      // 全程不动 phase / runId: 包裹层绝不能挂动画类, 更不能被 key 重挂载 ——
-      // 那会把浏览器刚抓好的新快照连根拔掉。
-      transition.finished.finally(() => {
-        delete root.dataset[VT_ROUTE_ATTR];
-        if (seq !== seqRef.current) return;
-        setPhase("idle");
-        setSpec(null);
-      });
-      return;
-    }
+    // ⚠ 这里曾经有一条「共享元素」分支(编队 ↔ 角色详情走原生 View Transition)。
+    //   角色详情已改成编队页内部的一种态, 不再切 screen ⇒ 那条路线连同
+    //   app/viewTransition.global.css 一起删掉了。本组件现在只剩三段式与裂纹涟漪两条路。
+    //   (裂纹涟漪也用 startViewTransition, 但它在下面的 swap 里、由 curtain 决定。)
 
     // 零时长(总开关关闭 / 系统要求减少动效): 直接切, 不设定时器、不加动画类。
     if (next.exit.ms === 0 && next.enter.ms === 0) {

@@ -1,0 +1,173 @@
+/* 一张编队卡。276×772 的高楼型 —— 立绘竖着放才有"人站在那儿"的体量。
+   ⚠ 本文件里每个 px 都是「设计 px」(1920×1080 画布内), 不要写 vw/vh。
+   ★ 窗内材质(取景窗、scrim、角旗、动作条)全部来自 character/styles/glowCard.module.css,
+     与详情态立绘共用同一套配方; 本文件只声明编队态自己的尺度、入场与飞散。
+   ★ 时长旋钮(--fm-*-ms)由 FormationScreen 从 formationMorph/morphChoreo.ts 下发,
+     「减少动态效果」时那边已经把数值归零 ⇒ 这里不需要再写一份 @media 兜底。 */
+
+.card {
+  position: relative;
+  width: 276px;
+  height: 772px;
+  animation: crewIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(120ms + var(--i, 0) * 55ms);
+}
+
+/* ⚠⚠ 位置很关键: 必须排在 .card 之后、飞散规则之前。
+   同为 (0,1,0) 的规则按**书写顺序**决胜 —— 收拢期间 .is-scatter-in 在后面, 照常播;
+   收拢一结束类被摘掉, 生效的就是这条 none, 于是 .card 的入场动画不会在这时被"重新起播"。 */
+.is-instant {
+  animation: none;
+}
+
+.glow {
+  composes: glow-card from "../../styles/glowCard.module.css";
+}
+
+.body {
+  composes: glow-card-body from "../../styles/glowCard.module.css";
+}
+
+/* 过场期间本体让位给飞行层。⚠ 用 visibility 而不是 display: 网格位必须留着,
+   否则其余卡会在飞散的同时被重排, 观感是"整片阵列抖了一下"。 */
+.is-hidden {
+  visibility: hidden;
+}
+
+/* 卡面主体: 铺满整卡的一颗按钮 —— 点哪都进详情。
+   ⚠ 必须把全局 button 的深色底/描边/斜切角全部清掉, 只留布局(它们是给暗底 HUD 写的)。 */
+.main {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #2a1b3d;
+  font-weight: 400;
+  text-align: center;
+  clip-path: none;
+  transition: none;
+}
+
+/* ⚠⚠ 全局 base.css 的 `button:hover:not(:disabled)` 特异性是 (0,2,1) —— 单个类压不住它,
+   鼠标一进卡面就会被刷成暗底 HUD 的渐变底 + 强调色字。这里靠三层类选择器 (0,3,0) 按回常态:
+   本页的悬浮反馈**只有边框光**(BorderGlow 负责)。
+   :active 一并按住: 全局的 translateY(1px) 会让卡面内容相对外壳错位一格。 */
+.card .body .main:hover,
+.card .body .main:active {
+  border: 0;
+  background: none;
+  color: #2a1b3d;
+  transform: none;
+}
+
+.scrim {
+  composes: glow-card-scrim from "../../styles/glowCard.module.css";
+}
+
+.name {
+  composes: glow-card-name from "../../styles/glowCard.module.css";
+}
+
+.card.is-on .name {
+  color: var(--gc-color);
+}
+
+.bust {
+  composes: glow-card-portrait from "../../styles/glowCard.module.css";
+}
+
+.flag {
+  composes: glow-card-flag from "../../styles/glowCard.module.css";
+}
+
+/* ── 上阵 / 下阵动作条 ──
+   外层槽位负责定位并接收 disabled 按钮的悬浮事件(disabled 的 button 自己不派发指针事件);
+   动作条本体来自共享 kit。 */
+.toggle-slot {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 3;
+  display: block;
+}
+
+.toggle {
+  composes: glow-card-toggle from "../../styles/glowCard.module.css";
+}
+
+.toggle:disabled {
+  opacity: 0.56;
+}
+
+/* 同上: 压住全局按钮 hover, 保住共享 kit 的角色色反馈。 */
+.card .body .toggle:hover:not(:disabled),
+.card .body .toggle:focus-visible {
+  border-color: var(--gc-color);
+  background: color-mix(in srgb, var(--gc-color) 18%, #071014);
+  color: #ffffff;
+  outline: none;
+}
+
+/* ===================== 飞散 / 收拢 ===================== */
+/* ★ 方向量 --dx/--dy 是「本卡与被点那张卡的列距/行距」, --dist 是两者之和 ——
+     于是同一条 keyframes 就能让整片阵列**以被点的那张为原点**向外炸开, 越远的越晚起步、
+     推得越远。这正是伪元素方案做不到的那一档: ::view-transition-* 拿不到元素身上的 --i。 */
+.is-scatter-out {
+  animation: crewScatterOut var(--fm-scatter-ms, 320ms) cubic-bezier(0.4, 0, 0.9, 0.5) both;
+  animation-delay: calc(var(--dist, 0) * var(--fm-scatter-stagger, 26ms));
+  pointer-events: none;
+}
+
+.is-scatter-in {
+  animation: crewScatterIn var(--fm-gather-ms, 260ms) cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(var(--dist, 0) * var(--fm-scatter-stagger, 26ms));
+  pointer-events: none;
+}
+
+@keyframes crewScatterOut {
+  to {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translate(calc(var(--dx, 0) * 46px), calc(var(--dy, 0) * 44px + 34px)) scale(0.93);
+  }
+}
+
+@keyframes crewScatterIn {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translate(calc(var(--dx, 0) * 46px), calc(var(--dy, 0) * 44px + 34px)) scale(0.93);
+  }
+}
+
+@keyframes crewIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* 「减少动态效果」: 只取消入场的位移与错峰, 留一次极短淡入 —— 这一页信息密度高,
+   完全不做过渡反而会让人以为界面闪了一下。飞散/收拢的时长已由 TS 侧归零。 */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: crewFade 140ms linear backwards;
+    animation-delay: 0ms;
+  }
+}
+
+@keyframes crewFade {
+  from {
+    opacity: 0;
+  }
+}

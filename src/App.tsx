@@ -4,7 +4,6 @@ import { ScreenTransition } from "@/ui/app/ScreenTransition";
 import { MenuScreen } from "@/ui/menu/MenuScreen";
 import { TownScreen } from "@/ui/town/TownScreen";
 import { FormationScreen } from "@/ui/character/FormationScreen";
-import { CharacterDetailScreen } from "@/ui/character/CharacterDetailScreen";
 import { SortieScreen } from "@/ui/sortie/SortieScreen";
 import { ElevatorScene } from "@/ui/elevator/ElevatorScene";
 import { ExploreScreen } from "@/ui/explore/ExploreScreen";
@@ -20,10 +19,9 @@ function renderScreen(screen: Screen) {
   switch (screen) {
     case "town":
       return <TownScreen />;
+    // ⚠ 角色详情**没有**自己的 case: 它是编队页内部的一种态(见 FormationScreen 头部注释)。
     case "formation":
       return <FormationScreen />;
-    case "charDetail":
-      return <CharacterDetailScreen />;
     case "sortie":
       return <SortieScreen />;
     case "elevator":

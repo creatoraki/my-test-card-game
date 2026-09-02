@@ -1,0 +1,126 @@
+/* 训练点分配弹窗。⚠ 设计 px —— 本层活在编队页的 1920×1080 画布内, 缩放由 StageCanvas 负责。
+   ★ 遮罩压得比较重: 树本身是暗底金色, 而编队页是浅紫白场景, 不压暗树的线稿就浮不出来。 */
+.layer {
+  /* ⚠ 必须带上 tr-tokens: TalentTreeRadial / SquadResourceBar / BadgeSelectModal 的配色全部
+     读 --tr-* (它们原本长在训练室场景里, 由 .tr-scene 提供)。这一层是它们在编队页的新宿主。 */
+  composes: tr-tokens from "../styles/trainingKit.module.css";
+
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+}
+
+.veil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: radial-gradient(ellipse at 50% 46%, rgb(12 8 20 / 0.78) 0%, rgb(8 5 14 / 0.92) 100%);
+  clip-path: none;
+  animation: talentVeilIn 220ms ease both;
+}
+
+.layer .veil:hover {
+  border: 0;
+  background: radial-gradient(ellipse at 50% 46%, rgb(12 8 20 / 0.78) 0%, rgb(8 5 14 / 0.92) 100%);
+  transform: none;
+}
+
+.panel {
+  position: relative;
+  width: 1740px;
+  height: 980px;
+  pointer-events: none;
+  animation: talentPanelIn 320ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.tree {
+  pointer-events: auto;
+}
+
+.resource-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 4;
+  pointer-events: auto;
+}
+
+/* ── 未启用徽章时的空态 ── */
+.empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 560px;
+  justify-items: center;
+  gap: 14px;
+  padding: 46px 40px;
+  border: 1px solid rgb(255 194 26 / 0.28);
+  background: linear-gradient(150deg, rgb(30 22 12 / 0.94), rgb(14 10 20 / 0.94));
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+}
+
+.empty-title {
+  margin: 0;
+  color: #ffe9a8;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 6px;
+}
+
+.empty-sub {
+  margin: 0;
+  color: #b6a88c;
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+.empty-open {
+  margin-top: 8px;
+  padding: 10px 28px;
+  border: 1px solid rgb(255 194 26 / 0.5);
+  background: rgb(255 194 26 / 0.14);
+  color: #ffe9a8;
+  font-size: 15px;
+  letter-spacing: 4px;
+}
+
+.empty-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgb(255 233 168 / 0.24);
+  background: transparent;
+  color: #ffe9a8;
+  font-size: 18px;
+}
+
+@keyframes talentVeilIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes talentPanelIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .veil,
+  .panel {
+    animation-duration: 120ms;
+  }
+}

@@ -11,7 +11,7 @@
 | [base.css](../../src/styles/base.css) | reset、页面底纹、扫描线、按钮全家桶、表单元素和基础文字元素。 |
 | [stageCanvas.module.css](../../src/ui/app/styles/stageCanvas.module.css) | 全站 1920×1080 设计画布的 letterbox 容器、布局居中与 `zoom` 几何骨架；页面样式通过 `composes` 复用。 |
 
-**全局层只剩这两个文件**（第三个全局文件是 `ui/app/viewTransition.global.css`，那里没有类名）。
+**全局层只剩这两个文件**（曾经的第三个是 `ui/app/viewTransition.global.css`，已随编队↔详情改成同页元素重组一并删除）。
 原先的 `layout.css` 与 `widgets.css` 已在模块化改造中拆解完毕：
 
 - 被多页复用的骨架类（`.screen` / `.terminal-screen` / `.center` / `.screen-kicker` …）由各页在自己的
@@ -89,11 +89,11 @@ import s from "./CombatantView.module.css";
 | 4 | **跨组件的尺寸/配色契约用 CSS 自定义属性**（`--hand-card-w`、`--rr`、`--notch`）。CSS 变量不受哈希影响，是模块边界上唯一合法的通道；契约必须在双方文件头写清楚。 |
 | 5 | **`:global()` 只允许三种场景**：`::view-transition-*` 文档根伪元素、铁律 2 的 `data-*` 祖先状态、`src/styles/` 全局层的类（能用 `composes` 就不用 `:global`）。其余一律视为违规。 |
 
-### 保持全局的三处
+### 保持全局的两处
 
-`src/styles/tokens.css`（设计令牌）、`src/styles/base.css`（reset / `body` / `button` 皮肤）、`src/ui/app/viewTransition.global.css`（承载编队↔详情与出击两条路线，只含 `:root` 变量与 `::view-transition-*`，无类名）。除此之外 `src/ui` 下不应再出现普通 `.css`——`_legacy/` 是归档区，不算在内。
+`src/styles/tokens.css`（设计令牌）、`src/styles/base.css`（reset / `body` / `button` 皮肤）。除此之外 `src/ui` 下不应再出现普通 `.css`——`_legacy/` 是归档区，不算在内。
 
-`view-transition-name` 是属性**值**不是类名，不受 Modules 影响。
+原先还有第三处 `ui/app/viewTransition.global.css`（编队↔详情的共享元素过场，全是文档根伪元素、没有类名）。那条路线已改成编队页内部的同页元素重组，文件随之删除。现在唯一还写 `::view-transition-*` 的地方是 `ScreenTransition.module.css` 里探索→战斗的裂纹涟漪——它靠 `:root[data-vt-route="explore>battle"]` 收窄，写在 Modules 里也不受哈希影响，因为选择器括号里的名字是属性**值**不是类名。
 
 ### @keyframes 的两条相反陷阱
 

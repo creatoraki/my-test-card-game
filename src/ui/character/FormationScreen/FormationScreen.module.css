@@ -1,35 +1,26 @@
 /* ===================== 编队页(一级全屏页) ===================== */
 /* 与主菜单/据点/战斗同一套设计画布机制: 固定 1920×1080 画布 + --stage-scale 等比缩放,
-   画布之外是黑边。原理长注释的权威版本见 ui/MenuScreen.css 的 .menu-viewport 一族。
+   画布之外是黑边。原理长注释的权威版本见 menu/MenuScreen.css 的 .menu-viewport 一族。
    ⚠ 本文件里每个 px 都是「设计 px」: 不要写 vw/vh, 不要按窗口宽度做 @media。
 
-   ★ 视觉与冬眠仓(CryoScene.css)**同族**: 背景是同一张紫粉白场景, 故同样走「亮玻璃 + 深紫墨字」
-     那套配方, 强调色深紫罗兰 #7c4dbe。刻意不复用 .cryo-* 的类名 ——
-     那些是「浮层内」的尺度(卡 46×58、面板 1100×640), 这里是全屏尺度, 共用只会互相拖累;
-     两边独立演进, 只保留配方一致。
-   ★ 局部旋钮全在 .fm-stage 的 --fm-* 里, 只在本文件使用 —— 不新增也不覆盖 styles/tokens.css
-     的全局令牌(与 CryoScene 的 --cryo-* / TownScreen 的 --town-glow 同款做法)。
-
-   ⚠ 全局 base.css 里 `button:hover:not(:disabled)` 的特异性是 (0,2,1), 单靠一个类选择器
-     (0,2,0)压不住 —— 故本文件所有按钮的 hover/active 规则一律带 `.fm-stage ` 前缀。
-     这与 CryoScene.css 里到处的 `.town-splash ` 前缀是同一个坑。 */
+   ★ 本文件在改版后只剩「画布 + 底图」两件事 —— 顶带、卡阵、详情栏、飞行层各自带着自己的
+     module.css。编队态与详情态共用这张底图, 底图从头到尾不动, 动的只有它上面的元素;
+     这就是「元素重组」而不是「换页」的观感来源。
+   ★ 视觉与冬眠仓(CryoScene.css)**同族**: 同一张紫粉白场景, 亮玻璃 + 深紫墨字, 强调色
+     深紫罗兰 #7c4dbe。刻意不复用 .cryo-* 的类名 —— 那些是「浮层内」的尺度, 这里是全屏尺度。 */
 
 /* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
 .screen {
   padding: 14px;
 }
 
-.fm-viewport {
+.viewport {
   composes: viewport from "../../app/styles/stageCanvas.module.css";
   background: #000;
 }
-.fm-stage {
+
+.stage {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
-  --fm-ink: #2a1b3d; /* 主文字: 深紫墨 */
-  --fm-ink-dim: #6b5b82; /* 次文字 / 标签 */
-  --fm-line: #2a1b3d24; /* 常态描边 */
-    --fm-glow: #7c4dbe;
-    --fm-glow-deep: #55307f;
 
   overflow: hidden;
   padding: 0;
@@ -38,18 +29,19 @@
 
 /* ===================== 背景 ===================== */
 /* 原图与画布同为 16:9 ⇒ cover 只等比缩小, 无裁切无变形。 */
-.fm-bg {
+.bg {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   pointer-events: none;
-  z-index: 0;
 }
+
 /* 提亮 + 收边: 中间偏亮让卡片阵列托得起来, 四角略压一点点避免版面飘。
    ⚠ 这是**提亮**不是压暗 —— 冬眠仓那张图是浅色紫粉白, 压暗会毁掉它的气质。 */
-.fm-veil {
+.veil {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -57,296 +49,4 @@
   background:
     linear-gradient(to bottom, #ffffff8f 0%, #ffffff5c 42%, #f0e6fa73 100%),
     radial-gradient(ellipse at 50% 46%, transparent 52%, #2a1b3d1a 100%);
-}
-
-/* ===================== 左上: 面包屑与标题 ===================== */
-/* 与冬眠仓同构: 不做成卡片, 只靠一道左侧竖线把路径、标题和说明拢在一起。 */
-.fm-header {
-  position: absolute;
-  z-index: 1;
-  padding-left: 18px;
-  border-left: 2px solid var(--fm-glow);
-  animation: fmRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-.fm-crumb {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 28px;
-}
-.fm-crumb-separator {
-  color: var(--fm-ink-dim);
-  font-size: 14px;
-}
-.fm-crumb-current {
-  color: var(--fm-glow);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 2px;
-}
-/* ⚠ 刻意没有 text-shadow 外发光: 那是暗底上的手法, 压在浅紫背景上只会糊出一圈脏边。 */
-.fm-title {
-  margin: 8px 0 0;
-  color: var(--fm-ink);
-  font-size: 42px;
-  font-weight: 700;
-  letter-spacing: 10px;
-  text-indent: 10px; /* 补回 letter-spacing 在末字之后多留的那一格 */
-}
-.fm-sub {
-  margin: 6px 0 0;
-  color: var(--fm-ink-dim);
-  font-size: 14px;
-  letter-spacing: 2px;
-}
-
-/* ===================== 右上: 羁绊档位条 ===================== */
-.fm-bonds {
-  position: absolute;
-  z-index: 2;
-  overflow: visible;
-  view-transition-name: vt-bonds;
-  animation: fmRise 420ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-
-/* ===================== 卡片阵列 ===================== */
-/* ★ left / top / width / height / gap 五个旋钮由 FormationScreen.tsx 的内联 style 给,
-     这里只声明机制 —— 与 .town-bento / .cryo-entries 同款分工。
-   260px = 下面 .fm-card 的固定宽度。auto-fill 而不是 auto-fit: 人少的时候不该把两三张卡
-   拉开摊满一整行(同 .cryo-deck-grid 的取舍)。
-  ★ 卡片是 260×714 的**高楼型** —— 立绘竖着放才有"人站在那儿"的体量,
-       1776px 宽正好排 6 列(260×6 + 20×5 = 1660), 一行放得下常规队伍规模;
-       新的 216px 起点与 786px 高度为阵列腾出底部空间。 */
-.fm-grid {
-  position: absolute;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 260px);
-  grid-auto-rows: 714px;
-  align-content: start;
-  justify-content: start;
-  min-height: 0;
-  padding: 4px;
-  overflow-y: auto;
-}
-.fm-empty {
-  grid-column: 1 / -1;
-  margin: 0;
-  padding-top: 80px;
-  color: var(--fm-ink-dim);
-  font-size: 15px;
-  letter-spacing: 2px;
-}
-
-/* 一张角色卡。外壳是 BorderGlow 根, 卡面与底部动作条仍是两个同级 button。
-   错峰入场: --i 由 TSX 的 stagger() 下发。共享的窗内配方见 glowCard.module.css。 */
-.fm-card {
-  composes: glow-card from "../styles/glowCard.module.css";
-  --fm-card-w: 260px;
-
-  position: relative;
-  width: var(--fm-card-w);
-  height: 714px;
-  animation: fmCardIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  animation-delay: calc(120ms + var(--i, 0) * 55ms);
-}
-@keyframes fmCardIn {
-  from {
-    opacity: 0;
-    filter: blur(4px);
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-  }
-}
-
-/* ===================== 与角色详情页之间的共享元素过场 ===================== */
-/* ★ 整套动画**不在本文件** —— 它跑在文档根上的 ::view-transition-* 伪元素里,
-     统一写在 app/viewTransition.global.css。这里只负责给本页元素**挂名字**。
-   ★ 卡片一族的名字由 FormationScreen.tsx 内联下发(要按"是不是被点的那张"和索引区分),
-     这里只有全页唯一的四件角落元素能写死。
-   ⚠ .fm-bg / .fm-veil 刻意不命名: 与详情页是同一张底图, 让它们落进 root 快照,
-     两页像素一致 ⇒ root 的默认交叉淡化完全看不见 ⇒ 观感上"底图从头到尾没动过"。 */
-.fm-header {
-  view-transition-name: vt-fm-header;
-}
-.fm-back {
-  view-transition-name: vt-fm-back;
-}
-
-/* ⚠⚠ 从详情页飞回来的那一次挂载, 必须关掉本页**自己**的入场动画(fmRise / fmCardIn):
-     1. ::view-transition-new(...) 是**活的**渲染, 不是静态位图 —— 元素自己的入场动画会照播,
-        与 app/viewTransition.global.css 里那组飞入叠在一起, 变成"淡入两遍";
-     2. 更要命的是几何: 这两条动画的 backwards 填充带 translateY, 浏览器测量新状态的
-        border box 时量到的是**偏移后**的位置, 共享元素会飞到一个偏下的落点。
-   ⚠ 只能按"是不是飞回来的"开关, 不能一刀切删掉 —— 从据点直接进编队页走的是普通淡入淡出,
-     那条路线上这些入场动画仍然是本页唯一的过渡。类由 FormationScreen.tsx 按 landingId 挂。 */
-.fm-stage.is-vt-enter .fm-header,
-.fm-stage.is-vt-enter .fm-bonds,
-.fm-stage.is-vt-enter .fm-back,
-.fm-stage.is-vt-enter .fm-card {
-  animation: none;
-}
-
-/* 卡面主体: 铺满整卡的一颗按钮 —— 点哪都进详情。
-   ★★ 这里是本次改版的结构支点: 主体不再是「取景窗 + 窗下文字块」的纵向 flex,
-     而是一块**定位容器** —— 取景窗 inset:0 顶满整卡, 角色名绝对定位浮在窗内底部。
-     旧版那块窗外的白色文字区正是"底部与边框割裂"的来源: 玻璃卡底色 + 一条横分隔线,
-     把 260px 宽的卡硬生生切成上下两截。
-   ⚠ 必须把全局 button 的深色底/描边/斜切角全部清掉, 只留布局(它们是给暗底 HUD 写的)。 */
-.fm-card-body {
-  composes: glow-card-body from "../styles/glowCard.module.css";
-}
-
-.fm-card-main {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 0; /* 取景窗要顶到卡片四边, 一格内边距都不留 */
-  border: 0;
-  background: none;
-  color: var(--fm-ink);
-  font-weight: 400;
-  text-align: center;
-  clip-path: none;
-  transition: none; /* 位移交给外壳 .fm-card 做, 两层都动会打架 */
-}
-/* ⚠⚠ 必须把全局 `button:hover:not(:disabled)` 在卡面上的效果整条按住:
-   那条规则的特异性是 (0,2,1), 上面 .fm-card-main 的 (0,1,0) 压不住它 ⇒ 鼠标一进卡面,
-   卡面按钮就会被刷成暗色渐变底 + --accent 色的字(那是暗底 HUD 的配方), 表现为「悬浮时
-   底下文字变色」。这里用 `.fm-stage .fm-card-main:hover` (0,3,0) 把 background/color/border
-   全部按回常态 —— 本页的悬浮反馈**只有边框**(见 .fm-card:hover)。
-   :active 一并按住: 全局的 translateY(1px) 会让卡面内容相对外壳错位一格。 */
-.fm-stage .fm-card-main:hover,
-.fm-stage .fm-card-main:active {
-  border: 0;
-  background: none;
-  color: var(--fm-ink);
-  transform: none;
-}
-/* 窗内零件均来自共享 kit; 编队页只声明本页使用的组合类。 */
-.fm-card-scrim {
-  composes: glow-card-scrim from "../styles/glowCard.module.css";
-}
-
-.fm-card-name {
-  composes: glow-card-name from "../styles/glowCard.module.css";
-}
-
-.fm-card.is-on .fm-card-name {
-  color: var(--gc-color);
-}
-
-.fm-bust {
-  composes: glow-card-portrait from "../styles/glowCard.module.css";
-}
-
-/* 角旗与角色名均使用 glowCard.module.css 的角色色契约。 */
-.fm-card-flag {
-  composes: glow-card-flag from "../styles/glowCard.module.css";
-}
-
-/* ===================== 上阵 / 下阵动作条 ===================== */
-/* 外层槽位负责定位和接收 disabled 按钮的悬浮事件; 动作条本体来自共享 kit。
-   定位/尺寸与 .fm-card-name 的 bottom 是同一套算式(16 + 42 = 58, 名字停在 70)。 */
-.fm-toggle-slot {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  z-index: 3;
-  display: block;
-}
-
-.fm-toggle:disabled {
-  opacity: 0.56;
-}
-
-.fm-toggle {
-  composes: glow-card-toggle from "../styles/glowCard.module.css";
-}
-
-/* 全局按钮 hover 规则特异性更高, 这里明确保住共享素玻璃动作条的角色色反馈。 */
-.fm-stage .fm-toggle:hover:not(:disabled),
-.fm-stage .fm-toggle:focus-visible {
-  border-color: var(--gc-color);
-  background: color-mix(in srgb, var(--gc-color) 18%, #071014);
-  color: #ffffff;
-  outline: none;
-}
-
-/* ===================== 面包屑返回 ===================== */
-/* 返回按钮: 压到标题路径尺度, 不跟卡片阵列抢注意力。 */
-.fm-back {
-  z-index: 1;
-  --notch: 10px;
-  padding: 6px 14px;
-  border: 1px solid var(--fm-line);
-  background: #ffffffab;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  color: var(--fm-ink);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 4px;
-  text-indent: 4px;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    transform 0.15s cubic-bezier(0.2, 0.72, 0.28, 1);
-  animation: fmRise 420ms 180ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-.fm-stage .fm-back:hover {
-  border-color: var(--fm-glow);
-  background: #ffffffe0;
-  color: var(--fm-glow-deep);
-  transform: none;
-}
-.fm-stage .fm-back:active {
-  transform: translateY(1px);
-}
-
-/* ===================== 入场 ===================== */
-@keyframes fmRise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-}
-
-/* 「减少动态效果」: 位移与错峰一律取消, 只留一次极短的淡入 —— 这一页的信息密度高,
-   完全不做过渡反而会让人以为界面闪了一下。 */
-@media (prefers-reduced-motion: reduce) {
-  .fm-header,
-  .fm-bonds,
-  .fm-back,
-  .fm-card {
-    animation: fmFade 140ms linear backwards;
-    animation-delay: 0ms;
-  }
-  /* BorderGlow 的光锥属于交互反馈, 只取消页面入场与按钮位移。 */
-  .fm-stage .fm-back:hover,
-  .fm-stage .fm-toggle:hover:not(:disabled) {
-    transform: none;
-  }
-  /* ⚠ 与详情页之间的共享元素过场不需要在这里兜底: resolveTransition 已经短路成零时长,
-     根本不会调 startViewTransition, ::view-transition-* 伪元素连生成都不会生成。 */
-}
-@keyframes fmFade {
-  from {
-    opacity: 0;
-  }
 }
