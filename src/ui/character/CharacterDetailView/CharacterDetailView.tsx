@@ -17,6 +17,7 @@ import type { ForgeView } from "@/ui/character/DeckForge/forgeMorph";
 import { FIGURE_RECT } from "@/ui/character/FormationScreen/formationMorph/morphChoreo";
 import { EquipPicker } from "./EquipPicker";
 import { cx } from "@/ui/common/cx";
+import { CharacterNavigator } from "./CharacterNavigator";
 import { FigureStage } from "./FigureStage";
 import { DeckPanel } from "./Workbench/DeckPanel";
 import { ProfilePanel } from "./Workbench/ProfilePanel";
@@ -37,10 +38,25 @@ interface Props {
    * 两个 window 监听会同时触发, 表现为"关弹窗顺手把详情也退了"。
    */
   escEnabled: boolean;
+  canPrevious: boolean;
+  canNext: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
   onBack: () => void;
 }
 
-export function CharacterDetailView({ charId, morphing, leaving, closingOverlays, escEnabled, onBack }: Props) {
+export function CharacterDetailView({
+  charId,
+  morphing,
+  leaving,
+  closingOverlays,
+  escEnabled,
+  canPrevious,
+  canNext,
+  onPrevious,
+  onNext,
+  onBack,
+}: Props) {
   const characters = useTownStore((state) => state.characters);
   const party = useTownStore((state) => state.party);
   const storage = useTownStore((state) => state.storage);
@@ -54,6 +70,7 @@ export function CharacterDetailView({ charId, morphing, leaving, closingOverlays
   const cs = characters[charId];
   const equipPreview = useEquipPreview(cs, storage);
   const { activeSlot, candidates, previewStats } = equipPreview;
+  const canNavigate = !morphing && !leaving && !closingOverlays && !forgeView && !activeSlot;
 
   // 换人: 一切工作区状态归零。
   useEffect(() => {
@@ -96,17 +113,28 @@ export function CharacterDetailView({ charId, morphing, leaving, closingOverlays
   useEffect(() => {
     if (!escEnabled) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (forgeView) return;
-      if (activeSlot) {
-        equipPreview.clear();
+      if (event.key === "Escape") {
+        if (forgeView) return;
+        if (activeSlot) {
+          equipPreview.clear();
+          return;
+        }
+        onBack();
         return;
       }
-      onBack();
+
+      if (!canNavigate) return;
+      if (event.key === "ArrowLeft" && canPrevious) {
+        event.preventDefault();
+        onPrevious();
+      } else if (event.key === "ArrowRight" && canNext) {
+        event.preventDefault();
+        onNext();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeSlot, escEnabled, forgeView, onBack]);
+  }, [activeSlot, canNavigate, canNext, canPrevious, escEnabled, equipPreview, forgeView, onBack, onNext, onPrevious]);
 
   if (!cs) return null;
 
@@ -121,6 +149,14 @@ export function CharacterDetailView({ charId, morphing, leaving, closingOverlays
 
   return (
     <div className={cx(s.view, forgeView && s["is-forge-open"], leaving && s["is-leaving"])}>
+      <CharacterNavigator
+        canPrevious={canPrevious}
+        canNext={canNext}
+        disabled={!canNavigate}
+        onPrevious={onPrevious}
+        onNext={onNext}
+      />
+
       <FigureStage
         characterId={def.id}
         emoji={def.emoji}

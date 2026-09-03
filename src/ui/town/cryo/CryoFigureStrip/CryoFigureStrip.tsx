@@ -51,7 +51,6 @@ export function CryoFigureStrip({ children, className }: Props) {
     if (!viewport) return;
     pointerRef.current = { id: event.pointerId, x: event.clientX, scrollLeft: viewport.scrollLeft };
     draggedRef.current = false;
-    viewport.setPointerCapture(event.pointerId);
   };
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
@@ -59,7 +58,10 @@ export function CryoFigureStrip({ children, className }: Props) {
     const viewport = viewportRef.current;
     if (!pointer || pointer.id !== event.pointerId || !viewport) return;
     const distance = event.clientX - pointer.x;
-    if (Math.abs(distance) > 4) draggedRef.current = true;
+    if (Math.abs(distance) > 4) {
+      draggedRef.current = true;
+      if (!viewport.hasPointerCapture(event.pointerId)) viewport.setPointerCapture(event.pointerId);
+    }
     viewport.scrollLeft = pointer.scrollLeft - distance;
   };
 

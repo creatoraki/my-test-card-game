@@ -70,6 +70,14 @@ export function useFormationMorph() {
     setState({ mode: "roster", phase: "toRoster", charId: current.charId, flight: null });
   }, []);
 
+  const switchDetail = useCallback((charId: string) => {
+    const current = stateRef.current;
+    if (current.mode !== "detail" || current.phase !== "idle" || current.charId === charId) return;
+    setState((prev) =>
+      prev.mode === "detail" && prev.phase === "idle" ? { ...prev, charId } : prev,
+    );
+  }, []);
+
   useLayoutEffect(() => {
     if (state.phase !== "toRoster" || state.flight || !state.charId) return;
     const el = document.querySelector<HTMLElement>(crewCardSelector(state.charId));
@@ -143,6 +151,7 @@ export function useFormationMorph() {
     showDetail: Boolean(state.charId) && (state.mode === "detail" || state.phase === "toRoster"),
     openDetail,
     backToRoster,
+    switchDetail,
     finishFlight,
   };
 }

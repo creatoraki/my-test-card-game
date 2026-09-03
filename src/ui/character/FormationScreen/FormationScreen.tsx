@@ -87,6 +87,10 @@ export function FormationScreen() {
     return added.length ? [...kept, ...added] : kept;
   }, [baseOrder, awakened]);
 
+  const detailIndex = morph.charId ? roster.indexOf(morph.charId) : -1;
+  const previousCharId = detailIndex > 0 ? roster[detailIndex - 1] : null;
+  const nextCharId = detailIndex >= 0 && detailIndex < roster.length - 1 ? roster[detailIndex + 1] : null;
+
   // Esc 返回据点。⚠ 只在编队态且没有过场在跑时响应 —— 详情态那一层的 Esc 归
   //   CharacterDetailView(它要先逐层收掉锻造浮层与装备仓库), 两边互不打架。
   const canLeave = morph.mode === "roster" && morph.phase === "idle" && !talentOpen;
@@ -162,6 +166,14 @@ export function FormationScreen() {
           leaving={morph.phase === "toRoster"}
           closingOverlays={backPending}
           escEnabled={!talentOpen && !backPending}
+          canPrevious={previousCharId !== null}
+          canNext={nextCharId !== null}
+          onPrevious={() => {
+            if (previousCharId) morph.switchDetail(previousCharId);
+          }}
+          onNext={() => {
+            if (nextCharId) morph.switchDetail(nextCharId);
+          }}
           onBack={back}
         />
       )}
