@@ -42,8 +42,11 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     rarity: "rare",
     exhaust: true,
     anim: "fire",
-    effects: [{ type: "DAMAGE", multiplier: 1.8, target: "primary" }],
-    text: "造成 {0} 点伤害。本回合每丢弃 1 张牌，本卡费用 -1。打出后消耗。",
+    effects: [
+      { type: "PLAY_STAT_BONUS", stat: "armorPen", amount: 5 },
+      { type: "DAMAGE", multiplier: 1.6, target: "primary" },
+    ],
+    text: "造成 {1} 点伤害；穿甲 +5。本回合每丢弃 1 张牌，本卡费用 -1。打出后消耗。",
   },
   {
     id: "blood-ruin",
@@ -55,17 +58,18 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     rarity: "uncommon",
     anim: "blood-slash",
     effects: [
+      { type: "PLAY_STAT_BONUS", stat: "armorPen", amount: 5 },
       { type: "LOSE_HP", pctOfCurrentHp: 0.1, target: "self" },
       { type: "DISCARD", amount: 2, discardPick: "handBottom" },
       {
         type: "DAMAGE",
-        multiplier: 1.0,
+        multiplier: 0.9,
         bonusMultiplierFrom: "lastDiscardBatch",
-        bonusMultiplierPer: 0.4,
+        bonusMultiplierPer: 0.35,
         target: "primary",
       },
     ],
-    text: "失去自身 10% 当前生命，丢弃手牌最后 2 张，然后造成 {0} 点伤害；每丢弃 1 张，伤害倍率 +40%。",
+    text: "失去自身 10% 当前生命，丢弃手牌最后 2 张，然后造成 {3} 点伤害；每丢弃 1 张，伤害倍率 +35%。穿甲 +5。",
   },
   {
     id: "phantom-moon",
@@ -103,13 +107,14 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     effects: [
       {
         type: "DAMAGE",
-        multiplier: 0.6,
+        multiplier: 0.65,
         bonusMultiplierPerSelfStack: 0.2,
         target: "allFoes",
+        hitBonus: -10,
       },
     ],
     onDiscard: { mode: "returnToHand", maxStacks: 5 },
-    text: "对所有敌人造成 {0} 点伤害。被丢弃时回到手牌，伤害倍率 +20%，最多累计 5 层；满 5 层时费用 -2。打出后累计清零。",
+    text: "对所有敌人造成 {0} 点伤害，命中 -10%。被丢弃时回到手牌，伤害倍率 +20%，最多累计 5 层；满 5 层时费用 -2。打出后累计清零。",
   },
   {
     id: "falling-sakura",
@@ -142,10 +147,10 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     rarity: "uncommon",
     anim: "slash",
     effects: [
-      { type: "DAMAGE", multiplier: 0.8, target: "primary" },
+      { type: "DAMAGE", multiplier: 0.7, target: "primary", hitBonus: 10 },
       { type: "DRAW", amount: 1, condition: "noPlaysThisRound" },
     ],
-    text: "造成 {0} 点伤害。本回合没有使用过其他牌时，抽 1 张牌。",
+    text: "造成 {0} 点伤害，命中 +10%。本回合没有使用过其他牌时，抽 1 张牌。",
   },
   {
     id: "wolf-sparrow",
@@ -157,16 +162,17 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     rarity: "uncommon",
     anim: "slash",
     effects: [
+      { type: "PLAY_STAT_BONUS", stat: "critRate", amount: 20 },
       {
         type: "DAMAGE",
-        multiplier: 1.2,
-        // 目标生命低于 30% 时倍率改为 180%（1.2 + 0.6）。
-        damageBonus: { when: "targetHpBelowPct", value: 30, multiplier: 0.6 },
+        multiplier: 1.1,
+        // 目标生命低于 30% 时倍率改为 160%（1.1 + 0.5）。
+        damageBonus: { when: "targetHpBelowPct", value: 30, multiplier: 0.5 },
         onKill: [{ type: "DRAW", amount: 2, target: "self" }],
         target: "primary",
       },
     ],
-    text: "造成 {0} 点伤害；目标生命低于 30% 时伤害倍率改为 180%。击杀时抽 2 张牌。",
+    text: "造成 {1} 点伤害；目标生命低于 30% 时伤害倍率改为 160%；暴击 +20%。击杀时抽 2 张牌。",
   },
   {
     id: "rift-light",
@@ -180,15 +186,16 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     anim: "lightning",
     // 先丢弃再结算：伤害倍率按本次丢弃张数加算，一次结算完成（不拆成两段飘字）。
     effects: [
+      { type: "PLAY_STAT_BONUS", stat: "critRate", amount: 20 },
       { type: "DISCARD", discardPick: "handAll" },
       {
         type: "DAMAGE",
-        multiplier: 2.0,
+        multiplier: 1.8,
         bonusMultiplierFrom: "lastDiscardBatch",
-        bonusMultiplierPer: 0.5,
+        bonusMultiplierPer: 0.45,
         target: "primary",
       },
     ],
-    text: "造成 {0} 点伤害，然后丢弃所有手牌；每丢弃 1 张，额外造成 50% 攻击力的伤害。打出后消耗。",
+    text: "造成 {2} 点伤害，暴击 +20%，然后丢弃所有手牌；每丢弃 1 张，额外造成 45% 攻击力的伤害。打出后消耗。",
   },
 ];
