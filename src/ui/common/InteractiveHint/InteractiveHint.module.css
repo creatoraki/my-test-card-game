@@ -134,11 +134,24 @@
 
 /* active: 由调用方直接点亮(卡牌「已选中」), 与宿主 :hover 驱动的那条并列, 效果完全一致。 */
 .hint.is-active {
+  inset: calc(-1 * (var(--ihint-offset, 6px) + 2px));
   opacity: 1;
+  --ihint-thickness: calc(6px * var(--deck-card-scale, 1));
+  --ihint-core: #fff1f1;
+  --ihint-neon: #ff4d5a;
+  --ihint-neon-deep: #b5122b;
 }
 
 .hint.is-active .arm {
   animation: interactiveHintBreath 1.8s ease-in-out infinite alternate;
+}
+
+.hint.is-active .is-bl {
+  bottom: -6px;
+}
+
+.hint.is-active .is-br {
+  bottom: -6px;
 }
 
 @keyframes interactiveHintBreath {
