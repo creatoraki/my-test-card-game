@@ -1264,6 +1264,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v17: 装备模型预算调整, 旧档中的商店与仓库装备 roll 不再可信, 换 key 让旧档自然失效重建。
     // ⚠ v16: 新增博物馆图鉴累计名单, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v15: 新增营养舱科技与疗养名单, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v14: 新增 clearedMaps, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1278,6 +1279,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v16", version: 16 },
+    { name: "town-profile-v17", version: 17 },
   ),
 );

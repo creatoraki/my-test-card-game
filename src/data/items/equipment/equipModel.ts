@@ -22,7 +22,7 @@ export const WEAPON_PRESET: EquipSlotPreset = { slot: "weapon", icon: "weapon" }
 export const ARMOR_PRESET: EquipSlotPreset = { slot: "armor", icon: "armor" };
 export const TRINKET_PRESET: EquipSlotPreset = { slot: "trinket", icon: "trinket" };
 
-const STANDARD_BUDGET_MAX = [10, 15, 20, 25, 30];
+const STANDARD_BUDGET_MAX = [15, 20, 25, 30, 35];
 const BUDGET_ROLLS = 2; // 取两次预算的较小值，压低满完美度出现率。
 const DRAWBACK_COST = [3, 3, 4, 4, 5];
 const DRAWBACK_REFUND = [2, 2, 3, 3, 4];
@@ -39,6 +39,7 @@ function createAffixes(
     : extreme
       ? [6 + index * 4, 5 + index * 3, 3 + index * 2]
       : [5 + index * 3, 4 + index * 2, 3 + index];
+  maxBySlot[0] += 5;
   const minBySlot = stats.length === 2 ? [3, 2] : [2, 2, 1];
   const weights = [3, 2, 1];
   return stats.map((stat, slot) => ({
@@ -73,7 +74,7 @@ export function expandEquipTiers(
       icon: preset.icon,
       model: {
         budget: {
-          min: 5 + index * 4,
+          min: 10 + index * 4,
           max: STANDARD_BUDGET_MAX[index],
           rolls: BUDGET_ROLLS,
         },
