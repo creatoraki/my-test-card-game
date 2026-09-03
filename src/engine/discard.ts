@@ -42,13 +42,14 @@ function autoTarget(state: BattleState, card: Card): string | undefined {
 
 // 「被丢弃时回到手牌」: 累计一层实例层数, 再把牌从弃牌堆挪回手牌。
 // 手牌已满时只累计层数, 牌留在弃牌堆 —— 手牌上限是硬约束, 不为这条触发破例。
-function returnToHand(state: BattleState, card: Card): void {
+function returnToHand(state: BattleState, card: Card, beforeMove?: () => void): void {
   const max = card.onDiscard?.maxStacks ?? Infinity;
   card.discardStacks = Math.min(max, (card.discardStacks ?? 0) + 1);
   if (state.hand.length >= partyHandLimit(state)) {
     ops.log(state, `${card.name} 手牌已满，未能回到手牌`);
     return;
   }
+  beforeMove?.();
   state.discard = state.discard.filter((id) => id !== card.uid);
   state.hand.push(card.uid);
   ops.log(state, `${card.name} 回到手牌（累计 ${card.discardStacks} 层）`);
@@ -81,7 +82,18 @@ export function moveToDiscard(
 
   if (card && triggerable && trigger) {
     if (trigger.mode === "useSelf") state.pendingAutoPlays.push(uid);
-    else if (trigger.mode === "returnToHand") returnToHand(state, card);
+    else if (trigger.mode === "returnToHand") {
+      const recorder = currentRecorder(rec);
+      if (!recorder) {
+        returnToHand(state, card);
+      } else {
+        ensureCardFxSnapshot(state);
+        const beforeHp = snapshotHp(state);
+        returnToHand(state, card, () => {
+          recordCardTrigger(state, card, beforeHp, recorder, { missed: [], hit: [] });
+        });
+      }
+    }
     else resolveDiscardEffects(state, card, trigger.effects ?? [], rec);
   }
 

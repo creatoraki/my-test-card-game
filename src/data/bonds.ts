@@ -45,9 +45,9 @@ export const BOND_DEFS: Record<string, BondDef> = {
     desc: "以柔驯猛。队伍的每一次挥击都更沉。",
     color: "#ff6b57",
     tiers: [
-      { count: 3, desc: "全队攻击力 +3", mods: { flat: { attack: 3 } } },
-      { count: 6, desc: "全队攻击力 +6", mods: { flat: { attack: 6 } } },
-      { count: 9, desc: "全队攻击力 +10", mods: { flat: { attack: 10 } } },
+      { count: 3, desc: "全队攻击力 +10", mods: { flat: { attack: 10 } } },
+      { count: 6, desc: "全队攻击力 +20", mods: { flat: { attack: 20 } } },
+      { count: 9, desc: "全队攻击力 +30", mods: { flat: { attack: 30 } } },
     ],
   },
   chariot: {
@@ -69,9 +69,9 @@ export const BOND_DEFS: Record<string, BondDef> = {
     desc: "号角落下的那一刻，罪与罚同时兑现。",
     color: "#ffd84a",
     tiers: [
-      { count: 3, desc: "全队暴击率 +10%", mods: { flat: { critRate: 10 } } },
-      { count: 6, desc: "全队暴击率 +20%", mods: { flat: { critRate: 20 } } },
-      { count: 9, desc: "全队暴击率 +30%", mods: { flat: { critRate: 30 } } },
+      { count: 3, desc: "全队暴击率 +20%", mods: { flat: { critRate: 20 } } },
+      { count: 6, desc: "全队暴击率 +30%", mods: { flat: { critRate: 30 } } },
+      { count: 9, desc: "全队暴击率 +40%", mods: { flat: { critRate: 40 } } },
     ],
   },
 

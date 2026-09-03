@@ -23,6 +23,7 @@ function statScaledValue(stats: CardTextStats, stat: keyof StatBlock, multiplier
 export function effectDisplayValue(
   effect: EffectDescriptor | undefined,
   stats: CardTextStats,
+  selfStacks = 0,
 ): number | null {
   if (!effect) return null;
 
@@ -30,7 +31,12 @@ export function effectDisplayValue(
     case "DAMAGE":
       return effect.amount != null
         ? effect.amount
-        : Math.round(attackDamage(stats.attack, effect.multiplier ?? 1));
+        : Math.round(
+            attackDamage(
+              stats.attack,
+              (effect.multiplier ?? 1) + (effect.bonusMultiplierPerSelfStack ?? 0) * selfStacks,
+            ),
+          );
     case "HEAL":
     case "GAIN_SHIELD":
       return effect.multiplier != null
@@ -68,7 +74,7 @@ export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost
     }
     const index = Number(indexText);
     const effects = kind === "d" ? card.onDiscard?.effects : kind === "k" ? card.cultivate?.effects : card.effects;
-    const value = effectDisplayValue(effects?.[index], effectiveStats);
+    const value = effectDisplayValue(effects?.[index], effectiveStats, card.discardStacks ?? 0);
     return value == null ? "?" : String(value);
   });
 }

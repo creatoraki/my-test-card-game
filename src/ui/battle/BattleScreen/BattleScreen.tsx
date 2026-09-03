@@ -527,7 +527,7 @@ export function BattleScreen() {
       anim: t.anim ?? "slash",
       snapshot: t.snapshot,
       hits: t.hits,
-      card: b.cards[t.cardUid],
+      card: t.snapshot.cards[t.cardUid] ?? b.cards[t.cardUid],
       discardUid: t.cardUid,
     };
   }
