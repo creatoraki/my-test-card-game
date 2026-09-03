@@ -1,6 +1,6 @@
 import { forwardRef, type CSSProperties, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
-import { OPEN_MS, box, type Rect } from "../cryoMorph/cryoChoreo";
+import { OPEN_MS, SLIDE_MS, box, type Rect } from "../cryoMorph/cryoChoreo";
 import s from "../styles/cryoKit.module.css";
 
 export const CONTENT_DELAY_MS = 0;
@@ -34,7 +34,7 @@ export const CryoPanelShell = forwardRef<HTMLElement, Props>(function CryoPanelS
         className={cn("panel", !ready && "is-morphing")}
         ref={ref}
         onClick={(event) => event.stopPropagation()}
-        style={{ ...box(rect), "--content-delay": `${CONTENT_DELAY_MS}ms`, "--land-delay": `${OPEN_MS}ms` } as CSSProperties}
+        style={{ ...box(rect), "--content-delay": `${CONTENT_DELAY_MS}ms`, "--land-delay": `${OPEN_MS}ms`, "--seed-delay": `${SLIDE_MS}ms` } as CSSProperties}
       >
         <CryoAmbience />
         {ready ? (

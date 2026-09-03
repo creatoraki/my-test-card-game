@@ -38,6 +38,9 @@
 
 .figure {
   composes: figureFrame from "../styles/cryoFigure.module.css";
+}
+
+.card .figure {
   position: absolute;
   inset: 0;
   border: 0;

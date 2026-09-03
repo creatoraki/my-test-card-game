@@ -56,21 +56,21 @@ export function useCryoMorph() {
     const opening = state.phase === "opening";
     const target = PANEL_RECT[state.panel];
     const origin = state.origin ?? target;
-    const narrow = centered(target, origin.w, origin.h);
-    const wide = centered(target, target.w, origin.h);
+    const horizontal = { ...centered(target, origin.w, origin.h), y: origin.y };
+    const wide = { ...centered(target, target.w, origin.h), y: origin.y };
     const from = opening ? origin : target;
     const to = opening ? target : origin;
     const keyframes = opening
       ? [
           { ...box(from), offset: 0 },
-          { ...box(narrow), offset: SLIDE_MS / OPEN_MS },
+          { ...box(horizontal), offset: SLIDE_MS / OPEN_MS },
           { ...box(wide), offset: (SLIDE_MS + WIDEN_MS) / OPEN_MS },
           { ...box(to), offset: 1 },
         ]
       : [
           { ...box(from), offset: 0 },
           { ...box(wide), offset: CLOSE_TALLEN_MS / CLOSE_MS },
-          { ...box(narrow), offset: (CLOSE_TALLEN_MS + CLOSE_WIDEN_MS) / CLOSE_MS },
+          { ...box(horizontal), offset: (CLOSE_TALLEN_MS + CLOSE_WIDEN_MS) / CLOSE_MS },
           { ...box(to), offset: 1 },
         ];
 

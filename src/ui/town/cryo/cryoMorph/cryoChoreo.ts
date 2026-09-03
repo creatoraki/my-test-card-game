@@ -12,13 +12,13 @@ export interface Rect {
 
 const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
 
-export const SLIDE_MS = duration(320);
+export const SLIDE_MS = duration(520);
 export const WIDEN_MS = duration(260);
 export const TALLEN_MS = duration(300);
 export const OPEN_MS = SLIDE_MS + WIDEN_MS + TALLEN_MS;
 export const CLOSE_TALLEN_MS = duration(240);
 export const CLOSE_WIDEN_MS = duration(200);
-export const CLOSE_SLIDE_MS = duration(260);
+export const CLOSE_SLIDE_MS = duration(460);
 export const CLOSE_MS = CLOSE_TALLEN_MS + CLOSE_WIDEN_MS + CLOSE_SLIDE_MS;
 export const CONTENT_IN_MS = duration(280);
 export const MORPH_EASE = "cubic-bezier(0.2, 0.72, 0.28, 1)";

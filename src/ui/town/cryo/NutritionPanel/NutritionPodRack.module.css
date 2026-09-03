@@ -65,6 +65,9 @@
 
 .figure {
   composes: figureFrame from "../styles/cryoFigure.module.css";
+}
+
+.pod .figure {
   position: absolute;
   inset: 0;
   display: flex;
