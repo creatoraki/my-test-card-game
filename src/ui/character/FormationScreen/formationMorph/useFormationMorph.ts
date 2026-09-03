@@ -66,7 +66,7 @@ export function useFormationMorph() {
   // 回编队: 先把卡阵放回场上, 落点留给下面的 useLayoutEffect 去量。
   const backToRoster = useCallback(() => {
     const current = stateRef.current;
-    if (current.mode !== "detail" || current.phase !== "idle" || !current.charId) return;
+    if (current.mode !== "detail" || current.phase === "toRoster" || !current.charId) return;
     setState({ mode: "roster", phase: "toRoster", charId: current.charId, flight: null });
   }, []);
 

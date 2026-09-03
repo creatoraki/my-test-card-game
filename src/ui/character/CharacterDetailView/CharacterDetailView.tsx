@@ -30,6 +30,8 @@ interface Props {
   morphing: boolean;
   /** 回程: 工作区向左收拢。 */
   leaving: boolean;
+  /** 返回按钮已按下, 先卸载详情态的所有浮层, 再启动回程过场。 */
+  closingOverlays: boolean;
   /**
    * 本层是否响应 Esc。⚠ 训练点分配弹窗开着时必须交出去 —— 那一层也听 Esc,
    * 两个 window 监听会同时触发, 表现为"关弹窗顺手把详情也退了"。
@@ -38,7 +40,7 @@ interface Props {
   onBack: () => void;
 }
 
-export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onBack }: Props) {
+export function CharacterDetailView({ charId, morphing, leaving, closingOverlays, escEnabled, onBack }: Props) {
   const characters = useTownStore((state) => state.characters);
   const party = useTownStore((state) => state.party);
   const storage = useTownStore((state) => state.storage);
@@ -75,6 +77,13 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
     if (tab !== "deck") setForgeView(null);
   }, [tab]);
 
+  useEffect(() => {
+    if (!closingOverlays) return;
+    equipPreview.clear();
+    setForgeView(null);
+    setHoveredCardUid(null);
+  }, [closingOverlays]);
+
   // 抽卡结果尚未领取(存档里带着 pendingDraw): 直接跳到卡组页把演出接上。
   useEffect(() => {
     if (!cs?.pendingDraw) return;
@@ -108,7 +117,7 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
   const vitals = vitalsOf(cs);
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
   // 卡面详情借立绘位展开(与换装候选同一块地方, 两者分属不同 tab, 不会同时在场)。
-  const cardDetailOpen = tab === "deck" && !forgeView && hoveredCard != null;
+  const cardDetailOpen = !closingOverlays && !leaving && tab === "deck" && !forgeView && hoveredCard != null;
 
   return (
     <div className={cx(s.view, forgeView && s["is-forge-open"], leaving && s["is-leaving"])}>
@@ -151,6 +160,10 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
               equipPreview.setActiveSlot(slot);
               equipPreview.setHoveredStack(null);
             }}
+            onUnequip={(slot) => {
+              unequipItem(charId, slot);
+              equipPreview.clear();
+            }}
           />
         )}
         {tab === "deck" && (
@@ -165,18 +178,12 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
         )}
       </Workbench>
 
-      {activeSlot && tab === "profile" && (
+      {!closingOverlays && !leaving && activeSlot && tab === "profile" && (
         <EquipPicker
           slot={activeSlot}
-          current={cs.equipped[activeSlot]}
           candidates={candidates}
-          character={cs}
           onEquip={(uid) => {
             equipItem(charId, uid);
-            equipPreview.clear();
-          }}
-          onUnequip={() => {
-            unequipItem(charId, activeSlot);
             equipPreview.clear();
           }}
           onClose={equipPreview.clear}
@@ -208,7 +215,7 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
       )}
 
       {/* 锻造层挂在本态根层 —— 全屏外壳不能放进会裁切的工作区。 */}
-      {tab === "deck" && forgeView && (
+      {!closingOverlays && !leaving && tab === "deck" && forgeView && (
         <DeckForgeStack
           charId={charId}
           view={forgeView}

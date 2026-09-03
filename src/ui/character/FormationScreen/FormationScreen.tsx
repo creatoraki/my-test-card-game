@@ -62,6 +62,7 @@ export function FormationScreen() {
 
   const talent = useSquadTalent();
   const [talentOpen, setTalentOpen] = useState(false);
+  const [backPending, setBackPending] = useState(false);
   const morph = useFormationMorph();
 
   // 卡阵的入场动画只在**本页首次**铺开时播。从详情态回来时卡阵是重新挂载的, 那一次归位
@@ -99,9 +100,17 @@ export function FormationScreen() {
   }, [canLeave, enterTown]);
 
   const back = useCallback(() => {
+    if (backPending) return;
+    setTalentOpen(false);
+    setBackPending(true);
+  }, [backPending]);
+
+  useEffect(() => {
+    if (!backPending) return;
     if (morph.mode === "detail") morph.backToRoster();
     else enterTown();
-  }, [enterTown, morph]);
+    setBackPending(false);
+  }, [backPending, enterTown, morph.backToRoster, morph.mode]);
 
   const flight = morph.flight;
   const flightDef = flight ? getCharacter(flight.charId) : null;
@@ -151,8 +160,9 @@ export function FormationScreen() {
           charId={morph.charId}
           morphing={morph.phase === "toDetail"}
           leaving={morph.phase === "toRoster"}
-          escEnabled={!talentOpen}
-          onBack={morph.backToRoster}
+          closingOverlays={backPending}
+          escEnabled={!talentOpen && !backPending}
+          onBack={back}
         />
       )}
 

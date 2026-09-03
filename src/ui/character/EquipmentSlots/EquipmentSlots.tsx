@@ -1,4 +1,4 @@
-import { useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
 import { EQUIP_SLOTS } from "@/store/townStore";
@@ -12,10 +12,11 @@ interface Props {
   equipped: Record<EquipSlot, ItemStack | null>;
   activeSlot: EquipSlot | null;
   onSelect: (slot: EquipSlot) => void;
+  onUnequip: (slot: EquipSlot) => void;
   className?: string;
 }
 
-export function EquipmentSlots({ equipped, activeSlot, onSelect, className }: Props) {
+export function EquipmentSlots({ equipped, activeSlot, onSelect, onUnequip, className }: Props) {
   return (
     <section className={cx(s["equipment-slots"], className)} aria-label="角色装备">
       <div className={s["equipment-slots-head"]}>
@@ -25,7 +26,16 @@ export function EquipmentSlots({ equipped, activeSlot, onSelect, className }: Pr
       <div className={s["equipment-slots-grid"]}>
         {EQUIP_SLOTS.map((slot) => {
           const worn = equipped?.[slot] ?? null;
-          return <EquipmentSlot key={slot} slot={slot} worn={worn} selected={activeSlot === slot} onSelect={onSelect} />;
+          return (
+            <EquipmentSlot
+              key={slot}
+              slot={slot}
+              worn={worn}
+              selected={activeSlot === slot}
+              onSelect={onSelect}
+              onUnequip={onUnequip}
+            />
+          );
         })}
       </div>
     </section>
@@ -37,26 +47,45 @@ function EquipmentSlot({
   worn,
   selected,
   onSelect,
+  onUnequip,
 }: {
   slot: EquipSlot;
   worn: ItemStack | null;
   selected: boolean;
   onSelect: (slot: EquipSlot) => void;
+  onUnequip: (slot: EquipSlot) => void;
 }) {
   const { point, bind } = useHoverTooltip();
+  const { point: unequipPoint, bind: unequipBind } = useHoverTooltip();
 
   return (
     <div className={cx(s["equipment-slot"], selected && s["is-active"])} {...(worn ? bind : {})}>
       {worn ? (
-        <ItemSlot
-          stack={worn}
-          showName={false}
-          showCount={false}
-          showBond={false}
-          className={s["equipment-slot-item"]}
-          aria-label={`查看${SLOT_LABEL[slot]}装备`}
-          onClick={() => onSelect(slot)}
-        />
+        <>
+          <ItemSlot
+            stack={worn}
+            showName={false}
+            showCount={false}
+            showBond={false}
+            className={s["equipment-slot-item"]}
+            aria-label={`查看${SLOT_LABEL[slot]}装备`}
+            onClick={() => onSelect(slot)}
+          />
+          <button
+            className={s["equipment-slot-unequip"]}
+            type="button"
+            aria-label={`卸下${SLOT_LABEL[slot]}装备`}
+            {...unequipBind}
+            onClick={() => onUnequip(slot)}
+          >
+            卸下
+          </button>
+          {unequipPoint && (
+            <HoverTooltip point={unequipPoint}>
+              <strong>卸下{SLOT_LABEL[slot]}装备</strong>
+            </HoverTooltip>
+          )}
+        </>
       ) : (
         <button
           className={s["equipment-slot-empty"]}

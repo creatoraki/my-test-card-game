@@ -10,9 +10,10 @@ interface Props {
   equipped: Record<EquipSlot, ItemStack | null>;
   activeSlot: EquipSlot | null;
   onSelect: (slot: EquipSlot) => void;
+  onUnequip: (slot: EquipSlot) => void;
 }
 
-export function ProfilePanel({ stats, preview, equipped, activeSlot, onSelect }: Props) {
+export function ProfilePanel({ stats, preview, equipped, activeSlot, onSelect, onUnequip }: Props) {
   return (
     <div className={s.panel}>
       <EquipmentSlots
@@ -20,6 +21,7 @@ export function ProfilePanel({ stats, preview, equipped, activeSlot, onSelect }:
         equipped={equipped}
         activeSlot={activeSlot}
         onSelect={onSelect}
+        onUnequip={onUnequip}
       />
       <div className={s.stats}>
         <StatsPanel stats={stats} preview={preview} />

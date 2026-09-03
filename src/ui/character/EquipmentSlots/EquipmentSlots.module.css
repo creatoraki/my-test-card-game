@@ -89,6 +89,36 @@
   box-shadow: 0 0 14px -7px var(--cd-glow);
 }
 
+.equipment-slot-unequip {
+  position: absolute;
+  right: -8px;
+  bottom: -7px;
+  z-index: 2;
+  padding: 5px 8px;
+  color: #9c3550;
+  font-size: 10px;
+  background: #fdeff2e8;
+  border: 1px solid #c25a6e70;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 150ms ease, transform 150ms ease, color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.equipment-slot:hover .equipment-slot-unequip,
+.equipment-slot:focus-within .equipment-slot-unequip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.equipment-slot-unequip:hover,
+.equipment-slot-unequip:focus-visible {
+  color: #7f2940;
+  background: #fbdfe5;
+  border-color: #c25a6e;
+}
+
 .equipment-slot-empty {
   display: grid;
   place-items: center;
