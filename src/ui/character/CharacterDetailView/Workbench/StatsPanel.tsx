@@ -18,7 +18,7 @@ import s from "./StatsPanel.module.css";
 const CONTENT_DELAY_MS = 160;
 const STAGGER_MS = 55;
 
-export function StatsPanel({ stats }: { stats: StatBlock }) {
+export function StatsPanel({ stats, preview = null }: { stats: StatBlock; preview?: StatBlock | null }) {
   return (
     <div className={s.groups}>
       {STAT_GROUPS.map((group, gi) => (
@@ -35,6 +35,7 @@ export function StatsPanel({ stats }: { stats: StatBlock }) {
                 statKey={row.key}
                 label={row.label}
                 value={stats[row.key]}
+                next={preview?.[row.key]}
                 pct={row.pct}
                 ref100={row.ref ?? (row.pct ? REF_DEFAULT_PCT : undefined)}
                 delay={CONTENT_DELAY_MS + gi * STAGGER_MS}
@@ -53,6 +54,7 @@ function AttrRow({
   statKey,
   label,
   value,
+  next,
   pct,
   ref100,
   delay,
@@ -60,20 +62,38 @@ function AttrRow({
   statKey: keyof StatBlock;
   label: string;
   value: number;
+  next?: number;
   pct?: boolean;
   ref100?: number;
   delay: number;
 }) {
   const shown = useCountUp(Math.round(value), delay);
   const fill = ref100 ? Math.max(0, Math.min(1, value / ref100)) : 0;
+  const nextFill = ref100 && next !== undefined ? Math.max(0, Math.min(1, next / ref100)) : fill;
+  const delta = next === undefined ? 0 : next - value;
+  const hasDelta = Math.abs(delta) >= 0.5;
   return (
-    <div className={s.attr} style={{ "--pct": fill } as CSSProperties}>
+    <div
+      className={s.attr}
+      style={{
+        "--pct": fill,
+        "--pct-next": nextFill,
+        "--pct-ghost-start": delta > 0 ? fill : nextFill,
+        "--pct-ghost": Math.abs(nextFill - fill),
+      } as CSSProperties}
+    >
       <StatIcon statKey={statKey} className={s["attr-icon"]} />
       <span className={s["attr-label"]}>{label}</span>
       <strong className={s["attr-value"]}>
         {shown}
         {pct ? "%" : ""}
+        {hasDelta && (
+          <span className={cx(s.delta, delta > 0 ? s["is-up"] : s["is-down"])}>
+            {delta > 0 ? "+" : ""}{Math.round(delta)}
+          </span>
+        )}
       </strong>
+      {hasDelta && <span className={cx(s["attr-ghost"], delta > 0 ? s["is-up"] : s["is-down"])} aria-hidden="true" />}
     </div>
   );
 }

@@ -37,6 +37,13 @@
   gap: 7px;
 }
 
+.equipment-slots.is-rail .equipment-slots-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
 .equipment-slot {
   position: relative;
   display: grid;
@@ -78,6 +85,43 @@
 .equipment-slot-item.equipment-slot-item:hover,
 .equipment-slot-item.equipment-slot-item:focus-visible {
   background: linear-gradient(160deg, #ffffffed, #f0e0ffc9 72%);
+  border-color: var(--cd-glow);
+  box-shadow: 0 0 14px -7px var(--cd-glow);
+}
+
+.equipment-slots.is-rail {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.equipment-slots.is-rail .equipment-slot {
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+}
+
+.equipment-slots.is-rail .equipment-slot-item,
+.equipment-slots.is-rail .equipment-slot-empty {
+  grid-column: 1;
+  grid-row: 1;
+  width: 112px;
+  height: 112px;
+  aspect-ratio: auto;
+}
+
+.equipment-slots.is-rail .equipment-slot-select {
+  grid-column: 2;
+  grid-row: 1;
+  align-items: flex-start;
+}
+
+.equipment-slots.is-rail .equipment-slot-remove {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+  margin: 0;
   border-color: var(--cd-glow);
   box-shadow: 0 0 14px -7px var(--cd-glow);
 }

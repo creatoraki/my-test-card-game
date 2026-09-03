@@ -3,8 +3,9 @@
     position: relative;
     display: block;
     /* 全站卡牌尺寸的落地点，外层容器不要再自己计算 220/308。 */
-    width: calc(var(--card-w) * var(--deck-card-scale, 1));
-    height: calc(var(--card-h) * var(--deck-card-scale, 1));
+    width: var(--deck-card-w, var(--card-w));
+    height: var(--deck-card-h, var(--card-h));
+    aspect-ratio: 220 / 308;
     min-width: 0;
     align-self: start;
     padding: 0;
@@ -29,8 +30,7 @@
 }
 
 .deck-card:hover:not(:disabled),
-.deck-card:focus-visible,
-.deck-card.is-selected {
+.deck-card:focus-visible {
     transform: var(--deck-card-hover-transform);
     background: transparent;
 }
@@ -47,8 +47,7 @@
 }
 
 .deck-card.is-zoom:hover:not(:disabled),
-.deck-card.is-zoom:focus-visible,
-.deck-card.is-zoom.is-selected {
+.deck-card.is-zoom:focus-visible {
     transform: var(--deck-card-hover-transform);
 }
 
@@ -68,11 +67,8 @@
 
     .deck-card:hover,
     .deck-card:focus-visible,
-    .deck-card.is-selected,
     .deck-card.is-zoom:hover:not(:disabled),
-    .deck-card.is-zoom:focus-visible,
-    .deck-card.is-zoom.is-selected {
+    .deck-card.is-zoom:focus-visible {
         transform: none;
-        background: transparent;
     }
 }

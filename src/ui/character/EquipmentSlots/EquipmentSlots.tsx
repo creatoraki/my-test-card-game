@@ -10,15 +10,16 @@ interface Props {
   activeSlot: EquipSlot | null;
   onSelect: (slot: EquipSlot) => void;
   onUnequip: (slot: EquipSlot) => void;
+  variant?: "grid" | "rail";
   className?: string;
 }
 
-export function EquipmentSlots({ equipped, activeSlot, onSelect, onUnequip, className }: Props) {
+export function EquipmentSlots({ equipped, activeSlot, onSelect, onUnequip, variant = "grid", className }: Props) {
   return (
-    <section className={cx(s["equipment-slots"], className)} aria-label="角色装备">
+    <section className={cx(s["equipment-slots"], variant === "rail" && s["is-rail"], className)} aria-label="角色装备">
       <div className={s["equipment-slots-head"]}>
         <span className={s["equipment-slots-label"]}>装备配置</span>
-        <span className={s["equipment-slots-hint"]}>选择部位打开仓库</span>
+        <span className={s["equipment-slots-hint"]}>选择部位更换装备</span>
       </div>
       <div className={s["equipment-slots-grid"]}>
         {EQUIP_SLOTS.map((slot) => {

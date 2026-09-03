@@ -86,18 +86,21 @@ src/ui/
 | [character/FormationScreen/CrewGrid](../../src/ui/character/FormationScreen/CrewGrid/CrewGrid.tsx) | 队伍列表卡阵（276×772 一行 6 列）。按与被点卡的列距/行距给每张卡下发飞散方向量 `--dx/--dy/--dist`，整片阵列以被点那张为原点炸开或收拢。 |
 | [character/FormationScreen/CrewCard](../../src/ui/character/FormationScreen/CrewCard/CrewCard.tsx) | 一张编队卡：整卡取景窗 + 窗内浮动角色名 + 上阵三角旗 + 上阵/下阵动作条（受限时出 `HoverTooltip`）。窗内材质来自 `character/styles/glowCard.module.css`；`data-crew-card` 是回程飞行认领落点的唯一通道。 |
 | [character/FormationScreen/formationMorph](../../src/ui/character/FormationScreen/formationMorph/useFormationMorph.ts) | 两态态机 + FLIP 编排：`mode`(roster/detail) × `phase`(idle/toDetail/toRoster)，过场期间两态同时挂载。去程落点是常量 `FIGURE_RECT`，回程落点在卡阵挂载后于 `useLayoutEffect` 里量。时长与设计 px 换算在 `morphChoreo.ts`，飞行副本在 `MorphFlyer.tsx`（WAAPI 动 left/top/width/height，与立绘栏瞬时交接）。 |
-| [character/CharacterDetailView](../../src/ui/character/CharacterDetailView/CharacterDetailView.tsx) | 角色详情态（编队页内的第二种态，不是 screen）：左侧 434×772 立绘取景窗，右侧可切换工作区。属性只读（分组表在 `common/statGroups.ts`，与角色档案 Modal 共用）；装备穿戴/卸下与卡组扩充/精简/升级直接落 `townStore`；锻造浮层挂在本态根层。 |
+| [character/CharacterDetailView](../../src/ui/character/CharacterDetailView/CharacterDetailView.tsx) | 角色详情态（编队页内的第二种态，不是 screen）：左侧 434×772 立绘取景窗，右侧切换「属性装备 / 卡组」两个工作区。属性与装备合并，换装窗借立绘位承载；装备穿戴/卸下与卡组扩充/精简/升级直接落 `townStore`；锻造浮层挂在本态根层。 |
 | [character/CharacterDetailView/FigureStage](../../src/ui/character/CharacterDetailView/FigureStage/FigureStage.tsx) | 详情态左栏：76,196,434,772 的立绘取景窗，与 `CrewCard` 共用 `glowCard` 材质；角色名 44px + 三段血条 / 污染 / 怪癖。版面矩形由 `morphChoreo.FIGURE_RECT` 统一下发。 |
-| [character/CharacterDetailView/Workbench](../../src/ui/character/CharacterDetailView/Workbench/Workbench.tsx) | 详情态右栏工作区外壳：属性 / 装备 / 卡组三个 tab，内容由使用方作为 children 传入；入场是「从左边缘裂开生长」，与卡阵占同一条水平带（y 196..968）。三块面板分别是 `StatsPanel` / `EquipPanel` / `DeckPanel`。 |
-| [character/DeckForgeBar](../../src/ui/character/DeckForgeBar/DeckForgeBar.tsx) | 角色详情态卡组页的锻造操作条：展示扩充、精简、升级三项操作及父组件传入的经验价格和禁用态；升级入口只在满级时禁用，经验校验下沉到升级面板。 |
+| [character/CharacterDetailView/Workbench](../../src/ui/character/CharacterDetailView/Workbench/Workbench.tsx) | 详情态右栏工作区外壳：「属性装备 / 卡组」两个 tab，内容由使用方作为 children 传入；入场是「从左边缘裂开生长」，与卡阵占同一条水平带（y 196..968）。面板为 `ProfilePanel` / `DeckPanel`。 |
+| [character/CharacterDetailView/Workbench/ProfilePanel](../../src/ui/character/CharacterDetailView/Workbench/ProfilePanel.tsx) | 属性与装备合并面板：左侧竖排 `EquipmentSlots`，右侧 `StatsPanel`；候选仓库不内嵌，由 `EquipPicker` 覆盖立绘位。 |
+| [character/CharacterDetailView/EquipPicker](../../src/ui/character/CharacterDetailView/EquipPicker/EquipPicker.tsx) | 覆盖详情态立绘位的装备候选窗：当前装备、匹配部位仓库、即时穿戴/卸下与悬浮属性对比；候选逐项使用 `HoverTooltip`。 |
+| [character/DeckForgeHub](../../src/ui/character/DeckForgeHub/DeckForgeHub.tsx) | 卡组锻造中枢：将扩充、精简、升级收进一个 `ModalReveal` 弹窗，禁用原因使用 `HoverTooltip`，选择后交给既有锻造演出。 |
+| 旧 `character/EquipmentDrawer` | 已归档到 `ui/_legacy/character/`，由 `CharacterDetailView/EquipPicker` 取代，零引用。 |
+| 旧 `character/DeckForgeBar` | 已归档到 `ui/_legacy/character/`，由 `character/DeckForgeHub` 取代，零引用。 |
 | [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 角色详情态卡组锻造浮层壳：只负责模式图标、遮罩、关闭锁和按模式分发；扩充/精简演出由阶段组件承载，候选与卡组状态分别保留到提交动画结束；开关演出统一走 `common/ModalReveal`。 |
 | [character/DeckForgeOverlay/ForgeDrawStage](../../src/ui/character/DeckForgeOverlay/ForgeDrawStage.tsx) | 扩充三选一阶段机：水晶卡背错峰落位、按稀有度翻牌、光爆震动、二次确认和向 `data-deck-anchor` 落袋飞行。 |
 | [character/DeckForgeOverlay/ForgeRemoveStage](../../src/ui/character/DeckForgeOverlay/ForgeRemoveStage.tsx) | 精简卡组阶段：网格选中、最低张数锁定 chip、确认和逆向扫描消解。 |
 | [character/DeckForgeOverlay/ForgeRevealCard](../../src/ui/character/DeckForgeOverlay/ForgeRevealCard.tsx) | 扩充与精简共用的卡牌演出包装层：中性水晶卡背翻牌、稀有度光爆辉光、选择描边与消解。 |
 | [character/DeckForgeOverlay/forgeChoreo](../../src/ui/character/DeckForgeOverlay/forgeChoreo.ts) | 锻造演出的时长与揭示顺序真相点，按卡牌稀有度安排翻牌节奏、命中冲击与减少动态效果降级。 |
 | [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情态卡组升级浮层：展示等级徽章、水晶稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条；开关演出统一走 `common/ModalReveal`。 |
-| [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情态装备页的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；不承载装备规则。 |
-| [character/EquipmentDrawer](../../src/ui/character/EquipmentDrawer/EquipmentDrawer.tsx) | 角色详情态装备页的部位仓库（在装备槽下方展开），只展示匹配槽位的装备，点击物品立即穿戴，并展示当前装备详情。 |
+| [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情态属性装备面板的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；支持横向 `grid` 与竖向 `rail` 变体，不承载装备规则。 |
 | [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情态与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放。 |
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」。 |

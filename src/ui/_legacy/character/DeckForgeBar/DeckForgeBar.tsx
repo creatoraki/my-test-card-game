@@ -41,7 +41,6 @@ export function DeckForgeBar({
         className={cx(s["forge-action"], s["is-draw"])}
         type="button"
         disabled={!canDraw}
-        title={!canDraw ? drawDisabledReason ?? "经验不足，或当前已有待处理候选" : undefined}
         onClick={onDraw}
       >
         <span className={s["forge-action-name"]}>扩充卡组</span>

@@ -1,4 +1,4 @@
-// 卡组面板 —— 读数条 + 锻造条(扩充 / 精简 / 升级) + 卡面网格。
+// 卡组面板 —— 读数条 + 锻造入口 + 卡面网格。
 //
 // ★ 成本口径统一读 RULES.deck 与 townStore 的 deckForgeCosts, 本面板不重算。
 // ★ 三条锻造链路的演出全在 DeckForgeOverlay / DeckUpgradeOverlay 里, 由使用方挂在页面根层
@@ -6,66 +6,43 @@
 
 import type { CSSProperties } from "react";
 import { RULES, type Card } from "@/engine";
-import type { DeckForgeCosts } from "@/ui/character/DeckForgeBar";
 import { DeckCard } from "@/ui/character/DeckCard";
-import { DeckForgeBar } from "@/ui/character/DeckForgeBar";
 import s from "./DeckPanel.module.css";
 
 interface Props {
   deck: Card[];
   deckLevel: number;
   minDeckSize: number;
-  exp: number;
-  costs: DeckForgeCosts;
-  canRemove: boolean;
-  drawDisabledReason?: string;
   selectedCardUid: string | null;
   onSelectCard: (uid: string) => void;
   onHoverCard: (uid: string | null) => void;
-  onDraw: () => void;
-  onRemove: () => void;
-  onUpgrade: () => void;
+  onOpenForge: () => void;
 }
 
 export function DeckPanel({
   deck,
   deckLevel,
   minDeckSize,
-  exp,
-  costs,
-  canRemove,
-  drawDisabledReason,
   selectedCardUid,
   onSelectCard,
   onHoverCard,
-  onDraw,
-  onRemove,
-  onUpgrade,
+  onOpenForge,
 }: Props) {
   return (
     <div className={s.panel}>
-      <div className={s.readout}>
-        <span>{deck.length} 张</span>
-        <span>
-          Lv.{deckLevel}/{RULES.deck.levelMax}
-        </span>
-        <span>下限 {minDeckSize}</span>
+      <div className={s.topline}>
+        <div className={s.readout}>
+          <span>{deck.length} 张</span>
+          <span>
+            Lv.{deckLevel}/{RULES.deck.levelMax}
+          </span>
+          <span>下限 {minDeckSize}</span>
+        </div>
+        <button className={s.forgeButton} type="button" onClick={onOpenForge}>
+          <span aria-hidden="true">⚒</span>
+          卡组锻造
+        </button>
       </div>
-
-      <DeckForgeBar
-        costs={costs}
-        exp={exp}
-        deckLevel={deckLevel}
-        deckSize={deck.length}
-        minDeckSize={minDeckSize}
-        canDraw
-        canRemove={canRemove}
-        canOpenUpgrade={costs.upgrade != null}
-        onDraw={onDraw}
-        onRemove={onRemove}
-        onUpgrade={onUpgrade}
-        drawDisabledReason={drawDisabledReason}
-      />
 
       {/* data-deck-anchor: 抽卡演出把新卡飞向卡组时认这块位置(见 DeckForgeOverlay/ForgeDrawStage)。 */}
       <div className={s.grid} data-deck-anchor>

@@ -76,6 +76,25 @@
   animation: attrBarGrow 620ms 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
+.attr-ghost {
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--pct-ghost-start, 0) * 100%);
+  z-index: 1;
+  width: calc(var(--pct-ghost, 0) * 100%);
+  height: 3px;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.attr-ghost.is-up {
+  background: #62bd78;
+}
+
+.attr-ghost.is-down {
+  background: #d85c68;
+}
+
 .attr-icon {
   width: 17px;
   height: 17px;
@@ -91,11 +110,33 @@
 }
 
 .attr-value {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 7px;
   color: #2a1b3d;
   font-family: var(--font-family);
   font-size: 22px;
   font-weight: 600;
   letter-spacing: 1px;
+}
+
+.delta {
+  padding: 2px 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.delta.is-up {
+  color: #287a49;
+  background: #d9f2df;
+}
+
+.delta.is-down {
+  color: #9b3442;
+  background: #f9dfe3;
 }
 
 @keyframes statGroupIn {

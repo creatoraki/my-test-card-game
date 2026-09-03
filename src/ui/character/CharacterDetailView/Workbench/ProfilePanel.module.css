@@ -1,33 +1,23 @@
 .panel {
-  display: flex;
+  display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  flex-direction: column;
-  gap: 14px;
-  animation: equipIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 16px;
+  animation: profileIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .slots {
-  flex: 0 0 auto;
-}
-
-.drawer {
-  display: flex;
   min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
 }
 
-.hint {
-  margin: auto;
-  padding: 0 40px;
-  color: #6b5b82;
-  font-size: 15px;
-  letter-spacing: 2px;
-  text-align: center;
+.stats {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
 }
 
-@keyframes equipIn {
+@keyframes profileIn {
   from {
     opacity: 0;
     filter: blur(4px);
