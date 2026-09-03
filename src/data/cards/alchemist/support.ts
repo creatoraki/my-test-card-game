@@ -8,7 +8,7 @@ export const ALCHEMIST_SUPPORT_CARDS: CardDef[] = [
     cost: 2,
     cardType: "fast",
     targeting: "none",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "buff",
     effects: [
       { type: "DRAW", amount: 1 },
@@ -23,7 +23,7 @@ export const ALCHEMIST_SUPPORT_CARDS: CardDef[] = [
     cost: 1,
     cardType: "fast",
     targeting: "none",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "buff",
     effects: [
       { type: "REMOVE_SQUAD_BUFF", squadBuffPick: "random" },

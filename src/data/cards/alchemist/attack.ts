@@ -24,7 +24,7 @@ export const ALCHEMIST_ATTACK_CARDS: CardDef[] = [
     cost: 2,
     cardType: "normal",
     targeting: "none",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "poison",
     effects: [
       { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.25 }, target: "allFoes" },
@@ -40,7 +40,7 @@ export const ALCHEMIST_ATTACK_CARDS: CardDef[] = [
     cost: 2,
     cardType: "fast",
     targeting: "foe",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "poison",
     effects: [
       { type: "CONSUME_STATUS", status: "poison", target: "primary" },
@@ -57,7 +57,7 @@ export const ALCHEMIST_ATTACK_CARDS: CardDef[] = [
     cost: 2,
     cardType: "normal",
     targeting: "foe",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "poison",
     effects: [
       { type: "DAMAGE", multiplier: 0.6, target: "primary" },

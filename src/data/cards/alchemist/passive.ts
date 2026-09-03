@@ -8,7 +8,7 @@ export const ALCHEMIST_PASSIVE_CARDS: CardDef[] = [
     cost: 0,
     cardType: "passive",
     targeting: "none",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "poison",
     effects: [],
     passive: {

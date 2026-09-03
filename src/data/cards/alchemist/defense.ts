@@ -24,10 +24,10 @@ export const ALCHEMIST_DEFENSE_CARDS: CardDef[] = [
     cost: 2,
     cardType: "normal",
     targeting: "none",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "shield",
     effects: [
-      { type: "GAIN_SHIELD", multiplier: 0.8, target: "allAllies" },
+      { type: "GAIN_SHIELD", multiplier: 0.6, target: "allAllies" },
       { type: "APPLY_STATUS", status: "retortWall", stacks: 1, statusDataFrom: { key: "poisonStacks", stat: "attack", multiplier: 0.15 }, target: "allAllies" },
       { type: "GAIN_SQUAD_BUFF", squadBuff: "assembleD", target: "self" },
     ],
@@ -40,7 +40,7 @@ export const ALCHEMIST_DEFENSE_CARDS: CardDef[] = [
     cost: 2,
     cardType: "fast",
     targeting: "ally",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "shield",
     effects: [
       { type: "REMOVE_STATUS", statusKind: "debuff", target: "primary" },
