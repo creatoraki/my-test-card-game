@@ -1,57 +1,3 @@
-.upg-overlay {
-  position: absolute;
-  z-index: 8;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 8px;
-}
-
-.upg-overlay[data-closing="true"] {
-  pointer-events: none;
-}
-
-.upg-backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  background: #2a1b3d73;
-  border: 0;
-  clip-path: none;
-  cursor: var(--cursor-default);
-  opacity: 0;
-  backdrop-filter: blur(0) saturate(1);
-  animation: upgBackdropIn calc(var(--mr-bar-ms) + var(--mr-reveal-ms)) var(--mr-ease-pop) forwards;
-}
-
-.upg-overlay[data-closing="true"] .upg-backdrop {
-  animation: upgBackdropOut var(--mr-close-ms) var(--mr-ease-pop) forwards;
-}
-
-.upg-reveal {
-  width: min(1000px, 100%);
-  max-height: 92%;
-}
-
-.upg-modal {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 100%;
-  max-height: 100%;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  overflow: hidden;
-  color: var(--cd-ink);
-  background: linear-gradient(145deg, #ffffffed, #fbf3ffeb 58%, #ecdcfad9);
-  border: 1px solid #2a1b3d38;
-  box-shadow: 0 28px 70px -32px #2a1b3dcc, inset 0 1px 0 #ffffff;
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
-}
-
 .upg-head {
   display: flex;
   flex: 0 0 auto;
@@ -103,28 +49,6 @@
   grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
-}
-
-@keyframes upgBackdropIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0) saturate(1);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(8px) saturate(.94);
-  }
-}
-
-@keyframes upgBackdropOut {
-  from {
-    opacity: 1;
-    backdrop-filter: blur(8px) saturate(.94);
-  }
-  to {
-    opacity: 0;
-    backdrop-filter: blur(0) saturate(1);
-  }
 }
 
 .upg-badge-block {
@@ -200,8 +124,8 @@
   opacity: 0;
 }
 
-/* 与 DeckUpgradeOverlay.tsx 的 BURST_MS 手动同步。 */
-.is-levelup .upg-modal {
+/* 与 useDeckUpgrade.ts 的 BURST_MS 手动同步。 */
+.is-levelup [data-forge-modal] {
   animation: upgBurst 900ms cubic-bezier(.2, .72, .28, 1) both;
 }
 
@@ -709,15 +633,6 @@
 }
 
 @media (max-width: 900px) {
-  .upg-overlay {
-    padding: 8px;
-  }
-
-  .upg-modal {
-    gap: 12px;
-    padding: 16px;
-  }
-
   .upg-title {
     font-size: 28px;
     letter-spacing: 2px;
@@ -775,14 +690,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .upg-backdrop,
-  .upg-overlay[data-closing="true"] .upg-backdrop {
-    animation: none;
-    opacity: 1;
-    backdrop-filter: blur(8px) saturate(.94);
-  }
-
-  .upg-modal,
   .upg-ring,
   .upg-badge-target,
   .upg-badge-target svg,

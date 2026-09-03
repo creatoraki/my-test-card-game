@@ -91,15 +91,18 @@ src/ui/
 | [character/CharacterDetailView/Workbench](../../src/ui/character/CharacterDetailView/Workbench/Workbench.tsx) | 详情态右栏工作区外壳：「属性装备 / 卡组」两个 tab，内容由使用方作为 children 传入；入场是「从左边缘裂开生长」，与卡阵占同一条水平带（y 196..968）。面板为 `ProfilePanel` / `DeckPanel`。 |
 | [character/CharacterDetailView/Workbench/ProfilePanel](../../src/ui/character/CharacterDetailView/Workbench/ProfilePanel.tsx) | 属性与装备合并面板：左侧竖排 `EquipmentSlots`，右侧 `StatsPanel`；候选仓库不内嵌，由 `EquipPicker` 覆盖立绘位。 |
 | [character/CharacterDetailView/EquipPicker](../../src/ui/character/CharacterDetailView/EquipPicker/EquipPicker.tsx) | 覆盖详情态立绘位的装备候选窗：当前装备、匹配部位仓库、即时穿戴/卸下与悬浮属性对比；候选逐项使用 `HoverTooltip`。 |
-| [character/DeckForgeHub](../../src/ui/character/DeckForgeHub/DeckForgeHub.tsx) | 卡组锻造中枢：将扩充、精简、升级收进一个 `ModalReveal` 弹窗，禁用原因使用 `HoverTooltip`，选择后交给既有锻造演出。 |
+| [character/DeckForge](../../src/ui/character/DeckForge/) | 卡组锻造共享外壳域：统一遮罩、`ModalReveal`、宽度与高度形变时序；四种视图共用一块持续挂载的面板盒子。 |
+| [character/DeckForge/DeckForgeStack](../../src/ui/character/DeckForge/DeckForgeStack.tsx) | 锻造四视图编排：订阅 `townStore`、计算视图模型、派发锻造 action，统一 busy 闸门、Esc 逐层退出、pendingDraw 续演与子视图回中枢。 |
+| [character/DeckForgeHub](../../src/ui/character/DeckForgeHub/DeckForgeHub.tsx) | 卡组锻造中枢内容件：展示扩充、精简、升级三个选项与禁用原因；外壳、遮罩和关闭动作由 `DeckForgeStack` 提供。 |
 | 旧 `character/EquipmentDrawer` | 已归档到 `ui/_legacy/character/`，由 `CharacterDetailView/EquipPicker` 取代，零引用。 |
 | 旧 `character/DeckForgeBar` | 已归档到 `ui/_legacy/character/`，由 `character/DeckForgeHub` 取代，零引用。 |
-| [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 角色详情态卡组锻造浮层壳：只负责模式图标、遮罩、关闭锁和按模式分发；扩充/精简演出由阶段组件承载，候选与卡组状态分别保留到提交动画结束；开关演出统一走 `common/ModalReveal`。 |
+| [character/DeckForgeOverlay](../../src/ui/character/DeckForgeOverlay/DeckForgeOverlay.tsx) | 扩充/精简内容件：只负责模式页眉与阶段分发；候选与卡组状态分别保留到提交动画结束，外壳和关闭锁由 `DeckForgeStack` 提供。 |
 | [character/DeckForgeOverlay/ForgeDrawStage](../../src/ui/character/DeckForgeOverlay/ForgeDrawStage.tsx) | 扩充三选一阶段机：水晶卡背错峰落位、按稀有度翻牌、光爆震动、二次确认和向 `data-deck-anchor` 落袋飞行。 |
 | [character/DeckForgeOverlay/ForgeRemoveStage](../../src/ui/character/DeckForgeOverlay/ForgeRemoveStage.tsx) | 精简卡组阶段：网格选中、最低张数锁定 chip、确认和逆向扫描消解。 |
 | [character/DeckForgeOverlay/ForgeRevealCard](../../src/ui/character/DeckForgeOverlay/ForgeRevealCard.tsx) | 扩充与精简共用的卡牌演出包装层：中性水晶卡背翻牌、稀有度光爆辉光、选择描边与消解。 |
 | [character/DeckForgeOverlay/forgeChoreo](../../src/ui/character/DeckForgeOverlay/forgeChoreo.ts) | 锻造演出的时长与揭示顺序真相点，按卡牌稀有度安排翻牌节奏、命中冲击与减少动态效果降级。 |
-| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 角色详情态卡组升级浮层：展示等级徽章、水晶稀有度概率与比例带；确认升级为长按蓄力，蓄力进度实时预览经验条；开关演出统一走 `common/ModalReveal`。 |
+| [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 卡组升级内容件：展示等级徽章、水晶稀有度概率与比例带；长按蓄力和光爆演出由 `useDeckUpgrade` 管理，外壳由 `DeckForgeStack` 提供。 |
+| [character/DeckUpgradeOverlay/useDeckUpgrade](../../src/ui/character/DeckUpgradeOverlay/useDeckUpgrade.ts) | 卡组升级 phase、快照、经验 count-up、长按蓄力与演出 CSS 状态的编排 hook；向共享外壳返回状态类和 CSS 变量。 |
 | [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情态属性装备面板的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；支持横向 `grid` 与竖向 `rail` 变体，不承载装备规则。 |
 | [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情态与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放。 |
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |

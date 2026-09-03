@@ -8,14 +8,12 @@
 //   飞行编排在 formationMorph/ 里。
 // ⚠ 所有坐标都是「设计 px」(1920×1080 画布内)。
 
-import { useCallback, useEffect, useState } from "react";
-import { deckUpgradeCost, RULES, type Rarity } from "@/engine";
+import { useEffect, useState } from "react";
 import { getCharacter } from "@/data";
-import { availablePools, deckForgeCosts, deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
+import { deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
-import { DeckForgeHub } from "@/ui/character/DeckForgeHub";
-import { DeckForgeOverlay } from "@/ui/character/DeckForgeOverlay";
-import { DeckUpgradeOverlay } from "@/ui/character/DeckUpgradeOverlay";
+import { DeckForgeStack } from "@/ui/character/DeckForge/DeckForgeStack";
+import type { ForgeView } from "@/ui/character/DeckForge/forgeMorph";
 import { FIGURE_RECT } from "@/ui/character/FormationScreen/formationMorph/morphChoreo";
 import { EquipPicker } from "./EquipPicker";
 import { cx } from "@/ui/common/cx";
@@ -44,18 +42,11 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
   const characters = useTownStore((state) => state.characters);
   const party = useTownStore((state) => state.party);
   const storage = useTownStore((state) => state.storage);
-  const day = useTownStore((state) => state.day);
   const equipItem = useTownStore((state) => state.equipItem);
   const unequipItem = useTownStore((state) => state.unequipItem);
-  const forgeDraw = useTownStore((state) => state.forgeDraw);
-  const removeCard = useTownStore((state) => state.removeCard);
-  const upgradeDeck = useTownStore((state) => state.upgradeDeck);
-  const pickDraw = useTownStore((state) => state.pickDraw);
-  const cancelDraw = useTownStore((state) => state.cancelDraw);
 
   const [tab, setTab] = useState<WorkbenchTab>("profile");
-  const [forgeHubOpen, setForgeHubOpen] = useState(false);
-  const [forgeMode, setForgeMode] = useState<"draw" | "remove" | "upgrade" | null>(null);
+  const [forgeView, setForgeView] = useState<ForgeView | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
 
   const cs = characters[charId];
@@ -66,8 +57,7 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
   useEffect(() => {
     setTab("profile");
     equipPreview.clear();
-    setForgeHubOpen(false);
-    setForgeMode(null);
+    setForgeView(null);
     setHoveredCardUid(null);
   }, [charId]);
 
@@ -82,33 +72,23 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
   useEffect(() => {
     if (tab !== "profile") equipPreview.clear();
     if (tab !== "deck") setHoveredCardUid(null);
-    if (tab !== "deck") setForgeHubOpen(false);
+    if (tab !== "deck") setForgeView(null);
   }, [tab]);
 
   // 抽卡结果尚未领取(存档里带着 pendingDraw): 直接跳到卡组页把演出接上。
   useEffect(() => {
     if (!cs?.pendingDraw) return;
     setTab("deck");
-    setForgeHubOpen(false);
-    setForgeMode("draw");
+    setForgeView("draw");
   }, [cs?.pendingDraw]);
 
-  const closeForge = useCallback(() => {
-    if (forgeMode === "draw") cancelDraw(charId);
-    setForgeMode(null);
-  }, [cancelDraw, charId, forgeMode]);
-
-  // Esc: 由内向外逐层退出 —— 锻造浮层 → 锻造中枢 → 装备仓库 → 回编队态。
+  // Esc: 锻造层自己处理逐层退出, 详情态只在没有锻造层时响应。
   // ⚠ 编队态那一层的 Esc 在 FormationScreen 里, 它只在 roster 态响应, 两边不会打架。
   useEffect(() => {
     if (!escEnabled) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      if (forgeMode) return; // 浮层自己处理
-      if (forgeHubOpen) {
-        setForgeHubOpen(false);
-        return;
-      }
+      if (forgeView) return;
       if (activeSlot) {
         equipPreview.clear();
         return;
@@ -117,7 +97,7 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeSlot, escEnabled, forgeHubOpen, forgeMode, onBack]);
+  }, [activeSlot, escEnabled, forgeView, onBack]);
 
   if (!cs) return null;
 
@@ -126,30 +106,12 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
   // ★ 血条读**存档**里的三段值, 不是面板上限: 上一趟远征打掉的血与体力极限是永久损伤,
   //   据点里看到的就该是伤后的样子(vitalsOf 顺带把装备变动导致的越界夹回来)。
   const vitals = vitalsOf(cs);
-  const costs = deckForgeCosts(cs, day);
-  const pools = availablePools(cs);
-  const hasPool: Record<Rarity, boolean> = {
-    common: pools.common.length > 0,
-    uncommon: pools.uncommon.length > 0,
-    rare: pools.rare.length > 0,
-  };
-  const hasDrawPool = hasPool.common || hasPool.uncommon || hasPool.rare;
-  const canConfirmDraw = !cs.pendingDraw && cs.exp >= costs.draw && hasDrawPool;
-  const canRemove = cs.exp >= costs.remove && cs.deck.length > cs.minDeckSize;
-  const canUpgrade = costs.upgrade != null && cs.exp >= costs.upgrade;
-  const removeDisabledReason = cs.deck.length <= cs.minDeckSize ? "卡组已达到最小张数" : "经验不足";
-  const upgradeDisabledReason = costs.upgrade == null ? `已满级 Lv.${cs.deckLevel}` : "经验不足";
-  const drawDisabledReason = !hasDrawPool
-    ? "该角色暂无可抽卡池"
-    : cs.exp < costs.draw
-      ? "经验不足"
-      : undefined;
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
   // 卡面详情借立绘位展开(与换装候选同一块地方, 两者分属不同 tab, 不会同时在场)。
-  const cardDetailOpen = tab === "deck" && !forgeMode && hoveredCard != null;
+  const cardDetailOpen = tab === "deck" && !forgeView && hoveredCard != null;
 
   return (
-    <div className={cx(s.view, leaving && s["is-leaving"])}>
+    <div className={cx(s.view, forgeView && s["is-forge-open"], leaving && s["is-leaving"])}>
       <FigureStage
         characterId={def.id}
         emoji={def.emoji}
@@ -198,39 +160,10 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
             minDeckSize={cs.minDeckSize}
             hoveredUid={hoveredCardUid}
             onHoverCard={setHoveredCardUid}
-            onOpenForge={() => setForgeHubOpen(true)}
+            onOpenForge={() => setForgeView("hub")}
           />
         )}
       </Workbench>
-
-      {tab === "deck" && forgeHubOpen && (
-        <DeckForgeHub
-          deckSize={cs.deck.length}
-          deckLevel={cs.deckLevel}
-          minDeckSize={cs.minDeckSize}
-          exp={cs.exp}
-          costs={costs}
-          canDraw={canConfirmDraw}
-          canRemove={canRemove}
-          canUpgrade={canUpgrade}
-          drawDisabledReason={drawDisabledReason}
-          removeDisabledReason={removeDisabledReason}
-          upgradeDisabledReason={upgradeDisabledReason}
-          onDraw={() => {
-            setForgeHubOpen(false);
-            setForgeMode("draw");
-          }}
-          onRemove={() => {
-            setForgeHubOpen(false);
-            setForgeMode("remove");
-          }}
-          onUpgrade={() => {
-            setForgeHubOpen(false);
-            setForgeMode("upgrade");
-          }}
-          onClose={() => setForgeHubOpen(false)}
-        />
-      )}
 
       {activeSlot && tab === "profile" && (
         <EquipPicker
@@ -274,41 +207,15 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
         </div>
       )}
 
-      {/* 锻造浮层挂在本态根层 —— 它们是全屏层, 挂进工作区会被 overflow 裁掉。 */}
-      {forgeMode === "upgrade" ? (
-        <DeckUpgradeOverlay
-          deckLevel={cs.deckLevel}
-          levelMax={RULES.deck.levelMax}
-          exp={cs.exp}
-          upgradeCost={costs.upgrade}
-          nextUpgradeCost={deckUpgradeCost(cs.deckLevel + 1)}
-          deckSize={cs.deck.length}
-          minDeckSize={cs.minDeckSize}
-          hasPool={hasPool}
-          canUpgrade={canUpgrade}
-          onConfirm={() => upgradeDeck(charId)}
-          onClose={closeForge}
+      {/* 锻造层挂在本态根层 —— 全屏外壳不能放进会裁切的工作区。 */}
+      {tab === "deck" && forgeView && (
+        <DeckForgeStack
+          charId={charId}
+          view={forgeView}
+          onViewChange={(next) => setForgeView(next)}
+          onClose={() => setForgeView(null)}
         />
-      ) : forgeMode ? (
-        <DeckForgeOverlay
-          mode={forgeMode}
-          pendingDraw={cs.pendingDraw}
-          deck={cs.deck}
-          minDeckSize={cs.minDeckSize}
-          drawCost={costs.draw}
-          exp={cs.exp}
-          deckLevel={cs.deckLevel}
-          deckSize={cs.deck.length}
-          hasPool={hasPool}
-          canConfirmDraw={canConfirmDraw}
-          drawDisabledReason={drawDisabledReason}
-          onStartDraw={() => forgeDraw(charId)}
-          onComplete={() => setForgeMode(null)}
-          onPickDraw={(cardDefId) => pickDraw(charId, cardDefId)}
-          onRemoveCard={(uid) => removeCard(charId, uid)}
-          onClose={closeForge}
-        />
-      ) : null}
+      )}
     </div>
   );
 }

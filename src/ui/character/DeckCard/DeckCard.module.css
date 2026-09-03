@@ -32,7 +32,7 @@
 .select-hint {
     --ihint-offset: calc(6px * var(--deck-card-scale, 1));
     --ihint-size: calc(18px * var(--deck-card-scale, 1));
-    --ihint-thickness: calc(2px * var(--deck-card-scale, 1));
+    --ihint-thickness: calc(6px * var(--deck-card-scale, 1));
 }
 
 .deck-card:hover:not(:disabled),

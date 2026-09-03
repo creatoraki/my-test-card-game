@@ -13,7 +13,7 @@
    可调旋钮(由调用方通过 className 覆盖):
      --ihint-offset     外扩距离, 默认 6px
      --ihint-size       L 臂长, 默认 18px
-     --ihint-thickness  线宽, 默认 2px
+    --ihint-thickness  线宽, 默认 6px
      --ihint-neon / --ihint-neon-deep / --ihint-core  配色 */
 
 .hint {
@@ -25,8 +25,8 @@
   pointer-events: none;
   transition: opacity 140ms ease;
   --ihint-size: 18px;
-  --ihint-thickness: 2px;
-  --ihint-core: #ecf8ff;
+  --ihint-thickness: 6px;
+  --ihint-core: #4fbfff;
   --ihint-neon: #4fbfff;
   --ihint-neon-deep: #0f83d8;
 }
@@ -136,10 +136,6 @@
 .hint.is-active {
   inset: calc(-1 * (var(--ihint-offset, 6px) + 2px));
   opacity: 1;
-  --ihint-thickness: calc(6px * var(--deck-card-scale, 1));
-  --ihint-core: #fff1f1;
-  --ihint-neon: #ff4d5a;
-  --ihint-neon-deep: #b5122b;
 }
 
 .hint.is-active .arm {

@@ -8,6 +8,10 @@
   z-index: 2;
 }
 
+.is-forge-open {
+  z-index: 7;
+}
+
 /* 回程: 整层不再接收指针事件 —— 卡阵已经回到场上, 点击该落到卡上。 */
 .is-leaving {
   pointer-events: none;
