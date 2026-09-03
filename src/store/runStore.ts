@@ -380,11 +380,12 @@ export const useRunStore = create<RunStore>((set, get) => ({
     // 战斗单位的最终血量回填给探索层 —— 下一场以此开局
     const survivors = battle.playerIds.map((id) => {
       const a = battle.combatants[id] as Ally;
+      const previous = session.party.find((member) => member.charId === a.charId);
       return {
         charId: a.charId,
         hp: a.hp,
         hpLimit: a.hpLimit,
-        limitLoss: Math.max(0, a.maxHp - a.hpLimit),
+        limitLoss: Math.max(0, (previous?.hpLimit ?? a.hpLimit) - a.hpLimit),
         alive: a.alive,
       };
     });
