@@ -38,6 +38,7 @@ const STORAGE_THEME = {
   "--asm-line": "#f2e6d82e",
   "--asm-ink": "#f2e6d8",
   "--asm-ink-dim": "#a5937f",
+  "--asm-panel-bg": "#0c1215cc",
   "--event-panel-title-size": "56px",
 } as CSSProperties;
 

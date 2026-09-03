@@ -34,7 +34,7 @@
        底色让背后的据点场景透一点上来, backdrop-filter 再把透上来的那点糊成色块,
        于是通透感来自光和色、而不是能读出内容的实像。把它改回不透明的 #0c1215,
        背后就完全封死, 下面那行 backdrop-filter 也会随之变成不产生任何效果的死代码。 */
-    #0c1215bd;
+    var(--asm-panel-bg, #0c1215bd);
   box-shadow: inset 0 -40px 90px #00000030, 0 28px 72px -34px #000000e8, 0 0 90px -42px var(--event-accent);
   /* ⚠ 生效前提: 祖先里不能有 transform/filter, 否则那个祖先会成为 backdrop root, 本层就取不到
      据点场景。.asm-modal 与 .asm-scene 目前都是干净的; 面板**自己**的 asm-reveal-in
