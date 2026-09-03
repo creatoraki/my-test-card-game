@@ -189,10 +189,6 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
               equipPreview.setActiveSlot(slot);
               equipPreview.setHoveredStack(null);
             }}
-            onUnequip={(slot) => {
-              unequipItem(charId, slot);
-              equipPreview.clear();
-            }}
           />
         )}
         {tab === "deck" && (

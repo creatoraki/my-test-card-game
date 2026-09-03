@@ -2,7 +2,7 @@ import { useExploreStore } from "@/store/exploreStore";
 import { useTownStore } from "@/store/townStore";
 import { getCharacter, makeCard } from "@/data";
 import { HandCard } from "@/ui/battle/HandCard";
-import { CardSelectFrame } from "@/ui/common/CardSelectFrame";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { cx } from "@/ui/common/cx";
 import type { CardOfferCandidate } from "@/explore/types";
 import s from "./VictoryCardOffer.module.css";
@@ -13,6 +13,7 @@ function OfferCard({ offer, index, onPick }: { offer: CardOfferCandidate; index:
   return (
     <div
       className={s.candidate}
+      data-interactive-hint=""
       style={{ "--offer-delay": `${index * 90}ms`, "--owner-color": character.color } as React.CSSProperties}
       role="button"
       tabIndex={0}
@@ -30,8 +31,8 @@ function OfferCard({ offer, index, onPick }: { offer: CardOfferCandidate; index:
       </div>
       <span className={s.cardWrap}>
         <HandCard card={card} playable selected={false} variant="pile" />
-        <CardSelectFrame className={s.selectFrame} />
       </span>
+      <InteractiveHint className={s.selectFrame} />
       <span className={s.pickLabel}>选择这张</span>
     </div>
   );

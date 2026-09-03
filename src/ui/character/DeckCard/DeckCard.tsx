@@ -2,17 +2,17 @@ import type { CSSProperties } from "react";
 import type { Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { cx } from "@/ui/common/cx";
-import { CardSelectFrame } from "@/ui/common/CardSelectFrame";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { HandCard } from "@/ui/battle/HandCard";
 import s from "./DeckCard.module.css";
 
 interface Props {
   card: Card;
-  /** 已选中时同时驱动四角选中框、上浮和卡形落影。 */
+  /** 已选中时点亮四角发光框并提升层级, 不驱动卡牌位移。 */
   selected: boolean;
   index: number;
   className?: string;
-  focusStyle?: "lift" | "zoom";
+  focusStyle?: "lift" | "zoom" | "none";
   onClick?: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -39,6 +39,7 @@ export function DeckCard({
         s["deck-card"],
         className,
         focusStyle === "zoom" && s["is-zoom"],
+        focusStyle === "none" && s["is-static"],
         selected && s["is-selected"],
       )}
       type="button"
@@ -58,7 +59,7 @@ export function DeckCard({
       <span data-deck-card>
         <HandCard card={card} variant="pile" playable selected={false} />
       </span>
-      {selected && <CardSelectFrame />}
+      <InteractiveHint active={selected} className={s["select-hint"]} />
     </button>
   );
 }

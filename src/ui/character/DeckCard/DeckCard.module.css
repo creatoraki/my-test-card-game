@@ -1,6 +1,5 @@
 .deck-card {
     --deck-card-hover-transform: translateY(-4px);
-    --deck-card-selected-transform: translateY(-6px) scale(1.04);
     position: relative;
     display: block;
     /* 盒子与内部卡面共用同一条缩放链, 外层只下发 --deck-card-scale。 */
@@ -30,10 +29,21 @@
     transform-origin: top left;
 }
 
+.select-hint {
+    --ihint-offset: calc(6px * var(--deck-card-scale, 1));
+    --ihint-size: calc(18px * var(--deck-card-scale, 1));
+    --ihint-thickness: calc(2px * var(--deck-card-scale, 1));
+}
+
 .deck-card:hover:not(:disabled),
 .deck-card:focus-visible {
     transform: var(--deck-card-hover-transform);
     background: transparent;
+}
+
+.deck-card.is-static:hover:not(:disabled),
+.deck-card.is-static:focus-visible {
+    transform: none;
 }
 
 .deck-card:focus-visible {
@@ -52,10 +62,7 @@
     transform: var(--deck-card-hover-transform);
 }
 
-.deck-card.is-selected,
-.deck-card.is-selected:hover:not(:disabled),
-.deck-card.is-selected:focus-visible {
-    transform: var(--deck-card-selected-transform);
+.deck-card.is-selected {
     z-index: 3;
 }
 
@@ -76,10 +83,7 @@
     .deck-card:hover,
     .deck-card:focus-visible,
     .deck-card.is-zoom:hover:not(:disabled),
-    .deck-card.is-zoom:focus-visible,
-    .deck-card.is-selected,
-    .deck-card.is-selected:hover:not(:disabled),
-    .deck-card.is-selected:focus-visible {
+    .deck-card.is-zoom:focus-visible {
         transform: none;
     }
 }

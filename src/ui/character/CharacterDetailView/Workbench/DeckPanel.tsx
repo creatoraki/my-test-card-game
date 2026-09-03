@@ -1,7 +1,7 @@
 // 卡组面板 —— 读数条 + 锻造入口 + 卡面网格。
 //
 // ★ 本面板只做两件事: 把卡组铺清楚、把鼠标指着的那张报出去。悬浮即进选中态,
-//   由 DeckCard 的 is-selected 同时出四角框与上浮。
+//   由 DeckCard 的 selected 点亮四角框并提升层级, 卡面位移仍由悬浮态驱动。
 // ★ 成本口径统一读 RULES.deck 与 townStore 的 deckForgeCosts, 本面板不重算。
 // ★ 三条锻造链路的演出全在 DeckForgeOverlay / DeckUpgradeOverlay 里, 由使用方挂在页面根层
 //   (它们是全屏浮层, 挂在本面板内会被工作区的 overflow 裁掉)。
@@ -45,7 +45,7 @@ export function DeckPanel({ deck, deckLevel, minDeckSize, hoveredUid, onHoverCar
             <DeckCard
               card={card}
               index={i}
-              focusStyle="zoom"
+              focusStyle="none"
               selected={card.uid === hoveredUid}
               onMouseEnter={() => onHoverCard(card.uid)}
               onMouseLeave={() => onHoverCard(null)}

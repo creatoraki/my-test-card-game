@@ -78,6 +78,7 @@
     0 100%,
     0 var(--notch)
   );
+  transform: none;
   transition:
     background 150ms ease,
     border-color 150ms ease,
@@ -89,7 +90,6 @@
   border-color: #7c4dbe;
   background: #ffffffdb;
   color: #55307f;
-  transform: none;
 }
 
 .bench .tabs .tab.is-active {

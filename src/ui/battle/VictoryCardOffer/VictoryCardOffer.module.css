@@ -86,12 +86,8 @@
 }
 
 .selectFrame {
-  display: none;
-}
-
-.candidate:hover .selectFrame,
-.candidate:focus-visible .selectFrame {
-  display: block;
+  /* 四角框只套卡面: 上让开 .owner 行(18px + 8px margin), 下让开 .pickLabel 那 42px。 */
+  inset: 20px -6px 36px;
 }
 
 .owner {

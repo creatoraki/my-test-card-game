@@ -11,13 +11,13 @@
 .card-group h4 small { color: var(--museum-dim); font-size: 11px; font-weight: 400; letter-spacing: 0; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, var(--card-w)); justify-content: start; gap: 18px 16px; align-items: start; }
 .card-anchor { position: relative; --deck-card-hover-transform: scale(1.05); }
-.card-hint { --ihint-offset: 6px; --ihint-size: 20px; }
+.card-hint { --ihint-offset: 6px; }
 .card-anchor:has(> button[aria-pressed="true"]) > .card-hint { opacity: 0; }
 .locked-card { position: relative; display: block; width: var(--card-w); height: var(--card-h); min-width: 0; padding: 0; background: transparent; border: 0; cursor: var(--cursor-pointer); transition: transform 180ms ease; }
 .locked-card > span { display: grid; width: 100%; height: 100%; }
-.locked-card:hover, .locked-card:focus-visible, .locked-card.is-selected { z-index: 2; transform: scale(1.05); }
+.locked-card:hover, .locked-card:focus-visible { z-index: 2; transform: scale(1.05); }
 .locked-card:focus-visible { outline: 1px solid var(--museum-accent); outline-offset: 3px; }
-.locked-card:hover > span, .locked-card.is-selected > span { border-color: var(--museum-accent); }
+.locked-card:hover > span { border-color: var(--museum-accent); }
 .card-detail { display: flex; flex-direction: column; align-items: center; gap: 22px; }
 .detail-card { width: 248px; height: 344px; }
 .detail-card > div[data-deck-card] { display: block; width: 248px; height: 344px; }
@@ -27,4 +27,4 @@
 .detail-copy .card-text { color: var(--museum-ink); font-size: 13px; }
 .empty { display: grid; height: 100%; margin: 0; place-items: center; color: var(--museum-dim); font-size: 13px; }
 
-@media (prefers-reduced-motion: reduce) { .locked-card { transition: none; } .locked-card:hover, .locked-card:focus-visible, .locked-card.is-selected { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .locked-card { transition: none; } .locked-card:hover, .locked-card:focus-visible { transform: none; } }

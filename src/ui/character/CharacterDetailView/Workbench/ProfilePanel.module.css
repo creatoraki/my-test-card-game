@@ -2,7 +2,7 @@
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 230px minmax(0, 1fr);
   gap: 16px;
   animation: profileIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }

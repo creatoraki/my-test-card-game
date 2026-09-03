@@ -37,8 +37,8 @@
   justify-content: center;
   align-content: start;
   gap: 14px;
-  /* 内边距要吃得下选中角标的 -6px 外扩和它的 5px 发光, 否则边缘那列会被 overflow 裁掉。 */
-  padding: 10px 10px 12px 10px;
+  /* 内边距要吃得下四角提示的 -6px 外扩和它的发光, 否则边缘那列会被 overflow 裁掉。 */
+  padding: 12px;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -54,7 +54,6 @@
 .deckCard {
   position: relative;
   z-index: 3;
-  --deck-card-selected-transform: translateY(-4px);
 }
 
 .card.dimmed {
@@ -91,10 +90,9 @@
   height: 62%;
 }
 
-/* DeckCard 在 hover / 选中时会 translateY(-4px), 徽章挂在外层 wrapper 上不会跟着走,
+/* DeckCard 在 hover 时会 translateY(-4px), 徽章挂在外层 wrapper 上不会跟着走,
    这里补一份同样的位移, 否则徽章会从卡角上「掉队」。 */
-.card:hover .moduleMark,
-.card[data-selected="true"] .moduleMark {
+.card:hover .moduleMark {
   transform: translateY(-4px);
 }
 
@@ -109,8 +107,7 @@
     transition: none;
   }
 
-  .card:hover .moduleMark,
-  .card[data-selected="true"] .moduleMark {
+  .card:hover .moduleMark {
     transform: none;
   }
 
