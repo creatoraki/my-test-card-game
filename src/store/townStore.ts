@@ -78,7 +78,7 @@ export interface CharacterState {
   exp: number; // ★ 可用经验池(不再有等级, 也不再回落); 锻造直接从这里扣
   expEarned: number; // 累计获得的经验(纯展示用)
   deck: Card[]; // 个人卡组(实例); 战斗卡组 = 上阵角色个人卡组的集合
-  deckLevel: number; // 卡组等级, 从 1 起; 只影响抽卡时的稀有度权重
+  deckLevel: number; // 卡组等级, 从 0 起, 满级 RULES.deck.levelMax; 只影响抽卡时的稀有度权重
   minDeckSize: number; // 当前最小卡组下限, 删卡不能把卡组删到它以下
   // 已穿戴的三件装备(物品实例本身, 不是修正层)。★ 穿在身上的**不占背包/仓库格**。
   equipped: Record<EquipSlot, ItemStack | null>;
@@ -427,7 +427,7 @@ function freshCharacter(def: CharacterDef): CharacterState {
     exp: 0,
     expEarned: 0,
     deck: def.startingCardIds.map((cid) => ({ ...makeCard(cid)})),
-    deckLevel: 1,
+    deckLevel: 0,
     minDeckSize: RULES.deck.initialMinSize,
     equipped: { weapon: null, armor: null, trinket: null },
     pendingDraw: null,
@@ -504,10 +504,17 @@ function freshProfile(includeInitialExp = true): {
   };
 }
 
+export const TRAINING_POINT_CONTRIBUTORS = 5;
+
 export function squadTrainingPoints(
-  state: Pick<TownStore, "characters" | "party">,
+  state: Pick<TownStore, "characters" | "awakened">,
 ): number {
-  return state.party.reduce((sum, charId) => sum + (state.characters[charId]?.deckLevel ?? 0), 0);
+  const deckLevels = state.awakened
+    .map((charId) => state.characters[charId]?.deckLevel ?? 0)
+    .sort((left, right) => right - left);
+  return deckLevels
+    .slice(0, TRAINING_POINT_CONTRIBUTORS)
+    .reduce((sum, level) => sum + level, 0);
 }
 
 export const useTownStore = create<TownStore>()(

@@ -101,11 +101,12 @@ export const RULES = {
   // 卡组锻造 —— 经验的唯一去处(《角色养成设计.md》第四章)。⚠ 全部为草案数值。
   deck: {
     levelMax: 6,
-    // 升到下一级所需经验: 下标 0 = 1→2 级。长度应为 levelMax − 1。
-    upgradeCost: [100, 300, 500, 800, 1200],
+    // 升到下一级所需经验: 下标 = 当前等级, 0→1 用下标 0。长度应为 levelMax。
+    upgradeCost: [100, 300, 500, 800, 1200, 1700],
     // 每级抽卡时的稀有度权重(先摇稀有度, 再从该角色对应稀有度的专属池里出候选)。
-    // 下标 = 卡组等级 − 1。若该稀有度池为空, 抽取时自动降级到更低稀有度。
+    // 下标 = 卡组等级 0..levelMax。若该稀有度池为空, 抽取时自动降级到更低稀有度。
     rarityWeights: [
+      { common: 90, uncommon: 10, rare: 0 },
       { common: 80, uncommon: 20, rare: 0 },
       { common: 75, uncommon: 25, rare: 0 },
       { common: 68, uncommon: 27, rare: 5 },
@@ -146,12 +147,12 @@ export function capProb(v: number): number {
 
 // 卡组从 level 升到 level+1 所需经验; 已满级返回 null。
 export function deckUpgradeCost(level: number): number | null {
-  return RULES.deck.upgradeCost[level - 1] ?? null;
+  return RULES.deck.upgradeCost[level] ?? null;
 }
 
-// 该卡组等级的稀有度相对权重。level 会被夹到 [1, levelMax]。
+// 该卡组等级的稀有度相对权重。level 会被夹到 [0, levelMax]。
 export function deckRarityWeights(level: number): Record<Rarity, number> {
-  const index = Math.max(0, Math.min(RULES.deck.levelMax, Math.floor(level)) - 1);
+  const index = Math.max(0, Math.min(RULES.deck.levelMax, Math.floor(level)));
   return RULES.deck.rarityWeights[index] ?? RULES.deck.rarityWeights[0];
 }
 

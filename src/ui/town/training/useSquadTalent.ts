@@ -34,7 +34,7 @@ const BASE_SCREENS: Screen[] = ["menu", "town", "formation", "sortie"];
 
 export interface SquadTalentController {
   badge: SquadBadgeDef | undefined;
-  /** 全队可用训练点(= 各队员卡组等级之和)。 */
+  /** 全队可用训练点(= 已唤醒角色中等级最高的五人卡组等级之和)。 */
   trainingPoints: number;
   spent: number;
   remaining: number;
