@@ -6,11 +6,11 @@
 //   避免影响设施背景的分层；入场/退场动画只挂常驻元素与抽屉叶子节点。
 
 import {
-  useCallback,
   useEffect,
   useMemo,
   useState,
   type CSSProperties,
+  type MouseEvent,
   type ReactNode,
 } from "react";
 import { getItemDef } from "@/data";
@@ -21,13 +21,9 @@ import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import ItemTabs from "@/ui/common/item/ItemTabs";
 import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
-import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
-import {
-  PanelShell,
-  PANEL_OUT_MS,
-  PANEL_OUT_REDUCED_MS,
-} from "@/ui/common/PanelShell";
+import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
+import { PanelShell } from "@/ui/common/PanelShell";
 import s from "./StorageScene.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
@@ -47,6 +43,11 @@ const STORAGE_THEME = {
 
 type PanelId = "inventory" | "recycle";
 
+const STORAGE_PANEL_RECT: Record<PanelId, Rect> = {
+  inventory: { x: 160, y: 80, w: 1600, h: 920 },
+  recycle: { x: 160, y: 80, w: 1600, h: 920 },
+};
+
 const rarityRank = (r: string) => RARITY_ORDER.indexOf(r as never);
 
 interface Props {
@@ -60,29 +61,8 @@ export function StorageScene({ leaving = false }: Props) {
   const discardStored = useTownStore((s) => s.discardStored);
   const sellItem = useTownStore((s) => s.sellItem);
 
-  const [panel, setPanel] = useState<PanelId | null>(null);
-  // 关窗不能直接卸载, 否则滑出动画没机会播 —— 先进 closing 态, 播完再置空(同 CryoScene)。
-  const [closing, setClosing] = useState(false);
-  const closePanel = useCallback(() => setClosing(true), []);
-
-  useEffect(() => {
-    if (!closing) return;
-    const ms = prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
-    const id = window.setTimeout(() => {
-      setPanel(null);
-      setClosing(false);
-    }, ms);
-    return () => clearTimeout(id);
-  }, [closing]);
-
-  useEffect(() => {
-    if (!panel) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closePanel();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [panel, closePanel]);
+  const morph = usePanelMorph<PanelId>({ rects: STORAGE_PANEL_RECT, entryAttr: "data-stor-entry" });
+  const { panel } = morph;
 
   const sorted = useMemo(() => sortStacks(storage, getItemDef, rarityRank), [storage]);
   const scrapCount = storage.filter((s) => getItemDef(s.itemId).sellValue).length;
@@ -120,13 +100,17 @@ export function StorageScene({ leaving = false }: Props) {
           icon={<CrateIcon />}
           name="库存清单"
           desc={storage.length ? `${storage.length} 件在库` : "空仓"}
-          onClick={() => setPanel("inventory")}
+          entryId="inventory"
+          hidden={morph.hiddenEntry === "inventory"}
+          onClick={(event) => morph.openPanel("inventory", event.currentTarget)}
         />
         <EntryTile
           icon={<RecycleIcon />}
           name="回收台"
           desc={scrapCount ? `${scrapCount} 件可出售` : "无可回收物资"}
-          onClick={() => setPanel("recycle")}
+          entryId="recycle"
+          hidden={morph.hiddenEntry === "recycle"}
+          onClick={(event) => morph.openPanel("recycle", event.currentTarget)}
         />
       </div>
 
@@ -136,9 +120,16 @@ export function StorageScene({ leaving = false }: Props) {
           title="库存清单"
           status={`共 ${storage.length} 件 · 占 ${occupiedSlots(storage, getItemDef)} 格`}
           closeLabel="关闭库存清单"
-          closing={closing}
-          onClose={closePanel}
+          closing={morph.phase === "closing"}
+          onClose={morph.closePanel}
           themeStyle={STORAGE_THEME}
+          morph={{
+            ref: morph.panelRef,
+            rect: STORAGE_PANEL_RECT.inventory,
+            ready: morph.ready,
+            seed: <CrateIcon />,
+            seedLabel: "库存清单",
+          }}
         >
           <InventoryPanel stacks={sorted} onDiscard={discardStored} />
         </PanelShell>
@@ -149,9 +140,16 @@ export function StorageScene({ leaving = false }: Props) {
           title="回收台"
           status={`余额 ${loot.toLocaleString()} · 可回收 ${scrapCount} 件`}
           closeLabel="关闭回收台"
-          closing={closing}
-          onClose={closePanel}
+          closing={morph.phase === "closing"}
+          onClose={morph.closePanel}
           themeStyle={STORAGE_THEME}
+          morph={{
+            ref: morph.panelRef,
+            rect: STORAGE_PANEL_RECT.recycle,
+            ready: morph.ready,
+            seed: <RecycleIcon />,
+            seedLabel: "回收台",
+          }}
         >
           <RecyclePanel stacks={sorted} loot={loot} onSell={sellItem} />
         </PanelShell>
@@ -166,15 +164,25 @@ function EntryTile({
   icon,
   name,
   desc,
+  entryId,
+  hidden,
   onClick,
 }: {
   icon: ReactNode;
   name: string;
   desc: string;
-  onClick: () => void;
+  entryId: PanelId;
+  hidden: boolean;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
-    <button className={cn("stor-entry")} type="button" onClick={onClick}>
+    <button
+      className={cn("stor-entry")}
+      type="button"
+      data-stor-entry={entryId}
+      onClick={onClick}
+      style={{ visibility: hidden ? "hidden" : "visible" }}
+    >
       <span className={cn("stor-rim")} aria-hidden />
       <span className={cn("stor-entry-icon")}>{icon}</span>
       <span className={cn("stor-entry-text")}>

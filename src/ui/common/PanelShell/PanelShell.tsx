@@ -1,7 +1,8 @@
-import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode, type Ref } from "react";
 import { playSfx } from "@/ui/audio";
 import { EventPanelFrame } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
+import { CLOSE_MS, OPEN_MS, SLIDE_MS, box, type Rect } from "@/ui/common/panelMorph";
 import s from "./PanelShell.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
@@ -18,7 +19,7 @@ interface Props {
   title: string;
   status?: ReactNode;
   closeLabel: string;
-  closing: boolean;
+  closing?: boolean;
   onClose: () => void;
   /** 换配色用: 覆盖 --asm-frame / --asm-glow / --asm-select 等变量。缺省沿用装配舱的青蓝。 */
   themeStyle?: CSSProperties;
@@ -26,6 +27,13 @@ interface Props {
   size?: { w: number; h: number };
   /** 遮罩层的附加类名 —— 各场景据此压自己的 z-index / 定位(公共组件铁律 3)。 */
   className?: string;
+  morph?: {
+    ref: Ref<HTMLElement>;
+    rect: Rect;
+    ready: boolean;
+    seed?: ReactNode;
+    seedLabel?: string;
+  };
   children: ReactNode;
 }
 
@@ -41,34 +49,48 @@ export function PanelShell({
   title,
   status,
   closeLabel,
-  closing,
+  closing = false,
   onClose,
   themeStyle,
   size = PANEL_SIZE,
   className,
+  morph,
   children,
 }: Props) {
   useEffect(() => {
     playSfx("panel");
   }, []);
 
+  const morphPhase = morph ? (closing ? "closing" : morph.ready ? "open" : "opening") : null;
+  const panelStyle = morph ? box(morph.rect) : { width: `${size.w}px`, height: `${size.h}px` };
+
   return (
     <div
-      className={cx(cn("asm-modal", closing && "is-closing"), className)}
+      className={cx(cn("asm-modal", morph && "is-morph", closing && !morph && "is-closing"), className)}
+      data-morph={morphPhase ?? undefined}
       onClick={onClose}
       style={
         {
           "--panel-w": `${size.w}px`,
           "--panel-h": `${size.h}px`,
+          ...(morph
+            ? {
+                "--veil-in-ms": `${SLIDE_MS}ms`,
+                "--veil-out-ms": `${CLOSE_MS}ms`,
+                "--land-delay": `${OPEN_MS}ms`,
+                "--seed-delay": `${SLIDE_MS}ms`,
+              }
+            : {}),
           ...themeStyle,
         } as CSSProperties
       }
     >
       <section
-        className={cn("asm-panel")}
+        className={cn("asm-panel", morph && "is-morphing")}
         data-closing={closing}
         onClick={(event) => event.stopPropagation()}
-        style={{ width: `${size.w}px`, height: `${size.h}px` } as CSSProperties}
+        ref={morph?.ref}
+        style={panelStyle as CSSProperties}
       >
         {/* 边框装饰层。独立成层而不是复用 .asm-panel 的伪元素 ——
             ::before 已被左上角光点占用, ::after 则是被明确删掉的氛围灯(见样式里的注释), 都不该动。 */}
@@ -80,25 +102,33 @@ export function PanelShell({
           <i className={cn("asm-deco-scan", "is-top")} />
           <i className={cn("asm-deco-scan", "is-bottom")} />
         </span>
-        <EventPanelFrame
-          accent={accent}
-          title={title}
-          status={status && <span className={cn("asm-panel-status")}>{status}</span>}
-          headerExtra={
-            <button
-              className={cn("asm-close-button")}
-              type="button"
-              data-sfx="back"
-              onClick={onClose}
-              aria-label={closeLabel}
-            >
-              <CloseIcon />
-            </button>
-          }
-          className={cn("asm-event-frame")}
-        >
-          {children}
-        </EventPanelFrame>
+        {morph && !morph.ready ? (
+          <div className={cn("asm-seed")} aria-hidden="true">
+            {morph.seed}
+            <strong>{morph.seedLabel ?? title}</strong>
+          </div>
+        ) : (
+          <EventPanelFrame
+            accent={accent}
+            title={title}
+            status={status && <span className={cn("asm-panel-status")}>{status}</span>}
+            headerExtra={
+              <button
+                className={cn("asm-close-button")}
+                type="button"
+                data-sfx="back"
+                onClick={onClose}
+                aria-label={closeLabel}
+              >
+                <CloseIcon />
+              </button>
+            }
+            className={cn("asm-event-frame", morph && morph.ready && "is-landed")}
+          >
+            {children}
+          </EventPanelFrame>
+        )}
+        {morph && <i className={cn("asm-land")} aria-hidden="true" />}
       </section>
     </div>
   );

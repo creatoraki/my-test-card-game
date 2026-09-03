@@ -187,7 +187,8 @@ src/ui/
 | [cardText.ts](../../src/ui/common/cardText.ts) | 从战斗实时属性或城镇派生面板属性读取卡牌施放者的攻击力/治愈力，并渲染卡牌说明数值。 |
 | [CardTextRich](../../src/ui/common/CardTextRich/CardTextRich.tsx) | 将卡牌说明按引擎词条登记表分段，统一高亮汇星、应星、瀑布等特殊词条。 |
 | [CardKeywordNotes](../../src/ui/common/CardKeywordNotes/CardKeywordNotes.tsx) | 按卡牌说明中实际出现的词条展示紧凑释义列表；无词条时不渲染。 |
-| [PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx) | 功能弹窗通用外壳：模态遮罩、切角面板、边框装饰层与 `EventPanelFrame` 收口，导出关闭动画时长与默认面板尺寸（1600×920，可用 `size` 覆盖）。原为装配舱私有件，现由装配舱、制造弹窗与角色档案 Modal 共用；配色只靠外层覆盖 `--asm-*` 变量，场景未下发时吃组件自带的青蓝默认值，层序由调用方经 `className` 压。 |
+| [PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx) | 功能弹窗通用外壳：模态遮罩、切角面板、边框装饰层与 `EventPanelFrame` 收口，导出关闭动画时长与默认面板尺寸（1600×920，可用 `size` 覆盖）。原为装配舱私有件，现由装配舱、制造弹窗与角色档案 Modal 共用；可选形变模式支持入口砖 → 面板的三段形变、种子态与遮罩跟随淡入；配色只靠外层覆盖 `--asm-*` 变量，场景未下发时吃组件自带的青蓝默认值，层序由调用方经 `className` 压。 |
+| [common/panelMorph](../../src/ui/common/panelMorph/usePanelMorph.ts) | 从冬眠仓提升的公共入口砖形变引擎：按设计 px 执行三段开窗与倒放关窗，统一处理种子态时机、入口隐藏、Esc、动画完成兜底；冬眠仓与物资中转仓共用。 |
 | [CharacterModal](../../src/ui/common/CharacterModal/CharacterModal.tsx) | 角色档案 Modal：立绘/三段血量/污染/怪癖、只读属性表（分组来自 `common/statGroups.ts`）、中列装备三槽与右列只读卡组平铺（`HandCard`）。不读 store、不含规则，全部靠 props 与回调；传 `swap` 即可点击装备槽打开画布内候选浮层并与容器互换，默认装备区只读；可按调用方需要传入临时状态与护盾。装备槽不写部位文字（部位只留在 `aria-label` 与悬浮 Tooltip），槽位 176×176 并常驻挂 `InteractiveHint` 四角悬浮提示。 |
 | [statGroups.ts](../../src/ui/common/statGroups.ts) | 面板属性的分组、文案与条长 `ref` 旋钮，角色详情态与角色档案 Modal 共用的唯一真相点；`ref` 是纯展示旋钮，不参与任何结算。 |
 | [InteractiveHint](../../src/ui/common/InteractiveHint/InteractiveHint.tsx) | 全站统一的交互提示：悬浮时在宿主容器**外侧**四角浮出直角 L 型天蓝呼吸边框，也可由 `active` 直接点亮来表达「已选中」。纯装饰层（`aria-hidden` + `pointer-events: none`），零 JS；悬浮显隐由自己的 CSS 读取宿主 `:hover` / `:focus-visible` / `:focus-within`。宿主三条硬要求：`position: relative`、挂 `data-interactive-hint`、自身不能 `overflow: hidden`；几何与配色经 `--ihint-offset` / `--ihint-size` / `--ihint-thickness` / `--ihint-neon` 下发。 |

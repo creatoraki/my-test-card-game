@@ -257,6 +257,93 @@
   to { opacity: 0; transform: scale(0.97) translateY(16px); filter: blur(3px); }
 }
 
+.asm-panel.is-morphing {
+  position: absolute;
+  animation: none;
+}
+
+.asm-modal.is-morph {
+  background: transparent;
+}
+
+.asm-modal.is-morph[data-morph="opening"],
+.asm-modal.is-morph[data-morph="open"] {
+  animation: asm-veil-in var(--veil-in-ms) ease-out both;
+}
+
+.asm-modal.is-morph[data-morph="closing"] {
+  animation: asm-veil-out var(--veil-out-ms) ease-in both;
+}
+
+.asm-seed {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--asm-ink, #e8f7f7);
+  font-size: 16px;
+  letter-spacing: 3px;
+  white-space: nowrap;
+  animation: asm-seed-out 180ms var(--seed-delay, 520ms) ease-out both;
+}
+
+.asm-seed svg {
+  width: 28px;
+  height: 28px;
+  color: var(--asm-glow, #52cfff);
+}
+
+.asm-land {
+  position: absolute;
+  left: -60%;
+  top: -60%;
+  z-index: 2;
+  display: block;
+  width: 60%;
+  height: 220%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--asm-glow, #52cfff) 55%, white) 48%, transparent);
+  transform: rotate(18deg);
+  animation: asm-land 720ms var(--land-delay, 880ms) cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+}
+
+.asm-event-frame.is-landed > header,
+.asm-event-frame.is-landed > main {
+  animation: asm-content-in 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.asm-event-frame.is-landed > main {
+  animation-delay: 60ms;
+}
+
+@keyframes asm-veil-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes asm-veil-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes asm-seed-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes asm-land {
+  from { opacity: 0.9; transform: rotate(18deg) translateX(0); }
+  to { opacity: 0; transform: rotate(18deg) translateX(320%); }
+}
+
+@keyframes asm-content-in {
+  from { opacity: 0; filter: blur(4px); transform: translateY(16px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .asm-panel {
     animation: none;
@@ -270,6 +357,16 @@
   .asm-deco-scan {
     animation: none;
     opacity: 0.45;
+  }
+
+  .asm-seed,
+  .asm-land {
+    animation: none;
+  }
+
+  .asm-event-frame.is-landed > header,
+  .asm-event-frame.is-landed > main {
+    animation: fadeIn 180ms ease-out both;
   }
 
   .asm-close-button:hover {
