@@ -135,14 +135,14 @@ export default function ItemDetail({
           ★ 计数只在**上阵角色**穿戴时才作数, 躺仓库里的这一条只是"这件东西带什么"。 */}
       {bond && (
         <div className={s["item-detail-bond"]}>
-          <p className={s["item-detail-bond-head"]}>
+          <div className={s["item-detail-bond-head"]}>
             <BondIcon bondId={bond.id} className={s["item-detail-bond-icon"]} />
             <span className={s["item-detail-bond-name"]}>
               {bond.name}
               <span className={s["item-detail-bond-arcana"]}>{bond.arcana}</span>
             </span>
             <span className={s["item-detail-bond-count"]}>羁绊 +1</span>
-          </p>
+          </div>
           <p className={s["item-detail-bond-desc"]}>{bond.desc}</p>
         </div>
       )}

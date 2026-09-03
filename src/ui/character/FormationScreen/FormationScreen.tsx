@@ -183,7 +183,7 @@ export function FormationScreen() {
           delay={flight.reverse ? 0 : SCATTER_MS}
           ms={flight.ms}
           onDone={morph.finishFlight}
-        />
+        /> 
       )}
 
       {/* 常驻 HUD: 通栏面板里的徽章与羁绊, 左下角返回按钮。两态共用, 过场期间原地不动。 */}

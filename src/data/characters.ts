@@ -184,17 +184,20 @@ export const CHARACTERS: CharacterDef[] = [
       "jade-plating",
     ],
     pools: {
-      common: ["point-gold-shot", "jade-plating"],
-      uncommon: [
+      common: [
+        "point-gold-shot",
         "bone-acid-rain",
         "catalytic-detonation",
         "phase-spread",
-        "ember-core-resonance",
+        "jade-plating",
         "retort-wall",
         "dissolve-double",
         "universal-component",
         "reverse-disassembly",
         "constant-temperature-crucible",
+      ],
+      uncommon: [
+        "ember-core-resonance",
         "unfinished-product",
       ],
       rare: ["terminal-mixture", "resonance-tuning"],
