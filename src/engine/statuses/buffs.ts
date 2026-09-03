@@ -1,6 +1,10 @@
-import type { Ally, DamageCtx, StatusCtx, StatusDef } from "../types";
+import type { Ally, DamageCtx, Enemy, StatusCtx, StatusDef } from "../types";
 import { OVERLOAD_STATUS_ID, RULES } from "../rules";
 import { rngPick } from "../rng";
+
+function isEnemy(combatant: Ally | Enemy): combatant is Enemy {
+  return combatant.team === "enemy";
+}
 
 export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
   starlight: {
@@ -102,7 +106,7 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
       },
       onShieldBroken: (c: StatusCtx) => {
         const owner = c.state.combatants[c.ownerId];
-        if (!owner || owner.team !== "enemy") return;
+        if (!owner || !isEnemy(owner)) return;
         const allies = c.state.playerIds
           .map((id) => c.state.combatants[id])
           .filter((combatant): combatant is Ally => combatant.alive && combatant.team === "player");
@@ -110,13 +114,13 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
         if (allies.length > 0)
           c.ops.addCardToHand(c.state, "scrap-shrapnel", rngPick(c.state, allies).charId);
         c.inst.stacks = 0;
-        enemy.aiMemory ??= {
+        owner.aiMemory ??= {
           actsSinceRecycle: 0,
           hammerCooldown: 0,
           openingDone: true,
           justBrokeShell: false,
         };
-        enemy.aiMemory.justBrokeShell = true;
+        owner.aiMemory.justBrokeShell = true;
         c.ops.log(c.state, `${owner.emoji} ${owner.name} 的充能外壳被击破`);
       },
     },

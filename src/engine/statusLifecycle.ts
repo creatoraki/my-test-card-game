@@ -8,8 +8,12 @@ function runTempo(state: BattleState, ownerId: string): void {
   const cmb = state.combatants[ownerId];
   if (!cmb.alive) return;
 
-  // 敌人的拍点发生在行动前, 因此先进入下一次行动对应的节拍; 我方在回合结束处理当前节拍。
+  // 敌人在行动前进入下一拍; 我方在回合结束结算当前拍, 完成后再推进。
   const tempo = cmb.team === "enemy" ? cmb.tempo + 1 : cmb.tempo;
+  if (cmb.team === "enemy") {
+    // 敌人先写入拍号, 让本拍新施加的状态跳过本次衰减。
+    cmb.tempo = tempo;
+  }
   for (const inst of [...cmb.statuses]) {
     if (!cmb.alive) break;
     const def = STATUS_DEFS[inst.id];
@@ -24,7 +28,10 @@ function runTempo(state: BattleState, ownerId: string): void {
   }
   cleanup(cmb);
   if (cmb.team === "enemy" && cmb.hp <= 0) markDead(state, cmb);
-  cmb.tempo = tempo;
+  if (cmb.team === "player") {
+    // 我方完成当前拍结算后才进入下一拍。
+    cmb.tempo = tempo + 1;
+  }
 }
 
 // 单个我方单位的拍点。分单位暴露是为了让回合结束能逐个录动画帧。

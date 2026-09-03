@@ -178,8 +178,8 @@ export const CHARACTERS: CharacterDef[] = [
     }),
     startingCardIds: [
       basicCardId("alchemist", "attack"),
-      basicCardId("alchemist", "attack"),
-      basicCardId("alchemist", "guard"),
+      basicCardId("alchemist", "heal"),
+      basicCardId("alchemist", "heal"),
       "point-gold-shot",
       "jade-plating",
     ],
