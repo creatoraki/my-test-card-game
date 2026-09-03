@@ -30,6 +30,10 @@ export interface TownFacility {
   kind?: "scene" | "screen";
 }
 
+type BrickStyle = CSSProperties & {
+  "--brick-radius": string;
+};
+
 // 想调整据点入口的拼法时只改这里，数组顺序同时决定飞出次序。
 export const TOWN_FACILITIES: TownFacility[] = [
   {
@@ -100,7 +104,7 @@ export const TOWN_FACILITIES: TownFacility[] = [
   },
 ];
 
-export function brickStyle(brick: FacilityBrick, borderRadius: number): CSSProperties {
+export function brickStyle(brick: FacilityBrick, borderRadius: number): BrickStyle {
   return {
     gridColumn: `${brick.col} / ${brick.colEnd}`,
     gridRow: `${brick.row} / ${brick.rowEnd}`,
