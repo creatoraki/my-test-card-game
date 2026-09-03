@@ -18,7 +18,7 @@
     cursor: var(--cursor-pointer);
     animation: deckCardIn 400ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
     animation-delay: calc(100ms + var(--i, 0) * 24ms);
-    transition: transform 160ms ease, filter 160ms ease;
+    transition: transform 160ms ease;
 }
 
 .deck-card [data-deck-card] {
@@ -56,8 +56,23 @@
     --ihint-size: 18px;
 }
 
-/* 据点的静态浏览态: 不抬起, 只放大一档(5%)。悬浮的投影也归这里 ——
-   使用方不要再在外层格子上叠第二层 drop-shadow, 两层叠加会糊成一团。 */
+/* ★ 关掉四角提示自带的呼吸辉光, 只留干净的 L 线。
+   InteractiveHint 的 interactiveHintBreath 是四层 drop-shadow(最外一层扩散到 30px) ——
+   那是给 ExploreScreen 深色底调的霓虹感, 落到卡组页的浅底和卡面上就是一圈糊边。
+   ⚠ 特异性必须压过组件那条 :global([data-interactive-hint]:hover) > .hint (0,3,0),
+     所以这里写成 (0,4,0); 只覆盖 animation / filter, opacity: 1 仍由组件那条给。 */
+.deck-card[data-interactive-hint]:hover > .hint,
+.deck-card[data-interactive-hint]:focus-visible > .hint,
+.deck-card[data-interactive-hint]:focus-within > .hint {
+    animation: none;
+    filter: none;
+}
+
+/* 据点的静态浏览态: 不抬起, 只放大一档(5%)。
+   ⚠ 这层**不要**加 filter: drop-shadow —— 父级 filter 作用于整个子树的渲染结果,
+     会把四角提示自己的呼吸辉光当成图形再投影一遍, 卡周围糊出一圈脏阴影。
+     悬浮的层次感由四角提示自己的辉光提供, 不需要另加投影。
+     同理: 使用方也不要在外层格子上叠 drop-shadow。 */
 .deck-card.is-zoom {
     --deck-card-hover-transform: scale(1.05);
 }
@@ -65,7 +80,6 @@
 .deck-card.is-zoom:hover:not(:disabled),
 .deck-card.is-zoom:focus-visible {
     transform: var(--deck-card-hover-transform);
-    filter: drop-shadow(0 8px 14px #2a1b3d3d);
 }
 
 @keyframes deckCardIn {
