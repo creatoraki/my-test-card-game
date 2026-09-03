@@ -1,5 +1,10 @@
 /* 四角 L 型激活边框 —— 悬浮时表达「这里能点」, active 时表达「已选中」, 两者完全同款。
-  天蓝、2px、带呼吸辉光; 呼吸动画只在实际激活时运行, 避免一屏多张卡常驻消耗性能。
+   天蓝、锐利芯线 + box-shadow 外发光。
+
+   ★ 为什么辉光用 box-shadow 而不是 filter: drop-shadow?
+      drop-shadow 是后处理滤镜, 会被宿主上的 backdrop-filter / clip-path 等玻璃合成环境
+      重新采样, 表现为边框背后拖出一片模糊投影(角色详情页卡组 L 框发糊就是这个 bug)。
+      box-shadow 在绘制阶段产生, 不受该合成环境干扰, 任何外壳里都清晰锐利。
 
    ★ 跨模块契约(铁律 4) —— 宿主元素必须满足三条:
      ① position: relative           (提示层按宿主定位)
@@ -26,68 +31,91 @@
   --ihint-neon-deep: #0f83d8;
 }
 
+/* 每个角的定位盒, 内放一横一竖两段 L 臂。 */
 .corner {
   position: absolute;
   width: var(--ihint-size);
   height: var(--ihint-size);
-  --ihint-line-width: var(--ihint-thickness);
-  --ihint-line-color: var(--ihint-core);
-  --ihint-horizontal-position: left;
-  --ihint-horizontal-cross-position: top;
-  --ihint-vertical-position: left;
-  --ihint-vertical-cross-position: top;
-  background:
-    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-horizontal-position) var(--ihint-horizontal-cross-position) / 100% var(--ihint-line-width),
-    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-vertical-position) var(--ihint-vertical-cross-position) / var(--ihint-line-width) 100%;
 }
 
-/* 外圈半透明蓝, 让 L 角在亮背景上也读得出来。 */
-.corner::after {
+/* 一段 L 臂 = 锐利芯线 + box-shadow 外发光。
+   辉光半径跟随线宽缩放, 保证在不同尺寸/缩放比例下发光比例一致。 */
+.arm {
   position: absolute;
-  inset: 0;
-  content: "";
-  --ihint-line-width: calc(var(--ihint-thickness) + 2px);
-  --ihint-line-color: color-mix(in srgb, var(--ihint-neon) 65%, transparent);
-  background:
-    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-horizontal-position) var(--ihint-horizontal-cross-position) / 100% var(--ihint-line-width),
-    linear-gradient(var(--ihint-line-color), var(--ihint-line-color)) no-repeat var(--ihint-vertical-position) var(--ihint-vertical-cross-position) / var(--ihint-line-width) 100%;
-  pointer-events: none;
+  background: var(--ihint-core);
+  box-shadow:
+    0 0 calc(var(--ihint-thickness) * 2) var(--ihint-neon),
+    0 0 calc(var(--ihint-thickness) * 5) var(--ihint-neon-deep);
+}
+
+.arm.is-h {
+  width: 100%;
+  height: var(--ihint-thickness);
+}
+
+.arm.is-v {
+  width: var(--ihint-thickness);
+  height: 100%;
 }
 
 .is-tl {
   top: 0;
   left: 0;
-  --ihint-horizontal-position: left;
-  --ihint-horizontal-cross-position: top;
-  --ihint-vertical-position: left;
-  --ihint-vertical-cross-position: top;
+}
+
+.is-tl .is-h {
+  top: 0;
+  left: 0;
+}
+
+.is-tl .is-v {
+  top: 0;
+  left: 0;
 }
 
 .is-tr {
   top: 0;
   right: 0;
-  --ihint-horizontal-position: right;
-  --ihint-horizontal-cross-position: top;
-  --ihint-vertical-position: right;
-  --ihint-vertical-cross-position: top;
+}
+
+.is-tr .is-h {
+  top: 0;
+  right: 0;
+}
+
+.is-tr .is-v {
+  top: 0;
+  right: 0;
 }
 
 .is-bl {
   bottom: 0;
   left: 0;
-  --ihint-horizontal-position: left;
-  --ihint-horizontal-cross-position: bottom;
-  --ihint-vertical-position: left;
-  --ihint-vertical-cross-position: bottom;
+}
+
+.is-bl .is-h {
+  bottom: 0;
+  left: 0;
+}
+
+.is-bl .is-v {
+  bottom: 0;
+  left: 0;
 }
 
 .is-br {
   right: 0;
   bottom: 0;
-  --ihint-horizontal-position: right;
-  --ihint-horizontal-cross-position: bottom;
-  --ihint-vertical-position: right;
-  --ihint-vertical-cross-position: bottom;
+}
+
+.is-br .is-h {
+  right: 0;
+  bottom: 0;
+}
+
+.is-br .is-v {
+  right: 0;
+  bottom: 0;
 }
 
 /* ★ 显隐读宿主状态(铁律 2)。用直接子选择器, 避免宿主嵌套时外层悬浮点亮内层提示。
@@ -96,47 +124,45 @@
 :global([data-interactive-hint]:focus-visible) > .hint,
 :global([data-interactive-hint]:focus-within) > .hint {
   opacity: 1;
+}
+
+:global([data-interactive-hint]:hover) > .hint .arm,
+:global([data-interactive-hint]:focus-visible) > .hint .arm,
+:global([data-interactive-hint]:focus-within) > .hint .arm {
   animation: interactiveHintBreath 1.8s ease-in-out infinite alternate;
 }
 
 /* active: 由调用方直接点亮(卡牌「已选中」), 与宿主 :hover 驱动的那条并列, 效果完全一致。 */
 .hint.is-active {
   opacity: 1;
+}
+
+.hint.is-active .arm {
   animation: interactiveHintBreath 1.8s ease-in-out infinite alternate;
 }
 
 @keyframes interactiveHintBreath {
   from {
-    filter:
-      drop-shadow(0 0 1px var(--ihint-neon))
-      drop-shadow(0 0 4px var(--ihint-neon))
-      drop-shadow(0 0 10px var(--ihint-neon-deep));
+    box-shadow:
+      0 0 calc(var(--ihint-thickness) * 2) var(--ihint-neon),
+      0 0 calc(var(--ihint-thickness) * 5) var(--ihint-neon-deep);
   }
   to {
-    filter:
-      drop-shadow(0 0 2px var(--ihint-core))
-      drop-shadow(0 0 7px var(--ihint-neon))
-      drop-shadow(0 0 18px var(--ihint-neon))
-      drop-shadow(0 0 30px var(--ihint-neon-deep));
+    box-shadow:
+      0 0 calc(var(--ihint-thickness) * 3) var(--ihint-core),
+      0 0 calc(var(--ihint-thickness) * 6) var(--ihint-neon),
+      0 0 calc(var(--ihint-thickness) * 10) var(--ihint-neon-deep);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :global([data-interactive-hint]:hover) > .hint,
-  :global([data-interactive-hint]:focus-visible) > .hint,
-  :global([data-interactive-hint]:focus-within) > .hint {
+  :global([data-interactive-hint]:hover) > .hint .arm,
+  :global([data-interactive-hint]:focus-visible) > .hint .arm,
+  :global([data-interactive-hint]:focus-within) > .hint .arm,
+  .hint.is-active .arm {
     animation: none;
-    filter:
-      drop-shadow(0 0 2px var(--ihint-neon))
-      drop-shadow(0 0 8px var(--ihint-neon))
-      drop-shadow(0 0 20px var(--ihint-neon-deep));
-  }
-
-  .hint.is-active {
-    animation: none;
-    filter:
-      drop-shadow(0 0 2px var(--ihint-neon))
-      drop-shadow(0 0 8px var(--ihint-neon))
-      drop-shadow(0 0 20px var(--ihint-neon-deep));
+    box-shadow:
+      0 0 calc(var(--ihint-thickness) * 3) var(--ihint-neon),
+      0 0 calc(var(--ihint-thickness) * 8) var(--ihint-neon-deep);
   }
 }
