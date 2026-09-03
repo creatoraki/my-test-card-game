@@ -5,12 +5,20 @@ import basicAttackArt from "@/assets/skills/basic/基础攻击.png";
 import basicHealArt from "@/assets/skills/basic/基础治疗.png";
 import basicGuardArt from "@/assets/skills/basic/基础护盾.png";
 import swordsmanSnowflakeArt from "@/assets/skills/swordsman/雪花.png";
+import swordsmanFallenLeafArt from "@/assets/skills/swordsman/落叶.png";
+import swordsmanKagutsuchiArt from "@/assets/skills/swordsman/迦具土.png";
+import swordsmanBloodRuinArt from "@/assets/skills/swordsman/血坏.png";
+import swordsmanPhantomMoonArt from "@/assets/skills/swordsman/幻月.png";
 import swordsmanDeclutterArt from "@/assets/skills/swordsman/断舍离.png";
+import swordsmanRashomonArt from "@/assets/skills/swordsman/罗生门.png";
+import swordsmanCraneDanceArt from "@/assets/skills/swordsman/鹤舞.png";
 import swordsmanWhetstoneArt from "@/assets/skills/swordsman/武器研磨.png";
+import swordsmanCrowArt from "@/assets/skills/swordsman/鸦.png";
 import swordsmanGaleArt from "@/assets/skills/swordsman/岚.png";
 import swordsmanRiftLightArt from "@/assets/skills/swordsman/天隙流光.png";
 import swordsmanSpringSproutArt from "@/assets/skills/swordsman/春芽.png";
 import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.png";
+import swordsmanWolfSparrowArt from "@/assets/skills/swordsman/狼雀.png";
 import prophetEmergencyTreatmentArt from "@/assets/skills/prophet/紧急救治.png";
 import botanistContinuousShotArt from "@/assets/skills/botanist/双重射击.png";
 import botanistRecycleShotArt from "@/assets/skills/botanist/回收射击.png";
@@ -47,12 +55,20 @@ export const CARD_ART: Record<string, string> = {
   "alchemist-basic-heal": basicHealArt,
   "alchemist-basic-guard": basicGuardArt,
   "snowflake": swordsmanSnowflakeArt,
+  "fallen-leaf": swordsmanFallenLeafArt,
+  "kagutsuchi": swordsmanKagutsuchiArt,
+  "blood-ruin": swordsmanBloodRuinArt,
+  "phantom-moon": swordsmanPhantomMoonArt,
   "declutter": swordsmanDeclutterArt,
+  "rashomon": swordsmanRashomonArt,
+  "crane-dance": swordsmanCraneDanceArt,
   "whetstone": swordsmanWhetstoneArt,
+  "crow": swordsmanCrowArt,
   "gale": swordsmanGaleArt,
   "rift-light": swordsmanRiftLightArt,
   "spring-sprout": swordsmanSpringSproutArt,
   "falling-sakura": swordsmanFallingSakuraArt,
+  "wolf-sparrow": swordsmanWolfSparrowArt,
   "emergency-treatment": prophetEmergencyTreatmentArt,
   "continuous-shot": botanistContinuousShotArt,
   "recycle-shot": botanistRecycleShotArt,
