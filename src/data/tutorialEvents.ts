@@ -185,18 +185,6 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
     ],
   },
   {
-    id: "tut-battle-drone",
-    kind: "battle",
-    category: "battle",
-    title: "训练战斗无人机",
-    description: "训练无人机亮出低功率武装，接下来将进入一场难度 3 的节点战斗。",
-    energyDelta: 0,
-    choices: [
-      direct("engage", "接受训练", "进入难度 3 战斗", "你确认战斗规则，训练无人机解除安全锁。", [{ type: "START_NODE_BATTLE", tier: "t3" }]),
-      direct("challenge", "主动挑战", "进入难度 3 战斗", "你要求无人机提高反应速度，训练场立刻切换到难度 3。", [{ type: "START_NODE_BATTLE", tier: "t3" }]),
-    ],
-  },
-  {
     id: "tut-forge-bench",
     kind: "loot",
     category: "growth",
@@ -224,6 +212,18 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
 ];
 
 const TUTORIAL_BATTLES: EventPool["battle"] = [
+  {
+    id: "tut-battle-drone",
+    kind: "battle",
+    category: "battle",
+    title: "训练战斗无人机",
+    description: "训练无人机亮出低功率武装，接下来将进入一场难度 3 的节点战斗。",
+    energyDelta: 0,
+    choices: [
+      direct("engage", "接受训练", "进入难度 3 战斗", "你确认战斗规则，训练无人机解除安全锁。", [{ type: "START_NODE_BATTLE", tier: "t3" }]),
+      direct("challenge", "主动挑战", "进入难度 3 战斗", "你要求无人机提高反应速度，训练场立刻切换到难度 3。", [{ type: "START_NODE_BATTLE", tier: "t3" }]),
+    ],
+  },
   {
     id: "tut-round-guard",
     kind: "battle",
