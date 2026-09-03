@@ -1,6 +1,7 @@
 /* 卡组面板。⚠ 版面是算死的(设计 px): 工作区 1282×772 减去外壳 padding / head / gap 之后,
    给网格剩下 1246×634 —— 5×220 + 4×16 = 1164 宽, 2×308 + 18 = 634 高,
-   正好两行 10 张不出滚动条, 第 11 张起纵向滚。改这里任意一个数之前先把这笔账重算一遍。 */
+   正好两行 10 张不出滚动条, 第 11 张起纵向滚。顶部安全区由 14px 调到 22px,
+   才能吃下选中框外扩、上浮与放大后的约 16px 顶部占用。改这里任意一个数之前先把这笔账重算一遍。 */
 .panel {
   display: flex;
   min-height: 0;
@@ -14,6 +15,8 @@
 }
 
 .topline {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -65,8 +68,7 @@
    ⚠ margin/padding 那对相反数是**悬浮安全区**: 本盒 overflow-y: auto, 按规范此时
      overflow-x 的 visible 会被当成 auto, 放大 5% 与画在卡外的四角提示都会被贴边裁掉。
      向外撑一圈再用等量 padding 补回来, 内容行仍占满那 634px, 10 张以内照样不滚动。
-   ⚠ 顶上只敢撑 14px —— 那正是本盒与读数条之间的 gap。再多就压到「卡组锻造」按钮身上,
-     这层是滚动容器、照常吃指针事件, 按钮下缘会点不动。 */
+   顶部安全区现在撑到 22px; topline 提升层级后, 即使滚动内容盖到这里也不影响锻造按钮点击。 */
 .grid {
   display: grid;
   grid-template-columns: repeat(5, var(--card-w));
@@ -75,8 +77,8 @@
   justify-content: center;
   gap: 18px 16px;
   min-height: 0;
-  margin: -14px -30px -24px;
-  padding: 14px 30px 24px;
+  margin: -22px -30px -24px;
+  padding: 22px 30px 24px;
   overflow-y: auto;
   scrollbar-width: none;
   perspective: 900px; /* 给下面的翻入一点透视, 否则 rotateY 看起来只是被压扁 */

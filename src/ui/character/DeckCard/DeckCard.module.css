@@ -1,5 +1,6 @@
 .deck-card {
     --deck-card-hover-transform: translateY(-4px);
+    --deck-card-selected-transform: translateY(-6px) scale(1.04);
     position: relative;
     display: block;
     /* 盒子与内部卡面共用同一条缩放链, 外层只下发 --deck-card-scale。 */
@@ -36,43 +37,12 @@
 }
 
 .deck-card:focus-visible {
-    outline: 1px solid var(--csf-neon, #4fd8ff);
+    outline: 1px solid var(--owner-color, #4fd8ff);
     outline-offset: 3px;
     background: transparent;
 }
 
-/* 挂了四角提示的卡不再画焦点描边: 提示层同样吃 :focus-visible, 两圈同色的框套在一起是脏的。 */
-.deck-card[data-interactive-hint]:focus-visible {
-    outline: none;
-}
-
-/* 四角提示的几何(契约见 common/InteractiveHint/InteractiveHint.module.css 文件头)。
-   ⚠ offset 压到 4px: 卡悬浮时会放大 5%(220 宽的卡左右各外扩 5.5px), 再叠 6px 默认外扩
-     就快够到相邻卡的地界了 —— 网格的水平 gap 只有 16px。
-   提示层是按钮的子元素, 跟着 scale 一起放大, 始终贴着卡边走, 不用像 ExploreScreen
-   那样再补一段位移去追卡。 */
-.hint {
-    --ihint-offset: 4px;
-    --ihint-size: 18px;
-}
-
-/* ★ 关掉四角提示自带的呼吸辉光, 只留干净的 L 线。
-   InteractiveHint 的 interactiveHintBreath 是四层 drop-shadow(最外一层扩散到 30px) ——
-   那是给 ExploreScreen 深色底调的霓虹感, 落到卡组页的浅底和卡面上就是一圈糊边。
-   ⚠ 特异性必须压过组件那条 :global([data-interactive-hint]:hover) > .hint (0,3,0),
-     所以这里写成 (0,4,0); 只覆盖 animation / filter, opacity: 1 仍由组件那条给。 */
-.deck-card[data-interactive-hint]:hover > .hint,
-.deck-card[data-interactive-hint]:focus-visible > .hint,
-.deck-card[data-interactive-hint]:focus-within > .hint {
-    animation: none;
-    filter: none;
-}
-
-/* 据点的静态浏览态: 不抬起, 只放大一档(5%)。
-   ⚠ 这层**不要**加 filter: drop-shadow —— 父级 filter 作用于整个子树的渲染结果,
-     会把四角提示自己的呼吸辉光当成图形再投影一遍, 卡周围糊出一圈脏阴影。
-     悬浮的层次感由四角提示自己的辉光提供, 不需要另加投影。
-     同理: 使用方也不要在外层格子上叠 drop-shadow。 */
+/* 据点的静态浏览态: 不抬起, 只放大一档(5%)。 */
 .deck-card.is-zoom {
     --deck-card-hover-transform: scale(1.05);
 }
@@ -80,6 +50,13 @@
 .deck-card.is-zoom:hover:not(:disabled),
 .deck-card.is-zoom:focus-visible {
     transform: var(--deck-card-hover-transform);
+}
+
+.deck-card.is-selected,
+.deck-card.is-selected:hover:not(:disabled),
+.deck-card.is-selected:focus-visible {
+    transform: var(--deck-card-selected-transform);
+    z-index: 3;
 }
 
 @keyframes deckCardIn {
@@ -99,7 +76,10 @@
     .deck-card:hover,
     .deck-card:focus-visible,
     .deck-card.is-zoom:hover:not(:disabled),
-    .deck-card.is-zoom:focus-visible {
+    .deck-card.is-zoom:focus-visible,
+    .deck-card.is-selected,
+    .deck-card.is-selected:hover:not(:disabled),
+    .deck-card.is-selected:focus-visible {
         transform: none;
     }
 }

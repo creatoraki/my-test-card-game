@@ -48,6 +48,7 @@
   min-width: 0;
   justify-self: center;
   --deck-card-scale: 0.945;
+  --deck-card-selected-transform: translateY(-4px);
   transition: opacity 180ms ease;
 }
 

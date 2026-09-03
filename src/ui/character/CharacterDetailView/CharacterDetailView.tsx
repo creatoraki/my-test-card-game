@@ -200,6 +200,7 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
             deck={cs.deck}
             deckLevel={cs.deckLevel}
             minDeckSize={cs.minDeckSize}
+            hoveredUid={hoveredCardUid}
             onHoverCard={setHoveredCardUid}
             onOpenForge={() => setForgeHubOpen(true)}
           />

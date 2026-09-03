@@ -195,6 +195,7 @@
 .deckCard {
   position: relative;
   z-index: 2;
+  --deck-card-selected-transform: translateY(-4px);
 }
 
 .card.dimmed {

@@ -13,7 +13,7 @@ function OfferCard({ offer, index, onPick }: { offer: CardOfferCandidate; index:
   return (
     <div
       className={s.candidate}
-      style={{ "--offer-delay": `${index * 90}ms` } as React.CSSProperties}
+      style={{ "--offer-delay": `${index * 90}ms`, "--owner-color": character.color } as React.CSSProperties}
       role="button"
       tabIndex={0}
       aria-label={`选择 ${character.name} 的卡牌 ${card.name}`}
