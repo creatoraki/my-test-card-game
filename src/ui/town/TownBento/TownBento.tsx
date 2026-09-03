@@ -92,7 +92,8 @@ export function TownBento({ onOpen, brickClassName, brickStyle: getBrickStyle, p
                 ariaLabel={facility.name}
                 onClick={facility.locked ? undefined : () => onOpen(facility)}
                 active={picked}
-                screenFixed
+                scaleMode="screen"
+                fill
                 animated={SWEEP_ON_MOUNT}
                 edgeSensitivity={GLOW.edgeSensitivity}
                 glowColor={GLOW.glowColor}

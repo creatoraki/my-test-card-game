@@ -9,6 +9,7 @@ import {
   pointerGeometry,
 } from "./borderGlowUtils";
 import s from "./BorderGlow.module.css";
+import { useGlowScale } from "./useGlowScale";
 
 export interface BorderGlowProps {
   children?: ReactNode;
@@ -37,8 +38,10 @@ export interface BorderGlowProps {
   coneSpread?: number;
   /** 挂载时自动播放一圈扫光 */
   animated?: boolean;
-  /** 运行在带 CSS zoom 的画布内时开启：绘制长度按 --stage-scale 反向补偿，保持屏幕像素恒定 */
-  screenFixed?: boolean;
+  /** 绘制长度的缩放语义：design 跟随画布缩放，screen 在屏幕上保持像素恒定 */
+  scaleMode?: "design" | "screen";
+  /** 内容层铺满宿主并裁切，继承宿主圆角 */
+  fill?: boolean;
   /** 强制点亮，等同 hover 态 */
   active?: boolean;
   /** 常亮边缘光效；悬浮时仍切换为跟随指针的光锥 */
@@ -67,7 +70,8 @@ export function BorderGlow({
   glowIntensity = 1.0,
   coneSpread = 25,
   animated = false,
-  screenFixed = false,
+  scaleMode = "design",
+  fill = false,
   active = false,
   persistent = false,
   followPointer = true,
@@ -75,6 +79,7 @@ export function BorderGlow({
   fillOpacity = 0.5,
 }: BorderGlowProps) {
   const cardRef = useRef<HTMLElement>(null);
+  const remeasure = useGlowScale(cardRef, scaleMode === "screen");
 
   // 扫光 effect 的依赖只收敛到 [animated]，active/persistent 用 ref 读最新值，
   // 避免点击/常亮态翻转触发 effect 重跑、在演出中途重播入场扫光。
@@ -163,7 +168,8 @@ export function BorderGlow({
     s.borderGlowCard,
     glass ? s.glass : "",
     isLight ? s.light : "",
-    screenFixed ? s.screenFixed : "",
+    scaleMode === "screen" ? s.pixelFixed : "",
+    fill ? s.fill : "",
     active ? s.sweepActive : "",
     persistent ? s.persistent : "",
     !followPointer ? s.lockGlow : "",
@@ -186,6 +192,13 @@ export function BorderGlow({
     ...buildGradientVars(colors),
   } as CSSProperties;
 
+  const content = (
+    <>
+      <span className={s.edgeLight} data-glow-layer="edge" />
+      <span className={s.inner} data-glow-layer="inner">{children}</span>
+    </>
+  );
+
   if (as === "button") {
     return (
       <button
@@ -193,13 +206,13 @@ export function BorderGlow({
         type="button"
         aria-label={ariaLabel}
         onClick={onClick}
+        onPointerEnter={remeasure}
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
         className={classNames}
         style={rootStyle}
       >
-        <span className={s.edgeLight} />
-        <span className={s.inner}>{children}</span>
+        {content}
       </button>
     );
   }
@@ -209,13 +222,13 @@ export function BorderGlow({
       ref={cardRef as React.RefObject<HTMLDivElement>}
       aria-label={ariaLabel}
       onClick={onClick}
+      onPointerEnter={remeasure}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       className={classNames}
       style={rootStyle}
     >
-      <span className={s.edgeLight} />
-      <span className={s.inner}>{children}</span>
+      {content}
     </div>
   );
 }

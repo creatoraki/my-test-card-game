@@ -7,19 +7,11 @@
  *
  * 立绘取景规则必须保持 (0,2,0): CharacterPortrait.module.css 的基础
  * .portrait-image 只有 (0,1,0), CSS Modules 的注入顺序不保证, 不能靠写在后面覆盖。
- * .glow-card > span:last-child 会伸进 BorderGlow 的内部 .inner 结构; 这是既有的
- * BorderGlow 使用约定, 用于让内部窗口铺满并裁切外发光。
+ * 内容层铺满与裁切由 BorderGlow 的 fill prop 承担, 调用方不依赖其内部节点结构。
  */
 .glow-card {
   width: 100%;
   height: 100%;
-}
-
-.glow-card > span:last-child {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: inherit;
 }
 
 .glow-card-body {

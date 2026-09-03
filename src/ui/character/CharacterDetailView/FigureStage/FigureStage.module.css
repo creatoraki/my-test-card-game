@@ -32,7 +32,7 @@
 /* BorderGlow 的三层发光在详情框落地后淡入; 终值继续由 BorderGlow 的 opacity 级联提供。 */
 .stage:not(.is-hidden) .glow::before,
 .stage:not(.is-hidden) .glow::after,
-.stage:not(.is-hidden) .glow > span:first-child {
+.stage:not(.is-hidden) .glow > [data-glow-layer="edge"] {
   animation: figureGlowIn 320ms 40ms ease backwards;
 }
 

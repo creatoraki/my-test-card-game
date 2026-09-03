@@ -9,6 +9,7 @@ export const CHARACTER_CARD_GLOW = {
   glowRadius: 30,
   glowIntensity: 1.08,
   coneSpread: 18,
+  fill: true,
 } as const;
 
 function hexToRgb(hex: string): [number, number, number] | null {

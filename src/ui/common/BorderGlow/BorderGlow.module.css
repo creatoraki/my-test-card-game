@@ -6,12 +6,13 @@
   --border-radius: 28px;
   --glow-padding: 40px;
   --cone-spread: 25;
-  /* 绘制长度补偿系数：默认 1（跟随画布等比缩放）；
-     开 .screenFixed 后按 --stage-scale 反向补偿，使光效在屏幕上像素恒定。
+    /* 绘制长度补偿系数：默认 1（跟随画布等比缩放）；
+      开 .pixelFixed 后由组件自测写入的 --glow-scale 反向补偿，使光效在屏幕上像素恒定。
      ⚠ calc 只做单次乘/除 —— 浏览器会丢弃链式运算（如 a * b * c 整条无效），
      负号系数单独拆成 --glow-neg，避免 .edgeLight 的负 inset 因链式乘法失效。 */
   --glow-comp: 1;
   --glow-neg: -1;
+  --glow-scale: 1;
 
   position: relative;
   padding: 0;
@@ -39,11 +40,17 @@
     rgb(24 24 27 / 5%) 0 8px 24px;
 }
 
-/* 运行在带 CSS zoom 的画布内：--stage-scale 由 StageCanvas 下发并级联到后代，
-   画布外不存在该变量时回落 1。绘制长度乘补偿即可在屏幕上恒定，不动布局尺寸。 */
-.screenFixed {
-  --glow-comp: calc(1 / var(--stage-scale, 1));
-  --glow-neg: calc(-1 / var(--stage-scale, 1));
+/* --glow-scale 由组件自测写入；画布外或尚未测量时回落 1，不动布局尺寸。 */
+.pixelFixed {
+  --glow-comp: calc(1 / var(--glow-scale, 1));
+  --glow-neg: calc(-1 / var(--glow-scale, 1));
+}
+
+.fill > .inner {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
 }
 
 .light::after,
@@ -115,7 +122,7 @@
 
 /* 靠近边缘时的彩色网格渐变填充 */
 .borderGlowCard::after {
-  border: 1px solid transparent;
+  border: calc(1px * var(--glow-comp)) solid transparent;
   background:
     var(--gradient-one, radial-gradient(at 80% 55%, hsla(268, 100%, 76%, 1) 0px, transparent 50%)) padding-box,
     var(--gradient-two, radial-gradient(at 69% 34%, hsla(349, 100%, 74%, 1) 0px, transparent 50%)) padding-box,
@@ -149,7 +156,7 @@
   width: auto;
   height: auto;
   overflow: visible;
-  /* 负 inset 外扩出卡面：--glow-neg = -1（默认）或 -1/--stage-scale（补偿） */
+  /* 负 inset 外扩出卡面：--glow-neg = -1（默认）或 -1/--glow-scale（补偿） */
   inset: calc(var(--glow-padding) * var(--glow-neg));
   pointer-events: none;
   z-index: 1;

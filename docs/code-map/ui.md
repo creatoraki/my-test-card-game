@@ -176,6 +176,7 @@ src/ui/
 | 文件 | 作用 |
 | --- | --- |
 | [cx.ts](../../src/ui/common/cx.ts) | 全项目唯一的 className 拼接工具。 |
+| [BorderGlow](../../src/ui/common/BorderGlow/BorderGlow.tsx) | 可跟随指针的边缘光卡壳：`scaleMode` 控制设计像素缩放或屏幕像素恒定补偿，`fill` 让内容层铺满并裁切，`data-glow-layer` 提供 `edge` 与 `inner` 两个跨模块样式钩子；缩放由组件自行测量，不依赖调用方传递画布变量。 |
 | [CardBack](../../src/ui/common/CardBack/CardBack.tsx) | 从扩充卡组抽出的水晶卡背公共组件，由 `ForgeRevealCard` 与博物馆卡牌展厅共用。 |
 | [cardText.ts](../../src/ui/common/cardText.ts) | 从战斗实时属性或城镇派生面板属性读取卡牌施放者的攻击力/治愈力，并渲染卡牌说明数值。 |
 | [CardTextRich](../../src/ui/common/CardTextRich/CardTextRich.tsx) | 将卡牌说明按引擎词条登记表分段，统一高亮汇星、应星、瀑布等特殊词条。 |
