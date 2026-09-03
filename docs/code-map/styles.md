@@ -125,8 +125,10 @@ import s from "./CombatantView.module.css";
 
 1. 只服务一个组件 → 它自己的 `Xxx.module.css`（**默认答案**）。
 2. 一个域内两个以上组件共用 → `<域>/styles/xxx.module.css`，双方 `composes` 或直接 import
-   （现有三例：`battle/styles/unitBadges.module.css`、`explore/styles/exploreKit.module.css`、
-   `sortie/styles/sortieGlass.module.css`）。
+  （现有四例：`battle/styles/unitBadges.module.css`、`explore/styles/exploreKit.module.css`、
+  `sortie/styles/sortieGlass.module.css`、`character/styles/detailTokens.module.css`）。
+  其中 `detailTokens.module.css` 是角色详情态 5 个 `--cd-*` 令牌的唯一定义处，靠详情根 `.view`
+  继承下发给全部浮层。
 3. 跨域复用的**组件** → `ui/common/` 下建组件，别建共享类名。
 4. 真的全站通用且无法组件化（新设计令牌、`button` 皮肤）→ `src/styles/tokens.css` 或 `base.css`。
 

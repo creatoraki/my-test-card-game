@@ -18,7 +18,6 @@ export function ProfilePanel({ stats, preview, equipped, activeSlot, onSelect, o
     <div className={s.panel}>
       <EquipmentSlots
         className={s.slots}
-        variant="rail"
         equipped={equipped}
         activeSlot={activeSlot}
         onSelect={onSelect}

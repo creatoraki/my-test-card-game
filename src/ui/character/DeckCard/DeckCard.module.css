@@ -2,14 +2,14 @@
     --deck-card-hover-transform: translateY(-4px);
     position: relative;
     display: block;
-    /* 全站卡牌尺寸的落地点，外层容器不要再自己计算 220/308。 */
-    width: var(--deck-card-w, var(--card-w));
-    height: var(--deck-card-h, var(--card-h));
-    aspect-ratio: 220 / 308;
+    /* 盒子与内部卡面共用同一条缩放链, 外层只下发 --deck-card-scale。 */
+    width: calc(var(--card-w) * var(--deck-card-scale, 1));
+    height: calc(var(--card-h) * var(--deck-card-scale, 1));
     min-width: 0;
     align-self: start;
     padding: 0;
     overflow: visible;
+    clip-path: none;
     color: #3f4547;
     text-align: left;
     background: transparent;

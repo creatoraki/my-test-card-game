@@ -10,7 +10,7 @@
 // ============================================================================
 
 import type { ReactNode } from "react";
-import type { ItemCategory, ItemDef } from "@/items/types";
+import type { EquipSlot, ItemCategory, ItemDef } from "@/items/types";
 import { ModuleGlyph, hasModuleGlyph } from "./moduleGlyphs";
 import deflectionBladeArt from "@/assets/道具/装备/武器/太刀.png";
 import saberArt from "@/assets/道具/装备/武器/军刀.png";
@@ -159,6 +159,12 @@ const ICONS: Record<string, () => ReactNode> = {
   data: DataIcon,
   consumable: ConsumableIcon,
 };
+
+/** 空装备槽的部位占位图标, 与 itemIcon 同族并继承调用方的 currentColor。 */
+export function equipSlotIcon(slot: EquipSlot): ReactNode {
+  const Icon = ICONS[slot];
+  return <Icon />;
+}
 
 // 没登记 icon 时按类别兜底 —— 新增物品忘了写 icon 也不会开天窗。
 const BY_CATEGORY: Record<ItemCategory, string> = {

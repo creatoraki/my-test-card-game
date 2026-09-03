@@ -1,6 +1,7 @@
 .equipment-slots {
   display: flex;
   flex: 0 0 auto;
+  height: 100%;
   flex-direction: column;
   gap: 7px;
   min-height: 0;
@@ -33,23 +34,20 @@
 
 .equipment-slots-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-}
-
-.equipment-slots.is-rail .equipment-slots-grid {
   flex: 1 1 auto;
   min-height: 0;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 7px;
 }
 
 .equipment-slot {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  gap: 5px;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
   min-width: 0;
   padding: 5px;
   box-sizing: border-box;
@@ -68,18 +66,19 @@
 .equipment-slot-empty {
   grid-column: 1;
   grid-row: 1;
-  width: 100%;
+  width: var(--eq-slot-size, 112px);
+  height: var(--eq-slot-size, 112px);
   min-width: 0;
   aspect-ratio: 1;
-  padding: 2px;
+  padding: 0;
   border-radius: 2px;
   clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
 }
 
 .equipment-slot-item.equipment-slot-item {
-  --item-slot-icon-size: 90%;
-  --item-slot-name-offset: 0px;
-  aspect-ratio: 1;
+  --item-slot-pad: 0;
+  --item-slot-gap: 0;
+  --item-slot-icon-size: 100%;
 }
 
 .equipment-slot-item.equipment-slot-item:hover,
@@ -89,35 +88,13 @@
   box-shadow: 0 0 14px -7px var(--cd-glow);
 }
 
-.equipment-slots.is-rail {
-  height: 100%;
-  box-sizing: border-box;
-}
-
-.equipment-slots.is-rail .equipment-slot {
-  grid-template-columns: 112px minmax(0, 1fr) auto;
-  grid-template-rows: minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  min-height: 0;
-}
-
-.equipment-slots.is-rail .equipment-slot-item,
-.equipment-slots.is-rail .equipment-slot-empty {
-  grid-column: 1;
-  grid-row: 1;
-  width: 112px;
-  height: 112px;
-  aspect-ratio: auto;
-}
-
-.equipment-slots.is-rail .equipment-slot-select {
+.equipment-slot-select {
   grid-column: 2;
   grid-row: 1;
   align-items: flex-start;
 }
 
-.equipment-slots.is-rail .equipment-slot-remove {
+.equipment-slot-remove {
   grid-column: 3;
   grid-row: 1;
   align-self: center;
@@ -129,11 +106,14 @@
 .equipment-slot-empty {
   display: grid;
   place-items: center;
-  color: var(--cd-glow);
-  font-size: 22px;
-  line-height: 1;
+  color: color-mix(in srgb, var(--cd-glow) 46%, transparent);
   background: #2a1b3d0d;
   border: 1px dashed #7c4dbe66;
+}
+
+.equipment-slot-empty svg {
+  width: 68%;
+  height: 68%;
 }
 
 .equipment-slot-empty:hover:not(:disabled),

@@ -1,0 +1,9 @@
+/* 角色详情态共享配色令牌。浮层通过 CharacterDetailView 根节点继承这组变量。 */
+.cd-tokens {
+  --cd-ink: #2a1b3d;
+  --cd-ink-dim: #6b5b82;
+  --cd-line: #2a1b3d24;
+  --cd-glow: #7c4dbe;
+  --cd-glow-deep: #55307f;
+  --cd-deck-card-scale: 1.3;
+}

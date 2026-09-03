@@ -38,7 +38,6 @@ export function DeckCard({
         s["deck-card"],
         className,
         focusStyle === "zoom" && s["is-zoom"],
-        selected && s["is-selected"],
       )}
       type="button"
       style={

@@ -1,3 +1,4 @@
+/* 面板部分使用角色详情态的浅色玻璃；`.compare*` 部分渲染在全站深色 HoverTooltip 内，刻意保留深色字色。 */
 .picker {
   position: absolute;
   z-index: 5;
@@ -7,10 +8,10 @@
   gap: 18px;
   padding: 24px;
   overflow: hidden;
-  color: #e9eeeb;
-  background: linear-gradient(145deg, #111b20f7, #1a2228f5 58%, #202d31f3);
-  border: 1px solid #d8f32966;
-  box-shadow: 0 26px 60px -30px #000, inset 0 1px 0 #ffffff24;
+  color: var(--cd-ink);
+  background: linear-gradient(145deg, #ffffffef, #fbf3ffeb 58%, #ecdcfadd);
+  border: 1px solid #2a1b3d38;
+  box-shadow: 0 28px 70px -32px #2a1b3dcc, inset 0 1px 0 #ffffff;
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
 }
 
@@ -34,7 +35,7 @@
 
 .head {
   padding-bottom: 14px;
-  border-bottom: 1px solid #ffffff24;
+  border-bottom: 1px solid var(--cd-line);
 }
 
 .kicker,
@@ -44,19 +45,32 @@
 .candidateRarity,
 .compareName > span,
 .compareName > small {
-  color: #b2bdc0;
   font-size: 11px;
   letter-spacing: 2px;
 }
 
 .kicker {
-  color: #d8f329;
+  color: var(--cd-glow);
   font-size: 10px;
+}
+
+.label,
+.count {
+  color: var(--cd-ink-dim);
+}
+
+.footer {
+  color: var(--cd-glow);
+}
+
+.compareName > span,
+.compareName > small {
+  color: #b2bdc0;
 }
 
 .title {
   margin: 5px 0 0;
-  color: #f4f7e8;
+  color: var(--cd-ink);
   font-size: 25px;
   letter-spacing: 3px;
 }
@@ -67,22 +81,23 @@
   height: 40px;
   place-items: center;
   padding: 0;
-  color: #b2bdc0;
+  color: var(--cd-ink-dim);
   font-size: 28px;
-  background: #ffffff0d;
-  border: 1px solid #ffffff2c;
+  background: #ffffff82;
+  border: 1px solid var(--cd-line);
 }
 
 .close:hover,
 .close:focus-visible {
-  color: #d8f329;
-  border-color: #d8f329;
+  color: var(--cd-glow-deep);
+  background: #ffffffd0;
+  border-color: var(--cd-glow);
 }
 
 .currentRow {
   padding: 12px 14px;
-  background: #ffffff0b;
-  border: 1px solid #ffffff1b;
+  background: #ffffff82;
+  border: 1px solid var(--cd-line);
 }
 
 .currentItem {
@@ -102,7 +117,7 @@
 }
 
 .currentName {
-  color: #f4f7e8;
+  color: var(--cd-ink);
   font-size: 16px;
   letter-spacing: 1px;
 }
@@ -113,24 +128,24 @@
   height: 60px;
   flex: 0 0 60px;
   place-items: center;
-  color: #718084;
+  color: var(--cd-ink-dim);
   font-size: 12px;
-  border: 1px dashed #ffffff30;
+  border: 1px dashed var(--cd-line);
 }
 
 .unequip {
   padding: 7px 12px;
-  color: #ff9b9a;
+  color: #9c3550;
   font-size: 12px;
-  border: 1px solid #ff706855;
-  background: #ff70680e;
+  background: #fdeff2b8;
+  border: 1px solid #c25a6e59;
 }
 
 .unequip:hover:not(:disabled),
 .unequip:focus-visible {
-  color: #ffffff;
-  border-color: #ff7068;
-  background: #ff70682b;
+  color: #7f2940;
+  background: #fbdfe5;
+  border-color: #c25a6e;
 }
 
 .unequip:disabled {
@@ -165,17 +180,17 @@
   min-width: 0;
   gap: 5px;
   padding: 7px;
-  color: #e9eeeb;
-  background: #ffffff08;
-  border: 1px solid #ffffff1c;
+  color: var(--cd-ink);
+  background: #ffffff8a;
+  border: 1px solid var(--cd-line);
   outline: none;
   transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
 }
 
 .candidate:hover,
 .candidate:focus-visible {
-  background: #d8f32912;
-  border-color: #d8f329aa;
+  background: #ffffffd0;
+  border-color: var(--cd-glow);
   transform: translateY(-2px);
 }
 
@@ -187,7 +202,7 @@
 
 .candidateName {
   overflow: hidden;
-  color: #f4f7e8;
+  color: var(--cd-ink);
   font-size: 12px;
   text-align: center;
   text-overflow: ellipsis;
@@ -209,15 +224,21 @@
 .emptyText,
 .noChange {
   margin: auto;
-  color: #9aa7aa;
   font-size: 14px;
   letter-spacing: 1px;
   text-align: center;
 }
 
+.emptyText {
+  color: var(--cd-ink-dim);
+}
+
+.noChange {
+  color: #9aa7aa;
+}
+
 .footer {
   margin: 0;
-  color: #d8f329b8;
   font-size: 10px;
   text-align: center;
 }
@@ -295,8 +316,8 @@
 .compareName .r-legendary,
 .compareRow .r-legendary { color: var(--rarity-legendary); }
 
-.is-up { color: #8dcc3f; }
-.is-down { color: #ff7068; }
+.is-up { color: #287a49; }
+.is-down { color: #9b3442; }
 
 @media (prefers-reduced-motion: reduce) {
   .candidate {

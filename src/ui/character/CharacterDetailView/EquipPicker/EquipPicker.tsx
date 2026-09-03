@@ -48,7 +48,7 @@ export function EquipPicker({
         <div className={s.currentItem}>
           <span className={s.label}>当前装备</span>
           <div className={s.currentContent}>
-            {current ? <ItemSlot stack={current} className={s.currentSlot} /> : <span className={s.empty}>空槽</span>}
+            {current ? <ItemSlot stack={current} showName={false} className={s.currentSlot} /> : <span className={s.empty}>空槽</span>}
             <strong className={s.currentName}>{current ? getItemDef(current.itemId).name : "未装备"}</strong>
           </div>
         </div>
@@ -127,6 +127,7 @@ function EquipCandidate({
     >
       <ItemSlot
         stack={stack}
+        showName={false}
         className={s.candidateSlot}
         aria-label={`穿戴${def.name}`}
         onClick={() => onEquip(stack.uid)}
