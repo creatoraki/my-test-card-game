@@ -25,6 +25,8 @@ interface Props {
   sick: boolean;
   quirks: readonly QuirkId[];
   onField: boolean;
+  /** 悬浮卡面详情时让位: 变暗 + 轻微模糊, 把视觉焦点交给中央的大卡面。 */
+  dimmed: boolean;
   /** 去回程期间由飞行层代演。 */
   hidden: boolean;
   /** 由 CharacterDetailView 从 FIGURE_RECT 下发的设计 px 版面坐标。 */
@@ -41,6 +43,7 @@ export function FigureStage({
   sick,
   quirks,
   onField,
+  dimmed,
   hidden,
   style,
 }: Props) {
@@ -48,7 +51,7 @@ export function FigureStage({
 
   return (
     <div
-      className={cx(s.stage, hidden && s["is-hidden"])}
+      className={cx(s.stage, hidden && s["is-hidden"], dimmed && s["is-dimmed"])}
       style={{ "--gc-color": color, ...style } as CSSProperties}
     >
       <BorderGlow

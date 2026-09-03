@@ -56,7 +56,6 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
   const [tab, setTab] = useState<WorkbenchTab>("profile");
   const [forgeHubOpen, setForgeHubOpen] = useState(false);
   const [forgeMode, setForgeMode] = useState<"draw" | "remove" | "upgrade" | null>(null);
-  const [selectedCardUid, setSelectedCardUid] = useState<string | null>(null);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
 
   const cs = characters[charId];
@@ -69,19 +68,15 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
     equipPreview.clear();
     setForgeHubOpen(false);
     setForgeMode(null);
-    setSelectedCardUid(null);
     setHoveredCardUid(null);
   }, [charId]);
 
-  // 选中/悬浮的卡被抽走或删掉后要跟着失效。
+  // 悬浮的卡被抽走或删掉后要跟着失效。
   useEffect(() => {
-    if (selectedCardUid && !cs?.deck.some((card) => card.uid === selectedCardUid)) {
-      setSelectedCardUid(null);
-    }
     if (hoveredCardUid && !cs?.deck.some((card) => card.uid === hoveredCardUid)) {
       setHoveredCardUid(null);
     }
-  }, [cs, selectedCardUid, hoveredCardUid]);
+  }, [cs, hoveredCardUid]);
 
   // 离开属性装备页就收起仓库；离开卡组页则关闭卡牌详情与锻造中枢。
   useEffect(() => {
@@ -150,6 +145,8 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
       ? "经验不足"
       : undefined;
   const hoveredCard = cs.deck.find((card) => card.uid === hoveredCardUid) ?? null;
+  // 卡面详情借立绘位展开(与换装候选同一块地方, 两者分属不同 tab, 不会同时在场)。
+  const cardDetailOpen = tab === "deck" && !forgeMode && hoveredCard != null;
 
   return (
     <div className={cx(s.view, leaving && s["is-leaving"])}>
@@ -163,6 +160,7 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
         sick={cs.sick}
         quirks={cs.quirks}
         onField={party.includes(charId)}
+        dimmed={cardDetailOpen}
         hidden={morphing || leaving}
         style={{
           left: `${FIGURE_RECT.x}px`,
@@ -202,8 +200,6 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
             deck={cs.deck}
             deckLevel={cs.deckLevel}
             minDeckSize={cs.minDeckSize}
-            selectedCardUid={selectedCardUid}
-            onSelectCard={setSelectedCardUid}
             onHoverCard={setHoveredCardUid}
             onOpenForge={() => setForgeHubOpen(true)}
           />
@@ -264,9 +260,21 @@ export function CharacterDetailView({ charId, morphing, leaving, escEnabled, onB
         />
       )}
 
-      {/* 卡面详情浮卡: 只在卡组页、且没有别的浮层挡着时出。 */}
-      {tab === "deck" && !forgeMode && hoveredCard && (
-        <DeckCardHoverPreview card={hoveredCard} className={s["card-preview"]} />
+      {/* 卡面详情浮卡: 只在卡组页、且没有别的浮层挡着时出。
+          ★ 落点是**立绘窗的正中央** —— 外壳跟着 FIGURE_RECT 走, 居中交给 flex,
+            浮卡自己不再持有任何版面坐标(旧版组件内外各写一套, 长期打架)。 */}
+      {cardDetailOpen && hoveredCard && (
+        <div
+          className={s["card-preview-stage"]}
+          style={{
+            left: `${FIGURE_RECT.x}px`,
+            top: `${FIGURE_RECT.y}px`,
+            width: `${FIGURE_RECT.w}px`,
+            height: `${FIGURE_RECT.h}px`,
+          }}
+        >
+          <DeckCardHoverPreview card={hoveredCard} />
+        </div>
       )}
 
       {/* 锻造浮层挂在本态根层 —— 它们是全屏层, 挂进工作区会被 overflow 裁掉。 */}

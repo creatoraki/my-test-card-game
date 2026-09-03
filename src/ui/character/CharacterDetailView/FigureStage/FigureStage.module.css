@@ -5,12 +5,19 @@
   z-index: 1;
   border-radius: 16px;
   background: rgb(8 18 23 / 0.36);
+  transition: filter 180ms ease;
 }
 
 /* 过场期间让位给飞行层。⚠ 用 visibility 而不是卸载: 版面里的其他块(工作区)正在按这一栏的
    宽度排布, 抽掉会让右栏在过场中途重排。 */
 .is-hidden {
   visibility: hidden;
+}
+
+/* 卡面详情浮出时让位。⚠ filter 落在最外层, BorderGlow 的三层发光跟着一起压暗 ——
+   只暗立绘、辉光照亮的话, 这一栏会像是"人走了灯还亮着"。 */
+.is-dimmed {
+  filter: brightness(0.35) blur(3px);
 }
 
 .glow {
@@ -116,5 +123,10 @@
   .stage:not(.is-hidden) .identity {
     animation-duration: 140ms;
     animation-delay: 0ms;
+  }
+
+  /* 变暗照做(它是让位, 不是装饰), 只去掉过渡。 */
+  .stage {
+    transition: none;
   }
 }

@@ -1,25 +1,48 @@
+/* 卡面详情浮卡。
+   ⚠ 本组件**不自带版面坐标** —— 位置由使用方给(CharacterDetailView 把它塞进一个与立绘窗
+     同矩形的居中容器里)。旧版在这里写死 top/left, 使用方又拿一条更高特异性的规则去覆盖,
+     两套坐标常年打架, 已经拆掉。 */
 .deck-card-hover-preview {
-  position: absolute;
-  z-index: 4;
-  top: 206px;
-  left: 716px;
-  width: 320px;
-  min-height: 448px;
-  --deck-card-scale: var(--cd-deck-card-scale, 1.3);
+  position: relative;
+  display: flex;
+  width: fit-content;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  /* 立绘窗 434 宽, 1.6 倍 = 352, 左右各余 41px。 */
+  --deck-card-scale: 1.6;
   filter: drop-shadow(0 3px 0 #2a1b3d38) drop-shadow(0 10px 16px #2a1b3d30);
   pointer-events: none;
 }
 
+/* ⚠ 那对 margin 是在**给放大后的卡面占位**: transform 不参与布局, 只写 220×308 的话
+   下面的词条块会直接压到卡身上。原点在左上, 于是把多出来的宽高补在右侧与下方,
+   盒子的外沿正好等于卡面的可见范围, 居中也就落得准。 */
 .deck-card-hover-preview [data-deck-card] {
   display: block;
-  width: 220px;
-  height: 308px;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin-right: calc(var(--card-w) * (var(--deck-card-scale) - 1));
+  margin-bottom: calc(var(--card-h) * (var(--deck-card-scale) - 1));
   transform: scale(var(--deck-card-scale));
   transform-origin: top left;
 }
 
+/* 词条释义: 与卡面同宽, 词条特别多的卡自己滚。 */
 .keywords {
-  position: absolute;
-  top: calc(308px * var(--deck-card-scale) + 8px);
-  width: 100%;
+  width: calc(var(--card-w) * var(--deck-card-scale));
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.keywords::-webkit-scrollbar {
+  display: none;
+}
+
+/* ⚠ 必须写成 (0,2,0): CardKeywordNotes 自己的 .notes 也是单个类 (0,1,0),
+   CSS Modules 的注入顺序不保证, 同特异性会赌运气。11px 是给战斗里那块小注释调的,
+   配 1.6 倍大卡面太小。 */
+.deck-card-hover-preview .keywords {
+  font-size: 13px;
 }

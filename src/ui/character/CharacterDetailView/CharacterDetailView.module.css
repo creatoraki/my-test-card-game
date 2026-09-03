@@ -13,13 +13,29 @@
   pointer-events: none;
 }
 
-/* 卡面详情浮卡的落点。
-   ⚠ DeckCardHoverPreview 自带的坐标是给旧版三栏版面调的(卡组在最右一栏), 两栏版面里那个位置
-     正好压在工作区上、把卡组盖住。这里把它挪到立绘右侧的空档: 浮卡是临时的, 短暂盖住立绘
-     右半边可以接受, 盖住正在挑的卡不行。
-   ⚠ 必须写成 (0,2,0): 组件自带的 .deck-card-hover-preview 也是单个类 (0,1,0),
-     CSS Modules 的注入顺序不保证, 同特异性会赌运气(同 glowCard.module.css 里那条说明)。 */
-.view .card-preview {
-  top: 210px;
-  left: 132px;
+/* 卡面详情浮卡的取景台: 与立绘窗同矩形(坐标由 FIGURE_RECT 内联下发), 内容水平垂直双居中。
+   ⚠ pointer-events 必须关掉 —— 浮卡盖在立绘上, 一旦截住鼠标, 从卡片挪向浮卡的路上
+     会反复触发进/出, 表现为浮卡疯狂闪。
+   z-index 3: 压过立绘(1)与工作区(2); 浮卡在立绘区内, 与工作区并不重叠。 */
+.card-preview-stage {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: cardPreviewIn 160ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+@keyframes cardPreviewIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-preview-stage {
+    animation-duration: 100ms;
+  }
 }

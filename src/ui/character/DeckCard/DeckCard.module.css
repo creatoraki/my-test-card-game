@@ -18,7 +18,7 @@
     cursor: var(--cursor-pointer);
     animation: deckCardIn 400ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
     animation-delay: calc(100ms + var(--i, 0) * 24ms);
-    transition: transform 160ms ease;
+    transition: transform 160ms ease, filter 160ms ease;
 }
 
 .deck-card [data-deck-card] {
@@ -41,14 +41,31 @@
     background: transparent;
 }
 
-/* 据点的静态浏览态: 不抬起, 只微微放大一档。 */
+/* 挂了四角提示的卡不再画焦点描边: 提示层同样吃 :focus-visible, 两圈同色的框套在一起是脏的。 */
+.deck-card[data-interactive-hint]:focus-visible {
+    outline: none;
+}
+
+/* 四角提示的几何(契约见 common/InteractiveHint/InteractiveHint.module.css 文件头)。
+   ⚠ offset 压到 4px: 卡悬浮时会放大 5%(220 宽的卡左右各外扩 5.5px), 再叠 6px 默认外扩
+     就快够到相邻卡的地界了 —— 网格的水平 gap 只有 16px。
+   提示层是按钮的子元素, 跟着 scale 一起放大, 始终贴着卡边走, 不用像 ExploreScreen
+   那样再补一段位移去追卡。 */
+.hint {
+    --ihint-offset: 4px;
+    --ihint-size: 18px;
+}
+
+/* 据点的静态浏览态: 不抬起, 只放大一档(5%)。悬浮的投影也归这里 ——
+   使用方不要再在外层格子上叠第二层 drop-shadow, 两层叠加会糊成一团。 */
 .deck-card.is-zoom {
-    --deck-card-hover-transform: scale(1.02);
+    --deck-card-hover-transform: scale(1.05);
 }
 
 .deck-card.is-zoom:hover:not(:disabled),
 .deck-card.is-zoom:focus-visible {
     transform: var(--deck-card-hover-transform);
+    filter: drop-shadow(0 8px 14px #2a1b3d3d);
 }
 
 @keyframes deckCardIn {

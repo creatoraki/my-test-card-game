@@ -1,5 +1,7 @@
 // 卡组面板 —— 读数条 + 锻造入口 + 卡面网格。
 //
+// ★ 本面板只做两件事: 把卡组铺清楚、把鼠标指着的那张报出去。卡片没有点击语义 ——
+//   「选中一张卡」在这里不通向任何操作, 悬浮的四角边框已经把「你正指着哪张」说清楚了。
 // ★ 成本口径统一读 RULES.deck 与 townStore 的 deckForgeCosts, 本面板不重算。
 // ★ 三条锻造链路的演出全在 DeckForgeOverlay / DeckUpgradeOverlay 里, 由使用方挂在页面根层
 //   (它们是全屏浮层, 挂在本面板内会被工作区的 overflow 裁掉)。
@@ -13,21 +15,12 @@ interface Props {
   deck: Card[];
   deckLevel: number;
   minDeckSize: number;
-  selectedCardUid: string | null;
-  onSelectCard: (uid: string) => void;
+  /** 指着哪张卡: 由 CharacterDetailView 拿去在立绘位中央浮出大卡面。 */
   onHoverCard: (uid: string | null) => void;
   onOpenForge: () => void;
 }
 
-export function DeckPanel({
-  deck,
-  deckLevel,
-  minDeckSize,
-  selectedCardUid,
-  onSelectCard,
-  onHoverCard,
-  onOpenForge,
-}: Props) {
+export function DeckPanel({ deck, deckLevel, minDeckSize, onHoverCard, onOpenForge }: Props) {
   return (
     <div className={s.panel}>
       <div className={s.topline}>
@@ -52,8 +45,8 @@ export function DeckPanel({
               card={card}
               index={i}
               focusStyle="zoom"
-              selected={card.uid === selectedCardUid}
-              onClick={() => onSelectCard(card.uid)}
+              hoverHint
+              selected={false}
               onMouseEnter={() => onHoverCard(card.uid)}
               onMouseLeave={() => onHoverCard(null)}
               onFocus={() => onHoverCard(card.uid)}

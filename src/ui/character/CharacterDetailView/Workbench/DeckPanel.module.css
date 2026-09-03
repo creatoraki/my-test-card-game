@@ -1,10 +1,15 @@
+/* 卡组面板。⚠ 版面是算死的(设计 px): 工作区 1282×772 减去外壳 padding / head / gap 之后,
+   给网格剩下 1246×634 —— 5×220 + 4×16 = 1164 宽, 2×308 + 18 = 634 高,
+   正好两行 10 张不出滚动条, 第 11 张起纵向滚。改这里任意一个数之前先把这笔账重算一遍。 */
 .panel {
   display: flex;
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
-  --deck-card-scale: var(--cd-deck-card-scale, 1.3);
+  /* ⚠ 这里刻意不读 --cd-deck-card-scale(1.3): 那个令牌是给锻造演出的大卡面用的,
+     铺网格要的是卡面原始尺寸。 */
+  --deck-card-scale: 1;
   animation: deckIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
@@ -15,7 +20,7 @@
   justify-content: space-between;
   gap: 16px;
 }
-/* 右半屏比旧版的第三栏宽, 一行放得下 4 张放大卡。 */
+
 .readout {
   display: flex;
   flex: 0 0 auto;
@@ -55,15 +60,23 @@
   transform: translateY(-2px);
 }
 
-/* 详情页卡面与悬浮详情同尺寸, 一行放 4 张。 */
+/* 一行 5 张, 列宽写死成卡宽而不是 minmax(0, 1fr) —— 卡片自身宽度是固定的 --card-w,
+   用 1fr 会让格子比卡宽, 卡片在格子里左偏、右侧留一条点不到的死区。
+   ⚠ margin/padding 那对相反数是**悬浮安全区**: 本盒 overflow-y: auto, 按规范此时
+     overflow-x 的 visible 会被当成 auto, 放大 5% 与画在卡外的四角提示都会被贴边裁掉。
+     向外撑一圈再用等量 padding 补回来, 内容行仍占满那 634px, 10 张以内照样不滚动。
+   ⚠ 顶上只敢撑 14px —— 那正是本盒与读数条之间的 gap。再多就压到「卡组锻造」按钮身上,
+     这层是滚动容器、照常吃指针事件, 按钮下缘会点不动。 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, var(--card-w));
+  grid-auto-rows: var(--card-h);
   align-content: start;
-  justify-content: stretch;
+  justify-content: center;
   gap: 18px 16px;
   min-height: 0;
-  padding: 0 8px 4px;
+  margin: -14px -30px -24px;
+  padding: 14px 30px 24px;
   overflow-y: auto;
   scrollbar-width: none;
   perspective: 900px; /* 给下面的翻入一点透视, 否则 rotateY 看起来只是被压扁 */
@@ -73,17 +86,12 @@
   display: none;
 }
 
-/* 每张卡外面套一格: 翻入动画挂在这层, HandCard 的据点覆盖集中在 [data-deck-card]。
+/* 每张卡外面套一格: 这层**只**负责错峰翻入, 悬浮表现(放大 / 投影 / 四角边框)全在 DeckCard 里。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
 .cell {
   min-width: 0;
   animation: deckCardFlipIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(180ms + var(--i, 0) * 28ms);
-  transition: filter 0.18s cubic-bezier(0.2, 0.72, 0.28, 1);
-}
-
-.cell:hover {
-  filter: drop-shadow(0 6px 10px #2a1b3d2e);
 }
 
 @keyframes deckCardFlipIn {
