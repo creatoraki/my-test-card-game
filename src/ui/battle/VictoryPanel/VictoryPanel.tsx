@@ -29,6 +29,7 @@ export function VictoryPanel() {
   const lastDropK = useRunStore((state) => state.lastDropK);
   const lastDropTier = useRunStore((state) => state.lastDropTier);
   const lastChallengeBonus = useRunStore((state) => state.lastChallengeBonus);
+  const lastBountyBonus = useRunStore((state) => state.lastBountyBonus);
   const lastChallenges = useRunStore((state) => state.lastChallenges);
   const confirmExpReport = useRunStore((state) => state.confirmExpReport);
   const session = useExploreStore((state) => state.session);
@@ -145,6 +146,7 @@ export function VictoryPanel() {
               tier={lastDropTier}
               challenges={lastChallenges}
               challengeBonus={lastChallengeBonus}
+              bountyBonus={lastBountyBonus}
               style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(0))}ms` } as CSSProperties}
             />
           </header>

@@ -470,6 +470,10 @@
   display: flex;
   gap: 8px;
 }
+.expl-command-tip {
+  position: relative;
+  display: block;
+}
 /* P1 占位: 版式按最终形态排好, 下一轮只往里填实现。虚线描边 = 「预留位」的统一语言。 */
 .expl-command {
   --notch: 8px;
@@ -525,6 +529,10 @@
   align-items: flex-end;
   gap: 10px;
   margin-bottom: 18px;
+}
+.expl-advance-tip {
+  position: relative;
+  display: block;
 }
 .expl-advance-btn {
   position: relative;

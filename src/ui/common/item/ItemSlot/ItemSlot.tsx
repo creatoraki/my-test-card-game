@@ -55,7 +55,6 @@ export default function ItemSlot({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
-      // title={bond ? `${def.name}（${bond.name} 羁绊）` : def.name}
     >
       <span className={s["item-slot-icon"]}>{itemIcon(def)}</span>
       {showName && <span className={s["item-slot-name"]}>{def.name}</span>}

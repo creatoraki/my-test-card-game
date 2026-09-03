@@ -12,6 +12,7 @@ import type {
   EncounterModifier,
   Enemy,
   FxRecorder,
+  SquadBuffRewardPools,
   StatBlock,
 } from "./types";
 import type { QuirkId } from "./quirks";
@@ -48,7 +49,8 @@ import { getEncounter, getEnemyDef, slotDefId } from "../data";
 import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
 import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
-import { isPassive, playableHandUids, recycleHandPassives } from "./passive";
+import { firePassive, isPassive, playableHandUids, recycleHandPassives } from "./passive";
+import { gainSquadBuff } from "./squadBuff";
 import { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
 import { withHitRecorder } from "./animHits";
 
@@ -85,6 +87,7 @@ export interface BattleSetup {
   //   引擎不认识背包与占格, 只认识这一个数。缺省 0 —— 城镇试打与单元测试都走这条。
   burden?: number;
   squadMods?: import("./types").SquadResourceMods;
+  squadBuffRewardPools?: SquadBuffRewardPools;
 }
 
 // ---------------------------------------------------------------------------
@@ -218,9 +221,21 @@ export function createBattle(
     playStatMods: [],
     activeCardCost: null,
     activeCardStacks: 0,
+    activeCardResonance: 0,
     passiveEventCardUid: null,
+    passiveEventTargetStatuses: null,
     lastDiscardBatchCost: 0,
     lastConvertBatch: 0,
+    squadBuffs: [],
+    squadBuffRewardPools: {
+      attack: [...(setup.squadBuffRewardPools?.attack ?? [])],
+      defense: [...(setup.squadBuffRewardPools?.defense ?? [])],
+      support: [...(setup.squadBuffRewardPools?.support ?? [])],
+      passive: [...(setup.squadBuffRewardPools?.passive ?? [])],
+    },
+    lastSquadBuffConsumed: 0,
+    lastConsumedStatusStacks: 0,
+    lastRemovedStatusCount: 0,
   };
 
   state.draw = shuffle(state, Object.keys(cards));
@@ -411,6 +426,7 @@ export function playCard(
       revertPlayStatMods(state);
       state.activeCardCost = faceCost;
       state.activeCardStacks = card.discardStacks ?? 0;
+      state.activeCardResonance = card.resonanceStacks ?? 0;
       try {
         const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
@@ -419,6 +435,12 @@ export function playCard(
 
         if (cultivated && cultivateMode !== "replace")
           mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
+        if (
+          state.pendingChoice?.kind === "recoverFromDiscard" &&
+          state.pendingChoice.sourceCardUid === card.ownerCharId
+        ) {
+          state.pendingChoice.sourceCardUid = uid;
+        }
         resetCultivate(card);
 
         if (card.exhaust) state.exhaust.push(uid);
@@ -433,12 +455,20 @@ export function playCard(
             mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
           def.onTriggered?.(state, card, ctx, times);
         }
+        if (card.resonance) {
+          for (const handUid of playableHandUids(state)) {
+            const handCard = state.cards[handUid];
+            if (handCard?.resonance && handCard.cost < faceCost)
+              handCard.resonanceStacks = (handCard.resonanceStacks ?? 0) + 1;
+          }
+        }
         for (const markId of card.marks ?? []) {
           const mark = CARD_MARK_DEFS[markId];
           if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
         }
         card.marks = [];
         card.discardStacks = 0; // 累计层数只在"未打出"期间有效, 打出即清零
+        card.resonanceStacks = 0;
         state.waterfallPlay = false;
         state.playValueBonusPct = 0;
         // ⚠ 必须在 flushAutoPlays 之前撤回: 自动出牌是另一张牌的结算, 不该继承本卡的临时面板。
@@ -448,6 +478,7 @@ export function playCard(
       } finally {
         state.activeCardCost = null;
         state.activeCardStacks = 0;
+        state.activeCardResonance = 0;
       }
     });
   });
@@ -509,8 +540,11 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     checkMassacreOnRoundSettle(state);
 
     if (RULES.hand.discardLeftoversOnRoundEnd) {
-      for (const cardUid of [...state.hand]) moveToDiscard(state, cardUid, "roundEnd");
+      for (const cardUid of [...state.hand]) {
+        if (!isPassive(state.cards[cardUid])) moveToDiscard(state, cardUid, "roundEnd");
+      }
     }
+    firePassive(state, { type: "roundEnd" }, rec);
     // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
     recycleHandPassives(state, rec);
     flushAutoPlays(state, rec);
@@ -521,7 +555,14 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
 
 export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
-  if (!choice || choice.kind !== "recoverFromDiscard") return false;
+  if (!choice) return false;
+  if (choice.kind === "pickSquadBuff") {
+    if (!choice.options.includes(uid) || state.squadBuffs.some((entry) => entry.id === uid)) return false;
+    if (!gainSquadBuff(state, uid as Parameters<typeof gainSquadBuff>[1])) return false;
+    state.pendingChoice = null;
+    log(state, `获得 ${uid}`);
+    return true;
+  }
   if (!state.discard.includes(uid) || state.hand.length >= partyHandLimit(state)) return false;
 
   state.discard = state.discard.filter((id) => id !== uid);
@@ -537,6 +578,6 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
 export function cancelPendingChoice(state: BattleState): boolean {
   if (!state.pendingChoice) return false;
   state.pendingChoice = null;
-  log(state, "放弃回收弃牌");
+  log(state, "放弃当前选择");
   return true;
 }

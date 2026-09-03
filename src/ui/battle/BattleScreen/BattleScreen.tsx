@@ -29,6 +29,8 @@ import { ChallengeRail } from "@/ui/battle/ChallengeRail";
 import { TurnTicker } from "@/ui/battle/TurnTicker";
 import { HandTools, type HandAction } from "@/ui/battle/HandTools";
 import { ManaBar } from "@/ui/battle/ManaBar";
+import { SquadBuffBar } from "@/ui/battle/SquadBuffBar";
+import { SquadBuffPicker } from "@/ui/battle/SquadBuffPicker";
 import { PileRail, type Pile } from "@/ui/battle/PileRail";
 import { PileDrawer } from "@/ui/battle/PileDrawer";
 import { RoundIndicator } from "@/ui/battle/RoundIndicator";
@@ -893,15 +895,27 @@ export function BattleScreen() {
   }
 
   function pickFromDiscard(uid: string) {
-    if (!battle?.pendingChoice) return;
+    if (battle?.pendingChoice?.kind !== "recoverFromDiscard") return;
     const next = pickPendingChoice(uid);
     if (!next) return;
     commit(next);
     if (!next.pendingChoice) setOpenPile(null);
   }
 
+  function pickSquadBuff(id: string) {
+    if (battle?.pendingChoice?.kind !== "pickSquadBuff") return;
+    const next = pickPendingChoice(id);
+    if (next) commit(next);
+  }
+
+  function cancelSquadBuff() {
+    if (battle?.pendingChoice?.kind !== "pickSquadBuff") return;
+    const next = cancelPendingChoice();
+    if (next) commit(next);
+  }
+
   function closePile() {
-    if (b.pendingChoice) {
+    if (b.pendingChoice?.kind === "recoverFromDiscard") {
       const next = cancelPendingChoice();
       if (next) commit(next);
     }
@@ -1105,6 +1119,7 @@ export function BattleScreen() {
               setHandAction((current) => (current === action ? null : action));
             }}
           />
+          <SquadBuffBar battle={battle} />
           <ManaBar battle={battle} />
           <AllyBar
             allies={allies}
@@ -1137,10 +1152,11 @@ export function BattleScreen() {
       <PileDrawer
         battle={battle}
         pile={openPile}
-        choiceMode={Boolean(battle.pendingChoice)}
+        choiceMode={battle.pendingChoice?.kind === "recoverFromDiscard"}
         onPick={pickFromDiscard}
         onClose={closePile}
       />
+      <SquadBuffPicker battle={battle} onPick={pickSquadBuff} onCancel={cancelSquadBuff} />
 
         {/* ★ 卡牌说明固定面板: 画布**右上角**, 为右侧竖排牌堆让出一列。位置恒定。
           展示「悬停 ?? 选中」那张卡 ——

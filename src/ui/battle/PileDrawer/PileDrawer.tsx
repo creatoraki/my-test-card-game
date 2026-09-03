@@ -75,7 +75,7 @@ export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }
       <section className={s.drawer} role="dialog" aria-modal="true" aria-label={LABELS[shown]} onClick={(event) => event.stopPropagation()}>
         <div className={s.head}>
           <div>
-            <span className={s.kicker}>PILE VIEW</span>
+            <span className={s.kicker}>牌堆查看</span>
             <h2>{choiceMode ? `选择回收牌 · ${cards.length}` : `${LABELS[shown]} · ${cards.length}`}</h2>
           </div>
           <button className={s.close} type="button" aria-label="关闭牌堆" onClick={requestClose}>×</button>
@@ -103,7 +103,7 @@ export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }
               </div>
             ))}
           </div>
-        ) : <div className={s.empty}>EMPTY PILE</div>}
+        ) : <div className={s.empty}>牌堆为空</div>}
       </section>
       {hoveredCard && hover && (
         <div className={s.magnify} data-pile-magnify style={{ left: hover.x, top: hover.y }}>

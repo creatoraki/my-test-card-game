@@ -14,6 +14,15 @@ import { CARD_MARK_DEFS } from "./cardMarks";
 import { getStatusDef } from "./statuses";
 import { advanceCultivate, resetCultivate } from "./cultivate";
 import { isPassive, playableHandUids } from "./passive";
+import { runStatusTickNow } from "./statusLifecycle";
+import {
+  ASSEMBLE_IDS,
+  gainSquadBuff,
+  consumeAllSquadBuffs,
+  missingAssembleIds,
+  removeRandomSquadBuff,
+  type AssembleId,
+} from "./squadBuff";
 
 export interface EffectResolution {
   missed: string[];
@@ -33,6 +42,11 @@ function counterOf(state: BattleState, source: CounterSource): number {
   if (source === "lastRecoverBatchFast") return state.lastRecoverBatchFast;
   if (source === "lastDiscardBatchCost") return state.lastDiscardBatchCost;
   if (source === "lastConvertBatch") return state.lastConvertBatch;
+  if (source === "squadBuffCount") return state.squadBuffs.length;
+  if (source === "lastSquadBuffConsumed") return state.lastSquadBuffConsumed;
+  if (source === "lastConsumedStatusStacks") return state.lastConsumedStatusStacks;
+  if (source === "lastRemovedStatusCount") return state.lastRemovedStatusCount;
+  if (source === "activeCardResonance") return state.activeCardResonance;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((card) => card.cardType === "fast").length;
   return state.playedThisRound.length;
@@ -62,7 +76,27 @@ export function conditionMet(state: BattleState, effect: EffectDescriptor): bool
     return playableHandUids(state).some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
   if (effect.condition === "fastCardsInHandAtLeast")
     return playableHandUids(state).filter((uid) => state.cards[uid]?.cardType === "fast").length >= (effect.conditionValue ?? 0);
+  if (effect.condition === "counterAtLeast")
+    return counterOf(state, effect.conditionCounter!) >= (effect.conditionValue ?? 0);
+  if (effect.condition === "counterBelow")
+    return counterOf(state, effect.conditionCounter!) < (effect.conditionValue ?? 0);
+  if (effect.condition === "eventTargetHasStatus")
+    return Boolean(
+      effect.conditionStatus &&
+        state.passiveEventTargetStatuses?.some(
+          (status) => status.id === effect.conditionStatus && status.stacks > 0,
+        ),
+    );
   return true;
+}
+
+function scaleFactor(state: BattleState, effect: EffectDescriptor): number {
+  if (!effect.scaleByCounter) return 1;
+  const { counter, per = 1, min, max } = effect.scaleByCounter;
+  let value = counterOf(state, counter) * per;
+  if (min != null) value = Math.max(min, value);
+  if (max != null) value = Math.min(max, value);
+  return value;
 }
 
 // 解析单条效果作用到哪些单位(相对施放者)
@@ -93,7 +127,9 @@ export function resolveTargets(
     case "self":
       return src?.alive ? [sourceId] : [];
     case "allFoes":
-      return foesOf(state, src).map((c) => c.id);
+      return foesOf(state, src)
+        .filter((candidate) => !effect.targetHasStatus || candidate.statuses.some((status) => status.id === effect.targetHasStatus))
+        .map((c) => c.id);
     case "allAllies":
       return alliesOf(state, src).map((c) => c.id);
     case "randomFoe": {
@@ -163,6 +199,7 @@ function applyEffect(
           ? state.activeCardStacks * effect.bonusMultiplierPerSelfStack
           : 0;
       const baseMultiplier = (effect.multiplier ?? 1) + bonusMult + selfStackMult;
+      const valueScale = scaleFactor(state, effect);
       const hits = effect.hitsFrom
         ? Math.min(counterOf(state, effect.hitsFrom), effect.maxHits ?? Infinity)
         : Math.max(
@@ -173,6 +210,7 @@ function applyEffect(
                 : 0),
           );
               let lifestealPool = 0;
+              let killTriggered = false;
       for (let i = 0; i < hits; i++)
         for (const id of targetIds) {
           const targetUnit = state.combatants[id];
@@ -183,7 +221,8 @@ function applyEffect(
             effect.damageBonus &&
             ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
               (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield) ||
-              (effect.damageBonus.when === "targetHpBelowPct" && hpPct < (effect.damageBonus.value ?? 0)));
+              (effect.damageBonus.when === "targetHpBelowPct" && hpPct < (effect.damageBonus.value ?? 0)) ||
+              (effect.damageBonus.when === "targetHasDebuff" && targetUnit?.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)));
           const aimedBonus =
             effect.aimedMultiplier != null && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
               ? effect.aimedMultiplier
@@ -194,8 +233,8 @@ function applyEffect(
               : aimedBonus;
           const valueMultiplier = 1 + state.playValueBonusPct / 100;
           const dmg = fixed
-            ? amount * (1 + bonusMult) * valueMultiplier
-            : attackDamage(offenseStatOf(state, src, "attack"), damageMultiplier) * valueMultiplier;
+            ? amount * (1 + bonusMult) * valueMultiplier * valueScale
+            : attackDamage(offenseStatOf(state, src, "attack"), damageMultiplier) * valueMultiplier * valueScale;
           const result = ops.dealDamage(state, sourceId, id, dmg, {
             isAttack: true,
             fixed,
@@ -213,8 +252,15 @@ function applyEffect(
           if (result === "missed") resolution.missed.push(id);
           else if (result === "hit") resolution.hit.push(id);
           // 击杀触发: 本段把目标打死时结算一次, 主目标 = 被击杀者。
-          if (effect.onKill?.length && result !== null && targetUnit?.alive === false)
+          if (
+            effect.onKill?.length &&
+            result !== null &&
+            targetUnit?.alive === false &&
+            (!effect.onKillOnce || !killTriggered)
+          ) {
+            killTriggered = true;
             mergeResolution(resolution, applyOnKill(state, effect.onKill, sourceId, id));
+          }
         }
       if (effect.lifesteal != null && lifestealPool > 0)
         ops.heal(state, sourceId, sourceId, lifestealPool * effect.lifesteal, { scaled: true });
@@ -251,7 +297,7 @@ function applyEffect(
         effect.multiplier != null ? effect.multiplier + supportBonusMultiplier(state, effect) : null;
       const shield =
         (shieldMultiplier != null ? healValue(offenseStatOf(state, src, "healPower"), shieldMultiplier) : amount) *
-        (1 + state.playValueBonusPct / 100);
+        (1 + state.playValueBonusPct / 100) * scaleFactor(state, effect);
       for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
     }
@@ -261,7 +307,7 @@ function applyEffect(
       const healMultiplier = scaled ? effect.multiplier! + supportBonusMultiplier(state, effect) : 0;
       const healing =
         (scaled ? healValue(offenseStatOf(state, src, "healPower"), healMultiplier) : amount) *
-        (1 + state.playValueBonusPct / 100);
+        (1 + state.playValueBonusPct / 100) * scaleFactor(state, effect);
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;
     }
@@ -322,7 +368,7 @@ function applyEffect(
             : effect.stacks ?? 0;
         const aimedStacks = effect.aimedStacks && aimed ? effect.aimedStacks : 0;
         const aimedMultiplier = effect.aimedStacksMultiplier != null && aimed ? effect.aimedStacksMultiplier : 1;
-        const stacks = Math.round(baseStacks * aimedMultiplier) + aimedStacks;
+        const stacks = Math.round(baseStacks * aimedMultiplier * scaleFactor(state, effect)) + aimedStacks;
         if (stacks > 0)
           ops.applyStatus(state, id, effect.status, stacks, effect.duration, generatedData, sourceId);
       }
@@ -342,11 +388,11 @@ function applyEffect(
       break;
     }
     case "DRAW":
-      drawCards(state, effect.amountFrom ? counterOf(state, effect.amountFrom) : amount);
+      drawCards(state, (effect.amountFrom ? counterOf(state, effect.amountFrom) : amount) * scaleFactor(state, effect));
       break;
     case "GAIN_RESOURCE": {
       const res = effect.resource ?? "mana";
-      const resourceAmount = effect.amountFrom ? counterOf(state, effect.amountFrom) : amount;
+      const resourceAmount = (effect.amountFrom ? counterOf(state, effect.amountFrom) : amount) * scaleFactor(state, effect);
       if (resourceAmount <= 0) break;
       state.resources[res] = (state.resources[res] ?? 0) + resourceAmount;
       ops.log(state, `✨ 获得 ${resourceAmount} 点${res === "mana" ? "法力水晶" : res}`);
@@ -482,24 +528,32 @@ function applyEffect(
       break;
     }
     case "RESTORE_HP_LIMIT":
+      {
+        const restoreAmount =
+          (effect.multiplier != null ? healValue(offenseStatOf(state, src, "healPower"), effect.multiplier) : amount) *
+          scaleFactor(state, effect);
       for (const id of targetIds) {
         const target = state.combatants[id];
-        if (!target || !target.alive || amount <= 0) continue;
+        if (!target || !target.alive || restoreAmount <= 0) continue;
         const before = target.hpLimit;
-        target.hpLimit = Math.min(target.maxHp, target.hpLimit + amount);
+        target.hpLimit = Math.min(target.maxHp, target.hpLimit + restoreAmount);
         const restored = target.hpLimit - before;
         ops.heal(state, undefined, id, restored);
         ops.log(state, `${target.emoji} ${target.name} 体力极限恢复 ${restored}`);
       }
       break;
+      }
     case "REMOVE_STATUS": {
       const kind = effect.statusKind ?? "debuff";
+      state.lastRemovedStatusCount = 0;
       for (const id of targetIds) {
         const target = state.combatants[id];
         if (!target) continue;
         target.statuses = target.statuses.filter((status) => {
           const def = getStatusDef(status.id);
-          return kind !== "all" && def?.kind !== kind;
+          const removed = kind === "all" || def?.kind === kind;
+          if (removed) state.lastRemovedStatusCount += 1;
+          return !removed;
         });
       }
       break;
@@ -535,6 +589,68 @@ function applyEffect(
         pool.splice(pool.indexOf(uid), 1);
       }
       state.lastConvertBatch = converted;
+      break;
+    }
+    case "GAIN_SQUAD_BUFF": {
+      if (effect.squadBuffPick === "choose") {
+        if (!state.pendingChoice)
+          state.pendingChoice = { kind: "pickSquadBuff", options: [...ASSEMBLE_IDS] };
+        break;
+      }
+      const missing = effect.squadBuffPick === "randomMissing" ? missingAssembleIds(state) : [];
+      if (effect.squadBuffPick === "randomMissing" && missing.length === 0) break;
+      const id = effect.squadBuffPick === "randomMissing" ? rngPick(state, missing) : effect.squadBuff;
+      if (id) gainSquadBuff(state, id as AssembleId);
+      break;
+    }
+    case "REMOVE_SQUAD_BUFF":
+      if (effect.squadBuffPick === "all") consumeAllSquadBuffs(state);
+      else if (effect.squadBuffPick === "random") removeRandomSquadBuff(state);
+      break;
+    case "CONSUME_STATUS": {
+      state.lastConsumedStatusStacks = 0;
+      if (!effect.status) break;
+      for (const id of targetIds) {
+        const target = state.combatants[id];
+        const status = target?.statuses.find((entry) => entry.id === effect.status);
+        if (!target || !status) continue;
+        state.lastConsumedStatusStacks += status.stacks;
+        target.statuses = target.statuses.filter((entry) => entry !== status);
+        ops.log(state, `${target.emoji} ${target.name} 的${effect.status}被消耗`);
+      }
+      break;
+    }
+    case "SPREAD_STATUS": {
+      if (!effect.status) break;
+      const spreadTargets = foesOf(state, src);
+      for (const sourceTargetId of targetIds) {
+        const sourceTarget = state.combatants[sourceTargetId];
+        const sourceStatus = sourceTarget?.statuses.find((entry) => entry.id === effect.status);
+        if (!sourceStatus) continue;
+        const stacks = Math.floor(sourceStatus.stacks * (effect.pct ?? 0.5));
+        if (stacks <= 0) continue;
+        for (const target of spreadTargets) {
+          if (target.id !== sourceTargetId) ops.applyStatus(state, target.id, effect.status, stacks, undefined, undefined, sourceId);
+        }
+      }
+      break;
+    }
+    case "TICK_STATUS":
+      if (effect.status)
+        for (const id of targetIds) runStatusTickNow(state, id, effect.status);
+      break;
+    case "RESONATE": {
+      const amountToResonate = Math.max(0, Math.floor(effect.amount ?? 1));
+      const activeCost = state.activeCardCost ?? Infinity;
+      const targets = state.hand.filter((uid) => {
+        const card = state.cards[uid];
+        return card?.resonance === true &&
+          (effect.resonatePick === "handAll" || card.cost < activeCost);
+      });
+      for (const uid of targets) {
+        const card = state.cards[uid];
+        if (card) card.resonanceStacks = (card.resonanceStacks ?? 0) + amountToResonate;
+      }
       break;
     }
   }

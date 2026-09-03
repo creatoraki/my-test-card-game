@@ -80,6 +80,16 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     name: "培育",
     desc: "该牌在手牌中每经过 1 个回合减少 1 层培育；归零后打出时触发额外效果。",
   },
+  {
+    id: "resonance",
+    name: "共鸣",
+    desc: "打出共鸣牌时，手牌中费用更低的共鸣牌获得 1 次强化。",
+  },
+  {
+    id: "assemble",
+    name: "组装",
+    desc: "获得对应的组装部件；集齐任意 3 种时触发组装成功。",
+  },
 ];
 
 const CARD_KEYWORD_PATTERN = new RegExp(

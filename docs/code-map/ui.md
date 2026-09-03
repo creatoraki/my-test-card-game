@@ -108,7 +108,7 @@ src/ui/
 | [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情态与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放。 |
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」。 |
-| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
+| [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、组装部件栏、组装选择器、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
 | [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切 + 霓虹都市剪影背板的紧凑两列战斗胜利结算壳：队伍经验、掉落来源分区、额外奖励、待拾取战利品、固定格距的 3×8 回收背包及继续/放弃操作；统一阻止未处理奖励离开。 |
 | [battle/VictoryPanel/VictoryBackdrop](../../src/ui/battle/VictoryPanel/VictoryBackdrop.tsx) | 胜利结算面板的装饰性霓虹都市背板：分层天际线、地平线光带、窗口光点、塔灯、斜雨丝与浮尘；不参与内容交互，支持揭幕淡入、慢循环光效和减少动态效果降级。 |
@@ -153,6 +153,8 @@ src/ui/
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`enemyArt.ts` 登记展示框与主体框，主体高度归一后由 CSS 变量推导尺寸、脚线和帧位；`@keyframes` 按敌人 id 运行时注入并复用 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
 | [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，濒死暗红态与死亡灰化、下沉消解、裂纹和 ☠ 由死亡闸门/外壳属性驱动，并通过公共污染条/状态图标展示污染值、临时状态和护盾。位于战场之外，因此不参与相机推近；生病与永久怪癖仅在角色详情态展示。仅在待选友军目标时响应点击，其余状态下为纯展示。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
+| [battle/SquadBuffBar](../../src/ui/battle/SquadBuffBar/SquadBuffBar.tsx) | 战斗 HUD 的炼金术士组装部件栏：按获得顺序显示 A/B/C/D、当前部件数、组装成功进度和各部件说明；使用 `RailPopover` 展示详情，不承载组装规则。 |
+| [battle/SquadBuffPicker](../../src/ui/battle/SquadBuffPicker/SquadBuffPicker.tsx) | 组装选择待选层：展示可选部件、确认与取消，调用 `battleStore` 的 `pickPendingChoice` / `cancelPendingChoice`，不直接修改引擎状态。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
 | [battle/PileDrawer](../../src/ui/battle/PileDrawer/PileDrawer.tsx) | 牌堆内容弹窗，按卡名排序展示，复用原尺寸 `HandCard`；悬停时由 `.scrim` 下的独立放大层浮出 1.4 倍卡面；待选择回收时切换为弃牌堆选择模式，点击卡牌提交，关闭弹窗取消。 |

@@ -224,6 +224,12 @@ export const HandCard = memo(function HandCard({
         {/* 卡名压条: 贴在配图下沿的渐变浮层(透明 → 实底), 不占实位 */}
         <span className={f["hc-title"]}>{card.name}</span>
 
+        {card.resonanceStacks != null && card.resonanceStacks > 0 && (
+          <span className={f["hc-resonance"]} aria-label={`共鸣强化 ${card.resonanceStacks} 次`}>
+            共鸣 +{card.resonanceStacks}
+          </span>
+        )}
+
         {/* 底部效果说明: 定高区域, 字号按文字长度分三档(见上方 textSize) */}
         <span className={cx(f["hc-text"], f[textSize])}><CardTextRich text={text} /></span>
 

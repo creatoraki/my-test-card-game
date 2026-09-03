@@ -9,6 +9,7 @@
 
 import { energyTier, toNextTier } from "@/explore/session";
 import { ENERGY_TIERS } from "@/explore/rules";
+import { RailPopover } from "@/ui/common/RailPopover";
 import { cx } from "@/ui/common/cx";
 import s from "./EnergyMeter.module.css";
 
@@ -43,7 +44,7 @@ export function EnergyMeter({ energy, projected }: Props) {
           const reached = cur.tier >= t.tier;
           const willReach = !reached && after.tier >= t.tier;
           return (
-            <span
+            <div
               key={t.tier}
               className={cx(
                 s["em-bar"],
@@ -51,8 +52,15 @@ export function EnergyMeter({ energy, projected }: Props) {
                 willReach && s["ghost"],
               )}
               style={{ ["--bar-color" as string]: t.color }}
-              title={`${t.name} · 产出 ×${t.rewardMultiplier.toFixed(2)}`}
-            />
+              data-rail-item=""
+              tabIndex={0}
+              aria-label={`${t.name} · 产出 ×${t.rewardMultiplier.toFixed(2)}`}
+            >
+              <RailPopover side="top">
+                <strong>{t.name}</strong>
+                <p>产出 ×{t.rewardMultiplier.toFixed(2)}</p>
+              </RailPopover>
+            </div>
           );
         })}
       </div>

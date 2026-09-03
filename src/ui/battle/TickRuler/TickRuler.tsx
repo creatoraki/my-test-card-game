@@ -1,5 +1,6 @@
 import type { Enemy } from "@/engine";
 import { cx } from "@/ui/common/cx";
+import { RailPopover } from "@/ui/common/RailPopover";
 import s from "./TickRuler.module.css";
 
 // 从当前时刻起往后画几格。8 格够覆盖大多数招式延迟, 又不会把顶栏撑爆。
@@ -33,7 +34,12 @@ function TickRuler({ tick, enemies }: Props) {
   }
 
   return (
-    <div className={s["tick-ruler"]} title="时刻轴：普通牌推进 1 时刻，速攻牌不推进">
+    <div
+      className={s["tick-ruler"]}
+      data-rail-item
+      tabIndex={0}
+      aria-label="时刻轴，普通牌推进 1 时刻，速攻牌不推进"
+    >
       <div className={s["tick-ruler-track"]}>
         {ticks.map((t) => (
           <span key={t} className={cx(s["tick-cell"], t === tick && s.now)}>
@@ -49,6 +55,10 @@ function TickRuler({ tick, enemies }: Props) {
           ▸
         </span>
       </div>
+      <RailPopover side="bottom-left">
+        <strong>时刻轴</strong>
+        <p>普通牌推进 1 个时刻，速攻牌不推进时刻。</p>
+      </RailPopover>
     </div>
   );
 }

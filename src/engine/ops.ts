@@ -55,6 +55,13 @@ function roll(state: BattleState, chancePct: number): boolean {
 
 export function markDead(state: BattleState, cmb: Combatant): void {
   if (!cmb.alive) return;
+  if (cmb.team === "enemy") {
+    ops.firePassive(state, {
+      type: "enemyKilled",
+      targetId: cmb.id,
+      targetStatuses: structuredClone(cmb.statuses),
+    });
+  }
   cmb.hp = 0;
   cmb.alive = false;
   log(state, `${cmb.emoji} ${cmb.name} 倒下了`);
@@ -69,7 +76,8 @@ function purgeOwnerCards(state: BattleState, ownerId: string, ownerLabel: string
   state.draw = state.draw.filter((uid) => !ownsCard(uid));
   state.hand = state.hand.filter((uid) => !ownsCard(uid));
   state.discard = state.discard.filter((uid) => !ownsCard(uid));
-  if (state.pendingChoice && ownsCard(state.pendingChoice.sourceCardUid)) state.pendingChoice = null;
+  if (state.pendingChoice?.kind === "recoverFromDiscard" && ownsCard(state.pendingChoice.sourceCardUid))
+    state.pendingChoice = null;
   log(state, `${ownerLabel} 的个人卡牌已清场`);
 }
 

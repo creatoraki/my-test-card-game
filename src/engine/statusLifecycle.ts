@@ -32,6 +32,14 @@ export function runOwnerTempo(state: BattleState, ownerId: string): void {
   runTempo(state, ownerId);
 }
 
+export function runStatusTickNow(state: BattleState, ownerId: string, statusId: string): void {
+  const cmb = state.combatants[ownerId];
+  if (!cmb?.alive) return;
+  const inst = cmb.statuses.find((status) => status.id === statusId);
+  const def = inst && STATUS_DEFS[statusId];
+  if (inst && def) def.hooks?.onTempo?.(ctxFor(state, ownerId, inst, inst.stacks));
+}
+
 export function runAllyTempo(state: BattleState): void {
   for (const id of allyTempoIds(state)) runTempo(state, id);
 }

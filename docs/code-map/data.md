@@ -4,9 +4,9 @@
 
 | 文件 | 作用 |
 | --- | --- |
-| [cards.ts](../../src/data/cards.ts) + [cards/](../../src/data/cards/) | `CARD_DEFS` 汇总入口；具体 `CardDef[]` 按角色放在 `cards/<角色>/index.ts` 中维护，基础卡仍由 `basicCards.ts` 统一生成。剑士、预言家、植物学家专属卡和 `cards/neutral/index.ts` 的中立临时卡已拆分，植物学家已登记 17 张普通卡与 3 张罕见卡；卡牌支持本回合弃牌减费、速攻计数联动、弃牌触发、弃牌堆回收、随机手牌标记、应星/瀑布、瞄准、培育(含成熟效果替换)和普通牌转速攻，攻击牌优先使用攻击力倍率，`text` 支持 `{0}`、`{k0}` 等效果数值占位符。剑士卡池已按《剑士新卡.md》整体重做为 16 张，按 `cards/swordsman/attack.ts`(攻击 10) + `support.ts`(功能与防御 4) + `passive.ts`(被动 3) 三张分表维护，`index.ts` 只做拼装；被动卡无费用、不可打出、持在手中按事件自动生效(见 engine/passive.ts)。中立临时卡 `scrap-shrapnel` 仅由战斗效果生成，不进入角色卡池。 |
+| [cards.ts](../../src/data/cards.ts) + [cards/](../../src/data/cards/) | `CARD_DEFS` 汇总入口；具体 `CardDef[]` 按角色放在 `cards/<角色>/index.ts` 中维护，基础卡仍由 `basicCards.ts` 统一生成。剑士、预言家、植物学家专属卡和 `cards/neutral/index.ts` 的中立临时卡已拆分，植物学家已登记 17 张普通卡与 3 张罕见卡；卡牌支持本回合弃牌减费、速攻计数联动、弃牌触发、弃牌堆回收、随机手牌标记、应星/瀑布、瞄准、培育(含成熟效果替换)和普通牌转速攻，攻击牌优先使用攻击力倍率，`text` 支持 `{0}`、`{k0}` 等效果数值占位符。剑士卡池已按《剑士新卡.md》整体重做为 16 张，按 `cards/swordsman/attack.ts`(攻击 10) + `support.ts`(功能与防御 4) + `passive.ts`(被动 3) 三张分表维护；炼金术士卡池按 `cards/alchemist/attack.ts`、`defense.ts`、`support.ts`、`passive.ts`、`rewards.ts` 五张分表维护，共 14 张主体卡与 9 张组装奖励卡，`index.ts` 另登记 A/B/C/D 奖励池。被动卡无费用、不可打出、持在手中按事件自动生效(见 engine/passive.ts)。中立临时卡 `scrap-shrapnel` 仅由战斗效果生成，不进入角色卡池。 |
 | [basicCards.ts](../../src/data/basicCards.ts) | 按角色生成 3 张基础卡，并提供统一的 2 攻 + 2 治 + 1 盾初始卡组。基础卡不进入抽卡池且不计入限携；说明使用 `{0}` 效果数值占位符。 |
-| [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、统一基础初始卡组和按稀有度分档的个人抽卡池；三名角色基础先手统一为 20，剑士、预言家与植物学家专属卡池均已登记，植物学家包含 17 张普通卡与 3 张罕见卡。 |
+| [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、统一基础初始卡组和按稀有度分档的个人抽卡池；三名角色基础先手统一为 20，剑士、预言家、植物学家与炼金术士专属卡池均已登记，炼金术士包含 14 张主体卡与 9 张组装奖励卡。 |
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、招式及各自延迟、招式权重与招式级命中修正、目标选择、每回合行动次数上限、击杀经验、普通掉落表和战斗胜利 `boonTable`；掉落表按档位挂水晶——小怪绿晶、精英蓝晶、BOSS 必掉红晶，同档敌人共用一张常量表，不再逐个敌人手写专属材料；小怪、精英与 BOSS 分别登记治疗露珠、随机装备箱和卡牌奖励概率。垃圾山的守护者登记五招及 `ai` 状态机字段，按玩家护盾状态驱动后继权重。先手统一 20、与角色基础先手持平，故 `delay` 字段即最终蓄力时刻数。经验写在敌人定义中，不写入掉落表。 |
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）；4 只怪的编成只登记在 t4/t5。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |

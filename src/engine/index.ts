@@ -79,6 +79,19 @@ export { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScr
 export { moveToDiscard } from "./discard";
 export { isPassive, playableHandUids, handPassiveUids } from "./passive";
 export { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
+export {
+  ASSEMBLE_IDS,
+  SQUAD_BUFF_DEFS,
+  checkAssembly,
+  consumeAllSquadBuffs,
+  gainSquadBuff,
+  hasSquadBuff,
+  missingAssembleIds,
+  removeRandomSquadBuff,
+  removeSquadBuff,
+  squadBuffIds,
+} from "./squadBuff";
+export type { AssembleId, AssembleRewardCategory, SquadBuffDef } from "./squadBuff";
 export { CARD_KEYWORD_INFOS, KEYWORD_DEFS, cardKeywordsIn, splitCardKeywords } from "./keywords";
 export type { CardKeywordInfo, KeywordCtx, KeywordDef } from "./keywords";
 export { effectDisplayValue, renderCardText } from "./cardText";

@@ -1,3 +1,8 @@
+.pollution-wrap {
+  position: relative;
+  width: 100%;
+}
+
 .pollution-bar {
   position: relative;
   display: flex;

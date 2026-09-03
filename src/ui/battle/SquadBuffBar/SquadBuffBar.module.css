@@ -1,0 +1,116 @@
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px 7px;
+  background: linear-gradient(120deg, #09191cdd, #071014d9);
+  border: 1px solid #55c9b566;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  box-shadow: inset 0 0 18px #41e0bb12, 0 5px 18px #0008;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  color: #a9c4c0;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.count {
+  color: #72e5c4;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.items {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+.item {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  place-items: center;
+  cursor: var(--cursor-default);
+  background: #102326;
+  border: 1px solid #6d858555;
+  outline: none;
+  transition: transform 140ms ease, border-color 140ms ease, filter 140ms ease;
+}
+.item[data-owned="true"] {
+  background: linear-gradient(145deg, #163b3a, #0b2428);
+  border-color: #65e5bd;
+  box-shadow: inset 0 0 12px #5ee6c31f, 0 0 8px #54d8b533;
+}
+.item:hover,
+.item:focus-visible {
+  transform: translateY(-2px);
+  border-color: #b7fff0;
+  filter: brightness(1.16);
+}
+.emoji {
+  color: #c0d9d2;
+  font-size: 22px;
+  line-height: 1;
+  filter: grayscale(0.7);
+  opacity: 0.55;
+  text-shadow: 0 0 9px #73ead077;
+}
+.item[data-owned="true"] .emoji {
+  filter: none;
+  opacity: 1;
+}
+.letter {
+  position: absolute;
+  left: 4px;
+  bottom: 2px;
+  color: #819694;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.item[data-owned="true"] .letter {
+  color: #b3ffea;
+}
+.order {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  display: grid;
+  width: 15px;
+  height: 15px;
+  place-items: center;
+  color: #071817;
+  background: #75edc9;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+}
+.item :global(.popover) strong {
+  color: #b9ffe9;
+}
+.item :global(.popover) p {
+  margin: 5px 0;
+  color: #bdd0cc;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.item :global(.popover) small {
+  color: #77e1c2;
+  font-size: 10px;
+}
+
+@media (max-width: 700px) {
+  .bar {
+    padding: 5px;
+  }
+  .heading {
+    font-size: 9px;
+  }
+  .emoji {
+    font-size: 18px;
+  }
+}

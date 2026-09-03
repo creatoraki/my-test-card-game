@@ -26,7 +26,6 @@ export function BattleActions({ canEndTurn, onEndTurn, speed2x, onToggleSpeed }:
         type="button"
         aria-pressed={speed2x}
         aria-label="切换 2 倍演出速度"
-        title="2 倍演出速度"
         onClick={(event) => {
           event.stopPropagation();
           onToggleSpeed();
@@ -34,7 +33,7 @@ export function BattleActions({ canEndTurn, onEndTurn, speed2x, onToggleSpeed }:
       >
         2×
       </button>
-      <button className={s.settings} type="button" aria-label="设置" title="设置" onClick={(event) => event.stopPropagation()}>
+      <button className={s.settings} type="button" aria-label="设置" onClick={(event) => event.stopPropagation()}>
         ⚙
       </button>
     </div>

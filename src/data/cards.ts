@@ -3,6 +3,7 @@
 import type { CardDef } from "../engine/types";
 import { makeBasicCardDefs } from "./basicCards";
 import { BOTANIST_CARD_DEFS } from "./cards/botanist";
+import { ALCHEMIST_CARD_DEFS } from "./cards/alchemist";
 import { PROPHET_CARD_DEFS } from "./cards/prophet";
 import { SWORDSMAN_CARD_DEFS } from "./cards/swordsman";
 import { NEUTRAL_CARD_DEFS } from "./cards/neutral";
@@ -15,5 +16,6 @@ export const CARD_DEFS: CardDef[] = [
   ...SWORDSMAN_CARD_DEFS,
   ...PROPHET_CARD_DEFS,
   ...BOTANIST_CARD_DEFS,
+  ...ALCHEMIST_CARD_DEFS,
   ...NEUTRAL_CARD_DEFS,
 ];

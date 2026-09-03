@@ -58,6 +58,7 @@ import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
 import { PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
+import { RailPopover } from "@/ui/common/RailPopover";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
@@ -643,7 +644,7 @@ export function ExploreScreen() {
           {session.auras.length > 0 && (
             <div className={s["expl-aura-list"]} aria-label="远征光环">
               {session.auras.map((aura) => (
-                <span className={s["expl-aura"]} key={aura.id} title={aura.desc}>
+                <span className={s["expl-aura"]} key={aura.id}>
                   <span className={s["expl-aura-name"]}>{aura.name}</span>
                   <span className={s["expl-aura-desc"]}>{aura.desc}</span>
                 </span>
@@ -818,17 +819,30 @@ export function ExploreScreen() {
           {(session.phase === "atNode" || session.phase === "choosingEntry") && (
             <div className={s["expl-advance"]}>
               {session.phase === "atNode" && (
-                <button
-                  className={cx(s["expl-advance-btn"], s["is-push"])}
-                  type="button"
-                  disabled={!canPushOn(session)}
-                  title={canPushOn(session) ? undefined : "已走满 4 个推进段, 本轮到此为止"}
-                  style={{ "--i": 0 } as CSSProperties}
-                  onClick={() => pushOn()}
+                <div
+                  className={s["expl-advance-tip"]}
+                  data-rail-item={!canPushOn(session) ? "" : undefined}
+                  tabIndex={!canPushOn(session) ? 0 : undefined}
+                  aria-label={!canPushOn(session) ? "继续推进：已走满 4 个推进段，本轮到此为止" : undefined}
                 >
-                  <span className={s["expl-advance-ring"]} aria-hidden />
-                  <span className={s["expl-advance-label"]}>继续推进</span>
-                </button>
+                  <button
+                    className={cx(s["expl-advance-btn"], s["is-push"])}
+                    type="button"
+                    disabled={!canPushOn(session)}
+                    aria-label="继续推进"
+                    style={{ "--i": 0 } as CSSProperties}
+                    onClick={() => pushOn()}
+                  >
+                    <span className={s["expl-advance-ring"]} aria-hidden />
+                    <span className={s["expl-advance-label"]}>继续推进</span>
+                  </button>
+                  {!canPushOn(session) && (
+                    <RailPopover side="top-right">
+                      <strong>无法继续推进</strong>
+                      <p>已走满 4 个推进段，本轮到此为止。</p>
+                    </RailPopover>
+                  )}
+                </div>
               )}
               <button
                 className={cx(s["expl-advance-btn"], s["is-leave"])}
@@ -847,10 +861,23 @@ export function ExploreScreen() {
             </span>
             <div className={s["expl-command-row"]}>
               {COMMANDS.map((c) => (
-                <button key={c.name} className={s["expl-command"]} type="button" disabled title={c.desc}>
-                  <span className={s["expl-command-name"]}>{c.name}</span>
-                  <span className={s["expl-command-flag"]}>未开放</span>
-                </button>
+                <div
+                  key={c.name}
+                  className={s["expl-command-tip"]}
+                  data-rail-item=""
+                  tabIndex={0}
+                  aria-label={`${c.name}：${c.desc}，功能未开放`}
+                >
+                  <button className={s["expl-command"]} type="button" disabled>
+                    <span className={s["expl-command-name"]}>{c.name}</span>
+                    <span className={s["expl-command-flag"]}>未开放</span>
+                  </button>
+                  <RailPopover side="top">
+                    <strong>{c.name}</strong>
+                    <p>{c.desc}</p>
+                    <small>功能未开放</small>
+                  </RailPopover>
+                </div>
               ))}
             </div>
           </div>
@@ -865,7 +892,6 @@ export function ExploreScreen() {
               )}
               type="button"
               disabled={!canBackpack}
-              title={canBackpack ? undefined : "区域浮现、桥接揭示与信号推进途中不可开背包"}
               onClick={() => setBagOpen((v) => !v)}
             >
               背包

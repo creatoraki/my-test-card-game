@@ -18,7 +18,6 @@ export function CardPile({ kind, label, count, className, disabled, onClick }: P
       className={cx(s.pile, s[`pile-${kind}`], count === 0 && s.empty, className)}
       type="button"
       aria-label={`${label} ${count}张`}
-      title={`${label} · ${count}张`}
       disabled={disabled}
       onClick={onClick}
     >

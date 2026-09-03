@@ -72,7 +72,6 @@ export const CHARACTERS: CharacterDef[] = [
     name: "预言家",
     emoji: "🔮",
     color: "#b28cff",
-    // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
     base: makeStats({
       maxHp: 50,
       attack: 100,
@@ -177,13 +176,28 @@ export const CHARACTERS: CharacterDef[] = [
       handLimit: 0,
       drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
-    // ⚠ 占位: 专属卡尚未设计, 初始卡组暂用 5 张基础攻击。
-    startingCardIds: Array.from({ length: 5 }, () => basicCardId("alchemist", "attack")),
-    // 炼金术士的专属卡池尚未设计, 三档全空 —— 此时锻造抽卡不会给出候选(townStore.rollDrawOptions 返回空)。
+    startingCardIds: [
+      basicCardId("alchemist", "attack"),
+      basicCardId("alchemist", "attack"),
+      basicCardId("alchemist", "guard"),
+      "point-gold-shot",
+      "jade-plating",
+    ],
     pools: {
-      common: [],
-      uncommon: [],
-      rare: [],
+      common: ["point-gold-shot", "jade-plating"],
+      uncommon: [
+        "bone-acid-rain",
+        "catalytic-detonation",
+        "phase-spread",
+        "ember-core-resonance",
+        "retort-wall",
+        "dissolve-double",
+        "universal-component",
+        "reverse-disassembly",
+        "constant-temperature-crucible",
+        "unfinished-product",
+      ],
+      rare: ["terminal-mixture", "resonance-tuning"],
     },
   },
 ];

@@ -1,5 +1,6 @@
 /* ── 时刻标尺(ui/TickRuler.tsx): 顶栏右端 ── */
 .tick-ruler {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;

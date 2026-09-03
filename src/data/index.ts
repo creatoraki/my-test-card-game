@@ -36,6 +36,7 @@ export {
 } from "./squadTalents";
 
 export { CARD_DEFS } from "./cards";
+export { ASSEMBLE_REWARD_POOLS } from "./cards/alchemist";
 export {
   EVENT_POOLS,
   ALL_NODE_EVENTS,

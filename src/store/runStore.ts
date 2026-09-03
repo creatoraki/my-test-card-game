@@ -5,9 +5,10 @@
 
 import { create } from "zustand";
 import type { AllyInit, Ally, Card, ChallengeRun, Enemy } from "../engine";
-import { RULES, applyModifier, earnedChallengeBonus } from "../engine";
+import { RULES, applyModifier, earnedChallengeBonus, getStatus } from "../engine";
 import {
   BOND_DEFS,
+  ASSEMBLE_REWARD_POOLS,
   activeBonds,
   getCharacter,
   getEnemyDef,
@@ -73,6 +74,7 @@ interface RunStore {
   lastDropK: number; // 本场掉落使用的最终倍率
   lastDropTier: { tier: number; name: string; color: string; rewardMultiplier: number } | null;
   lastChallengeBonus: number;
+  lastBountyBonus: number;
   lastChallenges: ChallengeRun[];
 
   enterTown: () => void;
@@ -225,7 +227,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     .getState()
     .init(
       encounterId,
-      { allies, deck: battleDeck, burden, squadMods },
+      { allies, deck: battleDeck, burden, squadMods, squadBuffRewardPools: ASSEMBLE_REWARD_POOLS },
       undefined,
       mod,
       meta,
@@ -274,6 +276,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
   lastDropK: 0,
   lastDropTier: null,
   lastChallengeBonus: 0,
+  lastBountyBonus: 0,
   lastChallenges: [],
   pendingDescent: null,
 
@@ -305,6 +308,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastDropK: 0,
       lastDropTier: null,
       lastChallengeBonus: 0,
+      lastBountyBonus: 0,
       lastChallenges: [],
       screen: "explore",
     });
@@ -354,7 +358,12 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
     const won = battle.phase === "won";
     const challengeBonus = won ? earnedChallengeBonus(battle) : 0;
-    const lastDropK = dropCoefficient(session, challengeBonus);
+    const bountyHunterStacks = battle.playerIds.reduce((total, id) => {
+      const status = getStatus(battle.combatants[id], "bountyHunter");
+      return total + (status?.stacks ?? 0);
+    }, 0);
+    const bountyBonus = won ? bountyHunterStacks * 0.3 : 0;
+    const lastDropK = dropCoefficient(session, challengeBonus, bountyBonus);
     const lastDropTier = energyTier(session.energy);
     const lastChallenges = battle.challenges.map((run) => ({ ...run }));
     // ★ 从战斗单位而非遭遇战定义里取敌人 defId —— 遭遇战改造器(EncounterModifier.extraEnemies)
@@ -383,7 +392,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
     );
 
     const explore = useExploreStore.getState();
-    explore.settleBattle(won, survivors, enemyDefIds, challengeBonus);
+    explore.settleBattle(won, survivors, enemyDefIds, challengeBonus, bountyBonus);
     for (const id of battle.playerIds) {
       syncMemberStats((battle.combatants[id] as Ally).charId);
     }
@@ -407,6 +416,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
         lastDropK: 0,
         lastDropTier: null,
         lastChallengeBonus: 0,
+        lastBountyBonus: 0,
         lastChallenges: [],
       });
       return;
@@ -442,6 +452,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
         rewardMultiplier: lastDropTier.rewardMultiplier,
       },
       lastChallengeBonus: challengeBonus,
+      lastBountyBonus: bountyBonus,
       lastChallenges,
     });
   },
@@ -462,6 +473,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
         lastDropK: 0,
         lastDropTier: null,
         lastChallengeBonus: 0,
+        lastBountyBonus: 0,
         lastChallenges: [],
       });
       return;
@@ -474,6 +486,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastDropK: 0,
       lastDropTier: null,
       lastChallengeBonus: 0,
+      lastBountyBonus: 0,
       lastChallenges: [],
     });
   },
@@ -630,6 +643,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastDropK: 0,
       lastDropTier: null,
       lastChallengeBonus: 0,
+      lastBountyBonus: 0,
       lastChallenges: [],
     });
   },

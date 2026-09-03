@@ -33,23 +33,29 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
   if (state.phase !== "player") return;
   if (depth >= MAX_PASSIVE_DEPTH) return;
   // ★ 取快照遍历: 被动效果会改手牌(丢弃/抽牌/加牌), 直接遍历 state.hand 会漏卡或重复。
-  const listeners = handPassiveUids(state).filter((uid) => state.cards[uid]?.passive?.on === event.type);
+  const listeners = handPassiveUids(state).filter((uid) => {
+    const trigger = state.cards[uid]?.passive?.on;
+    return Array.isArray(trigger) ? trigger.includes(event.type) : trigger === event.type;
+  });
   if (listeners.length === 0) return;
 
   const recorder = currentRecorder(rec);
   const previousEventUid = state.passiveEventCardUid;
+  const previousTargetStatuses = state.passiveEventTargetStatuses;
   depth += 1;
   try {
     for (const uid of listeners) {
       const card = state.cards[uid];
       // 结算途中这张被动卡自己可能已离开手牌(被自己的效果丢弃) ⇒ 不再生效。
       if (!card?.passive || !state.hand.includes(uid) || state.phase !== "player") continue;
-      state.passiveEventCardUid = event.cardUid;
+      state.passiveEventCardUid = event.cardUid ?? null;
+      state.passiveEventTargetStatuses = event.targetStatuses ?? null;
       if (recorder) ensureCardFxSnapshot(state);
       const beforeHp = snapshotHp(state);
+      const effects = card.passive.effectsByTrigger?.[event.type] ?? card.passive.effects;
       let resolution!: EffectResolution;
       const recorded = withHitRecorder(() => {
-        resolution = resolveEffects(state, card.passive!.effects, card.ownerCharId, undefined);
+        resolution = resolveEffects(state, effects, card.ownerCharId, undefined);
       });
       checkEnd(state);
       if (recorder) recordCardTrigger(state, card, beforeHp, recorder, resolution, false, recorded);
@@ -57,13 +63,22 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
   } finally {
     depth -= 1;
     state.passiveEventCardUid = previousEventUid;
+    state.passiveEventTargetStatuses = previousTargetStatuses;
   }
 }
 
 // 回合结束把手牌里的被动卡收进弃牌堆。★ 走 "passiveEnd" 理由 ⇒ 不计弃牌数、
 // 不触发这张卡自己的「被丢弃时」、也不触发其它被动卡的 cardDiscarded。
 export function recycleHandPassives(state: BattleState, rec?: DiscardRecorder): void {
-  for (const uid of handPassiveUids(state)) ops.discard(state, uid, "passiveEnd", rec);
+  for (const uid of handPassiveUids(state)) {
+    const card = state.cards[uid];
+    if (card?.exhaust) {
+      state.hand = state.hand.filter((id) => id !== uid);
+      if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+    } else {
+      ops.discard(state, uid, "passiveEnd", rec);
+    }
+  }
 }
 
 ops.firePassive = firePassive;

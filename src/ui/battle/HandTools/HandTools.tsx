@@ -43,7 +43,6 @@ export function HandTools({ battle, handAction, isPlayerTurn, animating, onToggl
         className={`${s.toolButton} ${handAction === "discard" ? s.active : ""}`}
         type="button"
         aria-label="丢弃"
-        title="丢弃：选择一张手牌置入弃牌堆"
         disabled={!canUseHandActions}
         onClick={() => onToggle("discard")}
       >

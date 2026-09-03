@@ -107,11 +107,15 @@ export function energyCostAt(seg: number): number {
   return bySeg[index];
 }
 
-// 统一掉落系数 K =(K_energy + Σ挑战加成)× K_global —— **全加法合成**(设计文档 §5.1)。
+// 统一掉落系数 K =(K_energy + Σ挑战加成 + 额外掉率加成)× K_global —— **全加法合成**(设计文档 §5.1)。
 // 挑战加成由战斗引擎在 finishBattle 时写入 pendingChallengeBonus。
 // 挑战加成只在 finishBattle 时写入快照, 掉落结算随后立即消费。
-export function dropCoefficient(s: ExploreState, challengeBonus = s.pendingChallengeBonus): number {
-  return (rewardMultiplier(s.energy) + challengeBonus) * EXPLORE_RULES.drop.kGlobal;
+export function dropCoefficient(
+  s: ExploreState,
+  challengeBonus = s.pendingChallengeBonus,
+  extraDropBonus = 0,
+): number {
+  return (rewardMultiplier(s.energy) + challengeBonus + extraDropBonus) * EXPLORE_RULES.drop.kGlobal;
 }
 
 // K → 品质权重(qualityBias 的右移结果)。表在 EXPLORE_RULES.drop.qualityTable。
@@ -1730,6 +1734,7 @@ export function finishBattle(
   survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; limitLoss: number }[],
   enemyDefIds: string[],
   challengeBonus = 0,
+  bountyBonus = 0,
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
   const empty = { loot: 0, items: [], overflow: [] };
   if (s.phase !== "inBattle") return empty;
@@ -1775,8 +1780,8 @@ export function finishBattle(
   s.loot += loot;
 
   // 实物掉落: 每个敌人各掷自己的表, 走同一条种子链 ⇒ 同种子的一趟远征掉的东西逐件一致。
-  const k = dropCoefficient(s);
-  const ctx = dropContext(s);
+  const k = dropCoefficient(s, s.pendingChallengeBonus, bountyBonus);
+  const ctx = dropContext(s, k);
   const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
   addPendingLoot(s, rolled);
   s.pendingBoons = rollBoons(s, enemyDefIds.map((id) => getEnemyDef(id).boonTable), k);

@@ -116,6 +116,22 @@
   visibility: visible;
 }
 
+.hc-resonance {
+  position: absolute;
+  top: 64px;
+  right: 8px;
+  z-index: 6;
+  padding: 3px 6px;
+  color: #c9f4ff;
+  background: #12333ee8;
+  border: 1px solid #75d7eeaa;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 6px #5ddaf099;
+}
+
 /* ── 卡名压条: 贴在配图下沿的渐变浮层 ── */
 /* ★ 走渐变遮罩(透明 → 实底)而不是硬色块: 卡名与配图同属"识别层", 让它从图里长出来而不是
    盖一条上去。高度 30px, 下沿正好压在 .hc-art 的底边(= 说明区上沿)。

@@ -35,7 +35,12 @@ export type CounterSource =
   | "lastDiscardBatchFast"
   | "lastRecoverBatchFast"
   | "lastDiscardBatchCost"
-  | "lastConvertBatch";
+  | "lastConvertBatch"
+  | "squadBuffCount"
+  | "lastSquadBuffConsumed"
+  | "lastConsumedStatusStacks"
+  | "lastRemovedStatusCount"
+  | "activeCardResonance";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -49,6 +54,13 @@ export interface SquadResourceMods {
   waits: number;
   mana: number;
   handLimit: number;
+}
+
+export interface SquadBuffRewardPools {
+  attack: readonly string[];
+  defense: readonly string[];
+  support: readonly string[];
+  passive: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -104,7 +116,13 @@ export type EffectType =
   // 本次出牌结算期间临时改写**施放者**面板, 出牌结束逆向撤回(见 battle.playCard)。
   // 与 APPLY_STAT_MOD 的区别: 后者写进 Combatant.mods 后本场战斗永久留存。
   | "PLAY_STAT_BONUS"
-  | "CULTIVATE_TICK";
+  | "CULTIVATE_TICK"
+  | "GAIN_SQUAD_BUFF"
+  | "REMOVE_SQUAD_BUFF"
+  | "CONSUME_STATUS"
+  | "SPREAD_STATUS"
+  | "TICK_STATUS"
+  | "RESONATE";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -131,6 +149,7 @@ export interface EffectDescriptor {
   targetHasStatus?: string; // randomFoe / randomAlly: 只从带指定状态的目标中抽取
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
+  scaleByCounter?: { counter: CounterSource; per?: number; min?: number; max?: number };
   stat?: keyof StatBlock; // APPLY_STAT_MOD / PLAY_STAT_BONUS: 要修改的属性
   pct?: boolean; // APPLY_STAT_MOD / PLAY_STAT_BONUS: true = 百分比修正(百分点), 缺省 = 固定值修正
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
@@ -145,12 +164,13 @@ export interface EffectDescriptor {
   bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数加算的倍率
   // DAMAGE: 按目标状况逐目标加算倍率。targetHpBelowPct 用 value 传阈值(百分比)。
   damageBonus?: {
-    when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct";
+    when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct" | "targetHasDebuff";
     multiplier: number;
     value?: number;
   };
   bonusMultiplierPerSelfStack?: number; // DAMAGE: 每 1 层本卡实例累计(state.activeCardStacks)加算的倍率
   onKill?: EffectDescriptor[]; // DAMAGE: 本次效果把某个目标打死时结算一次(主目标 = 被击杀者)
+  onKillOnce?: boolean;
   pctOfCurrentHp?: number; // LOSE_HP: 按目标当前生命的比例失去生命(0.1 = 10%)
   cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
@@ -163,14 +183,22 @@ export interface EffectDescriptor {
     | "noPlaysThisRound"
     | "waterfall"
     | "handHasCostAtLeast"
-    | "fastCardsInHandAtLeast"; // 满足条件时才结算
+    | "fastCardsInHandAtLeast"
+    | "counterAtLeast"
+    | "counterBelow"
+    | "eventTargetHasStatus"; // 满足条件时才结算
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
+  conditionCounter?: CounterSource;
+  conditionStatus?: string;
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
   // MARK_CARDS: 手牌选择方式。eventCard = 触发本次被动的那张牌(state.passiveEventCardUid)。
   markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard";
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal" | "handAllFast"; // CONVERT_CARD_TYPE: 手牌普通牌随机 / 全部速攻牌
+  squadBuff?: "assembleA" | "assembleB" | "assembleC" | "assembleD";
+  squadBuffPick?: "choose" | "randomMissing" | "random" | "all";
+  resonatePick?: "handAll" | "lowerCost";
   fromModule?: string; // 由卡牌模组追加的效果标记(模组 itemId); 纯标记, 引擎结算不读取
 }
 
@@ -236,6 +264,7 @@ export interface CardDef {
   };
   // 按卡牌实例的累计层数(Card.discardStacks)调整费用, 达到 atLeast 时叠加 delta。
   stackCostRule?: { atLeast: number; delta: number };
+  resonance?: boolean; // 共鸣卡: 打出时强化符合条件的手牌
   passive?: PassiveDef; // 被动卡: 持在手中时按事件自动结算
   onDiscard?: DiscardTrigger;
   keywords?: CardKeywordRef[];
@@ -247,17 +276,25 @@ export interface CardDef {
 }
 
 // 被动卡的驻留触发。cardDiscarded = 每有一张牌被丢弃, cardDrawn = 每抽到一张牌。
-export type PassiveTriggerId = "cardDiscarded" | "cardDrawn";
+export type PassiveTriggerId =
+  | "cardDiscarded"
+  | "cardDrawn"
+  | "roundEnd"
+  | "enemyKilled"
+  | "assembleSuccess";
 
 export interface PassiveDef {
-  on: PassiveTriggerId;
+  on: PassiveTriggerId | PassiveTriggerId[];
   effects: EffectDescriptor[];
+  effectsByTrigger?: Partial<Record<PassiveTriggerId, EffectDescriptor[]>>;
 }
 
 // 一次被动事件。cardUid = 触发事件的那张牌(被丢弃的 / 刚抽到的)。
 export interface PassiveEvent {
   type: PassiveTriggerId;
-  cardUid: string;
+  cardUid?: string;
+  targetId?: string;
+  targetStatuses?: StatusInstance[];
 }
 
 export interface DiscardTrigger {
@@ -279,17 +316,23 @@ export interface Card extends CardDef {
   uid: string;
   upgraded: boolean;
   contaminated: boolean;
+  resonanceStacks?: number; // 手牌内共鸣强化次数; 离手后清零
   marks?: string[];
   cultivateLeft?: number;
   discardStacks?: number; // returnToHand 类弃牌触发的累计层数; 打出后清零
   cardModule?: { uid: string; itemId: string } | null;
 }
 
-export interface PendingChoice {
-  kind: "recoverFromDiscard";
-  sourceCardUid: string;
-  count: number;
-}
+export type PendingChoice =
+  | {
+      kind: "recoverFromDiscard";
+      sourceCardUid: string;
+      count: number;
+    }
+  | {
+      kind: "pickSquadBuff";
+      options: string[];
+    };
 
 // ---------------------------------------------------------------------------
 // 状态效果(buff / debuff) —— 定义含行为钩子; 挂在单位身上的只是 { id, stacks }。
@@ -554,10 +597,18 @@ export interface BattleState {
   activeCardCost: number | null;
   // 当前结算卡的实例累计层数(Card.discardStacks)。与 activeCardCost 同生命周期。
   activeCardStacks: number;
+  // 当前结算卡的共鸣强化次数, 与 activeCardStacks 同生命周期。
+  activeCardResonance: number;
   // 被动卡结算窗口内, 触发本次事件的那张牌 uid(供 markPick: "eventCard" 定位)。
   passiveEventCardUid: string | null;
+  passiveEventTargetStatuses: StatusInstance[] | null;
   lastDiscardBatchCost: number;
   lastConvertBatch: number;
+  squadBuffs: { id: string }[];
+  squadBuffRewardPools: SquadBuffRewardPools;
+  lastSquadBuffConsumed: number;
+  lastConsumedStatusStacks: number;
+  lastRemovedStatusCount: number;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenValue 算好传入。

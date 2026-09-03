@@ -67,6 +67,7 @@ export function moveToDiscard(
   const card = state.cards[uid];
   if (wasInHand && card) {
     resetCultivate(card);
+    card.resonanceStacks = 0;
     card.marks = card.marks?.filter((mark) => mark !== "heavy");
   }
   const rule = RULES.discard.reasons[reason];
@@ -139,8 +140,10 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       const beforeHp = snapshotHp(state);
       const previousCardCost = state.activeCardCost;
       const previousCardStacks = state.activeCardStacks;
+      const previousCardResonance = state.activeCardResonance;
       state.activeCardCost = cardCost(state, card);
       state.activeCardStacks = card.discardStacks ?? 0;
+      state.activeCardResonance = card.resonanceStacks ?? 0;
       let resolution!: EffectResolution;
       let recorded: AnimHit[] = [];
       try {
@@ -150,6 +153,7 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       } finally {
         state.activeCardCost = previousCardCost;
         state.activeCardStacks = previousCardStacks;
+        state.activeCardResonance = previousCardResonance;
       }
       checkEnd(state);
       if (recorder) recordCardTrigger(state, card, beforeHp, recorder, resolution, true, recorded);

@@ -100,6 +100,7 @@ interface ExploreStore {
     survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; limitLoss: number }[],
     enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
     challengeBonus: number,
+    bountyBonus: number,
   ) => void;
   // 战斗回合消耗。★ 必须在 settleBattle 之后调用 —— 掉落系数与经验倍率读的是战前能量
   spendBattleEnergy: (rounds: number) => void;
@@ -253,9 +254,9 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     mutate(get, set, (d) => retreat(d));
   },
 
-  settleBattle: (won, survivors, enemyDefIds, challengeBonus) => {
+  settleBattle: (won, survivors, enemyDefIds, challengeBonus, bountyBonus) => {
     mutate(get, set, (d) => {
-      finishBattle(d, won, survivors, enemyDefIds, challengeBonus);
+      finishBattle(d, won, survivors, enemyDefIds, challengeBonus, bountyBonus);
     });
   },
 

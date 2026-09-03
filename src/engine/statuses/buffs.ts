@@ -121,6 +121,34 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
       },
     },
   },
+  retortWall: {
+    id: "retortWall",
+    name: "反应釜壁",
+    emoji: "⚗️",
+    kind: "buff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "override",
+    desc: "护盾存在期间受到攻击时，使攻击者中毒；护盾被击破时移除。",
+    hooks: {
+      onAfterAttacked: (c: StatusCtx, dmg: DamageCtx) => {
+        const poisonStacks = c.inst.data?.poisonStacks ?? 0;
+        if (c.inst.stacks > 0 && dmg.isAttack && dmg.sourceId && poisonStacks > 0)
+          c.ops.applyStatus(c.state, dmg.sourceId, "poison", poisonStacks, undefined, undefined, c.ownerId);
+      },
+      onShieldBroken: (c: StatusCtx) => {
+        c.inst.stacks = 0;
+      },
+    },
+  },
+  bountyHunter: {
+    id: "bountyHunter",
+    name: "赏金猎人",
+    emoji: "🎯",
+    kind: "buff",
+    stackMode: "add",
+    desc: "每层使本场战斗结算时的掉率提高 30%。",
+  },
   buzhou: {
     id: "buzhou",
     name: "不周山",

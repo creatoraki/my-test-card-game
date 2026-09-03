@@ -1,10 +1,11 @@
-import type { BattleState, Card, EffectDescriptor } from "./types";
+import type { BattleState, Card, CounterSource, EffectDescriptor } from "./types";
 import { cardCost } from "./cost";
 import { cultivateReady } from "./cultivate";
 import { conditionMet } from "./effects";
 import { previewDamage } from "./ops";
 import { addMod, attackDamage, hitChance, statOf } from "./stats";
 import { RULES } from "./rules";
+import { getStatusDef } from "./statuses";
 
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
 // ★ 预览必须把它算进去, 否则装了攻击力/穿甲/命中模组后预览数字与实际结果对不上。
@@ -40,12 +41,19 @@ function firstDamageEffect(card: Card): EffectDescriptor | undefined {
   ].find((candidate) => candidate.type === "DAMAGE");
 }
 
-function counterOf(state: BattleState, source: NonNullable<EffectDescriptor["bonusMultiplierFrom"]>): number {
+function counterOf(state: BattleState, source: CounterSource): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
   if (source === "lastDiscardBatch") return state.lastDiscardBatch;
   if (source === "discardsThisBattle") return state.discardsThisBattle;
   if (source === "lastDiscardBatchFast") return state.lastDiscardBatchFast;
   if (source === "lastRecoverBatchFast") return state.lastRecoverBatchFast;
+  if (source === "lastDiscardBatchCost") return state.lastDiscardBatchCost;
+  if (source === "lastConvertBatch") return state.lastConvertBatch;
+  if (source === "squadBuffCount") return state.squadBuffs.length;
+  if (source === "lastSquadBuffConsumed") return state.lastSquadBuffConsumed;
+  if (source === "lastConsumedStatusStacks") return state.lastConsumedStatusStacks;
+  if (source === "lastRemovedStatusCount") return state.lastRemovedStatusCount;
+  if (source === "activeCardResonance") return state.activeCardResonance;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((played) => played.cardType === "fast").length;
   return state.playedThisRound.length;
@@ -86,13 +94,24 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
       effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
         ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
         : 0;
+      const valueScale = effect.scaleByCounter
+        ? Math.min(
+            effect.scaleByCounter.max ?? Infinity,
+            Math.max(
+              effect.scaleByCounter.min ?? -Infinity,
+              counterOf(state, effect.scaleByCounter.counter) * (effect.scaleByCounter.per ?? 1),
+            ),
+          )
+        : 1;
     const baseMultiplier = (effect.multiplier ?? 1) + bonusMult;
     const targetHasShield = target.shield > 0;
     const bonusApplies =
       !fixed &&
       effect.damageBonus &&
       ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
-        (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield));
+        (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield) ||
+        (effect.damageBonus.when === "targetHpBelowPct" && target.hp / target.maxHp * 100 < (effect.damageBonus.value ?? 0)) ||
+        (effect.damageBonus.when === "targetHasDebuff" && target.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)));
     const aimedBonus =
       effect.aimedMultiplier != null && target.statuses.some((status) => status.id === "aimed")
         ? effect.aimedMultiplier
@@ -100,8 +119,8 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
     const damageMultiplier = bonusApplies ? aimedBonus + effect.damageBonus!.multiplier : aimedBonus;
     const valueMultiplier = 1 + state.playValueBonusPct / 100;
     const rawDamage = fixed
-      ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier
-      : attackDamage(cardAttack(state, card), damageMultiplier) * valueMultiplier;
+      ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier * valueScale
+      : attackDamage(cardAttack(state, card), damageMultiplier) * valueMultiplier * valueScale;
 
     return previewDamage(state, attacker.id, target.id, rawDamage, {
       isAttack: true,
