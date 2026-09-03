@@ -40,6 +40,29 @@ import botanistBloodVineArt from "@/assets/skills/botanist/汲血蔓.png";
 import botanistGuidingCrownArt from "@/assets/skills/botanist/引路棘冠.png";
 import botanistNewLeafArt from "@/assets/skills/botanist/新叶萌发.png";
 import botanistChaoticSpikeArt from "@/assets/skills/botanist/乱刺散射.png";
+import alchemistUniversalComponentArt from "@/assets/skills/alchemist/万能配件.png";
+import alchemistCatalyticDetonationArt from "@/assets/skills/alchemist/催化引爆.png";
+import alchemistResonanceTuningArt from "@/assets/skills/alchemist/共振调谐.png";
+import alchemistUnfinishedProductArt from "@/assets/skills/alchemist/半成品.png";
+import alchemistRetortWallArt from "@/assets/skills/alchemist/反应釜壁.png";
+import alchemistRefluxPotionArt from "@/assets/skills/alchemist/回流药剂.png";
+import alchemistRejuvenationPotionArt from "@/assets/skills/alchemist/回生药剂.png";
+import alchemistConstantTemperatureCrucibleArt from "@/assets/skills/alchemist/恒温坩埚.png";
+import alchemistInfiniteTreasureArt from "@/assets/skills/alchemist/无限财宝.png";
+import alchemistDissolveDoubleArt from "@/assets/skills/alchemist/溶解替身.png";
+import alchemistTonicPotionArt from "@/assets/skills/alchemist/滋补魔药.png";
+import alchemistInspirationPotionArt from "@/assets/skills/alchemist/灵感药剂.png";
+import alchemistPointGoldShotArt from "@/assets/skills/alchemist/点金试射.png";
+import alchemistEmberCoreResonanceArt from "@/assets/skills/alchemist/焰核共鸣.png";
+import alchemistPhaseSpreadArt from "@/assets/skills/alchemist/相位蔓延.png";
+import alchemistPhaseMembraneArt from "@/assets/skills/alchemist/相变护膜.png";
+import alchemistTerminalMixtureArt from "@/assets/skills/alchemist/终末合剂.png";
+import alchemistJadePlatingArt from "@/assets/skills/alchemist/翠玉镀层.png";
+import alchemistBoneAcidRainArt from "@/assets/skills/alchemist/腐骨酸雨.png";
+import alchemistBountyHunterArt from "@/assets/skills/alchemist/赏金猎人.png";
+import alchemistOverCatalysisArt from "@/assets/skills/alchemist/过量催化.png";
+import alchemistReverseDisassemblyArt from "@/assets/skills/alchemist/逆向拆解.png";
+import alchemistChainBurstArt from "@/assets/skills/alchemist/链式爆破.png";
 
 export const CARD_ART: Record<string, string> = {
   "swordsman-basic-attack": basicAttackArt,
@@ -90,6 +113,30 @@ export const CARD_ART: Record<string, string> = {
   "guiding-crown": botanistGuidingCrownArt,
   "new-leaf": botanistNewLeafArt,
   "chaotic-spike": botanistChaoticSpikeArt,
+  "point-gold-shot": alchemistPointGoldShotArt,
+  "bone-acid-rain": alchemistBoneAcidRainArt,
+  "catalytic-detonation": alchemistCatalyticDetonationArt,
+  "phase-spread": alchemistPhaseSpreadArt,
+  "ember-core-resonance": alchemistEmberCoreResonanceArt,
+  "terminal-mixture": alchemistTerminalMixtureArt,
+  "jade-plating": alchemistJadePlatingArt,
+  "retort-wall": alchemistRetortWallArt,
+  "dissolve-double": alchemistDissolveDoubleArt,
+  "universal-component": alchemistUniversalComponentArt,
+  "reverse-disassembly": alchemistReverseDisassemblyArt,
+  "resonance-tuning": alchemistResonanceTuningArt,
+  "constant-temperature-crucible": alchemistConstantTemperatureCrucibleArt,
+  "unfinished-product": alchemistUnfinishedProductArt,
+  "over-catalysis": alchemistOverCatalysisArt,
+  "chain-burst": alchemistChainBurstArt,
+  "phase-membrane": alchemistPhaseMembraneArt,
+  "rejuvenation-potion": alchemistRejuvenationPotionArt,
+  "tonic-potion": alchemistTonicPotionArt,
+  "reflux-potion": alchemistRefluxPotionArt,
+  "inspiration-potion": alchemistInspirationPotionArt,
+  "bounty-hunter": alchemistBountyHunterArt,
+  "infinite-ledger": alchemistInfiniteTreasureArt,
+  "infinite-treasure": alchemistInfiniteTreasureArt,
 };
 
 export const CARD_ART_SOURCES: readonly string[] = [...new Set([...Object.values(CARD_ART), placeholderArt])];
