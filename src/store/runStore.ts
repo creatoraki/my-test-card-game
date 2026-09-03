@@ -30,6 +30,7 @@ import type { PartySnapshot } from "../explore/types";
 import type { EquipSlot, ItemStack } from "../items/types";
 import { useBattleStore, type BattleMeta } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
+import { commitTownBackup, snapshotTownProfile } from "./expeditionBackup";
 import {
   bondCountsOf,
   deriveStats,
@@ -263,6 +264,8 @@ function bankEverything(session: {
   if (exp.length) {
     useRunStore.setState({ expReport: exp });
   }
+  // 探索期对 townStore 的散点写入到这里才正式落袋, 同时提交出击快照。
+  commitTownBackup();
 }
 
 export const useRunStore = create<RunStore>((set, get) => ({
@@ -297,6 +300,8 @@ export const useRunStore = create<RunStore>((set, get) => ({
   },
 
   startExpedition: (mapId, backpack = []) => {
+    // 探索期 townStore 的散点写入统一由出击快照兜底, 中途刷新时整档回滚。
+    snapshotTownProfile();
     useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack);
     set({
       mapId,

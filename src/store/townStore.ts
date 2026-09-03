@@ -58,6 +58,10 @@ import { consumeItems, removeByUid } from "../items/inventory";
 import { rollToFlat } from "../items/equipRoll";
 import type { EquipSlot, ItemStack } from "../items/types";
 import type { BondBias } from "../explore/types";
+import { TOWN_PROFILE_KEY, commitTownBackup, restoreTownBackup } from "./expeditionBackup";
+
+// 必须在 create(persist(...)) 之前回滚, 让 persist 同步 rehydrate 直接读到出击前档案。
+restoreTownBackup();
 
 // 装备修正层。★ 不再是占位 —— 它由 equipModsOf() 从 CharacterState.equipped 现算,
 // 不单独持久化(存两份必然对不上)。deriveStats 仍是局外面板的唯一换算点。
@@ -567,7 +571,7 @@ export const useTownStore = create<TownStore>()(
         set({ codex: next });
       },
 
-      resetProfile: () =>
+      resetProfile: () => {
         set({
           ...freshProfile(false),
           loot: 0,
@@ -576,7 +580,9 @@ export const useTownStore = create<TownStore>()(
           shop: freshShop(1),
           nutrition: { techs: [], occupants: [] },
           initialized: true,
-        }),
+        });
+        commitTownBackup();
+      },
 
       // 切换小队徽章。★ 切换即重置整棵树(nodes 清空, 训练点全部回到池子)——
       //   「换徽章会丢掉已投入的点」这一确认在 UI 层做, store 只负责落账。
@@ -1279,6 +1285,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: "town-profile-v17", version: 17 },
+    { name: TOWN_PROFILE_KEY, version: 17 },
   ),
 );
