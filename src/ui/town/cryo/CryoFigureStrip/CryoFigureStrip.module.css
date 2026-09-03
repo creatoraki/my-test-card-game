@@ -1,0 +1,76 @@
+.strip {
+  position: relative;
+  min-width: 0;
+}
+
+.viewport {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.viewport:active {
+  cursor: grabbing;
+}
+
+.track {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  min-width: max-content;
+  margin: 0 auto;
+  padding: 2px 28px 6px 2px;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid #2a1b3d2e;
+  background: #ffffffdc;
+  color: var(--cryo-glow-deep);
+  font-size: 20px;
+  transform: translateY(-50%);
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.arrow:hover {
+  border-color: var(--cryo-glow);
+  background: #ffffff;
+}
+
+.previous { left: 0; }
+.next { right: 0; }
+
+.edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 36px;
+  pointer-events: none;
+}
+
+.edgeStart {
+  left: 0;
+  background: linear-gradient(90deg, #f8f1fc, transparent);
+}
+
+.edgeEnd {
+  right: 0;
+  background: linear-gradient(270deg, #f8f1fc, transparent);
+}

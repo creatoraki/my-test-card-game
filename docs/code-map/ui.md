@@ -1,7 +1,3 @@
-| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。**徽章与天赋的全部交互住在 `useSquadTalent`**（本场景只剩光粒背景与 `drawerOpen`）。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
-| [town/training/useSquadTalent](../../src/ui/town/training/useSquadTalent.ts) | 徽章/天赋交互层：当前徽章、剩余点、远征只读判定，以及点亮 / 退还 / Shift 快捷点亮整条路径 / 切换徽章四个动作与抖动、脉冲反馈；`RESOURCE_LABELS` 在此维护。训练室场景与编队页的分配弹窗共用同一份，规则判定仍全部来自 `data/squadTalents`。 |
-| [town/training/SquadTalentModal](../../src/ui/town/training/SquadTalentModal/SquadTalentModal.tsx) | 训练点分配弹窗：编队页点小队徽章直接开这一层，内部与训练室是同一棵 `TalentTreeRadial` + `SquadResourceBar` + `BadgeSelectModal`。⚠ 根节点必须 `composes: tr-tokens`——那三个组件的配色都读 `--tr-*`。 |
-| [town/training/BadgeSelectModal](../../src/ui/town/training/BadgeSelectModal/BadgeSelectModal.tsx) | 训练室徽章选择 modal：大图 SVG 徽章卡片网格、选中预览与底栏两步确认；`badgeGlyphs` 按徽章 id 查表绘制主体图形。只接收 props 与回调，不读 store，支持锁定态与键盘选择。 |
 # React 视图层
 
 路径：`src/ui/`。组件只负责展示、交互和派发 action，不承载战斗、探索、物品或养成规则。图片素材只通过 `art/` 的查表引用，`data/` 不直接引用素材路径。
@@ -41,10 +37,15 @@ src/ui/
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
 | [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
 | [town/terminal/ControlTerminalScene](../../src/ui/town/terminal/ControlTerminalScene/ControlTerminalScene.tsx) | 控制终端：城市维护工单委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由；出击已迁移到大厅一级入口。 |
-| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与浮层路由；维护唤醒/营养舱当前面板、关闭演出和受控尺寸，不承载具体功能内容。 |
-| [town/cryo/CryoPanelShell](../../src/ui/town/cryo/CryoPanelShell/CryoPanelShell.tsx) | 冬眠仓浮层公共壳：透明点击层、顶部吊绳、冷凝氛围、标题头、关闭按钮和开合动画；通过 `size` 与 CSS 变量传递设计尺寸。 |
-| [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 冬眠唤醒面板：舱位阵列、密封舱详情、唤醒费用和解封操作；只接收场景传入的角色数据与回调。 |
-| [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 营养舱面板：疗养舱位、队员三段血量、体力极限损伤提示、科技材料和研究操作；直接订阅城镇状态，规则判定复用 `data/nutritionPod`。 |
+| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
+| [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 冬眠仓入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
+| [town/cryo/CryoPanelShell](../../src/ui/town/cryo/CryoPanelShell/CryoPanelShell.tsx) | 冬眠仓浮层公共壳：透明点击层、冷凝氛围、标题头、关闭按钮和可变矩形面板；不再使用吊绳或从天而降动画，几何由 `cryoMorph` 的 ref 驱动。 |
+| [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 冬眠仓横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
+| [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 冬眠唤醒面板：六个瘦高立绘舱位、密封舱信息带、生命指标 count-up、唤醒费用和解封操作；规则与解封 action 由场景传入。 |
+| [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 营养舱面板编排：订阅城镇状态，组合固定瘦高席位、可入舱立绘条与科技升级叠层；容量、治疗、费用和研究判定复用 `data/nutritionPod`。 |
+| [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 营养舱席位阵列：四个固定瘦高席位，处理空置、占用、锁定、未选人、费用不足和角色限制的悬浮提示，并把点击席位转为入舱 action。 |
+| [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 营养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、选中态与受限原因提示。 |
+| [town/cryo/NutritionPanel/NutritionUpgradePanel](../../src/ui/town/cryo/NutritionPanel/NutritionUpgradePanel.tsx) | 营养舱科技升级叠层：展示等级、舱位读数、当前 tier 的容量/治疗科技、材料与积分检查，并用局部 clip-path 展开/收回。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱场景编排：右侧两个抽屉入口（模组装配 / 模组制造），维护当前打开的弹窗与关闭动画；装配弹窗在此订阅据点状态、派发装配/拆卸 action 并统一管理模组 tooltip；制造弹窗整体交给 CraftPanel。 |
 | 旧 `town/assembly/AssemblyPanelShell` | 舱内弹窗的通用外壳已提升为公共件 [`common/PanelShell`](../../src/ui/common/PanelShell/PanelShell.tsx)（见「公共组件」一节），装配舱与制造弹窗改为从 `@/ui/common/PanelShell` 引用，样式规则一行未改。 |
@@ -244,7 +245,7 @@ src/ui/
 | [hooks/useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 将启动预加载状态接入 React 外部 store；主菜单等待所有资源任务 settle 后开放入口。 |
 | [hooks/useBgm.ts](../../src/ui/hooks/useBgm.ts) | 订阅 `runStore.screen` 并驱动据点/战斗 BGM 切换；电梯场景返回 null 表示停播；测试页可关闭。 |
 | [hooks/useSfx.ts](../../src/ui/hooks/useSfx.ts) | 安装全局音效委托并订阅独立音效开关；测试页可关闭。 |
-| [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布的等比 letterbox 缩放、设备像素量化与 DPR 监听；另提供 `stageHostOf`（由画布内元素找到 `[data-stage-canvas]`）与 `designScaleOf`（把 `getBoundingClientRect()` 归一化回设计 px）。画布内不使用 `vw` / `vh` 或窗口断点。 |
+| [hooks/stage.ts](../../src/ui/hooks/stage.ts) | 1920×1080 设计画布的等比 letterbox 缩放、设备像素量化与 DPR 监听；另提供 `stageHostOf`、`designScaleOf` 与 `designRectOf`（把画布内元素的 `getBoundingClientRect()` 归一化回设计 px）。画布内不使用 `vw` / `vh` 或窗口断点。 |
 | [hooks/useCountUp.ts](../../src/ui/hooks/useCountUp.ts) | rAF 数值滚动；起点走 ref，减少动态效果下直接使用终值。 |
 | [hooks/useChangePulse.ts](../../src/ui/hooks/useChangePulse.ts) | 认出「同一个 key 的数值变了」并短暂高亮。物品**新进来**由格子重挂载的 CSS 动画负责，这个 hook 只管 uid 不变、`count` 改数的那种；新出现的 key 刻意不算变化，否则两边都闪会重影。 |
 | [hooks/useIdleTwitch.ts](../../src/ui/hooks/useIdleTwitch.ts) | 低频随机敌人待机小动作，只存在于 UI 局部状态。 |
@@ -256,7 +257,7 @@ src/ui/
 | --- | --- |
 | [app/transitions.ts](../../src/ui/app/transitions.ts) | 过场预设、默认时长、按界面/路线解析；探索到战斗的裂纹涟漪时长只在这里配置。 |
 | [app/transitionOrigin.ts](../../src/ui/app/transitionOrigin.ts) | 一次性缓存点击坐标，仅用于视觉过场，不进入 Zustand。 |
-| [character/FormationScreen/formationMorph/morphChoreo.ts](../../src/ui/character/FormationScreen/formationMorph/morphChoreo.ts) | 编队 ↔ 角色详情的重组时长、立绘出血矩形与「窗口 px → 设计 px」换算。⚠ 这两态**不再是两个 screen**，故不走 `transitions.ts`；旧的 `app/viewTransition.global.css` 与 `character/sharedPortrait.ts` 已随那次改版删除（伪元素挂在文档根上拿不到元素的 `--i`，错峰只能靠手写延迟表，做不出按距离飞散）。 |
+| [character/FormationScreen/formationMorph/morphChoreo.ts](../../src/ui/character/FormationScreen/formationMorph/morphChoreo.ts) | 编队 ↔ 角色详情的重组时长与立绘出血矩形；`designRectOf` 从 `hooks/stage` 转发，避免编队域私有实现被其他域依赖。⚠ 这两态**不再是两个 screen**，故不走 `transitions.ts`；旧的 `app/viewTransition.global.css` 与 `character/sharedPortrait.ts` 已随那次改版删除。 |
 | [town/facilityScenes.ts](../../src/ui/town/facilityScenes.ts) | 据点进设施的推镜时序、飞出参数与设施背景图。 |
 
 ## 战斗设计画布与相机边界

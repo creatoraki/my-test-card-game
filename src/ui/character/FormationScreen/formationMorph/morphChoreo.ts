@@ -7,8 +7,8 @@
 //
 // ⚠ 本文件里的坐标一律是**设计 px**(1920×1080 画布内的坐标), 与窗口分辨率无关。
 
-import { STAGE } from "@/ui/hooks/stage";
 import { prefersReducedMotion } from "@/ui/app/transitions";
+export { designRectOf } from "@/ui/hooks/stage";
 
 /** 「减少动态效果」时所有时长归零 —— 与 DeckForgeOverlay/forgeChoreo.ts 同款包法。 */
 const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
@@ -46,25 +46,3 @@ export interface Rect {
   h: number;
 }
 
-/**
- * 把窗口 px 的 DOMRect 换算成画布内的设计 px。
- *
- * ⚠ 画布走的是 `zoom: var(--stage-scale)`(见 app/styles/stageCanvas.module.css), 故
- *   getBoundingClientRect() 拿到的是缩放后的窗口 px。缩放系数**不按 offsetWidth 反推** ——
- *   标准化后的 zoom 在各浏览器里对 offsetWidth 的口径并不一致; 画布宽恒为 STAGE.width 设计 px
- *   才是这里唯一稳的分母。
- */
-export function designRectOf(el: HTMLElement): Rect | null {
-  const canvas = el.closest<HTMLElement>("[data-stage-canvas]");
-  if (!canvas) return null;
-  const canvasRect = canvas.getBoundingClientRect();
-  if (canvasRect.width <= 0) return null;
-  const scale = canvasRect.width / STAGE.width;
-  const rect = el.getBoundingClientRect();
-  return {
-    x: (rect.left - canvasRect.left) / scale,
-    y: (rect.top - canvasRect.top) / scale,
-    w: rect.width / scale,
-    h: rect.height / scale,
-  };
-}

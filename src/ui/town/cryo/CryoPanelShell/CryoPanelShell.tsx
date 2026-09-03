@@ -1,11 +1,10 @@
-import { type CSSProperties, type ReactNode } from "react";
+import { forwardRef, type CSSProperties, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
+import { OPEN_MS, box, type Rect } from "../cryoMorph/cryoChoreo";
 import s from "../styles/cryoKit.module.css";
 
-export const PANEL_OUT_MS = 600;
-export const PANEL_OUT_REDUCED_MS = 180;
-export const CONTENT_DELAY_MS = 560;
-export const STAGGER_MS = 55;
+export const CONTENT_DELAY_MS = 0;
+export const STAGGER_MS = 40;
 
 const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
@@ -15,37 +14,50 @@ const MOTE_COUNT = 8;
 interface Props {
   kicker: string;
   title: string;
-  size: { w: number; h: number };
-  closing: boolean;
+  rect: Rect;
+  ready: boolean;
   onClose: () => void;
+  seed?: ReactNode;
   children: ReactNode;
 }
 
-export function CryoPanelShell({ kicker, title, size, closing, onClose, children }: Props) {
+export const CryoPanelShell = forwardRef<HTMLElement, Props>(function CryoPanelShell(
+  { kicker, title, rect, ready, onClose, seed, children },
+  ref,
+) {
   return (
     <div
-      className={cn("modal", closing && "is-closing")}
+      className={cn("modal")}
       onClick={onClose}
-      style={{ "--panel-w": `${size.w}px`, "--panel-h": `${size.h}px` } as CSSProperties}
     >
       <section
-        className={cn("panel")}
+        className={cn("panel", !ready && "is-morphing")}
+        ref={ref}
         onClick={(event) => event.stopPropagation()}
-        style={{ width: `${size.w}px`, height: `${size.h}px`, "--content-delay": `${CONTENT_DELAY_MS}ms` } as CSSProperties}
+        style={{ ...box(rect), "--content-delay": `${CONTENT_DELAY_MS}ms`, "--land-delay": `${OPEN_MS}ms` } as CSSProperties}
       >
         <CryoAmbience />
-        <div className={cn("panelHead")}>
-          <span className={cn("kicker")}>{kicker}</span>
-          <h3 className={cn("panelTitle")}>{title}</h3>
-          <button className={cn("close")} type="button" onClick={onClose} aria-label="关闭">
-            ✕
-          </button>
-        </div>
-        {children}
+        {ready ? (
+          <>
+            <div className={cn("panelHead")}>
+              <span className={cn("kicker")}>{kicker}</span>
+              <h3 className={cn("panelTitle")}>{title}</h3>
+              <button className={cn("close")} type="button" onClick={onClose} aria-label="关闭">
+                ✕
+              </button>
+            </div>
+            {children}
+          </>
+        ) : (
+          <div className={cn("seed")} aria-hidden>
+            {seed}
+            <strong>{title.split(" · ")[0]}</strong>
+          </div>
+        )}
       </section>
     </div>
   );
-}
+});
 
 function CryoAmbience() {
   return (

@@ -1,22 +1,16 @@
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { CHARACTERS, nutritionPods } from "@/data";
 import { useTownStore } from "@/store/townStore";
-import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
 import { AwakenPanel } from "../AwakenPanel";
-import { CryoPanelShell, PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "../CryoPanelShell";
+import { CryoPanelShell } from "../CryoPanelShell";
 import { NutritionPanel } from "../NutritionPanel";
+import { PANEL_RECT } from "../cryoMorph/cryoChoreo";
+import { useCryoMorph, type PanelId } from "../cryoMorph/useCryoMorph";
 import s from "./CryoScene.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
-
-type PanelId = "awaken" | "nutrition";
-
-const PANEL_SIZE: Record<PanelId, { w: number; h: number }> = {
-  awaken: { w: 1180, h: 660 },
-  nutrition: { w: 1240, h: 700 },
-};
 
 interface Props {
   leaving?: boolean;
@@ -29,34 +23,9 @@ export function CryoScene({ leaving = false }: Props) {
   const admitToNutritionPod = useTownStore((state) => state.admitToNutritionPod);
   const researchNutritionTech = useTownStore((state) => state.researchNutritionTech);
   const nutrition = useTownStore((state) => state.nutrition);
-  const [panel, setPanel] = useState<PanelId | null>(null);
-  const [closing, setClosing] = useState(false);
   const [podSlot, setPodSlot] = useState(0);
-
-  const openPanel = useCallback((nextPanel: PanelId) => {
-    setClosing(false);
-    setPanel(nextPanel);
-  }, []);
-
-  const closePanel = useCallback(() => setClosing(true), []);
-
-  useEffect(() => {
-    if (!closing) return;
-    const id = window.setTimeout(() => {
-      setPanel(null);
-      setClosing(false);
-    }, prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS);
-    return () => window.clearTimeout(id);
-  }, [closing]);
-
-  useEffect(() => {
-    if (!panel) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closePanel();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [panel, closePanel]);
+  const morph = useCryoMorph();
+  const { panel } = morph;
 
   const sealedCount = CHARACTERS.length - awakened.length;
   const nutritionCount = nutrition.occupants.length;
@@ -96,18 +65,30 @@ export function CryoScene({ leaving = false }: Props) {
           icon={<AwakenIcon />}
           name="冬眠唤醒"
           desc={sealedCount > 0 ? `${sealedCount} 具休眠体待解封` : "无休眠体信号"}
-          onClick={() => openPanel("awaken")}
+          entryId="awaken"
+          hidden={morph.hiddenEntry === "awaken"}
+          onClick={(event) => morph.openPanel("awaken", event.currentTarget)}
         />
         <EntryTile
           icon={<NutritionIcon />}
           name="营养舱"
           desc={`${nutritionCount}/${nutritionCapacity} 舱位疗养中`}
-          onClick={() => openPanel("nutrition")}
+          entryId="nutrition"
+          hidden={morph.hiddenEntry === "nutrition"}
+          onClick={(event) => morph.openPanel("nutrition", event.currentTarget)}
         />
       </div>
 
       {panel && (
-        <CryoPanelShell size={PANEL_SIZE[panel]} closing={closing} onClose={closePanel} kicker={panel === "awaken" ? "冬眠舱阵列" : "营养液循环系统"} title={panel === "awaken" ? "冬眠唤醒 · 舱位解封" : "营养舱 · 体力极限疗养"}>
+        <CryoPanelShell
+          ref={morph.panelRef}
+          rect={PANEL_RECT[panel]}
+          ready={morph.ready}
+          onClose={morph.closePanel}
+          seed={panel === "awaken" ? <AwakenIcon /> : <NutritionIcon />}
+          kicker={panel === "awaken" ? "冬眠舱阵列" : "营养液循环系统"}
+          title={panel === "awaken" ? "冬眠唤醒 · 舱位解封" : "营养舱 · 体力极限疗养"}
+        >
           {panel === "awaken" ? (
             <AwakenPanel awakened={awakened} loot={loot} slot={podSlot} onSelect={setPodSlot} onAwaken={awaken} />
           ) : (
@@ -119,9 +100,9 @@ export function CryoScene({ leaving = false }: Props) {
   );
 }
 
-function EntryTile({ icon, name, desc, onClick }: { icon: ReactNode; name: string; desc: string; onClick: () => void }) {
+function EntryTile({ icon, name, desc, entryId, hidden, onClick }: { icon: ReactNode; name: string; desc: string; entryId: PanelId; hidden: boolean; onClick: (event: MouseEvent<HTMLButtonElement>) => void }) {
   return (
-    <button className={cn("cryo-entry")} type="button" onClick={onClick}>
+    <button className={cn("cryo-entry")} type="button" data-cryo-entry={entryId} onClick={onClick} style={{ visibility: hidden ? "hidden" : "visible" }}>
       <span className={cn("cryo-rim")} aria-hidden />
       <span className={cn("cryo-entry-icon")} aria-hidden>{icon}</span>
       <span className={cn("cryo-entry-text")}>

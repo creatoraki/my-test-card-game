@@ -3,8 +3,10 @@ import { CHARACTERS, getCharacter } from "@/data";
 import { RULES } from "@/engine";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { useCountUp } from "@/ui/hooks/useCountUp";
+import { CryoFigureStrip } from "../CryoFigureStrip";
 import { CONTENT_DELAY_MS, STAGGER_MS } from "../CryoPanelShell";
 import kit from "../styles/cryoKit.module.css";
+import figure from "../styles/cryoFigure.module.css";
 import s from "./AwakenPanel.module.css";
 
 const stagger = (index: number): CSSProperties => ({ "--i": index } as CSSProperties);
@@ -48,8 +50,8 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
 
   return (
     <>
-      <div className={s.body} style={{ gridTemplateColumns: "440px 1fr" }}>
-        <div className={s.rack}>
+      <div className={s.body}>
+        <CryoFigureStrip className={s.rack}>
           {pods.map((pod, index) => (
             <PodCard
               key={pod.kind === "empty" ? `empty-${index}` : pod.charId}
@@ -59,36 +61,34 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
               onSelect={() => onSelect(index)}
             />
           ))}
-        </div>
+        </CryoFigureStrip>
 
         <div className={s.detail} key={slot}>
-          {active?.kind === "sealed" ? (
-            <>
-              <div className={s.sealedFigure} aria-hidden>
-                <SealedIcon />
-              </div>
-              <span className={s.kicker}>休眠状态 · {active.charId}</span>
-              <h4 className={s.name}>休眠体 · 身份未解析</h4>
-              <p className={s.desc}>舱盖仍处于密封状态。解封前无法读取该冬眠体的档案, 只知道生命体征仍在。</p>
-              <div className={s.vitals}>
-                {VITALS.map((vital, index) => <VitalCell key={vital.label} vital={vital} index={index} />)}
-              </div>
-            </>
-          ) : active?.kind === "awake" ? (
-            <>
-              <div className={s.awakeFigure}>
-                <CharacterPortrait characterId={active.charId} emoji={getCharacter(active.charId).emoji} alt={getCharacter(active.charId).name} className={s.bust} />
-              </div>
-              <span className={s.kicker}>已解封</span>
-              <h4 className={s.name}>{getCharacter(active.charId).name}</h4>
-              <p className={s.desc}>该舱位已解封。档案与卡组请去队员档案查看, 出战编成去编队。</p>
-            </>
-          ) : (
-            <>
-              <div className={s.emptyFigure} aria-hidden><NoSignalIcon /></div>
-              <span className={s.kicker}>无信号</span>
-              <p className={s.desc}>此舱位没有冬眠体信号。</p>
-            </>
+          <div className={s.detailText}>
+            {active?.kind === "sealed" ? (
+              <>
+                <span className={s.kicker}>休眠状态 · 体征稳定</span>
+                <h4 className={s.name}>休眠体 · 身份未解析</h4>
+                <p className={s.desc}>舱盖仍处于密封状态。解封前无法读取该冬眠体的档案, 只知道生命体征仍在。</p>
+              </>
+            ) : active?.kind === "awake" ? (
+              <>
+                <span className={s.kicker}>已解封</span>
+                <h4 className={s.name}>{getCharacter(active.charId).name}</h4>
+                <p className={s.desc}>该舱位已解封。档案与卡组请去队员档案查看, 出战编成去编队。</p>
+              </>
+            ) : (
+              <>
+                <span className={s.kicker}>无信号</span>
+                <h4 className={s.name}>空舱</h4>
+                <p className={s.desc}>此舱位没有冬眠体信号。</p>
+              </>
+            )}
+          </div>
+          {active?.kind === "sealed" && (
+            <div className={s.vitals}>
+              {VITALS.map((vital, index) => <VitalCell key={vital.label} vital={vital} index={index} />)}
+            </div>
           )}
         </div>
       </div>
@@ -110,27 +110,21 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
 }
 
 function PodCard({ pod, index, selected, onSelect }: { pod: Pod; index: number; selected: boolean; onSelect: () => void }) {
+  const character = pod.kind === "empty" ? null : getCharacter(pod.charId);
   return (
     <button className={`${s.pod} ${s[`is-${pod.kind}`]} ${selected ? s["is-selected"] : ""}`} type="button" style={stagger(index)} onClick={onSelect}>
       <span className={s.lid} aria-hidden />
-      <span className={s.frost} aria-hidden />
       <span className={s.no}>舱位-{String(index + 1).padStart(2, "0")}</span>
-      {pod.kind === "awake" ? (
-        <>
-          <span className={`${s.figure} ${s.vitrine}`}><CharacterPortrait characterId={pod.charId} emoji={getCharacter(pod.charId).emoji} alt={getCharacter(pod.charId).name} className={s.portrait} /></span>
-          <span className={s.text}><span className={s.name}>{getCharacter(pod.charId).name}</span><span className={s.meta}><i className={s.led} aria-hidden />已解封</span></span>
-        </>
-      ) : pod.kind === "sealed" ? (
-        <>
-          <span className={`${s.figure} ${s.icon}`}><SealedIcon /></span>
-          <span className={s.text}><span className={s.name}>休眠体</span><span className={s.meta}><i className={s.led} aria-hidden />密封 · 体征稳定</span></span>
-        </>
-      ) : (
-        <>
-          <span className={`${s.figure} ${s.icon}`}><NoSignalIcon /></span>
-          <span className={s.text}><span className={s.name}>无信号</span><span className={s.meta}><i className={s.led} aria-hidden />空舱</span></span>
-        </>
-      )}
+      <span className={s.figure}>
+        {pod.kind === "awake" && character ? (
+          <CharacterPortrait characterId={character.id} emoji={character.emoji} alt={character.name} className={s.portrait} />
+        ) : pod.kind === "sealed" ? <SealedIcon /> : <NoSignalIcon />}
+        <span className={figure.figureScrim} aria-hidden />
+      </span>
+      <span className={s.text}>
+        <span className={s.name}>{pod.kind === "awake" && character ? character.name : pod.kind === "sealed" ? "休眠体" : "无信号"}</span>
+        <span className={s.meta}><i className={s.led} aria-hidden />{pod.kind === "awake" ? "已解封" : pod.kind === "sealed" ? "密封 · 体征稳定" : "空舱"}</span>
+      </span>
     </button>
   );
 }

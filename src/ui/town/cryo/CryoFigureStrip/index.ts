@@ -1,0 +1,1 @@
+export { CryoFigureStrip } from "./CryoFigureStrip";

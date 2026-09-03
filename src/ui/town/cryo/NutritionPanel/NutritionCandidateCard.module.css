@@ -1,0 +1,84 @@
+.wrap {
+  position: relative;
+  flex: 0 0 150px;
+  width: 150px;
+  height: 236px;
+}
+
+.card {
+  position: relative;
+  display: block;
+  width: 150px;
+  height: 236px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #2a1b3d2e;
+  background: #ffffffad;
+  color: var(--cryo-ink);
+  text-align: left;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1), box-shadow 0.2s ease;
+}
+
+.card:not(:disabled):hover,
+.card.is-selected {
+  border-color: var(--cryo-glow);
+  background: #fffffff0;
+  box-shadow: 0 0 22px -8px var(--cryo-glow);
+}
+
+.card:not(:disabled):hover {
+  transform: translateY(-5px);
+}
+
+.card:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.7);
+}
+
+.figure {
+  composes: figureFrame from "../styles/cryoFigure.module.css";
+  position: absolute;
+  inset: 0;
+  border: 0;
+  clip-path: none;
+}
+
+.portrait {
+  composes: figurePortrait from "../styles/cryoFigure.module.css";
+  --slot-base-w: 150px;
+  --cryo-bust-zoom: 2;
+}
+
+.body {
+  composes: figurePlate from "../styles/cryoFigure.module.css";
+  bottom: 10px;
+}
+
+.name {
+  composes: figureName from "../styles/cryoFigure.module.css";
+}
+
+.damage {
+  color: #a23e55;
+  font-family: var(--font-family);
+  font-size: 10px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.hp {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.mark {
+  position: absolute;
+  right: 10px;
+  top: 9px;
+  z-index: 3;
+  color: var(--cryo-glow-deep);
+  font-size: 17px;
+  font-weight: 700;
+}

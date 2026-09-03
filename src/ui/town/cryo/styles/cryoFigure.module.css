@@ -1,0 +1,62 @@
+/* --slot-base-w: 取景窗基准宽，立绘图宽以此为基准
+   --cryo-bust-zoom: 半身取景倍率，图宽 = --slot-base-w × 本值 × --bust-scale
+   --bust-scale / --portrait-dx / --portrait-dy: CharacterPortrait 下发的逐人补偿位 */
+
+.figureFrame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #2a1b3d2e;
+  background: linear-gradient(160deg, #ffffffc9, #f3e8fba8 62%, #dfc9ef99);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.figurePortrait {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: calc(var(--slot-base-w, 160px) * var(--cryo-bust-zoom, 2) * var(--bust-scale, 1));
+  height: auto;
+  max-width: none;
+  translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  filter: drop-shadow(0 5px 10px #2a1b3d38);
+}
+
+.figureScrim {
+  position: absolute;
+  inset: 25% 0 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, #ffffff1a 35%, #ffffffd4 100%);
+}
+
+.figurePlate {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 9px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  color: var(--cryo-ink);
+  text-align: left;
+}
+
+.figureName {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.figureMeta {
+  overflow: hidden;
+  color: var(--cryo-ink-dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

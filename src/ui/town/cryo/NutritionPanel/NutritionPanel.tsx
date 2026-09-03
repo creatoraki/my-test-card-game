@@ -1,21 +1,10 @@
-import { useEffect, useMemo, useState, type PointerEvent } from "react";
-import {
-  NUTRITION_MAX_LEVEL,
-  NUTRITION_TECHS,
-  NUTRITION_TREAT_COST,
-  getCharacter,
-  isTechAvailable,
-  nutritionLevel,
-  nutritionPods,
-  nutritionTechCheck,
-  nutritionTechsOfTier,
-} from "@/data";
-import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
-import { HpBar } from "@/ui/common/HpBar";
-import ItemSlot from "@/ui/common/item/ItemSlot";
-import type { ItemStack } from "@/items/types";
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
+import { NUTRITION_TREAT_COST, nutritionLevel, nutritionPods } from "@/data";
 import { useTownStore, vitalsOf } from "@/store/townStore";
+import { CryoFigureStrip } from "../CryoFigureStrip";
+import { NutritionCandidateCard, type NutritionCandidate } from "./NutritionCandidateCard";
+import { NutritionPodRack } from "./NutritionPodRack";
+import { NutritionUpgradePanel } from "./NutritionUpgradePanel";
 import kit from "../styles/cryoKit.module.css";
 import s from "./NutritionPanel.module.css";
 
@@ -24,10 +13,10 @@ interface Props {
   onResearch: (techId: string) => void;
 }
 
-interface Candidate {
-  charId: string;
-  reason: string | null;
-  damage: number;
+interface UpgradeState {
+  x: number;
+  y: number;
+  closing: boolean;
 }
 
 export function NutritionPanel({ onAdmit, onResearch }: Props) {
@@ -38,11 +27,10 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
   const storage = useTownStore((state) => state.storage);
   const nutrition = useTownStore((state) => state.nutrition);
   const [selected, setSelected] = useState<string | null>(null);
-  const [tooltipText, setTooltipText] = useState("");
-  const { point, bind } = useHoverTooltip();
+  const [upgrade, setUpgrade] = useState<UpgradeState | null>(null);
 
   const occupantIds = useMemo(() => new Set(nutrition.occupants.map((occupant) => occupant.charId)), [nutrition.occupants]);
-  const candidates = useMemo<Candidate[]>(
+  const candidates = useMemo<NutritionCandidate[]>(
     () => awakened.filter((charId) => !occupantIds.has(charId)).map((charId) => {
       const vitals = vitalsOf(characters[charId]);
       const damage = Math.max(0, vitals.maxHp - vitals.hpLimit);
@@ -70,106 +58,66 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
     ? "舱位已满"
     : loot < NUTRITION_TREAT_COST
       ? "居民积分不足"
-      : selectedCandidate?.reason ?? (selectedCandidate ? "可以送入营养舱" : "请选择一名需要疗养的队员");
+      : selectedCandidate?.reason ?? (selectedCandidate ? "点上方空席位即可送入疗养" : "请选择一名需要疗养的队员");
 
-  const showReason = (reason: string, event: PointerEvent<HTMLElement>) => {
-    setTooltipText(reason);
-    bind.onPointerEnter(event);
+  const openUpgrade = (event: MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget;
+    setUpgrade({ x: button.offsetLeft + button.offsetWidth / 2, y: button.offsetTop + button.offsetHeight / 2, closing: false });
   };
 
   return (
     <>
       <div className={s.body}>
-        <div className={s.rack}>
-          {Array.from({ length: NUTRITION_MAX_LEVEL }, (_, index) => {
-            const occupant = nutrition.occupants[index];
-            const unlocked = index < capacity;
-            const character = occupant ? getCharacter(occupant.charId) : null;
-            return (
-              <div key={index} className={`${s.pod} ${unlocked ? "" : s["is-locked"]} ${occupant ? s["is-occupied"] : ""}`}>
-                <span className={s.lid} aria-hidden />
-                {character ? (
-                  <>
-                    <span className={s.figure}><CharacterPortrait characterId={character.id} emoji={character.emoji} alt={character.name} className={s.portrait} /></span>
-                    <span className={s.podText}><span className={s.podName}>{character.name}</span><span className={s.podMeta}>疗养中 · 明日 +{occupant.heal}</span></span>
-                  </>
-                ) : unlocked ? (
-                  <span className={s.podText}><span className={s.emptyIcon}>＋</span><span className={s.podMeta}>空置</span></span>
-                ) : (
-                  <span className={s.podText}><span className={s.emptyIcon}>◇</span><span className={s.podMeta}>需舱位扩建 {index === 1 ? "I" : index === 2 ? "II" : "III"}</span></span>
-                )}
-              </div>
-            );
-          })}
+        <NutritionPodRack
+          occupants={nutrition.occupants}
+          capacity={capacity}
+          selectedCandidate={selectedCandidate}
+          loot={loot}
+          onAdmit={onAdmit}
+        />
+
+        <div className={s.candidatesSection}>
+          <div className={s.subhead}>
+            <span className={s.kicker}>可入舱队员</span>
+            <span className={s.count}>{candidates.length} 人</span>
+          </div>
+          <CryoFigureStrip className={s.candidates}>
+            {candidates.length ? candidates.map((candidate) => (
+              <NutritionCandidateCard
+                key={candidate.charId}
+                candidate={candidate}
+                character={characters[candidate.charId]}
+                selected={selected === candidate.charId}
+                onSelect={() => setSelected(candidate.charId)}
+              />
+            )) : <div className={s.empty}>目前没有需要疗养的队员</div>}
+          </CryoFigureStrip>
         </div>
 
-        <div className={s.right}>
-          <div className={s.subhead}><span className={s.kicker}>可入舱队员</span><span className={s.count}>{candidates.length} 人</span></div>
-          <div className={s.members}>
-            {candidates.length ? candidates.map((candidate) => {
-              const character = getCharacter(candidate.charId);
-              const vitals = vitalsOf(characters[candidate.charId]);
-              const disabled = candidate.reason !== null;
-              const selectedClass = selected === candidate.charId ? s["is-selected"] : "";
-              return (
-                <div
-                  key={candidate.charId}
-                  className={s.memberWrap}
-                  onPointerEnter={(event) => disabled && candidate.reason && showReason(candidate.reason, event)}
-                  onPointerLeave={() => { setTooltipText(""); bind.onPointerLeave(); }}
-                  onFocus={(event) => disabled && candidate.reason && (setTooltipText(candidate.reason), bind.onFocus(event))}
-                  onBlur={() => { setTooltipText(""); bind.onBlur(); }}
-                >
-                  <button className={`${s.member} ${selectedClass}`} type="button" disabled={disabled} onClick={() => setSelected(candidate.charId)}>
-                    <span className={s.memberFigure}><CharacterPortrait characterId={character.id} emoji={character.emoji} alt={character.name} className={s.memberPortrait} /></span>
-                    <span className={s.memberInfo}><span className={s.memberName}>{character.name}</span><span className={s.damage}>体力极限 −{candidate.damage}</span></span>
-                    <span className={s.hp}><HpBar hp={vitals.hp} hpLimit={vitals.hpLimit} maxHp={vitals.maxHp} /></span>
-                    <span aria-hidden>{selected === candidate.charId ? "✓" : ""}</span>
-                  </button>
-                </div>
-              );
-            }) : <div className={s.empty}>目前没有需要疗养的队员</div>}
-          </div>
+        <button className={s.upgradeButton} type="button" onClick={openUpgrade}>
+          舱位扩建 · 科技 Lv.{level}
+        </button>
 
-          <div className={s.techSection}>
-            <div className={s.subhead}><span className={s.kicker}>营养舱科技 · 等级 {level}</span><span className={s.count}>{nutrition.occupants.length}/{capacity} 舱位</span></div>
-            {level >= NUTRITION_MAX_LEVEL ? (
-              <div className={s.empty}>营养舱已达最高等级</div>
-            ) : (
-              <div className={s.techs}>
-                {nutritionTechsOfTier(level).map((tech) => <TechCard key={tech.id} tech={tech} done={nutrition.techs.includes(tech.id)} doneTechs={nutrition.techs} storage={storage} loot={loot} onResearch={onResearch} />)}
-              </div>
-            )}
-          </div>
-        </div>
+        {upgrade && (
+          <NutritionUpgradePanel
+            level={level}
+            doneTechs={nutrition.techs}
+            storage={storage}
+            loot={loot}
+            origin={{ x: upgrade.x, y: upgrade.y }}
+            closing={upgrade.closing}
+            onResearch={onResearch}
+            onClose={() => setUpgrade((current) => current ? { ...current, closing: true } : current)}
+            onClosed={() => setUpgrade(null)}
+          />
+        )}
       </div>
 
       <div className={kit.panelFoot}>
         <p className={kit.note}>{note}</p>
-        <button className={kit.primary} type="button" disabled={selectedBlocked || nutrition.occupants.length >= capacity || loot < NUTRITION_TREAT_COST} onClick={() => selected && onAdmit(selected)}>
-          送入营养舱 −{NUTRITION_TREAT_COST} 积分
-        </button>
+        <span className={s.cost}>送入疗养将消耗 {NUTRITION_TREAT_COST} 居民积分</span>
+        <span className={s.selectedState}>{selectedBlocked ? "当前队员不可入舱" : "选择席位完成送入"}</span>
       </div>
-      {point && tooltipText && <HoverTooltip point={point}>{tooltipText}</HoverTooltip>}
     </>
-  );
-}
-
-function TechCard({ tech, done, doneTechs, storage, loot, onResearch }: { tech: (typeof NUTRITION_TECHS)[number]; done: boolean; doneTechs: string[]; storage: ItemStack[]; loot: number; onResearch: (techId: string) => void }) {
-  const check = nutritionTechCheck(tech, loot, storage);
-  const available = isTechAvailable(tech, doneTechs);
-  return (
-    <div className={`${s.tech} ${done ? s["is-done"] : ""}`}>
-      <span className={s.techName}>{tech.name} {done ? "✓" : ""}</span>
-      <span className={s.techDesc}>{tech.desc}</span>
-      <div className={s.materials}>
-        <span className={`${s.material} ${check.lootOk ? "" : s["is-lacking"]}`}>积分 {tech.loot}</span>
-        {check.materials.map((material) => {
-          const stack: ItemStack = { uid: `nutrition-${material.itemId}`, itemId: material.itemId, count: Math.max(material.have, 1) };
-          return <span key={material.itemId} className={`${s.material} ${material.ok ? "" : s["is-lacking"]}`}><ItemSlot stack={stack} showName={false} disabled={!material.have} className={s.materialSlot} />×{material.need}</span>;
-        })}
-      </div>
-      <button className={s.research} type="button" disabled={done || !available || !check.ok} onClick={() => onResearch(tech.id)}>{done ? "已研究" : "研究"}</button>
-    </div>
   );
 }

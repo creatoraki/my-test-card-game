@@ -1,0 +1,117 @@
+.rack {
+  flex: 0 0 416px;
+}
+
+.wrap {
+  position: relative;
+  flex: 0 0 210px;
+  width: 210px;
+  height: 400px;
+}
+
+.pod {
+  --notch: 14px;
+  position: relative;
+  display: block;
+  width: 210px;
+  height: 400px;
+  overflow: hidden;
+  border: 1px solid #2a1b3d2e;
+  background: #ffffffad;
+  color: var(--cryo-ink);
+  text-align: left;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1), box-shadow 0.2s ease;
+}
+
+.pod:not(:disabled):hover {
+  transform: translateY(-5px);
+  border-color: var(--cryo-glow);
+  background: #ffffffeb;
+  box-shadow: 0 18px 34px -24px #2a1b3d70;
+}
+
+.pod.is-occupied {
+  border-color: #7c4dbe70;
+  background: #ffffffd9;
+}
+
+.pod.is-locked {
+  border-style: dashed;
+  opacity: 0.48;
+}
+
+.lid {
+  position: absolute;
+  left: var(--notch);
+  right: 0;
+  top: 0;
+  z-index: 3;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--cryo-glow) 40%, #b98adf);
+  opacity: 0.72;
+}
+
+.no {
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  z-index: 3;
+  color: var(--cryo-ink-dim);
+  font-family: var(--font-family);
+  font-size: 10px;
+  letter-spacing: 3px;
+}
+
+.figure {
+  composes: figureFrame from "../styles/cryoFigure.module.css";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  clip-path: none;
+}
+
+.figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, #ffffff18 0%, transparent 30%, #ffffff8a 100%);
+}
+
+.figure svg {
+  position: relative;
+  z-index: 2;
+}
+
+.portrait {
+  composes: figurePortrait from "../styles/cryoFigure.module.css";
+  --slot-base-w: 210px;
+  --cryo-bust-zoom: 1.9;
+}
+
+.emptyIcon {
+  position: relative;
+  z-index: 2;
+  color: var(--cryo-ink-dim);
+  font-size: 48px;
+  font-weight: 300;
+}
+
+.text {
+  composes: figurePlate from "../styles/cryoFigure.module.css";
+}
+
+.name {
+  composes: figureName from "../styles/cryoFigure.module.css";
+  font-size: 15px;
+}
+
+.meta {
+  composes: figureMeta from "../styles/cryoFigure.module.css";
+  font-size: 10px;
+}

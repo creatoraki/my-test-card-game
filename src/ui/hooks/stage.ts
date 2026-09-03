@@ -96,6 +96,13 @@ export interface DesignBox {
   bottom: number;
 }
 
+export interface DesignRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 // 画布内的元素 → 它所属的那张设计画布(带 data-stage-canvas 标记, 见 app/StageCanvas)。
 // 找不到就回落到 document.body —— 那里没有 zoom, 下面的归一化恒等, 同一套代码照样正确。
 export function stageHostOf(el: Element): HTMLElement {
@@ -117,6 +124,22 @@ export function designScaleOf(host: HTMLElement): number {
   const width = host.clientWidth;
   const rect = host.getBoundingClientRect();
   return width > 0 && rect.width > 0 ? rect.width / width : 1;
+}
+
+// 将画布内元素的窗口矩形换算为设计 px，供同页形变和浮层定位共用。
+export function designRectOf(el: HTMLElement): DesignRect | null {
+  const canvas = el.closest<HTMLElement>("[data-stage-canvas]");
+  if (!canvas) return null;
+  const canvasRect = canvas.getBoundingClientRect();
+  if (canvasRect.width <= 0) return null;
+  const scale = canvasRect.width / STAGE.width;
+  const rect = el.getBoundingClientRect();
+  return {
+    x: (rect.left - canvasRect.left) / scale,
+    y: (rect.top - canvasRect.top) / scale,
+    w: rect.width / scale,
+    h: rect.height / scale,
+  };
 }
 
 // 画布当前生效的 CSS zoom(见 app/styles/stageCanvas.module.css 的 .canvas)。
