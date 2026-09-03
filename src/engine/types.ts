@@ -140,6 +140,7 @@ export interface EffectDescriptor {
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
   stacksFromStat?: { stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 层数 = 施法者属性 × 倍率
+  spreadPct?: number; // SPREAD_STATUS: 复制给其他目标的状态层数比例
   aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
   aimedStacksMultiplier?: number; // APPLY_STATUS: 目标已有瞄准时层数倍率
   boostSource?: "spendPartyStarlight" | "primaryAimed"; // VALUE_BOOST: 数值加成来源

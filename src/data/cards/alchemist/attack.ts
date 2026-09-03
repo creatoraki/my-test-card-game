@@ -61,8 +61,8 @@ export const ALCHEMIST_ATTACK_CARDS: CardDef[] = [
     anim: "poison",
     effects: [
       { type: "DAMAGE", multiplier: 0.6, target: "primary" },
-      { type: "SPREAD_STATUS", status: "poison", pct: 0.5, target: "primary" },
-      { type: "SPREAD_STATUS", status: "burn", pct: 0.5, target: "primary" },
+      { type: "SPREAD_STATUS", status: "poison", spreadPct: 0.5, target: "primary" },
+      { type: "SPREAD_STATUS", status: "burn", spreadPct: 0.5, target: "primary" },
     ],
     text: "造成 {0} 点伤害；将目标的中毒与灼烧层数各 50% 复制给其他所有敌人。",
   },

@@ -82,6 +82,7 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     name: "赏金猎人",
     targeting: "none",
     anim: "buff",
+    effects: [],
     passive: {
       on: "enemyKilled",
       effects: [{ type: "APPLY_STATUS", status: "bountyHunter", stacks: 1, target: "self" }],
@@ -91,9 +92,10 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
   {
     ...rewardBase,
     id: "infinite-ledger",
-    name: "无限财报",
+    name: "无限财宝",
     targeting: "none",
     anim: "buff",
+    effects: [],
     passive: {
       on: "assembleSuccess",
       effects: [{ type: "ADD_CARD_TO_HAND", cardId: "infinite-treasure", cardOwner: "randomAlly" }],

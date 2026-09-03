@@ -627,7 +627,7 @@ function applyEffect(
         const sourceTarget = state.combatants[sourceTargetId];
         const sourceStatus = sourceTarget?.statuses.find((entry) => entry.id === effect.status);
         if (!sourceStatus) continue;
-        const stacks = Math.floor(sourceStatus.stacks * (effect.pct ?? 0.5));
+        const stacks = Math.floor(sourceStatus.stacks * (effect.spreadPct ?? 0.5));
         if (stacks <= 0) continue;
         for (const target of spreadTargets) {
           if (target.id !== sourceTargetId) ops.applyStatus(state, target.id, effect.status, stacks, undefined, undefined, sourceId);
