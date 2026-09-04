@@ -60,9 +60,9 @@ export function EquipPickColumn({
               <div
                 key={entry.key}
                 className={cx(s.cell, on && s.on)}
-                onPointerEnter={(event) => onShowTooltip(event.currentTarget, entry.stack, "left")}
+                onPointerEnter={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
                 onPointerLeave={onHideTooltip}
-                onFocus={(event) => onShowTooltip(event.currentTarget, entry.stack, "left")}
+                onFocus={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
                     onHideTooltip();
