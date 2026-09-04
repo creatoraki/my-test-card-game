@@ -1,0 +1,33 @@
+.layer { position: absolute; z-index: 500; inset: 0; display: grid; place-items: center; overflow: hidden; background: #02070dd9; -webkit-backdrop-filter: blur(6px) saturate(80%); backdrop-filter: blur(6px) saturate(80%); }
+.scrim { position: absolute; inset: 0; background: #02070d99; animation: scrimIn 220ms ease-out both; }
+.layer[data-closing="true"] .scrim { animation: scrimOut 420ms ease-in both; }
+
+.panel.panel { --k: var(--accent); z-index: 1; width: 560px; min-height: 0; padding: 0; overflow: hidden; color: var(--text); background: linear-gradient(145deg, #142326f2, #071012f8 58%, #05090bf8), var(--panel); border: 1px solid color-mix(in srgb, var(--k) 74%, #ffffff2b); box-shadow: inset 0 1px 0 #ffffff1c, 0 26px 70px -28px #000, 0 0 52px color-mix(in srgb, var(--k) 28%, transparent); }
+.panel.dangerPanel { --k: var(--bad); }
+
+.content { position: relative; display: flex; min-height: 276px; flex-direction: column; padding: 42px 48px 36px; }
+.content[data-danger="true"] { --k: var(--bad); animation: dangerBreath 1.8s ease-in-out infinite alternate; }
+.kicker, .code, .warning, .detail { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; }
+.kicker { color: var(--k); line-height: 1.2; }
+.title { margin: 12px 0 10px; color: #f3f9ef; font-size: 30px; line-height: 1.15; }
+.text { max-width: 450px; margin: 0; color: #cbd8d3; font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
+.detail { margin: 15px 0 0; color: var(--muted); line-height: 1.4; }
+.actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
+.button { min-width: 126px; padding: 11px 20px; border-color: color-mix(in srgb, var(--k) 56%, #536068); color: #e9f5ef; background: #102126; box-shadow: inset 0 1px 0 #ffffff1c, 0 0 16px color-mix(in srgb, var(--k) 16%, transparent); font-size: 14px; letter-spacing: 0.12em; }
+.button:hover, .button:focus-visible { border-color: var(--k); background: color-mix(in srgb, var(--k) 18%, #102126); box-shadow: inset 0 1px 0 #ffffff2b, 0 0 22px color-mix(in srgb, var(--k) 28%, transparent); }
+.button:focus-visible { outline: 2px solid var(--k); outline-offset: 3px; }
+.confirmButton[data-danger="true"] { border-color: var(--bad); color: #fff2ef; background: color-mix(in srgb, var(--bad) 24%, #1a1112); box-shadow: inset 0 1px 0 #ffffff20, 0 0 18px color-mix(in srgb, var(--bad) 24%, transparent); }
+
+.decor { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
+.notch { position: absolute; width: 24px; height: 2px; background: linear-gradient(90deg, transparent, var(--k), transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--k) 60%, transparent); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 60ms) both; }
+.notchTl { top: 9px; left: 3px; rotate: -45deg; } .notchTr { top: 9px; right: 3px; rotate: 45deg; }
+.notchBl { bottom: 9px; left: 3px; rotate: 45deg; } .notchBr { right: 3px; bottom: 9px; rotate: -45deg; }
+.code { position: absolute; top: 15px; left: 48px; color: var(--k); opacity: 0.72; animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 120ms) both; }
+.warning { position: absolute; top: 0; right: 0; padding: 7px 16px 7px 26px; color: #fff5f1; background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--bad) 80%, #17090b) 0 7px, #17090b 7px 14px); clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 180ms) both; }
+.scan { position: absolute; top: 0; left: -35%; width: 35%; height: 1px; background: linear-gradient(90deg, transparent, var(--k), transparent); box-shadow: 0 0 12px var(--k); animation: scan 5.8s linear calc(var(--mr-bar-ms) + 240ms) infinite; }
+.ruler { position: absolute; right: 48px; bottom: 14px; width: 150px; height: 6px; opacity: 0.65; background: repeating-linear-gradient(90deg, var(--k) 0 1px, transparent 1px 12px); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 300ms) both; }
+.layer[data-closing="true"] .decor > * { animation: decoOut 160ms ease-in both; }
+@keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } } @keyframes scrimOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes decoIn { from { opacity: 0; } to { opacity: 1; } } @keyframes decoOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes scan { from { translate: 0; } to { translate: 385% 0; } }
+@keyframes dangerBreath { from { box-shadow: inset 0 1px 0 #ffffff1c, 0 26px 70px -28px #000, 0 0 24px color-mix(in srgb, var(--bad) 20%, transparent); } to { box-shadow: inset 0 1px 0 #ffffff1c, 0 26px 70px -28px #000, 0 0 48px color-mix(in srgb, var(--bad) 46%, transparent); } }

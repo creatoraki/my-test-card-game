@@ -14,6 +14,7 @@ import { useBgm } from "@/ui/hooks/useBgm";
 import { useSfx } from "@/ui/hooks/useSfx";
 import { TestScreen } from "@/ui/test/TestScreen";
 import { GuideSpotlight } from "@/ui/common/GuideSpotlight";
+import { ConfirmDialog } from "@/ui/common/ConfirmDialog";
 
 // 界面 → 组件。抽成纯函数是为了让 ScreenTransition 能在出场期间继续渲染「旧」界面。
 function renderScreen(screen: Screen) {
@@ -57,6 +58,7 @@ export default function App() {
     <>
       <ScreenTransition screen={screen} render={renderScreen} />
       <GuideSpotlight />
+      <ConfirmDialog />
     </>
   );
 }

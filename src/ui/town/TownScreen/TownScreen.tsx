@@ -64,6 +64,7 @@ import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
 import { TrainingScene } from "@/ui/town/training/TrainingScene";
 import { MuseumScene } from "@/ui/town/museum";
 import { TOWN_BG_ART } from "@/ui/art/sceneArt";
+import { confirm } from "@/ui/common/ConfirmDialog";
 import s from "./TownScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";
@@ -369,7 +370,17 @@ export function TownScreen() {
               className={cx(s["town-reset"], inCinema && s["is-flying"])}
               style={inCinema ? fly(FLY_RESET, 9) : undefined}
               type="button"
-              onClick={() => resetProfile()}
+              onClick={() =>
+                confirm({
+                  title: "重置存档",
+                  text: "据点档案、队员、库存与训练进度将全部清空，回到第 1 日。",
+                  detail: "该操作不可撤销。",
+                  confirmLabel: "确认重置",
+                  cancelLabel: "再想想",
+                  danger: true,
+                  onConfirm: () => resetProfile(),
+                })
+              }
             >
               重置存档
             </button>
