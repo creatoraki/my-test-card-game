@@ -6,6 +6,7 @@ export interface GuideStep {
   title: string;
   text: string;
   padding?: number;
+  delayMs?: number;
 }
 
 interface GuideState {

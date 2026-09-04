@@ -10,7 +10,10 @@ import {
 import { useGuideStore, type GuideStep } from "./guideStore";
 import s from "./GuideSpotlight.module.css";
 
-const FALLBACK_DELAY_MS = 200;
+const GUIDE_DELAY_MS = 400;
+const STABLE_FRAMES = 3;
+const SETTLE_TIMEOUT_MS = 1200;
+const ANCHOR_MISS_MS = 200;
 const GUIDE_GAP = 24;
 const GUIDE_MARGIN = 28;
 const GUIDE_WIDTH = 460;
@@ -49,42 +52,73 @@ function useGuideLayout(step: GuideStep | null): GuideLayout | null {
       return;
     }
 
+    setLayout(null);
     let frame: number | null = null;
-    const startedAt = performance.now();
+    let timer: number | null = null;
+    let startedAt = 0;
+    let stableCount = 0;
+    let candidateHost: HTMLElement | null = null;
+    let candidateRect: DesignRect | null = null;
+
+    const lockLayout = (host: HTMLElement, rect: DesignRect | null) => {
+      setLayout({ stepId: step.id, host, rect });
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame);
+        frame = null;
+      }
+    };
+
     const measure = () => {
       const target = document.querySelector<HTMLElement>(
         `[data-guide-anchor="${step.anchor}"]`,
       );
-      const host = target
-        ? stageHostOf(target)
-        : document.querySelector<HTMLElement>("[data-stage-canvas]");
+      const fallbackHost = document.querySelector<HTMLElement>("[data-stage-canvas]");
+      const host = target ? stageHostOf(target) : fallbackHost;
       const rect = target ? designRectOf(target) : null;
-      const fallbackReady = performance.now() - startedAt >= FALLBACK_DELAY_MS;
+      const elapsed = performance.now() - startedAt;
 
       if (host && rect) {
-        setLayout((current) =>
-          current?.stepId === step.id && current.host === host && sameRect(current.rect, rect)
-            ? current
-            : { stepId: step.id, host, rect },
-        );
-      } else if (host && fallbackReady) {
-        setLayout((current) =>
-          current?.stepId === step.id && current.host === host && current.rect === null
-            ? current
-            : { stepId: step.id, host, rect: null },
-        );
+        if (candidateHost === host && sameRect(candidateRect, rect)) {
+          stableCount += 1;
+        } else {
+          candidateHost = host;
+          candidateRect = rect;
+          stableCount = 1;
+        }
+
+        if (stableCount >= STABLE_FRAMES) {
+          lockLayout(host, rect);
+          return;
+        }
       } else {
-        setLayout((current) => (current?.stepId === step.id ? null : current));
+        candidateHost = null;
+        candidateRect = null;
+        stableCount = 0;
+
+        if (fallbackHost && elapsed >= ANCHOR_MISS_MS) {
+          lockLayout(fallbackHost, null);
+          return;
+        }
+      }
+
+      if (elapsed >= SETTLE_TIMEOUT_MS) {
+        lockLayout(candidateHost ?? fallbackHost ?? host, candidateRect);
+        return;
       }
 
       frame = window.requestAnimationFrame(measure);
     };
 
-    measure();
+    timer = window.setTimeout(() => {
+      startedAt = performance.now();
+      measure();
+    }, step.delayMs ?? GUIDE_DELAY_MS);
+
     return () => {
+      if (timer !== null) window.clearTimeout(timer);
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
-  }, [step?.anchor, step?.id]);
+  }, [step?.anchor, step?.delayMs, step?.id]);
 
   return layout?.stepId === step?.id ? layout : null;
 }
