@@ -59,6 +59,7 @@ import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
 import { PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { useTutorialGuides } from "./useTutorialGuides";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
@@ -138,6 +139,7 @@ function narrationBeats(storyCount: number, noteCount: number) {
 
 export function ExploreScreen() {
   const session = useExploreStore((s) => s.session);
+  useTutorialGuides();
   const characters = useTownStore((s) => s.characters);
   const generateDone = useExploreStore((s) => s.generateDone);
   const beginReveal = useExploreStore((s) => s.beginReveal);
@@ -719,6 +721,7 @@ export function ExploreScreen() {
             点击即使用; 右键/Esc/「取消」退出选择。 */}
         <div
           className={cx(s["expl-party"], recede, useTarget && s["is-targeting"])}
+          data-guide-anchor="party"
           style={{ left: "16px", bottom: "16px" }}
           onContextMenu={
             useTarget

@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
+import { getItemDef } from "@/data";
 import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
@@ -126,6 +127,13 @@ function LootPickup({ gate }: LootPickupProps) {
                   <div
                     className={s["loot-item"]}
                     data-loot-uid={stack.uid}
+                    data-guide-anchor={
+                      moduleActions.isModule(stack)
+                        ? "loot-module"
+                        : getItemDef(stack.itemId).category === "equipment"
+                          ? "loot-equipment"
+                          : undefined
+                    }
                     data-sfx="pickup"
                     key={stack.uid}
                     onPointerEnter={(event) =>

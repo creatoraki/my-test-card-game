@@ -159,10 +159,12 @@ export interface TownStore {
   nutrition: NutritionState;
   squadTalent: SquadTalentState;
   codex: CodexState;
+  seenGuides: string[]; // 已看过的新手引导 id, 随存档永久记录
   initialized: boolean;
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
   markMapCleared: (mapId: string) => void; // 记录通关地图, 已记录则保持不变
+  markGuideSeen: (id: string) => void;
   recordCodex: (patch: Partial<CodexState>) => void;
   bankLoot: (amount: number) => void; // 远征结束落袋
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
@@ -403,6 +405,7 @@ function freshProfile(includeInitialExp = true): {
   party: string[];
   squadTalent: SquadTalentState;
   codex: CodexState;
+  seenGuides: string[];
 } {
   const characters: Record<string, CharacterState> = {};
   for (const c of CHARACTERS) characters[c.id] = freshCharacter(c);
@@ -425,6 +428,7 @@ function freshProfile(includeInitialExp = true): {
     party: awakened.slice(0, RULES.progression.partySize),
     squadTalent: { badgeId: null, nodes: [] },
     codex: { items: [], cards: [], enemies: [] },
+    seenGuides: [],
   };
 }
 
@@ -455,6 +459,7 @@ export const useTownStore = create<TownStore>()(
       nutrition: { techs: [], occupants: [] },
       squadTalent: { badgeId: null, nodes: [] },
       codex: { items: [], cards: [], enemies: [] },
+      seenGuides: [],
       ...createEquipCraftSlice(set, get),
       initialized: false,
 
@@ -476,6 +481,12 @@ export const useTownStore = create<TownStore>()(
         const { clearedMaps } = get();
         if (clearedMaps.includes(mapId)) return;
         set({ clearedMaps: [...clearedMaps, mapId] });
+      },
+
+      markGuideSeen: (id) => {
+        const { seenGuides } = get();
+        if (seenGuides.includes(id)) return;
+        set({ seenGuides: [...seenGuides, id] });
       },
 
       recordCodex: (patch) => {
@@ -1193,6 +1204,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v19: 新增 seenGuides 新手引导记录, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v18: 新增装备升阶、词条重铸与待确认重铸状态, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v17: 装备模型预算调整, 旧档中的商店与仓库装备 roll 不再可信, 换 key 让旧档自然失效重建。
     // ⚠ v16: 新增博物馆图鉴累计名单, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1209,6 +1221,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 18 },
+    { name: TOWN_PROFILE_KEY, version: 19 },
   ),
 );

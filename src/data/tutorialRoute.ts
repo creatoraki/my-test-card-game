@@ -4,8 +4,8 @@ export const TUTORIAL_ROUND_PLANS: readonly RouteBoardPlan[] = [
   {
     laneCount: 1,
     revealMs: 320,
-    bridges: [[], []],
-    nodes: [["tut-equip-locker"], ["tut-module-bench"]],
+    bridges: [[], [], []],
+    nodes: [["tut-equip-locker"], ["tut-module-bench"], ["tut-forge-bench"]],
   },
   {
     laneCount: 2,

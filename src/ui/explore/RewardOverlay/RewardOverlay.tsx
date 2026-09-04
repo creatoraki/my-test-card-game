@@ -95,6 +95,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
     <div className={s["reward-layer"]} data-closing={presence.closing || undefined}>
       <section
         className={cx(s["reward-panel"], s["panel-reveal"])}
+        data-guide-anchor="reward-panel"
         data-closing={presence.closing || undefined}
         style={panelRevealVars()}
         aria-label="事件奖励"

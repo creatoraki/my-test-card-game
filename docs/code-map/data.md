@@ -21,7 +21,7 @@
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
 | [shop.ts](../../src/data/shop.ts) | 据点商店：等级配置 `SHOP_LEVELS`、线性递增的刷新计价 `shopRefreshCost`、货架生成 `rollShopStock`。上架资格看 `buyValue`；装备的随机模型在上架时固定到 `ShopSlot.roll`；随机刻意用 `Math.random`，不进探索的可复现种子链。 |
 | [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池、事件选项、加权 outcome、独立故事文案和效果。废弃楼层登记 16 个成长事件、8 个生存事件、18 个风险事件与 6 个经济交易事件；风险事件限定第 3-4 推进段，按 `negative` / `highRisk` 分级，并用 `FORCE_ITEM` 发放不可移除的《沉重的负担》。经济事件只登记交易服务槽位，货架与食品结算由 `explore/shop.ts` 负责。大奖策略通过选项食品门槛校验，六个食品触发的隐藏休息映射由事件的 `hiddenRest` 登记；教学事件池由 [tutorialEvents.ts](../../src/data/tutorialEvents.ts) 单独登记，供固定蓝图按 id 取用。 |
-| [tutorialRoute.ts](../../src/data/tutorialRoute.ts) | 新手关卡三轮固定路线蓝图：按轮次登记通道数、桥接和节点事件 id；不参与随机地图的事件冷却、桥接和隐藏节点抽取。 |
+| [tutorialRoute.ts](../../src/data/tutorialRoute.ts) | 新手关卡三轮固定路线蓝图：首轮为装备、模组、锻造三段单通道，后两轮继续登记教学用分支；按轮次登记通道数、桥接和节点事件 id，不参与随机地图的事件冷却、桥接和隐藏节点抽取。 |
 | [tradeServices.ts](../../src/data/tradeServices.ts) | 12 种交易服务的唯一目录：食品货币、标准价格、公开说明、货架类型、待办效果和随机团队 BUFF 候选。 |
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用材料、水晶、消耗品、食品和武器按服务类型筛选；材料已无地区专属池，只有武器仍按地图筛稀有度。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |

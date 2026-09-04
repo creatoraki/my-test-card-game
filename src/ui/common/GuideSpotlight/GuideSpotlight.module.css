@@ -1,0 +1,136 @@
+.layer {
+  position: absolute;
+  z-index: 400;
+  inset: 0;
+  pointer-events: auto;
+  color: #eaf7ff;
+  font-family: inherit;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: #02070dcc;
+  animation: guideScrimIn 220ms ease-out both;
+}
+
+.focus {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid #8fe7ff;
+  background: transparent;
+  box-shadow:
+    0 0 0 9999px #02070dcc,
+    0 0 0 2px #8fe7ff66,
+    0 0 24px #55dfffcc;
+  animation: guideFocusBreath 1.7s ease-in-out infinite alternate;
+}
+
+.card {
+  position: absolute;
+  z-index: 2;
+  width: 460px;
+  box-sizing: border-box;
+  padding: 24px 28px 26px;
+  border: 1px solid #8fe7ff99;
+  background:
+    linear-gradient(145deg, #14252ddd, #071016f5),
+    #071016;
+  box-shadow:
+    inset 0 1px 0 #ffffff24,
+    0 20px 54px -26px #000,
+    0 0 34px #33cbe533;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  animation: guideCardIn 260ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.kicker {
+  display: block;
+  color: #69dff7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 10px 0 8px;
+  color: #f4fcff;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+.text {
+  margin: 0;
+  color: #c5dce4;
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.button {
+  display: block;
+  min-width: 128px;
+  margin: 22px 0 0 auto;
+  padding: 10px 22px;
+  border: 1px solid #8fe7ffcc;
+  color: #eafaff;
+  background: #14728b99;
+  box-shadow: inset 0 1px 0 #ffffff2b, 0 0 18px #39d5f733;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.button:hover,
+.button:focus-visible {
+  background: #209bb8cc;
+  box-shadow: inset 0 1px 0 #ffffff44, 0 0 24px #39d5f766;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:focus-visible {
+  outline: 2px solid #e4fbff;
+  outline-offset: 3px;
+}
+
+@keyframes guideScrimIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes guideFocusBreath {
+  from {
+    box-shadow:
+      0 0 0 9999px #02070dcc,
+      0 0 0 2px #8fe7ff4d,
+      0 0 16px #55dfff88;
+  }
+  to {
+    box-shadow:
+      0 0 0 9999px #02070dcc,
+      0 0 0 2px #8fe7ff99,
+      0 0 30px #55dfffe6;
+  }
+}
+
+@keyframes guideCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
