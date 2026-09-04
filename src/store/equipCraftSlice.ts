@@ -1,7 +1,8 @@
 import {
-  REFORGE_COST,
   getItemDef,
+  itemRegionId,
   nextEquipDef,
+  reforgeCost,
   reforgeCheck,
   upgradeCheck,
   upgradeRecipe,
@@ -77,7 +78,7 @@ export function createEquipCraftSlice(
       if (!nextDef?.model || !nextDef.slot) return;
 
       const check = upgradeCheck(nextDef, state.loot, state.storage);
-      const recipe = upgradeRecipe(nextDef.slot, nextDef.rarity);
+      const recipe = upgradeRecipe(nextDef.slot, nextDef.rarity, itemRegionId(nextDef));
       if (!recipe || !check.ok) return;
 
       const nextRoll = upgradeEquipment(stack.roll, nextDef, randomPick);
@@ -100,13 +101,14 @@ export function createEquipCraftSlice(
       const def = getItemDef(stack.itemId);
       if (def.category !== "equipment" || !def.model) return;
 
-      const check = reforgeCheck(state.storage);
+      const check = reforgeCheck(def, state.storage);
       if (!check.ok) return;
+      const cost = reforgeCost(itemRegionId(def));
       const roll = rollEquipment(def, randomPick);
       if (!roll) return;
 
       set({
-        storage: consumeItems(state.storage, REFORGE_COST.itemId, REFORGE_COST.count),
+        storage: consumeItems(state.storage, cost.itemId, cost.count),
         pendingReforge: { target, roll },
       });
     },

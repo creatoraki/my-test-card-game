@@ -1,4 +1,6 @@
 import type { ItemStack } from "@/items/types";
+import { MODULE_ITEM_DEFS } from "./items/modules";
+import { itemRegionId, regionalMaterial } from "./items/regional";
 
 /** 一条模组制造配方: 由某个角色制造, 消耗该角色的经验池 + 仓库材料, 产出一件模组物品。 */
 export interface ModuleRecipe {
@@ -8,7 +10,7 @@ export interface ModuleRecipe {
   materials: { itemId: string; count: number }[];
 }
 
-export const MODULE_RECIPES: ModuleRecipe[] = [
+const RAW_RECIPES: ModuleRecipe[] = [
   {
     itemId: "rush-module",
     charId: "swordsman",
@@ -73,6 +75,21 @@ export const MODULE_RECIPES: ModuleRecipe[] = [
     ],
   },
 ];
+
+function getModuleDef(itemId: string) {
+  const def = MODULE_ITEM_DEFS.find((entry) => entry.id === itemId);
+  if (!def) throw new Error(`未知制造模组: ${itemId}`);
+  return def;
+}
+
+// 每条配方追加一个地区材料位, 通用材料永远填不满它。产出模组所属地区见 ItemDef.regionId。
+export const MODULE_RECIPES: ModuleRecipe[] = RAW_RECIPES.map((recipe) => ({
+  ...recipe,
+  materials: [
+    ...recipe.materials,
+    { itemId: regionalMaterial(itemRegionId(getModuleDef(recipe.itemId)), "mid").id, count: 1 },
+  ],
+}));
 
 export function recipesOfCharacter(charId: string): ModuleRecipe[] {
   return MODULE_RECIPES.filter((recipe) => recipe.charId === charId);

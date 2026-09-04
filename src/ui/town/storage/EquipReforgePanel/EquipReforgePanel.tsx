@@ -24,7 +24,7 @@ export function EquipReforgePanel() {
 
   const target = pending?.target ?? selected;
   const current = equipStackOf(storage, characters, target);
-  const check = reforgeCheck(storage);
+  const check = reforgeCheck(current ? getItemDef(current.itemId) : null, storage);
   const canRoll = Boolean(selected && current && getItemDef(current.itemId).model && check.ok);
   const showTooltip = (element: HTMLElement, stack: ItemStack) => {
     setHovered({ stack, point: tooltipPointFromElement(element) });

@@ -43,6 +43,7 @@ import {
   nutritionTechCheck,
   NUTRITION_TECHS,
   NUTRITION_TREAT_COST,
+  REGIONAL_MATERIAL_DEFS,
 } from "../data";
 import {
   DEFAULT_SHOP_LEVEL,
@@ -377,6 +378,9 @@ const INITIAL_MATERIAL_IDS = [
   "magnet",
 ] as const;
 const INITIAL_CRYSTAL_IDS = ["green-crystal", "blue-crystal", "red-crystal"] as const;
+const INITIAL_REGIONAL_IDS = REGIONAL_MATERIAL_DEFS.flatMap((def) =>
+  Array.from({ length: def.regionTier === "boss" ? 2 : 6 }, () => def.id),
+);
 
 function freshStorage(): ItemStack[] {
   return [
@@ -388,6 +392,7 @@ function freshStorage(): ItemStack[] {
       Array.from({ length: 6 }, () => makeItemStack(itemId)),
     ),
     ...INITIAL_CRYSTAL_IDS.map((itemId) => makeItemStack(itemId)),
+    ...INITIAL_REGIONAL_IDS.map((itemId) => makeItemStack(itemId)),
   ];
 }
 

@@ -10,6 +10,7 @@
 // ============================================================================
 
 import type { ReactNode } from "react";
+import { regionalTierOf, type RegionalTier } from "@/data/items/regional";
 import type { EquipSlot, ItemCategory, ItemDef } from "@/items/types";
 import { ModuleGlyph, hasModuleGlyph } from "./moduleGlyphs";
 import deflectionBladeArt from "@/assets/道具/装备/武器/太刀.png";
@@ -253,6 +254,33 @@ const CrystalIcon = ({ color }: { color: string }) => (
   </svg>
 );
 
+const RegionalTierIcon = ({ tier }: { tier: RegionalTier }) => (
+  <svg {...base}>
+    {tier === "low" && (
+      <>
+        <path d="M17 8h14l-2 32H19Z" />
+        <path d="M18 15h12M18 22h11M18 29h10" opacity=".55" />
+        <path d="M21 8 19 4M27 8V4M33 8l2-4" opacity=".7" />
+      </>
+    )}
+    {tier === "mid" && (
+      <>
+        <path d="m14 16 10-6 10 6v16l-10 6-10-6Z" />
+        <path d="M14 16 24 22 34 16M24 22v16" opacity=".55" />
+        <path d="M19 13 29 29" opacity=".45" />
+      </>
+    )}
+    {tier === "boss" && (
+      <>
+        <circle cx="24" cy="24" r="13" />
+        <circle cx="24" cy="24" r="5" />
+        <path d="M24 4v7M24 37v7M4 24h7M37 24h7" opacity=".7" />
+        <path d="m15 15 4 4M33 15l-4 4M15 33l4-4M33 33l-4-4" opacity=".5" />
+      </>
+    )}
+  </svg>
+);
+
 const SCRAP_ART: Record<string, string> = {
   "bronze-bear": bronzeBearArt,
   "silver-bear": silverBearArt,
@@ -278,6 +306,9 @@ export function itemIcon(def: ItemDef): ReactNode {
 
   const crystalColor = CRYSTAL_COLOR[def.id];
   if (crystalColor) return <CrystalIcon color={crystalColor} />;
+
+  const regionalTier = regionalTierOf(def.id);
+  if (regionalTier) return <RegionalTierIcon tier={regionalTier} />;
 
   // 成品模组各有专属徽记与配色(见 moduleGlyphs), 不跟随稀有度 currentColor;
   // 未登记徽记的模组继续走下面的通用 ModuleIcon。

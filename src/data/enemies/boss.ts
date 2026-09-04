@@ -1,9 +1,13 @@
 import type { DropEntry } from "../../items/types";
+import { DEFAULT_REGION_ID, regionalMaterial } from "../items/regional";
 import type { EnemyDef } from "./types";
 
 // 首领必掉红水晶(见 items/materials.ts 的档位口径), 换金物与通用材料按首领体量放宽。
+// ⚠ 本表当前只服务废弃楼层（教程关与它共用同一批敌人，串掉可接受）。第二个地区落地时必须改成「档位 × 地区」两维。
+// 拆成 neonCommonBase / gardenCommonBase，或让基础表接受 regionId 参数、由 regionalMaterial() 拼装。不要直接再塞一条地区材料。
 const BOSS_DROPS: DropEntry[] = [
   { kind: "item", itemId: "red-crystal", chance: 1 },
+  { kind: "item", itemId: regionalMaterial(DEFAULT_REGION_ID, "boss").id, chance: 1 },
   { kind: "item", itemId: "golden-bear", chance: 0.5 },
   { kind: "item", itemId: "silver-bear", chance: 0.6 },
   { kind: "item", itemId: "standard-gear", chance: 0.6 },

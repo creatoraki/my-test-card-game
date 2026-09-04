@@ -126,6 +126,8 @@ export interface ItemDef {
   buyValue?: number;
   // 远征途中不可移除: 丢弃、强制丢弃、放弃拾取、投递口寄件四条出口全部对它关闭。
   undroppable?: boolean;
+  /** 产出物所属地区(data/maps.ts 的 MapDef.id)。缺省 = 首个地区; 见 data/items/regional.ts。 */
+  regionId?: string;
 
   // ---- 装备专属(category === "equipment" 时才有意义) ----
   slot?: EquipSlot;

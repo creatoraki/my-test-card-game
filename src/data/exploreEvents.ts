@@ -294,7 +294,7 @@ const GROWTH: NodeEvent[] = [
     hiddenRest: { foodItemId: "cola", npcId: "npc-vip-reception" },
     choices: [
       choice("green", "沿绿色反射线前进", "拆取材料或公开装备候选", "你跟随玻璃上最稳定的绿色光线，不触碰任何主动扫描面。", [
-        outcome("green-a", "绿色光路最终通向维护槽，你取下了一枚逻辑魔方和一枚磁性吸附单元。", items(item("logic-cube"), item("magnet"))),
+        outcome("green-a", "绿色光路最终通向维护槽，你取下了一枚逻辑魔方、一枚磁性吸附单元和一根仍能点亮的霓虹灯管。", items(item("logic-cube"), item("magnet"), item("neon-tube"))),
         outcome("green-b", "光线把你们引到隐藏装备柜，三件装备在安检屏上完整公开。", [equip(3)]),
       ]),
       choice("shutdown", "强行关闭全部玻璃扫描", "额外消耗 2 粒子，获得材料或重铸机会", "你将便携电源接入安检总线，短暂关闭大厅的识别系统。", [
@@ -320,7 +320,7 @@ const GROWTH: NodeEvent[] = [
         outcome("calibrate-b", "校准器重新排列接口结构，新的羁绊更偏向防御和生存。", [{ type: "REFORGE_BOND", bias: "defense" }]),
       ]),
       choice("interface", "拆取空接口", "取得工业材料", "你不处理现有装备，而是把没有安装模组的接口拆下来。", [
-        outcome("interface-a", "空接口里卡着一枚魔方，旁边的逻辑槽中还留着一枚。", [item("logic-cube", 2)]),
+        outcome("interface-a", "空接口里卡着一枚魔方，旁边的逻辑槽中还留着一枚，底座下还压着一块压缩废块。", items(item("logic-cube", 2), item("compacted-block"))),
         outcome("interface-b", "维护盒中保存着一块电池和两枚备用齿轮。", items(item("standard-battery"), item("standard-gear", 2))),
         outcome("interface-c", "接口底座下压着一只没拆封的通用模组箱，封条还是完好的。", [item("module-crate-t1")]),
       ]),
@@ -425,7 +425,7 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 0,
     choices: [
       choice("sort", "精细分拣", "取得换金物和机械部件", "你逐个检查传送带上的废料，只保留能完整拆解的部分。", [
-        outcome("sort-a", "大多数零件已经损坏，但两只铜质小熊和一枚齿轮还可以带回据点。", items(item("bronze-bear", 2), item("standard-gear"))),
+        outcome("sort-a", "大多数零件已经损坏，但两只铜质小熊、一枚齿轮和一根仍能点亮的霓虹灯管还可以带回据点。", items(item("bronze-bear", 2), item("standard-gear"), item("neon-tube"))),
         outcome("sort-b", "你从一堆普通碎片里找出了银质小熊和一块没有漏液的电池。", items(item("silver-bear"), item("standard-battery"))),
       ]),
       choice("compress", "启动高压压缩", "额外消耗 3 粒子，取得高品质换金物", "你让压缩塔快速运行，把整条传送带上的部件一次性处理。", [

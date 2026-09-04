@@ -85,7 +85,13 @@ export {
   MATERIAL_ITEM_DEFS,
   MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
+  DEFAULT_REGION_ID,
+  REGIONAL_MATERIAL_DEFS,
+  itemRegionId,
+  regionalMaterial,
+  regionalTierOf,
 } from "./items/index";
+export type { RegionalMaterialDef, RegionalTier } from "./items/index";
 export {
   CARD_MODULES,
   GENERIC_T1_MODULE_IDS,
@@ -121,7 +127,7 @@ export {
   type NutritionTechKind,
 } from "./nutritionPod";
 export {
-  REFORGE_COST,
+  reforgeCost,
   reforgeCheck,
   upgradeCheck,
   upgradeRecipe,
