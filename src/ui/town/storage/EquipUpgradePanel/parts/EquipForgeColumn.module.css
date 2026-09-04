@@ -13,7 +13,7 @@
 
 .idle {
   margin: auto;
-  font-size: 14px;
+  font-size: 21px;
   letter-spacing: 0.08em;
   color: #9b8ea9;
 }
@@ -101,7 +101,7 @@
 
 .materialName {
   max-width: 100%;
-  font-size: 11px;
+  font-size: 16.5px;
   color: #c3b3cd;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -109,7 +109,7 @@
 }
 
 .amount {
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.04em;
   color: #e7d8ee;
 }
@@ -127,7 +127,7 @@
 
 .noCost {
   margin: 0;
-  font-size: 12px;
+  font-size: 18px;
   color: #9b8ea9;
   text-align: center;
 }
@@ -144,13 +144,13 @@
 }
 
 .lootLabel {
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.14em;
   color: #b1a3bb;
 }
 
 .lootValue {
-  font-size: 14px;
+  font-size: 21px;
   letter-spacing: 0.04em;
   color: #ffd98a;
   font-variant-numeric: tabular-nums;

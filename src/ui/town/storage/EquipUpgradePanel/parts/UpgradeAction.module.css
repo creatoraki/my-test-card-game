@@ -11,7 +11,7 @@
   color: #ffe5f1;
   cursor: var(--cursor-pointer);
   font: inherit;
-  font-size: 15px;
+  font-size: 22.5px;
   letter-spacing: 0.3em;
   transition: transform 0.14s ease, box-shadow 0.16s ease;
 }

@@ -11,7 +11,7 @@
 
 .name {
   margin: 0;
-  font-size: 21px;
+  font-size: 31.5px;
   font-weight: 500;
   letter-spacing: 0.1em;
   color: #fdf1f7;
@@ -24,7 +24,7 @@
   gap: 4px 10px;
   justify-content: center;
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.06em;
   color: #a896b5;
 }
@@ -74,19 +74,19 @@
   display: flex;
   align-items: baseline;
   gap: 6px;
-  font-size: 13px;
+  font-size: 19.5px;
   letter-spacing: 0.06em;
   color: #f6dcea;
 }
 
 .bondArcana {
-  font-size: 11px;
+  font-size: 16.5px;
   color: #b28fb0;
 }
 
 .bondDesc {
   grid-column: 2 / -1;
-  font-size: 11px;
+  font-size: 16.5px;
   line-height: 1.5;
   color: #a595b1;
 }
@@ -94,7 +94,7 @@
 .notice {
   flex: none;
   margin: 0;
-  font-size: 12px;
+  font-size: 18px;
   line-height: 1.6;
   color: #b1a3bb;
   text-align: center;
