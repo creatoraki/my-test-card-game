@@ -7,7 +7,7 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "☠️",
     kind: "debuff",
     stackMode: "segments",
-    desc: "每拍每层受到 1 点伤害(无视护盾), 持续指定回合。",
+    desc: "每拍每层受到 1 点伤害(无视护盾, 不降低体力极限), 持续指定回合。",
     resistMode: "stacks",
     hooks: {
       onTempo: (c: StatusCtx) => {
@@ -17,6 +17,7 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
             fixed: true,
             pure: true,
             unblockable: true,
+            noLimitLoss: true,
           });
       },
     },
@@ -27,7 +28,7 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "🔥",
     kind: "debuff",
     stackMode: "segments",
-    desc: "每拍每层受到 1 点伤害(无视护盾), 持续指定回合。",
+    desc: "每拍每层受到 1 点伤害(无视护盾, 不降低体力极限), 持续指定回合。",
     resistMode: "stacks",
     hooks: {
       onTempo: (c: StatusCtx) => {
@@ -37,6 +38,7 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
             fixed: true,
             pure: true,
             unblockable: true,
+            noLimitLoss: true,
           });
       },
     },

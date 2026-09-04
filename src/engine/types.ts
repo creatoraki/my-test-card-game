@@ -639,6 +639,7 @@ export interface DamageOpts {
   mustHit?: boolean; // 必中: 跳过命中判定
   unblockable?: boolean; // 不被护盾吸收
   pure?: boolean; // 跳过施放者与目标的伤害状态修正
+  noLimitLoss?: boolean; // 持续伤害(DOT)等: 只扣当前 HP, 不压低体力极限
   hitBonus?: number; // 本次效果的命中修正(百分点)
   onDealt?: (hpLost: number) => void; // 落到 HP 后回调实际掉血(未命中/濒死为 0)
 }

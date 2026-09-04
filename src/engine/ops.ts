@@ -184,7 +184,14 @@ export function dealDamage(
     return "hit";
   }
 
-  if (target.team === "player" && target.hp > 0 && dmg.amount > 0 && !getStatus(target, "buzhou"))
+  // 持续伤害与不周山都跳过体力极限压低。
+  if (
+    target.team === "player" &&
+    target.hp > 0 &&
+    dmg.amount > 0 &&
+    !opts.noLimitLoss &&
+    !getStatus(target, "buzhou")
+  )
     target.hpLimit = Math.max(1, target.hp);
   target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
   dmg.hpLost = dmg.amount;
