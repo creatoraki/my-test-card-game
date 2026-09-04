@@ -50,7 +50,7 @@ import {
 // ★ "sortie"(出击) 同样是据点的一级全屏页: 入口在大厅 bento 的「出击」砖, 内部分两步
 //   (选地图 → 备物资, step 存在 store/sortieStore 里)。它取代了原先埋在控制终端设施内的
 //   「下降舱」抽屉 —— 出击是核心动线, 不该要玩家先播 2s 进设施运镜才找得到。
-// ★ "elevator" 是纯演出中转页, 没有任何交互与规则; 探索会话要等演出结束后才建立。
+// ★ "elevator" 是纯演出中转页, 没有任何交互与规则; 下行进探索、上行回据点, 探索会话要等下行演出结束后才建立。
 export type Screen =
   | "menu"
   | "town"
@@ -63,6 +63,10 @@ export type Screen =
   | "defeat";
 
 export type RunResult = "won" | "lost" | "retreat";
+
+type ElevatorRide =
+  | { dir: "down"; mapId: string; backpack: ItemStack[] }
+  | { dir: "up" };
 
 interface RunStore {
   screen: Screen;
@@ -83,9 +87,10 @@ interface RunStore {
   openSortie: () => void; // 大厅「出击」砖 → 全屏出击页(选地图 + 备物资)
   // 物资准备完毕 → 进路由图。backpack = 出发时装好的物资(见 store/sortieStore)。
   startExpedition: (mapId: string, backpack?: ItemStack[]) => void;
-  pendingDescent: { mapId: string; backpack: ItemStack[] } | null;
+  elevatorRide: ElevatorRide | null;
   beginDescent: (mapId: string, backpack?: ItemStack[]) => void;
-  finishDescent: () => void;
+  beginAscent: () => void;
+  finishRide: () => void;
   chooseEventOption: (index: number) => import("../explore/types").ExploreState | null;
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
@@ -281,7 +286,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
   lastChallengeBonus: 0,
   lastBountyBonus: 0,
   lastChallenges: [],
-  pendingDescent: null,
+  elevatorRide: null,
 
   enterTown: () => {
     useTownStore.getState().ensureProfile();
@@ -296,7 +301,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
   openSortie: () => set({ screen: "sortie" }),
 
   beginDescent: (mapId, backpack = []) => {
-    set({ pendingDescent: { mapId, backpack }, screen: "elevator" });
+    set({ elevatorRide: { dir: "down", mapId, backpack }, screen: "elevator" });
+  },
+
+  beginAscent: () => {
+    const screen = get().screen;
+    if (screen !== "victory" && screen !== "defeat") return;
+    set({ elevatorRide: { dir: "up" }, screen: "elevator" });
   },
 
   startExpedition: (mapId, backpack = []) => {
@@ -319,15 +330,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
     });
   },
 
-  finishDescent: () => {
+  finishRide: () => {
     if (get().screen !== "elevator") return;
-    const pending = get().pendingDescent;
-    if (!pending) {
-      get().enterTown();
-      return;
-    }
-    get().startExpedition(pending.mapId, pending.backpack);
-    set({ pendingDescent: null });
+    const ride = get().elevatorRide;
+    set({ elevatorRide: null });
+    if (!ride) return get().enterTown();
+    if (ride.dir === "up") return get().backToTown();
+    get().startExpedition(ride.mapId, ride.backpack);
   },
 
   chooseEventOption: (index) => {

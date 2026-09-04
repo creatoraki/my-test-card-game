@@ -22,7 +22,7 @@ import s from "./EndScreen.module.css";
 export function EndScreen() {
   const characters = useTownStore((s) => s.characters);
   const lastResult = useRunStore((s) => s.lastResult);
-  const backToTown = useRunStore((s) => s.backToTown);
+  const beginAscent = useRunStore((s) => s.beginAscent);
   const session = useExploreStore((s) => s.session);
   const [leaving, setLeaving] = useState(false);
   const backTimerRef = useRef<number | null>(null);
@@ -43,12 +43,12 @@ export function EndScreen() {
     if (leaving) return;
     setLeaving(true);
     if (exitMs === 0) {
-      backToTown();
+      beginAscent();
       return;
     }
     backTimerRef.current = window.setTimeout(() => {
       backTimerRef.current = null;
-      backToTown();
+      beginAscent();
     }, exitMs);
   };
 

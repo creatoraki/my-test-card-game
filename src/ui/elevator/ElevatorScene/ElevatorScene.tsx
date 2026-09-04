@@ -8,13 +8,13 @@ import s from "./ElevatorScene.module.css";
 export function ElevatorScene() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const doneRef = useRef(false);
-  const finishDescent = useRunStore((state) => state.finishDescent);
+  const finishRide = useRunStore((state) => state.finishRide);
 
   const finish = () => {
     if (doneRef.current) return;
     doneRef.current = true;
     setBgmSuspended(true);
-    finishDescent();
+    finishRide();
   };
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function ElevatorScene() {
       stopBgm("elevator", { fade: true, rewind: true });
       setBgmSuspended(false);
     };
-  }, [finishDescent]);
+  }, [finishRide]);
 
   return (
     <StageCanvas viewportClassName={s.viewport} className={s.stage}>

@@ -90,8 +90,9 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
     hold: 0,
     curtain: "battle-ripple",
   },
-  "victory>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
-  "defeat>town": { exit: FX.endSettleOut, enter: FX.endSettleIn, hold: 420 },
+  "victory>elevator": { exit: FX.endSettleOut, enter: FX.fadeIn, hold: 420 },
+  "defeat>elevator": { exit: FX.endSettleOut, enter: FX.fadeIn, hold: 420 },
+  "elevator>town": { exit: FX.fadeOut, enter: FX.endSettleIn, hold: 420 },
 
   // ⚠ 这里曾经有 formation ↔ charDetail 两条 viewTransition 路线(原生共享元素过场)。
   //   角色详情已改成编队页内部的一种态, 不再是 screen ⇒ 那两条路线连同
