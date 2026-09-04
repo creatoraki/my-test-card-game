@@ -120,6 +120,15 @@ export {
   type NutritionTechCheck,
   type NutritionTechKind,
 } from "./nutritionPod";
+export {
+  REFORGE_COST,
+  reforgeCheck,
+  upgradeCheck,
+  upgradeRecipe,
+  type CostCheck,
+  type MaterialCost,
+  type UpgradeRecipe,
+} from "./equipUpgrade";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";
@@ -191,6 +200,14 @@ export function getItemFamily(familyId: string): ItemDef[] {
   const list = FAMILY_INDEX[familyId];
   if (!list?.length) throw new Error(`未知物品家族: ${familyId}`);
   return list;
+}
+
+/** 同族的下一阶型号。已是本族最高阶、或该 def 不属于任何族时返回 null。 */
+export function nextEquipDef(def: ItemDef): ItemDef | null {
+  if (!def.familyId) return null;
+  const family = FAMILY_INDEX[def.familyId] ?? [];
+  const index = family.findIndex((entry) => entry.id === def.id);
+  return index < 0 ? null : (family[index + 1] ?? null);
 }
 
 // ---------------------------------------------------------------------------

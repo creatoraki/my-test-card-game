@@ -6,9 +6,7 @@ const BOSS_DROPS: DropEntry[] = [
   { kind: "item", itemId: "red-crystal", chance: 1 },
   { kind: "item", itemId: "golden-bear", chance: 0.5 },
   { kind: "item", itemId: "silver-bear", chance: 0.6 },
-  { kind: "item", itemId: "logic-cube", chance: 0.3 },
-  { kind: "item", itemId: "standard-gear", chance: 0.3 },
-  { kind: "item", itemId: "standard-battery", chance: 0.3 },
+  { kind: "item", itemId: "standard-gear", chance: 0.6 },
 ];
 
 export const BOSS_ENEMIES: EnemyDef[] = [

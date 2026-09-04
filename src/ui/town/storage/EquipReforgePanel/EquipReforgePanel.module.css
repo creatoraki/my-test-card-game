@@ -1,0 +1,91 @@
+.body {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 22px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.main,
+.compareBody {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  gap: 14px;
+}
+
+.main {
+  grid-template-rows: minmax(0, 1fr) auto auto;
+}
+
+.preview {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compareBody {
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+}
+
+.compareNotice,
+.notice {
+  margin: 0;
+  color: var(--asm-ink-dim);
+  font-size: 13px;
+}
+
+.compareGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  min-height: 0;
+}
+
+.detailColumn {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  color: var(--asm-ink-dim);
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.detail {
+  --item-detail-gap: 14px;
+  --item-detail-padding: 18px;
+  --item-detail-head-gap: 14px;
+  --item-detail-icon-width: 92px;
+  --item-detail-name-size: 21px;
+  --item-detail-mult-size: 15px;
+  --item-detail-tags-gap: 5px 10px;
+  --item-detail-tags-margin: 7px 0 0;
+  --item-detail-tags-size: 13px;
+  --item-detail-desc-size: 14px;
+  --item-detail-desc-line-height: 1.6;
+  --item-detail-stats-size: 14px;
+  --item-detail-field-padding: 10px 0;
+  --item-detail-field-size: 14px;
+  --item-detail-bond-head-gap: 8px;
+  --item-detail-bond-head-size: 14px;
+  --item-detail-bond-desc-size: 13px;
+  --item-detail-bond-desc-line-height: 1.6;
+  --item-detail-note-size: 13px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 2px;
+}

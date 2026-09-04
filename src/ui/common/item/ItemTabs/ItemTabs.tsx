@@ -17,6 +17,7 @@ interface Props {
   stacks: ItemStack[]; // 用来给 tab 挂计数
   tab: ItemTab;
   equipTab: EquipTab;
+  visibleTabs?: ItemTab[];
   onTab: (t: ItemTab) => void;
   onEquipTab: (t: EquipTab) => void;
   /** 调用方的布局类(tab 条在自己的面板里怎么占位)。外观一律由本组件持有。 */
@@ -27,6 +28,7 @@ export default function ItemTabs({
   stacks,
   tab,
   equipTab,
+  visibleTabs = ITEM_TABS.map((itemTab) => itemTab.id),
   onTab,
   onEquipTab,
   className,
@@ -36,7 +38,7 @@ export default function ItemTabs({
   return (
     <div className={cx(s["item-tabs"], className)}>
       <div className={s["item-tab-row"]}>
-        {ITEM_TABS.map((t) => (
+        {ITEM_TABS.filter((itemTab) => visibleTabs.includes(itemTab.id)).map((t) => (
           <button
             key={t.id}
             type="button"

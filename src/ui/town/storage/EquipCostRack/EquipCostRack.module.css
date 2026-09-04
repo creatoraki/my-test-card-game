@@ -1,0 +1,103 @@
+.rack {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: #ffffff08;
+  border: 1px solid var(--asm-line);
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kicker {
+  color: var(--asm-ink);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.state {
+  color: var(--asm-ink-dim);
+  font-size: 12px;
+}
+
+.materials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.material {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  padding: 5px;
+  border: 1px solid transparent;
+  outline: none;
+}
+
+.material:hover,
+.material:focus-visible {
+  border-color: var(--asm-glow);
+  background: #ffffff0d;
+}
+
+.material.lacking {
+  color: var(--bad);
+}
+
+.slot {
+  grid-row: 1 / span 2;
+  width: 44px;
+  --item-slot-icon-size: 55%;
+}
+
+.materialName {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--asm-ink-dim);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amount {
+  color: currentColor;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.loot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 10px;
+  color: var(--asm-ink-dim);
+  font-size: 13px;
+  border-top: 1px solid var(--asm-line);
+}
+
+.loot strong {
+  color: var(--asm-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.lacking .amount,
+.loot.lacking strong {
+  color: var(--bad);
+}
+
+.empty {
+  margin: 0;
+  color: var(--asm-ink-dim);
+  font-size: 13px;
+}

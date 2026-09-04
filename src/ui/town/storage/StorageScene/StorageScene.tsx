@@ -24,6 +24,8 @@ import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilt
 import { cx } from "@/ui/common/cx";
 import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { PanelShell } from "@/ui/common/PanelShell";
+import { EquipReforgePanel } from "../EquipReforgePanel";
+import { EquipUpgradePanel } from "../EquipUpgradePanel";
 import s from "./StorageScene.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
@@ -42,11 +44,13 @@ const STORAGE_THEME = {
   "--event-panel-title-size": "56px",
 } as CSSProperties;
 
-type PanelId = "inventory" | "recycle";
+type PanelId = "inventory" | "recycle" | "upgrade" | "reforge";
 
 const STORAGE_PANEL_RECT: Record<PanelId, Rect> = {
   inventory: { x: 160, y: 80, w: 1600, h: 920 },
   recycle: { x: 160, y: 80, w: 1600, h: 920 },
+  upgrade: { x: 160, y: 80, w: 1600, h: 920 },
+  reforge: { x: 160, y: 80, w: 1600, h: 920 },
 };
 
 const rarityRank = (r: string) => RARITY_ORDER.indexOf(r as never);
@@ -92,7 +96,7 @@ export function StorageScene({ leaving = false }: Props) {
             right: "0px",
             top: "138px",
             width: "460px",
-            height: "188px",
+            height: "400px",
             "--peek": "252px",
           } as CSSProperties
         }
@@ -112,6 +116,22 @@ export function StorageScene({ leaving = false }: Props) {
           entryId="recycle"
           hidden={morph.hiddenEntry === "recycle"}
           onClick={(event) => morph.openPanel("recycle", event.currentTarget)}
+        />
+        <EntryTile
+          icon={<UpgradeIcon />}
+          name="装备升阶"
+          desc="提升装备阶级与词条预算"
+          entryId="upgrade"
+          hidden={morph.hiddenEntry === "upgrade"}
+          onClick={(event) => morph.openPanel("upgrade", event.currentTarget)}
+        />
+        <EntryTile
+          icon={<ReforgeIcon />}
+          name="词条重铸"
+          desc="消耗绿色水晶重掷词条"
+          entryId="reforge"
+          hidden={morph.hiddenEntry === "reforge"}
+          onClick={(event) => morph.openPanel("reforge", event.currentTarget)}
         />
       </div>
 
@@ -153,6 +173,46 @@ export function StorageScene({ leaving = false }: Props) {
           }}
         >
           <RecyclePanel stacks={sorted} loot={loot} onSell={sellItem} />
+        </PanelShell>
+      )}
+      {panel === "upgrade" && (
+        <PanelShell
+          accent={STORAGE_ACCENT}
+          title="装备升阶"
+          status="消耗材料与居民积分提升装备阶级"
+          closeLabel="关闭装备升阶"
+          closing={morph.phase === "closing"}
+          onClose={morph.closePanel}
+          themeStyle={STORAGE_THEME}
+          morph={{
+            ref: morph.panelRef,
+            rect: STORAGE_PANEL_RECT.upgrade,
+            ready: morph.ready,
+            seed: <UpgradeIcon />,
+            seedLabel: "装备升阶",
+          }}
+        >
+          <EquipUpgradePanel />
+        </PanelShell>
+      )}
+      {panel === "reforge" && (
+        <PanelShell
+          accent={STORAGE_ACCENT}
+          title="词条重铸"
+          status="生成候选后选择保留的词条"
+          closeLabel="关闭词条重铸"
+          closing={morph.phase === "closing"}
+          onClose={morph.closePanel}
+          themeStyle={STORAGE_THEME}
+          morph={{
+            ref: morph.panelRef,
+            rect: STORAGE_PANEL_RECT.reforge,
+            ready: morph.ready,
+            seed: <ReforgeIcon />,
+            seedLabel: "词条重铸",
+          }}
+        >
+          <EquipReforgePanel />
         </PanelShell>
       )}
     </div>
@@ -438,5 +498,24 @@ const RecycleIcon = () => (
     <path d="M8 18 L3 27 h10 Z" opacity=".75" />
     <path d="M24 18 L29 27 H19 Z" opacity=".75" />
     <path d="M13 27 h6" opacity=".5" />
+  </svg>
+);
+
+const UpgradeIcon = () => (
+  <svg {...iconBase}>
+    <path d="M7 25h6v-6h6v-6h6" />
+    <path d="m20 8 5 5-5 5" />
+    <path d="M7 29h19" opacity=".5" />
+  </svg>
+);
+
+const ReforgeIcon = () => (
+  <svg {...iconBase}>
+    <path d="M9 9h8l4 4-9 9-4-4Z" />
+    <path d="m12 22 8 8" />
+    <path d="M23 8a8 8 0 0 1 5 12" />
+    <path d="m28 20-1 5-5-1" />
+    <path d="M9 24a8 8 0 0 1-5-12" />
+    <path d="m4 12 1-5 5 1" />
   </svg>
 );

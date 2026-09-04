@@ -182,11 +182,11 @@ const GROWTH: NodeEvent[] = [
     hiddenRest: { foodItemId: "milk", npcId: "npc-night-canteen" },
     choices: [
       choice("blueprint", "按照旧图纸逐层拆解", "取出断路陶芯与备用电池", "你先确认断电顺序，再按照图纸逐层拆下绝缘部件。", [
-        outcome("blueprint-a", "最外层的柜体已经烧毁，但深处的传动组件仍然完整，你还在备用槽里找到了电池。", items(item("standard-gear"), item("standard-battery"))),
-        outcome("blueprint-b", "两个备用回路都没有被高压击穿，你顺利拆下了两枚完整齿轮。", [item("standard-gear", 2)]),
+        outcome("blueprint-a", "最外层的柜体已经烧毁，但深处的缓冲组件仍然完整，你还在备用槽里找到了电池。", items(item("coil-spring"), item("standard-battery"))),
+        outcome("blueprint-b", "两个备用回路都没有被高压击穿，你顺利拆下了两枚完整弹簧。", [item("coil-spring", 2)]),
       ]),
       choice("current", "让备用电流跑完一轮", "额外消耗 3 粒子，训练全队或一名角色", "你重新接通备用回路，让系统自行演算最安全的电力分配方式。", [
-        outcome("current-a", "电流演算变成了一次全队协同训练，终端还从维修槽里推出一枚齿轮。", items(partyExp(10), item("standard-gear"))),
+        outcome("current-a", "电流演算变成了一次全队协同训练，终端还从维修槽里推出一枚复位弹簧。", items(partyExp(10), item("coil-spring"))),
         outcome("current-b", "你把全部演算数据集中给一名队员，他从旧电网的运行逻辑中获得了更多经验。", items(oneExp(28), item("standard-battery"))),
       ], 3),
       choice("training", "接管员工训练回路", "获得一次免费卡组锻造或删卡机会", "你绕开配电系统，把自己的身份写入一条仍在运行的员工训练线路。", [
@@ -204,7 +204,7 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 2,
     choices: [
       choice("scrape", "关闭窄阀，慢慢刮取微晶", "额外消耗 2 粒子，采集冷却微晶", "你把冷却液流量压到最低，从管壁上刮取已经稳定的结晶层。", [
-        outcome("scrape-a", "第一段管线上的备用电源保存得很好，旁边的检修槽还留着一枚逻辑魔方。", items(item("standard-battery"), item("logic-cube"))),
+        outcome("scrape-a", "第一段管线上的备用电源保存得很好，旁边的检修槽还留着一枚磁性分拣单元。", items(item("magnet"), item("logic-cube"))),
         outcome("scrape-b", "你找到一段长期无人触碰的旧管道，一次取下了两块完好电池。", [item("standard-battery", 2)]),
       ], 2),
       choice("log", "打开高压回流，读取热工日志", "全队获得经验或公开 2 件装备候选", "你不直接拆取部件，而是让高压回流带动终端重新启动，读取冷却系统过去的运行记录。", [
@@ -235,7 +235,7 @@ const GROWTH: NodeEvent[] = [
       ]),
       choice("printer", "拆下印刷头", "拆取导电印墨或封装配件", "你关闭印刷程序，打开机器外壳，寻找仍有使用价值的部件。", [
         outcome("printer-a", "两个备用控制盒都没有锁死，你把里面的逻辑魔方全部取走。", [item("logic-cube", 2)]),
-        outcome("printer-b", "印刷头旁边的维护盒里保存着一块电池和一枚备用齿轮。", items(item("standard-battery"), item("standard-gear"))),
+        outcome("printer-b", "印刷头旁边的维护盒里保存着一枚磁铁和一只备用弹簧。", items(item("magnet"), item("coil-spring"))),
       ]),
     ],
   },
@@ -254,7 +254,7 @@ const GROWTH: NodeEvent[] = [
       ]),
       choice("equipment", "前往装备仓", "公开 2 或 3 件装备候选", "你把电梯权限切换到安保装备仓，等待货运系统重新盘点库存。", [
         outcome("equipment-a", "三只装备货箱被送到电梯口，装备属性、槽位和羁绊信息全部公开。", [equip(3)]),
-        outcome("equipment-b", "货运系统只追回两只货箱，但附带送出了一枚调度齿轮。", [equip(2), item("standard-gear")]),
+        outcome("equipment-b", "货运系统只追回两只货箱，但附带送出了一枚磁性调度单元。", [equip(2), item("magnet")]),
       ]),
       choice("training", "前往培训仓", "全队或一名角色获得培训经验", "你将电梯设定为员工培训物资目的地。", [
         outcome("training-a", "培训仓的墙面仍保存着全员协作课程，全队一起完成了旧时代的训练。", [partyExp(11)]),
@@ -271,7 +271,7 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 0,
     choices: [
       choice("team", "提交团队绩效", "全队获得经验或取得额外训练反馈", "你把所有人的探索记录合并成一份团队报告。", [
-        outcome("team-a", "审计终端认可了团队完成度，并从奖励槽中送出一块电池。", [partyExp(10), item("standard-battery")]),
+        outcome("team-a", "审计终端认可了团队完成度，并从奖励槽中送出一枚磁性校准单元。", [partyExp(10), item("magnet")]),
         outcome("team-b", "系统恢复了一份完整的季度报告，全队获得了额外的训练反馈。", [partyExp(15)]),
       ]),
       choice("key", "指定关键员工", "集中培养一名角色", "你选择一名角色，把所有绩效数据集中归入他的个人档案。", [
@@ -294,7 +294,7 @@ const GROWTH: NodeEvent[] = [
     hiddenRest: { foodItemId: "cola", npcId: "npc-vip-reception" },
     choices: [
       choice("green", "沿绿色反射线前进", "拆取材料或公开装备候选", "你跟随玻璃上最稳定的绿色光线，不触碰任何主动扫描面。", [
-        outcome("green-a", "绿色光路最终通向维护槽，你取下了一枚逻辑魔方和一块备用电池。", items(item("logic-cube"), item("standard-battery"))),
+        outcome("green-a", "绿色光路最终通向维护槽，你取下了一枚逻辑魔方和一枚磁性吸附单元。", items(item("logic-cube"), item("magnet"))),
         outcome("green-b", "光线把你们引到隐藏装备柜，三件装备在安检屏上完整公开。", [equip(3)]),
       ]),
       choice("shutdown", "强行关闭全部玻璃扫描", "额外消耗 2 粒子，获得材料或重铸机会", "你将便携电源接入安检总线，短暂关闭大厅的识别系统。", [
@@ -339,8 +339,8 @@ const GROWTH: NodeEvent[] = [
     energyDelta: 0,
     choices: [
       choice("manual", "亲自给机械臂分工", "取得磁轨衬层、齿轮或检查隐藏货箱", "你逐条设定机械臂的目标，避免它们互相抢夺运输路线。", [
-        outcome("manual-a", "机械臂从停机轨道上拆下两枚完整齿轮，并送到交付台。", [item("standard-gear", 2)]),
-        outcome("manual-b", "精确调度让一只隐藏货箱被找了出来，里面保存着一枚可用电池。", [item("standard-battery")]),
+        outcome("manual-a", "机械臂从停机轨道上拆下两只完整弹簧，并送到交付台。", [item("coil-spring", 2)]),
+        outcome("manual-b", "精确调度让一只隐藏货箱被找了出来，里面保存着一枚可用磁铁。", [item("magnet")]),
       ]),
       choice("auto", "让系统自动安排任务", "公开装备候选或获取消耗品", "你关闭手动控制，让中央调度系统自行判断队伍最需要什么。", [
         outcome("auto-a", "系统把装备货箱列为最高优先级，三件装备被送到队伍面前。", [equip(3)]),
@@ -362,7 +362,7 @@ const GROWTH: NodeEvent[] = [
     hiddenRest: { foodItemId: "hamburger", npcId: "npc-greenhouse-keeper" },
     choices: [
       choice("roots", "剪取成熟根系", "采集冷却微晶和封装凝胶", "你只剪下已经完成生长周期的部分，保留培育架继续运转。", [
-        outcome("roots-a", "成熟根系缠着一块仍有余电的电池，根部还卷进了一枚齿轮。", items(item("standard-battery"), item("standard-gear"))),
+        outcome("roots-a", "成熟根系缠着一块仍有余电的电池，根部还卷进了一只承压弹簧。", items(item("standard-battery"), item("coil-spring"))),
         outcome("roots-b", "你找到一排无人采收的低温根系，一次取得两块电池。", [item("standard-battery", 2)]),
       ]),
       choice("nutrition", "重启植物营养程序", "额外消耗 2 粒子，取得团队或个人训练成果", "你把营养系统重新接通，让植物架把残余能量转化为可读取的生长记录。", [
@@ -408,11 +408,11 @@ const GROWTH: NodeEvent[] = [
     choices: [
       choice("weapon", "查看武器展柜", "公开 2 或 3 件武器候选", "你要求系统只显示适合武器槽的装备。", [
         outcome("weapon-a", "三件武器的攻击、命中和暴击属性被完整投影，你从中选走一件。", [equip(3, "weapon")]),
-        outcome("weapon-b", "展厅只找到两件武器，但维护台同时推出了一枚齿轮。", [equip(2, "weapon"), item("standard-gear")]),
+        outcome("weapon-b", "展厅只找到两件武器，但维护台同时推出了一只缓冲弹簧。", [equip(2, "weapon"), item("coil-spring")]),
       ]),
       choice("calibration", "启动羁绊校准台", "重铸装备并取得维护材料", "你把一件现有装备放入校准台，让它重新生成随机羁绊。", [
         outcome("calibration-a", "校准台生成了新的随机羁绊，剩余的校准魔方被一并装进背包。", [{ type: "REFORGE_BOND" }, item("logic-cube")]),
-        outcome("calibration-b", "装备完成重新校准，封装柜将一块备用电池作为维护补偿送出。", [{ type: "REFORGE_BOND" }, item("standard-battery")]),
+        outcome("calibration-b", "装备完成重新校准，封装柜将一枚磁铁作为维护补偿送出。", [{ type: "REFORGE_BOND" }, item("magnet")]),
       ]),
     ],
   },
@@ -455,7 +455,7 @@ const GROWTH: NodeEvent[] = [
         outcome("personal-b", "镜像过程中发现了一张低效卡牌，系统允许你将它从个人卡组中移除。", [oneExp(24), { type: "FORGE_REMOVE" }]),
       ]),
       choice("hardware", "拆掉备份阵列", "取得冷却材料、电池或导电材料", "你停止备份，直接拆下服务器中的可用硬件。", [
-        outcome("hardware-a", "服务器散热层里卡着一枚齿轮，能源仓中还留有一块电池。", items(item("standard-gear"), item("standard-battery"))),
+        outcome("hardware-a", "服务器散热层里卡着一只弹簧，能源仓中还留有一枚磁铁。", items(item("coil-spring"), item("magnet"))),
         outcome("hardware-b", "数据线路末端的逻辑魔方被完整取出。", [item("logic-cube")]),
       ]),
     ],
@@ -477,8 +477,8 @@ const GROWTH: NodeEvent[] = [
         outcome("training-b", "你让一名队员单独整理岗位公告，他从复杂的流程中学到了更多东西。", [oneExp(29), item("logic-cube")]),
       ]),
       choice("vending", "拆走休息室的饮料机核心", "取得果汁、电池或工业材料", "你放弃搜寻储物柜，打开饮料机后方的能源核心。", [
-        outcome("vending-a", "饮料机的冷藏仓还保存着一瓶果汁，能源核心中则留有一块电池。", items(item("fruit-juice-c"), item("standard-battery"))),
-        outcome("vending-b", "饮料机的维护接口中没有食品，但一枚魔方和一块电池仍然可以被完整拆下。", items(item("logic-cube"), item("standard-battery"))),
+        outcome("vending-a", "饮料机的冷藏仓还保存着一瓶果汁，能源核心中则留有一枚磁铁。", items(item("fruit-juice-c"), item("magnet"))),
+        outcome("vending-b", "饮料机的维护接口中没有食品，但一枚魔方和一枚磁铁仍然可以被完整拆下。", items(item("logic-cube"), item("magnet"))),
       ]),
     ],
   },

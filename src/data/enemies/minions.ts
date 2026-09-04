@@ -2,14 +2,17 @@ import type { BoonEntry } from "../../explore/types";
 import type { DropEntry } from "../../items/types";
 import type { EnemyDef } from "./types";
 
-const COMMON_DROPS: DropEntry[] = [
+const COMMON_BASE: DropEntry[] = [
   { kind: "item", itemId: "green-crystal", chance: 0.35 },
   { kind: "item", itemId: "bronze-bear", chance: 0.4 },
-  { kind: "item", itemId: "logic-cube", chance: 0.05 },
-  { kind: "item", itemId: "standard-gear", chance: 0.05 },
-  { kind: "item", itemId: "standard-battery", chance: 0.05 },
   { kind: "item", itemId: "module-crate-t1", chance: 0.03 },
 ];
+
+const generalDrop = (itemId: string, chance: number): DropEntry => ({
+  kind: "item",
+  itemId,
+  chance,
+});
 
 const LOW_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.3 },
@@ -64,7 +67,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
-    dropTable: COMMON_DROPS,
+    dropTable: [...COMMON_BASE, generalDrop("logic-cube", 0.05)],
     boonTable: LOW_BOONS,
   },
   {
@@ -116,7 +119,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
-    dropTable: COMMON_DROPS,
+    dropTable: [...COMMON_BASE, generalDrop("standard-battery", 0.05)],
     boonTable: LOW_BOONS,
   },
   {
@@ -161,7 +164,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         effects: [{ type: "GAIN_SHIELD", amount: 12, target: "randomAlly" }],
       },
     ],
-    dropTable: COMMON_DROPS,
+    dropTable: [...COMMON_BASE, generalDrop("standard-gear", 0.05)],
     boonTable: LOW_BOONS,
   },
   {
@@ -215,7 +218,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
-    dropTable: COMMON_DROPS,
+    dropTable: [...COMMON_BASE, generalDrop("magnet", 0.05)],
     boonTable: LOW_BOONS,
   },
 ];

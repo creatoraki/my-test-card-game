@@ -8,13 +8,10 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Card, QuirkId, Rarity, StatBlock } from "../engine";
+import type { Card, QuirkId, Rarity } from "../engine";
 import {
   POLLUTION_RULES,
-  QUIRK_DEFS,
   RULES,
-  SICK_MOD,
-  addStats,
   deckRarityWeights,
   deckUpgradeCost,
   drawCostToday,
@@ -25,7 +22,6 @@ import {
 import {
   CHARACTERS,
   bondPool,
-  getBondDef,
   getCardDef,
   getCharacter,
   getItemDef,
@@ -55,23 +51,29 @@ import {
   type ShopSlot,
 } from "../data/shop";
 import { consumeItems, removeByUid } from "../items/inventory";
-import { rollToFlat } from "../items/equipRoll";
 import type { EquipSlot, ItemStack } from "../items/types";
 import type { BondBias } from "../explore/types";
 import { TOWN_PROFILE_KEY, commitTownBackup, restoreTownBackup } from "./expeditionBackup";
+import { createEquipCraftSlice } from "./equipCraftSlice";
+import {
+  EQUIP_SLOTS,
+  bondCountsOf,
+  deriveStats,
+  equipModsOf,
+  shiftVitals,
+  vitalsOf,
+} from "./characterStats";
+export {
+  EQUIP_SLOTS,
+  bondCountsOf,
+  deriveStats,
+  equipModsOf,
+  vitalsOf,
+} from "./characterStats";
+export type { EquipmentMods } from "./characterStats";
 
 // 必须在 create(persist(...)) 之前回滚, 让 persist 同步 rehydrate 直接读到出击前档案。
 restoreTownBackup();
-
-// 装备修正层。★ 不再是占位 —— 它由 equipModsOf() 从 CharacterState.equipped 现算,
-// 不单独持久化(存两份必然对不上)。deriveStats 仍是局外面板的唯一换算点。
-export interface EquipmentMods {
-  flat?: Partial<StatBlock>;
-  pct?: Partial<StatBlock>;
-}
-
-// 三个装备槽(《物品设计.md》第二章), 均在开局开放。
-export const EQUIP_SLOTS: EquipSlot[] = ["weapon", "armor", "trinket"];
 
 export interface CharacterState {
   charId: string;
@@ -140,7 +142,7 @@ export interface CodexState {
   enemies: string[];
 }
 
-interface TownStore {
+export interface TownStore {
   characters: Record<string, CharacterState>;
   // ★ 已唤醒(已解锁)的角色 id, 按唤醒先后。CHARACTERS 里不在这张名单上的都还躺在冬眠仓里。
   // ⚠ characters 仍是**全量**建档(见 freshProfile) —— 「有没有解锁」只看这里, 各处取
@@ -217,103 +219,10 @@ interface TownStore {
   removeCardFree: (charId: string, uid: string) => void; // 不消耗经验删一张卡
   reforgeEquipped: (charId: string, slot: EquipSlot, bias?: BondBias) => void;
   lowerMinDeck: (charId: string) => void; // 花经验把最小卡组下限降 1
-}
-
-// ---------------------------------------------------------------------------
-// 面板结算 —— 局外唯一换算点(UI 与开战共用)。
-// 最终面板 =(角色基础 + 装备固定)×(1 + 装备百分比); 战斗内那一层在引擎里叠(engine/stats)。
-// ---------------------------------------------------------------------------
-// 已穿戴的三件装备 → 一个合并后的修正层。同名 flat 相加、同名 pct 相加。
-// ⚠ 现算而不是存一份: 存两份(equipped 与 equipment)必然会有一份先过期。
-export function equipModsOf(cs: CharacterState): EquipmentMods {
-  const flat: Partial<StatBlock> = {};
-  const pct: Partial<StatBlock> = {};
-  for (const slot of EQUIP_SLOTS) {
-    const st = cs.equipped?.[slot];
-    if (!st) continue;
-    const def = getItemDef(st.itemId);
-    const flatMods = st.roll ? rollToFlat(st.roll) : def.mods?.flat;
-    if (flatMods) for (const [k, v] of Object.entries(flatMods) as [keyof StatBlock, number][]) {
-      flat[k] = (flat[k] ?? 0) + v;
-    }
-    for (const [k, v] of Object.entries(def.mods?.pct ?? {}) as [keyof StatBlock, number][]) {
-      pct[k] = (pct[k] ?? 0) + v;
-    }
-  }
-  return { flat, pct };
-}
-
-// 全队羁绊计数(《羁绊设计概览.md》§2.1) —— 遍历**上阵队伍**的 9 个槽(3 角色 × 3 槽):
-//   def.affinity   = 羁绊饰品的固定羁绊(本期尚无这类数据, 但先支持, 免得日后要改两处)
-//   stack.affinity = 掉落时 roll 出的随机羁绊
-// 两者都算数, 因此一件羁绊饰品日后可以同时贡献两条。
-// ⚠ 只算**上阵**角色 —— 羁绊是队伍构筑, 躺在冬眠仓里的人穿再多也不作数。
-// ⚠ 现算不存储, 与 equipModsOf 同理: 存一份必然会与 equipped 对不上。
-export function bondCountsOf(
-  characters: Record<string, CharacterState>,
-  party: string[],
-): Record<string, number> {
-  const out: Record<string, number> = {};
-  const bump = (id: string | undefined) => {
-    // getBondDef 返回 undefined = 已下线的羁绊 id(旧存档残留), 静默跳过
-    if (id && getBondDef(id)) out[id] = (out[id] ?? 0) + 1;
-  };
-  for (const charId of party) {
-    const cs = characters[charId];
-    if (!cs) continue;
-    for (const slot of EQUIP_SLOTS) {
-      const st = cs.equipped?.[slot];
-      if (!st) continue;
-      bump(getItemDef(st.itemId).affinity);
-      bump(st.affinity);
-    }
-  }
-  return out;
-}
-
-export function deriveStats(cs: CharacterState): StatBlock {
-  const base = getCharacter(cs.charId).base;
-  const eq = equipModsOf(cs);
-  const flat = addStats(base, eq.flat ?? {});
-  const pct: Partial<StatBlock> = { ...(eq.pct ?? {}) };
-  const addPct = (mod: Partial<StatBlock> | undefined) => {
-    for (const [key, value] of Object.entries(mod ?? {}) as [keyof StatBlock, number][]) {
-      pct[key] = (pct[key] ?? 0) + value;
-    }
-  };
-  if (cs.sick) addPct(SICK_MOD.pct);
-  for (const quirkId of quirkIdsOf(cs.quirks)) addPct(QUIRK_DEFS[quirkId].mod.pct);
-  const out = { ...flat };
-  for (const k of Object.keys(out) as (keyof StatBlock)[]) {
-    out[k] = flat[k] * (1 + (pct[k] ?? 0) / 100);
-  }
-  out.maxHp = Math.max(1, out.maxHp);
-  return out;
-}
-
-// 局外生命三段的**唯一**换算点: 存档里的 hp / hpLimit 叠上现算的 maxHp。
-// ★ 存档里那两段是上一趟远征留下的永久损伤; maxHp 则跟着装备/怪癖实时浮动 ——
-//   所以卸掉一件加血装之后, 旧的 hpLimit 可能反而高过 maxHp, 必须在这里夹一次。
-// ⚠ 出击快照(runStore.partySnapshot)、城镇 UI 与远征换装同步都走这一个函数,
-//   各写一套夹取逻辑迟早对不上。
-export function vitalsOf(cs: CharacterState): { hp: number; hpLimit: number; maxHp: number } {
-  const maxHp = Math.max(1, Math.round(deriveStats(cs).maxHp));
-  const hpLimit = Math.max(1, Math.min(maxHp, Math.round(cs.hpLimit ?? maxHp)));
-  const hp = Math.max(1, Math.min(hpLimit, Math.round(cs.hp ?? hpLimit)));
-  return { hp, hpLimit, maxHp };
-}
-
-// 装备换过之后把存档里的生命三段跟着平移。
-// ★ 口径与远征途中的 explore/session.syncPartyVitals **完全一致**: hpLimit 读作
-//   「生命上限 − 永久损伤」, 故随上限增减同步平移, 损伤量本身保留; 当前 HP 只裁不补
-//   (装备变强不回血, 变弱也不会把人打死)。
-// ⚠ 少了这一步, 远征打掉 20 点极限后回城穿上一件 +20 生命的装备, 损伤会凭空翻倍成 40 点。
-// ⚠ 调用点只有 wearStack / takeOffStack 两个原子操作 —— equipItem / unequipItem 复用它们。
-function shiftVitals(before: CharacterState, after: CharacterState): CharacterState {
-  const prev = vitalsOf(before);
-  const nextMax = Math.max(1, Math.round(deriveStats(after).maxHp));
-  const hpLimit = Math.max(1, Math.min(nextMax, prev.hpLimit + (nextMax - prev.maxHp)));
-  return { ...after, hpLimit, hp: Math.max(1, Math.min(hpLimit, prev.hp)) };
+  pendingReforge: import("./equipCraftSlice").PendingReforge | null;
+  upgradeEquip: import("./equipCraftSlice").EquipCraftSlice["upgradeEquip"];
+  rollReforge: import("./equipCraftSlice").EquipCraftSlice["rollReforge"];
+  applyReforge: import("./equipCraftSlice").EquipCraftSlice["applyReforge"];
 }
 
 // ---------------------------------------------------------------------------
@@ -459,8 +368,14 @@ const INITIAL_CONSUMABLE_IDS = [
   "fruit-juice-c",
 ] as const;
 
-// 模组制造的测试材料。开局给足, 两种模组各造一次之后还剩余量。
-const INITIAL_MATERIAL_IDS = ["logic-cube", "standard-gear", "standard-battery"] as const;
+// 模组制造与装备养成的测试材料。开局给足，方便直接验证两条消耗路径。
+const INITIAL_MATERIAL_IDS = [
+  "logic-cube",
+  "standard-gear",
+  "standard-battery",
+  "coil-spring",
+  "magnet",
+] as const;
 const INITIAL_CRYSTAL_IDS = ["green-crystal", "blue-crystal", "red-crystal"] as const;
 
 function freshStorage(): ItemStack[] {
@@ -535,6 +450,7 @@ export const useTownStore = create<TownStore>()(
       nutrition: { techs: [], occupants: [] },
       squadTalent: { badgeId: null, nodes: [] },
       codex: { items: [], cards: [], enemies: [] },
+      ...createEquipCraftSlice(set, get),
       initialized: false,
 
       ensureProfile: () => {
@@ -546,6 +462,7 @@ export const useTownStore = create<TownStore>()(
           day: 1,
           shop: freshShop(1),
           nutrition: { techs: [], occupants: [] },
+          pendingReforge: null,
           initialized: true,
         });
       },
@@ -579,6 +496,7 @@ export const useTownStore = create<TownStore>()(
           day: 1,
           shop: freshShop(1),
           nutrition: { techs: [], occupants: [] },
+          pendingReforge: null,
           initialized: true,
         });
         commitTownBackup();
@@ -1270,6 +1188,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v18: 新增装备升阶、词条重铸与待确认重铸状态, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v17: 装备模型预算调整, 旧档中的商店与仓库装备 roll 不再可信, 换 key 让旧档自然失效重建。
     // ⚠ v16: 新增博物馆图鉴累计名单, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v15: 新增营养舱科技与疗养名单, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1285,6 +1204,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 17 },
+    { name: TOWN_PROFILE_KEY, version: 18 },
   ),
 );

@@ -59,8 +59,8 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
     description: "补给箱的封条没有损坏，里面装着可以带回据点的标准材料。",
     energyDelta: 0,
     choices: [
-      direct("gear", "领取传动零件", "获得齿轮 ×1", "你拆开缓冲层，取出一枚完整齿轮。", [{ type: "GAIN_ITEM", itemId: "standard-gear" }]),
-      direct("battery", "领取备用电池", "获得电池 ×1", "你检查电极状态，取出一块仍有余电的电池。", [{ type: "GAIN_ITEM", itemId: "standard-battery" }]),
+      direct("gear", "领取复位零件", "获得弹簧 ×1", "你拆开缓冲层，取出一只完整弹簧。", [{ type: "GAIN_ITEM", itemId: "coil-spring" }]),
+      direct("battery", "领取磁性单元", "获得磁铁 ×1", "你检查分拣组件，取出一枚仍然稳定的磁铁。", [{ type: "GAIN_ITEM", itemId: "magnet" }]),
     ],
   },
   {
@@ -102,9 +102,9 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
     description: "废料堆里能直接辨认出几件标准零件，翻动方式会决定带走哪一类物资。",
     energyDelta: 0,
     choices: [
-      direct("sort", "分类拾取", "获得齿轮 ×2", "你先按尺寸分类，取出两枚仍然顺滑的齿轮。", [{ type: "GAIN_ITEM", itemId: "standard-gear", count: 2 }]),
-      direct("search", "深入翻找", "获得齿轮 ×1 与电池 ×1", "你冒险翻到废料堆底部，找到一枚齿轮和一块电池。", [
-        { type: "GAIN_ITEM", itemId: "standard-gear" },
+      direct("sort", "分类拾取", "获得弹簧 ×2", "你先按尺寸分类，取出两只仍然顺滑的弹簧。", [{ type: "GAIN_ITEM", itemId: "coil-spring", count: 2 }]),
+      direct("search", "深入翻找", "获得磁铁 ×1 与电池 ×1", "你冒险翻到废料堆底部，找到一枚磁铁和一块电池。", [
+        { type: "GAIN_ITEM", itemId: "magnet" },
         { type: "GAIN_ITEM", itemId: "standard-battery" },
       ]),
     ],
@@ -118,9 +118,9 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
     energyDelta: 0,
     choices: [
       direct("charge", "回收稳定电流", "净化粒子 +8", "你将稳定电流导入净化核心，粒子读数向上跳了一格。", [{ type: "MODIFY_ENERGY", amount: 8 }]),
-      direct("draw", "抽取备用回路", "净化粒子 −4，换取额外物资", "你抽走备用回路的储能，换来的粒子损失换成了一枚电池。", [
+      direct("draw", "抽取备用回路", "净化粒子 −4，换取额外物资", "你抽走备用回路的储能，换来的粒子损失换成了一枚磁铁。", [
         { type: "MODIFY_ENERGY", amount: -4 },
-        { type: "GAIN_ITEM", itemId: "standard-battery" },
+        { type: "GAIN_ITEM", itemId: "magnet" },
       ]),
     ],
   },

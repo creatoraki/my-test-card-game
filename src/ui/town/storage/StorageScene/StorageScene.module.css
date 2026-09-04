@@ -113,6 +113,14 @@
   animation-delay: 200ms;
 }
 
+.stor-entry:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+.stor-entry:nth-child(4) {
+  animation-delay: 360ms;
+}
+
 :global([data-town-stage]) .stor-entry:hover {
   --slide: 0px;
   border-color: var(--stor-glow);

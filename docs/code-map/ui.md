@@ -46,7 +46,11 @@ src/ui/
 | [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 营养舱席位阵列：四个固定瘦高席位，处理空置、占用、锁定、未选人、费用不足和角色限制的悬浮提示，并把点击席位转为入舱 action。 |
 | [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 营养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、选中态与受限原因提示。 |
 | [town/cryo/NutritionPanel/NutritionUpgradePanel](../../src/ui/town/cryo/NutritionPanel/NutritionUpgradePanel.tsx) | 营养舱科技升级叠层：展示等级、舱位读数、当前 tier 的容量/治疗科技、材料与积分检查，并用局部 clip-path 展开/收回。 |
-| [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、三槽装备和回收台；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
+| [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
+| [town/storage/EquipTargetList](../../src/ui/town/storage/EquipTargetList/EquipTargetList.tsx) | 升阶与重铸共用的装备目标列：合并仓库装备和三槽穿戴件，支持武器/防具/饰品筛选、队员角标和 `ItemTooltip`。 |
+| [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
+| [town/storage/EquipUpgradePanel](../../src/ui/town/storage/EquipUpgradePanel/EquipUpgradePanel.tsx) | 装备升阶面板：展示当前装备与下一阶预览，复用目标列/消耗清单并派发 `upgradeEquip`。 |
+| [town/storage/EquipReforgePanel](../../src/ui/town/storage/EquipReforgePanel/EquipReforgePanel.tsx) | 装备词条重铸面板：扣除绿色水晶后展示原/新词条二选一，候选状态由城镇 store 持久化。 |
 | [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱场景编排：右侧两个抽屉入口（模组装配 / 模组制造），维护当前打开的弹窗与关闭动画；装配弹窗在此订阅据点状态、派发装配/拆卸 action 并统一管理模组 tooltip；制造弹窗整体交给 CraftPanel。 |
 | 旧 `town/assembly/AssemblyPanelShell` | 舱内弹窗的通用外壳已提升为公共件 [`common/PanelShell`](../../src/ui/common/PanelShell/PanelShell.tsx)（见「公共组件」一节），装配舱与制造弹窗改为从 `@/ui/common/PanelShell` 引用，样式规则一行未改。 |
 | [town/assembly/CraftPanel](../../src/ui/town/assembly/CraftPanel/CraftPanel.tsx) | 模组制造弹窗：注入熔炉琥珀配色，订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与装配弹窗一致。 |

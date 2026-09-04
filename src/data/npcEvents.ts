@@ -47,10 +47,10 @@ export const NPC_EVENTS: Record<string, NpcEvent> = {
     description: "电梯门重新打开，一个没有身体的登记员投影站在货运台前。它接过面包，要求队伍选择收货或改签。",
     choices: [
       choice("misroute", "领取误发货物", "你把面包交给登记员，换取一只错误楼层货箱的开启权限。", "领取误发补给", [
-        outcome("misroute-a", "登记员从错误货箱中调出两块电池。", [{ type: "GAIN_ITEM", itemId: "standard-battery", count: 2 }]),
-        outcome("misroute-b", "误发货箱里没有电池，但医疗包和齿轮被完整保存。", [
+        outcome("misroute-a", "登记员从错误货箱中调出两枚磁铁。", [{ type: "GAIN_ITEM", itemId: "magnet", count: 2 }]),
+        outcome("misroute-b", "误发货箱里没有电池，但医疗包和弹簧被完整保存。", [
           { type: "GAIN_ITEM", itemId: "medical-kit-c" },
-          { type: "GAIN_ITEM", itemId: "standard-gear" },
+          { type: "GAIN_ITEM", itemId: "coil-spring" },
         ]),
       ]),
       choice("reroute", "改签装备货物", "你要求登记员把错误楼层的货单改到队伍名下。", "从装备货物中选一件", [
@@ -85,9 +85,9 @@ export const NPC_EVENTS: Record<string, NpcEvent> = {
     description: "温室深处走出一个由植物维护程序组成的机械人。它闻了闻汉堡，说：高热量样本，可交换一次培育成果。",
     choices: [
       choice("harvest", "交换成熟培育物", "你把汉堡递给培育员，让它从根系中挑选成熟的工业材料。", "领取培育材料", [
-        outcome("harvest-a", "培育员从根系中取出两块仍有余电的电池。", [{ type: "GAIN_ITEM", itemId: "standard-battery", count: 2 }]),
-        outcome("harvest-b", "温室没有足够的储备，但培育员交出了一枚齿轮和一支净化用圣水。", [
-          { type: "GAIN_ITEM", itemId: "standard-gear" },
+        outcome("harvest-a", "培育员从根系中取出两只用于复位的弹簧。", [{ type: "GAIN_ITEM", itemId: "coil-spring", count: 2 }]),
+        outcome("harvest-b", "温室没有足够的储备，但培育员交出了一枚磁铁和一支净化用圣水。", [
+          { type: "GAIN_ITEM", itemId: "magnet" },
           { type: "GAIN_ITEM", itemId: "holy-water-c" },
         ]),
       ]),

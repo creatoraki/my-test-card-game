@@ -2,14 +2,17 @@ import type { BoonEntry } from "../../explore/types";
 import type { DropEntry } from "../../items/types";
 import type { EnemyDef } from "./types";
 
-const ELITE_DROPS: DropEntry[] = [
+const ELITE_BASE: DropEntry[] = [
   { kind: "item", itemId: "blue-crystal", chance: 0.6 },
   { kind: "item", itemId: "bronze-bear", chance: 0.4 },
-  { kind: "item", itemId: "logic-cube", chance: 0.05 },
-  { kind: "item", itemId: "standard-gear", chance: 0.05 },
-  { kind: "item", itemId: "standard-battery", chance: 0.05 },
   { kind: "item", itemId: "module-crate-t1", chance: 0.08 },
 ];
+
+const generalDrop = (itemId: string, chance: number): DropEntry => ({
+  kind: "item",
+  itemId,
+  chance,
+});
 
 const ELITE_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.5 },
@@ -75,7 +78,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         effects: [{ type: "GAIN_SHIELD", amount: 12, target: "self" }],
       },
     ],
-    dropTable: ELITE_DROPS,
+    dropTable: [...ELITE_BASE, generalDrop("coil-spring", 0.15)],
     boonTable: ELITE_BOONS,
   },
   {
@@ -137,7 +140,7 @@ export const ELITE_ENEMIES: EnemyDef[] = [
         ],
       },
     ],
-    dropTable: ELITE_DROPS,
+    dropTable: [...ELITE_BASE, generalDrop("magnet", 0.15)],
     boonTable: ELITE_BOONS,
   },
 ];
