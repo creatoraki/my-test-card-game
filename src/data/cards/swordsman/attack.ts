@@ -39,7 +39,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     costRule: { when: "discardedThisRound", delta: -1, per: true },
     cardType: "normal",
     targeting: "foe",
-    rarity: "rare",
+    rarity: "uncommon",
     exhaust: true,
     anim: "fire",
     effects: [
@@ -55,7 +55,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cost: 2,
     cardType: "normal",
     targeting: "foe",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "blood-slash",
     effects: [
       { type: "PLAY_STAT_BONUS", stat: "armorPen", amount: 5 },
@@ -123,7 +123,7 @@ export const SWORDSMAN_ATTACK_CARDS: CardDef[] = [
     cost: 2,
     cardType: "fast",
     targeting: "foe",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "slash",
     effects: [
       { type: "DAMAGE", multiplier: 1.0, target: "primary" },

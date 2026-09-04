@@ -9,7 +9,7 @@ export const SWORDSMAN_SUPPORT_CARDS: CardDef[] = [
     cost: 2,
     cardType: "normal",
     targeting: "self",
-    rarity: "rare",
+    rarity: "uncommon",
     anim: "buff",
     effects: [
       { type: "DISCARD", amount: 1, discardPick: "handBottom" },
@@ -24,7 +24,7 @@ export const SWORDSMAN_SUPPORT_CARDS: CardDef[] = [
     cost: 1,
     cardType: "fast",
     targeting: "self",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "buff",
     effects: [
       { type: "DISCARD", amount: 1, discardPick: "handTop" },
@@ -39,7 +39,7 @@ export const SWORDSMAN_SUPPORT_CARDS: CardDef[] = [
     cost: 2,
     cardType: "normal",
     targeting: "ally",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "shield",
     effects: [
       { type: "GAIN_SHIELD", multiplier: 0.8, target: "primary" },
@@ -54,7 +54,7 @@ export const SWORDSMAN_SUPPORT_CARDS: CardDef[] = [
     cost: 2,
     cardType: "fast",
     targeting: "self",
-    rarity: "uncommon",
+    rarity: "common",
     anim: "shield",
     effects: [
       { type: "CONVERT_CARD_TYPE", convertPick: "handAllFast", convertTo: "normal" },
