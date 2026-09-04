@@ -523,6 +523,7 @@ export function BattleScreen() {
 
   function stepFromDiscard(t: DiscardTriggerFx): ChoreoStep {
     return {
+      kind: t.reveal ? "reveal" : undefined,
       actorId: t.actorId,
       anim: t.anim ?? "slash",
       snapshot: t.snapshot,
@@ -673,6 +674,31 @@ export function BattleScreen() {
     let lastActor = "";
     let lastAnim: CardAnim | null = null;
     plans.forEach(({ step, preset, targetIds, focusIds, keepCamera }, index) => {
+      if (step.kind === "reveal") {
+        const selfMark = Boolean(step.discardUid && marksAt[index]?.includes(step.discardUid));
+        const stepMarks = (marksAt[index] ?? []).filter((uid) => !selfMark || uid !== step.discardUid);
+        const discardLead = selfMark ? DISCARD.total : 0;
+        const cutIn = CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut;
+        timeline.add({
+          at,
+          run: () => {
+            if (selfMark) markDiscarding(step.discardUid!);
+            stepMarks.forEach(markDiscarding);
+          },
+        });
+        timeline.add({ at: at + discardLead, run: () => setCutInCard(step.card ?? null) });
+        timeline.add({
+          at: at + discardLead + cutIn,
+          run: () => {
+            setCutInCard(null);
+            commit(step.snapshot);
+          },
+        });
+        at += discardLead + cutIn + 40;
+        lastActor = "";
+        lastAnim = null;
+        return;
+      }
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
       const fx = ANIM[step.anim];
       const impactMs = fx.proc?.impactMs ?? 0;

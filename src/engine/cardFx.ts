@@ -52,6 +52,7 @@ export function recordCardTrigger(
   resolution: EffectResolution,
   autoPlay = false,
   recorded: AnimHit[] = [],
+  reveal = false,
 ): void {
   // 逐段明细优先(带 parts, 供 UI 飘多个数字); 记录器没覆盖到的目标(只吃护盾/状态、
   // 或 HP 经状态结算变动)再用「快照前后 HP 差」补齐, 与改造前的口径一致。
@@ -67,6 +68,7 @@ export function recordCardTrigger(
     actorId: card.ownerCharId,
     anim: card.anim,
     autoPlay,
+    reveal,
     hits,
     snapshot: structuredClone(state),
   });

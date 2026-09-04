@@ -1,5 +1,5 @@
 import { memo, useEffect } from "react";
-import type { Card } from "@/engine";
+import { cardDisplayName, type Card } from "@/engine";
 import { getCharacter } from "@/data";
 import { playSfx } from "@/ui/audio";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
@@ -222,7 +222,7 @@ export const HandCard = memo(function HandCard({
         )}
 
         {/* 卡名压条: 贴在配图下沿的渐变浮层(透明 → 实底), 不占实位 */}
-        <span className={f["hc-title"]}>{card.name}</span>
+        <span className={f["hc-title"]}>{cardDisplayName(card)}</span>
 
         {card.resonanceStacks != null && card.resonanceStacks > 0 && (
           <span className={f["hc-resonance"]} aria-label={`共鸣强化 ${card.resonanceStacks} 次`}>

@@ -94,7 +94,7 @@ export {
 export type { AssembleId, AssembleRewardCategory, SquadBuffDef } from "./squadBuff";
 export { CARD_KEYWORD_INFOS, KEYWORD_DEFS, cardKeywordsIn, splitCardKeywords } from "./keywords";
 export type { CardKeywordInfo, KeywordCtx, KeywordDef } from "./keywords";
-export { effectDisplayValue, renderCardText } from "./cardText";
+export { cardDisplayName, effectDisplayValue, renderCardText } from "./cardText";
 export type { CardTextStats } from "./cardText";
 export {
   CHALLENGE_DEFS,

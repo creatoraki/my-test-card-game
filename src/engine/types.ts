@@ -721,6 +721,7 @@ export interface DiscardTriggerFx {
   actorId: string;
   anim?: CardAnim;
   autoPlay?: boolean;
+  reveal?: boolean; // 仅卡牌亮相提示, 不播放攻击演出或镜头推近
   hits: AnimHit[];
   snapshot: BattleState;
 }

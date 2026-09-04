@@ -15,7 +15,7 @@
 | [cost.ts](../../src/engine/cost.ts) | 卡牌生效费用唯一入口；按 `costRule.per` 支持每 1 点计数线性减费、按 `stackCostRule` 读取卡牌实例累计层数(岚)，按本回合弃牌或速攻出牌计数与可选阈值计算动态费用，叠加标记级费用修正，并提供应星/星契的星辉抵扣与 UI 角标用量。 |
 | [cardMarks.ts](../../src/engine/cardMarks.ts) | 卡牌实例标记注册表；提供心眼、星契与《沉重》，打出后通过统一效果解释器触发标记效果，星契同时被费用层识别为可用星辉支付，《沉重》由费用层追加 1 点费用并在打出后移除。 |
 | [cardText.ts](../../src/engine/cardText.ts) | 将卡牌说明中的 `{0}` / `{d0}` / `{c}` / `{k0}` 占位符按施放者攻击力或治愈力、培育实例状态渲染为具体数值。 |
-| [discard.ts](../../src/engine/discard.ts) | 弃牌唯一入口：`returnToHand` 触发把牌退回手牌并累计实例层数，真正的弃牌动作(manual/effect/cost)结束后分发被动卡的 `cardDiscarded` 事件；迁移牌堆、按规则累计本回合与整场弃牌计数；`custom` 触发立即结算，`useSelf` 进入自动出牌队列并在本次操作完成后冲刷，同时录制表现快照；通过 `ops.flushAutoPlays` 钩子供调度器在敌人行动后立即冲刷；手牌离手时同步清除《沉重》。 |
+| [discard.ts](../../src/engine/discard.ts) | 弃牌唯一入口：`returnToHand` 触发把牌退回手牌并累计实例层数，录制 `reveal` 步(仅卡面亮相，无攻击演出)，手牌满时同样出提示；真正的弃牌动作(manual/effect/cost)结束后分发被动卡的 `cardDiscarded` 事件；迁移牌堆、按规则累计本回合与整场弃牌计数；`custom` 触发立即结算，`useSelf` 进入自动出牌队列并在本次操作完成后冲刷，同时录制表现快照；通过 `ops.flushAutoPlays` 钩子供调度器在敌人行动后立即冲刷；手牌离手时同步清除《沉重》。 |
 | [passive.ts](../../src/engine/passive.ts) | 被动卡唯一真相点：`isPassive` / `playableHandUids`(费用、瀑布、标记与转换的候选池一律排除被动卡) / `firePassive`(按 `cardDiscarded`、`cardDrawn`、`roundEnd`、`enemyKilled`、`assembleSuccess` 分发；同一张卡按事件选择 `effectsByTrigger`，带递归安全阀并各录一条演出步) / `recycleHandPassives`(回合结束按 `passiveEnd` 理由收进弃牌堆，消耗类被动进消耗堆，不计弃牌数也不触发任何弃牌联动)。 |
 | [cardFx.ts](../../src/engine/cardFx.ts) | 卡牌触发的演出录制与快照台账：`withDiscardRecorder`、`currentRecorder`、`ensureCardFxSnapshot`、`takeDiscardSnapshot`、`snapshotHp` 和 `recordCardTrigger`。单独成文件是为了打破 `discard.ts` ↔ `passive.ts` 的静态循环。 |
 | [cultivate.ts](../../src/engine/cultivate.ts) | 培育卡实例的生命周期：进手与离手重置、回合开始递减、按指定步长递减和归零就绪判定。 |

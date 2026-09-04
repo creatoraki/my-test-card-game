@@ -18,6 +18,13 @@ function statScaledValue(stats: CardTextStats, stat: keyof StatBlock, multiplier
   return 0;
 }
 
+// 「被丢弃回手」类卡牌的卡面显示名: 累计层数直接后缀在卡名上(岚 → 岚1 … 岚5)。
+// 打出后 battle.ts 会把 discardStacks 清零, 名字自动回到基础名。
+export function cardDisplayName(card: Card): string {
+  const stacks = card.onDiscard?.mode === "returnToHand" ? card.discardStacks ?? 0 : 0;
+  return stacks > 0 ? `${card.name}${stacks}` : card.name;
+}
+
 // 显示的是减伤前的基础值。伤害在 ops.dealDamage 中还会经过暴击、防御、格挡和 Math.round，
 // 因此说明文案无法预知最终实际掉血。
 export function effectDisplayValue(

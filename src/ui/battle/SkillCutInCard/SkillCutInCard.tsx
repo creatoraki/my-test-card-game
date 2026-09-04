@@ -1,4 +1,4 @@
-import type { Card } from "@/engine";
+import { cardDisplayName, type Card } from "@/engine";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { cardArt } from "@/ui/art/cardArt";
 import { CINEMA } from "@/ui/battle/animations";
@@ -22,6 +22,7 @@ export function SkillCutInCard({ card, fxRate }: { card: Card | null; fxRate: nu
 function SkillCutInCardContent({ card, fxRate }: { card: Card; fxRate: number }) {
   const text = useCardText(card);
   const art = cardArt(card.id);
+  const displayName = cardDisplayName(card);
 
   return (
     // key: 同一批次连续出牌时强制重挂载, 重放飞入动画
@@ -36,8 +37,8 @@ function SkillCutInCardContent({ card, fxRate }: { card: Card; fxRate: number })
     >
       {art ? (
         <>
-          <img className={s["cutin-art"]} src={art} alt={`${card.name}卡面`} />
-          <div className={s["cutin-name"]}>{card.name}</div>
+          <img className={s["cutin-art"]} src={art} alt={`${displayName}卡面`} />
+          <div className={s["cutin-name"]}>{displayName}</div>
         </>
       ) : (
         <>
@@ -46,7 +47,7 @@ function SkillCutInCardContent({ card, fxRate }: { card: Card; fxRate: number })
               <ManaCrystal className={s["cutin-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
               <span className={s["cutin-cost-value"]}>{card.cost}</span>
             </span>
-            <span className={s["cutin-name"]}>{card.name}</span>
+            <span className={s["cutin-name"]}>{displayName}</span>
             <span className={s["cutin-type"]}>{card.cardType === "fast" ? "速" : card.cardType === "passive" ? "被" : "普"}</span>
           </div>
           <div className={s["cutin-text"]}><CardTextRich text={text} /></div>

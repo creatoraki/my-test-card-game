@@ -1,6 +1,6 @@
 import type { BattleState, Card, CardAnim } from "@/engine";
 import { ANIM } from "@/ui/battle/animations";
-import { pickShot, type ShotPreset } from "./shots";
+import { pickShot, SHOTS, type ShotPreset } from "./shots";
 
 export interface ChoreoStep {
   actorId: string;
@@ -9,7 +9,7 @@ export interface ChoreoStep {
   hits: { id: string; hpDelta: number; missed?: boolean }[];
   card?: Card;
   discardUid?: string;
-  kind?: "tempo"; // 拍点(DOT/HOT)结算帧: 只演受击/回复, 不播施法者前冲
+  kind?: "tempo" | "reveal"; // 拍点只演受击/回复; reveal 只演卡牌亮相
 }
 
 export interface ShotPlan {
@@ -27,6 +27,9 @@ function killed(step: ChoreoStep, before: BattleState | undefined): boolean {
 
 export function choreograph(steps: ChoreoStep[], initial: BattleState | undefined): ShotPlan[] {
   return steps.map((step, index) => {
+    if (step.kind === "reveal") {
+      return { step, preset: SHOTS.none, targetIds: [], focusIds: [], keepCamera: true };
+    }
     const targetIds = step.hits.length ? step.hits.map((hit) => hit.id) : [step.actorId];
     const stageFocusIds = step.hits
       .map((hit) => hit.id)

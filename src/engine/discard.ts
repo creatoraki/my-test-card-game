@@ -46,6 +46,7 @@ function returnToHand(state: BattleState, card: Card, beforeMove?: () => void): 
   const max = card.onDiscard?.maxStacks ?? Infinity;
   card.discardStacks = Math.min(max, (card.discardStacks ?? 0) + 1);
   if (state.hand.length >= partyHandLimit(state)) {
+    beforeMove?.();
     ops.log(state, `${card.name} 手牌已满，未能回到手牌`);
     return;
   }
@@ -90,7 +91,7 @@ export function moveToDiscard(
         ensureCardFxSnapshot(state);
         const beforeHp = snapshotHp(state);
         returnToHand(state, card, () => {
-          recordCardTrigger(state, card, beforeHp, recorder, { missed: [], hit: [] });
+          recordCardTrigger(state, card, beforeHp, recorder, { missed: [], hit: [] }, false, [], true);
         });
       }
     }
