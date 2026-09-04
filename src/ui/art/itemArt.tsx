@@ -57,10 +57,11 @@ import breadArt from "@/assets/道具/临期食品/面包.png";
 import batteryArt from "@/assets/道具/材料/通用材料/电池.png";
 import cubeArt from "@/assets/道具/材料/通用材料/魔方.png";
 import gearArt from "@/assets/道具/材料/通用材料/齿轮.png";
+import springArt from "@/assets/道具/材料/通用材料/弹簧.png";
+import magnetArt from "@/assets/道具/材料/通用材料/磁铁.png";
 import greenCrystalArt from "@/assets/道具/材料/通用材料/绿色水晶.png";
 import blueCrystalArt from "@/assets/道具/材料/通用材料/蓝色水晶.png";
 import redCrystalArt from "@/assets/道具/材料/通用材料/红色水晶.png";
-import placeholderArt from "@/assets/占位素材.png";
 import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
 import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
 import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
@@ -229,8 +230,8 @@ const MATERIAL_ART: Record<string, string> = {
   "logic-cube": cubeArt,
   "standard-gear": gearArt,
   "standard-battery": batteryArt,
-  "coil-spring": placeholderArt,
-  magnet: placeholderArt,
+  "coil-spring": springArt,
+  magnet: magnetArt,
   "green-crystal": greenCrystalArt,
   "blue-crystal": blueCrystalArt,
   "red-crystal": redCrystalArt,

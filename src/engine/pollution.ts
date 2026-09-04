@@ -48,18 +48,9 @@ function addQuirk(state: BattleState, ally: Ally): void {
   log(state, `${ally.emoji} ${ally.name} 获得永久怪癖「${def.name}」`);
 }
 
-// 污染卡进入手牌时调用。抽牌堆洗回、弃牌和出牌本身不会触发这里。
-export function registerPollutedCardDraw(state: BattleState, card: Card): void {
-  if (!card.contaminated) return;
-
-  const ally = ownerOf(state, card.ownerCharId);
-  if (!ally) return;
-
-  ally.pollution += POLLUTION_RULES.perCard;
-  log(
-    state,
-    `${ally.emoji} ${ally.name} 污染值 +${POLLUTION_RULES.perCard}（${ally.pollution}/${POLLUTION_RULES.threshold}）`,
-  );
+export function addPollution(state: BattleState, ally: Ally, amount: number): void {
+  ally.pollution += amount;
+  log(state, `${ally.emoji} ${ally.name} 污染值 +${amount}（${ally.pollution}/${POLLUTION_RULES.threshold}）`);
 
   if (ally.pollution < POLLUTION_RULES.threshold) return;
 
@@ -73,6 +64,16 @@ export function registerPollutedCardDraw(state: BattleState, card: Card): void {
   }
 
   addQuirk(state, ally);
+}
+
+// 污染卡进入手牌时调用。抽牌堆洗回、弃牌和出牌本身不会触发这里。
+export function registerPollutedCardDraw(state: BattleState, card: Card): void {
+  if (!card.contaminated) return;
+
+  const ally = ownerOf(state, card.ownerCharId);
+  if (!ally) return;
+
+  addPollution(state, ally, POLLUTION_RULES.perCard);
 }
 
 export function quirkIdsOf(value: readonly string[] | undefined): QuirkId[] {

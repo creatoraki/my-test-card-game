@@ -113,6 +113,7 @@ export type EffectType =
   | "REMOVE_STATUS"
   | "VALUE_BOOST"
   | "LOSE_HP"
+  | "GAIN_POLLUTION"
   // 本次出牌结算期间临时改写**施放者**面板, 出牌结束逆向撤回(见 battle.playCard)。
   // 与 APPLY_STAT_MOD 的区别: 后者写进 Combatant.mods 后本场战斗永久留存。
   | "PLAY_STAT_BONUS"
@@ -131,6 +132,7 @@ export interface EffectDescriptor {
   //   amount     —— 固定伤害, 不使用攻击力, 也不吃防御与格挡(仍可被护盾吸收)
   // HEAL / GAIN_SHIELD 二选一: amount = 固定基础值, multiplier = 治愈力倍率。
   // DRAW / GAIN_RESOURCE 使用 amount 作为基础值。
+  // GAIN_POLLUTION 使用 amount 作为污染点数。
   amount?: number;
   multiplier?: number;
   target?: EffectTarget; // 默认 "primary"

@@ -15,6 +15,7 @@ import { getStatusDef } from "./statuses";
 import { advanceCultivate, resetCultivate } from "./cultivate";
 import { isPassive, playableHandUids } from "./passive";
 import { runStatusTickNow } from "./statusLifecycle";
+import { addPollution } from "./pollution";
 import {
   ASSEMBLE_IDS,
   gainSquadBuff,
@@ -273,6 +274,14 @@ function applyEffect(
         if (!target?.alive) continue;
         const lost = effect.pctOfCurrentHp != null ? target.hp * effect.pctOfCurrentHp : amount;
         if (lost > 0) ops.loseHp(state, id, lost);
+      }
+      break;
+    }
+    case "GAIN_POLLUTION": {
+      for (const id of targetIds) {
+        const target = state.combatants[id];
+        if (!target?.alive || target.team !== "player") continue;
+        addPollution(state, target, amount);
       }
       break;
     }

@@ -84,12 +84,12 @@ export const RULES = {
     shieldRecycleBonus: 30,
   },
 
-  // 探索负重 —— 背包固定 24 格; 每 2 点负重命中 −1%, 每 5 点负重先手 −1。
+  // 探索负重 —— 背包固定 24 格; 每 4 点负重命中 −1%, 每 10 点负重先手 −1。
   // 有效负重 = max(0, 已占格数 - 小队负重适应); 两项惩罚各自向下取整。
   burden: {
     backpackSlots: 24,
-    hitPer: 2,
-    initiativePer: 5,
+    hitPer: 4,
+    initiativePer: 10,
   },
 
   // 角色养成 —— ★ 无等级、无属性点。角色面板固定, 经验只用于锻造个人卡组。

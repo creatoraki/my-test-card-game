@@ -21,6 +21,7 @@ const EFFECT_LABEL: Record<string, string> = {
   VALUE_BOOST: "提高效果数值",
   PLAY_STAT_BONUS: "获得出牌属性加成",
   LOSE_HP: "失去生命",
+  GAIN_POLLUTION: "增加污染值",
   CULTIVATE_TICK: "推进培育",
 };
 
@@ -50,6 +51,8 @@ function effectText(effect: EffectDescriptor): string {
       return `抽 ${effect.amount ?? 1} 张牌`;
     case "GAIN_RESOURCE":
       return `获得 ${effect.amount ?? 1} 点资源`;
+    case "GAIN_POLLUTION":
+      return `增加 ${effect.amount ?? 0} 点污染值`;
     case "REMOVE_STATUS":
       return "移除状态";
     case "MARK_CARDS":

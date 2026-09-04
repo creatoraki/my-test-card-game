@@ -96,12 +96,12 @@ describe("属性口径", () => {
     expect(
       hitChance(light, light.combatants["swordsman"], light.combatants[light.enemyIds[0]]) -
         hitChance(heavy, sw, enemy),
-    ).toBeCloseTo(10, 6);
+    ).toBeCloseTo(5, 6);
     expect(critChance(heavy, sw)).toBe(statOf(sw, "critRate"));
     expect(hitChance(heavy, enemy, sw)).toBe(
       hitChance(light, light.combatants[light.enemyIds[0]], light.combatants["swordsman"]),
     );
-    expect(partyInitiative(light) - partyInitiative(heavy)).toBeCloseTo(4, 6);
+    expect(partyInitiative(light) - partyInitiative(heavy)).toBeCloseTo(2, 6);
   });
 
   it("粒子污染放大攻击伤害, 且闪避加成受 70% 封顶", () => {
