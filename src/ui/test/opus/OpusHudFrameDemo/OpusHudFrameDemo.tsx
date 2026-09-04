@@ -7,7 +7,7 @@ import type { ItemStack } from "@/items/types";
 import type { EquipTab } from "@/ui/common/item/itemFilters";
 import ItemTooltip, {
   tooltipPointFromElement,
-  type TooltipAxis,
+  type TooltipDirection,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { HudFrame } from "../HudFrame";
@@ -43,8 +43,8 @@ export function OpusHudFrameDemo() {
   else if (current && !nextDef) notice = "这件装备已达到本族最高阶。";
   else if (nextDef) notice = "升阶保留原有词条，并在此基础上追加新的模型值预算。";
 
-  const showTooltip = (element: HTMLElement, stack: ItemStack, axis?: TooltipAxis) => {
-    setHovered({ stack, point: tooltipPointFromElement(element, axis) });
+  const showTooltip = (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => {
+    setHovered({ stack, point: tooltipPointFromElement(element, direction) });
   };
 
   const onUpgrade = () => {

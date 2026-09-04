@@ -6,7 +6,7 @@ import { EQUIP_TABS, matchTab, type EquipTab } from "@/ui/common/item/itemFilter
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { cx } from "@/ui/common/cx";
-import type { TooltipAxis } from "@/ui/common/item/ItemTooltip";
+import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
 import type { DemoEquip } from "../demoData";
 import s from "./EquipPickColumn.module.css";
 
@@ -16,7 +16,7 @@ interface Props {
   onEquipTab: (tab: EquipTab) => void;
   selectedUid: string | null;
   onSelect: (uid: string) => void;
-  onShowTooltip: (element: HTMLElement, stack: ItemStack, axis?: TooltipAxis) => void;
+  onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
   onHideTooltip: () => void;
 }
 
@@ -56,9 +56,9 @@ export function EquipPickColumn({
               <div
                 key={entry.stack.uid}
                 className={cx(s.cell, on && s.on)}
-                onPointerEnter={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
+                onPointerEnter={(event) => onShowTooltip(event.currentTarget, entry.stack, "left")}
                 onPointerLeave={onHideTooltip}
-                onFocus={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
+                onFocus={(event) => onShowTooltip(event.currentTarget, entry.stack, "left")}
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
                     onHideTooltip();

@@ -92,5 +92,5 @@ my-test-card-game/
 
 详细说明入口：[`docs/code-map/README.md`](docs/code-map/README.md)。
 
-
-临时访问命令 cloudflared tunnel --url http://127.0.0.1:5173
+pnpm exec vite --host 127.0.0.1 --port 2333
+临时访问命令 cloudflared tunnel --url http://127.0.0.1:2333

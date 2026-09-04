@@ -5,6 +5,7 @@ import { getItemDef } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
 import ItemSlot from "@/ui/common/item/ItemSlot";
+import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
 import s from "./EquipForgeColumn.module.css";
 
@@ -13,7 +14,7 @@ interface Props {
   def: ItemDef | null;
   check: CostCheck | null;
   loot: number;
-  onShowTooltip: (element: HTMLElement, stack: ItemStack) => void;
+  onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
   onHideTooltip: () => void;
 }
 
@@ -52,9 +53,9 @@ export function EquipForgeColumn({
                 <div
                   key={material.itemId}
                   className={cx(s.material, !material.ok && s.lacking)}
-                  onPointerEnter={(event) => onShowTooltip(event.currentTarget, matStack)}
+                  onPointerEnter={(event) => onShowTooltip(event.currentTarget, matStack, "right")}
                   onPointerLeave={onHideTooltip}
-                  onFocus={(event) => onShowTooltip(event.currentTarget, matStack)}
+                  onFocus={(event) => onShowTooltip(event.currentTarget, matStack, "right")}
                   onBlur={(event) => {
                     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
                       onHideTooltip();
