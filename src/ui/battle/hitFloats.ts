@@ -13,8 +13,8 @@ import type { AnimSfxCue } from "./animSfx";
 
 // 多段之间的节奏。飘字比音效慢一拍: 数字要看得清, 音效要连成"哒哒哒"。
 export const HIT_STAGGER = {
-  float: 120, // 同一目标的相邻两段飘字间隔(ms)
-  sfx: 55, // 相邻两声命中音间隔(ms)。必须 > playSfx 的 30ms 节流, 否则后面几声被丢弃
+  float: 280, // 同一目标的相邻两段飘字间隔(ms)上限
+  sfx: 120, // 相邻两声命中音间隔(ms)。必须 > playSfx 的 30ms 节流, 否则后面几声被丢弃
   // 单次命中最多排多少条飘字/多少声音效。超出部分丢弃 —— 十几段的攻击再逐条排,
   // 尾巴会拖过特效的 hold 被硬卸载, 听觉上也糊成一片。
   maxFloats: 8,
@@ -25,9 +25,18 @@ export const HIT_STAGGER = {
 // AOE 打 4 个敌人时若每声等响, 4 条同采样几乎同时叠加会顶到压缩器, 听感是一团轰鸣。
 const SFX_GAIN_FALLOFF = 0.82;
 const SFX_MIN_GAIN = 0.55;
+const FLOAT_STAGGER_MIN = 70;
+const FLOAT_SAFE_MARGIN = 40;
 
 function gainAt(index: number): number {
   return Math.max(SFX_MIN_GAIN, SFX_GAIN_FALLOFF ** index);
+}
+
+function floatStagger(anim: CardAnim, count: number): number {
+  if (count <= 1) return 0;
+  const preset = ANIM[anim];
+  const budget = preset.hold - (preset.proc?.impactMs ?? 0) - (preset.proc?.floatMs ?? 0) - FLOAT_SAFE_MARGIN;
+  return Math.max(FLOAT_STAGGER_MIN, Math.min(HIT_STAGGER.float, budget / (count - 1)));
 }
 
 // 把一个目标的命中拆成飘字序列。
@@ -45,14 +54,19 @@ function floatsOf(hit: AnimHit, anim: CardAnim): FloatText[] {
       text = "MISS";
       tone = "miss";
     } else if (kind === "attack" && part.hpDelta > 0) {
-      text = `-${part.hpDelta}`;
+      text = part.crit ? `-${part.hpDelta}!` : `-${part.hpDelta}`;
     } else if (kind === "support" && part.hpDelta < 0) {
       text = `+${-part.hpDelta}`;
       tone = "heal";
     }
     // hpDelta 为 0 且未闪避 = 只吃了护盾/状态, 照旧只闪特效不飘字。
-    if (text != null) floats.push({ text, tone, delayMs: floats.length * HIT_STAGGER.float });
+    if (text != null) floats.push({ text, tone, delayMs: 0, crit: part.crit });
   }
+  const stagger = floatStagger(anim, floats.length);
+  floats.forEach((float, index) => {
+    float.delayMs = index * stagger;
+    if (floats.length > 1) float.dx = index % 2 === 0 ? -40 : 40;
+  });
   return floats;
 }
 

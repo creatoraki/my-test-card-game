@@ -189,7 +189,7 @@ export function dealDamage(
   target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
   dmg.hpLost = dmg.amount;
   opts.onDealt?.(dmg.hpLost);
-  recordHitPart(targetId, dmg.hpLost);
+  recordHitPart(targetId, dmg.hpLost, false, dmg.crit);
 
   const marks =
     (dmg.crit ? " 暴击!" : "") +

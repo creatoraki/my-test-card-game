@@ -230,6 +230,8 @@ export interface FloatText {
   text: string;
   tone: "dmg" | "heal" | "miss";
   delayMs: number; // 相对本次命中的额外延迟, 叠加在 --vfx-float-delay 之上
+  crit?: boolean; // 暴击段: 文本尾部加 "!", 渲染时放大并改色
+  dx?: number; // X 轴偏移(px), 多段时左右交替; 单段缺省 0 保持居中
 }
 
 // 单个单位当前正在播放的受击/首击特效(由 BattleScreen 在命中时刻下发)。

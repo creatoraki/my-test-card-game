@@ -95,9 +95,13 @@ export function HitFxLayer({ hit }: { hit: HitFx | null }) {
           外层 .float-slot 只负责定位与叠序, 位移动画仍全归 .float-num 的 floatUp ——
           两层分开才不用去改那条被居合斩等特效依赖的关键帧。 */}
       {hit?.floats.map((float, index) => (
-        <div key={`f${hit.seq}-${index}`} className={s["float-slot"]}>
+        <div
+          key={`f${hit.seq}-${index}`}
+          className={s["float-slot"]}
+          style={{ "--vfx-float-dx": `${float.dx ?? 0}px` } as CSSProperties}
+        >
           <div
-            className={cx(s["float-num"], s[`float-${float.tone}`])}
+            className={cx(s["float-num"], s[`float-${float.tone}`], float.crit && s["float-crit"])}
             style={{ "--vfx-float-stagger": `${float.delayMs}ms` } as CSSProperties}
           >
             {float.text}

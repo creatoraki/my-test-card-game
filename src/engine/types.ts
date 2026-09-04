@@ -697,6 +697,7 @@ export interface EngineOps {
 export interface AnimHitPart {
   hpDelta: number; // >0 掉血, <0 回血, 0 = 命中但无 HP 变化(护盾全吃/濒死顶住)
   missed?: boolean;
+  crit?: boolean; // 仅供 UI 飘字强调, 引擎不读取
 }
 
 export interface AnimHit {

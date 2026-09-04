@@ -235,6 +235,7 @@
   position: absolute;
   top: 26px;
   left: 50%;
+  transform: translateX(var(--vfx-float-dx, 0px));
   z-index: 8;
   pointer-events: none;
 }
@@ -254,13 +255,19 @@
   /* 聚焦镜头下停留约 1s: 快速弹出后保持可读, 末段才缓慢上浮淡出。
      延迟/时长走 CSS 变量(见 HitFxLayer.hitFxVars): 缺省值下与原 0.95s 无延迟逐帧等价;
      居合斩把飘字推迟到斩击爆发瞬间(impactMs)并压缩时长, 保证在命中特效 hold 卸载前收尾。
-     多段伤害再叠一层 --vfx-float-stagger(逐条 +120ms, 见 hitFloats.ts), 于是几个数字
-     在同一位置依次弹出。 */
+    多段伤害再叠一层 --vfx-float-stagger(逐条按预算错开, 见 hitFloats.ts), 于是几个数字
+    在同一位置依次弹出。 */
   animation: floatUp var(--vfx-float-dur, 0.95s) ease-out
     calc(var(--vfx-float-delay, 0ms) + var(--vfx-float-stagger, 0ms)) both;
 }
 .float-dmg {
   color: #ff6b6b;
+}
+.float-crit {
+  font-size: 96px;
+  -webkit-text-stroke-width: 4px;
+  color: #ffb02e;
+  text-shadow: 0 0 14px currentColor, 0 0 28px rgba(255, 176, 46, 0.45);
 }
 .float-heal {
   color: #69db7c;

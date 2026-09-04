@@ -35,8 +35,8 @@ export function withHitRecorder(fn: () => void): AnimHit[] {
 
 // 结算原语在命中落地时调用。没有活动记录器时是空操作。
 // hpDelta: >0 掉血, <0 回血, 0 = 命中但没造成 HP 变化(被护盾全吃/濒死顶住)。
-export function recordHitPart(targetId: string, hpDelta: number, missed = false): void {
-  activeParts?.push({ id: targetId, hpDelta, missed });
+export function recordHitPart(targetId: string, hpDelta: number, missed = false, crit = false): void {
+  activeParts?.push({ id: targetId, hpDelta, missed, crit });
 }
 
 // 按目标聚合: hpDelta 求和(供震屏/音高等既有消费方沿用), parts 保留原始顺序,
@@ -52,7 +52,7 @@ function mergeParts(parts: RawPart[]): AnimHit[] {
       order.push(part.id);
     }
     hit.hpDelta += part.hpDelta;
-    hit.parts!.push({ hpDelta: part.hpDelta, missed: part.missed });
+    hit.parts!.push({ hpDelta: part.hpDelta, missed: part.missed, crit: part.crit });
   }
   for (const hit of byId.values()) hit.missed = hit.parts!.every((part) => part.missed);
   return order.map((id) => byId.get(id)!);
