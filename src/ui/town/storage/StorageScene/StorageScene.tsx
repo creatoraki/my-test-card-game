@@ -24,8 +24,8 @@ import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilt
 import { cx } from "@/ui/common/cx";
 import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { PanelShell } from "@/ui/common/PanelShell";
-import { EquipReforgePanel } from "../EquipReforgePanel";
 import { EquipUpgradePanel } from "../EquipUpgradePanel";
+import { EquipReforgePanel } from "../EquipReforgePanel";
 import s from "./StorageScene.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
@@ -176,14 +176,9 @@ export function StorageScene({ leaving = false }: Props) {
         </PanelShell>
       )}
       {panel === "upgrade" && (
-        <PanelShell
-          accent={STORAGE_ACCENT}
-          title="装备升阶"
-          status="消耗材料与居民积分提升装备阶级"
-          closeLabel="关闭装备升阶"
+        <EquipUpgradePanel
           closing={morph.phase === "closing"}
           onClose={morph.closePanel}
-          themeStyle={STORAGE_THEME}
           morph={{
             ref: morph.panelRef,
             rect: STORAGE_PANEL_RECT.upgrade,
@@ -191,9 +186,7 @@ export function StorageScene({ leaving = false }: Props) {
             seed: <UpgradeIcon />,
             seedLabel: "装备升阶",
           }}
-        >
-          <EquipUpgradePanel />
-        </PanelShell>
+        />
       )}
       {panel === "reforge" && (
         <PanelShell

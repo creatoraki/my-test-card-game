@@ -1,5 +1,4 @@
 // 左列: 装备选择。槽位筛选 + 单列滚动的装备格。
-// 行为参照正式面板的 EquipTargetList, 但测试目录各自独立, 这里自持一份轻量版。
 
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { EQUIP_TABS, matchTab, type EquipTab } from "@/ui/common/item/itemFilters";
@@ -7,29 +6,34 @@ import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { cx } from "@/ui/common/cx";
 import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
-import type { DemoEquip } from "../demoData";
 import s from "./EquipPickColumn.module.css";
 
+export interface PickEntry {
+  key: string;
+  stack: ItemStack;
+  ownerName?: string;
+}
+
 interface Props {
-  equips: DemoEquip[];
+  entries: PickEntry[];
   equipTab: EquipTab;
   onEquipTab: (tab: EquipTab) => void;
-  selectedUid: string | null;
-  onSelect: (uid: string) => void;
+  selectedKey: string | null;
+  onSelect: (key: string) => void;
   onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
   onHideTooltip: () => void;
 }
 
 export function EquipPickColumn({
-  equips,
+  entries,
   equipTab,
   onEquipTab,
-  selectedUid,
+  selectedKey,
   onSelect,
   onShowTooltip,
   onHideTooltip,
 }: Props) {
-  const shown = equips.filter((entry) => matchTab(entry.stack, "equipment", equipTab));
+  const shown = entries.filter((entry) => matchTab(entry.stack, "equipment", equipTab));
 
   return (
     <section className={s.column} aria-label="装备选择">
@@ -51,10 +55,10 @@ export function EquipPickColumn({
         <div className={s.grid}>
           {shown.map((entry) => {
             const def = getItemDef(entry.stack.itemId);
-            const on = selectedUid === entry.stack.uid;
+            const on = selectedKey === entry.key;
             return (
               <div
-                key={entry.stack.uid}
+                key={entry.key}
                 className={cx(s.cell, on && s.on)}
                 onPointerEnter={(event) => onShowTooltip(event.currentTarget, entry.stack, "left")}
                 onPointerLeave={onHideTooltip}
@@ -69,7 +73,7 @@ export function EquipPickColumn({
                   stack={entry.stack}
                   showName={false}
                   selected={on}
-                  onClick={() => onSelect(entry.stack.uid)}
+                  onClick={() => onSelect(entry.key)}
                   className={s.slot}
                   aria-label={`${def.name}${entry.ownerName ? `，${entry.ownerName}已穿戴` : "，仓库"}`}
                 />

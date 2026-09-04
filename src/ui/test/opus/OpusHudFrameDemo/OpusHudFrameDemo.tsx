@@ -2,7 +2,6 @@
 // 目标是替换 town/storage/EquipUpgradePanel。本页用假数据(demoData.ts), 不接存档。
 
 import { useMemo, useState } from "react";
-import { getItemDef, nextEquipDef, upgradeCheck } from "@/data";
 import type { ItemStack } from "@/items/types";
 import type { EquipTab } from "@/ui/common/item/itemFilters";
 import ItemTooltip, {
@@ -10,13 +9,11 @@ import ItemTooltip, {
   type TooltipDirection,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { HudFrame } from "../HudFrame";
+import { HudFrame } from "@/ui/common/HudFrame";
+import { EquipUpgradeBoard, type PickEntry } from "@/ui/town/storage/EquipUpgradePanel/parts";
+import { useUpgradeView } from "@/ui/town/storage/EquipUpgradePanel/upgradeView";
 import { DEMO_EQUIPS, DEMO_LOOT, DEMO_STORAGE } from "./demoData";
 import { applyDemoUpgrade, type DemoState } from "./demoUpgrade";
-import { upgradeRangePreview } from "./upgradeRange";
-import { EquipForgeColumn } from "./parts/EquipForgeColumn";
-import { EquipGainColumn } from "./parts/EquipGainColumn";
-import { EquipPickColumn } from "./parts/EquipPickColumn";
 import s from "./OpusHudFrameDemo.module.css";
 
 const INITIAL: DemoState = { equips: DEMO_EQUIPS, storage: DEMO_STORAGE, loot: DEMO_LOOT };
@@ -28,20 +25,12 @@ export function OpusHudFrameDemo() {
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
 
-  const current = state.equips.find((entry) => entry.stack.uid === selectedUid)?.stack ?? null;
-  const currentDef = current ? getItemDef(current.itemId) : null;
-  const nextDef = currentDef?.category === "equipment" ? nextEquipDef(currentDef) : null;
-  const check = nextDef ? upgradeCheck(nextDef, state.loot, state.storage) : null;
-  const preview = useMemo(
-    () => (nextDef && current?.roll ? upgradeRangePreview(nextDef, current.roll) : null),
-    [current?.roll, nextDef],
+  const entries = useMemo<PickEntry[]>(
+    () => state.equips.map((entry) => ({ key: entry.stack.uid, ...entry })),
+    [state.equips],
   );
-  const canUpgrade = Boolean(current?.roll && nextDef?.model && check?.ok);
-
-  let notice = "选择一件装备查看升阶预览。";
-  if (current && !current.roll) notice = "这件装备没有可用词条模型，无法升阶。";
-  else if (current && !nextDef) notice = "这件装备已达到本族最高阶。";
-  else if (nextDef) notice = "升阶保留原有词条，并在此基础上追加新的模型值预算。";
+  const current = entries.find((entry) => entry.key === selectedUid)?.stack ?? null;
+  const view = useUpgradeView(current, state.loot, state.storage);
 
   const showTooltip = (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => {
     setHovered({ stack, point: tooltipPointFromElement(element, direction) });
@@ -70,42 +59,27 @@ export function OpusHudFrameDemo() {
 
       <div className={s.stage}>
         <HudFrame className={s.frame} label="装备升阶面板">
-          <div className={s.layout}>
-            <EquipPickColumn
-              equips={state.equips}
-              equipTab={equipTab}
-              onEquipTab={setEquipTab}
-              selectedUid={selectedUid}
-              onSelect={(uid) => {
-                setSelectedUid(uid);
-                setFlash(null);
-              }}
-              onShowTooltip={showTooltip}
-              onHideTooltip={() => setHovered(null)}
-            />
-
-            <span className={s.divider} aria-hidden />
-
-            <EquipForgeColumn
-              stack={current}
-              def={currentDef}
-              check={check}
-              loot={state.loot}
-              onShowTooltip={showTooltip}
-              onHideTooltip={() => setHovered(null)}
-            />
-
-            <span className={s.divider} aria-hidden />
-
-            <EquipGainColumn
-              preview={preview}
-              emptyText={notice}
-              def={currentDef}
-              nextDef={nextDef}
-              canUpgrade={canUpgrade}
-              onUpgrade={onUpgrade}
-            />
-          </div>
+          <EquipUpgradeBoard
+            entries={entries}
+            equipTab={equipTab}
+            onEquipTab={setEquipTab}
+            selectedKey={selectedUid}
+            onSelect={(key) => {
+              setSelectedUid(key);
+              setFlash(null);
+            }}
+            current={current}
+            currentDef={view.currentDef}
+            nextDef={view.nextDef}
+            check={view.check}
+            loot={state.loot}
+            preview={view.preview}
+            notice={view.notice}
+            canUpgrade={view.canUpgrade}
+            onUpgrade={onUpgrade}
+            onShowTooltip={showTooltip}
+            onHideTooltip={() => setHovered(null)}
+          />
         </HudFrame>
 
         {flash && (

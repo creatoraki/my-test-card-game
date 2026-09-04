@@ -1,90 +1,100 @@
-import { useState } from "react";
-import { getItemDef, nextEquipDef, upgradeCheck } from "@/data";
+import { useMemo, useState } from "react";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import type { EquipTarget } from "@/store/equipCraftSlice";
-import ItemDetail from "@/ui/common/item/ItemDetail";
 import ItemTooltip, {
   tooltipPointFromElement,
+  type TooltipDirection,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { EventPanelButton } from "@/ui/common/EventPanel";
-import { EquipCostRack } from "../EquipCostRack";
-import { EquipTargetList, equipStackOf } from "../EquipTargetList";
+import { HudPanelShell } from "@/ui/common/HudPanelShell";
+import { buildEquipTargets, equipStackOf, equipTargetKey } from "../EquipTargetList";
+import { EquipUpgradeBoard, type PickEntry } from "./parts";
+import { upgradeChanges } from "./upgradeMessage";
+import { useUpgradeView } from "./upgradeView";
 import s from "./EquipUpgradePanel.module.css";
 
-export function EquipUpgradePanel() {
+interface Props {
+  closing?: boolean;
+  onClose: () => void;
+  morph: {
+    ref: React.Ref<HTMLElement>;
+    rect: import("@/ui/common/panelMorph").Rect;
+    ready: boolean;
+    seed?: React.ReactNode;
+    seedLabel?: string;
+  };
+}
+
+export function EquipUpgradePanel({ closing = false, onClose, morph }: Props) {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const loot = useTownStore((state) => state.loot);
   const upgradeEquip = useTownStore((state) => state.upgradeEquip);
   const [selected, setSelected] = useState<EquipTarget | null>(null);
+  const [equipTab, setEquipTab] = useState<import("@/ui/common/item/itemFilters").EquipTab>("all");
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
+  const entries = useMemo<PickEntry[]>(
+    () => buildEquipTargets(storage, characters).map((entry) => ({
+      key: equipTargetKey(entry.target),
+      stack: entry.stack,
+      ownerName: entry.ownerName,
+    })),
+    [characters, storage],
+  );
+  const keyMap = useMemo(
+    () => new Map(buildEquipTargets(storage, characters).map((entry) => [equipTargetKey(entry.target), entry.target])),
+    [characters, storage],
+  );
+  const selectedKey = selected ? equipTargetKey(selected) : null;
   const current = equipStackOf(storage, characters, selected);
-  const currentDef = current ? getItemDef(current.itemId) : null;
-  const nextDef = currentDef?.category === "equipment" ? nextEquipDef(currentDef) : null;
-  const check = nextDef ? upgradeCheck(nextDef, loot, storage) : null;
-  const nextPreview = current && nextDef ? { ...current, itemId: nextDef.id } : null;
-  const canUpgrade = Boolean(current?.roll && nextDef?.model && check?.ok);
+  const view = useUpgradeView(current, loot, storage);
 
-  const showTooltip = (element: HTMLElement, stack: ItemStack) => {
-    setHovered({ stack, point: tooltipPointFromElement(element) });
+  const showTooltip = (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => {
+    setHovered({ stack, point: tooltipPointFromElement(element, direction) });
   };
 
-  let notice = "选择一件装备查看升阶预览。";
-  if (current && !current.roll) notice = "这件装备没有可用词条模型，无法升阶。";
-  else if (current && !nextDef) notice = "这件装备已达到本族最高阶。";
-  else if (nextDef) notice = `升阶后：${nextDef.name}，原有词条会保留并增加新的预算。`;
+  const onUpgrade = () => {
+    if (!selected || !current?.roll || !view.nextDef) return;
+    const before = current.roll;
+    const nextName = view.nextDef.name;
+    upgradeEquip(selected);
+    const nextState = useTownStore.getState();
+    const after = equipStackOf(nextState.storage, nextState.characters, selected);
+    if (!after?.roll) return;
+    setFlash(upgradeChanges(before, after.roll, nextName));
+  };
 
   return (
     <>
-      <div className={s.body}>
-        <EquipTargetList
-          storage={storage}
-          characters={characters}
-          selected={selected}
-          onSelect={setSelected}
+      <HudPanelShell closing={closing} onClose={onClose} label="装备升阶面板" morph={morph}>
+        <EquipUpgradeBoard
+          entries={entries}
+          equipTab={equipTab}
+          onEquipTab={setEquipTab}
+          selectedKey={selectedKey}
+          onSelect={(key) => {
+            const target = keyMap.get(key);
+            if (!target) return;
+            setSelected(target);
+            setFlash(null);
+          }}
+          current={current}
+          currentDef={view.currentDef}
+          nextDef={view.nextDef}
+          check={view.check}
+          loot={loot}
+          preview={view.preview}
+          notice={view.notice}
+          canUpgrade={view.canUpgrade}
+          onUpgrade={onUpgrade}
           onShowTooltip={showTooltip}
           onHideTooltip={() => setHovered(null)}
         />
-        <div className={s.main}>
-          <div className={s.comparison}>
-            <div className={s.detailColumn}>
-              <span className={s.label}>当前装备</span>
-              <ItemDetail
-                stack={current}
-                placeholder="从左侧选择一件装备。"
-                className={s.detail}
-              />
-            </div>
-            <div className={s.detailColumn}>
-              <span className={s.label}>升阶预览</span>
-              <ItemDetail
-                stack={nextPreview}
-                placeholder="选择装备后显示下一阶。"
-                className={s.detail}
-              />
-            </div>
-          </div>
-          <p className={s.notice}>{notice}</p>
-          <EquipCostRack
-            check={check}
-            onShowTooltip={showTooltip}
-            onHideTooltip={() => setHovered(null)}
-          />
-          <div className={s.footer}>
-            <EventPanelButton
-              tone="primary"
-              disabled={!canUpgrade}
-              onClick={() => selected && upgradeEquip(selected)}
-              aria-label="升阶选中的装备"
-            >
-              升阶
-            </EventPanelButton>
-          </div>
-        </div>
-      </div>
+        {flash && <p className={s.flash} role="status">{flash}</p>}
+      </HudPanelShell>
       {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
     </>
   );
