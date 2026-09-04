@@ -130,6 +130,17 @@ export function bondPool(bias?: BondBias): string[] {
   return bias ? [...BOND_BIAS[bias]] : [...ROLLABLE_BOND_IDS];
 }
 
+// 重掷一条羁绊词条: 从池中排除装备当前那条, 保证每次重铸必定换一条。
+export function rerollBond(
+  current: string | undefined,
+  pickIndex: (n: number) => number,
+  bias?: BondBias,
+): string | undefined {
+  const pool = bondPool(bias).filter((id) => id !== current);
+  if (!pool.length) return undefined;
+  return pool[pickIndex(pool.length)];
+}
+
 // ⚠ 刻意**不 throw**(与 data/index.ts 的 getItemDef 相反): 存档里可能残留已下线的羁绊 id,
 //   计数时静默跳过即可 —— 不该让一件旧装备把整个仓库界面炸掉。
 export function getBondDef(id: string): BondDef | undefined {

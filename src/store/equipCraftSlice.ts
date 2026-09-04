@@ -6,10 +6,11 @@ import {
   reforgeCheck,
   upgradeCheck,
   upgradeRecipe,
+  rerollBond,
 } from "@/data";
 import { consumeItems } from "@/items/inventory";
-import { rollEquipment, upgradeEquipment } from "@/items/equipRoll";
-import type { EquipRoll, EquipSlot, ItemStack } from "@/items/types";
+import { upgradeEquipment } from "@/items/equipRoll";
+import type { EquipSlot, ItemStack } from "@/items/types";
 import { shiftVitals } from "./characterStats";
 import type { TownStore } from "./townStore";
 
@@ -19,7 +20,7 @@ export type EquipTarget =
 
 export interface PendingReforge {
   target: EquipTarget;
-  roll: EquipRoll;
+  affinity: string;
 }
 
 export interface EquipCraftSlice {
@@ -99,17 +100,17 @@ export function createEquipCraftSlice(
       const stack = readEquip(state, target);
       if (!stack) return;
       const def = getItemDef(stack.itemId);
-      if (def.category !== "equipment" || !def.model) return;
+      if (def.category !== "equipment" || !def.affinityRollable) return;
 
       const check = reforgeCheck(def, state.storage);
       if (!check.ok) return;
       const cost = reforgeCost(itemRegionId(def));
-      const roll = rollEquipment(def, randomPick);
-      if (!roll) return;
+      const affinity = rerollBond(stack.affinity ?? def.affinity, randomPick);
+      if (!affinity) return;
 
       set({
         storage: consumeItems(state.storage, cost.itemId, cost.count),
-        pendingReforge: { target, roll },
+        pendingReforge: { target, affinity },
       });
     },
 
@@ -127,7 +128,7 @@ export function createEquipCraftSlice(
         return;
       }
       set({
-        ...writeEquip(state, pending.target, { ...stack, roll: pending.roll }),
+        ...writeEquip(state, pending.target, { ...stack, affinity: pending.affinity }),
         pendingReforge: null,
       });
     },

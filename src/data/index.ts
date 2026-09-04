@@ -54,6 +54,7 @@ export {
   getBondDef,
   mergeMods,
   nextTier,
+  rerollBond,
   type BondDef,
   type BondTier,
 } from "./bonds";

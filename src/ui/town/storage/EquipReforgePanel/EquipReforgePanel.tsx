@@ -25,36 +25,36 @@ export function EquipReforgePanel() {
   const target = pending?.target ?? selected;
   const current = equipStackOf(storage, characters, target);
   const check = reforgeCheck(current ? getItemDef(current.itemId) : null, storage);
-  const canRoll = Boolean(selected && current && getItemDef(current.itemId).model && check.ok);
+  const canRoll = Boolean(selected && current && getItemDef(current.itemId).affinityRollable && check.ok);
   const showTooltip = (element: HTMLElement, stack: ItemStack) => {
     setHovered({ stack, point: tooltipPointFromElement(element) });
   };
 
   if (pending) {
     const original = current;
-    const next = original ? { ...original, roll: pending.roll } : null;
+    const next = original ? { ...original, affinity: pending.affinity } : null;
     return (
       <>
         <div className={s.compareBody}>
-          <p className={s.compareNotice}>请选择要保留的词条。重铸材料已经扣除，放弃新词条不会返还。</p>
+          <p className={s.compareNotice}>请选择要保留的羁绊。重铸材料已经扣除，放弃新羁绊不会返还。</p>
           <div className={s.compareGrid}>
             <div className={s.detailColumn}>
-              <span className={s.label}>原词条</span>
+              <span className={s.label}>原羁绊</span>
               <ItemDetail stack={original} placeholder="原装备已不在当前目标中。" className={s.detail} />
               <EventPanelButton
                 onClick={() => applyReforge(false)}
-                aria-label="保留原词条"
+                aria-label="保留原羁绊"
               >
                 保留这套
               </EventPanelButton>
             </div>
             <div className={s.detailColumn}>
-              <span className={s.label}>新词条</span>
-              <ItemDetail stack={next} placeholder="新词条候选" className={s.detail} />
+              <span className={s.label}>新羁绊</span>
+              <ItemDetail stack={next} placeholder="新羁绊候选" className={s.detail} />
               <EventPanelButton
                 tone="primary"
                 onClick={() => applyReforge(true)}
-                aria-label="保留新词条"
+                aria-label="保留新羁绊"
               >
                 保留这套
               </EventPanelButton>
@@ -87,9 +87,9 @@ export function EquipReforgePanel() {
             />
           </div>
           <p className={s.notice}>
-            {current && !getItemDef(current.itemId).model
-              ? "这件装备没有随机词条模型，无法重铸。"
-              : "重铸会先生成一套新词条，确认后再决定保留哪一套。"}
+            {current && !getItemDef(current.itemId).affinityRollable
+              ? "这件装备不带羁绊词条，无法重铸。"
+              : "重铸会先掷出一条新羁绊，确认后再决定保留哪一条。属性词条不会改变。"}
           </p>
           <EquipCostRack
             check={check}
@@ -101,7 +101,7 @@ export function EquipReforgePanel() {
               tone="primary"
               disabled={!canRoll}
               onClick={() => selected && rollReforge(selected)}
-              aria-label="重铸选中的装备词条"
+              aria-label="重铸选中装备的羁绊"
             >
               重铸
             </EventPanelButton>

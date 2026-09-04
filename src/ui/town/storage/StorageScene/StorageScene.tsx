@@ -127,8 +127,8 @@ export function StorageScene({ leaving = false }: Props) {
         />
         <EntryTile
           icon={<ReforgeIcon />}
-          name="词条重铸"
-          desc="消耗绿色水晶重掷词条"
+          name="羁绊重铸"
+          desc="消耗地区材料重掷装备羁绊"
           entryId="reforge"
           hidden={morph.hiddenEntry === "reforge"}
           onClick={(event) => morph.openPanel("reforge", event.currentTarget)}
@@ -198,9 +198,9 @@ export function StorageScene({ leaving = false }: Props) {
       {panel === "reforge" && (
         <PanelShell
           accent={STORAGE_ACCENT}
-          title="词条重铸"
-          status="生成候选后选择保留的词条"
-          closeLabel="关闭词条重铸"
+          title="羁绊重铸"
+          status="掷出候选后选择保留的羁绊"
+          closeLabel="关闭羁绊重铸"
           closing={morph.phase === "closing"}
           onClose={morph.closePanel}
           themeStyle={STORAGE_THEME}
@@ -209,7 +209,7 @@ export function StorageScene({ leaving = false }: Props) {
             rect: STORAGE_PANEL_RECT.reforge,
             ready: morph.ready,
             seed: <ReforgeIcon />,
-            seedLabel: "词条重铸",
+            seedLabel: "羁绊重铸",
           }}
         >
           <EquipReforgePanel />
