@@ -66,36 +66,35 @@ const T2_BEACON = [
 ];
 
 const T3_PATROL = [
-  placeEnemy("traffic-light-bot", { dx: -150 }),
-  placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("maintenance-spider", { dx: -150, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("sweep-drone", { scale: 1.1 }),
   placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
 ];
 
 const T3_BLOCKADE = [
   placeEnemy("traffic-light-bot", { dx: -150 }),
   placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("radio-bot", { dx: 150, scale: 0.7, dy: GROUND_DY + 30, flip: true }),
+  placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
 ];
 
 const T4_PATROL = [
   placeEnemy("radio-bot", { dx: -180, flip: true }),
-  placeEnemy("traffic-light-bot", { dx: -60 }),
+  placeEnemy("radio-bot", { dx: -60, scale: 0.7 }),
   placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
   placeEnemy("sweep-drone", { dx: 180, scale: 1.1, flip: true }),
 ];
 
 const T4_BLOCKADE = [
   placeEnemy("traffic-light-bot", { dx: -180 }),
-  placeEnemy("sweep-drone", { dx: -60, scale: 1.1 }),
-  placeEnemy("maintenance-spider", { dx: 60, dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("scrap-bot", { dx: 180, flip: true }),
+  placeEnemy("traffic-light-bot", { dx: -60 }),
+  placeEnemy("radio-bot", { dx: 60, scale: 0.7, dy: GROUND_DY + 30 }),
+  placeEnemy("sweep-drone", { dx: 180, scale: 1.1, flip: true }),
 ];
 
 const T4_ELITE_GUARD = [
-  placeEnemy("radio-bot", { dx: -180 }),
-  placeEnemy("maintenance-spider", { dx: -60, dy: SPIDER_DY, scale: 1.1 }),
-  placeEnemy("pole-bot", { dx: 60, flip: true }),
-  placeEnemy("sweep-drone", { dx: 180, scale: 1.1, flip: true }),
+  placeEnemy("pole-bot", { dx: -150 }),
+  placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("radio-bot", { dx: 150, scale: 0.7, dy: GROUND_DY + 30, flip: true }),
 ];
 
 const T4_COMPACTOR = [
@@ -104,6 +103,40 @@ const T4_COMPACTOR = [
 ];
 
 const T5_BOSS = [placeEnemy("scrap-mountain-guardian", { dy: -60 })];
+
+const TUT_T1_INTRO = [
+  placeEnemy("radio-bot", { dx: -100, scale: 0.7 }),
+  placeEnemy("traffic-light-bot", { dx: 100, flip: true }),
+];
+
+const TUT_T1_SCOUT = [
+  placeEnemy("radio-bot", { dx: -100, scale: 0.7 }),
+  placeEnemy("maintenance-spider", { dx: 100, dy: SPIDER_DY, scale: 1.1, flip: true }),
+];
+
+const TUT_T2_CREW = [
+  placeEnemy("radio-bot", { dx: -150, scale: 0.7 }),
+  placeEnemy("radio-bot", { scale: 0.7, dy: GROUND_DY + 30 }),
+  placeEnemy("traffic-light-bot", { dx: 150, flip: true }),
+];
+
+const TUT_T2_SIGNAL = [
+  placeEnemy("radio-bot", { dx: -150, scale: 0.7 }),
+  placeEnemy("traffic-light-bot"),
+  placeEnemy("maintenance-spider", { dx: 150, dy: SPIDER_DY, scale: 1.1, flip: true }),
+];
+
+const TUT_T3_LINE = [
+  placeEnemy("traffic-light-bot", { dx: -150 }),
+  placeEnemy("traffic-light-bot"),
+  placeEnemy("maintenance-spider", { dx: 150, dy: SPIDER_DY, scale: 1.1, flip: true }),
+];
+
+const TUT_T3_RELAY = [
+  placeEnemy("radio-bot", { dx: -150, scale: 0.7 }),
+  placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
+];
 
 export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-t1-scout", name: "初遇侦察", enemies: T1_SCOUT },
@@ -117,4 +150,10 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-t4-elite-guard", name: "高压拦截", enemies: T4_ELITE_GUARD },
   { id: "n-t4-compactor", name: "报废压缩机", enemies: T4_COMPACTOR },
   { id: "n-t5-boss", name: "回收总控", enemies: T5_BOSS },
+  { id: "tut-t1-intro", name: "入门巡逻", enemies: TUT_T1_INTRO },
+  { id: "tut-t1-scout", name: "初次接触", enemies: TUT_T1_SCOUT },
+  { id: "tut-t2-crew", name: "训练班组", enemies: TUT_T2_CREW },
+  { id: "tut-t2-signal", name: "信号巡线", enemies: TUT_T2_SIGNAL },
+  { id: "tut-t3-line", name: "清运测试", enemies: TUT_T3_LINE },
+  { id: "tut-t3-relay", name: "中继压制", enemies: TUT_T3_RELAY },
 ];

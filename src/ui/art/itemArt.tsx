@@ -44,6 +44,7 @@ import criticalPrismArt from "@/assets/道具/装备/饰品/暴击棱镜.png";
 import lifeThornRingArt from "@/assets/道具/装备/饰品/生命棘环.png";
 import breachBeaconArt from "@/assets/道具/装备/饰品/破阵信标.png";
 import burdenModuleArt from "@/assets/道具/装备/饰品/负重模块.png";
+import heavyBurdenArt from "@/assets/道具/沉重的负担.png";
 import medicalKitArt from "@/assets/道具/消耗品/医疗包.png";
 import holyWaterArt from "@/assets/道具/消耗品/圣水.png";
 import fruitJuiceArt from "@/assets/道具/消耗品/果汁.png";
@@ -62,6 +63,9 @@ import magnetArt from "@/assets/道具/材料/通用材料/磁铁.png";
 import greenCrystalArt from "@/assets/道具/材料/通用材料/绿色水晶.png";
 import blueCrystalArt from "@/assets/道具/材料/通用材料/蓝色水晶.png";
 import redCrystalArt from "@/assets/道具/材料/通用材料/红色水晶.png";
+import neonTubeArt from "@/assets/道具/材料/废弃楼层/霓虹灯管.png";
+import compactedBlockArt from "@/assets/道具/材料/废弃楼层/压缩废块.png";
+import salvageCoreArt from "@/assets/道具/材料/废弃楼层/拾荒核心.png";
 import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
 import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
 import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
@@ -235,6 +239,10 @@ const MATERIAL_ART: Record<string, string> = {
   "green-crystal": greenCrystalArt,
   "blue-crystal": blueCrystalArt,
   "red-crystal": redCrystalArt,
+  "neon-tube": neonTubeArt,
+  "compacted-block": compactedBlockArt,
+  "salvage-core": salvageCoreArt,
+  "heavy-burden": heavyBurdenArt,
 };
 
 // 水晶: 三种同为普通品级, **颜色是它们唯一的区分信息** —— 所以刻意不吃 currentColor

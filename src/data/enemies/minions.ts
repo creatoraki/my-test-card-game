@@ -30,7 +30,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     id: "radio-bot",
     name: "收音机机器人",
     emoji: "📻",
-    maxHp: 35,
+    maxHp: 48,
     exp: 11,
     stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 22, critDamage: 150 },
     moves: [
@@ -78,7 +78,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     id: "sweep-drone",
     name: "清扫无人机",
     emoji: "🛸",
-    maxHp: 40,
+    maxHp: 70,
     exp: 12,
     stats: { attack: 70, defense: 0, dodgeRate: 0, initiative: 18, critDamage: 150 },
     moves: [
@@ -130,7 +130,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     id: "maintenance-spider",
     name: "维修蜘蛛",
     emoji: "🕷️",
-    maxHp: 45,
+    maxHp: 62,
     exp: 12,
     stats: { attack: 60, defense: 0, dodgeRate: 0, initiative: 21, critDamage: 150 },
     moves: [
@@ -181,7 +181,7 @@ export const MINION_ENEMIES: EnemyDef[] = [
     id: "traffic-light-bot",
     name: "红绿灯机器人",
     emoji: "🚦",
-    maxHp: 40,
+    maxHp: 58,
     exp: 14,
     stats: { attack: 70, defense: 0, dodgeRate: 0, initiative: 19, critDamage: 150 },
     moves: [
