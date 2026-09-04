@@ -9,22 +9,6 @@
   height: 100%;
 }
 
-.heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgb(255 179 64 / 0.24);
-}
-
-.kicker {
-  font-size: 13px;
-  letter-spacing: 0.22em;
-  color: #ffc978;
-  text-shadow: 0 0 10px rgb(255 160 40 / 0.4);
-}
-
 .table {
   display: flex;
   flex-direction: column;

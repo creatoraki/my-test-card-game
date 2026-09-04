@@ -1,4 +1,4 @@
-// 装备升阶面板 demo —— HudFrame 外框内的三列: 装备选择 / 升阶操作 / 升阶收益。
+// 装备升阶面板 demo —— HudFrame 外框内的三列: 装备选择 / 消耗 / 升阶收益。
 // 目标是替换 town/storage/EquipUpgradePanel。本页用假数据(demoData.ts), 不接存档。
 
 import { useMemo, useState } from "react";
@@ -7,6 +7,7 @@ import type { ItemStack } from "@/items/types";
 import type { EquipTab } from "@/ui/common/item/itemFilters";
 import ItemTooltip, {
   tooltipPointFromElement,
+  type TooltipAxis,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { HudFrame } from "../HudFrame";
@@ -42,8 +43,8 @@ export function OpusHudFrameDemo() {
   else if (current && !nextDef) notice = "这件装备已达到本族最高阶。";
   else if (nextDef) notice = "升阶保留原有词条，并在此基础上追加新的模型值预算。";
 
-  const showTooltip = (element: HTMLElement, stack: ItemStack) => {
-    setHovered({ stack, point: tooltipPointFromElement(element) });
+  const showTooltip = (element: HTMLElement, stack: ItemStack, axis?: TooltipAxis) => {
+    setHovered({ stack, point: tooltipPointFromElement(element, axis) });
   };
 
   const onUpgrade = () => {
@@ -62,7 +63,7 @@ export function OpusHudFrameDemo() {
         <p className={s.kicker}>OPUS / 装备升阶</p>
         <h2>升阶终端</h2>
         <p className={s.headerNote}>
-          左列挑装备，中列看这一阶要花什么并落锤，右列是升阶后各条词条可能落到的区间。
+          左列挑装备，中列看这一阶要花什么，右列看升阶后落点并落锤。
           数据为 demo 假数据，升阶只改本页状态，不写存档。
         </p>
       </header>
@@ -88,19 +89,22 @@ export function OpusHudFrameDemo() {
             <EquipForgeColumn
               stack={current}
               def={currentDef}
-              nextDef={nextDef}
               check={check}
               loot={state.loot}
-              canUpgrade={canUpgrade}
-              notice={notice}
-              onUpgrade={onUpgrade}
               onShowTooltip={showTooltip}
               onHideTooltip={() => setHovered(null)}
             />
 
             <span className={s.divider} aria-hidden />
 
-            <EquipGainColumn preview={preview} emptyText={notice} />
+            <EquipGainColumn
+              preview={preview}
+              emptyText={notice}
+              def={currentDef}
+              nextDef={nextDef}
+              canUpgrade={canUpgrade}
+              onUpgrade={onUpgrade}
+            />
           </div>
         </HudFrame>
 

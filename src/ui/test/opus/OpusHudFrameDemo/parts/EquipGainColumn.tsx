@@ -2,13 +2,20 @@
 // 区间怎么算的见 ../upgradeRange.ts —— 这里只负责画。
 
 import { cx } from "@/ui/common/cx";
+import type { ItemDef } from "@/items/types";
 import { signedValue, type StatRangeRow, type UpgradeRangePreview } from "../upgradeRange";
+import { EquipGainHead } from "./EquipGainHead";
+import { UpgradeAction } from "./UpgradeAction";
 import s from "./EquipGainColumn.module.css";
 
 interface Props {
   preview: UpgradeRangePreview | null;
   /** preview 为空时的说明(未选中 / 已满阶 / 无模型)。 */
   emptyText: string;
+  def: ItemDef | null;
+  nextDef: ItemDef | null;
+  canUpgrade: boolean;
+  onUpgrade: () => void;
 }
 
 function unit(row: StatRangeRow): string {
@@ -21,12 +28,17 @@ function rangeText(row: StatRangeRow): string {
   return `${signedValue(row.min)}${suffix} ~ ${signedValue(row.max)}${suffix}`;
 }
 
-export function EquipGainColumn({ preview, emptyText }: Props) {
+export function EquipGainColumn({
+  preview,
+  emptyText,
+  def,
+  nextDef,
+  canUpgrade,
+  onUpgrade,
+}: Props) {
   return (
     <section className={s.column} aria-label="升阶后属性范围">
-      <header className={s.heading}>
-        <span className={s.kicker}>升阶收益</span>
-      </header>
+      {def && <EquipGainHead def={def} nextDef={nextDef} notice={emptyText} />}
 
       {preview ? (
         <>
@@ -67,6 +79,8 @@ export function EquipGainColumn({ preview, emptyText }: Props) {
       ) : (
         <p className={s.empty}>{emptyText}</p>
       )}
+
+      {def && <UpgradeAction canUpgrade={canUpgrade} onUpgrade={onUpgrade} />}
     </section>
   );
 }

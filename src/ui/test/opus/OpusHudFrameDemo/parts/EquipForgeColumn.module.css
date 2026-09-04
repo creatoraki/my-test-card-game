@@ -1,4 +1,4 @@
-/* 中列: 大图标 → 羁绊 → 材料 → 积分 → 按钮。
+/* 中列: 大图标 → 材料 → 积分。
    ★ --rr 是跨组件契约(见 ItemSlot.module.css): itemArt 的线框图标用 currentColor 上色,
      所以这里也照同一套稀有度令牌设 --rr, 大图标才会跟着稀有度变色。 */
 
@@ -26,14 +26,14 @@
   justify-content: center;
   flex: 1 1 auto;
   min-height: 96px;
-  max-height: 186px;
+  max-height: 240px;
 }
 
 .stage::before {
   content: "";
   position: absolute;
   inset: 50% 50% auto auto;
-  width: min(210px, 105%);
+  width: min(260px, 105%);
   aspect-ratio: 1;
   transform: translate(50%, -50%);
   border-radius: 50%;
@@ -71,98 +71,6 @@
 .r-epic { --rr: var(--rarity-epic); }
 .r-legendary { --rr: var(--rarity-legendary); }
 
-.title {
-  flex: none;
-  text-align: center;
-}
-
-.name {
-  margin: 0;
-  font-size: 21px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  color: #fdf1f7;
-  text-shadow: 0 0 12px rgb(255 43 134 / 0.4);
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  justify-content: center;
-  margin: 6px 0 0;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  color: #a896b5;
-}
-
-.rarity {
-  color: var(--rr);
-}
-
-.step {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 1px 8px;
-  border: 1px solid rgb(255 90 160 / 0.3);
-  border-radius: 999px;
-  background: rgb(255 60 150 / 0.08);
-}
-
-.arrow {
-  color: #ff86bf;
-  font-weight: 400;
-}
-
-/* 羁绊词条 */
-.bond {
-  display: grid;
-  grid-template-columns: 26px auto 1fr;
-  align-items: center;
-  gap: 4px 8px;
-  flex: none;
-  padding: 8px 10px;
-  border: 1px solid rgb(255 90 160 / 0.2);
-  border-radius: 4px;
-  background: rgb(255 60 150 / 0.06);
-}
-
-.bondIcon {
-  width: 26px;
-  height: 26px;
-}
-
-.bondName {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  color: #f6dcea;
-}
-
-.bondArcana {
-  font-size: 11px;
-  color: #b28fb0;
-}
-
-.bondDesc {
-  grid-column: 2 / -1;
-  font-size: 11px;
-  line-height: 1.5;
-  color: #a595b1;
-}
-
-.notice {
-  flex: none;
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  color: #b1a3bb;
-  text-align: center;
-}
-
 .costs {
   display: flex;
   flex-direction: column;
@@ -186,6 +94,7 @@
   border: 1px solid rgb(255 90 160 / 0.18);
   border-radius: 4px;
   background: rgb(12 6 18 / 0.35);
+  --item-slot-icon-size: 70%;
 }
 
 .materialName {
@@ -242,9 +151,10 @@
   font-size: 14px;
   letter-spacing: 0.04em;
   color: #ffd98a;
+  font-variant-numeric: tabular-nums;
 }
 
-.action {
-  flex: none;
-  width: 100%;
+.lootValue {
+  white-space: nowrap;
 }
+

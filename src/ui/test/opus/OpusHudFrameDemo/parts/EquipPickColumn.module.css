@@ -9,36 +9,44 @@
   height: 100%;
 }
 
-.heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgb(255 90 160 / 0.22);
-}
-
-.kicker {
-  font-size: 13px;
-  letter-spacing: 0.22em;
-  color: #ff9ac8;
-  text-shadow: 0 0 10px rgb(255 43 134 / 0.5);
-}
-
-.count {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: #a896b5;
-}
-
 .tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
   flex: none;
+}
+
+.tab {
+  width: 100%;
+  padding: 6px 4px;
+  border: 1px solid rgb(255 90 160 / 0.24);
+  border-radius: 6px;
+  background: rgb(255 60 150 / 0.04);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  color: #b9a6c6;
+  cursor: var(--cursor-pointer);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.tab:hover,
+.tabOn {
+  border-color: var(--accent);
+  background: rgb(255 47 142 / 0.2);
+  color: #ffe5f1;
+}
+
+.slot {
+  --item-slot-icon-size: 72%;
+  --item-slot-bond-size: 18px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
   align-content: start;
   min-height: 0;
   padding-right: 6px;

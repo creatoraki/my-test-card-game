@@ -1,0 +1,101 @@
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: none;
+}
+
+.title {
+  text-align: center;
+}
+
+.name {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: #fdf1f7;
+  text-shadow: 0 0 12px rgb(255 43 134 / 0.4);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  justify-content: center;
+  margin: 6px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: #a896b5;
+}
+
+.rarity {
+  color: var(--rr);
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 8px;
+  border: 1px solid rgb(255 90 160 / 0.3);
+  border-radius: 999px;
+  background: rgb(255 60 150 / 0.08);
+}
+
+.arrow {
+  color: #ff86bf;
+  font-weight: 400;
+}
+
+.r-common { --rr: var(--rarity-common); }
+.r-fine { --rr: var(--rarity-fine); }
+.r-rare { --rr: var(--rarity-rare); }
+.r-epic { --rr: var(--rarity-epic); }
+.r-legendary { --rr: var(--rarity-legendary); }
+
+.bond {
+  display: grid;
+  grid-template-columns: 26px auto 1fr;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 8px 10px;
+  border: 1px solid rgb(255 90 160 / 0.2);
+  border-radius: 4px;
+  background: rgb(255 60 150 / 0.06);
+}
+
+.bondIcon {
+  width: 26px;
+  height: 26px;
+}
+
+.bondName {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: #f6dcea;
+}
+
+.bondArcana {
+  font-size: 11px;
+  color: #b28fb0;
+}
+
+.bondDesc {
+  grid-column: 2 / -1;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a595b1;
+}
+
+.notice {
+  flex: none;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #b1a3bb;
+  text-align: center;
+}

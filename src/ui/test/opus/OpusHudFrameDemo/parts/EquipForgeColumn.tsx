@@ -1,13 +1,9 @@
-// 中列: 装备大图标 + 羁绊 + 3 样材料 + 积分 + 升阶按钮。
-// 这一列是操作主线, 从上到下就是玩家的动作顺序: 看这件东西 → 看要花什么 → 按下去。
+// 中列: 装备大图标 + 3 样材料 + 积分。
 
 import type { CostCheck } from "@/data";
-import { getBondDef, getItemDef } from "@/data";
+import { getItemDef } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
-import { RARITY_LABEL, SLOT_LABEL } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
-import { BondIcon } from "@/ui/common/BondIcon";
-import { EventPanelButton } from "@/ui/common/EventPanel";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { cx } from "@/ui/common/cx";
 import s from "./EquipForgeColumn.module.css";
@@ -15,12 +11,8 @@ import s from "./EquipForgeColumn.module.css";
 interface Props {
   stack: ItemStack | null;
   def: ItemDef | null;
-  nextDef: ItemDef | null;
   check: CostCheck | null;
   loot: number;
-  canUpgrade: boolean;
-  notice: string;
-  onUpgrade: () => void;
   onShowTooltip: (element: HTMLElement, stack: ItemStack) => void;
   onHideTooltip: () => void;
 }
@@ -28,12 +20,8 @@ interface Props {
 export function EquipForgeColumn({
   stack,
   def,
-  nextDef,
   check,
   loot,
-  canUpgrade,
-  notice,
-  onUpgrade,
   onShowTooltip,
   onHideTooltip,
 }: Props) {
@@ -45,41 +33,11 @@ export function EquipForgeColumn({
     );
   }
 
-  const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
-
   return (
     <section className={s.column} aria-label="装备升阶">
       <div className={s.stage}>
         <span className={cx(s.icon, s[`r-${def.rarity}`])}>{itemIcon(def)}</span>
       </div>
-
-      <div className={s.title}>
-        <h3 className={s.name}>{def.name}</h3>
-        <p className={s.tags}>
-          <span className={cx(s.rarity, s[`r-${def.rarity}`])}>{RARITY_LABEL[def.rarity]}</span>
-          {def.slot && <span>{SLOT_LABEL[def.slot]}</span>}
-          {nextDef && (
-            <span className={s.step}>
-              {RARITY_LABEL[def.rarity]}
-              <b className={s.arrow}>→</b>
-              <b className={cx(s.rarity, s[`r-${nextDef.rarity}`])}>{RARITY_LABEL[nextDef.rarity]}</b>
-            </span>
-          )}
-        </p>
-      </div>
-
-      {bond && (
-        <div className={s.bond}>
-          <BondIcon bondId={bond.id} className={s.bondIcon} />
-          <span className={s.bondName}>
-            {bond.name}
-            <span className={s.bondArcana}>{bond.arcana}</span>
-          </span>
-          <span className={s.bondDesc}>{bond.desc}</span>
-        </div>
-      )}
-
-      <p className={s.notice}>{notice}</p>
 
       <div className={s.costs}>
         {check?.materials.length ? (
@@ -132,15 +90,6 @@ export function EquipForgeColumn({
         )}
       </div>
 
-      <EventPanelButton
-        tone="primary"
-        className={s.action}
-        disabled={!canUpgrade}
-        onClick={onUpgrade}
-        aria-label="升阶选中的装备"
-      >
-        升阶
-      </EventPanelButton>
     </section>
   );
 }

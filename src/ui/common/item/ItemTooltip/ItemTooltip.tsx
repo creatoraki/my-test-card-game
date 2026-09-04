@@ -11,12 +11,16 @@ const TOOLTIP_GAP = 18;
 const TOOLTIP_MARGIN = 12;
 
 export type TooltipPoint = {
-  /** 锚点(触发元素右缘中点)在 host 局部坐标系里的设计 px。 */
+  /** 锚点在 host 局部坐标系里的设计 px。 */
   x: number;
   y: number;
+  /** 默认从右侧展开；vertical 从触发元素下方展开，空间不足时翻到上方。 */
+  axis?: TooltipAxis;
   /** 浮层要挂进去的那张设计画布 —— 挂在画布内, 坐标系才和画布内的一切 px 一致。 */
   host: HTMLElement;
 };
+
+export type TooltipAxis = "horizontal" | "vertical";
 
 /**
  * 由触发元素算出浮窗锚点。
@@ -26,15 +30,16 @@ export type TooltipPoint = {
  *   hooks/stage.ts 的 designScaleOf()。历史上这里用 currentCSSZoom 手工换算屏幕 px,
  *   在窗口小于 1920 时会把浮层推出可视区。
  */
-export function tooltipPointFromElement(el: Element): TooltipPoint {
+export function tooltipPointFromElement(el: Element, axis: TooltipAxis = "horizontal"): TooltipPoint {
   const host = stageHostOf(el);
   const hostRect = host.getBoundingClientRect();
   const rect = el.getBoundingClientRect();
   const k = designScaleOf(host);
   return {
-    x: (rect.right - hostRect.left) / k,
-    y: (rect.top + rect.height / 2 - hostRect.top) / k,
+    x: (axis === "vertical" ? rect.left + rect.width / 2 - hostRect.left : rect.right - hostRect.left) / k,
+    y: (axis === "vertical" ? rect.bottom - hostRect.top : rect.top + rect.height / 2 - hostRect.top) / k,
     host,
+    axis,
   };
 }
 
@@ -72,13 +77,26 @@ export function useTooltipPlacement(
     const height = rect.height / k;
     const boxW = host.clientWidth;
     const boxH = host.clientHeight;
+    const vertical = point.axis === "vertical";
 
     const right = point.x + TOOLTIP_GAP;
-    const left =
-      right + width <= boxW - TOOLTIP_MARGIN
+    const left = vertical
+      ? Math.min(
+          Math.max(TOOLTIP_MARGIN, point.x - width / 2),
+          Math.max(TOOLTIP_MARGIN, boxW - width - TOOLTIP_MARGIN),
+        )
+      : right + width <= boxW - TOOLTIP_MARGIN
         ? right
         : Math.max(TOOLTIP_MARGIN, point.x - width - TOOLTIP_GAP);
-    const wanted = topOffset === undefined ? point.y - height / 2 : point.y - topOffset;
+    const below = point.y + TOOLTIP_GAP;
+    const above = point.y - height - TOOLTIP_GAP;
+    const wanted = vertical
+      ? below + height <= boxH - TOOLTIP_MARGIN
+        ? below
+        : above
+      : topOffset === undefined
+        ? point.y - height / 2
+        : point.y - topOffset;
     const top = Math.min(
       Math.max(TOOLTIP_MARGIN, wanted),
       Math.max(TOOLTIP_MARGIN, boxH - height - TOOLTIP_MARGIN),
