@@ -65,11 +65,8 @@ export function mergeStatus(
 
 export function effectiveStacks(inst: StatusInstance, def: StatusDef, tempo: number): number {
   if (def.stackMode === "segments") {
-    if (!inst.segments) return inst.appliedAt === tempo ? 0 : inst.stacks;
-    return inst.segments.reduce(
-      (sum, segment) => sum + (segment.appliedAt === tempo ? 0 : segment.stacks),
-      0,
-    );
+    if (!inst.segments) return inst.stacks;
+    return inst.segments.reduce((sum, segment) => sum + segment.stacks, 0);
   }
   return inst.appliedAt === tempo ? 0 : inst.stacks;
 }
@@ -77,14 +74,12 @@ export function effectiveStacks(inst: StatusInstance, def: StatusDef, tempo: num
 export function tickStatus(inst: StatusInstance, def: StatusDef, tempo?: number): void {
   if (def.stackMode === "segments") {
     if (!inst.segments) {
-      if (tempo != null && inst.appliedAt === tempo) return;
       if (def.decay === "one") inst.stacks -= 1;
       if (def.decay === "half") inst.stacks = Math.floor(inst.stacks / 2);
       if (inst.duration != null) inst.duration -= 1;
       return;
     }
     for (const segment of inst.segments) {
-      if (tempo != null && segment.appliedAt === tempo) continue;
       if (segment.duration != null) segment.duration -= 1;
     }
     inst.segments = inst.segments.filter((segment) => segment.duration == null || segment.duration > 0);

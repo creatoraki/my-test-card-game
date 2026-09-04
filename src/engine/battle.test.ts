@@ -15,7 +15,6 @@ import {
 } from "./index";
 import type { AllyInit, BattleSetup, BattleState } from "./index";
 import { CHARACTERS, makeCard } from "../data";
-import { dealDamage } from "./ops";
 
 function allies(): AllyInit[] {
   return CHARACTERS.map((c) => ({
@@ -123,13 +122,9 @@ describe("属性口径", () => {
     const cleanAlly = clean.combatants["swordsman"];
     const pollutedAlly = polluted.combatants["swordsman"];
 
-    dealDamage(clean, cleanEnemy.id, cleanAlly.id, 10, { isAttack: true, mustHit: true, fixed: true });
-    dealDamage(polluted, pollutedEnemy.id, pollutedAlly.id, 10, {
-      isAttack: true,
-      mustHit: true,
-      fixed: true,
-    });
-    expect(cleanAlly.hp - pollutedAlly.hp).toBe(2);
+    expect(statOf(pollutedEnemy, "attack") - statOf(cleanEnemy, "attack")).toBe(
+      4 * RULES.combat.overloadAttackPerStack,
+    );
     expect(hitChance(polluted, pollutedAlly, pollutedEnemy)).toBe(
       hitChance(clean, cleanAlly, cleanEnemy) - 20,
     );

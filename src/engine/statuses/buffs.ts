@@ -48,7 +48,8 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     kind: "buff",
     stackMode: "add",
     refreshMode: "max",
-    desc: `每层: 闪避 +${RULES.combat.overloadDodgePerStack}%。持续存在。`,
+    statMods: { attack: RULES.combat.overloadAttackPerStack },
+    desc: `每层: 攻击力 +${RULES.combat.overloadAttackPerStack}, 闪避 +${RULES.combat.overloadDodgePerStack}%。持续存在。`,
   },
   // 罗生门 —— 回合开始抽 1; 期间首次被攻击时消耗自身, 闪避该次攻击并抽 2。
   rashomon: {

@@ -355,7 +355,7 @@ export interface StatusInstance {
   duration?: number; // 剩余拍数; 缺省 = 不因节拍过期
   data?: Record<string, number>; // 状态的结构化运行时参数
   sourceId?: string; // 施加该状态的单位, 供持续效果读取施法者属性
-  appliedAt?: number; // 施加时持有者的节拍号, 用于跳过施加当拍的处理
+  appliedAt?: number; // 施加时持有者的节拍号, 仅非 segments 模式用于跳过施加当拍的处理
   segments?: StatusSegment[]; // stackMode="segments" 专用; stacks/duration 为派生汇总值
 }
 
