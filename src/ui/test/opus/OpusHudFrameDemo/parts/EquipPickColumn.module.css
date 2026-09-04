@@ -1,0 +1,89 @@
+/* 左列: 装备选择。配色跟 HudFrame 的粉色霓虹走。 */
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgb(255 90 160 / 0.22);
+}
+
+.kicker {
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  color: #ff9ac8;
+  text-shadow: 0 0 10px rgb(255 43 134 / 0.5);
+}
+
+.count {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #a896b5;
+}
+
+.tabs {
+  flex: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+  align-content: start;
+  min-height: 0;
+  padding-right: 6px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 90 160 / 0.45) transparent;
+}
+
+.grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grid::-webkit-scrollbar-thumb {
+  background: rgb(255 90 160 / 0.4);
+  border-radius: 3px;
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* 选中件再加一圈粉色外辉, 让它在一堆稀有度描边里仍然跳出来。 */
+.on {
+  filter: drop-shadow(0 0 8px rgb(255 43 134 / 0.75));
+}
+
+.owner {
+  max-width: 100%;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #b9a6c6;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #9b8ea9;
+}

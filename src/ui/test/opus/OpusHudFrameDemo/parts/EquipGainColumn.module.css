@@ -1,0 +1,120 @@
+/* 右列: 升阶收益表。数值用暖金色, 与左中两列的粉色区分开。 */
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgb(255 179 64 / 0.24);
+}
+
+.kicker {
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  color: #ffc978;
+  text-shadow: 0 0 10px rgb(255 160 40 / 0.4);
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 179 64 / 0.4) transparent;
+}
+
+.table::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table::-webkit-scrollbar-thumb {
+  background: rgb(255 179 64 / 0.35);
+  border-radius: 3px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) 62px minmax(0, 1.2fr);
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 2px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.05);
+  font-size: 13px;
+}
+
+.head {
+  padding-bottom: 5px;
+  border-bottom-color: rgb(255 179 64 / 0.18);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: #97889f;
+}
+
+.label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  color: #d9cbe2;
+}
+
+.cap {
+  flex: none;
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  color: #8a7d93;
+}
+
+.current {
+  color: #b6a8c0;
+  font-variant-numeric: tabular-nums;
+}
+
+.next {
+  color: #ffd98a;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px rgb(255 179 64 / 0.28);
+}
+
+/* 已封顶: 整行压暗, 一眼看出这条不会再涨。 */
+.capped .label,
+.capped .current {
+  color: #7f7288;
+}
+
+.capped .next {
+  color: #9b8d7a;
+  text-shadow: none;
+}
+
+/* 负面词条: 升阶会整条重掷成新阶的固定代价。 */
+.drawback .next {
+  color: #ff8a8a;
+  text-shadow: 0 0 10px rgb(255 90 90 / 0.25);
+}
+
+.foot {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #9b8ea9;
+}
+
+.empty {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #9b8ea9;
+}

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { DsFastSlashDemo } from "@/ui/test/ds";
-import { OpusKeenEdgeDemo } from "@/ui/test/opus";
+import { OpusHudFrameDemo, OpusKeenEdgeDemo } from "@/ui/test/opus";
 import { QwenCharacterCardDemo } from "@/ui/test/qwen";
+import { LunaPanelDemo } from "@/ui/test/luna/LunaPanelDemo/LunaPanelDemo";
 import { SlashSfxDemo } from "@/ui/test/luna/SlashSfxDemo/SlashSfxDemo";
 import { TarotIconDemo } from "@/ui/test/luna/TarotIconDemo/TarotIconDemo";
 import s from "./TestScreen.module.css";
@@ -39,10 +40,9 @@ export function TestScreen() {
         ))}
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
-        {activeTab === "opus" ? <OpusKeenEdgeDemo /> : null}
-        {activeTab === "ds" ? <DsFastSlashDemo /> : null}
+        {activeTab === "opus" ? <OpusHudFrameDemo /> : null}
         {activeTab === "qwen" ? <QwenCharacterCardDemo /> : null}
-        {activeTab === "luna" ? <SlashSfxDemo /> : null}
+        {activeTab === "luna" ? <LunaPanelDemo /> : null}
       </section>
     </main>
   );

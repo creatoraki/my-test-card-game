@@ -1,0 +1,281 @@
+.root {
+  --pink: #ff007d;
+  --pink-hot: #ff1592;
+  --pink-soft: #ffb5de;
+  --pink-core: #ff2a91;
+  --frame-pad: clamp(12px, 2.5vw, 30px);
+  --side-step: 14px;
+  position: relative;
+  display: grid;
+  width: min(100%, 1420px);
+  height: min(760px, calc(100vh - 112px));
+  min-height: min(520px, calc(100vh - 112px));
+  padding: var(--frame-pad);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 4% 50%, #08749324, transparent 24%),
+    radial-gradient(ellipse at 96% 48%, #0874931c, transparent 24%),
+    radial-gradient(ellipse at 50% 0%, #7e0f5420, transparent 38%),
+    linear-gradient(125deg, #02060b, #050b13 54%, #01050a);
+  color: #fceaf5;
+  animation: reveal 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.root::before,
+.root::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.root::before {
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 0 3%, #0874931a 3.1% 3.2%, transparent 3.3% 96.7%, #0874931a 96.8% 96.9%, transparent),
+    linear-gradient(0deg, transparent 0 10%, #08749312 10.1% 10.2%, transparent 10.3% 89.7%, #08749312 89.8% 89.9%, transparent);
+  opacity: 0.65;
+}
+
+.root::after {
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 36%, #0000004d 100%);
+}
+
+.frameDecor {
+  position: absolute;
+  z-index: 3;
+  inset: var(--frame-pad);
+  pointer-events: none;
+}
+
+.frameGlow {
+  --cut: 24px;
+  --shoulder: 31%;
+  position: absolute;
+  z-index: 1;
+  inset: var(--frame-pad);
+  background: var(--pink-hot);
+  clip-path: polygon(
+    0 var(--cut),
+    var(--cut) 0,
+    var(--shoulder) 0,
+    calc(var(--shoulder) + 30px) 28px,
+    calc(100% - var(--shoulder) - 30px) 28px,
+    calc(100% - var(--shoulder)) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% 31%,
+    calc(100% - var(--side-step)) 34%,
+    calc(100% - var(--side-step)) 66%,
+    100% 69%,
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 69%,
+    var(--side-step) 66%,
+    var(--side-step) 34%,
+    0 31%
+  );
+  filter: blur(9px);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.frame {
+  --cut: 24px;
+  --shoulder: 31%;
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    #ff3199,
+    #ff087b 17%,
+    #af0058 42%,
+    #e7006e 57%,
+    #990048 81%,
+    #ff2b96
+  );
+  clip-path: polygon(
+    0 var(--cut),
+    var(--cut) 0,
+    var(--shoulder) 0,
+    calc(var(--shoulder) + 30px) 28px,
+    calc(100% - var(--shoulder) - 30px) 28px,
+    calc(100% - var(--shoulder)) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% 31%,
+    calc(100% - var(--side-step)) 34%,
+    calc(100% - var(--side-step)) 66%,
+    100% 69%,
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 69%,
+    var(--side-step) 66%,
+    var(--side-step) 34%,
+    0 31%
+  );
+  filter:
+    drop-shadow(0 0 1px #ffe0ef)
+    drop-shadow(0 0 3px #ffb0d6)
+    drop-shadow(0 0 7px var(--pink-hot))
+    drop-shadow(0 0 16px #ff007db3)
+    drop-shadow(0 0 32px #ff007d80)
+    drop-shadow(0 0 58px #ff007d55);
+}
+
+.glass {
+  position: absolute;
+  z-index: -1;
+  inset: 3px;
+  background:
+    radial-gradient(ellipse at 50% 0%, #e9157210, transparent 38%),
+    linear-gradient(115deg, #0b1520e3, #02070edb 48%, #07131de8);
+  box-shadow:
+    inset 0 0 26px #e915720d,
+    inset 0 -70px 120px #01050966;
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  backdrop-filter: blur(18px) saturate(125%);
+  clip-path: inherit;
+}
+
+.tubeCore {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border: 2px solid var(--pink-hot);
+  box-shadow:
+    inset 0 1px 0 var(--pink-soft),
+    inset 0 -1px 0 #8e0047,
+    inset 0 0 6px var(--pink-core),
+    0 0 2px #ffe0ef,
+    0 0 7px var(--pink-hot);
+  clip-path: inherit;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.sideBorder {
+  position: absolute;
+  z-index: 2;
+  width: calc(var(--side-step) + 6px);
+  height: 4px;
+  background: linear-gradient(90deg, #d5fbff, #25cfff 45%, #087fa8);
+  box-shadow: 0 0 6px #26d6ff, 0 0 13px #26d6ff80;
+  pointer-events: none;
+}
+
+.sideBorderLeft.sideBorderTop {
+  top: calc(31% - 1px);
+  left: 0;
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+
+.sideBorderLeft.sideBorderMiddle {
+  top: 34%;
+  left: calc(var(--side-step) - 2px);
+  width: 4px;
+  height: 32%;
+  background: linear-gradient(180deg, #9cf4ff, #25cfff 45%, #087fa8);
+  transform: none;
+}
+
+.sideBorderLeft.sideBorderBottom {
+  bottom: calc(31% - 1px);
+  left: 0;
+  transform: rotate(-45deg);
+  transform-origin: left center;
+}
+
+.sideBorderRight.sideBorderTop {
+  top: calc(31% - 1px);
+  right: 0;
+  transform: rotate(-45deg);
+  transform-origin: right center;
+}
+
+.sideBorderRight.sideBorderMiddle {
+  top: 34%;
+  right: calc(var(--side-step) - 2px);
+  width: 4px;
+  height: 32%;
+  background: linear-gradient(180deg, #9cf4ff, #25cfff 45%, #087fa8);
+  transform: none;
+}
+
+.sideBorderRight.sideBorderBottom {
+  right: 0;
+  bottom: calc(31% - 1px);
+  transform: rotate(45deg);
+  transform-origin: right center;
+}
+
+.bottomBlock {
+  --bottom-block-gap: 104px;
+  position: absolute;
+  z-index: 4;
+  bottom: 3px;
+  width: 88px;
+  height: 5px;
+  background: var(--pink-hot);
+  box-shadow: 0 0 7px var(--pink), 0 0 15px #ff007d99;
+  pointer-events: none;
+}
+
+.bottomBlockLeft {
+  left: 50%;
+  transform: translateX(calc(-100% - var(--bottom-block-gap)));
+}
+
+.bottomBlockRight {
+  left: 50%;
+  background: #cf176a;
+  transform: translateX(var(--bottom-block-gap));
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 680px) {
+  .root {
+    width: 100%;
+    height: min(680px, calc(100vh - 88px));
+    min-height: 420px;
+    padding: 12px;
+  }
+
+  .frame {
+    --cut: 18px;
+    --shoulder: 28%;
+    --side-step: 8px;
+  }
+
+  .frameGlow {
+    --cut: 18px;
+    --shoulder: 28%;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none;
+  }
+}

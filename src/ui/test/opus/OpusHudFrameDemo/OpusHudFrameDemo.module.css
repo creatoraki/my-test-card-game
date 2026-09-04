@@ -1,0 +1,107 @@
+/* 装备升阶 demo 外壳。外框自身的样式在 HudFrame.module.css。 */
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  min-height: 100%;
+  padding: 24px 30px 34px;
+  background: #05060d;
+  color: #f2e6ef;
+  font-family: var(--font-family);
+  overflow: hidden;
+}
+
+/* 深蓝底 + 霓虹光斑 + 细网格: 参考截图的场景底色, 也给毛玻璃提供可透视的内容。 */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(44% 38% at 22% 24%, rgb(255 47 142 / 0.16) 0%, transparent 70%),
+    radial-gradient(52% 46% at 74% 70%, rgb(38 214 255 / 0.16) 0%, transparent 72%),
+    repeating-linear-gradient(0deg, rgb(120 200 255 / 0.05) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, rgb(120 200 255 / 0.05) 0 1px, transparent 1px 40px),
+    linear-gradient(180deg, #070b18 0%, #05060d 100%);
+  pointer-events: none;
+}
+
+.header {
+  position: relative;
+  z-index: 1;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  color: #ff86bf;
+}
+
+.header h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #fdf1f7;
+}
+
+.headerNote {
+  margin: 8px 0 0;
+  max-width: 70ch;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #b1a3bb;
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.frame {
+  width: min(1180px, 100%);
+  aspect-ratio: 1228 / 670;
+}
+
+/* 三列。padding 要避开外框自身的几何: 顶边中段比两侧低 stepDepth(26) + inset(16),
+   四角还有 26 的切角 —— 所以上下留 48、左右留 44, 内容不会压到线上。 */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) 1px minmax(0, 1.32fr) 1px minmax(0, 1.06fr);
+  gap: 0 20px;
+  width: 100%;
+  height: 100%;
+  padding: 48px 44px 44px;
+  box-sizing: border-box;
+}
+
+/* 竖分隔线: 两端渐隐, 只做装饰, 不喧宾夺主。 */
+.divider {
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgb(255 90 160 / 0.28) 18%,
+    rgb(255 90 160 / 0.28) 82%,
+    transparent 100%
+  );
+}
+
+.flash {
+  margin: 0;
+  padding: 8px 14px;
+  max-width: min(1180px, 100%);
+  border: 1px solid rgb(255 90 160 / 0.32);
+  border-radius: 4px;
+  background: rgb(255 60 150 / 0.09);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #ffd0e6;
+}
