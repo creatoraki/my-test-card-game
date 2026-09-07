@@ -1,0 +1,61 @@
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.back {
+  position: absolute;
+  left: max(24px, env(safe-area-inset-left));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px 9px 13px;
+  border: 1px solid #79e5cc;
+  border-radius: 6px;
+  background: #071d21e0;
+  color: #d9fff1;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  box-shadow: 0 0 14px #36ffc62e, 0 6px 16px #00151280;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.back:hover,
+.back:focus-visible {
+  transform: translateX(-3px);
+  background: #124d47f2;
+  box-shadow: 0 0 20px #51ffd780, 0 6px 18px #00151280;
+}
+
+.back:focus-visible {
+  outline: 2px solid #bbffeb;
+  outline-offset: 4px;
+}
+
+.back:active {
+  transform: translateX(-1px) scale(0.98);
+}
+
+.backArrow {
+  display: block;
+  width: 16px;
+  height: 16px;
+  color: #8affea;
+  filter: drop-shadow(0 0 5px #36ffc6);
+}
+
+.backArrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.backLabel {
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-weight: 600;
+}
