@@ -75,7 +75,7 @@
    元素跨阶段一直挂载着, 只改 direction 不会重启动画 —— 旧动画的时间线早已跑完,
    反向后会直接跳到终态(瞬间全透明)而不是淡出。 */
 .back.is-leaving {
-  animation: facilityBackOut 300ms ease-in both;
+  animation: facilityBackOut var(--fac-back-out, 300ms) ease-in both;
 }
 
 @keyframes facilityBackOut {

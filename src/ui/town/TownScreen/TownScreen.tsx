@@ -155,8 +155,8 @@ export function TownScreen() {
     if (phase !== "inside") return;
     clearTimers();
     setPhase("leaving");
-    // 像素转场立刻反向起播, HUD 稍后再逐个飞回(flyBackDelay 留了 240ms 的头)。
-    setSwapped(false);
+    // 返回按钮先淡出, 再启动反向像素转场; HUD 仍按原节奏稍后逐个飞回。
+    later(() => setSwapped(false), FACILITY_CINEMA.backBtnOut);
     later(() => {
       setPhase("idle");
       setBuilding(null);
@@ -200,8 +200,9 @@ export function TownScreen() {
       data-town-stage
       style={
         {
-          // 只剩「返回据点」按钮的淡入时长要下发给 CSS(--leave-ms 随相机关键帧一起废弃了)。
+          // 返回按钮的进出场时长都由同一组演出常量驱动。
           "--fac-back-in": `${FACILITY_CINEMA.backBtnIn}ms`,
+          "--fac-back-out": `${FACILITY_CINEMA.backBtnOut}ms`,
         } as CSSProperties
       }
     >

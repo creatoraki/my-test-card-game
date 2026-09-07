@@ -41,6 +41,7 @@ export const FACILITY_CINEMA = {
   // 返回时同一条时长也走一遍(要留在 leave 之内)。
   crossfade: 1100,
   backBtnIn: 320, // 「返回据点」按钮淡入
+  backBtnOut: 300, // 「返回据点」按钮先淡出, 再开始反向像素转场
   leave: 1400, // 返回据点: 整套反向播放的总时长
   leaveFlyIn: 520, // 返回时元素飞回的单个时长
 } as const;
