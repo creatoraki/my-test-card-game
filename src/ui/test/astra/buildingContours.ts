@@ -11,6 +11,7 @@ export const BUILDING_CONTOURS = [
   {
     id: "airlock",
     label: "整备舱",
+    sign: { x: 322, y: 155, anchorX: 380, anchorY: 358 },
     path: `M 359 179
       L 599 125 L 605 119 L 673 140 L 674 79
       Q 679 75 684 80 L 685 145 L 714 153
@@ -25,6 +26,7 @@ export const BUILDING_CONTOURS = [
   {
     id: "supplies",
     label: "补给站",
+    sign: { x: 1055, y: 145, anchorX: 995, anchorY: 345 },
     path: `M 773 207
       L 811 198 L 811 193 L 816 191 L 816 183
       L 824 182 L 829 188 L 829 197 L 851 196
@@ -48,6 +50,7 @@ export const BUILDING_CONTOURS = [
   {
     id: "sleeping-pods",
     label: "休眠舱",
+    sign: { x: 1676, y: 150, anchorX: 1610, anchorY: 356 },
     path: `M 1227 174
       L 1240 158 L 1266 154 L 1272 144 L 1290 139
       L 1327 135 L 1337 128 L 1356 124 L 1391 118
@@ -70,6 +73,7 @@ export const BUILDING_CONTOURS = [
   {
     id: "workshop",
     label: "工坊",
+    sign: { x: 150, y: 473, anchorX: 221, anchorY: 657 },
     path: `M 221 511
       L 326 479 L 326 469 L 350 460 L 370 465
       L 376 472 L 391 467 Q 397 465 404 469
@@ -90,6 +94,7 @@ export const BUILDING_CONTOURS = [
   {
     id: "power-station",
     label: "能源终端",
+    sign: { x: 957, y: 625, anchorX: 890, anchorY: 828 },
     path: `M 646 801
       L 665 796 L 688 803 L 701 799 L 703 768
       L 709 760 L 718 738 L 739 733 L 780 740
@@ -101,6 +106,7 @@ export const BUILDING_CONTOURS = [
   {
     id: "laboratory",
     label: "研究中心",
+    sign: { x: 1788, y: 490, anchorX: 1698, anchorY: 691 },
     path: `M 1076 673
       L 1197 641 L 1409 588 L 1412 565
       Q 1413 554 1423 548 L 1477 530 L 1491 531

@@ -74,13 +74,246 @@
   animation-play-state: running;
 }
 
+.billboard {
+  cursor: pointer;
+  color: #8affea;
+}
+
+.signConnector {
+  fill: none;
+  stroke: #9affe2;
+  stroke-width: 1.5;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.signAnchor,
+.signLight {
+  fill: #bbffeb;
+  filter: drop-shadow(0 0 5px #36ffc6);
+}
+
+.signPanel {
+  fill: #071d21ed;
+  stroke: #79e5cc;
+  stroke-width: 1;
+  filter: drop-shadow(0 4px 6px #001512b3);
+  transition: fill 180ms ease, filter 180ms ease;
+}
+
+.signRail {
+  fill: none;
+  stroke: #b3ffe8;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px #4effc4);
+}
+
+.signIndex {
+  fill: #94d4c5;
+  font: 11px ui-monospace, monospace;
+  letter-spacing: 3px;
+}
+
+.signDivider {
+  stroke: #74d6bb;
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.signName {
+  fill: #e1fff4;
+  font-size: 25px;
+  font-weight: 600;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  filter: drop-shadow(0 0 5px #74ffcc66);
+}
+
+.building:hover .signPanel,
+.building:focus-visible .signPanel {
+  fill: #124d47f5;
+  filter: drop-shadow(0 0 12px #51ffd78c);
+}
+
+.building:hover .signConnector,
+.building:focus-visible .signConnector {
+  opacity: 1;
+  stroke-width: 2.5;
+}
+
+.sortieDock {
+  position: fixed;
+  z-index: 10;
+  right: max(32px, env(safe-area-inset-right));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  width: 216px;
+  color: #ffd995;
+}
+
+.sortieStatus,
+.sortieCaption {
+  display: flex;
+  align-items: center;
+  font: 9px ui-monospace, "Microsoft YaHei", monospace;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px #000;
+}
+
+.sortieStatus {
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 5px 7px;
+}
+
+.sortieStatus i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #b4ffe1;
+  box-shadow: 0 0 9px #7dffd2;
+}
+
+.sortieButton {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 14px;
+  border: 0;
+  clip-path: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  filter: drop-shadow(0 0 12px #ff9b3045) drop-shadow(0 8px 16px #0009);
+  transition: transform 180ms ease, filter 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sortieSurface {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px);
+  background: linear-gradient(120deg, #fff0bd, #e29a47 35%, #885125 65%, #ffce78);
+}
+
+.sortieSurface::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  clip-path: inherit;
+  background:
+    repeating-linear-gradient(0deg, #ffdb9d05 0 1px, transparent 1px 4px),
+    linear-gradient(110deg, #314038 0%, #192823 28%, #383022 70%, #7a4c26 100%);
+  box-shadow: inset 0 -3px #ffb54d, inset 0 0 26px #ffb54428;
+}
+
+.sortieSurface::after {
+  content: "";
+  position: absolute;
+  inset: -60% -40%;
+  background: linear-gradient(105deg, transparent 40%, #ffe4a936 49%, #fff2ce80 50%, transparent 59%);
+  transform: translateX(-80%);
+  animation: sortieSweep 4.8s ease-in-out infinite;
+}
+
+.sortieReactor {
+  flex: 0 0 42px;
+  height: 42px;
+  filter: drop-shadow(0 0 7px #ffb338a6);
+}
+
+.sortieReactor svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.reactorOrbit {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-dasharray: 36 10 6 10;
+  transform-origin: 32px 32px;
+  animation: reactorSpin 14s linear infinite;
+}
+
+.sortieCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.sortieEnglish {
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  color: #e6b979;
+}
+
+.sortieTitle {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 7px;
+  text-shadow: 0 0 18px #ffbc5966;
+}
+
+.sortieArrows {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.sortieArrows i {
+  width: 5px;
+  height: 14px;
+  background: currentColor;
+  clip-path: polygon(0 0, 40% 0, 100% 50%, 40% 100%, 0 100%, 60% 50%);
+  animation: arrowPulse 1.8s ease-in-out infinite;
+}
+
+.sortieArrows i:nth-child(2) { animation-delay: 150ms; }
+.sortieArrows i:nth-child(3) { animation-delay: 300ms; }
+
+.sortieCaption {
+  justify-content: space-between;
+  margin: 6px 5px 0;
+  font-size: 8px;
+  color: #bcba9c;
+}
+
+.sortieButton:hover,
+.sortieButton:focus-visible {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 0 20px #ffb33880) drop-shadow(0 8px 18px #0009);
+}
+
+.sortieButton:focus-visible {
+  outline: 2px solid #fff1c6;
+  outline-offset: 6px;
+}
+
+.sortieButton:active { transform: translateY(1px) scale(0.98); }
+
+.sortieButton[data-launching="true"] {
+  animation: launchPulse 1.2s ease-out;
+}
+
+.sortieButton[data-launching="true"] .sortieSurface::after {
+  animation: sortieSweep 600ms ease-out 2;
+}
+
 .hint {
   position: absolute;
   bottom: 16px;
-  left: 50%;
+  left: 24px;
   margin: 0;
   padding: 9px 16px;
-  transform: translateX(-50%);
   border: 1px solid #a5efdc24;
   border-radius: 6px;
   background: #071417d9;
@@ -102,21 +335,51 @@
   }
 }
 
-@media (max-width: 520px) {
-  .hint {
-    bottom: 12px;
-    max-width: calc(100% - 24px);
-    font-size: 10px;
-    letter-spacing: 0;
+@keyframes sortieSweep {
+  0%, 45% { transform: translateX(-80%); }
+  85%, 100% { transform: translateX(80%); }
+}
+
+@keyframes reactorSpin { to { transform: rotate(360deg); } }
+
+@keyframes arrowPulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@keyframes launchPulse {
+  20% { filter: drop-shadow(0 0 35px #ffd18bd9); transform: scale(1.035); }
+  100% { filter: drop-shadow(0 0 12px #ff9b3045); }
+}
+
+@media (max-width: 760px), (max-height: 540px) {
+  .sortieDock {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    width: 192px;
   }
+
+  .sortieButton { min-height: 64px; padding: 8px 12px; gap: 7px; }
+  .sortieReactor { flex-basis: 34px; height: 34px; }
+  .sortieTitle { font-size: 23px; letter-spacing: 6px; }
+  .sortieEnglish { letter-spacing: 0.3px; }
+  .sortieCaption { letter-spacing: 0.6px; }
+  .hint { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .highlight {
+  .highlight,
+  .signPanel,
+  .sortieButton {
     transition: none;
   }
 
-  .orbit {
+  .orbit,
+  .reactorOrbit,
+  .sortieArrows i,
+  .sortieSurface::after,
+  .sortieButton[data-launching="true"],
+  .sortieButton[data-launching="true"] .sortieSurface::after {
     animation: none;
   }
 }
