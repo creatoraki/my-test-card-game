@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type FocusEvent,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent } from "react";
 import { createPortal } from "react-dom";
 import { getItemDef } from "@/data";
 import { mergeStacksForDisplay, sortStacks } from "@/items/inventory";
@@ -27,43 +20,13 @@ import s from "./WarehousePanel.module.css";
 const CELL_SIZE = 88;
 const GRID_GAP = 10;
 const GRID_HOVER_BLEED = 4;
-const PANEL_HORIZONTAL_PADDING = 52;
-const PANEL_FIXED_HEIGHT = 262;
-// 浮卡顶边相对锚点的上移量(设计 px): 本浮卡贴着物品格顶部对齐, 不像 ItemTooltip 那样居中。
 const TOOLTIP_TOP_OFFSET = 44;
-export interface WarehousePanelPosition {
-  side?: "left" | "right";
-  top?: number;
-  offset?: number;
-}
-
-export interface WarehousePanelRotation {
-  x?: number;
-  y?: number;
-}
-
-interface ResolvedWarehousePanelPosition {
-  side: "left" | "right";
-  top: number;
-  offset: number;
-}
 
 export interface WarehousePanelProps {
-  open: boolean;
-  leaving?: boolean;
-  onClose: () => void;
   rows?: number;
   columns?: number;
-  position?: WarehousePanelPosition;
-  rotation?: WarehousePanelRotation;
-  panelId?: string;
+  leaving?: boolean;
 }
-
-const DEFAULT_POSITION: ResolvedWarehousePanelPosition = {
-  side: "left",
-  top: 150,
-  offset: 56,
-};
 
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
 
@@ -71,14 +34,9 @@ const positiveInteger = (value: number | undefined, fallback: number) =>
   Number.isFinite(value) ? Math.max(1, Math.floor(value as number)) : fallback;
 
 export default function WarehousePanel({
-  open,
-  leaving = false,
-  onClose,
   rows = 4,
-  columns = 6,
-  position,
-  rotation,
-  panelId = "warehouse-panel",
+  columns = 5,
+  leaving = false,
 }: WarehousePanelProps) {
   const storage = useTownStore((state) => state.storage);
   const [tab, setTab] = useState<ItemTab>("all");
@@ -87,16 +45,8 @@ export default function WarehousePanel({
   const [tooltipPoint, setTooltipPoint] = useState<TooltipPoint | null>(null);
 
   const safeRows = positiveInteger(rows, 4);
-  const safeColumns = positiveInteger(columns, 6);
-  const safePosition = {
-    side: position?.side ?? DEFAULT_POSITION.side,
-    top: position?.top ?? DEFAULT_POSITION.top,
-    offset: position?.offset ?? DEFAULT_POSITION.offset,
-  };
+  const safeColumns = positiveInteger(columns, 5);
   const gridHeight = safeRows * CELL_SIZE + (safeRows - 1) * GRID_GAP + GRID_HOVER_BLEED;
-  const panelWidth = safeColumns * CELL_SIZE + (safeColumns - 1) * GRID_GAP + PANEL_HORIZONTAL_PADDING;
-  const panelHeight = PANEL_FIXED_HEIGHT + gridHeight;
-
   const sorted = useMemo(
     () => sortStacks(mergeStacksForDisplay(storage, getItemDef), getItemDef, rarityRank),
     [storage],
@@ -115,34 +65,11 @@ export default function WarehousePanel({
   const hoveredStack = visibleStacks.find((stack) => stack.uid === hoveredUid) ?? null;
 
   useEffect(() => {
-    if (!open) {
-      setHoveredUid(null);
-      setTooltipPoint(null);
-      return;
-    }
-    setTab("all");
-    setEquipTab("all");
-    setHoveredUid(null);
-    setTooltipPoint(null);
-  }, [open]);
-
-  useEffect(() => {
     if (hoveredUid && !visibleStacks.some((stack) => stack.uid === hoveredUid)) {
       setHoveredUid(null);
       setTooltipPoint(null);
     }
   }, [hoveredUid, visibleStacks]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose, open]);
-
-  if (!open) return null;
 
   const showTooltip = (stack: ItemStack, point: TooltipPoint) => {
     setHoveredUid(stack.uid);
@@ -153,108 +80,58 @@ export default function WarehousePanel({
     showTooltip(stack, tooltipPointFromElement(event.currentTarget));
   };
 
-  const style = {
-    top: `${Math.max(0, safePosition.top ?? DEFAULT_POSITION.top)}px`,
-    [safePosition.side === "right" ? "right" : "left"]: `${Math.max(
-      0,
-      safePosition.offset ?? DEFAULT_POSITION.offset,
-    )}px`,
-    width: `${panelWidth}px`,
-    height: `${panelHeight}px`,
-    "--warehouse-top": `${Math.max(0, safePosition.top ?? DEFAULT_POSITION.top)}px`,
-    "--warehouse-columns": safeColumns,
-    "--warehouse-grid-height": `${gridHeight}px`,
-    "--warehouse-grid-bleed": `${GRID_HOVER_BLEED}px`,
-    "--warehouse-rotation-x": `${rotation?.x ?? 0}deg`,
-    "--warehouse-rotation-y": `${rotation?.y ?? 0}deg`,
-  } as CSSProperties;
-
   return (
-    <div
-      className={cx(s["warehouse-layer"], safePosition.side === "right" && s["is-right"])}
-    >
-      <div className={s["warehouse-stage"]} style={style}>
-        <span
-          className={cx(
-            s["warehouse-rim"],
-            safePosition.side === "right" && s["is-right"],
-            leaving && s["is-leaving"],
-          )}
-          aria-hidden="true"
-        />
-        <section
-          id={panelId}
-          className={cx(
-            s["warehouse-panel"],
-            safePosition.side === "right" && s["is-right"],
-            leaving && s["is-leaving"],
-          )}
-          role="dialog"
-          aria-modal="false"
-          aria-labelledby={`${panelId}-title`}
-        >
-        <header className={s["warehouse-head"]}>
-          <div>
-            <span className={s["warehouse-kicker"]}>STORAGE INDEX</span>
-            <h3 id={`${panelId}-title`} className={s["warehouse-title"]}>
-              仓库
-            </h3>
-          </div>
-          <button className={s["warehouse-close"]} type="button" onClick={onClose} aria-label="关闭仓库">
-            ×
-          </button>
-        </header>
+    <div className={s["warehouse-content"]}>
+      <ItemTabs
+        className={s["warehouse-tabs"]}
+        stacks={sorted}
+        tab={tab}
+        equipTab={equipTab}
+        onTab={setTab}
+        onEquipTab={setEquipTab}
+      />
 
-        <ItemTabs
-          className={s["warehouse-tabs"]}
-          stacks={sorted}
-          tab={tab}
-          equipTab={equipTab}
-          onTab={setTab}
-          onEquipTab={setEquipTab}
-        />
-
-        <div
-          className={s["warehouse-grid"]}
-          style={{ "--warehouse-columns": safeColumns } as CSSProperties}
-          aria-label="仓库物品格"
-        >
-          {cells.map((stack, index) =>
-            stack ? (
-              <div
-                className={s["warehouse-cell"]}
-                key={stack.uid}
-                onPointerEnter={(event) =>
-                  showTooltip(stack, tooltipPointFromElement(event.currentTarget))
-                }
-                onPointerLeave={() => {
-                  setHoveredUid((current) => (current === stack.uid ? null : current));
-                  setTooltipPoint(null);
-                }}
-                onFocus={(event) => handleFocus(stack, event)}
-                onBlur={() => {
-                  setHoveredUid((current) => (current === stack.uid ? null : current));
-                  setTooltipPoint(null);
-                }}
-              >
-                <ItemSlot
-                  stack={stack}
-                  selected={hoveredUid === stack.uid}
-                  className={cx(s["warehouse-slot"], hoveredUid === stack.uid && s["is-hovered"])}
-                />
-              </div>
-            ) : (
-              <EmptySlot key={`empty-${index}`} className={s["warehouse-empty"]} />
-            ),
-          )}
-        </div>
-
-        <footer className={s["warehouse-foot"]}>
-          <span>库存 {storage.length} 件</span>
-          <span>{visibleStacks.length} 件匹配</span>
-        </footer>
-        </section>
+      <div
+        className={s["warehouse-grid"]}
+        style={{
+          "--warehouse-columns": safeColumns,
+          "--warehouse-grid-height": `${gridHeight}px`,
+          "--warehouse-grid-bleed": `${GRID_HOVER_BLEED}px`,
+        } as CSSProperties}
+        aria-label="仓库物品格"
+      >
+        {cells.map((stack, index) =>
+          stack ? (
+            <div
+              className={s["warehouse-cell"]}
+              key={stack.uid}
+              onPointerEnter={(event) => showTooltip(stack, tooltipPointFromElement(event.currentTarget))}
+              onPointerLeave={() => {
+                setHoveredUid((current) => (current === stack.uid ? null : current));
+                setTooltipPoint(null);
+              }}
+              onFocus={(event) => handleFocus(stack, event)}
+              onBlur={() => {
+                setHoveredUid((current) => (current === stack.uid ? null : current));
+                setTooltipPoint(null);
+              }}
+            >
+              <ItemSlot
+                stack={stack}
+                selected={hoveredUid === stack.uid}
+                className={cx(s["warehouse-slot"], hoveredUid === stack.uid && s["is-hovered"])}
+              />
+            </div>
+          ) : (
+            <EmptySlot key={`empty-${index}`} className={s["warehouse-empty"]} />
+          ),
+        )}
       </div>
+
+      <footer className={s["warehouse-foot"]}>
+        <span>库存 {storage.length} 件</span>
+        <span>{visibleStacks.length} 件匹配</span>
+      </footer>
 
       {hoveredStack && tooltipPoint && (
         <WarehouseTooltip stack={hoveredStack} point={tooltipPoint} leaving={leaving} />
@@ -272,8 +149,6 @@ function WarehouseTooltip({
   point: TooltipPoint;
   leaving: boolean;
 }) {
-  // 定位与 ItemTooltip 共用同一套实现(挂进设计画布、按画布边界翻转夹取), 这里只是换了皮:
-  // 多一层退场动画类与 placeholder 文案。
   const ref = useRef<HTMLDivElement>(null);
   const placement = useTooltipPlacement(point, ref, TOOLTIP_TOP_OFFSET);
 

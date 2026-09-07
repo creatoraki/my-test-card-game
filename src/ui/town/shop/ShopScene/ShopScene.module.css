@@ -2,18 +2,7 @@
   --event-accent: #d6b477;
   --sx-ink: #edf3ef;
   --sx-muted: #8ea09d;
-  --sx-dim: #657677;
-  --sx-line: #405057;
-  --sx-line-strong: #405057;
-  --sx-frame: #d6b477;
-  --sx-frame-hot: #f0d49b;
-  --sx-action: #d9d8c4;
-  --sx-action-hot: #f0f6e9;
-  --sx-action-ink: #17130d;
-  --sx-electric: #d6b477;
-  --sx-electric-hot: #f0d49b;
-  --sx-alert: #e47970;
-  --sx-notch: 20px;
+  --sx-action-hot: #f0d49b;
 
   position: absolute;
   z-index: 2;
@@ -21,79 +10,6 @@
   color: var(--sx-ink);
   font-family: var(--font-family);
   pointer-events: none;
-}
-
-.sx-root .sx-control {
-  all: unset;
-  box-sizing: border-box;
-  cursor: var(--cursor-pointer);
-  font-family: inherit;
-}
-
-.sx-root .sx-control:disabled {
-  cursor: not-allowed;
-}
-
-.sx-root .sx-control:focus-visible {
-  outline: 2px solid var(--sx-action-hot);
-  outline-offset: 4px;
-}
-
-.sx-root .sx-warehouse-trigger {
-  position: absolute;
-  z-index: 5;
-  top: 42px;
-  right: 56px;
-  display: inline-flex;
-  min-width: 126px;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 18px;
-  color: var(--sx-action);
-  background:
-    linear-gradient(135deg, #ffffff1c, transparent 52%),
-    linear-gradient(145deg, #252018d9, #080b0db3);
-  border: 1px solid #d6b47766;
-  border-radius: 0;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  box-shadow:
-    inset 0 1px 0 #ffffff35,
-    0 9px 20px -16px #000000f2,
-    0 0 18px -13px #d6b477bf;
-  -webkit-backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
-  backdrop-filter: blur(12px) saturate(120%) brightness(0.82);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  pointer-events: auto;
-  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-}
-
-.sx-root .sx-warehouse-trigger:hover,
-.sx-root .sx-warehouse-trigger:focus-visible,
-.sx-root .sx-warehouse-trigger.is-active {
-  color: var(--sx-action-hot);
-  background:
-    linear-gradient(135deg, #ffffff32, transparent 52%),
-    linear-gradient(145deg, #4a3d26d9, #0c100ed1);
-  border-color: var(--sx-frame-hot);
-  box-shadow:
-    inset 0 1px 0 #ffffff5e,
-    0 11px 22px -15px #000000f2,
-    0 0 0 1px #d6b47752,
-    0 0 22px -10px #d6b477e6;
-  transform: translateY(-3px);
-}
-
-.sx-root .sx-warehouse-icon {
-  display: grid;
-  width: 21px;
-  height: 21px;
-  place-items: center;
-  color: var(--sx-electric-hot);
-  font-size: 23px;
-  line-height: 1;
 }
 
 .sx-root .sx-header {
@@ -148,90 +64,26 @@
   letter-spacing: 0.12em;
 }
 
-.sx-root .sx-stage {
-  --sx-stage-right: 56px;
-  --sx-panel-tilt: -4deg;
-
-  position: absolute;
-  z-index: 3;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: var(--sx-stage-right);
-  perspective: 1500px;
-  perspective-origin: calc(100% - var(--sx-stage-right)) 50%;
-  pointer-events: none;
+.sx-root .sx-warehouse-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  color: #ffc654;
 }
 
-.sx-root .sx-display-group {
-  display: flex;
-  height: var(--panel-h);
-  flex: 0 0 auto;
-  align-items: flex-start;
-  transform: rotateY(var(--sx-panel-tilt)) rotateX(0.7deg);
-  transform-origin: right center;
-  transform-style: preserve-3d;
-}
-
-.sx-root .sx-panel {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex: 0 0 var(--panel-w);
-  flex-direction: column;
-  overflow: hidden;
-  isolation: isolate;
-  background:
-    radial-gradient(circle at 14% 17%, color-mix(in srgb, var(--event-accent) 12%, transparent), transparent 27%),
-    linear-gradient(115deg, #111b1e 0%, #0c1215 44%, #0a0f12 100%);
-  border: 1px solid #43545a99;
-  border-radius: 0;
-  box-shadow:
-    inset 0 1px 0 #ffffff25,
-    0 15px 35px -24px #000000f2,
-    0 0 34px -26px #d6b477b3;
-  clip-path: polygon(var(--sx-notch) 0, 100% 0, 100% calc(100% - var(--sx-notch)), calc(100% - var(--sx-notch)) 100%, 0 100%, 0 var(--sx-notch));
-  -webkit-backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
-  backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
-  pointer-events: auto;
-  animation: sxPanelIn 680ms var(--content-delay) cubic-bezier(0.16, 0.86, 0.24, 1) both;
-}
-
-.sx-root .sx-panel::before {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background:
-    linear-gradient(115deg, transparent 0 18%, #ffffff03 18.1% 18.3%, transparent 18.4% 54%, #ffffff04 54.1% 54.25%, transparent 54.35%),
-    repeating-linear-gradient(0deg, transparent 0 5px, #ffffff03 5px 6px);
-  content: "";
-  pointer-events: none;
-}
-
-.sx-root .sx-panel::after {
-  position: absolute;
-  right: 26px;
-  bottom: 0;
-  left: 26px;
-  z-index: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--event-accent) 18%, #ffffff 50%, var(--event-accent) 82%, transparent);
-  content: "";
-  opacity: 0.56;
-}
-
-.sx-root .sx-event-frame {
-  box-sizing: border-box;
-  height: 100%;
-  padding: 30px 32px 26px;
-  background: transparent;
-  border: 0;
+.sx-root .sx-warehouse-icon svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .sx-root .sx-event-stage {
+  display: flex;
+  height: 100%;
   min-height: 0;
+  flex-direction: column;
 }
 
 .sx-root .sx-status {
@@ -319,8 +171,7 @@
   color: #e47970;
 }
 
-.sx-root.is-leaving .sx-header,
-.sx-root.is-leaving .sx-panel {
+.sx-root.is-leaving .sx-header {
   animation: sxLeave 420ms ease both;
 }
 
@@ -329,27 +180,9 @@
     opacity: 0;
     transform: translateY(18px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes sxPanelIn {
-  from {
-    opacity: 0;
-    transform: translateX(120px) translateZ(-30px);
-  }
-
-  78% {
-    opacity: 1;
-    transform: translateX(-10px) translateZ(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0) translateZ(0);
   }
 }
 
@@ -362,7 +195,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sx-root .sx-header,
-  .sx-root .sx-panel,
   .sx-root .sx-refresh-icon {
     animation: none;
     transition: none;

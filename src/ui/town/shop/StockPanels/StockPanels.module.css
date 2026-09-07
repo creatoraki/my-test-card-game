@@ -1,4 +1,4 @@
-/* 商店里的两条物资抽屉(库存清单 / 回收台)与它们的浮层内容。
+/* 商店里的两条物资抽屉(商店 / 回收台)与回收台浮层内容。
    浮层外壳统一由 common/PanelShell 提供，本文件只管抽屉与浮层内部的排布。
    --asm-* 主题变量由 StockEntries 传给 PanelShell；这里的 --stock-* 仅服务于抽屉本身。 */
 
@@ -8,7 +8,7 @@
   --stock-line: #f2e6d82e;
   --stock-glow: #d6b477;
   position: absolute;
-  /* 压过货架舞台(.sx-stage z-index 3), 但不挡右上的仓库按钮(z-index 5)。 */
+  /* 入口列在商店/仓库 SciFiPanel(z-index 5)之下, 回收台 PanelShell(z-index 6)之下。 */
   z-index: 4;
   display: grid;
   grid-auto-rows: minmax(0, 1fr);
@@ -58,6 +58,10 @@
 
 .entry:nth-child(2) {
   animation-delay: 200ms;
+}
+
+.entry:nth-child(3) {
+  animation-delay: 280ms;
 }
 
 /* ⚠ 提权到画布作用域: 全局按钮 hover 规则优先级更高, 不加这层前缀会被压掉。 */
@@ -146,7 +150,7 @@
   }
 }
 
-/* 浮层要盖住整个商店场景, 连右上的仓库按钮(z-index 5)一起压住。 */
+/* 回收台浮层压过入口列与商店/仓库 SciFiPanel。 */
 .panel {
   z-index: 6;
 }

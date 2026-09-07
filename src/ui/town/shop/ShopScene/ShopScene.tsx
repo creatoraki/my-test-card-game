@@ -1,31 +1,34 @@
-// 商店(据点设施 shop, 全景里的「商店」)的设施内界面 —— 常驻货架 + 仓库入口 + 右侧物资抽屉。
-//
-// 商店的主刷新机制仍由 runStore.backToTown → townStore.advanceDay 负责。
-// 本组件只读 shop 状态、派发 action，并编排购买飞行与 EventPanel 版式。
+// 商店(据点设施 shop, 全景里的「商店」)的设施内界面。
 //
 // ⚠ 本组件的根节点 .sx-root 永远不能挂 animation / opacity / transform:
 //    入场/退场动画一律挂在叶子节点，避免破坏设施背景的 backdrop-filter。
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { shopRefreshCost, type ShopSlot } from "@/data/shop";
-import type { ItemStack } from "@/items/types";
+import { useCallback, useRef, useState } from "react";
+import { shopRefreshCost } from "@/data/shop";
 import { useTownStore } from "@/store/townStore";
-import {
-  EventPanelButton,
-  EventPanelFoot,
-  EventPanelFrame,
-  EventPanelStage,
-} from "@/ui/common/EventPanel";
+import { SciFiPanelShell } from "@/ui/common/SciFiPanelShell";
 import { cx } from "@/ui/common/cx";
-import ShopItemCard from "@/ui/town/shop/ShopItemCard";
 import PurchaseFlight, { type PurchaseFlightRect } from "@/ui/town/shop/PurchaseFlight/PurchaseFlight";
-import ShelfGrid from "@/ui/town/shop/ShopScene/ShelfGrid";
-import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
+import { CrateIcon } from "@/ui/town/shop/StockPanels/icons";
 import { StockEntries } from "@/ui/town/shop/StockPanels";
+import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
+import { ShopPanel } from "./ShopPanel";
+import { useShopPopover } from "./useShopPopover";
 import s from "./ShopScene.module.css";
 
-const CONTENT_DELAY_MS = 560;
-const PANEL_SIZE = { w: 1100, h: 800 };
+const SHOP_PANEL_COLORS = {
+  armor: "#241a0e",
+  trim: "#a97c30",
+  energy: "#ffc654",
+  accent: "#ff754f",
+  highlight: "#fff0bc",
+  circuit: "#80622c",
+};
+const SHOP_PANEL_BG = "linear-gradient(150deg, #141311, #0a0d0e)";
+
+const WAREHOUSE_RECT = { x: 70, y: 140, w: 640, h: 820 };
+const SHOP_RECT = { x: 750, y: 140, w: 1100, h: 820 };
+
 type PurchaseFlightState = {
   id: number;
   itemId: string;
@@ -45,13 +48,12 @@ export function ShopScene({ leaving = false }: Props) {
   const refreshShop = useTownStore((state) => state.refreshShop);
   const buyShopItem = useTownStore((state) => state.buyShopItem);
   const refreshCost = shopRefreshCost(shop.refreshes);
-  const [warehouseOpen, setWarehouseOpen] = useState(false);
   const warehouseIconRef = useRef<HTMLSpanElement>(null);
   const itemIconRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
   const flightIdRef = useRef(0);
   const [purchaseFlights, setPurchaseFlights] = useState<PurchaseFlightState[]>([]);
+  const { open, closing, mounted, openPanels, closePanels } = useShopPopover();
 
-  // 传给 memo 化的货架格，保持图标节点注册回调稳定。
   const registerItemIcon = useCallback((key: string, element: HTMLSpanElement | null) => {
     if (element) {
       itemIconRefs.current.set(key, element);
@@ -105,74 +107,55 @@ export function ShopScene({ leaving = false }: Props) {
         <p className={s["sx-sub"]}>每日上新 · 积分采购 · 物资回收</p>
       </header>
 
-      <button
-        className={cx(s["sx-control"], s["sx-warehouse-trigger"], warehouseOpen && s["is-active"])}
-        type="button"
-        aria-controls="shop-warehouse-panel"
-        aria-expanded={warehouseOpen}
-        onClick={() => setWarehouseOpen((current) => !current)}
-      >
-        <span ref={warehouseIconRef} className={s["sx-warehouse-icon"]} aria-hidden="true">
-          ▦
-        </span>
-        <span>仓库</span>
-      </button>
+      <StockEntries shopOpen={open} onOpenShop={openPanels} />
 
-      <div
-        className={s["sx-stage"]}
-        style={
-          {
-            "--panel-w": `${PANEL_SIZE.w}px`,
-            "--panel-h": `${PANEL_SIZE.h}px`,
-          } as CSSProperties
-        }
-      >
-        <div className={s["sx-display-group"]}>
-          <section
-            className={s["sx-panel"]}
-            style={
-              {
-                width: `${PANEL_SIZE.w}px`,
-                height: `${PANEL_SIZE.h}px`,
-                "--content-delay": `${CONTENT_DELAY_MS}ms`,
-              } as CSSProperties
+      {mounted && (
+        <>
+          <SciFiPanelShell
+            rect={WAREHOUSE_RECT}
+            kicker="STORAGE INDEX"
+            title="仓库"
+            closeLabel="关闭仓库"
+            closing={closing}
+            leaving={leaving}
+            from="left"
+            colors={SHOP_PANEL_COLORS}
+            background={SHOP_PANEL_BG}
+            headExtra={
+              <span ref={warehouseIconRef} className={s["sx-warehouse-icon"]} aria-hidden="true">
+                <CrateIcon />
+              </span>
             }
+            onClose={closePanels}
           >
-            <EventPanelFrame
-              accent="#d6b477"
-              kicker="SUPPLY EXCHANGE"
-              title="自动售货机"
-              status={<span className={s["sx-status"]}>居民积分 · {loot.toLocaleString()}</span>}
-              contentKey={`${day}-${shop.refreshes}`}
-              className={s["sx-event-frame"]}
-            >
-              <ShopPanel
-                shop={shop}
-                loot={loot}
-                day={day}
-                refreshCost={refreshCost}
-                onBuy={handleBuy}
-                onIconRef={registerItemIcon}
-                onRefresh={refreshShop}
-              />
-            </EventPanelFrame>
-          </section>
-        </div>
-      </div>
+            <WarehousePanel rows={4} columns={5} leaving={leaving} />
+          </SciFiPanelShell>
 
-      {/* 右侧抽屉: 库存清单 / 回收台。物资中转仓拆散后, 物资的进出全部收进商店。 */}
-      <StockEntries />
-
-      <WarehousePanel
-        open={warehouseOpen}
-        leaving={leaving}
-        onClose={() => setWarehouseOpen(false)}
-        panelId="shop-warehouse-panel"
-        rows={4}
-        columns={6}
-        position={{ side: "left", top: 200, offset: 85 }}
-        rotation={{ x: 0.7, y: 5 }}
-      />
+          <SciFiPanelShell
+            rect={SHOP_RECT}
+            kicker="SUPPLY EXCHANGE"
+            title="自动售货机"
+            status={<span className={s["sx-status"]}>居民积分 · {loot.toLocaleString()}</span>}
+            closeLabel="关闭商店"
+            closing={closing}
+            leaving={leaving}
+            from="right"
+            colors={SHOP_PANEL_COLORS}
+            background={SHOP_PANEL_BG}
+            onClose={closePanels}
+          >
+            <ShopPanel
+              shop={shop}
+              loot={loot}
+              day={day}
+              refreshCost={refreshCost}
+              onBuy={handleBuy}
+              onIconRef={registerItemIcon}
+              onRefresh={refreshShop}
+            />
+          </SciFiPanelShell>
+        </>
+      )}
 
       {purchaseFlights.map((flight) => (
         <PurchaseFlight
@@ -186,89 +169,5 @@ export function ShopScene({ leaving = false }: Props) {
     </div>
   );
 }
-
-function ShopPanel({
-  shop,
-  loot,
-  day,
-  refreshCost,
-  onBuy,
-  onIconRef,
-  onRefresh,
-}: {
-  shop: { slots: ShopSlot[]; refreshes: number };
-  loot: number;
-  day: number;
-  refreshCost: number;
-  onBuy: (key: string) => void;
-  onIconRef: (key: string, element: HTMLSpanElement | null) => void;
-  onRefresh: () => void;
-}) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const selectedSlot = shop.slots.find((slot) => slot.key === selected) ?? null;
-  const hoveredSlot = shop.slots.find((slot) => slot.key === hovered) ?? null;
-  const displayedSlot = hoveredSlot ?? selectedSlot;
-  const displayedStack = useMemo<ItemStack | null>(
-    () => (displayedSlot ? asStack(displayedSlot) : null),
-    [displayedSlot],
-  );
-
-  useEffect(() => {
-    setSelected(null);
-    setHovered(null);
-  }, [day, shop.refreshes]);
-
-  const handleHoverEnd = useCallback((key: string) => {
-    setHovered((current) => (current === key ? null : current));
-  }, []);
-
-  return (
-    <EventPanelStage className={s["sx-event-stage"]}>
-      <div className={s["sx-body"]}>
-        <div className={s["sx-main"]}>
-          <ShelfGrid
-            slots={shop.slots}
-            loot={loot}
-            selected={selected}
-            onSelect={setSelected}
-            onHoverStart={setHovered}
-            onHoverEnd={handleHoverEnd}
-            onBuy={onBuy}
-            onIconRef={onIconRef}
-          />
-        </div>
-        <ShopItemCard
-          key={`${day}-${shop.refreshes}`}
-          stack={displayedStack}
-          placeholder="选择一件商品查看详情。今天挑剩的，明天就换新货了。"
-        />
-      </div>
-      <EventPanelFoot note="出击返回据点即推进一日，货架会自动换新。">
-        <EventPanelButton
-          tone="primary"
-          className={s["sx-refresh"]}
-          disabled={loot < refreshCost}
-          onClick={onRefresh}
-          aria-label={`刷新货架，花费 ${refreshCost} 居民积分`}
-        >
-          <span className={s["sx-refresh-icon"]} aria-hidden="true">
-            ↻
-          </span>
-          <span className={s["sx-refresh-label"]}>刷新货架</span>
-          <span className={s["sx-refresh-cost"]}>{refreshCost}</span>
-        </EventPanelButton>
-      </EventPanelFoot>
-    </EventPanelStage>
-  );
-}
-
-const asStack = (slot: ShopSlot): ItemStack => ({
-  uid: slot.key,
-  itemId: slot.itemId,
-  count: 1,
-  affinity: slot.affinity,
-  roll: slot.roll,
-});
 
 export default ShopScene;

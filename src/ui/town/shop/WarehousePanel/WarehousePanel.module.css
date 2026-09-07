@@ -1,233 +1,26 @@
-.warehouse-layer {
-  position: absolute;
-  z-index: 8;
-  inset: 0;
-  perspective: 1500px;
-  perspective-origin: 56px 50%;
-  pointer-events: none;
-  background: transparent;
-}
-
-.warehouse-layer.is-right {
-  perspective-origin: calc(100% - 56px) 50%;
-}
-
-.warehouse-stage {
-  position: absolute;
-  transform: rotateY(var(--warehouse-rotation-y)) rotateX(var(--warehouse-rotation-x));
-  transform-origin: left center;
-  transform-style: preserve-3d;
-}
-
-.warehouse-layer.is-right .warehouse-stage {
-  transform-origin: right center;
-}
-
-.warehouse-panel {
-  --warehouse-ink: #f3f5ff;
-  --warehouse-muted: #a9b1c7;
-  --warehouse-line: #d8ddff38;
-  --warehouse-line-strong: #e8ebff5c;
-  --warehouse-frame: #7e78e8;
-  --warehouse-frame-hot: #c7c1ff;
-  --warehouse-electric: #847cff;
-  --warehouse-electric-hot: #b8b0ff;
+.warehouse-content {
+  --warehouse-ink: #f3eee2;
+  --warehouse-muted: #a5937f;
+  --warehouse-line: #f2e6d82e;
+  --warehouse-line-strong: #f2e6d85c;
+  --warehouse-frame: #a97c30;
+  --warehouse-frame-hot: #fff0bc;
+  --warehouse-electric: #ffc654;
+  --warehouse-electric-hot: #fff0bc;
   --warehouse-cell-size: 88px;
   --warehouse-gap: 10px;
   --accent: var(--warehouse-electric-hot);
-  --bg: #0d1020;
   --border: var(--warehouse-line);
   --muted: var(--warehouse-muted);
   --text: var(--warehouse-ink);
 
-  position: absolute;
-  inset: 0;
   display: flex;
   min-width: 0;
   min-height: 0;
+  height: 100%;
+  flex: 1 1 auto;
   flex-direction: column;
-  box-sizing: border-box;
-  padding: 24px 26px 20px;
-  overflow: hidden;
   color: var(--warehouse-ink);
-  background:
-    radial-gradient(ellipse 78% 38% at 4% 4%, #ffffff18, transparent 72%),
-    radial-gradient(ellipse 58% 68% at 96% 94%, #4e7dff1c, transparent 74%),
-    repeating-linear-gradient(0deg, transparent 0 5px, #e9ecff0a 5px 6px),
-    linear-gradient(145deg, #111528d1, #080b13c7 58%, #0b1220c9);
-  border: 1px solid #d9ddff4d;
-  border-radius: 22px 13px 24px 15px;
-  box-shadow:
-    inset 0 1px 0 #ffffff3b,
-    inset -18px 0 36px -34px #958cff42,
-    0 18px 38px -24px #000000f2,
-    0 0 0 1px #8279ff2e,
-    0 0 34px -26px #8279ffb3;
-  clip-path: polygon(
-    20px 0,
-    100% 0,
-    100% calc(100% - 20px),
-    calc(100% - 20px) 100%,
-    0 100%,
-    0 20px
-  );
-  -webkit-backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
-  backdrop-filter: blur(18px) saturate(125%) brightness(0.76);
-  pointer-events: auto;
-  animation: warehousePanelIn 520ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
-}
-
-.warehouse-panel::before {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background:
-    repeating-linear-gradient(92deg, transparent 0 12px, #ffffff08 12px 13px),
-    repeating-linear-gradient(0deg, transparent 0 23px, #a29aff12 23px 25px),
-    radial-gradient(circle at 70% 30%, #ffffff24 0 1px, transparent 2px);
-  content: "";
-  pointer-events: none;
-  opacity: 0.75;
-}
-
-.warehouse-panel::after {
-  position: absolute;
-  right: 26px;
-  bottom: 0;
-  left: 26px;
-  z-index: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--warehouse-frame) 18%,
-    #ffffff 50%,
-    var(--warehouse-frame) 82%,
-    transparent
-  );
-  content: "";
-  opacity: 0.56;
-}
-
-.warehouse-panel > * {
-  position: relative;
-  z-index: 1;
-}
-
-.warehouse-rim {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  box-sizing: border-box;
-  padding: 2px;
-  overflow: hidden;
-  pointer-events: none;
-  border: 1px solid #ffffff35;
-  border-radius: 22px 13px 24px 15px;
-  clip-path: polygon(
-    20px 0,
-    100% 0,
-    100% calc(100% - 20px),
-    calc(100% - 20px) 100%,
-    0 100%,
-    0 20px
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  opacity: 0.92;
-  animation: warehousePanelIn 520ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
-}
-
-.warehouse-rim::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 220%;
-  aspect-ratio: 1;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 304deg,
-    #5ed5ff18 318deg,
-    #8279ff72 332deg,
-    #b8f2ff 346deg,
-    #ffffff 351deg,
-    #5ed5ffb8 357deg,
-    transparent 360deg
-  );
-  transform: translate(-50%, -50%);
-  filter: drop-shadow(0 0 3px #8279ff8c) drop-shadow(0 0 7px #5ed5ff4d);
-}
-
-.warehouse-head {
-  display: flex;
-  min-height: 62px;
-  flex: 0 0 62px;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 2px 4px 14px 6px;
-  border-bottom: 1px solid var(--warehouse-line-strong);
-}
-
-.warehouse-kicker {
-  display: block;
-  color: var(--warehouse-electric-hot);
-  font-family: var(--font-family);
-  font-variant-numeric: tabular-nums;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.warehouse-title {
-  margin: 7px 0 0;
-  color: #ffffff;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  line-height: 1;
-  text-shadow: 0 2px 12px #000000c7, 1px 1px 0 #ffffff24;
-}
-
-.warehouse-close {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  place-items: center;
-  padding: 0;
-  color: var(--warehouse-muted);
-  font-size: 22px;
-  line-height: 1;
-  background: #ffffff0a;
-  border: 1px solid var(--warehouse-line);
-  border-radius: 8px 5px 9px 6px;
-  cursor: var(--cursor-pointer);
-  transition:
-    color 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease,
-    transform 160ms ease;
-}
-
-.warehouse-close:hover,
-.warehouse-close:focus-visible {
-  color: #ffffff;
-  background: #8279ff30;
-  border-color: var(--warehouse-frame-hot);
-  transform: translateY(-2px);
-}
-
-.warehouse-close:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 3px;
 }
 
 .warehouse-tabs {
@@ -242,16 +35,16 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  flex: 1 1 var(--warehouse-grid-height);
-  grid-template-columns: repeat(var(--warehouse-columns), minmax(0, 1fr));
+  flex: 1 1 auto;
+  grid-template-columns: repeat(var(--warehouse-columns), var(--warehouse-cell-size));
   grid-auto-rows: var(--warehouse-cell-size);
   gap: var(--warehouse-gap);
   align-content: start;
-  height: var(--warehouse-grid-height);
-  padding-top: var(--warehouse-grid-bleed);
+  justify-content: start;
+  padding: var(--warehouse-grid-bleed) 4px 4px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #847cffb8 #080b1466;
+  scrollbar-color: #ffc654b8 #080b1466;
   scrollbar-width: thin;
 }
 
@@ -264,14 +57,14 @@
 }
 
 .warehouse-grid::-webkit-scrollbar-thumb {
-  background: #847cffb8;
+  background: #ffc654b8;
   border: 2px solid #080b1466;
   border-radius: 8px;
 }
 
 .warehouse-cell,
 .warehouse-empty {
-  width: 100%;
+  width: var(--warehouse-cell-size);
   height: var(--warehouse-cell-size);
   min-width: 0;
   min-height: 0;
@@ -305,35 +98,31 @@
   --item-slot-name-offset: 10px;
   color: var(--rr);
   background:
-    radial-gradient(ellipse 90% 70% at 50% 100%, #847cff22, transparent 76%),
+    radial-gradient(ellipse 90% 70% at 50% 100%, #ffc65422, transparent 76%),
     linear-gradient(145deg, #ffffff13, transparent 48%),
-    linear-gradient(160deg, #171a2dbd, #080b13c4 75%);
-  border: 1px solid #e4e7ff45;
+    linear-gradient(160deg, #2a2113bd, #0d0b08c4 75%);
+  border: 1px solid #fff0bc45;
   box-shadow:
     inset 0 1px 0 #ffffff26,
     0 6px 14px -12px #000000f2,
-    0 0 14px -12px #8279ffb3;
+    0 0 14px -12px #ffc654b3;
   cursor: var(--cursor-pointer);
   transform: translateY(0);
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .warehouse-slot.warehouse-slot:hover,
 .warehouse-slot.warehouse-slot.is-hovered,
 .warehouse-slot.warehouse-slot:focus-visible {
   background:
-    radial-gradient(ellipse 90% 70% at 50% 100%, #847cff45, transparent 76%),
+    radial-gradient(ellipse 90% 70% at 50% 100%, #ffc65445, transparent 76%),
     linear-gradient(145deg, #ffffff24, transparent 48%),
-    linear-gradient(160deg, #28294dc4, #0b0e19cc 75%);
+    linear-gradient(160deg, #4a3920c4, #100d08cc 75%);
   border-color: var(--warehouse-frame-hot);
   box-shadow:
     inset 0 1px 0 #ffffff52,
     0 8px 16px -12px #000000f2,
-    0 0 18px -9px #9a91ffe6;
+    0 0 18px -9px #ffc654e6;
   transform: translateY(-3px);
 }
 
@@ -351,7 +140,7 @@
   background:
     repeating-linear-gradient(135deg, transparent 0 8px, #ffffff08 8px 9px),
     linear-gradient(145deg, #ffffff0b, #080b138a);
-  border: 1px solid #d8ddff45;
+  border: 1px solid #f2e6d845;
   border-style: solid;
   box-shadow: inset 0 1px 0 #ffffff18;
 }
@@ -373,9 +162,6 @@
   border-top: 1px solid var(--warehouse-line);
 }
 
-/* 定位层: 恒在 body 上、不吃任何 zoom, left/top 是真实屏幕 px。宽度由内层撑出。 */
-/* 定位层: 挂在设计画布内部(见 WarehousePanel.tsx 的 portal 目标), left/top 是设计 px,
-   缩放由画布的 zoom 统一负责 —— 本层不做任何缩放, 也不认屏幕 px。 */
 .warehouse-tooltip {
   position: absolute;
   z-index: 1000;
@@ -389,89 +175,28 @@
 }
 
 .warehouse-tooltip-detail.warehouse-tooltip-detail {
-  --accent: #b8b0ff;
-  --accent2: #5ed5ff;
+  --accent: #ffc654;
+  --accent2: #a97c30;
   --bad: #ff819d;
-  --border: #d8ddff38;
+  --border: #f2e6d82e;
   --good: #87f5c1;
-  --muted: #a9b1c7;
-  --text: #f3f5ff;
+  --muted: #a5937f;
+  --text: #f3eee2;
 
   box-sizing: border-box;
   width: 100%;
   height: auto;
-  /* 上限由 JS 下发(画布高度减留白, 设计 px), 不能直接写 100vh:
-     视口单位不随画布 zoom 缩放, 在画布内会被当成设计 px 再放大一遍。 */
   max-height: var(--tooltip-max-h, 300px);
   padding: 12px;
   overflow-y: auto;
   background:
     linear-gradient(135deg, #ffffff16, transparent 50%),
-    linear-gradient(155deg, #151a31f2, #080b13f5);
-  border: 1px solid #d8ddff66;
+    linear-gradient(155deg, #30220ef2, #0b0d0ef5);
+  border: 1px solid #fff0bc66;
   border-radius: 11px 7px 12px 8px;
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
   -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.8);
   backdrop-filter: blur(14px) saturate(120%) brightness(0.8);
-}
-
-@keyframes warehousePanelIn {
-  from {
-    opacity: 0;
-    transform: translateX(-24px) translateY(8px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-  }
-}
-
-.warehouse-panel.is-right,
-.warehouse-rim.is-right {
-  animation-name: warehousePanelInRight;
-}
-
-.warehouse-panel.is-leaving,
-.warehouse-rim.is-leaving {
-  animation: warehousePanelOut 420ms ease-in both;
-}
-
-.warehouse-panel.is-right.is-leaving,
-.warehouse-rim.is-right.is-leaving {
-  animation-name: warehousePanelOutRight;
-}
-
-@keyframes warehousePanelInRight {
-  from {
-    opacity: 0;
-    transform: translateX(24px) translateY(8px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-  }
-}
-
-@keyframes warehousePanelOut {
-  from {
-    opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-44px) translateY(8px) scale(0.985);
-  }
-}
-
-@keyframes warehousePanelOutRight {
-  from {
-    opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(44px) translateY(8px) scale(0.985);
-  }
 }
 
 @keyframes warehouseTooltipOut {
@@ -482,24 +207,5 @@
   to {
     opacity: 0;
     transform: translateX(-18px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .warehouse-panel,
-  .warehouse-rim,
-  .warehouse-rim::before,
-  .warehouse-close,
-  .warehouse-slot.warehouse-slot {
-    animation: none;
-    transition: none;
-  }
-
-  .warehouse-slot.warehouse-slot:hover,
-  .warehouse-slot.warehouse-slot.is-hovered,
-  .warehouse-slot.warehouse-slot:focus-visible,
-  .warehouse-close:hover,
-  .warehouse-close:focus-visible {
-    transform: none;
   }
 }
