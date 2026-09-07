@@ -1,0 +1,122 @@
+.root {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: calc(100svh - 57px);
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #071417;
+}
+
+.scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100svh - 57px);
+  aspect-ratio: 16 / 9;
+}
+
+.building {
+  outline: none;
+}
+
+.hitArea {
+  fill: transparent;
+  stroke: none;
+  pointer-events: fill;
+  cursor: pointer;
+}
+
+.highlight {
+  opacity: 0;
+  pointer-events: none;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition: opacity 140ms ease-out;
+}
+
+.building:hover .highlight,
+.building:focus-visible .highlight {
+  opacity: 1;
+}
+
+.halo {
+  stroke: #48ffe3;
+  stroke-width: 9;
+  opacity: 0.75;
+  filter: blur(5px);
+}
+
+.edge {
+  stroke: #56ffe3;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 3px #30eaca);
+}
+
+.core {
+  stroke: #e5fff5;
+  stroke-width: 1.2;
+}
+
+.orbit {
+  stroke: #fffde1;
+  stroke-width: 3;
+  stroke-dasharray: 65 480;
+  filter: drop-shadow(0 0 5px #cefff0);
+  animation: orbit 5s linear infinite;
+  animation-play-state: paused;
+}
+
+.building:hover .orbit,
+.building:focus-visible .orbit {
+  animation-play-state: running;
+}
+
+.hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  margin: 0;
+  padding: 9px 16px;
+  transform: translateX(-50%);
+  border: 1px solid #a5efdc24;
+  border-radius: 6px;
+  background: #071417d9;
+  color: #d4eae3;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hint span {
+  margin: 0 8px;
+  color: #779b92;
+}
+
+@keyframes orbit {
+  to {
+    stroke-dashoffset: -545;
+  }
+}
+
+@media (max-width: 520px) {
+  .hint {
+    bottom: 12px;
+    max-width: calc(100% - 24px);
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlight {
+    transition: none;
+  }
+
+  .orbit {
+    animation: none;
+  }
+}
