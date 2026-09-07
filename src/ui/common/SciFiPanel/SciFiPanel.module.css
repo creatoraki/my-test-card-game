@@ -1,0 +1,79 @@
+.root {
+  --sfp-armor: #061e40;
+  --sfp-trim: #247bce;
+  --sfp-energy: #16cefa;
+  --sfp-accent: #c07aff;
+  --sfp-highlight: #b0efff;
+  --sfp-circuit: #155582;
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 260px;
+  min-height: 200px;
+  /* 所有数值均为设计 px；边框与内容继承同一个祖先的 zoom。 */
+  padding: 42px;
+}
+
+.surface {
+  position: absolute;
+  z-index: -2;
+  inset: 12px;
+  overflow: hidden;
+  clip-path: polygon(28px 0, calc(100% - 28px) 0, 100% 28px, 100% calc(100% - 28px), calc(100% - 28px) 100%, 28px 100%, 0 calc(100% - 28px), 0 28px);
+  background: radial-gradient(ellipse at 50% 0, #052548, transparent 70%), #021426;
+  pointer-events: none;
+}
+
+.grid {
+  position: absolute;
+  inset: 20px;
+  opacity: .19;
+  background-image: linear-gradient(var(--sfp-circuit) 1px, transparent 1px), linear-gradient(90deg, var(--sfp-circuit) 1px, transparent 1px);
+  background-size: 96px 96px;
+  background-position: center;
+}
+
+.circuitStart, .circuitEnd {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  max-width: 48%;
+  max-height: 70%;
+  color: var(--sfp-circuit);
+  opacity: .35;
+}
+.circuitStart { top: 24px; left: 24px; }
+.circuitEnd { right: 24px; bottom: 24px; transform: rotate(180deg); }
+
+.frame { position: absolute; z-index: -1; inset: 0; pointer-events: none; }
+.frame > svg { position: absolute; display: block; overflow: hidden; }
+.topLeft, .topRight, .bottomLeft, .bottomRight { width: 120px; height: 90px; }
+.topLeft { top: 0; left: 0; }
+.topRight { top: 0; right: 0; transform: scaleX(-1); }
+.bottomLeft { bottom: 0; left: 0; transform: scaleY(-1); }
+.bottomRight { bottom: 0; right: 0; transform: scale(-1); }
+/* 接缝重叠 .5px，避免非整数 zoom 时栅格化出现透明细缝。 */
+.top, .bottom { left: 119.5px; width: calc(100% - 239px); height: 42px; }
+.top { top: 0; }
+.bottom { bottom: 0; transform: scaleY(-1); }
+.left, .right { top: 89.5px; width: 36px; height: calc(100% - 179px); }
+.left { left: 0; }
+.right { right: 0; transform: scaleX(-1); }
+.topBadge, .bottomBadge { left: 35%; width: 30%; height: 32px; }
+.topBadge { top: 0; }
+.bottomBadge { bottom: 0; transform: scaleY(-1); }
+
+.content {
+  position: relative;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sfp-trim) transparent;
+}
