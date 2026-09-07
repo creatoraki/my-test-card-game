@@ -32,7 +32,11 @@ export function StationDock({ onFormation, onSortie }: StationDockProps) {
           <span className={s.formationIcon} aria-hidden="true">
             <FormationIcon />
           </span>
-          <span className={s.formationTitle}>编队</span>
+          <span className={s.formationCopy}>
+            <span className={s.formationTitle}>编队</span>
+            <span className={s.formationSubtitle} aria-hidden="true">SQUAD MANAGEMENT</span>
+          </span>
+          <span className={s.formationArrow} aria-hidden="true">›</span>
         </button>
 
         <button type="button" className={s.sortie} aria-label="出击，前往选择远征目标" onClick={onSortie}>

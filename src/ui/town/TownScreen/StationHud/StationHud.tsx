@@ -29,6 +29,15 @@ function SoundIcon({ muted }: { muted: boolean }) {
   );
 }
 
+function ResetIcon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 18a15 15 0 1 1-1 13M11 8v10h10" />
+      <path d="M24 15v10l6 4" opacity={0.65} />
+    </svg>
+  );
+}
+
 export interface StationHudProps {
   day: number;
   credits: number;
@@ -95,8 +104,9 @@ export function StationHud({
           data-muted={!sfxEnabled}
           onClick={onToggleSfx}
         >
-          <SoundIcon muted={!sfxEnabled} />
+          <span className={s.chipIcon} aria-hidden="true"><SoundIcon muted={!sfxEnabled} /></span>
           <span>{sfxEnabled ? "音效开启" : "音效关闭"}</span>
+          <span className={s.indicator} aria-hidden="true" />
         </button>
 
         <button
@@ -107,8 +117,9 @@ export function StationHud({
           data-muted={!bgmEnabled}
           onClick={onToggleBgm}
         >
-          <MusicIcon muted={!bgmEnabled} />
+          <span className={s.chipIcon} aria-hidden="true"><MusicIcon muted={!bgmEnabled} /></span>
           <span>{bgmEnabled ? "音乐播放中" : "音乐已关闭"}</span>
+          <span className={s.indicator} aria-hidden="true" />
         </button>
 
         <button
@@ -126,7 +137,8 @@ export function StationHud({
             })
           }
         >
-          重置存档
+          <span className={s.chipIcon} aria-hidden="true"><ResetIcon /></span>
+          <span>重置存档</span>
         </button>
       </div>
     </>
