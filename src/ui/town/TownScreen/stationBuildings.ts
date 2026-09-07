@@ -1,9 +1,9 @@
-// 空间站全景(据点)的建筑登记处 —— 轮廓 + 设施绑定 + 推镜焦点, 三件事收在一张表里。
+// 空间站全景(据点)的建筑登记处 —— 轮廓 + 招牌 + 设施绑定, 三件事收在一张表里。
 //
 // ★ 轮廓是照着 场景/测试/背景素材.png 的原生 1920×1080 逐栋描出来的可见剪影(含附属台阶/设备,
 //   不含投影与地面铺装)。它同时也是命中区 —— 建筑之间的空隙点不亮任何光效。
-// ★ 坐标系与画布(ui/hooks/stage.ts 的 1920×1080 设计 px)完全一致: SVG viewBox 直接用它,
-//   推镜焦点也用它, 任何分辨率下构图逐 px 一致。
+// ★ 坐标系与画布(ui/hooks/stage.ts 的 1920×1080 设计 px)完全一致: SVG viewBox 与招牌锚点
+//   直接用它, 任何分辨率下构图逐 px 一致。
 // ★ 加一栋建筑 = 这里描一条轮廓 + 在 FACILITY_BINDING 里加一行, 组件一行都不用动。
 
 import {
@@ -139,32 +139,29 @@ const BUILDING_CONTOURS = [
 
 export type BuildingId = (typeof BUILDING_CONTOURS)[number]["id"];
 
-/** 一栋建筑进去之后是哪个设施: 背景图 + 推镜焦点 + 放大倍数。 */
+/** 一栋建筑进去之后是哪个设施: 设施 id + 背景图。
+ *  ⚠ 曾经还有 focus / scale(推镜焦点与放大倍数): 进设施的运镜已整套删除, 两个字段一并去掉。 */
 export interface FacilityBinding {
   /** 设施 id: 与 TownScreen 的 FACILITY_CONTENT 键一致。 */
   facility: string;
   /** 设施自己的背景图(16:9, 与画布同比例 ⇒ cover 只等比缩放, 无裁切无变形)。 */
   bg: string;
-  /** 推镜焦点(设计 px)。默认取招牌锚点 —— 招牌本来就指着建筑。 */
-  focus: { x: number; y: number };
-  /** 放大倍数。焦点会被 facilityCamera 钳到安全区内, 镜头不会露出画布外的黑边。 */
-  scale: number;
 }
 
-// ★ 构图不满意就改这里的 focus / scale, 别去动组件或 CSS。
+// ★ 换设施背景就改这里, 别去动组件或 CSS。
 const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
   // 工房: 模组装配 / 制造 / 装备升阶 / 羁绊重铸
-  airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART, focus: { x: 380, y: 358 }, scale: 1.8 },
+  airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART },
   // 医疗室: 冬眠唤醒 / 营养舱
-  supplies: { facility: "cryo", bg: CRYO_BG_ART, focus: { x: 995, y: 345 }, scale: 1.8 },
+  supplies: { facility: "cryo", bg: CRYO_BG_ART },
   // 队员宿舍: 小队天赋 / 训练点
-  "sleeping-pods": { facility: "training", bg: TRAINING_BG_ART, focus: { x: 1610, y: 356 }, scale: 1.8 },
+  "sleeping-pods": { facility: "training", bg: TRAINING_BG_ART },
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
-  workshop: { facility: "shop", bg: SHOP_BG_ART, focus: { x: 221, y: 657 }, scale: 1.8 },
+  workshop: { facility: "shop", bg: SHOP_BG_ART },
   // 档案机: 物品 / 卡牌 / 怪物图鉴
-  "power-station": { facility: "museum", bg: MUSEUM_BG_ART, focus: { x: 890, y: 828 }, scale: 1.8 },
+  "power-station": { facility: "museum", bg: MUSEUM_BG_ART },
   // 研究中心: 委托终端
-  laboratory: { facility: "worklog", bg: WORKLOG_BG_ART, focus: { x: 1698, y: 691 }, scale: 1.8 },
+  laboratory: { facility: "worklog", bg: WORKLOG_BG_ART },
 };
 
 export interface StationBuilding extends FacilityBinding {

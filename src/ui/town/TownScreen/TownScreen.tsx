@@ -5,18 +5,18 @@
 //   任何分辨率下构图逐 px 一致, 画布之外露出的是黑边。
 // ⚠ 不要在画布内写 vw/vh 或按窗口宽度的 @media —— 那会让构图重新随分辨率漂移。
 //
-// ★ 「哪栋建筑 = 哪个设施 / 哪张背景 / 推向哪个焦点」全在 stationBuildings.ts 一张表里,
+// ★ 「哪栋建筑 = 哪个设施 / 哪张背景」全在 stationBuildings.ts 一张表里,
 //   加一栋建筑不用动本文件。设施内容登记在下面的 FACILITY_CONTENT。
 //
 // ★ 点建筑会播一段「进设施」演出(时长/位移的真相在 ui/town/facilityScenes.ts):
-//   镜头推向该建筑并放大 → HUD 逐组错峰飞出 → 推镜尾段 PixelSwap 把全景像素块化地换成设施背景。
+//   HUD 逐组错峰飞出 → 紧跟着 PixelSwap 把全景像素块化地换成设施背景。
+//   ⚠ **没有运镜**: 镜头不推近、不放大, 点哪栋建筑都是原地换场 —— 相机那一套已整体删除。
 //
-// ⚠ **编队与出击不是设施**: 它们不播运镜, 而是直接切到顶层全屏页(见右下的 StationDock)。
+// ⚠ **编队与出击不是设施**: 它们连这段换场都不播, 直接切到顶层全屏页(见右下的 StationDock)。
 
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -36,7 +36,6 @@ import {
   FLY_DOCK,
   FLY_RESET,
   FLY_STATUS,
-  facilityCamera,
   flyBackDelay,
   warmFacilityBg,
   type FlyOut,
@@ -79,7 +78,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
 const FACILITY_SELF_EXIT = new Set(["training"]);
 
 // ===================== 进设施演出 =====================
-// 阶段机: idle(可交互) → entering(推镜 + HUD 飞出 + 像素转场) → inside(设施场景) → leaving(反向) → idle。
+// 阶段机: idle(可交互) → entering(HUD 飞出 + 像素转场) → inside(设施场景) → leaving(反向) → idle。
 // 演出期间(entering/leaving)画布整体不接受点击, 防连点打断时序。
 type Phase = "idle" | "entering" | "inside" | "leaving";
 
@@ -114,7 +113,7 @@ export function TownScreen() {
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [building, setBuilding] = useState<StationBuilding | null>(null); // 正在进入/已进入的建筑
-  // PixelSwap 的目标态: 进设施时到推镜尾段才置真, 转场即由此触发。
+  // PixelSwap 的目标态: 点建筑后隔一小段(crossfadeAt, 让 HUD 先起飞)置真, 转场即由此触发。
   const [swapped, setSwapped] = useState(false);
   // 建筑热区层跟着全景背景走: 像素转场一起转它就淡出, 返回时等像素铺回全景才淡回来 ——
   // 它在 PixelSwap 之上, 不跟着走的话会浮在已经换好的设施背景上。
@@ -130,15 +129,13 @@ export function TownScreen() {
     timers.current.push(window.setTimeout(fn, ms));
   }, []);
   useEffect(() => clearTimers, [clearTimers]);
-  // 设施背景是 2~3MB 的大图, 进据点就先拉起来 —— 等运镜结束才发请求会切进一片空底色。
+  // 设施背景是 2~3MB 的大图, 进据点就先拉起来 —— 去掉运镜后点击到转场只隔几百 ms,
+  // 等点了才发请求必然切进一片空底色。
   useEffect(warmFacilityBg, []);
 
-  // 相机: 焦点 → 画框中心的仿射变换(含贴边钳制)。三个分量下发给 CSS, 由 keyframes 按行程插值。
-  const cam = useMemo(() => (building ? facilityCamera(building) : null), [building]);
-
   // ⚠ 进设施的收尾交给 PixelSwap 的 onComplete, **不要**只用定时器: 定时器与 PixelSwap 内部的
-  //   计时是两条独立时间线, 谁先谁后不保证。若 phase 先切到 inside, 全景那层会在像素还没铺满时
-  //   丢掉推镜变换(相机动画随 is-entering 一起消失), 于是闪一帧未放大的全景。
+  //   计时是两条独立时间线, 谁先谁后不保证。phase 一旦切到 inside, 全景那层(含建筑热区)就整个
+  //   卸下, 若抢在像素铺满之前发生, 会露出下面还没换完的一角。
   const enterDone = useCallback(() => setPhase((current) => (current === "entering" ? "inside" : current)), []);
 
   function enterFacility(target: StationBuilding) {
@@ -158,7 +155,7 @@ export function TownScreen() {
     if (phase !== "inside") return;
     clearTimers();
     setPhase("leaving");
-    // 像素转场与推镜同时反向起播 —— PixelSwap 克隆的背景与原件同帧创建, 相位一致不会错位。
+    // 像素转场立刻反向起播, HUD 稍后再逐个飞回(flyBackDelay 留了 240ms 的头)。
     setSwapped(false);
     later(() => {
       setPhase("idle");
@@ -173,7 +170,7 @@ export function TownScreen() {
   }
 
   const inCinema = phase === "entering" || phase === "leaving";
-  // 设施内的东西(内容层 + 返回按钮): 运镜结束后挂载, 一直留到返回演出走完。
+  // 设施内的东西(内容层 + 返回按钮): 像素转场铺满后挂载, 一直留到返回演出走完。
   const inFacility = phase === "inside" || phase === "leaving";
   const facilityId = building?.facility ?? null;
 
@@ -203,11 +200,7 @@ export function TownScreen() {
       data-town-stage
       style={
         {
-          "--cam-tx": `${cam?.tx ?? 0}px`,
-          "--cam-ty": `${cam?.ty ?? 0}px`,
-          "--cam-s": cam?.s ?? 1,
-          "--cam-ms": `${FACILITY_CINEMA.camera}ms`,
-          "--leave-ms": `${FACILITY_CINEMA.leave}ms`,
+          // 只剩「返回据点」按钮的淡入时长要下发给 CSS(--leave-ms 随相机关键帧一起废弃了)。
           "--fac-back-in": `${FACILITY_CINEMA.backBtnIn}ms`,
         } as CSSProperties
       }
@@ -230,7 +223,7 @@ export function TownScreen() {
         secondContent={building ? <ScenePlate src={building.bg} alt={building.label} /> : null}
       />
 
-      {/* 建筑热区: 与背景同步做相机变换, 否则轮廓会与图漂开。 */}
+      {/* 建筑热区: 与背景图共用 1920×1080 坐标, 直接叠在全景之上(没有相机变换要跟)。 */}
       <div className={s["station-layer"]} data-visible={phase !== "inside" && stationShown}>
         <StationLayer
           onEnter={enterFacility}

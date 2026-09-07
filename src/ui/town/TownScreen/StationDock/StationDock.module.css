@@ -6,35 +6,13 @@
   right: 56px;
   bottom: 44px;
   z-index: 3;
-  width: 384px;
+  width: 280px;
   color: #ffd995;
-}
-
-.status,
-.caption {
-  display: flex;
-  align-items: center;
-  font-size: 13px;
-  letter-spacing: 2px;
-  text-shadow: 0 2px 4px #000;
-}
-
-.status {
-  justify-content: flex-end;
-  gap: 9px;
-  margin: 0 6px 9px;
-}
-
-.status i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #b4ffe1;
-  box-shadow: 0 0 12px #7dffd2;
 }
 
 .row {
   display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
@@ -43,13 +21,12 @@
   position: relative;
   isolation: isolate;
   display: flex;
-  flex: 0 0 132px;
-  flex-direction: column;
+  flex: 0 0 84px;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 10px;
   min-height: 84px;
-  padding: 10px;
+  padding: 10px 16px;
   border: 0;
   clip-path: none;
   background: transparent;
@@ -71,8 +48,9 @@
 }
 
 .formationIcon {
-  width: 30px;
-  height: 30px;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
   filter: drop-shadow(0 0 7px #6fe3f57a);
 }
 
@@ -83,10 +61,12 @@
 }
 
 .formationTitle {
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: 5px;
-  text-indent: 5px; /* 抵掉字距落在末字右侧的那一份, 让文字视觉居中 */
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 6px;
+  text-indent: 6px;
+  text-shadow: 0 0 18px #6fe3f566;
 }
 
 .formation:hover,
@@ -110,7 +90,7 @@
   position: relative;
   isolation: isolate;
   display: flex;
-  flex: 1;
+  flex: 0 0 84px;
   align-items: center;
   gap: 10px;
   min-height: 84px;

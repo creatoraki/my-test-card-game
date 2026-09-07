@@ -26,11 +26,6 @@ export interface StationDockProps {
 export function StationDock({ onFormation, onSortie }: StationDockProps) {
   return (
     <div className={s.dock}>
-      <span className={s.status} aria-hidden="true">
-        <i />
-        系统就绪 · 待命中
-      </span>
-
       <div className={s.row}>
         <button type="button" className={s.formation} onClick={onFormation}>
           <span className={s.formationSurface} aria-hidden="true" />
@@ -57,10 +52,6 @@ export function StationDock({ onFormation, onSortie }: StationDockProps) {
           </span>
         </button>
       </div>
-
-      <span className={s.caption} aria-hidden="true">
-        星港指挥部<span>远征启航 //</span>
-      </span>
     </div>
   );
 }

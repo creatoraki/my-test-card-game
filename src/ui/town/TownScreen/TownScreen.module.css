@@ -55,11 +55,12 @@
 }
 
 /* ===================== 进设施演出 ===================== */
-/* 一次「进设施」= 三件事同时发生, 三者各管各的属性、互不覆盖:
-     ① 相机推近   → 背景图 .plate 与热区层 .station-layer 的 transform(同一条 keyframes)
-     ② HUD 退场   → 状态条 / 左下按钮组 / 右下出击坞各自的 transform + opacity(逐个错峰)
-     ③ 像素转场   → PixelSwap 在推镜尾段(--fac-at)把全景像素块化地换成设施背景
-   ★ 全部时长/位移/相机分量都由 TownScreen.tsx 经内联 CSS 变量下发, 真相在 ui/town/facilityScenes.ts,
+/* 一次「进设施」= 两件事几乎同时发生, 各管各的属性、互不覆盖:
+     ① HUD 退场   → 状态条 / 左下按钮组 / 右下出击坞各自的 transform + opacity(逐个错峰)
+     ② 像素转场   → PixelSwap 把全景像素块化地换成设施背景(起转时刻由 JS 定时器给)
+   ⚠ **没有运镜**: 早期版本还有一层「镜头推向被点建筑」的 townCamPush 关键帧, 已整套删除 ——
+     点建筑就是原地换场。故本文件里 .plate / .station-layer 不再带任何 transform 动画。
+   ★ 全部时长/位移都由 TownScreen.tsx 经内联 CSS 变量下发, 真相在 ui/town/facilityScenes.ts,
      本文件只写「怎么动」不写「动多久、动多远」—— 与 ScreenTransition 同款分工。 */
 
 /* 演出期间整块画布不接受点击: 防连点打断时序(JS 侧另有 phase 守卫, 这里是第二道)。 */
@@ -68,50 +69,7 @@
   pointer-events: none;
 }
 
-/* ---- ① 相机 ---- */
-/* transform-origin: 0 0 ⇒ 局部 px 恒等于设计 px, 与 BattleScreen 的相机同一套坐标约定。
-   ⚠ 相机只挂在**全景**这一侧(背景图 + 热区层): 设施背景是 PixelSwap 的另一层, 不跟着放大,
-     否则进到设施里画面会停在 1.8 倍。 */
-.plate,
-.station-layer {
-  transform-origin: 0 0;
-}
-.town-splash.is-entering .plate,
-.town-splash.is-entering .station-layer {
-  animation: townCamPush var(--cam-ms) both;
-}
-/* 返回 = 同一套关键帧反向播放, 时长压到 --leave-ms。
-   ⚠ 返回时 PixelSwap 会把这张背景克隆到每个像素上, 克隆体同样命中本条规则并从头起播 ——
-     与原件同一帧创建, 故两者始终同相位, 像素块里外不会错位。 */
-.town-splash.is-leaving .plate,
-.town-splash.is-leaving .station-layer {
-  animation: townCamPush var(--leave-ms) both reverse;
-}
-
-/* 镜头节奏 =「拿起相机 → 一路推进」两段，全程不停顿、不做对焦停留:
-   ① 0~16%: 起手一小段(只走全程的 6%), 缓出 ⇒ 有「抬起相机」的起势, 但速度不归零;
-   ② 16~100%: 一条曲线直接推到位, 缓入缓出、末段不过冲 ⇒ 落地即停, 不回弹。
-   两段在 16% 处速度衔接得上, 读起来是一个连贯的运镜而不是两次动作。
-   ★ 推进的缓出刻意不做得太「平」(控制点 0.55 而非 0.2): 尾巴太平会让人以为镜头早就停了;
-     再配合 --fac-at 提前开始的像素转场(见 facilityScenes.ts), 转场就压在这条尾巴上无缝接住。
-   每一帧只写「走到全程的百分之几」, 三个相机分量用 calc 从变量里按同一比例取
-   ⇒ 一套关键帧适配所有建筑, 换焦点/倍数不用改 CSS。 */
-@keyframes townCamPush {
-  0% {
-    transform: translate(0, 0) scale(1);
-    animation-timing-function: cubic-bezier(0.3, 0.55, 0.5, 1); /* 拿起 */
-  }
-  16% {
-    transform: translate(calc(var(--cam-tx) * 0.06), calc(var(--cam-ty) * 0.06))
-      scale(calc(1 + (var(--cam-s) - 1) * 0.06));
-    animation-timing-function: cubic-bezier(0.36, 0.02, 0.55, 1); /* 推进 */
-  }
-  100% {
-    transform: translate(var(--cam-tx), var(--cam-ty)) scale(var(--cam-s));
-  }
-}
-
-/* ---- ② HUD 逐个飞出 ---- */
+/* ---- ① HUD 逐个飞出 ---- */
 /* 方向/时长/延迟四个数全由内联变量给, 每个元素各不相同 ⇒ 明显非同步。 */
 .town-splash.is-entering .is-flying {
   pointer-events: none;
