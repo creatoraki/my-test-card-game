@@ -27,6 +27,7 @@ interface Props {
   status?: ReactNode;
   closeLabel: string;
   closing?: boolean;
+  sfx?: boolean;
   onClose: () => void;
   /** 换配色用: 覆盖 --asm-frame / --asm-glow / --asm-select 等变量。缺省沿用装配舱的青蓝。 */
   themeStyle?: CSSProperties;
@@ -57,6 +58,7 @@ export function PanelShell({
   status,
   closeLabel,
   closing = false,
+  sfx = true,
   onClose,
   themeStyle,
   size = PANEL_SIZE,
@@ -65,8 +67,8 @@ export function PanelShell({
   children,
 }: Props) {
   useEffect(() => {
-    playSfx("panel");
-  }, []);
+    if (sfx) playSfx("panel");
+  }, [sfx]);
 
   const morphPhase = morph ? (closing ? "closing" : morph.ready ? "open" : "opening") : null;
   const panelStyle = morph ? box(morph.rect) : { width: `${size.w}px`, height: `${size.h}px` };

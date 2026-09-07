@@ -13,9 +13,12 @@
   background: transparent;
 }
 
-.modal[data-morph="opening"],
-.modal[data-morph="open"] {
+.modal[data-morph="opening"] {
   animation: veilIn var(--veil-in-ms) ease-out both;
+}
+
+.modal[data-morph="open"] {
+  opacity: 1;
 }
 
 .modal[data-morph="closing"] {
@@ -23,16 +26,22 @@
 }
 
 .panel {
+  /* 落地那一拍的节拍: 外框淡入多久, 占位皮就要垫多久(见 .morphSkin.isLanded)。 */
+  --frame-in-ms: 280ms;
+
   position: absolute;
   z-index: 2;
   overflow: visible;
   color: #f2e6ef;
 }
 
+/* morph 生长期间顶替 HudFrame 的占位皮。
+   ⚠ 形状与配色都必须和 HudFrame 的玻璃底一致 —— inset 与 clip-path 由组件从
+   hudFrameGeometry 下发(--hud-skin-*), 这里的字面值只是组件没下发时的兜底。 */
 .morphSkin {
   position: absolute;
   z-index: 0;
-  inset: 16px;
+  inset: var(--hud-skin-inset, 16px);
   pointer-events: none;
   border: 2px solid #f5116f;
   background:
@@ -42,15 +51,18 @@
       color-mix(in srgb, #78145a 12%, #0b0d17) 48%,
       color-mix(in srgb, #ff2d87 14%, #100a16) 100%
     );
-  clip-path: polygon(
-    26px 0,
-    calc(100% - 26px) 0,
-    100% 26px,
-    100% calc(100% - 26px),
-    calc(100% - 26px) 100%,
-    26px 100%,
-    0 calc(100% - 26px),
-    0 26px
+  clip-path: var(
+    --hud-skin-clip,
+    polygon(
+      26px 0,
+      calc(100% - 26px) 0,
+      100% 26px,
+      100% calc(100% - 26px),
+      calc(100% - 26px) 100%,
+      26px 100%,
+      0 calc(100% - 26px),
+      0 26px
+    )
   );
   box-shadow: 0 0 6px rgb(255 43 134 / 0.95), 0 0 16px rgb(255 0 96 / 0.55);
 }
@@ -61,7 +73,15 @@
 }
 
 .frame.isLanded {
-  animation: frameIn 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+  animation: frameIn var(--frame-in-ms) cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+/* ⚠ 这里**不能**和 frameIn 做交叉淡化: 占位皮与外框玻璃底两层都不透明, 一进一出同时跑,
+   合成不透明度会在中段掉到 1-(1-0.5)(1-0.5)=0.75 —— 展开动画的结尾就闪一下、把据点场景
+   露出来。正确的接法是: 占位皮在外框淡入的整段里稳稳保持 opacity:1 垫底, 等外框完全实了
+   再撤; 此时它和玻璃底同形同色, 撤走看不出来。 */
+.morphSkin.isLanded {
+  animation: morphSkinOut 120ms var(--frame-in-ms) linear both;
 }
 
 .seed {
@@ -117,20 +137,6 @@
   transform: rotate(90deg);
 }
 
-.land {
-  position: absolute;
-  left: -60%;
-  top: -60%;
-  z-index: 4;
-  display: block;
-  width: 60%;
-  height: 220%;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgb(255 47 142 / 0.75) 48%, transparent);
-  transform: rotate(18deg);
-  animation: land 720ms var(--land-delay, 880ms) cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
-}
-
 /* ⚠ 关闭时面板自己的演出**不在这里** —— 三个 morph 外壳共用
    common/panelMorph/panelCollapse.module.css 的折叠类(竖向压成一条横线后淡出),
    由 HudPanelShell 在 closing 时挂到 .panel 上。这里只留遮罩层的淡出。 */
@@ -150,12 +156,12 @@
   to { opacity: 0; }
 }
 
-@keyframes land {
-  from { opacity: 0.9; transform: rotate(18deg) translateX(0); }
-  to { opacity: 0; transform: rotate(18deg) translateX(320%); }
-}
-
 @keyframes frameIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes morphSkinOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }

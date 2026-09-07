@@ -11,8 +11,6 @@
   position: absolute;
   z-index: 2;
   inset: 0;
-  perspective: 1800px;
-  perspective-origin: 50% 46%;
   color: var(--sx-ink);
   font-family: var(--font-family);
   pointer-events: none;
@@ -95,8 +93,11 @@
 }
 
 .sx-root .sx-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--event-accent);
-  font-size: 18px;
+  font-size: var(--panel-shell-status-size, 18px);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.12em;
   white-space: nowrap;
@@ -179,48 +180,41 @@
   color: #e47970;
 }
 
-/* The shell keeps its own slide animation on the outer node. Rotate only the
-   visual panel so the reveal/leave motion remains intact. */
-.sx-root .sx-warehouse-shell,
-.sx-root .sx-vending-shell {
-  transform-style: preserve-3d;
+/* 回收台外壳自带全屏遮罩。商店两块面板并排常驻, 遮罩不参与命中测试,
+   只有面板本体可交互, 因而两层遮罩不会互相挡住内容。 */
+.sx-root .sx-warehouse-modal,
+.sx-root .sx-vending-modal {
+  z-index: 5;
+  pointer-events: none;
 }
 
-.sx-root .sx-vending-shell {
-  --event-accent: #b6ff4d;
-  --sx-electric: #eaffd0;
-  --sx-action-hot: #ff5fa2;
-}
-
-.sx-root .sx-warehouse-shell > div,
-.sx-root .sx-vending-shell > div {
-  transform-style: preserve-3d;
+.sx-root .sx-warehouse-modal > section,
+.sx-root .sx-vending-modal > section {
+  pointer-events: auto;
   backface-visibility: hidden;
-  transition: transform 260ms ease, filter 260ms ease;
+  transform-style: preserve-3d;
 }
 
-.sx-root .sx-warehouse-shell > div {
-  transform: rotateY(-9deg) rotateX(1deg);
+.sx-root .sx-warehouse-modal > section {
+  transform: perspective(1800px) rotateY(9deg) rotateX(2deg);
   transform-origin: 0 50%;
-  filter:
-    drop-shadow(0 38px 28px rgb(0 0 0 / 0.86))
-    drop-shadow(0 0 24px color-mix(in srgb, var(--sfp-energy) 34%, transparent));
 }
 
-.sx-root .sx-vending-shell > div {
-  transform: rotateY(9deg) rotateX(1deg);
+.sx-root .sx-vending-modal > section {
+  transform: perspective(1800px) rotateY(-9deg) rotateX(2deg);
   transform-origin: 100% 50%;
-  filter:
-    drop-shadow(0 42px 30px rgb(0 0 0 / 0.88))
-    drop-shadow(0 0 28px color-mix(in srgb, var(--sfp-energy) 32%, transparent));
 }
 
-.sx-root .sx-warehouse-shell > div > div,
-.sx-root .sx-vending-shell > div > div {
-  text-shadow: 0 2px 10px rgb(0 0 0 / 0.62);
+.sx-root .sx-vending-modal {
+  --event-accent: #b6ff4d;
 }
 
 .sx-root.is-leaving .sx-header {
+  animation: sxLeave 420ms ease both;
+}
+
+.sx-root.is-leaving .sx-warehouse-modal,
+.sx-root.is-leaving .sx-vending-modal {
   animation: sxLeave 420ms ease both;
 }
 
@@ -255,8 +249,4 @@
     transform: none;
   }
 
-  .sx-root .sx-warehouse-shell > div,
-  .sx-root .sx-vending-shell > div {
-    transition: none;
-  }
 }

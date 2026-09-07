@@ -125,3 +125,33 @@ export function buildHudFrame(
 
   return { upper: poly(upper), lower: poly(lower), fill: poly(fill, true) };
 }
+
+/** 上面那套 `fill` 轮廓的 CSS 孪生: 直接给 clip-path 用的 polygon()。
+ *
+ * ★ 为什么要有它: morph 浮层在生长阶段还没挂 HudFrame(拿不到真实尺寸就画不出 path),
+ *   期间由外壳自己的「占位皮」顶着。占位皮必须和这里的玻璃底**逐像素同形**, 落地换手
+ *   时才不会露出形状差 —— 于是几何只留一份, CSS 侧从这个函数取。
+ * ⚠ 改 buildHudFrame 的 fill 点序, 这里要跟着改。
+ * ⚠ 坐标相对**已经 inset 过**的盒子(占位皮自己吃 spec.inset 做外边距), 故不含 inset。
+ */
+export function hudFrameClipPath(spec: HudFrameSpec = HUD_FRAME_SPEC): string {
+  const ch = spec.chamfer;
+  const step = spec.stepDepth;
+  const midStart = n((100 - spec.midRatio * 100) / 2);
+  const midEnd = n(midStart + spec.midRatio * 100);
+  const points = [
+    `0 ${ch}px`,
+    `${ch}px 0`,
+    `calc(${midStart}% - ${step}px) 0`,
+    `${midStart}% ${step}px`,
+    `${midEnd}% ${step}px`,
+    `calc(${midEnd}% + ${step}px) 0`,
+    `calc(100% - ${ch}px) 0`,
+    `100% ${ch}px`,
+    `100% calc(100% - ${ch}px)`,
+    `calc(100% - ${ch}px) 100%`,
+    `${ch}px 100%`,
+    `0 calc(100% - ${ch}px)`,
+  ];
+  return `polygon(${points.join(", ")})`;
+}

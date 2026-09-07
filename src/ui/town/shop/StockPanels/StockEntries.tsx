@@ -1,5 +1,5 @@
 // 商店场景右侧的两条抽屉入口: 商店 / 回收台。
-// 商店弹层由 ShopScene 的 SciFiPanelShell 联动管理; 回收台继续使用 panelMorph。
+// 商店弹层由 ShopScene 的 PanelShell + panelMorph 联动管理; 回收台继续使用 panelMorph。
 
 import { useMemo, type CSSProperties } from "react";
 import { getItemDef } from "@/data";
@@ -41,10 +41,11 @@ const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
 
 export interface StockEntriesProps {
   shopOpen: boolean;
-  onOpenShop: () => void;
+  shopClosing: boolean;
+  onOpenShop: (entry: HTMLElement) => void;
 }
 
-export function StockEntries({ shopOpen, onOpenShop }: StockEntriesProps) {
+export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntriesProps) {
   const storage = useTownStore((state) => state.storage);
   const loot = useTownStore((state) => state.loot);
   const sellItem = useTownStore((state) => state.sellItem);
@@ -78,8 +79,10 @@ export function StockEntries({ shopOpen, onOpenShop }: StockEntriesProps) {
           icon={<ShelfIcon />}
           name="商店"
           desc="每日上新 · 采购物资"
-          hidden={shopOpen}
-          onClick={onOpenShop}
+          entryId="shop"
+          hidden={shopOpen && !shopClosing}
+          revealing={shopClosing}
+          onClick={(event) => onOpenShop(event.currentTarget)}
         />
         <EntryTile
           icon={<RecycleIcon />}

@@ -8,7 +8,7 @@
   --stock-line: #f2e6d82e;
   --stock-glow: #d6b477;
   position: absolute;
-  /* 入口列在商店/仓库 SciFiPanel(z-index 5)之下, 回收台 PanelShell(z-index 6)之下。 */
+  /* 入口列在商店/仓库 PanelShell(z-index 5)之下, 回收台 PanelShell(z-index 6)之下。 */
   z-index: 4;
   display: grid;
   grid-auto-rows: minmax(0, 1fr);
