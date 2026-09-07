@@ -1,6 +1,6 @@
 import { forwardRef, type CSSProperties, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
-import { OPEN_MS, SLIDE_MS, box, type Rect } from "../cryoMorph/cryoChoreo";
+import { COLLAPSE_MS, OPEN_MS, PANEL_COLLAPSE_CLASS, SLIDE_MS, box, type Rect } from "../cryoMorph/cryoChoreo";
 import s from "../styles/cryoKit.module.css";
 
 export const CONTENT_DELAY_MS = 0;
@@ -16,28 +16,32 @@ interface Props {
   title: string;
   rect: Rect;
   ready: boolean;
+  closing?: boolean;
   onClose: () => void;
   seed?: ReactNode;
   children: ReactNode;
 }
 
 export const CryoPanelShell = forwardRef<HTMLElement, Props>(function CryoPanelShell(
-  { kicker, title, rect, ready, onClose, seed, children },
+  { kicker, title, rect, ready, closing = false, onClose, seed, children },
   ref,
 ) {
+  const morphPhase = closing ? "closing" : ready ? "open" : "opening";
+
   return (
     <div
       className={cn("modal")}
+      data-morph={morphPhase}
       onClick={onClose}
     >
       <section
-        className={cn("panel", !ready && "is-morphing")}
+        className={cx(cn("panel", !ready && "is-morphing"), closing && PANEL_COLLAPSE_CLASS)}
         ref={ref}
         onClick={(event) => event.stopPropagation()}
-        style={{ ...box(rect), "--content-delay": `${CONTENT_DELAY_MS}ms`, "--land-delay": `${OPEN_MS}ms`, "--seed-delay": `${SLIDE_MS}ms` } as CSSProperties}
+        style={{ ...box(rect), "--content-delay": `${CONTENT_DELAY_MS}ms`, "--land-delay": `${OPEN_MS}ms`, "--seed-delay": `${SLIDE_MS}ms`, "--veil-out-ms": `${COLLAPSE_MS}ms`, "--collapse-ms": `${COLLAPSE_MS}ms` } as CSSProperties}
       >
         <CryoAmbience />
-        {ready ? (
+        {ready || closing ? (
           <>
             <div className={cn("panelHead")}>
               <span className={cn("kicker")}>{kicker}</span>

@@ -6,6 +6,7 @@ import { AwakenPanel } from "../AwakenPanel";
 import { CryoPanelShell } from "../CryoPanelShell";
 import { NutritionPanel } from "../NutritionPanel";
 import { PANEL_RECT } from "../cryoMorph/cryoChoreo";
+import { useEntryRise } from "@/ui/hooks/useEntryRise";
 import { useCryoMorph, type PanelId } from "../cryoMorph/useCryoMorph";
 import s from "./CryoScene.module.css";
 
@@ -24,6 +25,7 @@ export function CryoScene({ leaving = false }: Props) {
   const researchNutritionTech = useTownStore((state) => state.researchNutritionTech);
   const nutrition = useTownStore((state) => state.nutrition);
   const [podSlot, setPodSlot] = useState(0);
+  const entryRise = useEntryRise();
   const morph = useCryoMorph();
   const { panel } = morph;
 
@@ -52,6 +54,7 @@ export function CryoScene({ leaving = false }: Props) {
 
       <div
         className={cn("cryo-entries")}
+        {...entryRise}
         style={{
           right: "0px",
           top: "240px",
@@ -59,6 +62,7 @@ export function CryoScene({ leaving = false }: Props) {
           gap: "10px",
           gridTemplateRows: "88px 88px",
           "--peek": "260px",
+          ...morph.entryVars,
         } as CSSProperties}
       >
         <EntryTile
@@ -66,7 +70,8 @@ export function CryoScene({ leaving = false }: Props) {
           name="冬眠唤醒"
           desc={sealedCount > 0 ? `${sealedCount} 具休眠体待解封` : "无休眠体信号"}
           entryId="awaken"
-          hidden={morph.hiddenEntry === "awaken"}
+          hidden={morph.hiddenEntry === "awaken" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "awaken"}
           onClick={(event) => morph.openPanel("awaken", event.currentTarget)}
         />
         <EntryTile
@@ -74,7 +79,8 @@ export function CryoScene({ leaving = false }: Props) {
           name="营养舱"
           desc={`${nutritionCount}/${nutritionCapacity} 舱位疗养中`}
           entryId="nutrition"
-          hidden={morph.hiddenEntry === "nutrition"}
+          hidden={morph.hiddenEntry === "nutrition" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "nutrition"}
           onClick={(event) => morph.openPanel("nutrition", event.currentTarget)}
         />
       </div>
@@ -84,6 +90,7 @@ export function CryoScene({ leaving = false }: Props) {
           ref={morph.panelRef}
           rect={PANEL_RECT[panel]}
           ready={morph.ready}
+          closing={morph.phase === "closing"}
           onClose={morph.closePanel}
           seed={panel === "awaken" ? <AwakenIcon /> : <NutritionIcon />}
           kicker={panel === "awaken" ? "冬眠舱阵列" : "营养液循环系统"}
@@ -100,9 +107,9 @@ export function CryoScene({ leaving = false }: Props) {
   );
 }
 
-function EntryTile({ icon, name, desc, entryId, hidden, onClick }: { icon: ReactNode; name: string; desc: string; entryId: PanelId; hidden: boolean; onClick: (event: MouseEvent<HTMLButtonElement>) => void }) {
+function EntryTile({ icon, name, desc, entryId, hidden, revealing = false, onClick }: { icon: ReactNode; name: string; desc: string; entryId: PanelId; hidden: boolean; revealing?: boolean; onClick: (event: MouseEvent<HTMLButtonElement>) => void }) {
   return (
-    <button className={cn("cryo-entry")} type="button" data-cryo-entry={entryId} onClick={onClick} style={{ visibility: hidden ? "hidden" : "visible" }}>
+    <button className={cn("cryo-entry", revealing && "is-revealing")} type="button" data-cryo-entry={entryId} onClick={onClick} style={{ visibility: hidden ? "hidden" : "visible" }}>
       <span className={cn("cryo-rim")} aria-hidden />
       <span className={cn("cryo-entry-icon")} aria-hidden>{icon}</span>
       <span className={cn("cryo-entry-text")}>

@@ -1,4 +1,5 @@
 import type { MouseEvent, ReactNode } from "react";
+import { cx } from "@/ui/common/cx";
 import s from "./StockPanels.module.css";
 
 export function EntryTile({
@@ -7,6 +8,7 @@ export function EntryTile({
   desc,
   entryId,
   hidden,
+  revealing = false,
   onClick,
 }: {
   icon: ReactNode;
@@ -14,11 +16,12 @@ export function EntryTile({
   desc: string;
   entryId?: string;
   hidden: boolean;
+  revealing?: boolean;
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
     <button
-      className={s.entry}
+      className={cx(s.entry, revealing && s["is-revealing"])}
       type="button"
       data-stock-entry={entryId}
       onClick={onClick}

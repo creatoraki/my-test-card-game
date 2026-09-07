@@ -2,7 +2,14 @@ import { useEffect, type CSSProperties, type ReactNode, type Ref } from "react";
 import { playSfx } from "@/ui/audio";
 import { EventPanelFrame } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
-import { CLOSE_MS, OPEN_MS, SLIDE_MS, box, type Rect } from "@/ui/common/panelMorph";
+import {
+  COLLAPSE_MS,
+  OPEN_MS,
+  PANEL_COLLAPSE_CLASS,
+  SLIDE_MS,
+  box,
+  type Rect,
+} from "@/ui/common/panelMorph";
 import s from "./PanelShell.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
@@ -66,7 +73,14 @@ export function PanelShell({
 
   return (
     <div
-      className={cx(cn("asm-modal", morph && "is-morph", closing && !morph && "is-closing"), className)}
+      className={cx(
+        cn(
+          "asm-modal",
+          morph && "is-morph",
+          closing && !morph && "is-closing",
+        ),
+        className,
+      )}
       data-morph={morphPhase ?? undefined}
       onClick={onClose}
       style={
@@ -76,7 +90,9 @@ export function PanelShell({
           ...(morph
             ? {
                 "--veil-in-ms": `${SLIDE_MS}ms`,
-                "--veil-out-ms": `${CLOSE_MS}ms`,
+                // 遮罩淡出与折叠同长 —— 入口砖滑回的那段时间容器已经该退干净了。
+                "--veil-out-ms": `${COLLAPSE_MS}ms`,
+                "--collapse-ms": `${COLLAPSE_MS}ms`,
                 "--land-delay": `${OPEN_MS}ms`,
                 "--seed-delay": `${SLIDE_MS}ms`,
               }
@@ -86,7 +102,7 @@ export function PanelShell({
       }
     >
       <section
-        className={cn("asm-panel", morph && "is-morphing")}
+        className={cx(cn("asm-panel", morph && "is-morphing"), morph && closing && PANEL_COLLAPSE_CLASS)}
         data-closing={closing}
         onClick={(event) => event.stopPropagation()}
         ref={morph?.ref}
@@ -102,7 +118,7 @@ export function PanelShell({
           <i className={cn("asm-deco-scan", "is-top")} />
           <i className={cn("asm-deco-scan", "is-bottom")} />
         </span>
-        {morph && !morph.ready ? (
+        {morph && !morph.ready && !closing ? (
           <div className={cn("asm-seed")} aria-hidden="true">
             {morph.seed}
             <strong>{morph.seedLabel ?? title}</strong>

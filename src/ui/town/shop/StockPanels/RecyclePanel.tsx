@@ -49,6 +49,7 @@ export function RecyclePanel({ stacks, loot, onSell }: RecyclePanelProps) {
               废料与装备在这里换成居民积分——这是探索层产出变成城镇通货的唯一途径。
             </p>
             <ItemTabs
+              className={s.tabs}
               stacks={sellable}
               tab={tab}
               equipTab={equipTab}

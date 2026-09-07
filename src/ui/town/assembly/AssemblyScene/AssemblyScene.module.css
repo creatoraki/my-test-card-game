@@ -101,6 +101,15 @@
   transform: translateX(var(--slide));
   pointer-events: auto;
   transition: transform 260ms cubic-bezier(0.2, 0.72, 0.28, 1), border-color 180ms ease, box-shadow 180ms ease;
+}
+
+/* ── 入场升起 ──
+   ⚠ 只在场景挂载头 ENTRY_RISE_MS 内生效(容器上挂着 data-entry-rise, 见 useEntryRise),
+   且明确排除 .is-revealing。两条铁律都是为同一个 bug:
+   升起动画若常驻在 .asm-entry 上, 关闭演出结束、.is-revealing 被撤掉的那一帧
+   animation-name 变回 asm-entry-rise, 浏览器当成新动画重播 —— 砖块先隐后升, 就是
+   「最后闪一下」。 */
+.asm-entries[data-entry-rise] .asm-entry:not(.is-revealing) {
   animation: asm-entry-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
@@ -121,6 +130,11 @@
 
 .asm-entry:hover .asm-rim {
   opacity: 1;
+}
+
+.asm-entry.is-revealing {
+  animation: asm-entry-back var(--entry-back-ms, 420ms) var(--entry-back-delay, 240ms)
+    cubic-bezier(0.2, 0.72, 0.28, 1) both;
 }
 
 .asm-entry-icon {
@@ -204,6 +218,15 @@
 @keyframes asm-entry-fade {
   from { opacity: 1; transform: translateX(var(--slide)) translateY(0); }
   to { opacity: 0; transform: translateX(var(--slide)) translateY(10px); }
+}
+
+/* 浮层折叠成横线之后, 这条抽屉从画布右缘外主动滑回它的静态初始位。
+   延迟与时长由 usePanelMorph 下发的 --entry-back-* 控制(见 panelChoreo), 与折叠轻微重叠。
+   起点 translateX(100%): 容器 right:0 且宽度等于抽屉宽, 故 100% 正好完全退出右缘。
+   终点读 var(--slide): hover 时 --slide 变 0, 落点自然跟着走, 不和 hover 打架。 */
+@keyframes asm-entry-back {
+  from { opacity: 0.9; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(var(--slide)); }
 }
 
 @keyframes asm-fade {

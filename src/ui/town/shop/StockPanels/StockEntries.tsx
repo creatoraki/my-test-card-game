@@ -8,6 +8,7 @@ import { RARITY_ORDER } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
 import { PanelShell } from "@/ui/common/PanelShell";
 import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
+import { useEntryRise } from "@/ui/hooks/useEntryRise";
 import { EntryTile } from "./EntryTile";
 import { RecyclePanel } from "./RecyclePanel";
 import { RecycleIcon, ShelfIcon } from "./icons";
@@ -25,7 +26,9 @@ const STOCK_THEME = {
   "--asm-ink": "#f2e6d8",
   "--asm-ink-dim": "#a5937f",
   "--asm-panel-bg": "#0c1215",
-  "--event-panel-title-size": "56px",
+  "--panel-shell-title-size": "34px",
+  "--panel-shell-status-size": "20px",
+  "--panel-shell-close-size": "36px",
 } as CSSProperties;
 
 type PanelId = "recycle";
@@ -46,7 +49,10 @@ export function StockEntries({ shopOpen, onOpenShop }: StockEntriesProps) {
   const loot = useTownStore((state) => state.loot);
   const sellItem = useTownStore((state) => state.sellItem);
 
-  const morph = usePanelMorph<PanelId>({ rects: PANEL_RECT, entryAttr: "data-stock-entry" });
+  const entryRise = useEntryRise();
+  const morph = usePanelMorph<PanelId>({
+    rects: PANEL_RECT,
+  });
   const { panel } = morph;
 
   const sorted = useMemo(() => sortStacks(storage, getItemDef, rarityRank), [storage]);
@@ -56,13 +62,15 @@ export function StockEntries({ shopOpen, onOpenShop }: StockEntriesProps) {
     <>
       <div
         className={s.entries}
+        {...entryRise}
         style={
           {
             right: "0px",
             top: "138px",
             width: "460px",
-            height: "188px",
-            "--peek": "252px",
+            height: "220px",
+            "--peek": "268px",
+            ...morph.entryVars,
           } as CSSProperties
         }
       >
@@ -78,7 +86,8 @@ export function StockEntries({ shopOpen, onOpenShop }: StockEntriesProps) {
           name="回收台"
           desc={scrapCount ? `${scrapCount} 件可出售` : "无可回收物资"}
           entryId="recycle"
-          hidden={morph.hiddenEntry === "recycle"}
+          hidden={morph.hiddenEntry === "recycle" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "recycle"}
           onClick={(event) => morph.openPanel("recycle", event.currentTarget)}
         />
       </div>

@@ -101,9 +101,9 @@
   animation: land 720ms var(--land-delay, 880ms) cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
 }
 
-.modal[data-morph="closing"] .panel {
-  animation: panelOut var(--veil-out-ms) cubic-bezier(0.55, 0, 0.9, 0.35) forwards;
-}
+/* ⚠ 关闭时面板自己的演出**不在这里** —— 三个 morph 外壳共用
+   common/panelMorph/panelCollapse.module.css 的折叠类(竖向压成一条横线后淡出),
+   由 HudPanelShell 在 closing 时挂到 .panel 上。这里只留遮罩层的淡出。 */
 
 @keyframes veilIn {
   from { opacity: 0; }
@@ -123,9 +123,4 @@
 @keyframes land {
   from { opacity: 0.9; transform: rotate(18deg) translateX(0); }
   to { opacity: 0; transform: rotate(18deg) translateX(320%); }
-}
-
-@keyframes panelOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
 }

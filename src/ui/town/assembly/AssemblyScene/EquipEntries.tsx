@@ -40,6 +40,8 @@ const EQUIP_PANEL_RECT: Record<EquipPanelId, Rect> = {
 };
 
 export interface EquipPanels {
+  /** 关闭时入口砖滑回的节拍变量。摊到 .asm-entries 容器的 style 上, 由子孙的 CSS 读取。 */
+  entryVars: CSSProperties;
   /** 放进 .asm-entries 抽屉容器里的两条入口。 */
   entries: ReactNode;
   /** 放在场景根下(与抽屉容器同级)的两个浮层。 */
@@ -49,7 +51,6 @@ export interface EquipPanels {
 export function useEquipPanels(): EquipPanels {
   const morph = usePanelMorph<EquipPanelId>({
     rects: EQUIP_PANEL_RECT,
-    entryAttr: "data-equip-entry",
   });
   const { panel } = morph;
 
@@ -60,7 +61,8 @@ export function useEquipPanels(): EquipPanels {
           name="装备升阶"
           desc="提升装备阶级与词条预算"
           entryId="upgrade"
-          hidden={morph.hiddenEntry === "upgrade"}
+          hidden={morph.hiddenEntry === "upgrade" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "upgrade"}
           onClick={(event) => morph.openPanel("upgrade", event.currentTarget)}
         />
         <EquipEntry
@@ -68,7 +70,8 @@ export function useEquipPanels(): EquipPanels {
           name="羁绊重铸"
           desc="消耗地区材料重掷装备羁绊"
           entryId="reforge"
-          hidden={morph.hiddenEntry === "reforge"}
+          hidden={morph.hiddenEntry === "reforge" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "reforge"}
           onClick={(event) => morph.openPanel("reforge", event.currentTarget)}
         />
     </>
@@ -112,7 +115,7 @@ export function useEquipPanels(): EquipPanels {
     </>
   );
 
-  return { entries, panels };
+  return { entryVars: morph.entryVars, entries, panels };
 }
 
 // 入口砖: 与模组两条入口逐层对齐(rim / 图标 / 名称 / 说明 / ▸), 只有色相不同。
@@ -122,6 +125,7 @@ function EquipEntry({
   desc,
   entryId,
   hidden,
+  revealing = false,
   onClick,
 }: {
   icon: ReactNode;
@@ -129,11 +133,12 @@ function EquipEntry({
   desc: string;
   entryId: EquipPanelId;
   hidden: boolean;
+  revealing?: boolean;
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
     <button
-      className={cn("asm-entry")}
+      className={cn("asm-entry", revealing && "is-revealing")}
       type="button"
       data-equip-entry={entryId}
       style={{ "--asm-glow": EQUIP_ACCENT, visibility: hidden ? "hidden" : "visible" } as CSSProperties}

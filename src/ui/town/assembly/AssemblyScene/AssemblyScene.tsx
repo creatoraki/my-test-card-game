@@ -20,6 +20,7 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
+import { useEntryRise } from "@/ui/hooks/useEntryRise";
 import { AssemblyBench } from "../AssemblyBench";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { AssemblyDeckGrid } from "../AssemblyDeckGrid";
@@ -64,6 +65,8 @@ export function AssemblyScene({ leaving = false }: Props) {
 
   // 装备一侧自带一份 morph 状态, 与模组一侧的 openPanel 互不干扰。
   const equip = useEquipPanels();
+  // 四条抽屉的入场升起只播一次 —— 常驻会在浮层关闭演出收尾时被重播(表现为闪一下)。
+  const entryRise = useEntryRise();
 
   const closePanel = useCallback(() => setClosing(true), []);
 
@@ -153,6 +156,7 @@ export function AssemblyScene({ leaving = false }: Props) {
 
       <div
         className={cn("asm-entries")}
+        {...entryRise}
         style={
           {
             right: "0px",
@@ -160,6 +164,7 @@ export function AssemblyScene({ leaving = false }: Props) {
             width: "460px",
             height: "388px",
             "--peek": "252px",
+            ...equip.entryVars,
           } as CSSProperties
         }
       >

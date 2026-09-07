@@ -1,6 +1,6 @@
 import { useEffect, type CSSProperties, type ReactNode, type Ref } from "react";
 import { playSfx } from "@/ui/audio";
-import { box, CLOSE_MS, OPEN_MS, SLIDE_MS, type Rect } from "@/ui/common/panelMorph";
+import { box, COLLAPSE_MS, OPEN_MS, PANEL_COLLAPSE_CLASS, SLIDE_MS, type Rect } from "@/ui/common/panelMorph";
 import { HudFrame } from "@/ui/common/HudFrame";
 import { cx } from "@/ui/common/cx";
 import s from "./HudPanelShell.module.css";
@@ -34,7 +34,9 @@ export function HudPanelShell({ closing = false, onClose, label, morph, children
       style={
         {
           "--veil-in-ms": `${SLIDE_MS}ms`,
-          "--veil-out-ms": `${CLOSE_MS}ms`,
+          // 遮罩淡出与折叠同长 —— 入口砖滑回的那段时间容器已经该退干净了。
+          "--veil-out-ms": `${COLLAPSE_MS}ms`,
+          "--collapse-ms": `${COLLAPSE_MS}ms`,
           "--land-delay": `${OPEN_MS}ms`,
           "--seed-delay": `${SLIDE_MS}ms`,
         } as CSSProperties
@@ -42,12 +44,12 @@ export function HudPanelShell({ closing = false, onClose, label, morph, children
     >
       <section
         ref={morph.ref}
-        className={s.panel}
+        className={cx(s.panel, closing && PANEL_COLLAPSE_CLASS)}
         data-closing={closing}
         onClick={(event) => event.stopPropagation()}
         style={box(morph.rect) as CSSProperties}
       >
-        {morph.ready ? (
+        {morph.ready || closing ? (
           <HudFrame className={s.frame} label={label}>
             {children}
           </HudFrame>
@@ -58,7 +60,7 @@ export function HudPanelShell({ closing = false, onClose, label, morph, children
           </div>
         )}
 
-        {morph.ready && (
+        {(morph.ready || closing) && (
           <button
             className={s.closeButton}
             type="button"

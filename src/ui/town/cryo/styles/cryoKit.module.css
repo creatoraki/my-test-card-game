@@ -8,6 +8,14 @@
   pointer-events: auto;
 }
 
+.modal[data-morph="closing"] {
+  animation: fadeOut var(--veil-out-ms) ease-in both;
+}
+
+/* ⚠ 关闭时面板自己的演出**不在这里** —— 三个 morph 外壳共用
+   common/panelMorph/panelCollapse.module.css 的折叠类(竖向压成一条横线后淡出),
+   由 CryoPanelShell 在 closing 时挂到 .panel 上。这里只留遮罩层的淡出。 */
+
 .panel {
   --notch: 20px;
   position: absolute;

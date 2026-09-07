@@ -1,6 +1,24 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { flushSync } from "react-dom";
-import { CLOSE_MS, CLOSE_TALLEN_MS, CLOSE_WIDEN_MS, MORPH_EASE, OPEN_MS, SLIDE_MS, WIDEN_MS, box, centered, designRectOf, type Rect } from "./panelChoreo";
+import {
+  CLOSE_MS,
+  ENTRY_BACK_DELAY_MS,
+  ENTRY_BACK_MS,
+  MORPH_EASE,
+  OPEN_MS,
+  SLIDE_MS,
+  WIDEN_MS,
+  box,
+  centered,
+  designRectOf,
+  type Rect,
+} from "./panelChoreo";
+
+/** 关闭时入口砖滑回的节拍。场景把它摊到入口容器上, 三份场景 CSS 共用同一组时长。 */
+const ENTRY_VARS = {
+  "--entry-back-ms": `${ENTRY_BACK_MS}ms`,
+  "--entry-back-delay": `${ENTRY_BACK_DELAY_MS}ms`,
+} as CSSProperties;
 
 export type PanelMorphPhase = "idle" | "opening" | "closing";
 
@@ -14,9 +32,8 @@ const createIdle = <Id extends string>(): MorphState<Id> => ({ panel: null, phas
 
 export function usePanelMorph<Id extends string>(options: {
   rects: Record<Id, Rect>;
-  entryAttr: string;
 }) {
-  const { rects, entryAttr } = options;
+  const { rects } = options;
   const [state, setState] = useState<MorphState<Id>>(() => createIdle<Id>());
   const stateRef = useRef(state);
   const panelRef = useRef<HTMLElement>(null);
@@ -43,14 +60,8 @@ export function usePanelMorph<Id extends string>(options: {
   const closePanel = useCallback(() => {
     const current = stateRef.current;
     if (!current.panel || current.phase === "closing") return;
-    const entry = document.querySelector<HTMLElement>(`[${entryAttr}="${current.panel}"]`);
-    const origin = entry ? designRectOf(entry) : current.origin;
-    if (!origin) {
-      setState(createIdle<Id>());
-      return;
-    }
-    flushSync(() => setState((previous) => ({ ...previous, phase: "closing", origin })));
-  }, [entryAttr]);
+    flushSync(() => setState((previous) => ({ ...previous, phase: "closing" })));
+  }, []);
 
   useLayoutEffect(() => {
     const panel = panelRef.current;
@@ -59,23 +70,6 @@ export function usePanelMorph<Id extends string>(options: {
     const opening = state.phase === "opening";
     const target = rects[state.panel];
     const origin = state.origin ?? target;
-    const horizontal = { ...centered(target, origin.w, origin.h), y: origin.y };
-    const wide = { ...centered(target, target.w, origin.h), y: origin.y };
-    const from = opening ? origin : target;
-    const to = opening ? target : origin;
-    const keyframes = opening
-      ? [
-          { ...box(from), offset: 0 },
-          { ...box(horizontal), offset: SLIDE_MS / OPEN_MS },
-          { ...box(wide), offset: (SLIDE_MS + WIDEN_MS) / OPEN_MS },
-          { ...box(to), offset: 1 },
-        ]
-      : [
-          { ...box(from), offset: 0 },
-          { ...box(wide), offset: CLOSE_TALLEN_MS / CLOSE_MS },
-          { ...box(horizontal), offset: (CLOSE_TALLEN_MS + CLOSE_WIDEN_MS) / CLOSE_MS },
-          { ...box(to), offset: 1 },
-        ];
 
     const finish = () => {
       clearGuard();
@@ -85,13 +79,31 @@ export function usePanelMorph<Id extends string>(options: {
       });
     };
 
-    if (typeof panel.animate !== "function" || (opening ? OPEN_MS : CLOSE_MS) <= 0) {
+    if (!opening) {
+      if (CLOSE_MS <= 0) {
+        finish();
+        return;
+      }
+      guardRef.current = window.setTimeout(finish, CLOSE_MS + 120);
+      return clearGuard;
+    }
+
+    const horizontal = { ...centered(target, origin.w, origin.h), y: origin.y };
+    const wide = { ...centered(target, target.w, origin.h), y: origin.y };
+    const keyframes = [
+      { ...box(origin), offset: 0 },
+      { ...box(horizontal), offset: SLIDE_MS / OPEN_MS },
+      { ...box(wide), offset: (SLIDE_MS + WIDEN_MS) / OPEN_MS },
+      { ...box(target), offset: 1 },
+    ];
+
+    if (typeof panel.animate !== "function" || OPEN_MS <= 0) {
       finish();
       return;
     }
 
     const animation = panel.animate(keyframes, {
-      duration: opening ? OPEN_MS : CLOSE_MS,
+      duration: OPEN_MS,
       easing: MORPH_EASE,
       fill: "both",
     });
@@ -102,7 +114,7 @@ export function usePanelMorph<Id extends string>(options: {
       finish();
     };
     animation.addEventListener("finish", guardedFinish);
-    guardRef.current = window.setTimeout(guardedFinish, (opening ? OPEN_MS : CLOSE_MS) + 120);
+    guardRef.current = window.setTimeout(guardedFinish, OPEN_MS + 120);
 
     return () => {
       clearGuard();
@@ -129,5 +141,6 @@ export function usePanelMorph<Id extends string>(options: {
     openPanel,
     closePanel,
     hiddenEntry: state.panel,
+    entryVars: ENTRY_VARS,
   };
 }
