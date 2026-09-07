@@ -212,7 +212,7 @@ export function TownScreen() {
         trigger="manual"
         active={swapped}
         pattern="random"
-        pixelSize={144}
+        pixelSize={192}
         duration={FACILITY_CINEMA.crossfade}
         pixelDuration={420}
         onComplete={(active) => {
