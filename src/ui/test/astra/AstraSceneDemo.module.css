@@ -145,7 +145,7 @@
   z-index: 10;
   right: max(32px, env(safe-area-inset-right));
   bottom: max(28px, env(safe-area-inset-bottom));
-  width: 216px;
+  width: 184px;
   color: #ffd995;
 }
 
@@ -177,10 +177,10 @@
   isolation: isolate;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
   width: 100%;
-  min-height: 72px;
-  padding: 10px 14px;
+  min-height: 60px;
+  padding: 8px 11px;
   border: 0;
   clip-path: none;
   background: transparent;
@@ -222,8 +222,8 @@
 }
 
 .sortieReactor {
-  flex: 0 0 42px;
-  height: 42px;
+  flex: 0 0 34px;
+  height: 34px;
   filter: drop-shadow(0 0 7px #ffb338a6);
 }
 
@@ -244,22 +244,14 @@
 .sortieCopy {
   display: flex;
   flex-direction: column;
-  gap: 3px;
   text-align: left;
 }
 
-.sortieEnglish {
-  font: 8px ui-monospace, monospace;
-  letter-spacing: 0.6px;
-  white-space: nowrap;
-  color: #e6b979;
-}
-
 .sortieTitle {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
   line-height: 1.25;
-  letter-spacing: 7px;
+  letter-spacing: 4px;
   text-shadow: 0 0 18px #ffbc5966;
 }
 
@@ -356,13 +348,12 @@
   .sortieDock {
     right: max(16px, env(safe-area-inset-right));
     bottom: max(16px, env(safe-area-inset-bottom));
-    width: 192px;
+    width: 164px;
   }
 
-  .sortieButton { min-height: 64px; padding: 8px 12px; gap: 7px; }
-  .sortieReactor { flex-basis: 34px; height: 34px; }
-  .sortieTitle { font-size: 23px; letter-spacing: 6px; }
-  .sortieEnglish { letter-spacing: 0.3px; }
+  .sortieButton { min-height: 54px; padding: 7px 10px; gap: 6px; }
+  .sortieReactor { flex-basis: 30px; height: 30px; }
+  .sortieTitle { font-size: 20px; letter-spacing: 3px; }
   .sortieCaption { letter-spacing: 0.6px; }
   .hint { display: none; }
 }

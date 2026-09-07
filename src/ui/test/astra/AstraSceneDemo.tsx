@@ -66,7 +66,6 @@ function SortieButton() {
           </svg>
         </span>
         <span className={s.sortieCopy}>
-          <span className={s.sortieEnglish} aria-hidden="true">{launching ? "LAUNCH SEQUENCE" : "SORTIE / DEPLOY"}</span>
           <span className={s.sortieTitle}>出击</span>
         </span>
         <span className={s.sortieArrows} aria-hidden="true"><i /><i /><i /></span>
