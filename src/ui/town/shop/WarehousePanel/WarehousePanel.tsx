@@ -17,8 +17,8 @@ import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilt
 import { cx } from "@/ui/common/cx";
 import s from "./WarehousePanel.module.css";
 
-const CELL_SIZE = 88;
-const GRID_GAP = 10;
+const CELL_SIZE = 124;
+const GRID_GAP = 12;
 const GRID_HOVER_BLEED = 4;
 const TOOLTIP_TOP_OFFSET = 44;
 
@@ -35,7 +35,7 @@ const positiveInteger = (value: number | undefined, fallback: number) =>
 
 export default function WarehousePanel({
   rows = 4,
-  columns = 5,
+  columns = 4,
   leaving = false,
 }: WarehousePanelProps) {
   const storage = useTownStore((state) => state.storage);
@@ -45,7 +45,7 @@ export default function WarehousePanel({
   const [tooltipPoint, setTooltipPoint] = useState<TooltipPoint | null>(null);
 
   const safeRows = positiveInteger(rows, 4);
-  const safeColumns = positiveInteger(columns, 5);
+  const safeColumns = positiveInteger(columns, 4);
   const gridHeight = safeRows * CELL_SIZE + (safeRows - 1) * GRID_GAP + GRID_HOVER_BLEED;
   const sorted = useMemo(
     () => sortStacks(mergeStacksForDisplay(storage, getItemDef), getItemDef, rarityRank),

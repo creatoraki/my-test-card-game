@@ -7,8 +7,8 @@
   --warehouse-frame-hot: #fff0bc;
   --warehouse-electric: #ffc654;
   --warehouse-electric-hot: #fff0bc;
-  --warehouse-cell-size: 88px;
-  --warehouse-gap: 10px;
+  --warehouse-cell-size: 124px;
+  --warehouse-gap: 12px;
   --accent: var(--warehouse-electric-hot);
   --border: var(--warehouse-line);
   --muted: var(--warehouse-muted);
@@ -24,7 +24,16 @@
 }
 
 .warehouse-tabs {
-  min-height: 52px;
+  --item-tabs-gap: 12px;
+  --item-tab-row-gap: 10px;
+  --item-tab-gap: 10px;
+  --item-tab-padding: 8px 16px;
+  --item-tab-font-size: 20px;
+  --item-tab-count-size: 18px;
+  --item-tab-sub-padding: 7px 14px;
+  --item-tab-sub-font-size: 18px;
+
+  min-height: 60px;
   flex: 0 0 auto;
   justify-content: center;
   margin: 14px 2px 14px;
@@ -82,19 +91,28 @@
   min-width: 0;
   min-height: 0;
   aspect-ratio: auto;
-  border-radius: 12px 7px 13px 8px;
+  border-radius: 14px 9px 15px 10px;
   clip-path: polygon(
-    10px 0,
+    var(--item-slot-notch, 14px) 0,
     100% 0,
-    100% calc(100% - 10px),
-    calc(100% - 10px) 100%,
+    100% calc(100% - var(--item-slot-notch, 14px)),
+    calc(100% - var(--item-slot-notch, 14px)) 100%,
     0 100%,
-    0 10px
+    0 var(--item-slot-notch, 14px)
   );
 }
 
 .warehouse-slot.warehouse-slot {
-  padding: 4px 3px;
+  --item-slot-name-size: 20px;
+  --item-slot-count-size: 20px;
+  --item-slot-bond-size: 30px;
+  --item-slot-notch: 14px;
+  --item-slot-corner: 20px;
+  --item-slot-icon-size: 60%;
+  --item-slot-pad: 8px 6px;
+  --item-slot-gap: 6px;
+
+  padding: var(--item-slot-pad);
   --item-slot-name-offset: 10px;
   color: var(--rr);
   background:
@@ -147,8 +165,8 @@
 
 .warehouse-foot {
   display: flex;
-  min-height: 28px;
-  flex: 0 0 28px;
+  min-height: 34px;
+  flex: 0 0 34px;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
@@ -157,7 +175,7 @@
   color: var(--warehouse-muted);
   font-family: var(--font-family);
   font-variant-numeric: tabular-nums;
-  font-size: 10px;
+  font-size: 18px;
   letter-spacing: 1px;
   border-top: 1px solid var(--warehouse-line);
 }
@@ -165,7 +183,7 @@
 .warehouse-tooltip {
   position: absolute;
   z-index: 1000;
-  width: 260px;
+  width: 320px;
   pointer-events: none;
   filter: drop-shadow(0 14px 24px #000000cc);
 }
@@ -175,6 +193,20 @@
 }
 
 .warehouse-tooltip-detail.warehouse-tooltip-detail {
+  --item-detail-name-size: 22px;
+  --item-detail-mult-size: 18px;
+  --item-detail-tags-size: 18px;
+  --item-detail-desc-size: 18px;
+  --item-detail-stats-size: 18px;
+  --item-detail-field-size: 18px;
+  --item-detail-bond-head-size: 18px;
+  --item-detail-bond-icon-size: 18px;
+  --item-detail-bond-arcana-size: 18px;
+  --item-detail-bond-count-size: 18px;
+  --item-detail-bond-desc-size: 18px;
+  --item-detail-note-size: 18px;
+  --item-detail-idle-size: 18px;
+
   --accent: #ffc654;
   --accent2: #a97c30;
   --bad: #ff819d;
@@ -186,8 +218,8 @@
   box-sizing: border-box;
   width: 100%;
   height: auto;
-  max-height: var(--tooltip-max-h, 300px);
-  padding: 12px;
+  max-height: var(--tooltip-max-h, 380px);
+  padding: 16px;
   overflow-y: auto;
   background:
     linear-gradient(135deg, #ffffff16, transparent 50%),

@@ -959,7 +959,7 @@
 .overlayFootNote {
   min-width: 0;
   color: #74888a;
-  font-size: 12px;
+  font-size: var(--event-panel-foot-note-size, 12px);
   letter-spacing: 0.08em;
 }
 

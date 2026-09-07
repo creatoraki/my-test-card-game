@@ -50,14 +50,17 @@ export function HudPanelShell({ closing = false, onClose, label, morph, children
         style={box(morph.rect) as CSSProperties}
       >
         {morph.ready || closing ? (
-          <HudFrame className={s.frame} label={label}>
+          <HudFrame className={cx(s.frame, morph.ready && s.isLanded)} label={label}>
             {children}
           </HudFrame>
         ) : (
-          <div className={s.seed} aria-hidden="true">
-            {morph.seed}
-            <strong>{morph.seedLabel ?? label}</strong>
-          </div>
+          <>
+            <i className={s.morphSkin} aria-hidden="true" />
+            <div className={s.seed} aria-hidden="true">
+              {morph.seed}
+              <strong>{morph.seedLabel ?? label}</strong>
+            </div>
+          </>
         )}
 
         {(morph.ready || closing) && (

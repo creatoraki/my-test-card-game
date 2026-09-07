@@ -31,21 +31,21 @@ const WAREHOUSE_PANEL_BG = [
 ].join(", ");
 
 const SHOP_PANEL_COLORS = {
-  armor: "#261522",
-  trim: "#9c4263",
-  energy: "#ff7180",
-  accent: "#d16bff",
-  highlight: "#ffe0df",
-  circuit: "#733552",
+  armor: "#101c12",
+  trim: "#3f7a44",
+  energy: "#b6ff4d",
+  accent: "#ff5fa2",
+  highlight: "#eaffd0",
+  circuit: "#2a5230",
 };
 const SHOP_PANEL_BG = [
-  "radial-gradient(ellipse 72% 46% at 88% 5%, #ff8a762e, transparent 68%)",
-  "radial-gradient(ellipse 60% 55% at 8% 94%, #d56bff24, transparent 72%)",
-  "linear-gradient(145deg, #3a1f2e 0%, #1a101b 56%, #09090f 100%)",
+  "radial-gradient(ellipse 72% 46% at 88% 5%, #b6ff4d26, transparent 68%)",
+  "radial-gradient(ellipse 60% 55% at 8% 94%, #ff5fa21f, transparent 72%)",
+  "linear-gradient(145deg, #16301c 0%, #0c1a10 56%, #050906 100%)",
 ].join(", ");
 
-const WAREHOUSE_RECT = { x: 70, y: 140, w: 640, h: 820 };
-const SHOP_RECT = { x: 750, y: 140, w: 1100, h: 820 };
+const WAREHOUSE_RECT = { x: 70, y: 140, w: 680, h: 820 };
+const SHOP_RECT = { x: 760, y: 130, w: 1150, h: 860 };
 
 type PurchaseFlightState = {
   id: number;
@@ -120,7 +120,7 @@ export function ShopScene({ leaving = false }: Props) {
   return (
     <div className={cx(s["sx-root"], leaving && s["is-leaving"])} data-shop-root>
       <header className={s["sx-header"]} style={{ left: "56px", top: "42px" }}>
-        <span className={s["sx-kicker"]}>SUPPLY EXCHANGE</span>
+        <span className={s["sx-kicker"]}>物资交换</span>
         <h2 className={s["sx-title"]}>商店</h2>
         <p className={s["sx-sub"]}>每日上新 · 积分采购 · 物资回收</p>
       </header>
@@ -132,7 +132,7 @@ export function ShopScene({ leaving = false }: Props) {
           <SciFiPanelShell
             className={s["sx-warehouse-shell"]}
             rect={WAREHOUSE_RECT}
-            kicker="STORAGE INDEX"
+            kicker="仓储索引"
             title="仓库"
             closeLabel="关闭仓库"
             closing={closing}
@@ -147,13 +147,13 @@ export function ShopScene({ leaving = false }: Props) {
             }
             onClose={closePanels}
           >
-            <WarehousePanel rows={4} columns={5} leaving={leaving} />
+            <WarehousePanel rows={4} columns={4} leaving={leaving} />
           </SciFiPanelShell>
 
           <SciFiPanelShell
             className={s["sx-vending-shell"]}
             rect={SHOP_RECT}
-            kicker="SUPPLY EXCHANGE"
+            kicker="物资交换"
             title="自动售货机"
             status={<span className={s["sx-status"]}>居民积分 · {loot.toLocaleString()}</span>}
             closeLabel="关闭商店"

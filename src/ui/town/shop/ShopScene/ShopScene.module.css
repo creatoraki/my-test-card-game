@@ -2,6 +2,10 @@
   --event-accent: #63d9d0;
   --sx-ink: #edf3ef;
   --sx-muted: #8ea09d;
+  --sx-line: #eaffd033;
+  --sx-dim: #7f9a86;
+  --sx-alert: #ff5fa2;
+  --sx-action: #b6ff4d;
   --sx-action-hot: #ff9a91;
 
   position: absolute;
@@ -41,9 +45,9 @@
   color: var(--event-accent);
   font-family: var(--font-family);
   font-variant-numeric: tabular-nums;
-  font-size: 10px;
+  font-size: 18px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -62,7 +66,7 @@
 .sx-root .sx-sub {
   margin: 10px 0 0;
   color: var(--sx-muted);
-  font-size: 14px;
+  font-size: 18px;
   letter-spacing: 0.12em;
 }
 
@@ -82,6 +86,8 @@
 }
 
 .sx-root .sx-event-stage {
+  --event-panel-foot-note-size: 18px;
+
   display: flex;
   height: 100%;
   min-height: 0;
@@ -90,7 +96,7 @@
 
 .sx-root .sx-status {
   color: var(--event-accent);
-  font-size: 11px;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.12em;
   white-space: nowrap;
@@ -100,7 +106,7 @@
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) 318px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 28px;
   padding: 22px 0 18px;
 }
@@ -120,7 +126,7 @@
 }
 
 .sx-root .sx-refresh {
-  min-width: 220px;
+  min-width: 260px;
   gap: 13px;
   padding: 13px 18px;
 }
@@ -128,7 +134,7 @@
 .sx-root .sx-refresh-icon {
   display: block;
   flex: 0 0 auto;
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
   transition: transform 360ms cubic-bezier(0.2, 0.78, 0.24, 1);
 }
@@ -143,7 +149,7 @@
 }
 
 .sx-root .sx-refresh-label {
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.12em;
 }
@@ -153,7 +159,7 @@
   margin-left: auto;
   padding-left: 13px;
   color: var(--event-accent);
-  font-size: 14px;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
 }
@@ -180,6 +186,12 @@
   transform-style: preserve-3d;
 }
 
+.sx-root .sx-vending-shell {
+  --event-accent: #b6ff4d;
+  --sx-electric: #eaffd0;
+  --sx-action-hot: #ff5fa2;
+}
+
 .sx-root .sx-warehouse-shell > div,
 .sx-root .sx-vending-shell > div {
   transform-style: preserve-3d;
@@ -188,16 +200,16 @@
 }
 
 .sx-root .sx-warehouse-shell > div {
-  transform: rotateY(5.5deg) rotateX(1.2deg);
-  transform-origin: 100% 50%;
+  transform: rotateY(-9deg) rotateX(1deg);
+  transform-origin: 0 50%;
   filter:
     drop-shadow(0 38px 28px rgb(0 0 0 / 0.86))
     drop-shadow(0 0 24px color-mix(in srgb, var(--sfp-energy) 34%, transparent));
 }
 
 .sx-root .sx-vending-shell > div {
-  transform: rotateY(-4.5deg) rotateX(1deg);
-  transform-origin: 0 50%;
+  transform: rotateY(9deg) rotateX(1deg);
+  transform-origin: 100% 50%;
   filter:
     drop-shadow(0 42px 30px rgb(0 0 0 / 0.88))
     drop-shadow(0 0 28px color-mix(in srgb, var(--sfp-energy) 32%, transparent));
