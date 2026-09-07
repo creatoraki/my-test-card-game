@@ -1,3 +1,9 @@
+// 工房(据点设施 assembly, 全景里的「工房」)的设施内界面。
+// 四条抽屉入口: 模组装配 / 模组制造(本文件) + 装备升阶 / 羁绊重铸(见 EquipEntries.tsx)。
+//
+// ⚠ 本组件的根节点 .asm-scene 不挂 animation / opacity / transform:
+//    入场/退场动画一律挂在叶子节点, 避免破坏设施背景的分层。
+
 import {
   useCallback,
   useEffect,
@@ -24,6 +30,7 @@ import {
   PANEL_OUT_REDUCED_MS,
 } from "@/ui/common/PanelShell";
 import { CRAFT_ACCENT, CraftPanel } from "../CraftPanel";
+import { useEquipPanels } from "./EquipEntries";
 import s from "./AssemblyScene.module.css";
 import { AssemblyIcon, CraftIcon } from "./icons";
 
@@ -54,6 +61,9 @@ export function AssemblyScene({ leaving = false }: Props) {
   const [cardUid, setCardUid] = useState<string | null>(null);
   const [moduleUid, setModuleUid] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<HoveredItem | null>(null);
+
+  // 装备一侧自带一份 morph 状态, 与模组一侧的 openPanel 互不干扰。
+  const equip = useEquipPanels();
 
   const closePanel = useCallback(() => setClosing(true), []);
 
@@ -132,8 +142,8 @@ export function AssemblyScene({ leaving = false }: Props) {
   return (
     <div className={cn("asm-scene", leaving && "is-leaving")}>
       <header className={cn("asm-header")} style={{ left: "56px", top: "42px" }}>
-        <h2 className={cn("asm-title")}>模块装配舱</h2>
-        <p className={cn("asm-sub")}>模组装配 · 拆卸 · 制造</p>
+        <h2 className={cn("asm-title")}>工房</h2>
+        <p className={cn("asm-sub")}>模组装配 · 制造 · 装备升阶 · 羁绊重铸</p>
       </header>
 
       <div className={cn("asm-readout")} style={{ right: "56px", top: "42px" }}>
@@ -148,7 +158,7 @@ export function AssemblyScene({ leaving = false }: Props) {
             right: "0px",
             top: "138px",
             width: "460px",
-            height: "188px",
+            height: "388px",
             "--peek": "252px",
           } as CSSProperties
         }
@@ -185,6 +195,8 @@ export function AssemblyScene({ leaving = false }: Props) {
             ▸
           </span>
         </button>
+        {/* 装备一侧的两条: 入口在这里, 浮层在场景根下(见 EquipEntries 的注释)。 */}
+        {equip.entries}
       </div>
 
       {openPanel === "assembly" && (
@@ -235,6 +247,8 @@ export function AssemblyScene({ leaving = false }: Props) {
       )}
 
       {openPanel === "craft" && <CraftPanel closing={closing} onClose={closePanel} />}
+
+      {equip.panels}
 
       {hoveredItem && <ItemTooltip stack={hoveredItem.stack} point={hoveredItem.point} />}
     </div>

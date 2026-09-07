@@ -1,0 +1,148 @@
+/* 建筑热区与招牌。所有尺寸都是 SVG 用户单位 = 设计 px(viewBox 1920×1080), 与画布同一坐标系。 */
+
+.scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.building {
+  outline: none;
+}
+
+/* 命中区就是剪影本身: 建筑之间的空隙点不亮光效。 */
+.hitArea {
+  fill: transparent;
+  stroke: none;
+  pointer-events: fill;
+  cursor: pointer;
+}
+
+.highlight {
+  opacity: 0;
+  pointer-events: none;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition: opacity 140ms ease-out;
+}
+
+.building:hover .highlight,
+.building:focus-visible .highlight,
+.building[data-picked="true"] .highlight {
+  opacity: 1;
+}
+
+/* 四层同源: 晕 → 边 → 芯 → 环绕跑光, 引的都是同一条 path。 */
+.halo {
+  stroke: #48ffe3;
+  stroke-width: 9;
+  opacity: 0.75;
+  filter: blur(5px);
+}
+
+.edge {
+  stroke: #56ffe3;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 3px #30eaca);
+}
+
+.core {
+  stroke: #e5fff5;
+  stroke-width: 1.2;
+}
+
+.orbit {
+  stroke: #fffde1;
+  stroke-width: 3;
+  stroke-dasharray: 65 480;
+  filter: drop-shadow(0 0 5px #cefff0);
+  animation: orbit 5s linear infinite;
+  animation-play-state: paused;
+}
+
+.building:hover .orbit,
+.building:focus-visible .orbit,
+.building[data-picked="true"] .orbit {
+  animation-play-state: running;
+}
+
+/* 被点中的那栋: 光效锁在最亮档, 陪着镜头一起推走。 */
+.building[data-picked="true"] .halo {
+  opacity: 1;
+  stroke-width: 13;
+}
+
+.billboard {
+  cursor: pointer;
+  color: #8affea;
+}
+
+.signConnector {
+  fill: none;
+  stroke: #9affe2;
+  stroke-width: 1.5;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.signAnchor,
+.signLight {
+  fill: #bbffeb;
+  filter: drop-shadow(0 0 5px #36ffc6);
+}
+
+.signPanel {
+  fill: #071d21ed;
+  stroke: #79e5cc;
+  stroke-width: 1;
+  filter: drop-shadow(0 4px 6px #001512b3);
+  transition: fill 180ms ease, filter 180ms ease;
+}
+
+.signRail {
+  fill: none;
+  stroke: #b3ffe8;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px #4effc4);
+}
+
+.signIndex {
+  fill: #94d4c5;
+  font: 11px ui-monospace, monospace;
+  letter-spacing: 3px;
+}
+
+.signDivider {
+  stroke: #74d6bb;
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.signName {
+  fill: #e1fff4;
+  font-size: 25px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  filter: drop-shadow(0 0 5px #74ffcc66);
+}
+
+.building:hover .signPanel,
+.building:focus-visible .signPanel,
+.building[data-picked="true"] .signPanel {
+  fill: #124d47f5;
+  filter: drop-shadow(0 0 12px #51ffd78c);
+}
+
+.building:hover .signConnector,
+.building:focus-visible .signConnector,
+.building[data-picked="true"] .signConnector {
+  opacity: 1;
+  stroke-width: 2.5;
+}
+
+@keyframes orbit {
+  to {
+    stroke-dashoffset: -545;
+  }
+}

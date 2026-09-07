@@ -77,7 +77,7 @@
 .asm-entries {
   position: absolute;
   display: grid;
-  /* 两个功能入口上下排布, 各占一行(容器高度按 88×2 + gap 给)。 */
+  /* 四条功能入口上下排布, 各占一行(容器高度按 88x4 + gap 给): 模组装配/制造 + 装备升阶/羁绊重铸。 */
   grid-auto-rows: minmax(0, 1fr);
   gap: 12px;
   pointer-events: none;

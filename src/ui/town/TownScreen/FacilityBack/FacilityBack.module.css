@@ -1,0 +1,90 @@
+/* 设施内唯一的出口。尺寸是设计 px(1920×1080 画布)。 */
+
+.back {
+  position: absolute;
+  left: 44px;
+  bottom: 34px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 22px 11px 16px;
+  border: 1px solid #79e5cc;
+  border-radius: 6px;
+  background: #071d21e6;
+  color: #d9fff1;
+  font-size: 16px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  box-shadow: 0 0 14px #36ffc62e, 0 6px 16px #00151280;
+  /* 进设施时它是最后出现的一件东西: 延迟由 --fac-back-in 下发, 见 facilityScenes.ts。 */
+  animation: facilityBackIn var(--fac-back-in, 320ms) ease-out both;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.back:hover,
+.back:focus-visible {
+  transform: translateX(-3px);
+  background: #124d47f2;
+  box-shadow: 0 0 20px #51ffd780, 0 6px 18px #00151280;
+}
+
+.back:focus-visible {
+  outline: 2px solid #bbffeb;
+  outline-offset: 4px;
+}
+
+.back:active {
+  transform: translateX(-1px) scale(0.98);
+}
+
+.arrow {
+  display: block;
+  width: 18px;
+  height: 18px;
+  color: #8affea;
+  filter: drop-shadow(0 0 5px #36ffc6);
+}
+
+.arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.label {
+  font-family: var(--font-family);
+  font-weight: 600;
+}
+
+@keyframes facilityBackIn {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ⚠ 淡出必须是**另一个 keyframes 名**, 不能给 facilityBackIn 加 reverse:
+   元素跨阶段一直挂载着, 只改 direction 不会重启动画 —— 旧动画的时间线早已跑完,
+   反向后会直接跳到终态(瞬间全透明)而不是淡出。 */
+.back.is-leaving {
+  animation: facilityBackOut 300ms ease-in both;
+}
+
+@keyframes facilityBackOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}

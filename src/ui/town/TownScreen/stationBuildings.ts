@@ -1,13 +1,24 @@
-/**
- * Hand-traced visible silhouettes in 背景素材.png's native 1920 × 1080 space.
- * Keep the image and paths in one SVG coordinate system. These paths are also
- * the hit regions, so empty space between buildings never activates a glow.
- * Include attached steps / equipment; exclude cast shadows and platform paving.
- */
+// 空间站全景(据点)的建筑登记处 —— 轮廓 + 设施绑定 + 推镜焦点, 三件事收在一张表里。
+//
+// ★ 轮廓是照着 场景/测试/背景素材.png 的原生 1920×1080 逐栋描出来的可见剪影(含附属台阶/设备,
+//   不含投影与地面铺装)。它同时也是命中区 —— 建筑之间的空隙点不亮任何光效。
+// ★ 坐标系与画布(ui/hooks/stage.ts 的 1920×1080 设计 px)完全一致: SVG viewBox 直接用它,
+//   推镜焦点也用它, 任何分辨率下构图逐 px 一致。
+// ★ 加一栋建筑 = 这里描一条轮廓 + 在 FACILITY_BINDING 里加一行, 组件一行都不用动。
+
+import {
+  ASSEMBLY_BG_ART,
+  CRYO_BG_ART,
+  MUSEUM_BG_ART,
+  SHOP_BG_ART,
+  TRAINING_BG_ART,
+  WORKLOG_BG_ART,
+} from "@/ui/art/sceneArt";
+
 export const SCENE_WIDTH = 1920;
 export const SCENE_HEIGHT = 1080;
 
-export const BUILDING_CONTOURS = [
+const BUILDING_CONTOURS = [
   {
     id: "airlock",
     label: "工房",
@@ -125,3 +136,55 @@ export const BUILDING_CONTOURS = [
       L 1042 794 L 1069 791 L 1072 688 Z`,
   },
 ] as const;
+
+export type BuildingId = (typeof BUILDING_CONTOURS)[number]["id"];
+
+/** 一栋建筑进去之后是哪个设施: 背景图 + 推镜焦点 + 放大倍数。 */
+export interface FacilityBinding {
+  /** 设施 id: 与 TownScreen 的 FACILITY_CONTENT 键一致。 */
+  facility: string;
+  /** 设施自己的背景图(16:9, 与画布同比例 ⇒ cover 只等比缩放, 无裁切无变形)。 */
+  bg: string;
+  /** 推镜焦点(设计 px)。默认取招牌锚点 —— 招牌本来就指着建筑。 */
+  focus: { x: number; y: number };
+  /** 放大倍数。焦点会被 facilityCamera 钳到安全区内, 镜头不会露出画布外的黑边。 */
+  scale: number;
+}
+
+// ★ 构图不满意就改这里的 focus / scale, 别去动组件或 CSS。
+const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
+  // 工房: 模组装配 / 制造 / 装备升阶 / 羁绊重铸
+  airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART, focus: { x: 380, y: 358 }, scale: 1.8 },
+  // 医疗室: 冬眠唤醒 / 营养舱
+  supplies: { facility: "cryo", bg: CRYO_BG_ART, focus: { x: 995, y: 345 }, scale: 1.8 },
+  // 队员宿舍: 小队天赋 / 训练点
+  "sleeping-pods": { facility: "training", bg: TRAINING_BG_ART, focus: { x: 1610, y: 356 }, scale: 1.8 },
+  // 商店: 货架 / 仓库 / 回收台 / 库存清单
+  workshop: { facility: "shop", bg: SHOP_BG_ART, focus: { x: 221, y: 657 }, scale: 1.8 },
+  // 档案机: 物品 / 卡牌 / 怪物图鉴
+  "power-station": { facility: "museum", bg: MUSEUM_BG_ART, focus: { x: 890, y: 828 }, scale: 1.8 },
+  // 研究中心: 委托终端
+  laboratory: { facility: "worklog", bg: WORKLOG_BG_ART, focus: { x: 1698, y: 691 }, scale: 1.8 },
+};
+
+export interface StationBuilding extends FacilityBinding {
+  id: BuildingId;
+  /** 招牌与命中区的中文名, 也是 aria-label 的来源。 */
+  label: string;
+  /** 竖排招牌的挂点与引线锚点(设计 px)。 */
+  sign: { x: number; y: number; anchorX: number; anchorY: number };
+  /** 建筑剪影, 同时是命中区。 */
+  path: string;
+}
+
+/** 场景里从左到右、从上到下的建筑表。数组顺序同时决定进设施演出里 HUD 的飞出次序。 */
+export const STATION_BUILDINGS: StationBuilding[] = BUILDING_CONTOURS.map((contour) => ({
+  ...contour,
+  ...FACILITY_BINDING[contour.id],
+}));
+
+const BY_FACILITY = new Map(STATION_BUILDINGS.map((building) => [building.facility, building]));
+
+/** 设施 id → 建筑。未登记的设施点了不会有演出。 */
+export const buildingOfFacility = (facility: string): StationBuilding | undefined =>
+  BY_FACILITY.get(facility);

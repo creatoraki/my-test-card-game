@@ -1,5 +1,5 @@
 // 装备升阶面板 demo —— HudFrame 外框内的三列: 装备选择 / 消耗 / 升阶收益。
-// 目标是替换 town/storage/EquipUpgradePanel。本页用假数据(demoData.ts), 不接存档。
+// 目标是替换 town/assembly/EquipUpgradePanel。本页用假数据(demoData.ts), 不接存档。
 
 import { useMemo, useState } from "react";
 import type { ItemStack } from "@/items/types";
@@ -10,8 +10,8 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { HudFrame } from "@/ui/common/HudFrame";
-import { EquipUpgradeBoard, type PickEntry } from "@/ui/town/storage/EquipUpgradePanel/parts";
-import { useUpgradeView } from "@/ui/town/storage/EquipUpgradePanel/upgradeView";
+import { EquipUpgradeBoard, type PickEntry } from "@/ui/town/assembly/EquipUpgradePanel/parts";
+import { useUpgradeView } from "@/ui/town/assembly/EquipUpgradePanel/upgradeView";
 import { DEMO_EQUIPS, DEMO_LOOT, DEMO_STORAGE } from "./demoData";
 import { applyDemoUpgrade, type DemoState } from "./demoUpgrade";
 import s from "./OpusHudFrameDemo.module.css";

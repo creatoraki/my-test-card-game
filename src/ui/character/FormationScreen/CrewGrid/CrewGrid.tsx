@@ -34,7 +34,7 @@ interface Props {
   entrance: boolean;
   onOpen: (charId: string, el: HTMLElement) => void;
   onToggle: (charId: string) => void;
-  /** 版面坐标(设计 px)由使用方给 —— 与 .town-bento 同款分工: TSX 管构图, CSS 管机制。 */
+  /** 版面坐标(设计 px)由使用方给 —— 与据点 HUD 同款分工: TSX 管构图, CSS 管机制。 */
   style?: CSSProperties;
 }
 

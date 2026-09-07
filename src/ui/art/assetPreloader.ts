@@ -8,7 +8,7 @@ import { MAP_ART_SOURCES } from "@/ui/art/mapArt";
 import { RARITY_CRYSTAL_SOURCES } from "@/ui/art/rarityArt";
 import { SCENE_ART_SOURCES, SCENE_VIDEO_SOURCES } from "@/ui/art/sceneArt";
 import { BATTLE_BG_IMAGE_SOURCES } from "@/ui/art/battleBg";
-import { FACILITY_SCENES } from "@/ui/town/facilityScenes";
+import { STATION_BUILDINGS } from "@/ui/town/TownScreen/stationBuildings";
 
 export type AssetPreloadStatus = "idle" | "loading" | "ready";
 
@@ -30,7 +30,7 @@ const imageSources = unique([
   ...SCENE_ART_SOURCES,
   ...BATTLE_BG_IMAGE_SOURCES,
   ...MAP_ART_SOURCES,
-  ...Object.values(FACILITY_SCENES).map((scene) => scene.bg),
+  ...STATION_BUILDINGS.map((building) => building.bg),
   ...ENEMY_ART_SOURCES,
   ...CARD_ART_SOURCES,
   ...EVENT_ART_SOURCES,

@@ -1,5 +1,5 @@
 /* 卡阵。⚠ 版面坐标(left/top/width/height)由 FormationScreen 的内联 style 给 ——
-   与 .town-bento 同款分工: TSX 管构图, CSS 管机制。
+   与据点 HUD 同款分工: TSX 管构图, CSS 管机制。
    ★ auto-fill 而不是 auto-fit: 人少的时候不该把两三张卡拉开摊满一整行。
    ★ 276 + 20 = 296, 1776 / 296 ⇒ 6 列。⚠ 这个 6 与 CrewGrid.tsx 的 COLS 是同一个事实。 */
 .grid {

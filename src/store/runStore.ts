@@ -41,13 +41,13 @@ import {
 } from "./townStore";
 
 // ★ "formation"(编队) 是据点的**一级全屏页**, 不是设施内浮层 ——
-//   入口在大厅 bento 的「编队」砖(见 ui/TownScreen.tsx), 冬眠仓只剩「冬眠唤醒」。
+//   入口是据点全景右下的「编队」按钮(见 ui/town/TownScreen), 冬眠仓只剩「冬眠唤醒」。
 //   回据点走 ScreenTransition 的默认淡出淡入。
 //   ⚠⚠ **角色详情不是一个 screen**: 它是编队页内部的第二种态, 点卡不跳页, 由
 //   ui/character/FormationScreen/formationMorph 做一次同页元素重组。旧版曾经是
 //   screen === "charDetail" + 原生 View Transition 共享元素过场, 已随那次改版整体删除 ——
 //   本 store 因此不该再出现 detailCharId 之类的表现层字段。
-// ★ "sortie"(出击) 同样是据点的一级全屏页: 入口在大厅 bento 的「出击」砖, 内部分两步
+// ★ "sortie"(出击) 同样是据点的一级全屏页: 入口是据点全景右下的「出击」按钮, 内部分两步
 //   (选地图 → 备物资, step 存在 store/sortieStore 里)。它取代了原先埋在控制终端设施内的
 //   「下降舱」抽屉 —— 出击是核心动线, 不该要玩家先播 2s 进设施运镜才找得到。
 // ★ "elevator" 是纯演出中转页, 没有任何交互与规则; 下行进探索、上行回据点, 探索会话要等下行演出结束后才建立。
@@ -83,8 +83,8 @@ interface RunStore {
   lastChallenges: ChallengeRun[];
 
   enterTown: () => void;
-  openFormation: () => void; // 大厅「编队」砖 → 全屏编队页(角色详情是它内部的一种态, 不占 screen)
-  openSortie: () => void; // 大厅「出击」砖 → 全屏出击页(选地图 + 备物资)
+  openFormation: () => void; // 据点全景右下「编队」→ 全屏编队页(角色详情是它内部的一种态, 不占 screen)
+  openSortie: () => void; // 据点全景右下「出击」→ 全屏出击页(选地图 + 备物资)
   // 物资准备完毕 → 进路由图。backpack = 出发时装好的物资(见 store/sortieStore)。
   startExpedition: (mapId: string, backpack?: ItemStack[]) => void;
   elevatorRide: ElevatorRide | null;

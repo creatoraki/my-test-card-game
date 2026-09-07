@@ -1,0 +1,254 @@
+/* 右下角操作坞。⚠ 一切尺寸都是设计 px(1920×1080 画布), 缩放由 StageCanvas 负责 ——
+   不写 vw/vh、不写按窗口宽度的 @media, 否则构图会随分辨率漂。 */
+
+.dock {
+  position: absolute;
+  right: 56px;
+  bottom: 44px;
+  z-index: 3;
+  width: 384px;
+  color: #ffd995;
+}
+
+.status,
+.caption {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px #000;
+}
+
+.status {
+  justify-content: flex-end;
+  gap: 9px;
+  margin: 0 6px 9px;
+}
+
+.status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b4ffe1;
+  box-shadow: 0 0 12px #7dffd2;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+/* ---- 副手: 编队 ---- */
+.formation {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 0 0 132px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 84px;
+  padding: 10px;
+  border: 0;
+  clip-path: none;
+  background: transparent;
+  color: #cdf6ff;
+  font: inherit;
+  cursor: pointer;
+  filter: drop-shadow(0 6px 14px #0009);
+  transition: transform 180ms ease, filter 180ms ease, color 180ms ease;
+}
+
+.formationSurface {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  border: 1px solid #7fe6ff4d;
+  background: linear-gradient(120deg, #08181dee, #0d2429e0 62%, #6fe3f51f);
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 -3px #6fe3f566;
+}
+
+.formationIcon {
+  width: 30px;
+  height: 30px;
+  filter: drop-shadow(0 0 7px #6fe3f57a);
+}
+
+.formationIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.formationTitle {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 5px;
+  text-indent: 5px; /* 抵掉字距落在末字右侧的那一份, 让文字视觉居中 */
+}
+
+.formation:hover,
+.formation:focus-visible {
+  transform: translateY(-3px);
+  color: #eafcff;
+  filter: drop-shadow(0 0 18px #6fe3f566) drop-shadow(0 8px 16px #0009);
+}
+
+.formation:focus-visible {
+  outline: 2px solid #cdf6ff;
+  outline-offset: 6px;
+}
+
+.formation:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* ---- 主行动: 出击 ---- */
+.sortie {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-height: 84px;
+  padding: 10px 16px;
+  border: 0;
+  clip-path: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  filter: drop-shadow(0 0 12px #ff9b3045) drop-shadow(0 8px 16px #0009);
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.sortieSurface {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  background: linear-gradient(120deg, #fff0bd, #e29a47 35%, #885125 65%, #ffce78);
+}
+
+.sortieSurface::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  clip-path: inherit;
+  background:
+    repeating-linear-gradient(0deg, #ffdb9d05 0 1px, transparent 1px 4px),
+    linear-gradient(110deg, #314038 0%, #192823 28%, #383022 70%, #7a4c26 100%);
+  box-shadow: inset 0 -3px #ffb54d, inset 0 0 26px #ffb54428;
+}
+
+/* 定期扫过的高光: 让这枚按钮在静止画面里始终是「活」的。 */
+.sortieSurface::after {
+  content: "";
+  position: absolute;
+  inset: -60% -40%;
+  background: linear-gradient(105deg, transparent 40%, #ffe4a936 49%, #fff2ce80 50%, transparent 59%);
+  transform: translateX(-80%);
+  animation: sortieSweep 4.8s ease-in-out infinite;
+}
+
+.reactor {
+  flex: 0 0 46px;
+  height: 46px;
+  filter: drop-shadow(0 0 7px #ffb338a6);
+}
+
+.reactor svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.reactorOrbit {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-dasharray: 36 10 6 10;
+  transform-origin: 32px 32px;
+  animation: reactorSpin 14s linear infinite;
+}
+
+.sortieTitle {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 6px;
+  text-shadow: 0 0 18px #ffbc5966;
+}
+
+.arrows {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+}
+
+.arrows i {
+  width: 7px;
+  height: 19px;
+  background: currentColor;
+  clip-path: polygon(0 0, 40% 0, 100% 50%, 40% 100%, 0 100%, 60% 50%);
+  animation: arrowPulse 1.8s ease-in-out infinite;
+}
+
+.arrows i:nth-child(2) {
+  animation-delay: 150ms;
+}
+.arrows i:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+.sortie:hover,
+.sortie:focus-visible {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 0 20px #ffb33880) drop-shadow(0 8px 18px #0009);
+}
+
+.sortie:focus-visible {
+  outline: 2px solid #fff1c6;
+  outline-offset: 6px;
+}
+
+.sortie:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.caption {
+  justify-content: space-between;
+  margin: 8px 6px 0;
+  font-size: 12px;
+  color: #bcba9c;
+}
+
+@keyframes sortieSweep {
+  0%,
+  45% {
+    transform: translateX(-80%);
+  }
+  85%,
+  100% {
+    transform: translateX(80%);
+  }
+}
+
+@keyframes reactorSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes arrowPulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}

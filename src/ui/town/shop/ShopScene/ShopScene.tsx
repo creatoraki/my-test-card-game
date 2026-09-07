@@ -1,4 +1,4 @@
-// 商店(据点设施 shop)的设施内界面 —— 常驻货架与仓库入口。
+// 商店(据点设施 shop, 全景里的「商店」)的设施内界面 —— 常驻货架 + 仓库入口 + 右侧物资抽屉。
 //
 // 商店的主刷新机制仍由 runStore.backToTown → townStore.advanceDay 负责。
 // 本组件只读 shop 状态、派发 action，并编排购买飞行与 EventPanel 版式。
@@ -21,6 +21,7 @@ import ShopItemCard from "@/ui/town/shop/ShopItemCard";
 import PurchaseFlight, { type PurchaseFlightRect } from "@/ui/town/shop/PurchaseFlight/PurchaseFlight";
 import ShelfGrid from "@/ui/town/shop/ShopScene/ShelfGrid";
 import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
+import { StockEntries } from "@/ui/town/shop/StockPanels";
 import s from "./ShopScene.module.css";
 
 const CONTENT_DELAY_MS = 560;
@@ -101,7 +102,7 @@ export function ShopScene({ leaving = false }: Props) {
       <header className={s["sx-header"]} style={{ left: "56px", top: "42px" }}>
         <span className={s["sx-kicker"]}>SUPPLY EXCHANGE</span>
         <h2 className={s["sx-title"]}>商店</h2>
-        <p className={s["sx-sub"]}>每日上新 · 积分采购</p>
+        <p className={s["sx-sub"]}>每日上新 · 积分采购 · 物资回收</p>
       </header>
 
       <button
@@ -158,6 +159,9 @@ export function ShopScene({ leaving = false }: Props) {
           </section>
         </div>
       </div>
+
+      {/* 右侧抽屉: 库存清单 / 回收台。物资中转仓拆散后, 物资的进出全部收进商店。 */}
+      <StockEntries />
 
       <WarehousePanel
         open={warehouseOpen}

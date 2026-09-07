@@ -1,0 +1,166 @@
+/* 全景 HUD。⚠ 全部设计 px(1920×1080 画布); 一律不用 backdrop-filter ——
+   背景被 PixelSwap 包了一层, 毛玻璃采样不到底下的图(见 TownScreen.module.css 顶部)。 */
+
+/* ---- 左上: 终端状态带 ---- */
+/* 三项连成一条窄带, 从左到右读作生存、货币、设施进度; 不做成三张独立卡片。 */
+.status {
+  position: absolute;
+  left: 56px;
+  top: 42px;
+  z-index: 3;
+  display: flex;
+  align-items: stretch;
+  min-width: 620px;
+  height: 74px;
+  border: 1px solid #ffffff2b;
+  background: linear-gradient(110deg, #071114e0, #0c1719cc 58%, #6fe3f51a);
+  box-shadow: inset 0 1px 0 #ffffff24, 0 12px 28px -24px #000000dd;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+
+/* 沿边跑一圈的高光: conic 渐变转起来 + xor 遮罩只留描边那一圈。 */
+.rim {
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  padding: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px #8ef4ff);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.rim::before {
+  content: "";
+  position: absolute;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 294deg,
+    #6fe3f54d 321deg,
+    #edffffd9 344deg,
+    #6fe3f575 357deg,
+    transparent 360deg
+  );
+  animation: stationEdgeRun 4.2s linear infinite;
+}
+
+@keyframes stationEdgeRun {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 0 28px;
+}
+
+.item + .item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 17px;
+  bottom: 17px;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #ffffff36, transparent);
+}
+
+.label {
+  color: #aabcc0;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.value {
+  color: #ecf8fa;
+  font-family: var(--font-family);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+/* ---- 左下: 开关组 ---- */
+/* 四枚小字按钮竖成一列, 整组是一个飞出单元。 */
+.corner {
+  position: absolute;
+  left: 44px;
+  bottom: 34px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 142px;
+  padding: 7px 14px;
+  border: 1px solid #ffffff1f;
+  background: #05090bd9;
+  color: #c7e7eb;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.chip svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.chip[data-muted="true"] {
+  color: #95a8ad;
+}
+
+.chip:hover {
+  background: #071316f2;
+  border-color: #6fe3f5a6;
+  color: #eafcff;
+}
+
+.reset {
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+
+.reset:hover {
+  background: #05090bd9;
+  border-color: #ffffff4d;
+  color: #eaf6f8;
+}
+
+.testReward {
+  border-color: #d8f32950;
+  color: #e3f375;
+}
+
+.testReward:hover {
+  background: #05090bd9;
+  border-color: #d8f329a6;
+  color: #f6ffba;
+}

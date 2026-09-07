@@ -6,7 +6,7 @@ import { getItemDef, itemRegionId, nextEquipDef, upgradeCheck, upgradeRecipe } f
 import { consumeItems } from "@/items/inventory";
 import { upgradeEquipment } from "@/items/equipRoll";
 import type { ItemStack } from "@/items/types";
-import { upgradeChanges } from "@/ui/town/storage/EquipUpgradePanel/upgradeMessage";
+import { upgradeChanges } from "@/ui/town/assembly/EquipUpgradePanel/upgradeMessage";
 import type { DemoEquip } from "./demoData";
 
 export interface DemoState {
