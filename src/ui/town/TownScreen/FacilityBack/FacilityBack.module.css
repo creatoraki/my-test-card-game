@@ -15,7 +15,7 @@
   color: #d9fff1;
   font-size: 16px;
   letter-spacing: 3px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   box-shadow: 0 0 14px #36ffc62e, 0 6px 16px #00151280;
   /* 进设施时它是最后出现的一件东西: 延迟由 --fac-back-in 下发, 见 facilityScenes.ts。 */
   animation: facilityBackIn var(--fac-back-in, 320ms) ease-out both;

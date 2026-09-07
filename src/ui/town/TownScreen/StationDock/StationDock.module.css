@@ -160,7 +160,7 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   filter: drop-shadow(0 0 12px #ff9b3045) drop-shadow(0 8px 16px #0009);
   transition: transform 180ms ease, filter 180ms ease;
 }

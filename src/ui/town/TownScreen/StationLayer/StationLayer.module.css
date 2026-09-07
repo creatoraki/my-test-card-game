@@ -15,7 +15,7 @@
   fill: transparent;
   stroke: none;
   pointer-events: fill;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
 .highlight {
@@ -74,7 +74,7 @@
 }
 
 .billboard {
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   color: #8affea;
 }
 

@@ -7,10 +7,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { installCodexCollector } from "./store/codexCollector";
+import { installGameCursor } from "./ui/app/installGameCursor";
 
 // 全局禁用鼠标右键上下文菜单
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 installCodexCollector();
+const disposeGameCursor = installGameCursor();
+if (import.meta.hot) import.meta.hot.dispose(disposeGameCursor);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

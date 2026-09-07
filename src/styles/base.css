@@ -17,8 +17,22 @@
 }
 
 :root {
-  --cursor-default: url("../assets/通用素材/鼠标默认.png") 3 3, default;
-  --cursor-pointer: url("../assets/通用素材/鼠标可点击.png") 3 3, pointer;
+  --cursor-default: url("../assets/通用素材/鼠标默认.png") 4 4, default;
+  --cursor-pointer: url("../assets/通用素材/鼠标可点击.png") 4 4, pointer;
+  --cursor-pressed: url("../assets/通用素材/鼠标点击.png") 4 4, pointer;
+  cursor: var(--cursor-default);
+}
+
+:where(a[href], [role="button"], summary):not([aria-disabled="true"]) {
+  cursor: var(--cursor-pointer);
+}
+
+/* 按下期间覆盖子元素自己的光标；由全局鼠标状态在松开或失焦后清除。 */
+html[data-cursor-pressed],
+html[data-cursor-pressed] *,
+html[data-cursor-pressed] *::before,
+html[data-cursor-pressed] *::after {
+  cursor: var(--cursor-pressed) !important;
 }
 
 * {
