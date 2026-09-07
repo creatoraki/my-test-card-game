@@ -77,9 +77,8 @@ export function HudPanelShell({ closing = false, onClose, label, morph, children
 
 function CloseIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" aria-hidden="true">
       <path d="m7 7 10 10M17 7 7 17" />
-      <path d="M4 4h4M4 4v4M20 20h-4M20 20v-4" opacity=".5" />
     </svg>
   );
 }

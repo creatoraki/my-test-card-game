@@ -57,29 +57,33 @@
 
 .closeButton {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 26px;
+  right: 38px;
   z-index: 5;
   display: grid;
   width: 34px;
   height: 34px;
   place-items: center;
   padding: 0;
-  border: 1px solid rgb(255 90 160 / 0.45);
-  background: rgb(12 6 18 / 0.82);
-  color: #d9b7cb;
+  border: 2px solid #ff72b0;
+  background: #f5116f;
+  color: #fff;
   cursor: var(--cursor-pointer);
-  transition: border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  box-shadow: 0 0 6px rgb(255 43 134 / 0.95), 0 0 16px rgb(255 0 96 / 0.55);
+  transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .closeButton svg {
   width: 19px;
   height: 19px;
+  filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.65)) drop-shadow(0 0 5px rgb(255 43 134 / 0.75));
 }
 
 .closeButton:hover {
-  border-color: #ff2f8e;
-  color: #fff0f7;
+  border-color: #ff9ac8;
+  background: #ff2f8e;
+  color: #fff;
+  box-shadow: 0 0 8px rgb(255 43 134 / 1), 0 0 20px rgb(255 0 96 / 0.72);
   transform: rotate(90deg);
 }
 

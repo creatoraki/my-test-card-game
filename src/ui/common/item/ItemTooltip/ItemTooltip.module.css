@@ -4,9 +4,26 @@
 .item-tooltip {
   position: absolute;
   z-index: 1000;
-  width: 260px;
+  width: 340px;
   pointer-events: none;
   filter: drop-shadow(0 14px 24px #000000cc);
+  --tooltip-detail-padding: 18px;
+  --item-detail-gap: 14px;
+  --item-detail-icon-width: 56px;
+  --item-detail-name-size: 19px;
+  --item-detail-mult-size: 14px;
+  --item-detail-tags-gap: 6px 10px;
+  --item-detail-tags-margin: 7px 0 0;
+  --item-detail-tags-size: 13px;
+  --item-detail-desc-size: 15px;
+  --item-detail-desc-line-height: 1.6;
+  --item-detail-stats-size: 15px;
+  --item-detail-field-padding: 12px 0;
+  --item-detail-field-size: 15px;
+  --item-detail-bond-head-size: 16px;
+  --item-detail-bond-desc-size: 14px;
+  --item-detail-bond-desc-line-height: 1.6;
+  --item-detail-note-size: 14px;
 }
 
 .item-tooltip-detail.item-tooltip-detail {
@@ -24,7 +41,7 @@
   /* 上限由 JS 下发(画布高度减留白, 设计 px), 不能直接写 100vh:
      视口单位不随画布 zoom 缩放, 在画布内会被当成设计 px 再放大一遍。 */
   max-height: var(--tooltip-max-h, 300px);
-  padding: 12px;
+  padding: var(--tooltip-detail-padding, 12px);
   overflow-y: auto;
   background:
     linear-gradient(135deg, var(--inventory-panel-glow, #ffffff14), transparent 50%),
