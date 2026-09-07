@@ -3,7 +3,7 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { BattleState, Card, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
+import type { Ally, BattleState, Card, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
 import { ops } from "./ops";
 import { addMod, attackDamage, healValue, offenseStatOf, partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
@@ -530,7 +530,9 @@ function applyEffect(
     }
     case "ADD_CARD_TO_HAND": {
       if (!effect.cardId) break;
-      const allies = src ? alliesOf(state, src) : [];
+      const allies = src
+        ? alliesOf(state, src).filter((ally): ally is Ally => ally.team === "player")
+        : [];
       if (effect.cardOwner === "randomAlly" && allies.length === 0) break;
       const ownerCharId = effect.cardOwner === "randomAlly" ? rngPick(state, allies).charId : undefined;
       ops.addCardToHand(state, effect.cardId, ownerCharId);

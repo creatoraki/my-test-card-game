@@ -13,7 +13,7 @@ import {
   occupiedSlots,
   removeByUid,
 } from "./inventory";
-import type { ItemRarity } from "./types";
+import type { ItemRarity, ItemStack } from "./types";
 
 const stack = (id: string) => makeItemStack(id);
 

@@ -30,7 +30,7 @@ const ANIM_SFX_OVERRIDES: Partial<Record<CardAnim, AnimSfxOverride>> = {
 export function attackSfxCue(anim: CardAnim): AnimSfxCue | null {
   if (ANIM[anim].kind !== "attack") return null;
   const override = ANIM_SFX_OVERRIDES[anim];
-  if (override && "attack" in override) return override.attack;
+  if (override && "attack" in override) return override.attack ?? null;
   return {
     id: "cardPlay",
     leadMs: 120,
@@ -46,7 +46,7 @@ export function impactSfxCue(anim: CardAnim): AnimSfxCue | null {
   }
   if (ANIM[anim].kind !== "attack") return null;
   const override = ANIM_SFX_OVERRIDES[anim];
-  if (override && "impact" in override) return override.impact;
+  if (override && "impact" in override) return override.impact ?? null;
   return {
     id: "hit",
     leadMs: 0,

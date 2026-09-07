@@ -28,6 +28,7 @@ function persistSfxEnabled(enabled: boolean): void {
 type AudioContextConstructor = typeof AudioContext;
 
 type AudioContextWindow = Window & {
+  AudioContext?: AudioContextConstructor;
   webkitAudioContext?: AudioContextConstructor;
 };
 
@@ -122,7 +123,7 @@ export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
   const throttleMs = sample?.throttleMs ?? recipe?.throttleMs ?? 30;
   if (now - (lastPlayedAt.get(id) ?? -Infinity) < throttleMs) return;
 
-  const voiceCost = sample ? 1 : recipeVoiceCost(recipe);
+  const voiceCost = sample ? 1 : recipeVoiceCost(recipe!);
   if (activeVoices + voiceCost > MAX_ACTIVE_VOICES) return;
   const bus = ensureAudioBus();
   if (!bus) return;
@@ -131,7 +132,7 @@ export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
   activeVoices += voiceCost;
   window.setTimeout(() => {
     activeVoices = Math.max(0, activeVoices - voiceCost);
-  }, sample ? sampleDurationMs(sample) : recipeDurationMs(recipe));
+  }, sample ? sampleDurationMs(sample) : recipeDurationMs(recipe!));
 
   const damagePitch = options.damage === undefined ? 1 : 1 + clamp(options.damage, 0, 50) * 0.008;
   const pitchScale = clamp((options.pitch ?? 1) * damagePitch, 0.5, 2.2);
@@ -141,7 +142,7 @@ export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
     return;
   }
 
-  for (const layer of recipe.layers) {
+  for (const layer of recipe!.layers) {
     playLayer(bus.context, bus.destination, layer, { pitchScale, gainScale });
   }
 }

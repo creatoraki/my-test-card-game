@@ -34,7 +34,7 @@
   gap: 20px;
   min-height: 62px;
   padding: 2px 4px 14px 6px;
-  border-bottom: 1px solid #a97c304d;
+  border-bottom: 1px solid color-mix(in srgb, var(--sfp-trim, #a97c30) 36%, transparent);
 }
 
 .headerTitle {
@@ -43,7 +43,7 @@
 
 .kicker {
   display: block;
-  color: #ffc654;
+  color: var(--sfp-energy, #ffc654);
   font-family: var(--font-family);
   font-size: 10px;
   font-weight: 700;
@@ -54,7 +54,7 @@
 
 .header h2 {
   margin: 7px 0 0;
-  color: #fff0bc;
+  color: var(--sfp-highlight, #fff0bc);
   font-size: 28px;
   font-weight: 700;
   letter-spacing: 4px;
@@ -77,9 +77,9 @@
   flex: 0 0 32px;
   place-items: center;
   padding: 0;
-  color: #a5937f;
+  color: color-mix(in srgb, var(--sfp-highlight, #fff0bc) 64%, #59666a);
   background: #ffffff0a;
-  border: 1px solid #f2e6d82e;
+  border: 1px solid color-mix(in srgb, var(--sfp-trim, #a97c30) 35%, transparent);
   border-radius: 2px;
   cursor: var(--cursor-pointer);
   transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease;
@@ -92,14 +92,14 @@
 
 .close:hover,
 .close:focus-visible {
-  color: #fff0bc;
-  background: #ffc65424;
-  border-color: #fff0bc;
+  color: var(--sfp-highlight, #fff0bc);
+  background: color-mix(in srgb, var(--sfp-energy, #ffc654) 16%, transparent);
+  border-color: var(--sfp-energy, #ffc654);
   transform: translateY(-2px);
 }
 
 .close:focus-visible {
-  outline: 2px solid #fff0bc;
+  outline: 2px solid var(--sfp-energy, #ffc654);
   outline-offset: 3px;
 }
 

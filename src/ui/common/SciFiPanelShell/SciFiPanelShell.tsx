@@ -52,6 +52,12 @@ export function SciFiPanelShell({
     width: `${rect.w}px`,
     height: `${rect.h}px`,
     "--pop-from": from === "left" ? "-48px" : "48px",
+    ...(colors?.armor ? { "--sfp-armor": colors.armor } : {}),
+    ...(colors?.trim ? { "--sfp-trim": colors.trim } : {}),
+    ...(colors?.energy ? { "--sfp-energy": colors.energy } : {}),
+    ...(colors?.accent ? { "--sfp-accent": colors.accent } : {}),
+    ...(colors?.highlight ? { "--sfp-highlight": colors.highlight } : {}),
+    ...(colors?.circuit ? { "--sfp-circuit": colors.circuit } : {}),
   } as CSSProperties;
 
   return (

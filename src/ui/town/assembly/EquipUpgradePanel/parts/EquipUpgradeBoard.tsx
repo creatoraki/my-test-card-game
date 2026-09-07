@@ -1,6 +1,7 @@
 import type { CostCheck } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
 import type { EquipTab } from "@/ui/common/item/itemFilters";
+import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
 import { EquipForgeColumn } from "./EquipForgeColumn";
 import { EquipGainColumn } from "./EquipGainColumn";
 import { EquipPickColumn, type PickEntry } from "./EquipPickColumn";
@@ -22,7 +23,7 @@ interface Props {
   notice: string;
   canUpgrade: boolean;
   onUpgrade: () => void;
-  onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: "left" | "right") => void;
+  onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
   onHideTooltip: () => void;
 }
 

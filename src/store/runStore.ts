@@ -4,7 +4,7 @@
 // 这件事, 因为只有它同时认识 battleStore、exploreStore 与界面路由。
 
 import { create } from "zustand";
-import type { AllyInit, Ally, Card, ChallengeRun, Enemy } from "../engine";
+import type { AllyInit, Ally, Card, ChallengeRun, Enemy, QuirkId } from "../engine";
 import { RULES, applyModifier, earnedChallengeBonus, getStatus } from "../engine";
 import {
   BOND_DEFS,
@@ -100,6 +100,10 @@ interface RunStore {
   // 返回 false = 没做任何改动(阶段不允许 / 背包装不下 / 目标非法), UI 据此飘一条提示。
   equipFromBackpack: (charId: string, uid: string) => boolean;
   unequipToBackpack: (charId: string, slot: EquipSlot) => boolean;
+  resolvePendingHeal: (charId: string, limit: boolean) => void;
+  resolvePendingQuirk: (charId?: string, quirkId?: QuirkId) => void;
+  resolvePendingPollution: (charId?: string) => void;
+  resolvePendingPurification: (charId: string | undefined, uids: string[]) => void;
   retreat: () => void; // 主动撤离 → 落袋回城
   finishExpedition: () => void; // 会话自行走到终局(升降机/轮次走完/团灭) → 结算页
   backToTown: () => void;

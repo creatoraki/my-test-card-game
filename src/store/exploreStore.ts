@@ -314,11 +314,12 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
         if (pollution <= 0) return null;
       }
     }
-    let result: ItemUseResult | null = null;
+    const resultHolder: { current: ItemUseResult | null } = { current: null };
     mutate(get, set, (d) => {
-      result = useItem(d, uid, targetCharId);
-      return result != null;
+      resultHolder.current = useItem(d, uid, targetCharId);
+      return resultHolder.current != null;
     });
+    const result = resultHolder.current;
     if (!result) return null;
     if (result.pollution) {
       const { charId, name, amount } = result.pollution;

@@ -16,15 +16,33 @@ import { ShopPanel } from "./ShopPanel";
 import { useShopPopover } from "./useShopPopover";
 import s from "./ShopScene.module.css";
 
-const SHOP_PANEL_COLORS = {
-  armor: "#241a0e",
-  trim: "#a97c30",
-  energy: "#ffc654",
-  accent: "#ff754f",
-  highlight: "#fff0bc",
-  circuit: "#80622c",
+const WAREHOUSE_PANEL_COLORS = {
+  armor: "#071d25",
+  trim: "#237d91",
+  energy: "#36d9d0",
+  accent: "#719dff",
+  highlight: "#dcfffc",
+  circuit: "#145467",
 };
-const SHOP_PANEL_BG = "linear-gradient(150deg, #141311, #0a0d0e)";
+const WAREHOUSE_PANEL_BG = [
+  "radial-gradient(ellipse 80% 48% at 12% 4%, #63fff033, transparent 66%)",
+  "radial-gradient(ellipse 62% 52% at 92% 94%, #718dff26, transparent 70%)",
+  "linear-gradient(145deg, #173943 0%, #0a171d 58%, #050a0e 100%)",
+].join(", ");
+
+const SHOP_PANEL_COLORS = {
+  armor: "#261522",
+  trim: "#9c4263",
+  energy: "#ff7180",
+  accent: "#d16bff",
+  highlight: "#ffe0df",
+  circuit: "#733552",
+};
+const SHOP_PANEL_BG = [
+  "radial-gradient(ellipse 72% 46% at 88% 5%, #ff8a762e, transparent 68%)",
+  "radial-gradient(ellipse 60% 55% at 8% 94%, #d56bff24, transparent 72%)",
+  "linear-gradient(145deg, #3a1f2e 0%, #1a101b 56%, #09090f 100%)",
+].join(", ");
 
 const WAREHOUSE_RECT = { x: 70, y: 140, w: 640, h: 820 };
 const SHOP_RECT = { x: 750, y: 140, w: 1100, h: 820 };
@@ -112,6 +130,7 @@ export function ShopScene({ leaving = false }: Props) {
       {mounted && (
         <>
           <SciFiPanelShell
+            className={s["sx-warehouse-shell"]}
             rect={WAREHOUSE_RECT}
             kicker="STORAGE INDEX"
             title="仓库"
@@ -119,8 +138,8 @@ export function ShopScene({ leaving = false }: Props) {
             closing={closing}
             leaving={leaving}
             from="left"
-            colors={SHOP_PANEL_COLORS}
-            background={SHOP_PANEL_BG}
+            colors={WAREHOUSE_PANEL_COLORS}
+            background={WAREHOUSE_PANEL_BG}
             headExtra={
               <span ref={warehouseIconRef} className={s["sx-warehouse-icon"]} aria-hidden="true">
                 <CrateIcon />
@@ -132,6 +151,7 @@ export function ShopScene({ leaving = false }: Props) {
           </SciFiPanelShell>
 
           <SciFiPanelShell
+            className={s["sx-vending-shell"]}
             rect={SHOP_RECT}
             kicker="SUPPLY EXCHANGE"
             title="自动售货机"

@@ -5,6 +5,7 @@ import { addToContainer, countByItemId, consumeItems, occupiedSlots, stackSlots 
 import { RULES } from "../engine/rules";
 import type { ItemStack } from "../items/types";
 import type { ExploreEffect, ExploreState, NodeEvent, ShopState, TradeSlotState } from "./types";
+import { backpackFree } from "./session";
 
 export interface TradeQuote {
   ok: boolean;

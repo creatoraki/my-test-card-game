@@ -1,4 +1,4 @@
-import { useState, type PointerEvent } from "react";
+import { useState, type CSSProperties, type PointerEvent } from "react";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
@@ -45,7 +45,13 @@ export default function ItemCostTag({
       <span className={s.icon} aria-hidden="true">{itemIcon(def)}</span>
       <span className={s.count}>×{count}</span>
       {showOwned && owned != null && <span className={s.owned}>{owned}/{count}</span>}
-      {point && <ItemTooltip stack={stack} point={point} themeStyle={{ "--event-accent": "var(--event-accent)" }} />}
+      {point && (
+        <ItemTooltip
+          stack={stack}
+          point={point}
+          themeStyle={{ "--event-accent": "var(--event-accent)" } as CSSProperties}
+        />
+      )}
     </span>
   );
 }

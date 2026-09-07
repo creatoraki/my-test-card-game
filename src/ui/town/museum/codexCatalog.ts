@@ -1,6 +1,6 @@
-import { CARD_DEFS, CHARACTERS, ENEMIES, ITEM_DEFS, makeCard, makeItemStack } from "@/data";
+import { CARD_DEFS, CHARACTERS, ENEMIES, ITEM_DEFS, makeCard, makeItemStack, type EnemyDef } from "@/data";
 import { BOSS_ENEMIES, ELITE_ENEMIES, MINION_ENEMIES } from "@/data/enemies";
-import type { Card, CardDef, EnemyDef } from "@/engine";
+import type { Card, CardDef } from "@/engine";
 import type { CodexState } from "@/store/townStore";
 import { RARITY_ORDER, type ItemDef, type ItemStack } from "@/items/types";
 import { ITEM_TABS } from "@/ui/common/item/itemFilters";

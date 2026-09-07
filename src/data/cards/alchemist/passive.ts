@@ -13,6 +13,7 @@ export const ALCHEMIST_PASSIVE_CARDS: CardDef[] = [
     effects: [],
     passive: {
       on: ["roundEnd", "enemyKilled"],
+      effects: [],
       effectsByTrigger: {
         roundEnd: [
           {

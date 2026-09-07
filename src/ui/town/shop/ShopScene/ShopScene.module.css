@@ -1,12 +1,14 @@
 .sx-root {
-  --event-accent: #d6b477;
+  --event-accent: #63d9d0;
   --sx-ink: #edf3ef;
   --sx-muted: #8ea09d;
-  --sx-action-hot: #f0d49b;
+  --sx-action-hot: #ff9a91;
 
   position: absolute;
   z-index: 2;
   inset: 0;
+  perspective: 1800px;
+  perspective-origin: 50% 46%;
   color: var(--sx-ink);
   font-family: var(--font-family);
   pointer-events: none;
@@ -70,7 +72,7 @@
   height: 28px;
   flex: 0 0 28px;
   place-items: center;
-  color: #ffc654;
+  color: #36d9d0;
 }
 
 .sx-root .sx-warehouse-icon svg {
@@ -171,6 +173,41 @@
   color: #e47970;
 }
 
+/* The shell keeps its own slide animation on the outer node. Rotate only the
+   visual panel so the reveal/leave motion remains intact. */
+.sx-root .sx-warehouse-shell,
+.sx-root .sx-vending-shell {
+  transform-style: preserve-3d;
+}
+
+.sx-root .sx-warehouse-shell > div,
+.sx-root .sx-vending-shell > div {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: transform 260ms ease, filter 260ms ease;
+}
+
+.sx-root .sx-warehouse-shell > div {
+  transform: rotateY(5.5deg) rotateX(1.2deg);
+  transform-origin: 100% 50%;
+  filter:
+    drop-shadow(0 38px 28px rgb(0 0 0 / 0.86))
+    drop-shadow(0 0 24px color-mix(in srgb, var(--sfp-energy) 34%, transparent));
+}
+
+.sx-root .sx-vending-shell > div {
+  transform: rotateY(-4.5deg) rotateX(1deg);
+  transform-origin: 0 50%;
+  filter:
+    drop-shadow(0 42px 30px rgb(0 0 0 / 0.88))
+    drop-shadow(0 0 28px color-mix(in srgb, var(--sfp-energy) 32%, transparent));
+}
+
+.sx-root .sx-warehouse-shell > div > div,
+.sx-root .sx-vending-shell > div > div {
+  text-shadow: 0 2px 10px rgb(0 0 0 / 0.62);
+}
+
 .sx-root.is-leaving .sx-header {
   animation: sxLeave 420ms ease both;
 }
@@ -204,5 +241,10 @@
   .sx-root .sx-refresh:focus-visible .sx-refresh-icon,
   .sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
     transform: none;
+  }
+
+  .sx-root .sx-warehouse-shell > div,
+  .sx-root .sx-vending-shell > div {
+    transition: none;
   }
 }

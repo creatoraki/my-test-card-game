@@ -449,7 +449,7 @@ describe("阶段机", () => {
     s.round = 6;
     toChoosing(s);
     leaveRegion(s);
-    runSlot(s);
+    engageRoundBattle(s);
     expect(s.pendingIsBoss).toBe(true);
     finishBattle(s, true, WIN, ["scrap-bot"]);
     expect(s.phase).toBe("cleared");
@@ -816,7 +816,7 @@ describe("战斗回填与团灭", () => {
   function intoBattle(s: ExploreState): void {
     toChoosing(s);
     leaveRegion(s);
-    runSlot(s);
+    engageRoundBattle(s);
     expect(s.phase).toBe("inBattle");
   }
 

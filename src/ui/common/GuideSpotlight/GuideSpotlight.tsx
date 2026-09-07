@@ -102,8 +102,11 @@ function useGuideLayout(step: GuideStep | null): GuideLayout | null {
       }
 
       if (elapsed >= SETTLE_TIMEOUT_MS) {
-        lockLayout(candidateHost ?? fallbackHost ?? host, candidateRect);
-        return;
+        const settledHost = candidateHost ?? fallbackHost ?? host;
+        if (settledHost) {
+          lockLayout(settledHost, candidateRect);
+          return;
+        }
       }
 
       frame = window.requestAnimationFrame(measure);

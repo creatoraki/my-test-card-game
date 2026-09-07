@@ -27,7 +27,7 @@ function allies(): AllyInit[] {
 }
 
 // 用同种卡填充牌库, 使手牌内容可预测(与随机种子无关)
-function deckOf(cardId: string, n: number) {
+function deckOf(cardId: string, n = 12) {
   return Array.from({ length: n }, () => makeCard(cardId));
 }
 

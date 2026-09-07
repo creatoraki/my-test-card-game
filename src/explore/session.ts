@@ -888,7 +888,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       s.pendingActions.push({ kind: "reforge", bias: e.bias });
       return "获得一次免费装备羁绊重铸";
     case "START_NODE_BATTLE":
-      return `进入${BATTLE_TIER_NAME[e.tier]}`;
+      return `进入${BATTLE_TIER_NAME[e.tier ?? s.roundBattleTier]}`;
     case "OPEN_SHOP":
       return "打开交易终端";
     // 这两个由 chooseOption 拦截, 走不到这里; 列出来让 switch 保持穷尽
@@ -1249,12 +1249,12 @@ export function generateRound(s: ExploreState): void {
   const map = getMap(s.mapId);
   const stage = roundStageOf(s.round);
   const plan = map.roundPlans?.[s.round - 1];
-  let laneCount = LANES;
-  let rowsPerSegment = EXPLORE_RULES.rowsPerSegment;
+  let laneCount: number = LANES;
+  let rowsPerSegment: number = EXPLORE_RULES.rowsPerSegment;
   let nodes: NodeEvent[][];
   let segments: RouteBoard["segments"];
   let hiddenNodes: RouteBoard["hiddenNodes"];
-  let revealDurationMs = stage.revealMs;
+  let revealDurationMs: number = stage.revealMs;
 
   if (plan) {
     laneCount = plan.laneCount;

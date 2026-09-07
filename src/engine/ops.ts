@@ -239,7 +239,7 @@ export function previewDamage(
   sourceId: string | undefined,
   targetId: string,
   amount: number,
-  opts: Pick<DamageOpts, "flags" | "isAttack" | "fixed"> = {},
+  opts: Pick<DamageOpts, "flags" | "isAttack" | "fixed" | "pure"> = {},
 ): number | null {
   const target = state.combatants[targetId];
   if (!target || !target.alive) return null;

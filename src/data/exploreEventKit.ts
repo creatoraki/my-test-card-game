@@ -13,10 +13,26 @@ export const choice = (
   label: string,
   desc: string,
   story: string,
-  outcomes: EventChoice["outcomes"],
+  outcomesOrEffects: EventChoice["outcomes"] | ExploreEffect[] | undefined,
   energyDelta = 0,
   choiceCost?: EventChoice["cost"],
-): EventChoice => ({ id, label, desc, story, energyDelta, cost: choiceCost, outcomes });
+): EventChoice => {
+  const isDirectEffects =
+    Array.isArray(outcomesOrEffects) &&
+    outcomesOrEffects.length > 0 &&
+    "type" in outcomesOrEffects[0];
+  return {
+    id,
+    label,
+    desc,
+    story,
+    energyDelta,
+    cost: choiceCost,
+    ...(isDirectEffects
+      ? { effects: outcomesOrEffects as ExploreEffect[] }
+      : { outcomes: outcomesOrEffects as EventChoice["outcomes"] }),
+  };
+};
 
 export const item = (itemId: string, count = 1): ExploreEffect => ({ type: "GAIN_ITEM", itemId, count });
 export const dmg = (percent: number): ExploreEffect => ({ type: "DAMAGE_PARTY_PERCENT", percent });

@@ -264,7 +264,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
               count={action.count}
               onSelect={setSelectedChar}
               onSkip={finish}
-              onConfirm={(uids) => resolvePendingPurification(chosenCharId ?? undefined, uids)}
+              onConfirm={(uids) => resolvePendingPurification(chosenCharId ?? undefined, uids ?? [])}
             />
           )}
         </EventPanelFrame>
@@ -381,7 +381,7 @@ function PartyReward({
 }) {
   return (
     <EventPanelStage>
-      <EventPanelBody caption={caption} scroll={!character}>
+      <EventPanelBody caption={caption} scroll={false}>
         <EventPanelNotice>确认后立即应用到当前远征的全部存活角色。</EventPanelNotice>
       </EventPanelBody>
       <EventPanelFoot note="确认后立即应用到当前远征的存活角色">

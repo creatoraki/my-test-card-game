@@ -21,6 +21,8 @@ export interface DsOption {
   result: string;
   /** 结算摘要，逐条揭晓。 */
   notes: string[];
+  /** 结算后展示的奖励列表。 */
+  rewards?: string[];
   disabled?: boolean;
   disabledReason?: string;
 }
@@ -53,6 +55,7 @@ export const EVENT_CONTENT: Record<DsEventType, DsEvent> = {
       "废弃楼层的通讯井里卷起一团数据风暴。碎玻璃悬浮在半空，被染成琥珀色的电弧沿墙面爬行。风暴眼深处似乎裹着什么东西，每一次靠近，警报的频率都会更快。",
     accent: "#e3aa72",
     sceneName: "风暴核心 / 07",
+    rewards: ["冷凝芯片 ×2"],
     options: [
       {
         id: "deploy-beacon",
@@ -98,6 +101,7 @@ export const EVENT_CONTENT: Record<DsEventType, DsEvent> = {
       "透明穹顶下的培育舱还亮着微弱的暖光。那株陌生植物的根系缠住了供能管线，叶片在无风的空间里轻轻起伏，像是在等待一个愿意伸手的人。",
     accent: "#8ac8a5",
     sceneName: "地下温室 03",
+    rewards: ["净化果实 ×1", "经验 +40"],
     options: [
       {
         id: "harvest",
@@ -143,6 +147,7 @@ export const EVENT_CONTENT: Record<DsEventType, DsEvent> = {
       "锈蚀的传送带把一个个货箱送进拍卖区。电子屏上的报价不断跳动，几个裹着旧斗篷的买家站在阴影里，用沉默竞价。这里的规矩只有一条：落锤之前，什么都可以谈。",
     accent: "#b8a9d1",
     sceneName: "货栈拍卖区 12",
+    rewards: [],
     options: [
       {
         id: "bid-battery",
