@@ -73,7 +73,7 @@ export function MuseumCardHall() {
               <h4>{selected.name}</h4>
               <p>{getCharacter(selected.ownerCharId).name} · {selected.cost} 点法力 · {CARD_RARITY_LABEL[selected.rarity ?? "common"] ?? "普通"}</p>
               <p className={s["card-text"]}>{selected.text}</p>
-              <CardKeywordNotes text={selected.text} />
+              <CardKeywordNotes text={selected.text} className={s["keyword-notes"]} />
             </div>
           </div>
         ) : (

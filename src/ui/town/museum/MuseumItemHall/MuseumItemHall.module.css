@@ -4,19 +4,35 @@
   gap: 18px;
   height: 700px;
   min-height: 0;
+  --item-tab-font-size: 18px;
+  --item-tab-count-size: 18px;
+  --item-tab-sub-font-size: 18px;
+  --item-detail-idle-size: 20px;
+  --item-detail-name-size: 26px;
+  --item-detail-mult-size: 18px;
+  --item-detail-tags-size: 18px;
+  --item-detail-desc-size: 20px;
+  --item-detail-stats-size: 18px;
+  --item-detail-field-size: 18px;
+  --item-detail-bond-head-size: 20px;
+  --item-detail-bond-arcana-size: 18px;
+  --item-detail-bond-count-size: 18px;
+  --item-detail-bond-desc-size: 18px;
+  --item-detail-note-size: 18px;
 }
 
 .catalog, .detail {
   min-height: 0;
+  font-size: var(--museum-font-body, 20px);
   background: #08131266;
   border: 1px solid var(--museum-line);
 }
 .catalog { display: grid; grid-template-rows: auto auto minmax(0, 1fr); padding: 16px; }
 .detail { padding: 10px; }
 .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.kicker { color: var(--museum-accent); font-size: 11px; letter-spacing: 0.16em; }
-.section-head h3 { margin: 5px 0 0; color: var(--museum-ink); font-size: 22px; letter-spacing: 0.12em; }
-.count { color: var(--museum-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.kicker { color: var(--museum-accent); font-size: var(--museum-font-kicker, 18px); letter-spacing: 0.16em; }
+.section-head h3 { margin: 5px 0 0; color: var(--museum-ink); font-size: var(--museum-font-section, 30px); letter-spacing: 0.12em; }
+.count { color: var(--museum-dim); font-size: var(--museum-font-label, 18px); font-variant-numeric: tabular-nums; }
 .tabs { margin: 16px 0 12px; }
 .item-grid {
   display: grid;
@@ -28,16 +44,16 @@
   padding: 8px;
   align-content: start;
   --item-slot-icon-size: 52%;
-  --item-slot-name-size: 14px;
+  --item-slot-name-size: 18px;
   --item-slot-notch: 12px;
   --item-slot-corner: 12px;
   --item-slot-bond-size: 22px;
-  --item-slot-count-size: 15px;
+  --item-slot-count-size: 18px;
   --item-slot-pad: 12px 10px;
   --item-slot-gap: 6px;
 }
 .slot-anchor { position: relative; min-width: 0; aspect-ratio: 1; }
-.slot-hint { --ihint-offset: 4px; --ihint-size: 16px; }
+.slot-hint { --ihint-offset: 4px; --ihint-size: 18px; }
 .item-slot { width: 100%; }
 .locked-button {
   display: block;

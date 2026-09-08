@@ -9,11 +9,12 @@
 .museum-content {
   min-height: 0;
   color: var(--museum-ink);
+  font-size: var(--museum-font-body, 20px);
 }
 
 .museum-kicker {
   color: var(--museum-accent);
-  font-size: 11px;
+  font-size: var(--museum-font-kicker, 18px);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }

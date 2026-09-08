@@ -116,7 +116,7 @@ export function ConfirmDialog() {
           aria-describedby={activeRequest.text ? textId : undefined}
           onMouseDown={(event) => event.stopPropagation()}
         >
-          <ConfirmDecor />
+          <ConfirmDecor danger={Boolean(activeRequest.danger)} />
           <span className={s.kicker}>操作确认</span>
           <h2 id={titleId} className={s.title}>{activeRequest.title}</h2>
           {activeRequest.text && <p id={textId} className={s.text}>{activeRequest.text}</p>}

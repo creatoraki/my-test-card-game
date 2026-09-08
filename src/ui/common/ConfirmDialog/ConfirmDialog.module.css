@@ -1,33 +1,63 @@
+/* 确认弹层。外形与构件照着据点建筑招牌(StationLayer/StationLayer.module.css)做:
+   左上/右下切角 + 侧边卡箍 + 引线锚点 + 编号带 + 分隔线 + 底部指示灯。
+
+   ⚠ 切角**不能**写在 .panel 上 —— .panel 就是 ModalReveal 的 .reveal, 它的 clip-path
+     归开合动画所有(见 ModalReveal.module.css), 写上去会被 mrRevealIn/Out 直接覆盖。
+     所以描边与面体拆成 .content 的两枚伪元素, 各自带切角 —— 与 StationHud 的 .chip 同一句式。 */
+
 .layer { position: absolute; z-index: 500; inset: 0; display: grid; place-items: center; overflow: hidden; background: transparent; }
 .scrim { position: absolute; inset: 0; background: transparent; animation: scrimIn 220ms ease-out both; }
 .layer[data-closing="true"] .scrim { animation: scrimOut 420ms ease-in both; }
 
-.panel.panel { --k: var(--accent); z-index: 1; width: 560px; min-height: 0; padding: 0; overflow: hidden; color: var(--text); background: linear-gradient(145deg, #142326f2, #071012f8 58%, #05090bf8), var(--panel); border: 1px solid color-mix(in srgb, var(--k) 74%, #ffffff2b); box-shadow: inset 0 1px 0 #ffffff1c, 0 26px 70px -28px #000, 0 0 52px color-mix(in srgb, var(--k) 28%, transparent); }
+/* 只管尺寸与开合动画, 一切外观交给 .content。 */
+.panel.panel { --k: var(--accent); z-index: 1; width: 620px; min-height: 0; padding: 0; overflow: hidden; border: 0; background: transparent; color: var(--text); }
 .panel.dangerPanel { --k: var(--bad); }
 
-.content { position: relative; display: flex; width: 100%; min-height: 276px; flex-direction: column; padding: 42px 48px 36px; }
-.content[data-danger="true"] { --k: var(--bad); animation: dangerBreath 1.8s ease-in-out infinite alternate; }
-.kicker, .code, .warning, .detail { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; }
-.kicker { color: var(--k); line-height: 1.2; }
+.content { position: relative; isolation: isolate; display: flex; width: 100%; min-height: 320px; flex-direction: column; padding: 72px 56px 52px; }
+.content::before, .content::after { position: absolute; z-index: -1; content: ""; clip-path: polygon(26px 0, 100% 0, 100% calc(100% - 26px), calc(100% - 26px) 100%, 0 100%, 0 26px); }
+/* 描边层。外发光也挂在这里: 切角形状下 box-shadow 会露出方角, drop-shadow 才贴形。 */
+.content::before { inset: 0; background: linear-gradient(145deg, color-mix(in srgb, var(--k) 74%, #ffffff2b), #2b3a3f 55%, color-mix(in srgb, var(--k) 74%, #ffffff2b)); filter: drop-shadow(0 26px 40px #000000cc) drop-shadow(0 0 28px color-mix(in srgb, var(--k) 28%, transparent)); }
+.content::after { inset: 1px; background: linear-gradient(145deg, #142326f2, #071012f8 58%, #05090bf8), var(--panel); box-shadow: inset 0 1px 0 #ffffff1c; }
+.content[data-danger="true"] { --k: var(--bad); }
+.content[data-danger="true"]::before { animation: dangerBreath 1.8s ease-in-out infinite alternate; }
+
+.kicker { color: var(--k); font-size: 18px; font-weight: 700; letter-spacing: 0.18em; line-height: 1.2; }
 .title { margin: 12px 0 10px; color: #f3f9ef; font-size: 30px; line-height: 1.15; }
-.text { max-width: 450px; margin: 0; color: #cbd8d3; font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
-.detail { margin: 15px 0 0; color: var(--muted); line-height: 1.4; }
-.actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
-.button { min-width: 126px; padding: 11px 20px; border-color: color-mix(in srgb, var(--k) 56%, #536068); color: #e9f5ef; background: #102126; box-shadow: inset 0 1px 0 #ffffff1c, 0 0 16px color-mix(in srgb, var(--k) 16%, transparent); font-size: 14px; letter-spacing: 0.12em; }
+.text { max-width: 520px; margin: 0; color: #cbd8d3; font-size: 18px; line-height: 1.7; overflow-wrap: anywhere; }
+.detail { margin: 16px 0 0; color: var(--muted); font-size: 18px; line-height: 1.5; letter-spacing: 0.06em; }
+.actions { display: flex; justify-content: flex-end; gap: 14px; margin-top: 32px; }
+.button { min-width: 150px; padding: 13px 24px; border-color: color-mix(in srgb, var(--k) 56%, #536068); color: #e9f5ef; background: #102126; box-shadow: inset 0 1px 0 #ffffff1c, 0 0 16px color-mix(in srgb, var(--k) 16%, transparent); font-size: 18px; letter-spacing: 0.12em; }
 .button:hover, .button:focus-visible { border-color: var(--k); background: color-mix(in srgb, var(--k) 18%, #102126); box-shadow: inset 0 1px 0 #ffffff2b, 0 0 22px color-mix(in srgb, var(--k) 28%, transparent); }
 .button:focus-visible { outline: 2px solid var(--k); outline-offset: 3px; }
 .confirmButton[data-danger="true"] { border-color: var(--bad); color: #fff2ef; background: color-mix(in srgb, var(--bad) 24%, #1a1112); box-shadow: inset 0 1px 0 #ffffff20, 0 0 18px color-mix(in srgb, var(--bad) 24%, transparent); }
 
+/* ---- 招牌构件 ---- */
 .decor { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
-.notch { position: absolute; width: 24px; height: 2px; background: linear-gradient(90deg, transparent, var(--k), transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--k) 60%, transparent); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 60ms) both; }
-.notchTl { top: 9px; left: 3px; rotate: -45deg; } .notchTr { top: 9px; right: 3px; rotate: 45deg; }
-.notchBl { bottom: 9px; left: 3px; rotate: 45deg; } .notchBr { right: 3px; bottom: 9px; rotate: -45deg; }
-.code { position: absolute; top: 15px; left: 48px; color: var(--k); opacity: 0.72; animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 120ms) both; }
-.warning { position: absolute; top: 0; right: 0; padding: 7px 16px 7px 26px; color: #fff5f1; background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--bad) 80%, #17090b) 0 7px, #17090b 7px 14px); clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 180ms) both; }
-.scan { position: absolute; top: 0; left: -35%; width: 35%; height: 1px; background: linear-gradient(90deg, transparent, var(--k), transparent); box-shadow: 0 0 12px var(--k); animation: scan 5.8s linear calc(var(--mr-bar-ms) + 240ms) infinite; }
-.ruler { position: absolute; right: 48px; bottom: 14px; width: 150px; height: 6px; opacity: 0.65; background: repeating-linear-gradient(90deg, var(--k) 0 1px, transparent 1px 12px); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 300ms) both; }
+
+/* 卡箍: 招牌 signRail 的同构折线 —— 沿边直段 → 切角斜段 → 邻边直段, 3px 粗。 */
+.rail { position: absolute; width: 96px; height: 96px; background: var(--k); opacity: 0.85; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--k) 60%, transparent)); clip-path: polygon(0 96px, 0 26px, 26px 0, 96px 0, 96px 3px, 27.24px 3px, 3px 27.24px, 3px 96px); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 60ms) both; }
+.railTl { top: 0; left: 0; }
+.railBr { right: 0; bottom: 0; rotate: 180deg; }
+
+/* 引线 + 锚点: 招牌的 signConnector / signAnchor。画在面板内侧顶端 —— 画到外面会被 overflow 与 reveal 的 clip 裁掉。 */
+.hanger { position: absolute; top: 0; left: 50%; width: 1px; height: 20px; translate: -50% 0; background: linear-gradient(180deg, transparent, var(--k)); opacity: 0.75; animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 100ms) both; }
+.hanger::after { position: absolute; bottom: -3px; left: 50%; width: 6px; height: 6px; translate: -50% 0; border-radius: 50%; background: var(--k); box-shadow: 0 0 6px color-mix(in srgb, var(--k) 70%, transparent); content: ""; }
+
+/* 编号带: 招牌的 signIndex —— 居中等宽 + 宽字距。危险操作的提示并进这一行。 */
+.code { position: absolute; top: 30px; right: 0; left: 0; color: var(--k); font: 11px ui-monospace, monospace; letter-spacing: 3px; text-align: center; opacity: 0.72; animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 140ms) both; }
+
+/* 分隔线: 招牌的 signDivider, 上下各一条。 */
+.divider { position: absolute; height: 1px; background: var(--k); opacity: 0.5; animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 200ms) both; }
+.dividerTop { top: 52px; right: 26%; left: 26%; }
+.dividerBottom { right: 38%; bottom: 26px; left: 38%; }
+
+/* 指示灯: 招牌底部的 signLight。危险操作时接上呼吸。 */
+.light { position: absolute; bottom: 11px; left: 50%; width: 6px; height: 6px; translate: -50% 0; border-radius: 50%; background: var(--k); box-shadow: 0 0 6px color-mix(in srgb, var(--k) 70%, transparent); animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 260ms) both; }
+.light[data-danger="true"] { animation: decoIn 220ms ease-out calc(var(--mr-bar-ms) + 260ms) both, lightBreath 1.8s ease-in-out calc(var(--mr-bar-ms) + 480ms) infinite alternate; }
+
 .layer[data-closing="true"] .decor > * { animation: decoOut 160ms ease-in both; }
+
 @keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } } @keyframes scrimOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes decoIn { from { opacity: 0; } to { opacity: 1; } } @keyframes decoOut { from { opacity: 1; } to { opacity: 0; } }
-@keyframes scan { from { translate: 0; } to { translate: 385% 0; } }
-@keyframes dangerBreath { from { box-shadow: inset 0 1px 0 #ffffff1c, 0 26px 70px -28px #000, 0 0 24px color-mix(in srgb, var(--bad) 20%, transparent); } to { box-shadow: inset 0 1px 0 #ffffff1c, 0 26px 70px -28px #000, 0 0 48px color-mix(in srgb, var(--bad) 46%, transparent); } }
+@keyframes lightBreath { from { opacity: 0.45; box-shadow: 0 0 4px color-mix(in srgb, var(--k) 40%, transparent); } to { opacity: 1; box-shadow: 0 0 12px color-mix(in srgb, var(--k) 80%, transparent); } }
+@keyframes dangerBreath { from { filter: drop-shadow(0 26px 40px #000000cc) drop-shadow(0 0 18px color-mix(in srgb, var(--bad) 20%, transparent)); } to { filter: drop-shadow(0 26px 40px #000000cc) drop-shadow(0 0 40px color-mix(in srgb, var(--bad) 46%, transparent)); } }

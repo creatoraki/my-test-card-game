@@ -4,6 +4,7 @@
   grid-template-rows: auto minmax(0, 1fr);
   gap: 18px;
   min-height: 0;
+  font-size: var(--museum-font-body, 20px);
 }
 
 .tabs {
@@ -28,9 +29,11 @@
   transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
-.tab small { color: currentColor; font-size: 12px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.tab small { color: currentColor; font-size: 18px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .tab:hover, .tab[data-active="true"] { color: var(--museum-ink); background: #6ed6b812; border-bottom-color: var(--museum-accent); }
 .tab[data-active="true"] { text-shadow: 0 0 16px #6ed6b866; }
 .content { min-height: 0; }
+
+.panel :global(.asm-seed) { font-size: 18px; }
 
 @media (prefers-reduced-motion: reduce) { .tab { transition: none; } }

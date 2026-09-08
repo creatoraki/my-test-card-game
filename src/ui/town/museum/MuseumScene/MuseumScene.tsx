@@ -1,17 +1,19 @@
-import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { useTownStore } from "@/store/townStore";
-import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
-import { PanelShell, PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
+import { PanelShell } from "@/ui/common/PanelShell";
+import { CLOSE_MS, usePanelMorph } from "@/ui/common/panelMorph";
+import { useEntryRise } from "@/ui/hooks/useEntryRise";
 import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import { codexProgress } from "../codexCatalog";
-import { MuseumPanel, type MuseumHallId } from "../MuseumPanel";
+import { MuseumPanel } from "../MuseumPanel";
 import s from "./MuseumScene.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
 
 const MUSEUM_ACCENT = "#6ed6b8";
+const MUSEUM_RECT = { x: 110, y: 90, w: 1700, h: 900 };
 const MUSEUM_THEME = {
   "--asm-frame": MUSEUM_ACCENT,
   "--asm-glow": MUSEUM_ACCENT,
@@ -20,7 +22,9 @@ const MUSEUM_THEME = {
   "--asm-line": "#b8e5d533",
   "--asm-ink": "#e7f2ed",
   "--asm-ink-dim": "#91aaa3",
-  "--event-panel-title-size": "56px",
+  "--event-panel-title-size": "var(--museum-font-panel-title, 56px)",
+  "--panel-shell-title-size": "var(--museum-font-panel-title, 56px)",
+  "--panel-shell-status-size": "var(--museum-font-body, 20px)",
 } as CSSProperties;
 
 interface Props {
@@ -29,38 +33,15 @@ interface Props {
 
 export function MuseumScene({ leaving = false }: Props) {
   const codex = useTownStore((state) => state.codex);
-  const [panel, setPanel] = useState<MuseumHallId | null>(null);
-  const [closing, setClosing] = useState(false);
   const progress = codexProgress(codex);
+  const entryRise = useEntryRise();
+  const morph = usePanelMorph<"museum">({ rects: { museum: MUSEUM_RECT } });
 
-  const openPanel = useCallback((hall: MuseumHallId) => {
-    setClosing(false);
-    setPanel(hall);
-  }, []);
-  const closePanel = useCallback(() => setClosing(true), []);
   useFacilityPanelExit(() => {
-    if (!panel) return 0;
-    closePanel();
-    return prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
+    if (!morph.panel) return 0;
+    morph.closePanel();
+    return CLOSE_MS;
   });
-
-  useEffect(() => {
-    if (!closing) return;
-    const timer = window.setTimeout(() => {
-      setPanel(null);
-      setClosing(false);
-    }, prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS);
-    return () => window.clearTimeout(timer);
-  }, [closing]);
-
-  useEffect(() => {
-    if (!panel) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closePanel();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [panel, closePanel]);
 
   return (
     <div className={cn("scene", leaving && "is-leaving")}>
@@ -77,25 +58,38 @@ export function MuseumScene({ leaving = false }: Props) {
 
       <div
         className={cn("entries")}
-        style={{ right: "0px", top: "238px", width: "480px", height: "300px", "--peek": "270px" } as CSSProperties}
+        {...entryRise}
+        style={{ right: "0px", top: "338px", width: "480px", height: "100px", "--peek": "270px", ...morph.entryVars } as CSSProperties}
       >
-        <EntryTile icon={<ItemIcon />} name="物品展厅" desc={`${progress.items.unlocked}/${progress.items.total} 已收录`} onClick={() => openPanel("items")} />
-        <EntryTile icon={<CardIcon />} name="卡牌展厅" desc={`${progress.cards.unlocked}/${progress.cards.total} 已收录`} onClick={() => openPanel("cards")} />
-        <EntryTile icon={<EnemyIcon />} name="怪物展厅" desc={`${progress.enemies.unlocked}/${progress.enemies.total} 已遭遇`} onClick={() => openPanel("enemies")} />
+        <EntryTile
+          icon={<MuseumIcon />}
+          name="博物馆图鉴"
+          desc={`${progress.unlocked}/${progress.total} 已收录`}
+          hidden={morph.hiddenEntry === "museum" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "museum"}
+          onClick={(event) => morph.openPanel("museum", event.currentTarget)}
+        />
       </div>
 
-      {panel && (
+      {morph.panel === "museum" && (
         <PanelShell
           accent={MUSEUM_ACCENT}
           title="博物馆图鉴"
           status={`总收录 ${progress.unlocked} / ${progress.total}`}
           closeLabel="关闭博物馆图鉴"
-          closing={closing}
-          onClose={closePanel}
+          closing={morph.phase === "closing"}
+          onClose={morph.closePanel}
           themeStyle={MUSEUM_THEME}
-          size={{ w: 1700, h: 900 }}
+          className={cn("panel")}
+          morph={{
+            ref: morph.panelRef,
+            rect: MUSEUM_RECT,
+            ready: morph.ready,
+            seed: <MuseumIcon />,
+            seedLabel: "博物馆图鉴",
+          }}
         >
-          <MuseumPanel initialHall={panel} />
+          <MuseumPanel initialHall="items" />
         </PanelShell>
       )}
     </div>
@@ -111,9 +105,9 @@ function Readout({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EntryTile({ icon, name, desc, onClick }: { icon: ReactNode; name: string; desc: string; onClick: () => void }) {
+function EntryTile({ icon, name, desc, hidden, revealing = false, onClick }: { icon: ReactNode; name: string; desc: string; hidden: boolean; revealing?: boolean; onClick: (event: MouseEvent<HTMLButtonElement>) => void }) {
   return (
-    <button className={cn("entry")} type="button" onClick={onClick}>
+    <button className={cn("entry", revealing && "is-revealing")} type="button" onClick={onClick} style={{ visibility: hidden ? "hidden" : "visible" }}>
       <span className={cn("entry-rim")} aria-hidden />
       <span className={cn("entry-icon")} aria-hidden>{icon}</span>
       <span className={cn("entry-copy")}>
@@ -125,14 +119,12 @@ function EntryTile({ icon, name, desc, onClick }: { icon: ReactNode; name: strin
   );
 }
 
-function ItemIcon() {
-  return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round"><path d="M10 17h28v24H10z" strokeWidth={1.2} opacity={0.42} /><path d="M14 17V9h20v8M17 25h14M17 31h9" strokeWidth={1.6} /></svg>;
-}
-
-function CardIcon() {
-  return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><path d="m15 8 25 7v25l-25-7z" strokeWidth={1.2} opacity={0.42} /><path d="m8 13 25 7v25L8 38z" strokeWidth={1.6} /><path d="m15 26 10 3M15 32l7 2" strokeWidth={1.3} /></svg>;
-}
-
-function EnemyIcon() {
-  return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round"><circle cx="24" cy="23" r="14" strokeWidth={1.2} opacity={0.42} /><path d="M16 18h5M27 18h5M18 29c4 3 8 3 12 0M10 38h28M15 35l-3 6M33 35l3 6" strokeWidth={1.6} /></svg>;
+function MuseumIcon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 18 24 8l17 10v25H7z" strokeWidth={1.2} opacity={0.42} />
+      <path d="M5 18 24 7l19 11M10 20v21M17 20v21M31 20v21M38 20v21M5 41h38" strokeWidth={1.6} />
+      <path d="M13 17h22M24 11v30" strokeWidth={1.2} opacity={0.42} />
+    </svg>
+  );
 }

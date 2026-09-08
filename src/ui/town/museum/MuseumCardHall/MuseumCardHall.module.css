@@ -1,14 +1,14 @@
-.hall { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 18px; height: 700px; min-height: 0; }
+.hall { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 18px; height: 700px; min-height: 0; font-size: var(--museum-font-body, 20px); }
 .catalog, .detail { min-height: 0; background: #08131266; border: 1px solid var(--museum-line); }
 .catalog { padding: 16px; overflow: auto; }
 .detail { padding: 16px; overflow: auto; }
 .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.kicker { color: var(--museum-accent); font-size: 11px; letter-spacing: 0.16em; }
-.section-head h3 { margin: 5px 0 0; color: var(--museum-ink); font-size: 22px; letter-spacing: 0.12em; }
-.count { color: var(--museum-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.kicker { color: var(--museum-accent); font-size: var(--museum-font-kicker, 18px); letter-spacing: 0.16em; }
+.section-head h3 { margin: 5px 0 0; color: var(--museum-ink); font-size: var(--museum-font-section, 30px); letter-spacing: 0.12em; }
+.count { color: var(--museum-dim); font-size: var(--museum-font-label, 18px); font-variant-numeric: tabular-nums; }
 .card-groups { display: flex; flex-direction: column; gap: 22px; margin-top: 18px; }
-.card-group h4 { display: flex; align-items: baseline; gap: 9px; margin: 0 0 10px; padding-bottom: 6px; color: var(--owner-color, var(--museum-ink)); border-bottom: 1px solid var(--museum-line); font-size: 15px; letter-spacing: 0.12em; }
-.card-group h4 small { color: var(--museum-dim); font-size: 11px; font-weight: 400; letter-spacing: 0; }
+.card-group h4 { display: flex; align-items: baseline; gap: 9px; margin: 0 0 10px; padding-bottom: 6px; color: var(--owner-color, var(--museum-ink)); border-bottom: 1px solid var(--museum-line); font-size: 22px; letter-spacing: 0.12em; }
+.card-group h4 small { color: var(--museum-dim); font-size: 18px; font-weight: 400; letter-spacing: 0; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, var(--card-w)); justify-content: start; gap: 18px 16px; align-items: start; }
 .card-anchor { position: relative; --deck-card-hover-transform: scale(1.05); }
 .card-hint { --ihint-offset: 6px; }
@@ -22,9 +22,10 @@
 .detail-card { width: 248px; height: 344px; }
 .detail-card > div[data-deck-card] { display: block; width: 248px; height: 344px; }
 .detail-copy { width: 100%; }
-.detail-copy h4 { margin: 5px 0 4px; color: var(--museum-ink); font-size: 21px; }
-.detail-copy p { margin: 5px 0; color: var(--museum-dim); font-size: 12px; line-height: 1.6; }
-.detail-copy .card-text { color: var(--museum-ink); font-size: 13px; }
-.empty { display: grid; height: 100%; margin: 0; place-items: center; color: var(--museum-dim); font-size: 13px; }
+.detail-copy h4 { margin: 5px 0 4px; color: var(--museum-ink); font-size: 28px; }
+.detail-copy p { margin: 5px 0; color: var(--museum-dim); font-size: 20px; line-height: 1.6; }
+.detail-copy .card-text { color: var(--museum-ink); font-size: 20px; }
+.keyword-notes { font-size: 18px; line-height: 1.55; }
+.empty { display: grid; height: 100%; margin: 0; place-items: center; color: var(--museum-dim); font-size: 20px; }
 
 @media (prefers-reduced-motion: reduce) { .locked-card { transition: none; } .locked-card:hover, .locked-card:focus-visible { transform: none; } }
