@@ -1,5 +1,5 @@
-import { countByItemId } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
+import { techCostCheck } from "./techCost";
 
 export type NutritionTechKind = "capacity" | "potency";
 
@@ -122,15 +122,5 @@ export function nutritionTechCheck(
   loot: number,
   storage: ItemStack[],
 ): NutritionTechCheck {
-  const lootOk = loot >= tech.loot;
-  const materials = tech.materials.map((material) => {
-    const have = countByItemId(storage, material.itemId);
-    return {
-      itemId: material.itemId,
-      need: material.count,
-      have,
-      ok: have >= material.count,
-    };
-  });
-  return { lootOk, materials, ok: lootOk && materials.every((material) => material.ok) };
+  return techCostCheck(tech, loot, storage);
 }

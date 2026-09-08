@@ -1,0 +1,234 @@
+.panel {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  color: var(--asm-ink, #f2e6d8);
+}
+
+.body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notice {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 14px 18px;
+  border: 1px solid var(--asm-line, #f2e6d82e);
+  background: #ffffff08;
+}
+
+.notice strong,
+.notice span,
+.tab,
+.owner,
+.rarity,
+.buy,
+.summary,
+.refresh,
+.upgrade,
+.empty {
+  font-size: 18px;
+}
+
+.notice strong {
+  color: var(--asm-glow, #d6b477);
+  letter-spacing: 2px;
+}
+
+.notice span,
+.note,
+.empty {
+  color: var(--asm-ink-dim, #a5937f);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tab,
+.refresh,
+.upgrade,
+.buy {
+  border: 1px solid var(--asm-line, #f2e6d82e);
+  color: var(--asm-ink, #f2e6d8);
+  background: #ffffff08;
+  cursor: var(--cursor-pointer);
+  transition: 160ms ease;
+}
+
+.tab {
+  padding: 9px 18px;
+}
+
+.tab:hover,
+.tab.is-active,
+.upgrade:hover:not(:disabled) {
+  color: #1b1410;
+  border-color: var(--asm-select, #f0d49b);
+  background: var(--asm-select, #f0d49b);
+}
+
+.grid {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  gap: 18px;
+  overflow-y: auto;
+  padding: 4px 8px 8px 4px;
+}
+
+.slot {
+  --deck-card-scale: 0.56;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px;
+  border: 1px solid var(--asm-line, #f2e6d82e);
+  background: linear-gradient(160deg, #ffffff0d, #00000018);
+  animation: slotIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.slot:nth-child(2) { animation-delay: 40ms; }
+.slot:nth-child(3) { animation-delay: 80ms; }
+.slot:nth-child(4) { animation-delay: 120ms; }
+.slot:nth-child(5) { animation-delay: 160ms; }
+.slot:nth-child(6) { animation-delay: 200ms; }
+.slot:nth-child(7) { animation-delay: 240ms; }
+.slot:nth-child(8) { animation-delay: 280ms; }
+
+.cardFrame {
+  position: relative;
+  min-height: calc(var(--card-h) * var(--deck-card-scale));
+}
+
+.soldMask {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #f2e6d8;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  background: #0c1215b5;
+  pointer-events: none;
+}
+
+.slotMeta {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr auto;
+  gap: 7px 10px;
+  align-items: center;
+}
+
+.owner {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--owner-color, var(--asm-glow, #d6b477));
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rarity {
+  color: var(--asm-ink-dim, #a5937f);
+}
+
+.buy {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 9px 10px;
+  color: var(--asm-glow, #d6b477);
+  font-weight: 700;
+}
+
+.buy:hover:not(:disabled),
+.buy:focus-visible,
+.refresh:hover:not(:disabled),
+.refresh:focus-visible {
+  color: #1b1410;
+  border-color: var(--asm-select, #f0d49b);
+  background: var(--asm-select, #f0d49b);
+}
+
+.buy.is-poor {
+  color: #e47970;
+  border-color: #e4797080;
+}
+
+.buy:disabled,
+.refresh:disabled,
+.upgrade:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  margin: auto;
+  padding: 50px 0;
+  text-align: center;
+}
+
+.foot {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--asm-line, #f2e6d82e);
+}
+
+.summary,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.summary {
+  flex-wrap: wrap;
+  color: var(--asm-ink, #f2e6d8);
+}
+
+.note {
+  flex-basis: 100%;
+  font-size: 18px;
+}
+
+.refresh,
+.upgrade {
+  min-width: 210px;
+  padding: 13px 18px;
+  font-weight: 700;
+}
+
+.refresh {
+  color: #1b1410;
+  border-color: var(--asm-glow, #d6b477);
+  background: var(--asm-glow, #d6b477);
+}
+
+.upgrade {
+  color: var(--asm-glow, #d6b477);
+}
+
+@keyframes slotIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

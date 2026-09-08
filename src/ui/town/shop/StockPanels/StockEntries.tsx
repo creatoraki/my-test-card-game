@@ -1,8 +1,8 @@
-// 商店场景右侧的两条抽屉入口: 商店 / 回收台。
-// 商店弹层由 ShopScene 的 PanelShell + panelMorph 联动管理; 回收台继续使用 panelMorph。
+// 商店场景右侧的三条抽屉入口: 商店 / 回收台 / 卡牌商店。
+// 商店弹层由 ShopScene 的 PanelShell + panelMorph 联动管理; 两个扩展面板继续使用 panelMorph。
 
 import { useMemo, type CSSProperties } from "react";
-import { getItemDef } from "@/data";
+import { cardShopLevelOf, getItemDef } from "@/data";
 import { sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
@@ -11,7 +11,8 @@ import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { useEntryRise } from "@/ui/hooks/useEntryRise";
 import { EntryTile } from "./EntryTile";
 import { RecyclePanel } from "./RecyclePanel";
-import { RecycleIcon, ShelfIcon } from "./icons";
+import { CardShopIcon, RecycleIcon, ShelfIcon } from "./icons";
+import { CardShopPanel } from "../CardShopPanel";
 import s from "./StockPanels.module.css";
 
 /** 浮层主色: 与商店货架同一档暖金, 不用中转仓那支橙。 */
@@ -31,11 +32,12 @@ const STOCK_THEME = {
   "--panel-shell-close-size": "36px",
 } as CSSProperties;
 
-type PanelId = "recycle";
+type PanelId = "recycle" | "cardShop";
 
 const PANEL_RECT: Record<PanelId, Rect> = {
-  // 5 个 270px 物品格 + 4 个 20px 间距，并给面板内边距留出少量余量。
+  // 回收台与卡牌商店共用同一块 1500×920 的面板矩形。
   recycle: { x: 210, y: 80, w: 1500, h: 920 },
+  cardShop: { x: 210, y: 80, w: 1500, h: 920 },
 };
 
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
@@ -50,6 +52,7 @@ export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntries
   const storage = useTownStore((state) => state.storage);
   const loot = useTownStore((state) => state.loot);
   const sellItem = useTownStore((state) => state.sellItem);
+  const cardShop = useTownStore((state) => state.cardShop);
 
   const entryRise = useEntryRise();
   const morph = usePanelMorph<PanelId>({
@@ -70,7 +73,7 @@ export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntries
             right: "0px",
             top: "138px",
             width: "460px",
-            height: "220px",
+            height: "336px",
             "--peek": "268px",
             ...morph.entryVars,
           } as CSSProperties
@@ -94,6 +97,17 @@ export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntries
           revealing={morph.phase === "closing" && morph.hiddenEntry === "recycle"}
           onClick={(event) => morph.openPanel("recycle", event.currentTarget)}
         />
+        <EntryTile
+          icon={<CardShopIcon />}
+          name="卡牌商店"
+          desc={cardShop.slots.some((slot) => !slot.sold)
+            ? `${cardShop.slots.filter((slot) => !slot.sold).length} 张在售`
+            : "今日已售罄"}
+          entryId="cardShop"
+          hidden={morph.hiddenEntry === "cardShop" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "cardShop"}
+          onClick={(event) => morph.openPanel("cardShop", event.currentTarget)}
+        />
       </div>
 
       {panel === "recycle" && (
@@ -115,6 +129,28 @@ export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntries
           }}
         >
           <RecyclePanel stacks={sorted} loot={loot} onSell={sellItem} />
+        </PanelShell>
+      )}
+
+      {panel === "cardShop" && (
+        <PanelShell
+          accent={STOCK_ACCENT}
+          title="卡牌商店"
+          status={`余额 ${loot.toLocaleString()} · 等级 ${cardShopLevelOf(cardShop.techs)}`}
+          closeLabel="关闭卡牌商店"
+          closing={morph.phase === "closing"}
+          onClose={morph.closePanel}
+          themeStyle={STOCK_THEME}
+          className={s.panel}
+          morph={{
+            ref: morph.panelRef,
+            rect: PANEL_RECT.cardShop,
+            ready: morph.ready,
+            seed: <CardShopIcon />,
+            seedLabel: "卡牌商店",
+          }}
+        >
+          <CardShopPanel />
         </PanelShell>
       )}
     </>

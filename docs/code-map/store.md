@@ -13,3 +13,5 @@
 | [runStore.ts](../../src/store/runStore.ts) | 远征流程总编排和界面路由。`beginDescent` / `beginAscent` / `finishRide` 与 `elevatorRide` 负责出击下行、结算上行共用的不可跳过电梯中转页：下行视频结束后才调用 `startExpedition` 建立会话，上行视频结束后才调用 `backToTown` 落地据点；启动战斗前消费待处理污染请求并污染当前队伍个人卡组；启动战斗时合并存活队员卡组、羁绊与临时光环，计算完整面板，传入污染/疾病/怪癖与继承的三段血量；`resolveBattle` 在战斗结束瞬间汇总全队 `bountyHunter` 层数，每层转为 0.3 的本场掉率加成，同时保存最终掉率与各来源快照供胜利面板展示；远征收尾统一消费探索 `pendingExp` 并落袋，战败、撤退与终局也不丢污染；`bankEverything` 同时把最终 HP 与体力极限写回城镇档案（阵亡成员按 1/1 保底），`partySnapshot` 出发时也不再回满，直接读 `vitalsOf` 的存档值。`backToTown` 是唯一推进一日的地方，且只在上行电梯落地时调用。远征途中换装由 `equipFromBackpack` / `unequipToBackpack` 编排：阶段限制同背包（`canOpenBackpack`），背包容量一律校验、失败整体回滚，成功后按 `deriveStats` 同步队伍快照的生命上限与负重适应（只裁不补，当前血量不因换装回复）。 |
 
 依赖边界：`runStore` 是探索、战斗和界面的唯一连接点；`townStore` 不直接依赖探索会话。探索层提供队伍快照，战斗只接收 `startHp`、`EncounterModifier` 和有效负重 `burden` 等初始化数据。
+
+卡牌商店由 `cardShopSlice` 管理每日货架、积分刷新、买卡入组和水晶科技升级；`deckCards` 提供卡组限携、同名副本上限、卡池过滤、稀有度抽取与入组写入的公共工具。当前城镇存档使用 `town-profile-v21`，不兼容旧版本存档。

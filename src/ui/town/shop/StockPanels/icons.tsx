@@ -36,3 +36,13 @@ export const RecycleIcon = () => (
     <path d="M13 27 h6" opacity=".5" />
   </svg>
 );
+
+/** 卡牌商店入口: 一叠卡牌与价签。 */
+export const CardShopIcon = () => (
+  <svg {...iconBase}>
+    <rect x="5" y="9" width="16" height="19" rx="1" transform="rotate(-8 5 9)" opacity=".58" />
+    <rect x="10" y="6" width="16" height="19" rx="1" transform="rotate(7 10 6)" />
+    <path d="M14 12h8M14 16h6" opacity=".6" />
+    <path d="m22 21 5 3-1-6" opacity=".8" />
+  </svg>
+);

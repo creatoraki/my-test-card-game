@@ -8,11 +8,10 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Card, QuirkId, Rarity } from "../engine";
+import type { Card, QuirkId } from "../engine";
 import {
   POLLUTION_RULES,
   RULES,
-  deckRarityWeights,
   deckUpgradeCost,
   drawCostToday,
   lowerMinSizeCost,
@@ -22,7 +21,7 @@ import {
 import {
   CHARACTERS,
   bondPool,
-  getCardDef,
+  cardShopLevelOf,
   getCharacter,
   getItemDef,
   makeCard,
@@ -57,6 +56,17 @@ import type { BondBias } from "../explore/types";
 import { TOWN_PROFILE_KEY, commitTownBackup, restoreTownBackup } from "./expeditionBackup";
 import { createEquipCraftSlice } from "./equipCraftSlice";
 import {
+  createCardShopSlice,
+  freshCardShop,
+  rollCardShopStock,
+  type CardShopState,
+} from "./cardShopSlice";
+import {
+  addCardToDeck,
+  availablePools,
+  rollRarity,
+} from "./deckCards";
+import {
   EQUIP_SLOTS,
   bondCountsOf,
   deriveStats,
@@ -72,6 +82,15 @@ export {
   vitalsOf,
 } from "./characterStats";
 export type { EquipmentMods } from "./characterStats";
+export {
+  addCardToDeck,
+  availablePools,
+  canAddCopy,
+  canAddRarity,
+  countByDefId,
+  countByRarity,
+  rollRarity,
+} from "./deckCards";
 
 // 必须在 create(persist(...)) 之前回滚, 让 persist 同步 rehydrate 直接读到出击前档案。
 restoreTownBackup();
@@ -156,6 +175,7 @@ export interface TownStore {
   storage: ItemStack[];
   day: number; // 生存天数, 从第 1 日起。★ 只由 advanceDay() 推进(出击后返回据点算一日)
   shop: ShopState;
+  cardShop: CardShopState;
   nutrition: NutritionState;
   squadTalent: SquadTalentState;
   codex: CodexState;
@@ -209,6 +229,9 @@ export interface TownStore {
   advanceDay: () => void; // 推进一日 + 重摇货架(由 runStore.backToTown 调用)
   refreshShop: () => void; // 花积分立刻重摇货架, 当日刷得越多下次越贵
   buyShopItem: (key: string) => void; // 买下一格货, 扣积分 + 入仓
+  refreshCardShop: import("./cardShopSlice").CardShopSlice["refreshCardShop"];
+  buyCardShopCard: import("./cardShopSlice").CardShopSlice["buyCardShopCard"];
+  upgradeCardShop: import("./cardShopSlice").CardShopSlice["upgradeCardShop"];
 
   // ---- 卡组锻造(经验的唯一去处) ----
   upgradeDeck: (charId: string) => void; // 升一级卡组等级
@@ -226,62 +249,6 @@ export interface TownStore {
   upgradeEquip: import("./equipCraftSlice").EquipCraftSlice["upgradeEquip"];
   rollReforge: import("./equipCraftSlice").EquipCraftSlice["rollReforge"];
   applyReforge: import("./equipCraftSlice").EquipCraftSlice["applyReforge"];
-}
-
-// ---------------------------------------------------------------------------
-// 卡组约束 —— 稀有度限携与最小卡组下限(《角色养成设计.md》4.2)。
-// ---------------------------------------------------------------------------
-export function countByRarity(deck: Card[]): Record<Rarity, number> {
-  const out: Record<Rarity, number> = { common: 0, uncommon: 0, rare: 0 };
-  for (const c of deck) {
-    const rarity = c.rarity ?? "common";
-    if (rarity === "basic") continue;
-    out[rarity] += 1;
-  }
-  return out;
-}
-
-// 该稀有度还能不能再收一张。⚠ 硬约束, 不受卡组等级/装备影响。
-export function canAddRarity(deck: Card[], rarity: Rarity): boolean {
-  return countByRarity(deck)[rarity] < RULES.deck.rarityCap[rarity];
-}
-
-export function countByDefId(deck: Card[]): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const card of deck) out[card.id] = (out[card.id] ?? 0) + 1;
-  return out;
-}
-
-export function canAddCopy(deck: Card[], defId: string): boolean {
-  const rarity = getCardDef(defId).rarity ?? "common";
-  if (rarity === "basic") return true;
-  return (countByDefId(deck)[defId] ?? 0) < RULES.deck.copyCap[rarity];
-}
-
-export function availablePools(cs: CharacterState): Record<Rarity, string[]> {
-  const pools = getCharacter(cs.charId).pools;
-  const out = {} as Record<Rarity, string[]>;
-  for (const rarity of ["common", "uncommon", "rare"] as Rarity[]) {
-    out[rarity] = canAddRarity(cs.deck, rarity)
-      ? pools[rarity].filter((defId) => canAddCopy(cs.deck, defId))
-      : [];
-  }
-  return out;
-}
-
-// 按卡组等级摇一次稀有度。该档卡池为空时自动降级(rare → uncommon → common)。
-function rollRarity(level: number, pools: Record<Rarity, string[]>, rand: () => number): Rarity {
-  const weights = deckRarityWeights(level);
-  const order: Rarity[] = ["common", "uncommon", "rare"];
-  const total = order.reduce((s, r) => s + (pools[r].length ? weights[r] : 0), 0);
-  if (total <= 0) return "common";
-  let roll = rand() * total;
-  for (const r of order) {
-    if (!pools[r].length) continue;
-    roll -= weights[r];
-    if (roll <= 0) return r;
-  }
-  return "common";
 }
 
 function rollDrawOptions(cs: CharacterState): string[] | null {
@@ -302,14 +269,6 @@ function rollPartyDrawOption(cs: CharacterState): string | null {
   const rarity = rollRarity(cs.deckLevel, pools, Math.random);
   const pool = pools[rarity];
   return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
-}
-
-function addCardToDeck(cs: CharacterState, cardDefId: string): boolean {
-  const card = makeCard(cardDefId);
-  const rarity = card.rarity === "basic" ? "common" : card.rarity ?? "common";
-  if (!canAddRarity(cs.deck, rarity) || !canAddCopy(cs.deck, cardDefId)) return false;
-  cs.deck = [...cs.deck, card];
-  return true;
 }
 
 function cardBelongsToCharacter(cs: CharacterState, cardDefId: string): boolean {
@@ -456,21 +415,25 @@ export const useTownStore = create<TownStore>()(
       storage: [],
       day: 1,
       shop: freshShop(1),
+      cardShop: freshCardShop(1, {}, []),
       nutrition: { techs: [], occupants: [] },
       squadTalent: { badgeId: null, nodes: [] },
       codex: { items: [], cards: [], enemies: [] },
       seenGuides: [],
       ...createEquipCraftSlice(set, get),
+      ...createCardShopSlice(set, get),
       initialized: false,
 
       ensureProfile: () => {
         if (get().initialized) return;
+        const profile = freshProfile();
         set({
-          ...freshProfile(),
+          ...profile,
           loot: 10000,
           storage: freshStorage(),
           day: 1,
           shop: freshShop(1),
+          cardShop: freshCardShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
           pendingReforge: null,
           initialized: true,
@@ -505,12 +468,14 @@ export const useTownStore = create<TownStore>()(
       },
 
       resetProfile: () => {
+        const profile = freshProfile(false);
         set({
-          ...freshProfile(false),
+          ...profile,
           loot: 0,
           storage: freshStorage(),
           day: 1,
           shop: freshShop(1),
+          cardShop: freshCardShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
           pendingReforge: null,
           initialized: true,
@@ -991,7 +956,7 @@ export const useTownStore = create<TownStore>()(
       //   (出击打完从结算页回据点)。从主菜单进据点不算一日, 故 enterTown 不调它。
       // ⚠「隔日重置」在这里一次做完: 换新货 + 刷新次数归零。UI 不再判日期。
       advanceDay: () => {
-        const { day, shop, characters, nutrition } = get();
+        const { day, shop, cardShop, characters, awakened, nutrition } = get();
         const next = day + 1;
         const nextCharacters = { ...characters };
         for (const occupant of nutrition.occupants) {
@@ -1008,6 +973,16 @@ export const useTownStore = create<TownStore>()(
           characters: nextCharacters,
           nutrition: { ...nutrition, occupants: [] },
           shop: { ...shop, day: next, refreshes: 0, slots: rollShopStock(shop.level) },
+          cardShop: {
+            ...cardShop,
+            day: next,
+            refreshes: 0,
+            slots: rollCardShopStock(
+              nextCharacters,
+              awakened,
+              cardShopLevelOf(cardShop.techs),
+            ),
+          },
         });
       },
 
@@ -1204,6 +1179,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v21: 新增卡牌商店货架、科技与购买 action, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v20: 重铸台改为重掷羁绊, pendingReforge 由 roll 改为 affinity, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v19: 新增 seenGuides 新手引导记录, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v18: 新增装备升阶、词条重铸与待确认重铸状态, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1222,6 +1198,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 20 },
+    { name: TOWN_PROFILE_KEY, version: 21 },
   ),
 );
