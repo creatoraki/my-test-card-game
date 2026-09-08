@@ -18,7 +18,7 @@
 .kicker {
   color: var(--asm-select, #9fe8ff);
   font-family: var(--font-family);
-  font-size: 14px;
+  font-size: var(--rs-font-kicker, 22px);
   font-weight: 800;
   letter-spacing: 0.06em;
 }
@@ -26,7 +26,7 @@
 .count,
 .empty {
   color: var(--muted, #849096);
-  font-size: 12px;
+  font-size: var(--rs-font-body, 20px);
 }
 
 .track {

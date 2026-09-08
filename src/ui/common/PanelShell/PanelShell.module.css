@@ -2,7 +2,8 @@
    ★ 这些规则最早写在 AssemblyScene.module.css, 后抽成装配舱两个弹窗共用的 AssemblyPanelShell;
    战斗与探索的角色档案 Modal 也要这套视觉语言, 故整体提升到 common/, 规则一行未改。
    主色一律走 --asm-frame / --event-accent —— 换配色只需在外层元素上覆盖 --asm-* 变量,
-   不必复制任何一条规则; 场景没有下发这些变量时吃这里写死的默认值(青蓝)。 */
+   不必复制任何一条规则; 场景没有下发这些变量时吃这里写死的默认值(青蓝)。底色透明度与
+   backdrop-filter 现在也都可由 --asm-* 变量按面板覆盖。 */
 .asm-modal {
   position: absolute;
   inset: 0;
@@ -41,8 +42,8 @@
      (transform + filter)不影响自己的 backdrop-filter, 可以放心留着。 */
   /* 打底色透明度从 e0 降到 bd 后, 背后透上来的量变大 —— 这里同步加大模糊、压低亮度,
      把透上来的部分继续压成「光和色」, 面板上的正文对比度才不会被背景亮处吃掉。 */
-  -webkit-backdrop-filter: blur(24px) saturate(104%) brightness(0.68);
-  backdrop-filter: blur(24px) saturate(104%) brightness(0.68);
+  -webkit-backdrop-filter: var(--asm-panel-filter, blur(24px) saturate(104%) brightness(0.68));
+  backdrop-filter: var(--asm-panel-filter, blur(24px) saturate(104%) brightness(0.68));
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
   animation: asm-reveal-in 600ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
@@ -291,7 +292,7 @@
   justify-content: center;
   gap: 10px;
   color: var(--asm-ink, #e8f7f7);
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: 3px;
   white-space: nowrap;
   animation: asm-seed-out 180ms var(--seed-delay, 520ms) ease-out both;

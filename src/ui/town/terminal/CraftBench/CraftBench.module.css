@@ -34,16 +34,16 @@
   min-width: 0;
   overflow: hidden;
   color: #eff6e9;
-  font-size: 17px;
+  font-size: var(--rs-font-entry, 24px);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .state {
   flex: 0 0 auto;
-  padding: 4px 8px;
+  padding: 5px 10px;
   color: #c5d8c4;
-  font-size: 12px;
+  font-size: var(--rs-font-kicker, 22px);
   background: #11201bd9;
   border: 1px solid #6fba884c;
 }
@@ -68,8 +68,8 @@
 .moduleSlot {
   position: relative;
   display: grid;
-  width: 96px;
-  height: 96px;
+  width: 110px;
+  height: 110px;
   place-items: center;
   background: #0c1417dd;
   border: 1px solid #718082;
@@ -90,8 +90,8 @@
 
 .moduleIcon {
   display: grid;
-  width: 58px;
-  height: 58px;
+  width: 72px;
+  height: 72px;
   place-items: center;
   color: var(--bench-accent);
 }
@@ -120,7 +120,7 @@
   overflow: hidden;
   color: #8c9b9b;
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: var(--rs-font-mark, 18px);
   letter-spacing: 0.04em;
   text-align: center;
   text-overflow: ellipsis;
@@ -131,7 +131,7 @@
   display: grid;
   min-width: 0;
   align-content: center;
-  gap: 6px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -144,7 +144,7 @@
   gap: 10px;
   padding: 5px 9px;
   color: #f0a39a;
-  font-size: 13px;
+  font-size: var(--rs-font-body, 20px);
   background: #2b171933;
   border-left: 2px solid #e4797080;
 }
@@ -169,14 +169,14 @@
 
 .costHave {
   color: var(--asm-ink-dim, #8fa9ae);
-  font-size: 11px;
+  font-size: var(--rs-font-mark, 18px);
   font-style: normal;
 }
 
 .costEmpty {
   padding: 6px 9px;
   color: var(--muted, #849096);
-  font-size: 12px;
+  font-size: var(--rs-font-body, 20px);
 }
 
 .benchFooter {
@@ -188,16 +188,16 @@
 .shortage {
   margin: 0;
   color: #f0a39a;
-  font-size: 11px;
+  font-size: var(--rs-font-body, 20px);
   letter-spacing: 0.04em;
   text-align: center;
 }
 
 .actionButton {
   width: 100%;
-  height: 38px;
+  height: 46px;
   padding: 5px 10px;
-  font-size: 13px;
+  font-size: var(--rs-font-kicker, 22px);
 }
 
 .actionButton svg {

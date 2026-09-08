@@ -1,5 +1,6 @@
 import { getItemDef, type CraftCheck, type ModuleRecipe } from "@/data";
-import { itemIcon } from "@/ui/art/itemArt";
+import type { ItemStack } from "@/items/types";
+import ItemSlot from "@/ui/common/item/ItemSlot";
 import { cx } from "@/ui/common/cx";
 import s from "./CraftRecipeGrid.module.css";
 
@@ -9,10 +10,19 @@ interface Props {
   checks: Record<string, CraftCheck>;
   selectedItemId: string | null;
   onSelect: (itemId: string) => void;
+  onShowTooltip: (element: HTMLElement, stack: ItemStack) => void;
+  onHideTooltip: () => void;
 }
 
-/** 制造清单: 当前角色能造的模组。与「模组装配」的卡组网格同一套选中语言。 */
-export function CraftRecipeGrid({ recipes, checks, selectedItemId, onSelect }: Props) {
+/** 制造清单: 当前角色能造的模组。与右侧模组仓库共用物品格与选中语言。 */
+export function CraftRecipeGrid({
+  recipes,
+  checks,
+  selectedItemId,
+  onSelect,
+  onShowTooltip,
+  onHideTooltip,
+}: Props) {
   return (
     <section className={s.grid} aria-label="可制造模组">
       <div className={s.heading}>
@@ -30,22 +40,32 @@ export function CraftRecipeGrid({ recipes, checks, selectedItemId, onSelect }: P
               : check.ok
                 ? "材料齐备"
                 : "材料不足";
+            const shortLabel = !check?.expOk ? "缺经验" : check.ok ? "齐备" : "缺材料";
+            const stack: ItemStack = { uid: `recipe-${recipe.itemId}`, itemId: recipe.itemId, count: 1 };
             return (
-              <button
+              <div
                 key={recipe.itemId}
-                type="button"
-                className={cx(s.entry, selected && s.selected, !check?.ok && s.blocked)}
-                aria-pressed={selected}
-                aria-label={`选择${def.name}，${label}`}
-                onClick={() => onSelect(recipe.itemId)}
+                className={cx(s.option, selected && s.selected, !check?.ok && s.blocked)}
+                onPointerEnter={(event) => onShowTooltip(event.currentTarget, stack)}
+                onPointerLeave={onHideTooltip}
+                onFocus={(event) => onShowTooltip(event.currentTarget, stack)}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHideTooltip();
+                }}
               >
-                <span className={s.icon}>{itemIcon(def)}</span>
-                <span className={s.info}>
-                  <strong className={s.name}>{def.name}</strong>
-                  <span className={s.desc}>{def.desc}</span>
+                <ItemSlot
+                  stack={stack}
+                  showName
+                  showCount={false}
+                  selected={selected}
+                  aria-label={`选择${def.name}，${label}`}
+                  onClick={() => onSelect(recipe.itemId)}
+                  className={s.slot}
+                />
+                <span className={s.status} data-ok={check?.ok ?? false} aria-hidden="true">
+                  {shortLabel}
                 </span>
-                <span className={s.status} data-ok={check?.ok ?? false}>{label}</span>
-              </button>
+              </div>
             );
           })}
         </div>

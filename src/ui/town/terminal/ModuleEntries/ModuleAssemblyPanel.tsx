@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode, type Ref } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode, type Ref } from "react";
 import { canEquipModule, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
@@ -32,6 +32,14 @@ interface HoveredItem {
   stack: ItemStack;
   point: TooltipPoint;
 }
+
+const ASSEMBLY_THEME = {
+  "--asm-panel-bg": "#0b1116f2",
+  "--asm-panel-filter": "blur(10px) saturate(104%) brightness(0.82)",
+  "--panel-shell-title-size": "34px",
+  "--panel-shell-status-size": "20px",
+  "--panel-shell-close-size": "36px",
+} as CSSProperties;
 
 export function ModuleAssemblyPanel({ closing, onClose, morph }: Props) {
   const storage = useTownStore((state) => state.storage);
@@ -96,6 +104,7 @@ export function ModuleAssemblyPanel({ closing, onClose, morph }: Props) {
         closeLabel="关闭模组装配"
         closing={closing}
         onClose={onClose}
+        themeStyle={ASSEMBLY_THEME}
         morph={morph}
       >
         <div className={s.body}>

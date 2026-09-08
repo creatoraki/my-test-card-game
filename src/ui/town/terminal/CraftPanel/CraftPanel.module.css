@@ -1,5 +1,6 @@
 /* 三栏节奏与模组装配面板的 body 保持一致: 左角色 / 中清单 / 右上制造台 + 右下材料仓库。 */
 .body {
+  composes: rs-tokens from "../styles/terminalKit.module.css";
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -13,8 +14,8 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  /* 制造台比装配台多了一列消耗清单, 高度略放宽一点。 */
-  grid-template-rows: minmax(250px, 274px) minmax(0, 1fr);
+  /* 放大字号后, 制造台要容纳 4 行消耗与可能换行的缺料提示; 多出的高度从材料仓库回收。 */
+  grid-template-rows: minmax(420px, 440px) minmax(0, 1fr);
   gap: 14px;
 }
 

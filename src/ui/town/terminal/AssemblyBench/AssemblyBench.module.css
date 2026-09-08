@@ -35,16 +35,16 @@
   min-width: 0;
   overflow: hidden;
   color: #eff6e9;
-  font-size: 17px;
+  font-size: var(--rs-font-entry, 24px);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .state {
   flex: 0 0 auto;
-  padding: 4px 8px;
+  padding: 5px 10px;
   color: #c5d8c4;
-  font-size: 12px;
+  font-size: var(--rs-font-kicker, 22px);
   background: #11201bd9;
   border: 1px solid #6fba884c;
 }
@@ -69,8 +69,8 @@
 .moduleSlot {
   position: relative;
   display: grid;
-  width: 78px;
-  height: 78px;
+  width: 96px;
+  height: 96px;
   place-items: center;
   background: #0c1417dd;
   border: 1px solid #718082;
@@ -86,8 +86,8 @@
 
 .moduleIcon {
   display: grid;
-  width: 56px;
-  height: 56px;
+  width: 70px;
+  height: 70px;
   place-items: center;
   color: var(--bench-accent);
 }
@@ -115,7 +115,7 @@
   left: 7px;
   color: #8c9b9b;
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: var(--rs-font-mark, 18px);
   letter-spacing: 0.04em;
   text-align: center;
 }
@@ -127,9 +127,9 @@
 
 .actionButton {
   width: 100%;
-  height: 38px;
+  height: 46px;
   padding: 5px 10px;
-  font-size: 13px;
+  font-size: var(--rs-font-kicker, 22px);
 }
 
 .actionButton svg {

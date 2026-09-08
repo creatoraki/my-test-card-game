@@ -24,6 +24,11 @@ const CRAFT_THEME = {
   "--asm-line": "#ffb0572e",
   "--asm-ink": "#fdf1e6",
   "--asm-ink-dim": "#b39a86",
+  "--asm-panel-bg": "#150f09f2",
+  "--asm-panel-filter": "blur(10px) saturate(104%) brightness(0.82)",
+  "--panel-shell-title-size": "34px",
+  "--panel-shell-status-size": "20px",
+  "--panel-shell-close-size": "36px",
 } as CSSProperties;
 
 interface Props {
@@ -105,6 +110,8 @@ export function CraftPanel({ closing, onClose, morph }: Props) {
             checks={checks}
             selectedItemId={recipe?.itemId ?? null}
             onSelect={setRecipeItemId}
+            onShowTooltip={showTooltip}
+            onHideTooltip={() => setHoveredItem(null)}
           />
           <div className={s.rightColumn}>
             <CraftBench

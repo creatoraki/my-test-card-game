@@ -18,20 +18,20 @@
 .kicker {
   color: var(--asm-cyan, var(--event-accent, #58efc7));
   font-family: var(--font-family);
-  font-size: 14px;
+  font-size: var(--rs-font-kicker, 22px);
   font-weight: 800;
   letter-spacing: 0.06em;
 }
 
 .count {
   color: var(--muted, #849096);
-  font-size: 12px;
+  font-size: var(--rs-font-body, 20px);
 }
 
 .grid {
   display: grid;
   min-height: 0;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
   gap: 10px;
   /* 与模组仓库同理: 选中/需求角标是 inset:-4px, 没有这圈余量边缘一列会被裁掉。 */
@@ -66,9 +66,9 @@
   right: 4px;
   bottom: 4px;
   z-index: 3;
-  padding: 2px 4px;
+  padding: 3px 6px;
   color: #c5d8c4;
-  font-size: 10px;
+  font-size: var(--rs-font-mark, 18px);
   font-variant-numeric: tabular-nums;
   background: #11201bd9;
   pointer-events: none;
@@ -85,7 +85,7 @@
 
 .slot {
   --item-slot-icon-size: 62%;
-  --item-slot-count-size: 12px;
+  --item-slot-count-size: 18px;
   width: 100%;
 }
 
@@ -95,7 +95,7 @@
   gap: 8px;
   padding: 16px 8px;
   color: var(--muted, #849096);
-  font-size: 11px;
+  font-size: var(--rs-font-body, 20px);
   text-align: center;
   border: 1px dashed #ffffff1f;
 }

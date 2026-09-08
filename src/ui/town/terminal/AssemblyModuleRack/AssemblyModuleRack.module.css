@@ -19,20 +19,20 @@
 .kicker {
   color: var(--asm-cyan, var(--event-accent, #58efc7));
   font-family: var(--font-family);
-  font-size: 14px;
+  font-size: var(--rs-font-kicker, 22px);
   font-weight: 800;
   letter-spacing: 0.06em;
 }
 
 .count {
   color: var(--muted, #849096);
-  font-size: 12px;
+  font-size: var(--rs-font-body, 20px);
 }
 
 .grid {
   display: grid;
   min-height: 0;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
   gap: 10px;
   /* ⚠ 这圈内边距不能删: .option.selected::after 是 inset:-4px 的角标, 还带 4px 发光,
@@ -96,7 +96,7 @@
 
 .slot {
   --item-slot-icon-size: 62%;
-  --item-slot-count-size: 12px;
+  --item-slot-count-size: 18px;
   width: 100%;
 }
 
@@ -111,9 +111,9 @@
   bottom: 4px;
   /* 压过选中角标(z-index:2), 否则右下角那条角标会盖住「可用 / 不匹配」。 */
   z-index: 3;
-  padding: 2px 4px;
+  padding: 3px 6px;
   color: #c5d8c4;
-  font-size: 10px;
+  font-size: var(--rs-font-mark, 18px);
   background: #11201bd9;
   pointer-events: none;
 }
@@ -133,7 +133,7 @@
   gap: 8px;
   padding: 16px 8px;
   color: var(--muted, #849096);
-  font-size: 11px;
+  font-size: var(--rs-font-body, 20px);
   text-align: center;
   border: 1px dashed #ffffff1f;
 }

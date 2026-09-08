@@ -97,7 +97,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--text);
-  font-size: 21px;
+  font-size: var(--rs-font-name, 26px);
   text-overflow: ellipsis;
   white-space: nowrap;
   text-shadow: 0 2px 8px #000;
@@ -107,7 +107,7 @@
   flex: 0 0 auto;
   color: var(--stage-accent);
   font-family: var(--font-family);
-  font-size: 11px;
+  font-size: var(--rs-font-mark, 18px);
   letter-spacing: 0.12em;
   font-variant-numeric: tabular-nums;
 }
@@ -192,7 +192,7 @@
 .empty {
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--rs-font-body, 20px);
 }
 
 @media (prefers-reduced-motion: reduce) {
