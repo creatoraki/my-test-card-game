@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getItemDef } from "@/data";
 import { mergeStacksForDisplay, sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
@@ -11,15 +11,18 @@ import s from "./StorageInventory.module.css";
 
 interface Props {
   className?: string;
+  /** 取出成功。★ 面板自己不再弹提示 —— 出击准备页的所有反馈都归售货机器人说。 */
+  onTaken?: () => void;
+  /** 背包塞不下。 */
+  onFull?: () => void;
 }
 
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
 const CELLS = 4;
 
-export function StorageInventory({ className }: Props) {
+export function StorageInventory({ className, onTaken, onFull }: Props) {
   const storage = useTownStore((state) => state.storage);
   const takeFromStorage = useSortieStore((state) => state.takeFromStorage);
-  const [notice, setNotice] = useState<string | null>(null);
   const visible = useMemo(
     () =>
       sortStacks(
@@ -33,11 +36,6 @@ export function StorageInventory({ className }: Props) {
     [storage],
   );
 
-  const showNotice = (message: string) => {
-    setNotice(message);
-    window.setTimeout(() => setNotice((current) => (current === message ? null : current)), 1500);
-  };
-
   return (
     <ItemInventoryPanel
       className={cx(s.panel, className)}
@@ -47,7 +45,7 @@ export function StorageInventory({ className }: Props) {
       kicker="出击物资 // 仓库"
       title="仓库"
       compact
-      subtitle={notice ?? "SELECT TO LOAD"}
+      subtitle="点击取出到背包"
       capacity={CELLS}
       occupied={visible.length}
       capacityLabel="可取消耗品"
@@ -57,7 +55,8 @@ export function StorageInventory({ className }: Props) {
       selectedUid={null}
       onSelect={(stack) => {
         if (!stack) return;
-        if (!takeFromStorage(stack.uid)) showNotice("背包已满");
+        if (takeFromStorage(stack.uid)) onTaken?.();
+        else onFull?.();
       }}
     />
   );

@@ -1,0 +1,155 @@
+/* 单个货位。尺寸令牌由 ShelfRow 下发(--slot-w), 这里只负责货位自己的材质与手感。 */
+
+.slot {
+  display: flex;
+  width: var(--slot-w, 148px);
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 商品区: 无背景板的「摆在层板上」感 —— 只有四角描边在悬浮时亮起。 */
+.goods {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 124px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 6px;
+  box-sizing: border-box;
+  cursor: var(--cursor-default);
+  outline: none;
+  transition: transform 180ms var(--sm-ease, ease);
+}
+
+.goods::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(90deg, var(--sm-glow), var(--sm-glow)) 0 0 / 20px 2px no-repeat,
+    linear-gradient(90deg, var(--sm-glow), var(--sm-glow)) 100% 0 / 20px 2px no-repeat,
+    linear-gradient(90deg, var(--sm-glow), var(--sm-glow)) 0 100% / 20px 2px no-repeat,
+    linear-gradient(90deg, var(--sm-glow), var(--sm-glow)) 100% 100% / 20px 2px no-repeat,
+    linear-gradient(0deg, var(--sm-glow), var(--sm-glow)) 0 0 / 2px 20px no-repeat,
+    linear-gradient(0deg, var(--sm-glow), var(--sm-glow)) 100% 0 / 2px 20px no-repeat,
+    linear-gradient(0deg, var(--sm-glow), var(--sm-glow)) 0 100% / 2px 20px no-repeat,
+    linear-gradient(0deg, var(--sm-glow), var(--sm-glow)) 100% 100% / 2px 20px no-repeat;
+  transition: opacity 180ms ease;
+}
+
+.goods:hover,
+.goods:focus-visible {
+  transform: translateY(-8px);
+}
+
+.goods:hover::before,
+.goods:focus-visible::before {
+  opacity: 1;
+}
+
+.art {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 104px;
+  height: 104px;
+  place-items: center;
+  transform: translate(-50%, -60%);
+  color: var(--sm-glow-hi);
+  filter: saturate(0.72) brightness(0.92) drop-shadow(0 10px 14px #00000099);
+  pointer-events: none;
+  transition: filter 200ms ease;
+}
+
+.art svg,
+.art img {
+  width: 104px;
+  height: 104px;
+  object-fit: contain;
+}
+
+.goods:hover .art,
+.goods:focus-visible .art {
+  filter: saturate(1.06) brightness(1.04) drop-shadow(0 0 22px #91e8dc7a) drop-shadow(0 10px 14px #000000a6);
+}
+
+.name {
+  position: relative;
+  color: var(--sm-ink);
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-indent: 2px;
+  text-shadow: 0 2px 10px #000000e6;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 价格牌: 形制与据点商店的价格牌同族(切角 + 等宽数字), 配色走出击域的青。 */
+.price {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  gap: 6px;
+  align-items: baseline;
+  justify-content: center;
+  padding: 8px 0 9px;
+  border-radius: 0;
+  cursor: var(--cursor-pointer);
+  font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  transition: transform 120ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+.priceReady {
+  color: var(--sm-glow-hi);
+  border: 1px solid #91e8dc8f;
+  background:
+    linear-gradient(135deg, #ffffff21, transparent 48%),
+    linear-gradient(160deg, #12333acc, #050f12c4);
+  box-shadow:
+    inset 0 1px 0 #ffffff4d,
+    0 6px 14px -10px #000000f2,
+    0 0 18px -12px #91e8dcd9;
+}
+
+.priceReady:hover {
+  transform: translateY(-2px);
+  border-color: #c2fff6;
+  box-shadow:
+    inset 0 1px 0 #ffffff66,
+    0 8px 18px -10px #000000f2,
+    0 0 24px -8px #91e8dce6;
+}
+
+.priceReady:active {
+  transform: translateY(0);
+}
+
+.pricePoor {
+  color: #93aeab;
+  border: 1px solid #6d858233;
+  background: linear-gradient(160deg, #0d1a1cb3, #050d0fb3);
+  box-shadow: inset 0 1px 0 #ffffff1a;
+}
+
+.priceValue {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.priceUnit {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}

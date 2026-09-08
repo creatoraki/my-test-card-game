@@ -156,6 +156,7 @@ export {
   type UpgradeRecipe,
 } from "./equipUpgrade";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
+export { VENDOR_LINES, pickVendorLine, type VendorLineKind } from "./vendorLines";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";
 

@@ -1,0 +1,52 @@
+/* 货架外壳。材质与仓库/背包面板同族(sortieGlass), 但刻意不加内边框与扫描线 ——
+   它是一件家具, 不是一块屏幕。 */
+
+.shelf {
+  composes: shellStatic from "../styles/sortieGlass.module.css";
+
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  padding: 22px 26px 26px;
+  border: 1px solid #91e8dc45;
+  gap: 18px;
+}
+
+.shelf[data-active="false"] {
+  pointer-events: none;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.kicker {
+  composes: kicker from "../styles/sortieGlass.module.css";
+
+  font-size: 18px;
+  letter-spacing: 3px;
+  text-transform: none;
+}
+
+.title {
+  composes: title from "../styles/sortieGlass.module.css";
+}
+
+.foot {
+  composes: foot from "../styles/sortieGlass.module.css";
+
+  margin-top: 6px;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.rows {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 34px;
+}

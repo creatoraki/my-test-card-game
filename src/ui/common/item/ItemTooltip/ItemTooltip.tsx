@@ -20,7 +20,7 @@ export type TooltipPoint = {
   host: HTMLElement;
 };
 
-export type TooltipDirection = "left" | "right" | "vertical";
+export type TooltipDirection = "left" | "right" | "vertical" | "top";
 
 /**
  * 由触发元素算出浮窗锚点。
@@ -37,11 +37,17 @@ export function tooltipPointFromElement(el: Element, direction: TooltipDirection
   const k = designScaleOf(host);
   return {
     x: (
-      direction === "vertical"
+      direction === "vertical" || direction === "top"
         ? rect.left + rect.width / 2 - hostRect.left
         : (direction === "left" ? rect.left : rect.right) - hostRect.left
     ) / k,
-    y: (direction === "vertical" ? rect.bottom - hostRect.top : rect.top + rect.height / 2 - hostRect.top) / k,
+    y: (
+      direction === "vertical"
+        ? rect.bottom - hostRect.top
+        : direction === "top"
+          ? rect.top - hostRect.top
+          : rect.top + rect.height / 2 - hostRect.top
+    ) / k,
     host,
     direction,
   };
@@ -81,7 +87,8 @@ export function useTooltipPlacement(
     const height = rect.height / k;
     const boxW = host.clientWidth;
     const boxH = host.clientHeight;
-    const vertical = point.direction === "vertical";
+    const vertical = point.direction === "vertical" || point.direction === "top";
+    const topward = point.direction === "top";
     const leftward = point.direction === "left";
 
     const right = point.x + TOOLTIP_GAP;
@@ -103,9 +110,11 @@ export function useTooltipPlacement(
     const below = point.y + TOOLTIP_GAP;
     const above = point.y - height - TOOLTIP_GAP;
     const wanted = vertical
-      ? below + height <= boxH - TOOLTIP_MARGIN
-        ? below
-        : above
+      ? topward
+        ? above
+        : below + height <= boxH - TOOLTIP_MARGIN
+          ? below
+          : above
       : topOffset === undefined
         ? point.y - height / 2
         : point.y - topOffset;

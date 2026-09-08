@@ -80,9 +80,10 @@ src/ui/
 | [sortie/sortieStepTransition.ts](../../src/ui/sortie/sortieStepTransition.ts) | 出击地图选择 ↔ 物资准备的真实 DOM 步骤动画 hook；同步切换唯一可见步骤，提供 460ms 入场状态和过场交互锁。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在传入的可见地图列表中以斜跨玻璃选择带切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
-| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左侧斜切货柜带，右侧一上一下紧贴格网的仓库与背包；只向子组件下发位置类和交互状态。 |
+| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列仓库速取条 + 补给货架，右上背包，右下售货机器人，右上角终端积分；只下发位置类，并把货架/仓库/背包的每一次成败都转成机器人台词（页面不再有独立的提示小字）。 |
 | [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击下行 / 结算上行共用的电梯纯演出页：视频静音播放，独立音轨由 BGM 播放器播放；方向与去向由 `runStore.elevatorRide` 决定，下行结束进入探索，上行结束回据点；不可跳过且不承载探索规则。 |
-| [sortie/StockBand](../../src/ui/sortie/StockBand/StockBand.tsx) | 出击货柜斜切滚动带：固定清单、不限量购买消耗品，支持滚轮/方向键滚动与高亮片二次点击购买；步骤切换时由真实 DOM 动画滑入，避免玻璃快照参与过场。 |
+| [sortie/StockShelf](../../src/ui/sortie/StockShelf/StockShelf.tsx) | 出击补给货架：固定清单一次全摆出，按 `maxStack` 自动分成临期食品 / 消耗品两层（层板画在 `ShelfRow`，单个货位在 `StockSlot`）。商品本体只负责悬浮浮卡（复用 `SortieTooltip`，展示用 `ItemStack` 由 itemId 现造），购买入口只有下方价格牌一处；买不起 / 装不下不弹提示，交给售货机器人说。 |
+| [sortie/VendorBot](../../src/ui/sortie/VendorBot/VendorBot.tsx) | 售货机器人 NPC：立绘 + 右上方聊天气泡。台词内容在 [data/vendorLines.ts](../../src/data/vendorLines.ts)，调度在 `useVendorChatter`（14~22s 随机闲聊，购买/退款/积分不足/背包满等事件台词插队，气泡 4.5s 后淡出，步骤切走即清空定时器）。 |
 | [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；1×4 格，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
 | [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域两块物品面板的调色板真相点：仓库冷银白透玻璃 / 背包黑玻璃熔橙。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |

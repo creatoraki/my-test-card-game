@@ -1,0 +1,60 @@
+/* 一层货架。--slot-w 在这里定义并下发给 StockSlot(样式铁律: 尺寸令牌只有一个真相点)。 */
+
+.row {
+  --slot-w: 144px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.goodsLine {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  padding: 0 6px;
+}
+
+.goodsLineEnter > * {
+  animation: slotIn 480ms cubic-bezier(0.16, 0.86, 0.24, 1) backwards;
+}
+
+.goodsLineEnter > *:nth-child(2) { animation-delay: 45ms; }
+.goodsLineEnter > *:nth-child(3) { animation-delay: 90ms; }
+.goodsLineEnter > *:nth-child(4) { animation-delay: 135ms; }
+.goodsLineEnter > *:nth-child(5) { animation-delay: 180ms; }
+.goodsLineEnter > *:nth-child(6) { animation-delay: 225ms; }
+
+/* 层板本体: 顶面高光 + 板厚 + 板下阴影, 三段渐变堆出「一块真的板」。 */
+.board {
+  position: relative;
+  display: flex;
+  height: 18px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 6px;
+  padding-right: 14px;
+  background:
+    linear-gradient(180deg, #cfeeea3d 0 2px, #91e8dc26 2px 4px, #0a1c1fe6 4px 12px, #040d0f 12px);
+  box-shadow:
+    0 1px 0 #ffffff40 inset,
+    0 16px 26px -18px #000000e6,
+    0 3px 0 -1px #00000080;
+}
+
+.boardLabel {
+  color: var(--sm-glow);
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-indent: 4px;
+  text-shadow: 0 2px 10px #000000e6;
+  transform: translateY(15px);
+}
+
+@keyframes slotIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}

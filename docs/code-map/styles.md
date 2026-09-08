@@ -35,8 +35,7 @@
 
 出击域的白玻璃面板材质（零圆角 + `blur(18px) saturate(118%) brightness(1.06)` + 白色内描边 hairline）
 住在 [sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css)，
-仓库库存面板 / 出击背包面板通过 `.shellStatic` 使用不带 `panelIn` 的版本，货柜带自行持有与选层带对齐的
-玻璃片外观。`.shell` 仍保留给需要自身入场动画的复用方，`.shellStatic` 专供由 View Transition 负责飞入的仓库和背包。
+仓库库存面板 / 出击背包面板 / 补给货架都通过 `.shellStatic` 使用不带 `panelIn` 的版本。`.shell` 仍保留给需要自身入场动画的复用方，`.shellStatic` 专供由 View Transition 负责飞入的仓库和背包。
 共享材质同时下发 `--sm-ease` / `--sm-dur` 两个手感令牌；两条步骤路线的带壳和片通过
 `view-transition.global.css` 的文档根伪元素规则配对。
 ⚠ 面板唯一刻意的偏差是多压一层 `#05121466` 深底：`SortieBackdrop` 的地图信息在物资准备步骤的面板背后，

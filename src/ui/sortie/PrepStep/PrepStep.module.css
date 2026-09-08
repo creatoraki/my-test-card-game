@@ -1,3 +1,10 @@
+/* 物资准备步骤的整页排布。★ 本文件只负责「谁在哪」——每块面板自己的材质与内部排版都在
+   各自的组件里。三块内容各占一角, 右下整块空出来留给售货机器人和它右上方的气泡:
+   气泡因此永远不会压到背包面板。
+
+   ⚠ 底部 y>962 是 SortieNav 的地盘(见 SortieScreen.module.css 的 .stage::after 分隔线),
+     所有内容的下边界都必须停在 940 之前。 */
+
 .step {
   composes: tokens from "../styles/sortieGlass.module.css";
 
@@ -12,9 +19,10 @@
   pointer-events: none;
 }
 
-.status {
+/* ── 右上: 终端积分 ── */
+.credits {
   position: absolute;
-  top: 28px;
+  top: 26px;
   right: 72px;
   z-index: 2;
   display: flex;
@@ -25,7 +33,7 @@
   text-align: right;
 }
 
-.statusLabel {
+.creditsLabel {
   color: var(--sm-ink);
   font-family: var(--font-family);
   font-size: 18px;
@@ -35,74 +43,113 @@
   text-shadow: 0 2px 10px #000000cc;
 }
 
-.statusValue {
-  margin-top: 8px;
+.creditsValue {
+  margin-top: 6px;
   color: var(--sm-glow-hi);
   font-family: var(--font-family);
-  font-size: 52px;
+  font-size: 48px;
   font-weight: 700;
   letter-spacing: 3px;
   line-height: 1;
   text-shadow: 0 0 26px #91e8dc80, 0 3px 12px #000000e6;
 }
 
-.statusNotice {
-  min-height: 26px;
-  margin-top: 4px;
-  color: #e8c57e;
-  font-family: var(--font-family);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  line-height: 26px;
-  text-shadow: 0 2px 10px #000000cc;
-}
-
-.statusEntering {
-  animation: statusSlideIn 460ms var(--sm-ease) both;
-}
-
-.statusExiting {
-  animation: statusSlideOut 460ms var(--sm-ease) both;
-}
-
-.side {
+/* ── 左列: 仓库速取条 + 补给货架 ── */
+.left {
   position: absolute;
-  top: 152px;
-  right: 72px;
+  top: 116px;
+  left: 72px;
   display: flex;
-  width: 820px;
+  width: 1028px;
+  height: 824px;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 24px;
+  gap: 22px;
 }
 
-.sideEntering {
-  animation: sideSlideIn 460ms var(--sm-ease) both;
+.areaStorage {
+  --item-slot-count-size: 30px;
+  /* ⚠ 是 --inventory-cell(格边长)而不是 --inventory-cell-size —— 后者是 sortieGlass
+     那套装饰格线用的变量, 写错不会报错, 只会「改了没反应」。 */
+  --inventory-cell: 96px;
+
+  width: 520px;
+  flex: none;
 }
 
-.sideExiting {
-  animation: sideSlideOut 460ms var(--sm-ease) both;
+.areaShelf {
+  flex: 1;
+  min-height: 0;
 }
 
-.areaStock,
-.areaStorage,
-.areaBackpack {
-  position: relative;
+/* ── 右列: 背包 ── */
+.right {
+  position: absolute;
+  top: 116px;
+  right: 72px;
+  width: 668px;
 }
 
-.areaStorage,
 .areaBackpack {
   --item-slot-count-size: 30px;
-}
+  --inventory-cell: 88px;
 
-.areaBackpack {
-  width: 960px;
+  width: 100%;
   max-width: none;
   pointer-events: auto;
 }
 
-@keyframes sideSlideIn {
+/* ── 右下: 售货机器人。宽度留给右上方展开的气泡。 ── */
+.areaVendor {
+  position: absolute;
+  bottom: 56px;
+  left: 1080px;
+  z-index: 4;
+  width: 768px;
+  height: 340px;
+}
+
+/* ── 步骤进出场。左右两侧各自朝外滑, 与选层步骤的方向语言一致。 ── */
+.slideInLeft {
+  animation: slideInLeft 460ms var(--sm-ease) both;
+}
+
+.slideOutLeft {
+  animation: slideOutLeft 460ms var(--sm-ease) both;
+}
+
+.slideInRight {
+  animation: slideInRight 460ms var(--sm-ease) both;
+}
+
+.slideOutRight {
+  animation: slideOutRight 460ms var(--sm-ease) both;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slideInRight {
   from {
     opacity: 0;
     transform: translateX(100%);
@@ -114,19 +161,7 @@
   }
 }
 
-@keyframes statusSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes statusSlideOut {
+@keyframes slideOutRight {
   from {
     opacity: 1;
     transform: translateX(0);
@@ -135,26 +170,5 @@
   to {
     opacity: 0;
     transform: translateX(100%);
-  }
-}
-
-@keyframes sideSlideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sideEntering,
-  .sideExiting,
-  .statusEntering,
-  .statusExiting {
-    animation: none;
   }
 }
