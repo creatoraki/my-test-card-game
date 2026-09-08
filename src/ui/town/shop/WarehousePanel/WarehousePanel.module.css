@@ -1,12 +1,12 @@
 .warehouse-content {
-  --warehouse-ink: #f3eee2;
-  --warehouse-muted: #a5937f;
-  --warehouse-line: #f2e6d82e;
-  --warehouse-line-strong: #f2e6d85c;
-  --warehouse-frame: #a97c30;
-  --warehouse-frame-hot: #fff0bc;
-  --warehouse-electric: #ffc654;
-  --warehouse-electric-hot: #fff0bc;
+  --warehouse-ink: #eef2f5;
+  --warehouse-muted: #98a3ab;
+  --warehouse-line: #c9d3da2e;
+  --warehouse-line-strong: #c9d3da5c;
+  --warehouse-frame: #78848d;
+  --warehouse-frame-hot: #f2f6f9;
+  --warehouse-electric: #c9d3da;
+  --warehouse-electric-hot: #f2f6f9;
   --warehouse-cell-size: 124px;
   --warehouse-gap: 12px;
   --accent: var(--warehouse-electric-hot);
@@ -53,7 +53,7 @@
   padding: var(--warehouse-grid-bleed) 4px 4px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #ffc654b8 #080b1466;
+  scrollbar-color: #c9d3dab8 #0a0d1066;
   scrollbar-width: thin;
 }
 
@@ -62,12 +62,12 @@
 }
 
 .warehouse-grid::-webkit-scrollbar-track {
-  background: #080b1466;
+  background: #0a0d1066;
 }
 
 .warehouse-grid::-webkit-scrollbar-thumb {
-  background: #ffc654b8;
-  border: 2px solid #080b1466;
+  background: #c9d3dab8;
+  border: 2px solid #0a0d1066;
   border-radius: 8px;
 }
 
@@ -116,14 +116,19 @@
   --item-slot-name-offset: 10px;
   color: var(--rr);
   background:
-    radial-gradient(ellipse 90% 70% at 50% 100%, #ffc65422, transparent 76%),
-    linear-gradient(145deg, #ffffff13, transparent 48%),
-    linear-gradient(160deg, #2a2113bd, #0d0b08c4 75%);
-  border: 1px solid #fff0bc45;
+    /* ★ 斜向拉丝纹。银是最容易做平的一支色 —— 靠这层细密斜线给出金属的方向感,
+       没有它, 下面那三层渐变只会读成一块灰塑料。 */
+    repeating-linear-gradient(112deg, transparent 0 3px, #ffffff08 3px 4px),
+    radial-gradient(ellipse 90% 70% at 50% 100%, #c9d3da26, transparent 76%),
+    linear-gradient(145deg, #ffffff16, transparent 48%),
+    linear-gradient(160deg, #1b2026bd, #080a0cc4 75%);
+  border: 1px solid #dfe6ea45;
+  /* 顶边高光 + 底部压暗 = 上亮下暗的柱面感。银的立体感全靠这一对内影撑, 不靠色相。 */
   box-shadow:
-    inset 0 1px 0 #ffffff26,
+    inset 0 1px 0 #ffffff40,
+    inset 0 -14px 18px -16px #000000cc,
     0 6px 14px -12px #000000f2,
-    0 0 14px -12px #ffc654b3;
+    0 0 14px -12px #c9d3dab3;
   cursor: var(--cursor-pointer);
   transform: translateY(0);
   transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
@@ -133,14 +138,16 @@
 .warehouse-slot.warehouse-slot.is-hovered,
 .warehouse-slot.warehouse-slot:focus-visible {
   background:
-    radial-gradient(ellipse 90% 70% at 50% 100%, #ffc65445, transparent 76%),
-    linear-gradient(145deg, #ffffff24, transparent 48%),
-    linear-gradient(160deg, #4a3920c4, #100d08cc 75%);
+    repeating-linear-gradient(112deg, transparent 0 3px, #ffffff0d 3px 4px),
+    radial-gradient(ellipse 90% 70% at 50% 100%, #c9d3da4a, transparent 76%),
+    linear-gradient(145deg, #ffffff28, transparent 48%),
+    linear-gradient(160deg, #2c343bc4, #0b0e11cc 75%);
   border-color: var(--warehouse-frame-hot);
   box-shadow:
-    inset 0 1px 0 #ffffff52,
+    inset 0 1px 0 #ffffff7a,
+    inset 0 -14px 18px -16px #000000a8,
     0 8px 16px -12px #000000f2,
-    0 0 18px -9px #ffc654e6;
+    0 0 18px -9px #dfe6eae6;
   transform: translateY(-3px);
 }
 
@@ -157,8 +164,8 @@
   display: block;
   background:
     repeating-linear-gradient(135deg, transparent 0 8px, #ffffff08 8px 9px),
-    linear-gradient(145deg, #ffffff0b, #080b138a);
-  border: 1px solid #f2e6d845;
+    linear-gradient(145deg, #ffffff0b, #0a0d108a);
+  border: 1px solid #c9d3da3d;
   border-style: solid;
   box-shadow: inset 0 1px 0 #ffffff18;
 }
@@ -207,13 +214,13 @@
   --item-detail-note-size: 18px;
   --item-detail-idle-size: 18px;
 
-  --accent: #ffc654;
-  --accent2: #a97c30;
+  --accent: #c9d3da;
+  --accent2: #78848d;
   --bad: #ff819d;
-  --border: #f2e6d82e;
+  --border: #c9d3da2e;
   --good: #87f5c1;
-  --muted: #a5937f;
-  --text: #f3eee2;
+  --muted: #98a3ab;
+  --text: #eef2f5;
 
   box-sizing: border-box;
   width: 100%;
@@ -223,8 +230,8 @@
   overflow-y: auto;
   background:
     linear-gradient(135deg, #ffffff16, transparent 50%),
-    linear-gradient(155deg, #30220ef2, #0b0d0ef5);
-  border: 1px solid #fff0bc66;
+    linear-gradient(155deg, #1c2228f2, #080a0cf5);
+  border: 1px solid #dfe6ea66;
   border-radius: 11px 7px 12px 8px;
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
   -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.8);

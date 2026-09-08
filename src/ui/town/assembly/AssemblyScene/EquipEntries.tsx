@@ -9,7 +9,8 @@
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
 import { PanelShell } from "@/ui/common/PanelShell";
-import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
+import { CLOSE_MS, usePanelMorph, type Rect } from "@/ui/common/panelMorph";
+import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import { EquipReforgePanel } from "../EquipReforgePanel";
 import { EquipUpgradePanel } from "../EquipUpgradePanel";
 import s from "./AssemblyScene.module.css";
@@ -53,6 +54,11 @@ export function useEquipPanels(): EquipPanels {
     rects: EQUIP_PANEL_RECT,
   });
   const { panel } = morph;
+  useFacilityPanelExit(() => {
+    if (!morph.panel) return 0;
+    morph.closePanel();
+    return CLOSE_MS;
+  });
 
   const entries = (
     <>

@@ -10,6 +10,7 @@
 import { useMemo, useState } from "react";
 import { SQUAD_BADGES } from "@/data";
 import { cx } from "@/ui/common/cx";
+import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import { BadgeSelectModal } from "../BadgeSelectModal";
 import { SquadResourceBar } from "../SquadResourceBar";
 import { TalentTreeRadial } from "../TalentTreeRadial";
@@ -28,6 +29,11 @@ export function TrainingScene({ leaving = false, onBack }: Props) {
   const talent = useSquadTalent();
   // 未启用徽章时 modal 默认展开, 引导首次选择。
   const [drawerOpen, setDrawerOpen] = useState(() => !talent.badge);
+  useFacilityPanelExit(() => {
+    if (!drawerOpen) return 0;
+    setDrawerOpen(false);
+    return 0;
+  });
 
   // 背景浮升光粒(暗底金色氛围): 黄金角分布 + 负延迟, 初始即散布在途中。
   const particles = useMemo(

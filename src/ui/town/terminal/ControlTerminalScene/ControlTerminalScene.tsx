@@ -20,6 +20,7 @@ import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { useTownStore } from "@/store/townStore";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
+import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import s from "./ControlTerminalScene.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
@@ -103,6 +104,11 @@ export function ControlTerminalScene({ leaving = false }: Props) {
   // 所有关窗路径(✕ / 点面板外空白 / Esc)都走这里, 保证一定播完滑出。
   // 滑出途中重复调用是安全的: 置同一个 true 不会触发重渲染, 上面的计时器也就不会被重置。
   const closePanel = useCallback(() => setClosing(true), []);
+  useFacilityPanelExit(() => {
+    if (!panel) return 0;
+    closePanel();
+    return prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
+  });
 
   // 滑出播完 → 真正卸载。⚠ 计时器挂在 effect 里而不是裸 setTimeout: 返回据点时本组件会被卸载,
   // 清理函数顺手把它清掉, 不会有卸载后 setState。

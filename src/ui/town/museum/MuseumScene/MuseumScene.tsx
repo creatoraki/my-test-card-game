@@ -3,6 +3,7 @@ import { useTownStore } from "@/store/townStore";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { cx } from "@/ui/common/cx";
 import { PanelShell, PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
+import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import { codexProgress } from "../codexCatalog";
 import { MuseumPanel, type MuseumHallId } from "../MuseumPanel";
 import s from "./MuseumScene.module.css";
@@ -37,6 +38,11 @@ export function MuseumScene({ leaving = false }: Props) {
     setPanel(hall);
   }, []);
   const closePanel = useCallback(() => setClosing(true), []);
+  useFacilityPanelExit(() => {
+    if (!panel) return 0;
+    closePanel();
+    return prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
+  });
 
   useEffect(() => {
     if (!closing) return;

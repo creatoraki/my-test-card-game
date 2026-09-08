@@ -1,12 +1,15 @@
 .sx-root {
-  --event-accent: #63d9d0;
-  --sx-ink: #edf3ef;
-  --sx-muted: #8ea09d;
-  --sx-line: #eaffd033;
-  --sx-dim: #7f9a86;
+  --event-accent: #c9d3da;
+  --sx-ink: #e8f6ff;
+  --sx-muted: #8ba6b8;
+  --sx-line: #5fc8ff2e;
+  --sx-dim: #6d8494;
   --sx-alert: #ff5fa2;
-  --sx-action: #b6ff4d;
-  --sx-action-hot: #ff9a91;
+  --sx-action: #5fc8ff;
+  --sx-action-hot: #cdeeff;
+  /* ★ 补上这支色: 它在 ShopItemTile(.is-selected 边框)与 ShopItemCard(底部分隔亮线)里
+     被引用, 但全项目从没定义过 —— 那两条声明一直是无效值被整条丢弃。 */
+  --sx-electric: #cdeeff;
 
   position: absolute;
   z-index: 2;
@@ -22,7 +25,7 @@
   width: 380px;
   padding: 14px 20px 15px 22px;
   background:
-    radial-gradient(ellipse 90% 120% at 100% 0, #d6b47724, transparent 68%),
+    radial-gradient(ellipse 90% 120% at 100% 0, #c9d3da22, transparent 68%),
     linear-gradient(160deg, #111b1eb8, #080d0fa6);
   border: 1px solid #43545a99;
   border-left: 2px solid var(--event-accent);
@@ -30,7 +33,7 @@
   box-shadow:
     inset 0 1px 0 #ffffff33,
     0 13px 28px -24px #000000e6,
-    0 0 20px -18px #d6b477b3;
+    0 0 20px -18px #c9d3daa6;
   -webkit-backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
   backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
   clip-path: polygon(10px 0, 100% 0, calc(100% - 7px) 100%, 0 100%, 0 10px);
@@ -74,7 +77,7 @@
   height: 28px;
   flex: 0 0 28px;
   place-items: center;
-  color: #36d9d0;
+  color: #c9d3da;
 }
 
 .sx-root .sx-warehouse-icon svg {
@@ -196,17 +199,42 @@
 }
 
 .sx-root .sx-warehouse-modal > section {
-  transform: perspective(1800px) rotateY(9deg) rotateX(2deg);
+  transform: perspective(2400px) rotateY(4deg) rotateX(1deg);
   transform-origin: 0 50%;
 }
 
 .sx-root .sx-vending-modal > section {
-  transform: perspective(1800px) rotateY(-9deg) rotateX(2deg);
+  transform: perspective(2400px) rotateY(-4deg) rotateX(1deg);
   transform-origin: 100% 50%;
 }
 
 .sx-root .sx-vending-modal {
-  --event-accent: #b6ff4d;
+  --event-accent: #5fc8ff;
+}
+
+/* ── 两块面板的悬浮投影 ──
+   ⚠ 只能走 filter: drop-shadow(), **不能**用 box-shadow —— 公共层的 .asm-panel 同时挂着
+   clip-path 与 overflow:hidden, clip-path 会把外阴影整条裁掉(公共层那句
+   `0 28px 72px -34px #000000e8` 就是这么一个像素都没画出来的)。
+   drop-shadow 在裁剪之后生效, 阴影正好沿着切角八边形的轮廓走; 又因为 filter 排在
+   transform 之前, 阴影会跟着上面那两条透视旋转一起倾斜, 近端沉、远端飘, 立体感是对的。
+
+   ⚠ filter 只准挂在面板**自己**身上。挂到 .sx-root / .asm-modal 任何一层祖先, 那层就会
+   变成 backdrop root, 面板的 backdrop-filter 玻璃层当场作废(见 PanelShell.module.css
+   开头那段说明)。元素自己的 filter 不影响自己的 backdrop-filter, 所以这里是安全的。
+
+   ⚠ 只在 [data-morph="open"] 落位后挂: morph 展开那段面板尺寸每帧都在变,
+   让浏览器每帧重算一次这么大范围的 drop-shadow 太贵, 收起时也一并干净退场。
+
+   三档叠加 = 贴边接触影 + 中距主影(撑高度) + 远距环境影(压暗背景)。
+   面板底色带透明度(--asm-panel-bg 的 alpha ≈ 0.85), drop-shadow 按合成后的 alpha 衰减,
+   所以这里的黑给到 99~bf 而不是常规的 40~60。 */
+.sx-root .sx-warehouse-modal[data-morph="open"] > section,
+.sx-root .sx-vending-modal[data-morph="open"] > section {
+  filter:
+    drop-shadow(0 8px 14px #00000099)
+    drop-shadow(0 30px 50px #000000bf)
+    drop-shadow(0 68px 104px #00000099);
 }
 
 .sx-root.is-leaving .sx-header {

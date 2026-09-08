@@ -21,6 +21,7 @@ import ItemTooltip, {
 } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
 import { useEntryRise } from "@/ui/hooks/useEntryRise";
+import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import { AssemblyBench } from "../AssemblyBench";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { AssemblyDeckGrid } from "../AssemblyDeckGrid";
@@ -69,6 +70,11 @@ export function AssemblyScene({ leaving = false }: Props) {
   const entryRise = useEntryRise();
 
   const closePanel = useCallback(() => setClosing(true), []);
+  useFacilityPanelExit(() => {
+    if (!openPanel) return 0;
+    closePanel();
+    return prefersReducedMotion() ? PANEL_OUT_REDUCED_MS : PANEL_OUT_MS;
+  });
 
   useEffect(() => {
     if (!closing) return;

@@ -34,7 +34,8 @@ const STOCK_THEME = {
 type PanelId = "recycle";
 
 const PANEL_RECT: Record<PanelId, Rect> = {
-  recycle: { x: 160, y: 80, w: 1600, h: 920 },
+  // 5 个 270px 物品格 + 4 个 20px 间距，并给面板内边距留出少量余量。
+  recycle: { x: 210, y: 80, w: 1500, h: 920 },
 };
 
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);

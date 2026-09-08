@@ -16,29 +16,31 @@ import { ShopPanel } from "./ShopPanel";
 import { useShopPanelsMorph, VENDING_RECT, WAREHOUSE_RECT } from "./useShopPanelsMorph";
 import s from "./ShopScene.module.css";
 
+// 仓库 —— 黑银。中性银 + 近黑底, 走哑光拉丝金属的路子, 亮度全靠边缘高光顶上来。
 const WAREHOUSE_THEME = {
-  "--asm-frame": "#36d9d0",
-  "--asm-glow": "#36d9d0",
-  "--asm-select": "#a8fff6",
-  "--asm-cyan": "#a8fff6",
-  "--asm-line": "#a8fff633",
-  "--asm-ink": "#e8fffc",
-  "--asm-ink-dim": "#85aaa5",
-  "--asm-panel-bg": "#071d25d9",
+  "--asm-frame": "#c9d3da",
+  "--asm-glow": "#c9d3da",
+  "--asm-select": "#f2f6f9",
+  "--asm-cyan": "#f2f6f9",
+  "--asm-line": "#c9d3da2e",
+  "--asm-ink": "#eef2f5",
+  "--asm-ink-dim": "#98a3ab",
+  "--asm-panel-bg": "#0a0d10d9",
   "--panel-shell-title-size": "34px",
   "--panel-shell-status-size": "20px",
   "--panel-shell-close-size": "36px",
 } as CSSProperties;
 
+// 自动售货机 —— 钢青冰蓝。与仓库同为冷色, 靠明度与质感(电光高光 vs 哑光拉丝)分层。
 const VENDING_THEME = {
-  "--asm-frame": "#b6ff4d",
-  "--asm-glow": "#b6ff4d",
-  "--asm-select": "#eaffd0",
-  "--asm-cyan": "#eaffd0",
-  "--asm-line": "#eaffd033",
-  "--asm-ink": "#f0ffdf",
-  "--asm-ink-dim": "#a5b98e",
-  "--asm-panel-bg": "#101c12d9",
+  "--asm-frame": "#5fc8ff",
+  "--asm-glow": "#5fc8ff",
+  "--asm-select": "#cdeeff",
+  "--asm-cyan": "#cdeeff",
+  "--asm-line": "#5fc8ff33",
+  "--asm-ink": "#e8f6ff",
+  "--asm-ink-dim": "#8ba6b8",
+  "--asm-panel-bg": "#08131cd9",
   "--panel-shell-title-size": "34px",
   "--panel-shell-status-size": "20px",
   "--panel-shell-close-size": "36px",
@@ -128,7 +130,7 @@ export function ShopScene({ leaving = false }: Props) {
         <>
           <PanelShell
             title="仓库"
-            accent="#36d9d0"
+            accent="#c9d3da"
             status={
               <span className={s["sx-status"]}>
                 <span ref={warehouseIconRef} className={s["sx-warehouse-icon"]} aria-hidden="true">
@@ -155,7 +157,7 @@ export function ShopScene({ leaving = false }: Props) {
 
           <PanelShell
             title="自动售货机"
-            accent="#b6ff4d"
+            accent="#5fc8ff"
             status={<span className={s["sx-status"]}>居民积分 · {loot.toLocaleString()}</span>}
             closeLabel="关闭商店"
             closing={closing}

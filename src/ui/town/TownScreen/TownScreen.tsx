@@ -46,6 +46,7 @@ import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
 import { TrainingScene } from "@/ui/town/training/TrainingScene";
 import { MuseumScene } from "@/ui/town/museum";
+import { FacilityExitProvider, useFacilityExitRegistry } from "@/ui/town/facilityExit";
 import { FacilityBack } from "./FacilityBack";
 import { StationDock } from "./StationDock";
 import { StationHud } from "./StationHud";
@@ -118,6 +119,8 @@ export function TownScreen() {
   // 建筑热区层跟着全景背景走: 像素转场一起转它就淡出, 返回时等像素铺回全景才淡回来 ——
   // 它在 PixelSwap 之上, 不跟着走的话会浮在已经换好的设施背景上。
   const [stationShown, setStationShown] = useState(true);
+  const exit = useFacilityExitRegistry();
+  const exitingRef = useRef(false);
 
   // 定时器句柄集中管理: 卸载时一并清掉, 避免演出中途切界面导致卸载后 setState。
   const timers = useRef<number[]>([]);
@@ -151,8 +154,7 @@ export function TownScreen() {
     later(enterDone, ENTER_TOTAL + 200);
   }
 
-  function backToTown() {
-    if (phase !== "inside") return;
+  function startLeave() {
     clearTimers();
     setPhase("leaving");
     // 返回按钮先淡出, 再启动反向像素转场; HUD 仍按原节奏稍后逐个飞回。
@@ -161,6 +163,17 @@ export function TownScreen() {
       setPhase("idle");
       setBuilding(null);
     }, FACILITY_CINEMA.leave);
+  }
+
+  function backToTown() {
+    if (phase !== "inside" || exitingRef.current) return;
+    const wait = exit.closeOpenPanels();
+    if (wait <= 0) return startLeave();
+    exitingRef.current = true;
+    later(() => {
+      exitingRef.current = false;
+      startLeave();
+    }, wait);
   }
 
   function grantTestRewards() {
@@ -253,10 +266,13 @@ export function TownScreen() {
 
       {/* 设施内容与「返回据点」都留到 leaving 阶段一起淡出 —— 只在 inside 时渲染的话, 背景
           还在做像素转场, 上面的面板与按钮却已经硬切消失, 读起来很跳。 */}
-      {inFacility && facilityId && FACILITY_CONTENT[facilityId]?.(phase === "leaving", backToTown)}
-
-      {inFacility && facilityId && !FACILITY_SELF_EXIT.has(facilityId) && (
-        <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />
+      {inFacility && facilityId && (
+        <FacilityExitProvider register={exit.register}>
+          {FACILITY_CONTENT[facilityId]?.(phase === "leaving", backToTown)}
+          {!FACILITY_SELF_EXIT.has(facilityId) && (
+            <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />
+          )}
+        </FacilityExitProvider>
       )}
     </StageCanvas>
   );
