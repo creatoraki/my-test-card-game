@@ -59,6 +59,9 @@
 .k-retreat {
   composes: k-retreat from "../styles/exploreKit.module.css";
 }
+.k-trial {
+  composes: k-trial from "../styles/exploreKit.module.css";
+}
 .k-empty {
   composes: k-empty from "../styles/exploreKit.module.css";
 }

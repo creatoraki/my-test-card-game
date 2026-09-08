@@ -130,6 +130,13 @@
   --expl-kind-soft: #d1d8d61c;
   --expl-kind-line: #d1d8d666;
 }
+/* 挑战节点(跨轮契约): 靛紫 —— 蓝(route)与紫罗兰(merchant)之间的空档,
+   比两者都深一档, 读作「有代价的交易」而不是「白拿的好东西」。 */
+.k-trial {
+  --expl-kind: #9a8fe6;
+  --expl-kind-soft: #9a8fe61c;
+  --expl-kind-line: #9a8fe666;
+}
 /* 空节点(什么都不发生, 能量照扣): 高亮粉红, 与路线图 .k-empty 同款。 */
 .k-empty {
   --expl-kind: #f783ac;

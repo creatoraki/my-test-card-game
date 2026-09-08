@@ -107,6 +107,15 @@ export const EXPLORE_RULES = {
     battleNodes: { count: 2, depth: [2, 4] as readonly [number, number] },
     // 空节点(什么都不发生, 能量照扣): 每张图固定 N 个, 从空节点池随机抽取、锁在不同深段。
     emptyNodes: { count: 2 },
+    // 挑战节点(跨轮契约, 见 explore/types.ts TrialDef): 每张图 0-1 个, 按 chance 掷一次。
+    // ⚠ maxRound 是**硬约束**而不是手感旋钮: 挑战要靠「下一轮的推进战斗打完」来结算奖励,
+    //   最后一轮(BOSS 轮)打完远征就结束了, 根本等不到那一拍 —— 故最后一轮一律不投放。
+    trialNodes: {
+      chance: 0.6,
+      count: 1,
+      maxRound: 5,
+      depth: [1, 4] as readonly [number, number],
+    },
   },
 
   // ── 未知节点(设计: 每张图固定隐藏 N 个节点, 走到以后才知道是什么) ──

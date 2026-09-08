@@ -1,5 +1,5 @@
 import type { StatModifier } from "../engine/types";
-import type { EventChoice, ExploreEffect, EventOutcome } from "../explore/types";
+import type { EventChoice, ExploreEffect, EventOutcome, TrialDef } from "../explore/types";
 
 export const outcome = (id: string, text: string, effects: ExploreEffect[]): EventOutcome => ({
   id,
@@ -53,6 +53,9 @@ export const aura = (id: string, name: string, desc: string, mods: StatModifier)
   type: "GRANT_AURA" as const,
   aura: { id, name, desc, mods },
 });
+
+// 挑战契约(见 explore/types.ts TrialDef): 接下即刻生效, 到期由 session.settleTrials 发奖。
+export const startTrial = (trial: TrialDef): ExploreEffect => ({ type: "START_TRIAL", trial });
 
 // 风险事件的概率结果: w 直接写设计文档里的百分数, 每个策略内累加为 100。
 export const chance = (id: string, w: number, text: string, effects: ExploreEffect[]) => ({

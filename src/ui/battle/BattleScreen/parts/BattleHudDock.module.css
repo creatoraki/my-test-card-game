@@ -1,0 +1,36 @@
+/* 底部 HUD 使用 .battle 下发的 --canvas-pad、--hud-h、--hud-party-w 等布局变量。 */
+.battle-hud {
+  position: absolute;
+  left: var(--canvas-pad);
+  right: var(--canvas-pad);
+  bottom: var(--canvas-pad);
+  height: var(--hud-h);
+  z-index: 2;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: var(--hud-party-w) minmax(0, 1fr);
+  gap: 12px;
+  overflow: visible;
+}
+
+.party-dock {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.party-dock > * {
+  transition: opacity 0.16s, visibility 0.16s;
+}
+
+.party-dock.dock-hidden > *:not(:last-child) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.party-dock > :last-child {
+  width: var(--hud-party-w);
+}

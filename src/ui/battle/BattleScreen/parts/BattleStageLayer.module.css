@@ -1,0 +1,60 @@
+/* 本文件消费 .battle 下发的 --canvas-pad、--hud-h、--stage-gap、--topbar-h 与深度变量。
+   这些变量跨 CSS Module 继承，不要在这里复制构图数值。 */
+.battle-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+}
+
+/* 纵深层的 transform 各自独占所在元素的 transform 属性，别再往上叠加其它变换。 */
+.battle-scene .battle-bg-video {
+  transform: translateZ(var(--depth-bg, 0)) scale(var(--depth-bg-fix, 1));
+}
+
+.battle-scene .battle-bg-video-dof {
+  filter: blur(calc(var(--dof, 0) * 5px));
+}
+
+.battle-world {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+}
+
+.battle-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.battle-stage {
+  position: absolute;
+  top: var(--canvas-pad);
+  right: var(--canvas-pad);
+  bottom: calc(var(--canvas-pad) + var(--hud-h) + var(--stage-gap));
+  left: var(--canvas-pad);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 敌人排同时承担顶部悬浮信息条避让和横向流式布局。 */
+.enemy-row {
+  grid-area: enemies;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  align-content: start;
+  padding-top: calc(var(--topbar-h) - var(--canvas-pad) + 6px);
+}

@@ -16,6 +16,7 @@ import {
   outcome,
   partyExp,
 } from "./exploreEventKit";
+import { TRIAL } from "./exploreTrials";
 import { TUTORIAL_EVENT_POOL } from "./tutorialEvents";
 
 const SURVIVAL: NodeEvent[] = [
@@ -1185,6 +1186,8 @@ export interface EventPool {
   hazard: NodeEvent[];
   battle: NodeEvent[];
   endgame: NodeEvent[];
+  // 挑战节点(跨轮契约, 见 explore/types.ts TrialDef) —— 与空节点同性质: 独立保底, 不进入普通填充
+  trial: NodeEvent[];
   empty: NodeEvent[]; // 空节点(什么都不发生, 能量照扣) —— 独立保底, 不进入普通填充
 }
 
@@ -1199,6 +1202,7 @@ export const EVENT_POOLS: Record<string, EventPool> = {
     hazard: HAZARD,
     battle: BATTLE,
     endgame: [],
+    trial: TRIAL,
     empty: EMPTY,
   },
 };

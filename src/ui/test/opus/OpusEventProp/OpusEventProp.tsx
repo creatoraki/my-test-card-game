@@ -332,6 +332,18 @@ const PROPS: Record<NodeEventKind, ReactNode> = {
     </>
   ),
 
+  // 【细高 + 左右对称悬挂】挑战契约: 细柱撑起横梁, 两端各吊一只秤盘 —— 押上代价, 撑两轮再换回报
+  trial: (
+    <>
+      <Box wu={5} ws={5} h={2} />
+      <Box wu={1.8} ws={1.8} h={15} />
+      <ellipse className={s["pr-ring"]} {...isoDisc(9, 15)} />
+      <circle className={s["pr-core"]} cx={isoPt(0, 0, 17)[0]} cy={isoPt(0, 0, 17)[1]} r={2.2} />
+      <circle className={s["pr-mote"]} cx={isoPt(-8, 0, 12)[0]} cy={isoPt(-8, 0, 12)[1]} r={1.8} />
+      <circle className={s["pr-mote"]} cx={isoPt(8, 0, 12)[0]} cy={isoPt(8, 0, 12)[1]} r={1.8} />
+    </>
+  ),
+
   // 【全场最矮 + 什么都没有】空节点: 一块光秃秃的台座 + 台面上一圈浮尘 —— 「走到了, 但什么也没有」
   empty: (
     <>

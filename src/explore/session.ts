@@ -30,7 +30,7 @@
 // ⚠ 战斗不再是路由图上的终点: 每轮线路走完后展示战斗事件, 再打推进战斗。
 // ============================================================================
 
-import { rngInt, shuffle } from "../engine/rng";
+import { rngFloat, rngInt, shuffle } from "../engine/rng";
 import { RULES } from "../engine/rules";
 import { burdenValue } from "../engine/stats";
 import type { EncounterModifier } from "../engine/types";
@@ -224,6 +224,8 @@ export function createSession(
     shipped: [],
     pendingPickup: [],
     auras: [],
+    trials: [],
+    trialReport: [],
     pendingLoot: [],
     pendingBoons: [],
     pendingCardOffer: null,
@@ -888,6 +890,24 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
     case "REFORGE_BOND":
       s.pendingActions.push({ kind: "reforge", bias: e.bias });
       return "获得一次免费装备羁绊重铸";
+    case "START_TRIAL": {
+      // ⚠ 刻意**不**并进 s.auras: 那一列是整趟远征常驻、按 id 去重的正面光环, 没有移除路径;
+      //   挑战允许叠加、到期必须撤掉, 合在一起两套生命周期迟早互相咬(见 types.ts ActiveTrial)。
+      const t = e.trial;
+      const untilRound = s.round + Math.max(1, t.rounds) - 1;
+      s.trials.push({
+        // 允许叠加 ⇒ uid 必须唯一; 同一份契约在不同轮次接两次也不能撞键。
+        uid: `${t.id}-r${s.round}-${s.trials.length}`,
+        defId: t.id,
+        name: t.name,
+        penaltyDesc: t.penaltyDesc,
+        mods: structuredClone(t.mods),
+        startRound: s.round,
+        untilRound,
+        rewards: structuredClone(t.rewards),
+      });
+      return `接下挑战「${t.name}」· ${t.penaltyDesc}(持续到第 ${untilRound} 轮推进战斗结束)`;
+    }
     case "START_NODE_BATTLE":
       return `进入${BATTLE_TIER_NAME[e.tier ?? s.roundBattleTier]}`;
     case "OPEN_SHOP":
@@ -1091,6 +1111,32 @@ function pickNodes(s: ExploreState, poolId: string): NodeEvent[][] {
     if (seg == null || !place(seg, emptyEvents[i])) continue;
     const lane = grid[seg].findIndex((e) => e?.id === emptyEvents[i].id);
     if (lane >= 0) locked.add(`${seg}:${lane}`);
+  }
+
+  // 挑战节点(跨轮契约, 见 explore/types.ts TrialDef)——
+  // 每张图 0-1 个: 先按 chance 掷一次要不要出, 出了就在 depth 允许的推进段里随机落一格。
+  // ⚠ 与战斗/空节点同样必须上锁: 否则③的保底修复会把它当可牺牲的填充节点换掉。
+  // ⚠ 最后一轮(BOSS 轮)一律不投放 —— 挑战靠「下一轮的推进战斗打完」结算奖励,
+  //   那一轮打完远征就结束了, 接下来只会白扛两轮而拿不到任何回报(见 rules.trialNodes.maxRound)。
+  // ★ 本段随机消耗刻意排在空节点之后: 不打乱前面既有的生成序列, 只往后追加。
+  const trialCfg = EXPLORE_RULES.eventPool.trialNodes;
+  if (s.round <= trialCfg.maxRound && rngFloat(s) < trialCfg.chance) {
+    const trialSegments = shuffle(
+      s,
+      Array.from({ length: SEGMENTS }, (_, seg) => seg).filter(
+        (seg) => seg + 1 >= trialCfg.depth[0] && seg + 1 <= trialCfg.depth[1],
+      ),
+    );
+    const trialEvents = shuffle(
+      s,
+      pool.trial.filter((e) => !e.disabled && (e.minRound ?? 1) <= s.round),
+    );
+    for (let i = 0; i < Math.min(trialCfg.count, trialEvents.length); i++) {
+      const seg = trialSegments[i];
+      if (seg == null || !place(seg, trialEvents[i])) continue;
+      const lane = grid[seg].findIndex((e) => e?.id === trialEvents[i].id);
+      if (lane >= 0) locked.add(`${seg}:${lane}`);
+    }
   }
 
   // ② 逐段填满 —— 从最深的一段开始
@@ -1768,6 +1814,34 @@ export function retreatFromBattle(s: ExploreState, survivors: BattleSurvivor[]):
 
 // ⚠ 第四参是**敌人 defId 列表**而不是数量: 掉落要查每个敌人自己的 dropTable。
 //   数量仍可由 .length 取到, 所以旧口径没有丢失。
+// 挑战契约到期结算(见 explore/types.ts TrialDef)。
+// ★ 只由**轮次推进战斗的胜利**调用 —— 挑战的倒计时是按「轮」走的, 节点战斗不推进轮号。
+// 每份到期的契约掷一次自己的 rewards(加权二选一) → 逐条 applyEffect(defer=true,
+// 物品因此进 pendingLoot, 与本场战斗掉落落在同一个战利品盘) → 从 s.trials 摘掉。
+// ⚠ 摘掉这一步不能省: 负面修正就靠 s.trials 存在与否生效(见 runStore.launchBattle)。
+function settleTrials(s: ExploreState): void {
+  const due = s.trials.filter((trial) => trial.untilRound <= s.round);
+  if (!due.length) return;
+  s.trials = s.trials.filter((trial) => trial.untilRound > s.round);
+
+  for (const trial of due) {
+    const rolled = rollOutcome(s, trial.rewards);
+    const notes: string[] = [];
+    for (const effect of rolled?.effects ?? []) {
+      try {
+        const note = applyEffect(s, effect, true);
+        if (note) notes.push(note);
+      } catch (err) {
+        console.error("[explore] 挑战奖励结算异常（已跳过）", { trial: trial.defId, error: err });
+      }
+    }
+    s.trialReport.push({ name: trial.name, story: rolled?.text ?? "", notes });
+    const summary = notes.join(" · ") || "没有可结算的奖励";
+    s.pendingNotes.push(`挑战达成 · ${trial.name} · ${summary}`);
+    logLine(s, `挑战达成: ${trial.name} · ${summary}`);
+  }
+}
+
 export function finishBattle(
   s: ExploreState,
   won: boolean,
@@ -1779,6 +1853,8 @@ export function finishBattle(
   const empty = { loot: 0, items: [], overflow: [] };
   if (s.phase !== "inBattle") return empty;
   s.pendingChallengeBonus = won ? challengeBonus : 0;
+  // 挑战结算条只属于这一场: 每场战斗结算时重挂一份, 免得上一场的条子留在胜利面板上。
+  s.trialReport = [];
 
   applySurvivors(s, survivors);
 
@@ -1847,6 +1923,12 @@ export function finishBattle(
     s.phase = "atNode";
     return { loot, items: rolled, overflow: [] };
   }
+
+  // ★ 挑战到期结算必须夹在这两个早退之间:
+  //   · 在节点战斗早退**之后** —— 节点战斗不推进轮号, 不该让倒计时白走一格;
+  //   · 在通关早退**之前** —— 第 5 轮接下的挑战, 到期点正是第 6 轮的 BOSS 战,
+  //     放到下面就永远结算不到(那一支直接 return)。
+  settleTrials(s);
 
   if (wasBoss || s.round >= s.roundCount) {
     // BOSS 轮胜利 = 通关。轮次走满但不是 BOSS(理论上不会发生)也按通关收尾。

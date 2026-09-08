@@ -1,0 +1,84 @@
+.battle-dim,
+.battle-flash,
+.battle-blood,
+.battle-glitch {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.battle-dim {
+  background: #04101c;
+  opacity: 0;
+  animation: iaiScreenDim 1000ms linear both;
+}
+
+@keyframes iaiScreenDim {
+  0% { opacity: 0; background-color: #04101c; }
+  14% { opacity: 0.55; }
+  46% { opacity: 0.55; background-color: #04101c; }
+  49% { opacity: 0.62; }
+  52% { opacity: 0.38; background-color: #cfeeff; }
+  60% { opacity: 0.16; }
+  82%, 100% { opacity: 0; }
+}
+
+.battle-flash {
+  background: #fff;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: bladeScreenFlash 1600ms linear both;
+}
+
+@keyframes bladeScreenFlash {
+  0% { opacity: 0; }
+  1.1% { opacity: 0.68; }
+  6.25% { opacity: 0; }
+  59% { opacity: 0; }
+  60% { opacity: 0.4; }
+  65% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.battle-blood {
+  background-color: transparent;
+  animation: goreScreenGrade 2800ms linear both;
+}
+
+@keyframes goreScreenGrade {
+  0%, 1.8% { background-color: transparent; }
+  1.8%, 21% { background-color: #14040680; }
+  28.6% { background-color: #ffe4e480; }
+  32% { background-color: #14040680; }
+  67.9% { background-color: #ffdcdc8c; }
+  72% { background-color: #14040680; }
+  85%, 100% { background-color: transparent; }
+}
+
+.battle-glitch {
+  background: #ffffff;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: neonScreenGlitch 2200ms linear both;
+}
+
+@keyframes neonScreenGlitch {
+  0%, 42% { opacity: 0; background-color: #ffffff; }
+  43.2% { opacity: 0.35; background-color: #dfffff; }
+  44.8% { opacity: 0; }
+  76% { opacity: 0; background-color: #ffffff; }
+  77.3% { opacity: 0.58; background-color: #fff1ff; }
+  79.5% { opacity: 0.12; background-color: #cfffff; }
+  83% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-dim,
+  .battle-flash,
+  .battle-blood,
+  .battle-glitch {
+    animation: none;
+  }
+}

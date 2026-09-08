@@ -87,6 +87,7 @@ export type NodeEventKind =
   | "energy"
   | "hazard"
   | "battle"
+  | "trial" // 挑战节点: 花粒子接下一份跨轮契约(先付属性代价, 撑过两轮再拿回报)
   | "empty"; // 空节点: 什么都不会发生, 但每节点固定能量消耗照扣不误
 
 // 保底规则按「类别」而非 kind 判定(设计文档 §2.3.2), 且范围是**整张图**而不是每段。
@@ -99,6 +100,7 @@ export type EventCategory =
   | "hazard"
   | "battle"
   | "endgame"
+  | "trial" // 挑战节点的专属类别: 独立保底投放, 不进普通池填充
   | "empty"; // 空节点(什么都不发生)的专属类别
 
 // 风险标记 —— 位置**全图完全随机**(不限制推进段, 见 rules.ts eventPool.hazard):
@@ -134,6 +136,7 @@ export type ExploreEffect =
   | { type: "FORGE_REMOVE" }
   | { type: "EQUIP_OFFER"; count: number; slot?: EquipSlot }
   | { type: "REFORGE_BOND"; bias?: BondBias }
+  | { type: "START_TRIAL"; trial: TrialDef } // 接下一份挑战契约(负面修正立即生效, 到期发奖)
   | { type: "START_NODE_BATTLE"; tier?: BattleTier }
   | { type: "OPEN_SHOP" } // 打开本事件的交易终端, 由落点选项触发
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
@@ -151,6 +154,36 @@ export interface ExploreAura {
   name: string;
   desc: string;
   mods: StatModifier;
+}
+
+// ---------------------------------------------------------------------------
+// 挑战契约(代码里一律叫 trial, 界面文字一律叫「挑战」)
+// ---------------------------------------------------------------------------
+// ⚠ 与 engine/challenges 的「挑战词条」(战斗内掉落系数 K 的加成目标)是**两回事** ——
+//   那一套在 ExploreState.pendingChallengeBonus 名下, 与本结构毫无关系。
+//
+// 玩法: 在挑战节点花 5 粒子接下 → 本轮与下一轮的**全部战斗**背着 mods 的负面修正 →
+//   下一轮的推进战斗打完立刻结算 rewards(加权二选一)并移除修正。
+//   中途撤离 / 战斗失利 = 白扛, 不发奖。这就是赌注本身。
+export interface TrialDef {
+  id: string;
+  name: string;
+  penaltyDesc: string; // 一行代价说明, HUD 与结算摘要直接读它, 不各写一份
+  mods: StatModifier; // 负面属性修正
+  rounds: number; // 持续**轮**数(含接下的当轮), 本期固定 2
+  rewards: EventOutcome[]; // 到期时掷一次, 复用 EventOutcome 的 weight 加权
+}
+
+// 会话里进行中的一份挑战。★ 允许叠加 ⇒ 必须有唯一 uid, 不能拿 defId 当键。
+export interface ActiveTrial {
+  uid: string;
+  defId: string;
+  name: string;
+  penaltyDesc: string;
+  mods: StatModifier;
+  startRound: number;
+  untilRound: number; // 含: 该轮的**推进战斗**打完即结算
+  rewards: EventOutcome[];
 }
 
 export interface EventOutcome {
@@ -344,6 +377,14 @@ export interface ExploreState {
 
   party: PartySnapshot[];
   auras: ExploreAura[];
+  // ---- 挑战契约(见 TrialDef) ----
+  // ⚠ 刻意**不**并进 auras: auras 按 id 去重且没有移除路径(整趟远征常驻的正面光环),
+  //   而挑战允许叠加、到期必须撤掉 —— 两者生命周期完全不同, 合在一起迟早互相咬。
+  trials: ActiveTrial[];
+  // 最近一场推进战斗里到期的挑战, 供战斗胜利面板展示。每次结算战斗时重置。
+  // ⚠ 结果文案刻意留在这里而**不**推进 pendingStory: 那一列由节点浮层消费、只在 confirmNode
+  //   时清空, 战斗后塞进去会漏到下一个落点的结算浮层上。
+  trialReport: { name: string; story: string; notes: string[] }[];
   // 结算页唯一数据来源; 节点数从 history 的 node 条目、推进轮数从 round 现算。
   stats: ExpeditionStats;
   history: NodeHistoryEntry[];

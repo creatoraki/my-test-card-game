@@ -259,5 +259,7 @@ export const TUTORIAL_EVENT_POOL: EventPool = {
   hazard: TUTORIAL_EVENTS.filter((event) => event.category === "hazard"),
   battle: TUTORIAL_BATTLES,
   endgame: [],
+  // 教程图走 roundPlans 固定蓝图, 不做随机投放 ⇒ 挑战节点在这里恒为空。
+  trial: [],
   empty: TUTORIAL_EVENTS.filter((event) => event.category === "empty"),
 };

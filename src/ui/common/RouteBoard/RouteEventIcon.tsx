@@ -71,6 +71,15 @@ const PATHS: Record<RouteIconKind, ReactElement> = {
       <path d="M4 24h4v4H4zM24 24h4v4h-4z" />
     </>
   ),
+  // 挑战: 天平 —— 先押上代价, 撑过两轮再换回报, 这个节点的全部意思就是一次称重
+  trial: (
+    <>
+      <path d="M16 6v21M11 27h10" />
+      <path d="M6 11h20" />
+      <path d="M6 11 3 18h6z" />
+      <path d="M26 11l-3 7h6z" />
+    </>
+  ),
   // 撤离: 门框 + 向外的箭头
   retreat: (
     <>

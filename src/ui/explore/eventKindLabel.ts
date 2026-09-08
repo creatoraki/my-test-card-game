@@ -9,5 +9,6 @@ export const eventKindLabel: Record<NodeEventKind, string> = {
   energy: "能量事件",
   retreat: "撤离事件",
   battle: "战斗事件",
+  trial: "挑战事件",
   empty: "空节点",
 };

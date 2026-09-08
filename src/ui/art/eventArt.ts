@@ -10,6 +10,7 @@ const EVENT_ART: Record<NodeEventKind, string> = {
   energy: placeholderArt,
   hazard: placeholderArt,
   battle: placeholderArt,
+  trial: placeholderArt,
   empty: placeholderArt,
 };
 

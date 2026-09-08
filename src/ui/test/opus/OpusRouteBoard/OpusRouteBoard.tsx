@@ -171,6 +171,7 @@ const KIND_SHAPE: Record<NodeEventKind, TileShape> = {
   merchant: "util",
   route: "util",
   retreat: "util",
+  trial: "util",
   empty: "util",
   hazard: "threat",
   battle: "threat",

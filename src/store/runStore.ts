@@ -204,7 +204,14 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   const active = activeBonds(bondCountsOf(characters, party));
   const bondMods = mergeMods(active.map((a) => a.tier.mods)); // 每人各叠一份
   const bondPartyMods = mergeMods(active.map((a) => a.tier.partyMods)); // 全队只叠一份
-  const auraMods = mergeMods(session.auras.map((aura) => aura.mods));
+  // 远征光环(正面, 整趟常驻)与挑战契约的负面修正走同一条合成 —— 引擎不认识两者中的任何一个,
+  // 它只收一份算好的面板。★ 一处合成即同时覆盖推进战斗与节点战斗(两者都走本函数)。
+  // ⚠ 这一份修正对**每一名角色各叠一次** ⇒ 挑战 mods 里绝不能出现 drawCount / handLimit /
+  //   burdenAdapt 这类「小队合计」属性(会被叠成人数倍), 见 data/exploreTrials.ts 抬头。
+  const auraMods = mergeMods([
+    ...session.auras.map((aura) => aura.mods),
+    ...session.trials.map((trial) => trial.mods),
+  ]);
 
   const alive = session.party.filter((p) => p.alive);
   const battleDeck: Card[] = alive.flatMap((p) => structuredClone(characters[p.charId].deck));
