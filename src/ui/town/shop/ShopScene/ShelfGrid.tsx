@@ -15,7 +15,6 @@ interface Props {
   onHoverStart: (key: string) => void;
   onHoverEnd: (key: string) => void;
   onBuy: (key: string) => void;
-  onIconRef: (key: string, element: HTMLSpanElement | null) => void;
 }
 
 export default function ShelfGrid({
@@ -26,7 +25,6 @@ export default function ShelfGrid({
   onHoverStart,
   onHoverEnd,
   onBuy,
-  onIconRef,
 }: Props) {
   const stacks = useMemo(
     () => new Map(slots.map((slot) => [slot.key, asStack(slot)])),
@@ -42,7 +40,6 @@ export default function ShelfGrid({
             stack={stacks.get(slot.key)!}
             selected={selected === slot.key}
             sold={slot.sold}
-            onIconRef={onIconRef}
             onSelect={onSelect}
             onHoverStart={onHoverStart}
             onHoverEnd={onHoverEnd}

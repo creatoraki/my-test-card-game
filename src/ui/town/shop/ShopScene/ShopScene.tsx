@@ -3,12 +3,11 @@
 // ⚠ 本组件的根节点 .sx-root 永远不能挂 animation / opacity / transform:
 //    入场/退场动画一律挂在叶子节点，避免破坏设施背景的 backdrop-filter。
 
-import { useCallback, useRef, useState, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import { shopRefreshCost } from "@/data/shop";
 import { useTownStore } from "@/store/townStore";
 import { PanelShell } from "@/ui/common/PanelShell";
 import { cx } from "@/ui/common/cx";
-import PurchaseFlight, { type PurchaseFlightRect } from "@/ui/town/shop/PurchaseFlight/PurchaseFlight";
 import { CrateIcon, ShelfIcon } from "@/ui/town/shop/StockPanels/icons";
 import { StockEntries } from "@/ui/town/shop/StockPanels";
 import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
@@ -46,13 +45,6 @@ const VENDING_THEME = {
   "--panel-shell-close-size": "36px",
 } as CSSProperties;
 
-type PurchaseFlightState = {
-  id: number;
-  itemId: string;
-  source: PurchaseFlightRect;
-  target: PurchaseFlightRect;
-};
-
 interface Props {
   /** 返回据点的演出已开始: 内容整体淡出, 与背景交叉淡同步。 */
   leaving?: boolean;
@@ -65,56 +57,7 @@ export function ShopScene({ leaving = false }: Props) {
   const refreshShop = useTownStore((state) => state.refreshShop);
   const buyShopItem = useTownStore((state) => state.buyShopItem);
   const refreshCost = shopRefreshCost(shop.refreshes);
-  const warehouseIconRef = useRef<HTMLSpanElement>(null);
-  const itemIconRefs = useRef<Map<string, HTMLSpanElement>>(new Map());
-  const flightIdRef = useRef(0);
-  const [purchaseFlights, setPurchaseFlights] = useState<PurchaseFlightState[]>([]);
   const { open, closing, mounted, openPanels, closePanels, warehouse, vending } = useShopPanelsMorph();
-
-  const registerItemIcon = useCallback((key: string, element: HTMLSpanElement | null) => {
-    if (element) {
-      itemIconRefs.current.set(key, element);
-    } else {
-      itemIconRefs.current.delete(key);
-    }
-  }, []);
-
-  const handleBuy = (key: string) => {
-    const slot = shop.slots.find((item) => item.key === key);
-    const source = itemIconRefs.current.get(key);
-    const target = warehouseIconRef.current;
-
-    if (slot && !slot.sold && loot >= slot.price && source && target) {
-      const sourceRect = source.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const id = flightIdRef.current++;
-      setPurchaseFlights((current) => [
-        ...current,
-        {
-          id,
-          itemId: slot.itemId,
-          source: {
-            left: sourceRect.left,
-            top: sourceRect.top,
-            width: sourceRect.width,
-            height: sourceRect.height,
-          },
-          target: {
-            left: targetRect.left,
-            top: targetRect.top,
-            width: targetRect.width,
-            height: targetRect.height,
-          },
-        },
-      ]);
-    }
-
-    buyShopItem(key);
-  };
-
-  const removePurchaseFlight = (id: number) => {
-    setPurchaseFlights((current) => current.filter((flight) => flight.id !== id));
-  };
 
   return (
     <div className={cx(s["sx-root"], leaving && s["is-leaving"])} data-shop-root>
@@ -133,7 +76,7 @@ export function ShopScene({ leaving = false }: Props) {
             accent="#c9d3da"
             status={
               <span className={s["sx-status"]}>
-                <span ref={warehouseIconRef} className={s["sx-warehouse-icon"]} aria-hidden="true">
+                <span className={s["sx-warehouse-icon"]} aria-hidden="true">
                   <CrateIcon />
                 </span>
                 仓储索引
@@ -178,23 +121,12 @@ export function ShopScene({ leaving = false }: Props) {
               loot={loot}
               day={day}
               refreshCost={refreshCost}
-              onBuy={handleBuy}
-              onIconRef={registerItemIcon}
+              onBuy={buyShopItem}
               onRefresh={refreshShop}
             />
           </PanelShell>
         </>
       )}
-
-      {purchaseFlights.map((flight) => (
-        <PurchaseFlight
-          key={flight.id}
-          itemId={flight.itemId}
-          source={flight.source}
-          target={flight.target}
-          onComplete={() => removePurchaseFlight(flight.id)}
-        />
-      ))}
     </div>
   );
 }

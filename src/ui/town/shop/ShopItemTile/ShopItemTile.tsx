@@ -29,8 +29,6 @@ interface Props {
   selected?: boolean;
   /** 已售出: 压暗 + 描边落到面板线色。★ 保留占位, 当日不补货是规则的一部分。 */
   sold?: boolean;
-  /** 购买飞行动画的起点 —— 把图标节点登记到 ShopScene 的 Map 里。 */
-  onIconRef?: (key: string, element: HTMLSpanElement | null) => void;
   onSelect?: (key: string) => void;
   onHoverStart?: (key: string) => void;
   onHoverEnd?: (key: string) => void;
@@ -41,7 +39,6 @@ function ShopItemTile({
   stack,
   selected,
   sold,
-  onIconRef,
   onSelect,
   onHoverStart,
   onHoverEnd,
@@ -53,11 +50,6 @@ function ShopItemTile({
   const handleClick = useCallback(() => onSelect?.(slotKey), [onSelect, slotKey]);
   const handleHoverStart = useCallback(() => onHoverStart?.(slotKey), [onHoverStart, slotKey]);
   const handleHoverEnd = useCallback(() => onHoverEnd?.(slotKey), [onHoverEnd, slotKey]);
-  // ref 回调必须**稳定**: 内联写法每次渲染都会先以 null 再以节点各调一次, 白白 detach/attach。
-  const handleIconRef = useCallback(
-    (element: HTMLSpanElement | null) => onIconRef?.(slotKey, element),
-    [onIconRef, slotKey],
-  );
 
   return (
     <button
@@ -71,7 +63,7 @@ function ShopItemTile({
       onBlur={handleHoverEnd}
     >
       <img className={s["sx-tile-tray"]} src={PRODUCT_TRAY_ART} alt="" aria-hidden="true" />
-      <span ref={handleIconRef} className={s["sx-tile-icon"]}>
+      <span className={s["sx-tile-icon"]}>
         {itemIcon(def)}
       </span>
     </button>

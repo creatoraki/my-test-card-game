@@ -12,7 +12,6 @@ interface Props {
   day: number;
   refreshCost: number;
   onBuy: (key: string) => void;
-  onIconRef: (key: string, element: HTMLSpanElement | null) => void;
   onRefresh: () => void;
 }
 
@@ -22,7 +21,6 @@ export function ShopPanel({
   day,
   refreshCost,
   onBuy,
-  onIconRef,
   onRefresh,
 }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -56,7 +54,6 @@ export function ShopPanel({
             onHoverStart={setHovered}
             onHoverEnd={handleHoverEnd}
             onBuy={onBuy}
-            onIconRef={onIconRef}
           />
         </div>
         <ShopItemCard
