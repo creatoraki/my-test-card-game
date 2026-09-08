@@ -5,6 +5,7 @@ import {
   EQUIPMENT_ITEM_DEFS,
   GENERAL_MATERIAL_DEFS,
   MATERIAL_ITEM_DEFS,
+  NEAR_EXPIRY_FOOD_IDS,
 } from "./items/index";
 import { mapEquipRarities } from "./maps";
 
@@ -15,14 +16,12 @@ export type TradeStockKind =
   | "food"
   | "equip-weapon";
 
-const FOOD_IDS = ["milk", "bread", "cola", "hamburger", "fried-chicken", "pizza"];
-
 const ALL_DEFS = [...MATERIAL_ITEM_DEFS, ...CONSUMABLE_ITEM_DEFS, ...EQUIPMENT_ITEM_DEFS];
 const DEF_BY_ID = new Map(ALL_DEFS.map((def) => [def.id, def]));
 const CONSUMABLE_FAMILIES = new Set(["sugar-cube", "medical-kit", "holy-water", "fruit-juice"]);
 const COMMON_RARITIES = new Set<ItemRarity>(["common", "fine"]);
 
-function defsByIds(ids: string[]): ItemDef[] {
+function defsByIds(ids: readonly string[]): ItemDef[] {
   return ids.map((id) => DEF_BY_ID.get(id)).filter((def): def is ItemDef => Boolean(def));
 }
 
@@ -32,7 +31,7 @@ export function tradeStockDefs(kind: TradeStockKind, mapId: string): ItemDef[] {
       (def) => def.familyId && CONSUMABLE_FAMILIES.has(def.familyId) && COMMON_RARITIES.has(def.rarity),
     );
   }
-  if (kind === "food") return defsByIds(FOOD_IDS);
+  if (kind === "food") return defsByIds(NEAR_EXPIRY_FOOD_IDS);
   if (kind === "equip-weapon") {
     const allowedRarities = mapEquipRarities(mapId);
     return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon" && allowedRarities.includes(def.rarity));

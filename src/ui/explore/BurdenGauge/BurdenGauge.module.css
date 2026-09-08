@@ -1,0 +1,76 @@
+.gauge {
+  --gauge-color: var(--expl-glow, #6fe3f5);
+
+  position: relative;
+  display: flex;
+  width: 112px;
+  min-height: 104px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  color: var(--gauge-color);
+  cursor: var(--cursor-help, default);
+}
+
+.gauge[data-level="warn"] {
+  --gauge-color: #ffd27a;
+}
+
+.gauge[data-level="full"] {
+  --gauge-color: #ff806f;
+}
+
+.icon {
+  width: 68px;
+  height: 68px;
+  color: var(--gauge-color);
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--gauge-color) 42%, transparent));
+}
+
+.slots {
+  margin-top: -2px;
+  color: var(--gauge-color);
+  font-family: var(--font-family);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow: 0 2px 10px #000c;
+  animation: countBump 260ms var(--sm-ease);
+}
+
+.popover {
+  width: 360px;
+  padding: 22px 26px;
+}
+
+.title {
+  display: block;
+  color: var(--text);
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.detail {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.detail p {
+  margin: 0;
+}
+
+@keyframes countBump {
+  from {
+    transform: scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slots {
+    animation: none;
+  }
+}

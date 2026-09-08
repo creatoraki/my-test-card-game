@@ -143,6 +143,7 @@ src/ui/
 | [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端内容面板：按服务槽位切 tab，图标化食品报价、持有量和确认操作；商品槽位展示图标货架与详情，随机服务展示 BUFF 概率，队伍/待办服务展示结算说明；只派发购买和关闭 action，不承载交易规则。 |
 | [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，承载 tab 化 `MerchantPanel` 与本节点摘要；只保留页眉服务摘要和节点记录条，关闭交易直接回到节点决策。 |
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
+| [PicnicSkill](../../src/ui/explore/PicnicSkill/) | 探索技能《野餐》的按钮与面板：按钮按会话阶段显示可用/锁定/已使用状态，面板负责最多 4 份食品选择、野餐布槽位和隐藏食谱结算。 |
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`；模组走 `useLootModuleActions` 的两按钮菜单，可选择直接装载。 |
 | [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
 | [ExpDropFx](../../src/ui/explore/ExpDropFx/ExpDropFx.tsx) | 约 2 秒经验坠入飘字。由探索主屏按 `pendingExp` 增量和序号挂载，避免把动画放进带 `overflow: hidden` 的角色立绘容器。 |
@@ -252,6 +253,7 @@ src/ui/
 | [audio/sfx/sfxDelegate.ts](../../src/ui/audio/sfx/sfxDelegate.ts) | 全局交互元素事件委托：悬浮、点击、禁用态与 data-sfx 覆盖。 |
 | [audio/sfx/index.ts](../../src/ui/audio/sfx/index.ts) | 程序化音效公共出口。 |
 | [art/rarityArt.ts](../../src/ui/art/rarityArt.ts) | 普通、罕见、稀有水晶素材查表及预热源列表。 |
+| [art/statusArt.ts](../../src/ui/art/statusArt.ts) | 状态 id → 状态图标 PNG 与预热源；护盾图标值单列导出。 |
 | [art/assetLoader.ts](../../src/ui/art/assetLoader.ts) | 可复用的低优先级图片下载/解码与视频首帧预加载器；按 URL 去重，并限制图片并发以避免抢占交互资源。 |
 | [art/assetPreloader.ts](../../src/ui/art/assetPreloader.ts) | 游戏启动时的实际美术资源清单、去重、进度和失败收口；不扫描未引用的 `assets` 文件。 |
 | [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |

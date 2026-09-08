@@ -77,6 +77,7 @@ const CardInfoPanelContent = memo(function CardInfoPanelContent({
       </div>
       <CardKeywordNotes
         text={text}
+        card={card}
         className={s["cip-keywords"]}
         additionalNotes={card.contaminated ? [{
           id: "pollution",

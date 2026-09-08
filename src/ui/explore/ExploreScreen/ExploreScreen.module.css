@@ -143,6 +143,11 @@
   z-index: 3;
   animation: explRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
+.expl-burden {
+  position: absolute;
+  z-index: 3;
+  animation: explRise 420ms 30ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
 /* ★ 落点浮层开着时四角 HUD 集体后退一档 —— 这是本页「聚焦」的全部手段, 没有全屏遮罩。
    ⚠⚠ 后退**只能压在叶子元素上**: .expl-readout / .expl-party / .expl-actions 都是玻璃砖的
      父元素, 而 opacity != 1 与 transform 都会让它们变成 backdrop root, 里面每块玻璃的
@@ -152,14 +157,14 @@
      (见 session.retreat 的阶段白名单), 关掉就等于凭空砍了一条出路。 */
 .expl-readout.is-recede .expl-chip,
 .expl-party.is-recede .expl-member,
-.expl-actions.is-recede .expl-command,
+.expl-actions.is-recede [data-picnic-button],
 .expl-actions.is-recede .expl-btn {
   opacity: 0.5;
 }
 .expl-kicker,
 .expl-chip,
 .expl-member,
-.expl-command {
+.expl-btn {
   transition: opacity 220ms ease;
 }
 /* ===================== 右上: 读数 ===================== */
@@ -233,11 +238,6 @@
 }
 .expl-chip-wide {
   min-width: 300px;
-}
-.expl-chip-label {
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: 3px;
 }
 .expl-chip-value {
   color: var(--text);
@@ -460,64 +460,6 @@
   gap: 12px;
   animation: explRise 420ms 160ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
-.expl-commands {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-}
-.expl-command-row {
-  display: flex;
-  gap: 8px;
-}
-.expl-command-tip {
-  position: relative;
-  display: block;
-}
-/* P1 占位: 版式按最终形态排好, 下一轮只往里填实现。虚线描边 = 「预留位」的统一语言。 */
-.expl-command {
-  --notch: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 118px;
-  padding: 10px 8px;
-  border: 1px dashed #ffffff2b;
-  background: #0a101399;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-  opacity: 0.5;
-}
-/* 「不可用」也要有回应: 悬停时轻轻歪一下 + 描边提亮, 而不是死的一块。 */
-.expl-command {
-  transition:
-    opacity 220ms ease,
-    transform 200ms cubic-bezier(0.2, 0.72, 0.28, 1),
-    border-color 200ms ease;
-}
-:global([data-explore-stage]) .expl-command:hover {
-  transform: rotate(-0.8deg) translateY(-2px);
-  border-color: color-mix(in srgb, var(--expl-glow) 45%, transparent);
-  opacity: 0.7;
-}
-.expl-command-name {
-  color: var(--text);
-  font-size: 13px;
-  letter-spacing: 1px;
-}
-.expl-command-flag {
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 2px;
-}
-
 .expl-button-row {
   display: flex;
   gap: 10px;
@@ -737,6 +679,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .expl-bag,
+  .expl-burden,
   .expl-readout,
   .expl-party,
   .expl-actions {

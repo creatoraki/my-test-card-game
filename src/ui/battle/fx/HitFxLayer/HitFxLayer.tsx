@@ -29,7 +29,7 @@ const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Ele
   "keen-edge": KeenEdgeFx,
 };
 
-// 图标特效(与 PROC_FX 平行的分支): 复用 BUFF 图标 SVG(如护盾), 以"虚幻放大"浮现动画播放。
+// 图标特效(与 PROC_FX 平行的分支): 复用状态图标(如护盾), 以"虚幻放大"浮现动画播放。
 // 由 ANIM[*].icon 标记启用; 与 emoji 互斥 —— icon 存在时优先渲染图标。
 const ICON_FX: Partial<Record<CardAnim, ComponentType<{ className?: string }>>> = {
   shield: ShieldIcon,

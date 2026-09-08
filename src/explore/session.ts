@@ -241,6 +241,7 @@ export function createSession(
     pendingContaminationCount: 0,
     pendingContaminationEach: 0,
     lateralShiftsLeft: 1,
+    picnicUsed: false,
     roundBattleEventId: null,
     pendingEncounterId: null,
     pendingIsBoss: false,
@@ -261,7 +262,7 @@ export function createSession(
 // ---------------------------------------------------------------------------
 // 内部原语
 // ---------------------------------------------------------------------------
-function logLine(s: ExploreState, text: string): void {
+export function logLine(s: ExploreState, text: string): void {
   s.log.push(text);
 }
 

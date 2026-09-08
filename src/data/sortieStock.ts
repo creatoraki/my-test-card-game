@@ -13,14 +13,11 @@
 // 居民积分购买, 再带进背包」。
 // ============================================================================
 
+import { NEAR_EXPIRY_FOOD_IDS } from "./items/index";
+
 export const SORTIE_STOCK_IDS: readonly string[] = [
   // 六种临期食品 —— 探索事件里的指定交易货币, maxStack 5 可堆叠。
-  "milk",
-  "bread",
-  "cola",
-  "hamburger",
-  "fried-chicken",
-  "pizza",
+  ...NEAR_EXPIRY_FOOD_IDS,
   // 四族消耗品的**普通档**。高品质档先不上架, 日后开高级货柜再加。
   // ⚠ 这四件目前 def 里没有 use 字段(数值待平衡), 买了能带进去占格, 但探索中用不了。
   "sugar-cube-c",
@@ -28,4 +25,3 @@ export const SORTIE_STOCK_IDS: readonly string[] = [
   "holy-water-c",
   "fruit-juice-c",
 ];
-

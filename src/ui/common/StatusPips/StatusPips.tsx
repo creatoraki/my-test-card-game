@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { StatusInstance, Team } from "@/engine";
 import { getStatusDef } from "@/engine";
+import { statusArtOf } from "@/ui/art/statusArt";
 import { cx } from "@/ui/common/cx";
 import { RailPopover } from "@/ui/common/RailPopover";
 import { ShieldIcon, STATUS_ICONS } from "./icons";
@@ -97,10 +98,15 @@ export function StatusPips({
       })}
       {statuses.map((st) => {
         const def = getStatusDef(st.id);
+        const art = statusArtOf(st.id);
         const StatusIcon = STATUS_ICONS[st.id];
         return renderPip({
           key: st.id,
-          icon: StatusIcon ? <StatusIcon className={s["status-icon"]} /> : undefined,
+          icon: art ? (
+            <img className={s["status-icon"]} src={art} alt="" aria-hidden />
+          ) : StatusIcon ? (
+            <StatusIcon className={s["status-icon"]} />
+          ) : undefined,
           emoji: def?.emoji ?? "❓",
           name: def?.name ?? st.id,
           desc: def?.desc ?? "暂无说明",

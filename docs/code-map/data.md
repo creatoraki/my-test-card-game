@@ -11,6 +11,7 @@
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）；4 只怪的编成只登记在 t4/t5。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |
 | [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用材料与水晶、地区特色材料、换金物、消耗品与临期食品、装备模型模板及成品模组；正向武器由族级词条模板展开五档模型，极端武器仍使用固定属性；由 `data/index.ts` 与旧清单合并注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20；`items/materials.ts` 的水晶与 `items/regional.ts` 的地区材料都刻意不过它 ⇒ 没有 `buyValue` ⇒ 据点商店永不上架、回收台也不收。 |
+| [picnicRecipes.ts](../../src/data/picnicRecipes.ts) | 远征技能《野餐》的 6 个隐藏食谱、远征光环和多重集精确匹配；食谱名称只在命中结算时交给 UI。 |
 | [items/regional.ts](../../src/data/items/regional.ts) | 地区特色材料的唯一真相点：按地区与 `low` / `mid` / `boss` 档位登记材料，提供 `regionalMaterial()`、`itemRegionId()` 与 `regionalTierOf()`；首批登记废弃楼层三种材料，独立于 `MATERIAL_ITEM_DEFS`，不进入交易终端材料候选池。 |
 | [items/modules.ts](../../src/data/items/modules.ts) | 成品模组物品定义：角色模组（速攻、弃牌、落差、卫星、借星、瞄准、催熟）与 1 阶通用模组（攻击力/治愈力/穿甲/暴击/精准/淬毒/燃烧，统一 `fine` + `familyId: "generic-module"`），均不填购买/回收价格，因此不会进入商店或回收台；另有 1 阶模组箱 `module-crate-t1`（消耗品，`use.kind = "openModuleCrate"`）。 |
 | [cardModules/](../../src/data/cardModules/) | 卡牌模组注册表与唯一效果落点。`types.ts` 持有 `CardModuleDef` 与装配条件判定（`hasDamageEffect` / `hasScaledDamage` / `hasScaledSupport`，后两者用于挡住「装在固定伤害或固定值护盾牌上收益为零」的情况）；`character.ts` 是角色关键词模组；`genericT1.ts` 是 1 阶通用模组（面板组走 `PLAY_STAT_BONUS`，异常组走按攻击力 15% 缩放的中毒/灼烧）并导出开箱池 `GENERIC_T1_MODULE_IDS`；`index.ts` 汇总并持有 `recomputeCardModule`：重算时费用与白名单字段还原后覆盖，前置/追加效果和词条均按 `fromModule` 标记剥离再叠加，文案按登记后缀剥离再拼接，保留卡牌强化后的名称、效果和文案。 |

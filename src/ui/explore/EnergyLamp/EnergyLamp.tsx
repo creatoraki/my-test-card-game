@@ -8,8 +8,7 @@
 // ⚠ 档位阈值的真相点只有 explore/session.ts 的 energyTier(), 这里不重算。
 // ⚠ 本组件挂在 .explore-stage 内部, 尺寸全是「设计 px」(1920×1080 画布), 不写 vw/vh。
 
-import { energyTier, toNextTier } from "@/explore/session";
-import { EXPLORE_RULES, ENERGY_TIERS } from "@/explore/rules";
+import { energyTier } from "@/explore/session";
 import { getStatusDef } from "@/engine";
 import { energyLampGlow, energyLampIntensity } from "@/ui/art/energyLampArt";
 import { cx } from "@/ui/common/cx";
@@ -30,10 +29,6 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
   const cur = energyTier(energy);
   const after = energyTier(projected ?? energy);
   const crossing = projected != null && after.tier > cur.tier;
-  const previous = ENERGY_TIERS.find((tier) => tier.tier === cur.tier - 1);
-  const next = ENERGY_TIERS.find((tier) => tier.tier === cur.tier + 1);
-  const rangeTop = previous ? previous.min - 1 : EXPLORE_RULES.energyMax;
-  const pointsToNext = toNextTier(energy);
   const dangers = [
     ...cur.enemyStatuses.map((status) => {
       const name = getStatusDef(status.id)?.name ?? status.id;
@@ -72,25 +67,12 @@ export function EnergyLamp({ energy, projected, recede = false }: Props) {
       <RailPopover side="left" className={s["el-popover"]}>
         <div className={s["el-tip-head"]}>
           <strong>{cur.name}</strong>
-          <span>能量 {cur.min}-{rangeTop}</span>
         </div>
-        {pointsToNext != null && next && (
-          <p className={s["el-tip-next"]}>
-            再掉 {pointsToNext} 点跌入「{next.name}」
-          </p>
-        )}
-        <div className={s["el-tip-section"]}>
-          <b>掉落系数 K_energy ×{cur.rewardMultiplier.toFixed(2)}</b>
-          <p>同时作用于经验、居民积分与实物掉落</p>
-        </div>
-        <div className={s["el-tip-section"]}>
-          <b>危险明细</b>
-          <ul className={s["el-tip-list"]}>
-            {(dangers.length ? dangers : ["无额外惩罚"]).map((danger) => (
-              <li key={danger}>{danger}</li>
-            ))}
-          </ul>
-        </div>
+        <ul className={s["el-tip-list"]}>
+          {(dangers.length ? dangers : ["无额外惩罚"]).map((danger) => (
+            <li key={danger}>{danger}</li>
+          ))}
+        </ul>
       </RailPopover>
     </div>
   );

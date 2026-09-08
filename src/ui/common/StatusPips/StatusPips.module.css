@@ -62,11 +62,17 @@
   display: block;
   width: 82%;
   height: 82%;
+  object-fit: contain;
 }
 .status-icon {
   display: block;
   width: 82%;
   height: 82%;
+  object-fit: contain;
+}
+.status-icon:is(img),
+.shield-icon:is(img) {
+  filter: drop-shadow(0 0 2px rgba(158, 216, 255, 0.45));
 }
 .pip-shield::before {
   background: linear-gradient(145deg, #1d2a3aee, #0b131de8);

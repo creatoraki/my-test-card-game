@@ -9,8 +9,9 @@ import { DiscardIcon, RedrawIcon } from "@/ui/battle/HandTools";
 import { CardCorruption } from "./parts/CardCorruption";
 import { PollutionVirusMark } from "./parts/PollutionVirusMark";
 import { CardMarks } from "./parts/CardMarks";
+import { CardModuleMark } from "./parts/CardModuleMark";
 import { cx } from "@/ui/common/cx";
-import { useCardText } from "@/ui/common/cardText";
+import { stripModuleText, useCardText } from "@/ui/common/cardText";
 import { CardTextRich } from "@/ui/common/CardTextRich";
 import s from "./HandCard.module.css";
 import f from "./HandCard.face.module.css";
@@ -77,7 +78,7 @@ export const HandCard = memo(function HandCard({
   const passive = card.cardType === "passive";
   const art = cardArt(card.id);
   const hasArt = Boolean(art);
-  const text = useCardText(card);
+  const text = stripModuleText(card, useCardText(card));
   const effectiveCost = cost ?? card.cost;
   // 说明区高度固定(一排卡必须等高), 故长文本靠**降字号**消化而不是撑高卡。
   // 按字数分三档而不是 JS 实测宽高: 零测量、零布局抖动, 也不需要 useLayoutEffect;
@@ -115,6 +116,7 @@ export const HandCard = memo(function HandCard({
       // data-hand-slot: 供 BattleScreen 的 `.hand-tray:has([data-hand-slot]:nth-last-child(N))`
       // 按张数收紧叠压量。类名被哈希后那条选择器够不着, 属性可以(样式铁律 2)。
       data-hand-slot
+      data-module={card.cardModule ? "" : undefined}
       data-unplayable={!playable && !unaffordable && !passive ? "" : undefined}
       data-passive={passive ? "" : undefined}
       data-discarding={discarding ? "" : undefined}
@@ -169,6 +171,7 @@ export const HandCard = memo(function HandCard({
             card.contaminated && s.contaminated,
           )}
           data-hand-card
+          data-module={card.cardModule ? "" : undefined}
           data-card-type={card.cardType}
           data-rarity={card.rarity ?? "common"}
           data-selected={selected ? "" : undefined}
@@ -220,6 +223,8 @@ export const HandCard = memo(function HandCard({
             </span>
           </span>
         )}
+
+        <CardModuleMark card={card} />
 
         {/* 卡名压条: 贴在配图下沿的渐变浮层(透明 → 实底), 不占实位 */}
         <span className={f["hc-title"]}>{cardDisplayName(card)}</span>

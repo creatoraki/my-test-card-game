@@ -137,6 +137,12 @@ export const EXPLORE_RULES = {
     cardOfferCap: 1,
   },
 
+  picnic: {
+    maxFoods: 4,
+    limitPerFood: 5,
+    emptyHeal: 10,
+  },
+
   // ── 掉落系数 K 与品质右移(设计文档 §5.1) ──
   drop: {
     // ★ 总产出旋钮。K =(K_energy + Σ挑战加成 + 同花加成)× kGlobal ——

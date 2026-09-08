@@ -37,6 +37,7 @@ import {
   projectedEnergy,
   roundBattleEvent,
 } from "@/explore/session";
+import { canPicnic } from "@/explore/picnic";
 import type { ChoiceCost, EventChoice, NodeEvent } from "@/explore/types";
 import { getItemDef, getNpcEvent } from "@/data";
 import { SLOT_LABEL, TARGETED_ITEM_USE_KINDS, type EquipSlot, type ItemStack } from "@/items/types";
@@ -47,12 +48,14 @@ import BackpackPanel from "@/ui/explore/BackpackPanel";
 import BackpackBar from "@/ui/explore/BackpackBar";
 import ExpDropFx from "@/ui/explore/ExpDropFx";
 import ExploreCommandBar from "@/ui/explore/ExploreCommandBar";
+import { PicnicButton, PicnicPanel } from "@/ui/explore/PicnicSkill";
 import { EventModal, NpcModal, RestModal, type EventModalView, type NpcModalView, type RestModalView } from "./ExploreModals";
 import type { EventPanelScene } from "@/ui/common/EventPanel";
 import LootPickup from "@/ui/explore/LootPickup";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import ShopOverlay from "@/ui/explore/ShopOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
+import { BurdenGauge } from "@/ui/explore/BurdenGauge";
 import NodeTip from "@/ui/explore/NodeTip";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import { InteractiveHint } from "@/ui/common/InteractiveHint";
@@ -100,15 +103,6 @@ const ENGAGE_CHOICE: EventChoice = {
   desc: "进入本轮推进战斗",
   energyDelta: 0,
 };
-
-// P1 才接入的指令。**先按最终形态排好版**, 下一轮往里填实现即可 —— 位置定下来了,
-// 玩家也提前知道这排东西将来是干什么的(设计文档 §7.3)。
-const COMMANDS = [
-  { name: "拓扑扫描", desc: "永久显示 2 根桥接" },
-  { name: "信号锚点", desc: "记录一次落点" },
-  { name: "并行探针", desc: "预览一条通道的落点" },
-  { name: "侧向跨接", desc: "落点前跨到相邻通道" },
-] as const;
 
 // 落点事件浮层的演出节拍(ms)。★ 单一真相在这里 —— 需要给 CSS 的那几个由 tsx 内联下发,
 // 两边不各写一份(与 CryoScene 的 --content-delay 同一套做法)。
@@ -164,6 +158,7 @@ export function ExploreScreen() {
   const unequipToBackpack = useRunStore((s) => s.unequipToBackpack);
 
   const [bagOpen, setBagOpen] = useState(false);
+  const [picnicOpen, setPicnicOpen] = useState(false);
   // ---- 角色档案 Modal(点左下角队伍卡打开) ----
   // ★ 远征途中**唯一**能换装的地方: 装备与背包在这里互换(战斗界面的同一块 Modal 是只读的)。
   // detailClosing 是两段式关闭的第一段: 先播退场, PANEL_OUT_MS 后才真正卸载。
@@ -235,6 +230,11 @@ export function ExploreScreen() {
   useEffect(() => {
     if (!bagAllowed) setBagOpen(false);
   }, [bagAllowed]);
+
+  const picnicAllowed = session ? canPicnic(session) : false;
+  useEffect(() => {
+    if (!picnicAllowed) setPicnicOpen(false);
+  }, [picnicAllowed]);
 
   // 目标选择跟着阶段走: 阶段一变, 「这会儿能不能用药」的答案也变了, 挂着的选择一律作废。
   useEffect(() => {
@@ -634,6 +634,13 @@ export function ExploreScreen() {
           <BackpackBar onUseItem={startItemUse} />
         </div>
 
+        <div
+          className={s["expl-burden"]}
+          style={{ left: `${12 + BAG_W + 12}px`, top: "0px" }}
+        >
+          <BurdenGauge />
+        </div>
+
         {/* ---- 右上: 净化粒子 ----
             这一局唯一的时限就是这个数字, 所以右上角只留它一个 ——
             居民积分与负重都退到面板里(上一版那两块 chip 已废弃)。 */}
@@ -858,32 +865,7 @@ export function ExploreScreen() {
               </button>
             </div>
           )}
-          <div className={s["expl-commands"]}>
-            <span className={s["expl-chip-label"]}>
-              探索指令 · 侧向跨接 {session.lateralShiftsLeft}/1
-            </span>
-            <div className={s["expl-command-row"]}>
-              {COMMANDS.map((c) => (
-                <div
-                  key={c.name}
-                  className={s["expl-command-tip"]}
-                  data-rail-item=""
-                  tabIndex={0}
-                  aria-label={`${c.name}：${c.desc}，功能未开放`}
-                >
-                  <button className={s["expl-command"]} type="button" disabled>
-                    <span className={s["expl-command-name"]}>{c.name}</span>
-                    <span className={s["expl-command-flag"]}>未开放</span>
-                  </button>
-                  <RailPopover side="top">
-                    <strong>{c.name}</strong>
-                    <p>{c.desc}</p>
-                    <small>功能未开放</small>
-                  </RailPopover>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PicnicButton onOpen={() => setPicnicOpen(true)} />
           <div className={s["expl-button-row"]}>
             {/* ⚠ 背包的开放时机是硬约束(设计文档 §6.3): 揭示桥接时开背包 = 无限延长观察时间。
                 真正的拦截在 explore/session.canOpenBackpack, 这里只是把它的结论画出来。 */}
@@ -993,6 +975,7 @@ export function ExploreScreen() {
             }}
           />
         )}
+        {picnicOpen && <PicnicPanel onClose={() => setPicnicOpen(false)} />}
 
         <div className={s["expl-scrim"]} data-closing={!overlayOpen || undefined} aria-hidden />
         <RewardOverlay gate={narrationGate} />

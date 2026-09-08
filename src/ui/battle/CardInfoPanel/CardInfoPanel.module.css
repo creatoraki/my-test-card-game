@@ -143,10 +143,21 @@
 }
 
 /* 放大卡面视觉底边为 y=556; 释义块按面板自身 top=108 加卡面高度 448 再留 12px 定位。 */
-.cip-keywords {
+.card-info-panel .cip-keywords {
   position: absolute;
   top: calc(var(--hud-info-w) * 1.4 + 12px);
-  width: 100%;
+  right: 0;
+  left: auto;
+  width: var(--hud-info-w);
+  height: auto;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 18px;
+  line-height: 1.55;
   pointer-events: none;
+}
+
+.card-info-panel .cip-keywords .note {
+  gap: 12px;
 }
 

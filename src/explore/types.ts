@@ -380,6 +380,8 @@ export interface ExploreState {
   // 侧向跨接(设计文档 §7.2): 整趟出击的剩余次数, 基础 1。
   // ⚠ 字段先占位, 指令系统是 P1 —— 目前没有任何入口消耗它。
   lateralShiftsLeft: number;
+  // 野餐技能整趟远征只有一次。
+  picnicUsed: boolean;
 
   // ---- 本轮推进战斗 ----
   roundBattleEventId: string | null; // 本轮展示的战斗事件, 开战后清空

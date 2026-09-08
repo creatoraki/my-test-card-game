@@ -103,9 +103,11 @@
   pointer-events: none;
   animation: vfxIconRise 1s ease-out forwards;
 }
-.vfx-icon svg {
+.vfx-icon svg,
+.vfx-icon img {
   width: 100%;
   height: 100%;
+  object-fit: contain;
 }
 @keyframes vfxIconRise {
   0% { transform: translate(-50%, -50%) scale(1); opacity: 0; filter: drop-shadow(0 0 8px var(--vfx-color)) blur(4px); }

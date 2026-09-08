@@ -10,7 +10,7 @@ import {
   MODULE_ITEM_DEFS,
 } from "./modules";
 
-export { CONSUMABLE_ITEM_DEFS } from "./consumables";
+export { CONSUMABLE_ITEM_DEFS, NEAR_EXPIRY_FOOD_IDS } from "./consumables";
 export { EQUIPMENT_ITEM_DEFS } from "./equipment";
 export { CRYSTAL_ITEM_DEFS, GENERAL_MATERIAL_DEFS, MATERIAL_ITEM_DEFS } from "./materials";
 export { BURDEN_ITEM_DEFS } from "./burden";

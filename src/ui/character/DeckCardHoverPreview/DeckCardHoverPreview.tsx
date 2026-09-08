@@ -23,7 +23,7 @@ export function DeckCardHoverPreview({ card, className }: Props) {
       <span data-deck-card>
         <HandCard card={card} variant="pile" playable selected={false} />
       </span>
-      <CardKeywordNotes text={text} className={s.keywords} />
+      <CardKeywordNotes card={card} text={text} className={s.keywords} />
     </div>
   );
 }

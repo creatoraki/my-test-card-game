@@ -86,6 +86,7 @@ export {
   MATERIAL_ITEM_DEFS,
   MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
+  NEAR_EXPIRY_FOOD_IDS,
   DEFAULT_REGION_ID,
   REGIONAL_MATERIAL_DEFS,
   itemRegionId,
@@ -156,6 +157,7 @@ export {
   type UpgradeRecipe,
 } from "./equipUpgrade";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
+export { PICNIC_RECIPES, matchPicnicRecipe, type PicnicRecipeDef } from "./picnicRecipes";
 export { VENDOR_LINES, pickVendorLine, type VendorLineKind } from "./vendorLines";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";

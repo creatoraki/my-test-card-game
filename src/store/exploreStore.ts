@@ -7,6 +7,7 @@
 import { create } from "zustand";
 import { getItemDef } from "../data";
 import type { CardOfferCandidate, ExploreState, PartySnapshot } from "../explore/types";
+import { resolvePicnic, type PicnicResult } from "../explore/picnic";
 import type { ItemStack } from "../items/types";
 import {
   abandonPending,
@@ -116,6 +117,7 @@ interface ExploreStore {
   // 返回完整展示文案(「物品名 · 摘要」), UI 拿去飘一条; 用不了返回 null。
   // targetCharId 供指定角色类消耗品使用(必须传存活队员); 其余效果省略即可。
   useItem: (uid: string, targetCharId?: string) => string | null;
+  picnic: (picks: Record<string, number>) => PicnicResult | null;
   takePending: (index: number) => void; // 替换模式: 收下待取物
   abandonPending: (index?: number) => void; // 替换模式: 放弃(省略 index = 全部放弃)
   shipHome: (uids: string[]) => void; // 投递口: 提前寄回据点
@@ -328,6 +330,15 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
       return `${result.itemName} · ${note}`;
     }
     return `${result.itemName} · ${result.note}`;
+  },
+
+  picnic: (picks) => {
+    let result: PicnicResult | null = null;
+    mutate(get, set, (d) => {
+      result = resolvePicnic(d, picks);
+      return result != null;
+    });
+    return result;
   },
 
   takePending: (index) => {

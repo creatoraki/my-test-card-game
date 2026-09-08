@@ -36,6 +36,9 @@
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
   pointer-events: none;
 }
+:global([data-hand-slot][data-module]) .hc-mark-inline {
+  top: 62px;
+}
 .hc-mark {
   position: relative;
   display: grid;

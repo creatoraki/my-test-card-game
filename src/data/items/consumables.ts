@@ -1,6 +1,15 @@
 import type { ItemDef, ItemRarity, ItemUse } from "../../items/types";
 import { withBuyValue } from "./pricing";
 
+export const NEAR_EXPIRY_FOOD_IDS = [
+  "milk",
+  "bread",
+  "cola",
+  "hamburger",
+  "fried-chicken",
+  "pizza",
+] as const;
+
 const QUALITY_SUFFIX: Record<ItemRarity, string> = {
   common: "c",
   fine: "f",
