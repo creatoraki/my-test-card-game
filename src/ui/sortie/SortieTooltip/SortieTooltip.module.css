@@ -3,12 +3,17 @@
 .tooltip {
   position: absolute;
   z-index: 1000;
-  width: 260px;
+  width: 420px;
   pointer-events: none;
   filter: drop-shadow(0 14px 24px #000000cc);
 }
 
+.detail {
+  composes: detail-scale-lg from "../../common/item/ItemDetail/itemDetailScale.module.css";
+}
+
 .detail.detail {
+
   --accent: #86d8d2;
   --accent2: #f0c27b;
   --bad: #e58f83;
@@ -22,7 +27,7 @@
   height: auto;
   /* 上限由 JS 下发(画布高度减留白, 设计 px): 视口单位不随画布 zoom 缩放, 不能写 100vh。 */
   max-height: var(--tooltip-max-h, 300px);
-  padding: 12px;
+  padding: 18px;
   overflow-y: auto;
   background:
     linear-gradient(135deg, #ffffff16, transparent 50%),

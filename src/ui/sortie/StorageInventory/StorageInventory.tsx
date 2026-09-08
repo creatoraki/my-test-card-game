@@ -27,7 +27,11 @@ export function StorageInventory({ className, onTaken, onFull }: Props) {
     () =>
       sortStacks(
         mergeStacksForDisplay(
-          storage.filter((stack) => getItemDef(stack.itemId).category === "consumable"),
+          storage.filter((stack) => {
+            const def = getItemDef(stack.itemId);
+            // 出击物资中的食品以 maxStack > 1 区分, 仓库只展示单格消耗品。
+            return def.category === "consumable" && def.maxStack === 1;
+          }),
           getItemDef,
         ),
         getItemDef,

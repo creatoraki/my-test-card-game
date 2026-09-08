@@ -43,13 +43,14 @@ export function PrepStep({ active, entering, exiting }: Props) {
 
   return (
     <section className={s.step} data-active={active} aria-hidden={!active}>
-      <div className={cx(s.credits, entering && s.slideInRight, exiting && s.slideOutRight)}>
-        <span className={s.creditsLabel}>终端积分</span>
-        <strong className={s.creditsValue}>{credits.toLocaleString()}</strong>
-      </div>
-
       <div className={cx(s.left, entering && s.slideInLeft, exiting && s.slideOutLeft)}>
-        <StorageInventory className={s.areaStorage} onTaken={sayTaken} onFull={sayFull} />
+        <div className={s.topRow}>
+          <div className={s.credits}>
+            <span className={s.creditsLabel}>终端积分</span>
+            <strong className={s.creditsValue}>{credits.toLocaleString()}</strong>
+          </div>
+          <StorageInventory className={s.areaStorage} onTaken={sayTaken} onFull={sayFull} />
+        </div>
         <StockShelf
           active={active}
           entering={entering}

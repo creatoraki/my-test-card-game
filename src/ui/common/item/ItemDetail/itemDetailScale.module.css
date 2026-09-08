@@ -1,0 +1,25 @@
+.detail-scale-lg {
+  --item-detail-padding: 18px;
+  --item-detail-gap: 14px;
+  --item-detail-head-gap: 14px;
+  --item-detail-icon-width: 72px;
+  --item-detail-name-size: 24px;
+  --item-detail-mult-size: 18px;
+  --item-detail-tags-gap: 8px 12px;
+  --item-detail-tags-margin: 8px 0 0;
+  --item-detail-tags-size: 18px;
+  --item-detail-desc-size: 18px;
+  --item-detail-desc-line-height: 1.6;
+  --item-detail-stats-size: 18px;
+  --item-detail-field-padding: 14px 0;
+  --item-detail-field-size: 18px;
+  --item-detail-bond-head-size: 20px;
+  --item-detail-bond-head-gap: 9px;
+  --item-detail-bond-icon-size: 30px;
+  --item-detail-bond-arcana-size: 18px;
+  --item-detail-bond-count-size: 18px;
+  --item-detail-bond-desc-size: 18px;
+  --item-detail-bond-desc-line-height: 1.6;
+  --item-detail-note-size: 18px;
+  --item-detail-idle-size: 18px;
+}
