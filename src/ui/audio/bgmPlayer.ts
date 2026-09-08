@@ -1,25 +1,13 @@
+import { createBoolPref, createVolumePref } from "./audioPref";
 import { BGM_TRACKS, type BgmId } from "./bgmTracks";
 
 const FADE_MS = 600;
-const BGM_ENABLED_STORAGE_KEY = "neon-city-bgm-enabled";
 const clampVolume = (value: number) =>
   Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
 
-function readBgmEnabled(): boolean {
-  if (typeof window === "undefined") return true;
-  try {
-    return window.localStorage.getItem(BGM_ENABLED_STORAGE_KEY) !== "false";
-  } catch {
-    return true;
-  }
-}
-
-function persistBgmEnabled(enabled: boolean): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(BGM_ENABLED_STORAGE_KEY, String(enabled));
-  } catch {}
-}
+// 开关与音量各自持久化(键名沿用旧值, 存量档案不受影响)。
+const enabledPref = createBoolPref("neon-city-bgm-enabled", true);
+const volumePref = createVolumePref("neon-city-bgm-volume", 1);
 
 const audioById: Record<BgmId, HTMLAudioElement> = {
   town: createAudio("town"),
@@ -35,8 +23,12 @@ let currentBgm: BgmId | null = null;
 let requestedBgm: BgmId | null = null;
 let bgmSuspended = false;
 let unlockHandler: (() => void) | null = null;
-let bgmEnabled = readBgmEnabled();
-const bgmEnabledListeners = new Set<() => void>();
+
+// ★ 每轨的实际播放音量 = 该轨的基准音量 × 全局音乐音量。
+//   基准音量是逐轨调好的相对关系(见 bgmTracks.ts), 全局音量只做整体缩放, 两者不要混。
+function trackVolume(id: BgmId): number {
+  return clampVolume(BGM_TRACKS[id].volume * volumePref.get());
+}
 
 function createAudio(id: BgmId): HTMLAudioElement {
   const audio = new Audio(BGM_TRACKS[id].src);
@@ -130,13 +122,13 @@ function resumeBgm(id: BgmId): void {
   }
   audio.volume = 0;
   requestPlayback(id);
-  fadeTo(id, BGM_TRACKS[id].volume);
+  fadeTo(id, trackVolume(id));
 }
 
 export function playBgm(id: BgmId): void {
   requestedBgm = id;
   if (bgmSuspended) return;
-  if (!bgmEnabled) {
+  if (!enabledPref.get()) {
     if (currentBgm !== id) {
       currentBgm = id;
       if (id === "battle" || id === "elevator") audioById[id].currentTime = 0;
@@ -165,22 +157,19 @@ export function playBgm(id: BgmId): void {
   if (id === "battle" || id === "elevator") nextAudio.currentTime = 0;
   nextAudio.volume = 0;
   requestPlayback(id);
-  fadeTo(id, BGM_TRACKS[id].volume);
+  fadeTo(id, trackVolume(id));
 }
 
 export function getBgmEnabled(): boolean {
-  return bgmEnabled;
+  return enabledPref.get();
 }
 
 export function subscribeBgmEnabled(listener: () => void): () => void {
-  bgmEnabledListeners.add(listener);
-  return () => bgmEnabledListeners.delete(listener);
+  return enabledPref.subscribe(listener);
 }
 
 export function setBgmEnabled(enabled: boolean): void {
-  if (bgmEnabled === enabled) return;
-  bgmEnabled = enabled;
-  persistBgmEnabled(enabled);
+  if (!enabledPref.set(enabled)) return;
 
   if (!enabled) {
     removeUnlockListeners();
@@ -192,12 +181,29 @@ export function setBgmEnabled(enabled: boolean): void {
   } else if (requestedBgm && !bgmSuspended) {
     resumeBgm(requestedBgm);
   }
-
-  bgmEnabledListeners.forEach((listener) => listener());
 }
 
 export function toggleBgm(): void {
-  setBgmEnabled(!bgmEnabled);
+  setBgmEnabled(!enabledPref.get());
+}
+
+export function getBgmVolume(): number {
+  return volumePref.get();
+}
+
+export function subscribeBgmVolume(listener: () => void): () => void {
+  return volumePref.subscribe(listener);
+}
+
+// 拖滑块要**立刻**听到变化, 所以直接写 volume 而不走 fadeTo ——
+// 顺带取消在途淡入淡出, 否则那条 rAF 会一路把音量拉回旧目标值。
+export function setBgmVolume(volume: number): void {
+  if (!volumePref.set(volume)) return;
+  if (!enabledPref.get() || bgmSuspended) return;
+  const id = currentBgm;
+  if (!id) return;
+  cancelFade(id);
+  audioById[id].volume = trackVolume(id);
 }
 
 export function setBgmSuspended(suspended: boolean): void {

@@ -1,0 +1,88 @@
+.slider {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.slider[data-disabled] {
+  opacity: 0.4;
+}
+
+/* 轨道: 已填充段用青蓝霓虹, 未填充段是深底。填充比例由 --vs-fill 下发。 */
+.range {
+  flex: 1;
+  height: 26px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+}
+.range:disabled {
+  cursor: not-allowed;
+}
+.range::-webkit-slider-runnable-track {
+  height: 10px;
+  border: 1px solid #6fd2ff59;
+  background: linear-gradient(
+    90deg,
+    #6fd2ff 0 var(--vs-fill),
+    #0a1a22 var(--vs-fill) 100%
+  );
+  box-shadow: inset 0 0 10px #6fd2ff1f;
+}
+.range::-moz-range-track {
+  height: 10px;
+  border: 1px solid #6fd2ff59;
+  background: linear-gradient(
+    90deg,
+    #6fd2ff 0 var(--vs-fill),
+    #0a1a22 var(--vs-fill) 100%
+  );
+  box-shadow: inset 0 0 10px #6fd2ff1f;
+}
+
+/* 滑块头: 与全站一致的斜切角小方块 */
+.range::-webkit-slider-thumb {
+  width: 20px;
+  height: 26px;
+  margin-top: -9px;
+  border: 1px solid #b6ecff;
+  background: linear-gradient(180deg, #1e5b76, #081521);
+  box-shadow: 0 0 12px #6fd2ff66;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+  appearance: none;
+}
+.range::-moz-range-thumb {
+  width: 20px;
+  height: 26px;
+  border: 1px solid #b6ecff;
+  border-radius: 0;
+  background: linear-gradient(180deg, #1e5b76, #081521);
+  box-shadow: 0 0 12px #6fd2ff66;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+.range:hover:not(:disabled)::-webkit-slider-thumb,
+.range:focus-visible::-webkit-slider-thumb {
+  border-color: #eaffd0;
+  box-shadow: 0 0 18px #6fd2ffa6;
+}
+.range:hover:not(:disabled)::-moz-range-thumb,
+.range:focus-visible::-moz-range-thumb {
+  border-color: #eaffd0;
+  box-shadow: 0 0 18px #6fd2ffa6;
+}
+
+/* 读数定宽, 拖动时数字变化不推着轨道抖 */
+.readout {
+  flex: none;
+  width: 72px;
+  color: #d8f4ff;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  text-align: right;
+}

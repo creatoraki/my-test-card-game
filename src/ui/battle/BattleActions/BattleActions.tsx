@@ -5,9 +5,16 @@ interface Props {
   onEndTurn: () => void;
   speed2x: boolean;
   onToggleSpeed: () => void;
+  onOpenSettings: () => void;
 }
 
-export function BattleActions({ canEndTurn, onEndTurn, speed2x, onToggleSpeed }: Props) {
+export function BattleActions({
+  canEndTurn,
+  onEndTurn,
+  speed2x,
+  onToggleSpeed,
+  onOpenSettings,
+}: Props) {
   return (
     <div className={s.actions} role="toolbar" aria-label="战斗操作">
       <button
@@ -33,7 +40,15 @@ export function BattleActions({ canEndTurn, onEndTurn, speed2x, onToggleSpeed }:
       >
         2×
       </button>
-      <button className={s.settings} type="button" aria-label="设置" onClick={(event) => event.stopPropagation()}>
+      <button
+        className={s.settings}
+        type="button"
+        aria-label="设置"
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpenSettings();
+        }}
+      >
         ⚙
       </button>
     </div>

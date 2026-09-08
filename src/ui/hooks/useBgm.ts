@@ -3,8 +3,11 @@ import { useRunStore } from "@/store/runStore";
 import {
   bgmForScreen,
   getBgmEnabled,
+  getBgmVolume,
   playBgm,
+  setBgmVolume,
   subscribeBgmEnabled,
+  subscribeBgmVolume,
   stopAllBgm,
   toggleBgm,
 } from "@/ui/audio";
@@ -27,4 +30,8 @@ export function useBgmEnabled(): boolean {
   return useSyncExternalStore(subscribeBgmEnabled, getBgmEnabled, getBgmEnabled);
 }
 
-export { toggleBgm };
+export function useBgmVolume(): number {
+  return useSyncExternalStore(subscribeBgmVolume, getBgmVolume, getBgmVolume);
+}
+
+export { setBgmVolume, toggleBgm };

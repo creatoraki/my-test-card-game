@@ -1,8 +1,11 @@
 import { useEffect, useSyncExternalStore } from "react";
 import {
   getSfxEnabled,
+  getSfxVolume,
   installSfxDelegate,
+  setSfxVolume,
   subscribeSfxEnabled,
+  subscribeSfxVolume,
   toggleSfx,
 } from "@/ui/audio";
 
@@ -17,4 +20,8 @@ export function useSfxEnabled(): boolean {
   return useSyncExternalStore(subscribeSfxEnabled, getSfxEnabled, getSfxEnabled);
 }
 
-export { toggleSfx };
+export function useSfxVolume(): number {
+  return useSyncExternalStore(subscribeSfxVolume, getSfxVolume, getSfxVolume);
+}
+
+export { setSfxVolume, toggleSfx };

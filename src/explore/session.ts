@@ -1727,12 +1727,51 @@ export function retreat(s: ExploreState): boolean {
 // ---------------------------------------------------------------------------
 // 战斗回填 —— 由 store 层在战斗结束后调用
 // ---------------------------------------------------------------------------
+export type BattleSurvivor = {
+  charId: string;
+  hp: number;
+  hpLimit?: number;
+  alive: boolean;
+  limitLoss: number;
+};
+
+// 血量跨轮与跨战斗继承 —— 这是整套设计的地基。
+// ★ 唯一真相点: 战斗正常结算(finishBattle)与战斗中主动撤离(retreatFromBattle)共用这一段,
+//   两处各写一份迟早对不上。
+function applySurvivors(s: ExploreState, survivors: BattleSurvivor[]): void {
+  for (const p of s.party) {
+    const found = survivors.find((x) => x.charId === p.charId);
+    if (!found) continue;
+    p.hpLimit = Math.max(1, Math.min(p.maxHp, p.hpLimit - Math.max(0, Math.round(found.limitLoss))));
+    p.hp = Math.max(0, Math.min(p.hpLimit, Math.round(found.hp)));
+    p.alive = found.alive;
+  }
+}
+
+// 战斗进行途中从设置面板主动撤离: 本场战斗作废, 整趟远征就此收尾。
+// ★ 与 retreat() 的差别只在「它从 inBattle 出发, 且要先把战斗里打掉的血回填给会话」——
+//   之后的落袋、结算与回城都由 store 层走和撤离完全相同的那条路。
+// ⚠ 刻意不发经验、不掉落、不扣能量、不写 history 的 battleResult: 这一场没打完, 什么都不算。
+export function retreatFromBattle(s: ExploreState, survivors: BattleSurvivor[]): boolean {
+  if (s.phase !== "inBattle") return false;
+  applySurvivors(s, survivors);
+  s.pendingEncounterId = null;
+  s.pendingIsBoss = false;
+  s.pendingBattleTier = null;
+  s.battleSource = null;
+  s.pendingChallengeBonus = 0;
+  s.roundBattleEventId = null;
+  s.phase = "retreated";
+  logLine(s, "战斗中主动撤离了这片区域");
+  return true;
+}
+
 // ⚠ 第四参是**敌人 defId 列表**而不是数量: 掉落要查每个敌人自己的 dropTable。
 //   数量仍可由 .length 取到, 所以旧口径没有丢失。
 export function finishBattle(
   s: ExploreState,
   won: boolean,
-  survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; limitLoss: number }[],
+  survivors: BattleSurvivor[],
   enemyDefIds: string[],
   challengeBonus = 0,
   bountyBonus = 0,
@@ -1741,14 +1780,7 @@ export function finishBattle(
   if (s.phase !== "inBattle") return empty;
   s.pendingChallengeBonus = won ? challengeBonus : 0;
 
-  // 血量跨轮与跨战斗继承 —— 这是整套设计的地基
-  for (const p of s.party) {
-    const found = survivors.find((x) => x.charId === p.charId);
-    if (!found) continue;
-    p.hpLimit = Math.max(1, Math.min(p.maxHp, p.hpLimit - Math.max(0, Math.round(found.limitLoss))));
-    p.hp = Math.max(0, Math.min(p.hpLimit, Math.round(found.hp)));
-    p.alive = found.alive;
-  }
+  applySurvivors(s, survivors);
 
   if (!won) {
     if (s.battleSource === "round") {

@@ -164,6 +164,7 @@ src/ui/
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
 | [battle/SquadBuffBar](../../src/ui/battle/SquadBuffBar/SquadBuffBar.tsx) | 战斗 HUD 的炼金术士组装部件栏：按获得顺序显示 A/B/C/D、当前部件数、组装成功进度和各部件说明；使用 `RailPopover` 展示详情，不承载组装规则。 |
 | [battle/SquadBuffPicker](../../src/ui/battle/SquadBuffPicker/SquadBuffPicker.tsx) | 组装选择待选层：展示可选部件、确认与取消，调用 `battleStore` 的 `pickPendingChoice` / `cancelPendingChoice`，不直接修改引擎状态。 |
+| [battle/BattleSettingsPanel](../../src/ui/battle/BattleSettingsPanel/BattleSettingsPanel.tsx) | 右上角齿轮打开的战斗设置：音乐/音效的开关与 `common/VolumeSlider` 音量条（读写 `ui/audio` 的偏好项），以及「重新开始战斗」与「撤退」两个危险操作。两个操作都经 `common/ConfirmDialog` 的 `confirm()` 二次确认，动作本体由 `runStore.restartBattle` / `runStore.retreatFromBattle` 承担，组件自己不碰引擎与会话。刻意不暂停战斗，只用遮罩挡输入；Esc 在捕获阶段关面板，确认框开着时让路。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
 | [battle/PileDrawer](../../src/ui/battle/PileDrawer/PileDrawer.tsx) | 牌堆内容弹窗，按卡名排序展示，复用原尺寸 `HandCard`；悬停时由 `.scrim` 下的独立放大层浮出 1.4 倍卡面；待选择回收时切换为弃牌堆选择模式，点击卡牌提交，关闭弹窗取消。 |
@@ -213,6 +214,7 @@ src/ui/
 | [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 角色详情态展示生病与永久怪癖徽章及说明；不服务战斗队伍卡，也不复用临时战斗 `StatusPips`。 |
 | [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 战斗临时状态、层数与护盾的方形玻璃图标条；支持右起换行和 `RailPopover` 详情，尺寸通过 `--pip-box` 变量由父级下发。关闭详情时保留原生 `title`。 |
 | [RailPopover](../../src/ui/common/RailPopover/RailPopover.tsx) | 跨战斗域复用的斜切角玻璃详情浮层；支持左右、下方和上方（居中 / 右对齐）定位，由 `data-rail-item` 的悬浮与键盘聚焦驱动。 |
+| [VolumeSlider](../../src/ui/common/VolumeSlider/VolumeSlider.tsx) | 通用 0~1 音量滑块：轨道填充比例经 `--vs-fill` 下发，右侧定宽百分比读数；`onCommit` 只在松手/松键时触发一次（给「试听」这类落定才该发生的事）。不认识任何音频模块，纯受控组件。 |
 | [ManaCrystal](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) | 法力水晶菱形（Arcane Diamond）；`empty`/`normal`/`active` 三态受控，`still` 关闭呼吸循环；尺寸与配色经 `--mana-crystal-size` / `--crystal-*` 变量下发。 |
 | [ArcanaIcon](../../src/ui/common/ArcanaIcon/ArcanaIcon.tsx) | 羁绊塔罗图标公共展示组件；支持完整档案壳、无壳图案和 bare 纯线稿模式，未知 id 回退中性环徽。 |
 | [BuffIcon](../../src/ui/common/BuffIcon/CultivationEmblem.tsx) | 培育两态 BUFF 图标（厚涂拟物，viewBox 128×128、自带 1:1 圆角外框）；配色内建不吃外层 color，尺寸由调用方槽位决定。 |

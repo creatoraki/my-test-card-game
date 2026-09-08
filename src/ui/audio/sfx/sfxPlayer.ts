@@ -1,28 +1,21 @@
+import { createBoolPref, createVolumePref } from "../audioPref";
 import { playLayer } from "./sfxSynth";
 import { SFX_RECIPES } from "./sfxRecipes";
 import { playSample, preloadSfxSamples, sampleDurationMs, SFX_SAMPLES } from "./sfxSamples";
 import type { PlaySfxOptions, SfxId, SfxRecipe } from "./sfxTypes";
 
-const SFX_ENABLED_STORAGE_KEY = "neon-city-sfx-enabled";
 const MASTER_GAIN = 0.38;
 const MAX_ACTIVE_VOICES = 48;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-function readSfxEnabled(): boolean {
-  if (typeof window === "undefined") return true;
-  try {
-    return window.localStorage.getItem(SFX_ENABLED_STORAGE_KEY) !== "false";
-  } catch {
-    return true;
-  }
-}
+// 开关与音量各自持久化(开关键名沿用旧值, 存量档案不受影响)。
+const enabledPref = createBoolPref("neon-city-sfx-enabled", true);
+const volumePref = createVolumePref("neon-city-sfx-volume", 1);
 
-function persistSfxEnabled(enabled: boolean): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(SFX_ENABLED_STORAGE_KEY, String(enabled));
-  } catch {}
+// 音效总线的目标增益: 关掉就是 0, 开着则按全局音效音量缩放基准增益。
+function targetGain(): number {
+  return enabledPref.get() ? MASTER_GAIN * volumePref.get() : 0;
 }
 
 type AudioContextConstructor = typeof AudioContext;
@@ -35,10 +28,8 @@ type AudioContextWindow = Window & {
 let audioContext: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let unlockHandler: (() => void) | null = null;
-let sfxEnabled = readSfxEnabled();
 let activeVoices = 0;
 const lastPlayedAt = new Map<SfxId, number>();
-const sfxEnabledListeners = new Set<() => void>();
 
 function removeUnlockListeners(): void {
   if (!unlockHandler || typeof window === "undefined") return;
@@ -80,7 +71,7 @@ function ensureAudioBus(): { context: AudioContext; destination: GainNode } | nu
     if (!audioContext) return null;
 
     masterGain = audioContext.createGain();
-    masterGain.gain.value = sfxEnabled ? MASTER_GAIN : 0;
+    masterGain.gain.value = targetGain();
     const compressor = audioContext.createDynamicsCompressor();
     compressor.threshold.value = -22;
     compressor.knee.value = 18;
@@ -115,7 +106,7 @@ function recipeVoiceCost(recipe: SfxRecipe): number {
 }
 
 export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
-  if (!sfxEnabled) return;
+  if (!enabledPref.get()) return;
   const sample = SFX_SAMPLES[id];
   const recipe = SFX_RECIPES[id];
   if (!sample && !recipe) return;
@@ -147,25 +138,38 @@ export function playSfx(id: SfxId, options: PlaySfxOptions = {}): void {
   }
 }
 
+// 总线已建好时把新增益推给它; 还没建(用户尚未触发过任何音效)则等 ensureAudioBus 自己读 targetGain。
+function applyGain(): void {
+  if (!masterGain || !audioContext) return;
+  masterGain.gain.setTargetAtTime(targetGain(), audioContext.currentTime, 0.015);
+}
+
 export function getSfxEnabled(): boolean {
-  return sfxEnabled;
+  return enabledPref.get();
 }
 
 export function subscribeSfxEnabled(listener: () => void): () => void {
-  sfxEnabledListeners.add(listener);
-  return () => sfxEnabledListeners.delete(listener);
+  return enabledPref.subscribe(listener);
 }
 
 export function setSfxEnabled(enabled: boolean): void {
-  if (sfxEnabled === enabled) return;
-  sfxEnabled = enabled;
-  persistSfxEnabled(enabled);
-  if (masterGain && audioContext) {
-    masterGain.gain.setTargetAtTime(enabled ? MASTER_GAIN : 0, audioContext.currentTime, 0.015);
-  }
-  sfxEnabledListeners.forEach((listener) => listener());
+  if (!enabledPref.set(enabled)) return;
+  applyGain();
 }
 
 export function toggleSfx(): void {
-  setSfxEnabled(!sfxEnabled);
+  setSfxEnabled(!enabledPref.get());
+}
+
+export function getSfxVolume(): number {
+  return volumePref.get();
+}
+
+export function subscribeSfxVolume(listener: () => void): () => void {
+  return volumePref.subscribe(listener);
+}
+
+export function setSfxVolume(volume: number): void {
+  if (!volumePref.set(volume)) return;
+  applyGain();
 }

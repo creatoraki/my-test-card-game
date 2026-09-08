@@ -4,7 +4,7 @@
 // 这件事, 因为只有它同时认识 battleStore、exploreStore 与界面路由。
 
 import { create } from "zustand";
-import type { AllyInit, Ally, Card, ChallengeRun, Enemy, QuirkId } from "../engine";
+import type { AllyInit, Ally, BattleState, Card, ChallengeRun, Enemy, QuirkId } from "../engine";
 import { RULES, applyModifier, earnedChallengeBonus, getStatus } from "../engine";
 import {
   BOND_DEFS,
@@ -94,6 +94,9 @@ interface RunStore {
   chooseEventOption: (index: number) => import("../explore/types").ExploreState | null;
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
+  // ---- 战斗设置面板的两个出口(见 ui/battle/BattleSettingsPanel) ----
+  restartBattle: () => void; // 重打这一场: 按进战前的队伍状态重新建局
+  retreatFromBattle: () => void; // 战斗中撤退: 本场作废 + 整趟远征收尾落袋回城
   confirmExpReport: () => void; // 战斗小结确认 → 回路由图, 或进通关结算
   // ---- 远征途中换装(探索页的角色档案 Modal) ----
   // 装备槽在城镇侧、背包在探索侧, 两边只有本 store 同时认识 —— 故编排放在这里。
@@ -244,6 +247,35 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     );
 }
 
+// 战斗单位的最终三段生命 → 探索层的回填口径。
+// ★ 正常结算(resolveBattle)与战斗中撤退(retreatFromBattle)共用 —— 两处各抄一份迟早对不上。
+function survivorsFrom(
+  battle: BattleState,
+  session: { party: { charId: string; hpLimit: number }[] },
+) {
+  return battle.playerIds.map((id) => {
+    const a = battle.combatants[id] as Ally;
+    const previous = session.party.find((member) => member.charId === a.charId);
+    return {
+      charId: a.charId,
+      hp: a.hp,
+      hpLimit: a.hpLimit,
+      limitLoss: Math.max(0, (previous?.hpLimit ?? a.hpLimit) - a.hpLimit),
+      alive: a.alive,
+    };
+  });
+}
+
+// 战斗单位的污染/生病/怪癖 → 城镇存档。回填口径同样由结算与撤退共用。
+function syncConditionsFrom(battle: BattleState): void {
+  useTownStore.getState().syncBattleConditions(
+    battle.playerIds.map((id) => {
+      const a = battle.combatants[id] as Ally;
+      return { charId: a.charId, pollution: a.pollution, sick: a.sick, quirks: a.quirks };
+    }),
+  );
+}
+
 // 远征收尾的落袋 —— 积分 + 实物一起进城镇, 只有这一个出口。
 // ★ 团灭时 session.backpack 与 session.loot 已被 explore/session.loseEverything 清零,
 //   所以这里**无条件**调用即可: 惩罚的真相点只在 EXPLORE_RULES.wipe 一处, 不在这里再判一次。
@@ -391,24 +423,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const enemyDefIds = battle.enemyIds.map((id) => (battle.combatants[id] as Enemy).enemyDefId);
 
     // 战斗单位的最终血量回填给探索层 —— 下一场以此开局
-    const survivors = battle.playerIds.map((id) => {
-      const a = battle.combatants[id] as Ally;
-      const previous = session.party.find((member) => member.charId === a.charId);
-      return {
-        charId: a.charId,
-        hp: a.hp,
-        hpLimit: a.hpLimit,
-        limitLoss: Math.max(0, (previous?.hpLimit ?? a.hpLimit) - a.hpLimit),
-        alive: a.alive,
-      };
-    });
+    const survivors = survivorsFrom(battle, session);
 
-    useTownStore.getState().syncBattleConditions(
-      battle.playerIds.map((id) => {
-        const a = battle.combatants[id] as Ally;
-        return { charId: a.charId, pollution: a.pollution, sick: a.sick, quirks: a.quirks };
-      }),
-    );
+    syncConditionsFrom(battle);
 
     const explore = useExploreStore.getState();
     explore.settleBattle(won, survivors, enemyDefIds, challengeBonus, bountyBonus);
@@ -473,6 +490,53 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastChallengeBonus: challengeBonus,
       lastBountyBonus: bountyBonus,
       lastChallenges,
+    });
+  },
+
+  // 重新开始这场战斗。战果只在 resolveBattle 才回填探索层, 所以此刻 session.party 仍是
+  // **进战前**的三段生命 —— 直接照它重新建局即可, 不需要任何回滚。
+  // ⚠ launchBattle 里的 applyPendingContamination 在首次建局时已把待结算污染消费干净,
+  //   这里拿到的是空请求, 不会重复污染卡组。
+  // ⓘ battleStore.init 会把 seq +1, BattleScreen 的 [battleSeq] effect 随即取消在途 timeline、
+  //   清定时器并重置全部分镜/手牌状态 —— 与「换一场战斗」同一条路径, 故演出播放中重开也安全。
+  restartBattle: () => {
+    if (get().screen !== "battle" || get().battleSettled) return;
+    const battle = useBattleStore.getState().battle;
+    if (!battle || battle.phase === "won" || battle.phase === "lost") return;
+    const session = useExploreStore.getState().session;
+    if (!session?.pendingEncounterId) return;
+    launchBattle(session.pendingEncounterId, session.pendingIsBoss);
+  },
+
+  // 战斗中撤退 = 本场作废 + 整趟远征就此收尾。落袋与结算走的是和探索页撤离**完全相同**
+  // 的那条路(bankEverything → victory 页 + lastResult: "retreat"), 只是入口不同。
+  retreatFromBattle: () => {
+    if (get().screen !== "battle" || get().battleSettled) return;
+    const battle = useBattleStore.getState().battle;
+    if (!battle || battle.phase === "won" || battle.phase === "lost") return;
+    const session = useExploreStore.getState().session;
+    if (!session) return;
+
+    syncConditionsFrom(battle);
+    useExploreStore.getState().retreatFromBattle(survivorsFrom(battle, session));
+    for (const id of battle.playerIds) {
+      syncMemberStats((battle.combatants[id] as Ally).charId);
+    }
+
+    const after = useExploreStore.getState().session;
+    if (after) bankEverything(after);
+    useBattleStore.getState().clear();
+    // ⚠ 这里**刻意不写 expReport** —— bankEverything 刚用 setState 把本趟的经验结算写进来,
+    //   在这个 set 里带上 expReport: [] 会当场清掉它。finishExpedition 的撤离分支同此口径。
+    set({
+      screen: "victory",
+      lastResult: "retreat",
+      battleSettled: false,
+      lastDropK: 0,
+      lastDropTier: null,
+      lastChallengeBonus: 0,
+      lastBountyBonus: 0,
+      lastChallenges: [],
     });
   },
 

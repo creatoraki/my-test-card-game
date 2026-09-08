@@ -24,6 +24,7 @@ import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
 import { BattleToast } from "@/ui/battle/BattleToast";
 import { VictoryPanel } from "@/ui/battle/VictoryPanel";
 import { BattleActions } from "@/ui/battle/BattleActions";
+import { BattleSettingsPanel } from "@/ui/battle/BattleSettingsPanel";
 import { BondRail } from "@/ui/battle/BondRail";
 import { ChallengeRail } from "@/ui/battle/ChallengeRail";
 import { TurnTicker } from "@/ui/battle/TurnTicker";
@@ -120,6 +121,8 @@ export function BattleScreen() {
   const wait = useBattleStore((s) => s.wait);
   const commit = useBattleStore((s) => s.commit);
   const resolveBattle = useRunStore((s) => s.resolveBattle);
+  const restartBattle = useRunStore((s) => s.restartBattle);
+  const retreatFromBattle = useRunStore((s) => s.retreatFromBattle);
   const battleSettled = useRunStore((s) => s.battleSettled);
   const battleSeq = useBattleStore((s) => s.seq); // 「第几场战斗」的身份标识, 换局时重置分镜状态
   const mapId = useRunStore((s) => s.mapId);
@@ -133,6 +136,7 @@ export function BattleScreen() {
   //   现在由那两个组件各自订阅, 本组件对悬停完全无感。⚠ 别再把它搬回来。
   const [handAction, setHandAction] = useState<HandAction>(null);
   const [openPile, setOpenPile] = useState<Pile | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // 手牌渲染列表(本地维护): 在引擎手牌之外, 额外保留"正在出鞘渐隐"的离场卡, 直到其动画播完再移除。
   // 新出现的卡自动挂载 → CSS 触发飞入动画(见 ui/HandCard.css .hand-card 的 hand-deal-in)。
   const [renderHand, setRenderHand] = useState<
@@ -235,6 +239,7 @@ export function BattleScreen() {
     resetHandHover();
     setHandAction(null);
     setOpenPile(null);
+    setSettingsOpen(false);
     timelineRef.current?.cancel();
     timelineRef.current = null;
     seqRef.current++;
@@ -1124,6 +1129,7 @@ export function BattleScreen() {
           onEndTurn={triggerEndTurn}
           speed2x={speed2x}
           onToggleSpeed={togglePlaybackSpeed}
+          onOpenSettings={() => setSettingsOpen(true)}
         />
       </div>
 
@@ -1183,6 +1189,17 @@ export function BattleScreen() {
         onClose={closePile}
       />
       <SquadBuffPicker battle={battle} onPick={pickSquadBuff} onCancel={cancelSquadBuff} />
+
+      {/* 战斗设置: 音乐/音效 + 撤退 + 重打。挂在 .battle-scene 之外, 不跟分镜相机动。
+          ⓘ 它的 Esc 监听走捕获阶段并吃掉事件, 所以面板开着时上面那个「Esc 跳过演出」不会触发。 */}
+      <BattleSettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        battle={battle}
+        battleSettled={battleSettled}
+        onRetreat={retreatFromBattle}
+        onRestart={restartBattle}
+      />
 
         {/* ★ 卡牌说明固定面板: 画布**右上角**, 为右侧竖排牌堆让出一列。位置恒定。
           展示「悬停 ?? 选中」那张卡 ——

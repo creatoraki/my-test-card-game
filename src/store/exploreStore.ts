@@ -31,6 +31,8 @@ import {
   pushOn,
   reorderBackpack as reorderBackpackFn,
   retreat,
+  retreatFromBattle,
+  type BattleSurvivor,
   reforgeBackpackItem,
   resolvePendingAction,
   resolvePendingHealing,
@@ -96,9 +98,11 @@ interface ExploreStore {
   consumePendingContamination: () => { total: number; each: number };
   fillStoryPlaceholders: (names: { charName: string; cardName: string }[]) => void;
   retreatNow: () => void;
+  // 战斗途中主动撤离: 回填战斗内血量, 本场作废并把会话打成 retreated。
+  retreatFromBattle: (survivors: BattleSurvivor[]) => void;
   settleBattle: (
     won: boolean,
-    survivors: { charId: string; hp: number; hpLimit?: number; alive: boolean; limitLoss: number }[],
+    survivors: BattleSurvivor[],
     enemyDefIds: string[], // ⚠ 是 defId 列表不是数量 —— 掉落要查每个敌人自己的 dropTable
     challengeBonus: number,
     bountyBonus: number,
@@ -254,6 +258,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   retreatNow: () => {
     mutate(get, set, (d) => retreat(d));
+  },
+
+  retreatFromBattle: (survivors) => {
+    mutate(get, set, (d) => retreatFromBattle(d, survivors));
   },
 
   settleBattle: (won, survivors, enemyDefIds, challengeBonus, bountyBonus) => {
