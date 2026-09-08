@@ -4,8 +4,7 @@
 import { cx } from "@/ui/common/cx";
 import type { ItemDef } from "@/items/types";
 import { signedValue, type StatRangeRow, type UpgradeRangePreview } from "../upgradeRange";
-import { EquipGainHead } from "./EquipGainHead";
-import { UpgradeAction } from "./UpgradeAction";
+import { EquipAction, EquipGainHead } from "../../equipParts";
 import s from "./EquipGainColumn.module.css";
 
 interface Props {
@@ -14,6 +13,7 @@ interface Props {
   emptyText: string;
   def: ItemDef | null;
   nextDef: ItemDef | null;
+  affinityId?: string;
   canUpgrade: boolean;
   onUpgrade: () => void;
 }
@@ -33,12 +33,13 @@ export function EquipGainColumn({
   emptyText,
   def,
   nextDef,
+  affinityId,
   canUpgrade,
   onUpgrade,
 }: Props) {
   return (
     <section className={s.column} aria-label="升阶后属性范围">
-      {def && <EquipGainHead def={def} nextDef={nextDef} notice={emptyText} />}
+      {def && <EquipGainHead def={def} nextDef={nextDef} affinityId={affinityId} notice={emptyText} />}
 
       {preview ? (
         <>
@@ -80,7 +81,14 @@ export function EquipGainColumn({
         <p className={s.empty}>{emptyText}</p>
       )}
 
-      {def && <UpgradeAction canUpgrade={canUpgrade} onUpgrade={onUpgrade} />}
+      {def && (
+        <EquipAction
+          disabled={!canUpgrade}
+          label="升阶"
+          ariaLabel="升阶选中的装备"
+          onClick={onUpgrade}
+        />
+      )}
     </section>
   );
 }

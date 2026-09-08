@@ -8,7 +8,6 @@
 
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
-import { PanelShell } from "@/ui/common/PanelShell";
 import { CLOSE_MS, usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import { EquipReforgePanel } from "../EquipReforgePanel";
@@ -20,18 +19,7 @@ const cn = (...values: Array<string | false | null | undefined>) =>
 
 /** 装备一侧的主色: 与模组一侧的青蓝拉开, 走中转仓那支琥珀。 */
 export const EQUIP_ACCENT = "#e59b3f";
-
-const EQUIP_THEME = {
-  "--asm-frame": EQUIP_ACCENT,
-  "--asm-glow": EQUIP_ACCENT,
-  "--asm-select": "#ffbe6b",
-  "--asm-cyan": "#ffc98a",
-  "--asm-line": "#f2e6d82e",
-  "--asm-ink": "#f2e6d8",
-  "--asm-ink-dim": "#a5937f",
-  "--asm-panel-bg": "#0c1215",
-  "--event-panel-title-size": "56px",
-} as CSSProperties;
+export const REFORGE_ACCENT = "#2f9bff";
 
 type EquipPanelId = "upgrade" | "reforge";
 
@@ -99,14 +87,9 @@ export function useEquipPanels(): EquipPanels {
         />
       )}
       {panel === "reforge" && (
-        <PanelShell
-          accent={EQUIP_ACCENT}
-          title="羁绊重铸"
-          status="掷出候选后选择保留的羁绊"
-          closeLabel="关闭羁绊重铸"
+        <EquipReforgePanel
           closing={morph.phase === "closing"}
           onClose={morph.closePanel}
-          themeStyle={EQUIP_THEME}
           morph={{
             ref: morph.panelRef,
             rect: EQUIP_PANEL_RECT.reforge,
@@ -114,9 +97,7 @@ export function useEquipPanels(): EquipPanels {
             seed: <ReforgeIcon />,
             seedLabel: "羁绊重铸",
           }}
-        >
-          <EquipReforgePanel />
-        </PanelShell>
+        />
       )}
     </>
   );
@@ -147,7 +128,10 @@ function EquipEntry({
       className={cn("asm-entry", revealing && "is-revealing")}
       type="button"
       data-equip-entry={entryId}
-      style={{ "--asm-glow": EQUIP_ACCENT, visibility: hidden ? "hidden" : "visible" } as CSSProperties}
+      style={{
+        "--asm-glow": entryId === "reforge" ? REFORGE_ACCENT : EQUIP_ACCENT,
+        visibility: hidden ? "hidden" : "visible",
+      } as CSSProperties}
       onClick={onClick}
     >
       <span className={cn("asm-rim")} aria-hidden />

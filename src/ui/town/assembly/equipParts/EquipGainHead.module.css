@@ -14,8 +14,8 @@
   font-size: 31.5px;
   font-weight: 500;
   letter-spacing: 0.1em;
-  color: #fdf1f7;
-  text-shadow: 0 0 12px rgb(255 43 134 / 0.4);
+  color: var(--hud-ink, #fdf1f7);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 40%, transparent);
 }
 
 .tags {
@@ -26,7 +26,7 @@
   margin: 6px 0 0;
   font-size: 18px;
   letter-spacing: 0.06em;
-  color: #a896b5;
+  color: var(--hud-ink-dim, #a896b5);
 }
 
 .rarity {
@@ -38,13 +38,13 @@
   align-items: center;
   gap: 6px;
   padding: 1px 8px;
-  border: 1px solid rgb(255 90 160 / 0.3);
+  border: 1px solid color-mix(in srgb, var(--hud-body, #f5116f) 30%, transparent);
   border-radius: 999px;
-  background: rgb(255 60 150 / 0.08);
+  background: color-mix(in srgb, var(--hud-body, #f5116f) 8%, transparent);
 }
 
 .arrow {
-  color: #ff86bf;
+  color: var(--hud-body, #ff86bf);
   font-weight: 400;
 }
 
@@ -60,9 +60,9 @@
   align-items: center;
   gap: 4px 8px;
   padding: 8px 10px;
-  border: 1px solid rgb(255 90 160 / 0.2);
+  border: 1px solid color-mix(in srgb, var(--hud-body, #f5116f) 20%, transparent);
   border-radius: 4px;
-  background: rgb(255 60 150 / 0.06);
+  background: color-mix(in srgb, var(--hud-body, #f5116f) 6%, transparent);
 }
 
 .bondIcon {
@@ -76,19 +76,19 @@
   gap: 6px;
   font-size: 19.5px;
   letter-spacing: 0.06em;
-  color: #f6dcea;
+  color: var(--hud-ink, #f6dcea);
 }
 
 .bondArcana {
-  font-size: 16.5px;
-  color: #b28fb0;
+  font-size: 18px;
+  color: var(--hud-ink-dim, #b28fb0);
 }
 
 .bondDesc {
   grid-column: 2 / -1;
-  font-size: 16.5px;
+  font-size: 18px;
   line-height: 1.5;
-  color: #a595b1;
+  color: var(--hud-ink-dim, #a595b1);
 }
 
 .notice {
@@ -96,6 +96,6 @@
   margin: 0;
   font-size: 18px;
   line-height: 1.6;
-  color: #b1a3bb;
+  color: var(--hud-ink-dim, #b1a3bb);
   text-align: center;
 }

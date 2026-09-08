@@ -1,11 +1,11 @@
-// 左列: 装备选择。槽位筛选 + 单列滚动的装备格。
+// 左列：装备选择。槽位筛选 + 双列装备格。
 
-import ItemSlot from "@/ui/common/item/ItemSlot";
-import { EQUIP_TABS, matchTab, type EquipTab } from "@/ui/common/item/itemFilters";
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { cx } from "@/ui/common/cx";
+import ItemSlot from "@/ui/common/item/ItemSlot";
+import { EQUIP_TABS, matchTab, type EquipTab } from "@/ui/common/item/itemFilters";
 import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
+import { cx } from "@/ui/common/cx";
 import s from "./EquipPickColumn.module.css";
 
 export interface PickEntry {
@@ -22,6 +22,7 @@ interface Props {
   onSelect: (key: string) => void;
   onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
   onHideTooltip: () => void;
+  disabled?: boolean;
 }
 
 export function EquipPickColumn({
@@ -32,6 +33,7 @@ export function EquipPickColumn({
   onSelect,
   onShowTooltip,
   onHideTooltip,
+  disabled = false,
 }: Props) {
   const shown = entries.filter((entry) => matchTab(entry.stack, "equipment", equipTab));
 
@@ -44,6 +46,7 @@ export function EquipPickColumn({
             type="button"
             className={cx(s.tab, equipTab === tab.id && s.tabOn)}
             aria-pressed={equipTab === tab.id}
+            disabled={disabled}
             onClick={() => onEquipTab(tab.id)}
           >
             {tab.label}
@@ -52,28 +55,27 @@ export function EquipPickColumn({
       </nav>
 
       {shown.length ? (
-        <div className={s.grid}>
+        <div className={s.grid} aria-disabled={disabled}>
           {shown.map((entry) => {
             const def = getItemDef(entry.stack.itemId);
             const on = selectedKey === entry.key;
             return (
               <div
                 key={entry.key}
-                className={cx(s.cell, on && s.on)}
+                className={cx(s.cell, on && s.on, disabled && s.locked)}
                 onPointerEnter={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
                 onPointerLeave={onHideTooltip}
                 onFocus={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
                 onBlur={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                    onHideTooltip();
-                  }
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHideTooltip();
                 }}
               >
                 <ItemSlot
                   stack={entry.stack}
                   showName={false}
                   selected={on}
-                  onClick={() => onSelect(entry.key)}
+                  disabled={disabled}
+                  onClick={() => !disabled && onSelect(entry.key)}
                   className={s.slot}
                   aria-label={`${def.name}${entry.ownerName ? `，${entry.ownerName}已穿戴` : "，仓库"}`}
                 />

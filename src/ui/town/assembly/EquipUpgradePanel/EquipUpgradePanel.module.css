@@ -6,11 +6,11 @@
   z-index: 3;
   margin: 0;
   padding: 8px 14px;
-  border: 1px solid rgb(255 90 160 / 0.32);
+  border: 1px solid color-mix(in srgb, var(--hud-body, #f5116f) 32%, transparent);
   border-radius: 4px;
-  background: rgb(255 60 150 / 0.09);
+  background: color-mix(in srgb, var(--hud-body, #f5116f) 9%, transparent);
   font-size: 19.5px;
   line-height: 1.6;
-  color: #ffd0e6;
+  color: var(--hud-ink, #ffd0e6);
 }
 

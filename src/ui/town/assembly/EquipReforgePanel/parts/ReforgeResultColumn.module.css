@@ -1,0 +1,25 @@
+.column {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.candidates {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.empty {
+  margin: auto 0;
+  color: var(--hud-ink-dim, #9fb6cc);
+  font-size: 19.5px;
+  line-height: 1.7;
+  text-align: center;
+}

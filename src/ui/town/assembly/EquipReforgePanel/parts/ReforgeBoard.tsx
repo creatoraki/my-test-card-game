@@ -1,10 +1,10 @@
 import type { CostCheck } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
+import type { PendingReforge } from "@/store/equipCraftSlice";
 import type { EquipTab } from "@/ui/common/item/itemFilters";
 import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
-import { EquipGainColumn } from "./EquipGainColumn";
 import { EquipForgeColumn, EquipPickColumn, type PickEntry } from "../../equipParts";
-import type { UpgradeRangePreview } from "../upgradeRange";
+import { ReforgeResultColumn } from "./ReforgeResultColumn";
 import s from "../../equipParts/equipBoard.module.css";
 
 interface Props {
@@ -15,19 +15,17 @@ interface Props {
   onSelect: (key: string) => void;
   current: ItemStack | null;
   currentDef: ItemDef | null;
-  affinityId?: string;
-  nextDef: ItemDef | null;
   check: CostCheck | null;
-  loot: number;
-  preview: UpgradeRangePreview | null;
+  pending: PendingReforge | null;
   notice: string;
-  canUpgrade: boolean;
-  onUpgrade: () => void;
+  canRoll: boolean;
+  onRoll: () => void;
+  onApply: (keepNew: boolean) => void;
   onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
   onHideTooltip: () => void;
 }
 
-export function EquipUpgradeBoard({
+export function ReforgeBoard({
   entries,
   equipTab,
   onEquipTab,
@@ -35,14 +33,12 @@ export function EquipUpgradeBoard({
   onSelect,
   current,
   currentDef,
-  affinityId,
-  nextDef,
   check,
-  loot,
-  preview,
+  pending,
   notice,
-  canUpgrade,
-  onUpgrade,
+  canRoll,
+  onRoll,
+  onApply,
   onShowTooltip,
   onHideTooltip,
 }: Props) {
@@ -54,6 +50,7 @@ export function EquipUpgradeBoard({
         onEquipTab={onEquipTab}
         selectedKey={selectedKey}
         onSelect={onSelect}
+        disabled={Boolean(pending)}
         onShowTooltip={onShowTooltip}
         onHideTooltip={onHideTooltip}
       />
@@ -62,19 +59,20 @@ export function EquipUpgradeBoard({
         stack={current}
         def={currentDef}
         check={check}
-        loot={loot}
+        loot={0}
+        ariaLabel="重铸材料"
         onShowTooltip={onShowTooltip}
         onHideTooltip={onHideTooltip}
       />
       <span className={s.divider} aria-hidden />
-      <EquipGainColumn
-        preview={preview}
-        emptyText={notice}
+      <ReforgeResultColumn
+        stack={current}
         def={currentDef}
-        nextDef={nextDef}
-        affinityId={affinityId}
-        canUpgrade={canUpgrade}
-        onUpgrade={onUpgrade}
+        pending={pending}
+        notice={notice}
+        canRoll={canRoll}
+        onRoll={onRoll}
+        onApply={onApply}
       />
     </div>
   );

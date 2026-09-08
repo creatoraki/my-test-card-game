@@ -1,113 +1,106 @@
-import { useState } from "react";
-import { getItemDef, reforgeCheck } from "@/data";
+import { useMemo, useState } from "react";
+import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { useTownStore } from "@/store/townStore";
 import type { EquipTarget } from "@/store/equipCraftSlice";
-import ItemDetail from "@/ui/common/item/ItemDetail";
+import { useTownStore } from "@/store/townStore";
 import ItemTooltip, {
   tooltipPointFromElement,
+  type TooltipDirection,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { EventPanelButton } from "@/ui/common/EventPanel";
-import { EquipCostRack } from "../EquipCostRack";
-import { EquipTargetList, equipStackOf } from "../EquipTargetList";
-import s from "./EquipReforgePanel.module.css";
+import { HudPanelShell, HUD_TONE_BLUE } from "@/ui/common/HudPanelShell";
+import { buildEquipTargets, equipStackOf, equipTargetKey } from "../EquipTargetList";
+import { ReforgeBoard } from "./parts/ReforgeBoard";
+import { useReforgeView } from "./reforgeView";
 
-export function EquipReforgePanel() {
+interface Props {
+  closing?: boolean;
+  onClose: () => void;
+  morph: {
+    ref: React.Ref<HTMLElement>;
+    rect: import("@/ui/common/panelMorph").Rect;
+    ready: boolean;
+    seed?: React.ReactNode;
+    seedLabel?: string;
+  };
+}
+
+export function EquipReforgePanel({ closing = false, onClose, morph }: Props) {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const pending = useTownStore((state) => state.pendingReforge);
   const rollReforge = useTownStore((state) => state.rollReforge);
   const applyReforge = useTownStore((state) => state.applyReforge);
   const [selected, setSelected] = useState<EquipTarget | null>(null);
+  const [equipTab, setEquipTab] = useState<import("@/ui/common/item/itemFilters").EquipTab>("all");
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
+
+  const sourceEntries = useMemo(() => buildEquipTargets(storage, characters), [characters, storage]);
+  const entries = useMemo(
+    () => sourceEntries
+      .filter((entry) => getItemDef(entry.stack.itemId).affinityRollable)
+      .map((entry) => ({
+        key: equipTargetKey(entry.target),
+        stack: entry.stack,
+        ownerName: entry.ownerName,
+      })),
+    [sourceEntries],
+  );
+  const keyMap = useMemo<Map<string, EquipTarget>>(
+    () => new Map(
+      sourceEntries
+        .filter((entry) => getItemDef(entry.stack.itemId).affinityRollable)
+        .map((entry): [string, EquipTarget] => [equipTargetKey(entry.target), entry.target]),
+    ),
+    [sourceEntries],
+  );
 
   const target = pending?.target ?? selected;
   const current = equipStackOf(storage, characters, target);
-  const check = reforgeCheck(current ? getItemDef(current.itemId) : null, storage);
-  const canRoll = Boolean(selected && current && getItemDef(current.itemId).affinityRollable && check.ok);
-  const showTooltip = (element: HTMLElement, stack: ItemStack) => {
-    setHovered({ stack, point: tooltipPointFromElement(element) });
-  };
+  const view = useReforgeView(current, storage);
+  const selectedKey = pending
+    ? equipTargetKey(pending.target)
+    : selected
+      ? equipTargetKey(selected)
+      : null;
 
-  if (pending) {
-    const original = current;
-    const next = original ? { ...original, affinity: pending.affinity } : null;
-    return (
-      <>
-        <div className={s.compareBody}>
-          <p className={s.compareNotice}>请选择要保留的羁绊。重铸材料已经扣除，放弃新羁绊不会返还。</p>
-          <div className={s.compareGrid}>
-            <div className={s.detailColumn}>
-              <span className={s.label}>原羁绊</span>
-              <ItemDetail stack={original} placeholder="原装备已不在当前目标中。" className={s.detail} />
-              <EventPanelButton
-                onClick={() => applyReforge(false)}
-                aria-label="保留原羁绊"
-              >
-                保留这套
-              </EventPanelButton>
-            </div>
-            <div className={s.detailColumn}>
-              <span className={s.label}>新羁绊</span>
-              <ItemDetail stack={next} placeholder="新羁绊候选" className={s.detail} />
-              <EventPanelButton
-                tone="primary"
-                onClick={() => applyReforge(true)}
-                aria-label="保留新羁绊"
-              >
-                保留这套
-              </EventPanelButton>
-            </div>
-          </div>
-        </div>
-        {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
-      </>
-    );
-  }
+  const showTooltip = (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => {
+    setHovered({ stack, point: tooltipPointFromElement(element, direction) });
+  };
 
   return (
     <>
-      <div className={s.body}>
-        <EquipTargetList
-          storage={storage}
-          characters={characters}
-          selected={selected}
-          onSelect={setSelected}
+      <HudPanelShell
+        tone={HUD_TONE_BLUE}
+        closing={closing}
+        onClose={onClose}
+        label="羁绊重铸面板"
+        morph={morph}
+      >
+        <ReforgeBoard
+          entries={entries}
+          equipTab={equipTab}
+          onEquipTab={setEquipTab}
+          selectedKey={selectedKey}
+          onSelect={(key) => {
+            if (pending) return;
+            const next = keyMap.get(key);
+            if (next) setSelected(next);
+          }}
+          current={current}
+          currentDef={view.def}
+          check={view.check}
+          pending={pending}
+          notice={pending
+            ? "请选择要保留的羁绊，放弃新羁绊不会返还材料。"
+            : view.notice}
+          canRoll={view.canRoll}
+          onRoll={() => target && rollReforge(target)}
+          onApply={applyReforge}
           onShowTooltip={showTooltip}
           onHideTooltip={() => setHovered(null)}
         />
-        <div className={s.main}>
-          <div className={s.preview}>
-            <span className={s.label}>当前装备</span>
-            <ItemDetail
-              stack={current}
-              placeholder="从左侧选择一件装备。"
-              className={s.detail}
-            />
-          </div>
-          <p className={s.notice}>
-            {current && !getItemDef(current.itemId).affinityRollable
-              ? "这件装备不带羁绊词条，无法重铸。"
-              : "重铸会先掷出一条新羁绊，确认后再决定保留哪一条。属性词条不会改变。"}
-          </p>
-          <EquipCostRack
-            check={check}
-            onShowTooltip={showTooltip}
-            onHideTooltip={() => setHovered(null)}
-          />
-          <div className={s.footer}>
-            <EventPanelButton
-              tone="primary"
-              disabled={!canRoll}
-              onClick={() => selected && rollReforge(selected)}
-              aria-label="重铸选中装备的羁绊"
-            >
-              重铸
-            </EventPanelButton>
-          </div>
-        </div>
-      </div>
+      </HudPanelShell>
       {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
     </>
   );

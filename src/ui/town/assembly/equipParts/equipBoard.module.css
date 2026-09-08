@@ -14,8 +14,8 @@
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgb(255 90 160 / 0.28) 18%,
-    rgb(255 90 160 / 0.28) 82%,
+    color-mix(in srgb, var(--hud-body, #f5116f) 28%, transparent) 18%,
+    color-mix(in srgb, var(--hud-body, #f5116f) 28%, transparent) 82%,
     transparent 100%
   );
 }

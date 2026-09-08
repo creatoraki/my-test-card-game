@@ -9,10 +9,11 @@ interface Props {
   def: ItemDef;
   nextDef: ItemDef | null;
   notice: string;
+  affinityId?: string;
 }
 
-export function EquipGainHead({ def, nextDef, notice }: Props) {
-  const bond = getBondDef(def.affinity ?? "");
+export function EquipGainHead({ def, nextDef, notice, affinityId }: Props) {
+  const bond = getBondDef(affinityId ?? def.affinity ?? "");
 
   return (
     <header className={s.head}>
@@ -33,7 +34,7 @@ export function EquipGainHead({ def, nextDef, notice }: Props) {
 
       {bond && (
         <div className={s.bond}>
-          <BondIcon bondId={bond.id} className={s.bondIcon} />
+          <BondIcon bondId={bond.id} title={bond.name} className={s.bondIcon} />
           <span className={s.bondName}>
             {bond.name}
             <span className={s.bondArcana}>{bond.arcana}</span>

@@ -1,5 +1,4 @@
 export {
-  EquipTargetList,
   buildEquipTargets,
   equipStackOf,
   equipTargetKey,

@@ -46,25 +46,25 @@
 
 /* 外晕: 粗而透, 负责把光晕铺开。 */
 .halo {
-  stroke: var(--hud-halo);
+  stroke: var(--hud-halo, #ff0060);
   stroke-width: 11;
   opacity: calc(0.22 * var(--hud-glow));
 }
 
 /* 本体: 那条实实在在的粉线。 */
 .body {
-  stroke: var(--hud-body);
+  stroke: var(--hud-body, #f5116f);
   stroke-width: 4.5;
 }
 
 /* 线芯: 白热的中心, 只有它让线看起来在发光而不是被涂上去的。 */
 .core {
-  stroke: var(--hud-core);
+  stroke: var(--hud-core, #ffffff);
   stroke-width: 1.6;
 }
 
 .mosaic {
-  fill: var(--hud-body);
+  fill: var(--hud-body, #f5116f);
   filter: drop-shadow(
     0 0 3px color-mix(in srgb, var(--hud-glow-color, #ff2b86) calc(70% * var(--hud-glow)), transparent)
   );

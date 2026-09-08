@@ -15,7 +15,7 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgb(255 179 64 / 0.4) transparent;
+  scrollbar-color: color-mix(in srgb, var(--hud-body, #f5116f) 40%, transparent) transparent;
 }
 
 .table::-webkit-scrollbar {
@@ -23,7 +23,7 @@
 }
 
 .table::-webkit-scrollbar-thumb {
-  background: rgb(255 179 64 / 0.35);
+  background: color-mix(in srgb, var(--hud-body, #f5116f) 35%, transparent);
   border-radius: 3px;
 }
 
@@ -39,10 +39,10 @@
 
 .head {
   padding-bottom: 5px;
-  border-bottom-color: rgb(255 179 64 / 0.18);
-  font-size: 16.5px;
+  border-bottom-color: color-mix(in srgb, var(--hud-body, #f5116f) 18%, transparent);
+  font-size: 18px;
   letter-spacing: 0.16em;
-  color: #97889f;
+  color: var(--hud-ink-dim, #97889f);
 }
 
 .label {
@@ -50,36 +50,36 @@
   align-items: baseline;
   gap: 6px;
   min-width: 0;
-  color: #d9cbe2;
+  color: var(--hud-ink, #d9cbe2);
 }
 
 .cap {
   flex: none;
-  font-size: 15px;
+  font-size: 18px;
   font-style: normal;
   letter-spacing: 0.06em;
-  color: #8a7d93;
+  color: var(--hud-ink-dim, #8a7d93);
 }
 
 .current {
-  color: #b6a8c0;
+  color: var(--hud-ink-dim, #b6a8c0);
   font-variant-numeric: tabular-nums;
 }
 
 .next {
-  color: #ffd98a;
+  color: var(--hud-value, #ffd98a);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 10px rgb(255 179 64 / 0.28);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 28%, transparent);
 }
 
 /* 已封顶: 整行压暗, 一眼看出这条不会再涨。 */
 .capped .label,
 .capped .current {
-  color: #7f7288;
+  color: var(--hud-ink-dim, #7f7288);
 }
 
 .capped .next {
-  color: #9b8d7a;
+  color: var(--hud-ink-dim, #9b8d7a);
   text-shadow: none;
 }
 
@@ -91,14 +91,14 @@
 
 .foot {
   margin: 10px 0 0;
-  font-size: 16.5px;
+  font-size: 18px;
   line-height: 1.7;
-  color: #9b8ea9;
+  color: var(--hud-ink-dim, #9b8ea9);
 }
 
 .empty {
   margin: 12px 0 0;
   font-size: 19.5px;
   line-height: 1.8;
-  color: #9b8ea9;
+  color: var(--hud-ink-dim, #9b8ea9);
 }

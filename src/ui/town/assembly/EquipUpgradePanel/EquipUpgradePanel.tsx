@@ -83,6 +83,7 @@ export function EquipUpgradePanel({ closing = false, onClose, morph }: Props) {
           }}
           current={current}
           currentDef={view.currentDef}
+          affinityId={current?.affinity ?? view.currentDef?.affinity}
           nextDef={view.nextDef}
           check={view.check}
           loot={loot}

@@ -1,7 +1,6 @@
-// 中列: 装备大图标 + 3 样材料 + 积分。
+// 中列：装备大图标 + 材料 + 积分。
 
-import type { CostCheck } from "@/data";
-import { getItemDef } from "@/data";
+import { getItemDef, type CostCheck } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
 import ItemSlot from "@/ui/common/item/ItemSlot";
@@ -14,6 +13,7 @@ interface Props {
   def: ItemDef | null;
   check: CostCheck | null;
   loot: number;
+  ariaLabel?: string;
   onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
   onHideTooltip: () => void;
 }
@@ -23,19 +23,20 @@ export function EquipForgeColumn({
   def,
   check,
   loot,
+  ariaLabel = "装备升阶",
   onShowTooltip,
   onHideTooltip,
 }: Props) {
   if (!stack || !def) {
     return (
-      <section className={s.column} aria-label="装备升阶">
+      <section className={s.column} aria-label={ariaLabel}>
         <p className={s.idle}>从左侧选择一件装备。</p>
       </section>
     );
   }
 
   return (
-    <section className={s.column} aria-label="装备升阶">
+    <section className={s.column} aria-label={ariaLabel}>
       <div className={s.stage}>
         <span className={cx(s.icon, s[`r-${def.rarity}`])}>{itemIcon(def)}</span>
       </div>
@@ -57,9 +58,7 @@ export function EquipForgeColumn({
                   onPointerLeave={onHideTooltip}
                   onFocus={(event) => onShowTooltip(event.currentTarget, matStack, "right")}
                   onBlur={(event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                      onHideTooltip();
-                    }
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHideTooltip();
                   }}
                 >
                   <ItemSlot
@@ -70,9 +69,7 @@ export function EquipForgeColumn({
                     aria-label={`${getItemDef(material.itemId).name}，持有 ${material.have}，需要 ${material.need}`}
                   />
                   <span className={s.materialName}>{getItemDef(material.itemId).name}</span>
-                  <span className={s.amount}>
-                    {material.have} / {material.need}
-                  </span>
+                  <span className={s.amount}>{material.have} / {material.need}</span>
                 </div>
               );
             })}
@@ -90,7 +87,6 @@ export function EquipForgeColumn({
           </div>
         )}
       </div>
-
     </section>
   );
 }
