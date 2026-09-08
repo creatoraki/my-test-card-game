@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { type ShopSlot } from "@/data/shop";
-import type { ItemStack } from "@/items/types";
 import { EventPanelButton, EventPanelFoot } from "@/ui/common/EventPanel";
 import ShopItemCard from "@/ui/town/shop/ShopItemCard";
 import ShelfGrid from "@/ui/town/shop/ShopScene/ShelfGrid";
+import { useHoverKey } from "./useHoverKey";
+import { useSlotStacks } from "./shopStacks";
 import s from "./ShopScene.module.css";
 
 interface Props {
@@ -24,23 +25,14 @@ export function ShopPanel({
   onRefresh,
 }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const selectedSlot = shop.slots.find((slot) => slot.key === selected) ?? null;
-  const hoveredSlot = shop.slots.find((slot) => slot.key === hovered) ?? null;
-  const displayedSlot = hoveredSlot ?? selectedSlot;
-  const displayedStack = useMemo<ItemStack | null>(
-    () => (displayedSlot ? asStack(displayedSlot) : null),
-    [displayedSlot],
-  );
+  const stacks = useSlotStacks(shop.slots);
+  const { hovered, onHoverStart, onHoverEnd, reset } = useHoverKey();
+  const displayedStack = (hovered ? stacks.get(hovered) : null) ?? (selected ? stacks.get(selected) : null) ?? null;
 
   useEffect(() => {
     setSelected(null);
-    setHovered(null);
-  }, [day, shop.refreshes]);
-
-  const handleHoverEnd = useCallback((key: string) => {
-    setHovered((current) => (current === key ? null : current));
-  }, []);
+    reset();
+  }, [day, reset, shop.refreshes]);
 
   return (
     <div className={s["sx-event-stage"]}>
@@ -51,13 +43,12 @@ export function ShopPanel({
             loot={loot}
             selected={selected}
             onSelect={setSelected}
-            onHoverStart={setHovered}
-            onHoverEnd={handleHoverEnd}
+            onHoverStart={onHoverStart}
+            onHoverEnd={onHoverEnd}
             onBuy={onBuy}
           />
         </div>
         <ShopItemCard
-          key={`${day}-${shop.refreshes}`}
           stack={displayedStack}
           placeholder="选择一件商品查看详情。今天挑剩的，明天就换新货了。"
         />
@@ -80,11 +71,3 @@ export function ShopPanel({
     </div>
   );
 }
-
-const asStack = (slot: ShopSlot): ItemStack => ({
-  uid: slot.key,
-  itemId: slot.itemId,
-  count: 1,
-  affinity: slot.affinity,
-  roll: slot.roll,
-});

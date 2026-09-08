@@ -195,7 +195,6 @@
 .sx-root .sx-vending-modal > section {
   pointer-events: auto;
   backface-visibility: hidden;
-  transform-style: preserve-3d;
 }
 
 .sx-root .sx-warehouse-modal > section {
@@ -212,29 +211,54 @@
   --event-accent: #5fc8ff;
 }
 
-/* ── 两块面板的悬浮投影 ──
-   ⚠ 只能走 filter: drop-shadow(), **不能**用 box-shadow —— 公共层的 .asm-panel 同时挂着
-   clip-path 与 overflow:hidden, clip-path 会把外阴影整条裁掉(公共层那句
-   `0 28px 72px -34px #000000e8` 就是这么一个像素都没画出来的)。
-   drop-shadow 在裁剪之后生效, 阴影正好沿着切角八边形的轮廓走; 又因为 filter 排在
-   transform 之前, 阴影会跟着上面那两条透视旋转一起倾斜, 近端沉、远端飘, 立体感是对的。
+/* ── 两块面板的静态投影 ──
+   阴影节点与面板是兄弟, 不能放到 .asm-modal 或 .sx-root 之下成为祖先: 祖先 filter
+   会把 .asm-panel 的 backdrop-filter 玻璃层变成失效的 backdrop root。
+   两个伪元素分别还原贴边接触影与远距环境影, filter 只挂在伪元素上, 让两档模糊半径
+   可以独立控制。内容全静态, 面板内部的扫光、悬浮位移和详情切换不会触发它们重算。 */
+.sx-root .sx-panel-shadow {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  animation: sxPanelShadowIn 520ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
 
-   ⚠ filter 只准挂在面板**自己**身上。挂到 .sx-root / .asm-modal 任何一层祖先, 那层就会
-   变成 backdrop root, 面板的 backdrop-filter 玻璃层当场作废(见 PanelShell.module.css
-   开头那段说明)。元素自己的 filter 不影响自己的 backdrop-filter, 所以这里是安全的。
+.sx-root .sx-panel-shadow.is-warehouse {
+  transform: perspective(2400px) rotateY(4deg) rotateX(1deg);
+  transform-origin: 0 50%;
+}
 
-   ⚠ 只在 [data-morph="open"] 落位后挂: morph 展开那段面板尺寸每帧都在变,
-   让浏览器每帧重算一次这么大范围的 drop-shadow 太贵, 收起时也一并干净退场。
+.sx-root .sx-panel-shadow.is-vending {
+  transform: perspective(2400px) rotateY(-4deg) rotateX(1deg);
+  transform-origin: 100% 50%;
+}
 
-   三档叠加 = 贴边接触影 + 中距主影(撑高度) + 远距环境影(压暗背景)。
-   面板底色带透明度(--asm-panel-bg 的 alpha ≈ 0.85), drop-shadow 按合成后的 alpha 衰减,
-   所以这里的黑给到 99~bf 而不是常规的 40~60。 */
-.sx-root .sx-warehouse-modal[data-morph="open"] > section,
-.sx-root .sx-vending-modal[data-morph="open"] > section {
-  filter:
-    drop-shadow(0 8px 14px #00000099)
-    drop-shadow(0 30px 50px #000000bf)
-    drop-shadow(0 68px 104px #00000099);
+.sx-root .sx-panel-shadow::before,
+.sx-root .sx-panel-shadow::after {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  content: "";
+  pointer-events: none;
+}
+
+/* 近影贴住面板边缘, 远影拉开距离压暗环境; filter 放在伪元素而非宿主上。 */
+.sx-root .sx-panel-shadow::before {
+  opacity: 0.68;
+  filter: blur(10px);
+  transform: translateY(6px);
+}
+
+.sx-root .sx-panel-shadow::after {
+  opacity: 0.42;
+  filter: blur(46px);
+  transform: translateY(34px);
+}
+
+.sx-root.is-leaving .sx-panel-shadow {
+  animation: sxPanelShadowOut 420ms ease both;
 }
 
 .sx-root.is-leaving .sx-header {
@@ -261,6 +285,22 @@
   to {
     opacity: 0;
     transform: translateX(44px);
+  }
+}
+
+@keyframes sxPanelShadowIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sxPanelShadowOut {
+  to {
+    opacity: 0;
   }
 }
 

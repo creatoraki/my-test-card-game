@@ -11,6 +11,7 @@ import { cx } from "@/ui/common/cx";
 import { CrateIcon, ShelfIcon } from "@/ui/town/shop/StockPanels/icons";
 import { StockEntries } from "@/ui/town/shop/StockPanels";
 import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
+import { PanelShadows } from "./PanelShadows";
 import { ShopPanel } from "./ShopPanel";
 import { useShopPanelsMorph, VENDING_RECT, WAREHOUSE_RECT } from "./useShopPanelsMorph";
 import s from "./ShopScene.module.css";
@@ -60,7 +61,13 @@ export function ShopScene({ leaving = false }: Props) {
   const { open, closing, mounted, openPanels, closePanels, warehouse, vending } = useShopPanelsMorph();
 
   return (
-    <div className={cx(s["sx-root"], leaving && s["is-leaving"])} data-shop-root>
+    // ⚠ data-leaving 不能省: 抽屉入口的样式在 StockPanels.module.css 里, 与本文件不是同一个
+    //   CSS Module, 拿不到 .is-leaving 的哈希类名 —— 只能靠这个属性把退场传下去。
+    <div
+      className={cx(s["sx-root"], leaving && s["is-leaving"])}
+      data-shop-root
+      data-leaving={leaving ? "" : undefined}
+    >
       <header className={s["sx-header"]} style={{ left: "56px", top: "42px" }}>
         <span className={s["sx-kicker"]}>物资交换</span>
         <h2 className={s["sx-title"]}>商店</h2>
@@ -71,6 +78,8 @@ export function ShopScene({ leaving = false }: Props) {
 
       {mounted && (
         <>
+          {warehouse.ready && !closing && <PanelShadows />}
+
           <PanelShell
             title="仓库"
             accent="#c9d3da"

@@ -56,16 +56,14 @@
   display: none;
 }
 
-/* ★ 入场动画从 .sx-card 搬到这里。外壳(带 backdrop-filter)跨商品切换存活,
-   只有这一层随 key 重挂载 —— 淡入不再连带重建玻璃层与重采样整屏背景。
-   动画也去掉了 rotateX: 为一次淡入单独建一个 3D 层不值当, 位移感由 translateY 给足。 */
+/* ★ 外壳(带 backdrop-filter)跨商品切换存活, 内容节点也不再随商品 key 重挂载。
+   商品切换的 420ms 上浮淡入由 ShopItemCardBody 的 WAAPI 驱动, 不与展示台的持续演出互相重建。 */
 .sx-card-body {
   display: flex;
   min-height: 0;
   flex: 1 0 auto;
   flex-direction: column;
   gap: 11px;
-  animation: sxCardIn 420ms cubic-bezier(0.16, 0.86, 0.24, 1) both;
 }
 
 .sx-card::before {

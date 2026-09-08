@@ -11,7 +11,7 @@
 //   信息层级自上而下: 大图 > 名称 > 羁绊 tag / 标签 > 描述 > 属性数值 > 脚注,
 //   靠字号与字色拉开档次, 不靠分隔框 —— 框太多这一栏就又读成表单了。
 
-import type { CSSProperties } from "react";
+import { memo, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { ItemStack } from "@/items/types";
@@ -28,13 +28,15 @@ import s from "./ShopItemCard.module.css";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
-export default function ShopItemCard({
-  stack,
-  placeholder,
-}: {
+interface Props {
   stack: ItemStack | null;
   placeholder?: string;
-}) {
+}
+
+function ShopItemCard({
+  stack,
+  placeholder,
+}: Props) {
   if (!stack) {
     return (
       <div className={cx(s["sx-card"], s["is-idle"])}>
@@ -43,34 +45,61 @@ export default function ShopItemCard({
     );
   }
 
+  return <ShopItemCardBody stack={stack} />;
+}
+
+const ShopItemCardBody = memo(function ShopItemCardBody({ stack }: { stack: ItemStack }) {
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const element = bodyRef.current;
+    if (!element) return;
+
+    const animation = element.animate(
+      [
+        { opacity: 0, transform: "translateY(16px)" },
+        { opacity: 1, transform: "none" },
+      ],
+      {
+        duration: 420,
+        easing: "cubic-bezier(0.16, 0.86, 0.24, 1)",
+        fill: "both",
+      },
+    );
+
+    return () => animation.cancel();
+  }, [stack.uid]);
+
   const def = getItemDef(stack.itemId);
   const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
-  const flatMods = stack.roll ? rollToFlat(stack.roll) : def.mods?.flat;
-  const pctMods = def.mods?.pct;
-  const rows: { label: string; value: string; good: boolean }[] = [];
-  for (const k of STAT_KEYS) {
-    const flat = flatMods?.[k];
-    const pct = pctMods?.[k];
-    if (flat)
-      rows.push({
-        label: STAT_LABEL[k] ?? k,
-        value: `${signed(flat)}${isPercentStat(k) ? "%" : ""}`,
-        good: flat > 0,
-      });
-    if (pct)
-      rows.push({
-        label: STAT_LABEL[k] ?? k,
-        value: `${signed(pct)}${isPercentStat(k) ? "%" : ""}`,
-        good: pct > 0,
-      });
-  }
+  const rows = useMemo(() => {
+    const flatMods = stack.roll ? rollToFlat(stack.roll) : def.mods?.flat;
+    const pctMods = def.mods?.pct;
+    const nextRows: { label: string; value: string; good: boolean }[] = [];
+    for (const k of STAT_KEYS) {
+      const flat = flatMods?.[k];
+      const pct = pctMods?.[k];
+      if (flat)
+        nextRows.push({
+          label: STAT_LABEL[k] ?? k,
+          value: `${signed(flat)}${isPercentStat(k) ? "%" : ""}`,
+          good: flat > 0,
+        });
+      if (pct)
+        nextRows.push({
+          label: STAT_LABEL[k] ?? k,
+          value: `${signed(pct)}${isPercentStat(k) ? "%" : ""}`,
+          good: pct > 0,
+        });
+    }
+    return nextRows;
+  }, [stack]);
   return (
     // ★ 外壳与内容**必须**分开: 外壳(.sx-card)是这一栏唯一的 backdrop-filter 承载者,
-    //   它要跨商品切换存活下来。以前整张卡挂在 ShopScene 的 key 上, 鼠标每划过一格
-    //   就卸载重建一次玻璃层, 一次悬浮 = 重新采样一遍整屏背景, 这是最大的一处掉帧。
-    //   现在只有内层 .sx-card-body 带 key 重挂载 —— 它不含 backdrop-filter, 淡入很便宜。
+    //   它要跨商品切换存活下来。商品变化只更新复用中的内容节点, 入场效果交给 WAAPI,
+    //   不卸载玻璃层、3D 动画层或羁绊 Popover。
     <div className={cx(s["sx-card"], s[`sx-r-${def.rarity}`])}>
-      <div className={s["sx-card-body"]} key={stack.uid}>
+      <div className={s["sx-card-body"]} ref={bodyRef}>
         {/* 商品展示台: 整栏通宽的大图, 是这一栏唯一的视觉焦点 */}
         <div className={s["sx-card-stage"]}>
           {/* 扫光带独立成节点: 它以前是 ::after 上一层 220% 宽的渐变, 靠 background-position
@@ -149,4 +178,6 @@ export default function ShopItemCard({
       </div>
     </div>
   );
-}
+});
+
+export default memo(ShopItemCard);

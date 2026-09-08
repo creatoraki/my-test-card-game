@@ -1,10 +1,10 @@
 // 商店六格混合货架。购买入口是每格底部的价格牌，详情栏只负责展示。
 
-import { useMemo } from "react";
+import { memo, useCallback } from "react";
 import type { ShopSlot } from "@/data/shop";
-import type { ItemStack } from "@/items/types";
 import { cx } from "@/ui/common/cx";
 import ShopItemTile from "@/ui/town/shop/ShopItemTile";
+import { useSlotStacks } from "./shopStacks";
 import s from "./ShelfGrid.module.css";
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
   onBuy: (key: string) => void;
 }
 
-export default function ShelfGrid({
+function ShelfGrid({
   slots,
   loot,
   selected,
@@ -26,10 +26,7 @@ export default function ShelfGrid({
   onHoverEnd,
   onBuy,
 }: Props) {
-  const stacks = useMemo(
-    () => new Map(slots.map((slot) => [slot.key, asStack(slot)])),
-    [slots],
-  );
+  const stacks = useSlotStacks(slots);
 
   return slots.length ? (
     <div className={cx(s["sx-grid"], s["is-entering"])} aria-label="商店货架">
@@ -53,7 +50,7 @@ export default function ShelfGrid({
   );
 }
 
-function ShelfPriceTag({
+function ShelfPriceTagBase({
   slot,
   affordable,
   onBuy,
@@ -64,13 +61,14 @@ function ShelfPriceTag({
 }) {
   const state = slot.sold ? "sold" : affordable ? "ready" : "poor";
   const label = slot.sold ? "已售出" : affordable ? "买入" : "积分不足";
+  const handleBuy = useCallback(() => onBuy(slot.key), [onBuy, slot.key]);
 
   return (
     <button
       className={cx(s["sx-price"], s[`is-${state}`])}
       type="button"
       disabled={slot.sold || !affordable}
-      onClick={() => onBuy(slot.key)}
+      onClick={handleBuy}
       aria-label={`${label}，售价 ${slot.price} 居民积分`}
     >
       {slot.sold ? <span className={s["sx-price-sold"]}>已售出</span> : <strong>{slot.price}</strong>}
@@ -78,10 +76,6 @@ function ShelfPriceTag({
   );
 }
 
-const asStack = (slot: ShopSlot): ItemStack => ({
-  uid: slot.key,
-  itemId: slot.itemId,
-  count: 1,
-  affinity: slot.affinity,
-  roll: slot.roll,
-});
+const ShelfPriceTag = memo(ShelfPriceTagBase);
+
+export default memo(ShelfGrid);

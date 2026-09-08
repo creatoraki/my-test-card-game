@@ -156,8 +156,11 @@
   }
 }
 
-/* 返回据点时抽屉跟着淡出 —— 由商店场景根节点的 .is-leaving 驱动。 */
-:global(.sx-root.is-leaving) .entry {
+/* 返回据点时抽屉跟着淡出 —— 由商店场景根节点的 [data-leaving] 驱动。
+   ⚠ 这里只能钩 data 属性: .sx-root / .is-leaving 都是 ShopScene.module.css 的哈希类名,
+     写成 :global(.sx-root.is-leaving) 永远选不中(改前就是这么写的, 整条规则从来没生效,
+     于是抽屉一直挂在画面上等像素转场跑完才被卸载)。 */
+:global([data-shop-root][data-leaving]) .entry {
   animation: stockEntryFade 300ms ease-in both;
 }
 
@@ -175,6 +178,19 @@
 /* 回收台浮层压过入口列与商店/仓库 SciFiPanel。 */
 .panel {
   z-index: 6;
+}
+
+/* 开着回收台/卡牌商店时点「返回据点」: 浮层也要跟着退, 节奏与 ShopScene 里
+   仓库/自动售货机两块浮层的 sxLeave 对齐(420ms + 右移 44px)。 */
+:global([data-shop-root][data-leaving]) .panel {
+  animation: stockPanelLeave 420ms ease both;
+}
+
+@keyframes stockPanelLeave {
+  to {
+    opacity: 0;
+    transform: translateX(44px);
+  }
 }
 
 /* ===================== 浮层内容 ===================== */
