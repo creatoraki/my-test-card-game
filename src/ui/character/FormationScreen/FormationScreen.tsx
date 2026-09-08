@@ -31,6 +31,7 @@ import { cx } from "@/ui/common/cx";
 import { CRYO_BG_ART } from "@/ui/art/sceneArt";
 import { CharacterDetailView } from "@/ui/character/CharacterDetailView";
 import { SquadTalentModal } from "@/ui/town/training/SquadTalentModal";
+import { markTownReturn } from "@/ui/town/townReturn";
 import { useSquadTalent } from "@/ui/town/training/useSquadTalent";
 import { CrewGrid } from "./CrewGrid";
 import { SquadHud } from "./SquadHud";
@@ -59,6 +60,13 @@ export function FormationScreen() {
   const party = useTownStore((state) => state.party);
   const toggleParty = useTownStore((state) => state.toggleParty);
   const enterTown = useRunStore((state) => state.enterTown);
+
+  // 回据点前先打一个标记: 据点侧读到它就把自己摆成「演出中途」, 补播那段反向像素转场
+  // (本页与据点之间的过场本身是零时长的, 见 ui/app/transitions.ts 的 "formation>town")。
+  const leaveToTown = useCallback(() => {
+    markTownReturn("formation");
+    enterTown();
+  }, [enterTown]);
 
   const talent = useSquadTalent();
   const [talentOpen, setTalentOpen] = useState(false);
@@ -97,11 +105,11 @@ export function FormationScreen() {
   useEffect(() => {
     if (!canLeave) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") enterTown();
+      if (event.key === "Escape") leaveToTown();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [canLeave, enterTown]);
+  }, [canLeave, leaveToTown]);
 
   const back = useCallback(() => {
     if (backPending) return;
@@ -112,9 +120,9 @@ export function FormationScreen() {
   useEffect(() => {
     if (!backPending) return;
     if (morph.mode === "detail") morph.backToRoster();
-    else enterTown();
+    else leaveToTown();
     setBackPending(false);
-  }, [backPending, enterTown, morph.backToRoster, morph.mode]);
+  }, [backPending, leaveToTown, morph.backToRoster, morph.mode]);
 
   const flight = morph.flight;
   const flightDef = flight ? getCharacter(flight.charId) : null;

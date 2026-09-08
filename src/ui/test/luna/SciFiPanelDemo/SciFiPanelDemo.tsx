@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { SciFiPanel, type SciFiPanelColors } from "@/ui/common/SciFiPanel";
-import reference from "@/assets/test/panel素材.png";
 import s from "./SciFiPanelDemo.module.css";
 
 const presets = {
@@ -45,7 +44,6 @@ export function SciFiPanelDemo() {
           <label className={s.toggle}><input type="checkbox" checked={transparent} onChange={e => setTransparent(e.target.checked)} />透明内容背景</label>
           <label className={s.toggle}><input type="checkbox" checked={showContent} onChange={e => setShowContent(e.target.checked)} />示例内容</label>
           <label className={s.toggle}><input type="checkbox" checked={stress} onChange={e => setStress(e.target.checked)} />展示 24 个面板</label>
-          <details className={s.reference}><summary>查看原始素材</summary><img src={reference} alt="蓝色科幻面板原始素材" loading="lazy" /></details>
         </aside>
         <section className={s.preview} aria-label="面板预览">
           <div className={s.previewBar}><span>LIVE PREVIEW</span><span>{width} × {height} / {Math.round(zoom * 100)}%</span></div>

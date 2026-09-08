@@ -11,7 +11,6 @@ import {
   CRYO_BG_ART,
   MUSEUM_BG_ART,
   SHOP_BG_ART,
-  TRAINING_BG_ART,
   WORKLOG_BG_ART,
 } from "@/ui/art/sceneArt";
 
@@ -139,10 +138,10 @@ const BUILDING_CONTOURS = [
 
 export type BuildingId = (typeof BUILDING_CONTOURS)[number]["id"];
 
-/** 一栋建筑进去之后是哪个设施: 设施 id + 背景图。
+/** 一栋建筑进去之后的目标: 设施 id 或顶层 screen id + 背景图。
  *  ⚠ 曾经还有 focus / scale(推镜焦点与放大倍数): 进设施的运镜已整套删除, 两个字段一并去掉。 */
 export interface FacilityBinding {
-  /** 设施 id: 与 TownScreen 的 FACILITY_CONTENT 键一致。 */
+  /** 设施 id 与 TownScreen 的 FACILITY_CONTENT 键一致, 顶层场景直接填写 screen id。 */
   facility: string;
   /** 设施自己的背景图(16:9, 与画布同比例 ⇒ cover 只等比缩放, 无裁切无变形)。 */
   bg: string;
@@ -154,8 +153,8 @@ const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
   airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART },
   // 医疗室: 冬眠唤醒 / 营养舱
   supplies: { facility: "cryo", bg: CRYO_BG_ART },
-  // 队员宿舍: 小队天赋 / 训练点
-  "sleeping-pods": { facility: "training", bg: TRAINING_BG_ART },
+  // 队员宿舍: 进入顶层编队场景, 沿用冬眠仓背景作为像素转场目标
+  "sleeping-pods": { facility: "formation", bg: CRYO_BG_ART },
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
   workshop: { facility: "shop", bg: SHOP_BG_ART },
   // 档案机: 物品 / 卡牌 / 怪物图鉴

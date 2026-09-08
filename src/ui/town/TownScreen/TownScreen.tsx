@@ -12,7 +12,10 @@
 //   HUD 逐组错峰飞出 → 紧跟着 PixelSwap 把全景像素块化地换成设施背景。
 //   ⚠ **没有运镜**: 镜头不推近、不放大, 点哪栋建筑都是原地换场 —— 相机那一套已整体删除。
 //
-// ⚠ **编队与出击不是设施**: 它们连这段换场都不播, 直接切到顶层全屏页(见右下的 StationDock)。
+// ★ 「队员宿舍 = 编队页」是个特例: 编队是**顶层全屏页**(不是设施内场景), 但进出照样播这段换场 ——
+//   像素铺满的那一刻才切 screen, 返回时由 town/townReturn.ts 的标记让本组件挂载即补播反向段。
+//   右下出击坞的「编队」按钮走的也是同一条路(见 enterFormation)。
+// ⚠ **出击不是设施**: 它连这段换场都不播, 直接切到顶层全屏页(见右下的 StationDock)。
 
 import {
   useCallback,
@@ -44,14 +47,14 @@ import { ControlTerminalScene } from "@/ui/town/terminal/ControlTerminalScene";
 import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
-import { TrainingScene } from "@/ui/town/training/TrainingScene";
 import { MuseumScene } from "@/ui/town/museum";
 import { FacilityExitProvider, useFacilityExitRegistry } from "@/ui/town/facilityExit";
+import { clearTownReturn, peekTownReturn } from "@/ui/town/townReturn";
 import { FacilityBack } from "./FacilityBack";
 import { StationDock } from "./StationDock";
 import { StationHud } from "./StationHud";
 import { StationLayer } from "./StationLayer";
-import { STATION_BUILDINGS, type StationBuilding } from "./stationBuildings";
+import { STATION_BUILDINGS, buildingOfFacility, type StationBuilding } from "./stationBuildings";
 import s from "./TownScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";
@@ -67,16 +70,11 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   shop: (leaving) => <ShopScene leaving={leaving} />,
   // 医疗室: 冬眠唤醒 / 营养舱
   cryo: (leaving) => <CryoScene leaving={leaving} />,
-  // 队员宿舍: 小队天赋 / 训练点
-  training: (leaving, onBack) => <TrainingScene leaving={leaving} onBack={onBack} />,
   // 研究中心: 委托终端
   worklog: (leaving) => <ControlTerminalScene leaving={leaving} />,
   // 档案机: 物品 / 卡牌 / 怪物图鉴
   museum: (leaving) => <MuseumScene leaving={leaving} />,
 };
-
-// 这些设施把返回动作收进自己的面板, 避免同一场景出现两个出口。
-const FACILITY_SELF_EXIT = new Set(["training"]);
 
 // ===================== 进设施演出 =====================
 // 阶段机: idle(可交互) → entering(HUD 飞出 + 像素转场) → inside(设施场景) → leaving(反向) → idle。
@@ -112,13 +110,20 @@ export function TownScreen() {
   const openFormation = useRunStore((state) => state.openFormation);
   const openSortie = useRunStore((state) => state.openSortie);
 
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [building, setBuilding] = useState<StationBuilding | null>(null); // 正在进入/已进入的建筑
+  // 从顶层全屏页(编队)回来的那一次: 本组件是全新挂载的, 若照常停在 idle, 那段反向换场就没了。
+  // ⚠ 用 peek 而不是一次性的 take —— StrictMode 下 useState 的初值函数会跑两次, 消费统一放
+  //   在下面的挂载 effect 里(clearTownReturn)。
+  const returning = buildingOfFacility(peekTownReturn() ?? "") ?? null;
+
+  const [phase, setPhase] = useState<Phase>(returning ? "leaving" : "idle");
+  const [building, setBuilding] = useState<StationBuilding | null>(returning); // 正在进入/已进入的建筑
   // PixelSwap 的目标态: 点建筑后隔一小段(crossfadeAt, 让 HUD 先起飞)置真, 转场即由此触发。
-  const [swapped, setSwapped] = useState(false);
+  // ★ 回据点那一次首帧就是 true: PixelSwap 受控时 shownActive 初值 = active ⇒ 直接显示设施背景
+  //   (不播动画), 随后置假才触发反向像素转场 —— 观感与在设施内点「返回据点」逐帧一致。
+  const [swapped, setSwapped] = useState(!!returning);
   // 建筑热区层跟着全景背景走: 像素转场一起转它就淡出, 返回时等像素铺回全景才淡回来 ——
   // 它在 PixelSwap 之上, 不跟着走的话会浮在已经换好的设施背景上。
-  const [stationShown, setStationShown] = useState(true);
+  const [stationShown, setStationShown] = useState(!returning);
   const exit = useFacilityExitRegistry();
   const exitingRef = useRef(false);
 
@@ -141,17 +146,41 @@ export function TownScreen() {
   //   卸下, 若抢在像素铺满之前发生, 会露出下面还没换完的一角。
   const enterDone = useCallback(() => setPhase((current) => (current === "entering" ? "inside" : current)), []);
 
+  // 像素铺满之后的收尾, 两种目的地共用一个出口:
+  //   顶层全屏页(编队) → 此刻才切 screen(据点⇄编队的过场是零时长的, 见 app/transitions.ts);
+  //   设施           → 进 inside, 全景那层连同建筑热区一起卸下。
+  // ⚠ 只会生效一次: PixelSwap 的 onComplete 与下面的兜底定时器是两条独立时间线, 谁先到算谁。
+  const finishedRef = useRef(false);
+  const finishEnter = useCallback(
+    (target: StationBuilding) => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      if (target.facility === "formation") openFormation();
+      else enterDone();
+    },
+    [enterDone, openFormation],
+  );
+
   function enterFacility(target: StationBuilding) {
     if (phase !== "idle") return;
     clearTimers();
+    finishedRef.current = false;
     setBuilding(target);
     setPhase("entering");
     later(() => {
       setSwapped(true);
       setStationShown(false);
     }, FACILITY_CINEMA.crossfadeAt);
-    // 兜底: 正常由 PixelSwap 的 onComplete 收尾(见上面的 enterDone), 这条只在回调没来时接住。
-    later(enterDone, ENTER_TOTAL + 200);
+    // 兜底: 正常由 PixelSwap 的 onComplete 收尾, 这条只在回调没来时接住。
+    later(() => finishEnter(target), ENTER_TOTAL + 200);
+  }
+
+  // 右下出击坞的「编队」按钮 = 点队员宿舍那栋楼, 一整套演出完全复用(含建筑的被选中态)。
+  // ⚠ 兜底直切: 万一表里没有哪栋楼绑到编队, 按钮也不能变成哑巴。
+  function enterFormation() {
+    const target = buildingOfFacility("formation");
+    if (target) enterFacility(target);
+    else openFormation();
   }
 
   function startLeave() {
@@ -164,6 +193,15 @@ export function TownScreen() {
       setBuilding(null);
     }, FACILITY_CINEMA.leave);
   }
+
+  // 从顶层全屏页回来的那一次: 消费掉标记, 并把反向演出接着播完(与设施内点「返回据点」同一条 startLeave)。
+  // ⚠ 只跑一次: StrictMode 下 effect 会双调用, startLeave 自带 clearTimers ⇒ 重复执行也只是重排同一批定时器。
+  useEffect(() => {
+    if (!returning) return;
+    clearTownReturn();
+    startLeave();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function backToTown() {
     if (phase !== "inside" || exitingRef.current) return;
@@ -230,8 +268,11 @@ export function TownScreen() {
         duration={FACILITY_CINEMA.crossfade}
         pixelDuration={420}
         onComplete={(active) => {
-          if (active) enterDone();
-          else setStationShown(true);
+          if (active) {
+            if (building) finishEnter(building);
+            return;
+          }
+          setStationShown(true);
         }}
         firstContent={<ScenePlate src={STATION_BG_ART} alt="空间站全景" />}
         secondContent={building ? <ScenePlate src={building.bg} alt={building.label} /> : null}
@@ -259,19 +300,17 @@ export function TownScreen() {
             className={cx(inCinema && s["is-flying"])}
             style={inCinema ? fly(FLY_DOCK, 0) : undefined}
           >
-            <StationDock onFormation={openFormation} onSortie={openSortie} />
+            <StationDock onFormation={enterFormation} onSortie={openSortie} />
           </div>
         </>
       )}
 
       {/* 设施内容与「返回据点」都留到 leaving 阶段一起淡出 —— 只在 inside 时渲染的话, 背景
           还在做像素转场, 上面的面板与按钮却已经硬切消失, 读起来很跳。 */}
-      {inFacility && facilityId && (
+      {inFacility && facilityId && FACILITY_CONTENT[facilityId] && (
         <FacilityExitProvider register={exit.register}>
-          {FACILITY_CONTENT[facilityId]?.(phase === "leaving", backToTown)}
-          {!FACILITY_SELF_EXIT.has(facilityId) && (
-            <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />
-          )}
+          {FACILITY_CONTENT[facilityId](phase === "leaving", backToTown)}
+          <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />
         </FacilityExitProvider>
       )}
     </StageCanvas>

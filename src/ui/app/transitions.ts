@@ -90,6 +90,11 @@ export const ROUTE_FX: Partial<Record<`${Screen}>${Screen}`, Partial<TransitionS
     hold: 0,
     curtain: "battle-ripple",
   },
+  // 据点 ⇄ 编队: 过场由据点侧的像素转场承担(见 ui/town/TownScreen) —— 这里必须是零时长。
+  // 再叠一层淡出淡入, 像素铺满后整页会先闪一下再重挂载, 编队页的卡阵与立绘要等这一下过去才出现。
+  "town>formation": { exit: FX.none, enter: FX.none, hold: 0 },
+  "formation>town": { exit: FX.none, enter: FX.none, hold: 0 },
+
   "victory>elevator": { exit: FX.endSettleOut, enter: FX.fadeIn, hold: 420 },
   "defeat>elevator": { exit: FX.endSettleOut, enter: FX.fadeIn, hold: 420 },
   "elevator>town": { exit: FX.fadeOut, enter: FX.endSettleIn, hold: 420 },
