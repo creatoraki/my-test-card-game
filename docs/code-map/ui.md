@@ -36,6 +36,7 @@ src/ui/
 | [app/StageCanvas](../../src/ui/app/StageCanvas/StageCanvas.tsx) | 全站 1920×1080 设计画布容器：统一管理 viewport 测量、DPR 量化的 `--stage-scale` 与布局期 `zoom`，页面通过 className 复用局部样式。 |
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
 | [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
+| [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
 | [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配与模组制造场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
 | [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |

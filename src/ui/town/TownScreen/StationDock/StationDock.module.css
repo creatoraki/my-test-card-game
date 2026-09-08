@@ -65,6 +65,21 @@
   transition: transform 550ms ease;
 }
 
+.formationDot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid #071820;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffd0c8 0 12%, #ff5b4d 38%, #bf1522 100%);
+  box-shadow: 0 0 0 1px #16323a, 0 0 8px #ff3e49cc, 0 0 16px #ff3e4966;
+  pointer-events: none;
+  animation: formationDotPulse 1.6s ease-in-out infinite;
+}
+
 .formation:hover .formationSurface::after,
 .formation:focus-visible .formationSurface::after {
   transform: translateX(100%);
@@ -290,5 +305,17 @@
   }
   50% {
     opacity: 1;
+  }
+}
+
+@keyframes formationDotPulse {
+  0%,
+  100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 1px #16323a, 0 0 6px #ff3e49a8, 0 0 12px #ff3e494d;
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 1px #16323a, 0 0 11px #ff3e49f2, 0 0 22px #ff3e497a;
   }
 }

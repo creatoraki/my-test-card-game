@@ -21,14 +21,21 @@ function FormationIcon() {
 export interface StationDockProps {
   onFormation: () => void;
   onSortie: () => void;
+  formationPending?: boolean;
 }
 
-export function StationDock({ onFormation, onSortie }: StationDockProps) {
+export function StationDock({ onFormation, onSortie, formationPending = false }: StationDockProps) {
   return (
     <div className={s.dock}>
       <div className={s.row}>
-        <button type="button" className={s.formation} onClick={onFormation}>
+        <button
+          type="button"
+          className={s.formation}
+          aria-label={formationPending ? "编队，有未处理的编排" : undefined}
+          onClick={onFormation}
+        >
           <span className={s.formationSurface} aria-hidden="true" />
+          {formationPending && <span className={s.formationDot} aria-hidden="true" />}
           <span className={s.formationIcon} aria-hidden="true">
             <FormationIcon />
           </span>

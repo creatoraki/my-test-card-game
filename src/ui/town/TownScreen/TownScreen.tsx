@@ -55,6 +55,7 @@ import { StationDock } from "./StationDock";
 import { StationHud } from "./StationHud";
 import { StationLayer } from "./StationLayer";
 import { STATION_BUILDINGS, buildingOfFacility, type StationBuilding } from "./stationBuildings";
+import { guardSortie, useFormationTodo } from "../formationTodo";
 import s from "./TownScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";
@@ -109,6 +110,7 @@ export function TownScreen() {
   const sfxEnabled = useSfxEnabled();
   const openFormation = useRunStore((state) => state.openFormation);
   const openSortie = useRunStore((state) => state.openSortie);
+  const formationTodo = useFormationTodo();
 
   // 从顶层全屏页(编队)回来的那一次: 本组件是全新挂载的, 若照常停在 idle, 那段反向换场就没了。
   // ⚠ 用 peek 而不是一次性的 take —— StrictMode 下 useState 的初值函数会跑两次, 消费统一放
@@ -181,6 +183,14 @@ export function TownScreen() {
     const target = buildingOfFacility("formation");
     if (target) enterFacility(target);
     else openFormation();
+  }
+
+  function requestSortie() {
+    if (!formationTodo.pending) {
+      openSortie();
+      return;
+    }
+    guardSortie(formationTodo.items, { onSortie: openSortie, onFormation: enterFormation });
   }
 
   function startLeave() {
@@ -300,7 +310,11 @@ export function TownScreen() {
             className={cx(inCinema && s["is-flying"])}
             style={inCinema ? fly(FLY_DOCK, 0) : undefined}
           >
-            <StationDock onFormation={enterFormation} onSortie={openSortie} />
+            <StationDock
+              onFormation={enterFormation}
+              onSortie={requestSortie}
+              formationPending={formationTodo.pending}
+            />
           </div>
         </>
       )}
