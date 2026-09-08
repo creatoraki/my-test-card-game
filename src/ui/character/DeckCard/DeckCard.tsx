@@ -12,6 +12,9 @@ interface Props {
   selected: boolean;
   index: number;
   className?: string;
+  /** 覆盖四角提示框的几何与配色(--ihint-* 变量), 供不同设施调色。 */
+  hintClassName?: string;
+  "aria-label"?: string;
   focusStyle?: "lift" | "zoom" | "none";
   onClick?: () => void;
   onMouseEnter?: () => void;
@@ -25,6 +28,8 @@ export function DeckCard({
   selected,
   index,
   className,
+  hintClassName,
+  "aria-label": ariaLabel,
   focusStyle = "lift",
   onClick,
   onMouseEnter,
@@ -54,12 +59,13 @@ export function DeckCard({
       onMouseLeave={onMouseLeave}
       onFocus={onFocus}
       onBlur={onBlur}
+      aria-label={ariaLabel}
       aria-pressed={selected}
     >
       <span data-deck-card>
         <HandCard card={card} variant="pile" playable selected={false} />
       </span>
-      <InteractiveHint active={selected} className={s["select-hint"]} />
+      <InteractiveHint active={selected} className={cx(s["select-hint"], hintClassName)} />
     </button>
   );
 }

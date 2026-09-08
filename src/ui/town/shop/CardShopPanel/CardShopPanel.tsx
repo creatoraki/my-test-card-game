@@ -1,12 +1,15 @@
+// 卡牌商店面板: 左卡架 + 右详情栏两栏布局(与博物馆卡牌大厅同款范式),
+// 底部保留余额/等级摘要与刷新、设施升级两个操作。
+
 import { useMemo, useState, type MouseEvent } from "react";
 import {
   cardShopLevel,
   cardShopLevelOf,
   cardShopRefreshCost,
-  getCharacter,
 } from "@/data";
 import { useTownStore } from "@/store/townStore";
-import { CardShopSlotCard } from "./CardShopSlotCard";
+import { CardShopDetail } from "./CardShopDetail";
+import { CardShopShelf } from "./CardShopShelf";
 import { CardShopUpgradePanel } from "./CardShopUpgradePanel";
 import s from "./CardShopPanel.module.css";
 
@@ -14,7 +17,6 @@ type UpgradeState = { x: number; y: number; closing: boolean };
 
 export function CardShopPanel() {
   const awakened = useTownStore((state) => state.awakened);
-  const characters = useTownStore((state) => state.characters);
   const loot = useTownStore((state) => state.loot);
   const storage = useTownStore((state) => state.storage);
   const cardShop = useTownStore((state) => state.cardShop);
@@ -22,6 +24,7 @@ export function CardShopPanel() {
   const buyCardShopCard = useTownStore((state) => state.buyCardShopCard);
   const upgradeCardShop = useTownStore((state) => state.upgradeCardShop);
   const [selectedChar, setSelectedChar] = useState("all");
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState<UpgradeState | null>(null);
 
   const level = cardShopLevelOf(cardShop.techs);
@@ -33,6 +36,8 @@ export function CardShopPanel() {
       : cardShop.slots.filter((slot) => slot.charId === selectedChar),
     [cardShop.slots, selectedChar],
   );
+  // 从可见货位派生选中项: 刷新货架或切换筛选后旧 key 自然失效, 详情栏回落到空态。
+  const selectedSlot = visibleSlots.find((slot) => slot.key === selectedKey) ?? null;
   const availableCount = cardShop.slots.filter((slot) => !slot.sold).length;
   const note = availableCount
     ? `货架保留 ${availableCount} 张卡牌；购买后该货位今日不再补货。`
@@ -50,47 +55,15 @@ export function CardShopPanel() {
   return (
     <div className={s.panel}>
       <div className={s.body}>
-        <div className={s.notice}>
-          <strong>居民积分采购卡牌</strong>
-          <span>每个货位绑定一名已唤醒角色，买下后直接加入该角色卡组。</span>
-        </div>
-
-        <div className={s.tabs} role="tablist" aria-label="卡牌商店角色筛选">
-          <button
-            className={`${s.tab} ${selectedChar === "all" ? s["is-active"] : ""}`}
-            type="button"
-            role="tab"
-            aria-selected={selectedChar === "all"}
-            onClick={() => setSelectedChar("all")}
-          >
-            全部角色
-          </button>
-          {awakened.map((charId) => (
-            <button
-              className={`${s.tab} ${selectedChar === charId ? s["is-active"] : ""}`}
-              type="button"
-              role="tab"
-              aria-selected={selectedChar === charId}
-              key={charId}
-              onClick={() => setSelectedChar(charId)}
-            >
-              {getCharacter(charId).name}
-            </button>
-          ))}
-        </div>
-
-        <div className={s.grid} aria-label="卡牌商店货架">
-          {visibleSlots.length ? visibleSlots.map((slot, index) => (
-            <CardShopSlotCard
-              key={slot.key}
-              slot={slot}
-              character={characters[slot.charId]}
-              index={index}
-              affordable={loot >= slot.price}
-              onBuy={buyCardShopCard}
-            />
-          )) : <p className={s.empty}>当前筛选没有可展示的卡牌。</p>}
-        </div>
+        <CardShopShelf
+          slots={visibleSlots}
+          awakened={awakened}
+          selectedChar={selectedChar}
+          selectedKey={selectedKey}
+          onPickChar={setSelectedChar}
+          onSelect={setSelectedKey}
+        />
+        <CardShopDetail slot={selectedSlot} loot={loot} onBuy={buyCardShopCard} />
       </div>
 
       <div className={s.foot}>

@@ -1,54 +1,42 @@
-import { useMemo, type CSSProperties } from "react";
-import { getCharacter, makeCard } from "@/data";
-import type { CharacterState } from "@/store/townStore";
-import type { CardShopSlot } from "@/store/cardShopSlice";
-import { DeckCard } from "@/ui/character/DeckCard";
-import s from "./CardShopPanel.module.css";
+// 卡架上的一个货位: 纯展示型卡面 —— 只有卡面,
+// 不带购买按钮; 点击只负责选中, 购买动作收敛在右侧详情栏。
 
-const RARITY_LABEL = {
-  common: "普通",
-  uncommon: "罕见",
-  rare: "稀有",
-} as const;
+import { useMemo } from "react";
+import { makeCard } from "@/data";
+import type { CardShopSlot } from "@/store/cardShopSlice";
+import { cx } from "@/ui/common/cx";
+import { InteractiveHint } from "@/ui/common/InteractiveHint";
+import { DeckCard } from "@/ui/character/DeckCard";
+import s from "./CardShopSlotCard.module.css";
 
 interface Props {
   slot: CardShopSlot;
-  character: CharacterState | undefined;
   index: number;
-  affordable: boolean;
-  onBuy: (key: string) => void;
+  selected: boolean;
+  onSelect: (key: string) => void;
 }
 
-export function CardShopSlotCard({ slot, character, index, affordable, onBuy }: Props) {
+export function CardShopSlotCard({ slot, index, selected, onSelect }: Props) {
   const card = useMemo(
     () => ({ ...makeCard(slot.cardDefId), ownerCharId: slot.charId }),
     [slot.cardDefId, slot.charId],
   );
-  const owner = character ? getCharacter(character.charId) : null;
-  const disabled = slot.sold || !affordable;
-  const buttonLabel = slot.sold ? "已售出" : affordable ? `购买，售价 ${slot.price} 居民积分` : "积分不足";
-
   return (
-    <article className={`${s.slot} ${slot.sold ? s["is-sold"] : ""}`}>
-      <div className={s.cardFrame}>
-        <DeckCard card={card} index={index} selected={false} focusStyle="zoom" />
-        {slot.sold && <div className={s.soldMask}>已售出</div>}
+    <div className={cx(s.slot, slot.sold && s["is-sold"])}>
+      <div className={s.frame} data-interactive-hint>
+        <DeckCard
+          card={card}
+          index={index}
+          selected={selected}
+          className={s.card}
+          hintClassName={s.hint}
+          focusStyle="zoom"
+          aria-label={slot.sold ? `${card.name}，已售出` : `${card.name}，售价 ${slot.price} 居民积分`}
+          onClick={() => onSelect(slot.key)}
+        />
+        <InteractiveHint className={s.hint} />
+        {slot.sold && <span className={s.soldMask}>已售出</span>}
       </div>
-      <div className={s.slotMeta}>
-        <span className={s.owner} style={{ "--owner-color": owner?.color } as CSSProperties}>
-          {owner?.name ?? "未知角色"}
-        </span>
-        <span className={s.rarity}>{RARITY_LABEL[slot.rarity]}</span>
-        <button
-          className={`${s.buy} ${!affordable && !slot.sold ? s["is-poor"] : ""}`}
-          type="button"
-          disabled={disabled}
-          aria-label={buttonLabel}
-          onClick={() => onBuy(slot.key)}
-        >
-          {slot.sold ? "已售出" : affordable ? `${slot.price} 积分` : "积分不足"}
-        </button>
-      </div>
-    </article>
+    </div>
   );
 }

@@ -1,0 +1,44 @@
+/* 展示型货位。⚠ 不能出现 overflow: hidden —— InteractiveHint 的四角画在卡面外部。 */
+.slot {
+  display: flex;
+  width: calc(var(--card-w) * var(--deck-card-scale, 0.7));
+  flex-direction: column;
+  gap: 7px;
+}
+
+.frame {
+  position: relative;
+  height: calc(var(--card-h) * var(--deck-card-scale, 0.7));
+}
+
+/* 售出货位: 只把卡面本身压灰, 不影响四角框与印章。 */
+.is-sold .card [data-deck-card] {
+  filter: grayscale(0.85) brightness(0.62);
+}
+
+/* 悬浮层的暖金配色: 与商店主色一致, 覆盖组件默认的科技蓝。 */
+.hint {
+  --ihint-core: #f6e3bb;
+  --ihint-neon: #f0d49b;
+  --ihint-neon-deep: #d6b477;
+}
+
+/* 卡牌被选中时收起悬浮提示, 只留 DeckCard 内部那圈常亮的选中框。 */
+.frame:has(> button[aria-pressed="true"]) > .hint {
+  opacity: 0;
+}
+
+.soldMask {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: grid;
+  color: #f2e6d8;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  place-items: center;
+  background: #0c1215a8;
+  pointer-events: none;
+}
+
