@@ -16,6 +16,7 @@ interface Props {
   closing?: boolean;
   onClose: () => void;
   label: string;
+  tone?: CSSProperties;
   morph: {
     ref: Ref<HTMLElement>;
     rect: Rect;
@@ -26,7 +27,7 @@ interface Props {
   children: ReactNode;
 }
 
-export function HudPanelShell({ closing = false, onClose, label, morph, children }: Props) {
+export function HudPanelShell({ closing = false, onClose, label, tone, morph, children }: Props) {
   useEffect(() => {
     playSfx("panel");
   }, []);
@@ -53,7 +54,7 @@ export function HudPanelShell({ closing = false, onClose, label, morph, children
         className={cx(s.panel, closing && PANEL_COLLAPSE_CLASS)}
         data-closing={closing}
         onClick={(event) => event.stopPropagation()}
-        style={box(morph.rect) as CSSProperties}
+        style={{ ...tone, ...box(morph.rect) } as CSSProperties}
       >
         {!closing && (
           <i className={cx(s.morphSkin, morph.ready && s.isLanded)} style={SKIN_STYLE} aria-hidden="true" />

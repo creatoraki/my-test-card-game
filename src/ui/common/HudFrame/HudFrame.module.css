@@ -2,9 +2,6 @@
    颜色是从参考截图上采的: 线芯几乎纯白(#ffffff), 紧邻一圈亮粉(#e90365), 再往外是 #cb024e 的衰减。 */
 
 .frame {
-  --hud-core: #ffffff;
-  --hud-body: #f5116f;
-  --hud-halo: #ff0060;
   --hud-glow: 1;
   --hud-tint: 1;
 
@@ -21,9 +18,9 @@
   background:
     linear-gradient(
       165deg,
-      color-mix(in srgb, #ff2d87 calc(18% * var(--hud-tint)), #15101d) 0%,
-      color-mix(in srgb, #78145a calc(12% * var(--hud-tint)), #0b0d17) 48%,
-      color-mix(in srgb, #ff2d87 calc(14% * var(--hud-tint)), #100a16) 100%
+      color-mix(in srgb, var(--hud-glass-a, #ff2d87) calc(18% * var(--hud-tint)), #15101d) 0%,
+      color-mix(in srgb, var(--hud-glass-b, #78145a) calc(12% * var(--hud-tint)), #0b0d17) 48%,
+      color-mix(in srgb, var(--hud-glass-a, #ff2d87) calc(14% * var(--hud-tint)), #100a16) 100%
     );
 }
 
@@ -39,8 +36,12 @@
   stroke-linejoin: miter;
   stroke-linecap: butt;
   filter:
-    drop-shadow(0 0 4px rgb(255 43 134 / calc(0.9 * var(--hud-glow))))
-    drop-shadow(0 0 16px rgb(255 0 96 / calc(0.55 * var(--hud-glow))));
+    drop-shadow(
+      0 0 4px color-mix(in srgb, var(--hud-glow-color, #ff2b86) calc(90% * var(--hud-glow)), transparent)
+    )
+    drop-shadow(
+      0 0 16px color-mix(in srgb, var(--hud-halo, #ff0060) calc(55% * var(--hud-glow)), transparent)
+    );
 }
 
 /* 外晕: 粗而透, 负责把光晕铺开。 */
@@ -64,7 +65,9 @@
 
 .mosaic {
   fill: var(--hud-body);
-  filter: drop-shadow(0 0 3px rgb(255 43 134 / calc(0.7 * var(--hud-glow))));
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, var(--hud-glow-color, #ff2b86) calc(70% * var(--hud-glow)), transparent)
+  );
 }
 
 .content {

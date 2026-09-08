@@ -32,7 +32,7 @@
   position: absolute;
   z-index: 2;
   overflow: visible;
-  color: #f2e6ef;
+  color: var(--hud-ink, #f2e6ef);
 }
 
 /* morph 生长期间顶替 HudFrame 的占位皮。
@@ -43,13 +43,13 @@
   z-index: 0;
   inset: var(--hud-skin-inset, 16px);
   pointer-events: none;
-  border: 2px solid #f5116f;
+  border: 2px solid var(--hud-body, #f5116f);
   background:
     linear-gradient(
       165deg,
-      color-mix(in srgb, #ff2d87 18%, #15101d) 0%,
-      color-mix(in srgb, #78145a 12%, #0b0d17) 48%,
-      color-mix(in srgb, #ff2d87 14%, #100a16) 100%
+      color-mix(in srgb, var(--hud-glass-a, #ff2d87) 18%, #15101d) 0%,
+      color-mix(in srgb, var(--hud-glass-b, #78145a) 12%, #0b0d17) 48%,
+      color-mix(in srgb, var(--hud-glass-a, #ff2d87) 14%, #100a16) 100%
     );
   clip-path: var(
     --hud-skin-clip,
@@ -64,7 +64,9 @@
       0 26px
     )
   );
-  box-shadow: 0 0 6px rgb(255 43 134 / 0.95), 0 0 16px rgb(255 0 96 / 0.55);
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 95%, transparent),
+    0 0 16px color-mix(in srgb, var(--hud-halo, #ff0060) 55%, transparent);
 }
 
 .frame {
@@ -92,8 +94,8 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: #f2e6ef;
-  font-size: 16px;
+  color: var(--hud-ink, #f2e6ef);
+  font-size: 18px;
   letter-spacing: 3px;
   white-space: nowrap;
   animation: seedOut 180ms var(--seed-delay, 520ms) ease-out both;
@@ -102,7 +104,7 @@
 .seed svg {
   width: 28px;
   height: 28px;
-  color: #ff2f8e;
+  color: var(--hud-body, #ff2f8e);
 }
 
 .closeButton {
@@ -115,25 +117,31 @@
   height: 34px;
   place-items: center;
   padding: 0;
-  border: 2px solid #ff72b0;
-  background: #f5116f;
+  border: 2px solid var(--hud-body, #ff72b0);
+  background: var(--hud-body, #f5116f);
   color: #fff;
   cursor: var(--cursor-pointer);
-  box-shadow: 0 0 6px rgb(255 43 134 / 0.95), 0 0 16px rgb(255 0 96 / 0.55);
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 95%, transparent),
+    0 0 16px color-mix(in srgb, var(--hud-halo, #ff0060) 55%, transparent);
   transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .closeButton svg {
   width: 19px;
   height: 19px;
-  filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.65)) drop-shadow(0 0 5px rgb(255 43 134 / 0.75));
+  filter:
+    drop-shadow(0 0 2px rgb(255 255 255 / 0.65))
+    drop-shadow(0 0 5px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 75%, transparent));
 }
 
 .closeButton:hover {
-  border-color: #ff9ac8;
-  background: #ff2f8e;
+  border-color: color-mix(in srgb, var(--hud-body, #ff9ac8) 70%, white);
+  background: color-mix(in srgb, var(--hud-body, #ff2f8e) 88%, white);
   color: #fff;
-  box-shadow: 0 0 8px rgb(255 43 134 / 1), 0 0 20px rgb(255 0 96 / 0.72);
+  box-shadow:
+    0 0 8px var(--hud-glow-color, #ff2b86),
+    0 0 20px color-mix(in srgb, var(--hud-halo, #ff0060) 72%, transparent);
   transform: rotate(90deg);
 }
 

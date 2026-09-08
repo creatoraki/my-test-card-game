@@ -72,5 +72,5 @@ function ShopItemTile({
 
 // ★ memo 是**必要**的, 不是优化洁癖: 悬浮任一格都会让 ShelfPanel 重渲染(详情栏要跟着换),
 //   没有 memo 的话一屏 6 个格子连同 itemIcon 会跟着白跑一遍。
-//   生效前提是 props 稳定 —— 见 ShelfRow 里的 useMemo(stack) 与上游的 useCallback。
+//   生效前提是 props 稳定 —— 见 ShelfGrid 的 useSlotStacks 与上游的 useCallback。
 export default memo(ShopItemTile);
