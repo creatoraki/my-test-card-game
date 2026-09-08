@@ -42,9 +42,9 @@ export function AssemblyScene({ leaving = false }: Props) {
           {
             right: "0px",
             top: "138px",
-            width: "460px",
-            height: "188px",
-            "--peek": "252px",
+            width: "500px",
+            height: "216px",
+            "--peek": "296px",
             ...equip.entryVars,
           } as CSSProperties
         }

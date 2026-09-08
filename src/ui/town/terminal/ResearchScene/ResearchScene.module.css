@@ -1,10 +1,12 @@
-/* 研究中心场景的浅色标题与读数层。抽屉砖统一使用 town/drawerEntry 的暗色视觉。 */
+/* 研究中心场景的冷青墨玻璃层，压暗亮背景换对比。玻璃配方与入口砖变量需同步 ResearchScene.tsx。 */
 .term-scene {
-  --term-ink: #0b2a33;
-  --term-ink-dim: #4d6d76;
-  --term-line: #0b2a3324;
-  --term-glow: #0a8fa8;
-  --term-glow-deep: #06657a;
+  --term-ink: #eaf7fb;
+  --term-ink-dim: #a6c8d4;
+  --term-line: #7fe3e02e;
+  --term-glow: #35d6d0;
+  --term-glow-deep: #12a3a8;
+  --term-warm: #f5ac5a;
+  --term-fill: linear-gradient(150deg, #0e2b33cc, #08191fe0);
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -20,39 +22,40 @@
 .term-header {
   position: absolute;
   padding-left: 16px;
-  border-left: 2px solid var(--term-glow);
+  border-left: 3px solid var(--term-glow);
   pointer-events: none;
 }
 
-.term-kicker {
-  display: block;
-  color: var(--term-glow);
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 4px;
+.term-header::before {
+  content: "";
+  position: absolute;
+  inset: -18px -60px -18px -20px;
+  z-index: -1;
+  background: radial-gradient(ellipse at 0% 50%, #06222bb8, transparent 72%);
+  pointer-events: none;
 }
 
 .term-title {
   margin: 4px 0 0;
   color: var(--term-ink);
-  font-size: 34px;
+  font-size: 40px;
   font-weight: 700;
   letter-spacing: 8px;
   text-indent: 8px;
+  text-shadow: 0 2px 18px #04212bcc;
 }
 
 .term-sub {
   margin: 4px 0 0;
   color: var(--term-ink-dim);
-  font-size: 13px;
-  letter-spacing: 2px;
+  font-size: 18px;
+  letter-spacing: 3px;
 }
 
 .term-readout {
   position: absolute;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   pointer-events: none;
   animation-delay: 60ms;
 }
@@ -60,30 +63,31 @@
 .term-chip {
   --notch: 10px;
   display: flex;
-  min-width: 116px;
+  min-width: 170px;
   flex-direction: column;
-  gap: 3px;
-  padding: 9px 16px;
+  gap: 4px;
+  padding: 12px 20px;
   border: 1px solid var(--term-line);
-  background: linear-gradient(150deg, #ffffff8f, #f2fbfd66 55%, #d6f3fa59);
-  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  box-shadow: inset 0 1px 0 #ffffffd9, 0 18px 40px -26px #0b2a3352;
+  background: var(--term-fill);
+  -webkit-backdrop-filter: blur(14px) saturate(115%) brightness(0.9);
+  backdrop-filter: blur(14px) saturate(115%) brightness(0.9);
+  box-shadow: inset 0 1px 0 #ffffff26, 0 22px 46px -26px #04141aa8;
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
 }
 
 .term-chip-label {
   color: var(--term-ink-dim);
-  font-size: 11px;
+  font-size: 18px;
   letter-spacing: 2px;
 }
 
 .term-chip-value {
-  color: var(--term-ink);
+  color: var(--term-warm);
   font-family: var(--font-family);
-  font-size: 19px;
+  font-size: 28px;
   font-weight: 600;
   letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 .term-scene.is-leaving .term-header,
@@ -110,12 +114,5 @@
   to {
     opacity: 0;
     transform: translateY(10px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .term-header,
-  .term-readout {
-    animation: none;
   }
 }

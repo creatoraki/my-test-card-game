@@ -1,5 +1,6 @@
 // 研究中心(据点设施 worklog)的设施内界面：承载模组装配与模组制造。
 // 入口砖与面板的形变状态统一由 useModulePanels 管理，设施 id worklog 保持不变。
+// 场景层皮肤 = 冷青墨玻璃，令牌见同目录 ResearchScene.module.css。
 
 import { useMemo, type CSSProperties } from "react";
 import { getItemDef } from "@/data";
@@ -49,10 +50,17 @@ export function ResearchScene({ leaving = false }: Props) {
           {
             right: 0,
             top: 138,
-            width: 460,
-            height: 188,
-            "--peek": "252px",
+            width: 500,
+            height: 216,
+            "--peek": "296px",
             ...modules.entryVars,
+            "--asm-ink": "#eaf7fb",
+            "--asm-ink-dim": "#a6c8d4",
+            "--asm-line": "#7fe3e02e",
+            "--asm-frame": "#35d6d0",
+            "--asm-fill": "linear-gradient(150deg, #0e2b33cc, #08191fe0)",
+            "--asm-filter": "blur(14px) saturate(115%) brightness(0.9)",
+            "--asm-shadow": "inset 0 1px 0 #ffffff26, 0 22px 46px -26px #04141aa8",
           } as CSSProperties
         }
       >
