@@ -12,7 +12,7 @@
 //
 // ⚠ 根节点 .explore-stage 及各玻璃砖的祖先链上**永远不能挂 animation / opacity / transform /
 //   filter**: 任何祖先一旦成为 backdrop root, 玻璃的 backdrop-filter 就取不到背景图。
-//   入场动画一律挂叶子元素(与 ControlTerminalScene 同一条约束)。
+//   入场动画一律挂叶子元素(与 ResearchScene 同一条约束)。
 
 import {
   useCallback,

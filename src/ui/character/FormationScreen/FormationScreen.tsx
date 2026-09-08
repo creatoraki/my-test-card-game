@@ -47,9 +47,9 @@ import { useFormationMorph } from "./formationMorph/useFormationMorph";
 import s from "./FormationScreen.module.css";
 
 // 飞行层两端的字号与圆角 —— 与两侧的实际样式对齐:
-//   21px / 16px = 卡面(glowCard.module.css 的 .glow-card-name 与 CHARACTER_CARD_GLOW.borderRadius)
+//   24px / 16px = 卡面(glowCard.module.css 的 .glow-card-name 与 CHARACTER_CARD_GLOW.borderRadius)
 //   44px / 16px = 详情态立绘取景窗(FigureStage.module.css 的 .name 与 .stage)
-const CARD_FONT = 21;
+const CARD_FONT = 24;
 const CARD_RADIUS = 16;
 const FIGURE_FONT = 44;
 const FIGURE_RADIUS = 16;

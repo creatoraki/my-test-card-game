@@ -1,5 +1,6 @@
 .equipment-slots {
   display: flex;
+  font-size: var(--fm-fs-l3, 18px);
   flex: 0 0 auto;
   height: 100%;
   width: 100%;
@@ -15,21 +16,21 @@
 
 .equipment-slots-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .equipment-slots-label {
   color: var(--cd-glow);
-  font-size: 11px;
+  font-size: var(--fm-fs-l3, 18px);
   font-weight: 700;
   letter-spacing: 2px;
 }
 
 .equipment-slots-hint {
   color: var(--cd-ink-dim);
-  font-size: 9px;
+  font-size: var(--fm-fs-l3, 18px);
   letter-spacing: 0.5px;
 }
 
@@ -94,9 +95,9 @@
   right: -8px;
   bottom: -7px;
   z-index: 2;
-  padding: 5px 8px;
+  padding: 4px 9px;
   color: #9c3550;
-  font-size: 10px;
+  font-size: var(--fm-fs-l3, 18px);
   background: #fdeff2e8;
   border: 1px solid #c25a6e70;
   opacity: 0;

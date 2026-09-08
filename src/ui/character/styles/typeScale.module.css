@@ -1,0 +1,7 @@
+/* 编队页（编队态 + 详情态）的字号梯队。⚠ 设计 px，最小档 18px 是项目下限。 */
+.fm-type {
+  --fm-fs-display: 44px;
+  --fm-fs-l1: 24px;
+  --fm-fs-l2: 20px;
+  --fm-fs-l3: 18px;
+}

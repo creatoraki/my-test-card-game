@@ -1,6 +1,7 @@
 /* 常驻 HUD。⚠ 设计 px。徽章与羁绊收进同一条通栏亮玻璃面板, 两态共用且保持不动。 */
 .hud {
   position: absolute;
+  font-size: var(--fm-fs-l3, 18px);
   inset: 0;
   z-index: 6;
   pointer-events: none;
@@ -27,7 +28,7 @@
   border: 1px solid transparent;
   background: transparent;
   color: #6b5b82;
-  font-size: 15px;
+  font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 4px;
   clip-path: none;
   transition:
@@ -87,7 +88,7 @@
 .bond-label {
   margin-right: auto;
   color: #6b5b82;
-  font-size: 14px;
+  font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 4px;
   white-space: nowrap;
 }

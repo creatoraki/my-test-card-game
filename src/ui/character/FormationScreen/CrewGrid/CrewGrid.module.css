@@ -4,6 +4,7 @@
    ★ 276 + 20 = 296, 1776 / 296 ⇒ 6 列。⚠ 这个 6 与 CrewGrid.tsx 的 COLS 是同一个事实。 */
 .grid {
   position: absolute;
+  font-size: var(--fm-fs-l3, 18px);
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, 276px);
@@ -27,7 +28,7 @@
   margin: 0;
   padding-top: 80px;
   color: #6b5b82;
-  font-size: 15px;
+  font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 2px;
 }
 

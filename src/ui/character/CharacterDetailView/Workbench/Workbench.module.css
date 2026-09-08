@@ -1,6 +1,7 @@
 /* 工作区外壳。⚠ 版面坐标由 CharacterDetailView 的内联 style 给(设计 px)。 */
 .bench {
   position: absolute;
+  font-size: var(--fm-fs-l3, 18px);
   z-index: 2;
   display: flex;
   min-height: 0;
@@ -66,7 +67,7 @@
   border: 1px solid #2a1b3d24;
   background: #ffffff8f;
   color: #6b5b82;
-  font-size: 16px;
+  font-size: var(--fm-fs-l2, 20px);
   font-weight: 600;
   letter-spacing: 5px;
   text-indent: 5px;
@@ -100,7 +101,7 @@
 
 .exp {
   color: #6b5b82;
-  font-size: 14px;
+  font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 2px;
   white-space: nowrap;
 }
@@ -108,7 +109,7 @@
 .exp b {
   color: #55307f;
   font-family: var(--font-family);
-  font-size: 20px;
+  font-size: var(--fm-fs-l1, 24px);
 }
 
 .content {

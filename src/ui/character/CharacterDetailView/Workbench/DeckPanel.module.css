@@ -35,7 +35,7 @@
   border: 1px solid #2a1b3d1f;
   background: #ffffffa6;
   color: #55307f;
-  font-size: 13px;
+  font-size: var(--fm-fs-l3, 18px);
   letter-spacing: 2px;
 }
 
@@ -43,10 +43,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 32px;
+  min-height: 36px;
   padding: 5px 14px;
   color: #55307f;
-  font-size: 13px;
+  font-size: var(--fm-fs-l3, 18px);
   font-weight: 700;
   letter-spacing: 1px;
   background: #ffffffb8;

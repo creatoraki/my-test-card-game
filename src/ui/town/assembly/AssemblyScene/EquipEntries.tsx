@@ -1,21 +1,17 @@
 // 工房里的装备一侧: 装备升阶 / 羁绊重铸。
 //
-// ★ 这两件事原本住在「物资中转仓」。设施按语义合并后, 凡是「在工作台上改装备/模组」的
-//   都收进工房一个场景; 中转仓不再存在。
+// ★ 这两件事原本住在「物资中转仓」。设施按语义合并后, 装备侧功能归入工房;
+//   模组侧功能则迁入研究中心。
 // ★ 入口砖与浮层必须共用同一份 morph 状态(开合动画要从被点的那条抽屉长出来), 但浮层
 //   **不能**渲染在抽屉容器里 —— PanelShell 是绝对定位, 会被 460×188 的抽屉框裁住。
 //   故本文件导出一个 hook, 一次返回配好对的 entries / panels 两段, 由场景各自安放。
 
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
-import { cx } from "@/ui/common/cx";
+import type { CSSProperties, ReactNode } from "react";
 import { CLOSE_MS, usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { useFacilityPanelExit } from "@/ui/town/facilityExit";
+import { DrawerEntry } from "@/ui/town/drawerEntry";
 import { EquipReforgePanel } from "../EquipReforgePanel";
 import { EquipUpgradePanel } from "../EquipUpgradePanel";
-import s from "./AssemblyScene.module.css";
-
-const cn = (...values: Array<string | false | null | undefined>) =>
-  cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
 
 /** 装备一侧的主色: 与模组一侧的青蓝拉开, 走中转仓那支琥珀。 */
 export const EQUIP_ACCENT = "#e59b3f";
@@ -29,9 +25,9 @@ const EQUIP_PANEL_RECT: Record<EquipPanelId, Rect> = {
 };
 
 export interface EquipPanels {
-  /** 关闭时入口砖滑回的节拍变量。摊到 .asm-entries 容器的 style 上, 由子孙的 CSS 读取。 */
+  /** 关闭时入口砖滑回的节拍变量。摊到公共 .entries 容器的 style 上, 由子孙的 CSS 读取。 */
   entryVars: CSSProperties;
-  /** 放进 .asm-entries 抽屉容器里的两条入口。 */
+  /** 放进公共 .entries 抽屉容器里的两条入口。 */
   entries: ReactNode;
   /** 放在场景根下(与抽屉容器同级)的两个浮层。 */
   panels: ReactNode;
@@ -50,20 +46,22 @@ export function useEquipPanels(): EquipPanels {
 
   const entries = (
     <>
-        <EquipEntry
+        <DrawerEntry
           icon={<UpgradeIcon />}
           name="装备升阶"
           desc="提升装备阶级与词条预算"
           entryId="upgrade"
+          glow={EQUIP_ACCENT}
           hidden={morph.hiddenEntry === "upgrade" && morph.phase !== "closing"}
           revealing={morph.phase === "closing" && morph.hiddenEntry === "upgrade"}
           onClick={(event) => morph.openPanel("upgrade", event.currentTarget)}
         />
-        <EquipEntry
+        <DrawerEntry
           icon={<ReforgeIcon />}
           name="羁绊重铸"
           desc="消耗地区材料重掷装备羁绊"
           entryId="reforge"
+          glow={REFORGE_ACCENT}
           hidden={morph.hiddenEntry === "reforge" && morph.phase !== "closing"}
           revealing={morph.phase === "closing" && morph.hiddenEntry === "reforge"}
           onClick={(event) => morph.openPanel("reforge", event.currentTarget)}
@@ -103,50 +101,6 @@ export function useEquipPanels(): EquipPanels {
   );
 
   return { entryVars: morph.entryVars, entries, panels };
-}
-
-// 入口砖: 与模组两条入口逐层对齐(rim / 图标 / 名称 / 说明 / ▸), 只有色相不同。
-function EquipEntry({
-  icon,
-  name,
-  desc,
-  entryId,
-  hidden,
-  revealing = false,
-  onClick,
-}: {
-  icon: ReactNode;
-  name: string;
-  desc: string;
-  entryId: EquipPanelId;
-  hidden: boolean;
-  revealing?: boolean;
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
-}) {
-  return (
-    <button
-      className={cn("asm-entry", revealing && "is-revealing")}
-      type="button"
-      data-equip-entry={entryId}
-      style={{
-        "--asm-glow": entryId === "reforge" ? REFORGE_ACCENT : EQUIP_ACCENT,
-        visibility: hidden ? "hidden" : "visible",
-      } as CSSProperties}
-      onClick={onClick}
-    >
-      <span className={cn("asm-rim")} aria-hidden />
-      <span className={cn("asm-entry-icon")} aria-hidden>
-        {icon}
-      </span>
-      <span className={cn("asm-entry-text")}>
-        <span className={cn("asm-entry-name")}>{name}</span>
-        <span className={cn("asm-entry-desc")}>{desc}</span>
-      </span>
-      <span className={cn("asm-entry-go")} aria-hidden>
-        ▸
-      </span>
-    </button>
-  );
 }
 
 // 入口图标。与 ui/art/itemArt.tsx 同约定: 内联线框 SVG, 不用 emoji、不依赖素材。

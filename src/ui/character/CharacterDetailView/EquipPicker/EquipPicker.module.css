@@ -1,6 +1,7 @@
 /* 面板部分使用角色详情态的浅色玻璃；`.compare*` 部分渲染在全站深色 HoverTooltip 内，刻意保留深色字色。 */
 .picker {
   position: absolute;
+  font-size: var(--fm-fs-l3, 18px);
   z-index: 5;
   display: flex;
   min-height: 0;
@@ -42,13 +43,12 @@
 .candidateRarity,
 .compareName > span,
 .compareName > small {
-  font-size: 11px;
+  font-size: var(--fm-fs-l3, 18px);
   letter-spacing: 2px;
 }
 
 .kicker {
   color: var(--cd-glow);
-  font-size: 10px;
 }
 
 .label,
@@ -68,7 +68,7 @@
 .title {
   margin: 5px 0 0;
   color: var(--cd-ink);
-  font-size: 25px;
+  font-size: var(--fm-fs-l1, 24px);
   letter-spacing: 3px;
 }
 
@@ -102,7 +102,7 @@
 .grid {
   display: grid;
   min-height: 0;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
   gap: 12px;
   overflow-y: auto;
@@ -133,7 +133,6 @@
 
 .candidateSlot {
   --item-slot-icon-size: 72%;
-  --item-slot-name-size: 8px;
   width: 100%;
 }
 
@@ -146,7 +145,7 @@
 .candidateName {
   overflow: hidden;
   color: var(--cd-ink);
-  font-size: 12px;
+  font-size: var(--fm-fs-l3, 18px);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -154,7 +153,6 @@
 
 .candidateRarity {
   color: var(--rr);
-  font-size: 9px;
   text-align: center;
 }
 
@@ -167,7 +165,7 @@
 .emptyText,
 .noChange {
   margin: auto;
-  font-size: 14px;
+  font-size: var(--fm-fs-l3, 18px);
   letter-spacing: 1px;
   text-align: center;
 }
@@ -182,7 +180,6 @@
 
 .footer {
   margin: 0;
-  font-size: 10px;
   text-align: center;
 }
 
@@ -207,13 +204,9 @@
 .compareName > strong {
   overflow: hidden;
   color: #f4f7e8;
-  font-size: 14px;
+  font-size: var(--fm-fs-l3, 18px);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.compareName > small {
-  font-size: 10px;
 }
 
 .compareRows {
@@ -230,12 +223,10 @@
 
 .compareLabels {
   color: #9aa7aa;
-  font-size: 10px;
 }
 
 .compareRow {
   color: #dce5e1;
-  font-size: 12px;
 }
 
 .compareRow > strong {
@@ -245,7 +236,6 @@
 
 .compareRow small {
   margin-left: 4px;
-  font-size: 10px;
 }
 
 .compareName .r-common,

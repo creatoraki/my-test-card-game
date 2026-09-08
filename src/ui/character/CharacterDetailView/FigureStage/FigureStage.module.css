@@ -59,6 +59,11 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  --hp-bar-h: 26px;
+  --hp-text-fs: 18px;
+  --poll-bar-h: 26px;
+  --poll-text-fs: 18px;
+  --quirk-fs: 18px;
 }
 
 /* ★ 浮现动画挂在 :not(.is-hidden) 上而不是 .identity 本身 —— 让它在**让位结束的那一刻**才起播:
@@ -85,10 +90,10 @@
 }
 
 .tag {
-  padding: 5px 14px;
+  padding: 6px 14px;
   border: 1px solid rgb(245 248 244 / 0.34);
   color: #dce8e3;
-  font-size: 14px;
+  font-size: var(--fm-fs-l3, 18px);
   letter-spacing: 4px;
 }
 

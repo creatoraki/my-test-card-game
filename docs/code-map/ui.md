@@ -36,7 +36,8 @@ src/ui/
 | [app/StageCanvas](../../src/ui/app/StageCanvas/StageCanvas.tsx) | 全站 1920×1080 设计画布容器：统一管理 viewport 测量、DPR 量化的 `--stage-scale` 与布局期 `zoom`，页面通过 className 复用局部样式。 |
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
 | [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
-| [town/terminal/ControlTerminalScene](../../src/ui/town/terminal/ControlTerminalScene/ControlTerminalScene.tsx) | 控制终端：城市维护工单委托占位。抽屉入口和浮层均在据点画布内完成，不新增路由；出击已迁移到大厅一级入口。 |
+| [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配与模组制造场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
+| [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
 | [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 冬眠仓入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
 | [town/cryo/CryoPanelShell](../../src/ui/town/cryo/CryoPanelShell/CryoPanelShell.tsx) | 冬眠仓浮层公共壳：透明点击层、冷凝氛围、标题头、关闭按钮和可变矩形面板；不再使用吊绳或从天而降动画，几何由 `cryoMorph` 的 ref 驱动。 |
@@ -51,16 +52,17 @@ src/ui/
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
 | [town/storage/EquipUpgradePanel](../../src/ui/town/storage/EquipUpgradePanel/EquipUpgradePanel.tsx) | 装备升阶面板：展示当前装备与下一阶预览，复用目标列/消耗清单并派发 `upgradeEquip`。 |
 | [town/storage/EquipReforgePanel](../../src/ui/town/storage/EquipReforgePanel/EquipReforgePanel.tsx) | 装备词条重铸面板：扣除绿色水晶后展示原/新词条二选一，候选状态由城镇 store 持久化。 |
-| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 模块装配舱场景编排：右侧两个抽屉入口（模组装配 / 模组制造），维护当前打开的弹窗与关闭动画；装配弹窗在此订阅据点状态、派发装配/拆卸 action 并统一管理模组 tooltip；制造弹窗整体交给 CraftPanel。 |
+| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房装备侧场景编排：只保留装备升阶与羁绊重铸入口、装备读数和面板挂载。 |
 | 旧 `town/assembly/AssemblyPanelShell` | 舱内弹窗的通用外壳已提升为公共件 [`common/PanelShell`](../../src/ui/common/PanelShell/PanelShell.tsx)（见「公共组件」一节），装配舱与制造弹窗改为从 `@/ui/common/PanelShell` 引用，样式规则一行未改。 |
-| [town/assembly/CraftPanel](../../src/ui/town/assembly/CraftPanel/CraftPanel.tsx) | 模组制造弹窗：注入熔炉琥珀配色，订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与装配弹窗一致。 |
-| [town/assembly/CraftRecipeGrid](../../src/ui/town/assembly/CraftRecipeGrid/CraftRecipeGrid.tsx) | 中央制造清单：列出当前角色可造的模组与「材料齐备 / 材料不足 / 经验不足」状态；判定结果由面板算好传入，组件不读 store。 |
-| [town/assembly/CraftBench](../../src/ui/town/assembly/CraftBench/CraftBench.tsx) | 右栏制造台：产出预览、经验与材料消耗清单、缺料提示与制造按钮；按钮禁用条件直接来自 `craftCheck`。 |
-| [town/assembly/CraftMaterialRack](../../src/ui/town/assembly/CraftMaterialRack/CraftMaterialRack.tsx) | 右栏材料仓库：展示当前角色配方涉及的材料库存与本次需求量，未被选中配方使用的材料压暗。 |
-| [town/assembly/AssemblyCharacterStage](../../src/ui/town/assembly/AssemblyCharacterStage/AssemblyCharacterStage.tsx) | 左侧角色舞台：展示当前角色立绘、角色切换缩略按钮和空状态；只接收角色列表与选择回调，不读取 store。 |
-| [town/assembly/AssemblyBench](../../src/ui/town/assembly/AssemblyBench/AssemblyBench.tsx) | 右栏紧凑装配工作台：展示单一模组插槽、当前已装配模组和装配状态，派发装配/拆卸按钮与物品 tooltip 回调；候选模组由模组仓架展示；不直接操作 store。 |
-| [town/assembly/AssemblyModuleRack](../../src/ui/town/assembly/AssemblyModuleRack/AssemblyModuleRack.tsx) | 右栏滚动模组仓架：以稳定网格展示库存模组，表达选中与兼容性状态，保留键盘聚焦和 tooltip 路径；不承载装配规则。 |
-| [town/assembly/AssemblyDeckGrid](../../src/ui/town/assembly/AssemblyDeckGrid/AssemblyDeckStrip.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
+| [town/terminal/CraftPanel](../../src/ui/town/terminal/CraftPanel/CraftPanel.tsx) | 模组制造弹窗：注入熔炉琥珀配色，订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与装配弹窗一致。 |
+| [town/terminal/CraftRecipeGrid](../../src/ui/town/terminal/CraftRecipeGrid/CraftRecipeGrid.tsx) | 中央制造清单：列出当前角色可造的模组与「材料齐备 / 材料不足 / 经验不足」状态；判定结果由面板算好传入，组件不读 store。 |
+| [town/terminal/CraftBench](../../src/ui/town/terminal/CraftBench/CraftBench.tsx) | 右栏制造台：产出预览、经验与材料消耗清单、缺料提示与制造按钮；按钮禁用条件直接来自 `craftCheck`。 |
+| [town/terminal/CraftMaterialRack](../../src/ui/town/terminal/CraftMaterialRack/CraftMaterialRack.tsx) | 右栏材料仓库：展示当前角色配方涉及的材料库存与本次需求量，未被选中配方使用的材料压暗。 |
+| [town/terminal/AssemblyCharacterStage](../../src/ui/town/terminal/AssemblyCharacterStage/AssemblyCharacterStage.tsx) | 左侧角色舞台：展示当前角色立绘、角色切换缩略按钮和空状态；只接收角色列表与选择回调，不读取 store。 |
+| [town/terminal/AssemblyBench](../../src/ui/town/terminal/AssemblyBench/AssemblyBench.tsx) | 右栏紧凑装配工作台：展示单一模组插槽、当前已装配模组和装配状态，派发装配/拆卸按钮与物品 tooltip 回调；候选模组由模组仓架展示；不直接操作 store。 |
+| [town/terminal/AssemblyModuleRack](../../src/ui/town/terminal/AssemblyModuleRack/AssemblyModuleRack.tsx) | 右栏滚动模组仓架：以稳定网格展示库存模组，表达选中与兼容性状态，保留键盘聚焦和 tooltip 路径；不承载装配规则。 |
+| [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
+| [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 模组两条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造面板。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：EventPanel 同源的常驻六格混合货架，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShelfGrid`、`ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
 | [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。徽章与天赋的全部交互住在 `useSquadTalent`（与编队页的 `SquadTalentModal` 共用）。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |

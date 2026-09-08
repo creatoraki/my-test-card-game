@@ -1,0 +1,121 @@
+/* 研究中心场景的浅色标题与读数层。抽屉砖统一使用 town/drawerEntry 的暗色视觉。 */
+.term-scene {
+  --term-ink: #0b2a33;
+  --term-ink-dim: #4d6d76;
+  --term-line: #0b2a3324;
+  --term-glow: #0a8fa8;
+  --term-glow-deep: #06657a;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 根节点不能挂 animation / opacity / transform，否则会破坏背景毛玻璃的 backdrop-filter。 */
+.term-header,
+.term-readout {
+  animation: termRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+.term-header {
+  position: absolute;
+  padding-left: 16px;
+  border-left: 2px solid var(--term-glow);
+  pointer-events: none;
+}
+
+.term-kicker {
+  display: block;
+  color: var(--term-glow);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.term-title {
+  margin: 4px 0 0;
+  color: var(--term-ink);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-indent: 8px;
+}
+
+.term-sub {
+  margin: 4px 0 0;
+  color: var(--term-ink-dim);
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.term-readout {
+  position: absolute;
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+  animation-delay: 60ms;
+}
+
+.term-chip {
+  --notch: 10px;
+  display: flex;
+  min-width: 116px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 16px;
+  border: 1px solid var(--term-line);
+  background: linear-gradient(150deg, #ffffff8f, #f2fbfd66 55%, #d6f3fa59);
+  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
+  box-shadow: inset 0 1px 0 #ffffffd9, 0 18px 40px -26px #0b2a3352;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+}
+
+.term-chip-label {
+  color: var(--term-ink-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.term-chip-value {
+  color: var(--term-ink);
+  font-family: var(--font-family);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.term-scene.is-leaving .term-header,
+.term-scene.is-leaving .term-readout {
+  animation: termFade 300ms ease-in both;
+}
+
+@keyframes termRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes termFade {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-header,
+  .term-readout {
+    animation: none;
+  }
+}

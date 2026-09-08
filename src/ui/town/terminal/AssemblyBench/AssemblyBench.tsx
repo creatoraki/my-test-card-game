@@ -4,7 +4,7 @@ import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
 import { EventPanelButton } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
-import { AssembleIcon, DetachIcon } from "../AssemblyScene/icons";
+import { AssembleIcon, DetachIcon } from "@/ui/town/assembly/AssemblyScene/icons";
 import s from "./AssemblyBench.module.css";
 
 type BenchState = "empty" | "ready" | "invalid" | "installed";

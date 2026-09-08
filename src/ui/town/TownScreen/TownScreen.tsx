@@ -43,7 +43,7 @@ import {
   warmFacilityBg,
   type FlyOut,
 } from "@/ui/town/facilityScenes";
-import { ControlTerminalScene } from "@/ui/town/terminal/ControlTerminalScene";
+import { ResearchScene } from "@/ui/town/terminal/ResearchScene";
 import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
@@ -64,14 +64,14 @@ const isTest = import.meta.env.isTest === "true";
 // ★ 实现一个新设施 = 写一个 <XxxScene>.tsx + 在这里加一行, 本组件其余部分一行都不用动。
 // leaving 参数 = 返回据点的演出已开始, 交给设施组件自己做淡出(与背景转场同步)。
 const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) => ReactNode> = {
-  // 工房: 模组装配 / 制造 / 装备升阶 / 羁绊重铸
+  // 工房: 装备升阶 / 羁绊重铸
   assembly: (leaving) => <AssemblyScene leaving={leaving} />,
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
   shop: (leaving) => <ShopScene leaving={leaving} />,
   // 医疗室: 冬眠唤醒 / 营养舱
   cryo: (leaving) => <CryoScene leaving={leaving} />,
-  // 研究中心: 委托终端
-  worklog: (leaving) => <ControlTerminalScene leaving={leaving} />,
+  // 研究中心: 模组装配 / 模组制造
+  worklog: (leaving) => <ResearchScene leaving={leaving} />,
   // 档案机: 物品 / 卡牌 / 怪物图鉴
   museum: (leaving) => <MuseumScene leaving={leaving} />,
 };

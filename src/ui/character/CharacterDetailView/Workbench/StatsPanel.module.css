@@ -32,7 +32,7 @@
 
 .group-title {
   color: #6b5b82;
-  font-size: 14px;
+  font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 2px;
   opacity: 0.8;
 }
@@ -105,7 +105,7 @@
 
 .attr-label {
   color: #6b5b82;
-  font-size: 15px;
+  font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 2px;
 }
 
@@ -116,14 +116,14 @@
   gap: 7px;
   color: #2a1b3d;
   font-family: var(--font-family);
-  font-size: 22px;
+  font-size: var(--fm-fs-l1, 24px);
   font-weight: 600;
   letter-spacing: 1px;
 }
 
 .delta {
-  padding: 2px 5px;
-  font-size: 11px;
+  padding: 2px 7px;
+  font-size: var(--fm-fs-l3, 18px);
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1;

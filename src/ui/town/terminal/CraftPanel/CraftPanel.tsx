@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type Ref, type ReactNode } from "react";
 import { craftCheck, getModuleRecipe, recipesOfCharacter, type CraftCheck } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
@@ -8,6 +8,7 @@ import ItemTooltip, {
 } from "@/ui/common/item/ItemTooltip";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { PanelShell } from "@/ui/common/PanelShell";
+import type { Rect } from "@/ui/common/panelMorph";
 import { CraftBench } from "../CraftBench";
 import { CraftMaterialRack } from "../CraftMaterialRack";
 import { CraftRecipeGrid } from "../CraftRecipeGrid";
@@ -28,6 +29,13 @@ const CRAFT_THEME = {
 interface Props {
   closing: boolean;
   onClose: () => void;
+  morph?: {
+    ref: Ref<HTMLElement>;
+    rect: Rect;
+    ready: boolean;
+    seed?: ReactNode;
+    seedLabel?: string;
+  };
 }
 
 interface HoveredItem {
@@ -35,7 +43,7 @@ interface HoveredItem {
   point: TooltipPoint;
 }
 
-export function CraftPanel({ closing, onClose }: Props) {
+export function CraftPanel({ closing, onClose, morph }: Props) {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const awakened = useTownStore((state) => state.awakened);
@@ -81,6 +89,7 @@ export function CraftPanel({ closing, onClose }: Props) {
         closing={closing}
         onClose={onClose}
         themeStyle={CRAFT_THEME}
+        morph={morph}
       >
         <div className={s.body}>
           <AssemblyCharacterStage

@@ -149,7 +149,7 @@ export interface FacilityBinding {
 
 // ★ 换设施背景就改这里, 别去动组件或 CSS。
 const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
-  // 工房: 模组装配 / 制造 / 装备升阶 / 羁绊重铸
+  // 工房: 装备升阶 / 羁绊重铸
   airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART },
   // 医疗室: 冬眠唤醒 / 营养舱
   supplies: { facility: "cryo", bg: CRYO_BG_ART },
@@ -159,7 +159,7 @@ const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
   workshop: { facility: "shop", bg: SHOP_BG_ART },
   // 档案机: 物品 / 卡牌 / 怪物图鉴
   "power-station": { facility: "museum", bg: MUSEUM_BG_ART },
-  // 研究中心: 委托终端
+  // 研究中心: 模组装配 / 模组制造
   laboratory: { facility: "worklog", bg: WORKLOG_BG_ART },
 };
 

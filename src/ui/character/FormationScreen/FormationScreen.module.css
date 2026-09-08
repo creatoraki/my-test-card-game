@@ -21,6 +21,7 @@
 
 .stage {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
+  composes: fm-type from "../styles/typeScale.module.css";
 
   overflow: hidden;
   padding: 0;

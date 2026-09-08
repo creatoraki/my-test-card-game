@@ -5,7 +5,7 @@ import { canEquipModule } from "@/data";
 import { getModuleTheme } from "@/ui/art/moduleGlyphs";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { cx } from "@/ui/common/cx";
-import { CardModuleIcon } from "../AssemblyScene/icons";
+import { CardModuleIcon } from "@/ui/town/assembly/AssemblyScene/icons";
 import s from "./AssemblyDeckGrid.module.css";
 
 interface Props {

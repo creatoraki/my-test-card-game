@@ -55,7 +55,7 @@
      且本条排在后面, 无论如何都安全。 */
 .hp-bar.hp-flush {
   flex: 0 0 auto;
-  height: 20px;
+  height: var(--hp-bar-h, 20px);
   padding: 0 8px;
   border: none;
   border-top: 1px solid #ffffff1a;
@@ -65,7 +65,7 @@
   background: linear-gradient(180deg, #04090cc7, #0a161cc7 52%, #03080ac7);
 }
 .hp-bar.hp-flush .hp-text {
-  font-size: 14px;
+  font-size: var(--hp-text-fs, 14px);
 }
 /* 缓降变体(HpBar 的 slowDrain prop): 我方队伍卡专用 —— 受击时血量可读地流失。 */
 .hp-bar.hp-drain-slow .hp-fill,
@@ -263,7 +263,7 @@
   flex: 0 0 auto;
   margin-left: auto;
   font-family: var(--font-num);
-  font-size: 13px;
+  font-size: var(--hp-text-fs, 13px);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   paint-order: stroke fill;
