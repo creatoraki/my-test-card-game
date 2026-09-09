@@ -131,7 +131,7 @@ export interface ShopState {
 
 export interface NutritionState {
   techs: string[];
-  occupants: { charId: string; heal: number; day: number }[];
+  occupants: { charId: string; heal: number; day: number; slot: number }[];
 }
 
 function freshShop(day: number, level = DEFAULT_SHOP_LEVEL): ShopState {
@@ -210,7 +210,7 @@ export interface TownStore {
   resetSquadTalent: () => void;
   toggleParty: (charId: string) => void; // 上阵/下阵
   awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
-  admitToNutritionPod: (charId: string) => void; // 营养舱: 扣积分并安排次日治疗
+  admitToNutritionPods: (assignments: { charId: string; slot: number }[]) => void; // 营养舱: 批量确认、扣积分并记录席位
   researchNutritionTech: (techId: string) => void; // 营养舱: 研究舱位或治疗量科技
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
   grantExpEach: (byChar: Record<string, number>) => ExpGain[]; // 按角色分别发经验
@@ -737,26 +737,48 @@ export const useTownStore = create<TownStore>()(
         set({ awakened: [...awakened, charId], loot: loot - cost });
       },
 
-      admitToNutritionPod: (charId) => {
+      admitToNutritionPods: (assignments) => {
+        if (!assignments.length) return;
+
         const { awakened, characters, day, loot, nutrition, party } = get();
-        const cs = characters[charId];
-        if (!cs || !awakened.includes(charId)) return;
-        if (nutrition.occupants.some((occupant) => occupant.charId === charId)) return;
-        if (nutrition.occupants.length >= nutritionPods(nutrition.techs)) return;
-        if (loot < NUTRITION_TREAT_COST) return;
+        const capacity = nutritionPods(nutrition.techs);
+        const occupiedSlots = new Set(nutrition.occupants.map((occupant) => occupant.slot));
+        const occupiedCharacters = new Set(nutrition.occupants.map((occupant) => occupant.charId));
+        const assignedCharacters = new Set<string>();
+        const assignedSlots = new Set<number>();
 
-        const vitals = vitalsOf(cs);
-        if (vitals.hpLimit >= vitals.maxHp) return;
-        if (party.includes(charId) && party.length <= 1) return;
+        for (const assignment of assignments) {
+          const cs = characters[assignment.charId];
+          if (
+            !cs ||
+            !awakened.includes(assignment.charId) ||
+            occupiedCharacters.has(assignment.charId) ||
+            assignedCharacters.has(assignment.charId) ||
+            !Number.isInteger(assignment.slot) ||
+            assignment.slot < 0 ||
+            assignment.slot >= capacity ||
+            assignedSlots.has(assignment.slot) ||
+            occupiedSlots.has(assignment.slot) ||
+            vitalsOf(cs).hpLimit >= vitalsOf(cs).maxHp
+          ) return;
+          assignedCharacters.add(assignment.charId);
+          assignedSlots.add(assignment.slot);
+        }
 
+        if (party.filter((id) => !assignedCharacters.has(id)).length < 1) return;
+
+        const totalCost = NUTRITION_TREAT_COST * assignments.length;
+        if (loot < totalCost) return;
+
+        const heal = nutritionHeal(nutrition.techs);
         set({
-          loot: loot - NUTRITION_TREAT_COST,
-          party: party.filter((id) => id !== charId),
+          loot: loot - totalCost,
+          party: party.filter((id) => !assignedCharacters.has(id)),
           nutrition: {
             ...nutrition,
             occupants: [
               ...nutrition.occupants,
-              { charId, heal: nutritionHeal(nutrition.techs), day },
+              ...assignments.map(({ charId, slot }) => ({ charId, heal, day, slot })),
             ],
           },
         });

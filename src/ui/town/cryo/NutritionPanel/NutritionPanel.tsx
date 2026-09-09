@@ -1,22 +1,18 @@
-import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from "react";
-import { NUTRITION_TREAT_COST, nutritionLevel, nutritionPods } from "@/data";
-import { useTownStore, vitalsOf } from "@/store/townStore";
+import { useState } from "react";
+import { NUTRITION_POD_MAX, nutritionHeal, nutritionLevel } from "@/data";
+import { useTownStore } from "@/store/townStore";
 import { CryoFigureStrip } from "../CryoFigureStrip";
-import { NutritionCandidateCard, type NutritionCandidate } from "./NutritionCandidateCard";
+import { NutritionTechDetail, NutritionTechTree } from "../NutritionTechTree";
+import { NutritionCandidateCard } from "./NutritionCandidateCard";
 import { NutritionPodRack } from "./NutritionPodRack";
-import { NutritionUpgradePanel } from "./NutritionUpgradePanel";
+import { useNutritionAssign, type NutritionAssignment } from "./useNutritionAssign";
 import kit from "../styles/cryoKit.module.css";
+import techPage from "../NutritionTechTree/NutritionTechPage.module.css";
 import s from "./NutritionPanel.module.css";
 
 interface Props {
-  onAdmit: (charId: string) => void;
+  onAdmit: (assignments: NutritionAssignment[]) => void;
   onResearch: (techId: string) => void;
-}
-
-interface UpgradeState {
-  x: number;
-  y: number;
-  closing: boolean;
 }
 
 export function NutritionPanel({ onAdmit, onResearch }: Props) {
@@ -26,97 +22,96 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
   const loot = useTownStore((state) => state.loot);
   const storage = useTownStore((state) => state.storage);
   const nutrition = useTownStore((state) => state.nutrition);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [upgrade, setUpgrade] = useState<UpgradeState | null>(null);
-
-  const occupantIds = useMemo(() => new Set(nutrition.occupants.map((occupant) => occupant.charId)), [nutrition.occupants]);
-  const candidates = useMemo<NutritionCandidate[]>(
-    () => awakened.filter((charId) => !occupantIds.has(charId)).map((charId) => {
-      const vitals = vitalsOf(characters[charId]);
-      const damage = Math.max(0, vitals.maxHp - vitals.hpLimit);
-      const reason = damage <= 0
-        ? "体力极限已满, 无需进入疗养舱"
-        : party.includes(charId) && party.length <= 1
-          ? "至少要保留 1 名队员上阵"
-          : null;
-      return { charId, reason, damage };
-    }),
-    [awakened, characters, occupantIds, party],
-  );
-
-  useEffect(() => {
-    if (!selected || !candidates.some((candidate) => candidate.charId === selected)) {
-      setSelected(candidates[0]?.charId ?? null);
-    }
-  }, [candidates, selected]);
-
-  const selectedCandidate = candidates.find((candidate) => candidate.charId === selected) ?? null;
-  const capacity = nutritionPods(nutrition.techs);
+  const [page, setPage] = useState<"pods" | "tech">("pods");
+  const [selectedTechId, setSelectedTechId] = useState<string | null>(null);
+  const assign = useNutritionAssign({ awakened, characters, party, nutrition, loot, onAdmit });
   const level = nutritionLevel(nutrition.techs);
-  const selectedBlocked = !selectedCandidate || selectedCandidate.reason !== null;
-  const note = nutrition.occupants.length >= capacity
-    ? "舱位已满"
-    : loot < NUTRITION_TREAT_COST
-      ? "居民积分不足"
-      : selectedCandidate?.reason ?? (selectedCandidate ? "点上方空席位即可送入疗养" : "请选择一名需要疗养的队员");
-
-  const openUpgrade = (event: MouseEvent<HTMLButtonElement>) => {
-    const button = event.currentTarget;
-    setUpgrade({ x: button.offsetLeft + button.offsetWidth / 2, y: button.offsetTop + button.offsetHeight / 2, closing: false });
-  };
 
   return (
     <div className={kit.shell}>
       <div className={s.body}>
-        <NutritionPodRack
-          occupants={nutrition.occupants}
-          capacity={capacity}
-          selectedCandidate={selectedCandidate}
-          loot={loot}
-          onAdmit={onAdmit}
-        />
+        <div className={s.viewport}>
+          <div className={s.track} style={{ transform: page === "tech" ? "translateX(-50%)" : "translateX(0)" }}>
+          <section className={s.page} aria-hidden={page === "tech"} {...(page === "tech" ? { inert: "" } : {})}>
+            <div className={s.pageHead}>
+              <div className={s.subhead}>
+                <span className={s.kicker}>待疗养队员</span>
+                <span className={s.count}>{assign.candidates.length} 人</span>
+              </div>
+              <button className={s.upgradeButton} type="button" onClick={() => setPage("tech")}>
+                席位扩建 · 疗养舱 Lv.{level} ▸
+              </button>
+            </div>
 
-        <div className={s.candidatesSection}>
-          <div className={s.subhead}>
-            <span className={s.kicker}>待疗养队员</span>
-            <span className={s.count}>{candidates.length} 人</span>
-          </div>
-          <CryoFigureStrip className={s.candidates}>
-            {candidates.length ? candidates.map((candidate) => (
-              <NutritionCandidateCard
-                key={candidate.charId}
-                candidate={candidate}
-                character={characters[candidate.charId]}
-                selected={selected === candidate.charId}
-                onSelect={() => setSelected(candidate.charId)}
+            <NutritionPodRack
+              occupants={nutrition.occupants}
+              capacity={assign.capacity}
+              assigned={assign.assigned}
+              selectedCandidate={assign.selectedCandidate}
+              selectedCharId={assign.selectedCharId}
+              heal={nutritionHeal(nutrition.techs)}
+              onPlace={assign.placeAt}
+              onClear={assign.clearSlot}
+            />
+
+            <div className={s.candidatesSection}>
+              <CryoFigureStrip className={s.candidates}>
+                {assign.candidates.length ? assign.candidates.map((candidate) => (
+                  <NutritionCandidateCard
+                    key={candidate.charId}
+                    candidate={candidate}
+                    character={characters[candidate.charId]}
+                    selected={assign.selectedCharId === candidate.charId}
+                    onSelect={() => assign.selectChar(candidate.charId)}
+                  />
+                )) : <div className={s.empty}>目前没有需要疗养的队员</div>}
+              </CryoFigureStrip>
+            </div>
+          </section>
+
+          <section className={s.page} aria-hidden={page === "pods"} {...(page === "pods" ? { inert: "" } : {})}>
+            <div className={techPage.layout}>
+              <NutritionTechTree
+                doneTechs={nutrition.techs}
+                loot={loot}
+                storage={storage}
+                selectedId={selectedTechId}
+                onSelect={setSelectedTechId}
               />
-            )) : <div className={s.empty}>目前没有需要疗养的队员</div>}
-          </CryoFigureStrip>
+              <NutritionTechDetail
+                selectedId={selectedTechId}
+                doneTechs={nutrition.techs}
+                loot={loot}
+                storage={storage}
+                onResearch={onResearch}
+              />
+            </div>
+          </section>
+          </div>
         </div>
 
-        <button className={s.upgradeButton} type="button" onClick={openUpgrade}>
-          席位扩建 · 科技等级 {level}
-        </button>
-
-        {upgrade && (
-          <NutritionUpgradePanel
-            level={level}
-            doneTechs={nutrition.techs}
-            storage={storage}
-            loot={loot}
-            origin={{ x: upgrade.x, y: upgrade.y }}
-            closing={upgrade.closing}
-            onResearch={onResearch}
-            onClose={() => setUpgrade((current) => current ? { ...current, closing: true } : current)}
-            onClosed={() => setUpgrade(null)}
-          />
+        {page === "pods" ? (
+          <div className={kit.panelFoot}>
+            <div className={s.footCopy}>
+              <p className={kit.note}>{assign.note}</p>
+              <span className={s.cost}>已选 {assign.pendingCount} 人 · 单人消耗 100 居民积分</span>
+            </div>
+            <button className={kit.primary} type="button" disabled={!assign.canConfirm} onClick={assign.confirm}>
+              {assign.pendingCount ? `确认疗养 −${assign.totalCost} 居民积分` : "确认疗养"}
+            </button>
+          </div>
+        ) : (
+          <div className={kit.panelFoot}>
+            <div className={s.techReadout}>
+              <span>疗养舱 Lv.{level}</span>
+              <span>席位 {assign.capacity}/{NUTRITION_POD_MAX}</span>
+              <span>单次恢复 +{nutritionHeal(nutrition.techs)}</span>
+            </div>
+            <button className={s.backButton} type="button" onClick={() => setPage("pods")}>
+              ◂ 返回席位
+            </button>
+          </div>
         )}
-      </div>
-
-      <div className={kit.panelFoot}>
-        <p className={kit.note}>{note}</p>
-        <span className={s.cost}>送入疗养将消耗 {NUTRITION_TREAT_COST} 居民积分</span>
-        <span className={s.selectedState}>{selectedBlocked ? "当前队员不可入舱" : "选择席位完成送入"}</span>
       </div>
     </div>
   );

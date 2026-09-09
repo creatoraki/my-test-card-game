@@ -31,14 +31,30 @@
   box-shadow: 0 18px 34px -24px var(--cryo-shadow);
 }
 
-.pod.is-occupied {
+.pod.is-treating {
   border-color: var(--cryo-glow);
   background: var(--cryo-card-hover);
+}
+
+.pod.is-pending {
+  border-color: var(--cryo-glow);
+  background: color-mix(in srgb, var(--cryo-glow) 10%, var(--cryo-card));
+  box-shadow: 0 0 24px -12px var(--cryo-glow);
+}
+
+.pod.is-selected {
+  border-width: 2px;
+  box-shadow: 0 0 30px -10px var(--cryo-glow);
 }
 
 .pod.is-locked {
   border-style: dashed;
   opacity: 0.48;
+}
+
+.pod.is-treating:disabled,
+.pod.is-locked:disabled {
+  cursor: not-allowed;
 }
 
 .lid {
@@ -103,6 +119,18 @@
   color: var(--cryo-ink-dim);
   font-size: 48px;
   font-weight: 300;
+}
+
+.lock {
+  position: absolute;
+  right: 14px;
+  top: 11px;
+  z-index: 3;
+  padding: 3px 6px;
+  border: 1px solid var(--cryo-line);
+  color: var(--cryo-ink-dim);
+  font-size: 18px;
+  letter-spacing: 1px;
 }
 
 .text {

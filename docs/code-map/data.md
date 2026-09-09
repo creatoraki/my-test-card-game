@@ -19,7 +19,7 @@
 | [cardModules/](../../src/data/cardModules/) | 卡牌模组注册表与唯一效果落点。`types.ts` 持有 `CardModuleDef` 与装配条件判定（`hasDamageEffect` / `hasScaledDamage` / `hasScaledSupport`，后两者用于挡住「装在固定伤害或固定值护盾牌上收益为零」的情况）；`character.ts` 是角色关键词模组；`genericT1.ts` 是 1 阶通用模组（面板组走 `PLAY_STAT_BONUS`，异常组走按攻击力 15% 缩放的中毒/灼烧）并导出开箱池 `GENERIC_T1_MODULE_IDS`；`index.ts` 汇总并持有 `recomputeCardModule`：重算时费用与白名单字段还原后覆盖，前置/追加效果和词条均按 `fromModule` 标记剥离再叠加，文案按登记后缀剥离再拼接，保留卡牌强化后的名称、效果和文案。 |
 | [moduleCrafting.ts](../../src/data/moduleCrafting.ts) | 模组制造配方表：为剑士、预言家、植物学家登记七条配方，包含产出模组、制造者角色、经验消耗、两种通用材料与产出地区的 mid 材料；`craftCheck` 是可行性判定的唯一真相点，store 护栏与 UI 置灰共用它。 |
 | [equipUpgrade.ts](../../src/data/equipUpgrade.ts) | 装备升阶与词条重铸配方表；按装备槽位登记两种通用材料，1 阶升阶使用产出地区的 low 材料，高阶继续使用水晶，重铸使用产出地区的 boss 材料；`upgradeCheck` / `reforgeCheck` 是 store 护栏与 UI 置灰共用的唯一可行性判定。 |
-| [nutritionPod.ts](../../src/data/nutritionPod.ts) | 营养舱科技与疗养规则：登记舱位扩建、营养液配比两条独立科技线，按已完成科技现算舱位、等级和单次体力极限恢复量；`nutritionTechCheck` 统一研究材料/积分判定，`NUTRITION_TREAT_COST` 固定为 100 积分。 |
+| [nutritionPod.ts](../../src/data/nutritionPod.ts) | 营养舱科技与疗养规则：登记带 `requires`、坐标的横向节点图，席位扩建与疗养液配比按链式逐节点解锁；统一计算四态节点、席位、等级和单次体力极限恢复量，`nutritionTechCheck` 复用材料/积分判定，`NUTRITION_TREAT_COST` 固定为 100 积分。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；据点随机商店仍只筛选装备与材料。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
 | [vendorLines.ts](../../src/data/vendorLines.ts) | 出击准备页售货机器人的台词表：按开口场合（问候/闲聊/购买/退款/退回仓库/积分不足/背包已满/仓库取物）分池，配 `pickVendorLine()` 随机取句并回避上一句；分类与 UI 的 `VendorLineKind` 一一对应。 |

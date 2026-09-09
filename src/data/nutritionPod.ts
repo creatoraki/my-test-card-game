@@ -6,7 +6,9 @@ export type NutritionTechKind = "capacity" | "potency";
 export interface NutritionTech {
   id: string;
   kind: NutritionTechKind;
-  tier: number;
+  requires: string[];
+  x: number;
+  y: number;
   name: string;
   desc: string;
   loot: number;
@@ -17,17 +19,21 @@ export const NUTRITION_TECHS: NutritionTech[] = [
   {
     id: "capacity-1",
     kind: "capacity",
-    tier: 1,
-    name: "舱位扩建 I",
-    desc: "舱位 1 → 2",
+    requires: [],
+    x: 280,
+    y: 128,
+    name: "席位扩建 I",
+    desc: "席位 1 → 2",
     loot: 300,
     materials: [{ itemId: "green-crystal", count: 3 }],
   },
   {
     id: "potency-1",
     kind: "potency",
-    tier: 1,
-    name: "营养液配比 I",
+    requires: [],
+    x: 280,
+    y: 352,
+    name: "疗养液配比 I",
     desc: "单次治疗 +30 → +40",
     loot: 300,
     materials: [{ itemId: "green-crystal", count: 3 }],
@@ -35,9 +41,11 @@ export const NUTRITION_TECHS: NutritionTech[] = [
   {
     id: "capacity-2",
     kind: "capacity",
-    tier: 2,
-    name: "舱位扩建 II",
-    desc: "舱位 2 → 3",
+    requires: ["capacity-1"],
+    x: 520,
+    y: 128,
+    name: "席位扩建 II",
+    desc: "席位 2 → 3",
     loot: 750,
     materials: [
       { itemId: "green-crystal", count: 5 },
@@ -47,8 +55,10 @@ export const NUTRITION_TECHS: NutritionTech[] = [
   {
     id: "potency-2",
     kind: "potency",
-    tier: 2,
-    name: "营养液配比 II",
+    requires: ["potency-1"],
+    x: 520,
+    y: 352,
+    name: "疗养液配比 II",
     desc: "单次治疗 +40 → +50",
     loot: 750,
     materials: [
@@ -59,9 +69,11 @@ export const NUTRITION_TECHS: NutritionTech[] = [
   {
     id: "capacity-3",
     kind: "capacity",
-    tier: 3,
-    name: "舱位扩建 III",
-    desc: "舱位 3 → 4",
+    requires: ["capacity-2"],
+    x: 760,
+    y: 128,
+    name: "席位扩建 III",
+    desc: "席位 3 → 4",
     loot: 1500,
     materials: [
       { itemId: "green-crystal", count: 8 },
@@ -72,8 +84,10 @@ export const NUTRITION_TECHS: NutritionTech[] = [
   {
     id: "potency-3",
     kind: "potency",
-    tier: 3,
-    name: "营养液配比 III",
+    requires: ["potency-2"],
+    x: 760,
+    y: 352,
+    name: "疗养液配比 III",
     desc: "单次治疗 +50 → +65",
     loot: 1500,
     materials: [
@@ -85,7 +99,9 @@ export const NUTRITION_TECHS: NutritionTech[] = [
 ];
 
 export const NUTRITION_TREAT_COST = 100;
-export const NUTRITION_MAX_LEVEL = 4;
+export const NUTRITION_POD_MAX = 4;
+export const NUTRITION_MAX_LEVEL = 1 + NUTRITION_TECHS.length;
+export const NUTRITION_TECH_CANVAS = { width: 900, height: 480 } as const;
 const POTENCY_STEPS = [30, 40, 50, 65];
 
 export function nutritionPods(done: string[]): number {
@@ -98,17 +114,24 @@ export function nutritionHeal(done: string[]): number {
 }
 
 export function nutritionLevel(done: string[]): number {
-  const capacity = NUTRITION_TECHS.filter((tech) => tech.kind === "capacity" && done.includes(tech.id)).length;
-  const potency = NUTRITION_TECHS.filter((tech) => tech.kind === "potency" && done.includes(tech.id)).length;
-  return Math.min(NUTRITION_MAX_LEVEL, 1 + Math.min(capacity, potency));
-}
-
-export function nutritionTechsOfTier(tier: number): NutritionTech[] {
-  return NUTRITION_TECHS.filter((tech) => tech.tier === tier);
+  return 1 + done.length;
 }
 
 export function isTechAvailable(tech: NutritionTech, done: string[]): boolean {
-  return tech.tier === nutritionLevel(done) && !done.includes(tech.id);
+  return !done.includes(tech.id) && tech.requires.every((id) => done.includes(id));
+}
+
+export type NutritionTechState = "done" | "available" | "lacking" | "locked";
+
+export function nutritionTechState(
+  tech: NutritionTech,
+  done: string[],
+  loot: number,
+  storage: ItemStack[],
+): NutritionTechState {
+  if (done.includes(tech.id)) return "done";
+  if (!isTechAvailable(tech, done)) return "locked";
+  return nutritionTechCheck(tech, loot, storage).ok ? "available" : "lacking";
 }
 
 export interface NutritionTechCheck {

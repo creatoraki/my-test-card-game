@@ -1,4 +1,4 @@
-import { NUTRITION_TREAT_COST, getCharacter } from "@/data";
+import { getCharacter, NUTRITION_POD_MAX } from "@/data";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import type { NutritionState } from "@/store/townStore";
@@ -10,40 +10,50 @@ import type { NutritionCandidate } from "./NutritionCandidateCard";
 interface Props {
   occupants: NutritionState["occupants"];
   capacity: number;
+  assigned: Record<number, string>;
   selectedCandidate: NutritionCandidate | null;
-  loot: number;
-  onAdmit: (charId: string) => void;
+  selectedCharId: string | null;
+  heal: number;
+  onPlace: (slot: number) => void;
+  onClear: (slot: number) => void;
 }
 
-export function NutritionPodRack({ occupants, capacity, selectedCandidate, loot, onAdmit }: Props) {
+export function NutritionPodRack({ occupants, capacity, assigned, selectedCandidate, selectedCharId, heal, onPlace, onClear }: Props) {
   return (
     <CryoFigureStrip className={s.rack}>
-      {Array.from({ length: 4 }, (_, index) => (
+      {Array.from({ length: NUTRITION_POD_MAX }, (_, index) => (
         <PodSlot
           key={index}
           index={index}
-          occupant={occupants[index]}
+          occupant={occupants.find((entry) => entry.slot === index)}
+          pendingCharId={assigned[index]}
           unlocked={index < capacity}
           selectedCandidate={selectedCandidate}
-          loot={loot}
-          onAdmit={onAdmit}
+          selected={selectedCharId === assigned[index]}
+          heal={heal}
+          onPlace={onPlace}
+          onClear={onClear}
         />
       ))}
     </CryoFigureStrip>
   );
 }
 
-function PodSlot({ index, occupant, unlocked, selectedCandidate, loot, onAdmit }: { index: number; occupant?: NutritionState["occupants"][number]; unlocked: boolean; selectedCandidate: NutritionCandidate | null; loot: number; onAdmit: (charId: string) => void }) {
+function PodSlot({ index, occupant, pendingCharId, unlocked, selectedCandidate, selected, heal, onPlace, onClear }: { index: number; occupant?: NutritionState["occupants"][number]; pendingCharId?: string; unlocked: boolean; selectedCandidate: NutritionCandidate | null; selected: boolean; heal: number; onPlace: (slot: number) => void; onClear: (slot: number) => void }) {
   const { point, bind } = useHoverTooltip();
-  const character = occupant ? getCharacter(occupant.charId) : null;
-  const reason = occupant
-    ? `疗养中 · 明日 +${occupant.heal}；结算后自动离舱`
-    : !unlocked
-      ? `需席位扩建 ${index === 1 ? "I" : index === 2 ? "II" : "III"}`
-      : !selectedCandidate
+  const state = occupant ? "treating" : pendingCharId ? "pending" : unlocked ? "empty" : "locked";
+  const character = occupant ? getCharacter(occupant.charId) : pendingCharId ? getCharacter(pendingCharId) : null;
+  const lockName = index === 1 ? "I" : index === 2 ? "II" : "III";
+  const reason = state === "treating"
+    ? "疗养中的角色将在次日结算后自动离舱"
+    : state === "locked"
+      ? `需席位扩建 ${lockName}`
+      : state === "empty" && !selectedCandidate
         ? "先在下方选择一名需要疗养的队员"
-        : selectedCandidate.reason ?? (loot < NUTRITION_TREAT_COST ? "居民积分不足" : null);
-  const disabled = Boolean(occupant || !unlocked || reason);
+        : state === "empty"
+          ? selectedCandidate?.reason ?? null
+          : null;
+  const disabled = state === "treating" || state === "locked" || (state === "empty" && Boolean(reason));
 
   return (
     <div
@@ -53,7 +63,7 @@ function PodSlot({ index, occupant, unlocked, selectedCandidate, loot, onAdmit }
       onFocus={(event) => reason && bind.onFocus(event)}
       onBlur={bind.onBlur}
     >
-      <button className={`${s.pod} ${!unlocked ? s["is-locked"] : ""} ${occupant ? s["is-occupied"] : ""}`} type="button" disabled={disabled} onClick={() => selectedCandidate && onAdmit(selectedCandidate.charId)}>
+      <button className={`${s.pod} ${s[`is-${state}`]} ${selected ? s["is-selected"] : ""}`} type="button" disabled={disabled} onClick={() => state === "pending" ? onClear(index) : onPlace(index)}>
         <span className={s.lid} aria-hidden />
         <span className={s.no}>席位-{String(index + 1).padStart(2, "0")}</span>
         <span className={s.figure}>
@@ -62,8 +72,9 @@ function PodSlot({ index, occupant, unlocked, selectedCandidate, loot, onAdmit }
         </span>
         <span className={s.text}>
           <span className={s.name}>{character?.name ?? (unlocked ? "空置席位" : "待扩建")}</span>
-          <span className={s.meta}>{character ? `疗养中 · 明日 +${occupant?.heal}` : unlocked ? "点击送入队员" : `需席位扩建 ${index === 1 ? "I" : index === 2 ? "II" : "III"}`}</span>
+          <span className={s.meta}>{state === "treating" ? `疗养中 · 明日 +${occupant?.heal}` : state === "pending" ? `待入舱 · 明日 +${heal}` : state === "empty" ? "点击落位队员" : `需席位扩建 ${lockName}`}</span>
         </span>
+        {state === "treating" && <span className={s.lock} aria-hidden>锁</span>}
       </button>
       {point && reason && <HoverTooltip point={point}>{reason}</HoverTooltip>}
     </div>

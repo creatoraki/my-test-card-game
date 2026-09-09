@@ -36,6 +36,10 @@
   filter: saturate(0.7);
 }
 
+.card.is-assigned {
+  opacity: 0.72;
+}
+
 .figure {
   composes: figureFrame from "../styles/cryoFigure.module.css";
 }
@@ -84,4 +88,18 @@
   color: var(--cryo-glow-deep);
   font-size: 18px;
   font-weight: 700;
+}
+
+.assignment {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 3;
+  padding: 3px 5px;
+  border: 1px solid color-mix(in srgb, var(--cryo-glow) 52%, transparent);
+  background: var(--cryo-card-hover);
+  color: var(--cryo-glow-deep);
+  font-size: 18px;
+  line-height: 1.1;
+  white-space: nowrap;
 }

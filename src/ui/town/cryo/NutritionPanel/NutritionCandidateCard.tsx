@@ -12,6 +12,7 @@ export interface NutritionCandidate {
   charId: string;
   reason: string | null;
   damage: number;
+  assignedSlot?: number;
 }
 
 interface Props {
@@ -35,7 +36,7 @@ export function NutritionCandidateCard({ candidate, character: characterState, s
       onFocus={(event) => candidate.reason && bind.onFocus(event)}
       onBlur={bind.onBlur}
     >
-      <button className={cx(s.card, selected && s["is-selected"])} type="button" disabled={disabled} onClick={onSelect}>
+      <button className={cx(s.card, selected && s["is-selected"], candidate.assignedSlot !== undefined && s["is-assigned"])} type="button" disabled={disabled} onClick={onSelect}>
         <span className={s.figure}>
           <CharacterPortrait characterId={character.id} emoji={character.emoji} alt={character.name} className={s.portrait} />
           <span className={figure.figureScrim} aria-hidden />
@@ -45,6 +46,7 @@ export function NutritionCandidateCard({ candidate, character: characterState, s
           <span className={s.damage}>体力极限 −{candidate.damage}</span>
           <span className={s.hp}><HpBar hp={vitals.hp} hpLimit={vitals.hpLimit} maxHp={vitals.maxHp} /></span>
         </span>
+        {candidate.assignedSlot !== undefined && <span className={s.assignment}>已入席位-0{candidate.assignedSlot + 1}</span>}
         <span className={s.mark} aria-hidden>{selected ? "✓" : ""}</span>
       </button>
       {point && candidate.reason && <HoverTooltip point={point}>{candidate.reason}</HoverTooltip>}

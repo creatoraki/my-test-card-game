@@ -116,17 +116,20 @@ export {
 } from "./moduleCrafting";
 export {
   NUTRITION_MAX_LEVEL,
+  NUTRITION_POD_MAX,
+  NUTRITION_TECH_CANVAS,
   NUTRITION_TECHS,
   NUTRITION_TREAT_COST,
   isTechAvailable,
   nutritionHeal,
   nutritionLevel,
   nutritionPods,
+  nutritionTechState,
   nutritionTechCheck,
-  nutritionTechsOfTier,
   type NutritionTech,
   type NutritionTechCheck,
   type NutritionTechKind,
+  type NutritionTechState,
 } from "./nutritionPod";
 export {
   CARD_SHOP_LEVELS,

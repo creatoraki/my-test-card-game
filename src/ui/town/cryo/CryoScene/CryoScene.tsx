@@ -36,7 +36,7 @@ export function CryoScene({ leaving = false }: Props) {
   const awakened = useTownStore((state) => state.awakened);
   const loot = useTownStore((state) => state.loot);
   const awaken = useTownStore((state) => state.awaken);
-  const admitToNutritionPod = useTownStore((state) => state.admitToNutritionPod);
+  const admitToNutritionPods = useTownStore((state) => state.admitToNutritionPods);
   const researchNutritionTech = useTownStore((state) => state.researchNutritionTech);
   const nutrition = useTownStore((state) => state.nutrition);
   const [podSlot, setPodSlot] = useState(0);
@@ -126,7 +126,7 @@ export function CryoScene({ leaving = false }: Props) {
           {panel === "awaken" ? (
             <AwakenPanel awakened={awakened} loot={loot} slot={podSlot} onSelect={setPodSlot} onAwaken={awaken} />
           ) : (
-            <NutritionPanel onAdmit={admitToNutritionPod} onResearch={researchNutritionTech} />
+            <NutritionPanel onAdmit={admitToNutritionPods} onResearch={researchNutritionTech} />
           )}
         </PanelShell>
       )}

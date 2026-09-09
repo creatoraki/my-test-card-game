@@ -1,0 +1,11 @@
+.layout {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
+}
+
+.layout > * {
+  min-width: 0;
+}

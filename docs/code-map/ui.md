@@ -44,10 +44,11 @@ src/ui/
 | [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 医疗室入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
 | [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 医疗室横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
 | [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 休眠唤醒面板：六个瘦高立绘舱位、密封舱信息带、生命指标 count-up、唤醒费用和居民积分操作；规则与唤醒 action 由场景传入。 |
-| [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 疗养舱面板编排：订阅城镇状态，组合固定瘦高席位、待疗养立绘条与科技升级叠层；容量、治疗、费用和研究判定复用 `data/nutritionPod`。 |
-| [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 疗养舱席位阵列：四个固定瘦高席位，处理空置、占用、锁定、未选人、费用不足和角色限制的悬浮提示，并把点击席位转为入舱 action。 |
-| [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 疗养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、选中态与受限原因提示。 |
-| [town/cryo/NutritionPanel/NutritionUpgradePanel](../../src/ui/town/cryo/NutritionPanel/NutritionUpgradePanel.tsx) | 疗养舱科技升级叠层：展示等级、席位读数、当前 tier 的容量/治疗科技、材料与积分检查，并用局部 clip-path 展开/收回。 |
+| [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 疗养舱双页面板编排：席位自由分配与批量确认页、面板内横向滑动科技树页共用同一外壳；费用、容量、治疗和研究判定复用 `data/nutritionPod`。 |
+| [town/cryo/NutritionPanel/useNutritionAssign](../../src/ui/town/cryo/NutritionPanel/useNutritionAssign.ts) | 疗养舱选人、席位落位/撤下、队伍下限、费用文案与批量确认状态的唯一交互逻辑。 |
+| [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 疗养舱四席位阵列：按明确席位号展示疗养中、待入舱、空置和未扩建四态，锁定角色不可撤出，空席位通过悬浮提示引导点击分配。 |
+| [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 疗养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、受限原因与已入席位角标。 |
+| [town/cryo/NutritionTechTree](../../src/ui/town/cryo/NutritionTechTree/) | 疗养舱横向科技树：直线连接核心与两条链式分支；节点状态由 `nutritionTechState` 驱动，右栏详情固定展示效果、消耗和研究按钮。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/storage/EquipTargetList](../../src/ui/town/storage/EquipTargetList/EquipTargetList.tsx) | 升阶与重铸共用的装备目标列：合并仓库装备和三槽穿戴件，支持武器/防具/饰品筛选、队员角标和 `ItemTooltip`。 |
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
