@@ -128,6 +128,7 @@
 }
 
 .materialSlot {
+  --item-slot-count-size: 12px;
   width: 42px;
   height: 42px;
 }

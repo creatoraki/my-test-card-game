@@ -6,8 +6,8 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-    /* 左立绘 / 中装备+属性 / 右卡组。 */
-    grid-template-columns: 340px minmax(0, 1fr) 520px;
+  /* 左立绘 / 中装备+属性 / 右卡组。 */
+  grid-template-columns: 360px minmax(0, 1fr) 700px;
   grid-template-rows: minmax(0, 1fr);
   gap: 18px 22px;
   animation: cm-rise 520ms 120ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
@@ -52,7 +52,7 @@
   border: 1px solid #ff6b6b66;
   background: #1a0b0bcc;
   color: #ff9b9b;
-  font-size: 13px;
+  font-size: 18px;
   letter-spacing: 0.3em;
 }
 
@@ -66,13 +66,13 @@
   align-items: baseline;
   gap: 8px;
   color: var(--asm-ink, #e8f7f7);
-  font-size: 15px;
+  font-size: 20px;
 }
 
 .cm-vitals-label,
 .cm-vitals-note {
   color: #8fa9ae;
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.12em;
 }
 
@@ -91,13 +91,13 @@
 
 .cm-block-title {
   color: color-mix(in srgb, var(--asm-frame, #52cfff) 72%, #ffffff);
-  font-size: 12px;
-  letter-spacing: 0.24em;
+  font-size: 18px;
+  letter-spacing: 0.14em;
 }
 
 .cm-block-note {
   color: #8fa9ae;
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.08em;
 }
 
@@ -106,7 +106,8 @@
 }
 
 .cm-status-pips {
-  --pip-box: 30px;
+  --pip-box: 44px;
+  --pip-count-size: 18px;
 }
 
 .cm-quirks {
@@ -138,7 +139,7 @@
 }
 
 .cm-stat-group {
-  padding: 8px 12px 10px;
+  padding: 12px 16px 14px;
   border: 1px solid #ffffff12;
   background: linear-gradient(180deg, #0e1719a8, #0a1012a8);
 }
@@ -147,25 +148,25 @@
   display: block;
   margin-bottom: 6px;
   color: #8fa9ae;
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.2em;
 }
 
 .cm-stat-rows {
   display: grid;
-  gap: 6px;
+  gap: 10px;
 }
 
 .cm-stat-rows.is-two-col {
   grid-template-columns: 1fr 1fr;
-  gap: 6px 16px;
+  gap: 10px 20px;
 }
 
 .cm-attr {
   position: relative;
   display: grid;
   align-items: center;
-  grid-template-columns: 18px 1fr auto;
+  grid-template-columns: 22px 1fr auto;
   gap: 8px;
   padding-bottom: 4px;
 }
@@ -174,7 +175,7 @@
 .cm-attr::after {
   content: "";
   position: absolute;
-  left: 28px;
+  left: 32px;
   right: 0;
   bottom: 0;
   height: 2px;
@@ -186,19 +187,19 @@
 }
 
 .cm-attr-icon {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   color: color-mix(in srgb, var(--asm-frame, #52cfff) 62%, #ffffff);
 }
 
 .cm-attr-label {
   color: #b9cdd1;
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .cm-attr-value {
   color: var(--asm-ink, #e8f7f7);
-  font-size: 15px;
+  font-size: 20px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -236,10 +237,10 @@
 
 .cm-slot-item {
   --item-slot-icon-size: 72%;
-  --item-slot-name-size: 13px;
+  --item-slot-name-size: 18px;
   --item-slot-notch: 12px;
   --item-slot-bond-size: 24px;
-  --item-slot-count-size: 13px;
+  --item-slot-count-size: 18px;
   width: 176px;
   height: 176px;
 }
@@ -252,7 +253,7 @@
   border: 1px dashed #ffffff24;
   background: #0a0f1180;
   color: #55686c;
-  font-size: 13px;
+  font-size: 18px;
   letter-spacing: 0.2em;
 }
 
@@ -264,7 +265,7 @@
 .cm-empty-text {
   margin: 10px 0 4px;
   color: #6f8286;
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 0.08em;
 }
 
@@ -280,42 +281,25 @@
   display: grid;
   min-height: 0;
   align-content: start;
-  grid-template-columns: repeat(auto-fill, 154px);
+  grid-template-columns: repeat(auto-fill, 220px);
   gap: 10px;
   overflow-y: auto;
   padding-right: 2px;
-  --deck-card-scale: 0.7;
+  --deck-card-scale: 1;
 }
 
 .cm-deck-cell {
-  width: 154px;
-  height: 216px;
+  width: 220px;
+  height: 308px;
 }
 
-/* 只读卡组沿用固定像素卡面, 外层缩放后占位 154×216。 */
+/* 只读卡组沿用固定像素卡面, 外层以原尺寸平铺。 */
 .cm-deck-cell [data-deck-card] {
   display: block;
   width: 220px;
   height: 308px;
   transform: scale(var(--deck-card-scale));
   transform-origin: top left;
-}
-
-.cm-deck-hover-preview {
-  position: absolute;
-  z-index: 4;
-  top: 28px;
-  left: -242px;
-  width: 220px;
-  height: 308px;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 16px #000000b8);
-}
-
-.cm-deck-hover-preview [data-deck-card] {
-  display: block;
-  width: 220px;
-  height: 308px;
 }
 
 @keyframes cm-rise {

@@ -2,8 +2,10 @@
   position: absolute;
   top: -1px;
   z-index: 4;
-  width: 260px;
+  width: 300px;
   padding: 12px 14px;
+  font-size: 18px;
+  line-height: 1.6;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -12,6 +14,16 @@
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   box-shadow: 0 10px 30px #000b;
   transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+}
+.popover strong {
+  font-size: 20px;
+}
+.popover p {
+  margin: 6px 0 0;
+  font-size: 18px;
+}
+.popover small {
+  font-size: 18px;
 }
 .left {
   right: calc(100% + 12px);

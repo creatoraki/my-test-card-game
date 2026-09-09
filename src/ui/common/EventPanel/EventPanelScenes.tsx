@@ -127,7 +127,7 @@ export function EventPanelChoice({
               {option.leading ? (
                 <span className={choiceResult.optionLeading}>{option.leading}</span>
               ) : (
-                <span className={choiceResult.optionNumber}>{String(optionIndex + 1).padStart(2, "0")}</span>
+                <span className={choiceResult.optionIndicator} aria-hidden="true" />
               )}
               <span className={choiceResult.optionMain}>
                 <strong>{option.name}</strong>

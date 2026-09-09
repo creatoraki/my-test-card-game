@@ -3,18 +3,18 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 6px;
   min-width: 0;
 }
 .pip {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
   min-width: 0;
-  padding: 3px 7px;
+  padding: 6px 12px;
   color: #f6d7bd;
-  font-size: var(--quirk-fs, 9px);
+  font-size: var(--quirk-fs, 18px);
   line-height: 1;
   background: #21130fdd;
   border: 1px solid #e58a5d70;

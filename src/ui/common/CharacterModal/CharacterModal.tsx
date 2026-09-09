@@ -96,7 +96,7 @@ export function CharacterModal({
       closeLabel="关闭角色档案"
       closing={closing}
       onClose={onClose}
-      size={{ w: 1600, h: 1000 }}
+      size={{ w: 1780, h: 1030 }}
       themeStyle={{ "--asm-frame": accent, "--asm-glow": accent } as CSSProperties}
       className={className}
     >

@@ -37,7 +37,7 @@
   bottom: 2px;
   z-index: 1;
   color: #fff;
-  font-size: max(10px, calc(var(--pip-box, 30px) * 0.28));
+  font-size: var(--pip-count-size, max(12px, calc(var(--pip-box, 30px) * 0.3)));
   font-weight: 800;
   line-height: 1;
   text-shadow: 1px 1px 0 #05080a, -1px -1px 0 #05080a, 1px -1px 0 #05080a, -1px 1px 0 #05080a;

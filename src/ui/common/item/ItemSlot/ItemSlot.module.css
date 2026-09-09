@@ -126,7 +126,7 @@
   z-index: 1;
   max-width: 100%;
   overflow: hidden;
-  font-size: var(--item-slot-name-size, 9px);
+  font-size: var(--item-slot-name-size, 18px);
   line-height: 1.15;
   color: var(--text);
   text-align: center;
@@ -140,7 +140,7 @@
   z-index: 1;
   right: 3px;
   bottom: 2px;
-  font-size: var(--item-slot-count-size, 10px);
+  font-size: var(--item-slot-count-size, 18px);
   font-weight: 700;
   color: var(--text);
   text-shadow: 0 0 4px #000;

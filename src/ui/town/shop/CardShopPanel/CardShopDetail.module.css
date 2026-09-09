@@ -7,7 +7,7 @@
   padding: 18px;
   border: 1px solid var(--asm-line, #f2e6d82e);
   background: #ffffff08;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .card {
@@ -24,7 +24,9 @@
 
 .copy {
   width: 100%;
+  min-height: 0;
   flex: 1 1 auto;
+  overflow-y: auto;
 }
 
 .kicker {
