@@ -87,7 +87,7 @@ export function tickStatus(inst: StatusInstance, def: StatusDef, tempo?: number)
     return;
   }
 
-  if (tempo != null && inst.appliedAt === tempo) return;
+  if (tempo != null && inst.appliedAt === tempo && !def.durationStartsImmediately) return;
   if (def.decay === "one") inst.stacks -= 1;
   if (def.decay === "half") inst.stacks = Math.floor(inst.stacks / 2);
   if (inst.duration != null) inst.duration -= 1;

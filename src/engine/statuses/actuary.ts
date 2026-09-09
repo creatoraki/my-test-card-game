@@ -12,6 +12,7 @@ export const ACTUARY_STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "🧾",
     kind: "buff",
     desc: "状态结束时按保险层数回复生命；受到敌方直接攻击时，层数提升 20%。",
+    durationStartsImmediately: true,
     stackMode: "add",
     refreshMode: "max",
     hooks: {
@@ -27,6 +28,7 @@ export const ACTUARY_STATUS_DEFS: Record<string, StatusDef> = {
     emoji: "🔁",
     kind: "buff",
     desc: "回响卡牌的基础效果会同步作用于带有回响的队友。",
+    durationStartsImmediately: true,
     maxStacks: 1,
   },
   deductible: {

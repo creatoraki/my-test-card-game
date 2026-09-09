@@ -364,7 +364,7 @@ export interface StatusInstance {
   duration?: number; // 剩余拍数; 缺省 = 不因节拍过期
   data?: Record<string, number>; // 状态的结构化运行时参数
   sourceId?: string; // 施加该状态的单位, 供持续效果读取施法者属性
-  appliedAt?: number; // 施加时持有者的节拍号, 仅非 segments 模式用于跳过施加当拍的处理
+  appliedAt?: number; // 施加时持有者的节拍号, 非立即计时状态用于跳过施加当拍的处理
   segments?: StatusSegment[]; // stackMode="segments" 专用; stacks/duration 为派生汇总值
 }
 
@@ -420,6 +420,7 @@ export interface StatusDef {
   desc: string;
   maxStacks?: number; // 层数上限; 缺省 = 不封顶
   decay?: "one" | "half"; // 每拍层数衰减; 缺省 = 不衰减
+  durationStartsImmediately?: boolean; // true = 施加当拍也扣除一次持续时间
   stackMode?: StackMode; // 同种状态再次施加时的层数合并方式
   refreshMode?: RefreshMode; // 同种状态再次施加时的持续拍数合并方式
   statMods?: Partial<StatBlock>; // 每层提供的固定属性修正
