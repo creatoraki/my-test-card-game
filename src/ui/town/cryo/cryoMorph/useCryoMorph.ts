@@ -2,7 +2,7 @@ import { PANEL_RECT } from "./cryoChoreo";
 import { CLOSE_MS, usePanelMorph } from "@/ui/common/panelMorph";
 import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 
-export type PanelId = "awaken" | "nutrition";
+export type PanelId = "revive" | "nutrition";
 export function useCryoMorph() {
   const morph = usePanelMorph<PanelId>({ rects: PANEL_RECT });
   useFacilityPanelExit(() => {

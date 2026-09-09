@@ -42,10 +42,10 @@ src/ui/
 | [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
 | [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配与模组制造场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
 | [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
-| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
+| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、在编队员/阵亡/积分读数、两行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
 | [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 医疗室入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
 | [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 医疗室横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
-| [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 休眠唤醒面板：六个瘦高立绘舱位、密封舱信息带、生命指标 count-up、唤醒费用和居民积分操作；规则与唤醒 action 由场景传入。 |
+| [town/cryo/RevivePanel](../../src/ui/town/cryo/RevivePanel/RevivePanel.tsx) | 复苏舱面板：六个瘦高立绘舱位、在编队/阵亡/空舱三态、阵亡生命指标 count-up、复苏费用和居民积分操作；规则与复苏 action 由场景传入。 |
 | [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 疗养舱双页面板编排：席位自由分配与批量确认页、面板内横向滑动科技树页共用同一外壳；费用、容量、治疗和研究判定复用 `data/nutritionPod`。 |
 | [town/cryo/NutritionPanel/useNutritionAssign](../../src/ui/town/cryo/NutritionPanel/useNutritionAssign.ts) | 疗养舱选人、席位落位/撤下、队伍下限、费用文案与批量确认状态的唯一交互逻辑。 |
 | [town/cryo/NutritionPanel/NutritionPodsPage](../../src/ui/town/cryo/NutritionPanel/NutritionPodsPage.tsx) | 疗养席位页：编排四席位主舞台与右侧待疗养队员栏，保留两步选择落位交互。 |

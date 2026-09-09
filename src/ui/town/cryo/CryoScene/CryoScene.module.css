@@ -111,6 +111,16 @@
   text-shadow: var(--ui-glow);
 }
 
+.cryo-chip.is-alert {
+  border-color: var(--cryo-chip-accent);
+  box-shadow: inset 0 1px 0 #ffffff33, 0 0 18px -10px var(--cryo-chip-accent);
+}
+
+.cryo-chip.is-alert .cryo-chip-label,
+.cryo-chip.is-alert .cryo-chip-value {
+  color: var(--cryo-chip-accent);
+}
+
 .cryo-entries {
   position: absolute;
   display: grid;

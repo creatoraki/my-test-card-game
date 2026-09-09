@@ -1,9 +1,9 @@
 import { useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
-import { CHARACTERS, nutritionPods } from "@/data";
+import { nutritionPods } from "@/data";
 import { useTownStore } from "@/store/townStore";
 import { PanelShell } from "@/ui/common/PanelShell";
 import { cx } from "@/ui/common/cx";
-import { AwakenPanel } from "../AwakenPanel";
+import { RevivePanel } from "../RevivePanel";
 import { NutritionPanel } from "../NutritionPanel";
 import { PANEL_RECT } from "../cryoMorph/cryoChoreo";
 import { useEntryRise } from "@/ui/hooks/useEntryRise";
@@ -14,6 +14,7 @@ const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
 
 const MED_ACCENT = "#4fd6b8";
+const FALLEN_ACCENT = "#ff6f8b";
 const MED_THEME = {
   "--asm-frame": MED_ACCENT,
   "--asm-glow": MED_ACCENT,
@@ -34,8 +35,9 @@ interface Props {
 
 export function CryoScene({ leaving = false }: Props) {
   const awakened = useTownStore((state) => state.awakened);
+  const fallen = useTownStore((state) => state.fallen);
   const loot = useTownStore((state) => state.loot);
-  const awaken = useTownStore((state) => state.awaken);
+  const reviveFallen = useTownStore((state) => state.reviveFallen);
   const admitToNutritionPods = useTownStore((state) => state.admitToNutritionPods);
   const researchNutritionTech = useTownStore((state) => state.researchNutritionTech);
   const nutrition = useTownStore((state) => state.nutrition);
@@ -44,7 +46,7 @@ export function CryoScene({ leaving = false }: Props) {
   const morph = useCryoMorph();
   const { panel } = morph;
 
-  const sealedCount = CHARACTERS.length - awakened.length;
+  const fallenCount = fallen.length;
   const nutritionCount = nutrition.occupants.length;
   const nutritionCapacity = nutritionPods(nutrition.techs);
 
@@ -53,14 +55,23 @@ export function CryoScene({ leaving = false }: Props) {
       <header className={cn("cryo-header")} style={{ left: "56px", top: "42px" }}>
         <span className={cn("cryo-kicker")}>生命维持医疗区</span>
         <h2 className={cn("cryo-title")}>医疗室</h2>
-        <p className={cn("cryo-sub")}>休眠唤醒 · 体力疗养</p>
+        <p className={cn("cryo-sub")}>复苏舱 · 体力疗养</p>
       </header>
 
       <div className={cn("cryo-readout")} style={{ right: "56px", top: "42px" }}>
         <div className={cn("cryo-chip")}>
-          <span className={cn("cryo-chip-label")}>已唤醒</span>
+          <span className={cn("cryo-chip-label")}>在编队员</span>
           <strong className={cn("cryo-chip-value")}>{awakened.length}</strong>
         </div>
+        {fallenCount > 0 && (
+          <div
+            className={cn("cryo-chip", "is-alert")}
+            style={{ "--cryo-chip-accent": FALLEN_ACCENT } as CSSProperties}
+          >
+            <span className={cn("cryo-chip-label")}>阵亡</span>
+            <strong className={cn("cryo-chip-value")}>{fallenCount}</strong>
+          </div>
+        )}
         <div className={cn("cryo-chip")}>
           <span className={cn("cryo-chip-label")}>居民积分</span>
           <strong className={cn("cryo-chip-value")}>{loot.toLocaleString()}</strong>
@@ -81,13 +92,13 @@ export function CryoScene({ leaving = false }: Props) {
         } as CSSProperties}
       >
         <EntryTile
-          icon={<AwakenIcon />}
-          name="休眠唤醒"
-          desc={sealedCount > 0 ? `${sealedCount} 具休眠体待唤醒` : "暂无待唤醒的休眠体"}
-          entryId="awaken"
-          hidden={morph.hiddenEntry === "awaken" && morph.phase !== "closing"}
-          revealing={morph.phase === "closing" && morph.hiddenEntry === "awaken"}
-          onClick={(event) => morph.openPanel("awaken", event.currentTarget)}
+          icon={<ReviveIcon />}
+          name="复苏舱"
+          desc={fallenCount > 0 ? `${fallenCount} 名队员待复苏` : "暂无阵亡队员"}
+          entryId="revive"
+          hidden={morph.hiddenEntry === "revive" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "revive"}
+          onClick={(event) => morph.openPanel("revive", event.currentTarget)}
         />
         <EntryTile
           icon={<NutritionIcon />}
@@ -103,28 +114,28 @@ export function CryoScene({ leaving = false }: Props) {
       {panel && (
         <PanelShell
           accent={MED_ACCENT}
-          title={panel === "awaken" ? "休眠唤醒" : "疗养舱"}
+          title={panel === "revive" ? "复苏舱" : "疗养舱"}
           status={
-            panel === "awaken"
-              ? `舱位解封 · 待唤醒 ${sealedCount} 具 · 居民积分 ${loot.toLocaleString()}`
+            panel === "revive"
+              ? `复苏舱位 · 待复苏 ${fallenCount} 名 · 居民积分 ${loot.toLocaleString()}`
               : `体力极限恢复 · 席位 ${nutritionCount}/${nutritionCapacity} · 居民积分 ${loot.toLocaleString()}`
           }
-          closeLabel={panel === "awaken" ? "关闭休眠唤醒" : "关闭疗养舱"}
+          closeLabel={panel === "revive" ? "关闭复苏舱" : "关闭疗养舱"}
           closing={morph.phase === "closing"}
           onClose={morph.closePanel}
-          sfx={panel === "awaken"}
+          sfx={panel === "revive"}
           themeStyle={MED_THEME}
           className={s["cryo-modal"]}
           morph={{
             ref: morph.panelRef,
             rect: PANEL_RECT[panel],
             ready: morph.ready,
-            seed: panel === "awaken" ? <AwakenIcon /> : <NutritionIcon />,
-            seedLabel: panel === "awaken" ? "休眠唤醒" : "疗养舱",
+            seed: panel === "revive" ? <ReviveIcon /> : <NutritionIcon />,
+            seedLabel: panel === "revive" ? "复苏舱" : "疗养舱",
           }}
         >
-          {panel === "awaken" ? (
-            <AwakenPanel awakened={awakened} loot={loot} slot={podSlot} onSelect={setPodSlot} onAwaken={awaken} />
+          {panel === "revive" ? (
+            <RevivePanel awakened={awakened} fallen={fallen} loot={loot} slot={podSlot} onSelect={setPodSlot} onRevive={reviveFallen} />
           ) : (
             <NutritionPanel onAdmit={admitToNutritionPods} onResearch={researchNutritionTech} />
           )}
@@ -148,7 +159,7 @@ function EntryTile({ icon, name, desc, entryId, hidden, revealing = false, onCli
   );
 }
 
-function AwakenIcon() {
+function ReviveIcon() {
   return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round"><path d="M14 14h20v30H14z" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} /><circle cx="24" cy="26" r="4.5" strokeWidth={1.6} /><path d="M17 40c0-4.4 3.1-7.5 7-7.5s7 3.1 7 7.5M24 4v5M15.5 6.5l2.5 4M32.5 6.5L30 10.5" strokeWidth={1.5} /></svg>;
 }
 

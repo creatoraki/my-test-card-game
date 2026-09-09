@@ -32,6 +32,7 @@ import { DEPTH_VARS } from "./battleCamera";
 import { useBattleActions } from "./useBattleActions";
 import { useBattleCamera, useBattleRig } from "./useBattleCamera";
 import { useBattleChoreo } from "./useBattleChoreo";
+import { useFallenNotice } from "./useFallenNotice";
 import { useHandRender } from "./useHandRender";
 import { usePlayback } from "./usePlayback";
 import { BattleStageLayer } from "./parts/BattleStageLayer";
@@ -82,6 +83,7 @@ export function BattleScreen() {
   });
   const hand = useHandRender({ battle, battleSeq });
   const deaths = useDeathGate(battle, { seq: battleSeq, rateRef: playback.playbackRateRef });
+  useFallenNotice({ battle, battleSeq, phaseOf: deaths.phaseOf });
   const choreo = useBattleChoreo({
     battle,
     battleSeq,

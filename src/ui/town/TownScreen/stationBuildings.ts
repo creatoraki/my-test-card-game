@@ -152,7 +152,7 @@ export interface FacilityBinding {
 const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
   // 工房: 装备升阶 / 羁绊重铸
   airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART },
-  // 医疗室: 冬眠唤醒 / 营养舱
+  // 医疗室: 复苏舱 / 营养舱
   supplies: { facility: "cryo", bg: CRYO_BG_ART },
   // 队员宿舍: 进入顶层编队场景, 使用队员宿舍背景作为像素转场目标
   "sleeping-pods": { facility: "formation", bg: FORMATION_BG_ART },

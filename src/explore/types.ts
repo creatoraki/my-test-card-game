@@ -299,7 +299,8 @@ export interface PartySnapshot {
   hp: number;
   hpLimit: number;
   maxHp: number;
-  alive: boolean; // 本次远征内阵亡即无法再出战, 回城镇后复原
+  alive: boolean; // 本次远征内阵亡即无法再出战, 回城后进入阵亡名单
+  gearSettled?: boolean; // 阵亡装备已剥离并结算过, 防止重复剥离
   // 负重适应(固定值)。★ 由 runStore.partySnapshot() 一次性填好 ——
   // 探索层因此自足: 算负重惩罚不用回头去问 townStore, UI 与开战两处也不会各算一份。
   burdenAdapt: number;

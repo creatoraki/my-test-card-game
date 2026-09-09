@@ -57,7 +57,7 @@ export function CrewGrid({
   if (roster.length === 0) {
     return (
       <div className={s.grid} style={style}>
-        <p className={s.empty}>还没有醒着的队员 —— 去冬眠仓解封几具休眠体。</p>
+        <p className={s.empty}>还没有在编队的队员 —— 去复苏舱复苏队员。</p>
       </div>
     );
   }

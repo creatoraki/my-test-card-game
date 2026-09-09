@@ -49,7 +49,7 @@
 医疗室浮层外壳复用 [common/PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx)，由场景注入 `--asm-*` 医疗青绿主题；
 [cryoKit.module.css](../../src/ui/town/cryo/styles/cryoKit.module.css) 只剩内容入场动画、底栏与主按钮，
 [cryoFigure.module.css](../../src/ui/town/cryo/styles/cryoFigure.module.css) 提供深色瘦高立绘窗的取景变量、底部渐隐和铭牌，
-[AwakenPanel.module.css](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.module.css)、
+[RevivePanel.module.css](../../src/ui/town/cryo/RevivePanel/RevivePanel.module.css)、
 [NutritionPanel.module.css](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.module.css) 与其子组件样式各自持有功能内容。
 入口到面板的几何由 `cryoMorph` 的 WAAPI 驱动，`cryoKit.module.css` 不再包含吊绳、`panelIn` 或 `panelOut`；场景骨架样式只留在 `CryoScene.module.css`，根节点不挂 `animation` / `opacity` / `transform`，以免破坏设施背景的 `backdrop-filter`。
 

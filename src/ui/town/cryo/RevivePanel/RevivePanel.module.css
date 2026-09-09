@@ -127,9 +127,20 @@
   box-shadow: 0 0 8px color-mix(in srgb, var(--cryo-glow) 55%, transparent);
 }
 
-.is-sealed .figure {
-  background: linear-gradient(145deg, #ece5f2c2, #dcd2e6b8);
-  filter: saturate(0.55);
+.is-active .figure {
+  filter: none;
+  opacity: 1;
+}
+
+.is-fallen .figure {
+  background: linear-gradient(145deg, #34363bc2, #17191db8);
+  filter: grayscale(1);
+  opacity: 0.58;
+}
+
+.is-fallen .led {
+  background: var(--cryo-alert);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--cryo-alert) 65%, transparent);
 }
 
 .is-empty {

@@ -96,7 +96,7 @@ export const RULES = {
   progression: {
     partySize: 3, // 上阵人数上限
     expPerEnemy: 10, // 敌人 exp 的参考基准值, 实际结算读取 EnemyDef.exp
-    awakenCost: 150, // 冬眠仓解封一名休眠队员消耗的居民积分
+    reviveCost: 200, // 复苏舱唤醒一名阵亡队员消耗的居民积分
   },
 
   // 卡组锻造 —— 经验的唯一去处(《角色养成设计.md》第四章)。⚠ 全部为草案数值。

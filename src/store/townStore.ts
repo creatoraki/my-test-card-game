@@ -163,10 +163,11 @@ export interface CodexState {
 
 export interface TownStore {
   characters: Record<string, CharacterState>;
-  // ★ 已唤醒(已解锁)的角色 id, 按唤醒先后。CHARACTERS 里不在这张名单上的都还躺在冬眠仓里。
+  // ★ 在编队员名单, 按加入先后。阵亡角色会从这里移出。
   // ⚠ characters 仍是**全量**建档(见 freshProfile) —— 「有没有解锁」只看这里, 各处取
   //   characters[id] 才不必判空。上阵资格 = 在这张名单上。
   awakened: string[];
+  fallen: string[]; // 永久阵亡的角色 id, 按阵亡先后。与 awakened 互斥
   clearedMaps: string[]; // 已通关的地图 id
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize, 且必须 ⊆ awakened
   loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
@@ -208,7 +209,8 @@ export interface TownStore {
   refundTalentNode: (nodeId: string) => void;
   resetSquadTalent: () => void;
   toggleParty: (charId: string) => void; // 上阵/下阵
-  awaken: (charId: string) => void; // 冬眠仓: 花 awakenCost 居民积分解封一名休眠队员
+  markFallen: (charIds: string[]) => void; // 回城落袋: 移出在编队员并记入永久阵亡名单
+  reviveFallen: (charId: string) => void; // 复苏舱: 花 reviveCost 居民积分重置一名阵亡队员
   admitToNutritionPods: (assignments: { charId: string; slot: number }[]) => void; // 营养舱: 批量确认、扣积分并记录席位
   researchNutritionTech: (techId: string) => void; // 营养舱: 研究舱位或治疗量科技
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
@@ -314,9 +316,8 @@ function freshCharacter(def: CharacterDef): CharacterState {
   };
 }
 
-// ★ 开局醒着的是 INITIAL_AWAKENED 上的人, 其余全躺在冬眠仓等着被解封。
-//   characters 仍然**全量**建档 —— 未唤醒角色也有一份初始档案, 解封那一刻直接可用,
-//   awaken() 不需要建档, 各处 characters[id] 也不必判空。
+// ★ 开局在编队的是 INITIAL_AWAKENED 上的人, 其余角色在复苏舱等待复苏。
+//   characters 仍然**全量**建档 —— 复苏时直接用 freshCharacter 重置为初始档案。
 // 开局就已唤醒并直接上阵的角色 id(按顺序)。
 const INITIAL_AWAKENED = ["swordsman", "prophet", "botanist", "alchemist", "actuary"];
 const INITIAL_TEST_EXP = 2000;
@@ -359,6 +360,7 @@ function freshStorage(): ItemStack[] {
 function freshProfile(includeInitialExp = true): {
   characters: Record<string, CharacterState>;
   awakened: string[];
+  fallen: string[];
   clearedMaps: string[];
   party: string[];
   squadTalent: SquadTalentState;
@@ -382,6 +384,7 @@ function freshProfile(includeInitialExp = true): {
   return {
     characters,
     awakened,
+    fallen: [],
     clearedMaps: [],
     party: awakened.slice(0, RULES.progression.partySize),
     squadTalent: { badgeId: null, nodes: [] },
@@ -408,6 +411,7 @@ export const useTownStore = create<TownStore>()(
     (set, get) => ({
       characters: {},
       awakened: [],
+      fallen: [],
       clearedMaps: [],
       party: [],
       loot: 10000,
@@ -720,20 +724,47 @@ export const useTownStore = create<TownStore>()(
           if (party.length <= 1) return; // 至少保留 1 人上阵
           set({ party: party.filter((id) => id !== charId) });
         } else {
-          if (!awakened.includes(charId)) return; // 还在冬眠仓里的人上不了阵
+          if (!awakened.includes(charId)) return; // 阵亡或未归队的人上不了阵
           if (party.length >= RULES.progression.partySize) return;
           set({ party: [...party, charId] });
         }
       },
 
-      // 冬眠仓解封: 扣居民积分 + 进 awakened 名单。
-      // ⚠ 刻意**不自动上阵** —— 队伍可能已经满员, 自动塞人要么失败要么得替谁下阵,
-      //   两种都不该由 store 替玩家决定。解封后由玩家在冬眠仓里手动编队。
-      awaken: (charId) => {
-        const { characters, awakened, loot } = get();
-        const cost = RULES.progression.awakenCost;
-        if (!characters[charId] || awakened.includes(charId) || loot < cost) return;
-        set({ awakened: [...awakened, charId], loot: loot - cost });
+      // 回城落袋时唯一的阵亡出口。装备在 runStore 里先被剥离, 这里保留档案供复苏舱展示姓名。
+      markFallen: (charIds) => {
+        const { awakened, fallen, party, characters, squadTalent } = get();
+        const nextIds = [...new Set(charIds)].filter(
+          (charId) => awakened.includes(charId) && !fallen.includes(charId),
+        );
+        if (!nextIds.length) return;
+
+        const nextAwakened = awakened.filter((charId) => !nextIds.includes(charId));
+        const nextFallen = [...fallen, ...nextIds];
+        const badge = squadTalent.badgeId ? getBadge(squadTalent.badgeId) : null;
+        const nextTalent =
+          badge && spentPoints(badge, squadTalent.nodes) > squadTrainingPoints({ characters, awakened: nextAwakened })
+            ? { ...squadTalent, nodes: [] }
+            : squadTalent;
+        set({
+          awakened: nextAwakened,
+          fallen: nextFallen,
+          party: party.filter((charId) => !nextIds.includes(charId)),
+          squadTalent: nextTalent,
+        });
+      },
+
+      // 复苏不自动上阵 —— 队伍可能已经满员, 编队取舍交给玩家。
+      // ★ 不做积分余额护栏, 全员阵亡时允许透支复苏, 避免形成死档。
+      reviveFallen: (charId) => {
+        const { fallen, awakened, characters, loot } = get();
+        if (!fallen.includes(charId) || !characters[charId]) return;
+        const cost = RULES.progression.reviveCost;
+        set({
+          loot: loot - cost,
+          fallen: fallen.filter((id) => id !== charId),
+          awakened: [...awakened, charId],
+          characters: { ...characters, [charId]: freshCharacter(getCharacter(charId)) },
+        });
       },
 
       admitToNutritionPods: (assignments) => {
@@ -947,8 +978,7 @@ export const useTownStore = create<TownStore>()(
       },
 
       // 回城落档 —— 生命三段里的前两段在这里变成永久损伤。
-      // ★ 保底 1: 阵亡角色回城记为 HP 1 / 体力极限 1(设计决策), 极度虚弱但仍可编队出击,
-      //   不会因为城镇暂无治疗手段而永久报废。
+      // ★ 阵亡成员不再走这里, 见 markFallen; 这里只回填存活成员的最终状态。
       // ⚠ 夹取顺序是 hpLimit ≤ maxHp, 再 hp ≤ hpLimit —— 三段的不变式只在这一处维护。
       syncExpeditionStatus: (conditions) => {
         const characters = { ...get().characters };
@@ -1010,7 +1040,7 @@ export const useTownStore = create<TownStore>()(
       refreshShop: () => {
         const { shop, loot } = get();
         const cost = shopRefreshCost(shop.refreshes);
-        if (loot < cost) return; // 护栏与 awaken 同写法: 买不起就什么都不发生
+        if (loot < cost) return; // 积分不足时购买动作不发生
         set({
           loot: loot - cost,
           shop: { ...shop, refreshes: shop.refreshes + 1, slots: rollShopStock(shop.level) },
@@ -1199,6 +1229,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v22: 新增 fallen 永久阵亡名单与复苏舱, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v21: 新增卡牌商店货架、科技与购买 action, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v20: 重铸台改为重掷羁绊, pendingReforge 由 roll 改为 affinity, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v19: 新增 seenGuides 新手引导记录, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1218,6 +1249,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 21 },
+    { name: TOWN_PROFILE_KEY, version: 22 },
   ),
 );

@@ -41,7 +41,7 @@ import {
 } from "./townStore";
 
 // ★ "formation"(编队) 是据点的**一级全屏页**, 不是设施内浮层 ——
-//   入口是据点全景右下的「编队」按钮(见 ui/town/TownScreen), 冬眠仓只剩「冬眠唤醒」。
+//   入口是据点全景右下的「编队」按钮(见 ui/town/TownScreen), 医疗室提供「复苏舱」。
 //   回据点走 ScreenTransition 的默认淡出淡入。
 //   ⚠⚠ **角色详情不是一个 screen**: 它是编队页内部的第二种态, 点卡不跳页, 由
 //   ui/character/FormationScreen/formationMorph 做一次同页元素重组。旧版曾经是
@@ -283,12 +283,30 @@ function syncConditionsFrom(battle: BattleState): void {
   );
 }
 
+// 阵亡装备只从城镇槽位原子取出一次, 并并入本趟战利品盘。
+// 团灭时战利品盘已经由 loseEverything 清空, 阵亡装备随之丢失。
+function settleFallenGear(): void {
+  const ids = useExploreStore.getState().takeUnsettledFallen();
+  if (!ids.length) return;
+
+  const town = useTownStore.getState();
+  const dropped = ids.flatMap((charId) =>
+    (["weapon", "armor", "trinket"] as EquipSlot[])
+      .map((slot) => town.takeOffStack(charId, slot))
+      .filter((stack): stack is ItemStack => Boolean(stack)),
+  );
+  const session = useExploreStore.getState().session;
+  if (dropped.length && session && session.phase !== "wiped") {
+    useExploreStore.getState().addFallenGear(dropped);
+  }
+}
+
 // 远征收尾的落袋 —— 积分 + 实物一起进城镇, 只有这一个出口。
 // ★ 团灭时 session.backpack 与 session.loot 已被 explore/session.loseEverything 清零,
 //   所以这里**无条件**调用即可: 惩罚的真相点只在 EXPLORE_RULES.wipe 一处, 不在这里再判一次。
 //   投递口寄回的 shipped 不受团灭影响, 因此照样入仓 —— 那是背包玩法唯一的保险手段(§6.5)。
 // ★ 生命三段的前两段一并落档: 撤离/通关/团灭都走这里, 所以「打掉的血与体力极限跨日传承」
-//   这条规则只有这一个出口。阵亡成员按 1/1 保底(夹取在 townStore.syncExpeditionStatus)。
+//   这条规则只有这一个出口。阵亡成员不再回填, 由 markFallen 接管。
 function bankEverything(session: {
   loot: number;
   backpack: ItemStack[];
@@ -297,14 +315,16 @@ function bankEverything(session: {
 }) {
   const town = useTownStore.getState();
   town.syncExpeditionStatus(
-    session.party.map((member) => ({
+    session.party.filter((member) => member.alive).map((member) => ({
       charId: member.charId,
-      hp: member.alive ? member.hp : 1,
-      hpLimit: member.alive ? member.hpLimit : 1,
+      hp: member.hp,
+      hpLimit: member.hpLimit,
       // 污染值始终由城镇侧即时维护，这里在回城时和最终 HP 一起明确落档。
       pollution: town.characters[member.charId]?.pollution ?? 0,
     })),
   );
+  const fallenIds = session.party.filter((member) => !member.alive).map((member) => member.charId);
+  if (fallenIds.length) town.markFallen(fallenIds);
   town.bankLoot(session.loot);
   town.deposit([...session.shipped, ...session.backpack]);
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
@@ -386,6 +406,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const explore = useExploreStore.getState();
     const result = explore.pickOption(index);
     if (!result) return null;
+    settleFallenGear();
     const session = useExploreStore.getState().session;
     if (!session) return result;
     const hits = applyPendingContamination(session.party.map((p) => p.charId));
@@ -438,6 +459,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
     const explore = useExploreStore.getState();
     explore.settleBattle(won, survivors, enemyDefIds, challengeBonus, bountyBonus);
+    settleFallenGear();
     for (const id of battle.playerIds) {
       syncMemberStats((battle.combatants[id] as Ally).charId);
     }
@@ -528,6 +550,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
     syncConditionsFrom(battle);
     useExploreStore.getState().retreatFromBattle(survivorsFrom(battle, session));
+    settleFallenGear();
     for (const id of battle.playerIds) {
       syncMemberStats((battle.combatants[id] as Ally).charId);
     }
@@ -646,10 +669,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
     }
 
     applyPendingContamination(session.party.map((p) => p.charId));
+    settleFallenGear();
+    const settledSession = useExploreStore.getState().session;
+    if (!settledSession) return set({ screen: "town" });
 
-    if (session.phase === "wiped") {
+    if (settledSession.phase === "wiped") {
       // 团灭: session.backpack 已被 loseEverything 清空, 但**投递口寄回的仍然算数**(§6.5)。
-      bankEverything(session);
+      bankEverything(settledSession);
       set({
         screen: "defeat",
         lastResult: "lost",
@@ -664,13 +690,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
       });
       return;
     }
-    bankEverything(session);
-    if (session.phase === "cleared") {
-      useTownStore.getState().markMapCleared(session.mapId);
+    bankEverything(settledSession);
+    if (settledSession.phase === "cleared") {
+      useTownStore.getState().markMapCleared(settledSession.mapId);
     }
     set({
       screen: "victory",
-      lastResult: session.phase === "cleared" ? "won" : "retreat",
+      lastResult: settledSession.phase === "cleared" ? "won" : "retreat",
     });
   },
 

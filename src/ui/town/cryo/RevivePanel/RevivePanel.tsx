@@ -7,7 +7,7 @@ import { CryoFigureStrip } from "../CryoFigureStrip";
 import { CONTENT_DELAY_MS, STAGGER_MS } from "../cryoMorph/cryoChoreo";
 import kit from "../styles/cryoKit.module.css";
 import figure from "../styles/cryoFigure.module.css";
-import s from "./AwakenPanel.module.css";
+import s from "./RevivePanel.module.css";
 
 const stagger = (index: number): CSSProperties => ({ "--i": index } as CSSProperties);
 
@@ -19,34 +19,34 @@ const VITALS: { label: string; num?: number; decimals?: number; unit?: string; t
 ];
 
 type Pod =
-  | { kind: "awake"; charId: string }
-  | { kind: "sealed"; charId: string }
+  | { kind: "active"; charId: string }
+  | { kind: "fallen"; charId: string }
   | { kind: "empty" };
 
 interface Props {
   awakened: string[];
+  fallen: string[];
   loot: number;
   slot: number;
   onSelect: (index: number) => void;
-  onAwaken: (charId: string) => void;
+  onRevive: (charId: string) => void;
 }
 
-export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props) {
+export function RevivePanel({ awakened, fallen, loot, slot, onSelect, onRevive }: Props) {
   const pods = useMemo<Pod[]>(() => {
-    const awake: Pod[] = awakened.map((charId) => ({ kind: "awake", charId }));
-    const sealed: Pod[] = CHARACTERS.filter((character) => !awakened.includes(character.id)).map((character) => ({
-      kind: "sealed",
-      charId: character.id,
-    }));
-    const filled = [...awake, ...sealed];
+    const active: Pod[] = awakened.map((charId) => ({ kind: "active", charId }));
+    const fallenPods: Pod[] = fallen
+      .map((charId) => CHARACTERS.find((character) => character.id === charId))
+      .filter((character): character is (typeof CHARACTERS)[number] => Boolean(character))
+      .map((character) => ({ kind: "fallen", charId: character.id }));
+    const filled = [...active, ...fallenPods];
     const empty: Pod[] = Array.from({ length: Math.max(0, 6 - filled.length) }, () => ({ kind: "empty" }));
     return [...filled, ...empty];
-  }, [awakened]);
+  }, [awakened, fallen]);
 
   const active = pods[slot] ?? pods[0];
-  const cost = RULES.progression.awakenCost;
-  const affordable = loot >= cost;
-  const canAwaken = active?.kind === "sealed" && affordable;
+  const cost = RULES.progression.reviveCost;
+  const canRevive = active?.kind === "fallen";
 
   return (
     <div className={kit.shell}>
@@ -65,27 +65,27 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
 
         <div className={s.detail} key={slot}>
           <div className={s.detailText}>
-            {active?.kind === "sealed" ? (
+            {active?.kind === "fallen" ? (
               <>
-                <span className={s.kicker}>休眠状态 · 体征稳定</span>
-                <h4 className={s.name}>休眠体 · 身份未解析</h4>
-                <p className={s.desc}>舱盖仍处于密封状态。唤醒前无法读取该休眠体的档案, 只知道生命体征仍在。</p>
+                <span className={s.kicker}>生命信号中断</span>
+                <h4 className={s.name}>{getCharacter(active.charId).name}</h4>
+                <p className={s.desc}>复苏后档案将完全归零，装备与卡上模组不会回来。</p>
               </>
-            ) : active?.kind === "awake" ? (
+            ) : active?.kind === "active" ? (
               <>
                 <span className={s.kicker}>已唤醒</span>
                 <h4 className={s.name}>{getCharacter(active.charId).name}</h4>
-                <p className={s.desc}>该舱位已唤醒。档案与卡组请去队员档案查看, 出战编成去编队。</p>
+                <p className={s.desc}>该舱位已唤醒。档案与卡组请去队员档案查看，出战编成去编队。</p>
               </>
             ) : (
               <>
                 <span className={s.kicker}>无信号</span>
                 <h4 className={s.name}>空舱</h4>
-                <p className={s.desc}>此舱位没有休眠体信号。</p>
+                <p className={s.desc}>此舱位没有可用信号。</p>
               </>
             )}
           </div>
-          {active?.kind === "sealed" && (
+          {active?.kind === "fallen" && (
             <div className={s.vitals}>
               {VITALS.map((vital, index) => <VitalCell key={vital.label} vital={vital} index={index} />)}
             </div>
@@ -95,14 +95,14 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
 
       <div className={kit.panelFoot}>
         <p className={kit.note}>
-          {active?.kind !== "sealed"
-            ? "选中一个休眠舱位才能唤醒。"
-            : affordable
-              ? "唤醒后该队员进入待命, 不会自动上阵。"
-              : `居民积分不足, 还差 ${(cost - loot).toLocaleString()}。`}
+          {active?.kind !== "fallen"
+            ? "选中一名阵亡队员才能复苏。"
+            : loot < cost
+              ? `积分将透支至 ${(loot - cost).toLocaleString()}，复苏仍会执行。`
+              : "复苏后该队员进入待命，不会自动上阵。"}
         </p>
-        <button className={kit.primary} type="button" disabled={!canAwaken} onClick={() => active?.kind === "sealed" && onAwaken(active.charId)}>
-          解封唤醒 −{cost} 居民积分
+        <button className={kit.primary} type="button" disabled={!canRevive} onClick={() => active?.kind === "fallen" && onRevive(active.charId)}>
+          复苏唤醒 −{cost} 居民积分
         </button>
       </div>
     </div>
@@ -116,14 +116,16 @@ function PodCard({ pod, index, selected, onSelect }: { pod: Pod; index: number; 
       <span className={s.lid} aria-hidden />
       <span className={s.no}>舱位-{String(index + 1).padStart(2, "0")}</span>
       <span className={s.figure}>
-        {pod.kind === "awake" && character ? (
+        {pod.kind === "active" && character ? (
           <CharacterPortrait characterId={character.id} emoji={character.emoji} alt={character.name} className={s.portrait} />
-        ) : pod.kind === "sealed" ? <SealedIcon /> : <NoSignalIcon />}
+        ) : pod.kind === "fallen" && character ? (
+          <CharacterPortrait characterId={character.id} emoji={character.emoji} alt={character.name} className={s.portrait} />
+        ) : <NoSignalIcon />}
         <span className={figure.figureScrim} aria-hidden />
       </span>
       <span className={s.text}>
-        <span className={s.name}>{pod.kind === "awake" && character ? character.name : pod.kind === "sealed" ? "休眠体" : "无信号"}</span>
-        <span className={s.meta}><i className={s.led} aria-hidden />{pod.kind === "awake" ? "已解封" : pod.kind === "sealed" ? "密封 · 体征稳定" : "空舱"}</span>
+        <span className={s.name}>{pod.kind !== "empty" && character ? character.name : "无信号"}</span>
+        <span className={s.meta}><i className={s.led} aria-hidden />{pod.kind === "active" ? "在编队" : pod.kind === "fallen" ? "生命信号中断" : "空舱"}</span>
       </span>
     </button>
   );
@@ -137,10 +139,6 @@ function VitalCell({ vital, index }: { vital: (typeof VITALS)[number]; index: nu
       <strong className={s.value}>{vital.num === undefined ? vital.text : `${shown.toFixed(vital.decimals ?? 0)} ${vital.unit ?? ""}`.trim()}</strong>
     </div>
   );
-}
-
-function SealedIcon() {
-  return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round"><path d="M14 5h20v38H14z" strokeWidth={1.2} opacity={0.38} /><circle cx="24" cy="17" r="4.5" strokeWidth={1.6} /><path d="M17 31c0-4.4 3.1-7.5 7-7.5s7 3.1 7 7.5M21 38h6v4h-6zM22.5 38v-2a1.5 1.5 0 013 0v2" strokeWidth={1.4} /></svg>;
 }
 
 function NoSignalIcon() {

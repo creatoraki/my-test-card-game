@@ -71,7 +71,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   assembly: (leaving) => <AssemblyScene leaving={leaving} />,
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
   shop: (leaving) => <ShopScene leaving={leaving} />,
-  // 医疗室: 冬眠唤醒 / 营养舱
+  // 医疗室: 复苏舱 / 营养舱
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   // 研究中心: 模组装配 / 模组制造
   worklog: (leaving) => <ResearchScene leaving={leaving} />,

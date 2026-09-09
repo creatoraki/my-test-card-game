@@ -1803,6 +1803,17 @@ function applySurvivors(s: ExploreState, survivors: BattleSurvivor[]): void {
   }
 }
 
+// 取出本趟新阵亡且尚未结算装备的成员 id, 并就地打上 gearSettled 标记。
+export function takeUnsettledFallen(s: ExploreState): string[] {
+  const fallen: string[] = [];
+  for (const member of s.party) {
+    if (member.alive || member.gearSettled) continue;
+    member.gearSettled = true;
+    fallen.push(member.charId);
+  }
+  return fallen;
+}
+
 // 战斗进行途中从设置面板主动撤离: 本场战斗作废, 整趟远征就此收尾。
 // ★ 与 retreat() 的差别只在「它从 inBattle 出发, 且要先把战斗里打掉的血回填给会话」——
 //   之后的落袋、结算与回城都由 store 层走和撤离完全相同的那条路。

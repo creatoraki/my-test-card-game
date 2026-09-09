@@ -53,6 +53,7 @@ import {
   takePending,
   takeAllLoot,
   takeLoot,
+  takeUnsettledFallen,
   takePendingExp,
   useItem,
   applyEffect,
@@ -100,6 +101,8 @@ interface ExploreStore {
   retreatNow: () => void;
   // 战斗途中主动撤离: 回填战斗内血量, 本场作废并把会话打成 retreated。
   retreatFromBattle: (survivors: BattleSurvivor[]) => void;
+  takeUnsettledFallen: () => string[];
+  addFallenGear: (stacks: ItemStack[]) => void;
   settleBattle: (
     won: boolean,
     survivors: BattleSurvivor[],
@@ -262,6 +265,23 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   retreatFromBattle: (survivors) => {
     mutate(get, set, (d) => retreatFromBattle(d, survivors));
+  },
+
+  takeUnsettledFallen: () => {
+    let ids: string[] = [];
+    mutate(get, set, (d) => {
+      ids = takeUnsettledFallen(d);
+      return ids.length > 0;
+    });
+    return ids;
+  },
+
+  addFallenGear: (stacks) => {
+    if (!stacks.length) return;
+    mutate(get, set, (d) => {
+      addPendingLoot(d, stacks);
+      return true;
+    });
   },
 
   settleBattle: (won, survivors, enemyDefIds, challengeBonus, bountyBonus) => {
