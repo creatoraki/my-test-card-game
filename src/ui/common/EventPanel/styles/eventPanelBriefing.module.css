@@ -1,0 +1,318 @@
+.briefingScene {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.1fr);
+  height: 100%;
+  min-height: 0;
+  align-items: start;
+  gap: 58px;
+  animation: briefingIn 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.briefingScene .scenePlaceholder {
+  animation: artIn 720ms 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.briefingScene .briefingCopy {
+  position: relative;
+  top: 40px;
+  display: flex;
+  height: calc(100% - 40px);
+  min-height: 0;
+  flex-direction: column;
+  animation: copyIn 600ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-variant="rest"] .briefingScene {
+  height: 100%;
+}
+
+[data-variant="rest"] .briefingCopy {
+  top: 20px;
+  height: calc(100% - 20px);
+}
+
+.scenePlaceholder {
+  position: relative;
+  width: 330px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid #43545a99;
+  background:
+    radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--event-accent) 18%, transparent), transparent 26%),
+    linear-gradient(140deg, #172427, #0b1114 60%, #11191c);
+  box-shadow: 14px 14px 0 #060a0c, 0 0 45px color-mix(in srgb, var(--event-accent) 10%, transparent);
+}
+
+.scenePlaceholder::before,
+.scenePlaceholder::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.scenePlaceholder::before {
+  --bracket-color: color-mix(in srgb, var(--event-accent) 78%, #fff 22%);
+  --bracket-arm: min(26px, 30%);
+  --bracket-weight: 2px;
+  inset: 19px;
+  filter: drop-shadow(0 0 3px var(--event-accent)) drop-shadow(0 0 8px color-mix(in srgb, var(--event-accent) 70%, transparent));
+  background-image:
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0),
+    linear-gradient(var(--bracket-color) 0 0), linear-gradient(var(--bracket-color) 0 0);
+  background-position:
+    left top, left top,
+    right top, right top,
+    left bottom, left bottom,
+    right bottom, right bottom;
+  background-size:
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm),
+    var(--bracket-arm) var(--bracket-weight), var(--bracket-weight) var(--bracket-arm);
+  background-repeat: no-repeat;
+}
+
+.scenePlaceholder::after {
+  inset: 0;
+  background: linear-gradient(110deg, transparent 25%, #ffffff09 25.2%, transparent 25.5% 67%, #ffffff05 67.2%, transparent 67.5%);
+  mix-blend-mode: screen;
+}
+
+.sceneOrb {
+  position: absolute;
+  top: 33%;
+  left: 50%;
+  width: 36%;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--event-accent) 80%, white);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--event-accent) 65%, white) 0 3%, color-mix(in srgb, var(--event-accent) 26%, transparent) 4% 27%, transparent 65%);
+  box-shadow: 0 0 14px var(--event-accent), 0 0 70px color-mix(in srgb, var(--event-accent) 35%, transparent);
+  transform: translate(-50%, -50%);
+  animation: orbFloat 4.5s ease-in-out infinite;
+}
+
+.sceneOrb::before,
+.sceneOrb::after {
+  position: absolute;
+  inset: 14%;
+  border: 1px solid color-mix(in srgb, var(--event-accent) 70%, transparent);
+  border-radius: 50%;
+  content: "";
+}
+
+.sceneOrb::after {
+  inset: -22%;
+  border-style: dashed;
+  opacity: 0.65;
+  animation: spin 18s linear infinite;
+}
+
+.sceneCaption {
+  position: absolute;
+  right: 29px;
+  bottom: 27px;
+  z-index: 1;
+  color: color-mix(in srgb, var(--event-accent) 70%, #d7e3dc);
+  font-family: var(--font-family);
+  font-size: var(--ep-meta);
+  line-height: 1.6;
+  letter-spacing: var(--ep-track);
+  text-align: right;
+}
+
+.sceneGlyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: color-mix(in srgb, var(--event-accent) 80%, white);
+  font-family: Georgia, serif;
+  font-size: 80px;
+  line-height: 1;
+  text-shadow: 0 0 20px var(--event-accent);
+  transform: translate(-50%, -50%);
+  opacity: 0.36;
+}
+
+.briefingCopy {
+  max-width: 400px;
+}
+
+.briefingCopy h2 {
+  margin: 13px 0 9px;
+  color: #f4f7ef;
+  font-family: var(--font-family);
+  font-size: var(--ep-h2);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+}
+
+.eventLabel {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--event-accent);
+  font-family: var(--font-family);
+  font-size: var(--ep-meta);
+  font-weight: 800;
+  letter-spacing: var(--ep-track);
+}
+
+.eventLabel span {
+  width: 24px;
+  height: 1px;
+  background: var(--event-accent);
+  box-shadow: 0 0 8px var(--event-accent);
+}
+
+.storySubtitle {
+  max-width: 380px;
+  min-height: 24px;
+  margin: 13px 0 17px;
+  color: #c8d8d3;
+  font-size: var(--ep-body);
+  line-height: 1.7;
+}
+
+[data-variant="rest"] .storySubtitle:empty {
+  min-height: 0;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+
+.storyBody {
+  flex: 1 1 0;
+  min-height: 0;
+  max-width: 350px;
+  max-height: none;
+  margin: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  color: #869a9a;
+  font-size: var(--ep-body);
+  line-height: 1.9;
+}
+
+.storyBody::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.typingText::after {
+  display: inline-block;
+  width: 5px;
+  height: 1em;
+  margin-left: 3px;
+  background: var(--event-accent);
+  content: "";
+  vertical-align: -2px;
+  animation: caretBlink 760ms steps(1, end) infinite;
+}
+
+.storyMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 20px;
+  color: #687d7e;
+  font-family: var(--font-family);
+  font-size: var(--ep-meta);
+  letter-spacing: var(--ep-track);
+}
+
+[data-variant="rest"] .storyMeta {
+  margin-top: 12px;
+}
+
+.storyMeta b {
+  margin-right: 5px;
+  color: var(--event-accent);
+  font-size: var(--ep-body);
+  font-weight: 400;
+  vertical-align: -2px;
+}
+
+.advanceButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 198px;
+  margin-top: 25px;
+  padding: 11px 15px;
+  border-color: var(--event-accent);
+  background: color-mix(in srgb, var(--event-accent) 12%, #111a1d);
+  color: #f0f6e9;
+  font-size: var(--ep-body);
+}
+
+[data-variant="rest"] .advanceButton {
+  margin-top: 14px;
+}
+
+.advanceButton span {
+  margin-left: 22px;
+  color: var(--event-accent);
+  font-size: var(--ep-arrow);
+  line-height: 1;
+}
+
+.advanceButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--event-accent) 24%, #111a1d);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--event-accent) 15%, transparent);
+  transform: translateX(3px);
+}
+
+.advanceButton:disabled {
+  border-color: #415155;
+  background: #101719;
+  color: #647476;
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+@keyframes briefingIn {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes artIn {
+  from { opacity: 0; transform: translateX(-38px) scale(0.94); filter: saturate(0.5); }
+  to { opacity: 1; transform: translateX(0) scale(1); filter: saturate(1); }
+}
+
+@keyframes copyIn {
+  from { opacity: 0; transform: translateX(26px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.96); }
+  50% { transform: translate(-50%, -50%) scale(1.04); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes caretBlink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .briefingScene,
+  .briefingScene .scenePlaceholder,
+  .briefingScene .briefingCopy {
+    animation: none;
+  }
+
+  .sceneOrb,
+  .sceneOrb::after,
+  .typingText::after {
+    animation: none;
+  }
+}

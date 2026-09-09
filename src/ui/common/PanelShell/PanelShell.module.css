@@ -208,7 +208,7 @@
 .asm-panel-status {
   color: #9baba7;
   font-family: var(--font-family);
-  font-size: var(--panel-shell-status-size, 12px);
+  font-size: var(--panel-shell-status-size, 18px);
   letter-spacing: 0.06em;
   white-space: nowrap;
 }

@@ -69,12 +69,12 @@ export default function MerchantPanel({ session, shop, onBuy, canClose, onClose 
                   itemId={tabService.currencyItemId}
                   count={tabService.price}
                   owned={tabOwned}
-                  size="sm"
+                  size="md"
                   showOwned
                 />
                 <span className={s.tabCopy}>
                   <strong>{tabService.name}</strong>
-                  <small>{tabSlot.sold ? "已成交" : `服务 ${slotIndex + 1}`}</small>
+                  <small>{tabSlot.sold ? "已成交" : "可交易"}</small>
                 </span>
                 {tabSlot.sold && <span className={s.check} aria-label="已成交">✓</span>}
               </button>
@@ -82,8 +82,7 @@ export default function MerchantPanel({ session, shop, onBuy, canClose, onClose 
           })}
         </div>
         <div className={s.counter}>
-          <span>已成交 {shop.trades} / {shop.slots.length}</span>
-          <span>每个服务限购 1 次</span>
+          <span>已成交 {shop.trades} / {shop.slots.length} · 每槽限购 1 次</span>
         </div>
       </div>
 
@@ -91,7 +90,6 @@ export default function MerchantPanel({ session, shop, onBuy, canClose, onClose 
         <section className={s.service} aria-label={service.name}>
           <div className={s.serviceHead}>
             <div>
-              <span className={s.kicker}>SERVICE {String(activeSlot + 1).padStart(2, "0")}</span>
               <h2>{service.name}</h2>
               <p>{service.desc}</p>
             </div>
@@ -159,7 +157,7 @@ export default function MerchantPanel({ session, shop, onBuy, canClose, onClose 
             onClick={() => buy(selectedStockIndex)}
           >
             {slot.sold ? "已成交" : "确认支付"}
-            {!slot.sold && <ItemCostTag itemId={service.currencyItemId} count={service.price} size="sm" />}
+            {!slot.sold && <ItemCostTag itemId={service.currencyItemId} count={service.price} size="sm" compact />}
           </EventPanelButton>
           {reason && <RailPopover side="top-right">{reason}</RailPopover>}
         </span>

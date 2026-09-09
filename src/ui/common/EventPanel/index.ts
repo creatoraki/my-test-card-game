@@ -1,15 +1,10 @@
+export { EventPanel, EventPanelFrame, type EventPanelOption, type EventPanelScene } from "./EventPanel";
+export { EventPanelBriefing, EventPanelChoice, EventPanelResult } from "./EventPanelScenes";
 export {
-  EventPanel,
-  EventPanelFrame,
-  EventPanelBriefing,
-  EventPanelChoice,
-  EventPanelResult,
   EventPanelStage,
   EventPanelBody,
   EventPanelFoot,
   EventPanelNotice,
   EventPanelButton,
   EventPanelPick,
-  type EventPanelOption,
-  type EventPanelScene,
-} from "./EventPanel";
+} from "./EventPanelPrimitives";

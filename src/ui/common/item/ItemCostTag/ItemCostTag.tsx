@@ -10,8 +10,9 @@ interface Props {
   itemId: string;
   count: number;
   owned?: number;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   showOwned?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
@@ -21,13 +22,14 @@ export default function ItemCostTag({
   owned,
   size = "md",
   showOwned = false,
+  compact = false,
   className,
 }: Props) {
   const [point, setPoint] = useState<TooltipPoint | null>(null);
   const def = getItemDef(itemId);
   const short = owned != null && owned < count;
   const stack: ItemStack = { uid: `cost-${itemId}`, itemId, count };
-  const label = `${def.name} ×${count}${showOwned && owned != null ? `，持有 ${owned}` : ""}`;
+  const label = `${def.name} ×${count}${showOwned && owned != null ? `，持有 ${owned}，需 ${count}` : ""}`;
 
   const showTooltip = (event: PointerEvent<HTMLSpanElement>) => {
     setPoint(tooltipPointFromElement(event.currentTarget));
@@ -35,7 +37,7 @@ export default function ItemCostTag({
 
   return (
     <span
-      className={cx(s.tag, s[`size-${size}`], short && s.short, className)}
+      className={cx(s.tag, s[`size-${size}`], compact && s.compact, short && s.short, className)}
       data-short={short || undefined}
       aria-label={label}
       role="img"
@@ -43,8 +45,14 @@ export default function ItemCostTag({
       onPointerLeave={() => setPoint(null)}
     >
       <span className={s.icon} aria-hidden="true">{itemIcon(def)}</span>
-      <span className={s.count}>×{count}</span>
-      {showOwned && owned != null && <span className={s.owned}>{owned}/{count}</span>}
+      {compact ? (
+        <span className={s.compactCount}>×{count}</span>
+      ) : (
+        <span className={s.copy}>
+          <span className={s.name}>{def.name} ×{count}</span>
+          {showOwned && owned != null && <span className={s.owned}>持有 {owned} / 需 {count}</span>}
+        </span>
+      )}
       {point && (
         <ItemTooltip
           stack={stack}

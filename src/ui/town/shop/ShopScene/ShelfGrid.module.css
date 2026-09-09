@@ -82,7 +82,7 @@
 .sx-price::before {
   color: currentColor;
   content: "◈";
-  font-size: 14px;
+  font-size: 18px;
   opacity: 0.85;
 }
 

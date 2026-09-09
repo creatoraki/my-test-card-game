@@ -1,9 +1,10 @@
 .tag {
   --cost-accent: var(--event-accent, #d6b477);
+  --cost-icon: #d6b477;
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 12px;
   min-width: 0;
   border: 1px solid color-mix(in srgb, var(--cost-accent) 48%, transparent);
   background: color-mix(in srgb, var(--cost-accent) 9%, transparent);
@@ -14,13 +15,15 @@
 }
 
 .size-sm {
-  padding: 3px 6px 3px 3px;
-  font-size: 10px;
+  padding: 6px 10px 6px 6px;
 }
 
 .size-md {
-  padding: 5px 8px 5px 5px;
-  font-size: 12px;
+  padding: 8px 12px 8px 8px;
+}
+
+.size-lg {
+  padding: 10px 14px 10px 10px;
 }
 
 .tag:hover,
@@ -32,25 +35,27 @@
 .tag.short,
 .tag[data-short="true"] {
   --cost-accent: #e47970;
-  color: #ffb5a9;
 }
 
 .icon {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: var(--cost-accent);
+  color: var(--cost-icon);
   line-height: 0;
+  aspect-ratio: 1;
 }
 
 .size-sm .icon {
-  width: 24px;
-  height: 24px;
+  width: 36px;
 }
 
 .size-md .icon {
-  width: 34px;
-  height: 34px;
+  width: 48px;
+}
+
+.size-lg .icon {
+  width: 64px;
 }
 
 .icon svg,
@@ -61,22 +66,51 @@
   object-fit: contain;
 }
 
-.count {
+.copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  color: #f2f2dc;
+  line-height: 1.25;
+}
+
+.name {
+  overflow: hidden;
+  font-size: var(--ep-lead, 24px);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .owned {
-  position: absolute;
-  right: -5px;
-  bottom: -6px;
-  min-width: 24px;
-  padding: 1px 3px;
-  border: 1px solid var(--cost-accent);
-  background: #101719;
+  color: #c0cbc1;
+  font-size: var(--ep-meta, 18px);
+  white-space: nowrap;
+}
+
+.short .copy,
+.tag[data-short="true"] .copy {
+  color: #ffb5a9;
+}
+
+.compact {
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+}
+
+.compact .icon {
+  width: 28px;
+}
+
+.compactCount {
   color: #f2f2dc;
-  font-size: 9px;
-  line-height: 1.2;
-  text-align: center;
+  font-size: var(--ep-meta, 18px);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.compact.short .compactCount,
+.compact[data-short="true"] .compactCount {
+  color: #ffb5a9;
 }
 
 @media (prefers-reduced-motion: reduce) {

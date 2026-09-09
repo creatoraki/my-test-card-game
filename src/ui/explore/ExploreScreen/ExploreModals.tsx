@@ -1,8 +1,8 @@
 import { useEffect, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import type { EventChoice, ExploreState, NodeEvent, NpcEventLike } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
-import { getItemDef } from "@/data";
-import { npcChoices } from "@/explore/session";
+import { getItemDef, getMap } from "@/data";
+import { npcChoices, remainingNodes } from "@/explore/session";
 import { playSfx } from "@/ui/audio";
 import { countByItemId } from "@/items/inventory";
 import ItemSlot from "@/ui/common/item/ItemSlot";
@@ -16,7 +16,7 @@ import {
 } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
 import { eventPanelShapeVars } from "@/ui/explore/NotchedFrame";
-import { eventKindLabel } from "@/ui/explore/eventKindLabel";
+import { eventCategoryLabel, eventKindLabel } from "@/ui/explore/eventKindLabel";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import s from "./ExploreScreen.module.css";
 
@@ -136,7 +136,7 @@ export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, 
     <EventShell view={view} closing={closing}>
       <EventPanel
         accent="var(--k)"
-        kicker={`${eventKindLabel[ev.kind]} · ${ev.category}`}
+        kicker={`${eventKindLabel[ev.kind]} · ${eventCategoryLabel[ev.category]}`}
         title={eventKindLabel[ev.kind]}
         scene={view.scene}
         sceneKey={`${session.round}-${session.currentSegment}-${ev.id}`}
@@ -144,7 +144,7 @@ export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, 
       >
         {briefing && (
           <EventPanelBriefing
-            sceneName={ev.kind.toUpperCase()}
+            sceneName={eventKindLabel[ev.kind]}
             glyph={ev.kind === "battle" ? "!" : "◆"}
             heading={ev.title}
             label={`${eventKindLabel[ev.kind]} / 情报`}
@@ -152,8 +152,8 @@ export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, 
             body={view.desc.shown}
             typingBody={!view.desc.done}
             meta={[
-              { icon: "⌁", text: "当前区域 · 废弃楼层" },
-              { icon: "◷", text: "节点剩余 02" },
+              { icon: "⌁", text: `当前区域 · ${getMap(session.mapId).name}` },
+              { icon: "◷", text: `节点剩余 ${String(remainingNodes(session)).padStart(2, "0")}` },
             ]}
             advanceLabel={shopping ? "交易终端已打开" : "查看可用行动"}
             advanceDisabled={shopping || !view.choiceReady}
@@ -174,7 +174,7 @@ export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, 
         {view.scene === "result" && (
           <EventPanelResult
             seal="✓"
-            eyebrow="03 / RESOLVED"
+            eyebrow="03 / 事件结算"
             heading="事件已结算"
             story={view.story.shown}
             typingStory={!view.story.done}
@@ -230,7 +230,7 @@ export function RestModal({ view, closing, onEat, onSkip, onAdvance, onBack }: R
         >
           {view.scene === "briefing" ? (
             <EventPanelBriefing
-              sceneName="SAFE REST"
+              sceneName="安全休息点"
               glyph="+"
               heading="要在这里休息吗？"
               body="你可以消耗指定食品，唤来隐藏访客；也可以跳过休息，继续前往下一个节点。"
@@ -284,14 +284,14 @@ export function NpcModal({ view, closing, onChoose, onConfirm, onAdvance, onBack
         <span className={s["panel-scan"]} aria-hidden />
         <EventPanel
           accent="#63d6d1"
-          kicker={resolving ? "隐藏 NPC · 结果记录" : "隐藏 NPC · 特殊事件"}
-          title="隐藏 NPC"
+          kicker={resolving ? "隐藏访客 · 结果记录" : "隐藏访客 · 特殊事件"}
+          title="隐藏访客"
           scene={view.scene}
           sceneKey={`npc-${npc.id}`}
         >
           {view.scene === "briefing" && (
             <EventPanelBriefing
-              sceneName="HIDDEN VISITOR"
+              sceneName="隐藏访客"
               glyph="?"
               heading={npc.title}
               body={npc.description}
@@ -314,7 +314,7 @@ export function NpcModal({ view, closing, onChoose, onConfirm, onAdvance, onBack
           {view.scene === "result" && (
             <EventPanelResult
               seal="✓"
-              eyebrow="03 / HIDDEN RECORD"
+              eyebrow="03 / 隐藏记录"
               heading="隐藏事件已结算"
               story={story}
               notes={notes}
