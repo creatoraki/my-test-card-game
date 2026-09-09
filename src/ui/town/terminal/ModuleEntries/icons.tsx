@@ -22,3 +22,19 @@ export function CraftIcon() {
     </svg>
   );
 }
+
+/** 「科技树」入口图标 —— 中央研究核心 + 三层分支，保持 48 视图线条风格。 */
+export function TechTreeIcon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" opacity=".45" />
+      <circle cx="24" cy="24" r="6" />
+      <circle cx="24" cy="24" r="2" />
+      <path d="M24 18V10M18.8 27 12 33M29.2 27 36 33" />
+      <circle cx="24" cy="8" r="3" />
+      <circle cx="10" cy="35" r="3" />
+      <circle cx="38" cy="35" r="3" />
+      <path d="M24 4v4M10 39v4M38 39v4" opacity=".6" />
+    </svg>
+  );
+}

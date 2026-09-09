@@ -2,10 +2,10 @@
 // 商店弹层由 ShopScene 的 PanelShell + panelMorph 联动管理; 两个扩展面板继续使用 panelMorph。
 
 import { useMemo, type CSSProperties } from "react";
-import { cardShopLevelOf, getItemDef } from "@/data";
+import { cardShopLevelOf, getItemDef, sellPriceOf } from "@/data";
 import { sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
-import { useTownStore } from "@/store/townStore";
+import { techLevels, useTownStore } from "@/store/townStore";
 import { PanelShell } from "@/ui/common/PanelShell";
 import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { useEntryRise } from "@/ui/hooks/useEntryRise";
@@ -51,6 +51,7 @@ export interface StockEntriesProps {
 export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntriesProps) {
   const storage = useTownStore((state) => state.storage);
   const loot = useTownStore((state) => state.loot);
+  const levels = useTownStore(techLevels);
   const sellItem = useTownStore((state) => state.sellItem);
   const cardShop = useTownStore((state) => state.cardShop);
 
@@ -61,7 +62,7 @@ export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntries
   const { panel } = morph;
 
   const sorted = useMemo(() => sortStacks(storage, getItemDef, rarityRank), [storage]);
-  const scrapCount = storage.filter((stack) => getItemDef(stack.itemId).sellValue).length;
+  const scrapCount = storage.filter((stack) => sellPriceOf(getItemDef(stack.itemId), levels) > 0).length;
 
   return (
     <>
@@ -128,7 +129,7 @@ export function StockEntries({ shopOpen, shopClosing, onOpenShop }: StockEntries
             seedLabel: "回收台",
           }}
         >
-          <RecyclePanel stacks={sorted} loot={loot} onSell={sellItem} />
+          <RecyclePanel stacks={sorted} loot={loot} levels={levels} onSell={sellItem} />
         </PanelShell>
       )}
 

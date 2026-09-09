@@ -59,7 +59,12 @@ export const KEYWORD_DEFS: Record<string, KeywordDef> = {
         const ally = state.combatants[id];
         return ally?.alive && id !== ctx.primaryId && ally.statuses.some((status) => status.id === "echo");
       });
-      const baseEffects = ctx.baseEffects ?? baseEffectsOf(card);
+      // ⚠ 重放时必须剔除 PLAY_STAT_BONUS: 它写进的是**施放者本次出牌**的临时面板, 由 playCard
+      //   在整次出牌结束时才撤回 —— 重放期间那份加成仍然生效。再叠一次就是纯粹的重复计数
+      //   (回响模组的治愈力 -30 会滚成 -60、-90)。
+      const baseEffects = (ctx.baseEffects ?? baseEffectsOf(card)).filter(
+        (effect) => effect.type !== "PLAY_STAT_BONUS",
+      );
       for (const id of echoedAllies) resolveEffects(state, baseEffects, card.ownerCharId, id);
 
       const primary = ctx.primaryId ? state.combatants[ctx.primaryId] : undefined;

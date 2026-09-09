@@ -3,7 +3,7 @@
 // 原属物资中转仓; 该设施拆散后, 出售与采购同在商店场景, 一进一出读在一起。
 
 import { useEffect, useState } from "react";
-import { getItemDef } from "@/data";
+import { getItemDef, sellPriceOf, type TechTreeState } from "@/data";
 import type { ItemStack } from "@/items/types";
 import ItemTabs from "@/ui/common/item/ItemTabs";
 import type { EquipTab, ItemTab } from "@/ui/common/item/itemFilters";
@@ -14,11 +14,12 @@ import s from "./StockPanels.module.css";
 export interface RecyclePanelProps {
   stacks: ItemStack[];
   loot: number;
+  levels: TechTreeState["levels"];
   onSell: (uid: string) => void;
 }
 
-export function RecyclePanel({ stacks, loot, onSell }: RecyclePanelProps) {
-  const sellable = stacks.filter((stack) => getItemDef(stack.itemId).sellValue);
+export function RecyclePanel({ stacks, loot, levels, onSell }: RecyclePanelProps) {
+  const sellable = stacks.filter((stack) => sellPriceOf(getItemDef(stack.itemId), levels) > 0);
   const [tab, setTab] = useState<ItemTab>("all");
   const [equipTab, setEquipTab] = useState<EquipTab>("all");
   const [picked, setPicked] = useState<string[]>([]);
@@ -32,7 +33,7 @@ export function RecyclePanel({ stacks, loot, onSell }: RecyclePanelProps) {
   const total = picked.reduce((sum, uid) => {
     const stack = sellable.find((item) => item.uid === uid);
     if (!stack) return sum;
-    return sum + (getItemDef(stack.itemId).sellValue ?? 0) * stack.count;
+    return sum + sellPriceOf(getItemDef(stack.itemId), levels) * stack.count;
   }, 0);
 
   const toggle = (uid: string) =>

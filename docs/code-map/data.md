@@ -20,6 +20,7 @@
 | [moduleCrafting.ts](../../src/data/moduleCrafting.ts) | 模组制造配方表：为剑士、预言家、植物学家登记七条配方，包含产出模组、制造者角色、经验消耗、两种通用材料与产出地区的 mid 材料；`craftCheck` 是可行性判定的唯一真相点，store 护栏与 UI 置灰共用它。 |
 | [equipUpgrade.ts](../../src/data/equipUpgrade.ts) | 装备升阶与词条重铸配方表；按装备槽位登记两种通用材料，1 阶升阶使用产出地区的 low 材料，高阶继续使用水晶，重铸使用产出地区的 boss 材料；`upgradeCheck` / `reforgeCheck` 是 store 护栏与 UI 置灰共用的唯一可行性判定。 |
 | [nutritionPod.ts](../../src/data/nutritionPod.ts) | 营养舱科技与疗养规则：登记带 `requires`、坐标的横向节点图，席位扩建与疗养液配比按链式逐节点解锁；统一计算四态节点、席位、等级和单次体力极限恢复量，`nutritionTechCheck` 复用材料/积分判定，`NUTRITION_TREAT_COST` 固定为 100 积分。 |
+| [techTree/](../../src/data/techTree/) | 全局科技树数据与规则：按分类、支线、科技三级组织节点，集中登记等级制消耗、四态判定和训练点/换金物售价效果；`sellPriceOf` 是换金物售价倍率的唯一入口。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；据点随机商店仍只筛选装备与材料。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
 | [botLines.ts](../../src/data/botLines.ts) | 公共台词取句函数：按台词池与分类随机取句，并回避上一句；供出击售货机器人与据点管理终端共用。 |
@@ -38,4 +39,4 @@
 
 数据层不登记素材路径，也不写流程逻辑。素材查表在 `src/ui/`；战斗、探索和物品规则分别由对应纯逻辑层维护。
 
-卡牌商店的价格、科技等级、刷新费用和四条设施科技由 `cardShop.ts` 维护；设施科技拆为展柜扩容与补货链路两条分支，货位数与刷新基价按已研究节点派生；科技积分与材料校验统一由 `techCost.ts` 提供，营养舱与卡牌商店共用同一份判定。
+卡牌商店的价格、科技等级、刷新费用和四条设施科技由 `cardShop.ts` 维护；设施科技拆为展柜扩容与补货链路两条分支，货位数与刷新基价按已研究节点派生；全局科技树由 `techTree/` 维护训练点强化与回收溢价；科技积分与材料校验统一由 `techCost.ts` 提供，营养舱、卡牌商店和全局科技树共用同一份判定。

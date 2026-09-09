@@ -40,7 +40,7 @@ src/ui/
 | [town/TownScreen/StationSettings](../../src/ui/town/TownScreen/StationSettings/StationSettingsPanel.tsx) | 据点右上设置入口与系统菜单：复用 `common/SettingsPanel`，承载音乐/音效、重置存档与测试奖励。 |
 | [town/TownScreen/StationBot](../../src/ui/town/TownScreen/StationBot/StationBot.tsx) | 据点常驻管理终端：复用 `common/ChatBot` 与独立台词池，点击立绘会播放点击音效并插入 poke 台词。 |
 | [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
-| [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配与模组制造场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
+| [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配、模组制造与科技树场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
 | [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、在编队员/阵亡/积分读数、两行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
 | [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 医疗室入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
@@ -71,7 +71,8 @@ src/ui/
 | [town/terminal/AssemblyBench](../../src/ui/town/terminal/AssemblyBench/AssemblyBench.tsx) | 右栏紧凑装配工作台：展示单一模组插槽、当前已装配模组和装配状态，派发装配/拆卸按钮与物品 tooltip 回调；候选模组由模组仓架展示；不直接操作 store。 |
 | [town/terminal/AssemblyModuleRack](../../src/ui/town/terminal/AssemblyModuleRack/AssemblyModuleRack.tsx) | 右栏滚动模组仓架：以稳定网格展示库存模组，表达选中与兼容性状态，保留键盘聚焦和 tooltip 路径；不承载装配规则。 |
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
-| [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 模组两条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造面板。 |
+| [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 研究中心三条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造/科技树面板。 |
+| [town/terminal/TechTreePanel](../../src/ui/town/terminal/TechTreePanel/) | 全局科技树三栏面板：左侧分类导航、中间带等级进度弧的 SVG 节点图、右侧效果与消耗详情；研究动作只派发 `townStore.researchTech`。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：EventPanel 同源的常驻六格混合货架，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShelfGrid`、`ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
@@ -141,7 +142,7 @@ src/ui/
 | [result/EndScreen/EndPartyRoster](../../src/ui/result/EndScreen/parts/EndPartyRoster.tsx) | 结算页左侧队伍状态：复用 `PartyMemberCard` 展示立绘、血量、污染和阵亡态，按成员错峰入场。 |
 | [result/EndScreen/EndTrophyRail](../../src/ui/result/EndScreen/parts/EndTrophyRail.tsx) | 结算页中央战果统计：展示击杀、经验、换金物、积分、节点、轮数、拾取件数和能量消耗，数字使用统一 count-up。 |
 | [result/EndScreen/EventDropBand](../../src/ui/result/EndScreen/parts/EventDropBand.tsx) | 结算页右侧斜切事件带：按节点历史正序逐条掉落，超过可见槽位后整体上移，点击或键盘确认可跳过演出。 |
-| [result/EndScreen/EndHaulPanel](../../src/ui/result/EndScreen/parts/EndHaulPanel.tsx) | 结算页中央物资回收面板：复用只读 `ItemInventoryPanel` 展示 `shipped` 与 `backpack`，按废料 `sellValue` 汇总换金价值。 |
+| [result/EndScreen/EndHaulPanel](../../src/ui/result/EndScreen/parts/EndHaulPanel.tsx) | 结算页中央物资回收面板：复用只读 `ItemInventoryPanel` 展示 `shipped` 与 `backpack`，按 `sellPriceOf` 汇总换金价值并同步科技树回收溢价。 |
 
 ## 探索域
 

@@ -42,6 +42,9 @@ import {
   NUTRITION_TECHS,
   NUTRITION_TREAT_COST,
   REGIONAL_MATERIAL_DEFS,
+  techTrainingBonus,
+  sellPriceOf,
+  type TechTreeState,
 } from "../data";
 import {
   DEFAULT_SHOP_LEVEL,
@@ -60,6 +63,7 @@ import {
   rollCardShopStock,
   type CardShopState,
 } from "./cardShopSlice";
+import { createTechTreeSlice } from "./techTreeSlice";
 import {
   addCardToDeck,
   availablePools,
@@ -177,6 +181,7 @@ export interface TownStore {
   shop: ShopState;
   cardShop: CardShopState;
   nutrition: NutritionState;
+  techTree: TechTreeState;
   squadTalent: SquadTalentState;
   codex: CodexState;
   seenGuides: string[]; // 已看过的新手引导 id, 随存档永久记录
@@ -190,7 +195,7 @@ export interface TownStore {
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
   withdraw: (uid: string) => ItemStack | null; // 出击准备: 把一整堆从仓库取出交给调用方
-  sellItem: (uid: string) => void; // 回收台: 按 sellValue 出售换居民积分
+  sellItem: (uid: string) => void; // 回收台: 按统一售价函数出售换居民积分
   equipItem: (charId: string, uid: string) => void; // 从仓库取一件穿上
   unequipItem: (charId: string, slot: EquipSlot) => void; // 卸下, 退回仓库
   // ---- 不经仓库的两个原子操作 ----
@@ -233,6 +238,7 @@ export interface TownStore {
   refreshCardShop: import("./cardShopSlice").CardShopSlice["refreshCardShop"];
   buyCardShopCard: import("./cardShopSlice").CardShopSlice["buyCardShopCard"];
   upgradeCardShop: import("./cardShopSlice").CardShopSlice["upgradeCardShop"];
+  researchTech: import("./techTreeSlice").TechTreeSlice["researchTech"];
 
   // ---- 卡组锻造(经验的唯一去处) ----
   upgradeDeck: (charId: string) => void; // 升一级卡组等级
@@ -364,6 +370,7 @@ function freshProfile(includeInitialExp = true): {
   clearedMaps: string[];
   party: string[];
   squadTalent: SquadTalentState;
+  techTree: TechTreeState;
   codex: CodexState;
   seenGuides: string[];
 } {
@@ -388,6 +395,7 @@ function freshProfile(includeInitialExp = true): {
     clearedMaps: [],
     party: awakened.slice(0, RULES.progression.partySize),
     squadTalent: { badgeId: null, nodes: [] },
+    techTree: { levels: {} },
     codex: { items: [], cards: [], enemies: [] },
     seenGuides: [],
   };
@@ -396,15 +404,17 @@ function freshProfile(includeInitialExp = true): {
 export const TRAINING_POINT_CONTRIBUTORS = 5;
 
 export function squadTrainingPoints(
-  state: Pick<TownStore, "characters" | "awakened">,
+  state: Pick<TownStore, "characters" | "awakened" | "techTree">,
 ): number {
   const deckLevels = state.awakened
     .map((charId) => state.characters[charId]?.deckLevel ?? 0)
     .sort((left, right) => right - left);
   return deckLevels
     .slice(0, TRAINING_POINT_CONTRIBUTORS)
-    .reduce((sum, level) => sum + level, 0);
+    .reduce((sum, level) => sum + level, 0) + techTrainingBonus(state.techTree.levels);
 }
+
+export const techLevels = (state: TownStore): TechTreeState["levels"] => state.techTree.levels;
 
 export const useTownStore = create<TownStore>()(
   persist(
@@ -420,11 +430,13 @@ export const useTownStore = create<TownStore>()(
       shop: freshShop(1),
       cardShop: freshCardShop(1, {}, []),
       nutrition: { techs: [], occupants: [] },
+      techTree: { levels: {} },
       squadTalent: { badgeId: null, nodes: [] },
       codex: { items: [], cards: [], enemies: [] },
       seenGuides: [],
       ...createEquipCraftSlice(set, get),
       ...createCardShopSlice(set, get),
+      ...createTechTreeSlice(set, get),
       initialized: false,
 
       ensureProfile: () => {
@@ -438,6 +450,7 @@ export const useTownStore = create<TownStore>()(
           shop: freshShop(1),
           cardShop: freshCardShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
+          techTree: { levels: {} },
           pendingReforge: null,
           initialized: true,
         });
@@ -480,6 +493,7 @@ export const useTownStore = create<TownStore>()(
           shop: freshShop(1),
           cardShop: freshCardShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
+          techTree: { levels: {} },
           pendingReforge: null,
           initialized: true,
         });
@@ -498,11 +512,11 @@ export const useTownStore = create<TownStore>()(
       // 点亮一个天赋节点。校验用数据层的 canActivate:
       //   未激活 + 前置满足 + 剩余训练点(总训练点 - 本徽章已投入)够付。
       activateTalentNode: (nodeId) => {
-        const { squadTalent } = get();
+        const { squadTalent, characters, awakened, techTree } = get();
         if (!squadTalent.badgeId) return;
         const badge = getBadge(squadTalent.badgeId);
         if (!badge || !getNode(badge, nodeId)) return;
-        const remaining = squadTrainingPoints(get()) - spentPoints(badge, squadTalent.nodes);
+        const remaining = squadTrainingPoints({ characters, awakened, techTree }) - spentPoints(badge, squadTalent.nodes);
         if (!canActivate(badge, squadTalent.nodes, nodeId, remaining)) return;
         set({
           squadTalent: {
@@ -565,10 +579,10 @@ export const useTownStore = create<TownStore>()(
       // 回收台。⚠ 只有填了 sellValue 的物品(目前是废料与装备)能卖 ——
       // 模组材料与数据存档留着有别的用处, 卖掉会让日后接模组系统时无货可用。
       sellItem: (uid) => {
-        const { storage, loot } = get();
+        const { storage, loot, techTree } = get();
         const st = storage.find((s) => s.uid === uid);
         if (!st) return;
-        const value = getItemDef(st.itemId).sellValue;
+        const value = sellPriceOf(getItemDef(st.itemId), techTree.levels);
         if (!value) return;
         set({ storage: removeByUid(storage, uid), loot: loot + value * st.count });
       },
@@ -732,7 +746,7 @@ export const useTownStore = create<TownStore>()(
 
       // 回城落袋时唯一的阵亡出口。装备在 runStore 里先被剥离, 这里保留档案供复苏舱展示姓名。
       markFallen: (charIds) => {
-        const { awakened, fallen, party, characters, squadTalent } = get();
+        const { awakened, fallen, party, characters, squadTalent, techTree } = get();
         const nextIds = [...new Set(charIds)].filter(
           (charId) => awakened.includes(charId) && !fallen.includes(charId),
         );
@@ -742,7 +756,7 @@ export const useTownStore = create<TownStore>()(
         const nextFallen = [...fallen, ...nextIds];
         const badge = squadTalent.badgeId ? getBadge(squadTalent.badgeId) : null;
         const nextTalent =
-          badge && spentPoints(badge, squadTalent.nodes) > squadTrainingPoints({ characters, awakened: nextAwakened })
+          badge && spentPoints(badge, squadTalent.nodes) > squadTrainingPoints({ characters, awakened: nextAwakened, techTree })
             ? { ...squadTalent, nodes: [] }
             : squadTalent;
         set({
@@ -1229,6 +1243,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v24: 新增科技树等级, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v22: 新增 fallen 永久阵亡名单与复苏舱, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v21: 新增卡牌商店货架、科技与购买 action, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v20: 重铸台改为重掷羁绊, pendingReforge 由 roll 改为 affinity, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1249,6 +1264,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 22 },
+    { name: TOWN_PROFILE_KEY, version: 23 },
   ),
 );

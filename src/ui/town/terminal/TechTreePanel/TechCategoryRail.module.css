@@ -1,0 +1,120 @@
+.rail {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 18px;
+  border: 1px solid var(--asm-line);
+  background: linear-gradient(155deg, #0d2927e6, #071716e6);
+  color: var(--asm-ink);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.railHead {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--asm-line);
+}
+
+.kicker {
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.rail h3 {
+  margin: 8px 0 0;
+  color: var(--ui-value);
+  font-size: 26px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.categoryList {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.category {
+  position: relative;
+  display: grid;
+  min-height: 168px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: 10px 10px;
+  padding: 16px 14px;
+  border: 1px solid var(--asm-line);
+  background: #0b2422b8;
+  color: var(--asm-ink-dim);
+  text-align: left;
+  cursor: var(--cursor-pointer);
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.category:hover,
+.category.is-selected {
+  border-color: var(--asm-glow);
+  background: color-mix(in srgb, var(--asm-glow) 15%, #0b2422);
+}
+
+.category:hover { transform: translateX(3px); }
+
+.index {
+  color: var(--asm-glow);
+  font-family: var(--font-family);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.categoryCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.categoryCopy strong {
+  color: var(--ui-value);
+  font-size: 22px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+}
+
+.categoryCopy span,
+.note,
+.branchList,
+.level {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.level {
+  grid-column: 2;
+  color: var(--asm-glow);
+}
+
+.branchList {
+  display: flex;
+  grid-column: 2;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--ui-label);
+}
+
+.branchList span {
+  padding: 3px 8px;
+  border: 1px solid var(--asm-line);
+}
+
+.note {
+  margin: auto 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--asm-line);
+  color: var(--asm-ink-dim);
+}

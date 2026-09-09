@@ -80,11 +80,18 @@ export function conditionMet(
   if (effect.condition === "targetAttackedThisRound" || effect.condition === "targetNotAttackedThisRound") {
     const targetWasAttacked =
       targetIds == null
-        ? state.attackedThisRound.length > 0
-        : targetIds.some((id) => state.attackedThisRound.includes(id));
+        ? state.attackedThisRound.length > 0 || state.playerIds.some((id) => feignsInjury(state, id))
+        : targetIds.some((id) => state.attackedThisRound.includes(id) || feignsInjury(state, id));
     return effect.condition === "targetAttackedThisRound" ? targetWasAttacked : !targetWasAttacked;
   }
   return true;
+}
+
+/** 《假装受伤》= 伪造的受击记录。★ 急诊的判定口径只有这一处, 真受击与假装受伤必须在这里等价。 */
+function feignsInjury(state: BattleState, id: string): boolean {
+  return Boolean(
+    state.combatants[id]?.statuses.some((status) => status.id === "feignInjury" && status.stacks > 0),
+  );
 }
 
 function scaleFactor(state: BattleState, effect: EffectDescriptor): number {

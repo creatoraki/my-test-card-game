@@ -1,4 +1,4 @@
-import { getItemDef } from "@/data";
+import { getItemDef, sellPriceOf, type TechTreeState } from "@/data";
 import type { ItemStack } from "@/items/types";
 import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
@@ -8,9 +8,10 @@ interface Props {
   haul: ItemStack[];
   salvageValue: number;
   wiped: boolean;
+  levels: TechTreeState["levels"];
 }
 
-export function EndHaulPanel({ haul, salvageValue, wiped }: Props) {
+export function EndHaulPanel({ haul, salvageValue, wiped, levels }: Props) {
   const itemCount = haul.reduce((total, stack) => total + stack.count, 0);
   const subtitle = itemCount
     ? `${itemCount} 件 · 已存入物资中转仓${wiped ? " · 全靠投递口寄回" : ""}`
@@ -43,14 +44,15 @@ export function EndHaulPanel({ haul, salvageValue, wiped }: Props) {
           );
         }
         const def = getItemDef(stack.itemId);
+        const sellPrice = sellPriceOf(def, levels);
         return (
           <>
             <span>物资详情</span>
             <strong>{def.name}</strong>
             <span>
               {stack.count > 1 ? `数量 ${stack.count} · ` : ""}
-              {def.category === "scrap" && def.sellValue != null
-                ? `回收价 ${def.sellValue} 积分`
+              {def.category === "scrap" && sellPrice > 0
+                ? `回收价 ${sellPrice} 积分`
                 : "不可换金物资"}
             </span>
           </>

@@ -3,6 +3,28 @@ import type { ItemDef } from "@/items/types";
 /** 1 阶通用模组的族 id。掉落表写 family 时按稀有度右移, 阶 = 稀有度(《通用模组设计.md》§2)。 */
 export const GENERIC_MODULE_FAMILY = "generic-module";
 
+/** 组装模组的部件字母 —— 物品定义、卡牌模组与制造配方共用这一份, 新增部件只改这里。 */
+export const ASSEMBLE_MODULE_LETTERS = ["A", "B", "C", "D"] as const;
+export type AssembleModuleLetter = (typeof ASSEMBLE_MODULE_LETTERS)[number];
+
+/** 组装模组的物品 id。★ 与 assembleModuleDef 同源, 调用点一律走它, 不硬写字符串。 */
+export function assembleModuleItemId(letter: AssembleModuleLetter): string {
+  return `assemble-${letter.toLowerCase()}-module`;
+}
+
+// 四件组装模组完全同构, 只有部件字母不同 —— 逐件抄一遍只会让四段文案各自漂移。
+function assembleModuleDef(letter: AssembleModuleLetter): ItemDef {
+  return {
+    id: assembleModuleItemId(letter),
+    name: `组装模组${letter}`,
+    category: "module",
+    rarity: "fine",
+    desc: `装配后，该卡牌费用 +1；打出后获得组装 ${letter}。`,
+    maxStack: 1,
+    icon: "module",
+  };
+}
+
 // 角色关键词模组 —— 装配舱制造产出。
 export const MODULE_ITEM_DEFS: ItemDef[] = [
   {
@@ -65,6 +87,25 @@ export const MODULE_ITEM_DEFS: ItemDef[] = [
     category: "module",
     rarity: "fine",
     desc: "装配后，使用后随机使一张带培育的手牌培育层数 -1。",
+    maxStack: 1,
+    icon: "module",
+  },
+  ...ASSEMBLE_MODULE_LETTERS.map(assembleModuleDef),
+  {
+    id: "emergency-module",
+    name: "急诊模组",
+    category: "module",
+    rarity: "fine",
+    desc: "装配后，打出该卡牌后自身获得假装受伤，持续 1 回合；期间自身可直接触发急诊。",
+    maxStack: 1,
+    icon: "module",
+  },
+  {
+    id: "echo-module",
+    name: "回响模组",
+    category: "module",
+    rarity: "fine",
+    desc: "装配后，该卡牌治愈力 -30，并获得回响词条。",
     maxStack: 1,
     icon: "module",
   },

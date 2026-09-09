@@ -1,4 +1,4 @@
-import { getItemDef } from "@/data";
+import { getItemDef, sellPriceOf, type TechTreeState } from "@/data";
 import type { ExploreState, PartySnapshot } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
 import type { RunResult } from "@/store/runStore";
@@ -39,13 +39,14 @@ export function buildEndSummary(
   session: ExploreState | null,
   characters: Record<string, CharacterState>,
   result: RunResult,
+  levels: TechTreeState["levels"],
 ): EndSummary {
   const stats = session?.stats ?? EMPTY_STATS;
   const haul = session ? [...session.shipped, ...session.backpack] : [];
   const salvageValue = haul.reduce((total, stack) => {
     const def = getItemDef(stack.itemId);
     if (def.category !== "scrap") return total;
-    return total + (def.sellValue ?? 0) * stack.count;
+    return total + sellPriceOf(def, levels) * stack.count;
   }, 0);
   const wiped = result === "lost";
   const bankedLoot = wiped ? 0 : session?.loot ?? 0;

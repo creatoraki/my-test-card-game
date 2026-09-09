@@ -1,5 +1,5 @@
 import type { ItemStack } from "@/items/types";
-import { MODULE_ITEM_DEFS } from "./items/modules";
+import { ASSEMBLE_MODULE_LETTERS, assembleModuleItemId, MODULE_ITEM_DEFS } from "./items/modules";
 import { itemRegionId, regionalMaterial } from "./items/regional";
 
 /** 一条模组制造配方: 由某个角色制造, 消耗该角色的经验池 + 仓库材料, 产出一件模组物品。 */
@@ -72,6 +72,34 @@ const RAW_RECIPES: ModuleRecipe[] = [
     materials: [
       { itemId: "standard-gear", count: 3 },
       { itemId: "standard-battery", count: 2 },
+    ],
+  },
+  // 组装模组 A/B/C/D —— 四条配方同价, 只有产出部件不同, 与物品定义共用同一份字母表。
+  ...ASSEMBLE_MODULE_LETTERS.map((letter) => ({
+    itemId: assembleModuleItemId(letter),
+    charId: "alchemist",
+    exp: 200,
+    materials: [
+      { itemId: "logic-cube", count: 2 },
+      { itemId: "standard-gear", count: 3 },
+    ],
+  })),
+  {
+    itemId: "emergency-module",
+    charId: "actuary",
+    exp: 200,
+    materials: [
+      { itemId: "standard-battery", count: 3 },
+      { itemId: "logic-cube", count: 2 },
+    ],
+  },
+  {
+    itemId: "echo-module",
+    charId: "actuary",
+    exp: 200,
+    materials: [
+      { itemId: "logic-cube", count: 3 },
+      { itemId: "standard-gear", count: 2 },
     ],
   },
 ];

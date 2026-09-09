@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
-import { useTownStore } from "@/store/townStore";
+import { techLevels, useTownStore } from "@/store/townStore";
 import { EXPEDITION_RESULT_BG_ART } from "@/ui/art/sceneArt";
 import { cx } from "@/ui/common/cx";
 import { StageCanvas } from "@/ui/app/StageCanvas";
@@ -21,6 +21,7 @@ import s from "./EndScreen.module.css";
 
 export function EndScreen() {
   const characters = useTownStore((s) => s.characters);
+  const levels = useTownStore(techLevels);
   const lastResult = useRunStore((s) => s.lastResult);
   const beginAscent = useRunStore((s) => s.beginAscent);
   const session = useExploreStore((s) => s.session);
@@ -28,7 +29,7 @@ export function EndScreen() {
   const backTimerRef = useRef<number | null>(null);
 
   const result = lastResult ?? "lost";
-  const summary = buildEndSummary(session, characters, result);
+  const summary = buildEndSummary(session, characters, result, levels);
   const timing = endTiming();
   const exitTiming = endExitTiming();
   const exitMs = prefersReducedMotion() ? 0 : END_EXIT_MS;
@@ -89,7 +90,7 @@ export function EndScreen() {
           <EndTrophyRail trophies={summary.trophies} wiped={summary.wiped} />
         </div>
         <div className={s["end-haul-slot"]}>
-          <EndHaulPanel haul={summary.haul} salvageValue={summary.salvageValue} wiped={summary.wiped} />
+          <EndHaulPanel haul={summary.haul} salvageValue={summary.salvageValue} wiped={summary.wiped} levels={levels} />
         </div>
         <div className={s["end-roster-slot"]}>
           <EndPartyRoster members={summary.roster} wiped={summary.wiped} />

@@ -1,4 +1,4 @@
-// 研究中心(据点设施 worklog)的设施内界面：承载模组装配与模组制造。
+// 研究中心(据点设施 worklog)的设施内界面：承载模组装配、模组制造与全局科技树。
 // 入口砖与面板的形变状态统一由 useModulePanels 管理，设施 id worklog 保持不变。
 // 场景层皮肤 = 冷青墨玻璃，令牌见同目录 ResearchScene.module.css。
 
@@ -35,7 +35,7 @@ export function ResearchScene({ leaving = false }: Props) {
     <div className={cn("term-scene", leaving && "is-leaving")}>
       <header className={cn("term-header")} style={{ left: "56px", top: "42px" }}>
         <h2 className={cn("term-title")}>研究中心</h2>
-        <p className={cn("term-sub")}>模组装配 · 模组制造</p>
+        <p className={cn("term-sub")}>模组装配 · 模组制造 · 科技树</p>
       </header>
 
       <div className={cn("term-readout")} style={{ right: "56px", top: "42px" }}>
@@ -51,8 +51,8 @@ export function ResearchScene({ leaving = false }: Props) {
             right: 0,
             top: 138,
             width: 500,
-            height: 216,
-            "--peek": "296px",
+            height: 324,
+            "--peek": "320px",
             ...modules.entryVars,
             "--asm-ink": "#eaf7fb",
             "--asm-ink-dim": "#a6c8d4",

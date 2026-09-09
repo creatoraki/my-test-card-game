@@ -153,6 +153,27 @@ export {
   type TechCostMaterialCheck,
 } from "./techCost";
 export {
+  TECH_CATEGORIES,
+  TECH_BRANCHES,
+  TECH_NODES,
+  TECH_TREE_CANVAS,
+  branchOf,
+  categoryOf,
+  sellPriceOf,
+  techLevel,
+  techNextCost,
+  techNode,
+  techNodeCheck,
+  techNodeState,
+  techScrapSellRate,
+  techTrainingBonus,
+  type TechBranchDef,
+  type TechCategoryDef,
+  type TechNodeDef,
+  type TechNodeState,
+  type TechTreeState,
+} from "./techTree";
+export {
   reforgeCost,
   reforgeCheck,
   upgradeCheck,

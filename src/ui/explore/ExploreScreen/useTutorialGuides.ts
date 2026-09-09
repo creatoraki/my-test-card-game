@@ -27,8 +27,8 @@ const EQUIP_WEAR_GUIDE: GuideStep = {
 const CARD_FORGE_GUIDE: GuideStep = {
   id: "guide-card-forge",
   anchor: "reward-panel",
-  title: "免费锻造一张卡牌",
-  text: "先选一名存活角色，再从三张候选中选一张。卡牌会直接加入他的个人卡组。",
+  title: "免费进行两次卡牌锻造",
+  text: "每次先选一名存活角色，再从三张候选中选一张；本节点可以连续完成两次。",
 };
 
 function hasItemCategory(

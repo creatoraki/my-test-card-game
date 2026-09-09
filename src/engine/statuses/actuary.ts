@@ -31,6 +31,20 @@ export const ACTUARY_STATUS_DEFS: Record<string, StatusDef> = {
     durationStartsImmediately: true,
     maxStacks: 1,
   },
+  // 假装受伤 —— 急诊模组的产物: 只作为「本回合被打过」的替身标记, 自身不带任何结算钩子。
+  // ★ durationStartsImmediately: 与保险同一口径, 持续 N 回合 = 含施加当回合在内的 N 个回合,
+  //   所以 duration 1 正好只覆盖打出模组卡的这一回合。
+  feignInjury: {
+    id: "feignInjury",
+    name: "假装受伤",
+    emoji: "🎭",
+    kind: "buff",
+    desc: "持续期间自身视为本回合已被攻击，可直接触发急诊。",
+    durationStartsImmediately: true,
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "max",
+  },
   deductible: {
     id: "deductible",
     name: "免赔",

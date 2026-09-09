@@ -5,7 +5,7 @@ import {
   type FocusEvent,
   type ReactNode,
 } from "react";
-import { getItemDef } from "@/data";
+import { getItemDef, sellPriceOf } from "@/data";
 import { occupiedSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import ItemContextMenu, { type ContextMenuItem } from "@/ui/common/item/ItemContextMenu";
@@ -17,6 +17,7 @@ import ItemSlot, { EmptySlot } from "@/ui/common/item/ItemSlot";
 import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { cx } from "@/ui/common/cx";
 import { inventoryThemeVars, type InventoryColorMap } from "@/ui/common/item/inventoryTheme";
+import { techLevels, useTownStore } from "@/store/townStore";
 import s from "./ItemInventoryPanel.module.css";
 
 export type { InventoryColorMap } from "@/ui/common/item/inventoryTheme";
@@ -335,23 +336,26 @@ export default function ItemInventoryPanel({
 }
 
 function DefaultSelectedInfo({ stack }: { stack: ItemStack | null }) {
+  const levels = useTownStore(techLevels);
+
   if (!stack) {
     return (
       <>
-        <span className={s["inventory-selected-label"]}>NO ITEM SELECTED</span>
+        <span className={s["inventory-selected-label"]}>未选择物品</span>
         <span className={s["inventory-selected-empty"]}>选择一件物品查看详情</span>
       </>
     );
   }
 
   const def = getItemDef(stack.itemId);
+  const sellPrice = sellPriceOf(def, levels);
   return (
     <>
-      <span className={s["inventory-selected-label"]}>ITEM // {def.id.toUpperCase()}</span>
+      <span className={s["inventory-selected-label"]}>物品详情</span>
       <strong className={s["inventory-selected-name"]}>{def.name}</strong>
       <span className={s["inventory-selected-meta"]}>
         {stack.count > 1 && `数量 ${stack.count} · `}
-        {def.sellValue != null ? `单价 ${def.sellValue} pts` : "待处理物品"}
+        {sellPrice > 0 ? `单价 ${sellPrice} 积分` : "待处理物品"}
       </span>
     </>
   );

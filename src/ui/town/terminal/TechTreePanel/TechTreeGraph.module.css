@@ -1,0 +1,212 @@
+.graph {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 18px 20px;
+  border: 1px solid var(--asm-line);
+  background: linear-gradient(150deg, #0b2524d9, #061513e6 68%, #04100fe6);
+  color: var(--asm-ink);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.graphHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--asm-line);
+}
+
+.kicker {
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.graph h3 {
+  margin: 6px 0 0;
+  color: var(--ui-value);
+  font-size: 24px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  color: var(--asm-ink-dim);
+  font-size: 18px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legendMaxed { background: var(--asm-glow); }
+.legendAvailable { background: color-mix(in srgb, var(--asm-glow) 62%, transparent); }
+.legendLacking { background: var(--cryo-alert, #e47970); }
+.legendLocked { background: var(--asm-ink-dim); opacity: 0.45; }
+
+.stage {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding-top: 12px;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: var(--asm-glow);
+  stroke-linecap: round;
+  stroke-width: 5;
+  transition: opacity 220ms ease, stroke-width 220ms ease;
+}
+
+.line.is-done {
+  opacity: 0.95;
+  filter: drop-shadow(0 0 8px var(--asm-glow));
+}
+
+.line.is-open { opacity: 0.58; stroke-width: 4; }
+.line.is-dim { opacity: 0.24; stroke-width: 3; stroke-dasharray: 8 8; }
+
+.core circle {
+  fill: #0b2826;
+  stroke: var(--asm-glow);
+  stroke-width: 2;
+}
+
+.core .coreInner {
+  fill: color-mix(in srgb, var(--asm-glow) 16%, transparent);
+  stroke-width: 1;
+  opacity: 0.8;
+}
+
+.core text,
+.nodeLabel,
+.levelLabel {
+  fill: var(--ui-value);
+  font-family: var(--font-family);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-anchor: middle;
+  filter: var(--ui-glow-svg);
+}
+
+.core text { font-size: 18px; }
+
+.node {
+  cursor: var(--cursor-pointer);
+  outline: none;
+}
+
+.hit { fill: transparent; }
+
+.levelTrack,
+.levelProgress {
+  fill: none;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.levelTrack { stroke: var(--asm-line); stroke-width: 6; }
+
+.levelProgress {
+  stroke: var(--asm-glow);
+  stroke-width: 6;
+  transition: stroke-dashoffset 280ms ease, stroke 180ms ease;
+}
+
+.nodeBody {
+  fill: #0b2927;
+  stroke: var(--asm-ink-dim);
+  stroke-width: 2;
+  transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease;
+}
+
+.nodeCore {
+  fill: #061715;
+  stroke: var(--asm-line);
+  stroke-width: 1;
+}
+
+.icon {
+  fill: var(--asm-ink-dim);
+  font-size: 28px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.levelLabel {
+  font-size: 18px;
+  fill: var(--asm-ink);
+  text-shadow: 0 1px 4px #000;
+}
+
+.nodeLabel {
+  font-size: 18px;
+  fill: var(--ui-label);
+}
+
+.node.is-available .nodeBody,
+.node.is-lacking .nodeBody {
+  fill: color-mix(in srgb, var(--asm-glow) 20%, #0b2927);
+  stroke: color-mix(in srgb, var(--asm-glow) 70%, white);
+}
+
+.node.is-available .levelProgress { stroke: var(--asm-select); }
+
+.node.is-maxed .nodeBody {
+  fill: var(--asm-glow);
+  stroke: var(--asm-select);
+  filter: drop-shadow(0 0 13px var(--asm-glow));
+}
+
+.node.is-maxed .nodeCore { fill: color-mix(in srgb, var(--asm-glow) 65%, #061715); }
+
+.node.is-maxed .icon,
+.node.is-maxed .levelLabel,
+.node.is-maxed .nodeLabel { fill: #05201c; }
+
+.node.is-lacking .nodeBody,
+.node.is-lacking .levelProgress { stroke: var(--cryo-alert, #e47970); }
+
+.node.is-locked { opacity: 0.48; }
+
+.node.is-selected .nodeBody,
+.node:hover .nodeBody,
+.node:focus-visible .nodeBody {
+  stroke: var(--asm-select);
+  stroke-width: 3;
+}
+
+.node:focus-visible .nodeBody { filter: drop-shadow(0 0 10px var(--asm-glow)); }

@@ -59,7 +59,7 @@ export const MAPS: MapDef[] = [
       t4: ["tut-t3-line", "tut-t3-relay"],
       t5: ["n-t5-boss"],
     },
-    battleTierByRound: ["t1", "t2", "t3"],
+    battleTierByRound: ["t1", "t1", "t2"],
     startingEnergy: 100,
   },
   {

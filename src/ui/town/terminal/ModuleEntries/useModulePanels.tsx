@@ -6,15 +6,17 @@ import { useFacilityPanelExit } from "@/ui/town/facilityExit";
 import { DrawerEntry } from "@/ui/town/drawerEntry";
 import { CraftPanel, CRAFT_ACCENT } from "../CraftPanel";
 import { ModuleAssemblyPanel, type ModulePanelMorph } from "./ModuleAssemblyPanel";
-import { AssemblyIcon, CraftIcon } from "./icons";
+import { TechTreePanel, TECH_TREE_ACCENT } from "../TechTreePanel";
+import { AssemblyIcon, CraftIcon, TechTreeIcon } from "./icons";
 
 export const MODULE_PANEL_RECT: Rect = { x: 160, y: 80, w: 1600, h: 920 };
 
-type ModulePanelId = "assembly" | "craft";
+type ModulePanelId = "assembly" | "craft" | "tech";
 
 const MODULE_PANEL_RECTS: Record<ModulePanelId, Rect> = {
   assembly: MODULE_PANEL_RECT,
   craft: MODULE_PANEL_RECT,
+  tech: MODULE_PANEL_RECT,
 };
 
 export interface ModulePanels {
@@ -26,6 +28,7 @@ export interface ModulePanels {
 export function useModulePanels(): ModulePanels {
   const storage = useTownStore((state) => state.storage);
   const awakened = useTownStore((state) => state.awakened);
+  const techTree = useTownStore((state) => state.techTree);
   const moduleStacks = useMemo(
     () => storage.filter((stack) => getItemDef(stack.itemId).category === "module"),
     [storage],
@@ -33,6 +36,10 @@ export function useModulePanels(): ModulePanels {
   const craftableCount = useMemo(
     () => new Set(awakened.flatMap((id) => recipesOfCharacter(id).map((recipe) => recipe.itemId))).size,
     [awakened],
+  );
+  const researchedLevel = useMemo(
+    () => Object.values(techTree.levels).reduce((sum, level) => sum + Math.max(0, level), 0),
+    [techTree.levels],
   );
   const morph = usePanelMorph<ModulePanelId>({
     rects: MODULE_PANEL_RECTS,
@@ -68,6 +75,16 @@ export function useModulePanels(): ModulePanels {
         revealing={revealing("craft")}
         onClick={(event) => morph.openPanel("craft", event.currentTarget)}
       />
+      <DrawerEntry
+        icon={<TechTreeIcon />}
+        name="科技树"
+        desc={`已研究 ${researchedLevel} 级`}
+        entryId="tech"
+        glow={TECH_TREE_ACCENT}
+        hidden={hidden("tech")}
+        revealing={revealing("tech")}
+        onClick={(event) => morph.openPanel("tech", event.currentTarget)}
+      />
     </>
   );
 
@@ -93,6 +110,13 @@ export function useModulePanels(): ModulePanels {
           closing={morph.phase === "closing"}
           onClose={morph.closePanel}
           morph={moduleMorph(<CraftIcon />, "模组制造")}
+        />
+      )}
+      {morph.panel === "tech" && (
+        <TechTreePanel
+          closing={morph.phase === "closing"}
+          onClose={morph.closePanel}
+          morph={moduleMorph(<TechTreeIcon />, "科技树")}
         />
       )}
     </>
