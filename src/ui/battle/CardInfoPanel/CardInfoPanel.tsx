@@ -1,5 +1,5 @@
 import { memo, useDeferredValue } from "react";
-import { starlightPayment, type BattleState, type Card } from "@/engine";
+import { cardActivated, starlightPayment, type BattleState, type Card } from "@/engine";
 import { useHandHover, useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { HandCard } from "@/ui/battle/HandCard";
 import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
@@ -44,6 +44,7 @@ export const CardInfoPanel = memo(function CardInfoPanel({
       card={card}
       cost={deferredHovered ? deferredHoveredCost ?? card.cost : fallbackCost}
       starPay={starlightPayment(battle, card)}
+      activated={cardActivated(battle, card)}
     />
   );
 });
@@ -52,10 +53,12 @@ const CardInfoPanelContent = memo(function CardInfoPanelContent({
   card,
   cost,
   starPay,
+  activated,
 }: {
   card: Card;
   cost?: number;
   starPay: number;
+  activated: boolean;
 }) {
   const text = useCardText(card);
 
@@ -73,6 +76,7 @@ const CardInfoPanelContent = memo(function CardInfoPanelContent({
           selected={false}
           cost={cost ?? card.cost}
           starPay={starPay}
+          activated={activated}
         />
       </div>
       <CardKeywordNotes

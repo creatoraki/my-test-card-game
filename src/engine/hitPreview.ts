@@ -1,6 +1,7 @@
-import type { BattleState, Card, CounterSource, EffectDescriptor } from "./types";
+import type { BattleState, Card, EffectDescriptor } from "./types";
 import { cardCost } from "./cost";
-import { cultivateReady } from "./cultivate";
+import { activeEffectsOf } from "./cardEffects";
+import { counterOf } from "./counters";
 import { conditionMet } from "./effects";
 import { previewDamage } from "./ops";
 import { addMod, attackDamage, hitChance, statOf } from "./stats";
@@ -10,12 +11,9 @@ import { getStatusDef } from "./statuses";
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
 // ★ 预览必须把它算进去, 否则装了攻击力/穿甲/命中模组后预览数字与实际结果对不上。
 function playStatBonusesOf(state: BattleState, card: Card): EffectDescriptor[] {
-  const cultivated = cultivateReady(card) && card.cultivate?.mode === "replace";
-  const activeEffects = cultivated ? card.cultivate?.effects ?? [] : card.effects;
-  return [
-    ...activeEffects,
-    ...(card.keywords?.flatMap((keyword) => keyword.effects) ?? []),
-  ].filter((effect) => effect.type === "PLAY_STAT_BONUS" && effect.stat && conditionMet(state, effect));
+  return activeEffectsOf(card).filter(
+    (effect) => effect.type === "PLAY_STAT_BONUS" && effect.stat && conditionMet(state, effect),
+  );
 }
 
 // 把临时面板写进施放者 mods → 跑预览 → 原样撤回。
@@ -33,30 +31,7 @@ function withPlayStatBonuses<T>(state: BattleState, card: Card, run: () => T): T
 }
 
 function firstDamageEffect(card: Card): EffectDescriptor | undefined {
-  const cultivated = cultivateReady(card) && card.cultivate?.mode === "replace";
-  const activeEffects = cultivated ? card.cultivate?.effects ?? [] : card.effects;
-  return [
-    ...activeEffects,
-    ...(card.keywords?.flatMap((keyword) => keyword.effects) ?? []),
-  ].find((candidate) => candidate.type === "DAMAGE");
-}
-
-function counterOf(state: BattleState, source: CounterSource): number {
-  if (source === "discardsThisRound") return state.discardsThisRound;
-  if (source === "lastDiscardBatch") return state.lastDiscardBatch;
-  if (source === "discardsThisBattle") return state.discardsThisBattle;
-  if (source === "lastDiscardBatchFast") return state.lastDiscardBatchFast;
-  if (source === "lastRecoverBatchFast") return state.lastRecoverBatchFast;
-  if (source === "lastDiscardBatchCost") return state.lastDiscardBatchCost;
-  if (source === "lastConvertBatch") return state.lastConvertBatch;
-  if (source === "squadBuffCount") return state.squadBuffs.length;
-  if (source === "lastSquadBuffConsumed") return state.lastSquadBuffConsumed;
-  if (source === "lastConsumedStatusStacks") return state.lastConsumedStatusStacks;
-  if (source === "lastRemovedStatusCount") return state.lastRemovedStatusCount;
-  if (source === "activeCardResonance") return state.activeCardResonance;
-  if (source === "fastPlaysThisRound")
-    return state.playedThisRound.filter((played) => played.cardType === "fast").length;
-  return state.playedThisRound.length;
+  return activeEffectsOf(card).find((candidate) => candidate.type === "DAMAGE");
 }
 
 function cardAttack(state: BattleState, card: Card): number {

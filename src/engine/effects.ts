@@ -3,13 +3,14 @@
 // 卡牌和敌人招式共用这套。新增机制 = 在 applyEffect 的 switch 里加一个分支。
 // ============================================================================
 
-import type { Ally, BattleState, Card, Combatant, CounterSource, EffectDescriptor, StatBlock } from "./types";
+import type { Ally, BattleState, Card, Combatant, EffectDescriptor, StatBlock } from "./types";
 import { ops } from "./ops";
 import { addMod, attackDamage, healValue, offenseStatOf, partyHandLimit, statOf } from "./stats";
 import { drawCards } from "./deck";
 import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 import { cardCost, starPayable } from "./cost";
+import { counterOf } from "./counters";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { getStatusDef } from "./statuses";
 import { advanceCultivate, resetCultivate } from "./cultivate";
@@ -35,24 +36,6 @@ function mergeResolution(target: EffectResolution, source: EffectResolution): vo
   target.hit.push(...source.hit);
 }
 
-function counterOf(state: BattleState, source: CounterSource): number {
-  if (source === "discardsThisRound") return state.discardsThisRound;
-  if (source === "lastDiscardBatch") return state.lastDiscardBatch;
-  if (source === "discardsThisBattle") return state.discardsThisBattle;
-  if (source === "lastDiscardBatchFast") return state.lastDiscardBatchFast;
-  if (source === "lastRecoverBatchFast") return state.lastRecoverBatchFast;
-  if (source === "lastDiscardBatchCost") return state.lastDiscardBatchCost;
-  if (source === "lastConvertBatch") return state.lastConvertBatch;
-  if (source === "squadBuffCount") return state.squadBuffs.length;
-  if (source === "lastSquadBuffConsumed") return state.lastSquadBuffConsumed;
-  if (source === "lastConsumedStatusStacks") return state.lastConsumedStatusStacks;
-  if (source === "lastRemovedStatusCount") return state.lastRemovedStatusCount;
-  if (source === "activeCardResonance") return state.activeCardResonance;
-  if (source === "fastPlaysThisRound")
-    return state.playedThisRound.filter((card) => card.cardType === "fast").length;
-  return state.playedThisRound.length;
-}
-
 // 由施法者属性换算出的数值(层数 / 状态参数)。★ 攻击力与治愈力都是 100 基准面板,
 // 一律先 ÷ 各自的 divisor 再乘卡牌倍率, 与伤害/治疗的口径保持一致。
 function sourceStatValue(state: BattleState, source: Combatant | undefined, stat: keyof StatBlock): number {
@@ -64,7 +47,7 @@ function sourceStatValue(state: BattleState, source: Combatant | undefined, stat
 
 // ★ 导出给 hitPreview 复用 —— 预览要判定条件型 PLAY_STAT_BONUS 当前是否成立,
 //   两边各写一份的话条件枚举一改就会漏。
-export function conditionMet(state: BattleState, effect: EffectDescriptor): boolean {
+export function conditionMet(state: BattleState, effect: EffectDescriptor, card?: Card): boolean {
   if (effect.condition === "discardedThisRound")
     return counterOf(state, "discardsThisRound") > 0;
   if (effect.condition === "noFastPlaysThisRound")
@@ -78,9 +61,9 @@ export function conditionMet(state: BattleState, effect: EffectDescriptor): bool
   if (effect.condition === "fastCardsInHandAtLeast")
     return playableHandUids(state).filter((uid) => state.cards[uid]?.cardType === "fast").length >= (effect.conditionValue ?? 0);
   if (effect.condition === "counterAtLeast")
-    return counterOf(state, effect.conditionCounter!) >= (effect.conditionValue ?? 0);
+    return counterOf(state, effect.conditionCounter!, card) >= (effect.conditionValue ?? 0);
   if (effect.condition === "counterBelow")
-    return counterOf(state, effect.conditionCounter!) < (effect.conditionValue ?? 0);
+    return counterOf(state, effect.conditionCounter!, card) < (effect.conditionValue ?? 0);
   if (effect.condition === "eventTargetHasStatus")
     return Boolean(
       effect.conditionStatus &&
