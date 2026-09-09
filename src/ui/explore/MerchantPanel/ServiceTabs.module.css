@@ -1,0 +1,101 @@
+.tabs {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tab {
+  --accent: var(--event-accent, #d6b477);
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  border: 1px solid #33444a;
+  background: linear-gradient(110deg, #172327, #0e161a);
+  color: #dfe9e4;
+  cursor: var(--cursor-pointer);
+  text-align: left;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, opacity 180ms ease;
+}
+
+/* 选中态的底边高亮条。 */
+.tab::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.tab:hover,
+.tab:focus-visible,
+.tab.active {
+  border-color: color-mix(in srgb, var(--accent) 72%, #33444a);
+  background: color-mix(in srgb, var(--accent) 11%, #111a1d);
+  transform: translateY(-1px);
+}
+
+.tab.active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.tab.sold {
+  opacity: 0.55;
+}
+
+/* 报价标签不参与收缩 —— 要被挤的只能是服务名那一列。 */
+.cost {
+  flex: 0 0 auto;
+}
+
+.copy {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 6px;
+  justify-items: start;
+}
+
+.name {
+  max-width: 100%;
+  overflow: hidden;
+  color: #edf5ec;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.state {
+  color: #74888a;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.state.done {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .tab::after {
+    transition: none;
+  }
+
+  .tab:hover,
+  .tab:focus-visible,
+  .tab.active {
+    transform: none;
+  }
+}

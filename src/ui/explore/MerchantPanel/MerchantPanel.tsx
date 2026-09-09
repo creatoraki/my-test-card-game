@@ -1,14 +1,19 @@
+// 交易终端内容面板 —— 只做状态与编排, 版式全部下放给三个子组件。
+//
+// 骨架(与据点卡牌商店 CardShopPanel 同一族):
+//   顶部服务槽位页签 → 左内容区(货位 / BUFF / 服务说明) + 右定宽详情栏 → 底部记录条与关闭。
+// ★ 购买入口**只有一个**: 右详情栏底部的「确认支付」。页签与货位只负责选择, 不成交。
+
 import { useState } from "react";
-import { getItemDef, getTradeService } from "@/data";
+import { getTradeService } from "@/data";
 import { tradeQuote } from "@/explore/shop";
 import { countByItemId } from "@/items/inventory";
 import type { ExploreState, ShopState } from "@/explore/types";
-import { itemIcon } from "@/ui/art/itemArt";
-import { EventPanelBody, EventPanelButton, EventPanelFoot, EventPanelStage } from "@/ui/common/EventPanel";
-import { cx } from "@/ui/common/cx";
-import { RailPopover } from "@/ui/common/RailPopover";
-import ItemCostTag from "@/ui/common/item/ItemCostTag";
-import ItemDetail from "@/ui/common/item/ItemDetail";
+import { EventPanelStage } from "@/ui/common/EventPanel";
+import ServiceStage from "./ServiceStage";
+import ServiceTabs from "./ServiceTabs";
+import TradeDetail from "./TradeDetail";
+import TradeNotes from "./TradeNotes";
 import s from "./MerchantPanel.module.css";
 
 interface Props {
@@ -17,27 +22,29 @@ interface Props {
   onBuy: (slotIndex: number, stockIndex?: number) => boolean;
   canClose: boolean;
   onClose: () => void;
+  /** 本节点已产生的结算记录, 由 ShopOverlay 下发。 */
+  notes: string[];
 }
 
-export default function MerchantPanel({ session, shop, onBuy, canClose, onClose }: Props) {
+export default function MerchantPanel({ session, shop, onBuy, canClose, onClose, notes }: Props) {
   const [message, setMessage] = useState("");
   const [activeSlot, setActiveSlot] = useState(0);
   const [selected, setSelected] = useState<{ slotIndex: number; stockIndex: number } | null>(null);
+
   const slot = shop.slots[activeSlot];
   const service = slot ? getTradeService(slot.serviceId) : null;
+  // 选中只在**当前**槽位内生效: 切页签等于换一间店, 上一间的选择不该跟过来。
   const selectedStockIndex = selected?.slotIndex === activeSlot ? selected.stockIndex : undefined;
   const selectedStock = selectedStockIndex == null ? null : slot?.stock[selectedStockIndex] ?? null;
   const quote = slot && service && !slot.sold ? tradeQuote(session, activeSlot, selectedStockIndex) : null;
   const owned = service ? countByItemId(session.backpack, service.currencyItemId) : 0;
   const reason = slot?.sold ? "该服务已成交，本次抵达不再补货。" : quote?.reason;
 
-  const buy = (stockIndex?: number) => {
+  const buy = () => {
     if (!service) return;
     const slotIndex = activeSlot;
-    const result = onBuy(slotIndex, stockIndex);
-    if (!result) {
-      const quote = tradeQuote(session, slotIndex, stockIndex);
-      setMessage(quote.reason ?? "当前无法完成交易。");
+    if (!onBuy(slotIndex, selectedStockIndex)) {
+      setMessage(tradeQuote(session, slotIndex, selectedStockIndex).reason ?? "当前无法完成交易。");
       return;
     }
     setSelected(null);
@@ -47,122 +54,39 @@ export default function MerchantPanel({ session, shop, onBuy, canClose, onClose 
   if (!slot || !service) return null;
 
   return (
-    <EventPanelStage>
-      <div className={s.head}>
-        <div className={s.tabs} role="tablist" aria-label="交易服务">
-          {shop.slots.map((tabSlot, slotIndex) => {
-            const tabService = getTradeService(tabSlot.serviceId);
-            const tabOwned = countByItemId(session.backpack, tabService.currencyItemId);
-            return (
-              <button
-                className={cx(s.tab, slotIndex === activeSlot && s.active, tabSlot.sold && s.sold)}
-                key={tabSlot.serviceId}
-                type="button"
-                role="tab"
-                aria-selected={slotIndex === activeSlot}
-                onClick={() => {
-                  setActiveSlot(slotIndex);
-                  setMessage("");
-                }}
-              >
-                <ItemCostTag
-                  itemId={tabService.currencyItemId}
-                  count={tabService.price}
-                  owned={tabOwned}
-                  size="md"
-                  showOwned
-                />
-                <span className={s.tabCopy}>
-                  <strong>{tabService.name}</strong>
-                  <small>{tabSlot.sold ? "已成交" : "可交易"}</small>
-                </span>
-                {tabSlot.sold && <span className={s.check} aria-label="已成交">✓</span>}
-              </button>
-            );
-          })}
+    <EventPanelStage className={s.stage}>
+      <ServiceTabs
+        session={session}
+        slots={shop.slots}
+        activeSlot={activeSlot}
+        onPick={(slotIndex) => {
+          setActiveSlot(slotIndex);
+          setMessage("");
+        }}
+      />
+
+      <div className={s.body}>
+        <div className={s.main}>
+          <ServiceStage
+            service={service}
+            slot={slot}
+            selectedStockIndex={selectedStockIndex}
+            onSelect={(stockIndex) => setSelected({ slotIndex: activeSlot, stockIndex })}
+          />
         </div>
-        <div className={s.counter}>
-          <span>已成交 {shop.trades} / {shop.slots.length} · 每槽限购 1 次</span>
-        </div>
+        <TradeDetail
+          service={service}
+          sold={slot.sold}
+          stack={selectedStock}
+          owned={owned}
+          canBuy={Boolean(quote?.ok)}
+          reason={reason}
+          message={message}
+          onBuy={buy}
+        />
       </div>
 
-      <EventPanelBody className={s.body}>
-        <section className={s.service} aria-label={service.name}>
-          <div className={s.serviceHead}>
-            <div>
-              <h2>{service.name}</h2>
-              <p>{service.desc}</p>
-            </div>
-            <ItemCostTag itemId={service.currencyItemId} count={service.price} owned={owned} showOwned />
-          </div>
-
-          {service.kind === "goods" ? (
-            <div className={s.goodsView}>
-              <div className={s.stock}>
-                {slot.stock.map((stock, stockIndex) => {
-                  const def = getItemDef(stock.itemId);
-                  return (
-                    <button
-                      className={cx(s.tile, s[`r-${def.rarity}`], selectedStockIndex === stockIndex && s.selected)}
-                      key={stock.uid}
-                      type="button"
-                      disabled={slot.sold}
-                      aria-label={`选择 ${def.name}`}
-                      onClick={() => setSelected({ slotIndex: activeSlot, stockIndex })}
-                    >
-                      <span className={s.tileIcon}>{itemIcon(def)}</span>
-                      <span className={s.tileName}>{def.name}</span>
-                    </button>
-                  );
-                })}
-                {!slot.stock.length && <span className={s.empty}>本地区暂无可用货位。</span>}
-              </div>
-              <ItemDetail stack={selectedStock} className={s.detail} placeholder="选择货位查看物品详情。" />
-            </div>
-          ) : service.kind === "random" ? (
-            <div className={s.buffList}>
-              {slot.buffOptions?.map((option) => (
-                <div className={s.buff} key={option.aura.id}>
-                  <strong>{option.aura.name}</strong>
-                  <span>{option.weight}%</span>
-                  <small>{option.aura.desc}</small>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={s.serviceCard}>
-              <span className={s.serviceGlyph} aria-hidden="true">◇</span>
-              <div>
-                <strong>{service.kind === "pending" ? "待办结算服务" : "队伍服务"}</strong>
-                <p>{service.desc}</p>
-                <small>确认支付后立即加入远征结算流程。</small>
-              </div>
-            </div>
-          )}
-        </section>
-      </EventPanelBody>
-
-      <EventPanelFoot
-        note={
-          <span className={s.footNote} aria-live="polite">
-            <ItemCostTag itemId={service.currencyItemId} count={service.price} owned={owned} showOwned />
-            <span>{message || (slot.sold ? "该服务已成交。" : quote?.reason || "食品仅在确认交易时扣除，跳过不会退款。")}</span>
-          </span>
-        }
-      >
-        <span className={s.actionHint} data-rail-item>
-          <EventPanelButton
-            tone="primary"
-            disabled={slot.sold || !quote?.ok}
-            onClick={() => buy(selectedStockIndex)}
-          >
-            {slot.sold ? "已成交" : "确认支付"}
-            {!slot.sold && <ItemCostTag itemId={service.currencyItemId} count={service.price} size="sm" compact />}
-          </EventPanelButton>
-          {reason && <RailPopover side="top-right">{reason}</RailPopover>}
-        </span>
-        <EventPanelButton disabled={!canClose} onClick={onClose}>关闭终端</EventPanelButton>
-      </EventPanelFoot>
+      <TradeNotes notes={notes} canClose={canClose} onClose={onClose} />
     </EventPanelStage>
   );
 }

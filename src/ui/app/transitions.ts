@@ -39,6 +39,17 @@ export const BATTLE_RIPPLE_START_MS = BATTLE_CRACK_DRAW_MS + BATTLE_CRACK_HOLD_M
 export const BATTLE_RIPPLE_MS = BATTLE_SHATTER_SFX_MS - BATTLE_RIPPLE_START_MS;
 export const BATTLE_RIPPLE_EXIT_MS = BATTLE_SHATTER_SFX_MS;
 
+// ── 色调迁移(两段接力) ──
+// 探索的冷灰终端色 → 战斗的血红高对比。这条色调曲线跨过了 View Transition 的生命周期,
+// 于是被迫切成两段, 而**两段的接缝值必须逐项对齐**, 否则 t=BATTLE_RIPPLE_EXIT_MS 会硬闪一下:
+//   ① 快照段(VT 存续期间): 画面此刻是两张**冻结的位图**(old/new 快照), 改页面元素的 CSS
+//      变量对它们完全无效 —— 快照是像素, 不再参与样式计算。唯一还能动的是伪元素自身的
+//      filter, 规则见 ScreenTransition.module.css 的 vt-grade-old / vt-grade-new。
+//   ② 余韵段(VT 结束之后): 伪元素消失, 战斗页变回真实 DOM。BattleEntryGrading 用
+//      backdrop-filter 接住 vt-grade-new 的末态, 再收敛回中性值。
+// ⚠ 改任一段的数值, 都要回头核对另一段的接缝 —— 对照表写在 BattleEntryGrading.module.css 文件头。
+export const BATTLE_GRADE_SETTLE_MS = 620;
+
 // ── 可用特效登记处 ──
 // 新增一种特效 = 这里加一项 + app/ScreenTransition/ScreenTransition.module.css 加一段同名 keyframes。
 //

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { SceneSkyline } from "./SceneArt";
 import type { EventPanelOption } from "./EventPanel";
 import briefing from "./styles/eventPanelBriefing.module.css";
@@ -20,6 +20,8 @@ interface EventPanelBriefingProps {
   art?: ReactNode;
 }
 
+const BRIEFING_BODY_MAX_HEIGHT = 180;
+
 export function EventPanelBriefing({
   sceneName,
   glyph,
@@ -36,11 +38,18 @@ export function EventPanelBriefing({
   art,
 }: EventPanelBriefingProps) {
   const bodyRef = useRef<HTMLParagraphElement>(null);
+  const [bodyHeight, setBodyHeight] = useState<number | null>(null);
   useLayoutEffect(() => {
     const bodyElement = bodyRef.current;
     if (!bodyElement) return;
     bodyElement.scrollTop = Math.max(0, bodyElement.scrollHeight - bodyElement.clientHeight);
+    const nextHeight = Math.min(bodyElement.scrollHeight, BRIEFING_BODY_MAX_HEIGHT);
+    setBodyHeight((current) => current === nextHeight ? current : nextHeight);
   }, [body]);
+
+  const bodyStyle = bodyHeight == null
+    ? undefined
+    : { "--story-body-height": `${bodyHeight}px` } as CSSProperties;
 
   return (
     <section className={briefing.briefingScene} aria-label="事件情报">
@@ -58,7 +67,13 @@ export function EventPanelBriefing({
         {label && <div className={briefing.eventLabel}><span /> {label}</div>}
         {heading && <h2>{heading}</h2>}
         <div className={[briefing.storySubtitle, typingSubtitle ? briefing.typingText : ""].filter(Boolean).join(" ")}>{subtitle}</div>
-        <p className={[briefing.storyBody, typingBody ? briefing.typingText : ""].filter(Boolean).join(" ")} ref={bodyRef}>{body}</p>
+        <p
+          className={[briefing.storyBody, typingBody ? briefing.typingText : ""].filter(Boolean).join(" ")}
+          ref={bodyRef}
+          style={bodyStyle}
+        >
+          {body}
+        </p>
         {meta.length > 0 && (
           <div className={briefing.storyMeta}>
             {meta.map((item) => (

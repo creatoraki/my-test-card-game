@@ -1,0 +1,165 @@
+.detail {
+  --accent: var(--event-accent, #d6b477);
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #ffffff1c;
+  background: #00000038;
+}
+
+/* 详情内容是本栏唯一的滚动区; 栏底的提示与按钮永远钉住不动。 */
+.scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+}
+
+.idle {
+  display: grid;
+  height: 100%;
+  margin: 0;
+  color: #8ba0a0;
+  font-size: 18px;
+  place-items: center;
+  text-align: center;
+}
+
+/* ── 非货物服务的摘要 ── */
+.summary {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.kicker {
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.name {
+  margin: 0;
+  color: #edf5ec;
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+.desc {
+  margin: 0;
+  color: #c8d8d3;
+  font-size: 20px;
+  line-height: 1.65;
+}
+
+.note {
+  margin: 0;
+  color: #8ba0a0;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* ── 栏底: 提示 + 唯一购买入口 ── */
+.foot {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #314149;
+}
+
+.hint {
+  margin: 0;
+  color: #8ba0a0;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.hint[data-tone="warn"] {
+  color: #ffb5a9;
+}
+
+.hint[data-tone="ok"] {
+  color: var(--accent);
+}
+
+.buy {
+  display: flex;
+  width: 100%;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, #111a1d);
+  color: #f6f2e2;
+  cursor: var(--cursor-pointer);
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 160ms ease;
+}
+
+.buy:hover:not(:disabled),
+.buy:focus-visible {
+  background: color-mix(in srgb, var(--accent) 28%, #111a1d);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+.buy:active:not(:disabled) {
+  transform: translateY(1px);
+  transition-duration: 90ms;
+}
+
+.buy:disabled {
+  border-color: #415155;
+  background: #101719;
+  color: #647476;
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+/* 按钮里的价格框仍是 1:1, 文字全部在框外。 */
+.buyIcon {
+  flex: 0 0 auto;
+}
+
+.buyLabel {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.buyCost {
+  color: var(--accent);
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.buy:disabled .buyCost {
+  color: #647476;
+}
+
+.buy.short .buyCost {
+  color: #ffb5a9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buy {
+    transition: none;
+  }
+
+  .buy:hover:not(:disabled),
+  .buy:focus-visible,
+  .buy:active:not(:disabled) {
+    transform: none;
+  }
+}

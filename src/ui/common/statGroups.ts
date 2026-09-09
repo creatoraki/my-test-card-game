@@ -57,6 +57,12 @@ export const STAT_GROUPS: StatGroup[] = [
   },
 ];
 
+/** 从共享属性分组中查找属性中文名, 供详情和图鉴文案复用。 */
+export function statLabel(key: keyof StatBlock | undefined): string | undefined {
+  if (!key) return undefined;
+  return STAT_GROUPS.flatMap((group) => group.rows).find((row) => row.key === key)?.label;
+}
+
 /** 从属性分组的展示标记推导单位，避免各个详情组件维护重复清单。 */
 export function isPercentStat(key: keyof StatBlock): boolean {
   return STAT_GROUPS.some((group) => group.rows.some((row) => row.key === key && row.pct === true));

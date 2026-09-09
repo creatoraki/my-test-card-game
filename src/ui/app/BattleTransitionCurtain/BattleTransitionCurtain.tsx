@@ -3,11 +3,9 @@ import type { TransitionOrigin } from "@/ui/app/transitionOrigin";
 import {
   BATTLE_CRACK_DRAW_MS,
   BATTLE_CRACK_HOLD_MS,
-  BATTLE_RIPPLE_START_MS,
   BATTLE_RIPPLE_EXIT_MS,
   BATTLE_RIPPLE_MS,
 } from "@/ui/app/transitions";
-import { cx } from "@/ui/common/cx";
 import { playSfx } from "@/ui/audio";
 import s from "./BattleTransitionCurtain.module.css";
 
@@ -253,11 +251,13 @@ function CrackCanvas({ phase, origin }: { phase: Props["phase"]; origin: Transit
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useLayoutEffect(() => {
-	    if (phase !== "exit") return;
-	    playSfx("shatter");
-	    const rippleTimer = window.setTimeout(() => playSfx("ripple"), BATTLE_RIPPLE_START_MS);
+    if (phase !== "exit") return;
+    playSfx("shatter");
+    // ⓘ 涟漪音效原先也在这里(一个 BATTLE_RIPPLE_START_MS 的定时器)。本幕布现在正好在
+    //   那一刻被卸载(它不能被烘进 View Transition 的新快照), cleanup 会和定时器抢跑,
+    //   于是那一声挪到了 ScreenTransition 的 swap 回调里 —— 时刻完全等价。
     const canvas = canvasRef.current;
-    if (!canvas) return () => window.clearTimeout(rippleTimer);
+    if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
     const width = Math.max(1, rect.width);
@@ -375,10 +375,7 @@ function CrackCanvas({ phase, origin }: { phase: Props["phase"]; origin: Transit
     };
 
     animationFrame = requestAnimationFrame(draw);
-    return () => {
-      cancelAnimationFrame(animationFrame);
-      window.clearTimeout(rippleTimer);
-    };
+    return () => cancelAnimationFrame(animationFrame);
   }, [origin, phase]);
 
   return <canvas ref={canvasRef} className={s["battle-transition-cracks"]} aria-hidden />;

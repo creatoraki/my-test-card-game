@@ -1,0 +1,105 @@
+.root {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  padding: 34px 40px 46px;
+  background:
+    radial-gradient(110% 70% at 50% -10%, #1b2c45 0%, transparent 68%),
+    #060a12;
+  color: #dbe7f7;
+  font-family: var(--font-family);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #9db8dc;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+}
+
+.header h2 {
+  margin: 8px 0 0;
+  color: #f2f7ff;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.intro {
+  max-width: 620px;
+  margin: 0;
+  color: #9aafd0;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.cardGrid {
+  --deck-card-scale: 1.3;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--card-w) * var(--deck-card-scale)), 1fr));
+  align-items: start;
+  justify-content: center;
+  gap: 42px 26px;
+  width: 100%;
+}
+
+.cardCell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
+}
+
+.caption {
+  display: flex;
+  width: min(100%, calc(var(--card-w) * var(--deck-card-scale)));
+  flex-direction: column;
+  gap: 8px;
+  color: #9aafd0;
+  font-size: 18px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.caption strong {
+  color: #f2f7ff;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+@media (max-width: 720px) {
+  .root {
+    gap: 22px;
+    padding: 24px 16px 34px;
+  }
+
+  .header {
+    gap: 18px;
+  }
+
+  .header h2 {
+    font-size: 26px;
+  }
+
+  .cardGrid {
+    gap: 32px 14px;
+  }
+}
+
+@media (max-width: 340px) {
+  .cardGrid {
+    --deck-card-scale: 1.15;
+  }
+}

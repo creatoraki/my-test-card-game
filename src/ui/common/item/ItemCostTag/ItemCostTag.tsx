@@ -1,9 +1,11 @@
-import { useState, type CSSProperties, type PointerEvent } from "react";
+// 图标化报价标签 —— 「1:1 图标框 + 框外文字」的标准排法。
+//
+// ★ 边框由 ItemIconFrame 独占, 本组件只负责把文字排在框的**外面**:
+//   框内一个字都没有, 名称/数量/持有量再长也撑不歪那个 1:1 的框。
+
 import { getItemDef } from "@/data";
-import type { ItemStack } from "@/items/types";
-import { itemIcon } from "@/ui/art/itemArt";
-import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
+import ItemIconFrame from "@/ui/common/item/ItemIconFrame";
 import s from "./ItemCostTag.module.css";
 
 interface Props {
@@ -25,26 +27,23 @@ export default function ItemCostTag({
   compact = false,
   className,
 }: Props) {
-  const [point, setPoint] = useState<TooltipPoint | null>(null);
   const def = getItemDef(itemId);
   const short = owned != null && owned < count;
-  const stack: ItemStack = { uid: `cost-${itemId}`, itemId, count };
   const label = `${def.name} ×${count}${showOwned && owned != null ? `，持有 ${owned}，需 ${count}` : ""}`;
-
-  const showTooltip = (event: PointerEvent<HTMLSpanElement>) => {
-    setPoint(tooltipPointFromElement(event.currentTarget));
-  };
 
   return (
     <span
       className={cx(s.tag, s[`size-${size}`], compact && s.compact, short && s.short, className)}
       data-short={short || undefined}
       aria-label={label}
-      role="img"
-      onPointerEnter={showTooltip}
-      onPointerLeave={() => setPoint(null)}
+      role="group"
     >
-      <span className={s.icon} aria-hidden="true">{itemIcon(def)}</span>
+      <ItemIconFrame
+        itemId={itemId}
+        size={compact ? "sm" : size}
+        tone={short ? "short" : "rarity"}
+        tooltip
+      />
       {compact ? (
         <span className={s.compactCount}>×{count}</span>
       ) : (
@@ -52,13 +51,6 @@ export default function ItemCostTag({
           <span className={s.name}>{def.name} ×{count}</span>
           {showOwned && owned != null && <span className={s.owned}>持有 {owned} / 需 {count}</span>}
         </span>
-      )}
-      {point && (
-        <ItemTooltip
-          stack={stack}
-          point={point}
-          themeStyle={{ "--event-accent": "var(--event-accent)" } as CSSProperties}
-        />
       )}
     </span>
   );

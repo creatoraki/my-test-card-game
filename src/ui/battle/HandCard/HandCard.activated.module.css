@@ -1,0 +1,93 @@
+/* ── ★ 激活态: 「这张卡此刻拿到了额外收益」的**统一**表现 ──
+   收益来源不止一种(培育已完成 / 生效费用被压低 / 可以用星辉替代法力水晶 …), 但卡面上
+   **只给一种读法**: 整圈边棱通电 + 卡外呼吸辉光 + 费用水晶外扩能量环。
+   ⚠ 之所以统一成一个态而不是每种收益各画一套: 出牌时第一眼只需要判断"这张现在更划算",
+     具体划算在哪由右侧 CardInfoPanel 与各自的角标(培育徽记 / 星辉标)分头承担 —— 卡面再多
+     一套装饰层就会和污染、模组抢同一批角位。
+
+   ★ 配色是青白电能, 与污染态的红族构成**同族对位**(一个被侵蚀, 一个被充能): 两者都只借用
+     **边棱**这一条通道, 卡面本体仍然零色相(见 HandCard.module.css 开头那条铁律)。
+   ⚠ 污染 + 激活同场时边棱**归污染**: `.hand-card.contaminated .hc-edge` 直接覆写了整圈的
+     background-image(走 --pe-* 六个端点), 而本文件只改 --card-edge* 变量 ⇒ 自然让位。
+     此时激活仍由**辉光与费用环**完整表达, 一点信息都不丢。
+   ⚠ 全走 [data-hand-card] / [data-hand-activate-halo] / [data-hand-cost] 属性选择器:
+     哈希类名跨 CSS Module 够不着(样式铁律 2), 与同级的 motion / layout 两个文件同款写法。
+   ⚠ 本文件必须**最后**导入(见 HandCard.tsx 的 import 顺序): 边棱变量与 motion 里的选中态
+     覆写同为 0,2,0 特指度, 靠源码顺序定胜负 —— 选中的激活卡应当保持通电色而不是抛光银。 */
+
+/* ── ① 通电边棱: 只换那五个亮度旋钮, 十二层棱的几何一个像素都不动 ──
+   受光侧(上/左)推到近白的电弧色, 背光侧(下/右)落在深青 —— 倒角关系与中性态完全一致,
+   眼睛读到的是"同一块板通了电", 而不是换了一张卡。
+   内描边那层极淡的青雾表示能量是从框里透出来的, 不是刷在表面上的漆。 */
+:global([data-hand-card][data-activated]) {
+  --card-edge: #ddf8ff;
+  --card-edge-core: #5cd0f0;
+  --card-edge-dark: #2a7f9b;
+  --card-edge-dark-core: #113f4e;
+  --card-edge-groove: #04141a;
+  box-shadow: inset 0 0 0 1px #7fe6ff40, inset 0 0 18px #2ec9ff24;
+}
+
+/* ── ② 卡外呼吸辉光 ──
+   ⚠ 必须挂在 .hc-mover 里、卡面**之外** —— .hand-card 自带 clip-path + overflow:hidden,
+     任何画在卡内的外发光都会被齐边削掉(与费用徽章不能做成挂件是同一条约束)。
+   手法与 .hc-shadow-lift 同款: 一块与卡同形的实色板 + 大半径 blur, 溢出卡形的那圈就是辉光。
+   z-index: 0 ⇒ 与两层投影同层, 恒在卡面本体(z-index: 2)之下, 只在卡外可见。
+   ⚠ 斜切多边形与 .hand-card / .hc-shadow-* 共用同一个 14px, 改斜切角要一起改。 */
+:global([data-hand-activate-halo]) {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  background: #35d4ff;
+  filter: blur(11px);
+  opacity: 0.38;
+  transform-origin: 50% 50%;
+  will-change: opacity, transform;
+  animation: hcActivateBreath 2.4s ease-in-out infinite;
+}
+
+/* ── ③ 费用水晶的外扩能量环 ──
+   ⚠ 环被 .hc-cost 自身的 8px 斜切 clip-path 兜住, 只能在徽章 46 见方与水晶 34 见方之间那
+     一圈 6px 的余量里做文章 ⇒ 用**软渐变环**而不是描边: 描边被斜切一裁, 两个斜口上会各留
+     一段缺口(这正是 .hc-edge 那十二层存在的原因, 一枚 46px 的徽章不值得再来一遍)。
+   色站按 closest-side 半径(23px)推: 峰值落在 84% ≈ 19px, 恰好贴着 17px 的水晶外沿往外扩。
+   ⚠ z-index: 0 让它沉在水晶与数字之下 —— 能量是从水晶**背后**透出来的。
+   ⚠ 刻意不动 .hc-cost-crystal 的 filter: 那道辉光是普/速的**唯一**卡面线索(黄绿 / 琥珀),
+     覆写掉就等于让激活态吃掉卡型信息。 */
+:global([data-hand-card][data-activated]) :global([data-hand-cost])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(closest-side, #7fe6ff00 62%, #7fe6ff4d 84%, #7fe6ff14 96%, #7fe6ff00 100%);
+  transform-origin: 50% 50%;
+  animation: hcActivateCostRing 2.4s ease-in-out infinite;
+}
+
+/* 两条动画共用 2.4s 同一拍 ⇒ 辉光与费用环同呼同吸, 读作一套供电而不是两处闪。 */
+@keyframes hcActivateBreath {
+  0%,
+  100% {
+    opacity: 0.34;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.022);
+  }
+}
+
+@keyframes hcActivateCostRing {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}

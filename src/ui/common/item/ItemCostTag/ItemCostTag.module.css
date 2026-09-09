@@ -1,70 +1,17 @@
+/* ★ 这里**不能**再有 border / background —— 边框是 ItemIconFrame 的职责,
+   本层只是「框 + 框外文字」的横向排布。 */
 .tag {
-  --cost-accent: var(--event-accent, #d6b477);
-  --cost-icon: #d6b477;
   position: relative;
   display: inline-flex;
+  min-width: 0;
   align-items: center;
   gap: 12px;
-  min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--cost-accent) 48%, transparent);
-  background: color-mix(in srgb, var(--cost-accent) 9%, transparent);
   color: #f2f2dc;
-  cursor: help;
-  outline: none;
-  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
-.size-sm {
-  padding: 6px 10px 6px 6px;
-}
-
-.size-md {
-  padding: 8px 12px 8px 8px;
-}
-
-.size-lg {
-  padding: 10px 14px 10px 10px;
-}
-
-.tag:hover,
-.tag:focus-visible {
-  border-color: var(--cost-accent);
-  background: color-mix(in srgb, var(--cost-accent) 18%, transparent);
-}
-
-.tag.short,
-.tag[data-short="true"] {
-  --cost-accent: #e47970;
-}
-
-.icon {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  color: var(--cost-icon);
-  line-height: 0;
-  aspect-ratio: 1;
-}
-
-.size-sm .icon {
-  width: 36px;
-}
-
-.size-md .icon {
-  width: 48px;
-}
-
-.size-lg .icon {
-  width: 64px;
-}
-
-.icon svg,
-.icon img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+.size-sm { gap: 10px; }
+.size-md { gap: 12px; }
+.size-lg { gap: 14px; }
 
 .copy {
   display: grid;
@@ -94,11 +41,6 @@
 
 .compact {
   gap: 8px;
-  padding: 4px 8px 4px 4px;
-}
-
-.compact .icon {
-  width: 28px;
 }
 
 .compactCount {
@@ -111,10 +53,4 @@
 .compact.short .compactCount,
 .compact[data-short="true"] .compactCount {
   color: #ffb5a9;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tag {
-    transition: none;
-  }
 }

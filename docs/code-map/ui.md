@@ -32,7 +32,8 @@ src/ui/
 | 文件 | 作用 |
 | --- | --- |
 | [app/ScreenTransition](../../src/ui/app/ScreenTransition/ScreenTransition.tsx) | 串行执行旧界面出场 → 黑场停顿 → 新界面入场；避免两套 BattleScreen 同时挂载和视频双解码。快速切换由批次号使旧定时器失效。特效档位靠 `.is-fx` 标记类 + `s[\`screen-fx-${name}\`]` 查表。 |
-| [app/BattleTransitionCurtain](../../src/ui/app/BattleTransitionCurtain/BattleTransitionCurtain.tsx) | 探索到战斗的裂纹 Canvas、主环和 View Transition 显现；幕布层固定且不向祖先施加 transform/filter。 |
+| [app/BattleTransitionCurtain](../../src/ui/app/BattleTransitionCurtain/BattleTransitionCurtain.tsx) | 探索到战斗的裂纹 Canvas、主环和 View Transition 显现；幕布层固定且不向祖先施加 transform/filter。⚠ 它必须在 swap 的那一次 `flushSync` 里卸载（`ScreenTransition` 的 `rippleCurtain` 开关），否则整张裂纹会被烘进 VT 的**新快照**、直到 VT 结束才整层消失。`.battle-transition-black` / `ring` / `particles` 三层只在**不支持 VT 的降级路径**上演涟漪（走 VT 时真实 DOM 不绘制，它们一帧都看不见），别当成死代码删掉。 |
+| [app/BattleEntryGrading](../../src/ui/app/BattleEntryGrading/BattleEntryGrading.tsx) | 探索到战斗的落地余韵，两片**平级**固定层：`.battle-entry-veil`（血色暗角）+ `.battle-entry-grade`（色调迁移第 ② 段，`backdrop-filter`）。两层都在 swap 时挂载、由 `settling` 决定何时开始收尾。与幕布同一分工——编排在 `ScreenTransition`，画面在组件；固定定位、`pointer-events: none`，不在 `BattleScreen` 的祖先链上，不影响 `computeCamera` 测量。 |
 | [app/StageCanvas](../../src/ui/app/StageCanvas/StageCanvas.tsx) | 全站 1920×1080 设计画布容器：统一管理 viewport 测量、DPR 量化的 `--stage-scale` 与布局期 `zoom`，页面通过 className 复用局部样式。 |
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
 | [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
@@ -113,7 +114,7 @@ src/ui/
 | [character/DeckUpgradeOverlay](../../src/ui/character/DeckUpgradeOverlay/DeckUpgradeOverlay.tsx) | 卡组升级内容件：展示等级徽章、水晶稀有度概率与比例带；长按蓄力和光爆演出由 `useDeckUpgrade` 管理，外壳由 `DeckForgeStack` 提供。 |
 | [character/DeckUpgradeOverlay/useDeckUpgrade](../../src/ui/character/DeckUpgradeOverlay/useDeckUpgrade.ts) | 卡组升级 phase、快照、经验 count-up、长按蓄力与演出 CSS 状态的编排 hook；向共享外壳返回状态类和 CSS 变量。 |
 | [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情态属性装备面板的三类装备槽，显示当前装备或空槽并派发部位选择、卸下操作；支持横向 `grid` 与竖向 `rail` 变体，不承载装备规则。 |
-| [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情态与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放。 |
+| [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情态与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放；`activated` 直接透传给卡面的激活态。 |
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」；新手关卡引导触发点集中在 `useTutorialGuides`。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、组装部件栏、组装选择器、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相，`kind: "reveal"` 只播 `SkillCutInCard` 亮相，无前冲/推镜/受击/音效；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。实现拆分为取景纯函数、分镜步翻译、手牌渲染列表、演出闸门、相机、分镜回放、操作分发，以及战场 / HUD / 屏幕特效三个视图 part。 |
@@ -144,8 +145,8 @@ src/ui/
 | [LeaveRegionButton](../../src/ui/explore/ExploreScreen/LeaveRegionButton.tsx) | 探索页前往下一区域按钮：选择起点时缩小为低对比次级操作，去除持续外发光与扩散环；落点决策时恢复正常尺寸。只负责展示与点击回调，离场规则仍由探索会话控制。 |
 | [TrialGauge](../../src/ui/explore/TrialGauge/TrialGauge.tsx) | 探索页右上读数列里的挑战倒计时砖：逐条展示进行中的契约名、负面修正与剩余轮数，悬浮说明走 `RailPopover`。剩余轮数由会话的 `untilRound` 与当前轮号现算，不存第二份；祖先带入场动画故一律不用 `backdrop-filter`。 |
 | [NodeTip](../../src/ui/explore/NodeTip/NodeTip.tsx) | 节点悬浮详情浮卡：贴在被悬停的瓦片旁展示事件标题与描述，落位由 RouteBoard 导出的 `nodeCenter` / `NODE_ICON_TOP` 与棋盘位移算，越界时自动左右贴边或翻到瓦片下方；只讲「这是什么」，不含粒子、风险与选项预览。 |
-| [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端内容面板：按服务槽位切 tab，图标化食品报价、持有量和确认操作；商品槽位展示图标货架与详情，随机服务展示 BUFF 概率，队伍/待办服务展示结算说明；只派发购买和关闭 action，不承载交易规则。 |
-| [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，承载 tab 化 `MerchantPanel` 与本节点摘要；只保留页眉服务摘要和节点记录条，关闭交易直接回到节点决策。 |
+| [MerchantPanel](../../src/ui/explore/MerchantPanel/) | 交易终端内容面板，版式与据点卡牌商店同族：`MerchantPanel` 只管槽位/选中/提示三份状态与 `tradeQuote`；`ServiceTabs` 是顶部两张服务槽位页签（报价整块复用 `ItemCostTag`，服务名与成交状态排在它旁边），`ServiceStage` 是左内容区（商品货位网格 / 团队 BUFF 概率表 / 队伍待办服务说明），`TradeDetail` 是右侧 420 定宽详情栏并持有**唯一**的「确认支付」入口（商品详情由 `TradeGoodsDetail` 自建以保证头图带 1:1 框），`TradeNotes` 是底栏记录条与「关闭终端」。只派发购买和关闭 action，不承载交易规则。 |
+| [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，只做外框、演出与数据接线，内容全交给 `MerchantPanel`；页眉右侧是成交计数。⚠ 它是唯一不吃 `explorePanel` 的 `panel-box`(936×680) 的探索浮层——只取材质 `panel-shell`，尺寸自写 1240×820，理由见该文件抬头。|
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
 | [PicnicSkill](../../src/ui/explore/PicnicSkill/) | 探索技能《野餐》的按钮与面板：按钮按会话阶段显示可用/锁定/已使用状态，面板负责最多 4 份食品选择、野餐布槽位和隐藏食谱结算。 |
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`；模组走 `useLootModuleActions` 的两按钮菜单，可选择直接装载。 |
@@ -161,7 +162,7 @@ src/ui/
 | --- | --- |
 | [deathChoreo.ts](../../src/ui/battle/deathChoreo.ts) | 战斗死亡表现闸门的时序真相点：按战斗序列、播放倍速和 reduced-motion 管理 drain → vanish → dead，并提供结算等待状态与居合命中偏移。 |
 | [unitShell.ts](../../src/ui/battle/unitShell.ts) | **单位外壳的跨组件契约**：敌人（CombatantView）与我方（AllyBar）两种外壳几何不同但演出必须一致，靠 `unitShellAttrs()` 摊出的 `data-side` / `data-death` / `data-dead` / `data-downed` / `data-attacking` / `data-targetable` / `data-telegraph` / `data-react` 共享同一份规则。`data-downed` 表示我方仍存活但 HP 为 0 的濒死态；`data-dead` 只表示闸门放行后的最终死亡态。改这里要全库搜同名字符串——CSS 那侧没有类型保护。 |
-| [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：蓄力预告、血条周围的倒计时/意图/护盾/状态和命中特效；可选目标头顶显示本次攻击命中率徽章；死亡表现由 `deathChoreo` 闸门下发，先完成血条再过曝消散。站位通过独立 `translate` / `scale` 属性传入，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
+| [CombatantView](../../src/ui/battle/CombatantView/CombatantView.tsx) | 敌方单位：蓄力预告、血条周围的倒计时/意图/护盾/状态和命中特效；可选目标头顶显示本次攻击命中率徽章；死亡表现由 `deathChoreo` 闸门下发，先完成血条再过曝消散。站位通过独立 `translate` / `scale` 属性传入，飞行单位还下发阴影下沉变量，避免覆盖演出 `transform`。内层挂 `data-cmb-stage` 供相机取景。 |
 | [EnemySprite](../../src/ui/battle/EnemySprite/EnemySprite.tsx) | 横向拼条待机立绘播放器。`enemyArt.ts` 登记展示框与主体框，主体高度归一后由 CSS 变量推导尺寸、脚线和帧位；`@keyframes` 按敌人 id 运行时注入并复用 `<style>`（不经 Modules，故行内 `animationName` 有效）。 |
 | [AllyBar](../../src/ui/battle/AllyBar/AllyBar.tsx) | 底部队伍卡，最多 3 个槽位；归属手牌聚焦时改变槽位宽度，濒死暗红态与死亡灰化、下沉消解、裂纹和 ☠ 由死亡闸门/外壳属性驱动，并通过公共污染条/状态图标展示污染值、临时状态和护盾。位于战场之外，因此不参与相机推近；生病与永久怪癖仅在角色详情态展示。仅在待选友军目标时响应点击，其余状态下为纯展示。 |
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
@@ -171,7 +172,7 @@ src/ui/
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
 | [battle/PileDrawer](../../src/ui/battle/PileDrawer/PileDrawer.tsx) | 牌堆内容弹窗，按卡名排序展示，复用原尺寸 `HandCard`；悬停时由 `.scrim` 下的独立放大层浮出 1.4 倍卡面；待选择回收时切换为弃牌堆选择模式，点击卡牌提交，关闭弹窗取消。 |
-| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，所属角色阵亡后以 `purged` 播碎裂消散并卸载。现同时服务手牌托盘、牌堆弹窗和据点卡组，两套战斗版式锁在 `[data-hand-tray]` / `[data-pile-grid]` 下，据点版式锁在 `[data-deck-card]` 下；弹窗与据点模式（`variant="pile"`）不写 `handFocusStore`。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，所属角色阵亡后以 `purged` 播碎裂消散并卸载。另有 `activated` 激活态：把「此刻有额外收益」（培育完成 / 生效费用被压低 / 星辉可抵扣法力水晶等）统一收敛成一套表现——通电边棱 + 卡外呼吸辉光 + 费用水晶外扩能量环，样式独立在 `HandCard.activated.module.css`，污染同场时边棱让位给污染红环、激活改由辉光与费用环表达。现同时服务手牌托盘、牌堆弹窗和据点卡组，两套战斗版式锁在 `[data-hand-tray]` / `[data-pile-grid]` 下，据点版式锁在 `[data-deck-card]` 下；弹窗与据点模式（`variant="pile"`）不写 `handFocusStore`。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；显示生效费用、污染卡与卡牌标记说明。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
 | [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |
@@ -231,7 +232,8 @@ src/ui/
 | [art/moduleGlyphsGenericT1](../../src/ui/art/moduleGlyphsGenericT1.tsx) | 1 阶通用模组的徽记与配色，按「改的是哪一项」分色；由 `moduleGlyphs` 合并进主表，清单加长时主表不膨胀。 |
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；模组另有独立的「装配条件」字段，文案读 `data/cardModules` 的 `equipText`。操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
 | [item/ItemTooltip](../../src/ui/common/item/ItemTooltip/ItemTooltip.tsx) | 物品详情悬浮层：`tooltipPointFromElement` 把触发元素归一化成「所属画布 + 设计 px 锚点」，`useTooltipPlacement` 实测浮层真实尺寸后在画布边界内翻转夹取，浮层 portal 进画布内部。换皮版浮卡（商店仓库、出击背包）共用这两个导出，不要再抄一份定位算法。 |
-| [item/ItemCostTag](../../src/ui/common/item/ItemCostTag/ItemCostTag.tsx) | 图标化食品报价标签：展示价格、背包持有量与缺货红框，复用 `ItemTooltip` 提供无原生 `title` 的物品详情悬浮。 |
+| [item/ItemIconFrame](../../src/ui/common/item/ItemIconFrame/ItemIconFrame.tsx) | 1:1 物品图标框——全站「物品图标永远被方框包裹」的唯一实现。**框内只有图标，一个字都不放**，名称/数量/持有量一律由调用方排在框外。四档边长(sm44/md64/lg96/xl132)，稀有度读 `--rarity-*` 令牌，`tone="short"` 转红表示货币不足，`as="button"` 时可点选，`tooltip` 走 `ItemTooltip`（无原生 `title`）。 |
+| [item/ItemCostTag](../../src/ui/common/item/ItemCostTag/ItemCostTag.tsx) | 图标化食品报价标签：`ItemIconFrame` 出框，价格/持有量文字排在框外；缺货时框与文字同时转红。自己不再画边框。 |
 | [item/ItemTabs](../../src/ui/common/item/ItemTabs/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
 | [item/itemFilters.ts](../../src/ui/common/item/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |
 | [item/ItemInventoryPanel](../../src/ui/common/item/ItemInventoryPanel/ItemInventoryPanel.tsx) | 背包、仓库等物品容器共用的面板壳，提供格网、容量读数、受控选中态和 portal 物品详情。传 `slotHint` 才给**有物品**的格子挂 `InteractiveHint` 四角提示（空格不给），默认关闭，现只有探索背包 `BackpackBar` 在可编辑阶段打开。 |
@@ -276,10 +278,36 @@ src/ui/
 
 | 文件 | 作用 |
 | --- | --- |
-| [app/transitions.ts](../../src/ui/app/transitions.ts) | 过场预设、默认时长、按界面/路线解析；探索到战斗的裂纹涟漪时长只在这里配置。 |
+| [app/transitions.ts](../../src/ui/app/transitions.ts) | 过场预设、默认时长、按界面/路线解析；探索到战斗的裂纹涟漪与色调迁移时长只在这里配置。 |
 | [app/transitionOrigin.ts](../../src/ui/app/transitionOrigin.ts) | 一次性缓存点击坐标，仅用于视觉过场，不进入 Zustand。 |
 | [character/FormationScreen/formationMorph/morphChoreo.ts](../../src/ui/character/FormationScreen/formationMorph/morphChoreo.ts) | 编队 ↔ 角色详情的重组时长与立绘出血矩形；`designRectOf` 从 `hooks/stage` 转发，避免编队域私有实现被其他域依赖。⚠ 这两态**不再是两个 screen**，故不走 `transitions.ts`；旧的 `app/viewTransition.global.css` 与 `character/sharedPortrait.ts` 已随那次改版删除。 |
 | [town/facilityScenes.ts](../../src/ui/town/facilityScenes.ts) | 据点进设施的推镜时序、飞出参数与设施背景图。 |
+
+### 探索 → 战斗的色调迁移
+
+这条路线的色调（探索的冷灰终端色 → 战斗的血红高对比）是**一条连续曲线**，但它跨过了 View Transition 的生命周期，因而被迫切成接力的两段：
+
+| 段 | 存续区间 | 载体 | 位置 |
+| --- | --- | --- | --- |
+| ① 快照段 | VT 存续期间（`BATTLE_RIPPLE_MS`） | `::view-transition-old/new(root)` 的 `filter` | `ScreenTransition.module.css` 的 `vt-grade-old` / `vt-grade-new` |
+| ② 余韵段 | VT 结束之后（`BATTLE_GRADE_SETTLE_MS`） | 真实 DOM 上的 `backdrop-filter` | `BattleEntryGrading` 的 `.battle-entry-grade` |
+
+⚠ **为什么不能只用一段**：VT 存续期间画面是两张冻结的位图，改页面元素的 CSS 变量对它们完全无效——快照是像素，不再参与样式计算，色调只能挂在伪元素自身的 `filter` 上；而这些伪元素在 `transition.finished` 的那一刻连同快照一起消失。若曲线在那里已收敛到中性，看到的是「涟漪扩满 → 战斗场景以正常色调硬切进来」；若还没收敛，又会在同一刻硬跳回 `filter: none`。两条路都会闪，所以在 VT 边界剪开、由第 ② 段接住。
+
+⚠ **两段的接缝值必须逐项对齐**（`saturate` / `contrast` / `brightness`），对照表在 `BattleEntryGrading.module.css` 文件头，改一侧必须同时改另一侧。`vt-grade-new` 末帧多出的两条 `drop-shadow` 是涟漪**边缘**的血光，VT 结束时涟漪早已扩出视口，第 ② 段不需要接。
+
+⚠ `filter` / `backdrop-filter` 的关键帧要求函数序列**同构**（个数与顺序一致），写漏一项浏览器会退化成离散跳变，表现为色调在某一帧硬切。
+
+调色强度的主要旋钮：旧世界的褪色深度在 `vt-grade-old` 末帧（`saturate` / `brightness`），战场落地的过曝强度在 `vt-grade-new` 首帧。
+
+#### 涟漪结束那一帧的零跳变约束
+
+总原则：**VT 结束的那一帧，画面上任何一层的可见状态都必须与前一帧完全一致**。凡是在这一帧「凭空出现」或「整层消失」的东西，玩家读到的就是一次闪烁。据此有三条硬约束：
+
+- **新快照 = 战场 + 血色暗角，不含幕布**。`.battle-entry-veil` 在 swap 的 `flushSync` 里就进入 DOM，因此被烘进新快照、随涟漪一起被揭开；VT 结束时真实 DOM 里的它仍是同一个 `opacity: 1` 的元素，接得上。裂纹幕布则相反，必须在同一次 `flushSync` 里卸载。
+- **暗角不能靠 `animation-delay` 去「等 VT 结束」**。延迟的时间轴从挂载算起，与 VT 的 `ready` 差一两帧，接缝就会漂。收尾时刻由 `ScreenTransition` 在 `transition.finished` 里翻 `settling` 决定——那才是与快照消失同一帧的信号。
+- **`transition.finished` 里的收尾提交必须 `flushSync`**。`finished` 是 VT 结束后的一个微任务，交给 React 并发调度可能落到下一帧；那一帧里快照已经没了、余韵还没生效。
+- **暗角与色调必须是平级层**，且色调层压在暗角之上。`backdrop-filter` 会创建隔离组：若把暗角塞进色调层内部，色调层的 filter 在接缝处从 `none` 变为有值时，暗角的混合底会跟着变，等于在同一帧又制造一次跳变。同理暗角上不要写 `mix-blend-mode`。
 
 ## 战斗设计画布与相机边界
 

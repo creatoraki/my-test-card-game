@@ -1,0 +1,94 @@
+/* ============================================================================
+   落地余韵(探索 → 战斗)。两片平级的固定层, 生命周期都由 ScreenTransition 编排,
+   都靠 [data-settling] 决定「什么时候开始收尾」—— 在此之前它们是静止的。
+
+   ── ① .battle-entry-veil: 血色暗角 ──
+   它在 swap 的 flushSync 里就进入 DOM, 因此被烘进 VT 的**新快照**, 随涟漪一起被揭开;
+   VT 结束、快照消失的那一帧, 真实 DOM 里的它仍是 opacity:1, 与快照像素一致 ⇒ 零跳变。
+   ⚠ 别给它加 animation-delay 去「等 VT 结束」: 延迟的时间轴从挂载算起, 与 VT 的 ready
+     差一两帧, 接缝就会漂。收尾时刻由 ScreenTransition 在 transition.finished 里翻
+     data-settling 决定 —— 那是与快照消失**同一帧**的信号。
+   ⚠ 也别加 mix-blend-mode: multiply。它在旧写法里因为父层 backdrop-filter 的隔离而
+     等价于 source-over(等于没生效); 改成平级层后会真的开始 multiply, 画面比原来更暗。
+
+   ── ② .battle-entry-grade: 色调迁移第 ② 段 ──
+   第 ① 段在 ScreenTransition.module.css 的 vt-grade-new 里, 作用于 VT 的新快照;
+   那张快照在 VT 结束的瞬间连同伪元素一起消失, 色调曲线到此断了一截 ——
+   本层的存在就是把断掉的那一截接上, 在真实 DOM 上收敛回中性。
+   ⚠ settling 之前**不声明** backdrop-filter: 否则它会被烘进新快照, 与 vt-grade-new
+     叠成双重调色, 接缝处反而会亮一下再掉回去。
+
+   ⚠ 接缝对照表(改一侧必须同时改另一侧, 否则 VT 结束那一帧会硬闪):
+
+     | 项         | vt-grade-new 末帧 | 本层 battle-entry-grade 首帧 |
+     | saturate   | 1.2               | 1.2                          |
+     | contrast   | 1.09              | 1.09                         |
+     | brightness | 1.05              | 1.05                         |
+
+   vt-grade-new 末帧还剩两条 drop-shadow, 那是涟漪**边缘**的血光; VT 结束时涟漪早已扩出
+   视口, 屏幕内看不到它, 所以这里不需要接 —— 别照抄过来, 全屏 drop-shadow 只会白烧一层。
+
+   ⚠ filter / backdrop-filter 的关键帧要求函数序列**同构**(个数与顺序一致), 写漏一项
+     浏览器会退化成离散跳变。首尾两帧都是 saturate → contrast → brightness。
+   ============================================================================ */
+
+.battle-entry-veil,
+.battle-entry-grade {
+  position: fixed;
+  inset: 0;
+  /* ★ 战斗页此刻已经完全可交互, 这两层绝不能吃掉点击。 */
+  pointer-events: none;
+}
+
+/* 战场刚被揭开时残留的一层血色暗角, 圆心仍是当初的点击点 ——
+   余韵从涟漪的源头往回收, 而不是凭空在屏幕中央淡出。
+   低于 BattleTransitionCurtain 的 90: 两者本不共存(幕布在 swap 时就卸载了),
+   但万一时序被改动而重叠, 该压在裂纹幕布底下的是这层, 不是反过来。 */
+.battle-entry-veil {
+  z-index: 88;
+  background: radial-gradient(
+    circle at var(--beg-ox) var(--beg-oy),
+    rgb(120 8 18 / 0) 28%,
+    rgb(96 6 16 / 0.26) 68%,
+    rgb(58 3 10 / 0.44) 100%
+  );
+}
+
+.battle-entry-veil[data-settling] {
+  animation: battle-entry-veil-fade var(--beg-ms) ease-out both;
+}
+
+/* 必须压在暗角**之上**: 快照里是「先叠暗角、再由 vt-grade-new 整体调色」,
+   真实 DOM 这边只有 backdrop-filter 取到暗角这一层, 两侧的叠放顺序才对得上。 */
+.battle-entry-grade {
+  z-index: 89;
+}
+
+.battle-entry-grade[data-settling] {
+  animation: battle-entry-grade var(--beg-ms) cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes battle-entry-grade {
+  from {
+    backdrop-filter: saturate(1.2) contrast(1.09) brightness(1.05);
+  }
+  to {
+    backdrop-filter: saturate(1) contrast(1) brightness(1);
+  }
+}
+
+@keyframes battle-entry-veil-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-entry-veil,
+  .battle-entry-grade {
+    display: none;
+  }
+}

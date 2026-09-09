@@ -102,18 +102,24 @@
    ⚠ 挂在 .combatant-stage 而不是 .combatant-figure: 影子不该跟着呼吸一起上下动;
    挂这层还能随 --place-scale 一起放大, 大体型敌人的影子自然更大。
    --shadow-w 由 ui/CombatantView.tsx 按立绘渲染宽下发(不是布局盒宽, 影子该跟体型走)。
+   --fly-lift 由 data/encounters.ts 的 lift 经 CombatantView 下发, 让飞行单位的影子回到地面。
   自带一条与呼吸同周期、**反相**的缩放: 身体升起时影子收紧变淡, 落下时铺开变实。 */
 .combatant-stage::after {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: calc(var(--foot-inset) - 4px);
+  bottom: calc(var(--foot-inset) - 4px - var(--fly-lift, 0px));
   z-index: -1;
-  width: var(--shadow-w, 96px);
-  height: calc(var(--shadow-w, 96px) * 0.19);
+  width: calc(var(--shadow-w, 96px) * var(--shadow-spread, 1));
+  height: calc(var(--shadow-w, 96px) * 0.19 * var(--shadow-spread, 1));
   translate: calc(-50% + var(--body-cx)) 0;
   border-radius: 50%;
-  background: radial-gradient(50% 50%, #000000a6 0%, #00000059 55%, transparent 100%);
+  background: radial-gradient(
+    50% 50%,
+    rgb(0 0 0 / var(--shadow-a1, 0.65)) 0%,
+    rgb(0 0 0 / var(--shadow-a2, 0.35)) 55%,
+    transparent 100%
+  );
   animation: idleShadow var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite;
 }
 /* ⚠ 必须连 animation: none 一起写: 运行中的 @keyframes 在层叠里压过普通声明,

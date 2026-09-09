@@ -12,9 +12,12 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import type { Screen } from "@/store/runStore";
 import { cx } from "@/ui/common/cx";
+import { playSfx } from "@/ui/audio";
+import { BattleEntryGrading } from "@/ui/app/BattleEntryGrading";
 import { BattleTransitionCurtain } from "@/ui/app/BattleTransitionCurtain";
 import { takeTransitionOrigin, type TransitionOrigin } from "@/ui/app/transitionOrigin";
 import {
+  BATTLE_GRADE_SETTLE_MS,
   BATTLE_RIPPLE_MS,
   BATTLE_RIPPLE_START_MS,
   prefersReducedMotion,
@@ -45,6 +48,17 @@ export function ScreenTransition({ screen, render }: Props) {
   const [spec, setSpec] = useState<TransitionSpec | null>(null); // 本次切换生效的预设
   const [runId, setRunId] = useState(0); // 递增批次号, 兼作 key 强制重放入场动画
   const [origin, setOrigin] = useState<TransitionOrigin | null>(null); // 一次过场固定一个圆心，exit/enter 必须共用
+  // 裂纹幕布的挂载开关。★ 它不能再搭 phase 的车: 幕布必须在 swap 的那一次 flushSync 里就
+  // 卸载, 否则整张裂纹 canvas 会被烘进 View Transition 的**新快照** —— 涟漪揭开的战场会
+  // 一直带着裂纹, 直到 VT 结束才整层消失, 那就是一次硬跳变。
+  const [rippleCurtain, setRippleCurtain] = useState(false);
+  // 落地余韵(血色暗角 + 色调迁移第 ② 段)。它跨越 VT 的整个生命周期: swap 时挂载(于是被烘进
+  // 新快照、随涟漪一起被揭开), VT 结束后继续以真实 DOM 存在 —— 所以既不能搭 phase 的车,
+  // 也不能等到 finished 才挂, 只能自己占一个状态。
+  const [afterglow, setAfterglow] = useState(false);
+  const [afterglowRun, setAfterglowRun] = useState(0); // 兼作 key: 连续进战斗时强制重放, 不复用上一层的动画进度
+  // 收尾信号: 翻成 true 的那一帧, 正是 VT 快照消失的那一帧(见下面 finished 里的 flushSync)。
+  const [settling, setSettling] = useState(false);
 
   const seqRef = useRef(0); // 批次序号: 快速连点时作废旧批次的定时器回调
   const timersRef = useRef<number[]>([]);
@@ -67,6 +81,9 @@ export function ScreenTransition({ screen, render }: Props) {
         seqRef.current++;
         setPhase("idle");
         setSpec(null);
+        setRippleCurtain(false);
+        setAfterglow(false);
+        setSettling(false);
       }
       return;
     }
@@ -85,38 +102,76 @@ export function ScreenTransition({ screen, render }: Props) {
       setShown(screen);
       setPhase("idle");
       setSpec(null);
+      setRippleCurtain(false);
+      setAfterglow(false);
+      setSettling(false);
       return;
     }
 
     clearTimers();
+    // 余韵还没播完就又切了屏(例如战斗秒结算): 它的卸载定时器刚被 clearTimers 掐掉,
+    // 不在这里显式收掉就会永久残留一层暗角。
+    setAfterglow(false);
+    setSettling(false);
     const seq = ++seqRef.current;
     // 原点只在本轮开始时消费一次，不能在 exit → enter 的 phase 切换时再读，否则会丢失点击位置。
     setOrigin(next.curtain === "battle-ripple" ? takeTransitionOrigin() : null);
+    setRippleCurtain(next.curtain === "battle-ripple");
     setSpec(next);
     setPhase("exit");
 
     const swap = window.setTimeout(() => {
       if (seq !== seqRef.current) return;
       if (next.curtain === "battle-ripple") {
+        // 涟漪音效原先住在幕布的 CrackCanvas 里(一个 BATTLE_RIPPLE_START_MS 的定时器),
+        // 但幕布现在正好在这一刻卸载 ⇒ 它的 cleanup 会和那个定时器抢跑。时刻完全等价,
+        // 挪到这里也更贴合本组件既定的分工: 编排在 ScreenTransition, 画面在组件。
+        playSfx("ripple");
         const x = originRef.current?.x ?? window.innerWidth / 2;
         const y = originRef.current?.y ?? window.innerHeight / 2;
         const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-        const update = () => {
+
+        // keepCurtain: 只有降级路径(浏览器不支持 startViewTransition)才要留着幕布 ——
+        // 那条路上 .battle-transition-black / ring / particles 才是真正在演涟漪的三层。
+        // 走 VT 时它们一帧都不会被看见(VT 存续期间真实 DOM 不绘制), 留着只会把裂纹烘进新快照。
+        const update = (keepCurtain: boolean) => {
           // View Transition 的 update 回调中必须同步提交新 DOM，浏览器才能抓到战斗场景的新快照。
           flushSync(() => {
             setShown(screen);
+            // ★ 暗角必须在这一刻进入 DOM: 它要被烘进新快照、随涟漪一起被揭开;
+            //   VT 结束时真实 DOM 里的它仍是同一个 opacity:1 的元素 ⇒ 接缝零跳变。
+            setAfterglow(true);
+            setAfterglowRun((n) => n + 1);
+            setSettling(false);
+            if (!keepCurtain) setRippleCurtain(false);
           });
         };
+
+        // 涟漪收尾: 快照消失 ⇒ 余韵开始收敛。两条路径(VT / 降级)共用同一段。
+        const settleRipple = () => {
+          if (seq !== seqRef.current) return;
+          setPhase("idle");
+          setSpec(null);
+          setRippleCurtain(false);
+          // ★ 接力点: 翻 settling 的这一帧就是快照消失的那一帧 —— 暗角从此开始淡出,
+          //   backdrop-filter 从 vt-grade-new 的末态接着往中性收。
+          setSettling(true);
+          const fade = window.setTimeout(() => {
+            if (seq !== seqRef.current) return;
+            setAfterglow(false);
+            setSettling(false);
+          }, BATTLE_GRADE_SETTLE_MS);
+          timersRef.current.push(fade);
+        };
+
         const viewDocument = document as ViewTransitionDocument;
-        const transition = !prefersReducedMotion() ? viewDocument.startViewTransition?.(update) : undefined;
+        const transition = !prefersReducedMotion()
+          ? viewDocument.startViewTransition?.(() => update(false))
+          : undefined;
 
         if (!transition) {
-          update();
-          const settle = window.setTimeout(() => {
-            if (seq !== seqRef.current) return;
-            setPhase("idle");
-            setSpec(null);
-          }, BATTLE_RIPPLE_MS);
+          update(true);
+          const settle = window.setTimeout(settleRipple, BATTLE_RIPPLE_MS);
           timersRef.current.push(settle);
           return;
         }
@@ -151,9 +206,9 @@ export function ScreenTransition({ screen, render }: Props) {
           root.style.removeProperty("--vt-impact-x");
           root.style.removeProperty("--vt-impact-y");
           root.style.removeProperty("--vt-glass-break-ms");
-          if (seq !== seqRef.current) return;
-          setPhase("idle");
-          setSpec(null);
+          // ⚠ 必须 flushSync: finished 是 VT 结束后的一个微任务, 若把这次提交交给 React 的
+          //   并发调度, 它可能落到下一帧 —— 那一帧里快照已经没了、余韵还没生效, 画面会闪一下。
+          flushSync(settleRipple);
         });
         return;
       }
@@ -187,8 +242,12 @@ export function ScreenTransition({ screen, render }: Props) {
       >
         {render(shown)}
       </div>
-      {spec?.curtain === "battle-ripple" && phase !== "idle" ? (
-        <BattleTransitionCurtain key={phase} phase={phase} origin={origin} />
+      {spec?.curtain === "battle-ripple" ? (
+        // 裂纹幕布的存续由 rippleCurtain 单独控制(见状态声明处的说明), 不再跟 phase 走 ——
+        // 这里的 phase !== "idle" 只是给 TS 收窄类型, 实际这两个条件永远同真同假。
+        rippleCurtain && phase !== "idle" ? (
+          <BattleTransitionCurtain key={phase} phase={phase} origin={origin} />
+        ) : null
       ) : spec?.curtain && phase !== "idle" ? (
         <div
           // ⚠ key 跟着 phase 变: 幕布是同一个元素跨越 exit/enter 两相的, 不重挂载就只会播
@@ -198,6 +257,9 @@ export function ScreenTransition({ screen, render }: Props) {
           data-phase={phase}
           aria-hidden
         />
+      ) : null}
+      {afterglow ? (
+        <BattleEntryGrading key={afterglowRun} origin={origin} settling={settling} />
       ) : null}
     </>
   );

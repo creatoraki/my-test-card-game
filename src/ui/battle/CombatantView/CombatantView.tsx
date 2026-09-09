@@ -66,6 +66,14 @@ export const CombatantView = memo(function CombatantView({
     if (placement.dx != null) vars["--place-dx"] = `${placement.dx}px`;
     if (placement.dy != null) vars["--place-dy"] = `${placement.dy}px`;
     if (placement.scale != null) vars["--place-scale"] = `${placement.scale}`;
+    // lift: 飞行单位离地高度。整个单位(含血条)已被 dy 抬到空中, 影子必须反向落回地面,
+    // 并按离得远的观感摊大变淡。
+    if (placement.lift) {
+      vars["--fly-lift"] = `${placement.lift}px`;
+      vars["--shadow-spread"] = "1.25";
+      vars["--shadow-a1"] = "0.32";
+      vars["--shadow-a2"] = "0.15";
+    }
   }
 
   // --sprite-k 到 --body-cx: 展示框与主体框的源图几何, 立绘主体高度统一到 --foe-figure-h。

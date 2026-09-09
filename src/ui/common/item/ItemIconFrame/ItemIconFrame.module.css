@@ -1,0 +1,154 @@
+/* 1:1 物品图标框。★ 框内只放图标 —— 任何文字都必须由调用方排在框外。
+   斜切角沿用项目已有的 clip-path 语言(与 ItemSlot / bento 玻璃砖同一族)。 */
+
+.frame {
+  --rr: var(--rarity-common);
+  --rg: var(--rarity-common-glow);
+  --notch: calc(var(--icon-frame-size) * 0.13);
+
+  position: relative;
+  display: grid;
+  box-sizing: border-box;
+  width: var(--icon-frame-size, 64px);
+  height: var(--icon-frame-size, 64px);
+  flex: 0 0 var(--icon-frame-size, 64px);
+  place-items: center;
+  padding: 0;
+  color: var(--rr); /* ★ itemIcon 的 stroke="currentColor" 吃这一行 */
+  background:
+    radial-gradient(ellipse 74% 62% at 50% 108%, var(--rg), transparent 72%),
+    linear-gradient(145deg, color-mix(in srgb, var(--rr) 13%, #101719), #090f12);
+  border: 1px solid color-mix(in srgb, var(--rr) 46%, #ffffff1c);
+  clip-path: polygon(
+    var(--notch) 0,
+    100% 0,
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    0 100%,
+    0 var(--notch)
+  );
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+/* 四角 L 形标记。悬浮/选中时张开 —— 这是本框唯一的「装饰」, 不加任何文字标签。 */
+.frame::before,
+.frame::after {
+  position: absolute;
+  width: calc(var(--icon-frame-size) * 0.1);
+  height: calc(var(--icon-frame-size) * 0.1);
+  border-color: currentColor;
+  content: "";
+  opacity: 0.5;
+  transition: opacity 180ms ease, width 180ms ease, height 180ms ease;
+}
+
+.frame::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.frame::after {
+  right: 4px;
+  bottom: 4px;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+}
+
+/* ── 尺寸档 ── */
+.size-sm { --icon-frame-size: 44px; }
+.size-md { --icon-frame-size: 64px; }
+.size-lg { --icon-frame-size: 96px; }
+.size-xl { --icon-frame-size: 132px; }
+
+/* ── 五档稀有度 ── */
+.r-common { --rr: var(--rarity-common); --rg: var(--rarity-common-glow); }
+.r-fine { --rr: var(--rarity-fine); --rg: var(--rarity-fine-glow); }
+.r-rare { --rr: var(--rarity-rare); --rg: var(--rarity-rare-glow); }
+.r-epic { --rr: var(--rarity-epic); --rg: var(--rarity-epic-glow); }
+.r-legendary { --rr: var(--rarity-legendary); --rg: var(--rarity-legendary-glow); }
+
+/* 货币不足 —— 描边整体转红, 与框外文字的红字是同一档信号。 */
+.frame.short {
+  --rr: #e47970;
+  --rg: #e4797038;
+}
+
+.icon {
+  display: grid;
+  width: 72%;
+  height: 72%;
+  place-items: center;
+  line-height: 0;
+  filter: drop-shadow(0 2px 4px #0009);
+}
+
+.icon svg,
+.icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── 交互态 ── */
+button.frame {
+  cursor: var(--cursor-pointer);
+}
+
+button.frame:hover:not(:disabled),
+button.frame:focus-visible,
+.frame.selected {
+  border-color: var(--rr);
+  background:
+    radial-gradient(ellipse 74% 62% at 50% 108%, var(--rg), transparent 72%),
+    linear-gradient(145deg, color-mix(in srgb, var(--rr) 26%, #101719), #0d1518);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--rr) 22%, transparent);
+  transform: translateY(-2px);
+}
+
+button.frame:hover:not(:disabled)::before,
+button.frame:hover:not(:disabled)::after,
+button.frame:focus-visible::before,
+button.frame:focus-visible::after,
+.frame.selected::before,
+.frame.selected::after {
+  width: calc(var(--icon-frame-size) * 0.16);
+  height: calc(var(--icon-frame-size) * 0.16);
+  opacity: 1;
+}
+
+button.frame:focus-visible {
+  outline: 2px solid var(--rr);
+  outline-offset: 3px;
+}
+
+button.frame:disabled {
+  cursor: var(--cursor-default);
+}
+
+.frame.dimmed {
+  filter: saturate(0.25);
+  opacity: 0.5;
+}
+
+.frame.dimmed:hover,
+.frame.dimmed:focus-visible {
+  box-shadow: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame,
+  .frame::before,
+  .frame::after {
+    transition: none;
+  }
+
+  button.frame:hover:not(:disabled),
+  button.frame:focus-visible,
+  .frame.selected {
+    transform: none;
+  }
+}

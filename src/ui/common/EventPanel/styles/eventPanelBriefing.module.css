@@ -16,7 +16,8 @@
   position: relative;
   top: 40px;
   display: flex;
-  height: calc(100% - 40px);
+  height: auto;
+  max-height: calc(100% - 40px);
   min-height: 0;
   flex-direction: column;
   animation: copyIn 600ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -28,7 +29,7 @@
 
 [data-variant="rest"] .briefingCopy {
   top: 20px;
-  height: calc(100% - 20px);
+  max-height: calc(100% - 20px);
 }
 
 .scenePlaceholder {
@@ -184,16 +185,18 @@
 }
 
 .storyBody {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-height: 0;
   max-width: 350px;
-  max-height: none;
+  height: var(--story-body-height, auto);
+  max-height: 180px;
   margin: 0;
   overflow-y: auto;
   scrollbar-width: none;
   color: #869a9a;
   font-size: var(--ep-body);
   line-height: 1.9;
+  transition: height 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .storyBody::-webkit-scrollbar {

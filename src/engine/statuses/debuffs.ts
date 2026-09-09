@@ -62,4 +62,15 @@ export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     desc: "被瞄准。下次瞄准卡命中该目标时移除, 并触发该卡的瞄准效果。",
   },
+  jam: {
+    id: "jam",
+    name: "电磁干扰",
+    emoji: "📶",
+    kind: "debuff",
+    stackMode: "add",
+    refreshMode: "max",
+    statMods: { hitRate: -6 },
+    resistMode: "duration",
+    desc: "命中率 -6%。持续指定拍数, 未设置时持续存在。",
+  },
 };

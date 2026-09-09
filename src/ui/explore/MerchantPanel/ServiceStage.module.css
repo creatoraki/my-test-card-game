@@ -1,0 +1,145 @@
+.stage {
+  --accent: var(--event-accent, #d6b477);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* 说明条 —— 与据点卡牌商店左栏同款: 服务名 + 一句话规则。 */
+.notice {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, #ffffff14);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.notice strong {
+  color: var(--accent);
+  font-size: 22px;
+  letter-spacing: 0.1em;
+}
+
+.notice span {
+  min-width: 0;
+  color: #91a2a2;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* ── 商品货位 ── */
+.shelf {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fill, 132px);
+  justify-content: start;
+}
+
+.cell {
+  display: flex;
+  width: 132px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.cellName {
+  max-width: 100%;
+  overflow: hidden;
+  color: #cfdad4;
+  font-size: 20px;
+  line-height: 1.3;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cellNameOn {
+  color: #f0f6e9;
+}
+
+/* ── 团队 BUFF ── */
+.buffList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 12px;
+  list-style: none;
+}
+
+.buff {
+  display: grid;
+  gap: 4px 12px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.buff strong {
+  color: #edf5ec;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.buff span {
+  color: var(--accent);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.buff small {
+  grid-column: 1 / -1;
+  color: #91a2a2;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* ── 队伍 / 待办服务 ── */
+.brief {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, #ffffff1c);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, #101719), #0c1215);
+}
+
+.briefGlyph {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 48px;
+  line-height: 1;
+}
+
+.briefCopy strong {
+  color: #edf5ec;
+  font-size: 24px;
+}
+
+.briefCopy p {
+  margin: 8px 0;
+  color: #c8d8d3;
+  font-size: 20px;
+  line-height: 1.6;
+}
+
+.briefCopy small {
+  color: #91a2a2;
+  font-size: 18px;
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 16px;
+  border: 1px dashed #ffffff24;
+  color: #8ba0a0;
+  font-size: 18px;
+  text-align: center;
+}

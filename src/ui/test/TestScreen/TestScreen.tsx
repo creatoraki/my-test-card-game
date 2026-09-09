@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DsFastSlashDemo } from "@/ui/test/ds";
+import { DsDeckCardDemo } from "@/ui/test/ds";
 import { OpusHudFrameDemo, OpusKeenEdgeDemo } from "@/ui/test/opus";
 import { QwenCharacterCardDemo } from "@/ui/test/qwen";
 import { SciFiPanelDemo } from "@/ui/test/luna/SciFiPanelDemo/SciFiPanelDemo";
@@ -41,6 +41,7 @@ export function TestScreen() {
       </nav>
       <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
         {activeTab === "opus" ? <OpusHudFrameDemo /> : null}
+        {activeTab === "ds" ? <DsDeckCardDemo /> : null}
         {activeTab === "qwen" ? <QwenCharacterCardDemo /> : null}
         {activeTab === "luna" ? <SciFiPanelDemo /> : null}
       </section>

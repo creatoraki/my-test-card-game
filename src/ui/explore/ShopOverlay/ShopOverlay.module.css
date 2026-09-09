@@ -1,5 +1,12 @@
-/* 交易终端浮层。★ 外框与页眉走事件面板同一套(panel-box + EventPanelFrame),
-   这里只留「交易」自己的东西: 主色、内容区滚动与结算记录条。 */
+/* 交易终端浮层。页眉与材质仍走事件面板那一套(panel-shell + EventPanelFrame),
+   这里只留「交易」自己的东西: 主色、外框尺寸与页眉右侧的成交计数。
+
+   ★★ 尺寸例外 ★★
+   其余探索浮层(奖励 / 拾取 / 背包 / 野餐)统一吃 explorePanel 的 panel-box(936×680)。
+   交易终端**是唯一的例外**: 它要同时放下服务页签、左内容区与右侧 420 的详情栏,
+   936×680 里 BUFF 列表会被滚动截断、页签会叠字。所以这里只 composes 材质层
+   panel-shell, 宽高自己写(与 ExploreScreen.module.css 里那处「只取材质」同一手法),
+   并补回 panel-box 的三层投影。改尺寸只改下面这两行。 */
 .layer {
   position: absolute;
   inset: 0;
@@ -20,10 +27,18 @@
 }
 
 .panel {
-  composes: panel-box from "../styles/explorePanel.module.css";
+  composes: panel-shell from "../styles/explorePanel.module.css";
   --k: #d6b477;
   position: relative;
+  width: 1240px;
+  height: 820px;
+  padding: 0;
   overflow: hidden;
+  pointer-events: auto;
+  box-shadow:
+    inset 0 1px 0 var(--k),
+    0 28px 72px -34px #000000e8,
+    0 0 90px -42px var(--k);
 }
 
 .panel-reveal {
@@ -41,38 +56,7 @@
 .step {
   color: #d6b477;
   font-size: 18px;
+  font-variant-numeric: tabular-nums;
   letter-spacing: 0.12em;
   white-space: nowrap;
-}
-
-/* MerchantPanel 内部的 EventPanelBody 是唯一滚动区, 记录条钉在底边。 */
-.stage {
-  display: flex;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.notes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid #314149;
-}
-
-.notes span {
-  padding: 7px 11px;
-  border: 1px solid #d6b47755;
-  background: #d6b4770d;
-  color: #d9d8c4;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-.notes .muted {
-  border-color: #ffffff1c;
-  background: transparent;
-  color: var(--muted);
 }

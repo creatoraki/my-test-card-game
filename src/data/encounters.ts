@@ -6,6 +6,7 @@ export interface EnemyPlacement {
   dy?: number;
   scale?: number;
   flip?: boolean;
+  lift?: number; // 飞行单位离地高度(px), 只供 UI 把落地阴影放回地面
 }
 
 export type EnemySlot = string | EnemyPlacement;
@@ -22,13 +23,18 @@ export function slotDefId(slot: EnemySlot): string {
 
 export function slotPlacement(slot: EnemySlot): EnemyPlacement | undefined {
   if (typeof slot === "string") return undefined;
-  return slot.dx == null && slot.dy == null && slot.scale == null && slot.flip == null
+  return slot.dx == null &&
+    slot.dy == null &&
+    slot.scale == null &&
+    slot.flip == null &&
+    slot.lift == null
     ? undefined
     : slot;
 }
 
 const GROUND_DY = 220;
 const SPIDER_DY = GROUND_DY - 80;
+const FLY_LIFT = 140; // 飞行单位离地高度; dy 抬高多少, lift 就是多少
 
 type EnemyPlacementOptions = Omit<EnemyPlacement, "id">;
 
@@ -43,6 +49,10 @@ function placeEnemy(id: string, options: EnemyPlacementOptions = {}): EnemyPlace
   };
 }
 
+function placeFlyer(id: string, options: EnemyPlacementOptions = {}): EnemyPlacement {
+  return placeEnemy(id, { dy: GROUND_DY - FLY_LIFT, lift: FLY_LIFT, ...options });
+}
+
 const T1_SCOUT = [
   placeEnemy("maintenance-spider", { dx: -100, dy: SPIDER_DY, scale: 1.1 }),
   placeEnemy("radio-bot", { dx: 100, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
@@ -51,6 +61,11 @@ const T1_SCOUT = [
 const T1_SWEEP = [
   placeEnemy("sweep-drone", { dx: -100, scale: 1.1 }),
   placeEnemy("traffic-light-bot", { dx: 100, flip: true }),
+];
+
+const T1_DRIFT = [
+  placeFlyer("glass-jelly", { dx: -100, scale: 1.2 }),
+  placeEnemy("radio-bot", { dx: 100, scale: 0.7, flip: true }),
 ];
 
 const T2_CREW = [
@@ -65,6 +80,12 @@ const T2_BEACON = [
   placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
 ];
 
+const T2_CURRENT = [
+  placeFlyer("glass-jelly", { dx: -150, scale: 1.2 }),
+  placeEnemy("traffic-light-bot"),
+  placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
+];
+
 const T3_PATROL = [
   placeEnemy("maintenance-spider", { dx: -150, dy: SPIDER_DY, scale: 1.1 }),
   placeEnemy("sweep-drone", { scale: 1.1 }),
@@ -75,6 +96,12 @@ const T3_BLOCKADE = [
   placeEnemy("traffic-light-bot", { dx: -150 }),
   placeEnemy("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
   placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
+];
+
+const T3_SWARM = [
+  placeFlyer("glass-jelly", { dx: -110, scale: 1.2 }),
+  placeFlyer("glass-jelly", { dx: 110, dy: GROUND_DY - FLY_LIFT - 30, scale: 1.2, flip: true }),
+  placeEnemy("sweep-drone", { scale: 1.1 }),
 ];
 
 const T4_PATROL = [
@@ -100,6 +127,12 @@ const T4_ELITE_GUARD = [
 const T4_COMPACTOR = [
   placeEnemy("scrap-bot", { dx: -96 }),
   placeEnemy("pole-bot", { dx: 96, flip: true }),
+];
+
+const T4_STORM = [
+  placeFlyer("glass-jelly", { dx: -150, scale: 1.2 }),
+  placeEnemy("pole-bot"),
+  placeEnemy("maintenance-spider", { dx: 150, dy: SPIDER_DY, scale: 1.1, flip: true }),
 ];
 
 const T5_BOSS = [placeEnemy("scrap-mountain-guardian", { dy: -60 })];
@@ -141,14 +174,18 @@ const TUT_T3_RELAY = [
 export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-t1-scout", name: "初遇侦察", enemies: T1_SCOUT },
   { id: "n-t1-sweep", name: "双机清扫", enemies: T1_SWEEP },
+  { id: "n-t1-drift", name: "浮游巡检", enemies: T1_DRIFT },
   { id: "n-t2-crew", name: "清运班组", enemies: T2_CREW },
   { id: "n-t2-beacon", name: "巡回信标", enemies: T2_BEACON },
+  { id: "n-t2-current", name: "电涌信标", enemies: T2_CURRENT },
   { id: "n-t3-patrol", name: "维修巡线", enemies: T3_PATROL },
   { id: "n-t3-blockade", name: "路口封锁", enemies: T3_BLOCKADE },
+  { id: "n-t3-swarm", name: "群浮拦截", enemies: T3_SWARM },
   { id: "n-t4-patrol", name: "四方清运", enemies: T4_PATROL },
   { id: "n-t4-blockade", name: "路口压制", enemies: T4_BLOCKADE },
   { id: "n-t4-elite-guard", name: "高压拦截", enemies: T4_ELITE_GUARD },
   { id: "n-t4-compactor", name: "报废压缩机", enemies: T4_COMPACTOR },
+  { id: "n-t4-storm", name: "高压电场", enemies: T4_STORM },
   { id: "n-t5-boss", name: "回收总控", enemies: T5_BOSS },
   { id: "tut-t1-intro", name: "入门巡逻", enemies: TUT_T1_INTRO },
   { id: "tut-t1-scout", name: "初次接触", enemies: TUT_T1_SCOUT },

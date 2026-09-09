@@ -1,0 +1,142 @@
+/* 货位商品详情。稀有度只染图标框与名称 —— 整块跟着变色会读成"换了个皮肤"。 */
+.goods {
+  --rr: var(--rarity-common);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.r-common { --rr: var(--rarity-common); }
+.r-fine { --rr: var(--rarity-fine); }
+.r-rare { --rr: var(--rarity-rare); }
+.r-epic { --rr: var(--rarity-epic); }
+.r-legendary { --rr: var(--rarity-legendary); }
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headIcon {
+  flex: 0 0 auto;
+}
+
+/* 框外文字列。 */
+.headCopy {
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  color: var(--rr);
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.mult {
+  color: #c0cbc1;
+  font-size: 18px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+  gap: 8px 12px;
+  color: #8ba0a0;
+  font-size: 18px;
+}
+
+.rarity {
+  color: var(--rr);
+}
+
+.perfectness {
+  color: #c0cbc1;
+}
+
+.desc {
+  margin: 0;
+  color: #c8d8d3;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.stats {
+  display: grid;
+  margin: 0;
+  gap: 6px 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  font-size: 18px;
+}
+
+.stats > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.stats dt {
+  color: #8ba0a0;
+}
+
+.stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.good {
+  color: #8fd6a4;
+}
+
+.bad {
+  color: #e47970;
+}
+
+.bond {
+  padding: 12px 14px;
+  border-left: 2px solid var(--bond, var(--rr));
+  background: #ffffff08;
+}
+
+.bondHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.bondIcon {
+  width: 30px;
+  height: 30px;
+}
+
+.bondName {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--bond, var(--rr));
+  font-size: 20px;
+}
+
+.bondArcana {
+  color: #8ba0a0;
+  font-size: 18px;
+}
+
+.bondDesc {
+  margin: 8px 0 0;
+  color: #c8d8d3;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.note {
+  margin: 0;
+  color: #8ba0a0;
+  font-size: 18px;
+  line-height: 1.55;
+}

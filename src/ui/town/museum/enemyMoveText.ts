@@ -1,6 +1,7 @@
 import type { EffectDescriptor } from "@/engine/types";
 import { getStatusDef } from "@/engine";
 import type { EnemyMove } from "@/data/enemies";
+import { statLabel } from "@/ui/common/statGroups";
 
 const KIND_LABEL: Record<EnemyMove["kind"], string> = {
   attack: "攻击",
@@ -42,6 +43,11 @@ function effectText(effect: EffectDescriptor): string {
       const stacks = effect.stacks != null ? `${effect.stacks} 层` : effect.stacksFromStat ? "按属性计算层数" : "状态";
       const duration = effect.duration != null ? `，持续 ${effect.duration} 拍` : "";
       return `施加${name} ${stacks}${duration}`;
+    }
+    case "APPLY_STAT_MOD": {
+      const label = statLabel(effect.stat);
+      if (!label || effect.amount == null) return EFFECT_LABEL[effect.type];
+      return `${label} ${effect.amount >= 0 ? "+" : ""}${numberText(effect.amount)}${effect.pct ? "%" : ""}`;
     }
     case "HEAL":
       return effect.amount != null ? `恢复 ${numberText(effect.amount)} 点生命` : `恢复 ${numberText(effect.multiplier ?? 1)} 倍治愈力`;

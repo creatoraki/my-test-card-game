@@ -11,6 +11,8 @@ interface Props {
   /** 已选中时点亮四角发光框并提升层级, 不驱动卡牌位移。 */
   selected: boolean;
   index: number;
+  /** 激活态: 该卡此刻有额外收益(培育完成 / 费用降低 / 星辉可抵扣), 卡面走通电边棱与呼吸辉光。 */
+  activated?: boolean;
   className?: string;
   /** 覆盖四角提示框的几何与配色(--ihint-* 变量), 供不同设施调色。 */
   hintClassName?: string;
@@ -27,6 +29,7 @@ export function DeckCard({
   card,
   selected,
   index,
+  activated,
   className,
   hintClassName,
   "aria-label": ariaLabel,
@@ -63,7 +66,7 @@ export function DeckCard({
       aria-pressed={selected}
     >
       <span data-deck-card>
-        <HandCard card={card} variant="pile" playable selected={false} />
+        <HandCard card={card} variant="pile" playable selected={false} activated={activated} />
       </span>
       <InteractiveHint active={selected} className={cx(s["select-hint"], hintClassName)} />
     </button>

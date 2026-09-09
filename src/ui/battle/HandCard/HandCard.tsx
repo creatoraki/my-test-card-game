@@ -17,6 +17,7 @@ import s from "./HandCard.module.css";
 import f from "./HandCard.face.module.css";
 import "./HandCard.motion.module.css";
 import "./HandCard.layout.module.css";
+import "./HandCard.activated.module.css";
 
 interface Props {
   card: Card;
@@ -34,6 +35,12 @@ interface Props {
   onAction?: (uid: string) => void;
   cost?: number;
   starPay?: number;
+  /**
+   * 激活态: 这张卡此刻拿到了**额外收益**(培育已完成 / 生效费用被压低 / 可用星辉替代法力水晶 …)。
+   * 各种收益在卡面上统一收敛成同一套表现 —— 通电边棱 + 呼吸辉光 + 费用水晶能量环;
+   * 具体是哪一种收益仍由既有角标与右侧 CardInfoPanel 分头交代(见 HandCard.activated.module.css)。
+   */
+  activated?: boolean;
   // ⚠ 这里刻意**没有** onHover —— 悬停不再经过父级。见下方 onMouseEnter 处的注释。
 }
 
@@ -71,6 +78,7 @@ export const HandCard = memo(function HandCard({
   onAction,
   cost,
   starPay = 0,
+  activated,
 }: Props) {
   const owner = getCharacter(card.ownerCharId);
   // 被动卡: 无费用、不可打出 —— 卡面上把费用徽章换成"被动"铭牌, 且**不走不可用压暗**,
@@ -154,6 +162,9 @@ export const HandCard = memo(function HandCard({
       )}
       <CardMarks card={card} variant={variant} actionBadge={actionBadge} leaving={leaving} />
       <div className={s["hc-mover"]} data-hand-mover>
+        {/* 激活态的卡外呼吸辉光。⚠ 必须落在卡面**之外**(.hand-card 自带 clip-path, 画在卡内会被齐边削掉),
+            且排在两层投影之前 ⇒ 投影压住辉光, 卡仍读作"落在桌面上"而不是浮在光雾里。 */}
+        {activated && <span data-hand-activate-halo aria-hidden />}
         <span className={s["hc-shadow-rest"]} data-hand-shadow-rest aria-hidden />
         <span className={s["hc-shadow-lift"]} data-hand-shadow-lift aria-hidden />
         <span className={s["hc-thickness"]} data-hand-thickness aria-hidden />
@@ -182,6 +193,7 @@ export const HandCard = memo(function HandCard({
           data-purged={purged ? "" : undefined}
           data-upgraded={card.upgraded ? "" : undefined}
           data-contaminated={card.contaminated ? "" : undefined}
+          data-activated={activated ? "" : undefined}
           onTransitionEnd={(e) => {
             // 出鞘过渡(位移)结束 → 通知父级把它移出渲染列表。
             // ⚠ 出鞘方向已从横向改竖向, 但仍走 transform, 故这条判断继续成立。
@@ -210,7 +222,7 @@ export const HandCard = memo(function HandCard({
             被动
           </span>
         ) : (
-          <span className={f["hc-cost"]} aria-label="消耗法力水晶">
+          <span className={f["hc-cost"]} data-hand-cost aria-label="消耗法力水晶">
             <ManaCrystal className={f["hc-cost-crystal"]} still tone={card.cardType === "fast" ? "haste" : "mana"} />
             <span className={f["hc-cost-value"]}>{effectiveCost}</span>
           </span>

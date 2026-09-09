@@ -93,7 +93,9 @@ import s from "./CombatantView.module.css";
 
 `src/styles/tokens.css`（设计令牌）、`src/styles/base.css`（reset / `body` / `button` 皮肤）。除此之外 `src/ui` 下不应再出现普通 `.css`——`_legacy/` 是归档区，不算在内。
 
-原先还有第三处 `ui/app/viewTransition.global.css`（编队↔详情的共享元素过场，全是文档根伪元素、没有类名）。那条路线已改成编队页内部的同页元素重组，文件随之删除。现在唯一还写 `::view-transition-*` 的地方是 `ScreenTransition.module.css` 里探索→战斗的裂纹涟漪——它靠 `:root[data-vt-route="explore>battle"]` 收窄，写在 Modules 里也不受哈希影响，因为选择器括号里的名字是属性**值**不是类名。
+原先还有第三处 `ui/app/viewTransition.global.css`（编队↔详情的共享元素过场，全是文档根伪元素、没有类名）。那条路线已改成编队页内部的同页元素重组，文件随之删除。现在唯一还写 `::view-transition-*` 的地方是 `ScreenTransition.module.css` 里探索→战斗的裂纹涟漪与色调迁移第 ① 段（`vt-grade-old` / `vt-grade-new`，见 [ui.md](./ui.md) 的「探索 → 战斗的色调迁移」）——它靠 `:root[data-vt-route="explore>battle"]` 收窄，写在 Modules 里也不受哈希影响，因为选择器括号里的名字是属性**值**不是类名。
+
+⚠ 这条路线的**新快照 = 战场 + `.battle-entry-veil`（血色暗角），刻意不含裂纹幕布**。快照是像素：写进快照的层，在 VT 结束时必须在真实 DOM 里以完全相同的状态存在，否则那一帧就是一次闪烁。约束的完整清单见 [ui.md](./ui.md) 的「涟漪结束那一帧的零跳变约束」。
 
 ### @keyframes 的两条相反陷阱
 
@@ -115,7 +117,7 @@ import s from "./CombatantView.module.css";
 
 ⚠ 浮层（物品详情一族）**挂在画布内部**、用设计 px 定位，不要 portal 到 `document.body` 再手工把矩形换算成屏幕 px：`getBoundingClientRect()` 在 CSS `zoom` 子树里到底带不带 zoom，各浏览器/各渲染分支并不一致，一旦判反，`zoom === 1` 的大窗口下恒等看不出问题，窗口一小浮层就整体偏移甚至被推出可视区。画布带 `data-stage-canvas` 标记，配合 `stageHostOf` / `designScaleOf` 做坐标归一化（锚点矩形与画布矩形取自同一坐标系，相减再同除即得设计 px）。
 
-战斗画布的主要旋钮在 [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css)：`--canvas-pad`、`--stage-gap`、`--hud-h`、`--hud-party-w`、`--hud-info-w`、`--hand-plate-h`、`--pile-w`、`--pile-h`、`--pile-gap`。其中 `--hand-plate-h` 继续作为托盘衬板的高度契约，`--pile-w` / `--pile-h` / `--pile-gap` 决定右上角竖排牌堆的尺寸和间距；手牌托盘不再为牌堆额外让位。`--hud-h` 会直接决定战场可见下沿，调整它前要检查敌人脚下的背景地面线。手牌宽度使用 `--hand-card-w`，卡高由配图区、顶栏和说明区推导，不要另写固定高度——这几个变量是下发给 [HandCard.module.css](../../src/ui/battle/HandCard/HandCard.module.css) 的跨组件契约（铁律 4），卡在托盘里的版式与厚度规则住在那边。
+战斗画布的主要旋钮在 [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css)：`--canvas-pad`、`--stage-gap`、`--hud-h`、`--hud-party-w`、`--hud-info-w`、`--hand-plate-h`、`--pile-w`、`--pile-h`、`--pile-gap`。其中 `--hand-plate-h` 继续作为托盘衬板的高度契约，`--pile-w` / `--pile-h` / `--pile-gap` 决定右上角竖排牌堆的尺寸和间距；手牌托盘不再为牌堆额外让位。`--hud-h` 会直接决定战场可见下沿，调整它前要检查敌人脚下的背景地面线。手牌宽度使用 `--hand-card-w`，卡高由配图区、顶栏和说明区推导，不要另写固定高度——这几个变量是下发给 [HandCard.module.css](../../src/ui/battle/HandCard/HandCard.module.css) 的跨组件契约（铁律 4），卡在托盘里的版式与厚度规则住在那边。卡面状态被拆成四个同级文件：`HandCard.module.css`（材质、稀有度、边棱、污染）、`HandCard.face.module.css`（配图/费用/卡名/说明区）、`HandCard.motion.module.css`（悬停、选中、离场）、`HandCard.layout.module.css`（托盘与弹窗版式），以及新增的 [HandCard.activated.module.css](../../src/ui/battle/HandCard/HandCard.activated.module.css)（激活态）。后三者只做副作用导入、全部走 `[data-hand-card]` 一族属性选择器（铁律 2）；激活态**必须最后导入**，它的 `--card-edge*` 覆写与 motion 里的选中态同特指度，靠源码顺序定胜负。
 
 场景相机使用 `.battle-world` 的 `transform` / `translate` / `scale` 分工，世界、背景、氛围和单位必须作为刚体一起变换；不要让背景和单位分别套相机。画布内 `getBoundingClientRect()` 得到的是屏幕 px，定位前要换算回设计 px；相机反投影则以 `.battle-world` 的矩形抵消缩放和漂移。
 

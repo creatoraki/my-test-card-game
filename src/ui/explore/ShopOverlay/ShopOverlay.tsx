@@ -44,31 +44,26 @@ export default function ShopOverlay() {
         aria-label="交易终端"
       >
         <span className={s["panel-bar"]} aria-hidden />
-        <span className={s.frame} aria-hidden />
         <span className={s.scan} aria-hidden />
         <EventPanelFrame
           accent="#d6b477"
           kicker="交易终端 / 商店"
           title={displayedEvent.title}
-          status={<span className={s.step}>交易服务 · {displayedShop.slots.length} 槽位</span>}
+          status={
+            <span className={s.step}>
+              已成交 {displayedShop.trades} / {displayedShop.slots.length} · 每槽限购 1 次
+            </span>
+          }
           contentKey={`shop-${displayedEvent.id}`}
         >
-          <div className={s.stage}>
-            <MerchantPanel
-              session={displayedSession}
-              shop={displayedShop}
-              onBuy={buyFromShop}
-              canClose={canClose}
-              onClose={closeShop}
-            />
-            <div className={s.notes} aria-live="polite">
-              {displayedSession.pendingNotes.length ? (
-                displayedSession.pendingNotes.map((note, index) => <span key={`${note}-${index}`}>{note}</span>)
-              ) : (
-                <span className={s.muted}>本节点尚未产生额外记录。</span>
-              )}
-            </div>
-          </div>
+          <MerchantPanel
+            session={displayedSession}
+            shop={displayedShop}
+            onBuy={buyFromShop}
+            canClose={canClose}
+            onClose={closeShop}
+            notes={displayedSession.pendingNotes}
+          />
         </EventPanelFrame>
       </section>
     </div>

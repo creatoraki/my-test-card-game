@@ -7,6 +7,7 @@ import sweepDroneIdle from "@/assets/敌人立绘/清扫机器人/idle.png";
 import scrapMountainGuardianIdle from "@/assets/敌人立绘/垃圾山的守护者/idle.png";
 import maintenanceSpiderIdle from "@/assets/敌人立绘/维修蜘蛛/idle.png";
 import trafficLightBotIdle from "@/assets/敌人立绘/红绿灯机器人/idle.png";
+import glassJellyIdle from "@/assets/敌人立绘/玻璃水母/idle.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
@@ -115,6 +116,16 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     body: { x: 181, y: 239, w: 1250, h: 996 },
     // 信号机: 立柱式单位, 只做极缓的左右摆, 像悬挂的灯箱被风带着晃
     idle: { bob: 2, sway: 2.5, tilt: 0.9, dur: 3600, delay: -1800 },
+  },
+  // 玻璃水母: 1:1 素材整帧展示, 主体 992×1238(底部留白仅 16px, 触手末端即脚线)。
+  // 唯一的飞行单位 —— 使用全场最大的浮动幅度与最慢周期, 像被气流托着漂。
+  "glass-jelly": {
+    src: glassJellyIdle,
+    frames: 1,
+    frameMs: 1000,
+    sheet: { w: 1254, h: 1254 },
+    body: { x: 123, y: 0, w: 992, h: 1238 },
+    idle: { bob: 8, sway: 5, tilt: 2, dur: 3800, delay: -1200 },
   },
   "scrap-mountain-guardian": {
     src: scrapMountainGuardianIdle,

@@ -95,14 +95,52 @@
 
 :root[data-vt-route="explore>battle"]::view-transition-new(root) {
   z-index: 2;
-  filter: drop-shadow(0 0 0 rgb(255 48 48 / 1)) drop-shadow(0 0 7px rgb(255 48 48 / 0.95));
+  animation: vt-grade-new var(--vt-glass-break-ms) linear both;
+}
+
+/* ── 色调迁移 ①: 快照段 ──
+   ⚠ 此刻 old/new 都是**冻结的位图**, 页面元素的 CSS 变量已经不参与它们的样式计算,
+     所以色调只能挂在伪元素自己的 filter 上 —— 这是这两组关键帧存在的全部理由。
+   ⚠ filter 关键帧要逐帧写出**同构**的函数序列(个数与顺序一致), 少写一项浏览器就
+     退化成离散跳变, 表现为色调在某一帧硬切。下面每一帧都是
+     saturate → contrast → brightness → drop-shadow ×2, 不要图省事删掉「看起来没变」的项。
+   末帧的三个数值是与 BattleEntryGrading 的接缝, 改动见 transitions.ts 的对照说明。 */
+@keyframes vt-grade-new {
+  /* 战斗场景刚从涟漪口子里被揭开: 过曝、高饱和, 边缘带一圈血光。 */
+  from {
+    filter: saturate(1.62) contrast(1.3) brightness(1.2) drop-shadow(0 0 0 rgb(255 48 48 / 1))
+      drop-shadow(0 0 7px rgb(255 48 48 / 0.95));
+  }
+  55% {
+    filter: saturate(1.42) contrast(1.21) brightness(1.13) drop-shadow(0 0 0 rgb(255 48 48 / 0.92))
+      drop-shadow(0 0 6px rgb(255 48 48 / 0.86));
+  }
+  /* ★ 刻意停在「还没回到中性」的位置: 剩下那一小段由 BattleEntryGrading 在真实 DOM 上收尾。 */
+  to {
+    filter: saturate(1.2) contrast(1.09) brightness(1.05) drop-shadow(0 0 0 rgb(255 48 48 / 0.5))
+      drop-shadow(0 0 4px rgb(255 48 48 / 0.45));
+  }
+}
+
+/* 旧世界在被吞没的同时褪色: 饱和度抽干、压暗、对比略提 —— 读作「颜色正在离开这个场景」,
+   而不只是「有块黑圆盖上来」。与 vt-glass-impact 并列成两条 animation:
+   前者只动 transform、后者只动 filter, 互不覆盖。 */
+@keyframes vt-grade-old {
+  from {
+    filter: saturate(1) brightness(1) contrast(1);
+  }
+  to {
+    filter: saturate(0.3) brightness(0.52) contrast(1.18);
+  }
 }
 
 /* 探索场景的整张旧快照就是玻璃主体。保持它清晰可读，只做极轻的受击外扩；
    裂纹和黑色涟漪会在这张场景快照上完成碎裂与替换。 */
 :root[data-vt-route="explore>battle"]::view-transition-old(root) {
   transform-origin: var(--vt-impact-x) var(--vt-impact-y);
-  animation: vt-glass-impact var(--vt-glass-break-ms) linear both;
+  animation:
+    vt-glass-impact var(--vt-glass-break-ms) linear both,
+    vt-grade-old var(--vt-glass-break-ms) linear both;
 }
 
 @keyframes vt-glass-impact {

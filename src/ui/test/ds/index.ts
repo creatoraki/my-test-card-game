@@ -8,6 +8,7 @@ export { DsTripleSlashFx } from "./DsTripleSlashFx";
 export { DsTripleSlashDemo } from "./DsTripleSlashDemo";
 export { DsFastSlashFx } from "./DsFastSlashFx";
 export { DsFastSlashDemo } from "./DsFastSlashDemo";
+export { DsDeckCardDemo } from "./DsDeckCardDemo";
 export {
   CultivatingPlantBuffIcon,
   CultivatedPlantBuffIcon,
