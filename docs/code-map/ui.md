@@ -48,7 +48,8 @@ src/ui/
 | [town/cryo/NutritionPanel/useNutritionAssign](../../src/ui/town/cryo/NutritionPanel/useNutritionAssign.ts) | 疗养舱选人、席位落位/撤下、队伍下限、费用文案与批量确认状态的唯一交互逻辑。 |
 | [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 疗养舱四席位阵列：按明确席位号展示疗养中、待入舱、空置和未扩建四态，锁定角色不可撤出，空席位通过悬浮提示引导点击分配。 |
 | [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 疗养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、受限原因与已入席位角标。 |
-| [town/cryo/NutritionTechTree](../../src/ui/town/cryo/NutritionTechTree/) | 疗养舱横向科技树：直线连接核心与两条链式分支；节点状态由 `nutritionTechState` 驱动，右栏详情固定展示效果、消耗和研究按钮。 |
+| [town/cryo/NutritionTechTree](../../src/ui/town/cryo/NutritionTechTree/) | 疗养舱横向科技树：直线连接核心与两条链式分支；节点状态由 `nutritionTechState` 驱动，右栏详情固定展示效果、消耗和研究按钮，连边算法已抽到 `ui/common/techTree`。 |
+| [town/shop/CardShopPanel/UpgradeTree](../../src/ui/town/shop/CardShopPanel/UpgradeTree/) | 卡牌商店设施升级科技树：展柜扩容与补货链路两条分支，左侧 SVG 节点树配右侧固定详情栏；节点材料格复用 `ItemSlot`。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/storage/EquipTargetList](../../src/ui/town/storage/EquipTargetList/EquipTargetList.tsx) | 升阶与重铸共用的装备目标列：合并仓库装备和三槽穿戴件，支持武器/防具/饰品筛选、队员角标和 `ItemTooltip`。 |
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
@@ -318,6 +319,6 @@ src/ui/
 
 ⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
 
-商店场景的 `StockPanels` 现在包含「商店 / 回收台 / 卡牌商店」三条入口，三者共用 `PanelShell` 与 `usePanelMorph`；`CardShopPanel` 采用「左卡架 + 右详情栏」两栏布局（与博物馆卡牌大厅同款范式）：`CardShopShelf` 承载说明条、角色 Tab 筛选与展示型卡架，`CardShopSlotCard` 只画卡面 + 角色色条 + 价格角标（售出货位灰化并盖印章），选中态复用 `DeckCard` 的 `InteractiveHint` 四角框并覆写成商店暖金；`CardShopDetail` 用 `HandCard` + `CardKeywordNotes` 展示放大卡面与关键词说明，并作为唯一的购买入口。货架刷新与设施升级留在底部操作栏，升级弹层的材料格复用 `ItemSlot`。`DeckCard` 为此新增 `hintClassName` 透传，供各设施单独给四角框调色。
+商店场景的 `StockPanels` 现在包含「商店 / 回收台 / 卡牌商店」三条入口，三者共用 `PanelShell` 与 `usePanelMorph`；`CardShopPanel` 采用「左卡架 + 右详情栏」两栏布局（与博物馆卡牌大厅同款范式）：`CardShopShelf` 承载说明条、角色 Tab 筛选与展示型卡架，`CardShopSlotCard` 只画卡面 + 角色色条 + 价格角标（售出货位灰化并盖印章），选中态复用 `DeckCard` 的 `InteractiveHint` 四角框并覆写成商店暖金；`CardShopDetail` 用 `HandCard` + `CardKeywordNotes` 展示放大卡面与关键词说明，并作为唯一的购买入口。货架刷新与设施升级留在底部操作栏；设施升级弹层改为左侧科技树与右侧节点详情，详情中的材料格复用 `ItemSlot`。`DeckCard` 为此新增 `hintClassName` 透传，供各设施单独给四角框调色。
 
 我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。

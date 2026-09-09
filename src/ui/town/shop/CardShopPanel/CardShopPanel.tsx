@@ -3,7 +3,7 @@
 
 import { useMemo, useState, type MouseEvent } from "react";
 import {
-  cardShopLevel,
+  cardShopSlots,
   cardShopLevelOf,
   cardShopRefreshCost,
 } from "@/data";
@@ -28,8 +28,8 @@ export function CardShopPanel() {
   const [upgrade, setUpgrade] = useState<UpgradeState | null>(null);
 
   const level = cardShopLevelOf(cardShop.techs);
-  const levelConfig = cardShopLevel(level);
-  const refreshCost = cardShopRefreshCost(level, cardShop.refreshes);
+  const slotCount = cardShopSlots(cardShop.techs);
+  const refreshCost = cardShopRefreshCost(cardShop.techs, cardShop.refreshes);
   const visibleSlots = useMemo(
     () => selectedChar === "all"
       ? cardShop.slots
@@ -69,7 +69,7 @@ export function CardShopPanel() {
       <div className={s.foot}>
         <div className={s.summary}>
           <span>余额 {loot.toLocaleString()} 积分</span>
-          <span>等级 {level} · {levelConfig.slotCount} 个货位</span>
+          <span>等级 {level} · {slotCount} 个货位</span>
           <span className={s.note}>{note}</span>
         </div>
         <div className={s.actions}>

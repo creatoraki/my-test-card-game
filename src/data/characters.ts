@@ -205,4 +205,43 @@ export const CHARACTERS: CharacterDef[] = [
       rare: ["terminal-mixture", "resonance-tuning"],
     },
   },
+  {
+    id: "actuary",
+    name: "精算师",
+    emoji: "🧾",
+    color: "#f2c66d",
+    // ⚠ 占位: 面板照抄首版基准, 专属数值待设计。
+    base: makeStats({
+      maxHp: 50,
+      attack: 100,
+      healPower: 100,
+      defense: 0,
+      initiative: 20,
+      critRate: 5,
+      critDamage: 150,
+      handLimit: 0,
+      drawCount: 0,
+    }),
+    startingCardIds: [
+      basicCardId("actuary", "attack"),
+      basicCardId("actuary", "heal"),
+      basicCardId("actuary", "guard"),
+      "initial-premium",
+      "emergency-disbursement",
+    ],
+    pools: {
+      common: [
+        "initial-premium",
+        "emergency-disbursement",
+        "echo-consultation",
+        "deductible-clause",
+        "early-claim",
+        "policy-pledge",
+        "risk-reserve",
+        "subrogation",
+      ],
+      uncommon: [],
+      rare: [],
+    },
+  },
 ];

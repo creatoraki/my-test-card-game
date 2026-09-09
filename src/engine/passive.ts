@@ -55,7 +55,7 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
       const effects = card.passive.effectsByTrigger?.[event.type] ?? card.passive.effects;
       let resolution!: EffectResolution;
       const recorded = withHitRecorder(() => {
-        resolution = resolveEffects(state, effects, card.ownerCharId, undefined);
+        resolution = resolveEffects(state, effects, card.ownerCharId, event.targetId);
       });
       checkEnd(state);
       if (recorder) recordCardTrigger(state, card, beforeHp, recorder, resolution, false, recorded);

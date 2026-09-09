@@ -1,0 +1,214 @@
+.tree {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 18px 20px;
+  border: 1px solid var(--asm-line, #d6b47745);
+  background: linear-gradient(150deg, #241a10e6, #15110ee6 68%, #100e0ce6);
+  color: var(--asm-ink, #f2e6d8);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.treeHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--asm-line, #d6b47745);
+}
+
+.kicker {
+  color: var(--asm-glow, #d6b477);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.tree h3 {
+  margin: 6px 0 0;
+  color: var(--asm-ink, #f2e6d8);
+  font-size: 24px;
+  letter-spacing: 3px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  color: var(--asm-ink-dim, #a5937f);
+  font-size: 18px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legendDone { background: var(--asm-glow, #d6b477); }
+.legendOpen { background: color-mix(in srgb, var(--asm-glow, #d6b477) 54%, transparent); }
+.legendDim { background: var(--asm-ink-dim, #a5937f); opacity: .46; }
+
+.stage {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 12px 0 0;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: var(--asm-glow, #d6b477);
+  stroke-linecap: round;
+  stroke-width: 5;
+  stroke-dasharray: 520;
+  stroke-dashoffset: 520;
+  animation: edgeDraw 420ms ease-out 460ms both;
+}
+
+.line.is-done {
+  opacity: .95;
+  filter: drop-shadow(0 0 8px var(--asm-glow, #d6b477));
+}
+
+.line.is-open {
+  opacity: .55;
+  stroke-width: 4;
+}
+
+.line.is-dim {
+  opacity: .24;
+  stroke-width: 3;
+  stroke-dasharray: 8 8;
+}
+
+.core circle {
+  fill: #2a1d11;
+  stroke: var(--asm-glow, #d6b477);
+  stroke-width: 2;
+}
+
+.core .coreInner {
+  fill: color-mix(in srgb, var(--asm-glow, #d6b477) 16%, transparent);
+  stroke-width: 1;
+  opacity: .8;
+}
+
+.core text {
+  fill: var(--asm-ink, #f2e6d8);
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.node {
+  cursor: pointer;
+  outline: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nodeEnter 360ms cubic-bezier(.2, .72, .28, 1) calc(460ms + var(--node-delay, 0ms)) both;
+}
+
+.hit { fill: transparent; }
+
+.nodeBody {
+  fill: #2a1d11;
+  stroke: var(--asm-ink-dim, #a5937f);
+  stroke-width: 2;
+  transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease;
+}
+
+.nodeCore {
+  fill: #17100b;
+  stroke: var(--asm-ink-dim, #a5937f);
+  stroke-width: 1;
+}
+
+.node.is-slot .nodeCore {
+  fill: color-mix(in srgb, var(--asm-glow, #d6b477) 32%, #17100b);
+}
+
+.node.is-refresh .nodeCore {
+  fill: color-mix(in srgb, var(--asm-select, #f0d49b) 24%, #17100b);
+}
+
+.icon {
+  color: var(--asm-ink-dim, #a5937f);
+}
+
+.nodeLabel {
+  fill: var(--asm-ink-dim, #a5937f);
+  font-family: var(--font-family);
+  font-size: 18px;
+  text-anchor: middle;
+}
+
+.node.is-available .nodeBody,
+.node.is-lacking .nodeBody {
+  fill: color-mix(in srgb, var(--asm-glow, #d6b477) 22%, #2a1d11);
+  stroke: color-mix(in srgb, var(--asm-glow, #d6b477) 68%, white);
+}
+
+.node.is-done .nodeBody {
+  fill: var(--asm-glow, #d6b477);
+  stroke: var(--asm-select, #f0d49b);
+  filter: drop-shadow(0 0 13px var(--asm-glow, #d6b477));
+}
+
+.node.is-done .nodeCore {
+  fill: color-mix(in srgb, var(--asm-glow, #d6b477) 65%, #100e0c);
+}
+
+.node.is-done .icon,
+.node.is-done .nodeLabel {
+  color: #241a10;
+  fill: #241a10;
+}
+
+.node.is-lacking .nodeBody { stroke: #e47970; }
+.node.is-locked { --node-final-opacity: .48; }
+
+.node.is-selected .nodeBody,
+.node:hover .nodeBody,
+.node:focus-visible .nodeBody {
+  stroke: var(--asm-select, #f0d49b);
+  stroke-width: 3;
+}
+
+.node:focus-visible .nodeBody {
+  filter: drop-shadow(0 0 10px var(--asm-glow, #d6b477));
+}
+
+@keyframes edgeDraw {
+  from { stroke-dashoffset: 520; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes nodeEnter {
+  from { opacity: 0; transform: scale(.72); }
+  to { opacity: var(--node-final-opacity, 1); transform: scale(1); }
+}

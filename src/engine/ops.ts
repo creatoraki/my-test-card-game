@@ -53,6 +53,14 @@ function roll(state: BattleState, chancePct: number): boolean {
   return rngFloat(state) * 100 < chancePct;
 }
 
+function noteAttacked(state: BattleState, dmg: DamageCtx): void {
+  const source = dmg.sourceId ? state.combatants[dmg.sourceId] : undefined;
+  const target = state.combatants[dmg.targetId];
+  if (!dmg.isAttack || source?.team !== "enemy" || target?.team !== "player") return;
+  if (!state.attackedThisRound.includes(target.id)) state.attackedThisRound.push(target.id);
+  ops.firePassive(state, { type: "allyAttacked", targetId: target.id });
+}
+
 export function markDead(state: BattleState, cmb: Combatant): void {
   if (!cmb.alive) return;
   if (cmb.team === "enemy") {
@@ -178,6 +186,7 @@ export function dealDamage(
     if (shieldBefore > 0 && target.shield === 0)
       for (const inst of [...target.statuses])
         STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
+    noteAttacked(state, dmg);
     cleanup(target);
     if (dmg.fatal) markDead(state, target);
     recordHitPart(targetId, 0);
@@ -211,6 +220,7 @@ export function dealDamage(
   if (shieldBefore > 0 && target.shield === 0)
     for (const inst of [...target.statuses])
       STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
+  noteAttacked(state, dmg);
   cleanup(target);
 
   if (target.team !== "player" && target.hp <= 0) markDead(state, target);

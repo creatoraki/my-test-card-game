@@ -21,7 +21,6 @@ import {
 import {
   CHARACTERS,
   bondPool,
-  cardShopLevelOf,
   getCharacter,
   getItemDef,
   makeCard,
@@ -315,11 +314,11 @@ function freshCharacter(def: CharacterDef): CharacterState {
   };
 }
 
-// ★ 开局醒着的是 INITIAL_AWAKENED 上的人(剑士 + 预言家 + 植物学家), 其余全躺在冬眠仓等着被解封。
+// ★ 开局醒着的是 INITIAL_AWAKENED 上的人, 其余全躺在冬眠仓等着被解封。
 //   characters 仍然**全量**建档 —— 未唤醒角色也有一份初始档案, 解封那一刻直接可用,
 //   awaken() 不需要建档, 各处 characters[id] 也不必判空。
 // 开局就已唤醒并直接上阵的角色 id(按顺序)。
-const INITIAL_AWAKENED = ["swordsman", "prophet", "botanist", "alchemist"];
+const INITIAL_AWAKENED = ["swordsman", "prophet", "botanist", "alchemist", "actuary"];
 const INITIAL_TEST_EXP = 2000;
 const INITIAL_POLLUTION = 30;
 
@@ -1002,7 +1001,7 @@ export const useTownStore = create<TownStore>()(
             slots: rollCardShopStock(
               nextCharacters,
               awakened,
-              cardShopLevelOf(cardShop.techs),
+              cardShop.techs,
             ),
           },
         });

@@ -40,7 +40,8 @@ export type CounterSource =
   | "lastSquadBuffConsumed"
   | "lastConsumedStatusStacks"
   | "lastRemovedStatusCount"
-  | "activeCardResonance";
+  | "activeCardResonance"
+  | "partyInsuranceStacks";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -123,7 +124,8 @@ export type EffectType =
   | "CONSUME_STATUS"
   | "SPREAD_STATUS"
   | "TICK_STATUS"
-  | "RESONATE";
+  | "RESONATE"
+  | "SETTLE_INSURANCE";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -141,6 +143,7 @@ export interface EffectDescriptor {
   statusData?: Record<string, number>; // APPLY_STATUS: 状态的结构化运行时参数
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
+  maxStacks?: number; // CONSUME_STATUS: 单次最多消耗的层数
   stacksFromStat?: { stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 层数 = 施法者属性 × 倍率
   spreadPct?: number; // SPREAD_STATUS: 复制给其他目标的状态层数比例
   aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
@@ -165,6 +168,7 @@ export interface EffectDescriptor {
   maxBonusHits?: number; // DAMAGE: 追加段数上限, 缺省不限
   bonusMultiplierFrom?: CounterSource; // DAMAGE: 按计数加算到伤害倍率上(不是乘算)
   bonusMultiplierPer?: number; // DAMAGE: 每 1 点计数加算的倍率
+  maxBonusMultiplier?: number; // DAMAGE: bonusMultiplierFrom 的加算倍率上限
   // DAMAGE: 按目标状况逐目标加算倍率。targetHpBelowPct 用 value 传阈值(百分比)。
   damageBonus?: {
     when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct" | "targetHasDebuff";
@@ -189,7 +193,9 @@ export interface EffectDescriptor {
     | "fastCardsInHandAtLeast"
     | "counterAtLeast"
     | "counterBelow"
-    | "eventTargetHasStatus"; // 满足条件时才结算
+    | "eventTargetHasStatus"
+    | "targetAttackedThisRound"
+    | "targetNotAttackedThisRound"; // 满足条件时才结算
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
   conditionCounter?: CounterSource;
   conditionStatus?: string;
@@ -284,7 +290,8 @@ export type PassiveTriggerId =
   | "cardDrawn"
   | "roundEnd"
   | "enemyKilled"
-  | "assembleSuccess";
+  | "assembleSuccess"
+  | "allyAttacked";
 
 export interface PassiveDef {
   on: PassiveTriggerId | PassiveTriggerId[];
@@ -396,6 +403,7 @@ export interface StatusHooks {
   onAfterAttacked?: (c: StatusCtx, dmg: DamageCtx) => void; // 荆棘等
   onShieldBroken?: (c: StatusCtx) => void; // 护盾被伤害击破时
   onRoundStart?: (c: StatusCtx) => void; // 我方回合开始(抽牌之前)
+  onExpire?: (c: StatusCtx) => void; // 状态在本次节拍后过期时触发一次
 }
 
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
@@ -626,6 +634,10 @@ export interface BattleState {
   challengeFocusTargetId: string | null;
   // 抢拍: 已对哪一回合做过判定 —— 保证每回合只在敌人第一次行动前判一次。
   challengeEnemyActRound: number | null;
+  // 本回合实际被敌方攻击命中的我方单位 id, 回合开始清空。
+  attackedThisRound: string[];
+  // 回响网络本回合新增人数上限为 1。
+  echoGainedThisRound: boolean;
   rngState: number;
   log: LogEntry[];
 }

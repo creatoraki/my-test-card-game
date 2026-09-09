@@ -76,6 +76,7 @@ export type { AllyInit, BattleSetup, PlayBlock, PlayRecorder } from "./battle";
 export { runEnemyFlee } from "./flee";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget } from "./targeting";
 export { getStatus } from "./ops";
+export { growInsurance, insuranceStacksOf, partyInsuranceStacks, settleInsurance } from "./insurance";
 export { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 export { moveToDiscard } from "./discard";
 export { isPassive, playableHandUids, handPassiveUids } from "./passive";

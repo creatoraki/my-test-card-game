@@ -1,4 +1,6 @@
 import type { Rarity } from "@/engine";
+import type { ItemStack } from "@/items/types";
+import { techCostCheck } from "./techCost";
 
 export const CARD_SHOP_PRICE: Record<Rarity, number> = {
   common: 150,
@@ -6,25 +8,17 @@ export const CARD_SHOP_PRICE: Record<Rarity, number> = {
   rare: 1000,
 };
 
-export interface CardShopLevel {
-  slotCount: number;
-  refreshBase: number;
-  refreshStep: number;
-}
-
-export const CARD_SHOP_LEVELS: Record<number, CardShopLevel> = {
-  1: { slotCount: 6, refreshBase: 100, refreshStep: 100 },
-  2: { slotCount: 7, refreshBase: 100, refreshStep: 100 },
-  3: { slotCount: 7, refreshBase: 90, refreshStep: 90 },
-  4: { slotCount: 8, refreshBase: 90, refreshStep: 90 },
-  5: { slotCount: 8, refreshBase: 80, refreshStep: 80 },
-};
-
 export const CARD_SHOP_MAX_LEVEL = 5;
+export const CARD_SHOP_TECH_CANVAS = { width: 900, height: 480 } as const;
+
+export type CardShopTechKind = "slot" | "refresh";
 
 export interface CardShopTech {
   id: string;
-  tier: number;
+  kind: CardShopTechKind;
+  requires: string[];
+  x: number;
+  y: number;
   name: string;
   desc: string;
   loot: number;
@@ -34,7 +28,10 @@ export interface CardShopTech {
 export const CARD_SHOP_TECHS: CardShopTech[] = [
   {
     id: "slot-1",
-    tier: 1,
+    kind: "slot",
+    requires: [],
+    x: 340,
+    y: 150,
     name: "展柜扩容 I",
     desc: "槽位 6 → 7",
     loot: 400,
@@ -42,7 +39,10 @@ export const CARD_SHOP_TECHS: CardShopTech[] = [
   },
   {
     id: "refresh-1",
-    tier: 2,
+    kind: "refresh",
+    requires: [],
+    x: 340,
+    y: 340,
     name: "补货链路优化 I",
     desc: "刷新价 100 → 90",
     loot: 900,
@@ -53,7 +53,10 @@ export const CARD_SHOP_TECHS: CardShopTech[] = [
   },
   {
     id: "slot-2",
-    tier: 3,
+    kind: "slot",
+    requires: ["slot-1"],
+    x: 640,
+    y: 150,
     name: "展柜扩容 II",
     desc: "槽位 7 → 8",
     loot: 1600,
@@ -65,7 +68,10 @@ export const CARD_SHOP_TECHS: CardShopTech[] = [
   },
   {
     id: "refresh-2",
-    tier: 4,
+    kind: "refresh",
+    requires: ["refresh-1"],
+    x: 640,
+    y: 340,
     name: "补货链路优化 II",
     desc: "刷新价 90 → 80",
     loot: 2600,
@@ -76,16 +82,25 @@ export const CARD_SHOP_TECHS: CardShopTech[] = [
   },
 ];
 
-export const cardShopLevel = (level: number): CardShopLevel =>
-  CARD_SHOP_LEVELS[level] ?? CARD_SHOP_LEVELS[1];
+const SLOT_STEPS = [6, 7, 8];
+const REFRESH_STEPS = [100, 90, 80];
 
-export const cardShopRefreshCost = (level: number, refreshes: number): number => {
-  const config = cardShopLevel(level);
-  return config.refreshBase + Math.max(0, refreshes) * config.refreshStep;
-};
+export function cardShopSlots(done: string[]): number {
+  const count = CARD_SHOP_TECHS.filter(
+    (tech) => tech.kind === "slot" && done.includes(tech.id),
+  ).length;
+  return SLOT_STEPS[Math.min(count, SLOT_STEPS.length - 1)];
+}
 
-export function cardShopTechsOfTier(level: number): CardShopTech[] {
-  return CARD_SHOP_TECHS.filter((tech) => tech.tier === level);
+export function cardShopRefreshBase(done: string[]): number {
+  const count = CARD_SHOP_TECHS.filter(
+    (tech) => tech.kind === "refresh" && done.includes(tech.id),
+  ).length;
+  return REFRESH_STEPS[Math.min(count, REFRESH_STEPS.length - 1)];
+}
+
+export function cardShopRefreshCost(done: string[], refreshes: number): number {
+  return cardShopRefreshBase(done) * (1 + Math.max(0, refreshes));
 }
 
 export function cardShopLevelOf(doneTechs: string[]): number {
@@ -93,5 +108,18 @@ export function cardShopLevelOf(doneTechs: string[]): number {
 }
 
 export function isCardShopTechAvailable(tech: CardShopTech, done: string[]): boolean {
-  return tech.tier === cardShopLevelOf(done) && !done.includes(tech.id);
+  return !done.includes(tech.id) && tech.requires.every((id) => done.includes(id));
+}
+
+export type CardShopTechState = "done" | "available" | "lacking" | "locked";
+
+export function cardShopTechState(
+  tech: CardShopTech,
+  done: string[],
+  loot: number,
+  storage: ItemStack[],
+): CardShopTechState {
+  if (done.includes(tech.id)) return "done";
+  if (!isCardShopTechAvailable(tech, done)) return "locked";
+  return techCostCheck(tech, loot, storage).ok ? "available" : "lacking";
 }

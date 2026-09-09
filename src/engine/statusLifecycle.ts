@@ -26,6 +26,12 @@ function runTempo(state: BattleState, ownerId: string): void {
     const def = STATUS_DEFS[inst.id];
     if (def) tickStatus(inst, def, tempo);
   }
+  for (const inst of [...cmb.statuses]) {
+    if (!cmb.statuses.includes(inst)) continue;
+    const def = STATUS_DEFS[inst.id];
+    if (def && ((inst.duration != null && inst.duration <= 0) || inst.stacks <= 0))
+      def.hooks?.onExpire?.(ctxFor(state, ownerId, inst));
+  }
   cleanup(cmb);
   if (cmb.team === "enemy" && cmb.hp <= 0) markDead(state, cmb);
   if (cmb.team === "player") {

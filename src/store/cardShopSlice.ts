@@ -2,8 +2,7 @@ import type { Rarity } from "@/engine";
 import {
   CARD_SHOP_PRICE,
   CARD_SHOP_TECHS,
-  cardShopLevel,
-  cardShopLevelOf,
+  cardShopSlots,
   cardShopRefreshCost,
   isCardShopTechAvailable,
 } from "@/data/cardShop";
@@ -39,7 +38,7 @@ function randomIndex(length: number, rand: () => number): number {
 export function rollCardShopStock(
   characters: Record<string, CharacterState>,
   awakened: string[],
-  level: number,
+  techs: string[],
   rand = Math.random,
 ): CardShopSlot[] {
   const candidates = awakened
@@ -47,7 +46,7 @@ export function rollCardShopStock(
     .filter((character): character is CharacterState => Boolean(character));
   if (!candidates.length) return [];
 
-  const slotCount = cardShopLevel(level).slotCount;
+  const slotCount = cardShopSlots(techs);
   const used = new Set<string>();
   const slots: CardShopSlot[] = [];
 
@@ -90,7 +89,7 @@ export function freshCardShop(
     techs: [],
     day,
     refreshes: 0,
-    slots: rollCardShopStock(characters, awakened, 1),
+    slots: rollCardShopStock(characters, awakened, []),
   };
 }
 
@@ -107,8 +106,7 @@ export function createCardShopSlice(
   return {
     refreshCardShop: () => {
       const { cardShop, loot, characters, awakened } = get();
-      const level = cardShopLevelOf(cardShop.techs);
-      const cost = cardShopRefreshCost(level, cardShop.refreshes);
+      const cost = cardShopRefreshCost(cardShop.techs, cardShop.refreshes);
       if (loot < cost) return;
 
       set({
@@ -116,7 +114,7 @@ export function createCardShopSlice(
         cardShop: {
           ...cardShop,
           refreshes: cardShop.refreshes + 1,
-          slots: rollCardShopStock(characters, awakened, level),
+          slots: rollCardShopStock(characters, awakened, cardShop.techs),
         },
       });
     },

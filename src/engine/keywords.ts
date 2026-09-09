@@ -2,13 +2,16 @@
 // 卡牌词条注册表。新增词条只需在这里注册判定与触发后的副作用。
 // ============================================================================
 
-import type { BattleState, Card } from "./types";
+import type { BattleState, Card, EffectDescriptor } from "./types";
 import { ops } from "./ops";
 import { RULES } from "./rules";
+import { baseEffectsOf } from "./cardEffects";
+import { resolveEffects } from "./effects";
 
 export interface KeywordCtx {
   primaryId?: string;
   hitIds: string[];
+  baseEffects?: EffectDescriptor[];
 }
 
 export interface KeywordDef {
@@ -44,6 +47,29 @@ export const KEYWORD_DEFS: Record<string, KeywordDef> = {
         }
       }
       return triggered;
+    },
+  },
+  echo: {
+    id: "echo",
+    name: "回响",
+    desc: "卡牌的基础效果会对所有带有回响的其他我方单位重放一次；打出后主目标获得回响。",
+    triggers: () => 0,
+    onTriggered: (state, card, ctx) => {
+      const echoedAllies = state.playerIds.filter((id) => {
+        const ally = state.combatants[id];
+        return ally?.alive && id !== ctx.primaryId && ally.statuses.some((status) => status.id === "echo");
+      });
+      const baseEffects = ctx.baseEffects ?? baseEffectsOf(card);
+      for (const id of echoedAllies) resolveEffects(state, baseEffects, card.ownerCharId, id);
+
+      const primary = ctx.primaryId ? state.combatants[ctx.primaryId] : undefined;
+      if (primary?.alive && primary.team === "player") {
+        const alreadyEchoed = primary.statuses.some((status) => status.id === "echo" && status.stacks > 0);
+        if (alreadyEchoed || !state.echoGainedThisRound) {
+          ops.applyStatus(state, primary.id, "echo", 1, 1);
+          if (!alreadyEchoed) state.echoGainedThisRound = true;
+        }
+      }
     },
   },
 };
@@ -89,6 +115,16 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     id: "assemble",
     name: "组装",
     desc: "获得对应的组装部件；集齐任意 3 种时触发组装成功。",
+  },
+  {
+    id: "echo",
+    name: "回响",
+    desc: "卡牌的基础效果会对所有带有回响的其他我方单位重放一次；打出后主目标获得回响。",
+  },
+  {
+    id: "emergency",
+    name: "急诊",
+    desc: "目标本回合被攻击过时，改为结算急诊分支效果。",
   },
 ];
 

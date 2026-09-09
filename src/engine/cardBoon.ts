@@ -25,6 +25,7 @@ const IDLE_CONDITIONS: readonly string[] = [
   "noFastPlaysThisRound",
   "counterBelow",
   "eventTargetHasStatus",
+  "targetNotAttackedThisRound",
 ] as const;
 
 function hasCondition(effect: EffectDescriptor): boolean {

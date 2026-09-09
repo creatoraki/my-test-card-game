@@ -33,6 +33,7 @@ import { STATUS_DEFS } from "./statuses";
 import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
 import { drawCards } from "./deck";
 import { resolveEffects } from "./effects";
+import { baseEffectsOf } from "./cardEffects";
 import { cardCost, manaCostOf, starlightPayment } from "./cost";
 import { startCharge } from "./ai";
 import { advanceTick, flushPendingActs } from "./scheduler";
@@ -209,6 +210,8 @@ export function createBattle(
     challengeKillRound: null,
     challengeFocusTargetId: null,
     challengeEnemyActRound: null,
+    attackedThisRound: [],
+    echoGainedThisRound: false,
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
     lastDiscardBatch: 0,
@@ -274,6 +277,8 @@ export function startRound(state: BattleState): void {
   state.redrawsThisRound = 0;
   state.waitsThisRound = 0;
   state.challengeFocusTargetId = null;
+  state.attackedThisRound = [];
+  state.echoGainedThisRound = false;
   state.discardsThisRound = 0;
   state.lastDiscardBatch = 0;
   state.lastDiscardBatchFast = 0;
@@ -431,8 +436,8 @@ export function playCard(
       try {
         const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
-        const activeEffects = cultivated && cultivateMode === "replace" ? card.cultivate!.effects : card.effects;
-        mergeCardResolution(resolveEffects(state, activeEffects, card.ownerCharId, primaryId));
+        const baseEffects = baseEffectsOf(card);
+        mergeCardResolution(resolveEffects(state, baseEffects, card.ownerCharId, primaryId));
 
         if (cultivated && cultivateMode !== "replace")
           mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
@@ -443,14 +448,13 @@ export function playCard(
           state.pendingChoice.sourceCardUid = uid;
         }
         resetCultivate(card);
-
         if (card.exhaust) state.exhaust.push(uid);
         else moveToDiscard(state, uid, "play");
 
         for (const ref of card.keywords ?? []) {
           const def = KEYWORD_DEFS[ref.id];
           if (!def) continue;
-          const ctx = { primaryId, hitIds: [...cardHit] };
+          const ctx = { primaryId, hitIds: [...cardHit], baseEffects };
           const times = def.triggers(state, card, ctx);
           for (let i = 0; i < times; i++)
             mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));

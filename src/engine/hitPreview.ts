@@ -65,10 +65,11 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
 
   return withPlayStatBonuses(state, card, () => {
     const fixed = effect.amount != null;
-    const bonusMult =
+    const rawBonusMult =
       effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
         ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
         : 0;
+    const bonusMult = Math.min(effect.maxBonusMultiplier ?? Infinity, rawBonusMult);
       const valueScale = effect.scaleByCounter
         ? Math.min(
             effect.scaleByCounter.max ?? Infinity,

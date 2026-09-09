@@ -1,4 +1,5 @@
 import type { BattleState, Card, CounterSource } from "./types";
+import { partyInsuranceStacks } from "./insurance";
 
 export function counterOf(state: BattleState, source: CounterSource, card?: Card): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
@@ -13,6 +14,7 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
   if (source === "lastConsumedStatusStacks") return state.lastConsumedStatusStacks;
   if (source === "lastRemovedStatusCount") return state.lastRemovedStatusCount;
   if (source === "activeCardResonance") return card ? card.resonanceStacks ?? 0 : state.activeCardResonance;
+  if (source === "partyInsuranceStacks") return partyInsuranceStacks(state);
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((played) => played.cardType === "fast").length;
   return state.playedThisRound.length;

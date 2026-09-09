@@ -59,6 +59,7 @@ export function effectDisplayValue(
     case "DRAW":
     case "GAIN_RESOURCE":
     case "DISCARD":
+    case "SETTLE_INSURANCE":
       return effect.amount ?? 0;
     default:
       return effect.amount ?? 0;

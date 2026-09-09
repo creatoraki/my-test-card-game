@@ -17,6 +17,7 @@ import { advanceCultivate, resetCultivate } from "./cultivate";
 import { isPassive, playableHandUids } from "./passive";
 import { runStatusTickNow } from "./statusLifecycle";
 import { addPollution } from "./pollution";
+import { settleInsurance } from "./insurance";
 import {
   ASSEMBLE_IDS,
   gainSquadBuff,
@@ -47,7 +48,12 @@ function sourceStatValue(state: BattleState, source: Combatant | undefined, stat
 
 // ★ 导出给 hitPreview 复用 —— 预览要判定条件型 PLAY_STAT_BONUS 当前是否成立,
 //   两边各写一份的话条件枚举一改就会漏。
-export function conditionMet(state: BattleState, effect: EffectDescriptor, card?: Card): boolean {
+export function conditionMet(
+  state: BattleState,
+  effect: EffectDescriptor,
+  card?: Card,
+  targetIds?: string[],
+): boolean {
   if (effect.condition === "discardedThisRound")
     return counterOf(state, "discardsThisRound") > 0;
   if (effect.condition === "noFastPlaysThisRound")
@@ -71,6 +77,13 @@ export function conditionMet(state: BattleState, effect: EffectDescriptor, card?
           (status) => status.id === effect.conditionStatus && status.stacks > 0,
         ),
     );
+  if (effect.condition === "targetAttackedThisRound" || effect.condition === "targetNotAttackedThisRound") {
+    const targetWasAttacked =
+      targetIds == null
+        ? state.attackedThisRound.length > 0
+        : targetIds.some((id) => state.attackedThisRound.includes(id));
+    return effect.condition === "targetAttackedThisRound" ? targetWasAttacked : !targetWasAttacked;
+  }
   return true;
 }
 
@@ -163,7 +176,7 @@ function applyEffect(
   targetIds: string[],
 ): EffectResolution {
   const resolution: EffectResolution = { missed: [], hit: [] };
-  if (!conditionMet(state, effect)) return resolution;
+  if (!conditionMet(state, effect, undefined, targetIds)) return resolution;
   const amount = effect.amount ?? 0;
   const unblockable = effect.flags?.includes("unblockable");
   const mustHit = effect.flags?.includes("mustHit");
@@ -174,10 +187,11 @@ function applyEffect(
       //   写了 amount   ⇒ 固定伤害, 不用攻击力, 不吃防御与格挡
       //   写了 multiplier ⇒ 攻击力 ÷ 5 × 倍率, 走完整管线
       const fixed = effect.amount != null;
-      const bonusMult =
+      const rawBonusMult =
         effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
           ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
           : 0;
+      const bonusMult = Math.min(effect.maxBonusMultiplier ?? Infinity, rawBonusMult);
       const selfStackMult =
         effect.bonusMultiplierPerSelfStack != null
           ? state.activeCardStacks * effect.bonusMultiplierPerSelfStack
@@ -303,6 +317,9 @@ function applyEffect(
       for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
       break;
     }
+    case "SETTLE_INSURANCE":
+      settleInsurance(state, sourceId, targetIds, effect.multiplier ?? 1);
+      break;
     case "VALUE_BOOST": {
       const boostPct = effect.boostPct ?? 0;
       if (boostPct <= 0) break;
@@ -384,7 +401,9 @@ function applyEffect(
       break;
     case "GAIN_RESOURCE": {
       const res = effect.resource ?? "mana";
-      const resourceAmount = (effect.amountFrom ? counterOf(state, effect.amountFrom) : amount) * scaleFactor(state, effect);
+      const resourceAmount = Math.floor(
+        (effect.amountFrom ? counterOf(state, effect.amountFrom) : amount) * scaleFactor(state, effect),
+      );
       if (resourceAmount <= 0) break;
       state.resources[res] = (state.resources[res] ?? 0) + resourceAmount;
       ops.log(state, `✨ 获得 ${resourceAmount} 点${res === "mana" ? "法力水晶" : res}`);
@@ -608,9 +627,12 @@ function applyEffect(
         const target = state.combatants[id];
         const status = target?.statuses.find((entry) => entry.id === effect.status);
         if (!target || !status) continue;
-        state.lastConsumedStatusStacks += status.stacks;
-        target.statuses = target.statuses.filter((entry) => entry !== status);
-        ops.log(state, `${target.emoji} ${target.name} 的${effect.status}被消耗`);
+        const consumed = Math.min(status.stacks, Math.max(0, Math.floor(effect.maxStacks ?? status.stacks)));
+        if (consumed <= 0) continue;
+        state.lastConsumedStatusStacks += consumed;
+        status.stacks -= consumed;
+        if (status.stacks <= 0) target.statuses = target.statuses.filter((entry) => entry !== status);
+        ops.log(state, `${target.emoji} ${target.name} 的${effect.status}被消耗 ${consumed} 层`);
       }
       break;
     }
