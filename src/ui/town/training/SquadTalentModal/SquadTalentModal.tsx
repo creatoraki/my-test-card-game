@@ -8,6 +8,7 @@
 import { useEffect, useState, type ReactNode, type Ref } from "react";
 import { SQUAD_BADGES } from "@/data";
 import { HudPanelShell, HUD_TONE_GOLD } from "@/ui/common/HudPanelShell";
+import { cx } from "@/ui/common/cx";
 import type { Rect } from "@/ui/common/panelMorph";
 import { BadgeSelectModal } from "../BadgeSelectModal";
 import { SquadResourceBar } from "../SquadResourceBar";
@@ -44,7 +45,7 @@ export function SquadTalentModal({ closing = false, onClose, morph }: Props) {
   }, [onClose, pickerOpen]);
 
   return (
-    <div className={s.layer} role="dialog" aria-modal="true" aria-label="训练点分配">
+    <div className={cx(s.layer, closing && s["is-closing"])} role="dialog" aria-modal="true" aria-label="训练点分配">
       <div className={s.veil} aria-hidden="true" />
 
       <HudPanelShell closing={closing} onClose={onClose} label="训练点分配" tone={HUD_TONE_GOLD} morph={morph}>

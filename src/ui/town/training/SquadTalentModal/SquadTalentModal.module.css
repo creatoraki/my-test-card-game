@@ -21,6 +21,10 @@
   animation: talentVeilIn 220ms ease both;
 }
 
+.layer.is-closing .veil {
+  animation: talentVeilOut var(--talent-veil-out-ms, 340ms) ease-in both;
+}
+
 .tree {
   width: 100%;
   height: 100%;
@@ -78,6 +82,16 @@
 
 @keyframes talentVeilIn {
   from {
+    opacity: 0;
+  }
+}
+
+@keyframes talentVeilOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
     opacity: 0;
   }
 }
