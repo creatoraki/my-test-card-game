@@ -29,6 +29,8 @@ export interface MapDef {
   // 推进战斗档位 → 遭遇战候选。轮次到档位的权重是全局表(EXPLORE_RULES.battleTierWeights),
   // 地图只负责登记每个档位的战斗模板。
   battleEncounters: Record<BattleTier, string[]>;
+  /** 可替换 t1-t3 常规战斗的宝箱怪遭遇战。 */
+  treasureEncounters?: readonly string[];
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
   /** 覆盖全局档位权重; 下标 = 轮次 - 1, 越界时沿用最后一档。 */
   battleTierByRound?: readonly BattleTier[];
@@ -76,6 +78,7 @@ export const MAPS: MapDef[] = [
       t4: ["n-t4-patrol", "n-t4-blockade", "n-t4-elite-guard", "n-t4-compactor", "n-t4-storm"],
       t5: ["n-t5-boss"],
     },
+    treasureEncounters: ["n-mimic-gear", "n-mimic-card"],
     requiresClear: "tutorial",
     startingEnergy: 100,
   },

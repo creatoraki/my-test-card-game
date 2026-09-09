@@ -73,6 +73,7 @@ export {
   playBlockReason,
 } from "./battle";
 export type { AllyInit, BattleSetup, PlayBlock, PlayRecorder } from "./battle";
+export { runEnemyFlee } from "./flee";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget } from "./targeting";
 export { getStatus } from "./ops";
 export { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";

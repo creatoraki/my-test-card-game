@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
-import type { BattleState } from "@/engine";
+import type { BattleState, Enemy } from "@/engine";
 import { playSfx } from "@/ui/audio";
 
-export type DeathPhase = "alive" | "drain" | "vanish" | "dead";
+export type DeathPhase = "alive" | "drain" | "flee" | "vanish" | "dead";
 
 export const DEATH = {
   // HpBar.module.css 的 .hp-ghost 是 0.3s 延迟 + 0.5s 收缩, 共 800ms; 这里多留 20ms。
   drain: 820,
+  flee: 700,
   vanish: 700,
   reducedDrain: 160,
   reducedVanish: 0,
@@ -102,6 +103,20 @@ export function useDeathGate(
       }
       if (current) continue;
 
+      const fleeing = cmb.team === "enemy" && Boolean((cmb as Enemy).fled);
+      if (fleeing) {
+        phasesRef.current.set(cmb.id, "flee");
+        changed = true;
+        const fleeTimer = window.setTimeout(() => {
+          if (phasesRef.current.get(cmb.id) !== "flee") return;
+          phasesRef.current.set(cmb.id, "dead");
+          timersRef.current.delete(cmb.id);
+          redraw((version) => version + 1);
+        }, DEATH.flee / rate);
+        timersRef.current.set(cmb.id, [fleeTimer, 0]);
+        continue;
+      }
+
       phasesRef.current.set(cmb.id, "drain");
       changed = true;
       const vanishTimer = window.setTimeout(() => {
@@ -134,7 +149,7 @@ export function useDeathGate(
   }
   if (!pending) {
     for (const phase of phasesRef.current.values()) {
-      if (phase === "drain" || phase === "vanish") {
+      if (phase === "drain" || phase === "flee" || phase === "vanish") {
         pending = true;
         break;
       }

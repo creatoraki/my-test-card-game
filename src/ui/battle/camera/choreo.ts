@@ -9,7 +9,7 @@ export interface ChoreoStep {
   hits: { id: string; hpDelta: number; missed?: boolean }[];
   card?: Card;
   discardUid?: string;
-  kind?: "tempo" | "reveal"; // 拍点只演受击/回复; reveal 只演卡牌亮相
+  kind?: "tempo" | "reveal" | "flee"; // 拍点只演受击/回复; reveal 只演卡牌亮相; flee 演离场
 }
 
 export interface ShotPlan {

@@ -427,7 +427,9 @@ export const useRunStore = create<RunStore>((set, get) => ({
     //   追加进来的敌人不在 EncounterDef.enemies 里, 也要计入经验与掉落。
     //   ⚠ 当前能量档位只注入敌方状态(过载层数, 见 explore/session.ts encounterModifier),
     //   并没有使用 extraEnemies 追加敌人; 这条取值逻辑是给动态难度机制预留的通用路径。
-    const enemyDefIds = battle.enemyIds.map((id) => (battle.combatants[id] as Enemy).enemyDefId);
+    const enemyDefIds = battle.enemyIds
+      .filter((id) => !(battle.combatants[id] as Enemy).fled)
+      .map((id) => (battle.combatants[id] as Enemy).enemyDefId);
 
     // 战斗单位的最终血量回填给探索层 —— 下一场以此开局
     const survivors = survivorsFrom(battle, session);

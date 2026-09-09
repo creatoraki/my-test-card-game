@@ -35,6 +35,9 @@ function stepFromTempo(_battle: BattleState, tempo: TempoFx): ChoreoStep {
 export function stepFromFx(battle: BattleState, fx: FxStep): ChoreoStep {
   if (fx.kind === "enemy") return stepFromFrame(battle, fx);
   if (fx.kind === "tempo") return stepFromTempo(battle, fx);
+  if (fx.kind === "flee") {
+    return { kind: "flee", actorId: fx.actorId, anim: "buff", snapshot: fx.snapshot, hits: [] };
+  }
   return stepFromDiscard(battle, fx);
 }
 

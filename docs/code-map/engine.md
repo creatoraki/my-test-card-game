@@ -4,6 +4,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
+| [flee.ts](../../src/engine/flee.ts) | 回合结束的敌人离场通道，按 fleeAfterRound 记录专属逃跑演出并区别于 markDead，不会触发击杀被动或敌人奖励。 |
 | [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、我方/敌方单位、效果、状态、战斗状态、挑战运行态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。卡牌支持应星/临时牌与模组来源词条，效果支持瀑布条件、临时卡入手、体力极限恢复、按状态筛选目标、培育递减和本次出牌数值加成。 |
 | [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、弃牌触发、我方/敌方单位、效果、状态、战斗状态、挑战运行态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。卡牌带 `contaminated` 标记，我方单位携带污染值、生病和怪癖快照；效果支持护盾回收、按计数取层数、按目标护盾加伤、组装 A/B/C/D、共鸣强化和全手牌标记；被动卡支持 `roundEnd`、`enemyKilled`、`assembleSuccess` 等多事件及按事件拆分效果；状态支持护盾击破钩子，敌人支持可序列化 AI 记忆与行动脚本。战斗状态包含组装部件、当前共鸣次数、待自动打出的弃牌队列 `pendingAutoPlays` 和联合类型 `pendingChoice`，`FxStep` 将敌人行动与弃牌触发统一为一条有序演出时间线。 |
 | [rules.ts](../../src/engine/rules.ts) | 集中维护资源经济、抽牌基准、弃牌来源触发/计数口径(含被动卡回收的 `passiveEnd`：不计数不触发)、时刻推进、虚弱/易伤、命中上下限、概率封顶、格挡、我方濒死死亡骰、星辉上限、铁壁防御、护盾战斗内常驻规则、负重、养成和卡组锻造规则；平衡调整优先看这里。 |

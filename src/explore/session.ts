@@ -192,7 +192,16 @@ function pickNodeBattleTier(s: ExploreState): BattleTier {
 }
 
 function encounterForTier(s: ExploreState, tier: BattleTier): string | null {
-  return shuffle(s, getMap(s.mapId).battleEncounters[tier] ?? [])[0] ?? null;
+  const map = getMap(s.mapId);
+  const treasure = map.treasureEncounters ?? [];
+  if (
+    treasure.length &&
+    EXPLORE_RULES.treasureEncounter.tiers.includes(tier) &&
+    rngFloat(s) < EXPLORE_RULES.treasureEncounter.chance
+  ) {
+    return shuffle(s, [...treasure])[0] ?? null;
+  }
+  return shuffle(s, map.battleEncounters[tier] ?? [])[0] ?? null;
 }
 
 // ---------------------------------------------------------------------------

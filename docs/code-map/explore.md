@@ -6,6 +6,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
+| [session.ts](../../src/explore/session.ts) · 宝箱怪遭遇 | 推进战斗与节点战斗共用的遭遇抽取口，t1-t3 按 15% 概率先替换为地图登记的宝箱怪遭遇。 |
 | [types.ts](../../src/explore/types.ts) | 路由图、固定路线蓝图、节点事件、探索效果、队伍快照、三段血量、临时光环、能量/战斗档位、节点记录、背包和会话阶段类型。`EventRisk` 标记风险事件分级，`FORCE_ITEM` 用于不可放弃的强制拾取，`GRANT_EQUIP` / `GRANT_MODULE` 用于生成随机装备或模组待拾取奖励；`pendingLoot`、`pendingBoons`、`pendingCardOffer`、`pendingExp`、`pendingActions` 与 `pendingStory` 分别承载战利品、战斗胜利额外奖励、卡牌候选、待落袋经验、治疗/净化等待办奖励和事件文案；装备箱保留生成时的掉落系数，避免战后能量扣除改变品质。`TrialDef` / `ActiveTrial` 与 `START_TRIAL` 描述挑战契约（探索层唯一跨轮生效的机制，代码一律叫 trial 以避开 `engine/challenges` 的战斗挑战词条）：负面修正存 `trials` 而不并入 `auras`（允许叠加、到期必须撤掉），到期结算的展示数据落在 `trialReport`。 |
 | [rules.ts](../../src/explore/rules.ts) | 路由规模、桥接数和揭示时长、节点粒子消耗、轮次战斗档位、BOSS 缩放、团灭、投递口、能量档位和掉落品质权重。探索平衡优先改这里。`eventPool.trialNodes` 控制挑战节点的出现概率与轮次上限，其中 `maxRound` 是硬约束而非手感旋钮（最后一轮打完即通关，等不到结算奖励的那一拍）。 |
 | [route.ts](../../src/explore/route.ts) | 路由段桥接生成、走线、通道映射与求解。每段入/出通道必须是双射；UI 隐藏桥接时不能读取求解结果。 |

@@ -17,6 +17,7 @@ import {
 } from "@/ui/battle/camera";
 import type { TelegraphKind } from "@/ui/battle/unitShell";
 import { playSfx } from "@/ui/audio";
+import { showBattleToast } from "@/ui/battle/battleToastStore";
 import { CAMERA_SETTLE_MS, impactAxis, shouldHardCut } from "./battleCamera";
 import { DEATH } from "@/ui/battle/deathChoreo";
 import type { BattleCameraApi } from "./useBattleCamera";
@@ -146,9 +147,14 @@ export function useBattleChoreo({
       const repeat = lastActor === step.actorId && lastAnim === step.anim ? 1 : 0;
       const fx = ANIM[step.anim];
       const impactMs = fx.proc?.impactMs ?? 0;
+      const deathHold = step.kind === "flee"
+        ? DEATH.flee + 40
+        : preset.kind === "kill"
+          ? impactMs + DEATH.drain + DEATH.vanish + 40
+          : 0;
       const holdFloor = Math.max(
         fx.hold,
-        preset.kind === "kill" ? impactMs + DEATH.drain + DEATH.vanish + 40 : 0,
+        deathHold,
       );
       const hold = Math.max(preset.hold * Math.max(0.55, 0.78 ** repeat), holdFloor);
       const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
@@ -175,6 +181,7 @@ export function useBattleChoreo({
         at,
         run: () => {
           if (selfMark) hand.markDiscarding(step.discardUid!);
+          if (step.kind === "flee") showBattleToast("宝箱怪卷着战利品溜走了");
           camera.rig.setTuning(preset.rig);
           if (isFoeLedShot(preset)) {
             camera.setCameraTarget(focus());

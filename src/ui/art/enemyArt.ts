@@ -8,6 +8,8 @@ import scrapMountainGuardianIdle from "@/assets/敌人立绘/垃圾山的守护�
 import maintenanceSpiderIdle from "@/assets/敌人立绘/维修蜘蛛/idle.png";
 import trafficLightBotIdle from "@/assets/敌人立绘/红绿灯机器人/idle.png";
 import glassJellyIdle from "@/assets/敌人立绘/玻璃水母/idle.png";
+import mimicGearIdle from "@/assets/敌人立绘/宝箱怪A/idle.png";
+import mimicCardIdle from "@/assets/敌人立绘/宝箱怪B/idle.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
@@ -126,6 +128,22 @@ const ENEMY_ART: Record<string, EnemySpriteDef> = {
     sheet: { w: 1254, h: 1254 },
     body: { x: 123, y: 0, w: 992, h: 1238 },
     idle: { bob: 8, sway: 5, tilt: 2, dur: 3800, delay: -1200 },
+  },
+  "treasure-mimic-gear": {
+    src: mimicGearIdle,
+    frames: 1,
+    frameMs: 1000,
+    sheet: { w: 1254, h: 1254 },
+    body: { x: 28, y: 21, w: 1226, h: 1145 },
+    idle: { bob: 2, sway: 1.5, tilt: 0.8, dur: 3000, delay: -400 },
+  },
+  "treasure-mimic-card": {
+    src: mimicCardIdle,
+    frames: 1,
+    frameMs: 1000,
+    sheet: { w: 1254, h: 1254 },
+    body: { x: 23, y: 164, w: 1213, h: 935 },
+    idle: { bob: 4, sway: 2.5, tilt: 1.4, dur: 2600, delay: -1100 },
   },
   "scrap-mountain-guardian": {
     src: scrapMountainGuardianIdle,

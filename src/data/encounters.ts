@@ -135,6 +135,18 @@ const T4_STORM = [
   placeEnemy("maintenance-spider", { dx: 150, dy: SPIDER_DY, scale: 1.1, flip: true }),
 ];
 
+const MIMIC_GEAR = [
+  placeEnemy("treasure-mimic-gear", { scale: 1.15 }),
+  placeEnemy("radio-bot", { dx: -160, scale: 0.7, dy: GROUND_DY + 30 }),
+  placeEnemy("sweep-drone", { dx: 160, scale: 1.1, flip: true }),
+];
+
+const MIMIC_CARD = [
+  placeEnemy("treasure-mimic-card", { scale: 1.1 }),
+  placeEnemy("maintenance-spider", { dx: -160, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("traffic-light-bot", { dx: 160, flip: true }),
+];
+
 const T5_BOSS = [placeEnemy("scrap-mountain-guardian", { dy: -60 })];
 
 const TUT_T1_INTRO = [
@@ -186,6 +198,8 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-t4-elite-guard", name: "高压拦截", enemies: T4_ELITE_GUARD },
   { id: "n-t4-compactor", name: "报废压缩机", enemies: T4_COMPACTOR },
   { id: "n-t4-storm", name: "高压电场", enemies: T4_STORM },
+  { id: "n-mimic-gear", name: "械匣暗格", enemies: MIMIC_GEAR },
+  { id: "n-mimic-card", name: "牌匣暗格", enemies: MIMIC_CARD },
   { id: "n-t5-boss", name: "回收总控", enemies: T5_BOSS },
   { id: "tut-t1-intro", name: "入门巡逻", enemies: TUT_T1_INTRO },
   { id: "tut-t1-scout", name: "初次接触", enemies: TUT_T1_SCOUT },

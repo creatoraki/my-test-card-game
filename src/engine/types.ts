@@ -497,6 +497,7 @@ export interface Intent {
 export interface Enemy extends BaseCombatant {
   team: "enemy";
   enemyDefId: string;
+  fled?: boolean;
   moveDelayDelta: number; // 遭遇战对每次抽取招式的延迟调整
   nextActTick: number | null; // 当前蓄力招式的发动时刻; null = 未在蓄力(行动点数已耗尽)
   actsPerRound: number; // 每回合行动次数上限, 建局时从 EnemyDef 拷入
@@ -738,10 +739,17 @@ export interface TempoFx {
   snapshot: BattleState; // 拍点结算后的完整快照(structuredClone)
 }
 
+export interface FleeFx {
+  actorId: string;
+  enemyDefId: string;
+  snapshot: BattleState;
+}
+
 export type FxStep =
   | ({ kind: "enemy" } & AnimFrame)
   | ({ kind: "discard" } & DiscardTriggerFx)
-  | ({ kind: "tempo" } & TempoFx);
+  | ({ kind: "tempo" } & TempoFx)
+  | ({ kind: "flee" } & FleeFx);
 
 export interface FxRecorder {
   steps: FxStep[];

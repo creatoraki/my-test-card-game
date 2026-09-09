@@ -22,6 +22,7 @@ export interface EnemyDef {
   emoji: string;
   maxHp: number;
   exp: number;
+  fleeAfterRound?: number;
   actsPerRound?: number;
   ai?: EnemyAiScript;
   stats?: Partial<StatBlock>;

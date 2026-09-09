@@ -53,6 +53,7 @@ import { firePassive, isPassive, playableHandUids, recycleHandPassives } from ".
 import { gainSquadBuff } from "./squadBuff";
 import { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
 import { withHitRecorder } from "./animHits";
+import { runEnemyFlee } from "./flee";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -548,6 +549,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
     recycleHandPassives(state, rec);
     flushAutoPlays(state, rec);
+    runEnemyFlee(state, rec);
     if (state.phase !== "player") return;
     startRound(state);
   });

@@ -98,6 +98,10 @@ export const EXPLORE_RULES = {
     { tier: "t1", weight: 60 },
     { tier: "t2", weight: 40 },
   ] as readonly { tier: BattleTier; weight: number }[],
+  treasureEncounter: {
+    chance: 0.15,
+    tiers: ["t1", "t2", "t3"] as readonly BattleTier[],
+  },
 
   eventPool: {
     recentWindowRounds: 1,
