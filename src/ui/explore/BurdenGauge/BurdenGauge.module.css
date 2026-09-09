@@ -1,5 +1,6 @@
 .gauge {
   --gauge-color: var(--expl-glow, #6fe3f5);
+  --ui-glow-color: var(--gauge-color);
 
   position: relative;
   display: flex;
@@ -32,9 +33,10 @@
   color: var(--gauge-color);
   font-family: var(--font-family);
   font-size: 22px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.1;
-  text-shadow: 0 2px 10px #000c;
+  text-shadow: var(--ui-glow), 0 2px 10px #000c;
   animation: countBump 260ms var(--sm-ease);
 }
 
@@ -45,8 +47,11 @@
 
 .title {
   display: block;
-  color: var(--text);
+  color: var(--ui-value);
   font-size: 26px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   line-height: 1.2;
 }
 

@@ -33,6 +33,7 @@
 }
 
 .band {
+  --ui-glow-color: var(--band-cyan);
   --band-skew: -10.08deg;
   --slice-gap: 8px;
   --band-cyan: #7de1e8;
@@ -63,20 +64,23 @@
   align-items: baseline;
   gap: 10px;
   transform: skewX(calc(-1 * var(--band-skew)));
-  color: #a9c4c3;
-  text-shadow: 0 2px 14px #000000e6;
+  color: var(--ui-label);
+  text-shadow: var(--ui-glow), 0 2px 14px #000000e6;
 }
 
 .band-counter span {
-  color: var(--band-cyan);
+  color: var(--ui-label);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
 }
 
 .band-counter strong {
-  color: #f2f6ed;
+  color: var(--ui-value);
   font-size: 17px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .band-counter small {
@@ -84,7 +88,8 @@
   color: #d8b45c;
   font-family: var(--font-num);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
 }
 
 .band-window {
@@ -174,7 +179,8 @@
   color: #d8b45c;
   font-family: var(--font-num);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
 }
 
 .slice-meta > span {
@@ -210,10 +216,12 @@
 }
 
 .slice-title {
-  color: #eef6f0;
-  font-size: 16px;
+  color: var(--ui-value);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.2;
-  text-shadow: 0 2px 14px #000000e6;
+  text-shadow: var(--ui-glow), 0 2px 14px #000000e6;
   white-space: nowrap;
 }
 

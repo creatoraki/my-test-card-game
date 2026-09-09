@@ -264,11 +264,13 @@
   margin-left: auto;
   font-family: var(--font-num);
   font-size: var(--hp-text-fs, 18px);
-  font-weight: 800;
+  color: var(--ui-value);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   font-variant-numeric: tabular-nums;
   paint-order: stroke fill;
   -webkit-text-stroke: 2px #05080a;
-  text-shadow: 0 1px 0 #000;
+  text-shadow: var(--ui-glow), 0 1px 0 #000;
 }
 /* 减少动态效果: 血条的装饰性动感全停 —— 流光带 / 端头光点 / 掉血火花。
    ⚠ 光点与火花靠关键帧从 opacity:0 起步, 单停动画会让它们**永久停在起始态**并留下

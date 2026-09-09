@@ -1,4 +1,5 @@
 .bench {
+  --ui-glow-color: var(--bench-accent);
   --bench-accent: var(--asm-frame, var(--event-accent, #52cfff));
   position: relative;
   display: grid;
@@ -33,8 +34,11 @@
 .benchHeader strong {
   min-width: 0;
   overflow: hidden;
-  color: #eff6e9;
+  color: var(--ui-value);
   font-size: var(--rs-font-entry, 24px);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -42,8 +46,11 @@
 .state {
   flex: 0 0 auto;
   padding: 5px 10px;
-  color: #c5d8c4;
+  color: var(--ui-label);
   font-size: var(--rs-font-kicker, 22px);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   background: #11201bd9;
   border: 1px solid #6fba884c;
 }
@@ -118,10 +125,12 @@
   bottom: 6px;
   left: 6px;
   overflow: hidden;
-  color: #8c9b9b;
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--rs-font-mark, 18px);
-  letter-spacing: 0.04em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;

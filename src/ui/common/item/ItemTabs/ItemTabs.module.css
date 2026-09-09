@@ -19,8 +19,11 @@
   gap: var(--item-tab-gap, 5px);
 
   padding: var(--item-tab-padding, 5px 11px);
-  font-size: var(--item-tab-font-size, 12px);
-  color: var(--muted);
+  font-size: var(--item-tab-font-size, 18px);
+  color: var(--ui-label, var(--muted));
+  font-weight: var(--ui-weight, 600);
+  letter-spacing: var(--ui-tracking, 2px);
+  text-shadow: var(--ui-glow, none);
 
   background: #ffffff08;
   border: 1px solid var(--border);
@@ -35,12 +38,13 @@
 }
 
 .item-tab:hover {
-  color: var(--text);
+  color: var(--ui-value, var(--text));
   border-color: #6b787f;
 }
 
 .item-tab.is-on {
   color: var(--bg);
+  text-shadow: none;
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -65,5 +69,5 @@
 }
 .item-tab.is-sub {
   padding: var(--item-tab-sub-padding, 3px 9px);
-  font-size: var(--item-tab-sub-font-size, 11px);
+  font-size: var(--item-tab-sub-font-size, 18px);
 }

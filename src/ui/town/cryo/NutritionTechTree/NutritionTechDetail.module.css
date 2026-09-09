@@ -1,4 +1,5 @@
 .detail {
+  --ui-glow-color: var(--cryo-glow);
   display: flex;
   min-width: 380px;
   min-height: 0;
@@ -11,17 +12,20 @@
 }
 
 .kicker {
-  color: var(--asm-glow, var(--cryo-glow));
+  color: var(--ui-label);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .detail h3 {
   margin: 8px 0 0;
-  color: var(--asm-ink, var(--cryo-ink));
+  color: var(--ui-value);
   font-size: 26px;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .desc {
@@ -42,9 +46,11 @@
 .sectionTitle {
   display: block;
   margin-bottom: 12px;
-  color: var(--asm-glow, var(--cryo-glow));
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .costRow {
@@ -58,9 +64,12 @@
 }
 
 .costRow strong {
-  color: var(--asm-ink, var(--cryo-ink));
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 20px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .costRow.is-lacking,
@@ -120,8 +129,8 @@
   background: var(--asm-glow, var(--cryo-glow));
   color: #04120e;
   font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
 }
 
 .research:disabled {

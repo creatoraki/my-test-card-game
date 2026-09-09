@@ -1,4 +1,5 @@
 .inventory-panel {
+  --ui-glow-color: var(--inventory-accent, #91e8dc);
   position: relative;
   display: flex;
   width: 100%;
@@ -190,25 +191,26 @@
 .inventory-kicker {
   display: block;
   overflow: hidden;
-  color: var(--inventory-frame-hot);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.2;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
+  text-shadow: var(--ui-glow);
 }
 
 .inventory-title {
   margin: 7px 0 0;
   overflow-wrap: anywhere;
-  color: var(--inventory-text);
+  color: var(--ui-value);
   font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 4px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.2;
-  text-shadow: 0 0 10px var(--inventory-panel-glow);
+  text-shadow: var(--ui-glow), 0 0 10px var(--inventory-panel-glow);
 }
 
 .inventory-panel[data-compact="true"] .inventory-title {
@@ -218,11 +220,12 @@
 
 .inventory-subtitle {
   margin: 3px 0 0;
-  color: var(--inventory-muted);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.3;
 }
 
@@ -237,11 +240,12 @@
 }
 
 .inventory-credits {
-  color: var(--inventory-accent);
+  color: var(--ui-value);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.1;
-  text-shadow: 0 0 15px var(--inventory-panel-glow);
+  text-shadow: var(--ui-glow), 0 0 15px var(--inventory-panel-glow);
 }
 
 .inventory-credits small {
@@ -258,9 +262,11 @@
   justify-content: flex-end;
   gap: 5px;
   margin-top: 5px;
-  color: var(--inventory-muted);
-  font-size: 10px;
-  letter-spacing: 1px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 
@@ -270,20 +276,20 @@
 }
 
 .inventory-panel[data-compact="true"] .inventory-capacity strong {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .inventory-panel[data-compact="true"] .inventory-capacity em {
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .inventory-capacity strong {
-  color: var(--inventory-accent);
-  font-size: 13px;
+  color: var(--ui-value);
+  font-size: 18px;
 }
 
 .inventory-capacity em {
-  color: var(--inventory-muted);
+  color: var(--ui-label);
   font-style: normal;
 }
 
@@ -442,18 +448,22 @@
   min-width: 0;
   flex-direction: column;
   gap: 3px;
-  color: var(--inventory-muted);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
-  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.25;
+  text-shadow: var(--ui-glow);
 }
 
 .inventory-selected-label {
   overflow: hidden;
-  color: var(--inventory-muted);
-  font-size: 10px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -461,17 +471,22 @@
 
 .inventory-selected-name {
   overflow: hidden;
-  color: var(--inventory-text);
-  font-size: 13px;
+  color: var(--ui-value);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .inventory-selected-meta,
 .inventory-selected-empty {
-  color: var(--inventory-muted);
-  font-size: 10px;
-  letter-spacing: 0.5px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .inventory-selected-empty {

@@ -82,8 +82,8 @@ button {
   border-radius: 0;
   background: linear-gradient(135deg, #20282d, #11161a);
   color: #edf2ef;
-  font-weight: 700;
-  letter-spacing: 0;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   padding: 8px 14px;
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
   transition: transform 0.08s, background 0.15s, border-color 0.15s;
@@ -99,7 +99,8 @@ button.primary {
   background: linear-gradient(135deg, #e1f52e, #a9c913);
   border-color: #f1ff8a;
   color: #111605;
-  font-weight: 600;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   box-shadow: inset 0 0 0 1px #fcffb14d, 0 0 12px #d8f3292b;
 }
 button.primary:hover:not(:disabled) {

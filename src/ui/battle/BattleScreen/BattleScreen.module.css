@@ -2,6 +2,7 @@
    战场、HUD 与全屏特效各自归档在 parts/，保持一个 module.css 只服务同名组件。 */
 .battle {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
+  --ui-glow-color: var(--accent);
   display: block;
   overflow: hidden;
   background-color: #070a0c;
@@ -110,4 +111,8 @@
 .overlay-card h2 {
   margin: 0;
   font-size: 28px;
+  color: var(--ui-value);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }

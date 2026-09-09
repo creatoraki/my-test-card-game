@@ -91,6 +91,7 @@
 }
 .menu-splash {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
+  --ui-glow-color: #6fe3cf;
 }
 /* 主菜单视频开屏: 纯净的电影感开屏 —— 只有一段 16:9 视频背景 + 标题图 + 开始游戏图片按钮,
    不挂 .terminal-screen(故无渐变底/无 ::before 边框装饰/无导航条)。 */
@@ -149,11 +150,13 @@
   z-index: 2;
   width: 220px;
   margin: 0;
-  color: #b8cbc6;
-  font-size: 12px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.5;
   text-align: center;
-  text-shadow: 0 1px 6px #000;
+  text-shadow: var(--ui-glow), 0 1px 6px #000;
   pointer-events: none;
 }
 

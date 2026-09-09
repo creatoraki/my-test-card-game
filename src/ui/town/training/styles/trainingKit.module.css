@@ -26,8 +26,9 @@
 /* kicker 排版 —— 页头与各面板标题共用。 */
 .tr-kicker {
   display: block;
-  color: var(--tr-glow);
+  color: var(--ui-label);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 4px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }

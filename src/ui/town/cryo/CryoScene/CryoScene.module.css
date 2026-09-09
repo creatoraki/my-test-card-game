@@ -1,6 +1,7 @@
 /* 医疗室场景骨架：只负责标题、读数和右侧入口，浮层外壳复用 common/PanelShell。 */
 
 .cryo-scene {
+  --ui-glow-color: var(--cryo-glow);
   --cryo-ink: #e9fbf6;
   --cryo-ink-dim: #8fb0a8;
   --cryo-line: #4fd6b82e;
@@ -40,29 +41,32 @@
 
 .cryo-kicker {
   display: block;
-  color: var(--cryo-glow);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.4;
+  text-shadow: var(--ui-glow);
 }
 
 .cryo-title {
   margin: 7px 0 0;
-  color: #f2fbf7;
+  color: var(--ui-value);
   font-size: 42px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
-  text-shadow: 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
+  text-shadow: var(--ui-glow), 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
 }
 
 .cryo-sub {
   margin: 10px 0 0;
-  color: var(--cryo-ink-dim);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 0.12em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .cryo-readout {
@@ -90,18 +94,21 @@
 }
 
 .cryo-chip-label {
-  color: var(--cryo-ink-dim);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 0.08em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .cryo-chip-value {
-  color: var(--cryo-ink);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   font-variant-numeric: tabular-nums;
+  text-shadow: var(--ui-glow);
 }
 
 .cryo-entries {
@@ -195,10 +202,11 @@
 }
 
 .cryo-entry-name {
-  color: var(--cryo-ink);
+  color: var(--ui-value);
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 5px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .cryo-entry-desc {

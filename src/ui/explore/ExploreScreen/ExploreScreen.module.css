@@ -79,6 +79,7 @@
    的组合, 即便某些浏览器把缩放层当作 backdrop root, 也仍有底色兜住可读性。) */
 .explore-stage {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
+  --ui-glow-color: var(--expl-glow);
   /* 浮层高度不再各写一份: 事件面板与后续浮层统一走 explorePanel 的 panel-box(936×680)。 */
   --expl-glow: #6fe3f5; /* 本页强调青: 与路由图横线同色, 读作「还在供电的东西」 */
   --expl-line: #ffffff24; /* 玻璃常态描边 */
@@ -195,10 +196,11 @@
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 .expl-aura-name {
-  color: #f4d77d;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 .expl-aura-desc {
   max-width: 180px;
@@ -243,19 +245,23 @@
   min-width: 300px;
 }
 .expl-chip-value {
-  color: var(--text);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 24px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
+  text-shadow: var(--ui-glow);
 }
 .expl-chip-value.is-bad {
   color: var(--bad);
 }
 .expl-chip-note {
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 1px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 /* P1 才接入的读数: 整块压暗, 一眼看出「这里将来有东西, 但现在没有」。 */
 .expl-chip.is-locked {
@@ -409,25 +415,30 @@
   animation: explRise 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 .expl-use-banner-kicker {
-  color: var(--expl-glow);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 3px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 .expl-use-banner-text {
-  color: var(--text);
-  font-size: 13px;
-  letter-spacing: 1px;
+  color: var(--ui-value);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 .expl-use-banner-cancel {
   margin-left: 6px;
   padding: 5px 12px;
   border: 1px solid #ffffff2e;
   background: transparent;
-  color: var(--muted);
+  color: var(--ui-label);
   font: inherit;
-  font-size: 12px;
-  letter-spacing: 2px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   cursor: var(--cursor-pointer);
 }
 .expl-use-banner-cancel:hover {
@@ -447,9 +458,11 @@
     inset 0 1px 0 #ffffff14,
     0 20px 44px -28px #000000cc;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  color: #9fe8dc;
-  font-size: 13px;
-  letter-spacing: 1px;
+  color: var(--ui-value);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   animation: explRise 220ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
@@ -514,12 +527,12 @@
 .expl-advance-label {
   position: relative;
   z-index: 1;
-  color: #f2f6f4;
+  color: var(--ui-value);
   font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 6px;
-  text-indent: 6px;
-  text-shadow: 0 0 14px color-mix(in srgb, var(--adv-k) 70%, transparent);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-indent: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 0 14px color-mix(in srgb, var(--adv-k) 70%, transparent);
 }
 :global([data-explore-stage]) .expl-advance-btn:hover:not(:disabled),
 :global([data-explore-stage]) .expl-advance-btn:focus-visible {
@@ -730,9 +743,11 @@
   background: linear-gradient(90deg, transparent, #ffffff40 18%, #ffffff40 82%, transparent);
 }
 .expl-command-bar .expl-kicker {
-  color: #a9c3c5;
-  font-size: 11px;
-  letter-spacing: 5px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 /* 角色档案 Modal(common/CharacterModal)的层序。

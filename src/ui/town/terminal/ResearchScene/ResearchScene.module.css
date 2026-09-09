@@ -1,5 +1,6 @@
 /* 研究中心场景的冷青墨玻璃层，压暗亮背景换对比。玻璃配方与入口砖变量需同步 ResearchScene.tsx。 */
 .term-scene {
+  --ui-glow-color: var(--term-glow);
   --term-ink: #eaf7fb;
   --term-ink-dim: #a6c8d4;
   --term-line: #7fe3e02e;
@@ -37,19 +38,21 @@
 
 .term-title {
   margin: 4px 0 0;
-  color: var(--term-ink);
+  color: var(--ui-value);
   font-size: 40px;
-  font-weight: 700;
-  letter-spacing: 8px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-indent: 8px;
-  text-shadow: 0 2px 18px #04212bcc;
+  text-shadow: var(--ui-glow), 0 2px 18px #04212bcc;
 }
 
 .term-sub {
   margin: 4px 0 0;
-  color: var(--term-ink-dim);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .term-readout {
@@ -76,17 +79,20 @@
 }
 
 .term-chip-label {
-  color: var(--term-ink-dim);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .term-chip-value {
-  color: var(--term-warm);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 28px;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   font-variant-numeric: tabular-nums;
 }
 

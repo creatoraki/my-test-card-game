@@ -1,4 +1,5 @@
 .stage {
+  --ui-glow-color: var(--stage-accent);
   --stage-accent: var(--character-color, var(--asm-cyan, var(--event-accent, #58efc7)));
   /* ⚠ 立绘宽度改用**百分比**基准: 44% × 2.2 ≈ 96.8% —— 与旧的 132px × 2.2 在 300px 容器里
      完全等价, 但从此随容器缩放。--bust-scale 是纯倍率, 跟着缩放没问题;
@@ -96,19 +97,23 @@
 .name {
   min-width: 0;
   overflow: hidden;
-  color: var(--text);
+  color: var(--ui-value);
   font-size: var(--rs-font-name, 26px);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-shadow: 0 2px 8px #000;
+  text-shadow: var(--ui-glow), 0 2px 8px #000;
 }
 
 .rank {
   flex: 0 0 auto;
-  color: var(--stage-accent);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--rs-font-mark, 18px);
-  letter-spacing: 0.12em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   font-variant-numeric: tabular-nums;
 }
 

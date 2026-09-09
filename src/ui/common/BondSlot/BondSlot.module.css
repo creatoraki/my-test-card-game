@@ -1,4 +1,5 @@
 .slot {
+  --ui-glow-color: var(--slot-accent);
   position: relative;
   display: flex;
   min-width: calc(var(--slot-icon) * 1.34);
@@ -64,10 +65,11 @@
 }
 
 .name {
-  color: #eff6e9;
-  font-size: calc(var(--slot-icon) * 0.15);
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  color: var(--ui-value);
+  font-size: max(18px, calc(var(--slot-icon) * 0.15));
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 
@@ -76,11 +78,13 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  color: #8a9897;
-  font-size: calc(var(--slot-icon) * 0.14);
+  color: var(--ui-label);
+  font-size: max(18px, calc(var(--slot-icon) * 0.14));
+  font-weight: var(--ui-weight);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
+  text-shadow: var(--ui-glow);
 }
 
 .tiers span {

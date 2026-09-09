@@ -1,4 +1,5 @@
 .root {
+  --ui-glow-color: var(--sfp-energy, #ffc654);
   position: absolute;
   z-index: 5;
   box-sizing: border-box;
@@ -43,23 +44,24 @@
 
 .kicker {
   display: block;
-  color: var(--sfp-energy, #ffc654);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.2;
+  text-shadow: var(--ui-glow);
   text-transform: uppercase;
 }
 
 .header h2 {
   margin: 7px 0 0;
-  color: var(--sfp-highlight, #fff0bc);
+  color: var(--ui-value);
   font-size: 32px;
-  font-weight: 700;
-  letter-spacing: 4px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
-  text-shadow: 0 2px 12px #000000c7, 1px 1px 0 #ffffff24;
+  text-shadow: var(--ui-glow), 0 2px 12px #000000c7, 1px 1px 0 #ffffff24;
 }
 
 .headerActions {

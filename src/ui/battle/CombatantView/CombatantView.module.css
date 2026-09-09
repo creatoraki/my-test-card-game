@@ -14,6 +14,7 @@
   dx/dy 挪整个单位(血条跟着走), scale 由内层几何变量折进立绘尺寸、并补偿布局。 */
 .combatant {
   position: relative;
+  --ui-glow-color: var(--accent);
   --badge-size: 14px;
   --badge-pad: 1px 7px;
   /* 宽仍是血条/意图的布局宽; 立绘可按 --fig-w 向两侧溢出。 */
@@ -375,8 +376,8 @@ span.combatant-portrait {
   transform: translateX(-50%);
   color: var(--tg-label-fg);
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   white-space: nowrap;
   background: var(--tg-label-bg);
   border: 1px solid var(--tg-label-border);
@@ -391,14 +392,14 @@ span.combatant-portrait {
   transform: translateX(-50%);
   font-family: var(--font-num);
   font-size: 48px;
-  font-weight: 800;
+  font-weight: var(--ui-weight);
   font-variant-numeric: tabular-nums;
   paint-order: stroke fill;
   -webkit-text-stroke: 3px #05080a;
   line-height: 1;
-  color: #fff;
+  color: var(--ui-value);
   white-space: nowrap;
-  text-shadow: 0 0 10px currentColor;
+  text-shadow: var(--ui-glow), 0 0 10px currentColor;
   pointer-events: none;
 }
 @keyframes telegraphLabel {

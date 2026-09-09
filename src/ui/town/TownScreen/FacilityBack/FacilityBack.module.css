@@ -12,9 +12,10 @@
   border: 1px solid #79e5cc;
   border-radius: 6px;
   background: #071d21e6;
-  color: #d9fff1;
-  font-size: 16px;
-  letter-spacing: 3px;
+  color: var(--ui-value);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   cursor: var(--cursor-pointer);
   box-shadow: 0 0 14px #36ffc62e, 0 6px 16px #00151280;
   /* 进设施时它是最后出现的一件东西: 延迟由 --fac-back-in 下发, 见 facilityScenes.ts。 */
@@ -57,7 +58,7 @@
 
 .label {
   font-family: var(--font-family);
-  font-weight: 600;
+  font-weight: var(--ui-weight);
 }
 
 @keyframes facilityBackIn {

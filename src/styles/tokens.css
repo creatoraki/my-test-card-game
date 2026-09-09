@@ -11,7 +11,19 @@
 :root {
    --font-family: "BebasNeue", "SourceHanSansSC", "Microsoft YaHei", sans-serif;
    --font-num: "SourceHanSansSC", "Microsoft YaHei", sans-serif;
-  --bg: #080b0d;
+
+   /* 终端文字（据点信息牌确立的基调，见 docs/界面字体样式记录.md）。
+      只用于 HUD 标签 / 面板标题 / 数值 / 按钮 / tab 这类“终端文字”；
+      卡面说明、事件正文这类长文保持 var(--text) 且不发光。 */
+   --ui-label: #c5e8df;
+   --ui-value: #e1fff4;
+   --ui-weight: 600;
+   --ui-tracking: 2px;
+   --ui-glow-color: #74ffcc66;
+   --ui-glow: 0 0 5px var(--ui-glow-color);
+   --ui-glow-svg: drop-shadow(0 0 5px var(--ui-glow-color));
+
+   --bg: #080b0d;
   --bg2: #101418;
   --panel: #11161a;
   --panel2: #171d21;

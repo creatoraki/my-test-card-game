@@ -35,17 +35,20 @@
 }
 
 .kicker {
-  color: #d6b477;
+  color: var(--ui-label);
   font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .head h4 {
   margin: 8px 0 0;
-  color: #f2e6d8;
+  color: var(--ui-value);
   font-size: 26px;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .head p {

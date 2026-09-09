@@ -3,6 +3,7 @@
    (由 EnergyMeter.tsx 以 --energy-color / --bar-color 传进来)。不新增全局变量。 */
 
 .energy-meter {
+  --ui-glow-color: var(--energy-color, var(--expl-glow, #6fe3f5));
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -16,18 +17,21 @@
   gap: 12px;
 }
 .em-label {
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: 3px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 .em-value {
-  color: var(--energy-color, var(--text));
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 26px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
   /* 数值本身就是那道最重要的读数, 给一层同色辉光把它从背景图里托出来 */
-  text-shadow: 0 0 14px color-mix(in srgb, var(--energy-color) 55%, transparent);
+  text-shadow: var(--ui-glow), 0 0 14px color-mix(in srgb, var(--energy-color) 55%, transparent);
 }
 .em-value em {
   margin-left: 2px;
@@ -77,15 +81,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 .em-tier {
-  color: var(--energy-color, var(--text));
-  font-weight: 600;
+  color: var(--ui-value);
+  font-weight: var(--ui-weight);
 }
 .em-gap {
-  color: var(--muted);
+  color: var(--ui-label);
 }
 /* 跨档预警是这块表存在的理由, 故做成整条里最响的元素: 描边 + 底色 + 缓慢呼吸。 */
 .em-warn {
@@ -94,7 +100,7 @@
   border-radius: 2px;
   background: color-mix(in srgb, var(--next-color) 16%, transparent);
   color: var(--next-color);
-  font-weight: 700;
+  font-weight: var(--ui-weight);
   animation: emWarnPulse 1.4s ease-in-out infinite;
 }
 @keyframes emWarnPulse {

@@ -39,25 +39,25 @@
 }
 
 .creditsLabel {
-  color: var(--sm-ink);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-indent: 5px;
-  text-shadow: 0 2px 10px #000000cc;
+  text-shadow: var(--ui-glow), 0 2px 10px #000000cc;
 }
 
 .creditsValue {
   margin-top: 6px;
-  color: var(--sm-glow-hi);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 40px;
-  font-weight: 700;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 26px #91e8dc80, 0 3px 12px #000000e6;
+  text-shadow: var(--ui-glow), 0 0 26px #91e8dc80, 0 3px 12px #000000e6;
 }
 
 /* ── 左列: 仓库速取条 + 补给货架 ── */

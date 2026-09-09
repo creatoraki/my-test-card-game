@@ -1,4 +1,5 @@
 .briefingScene {
+  --ui-glow-color: var(--event-accent);
   display: grid;
   grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.1fr);
   height: 100%;
@@ -143,23 +144,25 @@
 
 .briefingCopy h2 {
   margin: 13px 0 9px;
-  color: #f4f7ef;
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: var(--ep-h2);
-  font-weight: 800;
+  font-weight: var(--ui-weight);
   line-height: 1.05;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .eventLabel {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--event-accent);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--ep-meta);
-  font-weight: 800;
-  letter-spacing: var(--ep-track);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .eventLabel span {
@@ -221,10 +224,12 @@
   flex-wrap: wrap;
   gap: 12px 20px;
   margin-top: 20px;
-  color: #687d7e;
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--ep-meta);
-  letter-spacing: var(--ep-track);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 [data-variant="rest"] .storyMeta {
@@ -233,9 +238,9 @@
 
 .storyMeta b {
   margin-right: 5px;
-  color: var(--event-accent);
+  color: var(--ui-value);
   font-size: var(--ep-body);
-  font-weight: 400;
+  font-weight: var(--ui-weight);
   vertical-align: -2px;
 }
 
@@ -248,8 +253,11 @@
   padding: 11px 15px;
   border-color: var(--event-accent);
   background: color-mix(in srgb, var(--event-accent) 12%, #111a1d);
-  color: #f0f6e9;
+  color: var(--ui-value);
   font-size: var(--ep-body);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 [data-variant="rest"] .advanceButton {

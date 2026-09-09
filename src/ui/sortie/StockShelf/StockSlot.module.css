@@ -1,6 +1,7 @@
 /* 单个货位。尺寸令牌由 ShelfRow 下发(--slot-w), 这里只负责货位自己的材质与手感。 */
 
 .slot {
+  --ui-glow-color: var(--sm-glow, #91e8dc);
   display: flex;
   width: var(--slot-w, 148px);
   flex-direction: column;
@@ -81,13 +82,13 @@
 
 .name {
   position: relative;
-  color: var(--sm-ink);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-indent: 2px;
-  text-shadow: 0 2px 10px #000000e6;
+  text-shadow: var(--ui-glow), 0 2px 10px #000000e6;
   white-space: nowrap;
   pointer-events: none;
 }
@@ -144,12 +145,14 @@
 
 .priceValue {
   font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .priceUnit {
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }

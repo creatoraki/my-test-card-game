@@ -81,19 +81,19 @@
 }
 
 .label {
-  color: #c5e8df;
+  color: var(--ui-label);
   font-size: 18px;
   font-family: var(--font-family);
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-shadow: 0 0 5px #74ffcc66;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .value {
-  color: #e1fff4;
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-shadow: 0 0 5px #74ffcc66;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }

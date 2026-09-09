@@ -19,6 +19,7 @@
   --inventory-empty-fill: #130d056f;
   --inventory-empty-edge: #e7b45f60;
   --inventory-scanline: #ffe1a31a;
+  --ui-glow-color: var(--inventory-accent);
 
   display: block;
   width: fit-content;
@@ -47,21 +48,22 @@
 }
 
 .label {
-  color: var(--inventory-accent-bright);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  text-indent: 4px;
-  text-shadow: 0 2px 10px #000000cc;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-indent: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 2px 10px #000000cc;
 }
 
 .readout {
-  color: var(--level-color);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 11px;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 6px #000000aa;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 1px 6px #000000aa;
   animation: bump 200ms var(--sm-ease);
 }
 

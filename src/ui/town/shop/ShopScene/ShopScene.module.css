@@ -1,4 +1,5 @@
 .sx-root {
+  --ui-glow-color: var(--sx-action);
   --event-accent: #c9d3da;
   --sx-ink: #e8f6ff;
   --sx-muted: #8ba6b8;
@@ -43,32 +44,35 @@
 
 .sx-root .sx-kicker {
   display: block;
-  color: var(--event-accent);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-variant-numeric: tabular-nums;
   font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.4;
+  text-shadow: var(--ui-glow);
   text-transform: uppercase;
 }
 
 .sx-root .sx-title {
   margin: 7px 0 0;
-  color: #f4f7ec;
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 42px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
-  text-shadow: 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
+  text-shadow: var(--ui-glow), 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
 }
 
 .sx-root .sx-sub {
   margin: 10px 0 0;
-  color: var(--sx-muted);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 0.12em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .sx-root .sx-warehouse-icon {
@@ -99,10 +103,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--event-accent);
+  color: var(--ui-label);
   font-size: var(--panel-shell-status-size, 18px);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.12em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 
@@ -154,18 +160,20 @@
 
 .sx-root .sx-refresh-label {
   font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
 }
 
 .sx-root .sx-refresh-cost {
   position: relative;
   margin-left: auto;
   padding-left: 13px;
-  color: var(--event-accent);
+  color: var(--ui-value);
   font-size: 18px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .sx-root .sx-refresh-cost::before {

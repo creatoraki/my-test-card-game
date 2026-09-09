@@ -1,4 +1,5 @@
 .showcase {
+  --ui-glow-color: var(--slot-accent);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -62,10 +63,12 @@
   border-radius: 999px;
   background: #fffffff2;
   box-shadow: 0 2px 6px #2a1b3d26;
-  color: var(--slot-ink);
+  color: var(--ui-value);
   font-family: Georgia, serif;
   font-size: calc(var(--slot-icon) * 0.2);
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   line-height: 1;
 }
 

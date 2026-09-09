@@ -3,6 +3,7 @@
   inset: 0;
   z-index: 3;
   pointer-events: none;
+  --ui-glow-color: var(--sm-glow, #91e8dc);
   --sortie-back-width: 232px;
   --sortie-confirm-width: 144px;
 }
@@ -16,10 +17,10 @@
   border: 0;
   border-radius: 0;
   font-family: var(--font-family);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 4px;
-  text-indent: 4px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-indent: var(--ui-tracking);
   -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
   backdrop-filter: blur(18px) saturate(118%) brightness(1.06);
   transform: skewX(-10.08deg);
@@ -44,7 +45,8 @@
     inset 0 0 0 1px #ffffff45,
     inset 0 1px 0 #ffffff3d,
     0 18px 38px -26px #000000cc;
-  color: #dfeeea;
+  color: var(--ui-label);
+  text-shadow: var(--ui-glow);
 }
 
 .confirm {
@@ -56,10 +58,10 @@
     inset 0 1px 0 #c2fff67a,
     0 0 34px -10px #91e8dc66,
     0 22px 46px -28px #000000e6;
-  color: #c2fff6;
-  font-size: 16px;
-  font-weight: 700;
-  text-shadow: 0 1px 10px #0000008a;
+  color: var(--ui-value);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  text-shadow: var(--ui-glow), 0 1px 10px #0000008a;
 }
 
 .nav[data-step="prep"] .back {

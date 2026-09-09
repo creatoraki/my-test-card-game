@@ -1,4 +1,5 @@
 .warehouse-content {
+  --ui-glow-color: var(--warehouse-electric);
   --warehouse-ink: #eef2f5;
   --warehouse-muted: #98a3ab;
   --warehouse-line: #c9d3da2e;
@@ -179,11 +180,13 @@
   gap: 12px;
   margin-top: 14px;
   padding: 12px 4px 0 6px;
-  color: var(--warehouse-muted);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-variant-numeric: tabular-nums;
   font-size: 18px;
-  letter-spacing: 1px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   border-top: 1px solid var(--warehouse-line);
 }
 

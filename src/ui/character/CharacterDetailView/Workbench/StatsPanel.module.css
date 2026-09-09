@@ -31,9 +31,11 @@
 }
 
 .group-title {
-  color: #6b5b82;
+  color: var(--ui-label);
   font-size: var(--fm-fs-l2, 20px);
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   opacity: 0.8;
 }
 
@@ -104,9 +106,11 @@
 }
 
 .attr-label {
-  color: #6b5b82;
+  color: var(--ui-label);
   font-size: var(--fm-fs-l2, 20px);
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .attr-value {
@@ -114,11 +118,12 @@
   align-items: baseline;
   justify-content: flex-end;
   gap: 7px;
-  color: #2a1b3d;
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: var(--fm-fs-l1, 24px);
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .delta {

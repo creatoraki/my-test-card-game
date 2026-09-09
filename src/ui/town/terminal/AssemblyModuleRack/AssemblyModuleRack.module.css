@@ -1,4 +1,5 @@
 .rack {
+  --ui-glow-color: var(--asm-cyan, var(--event-accent, #58efc7));
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -17,16 +18,20 @@
 
 /* 原本是给英文小字号 kicker 调的 10px/0.14em, 换成中文后字太小, 这里放大并收窄字距。 */
 .kicker {
-  color: var(--asm-cyan, var(--event-accent, #58efc7));
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--rs-font-kicker, 22px);
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .count {
-  color: var(--muted, #849096);
+  color: var(--ui-label);
   font-size: var(--rs-font-body, 20px);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .grid {
@@ -112,8 +117,11 @@
   /* 压过选中角标(z-index:2), 否则右下角那条角标会盖住「可用 / 不匹配」。 */
   z-index: 3;
   padding: 3px 6px;
-  color: #c5d8c4;
+  color: var(--ui-label);
   font-size: var(--rs-font-mark, 18px);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   background: #11201bd9;
   pointer-events: none;
 }

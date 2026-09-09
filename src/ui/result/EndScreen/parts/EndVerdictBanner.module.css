@@ -1,4 +1,5 @@
 .banner {
+  --ui-glow-color: var(--verdict-tone);
   position: relative;
   display: grid;
   width: 100%;
@@ -55,18 +56,21 @@
 .kicker {
   display: block;
   margin-bottom: 4px;
-  color: var(--verdict-tone);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-shadow: 0 0 14px var(--verdict-tone);
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 0 14px var(--verdict-tone);
 }
 
 .copy strong {
   display: block;
   overflow: hidden;
-  color: #f2f6ed;
+  color: var(--ui-value);
   font-size: 30px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -30,11 +30,12 @@
 }
 
 .reason {
-  fill: #ffffffd9;
+  fill: var(--ui-label);
   font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  filter: var(--ui-glow-svg);
   paint-order: stroke;
   stroke: #071013cc;
   stroke-width: 5px;

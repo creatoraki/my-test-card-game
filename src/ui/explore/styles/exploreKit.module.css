@@ -3,11 +3,12 @@
 
 .expl-kicker {
   display: block;
-  color: var(--expl-glow, #6fe3f5);
+  color: var(--ui-label);
   font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 4px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .expl-btn {
@@ -32,9 +33,11 @@
     0 100%,
     0 var(--notch)
   );
-  color: var(--text);
-  font-size: 15px;
-  letter-spacing: 3px;
+  color: var(--ui-value);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   transition:
     border-color 180ms ease,
     color 180ms ease,
@@ -84,9 +87,11 @@
 }
 
 .expl-btn-flag {
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 2px;
+  color: var(--ui-label);
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 /* 事件类型色是探索页、节点图和事件面板之间的唯一颜色契约。 */

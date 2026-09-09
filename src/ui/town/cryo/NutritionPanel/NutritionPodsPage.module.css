@@ -27,16 +27,20 @@
 
 .subhead h2 {
   margin: 0;
-  color: var(--cryo-glow);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 4px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .subhead span {
   font-size: 18px;
-  letter-spacing: 1px;
+  color: var(--ui-label);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .upgradeButton {
@@ -44,10 +48,11 @@
   padding: 9px 16px;
   border: 1px solid color-mix(in srgb, var(--cryo-glow) 38%, transparent);
   background: var(--cryo-card);
-  color: var(--cryo-glow-deep);
+  color: var(--ui-value);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 

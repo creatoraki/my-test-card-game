@@ -24,8 +24,10 @@
 }
 
 .notice strong {
-  color: var(--asm-glow, #d6b477);
-  letter-spacing: 2px;
+  color: var(--ui-value);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .notice span,
@@ -43,7 +45,10 @@
 .tab {
   padding: 9px 18px;
   border: 1px solid var(--asm-line, #f2e6d82e);
-  color: var(--asm-ink, #f2e6d8);
+  color: var(--ui-label);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   background: #ffffff08;
   cursor: var(--cursor-pointer);
   transition: 160ms ease;

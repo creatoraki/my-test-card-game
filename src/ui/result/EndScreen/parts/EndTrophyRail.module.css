@@ -1,6 +1,7 @@
 .trophies {
   width: 100%;
   height: 100%;
+  --ui-glow-color: var(--trophy-gold);
   --k: #e2bd62;
   --trophy-gold: #e2bd62;
 }
@@ -15,19 +16,21 @@
 }
 
 .trophies-header span {
-  color: var(--trophy-gold);
+  color: var(--ui-label);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-shadow: 0 0 16px #e2bd6288;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 0 16px #e2bd6288;
 }
 
 .trophies-header h2 {
   display: inline;
   margin: 0 0 0 10px;
-  color: var(--text);
+  color: var(--ui-value);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .trophy-grid {
@@ -84,8 +87,10 @@
 .trophy-label {
   grid-column: 1 / -1;
   overflow: hidden;
-  color: #b9c8c7;
+  color: var(--ui-label);
   font-size: 11px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -95,6 +100,8 @@
   color: var(--trophy-tone, var(--trophy-gold));
   font-family: var(--font-num);
   font-size: 30px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.05;
   text-overflow: ellipsis;
   white-space: nowrap;

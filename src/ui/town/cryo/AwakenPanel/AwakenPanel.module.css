@@ -1,5 +1,6 @@
 .body {
   composes: content from "../styles/cryoKit.module.css";
+  --ui-glow-color: var(--cryo-glow);
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -57,10 +58,12 @@
   left: 14px;
   top: 12px;
   z-index: 3;
-  color: var(--cryo-ink-dim);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: 18px;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .figure {
@@ -152,18 +155,20 @@
 }
 
 .kicker {
-  color: var(--cryo-glow);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 4px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .detailText .name {
-  color: var(--cryo-ink);
+  color: var(--ui-value);
   font-size: 21px;
-  font-weight: 700;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .detailText .name {
@@ -197,17 +202,21 @@
 }
 
 .label {
-  color: var(--cryo-ink-dim);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 
 .value {
-  color: var(--cryo-ink);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 20px;
-  font-weight: 600;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 

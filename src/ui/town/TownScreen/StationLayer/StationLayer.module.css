@@ -108,9 +108,10 @@
 }
 
 .signIndex {
-  fill: #94d4c5;
+  fill: var(--ui-label);
   font: 11px ui-monospace, monospace;
-  letter-spacing: 3px;
+  letter-spacing: var(--ui-tracking);
+  filter: var(--ui-glow-svg);
 }
 
 .signDivider {
@@ -120,11 +121,11 @@
 }
 
 .signName {
-  fill: #e1fff4;
+  fill: var(--ui-value);
   font-size: 25px;
-  font-weight: 600;
+  font-weight: var(--ui-weight);
   font-family: var(--font-family);
-  filter: drop-shadow(0 0 5px #74ffcc66);
+  filter: var(--ui-glow-svg);
 }
 
 .building:hover .signPanel,

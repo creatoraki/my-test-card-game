@@ -1,4 +1,5 @@
 .eventDemo {
+  --ui-glow-color: var(--event-accent);
   --panel-bg: #0c1215;
   --ep-title: 42px;
   --ep-h2: 44px;
@@ -49,12 +50,13 @@
 
 .demoKicker {
   display: block;
-  color: var(--event-accent);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--ep-meta);
-  font-weight: 800;
+  font-weight: var(--ui-weight);
   line-height: 1.4;
-  letter-spacing: var(--ep-track);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .headerTitle {
@@ -63,12 +65,13 @@
 
 .demoHeader h1 {
   margin: 7px 0 0;
-  color: #f4f7ec;
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: var(--event-panel-title-size, var(--ep-title));
-  font-weight: 800;
+  font-weight: var(--ui-weight);
   line-height: 1;
-  letter-spacing: var(--ep-track);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .headerActions {
@@ -81,10 +84,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #718587;
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--ep-meta);
-  letter-spacing: var(--ep-track);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 

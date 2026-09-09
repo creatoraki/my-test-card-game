@@ -1,14 +1,16 @@
 .sceneEyebrow {
   display: block;
-  color: var(--event-accent);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--ep-meta);
-  font-weight: 800;
+  font-weight: var(--ui-weight);
   line-height: 1.4;
-  letter-spacing: var(--ep-track);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .choiceScene {
+  --ui-glow-color: var(--event-accent);
   display: grid;
   grid-template-columns: minmax(190px, 0.72fr) minmax(0, 1.28fr);
   height: 100%;
@@ -31,12 +33,13 @@
 .choiceIntro h2,
 .resultScene h2 {
   margin: 13px 0 9px;
-  color: #f4f7ef;
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: var(--ep-h2);
-  font-weight: 800;
+  font-weight: var(--ui-weight);
   line-height: 1.05;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .choiceIntro p {
@@ -52,10 +55,12 @@
   align-items: center;
   gap: 7px;
   margin-top: 25px;
-  color: #a9bcac;
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--ep-meta);
-  letter-spacing: var(--ep-track);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .choiceSignal span {
@@ -233,16 +238,20 @@
 }
 
 .optionMain strong {
-  color: #edf5ec;
+  color: var(--ui-value);
   font-size: var(--ep-body);
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .optionMain > span {
   overflow: hidden;
-  color: #91a2a2;
+  color: var(--ui-label);
   font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   line-height: 1.5;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -325,9 +334,12 @@
   padding: 6px 0;
   border: 0;
   background: transparent;
-  color: #809293;
+  color: var(--ui-label);
   clip-path: none;
   font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 [data-variant="rest"] .backButton {
@@ -404,14 +416,18 @@
   padding: 12px 0;
   border-top: 1px solid #314149;
   border-bottom: 1px solid #314149;
-  color: #74888a;
+  color: var(--ui-label);
   font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .summaryRow strong {
-  color: var(--event-accent);
+  color: var(--ui-value);
   font-size: var(--ep-lead);
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-align: right;
 }
 
@@ -461,13 +477,19 @@
 }
 
 .rewardNotice strong {
-  color: #e8f7bc;
+  color: var(--ui-value);
   font-size: var(--ep-lead);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .rewardNotice div span {
-  color: #879b8d;
+  color: var(--ui-label);
   font-size: var(--ep-meta);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .rewardArrow {
@@ -488,9 +510,11 @@
 }
 
 .resultFootNote {
-  color: #74888a;
+  color: var(--ui-label);
   font-size: var(--ep-meta);
-  letter-spacing: var(--ep-track);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .resultFoot > button {

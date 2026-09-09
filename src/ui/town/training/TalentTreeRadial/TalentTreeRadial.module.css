@@ -5,6 +5,7 @@
 
 .trr {
   composes: tr-tokens from "../styles/trainingKit.module.css";
+  --ui-glow-color: var(--tr-glow);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -31,20 +32,21 @@
   display: flex;
   align-items: baseline;
   gap: 10px;
-  color: var(--tr-ink);
+  color: var(--ui-label);
   font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
+  text-shadow: var(--ui-glow);
 }
 
 .trr-training-points strong {
-  color: var(--tr-glow);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 36px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-shadow: 0 0 16px rgba(255, 215, 0, 0.55);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .trr-stage {
@@ -164,18 +166,22 @@
 }
 
 .trr-label-name {
-  fill: var(--trr-hue, var(--tr-glow));
+  fill: var(--ui-label);
   font-family: var(--font-family);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  filter: var(--ui-glow-svg);
   text-anchor: middle;
 }
 
 .trr-label-count {
-  fill: #f2e6c8;
+  fill: var(--ui-value);
   font-family: var(--font-family);
   font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  filter: var(--ui-glow-svg);
   text-anchor: middle;
 }
 
@@ -409,17 +415,20 @@
 }
 
 .trr-tip-title {
-  color: #f2e6c8;
+  color: var(--ui-value);
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .trr-tip-tier {
   margin-top: 2px;
-  color: #887e6a;
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 1px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .trr-tip-effect {
@@ -432,10 +441,11 @@
 
 .trr-tip-status {
   margin-top: 8px;
-  color: #ffd700;
+  color: var(--ui-label);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .trr-tip-reach {

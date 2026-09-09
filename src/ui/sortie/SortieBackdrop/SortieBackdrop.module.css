@@ -1,4 +1,5 @@
 .backdrop {
+  --ui-glow-color: var(--sm-glow, #91e8dc);
   --sm-ink: #eaf6f3;
   --sm-ink-dim: #8fb2ae;
   --sm-glow: #91e8dc;
@@ -61,24 +62,24 @@
 }
 
 .kicker {
-  color: var(--sm-glow);
+  color: var(--ui-label);
   font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 4px;
-  text-shadow: 0 1px 8px #000000b3;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 1px 8px #000000b3;
 }
 
 .name {
   margin: 10px 0 0;
-  color: var(--sm-ink);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 52px;
-  font-weight: 700;
-  letter-spacing: 10px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.15;
-  text-indent: 10px;
-  text-shadow: 0 2px 8px #000000cc, 0 2px 26px #000000cc;
+  text-indent: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 2px 8px #000000cc, 0 2px 26px #000000cc;
 }
 
 .desc {
@@ -96,11 +97,12 @@
   align-items: center;
   gap: 20px;
   margin-top: 16px;
-  color: #c6ded9;
+  color: var(--ui-label);
   font-family: var(--font-family);
-  font-size: 13px;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 8px #000000b3;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 1px 8px #000000b3;
 }
 
 .stars {

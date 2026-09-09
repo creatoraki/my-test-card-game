@@ -1,4 +1,5 @@
 .wrap {
+  --ui-glow-color: var(--cryo-glow);
   position: relative;
   flex: 0 0 96px;
   min-width: 0;
@@ -76,10 +77,11 @@
 
 .name {
   overflow: hidden;
-  color: var(--cryo-ink);
+  color: var(--ui-value);
   font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -107,9 +109,11 @@
   right: 10px;
   top: 68px;
   z-index: 3;
-  color: var(--cryo-glow-deep);
+  color: var(--ui-label);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .assignment {
@@ -120,8 +124,11 @@
   padding: 3px 5px;
   border: 1px solid color-mix(in srgb, var(--cryo-glow) 52%, transparent);
   background: var(--cryo-card-hover);
-  color: var(--cryo-glow-deep);
+  color: var(--ui-value);
   font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   line-height: 1.1;
   white-space: nowrap;
 }

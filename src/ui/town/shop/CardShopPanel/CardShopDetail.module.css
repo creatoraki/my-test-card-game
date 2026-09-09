@@ -30,16 +30,20 @@
 }
 
 .kicker {
-  color: var(--owner-color, var(--asm-glow, #d6b477));
+  color: var(--ui-label);
   font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .name {
   margin: 6px 0 4px;
-  color: var(--asm-ink, #f2e6d8);
+  color: var(--ui-value);
   font-size: 28px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .meta {
@@ -69,7 +73,8 @@
   border: 1px solid var(--asm-glow, #d6b477);
   color: #1b1410;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   background: var(--asm-glow, #d6b477);
   cursor: var(--cursor-pointer);
   transition: 160ms ease;

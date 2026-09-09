@@ -6,6 +6,7 @@
 
 .srb {
   composes: tr-tokens from "../styles/trainingKit.module.css";
+  --ui-glow-color: var(--tr-glow);
   box-sizing: border-box;
   display: flex;
   gap: 12px;
@@ -64,21 +65,25 @@
 }
 
 .srb-label {
-  color: var(--tr-ink);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 0;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.15;
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 
 .srb-value {
   min-width: 34px;
-  color: var(--tr-ink);
+  color: var(--ui-value);
   font-family: var(--font-family);
   font-size: 22px;
-  font-weight: 600;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1;
   text-align: center;
+  text-shadow: var(--ui-glow);
 }
 
 .srb-tip {
@@ -90,10 +95,12 @@
   border: 1px solid rgba(255, 215, 0, 0.42);
   background: rgba(18, 13, 24, 0.94);
   box-shadow: 0 8px 20px -12px #000, 0 0 14px -8px var(--tr-glow);
-  color: var(--tr-ink);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 0.5px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.2;
+  text-shadow: var(--ui-glow);
   pointer-events: none;
   transform: translateX(-50%);
   white-space: nowrap;

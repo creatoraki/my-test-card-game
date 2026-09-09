@@ -16,6 +16,7 @@
 }
 
 .asm-panel {
+  --ui-glow-color: var(--event-accent, #52cfff);
   --notch: 14px;
   --event-accent: var(--asm-frame, #52cfff);
   position: relative;
@@ -201,15 +202,20 @@
 .asm-event-frame > header h1 {
   margin-top: 0;
   font-size: var(--panel-shell-title-size, 26px);
+  color: var(--ui-value);
+  font-weight: var(--ui-weight);
   line-height: 1.2;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .asm-panel-status {
-  color: #9baba7;
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--panel-shell-status-size, 18px);
-  letter-spacing: 0.06em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
 }
 
@@ -291,9 +297,11 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: var(--asm-ink, #e8f7f7);
+  color: var(--ui-label);
   font-size: 18px;
-  letter-spacing: 3px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
   white-space: nowrap;
   animation: asm-seed-out 180ms var(--seed-delay, 520ms) ease-out both;
 }

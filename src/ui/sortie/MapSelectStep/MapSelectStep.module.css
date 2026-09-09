@@ -1,4 +1,5 @@
 .sm-step {
+  --ui-glow-color: var(--sm-glow, #91e8dc);
   --band-skew: -10.08deg;
   --band-w: 520px;
   --band-travel: 1240px;
@@ -104,21 +105,22 @@
 }
 
 .sm-slice-no {
-  color: #ffffffad;
+  color: var(--ui-label);
   font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 5px;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   text-indent: 5px;
-  text-shadow: 0 1px 8px #000000b3;
+  text-shadow: var(--ui-glow), 0 1px 8px #000000b3;
 }
 
 .sm-slice-name {
+  color: var(--ui-value);
   font-size: 26px;
-  font-weight: 700;
-  letter-spacing: 7px;
-  text-indent: 7px;
-  text-shadow: 0 2px 14px #000000cc;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-indent: var(--ui-tracking);
+  text-shadow: var(--ui-glow), 0 2px 14px #000000cc;
   white-space: nowrap;
 }
 

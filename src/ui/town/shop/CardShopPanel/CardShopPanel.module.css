@@ -1,4 +1,5 @@
 .panel {
+  --ui-glow-color: var(--asm-glow, #d6b477);
   display: flex;
   height: 100%;
   min-height: 0;
@@ -35,8 +36,11 @@
 
 .summary {
   flex-wrap: wrap;
-  color: var(--asm-ink, #f2e6d8);
+  color: var(--ui-value);
   font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .note {
@@ -51,7 +55,8 @@
   padding: 13px 18px;
   border: 1px solid var(--asm-line, #f2e6d82e);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   cursor: var(--cursor-pointer);
   transition: 160ms ease;
 }

@@ -147,11 +147,12 @@
   align-items: center;
   padding: 0 10px 0 14px;
   background: linear-gradient(180deg, transparent, #05080ab8 40%, #05080aef);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
   line-height: 1.1;
-  color: #eaf6ff;
-  text-shadow: 0 1px 3px #000e, 0 0 8px #000a;
+  color: var(--ui-value);
+  text-shadow: var(--ui-glow), 0 1px 3px #000e, 0 0 8px #000a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -1,4 +1,5 @@
 .gridPanel {
+  --ui-glow-color: var(--asm-select, #9fe8ff);
   display: grid;
   min-height: 0;
   min-width: 0;
@@ -16,17 +17,21 @@
 
 /* 同 ModuleRack: 中文标题不吃英文 kicker 那套 10px/0.14em。 */
 .kicker {
-  color: var(--asm-select, #9fe8ff);
+  color: var(--ui-label);
   font-family: var(--font-family);
   font-size: var(--rs-font-kicker, 22px);
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .count,
 .empty {
-  color: var(--muted, #849096);
+  color: var(--ui-label);
   font-size: var(--rs-font-body, 20px);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
 }
 
 .track {
