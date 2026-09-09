@@ -136,6 +136,12 @@
   --cryo-bust-zoom: 1.9;
 }
 
+.pod .portrait {
+  position: absolute;
+  top: 50%;
+  translate: calc(-50% + var(--portrait-dx, 0px)) calc(-50% + var(--portrait-dy, 0px));
+}
+
 .pod.is-pending .portrait {
   animation: podFigureDrop 0.54s 0.08s cubic-bezier(0.2, 0.72, 0.28, 1) both;
 }
