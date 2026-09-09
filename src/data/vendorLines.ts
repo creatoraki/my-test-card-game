@@ -1,10 +1,12 @@
+import { pickBotLine } from "./botLines";
+
 // ============================================================================
 // 售货机器人台词表 —— 出击准备页那台话痨补给机的全部嘴替（纯数据）。
 //
 // ★ 为什么放 data/ 而不是组件目录: 台词是**内容**不是表现, 与 sortieStock.ts 的货柜清单
 //   同级 —— 日后加一档「高级货柜」或换一台机器人, 改的是这张表, 不该动 UI 组件。
 //
-// ★ 分类口径与 useVendorChatter 的 VendorLineKind 一一对应。加一类必须两边同时加,
+// ★ 分类口径与 useBotChatter 的 VendorLineKind 一一对应。加一类必须两边同时加,
 //   否则 Record<> 的类型检查当场就炸(这是刻意的: 沉默的空池比编译错误更难查)。
 // ============================================================================
 
@@ -77,7 +79,5 @@ export const VENDOR_LINES: Record<VendorLineKind, readonly string[]> = {
 
 /** 从某一类里随机取一句。传 avoid 可避免与上一句重复(池子只有一句时仍会重复)。 */
 export function pickVendorLine(kind: VendorLineKind, avoid?: string | null): string {
-  const pool = VENDOR_LINES[kind];
-  const candidates = avoid && pool.length > 1 ? pool.filter((line) => line !== avoid) : pool;
-  return candidates[Math.floor(Math.random() * candidates.length)];
+  return pickBotLine(VENDOR_LINES, kind, avoid);
 }

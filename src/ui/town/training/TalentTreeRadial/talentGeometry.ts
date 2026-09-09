@@ -9,8 +9,8 @@ import { branchNodesOf, type SquadBadgeDef, type TalentNodeDef } from "@/data";
 export const RADIAL_CANVAS = { width: 1660, height: 860 } as const;
 // 画布居中对称: 六分支全径向展开, 顶部垂直支的标签仍有余量。
 export const RADIAL_CENTER = { x: RADIAL_CANVAS.width / 2, y: RADIAL_CANVAS.height / 2 };
-export const LABEL_HALF_W = 66;
-export const LABEL_HALF_H = 32;
+export const LABEL_HALF_W = 78;
+export const LABEL_HALF_H = 36;
 
 export interface Point {
   x: number;

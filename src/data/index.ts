@@ -163,7 +163,13 @@ export {
 } from "./equipUpgrade";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
 export { PICNIC_RECIPES, matchPicnicRecipe, type PicnicRecipeDef } from "./picnicRecipes";
+export { pickBotLine } from "./botLines";
 export { VENDOR_LINES, pickVendorLine, type VendorLineKind } from "./vendorLines";
+export {
+  TOWN_BOT_LINES,
+  pickTownBotLine,
+  type TownBotLineKind,
+} from "./townBotLines";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";
 

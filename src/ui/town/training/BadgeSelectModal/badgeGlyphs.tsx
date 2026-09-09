@@ -83,7 +83,7 @@ export function BadgeGlyph({ badgeId, size = "100%", className }: BadgeGlyphProp
       strokeLinecap="round"
       strokeLinejoin="round"
       role="img"
-      aria-label={`${badgeId} 徽章图形`}
+      aria-label="小队徽章图形"
     >
       <defs>
         <linearGradient id={`badge-bg-${badgeId}`} x1="0" y1="0" x2="1" y2="1">
@@ -106,12 +106,6 @@ export function BadgeGlyph({ badgeId, size = "100%", className }: BadgeGlyphProp
       <path className={s["bsg-frame"]} d="M20 54V20h34M146 20h34v34M180 146v34h-34M54 180H20v-34" stroke="var(--tr-line)" strokeWidth="1.1" />
       <polygon className={s["bsg-sweep"]} points="-25,34 18,0 225,166 181,200" aria-hidden="true" />
       {art}
-      <g className={s["bsg-label"]} fill="var(--badge-hue, var(--tr-glow))" aria-hidden="true">
-        <rect x="27" y="28" width="22" height="16" fill="none" stroke="currentColor" strokeWidth=".8" />
-        <text x="38" y="39" textAnchor="middle" fontSize="9">{String(Object.keys(ART).indexOf(badgeId) + 1).padStart(2, "0")}</text>
-        <text x="173" y="170" textAnchor="end" fontSize="6.5" letterSpacing="1.4">SQUAD BADGE</text>
-        <text x="173" y="181" textAnchor="end" fill="var(--badge-ink, var(--tr-ink))" fontSize="6" letterSpacing="1">{badgeId.toUpperCase()}</text>
-      </g>
     </svg>
   );
 }

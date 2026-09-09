@@ -22,7 +22,9 @@
 | [nutritionPod.ts](../../src/data/nutritionPod.ts) | 营养舱科技与疗养规则：登记带 `requires`、坐标的横向节点图，席位扩建与疗养液配比按链式逐节点解锁；统一计算四态节点、席位、等级和单次体力极限恢复量，`nutritionTechCheck` 复用材料/积分判定，`NUTRITION_TREAT_COST` 固定为 100 积分。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；据点随机商店仍只筛选装备与材料。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
-| [vendorLines.ts](../../src/data/vendorLines.ts) | 出击准备页售货机器人的台词表：按开口场合（问候/闲聊/购买/退款/退回仓库/积分不足/背包已满/仓库取物）分池，配 `pickVendorLine()` 随机取句并回避上一句；分类与 UI 的 `VendorLineKind` 一一对应。 |
+| [botLines.ts](../../src/data/botLines.ts) | 公共台词取句函数：按台词池与分类随机取句，并回避上一句；供出击售货机器人与据点管理终端共用。 |
+| [vendorLines.ts](../../src/data/vendorLines.ts) | 出击准备页售货机器人的台词表：按开口场合（问候/闲聊/购买/退款/退回仓库/积分不足/背包已满/仓库取物）分池，`pickVendorLine()` 作为公共 `pickBotLine()` 的薄封装随机取句并回避上一句；分类与 UI 的 `VendorLineKind` 一一对应。 |
+| [townBotLines.ts](../../src/data/townBotLines.ts) | 据点常驻管理终端台词表：按问候/闲聊/点击反馈分池，`pickTownBotLine()` 复用公共取句逻辑，不涉及设施规则。 |
 | [shop.ts](../../src/data/shop.ts) | 据点商店：等级配置 `SHOP_LEVELS`、线性递增的刷新计价 `shopRefreshCost`、货架生成 `rollShopStock`。上架资格看 `buyValue`；装备的随机模型在上架时固定到 `ShopSlot.roll`；随机刻意用 `Math.random`，不进探索的可复现种子链。 |
 | [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池、事件选项、加权 outcome、独立故事文案和效果。废弃楼层登记 16 个成长事件、8 个生存事件、18 个风险事件与 6 个经济交易事件；风险事件限定第 3-4 推进段，按 `negative` / `highRisk` 分级，并用 `FORCE_ITEM` 发放不可移除的《沉重的负担》。经济事件只登记交易服务槽位，货架与食品结算由 `explore/shop.ts` 负责。大奖策略通过选项食品门槛校验，六个食品触发的隐藏休息映射由事件的 `hiddenRest` 登记；教学事件池由 [tutorialEvents.ts](../../src/data/tutorialEvents.ts) 单独登记，供固定蓝图按 id 取用；挑战节点池由 [exploreTrials.ts](../../src/data/exploreTrials.ts) 单独登记。 |
 | [exploreTrials.ts](../../src/data/exploreTrials.ts) | 挑战节点事件池：4 份跨轮契约，各自登记负面属性修正、持续轮数与「物资 / 常驻小队增益」二选一的加权奖励，节点本身只有「接受挑战（−5 粒子）」与「放弃」两支。属性修正在开战时对每名角色各叠一次，故不得写入 `drawCount` / `handLimit` / `burdenAdapt` 这类小队合计属性。 |

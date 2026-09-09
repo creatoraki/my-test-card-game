@@ -2,11 +2,10 @@
    背景被 PixelSwap 包了一层, 毛玻璃采样不到底下的图(见 TownScreen.module.css 顶部)。 */
 
 /* ---- 左上: 终端状态带 ---- */
-/* 三项连成一条窄带, 从左到右读作生存、货币、设施进度; 不做成三张独立卡片。 */
 .status {
   position: absolute;
   left: 56px;
-  top: 42px;
+  top: 20px;
   z-index: 3;
   display: flex;
   align-items: stretch;
@@ -18,7 +17,6 @@
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
 }
 
-/* 沿边跑一圈的高光: conic 渐变转起来 + xor 遮罩只留描边那一圈。 */
 .rim {
   position: absolute;
   inset: -1px;
@@ -84,7 +82,7 @@
 
 .label {
   color: #aabcc0;
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 2px;
 }
 
@@ -94,153 +92,4 @@
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 2px;
-}
-
-/* ---- 左下: 开关组 ---- */
-/* 三枚常驻按钮与可选的测试入口竖排, 整组是一个飞出单元。 */
-.corner {
-  position: absolute;
-  left: 56px;
-  bottom: 44px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.chip {
-  --chip-edge: #72c7d58c;
-  --chip-ink: #d4f0f5;
-  --chip-tint: #6fe3f51a;
-  position: relative;
-  isolation: isolate;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  width: 188px;
-  min-height: 50px;
-  padding: 8px 15px 8px 10px;
-  border: 0;
-  clip-path: none;
-  background: transparent;
-  color: var(--chip-ink);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  white-space: nowrap;
-  filter: drop-shadow(0 4px 8px #0008);
-  transition:
-    color 180ms ease,
-    transform 180ms ease,
-    filter 180ms ease;
-}
-
-.chip::before,
-.chip::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-
-.chip::before {
-  inset: 0;
-  background: linear-gradient(120deg, var(--chip-edge), #263b45 55%, var(--chip-edge));
-}
-
-.chip::after {
-  inset: 1px;
-  background:
-    linear-gradient(110deg, var(--chip-tint), transparent 65%),
-    linear-gradient(135deg, #10232bf5, #080f16f5);
-  box-shadow: inset 0 1px #ffffff0d, inset 0 -2px var(--chip-tint);
-}
-
-.chipIcon {
-  display: grid;
-  place-items: center;
-  flex: 0 0 32px;
-  height: 32px;
-  border: 1px solid var(--chip-tint);
-  background: var(--chip-tint);
-  color: var(--chip-ink);
-}
-
-.chip svg {
-  width: 20px;
-  height: 20px;
-}
-
-.indicator {
-  flex: 0 0 5px;
-  height: 5px;
-  margin-left: auto;
-  background: var(--town-glow);
-  box-shadow: 0 0 8px #6fe3f599;
-}
-
-.chip[data-muted="true"] {
-  --chip-edge: #6477818c;
-  --chip-ink: #a1b2bb;
-  --chip-tint: #9aabb412;
-}
-
-.chip[data-muted="true"] .indicator {
-  background: #71828a;
-  box-shadow: none;
-}
-
-.chip:hover,
-.chip:focus-visible {
-  --chip-edge: #b4f4ff;
-  --chip-ink: #effcff;
-  --chip-tint: #6fe3f530;
-  transform: translateX(4px);
-  filter: drop-shadow(0 0 8px #6fe3f524) drop-shadow(0 6px 10px #0009);
-}
-
-.chip:focus-visible {
-  outline: 2px solid var(--chip-ink);
-  outline-offset: 4px;
-}
-
-.chip:active:not(:disabled) {
-  transform: translateX(2px) translateY(1px);
-}
-
-.reset {
-  --chip-edge: #ba837578;
-  --chip-ink: #d6aca0;
-  --chip-tint: #db92781a;
-  letter-spacing: 2px;
-}
-
-.reset:hover,
-.reset:focus-visible {
-  --chip-edge: #ffad96;
-  --chip-ink: #ffe0d6;
-  --chip-tint: #ff907c2b;
-  filter: drop-shadow(0 0 8px #ff907c24) drop-shadow(0 6px 10px #0009);
-}
-
-.testReward {
-  --chip-edge: #d8f32980;
-  --chip-ink: #e3f375;
-  --chip-tint: #d8f32914;
-  justify-content: center;
-}
-
-.testReward:hover,
-.testReward:focus-visible {
-  --chip-edge: #e3f375;
-  --chip-ink: #f6ffba;
-  --chip-tint: #d8f32926;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chip {
-    transition: none;
-  }
 }

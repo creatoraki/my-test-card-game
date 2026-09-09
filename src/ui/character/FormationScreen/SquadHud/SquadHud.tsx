@@ -5,7 +5,7 @@
 // ★ 面板只承载徽章与羁绊; 返回按钮退到左下角, 用低对比文字态给队伍列表让出主视觉。
 //   ⚠ 悬浮提示走 HoverTooltip 组件, 不用原生 title(全项目铁律)。
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import type { SquadBadgeDef } from "@/data";
 import type { CharacterState } from "@/store/townStore";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
@@ -22,7 +22,7 @@ interface Props {
   badge: SquadBadgeDef | undefined;
   remaining: number;
   total: number;
-  onBadgeClick: () => void;
+  onBadgeClick: (event: MouseEvent<HTMLButtonElement>) => void;
   characters: Record<string, CharacterState>;
   party: string[];
   className?: string;

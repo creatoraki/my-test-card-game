@@ -1,38 +1,18 @@
-/* 天赋树面板(径向版): 半透明暗玻璃外框(背景光粒可透出) + 头部标题与剩余点读数 +
-   设计 px 舞台(1280×760)。画布中央是金色徽章核心(可点击开关徽章浮层), 六条分支绕中心
+/* 天赋树面板(径向版): 由公共 HUD 外框提供玻璃材质与几何, 本组件只承载
+   设计 px 舞台(1660×860)。画布中央是金色徽章核心(可点击开关徽章浮层), 六条分支绕中心
    等角放射, 连线带渐变与流动光点; 节点未激活灰色无光, 激活点亮分支本色;
    悬浮详情浮卡可伸出面板, 不裁剪。 */
 
 .trr {
   composes: tr-tokens from "../styles/trainingKit.module.css";
-  --notch: 14px;
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 1740px;
-  height: 980px;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
-  padding: 12px 24px 18px;
-  border: 1px solid rgba(255, 215, 0, 0.22);
-  background: linear-gradient(
-    150deg,
-    rgba(24, 17, 34, 0.72),
-    rgba(15, 11, 22, 0.62) 58%,
-    rgba(10, 7, 15, 0.68)
-  );
-  -webkit-backdrop-filter: blur(16px) saturate(90%) brightness(0.82);
-  backdrop-filter: blur(16px) saturate(90%) brightness(0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.1), 0 24px 60px -34px #000;
+  padding: 34px 40px 28px;
   overflow: visible;
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-  animation: trrRise 480ms 90ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
 .trr-head {
@@ -43,24 +23,11 @@
   padding: 2px 8px 8px;
 }
 
-.trr-kicker {
-  composes: tr-kicker from "../styles/trainingKit.module.css";
-  font-size: 12px;
-}
-
-.trr-title {
-  margin: 0;
-  color: var(--tr-ink);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 2px;
-}
-
 /* 左上角训练点总读数。 */
 .trr-training-points {
   position: absolute;
-  top: 16px;
-  left: 32px;
+  top: 34px;
+  left: 54px;
   display: flex;
   align-items: baseline;
   gap: 10px;
@@ -78,28 +45,6 @@
   font-weight: 700;
   letter-spacing: 1px;
   text-shadow: 0 0 16px rgba(255, 215, 0, 0.55);
-}
-
-.trr-close {
-  position: absolute;
-  top: 0;
-  right: 8px;
-  width: 40px;
-  height: 40px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  background: linear-gradient(135deg, rgba(50, 37, 20, 0.82), rgba(20, 14, 20, 0.88));
-  color: var(--tr-glow);
-  font-size: 22px;
-  line-height: 1;
-}
-
-.trr-close:hover:not(:disabled) {
-  border-color: var(--tr-glow);
-  background: linear-gradient(135deg, rgba(80, 58, 24, 0.92), rgba(30, 20, 22, 0.94));
-  color: #fff3c4;
-  box-shadow: 0 0 18px -6px var(--tr-glow);
 }
 
 .trr-stage {
@@ -221,7 +166,7 @@
 .trr-label-name {
   fill: var(--trr-hue, var(--tr-glow));
   font-family: var(--font-family);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 1.5px;
   text-anchor: middle;
@@ -230,7 +175,7 @@
 .trr-label-count {
   fill: #f2e6c8;
   font-family: var(--font-family);
-  font-size: 13px;
+  font-size: 18px;
   text-anchor: middle;
 }
 
@@ -389,9 +334,9 @@
   position: absolute;
   z-index: 6;
   width: max-content;
-  max-width: 320px;
-  min-width: 220px;
-  padding: 16px 18px;
+  max-width: 400px;
+  min-width: 280px;
+  padding: 18px 22px;
   border: 1.5px solid rgba(255, 215, 0, 0.4);
   border-radius: 14px;
   background: rgba(15, 12, 25, 0.95);
@@ -465,7 +410,7 @@
 
 .trr-tip-title {
   color: #f2e6c8;
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
@@ -473,7 +418,7 @@
 .trr-tip-tier {
   margin-top: 2px;
   color: #887e6a;
-  font-size: 11px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 
@@ -481,14 +426,14 @@
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: #b8a88a;
-  font-size: 13px;
+  font-size: 18px;
   line-height: 1.5;
 }
 
 .trr-tip-status {
   margin-top: 8px;
   color: #ffd700;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -496,16 +441,11 @@
 .trr-tip-reach {
   margin-top: 6px;
   color: #b8a88a;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.6;
 }
 
 /* ── 关键帧 ── */
-
-@keyframes trrRise {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 @keyframes trrCorePulse {
   0% { opacity: 0.24; transform: scale(1); }
@@ -536,11 +476,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .trr {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
-  }
-
   .trr-line,
   .trr-branch,
   .trr-label,

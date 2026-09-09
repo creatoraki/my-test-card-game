@@ -23,3 +23,15 @@ export const HUD_TONE_BLUE = {
   "--hud-ink-dim": "#9fb6cc",
   "--hud-value": "#cfe9ff",
 } as CSSProperties;
+
+export const HUD_TONE_GOLD = {
+  "--hud-core": "#fffaf0",
+  "--hud-body": "#ffc84a",
+  "--hud-halo": "#ff9d1c",
+  "--hud-glass-a": "#ffcf6a",
+  "--hud-glass-b": "#7a4d12",
+  "--hud-glow-color": "#ffb830",
+  "--hud-ink": "#f4e8c8",
+  "--hud-ink-dim": "#b09a6e",
+  "--hud-value": "#ffe9a8",
+} as CSSProperties;

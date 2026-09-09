@@ -1,0 +1,12 @@
+.bot {
+  position: absolute;
+  left: 56px;
+  bottom: 20px;
+  z-index: 3;
+  width: 520px;
+  height: 340px;
+  --chat-bot-art-height: 300px;
+  --chat-bubble-bottom: 220px;
+  --chat-bubble-left: 230px;
+  pointer-events: none;
+}

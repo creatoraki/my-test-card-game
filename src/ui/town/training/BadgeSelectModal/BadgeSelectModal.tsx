@@ -107,7 +107,7 @@ export function BadgeSelectModal({
       >
         <header className={s["bsm-head"]}>
           <div>
-            <span className={s["bsm-kicker"]}>SQUAD BADGES</span>
+            <span className={s["bsm-kicker"]}>小队徽章</span>
             <h2 id="badge-select-title">选择小队徽章</h2>
           </div>
           <div className={s["bsm-head-side"]}>
@@ -149,7 +149,7 @@ export function BadgeSelectModal({
 
         <footer className={s["bsm-foot"]} style={selectedBadge ? badgeThemeVars(selectedBadge.id) : undefined}>
           <div className={s["bsm-detail"]}>
-            <span className={s["bsm-detail-label"]}>SELECTED PROFILE</span>
+            <span className={s["bsm-detail-label"]}>当前选择</span>
             <strong>{selectedBadge?.name ?? "暂无可用徽章"}</strong>
             <p>{detail}</p>
           </div>

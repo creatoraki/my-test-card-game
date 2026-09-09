@@ -107,6 +107,7 @@
 
 /* ── 右下: 售货机器人。宽度留给右上方展开的气泡。 ── */
 .areaVendor {
+  --chat-ink: var(--sm-ink);
   position: absolute;
   bottom: 56px;
   left: 1080px;

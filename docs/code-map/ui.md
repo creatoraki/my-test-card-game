@@ -36,7 +36,9 @@ src/ui/
 | [app/BattleEntryGrading](../../src/ui/app/BattleEntryGrading/BattleEntryGrading.tsx) | 探索到战斗的落地余韵，两片**平级**固定层：`.battle-entry-veil`（血色暗角）+ `.battle-entry-grade`（色调迁移第 ② 段，`backdrop-filter`）。两层都在 swap 时挂载、由 `settling` 决定何时开始收尾。与幕布同一分工——编排在 `ScreenTransition`，画面在组件；固定定位、`pointer-events: none`，不在 `BattleScreen` 的祖先链上，不影响 `computeCamera` 测量。 |
 | [app/StageCanvas](../../src/ui/app/StageCanvas/StageCanvas.tsx) | 全站 1920×1080 设计画布容器：统一管理 viewport 测量、DPR 量化的 `--stage-scale` 与布局期 `zoom`，页面通过 className 复用局部样式。 |
 | [menu/MenuScreen](../../src/ui/menu/MenuScreen/MenuScreen.tsx) | 主菜单开屏。与战斗共用 1920×1080 设计画布，视频铺底，标题和开始按钮用设计 px 定位。 |
-| [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`。画布根挂 `data-town-stage`，四个设施的 hover/active 规则靠它提特异性。 |
+| [town/TownScreen](../../src/ui/town/TownScreen/TownScreen.tsx) | 据点大厅和设施入口。用 bento 砖块表达设施面积；设施内容通过 `FACILITY_CONTENT` 登记表挂载，内容和返回按钮延迟到离场阶段再卸载。状态条的生存天数订阅 `townStore.day`；右上设置、左下常驻聊天机器人与四路飞出/飞回都由页面统一编排。画布根挂 `data-town-stage`，设施 hover/active 规则靠它提特异性。 |
+| [town/TownScreen/StationSettings](../../src/ui/town/TownScreen/StationSettings/StationSettingsPanel.tsx) | 据点右上设置入口与系统菜单：复用 `common/SettingsPanel`，承载音乐/音效、重置存档与测试奖励。 |
+| [town/TownScreen/StationBot](../../src/ui/town/TownScreen/StationBot/StationBot.tsx) | 据点常驻管理终端：复用 `common/ChatBot` 与独立台词池，点击立绘会播放点击音效并插入 poke 台词。 |
 | [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
 | [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配与模组制造场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
 | [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
@@ -67,15 +69,14 @@ src/ui/
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 模组两条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造面板。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：EventPanel 同源的常驻六格混合货架，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShelfGrid`、`ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
-| [town/training/TrainingScene](../../src/ui/town/training/TrainingScene/TrainingScene.tsx) | 训练室页面骨架（暗底金色 · 极简版）：背景浮升光粒 + 居中半透明径向天赋树；原页头/剩余点读数/左栏徽章条/底部预览/锁定横幅/重置与确认弹窗已移除。徽章切换改为点击天赋树中央核心节点，弹出居中的 `BadgeSelectModal`，选中后经底栏按钮确认切换；剩余训练点与投入进度显示在树面板头部。徽章与天赋的全部交互住在 `useSquadTalent`（与编队页的 `SquadTalentModal` 共用）。解锁/退还/花费规则一律来自 `data/squadTalents` 纯函数。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
-| [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 径向天赋树面板（`html-templates/天赋树.html` 的组件化）：半透明暗玻璃面板、中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
-| [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 训练室左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
+| [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
+| [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 编队页训练点分配弹窗左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
 | [town/museum](../../src/ui/town/museum/index.ts) | 博物馆设施：使用 `codexCatalog` 生成物品、非临时卡牌和三档敌人目录，展示永久收录进度；`MuseumScene` 编排三个入口与共享 `PanelShell`，三个展厅各自持有筛选、选中态和详情栏。物品展厅使用 1:1 方格，卡牌展厅使用原尺寸大卡与未收录卡背，三个展厅的全部条目统一挂 `InteractiveHint`。 |
 | 旧 `town/training/TrainingConfirm` | 训练室旧通用确认弹窗（重置分配/切换徽章共用），极简版改造移除后归档到 `ui/_legacy/training/`，零引用。 |
 | 旧 `town/training/TalentTree` / `TalentNode` | 已归档到 `ui/_legacy/training/`（白玻璃青绿扇形半环版），零引用，见该目录 README。 |
-| [town/training/TrainingConfirm](../../src/ui/town/training/TrainingConfirm/TrainingConfirm.tsx) | 训练室通用确认弹窗，重置分配与切换徽章共用；抽自旧 `TrainingScene` 的 `.tr-confirm` 结构。 |
-| [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 训练室域共享的设计令牌（`--tr-*`，暗底金色）、暗玻璃材质与 kicker 排版，各组件各自 `composes`。 |
+| [town/training/TrainingConfirm](../../src/ui/town/training/TrainingConfirm/TrainingConfirm.tsx) | 训练点分配流程的通用确认弹窗，重置分配与切换徽章共用；保留旧确认结构以供现有训练组件复用。 |
+| [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 编队页训练点分配弹窗域共享的设计令牌（`--tr-*`，暗底金色）、暗玻璃材质与 kicker 排版，各组件各自 `composes`。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
 | [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按可见地图列表播放上下推移背景动画；目标层信息只在地图步骤挂载，并随步骤切换自然卸载。 |
@@ -86,7 +87,7 @@ src/ui/
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列仓库速取条 + 补给货架，右上背包，右下售货机器人，右上角终端积分；只下发位置类，并把货架/仓库/背包的每一次成败都转成机器人台词（页面不再有独立的提示小字）。 |
 | [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击下行 / 结算上行共用的电梯纯演出页：视频静音播放，独立音轨由 BGM 播放器播放；方向与去向由 `runStore.elevatorRide` 决定，下行结束进入探索，上行结束回据点；不可跳过且不承载探索规则。 |
 | [sortie/StockShelf](../../src/ui/sortie/StockShelf/StockShelf.tsx) | 出击补给货架：固定清单一次全摆出，按 `maxStack` 自动分成临期食品 / 消耗品两层（层板画在 `ShelfRow`，单个货位在 `StockSlot`）。商品本体只负责悬浮浮卡（复用 `SortieTooltip`，展示用 `ItemStack` 由 itemId 现造），购买入口只有下方价格牌一处；买不起 / 装不下不弹提示，交给售货机器人说。 |
-| [sortie/VendorBot](../../src/ui/sortie/VendorBot/VendorBot.tsx) | 售货机器人 NPC：立绘 + 右上方聊天气泡。台词内容在 [data/vendorLines.ts](../../src/data/vendorLines.ts)，调度在 `useVendorChatter`（14~22s 随机闲聊，购买/退款/积分不足/背包满等事件台词插队，气泡 4.5s 后淡出，步骤切走即清空定时器）。 |
+| [common/ChatBot](../../src/ui/common/ChatBot/ChatBot.tsx) | 聊天机器人公共组件：立绘、固体彩色/出击页毛玻璃气泡与可选点击态；`useBotChatter` 泛型化台词调度（14~22s 随机闲聊，事件台词插队，气泡 4.5s 后淡出，失活即清空定时器）。出击准备页通过它承接售货机器人反馈，据点页复用同一立绘作为管理终端。 |
 | [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；1×4 格，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
 | [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域两块物品面板的调色板真相点：仓库冷银白透玻璃 / 背包黑玻璃熔橙。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
@@ -169,7 +170,8 @@ src/ui/
 | [battle/ManaBar](../../src/ui/battle/ManaBar/ManaBar.tsx) | 战斗底部 HUD 的法力水晶排；按当前法力和每回合上限渲染放大的空/满水晶，悬浮手牌时按卡牌费用激发对应水晶，不显示数字读数。 |
 | [battle/SquadBuffBar](../../src/ui/battle/SquadBuffBar/SquadBuffBar.tsx) | 战斗 HUD 的炼金术士组装部件栏：按获得顺序显示 A/B/C/D、当前部件数、组装成功进度和各部件说明；使用 `RailPopover` 展示详情，不承载组装规则。 |
 | [battle/SquadBuffPicker](../../src/ui/battle/SquadBuffPicker/SquadBuffPicker.tsx) | 组装选择待选层：展示可选部件、确认与取消，调用 `battleStore` 的 `pickPendingChoice` / `cancelPendingChoice`，不直接修改引擎状态。 |
-| [battle/BattleSettingsPanel](../../src/ui/battle/BattleSettingsPanel/BattleSettingsPanel.tsx) | 右上角齿轮打开的战斗设置：音乐/音效的开关与 `common/VolumeSlider` 音量条（读写 `ui/audio` 的偏好项），以及「重新开始战斗」与「撤退」两个危险操作。两个操作都经 `common/ConfirmDialog` 的 `confirm()` 二次确认，动作本体由 `runStore.restartBattle` / `runStore.retreatFromBattle` 承担，组件自己不碰引擎与会话。刻意不暂停战斗，只用遮罩挡输入；Esc 在捕获阶段关面板，确认框开着时让路。 |
+| [battle/BattleSettingsPanel](../../src/ui/battle/BattleSettingsPanel/BattleSettingsPanel.tsx) | 右上角齿轮打开的战斗设置：复用 `common/SettingsPanel` 的壳、音频行与操作按钮，保留音乐/音效、重新开始与撤退行为。危险操作经 `common/ConfirmDialog` 的 `confirm()` 二次确认；战斗页额外注入 z-index 19 与毛玻璃遮罩，Esc 捕获阶段关面板，确认框开着时让路。 |
+| [common/SettingsPanel](../../src/ui/common/SettingsPanel/SettingsPanelShell.tsx) | 设置菜单公共壳：遮罩、切角面板、标题头、关闭按钮与确认框感知的 Esc 关闭；同时提供音频行、底部操作网格和单个操作按钮。遮罩材质与层序由消费方注入，适配战斗毛玻璃和据点实心遮罩。 |
 | [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
 | [battle/HandTray](../../src/ui/battle/HandTray/HandTray.tsx) | 战斗底部手牌托盘的渲染接线：根据 `engine/cardBoon.ts` 的判定向未离场、未弃牌的手牌传入 `activated`，并负责生效费用、星辉抵扣和出牌可用态。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |

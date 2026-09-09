@@ -1,14 +1,14 @@
 // 训练点分配弹窗 —— 编队页点小队徽章直接开这一层。
 //
-// ★ 与训练室(TrainingScene)是**同一棵树、同一套交互**: 两边都消费 useSquadTalent,
-//   区别只在承载方式 —— 训练室是设施场景, 这里是一层浮在编队画布上的居中面板。
+// ★ 天赋树与徽章选择共用 useSquadTalent 的同一套交互规则，当前只由这里承载在编队画布上。
 //   之所以要这一层: 训练点由队员卡组等级换算而来, 玩家在编队页才知道"该给谁升卡组",
-//   却要跑回大厅进训练室才能分配, 这条动线太长。
+//   却要离开当前编队页才能分配, 这条动线太长。
 // ⚠ 尺寸全是设计 px, 缩放交给外层 StageCanvas。
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode, type Ref } from "react";
 import { SQUAD_BADGES } from "@/data";
-import { cx } from "@/ui/common/cx";
+import { HudPanelShell, HUD_TONE_GOLD } from "@/ui/common/HudPanelShell";
+import type { Rect } from "@/ui/common/panelMorph";
 import { BadgeSelectModal } from "../BadgeSelectModal";
 import { SquadResourceBar } from "../SquadResourceBar";
 import { TalentTreeRadial } from "../TalentTreeRadial";
@@ -16,13 +16,20 @@ import { useSquadTalent } from "../useSquadTalent";
 import s from "./SquadTalentModal.module.css";
 
 interface Props {
+  closing?: boolean;
   onClose: () => void;
-  className?: string;
+  morph: {
+    ref: Ref<HTMLElement>;
+    rect: Rect;
+    ready: boolean;
+    seed?: ReactNode;
+    seedLabel?: string;
+  };
 }
 
-export function SquadTalentModal({ onClose, className }: Props) {
+export function SquadTalentModal({ closing = false, onClose, morph }: Props) {
   const talent = useSquadTalent();
-  // 未启用徽章时直接展开选择, 引导首次选择(与训练室一致)。
+  // 未启用徽章时直接展开选择, 引导首次选择。
   const [pickerOpen, setPickerOpen] = useState(() => !talent.badge);
 
   useEffect(() => {
@@ -37,11 +44,10 @@ export function SquadTalentModal({ onClose, className }: Props) {
   }, [onClose, pickerOpen]);
 
   return (
-    <div className={cx(s.layer, className)} role="dialog" aria-modal="true" aria-label="训练点分配">
-      {/* 遮罩点击 = 关闭。⚠ 面板自身 stopPropagation, 免得点在树上也把弹窗关了。 */}
-      <button className={s.veil} type="button" aria-label="关闭训练点分配" onClick={onClose} />
+    <div className={s.layer} role="dialog" aria-modal="true" aria-label="训练点分配">
+      <div className={s.veil} aria-hidden="true" />
 
-      <div className={s.panel} onClick={(event) => event.stopPropagation()}>
+      <HudPanelShell closing={closing} onClose={onClose} label="训练点分配" tone={HUD_TONE_GOLD} morph={morph}>
         {talent.badge ? (
           <>
             <TalentTreeRadial
@@ -60,7 +66,6 @@ export function SquadTalentModal({ onClose, className }: Props) {
               onRefund={talent.refund}
               onHoverKey={talent.setHoverKey}
               onCoreClick={() => setPickerOpen((open) => !open)}
-              onClose={onClose}
             />
             <SquadResourceBar highlightKey={talent.hoverKey} className={s["resource-bar"]} />
           </>
@@ -71,12 +76,9 @@ export function SquadTalentModal({ onClose, className }: Props) {
             <button className={s["empty-open"]} type="button" onClick={() => setPickerOpen(true)}>
               选择徽章
             </button>
-            <button className={s["empty-close"]} type="button" aria-label="关闭" onClick={onClose}>
-              ×
-            </button>
           </div>
         )}
-      </div>
+      </HudPanelShell>
 
       {pickerOpen && (
         <BadgeSelectModal

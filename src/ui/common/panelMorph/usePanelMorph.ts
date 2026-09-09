@@ -32,8 +32,9 @@ const createIdle = <Id extends string>(): MorphState<Id> => ({ panel: null, phas
 
 export function usePanelMorph<Id extends string>(options: {
   rects: Record<Id, Rect>;
+  escEnabled?: boolean;
 }) {
-  const { rects } = options;
+  const { rects, escEnabled = true } = options;
   const [state, setState] = useState<MorphState<Id>>(() => createIdle<Id>());
   const stateRef = useRef(state);
   const panelRef = useRef<HTMLElement>(null);
@@ -123,13 +124,13 @@ export function usePanelMorph<Id extends string>(options: {
   }, [clearGuard, rects, state.panel, state.phase, state.origin]);
 
   useEffect(() => {
-    if (!state.panel) return;
+    if (!state.panel || !escEnabled) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") closePanel();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closePanel, state.panel]);
+  }, [closePanel, escEnabled, state.panel]);
 
   useEffect(() => () => clearGuard(), [clearGuard]);
 

@@ -48,7 +48,7 @@
 .bsm-kicker,
 .bsm-detail-label {
   composes: tr-kicker from "../styles/trainingKit.module.css";
-  font-size: 11px;
+  font-size: 18px;
 }
 
 .bsm-head h2 {
@@ -69,7 +69,7 @@
   padding: 7px 12px;
   border: 1px solid var(--tr-line);
   color: var(--tr-ink-dim);
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 
@@ -109,7 +109,7 @@
   grid-template-columns: minmax(120px, 1fr) minmax(120px, .8fr);
   align-items: center;
   min-width: 0;
-  min-height: 190px;
+  min-height: 210px;
   padding: 12px 16px;
   border: 1px solid var(--tr-line);
   background: color-mix(in srgb, var(--badge-hue, var(--tr-glow)) 5%, transparent);
@@ -186,7 +186,7 @@
 .bsm-card-kicker {
   overflow: hidden;
   color: var(--badge-hue, var(--tr-glow));
-  font-size: 10px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 2px;
   text-overflow: ellipsis;
@@ -205,7 +205,7 @@
   padding: 3px 8px;
   border: 1px solid var(--tr-line);
   color: var(--tr-ink-dim);
-  font-size: 11px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 
@@ -255,7 +255,7 @@
 
 .bsm-detail strong {
   color: var(--tr-ink);
-  font-size: 17px;
+  font-size: 20px;
   letter-spacing: 2px;
 }
 
@@ -263,7 +263,7 @@
   max-width: 680px;
   margin: 0;
   color: var(--tr-ink-dim);
-  font-size: 13px;
+  font-size: 18px;
   line-height: 1.6;
 }
 
@@ -283,7 +283,7 @@
 
 .bsm-hint {
   color: var(--tr-warm);
-  font-size: 11px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 
@@ -292,7 +292,7 @@
   min-width: 132px;
   padding: 11px 18px;
   border-color: var(--tr-line);
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .bsm-cancel {
@@ -352,10 +352,6 @@
   animation: bsgSpeed 2.4s ease-in-out infinite;
 }
 
-.bsg-label {
-  font-family: var(--font-family);
-}
-
 @keyframes bsmScrimIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -399,7 +395,7 @@
 @media (max-width: 600px) {
   .bsm-scrim { padding: 14px; }
   .bsm-head { padding: 18px 18px 14px; }
-  .bsm-head h2 { font-size: 21px; letter-spacing: 3px; }
+  .bsm-head h2 { font-size: 24px; letter-spacing: 3px; }
   .bsm-head-side { gap: 8px; }
   .bsm-active-state { display: none; }
   .bsm-grid { grid-template-columns: 1fr; padding: 14px; }

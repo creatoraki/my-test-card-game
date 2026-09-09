@@ -103,8 +103,6 @@ interface TalentTreeRadialProps {
   onHoverKey?: (key: SquadResourceKey | null) => void;
   /** 点击中央徽章核心(页面用它开关徽章切换浮层)。 */
   onCoreClick?: () => void;
-  /** 关闭 = 返回据点。 */
-  onClose?: () => void;
   /** 父组件唯一的外观通道(铁律 3)。 */
   className?: string;
 }
@@ -124,7 +122,6 @@ export function TalentTreeRadial({
   onRefund,
   onHoverKey,
   onCoreClick,
-  onClose,
   className,
 }: TalentTreeRadialProps) {
   const layout = useMemo(() => buildRadialLayout(badge), [badge]);
@@ -231,11 +228,6 @@ export function TalentTreeRadial({
           <span>训练点</span>
           <strong>{remaining}/{totalTrainingPoints}</strong>
         </div>
-          {onClose && (
-            <button className={s["trr-close"]} type="button" aria-label="返回据点" onClick={onClose}>
-              ×
-            </button>
-          )}
       </header>
 
       <div
@@ -398,10 +390,10 @@ export function TalentTreeRadial({
                     height={LABEL_HALF_H * 2}
                     rx={LABEL_HALF_H}
                   />
-                  <text className={s["trr-label-name"]} y={-8}>
+                  <text className={s["trr-label-name"]} y={-7}>
                     {branch.branchIndex < badge.branches.length ? badge.branches[branch.branchIndex].name : ""}
                   </text>
-                  <text className={s["trr-label-count"]} y={17}>
+                  <text className={s["trr-label-count"]} y={19}>
                     {activeCount}/{branch.nodes.length}
                   </text>
                 </g>

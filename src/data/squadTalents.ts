@@ -136,7 +136,7 @@ export const SQUAD_BADGES: SquadBadgeDef[] = [
   {
     id: "novice",
     name: "初心者徽章",
-    kicker: "NOVICE BADGE",
+    kicker: "基础方案",
     desc: "为尚未定型的小队提供一套可自由分配的基础训练方案。",
     base: { openingHand: 1 },
     requirement: null,
@@ -148,7 +148,7 @@ export const SQUAD_BADGES: SquadBadgeDef[] = [
   {
     id: "rush",
     name: "疾行徽章",
-    kicker: "RUSH BADGE",
+    kicker: "疾行方案",
     desc: "以速度换取压制: 抽牌数提高, 手牌上限略受限制。",
     base: {},
     requirement: "速攻 / 抽牌类卡牌达到一定数量",
@@ -160,7 +160,7 @@ export const SQUAD_BADGES: SquadBadgeDef[] = [
   {
     id: "reload",
     name: "重载徽章",
-    kicker: "RELOAD BADGE",
+    kicker: "重载方案",
     desc: "为高费牌组蓄能: 费用上限提高, 抽牌与换牌效率受限制。",
     base: {},
     requirement: "2~3 费与高倍率卡牌达到一定数量",
@@ -172,7 +172,7 @@ export const SQUAD_BADGES: SquadBadgeDef[] = [
   {
     id: "reserve",
     name: "储备徽章",
-    kicker: "RESERVE BADGE",
+    kicker: "储备方案",
     desc: "囤积与回收手牌: 手牌上限提高, 基础抽牌速度较慢。",
     base: {},
     requirement: "弃牌 / 回收类卡牌达到一定数量",
@@ -184,7 +184,7 @@ export const SQUAD_BADGES: SquadBadgeDef[] = [
   {
     id: "observer",
     name: "观测徽章",
-    kicker: "OBSERVER BADGE",
+    kicker: "观测方案",
     desc: "读透对手的时刻: 待机次数提高, 直接费用爆发较弱。",
     base: {},
     requirement: "待机 / 延迟触发类卡牌达到一定数量",
@@ -196,7 +196,7 @@ export const SQUAD_BADGES: SquadBadgeDef[] = [
   {
     id: "balance",
     name: "均衡徽章",
-    kicker: "BALANCE BADGE",
+    kicker: "均衡方案",
     desc: "混合牌组的均衡方案: 不提供明显的初始偏向。",
     base: {},
     requirement: "无特殊要求",

@@ -28,8 +28,10 @@ import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { cx } from "@/ui/common/cx";
+import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { FORMATION_BG_ART } from "@/ui/art/sceneArt";
 import { CharacterDetailView } from "@/ui/character/CharacterDetailView";
+import { BadgeGlyph } from "@/ui/town/training/BadgeSelectModal/badgeGlyphs";
 import { SquadTalentModal } from "@/ui/town/training/SquadTalentModal";
 import { markTownReturn } from "@/ui/town/townReturn";
 import { useSquadTalent } from "@/ui/town/training/useSquadTalent";
@@ -54,6 +56,10 @@ const CARD_RADIUS = 16;
 const FIGURE_FONT = 44;
 const FIGURE_RADIUS = 16;
 
+const TALENT_PANEL_RECT: Record<"talent", Rect> = {
+  talent: { x: 70, y: 30, w: 1780, h: 1020 },
+};
+
 export function FormationScreen() {
   const characters = useTownStore((state) => state.characters);
   const awakened = useTownStore((state) => state.awakened);
@@ -69,7 +75,7 @@ export function FormationScreen() {
   }, [enterTown]);
 
   const talent = useSquadTalent();
-  const [talentOpen, setTalentOpen] = useState(false);
+  const talentMorph = usePanelMorph<"talent">({ rects: TALENT_PANEL_RECT, escEnabled: false });
   const [backPending, setBackPending] = useState(false);
   const morph = useFormationMorph();
 
@@ -101,7 +107,7 @@ export function FormationScreen() {
 
   // Esc 返回据点。⚠ 只在编队态且没有过场在跑时响应 —— 详情态那一层的 Esc 归
   //   CharacterDetailView(它要先逐层收掉锻造浮层与装备仓库), 两边互不打架。
-  const canLeave = morph.mode === "roster" && morph.phase === "idle" && !talentOpen;
+  const canLeave = morph.mode === "roster" && morph.phase === "idle" && talentMorph.panel === null;
   useEffect(() => {
     if (!canLeave) return;
     const onKey = (event: KeyboardEvent) => {
@@ -113,9 +119,9 @@ export function FormationScreen() {
 
   const back = useCallback(() => {
     if (backPending) return;
-    setTalentOpen(false);
+    talentMorph.closePanel();
     setBackPending(true);
-  }, [backPending]);
+  }, [backPending, talentMorph.closePanel]);
 
   useEffect(() => {
     if (!backPending) return;
@@ -172,7 +178,7 @@ export function FormationScreen() {
           morphing={morph.phase === "toDetail"}
           leaving={morph.phase === "toRoster"}
           closingOverlays={backPending}
-          escEnabled={!talentOpen && !backPending}
+          escEnabled={talentMorph.panel === null && !backPending}
           canPrevious={previousCharId !== null}
           canNext={nextCharId !== null}
           onPrevious={() => {
@@ -212,12 +218,24 @@ export function FormationScreen() {
         badge={talent.badge}
         remaining={talent.remaining}
         total={talent.trainingPoints}
-        onBadgeClick={() => setTalentOpen(true)}
+        onBadgeClick={(event) => talentMorph.openPanel("talent", event.currentTarget)}
         characters={characters}
         party={party}
       />
 
-      {talentOpen && <SquadTalentModal onClose={() => setTalentOpen(false)} />}
+      {talentMorph.panel === "talent" && (
+        <SquadTalentModal
+          closing={talentMorph.phase === "closing"}
+          onClose={talentMorph.closePanel}
+          morph={{
+            ref: talentMorph.panelRef,
+            rect: TALENT_PANEL_RECT.talent,
+            ready: talentMorph.ready,
+            seed: <BadgeGlyph badgeId={talent.badge?.id ?? "novice"} />,
+            seedLabel: "训练点分配",
+          }}
+        />
+      )}
     </StageCanvas>
   );
 }

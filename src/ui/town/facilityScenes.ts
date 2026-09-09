@@ -3,7 +3,7 @@
 // 与 transitions.ts / animations.ts 同一套哲学: 时长常量的唯一真相在 TS,
 // 视觉在 TownScreen/TownScreen.module.css; JS 只负责时序编排, 不引入任何动画库。
 //
-// 一次进设施 = 信息条 / 左下按钮组 / 编队出击坞逐个错峰飞出屏幕
+// 一次进设施 = 信息条 / 右上设置 / 左下机器人 / 编队出击坞逐个错峰飞出屏幕
 //            + 几乎同时用 PixelSwap 把全景背景像素块化地换成设施自己的背景。
 // 返回则是同一套动画的反向播放(时长压缩)。
 //
@@ -63,15 +63,18 @@ export interface FlyOut {
 // 左上角的信息条 → 往左上角飞。第一个走, 给整段退场起个头。
 export const FLY_STATUS: FlyOut = { delay: 0, ms: 460, dx: -820, dy: -70, rot: -4 };
 
-// 左下角的音频开关与「重置存档」→ 往左下飞。
-export const FLY_RESET: FlyOut = { delay: 120, ms: 380, dx: -320, dy: 170, rot: -6 };
+// 右上角的设置按钮 → 往右上飞。
+export const FLY_SETTINGS: FlyOut = { delay: 120, ms: 380, dx: 320, dy: -160, rot: 6 };
+
+// 左下角的常驻聊天机器人 → 往左下飞。
+export const FLY_BOT: FlyOut = { delay: 120, ms: 380, dx: -320, dy: 220, rot: -6 };
 
 // 右下角的「编队 / 出击」坞 → 往右下飞。最后一个走: 它是这一页最重的那块, 留到最后出画。
-// ⚠ 去掉运镜后整段进场只有 ENTER_TOTAL(≈1.3s), 三个延迟一并收紧, 免得坞还没飞完背景就换好了。
+// ⚠ 去掉运镜后整段进场只有 ENTER_TOTAL(≈1.3s), 四个飞出单元的延迟一并收紧, 免得坞还没飞完背景就换好了。
 export const FLY_DOCK: FlyOut = { delay: 240, ms: 460, dx: 760, dy: 190, rot: 5 };
 
 // 返回时飞回的顺序与进入相反(最后飞出的最先飞回), 故这里只给「第 i 个飞回」的延迟。
-// 次序: 出击坞(0) → 左下按钮组(1) → 信息条(2)。
+// 次序: 出击坞(0) → 左下机器人(1) → 右上设置(2) → 信息条(3)。
 // 起步的 240ms 是刻意留的: 让背景先像素转场回全景, HUD 才不会飞在还没换掉的设施背景上。
-// ⚠ 末位算完 = 240 + 2×90 + leaveFlyIn = 940ms, 必须留在 leave(1400ms) 之内。
+// ⚠ 末位算完 = 240 + 3×90 + leaveFlyIn = 1030ms, 必须留在 leave(1400ms) 之内。
 export const flyBackDelay = (i: number): number => 240 + i * 90;

@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import { RULES } from "@/engine";
+import { VENDOR_LINES } from "@/data";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
+import { ChatBot, useBotChatter } from "@/ui/common/ChatBot";
 import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { StockShelf } from "@/ui/sortie/StockShelf";
 import { StorageInventory } from "@/ui/sortie/StorageInventory";
-import { VendorBot, useVendorChatter } from "@/ui/sortie/VendorBot";
 import { cx } from "@/ui/common/cx";
 import s from "./PrepStep.module.css";
 import { SORTIE_BACKPACK_COLORS } from "../styles/inventoryPalettes";
@@ -23,7 +24,11 @@ export function PrepStep({ active, entering, exiting }: Props) {
   const putBack = useSortieStore((state) => state.putBack);
   const credits = useCountUp(loot, 120, 460);
   // 页面上所有的软反馈(买到了/买不起/装不下/退了钱)都由机器人说出来, 这里只负责触发。
-  const { line, say } = useVendorChatter(active);
+  const { line, say } = useBotChatter(active, {
+    lines: VENDOR_LINES,
+    greet: "greet",
+    idle: "idle",
+  });
 
   const sayBought = useCallback(() => say("buy"), [say]);
   const sayPoor = useCallback(() => say("poor"), [say]);
@@ -80,7 +85,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
       {/* 机器人所在的这一格由本页定位, 组件自己只管立绘与气泡的相对关系 ——
           面板类与组件根类同层级会互相盖(谁后进样式表谁赢), 故用外层容器隔开。 */}
       <div className={cx(s.areaVendor, entering && s.slideInRight, exiting && s.slideOutRight)}>
-        <VendorBot line={line} />
+        <ChatBot line={line} bubbleVariant="glass" />
       </div>
     </section>
   );

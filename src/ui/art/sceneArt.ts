@@ -5,7 +5,6 @@ import startGameArt from "@/assets/通用素材/开始游戏.png";
 import stationBg from "@/assets/场景/测试/背景素材.png";
 import cryoBg from "@/assets/场景/冬眠仓.png";
 import formationBg from "@/assets/场景/队员宿舍.png";
-import trainingBg from "@/assets/场景/训练室.png";
 import worklogBg from "@/assets/场景/控制终端.png";
 import assemblyBg from "@/assets/场景/模组装配仓.png";
 import shopBg from "@/assets/场景/商店.png";
@@ -19,7 +18,6 @@ export const SCENE_ART_SOURCES: readonly string[] = [
   stationBg,
   cryoBg,
   formationBg,
-  trainingBg,
   worklogBg,
   assemblyBg,
   shopBg,
@@ -37,7 +35,6 @@ export const START_GAME_ART = startGameArt;
 export const STATION_BG_ART = stationBg;
 export const CRYO_BG_ART = cryoBg;
 export const FORMATION_BG_ART = formationBg;
-export const TRAINING_BG_ART = trainingBg;
 export const WORKLOG_BG_ART = worklogBg;
 export const ASSEMBLY_BG_ART = assemblyBg;
 export const SHOP_BG_ART = shopBg;

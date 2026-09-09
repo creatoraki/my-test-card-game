@@ -1,0 +1,5 @@
+/* 据点背景经过 PixelSwap 包装，设置面板只用更深的实心遮罩，不采样底图。 */
+.scrim {
+  z-index: 20;
+  background: #020609e6;
+}

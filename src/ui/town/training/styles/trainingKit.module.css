@@ -1,9 +1,9 @@
-/* 训练室域共享样式契约。
-   这里只放多个训练室组件共用的设计令牌、暗玻璃材质与 kicker 排版;
-   页面/面板的几何与动画归各自模块。四个组件各自 composes(样式铁律 1)。 */
+/* 训练点分配弹窗域共享样式契约。
+   这里只放多个训练组件共用的设计令牌、暗玻璃材质与 kicker 排版;
+   页面/面板的几何与动画归各自模块。各组件各自 composes(样式铁律 1)。 */
 
-/* 设计令牌 —— 训练室唯一真相点(暗底金色)。原定义在 TrainingScene 的 .tr-scene 根上,
-   抽到这里后场景根与各组件根各自 composes, 子元素一律读 var(--tr-*)。 */
+/* 设计令牌 —— 训练点分配弹窗唯一真相点(暗底金色), 各组件根各自 composes,
+   子元素一律读 var(--tr-*)。 */
 .tr-tokens {
   --tr-bg-deep: #0c0911;
   --tr-ink: #f2e6c8;
@@ -27,7 +27,7 @@
 .tr-kicker {
   display: block;
   color: var(--tr-glow);
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 4px;
 }

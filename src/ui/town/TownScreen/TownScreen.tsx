@@ -28,8 +28,6 @@ import {
 import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
-import { toggleBgm, useBgmEnabled } from "@/ui/hooks/useBgm";
-import { toggleSfx, useSfxEnabled } from "@/ui/hooks/useSfx";
 import { cx } from "@/ui/common/cx";
 import PixelSwap from "@/ui/common/PixelSwap";
 import { STATION_BG_ART } from "@/ui/art/sceneArt";
@@ -37,7 +35,8 @@ import {
   ENTER_TOTAL,
   FACILITY_CINEMA,
   FLY_DOCK,
-  FLY_RESET,
+  FLY_BOT,
+  FLY_SETTINGS,
   FLY_STATUS,
   flyBackDelay,
   warmFacilityBg,
@@ -52,7 +51,10 @@ import { FacilityExitProvider, useFacilityExitRegistry } from "@/ui/town/facilit
 import { clearTownReturn, peekTownReturn } from "@/ui/town/townReturn";
 import { FacilityBack } from "./FacilityBack";
 import { StationDock } from "./StationDock";
+import { SettingsGearButton } from "./SettingsGearButton";
+import { StationBot } from "./StationBot";
 import { StationHud } from "./StationHud";
+import { StationSettingsPanel } from "./StationSettings";
 import { StationLayer } from "./StationLayer";
 import { STATION_BUILDINGS, buildingOfFacility, type StationBuilding } from "./stationBuildings";
 import { guardSortie, useFormationTodo } from "../formationTodo";
@@ -106,8 +108,6 @@ export function TownScreen() {
   const terminalCredits = useTownStore((state) => state.loot);
   // 生存天数: 只由 townStore.advanceDay 推进(出击打完回据点算一日), 也是商店换货的节拍器。
   const day = useTownStore((state) => state.day);
-  const bgmEnabled = useBgmEnabled();
-  const sfxEnabled = useSfxEnabled();
   const openFormation = useRunStore((state) => state.openFormation);
   const openSortie = useRunStore((state) => state.openSortie);
   const formationTodo = useFormationTodo();
@@ -119,6 +119,7 @@ export function TownScreen() {
 
   const [phase, setPhase] = useState<Phase>(returning ? "leaving" : "idle");
   const [building, setBuilding] = useState<StationBuilding | null>(returning); // 正在进入/已进入的建筑
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // PixelSwap 的目标态: 点建筑后隔一小段(crossfadeAt, 让 HUD 先起飞)置真, 转场即由此触发。
   // ★ 回据点那一次首帧就是 true: PixelSwap 受控时 shownActive 初值 = active ⇒ 直接显示设施背景
   //   (不播动画), 随后置假才触发反向像素转场 —— 观感与在设施内点「返回据点」逐帧一致。
@@ -164,6 +165,7 @@ export function TownScreen() {
   );
 
   function enterFacility(target: StationBuilding) {
+    setSettingsOpen(false);
     if (phase !== "idle") return;
     clearTimers();
     finishedRef.current = false;
@@ -235,17 +237,11 @@ export function TownScreen() {
   const inFacility = phase === "inside" || phase === "leaving";
   const facilityId = building?.facility ?? null;
 
-  // HUD 在 idle 与演出期间都要在场, 只是演出期间多挂一组飞出变量。
+  // HUD 与据点机器人、设置入口在 idle 与演出期间都要在场, 只是演出期间多挂飞出变量。
   const hudProps = {
     day,
     credits: terminalCredits,
     facilityCount: STATION_BUILDINGS.length,
-    bgmEnabled,
-    sfxEnabled,
-    onToggleBgm: toggleBgm,
-    onToggleSfx: toggleSfx,
-    onResetProfile: resetProfile,
-    onTestReward: isTest ? grantTestRewards : undefined,
   };
 
   // 一个飞出单元的 CSS 变量。backIdx = 返回时的飞回次序(与飞出次序相反)。
@@ -302,9 +298,20 @@ export function TownScreen() {
           <StationHud
             {...hudProps}
             flyingClassName={inCinema ? s["is-flying"] : undefined}
-            statusStyle={inCinema ? fly(FLY_STATUS, 2) : undefined}
-            cornerStyle={inCinema ? fly(FLY_RESET, 1) : undefined}
+            statusStyle={inCinema ? fly(FLY_STATUS, 3) : undefined}
           />
+          <div
+            className={cx(inCinema && s["is-flying"])}
+            style={inCinema ? fly(FLY_SETTINGS, 2) : undefined}
+          >
+            <SettingsGearButton onClick={() => setSettingsOpen(true)} />
+          </div>
+          <div
+            className={cx(inCinema && s["is-flying"])}
+            style={inCinema ? fly(FLY_BOT, 1) : undefined}
+          >
+            <StationBot />
+          </div>
           {/* 出击坞整组是一个飞出单元: 外面套一层只管动画的壳, 组件自己不必知道演出的存在。 */}
           <div
             className={cx(inCinema && s["is-flying"])}
@@ -316,6 +323,12 @@ export function TownScreen() {
               formationPending={formationTodo.pending}
             />
           </div>
+          <StationSettingsPanel
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            onResetProfile={resetProfile}
+            onTestReward={isTest ? grantTestRewards : undefined}
+          />
         </>
       )}
 

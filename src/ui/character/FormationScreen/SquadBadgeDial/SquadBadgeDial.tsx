@@ -6,7 +6,7 @@
 //   有未分配点时这里整枚徽章转金呼吸 + 角标脉冲, 点一下直接开天赋树弹窗。
 // ★ 徽章图形/配色**复用训练室那一套**(BadgeGlyph + badgeThemeVars), 两处必须是同一枚徽章。
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import type { SquadBadgeDef } from "@/data";
 import { BadgeGlyph } from "@/ui/town/training/BadgeSelectModal/badgeGlyphs";
 import { badgeThemeVars } from "@/ui/town/training/styles/badgeTheme";
@@ -19,7 +19,7 @@ interface Props {
   remaining: number;
   /** 全队可用训练点总数(= 已唤醒角色中等级最高的五人卡组等级之和)。 */
   total: number;
-  onClick: () => void;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   style?: CSSProperties;
 }
