@@ -1,5 +1,6 @@
 import { useMemo, type KeyboardEvent } from "react";
 import {
+  NUTRITION_TECH_CANVAS,
   NUTRITION_TECHS,
   nutritionTechState,
   type NutritionTech,
@@ -8,7 +9,6 @@ import {
 import type { ItemStack } from "@/items/types";
 import { cx } from "@/ui/common/cx";
 import {
-  NUTRITION_TECH_CANVAS,
   NUTRITION_TECH_CORE,
   NUTRITION_TECH_HIT_RADIUS,
   NUTRITION_TECH_NODE_RADIUS,
