@@ -570,6 +570,7 @@ export function ExploreScreen() {
   const locked = session.phase === "generating" || session.phase === "leaving";
 
   const tier = battleTierOf(session);
+  const routeComplete = session.phase === "atNode" && !canPushOn(session);
 
   // 落点分支 → 应用。
   // ★ 不立刻派发: 先让被点中的那一支演完「落子」(竖条锁死 + 扫光), 另一支同时暗下去,
@@ -862,6 +863,7 @@ export function ExploreScreen() {
               )}
               <LeaveRegionButton
                 choosingEntry={session.phase === "choosingEntry"}
+                routeComplete={routeComplete}
                 onClick={() => leaveRegion()}
               />
             </div>

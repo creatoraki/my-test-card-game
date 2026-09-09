@@ -34,6 +34,82 @@
   transform: translateY(2px);
 }
 
+/* 本轮线路走到终点后, 这是唯一可用的下一步; 用持续的霓虹呼吸光引导点击。 */
+.routeComplete {
+  border-color: #72fff1;
+  background:
+    linear-gradient(135deg, #183d43, #10232c 52%, #211d45),
+    #10232c;
+  color: #f0ffff;
+  text-shadow: 0 0 10px #9bfff6;
+  box-shadow:
+    inset 0 0 0 1px #c0fff659,
+    inset 0 0 22px #28e9da59,
+    0 0 14px #35fff099,
+    0 0 34px #a86bff5c,
+    0 10px 26px #00000066;
+  animation: leaveRegionNeonPulse 1500ms ease-in-out infinite;
+}
+
+.routeComplete::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 28%, #d9fffb99 48%, transparent 68%);
+  transform: translateX(-110%);
+  animation: leaveRegionNeonSweep 2200ms ease-in-out infinite;
+}
+
+.routeComplete > span,
+.routeComplete > svg {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes leaveRegionNeonPulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px #c0fff659,
+      inset 0 0 22px #28e9da59,
+      0 0 14px #35fff099,
+      0 0 34px #a86bff5c,
+      0 10px 26px #00000066;
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px #efffffe6,
+      inset 0 0 28px #28e9da99,
+      0 0 24px #35fff0e6,
+      0 0 52px #a86bff99,
+      0 10px 26px #00000066;
+  }
+}
+
+@keyframes leaveRegionNeonSweep {
+  0%,
+  35% {
+    transform: translateX(-110%);
+  }
+  70%,
+  100% {
+    transform: translateX(110%);
+  }
+}
+
+.routeComplete:hover:not(:disabled),
+.routeComplete:focus-visible {
+  border-color: #ffffff;
+  background: linear-gradient(135deg, #215b5d, #16343e 52%, #30245d);
+  box-shadow:
+    inset 0 0 0 1px #efffffe6,
+    inset 0 0 30px #28e9da99,
+    0 0 28px #35fff0e6,
+    0 0 58px #a86bffb3,
+    0 12px 30px #00000066;
+}
+
 /* 选择起点时收为安静的次级出口；阶段推进后回到正常决策层级。 */
 .secondary {
   width: 228px;

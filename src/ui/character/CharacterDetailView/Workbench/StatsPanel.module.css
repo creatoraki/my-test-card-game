@@ -31,7 +31,7 @@
 }
 
 .group-title {
-  color: var(--ui-label);
+  color: var(--cd-glow-deep);
   font-size: var(--fm-fs-l2, 20px);
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
@@ -106,7 +106,7 @@
 }
 
 .attr-label {
-  color: var(--ui-label);
+  color: var(--cd-glow-deep);
   font-size: var(--fm-fs-l2, 20px);
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
@@ -118,7 +118,7 @@
   align-items: baseline;
   justify-content: flex-end;
   gap: 7px;
-  color: var(--ui-value);
+  color: var(--cd-ink);
   font-family: var(--font-family);
   font-size: var(--fm-fs-l1, 24px);
   font-weight: var(--ui-weight);

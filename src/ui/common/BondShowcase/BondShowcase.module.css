@@ -63,7 +63,7 @@
   border-radius: 999px;
   background: #fffffff2;
   box-shadow: 0 2px 6px #2a1b3d26;
-  color: var(--ui-value);
+  color: var(--slot-ink);
   font-family: Georgia, serif;
   font-size: calc(var(--slot-icon) * 0.2);
   font-weight: var(--ui-weight);

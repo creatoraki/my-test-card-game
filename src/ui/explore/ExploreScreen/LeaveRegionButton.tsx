@@ -3,15 +3,16 @@ import s from "./LeaveRegionButton.module.css";
 
 interface LeaveRegionButtonProps {
   choosingEntry: boolean;
+  routeComplete?: boolean;
   onClick: () => void;
   className?: string;
 }
 
-export function LeaveRegionButton({ choosingEntry, onClick, className }: LeaveRegionButtonProps) {
+export function LeaveRegionButton({ choosingEntry, routeComplete = false, onClick, className }: LeaveRegionButtonProps) {
   return (
     <button
       type="button"
-      className={cx(s.button, choosingEntry && s.secondary, className)}
+      className={cx(s.button, routeComplete && s.routeComplete, choosingEntry && s.secondary, className)}
       onClick={onClick}
     >
       <span>前往下一区域</span>

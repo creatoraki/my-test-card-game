@@ -67,7 +67,7 @@
   padding: 0 30px;
   border: 1px solid #2a1b3d24;
   background: #ffffff8f;
-  color: var(--ui-label);
+  color: var(--cd-glow-deep);
   font-size: var(--fm-fs-l2, 20px);
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
@@ -98,11 +98,11 @@
 .bench .tabs .tab.is-active {
   border-color: #7c4dbe;
   background: linear-gradient(150deg, #7c4dbe, #55307f);
-  color: var(--ui-value);
+  color: #f7f0ff;
 }
 
 .exp {
-  color: var(--ui-label);
+  color: var(--cd-glow-deep);
   font-size: var(--fm-fs-l2, 20px);
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
@@ -111,7 +111,7 @@
 }
 
 .exp b {
-  color: var(--ui-value);
+  color: var(--cd-ink);
   font-family: var(--font-family);
   font-size: var(--fm-fs-l1, 24px);
   font-weight: var(--ui-weight);
