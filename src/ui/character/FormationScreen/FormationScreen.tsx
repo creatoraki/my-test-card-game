@@ -15,7 +15,7 @@
 // ★ 徽章与羁绊住在**常驻通栏面板**(SquadHud): 两态共用同一份 DOM, 重组期间原地不动,
 //   给这场形变留一个参照系; 返回按钮退到左下角。
 //
-// ★ 与冬眠仓同一套**亮玻璃**视觉(背景就是冬眠仓.png 那张紫粉白场景): 深紫墨文字 + 白玻璃卡,
+// ★ 与场景素材同一套科幻基地视觉: 队员宿舍背景 + 亮玻璃卡,
 //   强调色深紫罗兰 #7c4dbe。
 // 与大厅/战斗同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/hooks/stage.ts):
 // ★ 本文件里所有坐标/尺寸都是「设计 px」, 直接照着 1920×1080 的设计稿填数。
@@ -28,7 +28,7 @@ import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { cx } from "@/ui/common/cx";
-import { CRYO_BG_ART } from "@/ui/art/sceneArt";
+import { FORMATION_BG_ART } from "@/ui/art/sceneArt";
 import { CharacterDetailView } from "@/ui/character/CharacterDetailView";
 import { SquadTalentModal } from "@/ui/town/training/SquadTalentModal";
 import { markTownReturn } from "@/ui/town/townReturn";
@@ -143,11 +143,10 @@ export function FormationScreen() {
         } as CSSProperties
       }
     >
-      {/* 背景: 冬眠仓那张 16:9 场景图, 与画布同比例 ⇒ cover 只等比缩小, 无裁切无变形。
+      {/* 背景: 队员宿舍 16:9 场景图, 与画布同比例 ⇒ cover 只等比缩小, 无裁切无变形。
           ⚠ 两态共用这一张 —— 底图从头到尾不动, 动的只有它上面的元素。 */}
-      <img className={s.bg} src={CRYO_BG_ART} alt="" draggable={false} />
-      {/* 提亮层: 背景本身是浅色紫粉白, 这里再往白里推一档, 给玻璃卡挣出对比度。
-          ⚠ 不是压暗层 —— 压暗会毁掉这张图的气质(与 CryoScene 同一条取舍)。 */}
+      <img className={s.bg} src={FORMATION_BG_ART} alt="" draggable={false} />
+      {/* 冷色暗罩: 宿舍图是深色工业空间, 压住局部高光后让队伍卡与亮玻璃 HUD 保持层次。 */}
       <div className={s.veil} />
 
       {morph.showRoster && (

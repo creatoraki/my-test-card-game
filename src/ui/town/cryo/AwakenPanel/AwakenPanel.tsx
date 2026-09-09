@@ -4,7 +4,7 @@ import { RULES } from "@/engine";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { CryoFigureStrip } from "../CryoFigureStrip";
-import { CONTENT_DELAY_MS, STAGGER_MS } from "../CryoPanelShell";
+import { CONTENT_DELAY_MS, STAGGER_MS } from "../cryoMorph/cryoChoreo";
 import kit from "../styles/cryoKit.module.css";
 import figure from "../styles/cryoFigure.module.css";
 import s from "./AwakenPanel.module.css";
@@ -49,7 +49,7 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
   const canAwaken = active?.kind === "sealed" && affordable;
 
   return (
-    <>
+    <div className={kit.shell}>
       <div className={s.body}>
         <CryoFigureStrip className={s.rack}>
           {pods.map((pod, index) => (
@@ -69,19 +69,19 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
               <>
                 <span className={s.kicker}>休眠状态 · 体征稳定</span>
                 <h4 className={s.name}>休眠体 · 身份未解析</h4>
-                <p className={s.desc}>舱盖仍处于密封状态。解封前无法读取该冬眠体的档案, 只知道生命体征仍在。</p>
+                <p className={s.desc}>舱盖仍处于密封状态。唤醒前无法读取该休眠体的档案, 只知道生命体征仍在。</p>
               </>
             ) : active?.kind === "awake" ? (
               <>
-                <span className={s.kicker}>已解封</span>
+                <span className={s.kicker}>已唤醒</span>
                 <h4 className={s.name}>{getCharacter(active.charId).name}</h4>
-                <p className={s.desc}>该舱位已解封。档案与卡组请去队员档案查看, 出战编成去编队。</p>
+                <p className={s.desc}>该舱位已唤醒。档案与卡组请去队员档案查看, 出战编成去编队。</p>
               </>
             ) : (
               <>
                 <span className={s.kicker}>无信号</span>
                 <h4 className={s.name}>空舱</h4>
-                <p className={s.desc}>此舱位没有冬眠体信号。</p>
+                <p className={s.desc}>此舱位没有休眠体信号。</p>
               </>
             )}
           </div>
@@ -96,16 +96,16 @@ export function AwakenPanel({ awakened, loot, slot, onSelect, onAwaken }: Props)
       <div className={kit.panelFoot}>
         <p className={kit.note}>
           {active?.kind !== "sealed"
-            ? "选中一个密封舱位才能解封。"
+            ? "选中一个休眠舱位才能唤醒。"
             : affordable
-              ? "解封后该队员进入待命, 不会自动上阵。"
-              : `残片不足, 还差 ${(cost - loot).toLocaleString()} 才够解封。`}
+              ? "唤醒后该队员进入待命, 不会自动上阵。"
+              : `居民积分不足, 还差 ${(cost - loot).toLocaleString()}。`}
         </p>
         <button className={kit.primary} type="button" disabled={!canAwaken} onClick={() => active?.kind === "sealed" && onAwaken(active.charId)}>
-          解封唤醒 −{cost} 残片
+          解封唤醒 −{cost} 居民积分
         </button>
       </div>
-    </>
+    </div>
   );
 }
 

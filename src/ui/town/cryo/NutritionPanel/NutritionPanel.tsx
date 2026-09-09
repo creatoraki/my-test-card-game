@@ -35,7 +35,7 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
       const vitals = vitalsOf(characters[charId]);
       const damage = Math.max(0, vitals.maxHp - vitals.hpLimit);
       const reason = damage <= 0
-        ? "体力极限已满, 无需进入营养舱"
+        ? "体力极限已满, 无需进入疗养舱"
         : party.includes(charId) && party.length <= 1
           ? "至少要保留 1 名队员上阵"
           : null;
@@ -66,7 +66,7 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
   };
 
   return (
-    <>
+    <div className={kit.shell}>
       <div className={s.body}>
         <NutritionPodRack
           occupants={nutrition.occupants}
@@ -78,7 +78,7 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
 
         <div className={s.candidatesSection}>
           <div className={s.subhead}>
-            <span className={s.kicker}>可入舱队员</span>
+            <span className={s.kicker}>待疗养队员</span>
             <span className={s.count}>{candidates.length} 人</span>
           </div>
           <CryoFigureStrip className={s.candidates}>
@@ -95,7 +95,7 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
         </div>
 
         <button className={s.upgradeButton} type="button" onClick={openUpgrade}>
-          舱位扩建 · 科技 Lv.{level}
+          席位扩建 · 科技等级 {level}
         </button>
 
         {upgrade && (
@@ -118,6 +118,6 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
         <span className={s.cost}>送入疗养将消耗 {NUTRITION_TREAT_COST} 居民积分</span>
         <span className={s.selectedState}>{selectedBlocked ? "当前队员不可入舱" : "选择席位完成送入"}</span>
       </div>
-    </>
+    </div>
   );
 }

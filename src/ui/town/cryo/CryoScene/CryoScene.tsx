@@ -1,9 +1,9 @@
 import { useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { CHARACTERS, nutritionPods } from "@/data";
 import { useTownStore } from "@/store/townStore";
+import { PanelShell } from "@/ui/common/PanelShell";
 import { cx } from "@/ui/common/cx";
 import { AwakenPanel } from "../AwakenPanel";
-import { CryoPanelShell } from "../CryoPanelShell";
 import { NutritionPanel } from "../NutritionPanel";
 import { PANEL_RECT } from "../cryoMorph/cryoChoreo";
 import { useEntryRise } from "@/ui/hooks/useEntryRise";
@@ -12,6 +12,21 @@ import s from "./CryoScene.module.css";
 
 const cn = (...values: Array<string | false | null | undefined>) =>
   cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
+
+const MED_ACCENT = "#4fd6b8";
+const MED_THEME = {
+  "--asm-frame": MED_ACCENT,
+  "--asm-glow": MED_ACCENT,
+  "--asm-select": "#d7fff4",
+  "--asm-cyan": "#d7fff4",
+  "--asm-line": "#4fd6b82e",
+  "--asm-ink": "#e9fbf6",
+  "--asm-ink-dim": "#8fb0a8",
+  "--asm-panel-bg": "#071613d9",
+  "--panel-shell-title-size": "34px",
+  "--panel-shell-status-size": "20px",
+  "--panel-shell-close-size": "36px",
+} as CSSProperties;
 
 interface Props {
   leaving?: boolean;
@@ -36,9 +51,9 @@ export function CryoScene({ leaving = false }: Props) {
   return (
     <div className={cn("cryo-scene", leaving && "is-leaving")}>
       <header className={cn("cryo-header")} style={{ left: "56px", top: "42px" }}>
-        <span className={cn("cryo-kicker")}>冷冻生命维持区</span>
-        <h2 className={cn("cryo-title")}>冬眠仓</h2>
-        <p className={cn("cryo-sub")}>队员唤醒 · 生命疗养</p>
+        <span className={cn("cryo-kicker")}>生命维持医疗区</span>
+        <h2 className={cn("cryo-title")}>医疗室</h2>
+        <p className={cn("cryo-sub")}>休眠唤醒 · 体力疗养</p>
       </header>
 
       <div className={cn("cryo-readout")} style={{ right: "56px", top: "42px" }}>
@@ -59,16 +74,16 @@ export function CryoScene({ leaving = false }: Props) {
           right: "0px",
           top: "240px",
           width: "460px",
-          gap: "10px",
-          gridTemplateRows: "88px 88px",
-          "--peek": "260px",
+          gap: "12px",
+          gridTemplateRows: "100px 100px",
+          "--peek": "268px",
           ...morph.entryVars,
         } as CSSProperties}
       >
         <EntryTile
           icon={<AwakenIcon />}
-          name="冬眠唤醒"
-          desc={sealedCount > 0 ? `${sealedCount} 具休眠体待解封` : "无休眠体信号"}
+          name="休眠唤醒"
+          desc={sealedCount > 0 ? `${sealedCount} 具休眠体待唤醒` : "暂无待唤醒的休眠体"}
           entryId="awaken"
           hidden={morph.hiddenEntry === "awaken" && morph.phase !== "closing"}
           revealing={morph.phase === "closing" && morph.hiddenEntry === "awaken"}
@@ -76,8 +91,8 @@ export function CryoScene({ leaving = false }: Props) {
         />
         <EntryTile
           icon={<NutritionIcon />}
-          name="营养舱"
-          desc={`${nutritionCount}/${nutritionCapacity} 舱位疗养中`}
+          name="疗养舱"
+          desc={`${nutritionCount}/${nutritionCapacity} 席位疗养中`}
           entryId="nutrition"
           hidden={morph.hiddenEntry === "nutrition" && morph.phase !== "closing"}
           revealing={morph.phase === "closing" && morph.hiddenEntry === "nutrition"}
@@ -86,22 +101,34 @@ export function CryoScene({ leaving = false }: Props) {
       </div>
 
       {panel && (
-        <CryoPanelShell
-          ref={morph.panelRef}
-          rect={PANEL_RECT[panel]}
-          ready={morph.ready}
+        <PanelShell
+          accent={MED_ACCENT}
+          title={panel === "awaken" ? "休眠唤醒" : "疗养舱"}
+          status={
+            panel === "awaken"
+              ? `舱位解封 · 待唤醒 ${sealedCount} 具 · 居民积分 ${loot.toLocaleString()}`
+              : `体力极限恢复 · 席位 ${nutritionCount}/${nutritionCapacity} · 居民积分 ${loot.toLocaleString()}`
+          }
+          closeLabel={panel === "awaken" ? "关闭休眠唤醒" : "关闭疗养舱"}
           closing={morph.phase === "closing"}
           onClose={morph.closePanel}
-          seed={panel === "awaken" ? <AwakenIcon /> : <NutritionIcon />}
-          kicker={panel === "awaken" ? "冬眠舱阵列" : "营养液循环系统"}
-          title={panel === "awaken" ? "冬眠唤醒 · 舱位解封" : "营养舱 · 体力极限疗养"}
+          sfx={panel === "awaken"}
+          themeStyle={MED_THEME}
+          className={s["cryo-modal"]}
+          morph={{
+            ref: morph.panelRef,
+            rect: PANEL_RECT[panel],
+            ready: morph.ready,
+            seed: panel === "awaken" ? <AwakenIcon /> : <NutritionIcon />,
+            seedLabel: panel === "awaken" ? "休眠唤醒" : "疗养舱",
+          }}
         >
           {panel === "awaken" ? (
             <AwakenPanel awakened={awakened} loot={loot} slot={podSlot} onSelect={setPodSlot} onAwaken={awaken} />
           ) : (
             <NutritionPanel onAdmit={admitToNutritionPod} onResearch={researchNutritionTech} />
           )}
-        </CryoPanelShell>
+        </PanelShell>
       )}
     </div>
   );

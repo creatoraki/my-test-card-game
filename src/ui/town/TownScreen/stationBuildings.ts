@@ -9,6 +9,7 @@
 import {
   ASSEMBLY_BG_ART,
   CRYO_BG_ART,
+  FORMATION_BG_ART,
   MUSEUM_BG_ART,
   SHOP_BG_ART,
   WORKLOG_BG_ART,
@@ -153,8 +154,8 @@ const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
   airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART },
   // 医疗室: 冬眠唤醒 / 营养舱
   supplies: { facility: "cryo", bg: CRYO_BG_ART },
-  // 队员宿舍: 进入顶层编队场景, 沿用冬眠仓背景作为像素转场目标
-  "sleeping-pods": { facility: "formation", bg: CRYO_BG_ART },
+  // 队员宿舍: 进入顶层编队场景, 使用队员宿舍背景作为像素转场目标
+  "sleeping-pods": { facility: "formation", bg: FORMATION_BG_ART },
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
   workshop: { facility: "shop", bg: SHOP_BG_ART },
   // 档案机: 物品 / 卡牌 / 怪物图鉴

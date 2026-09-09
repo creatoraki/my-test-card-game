@@ -32,14 +32,14 @@
 .kicker {
   color: var(--cryo-glow);
   font-family: var(--font-family);
-  font-size: 11px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 3px;
 }
 
 .count {
   font-family: var(--font-family);
-  font-size: 12px;
+  font-size: 18px;
 }
 
 .upgradeButton {
@@ -48,10 +48,10 @@
   top: -58px;
   z-index: 3;
   padding: 8px 14px;
-  border: 1px solid #7c4dbe61;
-  background: #ffffffc7;
+  border: 1px solid color-mix(in srgb, var(--cryo-glow) 38%, transparent);
+  background: var(--cryo-card);
   color: var(--cryo-glow-deep);
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 1px;
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
@@ -59,7 +59,7 @@
 
 .upgradeButton:hover {
   border-color: var(--cryo-glow);
-  background: #ffffff;
+  background: var(--cryo-card-strong);
   transform: translateY(-2px);
 }
 
@@ -69,16 +69,16 @@
   justify-content: center;
   min-height: 120px;
   padding: 16px;
-  border: 1px dashed #2a1b3d2e;
+  border: 1px dashed var(--cryo-line);
   color: var(--cryo-ink-dim);
-  font-size: 13px;
+  font-size: 18px;
   text-align: center;
 }
 
 .cost,
 .selectedState {
   color: var(--cryo-ink-dim);
-  font-size: 12px;
+  font-size: 18px;
   letter-spacing: 1px;
 }
 

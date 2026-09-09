@@ -1,5 +1,5 @@
 /* 角色详情态。⚠ 本层铺满编队页的 1920×1080 画布, 每个 px 都是「设计 px」。
-   ★ 背景不在这里 —— 两态共用 FormationScreen 那张冬眠仓底图与提亮层, 底图从头到尾不动,
+   ★ 背景不在这里 —— 两态共用 FormationScreen 那张队员宿舍底图与冷色暗罩, 底图从头到尾不动,
      动的只有卡阵与本层的元素。这正是「元素重组」而不是「换页」的观感来源。 */
 .view {
   composes: cd-tokens from "../styles/detailTokens.module.css";

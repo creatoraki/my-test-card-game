@@ -12,8 +12,8 @@
   height: 236px;
   padding: 0;
   overflow: hidden;
-  border: 1px solid #2a1b3d2e;
-  background: #ffffffad;
+  border: 1px solid var(--cryo-line);
+  background: var(--cryo-card);
   color: var(--cryo-ink);
   text-align: left;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
@@ -23,7 +23,7 @@
 .card:not(:disabled):hover,
 .card.is-selected {
   border-color: var(--cryo-glow);
-  background: #fffffff0;
+  background: var(--cryo-card-strong);
   box-shadow: 0 0 22px -8px var(--cryo-glow);
 }
 
@@ -63,9 +63,9 @@
 }
 
 .damage {
-  color: #a23e55;
+  color: var(--cryo-alert);
   font-family: var(--font-family);
-  font-size: 10px;
+  font-size: 18px;
   letter-spacing: 1px;
   white-space: nowrap;
 }
@@ -82,6 +82,6 @@
   top: 9px;
   z-index: 3;
   color: var(--cryo-glow-deep);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
 }

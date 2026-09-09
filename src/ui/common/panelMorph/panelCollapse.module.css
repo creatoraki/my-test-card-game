@@ -1,6 +1,6 @@
 /* morph 浮层的公共关闭演出 —— 唯一一份。
-   面板竖向折叠成一条发亮的横线, 横线随即淡出; 三个外壳(PanelShell / HudPanelShell /
-   CryoPanelShell)都只挂这一个类, 不再各写一份关闭关键帧。
+   面板竖向折叠成一条发亮的横线, 横线随即淡出; 所有 morph 外壳都只挂这一个类,
+   不再各写一份关闭关键帧。
    时长由外壳下发的 --collapse-ms 控制(来自 panelChoreo 的 COLLAPSE_MS)。 */
 
 /* 选择器故意重复三遍: 外壳里已有 `.asm-panel.is-morphing { animation: none }` 这类

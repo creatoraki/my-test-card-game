@@ -1,11 +1,18 @@
-/* 冬眠仓场景骨架：只负责标题、读数和右侧入口，浮层皮肤位于 cryo/styles。 */
+/* 医疗室场景骨架：只负责标题、读数和右侧入口，浮层外壳复用 common/PanelShell。 */
 
 .cryo-scene {
-  --cryo-ink: #2a1b3d;
-  --cryo-ink-dim: #6b5b82;
-  --cryo-line: #2a1b3d24;
-  --cryo-glow: #7c4dbe;
-  --cryo-glow-deep: #55307f;
+  --cryo-ink: #e9fbf6;
+  --cryo-ink-dim: #8fb0a8;
+  --cryo-line: #4fd6b82e;
+  --cryo-glow: #4fd6b8;
+  --cryo-glow-deep: #d7fff4;
+  --cryo-glow-soft: #a9f0dd;
+  --cryo-card: #0d1a17b3;
+  --cryo-card-hover: #132420d9;
+  --cryo-card-strong: #16302ae6;
+  --cryo-shadow: #00120db8;
+  --cryo-alert: #ff6f8b;
+  --cryo-scrim: #03100db8;
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -14,8 +21,20 @@
 
 .cryo-header {
   position: absolute;
-  padding-left: 16px;
+  width: 380px;
+  padding: 14px 20px 15px 22px;
+  background:
+    radial-gradient(ellipse 90% 120% at 100% 0, #4fd6b822, transparent 68%),
+    linear-gradient(160deg, #0e1a17b8, #070d0ba6);
+  border: 1px solid #3c4f4a99;
   border-left: 2px solid var(--cryo-glow);
+  box-shadow:
+    inset 0 1px 0 #ffffff33,
+    0 13px 28px -24px #000000e6,
+    0 0 20px -18px #4fd6b8a6;
+  -webkit-backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
+  backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 7px) 100%, 0 100%, 0 10px);
   animation: cryoRise 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
 
@@ -23,25 +42,27 @@
   display: block;
   color: var(--cryo-glow);
   font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 4px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
 }
 
 .cryo-title {
-  margin: 4px 0 0;
-  color: var(--cryo-ink);
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: 8px;
-  text-indent: 8px;
+  margin: 7px 0 0;
+  color: #f2fbf7;
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-shadow: 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
 }
 
 .cryo-sub {
-  margin: 4px 0 0;
+  margin: 10px 0 0;
   color: var(--cryo-ink-dim);
-  font-size: 13px;
-  letter-spacing: 2px;
+  font-size: 18px;
+  letter-spacing: 0.12em;
 }
 
 .cryo-readout {
@@ -56,28 +77,31 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  min-width: 104px;
-  padding: 9px 16px;
+  min-width: 120px;
+  padding: 12px 18px;
   border: 1px solid var(--cryo-line);
-  background: linear-gradient(150deg, #ffffff8f, #fbf3ff66 55%, #ecdcfa59);
-  -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
-  box-shadow: inset 0 1px 0 #ffffffd9, 0 18px 40px -26px #2a1b3d52;
+  background:
+    radial-gradient(ellipse 90% 120% at 100% 0, #4fd6b822, transparent 68%),
+    linear-gradient(160deg, #0e1a17b8, #070d0ba6);
+  -webkit-backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
+  backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
+  box-shadow: inset 0 1px 0 #ffffff33, 0 18px 40px -26px var(--cryo-shadow);
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
 }
 
 .cryo-chip-label {
   color: var(--cryo-ink-dim);
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 18px;
+  letter-spacing: 0.08em;
 }
 
 .cryo-chip-value {
   color: var(--cryo-ink);
   font-family: var(--font-family);
-  font-size: 19px;
+  font-size: 24px;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
 }
 
 .cryo-entries {
@@ -91,14 +115,17 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   width: 100%;
   height: 100%;
-  padding: 0 24px;
+  padding: 0 28px;
   pointer-events: auto;
   transform: translateX(var(--slide));
   border: 1px solid var(--cryo-line);
-  background: linear-gradient(150deg, #ffffff8f, #fbf3ff66 55%, #ecdcfa59);
+  background:
+    radial-gradient(ellipse at 18% 0%, color-mix(in srgb, var(--cryo-glow) 12%, transparent), transparent 52%),
+    #0b1512aa;
+  box-shadow: inset 0 1px 0 #ffffff1f, 0 18px 40px -26px #000000a8;
   -webkit-backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
   backdrop-filter: blur(14px) saturate(112%) brightness(1.04);
   color: var(--cryo-ink);
@@ -136,7 +163,7 @@
   inset: -1px;
   z-index: 1;
   pointer-events: none;
-  border: 1px solid transparent;
+  border: 2px solid var(--cryo-glow);
   opacity: 0;
   transition: opacity 0.18s ease;
 }
@@ -144,7 +171,7 @@
 .cryo-entry-icon {
   display: flex;
   flex: 0 0 auto;
-  color: #6b3fa8;
+  color: var(--cryo-glow);
 }
 
 .cryo-entry-icon svg {
@@ -169,21 +196,21 @@
 
 .cryo-entry-name {
   color: var(--cryo-ink);
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 5px;
 }
 
 .cryo-entry-desc {
   color: var(--cryo-ink-dim);
-  font-size: 13px;
-  letter-spacing: 1px;
+  font-size: 18px;
+  letter-spacing: 0.06em;
 }
 
 .cryo-entry-go {
   flex: 0 0 auto;
   color: var(--cryo-glow);
-  font-size: 20px;
+  font-size: 24px;
   opacity: 0.5;
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
@@ -191,13 +218,15 @@
 :global([data-town-stage]) .cryo-entry:hover {
   --slide: 0px;
   border-color: var(--cryo-glow);
-  background: linear-gradient(150deg, #ffffffb8, #fdf6ff8c 55%, #e6d2f880);
-  box-shadow: inset 0 1px 0 #ffffffeb, 0 0 24px -8px var(--cryo-glow), 0 22px 44px -26px #2a1b3d52;
+  background:
+    radial-gradient(ellipse at 18% 0%, color-mix(in srgb, var(--cryo-glow) 18%, transparent), transparent 52%),
+    var(--cryo-card-hover);
+  box-shadow: inset 0 1px 0 #ffffff2e, 0 0 24px -8px var(--cryo-glow), 0 22px 44px -26px var(--cryo-shadow);
 }
 
 :global([data-town-stage]) .cryo-entry:hover::before { opacity: 1; }
 :global([data-town-stage]) .cryo-entry:hover > .cryo-rim { opacity: 1; }
-:global([data-town-stage]) .cryo-entry:hover .cryo-entry-icon { color: var(--cryo-glow-deep); filter: drop-shadow(0 0 8px #7c4dbe55); }
+:global([data-town-stage]) .cryo-entry:hover .cryo-entry-icon { color: var(--cryo-glow-deep); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--cryo-glow) 34%, transparent)); }
 :global([data-town-stage]) .cryo-entry:hover .cryo-entry-go { opacity: 1; transform: translateX(4px); }
 
 @keyframes cryoRise {
@@ -232,6 +261,10 @@
 .cryo-scene.is-leaving .cryo-header,
 .cryo-scene.is-leaving .cryo-readout { animation: cryoFade 300ms ease-in both; }
 .cryo-scene.is-leaving .cryo-entry { animation: cryoEntryFade 300ms ease-in both; }
+
+.cryo-modal {
+  z-index: 5;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .cryo-header,

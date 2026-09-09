@@ -22,17 +22,17 @@ export function NutritionUpgradePanel({ level, doneTechs, storage, loot, origin,
       style={{ "--from-x": `${origin.x}px`, "--from-y": `${origin.y}px` } as React.CSSProperties}
       onAnimationEnd={(event) => event.target === event.currentTarget && closing && onClosed()}
     >
-      <div className={s.dialog} role="dialog" aria-label="营养舱科技">
+      <div className={s.dialog} role="dialog" aria-label="疗养舱科技">
         <div className={s.head}>
           <div>
-            <span className={s.kicker}>营养液循环系统</span>
+            <span className={s.kicker}>疗养液循环系统</span>
             <h4>科技升级 · 等级 {level}</h4>
-            <p>当前舱位 {nutritionPods(doneTechs)} / {NUTRITION_MAX_LEVEL}</p>
+            <p>当前席位 {nutritionPods(doneTechs)} / {NUTRITION_MAX_LEVEL}</p>
           </div>
           <button className={s.close} type="button" onClick={onClose} aria-label="关闭科技升级">✕</button>
         </div>
         {level >= NUTRITION_MAX_LEVEL ? (
-          <div className={s.maxed}>营养舱已达最高等级</div>
+          <div className={s.maxed}>疗养舱已达最高等级</div>
         ) : (
           <div className={s.techs}>
             {nutritionTechsOfTier(level).map((tech) => (
@@ -48,10 +48,12 @@ export function NutritionUpgradePanel({ level, doneTechs, storage, loot, origin,
 function TechCard({ tech, done, doneTechs, storage, loot, onResearch }: { tech: (typeof NUTRITION_TECHS)[number]; done: boolean; doneTechs: string[]; storage: ItemStack[]; loot: number; onResearch: (techId: string) => void }) {
   const check = nutritionTechCheck(tech, loot, storage);
   const available = isTechAvailable(tech, doneTechs);
+  const techName = tech.name.replace(/舱位/g, "席位").replace(/营养液/g, "疗养液");
+  const techDesc = tech.desc.replace(/舱位/g, "席位");
   return (
     <div className={`${s.tech} ${done ? s["is-done"] : ""}`}>
-      <span className={s.techName}>{tech.name} {done ? "✓" : ""}</span>
-      <span className={s.techDesc}>{tech.desc}</span>
+      <span className={s.techName}>{techName} {done ? "✓" : ""}</span>
+      <span className={s.techDesc}>{techDesc}</span>
       <div className={s.materials}>
         <span className={`${s.material} ${check.lootOk ? "" : s["is-lacking"]}`}>积分 {tech.loot}</span>
         {check.materials.map((material) => {

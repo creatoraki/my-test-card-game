@@ -6,8 +6,8 @@
    ★ 本文件在改版后只剩「画布 + 底图」两件事 —— 顶带、卡阵、详情栏、飞行层各自带着自己的
      module.css。编队态与详情态共用这张底图, 底图从头到尾不动, 动的只有它上面的元素;
      这就是「元素重组」而不是「换页」的观感来源。
-   ★ 视觉与冬眠仓(CryoScene.css)**同族**: 同一张紫粉白场景, 亮玻璃 + 深紫墨字, 强调色
-     深紫罗兰 #7c4dbe。刻意不复用 .cryo-* 的类名 —— 那些是「浮层内」的尺度, 这里是全屏尺度。 */
+   ★ 视觉与基地场景**同族**: 队员宿舍背景, 亮玻璃 + 深紫墨字, 强调色深紫罗兰 #7c4dbe。
+     刻意不复用 .cryo-* 的类名 —— 那些是「浮层内」的尺度, 这里是全屏尺度。 */
 
 /* letterbox 容器: 铺满窗口, 是设计画布的定位参照; 画布之外露出的就是黑边。 */
 .screen {
@@ -25,7 +25,7 @@
 
   overflow: hidden;
   padding: 0;
-  background: #f3ecfa; /* 图加载前/失败时的浅色兜底, 与场景色系一致 */
+  background: #101a21; /* 图加载前/失败时的深色兜底, 与宿舍场景色系一致 */
 }
 
 /* ===================== 背景 ===================== */
@@ -40,14 +40,13 @@
   pointer-events: none;
 }
 
-/* 提亮 + 收边: 中间偏亮让卡片阵列托得起来, 四角略压一点点避免版面飘。
-   ⚠ 这是**提亮**不是压暗 —— 冬眠仓那张图是浅色紫粉白, 压暗会毁掉它的气质。 */
+/* 冷色压暗 + 收边: 保留宿舍的金属结构与舷窗高光, 同时给上层卡阵托出稳定对比。 */
 .veil {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, #ffffff8f 0%, #ffffff5c 42%, #f0e6fa73 100%),
-    radial-gradient(ellipse at 50% 46%, transparent 52%, #2a1b3d1a 100%);
+    linear-gradient(to bottom, #07131acc 0%, #0a182080 42%, #07131ab8 100%),
+    radial-gradient(ellipse at 50% 46%, transparent 48%, #02080cb8 100%);
 }

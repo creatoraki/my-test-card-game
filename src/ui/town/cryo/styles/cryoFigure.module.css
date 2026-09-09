@@ -5,8 +5,8 @@
 .figureFrame {
   position: relative;
   overflow: hidden;
-  border: 1px solid #2a1b3d2e;
-  background: linear-gradient(160deg, #ffffffc9, #f3e8fba8 62%, #dfc9ef99);
+  border: 1px solid var(--cryo-line);
+  background: linear-gradient(160deg, #132420b8, #0d1a17a8 62%, #08120fb0);
   clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
 }
 
@@ -18,7 +18,7 @@
   height: auto;
   max-width: none;
   translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
-  filter: drop-shadow(0 5px 10px #2a1b3d38);
+  filter: drop-shadow(0 5px 10px var(--cryo-shadow));
 }
 
 .figureScrim {
@@ -26,7 +26,7 @@
   inset: 25% 0 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent, #ffffff1a 35%, #ffffffd4 100%);
+  background: linear-gradient(180deg, #00000000 25%, var(--cryo-scrim) 100%);
 }
 
 .figurePlate {
@@ -45,7 +45,7 @@
 
 .figureName {
   overflow: hidden;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 2px;
   text-overflow: ellipsis;
@@ -55,7 +55,7 @@
 .figureMeta {
   overflow: hidden;
   color: var(--cryo-ink-dim);
-  font-size: 10px;
+  font-size: 18px;
   letter-spacing: 1px;
   text-overflow: ellipsis;
   white-space: nowrap;

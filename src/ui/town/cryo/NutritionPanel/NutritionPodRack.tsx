@@ -39,7 +39,7 @@ function PodSlot({ index, occupant, unlocked, selectedCandidate, loot, onAdmit }
   const reason = occupant
     ? `疗养中 · 明日 +${occupant.heal}；结算后自动离舱`
     : !unlocked
-      ? `需舱位扩建 ${index === 1 ? "I" : index === 2 ? "II" : "III"}`
+      ? `需席位扩建 ${index === 1 ? "I" : index === 2 ? "II" : "III"}`
       : !selectedCandidate
         ? "先在下方选择一名需要疗养的队员"
         : selectedCandidate.reason ?? (loot < NUTRITION_TREAT_COST ? "居民积分不足" : null);
@@ -62,7 +62,7 @@ function PodSlot({ index, occupant, unlocked, selectedCandidate, loot, onAdmit }
         </span>
         <span className={s.text}>
           <span className={s.name}>{character?.name ?? (unlocked ? "空置席位" : "待扩建")}</span>
-          <span className={s.meta}>{character ? `疗养中 · 明日 +${occupant?.heal}` : unlocked ? "点击送入队员" : `需舱位扩建 ${index === 1 ? "I" : index === 2 ? "II" : "III"}`}</span>
+          <span className={s.meta}>{character ? `疗养中 · 明日 +${occupant?.heal}` : unlocked ? "点击送入队员" : `需席位扩建 ${index === 1 ? "I" : index === 2 ? "II" : "III"}`}</span>
         </span>
       </button>
       {point && reason && <HoverTooltip point={point}>{reason}</HoverTooltip>}

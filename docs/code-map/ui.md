@@ -40,15 +40,14 @@ src/ui/
 | [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
 | [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配与模组制造场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
 | [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
-| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 冬眠仓场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
-| [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 冬眠仓入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
-| [town/cryo/CryoPanelShell](../../src/ui/town/cryo/CryoPanelShell/CryoPanelShell.tsx) | 冬眠仓浮层公共壳：透明点击层、冷凝氛围、标题头、关闭按钮和可变矩形面板；不再使用吊绳或从天而降动画，几何由 `cryoMorph` 的 ref 驱动。 |
-| [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 冬眠仓横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
-| [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 冬眠唤醒面板：六个瘦高立绘舱位、密封舱信息带、生命指标 count-up、唤醒费用和解封操作；规则与解封 action 由场景传入。 |
-| [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 营养舱面板编排：订阅城镇状态，组合固定瘦高席位、可入舱立绘条与科技升级叠层；容量、治疗、费用和研究判定复用 `data/nutritionPod`。 |
-| [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 营养舱席位阵列：四个固定瘦高席位，处理空置、占用、锁定、未选人、费用不足和角色限制的悬浮提示，并把点击席位转为入舱 action。 |
-| [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 营养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、选中态与受限原因提示。 |
-| [town/cryo/NutritionPanel/NutritionUpgradePanel](../../src/ui/town/cryo/NutritionPanel/NutritionUpgradePanel.tsx) | 营养舱科技升级叠层：展示等级、舱位读数、当前 tier 的容量/治疗科技、材料与积分检查，并用局部 clip-path 展开/收回。 |
+| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、积分/唤醒读数、两行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
+| [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 医疗室入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
+| [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 医疗室横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
+| [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 休眠唤醒面板：六个瘦高立绘舱位、密封舱信息带、生命指标 count-up、唤醒费用和居民积分操作；规则与唤醒 action 由场景传入。 |
+| [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 疗养舱面板编排：订阅城镇状态，组合固定瘦高席位、待疗养立绘条与科技升级叠层；容量、治疗、费用和研究判定复用 `data/nutritionPod`。 |
+| [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 疗养舱席位阵列：四个固定瘦高席位，处理空置、占用、锁定、未选人、费用不足和角色限制的悬浮提示，并把点击席位转为入舱 action。 |
+| [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 疗养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、选中态与受限原因提示。 |
+| [town/cryo/NutritionPanel/NutritionUpgradePanel](../../src/ui/town/cryo/NutritionPanel/NutritionUpgradePanel.tsx) | 疗养舱科技升级叠层：展示等级、席位读数、当前 tier 的容量/治疗科技、材料与积分检查，并用局部 clip-path 展开/收回。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/storage/EquipTargetList](../../src/ui/town/storage/EquipTargetList/EquipTargetList.tsx) | 升阶与重铸共用的装备目标列：合并仓库装备和三槽穿戴件，支持武器/防具/饰品筛选、队员角标和 `ItemTooltip`。 |
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
