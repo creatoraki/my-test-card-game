@@ -239,6 +239,8 @@ src/ui/
 | [art/moduleGlyphs](../../src/ui/art/moduleGlyphs.tsx) | 成品模组的专属徽记：`MODULE_THEMES` 三档配色（hue/deep/ink）+ 每件模组一套分层 SVG，由 `itemArt.itemIcon` 在模组类别上优先命中；未登记的模组回落到通用 ModuleIcon。设计逻辑与小队徽章 `badgeGlyphs` 一致。 |
 | [item/ModuleInstall](../../src/ui/common/item/ModuleInstall/) | 待拾取模组的「装载 / 拾取」接线：`useLootModuleActions` 判定物品是不是模组并托管弹窗状态（拾取动作由调用方传入，战利品盘与拾取框各接一次）；`ModuleSlotActions` 是贴在格子上下边框的两个悬浮按钮（悬停淡入，父格需 `position: relative`）；`ModuleInstallDialog` 是原地装配弹窗，只列本趟远征的出战队员，装配走 `exploreStore.installLootModule`。 |
 | [art/moduleGlyphsGenericT1](../../src/ui/art/moduleGlyphsGenericT1.tsx) | 1 阶通用模组的徽记与配色，按「改的是哪一项」分色；由 `moduleGlyphs` 合并进主表，清单加长时主表不膨胀。 |
+| [art/moduleGlyphsAlchemist](../../src/ui/art/moduleGlyphsAlchemist.tsx) | 炼金术士组装模组 A/B/C/D 的徽记：图形直接复用组装 BUFF 的炼金三角（风/火/土/水），按四元素分色，由 `ASSEMBLE_MODULE_LETTERS` 展开后合并进 `moduleGlyphs` 主表。 |
+| [art/moduleGlyphsActuary](../../src/ui/art/moduleGlyphsActuary.tsx) | 精算师模组的徽记：急诊模组为斜绷带盖住的医疗十字（急救红），回响模组为渐弱声波（回响紫）；同样由 `moduleGlyphs` 合并进主表。 |
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；模组另有独立的「装配条件」字段，文案读 `data/cardModules` 的 `equipText`。操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
 | [item/ItemTooltip](../../src/ui/common/item/ItemTooltip/ItemTooltip.tsx) | 物品详情悬浮层：`tooltipPointFromElement` 把触发元素归一化成「所属画布 + 设计 px 锚点」，`useTooltipPlacement` 实测浮层真实尺寸后在画布边界内翻转夹取，浮层 portal 进画布内部。换皮版浮卡（商店仓库、出击背包）共用这两个导出，不要再抄一份定位算法。 |
 | [item/ItemIconFrame](../../src/ui/common/item/ItemIconFrame/ItemIconFrame.tsx) | 1:1 物品图标框——全站「物品图标永远被方框包裹」的唯一实现。**框内只有图标，一个字都不放**，名称/数量/持有量一律由调用方排在框外。四档边长(sm44/md64/lg96/xl132)，稀有度读 `--rarity-*` 令牌，`tone="short"` 转红表示货币不足，`as="button"` 时可点选，`tooltip` 走 `ItemTooltip`（无原生 `title`）。 |
