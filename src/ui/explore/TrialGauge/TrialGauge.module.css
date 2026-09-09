@@ -1,0 +1,96 @@
+/* 进行中的挑战砖 —— 与右上读数列里的 .expl-aura 同一块版式语言(斜切角 + 纯渐变底),
+   但颜色换成 .k-trial 的靛紫: 那一列的金色代表「白拿的增益」,
+   挑战是「已经付出去、还没拿回来的代价」, 两者必须一眼分得开。
+
+   ⚠ 一律不用 backdrop-filter: 祖先 .expl-readout 带 explRise 动画(已是 backdrop root),
+     玻璃在这里取不到背景图。
+   ⚠ 字号按项目规范以 18px 为下限 —— 这块砖要在整轮战斗里被反复瞥一眼, 读不快就等于没有。 */
+
+.trial-list {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.trial {
+  --trial-k: #9a8fe6;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 232px;
+  padding: 12px 16px;
+  border: 1px solid #9a8fe680;
+  background: linear-gradient(155deg, #1e1b3a9e, #0d0c1acc);
+  box-shadow:
+    inset 0 1px 0 #ffffff14,
+    0 20px 44px -28px #6d5fd6aa;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: opacity 220ms ease, border-color 160ms ease;
+}
+
+/* 落点浮层开着时随四角 HUD 一起后退。★ 只压 opacity, 不碰 transform/filter。 */
+.trial.is-recede {
+  opacity: 0.5;
+}
+
+.trial:hover,
+.trial:focus-visible {
+  border-color: #c3bcf5;
+  outline: none;
+}
+
+/* 倒计时是这块砖上最要紧的一句, 所以它占据 kicker 的位置并且最亮。 */
+.trial-kicker {
+  color: var(--trial-k);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.trial-name {
+  color: #efecff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* 代价一行 —— 战斗里到底扣的是什么, 只有这里写着。 */
+.trial-penalty {
+  color: #ffb4b4;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.trial-tip {
+  border-color: #9a8fe680;
+}
+
+.trial-tip strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #c3bcf5;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.trial-tip p {
+  margin: 0 0 6px;
+  color: #ddd8f2;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.trial-tip p:last-child {
+  margin-bottom: 0;
+}
+
+.trial-tip b {
+  color: #ffb4b4;
+}
+
+.trial-tip-warn {
+  color: #e6a08c;
+}

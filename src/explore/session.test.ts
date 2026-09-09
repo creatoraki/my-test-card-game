@@ -10,7 +10,7 @@
 //   ③ 能量档位(每节点按推进段扣 3/3/4/5)、血量继承、团灭清算这些跨系统的口子表现稳定。
 
 import { describe, expect, it } from "vitest";
-import { makeItemStack } from "../data";
+import { getEventPool, makeItemStack } from "../data";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import {
   addItems,
@@ -30,6 +30,7 @@ import {
   energyTier,
   finishBattle,
   finishGenerating,
+  finishLeaving,
   generateRound,
   finishReveal,
   landedEvent,
@@ -872,5 +873,90 @@ describe("战斗回填与团灭", () => {
       overflow: [],
     });
     expect(s.phase).toBe("generating");
+  });
+});
+
+// 挑战契约是本作唯一**跨轮生效**的机制, 所以这一组断言全都压在「跨越那条边界的那一拍」上:
+//   接下时付了什么、到期时由谁来结算、以及谁**不**该推进倒计时。
+describe("挑战契约(跨轮)", () => {
+  const TRIAL_POOL = getEventPool("ruined-floor").trial;
+
+  // 把第 1 段的落点换成指定的挑战事件, 再走到它面前。挑战节点是概率投放的,
+  // 靠随机等它出现会让用例变成掷骰子 —— 这里直接摆好棋盘。
+  function landOnTrial(s: ExploreState, event = TRIAL_POOL[0]): void {
+    toChoosing(s);
+    chooseEntry(s, 0);
+    s.board!.nodes[0] = s.board!.nodes[0].map(() => event);
+    s.board!.hiddenNodes = [];
+    arriveNode(s);
+  }
+
+  it("接受挑战: 付 5 粒子换一份两轮的负面修正, 契约进 s.trials", () => {
+    const s = newSession();
+    landOnTrial(s);
+    const before = s.energy;
+    expect(chooseOption(s, 0)).toBe(true);
+
+    // 每节点的基础消耗(第 1 段 = 3)之外, 再额外付 5 —— 两笔都要扣到。
+    expect(s.energy).toBe(before - EXPLORE_RULES.energyPerNodeBySegment[0] - 5);
+    expect(s.trials).toHaveLength(1);
+    expect(s.trials[0].startRound).toBe(s.round);
+    expect(s.trials[0].untilRound).toBe(s.round + 1); // 当轮 + 下一轮
+    // ⚠ 挑战修正**不能**混进 auras: 那一列是整趟常驻的正面光环, 没有移除路径。
+    expect(s.auras).toHaveLength(0);
+  });
+
+  it("放弃挑战: 只付基础消耗, 不留任何契约", () => {
+    const s = newSession();
+    landOnTrial(s);
+    const before = s.energy;
+    expect(chooseOption(s, 1)).toBe(true);
+    expect(s.energy).toBe(before - EXPLORE_RULES.energyPerNodeBySegment[0]);
+    expect(s.trials).toHaveLength(0);
+  });
+
+  it("下一轮的推进战斗打完即结算: 契约撤掉, 奖励落进战利品盘", () => {
+    const s = newSession();
+    landOnTrial(s);
+    chooseOption(s, 0);
+    confirmNode(s);
+    // 到期点就是这一轮的推进战斗(把 untilRound 拉到当前轮, 省掉整整一轮的推进)。
+    s.trials[0].untilRound = s.round;
+
+    leaveRegion(s);
+    if (phaseOf(s) === "leaving") finishLeaving(s);
+    runRoundBattle(s);
+    expect(s.phase).toBe("inBattle");
+    finishBattle(s, true, WIN, ["scrap-bot"]);
+
+    expect(s.trials).toHaveLength(0);
+    expect(s.trialReport).toHaveLength(1);
+    expect(s.trialReport[0].notes.length).toBeGreaterThan(0);
+  });
+
+  it("节点战斗不推进倒计时 —— 倒计时按轮走, 而节点战斗不换轮", () => {
+    const s = newSession();
+    landOnTrial(s);
+    chooseOption(s, 0);
+    confirmNode(s);
+    s.trials[0].untilRound = s.round;
+
+    leaveRegion(s);
+    if (phaseOf(s) === "leaving") finishLeaving(s);
+    runRoundBattle(s);
+    s.battleSource = "node"; // 同一场战斗, 只把来源改成节点战斗
+    finishBattle(s, true, WIN, ["scrap-bot"]);
+
+    expect(s.trials).toHaveLength(1);
+    expect(s.trialReport).toHaveLength(0);
+  });
+
+  it("最后一轮不投放挑战节点 —— 那一轮打完就通关, 等不到结算的那一拍", () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const s = newSession(seed);
+      s.round = s.roundCount;
+      generateRound(s);
+      expect(s.board!.nodes.flat().some((e) => e.kind === "trial")).toBe(false);
+    }
   });
 });

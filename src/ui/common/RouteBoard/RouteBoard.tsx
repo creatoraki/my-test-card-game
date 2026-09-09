@@ -8,7 +8,7 @@
 // ★ 每块格子 = 一块很小的哑光空砖 + 一枚**悬在砖上方的自发光图标**:
 //   没有屏、没有底板、没有外框, 虚空里就一个符号。砖是方形 DOM 盒子被 TILE_MATRIX 压平成
 //   2:1 菱形; 图标盒是同一个方盒被 PANEL_MATRIX 剪切**立起来** ⇒ 正交视角下图标与砖严格垂直。
-//   ⛔ 除图标外**不放任何东西**(卡面、编目角标、大字符全部取消, 入口通道号除外):
+//   事件节点除图标外不放卡面与文字；起点由 RouteEntry 单独表达可点击状态:
 //     事件类型只由图标与事件色表达, 要读的字全部收进 ExploreScreen 的悬浮浮卡(NodeTip)。
 //   ⚠ 未知节点(见 board.hiddenNodes, 每张图固定 3 个): 走到之前砖与图标一律按 "unknown"
 //     占位类型渲染(蓝色 + 问号, 见 .k-unknown), 落地(visited 包含)后才换回真实事件。
@@ -21,7 +21,7 @@
 //   sealed    —— 图已浮现完、桥接仍遮蔽; 「探索路线」按钮在棋盘下方(ExploreScreen 负责)。
 //   revealing —— **全图 4 段桥接一次性全显**且高亮闪烁; 玩家在这 2-3 秒里用眼睛记。
 //   choosingEntry —— 桥接整体淡出到 opacity:0(⚠ 只改 opacity, **不卸载**: DOM 里留着才不会被
-//                「查看元素」看穿); 入口通道 A-E 变成可点按钮(脉冲环 + 下指标)。
+//                「查看元素」看穿); 起点一至五激活为青白色按钮(光环 + 箭头 + 点击出发)。
 //   advancing —— 信号沿本段折线前进, 棋子跟在后半步走同一条线。
 //   leaving   —— **离场行走**: 棋子沿本轮**剩余的整条线路**走到第 4 段终点, 走线同速描出、
 //                桥接一并显形。⚠ 这一相的意义是「不许把人瞬移进战斗」: 走完(onLeaveDone)才进披露页。
@@ -46,6 +46,7 @@ import { cx } from "@/ui/common/cx";
 // ⚠ 走 import 而不是在 CSS 里写路径, 打包后才有指纹化的地址。
 import boardBg from "@/assets/占位场景素材.png";
 import { RouteEventIcon } from "./RouteEventIcon";
+import { RouteEntry } from "./RouteEntry";
 import { ADV_X, ADV_Y, LANE_X, LANE_Y, PANEL_MATRIX, TILE_MATRIX, tileBounds } from "./routeIso";
 import s from "./RouteBoard.module.css";
 
@@ -93,7 +94,6 @@ export const NODE_ICON_TOP = PROJ_H + TILE_H / 2;
 
 const LANE_COUNT = 5;
 const SEG_COUNT = 4;
-const ENTRY_LABELS = ["A", "B", "C", "D", "E"];
 
 // 推进动画节奏: 信号点先跑完整段(travelMs), 棋子再以 1/2.6 的速度走同一条线。
 const SIGNAL_SPEED = 0.42;
@@ -283,23 +283,6 @@ function tileBox(x: number, y: number): CSSProperties {
     width: `${TILE}px`,
     height: `${TILE}px`,
   };
-}
-
-// ===================== 起点的「点我」提示标 =====================
-// 悬在通道号**上方**的一枚双人字下指标 —— 起点砖唯一的显式指令: 往下点这块砖。
-// ★ 为什么是符号而不是文字: 这一版的虚空里只允许站图标与通道号, 一行小字会立刻需要底板衬托,
-//   「屏」就又回来了。双人字是「往这里去 / 点这里」的通用语, 不需要翻译。
-// ⚠ 它跟着 PANEL_MATRIX 一起被剪切(与通道号同一个容器) ⇒ 看上去是斜的, 这是正交投影的正确读数。
-// ⚠ 只在**可点**的入口上出现(见 .entryCue): 已选中 / 未到阶段 / 已封锁的入口都不该指挥玩家点它。
-function EntryCue() {
-  return (
-    <span className={s.entryCue} aria-hidden>
-      <svg viewBox="0 0 24 20" fill="none" stroke="currentColor" strokeWidth={2.4}>
-        <path d="M4 3l8 7 8-7" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M4 10l8 7 8-7" strokeLinecap="round" strokeLinejoin="round" opacity={0.5} />
-      </svg>
-    </span>
-  );
 }
 
 // ===================== 玩家棋子 =====================
@@ -543,7 +526,7 @@ export function RouteBoard({
     return out.sort((a, b) => laneS(a.lane) - nodeU(a.seg) - (laneS(b.lane) - nodeU(b.seg)));
   }, [board]);
 
-  // 砖的几何全部通过 CSS 变量下发 ⇒ 尺寸只在本文件里定义一次, CSS 不重复写死任何一个数。
+  // 砖的几何全部通过 CSS 变量下发；RouteEntry 共用 --tile-size / --tile-matrix / --tile-depth。
   const rootStyle = {
     width: `${ROUTE_PANEL_W}px`,
     height: `${ROUTE_PANEL_H}px`,
@@ -685,8 +668,7 @@ export function RouteBoard({
         )}
       </svg>
 
-      {/* ── 入口 A-E: 与事件砖同一块砖, 靠独占的青色 + 最左那一列的位置区分 ──
-          ⚠ 砖面上没有字, 通道号只能进 aria-label: 少了它读屏里五个入口完全一样。 */}
+      {/* 起点独立持有可选、悬停与选中样式，位置仍与线路共用 nodeCenter。 */}
       <div className={s.entries}>
         {Array.from({ length: board.laneCount }, (_, lane) => {
           const blocked = board.blockedLanes.includes(lane);
@@ -694,35 +676,20 @@ export function RouteBoard({
           const usable = phase === "choosingEntry" && !blocked;
           const c = nodeCenter(-1, lane);
           return (
-            <button
+            <RouteEntry
               key={lane}
-              type="button"
-              className={cx(s.entry, active && s.isActive, blocked && s.isBlocked)}
-              aria-label={`入口 ${ENTRY_LABELS[lane] ?? lane + 1}${blocked ? "(已封锁)" : ""}`}
-              style={{ ...tileBox(c.x, c.y), "--i": lane } as CSSProperties}
-              disabled={!usable}
-              onPointerEnter={() => usable && setHoverLane(lane)}
-              onPointerLeave={() => setHoverLane((l) => (l === lane ? null : l))}
-              onFocus={() => usable && setHoverLane(lane)}
-              onBlur={() => setHoverLane((l) => (l === lane ? null : l))}
-              onClick={() => {
+              lane={lane}
+              center={c}
+              usable={usable}
+              active={active}
+              blocked={blocked}
+              generating={generating}
+              onHover={(hovering) => setHoverLane((l) => hovering ? lane : l === lane ? null : l)}
+              onPick={() => {
                 setHoverLane(null);
                 onPickEntry(lane);
               }}
-            >
-              {/* 贴地脉冲环: 从砖往外一圈圈荡开的等距波纹, 只有**还能点**的入口才有。
-                  ⚠ 必须排在 TileArt **前面**: 它是地面上的波纹, 得压在砖底下(只露出砖外那截)。 */}
-              <span className={s.entryPulse} aria-hidden />
-              {/* 入口砖上立着通道号, 号上方再压一枚下指标 —— 立起来的字比躺在地上的好认得多 */}
-              <TileArt
-                icon={
-                  <>
-                    <EntryCue />
-                    <span className={s.entryMark}>{ENTRY_LABELS[lane] ?? lane + 1}</span>
-                  </>
-                }
-              />
-            </button>
+            />
           );
         })}
       </div>

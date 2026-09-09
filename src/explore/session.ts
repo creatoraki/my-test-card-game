@@ -1835,10 +1835,11 @@ function settleTrials(s: ExploreState): void {
         console.error("[explore] 挑战奖励结算异常（已跳过）", { trial: trial.defId, error: err });
       }
     }
+    // ★ 玩家看到这一条的地方是**战斗胜利面板**(ui/battle/VictoryTrialBand), 不是节点浮层 ——
+    //   故只写 trialReport 与远征日志, 不碰 pendingNotes/pendingStory:
+    //   那两列归节点浮层消费, 而下一轮的 generateRound 紧接着就会把 pendingNotes 清掉。
     s.trialReport.push({ name: trial.name, story: rolled?.text ?? "", notes });
-    const summary = notes.join(" · ") || "没有可结算的奖励";
-    s.pendingNotes.push(`挑战达成 · ${trial.name} · ${summary}`);
-    logLine(s, `挑战达成: ${trial.name} · ${summary}`);
+    logLine(s, `挑战达成: ${trial.name} · ${notes.join(" · ") || "没有可结算的奖励"}`);
   }
 }
 

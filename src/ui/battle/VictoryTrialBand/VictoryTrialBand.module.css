@@ -1,0 +1,88 @@
+/* 挑战达成条 —— 与胜利面板其余分段共用同一条入场编舞(--vc-delay / vcSectionIn),
+   配色取探索层 .k-trial 的靛紫, 让「这是那份契约的回响」在跨界面之后仍然认得出来。
+   ⚠ 字号按项目规范以 18px 为下限。 */
+
+.trial-band {
+  --trial-k: #9a8fe6;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 4px;
+  opacity: 0;
+  transform: translateY(18px);
+  animation: vtbIn var(--vc-section-ms) var(--vc-ease-pop) var(--vc-delay) both;
+}
+
+.trial-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #9a8fe666;
+  background: linear-gradient(105deg, #1e1b3a, #12101f 58%, #1a1830);
+  box-shadow: inset 0 1px 0 #ffffff10;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.trial-badge {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border: 1px solid #9a8fe680;
+  color: var(--trial-k);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.trial-copy {
+  min-width: 0;
+}
+
+.trial-name {
+  display: block;
+  color: #efecff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.trial-story {
+  margin: 4px 0 0;
+  color: #cfc9ea;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+/* 机械摘要逐条列出 —— 叙事那一句负责「为什么」, 这一列负责「到底拿到了什么」。 */
+.trial-notes {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.trial-notes li {
+  color: #9fe6c8;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.trial-notes li::before {
+  content: "▸ ";
+  color: var(--trial-k);
+}
+
+@keyframes vtbIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

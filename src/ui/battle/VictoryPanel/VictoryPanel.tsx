@@ -15,6 +15,7 @@ import { VictoryLootTray, type VictoryLootTrayHandle } from "@/ui/battle/Victory
 import { VictoryBoonTray } from "@/ui/battle/VictoryBoonTray/VictoryBoonTray";
 import { VictoryCardOffer } from "@/ui/battle/VictoryCardOffer/VictoryCardOffer";
 import { VictoryBackpack } from "@/ui/battle/VictoryBackpack";
+import { VictoryTrialBand } from "@/ui/battle/VictoryTrialBand";
 import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
 import { VictoryButton } from "@/ui/battle/VictoryButton";
 import { VictoryBackdrop } from "./VictoryBackdrop";
@@ -153,9 +154,15 @@ export function VictoryPanel() {
 
           <div className={s["panel-body"]}>
             <main className={s["panel-main"]}>
+              {/* 挑战达成 —— 本场到期的跨轮契约。奖励物资已经在下面的战利品盘里了,
+                  这条带子负责把它们跟两轮前的那个决定接回去(见 VictoryTrialBand 抬头)。
+                  没有到期的契约时组件自己返回 null, 不占位。 */}
+              <VictoryTrialBand
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
+              />
               <section
                 className={cx(s["exp-section"], s["victory-section"])}
-                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(1))}ms` } as CSSProperties}
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
               >
                 <div className={s["exp-list"]}>
                   {session.party.map((member, index) => (
@@ -171,11 +178,11 @@ export function VictoryPanel() {
               </section>
 
               <VictoryBoonTray
-                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(2))}ms` } as CSSProperties}
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
               />
               <section
                 className={cx(s["loot-section"], s["victory-section"])}
-                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(3))}ms` } as CSSProperties}
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(4))}ms` } as CSSProperties}
               >
                 <div className={s["section-row"]}>
                   <VictoryPlaque
@@ -188,7 +195,7 @@ export function VictoryPanel() {
 
               <section
                 className={cx(s["backpack-section"], s["victory-section"])}
-                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(4))}ms` } as CSSProperties}
+                style={{ "--vc-delay": `${timing.contentDelayMs + Number.parseFloat(victorySectionStagger(5))}ms` } as CSSProperties}
               >
                 <VictoryBackpack
                   stacks={backpack}

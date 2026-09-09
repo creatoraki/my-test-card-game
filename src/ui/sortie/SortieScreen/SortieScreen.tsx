@@ -12,6 +12,8 @@ import { SortieStepViewport } from "@/ui/sortie/SortieStepViewport";
 import { useSortieStepTransition } from "@/ui/sortie/sortieStepTransition";
 import s from "./SortieScreen.module.css";
 
+const isTest = import.meta.env.isTest === "true";
+
 export function SortieScreen() {
   const step = useSortieStore((state) => state.step);
   const mapId = useSortieStore((state) => state.mapId);
@@ -28,8 +30,8 @@ export function SortieScreen() {
   const enterTown = useRunStore((state) => state.enterTown);
   const [selectedMapId, setSelectedMapId] = useState(() => maps[0]?.id ?? "");
   const { visibleStep, exitingStep, transitioning, intro } = useSortieStepTransition(step);
-  const selectedLocked = !isMapUnlocked(selectedMapId, clearedMaps);
-  const lockReason = mapLockReason(selectedMapId, clearedMaps);
+  const selectedLocked = !isTest && !isMapUnlocked(selectedMapId, clearedMaps);
+  const lockReason = isTest ? null : mapLockReason(selectedMapId, clearedMaps);
 
   useEffect(() => {
     if (maps.some((map) => map.id === selectedMapId)) return;

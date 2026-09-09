@@ -6,6 +6,8 @@ import { COPY_COUNT, MIDDLE_COPY, useInfiniteBand } from "@/ui/sortie/hooks";
 import { MapLockChains } from "./MapLockChains";
 import s from "./MapSelectStep.module.css";
 
+const isTest = import.meta.env.isTest === "true";
+
 interface Props {
   maps: readonly MapDef[];
   active: boolean;
@@ -66,8 +68,8 @@ export function MapSelectStep({
               const itemIndex = copy * mapCount + index;
               const isCurrent = itemIndex === virtualIndex;
               const isSemantic = copy === MIDDLE_COPY;
-              const locked = !isMapUnlocked(map.id, clearedMaps);
-              const lockReason = mapLockReason(map.id, clearedMaps);
+              const locked = !isTest && !isMapUnlocked(map.id, clearedMaps);
+              const lockReason = isTest ? null : mapLockReason(map.id, clearedMaps);
 
               return (
                 <button

@@ -57,12 +57,14 @@ import ShopOverlay from "@/ui/explore/ShopOverlay";
 import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import { BurdenGauge } from "@/ui/explore/BurdenGauge";
 import NodeTip from "@/ui/explore/NodeTip";
+import TrialGauge from "@/ui/explore/TrialGauge";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
 import { PANEL_OUT_MS, PANEL_OUT_REDUCED_MS } from "@/ui/common/PanelShell";
 import { RailPopover } from "@/ui/common/RailPopover";
 import { useTutorialGuides } from "./useTutorialGuides";
+import { LeaveRegionButton } from "./LeaveRegionButton";
 import {
   RouteBoard,
   ROUTE_PANEL_H,
@@ -650,6 +652,10 @@ export function ExploreScreen() {
             projected={projectedEnergy(session)}
             recede={focused}
           />
+          {/* 进行中的挑战 —— 唯一跨轮生效的东西, 必须一直挂在屏幕上(见 TrialGauge 抬头)。
+              位置刻意夹在粒子灯与远征光环之间: 左边是「还能走多久」, 右边是「已经拿到什么」,
+              中间这一格是「已经押出去、还没拿回来的」。 */}
+          <TrialGauge trials={session.trials} round={session.round} recede={focused} />
           {session.auras.length > 0 && (
             <div className={s["expl-aura-list"]} aria-label="远征光环">
               {session.auras.map((aura) => (
@@ -854,15 +860,10 @@ export function ExploreScreen() {
                   )}
                 </div>
               )}
-              <button
-                className={cx(s["expl-advance-btn"], s["is-leave"])}
-                type="button"
-                style={{ "--i": session.phase === "atNode" ? 1 : 0 } as CSSProperties}
+              <LeaveRegionButton
+                choosingEntry={session.phase === "choosingEntry"}
                 onClick={() => leaveRegion()}
-              >
-                <span className={s["expl-advance-ring"]} aria-hidden />
-                <span className={s["expl-advance-label"]}>前往下一区域</span>
-              </button>
+              />
             </div>
           )}
           <PicnicButton onOpen={() => setPicnicOpen(true)} />

@@ -1,4 +1,5 @@
 /* ===================== 区域路线图(等距薄片地砖) =====================
+   以下材质约束针对事件节点；起点的青白色激活材质与引导由 RouteEntry 独立持有。
    ⚠ 每个 px 都是「设计 px」(1920×1080 画布), 不写 vw/vh。
    ⛔ 禁闪烁: 常驻动效只用匀速/缓动的位移与缩放, 明暗一律走 transition 或一次性播完即止。
 
@@ -58,8 +59,7 @@
      悬浮图标就不必自己烧到最亮, 两者是「亮 vs 浓」的分工。
    ⚠ --k2 / --k3 是地砖侧的辅色, 性格必须是「灰」, 比例照旧压得很低。
    ⚠ 这条规则只写 --k1..--k3, 不写 --k ⇒ 与 .k-* / .isSettled 等只改 --k 的规则互不打架。 */
-.node,
-.entry {
+.node {
   --k1: color-mix(in srgb, var(--k) 42%, var(--tac-white));
   --k2: color-mix(in srgb, var(--k) 18%, var(--tac-grey));
   --k3: color-mix(in srgb, var(--k) 20%, var(--tac-dark));
@@ -333,15 +333,10 @@
      ② `button{clip-path}` 会把溢出按钮盒的砖面(菱形比方盒宽 1.79 倍)整齐切掉;
      ③ `button:disabled{opacity:.4}` 会把整块砖半透明化 —— 不可点一律靠**颜色**表达。 */
 .root .node,
-.root .entry,
 .root .node:hover:not(:disabled),
-.root .entry:hover:not(:disabled),
 .root .node:focus-visible,
-.root .entry:focus-visible,
 .root .node:active:not(:disabled),
-.root .entry:active:not(:disabled),
-.root .node:disabled,
-.root .entry:disabled {
+.root .node:disabled {
   border: 0;
   background: none;
   box-shadow: none;
@@ -377,8 +372,7 @@
 
 /* 按钮盒 = 砖面**压平前**的方盒。压平后的菱形会溢出它 ⇒ 按钮本身不吃命中,
    命中测试交给 .tileFace, 玩家点到的就是菱形本身(相邻砖的方盒重叠也不会互相抢)。 */
-.node,
-.entry {
+.node {
   position: absolute;
   padding: 0;
   pointer-events: none;
@@ -623,20 +617,6 @@
   height: 100%;
 }
 
-/* 入口通道号: 浮在虚空里 —— 这是全图除详情卡外唯一一处立起来的字。
-   ⚠ 号上方还叠着一枚下指标(.entryCue), 两者由 .projPanel 的 grid 纵向居中排开。 */
-.entryMark {
-  color: var(--k1);
-  font-family: var(--font-family);
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 2px;
-  text-indent: 2px; /* 抵掉 letter-spacing 在末尾多出的那一格, 字才真的居中 */
-  text-shadow: 0 0 12px var(--k);
-  transition: color 220ms ease, text-shadow 220ms ease;
-}
-
 /* ── 悬停 / 落点 / 已结算 ──
    ⚠ 抬起量只有 6px: 薄片抬太高会露出「侧壁其实只有一层」的破绽。 */
 .root .node:hover .tileFace,
@@ -720,222 +700,6 @@
   opacity: 0.26;
 }
 
-/* ===================== 入口 A-E =====================
-   与事件砖同一块砖, 只换强调色 —— 入口不是事件, 不该跟任何一种事件撞色。
-   入口的通道号浮在自己的位置上, 加上独占的青色与最左那一列的位置, 三条线索。 */
-.entry {
-  /* 冰白青: 色相与 energy 同区, 但明度高出一大档(L≈79%) ⇒ 入口是全图最亮的一处,
-     扫视时第一个被找到。⛔ 不要改成中调青(旧版 #3c8fa8): 那就跟 .k-energy 撞成一种色了。 */
-  --k: #9fe8f5;
-}
-
-/* ── 起点的可点性: 三层叠加, 目标是「不用教就知道要点这一列」 ──
-   ① 贴地脉冲环(.entryPulse) —— 地面上一圈圈荡开的波纹, 「这里是热点」;
-   ② 下指标(.entryCue)       —— 悬在通道号上方的双人字, 「往下点这块砖」;
-   ③ 按下反馈(:active)      —— 砖被按沉 2px, 点下去有回应。
-   ⛔ 这三层**只在还能点的时候在**: 选中之后 / 未到阶段 / 被封锁, 一律撤掉 ——
-      指挥玩家去点一块点不动的砖, 比没有提示更糟。
-   ⛔ 不要改用「文字提示」: 一行小字立刻需要底板衬托, 「屏」就又回来了(见 .projPanel 的禁令)。
-   ⛔⛔ 引导**只许往入口自己身上加**, 不许去压别人: 选起点这一相里试过把 20 块事件砖整体
-      压暗一档(.nodes.isWaiting), 已否掉 —— 玩家在这一相正要看清整张图的事件分布,
-      为了突出入口而把地图压黑, 是拿走了这块面板真正的信息。入口自己够亮就行。 */
-
-/* ① 贴地脉冲环: 不参与 matrix —— 尺寸直接取砖的投影包围盒(--tile-w/--tile-h 天然 2:1),
-   所以它本身就是一枚**躺在地上**的等距椭圆, 与落地影同一个平面。
-   ⚠ 一个元素 + ::before / ::after = 两圈错相的波, 单圈会读成「一个在缩放的环」而不是「在荡」。
-   ⚠ 禁闪烁审查: 环的明度**单向递减**(0.5 → 0)且伴随匀速扩散, 是波纹不是明暗脉冲 ——
-     与过桥处那圈 .ripple 同类, 允许。⛔ 但不许写成 alternate(荡回去就成了明暗来回跳)。 */
-.entryPulse {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--tile-w);
-  height: var(--tile-h);
-  margin: calc(var(--tile-h) / -2) 0 0 calc(var(--tile-w) / -2);
-  pointer-events: none;
-}
-.entryPulse::before,
-.entryPulse::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 2px solid var(--k);
-  border-radius: 50%;
-  opacity: 0;
-  animation: qEntryPulse 2600ms ease-out infinite;
-}
-.entryPulse::after {
-  animation-delay: 1300ms;
-}
-@keyframes qEntryPulse {
-  0% {
-    opacity: 0.5;
-    transform: scale(0.62);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(2.1);
-  }
-}
-/* 不可点的入口(已选中 / 未到阶段 / 已封锁)一律没有波纹。 */
-.root .entry:disabled .entryPulse,
-.root .entry.isActive .entryPulse {
-  display: none;
-}
-
-/* ② 下指标: 与通道号共用 .projPanel 的 grid ⇒ 自动排在号的上方, 一起被剪切、一起浮动。
-   ⚠ 自己再叠一层**更快**的上下位移: 与砖那条 4s 的浮动错开节奏 ⇒ 读作「在敲这块砖」,
-     同步的话两者会像一个整体在飘, 指令感就没了。 */
-.entryCue {
-  display: block;
-  width: 26px;
-  height: 22px;
-  margin-bottom: 2px;
-  color: var(--k1);
-  animation: qEntryCue 1150ms ease-in-out infinite alternate;
-}
-.entryCue svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-@keyframes qEntryCue {
-  from {
-    translate: 0 -4px;
-  }
-  to {
-    translate: 0 2px;
-  }
-}
-.root .entry:disabled .entryCue,
-.root .entry.isActive .entryCue {
-  display: none;
-}
-
-/* ③ 按下反馈见本段末尾的 :active 规则(必须排在 :hover 之后)。 */
-/* 入口的字比事件图标亮一档: 它是「门」, 要在扫视里第一个被找到。 */
-.entry .projPanel {
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k) 65%, transparent));
-}
-/* ⚠ 入口砖也是中性的: 入口的识别靠悬浮的字(青色 + 通道号)与最左那一列的位置, 不靠地砖上色。 */
-.entry .tileFace {
-  border-color: #ffffff52;
-}
-/* 可选入口: 极缓的上下浮动(纯位移), 一眼能在扫视里被找到。
-   ⚠ 图标与砖用**同一条**动画同一个负延迟: 差一点就会看成图标从砖上飘走了。 */
-.root .entry:not(:disabled) .tileFace,
-.root .entry:not(:disabled) .tileSlab,
-.root .entry:not(:disabled) .tileEdge,
-.root .entry:not(:disabled) .projPanel {
-  animation: qEntryFloat 4s calc(var(--i) * -0.8s) ease-in-out infinite alternate;
-}
-@keyframes qEntryFloat {
-  to {
-    translate: 0 -3px;
-  }
-}
-.root .entry:hover:not(:disabled) .tileFace,
-.root .entry:focus-visible .tileFace,
-.root .entry.isActive .tileFace {
-  /* ⛔ 砖仍然不上色(--k 只作用在屏上): 这里只提亮收边 + 抬起来。 */
-  border-color: #ffffff8f;
-  box-shadow: var(--tile-inset), 0 0 36px #00000080;
-  transform: translateY(-7px) var(--tile-matrix);
-  /* ⚠ 浮动必须停住: 悬停位移与浮动位移叠在一起会让砖在手底下抖。 */
-  animation-play-state: paused;
-}
-.root .entry:hover:not(:disabled) .tileSlab,
-.root .entry:focus-visible .tileSlab {
-  animation-play-state: paused;
-}
-/* 入口的发光边: 与砖面同抬 -7px, 同样把浮动停住。 */
-.root .entry:hover:not(:disabled) .tileEdge,
-.root .entry:focus-visible .tileEdge,
-.root .entry.isActive .tileEdge {
-  transform: translateY(-7px) var(--tile-matrix);
-  filter: drop-shadow(0 0 8px var(--k)) drop-shadow(0 0 18px color-mix(in srgb, var(--k) 50%, transparent));
-  animation-play-state: paused;
-}
-.root .entry:hover:not(:disabled),
-.root .entry:focus-visible,
-.root .entry.isActive {
-  /* ⚠ 悬停必须比常态更亮: 入口常态已经是冰白青, 掺暗色会让「选中」读成「变灰了」。 */
-  --k: color-mix(in srgb, var(--trace) 70%, var(--tac-white));
-}
-.root .entry:hover:not(:disabled) .tileSlab,
-.root .entry:focus-visible .tileSlab,
-.root .entry.isActive .tileSlab {
-  transform: translateY(calc(var(--tile-depth) - 7px)) var(--tile-matrix);
-}
-/* 入口的字跟着砖一起抬起 + 亮一档(同样只改辉光, 不加任何边或底) */
-.root .entry:hover:not(:disabled) .projPanel,
-.root .entry:focus-visible .projPanel,
-.root .entry.isActive .projPanel {
-  transform: translateY(-7px) var(--proj-matrix);
-  filter: drop-shadow(0 0 15px color-mix(in srgb, var(--k) 82%, transparent));
-  animation-play-state: paused;
-}
-.root .entry.isActive .tileFace,
-.root .entry.isActive .tileSlab,
-.root .entry.isActive .tileEdge,
-.root .entry.isActive .projPanel {
-  animation: none;
-}
-/* 未到可选阶段: 砖照常亮着, 只是**没通电** —— 「它还在, 只是现在不能进」。
-   ⚠ 只把主色掺灰一档, 不降 opacity: 入口是全屏第一可读的地标。 */
-.root .entry:disabled:not(.isActive) {
-  --k: #4a626c;
-}
-.root .entry:disabled .tileFace,
-.root .entry:disabled .projPanel {
-  cursor: var(--cursor-default);
-}
-/* 被封锁: 死色 + 虚线砖面 + **悬浮的字近乎熄灭**(断电的登船口, 不是「淡一点的登船口」)。 */
-.root .entry.isBlocked:not(.isActive) {
-  --k: #565c63;
-}
-.root .entry.isBlocked .tileFace {
-  border-style: dashed;
-  cursor: not-allowed;
-  filter: brightness(0.72);
-}
-/* 辉光整个掐掉 ⇒ 字失去自发光, 只剩一个划掉的灰记号浮在那里。 */
-.root .entry.isBlocked .projPanel {
-  filter: none;
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-/* 断电 ⇒ 那条棱直接不亮: 封锁的入口不该在地面上留一条发光的边。 */
-.root .entry.isBlocked .tileEdge {
-  opacity: 0.28;
-  filter: none;
-}
-.root .entry.isBlocked .entryMark {
-  color: var(--tac-grey);
-  text-decoration: line-through;
-  text-shadow: none;
-}
-
-/* ③ 按下: 砖沉到比悬停低得多的一档(常态 0 / 悬停 −7 / 按下 −2) ⇒ 手感是「压下去了」。
-   ⚠⚠ 这组规则必须留在**所有 :hover 规则之后**: 特异性相同, 谁在后面谁赢。
-     写到 :hover 前面的话, 按下时鼠标必然也悬停着 ⇒ 这一档永远出不来。 */
-.root .entry:active:not(:disabled) .tileFace {
-  transform: translateY(-2px) var(--tile-matrix);
-}
-.root .entry:active:not(:disabled) .tileSlab {
-  transform: translateY(calc(var(--tile-depth) - 2px)) var(--tile-matrix);
-}
-.root .entry:active:not(:disabled) .tileEdge {
-  transform: translateY(-2px) var(--tile-matrix);
-}
-.root .entry:active:not(:disabled) .projPanel {
-  transform: translateY(-2px) var(--proj-matrix);
-}
-.root .entry:active:not(:disabled) .tileShadow {
-  transform: translate(-50%, -50%) translateY(6px) scale(0.92);
-  opacity: 1;
-}
-
 /* ===================== 玩家棋子 =====================
    ⛔ 不做立体小人: 全平的画面里立一个人会立刻变成 opus 版。
    这里是一枚**贴地的等距光环 + 实心核心**, 与地砖同一个平面。 */
@@ -1004,26 +768,12 @@
 }
 /* 砖落位: 从上方掉下来 + 影子同步收缩 ⇒ 读作「拍到地上」。
    ⚠ 动画挂在按钮盒上(而不是 .tileFace): 砖面自己的 transform 是那条 matrix, 抢不得。 */
-.isGenerating .entry {
-  animation: qGenEntry 560ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
-  animation-delay: calc(var(--i) * 70ms);
-}
-@keyframes qGenEntry {
-  from {
-    opacity: 0;
-    translate: 0 -26px;
-  }
-}
 .isGenerating .node {
   animation: qGenNode 520ms cubic-bezier(0.24, 1.1, 0.4, 1) backwards;
   animation-delay: calc(600ms + var(--seg) * 300ms + var(--lane) * 42ms);
 }
 /* 屏「开机」: 砖落地之后, 屏才从地面往上升起来。
    ⚠ 延迟要比对应那块砖的落位晚一档(+160ms), 顺序才读得出「先有砖, 再有屏」。 */
-.isGenerating .entry .projPanel {
-  animation: qGenProj 380ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
-  animation-delay: calc(var(--i) * 70ms + 300ms);
-}
 .isGenerating .node .projPanel {
   animation: qGenProj 380ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards;
   animation-delay: calc(760ms + var(--seg) * 300ms + var(--lane) * 42ms);
@@ -1045,21 +795,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .root .entry:not(:disabled) .tileFace,
-  .root .entry:not(:disabled) .tileSlab,
-  .root .entry:not(:disabled) .tileEdge,
-  .root .entry:not(:disabled) .projPanel,
-  .entryCue,
   .pawnRing {
     animation: none;
-  }
-  /* ⚠ 波纹停掉之后不能就此消失(它的 keyframes 起点是 opacity:0): 定格成一圈**静止的光环** ——
-     减动效只是不要动, 不是把「这里可以点」这条信息一起拿掉。 */
-  .entryPulse::before,
-  .entryPulse::after {
-    animation: none;
-    opacity: 0.34;
-    transform: scale(1.3);
   }
   /* ⚠ 生成演出必须一并关掉: 调用方在 reduced-motion 下按 GENERATE_REDUCED_MS(320ms)排
      阶段计时器, 砖还在一块块往下掉的话, 阶段已经走到 sealed 了画面却还没浮现完。
@@ -1067,9 +804,7 @@
   .isGenerating .pipe,
   .isGenerating .pipeBed,
   .isGenerating .pipeGloss,
-  .isGenerating .entry,
   .isGenerating .node,
-  .isGenerating .entry .projPanel,
   .isGenerating .node .projPanel {
     animation: none;
     stroke-dashoffset: 0;

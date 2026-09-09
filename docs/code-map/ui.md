@@ -119,6 +119,7 @@ src/ui/
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、组装部件栏、组装选择器、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相，`kind: "reveal"` 只播 `SkillCutInCard` 亮相，无前冲/推镜/受击/音效；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。实现拆分为取景纯函数、分镜步翻译、手牌渲染列表、演出闸门、相机、分镜回放、操作分发，以及战场 / HUD / 屏幕特效三个视图 part。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
 | [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切 + 霓虹都市剪影背板的紧凑两列战斗胜利结算壳：队伍经验、掉落来源分区、额外奖励、待拾取战利品、固定格距的 3×8 回收背包及继续/放弃操作；统一阻止未处理奖励离开。 |
+| [battle/VictoryTrialBand](../../src/ui/battle/VictoryTrialBand/VictoryTrialBand.tsx) | 战斗胜利面板上的「挑战达成」条：读会话的 `trialReport`，把本场到期的跨轮契约与它发放的奖励接回两轮前的那个决定；没有到期契约时返回 null 不占位。 |
 | [battle/VictoryPanel/VictoryBackdrop](../../src/ui/battle/VictoryPanel/VictoryBackdrop.tsx) | 胜利结算面板的装饰性霓虹都市背板：分层天际线、地平线光带、窗口光点、塔灯、斜雨丝与浮尘；不参与内容交互，支持揭幕淡入、慢循环光效和减少动态效果降级。 |
 | [battle/VictoryPlaque](../../src/ui/battle/VictoryPlaque/VictoryPlaque.tsx) | 胜利结算区域共享铭牌：96px 独立材质铭牌与逐字竖排标题，按额外奖励、战利品、回收背包区分外观。 |
 | [battle/VictoryDropSection](../../src/ui/battle/VictoryDropSection/VictoryDropSection.tsx) | 战斗胜利结算的掉落系数通栏分区：展示能量档位与挑战来源 chip，复用 RailPopover 提供键盘可聚焦的详情浮层，并表现已打破挑战的灰显态。 |
@@ -139,7 +140,9 @@ src/ui/
 
 | 文件 | 作用 |
 | --- | --- |
-| [RouteBoard](../../src/ui/explore/RouteBoard/RouteBoard.tsx) | SVG 等距路由图。统一由 `sx()` / `sy()` 投影，阶段依次展示生成、封存、桥接揭示、入口选择、走线、落点和路径披露；按 `board.segments.length` 适配固定或随机棋盘，并由 `boardShift()` 将小棋盘在固定面板内居中；隐藏桥接时不能读取引擎求解结果。 |
+| [RouteBoard](../../src/ui/common/RouteBoard/RouteBoard.tsx) | 等距路由图，SVG 走线与 DOM 地砖共用投影。统一由 `sx()` / `sy()` 投影，阶段依次展示生成、封存、桥接揭示、入口选择、走线、落点和路径披露；按 `board.segments.length` 适配固定或随机棋盘，并由 `boardShift()` 将小棋盘在固定面板内居中；隐藏桥接时不能读取引擎求解结果。起点拆入同目录 `RouteEntry`：中文编号、青白色激活砖面、引导箭头与扩散光环，独立处理悬停、按下、选中和封锁外观，点击范围覆盖标记与砖面。 |
+| [LeaveRegionButton](../../src/ui/explore/ExploreScreen/LeaveRegionButton.tsx) | 探索页前往下一区域按钮：选择起点时缩小为低对比次级操作，去除持续外发光与扩散环；落点决策时恢复正常尺寸。只负责展示与点击回调，离场规则仍由探索会话控制。 |
+| [TrialGauge](../../src/ui/explore/TrialGauge/TrialGauge.tsx) | 探索页右上读数列里的挑战倒计时砖：逐条展示进行中的契约名、负面修正与剩余轮数，悬浮说明走 `RailPopover`。剩余轮数由会话的 `untilRound` 与当前轮号现算，不存第二份；祖先带入场动画故一律不用 `backdrop-filter`。 |
 | [NodeTip](../../src/ui/explore/NodeTip/NodeTip.tsx) | 节点悬浮详情浮卡：贴在被悬停的瓦片旁展示事件标题与描述，落位由 RouteBoard 导出的 `nodeCenter` / `NODE_ICON_TOP` 与棋盘位移算，越界时自动左右贴边或翻到瓦片下方；只讲「这是什么」，不含粒子、风险与选项预览。 |
 | [MerchantPanel](../../src/ui/explore/MerchantPanel/MerchantPanel.tsx) | 交易终端内容面板：按服务槽位切 tab，图标化食品报价、持有量和确认操作；商品槽位展示图标货架与详情，随机服务展示 BUFF 概率，队伍/待办服务展示结算说明；只派发购买和关闭 action，不承载交易规则。 |
 | [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，承载 tab 化 `MerchantPanel` 与本节点摘要；只保留页眉服务摘要和节点记录条，关闭交易直接回到节点决策。 |
