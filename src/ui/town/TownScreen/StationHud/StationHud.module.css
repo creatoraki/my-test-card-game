@@ -81,15 +81,19 @@
 }
 
 .label {
-  color: #aabcc0;
+  color: #c5e8df;
   font-size: 18px;
+  font-family: var(--font-family);
+  font-weight: 600;
   letter-spacing: 2px;
+  text-shadow: 0 0 5px #74ffcc66;
 }
 
 .value {
-  color: #ecf8fa;
+  color: #e1fff4;
   font-family: var(--font-family);
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 2px;
+  text-shadow: 0 0 5px #74ffcc66;
 }

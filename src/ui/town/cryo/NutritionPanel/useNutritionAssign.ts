@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { NUTRITION_TREAT_COST, nutritionPods } from "@/data";
+import { playSfx } from "@/ui/audio";
 import type { NutritionState, CharacterState } from "@/store/townStore";
 import { vitalsOf } from "@/store/townStore";
-import type { NutritionCandidate } from "./NutritionCandidateCard";
+
+export interface NutritionCandidate {
+  charId: string;
+  reason: string | null;
+  damage: number;
+  assignedSlot?: number;
+}
 
 export interface NutritionAssignment {
   charId: string;
@@ -34,11 +41,9 @@ export function useNutritionAssign({ awakened, characters, party, nutrition, loo
         const vitals = vitalsOf(character);
         const damage = Math.max(0, vitals.maxHp - vitals.hpLimit);
         const assignedSlot = Object.entries(assigned).find(([, id]) => id === charId)?.[0];
-        const reason = damage <= 0
-          ? "体力极限已满, 无需进入疗养舱"
-          : party.includes(charId) && party.filter((id) => id !== charId && !assignedIds.has(id)).length < 1
-            ? "至少要保留 1 名队员上阵"
-            : null;
+        const reason = party.includes(charId) && party.filter((id) => id !== charId && !assignedIds.has(id)).length < 1
+          ? "至少要保留 1 名队员上阵"
+          : null;
         return {
           charId,
           reason,
@@ -111,6 +116,7 @@ export function useNutritionAssign({ awakened, characters, party, nutrition, loo
     const assignments = Object.entries(assigned)
       .map(([slot, charId]) => ({ charId, slot: Number(slot) }))
       .sort((left, right) => left.slot - right.slot);
+    playSfx("confirm");
     onAdmit(assignments);
     setAssigned({});
     setSelectedCharId(null);
@@ -125,8 +131,8 @@ export function useNutritionAssign({ awakened, characters, party, nutrition, loo
     : nutrition.occupants.length >= capacity
       ? "已解锁席位均在疗养中"
       : candidates.some((candidate) => candidate.reason === null)
-        ? "点角色卡高亮, 再点空席位完成分配"
-        : "目前没有可入舱的队员";
+        ? "点右侧队员高亮, 再点空席位完成分配"
+        : "目前没有可入舱的队员（至少要保留 1 名队员上阵）";
 
   return {
     assigned,

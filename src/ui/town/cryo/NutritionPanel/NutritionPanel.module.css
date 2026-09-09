@@ -26,39 +26,10 @@
   flex: 0 0 50%;
   box-sizing: border-box;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   padding: 16px 0 12px;
 }
 
-.pageHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex: 0 0 auto;
-}
-
-.subhead {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  color: var(--cryo-ink-dim);
-}
-
-.kicker {
-  color: var(--cryo-glow);
-  font-family: var(--font-family);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 3px;
-}
-
-.count {
-  font-family: var(--font-family);
-  font-size: 18px;
-}
-
-.upgradeButton,
 .backButton {
   flex: 0 0 auto;
   padding: 9px 16px;
@@ -71,36 +42,10 @@
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 
-.upgradeButton:hover,
 .backButton:hover {
   border-color: var(--cryo-glow);
   background: var(--cryo-card-strong);
   transform: translateY(-2px);
-}
-
-.candidatesSection {
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.candidates {
-  min-height: 0;
-  flex: 1;
-}
-
-.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-  padding: 16px;
-  border: 1px dashed var(--cryo-line);
-  color: var(--cryo-ink-dim);
-  font-size: 18px;
-  text-align: center;
 }
 
 .footCopy {

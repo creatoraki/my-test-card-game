@@ -48,8 +48,12 @@ src/ui/
 | [town/cryo/AwakenPanel](../../src/ui/town/cryo/AwakenPanel/AwakenPanel.tsx) | 休眠唤醒面板：六个瘦高立绘舱位、密封舱信息带、生命指标 count-up、唤醒费用和居民积分操作；规则与唤醒 action 由场景传入。 |
 | [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 疗养舱双页面板编排：席位自由分配与批量确认页、面板内横向滑动科技树页共用同一外壳；费用、容量、治疗和研究判定复用 `data/nutritionPod`。 |
 | [town/cryo/NutritionPanel/useNutritionAssign](../../src/ui/town/cryo/NutritionPanel/useNutritionAssign.ts) | 疗养舱选人、席位落位/撤下、队伍下限、费用文案与批量确认状态的唯一交互逻辑。 |
-| [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 疗养舱四席位阵列：按明确席位号展示疗养中、待入舱、空置和未扩建四态，锁定角色不可撤出，空席位通过悬浮提示引导点击分配。 |
-| [town/cryo/NutritionPanel/NutritionCandidateCard](../../src/ui/town/cryo/NutritionPanel/NutritionCandidateCard.tsx) | 疗养舱候选队员立绘卡：半身取景、三段血量、体力极限损伤、受限原因与已入席位角标。 |
+| [town/cryo/NutritionPanel/NutritionPodsPage](../../src/ui/town/cryo/NutritionPanel/NutritionPodsPage.tsx) | 疗养席位页：编排四席位主舞台与右侧待疗养队员栏，保留两步选择落位交互。 |
+| [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 疗养舱四列网格容器：只负责按席位号挂载单舱组件，不承载单舱状态或悬浮提示。 |
+| [town/cryo/NutritionPanel/NutritionPod](../../src/ui/town/cryo/NutritionPanel/NutritionPod.tsx) | 单个疗养舱：展示锁定、空置、待入舱、疗养中四态，以及立绘、液柱预览、舱盖动画、扫描与落位反馈。 |
+| [town/cryo/NutritionPanel/PodFluid](../../src/ui/town/cryo/NutritionPanel/PodFluid.tsx) | 疗养舱纯装饰层：按恢复预览渲染液面、气泡、波纹和疗养中的扫描光带。 |
+| [town/cryo/NutritionPanel/NutritionRoster](../../src/ui/town/cryo/NutritionPanel/NutritionRoster.tsx) | 右侧待疗养队员栏：提供固定栏头与纵向滚动队员列表。 |
+| [town/cryo/NutritionPanel/NutritionRosterRow](../../src/ui/town/cryo/NutritionPanel/NutritionRosterRow.tsx) | 待疗养队员行式条目：展示立绘、三段血量、体力极限损伤、选择态、已入席角标与队伍下限提示。 |
 | [town/cryo/NutritionTechTree](../../src/ui/town/cryo/NutritionTechTree/) | 疗养舱横向科技树：直线连接核心与两条链式分支；节点状态由 `nutritionTechState` 驱动，右栏详情固定展示效果、消耗和研究按钮，连边算法已抽到 `ui/common/techTree`。 |
 | [town/shop/CardShopPanel/UpgradeTree](../../src/ui/town/shop/CardShopPanel/UpgradeTree/) | 卡牌商店设施升级科技树：展柜扩容与补货链路两条分支，左侧 SVG 节点树配右侧固定详情栏；节点材料格复用 `ItemSlot`。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |

@@ -757,8 +757,7 @@ export const useTownStore = create<TownStore>()(
             assignment.slot < 0 ||
             assignment.slot >= capacity ||
             assignedSlots.has(assignment.slot) ||
-            occupiedSlots.has(assignment.slot) ||
-            vitalsOf(cs).hpLimit >= vitalsOf(cs).maxHp
+            occupiedSlots.has(assignment.slot)
           ) return;
           assignedCharacters.add(assignment.charId);
           assignedSlots.add(assignment.slot);

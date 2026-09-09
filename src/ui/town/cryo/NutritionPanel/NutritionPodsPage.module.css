@@ -1,0 +1,67 @@
+.page {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 0 0 50%;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0 12px;
+}
+
+.pageHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex: 0 0 44px;
+}
+
+.subhead {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  min-width: 0;
+  color: var(--cryo-ink-dim);
+}
+
+.subhead h2 {
+  margin: 0;
+  color: var(--cryo-glow);
+  font-family: var(--font-family);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.subhead span {
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.upgradeButton {
+  flex: 0 0 auto;
+  padding: 9px 16px;
+  border: 1px solid color-mix(in srgb, var(--cryo-glow) 38%, transparent);
+  background: var(--cryo-card);
+  color: var(--cryo-glow-deep);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.upgradeButton:hover {
+  border-color: var(--cryo-glow);
+  background: var(--cryo-card-strong);
+  transform: translateY(-2px);
+}
+
+.stage {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 20px;
+}

@@ -1,0 +1,88 @@
+.fluid {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.base,
+.gain {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: var(--fill, 0%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--cryo-glow-deep) 36%, transparent), color-mix(in srgb, var(--cryo-glow) 22%, transparent));
+  transition: height 520ms cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.base::before,
+.gain::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: var(--cryo-glow-soft);
+  box-shadow: 0 0 12px var(--cryo-glow);
+  animation: podWave 2.4s ease-in-out infinite;
+}
+
+.gain {
+  height: var(--gain, 0%);
+  bottom: var(--base-fill, 0%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--cryo-glow-deep) 62%, transparent), color-mix(in srgb, var(--cryo-glow) 48%, transparent));
+  animation: podGain 1.6s ease-in-out infinite;
+}
+
+.is-locked .base,
+.is-locked .gain {
+  display: none;
+}
+
+.bubble {
+  position: absolute;
+  bottom: var(--bubble-start, 12%);
+  left: var(--bubble-left);
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  border: 1px solid var(--cryo-glow-soft);
+  border-radius: 50%;
+  opacity: 0;
+  animation: podBubble var(--bubble-duration) ease-in infinite;
+  animation-delay: var(--bubble-delay);
+}
+
+.scan {
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: -20%;
+  height: 18%;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--cryo-glow) 40%, transparent), transparent);
+  opacity: 0.72;
+  animation: podScan 2.8s linear infinite;
+}
+
+@keyframes podWave {
+  0%, 100% { transform: translateX(-4%); opacity: 0.62; }
+  50% { transform: translateX(4%); opacity: 1; }
+}
+
+@keyframes podGain {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+@keyframes podBubble {
+  0% { opacity: 0; transform: translateY(20px) scale(0.65); }
+  18% { opacity: 0.72; }
+  100% { opacity: 0; transform: translateY(-360px) scale(1.15); }
+}
+
+@keyframes podScan {
+  from { transform: translateY(-30%); }
+  to { transform: translateY(680%); }
+}

@@ -1,0 +1,67 @@
+.roster {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  border: 1px solid var(--cryo-line);
+  background: color-mix(in srgb, var(--cryo-card) 86%, #071713);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 78px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--cryo-line);
+}
+
+.head h3 {
+  margin: 3px 0 0;
+  color: var(--cryo-ink);
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+
+.head strong {
+  color: var(--cryo-glow-deep);
+  font-size: 24px;
+  white-space: nowrap;
+}
+
+.kicker {
+  color: var(--cryo-glow);
+  font-size: 18px;
+  letter-spacing: 3px;
+}
+
+.list {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  overflow-y: auto;
+  scrollbar-color: var(--cryo-line) transparent;
+  scrollbar-width: thin;
+}
+
+.list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: var(--cryo-line);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  color: var(--cryo-ink-dim);
+  font-size: 18px;
+  text-align: center;
+}

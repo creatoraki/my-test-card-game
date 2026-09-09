@@ -1,0 +1,231 @@
+.wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pod {
+  --notch: 14px;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--cryo-line);
+  background: var(--cryo-card);
+  color: var(--cryo-ink);
+  text-align: left;
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1), box-shadow 0.2s ease;
+}
+
+.pod:not(:disabled):hover {
+  transform: translateY(-5px);
+  border-color: var(--cryo-glow);
+  background: var(--cryo-card-hover);
+  box-shadow: 0 18px 34px -24px var(--cryo-shadow);
+}
+
+.pod.is-treating {
+  border-color: var(--cryo-glow);
+  background: var(--cryo-card-hover);
+}
+
+.pod.is-pending {
+  border-color: var(--cryo-glow);
+  background: color-mix(in srgb, var(--cryo-glow) 10%, var(--cryo-card));
+  box-shadow: 0 0 24px -12px var(--cryo-glow);
+}
+
+.pod.is-selected {
+  border-width: 2px;
+  box-shadow: 0 0 30px -10px var(--cryo-glow);
+}
+
+.pod.is-droppable {
+  animation: podReady 1.6s ease-in-out infinite;
+}
+
+.pod.is-locked {
+  border-style: dashed;
+  opacity: 0.48;
+}
+
+.pod.is-treating:disabled,
+.pod.is-locked:disabled {
+  cursor: not-allowed;
+}
+
+.lidTop,
+.lidBottom {
+  position: absolute;
+  left: var(--notch);
+  right: 0;
+  z-index: 5;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--cryo-glow) 40%, var(--cryo-glow-soft));
+  opacity: 0.82;
+  transition: transform 0.42s cubic-bezier(0.2, 0.72, 0.28, 1);
+}
+
+.lidTop {
+  top: 0;
+}
+
+.lidBottom {
+  bottom: 0;
+  opacity: 0.42;
+}
+
+.pod.is-pending .lidTop {
+  transform: translateY(-18px);
+}
+
+.pod.is-pending .lidBottom {
+  transform: translateY(18px);
+}
+
+.no {
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  z-index: 4;
+  color: var(--cryo-ink-dim);
+  font-family: var(--font-family);
+  font-size: 18px;
+  letter-spacing: 3px;
+}
+
+.figure {
+  composes: figureFrame from "../styles/cryoFigure.module.css";
+}
+
+.pod .figure {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  clip-path: none;
+}
+
+.figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, #00000000 0%, transparent 30%, var(--cryo-scrim) 100%);
+}
+
+.figure img,
+.figure svg,
+.emptyIcon {
+  position: relative;
+  z-index: 2;
+}
+
+.portrait {
+  composes: figurePortrait from "../styles/cryoFigure.module.css";
+  --slot-base-w: 249px;
+  --cryo-bust-zoom: 1.9;
+}
+
+.pod.is-pending .portrait {
+  animation: podFigureDrop 0.54s 0.08s cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.emptyIcon {
+  color: var(--cryo-ink-dim);
+  font-size: 54px;
+  font-weight: 300;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.is-droppable .emptyIcon {
+  color: var(--cryo-glow);
+  animation: podPlus 1.6s ease-in-out infinite;
+}
+
+.text {
+  composes: figurePlate from "../styles/cryoFigure.module.css";
+  z-index: 4;
+  gap: 4px;
+}
+
+.name {
+  composes: figureName from "../styles/cryoFigure.module.css";
+  font-size: 20px;
+}
+
+.meta {
+  composes: figureMeta from "../styles/cryoFigure.module.css";
+  font-size: 18px;
+}
+
+.readout {
+  color: var(--cryo-ink-dim);
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.readout strong {
+  color: var(--cryo-glow-deep);
+  font-size: 20px;
+}
+
+.remove,
+.lock {
+  position: absolute;
+  right: 14px;
+  top: 11px;
+  z-index: 5;
+  color: var(--cryo-glow-deep);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.lock {
+  padding: 3px 6px;
+  border: 1px solid var(--cryo-line);
+  color: var(--cryo-ink-dim);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.shock {
+  position: absolute;
+  inset: 22%;
+  z-index: 6;
+  border: 2px solid var(--cryo-glow);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: podShock 0.72s ease-out both;
+}
+
+@keyframes podReady {
+  0%, 100% { box-shadow: 0 0 0 -10px var(--cryo-glow); }
+  50% { box-shadow: 0 0 26px -10px var(--cryo-glow); }
+}
+
+@keyframes podPlus {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+@keyframes podShock {
+  from { opacity: 0.9; transform: scale(0.25); }
+  to { opacity: 0; transform: scale(1.6); }
+}
+
+@keyframes podFigureDrop {
+  from { opacity: 0; transform: translateY(-34px); }
+  to { opacity: 1; transform: translateY(0); }
+}
