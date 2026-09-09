@@ -46,20 +46,20 @@ function makeCardStateSamples(): CardStateSample[] {
       card: makeCard("snowflake"),
       name: "激活",
       description:
-        "激活状态：该卡此刻有额外收益（培育完成 / 费用降低 / 星辉可抵扣法力水晶），统一表现为整圈边棱通电、卡外呼吸辉光与费用水晶外扩能量环。",
+        "激活状态：通电边棱、双层辉光、外扩脉冲波、轮廓跑动流光、卡内能量扫掠与整卡呼吸同场，费用水晶同步外扩能量环。",
       activated: true,
     },
     {
       card: makeModuleCard(false),
       name: "激活 + 模组",
-      description: "组合状态：通电边棱与模组徽记同场，检查右上角徽记是否被辉光冲淡。",
+      description: "组合状态：六层激活表现与模组徽记同场，检查右上角徽记是否被辉光冲淡。",
       activated: true,
     },
     {
       card: makeModuleCard(true),
       name: "激活 + 污染",
       description:
-        "让位规则：边棱归污染的红族环，激活改由辉光与费用能量环表达，两种信息互不覆盖。",
+        "让位规则：边棱仍归污染的红族环，激活的辉光、脉冲、流光、扫掠、呼吸与费用能量环全部保留。",
       activated: true,
     },
   ];

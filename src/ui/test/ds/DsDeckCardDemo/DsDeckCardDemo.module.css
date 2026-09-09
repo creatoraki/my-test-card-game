@@ -49,7 +49,7 @@
   grid-template-columns: repeat(auto-fit, minmax(calc(var(--card-w) * var(--deck-card-scale)), 1fr));
   align-items: start;
   justify-content: center;
-  gap: 42px 26px;
+  gap: 56px 44px;
   width: 100%;
 }
 
@@ -94,7 +94,7 @@
   }
 
   .cardGrid {
-    gap: 32px 14px;
+    gap: 40px 26px;
   }
 }
 

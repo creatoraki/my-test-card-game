@@ -37,7 +37,8 @@ interface Props {
   starPay?: number;
   /**
    * 激活态: 这张卡此刻拿到了**额外收益**(培育已完成 / 生效费用被压低 / 可用星辉替代法力水晶 …)。
-   * 各种收益在卡面上统一收敛成同一套表现 —— 通电边棱 + 呼吸辉光 + 费用水晶能量环;
+   * 各种收益在卡面上统一收敛成同一套表现 —— 通电边棱 + 双层辉光与外扩脉冲波 + 轮廓跑动流光
+   * + 卡内能量扫掠 + 整卡呼吸 + 费用水晶能量环;
    * 具体是哪一种收益仍由既有角标与右侧 CardInfoPanel 分头交代(见 HandCard.activated.module.css)。
    */
   activated?: boolean;
@@ -161,13 +162,14 @@ export const HandCard = memo(function HandCard({
         </button>
       )}
       <CardMarks card={card} variant={variant} actionBadge={actionBadge} leaving={leaving} />
-      <div className={s["hc-mover"]} data-hand-mover>
+      <div className={s["hc-mover"]} data-hand-mover data-activated={activated ? "" : undefined}>
         {/* 激活态的卡外呼吸辉光。⚠ 必须落在卡面**之外**(.hand-card 自带 clip-path, 画在卡内会被齐边削掉),
             且排在两层投影之前 ⇒ 投影压住辉光, 卡仍读作"落在桌面上"而不是浮在光雾里。 */}
         {activated && <span data-hand-activate-halo aria-hidden />}
         <span className={s["hc-shadow-rest"]} data-hand-shadow-rest aria-hidden />
         <span className={s["hc-shadow-lift"]} data-hand-shadow-lift aria-hidden />
         <span className={s["hc-thickness"]} data-hand-thickness aria-hidden />
+        {activated && <span data-hand-activate-ring aria-hidden />}
         <div
           className={cx(
             s["hand-card"],
@@ -212,6 +214,7 @@ export const HandCard = memo(function HandCard({
 
         {/* 描边环: 跟着 14px 斜切角走的金属斜面(上/左受光 + 下/右背光, 见 HandCard.module.css .hc-edge) */}
         <span className={s["hc-edge"]} aria-hidden />
+        {activated && <span data-hand-activate-scan aria-hidden />}
         {card.contaminated && <CardCorruption />}
         {card.contaminated && <PollutionVirusMark />}
 
