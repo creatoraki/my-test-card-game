@@ -1,19 +1,23 @@
-/* 随身遗物 —— 与 BurdenGauge 共用同一套格子几何(112 × 104, 图标 68),
-   于是负重 svg 和后面的遗物看上去就是同一行里排开的同类图标。
-   ⚠ 改这里的尺寸要连着 BurdenGauge.module.css 一起改, 否则整行基线会错开。 */
+/* 随身遗物 —— 与背包负重首格共用同一套格子几何(112 × 104, 图标 68)。
+   首格由 ExploreScreen 明确预留给「背包 svg + 下方计数」, 遗物只能从下一格开始。 */
 .rail {
+  --expl-relic-cell-width: 96px;
+
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 0;
   max-width: 700px;
+  flex: 0 0 auto;
+  padding-top: 6px;
 }
 
 .item {
   position: relative;
   display: flex;
-  width: 112px;
-  min-height: 104px;
+  flex: 0 0 var(--expl-relic-cell-width);
+  width: var(--expl-relic-cell-width);
+  min-height: var(--expl-burden-cell-height, 104px);
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;

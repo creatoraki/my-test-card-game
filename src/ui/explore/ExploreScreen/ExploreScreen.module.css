@@ -147,14 +147,22 @@
   z-index: 3;
   animation: explRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
-/* 负重 + 随身遗物同处一行: 负重 svg 是第一枚图标, 遗物顺着往右排。 */
+/* 负重 + 随身遗物同处一行: 背包 svg 与下方计数共同占用首个 112 × 104 格。 */
 .expl-burden {
+  --expl-burden-cell-width: 112px;
+  --expl-burden-cell-height: 104px;
+
   position: absolute;
   z-index: 3;
   display: flex;
   align-items: flex-start;
   gap: 0;
   animation: explRise 420ms 30ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+.expl-burden-cell {
+  flex: 0 0 var(--expl-burden-cell-width);
+  width: var(--expl-burden-cell-width);
+  min-height: var(--expl-burden-cell-height);
 }
 /* ★ 落点浮层开着时四角 HUD 集体后退一档 —— 这是本页「聚焦」的全部手段, 没有全屏遮罩。
    ⚠⚠ 后退**只能压在叶子元素上**: .expl-readout / .expl-party / .expl-actions 都是玻璃砖的
@@ -557,7 +565,7 @@
 
 /* ===================== 落点浮层(landed 选分支 → resolving 看结算) ===================== */
 /* ★ 无遮罩: 压暗背景会挡住刚刚亮起来的路径, 而那正是玩家此刻最想看的东西。
-   聚焦改由四角 HUD 的 .is-recede 与落点光柱 .expl-beam 承担。
+   聚焦改由四角 HUD 的 .is-recede 承担。
    本层只负责定位; 背后的入口与按钮此刻都已按 phase 禁用, 不需要额外遮挡。
    ⚠ 这一层自己**绝不能挂动画/opacity/filter** —— 它是面板的父元素, 一旦成为 backdrop root,
    面板的 backdrop-filter 就取不到场景了。动画挂在 .expl-panel 上。 */
@@ -609,26 +617,6 @@
   opacity: 0.55;
   pointer-events: none;
 }
-/* ── 落点 → 浮层的光柱 ──
-   从落点终点卡上沿升起的一道窄光, 把「是这张卡把面板叫出来的」说清楚。
-   scaleY 单次生长后保持(不循环、不明暗脉冲)。挂在 .expl-board 里, 位置由 laneCenterX 算。 */
-.expl-beam {
-  --k: var(--expl-kind, var(--accent));
-  position: absolute;
-  width: 6px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 0%, transparent), var(--k));
-  filter: blur(1px);
-  opacity: 0.55;
-  transform-origin: bottom center;
-  animation: explBeam 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-  pointer-events: none;
-}
-@keyframes explBeam {
-  from {
-    transform: scaleY(0);
-    opacity: 0;
-  }
-}
 /* ===================== 关键帧 ===================== */
 @keyframes explScanDrift {
   from {
@@ -666,9 +654,6 @@
   .expl-readout,
   .expl-party,
   .expl-actions {
-    animation: none;
-  }
-  .expl-beam {
     animation: none;
   }
   .expl-advance-ring {

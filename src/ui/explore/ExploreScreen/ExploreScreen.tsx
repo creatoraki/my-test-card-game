@@ -74,7 +74,6 @@ import {
   GENERATE_MS,
   GENERATE_REDUCED_MS,
   boardShift,
-  nodeCenter,
 } from "@/ui/common/RouteBoard";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { useRevealPresence } from "@/ui/common/ModalReveal";
@@ -475,7 +474,6 @@ export function ExploreScreen() {
 
   const board = session.board;
   const routeShift = boardShift(board.laneCount, board.segments.length);
-      const ev = currentEvent;
   const canBackpack = canOpenBackpack(session);
   const usedSlots = backpackSlots(session);
 
@@ -643,8 +641,10 @@ export function ExploreScreen() {
           className={s["expl-burden"]}
           style={{ left: `${12 + BAG_W + 12}px`, top: "0px" }}
         >
-          <BurdenGauge />
-          {/* 随身遗物接在负重图标右侧: 背包 svg 就是这一行的第一枚「遗物」。 */}
+          {/* 背包 svg 与下方计数共同占用首个遗物格, 遗物从完整区域之后开始排。 */}
+          <div className={s["expl-burden-cell"]}>
+            <BurdenGauge />
+          </div>
           <RelicRail stacks={relicsInBackpack(session)} />
         </div>
 
@@ -693,19 +693,6 @@ export function ExploreScreen() {
               lane={hovered.lane}
               hidden={hovered.hidden}
               shift={routeShift}
-            />
-          )}
-          {/* 落点 → 浮层的光柱: 从落点瓦片向上升起, 把「是这个节点把面板叫出来的」说清楚。
-              位置用 RouteBoard 导出的版式常量算, 两边不各写一份坐标。 */}
-          {focused && session.currentLane != null && session.currentSegment > 0 && (
-            <div
-              className={cx(s["expl-beam"], s[`k-${ev?.kind ?? "route"}`])}
-              style={{
-                left: `${nodeCenter(session.currentSegment - 1, session.currentLane).x + routeShift.dx - 3}px`,
-                top: `${nodeCenter(session.currentSegment - 1, session.currentLane).y + routeShift.dy}px`,
-                height: `${ROUTE_PANEL_H - nodeCenter(session.currentSegment - 1, session.currentLane).y - routeShift.dy}px`,
-              }}
-              aria-hidden
             />
           )}
         </div>

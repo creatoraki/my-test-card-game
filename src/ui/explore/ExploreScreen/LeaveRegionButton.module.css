@@ -51,22 +51,6 @@
   animation: leaveRegionNeonPulse 1500ms ease-in-out infinite;
 }
 
-.routeComplete::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  pointer-events: none;
-  background: linear-gradient(105deg, transparent 28%, #d9fffb99 48%, transparent 68%);
-  transform: translateX(-110%);
-  animation: leaveRegionNeonSweep 2200ms ease-in-out infinite;
-}
-
-.routeComplete > span,
-.routeComplete > svg {
-  position: relative;
-  z-index: 1;
-}
-
 @keyframes leaveRegionNeonPulse {
   0%,
   100% {
@@ -84,17 +68,6 @@
       0 0 24px #35fff0e6,
       0 0 52px #a86bff99,
       0 10px 26px #00000066;
-  }
-}
-
-@keyframes leaveRegionNeonSweep {
-  0%,
-  35% {
-    transform: translateX(-110%);
-  }
-  70%,
-  100% {
-    transform: translateX(110%);
   }
 }
 

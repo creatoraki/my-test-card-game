@@ -70,6 +70,23 @@ import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
 import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
 import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
 import relicPlaceholderArt from "@/assets/占位素材.png";
+import blackIronNailArt from "@/assets/遗物/黑铁钉.png";
+import pendulumArt from "@/assets/遗物/钟摆.png";
+import sportShoesArt from "@/assets/遗物/运动鞋.png";
+import lightFeatherArt from "@/assets/遗物/轻质羽毛.png";
+import heatStoneArt from "@/assets/遗物/蓄热石.png";
+import whetstoneArt from "@/assets/遗物/磨刀石.png";
+import magnetCharmArt from "@/assets/遗物/磁化护符.png";
+import stunHammerArt from "@/assets/遗物/眩晕锤.png";
+import hunterEyeArt from "@/assets/遗物/猎人的独眼.png";
+import oldClockworkArt from "@/assets/遗物/旧式发条.png";
+import heartMirrorArt from "@/assets/遗物/护心镜.png";
+import luckyCopperArt from "@/assets/遗物/幸运铜币.png";
+import luckyButtonArt from "@/assets/遗物/幸运纽扣.png";
+import driedHerbArt from "@/assets/遗物/干燥药草.png";
+import compressedBiscuitArt from "@/assets/遗物/压缩饼干.png";
+import energyCrystalArt from "@/assets/遗物/储能水晶.png";
+import warmMatchArt from "@/assets/遗物/余温火柴.png";
 
 const VB = "0 0 48 48";
 const base = {
@@ -299,16 +316,37 @@ const SCRAP_ART: Record<string, string> = {
   "golden-bear": goldenBearArt,
 };
 
+const RELIC_ART: Record<string, string> = {
+  "relic-black-iron-nail": blackIronNailArt,
+  "relic-pendulum": pendulumArt,
+  "relic-sport-shoes": sportShoesArt,
+  "relic-light-feather": lightFeatherArt,
+  "relic-heat-stone": heatStoneArt,
+  "relic-whetstone": whetstoneArt,
+  "relic-magnet-charm": magnetCharmArt,
+  "relic-stun-hammer": stunHammerArt,
+  "relic-hunter-eye": hunterEyeArt,
+  "relic-old-clockwork": oldClockworkArt,
+  "relic-heart-mirror": heartMirrorArt,
+  "relic-lucky-copper": luckyCopperArt,
+  "relic-lucky-button": luckyButtonArt,
+  "relic-dried-herb": driedHerbArt,
+  "relic-compressed-biscuit": compressedBiscuitArt,
+  "relic-energy-crystal": energyCrystalArt,
+  "relic-warm-match": warmMatchArt,
+};
+
 export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
   ...Object.values(EQUIPMENT_ART),
   ...Object.values(CONSUMABLE_ART),
   ...Object.values(MATERIAL_ART),
   ...Object.values(SCRAP_ART),
+  ...Object.values(RELIC_ART),
   relicPlaceholderArt,
 ])];
 
 export function itemIcon(def: ItemDef): ReactNode {
-  if (def.category === "relic") return <img src={relicPlaceholderArt} alt="" />;
+  if (def.category === "relic") return <img src={RELIC_ART[def.id] ?? relicPlaceholderArt} alt="" />;
   const art =
     EQUIPMENT_ART[def.id] ??
     (def.familyId ? EQUIPMENT_ART[def.familyId] : undefined) ??
