@@ -44,6 +44,16 @@ export const MATERIAL_BUY_BY_RARITY: Record<ItemRarity, number> = {
   legendary: 600,
 };
 
+export const RELIC_BUY_BY_RARITY: Record<ItemRarity, number> = {
+  common: 300,
+  fine: 600,
+  rare: 1200,
+  epic: 2000,
+  legendary: 3200,
+};
+
+export const relicBuyValue = (def: ItemDef): number => RELIC_BUY_BY_RARITY[def.rarity];
+
 // 未单独配置价格的消耗品使用此基础价。已配置价格的消耗品由自身 ItemDef.buyValue 覆盖。
 export const CONSUMABLE_BUY_VALUE = 20;
 

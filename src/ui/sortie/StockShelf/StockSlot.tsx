@@ -3,7 +3,7 @@
 // ★ 为什么把「看」和「买」拆成两个元素: 悬浮商品要弹详情浮卡, 点击要扣钱 —— 合成一个按钮
 //   就会出现「我只是想看看说明, 结果买了三瓶牛奶」。价格牌是明确的、可 Tab 的付款动作。
 //
-// ★ 悬浮的**视觉**全部交给 CSS :hover(同 ShopItemTile 的取舍): 走一圈 React state 再回来
+// ★ 悬浮的**视觉**全部交给 CSS :hover(同据点物品货位的取舍): 走一圈 React state 再回来
 //   打类名要等 render+commit, 而 :hover 是同帧的。父级只拿悬浮事件去定位浮卡。
 
 import { memo, useCallback } from "react";

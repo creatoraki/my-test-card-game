@@ -1,0 +1,56 @@
+.shelf {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notice {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 18px;
+  padding: 14px 18px;
+  border: 1px solid var(--asm-line, #f2e6d82e);
+  background: #ffffff08;
+}
+
+.notice strong,
+.notice span,
+.empty {
+  font-size: 18px;
+}
+
+.notice strong {
+  color: var(--ui-value);
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.notice span,
+.empty {
+  color: var(--asm-ink-dim, #a5937f);
+}
+
+/* ⚠ 只开纵向滚动: 四角 L 框画在卡面外部, 横向不能裁切; padding 给它留出余量。 */
+.grid {
+  --deck-card-scale: 1;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-content: start;
+  gap: 24px 20px;
+  grid-template-columns: repeat(4, calc(var(--card-w) * var(--deck-card-scale)));
+  justify-content: start;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  margin: auto;
+  padding: 50px 0;
+  text-align: center;
+}

@@ -1,4 +1,4 @@
-/* 商店里的两条物资抽屉(商店 / 回收台)与回收台浮层内容。
+/* 商店里的三条物资抽屉(商店 / 回收台 / 仓库)与回收台浮层内容。
    浮层外壳统一由 common/PanelShell 提供，本文件只管抽屉与浮层内部的排布。
    --asm-* 主题变量由 StockEntries 传给 PanelShell；这里的 --stock-* 仅服务于抽屉本身。 */
 
@@ -175,13 +175,12 @@
   }
 }
 
-/* 回收台浮层压过入口列与商店/仓库 SciFiPanel。 */
+/* 物资浮层压过入口列。 */
 .panel {
   z-index: 6;
 }
 
-/* 开着回收台/卡牌商店时点「返回据点」: 浮层也要跟着退, 节奏与 ShopScene 里
-   仓库/自动售货机两块浮层的 sxLeave 对齐(420ms + 右移 44px)。 */
+/* 打开任一物资面板时点「返回据点」: 浮层也要跟着退。 */
 :global([data-shop-root][data-leaving]) .panel {
   animation: stockPanelLeave 420ms ease both;
 }

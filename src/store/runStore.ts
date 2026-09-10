@@ -31,6 +31,7 @@ import type { EquipSlot, ItemStack } from "../items/types";
 import { useBattleStore, type BattleMeta } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
 import { commitTownBackup, snapshotTownProfile } from "./expeditionBackup";
+import { SORTIE_RELIC_LIMIT } from "./sortieStore";
 import {
   bondCountsOf,
   deriveStats,
@@ -331,6 +332,12 @@ function bankEverything(session: {
   const fallenIds = session.party.filter((member) => !member.alive).map((member) => member.charId);
   if (fallenIds.length) town.markFallen(fallenIds);
   town.bankLoot(session.loot);
+  town.recordSortieRelics(
+    session.backpack
+      .filter((stack) => getItemDef(stack.itemId).category === "relic")
+      .map((stack) => stack.itemId)
+      .slice(0, SORTIE_RELIC_LIMIT),
+  );
   town.deposit([...session.shipped, ...session.backpack]);
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
   useExploreStore.getState().recordExpGain(exp.reduce((total, gain) => total + gain.gained, 0));

@@ -8,11 +8,16 @@ import { MapSelectStep } from "@/ui/sortie/MapSelectStep";
 import { PrepStep } from "@/ui/sortie/PrepStep";
 import { SortieBackdrop } from "@/ui/sortie/SortieBackdrop";
 import { SortieNav } from "@/ui/sortie/SortieNav";
+import { SortieRelicPanel } from "@/ui/sortie/SortieRelicPanel";
 import { SortieStepViewport } from "@/ui/sortie/SortieStepViewport";
 import { useSortieStepTransition } from "@/ui/sortie/sortieStepTransition";
+import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import s from "./SortieScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";
+const RELIC_PANEL_RECT: Record<"relic", Rect> = {
+  relic: { x: 360, y: 130, w: 1200, h: 760 },
+};
 
 export function SortieScreen() {
   const step = useSortieStore((state) => state.step);
@@ -30,6 +35,7 @@ export function SortieScreen() {
   const enterTown = useRunStore((state) => state.enterTown);
   const [selectedMapId, setSelectedMapId] = useState(() => maps[0]?.id ?? "");
   const { visibleStep, exitingStep, transitioning, intro } = useSortieStepTransition(step);
+  const relicMorph = usePanelMorph<"relic">({ rects: RELIC_PANEL_RECT });
   const selectedLocked = !isTest && !isMapUnlocked(selectedMapId, clearedMaps);
   const lockReason = isTest ? null : mapLockReason(selectedMapId, clearedMaps);
 
@@ -43,6 +49,7 @@ export function SortieScreen() {
   }, [open]);
 
   useEffect(() => {
+    if (relicMorph.panel !== null) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       cancel();
@@ -50,7 +57,7 @@ export function SortieScreen() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [cancel, enterTown]);
+  }, [cancel, enterTown, relicMorph.panel]);
 
   const leave = () => {
     cancel();
@@ -100,6 +107,7 @@ export function SortieScreen() {
               active={visibleStep === "prep" && !transitioning}
               entering={visibleStep === "prep" && transitioning}
               exiting={exitingStep === "prep"}
+              onOpenRelics={(entry) => relicMorph.openPanel("relic", entry)}
             />
           }
           exitingStep={exitingStep}
@@ -113,6 +121,19 @@ export function SortieScreen() {
           onConfirmMap={() => pickMap(selectedMapId)}
           onStartExpedition={startRun}
         />
+        {relicMorph.panel === "relic" && (
+          <SortieRelicPanel
+            closing={relicMorph.phase === "closing"}
+            onClose={relicMorph.closePanel}
+            className={s.relicModal}
+            morph={{
+              ref: relicMorph.panelRef,
+              rect: RELIC_PANEL_RECT.relic,
+              ready: relicMorph.ready,
+              seedLabel: "遗物携带",
+            }}
+          />
+        )}
       </main>
     </StageCanvas>
   );

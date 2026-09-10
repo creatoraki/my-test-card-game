@@ -1,0 +1,30 @@
+.body {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  align-items: start;
+  gap: 24px;
+}
+
+.inventory {
+  --inventory-cell: 96px;
+  --item-slot-count-size: 30px;
+
+  width: 100%;
+  max-width: none;
+}
+
+.storage {
+  /* 双栏面板左栏保留 6 列；84px 格边让托盘在 1200px 面板内不横向溢出。 */
+  --inventory-cell: 84px;
+  min-width: 0;
+}
+
+.carried {
+  min-width: 0;
+}
+
+.statusNotice {
+  color: var(--asm-select, #f5d18d);
+}

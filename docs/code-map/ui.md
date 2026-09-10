@@ -56,7 +56,7 @@ src/ui/
 | [town/cryo/NutritionPanel/NutritionRoster](../../src/ui/town/cryo/NutritionPanel/NutritionRoster.tsx) | 右侧待疗养队员栏：提供固定栏头与纵向滚动队员列表。 |
 | [town/cryo/NutritionPanel/NutritionRosterRow](../../src/ui/town/cryo/NutritionPanel/NutritionRosterRow.tsx) | 待疗养队员行式条目：展示立绘、三段血量、体力极限损伤、选择态、已入席角标与队伍下限提示。 |
 | [town/cryo/NutritionTechTree](../../src/ui/town/cryo/NutritionTechTree/) | 疗养舱横向科技树：直线连接核心与两条链式分支；节点状态由 `nutritionTechState` 驱动，右栏详情固定展示效果、消耗和研究按钮，连边算法已抽到 `ui/common/techTree`。 |
-| [town/shop/CardShopPanel/UpgradeTree](../../src/ui/town/shop/CardShopPanel/UpgradeTree/) | 卡牌商店设施升级科技树：展柜扩容与补货链路两条分支，左侧 SVG 节点树配右侧固定详情栏；节点材料格复用 `ItemSlot`。 |
+| [town/shop/MarketPanel/UpgradeTree](../../src/ui/town/shop/MarketPanel/UpgradeTree/) | 统一商店设施升级科技树：展柜扩容与补货链路两条分支，左侧 SVG 节点树配右侧固定详情栏；节点材料格复用 `ItemSlot`。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/storage/EquipTargetList](../../src/ui/town/storage/EquipTargetList/EquipTargetList.tsx) | 升阶与重铸共用的装备目标列：合并仓库装备和三槽穿戴件，支持武器/防具/饰品筛选、队员角标和 `ItemTooltip`。 |
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
@@ -74,7 +74,7 @@ src/ui/
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 研究中心三条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造/科技树面板。 |
 | [town/terminal/TechTreePanel](../../src/ui/town/terminal/TechTreePanel/) | 全局科技树三栏面板：左侧分类导航、中间带等级进度弧的 SVG 节点图、右侧效果与消耗详情；研究动作只派发 `townStore.researchTech`。 |
-| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店：EventPanel 同源的常驻六格混合货架，支持采购与花积分刷新；右上入口受控打开可复用的 `WarehousePanel`。货架状态与隔日重置都在 `townStore`，本组件只读状态派发 action。私有子组件 `ShelfGrid`、`ShopItemTile`（货架格）与 `ShopItemCard`（详情栏）各自持有样式，不再由 ShopScene 远程改写。 |
+| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：只保留标题块与 `StockEntries` 三条抽屉入口；商店使用 `MarketPanel` 的 1500×920 暖金面板，仓库使用独立黑银面板。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 编队页训练点分配弹窗左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
@@ -83,19 +83,21 @@ src/ui/
 | 旧 `town/training/TalentTree` / `TalentNode` | 已归档到 `ui/_legacy/training/`（白玻璃青绿扇形半环版），零引用，见该目录 README。 |
 | [town/training/TrainingConfirm](../../src/ui/town/training/TrainingConfirm/TrainingConfirm.tsx) | 训练点分配流程的通用确认弹窗，重置分配与切换徽章共用；保留旧确认结构以供现有训练组件复用。 |
 | [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 编队页训练点分配弹窗域共享的设计令牌（`--tr-*`，暗底金色）、暗玻璃材质与 kicker 排版，各组件各自 `composes`。 |
-| [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，默认 4×6 格、分类 tab、滚动网格和鼠标右侧物品详情；通过受控 `open/onClose` 与 `rows` / `columns` / `position` 配置复用。 |
+| [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，支持分类 tab、滚动网格和鼠标右侧物品详情；由 `StockEntries` 以独立第三入口打开，并传入 4×4 格配置。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
 | [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按可见地图列表播放上下推移背景动画；目标层信息只在地图步骤挂载，并随步骤切换自然卸载。 |
 | [sortie/SortieStepViewport](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) | 出击步骤视口：挂载当前步骤，并在离场动画完成前暂留物资准备侧栏面板；步骤时序由 `sortieStepTransition.ts` 编排。 |
 | [sortie/sortieStepTransition.ts](../../src/ui/sortie/sortieStepTransition.ts) | 出击地图选择 ↔ 物资准备的真实 DOM 步骤动画 hook；同步切换唯一可见步骤，提供 460ms 入场状态和过场交互锁。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在传入的可见地图列表中以斜跨玻璃选择带切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
-| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列仓库速取条 + 补给货架，右上背包，右下售货机器人，右上角终端积分；只下发位置类，并把货架/仓库/背包的每一次成败都转成机器人台词（页面不再有独立的提示小字）。 |
+| [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列遗物携带窗口、仓库消耗品速取条与补给货架，右上背包，右下售货机器人，舞台左上角终端积分；遗物窗口的编辑面板由出击页根层挂载。 |
+| [sortie/SortieRelicBar](../../src/ui/sortie/SortieRelicBar/SortieRelicBar.tsx) | 出击准备顶行的 3×2 遗物携带窗口：复用物品库存面板展示本次携带的遗物，并作为打开遗物编辑面板的键鼠入口。 |
+| [sortie/SortieRelicPanel](../../src/ui/sortie/SortieRelicPanel/SortieRelicPanel.tsx) | 全屏遗物携带编辑面板：PanelShell 双栏展示仓库遗物与本次携带，取物/退回分别复用出击状态层的既有 action，并在状态行反馈容量限制。 |
 | [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击下行 / 结算上行共用的电梯纯演出页：视频静音播放，独立音轨由 BGM 播放器播放；方向与去向由 `runStore.elevatorRide` 决定，下行结束进入探索，上行结束回据点；不可跳过且不承载探索规则。 |
 | [sortie/StockShelf](../../src/ui/sortie/StockShelf/StockShelf.tsx) | 出击补给货架：固定清单一次全摆出，按 `maxStack` 自动分成临期食品 / 消耗品两层（层板画在 `ShelfRow`，单个货位在 `StockSlot`）。商品本体只负责悬浮浮卡（复用 `SortieTooltip`，展示用 `ItemStack` 由 itemId 现造），购买入口只有下方价格牌一处；买不起 / 装不下不弹提示，交给售货机器人说。 |
 | [common/ChatBot](../../src/ui/common/ChatBot/ChatBot.tsx) | 聊天机器人公共组件：立绘、固体彩色/出击页毛玻璃气泡与可选点击态；`useBotChatter` 泛型化台词调度（14~22s 随机闲聊，事件台词插队，气泡 4.5s 后淡出，失活即清空定时器）。出击准备页通过它承接售货机器人反馈，据点页复用同一立绘作为管理终端。 |
-| [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；1×4 格，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
-| [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域两块物品面板的调色板真相点：仓库冷银白透玻璃 / 背包黑玻璃熔橙。 |
+| [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；真正的 1×4 格且只显示单件消耗品，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
+| [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域物品面板的调色板真相点：仓库冷银白、背包黑玻璃熔橙、遗物紫金。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
 | [character/FormationScreen](../../src/ui/character/FormationScreen/FormationScreen.tsx) | 编队页壳：只装配画布与冬眠仓底图，页面上只有三样东西 + 一个返回按钮（队伍列表 / 小队徽章 / 小队羁绊）。**角色详情不是另一个 screen**，而是本页的第二种态，两态切换由 `formationMorph/` 做同页元素重组。卡片站位在挂载时定死（`baseOrder`），本页全程不卸载 ⇒ 从详情态回来不会重排。 |
 | [character/FormationScreen/SquadHud](../../src/ui/character/FormationScreen/SquadHud/SquadHud.tsx) | 常驻 HUD：小队徽章盘与 `common/SquadBondBar` 收进通栏亮玻璃面板，返回按钮放在左下角并通过 `HoverTooltip` 提示。两态共用同一份 DOM，重组期间原地不动，给形变留参照系。 |
@@ -154,7 +156,7 @@ src/ui/
 | [TrialGauge](../../src/ui/explore/TrialGauge/TrialGauge.tsx) | 探索页右上读数列里的挑战倒计时砖：逐条展示进行中的契约名、负面修正与剩余轮数，悬浮说明走 `RailPopover`。剩余轮数由会话的 `untilRound` 与当前轮号现算，不存第二份；祖先带入场动画故一律不用 `backdrop-filter`。 |
 | [ExploreScreen/RelicRail](../../src/ui/explore/ExploreScreen/RelicRail.tsx) | 随身遗物图标行：接在左上「背包负重」右侧，与 `BurdenGauge` 共用 112×104 格子与 68px 图标几何，于是背包 svg 读起来就是这一行的第一枚遗物。无框无名字，效果一律靠向下展开的 `ItemTooltip`；只读 `relicsInBackpack` 的结论，不判定遗物归属。 |
 | [NodeTip](../../src/ui/explore/NodeTip/NodeTip.tsx) | 节点悬浮详情浮卡：贴在被悬停的瓦片旁展示事件标题与描述，落位由 RouteBoard 导出的 `nodeCenter` / `NODE_ICON_TOP` 与棋盘位移算，越界时自动左右贴边或翻到瓦片下方；只讲「这是什么」，不含粒子、风险与选项预览。 |
-| [MerchantPanel](../../src/ui/explore/MerchantPanel/) | 交易终端内容面板，版式与据点卡牌商店同族：`MerchantPanel` 只管槽位/选中/提示三份状态与 `tradeQuote`；`ServiceTabs` 是顶部两张服务槽位页签（报价整块复用 `ItemCostTag`，服务名与成交状态排在它旁边），`ServiceStage` 是左内容区（商品货位网格 / 团队 BUFF 概率表 / 队伍待办服务说明），`TradeDetail` 是右侧 420 定宽详情栏并持有**唯一**的「确认支付」入口（商品详情由 `TradeGoodsDetail` 自建以保证头图带 1:1 框），`TradeNotes` 是底栏记录条与「关闭终端」。只派发购买和关闭 action，不承载交易规则。 |
+| [MerchantPanel](../../src/ui/explore/MerchantPanel/) | 交易终端内容面板，版式与据点统一商店同族：`MerchantPanel` 只管槽位/选中/提示三份状态与 `tradeQuote`；`ServiceTabs` 是顶部两张服务槽位页签（报价整块复用 `ItemCostTag`，服务名与成交状态排在它旁边），`ServiceStage` 是左内容区（商品货位网格 / 团队增益概率表 / 队伍待办服务说明），`TradeDetail` 是右侧 420 定宽详情栏并持有**唯一**的「确认支付」入口（商品详情由 `TradeGoodsDetail` 自建以保证头图带 1:1 框），`TradeNotes` 是底栏记录条与「关闭终端」。只派发购买和关闭 action，不承载交易规则。 |
 | [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，只做外框、演出与数据接线，内容全交给 `MerchantPanel`；页眉右侧是成交计数。⚠ 它是唯一不吃 `explorePanel` 的 `panel-box`(936×680) 的探索浮层——只取材质 `panel-shell`，尺寸自写 1240×820，理由见该文件抬头。|
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
 | [PicnicSkill](../../src/ui/explore/PicnicSkill/) | 探索技能《野餐》的按钮与面板：按钮按会话阶段显示可用/锁定/已使用状态，面板负责最多 4 份食品选择、野餐布槽位和隐藏食谱结算。 |
@@ -331,6 +333,6 @@ src/ui/
 
 ⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
 
-商店场景的 `StockPanels` 现在包含「商店 / 回收台 / 卡牌商店」三条入口，三者共用 `PanelShell` 与 `usePanelMorph`；`CardShopPanel` 采用「左卡架 + 右详情栏」两栏布局（与博物馆卡牌大厅同款范式）：`CardShopShelf` 承载说明条、角色 Tab 筛选与展示型卡架，`CardShopSlotCard` 只画卡面 + 角色色条 + 价格角标（售出货位灰化并盖印章），选中态复用 `DeckCard` 的 `InteractiveHint` 四角框并覆写成商店暖金；`CardShopDetail` 用 `HandCard` + `CardKeywordNotes` 展示放大卡面与关键词说明，并作为唯一的购买入口。货架刷新与设施升级留在底部操作栏；设施升级弹层改为左侧科技树与右侧节点详情，详情中的材料格复用 `ItemSlot`。`DeckCard` 为此新增 `hintClassName` 透传，供各设施单独给四角框调色。
+商店场景的 `StockPanels` 现在包含「商店 / 回收台 / 仓库」三条入口，三者各自通过本文件的 `usePanelMorph` 打开；商店与回收台使用暖金 1500×920 面板，仓库使用独立的黑银 660×776 面板。`MarketPanel` 采用「左混合货架 + 右详情栏」两栏布局：`MarketShelf` 不再提供角色筛选，`MarketSlot` 按卡牌/物品分支展示，`MarketPriceTag` 是纯展示售价牌，购买只存在于 `MarketDetail` 的统一按钮。卡牌详情复用 `HandCard` + `CardKeywordNotes`，物品详情复用无操作控件的 `ShopItemCard`；设施升级弹层由 `ShopTechTree` 与 `ShopTechDetail` 组成，节点材料格复用 `ItemSlot`。
 
 我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。

@@ -1,156 +1,172 @@
 // ============================================================================
-// 据点商店 —— 等级配置、刷新计价与货架生成(纯数据 + 纯函数)。
+// 据点统一商店 —— 货位类型、品质权重与物品侧抽取。
 //
-// 商店的**唯一**主刷新机制是「时间推进一日」: 每次出击后返回据点算推进一日,
-// 由 store/townStore.advanceDay() 重摇货架。玩家等不及可以花积分按刷新按钮,
-// 当日刷得越多下一次越贵, 隔日归零(refreshes 在 advanceDay 里清 0)。
+// 卡牌货位需要读取角色卡组，因此整架生成放在 store/shopStock.ts；本文件只负责
+// 物品货位工厂与类型权重。随机使用 Math.random，不进入探索的可复现种子链。
 //
-// ⚠ 本文件**不能** import ./index —— data/index.ts 是注册表, 反过来引用会成环。
-//   候选池直接从三张原始清单拼: 新表(items/equipment、items/materials)+ 旧表(./items)。
-// ⚠ 这里的随机**刻意用 Math.random 而不是 engine/rng**: 商店在据点侧, 不属于
-//   探索那条「同种子逐件复现」的种子链。硬造一个 rngState 只会污染那条承诺。
+// ⚠ 本文件不能 import ./index —— data/index.ts 是注册表，反向引用会成环。
+//   遗物池同样直接从 ./items/relics 取，不能改成从 ./items/index 引入。
 // ============================================================================
 
+import type { Rarity } from "../engine";
 import type { EquipRoll, ItemDef, ItemRarity } from "../items/types";
 import { rollAffinity } from "../items/drops";
 import { rollEquipment } from "../items/equipRoll";
 import { RARITY_ORDER } from "../items/types";
 import { ROLLABLE_BOND_IDS } from "./bonds";
 import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
+import { BLESSING_RELIC_DEFS } from "./items/relics";
 import { EQUIPMENT_ITEM_DEFS, MATERIAL_ITEM_DEFS } from "./items/index";
+import { relicBuyValue } from "./items/pricing";
 
 // ---------------------------------------------------------------------------
-// 货架
+// 货位
 // ---------------------------------------------------------------------------
-// 一个货架格。★ 不是 ItemStack —— 它还没进任何容器, 买下的那一刻才由 townStore
-//   调 makeItemStack 实例化(uid 也是那时才发)。
-export interface ShopSlot {
-  key: string; // 货架格键(React key + 购买定位)。货架整批替换, 故只需批内唯一
-  itemId: string;
-  affinity?: string; // 装备**上架时**就 roll 好的随机羁绊 —— 玩家能看着词条挑货
-  roll?: EquipRoll;
-  price: number; // 挂牌价快照: 日后改基价表, 存档里这批货的标价不会跟着漂
-  sold: boolean; // 已售出: 保留占位, 当日不补货
+export interface ShopCardSlot {
+  kind: "card";
+  key: string;
+  charId: string;
+  cardDefId: string;
+  rarity: Rarity;
+  price: number;
+  sold: boolean;
 }
 
+export interface ShopItemSlot {
+  kind: "item";
+  key: string;
+  itemId: string;
+  affinity?: string;
+  roll?: EquipRoll;
+  price: number;
+  sold: boolean;
+}
+
+export type ShopSlot = ShopCardSlot | ShopItemSlot;
+
 // ---------------------------------------------------------------------------
-// 设施等级
+// 设施等级与货位类型
 // ---------------------------------------------------------------------------
-// ★ 等级提升本期不开放(没有升级入口), 但等级本身是真的字段 ——
-//   日后开升级只需在这张表里加 2/3 级两行, 生成逻辑一行不用动。
 export interface ShopLevel {
-  slotCount: number; // 每次刷新上架几件商品
-  weights: Record<ItemRarity, number>; // 品质概率分布(相对权重, 不必凑 100)
+  slotCount: number;
+  weights: Record<ItemRarity, number>;
 }
 
 export const SHOP_LEVELS: Record<number, ShopLevel> = {
   1: {
     slotCount: 6,
-    // 1 级只出普通品质。写成权重而不是布尔, 是为了 2 级直接改数就能出精良档。
     weights: { common: 100, fine: 0, rare: 0, epic: 0, legendary: 0 },
   },
 };
 
 export const DEFAULT_SHOP_LEVEL = 1;
-export const SHOP_EQUIP_CHANCE = 0.7;
+
+export const SHOP_KIND_WEIGHTS = {
+  card: 40,
+  equipment: 35,
+  material: 20,
+  relic: 5,
+} as const;
+
+export type ShopKind = keyof typeof SHOP_KIND_WEIGHTS;
+export type ShopItemKind = Exclude<ShopKind, "card">;
 
 export const shopLevel = (level: number): ShopLevel =>
   SHOP_LEVELS[level] ?? SHOP_LEVELS[DEFAULT_SHOP_LEVEL];
 
-// ---------------------------------------------------------------------------
-// 刷新计价 —— 线性递增, 隔日重置回首价
-// ---------------------------------------------------------------------------
-export const SHOP_REFRESH_BASE = 50; // 当日第 1 次刷新
-export const SHOP_REFRESH_STEP = 50; // 每多刷一次的增量
-
-export const shopRefreshCost = (refreshes: number): number =>
-  SHOP_REFRESH_BASE + Math.max(0, refreshes) * SHOP_REFRESH_STEP;
+export function pickShopKind(rand: () => number = Math.random): ShopKind {
+  const entries = Object.entries(SHOP_KIND_WEIGHTS) as [ShopKind, number][];
+  let roll = rand() * entries.reduce((sum, [, weight]) => sum + weight, 0);
+  for (const [kind, weight] of entries) {
+    roll -= weight;
+    if (roll <= 0) return kind;
+  }
+  return entries[entries.length - 1][0];
+}
 
 // ---------------------------------------------------------------------------
 // 候选池
 // ---------------------------------------------------------------------------
-// 上架资格 = 填了 buyValue(见 items/types.ts)。没标价的东西(废料/数据存档/消耗品)
-// 自然被排除, 不必在这里再列一张黑名单。
 const ALL_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...EQUIPMENT_ITEM_DEFS, ...MATERIAL_ITEM_DEFS];
 
 const sellable = (category: ItemDef["category"]): ItemDef[] =>
-  ALL_DEFS.filter((d) => d.category === category && d.buyValue != null);
+  ALL_DEFS.filter((def) => def.category === category && def.buyValue != null);
 
 const EQUIP_POOL = sellable("equipment");
 const MATERIAL_POOL = sellable("material");
+const RELIC_POOL = BLESSING_RELIC_DEFS;
 
 // ---------------------------------------------------------------------------
-// 生成
+// 生成工具
 // ---------------------------------------------------------------------------
-const pickIndex = (n: number, rand: () => number) => Math.floor(rand() * n);
+const pickIndex = (length: number, rand: () => number): number =>
+  Math.min(length - 1, Math.max(0, Math.floor(rand() * length)));
 
-// 按权重摇一档稀有度, 再在该档内随机取一件。★ 池里没有的档直接跳过, 权重不会漏给
-//   不存在的稀有度(与 items/drops.pickByQuality 同一口径)。全档权重为 0 时退回最低档。
-function pickByWeight(pool: ItemDef[], weights: Record<ItemRarity, number>, rand: () => number) {
-  const tiers = RARITY_ORDER.map((r) => ({
-    defs: pool.filter((d) => d.rarity === r),
-    w: weights[r] ?? 0,
-  })).filter((t) => t.defs.length > 0 && t.w > 0);
+function pickByWeight(
+  pool: ItemDef[],
+  weights: Record<ItemRarity, number>,
+  rand: () => number,
+): ItemDef | undefined {
+  const tiers = RARITY_ORDER.map((rarity) => ({
+    defs: pool.filter((def) => def.rarity === rarity),
+    weight: weights[rarity] ?? 0,
+  })).filter((tier) => tier.defs.length > 0 && tier.weight > 0);
 
   if (!tiers.length) {
-    const sorted = pool
+    return pool
       .slice()
-      .sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
-    return sorted[0];
+      .sort((left, right) => RARITY_ORDER.indexOf(left.rarity) - RARITY_ORDER.indexOf(right.rarity))[0];
   }
 
-  let roll = rand() * tiers.reduce((s, t) => s + t.w, 0);
-  for (const t of tiers) {
-    roll -= t.w;
-    if (roll <= 0) return t.defs[pickIndex(t.defs.length, rand)];
+  let roll = rand() * tiers.reduce((sum, tier) => sum + tier.weight, 0);
+  for (const tier of tiers) {
+    roll -= tier.weight;
+    if (roll <= 0) return tier.defs[pickIndex(tier.defs.length, rand)];
   }
   const last = tiers[tiers.length - 1];
   return last.defs[pickIndex(last.defs.length, rand)];
 }
 
-// 摇一整个货架。调用方只有 townStore(advanceDay / refreshShop / 建档)。
-export function rollShopStock(
+function poolOf(kind: ShopItemKind): ItemDef[] {
+  if (kind === "equipment") return EQUIP_POOL;
+  if (kind === "material") return MATERIAL_POOL;
+  return RELIC_POOL;
+}
+
+export function rollShopItemSlot(
+  kind: ShopItemKind,
   level: number,
+  used: Set<string>,
   rand: () => number = Math.random,
-): ShopSlot[] {
+): ShopItemSlot | null {
+  const pool = poolOf(kind);
+  const unused = pool.filter((def) => !used.has(def.id));
+  if (!unused.length) return null;
+
   const cfg = shopLevel(level);
-  const out: ShopSlot[] = [];
-  const used = new Set<string>();
-
-  for (let i = 0; i < cfg.slotCount; i++) {
-    let pool = rand() < SHOP_EQUIP_CHANCE ? EQUIP_POOL : MATERIAL_POOL;
-    if (!pool.length) pool = pool === EQUIP_POOL ? MATERIAL_POOL : EQUIP_POOL;
-    if (!pool.length) continue;
-
-    let def: ItemDef | undefined;
-    // 有限次重试而不是 while(true): 池子被抽干时也必须停下来。
-    for (let tries = 0; tries < 24; tries++) {
-      const candidate = pickByWeight(pool, cfg.weights, rand);
-      if (!candidate) break;
+  let def: ItemDef | undefined;
+  for (let tries = 0; tries < 24; tries += 1) {
+    const candidate = pickByWeight(pool, cfg.weights, rand);
+    if (!candidate) break;
+    if (!used.has(candidate.id)) {
       def = candidate;
-      if (!used.has(candidate.id)) break;
+      break;
     }
-    if (def && used.has(def.id)) {
-      const unusedPool = pool.filter((candidate) => !used.has(candidate.id));
-      if (unusedPool.length) {
-        def = pickByWeight(unusedPool, cfg.weights, rand);
-      } else {
-        const fallbackPool = pool === EQUIP_POOL ? MATERIAL_POOL : EQUIP_POOL;
-        const unusedFallbackPool = fallbackPool.filter((candidate) => !used.has(candidate.id));
-        if (unusedFallbackPool.length) def = pickByWeight(unusedFallbackPool, cfg.weights, rand);
-      }
-    }
-    if (!def) continue;
-    used.add(def.id);
-    out.push({
-      key: `sl-${i}`,
-      itemId: def.id,
-      // 词条与掉落同规则: affinityRollable 的装备各带 1 条随机羁绊(《羁绊设计概览.md》§2.1)。
-      affinity: rollAffinity(def, ROLLABLE_BOND_IDS, (n) => pickIndex(n, rand)),
-      roll: rollEquipment(def, (n) => pickIndex(n, rand)),
-      price: def.buyValue ?? 0,
-      sold: false,
-    });
   }
-  return out;
+  if (!def) def = pickByWeight(unused, cfg.weights, rand);
+  if (!def) return null;
+
+  used.add(def.id);
+  const isEquipment = kind === "equipment";
+  return {
+    kind: "item",
+    key: "",
+    itemId: def.id,
+    affinity: isEquipment
+      ? rollAffinity(def, ROLLABLE_BOND_IDS, (length) => pickIndex(length, rand))
+      : undefined,
+    roll: isEquipment ? rollEquipment(def, (length) => pickIndex(length, rand)) : undefined,
+    price: kind === "relic" ? relicBuyValue(def) : def.buyValue ?? 0,
+    sold: false,
+  };
 }

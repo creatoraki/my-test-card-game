@@ -34,6 +34,7 @@ interface SortieStore {
   backToMap: () => void; // 准备页「重选地图」(已装的物资保留)
   buy: (itemId: string) => boolean; // 货柜购买。false = 钱不够 / 背包满
   takeFromStorage: (uid: string) => boolean; // 仓库物资/遗物 → 背包。false = 背包满或遗物达到上限
+  autoLoadRelics: () => void; // 进入出击准备时按上次回归记录自动装填遗物
   putBack: (uid: string) => void; // 背包里的一整堆退回来源
   cancel: () => void; // 取消出击: 全量回滚
   clear: () => void; // 出击成功后清空(不回滚 —— 东西跟着远征走了)
@@ -51,7 +52,7 @@ const EMPTY = {
 export const sortieUsedSlots = (backpack: ItemStack[]): number =>
   occupiedSlots(backpack, getItemDef);
 
-export const SORTIE_RELIC_LIMIT = 5;
+export const SORTIE_RELIC_LIMIT = 6;
 
 // 把一整堆退回来源。★ 纯计算 + 副作用集中在这里, putBack 与 cancel 共用同一条规则,
 //   两处各写一份必然在某次改动后对不上。返回新的 { backpack, bought }。
@@ -90,7 +91,10 @@ function refundStack(
 export const useSortieStore = create<SortieStore>((set, get) => ({
   ...EMPTY,
 
-  open: () => set({ ...EMPTY }),
+  open: () => {
+    set({ ...EMPTY });
+    get().autoLoadRelics();
+  },
 
   pickMap: (mapId) => set({ mapId, step: "prep" }),
 
@@ -102,7 +106,7 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     if (price == null) return false; // 没标价的东西不该出现在货柜里(护栏)
 
     const loot = useTownStore.getState().loot;
-    if (loot < price) return false; // 与 townStore.buyShopItem 同写法: 买不起就什么都不发生
+    if (loot < price) return false; // 与据点商店购买逻辑同写法: 买不起就什么都不发生
 
     // 容量与堆叠一律交给 addToContainer —— 食品 maxStack 5 的并堆规则只有它认识。
     const { backpack, bought } = get();
@@ -136,6 +140,19 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     if (!town.withdraw(uid)) return false;
     set({ backpack: probe.next });
     return true;
+  },
+
+  autoLoadRelics: () => {
+    const rememberedIds = useTownStore.getState().lastSortieRelicIds;
+    for (const itemId of rememberedIds) {
+      const source = useTownStore
+        .getState()
+        .storage.find(
+          (stack) =>
+            stack.itemId === itemId && getItemDef(stack.itemId).category === "relic",
+        );
+      if (source) get().takeFromStorage(source.uid);
+    }
   },
 
   putBack: (uid) => {

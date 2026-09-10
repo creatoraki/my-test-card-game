@@ -7,7 +7,7 @@
 // 复用的是**数据与文案**: STAT_LABEL 从 ItemDetail 导入(口径必须同一份),
 // STAT_KEYS / RARITY_LABEL / CATEGORY_LABEL / SLOT_LABEL / itemIcon 照旧。
 //
-// ★ 本栏是**纯展示**位, 没有任何操作控件 —— 购买在货架格底部的价格牌上(见 ShopScene)。
+// ★ 本栏是**纯展示**位, 没有任何操作控件 —— 购买统一在 MarketDetail 的按钮上。
 //   信息层级自上而下: 大图 > 名称 > 羁绊 tag / 标签 > 描述 > 属性数值 > 脚注,
 //   靠字号与字色拉开档次, 不靠分隔框 —— 框太多这一栏就又读成表单了。
 

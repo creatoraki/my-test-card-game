@@ -7,6 +7,7 @@ import { ChatBot, useBotChatter } from "@/ui/common/ChatBot";
 import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { StockShelf } from "@/ui/sortie/StockShelf";
+import { SortieRelicBar } from "@/ui/sortie/SortieRelicBar";
 import { StorageInventory } from "@/ui/sortie/StorageInventory";
 import { cx } from "@/ui/common/cx";
 import s from "./PrepStep.module.css";
@@ -16,9 +17,10 @@ interface Props {
   active: boolean;
   entering: boolean;
   exiting: boolean;
+  onOpenRelics: (entry: HTMLElement) => void;
 }
 
-export function PrepStep({ active, entering, exiting }: Props) {
+export function PrepStep({ active, entering, exiting, onOpenRelics }: Props) {
   const loot = useTownStore((state) => state.loot);
   const backpack = useSortieStore((state) => state.backpack);
   const putBack = useSortieStore((state) => state.putBack);
@@ -49,12 +51,13 @@ export function PrepStep({ active, entering, exiting }: Props) {
 
   return (
     <section className={s.step} data-active={active} aria-hidden={!active}>
+      <div className={cx(s.credits, entering && s.slideInLeft, exiting && s.slideOutLeft)}>
+        <span className={s.creditsLabel}>终端积分</span>
+        <strong className={s.creditsValue}>{credits.toLocaleString()}</strong>
+      </div>
       <div className={cx(s.left, entering && s.slideInLeft, exiting && s.slideOutLeft)}>
         <div className={s.topRow}>
-          <div className={s.credits}>
-            <span className={s.creditsLabel}>终端积分</span>
-            <strong className={s.creditsValue}>{credits.toLocaleString()}</strong>
-          </div>
+          <SortieRelicBar className={s.areaRelics} onOpen={onOpenRelics} />
           <StorageInventory className={s.areaStorage} onTaken={sayTaken} onFull={sayFull} />
         </div>
         <StockShelf

@@ -1,6 +1,6 @@
 /* 物资准备步骤的整页排布。★ 本文件只负责「谁在哪」——每块面板自己的材质与内部排版都在
    各自的组件里。三块内容各占一角, 右下整块空出来留给售货机器人和它右上方的气泡:
-   气泡因此永远不会压到背包面板。左列顶行由「积分 + 仓库」组成, 积分不再绝对定位。
+   气泡因此永远不会压到背包面板。左列顶行由「遗物窗口 + 仓库」组成, 积分独立定位。
 
    ⚠ 底部 y>962 是 SortieNav 的地盘,
      所有内容的下边界都必须停在 940 之前。 */
@@ -19,16 +19,20 @@
   pointer-events: none;
 }
 
-/* ── 左列顶行: 终端积分 + 仓库 ── */
+/* ── 左列顶行: 遗物窗口 + 仓库 ── */
 .topRow {
   display: flex;
   gap: 24px;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-start;
   flex: none;
 }
 
 .credits {
+  position: absolute;
+  top: 40px;
+  left: 72px;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   flex: none;
@@ -60,7 +64,7 @@
   text-shadow: var(--ui-glow), 0 0 26px #91e8dc80, 0 3px 12px #000000e6;
 }
 
-/* ── 左列: 仓库速取条 + 补给货架 ── */
+/* ── 左列: 遗物窗口 + 仓库速取条 + 补给货架 ── */
 .left {
   position: absolute;
   top: 116px;
@@ -80,6 +84,13 @@
 
   /* 4 个 96px 格子 + 3 个 10px 间隙 + 托盘/面板内边距与边框。 */
   width: 474px;
+  flex: none;
+}
+
+.areaRelics {
+  --inventory-cell: 96px;
+
+  width: 368px;
   flex: none;
 }
 

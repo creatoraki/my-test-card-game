@@ -1,17 +1,14 @@
 .sx-root {
   --ui-glow-color: var(--sx-action);
-  --event-accent: #c9d3da;
-  --sx-ink: #e8f6ff;
-  --sx-muted: #8ba6b8;
-  --sx-line: #5fc8ff2e;
-  --sx-dim: #6d8494;
-  --sx-alert: #ff5fa2;
-  --sx-action: #5fc8ff;
-  --sx-action-hot: #cdeeff;
-  /* ★ 补上这支色: 它在 ShopItemTile(.is-selected 边框)与 ShopItemCard(底部分隔亮线)里
-     被引用, 但全项目从没定义过 —— 那两条声明一直是无效值被整条丢弃。 */
-  --sx-electric: #cdeeff;
-
+  --event-accent: #d6b477;
+  --sx-ink: #f2e6d8;
+  --sx-muted: #a5937f;
+  --sx-line: #f2e6d82e;
+  --sx-dim: #847a6b;
+  --sx-alert: #ff8a78;
+  --sx-action: #d6b477;
+  --sx-action-hot: #f0d49b;
+  --sx-electric: #f0d49b;
   position: absolute;
   z-index: 2;
   inset: 0;
@@ -26,17 +23,10 @@
   width: 380px;
   padding: 14px 20px 15px 22px;
   background:
-    radial-gradient(ellipse 90% 120% at 100% 0, #c9d3da22, transparent 68%),
-    linear-gradient(160deg, #111b1eb8, #080d0fa6);
-  border: 1px solid #43545a99;
+    radial-gradient(ellipse 90% 120% at 100% 0, #d6b47722, transparent 68%),
+    linear-gradient(160deg, #241b12b8, #080d0fa6);
+  border: 1px solid #735c3d99;
   border-left: 2px solid var(--event-accent);
-  border-radius: 0;
-  box-shadow:
-    inset 0 1px 0 #ffffff33,
-    0 13px 28px -24px #000000e6,
-    0 0 20px -18px #c9d3daa6;
-  -webkit-backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
-  backdrop-filter: blur(14px) saturate(125%) brightness(0.78);
   clip-path: polygon(10px 0, 100% 0, calc(100% - 7px) 100%, 0 100%, 0 10px);
   pointer-events: none;
   animation: sxHeaderIn 560ms 120ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
@@ -45,20 +35,16 @@
 .sx-root .sx-kicker {
   display: block;
   color: var(--ui-label);
-  font-family: var(--font-family);
-  font-variant-numeric: tabular-nums;
   font-size: 18px;
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
   line-height: 1.4;
   text-shadow: var(--ui-glow);
-  text-transform: uppercase;
 }
 
 .sx-root .sx-title {
   margin: 7px 0 0;
   color: var(--ui-value);
-  font-family: var(--font-family);
   font-size: 42px;
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
@@ -75,254 +61,15 @@
   text-shadow: var(--ui-glow);
 }
 
-.sx-root .sx-warehouse-icon {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
-  place-items: center;
-  color: #c9d3da;
-}
-
-.sx-root .sx-warehouse-icon svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.sx-root .sx-event-stage {
-  --event-panel-foot-note-size: 18px;
-
-  display: flex;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.sx-root .sx-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--ui-label);
-  font-size: var(--panel-shell-status-size, 18px);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-  white-space: nowrap;
-}
-
-.sx-root .sx-body {
-  display: grid;
-  min-height: 0;
-  flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 28px;
-  padding: 22px 0 18px;
-}
-
-.sx-root .sx-main {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  overflow-y: auto;
-  scrollbar-width: none;
-  padding: 10px 10px 10px 2px;
-}
-
-.sx-root .sx-main::-webkit-scrollbar {
-  display: none;
-}
-
-.sx-root .sx-refresh {
-  min-width: 260px;
-  gap: 13px;
-  padding: 13px 18px;
-}
-
-.sx-root .sx-refresh-icon {
-  display: block;
-  flex: 0 0 auto;
-  font-size: 24px;
-  line-height: 1;
-  transition: transform 360ms cubic-bezier(0.2, 0.78, 0.24, 1);
-}
-
-.sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon,
-.sx-root .sx-refresh:focus-visible .sx-refresh-icon {
-  transform: rotate(180deg);
-}
-
-.sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
-  transform: rotate(250deg) scale(0.9);
-}
-
-.sx-root .sx-refresh-label {
-  font-size: 20px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-}
-
-.sx-root .sx-refresh-cost {
-  position: relative;
-  margin-left: auto;
-  padding-left: 13px;
-  color: var(--ui-value);
-  font-size: 18px;
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.sx-root .sx-refresh-cost::before {
-  position: absolute;
-  top: 1px;
-  bottom: 1px;
-  left: 0;
-  width: 1px;
-  background: var(--event-accent);
-  content: "";
-  opacity: 0.45;
-}
-
-.sx-root .sx-refresh:disabled .sx-refresh-cost {
-  color: #e47970;
-}
-
-/* 回收台外壳自带全屏遮罩。商店两块面板并排常驻, 遮罩不参与命中测试,
-   只有面板本体可交互, 因而两层遮罩不会互相挡住内容。 */
-.sx-root .sx-warehouse-modal,
-.sx-root .sx-vending-modal {
-  z-index: 5;
-  pointer-events: none;
-}
-
-.sx-root .sx-warehouse-modal > section,
-.sx-root .sx-vending-modal > section {
-  pointer-events: auto;
-  backface-visibility: hidden;
-}
-
-.sx-root .sx-warehouse-modal > section {
-  transform: perspective(2400px) rotateY(4deg) rotateX(1deg);
-  transform-origin: 0 50%;
-}
-
-.sx-root .sx-vending-modal > section {
-  transform: perspective(2400px) rotateY(-4deg) rotateX(1deg);
-  transform-origin: 100% 50%;
-}
-
-.sx-root .sx-vending-modal {
-  --event-accent: #5fc8ff;
-}
-
-/* ── 两块面板的静态投影 ──
-   阴影节点与面板是兄弟, 不能放到 .asm-modal 或 .sx-root 之下成为祖先: 祖先 filter
-   会把 .asm-panel 的 backdrop-filter 玻璃层变成失效的 backdrop root。
-   两个伪元素分别还原贴边接触影与远距环境影, filter 只挂在伪元素上, 让两档模糊半径
-   可以独立控制。内容全静态, 面板内部的扫光、悬浮位移和详情切换不会触发它们重算。 */
-.sx-root .sx-panel-shadow {
-  position: absolute;
-  z-index: 4;
-  pointer-events: none;
-  opacity: 0;
-  animation: sxPanelShadowIn 520ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
-}
-
-.sx-root .sx-panel-shadow.is-warehouse {
-  transform: perspective(2400px) rotateY(4deg) rotateX(1deg);
-  transform-origin: 0 50%;
-}
-
-.sx-root .sx-panel-shadow.is-vending {
-  transform: perspective(2400px) rotateY(-4deg) rotateX(1deg);
-  transform-origin: 100% 50%;
-}
-
-.sx-root .sx-panel-shadow::before,
-.sx-root .sx-panel-shadow::after {
-  position: absolute;
-  inset: 0;
-  background: #000;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  content: "";
-  pointer-events: none;
-}
-
-/* 近影贴住面板边缘, 远影拉开距离压暗环境; filter 放在伪元素而非宿主上。 */
-.sx-root .sx-panel-shadow::before {
-  opacity: 0.68;
-  filter: blur(10px);
-  transform: translateY(6px);
-}
-
-.sx-root .sx-panel-shadow::after {
-  opacity: 0.42;
-  filter: blur(46px);
-  transform: translateY(34px);
-}
-
-.sx-root.is-leaving .sx-panel-shadow {
-  animation: sxPanelShadowOut 420ms ease both;
-}
-
 .sx-root.is-leaving .sx-header {
   animation: sxLeave 420ms ease both;
 }
 
-.sx-root.is-leaving .sx-warehouse-modal,
-.sx-root.is-leaving .sx-vending-modal {
-  animation: sxLeave 420ms ease both;
-}
-
 @keyframes sxHeaderIn {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes sxLeave {
-  to {
-    opacity: 0;
-    transform: translateX(44px);
-  }
-}
-
-@keyframes sxPanelShadowIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes sxPanelShadowOut {
-  to {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sx-root .sx-header,
-  .sx-root .sx-refresh-icon {
-    animation: none;
-    transition: none;
-  }
-
-  .sx-root .sx-refresh:hover:not(:disabled) .sx-refresh-icon,
-  .sx-root .sx-refresh:focus-visible .sx-refresh-icon,
-  .sx-root .sx-refresh:active:not(:disabled) .sx-refresh-icon {
-    transform: none;
-  }
-
+  to { opacity: 0; transform: translateX(44px); }
 }

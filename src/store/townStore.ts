@@ -48,23 +48,13 @@ import {
   SANCTUARY_RULES,
   type TechTreeState,
 } from "../data";
-import {
-  DEFAULT_SHOP_LEVEL,
-  rollShopStock,
-  shopRefreshCost,
-  type ShopSlot,
-} from "../data/shop";
 import { consumeItems, removeByUid } from "../items/inventory";
 import type { EquipSlot, ItemStack } from "../items/types";
 import type { BondBias } from "../explore/types";
 import { TOWN_PROFILE_KEY, commitTownBackup, restoreTownBackup } from "./expeditionBackup";
 import { createEquipCraftSlice } from "./equipCraftSlice";
-import {
-  createCardShopSlice,
-  freshCardShop,
-  rollCardShopStock,
-  type CardShopState,
-} from "./cardShopSlice";
+import { createShopSlice, freshShop, type ShopState } from "./shopSlice";
+import { rollShopStock } from "./shopStock";
 import { createTechTreeSlice } from "./techTreeSlice";
 import {
   addCardToDeck,
@@ -127,13 +117,6 @@ export interface CharacterState {
 // ---------------------------------------------------------------------------
 // 货架是**存档的一部分**: 关掉页面再回来, 今天挑剩下的还是今天那批货。
 // 「隔日重置」的唯一真相点是 advanceDay() —— UI 不再判一次日期。
-export interface ShopState {
-  level: number; // 设施等级, 默认 1; 提升入口本期不开放
-  day: number; // 这批货是哪一天上的(与 TownStore.day 比对, 只作护栏与展示)
-  refreshes: number; // 今日已花积分刷新的次数 → 决定下次刷新价(隔日归 0)
-  slots: ShopSlot[];
-}
-
 export interface NutritionState {
   techs: string[];
   occupants: { charId: string; heal: number; day: number; slot: number }[];
@@ -141,10 +124,6 @@ export interface NutritionState {
 
 export interface SanctuaryState {
   purifying: { relicId: string; daysLeft: number }[];
-}
-
-function freshShop(day: number, level = DEFAULT_SHOP_LEVEL): ShopState {
-  return { level, day, refreshes: 0, slots: rollShopStock(level) };
 }
 
 // 战后经验结算报告条目(交给结算/胜利界面展示)
@@ -183,9 +162,9 @@ export interface TownStore {
   loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
   // ★ 物资中转仓: **不设上限**(与背包的 24 格形成对照)。远征活着回来才有东西进来。
   storage: ItemStack[];
+  lastSortieRelicIds: string[]; // 上一次回归时背包里携带的遗物 itemId, 最多 6 个
   day: number; // 生存天数, 从第 1 日起。★ 只由 advanceDay() 推进(出击后返回据点算一日)
   shop: ShopState;
-  cardShop: CardShopState;
   nutrition: NutritionState;
   sanctuary: SanctuaryState;
   techTree: TechTreeState;
@@ -198,6 +177,7 @@ export interface TownStore {
   markMapCleared: (mapId: string) => void; // 记录通关地图, 已记录则保持不变
   markGuideSeen: (id: string) => void;
   recordCodex: (patch: Partial<CodexState>) => void;
+  recordSortieRelics: (ids: string[]) => void;
   bankLoot: (amount: number) => void; // 远征结束落袋
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
@@ -241,11 +221,9 @@ export interface TownStore {
 
   // ---- 天数与商店 ----
   advanceDay: () => void; // 推进一日 + 重摇货架(由 runStore.backToTown 调用)
-  refreshShop: () => void; // 花积分立刻重摇货架, 当日刷得越多下次越贵
-  buyShopItem: (key: string) => void; // 买下一格货, 扣积分 + 入仓
-  refreshCardShop: import("./cardShopSlice").CardShopSlice["refreshCardShop"];
-  buyCardShopCard: import("./cardShopSlice").CardShopSlice["buyCardShopCard"];
-  upgradeCardShop: import("./cardShopSlice").CardShopSlice["upgradeCardShop"];
+  refreshShop: import("./shopSlice").ShopSlice["refreshShop"];
+  buyShopSlot: import("./shopSlice").ShopSlice["buyShopSlot"];
+  upgradeShop: import("./shopSlice").ShopSlice["upgradeShop"];
   researchTech: import("./techTreeSlice").TechTreeSlice["researchTech"];
 
   // ---- 卡组锻造(经验的唯一去处) ----
@@ -450,9 +428,9 @@ export const useTownStore = create<TownStore>()(
       party: [],
       loot: 10000,
       storage: [],
+      lastSortieRelicIds: [],
       day: 1,
-      shop: freshShop(1),
-      cardShop: freshCardShop(1, {}, []),
+      shop: freshShop(1, {}, []),
       nutrition: { techs: [], occupants: [] },
       sanctuary: { purifying: [] },
       techTree: { levels: {} },
@@ -460,7 +438,7 @@ export const useTownStore = create<TownStore>()(
       codex: { items: [], cards: [], enemies: [] },
       seenGuides: [],
       ...createEquipCraftSlice(set, get),
-      ...createCardShopSlice(set, get),
+      ...createShopSlice(set, get),
       ...createTechTreeSlice(set, get),
       initialized: false,
 
@@ -472,8 +450,7 @@ export const useTownStore = create<TownStore>()(
           loot: 10000,
           storage: freshStorage(),
           day: 1,
-          shop: freshShop(1),
-          cardShop: freshCardShop(1, profile.characters, profile.awakened),
+          shop: freshShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
           sanctuary: { purifying: [] },
           techTree: { levels: {} },
@@ -492,6 +469,10 @@ export const useTownStore = create<TownStore>()(
         const { seenGuides } = get();
         if (seenGuides.includes(id)) return;
         set({ seenGuides: [...seenGuides, id] });
+      },
+
+      recordSortieRelics: (ids) => {
+        set({ lastSortieRelicIds: ids.slice(0, 6) });
       },
 
       recordCodex: (patch) => {
@@ -515,9 +496,9 @@ export const useTownStore = create<TownStore>()(
           ...profile,
           loot: 0,
           storage: freshStorage(),
+          lastSortieRelicIds: [],
           day: 1,
-          shop: freshShop(1),
-          cardShop: freshCardShop(1, profile.characters, profile.awakened),
+          shop: freshShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
           sanctuary: { purifying: [] },
           techTree: { levels: {} },
@@ -1077,7 +1058,7 @@ export const useTownStore = create<TownStore>()(
       //   (出击打完从结算页回据点)。从主菜单进据点不算一日, 故 enterTown 不调它。
       // ⚠「隔日重置」在这里一次做完: 换新货 + 刷新次数归零。UI 不再判日期。
       advanceDay: () => {
-        const { day, shop, cardShop, characters, awakened, nutrition, sanctuary, storage, loot } = get();
+        const { day, shop, characters, awakened, nutrition, sanctuary, storage, loot } = get();
         const next = day + 1;
         const nextCharacters = { ...characters };
         for (const occupant of nutrition.occupants) {
@@ -1109,47 +1090,12 @@ export const useTownStore = create<TownStore>()(
           storage: nextStorage,
           loot: nextLoot,
           sanctuary: { purifying },
-          shop: { ...shop, day: next, refreshes: 0, slots: rollShopStock(shop.level) },
-          cardShop: {
-            ...cardShop,
+          shop: {
+            ...shop,
             day: next,
             refreshes: 0,
-            slots: rollCardShopStock(
-              nextCharacters,
-              awakened,
-              cardShop.techs,
-            ),
+            slots: rollShopStock(nextCharacters, awakened, shop.techs, shop.level),
           },
-        });
-      },
-
-      // 花积分立刻重摇货架。价格随当日刷新次数线性上涨, 隔日由 advanceDay 归零。
-      refreshShop: () => {
-        const { shop, loot } = get();
-        const cost = shopRefreshCost(shop.refreshes);
-        if (loot < cost) return; // 积分不足时购买动作不发生
-        set({
-          loot: loot - cost,
-          shop: { ...shop, refreshes: shop.refreshes + 1, slots: rollShopStock(shop.level) },
-        });
-      },
-
-      // 买下一格货。★ 售出后该格保留占位并打上 sold —— 当日不补货, 想要新货得刷新或过一天。
-      //   实例化推迟到这一刻(uid 此时才发), 羁绊词条沿用上架时摇好的那条。
-      buyShopItem: (key) => {
-        const { shop, loot, storage } = get();
-        const slot = shop.slots.find((s) => s.key === key);
-        if (!slot || slot.sold || loot < slot.price) return;
-
-        const next = shop.slots.map((s) => (s.key === key ? { ...s, sold: true } : s));
-        set({
-          loot: loot - slot.price,
-          // 仓库无上限, 与 deposit 同写法直接追加, 不必走 addToContainer。
-          storage: [
-            ...storage,
-            makeItemStack(slot.itemId, 1, { affinity: slot.affinity, roll: slot.roll }),
-          ],
-          shop: { ...shop, slots: next },
         });
       },
 
@@ -1316,11 +1262,12 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v27: 卡牌/装备/材料/祝福遗物统一为一套商店货架, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v26: 遗物清单与初始仓库调整, 旧档中的 relic-even-draw 已下线, 换 key 让旧档自然失效重建。
     // ⚠ v25: 新增遗物与圣水池, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v24: 新增科技树等级, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v22: 新增 fallen 永久阵亡名单与复苏舱, 旧档不兼容, 换 key 让旧档自然失效重建。
-    // ⚠ v21: 新增卡牌商店货架、科技与购买 action, 旧档不兼容, 换 key 让旧档自然失效重建。
+    // ⚠ v21: 新增商店扩展货架、科技与购买 action, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v20: 重铸台改为重掷羁绊, pendingReforge 由 roll 改为 affinity, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v19: 新增 seenGuides 新手引导记录, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v18: 新增装备升阶、词条重铸与待确认重铸状态, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1339,6 +1286,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 26 },
+    { name: TOWN_PROFILE_KEY, version: 27 },
   ),
 );

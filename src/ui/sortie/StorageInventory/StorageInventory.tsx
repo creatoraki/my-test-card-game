@@ -18,7 +18,7 @@ interface Props {
 }
 
 const rarityRank = (rarity: string) => RARITY_ORDER.indexOf(rarity as never);
-const CELLS = 8;
+const CELLS = 4;
 
 export function StorageInventory({ className, onTaken, onFull }: Props) {
   const storage = useTownStore((state) => state.storage);
@@ -29,8 +29,8 @@ export function StorageInventory({ className, onTaken, onFull }: Props) {
         mergeStacksForDisplay(
           storage.filter((stack) => {
             const def = getItemDef(stack.itemId);
-            // 出击物资中的食品以 maxStack > 1 区分；遗物也要在这里取出。
-            return (def.category === "consumable" && def.maxStack === 1) || def.category === "relic";
+            // 出击物资中的食品以 maxStack > 1 区分；遗物由独立窗口负责取出。
+            return def.category === "consumable" && def.maxStack === 1;
           }),
           getItemDef,
         ),
@@ -44,7 +44,7 @@ export function StorageInventory({ className, onTaken, onFull }: Props) {
     <ItemInventoryPanel
       className={cx(s.panel, className)}
       stacks={visible}
-      rows={2}
+      rows={1}
       columns={4}
       kicker="出击物资 // 仓库"
       title="仓库"

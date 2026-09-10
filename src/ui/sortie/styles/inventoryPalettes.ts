@@ -1,4 +1,4 @@
-// 仓库使用冷银白透玻璃、背包使用近黑玻璃 + 熔橙点缀，靠明度与色相双重区分。
+// 仓库使用冷银白透玻璃、背包使用近黑玻璃 + 熔橙点缀、遗物使用紫金，靠明度与色相双重区分。
 // 背包 panel alpha 高于仓库是刻意的：它是物资准备步骤的主操作区。
 import type { InventoryColorMap } from "@/ui/common/item/ItemInventoryPanel";
 
@@ -42,4 +42,25 @@ export const SORTIE_BACKPACK_COLORS: InventoryColorMap = {
   selected: "#ff7a2f",
   selectedGlow: "#ff7a2f59",
   emptySlot: "#ffffff08",
+};
+
+export const SORTIE_RELIC_COLORS: InventoryColorMap = {
+  panel: "#1a1026cc",
+  panelDeep: "#0a0612e8",
+  panelGlow: "#d4a5ff1c",
+  panelLine: "#f0d8ff3d",
+  frame: "#d8b6ffb3",
+  frameHot: "#ffe1a3",
+  accent: "#d2a2ff",
+  accentAlt: "#f6d28f",
+  text: "#fbf4ff",
+  muted: "#c1aed0",
+  tray: "#10091a99",
+  trayBorder: "#d8b6ff33",
+  slot: "#1d122acc",
+  slotBorder: "#d8b6ff2e",
+  slotHover: "#d2a2ff30",
+  selected: "#f5d18d",
+  selectedGlow: "#f5d18d66",
+  emptySlot: "#d8b6ff0d",
 };
