@@ -189,11 +189,11 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
     kind: "loot",
     category: "growth",
     title: "锻造工作台",
-    description: "工作台可以免费生成两次角色卡牌候选，完成后会进入待办奖励队列。",
+    description: "工作台可以免费生成一次角色卡牌候选，完成后会进入待办奖励队列。",
     energyDelta: 0,
     choices: [
-      direct("draw", "生成卡牌候选", "免费进行两次三选一锻造", "你启动选牌程序，两次卡牌候选被登记到待办奖励。", [{ type: "FORGE_DRAW" }, { type: "FORGE_DRAW" }]),
-      direct("review", "复核卡组需求", "免费进行两次三选一锻造", "你让工作台重新读取队伍需求，同样生成了两次免费锻造机会。", [{ type: "FORGE_DRAW" }, { type: "FORGE_DRAW" }]),
+      direct("draw", "生成卡牌候选", "免费进行一次三选一锻造", "你启动选牌程序，一次卡牌候选被登记到待办奖励。", [{ type: "FORGE_DRAW" }]),
+      direct("review", "复核卡组需求", "免费进行一次三选一锻造", "你让工作台重新读取队伍需求，生成了一次免费锻造机会。", [{ type: "FORGE_DRAW" }]),
     ],
   },
   {
