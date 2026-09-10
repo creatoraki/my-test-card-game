@@ -80,6 +80,7 @@ export { growInsurance, insuranceStacksOf, partyInsuranceStacks, settleInsurance
 export { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 export { moveToDiscard } from "./discard";
 export { isPassive, playableHandUids, handPassiveUids } from "./passive";
+export { RELIC_TRIGGERS, fireRelic } from "./relics";
 export { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
 export { cardActivated, cardBoons } from "./cardBoon";
 export type { CardBoonId } from "./cardBoon";

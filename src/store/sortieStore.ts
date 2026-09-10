@@ -33,7 +33,7 @@ interface SortieStore {
   pickMap: (mapId: string) => void; // 选定地图 → 进物资准备
   backToMap: () => void; // 准备页「重选地图」(已装的物资保留)
   buy: (itemId: string) => boolean; // 货柜购买。false = 钱不够 / 背包满
-  takeFromStorage: (uid: string) => boolean; // 仓库消耗品 → 背包。false = 背包满
+  takeFromStorage: (uid: string) => boolean; // 仓库物资/遗物 → 背包。false = 背包满或遗物达到上限
   putBack: (uid: string) => void; // 背包里的一整堆退回来源
   cancel: () => void; // 取消出击: 全量回滚
   clear: () => void; // 出击成功后清空(不回滚 —— 东西跟着远征走了)
@@ -50,6 +50,8 @@ const EMPTY = {
 // 负重与出发后第一场战斗吃到的惩罚必然一致。
 export const sortieUsedSlots = (backpack: ItemStack[]): number =>
   occupiedSlots(backpack, getItemDef);
+
+export const SORTIE_RELIC_LIMIT = 5;
 
 // 把一整堆退回来源。★ 纯计算 + 副作用集中在这里, putBack 与 cancel 共用同一条规则,
 //   两处各写一份必然在某次改动后对不上。返回新的 { backpack, bought }。
@@ -123,6 +125,11 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     // ★ 先试算再真取: 装不下就不能把东西从仓库取出来, 否则它会卡在「既不在仓库也不在背包」。
     const peek = town.storage.find((s) => s.uid === uid);
     if (!peek) return false;
+    if (
+      getItemDef(peek.itemId).category === "relic" &&
+      backpack.filter((stack) => getItemDef(stack.itemId).category === "relic").length >= SORTIE_RELIC_LIMIT
+    )
+      return false;
     const probe = addToContainer(backpack, [peek], getItemDef, RULES.burden.backpackSlots);
     if (probe.overflow.length) return false;
 

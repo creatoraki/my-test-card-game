@@ -66,8 +66,12 @@ export default function ItemDetail({
   const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
   // 模组的装配条件独立成字段展示 —— 正文只说装配后的效果, 条件不再混在 desc 里。
   const cardModule = def.category === "module" ? getCardModule(def.id) : undefined;
-  const flatMods = stack.roll ? rollToFlat(stack.roll) : def.mods?.flat;
-  const pctMods = def.mods?.pct;
+  const flatMods = stack.roll
+    ? rollToFlat(stack.roll)
+    : def.category === "relic"
+      ? def.relic?.mods?.flat
+      : def.mods?.flat;
+  const pctMods = def.category === "relic" ? def.relic?.mods?.pct : def.mods?.pct;
   const rows: { label: string; value: string; good: boolean }[] = [];
   for (const k of STAT_KEYS) {
     const flat = flatMods?.[k];
@@ -107,6 +111,15 @@ export default function ItemDetail({
       </div>
 
       <p className={s["item-detail-desc"]}>{def.desc}</p>
+
+      {def.relic && (
+        <div className={s["item-detail-relic"]}>
+          <strong>{def.relic.polarity === "blessing" ? "祝福遗物" : "诅咒遗物"}</strong>
+          <span>{relicTriggerText(def.relic.on)}触发</span>
+          {def.relic.every && <span>每 {def.relic.every} 次触发结算</span>}
+          {def.relic.purifyTo && <span>可在圣水池净化</span>}
+        </div>
+      )}
 
       {rows.length > 0 && (
         <dl className={s["item-detail-stats"]}>
@@ -158,3 +171,18 @@ export default function ItemDetail({
 }
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+
+function relicTriggerText(on: string | string[]): string {
+  const labels: Record<string, string> = {
+    roundStart: "回合开始",
+    roundEnd: "回合结束",
+    cardPlayed: "出牌后",
+    allyAttacked: "队友受击",
+    enemyKilled: "击杀敌人",
+    nodeArrived: "抵达节点",
+    itemPicked: "拾取物品",
+    rested: "休整后",
+    battleVictory: "战斗胜利",
+  };
+  return (Array.isArray(on) ? on : [on]).map((id) => labels[id] ?? id).join("、");
+}

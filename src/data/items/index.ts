@@ -9,6 +9,7 @@ import {
   MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
 } from "./modules";
+import { RELIC_ITEM_DEFS } from "./relics";
 
 export { CONSUMABLE_ITEM_DEFS, NEAR_EXPIRY_FOOD_IDS } from "./consumables";
 export { EQUIPMENT_ITEM_DEFS } from "./equipment";
@@ -29,6 +30,7 @@ export {
   MODULE_CRATE_ITEM_DEFS,
   MODULE_ITEM_DEFS,
 } from "./modules";
+export { BLESSING_RELIC_DEFS, CURSE_RELIC_DEFS, RELIC_ITEM_DEFS, RELIC_ITEM_IDS } from "./relics";
 
 export const DESIGN_ITEM_DEFS = [
   ...MATERIAL_ITEM_DEFS,
@@ -40,4 +42,5 @@ export const DESIGN_ITEM_DEFS = [
   ...MODULE_ITEM_DEFS,
   ...GENERIC_MODULE_ITEM_DEFS,
   ...MODULE_CRATE_ITEM_DEFS,
+  ...RELIC_ITEM_DEFS,
 ];

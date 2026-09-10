@@ -142,22 +142,24 @@ export default function ItemTooltip({
   stack,
   point,
   themeStyle = {},
+  className,
 }: {
   stack: ItemStack;
   point: TooltipPoint;
   themeStyle?: CSSProperties;
+  className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const placement = useTooltipPlacement(point, ref);
 
   return createPortal(
     <div
-      className={s["item-tooltip"]}
+      className={`${s["item-tooltip"]}${className ? ` ${className}` : ""}`}
       ref={ref}
       style={{ ...themeStyle, ...tooltipStyle(placement) }}
       role="tooltip"
     >
-      <ItemDetail stack={stack} className={s["item-tooltip-detail"]} />
+      <ItemDetail stack={stack} className={`${s["item-tooltip-detail"]}${className ? ` ${className}` : ""}`} />
     </div>,
     point.host,
   );

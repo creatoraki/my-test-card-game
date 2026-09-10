@@ -127,7 +127,7 @@ export type ExploreEffect =
   | { type: "CURE_QUIRK"; scope: "one" | "party"; count?: number }
   | { type: "REDUCE_POLLUTION"; scope: "one" | "party"; amount: number }
   | { type: "PURIFY_CARDS"; scope: "one" | "party"; count?: number }
-  | { type: "GRANT_AURA"; aura: ExploreAura }
+  | { type: "GRANT_RELIC"; relicId: string }
   | { type: "GAIN_EXP_PARTY"; amount: number }
   | { type: "GAIN_EXP_ONE"; amount: number }
   | { type: "GRANT_EQUIP" }
@@ -147,13 +147,6 @@ export type BondBias = "offense" | "defense";
 export interface ChoiceCost {
   itemId: string;
   count: number;
-}
-
-export interface ExploreAura {
-  id: string;
-  name: string;
-  desc: string;
-  mods: StatModifier;
 }
 
 // ---------------------------------------------------------------------------
@@ -210,7 +203,7 @@ export type TradeServiceKind = "goods" | "party" | "pending" | "random";
 
 export interface TradeBuffOption {
   weight: number;
-  aura: ExploreAura;
+  relicId: string;
 }
 
 export interface TradeSlotState {
@@ -377,10 +370,10 @@ export interface ExploreState {
   board: RouteBoard | null;
 
   party: PartySnapshot[];
-  auras: ExploreAura[];
+  // 出发时记录仓库与背包已拥有的遗物 id，后续投放按 id 去重。
+  ownedRelicIds: string[];
   // ---- 挑战契约(见 TrialDef) ----
-  // ⚠ 刻意**不**并进 auras: auras 按 id 去重且没有移除路径(整趟远征常驻的正面光环),
-  //   而挑战允许叠加、到期必须撤掉 —— 两者生命周期完全不同, 合在一起迟早互相咬。
+  // 挑战契约允许叠加、到期必须撤掉；背包遗物则按物品实例生命周期生效。
   trials: ActiveTrial[];
   // 最近一场推进战斗里到期的挑战, 供战斗胜利面板展示。每次结算战斗时重置。
   // ⚠ 结果文案刻意留在这里而**不**推进 pendingStory: 那一列由节点浮层消费、只在 confirmNode

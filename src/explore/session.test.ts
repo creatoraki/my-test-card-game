@@ -14,6 +14,7 @@ import { getEventPool, makeItemStack } from "../data";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import {
   addItems,
+  applyEffect,
   arriveNode,
   backpackSlots,
   battleTierOf,
@@ -43,6 +44,7 @@ import {
   roundBattleEvent,
   shipHome,
   startReveal,
+  takePending,
   useItem,
 } from "./session";
 import type { ExploreState, PartySnapshot } from "./types";
@@ -587,6 +589,18 @@ describe("净化粒子(设计文档 §4.2)", () => {
 });
 
 describe("背包与负重(设计文档 §六)", () => {
+  it("祝福遗物先进入待拾取框, 收下后占用一格并参与同名去重", () => {
+    const s = newSession();
+    expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-even-draw" }, true)).toContain("双相抽牌器");
+    expect(s.backpack).toHaveLength(0);
+    expect(s.pendingPickup).toHaveLength(1);
+    expect(takePending(s, 0)).toBe(true);
+    expect(backpackSlots(s)).toBe(1);
+    expect(s.ownedRelicIds).toContain("relic-even-draw");
+    expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-even-draw" }, true)).toContain("回落");
+    expect(s.pendingPickup).toHaveLength(0);
+  });
+
   it("一件物品一格, 有效负重随占格线性上升", () => {
     const s = newSession();
     expect(backpackSlots(s)).toBe(0);
@@ -902,8 +916,8 @@ describe("挑战契约(跨轮)", () => {
     expect(s.trials).toHaveLength(1);
     expect(s.trials[0].startRound).toBe(s.round);
     expect(s.trials[0].untilRound).toBe(s.round + 1); // 当轮 + 下一轮
-    // ⚠ 挑战修正**不能**混进 auras: 那一列是整趟常驻的正面光环, 没有移除路径。
-    expect(s.auras).toHaveLength(0);
+    // 挑战修正只保留在契约自身；祝福遗物必须通过拾取流程获得。
+    expect(s.ownedRelicIds).toEqual([]);
   });
 
   it("放弃挑战: 只付基础消耗, 不留任何契约", () => {

@@ -6,7 +6,7 @@
 // 所以它不是装饰, 是这套机制的记忆外挂。
 //
 // ⚠ 不用 backdrop-filter: 祖先 .expl-readout 自带 explRise 动画 ⇒ 它已经是 backdrop root,
-//   玻璃在这里取不到背景图(与旁边的 .expl-aura 同一条约束, 那块也是纯渐变底)。
+//   玻璃在这里取不到背景图(与旁边的遗物栏同一条约束, 那块也是纯渐变底)。
 // ⚠ 悬浮说明走 RailPopover, 不用 DOM 原生 title(项目规范)。
 
 import type { ActiveTrial } from "@/explore/types";

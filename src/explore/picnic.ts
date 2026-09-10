@@ -64,7 +64,7 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
       recipeId: recipe.id,
       recipeName: recipe.name,
       story: recipe.story,
-      notes: [applyEffect(s, { type: "GRANT_AURA", aura: recipe.aura })],
+      notes: [applyEffect(s, { type: "GRANT_RELIC", relicId: recipe.relicId })],
     };
   } else if (total > 0) {
     const amount = EXPLORE_RULES.picnic.limitPerFood * total;
@@ -89,6 +89,6 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
   }
 
   s.picnicUsed = true;
-  logLine(s, recipe ? "完成野餐，远征光环已生效" : "完成野餐，队伍恢复了状态");
+  logLine(s, recipe ? "完成野餐，祝福遗物已进入待拾取框" : "完成野餐，队伍恢复了状态");
   return result;
 }

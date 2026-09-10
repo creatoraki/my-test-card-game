@@ -69,6 +69,7 @@ import salvageCoreArt from "@/assets/道具/材料/废弃楼层/拾荒核心.png
 import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
 import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
 import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
+import relicPlaceholderArt from "@/assets/占位素材.png";
 
 const VB = "0 0 48 48";
 const base = {
@@ -165,6 +166,7 @@ const ICONS: Record<string, () => ReactNode> = {
   trinket: TrinketIcon,
   data: DataIcon,
   consumable: ConsumableIcon,
+  relic: TrinketIcon,
 };
 
 /** 空装备槽的部位占位图标, 与 itemIcon 同族并继承调用方的 currentColor。 */
@@ -181,6 +183,7 @@ const BY_CATEGORY: Record<ItemCategory, string> = {
   equipment: "armor",
   data: "data",
   consumable: "consumable",
+  relic: "relic",
 };
 
 const EQUIPMENT_ART: Record<string, string> = {
@@ -301,9 +304,11 @@ export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
   ...Object.values(CONSUMABLE_ART),
   ...Object.values(MATERIAL_ART),
   ...Object.values(SCRAP_ART),
+  relicPlaceholderArt,
 ])];
 
 export function itemIcon(def: ItemDef): ReactNode {
+  if (def.category === "relic") return <img src={relicPlaceholderArt} alt="" />;
   const art =
     EQUIPMENT_ART[def.id] ??
     (def.familyId ? EQUIPMENT_ART[def.familyId] : undefined) ??

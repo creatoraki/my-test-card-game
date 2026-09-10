@@ -89,6 +89,10 @@ export {
   NEAR_EXPIRY_FOOD_IDS,
   DEFAULT_REGION_ID,
   REGIONAL_MATERIAL_DEFS,
+  RELIC_ITEM_DEFS,
+  RELIC_ITEM_IDS,
+  BLESSING_RELIC_DEFS,
+  CURSE_RELIC_DEFS,
   itemRegionId,
   regionalMaterial,
   regionalTierOf,
@@ -193,6 +197,7 @@ export {
 } from "./townBotLines";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";
+export { SANCTUARY_RULES } from "./sanctuary";
 
 export const ITEM_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...DESIGN_ITEM_DEFS];
 

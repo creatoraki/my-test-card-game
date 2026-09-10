@@ -140,11 +140,12 @@ export function mergeStacksForDisplay(stacks: ItemStack[], getDef: GetDef): Item
 // 稀有度降序 → 类别 → 名称。两个界面共用同一个序, 玩家换界面不用重新找东西。
 const CATEGORY_RANK: Record<string, number> = {
   equipment: 0,
-  consumable: 1,
-  module: 2,
-  material: 3,
-  data: 4,
-  scrap: 5,
+  relic: 1,
+  consumable: 2,
+  module: 3,
+  material: 4,
+  data: 5,
+  scrap: 6,
 };
 
 export function sortStacks(stacks: ItemStack[], getDef: GetDef, rarityRank: (r: string) => number) {

@@ -38,6 +38,7 @@ import {
   roundBattleEvent,
 } from "@/explore/session";
 import { canPicnic } from "@/explore/picnic";
+import { relicsInBackpack } from "@/explore/relics";
 import type { ChoiceCost, EventChoice, NodeEvent } from "@/explore/types";
 import { getItemDef, getNpcEvent } from "@/data";
 import { SLOT_LABEL, TARGETED_ITEM_USE_KINDS, type EquipSlot, type ItemStack } from "@/items/types";
@@ -58,6 +59,7 @@ import { EnergyLamp } from "@/ui/explore/EnergyLamp";
 import { BurdenGauge } from "@/ui/explore/BurdenGauge";
 import NodeTip from "@/ui/explore/NodeTip";
 import TrialGauge from "@/ui/explore/TrialGauge";
+import { RelicRail } from "./RelicRail";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
@@ -653,20 +655,9 @@ export function ExploreScreen() {
             projected={projectedEnergy(session)}
             recede={focused}
           />
-          {/* 进行中的挑战 —— 唯一跨轮生效的东西, 必须一直挂在屏幕上(见 TrialGauge 抬头)。
-              位置刻意夹在粒子灯与远征光环之间: 左边是「还能走多久」, 右边是「已经拿到什么」,
-              中间这一格是「已经押出去、还没拿回来的」。 */}
+          {/* 进行中的挑战与随身遗物都固定挂在右上读数列。 */}
           <TrialGauge trials={session.trials} round={session.round} recede={focused} />
-          {session.auras.length > 0 && (
-            <div className={s["expl-aura-list"]} aria-label="远征光环">
-              {session.auras.map((aura) => (
-                <span className={s["expl-aura"]} key={aura.id}>
-                  <span className={s["expl-aura-name"]}>{aura.name}</span>
-                  <span className={s["expl-aura-desc"]}>{aura.desc}</span>
-                </span>
-              ))}
-            </div>
-          )}
+          <RelicRail stacks={relicsInBackpack(session)} />
         </div>
 
         {/* ---- 中央: 等距路由图 ---- */}

@@ -1,4 +1,4 @@
-// 据点(空间站全景) —— 远征之间的常驻中枢: 一张 1920×1080 的全景 + 6 栋可点的建筑。
+// 据点(空间站全景) —— 远征之间的常驻中枢: 一张 1920×1080 的全景 + 7 栋可点的建筑。
 //
 // 与主菜单同一套「1920×1080 设计画布 + 等比缩放」机制(见 ui/hooks/stage.ts):
 // ★ 本文件里所有坐标/尺寸都是「设计 px」, 直接照着 1920×1080 的设计稿填数就行,
@@ -47,6 +47,7 @@ import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
 import { MuseumScene } from "@/ui/town/museum";
+import { SanctuaryScene } from "@/ui/town/sanctuary";
 import { FacilityExitProvider, useFacilityExitRegistry } from "@/ui/town/facilityExit";
 import { clearTownReturn, peekTownReturn } from "@/ui/town/townReturn";
 import { FacilityBack } from "./FacilityBack";
@@ -77,6 +78,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   worklog: (leaving) => <ResearchScene leaving={leaving} />,
   // 档案机: 物品 / 卡牌 / 怪物图鉴
   museum: (leaving) => <MuseumScene leaving={leaving} />,
+  sanctuary: (leaving) => <SanctuaryScene leaving={leaving} />,
 };
 
 // ===================== 进设施演出 =====================

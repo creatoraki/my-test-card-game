@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { RULES } from "@/engine";
-import { VENDOR_LINES } from "@/data";
-import { useSortieStore } from "@/store/sortieStore";
+import { getItemDef, VENDOR_LINES } from "@/data";
+import { SORTIE_RELIC_LIMIT, useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
 import { ChatBot, useBotChatter } from "@/ui/common/ChatBot";
 import ItemInventoryPanel from "@/ui/common/item/ItemInventoryPanel";
@@ -23,6 +23,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
   const backpack = useSortieStore((state) => state.backpack);
   const putBack = useSortieStore((state) => state.putBack);
   const credits = useCountUp(loot, 120, 460);
+  const relicCount = backpack.filter((stack) => getItemDef(stack.itemId).category === "relic").length;
   // 页面上所有的软反馈(买到了/买不起/装不下/退了钱)都由机器人说出来, 这里只负责触发。
   const { line, say } = useBotChatter(active, {
     lines: VENDOR_LINES,
@@ -74,7 +75,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
           columns={6}
           capacity={RULES.burden.backpackSlots}
           title="背包"
-          subtitle="点击退回来源"
+          subtitle={`遗物 ${relicCount}/${SORTIE_RELIC_LIMIT} · 点击退回来源`}
           colorMap={SORTIE_BACKPACK_COLORS}
           onSelect={(stack) => {
             if (stack) handlePutBack(stack.uid, stack.itemId);

@@ -73,3 +73,29 @@ export function recordCardTrigger(
     snapshot: structuredClone(state),
   });
 }
+
+/** 遗物触发沿用同一份快照/命中台账，但单独使用 relic FxStep。 */
+export function recordRelicTrigger(
+  state: BattleState,
+  relicId: string,
+  actorId: string,
+  beforeHp: Record<string, number>,
+  rec: DiscardRecorder,
+  resolution: EffectResolution,
+  recorded: AnimHit[] = [],
+): void {
+  const hits = fillMissingHits(state, beforeHp, [...recorded]);
+  for (const id of allIds(state)) {
+    if (hits.some((hit) => hit.id === id)) continue;
+    if (resolution.missed.includes(id) && !resolution.hit.includes(id))
+      hits.push({ id, hpDelta: 0, missed: true });
+  }
+  const step = {
+    kind: "relic" as const,
+    relicId,
+    actorId,
+    hits,
+    snapshot: structuredClone(state),
+  };
+  rec.steps.push(step);
+}

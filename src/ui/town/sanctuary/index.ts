@@ -1,0 +1,1 @@
+export { SanctuaryScene } from "./SanctuaryScene";

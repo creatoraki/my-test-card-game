@@ -81,6 +81,7 @@ interface ExploreStore {
     party: PartySnapshot[],
     seed?: number,
     initialBackpack?: ItemStack[],
+    ownedRelicIds?: string[],
   ) => void;
   generateDone: () => void; // 浮现演出播完(UI 定时器) → sealed
   beginReveal: () => void; // 玩家按「探索路线」→ revealing。一轮只生效一次
@@ -168,8 +169,8 @@ function mutate(
 export const useExploreStore = create<ExploreStore>((set, get) => ({
   session: null,
 
-  start: (mapId, party, seed, initialBackpack) => {
-    set({ session: createSession(mapId, party, seed, initialBackpack) });
+  start: (mapId, party, seed, initialBackpack, ownedRelicIds) => {
+    set({ session: createSession(mapId, party, seed, initialBackpack, ownedRelicIds) });
   },
 
   generateDone: () => {

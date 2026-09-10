@@ -171,6 +171,22 @@
   width: var(--item-detail-bond-icon-size, 24px);
   height: var(--item-detail-bond-icon-size, 24px);
 }
+
+.item-detail-relic {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--accent2);
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.item-detail-relic strong {
+  color: var(--rr);
+}
 .item-detail-bond-name {
   color: var(--accent);
 }

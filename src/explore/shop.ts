@@ -140,7 +140,7 @@ export function buyFromShop(
   } else if (service.kind === "random") {
     const option = pickWeighted(s, slot.buffOptions ?? []);
     if (!option) return false;
-    const effect: ExploreEffect = { type: "GRANT_AURA", aura: option.aura };
+    const effect: ExploreEffect = { type: "GRANT_RELIC", relicId: option.relicId };
     result = runEffect(s, effect, false);
   } else {
     for (const effect of service.effects ?? []) result = runEffect(s, effect, false);

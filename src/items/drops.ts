@@ -30,6 +30,9 @@ export interface DropContext {
   equipmentFamilyIds?: string[];
   // 地图允许的装备稀有度档, 由 data 层按 RARITY_ORDER 前缀递进。
   equipRarities?: ItemRarity[];
+  // 遗物同名去重由探索会话递进当前收藏快照, 物品层只负责执行排除。
+  excludeItemIds?: readonly string[];
+  relicFallbackItemId?: string;
 }
 
 // 掷件数: finalChance = base × K。结果 >1 时, 整数部分为保底件数, 小数部分再掷一次
@@ -92,6 +95,7 @@ export function rollDropTable(
 ): ItemStack[] {
   if (!table?.length) return [];
   const out: ItemStack[] = [];
+  const excluded = new Set(ctx.excludeItemIds ?? []);
 
   for (const e of table) {
     const times = rollCount(rng, e.chance, k);
@@ -104,6 +108,13 @@ export function rollDropTable(
       const def =
         e.kind === "item" ? ctx.getDef(e.itemId) : pickByQuality(rng, ctx.getFamily(e.familyId), ctx.weights);
       if (!def) continue;
+      if (def.category === "relic" && excluded.has(def.id)) {
+        const fallback = ctx.relicFallbackItemId ? ctx.getDef(ctx.relicFallbackItemId) : null;
+        if (fallback) {
+          for (let n = 0; n < count; n++) out.push(ctx.makeStack(fallback.id, 1));
+        }
+        continue;
+      }
 
       // maxStack 为 1 时拆成 count 个独立 stack —— 装备本来就必须逐件独立(各带各的羁绊)。
       if (def.maxStack <= 1) {
@@ -116,6 +127,7 @@ export function rollDropTable(
               roll: rollEquipment(def, (n) => rngInt(rng, n)),
             }),
           );
+          if (def.category === "relic") excluded.add(def.id);
         }
       } else {
         out.push(ctx.makeStack(def.id, count));

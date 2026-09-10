@@ -1,4 +1,3 @@
-import type { StatModifier } from "../engine/types";
 import type { EventChoice, ExploreEffect, EventOutcome, TrialDef } from "../explore/types";
 
 export const outcome = (id: string, text: string, effects: ExploreEffect[]): EventOutcome => ({
@@ -49,10 +48,7 @@ export const equip = (count: number, slot?: "weapon" | "armor" | "trinket"): Exp
   slot,
 });
 export const cost = (itemId: string, count = 1) => ({ itemId, count });
-export const aura = (id: string, name: string, desc: string, mods: StatModifier) => ({
-  type: "GRANT_AURA" as const,
-  aura: { id, name, desc, mods },
-});
+export const relic = (relicId: string): ExploreEffect => ({ type: "GRANT_RELIC", relicId });
 
 // 挑战契约(见 explore/types.ts TrialDef): 接下即刻生效, 到期由 session.settleTrials 发奖。
 export const startTrial = (trial: TrialDef): ExploreEffect => ({ type: "START_TRIAL", trial });

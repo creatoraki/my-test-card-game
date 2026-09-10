@@ -51,6 +51,7 @@ import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder
 import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { firePassive, isPassive, playableHandUids, recycleHandPassives } from "./passive";
+import { fireRelic } from "./relics";
 import { gainSquadBuff } from "./squadBuff";
 import { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
 import { withHitRecorder } from "./animHits";
@@ -90,6 +91,7 @@ export interface BattleSetup {
   burden?: number;
   squadMods?: import("./types").SquadResourceMods;
   squadBuffRewardPools?: SquadBuffRewardPools;
+  relics?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -185,6 +187,7 @@ export function createBattle(
     playerIds,
     enemyIds,
     cards,
+    relics: [...new Set(setup.relics ?? [])].map((id) => ({ id, counter: 0 })),
     draw: [],
     hand: [],
     discard: [],
@@ -308,6 +311,7 @@ export function startRound(state: BattleState): void {
   const limit = partyHandLimit(state);
   const want = state.round === 1 ? partyOpeningDrawCount(state) : partyDrawCount(state);
   drawCards(state, Math.max(0, Math.min(want, limit - state.hand.length)));
+  fireRelic(state, { type: "roundStart" });
 
   checkEnd(state);
 }
@@ -479,6 +483,7 @@ export function playCard(
         // ⚠ 必须在 flushAutoPlays 之前撤回: 自动出牌是另一张牌的结算, 不该继承本卡的临时面板。
         revertPlayStatMods(state);
         if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
+        fireRelic(state, { type: "cardPlayed", targetId: primaryId }, rec);
         flushAutoPlays(state, rec);
       } finally {
         state.activeCardCost = null;
@@ -550,6 +555,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
       }
     }
     firePassive(state, { type: "roundEnd" }, rec);
+    fireRelic(state, { type: "roundEnd" }, rec);
     // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
     recycleHandPassives(state, rec);
     flushAutoPlays(state, rec);

@@ -11,7 +11,7 @@
 //    卡牌那套只出现在 Card/卡组锻造里, 物品这套只出现在 ItemDef/ItemStack 里, 别混用。
 // ============================================================================
 
-import type { StatBlock } from "../engine/types";
+import type { EffectDescriptor, StatBlock, StatModifier } from "../engine/types";
 
 // ---------------------------------------------------------------------------
 // 稀有度 —— 五档(《物品设计.md》第四章)
@@ -39,7 +39,8 @@ export type ItemCategory =
   | "module" // 成品模组: 装配到卡牌上; 与制造模组的 material 原料不同
   | "equipment" // 装备: 穿戴或分解
   | "data" // 数据存档: 回城解锁叙事, 不直接兑换积分
-  | "consumable"; // 消耗品: 探索途中使用
+  | "consumable" // 消耗品: 探索途中使用
+  | "relic"; // 遗物: 占背包格的跨战斗常驻规则
 
 export type EquipSlot = "weapon" | "armor" | "trinket"; // 《物品设计.md》第二章
 
@@ -56,6 +57,7 @@ export const CATEGORY_LABEL: Record<ItemCategory, string> = {
   equipment: "装备",
   data: "数据存档",
   consumable: "消耗品",
+  relic: "遗物",
 };
 
 // ---------------------------------------------------------------------------
@@ -97,6 +99,27 @@ export interface EquipModelDef {
   drawbacks?: EquipAffixDef[];
   costRefund?: number;
   costRefundFlat?: number;
+}
+
+export type RelicTriggerId =
+  | "roundStart"
+  | "roundEnd"
+  | "cardPlayed"
+  | "allyAttacked"
+  | "enemyKilled"
+  | "nodeArrived"
+  | "itemPicked"
+  | "rested"
+  | "battleVictory";
+
+export interface RelicSpec {
+  polarity: "blessing" | "curse";
+  scope: "battle" | "explore";
+  on: RelicTriggerId | RelicTriggerId[];
+  effects?: EffectDescriptor[];
+  mods?: StatModifier;
+  every?: number;
+  purifyTo?: string | { rarity: ItemRarity };
 }
 
 export interface EquipRoll {
@@ -145,6 +168,7 @@ export interface ItemDef {
   familyId?: string;
 
   use?: ItemUse; // 消耗品专属
+  relic?: RelicSpec; // 遗物专属
 }
 
 // 运行期实例。★ 一个 ItemStack = 背包/仓库里的**一堆**, 也就是一个占位单元。

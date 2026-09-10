@@ -30,6 +30,7 @@ export interface BattleChoreoApi {
   telegraph: { id: string; kind: TelegraphKind } | null;
   hits: Record<string, HitFx>;
   cutInCard: Card | null;
+  relicId: string | null;
 }
 
 interface Options {
@@ -59,6 +60,7 @@ export function useBattleChoreo({
   const [telegraph, setTelegraph] = useState<{ id: string; kind: TelegraphKind } | null>(null);
   const [hits, setHits] = useState<Record<string, HitFx>>({});
   const [cutInCard, setCutInCard] = useState<Card | null>(null);
+  const [relicId, setRelicId] = useState<string | null>(null);
   const hitSeqRef = useRef(0);
 
   useEffect(() => {
@@ -66,6 +68,7 @@ export function useBattleChoreo({
     setTelegraph(null);
     setHits({});
     setCutInCard(null);
+    setRelicId(null);
     hitSeqRef.current = 0;
   }, [battleSeq]);
 
@@ -95,6 +98,7 @@ export function useBattleChoreo({
       setTelegraph(null);
       setHits({});
       setCutInCard(null);
+      setRelicId(null);
       playback.setHitstop(false);
       playback.timelineRef.current = null;
       playback.unlock();
@@ -159,7 +163,7 @@ export function useBattleChoreo({
       const hold = Math.max(preset.hold * Math.max(0.55, 0.78 ** repeat), holdFloor);
       const cutIn = step.card ? CINEMA.cardIn + CINEMA.cardHold + CINEMA.cardOut : 0;
       const telegraphKind: TelegraphKind = ANIM[step.anim].kind === "support" ? "buff" : "attack";
-      const isTempo = step.kind === "tempo";
+      const isSupportTrigger = step.kind === "tempo" || step.kind === "relic";
       const focus = () => (preset.kind === "none" ? null : camera.focusCamera(focusIds, preset));
       // 敌人攻击必须先完成聚焦再进入蓄力, 否则 telegraph 会和镜头同时启动, 命中时镜头才刚到位。
       const focusLead = isFoeLedShot(preset) ? CAMERA_SETTLE_MS : 0;
@@ -182,11 +186,12 @@ export function useBattleChoreo({
         run: () => {
           if (selfMark) hand.markDiscarding(step.discardUid!);
           if (step.kind === "flee") showBattleToast("宝箱怪卷着战利品溜走了");
+          if (step.kind === "relic") setRelicId(step.relicId ?? null);
           camera.rig.setTuning(preset.rig);
           if (isFoeLedShot(preset)) {
             camera.setCameraTarget(focus());
           } else {
-            if (!isTempo) {
+            if (!isSupportTrigger) {
               setAttackerId(step.actorId);
               setTelegraph(
                 battle.enemyIds.includes(step.actorId) && preset.kind !== "none"
@@ -199,7 +204,7 @@ export function useBattleChoreo({
           }
         },
       });
-      if (isFoeLedShot(preset) && !isTempo) {
+      if (isFoeLedShot(preset) && !isSupportTrigger) {
         timeline.add({
           at: actionAt,
           run: () => {
@@ -213,7 +218,7 @@ export function useBattleChoreo({
         run: () => {
           const previous = index > 0 ? plans[index - 1] : null;
           const nextFocus = focus();
-          if (isFoeLedShot(preset)) return;
+          if (isFoeLedShot(preset) || step.kind === "relic") return;
           if (!previous || index === 0) {
             camera.setCameraTarget(nextFocus);
             return;
@@ -287,7 +292,7 @@ export function useBattleChoreo({
           });
         },
       });
-      timeline.add({ at: hitAt + hold, run: () => { setHits({}); setAttackerId(null); setTelegraph(null); } });
+      timeline.add({ at: hitAt + hold, run: () => { setHits({}); setAttackerId(null); setTelegraph(null); if (step.kind === "relic") setRelicId(null); } });
       at = hitAt + hold + 40;
       lastActor = step.actorId;
       lastAnim = step.anim;
@@ -307,5 +312,5 @@ export function useBattleChoreo({
     runSteps(steps, final, seq, enter, excludeUid);
   }
 
-  return { startBatch, attackerId, telegraph, hits, cutInCard };
+  return { startBatch, attackerId, telegraph, hits, cutInCard, relicId };
 }

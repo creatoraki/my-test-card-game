@@ -20,6 +20,7 @@ import {
 } from "../engine";
 import {
   CHARACTERS,
+  BLESSING_RELIC_DEFS,
   bondPool,
   getCharacter,
   getItemDef,
@@ -44,6 +45,7 @@ import {
   REGIONAL_MATERIAL_DEFS,
   techTrainingBonus,
   sellPriceOf,
+  SANCTUARY_RULES,
   type TechTreeState,
 } from "../data";
 import {
@@ -137,6 +139,10 @@ export interface NutritionState {
   occupants: { charId: string; heal: number; day: number; slot: number }[];
 }
 
+export interface SanctuaryState {
+  purifying: { relicId: string; daysLeft: number }[];
+}
+
 function freshShop(day: number, level = DEFAULT_SHOP_LEVEL): ShopState {
   return { level, day, refreshes: 0, slots: rollShopStock(level) };
 }
@@ -181,6 +187,7 @@ export interface TownStore {
   shop: ShopState;
   cardShop: CardShopState;
   nutrition: NutritionState;
+  sanctuary: SanctuaryState;
   techTree: TechTreeState;
   squadTalent: SquadTalentState;
   codex: CodexState;
@@ -218,6 +225,7 @@ export interface TownStore {
   reviveFallen: (charId: string) => void; // 复苏舱: 花 reviveCost 居民积分重置一名阵亡队员
   admitToNutritionPods: (assignments: { charId: string; slot: number }[]) => void; // 营养舱: 批量确认、扣积分并记录席位
   researchNutritionTech: (techId: string) => void; // 营养舱: 研究舱位或治疗量科技
+  purifyRelic: (relicId: string) => boolean; // 圣水池: 投入一件诅咒遗物
   grantExp: (charIds: string[], amount: number) => ExpGain[]; // 发经验(不再有升级)
   grantExpEach: (byChar: Record<string, number>) => ExpGain[]; // 按角色分别发经验
   contaminateCards: (charIds: string[], count: number, each?: boolean) => ContaminationHit[]; // 随机污染队伍个人卡组中的未污染卡
@@ -345,6 +353,7 @@ const INITIAL_MATERIAL_IDS = [
   "magnet",
 ] as const;
 const INITIAL_CRYSTAL_IDS = ["green-crystal", "blue-crystal", "red-crystal"] as const;
+const INITIAL_RELIC_IDS = ["relic-even-draw", "relic-broken-compass"] as const;
 const INITIAL_REGIONAL_IDS = REGIONAL_MATERIAL_DEFS.flatMap((def) =>
   Array.from({ length: def.regionTier === "boss" ? 2 : 6 }, () => def.id),
 );
@@ -359,6 +368,7 @@ function freshStorage(): ItemStack[] {
       Array.from({ length: 6 }, () => makeItemStack(itemId)),
     ),
     ...INITIAL_CRYSTAL_IDS.map((itemId) => makeItemStack(itemId)),
+    ...INITIAL_RELIC_IDS.map((itemId) => makeItemStack(itemId)),
     ...INITIAL_REGIONAL_IDS.map((itemId) => makeItemStack(itemId)),
   ];
 }
@@ -416,6 +426,20 @@ export function squadTrainingPoints(
 
 export const techLevels = (state: TownStore): TechTreeState["levels"] => state.techTree.levels;
 
+function purifiedRelicId(relicId: string, storage: ItemStack[]): string | null {
+  const source = getItemDef(relicId).relic;
+  if (!source?.purifyTo) return null;
+  const rarity = typeof source.purifyTo === "string" ? getItemDef(source.purifyTo).rarity : source.purifyTo.rarity;
+  const owned = new Set(
+    storage
+      .filter((stack) => getItemDef(stack.itemId).category === "relic")
+      .map((stack) => stack.itemId),
+  );
+  const candidates = BLESSING_RELIC_DEFS.filter((def) => def.rarity === rarity && !owned.has(def.id));
+  if (!candidates.length) return null;
+  return candidates[Math.floor(Math.random() * candidates.length)].id;
+}
+
 export const useTownStore = create<TownStore>()(
   persist(
     (set, get) => ({
@@ -430,6 +454,7 @@ export const useTownStore = create<TownStore>()(
       shop: freshShop(1),
       cardShop: freshCardShop(1, {}, []),
       nutrition: { techs: [], occupants: [] },
+      sanctuary: { purifying: [] },
       techTree: { levels: {} },
       squadTalent: { badgeId: null, nodes: [] },
       codex: { items: [], cards: [], enemies: [] },
@@ -450,6 +475,7 @@ export const useTownStore = create<TownStore>()(
           shop: freshShop(1),
           cardShop: freshCardShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
+          sanctuary: { purifying: [] },
           techTree: { levels: {} },
           pendingReforge: null,
           initialized: true,
@@ -493,6 +519,7 @@ export const useTownStore = create<TownStore>()(
           shop: freshShop(1),
           cardShop: freshCardShop(1, profile.characters, profile.awakened),
           nutrition: { techs: [], occupants: [] },
+          sanctuary: { purifying: [] },
           techTree: { levels: {} },
           pendingReforge: null,
           initialized: true,
@@ -844,6 +871,36 @@ export const useTownStore = create<TownStore>()(
         });
       },
 
+      purifyRelic: (relicId) => {
+        const { storage, loot, sanctuary } = get();
+        if (sanctuary.purifying.length >= SANCTUARY_RULES.capacity) return false;
+        const relic = storage.find((stack) => stack.itemId === relicId);
+        if (!relic) return false;
+        const def = getItemDef(relicId);
+        const spec = def.relic;
+        if (def.category !== "relic" || spec?.polarity !== "curse" || !spec.purifyTo) return false;
+
+        const materials = SANCTUARY_RULES.crystalCostByRarity[def.rarity];
+        const enoughMaterials = Object.entries(materials).every(
+          ([itemId, count]) => get().storage.filter((stack) => stack.itemId === itemId).reduce((sum, stack) => sum + stack.count, 0) >= count,
+        );
+        const cost = SANCTUARY_RULES.lootByRarity[def.rarity];
+        if (!enoughMaterials || loot < cost) return false;
+
+        let nextStorage = removeByUid(storage, relic.uid);
+        for (const [itemId, count] of Object.entries(materials))
+          nextStorage = consumeItems(nextStorage, itemId, count);
+        set({
+          storage: nextStorage,
+          loot: loot - cost,
+          sanctuary: {
+            ...sanctuary,
+            purifying: [...sanctuary.purifying, { relicId, daysLeft: SANCTUARY_RULES.days }],
+          },
+        });
+        return true;
+      },
+
       // 发经验。★ 没有等级也没有升级 —— 经验只是进池子, 等玩家拿去锻造卡组。
       grantExp: (charIds, amount) => {
         const characters = { ...get().characters };
@@ -1020,7 +1077,7 @@ export const useTownStore = create<TownStore>()(
       //   (出击打完从结算页回据点)。从主菜单进据点不算一日, 故 enterTown 不调它。
       // ⚠「隔日重置」在这里一次做完: 换新货 + 刷新次数归零。UI 不再判日期。
       advanceDay: () => {
-        const { day, shop, cardShop, characters, awakened, nutrition } = get();
+        const { day, shop, cardShop, characters, awakened, nutrition, sanctuary, storage, loot } = get();
         const next = day + 1;
         const nextCharacters = { ...characters };
         for (const occupant of nutrition.occupants) {
@@ -1032,10 +1089,26 @@ export const useTownStore = create<TownStore>()(
             hpLimit: Math.min(vitals.maxHp, vitals.hpLimit + occupant.heal),
           };
         }
+        let nextStorage = storage;
+        let nextLoot = loot;
+        const purifying: SanctuaryState["purifying"] = [];
+        for (const entry of sanctuary.purifying) {
+          const daysLeft = entry.daysLeft - 1;
+          if (daysLeft > 0) {
+            purifying.push({ ...entry, daysLeft });
+            continue;
+          }
+          const resultId = purifiedRelicId(entry.relicId, nextStorage);
+          if (resultId) nextStorage = [...nextStorage, makeItemStack(resultId)];
+          else nextLoot += 20;
+        }
         set({
           day: next,
           characters: nextCharacters,
           nutrition: { ...nutrition, occupants: [] },
+          storage: nextStorage,
+          loot: nextLoot,
+          sanctuary: { purifying },
           shop: { ...shop, day: next, refreshes: 0, slots: rollShopStock(shop.level) },
           cardShop: {
             ...cardShop,
@@ -1243,6 +1316,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v25: 新增遗物与圣水池, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v24: 新增科技树等级, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v22: 新增 fallen 永久阵亡名单与复苏舱, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v21: 新增卡牌商店货架、科技与购买 action, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1264,6 +1338,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 23 },
+    { name: TOWN_PROFILE_KEY, version: 25 },
   ),
 );

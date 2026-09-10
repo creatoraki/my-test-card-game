@@ -79,10 +79,10 @@ function BuffTable({ slot }: { slot: TradeSlotState }) {
   return (
     <ul className={s.buffList} aria-label="团队 BUFF 候选">
       {options.map((option) => (
-        <li className={s.buff} key={option.aura.id}>
-          <strong>{option.aura.name}</strong>
+        <li className={s.buff} key={option.relicId}>
+          <strong>{getItemDef(option.relicId).name}</strong>
           <span>{option.weight}%</span>
-          <small>{option.aura.desc}</small>
+          <small>{getItemDef(option.relicId).desc}</small>
         </li>
       ))}
     </ul>

@@ -59,12 +59,18 @@ function noteAttacked(state: BattleState, dmg: DamageCtx): void {
   if (!dmg.isAttack || source?.team !== "enemy" || target?.team !== "player") return;
   if (!state.attackedThisRound.includes(target.id)) state.attackedThisRound.push(target.id);
   ops.firePassive(state, { type: "allyAttacked", targetId: target.id });
+  ops.fireRelic(state, { type: "allyAttacked", targetId: target.id });
 }
 
 export function markDead(state: BattleState, cmb: Combatant): void {
   if (!cmb.alive) return;
   if (cmb.team === "enemy") {
     ops.firePassive(state, {
+      type: "enemyKilled",
+      targetId: cmb.id,
+      targetStatuses: structuredClone(cmb.statuses),
+    });
+    ops.fireRelic(state, {
       type: "enemyKilled",
       targetId: cmb.id,
       targetStatuses: structuredClone(cmb.statuses),
@@ -416,6 +422,7 @@ export const ops: EngineOps = {
   flushAutoPlays: () => undefined,
   draw: () => undefined,
   firePassive: () => undefined,
+  fireRelic: () => undefined,
   log,
 };
 

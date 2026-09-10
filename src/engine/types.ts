@@ -307,6 +307,23 @@ export interface PassiveEvent {
   targetStatuses?: StatusInstance[];
 }
 
+export type RelicTriggerId =
+  | "roundStart"
+  | "roundEnd"
+  | "cardPlayed"
+  | "allyAttacked"
+  | "enemyKilled"
+  | "nodeArrived"
+  | "itemPicked"
+  | "rested"
+  | "battleVictory";
+
+export interface RelicEvent {
+  type: RelicTriggerId;
+  targetId?: string;
+  targetStatuses?: StatusInstance[];
+}
+
 export interface DiscardTrigger {
   mode: "useSelf" | "custom" | "returnToHand";
   maxStacks?: number; // returnToHand: 累计层数上限(写进 Card.discardStacks)
@@ -567,6 +584,11 @@ export interface LogEntry {
   text: string;
 }
 
+export interface BattleRelic {
+  id: string;
+  counter: number;
+}
+
 export interface BattleState {
   encounterId: string;
   round: number;
@@ -576,6 +598,8 @@ export interface BattleState {
   playerIds: string[];
   enemyIds: string[];
   cards: Record<string, Card>;
+  // 遗物运行态只保存 id 与 every 计数, 定义从 data/items/relics 读取。
+  relics: BattleRelic[];
   draw: string[]; // 卡牌 uid
   hand: string[];
   discard: string[];
@@ -703,6 +727,7 @@ export interface EngineOps {
   flushAutoPlays(state: BattleState): void;
   draw(state: BattleState, n: number): void;
   firePassive(state: BattleState, event: PassiveEvent, rec?: FxRecorder): void;
+  fireRelic(state: BattleState, event: RelicEvent, rec?: FxRecorder): void;
   log(state: BattleState, text: string): void;
 }
 
@@ -758,9 +783,17 @@ export interface FleeFx {
   snapshot: BattleState;
 }
 
+export interface RelicTriggerFx {
+  relicId: string;
+  actorId: string;
+  hits: AnimHit[];
+  snapshot: BattleState;
+}
+
 export type FxStep =
   | ({ kind: "enemy" } & AnimFrame)
   | ({ kind: "discard" } & DiscardTriggerFx)
+  | ({ kind: "relic" } & RelicTriggerFx)
   | ({ kind: "tempo" } & TempoFx)
   | ({ kind: "flee" } & FleeFx);
 

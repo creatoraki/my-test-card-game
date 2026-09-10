@@ -204,14 +204,19 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   const active = activeBonds(bondCountsOf(characters, party));
   const bondMods = mergeMods(active.map((a) => a.tier.mods)); // 每人各叠一份
   const bondPartyMods = mergeMods(active.map((a) => a.tier.partyMods)); // 全队只叠一份
-  // 远征光环(正面, 整趟常驻)与挑战契约的负面修正走同一条合成 —— 引擎不认识两者中的任何一个,
-  // 它只收一份算好的面板。★ 一处合成即同时覆盖推进战斗与节点战斗(两者都走本函数)。
+  // 背包遗物与挑战契约的属性修正走同一条合成 —— 引擎不认识物品容器,
+  // 它只收一份算好的面板。★ 一处合成即同时覆盖推进战斗与节点战斗。
   // ⚠ 这一份修正对**每一名角色各叠一次** ⇒ 挑战 mods 里绝不能出现 drawCount / handLimit /
   //   burdenAdapt 这类「小队合计」属性(会被叠成人数倍), 见 data/exploreTrials.ts 抬头。
-  const auraMods = mergeMods([
-    ...session.auras.map((aura) => aura.mods),
+  const relicMods = mergeMods([
+    ...session.backpack
+      .map((stack) => getItemDef(stack.itemId).relic?.mods)
+      .filter((mods): mods is NonNullable<typeof mods> => Boolean(mods)),
     ...session.trials.map((trial) => trial.mods),
   ]);
+  const relicIds = session.backpack
+    .filter((stack) => getItemDef(stack.itemId).category === "relic")
+    .map((stack) => stack.itemId);
 
   const alive = session.party.filter((p) => p.alive);
   const battleDeck: Card[] = alive.flatMap((p) => structuredClone(characters[p.charId].deck));
@@ -219,7 +224,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     const c = getCharacter(p.charId);
     // 局外第一层(角色基础 + 装备)已由 deriveStats 算完; 羁绊是叠在它之上的第二层。
     let s = applyModifier(deriveStats(characters[p.charId]), bondMods);
-    s = applyModifier(s, auraMods);
+    s = applyModifier(s, relicMods);
     // ★ 抽牌数/手牌上限是**小队合计**属性(engine/stats.partyDrawCount 按上阵角色求和),
     //   每人加一份会变成 3 人队三倍。所以这类只给队伍第一人加。
     if (i === 0) s = applyModifier(s, bondPartyMods);
@@ -247,7 +252,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     .getState()
     .init(
       encounterId,
-      { allies, deck: battleDeck, burden, squadMods, squadBuffRewardPools: ASSEMBLE_REWARD_POOLS },
+      { allies, deck: battleDeck, burden, squadMods, squadBuffRewardPools: ASSEMBLE_REWARD_POOLS, relics: relicIds },
       undefined,
       mod,
       meta,
@@ -376,7 +381,14 @@ export const useRunStore = create<RunStore>((set, get) => ({
   startExpedition: (mapId, backpack = []) => {
     // 探索期 townStore 的散点写入统一由出击快照兜底, 中途刷新时整档回滚。
     snapshotTownProfile();
-    useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack);
+    const town = useTownStore.getState();
+    const ownedRelicIds = [
+      ...town.storage,
+      ...backpack,
+    ]
+      .filter((stack) => getItemDef(stack.itemId).category === "relic")
+      .map((stack) => stack.itemId);
+    useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack, ownedRelicIds);
     set({
       mapId,
       expReport: [],

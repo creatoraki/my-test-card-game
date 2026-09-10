@@ -96,7 +96,7 @@ function ServiceSummary({ service }: { service: TradeServiceDef }) {
       <p className={s.desc}>{service.desc}</p>
       <p className={s.note}>
         {service.kind === "random"
-          ? "成交后按左侧概率随机命中 1 个远征光环，本次抵达不可重来。"
+          ? "成交后按左侧概率随机获得 1 个祝福遗物，本次抵达不可重来。"
           : service.kind === "pending"
             ? "成交后进入待办清单，回到节点继续处理指定角色。"
             : "成交后立即对全队生效。"}

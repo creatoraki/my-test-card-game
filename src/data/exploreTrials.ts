@@ -24,7 +24,7 @@
 // ============================================================================
 
 import type { NodeEvent, TrialDef } from "../explore/types";
-import { aura, choice, item, items, outcome, startTrial } from "./exploreEventKit";
+import { relic, choice, item, items, outcome, startTrial } from "./exploreEventKit";
 
 // 全部挑战统一持续 2 轮(接下的当轮 + 下一轮)。改这一个数就是改整套机制的时长。
 const TRIAL_ROUNDS = 2;
@@ -33,7 +33,7 @@ const TRIAL_ROUNDS = 2;
 // 四份契约
 // ---------------------------------------------------------------------------
 // 奖励一律是「物品包 / 常驻小队增益」二选一, 权重各 1 —— 到期时由 session 掷一次。
-// ★ 正面光环走 GRANT_AURA ⇒ 进 ExploreState.auras, 整趟远征常驻; 与本轮的负面修正是两套东西。
+// ★ 正面收益转为 GRANT_RELIC ⇒ 进入待拾取框并占用背包格；与本轮的负面修正是两套东西。
 
 const OVERLOAD_LIMITER: TrialDef = {
   id: "trial-overload-limiter",
@@ -50,7 +50,7 @@ const OVERLOAD_LIMITER: TrialDef = {
     outcome(
       "feedback",
       "限流阀解除时把积压的功率反灌回队伍的动力接口，之后的战斗都能多榨出一点输出。",
-      [aura("trial-overclock-feedback", "超频回授", "战斗中攻击力提高。", { pct: { attack: 12 } })],
+      [relic("trial-overclock-feedback")],
     ),
   ],
 };
@@ -71,9 +71,7 @@ const MEDICAL_LOCKDOWN: TrialDef = {
       "protocol",
       "封锁期间的用药记录被系统判定为合规，队伍获得了应急输液权限。",
       [
-        aura("trial-emergency-infusion", "应急输液", "战斗中治疗与护盾效果提高。", {
-          flat: { healBoost: 15, shieldBoost: 10 },
-        }),
+        relic("trial-emergency-infusion"),
       ],
     ),
   ],
@@ -95,9 +93,7 @@ const GRAVITY_RECALIBRATION: TrialDef = {
       "adapt",
       "两轮重力扰动之后，队伍的动作已经自己适应了偏移的配重。",
       [
-        aura("trial-ballast-adaptation", "配重适应", "战斗中闪避率与格挡率提高。", {
-          flat: { dodgeRate: 10, blockRate: 8 },
-        }),
+        relic("trial-ballast-adaptation"),
       ],
     ),
   ],
@@ -119,9 +115,7 @@ const SENSOR_JAMMER: TrialDef = {
       "calibrate",
       "在持续干扰下练出来的瞄准习惯留了下来，队伍的锁定比进塔之前更稳。",
       [
-        aura("trial-calibrated-lock", "校准锁定", "战斗中命中、暴击与精准提高。", {
-          flat: { hitRate: 10, critRate: 12, precision: 8 },
-        }),
+        relic("trial-calibrated-lock"),
       ],
     ),
   ],

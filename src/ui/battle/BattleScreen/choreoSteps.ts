@@ -1,4 +1,4 @@
-import type { AnimFrame, BattleState, Card, DiscardTriggerFx, FxStep, TempoFx } from "@/engine";
+import type { AnimFrame, BattleState, Card, DiscardTriggerFx, FxStep, RelicTriggerFx, TempoFx } from "@/engine";
 import { getEnemyDef } from "@/data";
 import { type ChoreoStep } from "@/ui/battle/camera";
 import { moveAnim } from "@/ui/battle/animations";
@@ -32,8 +32,20 @@ function stepFromTempo(_battle: BattleState, tempo: TempoFx): ChoreoStep {
   };
 }
 
+function stepFromRelic(_battle: BattleState, relic: RelicTriggerFx): ChoreoStep {
+  return {
+    kind: "relic",
+    relicId: relic.relicId,
+    actorId: relic.actorId,
+    anim: "buff",
+    snapshot: relic.snapshot,
+    hits: relic.hits,
+  };
+}
+
 export function stepFromFx(battle: BattleState, fx: FxStep): ChoreoStep {
   if (fx.kind === "enemy") return stepFromFrame(battle, fx);
+  if (fx.kind === "relic") return stepFromRelic(battle, fx);
   if (fx.kind === "tempo") return stepFromTempo(battle, fx);
   if (fx.kind === "flee") {
     return { kind: "flee", actorId: fx.actorId, anim: "buff", snapshot: fx.snapshot, hits: [] };

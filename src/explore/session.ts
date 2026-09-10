@@ -64,6 +64,7 @@ import { generateSegments, lanePath, traceSegment } from "./route";
 import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
+import { fireExploreRelic } from "./relics";
 import type {
   BattleTier,
   EnergyTier,
@@ -142,6 +143,16 @@ export function dropContext(s: ExploreState, k = dropCoefficient(s)): DropContex
     affinityPool: ROLLABLE_BOND_IDS,
     equipmentFamilyIds: EQUIPMENT_FAMILY_IDS,
     equipRarities: mapEquipRarities(s.mapId),
+    excludeItemIds: [
+      ...s.ownedRelicIds,
+      ...s.pendingPickup
+        .filter((stack) => getItemDef(stack.itemId).category === "relic")
+        .map((stack) => stack.itemId),
+      ...s.pendingLoot
+        .filter((stack) => getItemDef(stack.itemId).category === "relic")
+        .map((stack) => stack.itemId),
+    ],
+    relicFallbackItemId: "logic-cube",
   };
 }
 
@@ -214,6 +225,7 @@ export function createSession(
   party: PartySnapshot[],
   seed?: number,
   initialBackpack: ItemStack[] = [],
+  ownedRelicIds: string[] = [],
 ): ExploreState {
   const map = getMap(mapId);
   const s: ExploreState = {
@@ -232,7 +244,14 @@ export function createSession(
     backpack: initialBackpack.map((st) => ({ ...st })),
     shipped: [],
     pendingPickup: [],
-    auras: [],
+    ownedRelicIds: [
+      ...new Set([
+        ...ownedRelicIds,
+        ...initialBackpack
+          .filter((stack) => getItemDef(stack.itemId).category === "relic")
+          .map((stack) => stack.itemId),
+      ]),
+    ],
     trials: [],
     trialReport: [],
     pendingLoot: [],
@@ -333,6 +352,12 @@ export function addItems(
   const r = addToContainer(s.backpack, stacks, getItemDef, RULES.burden.backpackSlots);
   s.backpack = r.next;
   countPickup(s, r.taken.length);
+  for (const stack of r.taken) {
+    if (getItemDef(stack.itemId).category === "relic" && !s.ownedRelicIds.includes(stack.itemId))
+      s.ownedRelicIds.push(stack.itemId);
+  }
+  if (r.taken.some((st) => getItemDef(st.itemId).category === "relic"))
+    fireExploreRelic(s, { type: "itemPicked" });
   if (r.overflow.length) s.pendingPickup = [...s.pendingPickup, ...r.overflow];
   return { taken: r.taken, overflow: r.overflow };
 }
@@ -348,6 +373,10 @@ export function takeLoot(s: ExploreState, index: number): boolean {
   if (!result.taken.length) return false;
   s.backpack = result.next;
   countPickup(s, result.taken.length);
+  if (getItemDef(st.itemId).category === "relic") {
+    if (!s.ownedRelicIds.includes(st.itemId)) s.ownedRelicIds.push(st.itemId);
+    fireExploreRelic(s, { type: "itemPicked" });
+  }
   s.pendingLoot = s.pendingLoot.filter((_, i) => i !== index);
   return true;
 }
@@ -575,6 +604,10 @@ export function takePending(s: ExploreState, index: number): boolean {
   if (!r.taken.length) return false;
   s.backpack = r.next;
   countPickup(s, r.taken.length);
+  if (getItemDef(st.itemId).category === "relic") {
+    if (!s.ownedRelicIds.includes(st.itemId)) s.ownedRelicIds.push(st.itemId);
+    fireExploreRelic(s, { type: "itemPicked" });
+  }
   s.pendingPickup = s.pendingPickup.filter((_, i) => i !== index);
   return true;
 }
@@ -602,6 +635,7 @@ export function restEat(s: ExploreState, uid: string): boolean {
   if (!item || item.itemId !== event.hiddenRest.foodItemId) return false;
   s.backpack = consumeItems(s.backpack, event.hiddenRest.foodItemId, 1, uid);
   s.phase = "npcEvent";
+  fireExploreRelic(s, { type: "rested" });
   return true;
 }
 
@@ -609,6 +643,7 @@ export function restSkip(s: ExploreState): boolean {
   if (s.phase !== "resting") return false;
   s.restNpcId = null;
   s.phase = "atNode";
+  fireExploreRelic(s, { type: "rested" });
   return true;
 }
 
@@ -867,9 +902,16 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
     case "PURIFY_CARDS":
       s.pendingActions.push({ kind: "purifyCards", scope: e.scope, count: Math.max(1, e.count ?? 1) });
       return e.scope === "party" ? `获得全队各净化 ${Math.max(1, e.count ?? 1)} 张污染卡` : "获得一次指定角色污染卡净化";
-    case "GRANT_AURA":
-      if (!s.auras.some((aura) => aura.id === e.aura.id)) s.auras.push({ ...e.aura });
-      return `获得远征光环「${e.aura.name}」`;
+    case "GRANT_RELIC": {
+      const def = getItemDef(e.relicId);
+      if (def.category !== "relic" || !def.relic) return "遗物投放失败";
+      if (s.ownedRelicIds.includes(e.relicId) || s.pendingPickup.some((st) => st.itemId === e.relicId)) {
+        s.loot += 10;
+        return `遗物「${def.name}」已拥有，回落为居民积分 +10`;
+      }
+      s.pendingPickup = [...s.pendingPickup, makeRolledItemStack(s, e.relicId, 1)];
+      return `获得遗物「${def.name}」，已放入待拾取框`;
+    }
     case "GAIN_EXP_PARTY": {
       let count = 0;
       for (const p of s.party) {
@@ -900,8 +942,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       s.pendingActions.push({ kind: "reforge", bias: e.bias });
       return "获得一次免费装备羁绊重铸";
     case "START_TRIAL": {
-      // ⚠ 刻意**不**并进 s.auras: 那一列是整趟远征常驻、按 id 去重的正面光环, 没有移除路径;
-      //   挑战允许叠加、到期必须撤掉, 合在一起两套生命周期迟早互相咬(见 types.ts ActiveTrial)。
+      // 挑战契约允许叠加、到期必须撤掉，和背包遗物是两种独立生命周期。
       const t = e.trial;
       const untilRound = s.round + Math.max(1, t.rounds) - 1;
       s.trials.push({
@@ -1434,6 +1475,7 @@ export function arriveNode(s: ExploreState): boolean {
   s.pendingNotes = [];
   s.pendingStory = [];
   s.phase = "landed";
+  fireExploreRelic(s, { type: "nodeArrived" });
   return true;
 }
 
@@ -1849,7 +1891,13 @@ function settleTrials(s: ExploreState): void {
     const notes: string[] = [];
     for (const effect of rolled?.effects ?? []) {
       try {
+        const pendingBefore = s.pendingPickup.length;
         const note = applyEffect(s, effect, true);
+        // 挑战奖励发生在战斗胜利面板期间；遗物仍按统一的 GRANT_RELIC 规则生成，
+        // 但先转入战利品盘，保证玩家能在当前胜利面板完成拾取。
+        if (effect.type === "GRANT_RELIC" && s.pendingPickup.length > pendingBefore) {
+          s.pendingLoot.push(...s.pendingPickup.splice(pendingBefore));
+        }
         if (note) notes.push(note);
       } catch (err) {
         console.error("[explore] 挑战奖励结算异常（已跳过）", { trial: trial.defId, error: err });
@@ -1915,6 +1963,7 @@ export function finishBattle(
   const rolled = enemyDefIds.flatMap((id) => rollDropTable(s, getEnemyDef(id).dropTable, k, ctx));
   addPendingLoot(s, rolled);
   s.pendingBoons = rollBoons(s, enemyDefIds.map((id) => getEnemyDef(id).boonTable), k);
+  fireExploreRelic(s, { type: "battleVictory" });
 
   // ⚠ 必须在上面的 dropCoefficient / rollDropTable 之后才清挑战加成。
   s.pendingEncounterId = null;

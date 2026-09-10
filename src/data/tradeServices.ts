@@ -1,4 +1,4 @@
-import type { ExploreEffect, ExploreAura, TradeBuffOption, TradeServiceKind } from "../explore/types";
+import type { ExploreEffect, TradeBuffOption, TradeServiceKind } from "../explore/types";
 import type { TradeStockKind } from "./tradeStock";
 
 export interface TradeServiceDef {
@@ -13,15 +13,15 @@ export interface TradeServiceDef {
   buffOptions?: TradeBuffOption[];
 }
 
-const buff = (id: string, name: string, desc: string, mods: ExploreAura["mods"]): TradeBuffOption => ({
+const buff = (relicId: string): TradeBuffOption => ({
   weight: 1,
-  aura: { id, name, desc, mods },
+  relicId,
 });
 
 export const TRADE_BUFF_OPTIONS: TradeBuffOption[] = [
-  buff("trade-overclock-protocol", "超频协议", "战斗中提高队伍先手。", { flat: { initiative: 4 } }),
-  buff("trade-recovery-oxygen", "循环供氧", "战斗中提高队伍治疗效果。", { flat: { healBoost: 10 } }),
-  buff("trade-fortification-grid", "防御网格", "战斗中提高队伍防御与格挡。", { flat: { defense: 3, blockRate: 5 } }),
+  buff("trade-overclock-protocol"),
+  buff("trade-recovery-oxygen"),
+  buff("trade-fortification-grid"),
 ].map((option, index) => ({ ...option, weight: [50, 30, 20][index] }));
 
 const service = (
@@ -53,7 +53,7 @@ export const TRADE_SERVICES: TradeServiceDef[] = [
   service("medical-service", "医疗服务", "party", "milk", 1, "全队存活角色回复当前生命 20%，不修复体力极限。", {
     effects: [{ type: "HEAL_PARTY", percent: 0.2 }],
   }),
-  service("random-party-buff", "随机团队 BUFF 服务", "random", "cola", 1, "公开 3 个团队 BUFF 及概率，随机获得 1 个远征光环。", {
+  service("random-party-buff", "随机团队 BUFF 服务", "random", "cola", 1, "公开 3 个团队 BUFF 及概率，随机获得 1 个祝福遗物。", {
     buffOptions: TRADE_BUFF_OPTIONS,
   }),
   service("weapon-shop", "武器商店服务", "goods", "hamburger", 1, "展示 2 件武器，选择 1 件；装备占 2 格。", {

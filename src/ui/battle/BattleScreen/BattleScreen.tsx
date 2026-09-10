@@ -13,6 +13,7 @@ import { BattleActions } from "@/ui/battle/BattleActions";
 import { BattleSettingsPanel } from "@/ui/battle/BattleSettingsPanel";
 import { BondRail } from "@/ui/battle/BondRail";
 import { ChallengeRail } from "@/ui/battle/ChallengeRail";
+import { RelicRail } from "@/ui/battle/RelicRail";
 import { TurnTicker } from "@/ui/battle/TurnTicker";
 import { CardInfoPanel } from "@/ui/battle/CardInfoPanel";
 import { VictoryPanel } from "@/ui/battle/VictoryPanel";
@@ -216,6 +217,7 @@ export function BattleScreen() {
         {battle && <ChallengeRail challenges={battle.challenges} />}
         <TurnTicker round={battle.round} tick={battle.tick} />
         <div className={s.topRight}>
+          <RelicRail battle={battle} activeRelicId={choreo.relicId} />
           {battleMeta && <BondRail bonds={battleMeta.bonds} />}
           <BattleActions
             canEndTurn={isPlayerTurn && !playback.animating && !battle.pendingChoice}
