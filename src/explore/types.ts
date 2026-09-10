@@ -13,7 +13,7 @@
 //   档位在生成本轮时抽定并写入 ExploreState.roundBattleTier。
 // ============================================================================
 
-import type { DropEntry, EquipSlot, ItemStack } from "../items/types";
+import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "../items/types";
 import type { StatModifier } from "../engine/types";
 
 export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate" | "moduleCrate";
@@ -128,6 +128,7 @@ export type ExploreEffect =
   | { type: "REDUCE_POLLUTION"; scope: "one" | "party"; amount: number }
   | { type: "PURIFY_CARDS"; scope: "one" | "party"; count?: number }
   | { type: "GRANT_RELIC"; relicId: string }
+  | { type: "GRANT_RANDOM_RELIC"; rarity?: ItemRarity }
   | { type: "GAIN_EXP_PARTY"; amount: number }
   | { type: "GAIN_EXP_ONE"; amount: number }
   | { type: "GRANT_EQUIP" }

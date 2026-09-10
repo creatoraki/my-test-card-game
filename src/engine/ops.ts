@@ -25,6 +25,7 @@ import { addMod, critChance, defenseMultiplier, healValue, hitChance, offenseSta
 import { checkChallengesOnWin, noteChallengeDamage, noteChallengeKill } from "./challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, syncSegments } from "./statuses/stacking";
+import { runRelicHook } from "./relicBehaviors/types";
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -107,6 +108,7 @@ export function dealDamage(
 ): DamageResult {
   const target = state.combatants[targetId];
   if (!target || !target.alive) return null;
+  const hpBefore = target.hp;
 
   const dmg: DamageCtx = {
     sourceId,
@@ -128,6 +130,7 @@ export function dealDamage(
     for (const inst of [...src.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
   }
+  runRelicHook(state, "modifyOutgoingDamage", dmg);
   if (!opts.pure)
     for (const inst of [...target.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
@@ -192,6 +195,7 @@ export function dealDamage(
     if (shieldBefore > 0 && target.shield === 0)
       for (const inst of [...target.statuses])
         STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
+    if (dmg.crit) runRelicHook(state, "onCrit", dmg);
     noteAttacked(state, dmg);
     cleanup(target);
     if (dmg.fatal) markDead(state, target);
@@ -226,6 +230,9 @@ export function dealDamage(
   if (shieldBefore > 0 && target.shield === 0)
     for (const inst of [...target.statuses])
       STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
+  if (dmg.crit) runRelicHook(state, "onCrit", dmg);
+  if (target.team === "player" && hpBefore > target.maxHp * 0.5 && target.hp <= target.maxHp * 0.5)
+    runRelicHook(state, "onAllyHpCrossedHalf", target.id);
   noteAttacked(state, dmg);
   cleanup(target);
 

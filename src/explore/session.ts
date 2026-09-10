@@ -30,12 +30,13 @@
 // ⚠ 战斗不再是路由图上的终点: 每轮线路走完后展示战斗事件, 再打推进战斗。
 // ============================================================================
 
-import { rngFloat, rngInt, shuffle } from "../engine/rng";
+import { rngFloat, rngInt, rngPick, shuffle } from "../engine/rng";
 import { RULES } from "../engine/rules";
 import { burdenValue } from "../engine/stats";
 import type { EncounterModifier } from "../engine/types";
 import {
   ROLLABLE_BOND_IDS,
+  BLESSING_RELIC_DEFS,
   EVENT_POOLS,
   bondPool,
   getEnemyDef,
@@ -790,6 +791,29 @@ function deferEffectLoot(s: ExploreState, stacks: ItemStack[]): string {
   return `发现 ${summarizeItems(stacks, [])}，等待拾取`;
 }
 
+function grantRelic(s: ExploreState, relicId: string): string {
+  const def = getItemDef(relicId);
+  if (def.category !== "relic" || !def.relic) return "遗物投放失败";
+  if (s.ownedRelicIds.includes(relicId) || s.pendingPickup.some((st) => st.itemId === relicId)) {
+    s.loot += 10;
+    return `遗物「${def.name}」已拥有，回落为居民积分 +10`;
+  }
+  s.pendingPickup = [...s.pendingPickup, makeRolledItemStack(s, relicId, 1)];
+  return `获得遗物「${def.name}」，已放入待拾取框`;
+}
+
+function randomRelicId(s: ExploreState, rarity?: ItemRarity): string | undefined {
+  const pending = new Set(
+    s.pendingPickup
+      .filter((stack) => getItemDef(stack.itemId).category === "relic")
+      .map((stack) => stack.itemId),
+  );
+  const candidates = BLESSING_RELIC_DEFS.filter(
+    (def) => (!rarity || def.rarity === rarity) && !s.ownedRelicIds.includes(def.id) && !pending.has(def.id),
+  );
+  return candidates.length ? rngPick(s, candidates).id : undefined;
+}
+
 export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): string {
   switch (e.type) {
     case "HEAL_PARTY":
@@ -903,14 +927,15 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       s.pendingActions.push({ kind: "purifyCards", scope: e.scope, count: Math.max(1, e.count ?? 1) });
       return e.scope === "party" ? `获得全队各净化 ${Math.max(1, e.count ?? 1)} 张污染卡` : "获得一次指定角色污染卡净化";
     case "GRANT_RELIC": {
-      const def = getItemDef(e.relicId);
-      if (def.category !== "relic" || !def.relic) return "遗物投放失败";
-      if (s.ownedRelicIds.includes(e.relicId) || s.pendingPickup.some((st) => st.itemId === e.relicId)) {
+      return grantRelic(s, e.relicId);
+    }
+    case "GRANT_RANDOM_RELIC": {
+      const relicId = randomRelicId(s, e.rarity);
+      if (!relicId) {
         s.loot += 10;
-        return `遗物「${def.name}」已拥有，回落为居民积分 +10`;
+        return "随机祝福遗物池为空，回落为居民积分 +10";
       }
-      s.pendingPickup = [...s.pendingPickup, makeRolledItemStack(s, e.relicId, 1)];
-      return `获得遗物「${def.name}」，已放入待拾取框`;
+      return grantRelic(s, relicId);
     }
     case "GAIN_EXP_PARTY": {
       let count = 0;
@@ -1475,7 +1500,7 @@ export function arriveNode(s: ExploreState): boolean {
   s.pendingNotes = [];
   s.pendingStory = [];
   s.phase = "landed";
-  fireExploreRelic(s, { type: "nodeArrived" });
+  fireExploreRelic(s, { type: "nodeArrived", nodeKind: landedEvent(s)?.kind });
   return true;
 }
 
@@ -1893,9 +1918,12 @@ function settleTrials(s: ExploreState): void {
       try {
         const pendingBefore = s.pendingPickup.length;
         const note = applyEffect(s, effect, true);
-        // 挑战奖励发生在战斗胜利面板期间；遗物仍按统一的 GRANT_RELIC 规则生成，
+        // 挑战奖励发生在战斗胜利面板期间；遗物仍按统一的遗物奖励规则生成，
         // 但先转入战利品盘，保证玩家能在当前胜利面板完成拾取。
-        if (effect.type === "GRANT_RELIC" && s.pendingPickup.length > pendingBefore) {
+        if (
+          (effect.type === "GRANT_RELIC" || effect.type === "GRANT_RANDOM_RELIC") &&
+          s.pendingPickup.length > pendingBefore
+        ) {
           s.pendingLoot.push(...s.pendingPickup.splice(pendingBefore));
         }
         if (note) notes.push(note);

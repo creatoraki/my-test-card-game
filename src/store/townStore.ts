@@ -353,7 +353,7 @@ const INITIAL_MATERIAL_IDS = [
   "magnet",
 ] as const;
 const INITIAL_CRYSTAL_IDS = ["green-crystal", "blue-crystal", "red-crystal"] as const;
-const INITIAL_RELIC_IDS = ["relic-even-draw", "relic-broken-compass"] as const;
+const INITIAL_RELIC_IDS = ["relic-sport-shoes", "relic-broken-compass"] as const;
 const INITIAL_REGIONAL_IDS = REGIONAL_MATERIAL_DEFS.flatMap((def) =>
   Array.from({ length: def.regionTier === "boss" ? 2 : 6 }, () => def.id),
 );

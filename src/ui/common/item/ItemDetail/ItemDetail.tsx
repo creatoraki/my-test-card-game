@@ -115,7 +115,7 @@ export default function ItemDetail({
       {def.relic && (
         <div className={s["item-detail-relic"]}>
           <strong>{def.relic.polarity === "blessing" ? "祝福遗物" : "诅咒遗物"}</strong>
-          <span>{relicTriggerText(def.relic.on)}触发</span>
+          {def.relic.on && <span>{relicTriggerText(def.relic.on)}触发</span>}
           {def.relic.every && <span>每 {def.relic.every} 次触发结算</span>}
           {def.relic.purifyTo && <span>可在圣水池净化</span>}
         </div>

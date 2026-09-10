@@ -591,13 +591,13 @@ describe("净化粒子(设计文档 §4.2)", () => {
 describe("背包与负重(设计文档 §六)", () => {
   it("祝福遗物先进入待拾取框, 收下后占用一格并参与同名去重", () => {
     const s = newSession();
-    expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-even-draw" }, true)).toContain("双相抽牌器");
+    expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-old-clockwork" }, true)).toContain("旧式发条");
     expect(s.backpack).toHaveLength(0);
     expect(s.pendingPickup).toHaveLength(1);
     expect(takePending(s, 0)).toBe(true);
     expect(backpackSlots(s)).toBe(1);
-    expect(s.ownedRelicIds).toContain("relic-even-draw");
-    expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-even-draw" }, true)).toContain("回落");
+    expect(s.ownedRelicIds).toContain("relic-old-clockwork");
+    expect(applyEffect(s, { type: "GRANT_RELIC", relicId: "relic-old-clockwork" }, true)).toContain("回落");
     expect(s.pendingPickup).toHaveLength(0);
   });
 

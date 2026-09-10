@@ -24,7 +24,7 @@
 // ============================================================================
 
 import type { NodeEvent, TrialDef } from "../explore/types";
-import { relic, choice, item, items, outcome, startTrial } from "./exploreEventKit";
+import { choice, item, items, outcome, startTrial } from "./exploreEventKit";
 
 // 全部挑战统一持续 2 轮(接下的当轮 + 下一轮)。改这一个数就是改整套机制的时长。
 const TRIAL_ROUNDS = 2;
@@ -33,7 +33,7 @@ const TRIAL_ROUNDS = 2;
 // 四份契约
 // ---------------------------------------------------------------------------
 // 奖励一律是「物品包 / 常驻小队增益」二选一, 权重各 1 —— 到期时由 session 掷一次。
-// ★ 正面收益转为 GRANT_RELIC ⇒ 进入待拾取框并占用背包格；与本轮的负面修正是两套东西。
+// ★ 正面遗物收益转为随机祝福遗物 ⇒ 进入待拾取框并占用背包格；与本轮的负面修正是两套东西。
 
 const OVERLOAD_LIMITER: TrialDef = {
   id: "trial-overload-limiter",
@@ -50,7 +50,7 @@ const OVERLOAD_LIMITER: TrialDef = {
     outcome(
       "feedback",
       "限流阀解除时把积压的功率反灌回队伍的动力接口，之后的战斗都能多榨出一点输出。",
-      [relic("trial-overclock-feedback")],
+      [{ type: "GRANT_RANDOM_RELIC" }],
     ),
   ],
 };
@@ -71,7 +71,7 @@ const MEDICAL_LOCKDOWN: TrialDef = {
       "protocol",
       "封锁期间的用药记录被系统判定为合规，队伍获得了应急输液权限。",
       [
-        relic("trial-emergency-infusion"),
+        { type: "GRANT_RANDOM_RELIC" },
       ],
     ),
   ],
@@ -93,7 +93,7 @@ const GRAVITY_RECALIBRATION: TrialDef = {
       "adapt",
       "两轮重力扰动之后，队伍的动作已经自己适应了偏移的配重。",
       [
-        relic("trial-ballast-adaptation"),
+        { type: "GRANT_RANDOM_RELIC" },
       ],
     ),
   ],
@@ -115,7 +115,7 @@ const SENSOR_JAMMER: TrialDef = {
       "calibrate",
       "在持续干扰下练出来的瞄准习惯留了下来，队伍的锁定比进塔之前更稳。",
       [
-        relic("trial-calibrated-lock"),
+        { type: "GRANT_RANDOM_RELIC" },
       ],
     ),
   ],

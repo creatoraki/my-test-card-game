@@ -64,7 +64,7 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
       recipeId: recipe.id,
       recipeName: recipe.name,
       story: recipe.story,
-      notes: [applyEffect(s, { type: "GRANT_RELIC", relicId: recipe.relicId })],
+      notes: [applyEffect(s, { type: "GRANT_RANDOM_RELIC" })],
     };
   } else if (total > 0) {
     const amount = EXPLORE_RULES.picnic.limitPerFood * total;

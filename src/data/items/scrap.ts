@@ -3,6 +3,16 @@ import type { ItemDef } from "../../items/types";
 // 废料不上架商店，只登记回收台出售价值。
 export const SCRAP_ITEM_DEFS: ItemDef[] = [
   {
+    id: "copper-coin",
+    name: "值钱的铜币",
+    category: "scrap",
+    rarity: "common",
+    desc: "仍然保有流通价值的旧铜币，回收台按面额收购。",
+    maxStack: 1,
+    sellValue: 20,
+    icon: "scrap",
+  },
+  {
     id: "bronze-bear",
     name: "铜质小熊",
     category: "scrap",

@@ -1,7 +1,7 @@
-import { BLESSING_RELIC_DEFS } from "./blessings";
+import { BLESSING_RELIC_DEFS } from "./blessings/index";
 import { CURSE_RELIC_DEFS } from "./curses";
 
-export { BLESSING_RELIC_DEFS } from "./blessings";
+export { BLESSING_RELIC_DEFS } from "./blessings/index";
 export { CURSE_RELIC_DEFS } from "./curses";
 
 export const RELIC_ITEM_DEFS = [...BLESSING_RELIC_DEFS, ...CURSE_RELIC_DEFS];

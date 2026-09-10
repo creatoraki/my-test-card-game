@@ -62,6 +62,7 @@ export const RULES = {
     weakMultiplier: 0.7, // 虚弱: 造成攻击伤害 ×
     sharpMultiplier: 1.1, // 锋利: 造成攻击伤害 ×
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
+    hunterMarkMultiplier: 1.2, // 猎人标记: 受到伤害 ×
     overloadDodgePerStack: 2, // 过载每层: 闪避 +2 个百分点
     overloadAttackPerStack: 10, // 过载每层: 攻击力 +10
     enemyBaseHitBonus: 5, // 怪物阵营统一命中补正(百分点)

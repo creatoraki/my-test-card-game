@@ -4,10 +4,10 @@ import { resolveEffects } from "./effects";
 import { withHitRecorder } from "./animHits";
 import { checkEnd, ops } from "./ops";
 import { currentRecorder, ensureCardFxSnapshot, recordRelicTrigger, snapshotHp } from "./cardFx";
+import { MAX_RELIC_DEPTH } from "./relicBehaviors/types";
 import type { BattleState, DiscardRecorder, RelicEvent } from "./types";
 import type { RelicSpec } from "../items/types";
 
-const MAX_RELIC_DEPTH = 8;
 let depth = 0;
 
 export const RELIC_TRIGGERS: readonly RelicEvent["type"][] = [
@@ -34,7 +34,7 @@ export function fireRelic(state: BattleState, event: RelicEvent, rec?: DiscardRe
   const listeners = state.relics.slice().filter((runtime) => {
     const spec = getItemDef(runtime.id).relic;
     if (!spec || spec.scope !== "battle") return false;
-    const on: readonly string[] = Array.isArray(spec.on) ? spec.on : [spec.on];
+    const on: readonly string[] = spec.on ? (Array.isArray(spec.on) ? spec.on : [spec.on]) : [];
     return on.includes(event.type) && Boolean(spec.effects?.length);
   });
   if (!listeners.length) return;

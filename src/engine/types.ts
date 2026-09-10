@@ -343,6 +343,8 @@ export interface Card extends CardDef {
   uid: string;
   upgraded: boolean;
   contaminated: boolean;
+  // 磁化护符的被动牌保留回合数。0 / 缺省表示按普通规则回收。
+  holdRounds?: number;
   resonanceStacks?: number; // 手牌内共鸣强化次数; 离手后清零
   marks?: string[];
   cultivateLeft?: number;
@@ -587,6 +589,8 @@ export interface LogEntry {
 export interface BattleRelic {
   id: string;
   counter: number;
+  // 行为型遗物的战斗内运行态。只存数字，保持可 structuredClone。
+  data?: Record<string, number>;
 }
 
 export interface BattleState {

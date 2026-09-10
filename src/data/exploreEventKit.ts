@@ -48,7 +48,6 @@ export const equip = (count: number, slot?: "weapon" | "armor" | "trinket"): Exp
   slot,
 });
 export const cost = (itemId: string, count = 1) => ({ itemId, count });
-export const relic = (relicId: string): ExploreEffect => ({ type: "GRANT_RELIC", relicId });
 
 // 挑战契约(见 explore/types.ts TrialDef): 接下即刻生效, 到期由 session.settleTrials 发奖。
 export const startTrial = (trial: TrialDef): ExploreEffect => ({ type: "START_TRIAL", trial });

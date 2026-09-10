@@ -86,11 +86,6 @@ export function StockShelf({ active, entering, className, onBought, onPoor, onFu
       aria-hidden={!active}
       aria-label="补给货架"
     >
-      <header className={s.head}>
-        <span className={s.kicker}>补给终端 // 货架</span>
-        <h2 className={s.title}>补给货架</h2>
-        <p className={s.foot}>固定清单 · 不限量 · 价格牌买入</p>
-      </header>
       <div className={s.rows}>
         {rows.map((row) => (
           <ShelfRow

@@ -15,12 +15,14 @@
 | [insurance.ts](../../src/engine/insurance.ts) | 精算师保险机制的唯一真相点：读取单体/全队保险层数、受击增值、保险兑现与移除。 |
 | [counters.ts](../../src/engine/counters.ts) | 战斗计数器的唯一读取入口；支持出牌结算期读取 `state.activeCardResonance`、全队保险总层数，也支持传入卡牌后读取该卡实例的共鸣层数。 |
 | [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/等概率与加权抽取、Fisher–Yates 洗牌。 |
-| [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调和胜负判定等原语；状态实例支持持续拍数、结构化数据、来源记录与清理，并提供状态上下文、到期钩子及护盾击破钩子；敌方攻击命中我方时记录急诊目标并派发 `allyAttacked` 被动事件；我方 0 血进入濒死，再受伤按 `RULES.combat.downedDeathChance` 掷死亡骰；死亡时清空该角色抽牌堆/手牌/弃牌堆卡牌。护盾在战斗内跨回合保留，仅随战斗结束消失。敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡, 纯伤害跳过伤害状态修正。 |
+| [relicBehaviors/](../../src/engine/relicBehaviors/) | 行为型遗物注册表与钩子派发：承载回合、出牌、洗牌、抽牌、暴击、跨半血与伤害修正等命令式机制；运行态只写入 `BattleRelic.data`。 |
+| [relics.ts](../../src/engine/relics.ts) | 声明式战斗遗物的唯一分发入口；读取 `RelicSpec.on` / `effects` 并保留 `every` 计数，行为型遗物由 `relicBehaviors/` 并行处理。 |
+| [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调和胜负判定等原语；状态实例支持持续拍数、结构化数据、来源记录与清理，并提供状态上下文、到期钩子及护盾击破钩子；敌方攻击命中我方时记录急诊目标并派发 `allyAttacked` 被动事件；伤害阶段接入遗物 `modifyOutgoingDamage`、`onCrit` 与跨半血钩子；我方 0 血进入濒死，再受伤按 `RULES.combat.downedDeathChance` 掷死亡骰；死亡时清空该角色抽牌堆/手牌/弃牌堆卡牌。护盾在战斗内跨回合保留，仅随战斗结束消失。敌人死亡和实际 HP 伤害在这里接入挑战判定。伤害顺序固定为状态修正 → 遗物修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP → 荆棘；固定伤害跳过防御与格挡, 纯伤害跳过伤害状态修正。 |
 | [cost.ts](../../src/engine/cost.ts) | 卡牌生效费用唯一入口；按 `costRule.per` 支持每 1 点计数线性减费、按 `stackCostRule` 读取卡牌实例累计层数(岚)，按本回合弃牌或速攻出牌计数与可选阈值计算动态费用，叠加标记级费用修正，并提供应星/星契的星辉抵扣与 UI 角标用量。 |
 | [cardMarks.ts](../../src/engine/cardMarks.ts) | 卡牌实例标记注册表；提供心眼、星契与《沉重》，打出后通过统一效果解释器触发标记效果，星契同时被费用层识别为可用星辉支付，《沉重》由费用层追加 1 点费用并在打出后移除。 |
 | [cardText.ts](../../src/engine/cardText.ts) | 将卡牌说明中的 `{0}` / `{d0}` / `{c}` / `{k0}` 占位符按施放者攻击力或治愈力、培育实例状态渲染为具体数值。 |
 | [discard.ts](../../src/engine/discard.ts) | 弃牌唯一入口：`returnToHand` 触发把牌退回手牌并累计实例层数，录制 `reveal` 步(仅卡面亮相，无攻击演出)，手牌满时同样出提示；真正的弃牌动作(manual/effect/cost)结束后分发被动卡的 `cardDiscarded` 事件；迁移牌堆、按规则累计本回合与整场弃牌计数；`custom` 触发立即结算，`useSelf` 进入自动出牌队列并在本次操作完成后冲刷，同时录制表现快照；通过 `ops.flushAutoPlays` 钩子供调度器在敌人行动后立即冲刷；手牌离手时同步清除《沉重》。 |
-| [passive.ts](../../src/engine/passive.ts) | 被动卡唯一真相点：`isPassive` / `playableHandUids`(费用、瀑布、标记与转换的候选池一律排除被动卡) / `firePassive`(按 `cardDiscarded`、`cardDrawn`、`roundEnd`、`enemyKilled`、`assembleSuccess`、`allyAttacked` 分发，并把事件目标作为 `primaryId`；同一张卡按事件选择 `effectsByTrigger`，带递归安全阀并各录一条演出步) / `recycleHandPassives`(回合结束按 `passiveEnd` 理由收进弃牌堆，消耗类被动进消耗堆，不计弃牌数也不触发任何弃牌联动)。 |
+| [passive.ts](../../src/engine/passive.ts) | 被动卡唯一真相点：`isPassive` / `playableHandUids`(费用、瀑布、标记与转换的候选池一律排除被动卡) / `firePassive`(按 `cardDiscarded`、`cardDrawn`、`roundEnd`、`enemyKilled`、`assembleSuccess`、`allyAttacked` 分发，并把事件目标作为 `primaryId`；同一张卡按事件选择 `effectsByTrigger`，带递归安全阀并各录一条演出步) / `recycleHandPassives`(回合结束按 `passiveEnd` 理由收进弃牌堆，支持 `holdRounds` 延迟回收，消耗类被动进消耗堆，不计弃牌数也不触发任何弃牌联动)。 |
 | [cardFx.ts](../../src/engine/cardFx.ts) | 卡牌触发的演出录制与快照台账：`withDiscardRecorder`、`currentRecorder`、`ensureCardFxSnapshot`、`takeDiscardSnapshot`、`snapshotHp` 和 `recordCardTrigger`。单独成文件是为了打破 `discard.ts` ↔ `passive.ts` 的静态循环。 |
 | [cultivate.ts](../../src/engine/cultivate.ts) | 培育卡实例的生命周期：进手与离手重置、回合开始递减、按指定步长递减和归零就绪判定。 |
 | [keywords.ts](../../src/engine/keywords.ts) | 卡牌词条注册表；已实现瞄准的命中目标判定与触发次数结算、回响基础效果扩散，同时承载汇星、应星、瀑布、瞄准、培育、组装、共鸣、回响、急诊的展示释义登记表与文本分段纯函数，并保留登阶、日蚀、月蚀的待接落点。 |
@@ -30,7 +32,7 @@
 | [statuses/](../../src/engine/statuses/) | 状态定义分表：`dot.ts` 负责持续伤害/治疗与反伤, `buffs.ts` 负责增益(含反应釜壁与赏金猎人), `actuary.ts` 负责保险/回响/免赔/假装受伤(急诊模组产出的伪造受击标记, 无钩子, 判定统一由 `effects.ts` 的急诊条件读取), `debuffs.ts` 负责减益, `control.ts` 负责控制, `stacking.ts` 负责状态叠加策略、有效层数与分段独立计时, `index.ts` 合并并提供注册表。DOT/HOT 通过 `onTempo` 声明, 状态行为只经 `ctx.ops` 调用引擎原语。 |
 | [statusLifecycle.ts](../../src/engine/statusLifecycle.ts) | 状态节拍唯一驱动入口：我方在回合结束推进一拍, 敌人在行动前按规则推进一拍；按 DOT/HOT → 衰减 → 到期钩子 → 清理顺序处理状态, 并负责敌人 DOT 致死和 tick 钩子。`runOwnerTempo` 按单位暴露拍点, 供回合结束逐个录动画帧。 |
 | [targeting.ts](../../src/engine/targeting.ts) | 存活单位、敌我查询和随机目标选择。普通敌人优先在存活的嘲讽目标中等概率随机选取，没有嘲讽时从全部存活我方中随机选取；脚本敌人的强制目标由 `ai.ts` 保持优先。 |
-| [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；每抽到一张牌分发一次被动 `cardDrawn` 事件并回填 `ops.draw`；抽牌堆耗尽时洗回弃牌堆，并受小队手牌上限约束；通过 `addCardToHand` 统一实例化并加入临时卡。 |
+| [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆并派发遗物 `onShuffle`，每抽到一张牌分发被动 `cardDrawn` 与遗物 `onCardDrawn`，并受小队手牌上限约束；通过 `addCardToHand` 统一实例化并加入临时卡。 |
 | [quirks.ts](../../src/engine/quirks.ts) | 污染阈值、每张污染卡增量、生病永久修正和怪癖注册表；永久状态不复用会在战斗结束清理的 `StatusInstance`。 |
 | [pollution.ts](../../src/engine/pollution.ts) | 污染卡进入手牌时的纯战斗处理：所属角色污染值 `+2`、达到阈值归零、生病和随机怪癖即时写入当前战斗属性。 |
 | [ai.ts](../../src/engine/ai.ts) | 敌人按招式权重抽招与行动执行：脚本敌人经 `enemyScript.ts` 按护盾状态和 AI 记忆选招，普通敌人保持随机抽招；按招式延迟开始蓄力、倍率预览、将招式级命中修正注入 DAMAGE 效果、行动前推进状态节拍(`runEnemyTempoPhase` 拆出, 供 `actAndRecord` 把 DOT/HOT 单独录成一帧播在出招之前)、眩晕跳过、随机或最高护盾目标选择和效果解释。每回合行动点在开始时补满，招式发动后按剩余行动点继续选招，用尽后 `nextActTick = null`。 |

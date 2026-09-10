@@ -32,6 +32,21 @@ export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
       },
     },
   },
+  hunterMark: {
+    id: "hunterMark",
+    name: "猎人标记",
+    emoji: "🔻",
+    kind: "debuff",
+    maxStacks: 1,
+    stackMode: "max",
+    refreshMode: "max",
+    desc: `受到的伤害 ×${RULES.combat.hunterMarkMultiplier}。持续 1 回合。`,
+    hooks: {
+      modifyIncomingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
+        dmg.amount *= RULES.combat.hunterMarkMultiplier;
+      },
+    },
+  },
   armorBreak: {
     id: "armorBreak",
     name: "破甲",

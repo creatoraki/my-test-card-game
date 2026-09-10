@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CHARACTERS, getItemDef, makeCard } from "../data";
-import { createBattle, fireRelic, type AllyInit, type BattleSetup } from "./index";
+import { createBattle, fireRelic, startRound, type AllyInit, type BattleSetup } from "./index";
 import { ops } from "./ops";
 
 function allies(): AllyInit[] {
@@ -14,27 +14,22 @@ function allies(): AllyInit[] {
 }
 
 describe("遗物触发", () => {
-  it("every=2 只在第 2、4 次回合开始结算", () => {
+  it("旧式发条只在 3 的倍数回合开始额外抽牌", () => {
     const setup: BattleSetup = {
       allies: allies(),
       deck: Array.from({ length: 20 }, () => makeCard("swordsman-basic-attack")),
-      relics: ["relic-even-draw"],
+      relics: ["relic-old-clockwork"],
     };
     const battle = createBattle("n-t1-scout", setup, 42);
     const initial = battle.hand.length;
-    fireRelic(battle, { type: "roundStart" });
-    expect(battle.hand.length).toBe(initial);
-    fireRelic(battle, { type: "roundStart" });
-    expect(battle.hand.length).toBe(initial + 1);
-    fireRelic(battle, { type: "roundStart" });
-    expect(battle.hand.length).toBe(initial + 1);
-    fireRelic(battle, { type: "roundStart" });
+    startRound(battle);
     expect(battle.hand.length).toBe(initial + 2);
-    expect(battle.relics[0].counter).toBe(0);
+    startRound(battle);
+    expect(battle.hand.length).toBe(initial + 5);
   });
 
   it("递归触发超过安全深度后停止", () => {
-    const id = "relic-safety-latch";
+    const id = "relic-sport-shoes";
     const def = getItemDef(id);
     const originalSpec = def.relic;
     const originalDealDamage = ops.dealDamage;

@@ -7,6 +7,7 @@ import { partyHandLimit } from "./stats";
 import { registerPollutedCardDraw } from "./pollution";
 import { resetCultivate } from "./cultivate";
 import { makeCard } from "../data";
+import { runRelicHook } from "./relicBehaviors/types";
 
 // 抽 n 张(受小队手牌上限限制)。抽牌堆空则把弃牌堆洗回。
 export function drawCards(state: BattleState, n: number): void {
@@ -19,6 +20,7 @@ export function drawCards(state: BattleState, n: number): void {
       state.draw = shuffle(state, state.discard);
       state.discard = [];
       log(state, "🔀 弃牌堆洗回抽牌堆");
+      runRelicHook(state, "onShuffle");
     }
     const uid = state.draw.shift()!;
     state.hand.push(uid);
@@ -30,6 +32,7 @@ export function drawCards(state: BattleState, n: number): void {
     drawn++;
     // 每抽到一张牌就分发一次被动事件(天眼等) —— 经 ops 间接调用, 避免与 passive.ts 循环。
     ops.firePassive(state, { type: "cardDrawn", cardUid: uid });
+    runRelicHook(state, "onCardDrawn", uid);
   }
   if (drawn > 0) log(state, `🃏 抽了 ${drawn} 张牌`);
 }

@@ -197,6 +197,25 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
     ],
   },
   {
+    id: "tut-relic-cache",
+    kind: "loot",
+    category: "growth",
+    title: "遗物储备箱",
+    description: "储备箱读取到三种不同的祝福遗物，确认一件后就会送入待拾取框。",
+    energyDelta: 0,
+    choices: [
+      direct("heart-mirror", "领取护心镜", "获得护心镜", "你打开第一格储备仓，护心镜的镜面映出队伍的生命读数。", [
+        { type: "GRANT_RELIC", relicId: "relic-heart-mirror" },
+      ]),
+      direct("old-clockwork", "领取旧式发条", "获得旧式发条", "你取出仍在缓慢运转的旧式发条，把它收进队伍的物资栏。", [
+        { type: "GRANT_RELIC", relicId: "relic-old-clockwork" },
+      ]),
+      direct("light-feather", "领取轻质羽毛", "获得轻质羽毛", "你捧起一片几乎没有重量的羽毛，换牌接口随即亮起备用标记。", [
+        { type: "GRANT_RELIC", relicId: "relic-light-feather" },
+      ]),
+    ],
+  },
+  {
     id: "tut-market",
     kind: "merchant",
     category: "economy",

@@ -115,7 +115,7 @@ export type RelicTriggerId =
 export interface RelicSpec {
   polarity: "blessing" | "curse";
   scope: "battle" | "explore";
-  on: RelicTriggerId | RelicTriggerId[];
+  on?: RelicTriggerId | RelicTriggerId[];
   effects?: EffectDescriptor[];
   mods?: StatModifier;
   every?: number;

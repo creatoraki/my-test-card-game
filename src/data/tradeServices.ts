@@ -19,9 +19,9 @@ const buff = (relicId: string): TradeBuffOption => ({
 });
 
 export const TRADE_BUFF_OPTIONS: TradeBuffOption[] = [
-  buff("trade-overclock-protocol"),
-  buff("trade-recovery-oxygen"),
-  buff("trade-fortification-grid"),
+  buff("relic-sport-shoes"),
+  buff("relic-whetstone"),
+  buff("relic-lucky-button"),
 ].map((option, index) => ({ ...option, weight: [50, 30, 20][index] }));
 
 const service = (

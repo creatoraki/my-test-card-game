@@ -1,6 +1,5 @@
 import type { NodeEvent } from "../explore/types";
 import {
-  relic,
   burden,
   chance,
   choice,
@@ -89,9 +88,9 @@ const SURVIVAL: NodeEvent[] = [
         outcome("filter-a", "过滤芯里凝结的中和液仍然可用。你们封装成圣水，并将其中一部分用于一名队员。", [item("holy-water-c"), { type: "REDUCE_POLLUTION", scope: "one", amount: 20 }]),
         outcome("filter-b", "过滤芯已经干涸，只剩下备用医疗匣和营养匣。你们带走医疗包和糖块，没有启动恢复舱。", [item("medical-kit-c"), item("sugar-cube-c")]),
       ]),
-      choice("cola", "用可乐换取循环供氧", "需要 可乐 ×1；全队治疗 18% 并获得 8 粒子，或获得循环供氧遗物", "你用可乐启动恢复舱的旧员工协议。", [
+      choice("cola", "用可乐接入祝福协议", "需要 可乐 ×1；全队治疗 18% 并获得 8 粒子，或获得随机祝福遗物", "你用可乐启动恢复舱的旧员工协议。", [
         outcome("cola-a", "循环泵恢复运转，队伍得到一阵稳定的恢复脉冲和净化粒子。", [{ type: "HEAL_PARTY", percent: 0.18 }, { type: "MODIFY_ENERGY", amount: 8 }]),
-        outcome("cola-b", "恢复舱将供氧协议写入队伍识别码，之后的战斗会持续受益。", [relic("recovery-oxygen")]),
+        outcome("cola-b", "恢复舱将一件随机祝福遗物写入队伍识别码，之后的战斗会持续受益。", [{ type: "GRANT_RANDOM_RELIC" }]),
       ], 0, cost("cola")),
     ],
   },
@@ -149,9 +148,9 @@ const SURVIVAL: NodeEvent[] = [
         outcome("supplies-a", "安抚组件的储液囊仍然完整，你们将它封装为圣水，没有启动反馈训练。", [item("holy-water-c")]),
         outcome("supplies-b", "储液囊已经失效，但营养匣和备用治疗匣还能拆下。", [item("sugar-cube-c", 2), item("medical-kit-c")]),
       ]),
-      choice("fried-chicken", "用炸鸡开启深度反馈", "需要 炸鸡 ×1；全队各治疗 1 个怪癖并降低污染值 25，或获得平静呼吸遗物", "你用高热量食品让休息室进入深度反馈模式。", [
+      choice("fried-chicken", "用炸鸡开启祝福反馈", "需要 炸鸡 ×1；全队各治疗 1 个怪癖并降低污染值 25，或获得随机祝福遗物", "你用高热量食品让休息室进入深度反馈模式。", [
         outcome("fried-chicken-a", "所有头环同时进入深层校准，队伍的怪癖和污染值都得到处理。", [{ type: "CURE_QUIRK", scope: "party" }, { type: "REDUCE_POLLUTION", scope: "party", amount: 25 }]),
-        outcome("fried-chicken-b", "休息室将平静呼吸写入队伍协议，之后的战斗节奏变得更加稳定。", [relic("calm-breathing")]),
+        outcome("fried-chicken-b", "休息室将一件随机祝福遗物写入队伍协议，之后的战斗节奏变得更加稳定。", [{ type: "GRANT_RANDOM_RELIC" }]),
       ], 0, cost("fried-chicken")),
     ],
   },

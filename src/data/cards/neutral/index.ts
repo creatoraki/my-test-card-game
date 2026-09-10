@@ -15,4 +15,18 @@ export const NEUTRAL_CARD_DEFS: CardDef[] = [
     effects: [{ type: "DAMAGE", multiplier: 1.0 }],
     text: "造成 {0} 点伤害。",
   },
+  {
+    id: "temp-stun-hammer",
+    name: "眩晕锤",
+    ownerCharId: "swordsman",
+    cost: 1,
+    cardType: "normal",
+    targeting: "foe",
+    rarity: "basic",
+    temporary: true,
+    exhaust: true,
+    anim: "buff",
+    effects: [{ type: "APPLY_STATUS", status: "stun", stacks: 1, duration: 1, target: "primary" }],
+    text: "击晕目标 1 拍。",
+  },
 ];

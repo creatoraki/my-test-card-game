@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { RULES } from "@/engine";
-import { getItemDef, VENDOR_LINES } from "@/data";
+import { getItemDef, VENDOR_LINES, type VendorLineKind } from "@/data";
 import { SORTIE_RELIC_LIMIT, useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
 import { ChatBot, useBotChatter } from "@/ui/common/ChatBot";
@@ -25,7 +25,7 @@ export function PrepStep({ active, entering, exiting }: Props) {
   const credits = useCountUp(loot, 120, 460);
   const relicCount = backpack.filter((stack) => getItemDef(stack.itemId).category === "relic").length;
   // 页面上所有的软反馈(买到了/买不起/装不下/退了钱)都由机器人说出来, 这里只负责触发。
-  const { line, say } = useBotChatter(active, {
+  const { line, say } = useBotChatter<VendorLineKind>(active, {
     lines: VENDOR_LINES,
     greet: "greet",
     idle: "idle",

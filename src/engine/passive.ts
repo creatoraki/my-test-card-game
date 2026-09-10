@@ -72,6 +72,10 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
 export function recycleHandPassives(state: BattleState, rec?: DiscardRecorder): void {
   for (const uid of handPassiveUids(state)) {
     const card = state.cards[uid];
+    if (card && (card.holdRounds ?? 0) > 0) {
+      card.holdRounds = card.holdRounds - 1;
+      continue;
+    }
     if (card?.exhaust) {
       state.hand = state.hand.filter((id) => id !== uid);
       if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
