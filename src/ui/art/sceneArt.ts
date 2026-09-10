@@ -11,7 +11,6 @@ import shopBg from "@/assets/场景/商店.png";
 import museumBg from "@/assets/占位场景素材.png";
 import expeditionResultBg from "@/assets/场景/远征结算.png";
 import productTrayArt from "@/assets/道具/商品托盘.png";
-import sanctuaryBg from "@/assets/占位场景素材.png";
 
 export const SCENE_ART_SOURCES: readonly string[] = [
   menuTitle,
@@ -25,7 +24,6 @@ export const SCENE_ART_SOURCES: readonly string[] = [
   museumBg,
   expeditionResultBg,
   productTrayArt,
-  sanctuaryBg,
 ];
 
 export const SCENE_VIDEO_SOURCES: readonly string[] = [menuBgVideo, elevatorDescentVideo];
@@ -43,4 +41,3 @@ export const SHOP_BG_ART = shopBg;
 export const MUSEUM_BG_ART = museumBg;
 export const EXPEDITION_RESULT_BG_ART = expeditionResultBg;
 export const PRODUCT_TRAY_ART = productTrayArt;
-export const SANCTUARY_BG_ART = sanctuaryBg;

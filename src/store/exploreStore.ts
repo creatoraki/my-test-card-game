@@ -14,6 +14,7 @@ import {
   abandonLoot,
   addPendingLoot,
   acceptEquipOffer,
+  acceptRelicOffer,
   arriveNode,
   chooseEntry,
   chooseOption,
@@ -147,6 +148,7 @@ interface ExploreStore {
   resolvePendingHealing: (charId: string, limit: boolean) => void;
   resolvePendingAction: () => void;
   acceptEquipOffer: (index: number) => void;
+  acceptRelicOffer: (index: number) => void;
   reforgeBackpackItem: (uid: string) => void;
   consumePendingExp: () => Record<string, number>;
 }
@@ -512,6 +514,10 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
 
   acceptEquipOffer: (index) => {
     mutate(get, set, (d) => acceptEquipOffer(d, index));
+  },
+
+  acceptRelicOffer: (index) => {
+    mutate(get, set, (d) => acceptRelicOffer(d, index));
   },
 
   reforgeBackpackItem: (uid) => {

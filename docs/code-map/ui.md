@@ -42,11 +42,12 @@ src/ui/
 | [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
 | [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配、模组制造与科技树场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
 | [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
-| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、在编队员/阵亡/积分读数、两行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
+| [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、在编队员/阵亡/积分读数、三行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
 | [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 医疗室入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
 | [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 医疗室横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
 | [town/cryo/RevivePanel](../../src/ui/town/cryo/RevivePanel/RevivePanel.tsx) | 复苏舱面板：六个瘦高立绘舱位、在编队/阵亡/空舱三态、阵亡生命指标 count-up、复苏费用和居民积分操作；规则与复苏 action 由场景传入。 |
 | [town/cryo/NutritionPanel](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.tsx) | 疗养舱双页面板编排：席位自由分配与批量确认页、面板内横向滑动科技树页共用同一外壳；费用、容量、治疗和研究判定复用 `data/nutritionPod`。 |
+| [town/cryo/SanctuaryPanel](../../src/ui/town/cryo/SanctuaryPanel/SanctuaryPanel.tsx) | 圣水池面板：三栏展示待净化诅咒、净化费用与进度/祝福收藏；净化选择与费用判定集中在 `useSanctuaryPurify`。 |
 | [town/cryo/NutritionPanel/useNutritionAssign](../../src/ui/town/cryo/NutritionPanel/useNutritionAssign.ts) | 疗养舱选人、席位落位/撤下、队伍下限、费用文案与批量确认状态的唯一交互逻辑。 |
 | [town/cryo/NutritionPanel/NutritionPodsPage](../../src/ui/town/cryo/NutritionPanel/NutritionPodsPage.tsx) | 疗养席位页：编排四席位主舞台与右侧待疗养队员栏，保留两步选择落位交互。 |
 | [town/cryo/NutritionPanel/NutritionPodRack](../../src/ui/town/cryo/NutritionPanel/NutritionPodRack.tsx) | 疗养舱四列网格容器：只负责按席位号挂载单舱组件，不承载单舱状态或悬浮提示。 |
@@ -151,13 +152,15 @@ src/ui/
 | [RouteBoard](../../src/ui/common/RouteBoard/RouteBoard.tsx) | 等距路由图，SVG 走线与 DOM 地砖共用投影。统一由 `sx()` / `sy()` 投影，阶段依次展示生成、封存、桥接揭示、入口选择、走线、落点和路径披露；按 `board.segments.length` 适配固定或随机棋盘，并由 `boardShift()` 将小棋盘在固定面板内居中；隐藏桥接时不能读取引擎求解结果。起点拆入同目录 `RouteEntry`：中文编号、青白色激活砖面、引导箭头与扩散光环，独立处理悬停、按下、选中和封锁外观，点击范围覆盖标记与砖面。 |
 | [LeaveRegionButton](../../src/ui/explore/ExploreScreen/LeaveRegionButton.tsx) | 探索页前往下一区域按钮：选择起点时缩小为低对比次级操作，去除持续外发光与扩散环；落点决策时恢复正常尺寸。只负责展示与点击回调，离场规则仍由探索会话控制。 |
 | [TrialGauge](../../src/ui/explore/TrialGauge/TrialGauge.tsx) | 探索页右上读数列里的挑战倒计时砖：逐条展示进行中的契约名、负面修正与剩余轮数，悬浮说明走 `RailPopover`。剩余轮数由会话的 `untilRound` 与当前轮号现算，不存第二份；祖先带入场动画故一律不用 `backdrop-filter`。 |
+| [ExploreScreen/RelicRail](../../src/ui/explore/ExploreScreen/RelicRail.tsx) | 随身遗物图标行：接在左上「背包负重」右侧，与 `BurdenGauge` 共用 112×104 格子与 68px 图标几何，于是背包 svg 读起来就是这一行的第一枚遗物。无框无名字，效果一律靠向下展开的 `ItemTooltip`；只读 `relicsInBackpack` 的结论，不判定遗物归属。 |
 | [NodeTip](../../src/ui/explore/NodeTip/NodeTip.tsx) | 节点悬浮详情浮卡：贴在被悬停的瓦片旁展示事件标题与描述，落位由 RouteBoard 导出的 `nodeCenter` / `NODE_ICON_TOP` 与棋盘位移算，越界时自动左右贴边或翻到瓦片下方；只讲「这是什么」，不含粒子、风险与选项预览。 |
 | [MerchantPanel](../../src/ui/explore/MerchantPanel/) | 交易终端内容面板，版式与据点卡牌商店同族：`MerchantPanel` 只管槽位/选中/提示三份状态与 `tradeQuote`；`ServiceTabs` 是顶部两张服务槽位页签（报价整块复用 `ItemCostTag`，服务名与成交状态排在它旁边），`ServiceStage` 是左内容区（商品货位网格 / 团队 BUFF 概率表 / 队伍待办服务说明），`TradeDetail` 是右侧 420 定宽详情栏并持有**唯一**的「确认支付」入口（商品详情由 `TradeGoodsDetail` 自建以保证头图带 1:1 框），`TradeNotes` 是底栏记录条与「关闭终端」。只派发购买和关闭 action，不承载交易规则。 |
 | [ShopOverlay](../../src/ui/explore/ShopOverlay/ShopOverlay.tsx) | 独立交易浮层：在经济节点选项触发后压在事件面板之上，只做外框、演出与数据接线，内容全交给 `MerchantPanel`；页眉右侧是成交计数。⚠ 它是唯一不吃 `explorePanel` 的 `panel-box`(936×680) 的探索浮层——只取材质 `panel-shell`，尺寸自写 1240×820，理由见该文件抬头。|
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
 | [PicnicSkill](../../src/ui/explore/PicnicSkill/) | 探索技能《野餐》的按钮与面板：按钮按会话阶段显示可用/锁定/已使用状态，面板负责最多 4 份食品选择、野餐布槽位和隐藏食谱结算。 |
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`；模组走 `useLootModuleActions` 的两按钮菜单，可选择直接装载。 |
-| [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
+| [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、遗物候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
+| [RewardOverlay/RelicOffers](../../src/ui/explore/RewardOverlay/RelicOffers.tsx) | 遗物三选一候选面板：几何对齐卡牌三选一（三列居中、一件一格），悬浮出完整 `ItemTooltip` 看效果，点哪件就把哪件放进拾取框，没有放弃出口。候选由会话的 `relicOffer` 待办给出，本组件不生成也不去重。 |
 | [ExpDropFx](../../src/ui/explore/ExpDropFx/ExpDropFx.tsx) | 约 2 秒经验坠入飘字。由探索主屏按 `pendingExp` 增量和序号挂载，避免把动画放进带 `overflow: hidden` 的角色立绘容器。 |
 | [EnergyLamp](../../src/ui/explore/EnergyLamp/EnergyLamp.tsx) | 能量档位读数 + `common/GlassHourglass` 沙漏（档位色驱动）。 |
 | [styles/exploreKit.module.css](../../src/ui/explore/styles/exploreKit.module.css) | 探索域共享的按钮、标签和事件类型色，四个组件各自 `composes`。 |

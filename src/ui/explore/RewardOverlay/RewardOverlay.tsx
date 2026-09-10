@@ -35,6 +35,7 @@ import {
 } from "@/ui/common/EventPanel";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
+import RelicOffers from "./RelicOffers";
 import s from "./RewardOverlay.module.css";
 
 // 奖励浮层的主色。★ 只在这里出现一次, 通过 EventPanelFrame 的 accent 下发给页眉/边线/按钮。
@@ -54,6 +55,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const grantExpTo = useExploreStore((state) => state.grantExpTo);
   const resolvePendingAction = useExploreStore((state) => state.resolvePendingAction);
   const acceptEquipOffer = useExploreStore((state) => state.acceptEquipOffer);
+  const acceptRelicOffer = useExploreStore((state) => state.acceptRelicOffer);
   const reforgeBackpackItem = useExploreStore((state) => state.reforgeBackpackItem);
   const resolvePendingHeal = useRunStore((state) => state.resolvePendingHeal);
   const resolvePendingQuirk = useRunStore((state) => state.resolvePendingQuirk);
@@ -165,6 +167,16 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
                 finish();
               }}
               onSkip={finish}
+            />
+          )}
+
+          {action.kind === "relicOffer" && (
+            <RelicOffers
+              offers={action.offers}
+              onPick={(index) => {
+                acceptRelicOffer(index);
+                finish();
+              }}
             />
           )}
 
@@ -283,6 +295,8 @@ function titleOf(kind: string): string {
       return "免费卡组整理";
     case "equipOffer":
       return "装备候选";
+    case "relicOffer":
+      return "遗物候选";
     case "reforge":
       return "羁绊重铸";
     case "healOne":

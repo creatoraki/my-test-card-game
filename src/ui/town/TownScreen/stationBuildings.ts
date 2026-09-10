@@ -12,7 +12,6 @@ import {
   FORMATION_BG_ART,
   MUSEUM_BG_ART,
   SHOP_BG_ART,
-  SANCTUARY_BG_ART,
   WORKLOG_BG_ART,
 } from "@/ui/art/sceneArt";
 
@@ -136,12 +135,6 @@ const BUILDING_CONTOURS = [
       L 1040 831 L 1040 821 L 1035 815 L 1034 799
       L 1042 794 L 1069 791 L 1072 688 Z`,
   },
-  {
-    id: "sanctuary",
-    label: "圣水池",
-    sign: { x: 940, y: 900, anchorX: 1005, anchorY: 980 },
-    path: `M 900 875 L 1010 842 L 1125 875 L 1125 966 L 1010 1002 L 900 966 Z`,
-  },
 ] as const;
 
 export type BuildingId = (typeof BUILDING_CONTOURS)[number]["id"];
@@ -159,7 +152,7 @@ export interface FacilityBinding {
 const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
   // 工房: 装备升阶 / 羁绊重铸
   airlock: { facility: "assembly", bg: ASSEMBLY_BG_ART },
-  // 医疗室: 复苏舱 / 营养舱
+  // 医疗室: 复苏舱 / 营养舱 / 圣水池
   supplies: { facility: "cryo", bg: CRYO_BG_ART },
   // 队员宿舍: 进入顶层编队场景, 使用队员宿舍背景作为像素转场目标
   "sleeping-pods": { facility: "formation", bg: FORMATION_BG_ART },
@@ -169,7 +162,6 @@ const FACILITY_BINDING: Record<BuildingId, FacilityBinding> = {
   "power-station": { facility: "museum", bg: MUSEUM_BG_ART },
   // 研究中心: 模组装配 / 模组制造
   laboratory: { facility: "worklog", bg: WORKLOG_BG_ART },
-  sanctuary: { facility: "sanctuary", bg: SANCTUARY_BG_ART },
 };
 
 export interface StationBuilding extends FacilityBinding {

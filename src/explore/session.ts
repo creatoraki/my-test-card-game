@@ -802,6 +802,34 @@ function grantRelic(s: ExploreState, relicId: string): string {
   return `获得遗物「${def.name}」，已放入待拾取框`;
 }
 
+// 遗物三选一的候选生成。★ 已拥有 / 已在待拾取或拾取框里的遗物一律排除 ——
+//   候选里出现一件「拿了也只会折成积分」的遗物, 三选一就少了一个真选项。
+function rollRelicOffers(
+  s: ExploreState,
+  count: number,
+  rarity?: ItemRarity,
+  relicIds?: string[],
+): ItemStack[] {
+  const taken = new Set([
+    ...s.ownedRelicIds,
+    ...[...s.pendingPickup, ...s.pendingLoot]
+      .filter((stack) => getItemDef(stack.itemId).category === "relic")
+      .map((stack) => stack.itemId),
+  ]);
+  // 指名候选按给定顺序排, 不洗牌 —— 剧情箱子里三格的位置是设计好的。
+  // 指名的三件恰好全被拿过时退回随机祝福遗物, 总比把面板开成空箱子强。
+  const named = relicIds
+    ?.map((id) => getItemDef(id))
+    .filter((def) => def.category === "relic" && def.relic && !taken.has(def.id));
+  const pool = named?.length
+    ? named
+    : shuffle(
+        s,
+        BLESSING_RELIC_DEFS.filter((def) => (!rarity || def.rarity === rarity) && !taken.has(def.id)),
+      );
+  return pool.slice(0, Math.max(0, count)).map((def) => makeRolledItemStack(s, def.id, 1));
+}
+
 function randomRelicId(s: ExploreState, rarity?: ItemRarity): string | undefined {
   const pending = new Set(
     s.pendingPickup
@@ -963,6 +991,17 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       }
       return "装备库存为空";
     }
+    case "RELIC_OFFER": {
+      const count = e.count ?? e.relicIds?.length ?? 3;
+      const offers = rollRelicOffers(s, count, e.rarity, e.relicIds);
+      if (offers.length) {
+        s.pendingActions.push({ kind: "relicOffer", offers });
+        return `公开 ${offers.length} 件遗物候选`;
+      }
+      // 候选全被拿光时保底折积分, 与 grantRelic 的重复处理口径一致。
+      s.loot += 10;
+      return "没有可提供的新遗物，回落为居民积分 +10";
+    }
     case "REFORGE_BOND":
       s.pendingActions.push({ kind: "reforge", bias: e.bias });
       return "获得一次免费装备羁绊重铸";
@@ -1067,13 +1106,25 @@ export function reforgeBackpackItem(s: ExploreState, uid: string): boolean {
   return true;
 }
 
-export function acceptEquipOffer(s: ExploreState, index: number): boolean {
+// 装备候选与遗物候选是同一套「公开 N 件 → 挑 1 件进拾取框」的流程,
+// 差别只在候选怎么生成 ⇒ 接受动作共用一份实现, 只用 kind 区分是哪一队候选。
+function acceptOffer(s: ExploreState, index: number, kind: "equipOffer" | "relicOffer"): boolean {
   const action = s.pendingActions[0];
-  if (!action || action.kind !== "equipOffer") return false;
+  if (!action) return false;
+  if (action.kind !== "equipOffer" && action.kind !== "relicOffer") return false;
+  if (action.kind !== kind) return false;
   const offer = action.offers[index];
   if (!offer) return false;
   addPendingLoot(s, [{ ...offer }]);
   return true;
+}
+
+export function acceptEquipOffer(s: ExploreState, index: number): boolean {
+  return acceptOffer(s, index, "equipOffer");
+}
+
+export function acceptRelicOffer(s: ExploreState, index: number): boolean {
+  return acceptOffer(s, index, "relicOffer");
 }
 
 // ---------------------------------------------------------------------------

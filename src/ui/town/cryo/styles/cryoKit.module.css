@@ -58,13 +58,13 @@
   color: #04120e;
   background: var(--asm-select, var(--cryo-glow-deep));
   border-color: var(--asm-select, var(--cryo-glow-deep));
-  box-shadow: 0 0 26px -6px var(--cryo-glow), 0 16px 34px -18px #00120db8;
+  box-shadow: 0 0 26px -6px var(--asm-glow, var(--cryo-glow)), 0 16px 34px -18px #00120db8;
 }
 
 .primary:disabled {
-  border-color: var(--cryo-line);
-  background: color-mix(in srgb, var(--cryo-ink-dim) 48%, #071613);
-  color: var(--cryo-ink-dim);
+  border-color: var(--asm-line, var(--cryo-line));
+  background: color-mix(in srgb, var(--asm-ink-dim, var(--cryo-ink-dim)) 48%, #071613);
+  color: var(--asm-ink-dim, var(--cryo-ink-dim));
   box-shadow: none;
 }
 

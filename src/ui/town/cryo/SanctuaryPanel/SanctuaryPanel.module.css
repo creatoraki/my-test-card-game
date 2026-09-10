@@ -1,0 +1,125 @@
+.body {
+  composes: content from "../styles/cryoKit.module.css";
+  --accent: var(--asm-select, #fff0b4);
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.columns {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 420px 460px;
+  gap: 24px;
+  overflow: hidden;
+}
+
+.column {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.heading {
+  flex: 0 0 auto;
+  margin: 0;
+  color: var(--asm-select, #fff0b4);
+  font-size: 24px;
+  font-weight: var(--ui-weight);
+  letter-spacing: var(--ui-tracking);
+  text-shadow: var(--ui-glow);
+}
+
+.slotGrid,
+.collection {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  align-content: start;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.slotGrid {
+  flex: 1;
+}
+
+.collection {
+  flex: 1;
+}
+
+.detail {
+  min-height: 0;
+  flex: 1;
+}
+
+.detail :global(.item-detail) {
+  --item-detail-idle-size: 18px;
+  --item-detail-name-size: 20px;
+  --item-detail-mult-size: 18px;
+  --item-detail-tags-size: 18px;
+  --item-detail-desc-size: 18px;
+  --item-detail-stats-size: 18px;
+  --item-detail-note-size: 18px;
+  --item-detail-field-size: 18px;
+  --item-detail-bond-head-size: 18px;
+  --item-detail-bond-desc-size: 18px;
+  --item-detail-bond-count-size: 18px;
+  --item-detail-bond-arcana-size: 18px;
+}
+
+.costBox {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  color: var(--asm-ink, #f6ead1);
+  background: color-mix(in srgb, var(--asm-frame) 8%, #080a0d);
+  border: 1px solid var(--asm-line, #d7b55d2e);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.progressList {
+  display: flex;
+  min-height: 156px;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.progress {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  color: var(--asm-ink, #f6ead1);
+  background: color-mix(in srgb, var(--asm-frame) 7%, #080a0d);
+  border: 1px solid var(--asm-line, #d7b55d2e);
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.progress strong {
+  color: var(--asm-select, #fff0b4);
+  font-size: 20px;
+  font-weight: var(--ui-weight);
+}
+
+.progress span,
+.empty {
+  color: var(--asm-ink-dim, #a89a7c);
+  font-size: 18px;
+}
+
+.empty {
+  margin: 0;
+  line-height: 1.5;
+}

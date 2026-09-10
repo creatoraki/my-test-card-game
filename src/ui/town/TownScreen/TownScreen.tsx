@@ -47,7 +47,6 @@ import { CryoScene } from "@/ui/town/cryo/CryoScene";
 import { ShopScene } from "@/ui/town/shop/ShopScene";
 import { AssemblyScene } from "@/ui/town/assembly/AssemblyScene";
 import { MuseumScene } from "@/ui/town/museum";
-import { SanctuaryScene } from "@/ui/town/sanctuary";
 import { FacilityExitProvider, useFacilityExitRegistry } from "@/ui/town/facilityExit";
 import { clearTownReturn, peekTownReturn } from "@/ui/town/townReturn";
 import { FacilityBack } from "./FacilityBack";
@@ -72,13 +71,12 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   assembly: (leaving) => <AssemblyScene leaving={leaving} />,
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
   shop: (leaving) => <ShopScene leaving={leaving} />,
-  // 医疗室: 复苏舱 / 营养舱
+  // 医疗室: 复苏舱 / 营养舱 / 圣水池
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   // 研究中心: 模组装配 / 模组制造
   worklog: (leaving) => <ResearchScene leaving={leaving} />,
   // 档案机: 物品 / 卡牌 / 怪物图鉴
   museum: (leaving) => <MuseumScene leaving={leaving} />,
-  sanctuary: (leaving) => <SanctuaryScene leaving={leaving} />,
 };
 
 // ===================== 进设施演出 =====================

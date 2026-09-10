@@ -50,7 +50,7 @@
 [cryoKit.module.css](../../src/ui/town/cryo/styles/cryoKit.module.css) 只剩内容入场动画、底栏与主按钮，
 [cryoFigure.module.css](../../src/ui/town/cryo/styles/cryoFigure.module.css) 提供深色瘦高立绘窗的取景变量、底部渐隐和铭牌，
 [RevivePanel.module.css](../../src/ui/town/cryo/RevivePanel/RevivePanel.module.css)、
-[NutritionPanel.module.css](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.module.css) 与其子组件样式各自持有功能内容。
+[NutritionPanel.module.css](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.module.css) 与其子组件样式各自持有功能内容；圣水池面板注入金色 `--asm-*` 主题，底栏与主按钮仍复用 `cryoKit`。
 入口到面板的几何由 `cryoMorph` 的 WAAPI 驱动，`cryoKit.module.css` 不再包含吊绳、`panelIn` 或 `panelOut`；场景骨架样式只留在 `CryoScene.module.css`，根节点不挂 `animation` / `opacity` / `transform`，以免破坏设施背景的 `backdrop-filter`。
 
 战斗域的两种「单位外壳」（敌人 `CombatantView` 的 `.combatant`、我方 `AllyBar` 的 `.ally-slot`）

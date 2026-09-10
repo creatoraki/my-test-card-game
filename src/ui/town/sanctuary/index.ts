@@ -1,1 +1,0 @@
-export { SanctuaryScene } from "./SanctuaryScene";

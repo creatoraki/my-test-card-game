@@ -136,6 +136,9 @@ export type ExploreEffect =
   | { type: "FORGE_DRAW" }
   | { type: "FORGE_REMOVE" }
   | { type: "EQUIP_OFFER"; count: number; slot?: EquipSlot }
+  // 遗物三选一: 公开若干件祝福遗物候选, 由玩家在奖励浮层里挑一件进拾取框。
+  // relicIds 指名候选(教程/剧情用), 缺省则按稀有度随机抽 count 件互不重复的祝福遗物。
+  | { type: "RELIC_OFFER"; count?: number; relicIds?: string[]; rarity?: ItemRarity }
   | { type: "REFORGE_BOND"; bias?: BondBias }
   | { type: "START_TRIAL"; trial: TrialDef } // 接下一份挑战契约(负面修正立即生效, 到期发奖)
   | { type: "START_NODE_BATTLE"; tier?: BattleTier }
@@ -231,6 +234,7 @@ export type PendingAction =
   | { kind: "forgeDraw" }
   | { kind: "forgeRemove" }
   | { kind: "equipOffer"; offers: ItemStack[] }
+  | { kind: "relicOffer"; offers: ItemStack[] }
   | { kind: "reforge"; bias?: BondBias }
   | { kind: "healOne"; percent: number; full: boolean }
   | { kind: "healLimitOne"; percent: number; full: boolean }

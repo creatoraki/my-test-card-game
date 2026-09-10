@@ -644,6 +644,8 @@ export function ExploreScreen() {
           style={{ left: `${12 + BAG_W + 12}px`, top: "0px" }}
         >
           <BurdenGauge />
+          {/* 随身遗物接在负重图标右侧: 背包 svg 就是这一行的第一枚「遗物」。 */}
+          <RelicRail stacks={relicsInBackpack(session)} />
         </div>
 
         {/* ---- 右上: 净化粒子 ----
@@ -655,9 +657,8 @@ export function ExploreScreen() {
             projected={projectedEnergy(session)}
             recede={focused}
           />
-          {/* 进行中的挑战与随身遗物都固定挂在右上读数列。 */}
+          {/* 进行中的挑战固定挂在右上读数列; 随身遗物已移到左上负重那一行。 */}
           <TrialGauge trials={session.trials} round={session.round} recede={focused} />
-          <RelicRail stacks={relicsInBackpack(session)} />
         </div>
 
         {/* ---- 中央: 等距路由图 ---- */}

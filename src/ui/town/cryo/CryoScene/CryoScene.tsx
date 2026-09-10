@@ -1,10 +1,11 @@
 import { useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
-import { nutritionPods } from "@/data";
+import { nutritionPods, SANCTUARY_RULES } from "@/data";
 import { useTownStore } from "@/store/townStore";
 import { PanelShell } from "@/ui/common/PanelShell";
 import { cx } from "@/ui/common/cx";
 import { RevivePanel } from "../RevivePanel";
 import { NutritionPanel } from "../NutritionPanel";
+import { SanctuaryPanel } from "../SanctuaryPanel";
 import { PANEL_RECT } from "../cryoMorph/cryoChoreo";
 import { useEntryRise } from "@/ui/hooks/useEntryRise";
 import { useCryoMorph, type PanelId } from "../cryoMorph/useCryoMorph";
@@ -15,6 +16,7 @@ const cn = (...values: Array<string | false | null | undefined>) =>
 
 const MED_ACCENT = "#4fd6b8";
 const FALLEN_ACCENT = "#ff6f8b";
+const SANCTUARY_ACCENT = "#f1d276";
 const MED_THEME = {
   "--asm-frame": MED_ACCENT,
   "--asm-glow": MED_ACCENT,
@@ -29,6 +31,68 @@ const MED_THEME = {
   "--panel-shell-close-size": "36px",
 } as CSSProperties;
 
+const SANCTUARY_THEME = {
+  "--asm-frame": SANCTUARY_ACCENT,
+  "--asm-glow": SANCTUARY_ACCENT,
+  "--asm-select": "#fff0b4",
+  "--asm-cyan": "#fff0b4",
+  "--asm-line": "#d7b55d2e",
+  "--asm-ink": "#f6ead1",
+  "--asm-ink-dim": "#a89a7c",
+  "--asm-panel-bg": "#100d06d9",
+  "--panel-shell-title-size": "34px",
+  "--panel-shell-status-size": "20px",
+  "--panel-shell-close-size": "36px",
+} as CSSProperties;
+
+interface PanelStatusContext {
+  fallenCount: number;
+  loot: number;
+  nutritionCount: number;
+  nutritionCapacity: number;
+  purifyingCount: number;
+}
+
+interface PanelMeta {
+  title: string;
+  status: (context: PanelStatusContext) => string;
+  closeLabel: string;
+  icon: ReactNode;
+  accent: string;
+  theme: CSSProperties;
+  sfx: boolean;
+}
+
+const PANEL_META: Record<PanelId, PanelMeta> = {
+  revive: {
+    title: "复苏舱",
+    status: ({ fallenCount, loot }) => `复苏舱位 · 待复苏 ${fallenCount} 名 · 居民积分 ${loot.toLocaleString()}`,
+    closeLabel: "关闭复苏舱",
+    icon: <ReviveIcon />,
+    accent: MED_ACCENT,
+    theme: MED_THEME,
+    sfx: true,
+  },
+  nutrition: {
+    title: "疗养舱",
+    status: ({ nutritionCount, nutritionCapacity, loot }) => `体力极限恢复 · 席位 ${nutritionCount}/${nutritionCapacity} · 居民积分 ${loot.toLocaleString()}`,
+    closeLabel: "关闭疗养舱",
+    icon: <NutritionIcon />,
+    accent: MED_ACCENT,
+    theme: MED_THEME,
+    sfx: false,
+  },
+  sanctuary: {
+    title: "圣水池",
+    status: ({ purifyingCount, loot }) => `遗物净化 · 席位 ${purifyingCount}/${SANCTUARY_RULES.capacity} · 居民积分 ${loot.toLocaleString()}`,
+    closeLabel: "关闭圣水池",
+    icon: <SanctuaryIcon />,
+    accent: SANCTUARY_ACCENT,
+    theme: SANCTUARY_THEME,
+    sfx: false,
+  },
+};
+
 interface Props {
   leaving?: boolean;
 }
@@ -41,6 +105,8 @@ export function CryoScene({ leaving = false }: Props) {
   const admitToNutritionPods = useTownStore((state) => state.admitToNutritionPods);
   const researchNutritionTech = useTownStore((state) => state.researchNutritionTech);
   const nutrition = useTownStore((state) => state.nutrition);
+  const sanctuary = useTownStore((state) => state.sanctuary);
+  const purifyRelic = useTownStore((state) => state.purifyRelic);
   const [podSlot, setPodSlot] = useState(0);
   const entryRise = useEntryRise();
   const morph = useCryoMorph();
@@ -49,13 +115,21 @@ export function CryoScene({ leaving = false }: Props) {
   const fallenCount = fallen.length;
   const nutritionCount = nutrition.occupants.length;
   const nutritionCapacity = nutritionPods(nutrition.techs);
+  const panelContext = {
+    fallenCount,
+    loot,
+    nutritionCount,
+    nutritionCapacity,
+    purifyingCount: sanctuary.purifying.length,
+  };
+  const panelMeta = panel ? PANEL_META[panel] : null;
 
   return (
     <div className={cn("cryo-scene", leaving && "is-leaving")}>
       <header className={cn("cryo-header")} style={{ left: "56px", top: "42px" }}>
         <span className={cn("cryo-kicker")}>生命维持医疗区</span>
         <h2 className={cn("cryo-title")}>医疗室</h2>
-        <p className={cn("cryo-sub")}>复苏舱 · 体力疗养</p>
+        <p className={cn("cryo-sub")}>复苏舱 · 体力疗养 · 遗物净化</p>
       </header>
 
       <div className={cn("cryo-readout")} style={{ right: "56px", top: "42px" }}>
@@ -83,10 +157,10 @@ export function CryoScene({ leaving = false }: Props) {
         {...entryRise}
         style={{
           right: "0px",
-          top: "240px",
+          top: "200px",
           width: "460px",
           gap: "12px",
-          gridTemplateRows: "100px 100px",
+          gridTemplateRows: "100px 100px 100px",
           "--peek": "268px",
           ...morph.entryVars,
         } as CSSProperties}
@@ -109,35 +183,43 @@ export function CryoScene({ leaving = false }: Props) {
           revealing={morph.phase === "closing" && morph.hiddenEntry === "nutrition"}
           onClick={(event) => morph.openPanel("nutrition", event.currentTarget)}
         />
+        <EntryTile
+          icon={<SanctuaryIcon />}
+          name="圣水池"
+          desc={`${sanctuary.purifying.length}/${SANCTUARY_RULES.capacity} 席位净化中`}
+          entryId="sanctuary"
+          glow={SANCTUARY_ACCENT}
+          hidden={morph.hiddenEntry === "sanctuary" && morph.phase !== "closing"}
+          revealing={morph.phase === "closing" && morph.hiddenEntry === "sanctuary"}
+          onClick={(event) => morph.openPanel("sanctuary", event.currentTarget)}
+        />
       </div>
 
-      {panel && (
+      {panel && panelMeta && (
         <PanelShell
-          accent={MED_ACCENT}
-          title={panel === "revive" ? "复苏舱" : "疗养舱"}
-          status={
-            panel === "revive"
-              ? `复苏舱位 · 待复苏 ${fallenCount} 名 · 居民积分 ${loot.toLocaleString()}`
-              : `体力极限恢复 · 席位 ${nutritionCount}/${nutritionCapacity} · 居民积分 ${loot.toLocaleString()}`
-          }
-          closeLabel={panel === "revive" ? "关闭复苏舱" : "关闭疗养舱"}
+          accent={panelMeta.accent}
+          title={panelMeta.title}
+          status={panelMeta.status(panelContext)}
+          closeLabel={panelMeta.closeLabel}
           closing={morph.phase === "closing"}
           onClose={morph.closePanel}
-          sfx={panel === "revive"}
-          themeStyle={MED_THEME}
+          sfx={panelMeta.sfx}
+          themeStyle={panelMeta.theme}
           className={s["cryo-modal"]}
           morph={{
             ref: morph.panelRef,
             rect: PANEL_RECT[panel],
             ready: morph.ready,
-            seed: panel === "revive" ? <ReviveIcon /> : <NutritionIcon />,
-            seedLabel: panel === "revive" ? "复苏舱" : "疗养舱",
+            seed: panelMeta.icon,
+            seedLabel: panelMeta.title,
           }}
         >
           {panel === "revive" ? (
             <RevivePanel awakened={awakened} fallen={fallen} loot={loot} slot={podSlot} onSelect={setPodSlot} onRevive={reviveFallen} />
-          ) : (
+          ) : panel === "nutrition" ? (
             <NutritionPanel onAdmit={admitToNutritionPods} onResearch={researchNutritionTech} />
+          ) : (
+            <SanctuaryPanel onPurify={purifyRelic} />
           )}
         </PanelShell>
       )}
@@ -145,9 +227,15 @@ export function CryoScene({ leaving = false }: Props) {
   );
 }
 
-function EntryTile({ icon, name, desc, entryId, hidden, revealing = false, onClick }: { icon: ReactNode; name: string; desc: string; entryId: PanelId; hidden: boolean; revealing?: boolean; onClick: (event: MouseEvent<HTMLButtonElement>) => void }) {
+function EntryTile({ icon, name, desc, entryId, hidden, revealing = false, glow, onClick }: { icon: ReactNode; name: string; desc: string; entryId: PanelId; hidden: boolean; revealing?: boolean; glow?: string; onClick: (event: MouseEvent<HTMLButtonElement>) => void }) {
   return (
-    <button className={cn("cryo-entry", revealing && "is-revealing")} type="button" data-cryo-entry={entryId} onClick={onClick} style={{ visibility: hidden ? "hidden" : "visible" }}>
+    <button
+      className={cn("cryo-entry", revealing && "is-revealing")}
+      type="button"
+      data-cryo-entry={entryId}
+      onClick={onClick}
+      style={{ visibility: hidden ? "hidden" : "visible", ...(glow ? { "--cryo-glow": glow } : {}) } as CSSProperties}
+    >
       <span className={cn("cryo-rim")} aria-hidden />
       <span className={cn("cryo-entry-icon")} aria-hidden>{icon}</span>
       <span className={cn("cryo-entry-text")}>
@@ -165,4 +253,8 @@ function ReviveIcon() {
 
 function NutritionIcon() {
   return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round"><path d="M14 6h20v36H14z" strokeWidth={1.2} strokeLinejoin="round" opacity={0.38} /><path d="M18 29c3-7 9-7 12 0M24 15v13M20 19h8" strokeWidth={1.6} /><path d="M19 35h10" strokeWidth={1.2} opacity={0.72} /></svg>;
+}
+
+function SanctuaryIcon() {
+  return <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><path d="M9 22 24 15l15 7-15 7-15-7Z" strokeWidth={1.4} opacity={0.42} /><path d="M9 22v11l15 7 15-7V22" strokeWidth={1.4} opacity={0.76} /><path d="M13 25v6l11 5 11-5v-6" strokeWidth={1.5} /><path d="M17 20c0-2 1.2-3 1.2-4.8M25 17c0-2.2 1.3-3.2 1.3-5M31 21c0-1.6 1-2.5 1-4" strokeWidth={1.2} /><circle cx="18.2" cy="13.5" r="1.2" strokeWidth={1.1} /><circle cx="26.3" cy="10.5" r="1.2" strokeWidth={1.1} /><circle cx="32" cy="15" r="1.1" strokeWidth={1.1} /></svg>;
 }

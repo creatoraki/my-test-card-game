@@ -201,17 +201,16 @@ const TUTORIAL_EVENTS: EventPool["growth"] = [
     kind: "loot",
     category: "growth",
     title: "遗物储备箱",
-    description: "储备箱读取到三种不同的祝福遗物，确认一件后就会送入待拾取框。",
+    description: "储备箱读取到三种不同的祝福遗物，开箱后可以当场挑走一件。",
     energyDelta: 0,
+    // ★ 选哪件遗物不在这里决定 —— 落点选项只负责开箱, 三选一交给奖励浮层的遗物候选面板,
+    //   玩家在那里能悬浮看到每件遗物的完整效果, 而不是靠三行按钮文案猜。
     choices: [
-      direct("heart-mirror", "领取护心镜", "获得护心镜", "你打开第一格储备仓，护心镜的镜面映出队伍的生命读数。", [
-        { type: "GRANT_RELIC", relicId: "relic-heart-mirror" },
-      ]),
-      direct("old-clockwork", "领取旧式发条", "获得旧式发条", "你取出仍在缓慢运转的旧式发条，把它收进队伍的物资栏。", [
-        { type: "GRANT_RELIC", relicId: "relic-old-clockwork" },
-      ]),
-      direct("light-feather", "领取轻质羽毛", "获得轻质羽毛", "你捧起一片几乎没有重量的羽毛，换牌接口随即亮起备用标记。", [
-        { type: "GRANT_RELIC", relicId: "relic-light-feather" },
+      direct("open", "拾取遗物", "从三件祝福遗物中挑走一件", "储备箱弹开三格暗仓，三件祝福遗物同时亮起识别码。", [
+        {
+          type: "RELIC_OFFER",
+          relicIds: ["relic-heart-mirror", "relic-old-clockwork", "relic-light-feather"],
+        },
       ]),
     ],
   },

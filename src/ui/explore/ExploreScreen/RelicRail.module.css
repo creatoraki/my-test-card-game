@@ -1,55 +1,42 @@
+/* 随身遗物 —— 与 BurdenGauge 共用同一套格子几何(112 × 104, 图标 68),
+   于是负重 svg 和后面的遗物看上去就是同一行里排开的同类图标。
+   ⚠ 改这里的尺寸要连着 BurdenGauge.module.css 一起改, 否则整行基线会错开。 */
 .rail {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 360px;
-  margin-top: 16px;
-  padding: 14px;
-  color: #f5e7bd;
-  background: #071318d9;
-  border: 1px solid #d6a94d99;
-  box-shadow: 0 0 18px #d6a94d24, inset 0 0 18px #d6a94d12;
-}
-
-.label {
-  color: #f5d477;
-  font-size: 18px;
-  letter-spacing: 0.12em;
-}
-
-.items {
-  display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 0;
+  max-width: 700px;
 }
 
 .item {
   position: relative;
   display: flex;
+  width: 112px;
+  min-height: 104px;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 150px;
-  padding: 7px 9px;
-  color: #f5e7bd;
-  font-size: 18px;
-  text-align: left;
-  background: #181a1dcc;
-  border: 1px solid #8f713f;
-  cursor: var(--cursor-pointer);
+  justify-content: flex-start;
+  padding: 0;
+  color: #f5d477;
+  background: none;
+  border: 0;
+  cursor: var(--cursor-help, default);
+  transition: transform 160ms cubic-bezier(0.2, 0.72, 0.28, 1), filter 160ms ease;
 }
 
 .item:hover,
 .item:focus-visible {
-  border-color: #ffe29a;
-  box-shadow: 0 0 12px #e9c26166;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  filter: brightness(1.25);
+  outline: none;
 }
 
 .icon {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 auto;
-  color: #f5d477;
+  width: 68px;
+  height: 68px;
+  color: currentColor;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, currentColor 42%, transparent));
 }
 
 .icon img,
@@ -58,13 +45,6 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .tooltip {
