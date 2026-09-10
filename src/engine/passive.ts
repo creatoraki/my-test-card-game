@@ -3,26 +3,19 @@
 // 本模块是被动卡的唯一真相点: 类型判定、可打出手牌过滤、事件分发与回合结束回收。
 // ============================================================================
 
-import type { BattleState, Card, DiscardRecorder, PassiveEvent } from "./types";
+import type { BattleState, DiscardRecorder, PassiveEvent } from "./types";
 import type { EffectResolution } from "./effects";
 import { resolveEffects } from "./effects";
 import { checkEnd, ops } from "./ops";
 import { withHitRecorder } from "./animHits";
 import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } from "./cardFx";
+import { isPassive, playableHandUids } from "./passiveCards";
+
+export { isPassive, playableHandUids } from "./passiveCards";
 
 // 被动触发里再产生弃牌/抽牌 ⇒ 又触发被动。安全阀与 flushAutoPlays 同类。
 const MAX_PASSIVE_DEPTH = 8;
 let depth = 0;
-
-export function isPassive(card: Pick<Card, "cardType"> | undefined): boolean {
-  return card?.cardType === "passive";
-}
-
-// 手牌中"能被打出"的那部分 —— 费用比较、瀑布判定、标记/转换候选池一律走这里,
-// 被动卡不参与任何费用与出牌口径的计算。
-export function playableHandUids(state: BattleState): string[] {
-  return state.hand.filter((uid) => !isPassive(state.cards[uid]));
-}
 
 export function handPassiveUids(state: BattleState): string[] {
   return state.hand.filter((uid) => isPassive(state.cards[uid]));

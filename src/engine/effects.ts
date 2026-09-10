@@ -14,7 +14,7 @@ import { counterOf } from "./counters";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { getStatusDef } from "./statuses";
 import { advanceCultivate, resetCultivate } from "./cultivate";
-import { isPassive, playableHandUids } from "./passive";
+import { isPassive, playableHandUids } from "./passiveCards";
 import { runStatusTickNow } from "./statusLifecycle";
 import { addPollution } from "./pollution";
 import { settleInsurance } from "./insurance";

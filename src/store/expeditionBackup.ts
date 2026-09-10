@@ -1,4 +1,4 @@
-export const TOWN_PROFILE_KEY = "town-profile-v25";
+export const TOWN_PROFILE_KEY = "town-profile-v26";
 
 const BACKUP_KEY = "town-profile-expedition-backup-v1";
 

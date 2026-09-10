@@ -3,7 +3,7 @@ import { ops } from "../ops";
 import { STATUS_DEFS } from "../statuses";
 import { rngInt } from "../rng";
 import { RULES } from "../rules";
-import { playableHandUids, isPassive } from "../passive";
+import { playableHandUids, isPassive } from "../passiveCards";
 import { activeEffectsOf } from "../cardEffects";
 import type { RelicBehavior, RelicBehaviorContext } from "./types";
 

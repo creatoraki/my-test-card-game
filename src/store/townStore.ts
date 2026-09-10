@@ -1316,6 +1316,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v26: 遗物清单与初始仓库调整, 旧档中的 relic-even-draw 已下线, 换 key 让旧档自然失效重建。
     // ⚠ v25: 新增遗物与圣水池, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v24: 新增科技树等级, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v22: 新增 fallen 永久阵亡名单与复苏舱, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1338,6 +1339,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 25 },
+    { name: TOWN_PROFILE_KEY, version: 26 },
   ),
 );
