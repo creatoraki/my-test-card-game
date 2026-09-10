@@ -36,13 +36,3 @@
   background-size: 48px 48px;
 }
 
-.stage::after {
-  position: absolute;
-  left: 64px;
-  right: 64px;
-  bottom: 118px;
-  height: 1px;
-  pointer-events: none;
-  content: "";
-  background: linear-gradient(90deg, transparent, rgba(133, 223, 211, 0.46), transparent);
-}
