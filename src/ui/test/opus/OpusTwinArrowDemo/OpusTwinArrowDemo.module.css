@@ -1,0 +1,360 @@
+/* opus / twin-arrow demo 陈列台。特效自身的样式在 TwinArrowFx.module.css, 这里只有外壳。
+   配色跟着特效走暖金(弓与命中), 青白只留给箭 —— 界面不抢特效的色。 */
+
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  min-height: 100%;
+  padding: 26px 32px 34px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #241b12 0%, transparent 62%),
+    #0a0806;
+  color: #f0e6d8;
+  font-family: var(--font-family);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.header h2 {
+  margin: 6px 0 0;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #fff4e2;
+}
+
+.kicker {
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  color: #ffc86e;
+}
+
+.headerNote {
+  max-width: 620px;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #a99b8a;
+}
+
+.headerNote b {
+  font-weight: 500;
+  color: #ffdfae;
+}
+
+/* ── 控制台 ─────────────────────────────────────────────────────────── */
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border: 1px solid #3a2d1e;
+  background: #130f0a;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlLabel {
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  color: #8c7c66;
+}
+
+.controls button {
+  min-width: 76px;
+  padding: 8px 16px;
+  border: 1px solid #473722;
+  background: #1a140d;
+  color: #b8a88f;
+  font-family: inherit;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  clip-path: none;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.controls button:hover {
+  border-color: #ffc86e66;
+  color: #ffeccd;
+}
+
+.controls button.on {
+  border-color: #ffc86e;
+  background: #ffc86e14;
+  color: #ffc86e;
+}
+
+.controls button.play {
+  border-color: #e6a44a;
+  background: #e6a44a26;
+  color: #ffe6bd;
+}
+
+.controls button.play:hover {
+  background: #e6a44a3d;
+  color: #fff8ec;
+}
+
+.controls button:focus-visible {
+  outline: 1px solid #ffc86e;
+  outline-offset: 2px;
+}
+
+/* ── 舞台 ───────────────────────────────────────────────────────────── */
+
+/* 舞台占满整行、时间轴压到下面 —— 特效是跨场景的(从左下弓位打到画面中心),
+   横向被读数栏切掉一块就很难看全, 所以宁可把读数放到舞台下方。 */
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  /* 高度优先跟着视口走: 窗口矮的时候宁可留白两侧, 也要让整幕 16:9 完整可见。 */
+  max-width: min(100%, calc((100vh - 330px) * 16 / 9));
+  min-height: 320px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid #3f3120;
+  background: #060402;
+  /* 内层按 1920×1080 世界坐标搭, 靠容器宽度等比缩放 —— 特效几何是世界 px 写死的,
+     这里保证 demo 与实战舞台的相对尺寸一致。 */
+  container-type: size;
+}
+
+.world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  /* ⚠ 除数必须带 px: scale() 只吃 <number>/<percentage>, 而 calc(100cqw / 1920) 的结果
+     仍是长度 ⇒ 整条 transform 被浏览器丢弃, 世界层按 1:1 铺开, 只看得见左上角一块
+     (弓在 y≈700、目标在 (960,540), 正好都被裁掉 —— 这正是「没有弓也没有箭」的原因)。
+     长度 ÷ 长度才得到无单位比值。同目录其它几个 demo 仍写着少 px 的旧式写法。 */
+  transform: scale(calc(100cqw / 1920px));
+  transform-origin: top left;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 场景压暗偏冷, 暖金光团才压得住画面。 */
+  filter: brightness(0.42) saturate(0.46) contrast(1.12) hue-rotate(-14deg);
+}
+
+/* 地面辉光: 把两个立绘钉在同一条脚线上, 免得看起来在飘。 */
+.ground {
+  position: absolute;
+  left: 50%;
+  bottom: 214px;
+  width: 1500px;
+  height: 210px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, #e6a44a1f 0%, transparent 68%);
+}
+
+.actor,
+.target {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+/* 弓手: 立绘中心 (428, 702); 光团弓画在它身前的 DEFAULT_ORIGIN (520, 700),
+   免得弓臂盖住立绘的脸。挪立绘必须同步改 twinArrowGeometry 的那个点。 */
+.actor {
+  left: 300px;
+  bottom: 250px;
+  filter: brightness(0.72) drop-shadow(0 12px 22px #000000a6);
+}
+
+/* 受击位: 中心落在 (960, 540) = DEFAULT_TARGET。 */
+.targetSlot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 256px;
+  height: 256px;
+  transform: translate(-50%, -50%);
+}
+
+.target {
+  left: 0;
+  bottom: 0;
+  filter: drop-shadow(0 12px 22px #000000a6);
+}
+
+/* 两段伤害: 两条独立的抖动曲线(一记向右上、一记向右下), 延迟由 TS 按两个命中时刻下发。
+   时长跟着 --fx-rate 缩放, 变速时抖动不会拖过下一拍。 */
+.targetHit {
+  animation-name: twinDemoHit1, twinDemoHit2;
+  animation-duration:
+    calc(380ms / max(var(--fx-rate, 1), 0.25)),
+    calc(420ms / max(var(--fx-rate, 1), 0.25));
+  animation-fill-mode: both, both;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* 伤害飘字: 只是把「两个命中分别在哪一帧」标出来, 不追求与正式飘字同款。
+   --float-dx 把两枚数字左右错开, 免得叠在一起看不清。 */
+.float {
+  position: absolute;
+  left: 50%;
+  top: -20px;
+  transform: translate(calc(-50% + var(--float-dx, 0px)), 0);
+  color: #ffffff;
+  font-size: 56px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 12px #ffd79b, 0 0 30px #e67a1e;
+  opacity: 0;
+  animation-name: twinDemoFloat;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+  z-index: 20;
+}
+
+/* 全屏闪: 两拍 —— 两次命中各一帧暖白闪, 第二拍更亮(补刀更重)。 */
+.flash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, #ffd79b 0%, #ffffff 52%, #ffb86a 100%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  z-index: 30;
+  animation-name: twinDemoFlashA, twinDemoFlashB;
+  animation-fill-mode: forwards, forwards;
+  animation-timing-function: ease-out, ease-out;
+}
+
+/* ── 时间轴读数 ─────────────────────────────────────────────────────── */
+
+.timeline {
+  width: 100%;
+  padding: 16px 18px;
+  border: 1px solid #3a2d1e;
+  background: #130f0a;
+}
+
+/* 七拍横向铺开: 读数在舞台下方, 用多列才不会把页面拉得很长。 */
+.timeline ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px 20px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 4px 10px;
+  padding-left: 12px;
+  border-left: 2px solid #473722;
+}
+
+/* 两个命中拍高亮: 它们是本特效与单段攻击特效的核心差异。 */
+.timeline li.beatImpact {
+  border-left-color: #ffc86e;
+}
+
+.beatTime {
+  font-size: 18px;
+  color: #ffc86e;
+  font-variant-numeric: tabular-nums;
+}
+
+.beatName {
+  font-size: 18px;
+  color: #f0e6d8;
+}
+
+.beatDesc {
+  grid-column: 2;
+  font-size: 18px;
+  line-height: 1.7;
+  color: #9b8c79;
+}
+
+.note {
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #3a2d1e;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #8c7c66;
+}
+
+/* 首命中: 向右上一记硬顿 + 两次收敛回弹。 */
+@keyframes twinDemoHit1 {
+  0% { transform: translate(0, 0); filter: brightness(1) drop-shadow(0 12px 22px #000000a6); }
+  10% { transform: translate(20px, -14px); filter: brightness(3.1) saturate(0.3) drop-shadow(0 0 24px #fff1d6); }
+  26% { transform: translate(-12px, 8px); filter: brightness(1.8) saturate(0.6) drop-shadow(0 0 16px #ffd79b); }
+  48% { transform: translate(8px, -4px); }
+  72% { transform: translate(-4px, 2px); }
+  100% { transform: translate(0, 0); filter: brightness(1) drop-shadow(0 12px 22px #000000a6); }
+}
+
+/* 二命中(补刀): 方向翻到右下、幅度更大, 两记不会读成同一下。 */
+@keyframes twinDemoHit2 {
+  0% { transform: translate(0, 0); filter: brightness(1) drop-shadow(0 12px 22px #000000a6); }
+  9% { transform: translate(28px, 12px); filter: brightness(3.6) saturate(0.2) drop-shadow(0 0 30px #ffffff); }
+  24% { transform: translate(-16px, -7px); filter: brightness(2) saturate(0.55) drop-shadow(0 0 20px #ffd79b); }
+  46% { transform: translate(11px, 5px); }
+  70% { transform: translate(-5px, -2px); }
+  100% { transform: translate(0, 0); filter: brightness(1) drop-shadow(0 12px 22px #000000a6); }
+}
+
+@keyframes twinDemoFloat {
+  0% { opacity: 0; transform: translate(calc(-50% + var(--float-dx, 0px)), 20px) scale(0.7); }
+  18% { opacity: 1; transform: translate(calc(-50% + var(--float-dx, 0px)), -12px) scale(1.15); }
+  40% { transform: translate(calc(-50% + var(--float-dx, 0px)), -26px) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--float-dx, 0px)), -78px) scale(0.95); }
+}
+
+@keyframes twinDemoFlashA {
+  0% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+
+@keyframes twinDemoFlashB {
+  0% { opacity: 0.62; }
+  28% { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 1080px) {
+  .root {
+    padding: 18px 14px 28px;
+  }
+
+  .timeline {
+    flex: 1 1 100%;
+  }
+}

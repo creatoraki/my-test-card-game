@@ -1,0 +1,14 @@
+/* 二连箭(twin-arrow): Canvas 特效的容器样式。
+   时序与全部视觉都在 TwinArrowFx.tsx 的 rAF 循环里, 本文件不定义任何 @keyframes。 */
+
+/* 画布铺满所在的世界坐标层(1920×1080): 组件是跨场景特效, 不以目标中心为锚点,
+   所以这里用 inset 铺满, 而不是 TriSlashFx 那种 translate(-50%,-50%) 的中心展开。
+   位图分辨率按 dpr(≤2) 在 TS 侧上浮, CSS 尺寸只负责贴合世界层。 */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+}
