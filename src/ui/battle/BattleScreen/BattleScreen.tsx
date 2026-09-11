@@ -3,6 +3,7 @@ import {
   cardCost,
   cardDamagePreview,
   cardHitChance,
+  effectiveTargeting,
   type Enemy,
 } from "@/engine";
 import { getEncounter, slotPlacement } from "@/data";
@@ -193,8 +194,9 @@ export function BattleScreen() {
 
   const isPlayerTurn = battle.phase === "player";
   const selectedCard = selectedUid ? battle.cards[selectedUid] ?? null : null;
-  const needsFoe = selectedCard?.targeting === "foe";
-  const needsAlly = selectedCard?.targeting === "ally";
+  const selectedTargeting = selectedCard ? effectiveTargeting(selectedCard) : null;
+  const needsFoe = selectedTargeting === "foe";
+  const needsAlly = selectedTargeting === "ally";
   const enemies = battle.enemyIds.map((id) => battle.combatants[id] as Enemy);
   const allies = battle.playerIds.map((id) => battle.combatants[id]);
   const hitPreview = needsFoe && selectedCard

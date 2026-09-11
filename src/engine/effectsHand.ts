@@ -7,6 +7,7 @@ import { ops } from "./ops";
 import { drawCards, addCardCopyToHand } from "./deck";
 import { partyHandLimit } from "./stats";
 import { rngPick } from "./rng";
+import { counterOf } from "./counters";
 import { cardCost, starPayable } from "./cost";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { isPassive, playableHandUids } from "./passiveCards";
@@ -222,7 +223,9 @@ function applyConvert(state: BattleState, effect: EffectDescriptor): void {
 }
 
 function applyCultivateTick(state: BattleState, effect: EffectDescriptor): void {
-  const amountToTick = Math.max(1, Math.floor(effect.amount ?? 1));
+  const rawAmount = effect.amountFrom ? counterOf(state, effect.amountFrom) : effect.amount ?? 1;
+  const amountToTick = Math.min(effect.maxAmount ?? Infinity, Math.max(0, Math.floor(rawAmount)));
+  if (amountToTick <= 0) return;
   const pool = state.hand.filter((uid) => {
     const card = state.cards[uid];
     return card?.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) > 0;
@@ -286,7 +289,11 @@ export function applyHandEffect(
       applyCopyToHand(state);
       break;
     case "CHOOSE_HAND_CARD": {
-      const candidates = playableHandUids(state);
+      const candidates = playableHandUids(state).filter((uid) => {
+        if (effect.handChoiceAction !== "cultivateTick") return true;
+        const card = state.cards[uid];
+        return card?.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) > 0;
+      });
       if (candidates.length === 0) {
         return effect.followUp?.length ? resolveEffects(state, effect.followUp, sourceId, undefined) : emptyResolution();
       }

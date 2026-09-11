@@ -54,7 +54,7 @@ import { CARD_MARK_DEFS } from "./cardMarks";
 import { firePassive, isPassive, playableHandUids, recycleHandPassives } from "./passive";
 import { fireRelic } from "./relics";
 import { gainSquadBuff } from "./squadBuff";
-import { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
+import { advanceCultivate, cultivateReady, effectiveTargeting, resetCultivate, tickCultivate } from "./cultivate";
 import { withHitRecorder } from "./animHits";
 import { runEnemyFlee } from "./flee";
 
@@ -232,6 +232,7 @@ export function createBattle(
     activeCardCost: null,
     activeCardStacks: 0,
     activeCardResonance: 0,
+    lastAimConsumed: 0,
     activeCardUid: null,
     passiveEventCardUid: null,
     passiveEventTargetStatuses: null,
@@ -348,8 +349,9 @@ function isValidPrimary(state: BattleState, card: Card, primaryId?: string): boo
   if (!primaryId) return false;
   const t = state.combatants[primaryId];
   if (!t || !t.alive) return false;
-  if (card.targeting === "foe") return t.team === "enemy";
-  if (card.targeting === "ally") return t.team === "player";
+  const targeting = effectiveTargeting(card);
+  if (targeting === "foe") return t.team === "enemy";
+  if (targeting === "ally") return t.team === "player";
   return true;
 }
 
@@ -433,7 +435,8 @@ export function playCard(
   if (!canPlay(state, uid)) return false;
   const card = state.cards[uid];
   const owner = state.combatants[card.ownerCharId];
-  if ((card.targeting === "foe" || card.targeting === "ally") && !isValidPrimary(state, card, primaryId))
+  const targeting = effectiveTargeting(card);
+  if ((targeting === "foe" || targeting === "ally") && !isValidPrimary(state, card, primaryId))
     return false;
 
   const faceCost = cardCost(state, card);
@@ -466,14 +469,15 @@ export function playCard(
       revertPlayStatMods(state);
       state.activeCardCost = faceCost;
       state.activeCardStacks = card.discardStacks ?? 0;
-        state.activeCardResonance = card.resonanceStacks ?? 0;
-        try {
-          runRelicHook(state, "beforeCardEffects", card, primaryId);
-          for (const markId of card.marks ?? []) {
-            const preEffects = CARD_MARK_DEFS[markId]?.preEffects;
-            if (preEffects?.length) mergeCardResolution(resolveEffects(state, preEffects, card.ownerCharId, primaryId));
-          }
-          const cultivated = cultivateReady(card);
+      state.activeCardResonance = card.resonanceStacks ?? 0;
+      state.lastAimConsumed = 0;
+      try {
+        runRelicHook(state, "beforeCardEffects", card, primaryId);
+        for (const markId of card.marks ?? []) {
+          const preEffects = CARD_MARK_DEFS[markId]?.preEffects;
+          if (preEffects?.length) mergeCardResolution(resolveEffects(state, preEffects, card.ownerCharId, primaryId));
+        }
+        const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
         const baseEffects = baseEffectsOf(card);
         mergeCardResolution(resolveEffects(state, baseEffects, card.ownerCharId, primaryId));
@@ -507,8 +511,11 @@ export function playCard(
             (rec.cardKeywordTriggers ??= {})[ref.id] =
               (rec.cardKeywordTriggers[ref.id] ?? 0) + times;
           }
-          for (let i = 0; i < times; i++)
+          const effectTimes = Math.min(times, ref.maxTriggers ?? Infinity);
+          for (let i = 0; i < effectTimes; i++)
             mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
+          if (times > 0 && ref.onceEffects?.length)
+            mergeCardResolution(resolveEffects(state, ref.onceEffects, card.ownerCharId, primaryId));
           def.onTriggered?.(state, card, ctx, times);
         }
         if (card.resonance) {
@@ -643,14 +650,18 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   if (choice.kind === "pickHandCard") {
     if (!state.hand.includes(uid)) return false;
     const card = state.cards[uid];
-    state.pendingChoice = null;
-    if (choice.action === "moveToBottom") {
+    if (choice.action === "cultivateTick") {
+      if (!card?.cultivate || (card.cultivateLeft ?? card.cultivate.turns) <= 0) return false;
+      advanceCultivate(card, 1);
+      log(state, `${card.name} 的培育层数 -1`);
+    } else if (choice.action === "moveToBottom") {
       state.hand = state.hand.filter((handUid) => handUid !== uid);
       state.hand.push(uid);
     } else {
       if (card) card.notoPending = true;
       ops.discard(state, uid, "effect");
     }
+    state.pendingChoice = null;
     if (choice.followUp?.length) resolveEffects(state, choice.followUp, choice.ownerCharId, undefined);
     log(state, `${card?.name ?? "卡牌"} 已完成选择操作`);
     return true;

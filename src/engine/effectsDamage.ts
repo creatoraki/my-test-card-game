@@ -116,7 +116,19 @@ export function applyDamageEffect(
   }
   if (effect.onHit?.length && hitTriggered)
     mergeResolution(resolution, deps.resolveEffects(state, effect.onHit, sourceId, firstHitTarget));
-  if (effect.lifesteal != null && lifestealPool > 0)
-    ops.heal(state, sourceId, sourceId, lifestealPool * effect.lifesteal, { scaled: true });
+  if (effect.lifesteal != null && lifestealPool > 0) {
+    const lifestealAmount = lifestealPool * effect.lifesteal;
+    const healed = ops.heal(state, sourceId, sourceId, lifestealAmount, { scaled: true });
+    const overflow = Math.max(0, lifestealAmount - healed);
+    if (overflow > 0 && effect.lifestealOverflow === "lowestHpAlly") {
+      const overflowTargets = deps.resolveTargets(
+        state,
+        { type: "HEAL", target: "lowestHpAlly" },
+        sourceId,
+        undefined,
+      );
+      for (const id of overflowTargets) ops.heal(state, undefined, id, overflow);
+    }
+  }
   return resolution;
 }

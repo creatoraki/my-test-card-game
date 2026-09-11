@@ -42,7 +42,8 @@ export type CounterSource =
   | "lastRemovedStatusCount"
   | "activeCardResonance"
   | "partyInsuranceStacks"
-  | "discardPileTens";
+  | "discardPileTens"
+  | "lastAimConsumed";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -158,6 +159,7 @@ export interface EffectDescriptor {
   duration?: number; // APPLY_STATUS: 剩余拍数
   targetCount?: number; // randomFoe / randomAlly: 无放回随机目标数
   targetHasStatus?: string; // randomFoe / randomAlly: 只从带指定状态的目标中抽取
+  targetWithoutStatus?: string; // randomFoe / randomAlly / allFoes: 排除带指定状态的目标
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
   scaleByCounter?: { counter: CounterSource; per?: number; min?: number; max?: number };
@@ -188,8 +190,10 @@ export interface EffectDescriptor {
   pctOfCurrentHp?: number; // LOSE_HP: 按目标当前生命的比例失去生命(0.1 = 10%)
   cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
+  lifestealOverflow?: "lowestHpAlly"; // DAMAGE: 吸血溢出部分治疗最伤的存活队友
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
   amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
+  maxAmount?: number; // CULTIVATE_TICK 配合 amountFrom 时的次数上限
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
   condition?:
     | "discardedThisRound"
@@ -211,7 +215,7 @@ export interface EffectDescriptor {
   markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard";
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   recoverMark?: string; // RECOVER_FROM_DISCARD: 回收的牌附加标记
-  handChoiceAction?: "moveToBottom" | "noto"; // CHOOSE_HAND_CARD: 选牌后的动作
+  handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick"; // CHOOSE_HAND_CARD: 选牌后的动作
   followUp?: EffectDescriptor[]; // CHOOSE_HAND_CARD: 选牌后的后续效果
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal" | "handAllFast"; // CONVERT_CARD_TYPE: 手牌普通牌随机 / 全部速攻牌
@@ -291,6 +295,7 @@ export interface CardDef {
   passive?: PassiveDef; // 被动卡: 持在手中时按事件自动结算
   onDiscard?: DiscardTrigger;
   keywords?: CardKeywordRef[];
+  cultivateTargeting?: Targeting; // 培育就绪后覆盖卡牌主目标选择方式
   cultivate?: {
     turns: number;
     effects: EffectDescriptor[];
@@ -350,6 +355,8 @@ export interface DiscardTrigger {
 export interface CardKeywordRef {
   id: string;
   effects: EffectDescriptor[];
+  maxTriggers?: number; // 关键词效果最多结算次数, 不影响真实触发次数记录
+  onceEffects?: EffectDescriptor[]; // 关键词至少触发一次时只结算一次
   fromModule?: string;
 }
 
@@ -380,7 +387,7 @@ export type PendingChoice =
       kind: "pickHandCard";
       sourceCardUid: string;
       ownerCharId: string;
-      action: "moveToBottom" | "noto";
+      action: "moveToBottom" | "noto" | "cultivateTick";
       followUp?: EffectDescriptor[];
     }
   | {
@@ -438,6 +445,15 @@ export interface DamageCtx {
   fatal?: boolean; // 濒死死亡骰命中
 }
 
+export interface HealCtx {
+  sourceId?: string;
+  targetId: string;
+  amount: number;
+  healed: number;
+  single: boolean;
+  splash: boolean;
+}
+
 export type DamageResult = "missed" | "hit" | null;
 
 export interface StatusHooks {
@@ -446,7 +462,8 @@ export interface StatusHooks {
   modifyOutgoingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 施放者身上的状态
   modifyIncomingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上的状态
   onAfterAttacked?: (c: StatusCtx, dmg: DamageCtx) => void; // 荆棘等
-  onShieldBroken?: (c: StatusCtx) => void; // 护盾被伤害击破时
+  onShieldBroken?: (c: StatusCtx, dmg: DamageCtx) => void; // 护盾被伤害击破时
+  onHealed?: (c: StatusCtx, heal: HealCtx) => void; // 持有者受到治疗时
   onRoundStart?: (c: StatusCtx) => void; // 我方回合开始(抽牌之前)
   onCardDiscarded?: (c: StatusCtx, cardUid: string) => void;
   onCardPlayed?: (c: StatusCtx, card: Card) => void;
@@ -669,6 +686,7 @@ export interface BattleState {
   activeCardStacks: number;
   // 当前结算卡的共鸣强化次数, 与 activeCardStacks 同生命周期。
   activeCardResonance: number;
+  lastAimConsumed: number;
   activeCardUid: string | null;
   // 被动卡结算窗口内, 触发本次事件的那张牌 uid(供 markPick: "eventCard" 定位)。
   passiveEventCardUid: string | null;
@@ -731,8 +749,8 @@ export interface EngineOps {
     sourceId: string | undefined,
     targetId: string,
     amount: number,
-    opts?: { scaled?: boolean },
-  ): void;
+    opts?: { scaled?: boolean; single?: boolean; splash?: boolean },
+  ): number;
   gainShield(
     state: BattleState,
     sourceId: string | undefined,

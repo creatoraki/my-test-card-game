@@ -14,6 +14,7 @@ import type {
   DamageOpts,
   DamageResult,
   EngineOps,
+  HealCtx,
   StatBlock,
   StatusCtx,
   StatusInstance,
@@ -197,7 +198,7 @@ export function dealDamage(
       STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
     if (shieldBefore > 0 && target.shield === 0)
       for (const inst of [...target.statuses])
-        STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
+        STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst), dmg);
     if (dmg.crit) runRelicHook(state, "onCrit", dmg);
     noteAttacked(state, dmg);
     cleanup(target);
@@ -232,7 +233,7 @@ export function dealDamage(
     STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
   if (shieldBefore > 0 && target.shield === 0)
     for (const inst of [...target.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst));
+      STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst), dmg);
   if (dmg.crit) runRelicHook(state, "onCrit", dmg);
   if (target.team === "player" && hpBefore > target.maxHp * 0.5 && target.hp <= target.maxHp * 0.5)
     runRelicHook(state, "onAllyHpCrossedHalf", target.id);
@@ -306,10 +307,10 @@ export function heal(
   sourceId: string | undefined,
   targetId: string,
   amount: number,
-  opts: { scaled?: boolean } = {},
-): void {
+  opts: { scaled?: boolean; single?: boolean; splash?: boolean } = {},
+): number {
   const t = state.combatants[targetId];
-  if (!t || !t.alive || amount <= 0) return;
+  if (!t || !t.alive || amount <= 0) return 0;
   const src = sourceId ? state.combatants[sourceId] : undefined;
   let final = amount;
   if (src) {
@@ -323,6 +324,20 @@ export function heal(
   log(state, `${t.emoji} ${t.name} 回复 ${t.hp - before} 点生命`);
   // 满血时 t.hp - before = 0: 仍记一段(hpDelta 0), 保证目标照样闪治疗光效, 只是不飘数字。
   recordHitPart(targetId, before - t.hp);
+  const healed = t.hp - before;
+  if (opts.single && !opts.splash) {
+    const heal: HealCtx = {
+      sourceId,
+      targetId,
+      amount,
+      healed,
+      single: true,
+      splash: false,
+    };
+    for (const inst of [...t.statuses])
+      STATUS_DEFS[inst.id]?.hooks?.onHealed?.(ctxFor(state, targetId, inst), heal);
+  }
+  return healed;
 }
 
 // 最终护盾 = 基础护盾 ×(1 + 护盾强度)。sourceId 缺省 = 无施法者, 不吃护盾强度。

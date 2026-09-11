@@ -12,8 +12,14 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		anim: "shot",
 		aimedAnim: "twin-arrow",
 		effects: [{ type: "DAMAGE", multiplier: 0.7, target: "primary" }],
-		keywords: [{ id: "aim", effects: [{ type: "DAMAGE", multiplier: 0.7, target: "primary" }] }],
-		text: "造成 {0} 点伤害。瞄准：额外攻击一次。",
+		keywords: [{
+			id: "aim",
+			effects: [
+				{ type: "DAMAGE", multiplier: 0.7, target: "primary" },
+				{ type: "APPLY_STATUS", status: "aimed", stacks: 1, target: "primary" },
+			],
+		}],
+		text: "造成 {0} 点伤害。瞄准：额外造成相同伤害，并重新附加被瞄准。",
 	},
 	{
 		id: "recycle-shot",
@@ -24,9 +30,20 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		targeting: "allFoes",
 		rarity: "common",
 		anim: "shot",
-		effects: [{ type: "DAMAGE", multiplier: 0.6, target: "allFoes" }],
-		keywords: [{ id: "aim", effects: [{ type: "GAIN_RESOURCE", amount: 1, resource: "mana" }] }],
-		text: "对所有敌人造成 {0} 点伤害。瞄准：恢复 1 点法力水晶。",
+		effects: [{ type: "DAMAGE", multiplier: 0.55, target: "allFoes" }],
+		keywords: [{
+			id: "aim",
+			maxTriggers: 2,
+			effects: [{ type: "GAIN_RESOURCE", amount: 1, resource: "mana" }],
+			onceEffects: [{
+				type: "DRAW",
+				amount: 1,
+				condition: "counterAtLeast",
+				conditionCounter: "lastAimConsumed",
+				conditionValue: 2,
+			}],
+		}],
+		text: "对所有敌人造成 {0} 点伤害。瞄准：每收割一个被瞄准获得 1 点法力，最多 2 点；收割至少 2 个目标时抽 1 张牌。",
 	},
 	{
 		id: "twin-flower",
@@ -40,9 +57,16 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		effects: [{ type: "HEAL", multiplier: 0.5, target: "primary" }],
 		cultivate: {
 			turns: 2,
-			effects: [{ type: "HEAL", multiplier: 0.4, target: "lowestHpAlly" }],
+			effects: [{
+				type: "APPLY_STATUS",
+				status: "twinFlower",
+				stacks: 1,
+				duration: 1,
+				statusDataFrom: { key: "healAmount", stat: "healPower", multiplier: 0.4 },
+				target: "primary",
+			}],
 		},
-		text: "为一名队友恢复 {0} 点生命。培育 {c}：额外为受伤最重的队友恢复 {k0} 点生命。",
+		text: "为一名队友恢复 {0} 点生命。培育 {c}：留下双生花，下回合开始为当前生命最低的队友恢复 {k0} 点生命。",
 	},
 	{
 		id: "agave",
@@ -72,9 +96,12 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		effects: [{ type: "DRAW", amount: 1 }],
 		cultivate: {
 			turns: 2,
-			effects: [{ type: "DRAW", amount: 1 }],
+			effects: [
+				{ type: "DRAW", amount: 1 },
+				{ type: "CHOOSE_HAND_CARD", handChoiceAction: "cultivateTick" },
+			],
 		},
-		text: "抽 1 张牌。培育 {c}：再抽 1 张牌。",
+		text: "抽 1 张牌。培育 {c}：再抽 1 张牌，并选择一张未成熟的培育牌使其计数 -1。",
 	},
 	{
 		id: "thorn-lash",
@@ -85,14 +112,17 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		targeting: "foe",
 		rarity: "common",
 		anim: "slash",
-		effects: [{ type: "DAMAGE", multiplier: 0.9, target: "primary" }],
+		effects: [{ type: "DAMAGE", multiplier: 0.85, target: "primary" }],
 		keywords: [
 			{
 				id: "aim",
-				effects: [{ type: "APPLY_STATUS", status: "armorBreak", stacks: 1, duration: 2, target: "primary" }],
+				effects: [
+					{ type: "APPLY_STATUS", status: "armorBreak", stacks: 1, duration: 2, target: "primary" },
+					{ type: "APPLY_STATUS", status: "aimed", stacks: 1, target: "randomFoe", targetWithoutStatus: "aimed" },
+				],
 			},
 		],
-		text: "造成 {0} 点伤害。瞄准：附加破甲, 防御力 -5, 持续 2 回合。",
+		text: "造成 {0} 点伤害。瞄准：使目标破甲 2 回合，并将被瞄准转移给一名未被瞄准的敌人。",
 	},
 	{
 		id: "spore-cloud",
@@ -109,9 +139,9 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		],
 		cultivate: {
 			turns: 2,
-			effects: [{ type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.15 }, duration: 2, target: "allFoes" }],
+			effects: [{ type: "SPREAD_STATUS", status: "poison", spreadPct: 0.5, target: "allFoes", targetHasStatus: "aimed" }],
 		},
-		text: "对所有敌人造成 {0} 点伤害并附加 {1} 层中毒(持续 2 回合)。培育 {c}：额外附加 {k0} 层中毒。",
+		text: "对所有敌人造成 {0} 点伤害并附加 {1} 层中毒（持续 2 回合）。培育 {c}：将被瞄准敌人身上的部分中毒传播给其他敌人。",
 	},
 	{
 		id: "vine-entangle",
@@ -156,9 +186,16 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		targeting: "foe",
 		rarity: "common",
 		anim: "shot",
-		effects: [{ type: "DAMAGE", multiplier: 1, aimedMultiplier: 1.2, target: "primary" }],
-		keywords: [{ id: "aim", effects: [{ type: "GAIN_RESOURCE", amount: 1, resource: "mana" }] }],
-		text: "造成 {0} 点伤害。瞄准：伤害提升至 120%, 并恢复 1 点法力水晶。",
+		effects: [{
+			type: "DAMAGE",
+			multiplier: 1,
+			aimedMultiplier: 1.6,
+			target: "primary",
+			onKillOnce: true,
+			onKill: [{ type: "APPLY_STATUS", status: "aimed", stacks: 1, target: "randomFoe", targetWithoutStatus: "aimed" }],
+		}],
+		keywords: [{ id: "aim", effects: [] }],
+		text: "造成 {0} 点伤害。瞄准：伤害提高至 160%；击杀目标后将被瞄准传播给一名未被瞄准的敌人。",
 	},
 	{
 		id: "salt-moss",
@@ -179,9 +216,10 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 			effects: [
 				{ type: "APPLY_STATUS", status: "aimed", stacks: 1, target: "allFoes" },
 				{ type: "DRAW", amount: 1 },
+				{ type: "APPLY_STATUS", status: "aimLock", stacks: 1, duration: 1, target: "self" },
 			],
 		},
-		text: "为目标附加被瞄准, 抽 1 张牌。培育 {c}：对所有敌人附加被瞄准。",
+		text: "为目标附加被瞄准，抽 1 张牌。培育 {c}：对所有敌人附加被瞄准，并使本回合第一次瞄准触发保留被瞄准。",
 	},
 	{
 		id: "root-bond",
@@ -195,9 +233,9 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		effects: [{ type: "HEAL", multiplier: 0.3, target: "allAllies" }],
 		cultivate: {
 			turns: 3,
-			effects: [{ type: "GAIN_SHIELD", multiplier: 0.15, target: "allAllies" }],
+			effects: [{ type: "APPLY_STATUS", status: "rootBond", stacks: 1, duration: 2, target: "allAllies" }],
 		},
-		text: "为全队恢复 {0} 点生命。培育 {c}：为全队附加 {k0} 点护盾。",
+		text: "为全队恢复 {0} 点生命。培育 {c}：使全队获得根系联结，持续 2 回合；受到单体治疗时，其余队友分摊治疗量的 40%。",
 	},
 	{
 		id: "poison-mushroom",
@@ -227,10 +265,9 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		effects: [{ type: "GAIN_SHIELD", multiplier: 0.35, target: "allAllies" }],
 		cultivate: {
 			turns: 2,
-			mode: "replace",
-			effects: [{ type: "GAIN_SHIELD", multiplier: 0.55, target: "allAllies" }],
+			effects: [{ type: "APPLY_STATUS", status: "ivyThorn", stacks: 1, duration: 2, target: "allAllies" }],
 		},
-		text: "为全队附加 {0} 点护盾。培育 {c}：护盾提升至 {k0} 点。",
+		text: "为全队附加 {0} 点护盾。培育 {c}：护盾破裂时，使攻击者被瞄准；效果持续 2 回合。",
 	},
 	{
 		id: "wither-spore",
@@ -263,9 +300,9 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		],
 		cultivate: {
 			turns: 1,
-			effects: [{ type: "APPLY_STATUS", status: "vitality", stacks: 1, duration: 1, statusDataFrom: { key: "healAmount", stat: "healPower", multiplier: 0.2 }, target: "primary" }],
+			effects: [{ type: "CULTIVATE_TICK", amountFrom: "lastRemovedStatusCount", maxAmount: 2 }],
 		},
-		text: "移除目标所有负面状态并恢复 {0} 点生命。培育 {c}：额外附加生机 1 回合。",
+		text: "移除目标所有负面状态并恢复 {0} 点生命。培育 {c}：每移除一个负面状态，使一张未成熟培育牌减少 1 层，最多 2 次。",
 	},
 	{
 		id: "blood-vine",
@@ -280,9 +317,9 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		cultivate: {
 			turns: 2,
 			mode: "replace",
-			effects: [{ type: "DAMAGE", multiplier: 0.9, lifesteal: 0.5, target: "primary" }],
+			effects: [{ type: "DAMAGE", multiplier: 0.9, lifesteal: 0.3, lifestealOverflow: "lowestHpAlly", target: "primary" }],
 		},
-		text: "造成 {0} 点伤害, 回复造成伤害的 30% HP。培育 {c}：回复比例提升至 50%。",
+		text: "造成 {0} 点伤害，回复造成伤害的 30% 生命。培育 {c}：自身溢出的治疗转给当前生命最低的队友。",
 	},
 	{
 		id: "guiding-crown",
@@ -296,9 +333,9 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		effects: [{ type: "APPLY_STATUS", status: "taunt", stacks: 1, duration: 1, target: "primary" }],
 		cultivate: {
 			turns: 1,
-			effects: [{ type: "APPLY_STATUS", status: "defenseUp", stacks: 1, duration: 1, target: "primary" }],
+			effects: [{ type: "APPLY_STATUS", status: "thornCrown", stacks: 1, duration: 1, target: "primary" }],
 		},
-		text: "目标获得嘲讽, 下回合优先受到攻击。培育 {c}：防御力 +20%, 持续 1 回合。",
+		text: "目标获得嘲讽，下回合优先受到攻击。培育 {c}：目标受到攻击时，使攻击者被瞄准。",
 	},
 	{
 		id: "new-leaf",
@@ -313,9 +350,9 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		cultivate: {
 			turns: 2,
 			mode: "replace",
-			effects: [{ type: "APPLY_STATUS", status: "vitality", stacks: 1, duration: 3, statusDataFrom: { key: "healAmount", stat: "healPower", multiplier: 0.2 }, target: "primary" }],
+			effects: [{ type: "APPLY_STATUS", status: "vitality", stacks: 1, duration: 2, statusData: { cultivateBoost: 1 }, statusDataFrom: { key: "healAmount", stat: "healPower", multiplier: 0.2 }, target: "primary" }],
 		},
-		text: "目标获得生机, 2 回合内每回合恢复 {0} 点生命。培育 {c}：延长至 3 回合。",
+		text: "目标获得生机，2 回合内每回合恢复 {0} 点生命。培育 {c}：生机触发时使一张未成熟培育牌减少 1 层，每回合最多一次。",
 	},
 	{
 		id: "chaotic-spike",
@@ -324,14 +361,15 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		cost: 2,
 		cardType: "normal",
 		targeting: "none",
+		cultivateTargeting: "foe",
 		rarity: "common",
 		anim: "shot",
 		effects: [{ type: "DAMAGE", multiplier: 0.6, target: "randomFoe", targetCount: 2 }],
 		cultivate: {
 			turns: 1,
 			mode: "replace",
-			effects: [{ type: "DAMAGE", multiplier: 0.6, target: "randomFoe", targetCount: 3 }],
+			effects: [{ type: "DAMAGE", multiplier: 0.6, target: "primary", hits: 3 }],
 		},
-		text: "对 2 名随机敌人各造成 {0} 点伤害。培育 {c}：改为对 3 名随机敌人造成伤害。",
+		text: "对 2 名随机敌人各造成 {0} 点伤害。培育 {c}：指定一名敌人，连续造成 3 次伤害。",
 	},
 ];

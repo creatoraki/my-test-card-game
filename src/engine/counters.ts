@@ -14,6 +14,7 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
   if (source === "lastConsumedStatusStacks") return state.lastConsumedStatusStacks;
   if (source === "lastRemovedStatusCount") return state.lastRemovedStatusCount;
   if (source === "activeCardResonance") return card ? card.resonanceStacks ?? 0 : state.activeCardResonance;
+  if (source === "lastAimConsumed") return state.lastAimConsumed;
   if (source === "partyInsuranceStacks") return partyInsuranceStacks(state);
   if (source === "discardPileTens") return Math.floor(state.discard.length / 10);
   if (source === "fastPlaysThisRound")

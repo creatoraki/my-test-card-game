@@ -5,6 +5,7 @@ import { DEBUFF_STATUS_DEFS } from "./debuffs";
 import { DOT_STATUS_DEFS } from "./dot";
 import { ACTUARY_STATUS_DEFS } from "./actuary";
 import { SWORDSMAN_STATUS_DEFS } from "./swordsman";
+import { BOTANIST_STATUS_DEFS } from "./botanist";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
   ...DOT_STATUS_DEFS,
@@ -13,6 +14,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
   ...CONTROL_STATUS_DEFS,
   ...ACTUARY_STATUS_DEFS,
   ...SWORDSMAN_STATUS_DEFS,
+  ...BOTANIST_STATUS_DEFS,
 };
 
 export function getStatusDef(id: string): StatusDef | undefined {

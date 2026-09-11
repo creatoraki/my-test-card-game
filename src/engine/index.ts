@@ -84,7 +84,7 @@ export { avidyaPickCount } from "./handChoice";
 export { RELIC_TRIGGERS, fireRelic } from "./relics";
 export { RELIC_BEHAVIORS, runRelicHook } from "./relicBehaviors";
 export type { RelicBehavior, RelicBehaviorContext } from "./relicBehaviors";
-export { cultivateReady, resetCultivate, tickCultivate } from "./cultivate";
+export { cultivateReady, effectiveTargeting, resetCultivate, tickCultivate } from "./cultivate";
 export { cardActivated, cardBoons } from "./cardBoon";
 export type { CardBoonId } from "./cardBoon";
 export {

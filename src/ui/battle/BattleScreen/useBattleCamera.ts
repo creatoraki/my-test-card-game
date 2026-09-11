@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MutableRefObject, type RefObject } from "react";
-import type { BattleState } from "@/engine";
+import { effectiveTargeting, type BattleState } from "@/engine";
 import { sameCamera, useCameraRig, type Camera, type CameraRigApi } from "@/ui/battle/camera";
 import { computeAimCamera, computeFocusCamera, placementOf } from "./battleCamera";
 
@@ -76,7 +76,7 @@ export function useBattleCamera({
   // stageScale 进依赖: 窗口尺寸变了要重测(结果虽是设计 px, 但 DOM 矩形已变)。
   useLayoutEffect(() => {
     const card = battle && selectedUid ? battle.cards[selectedUid] : null;
-    const on = !!battle && battle.phase === "player" && !animating && card?.targeting === "foe";
+    const on = !!battle && battle.phase === "player" && !animating && card != null && effectiveTargeting(card) === "foe";
     const next = on
       ? computeAimCamera(
           worldRef.current,

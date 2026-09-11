@@ -26,7 +26,7 @@ export const KEYWORD_DEFS: Record<string, KeywordDef> = {
   aim: {
     id: "aim",
     name: "瞄准",
-    desc: "攻击未被瞄准的目标时为其附加被瞄准；再次用瞄准卡命中该目标时移除被瞄准并触发额外效果。",
+    desc: "攻击未被瞄准的目标时为其附加被瞄准；再次用瞄准卡命中时收割被瞄准并触发额外效果。锚定瞄准可保留一次被瞄准。",
     triggers: (state, card, ctx) => {
       const candidates =
         card.targeting === "allFoes"
@@ -35,17 +35,25 @@ export const KEYWORD_DEFS: Record<string, KeywordDef> = {
             ? [ctx.primaryId]
             : [];
       let triggered = 0;
+      let consumed = 0;
+      const owner = state.combatants[card.ownerCharId];
       for (const id of candidates) {
         const target = state.combatants[id];
         if (!target) continue;
         const aimed = target.statuses.find((status) => status.id === "aimed");
         if (aimed) {
-          ops.applyStatus(state, id, "aimed", -1);
+          const aimLock = owner?.statuses.find((status) => status.id === "aimLock" && status.stacks > 0);
+          if (aimLock) ops.applyStatus(state, card.ownerCharId, "aimLock", -1);
+          else {
+            ops.applyStatus(state, id, "aimed", -1);
+            consumed += 1;
+          }
           triggered += 1;
         } else {
           ops.applyStatus(state, id, "aimed", 1);
         }
       }
+      state.lastAimConsumed = consumed;
       return triggered;
     },
   },
@@ -104,7 +112,7 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "aim",
     name: "瞄准",
-    desc: "攻击未被瞄准的目标时为其附加被瞄准；再次用瞄准卡命中该目标时移除被瞄准并触发额外效果。",
+    desc: "攻击未被瞄准的目标时附加被瞄准；再次命中时收割被瞄准并触发额外效果，锚定瞄准可保留一次。",
   },
   {
     id: "cultivate",

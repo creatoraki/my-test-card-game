@@ -1,4 +1,6 @@
 import type { DamageCtx, StatusCtx, StatusDef } from "../types";
+import { advanceCultivate } from "../cultivate";
+import { rngPick } from "../rng";
 
 export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
   poison: {
@@ -87,6 +89,19 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
         const healAmount = c.inst.data?.healAmount ?? 0;
         if (healAmount > 0 && c.stacks > 0)
           c.ops.heal(c.state, c.inst.sourceId, c.ownerId, healAmount * c.stacks, { scaled: true });
+        const cultivateData = c.inst.data;
+        if (!cultivateData || cultivateData.cultivateBoost !== 1 || cultivateData.lastBoostRound === c.state.round) return;
+        const candidates = c.state.hand.filter((uid) => {
+          const card = c.state.cards[uid];
+          return card?.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) > 0;
+        });
+        if (candidates.length === 0) return;
+        const uid = rngPick(c.state, candidates);
+        const card = c.state.cards[uid];
+        if (!card) return;
+        advanceCultivate(card, 1);
+        cultivateData.lastBoostRound = c.state.round;
+        c.ops.log(c.state, `${card.name} 的培育层数 -1`);
       },
     },
   },

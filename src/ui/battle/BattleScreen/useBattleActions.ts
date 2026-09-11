@@ -1,6 +1,6 @@
 import { useCallback, type Dispatch, type SetStateAction } from "react";
 import type { BattleState } from "@/engine";
-import { avidyaPickCount, playBlockReason } from "@/engine";
+import { avidyaPickCount, effectiveTargeting, playBlockReason } from "@/engine";
 import { cardAnim } from "@/ui/battle/animations";
 import { useBattleStore } from "@/store/battleStore";
 import { playSfx } from "@/ui/audio";
@@ -196,7 +196,8 @@ export function useBattleActions({
       return;
     }
     const card = battle.cards[uid];
-    if (card.targeting === "foe" || card.targeting === "ally") {
+    const targeting = effectiveTargeting(card);
+    if (targeting === "foe" || targeting === "ally") {
       const selecting = selectedUid !== uid;
       setSelectedUid(selecting ? uid : null);
       if (selecting) playSfx("cardSelect");
@@ -210,8 +211,9 @@ export function useBattleActions({
     const selectedCard = battle.cards[selectedUid];
     const target = battle.combatants[id];
     if (!selectedCard || !target?.alive) return;
-    if (selectedCard.targeting === "foe" && target.team === "enemy") triggerPlay(selectedUid, id);
-    else if (selectedCard.targeting === "ally" && target.team === "player") triggerPlay(selectedUid, id);
+    const targeting = effectiveTargeting(selectedCard);
+    if (targeting === "foe" && target.team === "enemy") triggerPlay(selectedUid, id);
+    else if (targeting === "ally" && target.team === "player") triggerPlay(selectedUid, id);
   }, [battle, playback.animating, selectedUid, triggerPlay]);
 
   const pickFromDiscard = useCallback((uid: string) => {

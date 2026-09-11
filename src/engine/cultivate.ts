@@ -1,4 +1,4 @@
-import type { BattleState, Card } from "./types";
+import type { BattleState, Card, Targeting } from "./types";
 
 export function resetCultivate(card: Card): void {
   if (card.cultivate) card.cultivateLeft = card.cultivate.turns;
@@ -19,4 +19,8 @@ export function tickCultivate(state: BattleState): void {
 
 export function cultivateReady(card: Card): boolean {
   return card.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) === 0;
+}
+
+export function effectiveTargeting(card: Card): Targeting {
+  return cultivateReady(card) ? card.cultivateTargeting ?? card.targeting : card.targeting;
 }

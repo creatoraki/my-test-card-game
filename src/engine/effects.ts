@@ -113,7 +113,8 @@ export function resolveTargets(
   const t = effect.target ?? "primary";
   const pickUnique = (candidates: ReturnType<typeof foesOf>): string[] => {
     const pool = candidates.filter((candidate) =>
-      !effect.targetHasStatus || candidate.statuses.some((status) => status.id === effect.targetHasStatus),
+      (!effect.targetHasStatus || candidate.statuses.some((status) => status.id === effect.targetHasStatus)) &&
+      (!effect.targetWithoutStatus || !candidate.statuses.some((status) => status.id === effect.targetWithoutStatus)),
     );
     const selected: string[] = [];
     const count = Math.max(1, Math.floor(effect.targetCount ?? 1));
@@ -131,7 +132,11 @@ export function resolveTargets(
       return src?.alive ? [sourceId] : [];
     case "allFoes":
       return foesOf(state, src)
-        .filter((candidate) => !effect.targetHasStatus || candidate.statuses.some((status) => status.id === effect.targetHasStatus))
+        .filter(
+          (candidate) =>
+            (!effect.targetHasStatus || candidate.statuses.some((status) => status.id === effect.targetHasStatus)) &&
+            (!effect.targetWithoutStatus || !candidate.statuses.some((status) => status.id === effect.targetWithoutStatus)),
+        )
         .map((c) => c.id);
     case "allAllies":
       return alliesOf(state, src).map((c) => c.id);
@@ -232,7 +237,8 @@ function applyEffect(
       const healing =
         (scaled ? healValue(offenseStatOf(state, src, "healPower"), healMultiplier) : amount) *
         (1 + state.playValueBonusPct / 100) * scaleFactor(state, effect);
-      for (const id of targetIds) ops.heal(state, sourceId, id, healing, { scaled });
+      for (const id of targetIds)
+        ops.heal(state, sourceId, id, healing, { scaled, single: targetIds.length === 1 });
       break;
     }
     case "SETTLE_INSURANCE":

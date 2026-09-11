@@ -1,4 +1,4 @@
-import type { AnimFrame, BattleState, Card, DiscardTriggerFx, FxStep, RelicTriggerFx, TempoFx } from "@/engine";
+import { effectiveTargeting, type AnimFrame, type BattleState, type Card, type DiscardTriggerFx, type FxStep, type RelicTriggerFx, type TempoFx } from "@/engine";
 import { getEnemyDef } from "@/data";
 import { type ChoreoStep } from "@/ui/battle/camera";
 import { moveAnim } from "@/ui/battle/animations";
@@ -61,7 +61,7 @@ export function fxTargets(battle: BattleState, uid: string, primaryId?: string):
   if (card.effects.some((effect) => effect.target === "allAllies")) {
     return battle.playerIds.filter((id) => battle.combatants[id].alive);
   }
-  switch (card.targeting) {
+  switch (effectiveTargeting(card)) {
     case "foe":
     case "ally":
       return primaryId ? [primaryId] : [];
