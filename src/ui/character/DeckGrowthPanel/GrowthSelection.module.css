@@ -21,7 +21,12 @@
   scrollbar-width: thin;
   scrollbar-color: #5684cb #0a1831;
 }
-.selection[data-mode="draw"] .cards { --deck-card-scale: 1.3; align-content: center; gap: 70px; }
+.selection[data-mode="draw"] .cards {
+  --deck-card-scale: 1.3;
+  grid-template-columns: repeat(auto-fit, calc(var(--card-w) * var(--deck-card-scale)));
+  align-content: center;
+  gap: 70px;
+}
 .selection[data-mode="remove"] .cards { --deck-card-scale: 1; }
 .footer { display: flex; align-items: center; gap: 24px; flex-shrink: 0; padding-top: 18px; border-top: 1px solid #4581c3; }
 .description { display: grid; gap: 8px; flex: 1; color: #acc9ec; font-size: 18px; }
