@@ -49,3 +49,4 @@ export const IMPACT_COLORS = {
   spark: (hue: number, alpha: number) =>
     `hsla(${hue.toFixed(0)}, 100%, ${(58 + alpha * 35).toFixed(0)}%, ${alpha.toFixed(3)})`,
 } as const;
+

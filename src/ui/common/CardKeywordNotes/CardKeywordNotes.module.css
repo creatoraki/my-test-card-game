@@ -19,3 +19,17 @@
   color: var(--accent);
   font-weight: 800;
 }
+
+/* 详情级词条块: 放大卡面下方那一版, 由战斗手牌详情与角色卡组详情共用。
+   ⚠ 必须排在 .notes 之后 —— 两者同为单类 (0,1,0), 靠同文件内的源序决定胜负。 */
+.notes-detail {
+  composes: notes;
+  font-size: 13px;
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.notes-detail::-webkit-scrollbar {
+  display: none;
+}

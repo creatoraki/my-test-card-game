@@ -11,6 +11,7 @@ import { NeonCrossFx } from "@/ui/battle/fx/NeonCrossFx";
 import { TripleSlashFx } from "@/ui/battle/fx/TripleSlashFx";
 import { BasicSlashFx } from "@/ui/battle/fx/BasicSlashFx";
 import { KeenEdgeFx } from "@/ui/battle/fx/KeenEdgeFx";
+import { TwinArrowFx } from "@/ui/battle/fx/TwinArrowFx";
 import { ShieldIcon } from "@/ui/common/StatusPips/icons";
 import s from "./HitFxLayer.module.css";
 
@@ -27,6 +28,7 @@ const PROC_FX: Partial<Record<CardAnim, (p: { preset: ProcFxPreset }) => JSX.Ele
   "triple-strike": TripleSlashFx,
   "basic-slash": BasicSlashFx,
   "keen-edge": KeenEdgeFx,
+  "twin-arrow": TwinArrowFx,
 };
 
 // 图标特效(与 PROC_FX 平行的分支): 复用状态图标(如护盾), 以"虚幻放大"浮现动画播放。
@@ -42,7 +44,7 @@ const ICON_FX: Partial<Record<CardAnim, ComponentType<{ className?: string }>>> 
 //   --vfx-color:  特效主色, 供闪光/冲击环/光晕/飘字着色
 //   --vfx-impact: 挂载 → 命中的偏移, 把受击抖动/闪白推迟到程序化特效真正命中那一刻
 //                 (emoji 系缺省 0, 行为不变)
-//   --vfx-float-delay/--vfx-float-dur: 飘字延迟与时长, 仅居合斩使用(把飘字推迟到
+//   --vfx-float-delay/--vfx-float-dur: 飘字延迟与时长, 程序化攻击使用(把飘字推迟到
 //                 斩击爆发瞬间并压缩时长, 保证在命中特效 hold 卸载前收尾); 其余动画缺省值下
 //                 与原行为逐帧等价。
 // 攻击 → 受击抖动闪光; 辅助 → 柔和光晕。

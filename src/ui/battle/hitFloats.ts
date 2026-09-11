@@ -33,8 +33,10 @@ function gainAt(index: number): number {
 }
 
 function floatStagger(anim: CardAnim, count: number): number {
-  if (count <= 1) return 0;
   const preset = ANIM[anim];
+  const fixed = preset.proc?.floatStaggerMs;
+  if (fixed != null) return fixed;
+  if (count <= 1) return 0;
   const budget = preset.hold - (preset.proc?.impactMs ?? 0) - (preset.proc?.floatMs ?? 0) - FLOAT_SAFE_MARGIN;
   return Math.max(FLOAT_STAGGER_MIN, Math.min(HIT_STAGGER.float, budget / (count - 1)));
 }

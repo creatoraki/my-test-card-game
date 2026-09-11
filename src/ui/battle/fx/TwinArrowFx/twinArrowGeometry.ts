@@ -1,8 +1,8 @@
 // 二连箭(twin-arrow)特效的几何与时序表 —— 纯数据 + 纯函数, 不碰 ctx, 不碰 DOM。
 //
-// 所有坐标都是「1920×1080 世界 px」: 本特效是跨场景特效(从施法者打向目标),
-// 不像 keen-edge / tri-slash 那样以目标中心为原点。舞台侧只负责把世界坐标
-// 等比缩放到容器(demo 用 container query, 实战用同一套世界尺寸)。
+// 所有坐标都是「以画布中心为原点的设计 px」: 弓位与目标保持固定相对关系，
+// 由组件将设计坐标映射到实际 Canvas。正式战斗的默认画布为 1280×1000，
+// demo 传入 1920×1080 后与原世界坐标中的相对位置逐 px 对齐。
 //
 // 时序以本表为真相: 组件按 preset.impactMs 与 TWIN_ARROW_TIMELINE.hit1 的比例
 // 整体缩放时间轴, 改节奏只改这里。
@@ -11,15 +11,14 @@ export const TAU = Math.PI * 2;
 
 export const easeOutCubic = (x: number): number => 1 - Math.pow(1 - x, 3);
 
-/** 世界画布: 与 demo 舞台 / 实战舞台的设计尺寸同源。 */
-export const TWIN_ARROW_WORLD = { width: 1920, height: 1080 } as const;
+/** 正式战斗的默认画布尺寸: 以目标中心为原点的设计 px。 */
+export const TWIN_ARROW_CANVAS = { width: 1280, height: 1000 } as const;
 
-/** 默认弓位: 舞台左侧施法者立绘(中心 428,702)的持弓手前方 —— 光团弓要落在身前,
- *  压在立绘正中会把脸盖住。 */
-export const DEFAULT_ORIGIN = { x: 520, y: 700 } as const;
+/** 默认弓位: 目标中心左下，等价于原 demo 的 (520,700) - (960,540)。 */
+export const DEFAULT_ORIGIN = { x: -440, y: 160 } as const;
 
-/** 默认目标中心: 舞台正中的受击位。 */
-export const DEFAULT_TARGET = { x: 960, y: 540 } as const;
+/** 默认目标中心: Canvas 中心。 */
+export const DEFAULT_TARGET = { x: 0, y: 0 } as const;
 
 /**
  * 时间轴(ms)。两箭在 400–430ms 区间重叠 —— 第二箭在第一箭还没落地时就离弦,
@@ -217,3 +216,4 @@ export function bowAlphaAt(ms: number): number {
   const fade = (ms - TWIN_ARROW_TIMELINE.settle) / 320; // 余波期散掉
   return Math.max(0, 1 - fade);
 }
+

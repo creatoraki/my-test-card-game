@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import type { ProcFxPreset } from "@/ui/battle/animations";
 import {
   DEFAULT_ORIGIN,
   DEFAULT_TARGET,
   TWIN_ARROW_FLIGHT_MS,
   TWIN_ARROW_TIMELINE,
-  TWIN_ARROW_WORLD,
+  TWIN_ARROW_CANVAS,
   advanceBursts,
   advanceRings,
   advanceSparks,
@@ -33,8 +33,8 @@ import s from "./TwinArrowFx.module.css";
 // 二连箭(twin-arrow)攻击特效: 单张 Canvas 2D, rAF 驱动, 不循环。
 //
 // 与 TriSlashFx 同级的 canvas 特效(挂载即播、卸载即停, 换 key 重挂载即重播),
-// 但坐标系不同: 它是**跨场景**特效 —— 画布铺满 1920×1080 世界, 从施法者的弓位
-// 一直画到目标的命中点, 而不是以目标中心为原点的局部层。
+// 但坐标系不同: 它使用**画布中心锚点** —— 弓位与目标都以目标中心为原点的设计 px
+// 作图，画布尺寸由正式战斗或 demo 显式传入。
 //
 // 职责边界(与 KeenEdgeFx / TriSlashFx 一致):
 //   · 本组件只画 弓 / 蓄力 / 双箭 / 拖尾 / 冲击环 / 火花 / 命中光爆
@@ -44,8 +44,6 @@ import s from "./TwinArrowFx.module.css";
 // 两段伤害: 时间轴有两个命中时刻(hit1 / hit2), 消费方用 twinArrowHitTimes()
 // 取缩放后的实际毫秒数, 各自结算一次。
 // ============================================================================
-
-const { width: WORLD_W, height: WORLD_H } = TWIN_ARROW_WORLD;
 
 /** 时间轴缩放系数: 几何表的 hit1 被拉到 preset.impactMs 上, 其余拍等比跟随。 */
 const timeScale = (preset: ProcFxPreset): number =>
@@ -70,16 +68,20 @@ export function twinArrowTotalMs(preset: ProcFxPreset): number {
 
 export function TwinArrowFx({
   preset,
+  canvas: canvasSize = TWIN_ARROW_CANVAS,
   origin = DEFAULT_ORIGIN,
   target = DEFAULT_TARGET,
 }: {
   preset: ProcFxPreset;
-  /** 弓位(世界 px): 施法者的持弓手。 */
+  /** Canvas 尺寸(设计 px): 缺省使用正式战斗画布。 */
+  canvas?: { width: number; height: number };
+  /** 弓位(相对画布中心的设计 px): 默认固定在目标左下。 */
   origin?: { x: number; y: number };
-  /** 目标中心(世界 px): 两箭各自在它附近错开落点。 */
+  /** 目标中心(相对画布中心的设计 px): 默认就是画布中心。 */
   target?: { x: number; y: number };
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { width: CANVAS_W, height: CANVAS_H } = canvasSize;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -88,9 +90,10 @@ export function TwinArrowFx({
     if (!ctx) return;
 
     const res = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(WORLD_W * res);
-    canvas.height = Math.round(WORLD_H * res);
-    ctx.setTransform(res, 0, 0, res, 0, 0); // 此后一律用世界 px 作图
+    canvas.width = Math.round(CANVAS_W * res);
+    canvas.height = Math.round(CANVAS_H * res);
+    ctx.setTransform(res, 0, 0, res, 0, 0);
+    ctx.translate(CANVAS_W / 2, CANVAS_H / 2); // 此后一律以画布中心为原点作图
 
     // 播放倍速: 挂载时读一次 --fx-rate(与 TriSlashFx / KeenEdgeFx 同一语义, 下限 0.25)。
     const cssRate = parseFloat(getComputedStyle(canvas).getPropertyValue("--fx-rate"));
@@ -143,7 +146,7 @@ export function TwinArrowFx({
     };
 
     const render = () => {
-      ctx.clearRect(0, 0, WORLD_W, WORLD_H);
+      ctx.clearRect(-CANVAS_W / 2, -CANVAS_H / 2, CANVAS_W, CANVAS_H);
       drawImpactBursts(ctx, bursts);
       drawShockRings(ctx, rings);
       drawSparks(ctx, sparks);
@@ -168,7 +171,7 @@ export function TwinArrowFx({
 
       if (tg >= TWIN_ARROW_TIMELINE.total) {
         // 不循环: 演出结束清屏停机, 重播靠外层换 key 重挂载。
-        ctx.clearRect(0, 0, WORLD_W, WORLD_H);
+        ctx.clearRect(-CANVAS_W / 2, -CANVAS_H / 2, CANVAS_W, CANVAS_H);
         return;
       }
 
@@ -178,7 +181,14 @@ export function TwinArrowFx({
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [preset.impactMs, origin.x, origin.y, target.x, target.y]);
+  }, [preset.impactMs, CANVAS_W, CANVAS_H, origin.x, origin.y, target.x, target.y]);
 
-  return <canvas ref={canvasRef} className={s.canvas} aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className={s.canvas}
+      style={{ "--twin-w": `${CANVAS_W}px`, "--twin-h": `${CANVAS_H}px` } as CSSProperties}
+      aria-hidden="true"
+    />
+  );
 }

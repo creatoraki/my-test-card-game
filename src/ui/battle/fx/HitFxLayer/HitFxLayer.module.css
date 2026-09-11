@@ -229,6 +229,10 @@
 .vfx-keen-edge.vfx-attack::after {
   content: none;
 }
+/* 二连箭自带两次 Canvas 冲击环, 默认环会在 430ms 爆点前提前出现。 */
+.vfx-twin-arrow.vfx-attack::after {
+  content: none;
+}
 /* —— 伤害/治疗飘字 —— */
 /* 飘字定位槽。多段伤害会同时挂多条飘字, 它们必须**共用同一个锚点**原地依次弹出,
    所以定位与叠序留在这一层, 位移动画全归内层 .float-num —— 这样 floatUp 关键帧里的

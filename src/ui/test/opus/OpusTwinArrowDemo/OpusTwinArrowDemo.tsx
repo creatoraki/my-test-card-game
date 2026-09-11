@@ -1,13 +1,13 @@
 // opus tab 的 demo: 二连箭(twin-arrow)攻击特效的陈列台。
 //
-// 这个文件只做「舞台 + 控制台 + 时间轴读数」, 特效本体在 ../TwinArrowFx。
+// 这个文件只做「舞台 + 控制台 + 时间轴读数」, 特效本体在 ui/battle/fx/TwinArrowFx。
 // 原型是 html-templates/二连箭攻击特效.html, 组件化时做了两处改动:
 //   1. 弓从金棕实木改成**纯光团**(四层暖金发光弧, 无材质无硬边);
 //   2. 原型自带的背景/怪物/暗角/屏幕抖动被剥离 —— 背景与立绘归舞台,
 //      全屏闪与受击抖动归下面的「模拟」开关(正式流程里分属 screenFx 与受击反馈类)。
 //
 // 舞台按 1920×1080 设计画布搭, 内层用容器查询单位等比缩放 —— 特效几何是世界 px
-// 写死的, 这样 demo 与实战舞台的相对尺寸一致。
+// 写死的, 正式件通过 1920×1080 画布参数与原 demo 保持相对尺寸一致。
 //
 // 本特效是**两段伤害**: 时间轴上有两个命中时刻, 飘字与受击抖动各来两次,
 // 时刻由 twinArrowHitTimes() 给出(它会跟着 preset.impactMs 一起缩放)。
@@ -16,8 +16,11 @@ import type { ProcFxPreset } from "@/ui/battle/animations";
 import { cx } from "@/ui/common/cx";
 import sceneBackground from "@/assets/占位场景素材.png";
 import placeholderArt from "@/assets/占位素材.png";
-import { TwinArrowFx, twinArrowHitTimes } from "../TwinArrowFx";
-import { TWIN_ARROW_TIMELINE } from "../TwinArrowFx/twinArrowGeometry";
+import {
+  TWIN_ARROW_TIMELINE,
+  TwinArrowFx,
+  twinArrowHitTimes,
+} from "@/ui/battle/fx/TwinArrowFx";
 import s from "./OpusTwinArrowDemo.module.css";
 
 // impactMs 锚第一箭命中: 第二箭由几何表顺推, 两段各自结算。
@@ -218,7 +221,13 @@ export function OpusTwinArrowDemo() {
                 ))}
             </div>
 
-            {playing && <TwinArrowFx key={`fx-${seq}`} preset={PRESET} />}
+            {playing && (
+              <TwinArrowFx
+                key={`fx-${seq}`}
+                preset={PRESET}
+                canvas={{ width: 1920, height: 1080 }}
+              />
+            )}
 
             {playing && flash && (
               <div

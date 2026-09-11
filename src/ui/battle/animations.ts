@@ -11,6 +11,7 @@ import { CARD_DEFS, type EnemyMove } from "@/data";
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
 // 解析。不走 getCardDef: 它对未知 id 直接 throw, 而存档可能残留已删定义的旧卡。
 const DEF_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.anim]));
+const DEF_AIMED_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.aimedAnim]));
 
 // 程序化 CSS 特效参数。视觉几何在各自 Fx 组件中, 这里只放 JS 要消费的时序。
 export interface ProcFxPreset {
@@ -21,6 +22,8 @@ export interface ProcFxPreset {
   // 掉血(commit 快照)是否推迟到 impactMs。缺省 false = 挂载即结算(历史行为, iai-slash 依赖它)。
   // 蓄力型特效(爆点远晚于挂载)置 true, 否则血条会在爆开前就掉完。
   damageAtImpact?: boolean;
+  // 多段飘字的固定间隔(ms)。缺省走 hitFloats 的自适应算法。
+  floatStaggerMs?: number;
 }
 
 export interface AnimPreset {
@@ -28,7 +31,7 @@ export interface AnimPreset {
   emoji?: string; // 首击特效图形(无 sprite/proc/icon 时使用)
   proc?: ProcFxPreset; // 程序化 CSS 特效
   icon?: "shield"; // 图标特效(复用 BUFF 图标 SVG, 优先于 emoji); 渲染映射见 HitFxLayer 的 ICON_FX
-  screenFx?: "dim" | "flash" | "blood" | "glitch"; // 可选的场景外全屏层
+  screenFx?: "dim" | "flash" | "blood" | "glitch" | "twin"; // 可选的场景外全屏层
   color: string; // 主色(用于闪光/冲击环/光晕/飘字着色)
   windup: number; // ms: 施法者前冲蓄力 → 命中时刻(伤害/特效在此刻触发)
   hold: number; // ms: 命中后特效(含飘字)完整播放所需时长
@@ -217,6 +220,17 @@ export const ANIM: Record<CardAnim, AnimPreset> = {
     hold: 1800, // impactMs + floatMs = 936 < hold, 也盖住 total 1750, 余鸣与光尘尾段不被截断
     shake: 2,
   },
+  // 二连箭(Canvas 2D): 1.4s 双箭命中, 430/590ms 两拍分别结算并对齐飘字与全屏闪。
+  // hold 同时覆盖特效尾帧与第二段命中后的飘字; 震屏归相机 SHOTS.twin。
+  "twin-arrow": {
+    kind: "attack",
+    color: "#ffc86e",
+    proc: { impactMs: 430, floatMs: 600, damageAtImpact: true, floatStaggerMs: 160 },
+    screenFx: "twin",
+    windup: 190,
+    hold: 1700,
+    shake: 1,
+  },
   // —— 辅助系(柔和光效): 一律不震屏, 治疗/加盾不该有冲击反馈 ——
   heal: { kind: "support", emoji: "💚", color: "#69db7c", windup: 200, hold: 720, shake: 0 },
   // 护盾: 不再用 emoji, 改用护盾 BUFF 图标 SVG(见 StatusPips 的 ShieldIcon)做虚幻放大浮现。
@@ -243,7 +257,11 @@ export interface HitFx {
 
 // 卡牌 → 动画类型。优先按定义表实时解析(见 DEF_ANIM: 实例上的副本可能来自旧存档),
 // 定义已不存在才回退实例自带值, 都没有则按效果兜底推断。
-export function cardAnim(card: Card): CardAnim {
+export function cardAnim(card: Card, keywordTriggers?: Record<string, number>): CardAnim {
+  if ((keywordTriggers?.aim ?? 0) > 0) {
+    const aimedAnim = DEF_AIMED_ANIM.get(card.id);
+    if (aimedAnim) return aimedAnim;
+  }
   const anim = DEF_ANIM.has(card.id) ? DEF_ANIM.get(card.id) : card.anim;
   if (anim) return anim;
   const has = (t: string) => card.effects.some((e) => e.type === t);

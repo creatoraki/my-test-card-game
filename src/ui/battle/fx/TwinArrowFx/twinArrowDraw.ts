@@ -1,4 +1,4 @@
-// 二连箭(twin-arrow)绘制层 —— 全是 (ctx, …) => void 的纯绘制函数, 吃世界坐标。
+// 二连箭(twin-arrow)绘制层 —— 全是 (ctx, …) => void 的纯绘制函数, 吃中心锚点设计坐标。
 //
 // 造型要点: 弓与箭都是**纯光团**, 没有任何材质与硬边 ——
 // 每一层都是半透明色 + globalCompositeOperation: "lighter" 叠加出来的,

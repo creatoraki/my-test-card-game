@@ -200,6 +200,7 @@ src/ui/
 | [fx/BloodSlashFx](../../src/ui/battle/fx/BloodSlashFx/BloodSlashFx.tsx) | `blood-slash` 血色刀光程序化 CSS 特效；固定几何表与 `proc.impactMs` 爆点锚复刻刀身下劈、刀痕张开和血花爆裂，震屏归相机、全屏压暗/双闪归 `screenFx`。 |
 | [fx/TripleSlashFx](../../src/ui/battle/fx/TripleSlashFx/TripleSlashFx.tsx) | `triple-strike` 流光·三段斩程序化 CSS 特效；几何表在 `tripleSlashGeometry.ts`（固定种子、模块加载时烘一次），时间轴以 `proc.impactMs` 为爆点锚平移，震屏归相机 `SHOTS.triple`、白闪归 `screenFx: "flash"`；`test/ds` 下另有 demo 副本。 |
 | [fx/KeenEdgeFx](../../src/ui/battle/fx/KeenEdgeFx/KeenEdgeFx.tsx) | `keen-edge` 锐利刀锋斩按 `锐利刀锋.wav` 包络编排，由 `KEEN_RATE` 固化 1.4x；几何表在 `keenEdgeGeometry.ts`，音效由 `animSfx` 的 keen-edge 覆盖独占 `keenEdge` 采样；`test/opus` 下另有 1x demo 副本。 |
+| [fx/TwinArrowFx](../../src/ui/battle/fx/TwinArrowFx/TwinArrowFx.tsx) | `twin-arrow` 画布中心锚点 Canvas 特效：两段命中，弓位固定在目标左下；震屏归 `SHOTS.twin`，全屏闪归 `screenFx: "twin"`；`test/opus` 下的 demo 直接引用本件，不保留副本。 |
 | [fx/DeathVanishFx](../../src/ui/battle/fx/DeathVanishFx/DeathVanishFx.tsx) | 敌方死亡的附加白光：脚下扩散光环与确定性白色光粒；只在死亡闸门的 vanish 阶段挂载，不承载战斗状态。 |
 | [styles/unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css) | 敌我共用的阵亡叠层样式。 |
 | [animations.ts](../../src/ui/battle/animations.ts) | 战斗分镜、相机、顿帧/震屏、卡牌与招式动画预设；`DISCARD.pop/total` 与 `HandCard.module.css` 的 `cardDiscardBurst` 共用弃牌弹出化光时序。调演出节奏优先改这里；死亡闸门时序另见 `deathChoreo.ts`。 |

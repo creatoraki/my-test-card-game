@@ -28,6 +28,7 @@ import {
 export interface PlayPlan {
   cardSnapshot: BattleState;
   cardMissedTargets: string[];
+  cardKeywordTriggers: Record<string, number>;
   // 引擎回传的真实命中列表(含逐段明细), 见 engine/animHits.ts。
   // ⚠ 不要再从卡牌定义反推目标 —— lowestHpAlly / randomAlly / 培育追加效果都推不出来。
   cardHits: AnimHit[];
@@ -100,6 +101,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     return {
       cardSnapshot: rec.cardSnapshot ?? draft,
       cardMissedTargets: rec.cardMissedTargets,
+      cardKeywordTriggers: rec.cardKeywordTriggers ?? {},
       cardHits: rec.cardHits ?? [],
       steps: rec.steps,
       final: draft,

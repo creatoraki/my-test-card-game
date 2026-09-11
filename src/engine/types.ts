@@ -256,6 +256,7 @@ export type CardAnim =
   | "triple-strike"
   | "basic-slash"
   | "keen-edge"
+  | "twin-arrow"
   | "heal"
   | "shield"
   | "buff";
@@ -273,6 +274,7 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
+  aimedAnim?: CardAnim; // 瞄准词条实际触发时改用的动画(纯表现)。
   starPay?: boolean; // 应星: 可用星辉替代法力水晶
   temporary?: boolean; // 临时卡: 仅战斗内生成, 不进入抽卡池
   playReturn?: { when: "fastPlaysThisRound"; atLeast: number; costDelta: number };

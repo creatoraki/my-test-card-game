@@ -13,6 +13,7 @@ export function ScreenFxLayer({ hits, playerIds }: Props) {
   const flashHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "flash");
   const bloodHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "blood");
   const glitchHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "glitch");
+  const twinHit = Object.values(hits).find((hit) => ANIM[hit.anim].screenFx === "twin");
   const hurtHit = Object.entries(hits).find(
     ([id, hit]) => playerIds.includes(id) && hit.floats.some((float) => float.tone === "dmg"),
   )?.[1];
@@ -23,6 +24,7 @@ export function ScreenFxLayer({ hits, playerIds }: Props) {
       {flashHit && <div key={flashHit.seq} className={s["battle-flash"]} aria-hidden />}
       {bloodHit && <div key={bloodHit.seq} className={s["battle-blood"]} aria-hidden />}
       {glitchHit && <div key={glitchHit.seq} className={s["battle-glitch"]} aria-hidden />}
+      {twinHit && <div key={twinHit.seq} className={s["battle-twin"]} aria-hidden />}
       {hurtHit && <HurtVignette key={hurtHit.seq} seq={hurtHit.seq} />}
     </>
   );

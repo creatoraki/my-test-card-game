@@ -62,6 +62,7 @@ import { runEnemyFlee } from "./flee";
 export interface PlayRecorder {
   steps: FxRecorder["steps"];
   cardMissedTargets: string[];
+  cardKeywordTriggers?: Record<string, number>;
   cardSnapshot?: BattleState;
   // 本次出牌真实影响到的单位与逐段明细(见 animHits.ts)。UI 据此飘字与播音效 ——
   // 不要再从卡牌定义反推目标: lowestHpAlly / randomAlly / 培育追加效果都推不出来。
@@ -502,6 +503,10 @@ export function playCard(
           if (!def) continue;
           const ctx = { primaryId, hitIds: [...cardHit], baseEffects };
           const times = def.triggers(state, card, ctx);
+          if (rec) {
+            (rec.cardKeywordTriggers ??= {})[ref.id] =
+              (rec.cardKeywordTriggers[ref.id] ?? 0) + times;
+          }
           for (let i = 0; i < times; i++)
             mergeCardResolution(resolveEffects(state, ref.effects, card.ownerCharId, primaryId));
           def.onTriggered?.(state, card, ctx, times);

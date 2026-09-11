@@ -27,21 +27,8 @@
   transform-origin: top left;
 }
 
-/* 词条释义: 与卡面同宽, 词条特别多的卡自己滚。 */
+/* 词条释义: 与卡面同宽, 外观走 CardKeywordNotes 的 .notes-detail。 */
 .keywords {
+  composes: notes-detail from "../../common/CardKeywordNotes/CardKeywordNotes.module.css";
   width: calc(var(--card-w) * var(--deck-card-scale));
-  max-height: 240px;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.keywords::-webkit-scrollbar {
-  display: none;
-}
-
-/* ⚠ 必须写成 (0,2,0): CardKeywordNotes 自己的 .notes 也是单个类 (0,1,0),
-   CSS Modules 的注入顺序不保证, 同特异性会赌运气。11px 是给战斗里那块小注释调的,
-   配 1.6 倍大卡面太小。 */
-.deck-card-hover-preview .keywords {
-  font-size: 13px;
 }

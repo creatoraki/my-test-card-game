@@ -1,0 +1,13 @@
+/* 二连箭(twin-arrow): 以命中目标中心为锚点的 Canvas 特效。
+   时序与全部视觉都在 TwinArrowFx.tsx 的 rAF 循环里, 本文件不定义任何 @keyframes。 */
+
+.canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--twin-w);
+  height: var(--twin-h);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 15;
+}

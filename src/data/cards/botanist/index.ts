@@ -10,6 +10,7 @@ export const BOTANIST_CARD_DEFS: CardDef[] = [
 		targeting: "foe",
 		rarity: "common",
 		anim: "shot",
+		aimedAnim: "twin-arrow",
 		effects: [{ type: "DAMAGE", multiplier: 0.7, target: "primary" }],
 		keywords: [{ id: "aim", effects: [{ type: "DAMAGE", multiplier: 0.7, target: "primary" }] }],
 		text: "造成 {0} 点伤害。瞄准：额外攻击一次。",

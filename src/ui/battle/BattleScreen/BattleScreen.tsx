@@ -9,6 +9,7 @@ import { getEncounter, slotPlacement } from "@/data";
 import { useBattleStore } from "@/store/battleStore";
 import { useRunStore } from "@/store/runStore";
 import { BattleToast } from "@/ui/battle/BattleToast";
+import { showBattleToast } from "@/ui/battle/battleToastStore";
 import { BattleActions } from "@/ui/battle/BattleActions";
 import { BattleSettingsPanel } from "@/ui/battle/BattleSettingsPanel";
 import { BondRail } from "@/ui/battle/BondRail";

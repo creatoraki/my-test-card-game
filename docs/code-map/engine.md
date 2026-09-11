@@ -41,7 +41,7 @@
 | [ai.ts](../../src/engine/ai.ts) | 敌人按招式权重抽招与行动执行：脚本敌人经 `enemyScript.ts` 按护盾状态和 AI 记忆选招，普通敌人保持随机抽招；按招式延迟开始蓄力、倍率预览、将招式级命中修正注入 DAMAGE 效果、行动前推进状态节拍(`runEnemyTempoPhase` 拆出, 供 `actAndRecord` 把 DOT/HOT 单独录成一帧播在出招之前)、眩晕跳过、随机或最高护盾目标选择和效果解释。每回合行动点在开始时补满，招式发动后按剩余行动点继续选招，用尽后 `nextActTick = null`。 |
 | [enemyScript.ts](../../src/engine/enemyScript.ts) | 可序列化敌人行动脚本的纯逻辑：按我方护盾状态、后继权重和回收/喘息/重锤约束选择招式，更新行动记忆，并支持按最高护盾选择目标。 |
 | [scheduler.ts](../../src/engine/scheduler.ts) | tick 调度核心。`advanceTick` 逐时刻推进并处理所有到点敌人；`flushPendingActs` 在回合结束继续推进时刻，直到所有蓄力招式和行动点清空，带死循环安全阀；敌人帧与敌人行动后触发的弃牌步骤都写入同一个 `FxRecorder`。 |
-| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；支持无明出牌前弃牌预选、卡上前置效果、纳刀取回、雷走回手费用层、虚无回收、动态费用、弃牌批次与 `pendingChoice` 手牌/回收/组装选择 API。 |
+| [battle.ts](../../src/engine/battle.ts) | 建局、挑战抽取、回合开始、出牌、待机和结束回合编排；支持无明出牌前弃牌预选、卡上前置效果、纳刀取回、雷走回手费用层、虚无回收、动态费用、弃牌批次与 `pendingChoice` 手牌/回收/组装选择 API；出牌记录器回传关键词实际触发次数(`cardKeywordTriggers`)供 UI 选择动画。 |
 | [squadBuff.ts](../../src/engine/squadBuff.ts) | 炼金术士小队组装纯逻辑：按有序的 A/B/C/D 部件去重、三件组装成功时消耗先取得的三件并保留第四件，按缺失部件读取建战时注入的攻击/防御/功能/被动奖励池；支持随机移除、全部消费、缺少部件抽取与待选择组装，并派发 `assembleSuccess` 被动事件。 |
 | [index.ts](../../src/engine/index.ts) | UI/store 使用的公开 API 出口。 |
 | [battle.test.ts](../../src/engine/battle.test.ts) | 初始化、速攻/普通牌时刻推进、状态节拍、敌人蓄力清算等核心行为测试。 |

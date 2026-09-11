@@ -14,4 +14,3 @@ export { KeenEdgeFx } from "./KeenEdgeFx/index";
 export { OpusHudFrameDemo } from "./OpusHudFrameDemo/index";
 export { HudFrame } from "@/ui/common/HudFrame";
 export { OpusTwinArrowDemo } from "./OpusTwinArrowDemo/index";
-export { TwinArrowFx } from "./TwinArrowFx/index";
