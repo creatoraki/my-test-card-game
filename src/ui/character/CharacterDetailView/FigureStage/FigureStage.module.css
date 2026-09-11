@@ -1,4 +1,4 @@
-/* --figure-accent 由本组件下发，仅作角色点色；主边框统一蓝紫。
+/* 主边框统一蓝紫。
    HpBar / PollutionMeter / QuirkPips 使用各自公开的尺寸变量，最小字号 18px。 */
 .stage {
   position: absolute;
@@ -60,75 +60,6 @@
   font-size: 96px;
 }
 
-.heading {
-  position: absolute;
-  top: 40px;
-  left: 30px;
-  width: 144px;
-  text-shadow: 0 2px 6px #061127;
-  pointer-events: none;
-}
-
-.top-name {
-  display: block;
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.specialty {
-  display: block;
-  margin-top: 6px;
-  color: #9dbff0;
-  font-size: 18px;
-  letter-spacing: 0.18em;
-}
-
-.diamond {
-  display: block;
-  margin: 14px 0 22px;
-  color: #a7bfff;
-  font-size: 30px;
-}
-
-.quote {
-  width: 126px;
-  margin: 0;
-  color: #c6d5f7;
-  font-size: 18px;
-  font-style: italic;
-  line-height: 1.85;
-  text-wrap: pretty;
-}
-
-.insignia {
-  position: absolute;
-  top: 62px;
-  right: 28px;
-  display: grid;
-  gap: 10px;
-  width: 82px;
-  color: #a2b9e080;
-  font-size: 18px;
-  text-align: center;
-  pointer-events: none;
-}
-
-.insignia svg { width: 72px; margin: 0 auto 10px; }
-
-.signature {
-  position: absolute;
-  bottom: 300px;
-  left: 30px;
-  color: #ae8cff;
-  font-family: "KaiTi", "STKaiti", serif;
-  font-size: 36px;
-  font-style: italic;
-  transform: rotate(-16deg);
-  opacity: 0.85;
-  pointer-events: none;
-}
-
 .identity {
   position: absolute;
   right: 24px;
@@ -151,47 +82,12 @@
   pointer-events: none;
 }
 
-.name-row { display: flex; align-items: center; gap: 14px; }
-
 .name {
   margin: 0;
   font-size: 44px;
   line-height: 1.2;
   letter-spacing: 0.08em;
   text-shadow: 0 2px 8px #467cca66;
-}
-
-.tag {
-  margin-left: auto;
-  color: #adbdd6;
-  font-size: 18px;
-  white-space: nowrap;
-}
-
-.tag::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 7px;
-  background: currentColor;
-  transform: rotate(45deg);
-}
-
-.tag.is-on { color: var(--figure-accent, #9edcff); }
-
-.badge { display: flex; align-items: center; gap: 9px; color: #dedff2; font-size: 18px; }
-
-.badge-mark {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border: 1px solid #a58c3c;
-  border-radius: 50%;
-  background: #3d351b;
-  color: #ebd16a;
-  font-size: 22px;
 }
 
 .vitals { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }

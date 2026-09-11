@@ -10,7 +10,6 @@
 
 import { useEffect, useState } from "react";
 import { getCharacter } from "@/data";
-import { getBadge } from "@/data/squadTalents";
 import { deckUpgradeCost } from "@/engine";
 import { deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
@@ -60,8 +59,6 @@ export function CharacterDetailView({
   onBack,
 }: Props) {
   const characters = useTownStore((state) => state.characters);
-  const party = useTownStore((state) => state.party);
-  const badgeId = useTownStore((state) => state.squadTalent.badgeId);
   const storage = useTownStore((state) => state.storage);
   const equipItem = useTownStore((state) => state.equipItem);
   const unequipItem = useTownStore((state) => state.unequipItem);
@@ -164,8 +161,6 @@ export function CharacterDetailView({
         characterId={def.id}
         emoji={def.emoji}
         name={def.name}
-        color={def.color}
-        badgeName={badgeId ? getBadge(badgeId)?.name : undefined}
         deckLevel={cs.deckLevel}
         exp={cs.exp}
         upgradeCost={deckUpgradeCost(cs.deckLevel)}
@@ -181,7 +176,6 @@ export function CharacterDetailView({
         pollution={cs.pollution}
         sick={cs.sick}
         quirks={cs.quirks}
-        onField={party.includes(charId)}
         dimmed={cardDetailOpen}
         hidden={morphing || leaving}
         style={{
