@@ -53,9 +53,9 @@ export function Workbench({ tab, onTabChange, exp, growing, leaving, children, s
             </button>
           ))}
         </div>
-        <span className={s.exp}>
+        {tab === "deck" && <span className={s.exp}>
           可用经验 <b>{exp}</b>
-        </span>
+        </span>}
       </div>
 
       {/* key 跟着 tab 变: 换页时内容重挂载 ⇒ 面板自己的错峰入场每次都从头播。 */}

@@ -1,128 +1,79 @@
-/* 工作区外壳。⚠ 版面坐标由 CharacterDetailView 的内联 style 给(设计 px)。 */
+﻿/* 右栏由独立页签框和内容窗构成，几何来自 detailLayout。 */
 .bench {
-  --ui-glow-color: var(--cd-glow, #7c4dbe);
   position: absolute;
-  font-size: var(--fm-fs-l3, 18px);
   z-index: 2;
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px 18px 18px;
-  overflow: hidden;
-  border: 1px solid #2a1b3d24;
-  background: linear-gradient(145deg, #ffffffb0, #fbf3ff82 58%, #ecdcfa66);
-  box-shadow:
-    inset 0 1px 0 #ffffffd9,
-    0 22px 48px -28px #2a1b3d5c;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  gap: 16px;
+  font-size: 18px;
 }
 
-/* ★ 从左边缘裂开长满 —— 与卡阵飞散同一条时间线上的下半场。
-   ⚠ 这里不能用 clip-path 动画: 上面那条斜切角 polygon 会被覆盖掉, 边角会在过场中途变方。
-     改用 scaleX + 变换原点在左, 观感一致而且不打架。 */
+.head {
+  display: flex;
+  flex: 0 0 80px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid #9ebce59c;
+  background: linear-gradient(115deg, #35465ecf, #1d293edf 60%, #182238ed);
+  box-shadow: inset 0 0 0 5px #9fbfff0b, inset 0 1px 0 #d2e4ff44;
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
+}
+
+.tabs { display: flex; align-self: stretch; }
+.tab {
+  position: relative;
+  isolation: isolate;
+  width: 216px;
+  padding: 0 24px;
+  border: 0;
+  background: #7083bc61;
+  color: #b4bced;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  clip-path: polygon(26px 0, 100% 0, calc(100% - 26px) 100%, 0 100%);
+  transition: color 150ms ease, background 150ms ease;
+}
+.tab + .tab { margin-left: -18px; }
+.tab::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  background: linear-gradient(120deg, #242d49, #1b2439);
+  clip-path: inherit;
+}
+.bench .tabs .tab:hover { color: #fff; background: #b5c7ff; }
+.bench .tabs .tab.is-active {
+  z-index: 1;
+  color: #fff;
+  background: linear-gradient(135deg, #d4dfff, #8b55ff 55%, #a6e6ff);
+  text-shadow: 0 0 12px #c1a8ff;
+}
+.tab.is-active::before {
+  inset: 2px;
+  background: linear-gradient(160deg, #392284, #6832ff 48%, #4824d0 74%, #8997ff);
+  box-shadow: inset 0 -4px 7px #c7ceff, inset 0 2px 8px #ba86ff;
+}
+.tab:focus-visible { outline: 0; background: #fff; }
+.tab:focus-visible::before { inset: 4px; }
+.exp { margin-right: 12px; color: #b9c5f4; font-size: 20px; white-space: nowrap; }
+.exp b { margin-left: 8px; color: #fff; font-size: 24px; }
+.content { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; }
+
 .is-growing {
   transform-origin: left center;
-  animation: benchGrow var(--fm-panel-ms, 460ms) var(--fm-panel-delay, 180ms)
-    cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation: benchGrow var(--fm-panel-ms, 460ms) var(--fm-panel-delay, 180ms) cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
 }
-
 .is-leaving {
   transform-origin: left center;
   animation: benchGrow var(--fm-gather-ms, 260ms) cubic-bezier(0.4, 0, 0.9, 0.5) reverse both;
   pointer-events: none;
 }
-
 @keyframes benchGrow {
-  from {
-    opacity: 0;
-    filter: blur(6px);
-    transform: scaleX(0.12);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: scaleX(1);
-  }
-}
-
-.head {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-}
-
-.tab {
-  --notch: 10px;
-  height: 44px;
-  padding: 0 30px;
-  border: 1px solid #2a1b3d24;
-  background: #ffffff8f;
-  color: var(--cd-glow-deep);
-  font-size: var(--fm-fs-l2, 20px);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-indent: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-  clip-path: polygon(
-    var(--notch) 0,
-    100% 0,
-    100% calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%,
-    0 100%,
-    0 var(--notch)
-  );
-  transform: none;
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
-}
-
-/* ⚠ (0,3,0) 压住全局 `button:hover:not(:disabled)` 的 (0,2,1)。 */
-.bench .tabs .tab:hover {
-  border-color: #7c4dbe;
-  background: #ffffffdb;
-  color: #55307f;
-}
-
-.bench .tabs .tab.is-active {
-  border-color: #7c4dbe;
-  background: linear-gradient(150deg, #7c4dbe, #55307f);
-  color: #f7f0ff;
-}
-
-.exp {
-  color: var(--cd-glow-deep);
-  font-size: var(--fm-fs-l2, 20px);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-  white-space: nowrap;
-}
-
-.exp b {
-  color: var(--cd-ink);
-  font-family: var(--font-family);
-  font-size: var(--fm-fs-l1, 24px);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.content {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 12px;
+  from { opacity: 0; filter: blur(6px); transform: scaleX(0.12); }
+  to { opacity: 1; filter: blur(0); transform: scaleX(1); }
 }

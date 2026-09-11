@@ -1,13 +1,13 @@
-/* 卡组面板。⚠ 版面是算死的(设计 px): 工作区 1282×772 减去外壳 padding / head / gap 之后,
-   给网格剩下 1246×634 —— 5×220 + 4×16 = 1164 宽, 2×308 + 18 = 634 高,
-   正好两行 10 张不出滚动条, 第 11 张起纵向滚。顶部安全区由 14px 调到 22px,
-  才能吃下四角提示外扩、上浮与放大后的约 16px 顶部占用。改这里任意一个数之前先把这笔账重算一遍。 */
+/* 工作区收窄后用四列原尺寸卡面，保留悬浮安全区，超出高度纵向滚动。 */
 .panel {
   display: flex;
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
+  padding: 18px 30px 24px;
+  border: 1px solid #a6c4f59c;
+  background: linear-gradient(145deg, #394966ed, #26344ded 58%, #3d4b67ed);
   /* ⚠ 这里刻意不读 --cd-deck-card-scale(1.3): 那个令牌是给锻造演出的大卡面用的,
      铺网格要的是卡面原始尺寸。 */
   --deck-card-scale: 1;
@@ -63,15 +63,15 @@
   transform: translateY(-2px);
 }
 
-/* 一行 5 张, 列宽写死成卡宽而不是 minmax(0, 1fr) —— 卡片自身宽度是固定的 --card-w,
+/* 一行四张，列宽使用卡面自身的 --card-w。
    用 1fr 会让格子比卡宽, 卡片在格子里左偏、右侧留一条点不到的死区。
    ⚠ margin/padding 那对相反数是**悬浮安全区**: 本盒 overflow-y: auto, 按规范此时
      overflow-x 的 visible 会被当成 auto, 放大 5% 与画在卡外的四角提示都会被贴边裁掉。
-     向外撑一圈再用等量 padding 补回来, 内容行仍占满那 634px, 10 张以内照样不滚动。
+     向外撑一圈再用等量 padding 补回来。
    顶部安全区现在撑到 22px; topline 提升层级后, 即使滚动内容盖到这里也不影响锻造按钮点击。 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, var(--card-w));
+  grid-template-columns: repeat(4, var(--card-w));
   grid-auto-rows: var(--card-h);
   align-content: start;
   justify-content: center;

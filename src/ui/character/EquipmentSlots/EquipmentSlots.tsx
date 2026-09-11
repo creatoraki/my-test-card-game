@@ -94,8 +94,10 @@ function EquipmentSlot({
           aria-label={`打开${SLOT_LABEL[slot]}仓库`}
         >
           {equipSlotIcon(slot)}
+          <span className={s["equipment-slot-add"]} aria-hidden="true">＋</span>
         </button>
       )}
+      <span className={s["equipment-slot-name"]}>{SLOT_LABEL[slot]}</span>
       {worn && point && <ItemTooltip stack={worn} point={point} />}
     </div>
   );

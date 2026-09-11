@@ -5,6 +5,7 @@ import { StatsPanel } from "./StatsPanel";
 import s from "./ProfilePanel.module.css";
 
 interface Props {
+  exp: number;
   stats: StatBlock;
   preview?: StatBlock | null;
   equipped: Record<EquipSlot, ItemStack | null>;
@@ -13,7 +14,7 @@ interface Props {
   onUnequip: (slot: EquipSlot) => void;
 }
 
-export function ProfilePanel({ stats, preview, equipped, activeSlot, onSelect, onUnequip }: Props) {
+export function ProfilePanel({ exp, stats, preview, equipped, activeSlot, onSelect, onUnequip }: Props) {
   return (
     <div className={s.panel}>
       <EquipmentSlots
@@ -24,6 +25,10 @@ export function ProfilePanel({ stats, preview, equipped, activeSlot, onSelect, o
         onUnequip={onUnequip}
       />
       <div className={s.stats}>
+        <div className={s.head}>
+          <h3 className={s.heading}><span aria-hidden="true">◇</span> 角色属性</h3>
+          <span className={s.exp}>可用经验 <b>{exp}</b></span>
+        </div>
         <StatsPanel stats={stats} preview={preview} />
       </div>
     </div>

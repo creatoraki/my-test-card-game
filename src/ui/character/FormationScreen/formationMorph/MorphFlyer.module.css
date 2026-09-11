@@ -1,4 +1,5 @@
 /* 飞行层: 画布内绝对定位, 压在两态之上、HUD 之下。
+  --figure-art-width 与 FigureStage 共用，展宽仅露出背景，不继续放大人物。
   ⚠ 尺寸/位置由 WAAPI 的三段关键帧逐帧写在内联样式上, 这里只声明材质。 */
 /* ⚠ z-index 必须**低于常驻顶带**(SquadHud 是 6): 落地后接手的 FigureStage 在顶带之下,
    飞行途中若压在顶带之上, 交接那一刻顶带会突然弹到前面来。5 = 高于卡阵(1)与详情栏(2)、低于顶带。 */
@@ -20,6 +21,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  max-width: var(--figure-art-width);
+  margin-inline: auto;
   object-position: var(--gc-focus, 50% 6%);
 }
 

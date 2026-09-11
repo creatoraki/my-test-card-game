@@ -1,6 +1,6 @@
 // 角色详情态 —— 编队页内的第二种态(不是独立页面), 由 FormationScreen 装配。
 //
-// ★ 版面两栏: 左侧是 434×772 的立绘取景窗(FigureStage), 右侧是一块可切换的工作区(Workbench,
+// ★ 版面两栏: 左侧是 594×772 的立绘取景窗(FigureStage), 右侧是一块可切换的工作区(Workbench,
 //   属性装备 / 卡组)。装备候选借立绘位展开, 属性表与装备槽在同一页并列。
 // ★ 属性面板是**只读**的(角色不设等级也不加点); 个人卡组开放扩充、精简、升级三项锻造;
 //   装备穿戴/卸下直接落 townStore。编队调整统一回编队态完成。
@@ -15,7 +15,7 @@ import { deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckForgeStack } from "@/ui/character/DeckForge/DeckForgeStack";
 import type { ForgeView } from "@/ui/character/DeckForge/forgeMorph";
-import { FIGURE_RECT } from "@/ui/character/FormationScreen/formationMorph/morphChoreo";
+import { FIGURE_RECT, WORKBENCH_RECT } from "./detailLayout";
 import { EquipPicker } from "./EquipPicker";
 import { cx } from "@/ui/common/cx";
 import { CharacterNavigator } from "./CharacterNavigator";
@@ -159,6 +159,7 @@ export function CharacterDetailView({
 
       <FigureStage
         characterId={def.id}
+        characterColor={def.color}
         emoji={def.emoji}
         name={def.name}
         deckLevel={cs.deckLevel}
@@ -188,7 +189,7 @@ export function CharacterDetailView({
 
       {/* ★ 与编队态卡阵占同一条水平带(y 196..968) —— 重组时工作区正是在卡阵原地长出来的。 */}
       <Workbench
-        style={{ left: "550px", top: "196px", width: "1282px", height: "772px" }}
+        style={{ left: WORKBENCH_RECT.x, top: WORKBENCH_RECT.y, width: WORKBENCH_RECT.w, height: WORKBENCH_RECT.h }}
         tab={tab}
         onTabChange={setTab}
         exp={cs.exp}
@@ -197,6 +198,7 @@ export function CharacterDetailView({
       >
         {tab === "profile" && (
           <ProfilePanel
+            exp={cs.exp}
             stats={stats}
             preview={previewStats}
             equipped={cs.equipped}

@@ -11,6 +11,7 @@
 
 import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
+import { FIGURE_ART_WIDTH } from "@/ui/character/CharacterDetailView/detailLayout";
 import { MORPH_EASE, MORPH_SLIDE_SPLIT, type Rect } from "./morphChoreo";
 import s from "./MorphFlyer.module.css";
 
@@ -115,7 +116,7 @@ export function MorphFlyer({
     <div
       className={s.flyer}
       ref={shellRef}
-      style={{ ...box(from), borderRadius: `${fromRadius}px`, "--gc-color": color } as CSSProperties}
+      style={{ ...box(from), borderRadius: `${fromRadius}px`, "--gc-color": color, "--figure-art-width": `${FIGURE_ART_WIDTH}px` } as CSSProperties}
       aria-hidden
     >
       <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.portrait} />

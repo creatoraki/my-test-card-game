@@ -33,11 +33,8 @@ export const MORPH_SLIDE_SPLIT = 0.55;
 // 详情态左栏立绘的取景矩形。⚠ 它是**常量而不是测量值**: 版面由本域自己定死, 去程因此
 // 不需要等详情态布局完成再测一次。
 //
-// 立绘统一规格为 1152×2048(9:16)。在 276×772 卡片取景窗里, object-fit: cover 按高度驱动:
-// 缩放系数 = 772 / 2048 = 0.377, 渲染宽度 = 1152 × 0.377 = 434px, 左右各裁 79px。
-// 把容器宽度拉到 434px 后, cover 仍按高度驱动(434 / 1152 < 772 / 2048), 所以整个过场
-// 立绘一个像素都不会放大; 容器横向展宽只会露出被裁的部分, 到 434px 正好完整露出。
-export const FIGURE_RECT: Rect = { x: 76, y: 196, w: 434, h: 772 };
+// 几何统一由详情布局模块维护。人物按 9:16 高度适配，展宽后两边露出场景。
+export { FIGURE_RECT } from "@/ui/character/CharacterDetailView/detailLayout";
 
 export interface Rect {
   x: number;

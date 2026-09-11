@@ -10,10 +10,13 @@ import { QuirkPips } from "@/ui/common/QuirkPips/QuirkPips";
 import { cx } from "@/ui/common/cx";
 import { FigureFrame } from "./FigureFrame";
 import { FigureProgress } from "./FigureProgress";
+import { figureThemeStyle } from "./figureThemes";
+import { FIGURE_ART_WIDTH } from "@/ui/character/CharacterDetailView/detailLayout";
 import s from "./FigureStage.module.css";
 
 interface Props {
   characterId: string;
+  characterColor: string;
   emoji: string;
   name: string;
   deckLevel: number;
@@ -32,14 +35,14 @@ interface Props {
 }
 
 export function FigureStage({
-  characterId, emoji, name, deckLevel, exp, upgradeCost,
+  characterId, characterColor, emoji, name, deckLevel, exp, upgradeCost,
   upgradeDisabled, onUpgrade, vitals, pollution, sick, quirks,
   dimmed, hidden, style,
 }: Props) {
   return (
     <section
       className={cx(s.stage, hidden && s["is-hidden"], dimmed && s["is-dimmed"])}
-      style={style}
+      style={{ ...figureThemeStyle(characterId, characterColor), "--figure-art-width": `${FIGURE_ART_WIDTH}px`, ...style } as CSSProperties}
       aria-label={`${name}角色档案`}
     >
       <div className={s.scenery} aria-hidden="true">

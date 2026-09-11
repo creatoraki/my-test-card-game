@@ -28,7 +28,7 @@ export function DeckPanel({ deck, deckLevel, minDeckSize, hoveredUid, onHoverCar
         <div className={s.readout}>
           <span>{deck.length} 张</span>
           <span>
-            Lv.{deckLevel}/{RULES.deck.levelMax}
+            等级 {deckLevel}/{RULES.deck.levelMax}
           </span>
           <span>下限 {minDeckSize}</span>
         </div>
