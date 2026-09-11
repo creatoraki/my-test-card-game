@@ -18,7 +18,7 @@
   padding: 8px 5px;
   border: 1px solid var(--asm-line, #d6b47745);
   border-radius: 4px;
-  background: color-mix(in srgb, var(--asm-glow, #d6b477) 8%, #15100c);
+  background: color-mix(in srgb, var(--asm-glow, #d6b477) 8%, var(--tech-cost-bg, #15100c));
   color: var(--asm-ink-dim, #a5937f);
   font-family: var(--font-family);
   font-size: 18px;

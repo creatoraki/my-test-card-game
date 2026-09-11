@@ -39,7 +39,7 @@ import {
   isTechAvailable,
   nutritionHeal,
   nutritionPods,
-  nutritionTechCheck,
+  nutritionTechCost,
   NUTRITION_TECHS,
   NUTRITION_TREAT_COST,
   REGIONAL_MATERIAL_DEFS,
@@ -863,17 +863,16 @@ export const useTownStore = create<TownStore>()(
       },
 
       researchNutritionTech: (techId) => {
-        const { loot, nutrition, storage } = get();
+        const { nutrition, storage } = get();
         const tech = NUTRITION_TECHS.find((entry) => entry.id === techId);
         if (!tech || !isTechAvailable(tech, nutrition.techs)) return;
-        if (!nutritionTechCheck(tech, loot, storage).ok) return;
+        if (!nutritionTechCost(tech, storage).ok) return;
 
         let nextStorage = storage;
         for (const material of tech.materials) {
           nextStorage = consumeItems(nextStorage, material.itemId, material.count);
         }
         set({
-          loot: loot - tech.loot,
           storage: nextStorage,
           nutrition: { ...nutrition, techs: [...nutrition.techs, tech.id] },
         });

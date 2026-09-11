@@ -128,10 +128,9 @@ export {
   nutritionHeal,
   nutritionLevel,
   nutritionPods,
+  nutritionTechCost,
   nutritionTechState,
-  nutritionTechCheck,
   type NutritionTech,
-  type NutritionTechCheck,
   type NutritionTechKind,
   type NutritionTechState,
 } from "./nutritionPod";

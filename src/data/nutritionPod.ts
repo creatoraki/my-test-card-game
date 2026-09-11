@@ -1,5 +1,5 @@
 import type { ItemStack } from "@/items/types";
-import { techCostCheck } from "./techCost";
+import { materialCostCheck, type TechCostMaterialCheck } from "./techCost";
 
 export type NutritionTechKind = "capacity" | "potency";
 
@@ -11,7 +11,6 @@ export interface NutritionTech {
   y: number;
   name: string;
   desc: string;
-  loot: number;
   materials: { itemId: string; count: number }[];
 }
 
@@ -24,7 +23,6 @@ export const NUTRITION_TECHS: NutritionTech[] = [
     y: 128,
     name: "席位扩建 I",
     desc: "席位 1 → 2",
-    loot: 300,
     materials: [{ itemId: "green-crystal", count: 3 }],
   },
   {
@@ -35,7 +33,6 @@ export const NUTRITION_TECHS: NutritionTech[] = [
     y: 352,
     name: "疗养液配比 I",
     desc: "单次治疗 +30 → +40",
-    loot: 300,
     materials: [{ itemId: "green-crystal", count: 3 }],
   },
   {
@@ -46,7 +43,6 @@ export const NUTRITION_TECHS: NutritionTech[] = [
     y: 128,
     name: "席位扩建 II",
     desc: "席位 2 → 3",
-    loot: 750,
     materials: [
       { itemId: "green-crystal", count: 5 },
       { itemId: "blue-crystal", count: 3 },
@@ -60,7 +56,6 @@ export const NUTRITION_TECHS: NutritionTech[] = [
     y: 352,
     name: "疗养液配比 II",
     desc: "单次治疗 +40 → +50",
-    loot: 750,
     materials: [
       { itemId: "green-crystal", count: 5 },
       { itemId: "blue-crystal", count: 3 },
@@ -74,7 +69,6 @@ export const NUTRITION_TECHS: NutritionTech[] = [
     y: 128,
     name: "席位扩建 III",
     desc: "席位 3 → 4",
-    loot: 1500,
     materials: [
       { itemId: "green-crystal", count: 8 },
       { itemId: "blue-crystal", count: 5 },
@@ -89,7 +83,6 @@ export const NUTRITION_TECHS: NutritionTech[] = [
     y: 352,
     name: "疗养液配比 III",
     desc: "单次治疗 +50 → +65",
-    loot: 1500,
     materials: [
       { itemId: "green-crystal", count: 8 },
       { itemId: "blue-crystal", count: 5 },
@@ -126,24 +119,17 @@ export type NutritionTechState = "done" | "available" | "lacking" | "locked";
 export function nutritionTechState(
   tech: NutritionTech,
   done: string[],
-  loot: number,
   storage: ItemStack[],
 ): NutritionTechState {
   if (done.includes(tech.id)) return "done";
   if (!isTechAvailable(tech, done)) return "locked";
-  return nutritionTechCheck(tech, loot, storage).ok ? "available" : "lacking";
+  return materialCostCheck(tech.materials, storage).every((material) => material.ok) ? "available" : "lacking";
 }
 
-export interface NutritionTechCheck {
-  lootOk: boolean;
-  materials: { itemId: string; need: number; have: number; ok: boolean }[];
-  ok: boolean;
-}
-
-export function nutritionTechCheck(
+export function nutritionTechCost(
   tech: NutritionTech,
-  loot: number,
   storage: ItemStack[],
-): NutritionTechCheck {
-  return techCostCheck(tech, loot, storage);
+): { materials: TechCostMaterialCheck[]; ok: boolean } {
+  const materials = materialCostCheck(tech.materials, storage);
+  return { materials, ok: materials.every((material) => material.ok) };
 }

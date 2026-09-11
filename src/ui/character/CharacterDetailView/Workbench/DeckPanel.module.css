@@ -63,7 +63,7 @@
   transform: translateY(-2px);
 }
 
-/* 一行四张，列宽使用卡面自身的 --card-w。
+/* 最多一行四张，列宽使用卡面自身的 --card-w；不足四张时收缩列数并保持整组居中。
    用 1fr 会让格子比卡宽, 卡片在格子里左偏、右侧留一条点不到的死区。
    ⚠ margin/padding 那对相反数是**悬浮安全区**: 本盒 overflow-y: auto, 按规范此时
      overflow-x 的 visible 会被当成 auto, 放大 5% 与画在卡外的四角提示都会被贴边裁掉。
@@ -71,9 +71,10 @@
    顶部安全区现在撑到 22px; topline 提升层级后, 即使滚动内容盖到这里也不影响锻造按钮点击。 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, var(--card-w));
+  grid-template-columns: repeat(auto-fit, var(--card-w));
   grid-auto-rows: var(--card-h);
   align-content: start;
+  align-items: start;
   justify-content: center;
   gap: 18px 16px;
   min-height: 0;
@@ -91,6 +92,11 @@
 /* 每张卡外面套一格: 这层**只**负责错峰翻入, 悬浮表现(上浮 / 投影 / 四角边框)全在 DeckCard 里。
    ⚠ 错峰间隔比别处密(28ms): 卡组动辄十几张, 用 55ms 会拖到两秒开外。 */
 .cell {
+  position: relative;
+  display: grid;
+  width: var(--card-w);
+  height: var(--card-h);
+  place-items: start center;
   min-width: 0;
   animation: deckCardFlipIn 420ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: calc(180ms + var(--i, 0) * 28ms);

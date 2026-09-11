@@ -52,7 +52,6 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
               <div className={techPage.layout}>
                 <NutritionTechTree
                   doneTechs={nutrition.techs}
-                  loot={loot}
                   storage={storage}
                   selectedId={selectedTechId}
                   onSelect={setSelectedTechId}
@@ -60,7 +59,6 @@ export function NutritionPanel({ onAdmit, onResearch }: Props) {
                 <NutritionTechDetail
                   selectedId={selectedTechId}
                   doneTechs={nutrition.techs}
-                  loot={loot}
                   storage={storage}
                   onResearch={onResearch}
                 />

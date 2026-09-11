@@ -5,19 +5,17 @@ import {
   nutritionHeal,
   nutritionLevel,
   nutritionPods,
-  nutritionTechCheck,
+  nutritionTechCost,
   nutritionTechState,
   type NutritionTechState,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
-import ItemSlot from "@/ui/common/item/ItemSlot";
-import { cx } from "@/ui/common/cx";
+import { TechCostMaterials } from "@/ui/common/tech/TechCostMaterials";
 import s from "./NutritionTechDetail.module.css";
 
 interface Props {
   selectedId: string | null;
   doneTechs: string[];
-  loot: number;
   storage: ItemStack[];
   onResearch: (techId: string) => void;
 }
@@ -25,11 +23,11 @@ interface Props {
 const STATE_TEXT: Record<NutritionTechState, string> = {
   done: "已研究, 效果已生效",
   available: "前置已完成, 可以研究",
-  lacking: "前置已完成, 但材料或积分不足",
+  lacking: "前置已完成, 但材料不足",
   locked: "需要先完成前置节点",
 };
 
-export function NutritionTechDetail({ selectedId, doneTechs, loot, storage, onResearch }: Props) {
+export function NutritionTechDetail({ selectedId, doneTechs, storage, onResearch }: Props) {
   const tech = NUTRITION_TECHS.find((entry) => entry.id === selectedId);
   const level = nutritionLevel(doneTechs);
 
@@ -49,8 +47,8 @@ export function NutritionTechDetail({ selectedId, doneTechs, loot, storage, onRe
     );
   }
 
-  const state = nutritionTechState(tech, doneTechs, loot, storage);
-  const check = nutritionTechCheck(tech, loot, storage);
+  const state = nutritionTechState(tech, doneTechs, storage);
+  const cost = nutritionTechCost(tech, storage);
   const branch = tech.kind === "capacity" ? "席位扩建" : "疗养液配比";
 
   return (
@@ -59,27 +57,8 @@ export function NutritionTechDetail({ selectedId, doneTechs, loot, storage, onRe
       <h3>{tech.name}</h3>
       <p className={s.desc}>{tech.desc}</p>
       <div className={s.section}>
-        <span className={s.sectionTitle}>解锁消耗</span>
-        <div className={cx(s.costRow, !check.lootOk && state !== "done" && s["is-lacking"])}>
-          <span>居民积分</span>
-          <strong>{tech.loot}</strong>
-        </div>
-        <div className={s.materials}>
-          {check.materials.map((material) => {
-            const stack: ItemStack = {
-              uid: `nutrition-detail-${material.itemId}`,
-              itemId: material.itemId,
-              count: Math.max(material.have, 1),
-            };
-            const lacking = !material.ok && state !== "done";
-            return (
-              <div key={material.itemId} className={cx(s.material, lacking && s["is-lacking"])}>
-                <ItemSlot stack={stack} showName={false} disabled={!material.have} className={s.materialSlot} />
-                <span>×{material.need}</span>
-              </div>
-            );
-          })}
-        </div>
+        <span className={s.sectionTitle}>升级材料</span>
+        <TechCostMaterials materials={cost.materials} done={state === "done"} />
       </div>
       <div className={s.status} data-state={state}>
         <span className={s.sectionTitle}>节点状态</span>

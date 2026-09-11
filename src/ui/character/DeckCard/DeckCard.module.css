@@ -8,6 +8,7 @@
     min-width: 0;
     align-self: start;
     padding: 0;
+    line-height: 0;
     overflow: visible;
     clip-path: none;
     color: #3f4547;
@@ -22,6 +23,9 @@
 }
 
 .deck-card [data-deck-card] {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: block;
     width: var(--card-w);
     height: var(--card-h);

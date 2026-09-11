@@ -9,7 +9,7 @@ import {
   type ShopTechState,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
-import { ShopTechCost } from "./ShopTechCost";
+import { TechCostMaterials } from "@/ui/common/tech/TechCostMaterials";
 import { ShelfPlusGlyph, SupplyLoopGlyph } from "./techIcons";
 import s from "./ShopTechDetail.module.css";
 
@@ -71,7 +71,7 @@ export function ShopTechDetail({ selectedId, doneTechs, storage, onResearch }: P
 
       <div className={s.section}>
         <span className={s.sectionTitle}>升级材料</span>
-        <ShopTechCost materials={cost.materials} done={state === "done"} />
+        <TechCostMaterials materials={cost.materials} done={state === "done"} />
       </div>
 
       <div className={s.status} data-state={state}>

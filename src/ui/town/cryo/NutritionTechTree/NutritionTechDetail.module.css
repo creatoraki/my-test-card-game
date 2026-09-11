@@ -1,5 +1,6 @@
 .detail {
   --ui-glow-color: var(--cryo-glow);
+  --tech-cost-bg: #071613;
   display: flex;
   min-width: 380px;
   min-height: 0;
@@ -51,56 +52,6 @@
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
   text-shadow: var(--ui-glow);
-}
-
-.costRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border: 1px solid var(--asm-line, var(--cryo-line));
-  color: var(--asm-ink-dim, var(--cryo-ink-dim));
-  font-size: 18px;
-}
-
-.costRow strong {
-  color: var(--ui-value);
-  font-family: var(--font-family);
-  font-size: 20px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.costRow.is-lacking,
-.material.is-lacking {
-  border-color: color-mix(in srgb, var(--cryo-alert) 52%, transparent);
-  color: var(--cryo-alert);
-}
-
-.materials {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 14px;
-}
-
-.material {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 88px;
-  padding: 5px;
-  border: 1px solid var(--asm-line, var(--cryo-line));
-  color: var(--asm-ink-dim, var(--cryo-ink-dim));
-  font-family: var(--font-family);
-  font-size: 18px;
-}
-
-.materialSlot {
-  --item-slot-count-size: 18px;
-  width: 40px;
-  height: 40px;
 }
 
 .status {

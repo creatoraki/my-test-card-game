@@ -19,7 +19,7 @@
 | [cardModules/](../../src/data/cardModules/) | 卡牌模组注册表与唯一效果落点。`types.ts` 持有 `CardModuleDef` 与装配条件判定（`hasDamageEffect` / `hasScaledDamage` / `hasScaledSupport`，后两者用于挡住「装在固定伤害或固定值护盾牌上收益为零」的情况）；`character.ts` 是角色关键词模组（含炼金术士的组装 A/B/C/D：`costDelta: +1` 换一枚组装部件；精算师的急诊模组：追加《假装受伤》，回响模组：`PLAY_STAT_BONUS` 治愈力 -30 + 追加回响词条，只能装在指向队友的卡上，否则回响会把伤害重放给队友）；`genericT1.ts` 是 1 阶通用模组（面板组走 `PLAY_STAT_BONUS`，异常组走按攻击力 15% 缩放的中毒/灼烧）并导出开箱池 `GENERIC_T1_MODULE_IDS`；`index.ts` 汇总并持有 `recomputeCardModule`：重算时费用与白名单字段还原后覆盖，前置/追加效果和词条均按 `fromModule` 标记剥离再叠加，文案按登记后缀剥离再拼接，保留卡牌强化后的名称、效果和文案。 |
 | [moduleCrafting.ts](../../src/data/moduleCrafting.ts) | 模组制造配方表：为剑士、预言家、植物学家、炼金术士、精算师登记配方，包含产出模组、制造者角色、经验消耗、两种通用材料与产出地区的 mid 材料；组装 A/B/C/D 四条同价配方由字母表展开；`craftCheck` 是可行性判定的唯一真相点，store 护栏与 UI 置灰共用它。 |
 | [equipUpgrade.ts](../../src/data/equipUpgrade.ts) | 装备升阶与词条重铸配方表；按装备槽位登记两种通用材料，1 阶升阶使用产出地区的 low 材料，高阶继续使用水晶，重铸使用产出地区的 boss 材料；`upgradeCheck` / `reforgeCheck` 是 store 护栏与 UI 置灰共用的唯一可行性判定。 |
-| [nutritionPod.ts](../../src/data/nutritionPod.ts) | 营养舱科技与疗养规则：登记带 `requires`、坐标的横向节点图，席位扩建与疗养液配比按链式逐节点解锁；统一计算四态节点、席位、等级和单次体力极限恢复量，`nutritionTechCheck` 复用材料/积分判定，`NUTRITION_TREAT_COST` 固定为 100 积分。 |
+| [nutritionPod.ts](../../src/data/nutritionPod.ts) | 营养舱科技与疗养规则：登记带 `requires`、坐标的横向节点图，席位扩建与疗养液配比按链式逐节点解锁；统一计算四态节点、席位、等级和单次体力极限恢复量，`nutritionTechCost` 复用材料判定，`NUTRITION_TREAT_COST` 固定为 100 积分。 |
 | [techTree/](../../src/data/techTree/) | 全局科技树数据与规则：按分类、支线、科技三级组织节点，集中登记等级制消耗、四态判定和训练点/换金物售价效果；`sellPriceOf` 是换金物售价倍率的唯一入口。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，祝福遗物由 `relicBuyValue` 按稀有度单独取价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；遗物不写回 `ItemDef.buyValue`。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |

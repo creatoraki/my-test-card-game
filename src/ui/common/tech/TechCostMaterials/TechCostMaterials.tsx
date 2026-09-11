@@ -7,7 +7,7 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
-import s from "./ShopTechCost.module.css";
+import s from "./TechCostMaterials.module.css";
 
 interface Props {
   materials: TechCostMaterialCheck[];
@@ -19,7 +19,7 @@ interface HoveredMaterial {
   point: TooltipPoint;
 }
 
-export function ShopTechCost({ materials, done }: Props) {
+export function TechCostMaterials({ materials, done }: Props) {
   const [hovered, setHovered] = useState<HoveredMaterial | null>(null);
 
   const clearTooltip = () => setHovered(null);
