@@ -78,13 +78,13 @@ export function DeckUpgradeOverlay({ state, onClose }: Props) {
                 <ExpShardGlyph />
                 <strong>{view.exp}</strong>
               </div>
-              <div className={s["upg-chip"]} aria-label={`升级所需经验 ${view.upgradeCost ?? "MAX"}`}>
+              <div className={s["upg-chip"]} aria-label={`升级所需经验 ${view.upgradeCost ?? "已满级"}`}>
                 {view.upgradeCost == null ? (
                   <MaxGlyph />
                 ) : (
                   <LevelBadge level={Math.min(levelMax, view.level + 1)} levelMax={levelMax} />
                 )}
-                <strong>{view.upgradeCost ?? "MAX"}</strong>
+                <strong>{view.upgradeCost ?? "已满级"}</strong>
               </div>
             </div>
 
@@ -92,9 +92,9 @@ export function DeckUpgradeOverlay({ state, onClose }: Props) {
 
           <div className={s["upg-exp"]}>
               <div className={s["upg-exp-head"]}>
-                <span>EXP</span>
+                <span>经验</span>
                 <strong>
-                  {shownExp} / {view.upgradeCost == null ? "MAX" : view.upgradeCost}
+                  {shownExp} / {view.upgradeCost == null ? "已满级" : view.upgradeCost}
                 </strong>
               </div>
               <div
@@ -113,8 +113,8 @@ export function DeckUpgradeOverlay({ state, onClose }: Props) {
 
           <div className={s["upg-probability"]} aria-label="稀有度抽取概率">
             <div className={s["upg-probability-head"]} aria-hidden="true">
-              <span>当前 Lv.{view.level}</span>
-              {showNextChance ? <span>下一等级 Lv.{view.level + 1}</span> : <span>MAX</span>}
+              <span>当前 {view.level} 级</span>
+              {showNextChance ? <span>下一等级 {view.level + 1} 级</span> : <span>已满级</span>}
             </div>
             <div className={s["upg-rarity-grid"]}>
               {RARITIES.map(({ id, label }) => {

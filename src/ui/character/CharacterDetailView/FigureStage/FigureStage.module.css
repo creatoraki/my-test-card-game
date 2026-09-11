@@ -1,64 +1,11 @@
-/* 立绘取景窗。版面坐标由 CharacterDetailView 从 formationMorph/morphChoreo.ts 的 FIGURE_RECT
-   下发, 本文件只管与 CrewCard 共用的材质、身份信息和落地发光。 */
+/* --figure-accent 由本组件下发，仅作角色点色；主边框统一蓝紫。
+   HpBar / PollutionMeter / QuirkPips 使用各自公开的尺寸变量，最小字号 18px。 */
 .stage {
   position: absolute;
   z-index: 1;
-  border-radius: 16px;
-  background: rgb(8 18 23 / 0.36);
-  transition: filter 180ms ease;
-}
-
-/* 过场期间让位给飞行层。⚠ 用 visibility 而不是卸载: 版面里的其他块(工作区)正在按这一栏的
-   宽度排布, 抽掉会让右栏在过场中途重排。 */
-.is-hidden {
-  visibility: hidden;
-}
-
-/* 卡面详情浮出时让位。⚠ filter 落在最外层, BorderGlow 的三层发光跟着一起压暗 ——
-   只暗立绘、辉光照亮的话, 这一栏会像是"人走了灯还亮着"。 */
-.is-dimmed {
-  filter: brightness(0.35) blur(3px);
-}
-
-.glow {
-  composes: glow-card from "../../styles/glowCard.module.css";
-}
-
-.body {
-  composes: glow-card-body from "../../styles/glowCard.module.css";
-}
-
-.bust {
-  composes: glow-card-portrait from "../../styles/glowCard.module.css";
-}
-
-.scrim {
-  composes: glow-card-scrim from "../../styles/glowCard.module.css";
-}
-
-/* BorderGlow 的三层发光在详情框落地后淡入; 终值继续由 BorderGlow 的 opacity 级联提供。 */
-.stage:not(.is-hidden) .glow::before,
-.stage:not(.is-hidden) .glow::after,
-.stage:not(.is-hidden) .glow > [data-glow-layer="edge"] {
-  animation: figureGlowIn 320ms 40ms ease backwards;
-}
-
-@keyframes figureGlowIn {
-  from {
-    opacity: 0;
-  }
-}
-
-/* 身份块压在图的下部, 与外壳同一组 24px 内缩。 */
-.identity {
-  position: absolute;
-  right: 24px;
-  bottom: 28px;
-  left: 24px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  isolation: isolate;
+  color: #edf4ff;
+  font-size: 18px;
   --hp-bar-h: 26px;
   --hp-text-fs: 18px;
   --poll-bar-h: 26px;
@@ -66,72 +13,199 @@
   --quirk-fs: 18px;
 }
 
-/* ★ 浮现动画挂在 :not(.is-hidden) 上而不是 .identity 本身 —— 让它在**让位结束的那一刻**才起播:
-   过场期间整栏是 visibility: hidden 的, 动画写在本体上会在看不见的时候悄悄播完, 交接时
-   这块信息就是"啪"地出现。选择器从不匹配变成匹配会重新起播动画, 正好接住飞行层的落点。 */
-.stage:not(.is-hidden) .identity {
-  animation: figureIn 380ms 60ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+.is-hidden { visibility: hidden; }
+
+.scenery,
+.art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: polygon(18px 0, calc(100% - 24px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+  pointer-events: none;
 }
 
-.name-row {
+.scenery { background: #0b1a35; }
+
+.background {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% center;
+  opacity: 0.32;
+}
+
+.light {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #061025aa, transparent 48%, #06112675),
+    radial-gradient(ellipse at 54% 12%, #72cdff6b, transparent 58%),
+    linear-gradient(125deg, transparent 35%, #329adf33 35.2%, transparent 62%),
+    repeating-linear-gradient(90deg, transparent 0 95px, #83c7ff0d 96px 97px);
+}
+
+/* 与 MorphFlyer 保持相同取景，覆盖公共立绘的基础特异性。 */
+.art .portrait {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 6%;
+}
+
+.art span.portrait {
+  display: grid;
+  place-items: center;
+  font-size: 96px;
+}
+
+.heading {
+  position: absolute;
+  top: 40px;
+  left: 30px;
+  width: 144px;
+  text-shadow: 0 2px 6px #061127;
+  pointer-events: none;
+}
+
+.top-name {
+  display: block;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.specialty {
+  display: block;
+  margin-top: 6px;
+  color: #9dbff0;
+  font-size: 18px;
+  letter-spacing: 0.18em;
+}
+
+.diamond {
+  display: block;
+  margin: 14px 0 22px;
+  color: #a7bfff;
+  font-size: 30px;
+}
+
+.quote {
+  width: 126px;
+  margin: 0;
+  color: #c6d5f7;
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1.85;
+  text-wrap: pretty;
+}
+
+.insignia {
+  position: absolute;
+  top: 62px;
+  right: 28px;
+  display: grid;
+  gap: 10px;
+  width: 82px;
+  color: #a2b9e080;
+  font-size: 18px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.insignia svg { width: 72px; margin: 0 auto 10px; }
+
+.signature {
+  position: absolute;
+  bottom: 300px;
+  left: 30px;
+  color: #ae8cff;
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 36px;
+  font-style: italic;
+  transform: rotate(-16deg);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.identity {
+  position: absolute;
+  right: 24px;
+  bottom: 26px;
+  left: 24px;
+  z-index: 2;
   display: flex;
-  align-items: baseline;
-  gap: 18px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* 44px 与 MorphFlyer 的 toFontSize 是同一个数 —— 飞行层的名字正是插值到这个字号落地的。 */
+.identity::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -24px -15px -16px;
+  background: linear-gradient(112deg, #09162ef5, #112747df 58%, #0a1538ee);
+  border-top: 1px solid #96bdff8a;
+  clip-path: polygon(0 0, 29% 0, 38% 28px, 100% 28px, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.name-row { display: flex; align-items: center; gap: 14px; }
+
 .name {
   margin: 0;
-  color: #f5f8f4;
   font-size: 44px;
-  font-weight: 700;
+  line-height: 1.2;
   letter-spacing: 0.08em;
-  text-shadow: 0 4px 22px rgb(0 0 0 / 0.6);
+  text-shadow: 0 2px 8px #467cca66;
 }
 
 .tag {
-  padding: 6px 14px;
-  border: 1px solid rgb(245 248 244 / 0.34);
-  color: #dce8e3;
-  font-size: var(--fm-fs-l3, 18px);
-  letter-spacing: 4px;
+  margin-left: auto;
+  color: #adbdd6;
+  font-size: 18px;
+  white-space: nowrap;
 }
 
-.tag.is-on {
-  border-color: var(--gc-color);
-  background: color-mix(in srgb, var(--gc-color) 22%, transparent);
-  color: #ffffff;
+.tag::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  background: currentColor;
+  transform: rotate(45deg);
 }
 
-.bars {
+.tag.is-on { color: var(--figure-accent, #9edcff); }
+
+.badge { display: flex; align-items: center; gap: 9px; color: #dedff2; font-size: 18px; }
+
+.badge-mark {
   display: grid;
-  gap: 10px;
-  max-width: 100%;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #a58c3c;
+  border-radius: 50%;
+  background: #3d351b;
+  color: #ebd16a;
+  font-size: 22px;
 }
 
-.hp {
-  min-width: 0;
+.vitals { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+.identity .quirks { justify-content: flex-start; }
+
+.dimmer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #030915;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
 }
 
-.quirks {
-  justify-content: flex-start;
-}
-
-@keyframes figureIn {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stage:not(.is-hidden) .identity {
-    animation-duration: 140ms;
-    animation-delay: 0ms;
-  }
-
-  /* 变暗照做(它是让位, 不是装饰), 只去掉过渡。 */
-  .stage {
-    transition: none;
-  }
-}
+.is-dimmed .dimmer { opacity: 0.74; }
+.is-dimmed .identity { pointer-events: none; }

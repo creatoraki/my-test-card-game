@@ -1,0 +1,103 @@
+.progress { display: grid; gap: 10px; }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+.level {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  color: #dcecff;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.level strong {
+  color: #9de7ff;
+  font-size: 44px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px #53bcff66;
+}
+
+.diamond { align-self: center; color: #7acbff; font-size: 24px; }
+.upgrade-wrap { position: relative; flex-shrink: 0; }
+
+.upgrade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 138px;
+  height: 54px;
+  padding: 0 12px;
+  border: 0;
+  background: linear-gradient(135deg, #f1caff, #977dff 40%, #709eff 78%, #b7f1ff);
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 4px #4424bd;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 12px);
+  transition: transform 140ms ease;
+}
+
+.upgrade::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  background: linear-gradient(160deg, #cb8bff, #692cff 34%, #5130f4 67%, #7197ff);
+  box-shadow: inset 0 0 9px #e5c4ff;
+  clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 11px);
+}
+
+.upgrade svg { width: 23px; height: 28px; }
+.upgrade:hover:not(:disabled) { transform: translateY(-2px); background: #f3deff; }
+.upgrade:active:not(:disabled) { transform: translateY(1px); }
+.upgrade:focus-visible { outline: 0; background: #fff; }
+.upgrade:focus-visible::before { inset: 4px; }
+
+.notice {
+  position: absolute;
+  top: -5px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid #ffb6d2;
+  border-radius: 50%;
+  background: #fb466a;
+  color: white;
+  font-size: 18px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.experience {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d6e5ff;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  min-width: 24px;
+  height: 14px;
+  overflow: hidden;
+  border: 1px solid #528fb5;
+  background: #040d1e;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #b5efff, #49c9ff 48%, #1686cb);
+  transform-origin: left center;
+  transition: transform 220ms ease;
+}
+
+.amount { flex-shrink: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }

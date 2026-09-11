@@ -10,6 +10,8 @@
 
 import { useEffect, useState } from "react";
 import { getCharacter } from "@/data";
+import { getBadge } from "@/data/squadTalents";
+import { deckUpgradeCost } from "@/engine";
 import { deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
 import { DeckForgeStack } from "@/ui/character/DeckForge/DeckForgeStack";
@@ -59,6 +61,7 @@ export function CharacterDetailView({
 }: Props) {
   const characters = useTownStore((state) => state.characters);
   const party = useTownStore((state) => state.party);
+  const badgeId = useTownStore((state) => state.squadTalent.badgeId);
   const storage = useTownStore((state) => state.storage);
   const equipItem = useTownStore((state) => state.equipItem);
   const unequipItem = useTownStore((state) => state.unequipItem);
@@ -162,6 +165,18 @@ export function CharacterDetailView({
         emoji={def.emoji}
         name={def.name}
         color={def.color}
+        badgeName={badgeId ? getBadge(badgeId)?.name : undefined}
+        deckLevel={cs.deckLevel}
+        exp={cs.exp}
+        upgradeCost={deckUpgradeCost(cs.deckLevel)}
+        upgradeDisabled={!canNavigate}
+        onUpgrade={() => {
+          // 同次提交切换卡组页与目标面板，直接进入升级态。
+          equipPreview.clear();
+          setHoveredCardUid(null);
+          setTab("deck");
+          setForgeView("upgrade");
+        }}
         vitals={vitals}
         pollution={cs.pollution}
         sick={cs.sick}

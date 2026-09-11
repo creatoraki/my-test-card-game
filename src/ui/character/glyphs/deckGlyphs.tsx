@@ -63,7 +63,7 @@ export function LevelBadge({ level, levelMax }: { level: number; levelMax: numbe
       <path d="m24 6 15 9v18l-15 9-15-9V15l15-9Z" strokeWidth="1.4" opacity=".9" />
       <path d="m24 11 10 6v14l-10 6-10-6V17l10-6Z" strokeWidth=".8" opacity=".38" />
       <text x="24" y="27.5" fill="currentColor" stroke="none" textAnchor="middle" fontSize="8" fontWeight="700">
-        Lv.{level}
+        {level}级
       </text>
     </svg>
   );
