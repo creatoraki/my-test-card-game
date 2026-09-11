@@ -3,9 +3,9 @@ import {
   SHOP_TECHS,
   shopLevelOf,
   shopRefreshCost,
+  shopTechCost,
 } from "@/data/shopTech";
 import type { ShopSlot } from "@/data/shop";
-import { techCostCheck } from "@/data/techCost";
 import { makeItemStack } from "@/data";
 import { consumeItems } from "@/items/inventory";
 import type { CharacterState, TownStore } from "./townStore";
@@ -94,10 +94,10 @@ export function createShopSlice(
     },
 
     upgradeShop: (techId) => {
-      const { shop, loot, storage } = get();
+      const { shop, storage } = get();
       const tech = SHOP_TECHS.find((entry) => entry.id === techId);
       if (!tech || !isShopTechAvailable(tech, shop.techs)) return;
-      if (!techCostCheck(tech, loot, storage).ok) return;
+      if (!shopTechCost(tech, storage).ok) return;
 
       const nextStorage = tech.materials.reduce(
         (current, material) => consumeItems(current, material.itemId, material.count),
@@ -105,7 +105,6 @@ export function createShopSlice(
       );
       const techs = [...shop.techs, tech.id];
       set({
-        loot: loot - tech.loot,
         storage: nextStorage,
         shop: {
           ...shop,

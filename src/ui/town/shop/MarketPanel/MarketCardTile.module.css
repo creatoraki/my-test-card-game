@@ -1,0 +1,14 @@
+.cardBox {
+  display: block;
+  width: calc(var(--card-w) * var(--market-card-scale));
+  height: calc(var(--card-h) * var(--market-card-scale));
+}
+
+.cardBox > :global([data-hand-slot]) {
+  transform: scale(var(--market-card-scale));
+  transform-origin: top left;
+}
+
+.cardBox.is-sold {
+  filter: grayscale(0.85) brightness(0.62);
+}

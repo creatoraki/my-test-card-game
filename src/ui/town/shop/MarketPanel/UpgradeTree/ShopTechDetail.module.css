@@ -79,56 +79,6 @@
   text-shadow: var(--ui-glow);
 }
 
-.costRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border: 1px solid var(--asm-line, #d6b47745);
-  color: var(--asm-ink-dim, #a5937f);
-  font-size: 18px;
-}
-
-.costRow strong {
-  color: var(--ui-value);
-  font-family: var(--font-family);
-  font-size: 20px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.costRow.is-lacking,
-.material.is-lacking {
-  border-color: color-mix(in srgb, #e47970 52%, transparent);
-  color: #e47970;
-}
-
-.materials {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.material {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 88px;
-  padding: 5px;
-  border: 1px solid var(--asm-line, #d6b47745);
-  color: var(--asm-ink-dim, #a5937f);
-  font-family: var(--font-family);
-  font-size: 18px;
-}
-
-.materialSlot {
-  --item-slot-count-size: 18px;
-  width: 40px;
-  height: 40px;
-}
-
 .status {
   display: flex;
   flex-direction: column;

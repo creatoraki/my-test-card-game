@@ -20,11 +20,10 @@ export function MarketShelf({ slots, loot, selectedKey, onSelect }: Props) {
       </div>
 
       <div className={s.grid} aria-label="统一商店货架">
-        {slots.length ? slots.map((slot, index) => (
+        {slots.length ? slots.map((slot) => (
           <MarketSlot
             key={slot.key}
             slot={slot}
-            index={index}
             loot={loot}
             selected={selectedKey === slot.key}
             onSelect={onSelect}

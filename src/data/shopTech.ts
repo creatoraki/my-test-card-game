@@ -1,6 +1,6 @@
 import type { Rarity } from "@/engine";
 import type { ItemStack } from "@/items/types";
-import { techCostCheck } from "./techCost";
+import { materialCostCheck, type TechCostMaterialCheck } from "./techCost";
 
 export const CARD_SHOP_PRICE: Record<Rarity, number> = {
   common: 150,
@@ -21,7 +21,6 @@ export interface ShopTech {
   y: number;
   name: string;
   desc: string;
-  loot: number;
   materials: { itemId: string; count: number }[];
 }
 
@@ -34,7 +33,6 @@ export const SHOP_TECHS: ShopTech[] = [
     y: 150,
     name: "展柜扩容 I",
     desc: "槽位 6 → 7",
-    loot: 400,
     materials: [{ itemId: "green-crystal", count: 3 }],
   },
   {
@@ -45,7 +43,6 @@ export const SHOP_TECHS: ShopTech[] = [
     y: 340,
     name: "补货链路优化 I",
     desc: "刷新价 100 → 90",
-    loot: 900,
     materials: [
       { itemId: "green-crystal", count: 5 },
       { itemId: "blue-crystal", count: 3 },
@@ -59,7 +56,6 @@ export const SHOP_TECHS: ShopTech[] = [
     y: 150,
     name: "展柜扩容 II",
     desc: "槽位 7 → 8",
-    loot: 1600,
     materials: [
       { itemId: "green-crystal", count: 8 },
       { itemId: "blue-crystal", count: 5 },
@@ -74,7 +70,6 @@ export const SHOP_TECHS: ShopTech[] = [
     y: 340,
     name: "补货链路优化 II",
     desc: "刷新价 90 → 80",
-    loot: 2600,
     materials: [
       { itemId: "blue-crystal", count: 8 },
       { itemId: "red-crystal", count: 4 },
@@ -116,10 +111,17 @@ export type ShopTechState = "done" | "available" | "lacking" | "locked";
 export function shopTechState(
   tech: ShopTech,
   done: string[],
-  loot: number,
   storage: ItemStack[],
 ): ShopTechState {
   if (done.includes(tech.id)) return "done";
   if (!isShopTechAvailable(tech, done)) return "locked";
-  return techCostCheck(tech, loot, storage).ok ? "available" : "lacking";
+  return materialCostCheck(tech.materials, storage).every((material) => material.ok) ? "available" : "lacking";
+}
+
+export function shopTechCost(
+  tech: ShopTech,
+  storage: ItemStack[],
+): { materials: TechCostMaterialCheck[]; ok: boolean } {
+  const materials = materialCostCheck(tech.materials, storage);
+  return { materials, ok: materials.every((material) => material.ok) };
 }

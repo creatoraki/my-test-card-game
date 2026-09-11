@@ -14,30 +14,9 @@
   display: flex;
   min-width: 0;
   min-height: 0;
+  height: 100%;
   flex: 1 1 auto;
   flex-direction: column;
-}
-
-.itemContent {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.itemContent > div { min-height: 0; flex: 1 1 auto; }
-
-.itemPrice {
-  flex: 0 0 auto;
-  margin: 0;
-  color: var(--ui-value);
-  font-size: 20px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-align: right;
-  text-shadow: var(--ui-glow);
 }
 
 .empty {
@@ -76,4 +55,7 @@
   background: #ffffff08;
 }
 
-.buy:disabled { cursor: not-allowed; opacity: 0.55; }
+.buy:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}

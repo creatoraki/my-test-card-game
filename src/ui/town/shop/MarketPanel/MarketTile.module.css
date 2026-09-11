@@ -1,0 +1,93 @@
+/* 通用货架立牌。⚠ 外壳不能 overflow:hidden，InteractiveHint 的四角会画到外部。 */
+.tile {
+  --tile-rarity: var(--asm-glow, #d6b477);
+  --tile-rarity-glow: #f0d49b66;
+  position: relative;
+  display: flex;
+  width: var(--card-w);
+  height: var(--market-slot-h);
+  min-width: 0;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  color: var(--tile-rarity);
+  background:
+    radial-gradient(ellipse 70% 44% at 50% 91%, color-mix(in srgb, var(--tile-rarity) 16%, transparent), transparent 72%),
+    linear-gradient(135deg, #ffffff12, transparent 50%),
+    linear-gradient(150deg, #0e1a24e6, #04090de0 72%);
+  border: 1px solid #f0d49b38;
+  border-radius: 17px 10px 18px 11px;
+  box-shadow: inset 0 1px 0 #ffffff4d, 0 9px 19px -17px #000000f2, 0 0 14px -12px var(--tile-rarity-glow);
+  transition: box-shadow 180ms ease, color 180ms ease, transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
+}
+
+.button {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px);
+  cursor: var(--cursor-pointer);
+}
+
+.hint {
+  --ihint-core: #f6e3bb;
+  --ihint-neon: #f0d49b;
+  --ihint-neon-deep: #d6b477;
+}
+
+.rarity-fine { --tile-rarity: var(--rarity-fine); --tile-rarity-glow: var(--rarity-fine-glow); }
+.rarity-rare { --tile-rarity: var(--rarity-rare); --tile-rarity-glow: var(--rarity-rare-glow); }
+.rarity-epic { --tile-rarity: var(--rarity-epic); --tile-rarity-glow: var(--rarity-epic-glow); }
+.rarity-legendary { --tile-rarity: var(--rarity-legendary); --tile-rarity-glow: var(--rarity-legendary-glow); }
+
+.tile:hover:not(.is-sold),
+.tile:focus-within:not(.is-sold),
+.tile.is-selected {
+  border-color: var(--asm-select, #f0d49b);
+  box-shadow: inset 0 1px 0 #ffffff5c, 0 11px 20px -15px #000000f2, 0 0 22px -10px var(--tile-rarity-glow);
+  transform: translateY(-5px) rotateX(2deg) rotateY(-1.5deg) rotateZ(0.3deg);
+}
+
+.tile:has(.button:focus-visible) {
+  outline: 2px solid var(--asm-select, #f0d49b);
+  outline-offset: 4px;
+}
+
+.tile.is-sold,
+.tile.is-sold:hover,
+.tile.is-sold:focus-within {
+  color: #788198;
+  border-color: #aeb7d52e;
+  box-shadow: none;
+  cursor: var(--cursor-default);
+  filter: saturate(0.25);
+  opacity: 0.6;
+  transform: none;
+}
+
+.tile.is-sold .button {
+  opacity: 1;
+  cursor: var(--cursor-default);
+}
+
+.soldMask {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: grid;
+  color: #f2e6d8;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  place-items: center;
+  background: #0c1215a8;
+  pointer-events: none;
+}

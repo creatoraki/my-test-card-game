@@ -1,17 +1,6 @@
-// 商店商品详情 —— **商店专属**, 与背包/仓库共用的 ItemDetail 无任何样式关系。
-//
-// ★ 结构与 ItemDetail 同源, 但商店这边的最终形态本就不同(3D 展示柜、透明玻璃底、
-//   稀有度只走描边), 以前靠 ShopScene.css 远程改写 .item-detail 的 6 个选择器实现 ——
-//   现在直接内建, 商店想怎么定制都不会碰到另外四个用到 ItemDetail 的界面。
-//
-// 复用的是**数据与文案**: STAT_LABEL 从 ItemDetail 导入(口径必须同一份),
-// STAT_KEYS / RARITY_LABEL / CATEGORY_LABEL / SLOT_LABEL / itemIcon 照旧。
-//
-// ★ 本栏是**纯展示**位, 没有任何操作控件 —— 购买统一在 MarketDetail 的按钮上。
-//   信息层级自上而下: 大图 > 名称 > 羁绊 tag / 标签 > 描述 > 属性数值 > 脚注,
-//   靠字号与字色拉开档次, 不靠分隔框 —— 框太多这一栏就又读成表单了。
+// 商店物品详情的数据组装层。视觉外壳统一由 ShopDetailCard 承载。
 
-import { memo, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
+import { memo, useMemo, type CSSProperties } from "react";
 import { getBondDef, getItemDef } from "@/data";
 import { STAT_KEYS } from "@/engine";
 import type { ItemStack } from "@/items/types";
@@ -22,8 +11,9 @@ import { BondIcon } from "@/ui/common/BondIcon";
 import { BondTooltip } from "@/ui/common/BondTooltip";
 import { RailPopover } from "@/ui/common/RailPopover";
 import { itemIcon } from "@/ui/art/itemArt";
-import { cx } from "@/ui/common/cx";
 import { isPercentStat } from "@/ui/common/statGroups";
+import { ShopDetailCard } from "../ShopDetailCard";
+import detailStyles from "../ShopDetailCard/ShopDetailCard.module.css";
 import s from "./ShopItemCard.module.css";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
@@ -33,150 +23,112 @@ interface Props {
   placeholder?: string;
 }
 
-function ShopItemCard({
-  stack,
-  placeholder,
-}: Props) {
+function ShopItemCard({ stack, placeholder }: Props) {
   if (!stack) {
-    return (
-      <div className={cx(s["sx-card"], s["is-idle"])}>
-        <p className={s["sx-card-idle"]}>{placeholder ?? "选择一件商品查看详情"}</p>
-      </div>
-    );
+    return <ShopDetailCard animKey="empty" placeholder={placeholder ?? "选择一件商品查看详情"} />;
   }
 
   return <ShopItemCardBody stack={stack} />;
 }
 
 const ShopItemCardBody = memo(function ShopItemCardBody({ stack }: { stack: ItemStack }) {
-  const bodyRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const element = bodyRef.current;
-    if (!element) return;
-
-    const animation = element.animate(
-      [
-        { opacity: 0, transform: "translateY(16px)" },
-        { opacity: 1, transform: "none" },
-      ],
-      {
-        duration: 420,
-        easing: "cubic-bezier(0.16, 0.86, 0.24, 1)",
-        fill: "both",
-      },
-    );
-
-    return () => animation.cancel();
-  }, [stack.uid]);
-
   const def = getItemDef(stack.itemId);
   const bond = getBondDef(stack.affinity ?? def.affinity ?? "");
   const rows = useMemo(() => {
     const flatMods = stack.roll ? rollToFlat(stack.roll) : def.mods?.flat;
     const pctMods = def.mods?.pct;
     const nextRows: { label: string; value: string; good: boolean }[] = [];
-    for (const k of STAT_KEYS) {
-      const flat = flatMods?.[k];
-      const pct = pctMods?.[k];
-      if (flat)
+    for (const key of STAT_KEYS) {
+      const flat = flatMods?.[key];
+      const pct = pctMods?.[key];
+      if (flat) {
         nextRows.push({
-          label: STAT_LABEL[k] ?? k,
-          value: `${signed(flat)}${isPercentStat(k) ? "%" : ""}`,
+          label: STAT_LABEL[key] ?? key,
+          value: `${signed(flat)}${isPercentStat(key) ? "%" : ""}`,
           good: flat > 0,
         });
-      if (pct)
+      }
+      if (pct) {
         nextRows.push({
-          label: STAT_LABEL[k] ?? k,
-          value: `${signed(pct)}${isPercentStat(k) ? "%" : ""}`,
+          label: STAT_LABEL[key] ?? key,
+          value: `${signed(pct)}${isPercentStat(key) ? "%" : ""}`,
           good: pct > 0,
         });
+      }
     }
     return nextRows;
-  }, [stack]);
+  }, [def, stack]);
+
   return (
-    // ★ 外壳与内容**必须**分开: 外壳(.sx-card)是这一栏唯一的 backdrop-filter 承载者,
-    //   它要跨商品切换存活下来。商品变化只更新复用中的内容节点, 入场效果交给 WAAPI,
-    //   不卸载玻璃层、3D 动画层或羁绊 Popover。
-    <div className={cx(s["sx-card"], s[`sx-r-${def.rarity}`])}>
-      <div className={s["sx-card-body"]} ref={bodyRef}>
-        {/* 商品展示台: 整栏通宽的大图, 是这一栏唯一的视觉焦点 */}
-        <div className={s["sx-card-stage"]}>
-          {/* 扫光带独立成节点: 它以前是 ::after 上一层 220% 宽的渐变, 靠 background-position
-              做 5.6s 无限循环 —— 那是纯主线程重绘, 整个展示台每帧重画一遍。
-              现在改成一条实体光带走 transform, 交给合成器。 */}
-          <span className={s["sx-card-sweep"]} aria-hidden="true" />
-          <span className={s["sx-card-icon"]}>{itemIcon(def)}</span>
-        </div>
-
-        <div className={s["sx-card-title-row"]}>
-          <h4 className={s["sx-card-name"]}>
-            {def.name}
-            {stack.count > 1 && <span className={s["sx-card-mult"]}> ×{stack.count}</span>}
-          </h4>
-
-          <div className={s["sx-card-title-meta"]}>
-            {stack.roll && (
-              <span className={s["sx-card-perfectness"]} aria-label={`完美度 ${rollPerfectness(def, stack.roll)}`}>
-                完美度 {rollPerfectness(def, stack.roll)}
+    <ShopDetailCard
+      animKey={stack.uid}
+      tone={def.rarity}
+      stage={itemIcon(def)}
+      title={(
+        <>
+          {def.name}
+          {stack.count > 1 && <span className={detailStyles["sx-card-mult"]}> ×{stack.count}</span>}
+        </>
+      )}
+      titleMeta={(
+        <>
+          {stack.roll && (
+            <span
+              className={detailStyles["sx-card-chip"]}
+              aria-label={`完美度 ${rollPerfectness(def, stack.roll)}`}
+            >
+              完美度 {rollPerfectness(def, stack.roll)}
+            </span>
+          )}
+          {bond && (
+            <span
+              className={s["sx-card-bond"]}
+              style={{ "--sx-bond": bond.color } as CSSProperties}
+              aria-label={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
+              data-rail-item
+              tabIndex={0}
+              role="group"
+            >
+              <span className={s["sx-card-bond-trigger"]}>
+                <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
+                <span className={s["sx-card-bond-name"]}>{bond.name}</span>
               </span>
-            )}
-
-            {/* 羁绊标签与完美度同排，固定在标题行右侧。 */}
-            {bond && (
-              <span
-                className={s["sx-card-bond"]}
-                style={{ "--sx-bond": bond.color } as CSSProperties}
-                aria-label={`${bond.name}（${bond.arcana}）· ${bond.desc}`}
-                data-rail-item
-                tabIndex={0}
-                role="group"
-              >
-                <span className={s["sx-card-bond-trigger"]}>
-                  <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
-                  <span className={s["sx-card-bond-name"]}>{bond.name}</span>
-                </span>
-                <RailPopover side="bottom-right" className={s["sx-card-bond-popover"]}>
-                  <BondTooltip def={bond} count={1} tierIndex={-1} next={bond.tiers[0]} />
-                </RailPopover>
-              </span>
-            )}
-          </div>
-        </div>
-
-        <p className={s["sx-card-tags"]}>
-          <span className={s["sx-card-rarity"]}>{RARITY_LABEL[def.rarity]}</span>
+              <RailPopover side="bottom-right" className={s["sx-card-bond-popover"]}>
+                <BondTooltip def={bond} count={1} tierIndex={-1} next={bond.tiers[0]} />
+              </RailPopover>
+            </span>
+          )}
+        </>
+      )}
+      tags={(
+        <>
+          <span className={detailStyles["sx-card-rarity"]}>{RARITY_LABEL[def.rarity]}</span>
           <span>{CATEGORY_LABEL[def.category]}</span>
           {def.slot && <span>{SLOT_LABEL[def.slot]}</span>}
-        </p>
-
-        <p className={s["sx-card-desc"]}>{def.desc}</p>
-
-        {rows.length > 0 && (
-          <dl className={s["sx-card-stats"]}>
-            {rows.map((r) => (
-              <div key={`${r.label}${r.value}`}>
-                <dt>{r.label}</dt>
-                <dd className={r.good ? s["is-good"] : s["is-bad"]}>{r.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-
-        {/* 脚注 —— 各类"尚未开放"提示折叠进同一块最弱字号里, 不再各占一行主文本 */}
-        <div className={s["sx-card-foot"]}>
+        </>
+      )}
+      desc={def.desc}
+      rows={rows}
+      foot={(
+        <>
           {def.category === "material" && (
-            <span className={cx(s["sx-card-note"], s["is-locked"])}>关键词模组尚未开放，先存进仓库。</span>
+            <span className={`${detailStyles["sx-card-note"]} ${detailStyles["is-locked"]}`}>
+              关键词模组尚未开放，先存进仓库。
+            </span>
           )}
           {def.category === "data" && (
-            <span className={cx(s["sx-card-note"], s["is-locked"])}>叙事解锁尚未开放，先存进仓库。</span>
+            <span className={`${detailStyles["sx-card-note"]} ${detailStyles["is-locked"]}`}>
+              叙事解锁尚未开放，先存进仓库。
+            </span>
           )}
           {def.affinityRollable && !bond && (
-            <span className={cx(s["sx-card-note"], s["is-locked"])}>这件装备没有羁绊词条。</span>
+            <span className={`${detailStyles["sx-card-note"]} ${detailStyles["is-locked"]}`}>
+              这件装备没有羁绊词条。
+            </span>
           )}
-        </div>
-      </div>
-    </div>
+        </>
+      )}
+    />
   );
 });
 

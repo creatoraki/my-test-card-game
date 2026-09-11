@@ -19,9 +19,11 @@ export interface TechCostCheck {
   ok: boolean;
 }
 
-export function techCostCheck(cost: TechCost, loot: number, storage: ItemStack[]): TechCostCheck {
-  const lootOk = loot >= cost.loot;
-  const materials = cost.materials.map((material) => {
+export function materialCostCheck(
+  materials: TechCost["materials"],
+  storage: ItemStack[],
+): TechCostMaterialCheck[] {
+  return materials.map((material) => {
     const have = countByItemId(storage, material.itemId);
     return {
       itemId: material.itemId,
@@ -30,5 +32,10 @@ export function techCostCheck(cost: TechCost, loot: number, storage: ItemStack[]
       ok: have >= material.count,
     };
   });
+}
+
+export function techCostCheck(cost: TechCost, loot: number, storage: ItemStack[]): TechCostCheck {
+  const lootOk = loot >= cost.loot;
+  const materials = materialCostCheck(cost.materials, storage);
   return { lootOk, materials, ok: lootOk && materials.every((material) => material.ok) };
 }

@@ -86,7 +86,6 @@ export function MarketPanel() {
           level={level}
           doneTechs={shop.techs}
           storage={storage}
-          loot={loot}
           origin={{ x: upgrade.x, y: upgrade.y }}
           closing={upgrade.closing}
           onResearch={upgradeShop}

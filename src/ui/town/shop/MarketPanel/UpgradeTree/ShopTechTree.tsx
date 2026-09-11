@@ -19,7 +19,6 @@ import s from "./ShopTechTree.module.css";
 
 interface Props {
   doneTechs: string[];
-  loot: number;
   storage: ItemStack[];
   selectedId: string | null;
   onSelect: (techId: string) => void;
@@ -28,15 +27,15 @@ interface Props {
 const STATE_LABEL: Record<ShopTechState, string> = {
   done: "已研究",
   available: "可研究",
-  lacking: "材料或积分不足",
+  lacking: "材料不足",
   locked: "前置节点未完成",
 };
 
-export function ShopTechTree({ doneTechs, loot, storage, selectedId, onSelect }: Props) {
+export function ShopTechTree({ doneTechs, storage, selectedId, onSelect }: Props) {
   const edges = useMemo(() => shopTechEdges(), []);
   const states = useMemo(
-    () => new Map(SHOP_TECHS.map((tech) => [tech.id, shopTechState(tech, doneTechs, loot, storage)])),
-    [doneTechs, loot, storage],
+    () => new Map(SHOP_TECHS.map((tech) => [tech.id, shopTechState(tech, doneTechs, storage)])),
+    [doneTechs, storage],
   );
 
   const edgeState = (targetId: string): "done" | "open" | "dim" => {

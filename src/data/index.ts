@@ -144,6 +144,7 @@ export {
   shopLevelOf,
   shopRefreshCost,
   shopSlotCount,
+  shopTechCost,
   shopTechState,
   isShopTechAvailable,
   type ShopTechKind,
@@ -165,6 +166,7 @@ export {
   type ShopSlot,
 } from "./shop";
 export {
+  materialCostCheck,
   techCostCheck,
   type TechCost,
   type TechCostCheck,

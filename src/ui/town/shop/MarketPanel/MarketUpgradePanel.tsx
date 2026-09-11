@@ -7,7 +7,6 @@ interface Props {
   level: number;
   doneTechs: string[];
   storage: ItemStack[];
-  loot: number;
   origin: { x: number; y: number };
   closing: boolean;
   onResearch: (techId: string) => void;
@@ -15,7 +14,7 @@ interface Props {
   onClosed: () => void;
 }
 
-export function MarketUpgradePanel({ level, doneTechs, storage, loot, origin, closing, onResearch, onClose, onClosed }: Props) {
+export function MarketUpgradePanel({ level, doneTechs, storage, origin, closing, onResearch, onClose, onClosed }: Props) {
   const [selectedTechId, setSelectedTechId] = useState<string | null>(null);
 
   return (
@@ -36,7 +35,6 @@ export function MarketUpgradePanel({ level, doneTechs, storage, loot, origin, cl
         <div className={s.layout}>
           <ShopTechTree
             doneTechs={doneTechs}
-            loot={loot}
             storage={storage}
             selectedId={selectedTechId}
             onSelect={setSelectedTechId}
@@ -44,7 +42,6 @@ export function MarketUpgradePanel({ level, doneTechs, storage, loot, origin, cl
           <ShopTechDetail
             selectedId={selectedTechId}
             doneTechs={doneTechs}
-            loot={loot}
             storage={storage}
             onResearch={onResearch}
           />

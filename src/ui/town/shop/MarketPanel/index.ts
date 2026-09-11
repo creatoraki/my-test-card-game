@@ -1,9 +1,11 @@
 export { MarketPanel } from "./MarketPanel";
 export { MarketDetail } from "./MarketDetail";
 export { MarketCardDetail } from "./MarketCardDetail";
+export { MarketCardTile } from "./MarketCardTile";
 export { MarketItemDetail } from "./MarketItemDetail";
 export { MarketItemTile } from "./MarketItemTile";
 export { MarketPriceTag } from "./MarketPriceTag";
 export { MarketShelf } from "./MarketShelf";
 export { MarketSlot } from "./MarketSlot";
+export { MarketTile } from "./MarketTile";
 export { MarketUpgradePanel } from "./MarketUpgradePanel";
