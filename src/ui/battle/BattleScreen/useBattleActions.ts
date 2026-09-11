@@ -1,6 +1,6 @@
 import { useCallback, type Dispatch, type SetStateAction } from "react";
 import type { BattleState } from "@/engine";
-import { playBlockReason } from "@/engine";
+import { avidyaPickCount, playBlockReason } from "@/engine";
 import { cardAnim } from "@/ui/battle/animations";
 import { useBattleStore } from "@/store/battleStore";
 import { playSfx } from "@/ui/audio";
@@ -13,13 +13,23 @@ import type { BattleCameraApi } from "./useBattleCamera";
 import type { BattleChoreoApi } from "./useBattleChoreo";
 import type { HandRenderApi } from "./useHandRender";
 import type { PlaybackApi } from "./usePlayback";
+import type { HandAction } from "@/ui/battle/HandTools";
+
+export interface AvidyaPick {
+  uid: string;
+  primaryId?: string;
+  need: number;
+  picked: string[];
+}
 
 interface Options {
   battle: BattleState | null;
   selectedUid: string | null;
   setSelectedUid: Dispatch<SetStateAction<string | null>>;
-  handAction: "redraw" | "discard" | null;
-  setHandAction: Dispatch<SetStateAction<"redraw" | "discard" | null>>;
+  handAction: HandAction;
+  setHandAction: Dispatch<SetStateAction<HandAction>>;
+  avidyaPick: AvidyaPick | null;
+  setAvidyaPick: Dispatch<SetStateAction<AvidyaPick | null>>;
   setOpenPile: Dispatch<SetStateAction<Pile | null>>;
   choreo: BattleChoreoApi;
   camera: BattleCameraApi;
@@ -34,6 +44,7 @@ export interface BattleActionsApi {
   onCardClick: (uid: string) => void;
   onCombatantClick: (id: string) => void;
   pickFromDiscard: (uid: string) => void;
+  pickHandCard: (uid: string) => void;
   pickSquadBuff: (id: string) => void;
   cancelSquadBuff: () => void;
   closePile: () => void;
@@ -45,6 +56,8 @@ export function useBattleActions({
   setSelectedUid,
   handAction,
   setHandAction,
+  avidyaPick,
+  setAvidyaPick,
   setOpenPile,
   choreo,
   camera,
@@ -60,12 +73,21 @@ export function useBattleActions({
   const wait = useBattleStore((state) => state.wait);
   const commit = useBattleStore((state) => state.commit);
 
-  const triggerPlay = useCallback((uid: string, primaryId?: string) => {
+  const triggerPlay = useCallback((uid: string, primaryId?: string, discardPicks?: string[]) => {
     if (!battle || playback.animatingRef.current) return;
     const card = battle.cards[uid];
     if (!card) return;
+    if (discardPicks == null) {
+      const need = avidyaPickCount(battle, card);
+      if (need > 0) {
+        setAvidyaPick({ uid, primaryId, need, picked: [] });
+        setSelectedUid(null);
+        showBattleToast(`无明：请选择 ${need} 张要丢弃的手牌`);
+        return;
+      }
+    }
     const anim = cardAnim(card);
-    const plan = play(uid, primaryId);
+    const plan = play(uid, primaryId, discardPicks);
     if (!plan) return;
     hand.setPlayingOutUid(uid);
     const hitIds = new Set(plan.cardHits.map((hit) => hit.id));
@@ -81,7 +103,24 @@ export function useBattleActions({
     ];
     const enter = camera.aim ? { ...camera.aim, yaw: 0, pitch: 0 } : null;
     choreo.startBatch(steps, plan.final, enter, uid);
-  }, [battle, camera.aim, choreo, hand, play, playback.animatingRef]);
+  }, [battle, camera.aim, choreo, hand, play, playback.animatingRef, setAvidyaPick, setHandAction, setSelectedUid]);
+
+  const pickAvidyaCard = useCallback((uid: string) => {
+    if (!battle || !avidyaPick || uid === avidyaPick.uid || !battle.hand.includes(uid)) return;
+    const picked = avidyaPick.picked.includes(uid)
+      ? avidyaPick.picked.filter((pickedUid) => pickedUid !== uid)
+      : [...avidyaPick.picked, uid];
+    if (picked.length < avidyaPick.need) {
+      setAvidyaPick((current) => current ? { ...current, picked } : current);
+      showBattleToast(`无明：已选择 ${picked.length} / ${avidyaPick.need} 张`);
+      return;
+    }
+    const next = { ...avidyaPick, picked };
+    setAvidyaPick(null);
+    setHandAction(null);
+    resetHandHover();
+    triggerPlay(next.uid, next.primaryId, next.picked);
+  }, [avidyaPick, battle, setAvidyaPick, setHandAction, triggerPlay]);
 
   const triggerEndTurn = useCallback(() => {
     if (!battle || playback.animatingRef.current) return;
@@ -98,7 +137,21 @@ export function useBattleActions({
   }, [battle, choreo, playback.animatingRef, wait]);
 
   const runHandAction = useCallback((uid: string) => {
-    if (!battle || !handAction) return;
+    if (!battle) return;
+    if (avidyaPick) {
+      pickAvidyaCard(uid);
+      return;
+    }
+    if (battle.pendingChoice?.kind === "pickHandCard") {
+      const next = pickPendingChoice(uid);
+      if (next) {
+        commit(next);
+        setHandAction(null);
+        resetHandHover();
+      }
+      return;
+    }
+    if (!handAction) return;
     if (handAction === "redraw") {
       const next = redrawCard(uid);
       if (next) {
@@ -118,10 +171,24 @@ export function useBattleActions({
     }
     setHandAction(null);
     resetHandHover();
-  }, [battle, choreo, commit, discardCard, hand, handAction, redrawCard, setHandAction]);
+  }, [avidyaPick, battle, choreo, commit, discardCard, hand, handAction, pickAvidyaCard, pickPendingChoice, setHandAction, redrawCard]);
 
   const onCardClick = useCallback((uid: string) => {
-    if (!battle || battle.phase !== "player" || playback.animating || handAction) return;
+    if (!battle || battle.phase !== "player" || playback.animating) return;
+    if (avidyaPick) {
+      pickAvidyaCard(uid);
+      return;
+    }
+    if (battle.pendingChoice?.kind === "pickHandCard") {
+      const next = pickPendingChoice(uid);
+      if (next) {
+        commit(next);
+        setHandAction(null);
+        resetHandHover();
+      }
+      return;
+    }
+    if (handAction) return;
     const block = playBlockReason(battle, uid);
     if (block) {
       if (block === "mana") showBattleToast("费用不足");
@@ -136,7 +203,7 @@ export function useBattleActions({
     } else {
       triggerPlay(uid);
     }
-  }, [battle, handAction, playback.animating, selectedUid, setSelectedUid, triggerPlay]);
+  }, [avidyaPick, battle, commit, handAction, pickAvidyaCard, pickPendingChoice, playback.animating, selectedUid, setHandAction, setSelectedUid, triggerPlay]);
 
   const onCombatantClick = useCallback((id: string) => {
     if (!battle || !selectedUid || playback.animating) return;
@@ -154,6 +221,15 @@ export function useBattleActions({
     commit(next);
     if (!next.pendingChoice) setOpenPile(null);
   }, [battle, commit, pickPendingChoice, setOpenPile]);
+
+  const pickHandCard = useCallback((uid: string) => {
+    if (!battle || battle.pendingChoice?.kind !== "pickHandCard") return;
+    const next = pickPendingChoice(uid);
+    if (!next) return;
+    commit(next);
+    setHandAction(null);
+    resetHandHover();
+  }, [battle, commit, pickPendingChoice, setHandAction]);
 
   const pickSquadBuff = useCallback((id: string) => {
     if (!battle || battle.pendingChoice?.kind !== "pickSquadBuff") return;
@@ -182,6 +258,7 @@ export function useBattleActions({
     onCardClick,
     onCombatantClick,
     pickFromDiscard,
+    pickHandCard,
     pickSquadBuff,
     cancelSquadBuff,
     closePile,

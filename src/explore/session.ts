@@ -39,6 +39,7 @@ import {
   BLESSING_RELIC_DEFS,
   EVENT_POOLS,
   bondPool,
+  getEncounter,
   getEnemyDef,
   getNpcEvent,
   getEventPool,
@@ -214,6 +215,15 @@ function encounterForTier(s: ExploreState, tier: BattleTier): string | null {
     return shuffle(s, [...treasure])[0] ?? null;
   }
   return shuffle(s, map.battleEncounters[tier] ?? [])[0] ?? null;
+}
+
+// 轮末推进战斗的遭遇战。地图把某一轮钉死时照抄(顺带跳过宝箱怪替换, 教学关靠它排课),
+// 其余轮次仍按档位随机抽。⚠ 只给推进战斗用 —— 节点战斗(战斗签)永远走随机池。
+function roundEncounterFor(s: ExploreState, tier: BattleTier): string | null {
+  const fixed = getMap(s.mapId).battleEncounterByRound?.[s.round - 1];
+  if (!fixed) return encounterForTier(s, tier);
+  getEncounter(fixed); // 地图钉了不存在的 id 时当场抛, 别拖到战斗初始化再炸
+  return fixed;
 }
 
 // ---------------------------------------------------------------------------
@@ -1848,7 +1858,7 @@ export function roundBattleEvent(s: ExploreState): NodeEvent | null {
 export function engageRoundBattle(s: ExploreState): boolean {
   if (s.phase !== "roundBattle") return false;
   const tier = battleTierOf(s);
-  const encounterId = encounterForTier(s, tier);
+  const encounterId = roundEncounterFor(s, tier);
   if (!encounterId) return false;
   const eventTitle = roundBattleEvent(s)?.title ?? BATTLE_TIER_NAME[tier];
 

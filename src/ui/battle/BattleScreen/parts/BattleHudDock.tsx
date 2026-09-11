@@ -11,9 +11,12 @@ import type { RenderHandEntry } from "../useHandRender";
 import { cx } from "@/ui/common/cx";
 import s from "./BattleHudDock.module.css";
 
+type HandDisplayAction = HandAction | "choose";
+
 interface Props {
   battle: BattleState;
   handAction: HandAction;
+  handDisplayAction: HandDisplayAction;
   setHandAction: Dispatch<SetStateAction<HandAction>>;
   setSelectedUid: Dispatch<SetStateAction<string | null>>;
   isPlayerTurn: boolean;
@@ -41,6 +44,7 @@ interface Props {
 export function BattleHudDock({
   battle,
   handAction,
+  handDisplayAction,
   setHandAction,
   setSelectedUid,
   isPlayerTurn,
@@ -64,6 +68,7 @@ export function BattleHudDock({
   onCardAction,
   onCardExited,
 }: Props) {
+  const handInteractive = isPlayerTurn && (handDisplayAction === "choose" || !battle.pendingChoice);
   return (
     <div className={s["battle-hud"]} onClick={(event) => event.stopPropagation()}>
       <div className={cx(s["party-dock"], playerActing && s["dock-hidden"])}>
@@ -92,12 +97,12 @@ export function BattleHudDock({
           deathVanishMs={deathVanishMs}
         />
       </div>
-      <HandTray
+        <HandTray
         renderHand={renderHand}
         battle={battle}
         discardingUids={discardingUids}
-        isPlayerTurn={isPlayerTurn && !battle.pendingChoice}
-        handAction={handAction}
+        isPlayerTurn={handInteractive}
+          handAction={handDisplayAction}
         selectedUid={selectedUid}
         playingOutUid={playingOutUid}
         onCardClick={onCardClick}

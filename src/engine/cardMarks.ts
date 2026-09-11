@@ -6,6 +6,10 @@ export interface CardMarkDef {
   emoji: string;
   desc: string;
   effects: EffectDescriptor[];
+  costDelta?: number;
+  costOverride?: number;
+  preEffects?: EffectDescriptor[];
+  onDiscardEffects?: EffectDescriptor[];
 }
 
 export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
@@ -29,5 +33,31 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     emoji: "🪨",
     desc: "这张牌的费用 +1。打出后移除。",
     effects: [],
+    costDelta: 1,
+  },
+  swordMound: {
+    id: "swordMound",
+    name: "剑冢",
+    emoji: "🪦",
+    desc: "这张牌的费用 +1。",
+    effects: [],
+    costDelta: 1,
+  },
+  divineSight: {
+    id: "divineSight",
+    name: "神眼",
+    emoji: "👁️",
+    desc: "这张牌被丢弃时，将它的复制卡加入手牌。复制卡为消耗、虚无。",
+    effects: [],
+    onDiscardEffects: [{ type: "COPY_CARD_TO_HAND" }],
+  },
+  noto: {
+    id: "noto",
+    name: "纳刀",
+    emoji: "⚔️",
+    desc: "这张牌下回合开始取回手牌，费用为 0；若为攻击牌，本次伤害 +40%。",
+    effects: [],
+    costOverride: 0,
+    preEffects: [{ type: "PLAY_STAT_BONUS", stat: "attack", amount: 40, pct: true }],
   },
 };

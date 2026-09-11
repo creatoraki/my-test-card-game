@@ -6,11 +6,11 @@
 | --- | --- |
 | [enemies/mimics.ts](../../src/data/enemies/mimics.ts) | 宝箱怪单列数据：只有自保招式，按 fleeAfterRound 到点离场，并分别必掉装备箱或卡牌候选。 |
 | 宝箱怪遭遇战 | encounters.ts 登记「械匣暗格」「牌匣暗格」两场编成；maps.ts 通过 treasureEncounters 供 t1-t3 战斗按概率替换。 |
-| [cards.ts](../../src/data/cards.ts) + [cards/](../../src/data/cards/) | `CARD_DEFS` 汇总入口；具体 `CardDef[]` 按角色放在 `cards/<角色>/index.ts` 中维护，基础卡仍由 `basicCards.ts` 统一生成。剑士、预言家、植物学家、精算师专属卡和 `cards/neutral/index.ts` 的中立临时卡已拆分，植物学家已登记 17 张普通卡与 3 张罕见卡，精算师已登记 8 张普通卡；卡牌支持本回合弃牌减费、速攻计数联动、弃牌触发、弃牌堆回收、随机手牌标记、应星/瀑布、瞄准、培育(含成熟效果替换)、回响/急诊和普通牌转速攻，攻击牌优先使用攻击力倍率，`text` 支持 `{0}`、`{k0}` 等效果数值占位符。剑士卡池已按《剑士新卡.md》整体重做为 16 张，按 `cards/swordsman/attack.ts`(攻击 10) + `support.ts`(功能与防御 4) + `passive.ts`(被动 3) 三张分表维护；炼金术士卡池按 `cards/alchemist/attack.ts`、`defense.ts`、`support.ts`、`passive.ts`、`rewards.ts` 五张分表维护，共 14 张主体卡与 9 张组装奖励卡，`index.ts` 另登记 A/B/C/D 奖励池；精算师卡池按 `cards/actuary/heal.ts`、`support.ts`、`passive.ts`、`attack.ts` 四张分表维护。被动卡无费用、不可打出、持在手中按事件自动生效(见 engine/passive.ts)。中立临时卡 `scrap-shrapnel` 与 `temp-stun-hammer` 仅由战斗效果生成，不进入角色卡池。 |
+| [cards.ts](../../src/data/cards.ts) + [cards/](../../src/data/cards/) | `CARD_DEFS` 汇总入口；具体 `CardDef[]` 按角色放在 `cards/<角色>/index.ts` 中维护，基础卡仍由 `basicCards.ts` 统一生成。剑士卡池现为 30 张，按 `cards/swordsman/attack.ts`(攻击 14) + `support.ts`(功能与防御 10) + `passive.ts`(被动 6) 三张分表维护；新增卡覆盖手牌选择、弃牌预选、纳刀、雷走回手、虚无复制、逐段随机伤害和剑士状态联动。其余角色卡池与中立临时卡仍按各自分表维护，被动卡无费用、不可打出、持在手中按事件自动生效(见 engine/passive.ts)。 |
 | [basicCards.ts](../../src/data/basicCards.ts) | 按角色生成 3 张基础卡，并提供统一的 2 攻 + 2 治 + 1 盾初始卡组。基础卡不进入抽卡池且不计入限携；说明使用 `{0}` 效果数值占位符。 |
 | [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、统一基础初始卡组和按稀有度分档的个人抽卡池；五名角色基础先手统一为 20，剑士、预言家、植物学家、炼金术士与精算师专属卡池均已登记，精算师卡池为 8 张普通卡且罕见/稀有池留空。 |
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、招式及各自延迟、招式权重与招式级命中修正、目标选择、每回合行动次数上限、击杀经验、普通掉落表和战斗胜利 `boonTable`；掉落表按档位挂水晶与废弃楼层地区材料——小怪绿晶/low、精英蓝晶/mid、BOSS 必掉红晶/boss；水晶与换金物按档位共用常量表，通用材料逐怪物固定一种。垃圾山的守护者登记五招及 `ai` 状态机字段，按玩家护盾状态驱动后继权重。首图小怪已包含玻璃水母这一闪避型飞行单位。先手统一 20、与角色基础先手持平，故 `delay` 字段即最终蓄力时刻数。经验写在敌人定义中，不写入掉落表。 |
-| [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）；`lift` 是飞行离地高度，只供 UI 把落地阴影放回地面；4 只怪的编成只登记在 t4/t5。 |
+| [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）；`lift` 是飞行离地高度，只供 UI 把落地阴影放回地面；t2 同时登记 3 只标准编成与 2 只轻档编成；4 只怪的编成只登记在 t4/t5。 |
 | [items.ts](../../src/data/items.ts) | 旧版物品清单，暂时保留以兼容现有掉落表和存档数据。 |
 | [items/](../../src/data/items/) | 按设计文档拆分的新物品定义：通用材料与水晶、地区特色材料、换金物、消耗品与临期食品、装备模型模板及成品模组、`items/relics/blessings/{tutorial,basic,uncommon}.ts` 的祝福遗物分表与 `relics/curses.ts` 的诅咒遗物；正向武器由族级词条模板展开五档模型，极端武器仍使用固定属性；由 `data/index.ts` 与旧清单合并注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20；`items/materials.ts` 的水晶与 `items/regional.ts` 的地区材料都刻意不过它 ⇒ 没有 `buyValue` ⇒ 据点商店永不上架、回收台也不收。 |
 | [picnicRecipes.ts](../../src/data/picnicRecipes.ts) | 远征技能《野餐》的 6 个隐藏食谱与多重集精确匹配；命中食谱后由探索层生成随机祝福遗物，食谱名称只在命中结算时交给 UI。 |
@@ -35,7 +35,7 @@
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用材料、水晶、消耗品、食品和武器按服务类型筛选；材料已无地区专属池，只有武器仍按地图筛稀有度。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
 | [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：每个徽章 = 方向链（`branches`，仅供图标/文案分组）+ 扇形半环坐标节点图（`nodes`，`requires` 任一满足即解锁）；初心者徽章 6 链 22 节点，其余徽章为「待开放」占位。`fan()` 负责纯坐标生成，`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` 一起作为 UI 与 store 共用的判定入口。 |
-| [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人；4 只怪的编成只登记在 t4/t5；`roundPlans` 可为地图提供固定轮次棋盘，`hideAfterClear` 控制通关后从选择带隐藏，`battleTierByRound`、`requiresClear` 与 `locked` 定义按轮次档位和地图解锁规则；`visibleMaps` 是出击界面唯一的可见地图筛选入口。地图素材由 UI 查表。 |
+| [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人；4 只怪的编成只登记在 t4/t5；`roundPlans` 可为地图提供固定轮次棋盘，`hideAfterClear` 控制通关后从选择带隐藏，`battleTierByRound`、`battleEncounterByRound`（按轮次钉死推进战斗的遭遇战，教学关前两轮用它排两套不同的双敌人编成）、`requiresClear` 与 `locked` 定义按轮次档位和地图解锁规则；`visibleMaps` 是出击界面唯一的可见地图筛选入口。地图素材由 UI 查表。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid；`newUid` 也供临时战斗奖励生成唯一 id。 |
 
 数据层不登记素材路径，也不写流程逻辑。素材查表在 `src/ui/`；战斗、探索和物品规则分别由对应纯逻辑层维护。

@@ -6,7 +6,7 @@ import s from "./CardMarks.module.css";
 interface Props {
   card: Card;
   variant: "hand" | "pile";
-  actionBadge?: "redraw" | "discard" | null;
+  actionBadge?: "redraw" | "discard" | "choose" | null;
   leaving?: boolean;
 }
 

@@ -1,6 +1,6 @@
 // 抽牌堆 / 手牌 / 弃牌堆 / 消耗堆 的操作。共享牌库: 抽空时把弃牌洗回抽牌堆。
 
-import type { BattleState } from "./types";
+import type { BattleState, Card } from "./types";
 import { shuffle } from "./rng";
 import { log, ops } from "./ops";
 import { partyHandLimit } from "./stats";
@@ -47,4 +47,23 @@ export function addCardToHand(state: BattleState, cardId: string, ownerCharId?: 
   state.hand.push(card.uid);
   resetCultivate(card);
   log(state, `${card.name} 加入手牌`);
+}
+
+export function addCardCopyToHand(state: BattleState, sourceCard: Card): void {
+  if (state.hand.length >= partyHandLimit(state)) return;
+  const copy = makeCard(sourceCard.id, sourceCard.upgraded);
+  Object.assign(copy, structuredClone(sourceCard), {
+    uid: copy.uid,
+    temporary: true,
+    exhaust: true,
+    voidCard: true,
+    discardStacks: undefined,
+    costStacks: undefined,
+    notoPending: undefined,
+    resonanceStacks: undefined,
+  });
+  state.cards[copy.uid] = copy;
+  state.hand.push(copy.uid);
+  resetCultivate(copy);
+  log(state, `${sourceCard.name} 的复制卡加入手牌`);
 }

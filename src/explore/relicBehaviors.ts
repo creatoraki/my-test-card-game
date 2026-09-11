@@ -18,7 +18,7 @@ export const EXPLORE_RELIC_BEHAVIORS: Record<string, ExploreRelicBehaviorMap> = 
     battleVictory: ({ state }) => {
       if (rngFloat(state) >= 0.2) return;
       state.pendingLoot.push(makeRolledItemStack(state, "copper-coin"));
-      state.log.push("幸运铜币：额外发现值钱的铜币");
+      state.log.push("幸运铜币：额外发现铜币");
     },
   },
   "relic-compressed-biscuit": {

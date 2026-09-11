@@ -128,6 +128,7 @@ src/ui/
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 探索主界面：固定设计画布、路由图、节点悬浮浮卡、粒子/光环/负重读数、右下角常驻推进决策按钮、带食品门槛的节点分支、成长与生存事件故事、隐藏休息/NPC、轮次战斗事件面板、背包和撤离。左下队伍区为静态半身立绘卡（复用 `common/CharacterPortrait`），显示三段血量，经验坠入动效挂在角色卡 figure 兄弟节点。状态机判断留在 `explore/session`。画布根挂 `data-explore-stage`。点左下角队伍卡打开 `common/CharacterModal`（远征途中**唯一**可换装处：三个装备槽与背包互换，派发 `runStore.equipFromBackpack` / `unequipToBackpack`，失败复用消耗品的飘字提示）；消耗品选目标模式下点击仍是「用在他身上」；新手关卡引导触发点集中在 `useTutorialGuides`。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、组装部件栏、组装选择器、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相，`kind: "reveal"` 只播 `SkillCutInCard` 亮相，无前冲/推镜/受击/音效；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。实现拆分为取景纯函数、分镜步翻译、手牌渲染列表、演出闸门、相机、分镜回放、操作分发，以及战场 / HUD / 屏幕特效三个视图 part。 |
+| [battle/BattleScreen/useBattleActions](../../src/ui/battle/BattleScreen/useBattleActions.ts) | 战斗操作编排：处理普通出牌、无明出牌前弃牌预选、赤潮/纳刀手牌选择、牌堆回收与组装选择，并将选择结果提交回引擎。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
 | [battle/VictoryPanel](../../src/ui/battle/VictoryPanel/VictoryPanel.tsx) | 黑钢斜切 + 霓虹都市剪影背板的紧凑两列战斗胜利结算壳：队伍经验、掉落来源分区、额外奖励、待拾取战利品、固定格距的 3×8 回收背包及继续/放弃操作；统一阻止未处理奖励离开。 |
 | [battle/VictoryTrialBand](../../src/ui/battle/VictoryTrialBand/VictoryTrialBand.tsx) | 战斗胜利面板上的「挑战达成」条：读会话的 `trialReport`，把本场到期的跨轮契约与它发放的奖励接回两轮前的那个决定；没有到期契约时返回 null 不占位。 |
@@ -182,11 +183,11 @@ src/ui/
 | [battle/SquadBuffPicker](../../src/ui/battle/SquadBuffPicker/SquadBuffPicker.tsx) | 组装选择待选层：展示可选部件、确认与取消，调用 `battleStore` 的 `pickPendingChoice` / `cancelPendingChoice`，不直接修改引擎状态。 |
 | [battle/BattleSettingsPanel](../../src/ui/battle/BattleSettingsPanel/BattleSettingsPanel.tsx) | 右上角齿轮打开的战斗设置：复用 `common/SettingsPanel` 的壳、音频行与操作按钮，保留音乐/音效、重新开始与撤退行为。危险操作经 `common/ConfirmDialog` 的 `confirm()` 二次确认；战斗页额外注入 z-index 19 与毛玻璃遮罩，Esc 捕获阶段关面板，确认框开着时让路。 |
 | [common/SettingsPanel](../../src/ui/common/SettingsPanel/SettingsPanelShell.tsx) | 设置菜单公共壳：遮罩、切角面板、标题头、关闭按钮与确认框感知的 Esc 关闭；同时提供音频行、底部操作网格和单个操作按钮。遮罩材质与层序由消费方注入，适配战斗毛玻璃和据点实心遮罩。 |
-| [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃采用「模式 + 卡上徽章」交互，徽章挂在 `.hand-slot`（卡自身裁切），模式态经 `[data-hand-tray][data-hand-action]` 下发。 |
-| [battle/HandTray](../../src/ui/battle/HandTray/HandTray.tsx) | 战斗底部手牌托盘的渲染接线：根据 `engine/cardBoon.ts` 的判定向未离场、未弃牌的手牌传入 `activated`，并负责生效费用、星辉抵扣和出牌可用态。 |
+| [battle/HandTools](../../src/ui/battle/HandTools/HandTools.tsx) | 战斗底部 HUD 的换牌/丢弃/待机操作；待机独立于手牌数量，按回合与动画状态及 `waitsThisRound` 判定可用性。换牌·丢弃·选择采用「模式 + 卡上徽章」交互，选择态由待选手牌或无明预选流程驱动。 |
+| [battle/HandTray](../../src/ui/battle/HandTray/HandTray.tsx) | 战斗底部手牌托盘的渲染接线：根据 `engine/cardBoon.ts` 的判定向未离场、未弃牌的手牌传入 `activated`，并负责生效费用、星辉抵扣、普通出牌与手牌选择态。 |
 | [battle/CardPile](../../src/ui/battle/CardPile/CardPile.tsx) | 零色相蚀刻黑钢卡堆，菱形徽记卡背，抽牌/弃牌/消耗三堆靠凿刻标记与剪影区分。 |
 | [battle/PileDrawer](../../src/ui/battle/PileDrawer/PileDrawer.tsx) | 牌堆内容弹窗，按卡名排序展示，复用原尺寸 `HandCard`；悬停时由 `.scrim` 下的独立放大层浮出 1.4 倍卡面；待选择回收时切换为弃牌堆选择模式，点击卡牌提交，关闭弹窗取消。 |
-| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，所属角色阵亡后以 `purged` 播碎裂消散并卸载。另有 `activated` 激活态：由 `engine/cardBoon.ts` 判定「此刻有额外收益」，覆盖培育就绪、费用被压低、星辉可抵扣、共鸣强化、弃牌回手层数、瀑布就绪、计数型加成和其他当前成立条件；统一表现为通电边棱 + 卡外呼吸辉光 + 费用水晶外扩能量环，样式独立在 `HandCard.activated.module.css`。激活态只由手牌托盘与 `CardInfoPanel` 接入，牌堆弹窗和据点卡组不亮。 |
+| [HandCard](../../src/ui/battle/HandCard/HandCard.tsx) | 手牌竖卡：生效费用/名称、1:1 配图、定高说明区、污染角标和卡牌标记角标；换牌·丢弃·选择模式下在不裁切的 `.hand-slot` 上显示操作徽章，主动或连带弃牌使用 `discarding` 播放弃牌化光。另有 `activated` 激活态，统一表现为通电边棱与卡外辉光。 |
 | [CardInfoPanel](../../src/ui/battle/CardInfoPanel/CardInfoPanel.tsx) | 战斗 HUD 右上固定卡牌说明面板，宽高比锁死 1:2，无配图也保留稳定尺寸的占位；显示生效费用、污染卡与卡牌标记说明，并将 `engine/cardBoon.ts` 的 `activated` 传给内部 `HandCard`，与手牌托盘同步亮起。 |
 | [TickRuler](../../src/ui/battle/TickRuler/TickRuler.tsx) | 顶端信息条的全局时刻标尺；敌人行动标记默认关闭。 |
 | [SkillCutInCard](../../src/ui/battle/SkillCutInCard/SkillCutInCard.tsx) | 出牌亮相卡面，挂在场景外，不受相机变换。 |

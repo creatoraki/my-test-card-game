@@ -1,4 +1,5 @@
 import type { BattleState, Card } from "./types";
+import { CARD_MARK_DEFS } from "./cardMarks";
 
 export function cardCost(state: BattleState | null, card: Card): number {
   const rule = card.costRule;
@@ -15,8 +16,15 @@ export function cardCost(state: BattleState | null, card: Card): number {
   // 卡牌实例的累计层数(岚被丢弃回手的次数)达到门槛后的费用修正。
   const stackRule = card.stackCostRule;
   const stackDelta = stackRule && (card.discardStacks ?? 0) >= stackRule.atLeast ? stackRule.delta : 0;
-  const heavy = card.marks?.includes("heavy") ? 1 : 0;
-  return Math.max(0, card.cost + delta + stackDelta + heavy);
+  const markDefs = card.marks ?? [];
+  const override = markDefs
+    .map((markId) => CARD_MARK_DEFS[markId]?.costOverride)
+    .find((value): value is number => value != null);
+  const markDelta = markDefs.reduce((sum, markId) => sum + (CARD_MARK_DEFS[markId]?.costDelta ?? 0), 0);
+  const returnDelta = card.playReturn?.when === "fastPlaysThisRound"
+    ? (card.costStacks ?? 0) * card.playReturn.costDelta
+    : 0;
+  return Math.max(0, (override ?? card.cost) + delta + stackDelta + markDelta + returnDelta);
 }
 
 export function starPayable(card: Card): boolean {

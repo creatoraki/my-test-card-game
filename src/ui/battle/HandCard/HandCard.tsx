@@ -31,7 +31,7 @@ interface Props {
   dealDelay?: number; // 抽牌飞入的绝对延迟(ms), 由父级按批次计算
   onExited?: (uid: string) => void; // 出鞘动画播完 → 通知父级把它从渲染列表移除
   onClick?: (uid: string) => void;
-  actionBadge?: "redraw" | "discard" | null;
+  actionBadge?: "redraw" | "discard" | "choose" | null;
   onAction?: (uid: string) => void;
   cost?: number;
   starPay?: number;
@@ -152,13 +152,13 @@ export const HandCard = memo(function HandCard({
         <button
           type="button"
           className={cx(s["hc-action"], s[`hc-action-${actionBadge}`])}
-          aria-label={actionBadge === "redraw" ? "换掉这张牌" : "丢弃这张牌"}
+          aria-label={actionBadge === "redraw" ? "换掉这张牌" : actionBadge === "choose" ? "选择这张牌" : "丢弃这张牌"}
           onClick={(e) => {
             e.stopPropagation();
             onAction?.(card.uid);
           }}
         >
-          {actionBadge === "redraw" ? <RedrawIcon /> : <DiscardIcon />}
+          {actionBadge === "redraw" ? <RedrawIcon /> : actionBadge === "choose" ? "选择" : <DiscardIcon />}
         </button>
       )}
       <CardMarks card={card} variant={variant} actionBadge={actionBadge} leaving={leaving} />

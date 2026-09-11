@@ -7,11 +7,13 @@ import { previewDamage } from "./ops";
 import { addMod, attackDamage, hitChance, statOf } from "./stats";
 import { RULES } from "./rules";
 import { getStatusDef } from "./statuses";
+import { CARD_MARK_DEFS } from "./cardMarks";
 
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
 // ★ 预览必须把它算进去, 否则装了攻击力/穿甲/命中模组后预览数字与实际结果对不上。
 function playStatBonusesOf(state: BattleState, card: Card): EffectDescriptor[] {
-  return activeEffectsOf(card).filter(
+  const markEffects = (card.marks ?? []).flatMap((markId) => CARD_MARK_DEFS[markId]?.preEffects ?? []);
+  return [...activeEffectsOf(card), ...markEffects].filter(
     (effect) => effect.type === "PLAY_STAT_BONUS" && effect.stat && conditionMet(state, effect),
   );
 }

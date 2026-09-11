@@ -131,6 +131,16 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     name: "急诊",
     desc: "目标本回合被攻击过时，改为结算急诊分支效果。",
   },
+  {
+    id: "voidCard",
+    name: "虚无",
+    desc: "回合结束时自动从手牌移入消耗堆，本场战斗不再出现。",
+  },
+  {
+    id: "noto",
+    name: "纳刀",
+    desc: "下回合开始从弃牌堆取回手牌并免费打出；攻击牌本次伤害提高 40%。",
+  },
 ];
 
 const CARD_KEYWORD_PATTERN = new RegExp(

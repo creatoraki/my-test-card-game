@@ -114,6 +114,7 @@ export function dealDamage(
     sourceId,
     targetId,
     amount,
+    bonusPct: 0,
     flags: opts.flags ?? [],
     isAttack: opts.isAttack ?? false,
     fixed: opts.fixed ?? false,
@@ -134,6 +135,8 @@ export function dealDamage(
   if (!opts.pure)
     for (const inst of [...target.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
+
+  dmg.amount *= 1 + dmg.bonusPct / 100;
 
   // 状态钩子可以直接判定"这次攻击被闪避"(罗生门)。★ 必须排在命中掷骰之前短路,
   // 否则闪避会被后续掷骰覆盖, 也会白白消耗一次战斗 RNG。
@@ -271,6 +274,7 @@ export function previewDamage(
     sourceId,
     targetId,
     amount,
+    bonusPct: 0,
     flags: opts.flags ?? [],
     isAttack: opts.isAttack ?? false,
     fixed: opts.fixed ?? false,
@@ -288,6 +292,8 @@ export function previewDamage(
   if (!opts.pure)
     for (const inst of [...target.statuses])
       STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
+
+  dmg.amount *= 1 + dmg.bonusPct / 100;
 
   if (!dmg.fixed) dmg.amount *= defenseMultiplier(target, src);
   return Math.max(0, Math.round(dmg.amount));

@@ -70,7 +70,7 @@ interface BattleStore {
     mod?: EncounterModifier,
     meta?: BattleMeta,
   ) => void;
-  play: (uid: string, targetId?: string) => PlayPlan | null;
+  play: (uid: string, targetId?: string, discardPicks?: string[]) => PlayPlan | null;
   redrawCard: (uid: string) => BattleState | null;
   discardCard: (uid: string) => DiscardPlan | null;
   pickPendingChoice: (uid: string) => BattleState | null;
@@ -90,12 +90,12 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     set({ battle: createBattle(encounterId, setup, seed, mod), meta: meta ?? null, seq: get().seq + 1 });
   },
 
-  play: (uid, targetId) => {
+  play: (uid, targetId, discardPicks) => {
     const b = get().battle;
     if (!b || b.phase !== "player") return null;
     const draft = structuredClone(b);
     const rec: PlayRecorder = { steps: [], cardMissedTargets: [] };
-    const ok = playCard(draft, uid, targetId, rec);
+    const ok = playCard(draft, uid, targetId, rec, { discardPicks });
     if (!ok) return null;
     return {
       cardSnapshot: rec.cardSnapshot ?? draft,

@@ -30,7 +30,7 @@ import { CINEMA } from "@/ui/battle/animations";
 import { battleBg, warmBattleBg } from "@/ui/art/battleBg";
 import { warmEnemyArt } from "@/ui/art/enemyArt";
 import { DEPTH_VARS } from "./battleCamera";
-import { useBattleActions } from "./useBattleActions";
+import { useBattleActions, type AvidyaPick } from "./useBattleActions";
 import { useBattleCamera, useBattleRig } from "./useBattleCamera";
 import { useBattleChoreo } from "./useBattleChoreo";
 import { useFallenNotice } from "./useFallenNotice";
@@ -56,6 +56,7 @@ export function BattleScreen() {
 
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [handAction, setHandAction] = useState<"redraw" | "discard" | null>(null);
+  const [avidyaPick, setAvidyaPick] = useState<AvidyaPick | null>(null);
   const [openPile, setOpenPile] = useState<Pile | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -102,6 +103,8 @@ export function BattleScreen() {
     setSelectedUid,
     handAction,
     setHandAction,
+    avidyaPick,
+    setAvidyaPick,
     setOpenPile,
     choreo,
     camera,
@@ -128,6 +131,7 @@ export function BattleScreen() {
     setSelectedUid(null);
     resetHandHover();
     setHandAction(null);
+    setAvidyaPick(null);
     setOpenPile(null);
     setSettingsOpen(false);
   }, [battleSeq]);
@@ -157,6 +161,33 @@ export function BattleScreen() {
     if (battle?.pendingChoice?.kind === "recoverFromDiscard") setOpenPile("discard");
   }, [battle?.pendingChoice]);
 
+  useEffect(() => {
+    if (battle?.pendingChoice?.kind === "pickHandCard") showBattleToast("请选择一张手牌");
+  }, [battle?.pendingChoice]);
+
+  useEffect(() => {
+    if (!avidyaPick) return;
+    const cancel = () => {
+      setAvidyaPick(null);
+      setHandAction(null);
+      resetHandHover();
+      showBattleToast("已取消出牌");
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") cancel();
+    };
+    const onContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+      cancel();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("contextmenu", onContextMenu);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("contextmenu", onContextMenu);
+    };
+  }, [avidyaPick]);
+
   if (!battle) return <div className={s.loading}>加载中…</div>;
 
   const isPlayerTurn = battle.phase === "player";
@@ -173,6 +204,7 @@ export function BattleScreen() {
     : null;
   const placements = getEncounter(battle.encounterId).enemies.map(slotPlacement);
   const playerActing = !!choreo.attackerId && battle.playerIds.includes(choreo.attackerId);
+  const handDisplayAction = avidyaPick || battle.pendingChoice?.kind === "pickHandCard" ? "choose" : handAction;
 
   return (
     <div className={s["battle-viewport"]} ref={viewportRef} style={viewportStyle}>
@@ -231,6 +263,7 @@ export function BattleScreen() {
         <BattleHudDock
           battle={battle}
           handAction={handAction}
+          handDisplayAction={handDisplayAction}
           setHandAction={setHandAction}
           setSelectedUid={setSelectedUid}
           isPlayerTurn={isPlayerTurn}

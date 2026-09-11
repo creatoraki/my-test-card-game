@@ -66,9 +66,9 @@ import redCrystalArt from "@/assets/道具/材料/通用材料/红色水晶.png"
 import neonTubeArt from "@/assets/道具/材料/废弃楼层/霓虹灯管.png";
 import compactedBlockArt from "@/assets/道具/材料/废弃楼层/压缩废块.png";
 import salvageCoreArt from "@/assets/道具/材料/废弃楼层/拾荒核心.png";
-import bronzeBearArt from "@/assets/道具/换金物/铜质小熊.png";
-import silverBearArt from "@/assets/道具/换金物/银质小熊.png";
-import goldenBearArt from "@/assets/道具/换金物/金质小熊.png";
+import copperCoinArt from "@/assets/道具/换金物/铜币.png";
+import silverCoinArt from "@/assets/道具/换金物/银币.png";
+import goldCoinArt from "@/assets/道具/换金物/金币.png";
 import relicPlaceholderArt from "@/assets/占位素材.png";
 import blackIronNailArt from "@/assets/遗物/黑铁钉.png";
 import pendulumArt from "@/assets/遗物/钟摆.png";
@@ -311,9 +311,9 @@ const RegionalTierIcon = ({ tier }: { tier: RegionalTier }) => (
 );
 
 const SCRAP_ART: Record<string, string> = {
-  "bronze-bear": bronzeBearArt,
-  "silver-bear": silverBearArt,
-  "golden-bear": goldenBearArt,
+  "copper-coin": copperCoinArt,
+  "silver-coin": silverCoinArt,
+  "gold-coin": goldCoinArt,
 };
 
 const RELIC_ART: Record<string, string> = {

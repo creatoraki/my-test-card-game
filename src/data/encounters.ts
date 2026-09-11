@@ -86,6 +86,16 @@ const T2_CURRENT = [
   placeEnemy("sweep-drone", { dx: 150, scale: 1.1, flip: true }),
 ];
 
+const T2_DUO_CRUSH = [
+  placeEnemy("sweep-drone", { dx: -100, scale: 1.1 }),
+  placeEnemy("sweep-drone", { dx: 100, scale: 1.1, flip: true }),
+];
+
+const T2_DUO_TORCH = [
+  placeEnemy("maintenance-spider", { dx: -100, dy: SPIDER_DY, scale: 1.1 }),
+  placeEnemy("traffic-light-bot", { dx: 100, flip: true }),
+];
+
 const T3_PATROL = [
   placeEnemy("maintenance-spider", { dx: -150, dy: SPIDER_DY, scale: 1.1 }),
   placeEnemy("sweep-drone", { scale: 1.1 }),
@@ -190,6 +200,8 @@ export const ENCOUNTERS: EncounterDef[] = [
   { id: "n-t2-crew", name: "清运班组", enemies: T2_CREW },
   { id: "n-t2-beacon", name: "巡回信标", enemies: T2_BEACON },
   { id: "n-t2-current", name: "电涌信标", enemies: T2_CURRENT },
+  { id: "n-t2-duo-crush", name: "双机压实", enemies: T2_DUO_CRUSH },
+  { id: "n-t2-duo-torch", name: "焊修路障", enemies: T2_DUO_TORCH },
   { id: "n-t3-patrol", name: "维修巡线", enemies: T3_PATROL },
   { id: "n-t3-blockade", name: "路口封锁", enemies: T3_BLOCKADE },
   { id: "n-t3-swarm", name: "群浮拦截", enemies: T3_SWARM },

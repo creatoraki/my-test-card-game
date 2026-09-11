@@ -41,7 +41,8 @@ export type CounterSource =
   | "lastConsumedStatusStacks"
   | "lastRemovedStatusCount"
   | "activeCardResonance"
-  | "partyInsuranceStacks";
+  | "partyInsuranceStacks"
+  | "discardPileTens";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -125,7 +126,10 @@ export type EffectType =
   | "SPREAD_STATUS"
   | "TICK_STATUS"
   | "RESONATE"
-  | "SETTLE_INSURANCE";
+  | "SETTLE_INSURANCE"
+  | "TRANSFORM_CARD"
+  | "COPY_CARD_TO_HAND"
+  | "CHOOSE_HAND_CARD";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -143,6 +147,7 @@ export interface EffectDescriptor {
   statusData?: Record<string, number>; // APPLY_STATUS: 状态的结构化运行时参数
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
+  setStacks?: boolean; // APPLY_STATUS: 覆盖已有层数，0 层时移除
   maxStacks?: number; // CONSUME_STATUS: 单次最多消耗的层数
   stacksFromStat?: { stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 层数 = 施法者属性 × 倍率
   spreadPct?: number; // SPREAD_STATUS: 复制给其他目标的状态层数比例
@@ -178,6 +183,8 @@ export interface EffectDescriptor {
   bonusMultiplierPerSelfStack?: number; // DAMAGE: 每 1 层本卡实例累计(state.activeCardStacks)加算的倍率
   onKill?: EffectDescriptor[]; // DAMAGE: 本次效果把某个目标打死时结算一次(主目标 = 被击杀者)
   onKillOnce?: boolean;
+  onHit?: EffectDescriptor[]; // DAMAGE: 本次至少命中一个目标时结算一次
+  randomPerHit?: boolean; // DAMAGE: randomFoe 每段重新选择目标
   pctOfCurrentHp?: number; // LOSE_HP: 按目标当前生命的比例失去生命(0.1 = 10%)
   cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
@@ -203,6 +210,9 @@ export interface EffectDescriptor {
   // MARK_CARDS: 手牌选择方式。eventCard = 触发本次被动的那张牌(state.passiveEventCardUid)。
   markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard";
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
+  recoverMark?: string; // RECOVER_FROM_DISCARD: 回收的牌附加标记
+  handChoiceAction?: "moveToBottom" | "noto"; // CHOOSE_HAND_CARD: 选牌后的动作
+  followUp?: EffectDescriptor[]; // CHOOSE_HAND_CARD: 选牌后的后续效果
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal" | "handAllFast"; // CONVERT_CARD_TYPE: 手牌普通牌随机 / 全部速攻牌
   squadBuff?: "assembleA" | "assembleB" | "assembleC" | "assembleD";
@@ -265,6 +275,8 @@ export interface CardDef {
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
   starPay?: boolean; // 应星: 可用星辉替代法力水晶
   temporary?: boolean; // 临时卡: 仅战斗内生成, 不进入抽卡池
+  playReturn?: { when: "fastPlaysThisRound"; atLeast: number; costDelta: number };
+  voidCard?: boolean; // 回合结束自动从手牌移入消耗堆
   costRule?: {
     when: "discardedThisRound" | "fastPlaysThisRound";
     threshold?: number;
@@ -291,7 +303,8 @@ export type PassiveTriggerId =
   | "roundEnd"
   | "enemyKilled"
   | "assembleSuccess"
-  | "allyAttacked";
+  | "allyAttacked"
+  | "roundStart";
 
 export interface PassiveDef {
   on: PassiveTriggerId | PassiveTriggerId[];
@@ -346,6 +359,8 @@ export interface Card extends CardDef {
   // 磁化护符的被动牌保留回合数。0 / 缺省表示按普通规则回收。
   holdRounds?: number;
   resonanceStacks?: number; // 手牌内共鸣强化次数; 离手后清零
+  costStacks?: number; // 雷走回手累计费用加成; 真正进弃牌堆后清零
+  notoPending?: boolean; // 纳刀待取回标记
   marks?: string[];
   cultivateLeft?: number;
   discardStacks?: number; // returnToHand 类弃牌触发的累计层数; 打出后清零
@@ -357,6 +372,14 @@ export type PendingChoice =
       kind: "recoverFromDiscard";
       sourceCardUid: string;
       count: number;
+      recoverMark?: string;
+    }
+  | {
+      kind: "pickHandCard";
+      sourceCardUid: string;
+      ownerCharId: string;
+      action: "moveToBottom" | "noto";
+      followUp?: EffectDescriptor[];
     }
   | {
       kind: "pickSquadBuff";
@@ -400,6 +423,7 @@ export interface DamageCtx {
   sourceId?: string;
   targetId: string;
   amount: number; // 在管线中被逐段修改
+  bonusPct: number; // 加算型增伤池，所有来源相加后一次性乘算
   flags: string[];
   isAttack: boolean;
   fixed: boolean; // 固定伤害: 不使用攻击力, 也不吃防御与格挡
@@ -422,6 +446,8 @@ export interface StatusHooks {
   onAfterAttacked?: (c: StatusCtx, dmg: DamageCtx) => void; // 荆棘等
   onShieldBroken?: (c: StatusCtx) => void; // 护盾被伤害击破时
   onRoundStart?: (c: StatusCtx) => void; // 我方回合开始(抽牌之前)
+  onCardDiscarded?: (c: StatusCtx, cardUid: string) => void;
+  onCardPlayed?: (c: StatusCtx, card: Card) => void;
   onExpire?: (c: StatusCtx) => void; // 状态在本次节拍后过期时触发一次
 }
 
@@ -630,6 +656,7 @@ export interface BattleState {
   lastDiscardBatchFast: number;
   lastRecoverBatchFast: number;
   pendingChoice: PendingChoice | null;
+  pendingDiscardPicks: string[];
   waterfallPlay: boolean;
   playValueBonusPct: number;
   // 本次出牌期间临时写进施放者面板的加成台账(PLAY_STAT_BONUS)。
@@ -640,6 +667,7 @@ export interface BattleState {
   activeCardStacks: number;
   // 当前结算卡的共鸣强化次数, 与 activeCardStacks 同生命周期。
   activeCardResonance: number;
+  activeCardUid: string | null;
   // 被动卡结算窗口内, 触发本次事件的那张牌 uid(供 markPick: "eventCard" 定位)。
   passiveEventCardUid: string | null;
   passiveEventTargetStatuses: StatusInstance[] | null;

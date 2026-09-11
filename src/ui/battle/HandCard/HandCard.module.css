@@ -80,6 +80,13 @@
   color: #ff626b;
   border-color: #ff626b;
 }
+.hc-action-choose {
+  width: 54px;
+  color: #ffe08a;
+  border-color: #ffe08a;
+  font-size: 18px;
+  font-weight: 700;
+}
 .hc-action svg {
   width: 20px;
   height: 20px;

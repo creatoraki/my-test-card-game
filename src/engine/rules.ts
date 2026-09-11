@@ -60,7 +60,7 @@ export const RULES = {
   combat: {
     enemyTempoPerAct: true, // 敌人状态是否按每次行动推进; false = 每回合首次行动前推进一次
     weakMultiplier: 0.7, // 虚弱: 造成攻击伤害 ×
-    sharpMultiplier: 1.1, // 锋利: 造成攻击伤害 ×
+    sharpBonusPct: 10, // 锋利: 加入统一的加算型增伤池
     vulnerableMultiplier: 1.5, // 易伤: 受到伤害 ×
     hunterMarkMultiplier: 1.2, // 猎人标记: 受到伤害 ×
     overloadDodgePerStack: 2, // 过载每层: 闪避 +2 个百分点

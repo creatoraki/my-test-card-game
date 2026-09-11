@@ -28,7 +28,7 @@ import {
   partyWaitLimit,
 } from "./stats";
 import { shuffle } from "./rng";
-import { applyStatus, checkEnd, log, ops } from "./ops";
+import { applyStatus, checkEnd, ctxFor, log, ops } from "./ops";
 import { STATUS_DEFS } from "./statuses";
 import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
 import { drawCards } from "./deck";
@@ -223,6 +223,7 @@ export function createBattle(
     lastDiscardBatchFast: 0,
     lastRecoverBatchFast: 0,
     pendingChoice: null,
+    pendingDiscardPicks: [],
     pendingAutoPlays: [],
     waterfallPlay: false,
     playValueBonusPct: 0,
@@ -230,6 +231,7 @@ export function createBattle(
     activeCardCost: null,
     activeCardStacks: 0,
     activeCardResonance: 0,
+    activeCardUid: null,
     passiveEventCardUid: null,
     passiveEventTargetStatuses: null,
     lastDiscardBatchCost: 0,
@@ -274,6 +276,24 @@ function runRoundStartHooks(state: BattleState): void {
   }
 }
 
+function recoverNotoCards(state: BattleState): void {
+  for (const card of Object.values(state.cards)) {
+    if (!card.notoPending) continue;
+    const canRecover = state.discard.includes(card.uid) && state.hand.length < partyHandLimit(state);
+    card.notoPending = false;
+    if (!canRecover) {
+      log(state, `${card.name} 纳刀取回失败`);
+      continue;
+    }
+    state.discard = state.discard.filter((uid) => uid !== card.uid);
+    state.hand.push(card.uid);
+    card.marks ??= [];
+    if (!card.marks.includes("noto")) card.marks.push("noto");
+    resetCultivate(card);
+    log(state, `${card.name} 已从弃牌堆取回，进入纳刀状态`);
+  }
+}
+
 export function startRound(state: BattleState): void {
   state.round += 1;
   state.tick = RULES.timeline.startTick;
@@ -312,6 +332,8 @@ export function startRound(state: BattleState): void {
   const limit = partyHandLimit(state);
   const want = state.round === 1 ? partyOpeningDrawCount(state) : partyDrawCount(state);
   drawCards(state, Math.max(0, Math.min(want, limit - state.hand.length)));
+  firePassive(state, { type: "roundStart" });
+  recoverNotoCards(state);
   fireRelic(state, { type: "roundStart" });
   runRelicHook(state, "onRoundStart");
 
@@ -402,8 +424,11 @@ export function playCard(
   state: BattleState,
   uid: string,
   primaryId?: string,
-  rec?: PlayRecorder,
+  recOrOpts?: PlayRecorder | { discardPicks?: string[] },
+  options?: { discardPicks?: string[] },
 ): boolean {
+  const rec = recOrOpts && "steps" in recOrOpts ? recOrOpts : undefined;
+  const playOptions = recOrOpts && "discardPicks" in recOrOpts ? recOrOpts : options;
   if (!canPlay(state, uid)) return false;
   const card = state.cards[uid];
   const owner = state.combatants[card.ownerCharId];
@@ -420,6 +445,8 @@ export function playCard(
   if (starPayment > 0) applyStatus(state, owner.id, "starlight", -starPayment);
   state.resources[RULES.resource.name] -= manaPayment;
   state.hand = state.hand.filter((x) => x !== uid);
+  state.pendingDiscardPicks = [...(playOptions?.discardPicks ?? [])];
+  state.activeCardUid = uid;
   log(state, `${owner.emoji} ${owner.name} 打出 ${card.name}`);
   const discardRecorder = rec;
   const cardMissed = new Set<string>();
@@ -438,10 +465,14 @@ export function playCard(
       revertPlayStatMods(state);
       state.activeCardCost = faceCost;
       state.activeCardStacks = card.discardStacks ?? 0;
-      state.activeCardResonance = card.resonanceStacks ?? 0;
-      try {
-        runRelicHook(state, "beforeCardEffects", card, primaryId);
-        const cultivated = cultivateReady(card);
+        state.activeCardResonance = card.resonanceStacks ?? 0;
+        try {
+          runRelicHook(state, "beforeCardEffects", card, primaryId);
+          for (const markId of card.marks ?? []) {
+            const preEffects = CARD_MARK_DEFS[markId]?.preEffects;
+            if (preEffects?.length) mergeCardResolution(resolveEffects(state, preEffects, card.ownerCharId, primaryId));
+          }
+          const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
         const baseEffects = baseEffectsOf(card);
         mergeCardResolution(resolveEffects(state, baseEffects, card.ownerCharId, primaryId));
@@ -455,8 +486,16 @@ export function playCard(
           state.pendingChoice.sourceCardUid = uid;
         }
         resetCultivate(card);
+        const fastPlays = state.playedThisRound.filter((played) => played.cardType === "fast").length;
+        const returnsToHand = card.playReturn?.when === "fastPlaysThisRound" &&
+          fastPlays >= card.playReturn.atLeast &&
+          state.hand.length < partyHandLimit(state);
         if (card.exhaust) state.exhaust.push(uid);
-        else moveToDiscard(state, uid, "play");
+        else if (returnsToHand) {
+          state.hand.push(uid);
+          card.costStacks = (card.costStacks ?? 0) + 1;
+          log(state, `${card.name} 返回手牌，费用增加 ${card.playReturn?.costDelta ?? 0}`);
+        } else moveToDiscard(state, uid, "play");
 
         for (const ref of card.keywords ?? []) {
           const def = KEYWORD_DEFS[ref.id];
@@ -478,21 +517,30 @@ export function playCard(
           const mark = CARD_MARK_DEFS[markId];
           if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
         }
-        card.marks = [];
-        card.discardStacks = 0; // 累计层数只在"未打出"期间有效, 打出即清零
+        if (!returnsToHand) {
+          card.marks = [];
+          card.discardStacks = 0; // 累计层数只在"未打出"期间有效, 打出即清零
+        }
         card.resonanceStacks = 0;
         state.waterfallPlay = false;
         state.playValueBonusPct = 0;
         // ⚠ 必须在 flushAutoPlays 之前撤回: 自动出牌是另一张牌的结算, 不该继承本卡的临时面板。
         revertPlayStatMods(state);
         runRelicHook(state, "afterCardPlay", card);
+        const ownerStatuses = state.combatants[card.ownerCharId]?.statuses ?? [];
+        for (const inst of [...ownerStatuses])
+          STATUS_DEFS[inst.id]?.hooks?.onCardPlayed?.(ctxFor(state, card.ownerCharId, inst), card);
         if (rec) rec.cardMissedTargets = [...cardMissed].filter((id) => !cardHit.has(id));
         fireRelic(state, { type: "cardPlayed", targetId: primaryId }, rec);
+        // 无明只覆盖本张牌及其卡上标记；弃牌触发的自动出牌不应消费预选队列。
+        state.pendingDiscardPicks = [];
         flushAutoPlays(state, rec);
       } finally {
         state.activeCardCost = null;
         state.activeCardStacks = 0;
         state.activeCardResonance = 0;
+        state.activeCardUid = null;
+        state.pendingDiscardPicks = [];
       }
     });
   });
@@ -563,6 +611,13 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     runRelicHook(state, "onRoundEnd");
     // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
     recycleHandPassives(state, rec);
+    for (const uid of [...state.hand]) {
+      const card = state.cards[uid];
+      if (!card?.voidCard) continue;
+      state.hand = state.hand.filter((handUid) => handUid !== uid);
+      if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+      log(state, `${card.name} 因虚无进入消耗堆`);
+    }
     flushAutoPlays(state, rec);
     runEnemyFlee(state, rec);
     if (state.phase !== "player") return;
@@ -580,12 +635,31 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     log(state, `获得 ${uid}`);
     return true;
   }
+  if (choice.kind === "pickHandCard") {
+    if (!state.hand.includes(uid)) return false;
+    const card = state.cards[uid];
+    state.pendingChoice = null;
+    if (choice.action === "moveToBottom") {
+      state.hand = state.hand.filter((handUid) => handUid !== uid);
+      state.hand.push(uid);
+    } else {
+      if (card) card.notoPending = true;
+      ops.discard(state, uid, "effect");
+    }
+    if (choice.followUp?.length) resolveEffects(state, choice.followUp, choice.ownerCharId, undefined);
+    log(state, `${card?.name ?? "卡牌"} 已完成选择操作`);
+    return true;
+  }
   if (!state.discard.includes(uid) || state.hand.length >= partyHandLimit(state)) return false;
 
   state.discard = state.discard.filter((id) => id !== uid);
   state.hand.push(uid);
   const card = state.cards[uid];
   if (card) resetCultivate(card);
+  if (card && choice.recoverMark) {
+    card.marks ??= [];
+    if (!card.marks.includes(choice.recoverMark)) card.marks.push(choice.recoverMark);
+  }
   if (choice.count > 1) choice.count -= 1;
   else state.pendingChoice = null;
   log(state, `${card?.name ?? "卡牌"} 已从弃牌堆回到手牌`);
@@ -594,6 +668,7 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
 
 export function cancelPendingChoice(state: BattleState): boolean {
   if (!state.pendingChoice) return false;
+  if (state.pendingChoice.kind === "pickHandCard") return false;
   state.pendingChoice = null;
   log(state, "放弃当前选择");
   return true;

@@ -80,6 +80,7 @@ export { growInsurance, insuranceStacksOf, partyInsuranceStacks, settleInsurance
 export { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 export { moveToDiscard } from "./discard";
 export { isPassive, playableHandUids, handPassiveUids } from "./passive";
+export { avidyaPickCount } from "./handChoice";
 export { RELIC_TRIGGERS, fireRelic } from "./relics";
 export { RELIC_BEHAVIORS, runRelicHook } from "./relicBehaviors";
 export type { RelicBehavior, RelicBehaviorContext } from "./relicBehaviors";

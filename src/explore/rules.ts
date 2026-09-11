@@ -71,28 +71,30 @@ export const EXPLORE_RULES = {
   energyPerBattleRound: 1,
 
   // ── 推进战斗档位权重(设计文档 §3.1) ──
-  // index = 轮次 - 1。每关在相邻档位间等概率随机, 第 1 关固定 t1, 第 6 关固定 t5。
+  // index = 轮次 - 1。按层数加权抽取以形成难度爬升; 第 5 层是 BOSS 前的缓冲轮,
+  // 压力有意低于第 4 层, 第 1 层固定 t1, 第 6 层固定 t5。
   // 本轮生成时只抽一次, 结果写入 ExploreState.roundBattleTier。
   battleTierWeights: [
-    [{ tier: "t1", weight: 1 }],
+    [{ tier: "t1", weight: 100 }],
     [
-      { tier: "t1", weight: 1 },
-      { tier: "t2", weight: 1 },
+      { tier: "t1", weight: 30 },
+      { tier: "t2", weight: 70 },
     ],
     [
-      { tier: "t2", weight: 1 },
-      { tier: "t3", weight: 1 },
+      { tier: "t2", weight: 40 },
+      { tier: "t3", weight: 60 },
     ],
     [
-      { tier: "t2", weight: 1 },
-      { tier: "t3", weight: 1 },
-      { tier: "t4", weight: 1 },
+      { tier: "t2", weight: 30 },
+      { tier: "t3", weight: 30 },
+      { tier: "t4", weight: 40 },
     ],
     [
-      { tier: "t3", weight: 1 },
-      { tier: "t4", weight: 1 },
+      { tier: "t2", weight: 50 },
+      { tier: "t3", weight: 30 },
+      { tier: "t4", weight: 20 },
     ],
-    [{ tier: "t5", weight: 1 }],
+    [{ tier: "t5", weight: 100 }],
   ] as readonly { tier: BattleTier; weight: number }[][],
   nodeBattleTierWeights: [
     { tier: "t1", weight: 60 },

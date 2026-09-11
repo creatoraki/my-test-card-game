@@ -34,6 +34,12 @@ export interface MapDef {
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
   /** 覆盖全局档位权重; 下标 = 轮次 - 1, 越界时沿用最后一档。 */
   battleTierByRound?: readonly BattleTier[];
+  /**
+   * 固定「推进战斗」的遭遇战; 下标 = 轮次 - 1, null / 越界 = 该轮仍按档位随机抽。
+   * ★ 只作用于轮末推进战斗 —— 节点战斗(战斗签)照旧从 battleEncounters 随机抽;
+   *   被固定的轮次同时跳过宝箱怪替换, 目前只有教学关用得上。
+   */
+  battleEncounterByRound?: readonly (string | null)[];
   /** 需要先通关这张地图才开放。 */
   requiresClear?: string;
   /** 内容未就绪, 一律锁死。 */
@@ -60,6 +66,9 @@ export const MAPS: MapDef[] = [
       t5: ["n-t5-boss"],
     },
     battleTierByRound: ["t1", "t1", "t2"],
+    // 前两场推进战斗固定成两套不同的双敌人配置: 先「收音机 + 红绿灯」认识增益与限行,
+    // 再「收音机 + 维修蜘蛛」认识灼烧; 第 3 轮交还给 t2 随机池。
+    battleEncounterByRound: ["tut-t1-intro", "tut-t1-scout", null],
     startingEnergy: 100,
   },
   {
@@ -73,7 +82,7 @@ export const MAPS: MapDef[] = [
     eventPoolId: "ruined-floor",
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift"],
-      t2: ["n-t2-crew", "n-t2-beacon", "n-t2-current"],
+      t2: ["n-t2-crew", "n-t2-beacon", "n-t2-current", "n-t2-duo-crush", "n-t2-duo-torch"],
       t3: ["n-t3-patrol", "n-t3-blockade", "n-t3-swarm"],
       t4: ["n-t4-patrol", "n-t4-blockade", "n-t4-elite-guard", "n-t4-compactor", "n-t4-storm"],
       t5: ["n-t5-boss"],

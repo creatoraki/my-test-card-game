@@ -17,7 +17,7 @@ const blessing = (
 
 export const BASIC_BLESSING_RELIC_DEFS: ItemDef[] = [
   blessing("relic-warm-match", "余温火柴", "当手牌只剩一张卡牌时，该卡的攻击力与治愈力 +30。", { scope: "battle" }),
-  blessing("relic-lucky-copper", "幸运铜币", "战斗胜利时有 20% 几率额外掉落一枚值钱的铜币。", { scope: "explore" }),
+  blessing("relic-lucky-copper", "幸运铜币", "战斗胜利时有 20% 几率额外掉落一枚铜币。", { scope: "explore" }),
   blessing("relic-whetstone", "磨刀石", "每回合第一张攻击卡造成的实际伤害 +3。", { scope: "battle" }),
   blessing(
     "relic-hunter-eye",

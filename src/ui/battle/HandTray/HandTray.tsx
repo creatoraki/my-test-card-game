@@ -5,6 +5,8 @@ import { HandCard } from "@/ui/battle/HandCard";
 import type { HandAction } from "@/ui/battle/HandTools";
 import s from "./HandTray.module.css";
 
+type HandDisplayAction = HandAction | "choose";
+
 interface RenderHandEntry {
   card: Card;
   leaving: boolean;
@@ -17,7 +19,7 @@ interface Props {
   battle: BattleState;
   discardingUids: Set<string>;
   isPlayerTurn: boolean;
-  handAction: HandAction;
+  handAction: HandDisplayAction;
   selectedUid: string | null;
   playingOutUid: string | null;
   onCardClick: (uid: string) => void;
@@ -42,13 +44,17 @@ export const HandTray = memo(function HandTray({
       <div className={s["hand-tray"]} data-hand-tray data-hand-action={handAction ?? undefined}>
         <span className={s["hand-tray-rail"]} aria-hidden="true" />
         {renderHand.length === 0 && battle.hand.length === 0 && (
-          <div className={s["empty-hand"]}>NO CARDS</div>
+          <div className={s["empty-hand"]}>暂无手牌</div>
         )}
         {renderHand.map((entry) => {
           const { card } = entry;
           const leaving = entry.leaving || card.uid === playingOutUid;
           const purged = entry.purged;
-          const block = leaving || !isPlayerTurn ? "other" : playBlockReason(battle, card.uid);
+          const block = leaving || !isPlayerTurn
+            ? "other"
+            : handAction === "choose"
+              ? null
+              : playBlockReason(battle, card.uid);
           return (
             <HandCard
               key={card.uid}

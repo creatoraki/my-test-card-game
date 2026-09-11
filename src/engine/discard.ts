@@ -23,6 +23,9 @@ import { cardCost } from "./cost";
 import { partyHandLimit } from "./stats";
 import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } from "./cardFx";
 import { firePassive } from "./passive";
+import { STATUS_DEFS } from "./statuses";
+import { ctxFor } from "./ops";
+import { CARD_MARK_DEFS } from "./cardMarks";
 
 export { withDiscardRecorder, takeDiscardSnapshot } from "./cardFx";
 
@@ -70,7 +73,8 @@ export function moveToDiscard(
   if (wasInHand && card) {
     resetCultivate(card);
     card.resonanceStacks = 0;
-    card.marks = card.marks?.filter((mark) => mark !== "heavy");
+    card.marks = card.marks?.filter((mark) => mark !== "heavy" && mark !== "noto");
+    card.costStacks = 0;
   }
   const rule = RULES.discard.reasons[reason];
   if (rule.count) {
@@ -80,6 +84,22 @@ export function moveToDiscard(
   const trigger = card?.onDiscard;
   const triggerable = card != null && trigger != null &&
     (rule.trigger || (reason === "roundEnd" && trigger.alsoOnRoundEnd));
+
+  if (card && rule.trigger && card.marks?.length) {
+    const previousEventUid = state.passiveEventCardUid;
+    const previousTargetStatuses = state.passiveEventTargetStatuses;
+    state.passiveEventCardUid = card.uid;
+    state.passiveEventTargetStatuses = null;
+    try {
+      for (const markId of card.marks) {
+        const effects = CARD_MARK_DEFS[markId]?.onDiscardEffects;
+        if (effects?.length) resolveDiscardEffects(state, card, effects, rec);
+      }
+    } finally {
+      state.passiveEventCardUid = previousEventUid;
+      state.passiveEventTargetStatuses = previousTargetStatuses;
+    }
+  }
 
   if (card && triggerable && trigger) {
     if (trigger.mode === "useSelf") state.pendingAutoPlays.push(uid);
@@ -100,7 +120,15 @@ export function moveToDiscard(
 
   // ★ 被动卡的「每丢弃一张卡牌」只认真正的弃牌动作(manual / effect / cost),
   //   换牌、打出、回合结束回收都不是弃牌 ⇒ 与 rule.count 同一口径。
-  if (rule.count) firePassive(state, { type: "cardDiscarded", cardUid: uid }, rec);
+  if (rule.count) {
+    for (const allyId of state.playerIds) {
+      const ally = state.combatants[allyId];
+      if (!ally?.alive) continue;
+      for (const inst of [...ally.statuses])
+        STATUS_DEFS[inst.id]?.hooks?.onCardDiscarded?.(ctxFor(state, allyId, inst), uid);
+    }
+    firePassive(state, { type: "cardDiscarded", cardUid: uid }, rec);
+  }
 }
 
 function resolveDiscardEffects(

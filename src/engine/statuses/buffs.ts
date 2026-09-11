@@ -85,10 +85,10 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     maxStacks: 1,
     stackMode: "max",
     refreshMode: "override",
-    desc: `造成的攻击伤害 ×${RULES.combat.sharpMultiplier}。持续指定拍数。`,
+    desc: `造成的攻击伤害 +${RULES.combat.sharpBonusPct}%。持续指定拍数。`,
     hooks: {
       modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
-        if (dmg.isAttack) dmg.amount *= RULES.combat.sharpMultiplier;
+        if (dmg.isAttack) dmg.bonusPct += RULES.combat.sharpBonusPct;
       },
     },
   },
