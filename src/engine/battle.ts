@@ -586,16 +586,27 @@ export function playCard(
 // ---------------------------------------------------------------------------
 // 结束回合
 // ---------------------------------------------------------------------------
-// 我方拍点(DOT/HOT)。带记录器时逐个单位录一帧, 让掉血/回血逐个演出而不是数字突变。
+// 我方拍点(DOT/HOT)。带记录器时先结算全队, 再按掉血/回血各录一帧。
 function runAllyTempoRecorded(state: BattleState, rec?: FxRecorder): void {
   if (!rec) {
     runAllyTempo(state);
     return;
   }
+  const hits: AnimHit[] = [];
   for (const id of allyTempoIds(state)) {
     if (!state.combatants[id]?.alive) continue;
-    const hits = withHitRecorder(() => runOwnerTempo(state, id));
-    if (hits.length) rec.steps.push({ kind: "tempo", ownerId: id, hits, snapshot: structuredClone(state) });
+    hits.push(...withHitRecorder(() => runOwnerTempo(state, id)));
+  }
+  if (!hits.length) return;
+
+  const snapshot = structuredClone(state);
+  const hurtHits = hits.filter((hit) => hit.hpDelta > 0);
+  if (hurtHits.length) {
+    rec.steps.push({ kind: "tempo", ownerId: hurtHits[0].id, hits: hurtHits, snapshot });
+  }
+  const healHits = hits.filter((hit) => hit.hpDelta <= 0);
+  if (healHits.length) {
+    rec.steps.push({ kind: "tempo", ownerId: healHits[0].id, hits: healHits, snapshot });
   }
 }
 

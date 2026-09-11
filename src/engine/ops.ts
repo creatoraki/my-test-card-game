@@ -366,6 +366,7 @@ export function applyStatus(
   sourceId?: string,
 ): void {
   const t = state.combatants[targetId];
+  stacks = Math.trunc(stacks); // 层数只允许整数: 舍去小数部分(0.9 层 ⇒ 不施加)
   if (!t || !t.alive || stacks === 0) return;
   const def = STATUS_DEFS[statusId];
 

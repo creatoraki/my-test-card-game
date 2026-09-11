@@ -819,7 +819,7 @@ export interface DiscardTriggerFx {
   snapshot: BattleState;
 }
 
-// 拍点(DOT/HOT)结算单独成一帧 —— 敌人在出招**之前**先掉毒血, 我方在回合结束逐个结算。
+// 拍点(DOT/HOT)结算单独成一帧 —— 敌人在出招**之前**先掉毒血, 我方在回合结束统一结算。
 // 合进行动帧的话飘字会挤在招式命中之后, 玩家看不出"先中毒再挥拳"的先后。
 export interface TempoFx {
   ownerId: string; // 结算拍点的单位

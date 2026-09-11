@@ -26,6 +26,15 @@ function killed(step: ChoreoStep, before: BattleState | undefined): boolean {
   return step.hits.some((hit) => before.combatants[hit.id]?.alive && !step.snapshot.combatants[hit.id]?.alive);
 }
 
+function focusIdsOf(step: ChoreoStep, initial: BattleState | undefined): string[] {
+  const enemyFocusIds = step.hits
+    .map((hit) => hit.id)
+    .filter((id) => initial?.enemyIds.includes(id));
+  if (enemyFocusIds.length) return enemyFocusIds;
+  if (step.kind === "tempo") return step.hits.map((hit) => hit.id);
+  return [step.actorId];
+}
+
 export function choreograph(steps: ChoreoStep[], initial: BattleState | undefined): ShotPlan[] {
   return steps.map((step, index) => {
     if (step.kind === "reveal") {
@@ -35,7 +44,7 @@ export function choreograph(steps: ChoreoStep[], initial: BattleState | undefine
     const stageFocusIds = step.hits
       .map((hit) => hit.id)
       .filter((id) => initial?.enemyIds.includes(id));
-    const focusIds = stageFocusIds.length ? stageFocusIds : [step.actorId];
+    const focusIds = focusIdsOf(step, initial);
     const ratios = step.hits.map((hit) => {
       const target = initial?.combatants[hit.id] ?? step.snapshot.combatants[hit.id];
       return target?.maxHp ? hit.hpDelta / target.maxHp : 0;
@@ -50,10 +59,7 @@ export function choreograph(steps: ChoreoStep[], initial: BattleState | undefine
       actorIsEnemy: initial?.enemyIds.includes(step.actorId) ?? false,
     });
     const previous = index > 0 ? steps[index - 1] : undefined;
-    const previousFocusIds = previous
-      ? previous.hits.map((hit) => hit.id).filter((id) => initial?.enemyIds.includes(id))
-      : [];
-    const previousFocus = previousFocusIds.length ? previousFocusIds : previous ? [previous.actorId] : [];
+    const previousFocus = previous ? focusIdsOf(previous, initial) : [];
     const keepCamera = previousFocus.length === focusIds.length && previousFocus.every((id) => focusIds.includes(id));
     return { step, preset, targetIds, focusIds, keepCamera };
   });
