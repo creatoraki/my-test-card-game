@@ -180,6 +180,7 @@ export interface TownStore {
   recordSortieRelics: (ids: string[]) => void;
   bankLoot: (amount: number) => void; // 远征结束落袋
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
+  depositHaul: (stacks: ItemStack[]) => number; // 远征收尾: 换金物折积分, 其余入仓; 返回售出总额
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
   withdraw: (uid: string) => ItemStack | null; // 出击准备: 把一整堆从仓库取出交给调用方
   sellItem: (uid: string) => void; // 回收台: 按统一售价函数出售换居民积分
@@ -594,6 +595,31 @@ export const useTownStore = create<TownStore>()(
         const value = sellPriceOf(getItemDef(st.itemId), techTree.levels);
         if (!value) return;
         set({ storage: removeByUid(storage, uid), loot: loot + value * st.count });
+      },
+
+      // 远征收尾的落袋出口。★「换金物回城即变现」的唯一真相点 ——
+      // 换金物(scrap)带回据点后本来就只有「去回收台卖掉」一条路, 所以这里直接按回收台
+      // 同一套 sellPriceOf 折成居民积分(科技树的回收溢价照吃), 不再进仓库让玩家一枚枚去点;
+      // 其余物资(装备/材料/水晶/遗物/消耗品)照旧入仓。
+      // ⚠ 与 deposit 分成两个出口是刻意的: 出击准备把未出发的物资退回仓库走的是 deposit,
+      //   那条路径不该触发售出。
+      // ⚠ 漏填 sellValue 的换金物(折算下来是 0)一律照常入仓 —— 绝不让物品凭空消失。
+      depositHaul: (stacks) => {
+        if (!stacks.length) return 0; // 幂等护栏, 同 deposit
+        const { techTree } = get();
+        let sold = 0;
+        const kept: ItemStack[] = [];
+        for (const st of stacks) {
+          const def = getItemDef(st.itemId);
+          const value = def.category === "scrap" ? sellPriceOf(def, techTree.levels) : 0;
+          if (value > 0) sold += value * st.count;
+          else kept.push({ ...st });
+        }
+        set({
+          storage: kept.length ? [...get().storage, ...kept] : get().storage,
+          loot: get().loot + sold,
+        });
+        return sold;
       },
 
       // ---- 三装备槽(《物品设计.md》第二章) ----

@@ -47,7 +47,15 @@ export function useGrowthActions(charId: string) {
     }
     setSelectedUid(null);
     setPage("draw");
-    setNotice("请选择一张卡牌加入卡组");
+    setNotice("");
+  }
+
+  function discardDraw() {
+    if (!cs?.pendingDraw || timer.current != null) return;
+    useTownStore.getState().cancelDraw(charId);
+    setPage("hub");
+    setSelectedUid(null);
+    feedback("已放弃本次候选，经验不退还");
   }
 
   function openRemove() {
@@ -87,5 +95,5 @@ export function useGrowthActions(charId: string) {
     setSelectedUid(null);
   }
 
-  return { cs, model, page, candidates, selectedUid, setSelectedUid, notice, busy, chances, nextChances, goBack, openDraw, openRemove, upgrade, confirmSelection };
+  return { cs, model, page, candidates, selectedUid, setSelectedUid, notice, busy, chances, nextChances, goBack, openDraw, discardDraw, openRemove, upgrade, confirmSelection };
 }

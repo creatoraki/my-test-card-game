@@ -1,5 +1,5 @@
 .layer { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center; font-size: 18px; }
-.scrim { position: absolute; inset: 0; background: #020711ce; }
+.scrim { position: absolute; inset: 0; background: #020711ce; animation: growthScrimIn var(--mr-bar-ms) ease-out both; }
 .panel {
   position: relative;
   display: flex;
@@ -9,9 +9,12 @@
   padding: 24px 34px 28px;
   color: #deecff;
   background: repeating-linear-gradient(130deg, transparent 0 140px, #3473ca0a 141px 180px, transparent 181px 240px), linear-gradient(145deg, #122b50, #07152e 46%, #10234a);
-  clip-path: polygon(42px 0, calc(100% - 42px) 0, 100% 42px, 100% calc(100% - 42px), calc(100% - 42px) 100%, 42px 100%, 0 calc(100% - 42px), 0 42px);
-  animation: growthIn 240ms ease-out;
+  clip-path: inset(0);
+  transform-origin: center;
+  animation: growthIn calc(var(--mr-bar-ms) + var(--mr-reveal-ms)) var(--mr-ease-pop) both;
 }
+.panel[data-closing="true"] { animation: growthOut var(--mr-close-ms) var(--mr-ease-pop) forwards; }
+.scrim[data-closing="true"] { animation: growthScrimOut var(--mr-close-ms) ease-in both; }
 .frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .frameGlow { stroke: #354dff; stroke-width: 12; opacity: .4; }
 .frameLine { stroke: #8abaff; stroke-width: 2.5; }
@@ -23,7 +26,8 @@
 .close { display: grid; place-items: center; width: 80px; height: 68px; margin-left: 28px; padding: 0; border: 0; background: transparent; color: #e3ddff; font-size: 72px; font-weight: 400; line-height: 1; clip-path: none; text-shadow: 0 0 12px #734cff; }
 .close:hover:not(:disabled) { background: #4267a730; }
 .close:focus-visible { outline: 2px solid #b9ddff; outline-offset: -4px; }
-.content { display: flex; flex-direction: column; flex: 1; min-height: 0; padding-top: 20px; gap: 20px; }
+.content { display: flex; flex-direction: column; flex: 1; min-height: 0; padding-top: 20px; gap: 20px; opacity: 0; animation: growthContentIn 360ms ease-out var(--mr-bar-ms) both; }
+.panel[data-closing="true"] .content { animation: growthContentOut var(--mr-close-ms) ease-in both; }
 .viewport { flex: 1; min-height: 0; overflow: hidden; margin: -12px; padding: 12px; }
 .track { display: flex; height: 100%; transition: transform 320ms cubic-bezier(.22,.72,.25,1); }
 .track[data-detail="true"] { transform: translateX(-100%); }
@@ -31,4 +35,15 @@
 .home { display: grid; grid-template-columns: 1fr 1.08fr 1fr; gap: 22px; }
 .detail { padding-left: 24px; padding-right: 12px; }
 .status { min-height: 27px; color: #abcdf3; text-align: center; font-size: 18px; line-height: 27px; }
-@keyframes growthIn { from { opacity: 0; transform: translateY(14px) scale(.985); } }
+@keyframes growthScrimIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes growthScrimOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes growthIn {
+  from { clip-path: inset(50% 0); opacity: .72; transform: scaleY(.86); }
+  to { clip-path: inset(0); opacity: 1; transform: scaleY(1); }
+}
+@keyframes growthOut {
+  from { clip-path: inset(0); opacity: 1; transform: scaleY(1); }
+  to { clip-path: inset(50% 0); opacity: .72; transform: scaleY(.86); }
+}
+@keyframes growthContentIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes growthContentOut { from { opacity: 1; } to { opacity: 0; } }

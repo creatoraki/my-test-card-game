@@ -3,9 +3,9 @@
 .cost { composes: cost from "./styles/growthKit.module.css"; }
 .note { composes: note from "./styles/growthKit.module.css"; }
 .action { composes: action from "./styles/growthKit.module.css"; }
-.column[data-mode="draw"] .action { background: linear-gradient(130deg, #e8f8ff, #9ad5ff 55%, #e4edff); color: #0b2353; text-shadow: none; box-shadow: inset 0 0 0 5px #edfaff75, 0 0 16px #57a6ff75; }
-.column[data-mode="remove"] .action { background: linear-gradient(130deg, #f96589, #c8224d 45%, #871335 80%, #fa517c); box-shadow: inset 0 0 0 5px #ff9aaf55, inset 0 0 18px #f979ae, 0 0 16px #ff376770; }
-.stage { display: grid; flex: 1; min-height: 0; place-items: center; overflow: hidden; padding: 10px 0; }
+.column[data-mode="draw"] .action { --hold-fill: #5daeff; background: linear-gradient(130deg, #e8f8ff, #9ad5ff 55%, #e4edff); color: #0b2353; text-shadow: none; box-shadow: inset 0 0 0 5px #edfaff75, 0 0 16px #57a6ff75; }
+.column[data-mode="remove"] .action { --hold-fill: #d52d58; background: linear-gradient(130deg, #f96589, #c8224d 45%, #871335 80%, #fa517c); box-shadow: inset 0 0 0 5px #ff9aaf55, inset 0 0 18px #f979ae, 0 0 16px #ff376770; }
+.stage { --deck-card-scale: .9; display: grid; flex: 1; min-height: 0; place-items: center; overflow: hidden; padding: 10px 0; }
 .badge { align-self: center; padding: 8px 20px; border: 1px solid #ad82ed; background: linear-gradient(100deg, #181847, #52249d, #181847); color: #f0ddff; font-size: 20px; }
 .fan { position: relative; width: 420px; height: 350px; }
 .back { position: absolute; display: grid; place-content: center; justify-items: center; left: 92px; top: 14px; width: 225px; height: 310px; border: 3px solid #c9d6ff; border-radius: 14px 3px; background: repeating-linear-gradient(130deg, transparent 0 48px, #699dff16 49px 52px, transparent 53px 80px), linear-gradient(145deg, #325795, #0a1530 65%); box-shadow: inset 0 0 0 5px #577bd6, inset 0 0 0 9px #101d48, inset 0 0 24px #3153ac, 0 0 16px #677fff; }

@@ -1,0 +1,62 @@
+.button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+}
+
+.button::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: var(--hold-fill, currentColor);
+  content: "";
+  opacity: 0.3;
+  pointer-events: none;
+  transform: scaleX(var(--hold-progress, 0));
+  transform-origin: left center;
+}
+
+.button::before {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: #fff;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+}
+
+.button[data-holding="true"]:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 0 10px var(--hold-fill, currentColor), 0 0 26px var(--hold-fill, currentColor);
+  animation: holdButtonBreath 700ms ease-in-out infinite alternate;
+}
+
+.button[data-fired="true"]::before {
+  animation: holdButtonFlash 220ms ease-out both;
+}
+
+@keyframes holdButtonBreath {
+  from {
+    filter: brightness(1);
+    box-shadow: 0 0 10px var(--hold-fill, currentColor), 0 0 20px var(--hold-fill, currentColor);
+  }
+  to {
+    filter: brightness(1.16);
+    box-shadow: 0 0 16px var(--hold-fill, currentColor), 0 0 34px var(--hold-fill, currentColor);
+  }
+}
+
+@keyframes holdButtonFlash {
+  from { opacity: 0.78; }
+  to { opacity: 0; }
+}

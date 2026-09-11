@@ -1,6 +1,6 @@
 .column { composes: column from "./styles/growthKit.module.css"; }
 .heading { composes: heading from "./styles/growthKit.module.css"; }
-.action { composes: action from "./styles/growthKit.module.css"; }
+.action { composes: action from "./styles/growthKit.module.css"; --hold-fill: #8b52e8; }
 .cost { composes: cost from "./styles/growthKit.module.css"; }
 .note { composes: note from "./styles/growthKit.module.css"; }
 .levels { display: flex; align-items: center; justify-content: center; flex: 1; gap: 12px; padding: 8px 0; }

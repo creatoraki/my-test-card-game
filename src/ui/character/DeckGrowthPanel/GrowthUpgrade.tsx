@@ -1,5 +1,6 @@
 import type { Rarity } from "@/engine";
 import { ExpShardGlyph } from "@/ui/character/glyphs/deckGlyphs";
+import { HoldButton } from "@/ui/common/HoldButton";
 import { GrowthGlyph } from "./GrowthGlyph";
 import { GROWTH_RARITIES, percentage } from "./growthPresentation";
 import s from "./GrowthUpgrade.module.css";
@@ -33,7 +34,13 @@ export function GrowthUpgrade({ level, cost, current, next, disabled, reason, on
       </div>
       <div className={s.cost}><ExpShardGlyph /><span>升级消耗</span><strong>{cost ?? "已满级"}</strong>{cost != null && <span>经验</span>}</div>
       <p className={s.note}>{reason ?? "概率按当前可用卡池计算"}</p>
-      <button type="button" className={s.action} disabled={disabled} onClick={onUpgrade}><GrowthGlyph kind="upgrade" />{cost == null ? "已满级" : "升级"}</button>
+      {cost == null ? (
+        <button type="button" className={s.action} disabled={disabled}><GrowthGlyph kind="upgrade" />已满级</button>
+      ) : (
+        <HoldButton className={s.action} disabled={disabled} onComplete={onUpgrade} aria-label="长按升级">
+          <GrowthGlyph kind="upgrade" />长按升级
+        </HoldButton>
+      )}
     </section>
   );
 }

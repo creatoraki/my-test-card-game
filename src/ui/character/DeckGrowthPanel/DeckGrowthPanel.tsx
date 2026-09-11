@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { getCharacter } from "@/data";
-import { useRevealPresence } from "@/ui/common/ModalReveal";
+import { modalRevealVars, useModalReveal, useRevealPresence } from "@/ui/common/ModalReveal";
 import { GrowthGlyph } from "./GrowthGlyph";
 import { GrowthSummary } from "./GrowthSummary";
 import { GrowthUpgrade } from "./GrowthUpgrade";
@@ -14,21 +14,22 @@ interface Props { charId: string; onClose: () => void; }
 export function DeckGrowthPanel({ charId, onClose }: Props) {
   const actions = useGrowthActions(charId);
   const { cs, model, page, busy } = actions;
+  const { closing, requestClose } = useModalReveal(onClose, busy);
   // 滑回总览时保留离场卡牌快照，滑动结束后再卸载，避免空白闪切与常驻大卡组。
   const selection = useRevealPresence(
     page !== "hub",
-    cs && model && page !== "hub" ? <GrowthSelection mode={page} cards={page === "draw" ? actions.candidates : cs.deck} selectedUid={actions.selectedUid} cost={model.costs.remove} minDeckSize={cs.minDeckSize} disabled={busy || (page === "remove" && !model.canRemove)} reason={page === "remove" && !model.canRemove ? model.removeDisabledReason : undefined} onSelect={actions.setSelectedUid} onConfirm={actions.confirmSelection} onBack={actions.goBack} /> : null,
+    cs && model && page !== "hub" ? <GrowthSelection mode={page} cards={page === "draw" ? actions.candidates : cs.deck} selectedUid={actions.selectedUid} cost={model.costs.remove} minDeckSize={cs.minDeckSize} disabled={busy || (page === "remove" && !model.canRemove)} reason={page === "remove" && !model.canRemove ? model.removeDisabledReason : undefined} onSelect={actions.setSelectedUid} onConfirm={actions.confirmSelection} onDiscard={actions.discardDraw} onBack={actions.goBack} /> : null,
     320,
   );
   const panel = useRef<HTMLDivElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const backRef = useRef(actions.goBack);
   const pageRef = useRef(page);
-  const closeRef = useRef(onClose);
+  const closeRef = useRef(requestClose);
   const busyRef = useRef(busy);
   backRef.current = actions.goBack;
   pageRef.current = page;
-  closeRef.current = onClose;
+  closeRef.current = requestClose;
   busyRef.current = busy;
 
   useEffect(() => {
@@ -63,9 +64,9 @@ export function DeckGrowthPanel({ charId, onClose }: Props) {
 
   if (!cs || !model) return null;
   const pending = Boolean(cs.pendingDraw);
-  return <div className={s.layer}>
-    <div className={s.scrim} onClick={() => { if (!busy) onClose(); }} />
-    <div ref={panel} className={s.panel} role="dialog" aria-modal="true" aria-labelledby="deck-growth-heading">
+  return <div className={s.layer} style={modalRevealVars()}>
+    <div className={s.scrim} data-closing={closing || undefined} onClick={requestClose} />
+    <div ref={panel} className={s.panel} data-closing={closing || undefined} role="dialog" aria-modal="true" aria-labelledby="deck-growth-heading">
       <svg className={s.frame} viewBox="0 0 1540 944" preserveAspectRatio="none" fill="none" aria-hidden="true">
         <path className={s.frameGlow} d="M42 8H202l14 12h1080l14-12h188l34 34v180l-8 12v474l8 12v180l-34 36H42L8 900V720l8-12V234L8 222V42Z" />
         <path className={s.frameLine} d="M42 8H202l14 12h1080l14-12h188l34 34v180l-8 12v474l8 12v180l-34 36H42L8 900V720l8-12V234L8 222V42Z" />
@@ -74,7 +75,7 @@ export function DeckGrowthPanel({ charId, onClose }: Props) {
       <header className={s.header}>
         <GrowthGlyph kind="draw" /><h2 id="deck-growth-heading">卡组成长</h2>
         <span>{getCharacter(charId).name} · 个人卡组</span>
-        <button ref={closeButton} type="button" className={s.close} disabled={busy} onClick={onClose} aria-label="关闭卡组成长">×</button>
+        <button ref={closeButton} type="button" className={s.close} disabled={busy} onClick={requestClose} aria-label="关闭卡组成长">×</button>
       </header>
       <div className={s.content}>
         <GrowthSummary level={cs.deckLevel} exp={cs.exp} cost={model.costs.upgrade} chances={actions.chances} hasPool={model.hasPool} />

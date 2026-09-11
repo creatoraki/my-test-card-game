@@ -13,8 +13,12 @@ interface Props {
 
 export function EndHaulPanel({ haul, salvageValue, wiped, levels }: Props) {
   const itemCount = haul.reduce((total, stack) => total + stack.count, 0);
+  // 换金物回城即变现(townStore.depositHaul), 不进仓库 —— 面板照常把它列出来, 只是说明去向。
+  const stored = salvageValue
+    ? `换金物已自动售出 +${salvageValue} 积分 · 其余存入物资中转仓`
+    : "已存入物资中转仓";
   const subtitle = itemCount
-    ? `${itemCount} 件 · 已存入物资中转仓${wiped ? " · 全靠投递口寄回" : ""}`
+    ? `${itemCount} 件 · ${stored}${wiped ? " · 全靠投递口寄回" : ""}`
     : wiped
       ? "本趟物资全部遗失"
       : "本趟没有带回物资";
@@ -52,7 +56,7 @@ export function EndHaulPanel({ haul, salvageValue, wiped, levels }: Props) {
             <span>
               {stack.count > 1 ? `数量 ${stack.count} · ` : ""}
               {def.category === "scrap" && sellPrice > 0
-                ? `回收价 ${sellPrice} 积分`
+                ? `已自动售出 · 每件 ${sellPrice} 积分`
                 : "不可换金物资"}
             </span>
           </>

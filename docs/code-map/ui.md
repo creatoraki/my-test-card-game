@@ -146,9 +146,9 @@ src/ui/
 | [result/EndScreen/endSummary](../../src/ui/result/EndScreen/endSummary.ts) | 远征结算纯视图模型：汇总 `ExpeditionStats`、真实带回物资、废料换金价值、队伍污染和团灭状态；不读 store、不承载结算副作用。 |
 | [result/EndScreen/endChoreo](../../src/ui/result/EndScreen/endChoreo.ts) | 结算页统一入场、数字滚动和事件流时序；`endTiming()` 按 reduced-motion 将演出时序归零。 |
 | [result/EndScreen/EndPartyRoster](../../src/ui/result/EndScreen/parts/EndPartyRoster.tsx) | 结算页左侧队伍状态：复用 `PartyMemberCard` 展示立绘、血量、污染和阵亡态，按成员错峰入场。 |
-| [result/EndScreen/EndTrophyRail](../../src/ui/result/EndScreen/parts/EndTrophyRail.tsx) | 结算页中央战果统计：展示击杀、经验、换金物、积分、节点、轮数、拾取件数和能量消耗，数字使用统一 count-up。 |
+| [result/EndScreen/EndTrophyRail](../../src/ui/result/EndScreen/parts/EndTrophyRail.tsx) | 结算页中央战果统计：展示击杀、经验、换金物、积分、节点、轮数、拾取件数和能量消耗，数字使用统一 count-up；「居民积分入账」已包含回城自动售出的换金物价值。 |
 | [result/EndScreen/EventDropBand](../../src/ui/result/EndScreen/parts/EventDropBand.tsx) | 结算页右侧斜切事件带：按节点历史正序逐条掉落，超过可见槽位后整体上移，点击或键盘确认可跳过演出。 |
-| [result/EndScreen/EndHaulPanel](../../src/ui/result/EndScreen/parts/EndHaulPanel.tsx) | 结算页中央物资回收面板：复用只读 `ItemInventoryPanel` 展示 `shipped` 与 `backpack`，按 `sellPriceOf` 汇总换金价值并同步科技树回收溢价。 |
+| [result/EndScreen/EndHaulPanel](../../src/ui/result/EndScreen/parts/EndHaulPanel.tsx) | 结算页中央物资回收面板：复用只读 `ItemInventoryPanel` 展示 `shipped` 与 `backpack`，按 `sellPriceOf` 汇总换金价值并同步科技树回收溢价。换金物已在落袋时由 `townStore.depositHaul` 自动售出，本面板只做展示与「已自动售出」标注。 |
 
 ## 探索域
 

@@ -342,7 +342,9 @@ function bankEverything(session: {
         .slice(0, SORTIE_RELIC_LIMIT),
     );
   }
-  town.deposit([...session.shipped, ...session.backpack]);
+  // ★ 换金物在这一步**直接变现**(town.depositHaul), 不进仓库 —— 它带回据点后本来就只有
+  //   「去回收台卖掉」一条路; 其余物资照旧入仓。结算页展示的换金价值用同一套 sellPriceOf 现算。
+  town.depositHaul([...session.shipped, ...session.backpack]);
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
   useExploreStore.getState().recordExpGain(exp.reduce((total, gain) => total + gain.gained, 0));
   if (exp.length) {
