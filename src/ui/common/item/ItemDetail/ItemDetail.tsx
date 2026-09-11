@@ -36,8 +36,6 @@ export const STAT_LABEL: Partial<Record<keyof StatBlock, string>> = {
   shieldBoost: "护盾强度",
   ailmentResist: "异常抗性",
   burdenAdapt: "负重适应",
-  handLimit: "手牌上限",
-  drawCount: "抽牌数",
 };
 
 export default function ItemDetail({

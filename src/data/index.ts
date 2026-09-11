@@ -18,6 +18,7 @@ import { NPC_EVENTS, getNpcEvent, type NpcEvent } from "./npcEvents";
 import { ROLLABLE_BOND_IDS } from "./bonds";
 export {
   SQUAD_BADGES,
+  addSquadMods,
   branchNodesOf,
   canActivate,
   canRefund,

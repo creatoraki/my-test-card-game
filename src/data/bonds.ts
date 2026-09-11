@@ -11,7 +11,7 @@
 //   数值全部照抄《具体羁绊设定.md》的塔罗牌目录。
 // ============================================================================
 
-import type { StatBlock, StatModifier } from "../engine/types";
+import type { SquadResourceMods, StatBlock, StatModifier } from "../engine/types";
 import type { BondBias } from "../explore/types";
 
 export interface BondTier {
@@ -19,10 +19,8 @@ export interface BondTier {
   desc: string; // UI 文案
   // 每名上阵角色**各叠一份**: 攻击/命中/暴击/治愈强度/护盾强度这类"个人属性"。
   mods?: StatModifier;
-  // ★ 全队**只叠一份**的属性。drawCount / handLimit 在 engine/stats.ts 的
-  //   partyDrawCount / partyHandLimit 里是**按上阵角色求和**的 —— 每人 +1 会变成 3 人队 +3 张。
-  //   落地时只叠给队伍第一人, 见 runStore.launchBattle。
-  partyMods?: StatModifier;
+  // ★ 全队只叠一份的资源项，直接并进小队资源修正。
+  squadMods?: Partial<SquadResourceMods>;
 }
 
 export interface BondDef {
@@ -102,7 +100,6 @@ export const BOND_DEFS: Record<string, BondDef> = {
   },
 
   // ---- 资源 ----
-  // ⚠ 愚者走 partyMods —— 抽牌数是**小队合计**属性, 详见 BondTier.partyMods 的注释。
   fool: {
     id: "fool",
     name: "愚者",
@@ -110,8 +107,8 @@ export const BOND_DEFS: Record<string, BondDef> = {
     desc: "毫无计划地起步，反而看见更多的路。",
     color: "#7ce08a",
     tiers: [
-      { count: 4, desc: "每回合额外抽 1 张牌", partyMods: { flat: { drawCount: 1 } } },
-      { count: 8, desc: "每回合额外抽 2 张牌", partyMods: { flat: { drawCount: 2 } } },
+      { count: 4, desc: "每回合额外抽 1 张牌", squadMods: { drawCount: 1 } },
+      { count: 8, desc: "每回合额外抽 2 张牌", squadMods: { drawCount: 2 } },
     ],
   },
 };

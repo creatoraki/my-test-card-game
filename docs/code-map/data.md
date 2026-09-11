@@ -29,12 +29,12 @@
 | [shop.ts](../../src/data/shop.ts) | 据点统一商店的物品侧货位工厂：保留 `SHOP_LEVELS` 品质权重，提供 `SHOP_KIND_WEIGHTS`、`pickShopKind` 与 `rollShopItemSlot`；祝福遗物池直接取 `items/relics`，装备模型与羁绊在上架时固定到物品货位。随机刻意用 `Math.random`，不进探索的可复现种子链。 |
 | [shopTech.ts](../../src/data/shopTech.ts) | 统一商店科技与卡牌价格：维护槽位 6→7→8、刷新基价 100/90/80、四个设施科技节点及状态判定；`CARD_SHOP_PRICE` 保留卡牌三档售价表名。 |
 | [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池、事件选项、加权 outcome、独立故事文案和效果。废弃楼层登记 16 个成长事件、8 个生存事件、18 个风险事件与 6 个经济交易事件；风险事件限定第 3-4 推进段，按 `negative` / `highRisk` 分级，并用 `FORCE_ITEM` 发放不可移除的《沉重的负担》。经济事件只登记交易服务槽位，货架与食品结算由 `explore/shop.ts` 负责。大奖策略通过选项食品门槛校验，六个食品触发的隐藏休息映射由事件的 `hiddenRest` 登记；教学事件池由 [tutorialEvents.ts](../../src/data/tutorialEvents.ts) 单独登记，供固定蓝图按 id 取用；挑战节点池由 [exploreTrials.ts](../../src/data/exploreTrials.ts) 单独登记。 |
-| [exploreTrials.ts](../../src/data/exploreTrials.ts) | 挑战节点事件池：4 份跨轮契约，各自登记负面属性修正、持续轮数与「物资 / 常驻小队增益」二选一的加权奖励，节点本身只有「接受挑战（−5 粒子）」与「放弃」两支。属性修正在开战时对每名角色各叠一次，故不得写入 `drawCount` / `handLimit` / `burdenAdapt` 这类小队合计属性。 |
+| [exploreTrials.ts](../../src/data/exploreTrials.ts) | 挑战节点事件池：4 份跨轮契约，各自登记负面属性修正、持续轮数与「物资 / 常驻小队增益」二选一的加权奖励，节点本身只有「接受挑战（−5 粒子）」与「放弃」两支。属性修正在开战时对每名角色各叠一次，故不得写入 `burdenAdapt` 这类小队合计属性。 |
 | [tutorialRoute.ts](../../src/data/tutorialRoute.ts) | 新手关卡三轮固定路线蓝图：首轮为装备、模组、锻造三段单通道，后两轮继续登记教学用分支；按轮次登记通道数、桥接和节点事件 id，不参与随机地图的事件冷却、桥接和隐藏节点抽取。 |
 | [tradeServices.ts](../../src/data/tradeServices.ts) | 12 种交易服务的唯一目录：食品货币、标准价格、公开说明、货架类型、待办效果和随机团队 BUFF 候选。 |
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用材料、水晶、消耗品、食品和武器按服务类型筛选；材料已无地区专属池，只有武器仍按地图筛稀有度。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
-| [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：每个徽章 = 方向链（`branches`，仅供图标/文案分组）+ 扇形半环坐标节点图（`nodes`，`requires` 任一满足即解锁）；初心者徽章 6 链 22 节点，其余徽章为「待开放」占位。`fan()` 负责纯坐标生成，`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` 一起作为 UI 与 store 共用的判定入口。 |
+| [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：每个徽章 = 方向链（`branches`，仅供图标/文案分组）+ 扇形半环坐标节点图（`nodes`，`requires` 任一满足即解锁）；初心者徽章 6 链 22 节点，其余徽章为「待开放」占位。`fan()` 负责纯坐标生成，`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` / `addSquadMods` 一起作为 UI 与 store 共用的判定入口。 |
 | [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人；4 只怪的编成只登记在 t4/t5；`roundPlans` 可为地图提供固定轮次棋盘，`hideAfterClear` 控制通关后从选择带隐藏，`battleTierByRound`、`battleEncounterByRound`（按轮次钉死推进战斗的遭遇战，教学关前两轮用它排两套不同的双敌人编成）、`requiresClear` 与 `locked` 定义按轮次档位和地图解锁规则；`visibleMaps` 是出击界面唯一的可见地图筛选入口。地图素材由 UI 查表。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid；`newUid` 也供临时战斗奖励生成唯一 id。 |
 

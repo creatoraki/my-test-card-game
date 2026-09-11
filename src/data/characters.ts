@@ -24,19 +24,16 @@ export const CHARACTERS: CharacterDef[] = [
     name: "剑士",
     emoji: "⚔️",
     color: "#78c8ff",
-    // 首版基准: HP 50 / 攻击 100 / 治愈力 100 / 防御 0 / 先手 20(《角色养成设计.md》3.0)。
+    // 首版基准: HP 65 / 攻击 100 / 治愈力 100 / 防御 0 / 先手 20(《角色养成设计.md》3.0)。
     // 治愈力按 ÷5 结算(RULES.combat.healDivisor), 100 治愈力使基础卡的 50% 治疗/护盾各为 10 点。
-    // 手牌上限由 RULES.hand.baseHandLimit 统一提供，角色只保留可叠加的局部修正。
     base: makeStats({
-      maxHp: 50,
+      maxHp: 65,
       attack: 100,
       healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,
-      handLimit: 0,
-      drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: [
       basicCardId("swordsman", "attack"),
@@ -84,15 +81,13 @@ export const CHARACTERS: CharacterDef[] = [
     emoji: "🔮",
     color: "#b28cff",
     base: makeStats({
-      maxHp: 50,
+      maxHp: 65,
       attack: 100,
       healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,
-      handLimit: 0,
-      drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: [
       basicCardId("prophet", "attack"),
@@ -130,15 +125,13 @@ export const CHARACTERS: CharacterDef[] = [
     color: "#8fd67a",
     // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
     base: makeStats({
-      maxHp: 50,
+      maxHp: 65,
       attack: 100,
       healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,
-      handLimit: 0,
-      drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: [
       ...basicStartingCardIds("botanist").slice(0, 3),
@@ -177,15 +170,13 @@ export const CHARACTERS: CharacterDef[] = [
     color: "#ff8fc0",
     // ⚠ 占位: 面板照抄剑士的首版基准, 专属数值待设计。
     base: makeStats({
-      maxHp: 50,
+      maxHp: 65,
       attack: 100,
       healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,
-      handLimit: 0,
-      drawCount: 0, // ★ 抽牌走全队固定基准(开局 5 / 每回合 2), 角色只在有加成时才 >0
     }),
     startingCardIds: [
       basicCardId("alchemist", "attack"),
@@ -221,15 +212,13 @@ export const CHARACTERS: CharacterDef[] = [
     color: "#f2c66d",
     // ⚠ 占位: 面板照抄首版基准, 专属数值待设计。
     base: makeStats({
-      maxHp: 50,
+      maxHp: 65,
       attack: 100,
       healPower: 100,
       defense: 0,
       initiative: 20,
       critRate: 5,
       critDamage: 150,
-      handLimit: 0,
-      drawCount: 0,
     }),
     startingCardIds: [
       basicCardId("actuary", "attack"),

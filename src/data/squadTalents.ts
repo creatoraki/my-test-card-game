@@ -289,6 +289,28 @@ const ZERO_SQUAD_MODS: SquadResourceMods = {
   handLimit: 0,
 };
 
+const SQUAD_RESOURCE_KEYS: SquadResourceKey[] = [
+  "openingHand",
+  "drawCount",
+  "redraws",
+  "waits",
+  "mana",
+  "handLimit",
+];
+
+// 合并多份小队资源修正：同名资源项相加，保持小队资源的唯一合成口径。
+export function addSquadMods(
+  base: SquadResourceMods,
+  ...partials: (Partial<SquadResourceMods> | undefined)[]
+): SquadResourceMods {
+  const out = { ...base };
+  for (const partial of partials) {
+    if (!partial) continue;
+    for (const key of SQUAD_RESOURCE_KEYS) out[key] += partial[key] ?? 0;
+  }
+  return out;
+}
+
 // 最终小队资源修正 = 徽章基础加成 + 已激活节点按 key 累加 value。
 export function squadModsOf(
   badgeId: string | null,

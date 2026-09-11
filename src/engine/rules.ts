@@ -17,9 +17,9 @@ export const RULES = {
   },
 
   // 手牌 / 抽牌
-  // 小队手牌上限 = baseHandLimit + Σ上阵角色 handLimit
-  // 小队每回合抽牌数 = partyBonusDrawCount(全队基准) + Σ上阵角色 drawCount
-  // 开局(第 1 回合)抽牌数 = openingHandSize + Σ上阵角色 drawCount
+  // 小队手牌上限 = baseHandLimit + mods.handLimit
+  // 小队每回合抽牌数 = partyBonusDrawCount(全队基准) + mods.drawCount
+  // 开局(第 1 回合)抽牌数 = openingHandSize + mods.openingHand
   hand: {
     baseHandLimit: 7,
     openingHandSize: 4,

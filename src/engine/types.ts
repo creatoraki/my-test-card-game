@@ -521,8 +521,6 @@ export interface StatBlock {
   ailmentResist: number; // 异常抗性(百分点, 最终值 70 封顶); 抵抗哪一项由各异常自己定义
   // 探索 / 小队
   burdenAdapt: number; // 负重适应(固定值): 小队合计, 每 1 点抵扣 1 格占格
-  handLimit: number; // 对小队手牌上限的贡献
-  drawCount: number; // 对小队每回合基础抽牌数的贡献
 }
 
 // 属性修正层。最终属性 = (基础 + flat) × (1 + pct/100)。

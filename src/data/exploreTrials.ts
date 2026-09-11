@@ -14,7 +14,7 @@
 //   撞名会让日后读代码的人把 pendingChallengeBonus 与本文件搅在一起。
 //
 // ⚠ 属性修正的硬约束: runStore.launchBattle 对**每一名角色各叠一次** trial.mods,
-//   所以这里**绝不能**写 drawCount / handLimit / burdenAdapt —— 那三项是「小队合计」属性,
+//   所以这里**绝不能**写 burdenAdapt —— 它是「小队合计」属性,
 //   三人队会被叠成三倍。maxHp 同样不碰(会让当前血量高于上限)。
 //   安全项: attack / healPower / healBoost / shieldBoost / dodgeRate / blockRate /
 //           hitRate / critRate / critDamage / precision / initiative / armorPen。

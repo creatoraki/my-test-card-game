@@ -180,11 +180,9 @@ describe("回合结束冲刷: 未行动的敌人各打一次", () => {
 });
 
 describe("小队资源", () => {
-  it("手牌上限与抽牌数 = 上阵角色求和 + 全队修正", () => {
+  it("手牌上限与抽牌数 = 全队基准 + 小队修正", () => {
     const b = battleWith("swordsman-basic-attack");
-    const sumHand = b.playerIds.reduce((s, id) => s + b.combatants[id].stats.handLimit, 0);
-    const sumDraw = b.playerIds.reduce((s, id) => s + b.combatants[id].stats.drawCount, 0);
-    expect(partyHandLimit(b)).toBe(sumHand + RULES.hand.baseHandLimit);
-    expect(partyDrawCount(b)).toBe(sumDraw + RULES.hand.partyBonusDrawCount);
+    expect(partyHandLimit(b)).toBe(RULES.hand.baseHandLimit);
+    expect(partyDrawCount(b)).toBe(RULES.hand.partyBonusDrawCount);
   });
 });

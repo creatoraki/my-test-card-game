@@ -8,7 +8,7 @@ import {
 } from "@/engine";
 import { useState, type CSSProperties } from "react";
 import { getBadge, squadModsOf, type SquadResourceKey } from "@/data";
-import { deriveStats, useTownStore } from "@/store/townStore";
+import { useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
 import { TRACK_ICON_SIZE, TrackIcon } from "../TalentTreeRadial/icons";
 import { branchHueOf } from "../TalentTreeRadial/talentGeometry";
@@ -41,28 +41,17 @@ interface SquadResourceBarProps {
 
 export function SquadResourceBar({ highlightKey, className }: SquadResourceBarProps) {
   const [hoverKey, setHoverKey] = useState<SquadResourceKey | null>(null);
-  const party = useTownStore((state) => state.party);
-  const characters = useTownStore((state) => state.characters);
   const squadTalent = useTownStore((state) => state.squadTalent);
   const activeBadge = squadTalent.badgeId ? getBadge(squadTalent.badgeId) : undefined;
   const mods = squadModsOf(squadTalent.badgeId, squadTalent.nodes);
-  let sumCharHandLimit = 0;
-  let sumCharDrawCount = 0;
-  for (const charId of party) {
-    const character = characters[charId];
-    if (!character) continue;
-    const stats = deriveStats(character);
-    sumCharHandLimit += stats.handLimit;
-    sumCharDrawCount += stats.drawCount;
-  }
 
   const values: Record<SquadResourceKey, number> = {
-    openingHand: squadOpeningDrawCount(sumCharDrawCount, mods),
-    drawCount: squadDrawCount(sumCharDrawCount, mods),
+    openingHand: squadOpeningDrawCount(mods),
+    drawCount: squadDrawCount(mods),
     redraws: squadRedrawLimit(mods),
     waits: squadWaitLimit(mods),
     mana: squadManaPerRound(mods),
-    handLimit: squadHandLimit(sumCharHandLimit, mods),
+    handLimit: squadHandLimit(mods),
   };
 
   return (

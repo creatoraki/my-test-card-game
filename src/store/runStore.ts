@@ -9,6 +9,7 @@ import { RULES, applyModifier, earnedChallengeBonus, getStatus } from "../engine
 import {
   BOND_DEFS,
   ASSEMBLE_REWARD_POOLS,
+  addSquadMods,
   activeBonds,
   getCharacter,
   getEnemyDef,
@@ -204,11 +205,10 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   //   塞进去会让「看某个角色的面板」凭空多出队友装备带来的加成。
   const active = activeBonds(bondCountsOf(characters, party));
   const bondMods = mergeMods(active.map((a) => a.tier.mods)); // 每人各叠一份
-  const bondPartyMods = mergeMods(active.map((a) => a.tier.partyMods)); // 全队只叠一份
   // 背包遗物与挑战契约的属性修正走同一条合成 —— 引擎不认识物品容器,
   // 它只收一份算好的面板。★ 一处合成即同时覆盖推进战斗与节点战斗。
-  // ⚠ 这一份修正对**每一名角色各叠一次** ⇒ 挑战 mods 里绝不能出现 drawCount / handLimit /
-  //   burdenAdapt 这类「小队合计」属性(会被叠成人数倍), 见 data/exploreTrials.ts 抬头。
+  // ⚠ 这一份修正对**每一名角色各叠一次** ⇒ 挑战 mods 里绝不能出现 burdenAdapt
+  //   这类「小队合计」属性(会被叠成人数倍), 见 data/exploreTrials.ts 抬头。
   const relicMods = mergeMods([
     ...session.backpack
       .map((stack) => getItemDef(stack.itemId).relic?.mods)
@@ -221,14 +221,11 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
 
   const alive = session.party.filter((p) => p.alive);
   const battleDeck: Card[] = alive.flatMap((p) => structuredClone(characters[p.charId].deck));
-  const allies: AllyInit[] = alive.map((p, i) => {
+  const allies: AllyInit[] = alive.map((p) => {
     const c = getCharacter(p.charId);
     // 局外第一层(角色基础 + 装备)已由 deriveStats 算完; 羁绊是叠在它之上的第二层。
     let s = applyModifier(deriveStats(characters[p.charId]), bondMods);
     s = applyModifier(s, relicMods);
-    // ★ 抽牌数/手牌上限是**小队合计**属性(engine/stats.partyDrawCount 按上阵角色求和),
-    //   每人加一份会变成 3 人队三倍。所以这类只给队伍第一人加。
-    if (i === 0) s = applyModifier(s, bondPartyMods);
     const characterState = characters[p.charId];
     return {
       id: c.id,
@@ -248,7 +245,10 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   const meta = battleMeta(characters, party);
   // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个有效负重点数。
   const burden = burdenNow(session);
-  const squadMods = squadModsOf(squadTalent.badgeId, squadTalent.nodes);
+  const squadMods = addSquadMods(
+    squadModsOf(squadTalent.badgeId, squadTalent.nodes),
+    ...active.map((a) => a.tier.squadMods),
+  );
   useBattleStore
     .getState()
     .init(

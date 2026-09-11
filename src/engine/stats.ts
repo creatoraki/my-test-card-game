@@ -33,8 +33,6 @@ export const ZERO_STATS: StatBlock = {
   shieldBoost: 0,
   ailmentResist: 0,
   burdenAdapt: 0,
-  handLimit: 0,
-  drawCount: 0,
 };
 
 export const STAT_KEYS = Object.keys(ZERO_STATS) as (keyof StatBlock)[];
@@ -186,21 +184,20 @@ export function enemyActDelay(state: BattleState, enemy: Combatant, moveDelay: n
   return Math.max(1, Math.round(moveDelay + delta));
 }
 
-// 小队手牌上限 / 每回合基础抽牌数 —— 上阵角色属性求和 + 全队修正(《角色养成设计.md》第六章)。
-// ⚠ 用**建局时的全员**求和, 不随阵亡缩水: 队友倒下已经够惨了, 再砍手牌是双重惩罚。
-export function squadHandLimit(sumCharHandLimit: number, mods: SquadResourceMods): number {
-  const sum = RULES.hand.baseHandLimit + sumCharHandLimit + mods.handLimit;
+// 小队手牌上限 / 每回合基础抽牌数 —— 全队基准 + 小队资源修正(《角色养成设计.md》第六章)。
+export function squadHandLimit(mods: SquadResourceMods): number {
+  const sum = RULES.hand.baseHandLimit + mods.handLimit;
   return Math.max(RULES.hand.minHandLimit, Math.min(RULES.squadCaps.handLimit, Math.round(sum)));
 }
 
-export function squadDrawCount(sumCharDrawCount: number, mods: SquadResourceMods): number {
-  const sum = RULES.hand.partyBonusDrawCount + sumCharDrawCount + mods.drawCount;
+export function squadDrawCount(mods: SquadResourceMods): number {
+  const sum = RULES.hand.partyBonusDrawCount + mods.drawCount;
   return Math.max(0, Math.min(RULES.squadCaps.drawCount, Math.round(sum)));
 }
 
-// 开局(第 1 回合)初始手牌数 —— 基础值、角色 drawCount 与起手训练叠加, 不受抽牌封顶影响。
-export function squadOpeningDrawCount(sumCharDrawCount: number, mods: SquadResourceMods): number {
-  return Math.max(0, Math.round(RULES.hand.openingHandSize + sumCharDrawCount + mods.openingHand));
+// 开局(第 1 回合)初始手牌数 —— 基础值 + 小队资源修正, 不受抽牌封顶影响。
+export function squadOpeningDrawCount(mods: SquadResourceMods): number {
+  return Math.max(0, Math.round(RULES.hand.openingHandSize + mods.openingHand));
 }
 
 export function squadManaPerRound(mods: SquadResourceMods): number {
@@ -216,27 +213,15 @@ export function squadWaitLimit(mods: SquadResourceMods): number {
 }
 
 export function partyHandLimit(state: BattleState): number {
-  const sumCharHandLimit = state.playerIds.reduce(
-    (sum, id) => sum + state.combatants[id].stats.handLimit,
-    0,
-  );
-  return squadHandLimit(sumCharHandLimit, state.squadMods);
+  return squadHandLimit(state.squadMods);
 }
 
 export function partyDrawCount(state: BattleState): number {
-  const sumCharDrawCount = state.playerIds.reduce(
-    (sum, id) => sum + state.combatants[id].stats.drawCount,
-    0,
-  );
-  return squadDrawCount(sumCharDrawCount, state.squadMods);
+  return squadDrawCount(state.squadMods);
 }
 
 export function partyOpeningDrawCount(state: BattleState): number {
-  const sumCharDrawCount = state.playerIds.reduce(
-    (sum, id) => sum + state.combatants[id].stats.drawCount,
-    0,
-  );
-  return squadOpeningDrawCount(sumCharDrawCount, state.squadMods);
+  return squadOpeningDrawCount(state.squadMods);
 }
 
 export function partyManaPerRound(state: BattleState): number {
