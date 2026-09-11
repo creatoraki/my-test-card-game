@@ -1,0 +1,27 @@
+.summary { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 202px); gap: 16px; }
+.levelBlock, .rarity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 124px;
+  padding: 18px 24px;
+  border: 2px solid #5d99de;
+  border-radius: 10px 3px;
+  background: linear-gradient(130deg, #143465, #08172e 70%);
+  box-shadow: inset 0 0 14px #407eff45, 0 0 7px #377cff55;
+}
+.levelBlock > svg { width: 70px; height: 78px; color: #9adaff; flex-shrink: 0; }
+.level { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; color: #a4dcff; font-size: 24px; }
+.level strong { font-size: 76px; line-height: 1; text-shadow: 0 0 14px #359aff; animation: levelIn 260ms ease-out; }
+.experience { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; font-size: 20px; }
+.experience > span { flex-shrink: 0; }
+.track { position: relative; flex: 1; height: 32px; overflow: hidden; border: 1px solid #649bce; background: #040e24; }
+.fill { position: absolute; inset: 0; background: linear-gradient(#98eaff, #23b9ee 55%, #147fca); transform-origin: left; transition: transform 280ms ease; }
+.track strong { position: absolute; inset: 0; padding-right: 8px; text-align: right; line-height: 30px; color: #fff; text-shadow: 0 1px 4px #04172b; font-size: 20px; }
+.rarity { --rarity-color: #78d2ff; gap: 18px; padding: 16px; border-color: var(--rarity-color); color: var(--rarity-color); }
+.rarity[data-rarity="uncommon"] { --rarity-color: #df97ff; background: linear-gradient(130deg, #321e66, #0d1a35); }
+.rarity[data-rarity="rare"] { --rarity-color: #ffe5a1; background: linear-gradient(130deg, #3d3640, #0d1a35); }
+.rarity svg { width: 62px; height: 68px; flex-shrink: 0; }
+.rarity div { display: grid; gap: 4px; font-size: 26px; }
+.rarity strong { color: #f2f3ff; font-size: 30px; line-height: 1.1; }
+@keyframes levelIn { from { opacity: .4; transform: translateY(5px); } }

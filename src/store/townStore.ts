@@ -472,7 +472,8 @@ export const useTownStore = create<TownStore>()(
       },
 
       recordSortieRelics: (ids) => {
-        set({ lastSortieRelicIds: ids.slice(0, 6) });
+        // 6 与 sortieStore.SORTIE_RELIC_LIMIT 同源；反向依赖会成环，因此这里保留数值。
+        set({ lastSortieRelicIds: [...new Set(ids)].slice(0, 6) });
       },
 
       recordCodex: (patch) => {

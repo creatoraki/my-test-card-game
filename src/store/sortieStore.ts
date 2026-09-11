@@ -40,12 +40,12 @@ interface SortieStore {
   clear: () => void; // 出击成功后清空(不回滚 —— 东西跟着远征走了)
 }
 
-const EMPTY = {
+const emptyState = () => ({
   step: "map" as SortieStep,
   mapId: null,
   backpack: [] as ItemStack[],
   bought: {} as Record<string, number>,
-};
+});
 
 // 背包已占格数。★ 与探索层同一个算法(items/inventory.occupiedSlots), 于是准备界面读到的
 // 负重与出发后第一场战斗吃到的惩罚必然一致。
@@ -88,11 +88,27 @@ function refundStack(
   return { backpack: removeByUid(backpack, stack.uid), bought: nextBought };
 }
 
+// 把当前准备会话里的所有物资退回来源。必须用 while: refundStack 每次都会返回新的数组,
+// 直接用 for...of 遍历旧数组并更新引用会漏掉物资。
+function refundAll(backpack: ItemStack[], bought: Record<string, number>): void {
+  let nextBackpack = backpack;
+  let nextBought = bought;
+  while (nextBackpack.length) {
+    const result = refundStack(nextBackpack[0], nextBackpack, nextBought);
+    nextBackpack = result.backpack;
+    nextBought = result.bought;
+  }
+}
+
 export const useSortieStore = create<SortieStore>((set, get) => ({
-  ...EMPTY,
+  ...emptyState(),
 
   open: () => {
-    set({ ...EMPTY });
+    const { backpack, bought } = get();
+    // open 可能因 React 开发期重复挂载而调用多次，必须先退回上一次临时会话，
+    // 再重置并自动装填，才能保证重复进入不会吞掉仓库物资。
+    refundAll(backpack, bought);
+    set(emptyState());
     get().autoLoadRelics();
   },
 
@@ -144,7 +160,7 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
 
   autoLoadRelics: () => {
     const rememberedIds = useTownStore.getState().lastSortieRelicIds;
-    for (const itemId of rememberedIds) {
+    for (const itemId of new Set(rememberedIds)) {
       const source = useTownStore
         .getState()
         .storage.find(
@@ -164,15 +180,10 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
 
   // 取消出击 = 把背包里每一堆都退回来源, 状态完全回到进准备页之前。
   cancel: () => {
-    let { backpack, bought } = get();
-    // ⚠ 用 while 而不是 for...of: refundStack 每次返回**新的**数组, 边遍历边改原数组会漏。
-    while (backpack.length) {
-      const result = refundStack(backpack[0], backpack, bought);
-      backpack = result.backpack;
-      bought = result.bought;
-    }
-    set({ ...EMPTY });
+    const { backpack, bought } = get();
+    refundAll(backpack, bought);
+    set(emptyState());
   },
 
-  clear: () => set({ ...EMPTY }),
+  clear: () => set(emptyState()),
 }));

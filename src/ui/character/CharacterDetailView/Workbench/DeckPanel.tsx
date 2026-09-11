@@ -3,7 +3,7 @@
 // ★ 本面板只做两件事: 把卡组铺清楚、把鼠标指着的那张报出去。悬浮即进选中态,
 //   由 DeckCard 的 selected 点亮四角框并提升层级, 卡面位移仍由悬浮态驱动。
 // ★ 成本口径统一读 RULES.deck 与 townStore 的 deckForgeCosts, 本面板不重算。
-// ★ 三条锻造链路的演出全在 DeckForgeOverlay / DeckUpgradeOverlay 里, 由使用方挂在页面根层
+// ★ 三项成长操作统一由 DeckGrowthPanel 承载, 由使用方挂在页面根层
 //   (它们是全屏浮层, 挂在本面板内会被工作区的 overflow 裁掉)。
 
 import type { CSSProperties } from "react";
@@ -34,7 +34,7 @@ export function DeckPanel({ deck, deckLevel, minDeckSize, hoveredUid, onHoverCar
         </div>
         <button className={s.forgeButton} type="button" onClick={onOpenForge}>
           <span aria-hidden="true">⚒</span>
-          卡组锻造
+          卡组成长
         </button>
       </div>
 

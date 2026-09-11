@@ -13,8 +13,7 @@ import { getCharacter } from "@/data";
 import { deckUpgradeCost } from "@/engine";
 import { deriveStats, useTownStore, vitalsOf } from "@/store/townStore";
 import { DeckCardHoverPreview } from "@/ui/character/DeckCardHoverPreview";
-import { DeckForgeStack } from "@/ui/character/DeckForge/DeckForgeStack";
-import type { ForgeView } from "@/ui/character/DeckForge/forgeMorph";
+import { DeckGrowthPanel } from "@/ui/character/DeckGrowthPanel";
 import { FIGURE_RECT, WORKBENCH_RECT } from "./detailLayout";
 import { EquipPicker } from "./EquipPicker";
 import { cx } from "@/ui/common/cx";
@@ -64,7 +63,7 @@ export function CharacterDetailView({
   const unequipItem = useTownStore((state) => state.unequipItem);
 
   const [tab, setTab] = useState<WorkbenchTab>("profile");
-  const [forgeView, setForgeView] = useState<ForgeView | null>(null);
+  const [forgeView, setForgeView] = useState(false);
   const [hoveredCardUid, setHoveredCardUid] = useState<string | null>(null);
 
   const cs = characters[charId];
@@ -76,7 +75,7 @@ export function CharacterDetailView({
   useEffect(() => {
     setTab("profile");
     equipPreview.clear();
-    setForgeView(null);
+    setForgeView(false);
     setHoveredCardUid(null);
   }, [charId]);
 
@@ -91,13 +90,13 @@ export function CharacterDetailView({
   useEffect(() => {
     if (tab !== "profile") equipPreview.clear();
     if (tab !== "deck") setHoveredCardUid(null);
-    if (tab !== "deck") setForgeView(null);
+    if (tab !== "deck") setForgeView(false);
   }, [tab]);
 
   useEffect(() => {
     if (!closingOverlays) return;
     equipPreview.clear();
-    setForgeView(null);
+    setForgeView(false);
     setHoveredCardUid(null);
   }, [closingOverlays]);
 
@@ -105,7 +104,7 @@ export function CharacterDetailView({
   useEffect(() => {
     if (!cs?.pendingDraw) return;
     setTab("deck");
-    setForgeView("draw");
+    setForgeView(true);
   }, [cs?.pendingDraw]);
 
   // Esc: 锻造层自己处理逐层退出, 详情态只在没有锻造层时响应。
@@ -166,11 +165,11 @@ export function CharacterDetailView({
         upgradeCost={deckUpgradeCost(cs.deckLevel)}
         upgradeDisabled={!canNavigate}
         onUpgrade={() => {
-          // 同次提交切换卡组页与目标面板，直接进入升级态。
+          // 两处入口共用成长总览，三项操作都在同一个面板内完成。
           equipPreview.clear();
           setHoveredCardUid(null);
           setTab("deck");
-          setForgeView("upgrade");
+          setForgeView(true);
         }}
         vitals={vitals}
         pollution={cs.pollution}
@@ -219,7 +218,7 @@ export function CharacterDetailView({
             minDeckSize={cs.minDeckSize}
             hoveredUid={hoveredCardUid}
             onHoverCard={setHoveredCardUid}
-            onOpenForge={() => setForgeView("hub")}
+            onOpenForge={() => setForgeView(true)}
           />
         )}
       </Workbench>
@@ -262,11 +261,10 @@ export function CharacterDetailView({
 
       {/* 锻造层挂在本态根层 —— 全屏外壳不能放进会裁切的工作区。 */}
       {!closingOverlays && !leaving && tab === "deck" && forgeView && (
-        <DeckForgeStack
+        <DeckGrowthPanel
+          key={charId}
           charId={charId}
-          view={forgeView}
-          onViewChange={(next) => setForgeView(next)}
-          onClose={() => setForgeView(null)}
+          onClose={() => setForgeView(false)}
         />
       )}
     </div>

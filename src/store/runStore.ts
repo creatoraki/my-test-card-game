@@ -26,7 +26,7 @@ import {
   energyTier,
   rewardMultiplier,
 } from "../explore/session";
-import type { PartySnapshot } from "../explore/types";
+import type { ExplorePhase, PartySnapshot } from "../explore/types";
 import type { EquipSlot, ItemStack } from "../items/types";
 import { useBattleStore, type BattleMeta } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
@@ -318,6 +318,7 @@ function bankEverything(session: {
   backpack: ItemStack[];
   shipped: ItemStack[];
   party: { charId: string; hp: number; hpLimit: number; alive: boolean }[];
+  phase: ExplorePhase;
 }) {
   const town = useTownStore.getState();
   town.syncExpeditionStatus(
@@ -332,12 +333,15 @@ function bankEverything(session: {
   const fallenIds = session.party.filter((member) => !member.alive).map((member) => member.charId);
   if (fallenIds.length) town.markFallen(fallenIds);
   town.bankLoot(session.loot);
-  town.recordSortieRelics(
-    session.backpack
-      .filter((stack) => getItemDef(stack.itemId).category === "relic")
-      .map((stack) => stack.itemId)
-      .slice(0, SORTIE_RELIC_LIMIT),
-  );
+  if (session.phase !== "wiped") {
+    // 团灭时背包已被 loseEverything 清空，记录空数组会把上一次有效的默认配置抹掉。
+    town.recordSortieRelics(
+      session.backpack
+        .filter((stack) => getItemDef(stack.itemId).category === "relic")
+        .map((stack) => stack.itemId)
+        .slice(0, SORTIE_RELIC_LIMIT),
+    );
+  }
   town.deposit([...session.shipped, ...session.backpack]);
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
   useExploreStore.getState().recordExpGain(exp.reduce((total, gain) => total + gain.gained, 0));

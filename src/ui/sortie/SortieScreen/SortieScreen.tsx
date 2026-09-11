@@ -46,7 +46,8 @@ export function SortieScreen() {
 
   useEffect(() => {
     open();
-  }, [open]);
+    return () => cancel();
+  }, [open, cancel]);
 
   useEffect(() => {
     if (relicMorph.panel !== null) return;
