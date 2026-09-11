@@ -22,10 +22,11 @@
 .stage {
   composes: canvas from "../../app/styles/stageCanvas.module.css";
   composes: fm-type from "../styles/typeScale.module.css";
+  composes: scene-veil-host from "../styles/sceneVeil.module.css";
 
   overflow: hidden;
   padding: 0;
-  background: #101a21; /* 图加载前/失败时的深色兜底, 与宿舍场景色系一致 */
+  background: var(--scene-veil-base); /* 图加载前/失败时的深色兜底, 与暗罩色系一致 */
 }
 
 /* ===================== 背景 ===================== */
@@ -42,11 +43,6 @@
 
 /* 冷色压暗 + 收边: 保留宿舍的金属结构与舷窗高光, 同时给上层卡阵托出稳定对比。 */
 .veil {
-  position: absolute;
-  inset: 0;
+  composes: scene-veil from "../styles/sceneVeil.module.css";
   z-index: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(to bottom, #07131acc 0%, #0a182080 42%, #07131ab8 100%),
-    radial-gradient(ellipse at 50% 46%, transparent 48%, #02080cb8 100%);
 }

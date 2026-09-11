@@ -1,0 +1,14 @@
+/* 宿舍场景冷色暗罩 —— 编队页整屏与详情态立绘窗共用同一份配色。
+   ⚠ 改这里会同时改动两处观感, 这正是目的: 立绘窗必须与它周围的场景同族。 */
+.scene-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, #07131acc 0%, #0a182080 42%, #07131ab8 100%),
+    radial-gradient(ellipse at 50% 46%, transparent 48%, #02080cb8 100%);
+}
+
+.scene-veil-host {
+  --scene-veil-base: #07131a;
+}

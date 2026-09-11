@@ -159,7 +159,6 @@ export function CharacterDetailView({
 
       <FigureStage
         characterId={def.id}
-        characterColor={def.color}
         emoji={def.emoji}
         name={def.name}
         deckLevel={cs.deckLevel}

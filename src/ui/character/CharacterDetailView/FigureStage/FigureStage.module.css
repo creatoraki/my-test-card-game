@@ -1,7 +1,8 @@
-/* 主边框统一蓝紫。figureThemes 下发 --figure-base / primary / secondary 背景配色；
+/* 主边框统一蓝紫。背景层与编队页外侧共用 styles/sceneVeil.module.css；
    --figure-art-width 与飞行层共用按高度适配的立绘宽度。
    HpBar / PollutionMeter / QuirkPips 使用各自公开的尺寸变量，最小字号 18px。 */
 .stage {
+  composes: scene-veil-host from "../../styles/sceneVeil.module.css";
   position: absolute;
   z-index: 1;
   isolation: isolate;
@@ -25,25 +26,17 @@
   pointer-events: none;
 }
 
-.scenery { background: var(--figure-base); }
+.scenery { background: var(--scene-veil-base); }
 
 .background {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 62% center;
-  opacity: 0.38;
-  filter: grayscale(1);
-  mix-blend-mode: luminosity;
 }
 
 .light {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--figure-base) 85%, transparent), transparent 48%, color-mix(in srgb, var(--figure-base) 65%, transparent)),
-    radial-gradient(ellipse at 54% 12%, color-mix(in srgb, var(--figure-primary) 58%, transparent), transparent 68%),
-    linear-gradient(125deg, transparent 20%, color-mix(in srgb, var(--figure-secondary) 40%, transparent) 58%, transparent 82%);
+  composes: scene-veil from "../../styles/sceneVeil.module.css";
 }
 
 /* 与 MorphFlyer 保持相同取景，覆盖公共立绘的基础特异性。 */
