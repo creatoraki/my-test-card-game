@@ -1,22 +1,33 @@
-// 货位下方的纯展示售价牌。它不是按钮，也不承担任何点击或聚焦行为。
+// 货位下方的购买价格牌。商品立牌负责查看，价格牌负责付款。
 
 import { cx } from "@/ui/common/cx";
 import s from "./MarketPriceTag.module.css";
 
 interface Props {
   price: number;
-  affordable: boolean;
   sold: boolean;
+  disabledReason?: string;
+  onBuy: () => void;
 }
 
-export function MarketPriceTag({ price, affordable, sold }: Props) {
-  const state = sold ? "sold" : affordable ? "ready" : "poor";
+export function MarketPriceTag({ price, sold, disabledReason, onBuy }: Props) {
+  const canBuy = !sold && !disabledReason;
+  const state = sold ? "sold" : canBuy ? "ready" : "poor";
+  const ariaLabel = sold
+    ? "已售出"
+    : canBuy
+      ? `点击价格牌购买，售价 ${price} 居民积分`
+      : disabledReason;
+
   return (
-    <span
+    <button
       className={cx(s.tag, s[`is-${state}`])}
-      aria-label={sold ? "已售出" : affordable ? `售价 ${price} 居民积分` : `售价 ${price}，积分不足`}
+      type="button"
+      disabled={!canBuy}
+      aria-label={ariaLabel}
+      onClick={onBuy}
     >
       {sold ? <span className={s.sold}>已售出</span> : <strong>{price}</strong>}
-    </span>
+    </button>
   );
 }

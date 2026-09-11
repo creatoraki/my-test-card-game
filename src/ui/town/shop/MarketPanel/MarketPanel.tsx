@@ -48,15 +48,14 @@ export function MarketPanel() {
       <div className={s.body}>
         <MarketShelf
           slots={shop.slots}
+          characters={characters}
           loot={loot}
           selectedKey={selectedKey}
           onSelect={setSelectedKey}
+          onBuy={buyShopSlot}
         />
         <MarketDetail
           slot={selectedSlot}
-          characters={characters}
-          loot={loot}
-          onBuy={buyShopSlot}
         />
       </div>
 

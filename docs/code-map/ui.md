@@ -333,6 +333,6 @@ src/ui/
 
 ⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
 
-商店场景的 `StockPanels` 现在包含「商店 / 回收台 / 仓库」三条入口，三者各自通过本文件的 `usePanelMorph` 打开；商店与回收台使用暖金 1500×920 面板，仓库使用独立的黑银 660×776 面板。`MarketPanel` 采用「左混合货架 + 右详情栏」两栏布局：`MarketShelf` 不再提供角色筛选，`MarketSlot` 按卡牌/物品分支展示，`MarketPriceTag` 是纯展示售价牌，购买只存在于 `MarketDetail` 的统一按钮。卡牌详情复用 `HandCard` + `CardKeywordNotes`，物品详情复用无操作控件的 `ShopItemCard`；设施升级弹层由 `ShopTechTree` 与 `ShopTechDetail` 组成，节点材料格复用 `ItemSlot`。
+商店场景的 `StockPanels` 现在包含「商店 / 回收台 / 仓库」三条入口，三者各自通过本文件的 `usePanelMorph` 打开；商店与回收台使用暖金 1500×920 面板，仓库使用独立的黑银 660×776 面板。`MarketPanel` 采用「左混合货架 + 右详情栏」两栏布局：`MarketShelf` 不再提供角色筛选，`MarketSlot` 按卡牌/物品分支展示，`MarketPriceTag` 是唯一购买入口并复用统一购买条件，`MarketDetail` 只展示商品详情。卡牌详情复用 `HandCard` + `CardKeywordNotes`，物品详情复用无操作控件的 `ShopItemCard`；设施升级弹层由 `ShopTechTree` 与 `ShopTechDetail` 组成，节点材料格复用 `ItemSlot`。
 
 我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。

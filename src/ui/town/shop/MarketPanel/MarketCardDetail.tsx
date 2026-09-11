@@ -5,6 +5,7 @@ import { cardDisplayName, cardKeywordsIn } from "@/engine";
 import { getCharacter, makeCard } from "@/data";
 import type { ShopCardSlot } from "@/data/shop";
 import { cardArt } from "@/ui/art/cardArt";
+import { useCardText } from "@/ui/common/cardText";
 import { CardKeywordNotes } from "@/ui/common/CardKeywordNotes";
 import { CardTextRich } from "@/ui/common/CardTextRich";
 import { ShopDetailCard } from "@/ui/town/shop/ShopDetailCard";
@@ -30,7 +31,10 @@ export function MarketCardDetail({ slot }: { slot: ShopCardSlot }) {
     [slot.cardDefId, slot.charId],
   );
   const owner = getCharacter(slot.charId);
-  const hasKeywordNotes = cardKeywordsIn(card.text).length > 0;
+  // 与货架立牌(HandCard)同一条文案管线: {0}/{d0}/{k0}/{c} 需按角色面板属性换算成真实数值,
+  // 直接用 card.text 会把占位符原样显示出来。
+  const text = useCardText(card);
+  const hasKeywordNotes = cardKeywordsIn(text).length > 0;
 
   return (
     <ShopDetailCard
@@ -51,8 +55,8 @@ export function MarketCardDetail({ slot }: { slot: ShopCardSlot }) {
           <span>{CARD_TYPE_LABEL[card.cardType]}</span>
         </>
       )}
-      desc={<CardTextRich text={card.text} />}
-      extra={hasKeywordNotes ? <CardKeywordNotes text={card.text} className={s.notes} /> : undefined}
+      desc={<CardTextRich text={text} />}
+      extra={hasKeywordNotes ? <CardKeywordNotes text={text} card={card} className={s.notes} /> : undefined}
     />
   );
 }
