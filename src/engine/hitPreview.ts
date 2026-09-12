@@ -1,5 +1,5 @@
 import type { BattleState, Card, EffectDescriptor } from "./types";
-import { cardCost } from "./cost";
+import { cardCost, starlightPayment } from "./cost";
 import { activeEffectsOf } from "./cardEffects";
 import { counterOf } from "./counters";
 import { conditionMet } from "./effects";
@@ -8,27 +8,66 @@ import { addMod, attackDamage, hitChance, statOf } from "./stats";
 import { RULES } from "./rules";
 import { getStatusDef } from "./statuses";
 import { CARD_MARK_DEFS } from "./cardMarks";
+import { waterfallHolds } from "./waterfall";
 
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
 // ★ 预览必须把它算进去, 否则装了攻击力/穿甲/命中模组后预览数字与实际结果对不上。
-function playStatBonusesOf(state: BattleState, card: Card): EffectDescriptor[] {
+function playStatBonusesOf(state: BattleState, card: Card, targetId?: string): EffectDescriptor[] {
   const markEffects = (card.marks ?? []).flatMap((markId) => CARD_MARK_DEFS[markId]?.preEffects ?? []);
-  return [...activeEffectsOf(card), ...markEffects].filter(
-    (effect) => effect.type === "PLAY_STAT_BONUS" && effect.stat && conditionMet(state, effect),
-  );
+  const owner = state.combatants[card.ownerCharId];
+  const doublesWaterfall = Boolean(owner?.statuses.some(
+    (status) => status.id === "gravityLens" && status.stacks > 0,
+  ));
+  return [...activeEffectsOf(card), ...markEffects].flatMap((effect) => {
+    if (effect.type !== "PLAY_STAT_BONUS" || !effect.stat || !previewConditionMet(state, effect, card, targetId))
+      return [];
+    return effect.condition === "waterfall" && doublesWaterfall ? [effect, effect] : [effect];
+  });
+}
+
+function previewConditionMet(
+  state: BattleState,
+  effect: EffectDescriptor,
+  card: Card,
+  targetId?: string,
+): boolean {
+  if (effect.condition === "waterfall") {
+    const owner = state.combatants[card.ownerCharId];
+    return waterfallHolds(state, card) || Boolean(owner?.statuses.some((status) => status.id === "zenithStar" && status.stacks > 0));
+  }
+  if (effect.condition === "fullyStarPaid") {
+    const cost = cardCost(state, card);
+    const spent = starlightPayment(state, card);
+    return spent > 0 && spent === cost;
+  }
+  return conditionMet(state, effect, card, targetId ? [targetId] : undefined, targetId);
+}
+
+function playStatAmount(state: BattleState, card: Card, effect: EffectDescriptor): number {
+  const scale = effect.scaleByCounter;
+  if (!scale) return effect.amount ?? 0;
+  const counter = scale.counter === "activeCardCost"
+    ? cardCost(state, card)
+    : scale.counter === "activeCardStarSpent"
+      ? starlightPayment(state, card)
+      : counterOf(state, scale.counter, card);
+  let factor = counter * (scale.per ?? 1);
+  if (scale.min != null) factor = Math.max(scale.min, factor);
+  if (scale.max != null) factor = Math.min(scale.max, factor);
+  return (effect.amount ?? 0) * factor;
 }
 
 // 把临时面板写进施放者 mods → 跑预览 → 原样撤回。
 // ⚠ 刻意走 mods 而不是给 previewDamage 逐项开参数: 穿甲/命中/精准都藏在 statOf 后面,
 //   逐项开口子要改的地方远比这一进一出多。整段同步执行, 结束后 state 与调用前完全一致。
-function withPlayStatBonuses<T>(state: BattleState, card: Card, run: () => T): T {
+function withPlayStatBonuses<T>(state: BattleState, card: Card, targetId: string | undefined, run: () => T): T {
   const attacker = state.combatants[card.ownerCharId];
-  const bonuses = attacker ? playStatBonusesOf(state, card) : [];
-  for (const effect of bonuses) addMod(attacker, effect.stat!, effect.amount ?? 0, effect.pct ?? false);
+  const bonuses = attacker ? playStatBonusesOf(state, card, targetId) : [];
+  for (const effect of bonuses) addMod(attacker, effect.stat!, playStatAmount(state, card, effect), effect.pct ?? false);
   try {
     return run();
   } finally {
-    for (const effect of bonuses) addMod(attacker, effect.stat!, -(effect.amount ?? 0), effect.pct ?? false);
+    for (const effect of bonuses) addMod(attacker, effect.stat!, -playStatAmount(state, card, effect), effect.pct ?? false);
   }
 }
 
@@ -55,7 +94,7 @@ export function cardHitChance(state: BattleState, card: Card, targetId: string):
   const target = state.combatants[targetId];
   if (!attacker || !target || !target.alive) return null;
 
-  return withPlayStatBonuses(state, card, () => hitChance(state, attacker, target, effect.hitBonus ?? 0));
+  return withPlayStatBonuses(state, card, targetId, () => hitChance(state, attacker, target, effect.hitBonus ?? 0));
 }
 
 // 返回命中后的单段确定性伤害; 暴击、格挡和护盾吸收不计入预览。
@@ -65,7 +104,7 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
   const target = state.combatants[targetId];
   if (!effect || !attacker || !target || !target.alive) return null;
 
-  return withPlayStatBonuses(state, card, () => {
+  return withPlayStatBonuses(state, card, targetId, () => {
     const fixed = effect.amount != null;
     const rawBonusMult =
       effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null

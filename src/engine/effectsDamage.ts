@@ -60,7 +60,9 @@ export function applyDamageEffect(
   let lifestealPool = 0;
   let killTriggered = false;
   let hitTriggered = false;
+  let critTriggered = false;
   let firstHitTarget: string | undefined;
+  let firstCritTarget: string | undefined;
 
   for (let i = 0; i < hits; i++) {
     const hitTargets = effect.randomPerHit && effect.target === "randomFoe"
@@ -96,6 +98,10 @@ export function applyDamageEffect(
         unblockable,
         hitBonus: effect.hitBonus,
         onDealt: effect.lifesteal != null ? (hpLost) => { lifestealPool += hpLost; } : undefined,
+        onCrit: () => {
+          critTriggered = true;
+          firstCritTarget ??= id;
+        },
       });
       if (result === "missed") resolution.missed.push(id);
       else if (result === "hit") {
@@ -116,6 +122,8 @@ export function applyDamageEffect(
   }
   if (effect.onHit?.length && hitTriggered)
     mergeResolution(resolution, deps.resolveEffects(state, effect.onHit, sourceId, firstHitTarget));
+  if (effect.onCrit?.length && critTriggered)
+    mergeResolution(resolution, deps.resolveEffects(state, effect.onCrit, sourceId, firstCritTarget));
   if (effect.lifesteal != null && lifestealPool > 0) {
     const lifestealAmount = lifestealPool * effect.lifesteal;
     const healed = ops.heal(state, sourceId, sourceId, lifestealAmount, { scaled: true });

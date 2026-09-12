@@ -161,6 +161,7 @@ export function dealDamage(
   // ---- 2. 暴击判定(命中之后) ----
   if (dmg.isAttack && src && roll(state, critChance(state, src))) {
     dmg.crit = true;
+    opts.onCrit?.();
     dmg.amount *= statOf(src, "critDamage") / 100;
   }
 

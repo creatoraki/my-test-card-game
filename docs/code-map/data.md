@@ -6,7 +6,7 @@
 | --- | --- |
 | [enemies/mimics.ts](../../src/data/enemies/mimics.ts) | 宝箱怪单列数据：只有自保招式，按 fleeAfterRound 到点离场，并分别必掉装备箱或卡牌候选。 |
 | 宝箱怪遭遇战 | encounters.ts 登记「械匣暗格」「牌匣暗格」两场编成；maps.ts 通过 treasureEncounters 供 t1-t3 战斗按概率替换。 |
-| [cards.ts](../../src/data/cards.ts) + [cards/](../../src/data/cards/) | `CARD_DEFS` 汇总入口；具体 `CardDef[]` 按角色放在 `cards/<角色>/index.ts` 中维护，基础卡仍由 `basicCards.ts` 统一生成。剑士卡池现为 30 张，按 `cards/swordsman/attack.ts`(攻击 14) + `support.ts`(功能与防御 10) + `passive.ts`(被动 6) 三张分表维护；新增卡覆盖手牌选择、弃牌预选、纳刀、雷走回手、虚无复制、逐段随机伤害和剑士状态联动。其余角色卡池与中立临时卡仍按各自分表维护，被动卡无费用、不可打出、持在手中按事件自动生效(见 engine/passive.ts)。 |
+| [cards.ts](../../src/data/cards.ts) + [cards/](../../src/data/cards/) | `CARD_DEFS` 汇总入口；具体 `CardDef[]` 按角色放在 `cards/<角色>/index.ts` 中维护，基础卡仍由 `basicCards.ts` 统一生成。剑士卡池现为 30 张，按 `cards/swordsman/attack.ts`(攻击 14) + `support.ts`(功能与防御 10) + `passive.ts`(被动 6) 三张分表维护；预言家卡池含 20 张可抽卡及 2 张临时卡，按 `cards/prophet/{attack,support,passive,temporary}.ts` 分表维护，涵盖瀑布、星辉、翻牌与手牌 BUFF 操作。其余角色卡池与中立临时卡仍按各自分表维护，被动卡无费用、不可打出、持在手中按事件自动生效(见 engine/passive.ts)。 |
 | [basicCards.ts](../../src/data/basicCards.ts) | 按角色生成 3 张基础卡，并提供统一的 2 攻 + 2 治 + 1 盾初始卡组。基础卡不进入抽卡池且不计入限携；说明使用 `{0}` 效果数值占位符。 |
 | [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、统一基础初始卡组和按稀有度分档的个人抽卡池；五名角色基础先手统一为 20，剑士、预言家、植物学家、炼金术士与精算师专属卡池均已登记，精算师卡池为 8 张普通卡且罕见/稀有池留空。 |
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、招式及各自延迟、招式权重与招式级命中修正、目标选择、每回合行动次数上限、击杀经验、普通掉落表和战斗胜利 `boonTable`；掉落表按档位挂水晶与废弃楼层地区材料——小怪绿晶/low、精英蓝晶/mid、BOSS 必掉红晶/boss；水晶与换金物按档位共用常量表，通用材料逐怪物固定一种。垃圾山的守护者登记五招及 `ai` 状态机字段，按玩家护盾状态驱动后继权重。首图小怪已包含玻璃水母这一闪避型飞行单位。先手统一 20、与角色基础先手持平，故 `delay` 字段即最终蓄力时刻数。经验写在敌人定义中，不写入掉落表。 |

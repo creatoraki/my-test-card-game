@@ -10,12 +10,14 @@ const LABELS: Record<Pile, string> = { draw: "抽牌堆", discard: "弃牌堆", 
 interface Props {
   battle: BattleState;
   pile: Pile | null;
+  uids?: string[];
+  title?: string;
   onClose: () => void;
   choiceMode?: boolean;
   onPick?: (uid: string) => void;
 }
 
-export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }: Props) {
+export function PileDrawer({ battle, pile, uids, title, onClose, choiceMode = false, onPick }: Props) {
   const [shown, setShown] = useState<Pile | null>(pile);
   const [closing, setClosing] = useState(false);
   const [hover, setHover] = useState<{ uid: string; x: number; y: number } | null>(null);
@@ -51,10 +53,12 @@ export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }
   }, [shown, closing, onClose]);
 
   if (!shown) return null;
-  const pileCards = battle[shown].map((uid) => battle.cards[uid]).filter(Boolean) as Card[];
-  const cards = [...pileCards].sort(
+  const sourceUids = uids ?? battle[shown];
+  const pileCards = sourceUids.map((uid) => battle.cards[uid]).filter(Boolean) as Card[];
+  const cards = uids ? pileCards : [...pileCards].sort(
     (a, b) => a.name.localeCompare(b.name, "zh-Hans-CN") || a.uid.localeCompare(b.uid),
   );
+  const heading = title ?? (choiceMode ? `选择一张牌 · ${cards.length}` : `${LABELS[shown]} · ${cards.length}`);
   const hoveredCard = hover ? cards.find((card) => card.uid === hover.uid) : undefined;
 
   const handleCellEnter = (event: MouseEvent<HTMLDivElement>, card: Card) => {
@@ -72,11 +76,11 @@ export function PileDrawer({ battle, pile, onClose, choiceMode = false, onPick }
 
   return (
     <div ref={scrimRef} className={s.scrim} data-state={closing ? "out" : "in"} role="presentation" onClick={requestClose}>
-      <section className={s.drawer} role="dialog" aria-modal="true" aria-label={LABELS[shown]} onClick={(event) => event.stopPropagation()}>
+      <section className={s.drawer} role="dialog" aria-modal="true" aria-label={title ?? LABELS[shown]} onClick={(event) => event.stopPropagation()}>
         <div className={s.head}>
           <div>
             <span className={s.kicker}>牌堆查看</span>
-            <h2>{choiceMode ? `选择回收牌 · ${cards.length}` : `${LABELS[shown]} · ${cards.length}`}</h2>
+            <h2>{heading}</h2>
           </div>
           <button className={s.close} type="button" aria-label="关闭牌堆" onClick={requestClose}>×</button>
         </div>

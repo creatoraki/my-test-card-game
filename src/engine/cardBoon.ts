@@ -4,7 +4,8 @@ import { activeEffectsOf } from "./cardEffects";
 import { conditionMet } from "./effects";
 import { counterOf } from "./counters";
 import { cultivateReady } from "./cultivate";
-import { isPassive, playableHandUids } from "./passive";
+import { isPassive } from "./passive";
+import { waterfallHolds } from "./waterfall";
 
 export type CardBoonId =
   | "cultivate"
@@ -86,9 +87,7 @@ export function cardBoons(state: BattleState, card: Card): CardBoonId[] {
     boons.push("selfStack");
   if (
     effects.some((effect) => effect.condition === "waterfall") &&
-    playableHandUids(state)
-      .filter((uid) => uid !== card.uid)
-      .every((uid) => card.cost > (state.cards[uid]?.cost ?? 0))
+    waterfallHolds(state, card)
   )
     boons.push("waterfall");
   if (hasCounterBoon(state, card, effects)) boons.push("counter");

@@ -19,23 +19,12 @@ import swordsmanRiftLightArt from "@/assets/skills/swordsman/天隙流光.png";
 import swordsmanSpringSproutArt from "@/assets/skills/swordsman/春芽.png";
 import swordsmanFallingSakuraArt from "@/assets/skills/swordsman/落樱.png";
 import swordsmanWolfSparrowArt from "@/assets/skills/swordsman/狼雀.png";
-import prophetStarShatterArt from "@/assets/skills/prophet/碎星.png";
 import prophetStarfallArt from "@/assets/skills/prophet/星瀑.png";
 import prophetGravityLensArt from "@/assets/skills/prophet/引力透镜.png";
 import prophetTwinStarsArt from "@/assets/skills/prophet/双子星.png";
 import prophetRingShotArt from "@/assets/skills/prophet/环射.png";
-import prophetCelestialVerdictArt from "@/assets/skills/prophet/天穹断罪.png";
-import prophetStarCurtainArt from "@/assets/skills/prophet/星幕.png";
-import prophetBrandArt from "@/assets/skills/prophet/烙印.png";
-import prophetPrayerArt from "@/assets/skills/prophet/祷言.png";
-import prophetAuroraArt from "@/assets/skills/prophet/极光.png";
 import prophetAsteroidBeltArt from "@/assets/skills/prophet/小行星带.png";
-import prophetStellarWindArt from "@/assets/skills/prophet/恒星风.png";
-import prophetEmergencyTreatmentArt from "@/assets/skills/prophet/紧急救治.png";
-import prophetAstrometryArt from "@/assets/skills/prophet/天体测量.png";
-import prophetTravelingLampArt from "@/assets/skills/prophet/远行灯.png";
 import prophetAstrologyArt from "@/assets/skills/prophet/占星术.png";
-import prophetStarDiscArt from "@/assets/skills/prophet/星璧.png";
 import prophetCompanionStarArt from "@/assets/skills/prophet/伴星.png";
 import botanistContinuousShotArt from "@/assets/skills/botanist/双重射击.png";
 import botanistRecycleShotArt from "@/assets/skills/botanist/回收射击.png";
@@ -112,23 +101,12 @@ export const CARD_ART: Record<string, string> = {
   "spring-sprout": swordsmanSpringSproutArt,
   "falling-sakura": swordsmanFallingSakuraArt,
   "wolf-sparrow": swordsmanWolfSparrowArt,
-  "star-shatter": prophetStarShatterArt,
   "starfall": prophetStarfallArt,
   "gravity-lens": prophetGravityLensArt,
   "twin-stars": prophetTwinStarsArt,
   "ring-shot": prophetRingShotArt,
-  "celestial-verdict": prophetCelestialVerdictArt,
-  "star-curtain": prophetStarCurtainArt,
-  "brand": prophetBrandArt,
-  "prayer": prophetPrayerArt,
-  "aurora": prophetAuroraArt,
   "asteroid-belt": prophetAsteroidBeltArt,
-  "stellar-wind": prophetStellarWindArt,
-  "emergency-treatment": prophetEmergencyTreatmentArt,
-  "astrometry": prophetAstrometryArt,
-  "traveling-lamp": prophetTravelingLampArt,
   "astrology": prophetAstrologyArt,
-  "star-disc": prophetStarDiscArt,
   "companion-star": prophetCompanionStarArt,
   "continuous-shot": botanistContinuousShotArt,
   "recycle-shot": botanistRecycleShotArt,

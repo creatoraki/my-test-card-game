@@ -44,6 +44,7 @@ export interface BattleActionsApi {
   onCardClick: (uid: string) => void;
   onCombatantClick: (id: string) => void;
   pickFromDiscard: (uid: string) => void;
+  pickFromDraw: (uid: string) => void;
   pickHandCard: (uid: string) => void;
   pickSquadBuff: (id: string) => void;
   cancelSquadBuff: () => void;
@@ -224,6 +225,14 @@ export function useBattleActions({
     if (!next.pendingChoice) setOpenPile(null);
   }, [battle, commit, pickPendingChoice, setOpenPile]);
 
+  const pickFromDraw = useCallback((uid: string) => {
+    if (!battle || battle.pendingChoice?.kind !== "pickFromDraw") return;
+    const next = pickPendingChoice(uid);
+    if (!next) return;
+    commit(next);
+    setOpenPile(null);
+  }, [battle, commit, pickPendingChoice, setOpenPile]);
+
   const pickHandCard = useCallback((uid: string) => {
     if (!battle || battle.pendingChoice?.kind !== "pickHandCard") return;
     const next = pickPendingChoice(uid);
@@ -246,7 +255,7 @@ export function useBattleActions({
   }, [battle, cancelPendingChoice, commit]);
 
   const closePile = useCallback(() => {
-    if (battle?.pendingChoice?.kind === "recoverFromDiscard") {
+    if (battle?.pendingChoice?.kind === "recoverFromDiscard" || battle?.pendingChoice?.kind === "pickFromDraw") {
       const next = cancelPendingChoice();
       if (next) commit(next);
     }
@@ -260,6 +269,7 @@ export function useBattleActions({
     onCardClick,
     onCombatantClick,
     pickFromDiscard,
+    pickFromDraw,
     pickHandCard,
     pickSquadBuff,
     cancelSquadBuff,

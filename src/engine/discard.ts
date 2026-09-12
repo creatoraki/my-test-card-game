@@ -73,7 +73,11 @@ export function moveToDiscard(
   if (wasInHand && card) {
     resetCultivate(card);
     card.resonanceStacks = 0;
-    card.marks = card.marks?.filter((mark) => mark !== "heavy" && mark !== "noto");
+    const consumedMarkDiscard = reason === "manual" || reason === "effect" || reason === "cost";
+    card.marks = card.marks?.filter((mark) =>
+      mark !== "heavy" && mark !== "noto" && mark !== "countercurrent" &&
+      !(consumedMarkDiscard && mark === "domino"),
+    );
     card.costStacks = 0;
   }
   const rule = RULES.discard.reasons[reason];

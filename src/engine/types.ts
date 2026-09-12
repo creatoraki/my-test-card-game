@@ -41,6 +41,11 @@ export type CounterSource =
   | "lastConsumedStatusStacks"
   | "lastRemovedStatusCount"
   | "activeCardResonance"
+  | "activeCardCost"
+  | "activeCardStarSpent"
+  | "handRaisedCostCards"
+  | "chosenCardCost"
+  | "lastStrippedMarks"
   | "partyInsuranceStacks"
   | "discardPileTens"
   | "lastAimConsumed";
@@ -130,7 +135,8 @@ export type EffectType =
   | "SETTLE_INSURANCE"
   | "TRANSFORM_CARD"
   | "COPY_CARD_TO_HAND"
-  | "CHOOSE_HAND_CARD";
+  | "CHOOSE_HAND_CARD"
+  | "REVEAL_CARDS";
 
 export interface EffectDescriptor {
   type: EffectType;
@@ -186,14 +192,15 @@ export interface EffectDescriptor {
   onKill?: EffectDescriptor[]; // DAMAGE: 本次效果把某个目标打死时结算一次(主目标 = 被击杀者)
   onKillOnce?: boolean;
   onHit?: EffectDescriptor[]; // DAMAGE: 本次至少命中一个目标时结算一次
+  onCrit?: EffectDescriptor[]; // DAMAGE: 本次至少暴击一次时结算一次
   randomPerHit?: boolean; // DAMAGE: randomFoe 每段重新选择目标
   pctOfCurrentHp?: number; // LOSE_HP: 按目标当前生命的比例失去生命(0.1 = 10%)
   cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
   lifestealOverflow?: "lowestHpAlly"; // DAMAGE: 吸血溢出部分治疗最伤的存活队友
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
-  amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE: 数量直接等于计数
-  maxAmount?: number; // CULTIVATE_TICK 配合 amountFrom 时的次数上限
+  amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE / ADD_CARD_TO_HAND / REVEAL_CARDS: 数量直接等于计数
+  maxAmount?: number; // 按计数重复处理效果时的上限
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
   condition?:
     | "discardedThisRound"
@@ -206,17 +213,23 @@ export interface EffectDescriptor {
     | "counterBelow"
     | "eventTargetHasStatus"
     | "targetAttackedThisRound"
-    | "targetNotAttackedThisRound"; // 满足条件时才结算
+    | "targetNotAttackedThisRound"
+    | "fullyStarPaid"
+    | "targetLacksStatus"
+    | "primaryBelowHpLimit"; // 满足条件时才结算
   conditionValue?: number; // handHasCostAtLeast: 手牌中最低牌面费用; fastCardsInHandAtLeast: 手牌中速攻牌数量
+  conditionValueMax?: number; // counterAtLeast: 可选闭区间上限
   conditionCounter?: CounterSource;
   conditionStatus?: string;
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
   // MARK_CARDS: 手牌选择方式。eventCard = 触发本次被动的那张牌(state.passiveEventCardUid)。
-  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard";
+  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard" | "handBottom" | "handRandomUnmarked";
+  markUnique?: boolean; // MARK_CARDS: 手牌中已存在该标记时跳过
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   recoverMark?: string; // RECOVER_FROM_DISCARD: 回收的牌附加标记
-  handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick"; // CHOOSE_HAND_CARD: 选牌后的动作
+  handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks"; // CHOOSE_HAND_CARD: 选牌后的动作
   followUp?: EffectDescriptor[]; // CHOOSE_HAND_CARD: 选牌后的后续效果
+  revealMode?: "costChain" | "attackOrDraw" | "scryPick"; // REVEAL_CARDS: 翻牌方式
   convertTo?: CardType; // CONVERT_CARD_TYPE: 转换后的卡牌类型
   convertPick?: "handRandomNormal" | "handAllFast"; // CONVERT_CARD_TYPE: 手牌普通牌随机 / 全部速攻牌
   squadBuff?: "assembleA" | "assembleB" | "assembleC" | "assembleD";
@@ -303,7 +316,7 @@ export interface CardDef {
   };
 }
 
-// 被动卡的驻留触发。cardDiscarded = 每有一张牌被丢弃, cardDrawn = 每抽到一张牌。
+// 被动卡的驻留触发。cardDiscarded = 每有一张牌被丢弃, cardDrawn = 每抽到一张牌, cardPlayed = 每打出一张牌。
 export type PassiveTriggerId =
   | "cardDiscarded"
   | "cardDrawn"
@@ -311,6 +324,7 @@ export type PassiveTriggerId =
   | "enemyKilled"
   | "assembleSuccess"
   | "allyAttacked"
+  | "cardPlayed"
   | "roundStart";
 
 export interface PassiveDef {
@@ -319,7 +333,7 @@ export interface PassiveDef {
   effectsByTrigger?: Partial<Record<PassiveTriggerId, EffectDescriptor[]>>;
 }
 
-// 一次被动事件。cardUid = 触发事件的那张牌(被丢弃的 / 刚抽到的)。
+// 一次被动事件。cardUid = 触发事件的那张牌(被丢弃的 / 刚抽到的 / 刚打出的)。
 export interface PassiveEvent {
   type: PassiveTriggerId;
   cardUid?: string;
@@ -387,8 +401,14 @@ export type PendingChoice =
       kind: "pickHandCard";
       sourceCardUid: string;
       ownerCharId: string;
-      action: "moveToBottom" | "noto" | "cultivateTick";
+      action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks";
       followUp?: EffectDescriptor[];
+    }
+  | {
+      kind: "pickFromDraw";
+      sourceCardUid: string;
+      options: string[];
+      mark?: string;
     }
   | {
       kind: "pickSquadBuff";
@@ -680,12 +700,17 @@ export interface BattleState {
   // ★ 出牌结束逐条逆向撤回后清空 —— 它不是场上 buff, 结算完不留痕。
   playStatMods: { targetId: string; stat: keyof StatBlock; amount: number; pct: boolean }[];
   activeCardCost: number | null;
+  activeCardStarSpent: number;
   // 当前结算卡的实例累计层数(Card.discardStacks)。与 activeCardCost 同生命周期。
   activeCardStacks: number;
   // 当前结算卡的共鸣强化次数, 与 activeCardStacks 同生命周期。
   activeCardResonance: number;
   lastAimConsumed: number;
   activeCardUid: string | null;
+  markTransferSourceUid: string | null;
+  chosenCardCost: number;
+  lastStrippedMarks: number;
+  autoPlaySuppress: boolean;
   // 被动卡结算窗口内, 触发本次事件的那张牌 uid(供 markPick: "eventCard" 定位)。
   passiveEventCardUid: string | null;
   passiveEventTargetStatuses: StatusInstance[] | null;
@@ -730,6 +755,7 @@ export interface DamageOpts {
   noLimitLoss?: boolean; // 持续伤害(DOT)等: 只扣当前 HP, 不压低体力极限
   hitBonus?: number; // 本次效果的命中修正(百分点)
   onDealt?: (hpLost: number) => void; // 落到 HP 后回调实际掉血(未命中/濒死为 0)
+  onCrit?: () => void; // 暴击确认后立即回调
 }
 
 export interface EngineOps {

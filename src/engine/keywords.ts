@@ -107,7 +107,37 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
   {
     id: "waterfall",
     name: "瀑布",
-    desc: "该牌为手牌中费用最高的牌时，触发额外效果。",
+    desc: "该牌的当前费用严格高于其他可打出手牌时，触发额外效果。",
+  },
+  {
+    id: "fast",
+    name: "速攻",
+    desc: "打出后不推进时刻。",
+  },
+  {
+    id: "zenithStar",
+    name: "天顶星",
+    desc: "下一张带瀑布效果的牌无视费用比较触发瀑布，随后移除此状态。",
+  },
+  {
+    id: "gravityLens",
+    name: "引力透镜",
+    desc: "下一张实际触发瀑布的牌，其瀑布效果额外结算一次。",
+  },
+  {
+    id: "drift",
+    name: "漂流",
+    desc: "持续 3 回合；瀑布触发时，获得来源治愈力 20% 的护盾。",
+  },
+  {
+    id: "countercurrent",
+    name: "逆流",
+    desc: "费用 +1；打出后获得 1 层星辉，离手时移除。",
+  },
+  {
+    id: "domino",
+    name: "多米诺",
+    desc: "费用 +1；打出后抽 1 张牌，持有多米诺被动时会重新附加到未带卡牌增益的手牌。",
   },
   {
     id: "aim",

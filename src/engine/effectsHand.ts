@@ -123,6 +123,7 @@ function applyRecover(state: BattleState, effect: EffectDescriptor, sourceId: st
 
 function applyMarkCards(state: BattleState, effect: EffectDescriptor): void {
   if (!effect.mark || !effect.markPick) return;
+  if (effect.markUnique && Object.values(state.cards).some((card) => card.marks?.includes(effect.mark!))) return;
   const markable = playableHandUids(state);
   if (effect.markPick === "eventCard") {
     const uid = state.passiveEventCardUid;
@@ -137,6 +138,12 @@ function applyMarkCards(state: BattleState, effect: EffectDescriptor): void {
     }
     return;
   }
+  if (effect.markPick === "handBottom") {
+    const bottomUid = markable[markable.length - 1];
+    const card = bottomUid ? state.cards[bottomUid] : undefined;
+    if (card) markCard(state, card, effect.mark);
+    return;
+  }
   const amountToMark = Math.max(0, Math.floor(effect.amount ?? 0));
   if (effect.markPick === "handHighestCostRandom") {
     const candidates = markable.map((uid) => state.cards[uid]).filter((card): card is Card => card != null);
@@ -148,7 +155,9 @@ function applyMarkCards(state: BattleState, effect: EffectDescriptor): void {
   }
   const pool = markable.filter((uid) => {
     const card = state.cards[uid];
-    return card && (effect.markPick !== "handRandomNonStarPay" || !starPayable(card));
+    if (!card) return false;
+    if (effect.markPick === "handRandomUnmarked") return (card.marks?.length ?? 0) === 0;
+    return effect.markPick !== "handRandomNonStarPay" || !starPayable(card);
   });
   for (let i = 0; i < amountToMark && pool.length > 0; i++) {
     const uid = rngPick(state, pool);
@@ -187,8 +196,12 @@ function applyAddCard(state: BattleState, effect: EffectDescriptor, sourceId: st
     ? (state.playerIds.map((id) => state.combatants[id]).filter((ally): ally is Ally => ally?.alive && ally.team === "player"))
     : [];
   if (effect.cardOwner === "randomAlly" && allies.length === 0) return;
-  const ownerCharId = effect.cardOwner === "randomAlly" ? rngPick(state, allies).charId : undefined;
-  ops.addCardToHand(state, effect.cardId, ownerCharId);
+  const rawAmount = effect.amountFrom ? counterOf(state, effect.amountFrom) : effect.amount ?? 1;
+  const amount = Math.min(effect.maxAmount ?? Infinity, Math.max(0, Math.floor(rawAmount)));
+  for (let i = 0; i < amount && state.hand.length < partyHandLimit(state); i++) {
+    const ownerCharId = effect.cardOwner === "randomAlly" ? rngPick(state, allies).charId : undefined;
+    ops.addCardToHand(state, effect.cardId, ownerCharId);
+  }
 }
 
 function applyConvert(state: BattleState, effect: EffectDescriptor): void {
@@ -290,11 +303,20 @@ export function applyHandEffect(
       break;
     case "CHOOSE_HAND_CARD": {
       const candidates = playableHandUids(state).filter((uid) => {
+        if (effect.handChoiceAction === "markTarget" && uid === state.markTransferSourceUid) return false;
+        if (effect.handChoiceAction === "markSource" || effect.handChoiceAction === "stripMarks") {
+          if ((state.cards[uid]?.marks?.length ?? 0) === 0) return false;
+        }
         if (effect.handChoiceAction !== "cultivateTick") return true;
         const card = state.cards[uid];
         return card?.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) > 0;
       });
       if (candidates.length === 0) {
+        if (effect.handChoiceAction === "devour") state.chosenCardCost = 0;
+        if (effect.handChoiceAction === "stripMarks") state.lastStrippedMarks = 0;
+        if (effect.handChoiceAction === "markTarget") state.markTransferSourceUid = null;
+        if (["markSource", "markTarget", "devour", "stripMarks"].includes(effect.handChoiceAction ?? ""))
+          return emptyResolution();
         return effect.followUp?.length ? resolveEffects(state, effect.followUp, sourceId, undefined) : emptyResolution();
       }
       if (effect.handChoiceAction) {

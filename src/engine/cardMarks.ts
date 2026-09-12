@@ -35,6 +35,22 @@ export const CARD_MARK_DEFS: Record<string, CardMarkDef> = {
     effects: [],
     costDelta: 1,
   },
+  countercurrent: {
+    id: "countercurrent",
+    name: "逆流",
+    emoji: "🌀",
+    desc: "这张牌的费用 +1。打出后获得 1 层星辉，离手时移除。",
+    effects: [{ type: "APPLY_STATUS", status: "starlight", stacks: 1, target: "self" }],
+    costDelta: 1,
+  },
+  domino: {
+    id: "domino",
+    name: "多米诺",
+    emoji: "🁢",
+    desc: "这张牌的费用 +1。打出后抽 1 张牌，随后移除。",
+    effects: [{ type: "DRAW", amount: 1 }],
+    costDelta: 1,
+  },
   swordMound: {
     id: "swordMound",
     name: "剑冢",

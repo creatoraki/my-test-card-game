@@ -4,22 +4,16 @@
 // ============================================================================
 
 import type {
-  Ally,
   AnimHit,
   BattleState,
   Card,
-  Combatant,
-  EncounterModifier,
   Enemy,
+  EncounterModifier,
   FxRecorder,
-  SquadBuffRewardPools,
-  StatBlock,
 } from "./types";
-import type { QuirkId } from "./quirks";
 import { RULES } from "./rules";
 import {
   addMod,
-  makeStats,
   partyDrawCount,
   partyHandLimit,
   partyManaPerRound,
@@ -27,7 +21,6 @@ import {
   partyRedrawLimit,
   partyWaitLimit,
 } from "./stats";
-import { shuffle } from "./rng";
 import { applyStatus, checkEnd, ctxFor, log, ops } from "./ops";
 import { STATUS_DEFS } from "./statuses";
 import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
@@ -39,24 +32,29 @@ import { startCharge } from "./ai";
 import { advanceTick, flushPendingActs } from "./scheduler";
 import { runRelicHook } from "./relicBehaviors/types";
 
-const isTest = import.meta.env.isTest === "true";
 import {
   checkChallengesOnEndTurn,
   checkMassacreOnRoundSettle,
   noteChallengePlay,
   noteChallengeRedraw,
-  rollChallenges,
 } from "./challenges";
-import { getEncounter, getEnemyDef, slotDefId } from "../data";
 import { flushAutoPlays, moveToDiscard, takeDiscardSnapshot, withDiscardRecorder } from "./discard";
 import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { firePassive, isPassive, playableHandUids, recycleHandPassives } from "./passive";
 import { fireRelic } from "./relics";
-import { gainSquadBuff } from "./squadBuff";
-import { advanceCultivate, cultivateReady, effectiveTargeting, resetCultivate, tickCultivate } from "./cultivate";
+import { cultivateReady, effectiveTargeting, resetCultivate, tickCultivate } from "./cultivate";
 import { withHitRecorder } from "./animHits";
 import { runEnemyFlee } from "./flee";
+import {
+  consumeZenithStar,
+  fireWaterfallHooks,
+  prepareWaterfallEncore,
+  resolveWaterfallEncore,
+  waterfallHolds,
+} from "./waterfall";
+import { createBattleState } from "./battleSetup";
+import type { BattleSetup as BattleSetupInput } from "./battleSetup";
 
 // 出牌记录器: 收集出牌后触发的敌人行动动画帧, 并回传"出牌后/敌人行动前"的快照。
 export interface PlayRecorder {
@@ -69,196 +67,15 @@ export interface PlayRecorder {
   cardHits?: AnimHit[];
 }
 
-export interface AllyInit {
-  id: string;
-  charId: string;
-  name: string;
-  emoji: string;
-  // ★ 局外已结算完的面板(角色基础 + 装备)。由 store 层通过 townStore.deriveStats 产出。
-  stats: StatBlock;
-  // 开局生命。缺省 = stats.maxHp; 探索模式传入上一场战斗继承下来的血量 ——
-  // 「血量跨战斗继承」是探索牌局的地基, 没有它「休整」与「撤退」都不成为决策。
-  startHp?: number;
-  startHpLimit?: number;
-  pollution?: number;
-  sick?: boolean;
-  quirks?: QuirkId[];
-}
+export type { AllyInit, BattleSetup } from "./battleSetup";
 
-export interface BattleSetup {
-  allies: AllyInit[];
-  deck: Card[]; // 运行期卡牌实例(带 uid)
-  // ★ 开战瞬间的有效负重点数, 由探索层算好传入(engine/stats.burdenValue)。
-  //   引擎不认识背包与占格, 只认识这一个数。缺省 0 —— 城镇试打与单元测试都走这条。
-  burden?: number;
-  squadMods?: import("./types").SquadResourceMods;
-  squadBuffRewardPools?: SquadBuffRewardPools;
-  relics?: string[];
-}
-
-// ---------------------------------------------------------------------------
-// 建立一场战斗
-// ---------------------------------------------------------------------------
 export function createBattle(
   encounterId: string,
-  setup: BattleSetup,
+  setup: BattleSetupInput,
   seed?: number,
   mod?: EncounterModifier,
 ): BattleState {
-  const enc = getEncounter(encounterId);
-  const combatants: Record<string, Combatant> = {};
-  const playerIds: string[] = [];
-  const enemyIds: string[] = [];
-
-  for (const a of setup.allies) {
-    const maxHp = Math.max(1, Math.round(a.stats.maxHp));
-    const hpLimit = Math.max(1, Math.min(maxHp, Math.round(a.startHpLimit ?? maxHp)));
-    const ally: Ally = {
-      id: a.id,
-      charId: a.charId,
-      name: a.name,
-      emoji: a.emoji,
-      team: "player",
-      hp: Math.max(0, Math.min(maxHp, a.startHp ?? maxHp)),
-      hpLimit,
-      maxHp,
-      shield: 0,
-      stats: a.stats,
-      mods: {},
-      statuses: [],
-      alive: true,
-      tempo: 0,
-      pollution: Math.max(0, Math.min(99, Math.round(a.pollution ?? 0))),
-      sick: a.sick ?? false,
-      quirks: [...(a.quirks ?? [])],
-    };
-    combatants[a.id] = ally;
-    playerIds.push(a.id);
-  }
-
-  // 槽位可以是裸 id 或带站位的对象; 站位是纯表现, 引擎只取 def id(见 data/encounters.ts)
-  // 改造器追加的敌人排在原有敌人之后 ⇒ 不影响 encounters.ts 里手工调好的站位下标。
-  const defIds = [...enc.enemies.map(slotDefId), ...(mod?.extraEnemies ?? [])];
-  const hpMul = mod?.hpMultiplier ?? 1;
-
-  // 统计同名敌人以便加后缀区分
-  const defCounts: Record<string, number> = {};
-  for (const defId of defIds) defCounts[defId] = (defCounts[defId] ?? 0) + 1;
-  const defSeen: Record<string, number> = {};
-
-  defIds.forEach((defId, i) => {
-    const def = getEnemyDef(defId);
-    const id = `${defId}#${i}`;
-    const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";
-    defSeen[defId] = (defSeen[defId] ?? 0) + 1;
-    const maxHp = isTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
-    const enemy: Enemy = {
-      id,
-      enemyDefId: defId,
-      name: def.name + suffix,
-      emoji: def.emoji,
-      team: "enemy",
-      hp: maxHp,
-      hpLimit: maxHp,
-      maxHp,
-      shield: 0,
-      stats: makeStats({ ...def.stats, maxHp }),
-      mods: {},
-      statuses: [],
-      alive: true,
-      tempo: 0,
-      moveDelayDelta: mod?.moveDelayDelta ?? 0,
-      nextActTick: null,
-      actsPerRound: Math.max(1, def.actsPerRound ?? 1),
-      actsThisRound: 0,
-      intent: { moveId: "", name: "", emoji: "", kind: "special" },
-    };
-    combatants[id] = enemy;
-    enemyIds.push(id);
-  });
-
-  const cards: Record<string, Card> = {};
-  for (const c of setup.deck) cards[c.uid] = c;
-
-  const state: BattleState = {
-    encounterId,
-    round: 0,
-    tick: 0,
-    phase: "player",
-    combatants,
-    playerIds,
-    enemyIds,
-    cards,
-    relics: [...new Set(setup.relics ?? [])].map((id) => ({ id, counter: 0 })),
-    draw: [],
-    hand: [],
-    discard: [],
-    exhaust: [],
-    redrawsThisRound: 0,
-    waitsThisRound: 0,
-    discardsThisRound: 0,
-    playedThisRound: [],
-    lastPlayedCard: null,
-    discardResolving: [],
-    resources: {},
-    burden: Math.max(0, setup.burden ?? 0),
-    squadMods: {
-      openingHand: 0,
-      drawCount: 0,
-      redraws: 0,
-      waits: 0,
-      mana: 0,
-      handLimit: 0,
-      ...(setup.squadMods ?? {}),
-    },
-    challenges: [],
-    challengeKillRound: null,
-    challengeFocusTargetId: null,
-    challengeEnemyActRound: null,
-    attackedThisRound: [],
-    echoGainedThisRound: false,
-    rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
-    log: [],
-    lastDiscardBatch: 0,
-    discardsThisBattle: 0,
-    lastDiscardBatchFast: 0,
-    lastRecoverBatchFast: 0,
-    pendingChoice: null,
-    pendingDiscardPicks: [],
-    pendingAutoPlays: [],
-    waterfallPlay: false,
-    playValueBonusPct: 0,
-    playStatMods: [],
-    activeCardCost: null,
-    activeCardStacks: 0,
-    activeCardResonance: 0,
-    lastAimConsumed: 0,
-    activeCardUid: null,
-    passiveEventCardUid: null,
-    passiveEventTargetStatuses: null,
-    lastDiscardBatchCost: 0,
-    lastConvertBatch: 0,
-    squadBuffs: [],
-    squadBuffRewardPools: {
-      attack: [...(setup.squadBuffRewardPools?.attack ?? [])],
-      defense: [...(setup.squadBuffRewardPools?.defense ?? [])],
-      support: [...(setup.squadBuffRewardPools?.support ?? [])],
-      passive: [...(setup.squadBuffRewardPools?.passive ?? [])],
-    },
-    lastSquadBuffConsumed: 0,
-    lastConsumedStatusStacks: 0,
-    lastRemovedStatusCount: 0,
-  };
-
-  state.draw = shuffle(state, Object.keys(cards));
-  state.challenges = rollChallenges(state);
-  log(state, `⚔️ 遭遇战: ${enc.name}`);
-
-  // 开局状态必须在 startRound 之前施加 —— startRound 会抽招, 而意图预览要吃到力量加成。
-  for (const st of mod?.enemyStatuses ?? []) {
-    for (const id of enemyIds) applyStatus(state, id, st.id, st.stacks, st.duration);
-  }
-
+  const state = createBattleState(encounterId, setup, seed, mod);
   startRound(state);
   return state;
 }
@@ -434,6 +251,7 @@ export function playCard(
   const playOptions = recOrOpts && "discardPicks" in recOrOpts ? recOrOpts : options;
   if (!canPlay(state, uid)) return false;
   const card = state.cards[uid];
+  const cardMarksAtPlay = [...(card.marks ?? [])];
   const owner = state.combatants[card.ownerCharId];
   const targeting = effectiveTargeting(card);
   if ((targeting === "foe" || targeting === "ally") && !isValidPrimary(state, card, primaryId))
@@ -443,9 +261,10 @@ export function playCard(
   const starPayment = starlightPayment(state, card);
   const manaPayment = faceCost - starPayment;
   // 瀑布只看"能打出的手牌" —— 被动卡无费用, 不参与任何费用比较。
-  state.waterfallPlay = playableHandUids(state)
-    .filter((handUid) => handUid !== uid)
-    .every((handUid) => card.cost > (state.cards[handUid]?.cost ?? 0));
+  const hasWaterfallEffect = baseEffectsOf(card).some((effect) => effect.condition === "waterfall");
+  state.waterfallPlay = hasWaterfallEffect &&
+    (waterfallHolds(state, card) || consumeZenithStar(state, card));
+  state.activeCardStarSpent = starPayment;
   if (starPayment > 0) applyStatus(state, owner.id, "starlight", -starPayment);
   state.resources[RULES.resource.name] -= manaPayment;
   state.hand = state.hand.filter((x) => x !== uid);
@@ -473,14 +292,19 @@ export function playCard(
       state.lastAimConsumed = 0;
       try {
         runRelicHook(state, "beforeCardEffects", card, primaryId);
-        for (const markId of card.marks ?? []) {
+        for (const markId of cardMarksAtPlay) {
           const preEffects = CARD_MARK_DEFS[markId]?.preEffects;
           if (preEffects?.length) mergeCardResolution(resolveEffects(state, preEffects, card.ownerCharId, primaryId));
         }
         const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
         const baseEffects = baseEffectsOf(card);
+        mergeCardResolution(prepareWaterfallEncore(state, card, primaryId));
         mergeCardResolution(resolveEffects(state, baseEffects, card.ownerCharId, primaryId));
+        if (state.waterfallPlay) {
+          mergeCardResolution(resolveWaterfallEncore(state, card, primaryId));
+          fireWaterfallHooks(state);
+        }
 
         if (cultivated && cultivateMode !== "replace")
           mergeCardResolution(resolveEffects(state, card.cultivate!.effects, card.ownerCharId, primaryId));
@@ -525,14 +349,13 @@ export function playCard(
               handCard.resonanceStacks = (handCard.resonanceStacks ?? 0) + 1;
           }
         }
-        for (const markId of card.marks ?? []) {
+        for (const markId of cardMarksAtPlay) {
           const mark = CARD_MARK_DEFS[markId];
           if (mark) mergeCardResolution(resolveEffects(state, mark.effects, card.ownerCharId, primaryId));
         }
-        if (!returnsToHand) {
-          card.marks = [];
-          card.discardStacks = 0; // 累计层数只在"未打出"期间有效, 打出即清零
-        }
+        card.marks = [];
+        if (!returnsToHand) card.discardStacks = 0; // 累计层数只在"未打出"期间有效, 打出即清零
+        firePassive(state, { type: "cardPlayed", cardUid: uid }, rec);
         card.resonanceStacks = 0;
         state.waterfallPlay = false;
         state.playValueBonusPct = 0;
@@ -549,6 +372,7 @@ export function playCard(
         flushAutoPlays(state, rec);
       } finally {
         state.activeCardCost = null;
+        state.activeCardStarSpent = 0;
         state.activeCardStacks = 0;
         state.activeCardResonance = 0;
         state.activeCardUid = null;
@@ -648,55 +472,4 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
   });
 }
 
-export function resolvePendingChoice(state: BattleState, uid: string): boolean {
-  const choice = state.pendingChoice;
-  if (!choice) return false;
-  if (choice.kind === "pickSquadBuff") {
-    if (!choice.options.includes(uid) || state.squadBuffs.some((entry) => entry.id === uid)) return false;
-    if (!gainSquadBuff(state, uid as Parameters<typeof gainSquadBuff>[1])) return false;
-    state.pendingChoice = null;
-    log(state, `获得 ${uid}`);
-    return true;
-  }
-  if (choice.kind === "pickHandCard") {
-    if (!state.hand.includes(uid)) return false;
-    const card = state.cards[uid];
-    if (choice.action === "cultivateTick") {
-      if (!card?.cultivate || (card.cultivateLeft ?? card.cultivate.turns) <= 0) return false;
-      advanceCultivate(card, 1);
-      log(state, `${card.name} 的培育层数 -1`);
-    } else if (choice.action === "moveToBottom") {
-      state.hand = state.hand.filter((handUid) => handUid !== uid);
-      state.hand.push(uid);
-    } else {
-      if (card) card.notoPending = true;
-      ops.discard(state, uid, "effect");
-    }
-    state.pendingChoice = null;
-    if (choice.followUp?.length) resolveEffects(state, choice.followUp, choice.ownerCharId, undefined);
-    log(state, `${card?.name ?? "卡牌"} 已完成选择操作`);
-    return true;
-  }
-  if (!state.discard.includes(uid) || state.hand.length >= partyHandLimit(state)) return false;
-
-  state.discard = state.discard.filter((id) => id !== uid);
-  state.hand.push(uid);
-  const card = state.cards[uid];
-  if (card) resetCultivate(card);
-  if (card && choice.recoverMark) {
-    card.marks ??= [];
-    if (!card.marks.includes(choice.recoverMark)) card.marks.push(choice.recoverMark);
-  }
-  if (choice.count > 1) choice.count -= 1;
-  else state.pendingChoice = null;
-  log(state, `${card?.name ?? "卡牌"} 已从弃牌堆回到手牌`);
-  return true;
-}
-
-export function cancelPendingChoice(state: BattleState): boolean {
-  if (!state.pendingChoice) return false;
-  if (state.pendingChoice.kind === "pickHandCard") return false;
-  state.pendingChoice = null;
-  log(state, "放弃当前选择");
-  return true;
-}
+export { resolvePendingChoice, cancelPendingChoice } from "./battleChoices";

@@ -1,5 +1,7 @@
 import type { BattleState, Card, CounterSource } from "./types";
 import { partyInsuranceStacks } from "./insurance";
+import { cardCost } from "./cost";
+import { playableHandUids } from "./passiveCards";
 
 export function counterOf(state: BattleState, source: CounterSource, card?: Card): number {
   if (source === "discardsThisRound") return state.discardsThisRound;
@@ -14,6 +16,15 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
   if (source === "lastConsumedStatusStacks") return state.lastConsumedStatusStacks;
   if (source === "lastRemovedStatusCount") return state.lastRemovedStatusCount;
   if (source === "activeCardResonance") return card ? card.resonanceStacks ?? 0 : state.activeCardResonance;
+  if (source === "activeCardCost") return state.activeCardCost ?? 0;
+  if (source === "activeCardStarSpent") return state.activeCardStarSpent;
+  if (source === "handRaisedCostCards")
+    return playableHandUids(state).filter((uid) => {
+      const handCard = state.cards[uid];
+      return handCard != null && cardCost(state, handCard) > handCard.cost;
+    }).length;
+  if (source === "chosenCardCost") return state.chosenCardCost;
+  if (source === "lastStrippedMarks") return state.lastStrippedMarks;
   if (source === "lastAimConsumed") return state.lastAimConsumed;
   if (source === "partyInsuranceStacks") return partyInsuranceStacks(state);
   if (source === "discardPileTens") return Math.floor(state.discard.length / 10);

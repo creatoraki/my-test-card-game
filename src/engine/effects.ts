@@ -17,6 +17,7 @@ import { addPollution } from "./pollution";
 import { settleInsurance } from "./insurance";
 import { applyHandEffect } from "./effectsHand";
 import { applyDamageEffect } from "./effectsDamage";
+import { applyRevealEffect } from "./effectsReveal";
 import {
   ASSEMBLE_IDS,
   gainSquadBuff,
@@ -52,6 +53,7 @@ export function conditionMet(
   effect: EffectDescriptor,
   card?: Card,
   targetIds?: string[],
+  primaryId?: string,
 ): boolean {
   if (effect.condition === "discardedThisRound")
     return counterOf(state, "discardsThisRound") > 0;
@@ -65,8 +67,11 @@ export function conditionMet(
     return playableHandUids(state).some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
   if (effect.condition === "fastCardsInHandAtLeast")
     return playableHandUids(state).filter((uid) => state.cards[uid]?.cardType === "fast").length >= (effect.conditionValue ?? 0);
-  if (effect.condition === "counterAtLeast")
-    return counterOf(state, effect.conditionCounter!, card) >= (effect.conditionValue ?? 0);
+  if (effect.condition === "counterAtLeast") {
+    const value = counterOf(state, effect.conditionCounter!, card);
+    return value >= (effect.conditionValue ?? 0) &&
+      (effect.conditionValueMax == null || value <= effect.conditionValueMax);
+  }
   if (effect.condition === "counterBelow")
     return counterOf(state, effect.conditionCounter!, card) < (effect.conditionValue ?? 0);
   if (effect.condition === "eventTargetHasStatus")
@@ -76,6 +81,17 @@ export function conditionMet(
           (status) => status.id === effect.conditionStatus && status.stacks > 0,
         ),
     );
+  if (effect.condition === "fullyStarPaid")
+    return state.activeCardStarSpent > 0 && state.activeCardCost != null &&
+      state.activeCardStarSpent === state.activeCardCost;
+  if (effect.condition === "targetLacksStatus")
+    return Boolean(effect.conditionStatus) && (targetIds ?? []).every((id) =>
+      !state.combatants[id]?.statuses.some((status) => status.id === effect.conditionStatus && status.stacks > 0),
+    );
+  if (effect.condition === "primaryBelowHpLimit") {
+    const primary = primaryId ? state.combatants[primaryId] : undefined;
+    return Boolean(primary?.alive && primary.hp < primary.hpLimit);
+  }
   if (effect.condition === "targetAttackedThisRound" || effect.condition === "targetNotAttackedThisRound") {
     const targetWasAttacked =
       targetIds == null
@@ -165,9 +181,11 @@ export function resolveTargets(
 
 // 治疗/护盾的计数加算倍率(与 DAMAGE 的 bonusMultiplierFrom / bonusMultiplierPer 同口径)。
 function supportBonusMultiplier(state: BattleState, effect: EffectDescriptor): number {
-  return effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
-    ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
-    : 0;
+  if (!effect.bonusMultiplierFrom || effect.bonusMultiplierPer == null) return 0;
+  return Math.min(
+    effect.maxBonusMultiplier ?? Infinity,
+    counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer,
+  );
 }
 
 function applyEffect(
@@ -175,9 +193,14 @@ function applyEffect(
   effect: EffectDescriptor,
   sourceId: string,
   targetIds: string[],
+  primaryId: string | undefined,
 ): EffectResolution {
   const resolution: EffectResolution = { missed: [], hit: [] };
-  if (!conditionMet(state, effect, undefined, targetIds)) return resolution;
+  if (state.autoPlaySuppress && (
+    effect.condition === "waterfall" ||
+    (effect.type === "APPLY_STATUS" && effect.status === "starlight")
+  )) return resolution;
+  if (!conditionMet(state, effect, undefined, targetIds, primaryId)) return resolution;
   const amount = effect.amount ?? 0;
   const src = state.combatants[sourceId];
   switch (effect.type) {
@@ -278,6 +301,8 @@ function applyEffect(
     case "COPY_CARD_TO_HAND":
     case "CHOOSE_HAND_CARD":
       return applyHandEffect(state, effect, sourceId, targetIds);
+    case "REVEAL_CARDS":
+      return applyRevealEffect(state, effect, sourceId);
     case "APPLY_STATUS": {
       if (!effect.status) break;
       const generatedData = effect.statusDataFrom
@@ -319,10 +344,11 @@ function applyEffect(
     // 出牌期临时面板 —— 目标恒为施放者(不读 target), 写进 mods 后记一笔台账,
     // 由 battle.playCard 在出牌结束时逆向撤回。走 mods ⇒ 所有 statOf 读取自动吃到。
     case "PLAY_STAT_BONUS": {
-      if (!effect.stat || !src || amount === 0) break;
+      const scaledAmount = amount * scaleFactor(state, effect);
+      if (!effect.stat || !src || scaledAmount === 0) break;
       const pct = effect.pct ?? false;
-      ops.applyStatMod(state, sourceId, effect.stat, amount, pct);
-      state.playStatMods.push({ targetId: sourceId, stat: effect.stat, amount, pct });
+      ops.applyStatMod(state, sourceId, effect.stat, scaledAmount, pct);
+      state.playStatMods.push({ targetId: sourceId, stat: effect.stat, amount: scaledAmount, pct });
       break;
     }
     case "DRAW":
@@ -434,7 +460,7 @@ export function resolveEffects(
   const resolution: EffectResolution = { missed: [], hit: [] };
   for (const effect of effects) {
     const targets = resolveTargets(state, effect, sourceId, primaryId);
-    mergeResolution(resolution, applyEffect(state, effect, sourceId, targets));
+    mergeResolution(resolution, applyEffect(state, effect, sourceId, targets, primaryId));
   }
   return resolution;
 }

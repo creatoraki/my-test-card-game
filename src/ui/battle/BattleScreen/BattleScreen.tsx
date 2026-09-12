@@ -161,10 +161,19 @@ export function BattleScreen() {
 
   useEffect(() => {
     if (battle?.pendingChoice?.kind === "recoverFromDiscard") setOpenPile("discard");
+    else if (battle?.pendingChoice?.kind === "pickFromDraw") setOpenPile("draw");
   }, [battle?.pendingChoice]);
 
   useEffect(() => {
-    if (battle?.pendingChoice?.kind === "pickHandCard") showBattleToast("请选择一张手牌");
+    if (battle?.pendingChoice?.kind !== "pickHandCard") return;
+    const action = battle.pendingChoice.action;
+    const prompts: Record<string, string> = {
+      markSource: "请选择要搬运增益的来源牌",
+      markTarget: "请选择要搬运增益的目标牌",
+      devour: "请选择要吞噬的手牌",
+      stripMarks: "请选择要分解的手牌",
+    };
+    showBattleToast(prompts[action] ?? "请选择一张手牌");
   }, [battle?.pendingChoice]);
 
   useEffect(() => {
@@ -295,8 +304,10 @@ export function BattleScreen() {
         <PileDrawer
           battle={battle}
           pile={openPile}
-          choiceMode={battle.pendingChoice?.kind === "recoverFromDiscard"}
-          onPick={actions.pickFromDiscard}
+          uids={battle.pendingChoice?.kind === "pickFromDraw" ? battle.pendingChoice.options : undefined}
+          title={battle.pendingChoice?.kind === "pickFromDraw" ? "占星术：选择 1 张加入手牌" : undefined}
+          choiceMode={battle.pendingChoice?.kind === "recoverFromDiscard" || battle.pendingChoice?.kind === "pickFromDraw"}
+          onPick={battle.pendingChoice?.kind === "pickFromDraw" ? actions.pickFromDraw : actions.pickFromDiscard}
           onClose={actions.closePile}
         />
         <SquadBuffPicker
