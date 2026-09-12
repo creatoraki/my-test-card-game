@@ -1,0 +1,132 @@
+/* 商店底部操作按钮(刷新货架 / 设施升级): 还原美术设计图的「对角切角 + 四边内辉光」按钮。
+   ── 分层结构 ──
+   .button        描边层: 整块填亮色渐变, 由 clip-path 切出对角切角;
+   .button::before 主体层: inset 1px 后套同一份 clip-path, 于是四边 + 四条斜边
+                   都自然露出约 1px 的亮描边, 不必为每条边单独画图层;
+   内容 span       z-index 压在主体层之上。
+   金 / 青两套配色只换变量, 几何与光效结构完全一致。 */
+
+.button {
+  /* 设计图钮体 290x58: 左上 / 右下大切角 14px, 右上 / 左下小切角 6px。 */
+  --btn-cut-a: 14px;
+  --btn-cut-b: 6px;
+  --btn-shape: polygon(
+    var(--btn-cut-a) 0,
+    calc(100% - var(--btn-cut-b)) 0,
+    100% var(--btn-cut-b),
+    100% calc(100% - var(--btn-cut-a)),
+    calc(100% - var(--btn-cut-a)) 100%,
+    var(--btn-cut-b) 100%,
+    0 calc(100% - var(--btn-cut-b)),
+    0 var(--btn-cut-a)
+  );
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 0;
+  background: var(--btn-stroke);
+  clip-path: var(--btn-shape);
+  cursor: var(--cursor-pointer);
+  /* transform 一项是接住全局 button:active 的按下位移。 */
+  transition: filter 180ms ease, transform 80ms ease;
+}
+
+/* 主体: 近黑核心 + 四边向内的辉光。
+   衰减距离严格照设计图纵剖 / 横剖实测 —— 底部最厚(约 38% 高), 顶部最薄(约 19% 高),
+   左右各约 22px。这条「底重顶轻」的方向性是该按钮最关键的识别特征。 */
+.button::before {
+  position: absolute;
+  z-index: 0;
+  content: "";
+  inset: 1px;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--btn-edge) 0, var(--btn-edge-soft) 3px, transparent 22px),
+    linear-gradient(270deg, var(--btn-edge) 0, var(--btn-edge-soft) 3px, transparent 22px),
+    linear-gradient(0deg, var(--btn-bloom-bottom) 0, var(--btn-bloom-bottom-mid) 14%, transparent 38%),
+    linear-gradient(180deg, var(--btn-bloom-top) 0, var(--btn-bloom-top-mid) 10%, transparent 19%),
+    var(--btn-core);
+  clip-path: var(--btn-shape);
+}
+
+.gold {
+  --btn-stroke: linear-gradient(135deg, #fff8ae, #ffe391 35%, #f4d78c 68%, #e0be70);
+  --btn-core: #171411;
+  --btn-edge: #a88a45;
+  --btn-edge-soft: #7559384d;
+  --btn-bloom-bottom: #7a5c33;
+  --btn-bloom-bottom-mid: #3a302499;
+  --btn-bloom-top: #8b6a3d;
+  --btn-bloom-top-mid: #2b2a2699;
+  --btn-ink: #fffff4;
+  --btn-meta: #fbec83;
+  --btn-icon: #e8d88b;
+  --btn-divider: #c8b47d59;
+  --btn-halo: #e7c06e66;
+}
+
+.cyan {
+  --btn-stroke: linear-gradient(135deg, #d9fbff, #a8eeff 35%, #7fd9ec 68%, #5bb6cc);
+  --btn-core: #0e181d;
+  --btn-edge: #3c93ab;
+  --btn-edge-soft: #2a6b7e4d;
+  --btn-bloom-bottom: #2a6b7e;
+  --btn-bloom-bottom-mid: #1a3b4799;
+  --btn-bloom-top: #2d6577;
+  --btn-bloom-top-mid: #17323c99;
+  --btn-ink: #f2feff;
+  --btn-meta: #9de9f8;
+  --btn-icon: #a8e4f2;
+  --btn-divider: #7dc9d959;
+  --btn-halo: #63ddee66;
+}
+
+.button:hover:not(:disabled),
+.button:focus-visible:not(:disabled) {
+  filter: drop-shadow(0 0 15px var(--btn-halo)) brightness(1.16);
+}
+
+.button:focus-visible {
+  outline: 2px solid #7fe8f5;
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.icon {
+  position: relative;
+  z-index: 1;
+  color: var(--btn-icon);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.label {
+  position: relative;
+  z-index: 1;
+  color: var(--btn-ink);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.meta {
+  position: relative;
+  z-index: 1;
+  padding-left: 14px;
+  border-left: 1px solid var(--btn-divider);
+  color: var(--btn-meta);
+  font-size: 18px;
+  font-weight: 400;
+  white-space: nowrap;
+}

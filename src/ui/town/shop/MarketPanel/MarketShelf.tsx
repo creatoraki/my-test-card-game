@@ -24,10 +24,10 @@ export function MarketShelf({
 }: Props) {
   return (
     <section className={s.shelf}>
-      <div className={s.notice}>
+      {/* <div className={s.notice}>
         <strong>商品列表</strong>
         <span>选中商品查看详情，点击价格牌即可购买。</span>
-      </div>
+      </div> */}
 
       <div className={s.grid} aria-label="统一商店货架">
         {slots.length ? slots.map((slot) => (

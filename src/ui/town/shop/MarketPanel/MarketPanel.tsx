@@ -3,6 +3,7 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import { shopLevelOf, shopRefreshCost } from "@/data";
 import { useTownStore } from "@/store/townStore";
+import { MarketActionButton } from "./MarketActionButton";
 import { MarketDetail } from "./MarketDetail";
 import { MarketShelf } from "./MarketShelf";
 import { MarketUpgradePanel } from "./MarketUpgradePanel";
@@ -65,17 +66,21 @@ export function MarketPanel() {
           <span className={s.note}>{note}</span>
         </div>
         <div className={s.actions}>
-          <button
-            className={s.refresh}
-            type="button"
+          <MarketActionButton
+            tone="gold"
+            icon="⟳"
+            label="刷新货架"
+            meta={`${refreshCost} 积分`}
             disabled={loot < refreshCost}
             onClick={refreshShop}
-          >
-            <span className={s.actionIcon} aria-hidden="true">⟳</span>刷新货架 <span className={s.cost}>{refreshCost} 积分</span>
-          </button>
-          <button className={s.upgrade} type="button" onClick={openUpgrade}>
-            <span className={s.actionIcon} aria-hidden="true">⇧</span>设施升级 <span className={s.cost}>等级 {level}</span>
-          </button>
+          />
+          <MarketActionButton
+            tone="cyan"
+            icon="⇧"
+            label="设施升级"
+            meta={`等级 ${level}`}
+            onClick={openUpgrade}
+          />
         </div>
       </div>
 

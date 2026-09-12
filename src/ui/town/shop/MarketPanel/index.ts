@@ -1,4 +1,5 @@
 export { MarketPanel } from "./MarketPanel";
+export { MarketActionButton } from "./MarketActionButton";
 export { MarketDetail } from "./MarketDetail";
 export { MarketCardDetail } from "./MarketCardDetail";
 export { MarketCardTile } from "./MarketCardTile";

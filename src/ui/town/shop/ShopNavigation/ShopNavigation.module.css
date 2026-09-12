@@ -1,3 +1,13 @@
+/* 商店左侧功能 tab: 还原美术设计图的「切角金属牌」视觉。
+   ── 分层结构(自下而上) ──
+   .entry        只负责形状(clip-path 切角)与布局, 自身背景透明;
+   .entry::before 常态牌面(冷色), 铺满整块, 被父级 clip-path 裁出切角;
+   .plate        选中/hover 牌面(热色), 结构与 ::before 完全一致, 靠 opacity 交叉淡入;
+   .icon/.label  内容层, 必须 z-index 压在两层牌面之上。
+   ⚠ 边框不能用 border: clip-path 会把 border 的切角连同外投影一起裁掉,
+     所以四条边 + 两条切角斜边全部画进牌面的 background 图层栈里。
+   ⚠ 外发光同理不能用 box-shadow, 只能用 filter: drop-shadow —— 它作用在裁剪后的形状上。 */
+
 .nav {
   position: absolute;
   left: 8px;
@@ -5,7 +15,14 @@
   width: 230px;
   pointer-events: auto;
 }
+
 .entry {
+  /* 切角尺寸: 设计图牌体 206x92 上量得 10px, 按本组件 110px 高换算为 12px。 */
+  --tab-cut: 12px;
+  --tab-halo: drop-shadow(0 0 0 #0000);
+  --tab-ink: #b0a48e;
+  --tab-icon: #9c8557;
+
   position: relative;
   display: flex;
   width: 100%;
@@ -14,36 +31,118 @@
   gap: 22px;
   margin-bottom: 12px;
   padding: 24px 28px;
-  border: 1px solid transparent;
-  border-bottom-color: #81bad329;
+  border: 0;
   border-radius: 0;
-  background: linear-gradient(90deg, #06101a9c, #07101d33);
-  color: #b3c5d6;
+  background: none;
+  color: var(--tab-ink);
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 2px;
   cursor: var(--cursor-pointer);
-  transition: background 180ms, border-color 180ms, color 180ms;
+  /* 左侧贴屏幕边, 只切右上 / 右下两角。 */
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--tab-cut)) 0,
+    100% var(--tab-cut),
+    100% calc(100% - var(--tab-cut)),
+    calc(100% - var(--tab-cut)) 100%,
+    0 100%
+  );
+  filter: var(--tab-halo);
+  /* transform 一项是接住全局 button:active 的按下位移, 不能被本条 transition 覆盖掉。 */
+  transition: color 180ms ease, filter 240ms ease, transform 80ms ease;
 }
-.entry[aria-current], .entry:hover {
-  color: #ffe9ad;
-  border-color: #eaca82;
-  background: linear-gradient(110deg, #977134b3, #352b1cba 60%, #0b1723d9);
-  box-shadow: inset 4px 0 #ffdc80, inset 0 0 24px #f3c86d26, 0 0 20px #f5bc5130;
+
+/* ── 常态牌面(冷色) ──
+   图层栈自上而下: 左缘竖条 / 右上切角斜线 / 上边框 / 下边框 / 右边框 / 底部辉光 / 主体横向渐变。 */
+.entry::before {
+  position: absolute;
+  z-index: 0;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #8a6a3c 0 6px, #6b5230 6px 9px, transparent 9px),
+    linear-gradient(225deg, transparent 0 8px, #5a4a33 8px 10.5px, transparent 10.5px) 100% 0 / 34px 34px no-repeat,
+    linear-gradient(90deg, #7d6543, #40372a 45%, #2a2622) 0 0 / 100% 2px no-repeat,
+    linear-gradient(#5e4b30, #5e4b30) 0 100% / 100% 2px no-repeat,
+    linear-gradient(#4d3f2a, #4d3f2a) 100% 0 / 1px 100% no-repeat,
+    linear-gradient(0deg, #332b2166 0, #22201b55 14%, transparent 30%),
+    linear-gradient(90deg, #3f3225 0, #322a20 12%, #26231e 35%, #1a1c1a 78%, #1e1d1a 100%);
 }
+
+/* ── 选中 / hover 牌面(热色) ──
+   横向渐变的色标 = 设计图 y=30 扫描线实测值, 按牌体宽 206px 折算成百分比。
+   最后两层: 右下切角处的近白金高光斜带(设计图最醒目的装饰), 由 315deg 渐变生成,
+   起点在右下角、色带方向天然平行于 45° 切边, 再被父级 clip-path 削掉角外部分。 */
+.plate {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #fffcc0 0 6px, #f3b961 6px 9px, transparent 9px),
+    linear-gradient(315deg, #fffbc0 0, #fff29c 11px, #e7c06e 14px, #7d693f40 19px, transparent 26px) 100% 100% / 36px 36px no-repeat,
+    linear-gradient(225deg, transparent 0 8px, #b49461 8px 10.5px, transparent 10.5px) 100% 0 / 34px 34px no-repeat,
+    linear-gradient(90deg, #ffeb93 0, #aa8754 22%, #8d764f 50%, #6b5a42 75%, #514634 95%) 0 0 / 100% 2px no-repeat,
+    linear-gradient(#9a7a4a, #9a7a4a) 0 100% / 100% 2px no-repeat,
+    linear-gradient(#a2804c, #a2804c) 100% 0 / 1px 100% no-repeat,
+    linear-gradient(0deg, #6b553599 0, #3a302655 13%, transparent 30%),
+    linear-gradient(
+      90deg,
+      #b68548 0,
+      #8b673a 7.8%,
+      #6c5333 14.6%,
+      #5b462c 24.3%,
+      #493b28 34%,
+      #342f23 48.5%,
+      #1f201d 82.5%,
+      #272521 100%
+    );
+  transition: opacity 220ms ease;
+}
+
+.entry[aria-current],
+.entry:hover {
+  --tab-halo: drop-shadow(0 0 16px #ffd98a4d);
+  --tab-ink: #ffffd0;
+  --tab-icon: #ffee9a;
+}
+
+.entry[aria-current] .plate,
+.entry:hover .plate {
+  opacity: 1;
+}
+
 .entry:focus-visible {
   outline: 2px solid #7fe8f5;
-  outline-offset: 3px;
+  outline-offset: -4px;
 }
+
 .icon {
+  position: relative;
+  z-index: 1;
   width: 38px;
   height: 38px;
   flex: none;
+  color: var(--tab-icon);
+  transition: color 180ms ease;
 }
+
 .icon svg {
   width: 100%;
   height: 100%;
 }
+
+.label {
+  position: relative;
+  z-index: 1;
+  color: var(--tab-ink);
+  text-shadow: 0 0 14px #e8c07a3d;
+  transition: color 180ms ease;
+}
+
 .note {
   margin: 110px 0 0 42px;
   color: #79b8d0;
@@ -51,6 +150,7 @@
   line-height: 1.8;
   letter-spacing: 2px;
 }
+
 :global([data-shop-root][data-leaving]) .nav {
   opacity: 0;
   pointer-events: none;
