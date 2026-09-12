@@ -3,17 +3,17 @@ import type { ItemStack } from "@/items/types";
 import { TechnologyArtwork } from "@/ui/common/techTree/TechnologyArtwork";
 import type { TechnologyCore, TechnologyNode } from "@/ui/common/techTree/TechnologyTree";
 
-export const SHOP_TECHNOLOGY_CANVAS = { width: 1250, height: 780 };
+export const SHOP_TECHNOLOGY_CANVAS = { width: 1000, height: 660 };
 export const SHOP_TECHNOLOGY_CORE: TechnologyCore = {
-  name: "基础货架", x: 125, y: 355,
+  name: "基础货架", x: 125, y: 320,
   icon: <TechnologyArtwork kind="foundation" />,
 };
 
 const NODE_PRESENTATION = {
-  "refresh-1": { name: "补货效率一阶", x: 475, y: 190 },
-  "refresh-2": { name: "补货效率二阶", x: 920, y: 190 },
-  "slot-1": { name: "货架扩容一阶", x: 475, y: 520 },
-  "slot-2": { name: "货架扩容二阶", x: 920, y: 520 },
+  "refresh-1": { name: "补货效率一阶", x: 430, y: 170 },
+  "refresh-2": { name: "补货效率二阶", x: 780, y: 170 },
+  "slot-1": { name: "货架扩容一阶", x: 430, y: 470 },
+  "slot-2": { name: "货架扩容二阶", x: 780, y: 470 },
 } as const;
 
 /** 商店规则到公共视图的适配层。展示名称使用中文，研究仍传原有科技 id。 */

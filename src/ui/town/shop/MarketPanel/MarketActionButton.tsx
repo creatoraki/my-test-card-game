@@ -1,7 +1,7 @@
 // 商店底部的操作按钮。几何与光效由 MarketActionButton.module.css 统一提供,
 // 调用方只决定色调(金 = 交易类, 青 = 设施类)与文案。
 
-import type { MouseEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
 import s from "./MarketActionButton.module.css";
 
@@ -13,8 +13,7 @@ interface Props {
   /** 竖线右侧的附加信息, 如「800 积分」「等级 3」。 */
   meta: string;
   disabled?: boolean;
-  /** ⚠ 必须透传原始事件: 设施升级要靠 currentTarget 的位置定位浮层展开原点。 */
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  onClick: () => void;
 }
 
 export function MarketActionButton({ tone, icon, label, meta, disabled = false, onClick }: Props) {

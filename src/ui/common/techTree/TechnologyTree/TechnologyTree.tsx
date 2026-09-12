@@ -1,9 +1,7 @@
 import { useEffect, useRef } from "react";
 import { cx } from "@/ui/common/cx";
 import { DetailFrame } from "@/ui/common/DetailFrame";
-import { TechnologyDetail } from "@/ui/common/techTree/TechnologyDetail";
-import { TechnologyFooter } from "@/ui/common/techTree/TechnologyFooter";
-import { TechnologyGraph } from "@/ui/common/techTree/TechnologyGraph";
+import { TechnologyBoard } from "@/ui/common/techTree/TechnologyBoard";
 import type { TechnologyCore, TechnologyNode } from "./types";
 import s from "./TechnologyTree.module.css";
 
@@ -26,8 +24,6 @@ export interface TechnologyTreeProps {
 /** 完整的受控科技树面板；节点状态、材料和效果均由调用方提供，不读取业务 store。 */
 export function TechnologyTree({ title, description, credits, level, nodes, core, canvas, selectedId, returnLabel = "返回", onSelect, onResearch, onClose, className }: TechnologyTreeProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const selected = nodes.find((node) => node.id === selectedId) ?? null;
-  const completed = nodes.filter((node) => node.state === "done").length;
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -57,11 +53,7 @@ export function TechnologyTree({ title, description, credits, level, nodes, core
         <div className={s.level}><strong>等级 {level}</strong><span className={s.levelLine} /></div>
         <button className={s.close} type="button" onClick={onClose} aria-label={`关闭${title}`}>×</button>
       </header>
-      <div className={s.body}>
-        <TechnologyGraph nodes={nodes} core={core} canvas={canvas} selectedId={selectedId} onSelect={onSelect} />
-        <TechnologyDetail node={selected} />
-      </div>
-      <TechnologyFooter credits={credits} completed={completed} total={nodes.length} selected={selected} returnLabel={returnLabel} onResearch={onResearch} onClose={onClose} />
+      <TechnologyBoard nodes={nodes} core={core} canvas={canvas} selectedId={selectedId} credits={credits} returnLabel={returnLabel} onSelect={onSelect} onResearch={onResearch} onClose={onClose} />
     </div>
   );
 }

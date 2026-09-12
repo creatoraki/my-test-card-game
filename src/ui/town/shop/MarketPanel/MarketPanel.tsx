@@ -1,31 +1,24 @@
 // 据点统一商店面板: 左侧混合货架、右侧商品详情，底部统一刷新与设施升级。
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState } from "react";
 import { shopLevelOf, shopRefreshCost } from "@/data";
 import { useTownStore } from "@/store/townStore";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
-import { designScaleOf, stageHostOf } from "@/ui/hooks/stage";
 import { MarketActionButton } from "./MarketActionButton";
 import { MarketDetail } from "./MarketDetail";
 import { MarketShelf } from "./MarketShelf";
-import { MarketUpgradePanel } from "./MarketUpgradePanel";
 import s from "./MarketPanel.module.css";
-
-type UpgradeState = { x: number; y: number; host: HTMLElement; closing: boolean };
 
 const SHELF_LEAVE_MS = 415;
 const SHELF_ENTER_MS = 525;
 
-export function MarketPanel() {
+export function MarketPanel({ onUpgrade }: { onUpgrade: () => void }) {
   const characters = useTownStore((state) => state.characters);
   const loot = useTownStore((state) => state.loot);
-  const storage = useTownStore((state) => state.storage);
   const shop = useTownStore((state) => state.shop);
   const refreshShop = useTownStore((state) => state.refreshShop);
   const buyShopSlot = useTownStore((state) => state.buyShopSlot);
-  const upgradeShop = useTownStore((state) => state.upgradeShop);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [upgrade, setUpgrade] = useState<UpgradeState | null>(null);
   const { value: shownSlots, phase } = useSwapTransition(
     shop.slots,
     `${shop.day}:${shop.refreshes}`,
@@ -45,20 +38,6 @@ export function MarketPanel() {
   const note = availableCount
     ? `剩余 ${availableCount} 件商品 ｜ 购买后该货位今日不再补货。`
     : "今日货架已售罄，可以刷新货架寻找新货。";
-
-  const openUpgrade = (event: MouseEvent<HTMLButtonElement>) => {
-    const button = event.currentTarget;
-    const host = stageHostOf(button);
-    const hostRect = host.getBoundingClientRect();
-    const rect = button.getBoundingClientRect();
-    const scale = designScaleOf(host);
-    setUpgrade({
-      x: (rect.left + rect.width / 2 - hostRect.left) / scale,
-      y: (rect.top + rect.height / 2 - hostRect.top) / scale,
-      host,
-      closing: false,
-    });
-  };
 
   return (
     <div className={s.panel}>
@@ -96,25 +75,10 @@ export function MarketPanel() {
             icon="⇧"
             label="设施升级"
             meta={`等级 ${level}`}
-            onClick={openUpgrade}
+            onClick={onUpgrade}
           />
         </div>
       </div>
-
-      {upgrade && (
-        <MarketUpgradePanel
-          level={level}
-          credits={loot}
-          host={upgrade.host}
-          doneTechs={shop.techs}
-          storage={storage}
-          origin={{ x: upgrade.x, y: upgrade.y }}
-          closing={upgrade.closing}
-          onResearch={upgradeShop}
-          onClose={() => setUpgrade((current) => current ? { ...current, closing: true } : current)}
-          onClosed={() => setUpgrade(null)}
-        />
-      )}
     </div>
   );
 }

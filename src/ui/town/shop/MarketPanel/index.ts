@@ -12,4 +12,3 @@ export { MarketTile } from "./MarketTile";
 export { MarketChip } from "./MarketChip";
 export { MarketSlotFrame } from "./MarketSlotFrame";
 export { MarketTileCopy } from "./MarketTileCopy";
-export { MarketUpgradePanel } from "./MarketUpgradePanel";

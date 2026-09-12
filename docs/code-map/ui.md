@@ -56,8 +56,8 @@ src/ui/
 | [town/cryo/NutritionPanel/NutritionRoster](../../src/ui/town/cryo/NutritionPanel/NutritionRoster.tsx) | 右侧待疗养队员栏：提供固定栏头与纵向滚动队员列表。 |
 | [town/cryo/NutritionPanel/NutritionRosterRow](../../src/ui/town/cryo/NutritionPanel/NutritionRosterRow.tsx) | 待疗养队员行式条目：展示立绘、三段血量、体力极限损伤、选择态、已入席角标与队伍下限提示。 |
 | [town/cryo/NutritionTechTree](../../src/ui/town/cryo/NutritionTechTree/) | 疗养舱横向科技树：直线连接核心与两条链式分支；节点状态由 `nutritionTechState` 驱动，右栏详情固定展示效果、消耗和研究按钮，连边算法已抽到 `ui/common/techTree`。 |
-| [town/shop/MarketPanel/UpgradeTree](../../src/ui/town/shop/MarketPanel/UpgradeTree/) | 商店四个升级的视图适配：沿用原有节点编号、前置关系和水晶消耗，提供中文名称、坐标、图标与效果；`MarketUpgradePanel` 将公共科技树挂到设计画布内部，并编排入口展开与返回动画。 |
-| [common/techTree/TechnologyTree](../../src/ui/common/techTree/TechnologyTree/README.md) | 公共科技树整页面板：纯净深色底板、金色切角边框、圆角分叉连线、金属圆环与锁定/选中状态、右侧详情、材料提示和底部操作；子组件可独立复用，只接收视图数据与回调，不读取业务 store。 |
+| [town/shop/ShopUpgradePanel/UpgradeTree](../../src/ui/town/shop/ShopUpgradePanel/UpgradeTree/) | 商店四个升级的视图适配：沿用原有节点编号、前置关系和水晶消耗，提供中文名称、坐标、图标与效果；`ShopUpgradePanel` 订阅城镇数据并在商店窗口内容区内嵌公共科技树。 |
+| [common/techTree/TechnologyTree](../../src/ui/common/techTree/TechnologyTree/README.md) | 公共科技树组件：`TechnologyBoard` 提供无外框主体供既有窗口嵌入，`TechnologyTree` 提供金色切角外框与页头的完整形态；两者共用分支图、节点详情、材料提示和底部操作，只接收视图数据与回调。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/storage/EquipTargetList](../../src/ui/town/storage/EquipTargetList/EquipTargetList.tsx) | 升阶与重铸共用的装备目标列：合并仓库装备和三槽穿戴件，支持武器/防具/饰品筛选、队员角标和 `ItemTooltip`。 |
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
@@ -75,7 +75,7 @@ src/ui/
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 研究中心三条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造/科技树面板。 |
 | [town/terminal/TechTreePanel](../../src/ui/town/terminal/TechTreePanel/) | 全局科技树三栏面板：左侧分类导航、中间带等级进度弧的 SVG 节点图、右侧效果与消耗详情；研究动作只派发 `townStore.researchTech`。 |
-| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板，大窗使用 `common/DetailFrame` 金色框。面板切换与 `MarketPanel` 刷新货架共用 `hooks/useSwapTransition`，均按旧退新入演出。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
+| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、副标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板与内容区换页，大窗使用 `common/DetailFrame` 金色框。面板切换与 `MarketPanel` 刷新货架共用 `hooks/useSwapTransition`，均按旧退新入演出。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 编队页训练点分配弹窗左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
@@ -340,6 +340,6 @@ src/ui/
 
 ⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
 
-商店场景的 `StockEntries` 编排左侧导航与常驻矩形交易面板，进入时直接展示商店，回收台与仓库在同一外壳内切换。`MarketPanel` 使用三列混合货架与右侧详情栏；第二行允许在底部被裁切，超出视口时纵向滚动，不足八个展示格时使用等待补货占位。物品与卡牌都采用插画、名称、单枚中文分类标签及效果摘要的立牌，标签由 `MarketChip` 按物品分类配色。`MarketShelf` 通过 `--market-card-width` 统一下发 308px 宽度，商品按未选中原型 198∶291 等比放大至约 308×453 设计像素；`MarketSlotFrame` 下发 `--market-unit` 对齐内部排版，并统一商品与等待补货的布局盒、背景和可见边框。`MarketFrameArtwork` 从 `art/shopArt.ts` 登记的两张独立原型分片显示四角及边线，未选中态直接显示对应原图，选中态使用对齐后的金色原图；中心商品区域不渲染。物品不带金属底座。`MarketPriceTag` 为唯一购买入口，`MarketPriceArtwork` 从未选中原图分片显示金币和价格牌边线，数字由真实售价渲染，长售价只拉长横边。购买条件仍复用原有规则。默认选中首件在售商品，物品详情标示仓库库存。底部提供刷新与设施升级，升级弹层使用 `common/techTree/TechnologyTree`，在完整设计画布上展示纯净背景、金色外框、科技分支、右侧详情与底部操作栏；四个原有升级由 `UpgradeTree/shopTechnologyView.tsx` 适配，节点内部金属图案由 `art/techTreeArt.ts` 登记参考图区域，圆环、状态框和连线独立绘制。
+商店场景的 `StockEntries` 编排左侧导航与常驻矩形交易面板，进入时直接展示商店，回收台与仓库在同一外壳内切换。`MarketPanel` 使用三列混合货架与右侧详情栏；第二行允许在底部被裁切，超出视口时纵向滚动，不足八个展示格时使用等待补货占位。物品与卡牌都采用插画、名称、单枚中文分类标签及效果摘要的立牌，标签由 `MarketChip` 按物品分类配色。`MarketShelf` 通过 `--market-card-width` 统一下发 308px 宽度，商品按未选中原型 198∶291 等比放大至约 308×453 设计像素；`MarketSlotFrame` 下发 `--market-unit` 对齐内部排版，并统一商品与等待补货的布局盒、背景和可见边框。`MarketFrameArtwork` 从 `art/shopArt.ts` 登记的两张独立原型分片显示四角及边线，未选中态直接显示对应原图，选中态使用对齐后的金色原图；中心商品区域不渲染。物品不带金属底座。`MarketPriceTag` 为唯一购买入口，`MarketPriceArtwork` 从未选中原图分片显示金币和价格牌边线，数字由真实售价渲染，长售价只拉长横边。购买条件仍复用原有规则。默认选中首件在售商品，物品详情标示仓库库存。底部提供刷新与设施升级；设施升级在商店窗口内容区内换页，复用 `common/techTree/TechnologyBoard` 的无外框主体；四个原有升级由 `ShopUpgradePanel/UpgradeTree/shopTechnologyView.tsx` 适配，节点内部金属图案由 `art/techTreeArt.ts` 登记参考图区域，圆环、状态框和连线独立绘制。
 
 我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。
