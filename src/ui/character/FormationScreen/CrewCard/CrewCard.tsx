@@ -23,6 +23,8 @@ interface Props {
   /** 网格序号: 错峰入场用。 */
   index: number;
   onField: boolean;
+  /** 来自 nutrition.occupants，只影响编队卡外观与状态提示。 */
+  resting: boolean;
   lastOne: boolean;
   full: boolean;
   size: number;
@@ -45,6 +47,7 @@ export function CrewCard({
   cs,
   index,
   onField,
+  resting,
   lastOne,
   full,
   size,
@@ -59,6 +62,10 @@ export function CrewCard({
   const glow = characterGlow(def.color);
   const blocked = onField ? lastOne : full;
   const reason = onField ? "至少要保留 1 名队员上阵" : `上阵人数已达上限 ${size} 人`;
+  const tooltipTitle = resting ? "暂时无法出战" : onField ? "无法下阵" : "无法上阵";
+  const tooltipReason = resting
+    ? "该队员正在疗养舱中，次日结算后自动离舱"
+    : reason;
   const { point, bind } = useHoverTooltip();
 
   // 起飞点要量的是**外壳**(整张卡的矩形), 不是被点的那颗按钮。
@@ -72,6 +79,7 @@ export function CrewCard({
       className={cx(
         s.card,
         onField && s["is-on"],
+        resting && s["is-resting"],
         !entrance && s["is-instant"],
         hidden && s["is-hidden"],
         scatter === "out" && s["is-scatter-out"],
@@ -117,13 +125,17 @@ export function CrewCard({
           </button>
 
           <span className={s["toggle-slot"]} {...bind}>
-            <button className={s.toggle} type="button" disabled={blocked} onClick={onToggle}>
-              {onField ? "下阵" : "上阵"}
-            </button>
-            {blocked && point && (
+            {resting ? (
+              <span className={s.banner}>疗养中</span>
+            ) : (
+              <button className={s.toggle} type="button" disabled={blocked} onClick={onToggle}>
+                {onField ? "下阵" : "上阵"}
+              </button>
+            )}
+            {(resting || blocked) && point && (
               <HoverTooltip point={point}>
-                <strong>{onField ? "无法下阵" : "无法上阵"}</strong>
-                <p>{reason}</p>
+                <strong>{tooltipTitle}</strong>
+                <p>{tooltipReason}</p>
               </HoverTooltip>
             )}
           </span>

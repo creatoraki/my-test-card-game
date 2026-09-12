@@ -64,6 +64,7 @@ export function FormationScreen() {
   const characters = useTownStore((state) => state.characters);
   const awakened = useTownStore((state) => state.awakened);
   const party = useTownStore((state) => state.party);
+  const occupants = useTownStore((state) => state.nutrition.occupants);
   const toggleParty = useTownStore((state) => state.toggleParty);
   const enterTown = useRunStore((state) => state.enterTown);
 
@@ -100,6 +101,7 @@ export function FormationScreen() {
     const added = awakened.filter((id) => !baseOrder.includes(id));
     return added.length ? [...kept, ...added] : kept;
   }, [baseOrder, awakened]);
+  const restingIds = useMemo(() => new Set(occupants.map((occupant) => occupant.charId)), [occupants]);
 
   const detailIndex = morph.charId ? roster.indexOf(morph.charId) : -1;
   const previousCharId = detailIndex > 0 ? roster[detailIndex - 1] : null;
@@ -162,6 +164,7 @@ export function FormationScreen() {
           roster={roster}
           characters={characters}
           party={party}
+          restingIds={restingIds}
           size={size}
           hiddenId={morph.hiddenId}
           anchorId={morph.phase === "idle" ? null : morph.charId}

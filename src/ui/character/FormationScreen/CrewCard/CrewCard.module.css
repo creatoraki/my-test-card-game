@@ -86,6 +86,25 @@
   composes: glow-card-portrait from "../../styles/glowCard.module.css";
 }
 
+/* 疗养中的立绘降饱和，并覆一层冷蓝玻璃色。 */
+.card.is-resting .bust {
+  filter: saturate(0.25) brightness(0.82);
+}
+
+.card.is-resting .body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(96 164 214 / 0.14),
+    rgb(96 164 214 / 0.22) 58%,
+    rgb(65 126 176 / 0.3)
+  );
+}
+
 /* ── 上阵 / 下阵动作条 ──
    外层槽位负责定位并接收 disabled 按钮的悬浮事件(disabled 的 button 自己不派发指针事件);
    动作条本体来自共享 kit。 */
@@ -100,6 +119,23 @@
 
 .toggle {
   composes: glow-card-toggle from "../../styles/glowCard.module.css";
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  padding: 9px 12px;
+  border: 1px solid rgb(129 193 237 / 0.58);
+  background: rgb(10 28 42 / 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #d8eafa;
+  font-size: var(--fm-fs-l3, 18px);
+  letter-spacing: 0.12em;
+  text-align: center;
+  pointer-events: none;
 }
 
 .toggle:disabled {

@@ -23,6 +23,7 @@ interface Props {
   roster: string[];
   characters: Record<string, CharacterState>;
   party: string[];
+  restingIds: ReadonlySet<string>;
   /** 上阵人数上限。 */
   size: number;
   /** 过场期间由飞行层代演的那一位。 */
@@ -42,6 +43,7 @@ export function CrewGrid({
   roster,
   characters,
   party,
+  restingIds,
   size,
   hiddenId,
   anchorId,
@@ -82,6 +84,7 @@ export function CrewGrid({
             cs={cs}
             index={i}
             onField={party.includes(id)}
+            resting={restingIds.has(id)}
             lastOne={party.length <= 1}
             full={full}
             size={size}
