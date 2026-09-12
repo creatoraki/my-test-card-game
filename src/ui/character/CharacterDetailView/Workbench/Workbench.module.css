@@ -1,8 +1,12 @@
-/* 页签条 —— 稿子实测(稿 835px → 设计 px 的换算比 k ≈ 1.6):
-   框 y 6..58(高 52 → 83, 实际容器 80), 选中页签 y 8..56 —— 也就是**几乎撑满整条框**,
+/* 页签条 —— 稿子实测(稿 442×72, 稿 px → 设计 px 的换算比 0.75):
+   框 y 6..65(高 79 → 容器 80), 页签 y 6..63(高 76) —— 也就是**几乎撑满整条框**,
    所以这里的 padding 只有 2px, 不是旧版那种 12px 留白。
-   页签是平行四边形: 顶边比底边宽 22px(→ 35px), 左右斜边平行。
-   框右端收一个 45° 切角, 并沿右缘压一条 3px 的亮白边 —— 稿子上最醒目的一处金属高光。 */
+   页签是平行四边形: 右斜边水平偏移 36px, 两枚共享同一条斜边、中间不留缝。
+   ★ 首枚页签的左下角贴死框的左缘: 左斜切只吃到 44px 高(58%), 再往下转垂直 —— 稿子上就是切平的。
+   ★ 框饰**只有**左上角那一笔细弧线(HeadCornerArc)加一圈 1px hairline。
+     旧版在这里挂 DetailFrame, 于是多出一块横跨页签全高的白角块和一条贯穿顶边的亮线,
+     稿子上都没有 —— 装备栏/属性框那三处仍用 DetailFrame, 只有页签条走自己这套。
+   ★ 框右端收一个 45° 切角, 并沿右缘压一条 4px 的亮白边 —— 稿子上最醒目的一处金属高光。 */
 .bench {
   position: absolute;
   z-index: 2;
@@ -20,9 +24,9 @@
   align-items: stretch;
   justify-content: space-between;
   gap: 16px;
-  padding: 2px;
+  /* 左侧不留 padding: 首枚页签要贴死框的左缘。 */
+  padding: 2px 2px 2px 0;
   isolation: isolate;
-  /* DetailFrame 绘制边框，只有背景层裁切，保留外侧辉光。 */
   background: transparent;
   --panel-shape: polygon(19px 0, calc(100% - 19px) 0, 100% 19px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 19px 100%, 0 calc(100% - 19px), 0 19px);
 }
@@ -34,6 +38,34 @@
   content: "";
   background: var(--cd-glass-head);
   clip-path: var(--panel-shape);
+}
+
+/* 一圈 1px 淡蓝描边 —— 稿子上框边就这么一笔, 不发光。 */
+.head-edge {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: var(--cd-hairline);
+  clip-path: polygon(evenodd,
+    19px 0, calc(100% - 19px) 0, 100% 19px, 100% calc(100% - 19px),
+    calc(100% - 19px) 100%, 19px 100%, 0 calc(100% - 19px), 0 19px, 19px 0,
+    19px 1px, 1px 19px, 1px calc(100% - 19px), 19px calc(100% - 1px),
+    calc(100% - 19px) calc(100% - 1px), calc(100% - 1px) calc(100% - 19px),
+    calc(100% - 1px) 19px, calc(100% - 19px) 1px, 19px 1px);
+}
+
+/* 左上角的细白弧线 —— 稿子实测 (18,3)→(3,30), 沿着 19px 切角走。 */
+.head-corner {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 36px;
+  color: #dfeaff;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px #8fb5ff80);
 }
 
 /* 右缘的亮白粗边。 */
@@ -56,9 +88,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 22px;
   /* 宽度跟着文字走 —— 稿子上「属性装备」与「卡组」两枚页签并不等宽。 */
-  padding: 0 64px;
+  padding: 0 70px;
   border: 0;
   /* 外层只画那条斜边描边, 填充交给 ::before。 */
   background: #9fb8e04d;
@@ -67,10 +99,15 @@
   font-weight: 700;
   letter-spacing: 2px;
   white-space: nowrap;
-  clip-path: polygon(35px 0, 100% 0, calc(100% - 35px) 100%, 0 100%);
+  clip-path: polygon(36px 0, 100% 0, calc(100% - 36px) 100%, 0 100%);
   transition: color 150ms ease, background 150ms ease;
 }
-.tab + .tab { margin-left: -32px; }
+/* 首枚页签: 左斜切到 44px 高就转垂直, 左下角贴死框的左缘(稿子上被切平)。 */
+.tab:first-child {
+  clip-path: polygon(27px 0, 100% 0, calc(100% - 36px) 100%, 0 100%, 0 44px);
+}
+/* 负边距 = 斜边偏移: 两枚页签共享同一条斜边, 中间不留缝。 */
+.tab + .tab { margin-left: -36px; }
 .tab::before {
   content: "";
   position: absolute;
@@ -81,10 +118,10 @@
   clip-path: inherit;
 }
 
-/* 页签前缀晶体。 */
+/* 页签前缀晶体。两枚 glyph 共用 46 高的 viewBox, 宽度各自随形。 */
 .tab-glyph {
-  width: 28px;
-  height: 28px;
+  width: auto;
+  height: 46px;
   flex: 0 0 auto;
   color: #8ea2d8;
   transition: color 150ms ease;
@@ -95,17 +132,23 @@
 .bench .tabs .tab.is-active {
   z-index: 1;
   color: #fff;
-  /* 亮白紫的斜边描边 —— 稿子上这一圈比填充亮一大截。 */
-  background: linear-gradient(140deg, #e4d8ff, #cbb8ff 46%, #9ad6ff);
+  /* 斜边描边: 稿子上左上偏白蓝、右下偏蓝白。 */
+  background: linear-gradient(150deg, #f2f6ff, #cfc4ff 45%, #dcebff);
   text-shadow: 0 0 14px #cbb0ff;
   box-shadow: 0 0 26px -4px #8b5cffc4, 0 0 60px -14px #7a4dffa8;
 }
 .tab.is-active .tab-glyph { color: #fff; filter: drop-shadow(0 0 5px #ddd3ff); }
 .tab.is-active::before {
   inset: 2px;
-  /* 左下暗紫 → 右上亮紫, 与稿子取样一致。 */
-  background: linear-gradient(155deg, #99c0ff 0%, #663bff 27%, #7138fb 58%, #ae93ff 85%, #d9eeff);
-  box-shadow: inset 0 2px 0 #e0d4ff, inset 0 -6px 10px #cbbcffa8;
+  /* 稿子实测: 主渐变是**垂直对称**的(上下各一条白边, 42% 处最深),
+     再叠三层横向补光 —— 左端提亮、中偏右压深、右端转蓝。 */
+  background:
+    linear-gradient(90deg, #a9b9ff2e, #a9b9ff00 18%),
+    linear-gradient(90deg, #1a0c6600 38%, #1a0c6626 62%, #1a0c6600 86%),
+    linear-gradient(270deg, #7fb6ff3d, #7fb6ff00 30%),
+    linear-gradient(180deg, #e4e4fb 0, #d8d8f9 3%, #a196fd 7%, #8672fb 16%, #6a54f9 25%, #5339f1 42%, #5c46f5 60%, #6f52fa 79%, #8d6ffb 88%, #ab90fd 93%, #dad2fc 97%, #c9c6f5 100%);
+  /* 上下两条白边等宽 —— 旧版底边用的是 6px 柔和内阴影, 那条高光就糊没了。 */
+  box-shadow: inset 0 2px 0 #e6e8ff, inset 0 -2px 0 #dfe6ff;
 }
 .tab:focus-visible { outline: 0; background: #fff; }
 .tab:focus-visible::before { inset: 4px; }

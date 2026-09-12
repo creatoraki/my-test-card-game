@@ -6,10 +6,9 @@
 // ★ 入场是「从左边缘裂开生长」(is-growing): 编队态的卡阵与本栏占同一条水平带(y 196..968),
 //   于是重组时这块工作区正是在卡阵原地长出来的。
 
-import { DetailFrame } from "@/ui/character/DetailFrame";
 import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
-import { TabChevrons, TabGlyphDiamond, TabGlyphStar } from "./TabGlyph";
+import { HeadCornerArc, TabChevrons, TabGlyphDiamond, TabGlyphStar } from "./TabGlyph";
 import s from "./Workbench.module.css";
 
 export type WorkbenchTab = "profile" | "deck";
@@ -41,7 +40,8 @@ export function Workbench({ tab, onTabChange, exp, growing, leaving, children, s
       aria-label="角色工作区"
     >
       <div className={s.head}>
-        <DetailFrame />
+        <span className={s["head-edge"]} aria-hidden="true" />
+        <HeadCornerArc className={s["head-corner"]} />
         <div className={s.tabs} role="tablist" aria-label="工作区分页">
           {TABS.map(({ key, label, Glyph }, i) => (
             <button
