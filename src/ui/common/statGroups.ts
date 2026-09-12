@@ -30,7 +30,6 @@ export const STAT_GROUPS: StatGroup[] = [
       { key: "maxHp", label: "生命", ref: 120 },
       { key: "attack", label: "攻击力", ref: 150 },
       { key: "defense", label: "防御力", ref: 30 },
-      { key: "armorPen", label: "穿甲", ref: 20 },
       { key: "healPower", label: "治愈力", ref: 150 },
       { key: "lowCostMastery", label: "低费精通", ref: 20 },
       { key: "highCostMastery", label: "高费精通", ref: 20 },
@@ -42,6 +41,7 @@ export const STAT_GROUPS: StatGroup[] = [
     rows: [
       { key: "hitRate", label: "命中率", pct: true },
       { key: "dodgeRate", label: "闪避率", pct: true },
+      { key: "armorPen", label: "穿甲", ref: 20 },
       { key: "critRate", label: "暴击率", pct: true },
       { key: "critDamage", label: "爆伤", pct: true, ref: 250 },
       { key: "precision", label: "精准", pct: true },

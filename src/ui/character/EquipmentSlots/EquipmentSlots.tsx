@@ -23,11 +23,7 @@ export function EquipmentSlots({ equipped, activeSlot, onSelect, onUnequip, clas
     <section className={cx(s["equipment-slots"], className)} aria-label="角色装备">
       <DetailFrame />
       <div className={s["equipment-slots-head"]}>
-        <div className={s["equipment-slots-title"]}>
-          <span className={s["equipment-slots-label"]}>装备配置</span>
-          <span className={s["equipment-slots-sub"]}>部位</span>
-        </div>
-        <span className={s["equipment-slots-hint"]}>选择部位更换装备</span>
+        <span className={s["equipment-slots-label"]}>装备配置</span>
       </div>
       <div className={s["equipment-slots-grid"]}>
         {EQUIP_SLOTS.map((slot) => {
@@ -66,8 +62,10 @@ function EquipmentSlot({
 
   return (
     <div className={cx(s["equipment-slot"], selected && s["is-active"])} {...(worn ? bind : {})}>
-      {/* 左上角的装饰标记 —— 稿子上空槽与已穿戴槽都带着它。 */}
-      <SlotMark className={s["equipment-slot-mark"]} />
+      {/* 左上角三角角标 —— 装饰 SVG 收在角标里，空槽与已穿戴槽共用。 */}
+      <span className={s["equipment-slot-mark-badge"]}>
+        <SlotMark className={s["equipment-slot-mark"]} />
+      </span>
       {worn ? (
         <>
           <ItemSlot

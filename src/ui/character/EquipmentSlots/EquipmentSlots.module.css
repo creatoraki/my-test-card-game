@@ -32,18 +32,8 @@
 
 .equipment-slots-head {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
   padding: 0 4px;
-}
-
-/* ★ 主标题与副标题分两行 —— 稿子上副标题就在主标题正下方。 */
-.equipment-slots-title {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
 }
 
 .equipment-slots-label {
@@ -52,19 +42,6 @@
   font-weight: 700;
   letter-spacing: 3px;
   line-height: 1;
-}
-
-.equipment-slots-sub {
-  color: #8ca2d4;
-  font-size: var(--fm-fs-l3, 18px);
-  letter-spacing: 6px;
-  line-height: 1;
-}
-
-.equipment-slots-hint {
-  color: #b6c4ee;
-  font-size: 20px;
-  letter-spacing: 1px;
 }
 
 .equipment-slots-grid {
@@ -87,7 +64,7 @@
   isolation: isolate;
   /* 外层 = 白色亮描边, 填充交给 ::before。 */
   background: #ffffffc4;
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 8px);
   transition: background 160ms ease;
 }
 
@@ -108,16 +85,26 @@
   background: linear-gradient(140deg, #f6ecff 0%, #e8dcff 46%, #d3c8f4 100%);
 }
 
-/* 左上角的紫色箭头标记。 */
-.equipment-slot-mark {
+/* 左上角的浅紫三角角标，箭头 SVG 在角标内居中。 */
+.equipment-slot-mark-badge {
   position: absolute;
-  top: 13px;
-  left: 13px;
   z-index: 2;
-  width: 18px;
-  height: 24px;
-  color: #6a4fd0;
+  display: grid;
+  place-items: center;
+  top: 0;
+  left: 0;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #aa9cffd9, #d6ceffad);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
   pointer-events: none;
+}
+
+.equipment-slot-mark {
+  width: 15px;
+  height: 20px;
+  color: #6a4fd0;
+  transform: translate(-7px, -7px);
 }
 
 .equipment-slot-item,
@@ -131,7 +118,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 8px);
 }
 
 .equipment-slot-item.equipment-slot-item {
@@ -139,7 +126,7 @@
   min-height: 0;
   --item-slot-pad: 0;
   --item-slot-gap: 0;
-  --item-slot-icon-size: 100%;
+  --item-slot-icon-size: 85%;
 }
 
 .equipment-slot-item.equipment-slot-item:hover,
