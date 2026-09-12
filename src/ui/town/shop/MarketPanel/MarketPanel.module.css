@@ -11,7 +11,7 @@
   min-height: 0;
   flex: 1;
   gap: 24px;
-  grid-template-columns: minmax(0, 1fr) 510px;
+  grid-template-columns: minmax(0, 1fr) 400px;
 }
 .foot {
   display: flex;
