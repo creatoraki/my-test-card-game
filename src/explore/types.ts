@@ -111,7 +111,7 @@ export type EventRisk = "negative" | "highRisk";
 export type ExploreEffect =
   | { type: "HEAL_PARTY"; percent: number } // 全队按 maxHp 百分比回血(不复活阵亡者)
   | { type: "HEAL_ONE"; percent: number; full?: boolean } // 指定一名存活角色按 maxHp 回血
-  | { type: "HEAL_LIMIT_PARTY"; percent: number } // 全队修复 hpLimit, 不改变当前 hp
+  | { type: "HEAL_LIMIT_PARTY"; percent: number } // 全队修复 hpLimit 并同步恢复等额 hp
   | { type: "HEAL_LIMIT_ONE"; percent?: number; full?: boolean } // 指定一名角色修复 hpLimit
   | { type: "HEAL_ONE_FULL"; othersPercent: number } // 单人回满 + 其余按百分比
   | { type: "DAMAGE_PARTY_PERCENT"; percent: number } // 全队按 maxHp 百分比掉血

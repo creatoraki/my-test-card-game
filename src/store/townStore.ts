@@ -1086,13 +1086,16 @@ export const useTownStore = create<TownStore>()(
         const { day, shop, characters, awakened, nutrition, sanctuary, storage, loot } = get();
         const next = day + 1;
         const nextCharacters = { ...characters };
+        // 疗养同步恢复等额 HP；体力极限已满时，额度转为治疗 HP。
         for (const occupant of nutrition.occupants) {
           const cs = nextCharacters[occupant.charId];
           if (!cs) continue;
           const vitals = vitalsOf(cs);
+          const hpLimit = Math.min(vitals.maxHp, vitals.hpLimit + occupant.heal);
           nextCharacters[occupant.charId] = {
             ...cs,
-            hpLimit: Math.min(vitals.maxHp, vitals.hpLimit + occupant.heal),
+            hpLimit,
+            hp: Math.min(hpLimit, vitals.hp + occupant.heal),
           };
         }
         let nextStorage = storage;
