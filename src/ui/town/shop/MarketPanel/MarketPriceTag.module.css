@@ -14,7 +14,7 @@
   padding: 0 calc(13 * var(--market-unit)) 0 calc(44 * var(--market-unit));
   border: 0;
   border-radius: 0;
-  background: linear-gradient(115deg, #101a1b, #060c10 65%, #0a1316);
+  background: linear-gradient(115deg, #11171b, #070b0f 65%, #0b1115);
   box-shadow: none;
   clip-path: polygon(5px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
   color: #ffe17e;
@@ -41,5 +41,5 @@
 .is-ready:active { transform: translateY(1px); }
 .tag:disabled { opacity: 1; }
 .is-poor { color: #c78f7d; cursor: not-allowed; }
-.is-sold { color: #7d939e; cursor: var(--cursor-default); filter: saturate(.3); }
+.is-sold { color: var(--sx-dim); cursor: var(--cursor-default); filter: saturate(.3); }
 .is-poor .price, .is-sold .price { text-shadow: none; }

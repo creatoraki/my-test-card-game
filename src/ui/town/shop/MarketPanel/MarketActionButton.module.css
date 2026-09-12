@@ -4,7 +4,7 @@
    .button::before 主体层: inset 1px 后套同一份 clip-path, 于是四边 + 四条斜边
                    都自然露出约 1px 的亮描边, 不必为每条边单独画图层;
    内容 span       z-index 压在主体层之上。
-   金 / 青两套配色只换变量, 几何与光效结构完全一致。 */
+   金 / 青蓝两套配色只换变量, 几何与光效结构完全一致。 */
 
 .button {
   /* 设计图钮体 290x58: 左上 / 右下大切角 14px, 右上 / 左下小切角 6px。 */
@@ -72,19 +72,19 @@
 }
 
 .cyan {
-  --btn-stroke: linear-gradient(135deg, #d9fbff, #a8eeff 35%, #7fd9ec 68%, #5bb6cc);
-  --btn-core: #0e181d;
-  --btn-edge: #3c93ab;
-  --btn-edge-soft: #2a6b7e4d;
-  --btn-bloom-bottom: #2a6b7e;
-  --btn-bloom-bottom-mid: #1a3b4799;
-  --btn-bloom-top: #2d6577;
-  --btn-bloom-top-mid: #17323c99;
-  --btn-ink: #f2feff;
-  --btn-meta: #9de9f8;
-  --btn-icon: #a8e4f2;
-  --btn-divider: #7dc9d959;
-  --btn-halo: #63ddee66;
+  --btn-stroke: linear-gradient(135deg, #e8fbff, #a9e8f7 35%, #6fc9e0 68%, #3d94ad);
+  --btn-core: #091419;
+  --btn-edge: #4f9db4;
+  --btn-edge-soft: #3a7f954d;
+  --btn-bloom-bottom: #34707f;
+  --btn-bloom-bottom-mid: #1e353c99;
+  --btn-bloom-top: #4e93a6;
+  --btn-bloom-top-mid: #1c2e3499;
+  --btn-ink: #eafaff;
+  --btn-meta: #8fd8ea;
+  --btn-icon: #b6e9f7;
+  --btn-divider: #7fc4d659;
+  --btn-halo: #6fd6f066;
 }
 
 .button:hover:not(:disabled),
@@ -93,7 +93,7 @@
 }
 
 .button:focus-visible {
-  outline: 2px solid #7fe8f5;
+  outline: 2px solid var(--sx-key-hot);
   outline-offset: 3px;
 }
 

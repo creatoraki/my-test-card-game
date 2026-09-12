@@ -16,7 +16,7 @@ export function ShopScene({ leaving = false, onBack }: Props) {
       data-shop-root
       data-leaving={leaving ? "" : undefined}
     >
-      <div className={s.brand}><strong>星际集市</strong><span>万物皆可交易<br />通往更远的未来</span></div>
+      <div className={s.brand}><strong>商店</strong></div>
       <StockEntries onBack={onBack} />
     </div>
   );

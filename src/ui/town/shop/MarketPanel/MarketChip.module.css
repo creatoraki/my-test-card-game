@@ -1,8 +1,8 @@
 /* MarketSlotFrame 下发 --market-unit；标签按原型高度等比放大，文字至少 18px。 */
 .chip {
-  --chip-color: #88dfff;
-  --chip-edge: #439dbd;
-  --chip-bg: #102b40;
+  --chip-color: #d0d7db;
+  --chip-edge: #78848d;
+  --chip-bg: #1d2429;
   display: inline-flex;
   height: calc(19 * var(--market-unit));
   flex: none;

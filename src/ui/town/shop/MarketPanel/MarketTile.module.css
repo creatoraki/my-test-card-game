@@ -1,6 +1,6 @@
 /* 立牌只占货位里价格行以上的部分, 高度由外层 flex 撑开; 边框与蒙层都不归它管。 */
 .tile {
-  --tile-rarity: #6cdae9;
+  --tile-rarity: var(--sx-key);
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -30,7 +30,7 @@
   transform: none;
 }
 .button:focus-visible {
-  outline: 1px solid #9fecff;
+  outline: 1px solid var(--sx-key-hot);
   outline-offset: -1px;
 }
 .is-sold .button {

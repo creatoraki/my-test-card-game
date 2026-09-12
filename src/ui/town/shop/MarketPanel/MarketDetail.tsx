@@ -2,9 +2,9 @@
 
 import type { ShopSlot } from "@/data/shop";
 import { useTownStore } from "@/store/townStore";
+import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import { MarketCardDetail } from "./MarketCardDetail";
 import { MarketItemDetail } from "./MarketItemDetail";
-import s from "./MarketDetail.module.css";
 
 interface Props {
   slot: ShopSlot | null;
@@ -14,20 +14,9 @@ export function MarketDetail({ slot }: Props) {
   const owned = useTownStore((state) => slot?.kind === "item"
     ? state.storage.reduce((sum, stack) => sum + (stack.itemId === slot.itemId ? stack.count : 0), 0)
     : null);
-  if (!slot) {
-    return (
-      <aside className={s.detail}>
-        <h3 className={s.heading}>物品详情</h3>
-        <p className={s.empty}>选择货架上的商品查看详情</p>
-      </aside>
-    );
-  }
-
   return (
-    <aside className={s.detail}>
-      <div className={s.content}>
-        {slot.kind === "card" ? <MarketCardDetail slot={slot} /> : <MarketItemDetail slot={slot} />}
-      </div>
-    </aside>
+    <ShopDetailAside heading="物品详情" empty="选择货架上的商品查看详情">
+      {slot && (slot.kind === "card" ? <MarketCardDetail slot={slot} /> : <MarketItemDetail slot={slot} />)}
+    </ShopDetailAside>
   );
 }

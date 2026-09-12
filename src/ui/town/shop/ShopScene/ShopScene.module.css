@@ -1,18 +1,41 @@
 .sx-root {
-  --sx-ink: #edf4f7;
-  --sx-muted: #a7bac8;
-  --sx-line: #82bdd333;
-  --sx-dim: #7f9aa9;
+  /* 光照：左上暖金主光 + 右下冷青环境反光。 */
+  --sx-key: #edc779;
+  --sx-key-hot: #ffe5a7;
+  --sx-key-wash: #edc7791f;
+  --sx-fill: #4e8ba3;
+  --sx-fill-wash: #4e8ba316;
+
+  /* 中性冷灰材质，不与金色交互抢色相。 */
+  --sx-ink: #eceff1;
+  --sx-muted: #aab2b8;
+  --sx-dim: #848d93;
+  --sx-line: #aab2b82e;
+  --sx-line-lit: #edc77942;
+
+  /* 冷青黑底：受光面、常规面与凹陷阴影面。 */
+  --sx-bg-hi: #0b131a;
+  --sx-bg: #081016;
+  --sx-bg-lo: #040a0f;
+
+  /* 交互语义与兼容桥接。 */
+  --sx-action: var(--sx-key);
+  --sx-action-hot: var(--sx-key-hot);
   --sx-alert: #ff9383;
-  --sx-action: #edc779;
-  --sx-action-hot: #ffe5a7;
-  --sx-electric: #69e5f4;
-  --asm-glow: #edc779;
-  --asm-select: #ffe5a7;
-  --asm-ink: #edf4f7;
-  --asm-ink-dim: #a7bac8;
-  --asm-line: #82bdd333;
-  --ui-glow-color: #edc779;
+  --sx-electric: var(--sx-key);
+
+  /* 标准光影：受光边、凹陷面、悬浮投影。 */
+  --sx-lit: inset 0 1px 0 var(--sx-line-lit), inset 0 -1px 0 #4e8ba31c;
+  --sx-sunk: inset 0 2px 14px -8px #000000d0, inset 0 -1px 0 #4e8ba31c;
+  --sx-drop: 0 18px 40px -26px #000000c4;
+
+  /* 下游 PanelShell 与升级树使用的主题桥。 */
+  --asm-glow: var(--sx-key);
+  --asm-select: var(--sx-key-hot);
+  --asm-ink: var(--sx-ink);
+  --asm-ink-dim: var(--sx-muted);
+  --asm-line: var(--sx-line);
+  --ui-glow-color: var(--sx-key);
   position: absolute;
   z-index: 2;
   inset: 0;
@@ -20,7 +43,9 @@
   font-family: var(--font-family);
   font-size: 18px;
   pointer-events: none;
-  background: linear-gradient(90deg, #020b15b3, transparent 35%), linear-gradient(0deg, #02101c77, #02101c33);
+  background:
+    radial-gradient(ellipse 74% 68% at 100% 100%, color-mix(in srgb, var(--sx-fill) 14%, transparent), #040a0f99 72%),
+    linear-gradient(0deg, #040a0f66, transparent 52%);
 }
 .brand {
   position: absolute;
@@ -28,12 +53,14 @@
   left: 46px;
   display: grid;
   gap: 12px;
-  color: #8ddaea;
+  color: var(--sx-muted);
   letter-spacing: 3px;
 }
 .brand strong {
+  color: var(--sx-key);
   font-size: 24px;
   font-weight: 500;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--sx-key) 25%, transparent);
 }
 .brand span {
   font-size: 18px;

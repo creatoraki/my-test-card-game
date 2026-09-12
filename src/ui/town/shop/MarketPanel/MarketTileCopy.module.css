@@ -17,14 +17,14 @@
   letter-spacing: .5px;
   white-space: nowrap;
   text-overflow: ellipsis;
-  text-shadow: 0 2px 2px #000, 0 0 4px #d0dcf52b;
+  text-shadow: 0 2px 2px #000, 0 0 4px #ffffff2b;
 }
 .tags { display: flex; max-width: 100%; margin-top: calc(5 * var(--market-unit)); }
 .description {
   width: 100%;
   margin-top: calc(7 * var(--market-unit));
   overflow: hidden;
-  color: #a6b7bd;
+  color: var(--sx-muted);
   font-size: max(18px, calc(12 * var(--market-unit)));
   line-height: calc(20 * var(--market-unit));
   letter-spacing: .5px;

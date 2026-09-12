@@ -20,7 +20,7 @@
   overflow-y: auto;
   padding: 10px;
   scrollbar-width: thin;
-  scrollbar-color: #6a9ead #071019;
+  scrollbar-color: color-mix(in srgb, var(--sx-key) 52%, transparent) var(--sx-bg-lo);
 }
 .cell { /* 占位类，动画由网格的 data-shelf-phase 驱动。 */ }
 .grid[data-shelf-phase="leaving"] { pointer-events: none; }
@@ -41,7 +41,7 @@
 .empty {
   grid-column: 1 / -1;
   margin: auto;
-  color: #8fabbc;
+  color: var(--sx-dim);
   font-size: 20px;
 }
 .vacant {
@@ -51,7 +51,7 @@
   align-items: center;
   justify-content: center;
   gap: 22px;
-  color: #678798;
+  color: var(--sx-dim);
   font-size: 20px;
   letter-spacing: 2px;
 }
@@ -60,7 +60,7 @@
   width: 44px;
   height: 44px;
   place-items: center;
-  border: 1px solid #45667880;
+  border: 1px solid var(--sx-line);
   border-radius: 50%;
   font-size: 36px;
   line-height: 1;

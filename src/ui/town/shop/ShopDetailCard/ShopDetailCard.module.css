@@ -50,7 +50,7 @@
   inset: 0;
   background:
     repeating-linear-gradient(94deg, transparent 0 15px, #ffffff08 15px 16px),
-    radial-gradient(circle at 18% 24%, #5fc8ff2b 0 1px, transparent 2px),
+    radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--sx-key) 17%, transparent) 0 1px, transparent 2px),
     radial-gradient(circle at 78% 68%, #ffffff18 0 1px, transparent 2px);
   content: "";
   pointer-events: none;
@@ -71,7 +71,7 @@
 .sx-card.is-idle {
   align-items: center;
   justify-content: center;
-  border-color: #bfe6ff38;
+  border-color: var(--sx-line);
   border-style: dashed;
   box-shadow: inset 0 1px 0 #ffffff2e, 0 9px 18px -16px #000000e6;
 }
@@ -99,10 +99,10 @@
   flex: 0 0 auto;
   place-items: center;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 65%, #284e7144, #050c16 75%);
+  background: radial-gradient(ellipse at 50% 72%, color-mix(in srgb, var(--sx-key) 16%, transparent), var(--sx-bg-lo) 74%);
   border: 0;
   border-radius: 0;
-  box-shadow: inset 0 1px 0 #ffffff1c;
+  box-shadow: var(--sx-lit);
 }
 
 .sx-card-icon {
@@ -149,7 +149,7 @@
   flex: 1 1 auto;
   margin: 2px 0 0;
   overflow: hidden;
-  color: #f7f8ff;
+  color: var(--sx-ink);
   font-size: 30px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -173,7 +173,7 @@
   align-items: center;
   padding: 4px 7px;
   color: color-mix(in srgb, var(--sx-rr) 78%, #ffffff 22%);
-  background: color-mix(in srgb, var(--sx-rr) 12%, #07131b);
+  background: color-mix(in srgb, var(--sx-rr) 12%, var(--sx-bg-lo));
   border: 1px solid color-mix(in srgb, var(--sx-rr) 44%, #ffffff 56%);
   border-radius: 0;
   box-shadow: inset 0 1px 0 #ffffff24, 0 3px 8px -7px #000000e6;
@@ -189,7 +189,7 @@
   flex-wrap: wrap;
   gap: 5px 10px;
   margin: -3px 0 0;
-  color: #e6e8f7;
+  color: var(--sx-ink);
   font-size: 18px;
   letter-spacing: 1px;
   text-shadow: 0 1px 2px #000000b8;
@@ -199,7 +199,7 @@
 
 .sx-card-desc {
   margin: 0;
-  color: #e8eaf6;
+  color: var(--sx-ink);
   font-size: 18px;
   font-weight: 400;
   line-height: 1.65;
@@ -231,7 +231,7 @@
 }
 
 .sx-card-stats dt {
-  color: #d9dcef;
+  color: color-mix(in srgb, var(--sx-ink) 78%, var(--sx-muted));
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 1px;

@@ -1,12 +1,25 @@
 .header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 28px;
   height: 112px;
   flex: none;
   padding: 14px 30px;
-  border-bottom: 1px solid #a4c1cb55;
-  background: linear-gradient(110deg, #040a10e6, #11263777 58%, #050b13b3);
+  background:
+    radial-gradient(ellipse 74% 120% at 12% 0%, var(--sx-key-wash), transparent 70%),
+    linear-gradient(180deg, #0e1720f0, #070e14e8);
+  box-shadow: var(--sx-lit);
+}
+.header::after {
+  position: absolute;
+  right: 30px;
+  bottom: 0;
+  left: 30px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sx-key) 22%, #fff4cf 50%, var(--sx-key) 78%, transparent);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--sx-key) 46%, transparent), 0 1px 9px color-mix(in srgb, var(--sx-key) 14%, transparent);
+  content: "";
 }
 .title {
   margin: 0;
@@ -14,12 +27,12 @@
   font-size: 60px;
   line-height: 1.15;
   letter-spacing: 6px;
-  text-shadow: 0 0 22px #eac47666, 0 3px 0 #5a401f;
+  text-shadow: 0 0 14px #edc7794d, 0 2px 0 #5a401f;
   white-space: nowrap;
 }
 .subtitle {
   margin: 15px auto 0 0;
-  color: #b4c1cd;
+  color: var(--sx-muted);
   font-size: 18px;
   letter-spacing: 3px;
 }
@@ -55,14 +68,14 @@
 }
 .indicator {
   height: 6px;
-  border: 1px solid #548c9d;
+  border: 1px solid var(--sx-line);
 }
 .indicator i {
   display: block;
   height: 100%;
   width: 100%;
-  background: #64e2ee;
-  box-shadow: 0 0 10px #54e3f166;
+  background: var(--sx-key);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sx-key) 42%, transparent);
 }
 .close {
   display: grid;
@@ -71,16 +84,18 @@
   height: 46px;
   flex: none;
   padding: 0;
-  border: 1px solid #75d6e9;
+  border: 1px solid var(--sx-line);
   border-radius: 0;
-  color: #76e8f4;
-  background: #041622b3;
+  color: var(--sx-muted);
+  background: var(--sx-bg-lo);
   font-size: 38px;
   line-height: 1;
   cursor: var(--cursor-pointer);
 }
 .close:hover, .close:focus-visible {
-  background: #123b4c;
-  box-shadow: 0 0 16px #56dbee44;
-  outline: 1px solid #a3f3ff;
+  color: var(--sx-key-hot);
+  border-color: var(--sx-key);
+  background: color-mix(in srgb, var(--sx-bg-lo) 82%, var(--sx-key) 18%);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--sx-key) 30%, transparent);
+  outline: 1px solid var(--sx-key);
 }

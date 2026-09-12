@@ -24,6 +24,21 @@
   color: var(--warehouse-ink);
 }
 
+.warehouse-body {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 400px;
+}
+
+.warehouse-main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
 .warehouse-tabs {
   --item-tabs-gap: 12px;
   --item-tab-row-gap: 10px;
@@ -54,7 +69,7 @@
   padding: var(--warehouse-grid-bleed) 4px 4px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #c9d3dab8 #0a0d1066;
+  scrollbar-color: #c9d3dab8 var(--sx-bg-lo);
   scrollbar-width: thin;
 }
 
@@ -63,32 +78,20 @@
 }
 
 .warehouse-grid::-webkit-scrollbar-track {
-  background: #0a0d1066;
+  background: var(--sx-bg-lo);
 }
 
 .warehouse-grid::-webkit-scrollbar-thumb {
   background: #c9d3dab8;
-  border: 2px solid #0a0d1066;
+  border: 2px solid var(--sx-bg-lo);
   border-radius: 0;
-}
-
-.warehouse-cell,
-.warehouse-empty {
-  width: var(--warehouse-cell-size);
-  height: var(--warehouse-cell-size);
-  min-width: 0;
-  min-height: 0;
-}
-
-.warehouse-cell {
-  position: relative;
 }
 
 .warehouse-slot.warehouse-slot,
 .warehouse-empty.warehouse-empty {
   box-sizing: border-box;
-  width: 100%;
-  height: 100%;
+  width: var(--warehouse-cell-size);
+  height: var(--warehouse-cell-size);
   min-width: 0;
   min-height: 0;
   aspect-ratio: auto;
@@ -116,9 +119,9 @@
     radial-gradient(ellipse 90% 70% at 50% 100%, #c9d3da26, transparent 76%),
     linear-gradient(145deg, #ffffff16, transparent 48%),
     linear-gradient(160deg, #1b2026bd, #080a0cc4 75%);
-  border: 1px solid #dfe6ea45;
   /* 顶边高光 + 底部压暗 = 上亮下暗的柱面感。银的立体感全靠这一对内影撑, 不靠色相。 */
   box-shadow:
+    inset 0 0 0 1px #dfe6ea45,
     inset 0 1px 0 #ffffff40,
     inset 0 -14px 18px -16px #000000cc,
     0 6px 14px -12px #000000f2,
@@ -129,7 +132,6 @@
 }
 
 .warehouse-slot.warehouse-slot:hover,
-.warehouse-slot.warehouse-slot.is-hovered,
 .warehouse-slot.warehouse-slot:focus-visible {
   background:
     repeating-linear-gradient(112deg, transparent 0 3px, #ffffff0d 3px 4px),
@@ -141,12 +143,9 @@
     inset 0 1px 0 #ffffff7a,
     inset 0 -14px 18px -16px #000000a8,
     0 8px 16px -12px #000000f2,
-    0 0 18px -9px #dfe6eae6;
+    0 0 18px -9px #dfe6eae6,
+    0 0 20px -12px #edc77940;
   transform: translateY(-3px);
-}
-
-.warehouse-slot.warehouse-slot.is-hovered {
-  border-color: #ffffff;
 }
 
 .warehouse-slot.warehouse-slot:focus-visible {
@@ -181,66 +180,4 @@
   letter-spacing: var(--ui-tracking);
   text-shadow: var(--ui-glow);
   border-top: 1px solid var(--warehouse-line);
-}
-
-.warehouse-tooltip {
-  position: absolute;
-  z-index: 1000;
-  width: 320px;
-  pointer-events: none;
-  filter: drop-shadow(0 14px 24px #000000cc);
-}
-
-.warehouse-tooltip.is-leaving {
-  animation: warehouseTooltipOut 420ms ease-in both;
-}
-
-.warehouse-tooltip-detail.warehouse-tooltip-detail {
-  --item-detail-name-size: 22px;
-  --item-detail-mult-size: 18px;
-  --item-detail-tags-size: 18px;
-  --item-detail-desc-size: 18px;
-  --item-detail-stats-size: 18px;
-  --item-detail-field-size: 18px;
-  --item-detail-bond-head-size: 18px;
-  --item-detail-bond-icon-size: 18px;
-  --item-detail-bond-arcana-size: 18px;
-  --item-detail-bond-count-size: 18px;
-  --item-detail-bond-desc-size: 18px;
-  --item-detail-note-size: 18px;
-  --item-detail-idle-size: 18px;
-
-  --accent: #c9d3da;
-  --accent2: #78848d;
-  --bad: #ff819d;
-  --border: #c9d3da2e;
-  --good: #87f5c1;
-  --muted: #98a3ab;
-  --text: #eef2f5;
-
-  box-sizing: border-box;
-  width: 100%;
-  height: auto;
-  max-height: var(--tooltip-max-h, 380px);
-  padding: 16px;
-  overflow-y: auto;
-  background:
-    linear-gradient(135deg, #ffffff16, transparent 50%),
-    linear-gradient(155deg, #1c2228f2, #080a0cf5);
-  border: 1px solid #dfe6ea66;
-  border-radius: 0;
-  clip-path: none;
-  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.8);
-  backdrop-filter: blur(14px) saturate(120%) brightness(0.8);
-}
-
-@keyframes warehouseTooltipOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-18px);
-  }
 }
