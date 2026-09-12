@@ -7,7 +7,7 @@
   gap: 8px;
   width: var(--slot-icon);
   padding: 2px;
-  --slot-ink: color-mix(in srgb, var(--slot-accent) 72%, #2a1b3d);
+  --slot-ink: color-mix(in srgb, var(--slot-accent) 46%, #f6efdd);
   color: var(--slot-ink);
   font-family: var(--font-family);
   outline: none;
@@ -20,10 +20,10 @@
   width: var(--slot-icon);
   height: var(--slot-icon);
   place-items: center;
-  border: 1.5px solid color-mix(in srgb, var(--slot-ink) 42%, transparent);
+  border: 1.5px solid color-mix(in srgb, #ffd98a 52%, transparent);
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 34%, #ffffffe6, color-mix(in srgb, var(--slot-accent) 12%, #ffffffcc));
-  box-shadow: 0 8px 20px #2a1b3d1f, inset 0 1px 0 #ffffffcc, 0 0 18px -6px var(--slot-accent);
+  background: radial-gradient(circle at 50% 34%, #2a2338e0, #140f22e6);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 0 18px -6px var(--slot-accent), 0 8px 20px #00000059;
   backdrop-filter: blur(6px) saturate(1.08);
 }
 
@@ -59,11 +59,11 @@
   height: calc(var(--slot-icon) * 0.34);
   padding: 0 calc(var(--slot-icon) * 0.05);
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--slot-ink) 55%, transparent);
+  border: 1px solid color-mix(in srgb, #ffd98a 50%, transparent);
   border-radius: 999px;
-  background: #fffffff2;
-  box-shadow: 0 2px 6px #2a1b3d26;
-  color: var(--slot-ink);
+  background: #181228ee;
+  box-shadow: 0 2px 6px #00000059;
+  color: #ffe9b4;
   font-family: Georgia, serif;
   font-size: calc(var(--slot-icon) * 0.2);
   font-weight: var(--ui-weight);
@@ -81,7 +81,7 @@
   width: 12px;
   height: 3px;
   border-radius: 999px;
-  background: #2a1b3d1f;
+  background: rgb(255 255 255 / 0.18);
 }
 
 .pipOn {
@@ -95,12 +95,12 @@
 }
 
 .showcase[data-inactive="true"] {
-  --slot-ink: #6b5b82;
+  --slot-ink: #8d86a3;
 }
 
 .showcase[data-inactive="true"] .frame {
-  border-color: #2a1b3d2e;
-  box-shadow: 0 8px 20px #2a1b3d1f, inset 0 1px 0 #ffffffcc;
+  border-color: rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 8px 20px #00000059;
   opacity: 0.45;
 }
 
@@ -109,7 +109,7 @@
 }
 
 .showcase[data-inactive="true"] .pip {
-  background: #2a1b3d1f;
+  background: rgb(255 255 255 / 0.18);
 }
 
 .showcase:hover,

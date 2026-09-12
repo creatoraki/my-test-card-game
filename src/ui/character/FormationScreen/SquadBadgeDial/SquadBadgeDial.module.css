@@ -1,10 +1,12 @@
 /* 徽章盘。⚠ 设计 px; 版面坐标由 SquadHud 给, 本文件只管这一枚的材质与提醒态。
    ★ 圆盘刻意做成**暗底**: BadgeGlyph 的线稿是给训练室那套暗底金色画的(描边是亮色),
-     压在本页浅紫白的场景上会糊掉 —— 给它一枚深色圆盘既保住原图的读感, 又在浅底上自成焦点。 */
+     深色圆盘保住原图的读感。
+   ★ 盘径 128 收在顶带高 148 之内: 参考图里徽章是压出边框的, 但那个体量在这条带子上过重,
+     压住了右侧的羁绊区 —— 改回"装在带子里", 上下各留 10px 余量。 */
 .dial {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   --dial-alert: #e0a52a;
   --dial-urgent: #e0432a;
 }
@@ -12,8 +14,8 @@
 .disc {
   position: relative;
   display: grid;
-  width: 104px;
-  height: 104px;
+  width: 128px;
+  height: 128px;
   flex: 0 0 auto;
   place-items: center;
   padding: 0;
@@ -60,12 +62,12 @@
 }
 
 .glyph {
-  width: 86px;
-  height: 86px;
+  width: 106px;
+  height: 106px;
 }
 
 .blank {
-  color: #6b5b82;
+  color: #a79dbd;
   font-size: 42px;
   font-weight: 700;
 }
@@ -80,7 +82,7 @@
 /* 提醒环: 只在有未分配训练点时呼吸。 */
 .ring {
   position: absolute;
-  inset: -7px;
+  inset: -8px;
   border: 1px solid transparent;
   border-radius: 50%;
   pointer-events: none;
@@ -133,14 +135,14 @@
 /* 角标: 未分配点数。 */
 .pip {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: -2px;
   display: grid;
-  min-width: 34px;
-  height: 34px;
+  min-width: 36px;
+  height: 36px;
   place-items: center;
-  padding: 0 8px;
-  border-radius: 17px;
+  padding: 0 9px;
+  border-radius: 18px;
   background: linear-gradient(140deg, #f4c96a 0%, #d9901c 100%);
   color: #241503;
   font-size: var(--fm-fs-l3, 18px);
@@ -174,7 +176,8 @@
 }
 
 .name {
-  color: #2a1b3d;
+  color: #f5ecd8;
+  text-shadow: 0 2px 6px #00000073;
   font-size: var(--fm-fs-l1, 24px);
   font-weight: 700;
   letter-spacing: 4px;
@@ -184,31 +187,43 @@
 .points {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #6b5b82;
+  gap: 12px;
+  color: #b9b4c6;
   font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 2px;
   white-space: nowrap;
 }
 
 .points.is-alert {
-  color: #a8730d;
+  color: #f0cd84;
 }
 
 .pending {
-  padding: 3px 10px;
-  border: 1px solid color-mix(in srgb, var(--dial-alert) 52%, transparent);
-  background: color-mix(in srgb, var(--dial-alert) 16%, #ffffff);
-  color: #7d5405;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #fff7dd;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff3d2 0%, #f2d693 100%);
+  color: #4a3410;
   font-size: var(--fm-fs-l3, 18px);
   font-weight: 700;
   letter-spacing: 1px;
+  line-height: 1;
+  box-shadow: 0 6px 16px -8px #e3b95cc4;
+}
+
+.pending-arrow {
+  font-size: var(--fm-fs-l2, 20px);
+  line-height: 1;
+  opacity: 0.72;
 }
 
 .pending.is-urgent {
-  border-color: color-mix(in srgb, var(--dial-urgent) 58%, transparent);
-  background: color-mix(in srgb, var(--dial-urgent) 13%, #ffffff);
-  color: var(--dial-urgent);
+  border-color: #ffdbd0;
+  background: linear-gradient(180deg, #ffcfc4 0%, #f08b74 100%);
+  color: #4a1206;
   animation: dialUrgentText 1.1s ease-in-out infinite;
 }
 

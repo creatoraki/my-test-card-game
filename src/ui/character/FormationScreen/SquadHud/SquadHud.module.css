@@ -1,4 +1,4 @@
-/* 常驻 HUD。⚠ 设计 px。徽章与羁绊收进同一条通栏亮玻璃面板, 两态共用且保持不动。 */
+/* 常驻 HUD。⚠ 设计 px。徽章与羁绊收进同一条通栏暗夜玻璃面板, 两态共用且保持不动。 */
 .hud {
   position: absolute;
   font-size: var(--fm-fs-l3, 18px);
@@ -70,11 +70,12 @@
   flex: 0 0 auto;
 }
 
+/* 分隔竖线: 中亮两端淡 —— 暗底上一条硬线像是焊上去的, 渐变才像光。 */
 .divider {
   width: 1px;
-  height: 84px;
+  height: 114px;
   flex: 0 0 auto;
-  background: #2a1b3d1f;
+  background: linear-gradient(180deg, transparent 0%, #ffffff59 46%, transparent 100%);
 }
 
 .bond-group {
@@ -86,11 +87,21 @@
 }
 
 .bond-label {
+  display: inline-flex;
+  align-items: center;
   margin-right: auto;
-  color: #6b5b82;
+  gap: 10px;
+  color: #c9c4da;
   font-size: var(--fm-fs-l2, 20px);
   letter-spacing: 4px;
   white-space: nowrap;
+}
+
+.party-glyph {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  color: #9a95ad;
 }
 
 .bonds {

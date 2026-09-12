@@ -1,4 +1,4 @@
-// 编队页的常驻 HUD —— 通栏亮玻璃面板里的小队徽章盘与小队羁绊, 左下角另放返回按钮。
+// 编队页的常驻 HUD —— 通栏暗夜玻璃面板里的小队徽章盘与小队羁绊, 左下角另放返回按钮。
 //
 // ★★ 它**跨越两种态**: 编队态与详情态共用同一份 DOM, 重组过场期间原地不动。
 //   「不动的东西」才让中间那一场重组显得是重组 —— 若连边框角落一起飞, 观众就失去了参照系。
@@ -13,6 +13,7 @@ import { SquadBondBar } from "@/ui/common/SquadBondBar";
 import { cx } from "@/ui/common/cx";
 import { HudPanel } from "../HudPanel";
 import { SquadBadgeDial } from "../SquadBadgeDial";
+import { PartyGlyph } from "./PartyGlyph";
 import s from "./SquadHud.module.css";
 
 interface Props {
@@ -67,13 +68,16 @@ export function SquadHud({
         />
         <span className={s.divider} aria-hidden="true" />
         <div className={s["bond-group"]}>
-          <span className={s["bond-label"]}>小队羁绊</span>
+          <span className={s["bond-label"]}>
+            <PartyGlyph className={s["party-glyph"]} />
+            小队羁绊
+          </span>
           <SquadBondBar
             className={s.bonds}
             characters={characters}
             party={party}
             align="end"
-            iconSize={96}
+            iconSize={104}
           />
         </div>
       </HudPanel>

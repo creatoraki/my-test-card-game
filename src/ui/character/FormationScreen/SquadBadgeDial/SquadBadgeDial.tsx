@@ -58,7 +58,14 @@ export function SquadBadgeDial({ badge, remaining, total, onClick, className, st
         {badge ? (
           <span className={cx(s.points, alert && s["is-alert"])}>
             训练点 {total - remaining}/{total}
-            {alert && <b className={s.pending}>+{remaining} 待分配</b>}
+            {alert && (
+              <b className={s.pending}>
+                +{remaining} 待分配
+                <i className={s["pending-arrow"]} aria-hidden="true">
+                  ›
+                </i>
+              </b>
+            )}
           </span>
         ) : (
           <span className={cx(s.points, s["is-urgent"])}>
