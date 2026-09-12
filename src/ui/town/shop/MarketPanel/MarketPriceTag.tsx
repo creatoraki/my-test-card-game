@@ -1,6 +1,7 @@
 // 货位底部的购买价格行。外观是设计图里的"金币 + 数字"，但它仍是唯一的付款入口。
 
 import { cx } from "@/ui/common/cx";
+import { MarketPriceArtwork } from "./MarketPriceArtwork";
 import s from "./MarketPriceTag.module.css";
 
 interface Props {
@@ -27,7 +28,7 @@ export function MarketPriceTag({ price, sold, disabledReason, onBuy }: Props) {
       aria-label={ariaLabel}
       onClick={onBuy}
     >
-      <span className={s.coin} aria-hidden="true" />
+      <MarketPriceArtwork />
       <strong className={s.price}>{price}</strong>
     </button>
   );

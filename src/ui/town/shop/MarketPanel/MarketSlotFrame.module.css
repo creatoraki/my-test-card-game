@@ -1,20 +1,39 @@
-/* 卡面为原型的 219×306 设计像素；原图边框由 MarketFrameArtwork 独立覆盖。 */
+/* MarketShelf 下发 --market-card-width；子组件按 --market-unit 还原 198×291 原型坐标。 */
 .slot {
+  --market-unit: calc(var(--market-card-width, 308px) / 198);
   position: relative;
   display: flex;
-  width: 219px;
-  height: 306px;
+  width: var(--market-card-width, 308px);
+  aspect-ratio: 198 / 291;
   min-width: 0;
-  padding: 18px 13px 13px 20px;
+  min-height: 0;
+  padding: calc(12 * var(--market-unit)) calc(10 * var(--market-unit)) calc(15 * var(--market-unit));
   isolation: isolate;
 }
 .slot::before {
   position: absolute;
+  z-index: -2;
+  content: "";
+  inset: calc(7 * var(--market-unit));
+  background:
+    radial-gradient(ellipse at 90% 100%, #19343e80, transparent 37%),
+    radial-gradient(ellipse at 15% 0, #26343a40, transparent 46%),
+    linear-gradient(120deg, #0d1920, #050c10 68%, #0a161d);
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+}
+.slot::after {
+  position: absolute;
   z-index: -1;
   content: "";
-  inset: 12px 10px 12px 15px;
-  background: radial-gradient(ellipse at 52% 95%, #37333955, transparent 45%),
-    linear-gradient(110deg, #11141b, #080b12 55%, #10131a);
+  top: 13%;
+  left: 9%;
+  width: 82%;
+  aspect-ratio: 1;
+  border: 1px solid #759aaa0b;
+  border-radius: 50%;
+  box-shadow: 0 0 0 9px #759aaa05, inset 0 0 0 5px #759aaa04;
+  transform: rotate(-32deg) skew(-8deg);
+  pointer-events: none;
 }
 .inner {
   position: relative;

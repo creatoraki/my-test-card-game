@@ -1,4 +1,4 @@
-// 货架货位外壳：按原型尺寸排版，边框直接取自参考图，售罄蒙层独立覆盖。
+// 商品与等待补货共用同一个外壳，统一布局盒、可见边框和原型比例。
 
 import type { ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
@@ -22,7 +22,7 @@ export function MarketSlotFrame({ selected, sold, children }: Props) {
         {children}
         {sold && <span className={s.sold}>已售出</span>}
       </div>
-      <MarketFrameArtwork />
+      <MarketFrameArtwork selected={selected} />
     </div>
   );
 }

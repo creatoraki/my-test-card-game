@@ -1,0 +1,15 @@
+/* MarketSlotFrame 下发 --market-unit；售价位数增加时只拉长横边，金币和斜角保持比例。 */
+.artwork {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.artwork svg { position: absolute; display: block; }
+.left { inset: 0 auto 0 0; width: calc(44 * var(--market-unit)); height: 100%; }
+.right { inset: 0 0 0 auto; width: calc(8 * var(--market-unit)); height: 100%; }
+.top, .bottom { left: calc(44 * var(--market-unit)); width: calc(100% - 52 * var(--market-unit)); }
+.top { top: 0; height: calc(5 * var(--market-unit)); }
+.bottom { bottom: 0; height: calc(4 * var(--market-unit)); }

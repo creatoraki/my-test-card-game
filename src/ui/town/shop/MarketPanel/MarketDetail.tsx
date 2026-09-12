@@ -25,7 +25,6 @@ export function MarketDetail({ slot }: Props) {
 
   return (
     <aside className={s.detail}>
-      <h3 className={s.heading}>物品详情{owned !== null && <span className={s.owned}>库存 <b>{owned}</b></span>}</h3>
       <div className={s.content}>
         {slot.kind === "card" ? <MarketCardDetail slot={slot} /> : <MarketItemDetail slot={slot} />}
       </div>

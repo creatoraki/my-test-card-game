@@ -1,78 +1,45 @@
-/* 原型的暗底细边价格牌，金币为双环与菱形币芯，仍为唯一购买入口。 */
+/* 使用 MarketSlotFrame 的 --market-unit；原图金币与边线归 MarketPriceArtwork。 */
 .tag {
   position: relative;
   display: flex;
   width: max-content;
-  min-width: 94px;
-  max-width: calc(100% - 24px);
-  height: 32px;
+  min-width: calc(92 * var(--market-unit));
+  max-width: 100%;
+  height: calc(31 * var(--market-unit));
   flex: none;
   align-self: center;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 0 0 7px;
-  padding: 0 12px;
-  border: 1px solid #a5966b85;
-  border-radius: 5px;
-  background: linear-gradient(115deg, #302c2540, #0a0d14 45%, #25242b80);
-  box-shadow: inset 0 0 0 1px #07090db3, inset 0 1px 0 #fff4cb17, 0 2px 5px #0008;
-  clip-path: none;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0 calc(13 * var(--market-unit)) 0 calc(44 * var(--market-unit));
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(115deg, #101a1b, #060c10 65%, #0a1316);
+  box-shadow: none;
+  clip-path: polygon(5px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
   color: #ffe17e;
   cursor: var(--cursor-pointer);
-  transition: border-color 180ms, box-shadow 180ms, filter 180ms;
-}
-.tag::before {
-  position: absolute;
-  content: "";
-  top: -1px;
-  left: 12%;
-  right: 12%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #e1d4acb0, transparent);
-  pointer-events: none;
-}
-.coin {
-  display: grid;
-  width: 20px;
-  height: 20px;
-  flex: none;
-  place-items: center;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  background: radial-gradient(circle, #675023 0, #211b14 65%);
-  box-shadow: 0 0 6px #f8c85650, inset 0 0 0 2px #171813, inset 0 0 0 3px #d2ab54;
-}
-.coin::after {
-  content: "";
-  width: 6px;
-  height: 6px;
-  background: #ffe799;
-  transform: rotate(45deg);
-  box-shadow: 0 0 3px #ffe19990;
+  translate: var(--market-unit) 0;
+  transition: filter 180ms;
 }
 .price {
+  position: relative;
   overflow: hidden;
   color: inherit;
   font-family: "BebasNeue", "SourceHanSansSC", sans-serif;
-  font-size: 26px;
+  font-size: calc(22 * var(--market-unit));
   font-weight: 400;
-  line-height: 28px;
+  line-height: calc(28 * var(--market-unit));
   letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-shadow: 0 0 5px #f6cb7855, 0 2px 1px #000;
 }
-.is-ready:hover, .is-ready:focus-visible {
-  border-color: #ffe09f;
-  box-shadow: inset 0 0 8px #e1b35320, 0 0 9px #ffcc6245;
-  filter: brightness(1.14);
-}
-.is-ready:focus-visible { outline: 2px solid #ffe6b2; outline-offset: 2px; }
+.is-ready:hover, .is-ready:focus-visible { filter: brightness(1.2); }
+.is-ready:focus-visible { outline: 2px solid #ffe6b2; outline-offset: -2px; }
 .is-ready:active { transform: translateY(1px); }
 .tag:disabled { opacity: 1; }
 .is-poor { color: #c78f7d; cursor: not-allowed; }
-.is-sold { color: #7d939e; cursor: var(--cursor-default); }
-.is-poor .coin, .is-sold .coin { filter: saturate(.3); box-shadow: none; }
+.is-sold { color: #7d939e; cursor: var(--cursor-default); filter: saturate(.3); }
 .is-poor .price, .is-sold .price { text-shadow: none; }

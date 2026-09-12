@@ -1,45 +1,22 @@
+/* --market-card-width 下发给 MarketSlotFrame：实货与补货占位共用尺寸和边框。 */
 .shelf {
+  --market-card-width: 308px;
   display: flex;
   min-width: 0;
   min-height: 0;
-  flex-direction: column;
-  gap: 14px;
-}
-.notice {
-  display: flex;
-  min-height: 46px;
-  flex: none;
-  align-items: center;
-  gap: 24px;
-  border-top: 1px solid #829aab70;
-  border-bottom: 1px solid #829aab33;
-}
-.notice strong {
-  padding: 7px 24px 7px 14px;
-  border-left: 4px solid #ffdc89;
-  color: #ffe9b3;
-  background: linear-gradient(90deg, #9c793951, transparent);
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: 2px;
-  text-shadow: 0 0 10px #f7cc6655;
-  white-space: nowrap;
-}
-.notice span {
-  color: #a4b8c6;
-  font-size: 18px;
-  line-height: 1.5;
+  overflow: hidden;
 }
 .grid {
-  /* 与 MarketSlotFrame 的 219×306 原型尺寸一致，边框像素在设计画布内不缩放。 */
   display: grid;
+  min-width: 0;
   min-height: 0;
   flex: 1;
   align-content: start;
   gap: 18px;
-  grid-template-columns: repeat(4, 219px);
-  grid-auto-rows: 306px;
+  grid-template-columns: repeat(3, var(--market-card-width));
+  grid-auto-rows: calc(var(--market-card-width) * 291 / 198);
   justify-content: center;
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 10px;
   scrollbar-width: thin;
@@ -51,30 +28,16 @@
   color: #8fabbc;
   font-size: 20px;
 }
-/* 空货位与实货位同形: 同样的 12px 四角斜切 + 2px 描边(外层上色、::before 盖底)。 */
 .vacant {
-  position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 22px;
-  padding: 2px;
-  background: linear-gradient(155deg, #4d5a5e, #2d3a42 48%, #24333c);
-  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
   color: #678798;
   font-size: 20px;
   letter-spacing: 2px;
-}
-.vacant::before {
-  position: absolute;
-  content: "";
-  inset: 2px;
-  background: linear-gradient(180deg, #0a1218, #070e14 58%, #0a1a22);
-  clip-path: polygon(11px 0, calc(100% - 11px) 0, 100% 11px, 100% calc(100% - 11px), calc(100% - 11px) 100%, 11px 100%, 0 calc(100% - 11px), 0 11px);
-}
-.vacant > span, .vacant > strong {
-  position: relative;
 }
 .vacant > span {
   display: grid;

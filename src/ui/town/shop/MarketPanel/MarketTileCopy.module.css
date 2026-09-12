@@ -1,33 +1,33 @@
-/* 原型卡面内的文字行：名称、单枚分类、单行摘要；遵循最小 18px 字号。 */
+/* 使用 MarketSlotFrame 的 --market-unit 对齐原型：文字左边缘 x=22，名称 y=162。 */
 .copy {
   display: flex;
   min-width: 0;
   flex: none;
   flex-direction: column;
   align-items: flex-start;
-  padding: 0 10px 0 11px;
+  padding: 0 calc(4 * var(--market-unit)) 0 calc(12 * var(--market-unit));
 }
 .name {
   width: 100%;
   overflow: hidden;
-  color: #f2f4f7;
-  font-size: 20px;
+  color: #f2f4f3;
+  font-size: max(18px, calc(16 * var(--market-unit)));
   font-weight: 800;
-  line-height: 26px;
-  letter-spacing: 1px;
+  line-height: calc(24 * var(--market-unit));
+  letter-spacing: .5px;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-shadow: 0 2px 2px #000, 0 0 4px #d0dcf52b;
 }
-.tags { display: flex; max-width: 100%; margin-top: 3px; }
+.tags { display: flex; max-width: 100%; margin-top: calc(5 * var(--market-unit)); }
 .description {
   width: 100%;
-  margin-top: 5px;
+  margin-top: calc(7 * var(--market-unit));
   overflow: hidden;
-  color: #bdc0ca;
-  font-size: 18px;
-  line-height: 25px;
-  letter-spacing: 0;
+  color: #a6b7bd;
+  font-size: max(18px, calc(12 * var(--market-unit)));
+  line-height: calc(20 * var(--market-unit));
+  letter-spacing: .5px;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-shadow: 0 2px 2px #000;

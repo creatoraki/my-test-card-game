@@ -1,8 +1,8 @@
-/* 卡牌立牌只剩插画区: 文字区归 MarketTileCopy, 外框归 MarketSlotFrame。 */
+/* 插画尺寸使用 MarketSlotFrame 下发的 --market-unit，与物品保持一致。 */
 .art {
   display: block;
   width: 100%;
-  height: 150px;
+  height: calc(150 * var(--market-unit));
   flex: none;
   overflow: hidden;
 }

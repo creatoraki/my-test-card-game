@@ -1,10 +1,10 @@
-/* 单枚分类标签，按物品分类配色，装备使用原型的冰蓝色。 */
+/* MarketSlotFrame 下发 --market-unit；标签按原型高度等比放大，文字至少 18px。 */
 .chip {
   --chip-color: #88dfff;
   --chip-edge: #439dbd;
   --chip-bg: #102b40;
   display: inline-flex;
-  height: 24px;
+  height: calc(19 * var(--market-unit));
   flex: none;
   max-width: 100%;
   padding: 1px;
@@ -12,6 +12,7 @@
   clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
 }
 .chip[data-category="scrap"] { --chip-color: #e3c48f; --chip-edge: #987443; --chip-bg: #34291b; }
+.chip[data-category="equipment"] { --chip-color: #a4edbf; --chip-edge: #4a9b6c; --chip-bg: #102c21; }
 .chip[data-category="material"] { --chip-color: #a6c6ed; --chip-edge: #6588b4; --chip-bg: #1b293e; }
 .chip[data-category="module"] { --chip-color: #bfa3ff; --chip-edge: #8461bf; --chip-bg: #2a1b43; }
 .chip[data-category="data"] { --chip-color: #8ceddf; --chip-edge: #459d99; --chip-bg: #133432; }
@@ -22,12 +23,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 46px;
-  padding: 0 8px;
+  min-width: calc(42 * var(--market-unit));
+  padding: 0 calc(8 * var(--market-unit));
   color: var(--chip-color);
   background: linear-gradient(180deg, #ffffff0c, transparent 55%), var(--chip-bg);
   font-size: 18px;
-  line-height: 22px;
+  line-height: 1;
   letter-spacing: 1px;
   white-space: nowrap;
   text-shadow: 0 0 5px color-mix(in srgb, var(--chip-color) 35%, transparent);
