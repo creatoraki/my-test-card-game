@@ -27,7 +27,7 @@ export function MarketPriceTag({ price, sold, disabledReason, onBuy }: Props) {
       aria-label={ariaLabel}
       onClick={onBuy}
     >
-      {sold ? <span className={s.sold}>已售出</span> : <strong>{price}</strong>}
+      {sold ? <span className={s.sold}>已售出</span> : <><span className={s.coin} aria-hidden="true">◈</span><strong>{price}</strong></>}
     </button>
   );
 }

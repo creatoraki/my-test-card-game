@@ -74,7 +74,7 @@ src/ui/
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 研究中心三条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造/科技树面板。 |
 | [town/terminal/TechTreePanel](../../src/ui/town/terminal/TechTreePanel/) | 全局科技树三栏面板：左侧分类导航、中间带等级进度弧的 SVG 节点图、右侧效果与消耗详情；研究动作只派发 `townStore.researchTech`。 |
-| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：只保留标题块与 `StockEntries` 三条抽屉入口；商店使用 `MarketPanel` 的 1500×920 暖金面板，仓库使用独立黑银面板。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
+| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 编队页训练点分配弹窗左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
@@ -337,6 +337,6 @@ src/ui/
 
 ⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
 
-商店场景的 `StockPanels` 现在包含「商店 / 回收台 / 仓库」三条入口，三者各自通过本文件的 `usePanelMorph` 打开；商店与回收台使用暖金 1500×920 面板，仓库使用独立的黑银 660×776 面板。`MarketPanel` 采用「左混合货架 + 右详情栏」两栏布局：`MarketShelf` 不再提供角色筛选，`MarketSlot` 按卡牌/物品分支展示，`MarketPriceTag` 是唯一购买入口并复用统一购买条件，`MarketDetail` 只展示商品详情。卡牌详情复用 `HandCard` + `CardKeywordNotes`，物品详情复用无操作控件的 `ShopItemCard`；设施升级弹层由 `ShopTechTree` 与 `ShopTechDetail` 组成，节点材料格复用 `ItemSlot`。
+商店场景的 `StockEntries` 编排左侧导航与常驻矩形交易面板，进入时直接展示商店，回收台与仓库在同一外壳内切换。`MarketPanel` 使用四列、两行起步的混合货架与右侧详情栏；超出两行时纵向滚动，不足八个展示格时使用等待补货占位。物品与卡牌都采用插画、名称、中文分类标签及效果摘要的立牌；`MarketPriceTag` 是唯一购买入口，购买条件仍复用原有规则。默认选中首件在售商品，物品详情标示仓库库存。底部提供刷新与设施升级，升级弹层由 `ShopTechTree` 与 `ShopTechDetail` 组成。面板、商品格与价格牌均为直角矩形，背景及物品插画沿用素材查表。
 
 我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。

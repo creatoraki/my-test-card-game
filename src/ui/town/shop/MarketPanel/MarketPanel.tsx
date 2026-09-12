@@ -1,7 +1,7 @@
 // 据点统一商店面板: 左侧混合货架、右侧商品详情，底部统一刷新与设施升级。
 
 import { useEffect, useState, type MouseEvent } from "react";
-import { shopLevelOf, shopRefreshCost, shopSlotCount } from "@/data";
+import { shopLevelOf, shopRefreshCost } from "@/data";
 import { useTownStore } from "@/store/townStore";
 import { MarketDetail } from "./MarketDetail";
 import { MarketShelf } from "./MarketShelf";
@@ -26,12 +26,12 @@ export function MarketPanel() {
   }, [shop.day, shop.refreshes]);
 
   const level = shopLevelOf(shop.techs);
-  const slotCount = shopSlotCount(shop.techs);
   const refreshCost = shopRefreshCost(shop.techs, shop.refreshes);
-  const selectedSlot = shop.slots.find((slot) => slot.key === selectedKey) ?? null;
+  const selectedSlot = shop.slots.find((slot) => slot.key === selectedKey)
+    ?? shop.slots.find((slot) => !slot.sold) ?? shop.slots[0] ?? null;
   const availableCount = shop.slots.filter((slot) => !slot.sold).length;
   const note = availableCount
-    ? `货架保留 ${availableCount} 件商品；购买后该货位今日不再补货。`
+    ? `剩余 ${availableCount} 件商品 ｜ 购买后该货位今日不再补货。`
     : "今日货架已售罄，可以刷新货架寻找新货。";
 
   const openUpgrade = (event: MouseEvent<HTMLButtonElement>) => {
@@ -50,7 +50,7 @@ export function MarketPanel() {
           slots={shop.slots}
           characters={characters}
           loot={loot}
-          selectedKey={selectedKey}
+          selectedKey={selectedSlot?.key ?? null}
           onSelect={setSelectedKey}
           onBuy={buyShopSlot}
         />
@@ -61,8 +61,7 @@ export function MarketPanel() {
 
       <div className={s.foot}>
         <div className={s.summary}>
-          <span>余额 {loot.toLocaleString()} 积分</span>
-          <span>等级 {level} · {slotCount} 个货位</span>
+          <strong>当前货架信息</strong>
           <span className={s.note}>{note}</span>
         </div>
         <div className={s.actions}>
@@ -72,10 +71,10 @@ export function MarketPanel() {
             disabled={loot < refreshCost}
             onClick={refreshShop}
           >
-            刷新货架 · {refreshCost} 积分
+            <span className={s.actionIcon} aria-hidden="true">⟳</span>刷新货架 <span className={s.cost}>{refreshCost} 积分</span>
           </button>
           <button className={s.upgrade} type="button" onClick={openUpgrade}>
-            设施升级 · 等级 {level}
+            <span className={s.actionIcon} aria-hidden="true">⇧</span>设施升级 <span className={s.cost}>等级 {level}</span>
           </button>
         </div>
       </div>

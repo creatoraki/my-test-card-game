@@ -22,7 +22,7 @@ export function MarketSlot({ slot, characters, loot, selected, onSelect, onBuy }
   const buyReason = marketBuyReason(slot, characters, loot);
 
   return (
-    <div className={cx(s.slot, slot.sold && s["is-sold"])}>
+    <div className={cx(s.slot, selected && s["is-selected"], slot.sold && s["is-sold"])}>
       <div className={s.frame}>
         {slot.kind === "card" ? (
           <MarketCardTile slot={slot} selected={selected} onSelect={onSelect} />

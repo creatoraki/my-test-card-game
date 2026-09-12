@@ -43,7 +43,7 @@
 面板材质共享自 `sortieGlass.module.css`，配色（`--inventory-*` 变量组）由 `inventoryPalettes.ts` 以 props 下发，两者分工不要混。
 
 据点设施的 hover/active 样式通过大厅根的 `data-town-stage` 传递状态；商店的
-`MarketItemTile.module.css`、`MarketPriceTag.module.css` 与 `ShopItemCard.module.css` 各自独占统一商店货位、售价牌和详情栏样式，
+`MarketSlot.module.css`、`MarketPriceTag.module.css` 与 `ShopDetailCard.module.css` 各自维护矩形货位、售价牌和详情栏样式，
 不再由 `ShopScene.module.css` 远程改写子组件。
 
 医疗室浮层外壳复用 [common/PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx)，由场景注入 `--asm-*` 医疗青绿主题；

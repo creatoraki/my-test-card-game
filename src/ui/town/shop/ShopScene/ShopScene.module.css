@@ -1,75 +1,48 @@
 .sx-root {
-  --ui-glow-color: var(--sx-action);
-  --event-accent: #d6b477;
-  --sx-ink: #f2e6d8;
-  --sx-muted: #a5937f;
-  --sx-line: #f2e6d82e;
-  --sx-dim: #847a6b;
-  --sx-alert: #ff8a78;
-  --sx-action: #d6b477;
-  --sx-action-hot: #f0d49b;
-  --sx-electric: #f0d49b;
+  --sx-ink: #edf4f7;
+  --sx-muted: #a7bac8;
+  --sx-line: #82bdd333;
+  --sx-dim: #7f9aa9;
+  --sx-alert: #ff9383;
+  --sx-action: #edc779;
+  --sx-action-hot: #ffe5a7;
+  --sx-electric: #69e5f4;
+  --asm-glow: #edc779;
+  --asm-select: #ffe5a7;
+  --asm-ink: #edf4f7;
+  --asm-ink-dim: #a7bac8;
+  --asm-line: #82bdd333;
+  --ui-glow-color: #edc779;
   position: absolute;
   z-index: 2;
   inset: 0;
   color: var(--sx-ink);
   font-family: var(--font-family);
+  font-size: 18px;
   pointer-events: none;
+  background: linear-gradient(90deg, #020b15b3, transparent 35%), linear-gradient(0deg, #02101c77, #02101c33);
 }
-
-.sx-root .sx-header {
+.brand {
   position: absolute;
-  z-index: 1;
-  width: 380px;
-  padding: 14px 20px 15px 22px;
-  background:
-    radial-gradient(ellipse 90% 120% at 100% 0, #d6b47722, transparent 68%),
-    linear-gradient(160deg, #241b12b8, #080d0fa6);
-  border: 1px solid #735c3d99;
-  border-left: 2px solid var(--event-accent);
-  clip-path: polygon(10px 0, 100% 0, calc(100% - 7px) 100%, 0 100%, 0 10px);
+  top: 42px;
+  left: 46px;
+  display: grid;
+  gap: 12px;
+  color: #8ddaea;
+  letter-spacing: 3px;
+}
+.brand strong {
+  font-size: 24px;
+  font-weight: 500;
+}
+.brand span {
+  font-size: 18px;
+  line-height: 1.65;
+}
+.is-leaving {
   pointer-events: none;
-  animation: sxHeaderIn 560ms 120ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
 }
-
-.sx-root .sx-kicker {
-  display: block;
-  color: var(--ui-label);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  line-height: 1.4;
-  text-shadow: var(--ui-glow);
-}
-
-.sx-root .sx-title {
-  margin: 7px 0 0;
-  color: var(--ui-value);
-  font-size: 42px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  line-height: 1;
-  text-shadow: var(--ui-glow), 0 2px 14px #000000cc, 1px 1px 0 #ffffff26;
-}
-
-.sx-root .sx-sub {
-  margin: 10px 0 0;
-  color: var(--ui-label);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.sx-root.is-leaving .sx-header {
-  animation: sxLeave 420ms ease both;
-}
-
-@keyframes sxHeaderIn {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes sxLeave {
-  to { opacity: 0; transform: translateX(44px); }
+.is-leaving .brand {
+  opacity: 0;
+  transition: opacity 300ms;
 }

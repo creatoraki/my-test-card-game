@@ -25,8 +25,8 @@ export function MarketShelf({
   return (
     <section className={s.shelf}>
       <div className={s.notice}>
-        <strong>居民积分采购物资</strong>
-        <span>货架随机陈列卡牌、装备、材料与祝福遗物，选中货位查看详情，点击价格牌即可购买。</span>
+        <strong>商品列表</strong>
+        <span>选中商品查看详情，点击价格牌即可购买。</span>
       </div>
 
       <div className={s.grid} aria-label="统一商店货架">
@@ -41,6 +41,11 @@ export function MarketShelf({
             onBuy={onBuy}
           />
         )) : <p className={s.empty}>今天没有进货。</p>}
+        {Array.from({ length: Math.max(0, 8 - slots.length) }, (_, index) => (
+          <div className={s.vacant} key={`vacant-${index}`}>
+            <span aria-hidden="true">＋</span><strong>等待补货</strong>
+          </div>
+        ))}
       </div>
     </section>
   );

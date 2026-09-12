@@ -1,0 +1,48 @@
+.window {
+  position: absolute;
+  left: 264px;
+  right: 70px;
+  top: 100px;
+  bottom: 58px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #a5bec678;
+  border-radius: 0;
+  background: linear-gradient(115deg, #041019ed, #07121aeb 65%, #081827eb);
+  box-shadow: inset 0 0 0 5px #030b1280, inset 0 0 0 6px #9bc6d017, 0 24px 70px #000b;
+  pointer-events: auto;
+  animation: arrive 420ms ease-out both;
+}
+.window::before {
+  position: absolute;
+  content: "";
+  inset: 0;
+  border-top: 2px solid #dfbf79;
+  border-bottom: 1px solid #dfbf7980;
+  pointer-events: none;
+}
+.content {
+  flex: 1;
+  min-height: 0;
+  padding: 16px 24px 12px;
+}
+:global([data-shop-root][data-leaving]) .window {
+  pointer-events: none;
+  animation: depart 300ms ease-in both;
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes depart {
+  to {
+    opacity: 0;
+    translate: 0 18px;
+  }
+}

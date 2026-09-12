@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
-import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import s from "./MarketTile.module.css";
 
 interface Props {
@@ -24,8 +23,7 @@ export function MarketTile({
 }: Props) {
   return (
     <div
-      className={cx(s.tile, rarityClass, selected && s["is-selected"], sold && s["is-sold"])}
-      data-interactive-hint
+      className={cx(s.tile, rarityClass, sold && s["is-sold"])}
       data-market-tile
       data-sold={sold ? "" : undefined}
     >
@@ -39,7 +37,6 @@ export function MarketTile({
       >
         {children}
       </button>
-      <InteractiveHint className={s.hint} active={selected && !sold} />
       {sold && <span className={s.soldMask}>已售出</span>}
     </div>
   );

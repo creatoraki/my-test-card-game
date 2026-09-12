@@ -1,2 +1,2 @@
-export { StockEntries, STOCK_ACCENT } from "./StockEntries";
+export { StockEntries } from "./StockEntries";
 export { RecyclePanel } from "./RecyclePanel";

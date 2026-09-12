@@ -1,14 +1,50 @@
-.cardBox {
+.art {
   display: block;
-  width: calc(var(--card-w) * var(--market-card-scale));
-  height: calc(var(--card-h) * var(--market-card-scale));
+  width: 100%;
+  height: 146px;
+  flex: none;
+  overflow: hidden;
 }
-
-.cardBox > :global([data-hand-slot]) {
-  transform: scale(var(--market-card-scale));
-  transform-origin: top left;
+.art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mask-image: linear-gradient(#000 75%, transparent);
 }
-
-.cardBox.is-sold {
-  filter: grayscale(0.85) brightness(0.62);
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  padding: 5px 5px 0;
+}
+.name {
+  overflow: hidden;
+  color: #f0f3f4;
+  font-size: 21px;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tags {
+  display: flex;
+  gap: 8px;
+  color: #8cdeeb;
+  font-size: 18px;
+  line-height: 1.15;
+}
+.tags > span {
+  padding: 2px 7px;
+  border: 1px solid #67cbe677;
+  background: #163c5144;
+}
+.description {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #aebfc9;
+  font-size: 18px;
+  line-height: 1.4;
 }

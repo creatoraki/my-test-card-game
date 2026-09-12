@@ -70,7 +70,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   // 工房: 装备升阶 / 羁绊重铸
   assembly: (leaving) => <AssemblyScene leaving={leaving} />,
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
-  shop: (leaving) => <ShopScene leaving={leaving} />,
+  shop: (leaving, onBack) => <ShopScene leaving={leaving} onBack={onBack} />,
   // 医疗室: 复苏舱 / 营养舱 / 圣水池
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   // 研究中心: 模组装配 / 模组制造
