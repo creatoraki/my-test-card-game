@@ -1,4 +1,11 @@
-/* 角色详情态共享配色令牌。浮层通过 CharacterDetailView 根节点继承这组变量。 */
+/* 角色详情态共享配色令牌。浮层通过 CharacterDetailView 根节点继承这组变量。
+ *
+ * ★ 第二组(--cd-glass-* / --cd-hairline / --cd-bar-* / --cd-text-*)是「属性装备页材质」令牌,
+ *   取值全部来自美术稿实测采样(稿 835×530, 稿 px → 设计 px 的换算比 k ≈ 1.6)。
+ *   页签条、属性大框、分组框、装备栏原先各写一套 hex, 调一次色要翻五个文件。
+ * ⚠ 发光一律是**静态** box-shadow 色, 不进动画 —— 这一屏同时有立绘层与全屏底图,
+ *   任何会动的 filter / backdrop-filter 都是最贵的一笔。
+ */
 .cd-tokens {
   --ui-glow-color: var(--cd-glow);
   --cd-ink: #2a1b3d;
@@ -7,4 +14,28 @@
   --cd-glow: #7c4dbe;
   --cd-glow-deep: #55307f;
   --cd-deck-card-scale: 1.3;
+
+  /* —— 玻璃底(稿子采样) —— */
+  /* 属性大框与装备栏。 */
+  --cd-glass-panel: #1a2750c4;
+  /* 分组框: 比大框再深一档, 才衬得出上面的白字。 */
+  --cd-glass-group: #1b2958d9;
+  /* 页签条。 */
+  --cd-glass-head: linear-gradient(160deg, #223260e8, #16213eef 58%, #1b2949e8);
+  /* 所有框共用的 1px 淡蓝描边。 */
+  --cd-hairline: #93b7ea7a;
+  /* 右缘 / 右上角那种「点亮的金属高光」。 */
+  --cd-edge-hi: #dcecff;
+
+  /* —— 属性条(稿子采样 #4591fc → #83effc) —— */
+  --cd-bar-track: #172343;
+  --cd-bar-a: #3d7ce6;
+  --cd-bar-b: #4591fc;
+  --cd-bar-c: #5cb4fb;
+  --cd-bar-d: #8ceffc;
+
+  /* —— 文字 —— */
+  --cd-text-strong: #f4f7ff;
+  --cd-text-body: #f2f6ff;
+  --cd-text-sub: #8ca2d4;
 }

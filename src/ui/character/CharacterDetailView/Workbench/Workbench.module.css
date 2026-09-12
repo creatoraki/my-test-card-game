@@ -1,67 +1,146 @@
-﻿/* 右栏由独立页签框和内容窗构成，几何来自 detailLayout。 */
+/* 页签条 —— 稿子实测(稿 835px → 设计 px 的换算比 k ≈ 1.6):
+   框 y 6..58(高 52 → 83, 实际容器 80), 选中页签 y 8..56 —— 也就是**几乎撑满整条框**,
+   所以这里的 padding 只有 2px, 不是旧版那种 12px 留白。
+   页签是平行四边形: 顶边比底边宽 22px(→ 35px), 左右斜边平行。
+   框右端收一个 45° 切角, 并沿右缘压一条 3px 的亮白边 —— 稿子上最醒目的一处金属高光。 */
 .bench {
   position: absolute;
   z-index: 2;
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: 16px;
+  gap: 19px;
   font-size: 18px;
 }
 
 .head {
+  position: relative;
   display: flex;
   flex: 0 0 80px;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px;
-  border: 1px solid #9ebce59c;
-  background: linear-gradient(115deg, #35465ecf, #1d293edf 60%, #182238ed);
-  box-shadow: inset 0 0 0 5px #9fbfff0b, inset 0 1px 0 #d2e4ff44;
-  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
+  padding: 2px;
+  isolation: isolate;
+  /* DetailFrame 绘制边框，只有背景层裁切，保留外侧辉光。 */
+  background: transparent;
+  --panel-shape: polygon(19px 0, calc(100% - 19px) 0, 100% 19px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 19px 100%, 0 calc(100% - 19px), 0 19px);
+}
+
+.head::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: var(--cd-glass-head);
+  clip-path: var(--panel-shape);
+}
+
+/* 右缘的亮白粗边。 */
+.head::after {
+  position: absolute;
+  top: 13px;
+  right: 0;
+  bottom: 13px;
+  width: 4px;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(#eef4ffb8, #ffffff 22%, #dbe8ff 78%, #eef4ffb8);
+  box-shadow: 0 0 14px #a8cdffb5;
 }
 
 .tabs { display: flex; align-self: stretch; }
 .tab {
   position: relative;
   isolation: isolate;
-  width: 216px;
-  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  /* 宽度跟着文字走 —— 稿子上「属性装备」与「卡组」两枚页签并不等宽。 */
+  padding: 0 64px;
   border: 0;
-  background: #7083bc61;
-  color: #b4bced;
+  /* 外层只画那条斜边描边, 填充交给 ::before。 */
+  background: #9fb8e04d;
+  color: #9fabd8;
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 2px;
-  clip-path: polygon(26px 0, 100% 0, calc(100% - 26px) 100%, 0 100%);
+  white-space: nowrap;
+  clip-path: polygon(35px 0, 100% 0, calc(100% - 35px) 100%, 0 100%);
   transition: color 150ms ease, background 150ms ease;
 }
-.tab + .tab { margin-left: -18px; }
+.tab + .tab { margin-left: -32px; }
 .tab::before {
   content: "";
   position: absolute;
   z-index: -1;
   inset: 1px;
-  background: linear-gradient(120deg, #242d49, #1b2439);
+  /* 未选中: 近乎透明的深玻璃。 */
+  background: linear-gradient(120deg, #1a244099, #131c3299);
   clip-path: inherit;
 }
+
+/* 页签前缀晶体。 */
+.tab-glyph {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  color: #8ea2d8;
+  transition: color 150ms ease;
+}
+
 .bench .tabs .tab:hover { color: #fff; background: #b5c7ff; }
+.bench .tabs .tab:hover .tab-glyph { color: #e6ecff; }
 .bench .tabs .tab.is-active {
   z-index: 1;
   color: #fff;
-  background: linear-gradient(135deg, #d4dfff, #8b55ff 55%, #a6e6ff);
-  text-shadow: 0 0 12px #c1a8ff;
+  /* 亮白紫的斜边描边 —— 稿子上这一圈比填充亮一大截。 */
+  background: linear-gradient(140deg, #e4d8ff, #cbb8ff 46%, #9ad6ff);
+  text-shadow: 0 0 14px #cbb0ff;
+  box-shadow: 0 0 26px -4px #8b5cffc4, 0 0 60px -14px #7a4dffa8;
 }
+.tab.is-active .tab-glyph { color: #fff; filter: drop-shadow(0 0 5px #ddd3ff); }
 .tab.is-active::before {
   inset: 2px;
-  background: linear-gradient(160deg, #392284, #6832ff 48%, #4824d0 74%, #8997ff);
-  box-shadow: inset 0 -4px 7px #c7ceff, inset 0 2px 8px #ba86ff;
+  /* 左下暗紫 → 右上亮紫, 与稿子取样一致。 */
+  background: linear-gradient(155deg, #99c0ff 0%, #663bff 27%, #7138fb 58%, #ae93ff 85%, #d9eeff);
+  box-shadow: inset 0 2px 0 #e0d4ff, inset 0 -6px 10px #cbbcffa8;
 }
 .tab:focus-visible { outline: 0; background: #fff; }
 .tab:focus-visible::before { inset: 4px; }
-.exp { margin-right: 12px; color: #b9c5f4; font-size: 20px; white-space: nowrap; }
-.exp b { margin-left: 8px; color: #fff; font-size: 24px; }
+
+.exp {
+  display: flex;
+  align-items: center;
+  margin-right: 26px;
+  color: #a9b8e4;
+  font-size: var(--fm-fs-l3, 18px);
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+.exp b { margin-left: 12px; color: #fff; font-size: 26px; font-weight: 700; }
+
+/* 属性页右侧的装饰小字 + 三重箭头 —— 不吃指针, 纯版面平衡。 */
+.mark {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin-right: 26px;
+  color: #7d90c2;
+  font-size: var(--fm-fs-l3, 18px);
+  letter-spacing: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+.chevrons {
+  display: block;
+  width: 44px;
+  height: 22px;
+  color: #8f9fe0;
+}
+
 .content { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; }
 
 .is-growing {

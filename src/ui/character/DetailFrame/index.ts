@@ -1,0 +1,1 @@
+export { DetailFrame } from "./DetailFrame";

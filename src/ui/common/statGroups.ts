@@ -16,6 +16,8 @@ export interface StatRow {
 
 export interface StatGroup {
   title: string;
+  /** 标题右侧的中文小字副标题 —— 纯展示装饰, 只在角色详情的分组框里出现。 */
+  subtitle?: string;
   wide?: boolean;
   rows: StatRow[];
 }
@@ -23,6 +25,7 @@ export interface StatGroup {
 export const STAT_GROUPS: StatGroup[] = [
   {
     title: "生存与输出",
+    subtitle: "核心战力",
     rows: [
       { key: "maxHp", label: "生命", ref: 120 },
       { key: "attack", label: "攻击力", ref: 150 },
@@ -35,6 +38,7 @@ export const STAT_GROUPS: StatGroup[] = [
   },
   {
     title: "命中与暴击",
+    subtitle: "命中判定",
     rows: [
       { key: "hitRate", label: "命中率", pct: true },
       { key: "dodgeRate", label: "闪避率", pct: true },
@@ -44,7 +48,8 @@ export const STAT_GROUPS: StatGroup[] = [
     ],
   },
   {
-    title: "节奏与防护",
+    title: "特殊属性",
+    subtitle: "防护与其他",
     rows: [
       { key: "initiative", label: "先手", ref: 20 },
       { key: "blockRate", label: "格挡", pct: true },

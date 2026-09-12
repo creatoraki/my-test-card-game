@@ -1,0 +1,136 @@
+/* 属性行 —— 深蓝玻璃上的白字, 下方一条独立胶囊条。
+   ⚠ 全部尺寸来自美术稿实测 × 1.6(稿 835px → 1920 设计画布的换算比):
+     图标 20→32 / 标签 14→22 / 数值 15→24 / 条高 6→10 / 行距 31→50。
+   ⚠ 条的发光是**静态** box-shadow, 一屏十几行, 不能进动画。 */
+.attr {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  /* 两行: 上行是图标+标签+数值, 下行只有条(图标列留空, 条从标签左缘起)。 */
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 5px 16px;
+  line-height: 1.1;
+}
+
+.attr-icon {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 32px;
+  height: 32px;
+  align-self: center;
+  /* 稿子上图标是亮白的, 不是紫色描边。 */
+  color: #e9e7ff;
+  filter: drop-shadow(0 0 4px #9383ffb3);
+}
+
+.attr-label {
+  grid-column: 2;
+  grid-row: 1;
+  color: #f2f6ff;
+  white-space: nowrap;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.attr-value {
+  grid-column: 3;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 7px;
+  color: #ffffff;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-family);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* 条横跨标签列与数值列 —— 左端对齐标签左缘, 右端对齐数值右缘。 */
+.bar {
+  position: relative;
+  grid-column: 2 / 4;
+  grid-row: 2;
+  height: 8px;
+  border-radius: 5px;
+  background: var(--cd-bar-track);
+  box-shadow: inset 0 0 0 1px #ffffff1f;
+}
+
+.bar-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  /* 左端略深 → 右端收在青白高光, 与稿子取样一致(#4591fc → #83effc)。 */
+  background: linear-gradient(90deg, var(--cd-bar-a), var(--cd-bar-b) 34%, var(--cd-bar-c) 78%, var(--cd-bar-d));
+  box-shadow: 0 0 10px #4fb8ffa1;
+  transform: scaleX(var(--pct, 0));
+  transform-origin: left;
+  animation: attrBarGrow 620ms 260ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+}
+
+/* 换装预览的增/减区间 —— 直接落在条槽内, 与条同高。 */
+.bar-ghost {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--pct-ghost-start, 0) * 100%);
+  z-index: 1;
+  width: calc(var(--pct-ghost, 0) * 100%);
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0.78;
+}
+
+.bar-ghost.is-up { background: #62bd78; }
+.bar-ghost.is-down { background: #d85c68; }
+
+.delta {
+  padding: 2px 5px;
+  border-radius: 2px;
+  font-size: var(--fm-fs-l3, 18px);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.delta.is-up { color: #cdf7db; background: #1f6a3c; }
+.delta.is-down { color: #ffd9df; background: #8d2c3a; }
+
+/* ★ 「特殊属性」组: 稿子上这一组的行**带独立格子底**(圆角矩形 + 细描边), 条也细一档。 */
+.attr.is-compact {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  padding: 9px 14px 10px;
+  border-radius: 7px;
+  background: linear-gradient(115deg, #657ca22b, #5566a538);
+  box-shadow: inset 0 0 0 1px #8f9aff59, inset 0 -5px 12px #91a8ff0f;
+}
+
+.attr.is-compact .attr-icon { width: 26px; height: 26px; }
+.attr.is-compact .attr-label { font-size: var(--fm-fs-l3, 18px); letter-spacing: 0; }
+.attr.is-compact .attr-value { font-size: 20px; letter-spacing: 0; }
+.attr.is-compact .bar { height: 5px; border-radius: 3px; }
+.attr.is-compact .bar-fill,
+.attr.is-compact .bar-ghost { border-radius: 3px; }
+/* 三列格子里的条改紫蓝渐变 —— 与稿子上 03 组的细条一致。 */
+.attr.is-compact .bar-fill {
+  background: linear-gradient(90deg, #8f6cf5, #6f8dfb 60%, #58b6fb);
+  box-shadow: 0 0 7px #7f9cff8f;
+}
+
+.attr.is-critical .bar-fill {
+  background: linear-gradient(90deg, #9664f8, #b988ff 70%, #f2d9ff);
+  box-shadow: 0 0 12px #a56affb3;
+}
+
+@keyframes attrBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+}

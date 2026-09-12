@@ -1,0 +1,11 @@
+/* 三个分组框的栅格: 上排两组并列, 「特殊属性」横跨整行。
+   ⚠ 稿子上左框比右框宽一档(292 : 255 ≈ 1.14 : 1), 不是等分。
+   ★ 上排用 1fr 吃掉剩余高度 —— 稿子的竖向尺寸比实际容器高约 5%, 靠行间距自适应吸收。 */
+.groups {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: 1.14fr 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 16px 20px;
+  min-height: 0;
+}

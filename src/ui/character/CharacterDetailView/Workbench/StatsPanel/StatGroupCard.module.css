@@ -1,0 +1,137 @@
+/* 属性分组框 —— 深蓝玻璃 + 四角切角 + 淡蓝描边。
+   ⚠ 尺寸来自美术稿实测 × 1.6: 框内左右 padding 26px、顶 14px、标题 24px、
+     标题与分隔线与首行之间各 14px、右上序号 36px 斜体。
+   ⚠ 起点 160ms / 步长 55ms 与 StatsPanel.tsx 的 CONTENT_DELAY_MS、STAGGER_MS 是同两个数
+     (那边靠它们算数值滚动的起跑时间), 改一处要改两处。
+   ⚠ 入场只动 opacity / transform —— 三个独立带边框图层同时跑 filter: blur 是这一屏最贵的一笔。 */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 16px 18px 16px;
+  isolation: isolate;
+  /* 细框由 DetailFrame 绘制，背景层单独裁切。 */
+  background: transparent;
+  --panel-shape: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+  animation: statGroupIn 380ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+  animation-delay: calc(160ms + var(--i, 0) * 55ms);
+}
+
+/* 稿子上分组框底是一层比大框更深的蓝玻璃。 */
+.card::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: linear-gradient(115deg, #354368ad, #1c2947e8 60%, #243558e6);
+  box-shadow: inset 0 0 22px #668ac229;
+  clip-path: var(--panel-shape);
+}
+
+/* 「特殊属性」独占一整行，内部三列。 */
+.card.is-wide {
+  grid-column: 1 / -1;
+}
+
+/* 右上角的大号斜体序号水印 —— 纯文本, 不占布局也不吃指针。 */
+.ordinal {
+  position: absolute;
+  top: 10px;
+  right: 22px;
+  color: #ffffff24;
+  font-size: 36px;
+  font-weight: 800;
+  font-style: italic;
+  font-family: var(--font-family);
+  letter-spacing: 1px;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 宽组序号左侧的装饰花字 —— 压到几乎看不清, 只做版面呼吸。 */
+.watermark {
+  position: absolute;
+  top: 16px;
+  right: 74px;
+  color: #b9d4ff3d;
+  font-size: var(--fm-fs-l3, 18px);
+  font-style: italic;
+  letter-spacing: 4px;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* 给序号水印让出地方。 */
+  padding-right: 84px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #f4f7ff;
+  white-space: nowrap;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+/* 标题左侧的竖条标记 —— 稿子上是一小段亮白竖杠, 不是三角。 */
+.title::before {
+  width: 5px;
+  clip-path: polygon(0 0, 100% 40%, 0 100%);
+  height: 19px;
+  content: "";
+  border-radius: 1px;
+  background: #dbe6ff;
+  box-shadow: 0 0 8px #9fc0ff9e;
+}
+
+.sub {
+  color: #8ca2d4;
+  white-space: nowrap;
+  font-size: var(--fm-fs-l3, 18px);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+/* 标题下方的整条分隔线: 左段亮, 向右渐隐。 */
+.rule {
+  height: 1px;
+  margin: 14px 0;
+  background: linear-gradient(90deg, #cfe0ffc4, #8fb0e85e 30%, #8fb0e814 70%, transparent);
+}
+
+.rows {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rows.is-two-col {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 13px;
+}
+
+@keyframes statGroupIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

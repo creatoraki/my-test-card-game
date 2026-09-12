@@ -6,15 +6,18 @@
 // ★ 入场是「从左边缘裂开生长」(is-growing): 编队态的卡阵与本栏占同一条水平带(y 196..968),
 //   于是重组时这块工作区正是在卡阵原地长出来的。
 
-import type { CSSProperties, ReactNode } from "react";
+import { DetailFrame } from "@/ui/character/DetailFrame";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
+import { TabChevrons, TabGlyphDiamond, TabGlyphStar } from "./TabGlyph";
 import s from "./Workbench.module.css";
 
 export type WorkbenchTab = "profile" | "deck";
 
-const TABS: Array<{ key: WorkbenchTab; label: string }> = [
-  { key: "profile", label: "属性装备" },
-  { key: "deck", label: "卡组" },
+// Glyph 是页签前缀的装饰晶体(见 TabGlyph.tsx), 纯图形, 不引额外资源。
+const TABS: Array<{ key: WorkbenchTab; label: string; Glyph: ComponentType<{ className?: string }> }> = [
+  { key: "profile", label: "属性装备", Glyph: TabGlyphStar },
+  { key: "deck", label: "卡组", Glyph: TabGlyphDiamond },
 ];
 
 interface Props {
@@ -38,8 +41,9 @@ export function Workbench({ tab, onTabChange, exp, growing, leaving, children, s
       aria-label="角色工作区"
     >
       <div className={s.head}>
+        <DetailFrame />
         <div className={s.tabs} role="tablist" aria-label="工作区分页">
-          {TABS.map(({ key, label }, i) => (
+          {TABS.map(({ key, label, Glyph }, i) => (
             <button
               key={key}
               className={cx(s.tab, tab === key && s["is-active"])}
@@ -49,13 +53,19 @@ export function Workbench({ tab, onTabChange, exp, growing, leaving, children, s
               aria-selected={tab === key}
               onClick={() => onTabChange(key)}
             >
+              <Glyph className={s["tab-glyph"]} />
               {label}
             </button>
           ))}
         </div>
-        {tab === "deck" && <span className={s.exp}>
-          可用经验 <b>{exp}</b>
-        </span>}
+        {/* 右侧读数与装饰小字共用同一个位置: 卡组页放可用经验, 属性页放装饰。 */}
+        {tab === "deck" ? (
+          <span className={s.exp}>
+            可用经验 <b>{exp}</b>
+          </span>
+        ) : (
+          <span className={s.mark} aria-hidden="true">角色系统 <TabChevrons className={s.chevrons} /></span>
+        )}
       </div>
 
       {/* key 跟着 tab 变: 换页时内容重挂载 ⇒ 面板自己的错峰入场每次都从头播。 */}

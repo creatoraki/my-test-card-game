@@ -1,3 +1,4 @@
+import { DetailFrame } from "@/ui/character/DetailFrame";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
@@ -6,6 +7,7 @@ import ItemTooltip from "@/ui/common/item/ItemTooltip";
 import ItemSlot from "@/ui/common/item/ItemSlot";
 import { equipSlotIcon } from "@/ui/art/itemArt";
 import { cx } from "@/ui/common/cx";
+import { SlotMark } from "./SlotMark";
 import s from "./EquipmentSlots.module.css";
 
 interface Props {
@@ -19,8 +21,12 @@ interface Props {
 export function EquipmentSlots({ equipped, activeSlot, onSelect, onUnequip, className }: Props) {
   return (
     <section className={cx(s["equipment-slots"], className)} aria-label="角色装备">
+      <DetailFrame />
       <div className={s["equipment-slots-head"]}>
-        <span className={s["equipment-slots-label"]}>装备配置</span>
+        <div className={s["equipment-slots-title"]}>
+          <span className={s["equipment-slots-label"]}>装备配置</span>
+          <span className={s["equipment-slots-sub"]}>部位</span>
+        </div>
         <span className={s["equipment-slots-hint"]}>选择部位更换装备</span>
       </div>
       <div className={s["equipment-slots-grid"]}>
@@ -60,6 +66,8 @@ function EquipmentSlot({
 
   return (
     <div className={cx(s["equipment-slot"], selected && s["is-active"])} {...(worn ? bind : {})}>
+      {/* 左上角的装饰标记 —— 稿子上空槽与已穿戴槽都带着它。 */}
+      <SlotMark className={s["equipment-slot-mark"]} />
       {worn ? (
         <>
           <ItemSlot
@@ -94,7 +102,7 @@ function EquipmentSlot({
           aria-label={`打开${SLOT_LABEL[slot]}仓库`}
         >
           {equipSlotIcon(slot)}
-          <span className={s["equipment-slot-add"]} aria-hidden="true">＋</span>
+          <span className={s["equipment-slot-add"]} aria-hidden="true" />
         </button>
       )}
       <span className={s["equipment-slot-name"]}>{SLOT_LABEL[slot]}</span>

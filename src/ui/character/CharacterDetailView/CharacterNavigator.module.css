@@ -13,11 +13,11 @@
   height: 116px;
   place-items: center;
   padding: 0;
-  border: 1px solid #ffffffa8;
-  background: linear-gradient(155deg, #ffffffd4, #f0e4fa8a);
+  border: 1px solid #ffffff8f;
+  background: linear-gradient(155deg, #ffffff8f, #e7dbf85e);
   color: var(--cd-glow-deep);
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  box-shadow: 0 8px 24px #2a1b3d2e, inset 0 0 0 1px #ffffff8f;
+  box-shadow: 0 8px 24px #2a1b3d2e, 0 0 22px -8px var(--cd-accent), inset 0 0 0 1px #ffffff7a;
   transform: translateY(-50%);
   transition:
     background 150ms ease,

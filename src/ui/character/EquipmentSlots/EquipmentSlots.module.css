@@ -1,39 +1,70 @@
+/* 详情态左栏的装备配置 —— 稿子实测(稿 835px → 设计 px 的换算比 k ≈ 1.6):
+   外框 x 16..196 / y 68..510, 框内左右 padding 16px;
+   槽位是**浅紫白实心卡片**(不是虚线框), 左上/右下切角 16px,
+   左下角直接压深紫标签(无底色块), 右侧一枚浅紫圆形 ＋。 */
 .equipment-slots {
+  position: relative;
   display: flex;
   font-size: var(--fm-fs-l3, 18px);
   flex: 0 0 auto;
   height: 100%;
   width: 100%;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   min-height: 0;
-  padding: 20px 18px 32px;
-  border: 1px solid #a6c4f59c;
-  background: linear-gradient(140deg, #52627ce8, #2d3a53ed 62%, #495875ed);
-  box-shadow: inset 0 0 0 5px #a4bfe018, inset 0 1px 0 #dceaff80;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  padding: 22px 16px 16px;
+  /* DetailFrame 绘制多层描边，背景交给 ::before 单独裁切。 */
+  background: transparent;
+  isolation: isolate;
+  /* 与右侧属性框同一档的四角切角。 */
+  --panel-shape: polygon(19px 0, calc(100% - 19px) 0, 100% 19px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 19px 100%, 0 calc(100% - 19px), 0 19px);
+}
+
+.equipment-slots::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: linear-gradient(115deg, #30446ce8, #1c2a48f2 65%, #364979df);
+  box-shadow: inset 0 0 24px #638fff3d;
+  clip-path: var(--panel-shape);
 }
 
 .equipment-slots-head {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  border-left: 3px solid #bda8ff;
-  padding-left: 10px;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+/* ★ 主标题与副标题分两行 —— 稿子上副标题就在主标题正下方。 */
+.equipment-slots-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .equipment-slots-label {
-  color: #f1f4ff;
-  font-size: 22px;
+  color: #f7f9ff;
+  font-size: 30px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  line-height: 1;
+}
+
+.equipment-slots-sub {
+  color: #8ca2d4;
+  font-size: var(--fm-fs-l3, 18px);
+  letter-spacing: 6px;
+  line-height: 1;
 }
 
 .equipment-slots-hint {
-  color: #bfc5f2;
-  font-size: var(--fm-fs-l3, 18px);
-  letter-spacing: 0.5px;
+  color: #b6c4ee;
+  font-size: 20px;
+  letter-spacing: 1px;
 }
 
 .equipment-slots-grid {
@@ -42,8 +73,7 @@
   min-height: 0;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: repeat(3, minmax(0, 1fr));
-  align-content: start;
-  gap: 12px;
+  gap: 13px;
 }
 
 .equipment-slot {
@@ -54,17 +84,40 @@
   min-width: 0;
   padding: 0;
   box-sizing: border-box;
-  border: 1px solid #e2e7ff;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #ebedf8, #c5cce1);
-  box-shadow: 0 3px 8px #0a153233, inset 0 0 0 3px #fff4;
-  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  isolation: isolate;
+  /* 外层 = 白色亮描边, 填充交给 ::before。 */
+  background: #ffffffc4;
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  transition: background 160ms ease;
 }
 
-.equipment-slot.is-active {
-  border-color: var(--cd-glow);
-  background: #f8efffc2;
-  box-shadow: inset 0 0 0 1px #7c4dbe33, 0 0 16px -8px var(--cd-glow);
+/* 稿子上槽位是一块浅紫白的实心亮片: 左上偏白 → 右下偏灰蓝。 */
+.equipment-slot::before {
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  content: "";
+  background: repeating-linear-gradient(130deg, transparent 0 3px, #ffffff14 3px 4px), linear-gradient(135deg, #eeeaff, #d5d8f8 50%, #b9c2ed);
+  box-shadow: inset 0 0 0 2px #b7a1ff, inset 0 0 20px #f6eeffa8;
+  clip-path: inherit;
+}
+
+.equipment-slot.is-active { background: #956cff; }
+.equipment-slot.is-active::before {
+  inset: 2px;
+  background: linear-gradient(140deg, #f6ecff 0%, #e8dcff 46%, #d3c8f4 100%);
+}
+
+/* 左上角的紫色箭头标记。 */
+.equipment-slot-mark {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  z-index: 2;
+  width: 18px;
+  height: 24px;
+  color: #6a4fd0;
+  pointer-events: none;
 }
 
 .equipment-slot-item,
@@ -75,8 +128,10 @@
   height: 100%;
   min-width: 0;
   padding: 0;
-  border-radius: 2px;
-  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
 }
 
 .equipment-slot-item.equipment-slot-item {
@@ -89,21 +144,21 @@
 
 .equipment-slot-item.equipment-slot-item:hover,
 .equipment-slot-item.equipment-slot-item:focus-visible {
-  background: linear-gradient(160deg, #ffffffed, #f0e0ffc9 72%);
-  border-color: var(--cd-glow);
-  box-shadow: 0 0 14px -7px var(--cd-glow);
+  background: #ffffff4d;
+  box-shadow: inset 0 0 0 2px var(--cd-glow);
 }
 
 .equipment-slot-unequip {
   position: absolute;
-  right: -8px;
-  bottom: -7px;
-  z-index: 2;
-  padding: 4px 9px;
-  color: #9c3550;
+  right: 10px;
+  bottom: 10px;
+  z-index: 3;
+  padding: 5px 11px;
+  color: #8e2f47;
   font-size: var(--fm-fs-l3, 18px);
-  background: #fdeff2e8;
-  border: 1px solid #c25a6e70;
+  background: #fdeff2f2;
+  border: 1px solid #c25a6e8f;
+  border-radius: 3px;
   opacity: 0;
   pointer-events: none;
   transform: translateY(4px);
@@ -124,61 +179,65 @@
   border-color: #c25a6e;
 }
 
+/* 空槽: 稿子上没有虚线框, 只有卡片 + 紫色线条剪影 + 右侧圆形 ＋。 */
 .equipment-slot-empty {
   display: grid;
   place-items: center;
   position: relative;
-  color: #7766c7;
-  background: transparent;
-  border: 2px dashed #918bd1;
+  color: #5b4bc4;
 }
 
 .equipment-slot-empty svg {
   position: absolute;
-  top: 18%;
-  left: 17%;
-  width: 40%;
-  height: 48%;
+  top: 20%;
+  left: 22%;
+  width: 26%;
+  height: 46%;
+  stroke-width: 2.6;
 }
 
 .equipment-slot-name {
   position: absolute;
-  bottom: 17px;
-  left: 16px;
-  z-index: 1;
-  padding: 2px 4px;
-  color: #41379d;
-  background: #e5e9f2e6;
-  font-size: 20px;
+  bottom: 16px;
+  left: 18px;
+  z-index: 2;
+  /* 稿子上标签直接压在浅色卡片上, 没有底色块。 */
+  color: #3a2f9c;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   pointer-events: none;
 }
 
+/* 右侧的圆形 ＋ —— 十字用两条伪元素细线画, 不依赖字形。 */
 .equipment-slot-add {
   position: absolute;
-  top: 38%;
-  right: 14px;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
+  top: 50%;
+  right: 34px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
-  color: #6356bc;
-  background: #aaa6d64d;
-  font-size: 30px;
+  background: #aca6db7a;
+  transform: translateY(-50%);
+  font-size: 0;
 }
+.equipment-slot-add::before,
+.equipment-slot-add::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  content: "";
+  background: #5b4bc4;
+  transform: translate(-50%, -50%);
+}
+.equipment-slot-add::before { width: 19px; height: 2px; }
+.equipment-slot-add::after { width: 2px; height: 19px; }
 
 .equipment-slot-empty:hover:not(:disabled),
 .equipment-slot-empty:focus-visible {
   color: var(--cd-glow-deep);
-  background: linear-gradient(145deg, #ffffffd9, #f0e0ffc9);
-  border-color: var(--cd-glow);
-  box-shadow: 0 0 14px -7px var(--cd-glow);
-}
-
-.equipment-slots button:hover:not(:disabled) {
-  color: var(--cd-glow-deep);
+  background: #ffffff5c;
+  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
