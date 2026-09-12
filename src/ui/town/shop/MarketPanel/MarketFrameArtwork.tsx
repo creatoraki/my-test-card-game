@@ -9,10 +9,17 @@ const slices = [
   [0, 259, 32, 32], [32, 282, 134, 9], [166, 259, 32, 32],
 ] as const;
 
+// 未选中原图最右侧 6px 是暖金色投影，不属于货位边框。
+const idleSlices = [
+  [0, 0, 32, 32], [32, 0, 134, 18], [166, 0, 26, 32],
+  [0, 32, 18, 227], [190, 32, 2, 227],
+  [0, 259, 32, 32], [32, 282, 134, 9], [166, 259, 26, 32],
+] as const;
+
 export function MarketFrameArtwork({ selected = false }: { selected?: boolean }) {
   return (
     <svg className={s.frame} viewBox="0 0 198 291" fill="none" aria-hidden="true">
-      {slices.map(([x, y, width, height]) => (
+      {(selected ? slices : idleSlices).map(([x, y, width, height]) => (
         <svg key={`${x}-${y}`} x={x} y={y} width={width} height={height}
           viewBox={`${x} ${y} ${width} ${height}`} overflow="hidden">
           {selected ? (
