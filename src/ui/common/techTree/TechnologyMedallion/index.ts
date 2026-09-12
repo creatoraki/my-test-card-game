@@ -1,0 +1,1 @@
+export { TechnologyMedallion } from "./TechnologyMedallion";

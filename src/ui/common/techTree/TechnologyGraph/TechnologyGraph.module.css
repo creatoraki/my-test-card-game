@@ -1,0 +1,134 @@
+.viewport {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #a58b4c #081219;
+  border-right: 1px solid #a38b4d66;
+}
+
+.canvas {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.connections {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.edge {
+  fill: #829cb0;
+}
+
+.wire {
+  fill: none;
+  stroke: #7896ad;
+  stroke-width: 3;
+}
+
+.halo {
+  fill: none;
+  stroke: #7790a1;
+  stroke-width: 7;
+  opacity: .16;
+}
+
+.edge[data-lit] {
+  fill: #fff4ac;
+  filter: drop-shadow(0 0 7px #ffcf50);
+}
+
+.edge[data-lit] .wire {
+  stroke: #fff4bb;
+  stroke-width: 3.5;
+}
+
+.edge[data-lit] .halo {
+  stroke: #f3bb47;
+  stroke-width: 10;
+  opacity: .35;
+}
+
+.node, .core {
+  position: absolute;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: -90px 0 0 -125px;
+  padding: 0 0 8px;
+}
+
+.node {
+  border: 0;
+  background: none;
+  clip-path: none;
+  color: #f0f4f8;
+  transition: filter 160ms;
+}
+
+.node:hover {
+  background: none;
+  filter: brightness(1.2);
+}
+
+.node:active:not(:disabled) {
+  transform: none;
+}
+
+.node:focus-visible {
+  outline: 2px solid #8ae6ff;
+  outline-offset: 5px;
+  border-radius: 8px;
+}
+
+.name {
+  font-size: 24px;
+  line-height: 1.45;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-shadow: 0 2px 3px #000;
+}
+
+.core .name {
+  font-size: 26px;
+}
+
+.status, .coreStatus {
+  font-size: 22px;
+  line-height: 30px;
+  color: #e4bb5d;
+}
+
+.status {
+  min-width: 108px;
+  padding: 0 14px;
+  border: 1px solid #7e9caf;
+  background: #0c1720;
+  color: #a7bfd2;
+  clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+}
+
+.node[data-state="done"] .status {
+  border-color: transparent;
+  background: none;
+  color: #e4bb5d;
+}
+
+.node[data-state="available"] .status, .node[data-selected] .status {
+  border-color: #75d2f6;
+  color: #b2eaff;
+  background: linear-gradient(#124971, #072437);
+  box-shadow: inset 0 0 10px #23b4f244;
+}
+
+.node[data-state="lacking"]:not([data-selected]) .status {
+  color: #d0b77b;
+  border-color: #a38b4d;
+}

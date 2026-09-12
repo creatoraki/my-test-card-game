@@ -1,0 +1,76 @@
+/* 尺寸由父组件 className 控制，默认节点直径 180 设计像素。 */
+.medallion {
+  position: relative;
+  display: block;
+  width: 180px;
+  height: 180px;
+  flex: none;
+  filter: drop-shadow(0 0 7px #ffc55755);
+}
+
+.rings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.artwork {
+  position: absolute;
+  inset: 18%;
+  display: block;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.selection {
+  fill: #0ba9e419;
+  stroke: #6ceaff;
+  stroke-width: 5px;
+  filter: drop-shadow(0 0 5px #0dd4ff);
+}
+
+.check {
+  position: absolute;
+  right: 6%;
+  bottom: 5%;
+  width: 38px;
+  height: 38px;
+  filter: drop-shadow(0 0 6px #ffd979);
+}
+
+.lock {
+  position: absolute;
+  left: 35%;
+  top: 32%;
+  width: 30%;
+  height: 36%;
+  filter: drop-shadow(0 3px 3px #000);
+}
+
+.medallion[data-state="locked"] {
+  filter: none;
+}
+
+.medallion[data-state="locked"] .artwork {
+  opacity: .16;
+  filter: grayscale(1);
+}
+
+.medallion[data-selected] {
+  filter: drop-shadow(0 0 12px #17c6f64d);
+}
+
+.medallion[data-detail] {
+  filter: drop-shadow(0 0 10px #36bbde44);
+}
+
+.medallion[data-detail] .artwork {
+  opacity: 1;
+  filter: none;
+}
+
+.medallion[data-detail] .rings {
+  transform: rotate(-14deg);
+}

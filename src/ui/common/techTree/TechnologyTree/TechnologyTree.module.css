@@ -1,0 +1,123 @@
+.panel {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: 130px minmax(0, 1fr) 94px;
+  gap: 12px;
+  padding: 0 28px 14px;
+  color: #e9eef4;
+  font-family: var(--font-family);
+  font-size: 18px;
+  outline: none;
+}
+
+.panel::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: #071118;
+  clip-path: polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
+}
+
+.header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 32px;
+  padding: 4px 8px 10px;
+  border-bottom: 1px solid #d3b56a;
+  box-shadow: 0 2px 0 #bfa25a13;
+}
+
+.title {
+  flex: none;
+  margin: 0;
+  color: #ffe6a1;
+  font-size: 68px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-shadow: 0 0 17px #f7c86e4a, 0 3px 1px #6a5729;
+}
+
+.description {
+  flex: 1;
+  margin: 14px 0 0;
+  color: #aebbc7;
+  font-size: 22px;
+  line-height: 1.65;
+  letter-spacing: 2px;
+}
+
+.credits {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+  color: #ecf2fa;
+  font-size: 24px;
+  white-space: nowrap;
+}
+
+.credits strong {
+  font-size: 32px;
+  font-weight: 500;
+}
+
+.coin {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #f6d777;
+  border-radius: 50%;
+  color: #ffe7a1;
+  font-size: 26px;
+  box-shadow: 0 0 12px #e4ba5466, inset 0 0 9px #e4ba5433;
+}
+
+.level {
+  display: flex;
+  flex: 0 0 190px;
+  flex-direction: column;
+  gap: 14px;
+  margin-left: 38px;
+  font-size: 30px;
+}
+
+.levelLine {
+  height: 4px;
+  background: #f7d985;
+  box-shadow: 0 0 8px #ffe1a04d;
+}
+
+.close {
+  display: grid;
+  flex: 0 0 54px;
+  height: 54px;
+  place-items: center;
+  margin-left: 6px;
+  padding: 0;
+  border: 1px solid #3b4b55;
+  background: #040c12;
+  color: #b9c6d0;
+  font-size: 32px;
+}
+
+.close:hover {
+  color: #ffe6a1;
+  border-color: #f2cf78;
+}
+
+.body {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 516px;
+  gap: 14px;
+}

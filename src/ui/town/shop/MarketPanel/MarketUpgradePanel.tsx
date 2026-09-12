@@ -1,12 +1,17 @@
-import { useState, type CSSProperties } from "react";
+﻿import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
-import { ShopTechDetail, ShopTechTree } from "./UpgradeTree";
+import { cx } from "@/ui/common/cx";
+import { TechnologyTree } from "@/ui/common/techTree/TechnologyTree";
+import { SHOP_TECHNOLOGY_CANVAS, SHOP_TECHNOLOGY_CORE, shopTechnologyNodes } from "@/ui/town/shop/MarketPanel/UpgradeTree";
 import s from "./MarketUpgradePanel.module.css";
 
 interface Props {
   level: number;
+  credits: number;
   doneTechs: string[];
   storage: ItemStack[];
+  host: HTMLElement;
   origin: { x: number; y: number };
   closing: boolean;
   onResearch: (techId: string) => void;
@@ -14,39 +19,43 @@ interface Props {
   onClosed: () => void;
 }
 
-export function MarketUpgradePanel({ level, doneTechs, storage, origin, closing, onResearch, onClose, onClosed }: Props) {
-  const [selectedTechId, setSelectedTechId] = useState<string | null>(null);
+export function MarketUpgradePanel({ level, credits, doneTechs, storage, host, origin, closing, onResearch, onClose, onClosed }: Props) {
+  const nodes = useMemo(() => shopTechnologyNodes(doneTechs, storage), [doneTechs, storage]);
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    nodes.find((node) => node.state === "available")?.id
+    ?? nodes.find((node) => node.state === "lacking")?.id
+    ?? nodes[0]?.id ?? null,
+  );
 
-  return (
+  useEffect(() => {
+    if (!closing) return;
+    const timeout = window.setTimeout(onClosed, 520);
+    return () => window.clearTimeout(timeout);
+  }, [closing, onClosed]);
+
+  return createPortal(
     <div
-      className={`${s.overlay} ${closing ? s["is-closing"] : ""}`}
+      className={cx(s.overlay, closing && s.closing)}
       style={{ "--from-x": `${origin.x}px`, "--from-y": `${origin.y}px` } as CSSProperties}
-      onAnimationEnd={(event) => event.target === event.currentTarget && closing && onClosed()}
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget && closing) onClosed();
+      }}
     >
-      <div className={s.dialog} role="dialog" aria-label="商店设施升级">
-        <div className={s.head}>
-          <div>
-            <span className={s.kicker}>商店货架维护系统</span>
-            <h4>设施升级 · 等级 {level}</h4>
-            <p>提升货位数量与每日刷新效率</p>
-          </div>
-          <button className={s.close} type="button" onClick={onClose} aria-label="关闭设施升级">✕</button>
-        </div>
-        <div className={s.layout}>
-          <ShopTechTree
-            doneTechs={doneTechs}
-            storage={storage}
-            selectedId={selectedTechId}
-            onSelect={setSelectedTechId}
-          />
-          <ShopTechDetail
-            selectedId={selectedTechId}
-            doneTechs={doneTechs}
-            storage={storage}
-            onResearch={onResearch}
-          />
-        </div>
-      </div>
-    </div>
+      <TechnologyTree
+        title="设施升级"
+        description="解锁商店科技，提升补货效率与货架容量。"
+        credits={credits}
+        level={level}
+        nodes={nodes}
+        core={SHOP_TECHNOLOGY_CORE}
+        canvas={SHOP_TECHNOLOGY_CANVAS}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onResearch={onResearch}
+        onClose={onClose}
+        returnLabel="返回商店"
+      />
+    </div>,
+    host,
   );
 }

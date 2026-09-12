@@ -4,13 +4,14 @@ import { useEffect, useState, type MouseEvent } from "react";
 import { shopLevelOf, shopRefreshCost } from "@/data";
 import { useTownStore } from "@/store/townStore";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
+import { designScaleOf, stageHostOf } from "@/ui/hooks/stage";
 import { MarketActionButton } from "./MarketActionButton";
 import { MarketDetail } from "./MarketDetail";
 import { MarketShelf } from "./MarketShelf";
 import { MarketUpgradePanel } from "./MarketUpgradePanel";
 import s from "./MarketPanel.module.css";
 
-type UpgradeState = { x: number; y: number; closing: boolean };
+type UpgradeState = { x: number; y: number; host: HTMLElement; closing: boolean };
 
 const SHELF_LEAVE_MS = 415;
 const SHELF_ENTER_MS = 525;
@@ -47,9 +48,14 @@ export function MarketPanel() {
 
   const openUpgrade = (event: MouseEvent<HTMLButtonElement>) => {
     const button = event.currentTarget;
+    const host = stageHostOf(button);
+    const hostRect = host.getBoundingClientRect();
+    const rect = button.getBoundingClientRect();
+    const scale = designScaleOf(host);
     setUpgrade({
-      x: button.offsetLeft + button.offsetWidth / 2,
-      y: button.offsetTop + button.offsetHeight / 2,
+      x: (rect.left + rect.width / 2 - hostRect.left) / scale,
+      y: (rect.top + rect.height / 2 - hostRect.top) / scale,
+      host,
       closing: false,
     });
   };
@@ -98,6 +104,8 @@ export function MarketPanel() {
       {upgrade && (
         <MarketUpgradePanel
           level={level}
+          credits={loot}
+          host={upgrade.host}
           doneTechs={shop.techs}
           storage={storage}
           origin={{ x: upgrade.x, y: upgrade.y }}

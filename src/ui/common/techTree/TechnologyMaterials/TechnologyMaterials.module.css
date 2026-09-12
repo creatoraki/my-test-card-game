@@ -1,0 +1,56 @@
+.materials {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 12px 18px;
+}
+
+.material {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.icon {
+  width: 98px;
+  height: 98px;
+  flex: 0 0 98px;
+  border: 1px solid #a3997e;
+  border-radius: 0;
+  background: #071017;
+  box-shadow: inset 0 0 0 3px #03090e, inset 0 0 0 4px #7b81772e;
+  clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);
+}
+
+.name {
+  color: #ecf0f3;
+  font-size: 18px;
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.need {
+  color: #f2f4f7;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.have {
+  color: #9daeb9;
+  font-size: 18px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.material[data-lacking] .have {
+  color: #ed9b80;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  font-size: 20px;
+  color: #aab7c2;
+}

@@ -1,0 +1,1 @@
+export { TechnologyDetail } from "./TechnologyDetail";

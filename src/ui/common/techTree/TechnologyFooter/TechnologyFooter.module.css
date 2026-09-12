@@ -1,0 +1,127 @@
+.footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 14px;
+  border: 1px solid #9c92705c;
+  background: #081017;
+  box-shadow: inset 0 1px 0 #ffffff08;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 26px;
+}
+
+.heading {
+  flex: none;
+  color: #f6cf72;
+  font-size: 24px;
+  letter-spacing: 1px;
+}
+
+.readout {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-left: 1px solid #7c817266;
+  padding-left: 26px;
+  color: #b7c1cb;
+  font-size: 22px;
+  white-space: nowrap;
+}
+
+.readout b {
+  color: #f8d277;
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.readout em {
+  color: #e2e8ef;
+  font-size: 26px;
+  font-style: normal;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  gap: 18px;
+}
+
+.action {
+  --action-edge: #f5d27e;
+  --action-glow: #e9b95766;
+  --action-bg: #16170f;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-width: 322px;
+  height: 70px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 24px;
+  border: 0;
+  background: var(--action-edge);
+  color: #f3f5f6;
+  font-size: 26px;
+  letter-spacing: 1px;
+  clip-path: polygon(17px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 17px), calc(100% - 17px) 100%, 7px 100%, 0 calc(100% - 7px), 0 17px);
+}
+
+.action::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 2px;
+  background: linear-gradient(#ffffff09, transparent 45%), var(--action-bg);
+  box-shadow: inset 0 0 12px var(--action-glow), inset 0 0 0 3px #060e1199;
+  clip-path: inherit;
+}
+
+.action:hover:not(:disabled) {
+  filter: brightness(1.25);
+}
+
+.action:focus-visible {
+  outline: none;
+  filter: brightness(1.4) drop-shadow(0 0 5px var(--action-edge));
+}
+
+.action:disabled {
+  opacity: .65;
+}
+
+.symbol {
+  color: #ffe381;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.cost {
+  padding-left: 16px;
+  border-left: 1px solid #b59d6266;
+  color: #f9d675;
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.return {
+  --action-edge: #9cdef0;
+  --action-glow: #34b6e16b;
+  --action-bg: #051720;
+  min-width: 308px;
+}
+
+.backArrow {
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: #7cd6ef;
+  stroke-width: 3;
+}

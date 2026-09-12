@@ -1,0 +1,1 @@
+export { TechnologyFooter } from "./TechnologyFooter";

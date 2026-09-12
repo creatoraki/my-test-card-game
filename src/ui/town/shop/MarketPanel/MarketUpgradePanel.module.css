@@ -1,99 +1,21 @@
+﻿/* 浮层挂在 data-stage-canvas 内，原点为同一画布内的设计坐标。 */
 .overlay {
   position: absolute;
+  z-index: 80;
   inset: 0;
-  z-index: 8;
-  padding: 20px;
-  background: #0c1215e8;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  clip-path: inset(calc(var(--from-y) - 50px) calc(100% - var(--from-x) - 50px) calc(100% - var(--from-y) - 50px) calc(var(--from-x) - 50px));
-  animation: upgradeReveal 460ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+  padding: 12px 26px 16px;
+  background: #02080be8;
+  pointer-events: auto;
+  animation: reveal 460ms cubic-bezier(.2, .72, .28, 1) both;
 }
-
-.overlay.is-closing {
-  animation: upgradeHide 460ms cubic-bezier(0.55, 0, 0.9, 0.35) both;
-}
-
-.dialog {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  padding: 24px 28px;
-  border: 1px solid #d6b47766;
-  background: #12100ee8;
-  box-shadow: 0 28px 54px -34px #000, inset 0 1px 0 #ffffff1c;
-  clip-path: none;
-}
-
-.head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #d6b47733;
-}
-
-.kicker {
-  color: var(--ui-label);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.head h4 {
-  margin: 8px 0 0;
-  color: var(--ui-value);
-  font-size: 26px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.head p {
-  margin: 8px 0 0;
-  color: #a5937f;
-  font-size: 18px;
-}
-
-.layout {
-  display: grid;
-  min-height: 0;
-  flex: 1;
-  grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 18px;
-  padding-top: 20px;
-}
-
-.layout > * {
-  min-width: 0;
-}
-
-.close {
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border: 1px solid #d6b47755;
-  background: #ffffff0a;
-  color: #a5937f;
-  font-size: 24px;
-}
-
-.close:hover {
-  color: #f0d49b;
-  border-color: #f0d49b;
-  transform: rotate(90deg);
-}
-
-@keyframes upgradeReveal {
-  from { clip-path: inset(calc(var(--from-y) - 50px) calc(100% - var(--from-x) - 50px) calc(100% - var(--from-y) - 50px) calc(var(--from-x) - 50px)); }
-  52% { clip-path: inset(calc(var(--from-y) - 50px) 0 calc(100% - var(--from-y) - 50px) 0); }
+.closing { pointer-events: none; animation: hide 460ms cubic-bezier(.55, 0, .9, .35) both; }
+@keyframes reveal {
+  from { clip-path: inset(calc(var(--from-y) - 45px) calc(100% - var(--from-x) - 45px) calc(100% - var(--from-y) - 45px) calc(var(--from-x) - 45px)); }
+  52% { clip-path: inset(calc(var(--from-y) - 45px) 0 calc(100% - var(--from-y) - 45px) 0); }
   to { clip-path: inset(0); }
 }
-
-@keyframes upgradeHide {
+@keyframes hide {
   from { clip-path: inset(0); }
-  48% { clip-path: inset(calc(var(--from-y) - 50px) 0 calc(100% - var(--from-y) - 50px) 0); }
-  to { clip-path: inset(calc(var(--from-y) - 50px) calc(100% - var(--from-x) - 50px) calc(100% - var(--from-y) - 50px) calc(var(--from-x) - 50px)); }
+  48% { clip-path: inset(calc(var(--from-y) - 45px) 0 calc(100% - var(--from-y) - 45px) 0); }
+  to { clip-path: inset(calc(var(--from-y) - 45px) calc(100% - var(--from-x) - 45px) calc(100% - var(--from-y) - 45px) calc(var(--from-x) - 45px)); }
 }
