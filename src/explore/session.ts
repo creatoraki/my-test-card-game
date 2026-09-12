@@ -944,7 +944,9 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
     case "HEAL_LIMIT_PARTY": {
       for (const p of s.party) {
         if (!p.alive) continue;
-        p.hpLimit = Math.min(p.maxHp, p.hpLimit + Math.ceil(p.maxHp * e.percent));
+        const amount = Math.ceil(p.maxHp * e.percent);
+        p.hpLimit = Math.min(p.maxHp, p.hpLimit + amount);
+        p.hp = Math.min(p.hpLimit, p.hp + amount);
       }
       return `全队体力极限恢复 ${Math.round(e.percent * 100)}%`;
     }

@@ -33,7 +33,9 @@ export const EXPLORE_RELIC_BEHAVIORS: Record<string, ExploreRelicBehaviorMap> = 
   "relic-dried-herb": {
     battleVictory: ({ state }) => {
       for (const member of state.party) {
-        if (member.alive) member.hpLimit = Math.min(member.maxHp, member.hpLimit + 1);
+        if (!member.alive) continue;
+        member.hpLimit = Math.min(member.maxHp, member.hpLimit + 1);
+        member.hp = Math.min(member.hpLimit, member.hp + 1);
       }
       state.log.push("干燥药草：存活角色体力极限 +1");
     },
