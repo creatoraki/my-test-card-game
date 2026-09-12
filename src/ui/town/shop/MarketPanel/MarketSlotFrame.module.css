@@ -1,0 +1,39 @@
+/* 卡面为原型的 219×306 设计像素；原图边框由 MarketFrameArtwork 独立覆盖。 */
+.slot {
+  position: relative;
+  display: flex;
+  width: 219px;
+  height: 306px;
+  min-width: 0;
+  padding: 18px 13px 13px 20px;
+  isolation: isolate;
+}
+.slot::before {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  inset: 12px 10px 12px 15px;
+  background: radial-gradient(ellipse at 52% 95%, #37333955, transparent 45%),
+    linear-gradient(110deg, #11141b, #080b12 55%, #10131a);
+}
+.inner {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+.is-sold .inner { filter: saturate(.25); }
+.sold {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #07121bc4;
+  color: #c9d7df;
+  font-size: 24px;
+  letter-spacing: 4px;
+  pointer-events: none;
+}

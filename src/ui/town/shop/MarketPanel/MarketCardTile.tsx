@@ -8,6 +8,7 @@ import { cardArt } from "@/ui/art/cardArt";
 import { useCardText } from "@/ui/common/cardText";
 import { CardTextRich } from "@/ui/common/CardTextRich";
 import { MarketTile } from "./MarketTile";
+import { MarketTileCopy } from "./MarketTileCopy";
 import s from "./MarketCardTile.module.css";
 
 interface Props {
@@ -23,7 +24,6 @@ export function MarketCardTile({ slot, selected, onSelect }: Props) {
   );
   const handleSelect = useCallback(() => onSelect(slot.key), [onSelect, slot.key]);
   const text = useCardText(card);
-  const rarityLabel = { basic: "基础", common: "普通", uncommon: "罕见", rare: "稀有" };
 
   return (
     <MarketTile
@@ -33,11 +33,12 @@ export function MarketCardTile({ slot, selected, onSelect }: Props) {
       onSelect={handleSelect}
     >
       <span className={s.art}><img src={cardArt(card.id)} alt="" draggable={false} /></span>
-      <span className={s.copy}>
-        <strong className={s.name}>{cardDisplayName(card)}</strong>
-        <span className={s.tags}><span>卡牌</span><span>{rarityLabel[slot.rarity]}</span></span>
-        <span className={s.description}><CardTextRich text={text} /></span>
-      </span>
+      <MarketTileCopy
+        name={cardDisplayName(card)}
+        tag="卡牌"
+        category="card"
+        description={<CardTextRich text={text} />}
+      />
     </MarketTile>
   );
 }

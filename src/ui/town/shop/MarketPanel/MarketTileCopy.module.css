@@ -1,0 +1,34 @@
+/* 原型卡面内的文字行：名称、单枚分类、单行摘要；遵循最小 18px 字号。 */
+.copy {
+  display: flex;
+  min-width: 0;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0 10px 0 11px;
+}
+.name {
+  width: 100%;
+  overflow: hidden;
+  color: #f2f4f7;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 26px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 2px #000, 0 0 4px #d0dcf52b;
+}
+.tags { display: flex; max-width: 100%; margin-top: 3px; }
+.description {
+  width: 100%;
+  margin-top: 5px;
+  overflow: hidden;
+  color: #bdc0ca;
+  font-size: 18px;
+  line-height: 25px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 2px #000;
+}

@@ -1,4 +1,4 @@
-// 货位下方的购买价格牌。商品立牌负责查看，价格牌负责付款。
+// 货位底部的购买价格行。外观是设计图里的"金币 + 数字"，但它仍是唯一的付款入口。
 
 import { cx } from "@/ui/common/cx";
 import s from "./MarketPriceTag.module.css";
@@ -27,7 +27,8 @@ export function MarketPriceTag({ price, sold, disabledReason, onBuy }: Props) {
       aria-label={ariaLabel}
       onClick={onBuy}
     >
-      {sold ? <span className={s.sold}>已售出</span> : <><span className={s.coin} aria-hidden="true">◈</span><strong>{price}</strong></>}
+      <span className={s.coin} aria-hidden="true" />
+      <strong className={s.price}>{price}</strong>
     </button>
   );
 }

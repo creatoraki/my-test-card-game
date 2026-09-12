@@ -4,8 +4,9 @@ import { useCallback } from "react";
 import { getItemDef } from "@/data";
 import type { ShopItemSlot } from "@/data/shop";
 import { itemIcon } from "@/ui/art/itemArt";
-import { CATEGORY_LABEL, RARITY_LABEL } from "@/items/types";
+import { CATEGORY_LABEL } from "@/items/types";
 import { MarketTile } from "./MarketTile";
+import { MarketTileCopy } from "./MarketTileCopy";
 import s from "./MarketItemTile.module.css";
 
 interface Props {
@@ -29,11 +30,12 @@ export function MarketItemTile({ slot, selected, sold, onSelect }: Props) {
       <span className={s.stage}>
         <span className={s.icon}>{itemIcon(def)}</span>
       </span>
-      <span className={s.copy}>
-        <strong className={s.name}>{def.name}</strong>
-        <span className={s.tags}><span>{CATEGORY_LABEL[def.category]}</span><span>{RARITY_LABEL[def.rarity]}</span></span>
-        <span className={s.description}>{def.desc}</span>
-      </span>
+      <MarketTileCopy
+        name={def.name}
+        tag={CATEGORY_LABEL[def.category]}
+        category={def.category}
+        description={def.desc}
+      />
     </MarketTile>
   );
 }

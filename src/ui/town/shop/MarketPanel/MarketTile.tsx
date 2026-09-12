@@ -1,4 +1,5 @@
 // 商店货架通用立牌外壳。卡牌与物品只负责提供立牌内部内容。
+// 外框与售罄蒙层归 MarketSlotFrame，这里只保留"点一下选中"的按钮语义。
 
 import type { ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
@@ -37,7 +38,6 @@ export function MarketTile({
       >
         {children}
       </button>
-      {sold && <span className={s.soldMask}>已售出</span>}
     </div>
   );
 }

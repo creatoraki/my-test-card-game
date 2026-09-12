@@ -9,4 +9,7 @@ export { MarketPriceTag } from "./MarketPriceTag";
 export { MarketShelf } from "./MarketShelf";
 export { MarketSlot } from "./MarketSlot";
 export { MarketTile } from "./MarketTile";
+export { MarketChip } from "./MarketChip";
+export { MarketSlotFrame } from "./MarketSlotFrame";
+export { MarketTileCopy } from "./MarketTileCopy";
 export { MarketUpgradePanel } from "./MarketUpgradePanel";

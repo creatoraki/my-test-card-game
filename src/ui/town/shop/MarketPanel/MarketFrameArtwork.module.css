@@ -1,0 +1,24 @@
+/* MarketSlotFrame 通过 data-market-selected / data-market-sold 传递状态。
+   不再叠加模拟金线或发光：选中态直接显示原型中的像素。 */
+.frame {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  filter: saturate(.3) brightness(.65);
+  transition: filter 160ms;
+}
+.frame svg { position: absolute; display: block; overflow: hidden; }
+.topLeft, .topRight, .bottomLeft, .bottomRight { width: 40px; height: 40px; }
+.topLeft { top: 0; left: 0; }
+.topRight { top: 0; right: 0; }
+.bottomLeft { bottom: 0; left: 0; }
+.bottomRight { bottom: 0; right: 0; }
+.top, .bottom { left: 40px; width: calc(100% - 80px); height: 22px; }
+.top { top: 0; }
+.bottom { bottom: 0; }
+.left, .right { top: 40px; height: calc(100% - 80px); }
+.left { left: 0; width: 20px; }
+.right { right: 0; width: 16px; }
+:global([data-market-selected]) .frame { filter: none; }
+:global([data-market-sold]) .frame { filter: saturate(0) brightness(.45); }
