@@ -97,7 +97,6 @@ export default function TradeGoodsDetail({ stack }: { stack: ItemStack }) {
         </div>
       )}
 
-      {def.category === "material" && <p className={s.note}>关键词模组尚未开放，先存进仓库。</p>}
       {def.category === "data" && <p className={s.note}>叙事解锁尚未开放，先存进仓库。</p>}
       {def.affinityRollable && !bond && <p className={s.note}>这件装备没有羁绊词条。</p>}
     </article>

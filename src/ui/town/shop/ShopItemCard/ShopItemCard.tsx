@@ -111,11 +111,6 @@ const ShopItemCardBody = memo(function ShopItemCardBody({ stack }: { stack: Item
       rows={rows}
       foot={(
         <>
-          {def.category === "material" && (
-            <span className={`${detailStyles["sx-card-note"]} ${detailStyles["is-locked"]}`}>
-              关键词模组尚未开放，先存进仓库。
-            </span>
-          )}
           {def.category === "data" && (
             <span className={`${detailStyles["sx-card-note"]} ${detailStyles["is-locked"]}`}>
               叙事解锁尚未开放，先存进仓库。
