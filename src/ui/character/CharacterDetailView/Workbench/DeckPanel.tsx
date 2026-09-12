@@ -1,4 +1,5 @@
 // 卡组面板 —— 读数条 + 锻造入口 + 卡面网格。
+// 外框走 DetailFrame，与属性装备页使用同一套装饰边框。
 //
 // ★ 本面板只做两件事: 把卡组铺清楚、把鼠标指着的那张报出去。悬浮即进选中态,
 //   由 DeckCard 的 selected 点亮四角框并提升层级, 卡面位移仍由悬浮态驱动。
@@ -8,6 +9,7 @@
 
 import type { CSSProperties } from "react";
 import { RULES, type Card } from "@/engine";
+import { DetailFrame } from "@/ui/character/DetailFrame";
 import { DeckCard } from "@/ui/character/DeckCard";
 import s from "./DeckPanel.module.css";
 
@@ -24,6 +26,7 @@ interface Props {
 export function DeckPanel({ deck, deckLevel, minDeckSize, hoveredUid, onHoverCard, onOpenForge }: Props) {
   return (
     <div className={s.panel}>
+      <DetailFrame />
       <div className={s.topline}>
         <div className={s.readout}>
           <span>{deck.length} 张</span>
