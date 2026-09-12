@@ -44,7 +44,7 @@
 
 据点设施的 hover/active 样式通过大厅根的 `data-town-stage` 传递状态；商店的
 `MarketSlotFrame.module.css`、`MarketFrameArtwork.module.css`、`MarketPriceTag.module.css`、`MarketPriceArtwork.module.css` 与 `ShopDetailCard.module.css` 各自维护货位布局、原型边框分片、售价牌、金币及价格边线分片和详情栏样式；货架通过 `--market-card-width` 统一商品与补货占位尺寸，外壳通过 `--market-unit` 下发原型缩放单位，
-不再由 `ShopScene.module.css` 远程改写子组件。
+不再由 `ShopScene.module.css` 远程改写子组件。商店大窗在 `StockEntries.module.css` 绘制切角背景，双层金色描边和辉光由 `common/DetailFrame/DetailFrame.module.css` 的 `tone="gold"` 变量提供；蓝色默认变量继续服务角色详情页。
 
 医疗室浮层外壳复用 [common/PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx)，由场景注入 `--asm-*` 医疗青绿主题；
 [cryoKit.module.css](../../src/ui/town/cryo/styles/cryoKit.module.css) 只剩内容入场动画、底栏与主按钮，

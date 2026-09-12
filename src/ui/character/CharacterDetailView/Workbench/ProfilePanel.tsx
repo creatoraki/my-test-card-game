@@ -1,4 +1,4 @@
-import { DetailFrame } from "@/ui/character/DetailFrame";
+import { DetailFrame } from "@/ui/common/DetailFrame";
 import type { ItemStack, EquipSlot } from "@/items/types";
 import { EquipmentSlots } from "@/ui/character/EquipmentSlots";
 import type { StatBlock } from "@/engine";

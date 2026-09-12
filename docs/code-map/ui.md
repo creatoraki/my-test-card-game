@@ -74,7 +74,7 @@ src/ui/
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 研究中心三条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造/科技树面板。 |
 | [town/terminal/TechTreePanel](../../src/ui/town/terminal/TechTreePanel/) | 全局科技树三栏面板：左侧分类导航、中间带等级进度弧的 SVG 节点图、右侧效果与消耗详情；研究动作只派发 `townStore.researchTech`。 |
-| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
+| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板，大窗使用 `common/DetailFrame` 金色框。面板切换与 `MarketPanel` 刷新货架共用 `hooks/useSwapTransition`，均按旧退新入演出。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 编队页训练点分配弹窗左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
@@ -109,7 +109,7 @@ src/ui/
 | [character/CharacterDetailView](../../src/ui/character/CharacterDetailView/CharacterDetailView.tsx) | 角色详情态（编队页内的第二种态，不是 screen）：左侧 594×772 立绘窗，右侧 1134×772 工作区，间隔 28px；几何统一在 `detailLayout.ts`，飞行层经 `morphChoreo` 转发同一矩形。右侧切换「属性装备 / 卡组」，属性按上方两列、底部三列排列，装备独立竖栏；换装窗借立绘位承载。装备穿戴/卸下与卡组扩充/精简/升级直接落 `townStore`；锻造浮层挂在本态根层，卡组网格随工作区宽度调整为四列。 |
 | [character/CharacterDetailView/FigureStage](../../src/ui/character/CharacterDetailView/FigureStage/FigureStage.tsx) | 详情态左栏：76,196,594,772 的蓝紫切角立绘窗；背景层与编队页外侧共用 `character/styles/sceneVeil.module.css`，底图保持原彩。立绘与飞行层共用 `FIGURE_ART_WIDTH`，展宽仅露出两侧背景。`FigureFrame` 用 SVG 叠线绘制切角装甲、双层金属描边与分段辉光，不添加窗内装饰；`FigureProgress` 展示真实卡组等级、经验与升级提醒，升级按钮打开统一 `DeckGrowthPanel` 成长总览，满级时仍可进入抽卡与删卡。底栏展示角色名、三段生命、污染、怪癖；悬浮卡牌时用透明度遮罩压暗。 |
 | [character/CharacterDetailView/Workbench](../../src/ui/character/CharacterDetailView/Workbench/Workbench.tsx) | 详情态右栏工作区外壳：「属性装备 / 卡组」两个 tab，内容由使用方作为 children 传入；入场是「从左边缘裂开生长」，与卡阵占同一条水平带（y 196..968）。面板为 `ProfilePanel` / `DeckPanel`。页签条按美术稿复刻：平行四边形斜边 36px、两枚共享斜边，首枚左下角贴死框缘（左斜切只到 44px 高），框饰只有 1px hairline 与左上角一笔弧线。 |
-| [character/CharacterDetailView/Workbench/ProfilePanel](../../src/ui/character/CharacterDetailView/Workbench/ProfilePanel.tsx) | 属性与装备合并面板：左侧竖排 `EquipmentSlots`，右侧 `StatsPanel`；候选仓库不内嵌，由 `EquipPicker` 覆盖立绘位。装备栏与属性框共用 `character/DetailFrame` 的双层切角描边与角部辉光（页签条不用，自带一圈 hairline 加左上角弧线框饰）；属性行使用私有 `DetailStatIcon` 绘制徽记，爆伤条使用紫色渐变。 |
+| [character/CharacterDetailView/Workbench/ProfilePanel](../../src/ui/character/CharacterDetailView/Workbench/ProfilePanel.tsx) | 属性与装备合并面板：左侧竖排 `EquipmentSlots`，右侧 `StatsPanel`；候选仓库不内嵌，由 `EquipPicker` 覆盖立绘位。装备栏与属性框共用 `common/DetailFrame` 的双层切角描边与角部辉光（页签条不用，自带一圈 hairline 加左上角弧线框饰）；属性行使用私有 `DetailStatIcon` 绘制徽记，爆伤条使用紫色渐变。 |
 | [character/CharacterDetailView/EquipPicker](../../src/ui/character/CharacterDetailView/EquipPicker/EquipPicker.tsx) | 覆盖详情态立绘位的装备候选窗：当前装备、匹配部位仓库、即时穿戴/卸下与悬浮属性对比；候选逐项使用 `HoverTooltip`。 |
 | [character/DeckGrowthPanel](../../src/ui/character/DeckGrowthPanel/DeckGrowthPanel.tsx) | 角色详情的统一卡组成长面板：1540×980 蓝色切角外框、等级经验与三档概率摘要，下方升级／抽卡／删卡三栏。抽卡与删卡在同一外框内横向滑动到选卡页，完成后滑回；升级直接派发 action 并更新读数。静态 SVG 和渐变提供霓虹效果，无常驻循环动画、全屏模糊或逐帧脚本。 |
 | [character/DeckGrowthPanel/useGrowthActions](../../src/ui/character/DeckGrowthPanel/useGrowthActions.ts) | 成长交互编排：复用 `forgeViewModel`、`deckRarityChances` 与城镇 action，保留经验成本、候选选一和卡组下限规则；返回与关闭保留未领取候选。卡面、升级栏、操作栏、选卡页、摘要各自模块化，滑回期间保留卡牌快照，结束后卸载。 |
@@ -218,6 +218,7 @@ src/ui/
 | [CardBack](../../src/ui/common/CardBack/CardBack.tsx) | 从扩充卡组抽出的水晶卡背公共组件，由 `ForgeRevealCard` 与博物馆卡牌展厅共用。 |
 | [cardText.ts](../../src/ui/common/cardText.ts) | 从战斗实时属性或城镇派生面板属性读取卡牌施放者的攻击力/治愈力，并渲染卡牌说明数值。 |
 | [CardTextRich](../../src/ui/common/CardTextRich/CardTextRich.tsx) | 将卡牌说明按引擎词条登记表分段，统一高亮汇星、应星、瀑布等特殊词条。 |
+| [common/DetailFrame](../../src/ui/common/DetailFrame/DetailFrame.tsx) | 纯装饰双层切角描边组件；默认蓝色，`subtle` 收敛描边与辉光，`tone="gold"` 提供商店金色框体。 |
 | [CardKeywordNotes](../../src/ui/common/CardKeywordNotes/CardKeywordNotes.tsx) | 按卡牌说明中实际出现的词条展示紧凑释义列表；无词条时不渲染。 |
 | [PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx) | 功能弹窗通用外壳：模态遮罩、切角面板、边框装饰层与 `EventPanelFrame` 收口，导出关闭动画时长与默认面板尺寸（1600×920，可用 `size` 覆盖）。原为装配舱私有件，现由装配舱、制造弹窗与角色档案 Modal 共用；可选形变模式支持入口砖 → 面板的三段形变、种子态与遮罩跟随淡入；配色只靠外层覆盖 `--asm-*` 变量，场景未下发时吃组件自带的青蓝默认值，层序由调用方经 `className` 压。 |
 | [HudFrame](../../src/ui/common/HudFrame/HudFrame.tsx) | 粉色霓虹 HUD 几何外框：按真实容器像素生成台阶、切角和断口路径，内容区复用同一闭合路径裁切；装备升阶正式面板与 Opus demo 共用。 |
@@ -271,6 +272,7 @@ src/ui/
 | [art/eventArt.ts](../../src/ui/art/eventArt.ts) | 探索事件素材查表。 |
 | [art/vfxSprites.ts](../../src/ui/art/vfxSprites.ts) | 命中特效序列帧 URL 列表和预热。 |
 | [art/sceneArt.ts](../../src/ui/art/sceneArt.ts) | 菜单、大厅、设施和商店直接使用的场景/界面素材登记。 |
+| [hooks/useSwapTransition.ts](../../src/ui/hooks/useSwapTransition.ts) | 按 token 驱动的旧值退场、替换为最新值、新值入场换场 hook；换场期间冻结值，空闲时透传更新。 |
 | [audio/bgmPlayer.ts](../../src/ui/audio/bgmPlayer.ts) | 模块级 BGM 单例播放器：据点/战斗双轨交叉淡变、据点续播与自动播放解锁。 |
 | [audio/bgmTracks.ts](../../src/ui/audio/bgmTracks.ts) | BGM 曲目资源查表与界面到曲目的映射；只有战斗界面使用战斗曲，电梯场景返回 null 表示停播。 |
 | [audio/sfx/sfxTypes.ts](../../src/ui/audio/sfx/sfxTypes.ts) | 音效 ID、配方层和播放参数类型。 |

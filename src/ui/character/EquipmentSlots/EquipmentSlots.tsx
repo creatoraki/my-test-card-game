@@ -1,4 +1,4 @@
-import { DetailFrame } from "@/ui/character/DetailFrame";
+import { DetailFrame } from "@/ui/common/DetailFrame";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";

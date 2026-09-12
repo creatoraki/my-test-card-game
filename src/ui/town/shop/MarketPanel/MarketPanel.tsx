@@ -3,6 +3,7 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import { shopLevelOf, shopRefreshCost } from "@/data";
 import { useTownStore } from "@/store/townStore";
+import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { MarketActionButton } from "./MarketActionButton";
 import { MarketDetail } from "./MarketDetail";
 import { MarketShelf } from "./MarketShelf";
@@ -10,6 +11,9 @@ import { MarketUpgradePanel } from "./MarketUpgradePanel";
 import s from "./MarketPanel.module.css";
 
 type UpgradeState = { x: number; y: number; closing: boolean };
+
+const SHELF_LEAVE_MS = 415;
+const SHELF_ENTER_MS = 525;
 
 export function MarketPanel() {
   const characters = useTownStore((state) => state.characters);
@@ -21,6 +25,12 @@ export function MarketPanel() {
   const upgradeShop = useTownStore((state) => state.upgradeShop);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [upgrade, setUpgrade] = useState<UpgradeState | null>(null);
+  const { value: shownSlots, phase } = useSwapTransition(
+    shop.slots,
+    `${shop.day}:${shop.refreshes}`,
+    SHELF_LEAVE_MS,
+    SHELF_ENTER_MS,
+  );
 
   useEffect(() => {
     setSelectedKey(null);
@@ -28,9 +38,9 @@ export function MarketPanel() {
 
   const level = shopLevelOf(shop.techs);
   const refreshCost = shopRefreshCost(shop.techs, shop.refreshes);
-  const selectedSlot = shop.slots.find((slot) => slot.key === selectedKey)
-    ?? shop.slots.find((slot) => !slot.sold) ?? shop.slots[0] ?? null;
-  const availableCount = shop.slots.filter((slot) => !slot.sold).length;
+  const selectedSlot = shownSlots.find((slot) => slot.key === selectedKey)
+    ?? shownSlots.find((slot) => !slot.sold) ?? shownSlots[0] ?? null;
+  const availableCount = shownSlots.filter((slot) => !slot.sold).length;
   const note = availableCount
     ? `剩余 ${availableCount} 件商品 ｜ 购买后该货位今日不再补货。`
     : "今日货架已售罄，可以刷新货架寻找新货。";
@@ -48,7 +58,8 @@ export function MarketPanel() {
     <div className={s.panel}>
       <div className={s.body}>
         <MarketShelf
-          slots={shop.slots}
+          slots={shownSlots}
+          phase={phase}
           characters={characters}
           loot={loot}
           selectedKey={selectedSlot?.key ?? null}

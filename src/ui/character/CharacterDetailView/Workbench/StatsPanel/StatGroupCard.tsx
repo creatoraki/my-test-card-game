@@ -4,7 +4,7 @@
 // ★ 序号是渲染侧算的(01/02/03), 不进 statGroups 数据 —— 它只是版面装饰。
 // ★ 分隔线独立成一行: 稿子上它横跨整个框宽, 不是标题行里的那种"剩余宽度"延伸线。
 
-import { DetailFrame } from "@/ui/character/DetailFrame";
+import { DetailFrame } from "@/ui/common/DetailFrame";
 import type { CSSProperties, ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
 import s from "./StatGroupCard.module.css";

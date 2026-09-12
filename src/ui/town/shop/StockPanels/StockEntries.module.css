@@ -4,27 +4,55 @@
   right: 70px;
   top: 100px;
   bottom: 58px;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #a5bec678;
-  border-radius: 0;
-  background: linear-gradient(115deg, #041019ed, #07121aeb 65%, #081827eb);
-  box-shadow: inset 0 0 0 5px #030b1280, inset 0 0 0 6px #9bc6d017, 0 24px 70px #000b;
+  display: block;
+  isolation: isolate;
+  --panel-shape: polygon(
+    19px 0,
+    calc(100% - 19px) 0,
+    100% 19px,
+    100% calc(100% - 19px),
+    calc(100% - 19px) 100%,
+    19px 100%,
+    0 calc(100% - 19px),
+    0 19px
+  );
   pointer-events: auto;
   animation: arrive 420ms ease-out both;
 }
 .window::before {
   position: absolute;
+  z-index: -1;
   content: "";
   inset: 0;
-  border-top: 2px solid #dfbf79;
-  border-bottom: 1px solid #dfbf7980;
+  background: linear-gradient(115deg, #041019ed, #07121aeb 65%, #081827eb);
+  clip-path: var(--panel-shape);
+  box-shadow: inset 0 0 26px #e7c06e2e;
+  filter: drop-shadow(0 20px 46px #000c);
   pointer-events: none;
+}
+.inner {
+  position: relative;
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  clip-path: var(--panel-shape);
 }
 .content {
   flex: 1;
   min-height: 0;
   padding: 16px 24px 12px;
+}
+.page {
+  height: 100%;
+  min-height: 0;
+}
+.page[data-page-phase="leaving"] {
+  pointer-events: none;
+  animation: pageLeave 170ms ease-in both;
+}
+.page[data-page-phase="entering"] {
+  animation: pageEnter 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
 }
 :global([data-shop-root][data-leaving]) .window {
   pointer-events: none;
@@ -44,5 +72,17 @@
   to {
     opacity: 0;
     translate: 0 18px;
+  }
+}
+@keyframes pageLeave {
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
   }
 }

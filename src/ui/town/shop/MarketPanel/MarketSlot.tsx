@@ -1,6 +1,7 @@
 // 统一商店货位。商品立牌只负责选中，价格牌是唯一购买入口。
 // 形状/描边/选中发光/售罄蒙层全部交给 MarketSlotFrame，这里只做内容组装。
 
+import type { CSSProperties } from "react";
 import type { ShopSlot } from "@/data/shop";
 import type { CharacterState } from "@/store/townStore";
 import { MarketCardTile } from "./MarketCardTile";
@@ -14,15 +15,17 @@ interface Props {
   characters: Record<string, CharacterState>;
   loot: number;
   selected: boolean;
+  className?: string;
+  style?: CSSProperties;
   onSelect: (key: string) => void;
   onBuy: (key: string) => void;
 }
 
-export function MarketSlot({ slot, characters, loot, selected, onSelect, onBuy }: Props) {
+export function MarketSlot({ slot, characters, loot, selected, className, style, onSelect, onBuy }: Props) {
   const buyReason = marketBuyReason(slot, characters, loot);
 
   return (
-    <MarketSlotFrame selected={selected} sold={slot.sold}>
+    <MarketSlotFrame selected={selected} sold={slot.sold} className={className} style={style}>
       {slot.kind === "card" ? (
         <MarketCardTile slot={slot} selected={selected} onSelect={onSelect} />
       ) : (
