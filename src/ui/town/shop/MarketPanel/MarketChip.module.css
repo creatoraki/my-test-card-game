@@ -15,7 +15,6 @@
 .chip[data-category="equipment"] { --chip-color: #a4edbf; --chip-edge: #4a9b6c; --chip-bg: #102c21; }
 .chip[data-category="material"] { --chip-color: #a6c6ed; --chip-edge: #6588b4; --chip-bg: #1b293e; }
 .chip[data-category="module"] { --chip-color: #bfa3ff; --chip-edge: #8461bf; --chip-bg: #2a1b43; }
-.chip[data-category="data"] { --chip-color: #8ceddf; --chip-edge: #459d99; --chip-bg: #133432; }
 .chip[data-category="consumable"] { --chip-color: #a4edbf; --chip-edge: #4a9b6c; --chip-bg: #193b2b; }
 .chip[data-category="relic"] { --chip-color: #ffdb92; --chip-edge: #ba8d42; --chip-bg: #3c2a13; }
 .chip[data-category="card"] { --chip-color: #e0aaff; --chip-edge: #a06bc5; --chip-bg: #332046; }

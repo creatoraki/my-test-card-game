@@ -14,7 +14,6 @@ import { rollAffinity } from "../items/drops";
 import { rollEquipment } from "../items/equipRoll";
 import { RARITY_ORDER } from "../items/types";
 import { ROLLABLE_BOND_IDS } from "./bonds";
-import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
 import { BLESSING_RELIC_DEFS } from "./items/relics";
 import { EQUIPMENT_ITEM_DEFS, MATERIAL_ITEM_DEFS } from "./items/index";
 import { relicBuyValue } from "./items/pricing";
@@ -87,7 +86,7 @@ export function pickShopKind(rand: () => number = Math.random): ShopKind {
 // ---------------------------------------------------------------------------
 // 候选池
 // ---------------------------------------------------------------------------
-const ALL_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...EQUIPMENT_ITEM_DEFS, ...MATERIAL_ITEM_DEFS];
+const ALL_DEFS: ItemDef[] = [...EQUIPMENT_ITEM_DEFS, ...MATERIAL_ITEM_DEFS];
 
 const sellable = (category: ItemDef["category"]): ItemDef[] =>
   ALL_DEFS.filter((def) => def.category === category && def.buyValue != null);

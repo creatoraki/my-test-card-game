@@ -156,15 +156,6 @@ const TrinketIcon = () => (
   </svg>
 );
 
-// 数据存档: 芯片方框 + 两侧引脚 + 中心读写缝
-const DataIcon = () => (
-  <svg {...base}>
-    <rect x="14" y="14" width="20" height="20" rx="2" />
-    <path d="M20 22 h8 M20 26 h8" opacity=".6" />
-    <path d="M14 19 h-5 M14 24 h-5 M14 29 h-5 M34 19 h5 M34 24 h5 M34 29 h5" opacity=".7" />
-  </svg>
-);
-
 // 消耗品: 软管/注射管 + 刻度线
 const ConsumableIcon = () => (
   <svg {...base}>
@@ -181,7 +172,6 @@ const ICONS: Record<string, () => ReactNode> = {
   weapon: WeaponIcon,
   armor: ArmorIcon,
   trinket: TrinketIcon,
-  data: DataIcon,
   consumable: ConsumableIcon,
   relic: TrinketIcon,
 };
@@ -198,7 +188,6 @@ const BY_CATEGORY: Record<ItemCategory, string> = {
   material: "material",
   module: "module",
   equipment: "armor",
-  data: "data",
   consumable: "consumable",
   relic: "relic",
 };

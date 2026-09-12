@@ -703,7 +703,7 @@ describe("背包与负重(设计文档 §六)", () => {
 
   it("投递口: 未开启不能寄, 开启后寄一次扣一次能量", () => {
     const s = newSession();
-    addItems(s, [makeItemStack("data-shard")]);
+    addItems(s, [makeItemStack("logic-cube")]);
     const uid = s.backpack[0].uid;
 
     expect(shipHome(s, [uid])).toBe(false); // 投递口没开
@@ -870,7 +870,7 @@ describe("战斗回填与团灭", () => {
     const s = newSession();
     intoBattle(s);
     s.loot = 200;
-    s.backpack = [makeItemStack("copper-coin"), makeItemStack("data-shard")];
+    s.backpack = [makeItemStack("copper-coin"), makeItemStack("logic-cube")];
     s.shipped = [makeItemStack("silver-coin")];
     finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false, limitLoss: 0 }], ["scrap-bot"]);
     expect(s.phase).toBe("wiped");

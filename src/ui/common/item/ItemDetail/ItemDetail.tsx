@@ -136,9 +136,6 @@ export default function ItemDetail({
           <dd>{cardModule.equipText}</dd>
         </dl>
       )}
-      {def.category === "data" && (
-        <p className={cx(s["item-detail-note"], s["is-locked"])}>叙事解锁尚未开放，先存进仓库。</p>
-      )}
       {/* 羁绊词条 —— 掉落时 roll 出来, 逐件独立(见 items/drops.rollAffinity)。
           ★ 计数只在**上阵角色**穿戴时才作数, 躺仓库里的这一条只是"这件东西带什么"。 */}
       {bond && (

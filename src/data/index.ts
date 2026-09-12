@@ -8,7 +8,6 @@ import { rollEquipment } from "../items/equipRoll";
 import type { EquipSlot, ItemDef, ItemStack } from "../items/types";
 import { RARITY_ORDER } from "../items/types";
 import { CARD_DEFS } from "./cards";
-import { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
 import { DESIGN_ITEM_DEFS, EQUIPMENT_ITEM_DEFS } from "./items/index";
 import { CHARACTERS, type CharacterDef } from "./characters";
 import { ENEMIES, type EnemyDef } from "./enemies";
@@ -77,7 +76,6 @@ export {
   mapLockReason,
   type MapDef,
 } from "./maps";
-export { ITEM_DEFS as LEGACY_ITEM_DEFS } from "./items";
 export {
   CONSUMABLE_ITEM_DEFS,
   DESIGN_ITEM_DEFS,
@@ -215,7 +213,7 @@ export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceD
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";
 export { SANCTUARY_RULES } from "./sanctuary";
 
-export const ITEM_DEFS: ItemDef[] = [...LEGACY_ITEM_DEFS, ...DESIGN_ITEM_DEFS];
+export const ITEM_DEFS: ItemDef[] = [...DESIGN_ITEM_DEFS];
 
 export function equipmentDefsBySlot(slot?: EquipSlot): ItemDef[] {
   return EQUIPMENT_ITEM_DEFS.filter((def) => !slot || def.slot === slot);

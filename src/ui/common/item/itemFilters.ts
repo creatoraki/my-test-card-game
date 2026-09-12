@@ -19,7 +19,6 @@ export const ITEM_TABS: { id: ItemTab; label: string }[] = [
   { id: "module", label: "模组" },
   { id: "consumable", label: "消耗品" },
   { id: "material", label: "模组材料" },
-  { id: "data", label: "数据存档" },
   { id: "scrap", label: "废料" },
 ];
 

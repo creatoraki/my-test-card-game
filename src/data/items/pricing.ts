@@ -1,8 +1,8 @@
 // ============================================================================
 // 商店挂牌价 —— 按「类别 × 稀有度」的基价表。
 //
-// ★ 单一真相: 装备与材料分散在三张表里(items/equipment/index.ts、items/materials.ts、
-//   旧表 data/items.ts), 三处都调本文件的 withBuyValue() 统一打标 ——
+// ★ 单一真相: 装备与材料分散在两张表里(items/equipment/index.ts、items/materials.ts),
+//   两处都调本文件的 withBuyValue() 统一打标 ——
 //   逐条手写价格只会让「漏写一条」变成沉默的 bug(那件东西会永远不上架)。
 // ★ 逐件差异化定价仍然可行: def 自己写了 buyValue 就以它为准(见 withBuyValue 的 ??)。
 //
@@ -57,8 +57,7 @@ export const relicBuyValue = (def: ItemDef): number => RELIC_BUY_BY_RARITY[def.r
 // 未单独配置价格的消耗品使用此基础价。已配置价格的消耗品由自身 ItemDef.buyValue 覆盖。
 export const CONSUMABLE_BUY_VALUE = 20;
 
-// 只给装备、材料与消耗品标价 —— 废料与装备可卖给回收台(sellValue), 数据存档本期不上架,
-// 它保持 buyValue 缺省。
+// 只给装备、材料与消耗品标价 —— 废料通过回收台变现; 遗物和水晶不在据点商店上架。
 export function withBuyValue(defs: ItemDef[]): ItemDef[] {
   return defs.map((d) => {
     if (d.category === "consumable") {

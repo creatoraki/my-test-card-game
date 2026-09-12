@@ -38,7 +38,6 @@ export type ItemCategory =
   | "material" // 模组材料: 制造成品模组的原料, 不等同于可直接装配的 module
   | "module" // 成品模组: 装配到卡牌上; 与制造模组的 material 原料不同
   | "equipment" // 装备: 穿戴或分解
-  | "data" // 数据存档: 回城解锁叙事, 不直接兑换积分
   | "consumable" // 消耗品: 探索途中使用
   | "relic"; // 遗物: 占背包格的跨战斗常驻规则
 
@@ -55,7 +54,6 @@ export const CATEGORY_LABEL: Record<ItemCategory, string> = {
   material: "模组材料",
   module: "模组",
   equipment: "装备",
-  data: "数据存档",
   consumable: "消耗品",
   relic: "遗物",
 };
