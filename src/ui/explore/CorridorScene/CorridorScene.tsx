@@ -27,7 +27,7 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
         const interacting = movement.interactingId === object.id;
         return <div key={object.id} className={`${s.object} ${object.used ? s.used : ""} ${selected ? s.selected : ""}`} style={{ left: object.x, top: entityFloorY }}>
           <button className={s.objectButton} type="button" disabled={blocked || object.used || !near} onClick={() => movement.interact(object.id)} aria-label={`${def.name}${object.used ? "，已搜寻" : !near ? "，靠近后交互" : `，${def.verb}`}`}>
-            <CorridorSprite kind={object.kind} size={def.size} interacting={interacting} />
+            <CorridorSprite kind={object.kind} size={def.size * 2} interacting={interacting} />
           </button>
           {selected && <span className={s.targetMarker} aria-hidden>◆</span>}
         </div>;
@@ -38,7 +38,6 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
         <div className={s.actorDirection} style={{ transform: `scaleX(${movement.facing})` }}>
           <CorridorPlayer walking={movement.walking && !blocked} />
         </div>
-        <span className={s.playerLabel}>炼金术士</span>
       </div>
     </div>
     {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x - camera} final={activeThreat.final} />}
