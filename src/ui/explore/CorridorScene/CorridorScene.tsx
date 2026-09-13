@@ -1,6 +1,6 @@
 import { CORRIDOR_CURIOS } from "@/data/corridorCurios";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
-import background from "@/assets/explore-corridor/corridor.png";
+import { CORRIDOR_BACKDROP_ART } from "@/ui/art/corridorArt";
 import { CorridorSprite } from "./CorridorSprite";
 import { CorridorPlayer } from "./CorridorPlayer";
 import { ShadowEncounter } from "./ShadowEncounter";
@@ -15,19 +15,19 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
   const explored = Math.max(corridor.exploredX, movement.x);
 
   return <div className={s.scene} aria-label="横向探索场景">
-    <div className={s.backdrop} style={{ backgroundImage: `url(${background})`, backgroundPositionX: -camera * .72 }} />
+    <div className={s.backdrop} style={{ backgroundImage: `url(${CORRIDOR_BACKDROP_ART})`, backgroundPositionX: -camera * .72 }} />
     <div className={s.haze} aria-hidden />
     <div className={s.world} style={{ width: corridor.width, transform: `translateX(${-camera}px)` }}>
-      <div className={s.ground} style={{ top: CORRIDOR.floorY }} aria-hidden />
       {Array.from({ length: 6 }, (_, index) => <div className={s.sectorMark} key={index} style={{ left: index * 1050 + 130, top: 304 }}>第 {corridor.round} 层 · {index + 1} 区</div>)}
       {corridor.objects.map((object) => {
         const def = CORRIDOR_CURIOS[object.kind];
         const selected = movement.target?.id === object.id && !blocked;
         const near = movement.nearby.some((item) => item.id === object.id);
+        const interacting = movement.interactingId === object.id;
         return <div key={object.id} className={`${s.object} ${object.used ? s.used : ""} ${selected ? s.selected : ""}`} style={{ left: object.x, top: CORRIDOR.floorY - (object.nodeIndex === 3 ? 26 : 0) }}>
           <span className={s.groundShadow} />
           <button className={s.objectButton} type="button" disabled={blocked || object.used || !near} onClick={() => movement.interact(object.id)} aria-label={`${def.name}${object.used ? "，已搜寻" : !near ? "，靠近后交互" : `，${def.verb}`}`}>
-            <CorridorSprite index={def.sprite} size={def.size} />
+            <CorridorSprite kind={object.kind} size={def.size} interacting={interacting} />
           </button>
           <span className={s.objectLabel}>{object.used ? "已搜寻" : def.name}</span>
           {selected && <span className={s.targetMarker} aria-hidden>◆</span>}

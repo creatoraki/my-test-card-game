@@ -4,7 +4,6 @@ import type { EventChoice, ExploreEffect, NodeEvent } from "../explore/types";
 interface CurioDefinition {
   name: string;
   verb: string;
-  sprite: number;
   size: number;
   event: NodeEvent;
 }
@@ -13,10 +12,10 @@ function option(id: string, label: string, desc: string, effects: ExploreEffect[
   return { id, label, desc, effects, energyDelta, story: desc };
 }
 
-/** 首版只投放这八种物件。展示、效果和素材格位集中配置。 */
+/** 首版只投放这八种物件；名称、交互文案与事件效果集中配置。 */
 export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
   chest: {
-    name: "遗留物资箱", verb: "搜寻", sprite: 1, size: 205,
+    name: "遗留物资箱", verb: "搜寻", size: 205,
     event: {
       id: "corridor-chest", kind: "loot", category: "growth", title: "遗留物资箱", energyDelta: 0,
       description: "生锈的箱扣松动了。缝隙里露出封装完好的补给，也许还有能用的零件。",
@@ -27,7 +26,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
     },
   },
   medical: {
-    name: "应急医疗柜", verb: "检查", sprite: 2, size: 238,
+    name: "应急医疗柜", verb: "检查", size: 238,
     event: {
       id: "corridor-medical", kind: "heal", category: "survival", title: "应急医疗柜", energyDelta: 0,
       description: "柜内的急救指示灯还亮着。可以现场处理伤口，也可以把药品带走。",
@@ -38,7 +37,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
     },
   },
   terminal: {
-    name: "破损数据终端", verb: "接入", sprite: 3, size: 220,
+    name: "破损数据终端", verb: "接入", size: 220,
     event: {
       id: "corridor-terminal", kind: "loot", category: "growth", title: "破损数据终端", energyDelta: 0,
       description: "屏幕裂成蛛网，缓存却仍然完整。一段未上传的作战记录正在循环播放。",
@@ -49,7 +48,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
     },
   },
   vending: {
-    name: "故障售货机", verb: "翻找", sprite: 4, size: 240,
+    name: "故障售货机", verb: "翻找", size: 240,
     event: {
       id: "corridor-vending", kind: "loot", category: "economy", title: "故障售货机", energyDelta: 0,
       description: "出货口卡着一个旧纸袋。电源旁路也许能让储藏格再开启一次。",
@@ -60,7 +59,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
     },
   },
   purifier: {
-    name: "残存净化罐", verb: "回收", sprite: 5, size: 184,
+    name: "残存净化罐", verb: "回收", size: 184,
     event: {
       id: "corridor-purifier", kind: "energy", category: "energy", title: "残存净化罐", energyDelta: 0,
       description: "罐体里还漂浮着微弱的蓝光。回收粒子，或者用它净化队员的污染。",
@@ -71,7 +70,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
     },
   },
   scrap: {
-    name: "废弃零件堆", verb: "搜刮", sprite: 6, size: 230,
+    name: "废弃零件堆", verb: "搜刮", size: 230,
     event: {
       id: "corridor-scrap", kind: "loot", category: "growth", title: "废弃零件堆", energyDelta: 0,
       description: "断线与金属板堆在墙根。表层的废料很安全，更深处却露出尖锐的断口。",
@@ -82,7 +81,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
     },
   },
   dispatch: {
-    name: "安全投递柜", verb: "启用", sprite: 7, size: 250,
+    name: "安全投递柜", verb: "启用", size: 250,
     event: {
       id: "corridor-dispatch", kind: "merchant", category: "economy", title: "安全投递柜", energyDelta: 0,
       description: "投递柜仍与据点相连。打开后可从背包选择物品寄回，已寄出的物品不会因团灭丢失。",
@@ -90,7 +89,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
     },
   },
   camp: {
-    name: "遗落营地", verb: "休整", sprite: 8, size: 215,
+    name: "遗落营地", verb: "休整", size: 215,
     event: {
       id: "corridor-camp", kind: "heal", category: "survival", title: "遗落营地", energyDelta: 0,
       description: "灯还温热，铺盖的主人却不知去向。这是继续深入前难得的喘息处。",

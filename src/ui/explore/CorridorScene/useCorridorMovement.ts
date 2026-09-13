@@ -6,6 +6,7 @@ import { encounterCorridorThreat, inspectCorridorObject, saveCorridorPosition } 
 export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   const [motion, setMotion] = useState({ x: corridor.playerX, facing: corridor.facing, walking: false });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [interactingId, setInteractingId] = useState<string | null>(null);
   const live = useRef({ corridor, blocked });
   live.current = { corridor, blocked };
   const position = useRef(motion);
@@ -31,6 +32,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
     const object = near.find((item) => item.id === (id ?? selected.current)) ?? (!id ? near[0] : undefined);
     if (!object) return;
     stop();
+    setInteractingId(object.id);
     inspectCorridorObject(object.id);
   };
   const cycle = (direction: number) => {
@@ -45,6 +47,12 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
     // 暂停只清输入；保存位置的 store 操作会自行校验会话阶段。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blocked]);
+
+  useEffect(() => {
+    if (!interactingId) return;
+    const timer = window.setTimeout(() => setInteractingId(null), 1050);
+    return () => window.clearTimeout(timer);
+  }, [interactingId]);
 
   useEffect(() => {
     let frame = 0;
@@ -119,7 +127,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   const nearby = nearbyObjects(corridor, motion.x);
   const target = nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
   return {
-    ...motion, nearby, target, interact, cycle, stop,
+    ...motion, nearby, target, interactingId, interact, cycle, stop,
     startPointer: (direction: number) => { if (!live.current.blocked) pointerDirection.current = direction; },
   };
 }

@@ -1,15 +1,15 @@
 .scene { position: absolute; inset: 0; overflow: hidden; background: #080e11; color: #e9ddc9; font-size: 18px; }
-/* 墙景与地台分层；地台顶边和 CORRIDOR.floorY 对齐，并随世界镜头移动。 */
-.backdrop { position: absolute; inset: 0 0 256px; background-repeat: repeat-x; background-size: auto 890px; will-change: background-position; }
+/* 新楼层背景自带地台；角色与道具基线仍由 CORRIDOR.floorY 定位。 */
+.backdrop { position: absolute; inset: 0; background-repeat: repeat-x; background-size: auto 1080px; will-change: background-position; }
 .haze { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #09151b9c 0%, #09151b4a 15%, transparent 36%, transparent 100%); }
 .world { position: absolute; inset: 0 auto 0 0; height: 1080px; will-change: transform; }
-.ground { position: absolute; inset: auto 0 0; background: #000; pointer-events: none; }
 .sectorMark { position: absolute; font-size: 20px; color: #b9ceca70; letter-spacing: 6px; pointer-events: none; }
 .object { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; z-index: 5; }
 .objectButton { padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; cursor: pointer; transition: filter 200ms; }
 .objectButton:disabled { opacity: 1; cursor: default; }
 .objectButton:focus-visible { outline: 2px solid #efc37f; outline-offset: 5px; }
-.sprite { display: block; background-size: 300% 300%; background-repeat: no-repeat; }
+.sprite { display: block; background-size: 400% 100%; background-repeat: no-repeat; background-position: 0 0; }
+.interacting { animation: propInteraction 1s steps(1, end) both; }
 .groundShadow { position: absolute; bottom: -8px; width: 150px; height: 23px; background: #000a; border-radius: 50%; filter: blur(5px); pointer-events: none; }
 .selected .objectButton { filter: drop-shadow(0 0 6px #dfb968) drop-shadow(0 0 22px #dcb36050); }
 .used .objectButton { filter: grayscale(.8) brightness(.6); }
@@ -46,3 +46,10 @@
 .moveButtons button { width: 48px; height: 56px; padding: 0; font-size: 24px; color: #d7bc8b; border: 1px solid #8d795355; background: #10191bf0; touch-action: none; }
 @keyframes seep { 0% { transform: translateY(0) scale(.9); opacity: .4; } 100% { transform: translateY(-45px) scale(1.2); opacity: 0; } }
 @keyframes marker { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes propInteraction {
+  0% { background-position: 0% 0%; }
+  25% { background-position: 33.3333% 0%; }
+  50% { background-position: 66.6667% 0%; }
+  75% { background-position: 100% 0%; }
+  100% { background-position: 0% 0%; }
+}

@@ -1,11 +1,11 @@
 import type { CSSProperties } from "react";
-import atlas from "@/assets/explore-corridor/sprites.png";
+import type { CurioKind } from "@/explore/corridor/types";
+import { CORRIDOR_PROP_ART } from "@/ui/art/corridorArt";
 import s from "./CorridorScene.module.css";
 
-/** 直接读取透明图集的九宫格，保留原始 alpha，不复制切片文件。 */
-export function CorridorSprite({ index, size, className = "" }: { index: number; size: number; className?: string }) {
-  return <span aria-hidden className={`${s.sprite} ${className}`} style={{
-    width: size, height: size, backgroundImage: `url(${atlas})`,
-    backgroundPosition: `${(index % 3) * 50}% ${Math.floor(index / 3) * 50}%`,
+/** 四格横向精灵图：首格常态，交互时依次播放后三格。 */
+export function CorridorSprite({ kind, size, interacting }: { kind: CurioKind; size: number; interacting: boolean }) {
+  return <span aria-hidden className={`${s.sprite} ${interacting ? s.interacting : ""}`} style={{
+    width: size * .75, height: size, backgroundImage: `url(${CORRIDOR_PROP_ART[kind]})`,
   } as CSSProperties} />;
 }
