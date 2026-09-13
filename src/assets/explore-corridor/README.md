@@ -1,17 +1,22 @@
 # 横向探索美术
 
-通过内置 imagegen 生成，原图直接纳入项目，保留透明通道；没有调用外部图片 API。
+探索场景由独立墙景、地台和角色物件图集组成。素材通过内置图像生成工具绘制，图集保留真实透明通道。
 
-- `corridor.png`：废弃研究楼层的侧视走廊背景。
-- `sprites.png`：三行三列的透明图集。第一行是玩家、物资箱、医疗柜；第二行是终端、售货机、净化罐；第三行是零件堆、投递柜、营地。
-- 图集由 `CorridorSprite.tsx` 用背景定位读取，黑影与破地动画由 `ShadowEncounter` 独立绘制。
+- `corridor.png`：废弃研究楼层的侧视墙景，适合横向循环；不含地面和人物。
+- `ground.png`：可横向循环的地台剖面，顶部和 `CORRIDOR.floorY` 对齐，暖色块石与青色管线强化地面层。
+- `sprites.png`：三行三列透明图集。第一行是 Q 版探索者、物资箱、医疗柜；第二行是终端、售货机、净化罐；第三行是零件堆、投递柜、营地。
+- 图集由 `CorridorSprite.tsx` 按原有九宫格编号读取；黑影与破地动画仍由 `ShadowEncounter` 独立绘制。
 
 ## 最终生成提示词
 
-### 走廊
+### 墙景
 
-Use case: stylized-concept. Asset type: original 2D side-scrolling exploration game background, wide 16:9 image. An abandoned underground research-floor corridor in a neon dystopian city. Side elevation camera, looking straight at the long back wall, almost orthographic; broad empty walkable foreground floor occupies bottom 35%, wall-floor seam at 65% image height. Weathered concrete, repeating industrial pillars, broken cables, sealed laboratory doors, faint turquoise emergency light and amber lantern pools. Hand-painted graphic novel art, bold ink silhouettes, expressive brushwork, rich charcoal shadows and restrained teal/amber. Readable midtones, detailed but spacious, no characters, no monsters, no interactable chests, no text, no lettering, no logos, no interface. Designed for horizontally repeating corridor scenery with low visual discontinuity at edges. Wide atmospheric playable stage, not a perspective tunnel vanishing into center.
+Q 版横向卷轴游戏背景，3:1 超宽全景，废弃地下研究站的室内墙面，严格正侧视、无透视消失点。重复玻璃实验窗、圆润支柱、封闭实验室门、少量垂落电缆、青色应急灯和琥珀色壁灯。柔和灰、石板蓝、奶油白、青绿与琥珀色，粗而干净的深色轮廓，明亮平涂与柔和赛璐璐阴影，形体简化圆润、明确的 Q 版独立游戏插画。左右边缘可无缝横向循环；只画墙面，不含人物、地面、文字或界面。
 
-### 图集
+### 地台
 
-Use case: stylized-concept. Asset type: transparent PNG sprite atlas for original 2D side-scrolling dystopian dungeon exploration game. One square image with exactly 3 columns and 3 rows of equally sized cells, generous transparent gutters, no grid lines. All sprites isolated on genuinely transparent background, no white or checkerboard painted background, full object within its own cell, consistent ground baseline near bottom of cell. Graphic-novel hand-painted ink style, chunky readable silhouettes, charcoal steel, worn ochre, small cyan emissive details. Top row left: full-body anonymous hooded scout facing right in three-quarter side view, long weathered ochre cloak, boots, backpack, holding small amber lantern, face in shadow; top row middle: closed reinforced salvage chest; top row right: standing emergency medical cabinet with turquoise cross. Middle row left: broken computer terminal on pedestal; middle row middle: rusty vending machine with dim amber window; middle row right: small floor-standing purification canister with cyan glowing core. Bottom row left: pile of salvage metal and cut cables; bottom row middle: secure tall postal dispatch locker with cyan slot; bottom row right: compact portable camp lantern with bedroll and supplies. No weapons or decorative elements outside cells. No letters, words, numbers, logos, UI or watermarks. Each of the nine sprites centered individually and separated, side-view game props, no environment or ground plane.
+Q 版横向卷轴游戏前景地台，3:1 横向循环砖块，严格正侧视。画布顶边是一条水平连续的深蓝灰色可行走地面，带浅奶油色与琥珀色边线；下方是厚实清晰的暖灰石块、赭黄色支撑块和少量青色发光管线剖面。轮廓粗而干净，圆润简化形状，明亮平涂与柔和赛璐璐阴影；地面从图像顶行延伸到四边，不留空白，不画墙景、人物、道具、草或文字。
+
+### 角色与物件图集
+
+正方形透明 PNG，严格三列三行等尺寸九宫格，留足单格透明边距、无格线。Q 版 2D 平台游戏插画，圆润比例、粗而干净的深色轮廓、明亮色块与柔和阴影。按从左到右、从上到下：大头短身、奶油白与青绿外套、琥珀背包的可爱探索者；圆角补给箱；带青色十字的医疗柜；破损数据终端；复古售货机；青色发光净化罐；废料与线缆堆；带青色灯槽的投递柜；铺盖、补给包与暖色提灯组成的营地。每格单独居中、底部基线一致、各自完整不越界；背景必须是真实透明，不能绘制棋盘格，不加文字、数字或标志。

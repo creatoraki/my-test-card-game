@@ -1,8 +1,9 @@
 .scene { position: absolute; inset: 0; overflow: hidden; background: #080e11; color: #e9ddc9; font-size: 18px; }
-/* 地平线(CORRIDOR.floorY = 680)要给底部 316px 的 HUD 让位：背景图底边仍比地板低 144px。 */
+/* 墙景与地台分层；地台顶边和 CORRIDOR.floorY 对齐，并随世界镜头移动。 */
 .backdrop { position: absolute; inset: 0 0 256px; background-repeat: repeat-x; background-size: auto 890px; will-change: background-position; }
-.haze { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #050a0dd9 0%, transparent 32%, transparent 61%, #080e11 78%); }
+.haze { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #09151b9c 0%, #09151b4a 15%, transparent 36%, transparent 100%); }
 .world { position: absolute; inset: 0 auto 0 0; height: 1080px; will-change: transform; }
+.ground { position: absolute; inset: auto 0 0; background-repeat: repeat-x; background-size: auto 100%; pointer-events: none; }
 .sectorMark { position: absolute; font-size: 20px; color: #b9ceca70; letter-spacing: 6px; pointer-events: none; }
 .object { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; z-index: 5; }
 .objectButton { padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; cursor: pointer; transition: filter 200ms; }
