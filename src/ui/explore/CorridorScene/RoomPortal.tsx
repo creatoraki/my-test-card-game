@@ -10,7 +10,7 @@ export function RoomPortal({ size, standing }: { size: number; standing: boolean
   const trim = CORRIDOR_PORTAL_GROUND_TRIM;
   const cell = size / (1 - trim);
   return <span aria-hidden className={`${s.portalArt} ${standing ? s.portalLit : ""}`} style={{
-    width: cell * .75, height: cell, marginBottom: -cell * trim,
+    width: cell, height: cell, marginBottom: -cell * trim,
     backgroundImage: `url(${CORRIDOR_PORTAL_ART})`,
   } as CSSProperties} />;
 }
