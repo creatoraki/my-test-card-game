@@ -2,7 +2,10 @@
 // 探索会话 —— 纯 TS, 无 React、无副作用。所有函数直接修改传入的 ExploreState,
 // 由 store 层负责 structuredClone 后再调用(与 engine/battle.ts 同惯例)。
 //
-// 一轮的生命周期(设计文档 §1.2):
+// 当前远征：generateRound → 横向走廊 atNode → 物件 landed → resolving → atNode。
+// 黑影：atNode → encounter → inBattle；中途战胜回原地，终点战胜换层或通关。
+// 位置、交互距离和场景生成在 corridor/；下列路由流程属于保留的旧模式。
+// 旧路由一轮的生命周期(设计文档 §1.2):
 //   generateRound ─▶ generating ─finishGenerating─▶ sealed ─startReveal─▶ revealing
 //                                                                          │
 //     advancing ◀─chooseEntry─ choosingEntry ◀─finishReveal────────────────┘
@@ -69,6 +72,7 @@ import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
 import { fireExploreRelic } from "./relics";
+import { createCorridorRound, settleCorridorEncounter } from "./corridor/session";
 import type {
   BattleTier,
   EnergyTier,
@@ -247,6 +251,7 @@ export function createSession(
 ): ExploreState {
   const map = difficultyMapConfig(mapId, difficulty);
   const s: ExploreState = {
+    corridor: null,
     mapId,
     difficulty,
     energy: map.startingEnergy,
@@ -1440,6 +1445,13 @@ function finalizeRowKinds(
 
 export function generateRound(s: ExploreState): void {
   const map = mapOf(s);
+  s.roundBattleTier = map.roundPlans?.[s.round - 1]?.battleTier ?? roundBattleTier(s);
+  createCorridorRound(s);
+}
+
+/** 保留给独立路由组件的旧生成器；远征入口统一使用横向探索。 */
+export function generateRouteRound(s: ExploreState): void {
+  const map = mapOf(s);
   const stage = roundStageOf(s.round);
   const plan = map.roundPlans?.[s.round - 1];
   let laneCount: number = LANES;
@@ -1719,6 +1731,10 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   }
 
   s.pendingNotes = notes;
+  if (s.corridor?.activeObjectId) {
+    const object = s.corridor.objects.find((candidate) => candidate.id === s.corridor?.activeObjectId);
+    if (object) object.used = true;
+  }
   // 记录里带上所选分支 —— 结算页回顾整趟远征时, 玩家要读得出自己当时做了什么决定。
   s.history.push({
     slot: "node",
@@ -2088,6 +2104,7 @@ export function finishBattle(
   }
 
   if (wasNodeBattle) {
+    settleCorridorEncounter(s);
     s.battleSource = null;
     s.phase = "atNode";
     return { loot, items: rolled, overflow: [] };

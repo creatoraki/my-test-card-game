@@ -1,0 +1,21 @@
+.backdrop { position: absolute; inset: 0; z-index: 34; background: #020709a8; display: grid; place-items: center; }
+.panel { position: relative; width: 1080px; min-height: 560px; max-height: 860px; display: grid; grid-template-columns: 350px 1fr; background: linear-gradient(120deg, #171f20f5, #0c1418fc); border: 1px solid #9e886352; box-shadow: 0 35px 110px #000b, inset 0 1px #d1b98733; color: #ddd5c4; outline: none; animation: open 260ms ease-out; }
+.art { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; border-right: 1px solid #b9a37422; background: radial-gradient(ellipse at center, #70604422, transparent 70%); }
+.art > span:last-child { margin-top: 25px; color: #a6987e; font-size: 18px; letter-spacing: 3px; }
+.artHalo { position: absolute; width: 260px; height: 260px; border: 1px solid #af956533; border-radius: 50%; pointer-events: none; }
+.content { padding: 38px 42px; overflow-y: auto; }
+.eyebrow { font-size: 18px; letter-spacing: 5px; color: #b8a078; }
+.content h2 { margin: 12px 0 20px; font-size: 36px; font-weight: 500; letter-spacing: 4px; color: #f3dfb9; }
+.description { font-size: 21px; line-height: 1.85; margin: 0 0 16px; }
+.cost { font-size: 18px; color: #a69b85; margin-bottom: 22px; }
+.choices { display: flex; flex-direction: column; gap: 12px; }
+.choices button { text-align: left; display: flex; flex-direction: column; gap: 7px; border: 1px solid #778b803e; background: #172327b8; padding: 18px 22px; color: #b7c2b9; font-size: 18px; line-height: 1.55; }
+.choices button:hover { border-color: #cfb481; background: #342e2199; }
+.choices strong { display: flex; justify-content: space-between; font-size: 23px; font-weight: 500; color: #e9d5ad; }
+.leave { width: 100%; margin-top: 21px; padding: 12px; font-size: 19px; background: transparent; border: none; color: #9ca9a5; }
+.result { min-height: 220px; font-size: 21px; line-height: 1.85; }
+.note { color: #a7ceb9; font-size: 20px; }
+.send, .continue { display: block; width: 100%; margin-top: 17px; padding: 18px 20px; font-size: 21px; color: #f0d5a2; background: #39301f; border: 1px solid #ba9c6555; }
+.send { background: #183432; color: #b7e1cb; }
+.continue:disabled { opacity: .5; }
+@keyframes open { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }

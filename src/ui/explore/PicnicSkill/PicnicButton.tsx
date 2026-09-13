@@ -34,7 +34,7 @@ export default function PicnicButton({ onOpen }: { onOpen: () => void }) {
       {phaseLocked && (
         <RailPopover side="top-right">
           <strong>野餐暂不可用</strong>
-          <p>结算落点后或选择入口时才能野餐。</p>
+          <p>完成物件交互、恢复自由行走后才能野餐。</p>
         </RailPopover>
       )}
     </div>

@@ -341,6 +341,7 @@ export interface ExpeditionStats {
 // 会话状态 —— 完全可序列化(无函数), 可 structuredClone。
 // ---------------------------------------------------------------------------
 export type ExplorePhase =
+  | "encounter" // 黑影破地演出期间锁定探索，结束后进入卡牌战斗
   | "generating" // 新一轮的路由图正在逐段浮现(2s 演出)。锁死一切交互, 禁开背包
   | "sealed" // 图已浮现完但**桥接仍遮蔽**; 等玩家按「探索路线」。不限时, 可开背包
   | "revealing" // 全图桥接一次性揭示中。⚠ 此阶段禁止开背包(设计文档 §6.3 硬约束)
@@ -352,7 +353,7 @@ export type ExplorePhase =
   | "resting"
   | "npcEvent"
   | "npcResolving"
-  | "atNode" // 节点决策: 继续推进 / 前往下一区域(设计文档 §2.3.3)
+  | "atNode" // 横向探索的自由行走阶段；旧路由模式用作节点决策阶段
   // ★ 「前往下一区域」按下之后的**离场演出**: 棋子沿本轮剩余的完整线路一路走到第 4 段终点。
   //   ⚠ 它是纯演出阶段(与 advancing 同性质): 锁交互、禁开背包、不许撤离, 由 UI 的动画
   //     播完调 finishLeaving 才进战斗事件。没有剩余路线可走时(0 节点直推 / 已走满 4 段)
@@ -365,6 +366,7 @@ export type ExplorePhase =
   | "wiped"; // 团灭
 
 export interface ExploreState {
+  corridor: import("./corridor/types").CorridorState | null;
   mapId: string;
   difficulty: MapDifficulty;
 
@@ -372,7 +374,7 @@ export interface ExploreState {
   loot: number; // 本趟累积的城市居民积分; 仅撤退/通关时转进城镇
 
   round: number; // 当前轮号, 从 1 起
-  roundCount: number; // 固定 6
+  roundCount: number; // 由地图决定，普通远征为 6 层
   roundBattleTier: BattleTier; // 本轮生成时抽定的推进战斗档位
   board: RouteBoard | null;
 
