@@ -94,10 +94,8 @@ export function EventDropBand({ history }: Props) {
 }
 
 function BandSlice({ entry, fresh }: { entry: NodeHistoryEntry; fresh: boolean }) {
-  const meta =
-    entry.slot === "battle"
-      ? `R${entry.round} · 轮末遭遇战`
-      : `R${entry.round} · 第${entry.segment + 1}段 · ${ENTRY_LABELS[entry.lane] ?? entry.lane + 1}通道`;
+  const room = entry.roomLabel != null ? `${entry.roomLabel} 号房间` : `深度 ${entry.round}`;
+  const meta = entry.slot === "battle" ? `${room} · 守卫战` : `${room} · 第${entry.segment + 1}件物件`;
   const summary = [entry.choiceLabel, ...entry.notes].filter(Boolean).join(" · ") || "无额外结算";
   const result = entry.slot === "battle" ? entry.battleResult : undefined;
 

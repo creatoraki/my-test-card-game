@@ -28,7 +28,7 @@ export function MapMissionInfo({ map, index, intro, entering, exiting, lockReaso
               fill={star < map.difficulty ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.2" />
           </svg>)}
         </span>
-        <span className={s.stat}>消耗：<b>{map.roundCount}轮</b></span>
+        <span className={s.stat}>规模：<b>{map.roomCount}间房</b></span>
         <span className={s.stat}><SortieGlyph name="link" className={s.link} />粒子：<b>{map.startingEnergy}</b></span>
       </div>
       {lockReason && <p className={s.lockReason}><SortieGlyph name="lock" className={s.lockIcon} />{lockReason}</p>}

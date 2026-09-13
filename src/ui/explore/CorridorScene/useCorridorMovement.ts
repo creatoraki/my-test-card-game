@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { clampCorridorX, nearbyObjects } from "@/explore/corridor/session";
+import { clampCorridorX, nearbyObjects, portalAt } from "@/explore/corridor/session";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
-import { encounterCorridorThreat, inspectCorridorObject, saveCorridorPosition } from "@/store/exploreCorridor";
+import type { PortalDir } from "@/explore/dungeon/types";
+import {
+  encounterCorridorThreat, inspectCorridorObject, markStandingPortal,
+  saveCorridorPosition, travelThroughPortal,
+} from "@/store/exploreCorridor";
 
+/**
+ * 房间内的行走与交互。
+ * 操作: ←/→ 或 A/D 行走；↑/W、空格、回车 = 交互（脚下有传送门时优先传送）；↓/S 循环切目标。
+ * 站到传送门上只是点亮小地图，必须再按一次交互键才真的传送。
+ */
 export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   const [motion, setMotion] = useState({ x: corridor.playerX, facing: corridor.facing, walking: false });
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -13,19 +22,40 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   const selected = useRef(selectedId);
   selected.current = selectedId;
   const pressed = useRef(new Set<string>());
+  // 脚下传送门只在「换了一扇门」时提交，避免每帧克隆整个会话。
+  const standingDir = useRef<string | null>(corridor.standingPortalDir);
 
   const save = () => {
     const value = position.current;
-    saveCorridorPosition(value.x, value.facing, live.current.corridor.round);
+    saveCorridorPosition(value.x, value.facing, live.current.corridor.roomId);
+  };
+  const syncPortal = () => {
+    const current = live.current;
+    const dir = current.blocked ? null : portalAt(current.corridor, position.current.x)?.dir ?? null;
+    if (standingDir.current === dir) return;
+    standingDir.current = dir;
+    markStandingPortal(position.current.x);
   };
   const stop = () => {
     pressed.current.clear();
     position.current = { ...position.current, walking: false };
     setMotion(position.current);
     save();
+    syncPortal();
+  };
+  const travel = (dir: PortalDir) => {
+    if (live.current.blocked) return;
+    stop(); // 先把位置提交上去：传送判定读的是会话里的坐标
+    travelThroughPortal(dir);
   };
   const interact = (id?: string) => {
     if (live.current.blocked) return;
+    // 脚下有传送门时，交互键就是「确认传送」。
+    const portal = portalAt(live.current.corridor, position.current.x);
+    if (portal && !id) {
+      travel(portal.dir);
+      return;
+    }
     const near = nearbyObjects(live.current.corridor, position.current.x);
     const object = near.find((item) => item.id === (id ?? selected.current)) ?? (!id ? near[0] : undefined);
     if (!object) return;
@@ -68,6 +98,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
           const x = clampCorridorX(current.corridor, position.current.x + direction * CORRIDOR.speed * elapsed);
           position.current = { x, facing: direction < 0 ? -1 : 1, walking: x !== position.current.x };
           setMotion(position.current);
+          syncPortal();
           const threat = current.corridor.threats.find((item) => !item.defeated && Math.abs(item.x - x) <= CORRIDOR.encounterRadius);
           if (threat) {
             save();
@@ -78,6 +109,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
           position.current = { ...position.current, walking: false };
           setMotion(position.current);
           save();
+          syncPortal();
         }
       }
       frame = requestAnimationFrame(tick);
@@ -90,12 +122,15 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
         event.preventDefault();
         if (target?.closest("button, a")) target.blur();
         pressed.current.add(event.code);
-      } else if (["ArrowUp", "ArrowDown", "KeyW", "KeyS"].includes(event.code)) {
+      } else if (["ArrowDown", "KeyS"].includes(event.code)) {
         event.preventDefault();
         if (target?.closest("button, a")) target.blur();
-        if (!event.repeat) cycle(event.code === "ArrowUp" || event.code === "KeyW" ? -1 : 1);
-      } else if (["Space", "Enter"].includes(event.code) && !target?.closest("button, a")) {
+        if (!event.repeat) cycle(1);
+      } else if (["ArrowUp", "KeyW", "Space", "Enter"].includes(event.code)) {
+        // ↑ / W 与空格、回车等价：一屏之内目标很少，交互键多一个更顺手。
+        if (["Space", "Enter"].includes(event.code) && target?.closest("button, a")) return;
         event.preventDefault();
+        if (target?.closest("button, a")) target.blur();
         if (!event.repeat) interact();
       }
     };
@@ -109,6 +144,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
     window.addEventListener("keyup", onKeyUp);
     window.addEventListener("blur", stop);
     document.addEventListener("visibilitychange", onVisibility);
+    syncPortal();
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("keydown", onKeyDown);
@@ -122,8 +158,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   }, []);
 
   const nearby = nearbyObjects(corridor, motion.x);
-  const target = nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
-  return {
-    ...motion, nearby, target, interactingId, interact, cycle,
-  };
+  const standingPortal = blocked ? null : portalAt(corridor, motion.x);
+  const target = standingPortal ? null : nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
+  return { ...motion, nearby, target, standingPortal, interactingId, interact, cycle, travel };
 }

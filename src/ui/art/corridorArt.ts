@@ -9,6 +9,10 @@ import type { CurioKind } from "@/explore/corridor/types";
 
 /** 废弃楼层专属背景与物件素材登记。没有单独美术的物件使用宝箱图。 */
 export const CORRIDOR_FAR_ART = corridorFarArt;
+/** 房间传送门: 四个方向共用同一副四格精灵图。 */
+export const CORRIDOR_PORTAL_ART = portalArt;
+/** 传送门素材底部的透明留白占比, 与物件同口径(见 CORRIDOR_PROP_GROUND_TRIM)。 */
+export const CORRIDOR_PORTAL_GROUND_TRIM = 0.1523;
 export const CORRIDOR_NEAR_LEFT_ART = corridorNearLeftArt;
 export const CORRIDOR_NEAR_RIGHT_ART = corridorNearRightArt;
 

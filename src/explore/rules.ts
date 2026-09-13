@@ -5,7 +5,7 @@
 // ⚠ 上一版的「区域危险度 DANGER_TIERS」与「残片」已废弃, 难度轴只保留净化粒子一条
 //   (设计文档 §4.1 明确禁止再引入第二条并行难度数值)。
 // ⚠ 上一版的「每段 −10 粒子」「战斗额外扣 4/7/10」「避战代价」口径也已废弃(设计文档 §4.2):
-//   现在只有「每结算 1 个节点 −3」与「每进行 1 个战斗回合 −1」两项。
+//   房间制下只有「每移动 1 个房间 −5」「每交互 1 个事件 −2」「每进行 1 个战斗回合 −1」三项。
 //   后者由 runStore.resolveBattle 在战斗结算后接入(读 battle.round), BOSS 战豁免。
 // ============================================================================
 
@@ -61,19 +61,30 @@ export const EXPLORE_RULES = {
   // ── 净化粒子(设计文档 §4.2) ──
   startingEnergy: 100,
   energyMax: 100,
-  // ★ 唯一的固定消耗: 每结算 1 个节点事件按**推进段分档** —— 第 1-4 段依次 3 / 3 / 4 / 5。
-  //   前两段维持原价 3, 深段阶梯上调: 越往深走, 单节点代价越高(与「记忆置信度随深度
-  //   递减」同向, 双轴一起加压)。下标 = 推进段号 - 1, 段号越界时取最后一档兜底。
-  energyPerNodeBySegment: [3, 3, 4, 5],
+  // ★ 每交互 1 个事件的固定消耗。房间制下不再按推进段分档 ——
+  //   压力改由「每换一个房间 −5」承担, 交互本身保持廉价, 鼓励把一个房间搜干净再走。
+  //   「隐匿通道」这类效果仍可免除这一份(见 ExploreState.freeNodes)。
+  energyPerInteraction: 2,
   // 每进行 1 个战斗回合 −1。战斗结算时按 battle.round 一次性扣除(见 runStore.resolveBattle
   // 与 explore/session.spendBattleEnergy), 胜负都扣; **最后一战 BOSS 战豁免** ——
   // 那一场打完远征就结束了, 再扣只是在通关瞬间制造一次无用的档位跌落。
   energyPerBattleRound: 1,
 
+  // ── 房间图(设计: 一张地图 = 一张房间网格图, 没有层) ──
+  dungeon: {
+    // 每移动 1 个房间 −5。★ 这是房间制的主压力来源: 走回头路是有代价的。
+    energyPerRoomMove: 5,
+    // 非起点、非 BOSS 房中埋伏黑影的比例(至少 1 间)。
+    battleRoomRatio: 0.22,
+    // 生成树之外额外接通的相邻房间数比例 —— 制造回环与近路。
+    loopEdgeRatio: 0.2,
+    // 每个房间的可交互物数量区间(起始房固定 1 件, BOSS 房 0 件)。
+    curiosPerRoom: [1, 3] as const,
+  },
+
   // ── 推进战斗档位权重(设计文档 §3.1) ──
-  // index = 轮次 - 1。按层数加权抽取以形成难度爬升; 第 5 层是 BOSS 前的缓冲轮,
-  // 压力有意低于第 4 层, 第 1 层固定 t1, 第 6 层固定 t5。
-  // 本轮生成时只抽一次, 结果写入 ExploreState.roundBattleTier。
+  // index = **当前房间的深度**(距起始房间的步数)。越深越难; 深度超出表长时取最后一档。
+  // BOSS 房不读这张表 —— 那一场固定 t5。
   battleTierWeights: [
     [{ tier: "t1", weight: 100 }],
     [
@@ -96,10 +107,6 @@ export const EXPLORE_RULES = {
     ],
     [{ tier: "t5", weight: 100 }],
   ] as readonly { tier: BattleTier; weight: number }[][],
-  nodeBattleTierWeights: [
-    { tier: "t1", weight: 60 },
-    { tier: "t2", weight: 40 },
-  ] as readonly { tier: BattleTier; weight: number }[],
   treasureEncounter: {
     chance: 0.15,
     tiers: ["t1", "t2", "t3"] as readonly BattleTier[],
@@ -120,6 +127,8 @@ export const EXPLORE_RULES = {
       chance: 0.6,
       count: 1,
       maxRound: 5,
+      // 倒计时按**战斗场次**走(房间制没有轮次): 接下后第 N 场战斗打完即结算。
+      battles: 2,
       depth: [1, 4] as readonly [number, number],
     },
   },

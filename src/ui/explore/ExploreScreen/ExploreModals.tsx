@@ -139,7 +139,7 @@ export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, 
         kicker={`${eventKindLabel[ev.kind]} · ${eventCategoryLabel[ev.category]}`}
         title={eventKindLabel[ev.kind]}
         scene={view.scene}
-        sceneKey={`${session.round}-${session.currentSegment}-${ev.id}`}
+        sceneKey={`${session.corridor?.roomId ?? "room"}-${session.currentSegment}-${ev.id}`}
         className={s["expl-event-frame"]}
       >
         {briefing && (
@@ -153,7 +153,7 @@ export function EventModal({ view, closing, onTakeOption, onConfirm, onAdvance, 
             typingBody={!view.desc.done}
             meta={[
               { icon: "⌁", text: `当前区域 · ${getMap(session.mapId).name}` },
-              { icon: "◷", text: `节点剩余 ${String(remainingNodes(session)).padStart(2, "0")}` },
+              { icon: "◷", text: `本房剩余 ${String(remainingNodes(session)).padStart(2, "0")}` },
             ]}
             advanceLabel={shopping ? "交易终端已打开" : "查看可用行动"}
             advanceDisabled={shopping || !view.choiceReady}

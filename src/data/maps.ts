@@ -1,6 +1,6 @@
-// 地图数据 —— 一张地图 = 一趟由 6 轮「区域路由图 + 推进战斗」组成的远征
-// (见 探索模式设计.md §3.1 / §9.4 / explore/session.ts)。
-// 地图提供四样东西: 走几轮、节点事件从哪个池抽、五个战斗档位各有哪些遭遇战、起始净化粒子。
+// 地图数据 —— 一张地图 = 一张由若干房间连成的房间图(见 explore/dungeon/)。
+// 房间总数就是这张地图的庞大程度; 没有「层」的概念, 走到 BOSS 房打赢即通关。
+// 地图提供四样东西: 有几个房间、节点事件从哪个池抽、五个战斗档位各有哪些遭遇战、起始净化粒子。
 // ★ 战斗档位只决定「本图该档位从哪几场遭遇战中抽取」—— 不追加敌人、不改敌方面板;
 //   能量档位对战斗的影响仅通过 encounterModifier 注入敌方开局状态(过载层数)与掉落系数。
 //
@@ -20,9 +20,10 @@ export interface MapDef {
   maxEquipRarity: ItemRarity; // 本图装备产出的最高阶, 按 RARITY_ORDER 前缀截断
 
   // ── 区域推进 ──
-  roundCount: number; // 一趟走几轮(标准 6)
+  /** 本图的房间总数 = 这张地图的庞大程度; 房间图由 explore/dungeon/generate.ts 现生成。 */
+  roomCount: number;
   eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
-  /** 固定轮次棋盘; 下标 = 轮次 - 1, 缺省轮次仍走随机生成。 */
+  /** 固定轮次棋盘; 旧路由模式保留字段, 房间制不读取。 */
   roundPlans?: readonly RouteBoardPlan[];
   /** 通关后不再出现在地图选择带, 但不影响已开始的远征。 */
   hideAfterClear?: boolean;
@@ -32,13 +33,9 @@ export interface MapDef {
   /** 可替换 t1-t3 常规战斗的宝箱怪遭遇战。 */
   treasureEncounters?: readonly string[];
   startingEnergy: number; // 起始净化粒子, 默认 100(据点「过滤装置充能台」可升级上限)
-  /** 覆盖全局档位权重; 下标 = 轮次 - 1, 越界时沿用最后一档。 */
+  /** 覆盖全局档位权重; 旧路由模式保留字段, 房间制按房间深度取权重, 不读它。 */
   battleTierByRound?: readonly BattleTier[];
-  /**
-   * 固定「推进战斗」的遭遇战; 下标 = 轮次 - 1, null / 越界 = 该轮仍按档位随机抽。
-   * ★ 只作用于轮末推进战斗 —— 节点战斗(战斗签)照旧从 battleEncounters 随机抽;
-   *   被固定的轮次同时跳过宝箱怪替换, 目前只有教学关用得上。
-   */
+  /** 固定「推进战斗」的遭遇战; 旧路由模式保留字段, 房间制不读取。 */
   battleEncounterByRound?: readonly (string | null)[];
   /** 需要先通关这张地图才开放。 */
   requiresClear?: string;
@@ -54,7 +51,7 @@ export const MAPS: MapDef[] = [
     difficulty: 1,
     emoji: "🧭",
     maxEquipRarity: "common",
-    roundCount: 3,
+    roomCount: 5,
     eventPoolId: "tutorial",
     roundPlans: TUTORIAL_ROUND_PLANS,
     hideAfterClear: true,
@@ -78,7 +75,7 @@ export const MAPS: MapDef[] = [
     difficulty: 3,
     emoji: "🌆",
     maxEquipRarity: "common",
-    roundCount: 6,
+    roomCount: 12,
     eventPoolId: "ruined-floor",
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift"],
@@ -98,7 +95,7 @@ export const MAPS: MapDef[] = [
     difficulty: 3,
     emoji: "🌿",
     maxEquipRarity: "common",
-    roundCount: 6,
+    roomCount: 12,
     eventPoolId: "",
     battleEncounters: {
       t1: [],
@@ -117,7 +114,7 @@ export const MAPS: MapDef[] = [
     difficulty: 3,
     emoji: "🚆",
     maxEquipRarity: "common",
-    roundCount: 6,
+    roomCount: 14,
     eventPoolId: "",
     battleEncounters: {
       t1: [],
@@ -136,7 +133,7 @@ export const MAPS: MapDef[] = [
     difficulty: 3,
     emoji: "🌉",
     maxEquipRarity: "common",
-    roundCount: 6,
+    roomCount: 14,
     eventPoolId: "",
     battleEncounters: {
       t1: [],
@@ -155,7 +152,7 @@ export const MAPS: MapDef[] = [
     difficulty: 3,
     emoji: "🌇",
     maxEquipRarity: "common",
-    roundCount: 6,
+    roomCount: 16,
     eventPoolId: "",
     battleEncounters: {
       t1: [],

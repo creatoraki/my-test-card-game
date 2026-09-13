@@ -105,5 +105,6 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDefinition> = {
 export const CORRIDOR_AMBUSH: NodeEvent = {
   id: "corridor-ambush", kind: "battle", category: "battle", title: "地底黑影", energyDelta: 0,
   description: "地面的黑斑忽然鼓起，无声的轮廓挡住了去路。",
-  choices: [option("fight", "迎战黑影", "准备战斗。", [{ type: "START_NODE_BATTLE", tier: "t1" }])],
+  // 不写死档位: 房间制下由 explore/session.pickNodeBattleTier 按当前房间深度抽取。
+  choices: [option("fight", "迎战黑影", "准备战斗。", [{ type: "START_NODE_BATTLE" }])],
 };

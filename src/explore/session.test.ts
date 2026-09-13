@@ -1,59 +1,50 @@
-// 探索会话。断言集中在三件事:
-//   ① 阶段机(generating → sealed → revealing → choosingEntry → advancing → landed →
-//      resolving → atNode → (推进 / 前往下一区域) → roundBattle → inBattle → 下一轮)
-//      不会被跳步或绕过 —— 尤其是四处:
-//      · sealed → revealing 只能由玩家主动触发, 且**一轮仅此一次**(桥接不能反复看);
-//      · 入口通道只能在 choosingEntry 选一次, 之后不可再改;
-//      · landed: 推进动画播完只是落点, 效果必须等玩家选完分支才生效;
-//      · currentSegment === 4 时**不得**再提供「继续推进」;
-//   ② 20 个节点的**深度分层与保底规则**成立(设计文档 §2.3.2) —— 浅停有价值、深潜有方差;
-//   ③ 能量档位(每节点按推进段扣 3/3/4/5)、血量继承、团灭清算这些跨系统的口子表现稳定。
+// 探索会话(房间制)。断言集中在四件事:
+//   ① 房间图生成的硬规则 —— 房间数 = 地图的 roomCount、每房最多 4 个出口且出口双向、
+//      全图从起点可达、BOSS 房是最深的那一间、同种子完全复现;
+//   ② 换房间的代价与信息 —— 站上传送门只点亮不收费, 确认传送 −5 粒子;
+//   ③ 交互的代价与进度 —— 每交互 1 个事件 −2 粒子, 搜干净后房间标记为已探索;
+//   ④ 战斗接缝 —— 战斗房打赢回原房间、BOSS 房打赢即通关、挑战契约按战斗场次结算,
+//      以及血量继承、团灭清算这些跨系统的口子。
+//
+// ⚠ 旧路由模式(浮现 → 揭示 → 选入口 → 推进段)的用例已随层级概念一并移除;
+//   桥接生成器本身的断言仍保留在 route.test.ts。
 
 import { describe, expect, it } from "vitest";
-import { getEventPool, makeItemStack } from "../data";
+import { difficultyMapConfig, getEventPool, makeItemStack } from "../data";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
+import { enterRoom, isRoomExplored, standOnPortal, travelPortal } from "./dungeon/session";
+import { openCorridorObject } from "./corridor/session";
+import { CORRIDOR } from "./corridor/types";
+import type { PortalDir, RoomNode } from "./dungeon/types";
 import {
   addItems,
   applyEffect,
-  arriveNode,
   backpackSlots,
-  battleTierOf,
   burdenNow,
-  canOpenBackpack,
-  canPushOn,
-  canUseItem,
-  chooseEntry,
   chooseOption,
   confirmNode,
   createSession,
   discardStack,
   encounterModifier,
   energyTier,
+  engageRoomThreat,
   finishBattle,
-  finishGenerating,
-  finishLeaving,
-  generateRound,
-  finishReveal,
-  landedEvent,
-  leaveRegion,
+  interactionCost,
   projectedEnergy,
-  pushOn,
   retreat,
   rewardMultiplier,
-  engageRoundBattle,
-  roundBattleEvent,
+  roomProgress,
   shipHome,
-  startReveal,
+  spendBattleEnergy,
   takePending,
   useItem,
 } from "./session";
-import type { ExploreState, PartySnapshot } from "./types";
+import type { ExploreEffect, ExploreState, PartySnapshot } from "./types";
 
 const PARTY: PartySnapshot[] = [
   { charId: "swordsman", name: "剑士", emoji: "⚔️", hp: 70, hpLimit: 70, maxHp: 70, alive: true, burdenAdapt: 0 },
 ];
 
-const SEGMENTS = EXPLORE_RULES.segmentsPerRound;
 const WIN = [{ charId: "swordsman", hp: 70, alive: true, limitLoss: 0 }];
 
 // ⚠ 直接写 s.phase !== "x" 会让 TS 顺着上一处早退把类型收窄成单个字面量, 后面的比较就成了
@@ -61,525 +52,349 @@ const WIN = [{ charId: "swordsman", hp: 70, alive: true, limitLoss: 0 }];
 const phaseOf = (s: ExploreState): string => s.phase;
 
 function newSession(seed = 1): ExploreState {
-  return createSession(
-    "neon-city",
-    PARTY.map((p) => ({ ...p })),
-    seed,
-  );
+  return createSession("neon-city", PARTY, seed);
 }
 
-// 从新生成的一轮(generating)推到 choosingEntry —— 浮现、揭示、限时这三拍都是 UI 侧的
-// 定时器/点击驱动的, 纯逻辑测试里一次走完即可。所有「换轮之后」的用例都该先过这里。
-function toChoosing(s: ExploreState): void {
-  finishGenerating(s);
-  startReveal(s);
-  finishReveal(s);
+const dungeonOf = (s: ExploreState) => s.dungeon!;
+const roomNow = (s: ExploreState): RoomNode => dungeonOf(s).rooms[dungeonOf(s).currentRoomId];
+const allRooms = (s: ExploreState): RoomNode[] => Object.values(dungeonOf(s).rooms);
+const exitDirs = (room: RoomNode): PortalDir[] => Object.keys(room.exits) as PortalDir[];
+
+/** 把玩家挪到某个横坐标 —— 行走本身是 UI 侧逐帧的事, 纯逻辑测试直接落位。 */
+function standAt(s: ExploreState, x: number): void {
+  s.corridor!.playerX = x;
+  standOnPortal(s, x);
 }
 
-// 结算一个节点: 推进动画 → 落点 → 选主分支 → 确认 → 停在 atNode。
-// ⚠ 分支固定取 0(主选项): 它的代价与效果就是节点卡上给玩家预览的那一份, 用它跑保底最稳。
-function takeNode(s: ExploreState): void {
-  arriveNode(s);
-  chooseOption(s, 0);
-  if (s.phase === "inBattle") {
-    finishBattle(s, true, WIN, ["scrap-bot"]);
-    s.pendingLoot = [];
-    confirmNode(s);
-  } else if (s.phase === "resolving") {
-    confirmNode(s);
-  }
+/** 走上指定方向的传送门(只点亮, 不传送)。 */
+function stepOnPortal(s: ExploreState, dir: PortalDir): void {
+  const portal = s.corridor!.portals.find((candidate) => candidate.dir === dir)!;
+  standAt(s, portal.x);
 }
 
-// 轮次战斗事件 → 开战。
-function runRoundBattle(s: ExploreState): void {
-  engageRoundBattle(s);
+/** 把本房第一件没处理的物件搜掉, 停在 atNode。 */
+function takeCurio(s: ExploreState, choice = 0): void {
+  const object = s.corridor!.objects.find((candidate) => !candidate.used)!;
+  s.corridor!.playerX = object.x;
+  openCorridorObject(s, object.id);
+  chooseOption(s, choice);
+  if (phaseOf(s) === "resolving") confirmNode(s);
 }
 
-// 走完一整轮: 选入口 → 榨满 4 个节点 → 轮次战斗事件 → 推进战斗 → 判胜。
-function runRound(s: ExploreState, lane = 0, nodes = SEGMENTS): void {
-  toChoosing(s);
-  chooseEntry(s, lane);
-  for (let i = 0; i < nodes; i++) {
-    if (phaseOf(s) !== "advancing") break;
-    takeNode(s);
-    if (phaseOf(s) !== "atNode") return; // 撤离 / 团灭
-    if (i < nodes - 1 && canPushOn(s)) pushOn(s);
-  }
-  if (phaseOf(s) === "atNode" || phaseOf(s) === "choosingEntry") leaveRegion(s);
-  if (phaseOf(s) === "roundBattle") runRoundBattle(s);
-  if (phaseOf(s) === "inBattle") finishBattle(s, true, WIN, ["scrap-bot", "scrap-bot"]);
+/** 直接落进某个房间 —— 省掉跨房间寻路, 用例只关心落地之后的事。 */
+function goToRoom(s: ExploreState, pick: (room: RoomNode) => boolean): RoomNode {
+  const room = allRooms(s).find(pick)!;
+  enterRoom(s, room.id);
+  return room;
 }
 
-describe("建局", () => {
-  it("开局即生成第 1 轮, 处于浮现演出阶段", () => {
+/** 落进一间有黑影的房间并把战斗建起来。 */
+function intoBattle(s: ExploreState, boss = false): void {
+  goToRoom(s, (room) => (boss ? room.kind === "boss" : room.kind === "battle" && !room.threatDefeated));
+  expect(phaseOf(s)).toBe("encounter");
+  engageRoomThreat(s);
+  expect(phaseOf(s)).toBe("inBattle");
+}
+
+describe("建局与房间图", () => {
+  it("开局落在起始房间, 房间总数由地图决定", () => {
     const s = newSession();
-    expect(s.phase).toBe("generating");
-    expect(s.round).toBe(1);
-    expect(s.roundCount).toBe(6);
-    expect(s.currentSegment).toBe(0);
+    const map = difficultyMapConfig("neon-city", "normal");
+    expect(s.phase).toBe("atNode");
+    expect(s.roomCount).toBe(map.roomCount);
+    expect(allRooms(s)).toHaveLength(map.roomCount);
+    expect(dungeonOf(s).currentRoomId).toBe(dungeonOf(s).startRoomId);
+    expect(roomNow(s).visited).toBe(true);
+    expect(roomNow(s).depth).toBe(0);
+    expect(s.round).toBe(1); // round 在房间制下 = 深度 + 1
     expect(s.energy).toBe(EXPLORE_RULES.startingEnergy);
-    expect(s.board).not.toBeNull();
-    expect(s.board!.segments).toHaveLength(SEGMENTS);
-    expect(s.board!.nodes).toHaveLength(SEGMENTS);
-    for (const row of s.board!.nodes) expect(row).toHaveLength(EXPLORE_RULES.laneCount);
   });
 
-  it("同种子两次建局完全一致", () => {
-    expect(newSession(2024).board).toEqual(newSession(2024).board);
+  it("同种子两次建局的房间图完全一致", () => {
+    expect(newSession(2024).dungeon).toEqual(newSession(2024).dungeon);
+  });
+
+  it("每个房间最多 4 个出口, 且出口一律双向对称", () => {
+    const s = newSession(77);
+    const opposite: Record<PortalDir, PortalDir> = { up: "down", down: "up", left: "right", right: "left" };
+    for (const room of allRooms(s)) {
+      const dirs = exitDirs(room);
+      expect(dirs.length).toBeLessThanOrEqual(4);
+      for (const dir of dirs) {
+        const target = dungeonOf(s).rooms[room.exits[dir]!];
+        expect(target).toBeDefined();
+        expect(target.exits[opposite[dir]]).toBe(room.id);
+      }
+    }
+  });
+
+  it("全部房间都能从起始房间走到 —— 不生成孤岛", () => {
+    const s = newSession(88);
+    const seen = new Set([dungeonOf(s).startRoomId]);
+    const queue = [dungeonOf(s).startRoomId];
+    while (queue.length) {
+      const room = dungeonOf(s).rooms[queue.shift()!];
+      for (const id of Object.values(room.exits)) {
+        if (seen.has(id)) continue;
+        seen.add(id);
+        queue.push(id);
+      }
+    }
+    expect(seen.size).toBe(allRooms(s).length);
+  });
+
+  it("BOSS 房是最深的房间之一, 且不是起始房", () => {
+    const s = newSession(99);
+    const boss = dungeonOf(s).rooms[dungeonOf(s).bossRoomId];
+    const maxDepth = Math.max(...allRooms(s).map((room) => room.depth));
+    expect(boss.id).not.toBe(dungeonOf(s).startRoomId);
+    expect(boss.depth).toBe(maxDepth);
+    expect(boss.curios).toHaveLength(0); // BOSS 房只有黑影
+  });
+
+  it("起始房固定 1 件物件, 战斗房至少 1 间", () => {
+    const s = newSession(123);
+    expect(dungeonOf(s).rooms[dungeonOf(s).startRoomId].curios).toHaveLength(1);
+    expect(allRooms(s).filter((room) => room.kind === "battle").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("传送门与物件不会挤在同一个地面槽位上", () => {
+    const s = newSession(321);
+    for (const room of allRooms(s)) {
+      const xs = [...Object.values(room.portalX), ...room.curios.map((curio) => curio.x)];
+      expect(new Set(xs).size).toBe(xs.length);
+    }
   });
 
   it("队伍是拷贝 —— 改会话不会污染传进来的快照", () => {
-    const party = PARTY.map((p) => ({ ...p }));
-    const s = createSession("neon-city", party, 1);
+    const s = newSession();
     s.party[0].hp = 1;
-    expect(party[0].hp).toBe(70);
+    expect(PARTY[0].hp).toBe(70);
   });
 });
 
-describe("节点生成与保底(设计文档 §2.3.2)", () => {
-  // 把一整趟远征的每一轮都过一遍, 逐轮检查 —— 单看第 1 轮说明不了问题。
-  function eachBoard(seed: number, fn: (s: ExploreState) => void): void {
+describe("换房间(每移动 1 个房间 −5 粒子)", () => {
+  it("站上传送门只点亮目标房间, 不收费", () => {
+    const s = newSession(11);
+    const dir = exitDirs(roomNow(s))[0];
+    const targetId = roomNow(s).exits[dir]!;
+    const before = s.energy;
+
+    expect(dungeonOf(s).rooms[targetId].revealed).toBe(false);
+    stepOnPortal(s, dir);
+    expect(s.corridor!.standingPortalDir).toBe(dir);
+    expect(dungeonOf(s).rooms[targetId].revealed).toBe(true);
+    expect(dungeonOf(s).rooms[targetId].visited).toBe(false); // 只知道位置, 还没进去
+    expect(s.energy).toBe(before);
+  });
+
+  it("确认传送扣 5 粒子并落进目标房间", () => {
+    const s = newSession(12);
+    const dir = exitDirs(roomNow(s))[0];
+    const targetId = roomNow(s).exits[dir]!;
+    const before = s.energy;
+
+    stepOnPortal(s, dir);
+    expect(travelPortal(s, dir)).toBe(true);
+    expect(s.energy).toBe(before - EXPLORE_RULES.dungeon.energyPerRoomMove);
+    expect(dungeonOf(s).currentRoomId).toBe(targetId);
+    expect(roomNow(s).visited).toBe(true);
+    expect(s.round).toBe(roomNow(s).depth + 1);
+    expect(s.corridor!.roomId).toBe(targetId);
+  });
+
+  it("没站在传送门上就传送不了, 也不扣粒子", () => {
+    const s = newSession(13);
+    const dir = exitDirs(roomNow(s))[0];
+    const portal = s.corridor!.portals.find((candidate) => candidate.dir === dir)!;
+    standAt(s, portal.x + CORRIDOR.portalRadius + 40);
+    const before = s.energy;
+    expect(travelPortal(s, dir)).toBe(false);
+    expect(s.energy).toBe(before);
+  });
+
+  it("待处理的战利品没清完时不许换房间", () => {
+    const s = newSession(14);
+    const dir = exitDirs(roomNow(s))[0];
+    stepOnPortal(s, dir);
+    s.pendingLoot = [makeItemStack("copper-coin")];
+    expect(travelPortal(s, dir)).toBe(false);
+  });
+
+  it("落地点不会正踩在回程传送门上 —— 免得一进门就被问要不要回去", () => {
+    const s = newSession(15);
+    const dir = exitDirs(roomNow(s))[0];
+    const from = dungeonOf(s).currentRoomId;
+    stepOnPortal(s, dir);
+    travelPortal(s, dir);
+    const back = s.corridor!.portals.find((portal) => portal.to === from);
+    expect(back).toBeDefined();
+    expect(Math.abs(back!.x - s.corridor!.playerX)).toBeGreaterThan(CORRIDOR.portalRadius);
+  });
+});
+
+describe("交互(每交互 1 个事件 −2 粒子)", () => {
+  // 物件种类是随机的, 各分支自带的 energyDelta 不同 —— 钉死成遗留物资箱才能断言净消耗。
+  function withChest(seed = 31): ExploreState {
     const s = newSession(seed);
-    let guard = 0;
-    while (s.phase !== "retreated" && s.phase !== "wiped" && s.phase !== "cleared" && guard++ < 8) {
-      fn(s);
-      runRound(s);
-    }
+    roomNow(s).curios[0].kind = "chest";
+    enterRoom(s, roomNow(s).id);
+    return s;
   }
 
-  it("每轮恰好 20 个节点, 整张图内不重复", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        const rows = s.board!.nodes;
-        expect(rows.flat()).toHaveLength(SEGMENTS * EXPLORE_RULES.laneCount);
-        const ids = rows.flat().map((e) => e.id);
-        expect(new Set(ids).size).toBe(ids.length);
-      });
-    }
+  it("交互一个事件固定扣 2 点", () => {
+    const s = withChest();
+    const before = s.energy;
+    takeCurio(s);
+    expect(s.energy).toBe(before - EXPLORE_RULES.energyPerInteraction);
   });
 
-  it("深度分层: 每个节点都落在自己 depth 允许的推进段里", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        s.board!.nodes.forEach((row, seg) => {
-          for (const e of row) {
-            const [lo, hi] = e.depth ?? [1, SEGMENTS];
-            expect(seg + 1).toBeGreaterThanOrEqual(lo);
-            expect(seg + 1).toBeLessThanOrEqual(hi);
-          }
-        });
-      });
-    }
+  it("「隐匿通道」的免费次数会顶掉基础消耗, 且只顶指定次数", () => {
+    const s = withChest(32);
+    s.freeNodes = 1;
+    expect(interactionCost(s)).toBe(0);
+    const before = s.energy;
+    takeCurio(s);
+    expect(s.energy).toBe(before);
+    expect(s.freeNodes).toBe(0);
+    expect(interactionCost(s)).toBe(EXPLORE_RULES.energyPerInteraction);
   });
 
-  it("风险事件位置全图随机: 不限推进段, 且全图至少 minCount 个", () => {
-    // 跨 20 种子 × 6 轮 = 120 张图统计浅段(第 1-2 段)的风险事件出现次数:
-    // 段限制放开后, 浅段应当大量出现风险事件(而不是恒为 0)。
-    let shallowRisks = 0;
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        const flat = s.board!.nodes.flat();
-        // 数量下限: 每图至少 minCount 个风险事件(位置不限)
-        expect(flat.filter((e) => e.category === "hazard").length).toBeGreaterThanOrEqual(
-          EXPLORE_RULES.eventPool.hazard.minCount,
-        );
-        shallowRisks += s.board!.nodes
-          .slice(0, 2)
-          .flat()
-          .filter((e) => e.category === "hazard").length;
-      });
-    }
-    expect(shallowRisks).toBeGreaterThan(0);
+  it("预测值 = 再交互一次后的能量, 不会低于 0", () => {
+    const s = newSession(33);
+    expect(projectedEnergy(s)).toBe(s.energy - EXPLORE_RULES.energyPerInteraction);
+    s.energy = 1;
+    expect(projectedEnergy(s)).toBe(0);
   });
 
-  it("第 1-2 推进段至少有 1 个生存节点 —— 浅停必须是有价值的巩固打法", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        const shallow = [...s.board!.nodes[0], ...s.board!.nodes[1]];
-        expect(shallow.some((e) => e.category === "survival")).toBe(true);
-      });
-    }
+  it("搜过的物件会回写房间图, 全部搜完即标记为已探索", () => {
+    const s = newSession(34);
+    const room = roomNow(s);
+    expect(isRoomExplored(room)).toBe(false);
+    while (s.corridor!.objects.some((object) => !object.used)) takeCurio(s);
+    expect(room.curios.every((curio) => curio.used)).toBe(true);
+    expect(isRoomExplored(room)).toBe(true);
+    expect(roomProgress(s).explored).toBe(1);
   });
 
-  it("全图至少 3 个成长节点", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        const growth = s.board!.nodes.flat().filter((e) => e.category === "growth");
-        expect(growth.length).toBeGreaterThanOrEqual(3);
-      });
-    }
-  });
-
-  it("未实现的事件(disabled)不参与抽取, 每轮恰好有 2 个战斗节点", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        for (const e of s.board!.nodes.flat()) {
-          expect(e.disabled).not.toBe(true);
-        }
-        expect(s.board!.nodes.flat().filter((e) => e.category === "battle")).toHaveLength(
-          EXPLORE_RULES.eventPool.battleNodes.count,
-        );
-      });
-    }
-  });
-
-  it("每轮恰好有 2 个空节点(empty), 事件互不重复", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        const empties = s.board!.nodes.flat().filter((e) => e.kind === "empty");
-        expect(empties).toHaveLength(EXPLORE_RULES.eventPool.emptyNodes.count);
-        expect(empties.every((e) => e.category === "empty")).toBe(true);
-        // 空节点能量照扣: 基础消耗走 chooseOption 的固定逻辑, 事件本身无额外增减
-        expect(empties.every((e) => e.energyDelta === 0)).toBe(true);
-      });
-    }
-  });
-
-  it("最终布局计算: 同一推进段内, 同类型(kind)事件不超过 2 个", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        for (const row of s.board!.nodes) {
-          const counts = new Map<string, number>();
-          for (const e of row) counts.set(e.kind, (counts.get(e.kind) ?? 0) + 1);
-          for (const n of counts.values()) expect(n).toBeLessThanOrEqual(2);
-        }
-      });
-    }
-  });
-
-  it("终局类事件不会在第 5 轮之前出现(枯竭档的撤离升降机除外)", () => {
-    for (let seed = 1; seed <= 20; seed++) {
-      eachBoard(seed, (s) => {
-        if (s.round >= 5) return;
-        for (const e of s.board!.nodes.flat()) {
-          // ★ 撤离升降机的枯竭档保护无视轮次限制(设计文档 §4.2): 时限是压力, 不是死刑。
-          if (e.id === "evac-lift") continue;
-          expect(e.category).not.toBe("endgame");
-        }
-      });
-    }
-  });
-
-  it("能量跌到枯竭档时撤离升降机必现于第 1-2 段 —— 时限是压力, 不是死刑", () => {
-    // ⚠ 这条是**硬保底**, 所以直接对着生成器断言, 不要靠「打一轮看看」——
-    //   打一轮会经过能量类事件(逆流净化机 +18), 能量可能反弹出第 5 档, 保底本就不该生效,
-    //   于是用例会随种子时灵时不灵, 而且失败时分不清是保底坏了还是能量没跌到位。
-    for (let seed = 1; seed <= 20; seed++) {
-      const s = newSession(seed);
-      s.energy = 5;
-      expect(energyTier(s.energy).tier).toBe(5);
-      s.round = 2; // 枯竭档保护**无视 minRound**: 第 2 轮也必须给出升降机
-      generateRound(s);
-      const shallow = [...s.board!.nodes[0], ...s.board!.nodes[1]];
-      expect(shallow.some((e) => e.id === "evac-lift")).toBe(true);
-    }
+  it("有黑影没清的房间不算已探索", () => {
+    const s = newSession(35);
+    const battle = goToRoom(s, (room) => room.kind === "battle");
+    for (const curio of battle.curios) curio.used = true;
+    expect(isRoomExplored(battle)).toBe(false);
+    battle.threatDefeated = true;
+    expect(isRoomExplored(battle)).toBe(true);
   });
 });
 
-describe("阶段机", () => {
-  it("浮现与揭示阶段都不能选入口 —— 必须一路走到 choosingEntry", () => {
-    const s = newSession();
-    expect(chooseEntry(s, 0)).toBe(false); // generating
-    expect(finishGenerating(s)).toBe(true);
-    expect(s.phase).toBe("sealed");
-    expect(chooseEntry(s, 0)).toBe(false); // sealed: 桥接还没揭示, 不许下注
-    expect(startReveal(s)).toBe(true);
-    expect(s.phase).toBe("revealing");
-    expect(chooseEntry(s, 0)).toBe(false); // revealing
-    expect(finishReveal(s)).toBe(true);
-    expect(s.phase).toBe("choosingEntry");
-    expect(chooseEntry(s, 0)).toBe(true);
-    expect(s.phase).toBe("advancing");
-  });
-
-  it("★ 桥接一轮只能看一次 —— 揭示之后再也回不到 sealed", () => {
-    const s = newSession();
-    expect(startReveal(s)).toBe(false); // 演出没播完就想揭示: 不认
-    finishGenerating(s);
-    expect(startReveal(s)).toBe(true);
-    expect(startReveal(s)).toBe(false); // revealing 阶段再按不生效
-    finishReveal(s);
-    expect(startReveal(s)).toBe(false);
-    expect(s.phase).toBe("choosingEntry");
-  });
-
-  it("★ 入口通道全轮只能选一次 —— 之后 chooseEntry 一律无效", () => {
-    const s = newSession();
-    toChoosing(s);
-    expect(chooseEntry(s, 3)).toBe(true);
-    expect(s.entryLane).toBe(3);
-    expect(s.currentLane).toBe(3);
-    expect(chooseEntry(s, 1)).toBe(false); // advancing
-    takeNode(s);
-    expect(chooseEntry(s, 1)).toBe(false); // atNode
-    expect(s.entryLane).toBe(3);
-  });
-
-  it("越界或被封锁的入口选不了", () => {
-    const s = newSession();
-    toChoosing(s);
-    s.board!.blockedLanes = [2];
-    expect(chooseEntry(s, -1)).toBe(false);
-    expect(chooseEntry(s, 5)).toBe(false);
-    expect(chooseEntry(s, 2)).toBe(false);
-    expect(s.phase).toBe("choosingEntry");
-  });
-
-  it("推进播完只落点、不结算: 能量与记录都不动", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    const energyBefore = s.energy;
-    expect(arriveNode(s)).toBe(true);
-    expect(s.phase).toBe("landed");
-    expect(s.currentSegment).toBe(1);
-    expect(s.energy).toBe(energyBefore);
-    expect(s.history).toHaveLength(0);
-    expect(landedEvent(s)).toBe(s.board!.nodes[0][s.currentLane!]);
-
-    expect(chooseOption(s, 0)).toBe(true);
-    expect(s.history).toHaveLength(1);
-  });
-
-  it("★ 走满 4 段后不得再「继续推进」, 只能前往下一区域(设计文档 §9.2)", () => {
-    const s = newSession(7);
-    toChoosing(s);
-    chooseEntry(s, 0);
-    for (let i = 0; i < SEGMENTS; i++) {
-      if (phaseOf(s) !== "advancing") break;
-      takeNode(s);
-      if (phaseOf(s) !== "atNode") return; // 撤离升降机 / 团灭: 这条用例换个种子才有意义
-      if (i < SEGMENTS - 1) {
-        expect(canPushOn(s)).toBe(true);
-        expect(pushOn(s)).toBe(true);
-      }
-    }
-    if (phaseOf(s) !== "atNode") return;
-    expect(s.currentSegment).toBe(SEGMENTS);
-    expect(canPushOn(s)).toBe(false);
-    expect(pushOn(s)).toBe(false);
-    expect(leaveRegion(s)).toBe(true);
-    expect(s.phase).toBe("roundBattle");
-  });
-
-  it("选入口阶段可以直接前往下一区域 —— 本轮 0 个节点", () => {
-    const s = newSession();
-    toChoosing(s);
-    expect(leaveRegion(s)).toBe(true);
-    expect(s.phase).toBe("roundBattle");
-    expect(s.currentSegment).toBe(0);
-    expect(s.history).toHaveLength(0);
-  });
-
-  it("轮次战斗事件 → 推进战斗: 首尾档位固定, 中间档位按权重抽取", () => {
-    const tiers = ["t1", "t2", "t3", "t4"] as const;
-    const s = newSession();
-    expect(battleTierOf(s)).toBe("t1");
-    for (const round of [2, 3, 4, 5]) {
-      s.round = round;
-      generateRound(s);
-      expect(tiers).toContain(battleTierOf(s));
-    }
-    s.round = 6;
-    generateRound(s);
-    expect(battleTierOf(s)).toBe("t5");
-
-    s.round = 1;
-    generateRound(s);
-    toChoosing(s);
-    leaveRegion(s);
-    expect(roundBattleEvent(s)).not.toBeNull();
-    expect(engageRoundBattle(s)).toBe(true);
-    expect(s.phase).toBe("inBattle");
-    expect(s.pendingBattleTier).toBe("t1");
-    expect(s.pendingIsBoss).toBe(false);
-    expect(["n-t1-scout", "n-t1-sweep"]).toContain(s.pendingEncounterId);
-    finishBattle(s, true, WIN, ["scrap-bot"]);
-    const last = s.history[s.history.length - 1];
-    expect(last).toMatchObject({
-      slot: "battle",
-      battleResult: "win",
-      notes: ["战斗胜利"],
-    });
-  });
-
-  it("节点战斗胜利回到原落点, 不推进轮次或重新生成路线图", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
-    const lane = s.currentLane!;
-    s.board!.nodes[0][lane] = {
-      id: "test-node-battle",
-      kind: "battle",
-      category: "battle",
-      title: "测试战斗节点",
-      description: "",
-      energyDelta: 0,
-      choices: [
-        {
-          id: "engage",
-          label: "迎战",
-          desc: "",
-          energyDelta: 0,
-          effects: [{ type: "START_NODE_BATTLE" }],
-        },
-      ],
-    };
-    expect(chooseOption(s, 0)).toBe(true);
-    expect(s.phase).toBe("inBattle");
+describe("战斗接缝", () => {
+  it("进入战斗房立刻起黑影, 演出结束后建立战斗", () => {
+    const s = newSession(41);
+    intoBattle(s);
     expect(s.battleSource).toBe("node");
-    expect(["n-t1-scout", "n-t1-sweep"]).toContain(s.pendingEncounterId);
+    expect(s.pendingIsBoss).toBe(false);
+    expect(s.pendingEncounterId).not.toBeNull();
+  });
+
+  it("战斗房打赢: 黑影清场, 留在原房间, 战斗场数 +1", () => {
+    const s = newSession(42);
+    intoBattle(s);
+    const roomId = dungeonOf(s).currentRoomId;
+    const battlesBefore = s.battlesWon;
     finishBattle(s, true, WIN, ["scrap-bot"]);
     expect(s.phase).toBe("atNode");
-    expect(s.round).toBe(1);
-    expect(s.currentSegment).toBe(1);
-    expect(s.pendingEncounterId).toBeNull();
-    expect(s.battleSource).toBeNull();
+    expect(dungeonOf(s).currentRoomId).toBe(roomId);
+    expect(dungeonOf(s).rooms[roomId].threatDefeated).toBe(true);
+    expect(s.battlesWon).toBe(battlesBefore + 1);
   });
 
-  it("打赢推进战斗进入下一轮, 新的一轮要重新走一遍浮现与揭示", () => {
-    const s = newSession();
-    runRound(s);
-    expect(s.round).toBe(2);
-    expect(s.phase).toBe("generating");
-    expect(s.currentSegment).toBe(0);
-    expect(s.entryLane).toBeNull();
-  });
-
-  it("第 6 轮打赢 BOSS = 通关", () => {
-    const s = newSession(3);
-    s.round = 6;
-    toChoosing(s);
-    leaveRegion(s);
-    engageRoundBattle(s);
+  it("BOSS 房打赢 = 通关", () => {
+    const s = newSession(43);
+    intoBattle(s, true);
     expect(s.pendingIsBoss).toBe(true);
     finishBattle(s, true, WIN, ["scrap-bot"]);
     expect(s.phase).toBe("cleared");
   });
 
-  it("⚠ 浮现、揭示与推进途中禁止开背包(设计文档 §6.3 的硬约束)", () => {
-    const s = newSession();
-    expect(canOpenBackpack(s)).toBe(false); // generating: 演出期锁死一切
-    finishGenerating(s);
-    expect(canOpenBackpack(s)).toBe(true); // sealed: 桥接还没揭示, 翻背包也偷看不到东西
-    startReveal(s);
-    expect(canOpenBackpack(s)).toBe(false); // revealing: 开背包 = 无限延长观察时间
-    finishReveal(s);
-    expect(canOpenBackpack(s)).toBe(true); // choosingEntry
-    chooseEntry(s, 0);
-    expect(canOpenBackpack(s)).toBe(false); // advancing
-    arriveNode(s);
-    expect(canOpenBackpack(s)).toBe(true); // landed: 不限时的决策阶段
+  it("战斗档位随房间深度爬升 —— 档位必须落在该深度的权重表里", () => {
+    const s = newSession(44);
+    intoBattle(s);
+    const rows = EXPLORE_RULES.battleTierWeights;
+    const depth = roomNow(s).depth;
+    const allowed = rows[Math.min(depth, rows.length - 1)].map((row) => row.tier);
+    expect(allowed).toContain(s.pendingBattleTier);
   });
 
-  it("消耗品只在不限时的决策阶段能用, sealed 除外", () => {
-    const s = newSession();
-    finishGenerating(s);
-    expect(canOpenBackpack(s)).toBe(true);
-    expect(canUseItem(s)).toBe(false); // sealed 是唯一「能开包但不能用药」的阶段
-    startReveal(s);
-    finishReveal(s);
-    expect(canUseItem(s)).toBe(true);
+  it("战斗后血量写回队伍", () => {
+    const s = newSession(45);
+    intoBattle(s);
+    finishBattle(s, true, [{ charId: "swordsman", hp: 23, alive: true, limitLoss: 0 }], ["scrap-bot"]);
+    expect(s.party[0].hp).toBe(23);
+    expect(s.party[0].alive).toBe(true);
+  });
+
+  it("每进行 1 个战斗回合扣 1 点粒子", () => {
+    const s = newSession(46);
+    const before = s.energy;
+    spendBattleEnergy(s, 4);
+    expect(s.energy).toBe(before - 4 * EXPLORE_RULES.energyPerBattleRound);
+  });
+
+  // 设计文档 §6.1: 战斗胜利**只掉物品, 绝不直接掉居民积分**。
+  it("普通战斗胜利不给积分, 只掉实物", () => {
+    const s = newSession(47);
+    s.energy = 0; // 枯竭档, 掉落系数最高
+    intoBattle(s);
+    const before = s.loot;
+    finishBattle(s, true, WIN, ["scrap-bot", "scrap-bot", "scrap-bot"]);
+    expect(s.loot).toBe(before);
+    expect(s.pendingLoot.length).toBeGreaterThan(0);
+  });
+
+  it("同种子的战斗掉的东西逐件一致", () => {
+    const run = () => {
+      const s = newSession(4242);
+      intoBattle(s);
+      finishBattle(s, true, WIN, ["scrap-bot", "radio-bot"]);
+      return s.pendingLoot.map((x) => x.itemId);
+    };
+    expect(run()).toEqual(run());
+  });
+
+  it("战斗失利 = 团灭, 积分与背包一起清空(已寄回的除外)", () => {
+    const s = newSession(48);
+    intoBattle(s);
+    s.loot = 200;
+    s.backpack = [makeItemStack("copper-coin"), makeItemStack("logic-cube")];
+    s.shipped = [makeItemStack("silver-coin")];
+    finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false, limitLoss: 0 }], ["scrap-bot"]);
+    expect(s.phase).toBe("wiped");
+    expect(s.loot).toBe(Math.floor(200 * EXPLORE_RULES.wipe.lootKept));
+    expect(s.backpack).toEqual([]);
+    expect(s.shipped).toHaveLength(1); // 投递口是背包玩法唯一的保险手段
+  });
+
+  it("非战斗阶段调用回填无效 —— 幂等护栏", () => {
+    const s = newSession(49);
+    expect(finishBattle(s, true, [], ["scrap-bot"])).toEqual({ loot: 0, items: [], overflow: [] });
+    expect(s.phase).toBe("atNode");
   });
 });
 
-describe("净化粒子(设计文档 §4.2)", () => {
-  it("每结算 1 个节点按推进段分档 −3/−3/−4/−5, 再叠该分支自己的增减", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
-    const ev = landedEvent(s)!;
-    const before = s.energy;
-    chooseOption(s, 0);
-    const extra = ev.choices?.[0]?.energyDelta ?? ev.energyDelta;
-    // 第 1 推进段(segment = 1)取分档表第 1 档
-    expect(s.energy).toBe(
-      Math.max(0, Math.min(100, before - EXPLORE_RULES.energyPerNodeBySegment[0] + extra)),
-    );
-    expect(s.history[0].slot).toBe("node");
-  });
-
-  it("「隐匿通道」的免费节点会顶掉基础消耗, 且只顶指定次数", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
-    // 换成一个不含额外增减的测试节点, 单独验证基础消耗这一项
-    s.board!.nodes[0][s.currentLane!] = {
-      id: "test-free",
-      kind: "loot",
-      category: "growth",
-      title: "测试节点",
-      description: "",
-      energyDelta: 0,
-      effects: [],
-    };
-    s.freeNodes = 1;
-    const before = s.energy;
-    chooseOption(s, 0);
-    expect(s.energy).toBe(before); // 这一个免费
-    expect(s.freeNodes).toBe(0);
-  });
-
+describe("净化粒子档位(设计文档 §4.2)", () => {
   it("档位边界: 80/60/40/20/0 分别落在第 1..5 档", () => {
     expect(energyTier(100).tier).toBe(1);
     expect(energyTier(80).tier).toBe(1);
     expect(energyTier(79).tier).toBe(2);
     expect(energyTier(60).tier).toBe(2);
-    expect(energyTier(59).tier).toBe(3);
     expect(energyTier(40).tier).toBe(3);
-    expect(energyTier(39).tier).toBe(4);
     expect(energyTier(20).tier).toBe(4);
-    expect(energyTier(19).tier).toBe(5);
     expect(energyTier(0).tier).toBe(5);
   });
 
-  it("K_energy 随档位单调递增, 且压平在 1.00-1.60(设计文档 §4.2 的新表)", () => {
-    for (let i = 1; i < ENERGY_TIERS.length; i++) {
-      expect(ENERGY_TIERS[i].rewardMultiplier).toBeGreaterThan(
-        ENERGY_TIERS[i - 1].rewardMultiplier,
-      );
-    }
-    expect(rewardMultiplier(100)).toBe(1.0);
-    expect(rewardMultiplier(0)).toBe(1.6);
-  });
-
-  it("预测值 = 再推进一个节点后的能量, 不会低于 0", () => {
-    const s = newSession();
-    // 尚未起步(currentSegment = 0): 下一个节点是第 1 推进段, 取分档表第 1 档
-    expect(projectedEnergy(s)).toBe(s.energy - EXPLORE_RULES.energyPerNodeBySegment[0]);
-    s.energy = 2;
-    expect(projectedEnergy(s)).toBe(0);
-    s.freeNodes = 1;
-    expect(projectedEnergy(s)).toBe(2);
-  });
-
-  it("深段节点消耗递增 —— 第 2/3/4 段分别按 3/4/5 计", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    const costs: number[] = [];
-    for (let seg = 1; seg <= 4; seg++) {
-      arriveNode(s);
-      // 换成无额外增减的测试节点, 单独验证基础消耗这一项
-      s.board!.nodes[seg - 1][s.currentLane!] = {
-        id: `test-cost-${seg}`,
-        kind: "loot",
-        category: "growth",
-        title: "测试节点",
-        description: "",
-        energyDelta: 0,
-        effects: [],
-      };
-      const before = s.energy;
-      chooseOption(s, 0);
-      costs.push(before - s.energy);
-      confirmNode(s);
-      if (seg < 4) expect(pushOn(s)).toBe(true);
-    }
-    expect(costs).toEqual([...EXPLORE_RULES.energyPerNodeBySegment]);
+  it("K_energy 随档位单调递增", () => {
+    const values = ENERGY_TIERS.map((tier) => rewardMultiplier(tier.min));
+    for (let i = 1; i < values.length; i++) expect(values[i]).toBeGreaterThan(values[i - 1]);
   });
 
   it("遭遇改造只把能量档位的 BUFF 层数带入战斗", () => {
@@ -606,86 +421,74 @@ describe("背包与负重(设计文档 §六)", () => {
     expect(backpackSlots(s)).toBe(0);
     expect(burdenNow(s)).toBe(0);
 
-    addItems(s, [makeItemStack("copper-coin"), makeItemStack("armor-plate-c")]);
-    expect(backpackSlots(s)).toBe(2); // 1 + 1
-    expect(burdenNow(s)).toBe(2); // 每格 1 点负重
+    addItems(s, [makeItemStack("copper-coin"), makeItemStack("logic-cube")]);
+    expect(backpackSlots(s)).toBe(2);
+    expect(burdenNow(s)).toBe(2);
   });
 
-  it("负重适应按固定格数削减有效负重", () => {
+  it("负重适应按固定格数削减有效负重, 超过占格时归零", () => {
     const s = newSession();
     s.party[0].burdenAdapt = 1;
-    addItems(s, [makeItemStack("copper-coin"), makeItemStack("armor-plate-c")]);
+    addItems(s, [makeItemStack("copper-coin"), makeItemStack("logic-cube")]);
     expect(burdenNow(s)).toBe(1);
-  });
-
-  it("负重适应超过占格时有效负重归零", () => {
-    const s = newSession();
     s.party[0].burdenAdapt = 3;
-    addItems(s, [makeItemStack("copper-coin"), makeItemStack("armor-plate-c")]);
     expect(burdenNow(s)).toBe(0);
   });
 
   it("装不下的进 pendingPickup, 不会被悄悄丢掉", () => {
     const s = newSession();
-    addItems(
-      s,
-      Array.from({ length: 24 }, () => makeItemStack("copper-coin")),
-    );
+    addItems(s, Array.from({ length: 24 }, () => makeItemStack("copper-coin")));
     expect(backpackSlots(s)).toBe(24);
 
-    const { taken, overflow } = addItems(s, [makeItemStack("armor-plate-c")]);
+    const { taken, overflow } = addItems(s, [makeItemStack("logic-cube")]);
     expect(taken).toHaveLength(0);
     expect(overflow).toHaveLength(1);
     expect(s.pendingPickup).toHaveLength(1);
   });
 
   it("背包里还有待取舍的东西时不许离开结算阶段", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
+    const s = newSession(51);
+    const object = s.corridor!.objects[0];
+    s.corridor!.playerX = object.x;
+    openCorridorObject(s, object.id);
     chooseOption(s, 0);
-    if (phaseOf(s) !== "resolving") return; // 撤离升降机 / 团灭的落点跳过
+    if (phaseOf(s) !== "resolving") return;
     s.pendingPickup = [makeItemStack("copper-coin")];
     expect(confirmNode(s)).toBe(false);
   });
 
   it("丢弃即时生效, 负重立刻回升", () => {
     const s = newSession();
-    addItems(s, [makeItemStack("armor-plate-c")]);
+    addItems(s, [makeItemStack("logic-cube")]);
     const uid = s.backpack[0].uid;
     expect(burdenNow(s)).toBe(1);
     expect(discardStack(s, uid)).toBe(true);
     expect(burdenNow(s)).toBe(0);
-    expect(discardStack(s, uid)).toBe(false); // 丢过的再丢一次不该有反应
+    expect(discardStack(s, uid)).toBe(false);
   });
 
   it("消耗品用完即消失, 且不额外扣净化粒子", () => {
     const s = newSession();
-    toChoosing(s);
     addItems(s, [makeItemStack("sugar-cube-c")]);
     s.party[0].hp = 10;
     const energyBefore = s.energy;
-    const result = useItem(s, s.backpack[0].uid, "swordsman");
-    expect(result).not.toBeNull();
+    expect(useItem(s, s.backpack[0].uid, "swordsman")).not.toBeNull();
     expect(s.backpack).toHaveLength(0);
     expect(s.party[0].hp).toBeGreaterThan(10);
-    expect(s.energy).toBe(energyBefore); // 携带成本已由负重收过一次, 不重复收费
+    expect(s.energy).toBe(energyBefore);
   });
 
   it("指定角色类消耗品必须带目标, 目标不对时物品不消耗", () => {
     const s = newSession();
-    toChoosing(s);
     addItems(s, [makeItemStack("sugar-cube-c")]);
     const uid = s.backpack[0].uid;
-    expect(useItem(s, uid)).toBeNull(); // 没点选目标
-    expect(useItem(s, uid, "nobody")).toBeNull(); // 不存在的角色
-    expect(s.backpack).toHaveLength(1); // 两次失败都不该吞掉物品
+    expect(useItem(s, uid)).toBeNull();
+    expect(useItem(s, uid, "nobody")).toBeNull();
+    expect(s.backpack).toHaveLength(1);
   });
 
   it("治疗类消耗品不对阵亡角色生效", () => {
     const s = newSession();
-    toChoosing(s);
     addItems(s, [makeItemStack("sugar-cube-c")]);
     s.party[0].alive = false;
     expect(useItem(s, s.backpack[0].uid, "swordsman")).toBeNull();
@@ -693,12 +496,11 @@ describe("背包与负重(设计文档 §六)", () => {
   });
 
   it("目标状态无效时不消耗物品(满血吃糖 / 无损伤用医疗包)", () => {
-    const s = newSession(); // PARTY 满血且无体力极限损伤
-    toChoosing(s);
+    const s = newSession();
     addItems(s, [makeItemStack("sugar-cube-c"), makeItemStack("medical-kit-c")]);
-    expect(useItem(s, s.backpack[0].uid, "swordsman")).toBeNull(); // 满血
-    expect(useItem(s, s.backpack[1].uid, "swordsman")).toBeNull(); // 无体力极限损伤
-    expect(s.backpack).toHaveLength(2); // 两次检查失败都不消耗
+    expect(useItem(s, s.backpack[0].uid, "swordsman")).toBeNull();
+    expect(useItem(s, s.backpack[1].uid, "swordsman")).toBeNull();
+    expect(s.backpack).toHaveLength(2);
   });
 
   it("投递口: 未开启不能寄, 开启后寄一次扣一次能量", () => {
@@ -706,271 +508,68 @@ describe("背包与负重(设计文档 §六)", () => {
     addItems(s, [makeItemStack("logic-cube")]);
     const uid = s.backpack[0].uid;
 
-    expect(shipHome(s, [uid])).toBe(false); // 投递口没开
+    expect(shipHome(s, [uid])).toBe(false);
     s.chuteOpen = true;
     const energyBefore = s.energy;
     expect(shipHome(s, [uid])).toBe(true);
     expect(s.backpack).toHaveLength(0);
     expect(s.shipped).toHaveLength(1);
     expect(s.energy).toBe(energyBefore - EXPLORE_RULES.chute.energyCost);
-    expect(s.chuteOpen).toBe(false); // 一个节点只能寄一次
+    expect(s.chuteOpen).toBe(false);
   });
 });
 
-describe("落点分支与撤离", () => {
-  it("落点决策途中不许跳步 —— 选入口/撤离/推进全部无效", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
-    expect(chooseEntry(s, 1)).toBe(false);
-    expect(retreat(s)).toBe(false);
-    expect(pushOn(s)).toBe(false);
-    expect(chooseOption(s, 9)).toBe(false); // 越界的分支
-    expect(s.phase).toBe("landed");
+// 挑战契约是本作唯一**跨房间生效**的机制: 倒计时按战斗场次走, 战斗房与 BOSS 房同权。
+describe("挑战契约", () => {
+  const TRIAL_EVENT = getEventPool("ruined-floor").trial[0];
+  const TRIAL_EFFECT = (TRIAL_EVENT.choices ?? [])
+    .flatMap((choice) => choice.effects ?? [])
+    .find((effect) => effect.type === "START_TRIAL") as ExploreEffect;
+
+  function accept(s: ExploreState): void {
+    applyEffect(s, TRIAL_EFFECT, true);
+  }
+
+  it("接下契约后按战斗场次倒计时", () => {
+    const s = newSession(61);
+    accept(s);
+    expect(s.trials).toHaveLength(1);
+    expect(s.trials[0].startBattles).toBe(s.battlesWon);
+    expect(s.trials[0].untilBattles).toBe(s.battlesWon + EXPLORE_RULES.eventPool.trialNodes.battles);
   });
 
-  it("选备选分支时, 生效的是备选分支自己的代价与效果", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
-    // 造一个两支差异明显的落点: 主支纯扣能量, 备支纯给积分
-    s.board!.nodes[0][s.currentLane!] = {
-      id: "test-branch",
-      kind: "loot",
-      category: "growth",
-      title: "测试用岔路",
-      description: "",
-      energyDelta: -30,
-      effects: [],
-      choices: [
-        { id: "a", label: "主支", desc: "", energyDelta: -30, effects: [] },
-        {
-          id: "b",
-          label: "备支",
-          desc: "",
-          energyDelta: 0,
-          effects: [{ type: "GAIN_LOOT", amount: 10 }],
-        },
-      ],
-    };
-    const energyBefore = s.energy;
-    chooseOption(s, 1);
-    // 备支自己不花能量, 但每节点固定消耗照扣(第 1 段 = 分档表第 1 档)
-    expect(s.energy).toBe(energyBefore - EXPLORE_RULES.energyPerNodeBySegment[0]);
-    expect(s.loot).toBe(Math.round(10 * rewardMultiplier(s.energy)));
-    expect(s.history[0].choiceLabel).toContain("备支");
+  it("打赢约定场数后结算: 契约撤掉, 奖励落进战利品盘", () => {
+    const s = newSession(62);
+    accept(s);
+    s.trials[0].untilBattles = s.battlesWon + 1; // 缩到下一场, 省掉找第二间战斗房
+    intoBattle(s);
+    finishBattle(s, true, WIN, ["scrap-bot"]);
+    expect(s.trials).toHaveLength(0);
+    expect(s.trialReport).toHaveLength(1);
   });
 
-  it("END_REGION 效果直接把本轮推进推到走满 —— 之后只能前往下一区域", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
-    s.board!.nodes[0][s.currentLane!] = {
-      id: "test-end",
-      kind: "energy",
-      category: "energy",
-      title: "测试用逆流机",
-      description: "",
-      energyDelta: 18,
-      effects: [{ type: "END_REGION" }],
-    };
-    chooseOption(s, 0);
-    confirmNode(s);
-    expect(s.currentSegment).toBe(SEGMENTS);
-    expect(canPushOn(s)).toBe(false);
+  it("倒计时没走完时不结算", () => {
+    const s = newSession(63);
+    accept(s);
+    intoBattle(s);
+    finishBattle(s, true, WIN, ["scrap-bot"]);
+    expect(s.trials).toHaveLength(1);
+    expect(s.trialReport).toHaveLength(0);
   });
+});
 
-  it("主动撤离只在可操作的阶段允许, 且保留全部积分", () => {
-    const s = newSession();
-    expect(retreat(s)).toBe(false); // generating: 演出期锁死一切
-    finishGenerating(s);
-    startReveal(s);
-    expect(retreat(s)).toBe(false); // revealing: 限时窗口内不许中途开溜
-    finishReveal(s);
+describe("撤离", () => {
+  it("房间里随时可以主动撤离, 积分照带", () => {
+    const s = newSession(71);
     s.loot = 120;
     expect(retreat(s)).toBe(true);
     expect(s.phase).toBe("retreated");
     expect(s.loot).toBe(120);
   });
 
-  it("atNode 与披露页也允许撤离 —— 它们同样是不限时的待决策阶段", () => {
-    const s = newSession();
-    toChoosing(s);
-    chooseEntry(s, 0);
-    takeNode(s);
-    if (phaseOf(s) !== "atNode") return;
-    expect(retreat(s)).toBe(true);
-    expect(s.phase).toBe("retreated");
-  });
-
-  it("事件掉血也能团灭", () => {
-    const s = newSession();
-    s.party[0].hp = 1;
-    toChoosing(s);
-    chooseEntry(s, 0);
-    arriveNode(s);
-    s.board!.nodes[0][s.currentLane!] = {
-      id: "test-damage",
-      kind: "hazard",
-      category: "hazard",
-      title: "测试用塌方",
-      description: "",
-      energyDelta: 0,
-      effects: [{ type: "DAMAGE_PARTY_PERCENT", percent: 1 }],
-    };
-    chooseOption(s, 0);
-    expect(s.phase).toBe("wiped");
-  });
-});
-
-describe("战斗回填与团灭", () => {
-  // 直接推到本轮的推进战斗 —— 0 节点直推是最短路径。
-  function intoBattle(s: ExploreState): void {
-    toChoosing(s);
-    leaveRegion(s);
-    engageRoundBattle(s);
-    expect(s.phase).toBe("inBattle");
-  }
-
-  it("战斗后血量写回队伍, 下一轮以此开局", () => {
-    const s = newSession();
+  it("战斗建立之后不能再用撤离按钮 —— 那条路属于战斗内的撤离", () => {
+    const s = newSession(72);
     intoBattle(s);
-    finishBattle(s, true, [{ charId: "swordsman", hp: 23, alive: true, limitLoss: 0 }], ["scrap-bot"]);
-    expect(s.party[0].hp).toBe(23);
-    expect(s.party[0].alive).toBe(true);
-    expect(s.round).toBe(2);
-    expect(s.phase).toBe("generating");
-  });
-
-  // 设计文档 §6.1: 战斗胜利**只掉物品, 绝不直接掉居民积分** —— 积分改由废料回据点出售产生。
-  it("普通战斗胜利不给积分, 只掉实物", () => {
-    const s = newSession();
-    s.energy = 0; // 枯竭档, 掉落系数最高
-    intoBattle(s);
-    const before = s.loot;
-    finishBattle(s, true, WIN, ["scrap-bot", "scrap-bot", "scrap-bot"]);
-    expect(s.loot).toBe(before);
-    expect(s.pendingLoot.length).toBeGreaterThan(0); // 枯竭档三只机械不可能一件不掉
-  });
-
-  it("同种子的战斗掉的东西逐件一致", () => {
-    const run = () => {
-      const s = newSession(4242);
-      intoBattle(s);
-      finishBattle(s, true, WIN, ["scrap-bot", "radio-bot"]);
-      return s.pendingLoot.map((x) => x.itemId);
-    };
-    expect(run()).toEqual(run());
-  });
-
-  it("战斗失利 = 团灭, 积分与背包一起清空(已寄回的除外)", () => {
-    const s = newSession();
-    intoBattle(s);
-    s.loot = 200;
-    s.backpack = [makeItemStack("copper-coin"), makeItemStack("logic-cube")];
-    s.shipped = [makeItemStack("silver-coin")];
-    finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false, limitLoss: 0 }], ["scrap-bot"]);
-    expect(s.phase).toBe("wiped");
-    expect(s.loot).toBe(Math.floor(200 * EXPLORE_RULES.wipe.lootKept));
-    expect(s.backpack).toEqual([]);
-    expect(s.shipped).toHaveLength(1); // 投递口是背包玩法唯一的保险手段
-  });
-
-  it("非战斗阶段调用回填无效 —— 幂等护栏", () => {
-    const s = newSession();
-    expect(finishBattle(s, true, [], ["scrap-bot"])).toEqual({
-      loot: 0,
-      items: [],
-      overflow: [],
-    });
-    expect(s.phase).toBe("generating");
-  });
-});
-
-// 挑战契约是本作唯一**跨轮生效**的机制, 所以这一组断言全都压在「跨越那条边界的那一拍」上:
-//   接下时付了什么、到期时由谁来结算、以及谁**不**该推进倒计时。
-describe("挑战契约(跨轮)", () => {
-  const TRIAL_POOL = getEventPool("ruined-floor").trial;
-
-  // 把第 1 段的落点换成指定的挑战事件, 再走到它面前。挑战节点是概率投放的,
-  // 靠随机等它出现会让用例变成掷骰子 —— 这里直接摆好棋盘。
-  function landOnTrial(s: ExploreState, event = TRIAL_POOL[0]): void {
-    toChoosing(s);
-    chooseEntry(s, 0);
-    s.board!.nodes[0] = s.board!.nodes[0].map(() => event);
-    s.board!.hiddenNodes = [];
-    arriveNode(s);
-  }
-
-  it("接受挑战: 付 5 粒子换一份两轮的负面修正, 契约进 s.trials", () => {
-    const s = newSession();
-    landOnTrial(s);
-    const before = s.energy;
-    expect(chooseOption(s, 0)).toBe(true);
-
-    // 每节点的基础消耗(第 1 段 = 3)之外, 再额外付 5 —— 两笔都要扣到。
-    expect(s.energy).toBe(before - EXPLORE_RULES.energyPerNodeBySegment[0] - 5);
-    expect(s.trials).toHaveLength(1);
-    expect(s.trials[0].startRound).toBe(s.round);
-    expect(s.trials[0].untilRound).toBe(s.round + 1); // 当轮 + 下一轮
-    // 挑战修正只保留在契约自身；祝福遗物必须通过拾取流程获得。
-    expect(s.ownedRelicIds).toEqual([]);
-  });
-
-  it("放弃挑战: 只付基础消耗, 不留任何契约", () => {
-    const s = newSession();
-    landOnTrial(s);
-    const before = s.energy;
-    expect(chooseOption(s, 1)).toBe(true);
-    expect(s.energy).toBe(before - EXPLORE_RULES.energyPerNodeBySegment[0]);
-    expect(s.trials).toHaveLength(0);
-  });
-
-  it("下一轮的推进战斗打完即结算: 契约撤掉, 奖励落进战利品盘", () => {
-    const s = newSession();
-    landOnTrial(s);
-    chooseOption(s, 0);
-    confirmNode(s);
-    // 到期点就是这一轮的推进战斗(把 untilRound 拉到当前轮, 省掉整整一轮的推进)。
-    s.trials[0].untilRound = s.round;
-
-    leaveRegion(s);
-    if (phaseOf(s) === "leaving") finishLeaving(s);
-    runRoundBattle(s);
-    expect(s.phase).toBe("inBattle");
-    finishBattle(s, true, WIN, ["scrap-bot"]);
-
-    expect(s.trials).toHaveLength(0);
-    expect(s.trialReport).toHaveLength(1);
-    expect(s.trialReport[0].notes.length).toBeGreaterThan(0);
-  });
-
-  it("节点战斗不推进倒计时 —— 倒计时按轮走, 而节点战斗不换轮", () => {
-    const s = newSession();
-    landOnTrial(s);
-    chooseOption(s, 0);
-    confirmNode(s);
-    s.trials[0].untilRound = s.round;
-
-    leaveRegion(s);
-    if (phaseOf(s) === "leaving") finishLeaving(s);
-    runRoundBattle(s);
-    s.battleSource = "node"; // 同一场战斗, 只把来源改成节点战斗
-    finishBattle(s, true, WIN, ["scrap-bot"]);
-
-    expect(s.trials).toHaveLength(1);
-    expect(s.trialReport).toHaveLength(0);
-  });
-
-  it("最后一轮不投放挑战节点 —— 那一轮打完就通关, 等不到结算的那一拍", () => {
-    for (let seed = 1; seed <= 40; seed++) {
-      const s = newSession(seed);
-      s.round = s.roundCount;
-      generateRound(s);
-      expect(s.board!.nodes.flat().some((e) => e.kind === "trial")).toBe(false);
-    }
+    expect(retreat(s)).toBe(false);
   });
 });

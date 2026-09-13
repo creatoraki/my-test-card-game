@@ -160,15 +160,15 @@ export interface ChoiceCost {
 // ⚠ 与 engine/challenges 的「挑战词条」(战斗内掉落系数 K 的加成目标)是**两回事** ——
 //   那一套在 ExploreState.pendingChallengeBonus 名下, 与本结构毫无关系。
 //
-// 玩法: 在挑战节点花 5 粒子接下 → 本轮与下一轮的**全部战斗**背着 mods 的负面修正 →
-//   下一轮的推进战斗打完立刻结算 rewards(加权二选一)并移除修正。
+// 玩法: 在挑战节点花 5 粒子接下 → 接下来数场战斗背着 mods 的负面修正 →
+//   打赢第 battles 场时立刻结算 rewards(加权二选一)并移除修正。
 //   中途撤离 / 战斗失利 = 白扛, 不发奖。这就是赌注本身。
 export interface TrialDef {
   id: string;
   name: string;
   penaltyDesc: string; // 一行代价说明, HUD 与结算摘要直接读它, 不各写一份
   mods: StatModifier; // 负面属性修正
-  rounds: number; // 持续**轮**数(含接下的当轮), 本期固定 2
+  battles: number; // 持续**战斗场**数(含接下后的第 1 场), 本期固定 2
   rewards: EventOutcome[]; // 到期时掷一次, 复用 EventOutcome 的 weight 加权
 }
 
@@ -179,8 +179,8 @@ export interface ActiveTrial {
   name: string;
   penaltyDesc: string;
   mods: StatModifier;
-  startRound: number;
-  untilRound: number; // 含: 该轮的**推进战斗**打完即结算
+  startBattles: number; // 接下时已打赢的场数
+  untilBattles: number; // 含: 打赢到第几场时结算
   rewards: EventOutcome[];
 }
 
@@ -318,9 +318,11 @@ export type HistorySlot = "node" | "battle";
 
 export interface NodeHistoryEntry {
   slot: HistorySlot;
-  round: number;
-  segment: number; // node: 0-3; battle: -1
+  round: number; // 房间制下 = 事发房间的深度 + 1
+  segment: number; // node: 房内第几件物件; battle: -1
   lane: number; // battle: -1
+  /** 事发房间在小地图上的序号; 结算页的条目标签读它。 */
+  roomLabel?: number;
   eventId: string;
   eventTitle: string;
   eventKind: NodeEventKind;
@@ -366,16 +368,22 @@ export type ExplorePhase =
   | "wiped"; // 团灭
 
 export interface ExploreState {
+  /** 当前房间的横向场景(一屏); 房间之间的连通关系见 dungeon。 */
   corridor: import("./corridor/types").CorridorState | null;
+  /** 整趟远征的房间图 —— 房间制下没有「层」, 一张地图就是一张图。 */
+  dungeon: import("./dungeon/types").DungeonState | null;
   mapId: string;
   difficulty: MapDifficulty;
 
   energy: number; // 净化粒子, 唯一难度轴
   loot: number; // 本趟累积的城市居民积分; 仅撤退/通关时转进城镇
 
-  round: number; // 当前轮号, 从 1 起
-  roundCount: number; // 由地图决定，普通远征为 6 层
-  roundBattleTier: BattleTier; // 本轮生成时抽定的推进战斗档位
+  // ★ 房间制下 round 只表示「当前房间的深度 + 1」(起始房 = 1), 不再是层号。
+  //   战斗档位爬升与事件池 minRound 门槛都读它。
+  round: number;
+  roomCount: number; // 由地图决定的房间总数 = 这张地图的庞大程度
+  roundBattleTier: BattleTier; // 最近一次建立的战斗档位, 供 HUD 与结算读取
+  battlesWon: number; // 本趟已打赢的战斗场数; 挑战契约的倒计时按它走
   board: RouteBoard | null;
 
   party: PartySnapshot[];

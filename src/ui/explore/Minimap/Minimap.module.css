@@ -1,0 +1,166 @@
+/* 房间小地图 —— 右上读数列下方的常驻面板。
+   ⚠ 字号按项目规范以 18px 为下限：这块面板要在行走途中被反复瞥一眼，读不快等于没有。
+   ⚠ 不用 backdrop-filter：外层 StageCanvas 有变换祖先，玻璃取不到背景图。 */
+
+.map {
+  position: absolute;
+  top: 196px;
+  right: 48px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px 18px 14px;
+  border: 1px solid #7fb3a870;
+  background: linear-gradient(155deg, #12232499, #070d0fdd);
+  box-shadow: inset 0 1px 0 #ffffff12, 0 22px 48px -30px #000;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.head span {
+  color: #8fa8a2;
+  font-size: 18px;
+  letter-spacing: 4px;
+}
+
+.head b {
+  color: #d8e6df;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.grid {
+  position: relative;
+  align-self: center;
+}
+
+.links {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.linkSolid {
+  stroke: #74b3a4b0;
+  stroke-width: 3;
+}
+
+.linkDashed {
+  stroke: #5d7a7660;
+  stroke-width: 3;
+  stroke-dasharray: 5 7;
+}
+
+.cell {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #4d6b6660;
+  background: #0a1416cc;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.face {
+  color: #9fb6b0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* 已访问：实心亮格，房间序号清晰可读。 */
+.cell[data-state="visited"] {
+  border-color: #7fc9b6;
+  background: linear-gradient(160deg, #1d3a38, #0d1b1dee);
+}
+
+.cell[data-state="visited"] .face {
+  color: #e7f3ec;
+}
+
+/* 已搜干净：降饱和 + ✓ 角标，一眼区分「还有东西」与「不用回来了」。 */
+.cell[data-explored] {
+  border-color: #5c7b76;
+  background: linear-gradient(160deg, #18262699, #0a1315cc);
+}
+
+.cell[data-explored] .face {
+  color: #8fa39d;
+}
+
+/* 被传送门点亮：位置已知、内容未知。 */
+.cell[data-state="revealed"] {
+  border: 1px dashed #e0b978;
+  background: #1c1710cc;
+}
+
+.cell[data-state="revealed"] .face {
+  color: #e8c98d;
+}
+
+/* 与已访问房相连但尚未点亮的问号占位。 */
+.cell[data-state="hinted"] {
+  border: 1px dashed #46605c;
+  background: #0a1214aa;
+}
+
+.cell[data-state="hinted"] .face {
+  color: #56706b;
+}
+
+/* 玩家当前所在的房间。 */
+.cell[data-current] {
+  border-color: #9ff0d8;
+  box-shadow: 0 0 0 2px #9ff0d840, 0 0 22px #63d9bc55;
+}
+
+.cell[data-current] .face {
+  color: #b8ffe9;
+}
+
+/* 脚下这扇传送门通往的那一格。 */
+.cell[data-target] {
+  animation: mapTargetPulse 1.4s ease-in-out infinite;
+}
+
+.badge {
+  position: absolute;
+  top: -9px;
+  right: -7px;
+  padding: 0 4px;
+  color: #f0d49a;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 1;
+  text-shadow: 0 0 8px #000;
+}
+
+.cell[data-explored] .badge {
+  color: #86b8a3;
+}
+
+.hint {
+  margin: 0;
+  max-width: 320px;
+  color: #86999a;
+  font-size: 18px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.hint[data-live] {
+  color: #f2d79e;
+}
+
+@keyframes mapTargetPulse {
+  0%, 100% { box-shadow: 0 0 0 1px #f0c98a60, 0 0 14px #e2b06e40; }
+  50% { box-shadow: 0 0 0 3px #f0c98ac0, 0 0 30px #e2b06ea0; }
+}

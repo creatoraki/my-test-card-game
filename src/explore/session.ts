@@ -2,11 +2,12 @@
 // 探索会话 —— 纯 TS, 无 React、无副作用。所有函数直接修改传入的 ExploreState,
 // 由 store 层负责 structuredClone 后再调用(与 engine/battle.ts 同惯例)。
 //
-// 当前远征：generateRound → 横向走廊 atNode → 物件 landed → resolving → atNode。
-// 黑影：atNode → encounter → inBattle；中途战胜回原地，终点战胜换层或通关。
-// 位置、交互距离和场景生成在 corridor/；下列路由流程属于保留的旧模式。
+// 当前远征：generateDungeonRun → 房间图 → 进入房间 atNode → 物件 landed → resolving → atNode。
+// 换房间：站上传送门点亮小地图 → 确认传送(−5 粒子) → 落地新房间(见 dungeon/session.ts)。
+// 黑影：atNode → encounter → inBattle；战斗房战胜回原地，BOSS 房战胜即通关。
+// 房间图在 dungeon/，房间内的位置与交互在 corridor/；下列路由流程属于保留的旧模式。
 // 旧路由一轮的生命周期(设计文档 §1.2):
-//   generateRound ─▶ generating ─finishGenerating─▶ sealed ─startReveal─▶ revealing
+//   generateRouteRound ─▶ generating ─finishGenerating─▶ sealed ─startReveal─▶ revealing
 //                                                                          │
 //     advancing ◀─chooseEntry─ choosingEntry ◀─finishReveal────────────────┘
 //         │
@@ -42,7 +43,6 @@ import {
   BLESSING_RELIC_DEFS,
   EVENT_POOLS,
   bondPool,
-  getEncounter,
   getEnemyDef,
   getNpcEvent,
   getEventPool,
@@ -72,7 +72,10 @@ import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
 import { fireExploreRelic } from "./relics";
-import { createCorridorRound, settleCorridorEncounter } from "./corridor/session";
+import { settleCorridorEncounter } from "./corridor/session";
+import { changeEnergy } from "./energy";
+import { generateDungeon } from "./dungeon/generate";
+import { currentRoom, enterRoom, isRoomExplored, syncRoomFromScene } from "./dungeon/session";
 import type {
   BattleTier,
   EnergyTier,
@@ -108,12 +111,10 @@ export function rewardMultiplier(energy: number): number {
   return energyTier(energy).rewardMultiplier;
 }
 
-// 第 seg 个推进段(1-based)的节点基础消耗 —— 分档表见 EXPLORE_RULES.energyPerNodeBySegment。
-// ⚠ 段号越界(0 = 尚未起步 / 4+ = 已走满)一律取最近一档兜底, 调用方不必自己 clamp。
-export function energyCostAt(seg: number): number {
-  const bySeg = EXPLORE_RULES.energyPerNodeBySegment;
-  const index = Math.max(1, Math.min(seg, bySeg.length)) - 1;
-  return bySeg[index];
+// 交互一个事件要花多少粒子 —— 房间制下是固定价(见 EXPLORE_RULES.energyPerInteraction),
+// 「隐匿通道」这类效果留下的 freeNodes 仍可免除。UI 的预告与实际扣费都读这一个口。
+export function interactionCost(s: ExploreState): number {
+  return s.freeNodes > 0 ? 0 : EXPLORE_RULES.energyPerInteraction;
 }
 
 // 统一掉落系数 K =(K_energy + Σ挑战加成 + 额外掉率加成)× K_global —— **全加法合成**(设计文档 §5.1)。
@@ -177,7 +178,7 @@ export function encounterModifier(energy: number): EncounterModifier {
 }
 
 // 能量档位的改造, 合并成引擎认识的那一个结构。
-// 本轮推进战斗的档位。档位在 generateRound 时抽定, 后续读取不再消耗 RNG。
+// 最近一次建立的战斗档位。档位在开战那一刻按房间深度抽定, 后续读取不再消耗 RNG。
 export function battleTierOf(s: ExploreState): BattleTier {
   return s.roundBattleTier;
 }
@@ -201,17 +202,17 @@ function pickWeighted<T extends { weight: number }>(s: ExploreState, options: re
   return options[options.length - 1];
 }
 
-function roundBattleTier(s: ExploreState): BattleTier {
-  const map = mapOf(s);
-  if (map.battleTierByRound?.length) {
-    return map.battleTierByRound[Math.min(s.round - 1, map.battleTierByRound.length - 1)];
-  }
-  const rows = EXPLORE_RULES.battleTierWeights[Math.min(Math.max(s.round, 1), EXPLORE_RULES.battleTierWeights.length) - 1];
-  return pickWeighted(s, rows).tier;
+// 战斗房的档位: 按**当前房间的深度**在权重表里抽。越深越难, 深度超表长取最后一档。
+// ⚠ 地图的 battleTierByRound / battleEncounterByRound 是旧路由模式的排课字段, 房间制不读。
+function pickNodeBattleTier(s: ExploreState): BattleTier {
+  const rows = EXPLORE_RULES.battleTierWeights;
+  const depth = currentRoom(s)?.depth ?? 0;
+  return pickWeighted(s, rows[Math.min(Math.max(depth, 0), rows.length - 1)]).tier;
 }
 
-function pickNodeBattleTier(s: ExploreState): BattleTier {
-  return pickWeighted(s, EXPLORE_RULES.nodeBattleTierWeights).tier;
+// BOSS 房固定 t5 —— 那一场打赢就通关, 不参与深度爬升。
+function bossBattleTier(): BattleTier {
+  return "t5";
 }
 
 function encounterForTier(s: ExploreState, tier: BattleTier): string | null {
@@ -227,13 +228,9 @@ function encounterForTier(s: ExploreState, tier: BattleTier): string | null {
   return shuffle(s, map.battleEncounters[tier] ?? [])[0] ?? null;
 }
 
-// 轮末推进战斗的遭遇战。地图把某一轮钉死时照抄(顺带跳过宝箱怪替换, 教学关靠它排课),
-// 其余轮次仍按档位随机抽。⚠ 只给推进战斗用 —— 节点战斗(战斗签)永远走随机池。
-function roundEncounterFor(s: ExploreState, tier: BattleTier): string | null {
-  const fixed = mapOf(s).battleEncounterByRound?.[s.round - 1];
-  if (!fixed) return encounterForTier(s, tier);
-  getEncounter(fixed); // 地图钉了不存在的 id 时当场抛, 别拖到战斗初始化再炸
-  return fixed;
+// BOSS 房的遭遇战。地图用 battleEncounters.t5 登记, 房间制下不再按轮次钉死。
+function bossEncounterFor(s: ExploreState, tier: BattleTier): string | null {
+  return encounterForTier(s, tier);
 }
 
 // ---------------------------------------------------------------------------
@@ -252,13 +249,15 @@ export function createSession(
   const map = difficultyMapConfig(mapId, difficulty);
   const s: ExploreState = {
     corridor: null,
+    dungeon: null,
     mapId,
     difficulty,
     energy: map.startingEnergy,
     loot: 0,
     round: 1,
-    roundCount: map.roundCount,
+    roomCount: map.roomCount,
     roundBattleTier: "t1",
+    battlesWon: 0,
     board: null,
     party: party.map((p) => ({ ...p })),
     stats: { kills: 0, expTotal: 0, pickups: 0, energySpent: 0 },
@@ -303,13 +302,13 @@ export function createSession(
     recentEventIds: [],
     battleSource: null,
     pendingChallengeBonus: 0,
-    phase: "generating", // 占位: 下面的 generateRound 会重新打一次(第一轮也走完整演出)
+    phase: "generating", // 占位: 下面的 generateDungeonRun 会立刻落到起始房间的 atNode
     rngState: (seed ?? (Date.now() & 0xffffffff)) >>> 0,
     log: [],
   };
 
-  logLine(s, `接入 ${map.name}`);
-  generateRound(s);
+  logLine(s, `接入 ${map.name}（共 ${s.roomCount} 个房间）`);
+  generateDungeonRun(s);
   return s;
 }
 
@@ -322,12 +321,6 @@ export function logLine(s: ExploreState, text: string): void {
 
 function countPickup(s: ExploreState, amount: number): void {
   s.stats.pickups += Math.max(0, amount);
-}
-
-function changeEnergy(s: ExploreState, delta: number): void {
-  const before = s.energy;
-  s.energy = Math.max(0, Math.min(EXPLORE_RULES.energyMax, before + delta));
-  s.stats.energySpent += Math.max(0, before - s.energy);
 }
 
 export function cheatChangeEnergy(s: ExploreState, delta: number): void {
@@ -1033,19 +1026,21 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
     case "START_TRIAL": {
       // 挑战契约允许叠加、到期必须撤掉，和背包遗物是两种独立生命周期。
       const t = e.trial;
-      const untilRound = s.round + Math.max(1, t.rounds) - 1;
+      // 房间制没有轮次, 倒计时改按**战斗场次**: 接下后再打赢 battles 场即结算。
+      const battles = Math.max(1, t.battles);
+      const untilBattles = s.battlesWon + battles;
       s.trials.push({
-        // 允许叠加 ⇒ uid 必须唯一; 同一份契约在不同轮次接两次也不能撞键。
-        uid: `${t.id}-r${s.round}-${s.trials.length}`,
+        // 允许叠加 ⇒ uid 必须唯一; 同一份契约接两次也不能撞键。
+        uid: `${t.id}-b${s.battlesWon}-${s.trials.length}`,
         defId: t.id,
         name: t.name,
         penaltyDesc: t.penaltyDesc,
         mods: structuredClone(t.mods),
-        startRound: s.round,
-        untilRound,
+        startBattles: s.battlesWon,
+        untilBattles,
         rewards: structuredClone(t.rewards),
       });
-      return `接下挑战「${t.name}」· ${t.penaltyDesc}(持续到第 ${untilRound} 轮推进战斗结束)`;
+      return `接下挑战「${t.name}」· ${t.penaltyDesc}(再打赢 ${battles} 场战斗后结算)`;
     }
     case "START_NODE_BATTLE":
       return `进入${BATTLE_TIER_NAME[e.tier ?? s.roundBattleTier]}`;
@@ -1443,10 +1438,11 @@ function finalizeRowKinds(
   }
 }
 
-export function generateRound(s: ExploreState): void {
-  const map = mapOf(s);
-  s.roundBattleTier = map.roundPlans?.[s.round - 1]?.battleTier ?? roundBattleTier(s);
-  createCorridorRound(s);
+/** 建局时生成整张房间图并落到起始房间。一趟远征只调一次 —— 房间制没有「下一层」。 */
+export function generateDungeonRun(s: ExploreState): void {
+  s.dungeon = generateDungeon(s);
+  s.roundBattleTier = "t1";
+  enterRoom(s, s.dungeon.startRoomId);
 }
 
 /** 保留给独立路由组件的旧生成器；远征入口统一使用横向探索。 */
@@ -1482,10 +1478,10 @@ export function generateRouteRound(s: ExploreState): void {
     segments = plan.bridges.map((bridges, index) => ({ index, bridges: bridges.map((bridge) => ({ ...bridge })) }));
     hiddenNodes = [];
     revealDurationMs = plan.revealMs ?? stage.revealMs;
-    s.roundBattleTier = plan.battleTier ?? roundBattleTier(s);
+    s.roundBattleTier = plan.battleTier ?? pickNodeBattleTier(s);
     s.recentEventIds = [...s.recentEventIds];
   } else {
-    s.roundBattleTier = roundBattleTier(s);
+    s.roundBattleTier = pickNodeBattleTier(s);
     // 每段桥接数在本轮次给定的区间里各掷一次 —— 递增曲线由区间表本身保证(rules.rounds)
     const counts = stage.bridges.map(([lo, hi]) => lo + rngInt(s, hi - lo + 1));
 
@@ -1639,8 +1635,8 @@ export function resolveChoice(s: ExploreState, choice: EventChoice, defer = true
   return applyChoiceEffects(s, choice, defer);
 }
 
-// 玩家在落点浮层里选了一支 —— 这里才真的扣粒子、跑效果、写记录。
-// ★ 粒子消耗 = 每节点固定 −3(freeNodes 可免) + 该分支自己的 energyDelta(设计文档 §4.2)。
+// 玩家在物件浮层里选了一支 —— 这里才真的扣粒子、跑效果、写记录。
+// ★ 粒子消耗 = 每次交互固定 −2(freeNodes 可免) + 该分支自己的 energyDelta。
 export function chooseOption(s: ExploreState, index: number): boolean {
   if (s.phase !== "landed" || !s.board || s.currentLane == null || s.currentSegment < 1) {
     console.warn("[explore] 选项未被接受：当前阶段或落点无效", {
@@ -1676,12 +1672,11 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   const notes: string[] = [];
   const historyNotes: string[] = [];
 
-  // ① 节点的基础消耗(按推进段分档, 见 energyCostAt)。「隐匿通道」这类效果免的就是这一份。
-  const segCost = energyCostAt(s.currentSegment);
+  // ① 交互的基础消耗(固定价, 见 interactionCost)。「隐匿通道」这类效果免的就是这一份。
   if (s.freeNodes > 0) {
     s.freeNodes -= 1;
   } else {
-    changeEnergy(s, -segCost);
+    changeEnergy(s, -EXPLORE_RULES.energyPerInteraction);
   }
 
   // ② 分支自己的额外增减
@@ -1734,6 +1729,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   if (s.corridor?.activeObjectId) {
     const object = s.corridor.objects.find((candidate) => candidate.id === s.corridor?.activeObjectId);
     if (object) object.used = true;
+    syncRoomFromScene(s); // 「已探索」标记读的是房间图, 场景里的进度必须回写
   }
   // 记录里带上所选分支 —— 结算页回顾整趟远征时, 玩家要读得出自己当时做了什么决定。
   s.history.push({
@@ -1741,6 +1737,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     round: s.round,
     segment: s.currentSegment - 1,
     lane: s.currentLane,
+    roomLabel: currentRoom(s)?.label,
     eventId: ev.id,
     eventTitle: ev.title,
     eventKind: ev.kind,
@@ -1748,7 +1745,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     choiceLabel: choice.label,
     notes: historyNotes,
   });
-  logLine(s, `第 ${s.round} 轮 · 第 ${s.currentSegment} 段: ${ev.title} · ${choice.label}`);
+  logLine(s, `${currentRoom(s)?.label ?? "?"} 号房间: ${ev.title} · ${choice.label}`);
 
   if (checkWipe(s)) return true;
 
@@ -1759,6 +1756,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   }
 
   if (nodeBattleTier) {
+    s.roundBattleTier = nodeBattleTier; // HUD 与结算读的是这一个
     s.pendingBattleTier = nodeBattleTier;
     s.pendingEncounterId = encounterForTier(s, nodeBattleTier);
     if (!s.pendingEncounterId) return false;
@@ -1768,11 +1766,9 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     return true;
   }
 
-  // 「逆流净化机」: 立即结束本轮推进。把 currentSegment 直接推到走满, atNode 因此
-  // 只剩「前往下一区域」一个出口 —— 不需要为它单开一个状态位。
+  // 「逆流净化机」: 旧路由模式里用来结束本轮推进。房间制没有轮次, 只留一句提示。
   if (endRegion) {
-    s.currentSegment = segCountOf(s);
-    s.pendingNotes = [...notes, "本轮推进到此为止"];
+    s.pendingNotes = [...notes, "这一带已经没什么可找的了"];
   }
 
   if (openTerminal && ev.services?.length) {
@@ -1861,9 +1857,19 @@ export function finishLeaving(s: ExploreState): boolean {
   return true;
 }
 
-// 本轮剩余没走的节点数 —— atNode 的「前往下一区域」按钮要拿它做后果预告(§11.2)。
+// 当前房间还剩几件没处理的可交互物 —— HUD 的「本房剩余」读它。
 export function remainingNodes(s: ExploreState): number {
-  return Math.max(0, segCountOf(s) - s.currentSegment);
+  return currentRoom(s)?.curios.filter((curio) => !curio.used).length ?? 0;
+}
+
+/** 已探索完的房间数 / 已到访的房间数 —— 小地图与结算页读它。 */
+export function roomProgress(s: ExploreState): { visited: number; explored: number; total: number } {
+  const rooms = Object.values(s.dungeon?.rooms ?? {});
+  return {
+    visited: rooms.filter((room) => room.visited).length,
+    explored: rooms.filter((room) => room.visited && isRoomExplored(room)).length,
+    total: rooms.length,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -1881,10 +1887,34 @@ export function roundBattleEvent(s: ExploreState): NodeEvent | null {
   ) ?? null;
 }
 
+/**
+ * 黑影演出结束 → 真正建立战斗(由 store 在动画回调里调用, 与开始演出分开以免重复建局)。
+ * BOSS 房走通关战; 战斗房走房内战斗, 打赢后留在原房间。
+ */
+export function engageRoomThreat(s: ExploreState): boolean {
+  if (s.phase !== "encounter" || !s.corridor?.encounterId) return false;
+  const encounterId = s.corridor.encounterId;
+  const threat = s.corridor.threats.find((candidate) => candidate.id === encounterId);
+  if (!threat) return false;
+  if (currentRoom(s)?.kind === "boss") {
+    s.phase = "atNode";
+    s.entryLane = null;
+    return leaveRegion(s) && engageRoundBattle(s);
+  }
+  s.currentLane = 0;
+  s.currentSegment = threat.nodeIndex + 1;
+  s.pendingNotes = [];
+  s.pendingStory = [];
+  s.phase = "landed";
+  return chooseOption(s, 0);
+}
+
+/** BOSS 房的战斗接缝: 由 engageRoomThreat 调用。 */
 export function engageRoundBattle(s: ExploreState): boolean {
   if (s.phase !== "roundBattle") return false;
-  const tier = battleTierOf(s);
-  const encounterId = roundEncounterFor(s, tier);
+  const tier = bossBattleTier();
+  s.roundBattleTier = tier;
+  const encounterId = bossEncounterFor(s, tier);
   if (!encounterId) return false;
   const eventTitle = roundBattleEvent(s)?.title ?? BATTLE_TIER_NAME[tier];
 
@@ -1893,6 +1923,7 @@ export function engageRoundBattle(s: ExploreState): boolean {
     round: s.round,
     segment: -1,
     lane: -1,
+    roomLabel: currentRoom(s)?.label,
     eventId: s.roundBattleEventId ?? "",
     eventTitle,
     eventKind: "battle",
@@ -1989,14 +2020,14 @@ export function retreatFromBattle(s: ExploreState, survivors: BattleSurvivor[]):
 // ⚠ 第四参是**敌人 defId 列表**而不是数量: 掉落要查每个敌人自己的 dropTable。
 //   数量仍可由 .length 取到, 所以旧口径没有丢失。
 // 挑战契约到期结算(见 explore/types.ts TrialDef)。
-// ★ 只由**轮次推进战斗的胜利**调用 —— 挑战的倒计时是按「轮」走的, 节点战斗不推进轮号。
+// ★ 由**任何一场战斗的胜利**调用 —— 房间制下倒计时按战斗场次走, 战斗房与 BOSS 房同权。
 // 每份到期的契约掷一次自己的 rewards(加权二选一) → 逐条 applyEffect(defer=true,
 // 物品因此进 pendingLoot, 与本场战斗掉落落在同一个战利品盘) → 从 s.trials 摘掉。
 // ⚠ 摘掉这一步不能省: 负面修正就靠 s.trials 存在与否生效(见 runStore.launchBattle)。
 function settleTrials(s: ExploreState): void {
-  const due = s.trials.filter((trial) => trial.untilRound <= s.round);
+  const due = s.trials.filter((trial) => trial.untilBattles <= s.battlesWon);
   if (!due.length) return;
-  s.trials = s.trials.filter((trial) => trial.untilRound > s.round);
+  s.trials = s.trials.filter((trial) => trial.untilBattles > s.battlesWon);
 
   for (const trial of due) {
     const rolled = rollOutcome(s, trial.rewards);
@@ -2020,7 +2051,7 @@ function settleTrials(s: ExploreState): void {
     }
     // ★ 玩家看到这一条的地方是**战斗胜利面板**(ui/battle/VictoryTrialBand), 不是节点浮层 ——
     //   故只写 trialReport 与远征日志, 不碰 pendingNotes/pendingStory:
-    //   那两列归节点浮层消费, 而下一轮的 generateRound 紧接着就会把 pendingNotes 清掉。
+    //   那两列归物件浮层消费, 而下一次进房间时 buildRoomScene 就会把 pendingNotes 清掉。
     s.trialReport.push({ name: trial.name, story: rolled?.text ?? "", notes });
     logLine(s, `挑战达成: ${trial.name} · ${notes.join(" · ") || "没有可结算的奖励"}`);
   }
@@ -2063,6 +2094,7 @@ export function finishBattle(
   }
 
   s.stats.kills += enemyDefIds.length;
+  s.battlesWon += 1; // 挑战契约的倒计时按场次走, 必须在 settleTrials 之前累加
   const wasBoss = s.pendingIsBoss;
   const wasRoundBattle = s.battleSource === "round";
   const wasNodeBattle = s.battleSource === "node";
@@ -2103,29 +2135,23 @@ export function finishBattle(
     last.notes.push(...notes);
   }
 
+  // ★ 挑战到期结算放在所有早退之前 —— 房间制下战斗房与 BOSS 房都推进倒计时。
+  settleTrials(s);
+
   if (wasNodeBattle) {
+    // 战斗房: 黑影清场, 通行恢复, 玩家留在原房间继续搜。
     settleCorridorEncounter(s);
+    syncRoomFromScene(s);
     s.battleSource = null;
     s.phase = "atNode";
     return { loot, items: rolled, overflow: [] };
   }
 
-  // ★ 挑战到期结算必须夹在这两个早退之间:
-  //   · 在节点战斗早退**之后** —— 节点战斗不推进轮号, 不该让倒计时白走一格;
-  //   · 在通关早退**之前** —— 第 5 轮接下的挑战, 到期点正是第 6 轮的 BOSS 战,
-  //     放到下面就永远结算不到(那一支直接 return)。
-  settleTrials(s);
-
-  if (wasBoss || s.round >= s.roundCount) {
-    // BOSS 轮胜利 = 通关。轮次走满但不是 BOSS(理论上不会发生)也按通关收尾。
-    s.phase = "cleared";
-    logLine(s, "回收总控已停机");
-    return { loot, items: rolled, overflow: [] };
-  }
-
-  // 下一轮: 新区域, 新的一张路由图
-  s.round += 1;
-  generateRound(s);
+  // BOSS 房胜利 = 通关。房间制下没有「下一层」, 打完这一场整趟远征就结束。
+  settleCorridorEncounter(s);
+  syncRoomFromScene(s);
+  s.phase = "cleared";
+  logLine(s, "回收总控已停机");
   return { loot, items: rolled, overflow: [] };
 }
 
@@ -2162,12 +2188,9 @@ export function landedShop(s: ExploreState): ShopState | null {
   return s.phase === "shopping" ? s.shop : null;
 }
 
-// 「再推进一个节点, 能量会掉到哪」—— 供 atNode 的后果预告与跨档预警用(§11.2)。
-// ⚠ 预告的是**下一个**节点: 已走完 currentSegment 段, 下一节点是第 currentSegment + 1 段
-//   (energyCostAt 对越界段号自行 clamp 到最后一档, 走满时显示的就是第 4 段的价)。
+// 「再交互一个事件, 能量会掉到哪」—— 供 HUD 的后果预告与跨档预警用。
 export function projectedEnergy(s: ExploreState): number {
-  const cost = s.freeNodes > 0 ? 0 : energyCostAt(s.currentSegment + 1);
-  return Math.max(0, s.energy - cost);
+  return Math.max(0, s.energy - interactionCost(s));
 }
 
 // 本轮玩家的实际推进路径(入口 + 每段落点)。★ 只有 roundBattle 与结算页可以读 ——

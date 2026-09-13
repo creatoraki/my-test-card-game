@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { getItemDef } from "@/data";
 import { CORRIDOR_CURIOS } from "@/data/corridorCurios";
-import { energyCostAt, landedChoices, landedEvent } from "@/explore/session";
+import { interactionCost, landedChoices, landedEvent } from "@/explore/session";
 import { hasCorridorRewards } from "@/explore/corridor/session";
 import type { ExploreState } from "@/explore/types";
 import { countByItemId } from "@/items/inventory";
@@ -42,13 +42,13 @@ export function CurioPanel({ session, onOpenBag, covered }: { session: ExploreSt
           else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
         }
       }}>
-      <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={280} interacting={false} /><span>遗留物件 · 第 {session.round} 层</span></div>
+      <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={280} interacting={false} /><span>遗留物件 · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
       <div className={s.content}>
         <div className={s.eyebrow}>{result ? "搜寻结果" : "驻足调查"}</div>
         <h2 id="curio-heading">{def.name}</h2>
         {!result ? <>
           <p className={s.description}>{event.description}</p>
-          <p className={s.cost}>操作物件消耗 {session.freeNodes > 0 ? 0 : energyCostAt(session.currentSegment)} 点净化粒子 · 离开不消耗</p>
+          <p className={s.cost}>操作物件消耗 {interactionCost(session)} 点净化粒子 · 离开不消耗</p>
           <div className={s.choices}>{landedChoices(session).map((choice, index) => {
             const missing = choice.cost && countByItemId(session.backpack, choice.cost.itemId) < choice.cost.count;
             return <button key={choice.id} type="button" disabled={Boolean(missing)} onClick={() => useRunStore.getState().chooseEventOption(index)}>

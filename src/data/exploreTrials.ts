@@ -1,10 +1,10 @@
 // ============================================================================
-// 挑战节点事件池 —— 探索层唯一一种**跨轮生效**的节点(见 explore/types.ts TrialDef)。
+// 挑战节点事件池 —— 探索层唯一一种**跨房间生效**的节点(见 explore/types.ts TrialDef)。
 //
 // 一句话玩法: 花 5 点净化粒子接下一份契约 →
-//   **接下的当轮与下一轮的全部战斗**(推进战斗 + 节点战斗)都背着一条属性衰减 →
-//   下一轮的推进战斗打完立刻结算奖励并撤掉衰减。
-//   中途撤离 / 战斗失利 = 白扛两轮, 不发奖。这就是赌注本身。
+//   **接下来的 2 场战斗**(战斗房 + BOSS 房)都背着一条属性衰减 →
+//   打赢第 2 场时立刻结算奖励并撤掉衰减。
+//   中途撤离 / 战斗失利 = 白扛, 不发奖。这就是赌注本身。
 //
 // ★ 与别的节点最大的不同: 决策的后果不在这个节点里结束。玩家要算的不是「这一格划不划算」,
 //   而是「我现在的队伍状态, 能不能带着这条 debuff 再打两场」。
@@ -23,11 +23,12 @@
 //   必须写进 description 正文里 —— 那是玩家唯一读得到的地方。
 // ============================================================================
 
+import { EXPLORE_RULES } from "../explore/rules";
 import type { NodeEvent, TrialDef } from "../explore/types";
 import { choice, item, items, outcome, startTrial } from "./exploreEventKit";
 
-// 全部挑战统一持续 2 轮(接下的当轮 + 下一轮)。改这一个数就是改整套机制的时长。
-const TRIAL_ROUNDS = 2;
+// 全部挑战统一持续 2 场战斗。改 rules.ts 的 trialNodes.battles 就是改整套机制的时长。
+const TRIAL_BATTLES = EXPLORE_RULES.eventPool.trialNodes.battles;
 
 // ---------------------------------------------------------------------------
 // 四份契约
@@ -40,7 +41,7 @@ const OVERLOAD_LIMITER: TrialDef = {
   name: "过载限流阀",
   penaltyDesc: "全队攻击力 −30%",
   mods: { pct: { attack: -30 } },
-  rounds: TRIAL_ROUNDS,
+  battles: TRIAL_BATTLES,
   rewards: [
     outcome(
       "cache",
@@ -60,7 +61,7 @@ const MEDICAL_LOCKDOWN: TrialDef = {
   name: "医疗协议封锁",
   penaltyDesc: "治愈力 −35%、治愈强度 −20",
   mods: { pct: { healPower: -35 }, flat: { healBoost: -20 } },
-  rounds: TRIAL_ROUNDS,
+  battles: TRIAL_BATTLES,
   rewards: [
     outcome(
       "stock",
@@ -82,7 +83,7 @@ const GRAVITY_RECALIBRATION: TrialDef = {
   name: "重力校准场",
   penaltyDesc: "闪避率 −20、格挡率 −15",
   mods: { flat: { dodgeRate: -20, blockRate: -15 } },
-  rounds: TRIAL_ROUNDS,
+  battles: TRIAL_BATTLES,
   rewards: [
     outcome(
       "vault",
@@ -104,7 +105,7 @@ const SENSOR_JAMMER: TrialDef = {
   name: "感应干扰塔",
   penaltyDesc: "命中率 −15、暴击率 −20",
   mods: { flat: { hitRate: -15, critRate: -20 } },
-  rounds: TRIAL_ROUNDS,
+  battles: TRIAL_BATTLES,
   rewards: [
     outcome(
       "salvage",
