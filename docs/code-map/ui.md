@@ -134,7 +134,7 @@ src/ui/
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |
 | [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 横向探索主界面，只编排固定设计画布、走廊场景、净化粒子、底部 HUD、奖励和撤离。`ExploreDock` 承载底部整条 HUD；`ExploreInventory` 与 `useExploreInventory` 管理负重读数、用药目标、角色装备和野餐；`CurioPanel` 展示物件选项与结算。物件奖励复用 `RewardOverlay` / `LootPickup`，战斗仍由 `runStore.enterEncounter` 建局。 |
 | [explore/ExploreScreen/ExploreDock](../../src/ui/explore/ExploreScreen/ExploreDock.tsx) | 探索底部整条 HUD：左段队伍立绘、中段 12×2 随身背包、右段野餐与撤离。立绘几何与战斗 `AllyBar` 对齐（500×316、gap 10、取景基准宽 160），两个场景看同一批角色尺寸一致；三段自然高度不同，用 `align-items: end` 底边对齐。HUD 顶边落在 y=748，走廊地平线 `CORRIDOR.floorY` 已相应上移到 680 以免物件名牌被压住。 |
-| [explore/CorridorScene](../../src/ui/explore/CorridorScene/CorridorScene.tsx) | 严格横向行走、镜头跟随、交互目标和行进图。`useCorridorMovement` 管理方向键与字母方向键、触摸按钮、失焦暂停、位置保存和道具交互动画；`CorridorSprite` 播放四格道具精灵图；`CorridorPlayer` 从六帧横向精灵图播放行走动作并以第五帧站立；`ShadowEncounter` 播放黑影破地动画并将战斗转场圆心定位到黑影。 |
+| [explore/CorridorScene](../../src/ui/explore/CorridorScene/CorridorScene.tsx) | 严格横向行走、镜头跟随、交互目标和行进图。`useCorridorMovement` 管理方向键与字母方向键、触摸按钮、失焦暂停、位置保存和道具交互动画；近景组件按左、右两张透明素材拼组并重复铺设，角色与交互物共用布局中的地面下沉量；`CorridorSprite` 播放四格道具精灵图；`CorridorPlayer` 从六帧横向精灵图播放行走动作并以第五帧站立；`ShadowEncounter` 播放黑影破地动画并将战斗转场圆心定位到黑影。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、组装部件栏、组装选择器、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相，`kind: "reveal"` 只播 `SkillCutInCard` 亮相，无前冲/推镜/受击/音效；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。实现拆分为取景纯函数、分镜步翻译、手牌渲染列表、演出闸门、相机、分镜回放、操作分发，以及战场 / HUD / 屏幕特效三个视图 part。 |
 | [battle/BattleScreen/useBattleActions](../../src/ui/battle/BattleScreen/useBattleActions.ts) | 战斗操作编排：处理普通出牌、无明出牌前弃牌预选、赤潮/纳刀手牌选择、牌堆回收与组装选择，并将选择结果提交回引擎。 |
 | [battle/ChallengeRail](../../src/ui/battle/ChallengeRail/ChallengeRail.tsx) | 战斗左上角的两条随机挑战词条；从 `BattleState` 逐帧读取 `ok` / `breaking` / `broken` 状态，并展示规则、掉落加成与打破结果。 |
@@ -292,7 +292,7 @@ src/ui/
 | [art/statusArt.ts](../../src/ui/art/statusArt.ts) | 状态 id → 状态图标 PNG 与预热源；护盾图标值单列导出。 |
 | [art/assetLoader.ts](../../src/ui/art/assetLoader.ts) | 可复用的低优先级图片下载/解码与视频首帧预加载器；按 URL 去重，并限制图片并发以避免抢占交互资源。 |
 | [art/assetPreloader.ts](../../src/ui/art/assetPreloader.ts) | 游戏启动时的实际美术资源清单、去重、进度和失败收口；不扫描未引用的 `assets` 文件。 |
-| [art/corridorArt.ts](../../src/ui/art/corridorArt.ts) | 废弃楼层走廊背景与道具素材映射、预载来源登记；缺少专属图的物件使用宝箱素材。 |
+| [art/corridorArt.ts](../../src/ui/art/corridorArt.ts) | 废弃楼层走廊背景与道具素材映射、预载来源登记；近景登记左右两张拼接素材，缺少专属图的物件使用宝箱素材。 |
 | [art/itemArt.tsx](../../src/ui/art/itemArt.tsx) | 物品图标（内联 SVG 或 `<img>`）；SVG 全用 `stroke="currentColor"`，颜色吃父级 `--rr`。 |
 | [hooks/useGameAssetPreload.ts](../../src/ui/hooks/useGameAssetPreload.ts) | 将启动预加载状态接入 React 外部 store；主菜单等待所有资源任务 settle 后开放入口。 |
 | [hooks/useBgm.ts](../../src/ui/hooks/useBgm.ts) | 订阅 `runStore.screen` 并驱动据点/战斗 BGM 切换；电梯场景返回 null 表示停播；测试页可关闭。 |

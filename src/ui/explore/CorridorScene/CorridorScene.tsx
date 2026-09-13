@@ -19,7 +19,7 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
     <CorridorAbyss />
     <div className={s.haze} aria-hidden />
     <div className={s.world} style={{ width: corridor.width, transform: `translateX(${-camera}px)` }}>
-      <CorridorNear />
+      <CorridorNear width={corridor.width} />
       {corridor.objects.map((object) => {
         const def = CORRIDOR_CURIOS[object.kind];
         const selected = movement.target?.id === object.id && !blocked;

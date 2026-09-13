@@ -5,17 +5,15 @@
 登记，并纳入启动预载；分层尺寸与地面对齐参数集中在 `ui/explore/CorridorScene/corridorLayout.ts`。
 
 - `废弃楼层/无限远景.png`：3285×948 可无缝横向循环的赛博城市远景，按 1080px 高度缩放平铺。
-- `废弃楼层/无限近景.png`：3315×948 可无缝横向循环的前景平台，**白底不透明**，运行时不直接使用。
-- `废弃楼层/无限近景-透明.png`：上一张的抠底产物，实际参与渲染。由
-  `node scripts/white-cut.mjs "src/assets/explore-corridor/废弃楼层/无限近景.png" "src/assets/explore-corridor/废弃楼层/无限近景-透明.png"`
-  生成；美术更新近景后重跑即可。素材里的平台顶面落在缩放后的 y≈670，近景整体下移
-  `CORRIDOR.floorY - 670` 后与地面线重合。
+- `废弃楼层/无限近景-左.png`、`无限近景-右.png`：两张 2048×1177 透明近景半图，运行时按左、右顺序拼成一组并重复铺满走廊；按 1080px 高缩放后单组约 3758px 宽。平台顶面位于素材 y≈751，缩放后约为 y≈689，近景整体定位到 `CORRIDOR.floorY - 689`。
+- `废弃楼层/无限近景-透明.png`：旧版单张近景，保留作旧素材归档，不再参与运行时渲染。
 - `废弃楼层/传送门.png`、`售货机.png`、`宝箱.png`、`雕像.png`：四格横向精灵图；首格为静止构图，后三格为交互动画。
   每格底部各有一段透明留白(宝箱 16.8%、传送门 15.2%、售货机 4.4%、雕像 3.7%，由
   `node scripts/alpha-bbox.mjs <图> --frames 4 --alpha 24` 实测)，登记在 `CORRIDOR_PROP_GROUND_TRIM`，
   渲染时用负外边距吃掉，物件才能真正踩在地面线上。
 - `移动精灵图（第五张是站立）.png`：炼金术士六帧横向精灵图；第五帧用于站立，其余五帧组成行走循环。
-  底部留白约 6.9%，由 `CorridorScene.module.css` 的 `.player` 偏移补偿。
+  底部留白约 6.9%，由 `CorridorScene.module.css` 的 `.player` 偏移补偿；角色与交互物再共用
+  `CORRIDOR_LAYOUT.entityGroundOffset` 对齐新近景地面。
 - 道具按物件类型映射对应素材；未配置专属图的物件回退到宝箱图。黑影与破地动画仍由 `ShadowEncounter` 独立绘制。
 - 旧版 `废弃楼层/背景.png`、`corridor.png`、`ground.png`、`sprites.png` 保留在目录中，不再用于当前走廊场景。
 

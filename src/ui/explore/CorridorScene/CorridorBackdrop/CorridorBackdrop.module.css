@@ -1,3 +1,5 @@
 .far { position: absolute; inset: 0; z-index: 0; background-repeat: repeat-x; will-change: background-position; }
 .abyss { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; background: #000; }
-.near { position: absolute; left: 0; right: 0; z-index: 1; background-repeat: repeat-x; }
+.near { position: absolute; left: 0; z-index: 1; }
+.nearTile { position: absolute; top: 0; height: 100%; }
+.nearHalf { position: absolute; top: 0; height: 100%; background-repeat: no-repeat; background-size: 100% 100%; }
