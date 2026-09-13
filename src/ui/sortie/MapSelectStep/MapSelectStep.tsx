@@ -43,12 +43,13 @@ export function MapSelectStep({
   const selectedIndex = selected ? Math.max(0, maps.findIndex((map) => map.id === selected.id)) : 0;
   const mapCount = maps.length;
 
-  const { virtualIndex, isMoving, isResetting, shift, listRef, select, onWheel, onListTransitionEnd } =
+  const { virtualIndex, isMoving, isResetting, shift, listRef, select, onListTransitionEnd } =
     useInfiniteBand({
       active,
       count: mapCount,
       selectedIndex,
       sliceStep: 162,
+      wheelOnWindow: true,
       onSelect: (index) => {
         const nextId = maps[index]?.id;
         if (nextId) onSelectMap(nextId);
@@ -68,7 +69,7 @@ export function MapSelectStep({
       aria-label="目标层选择"
     >
       <MapSelectChrome />
-      <div className={cx(s["sm-band"], intro && s["sm-band-intro"], entering && s["sm-band-enter"])} onWheel={onWheel}>
+      <div className={cx(s["sm-band"], intro && s["sm-band-intro"], entering && s["sm-band-enter"])}>
         <div className={s["sm-band-heading"]} aria-hidden="true">
           <span>····<br />···−</span><i />行动区域 <b>／／</b>
         </div>

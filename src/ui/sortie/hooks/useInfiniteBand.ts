@@ -14,7 +14,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type RefObject,
   type TransitionEvent,
 } from "react";
 
@@ -43,8 +42,8 @@ interface Options {
   sliceStep?: number;
   /** 两次滚轮之间的最小间隔(ms) */
   wheelGapMs?: number;
-  /** 传了就把原生 wheel 监听挂到该元素上; 否则调用方自己用返回的 onWheel */
-  wheelTarget?: RefObject<HTMLElement | null>;
+  /** 激活时把原生 wheel 监听挂到 window */
+  wheelOnWindow?: boolean;
 }
 
 export function useInfiniteBand({
@@ -54,7 +53,7 @@ export function useInfiniteBand({
   onSelect,
   sliceStep = DEFAULT_SLICE_STEP,
   wheelGapMs = DEFAULT_WHEEL_GAP_MS,
-  wheelTarget,
+  wheelOnWindow = false,
 }: Options) {
   const wheelAtRef = useRef(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -217,11 +216,10 @@ export function useInfiniteBand({
   }, [active, step, wheelGapMs]);
 
   useEffect(() => {
-    const target = wheelTarget?.current;
-    if (!target) return;
-    target.addEventListener("wheel", onWheel);
-    return () => target.removeEventListener("wheel", onWheel);
-  }, [onWheel, wheelTarget]);
+    if (!active || !wheelOnWindow) return;
+    window.addEventListener("wheel", onWheel);
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [active, onWheel, wheelOnWindow]);
 
   const onListTransitionEnd = useCallback((event: TransitionEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget && event.propertyName === "transform") finishMove();

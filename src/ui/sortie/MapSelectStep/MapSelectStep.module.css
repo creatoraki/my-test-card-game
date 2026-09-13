@@ -18,13 +18,14 @@
 .sm-band {
   position: absolute;
   top: 0;
-  left: 1385px;
+  left: 1300px;
   width: 560px;
   height: 1080px;
   transform: skewX(var(--band-skew));
   transform-origin: 0 0;
   border-left: 1px solid #e2eff8ba;
-  box-shadow: -16px 0 40px #0005, inset 10px 0 30px #c3dff00a;
+  border-right: 1px solid #e2eff8ba;
+  box-shadow: -16px 0 40px #0005, 16px 0 40px #0005, inset 10px 0 30px #c3dff00a, inset -10px 0 30px #c3dff00a;
 }
 
 .sm-band-heading,
@@ -48,10 +49,10 @@
 
 .sm-band::before {
   position: absolute;
-  inset: 0 -300px 0 0;
+  inset: 0;
   z-index: -1;
   content: "";
-  background: radial-gradient(ellipse at 20% 0, #7c95a440, transparent 32%), radial-gradient(ellipse at 75% 100%, #67798524, transparent 26%), linear-gradient(100deg, #0b1016f5, #060b10eb 70%, #0c1418ed);
+  background: radial-gradient(ellipse at 20% 0, #7c95a440, transparent 32%), radial-gradient(ellipse at 75% 100%, #67798524, transparent 26%), linear-gradient(100deg, #0b1016f5, #060b10eb 62%, #0c1418ed);
   pointer-events: none;
 }
 
