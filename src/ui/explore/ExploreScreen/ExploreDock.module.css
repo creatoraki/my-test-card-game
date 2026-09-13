@@ -1,0 +1,35 @@
+/* 探索底部整条 HUD：立绘 | 背包(12×2) | 操作按钮竖排。
+   几何与战斗底部 HUD 对齐 —— 立绘段 500×316、贴边留白 16px 均取自
+   battle/BattleScreen/BattleScreen.module.css 的 --hud-party-w / --canvas-pad
+   与 battle/AllyBar 的条高，两个场景看同一批角色时尺寸必须一致。
+   ⚠ 三段自然高度不同(背包面板约 280px)，用 align-items: end 让底边对齐，
+     不要拉伸面板 —— 格子是 aspect-ratio:1 的方格，拉高只会把版式撑坏。 */
+.dock {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  height: 316px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 500px minmax(0, 1fr) 260px;
+  gap: 12px;
+  align-items: end;
+}
+
+.party { width: 500px; }
+.partyMembers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.memberSlot { position: relative; min-width: 0; }
+.memberName { position: absolute; left: 12px; top: 9px; font-size: 18px; color: #f2debe; text-shadow: 0 2px 8px #000; pointer-events: none; }
+/* 卡高/取景高/取景基准宽刻意不覆盖 —— PartyMemberCard 的默认值(316/268/160)
+   就是战斗侧的规格，留空即为「与战斗相同」。 */
+.member { width: 100%; cursor: pointer; background: #101b20c9; border-color: #a8926033; }
+.member:hover { border-color: #d3b67c99; }
+.member span, .member b, .member strong { font-size: max(18px, 1em); }
+
+.backpack { min-width: 0; }
+.backpack[data-locked] { pointer-events: none; }
+
+.actions { display: flex; flex-direction: column; align-items: stretch; gap: 22px; }
+.actions .retreat { padding: 17px 24px; font-size: 21px; background: #111b20e6; border: 1px solid #a16f5544; color: #cba18d; }
+.actions .retreat:disabled { opacity: .4; }

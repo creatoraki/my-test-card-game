@@ -1,6 +1,7 @@
 .scene { position: absolute; inset: 0; overflow: hidden; background: #080e11; color: #e9ddc9; font-size: 18px; }
-.backdrop { position: absolute; inset: 0 0 190px; background-repeat: repeat-x; background-size: auto 890px; will-change: background-position; }
-.haze { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #050a0dd9 0%, transparent 32%, transparent 67%, #080e11 84%); }
+/* 地平线(CORRIDOR.floorY = 680)要给底部 316px 的 HUD 让位：背景图底边仍比地板低 144px。 */
+.backdrop { position: absolute; inset: 0 0 256px; background-repeat: repeat-x; background-size: auto 890px; will-change: background-position; }
+.haze { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, #050a0dd9 0%, transparent 32%, transparent 61%, #080e11 78%); }
 .world { position: absolute; inset: 0 auto 0 0; height: 1080px; will-change: transform; }
 .sectorMark { position: absolute; font-size: 20px; color: #b9ceca70; letter-spacing: 6px; pointer-events: none; }
 .object { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; z-index: 5; }
@@ -38,14 +39,11 @@
 .mapUsed { opacity: .3; }
 .mapPlayer { position: absolute; width: 12px; height: 12px; top: -5px; border-radius: 50%; background: #ffdea5; box-shadow: 0 0 12px #ffcc74; transform: translateX(-50%); }
 .navigation p { text-align: center; color: #87948f; font-size: 18px; margin: 0; }
-.interaction { position: absolute; top: 808px; left: 680px; width: 560px; text-align: center; z-index: 25; }
-.interactionEyebrow { display: block; font-size: 18px; color: #b9ac91; margin-bottom: 9px; letter-spacing: 3px; }
-.interaction button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 17px 22px; border: 1px solid #a98e5c; background: linear-gradient(110deg, #312a1d, #111a1c); color: #f1d6a3; box-shadow: 0 8px 36px #0006; }
+/* 交互按钮与移动按钮同处底部 HUD(顶边 y=748)上沿的一条带里，横向错开。 */
+.interaction { position: absolute; bottom: 348px; left: 680px; width: 560px; text-align: center; z-index: 25; }
+.interaction button { width: 100%; display: flex; justify-content: center; align-items: center; gap: 14px; padding: 17px 22px; border: 1px solid #a98e5c; background: linear-gradient(110deg, #312a1d, #111a1c); color: #f1d6a3; box-shadow: 0 8px 36px #0006; }
 .interaction strong { font-size: 23px; font-weight: 500; }
-.interaction button span { font-size: 18px; color: #b5ad9c; }
-.interaction p { font-size: 20px; color: #9da69c; margin-top: 40px; letter-spacing: 3px; }
-.controls { position: absolute; bottom: 28px; left: 710px; width: 510px; z-index: 20; display: flex; align-items: center; gap: 20px; }
-.controls p { font-size: 18px; line-height: 1.8; color: #a6aaa1; margin: 0; }
+.controls { position: absolute; bottom: 348px; left: 1270px; z-index: 20; display: flex; align-items: center; }
 .moveButtons { display: flex; gap: 7px; }
 .moveButtons button { width: 48px; height: 56px; padding: 0; font-size: 24px; color: #d7bc8b; border: 1px solid #8d795355; background: #10191bf0; touch-action: none; }
 @keyframes walk { 0%, 100% { transform: translateY(0) rotate(-1.3deg); } 25% { transform: translateY(-7px) rotate(.8deg); } 50% { transform: translateY(-1px) rotate(1.3deg); } 75% { transform: translateY(-7px) rotate(-.8deg); } }

@@ -32,7 +32,7 @@ export interface CorridorState {
 export const CORRIDOR = {
   width: 5600,
   startX: 220,
-  floorY: 746,
+  floorY: 680,
   speed: 340,
   interactionRadius: 190,
   encounterRadius: 190,

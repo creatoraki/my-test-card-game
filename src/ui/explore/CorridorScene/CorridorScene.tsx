@@ -17,7 +17,7 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
     <div className={s.backdrop} style={{ backgroundImage: `url(${background})`, backgroundPositionX: -camera * .72 }} />
     <div className={s.haze} aria-hidden />
     <div className={s.world} style={{ width: corridor.width, transform: `translateX(${-camera}px)` }}>
-      {Array.from({ length: 6 }, (_, index) => <div className={s.sectorMark} key={index} style={{ left: index * 1050 + 130, top: 370 }}>第 {corridor.round} 层 · {index + 1} 区</div>)}
+      {Array.from({ length: 6 }, (_, index) => <div className={s.sectorMark} key={index} style={{ left: index * 1050 + 130, top: 304 }}>第 {corridor.round} 层 · {index + 1} 区</div>)}
       {corridor.objects.map((object) => {
         const def = CORRIDOR_CURIOS[object.kind];
         const selected = movement.target?.id === object.id && !blocked;
@@ -32,7 +32,7 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
         </div>;
       })}
       {corridor.threats.filter((threat) => !threat.defeated && threat.id !== corridor.encounterId).map((threat) => <div key={threat.id} className={s.dormant} style={{ left: threat.x, top: CORRIDOR.floorY }} aria-hidden><i /><span /></div>)}
-      <div className={s.exit} style={{ left: corridor.width - 235, top: 458 }}><span>{finalFloor ? "总控室" : "下层通道"}</span><i /></div>
+      <div className={s.exit} style={{ left: corridor.width - 235, top: 392 }}><span>{finalFloor ? "总控室" : "下层通道"}</span><i /></div>
       <div className={s.player} style={{ left: movement.x, top: CORRIDOR.floorY }}>
         <span className={s.playerShadow} />
         <div className={s.actorDirection} style={{ transform: `scaleX(${movement.facing})` }}>
@@ -54,11 +54,8 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
       </div>
       <p>沿走廊深入 · 黑影出现后自动迎战</p>
     </div>
-    {!blocked && <div className={s.interaction}>
-      {targetDef && movement.target ? <>
-        <span className={s.interactionEyebrow}>{movement.nearby.length > 1 ? `附近有 ${movement.nearby.length} 个目标 · 上下切换` : "发现可交互物件"}</span>
-        <button type="button" onClick={() => movement.interact()}><strong>{targetDef.verb} · {targetDef.name}</strong><span>空格 / 回车</span></button>
-      </> : <p>向前探索，靠近物件后交互</p>}
+    {!blocked && targetDef && movement.target && <div className={s.interaction}>
+      <button type="button" onClick={() => movement.interact()}><strong>{targetDef.verb} · {targetDef.name}</strong></button>
     </div>}
     <div className={s.controls}>
       <div className={s.moveButtons}>
@@ -66,7 +63,6 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
           onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); movement.startPointer(direction); }}
           onPointerUp={movement.stop} onPointerCancel={movement.stop} onLostPointerCapture={movement.stop}>{direction < 0 ? "←" : "→"}</button>)}
       </div>
-      <p>左右行走 · 上下切换目标<br />空格 / 回车交互 · 也支持字母方向键</p>
     </div>
   </div>;
 }

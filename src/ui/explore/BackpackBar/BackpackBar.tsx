@@ -8,8 +8,8 @@ import type { ItemStack } from "@/items/types";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import s from "./BackpackBar.module.css";
 
-const COLS = 8;
-const ROWS = 3;
+const COLS = 12;
+const ROWS = 2;
 
 export default function BackpackBar({
   onUseItem,
