@@ -29,7 +29,7 @@ export function CurioPanel({ session, onOpenBag, covered }: { session: ExploreSt
     panel.current.inert = covered;
     if (!covered) panel.current.focus();
   }, [covered]);
-  if (!event || !def) return null;
+  if (!event || !def || !object) return null;
 
   return <div className={s.backdrop}>
     <section ref={panel} className={s.panel} role="dialog" aria-modal="true" aria-labelledby="curio-heading" tabIndex={-1}
@@ -42,7 +42,7 @@ export function CurioPanel({ session, onOpenBag, covered }: { session: ExploreSt
           else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
         }
       }}>
-      <div className={s.art}><span className={s.artHalo} /><CorridorSprite index={def.sprite} size={330} /><span>遗留物件 · 第 {session.round} 层</span></div>
+      <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={280} interacting={false} /><span>遗留物件 · 第 {session.round} 层</span></div>
       <div className={s.content}>
         <div className={s.eyebrow}>{result ? "搜寻结果" : "驻足调查"}</div>
         <h2 id="curio-heading">{def.name}</h2>
