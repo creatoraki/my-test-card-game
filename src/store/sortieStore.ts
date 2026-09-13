@@ -117,7 +117,7 @@ function syncAidSupply(
   let result = addToContainer(backpack, aidStacks, getItemDef, RULES.burden.backpackSlots);
 
   while (result.overflow.length) {
-    // 重试前剔除已装入的援助物资，再从末尾退回自备物资腾格子。
+    // 重试前剔除已装入的配额物资，再从末尾退回自备物资腾格子。
     backpack = result.next.filter((stack) => !isDisposable(stack));
     const lastOwned = [...backpack].reverse().find((stack) => !isDisposable(stack));
     if (!lastOwned) break;

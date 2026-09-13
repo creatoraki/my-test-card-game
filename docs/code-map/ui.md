@@ -91,7 +91,7 @@ src/ui/
 | [sortie/sortieStepTransition.ts](../../src/ui/sortie/sortieStepTransition.ts) | 出击地图选择 ↔ 物资准备的真实 DOM 步骤动画 hook；同步切换唯一可见步骤，提供 460ms 入场状态和过场交互锁。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：右侧深色斜栏以 162px 步进循环切换地图，中央卡片放大并显示冷蓝描边、当前徽标与定位圆环；相邻卡片各向外让位 21px。`MapSelectChrome` 持有页眉与全屏装饰线。地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
-| [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 左侧独立难度框与并排奖励框：按 `mapDifficulty` 显示逐级解锁的三档难度、锁定原因和物品预览；援助物资按地图和难度现算。新手关卡与未开放地图不显示。 |
+| [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 左侧独立难度框与并排奖励框：按 `mapDifficulty` 显示逐级解锁的三档难度、锁定原因和物品预览；新手关卡隐藏难度区但保留占位并展示配额物资与通关奖励，未开放地图仍不显示。 |
 | [sortie/PanelItemRow](../../src/ui/sortie/MapSelectStep/PanelItemRow.tsx) | 奖励面板与独立切角物品格；使用 `itemIcon` 现有素材，完整显示数量（含 ×1），复用悬浮定位与 `SortieTooltip`，样式由同名 CSS Module 持有。 |
 | [sortie/SortieFrame](../../src/ui/sortie/SortieFrame/SortieFrame.tsx) | 出击界面的 SVG 切角框：按设计尺寸绘制双层细描边、金属角片和选中辉光，由任务框、难度按钮、奖励格、地图卡及导航复用。`SortieGlyph` 提供配套的单色矢量图标。 |
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列遗物携带窗口、仓库消耗品速取条与补给货架，右上背包，右下售货机器人，舞台左上角终端积分；遗物窗口的编辑面板由出击页根层挂载。 |

@@ -20,7 +20,7 @@ export type VendorLineKind =
   | "poor" // 积分不够
   | "full" // 背包塞不下
   | "takeStorage" // 从仓库取了消耗品
-  | "aid"; // 点击援助物资，只说明它的来源与规则
+  | "aid"; // 点击配额物资，只说明它的来源与规则
 
 export const VENDOR_LINES: Record<VendorLineKind, readonly string[]> = {
   greet: [
@@ -78,7 +78,7 @@ export const VENDOR_LINES: Record<VendorLineKind, readonly string[]> = {
   ],
   aid: [
     "那是总部配发的，带不走也退不掉。",
-    "援助物资归远征使用，回城后会自动销毁。",
+    "配额物资归远征使用，回城后会自动销毁。",
     "别费心了，这几件不能退回仓库，也不能寄件。",
     "总部给的补给，放心用，回程时我会收回记录。",
   ],

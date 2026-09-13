@@ -164,6 +164,27 @@ export function rollPerfectness(def: ItemDef, roll: EquipRoll): number {
   return roll.budget - calculateRefund(def.model, roll.cost);
 }
 
+/** 完美度 +amount：预算与词条点数一起加；已达模型上限或词条无余量时原样返回。 */
+export function bumpPerfectness(
+  def: ItemDef,
+  roll: EquipRoll,
+  pick: (n: number) => number,
+  amount = 1,
+): EquipRoll {
+  const model = def.model;
+  if (!model) return roll;
+
+  const gain = Math.min(amount, model.budget.max - rollPerfectness(def, roll));
+  if (gain <= 0) return roll;
+  if (!model.affixes.some((affix) => (roll.points[affix.stat] ?? 0) < affix.max)) {
+    return roll;
+  }
+
+  const points = { ...roll.points };
+  distribute(model, points, gain, pick);
+  return { ...roll, budget: roll.budget + gain, points };
+}
+
 export function upgradeEquipment(
   roll: EquipRoll,
   nextDef: ItemDef,

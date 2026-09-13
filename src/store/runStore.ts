@@ -345,7 +345,7 @@ function bankEverything(session: {
         .slice(0, SORTIE_RELIC_LIMIT),
     );
   }
-  // 援助物资在探索途中仍可使用，故不能提前删除；这里是远征结束时统一销毁它们的唯一真相点。
+  // 配额物资在探索途中仍可使用，故不能提前删除；这里是远征结束时统一销毁它们的唯一真相点。
   // ★ 换金物在这一步**直接变现**(town.depositHaul), 不进仓库 —— 它带回据点后本来就只有
   //   「去回收台卖掉」一条路; 其余物资照旧入仓。结算页展示的换金价值用同一套 sellPriceOf 现算。
   town.depositHaul([...session.shipped, ...session.backpack].filter((stack) => !stack.disposable));

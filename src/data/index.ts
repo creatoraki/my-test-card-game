@@ -90,8 +90,14 @@ export {
   type MapDifficulty,
   type MapDifficultyDef,
 } from "./mapDifficulty";
+export {
+  FIXED_CLEAR_REWARDS,
+  fixedClearRewardOf,
+  type MapClearRewardDef,
+} from "./mapClearReward";
 export { rollAllDailyClearRewards, rollDailyClearReward } from "./mapDailyReward";
 export {
+  AID_SUPPLY_MAP_OVERRIDES,
   AID_SUPPLY_OVERRIDES,
   DEFAULT_AID_SUPPLY,
   aidSupplyOf,

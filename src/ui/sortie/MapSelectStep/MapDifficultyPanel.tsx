@@ -6,6 +6,7 @@ import {
   makeAidSupplyStacks,
   MAP_DIFFICULTY_IDS,
   mapHasDifficulty,
+  fixedClearRewardOf,
   type MapDifficulty,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
@@ -39,8 +40,9 @@ export function MapDifficultyPanel({
     point: TooltipPoint;
   } | null>(null);
   const aidStacks = useMemo(() => makeAidSupplyStacks(mapId, difficulty), [mapId, difficulty]);
+  const hasDifficulty = mapHasDifficulty(mapId);
 
-  if (!mapHasDifficulty(mapId)) return null;
+  if (!hasDifficulty && !fixedClearRewardOf(mapId)) return null;
 
   const grouped = rewards.reduce<Record<string, ItemStack>>((result, stack) => {
     const existing = result[stack.itemId];
@@ -54,64 +56,73 @@ export function MapDifficultyPanel({
       className={s.panel}
       data-active={active}
       aria-hidden={!active}
-      aria-label="难度、援助物资与每日奖励"
+      aria-label={hasDifficulty ? "难度、配额物资与每日奖励" : "配额物资与通关奖励"}
     >
-      <div className={s.difficultySection}>
-      <div className={s.surface} />
-      <SortieFrame width={814} height={176} />
-      <h2 className={s.heading}><SortieGlyph name="sliders" className={s.headingIcon} />难度选择<span className={s.headingSlash}>／／</span><span className={s.headingDots} aria-hidden="true">···•</span></h2>
-      <div className={s.difficultyRow} aria-label="选择地图难度">
-        {MAP_DIFFICULTY_IDS.map((id) => {
-          const definition = getMapDifficulty(id);
-          const unlocked = isDifficultyUnlocked(mapId, id, clearedKeys);
-          const reason = difficultyLockReason(mapId, id, clearedKeys);
-          return (
-            <span
-              key={id}
-              className={s.lockTarget}
-              data-locked={!unlocked || undefined}
-              tabIndex={!unlocked && active ? 0 : -1}
-              onPointerEnter={(event) => {
-                if (!reason) return;
-                setLockTooltip({
-                  name: definition.name,
-                  reason,
-                  point: tooltipPointFromElement(event.currentTarget, "top"),
-                });
-              }}
-              onPointerLeave={() => setLockTooltip(null)}
-              onFocus={(event) => {
-                if (!reason) return;
-                setLockTooltip({
-                  name: definition.name,
-                  reason,
-                  point: tooltipPointFromElement(event.currentTarget, "top"),
-                });
-              }}
-              onBlur={() => setLockTooltip(null)}
-            >
-              <button
-                className={s.difficultyButton}
-                type="button"
-                disabled={!active || !unlocked}
-                aria-pressed={difficulty === id}
-                onClick={() => onSelect(id)}
-              >
-                <span className={s.buttonSurface} />
-                <SortieFrame width={239.33} height={102} notch={10} metal={false} selected={difficulty === id} />
-                <SortieGlyph name={!unlocked ? "lock" : id === "normal" ? "beacon" : id === "hard" ? "skull" : "abyss"} className={s.difficultyIcon} />
-                <span className={s.difficultyName}>{definition.name}</span>
-                {!unlocked && <span className={s.lockCaption}>未解锁</span>}
-              </button>
-            </span>
-          );
-        })}
-      </div>
-      </div>
+      {hasDifficulty ? (
+        <div className={s.difficultySection}>
+          <div className={s.surface} />
+          <SortieFrame width={814} height={176} />
+          <h2 className={s.heading}><SortieGlyph name="sliders" className={s.headingIcon} />难度选择<span className={s.headingSlash}>／／</span><span className={s.headingDots} aria-hidden="true">···•</span></h2>
+          <div className={s.difficultyRow} aria-label="选择地图难度">
+            {MAP_DIFFICULTY_IDS.map((id) => {
+              const definition = getMapDifficulty(id);
+              const unlocked = isDifficultyUnlocked(mapId, id, clearedKeys);
+              const reason = difficultyLockReason(mapId, id, clearedKeys);
+              return (
+                <span
+                  key={id}
+                  className={s.lockTarget}
+                  data-locked={!unlocked || undefined}
+                  tabIndex={!unlocked && active ? 0 : -1}
+                  onPointerEnter={(event) => {
+                    if (!reason) return;
+                    setLockTooltip({
+                      name: definition.name,
+                      reason,
+                      point: tooltipPointFromElement(event.currentTarget, "top"),
+                    });
+                  }}
+                  onPointerLeave={() => setLockTooltip(null)}
+                  onFocus={(event) => {
+                    if (!reason) return;
+                    setLockTooltip({
+                      name: definition.name,
+                      reason,
+                      point: tooltipPointFromElement(event.currentTarget, "top"),
+                    });
+                  }}
+                  onBlur={() => setLockTooltip(null)}
+                >
+                  <button
+                    className={s.difficultyButton}
+                    type="button"
+                    disabled={!active || !unlocked}
+                    aria-pressed={difficulty === id}
+                    onClick={() => onSelect(id)}
+                  >
+                    <span className={s.buttonSurface} />
+                    <SortieFrame width={239.33} height={102} notch={10} metal={false} selected={difficulty === id} />
+                    <SortieGlyph name={!unlocked ? "lock" : id === "normal" ? "beacon" : id === "hard" ? "skull" : "abyss"} className={s.difficultyIcon} />
+                    <span className={s.difficultyName}>{definition.name}</span>
+                    {!unlocked && <span className={s.lockCaption}>未解锁</span>}
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className={s.difficultyPlaceholder} aria-hidden="true" />
+      )}
 
       <div className={s.rewards}>
-        <PanelItemRow title="固定赠送道具" kind="aid" stacks={aidStacks} active={active} />
-        <PanelItemRow title="当前地图额外物品奖励" kind="daily" stacks={Object.values(grouped)} active={active} />
+        <PanelItemRow title="配额物资" kind="aid" stacks={aidStacks} active={active} />
+        <PanelItemRow
+          title={hasDifficulty ? "当前地图额外物品奖励" : "通关奖励"}
+          kind="daily"
+          stacks={Object.values(grouped)}
+          active={active}
+        />
       </div>
 
       {active && lockTooltip && (

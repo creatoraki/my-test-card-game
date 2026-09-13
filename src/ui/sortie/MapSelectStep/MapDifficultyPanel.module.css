@@ -20,6 +20,11 @@
   filter: drop-shadow(0 8px 12px #0005);
 }
 
+.difficultyPlaceholder {
+  width: 814px;
+  height: 176px;
+}
+
 .surface {
   position: absolute;
   inset: 0;

@@ -1,4 +1,5 @@
 import { rngInt, shuffle } from "../engine/rng";
+import { bumpPerfectness } from "../items/equipRoll";
 import type { ItemStack } from "../items/types";
 import { GENERAL_MATERIAL_DEFS } from "./items/materials";
 import {
@@ -15,15 +16,13 @@ import {
   mapHasDifficulty,
   type MapDifficulty,
 } from "./mapDifficulty";
+import { fixedClearRewardOf, type MapClearRewardDef } from "./mapClearReward";
 import { MAPS } from "./maps";
 
-export function rollDailyClearReward(
+function rollClearReward(
   rng: { rngState: number },
-  mapId: string,
-  difficulty: MapDifficulty,
+  reward: MapClearRewardDef,
 ): ItemStack[] {
-  if (!mapHasDifficulty(mapId)) return [];
-  const reward = getMapDifficulty(difficulty).reward;
   const materials = shuffle(rng, [...GENERAL_MATERIAL_DEFS]).slice(0, reward.materialKinds);
   const stacks: ItemStack[] = [];
 
@@ -42,10 +41,14 @@ export function rollDailyClearReward(
     getItemFamily(familyId).filter((def) => def.rarity === reward.equipRarity),
   );
   if (!equipmentCandidates.length) {
-    throw new Error(`没有可用于${getMapDifficulty(difficulty).name}难度奖励的装备`);
+    throw new Error(`没有稀有度为 ${reward.equipRarity} 的通关奖励装备`);
   }
   const equipment = equipmentCandidates[rngInt(rng, equipmentCandidates.length)];
-  stacks.push(makeRolledItemStack(rng, equipment.id));
+  const stack = makeRolledItemStack(rng, equipment.id);
+  if (stack.roll) {
+    stack.roll = bumpPerfectness(equipment, stack.roll, (n) => rngInt(rng, n));
+  }
+  stacks.push(stack);
 
   const scrap = getItemDef(reward.scrapId);
   for (let count = 0; count < reward.scrapCount; count += 1) {
@@ -54,13 +57,29 @@ export function rollDailyClearReward(
   return stacks;
 }
 
+export function rollDailyClearReward(
+  rng: { rngState: number },
+  mapId: string,
+  difficulty: MapDifficulty,
+): ItemStack[] {
+  if (!mapHasDifficulty(mapId)) return [];
+  return rollClearReward(rng, getMapDifficulty(difficulty).reward);
+}
+
 export function rollAllDailyClearRewards(day: number): Record<string, ItemStack[]> {
   const rng = { rngState: (Math.imul(day | 0, 0x9e3779b1) ^ 0x5f3759df) | 0 };
   const rewards: Record<string, ItemStack[]> = {};
   for (const map of MAPS) {
-    if (!mapHasDifficulty(map.id)) continue;
-    for (const difficulty of MAP_DIFFICULTY_IDS) {
-      rewards[difficultyKey(map.id, difficulty)] = rollDailyClearReward(rng, map.id, difficulty);
+    if (mapHasDifficulty(map.id)) {
+      for (const difficulty of MAP_DIFFICULTY_IDS) {
+        rewards[difficultyKey(map.id, difficulty)] = rollDailyClearReward(rng, map.id, difficulty);
+      }
+      continue;
+    }
+
+    const fixedReward = fixedClearRewardOf(map.id);
+    if (fixedReward) {
+      rewards[difficultyKey(map.id, "normal")] = rollClearReward(rng, fixedReward);
     }
   }
   return rewards;

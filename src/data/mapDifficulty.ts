@@ -4,6 +4,7 @@
 
 import { MAPS, mapEquipRarities, type MapDef } from "./maps";
 import type { ItemRarity } from "../items/types";
+import type { MapClearRewardDef } from "./mapClearReward";
 
 export type MapDifficulty = "normal" | "hard" | "abyss";
 
@@ -13,13 +14,7 @@ export const DIFFICULTY_BASE_MAP_ID = "neon-city";
 export interface MapDifficultyDef {
   id: MapDifficulty;
   name: string;
-  reward: {
-    materialKinds: number;
-    materialEach: number;
-    equipRarity: ItemRarity;
-    scrapId: string;
-    scrapCount: number;
-  };
+  reward: MapClearRewardDef;
 }
 
 export const MAP_DIFFICULTIES: Record<MapDifficulty, MapDifficultyDef> = {

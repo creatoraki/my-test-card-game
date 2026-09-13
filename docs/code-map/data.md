@@ -34,9 +34,10 @@
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用材料、水晶、消耗品、食品和武器按服务类型筛选；材料已无地区专属池，只有武器仍按所选地图难度筛稀有度。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
 | [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：每个徽章 = 方向链（`branches`，仅供图标/文案分组）+ 扇形半环坐标节点图（`nodes`，`requires` 任一满足即解锁）；初心者徽章 6 链 22 节点，其余徽章为「待开放」占位。`fan()` 负责纯坐标生成，`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` / `addSquadMods` 一起作为 UI 与 store 共用的判定入口。 |
-| [mapDifficulty.ts](../../src/data/mapDifficulty.ts) | 地图难度普通/困难/深渊、逐级解锁、奖励定义与 `difficultyMapConfig` 唯一配置入口；当前非普通档临时复用废弃楼层配置，并按难度覆盖装备稀有度上限。 |
-| [mapDailyReward.ts](../../src/data/mapDailyReward.ts) | 基于日期种子生成地图×难度每日通关奖励：随机两种通用材料、固定稀有度随机词条装备与换金物；不含水晶和地区材料。 |
-| [mapAidSupply.ts](../../src/data/mapAidSupply.ts) | 按地图 × 难度登记出击援助物资，使用 `difficultyKey` 查覆盖配置并回退默认清单；生成的 `ItemStack` 带一次性标记。 |
+| [mapDifficulty.ts](../../src/data/mapDifficulty.ts) | 地图难度普通/困难/深渊、逐级解锁、奖励定义与 `difficultyMapConfig` 唯一配置入口；奖励类型由 `mapClearReward.ts` 外迁复用；当前非普通档临时复用废弃楼层配置，并按难度覆盖装备稀有度上限。 |
+| [mapClearReward.ts](../../src/data/mapClearReward.ts) | 无难度地图的固定通关奖励配置；教学关奖励为银币 ×1 与随机 common 装备 ×1。 |
+| [mapDailyReward.ts](../../src/data/mapDailyReward.ts) | 基于日期种子生成地图×难度通关奖励：随机通用材料、固定稀有度随机词条装备与换金物；通关奖励装备完美度 +1，无难度地图读取固定奖励表；不含水晶和地区材料。 |
+| [mapAidSupply.ts](../../src/data/mapAidSupply.ts) | 按地图 × 难度登记出击配额物资，查询顺序为难度键、地图键、默认清单；生成的 `ItemStack` 带一次性标记。 |
 | [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人；4 只怪的编成只登记在 t4/t5；`roundPlans` 可为地图提供固定轮次棋盘，`hideAfterClear` 控制通关后从选择带隐藏，`battleTierByRound`、`battleEncounterByRound`（按轮次钉死推进战斗的遭遇战，教学关前两轮用它排两套不同的双敌人编成）、`requiresClear` 与 `locked` 定义按轮次档位和地图解锁规则；`visibleMaps` 是出击界面唯一的可见地图筛选入口。难度配置由 `mapDifficulty.ts` 管理；地图素材由 UI 查表。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid；`newUid` 也供临时战斗奖励生成唯一 id。 |
 
