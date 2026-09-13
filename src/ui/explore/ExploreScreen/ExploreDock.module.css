@@ -2,8 +2,8 @@
    几何与战斗底部 HUD 对齐 —— 立绘段 500×316、贴边留白 16px 均取自
    battle/BattleScreen/BattleScreen.module.css 的 --hud-party-w / --canvas-pad
    与 battle/AllyBar 的条高，两个场景看同一批角色时尺寸必须一致。
-   ⚠ 三段自然高度不同(背包面板约 280px)，用 align-items: end 让底边对齐，
-     不要拉伸面板 —— 格子是 aspect-ratio:1 的方格，拉高只会把版式撑坏。 */
+   三段自然高度不同(背包内容约 280px)，用 align-items: end 让底边对齐；
+   背包外框与立绘卡同高，格子继续保持 aspect-ratio:1。 */
 .dock {
   position: absolute;
   left: 16px;
@@ -12,7 +12,7 @@
   height: 316px;
   z-index: 30;
   display: grid;
-  grid-template-columns: 500px minmax(0, 1fr) 260px;
+  grid-template-columns: 500px minmax(0, 1fr) 200px;
   gap: 12px;
   align-items: end;
 }
@@ -31,5 +31,6 @@
 .backpack[data-locked] { pointer-events: none; }
 
 .actions { display: flex; flex-direction: column; align-items: stretch; gap: 22px; }
+.actions > :global([data-picnic-button]) { width: 100%; }
 .actions .retreat { padding: 17px 24px; font-size: 21px; background: #111b20e6; border: 1px solid #a16f5544; color: #cba18d; }
 .actions .retreat:disabled { opacity: .4; }
