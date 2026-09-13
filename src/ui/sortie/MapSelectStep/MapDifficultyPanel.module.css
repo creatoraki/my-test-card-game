@@ -1,0 +1,92 @@
+.panel {
+  position: absolute;
+  top: 398px;
+  left: 72px;
+  z-index: 3;
+  width: 620px;
+  padding: 14px 18px 16px;
+  border-left: 2px solid var(--sm-glow, #91e8dc);
+  background: linear-gradient(105deg, #071318dc, #0713188f 82%, #07131824);
+  box-shadow: 0 16px 40px -24px #000000d9;
+  color: var(--sm-ink, #eaf6f3);
+  backdrop-filter: blur(12px);
+}
+
+.panel[data-active="false"] {
+  pointer-events: none;
+}
+
+.difficultyRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.lockTarget {
+  display: inline-flex;
+}
+
+.difficultyButton {
+  min-width: 108px;
+  min-height: 42px;
+  padding: 7px 14px;
+  border: 1px solid #91e8dc66;
+  border-radius: 2px;
+  background: #0b1c20c9;
+  color: var(--sm-ink, #eaf6f3);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: var(--cursor-pointer);
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.difficultyButton:hover:not(:disabled) {
+  border-color: var(--sm-glow-hi, #c2fff6);
+  background: #173136e8;
+}
+
+.difficultyButton[aria-pressed="true"] {
+  border-color: var(--sm-glow-hi, #c2fff6);
+  background: #26544fbd;
+  color: var(--sm-glow-hi, #c2fff6);
+  box-shadow: inset 0 0 18px #91e8dc20, 0 0 16px #91e8dc2b;
+}
+
+.difficultyButton:disabled {
+  border-color: #ffffff2d;
+  background: #0710149c;
+  color: #c2cfcd99;
+  cursor: var(--cursor-default);
+}
+
+.rewardHeading {
+  margin-bottom: 8px;
+  color: var(--sm-ink-dim, #8fb2ae);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.rewardRow {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 8px;
+}
+
+.rewardCell {
+  width: 54px;
+  outline: none;
+}
+
+.rewardSlot {
+  --item-slot-icon-size: 56%;
+  --item-slot-pad: 3px;
+  width: 54px;
+  min-height: 54px;
+}
+
+.rewardSlot :global([class*="item-slot-count"]) {
+  font-size: 18px;
+}

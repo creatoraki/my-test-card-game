@@ -15,6 +15,7 @@
 
 import type { DropEntry, EquipSlot, ItemRarity, ItemStack } from "../items/types";
 import type { StatModifier } from "../engine/types";
+import type { MapDifficulty } from "../data/mapDifficulty";
 
 export type BattleBoonKind = "healDew" | "cardOffer" | "equipCrate" | "moduleCrate";
 
@@ -365,6 +366,7 @@ export type ExplorePhase =
 
 export interface ExploreState {
   mapId: string;
+  difficulty: MapDifficulty;
 
   energy: number; // 净化粒子, 唯一难度轴
   loot: number; // 本趟累积的城市居民积分; 仅撤退/通关时转进城镇

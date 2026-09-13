@@ -7,7 +7,7 @@ import {
   MATERIAL_ITEM_DEFS,
   NEAR_EXPIRY_FOOD_IDS,
 } from "./items/index";
-import { mapEquipRarities } from "./maps";
+import { difficultyEquipRarities, type MapDifficulty } from "./mapDifficulty";
 
 export type TradeStockKind =
   | "material-general"
@@ -25,7 +25,11 @@ function defsByIds(ids: readonly string[]): ItemDef[] {
   return ids.map((id) => DEF_BY_ID.get(id)).filter((def): def is ItemDef => Boolean(def));
 }
 
-export function tradeStockDefs(kind: TradeStockKind, mapId: string): ItemDef[] {
+export function tradeStockDefs(
+  kind: TradeStockKind,
+  mapId: string,
+  difficulty: MapDifficulty = "normal",
+): ItemDef[] {
   if (kind === "consumable") {
     return CONSUMABLE_ITEM_DEFS.filter(
       (def) => def.familyId && CONSUMABLE_FAMILIES.has(def.familyId) && COMMON_RARITIES.has(def.rarity),
@@ -33,7 +37,7 @@ export function tradeStockDefs(kind: TradeStockKind, mapId: string): ItemDef[] {
   }
   if (kind === "food") return defsByIds(NEAR_EXPIRY_FOOD_IDS);
   if (kind === "equip-weapon") {
-    const allowedRarities = mapEquipRarities(mapId);
+    const allowedRarities = difficultyEquipRarities(mapId, difficulty);
     return EQUIPMENT_ITEM_DEFS.filter((def) => def.slot === "weapon" && allowedRarities.includes(def.rarity));
   }
   // 材料只剩两类, 全地图共用同一份清单 —— 通用材料跨地图产出, 水晶按敌人档位产出,

@@ -1,9 +1,11 @@
 import { type CSSProperties } from "react";
-import { isMapUnlocked, mapLockReason, type MapDef } from "@/data";
+import { isMapUnlocked, mapLockReason, type MapDef, type MapDifficulty } from "@/data";
+import type { ItemStack } from "@/items/types";
 import { cx } from "@/ui/common/cx";
 import { mapArt } from "@/ui/art/mapArt";
 import { COPY_COUNT, MIDDLE_COPY, useInfiniteBand } from "@/ui/sortie/hooks";
 import { MapLockChains } from "./MapLockChains";
+import { MapDifficultyPanel } from "./MapDifficultyPanel";
 import s from "./MapSelectStep.module.css";
 
 const isTest = import.meta.env.isTest === "true";
@@ -14,8 +16,12 @@ interface Props {
   entering: boolean;
   intro: boolean;
   selectedMapId: string;
+  difficulty: MapDifficulty;
   clearedMaps: readonly string[];
+  clearedKeys: readonly string[];
+  dailyRewards: ItemStack[];
   onSelectMap: (mapId: string) => void;
+  onSelectDifficulty: (difficulty: MapDifficulty) => void;
 }
 
 export function MapSelectStep({
@@ -24,8 +30,12 @@ export function MapSelectStep({
   entering,
   intro,
   selectedMapId,
+  difficulty,
   clearedMaps,
+  clearedKeys,
+  dailyRewards,
   onSelectMap,
+  onSelectDifficulty,
 }: Props) {
   const selected = maps.find((map) => map.id === selectedMapId) ?? maps[0];
   const selectedIndex = selected ? Math.max(0, maps.findIndex((map) => map.id === selected.id)) : 0;
@@ -98,6 +108,14 @@ export function MapSelectStep({
           )}
         </div>
       </div>
+      <MapDifficultyPanel
+        mapId={selected.id}
+        difficulty={difficulty}
+        clearedKeys={clearedKeys}
+        rewards={dailyRewards}
+        onSelect={onSelectDifficulty}
+        active={active}
+      />
     </section>
   );
 }

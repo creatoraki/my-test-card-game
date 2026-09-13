@@ -32,7 +32,7 @@ function pickWeighted<T extends { weight: number }>(s: ExploreState, options: T[
 function stockFor(s: ExploreState, serviceId: string): ItemStack[] {
   const service = getTradeService(serviceId);
   if (!service.stockKind) return [];
-  let defs = tradeStockDefs(service.stockKind, s.mapId);
+  let defs = tradeStockDefs(service.stockKind, s.mapId, s.difficulty);
   if (service.id === "near-expiry-food-shop") {
     defs = defs.filter((def) => def.id !== service.currencyItemId);
   }

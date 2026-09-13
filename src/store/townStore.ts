@@ -53,6 +53,7 @@ import type { EquipSlot, ItemStack } from "../items/types";
 import type { BondBias } from "../explore/types";
 import { TOWN_PROFILE_KEY, commitTownBackup, restoreTownBackup } from "./expeditionBackup";
 import { createEquipCraftSlice } from "./equipCraftSlice";
+import { createMapProgressSlice, freshMapProgress, type MapProgressSlice } from "./mapProgressSlice";
 import { createShopSlice, freshShop, type ShopState } from "./shopSlice";
 import { rollShopStock } from "./shopStock";
 import { createTechTreeSlice } from "./techTreeSlice";
@@ -158,6 +159,8 @@ export interface TownStore {
   awakened: string[];
   fallen: string[]; // 永久阵亡的角色 id, 按阵亡先后。与 awakened 互斥
   clearedMaps: string[]; // 已通关的地图 id
+  clearedDifficulties: string[]; // 已通关的地图难度 key
+  dailyClear: { day: number; rewards: Record<string, ItemStack[]> };
   party: string[]; // 上阵角色 id, 1 ≤ length ≤ RULES.progression.partySize, 且必须 ⊆ awakened
   loot: number; // 居民积分余额 —— 主要来自废料出售; 团灭时本趟的产出全丢
   // ★ 物资中转仓: **不设上限**(与背包的 24 格形成对照)。远征活着回来才有东西进来。
@@ -175,6 +178,9 @@ export interface TownStore {
 
   ensureProfile: () => void; // 幂等: 首次进城镇时建档
   markMapCleared: (mapId: string) => void; // 记录通关地图, 已记录则保持不变
+  markDifficultyCleared: MapProgressSlice["markDifficultyCleared"];
+  syncDailyClear: MapProgressSlice["syncDailyClear"];
+  takeDailyClearReward: MapProgressSlice["takeDailyClearReward"];
   markGuideSeen: (id: string) => void;
   recordCodex: (patch: Partial<CodexState>) => void;
   recordSortieRelics: (ids: string[]) => void;
@@ -426,6 +432,7 @@ export const useTownStore = create<TownStore>()(
       awakened: [],
       fallen: [],
       clearedMaps: [],
+      ...freshMapProgress(1),
       party: [],
       loot: 10000,
       storage: [],
@@ -439,6 +446,7 @@ export const useTownStore = create<TownStore>()(
       codex: { items: [], cards: [], enemies: [] },
       seenGuides: [],
       ...createEquipCraftSlice(set, get),
+      ...createMapProgressSlice(set, get),
       ...createShopSlice(set, get),
       ...createTechTreeSlice(set, get),
       initialized: false,
@@ -448,6 +456,7 @@ export const useTownStore = create<TownStore>()(
         const profile = freshProfile();
         set({
           ...profile,
+          ...freshMapProgress(1),
           loot: 10000,
           storage: freshStorage(),
           day: 1,
@@ -496,6 +505,7 @@ export const useTownStore = create<TownStore>()(
         const profile = freshProfile(false);
         set({
           ...profile,
+          ...freshMapProgress(1),
           loot: 0,
           storage: freshStorage(),
           lastSortieRelicIds: [],
@@ -1124,6 +1134,7 @@ export const useTownStore = create<TownStore>()(
             refreshes: 0,
             slots: rollShopStock(nextCharacters, awakened, shop.techs, shop.level),
           },
+          dailyClear: freshMapProgress(next).dailyClear,
         });
       },
 
@@ -1290,6 +1301,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v28: 新增地图难度进度与每日通关奖励。
     // ⚠ v27: 卡牌/装备/材料/祝福遗物统一为一套商店货架, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v26: 遗物清单与初始仓库调整, 旧档中的 relic-even-draw 已下线, 换 key 让旧档自然失效重建。
     // ⚠ v25: 新增遗物与圣水池, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1314,6 +1326,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 27 },
+    { name: TOWN_PROFILE_KEY, version: 28 },
   ),
 );

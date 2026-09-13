@@ -84,6 +84,7 @@
 
 .end-trophy-slot,
 .end-verdict-slot,
+.end-clear-reward-slot,
 .end-haul-slot,
 .end-roster-slot,
 .end-band-slot {
@@ -115,6 +116,16 @@
   z-index: 2;
   pointer-events: auto;
   animation: haulRise 520ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--end-haul-delay, 2050ms) both;
+}
+
+.end-clear-reward-slot {
+  bottom: 572px;
+  left: 600px;
+  width: 580px;
+  height: 50px;
+  z-index: 2;
+  pointer-events: auto;
+  animation: haulRise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--end-haul-delay, 2050ms) both;
 }
 
 .end-roster-slot {

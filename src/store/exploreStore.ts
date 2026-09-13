@@ -9,6 +9,7 @@ import { getItemDef } from "../data";
 import type { CardOfferCandidate, ExploreState, PartySnapshot } from "../explore/types";
 import { resolvePicnic, type PicnicResult } from "../explore/picnic";
 import type { ItemStack } from "../items/types";
+import type { MapDifficulty } from "../data/mapDifficulty";
 import {
   abandonPending,
   abandonLoot,
@@ -83,6 +84,7 @@ interface ExploreStore {
     seed?: number,
     initialBackpack?: ItemStack[],
     ownedRelicIds?: string[],
+    difficulty?: MapDifficulty,
   ) => void;
   generateDone: () => void; // 浮现演出播完(UI 定时器) → sealed
   beginReveal: () => void; // 玩家按「探索路线」→ revealing。一轮只生效一次
@@ -115,6 +117,7 @@ interface ExploreStore {
   // 战斗回合消耗。★ 必须在 settleBattle 之后调用 —— 掉落系数与经验倍率读的是战前能量
   spendBattleEnergy: (rounds: number) => void;
   clear: () => void;
+  receiveClearReward: (stacks: ItemStack[]) => void;
 
   // ---- 背包(阶段白名单的真相点在 explore/session, 这里只是转发) ----
   discardItem: (uid: string) => void;
@@ -171,8 +174,8 @@ function mutate(
 export const useExploreStore = create<ExploreStore>((set, get) => ({
   session: null,
 
-  start: (mapId, party, seed, initialBackpack, ownedRelicIds) => {
-    set({ session: createSession(mapId, party, seed, initialBackpack, ownedRelicIds) });
+  start: (mapId, party, seed, initialBackpack, ownedRelicIds, difficulty) => {
+    set({ session: createSession(mapId, party, seed, initialBackpack, ownedRelicIds, difficulty) });
   },
 
   generateDone: () => {
@@ -300,6 +303,13 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   },
 
   clear: () => set({ session: null }),
+
+  receiveClearReward: (stacks) => {
+    if (!stacks.length) return;
+    mutate(get, set, (d) => {
+      d.shipped = [...d.shipped, ...stacks.map((stack) => ({ ...stack }))];
+    });
+  },
 
   // ---- 背包 ----
   discardItem: (uid) => {

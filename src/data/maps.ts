@@ -191,8 +191,12 @@ export function mapLockReason(mapId: string, clearedMaps: readonly string[]): st
   return null;
 }
 
-export function mapEquipRarities(mapId: string): ItemRarity[] {
-  const map = MAPS.find((candidate) => candidate.id === mapId);
-  if (!map) throw new Error(`未知地图: ${mapId}`);
+export function mapEquipRarities(mapId: string): ItemRarity[];
+export function mapEquipRarities(map: MapDef): ItemRarity[];
+export function mapEquipRarities(mapOrId: string | MapDef): ItemRarity[] {
+  const map = typeof mapOrId === "string"
+    ? MAPS.find((candidate) => candidate.id === mapOrId)
+    : mapOrId;
+  if (!map) throw new Error(`未知地图: ${mapOrId}`);
   return RARITY_ORDER.slice(0, RARITY_ORDER.indexOf(map.maxEquipRarity) + 1);
 }

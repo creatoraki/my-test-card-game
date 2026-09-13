@@ -19,6 +19,7 @@ import { RULES } from "../engine";
 import { getItemDef, makeItemStack } from "../data";
 import { addToContainer, occupiedSlots, removeByUid } from "../items/inventory";
 import type { ItemStack } from "../items/types";
+import type { MapDifficulty } from "../data/mapDifficulty";
 import { useTownStore } from "./townStore";
 
 export type SortieStep = "map" | "prep";
@@ -26,11 +27,12 @@ export type SortieStep = "map" | "prep";
 interface SortieStore {
   step: SortieStep;
   mapId: string | null;
+  difficulty: MapDifficulty;
   backpack: ItemStack[]; // 待带走的物资。容量 = RULES.burden.backpackSlots
   bought: Record<string, number>; // itemId → 本次买入且**尚未退掉**的件数
 
   open: () => void; // 据点大厅「出击」→ 从头开一次准备
-  pickMap: (mapId: string) => void; // 选定地图 → 进物资准备
+  pickMap: (mapId: string, difficulty: MapDifficulty) => void; // 选定地图与难度 → 进物资准备
   backToMap: () => void; // 准备页「重选地图」(已装的物资保留)
   buy: (itemId: string) => boolean; // 货柜购买。false = 钱不够 / 背包满
   takeFromStorage: (uid: string) => boolean; // 仓库物资/遗物 → 背包。false = 背包满或遗物达到上限
@@ -43,6 +45,7 @@ interface SortieStore {
 const emptyState = () => ({
   step: "map" as SortieStep,
   mapId: null,
+  difficulty: "normal" as MapDifficulty,
   backpack: [] as ItemStack[],
   bought: {} as Record<string, number>,
 });
@@ -112,7 +115,7 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     get().autoLoadRelics();
   },
 
-  pickMap: (mapId) => set({ mapId, step: "prep" }),
+  pickMap: (mapId, difficulty) => set({ mapId, difficulty, step: "prep" }),
 
   // ★ 重选地图不清空背包: 玩家可能只是想换个难度, 没道理让他把补给重买一遍。
   backToMap: () => set({ step: "map" }),

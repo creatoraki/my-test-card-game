@@ -29,6 +29,7 @@ import {
 } from "../explore/session";
 import type { ExplorePhase, PartySnapshot } from "../explore/types";
 import type { EquipSlot, ItemStack } from "../items/types";
+import type { MapDifficulty } from "../data/mapDifficulty";
 import { useBattleStore, type BattleMeta } from "./battleStore";
 import { useExploreStore } from "./exploreStore";
 import { commitTownBackup, snapshotTownProfile } from "./expeditionBackup";
@@ -67,16 +68,18 @@ export type Screen =
 export type RunResult = "won" | "lost" | "retreat";
 
 type ElevatorRide =
-  | { dir: "down"; mapId: string; backpack: ItemStack[] }
+  | { dir: "down"; mapId: string; backpack: ItemStack[]; difficulty: MapDifficulty }
   | { dir: "up" };
 
 interface RunStore {
   screen: Screen;
   mapId: string | null; // 当前远征的地图
+  difficulty: MapDifficulty;
   expReport: ExpGain[]; // 上一场胜利的经验结算报告(结算页展示)
   lastResult: RunResult | null;
   lastLoot: number; // 上一场战斗的居民积分产出(结算页展示)。⚠ 普通战斗恒为 0, 见 EXPLORE_RULES.loot
   lastDrops: ItemStack[]; // 上一场战斗掉的实物(结算页展示) —— 战斗的正经产出是这个
+  lastClearReward: ItemStack[]; // 本趟每日通关奖励, 结算页单独标注来源
   battleSettled: boolean; // 本场战斗已完成结算, 但胜利面板仍留在战斗画布内
   lastDropK: number; // 本场掉落使用的最终倍率
   lastDropTier: { tier: number; name: string; color: string; rewardMultiplier: number } | null;
@@ -88,9 +91,9 @@ interface RunStore {
   openFormation: () => void; // 据点全景右下「编队」→ 全屏编队页(角色详情是它内部的一种态, 不占 screen)
   openSortie: () => void; // 据点全景右下「出击」→ 全屏出击页(选地图 + 备物资)
   // 物资准备完毕 → 进路由图。backpack = 出发时装好的物资(见 store/sortieStore)。
-  startExpedition: (mapId: string, backpack?: ItemStack[]) => void;
+  startExpedition: (mapId: string, backpack?: ItemStack[], difficulty?: MapDifficulty) => void;
   elevatorRide: ElevatorRide | null;
-  beginDescent: (mapId: string, backpack?: ItemStack[]) => void;
+  beginDescent: (mapId: string, backpack?: ItemStack[], difficulty?: MapDifficulty) => void;
   beginAscent: () => void;
   finishRide: () => void;
   chooseEventOption: (index: number) => import("../explore/types").ExploreState | null;
@@ -357,10 +360,12 @@ function bankEverything(session: {
 export const useRunStore = create<RunStore>((set, get) => ({
   screen: "menu",
   mapId: null,
+  difficulty: "normal",
   expReport: [],
   lastResult: null,
   lastLoot: 0,
   lastDrops: [],
+  lastClearReward: [],
   battleSettled: false,
   lastDropK: 0,
   lastDropTier: null,
@@ -381,8 +386,8 @@ export const useRunStore = create<RunStore>((set, get) => ({
   // ⚠ 会话本身由 ui/sortie 那边 open() —— 这里只切页, 与 openFormation 保持同一粒度。
   openSortie: () => set({ screen: "sortie" }),
 
-  beginDescent: (mapId, backpack = []) => {
-    set({ elevatorRide: { dir: "down", mapId, backpack }, screen: "elevator" });
+  beginDescent: (mapId, backpack = [], difficulty = "normal") => {
+    set({ elevatorRide: { dir: "down", mapId, backpack, difficulty }, screen: "elevator" });
   },
 
   beginAscent: () => {
@@ -391,7 +396,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({ elevatorRide: { dir: "up" }, screen: "elevator" });
   },
 
-  startExpedition: (mapId, backpack = []) => {
+  startExpedition: (mapId, backpack = [], difficulty = "normal") => {
     // 探索期 townStore 的散点写入统一由出击快照兜底, 中途刷新时整档回滚。
     snapshotTownProfile();
     const town = useTownStore.getState();
@@ -401,13 +406,15 @@ export const useRunStore = create<RunStore>((set, get) => ({
     ]
       .filter((stack) => getItemDef(stack.itemId).category === "relic")
       .map((stack) => stack.itemId);
-    useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack, ownedRelicIds);
+    useExploreStore.getState().start(mapId, partySnapshot(), undefined, backpack, ownedRelicIds, difficulty);
     set({
       mapId,
+      difficulty,
       expReport: [],
       lastResult: null,
       lastLoot: 0,
       lastDrops: [],
+      lastClearReward: [],
       battleSettled: false,
       lastDropK: 0,
       lastDropTier: null,
@@ -424,7 +431,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({ elevatorRide: null });
     if (!ride) return get().enterTown();
     if (ride.dir === "up") return get().backToTown();
-    get().startExpedition(ride.mapId, ride.backpack);
+    get().startExpedition(ride.mapId, ride.backpack, ride.difficulty);
   },
 
   chooseEventOption: (index) => {
@@ -499,9 +506,10 @@ export const useRunStore = create<RunStore>((set, get) => ({
       // 战败即团灭。背包已在 settleBattle 里丢干净, 这里只把寄回的落袋。
       if (after) bankEverything(after);
       set({
-        screen: "defeat",
-        lastResult: "lost",
-        expReport: [],
+      screen: "defeat",
+      lastResult: "lost",
+      lastClearReward: [],
+      expReport: [],
         lastLoot: 0,
         lastDrops: [],
         battleSettled: false,
@@ -603,12 +611,19 @@ export const useRunStore = create<RunStore>((set, get) => ({
     if (session.pendingLoot.length || session.pendingBoons.length || session.pendingCardOffer) return;
 
     if (session.phase === "cleared") {
-      bankEverything(session);
-      useTownStore.getState().markMapCleared(session.mapId);
+      const town = useTownStore.getState();
+      const reward = town.takeDailyClearReward(session.mapId, session.difficulty);
+      useExploreStore.getState().receiveClearReward(reward);
+      const rewardedSession = useExploreStore.getState().session;
+      if (!rewardedSession) return;
+      bankEverything(rewardedSession);
+      town.markMapCleared(session.mapId);
+      town.markDifficultyCleared(session.mapId, session.difficulty);
       useBattleStore.getState().clear();
       set({
         screen: "victory",
         lastResult: "won",
+        lastClearReward: reward,
         battleSettled: false,
         lastDropK: 0,
         lastDropTier: null,
@@ -715,13 +730,27 @@ export const useRunStore = create<RunStore>((set, get) => ({
       });
       return;
     }
-    bankEverything(settledSession);
     if (settledSession.phase === "cleared") {
-      useTownStore.getState().markMapCleared(settledSession.mapId);
+      const town = useTownStore.getState();
+      const reward = town.takeDailyClearReward(settledSession.mapId, settledSession.difficulty);
+      useExploreStore.getState().receiveClearReward(reward);
+      const rewardedSession = useExploreStore.getState().session;
+      if (!rewardedSession) return;
+      bankEverything(rewardedSession);
+      town.markMapCleared(settledSession.mapId);
+      town.markDifficultyCleared(settledSession.mapId, settledSession.difficulty);
+      set({
+        lastClearReward: reward,
+        screen: "victory",
+        lastResult: "won",
+      });
+      return;
     }
+    bankEverything(settledSession);
     set({
       screen: "victory",
-      lastResult: settledSession.phase === "cleared" ? "won" : "retreat",
+      lastResult: "retreat",
+      lastClearReward: [],
     });
   },
 
@@ -778,10 +807,12 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({
       screen: "town",
       mapId: null,
+      difficulty: "normal",
       expReport: [],
       lastResult: null,
       lastLoot: 0,
       lastDrops: [],
+      lastClearReward: [],
       battleSettled: false,
       lastDropK: 0,
       lastDropTier: null,
@@ -797,10 +828,12 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({
       screen: "menu",
       mapId: null,
+      difficulty: "normal",
       expReport: [],
       lastResult: null,
       lastLoot: 0,
       lastDrops: [],
+      lastClearReward: [],
       battleSettled: false,
       lastDropK: 0,
       lastDropTier: null,

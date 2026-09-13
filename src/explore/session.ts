@@ -46,8 +46,8 @@ import {
   equipmentDefsBySlot,
   getItemDef,
   getItemFamily,
-  getMap,
-  mapEquipRarities,
+  difficultyEquipRarities,
+  difficultyMapConfig,
   makeRolledItemStack,
   makeItemStack,
 } from "../data";
@@ -62,6 +62,7 @@ import {
   stackSlots,
 } from "../items/inventory";
 import type { ItemRarity, ItemStack } from "../items/types";
+import type { MapDifficulty } from "../data/mapDifficulty";
 import { generateSegments, lanePath, traceSegment } from "./route";
 import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
@@ -134,6 +135,10 @@ const EQUIPMENT_FAMILY_IDS = [...new Set(
     .filter((familyId): familyId is string => Boolean(familyId)),
 )];
 
+function mapOf(s: ExploreState) {
+  return difficultyMapConfig(s.mapId, s.difficulty);
+}
+
 // 掉落所需的上下文。★ 唯一一处把 data 层的注册表接进物品层的地方。
 export function dropContext(s: ExploreState, k = dropCoefficient(s)): DropContext {
   return {
@@ -144,7 +149,7 @@ export function dropContext(s: ExploreState, k = dropCoefficient(s)): DropContex
     // ★ 随机羁绊词条的抽取池 —— 只含**已实装**的羁绊, 见 data/bonds.ts 的说明。
     affinityPool: ROLLABLE_BOND_IDS,
     equipmentFamilyIds: EQUIPMENT_FAMILY_IDS,
-    equipRarities: mapEquipRarities(s.mapId),
+    equipRarities: difficultyEquipRarities(s.mapId, s.difficulty),
     excludeItemIds: [
       ...s.ownedRelicIds,
       ...s.pendingPickup
@@ -192,7 +197,7 @@ function pickWeighted<T extends { weight: number }>(s: ExploreState, options: re
 }
 
 function roundBattleTier(s: ExploreState): BattleTier {
-  const map = getMap(s.mapId);
+  const map = mapOf(s);
   if (map.battleTierByRound?.length) {
     return map.battleTierByRound[Math.min(s.round - 1, map.battleTierByRound.length - 1)];
   }
@@ -205,7 +210,7 @@ function pickNodeBattleTier(s: ExploreState): BattleTier {
 }
 
 function encounterForTier(s: ExploreState, tier: BattleTier): string | null {
-  const map = getMap(s.mapId);
+  const map = mapOf(s);
   const treasure = map.treasureEncounters ?? [];
   if (
     treasure.length &&
@@ -220,7 +225,7 @@ function encounterForTier(s: ExploreState, tier: BattleTier): string | null {
 // 轮末推进战斗的遭遇战。地图把某一轮钉死时照抄(顺带跳过宝箱怪替换, 教学关靠它排课),
 // 其余轮次仍按档位随机抽。⚠ 只给推进战斗用 —— 节点战斗(战斗签)永远走随机池。
 function roundEncounterFor(s: ExploreState, tier: BattleTier): string | null {
-  const fixed = getMap(s.mapId).battleEncounterByRound?.[s.round - 1];
+  const fixed = mapOf(s).battleEncounterByRound?.[s.round - 1];
   if (!fixed) return encounterForTier(s, tier);
   getEncounter(fixed); // 地图钉了不存在的 id 时当场抛, 别拖到战斗初始化再炸
   return fixed;
@@ -237,10 +242,12 @@ export function createSession(
   seed?: number,
   initialBackpack: ItemStack[] = [],
   ownedRelicIds: string[] = [],
+  difficulty: MapDifficulty = "normal",
 ): ExploreState {
-  const map = getMap(mapId);
+  const map = difficultyMapConfig(mapId, difficulty);
   const s: ExploreState = {
     mapId,
+    difficulty,
     energy: map.startingEnergy,
     loot: 0,
     round: 1,
@@ -784,7 +791,7 @@ function rollEquipOffers(s: ExploreState, count: number, slot?: import("../items
         .filter((familyId): familyId is string => Boolean(familyId)),
     ),
   ];
-  const allowedRarities = mapEquipRarities(s.mapId);
+  const allowedRarities = difficultyEquipRarities(s.mapId, s.difficulty);
   const weights = qualityWeights(dropCoefficient(s));
   return shuffle(s, familyIds)
     .slice(0, Math.max(0, count))
@@ -1431,7 +1438,7 @@ function finalizeRowKinds(
 }
 
 export function generateRound(s: ExploreState): void {
-  const map = getMap(s.mapId);
+  const map = mapOf(s);
   const stage = roundStageOf(s.round);
   const plan = map.roundPlans?.[s.round - 1];
   let laneCount: number = LANES;
@@ -1846,13 +1853,13 @@ export function remainingNodes(s: ExploreState): number {
 // 轮次战斗事件
 // ---------------------------------------------------------------------------
 function pickRoundBattleEvent(s: ExploreState): void {
-  const pool = EVENT_POOLS[getMap(s.mapId).eventPoolId]?.battle.filter((event) => !event.disabled) ?? [];
+  const pool = EVENT_POOLS[mapOf(s).eventPoolId]?.battle.filter((event) => !event.disabled) ?? [];
   s.roundBattleEventId = shuffle(s, pool)[0]?.id ?? null;
 }
 
 export function roundBattleEvent(s: ExploreState): NodeEvent | null {
   if (!s.roundBattleEventId) return null;
-  return EVENT_POOLS[getMap(s.mapId).eventPoolId]?.battle.find(
+  return EVENT_POOLS[mapOf(s).eventPoolId]?.battle.find(
     (event) => event.id === s.roundBattleEventId,
   ) ?? null;
 }

@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { isMapUnlocked, mapLockReason, visibleMaps } from "@/data";
+import {
+  difficultyKey,
+  isDifficultyUnlocked,
+  isMapUnlocked,
+  mapLockReason,
+  visibleMaps,
+  type MapDifficulty,
+} from "@/data";
 import { useRunStore } from "@/store/runStore";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
@@ -22,6 +29,7 @@ const RELIC_PANEL_RECT: Record<"relic", Rect> = {
 export function SortieScreen() {
   const step = useSortieStore((state) => state.step);
   const mapId = useSortieStore((state) => state.mapId);
+  const sortieDifficulty = useSortieStore((state) => state.difficulty);
   const backpack = useSortieStore((state) => state.backpack);
   const open = useSortieStore((state) => state.open);
   const pickMap = useSortieStore((state) => state.pickMap);
@@ -30,13 +38,22 @@ export function SortieScreen() {
   const clear = useSortieStore((state) => state.clear);
   const party = useTownStore((state) => state.party);
   const clearedMaps = useTownStore((state) => state.clearedMaps);
+  const clearedDifficulties = useTownStore((state) => state.clearedDifficulties);
+  const dailyClearRewards = useTownStore((state) => state.dailyClear.rewards);
+  const syncDailyClear = useTownStore((state) => state.syncDailyClear);
   const maps = useMemo(() => visibleMaps(clearedMaps), [clearedMaps]);
   const beginDescent = useRunStore((state) => state.beginDescent);
   const enterTown = useRunStore((state) => state.enterTown);
   const [selectedMapId, setSelectedMapId] = useState(() => maps[0]?.id ?? "");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<MapDifficulty>("normal");
   const { visibleStep, exitingStep, transitioning, intro } = useSortieStepTransition(step);
   const relicMorph = usePanelMorph<"relic">({ rects: RELIC_PANEL_RECT });
   const selectedLocked = !isTest && !isMapUnlocked(selectedMapId, clearedMaps);
+  const selectedDifficultyUnlocked = !selectedMapId || isDifficultyUnlocked(
+    selectedMapId,
+    selectedDifficulty,
+    clearedDifficulties,
+  );
   const lockReason = isTest ? null : mapLockReason(selectedMapId, clearedMaps);
 
   useEffect(() => {
@@ -45,9 +62,15 @@ export function SortieScreen() {
   }, [maps, selectedMapId]);
 
   useEffect(() => {
+    if (!selectedMapId || isDifficultyUnlocked(selectedMapId, selectedDifficulty, clearedDifficulties)) return;
+    setSelectedDifficulty("normal");
+  }, [selectedMapId, selectedDifficulty, clearedDifficulties]);
+
+  useEffect(() => {
     open();
+    syncDailyClear();
     return () => cancel();
-  }, [open, cancel]);
+  }, [open, cancel, syncDailyClear]);
 
   useEffect(() => {
     if (relicMorph.panel !== null) return;
@@ -67,12 +90,16 @@ export function SortieScreen() {
 
   const startRun = useCallback(() => {
     if (!mapId) return;
-    beginDescent(mapId, backpack);
+    beginDescent(mapId, backpack, sortieDifficulty);
     clear();
-  }, [backpack, beginDescent, clear, mapId]);
+  }, [backpack, beginDescent, clear, mapId, sortieDifficulty]);
 
   const selectMap = useCallback((nextMapId: string) => {
     setSelectedMapId(nextMapId);
+  }, []);
+
+  const selectDifficulty = useCallback((difficulty: MapDifficulty) => {
+    setSelectedDifficulty(difficulty);
   }, []);
 
   return (
@@ -99,8 +126,12 @@ export function SortieScreen() {
               entering={visibleStep === "map" && transitioning}
               intro={intro}
               selectedMapId={selectedMapId}
+              difficulty={selectedDifficulty}
               clearedMaps={clearedMaps}
+              clearedKeys={clearedDifficulties}
+              dailyRewards={dailyClearRewards[difficultyKey(selectedMapId, selectedDifficulty)] ?? []}
               onSelectMap={selectMap}
+              onSelectDifficulty={selectDifficulty}
             />
           }
           prep={
@@ -116,10 +147,10 @@ export function SortieScreen() {
         <SortieNav
           step={visibleStep}
           disabled={transitioning}
-          canConfirmMap={party.length > 0 && !selectedLocked}
+          canConfirmMap={party.length > 0 && !selectedLocked && selectedDifficultyUnlocked}
           onBackToTown={leave}
           onBackToMap={backToMap}
-          onConfirmMap={() => pickMap(selectedMapId)}
+          onConfirmMap={() => pickMap(selectedMapId, selectedDifficulty)}
           onStartExpedition={startRun}
         />
         {relicMorph.panel === "relic" && (

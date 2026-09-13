@@ -12,6 +12,7 @@ import { StageCanvas } from "@/ui/app/StageCanvas";
 import { prefersReducedMotion } from "@/ui/app/transitions";
 import { EventDropBand } from "./parts/EventDropBand";
 import { EndHaulPanel } from "./parts/EndHaulPanel";
+import { EndClearReward } from "./parts/EndClearReward";
 import { EndPartyRoster } from "./parts/EndPartyRoster";
 import { EndTrophyRail } from "./parts/EndTrophyRail";
 import { EndVerdictBanner } from "./parts/EndVerdictBanner";
@@ -23,6 +24,7 @@ export function EndScreen() {
   const characters = useTownStore((s) => s.characters);
   const levels = useTownStore(techLevels);
   const lastResult = useRunStore((s) => s.lastResult);
+  const lastClearReward = useRunStore((s) => s.lastClearReward);
   const beginAscent = useRunStore((s) => s.beginAscent);
   const session = useExploreStore((s) => s.session);
   const [leaving, setLeaving] = useState(false);
@@ -89,6 +91,11 @@ export function EndScreen() {
         <div className={s["end-trophy-slot"]}>
           <EndTrophyRail trophies={summary.trophies} wiped={summary.wiped} />
         </div>
+        {lastClearReward.length > 0 && (
+          <div className={s["end-clear-reward-slot"]}>
+            <EndClearReward stacks={lastClearReward} />
+          </div>
+        )}
         <div className={s["end-haul-slot"]}>
           <EndHaulPanel haul={summary.haul} salvageValue={summary.salvageValue} wiped={summary.wiped} levels={levels} />
         </div>

@@ -91,6 +91,7 @@ src/ui/
 | [sortie/sortieStepTransition.ts](../../src/ui/sortie/sortieStepTransition.ts) | 出击地图选择 ↔ 物资准备的真实 DOM 步骤动画 hook；同步切换唯一可见步骤，提供 460ms 入场状态和过场交互锁。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在传入的可见地图列表中以斜跨玻璃选择带切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
+| [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 地图难度与每日通关奖励面板：按 `mapDifficulty` 显示逐级解锁的三档难度、锁定原因和物品详情预览；新手关卡与未开放地图不显示。 |
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列遗物携带窗口、仓库消耗品速取条与补给货架，右上背包，右下售货机器人，舞台左上角终端积分；遗物窗口的编辑面板由出击页根层挂载。 |
 | [sortie/SortieRelicBar](../../src/ui/sortie/SortieRelicBar/SortieRelicBar.tsx) | 出击准备顶行的 3×2 遗物携带窗口：复用物品库存面板展示本次携带的遗物，并作为打开遗物编辑面板的键鼠入口。 |
 | [sortie/SortieRelicPanel](../../src/ui/sortie/SortieRelicPanel/SortieRelicPanel.tsx) | 全屏遗物携带编辑面板：PanelShell 双栏展示仓库遗物与本次携带，取物/退回分别复用出击状态层的既有 action，并在状态行反馈容量限制。 |
