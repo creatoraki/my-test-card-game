@@ -1,15 +1,14 @@
-/* 房间小地图 —— 右上读数列下方的常驻面板。
+/* 房间小地图 —— 左上 HUD 的常驻面板，排在负重读数与遗物列表之前。
    ⚠ 字号按项目规范以 18px 为下限：这块面板要在行走途中被反复瞥一眼，读不快等于没有。
    ⚠ 不用 backdrop-filter：外层 StageCanvas 有变换祖先，玻璃取不到背景图。 */
 
 .map {
-  position: absolute;
-  top: 196px;
-  right: 48px;
+  position: relative;
   z-index: 30;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 12px;
   padding: 16px 18px 14px;
   border: 1px solid #7fb3a870;

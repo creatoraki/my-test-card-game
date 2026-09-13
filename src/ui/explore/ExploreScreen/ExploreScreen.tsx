@@ -5,7 +5,6 @@ import { useExploreStore } from "@/store/exploreStore";
 import { useRunStore } from "@/store/runStore";
 import { StageCanvas } from "@/ui/app/StageCanvas";
 import { CorridorScene } from "@/ui/explore/CorridorScene/CorridorScene";
-import Minimap from "@/ui/explore/Minimap";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import LootPickup from "@/ui/explore/LootPickup";
 import { CurioPanel } from "./CurioPanel";
@@ -42,7 +41,6 @@ export function ExploreScreen() {
       <div className={s.energyTrack}><i style={{ width: `${Math.min(100, session.energy)}%`, background: tier.color }} /></div>
       <p>{tier.name} · 居民积分 {session.loot}</p>
     </div>
-    <Minimap dungeon={session.dungeon} corridor={session.corridor} />
     <ExploreInventory session={session} inventory={inventory} />
     <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />
     {curioOpen && !inventory.target && <CurioPanel session={session} covered={inventory.blocked || pending} onOpenBag={() => inventory.setBagOpen(true)} />}

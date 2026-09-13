@@ -1,6 +1,6 @@
 .viewport { background: #060b0e; }
 .screen { background: #080e11; color: #e5dbc8; font-size: 18px; isolation: isolate; }
-/* 左上角：负重计 + 随身遗物占顶格。底部整条 HUD 见 ExploreDock.module.css。 */
+/* 左上角：小地图、负重计与随身遗物横向排列。底部整条 HUD 见 ExploreDock.module.css。 */
 .burden { position: absolute; left: 12px; top: 0; display: flex; gap: 12px; align-items: flex-start; z-index: 30; }
 .readout { position: absolute; top: 30px; right: 48px; width: 285px; z-index: 30; text-align: right; }
 .readout > span { display: block; font-size: 20px; letter-spacing: 4px; color: #b6bdaf; }

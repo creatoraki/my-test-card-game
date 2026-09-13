@@ -3,6 +3,7 @@ import type { ExploreState } from "@/explore/types";
 import { deriveStats, useTownStore } from "@/store/townStore";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import { PicnicPanel } from "@/ui/explore/PicnicSkill";
+import Minimap from "@/ui/explore/Minimap";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
 import { BurdenGauge } from "@/ui/explore/BurdenGauge";
 import { RelicRail } from "./RelicRail";
@@ -16,7 +17,11 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
   const member = session.party.find((item) => item.charId === inventory.detailCharId);
   const character = inventory.detailCharId ? characters[inventory.detailCharId] : undefined;
   return <>
-    <div className={s.burden}><BurdenGauge /><RelicRail stacks={relicsInBackpack(session)} /></div>
+    <div className={s.burden}>
+      {session.dungeon && session.corridor && <Minimap dungeon={session.dungeon} corridor={session.corridor} />}
+      <BurdenGauge />
+      <RelicRail stacks={relicsInBackpack(session)} />
+    </div>
     {inventory.target && <div className={s.targetBanner} role="status">
       <span>选择队员使用「{getItemDef(inventory.target.itemId).name}」</span>
       <button type="button" onClick={() => inventory.setTarget(null)}>取消</button>
