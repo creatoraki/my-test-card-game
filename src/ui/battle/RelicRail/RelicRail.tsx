@@ -1,7 +1,7 @@
 import { getItemDef } from "@/data";
 import type { BattleState } from "@/engine";
 import { itemIcon } from "@/ui/art/itemArt";
-import { RailPopover } from "@/ui/common/RailPopover";
+import { PopoverHead, RailPopover } from "@/ui/common/RailPopover";
 import s from "./RelicRail.module.css";
 
 export function RelicRail({ battle, activeRelicId }: { battle: BattleState; activeRelicId?: string | null }) {
@@ -13,8 +13,8 @@ export function RelicRail({ battle, activeRelicId }: { battle: BattleState; acti
         return (
           <div className={s.item} data-active={activeRelicId === runtime.id || undefined} data-rail-item key={runtime.id} tabIndex={0}>
             <span className={s.icon}>{itemIcon(def)}</span>
-            <RailPopover side="bottom-left">
-              <strong>{def.name}</strong>
+            <RailPopover side="bottom-left" className={s.pop}>
+              <PopoverHead icon={itemIcon(def)} name={def.name} iconClassName={s["head-icon"]} />
               <p>{def.desc}</p>
             </RailPopover>
           </div>

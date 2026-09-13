@@ -7,6 +7,7 @@
   position: absolute;
   z-index: 5;
   overflow: hidden;
+  contain: layout paint;
   pointer-events: none;
   background: rgb(9 19 24 / 0.34);
   box-shadow: 0 24px 60px -30px rgb(42 27 61 / 0.66);

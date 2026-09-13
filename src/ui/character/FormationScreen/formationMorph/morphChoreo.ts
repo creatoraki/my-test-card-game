@@ -19,7 +19,8 @@ export const SCATTER_MS = duration(320); // 其余卡飞散
 export const PANEL_DELAY_MS = duration(340); // 右侧工作区起裂时刻
 export const PANEL_GROW_MS = duration(280); // 右侧工作区裂开生长
 // ⚠⚠ PANEL_DELAY + PANEL_GROW 必须 ≤ MORPH_MS: 飞行一结束 phase 就回 idle, is-growing 类随之摘掉,
-//   动画没播完就会被硬切到终态(表现为面板在最后一下"啪"地弹满)。340 + 280 = 620 正好收在飞行结束那一刻。
+//   动画没播完就会被硬切到终态(表现为面板在最后一下"啪"地弹满)。详情树延后挂载时,
+//   useFormationMorph 会按点击到挂载的耗时缩短剩余 delay, 让生长节拍仍锚定点击时刻；340 + 280 = 620。
 // ⚠ 工作区**内部**各面板的错峰(属性组、卡格)不在这里: 它们各自写在自己的 module.css 里,
 //   与项目里别处的入场错峰同一范式, 且带自己的 prefers-reduced-motion 兜底。
 export const BACK_MORPH_MS = duration(420); // 回程: 立绘 → 卡

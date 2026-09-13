@@ -129,8 +129,8 @@
   padding: 9px 12px;
   border: 1px solid rgb(129 193 237 / 0.58);
   background: rgb(10 28 42 / 0.62);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: var(--glass-backdrop, blur(8px));
+  -webkit-backdrop-filter: var(--glass-backdrop, blur(8px));
   color: #d8eafa;
   font-size: var(--fm-fs-l3, 18px);
   letter-spacing: 0.12em;
@@ -159,39 +159,39 @@
   animation: crewScatterOut var(--fm-scatter-ms, 320ms) cubic-bezier(0.4, 0, 0.9, 0.5) both;
   animation-delay: 0ms;
   pointer-events: none;
+  will-change: transform, opacity;
+  --glass-backdrop: none;
 }
 
 .is-scatter-in {
   animation: crewScatterIn var(--fm-gather-ms, 260ms) cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
   animation-delay: var(--fm-gather-delay, 0ms);
   pointer-events: none;
+  will-change: transform, opacity;
+  --glass-backdrop: none;
 }
 
 @keyframes crewScatterOut {
   to {
     opacity: 0;
-    filter: blur(5px);
-    transform: translate(calc(var(--dx, 0) * 46px), calc(var(--dy, 0) * 44px + 34px)) scale(0.93);
+    transform: translate(calc(var(--dx, 0) * 50px), calc(var(--dy, 0) * 48px + 34px)) scale(0.9);
   }
 }
 
 @keyframes crewScatterIn {
   from {
     opacity: 0;
-    filter: blur(5px);
-    transform: translate(calc(var(--dx, 0) * 46px), calc(var(--dy, 0) * 44px + 34px)) scale(0.93);
+    transform: translate(calc(var(--dx, 0) * 50px), calc(var(--dy, 0) * 48px + 34px)) scale(0.9);
   }
 }
 
 @keyframes crewIn {
   from {
     opacity: 0;
-    filter: blur(4px);
     transform: translateY(18px);
   }
   to {
     opacity: 1;
-    filter: blur(0);
     transform: translateY(0);
   }
 }

@@ -1,6 +1,6 @@
 import { SQUAD_BUFF_DEFS, squadBuffIds, type BattleState } from "@/engine";
 import { ASSEMBLE_ACCENT, AssembleIcon } from "@/ui/common/AssembleIcon";
-import { RailPopover } from "@/ui/common/RailPopover";
+import { PopoverHead, RailPopover } from "@/ui/common/RailPopover";
 import s from "./SquadBuffBar.module.css";
 
 interface Props {
@@ -26,7 +26,7 @@ export function SquadBuffBar({ battle }: Props) {
             >
               <AssembleIcon id={id} />
               <RailPopover side="top-left">
-                <strong>{def.name}</strong>
+                <PopoverHead icon={<AssembleIcon id={id} />} name={def.name} iconClassName={s["pop-icon"]} />
                 <p>{def.desc}</p>
               </RailPopover>
             </div>

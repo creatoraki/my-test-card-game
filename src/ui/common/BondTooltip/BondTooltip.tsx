@@ -1,5 +1,7 @@
 import type { BondDef, BondTier } from "@/data/bonds";
+import { ArcanaIcon, getArcanaAccent } from "@/ui/common/ArcanaIcon";
 import { cx } from "@/ui/common/cx";
+import { PopoverHead } from "@/ui/common/RailPopover";
 import s from "./BondTooltip.module.css";
 
 export function BondTooltip({
@@ -14,13 +16,16 @@ export function BondTooltip({
   next?: BondTier | null;
 }) {
   const inactive = tierIndex < 0;
+  const accent = getArcanaAccent(def.id) ?? def.color;
 
   return (
     <div className={s.tooltip}>
-      <div className={s.popHead}>
-        <strong>{def.name}</strong>
-        <span>{count} 点 · {inactive ? "未激活" : `Lv.${tierIndex + 1}`}</span>
-      </div>
+      <PopoverHead
+        className={s.popHead}
+        icon={<ArcanaIcon id={def.id} size={54} chrome={false} accent={accent} inactive={inactive} />}
+        name={def.name}
+        meta={`${count} 点 · ${inactive ? "未激活" : `Lv.${tierIndex + 1}`}`}
+      />
       <p>{def.desc}</p>
       <div className={s.popTiers}>
         {def.tiers.map((tier, index) => (

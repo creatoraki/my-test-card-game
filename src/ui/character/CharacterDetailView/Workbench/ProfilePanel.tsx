@@ -9,13 +9,14 @@ interface Props {
   exp: number;
   stats: StatBlock;
   preview?: StatBlock | null;
+  rolling: boolean;
   equipped: Record<EquipSlot, ItemStack | null>;
   activeSlot: EquipSlot | null;
   onSelect: (slot: EquipSlot) => void;
   onUnequip: (slot: EquipSlot) => void;
 }
 
-export function ProfilePanel({ exp, stats, preview, equipped, activeSlot, onSelect, onUnequip }: Props) {
+export function ProfilePanel({ exp, stats, preview, rolling, equipped, activeSlot, onSelect, onUnequip }: Props) {
   return (
     <div className={s.panel}>
       <EquipmentSlots
@@ -32,7 +33,7 @@ export function ProfilePanel({ exp, stats, preview, equipped, activeSlot, onSele
           <span className={s["head-sub"]}>数据总览</span>
           <span className={s.exp}>可用经验 <b>{exp}</b></span>
         </div>
-        <StatsPanel stats={stats} preview={preview} />
+        <StatsPanel stats={stats} preview={preview} rolling={rolling} />
       </div>
     </div>
   );

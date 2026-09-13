@@ -41,7 +41,6 @@ import { MorphFlyer } from "./formationMorph/MorphFlyer";
 import {
   BACK_GATHER_MS,
   BACK_MORPH_MS,
-  PANEL_DELAY_MS,
   PANEL_GROW_MS,
   SCATTER_MS,
 } from "./formationMorph/morphChoreo";
@@ -147,7 +146,7 @@ export function FormationScreen() {
           "--fm-gather-ms": `${BACK_GATHER_MS}ms`,
           "--fm-gather-delay": `${morph.phase === "toRoster" ? BACK_MORPH_MS : 0}ms`,
           "--fm-panel-ms": `${PANEL_GROW_MS}ms`,
-          "--fm-panel-delay": `${PANEL_DELAY_MS}ms`,
+          "--fm-panel-delay": `${morph.panelDelayMs}ms`,
         } as CSSProperties
       }
     >
@@ -170,7 +169,7 @@ export function FormationScreen() {
           anchorId={morph.phase === "idle" ? null : morph.charId}
           scatter={morph.phase === "toDetail" ? "out" : morph.phase === "toRoster" ? "in" : null}
           entrance={entranceRef.current}
-          onOpen={(charId, el) => morph.openDetail(charId, el)}
+          onOpen={morph.openDetail}
           onToggle={toggleParty}
         />
       )}

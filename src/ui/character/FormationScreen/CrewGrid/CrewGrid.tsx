@@ -69,13 +69,8 @@ export function CrewGrid({
       {roster.map((id, i) => {
         const cs = characters[id];
         if (!cs) return null;
-        const offset =
-          anchorIndex >= 0
-            ? {
-                dx: (i % COLS) - (anchorIndex % COLS),
-                dy: Math.floor(i / COLS) - Math.floor(anchorIndex / COLS),
-              }
-            : null;
+        const offsetX = anchorIndex >= 0 ? (i % COLS) - (anchorIndex % COLS) : 0;
+        const offsetY = anchorIndex >= 0 ? Math.floor(i / COLS) - Math.floor(anchorIndex / COLS) : 0;
         // 被点的那张卡不参与飞散: 它此刻正被飞行层接管。
         const isAnchor = id === anchorId;
         return (
@@ -89,11 +84,12 @@ export function CrewGrid({
             full={full}
             size={size}
             hidden={id === hiddenId}
-            offset={offset}
+            offsetX={offsetX}
+            offsetY={offsetY}
             scatter={isAnchor ? null : scatter}
             entrance={entrance}
-            onOpen={(el) => onOpen(id, el)}
-            onToggle={() => onToggle(id)}
+            onOpen={onOpen}
+            onToggle={onToggle}
           />
         );
       })}

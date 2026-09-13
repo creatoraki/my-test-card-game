@@ -3,7 +3,7 @@ import type { StatusInstance, Team } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { statusArtOf } from "@/ui/art/statusArt";
 import { cx } from "@/ui/common/cx";
-import { RailPopover } from "@/ui/common/RailPopover";
+import { PopoverHead, RailPopover } from "@/ui/common/RailPopover";
 import { ShieldIcon } from "./icons";
 import s from "./StatusPips.module.css";
 
@@ -42,10 +42,12 @@ export function StatusPips({
     duration,
     shieldPip = false,
     icon,
+    detailIcon,
   }: {
     key: string;
     emoji?: string;
     icon?: ReactNode;
+    detailIcon?: ReactNode;
     name: string;
     desc: string;
     stacks: number;
@@ -74,7 +76,7 @@ export function StatusPips({
       {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
       {detail && (
         <RailPopover side={popoverSide ?? "top"}>
-          <strong>{name}</strong>
+          <PopoverHead icon={detailIcon} name={name} />
           <p>{desc}</p>
           <small>
             {shieldPip ? "护盾值" : "当前层数"} {stacks}
@@ -90,6 +92,7 @@ export function StatusPips({
       {shield > 0 && renderPip({
         key: "shield",
         icon: <ShieldIcon className={s["shield-icon"]} />,
+        detailIcon: <ShieldIcon />,
         name: "护盾",
         desc: "吸收伤害的护盾值。",
         stacks: shield,
@@ -105,6 +108,7 @@ export function StatusPips({
             <img className={s["status-icon"]} src={art} alt="" aria-hidden />
           ) : undefined,
           emoji: def?.emoji ?? "❓",
+          detailIcon: art ? <img src={art} alt="" aria-hidden /> : (def?.emoji ?? "❓"),
           name: def?.name ?? st.id,
           desc: def?.desc ?? "暂无说明",
           stacks: st.stacks,

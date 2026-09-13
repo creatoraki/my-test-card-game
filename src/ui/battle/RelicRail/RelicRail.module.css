@@ -50,11 +50,15 @@
   object-fit: contain;
 }
 
-.item :global(.popover) strong {
+.pop strong {
   color: #ffe49a;
 }
 
-.item :global(.popover) p {
+.pop .head-icon {
+  color: inherit;
+}
+
+.pop p {
   margin: 8px 0 0;
   color: #d8d0b8;
   font-size: 18px;

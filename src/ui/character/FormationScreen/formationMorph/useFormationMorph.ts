@@ -3,7 +3,8 @@
 // ★ 两态在过场期间**同时挂载**: 去程时卡阵留在场上演飞散, 回程时详情栏留在场上演收拢,
 //   被点的那一位由 MorphFlyer 的副本从一端飞到另一端。谁在场由 mode + phase 共同决定:
 //     roster 层: mode === "roster" || phase === "toDetail"
-//     detail 层: charId 存在 && (mode === "detail" || phase === "toRoster")
+//     detail 层: charId 存在 && ((mode === "detail" && (detailMounted || phase === "idle"))
+//                     || phase === "toRoster")
 //
 // ⚠ 去程的落点是常量(FIGURE_RECT), 回程的落点必须**测**: 卡阵可能滚动过, 也可能因为
 //   唤醒了新队员而排布不同。故回程分两步 —— 先提交 roster 层让卡阵挂载, 再在
@@ -12,7 +13,15 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { BACK_GATHER_MS, BACK_MORPH_MS, FIGURE_RECT, MORPH_MS, designRectOf, type Rect } from "./morphChoreo";
+import {
+  BACK_GATHER_MS,
+  BACK_MORPH_MS,
+  FIGURE_RECT,
+  MORPH_MS,
+  PANEL_DELAY_MS,
+  designRectOf,
+  type Rect,
+} from "./morphChoreo";
 
 export interface Flight {
   charId: string;
@@ -29,9 +38,20 @@ interface MorphState {
   /** 详情态在看谁; 过场期间 = 正在飞的那一位。 */
   charId: string | null;
   flight: Flight | null;
+  /** 去程先只挂飞行层，等飞散首帧绘制后再挂详情真身。 */
+  detailMounted: boolean;
+  /** 工作区的剩余延迟在详情挂载时计算一次，避免动画重新起算。 */
+  panelDelayMs: number;
 }
 
-const IDLE: MorphState = { mode: "roster", phase: "idle", charId: null, flight: null };
+const IDLE: MorphState = {
+  mode: "roster",
+  phase: "idle",
+  charId: null,
+  flight: null,
+  detailMounted: false,
+  panelDelayMs: PANEL_DELAY_MS,
+};
 
 /** 卡阵里认领某张卡用的属性, 与 CrewCard 上的 data-crew-card 一致。 */
 export const crewCardSelector = (charId: string) =>
@@ -42,23 +62,34 @@ export function useFormationMorph() {
   const stateRef = useRef(state);
   stateRef.current = state;
   const finishTimerRef = useRef<number | null>(null);
+  const openedAtRef = useRef(0);
 
-  // 进详情: 点击那一刻量下这张卡的位置, 同步提交换态 —— 必须 flushSync,
-  // 否则 MorphFlyer 拿到的起点会是"卡阵已经开始飞散之后"的位置。
+  // 进详情: 点击那一刻量下这张卡的位置, 同步提交飞行层与卡阵换态 —— 必须 flushSync,
+  // 否则 MorphFlyer 拿到的起点会是"卡阵已经开始飞散之后"的位置。详情真身稍后由双 rAF 挂载。
   const openDetail = useCallback((charId: string, el: HTMLElement | null) => {
     if (stateRef.current.phase !== "idle") return;
     const from = el ? designRectOf(el) : null;
     if (!from) {
       // 量不到就老老实实瞬切, 不做半截动画。
-      setState({ mode: "detail", phase: "idle", charId, flight: null });
+      setState({
+        mode: "detail",
+        phase: "idle",
+        charId,
+        flight: null,
+        detailMounted: true,
+        panelDelayMs: PANEL_DELAY_MS,
+      });
       return;
     }
+    openedAtRef.current = performance.now();
     flushSync(() => {
       setState({
         mode: "detail",
         phase: "toDetail",
         charId,
         flight: { charId, from, to: FIGURE_RECT, ms: MORPH_MS, reverse: false },
+        detailMounted: false,
+        panelDelayMs: PANEL_DELAY_MS,
       });
     });
   }, []);
@@ -67,16 +98,50 @@ export function useFormationMorph() {
   const backToRoster = useCallback(() => {
     const current = stateRef.current;
     if (current.mode !== "detail" || current.phase === "toRoster" || !current.charId) return;
-    setState({ mode: "roster", phase: "toRoster", charId: current.charId, flight: null });
+    setState({
+      ...current,
+      mode: "roster",
+      phase: "toRoster",
+      flight: null,
+      detailMounted: true,
+    });
   }, []);
 
   const switchDetail = useCallback((charId: string) => {
     const current = stateRef.current;
     if (current.mode !== "detail" || current.phase !== "idle" || current.charId === charId) return;
     setState((prev) =>
-      prev.mode === "detail" && prev.phase === "idle" ? { ...prev, charId } : prev,
+      prev.mode === "detail" && prev.phase === "idle"
+        ? { ...prev, charId, detailMounted: true }
+        : prev,
     );
   }, []);
+
+  // 双 rAF 先让飞散与飞行层的首帧绘制出来，再提交详情树，错开点击帧的大量挂载工作。
+  useEffect(() => {
+    if (state.phase !== "toDetail" || state.detailMounted) return;
+
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        const panelDelayMs = Math.max(
+          0,
+          PANEL_DELAY_MS - (performance.now() - openedAtRef.current),
+        );
+        setState((prev) =>
+          prev.phase === "toDetail" && !prev.detailMounted
+            ? { ...prev, detailMounted: true, panelDelayMs }
+            : prev,
+        );
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [state.phase, state.detailMounted]);
 
   useLayoutEffect(() => {
     if (state.phase !== "toRoster" || state.flight || !state.charId) return;
@@ -105,11 +170,7 @@ export function useFormationMorph() {
       if (finishTimerRef.current !== null) return;
       finishTimerRef.current = window.setTimeout(() => {
         finishTimerRef.current = null;
-        setState((prev) =>
-          prev.phase === "toRoster"
-            ? { mode: "roster", phase: "idle", charId: null, flight: null }
-            : prev,
-        );
+        setState((prev) => (prev.phase === "toRoster" ? IDLE : prev));
       }, BACK_GATHER_MS);
       return;
     }
@@ -122,6 +183,8 @@ export function useFormationMorph() {
             phase: "idle",
             charId: prev.mode === "detail" ? prev.charId : null,
             flight: null,
+            detailMounted: prev.mode === "detail",
+            panelDelayMs: PANEL_DELAY_MS,
           },
     );
   }, []);
@@ -145,10 +208,14 @@ export function useFormationMorph() {
     phase: state.phase,
     charId: state.charId,
     flight: state.flight,
+    panelDelayMs: state.panelDelayMs,
     /** 过场期间必须藏起来的那张卡/立绘栏 —— 它此刻由飞行层代演。 */
     hiddenId: state.phase === "idle" ? null : state.charId,
     showRoster: state.mode === "roster" || state.phase === "toDetail",
-    showDetail: Boolean(state.charId) && (state.mode === "detail" || state.phase === "toRoster"),
+    showDetail:
+      Boolean(state.charId) &&
+      ((state.mode === "detail" && (state.detailMounted || state.phase === "idle")) ||
+        state.phase === "toRoster"),
     openDetail,
     backToRoster,
     switchDetail,

@@ -23,12 +23,14 @@ interface Props {
   pct?: boolean;
   ref100?: number;
   delay: number;
+  /** 详情重组期间暂缓滚数值，待工作区可见后再按原错峰起跑。 */
+  rolling?: boolean;
   /** 三列排布的「特殊属性」组用: 稿子上这一组的行带独立格子底, 且整体收窄一档。 */
   compact?: boolean;
 }
 
-export function AttrRow({ statKey, label, value, next, pct, ref100, delay, compact = false }: Props) {
-  const shown = useCountUp(Math.round(value), delay);
+export function AttrRow({ statKey, label, value, next, pct, ref100, delay, rolling = true, compact = false }: Props) {
+  const shown = useCountUp(Math.round(value), delay, 460, 0, { enabled: rolling });
   const fill = ref100 ? Math.max(0, Math.min(1, value / ref100)) : 0;
   const nextFill = ref100 && next !== undefined ? Math.max(0, Math.min(1, next / ref100)) : fill;
   const delta = next === undefined ? 0 : next - value;

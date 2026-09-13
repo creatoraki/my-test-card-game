@@ -346,6 +346,7 @@ span.combatant-portrait {
 /* 血条上沿左对齐: 不占流, 因而没有状态时血条位置不会跳动。 */
 .combatant-badges {
   position: absolute;
+  z-index: 1;
   bottom: calc(100% + 2px);
   left: 0;
   display: flex;

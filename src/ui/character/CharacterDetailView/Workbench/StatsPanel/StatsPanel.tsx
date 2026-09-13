@@ -17,7 +17,15 @@ import s from "./StatsPanel.module.css";
 const CONTENT_DELAY_MS = 160;
 const STAGGER_MS = 55;
 
-export function StatsPanel({ stats, preview = null }: { stats: StatBlock; preview?: StatBlock | null }) {
+export function StatsPanel({
+  stats,
+  preview = null,
+  rolling = true,
+}: {
+  stats: StatBlock;
+  preview?: StatBlock | null;
+  rolling?: boolean;
+}) {
   return (
     <div className={s.groups}>
       {STAT_GROUPS.map((group, gi) => (
@@ -32,6 +40,7 @@ export function StatsPanel({ stats, preview = null }: { stats: StatBlock; previe
               pct={row.pct}
               ref100={row.ref ?? (row.pct ? REF_DEFAULT_PCT : undefined)}
               delay={CONTENT_DELAY_MS + gi * STAGGER_MS}
+              rolling={rolling}
               compact={group.wide}
             />
           ))}

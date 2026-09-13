@@ -199,6 +199,7 @@ export function CharacterDetailView({
             exp={cs.exp}
             stats={stats}
             preview={previewStats}
+            rolling={!morphing && !leaving}
             equipped={cs.equipped}
             activeSlot={activeSlot}
             onSelect={(slot) => {

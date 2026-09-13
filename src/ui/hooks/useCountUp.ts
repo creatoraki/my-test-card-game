@@ -13,7 +13,18 @@ import { prefersReducedMotion } from "@/ui/app/transitions";
 //   两种用法都有滚动过程。
 // ★ delayMs: 等 CSS 那边的错峰入场把这一块**显示出来**之后再开滚。浮层里的内容都要等面板
 //   落定(--content-delay)才浮现, 不等的话数字在看不见的时候就滚完了, 白做。
-export function useCountUp(target: number, delayMs = 0, durationMs = 460, decimals = 0): number {
+// ★ enabled: 过场期间暂停数值 rAF，避免十几条数字更新与整页形变争抢主线程。
+interface CountUpOptions {
+  enabled?: boolean;
+}
+
+export function useCountUp(
+  target: number,
+  delayMs = 0,
+  durationMs = 460,
+  decimals = 0,
+  { enabled = true }: CountUpOptions = {},
+): number {
   // ⚠ 关掉动态效果时连初值都直接给终值 —— 不能先渲染一个 0 再跳。
   const [value, setValue] = useState(() => (prefersReducedMotion() ? target : 0));
   // 起点必须走 ref 而不是读 state: effect 里读 state 会把 value 逼进依赖数组,
@@ -21,6 +32,7 @@ export function useCountUp(target: number, delayMs = 0, durationMs = 460, decima
   const fromRef = useRef(value);
 
   useEffect(() => {
+    if (!enabled) return;
     if (prefersReducedMotion() || durationMs <= 0) {
       fromRef.current = target;
       setValue(target);
@@ -49,7 +61,7 @@ export function useCountUp(target: number, delayMs = 0, durationMs = 460, decima
       window.clearTimeout(timer);
       cancelAnimationFrame(raf);
     };
-  }, [target, delayMs, durationMs, decimals]);
+  }, [target, delayMs, durationMs, decimals, enabled]);
 
   return value;
 }
