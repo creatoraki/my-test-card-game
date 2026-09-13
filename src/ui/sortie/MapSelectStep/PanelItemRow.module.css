@@ -1,0 +1,140 @@
+.rewardSection {
+  position: relative;
+  width: 424px;
+  height: 184px;
+  padding: 13px 24px 20px;
+  box-sizing: border-box;
+  color: #f2f6f8;
+  filter: drop-shadow(0 8px 12px #0005);
+}
+
+.rewardSection[data-kind="daily"] {
+  width: 618px;
+}
+
+.surface {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+  background: linear-gradient(115deg, #10191fdd, #0d151bcb 65%, #34404b99);
+  backdrop-filter: blur(5px);
+}
+
+.rewardHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 36px;
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.headingIcon {
+  width: 31px;
+  height: 31px;
+  color: #c3ecff;
+  flex-shrink: 0;
+}
+
+.headingNote {
+  margin-left: auto;
+  padding-left: 6px;
+  color: #8496a2;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+
+.rewardRow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 104px;
+  margin-right: -10px;
+  padding: 1px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #6e92a7 #111d26;
+}
+
+.rewardCell {
+  position: relative;
+  flex: 0 0 116px;
+  width: 116px;
+  height: 102px;
+  padding: 0;
+  border: 0;
+  clip-path: none;
+  background: transparent;
+  color: #c8dfef;
+  transition: filter 160ms ease;
+}
+
+.rewardSection[data-kind="daily"] .rewardCell {
+  flex-basis: 128px;
+  width: 128px;
+}
+
+.cellSurface {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px), calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+  background: radial-gradient(ellipse at 50% 65%, #a8c6d728, transparent 64%), linear-gradient(135deg, #1c2933b0, #050b10df 60%, #1b2b3790);
+  box-shadow: inset 0 0 18px #bbd6e214;
+}
+
+.itemArt {
+  position: absolute;
+  inset: 9px 23px 15px 12px;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 4px 5px #000b);
+}
+
+.itemArt > img,
+.itemArt > svg {
+  width: 100%;
+  height: 100%;
+  max-width: 87px;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+.count {
+  position: absolute;
+  bottom: 7px;
+  right: 11px;
+  z-index: 3;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: 0;
+  font-weight: 700;
+  text-shadow: 0 2px 4px #000, 0 0 5px #000;
+}
+
+.rewardCell:hover:not(:disabled) {
+  filter: brightness(1.2);
+  background: transparent;
+}
+
+.rewardCell:focus-visible {
+  outline: 2px solid #c2edff;
+  outline-offset: -3px;
+}
+
+.rewardCell:disabled {
+  opacity: 1;
+}
+
+.empty {
+  width: 100%;
+  margin: 0;
+  color: #b0c4d2;
+  font-size: 21px;
+  text-align: center;
+}

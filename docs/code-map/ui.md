@@ -86,13 +86,14 @@ src/ui/
 | [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 编队页训练点分配弹窗域共享的设计令牌（`--tr-*`，暗底金色）、暗玻璃材质与 kicker 排版，各组件各自 `composes`。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，支持分类 tab、滚动网格和鼠标右侧物品详情；由 `StockEntries` 以独立第三入口打开，并传入 4×4 格配置。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
-| [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按可见地图列表播放上下推移背景动画；目标层信息只在地图步骤挂载，并随步骤切换自然卸载。 |
+| [sortie/SortieBackdrop](../../src/ui/sortie/SortieBackdrop/SortieBackdrop.tsx) | 出击流程共享背景：按可见地图列表播放上下推移背景动画；地图步骤挂载独立的 `MapMissionInfo`，展示切角任务框、中文任务编号、星级和出击参数。 |
 | [sortie/SortieStepViewport](../../src/ui/sortie/SortieStepViewport/SortieStepViewport.tsx) | 出击步骤视口：挂载当前步骤，并在离场动画完成前暂留物资准备侧栏面板；步骤时序由 `sortieStepTransition.ts` 编排。 |
 | [sortie/sortieStepTransition.ts](../../src/ui/sortie/sortieStepTransition.ts) | 出击地图选择 ↔ 物资准备的真实 DOM 步骤动画 hook；同步切换唯一可见步骤，提供 460ms 入场状态和过场交互锁。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
-| [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在传入的可见地图列表中以斜跨玻璃选择带切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
-| [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 地图难度、援助物资与每日通关奖励面板：按 `mapDifficulty` 显示逐级解锁的三档难度、锁定原因和物品预览；援助物资按地图和难度现算。新手关卡与未开放地图不显示。 |
-| [sortie/PanelItemRow](../../src/ui/sortie/MapSelectStep/PanelItemRow.tsx) | 难度面板的物品图标行与浮卡组件；复用 `ItemSlot`、悬浮定位和 `SortieTooltip`。 |
+| [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：右侧深色斜栏以 162px 步进循环切换地图，中央卡片放大并显示冷蓝描边、当前徽标与定位圆环；相邻卡片各向外让位 21px。`MapSelectChrome` 持有页眉与全屏装饰线。地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
+| [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 左侧独立难度框与并排奖励框：按 `mapDifficulty` 显示逐级解锁的三档难度、锁定原因和物品预览；援助物资按地图和难度现算。新手关卡与未开放地图不显示。 |
+| [sortie/PanelItemRow](../../src/ui/sortie/MapSelectStep/PanelItemRow.tsx) | 奖励面板与独立切角物品格；使用 `itemIcon` 现有素材，完整显示数量（含 ×1），复用悬浮定位与 `SortieTooltip`，样式由同名 CSS Module 持有。 |
+| [sortie/SortieFrame](../../src/ui/sortie/SortieFrame/SortieFrame.tsx) | 出击界面的 SVG 切角框：按设计尺寸绘制双层细描边、金属角片和选中辉光，由任务框、难度按钮、奖励格、地图卡及导航复用。`SortieGlyph` 提供配套的单色矢量图标。 |
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列遗物携带窗口、仓库消耗品速取条与补给货架，右上背包，右下售货机器人，舞台左上角终端积分；遗物窗口的编辑面板由出击页根层挂载。 |
 | [sortie/SortieRelicBar](../../src/ui/sortie/SortieRelicBar/SortieRelicBar.tsx) | 出击准备顶行的 3×2 遗物携带窗口：复用物品库存面板展示本次携带的遗物，并作为打开遗物编辑面板的键鼠入口。 |
 | [sortie/SortieRelicPanel](../../src/ui/sortie/SortieRelicPanel/SortieRelicPanel.tsx) | 全屏遗物携带编辑面板：PanelShell 双栏展示仓库遗物与本次携带，取物/退回分别复用出击状态层的既有 action，并在状态行反馈容量限制。 |

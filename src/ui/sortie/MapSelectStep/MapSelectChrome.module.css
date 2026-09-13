@@ -1,0 +1,28 @@
+.chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.breadcrumb {
+  position: absolute;
+  top: 27px;
+  left: 96px;
+  color: #f0f6fa;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 7px #000;
+}
+
+.breadcrumb span {
+  margin: 0 9px;
+}

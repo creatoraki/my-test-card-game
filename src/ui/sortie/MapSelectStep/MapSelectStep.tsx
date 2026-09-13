@@ -4,7 +4,9 @@ import type { ItemStack } from "@/items/types";
 import { cx } from "@/ui/common/cx";
 import { mapArt } from "@/ui/art/mapArt";
 import { COPY_COUNT, MIDDLE_COPY, useInfiniteBand } from "@/ui/sortie/hooks";
-import { MapLockChains } from "./MapLockChains";
+import { SortieFrame } from "@/ui/sortie/SortieFrame";
+import { SortieGlyph } from "@/ui/sortie/SortieGlyph";
+import { MapSelectChrome } from "./MapSelectChrome";
 import { MapDifficultyPanel } from "./MapDifficultyPanel";
 import s from "./MapSelectStep.module.css";
 
@@ -46,6 +48,7 @@ export function MapSelectStep({
       active,
       count: mapCount,
       selectedIndex,
+      sliceStep: 162,
       onSelect: (index) => {
         const nextId = maps[index]?.id;
         if (nextId) onSelectMap(nextId);
@@ -59,12 +62,17 @@ export function MapSelectStep({
       className={s["sm-step"]}
       data-active={active}
       data-moving={isMoving}
+      data-resetting={isResetting || undefined}
       aria-hidden={!active}
       aria-busy={isMoving}
       aria-label="目标层选择"
-      onWheel={onWheel}
     >
-      <div className={cx(s["sm-band"], intro && s["sm-band-intro"], entering && s["sm-band-enter"])}>
+      <MapSelectChrome />
+      <div className={cx(s["sm-band"], intro && s["sm-band-intro"], entering && s["sm-band-enter"])} onWheel={onWheel}>
+        <div className={s["sm-band-heading"]} aria-hidden="true">
+          <span>····<br />···−</span><i />行动区域 <b>／／</b>
+        </div>
+        <div className={s["sm-band-window"]}>
         <div
           ref={listRef}
           className={cx(s["sm-band-list"], isResetting && s["sm-band-list-reset"])}
@@ -82,31 +90,49 @@ export function MapSelectStep({
               const lockReason = isTest ? null : mapLockReason(map.id, clearedMaps);
 
               return (
-                <button
+                <div
                   key={`${copy}-${map.id}`}
+                  className={s["sm-slice-slot"]}
+                  style={{ "--neighbor-shift": `${itemIndex < virtualIndex ? -21 : itemIndex > virtualIndex ? 21 : 0}px` } as CSSProperties}
+                >
+                <button
                   className={cx(s["sm-slice"], isCurrent && s["sm-is-on"])}
                   type="button"
                   data-locked={locked ? "true" : undefined}
                   role={isSemantic ? "option" : undefined}
                   aria-selected={isSemantic ? map.id === selected.id : undefined}
                   aria-hidden={isSemantic ? undefined : true}
-                  tabIndex={isSemantic ? 0 : -1}
+                  tabIndex={isSemantic && active ? 0 : -1}
                   aria-label={locked ? `${map.name}（未开放）` : `选择${map.name}`}
                   onClick={() => select(index)}
                 >
-                  <img className={s["sm-slice-art"]} src={mapArt(map.id)} alt="" draggable={false} />
-                  {locked && (
-                    <MapLockChains reason={lockReason ?? "暂未开放"} highlighted={isCurrent} />
-                  )}
-                  <span className={s["sm-slice-copy"]}>
-                    <span className={s["sm-slice-no"]}>{`SECTOR-${String(index).padStart(2, "0")}`}</span>
-                    <strong className={s["sm-slice-name"]}>{map.name}</strong>
+                  <span className={s["sm-slice-surface"]}>
+                    <img className={s["sm-slice-art"]} src={mapArt(map.id)} alt="" draggable={false} />
                   </span>
+                  <SortieFrame width={isCurrent ? 516 : 474} height={isCurrent ? 188 : 146} selected={isCurrent} />
+                  <span className={s["sm-slice-detail"]} aria-hidden="true">···</span>
+                  {isCurrent && <>
+                    <span className={s["sm-current-tag"]}>
+                      <SortieFrame width={114} height={39} notch={8} metal={false} />
+                      <span className={s["sm-current-label"]}>当前</span>
+                    </span>
+                    <span className={s["sm-locator"]} />
+                    <SortieGlyph name="beacon" className={s["sm-current-icon"]} />
+                  </>}
+                  <span className={s["sm-slice-copy"]}>
+                    <strong className={s["sm-slice-name"]}>{map.name}</strong>
+                    {locked && <span className={s["sm-slice-status"]}>{isCurrent ? lockReason ?? "暂未开放" : "暂未开放"}</span>}
+                    {isCurrent && <span className={s["sm-current-rule"]} aria-hidden="true" />}
+                  </span>
+                  {locked && <SortieGlyph name="lock" className={s["sm-slice-lock"]} />}
                 </button>
+                </div>
               );
             }),
           )}
         </div>
+        </div>
+        <div className={s["sm-band-footer"]} aria-hidden="true">···−<i /></div>
       </div>
       <MapDifficultyPanel
         mapId={selected.id}

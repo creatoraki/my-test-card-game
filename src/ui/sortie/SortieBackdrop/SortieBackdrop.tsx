@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { MapDef } from "@/data";
 import { mapArt, warmMapArt } from "@/ui/art/mapArt";
 import { cx } from "@/ui/common/cx";
+import { MapMissionInfo } from "@/ui/sortie/MapMissionInfo";
 import s from "./SortieBackdrop.module.css";
 
 const BACKGROUND_SLIDE_MS = 460;
@@ -83,27 +84,8 @@ export function SortieBackdrop({
       <div className={s.veil} aria-hidden />
 
       {showInfo && (
-        <header
-          className={cx(
-            s.info,
-            intro && s.infoIntro,
-            infoEntering && s.infoEntering,
-            infoExiting && s.infoExiting,
-          )}
-          aria-live="polite"
-        >
-          <span className={s.kicker}>TARGET SECTOR / ACTIVE ROUTE</span>
-          <h1 className={s.name}>{map.name}</h1>
-          <p className={s.desc}>{map.desc}</p>
-          <div className={s.meta}>
-            <span className={s.stars} aria-label={`难度 ${map.difficulty} / 5`}>
-              {"★".repeat(map.difficulty)}{"☆".repeat(5 - map.difficulty)}
-            </span>
-            <span>{map.roundCount} 轮</span>
-            <span>粒子 {map.startingEnergy}</span>
-            {lockReason && <span className={s.lockReason}>{lockReason}</span>}
-          </div>
-        </header>
+        <MapMissionInfo map={map} index={maps.indexOf(map)} intro={intro}
+          entering={infoEntering} exiting={infoExiting} lockReason={lockReason} />
       )}
     </div>
   );

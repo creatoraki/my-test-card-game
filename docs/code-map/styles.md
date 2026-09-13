@@ -33,7 +33,9 @@
 画布根通过 `data-explore-dock="stacked"` 传递事件面板占用上半格的状态，dock 顶部位置与可用高度由
 `--expl-dock-top` / `--expl-dock-max-h` CSS 变量统一下发。
 
-出击域的白玻璃面板材质（零圆角 + `blur(18px) saturate(118%) brightness(1.06)` + 白色内描边 hairline）
+地图选择步骤使用独立的冷蓝黑钢界面：`SortieFrame` 绘制 SVG 切角、金属角片与描边，任务框、难度框、奖励框和地图卡分别持有自身材质；右侧列表保持 162px 固定步进，中央卡片独立放大，归位帧关闭卡片尺寸过渡。页面的 1920×1080 坐标与背景沿用现有画布。
+
+物资准备步骤的白玻璃面板材质（零圆角 + `blur(18px) saturate(118%) brightness(1.06)` + 白色内描边 hairline）
 住在 [sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css)，
 仓库库存面板 / 出击背包面板 / 补给货架都通过 `.shellStatic` 使用不带 `panelIn` 的版本。`.shell` 仍保留给需要自身入场动画的复用方，`.shellStatic` 专供由 View Transition 负责飞入的仓库和背包。
 共享材质同时下发 `--sm-ease` / `--sm-dur` 两个手感令牌；两条步骤路线的带壳和片通过

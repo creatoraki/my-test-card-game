@@ -1,0 +1,150 @@
+.info {
+  position: absolute;
+  top: 130px;
+  left: 77px;
+  z-index: 2;
+  box-sizing: border-box;
+  width: 660px;
+  height: 236px;
+  padding: 24px 35px 20px;
+  color: #f2f5f7;
+  filter: drop-shadow(0 10px 12px #0008);
+}
+
+.surface {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, #0b1114ec, #0a1014c4 60%, #253039a8);
+  backdrop-filter: blur(5px);
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+}
+
+.info::before {
+  position: absolute;
+  inset: -14px -10px -12px -14px;
+  border: 1px solid #b6d2e022;
+  clip-path: polygon(0 0, 70% 0, 70% 2px, 2px 2px, 2px 94%, 80px 94%, 80px 100%, 0 94%);
+  content: "";
+}
+
+.serial {
+  position: absolute;
+  top: 27px;
+  right: 23px;
+  display: grid;
+  gap: 0;
+  text-align: right;
+  color: #82929d;
+  font-size: 18px;
+  letter-spacing: 2px;
+  line-height: 1.35;
+}
+
+.serial b {
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.name {
+  width: 495px;
+  margin: 0 0 10px -9px;
+  padding-left: 20px;
+  border-left: 3px solid #e5f5ff;
+  font-size: 58px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 6px #000a;
+}
+
+.desc {
+  width: 578px;
+  height: 61px;
+  margin: 15px 0 10px;
+  font-size: 22px;
+  line-height: 1.4;
+  letter-spacing: .5px;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  gap: 20px;
+  border-top: 1px solid #d6e6ef40;
+  font-size: 21px;
+  white-space: nowrap;
+}
+
+.stars {
+  display: flex;
+  gap: 8px;
+  color: #bae9ff;
+}
+
+.stars svg {
+  width: 28px;
+  height: 28px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  border-left: 1px solid #d7e8f24a;
+  padding-left: 21px;
+}
+
+.stat b {
+  font-size: 25px;
+  color: #cef0ff;
+  font-weight: 600;
+}
+
+.link {
+  width: 29px;
+  height: 29px;
+  margin-right: 16px;
+  color: #b0e6ff;
+}
+
+.lockReason {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 25px 0 0;
+  color: #c6d8e6;
+  font-size: 18px;
+  text-shadow: 0 2px 6px #000;
+}
+
+.lockIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.info[data-intro] {
+  animation: appear 460ms 60ms ease-out backwards;
+}
+
+.info[data-entering] {
+  animation: appear 460ms ease-out both;
+}
+
+.info[data-exiting] {
+  animation: leave 460ms ease-in both;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateX(45px);
+  }
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: translateX(90px);
+  }
+}
