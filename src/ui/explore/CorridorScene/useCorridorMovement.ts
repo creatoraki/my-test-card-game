@@ -13,7 +13,6 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   const selected = useRef(selectedId);
   selected.current = selectedId;
   const pressed = useRef(new Set<string>());
-  const pointerDirection = useRef(0);
 
   const save = () => {
     const value = position.current;
@@ -21,7 +20,6 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   };
   const stop = () => {
     pressed.current.clear();
-    pointerDirection.current = 0;
     position.current = { ...position.current, walking: false };
     setMotion(position.current);
     save();
@@ -62,10 +60,10 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
       previous = now;
       const current = live.current;
       const menuOpen = Boolean(document.querySelector("[role='menu']"));
-      if (menuOpen && (pressed.current.size || pointerDirection.current)) stop();
+      if (menuOpen && pressed.current.size) stop();
       if (!current.blocked && !document.hidden && !menuOpen) {
         const keys = pressed.current;
-        const direction = pointerDirection.current || Number(keys.has("ArrowRight") || keys.has("KeyD")) - Number(keys.has("ArrowLeft") || keys.has("KeyA"));
+        const direction = Number(keys.has("ArrowRight") || keys.has("KeyD")) - Number(keys.has("ArrowLeft") || keys.has("KeyA"));
         if (direction) {
           const x = clampCorridorX(current.corridor, position.current.x + direction * CORRIDOR.speed * elapsed);
           position.current = { x, facing: direction < 0 ? -1 : 1, walking: x !== position.current.x };
@@ -74,7 +72,6 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
           if (threat) {
             save();
             pressed.current.clear();
-            pointerDirection.current = 0;
             encounterCorridorThreat(threat.id);
           }
         } else if (position.current.walking) {
@@ -127,7 +124,6 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   const nearby = nearbyObjects(corridor, motion.x);
   const target = nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
   return {
-    ...motion, nearby, target, interactingId, interact, cycle, stop,
-    startPointer: (direction: number) => { if (!live.current.blocked) pointerDirection.current = direction; },
+    ...motion, nearby, target, interactingId, interact, cycle,
   };
 }

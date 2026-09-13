@@ -1,12 +1,7 @@
 .viewport { background: #060b0e; }
 .screen { background: #080e11; color: #e5dbc8; font-size: 18px; isolation: isolate; }
-/* 左上角：负重计 + 随身遗物占顶格，标题让到它下方。底部整条 HUD 见 ExploreDock.module.css。 */
+/* 左上角：负重计 + 随身遗物占顶格。底部整条 HUD 见 ExploreDock.module.css。 */
 .burden { position: absolute; left: 12px; top: 0; display: flex; gap: 12px; align-items: flex-start; z-index: 30; }
-.heading { position: absolute; top: 160px; left: 48px; z-index: 25; pointer-events: none; max-width: 550px; }
-.headingEyebrow { font-size: 18px; color: #b3a17d; letter-spacing: 7px; }
-.heading h1 { margin: 6px 0 10px; font-size: 32px; font-weight: 500; letter-spacing: 5px; color: #ecdec4; text-shadow: 0 4px 25px #000; }
-.depth { display: flex; align-items: center; gap: 13px; font-size: 18px; color: #a8b4ad; }
-.depth i { height: 16px; width: 1px; background: #94876b; }
 .readout { position: absolute; top: 30px; right: 48px; width: 285px; z-index: 30; text-align: right; }
 .readout > span { display: block; font-size: 20px; letter-spacing: 4px; color: #b6bdaf; }
 .readout strong { display: block; font-size: 53px; line-height: 1.3; font-weight: 500; }

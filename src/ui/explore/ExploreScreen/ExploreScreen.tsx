@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { getMap } from "@/data";
 import { energyTier } from "@/explore/session";
 import { canWalkCorridor, hasCorridorRewards } from "@/explore/corridor/session";
 import { useExploreStore } from "@/store/exploreStore";
@@ -36,11 +35,6 @@ export function ExploreScreen() {
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
     <CorridorScene key={session.round} corridor={session.corridor} blocked={blocked} encountering={locked} finalFloor={session.round === session.roundCount} />
-    <header className={s.heading}>
-      <span className={s.headingEyebrow}>远征探索</span>
-      <h1>{getMap(session.mapId).name}</h1>
-      <span className={s.depth}>第 {session.round} / {session.roundCount} 层 <i /> {session.round === session.roundCount ? "终层 · 深入总控室" : "搜集补给，寻找下层通道"}</span>
-    </header>
     <div className={s.readout}>
       <span>净化粒子</span><strong style={{ color: tier.color }}>{session.energy}<small> / 100</small></strong>
       <div className={s.energyTrack}><i style={{ width: `${Math.min(100, session.energy)}%`, background: tier.color }} /></div>
