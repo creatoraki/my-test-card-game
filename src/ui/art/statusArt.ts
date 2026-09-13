@@ -1,4 +1,6 @@
 // 新增状态美术只在此登记一次，StatusPips 与 HitFxLayer 自动生效。
+// 四宫格状态图必须使用 `node scripts/crop-status-buffs.mjs <四宫格原图路径>` 切图；
+// 脚本按左上到右下输出中毒、烧伤、护盾、锋利到 src/assets/buffs，不要手动截屏取图。
 
 import poisonArt from "@/assets/buffs/中毒.png";
 import shieldArt from "@/assets/buffs/护盾.png";
