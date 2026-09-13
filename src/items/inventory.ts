@@ -12,6 +12,14 @@ import type { ItemDef, ItemStack } from "./types";
 
 export type GetDef = (itemId: string) => ItemDef;
 
+export function isDisposable(stack: ItemStack): boolean {
+  return stack.disposable === true;
+}
+
+export function canShipHome(stack: ItemStack, def: ItemDef): boolean {
+  return !def.undroppable && !isDisposable(stack);
+}
+
 // ---------------------------------------------------------------------------
 // 占格
 // ---------------------------------------------------------------------------
@@ -35,7 +43,8 @@ export interface AddResult {
 }
 
 // 逐件尝试收进容器。capSlots 省略 = 无上限(仓库)。
-// 同 itemId 且同羁绊的可堆叠物品优先并进已有的堆(maxStack > 1 时才有意义)。
+// 同 itemId、同羁绊且同一次性标记的可堆叠物品才并堆(maxStack > 1 时才有意义)。
+// 一次性牛奶若并进自购牛奶，会把不可带回的标记污染给玩家自购物资。
 export function addToContainer(
   stacks: ItemStack[],
   incoming: ItemStack[],
@@ -53,7 +62,11 @@ export function addToContainer(
     // ① 先试着并进已有的堆 —— 不占新格子, 所以不受容量限制。
     if (def.maxStack > 1) {
       const slot = next.find(
-        (s) => s.itemId === st.itemId && s.affinity === st.affinity && s.count < def.maxStack,
+        (s) =>
+          s.itemId === st.itemId &&
+          s.affinity === st.affinity &&
+          s.disposable === st.disposable &&
+          s.count < def.maxStack,
       );
       if (slot && slot.count + st.count <= def.maxStack) {
         slot.count += st.count;
@@ -119,7 +132,8 @@ export function mergeStacksForDisplay(stacks: ItemStack[], getDef: GetDef): Item
       continue;
     }
 
-    const key = `${stack.itemId}\u0000${stack.affinity ?? ""}`;
+    // 展示合并也要隔离来源；否则一次性物品的数量会混入普通背包物资。
+    const key = `${stack.itemId}\u0000${stack.affinity ?? ""}\u0000${stack.disposable ?? false}`;
     const existing = merged.get(key);
     if (existing) {
       existing.count += stack.count;

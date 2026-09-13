@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { RULES } from "@/engine";
 import { getItemDef, VENDOR_LINES, type VendorLineKind } from "@/data";
+import { isDisposable } from "@/items/inventory";
 import { SORTIE_RELIC_LIMIT, useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
 import { ChatBot, useBotChatter } from "@/ui/common/ChatBot";
@@ -25,7 +26,9 @@ export function PrepStep({ active, entering, exiting, onOpenRelics }: Props) {
   const backpack = useSortieStore((state) => state.backpack);
   const putBack = useSortieStore((state) => state.putBack);
   const credits = useCountUp(loot, 120, 460);
-  const relicCount = backpack.filter((stack) => getItemDef(stack.itemId).category === "relic").length;
+  const relicCount = backpack.filter(
+    (stack) => !isDisposable(stack) && getItemDef(stack.itemId).category === "relic",
+  ).length;
   // 页面上所有的软反馈(买到了/买不起/装不下/退了钱)都由机器人说出来, 这里只负责触发。
   const { line, say } = useBotChatter<VendorLineKind>(active, {
     lines: VENDOR_LINES,
@@ -81,7 +84,9 @@ export function PrepStep({ active, entering, exiting, onOpenRelics }: Props) {
           subtitle={`遗物 ${relicCount}/${SORTIE_RELIC_LIMIT} · 点击退回来源`}
           colorMap={SORTIE_BACKPACK_COLORS}
           onSelect={(stack) => {
-            if (stack) handlePutBack(stack.uid, stack.itemId);
+            if (!stack) return;
+            if (isDisposable(stack)) say("aid");
+            else handlePutBack(stack.uid, stack.itemId);
           }}
         />
       </div>

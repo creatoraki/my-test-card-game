@@ -146,6 +146,22 @@
   text-shadow: 0 0 4px #000;
 }
 
+.item-slot-disposable {
+  position: absolute;
+  z-index: 2;
+  top: 2px;
+  right: 3px;
+  padding: 0 3px;
+  border-radius: 2px;
+  background: #401e22e8;
+  color: #ffd8d3;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow: 0 1px 4px #000;
+  pointer-events: none;
+}
+
 /* 羁绊词条角标 —— 放左上角, 与右下角的数量角标错开互不遮挡 */
 .item-slot-bond {
   position: absolute;

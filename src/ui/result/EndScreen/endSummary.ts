@@ -42,7 +42,9 @@ export function buildEndSummary(
   levels: TechTreeState["levels"],
 ): EndSummary {
   const stats = session?.stats ?? EMPTY_STATS;
-  const haul = session ? [...session.shipped, ...session.backpack] : [];
+  const haul = session
+    ? [...session.shipped, ...session.backpack].filter((stack) => !stack.disposable)
+    : [];
   // 换金物在落袋时已被 townStore.depositHaul 自动售出, 这里用**同一套** sellPriceOf 现算,
   // 得到的就是刚刚入账的那笔钱 —— 两边不各存一份数。
   const salvageValue = haul.reduce((total, stack) => {

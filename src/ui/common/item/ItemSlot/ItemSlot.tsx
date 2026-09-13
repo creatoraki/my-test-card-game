@@ -58,6 +58,11 @@ export default function ItemSlot({
     >
       <span className={s["item-slot-icon"]}>{itemIcon(def)}</span>
       {showName && <span className={s["item-slot-name"]}>{def.name}</span>}
+      {stack.disposable && (
+        <span className={s["item-slot-disposable"]} aria-hidden="true">
+          弃
+        </span>
+      )}
       {showCount && stack.count > 1 && <span className={s["item-slot-count"]}>{stack.count}</span>}
       {showBond && bond && <BondIcon bondId={bond.id} className={s["item-slot-bond"]} />}
     </button>

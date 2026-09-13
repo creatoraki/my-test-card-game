@@ -92,6 +92,13 @@ export {
 } from "./mapDifficulty";
 export { rollAllDailyClearRewards, rollDailyClearReward } from "./mapDailyReward";
 export {
+  AID_SUPPLY_OVERRIDES,
+  DEFAULT_AID_SUPPLY,
+  aidSupplyOf,
+  makeAidSupplyStacks,
+  type AidSupplyEntry,
+} from "./mapAidSupply";
+export {
   CONSUMABLE_ITEM_DEFS,
   DESIGN_ITEM_DEFS,
   EQUIPMENT_ITEM_DEFS,
@@ -321,13 +328,14 @@ export function newUid(prefix = "c"): string {
 export function makeItemStack(
   itemId: string,
   count = 1,
-  extra: { affinity?: string; roll?: ItemStack["roll"] } = {},
+  extra: { affinity?: string; roll?: ItemStack["roll"]; disposable?: boolean } = {},
 ): ItemStack {
   getItemDef(itemId); // 存在性校验: 打错 id 要在这里炸, 而不是等 UI 渲染时才发现
   return {
     uid: newUid("i"),
     itemId,
     count: Math.max(1, count),
+    disposable: extra.disposable,
     affinity: extra.affinity,
     roll: extra.roll,
   };

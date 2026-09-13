@@ -98,6 +98,16 @@
   opacity: 0.82;
 }
 
+.item-detail-disposable {
+  margin: 0;
+  padding: 9px 12px;
+  border-left: 3px solid #ff9d83;
+  background: #ff72531a;
+  color: #ffd0c3;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
 .item-detail-stats {
   display: flex;
   flex-direction: column;

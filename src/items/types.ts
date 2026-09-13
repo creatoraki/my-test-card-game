@@ -174,6 +174,8 @@ export interface ItemStack {
   uid: string; // 唯一实例号(与卡牌共用 data/index.ts 的发号器)
   itemId: string;
   count: number; // 1..def.maxStack
+  /** 一次性物品：远征结束时销毁、不入仓库、不可寄件、出击准备中不可退回。标记属于实例而非 def，因为同一物品定义可能来自仓库或援助。 */
+  disposable?: boolean;
   affinity?: string; // 掉落时 roll 出的随机羁绊。⚠ 本期只存不生效
   roll?: EquipRoll;
 }

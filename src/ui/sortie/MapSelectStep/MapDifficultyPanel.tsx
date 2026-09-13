@@ -1,18 +1,17 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   difficultyLockReason,
-  getItemDef,
   getMapDifficulty,
   isDifficultyUnlocked,
+  makeAidSupplyStacks,
   MAP_DIFFICULTY_IDS,
   mapHasDifficulty,
   type MapDifficulty,
 } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { HoverTooltip } from "@/ui/common/HoverTooltip";
-import ItemSlot from "@/ui/common/item/ItemSlot/ItemSlot";
 import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
-import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
+import { PanelItemRow } from "./PanelItemRow";
 import s from "./MapDifficultyPanel.module.css";
 
 interface Props {
@@ -37,10 +36,7 @@ export function MapDifficultyPanel({
     reason: string;
     point: TooltipPoint;
   } | null>(null);
-  const [itemTooltip, setItemTooltip] = useState<{
-    stack: ItemStack;
-    point: TooltipPoint;
-  } | null>(null);
+  const aidStacks = useMemo(() => makeAidSupplyStacks(mapId, difficulty), [mapId, difficulty]);
 
   if (!mapHasDifficulty(mapId)) return null;
 
@@ -52,7 +48,12 @@ export function MapDifficultyPanel({
   }, {});
 
   return (
-    <aside className={s.panel} data-active={active} aria-hidden={!active} aria-label="难度与每日奖励">
+    <aside
+      className={s.panel}
+      data-active={active}
+      aria-hidden={!active}
+      aria-label="难度、援助物资与每日奖励"
+    >
       <div className={s.difficultyRow} aria-label="选择地图难度">
         {MAP_DIFFICULTY_IDS.map((id) => {
           const definition = getMapDifficulty(id);
@@ -97,35 +98,8 @@ export function MapDifficultyPanel({
         })}
       </div>
 
-      <div className={s.rewardHeading}>今日通关奖励</div>
-      <div className={s.rewardRow}>
-        {Object.values(grouped).map((stack) => {
-          const item = getItemDef(stack.itemId);
-          return (
-            <div
-              key={stack.uid}
-              className={s.rewardCell}
-              onPointerEnter={(event) =>
-                setItemTooltip({ stack, point: tooltipPointFromElement(event.currentTarget, "top") })
-              }
-              onPointerLeave={() => setItemTooltip(null)}
-              onFocus={(event) =>
-                setItemTooltip({ stack, point: tooltipPointFromElement(event.currentTarget, "top") })
-              }
-              onBlur={() => setItemTooltip(null)}
-            >
-              <ItemSlot
-                stack={stack}
-                className={s.rewardSlot}
-                showName={false}
-                showCount
-                disabled={!active}
-                aria-label={`${item.name} ×${stack.count}`}
-              />
-            </div>
-          );
-        })}
-      </div>
+      <PanelItemRow title="援助物资" stacks={aidStacks} active={active} />
+      <PanelItemRow title="今日通关奖励" stacks={Object.values(grouped)} active={active} />
 
       {lockTooltip && (
         <HoverTooltip point={lockTooltip.point}>
@@ -133,7 +107,6 @@ export function MapDifficultyPanel({
           <p style={{ fontSize: 18 }}>{lockTooltip.reason}</p>
         </HoverTooltip>
       )}
-      {itemTooltip && <SortieTooltip stack={itemTooltip.stack} point={itemTooltip.point} />}
     </aside>
   );
 }

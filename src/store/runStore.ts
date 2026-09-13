@@ -340,14 +340,15 @@ function bankEverything(session: {
     // 团灭时背包已被 loseEverything 清空，记录空数组会把上一次有效的默认配置抹掉。
     town.recordSortieRelics(
       session.backpack
-        .filter((stack) => getItemDef(stack.itemId).category === "relic")
+        .filter((stack) => !stack.disposable && getItemDef(stack.itemId).category === "relic")
         .map((stack) => stack.itemId)
         .slice(0, SORTIE_RELIC_LIMIT),
     );
   }
+  // 援助物资在探索途中仍可使用，故不能提前删除；这里是远征结束时统一销毁它们的唯一真相点。
   // ★ 换金物在这一步**直接变现**(town.depositHaul), 不进仓库 —— 它带回据点后本来就只有
   //   「去回收台卖掉」一条路; 其余物资照旧入仓。结算页展示的换金价值用同一套 sellPriceOf 现算。
-  town.depositHaul([...session.shipped, ...session.backpack]);
+  town.depositHaul([...session.shipped, ...session.backpack].filter((stack) => !stack.disposable));
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
   useExploreStore.getState().recordExpGain(exp.reduce((total, gain) => total + gain.gained, 0));
   if (exp.length) {

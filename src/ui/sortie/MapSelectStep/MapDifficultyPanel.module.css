@@ -68,6 +68,10 @@
   letter-spacing: 0.1em;
 }
 
+.rewardSection + .rewardSection {
+  margin-top: 14px;
+}
+
 .rewardRow {
   display: flex;
   min-height: 60px;

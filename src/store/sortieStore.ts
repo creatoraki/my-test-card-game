@@ -13,11 +13,12 @@
 //   共用一个 uid。按 uid 记账当场就分不清这堆里哪几瓶该退钱、哪几瓶该回仓库。
 //   故只记「本次买了某 itemId 几件」, 退回时**先抵扣购买(退款), 剩下的算仓库来源**。
 //   总量守恒与哪一堆并进了哪一堆无关, 怎么并都不会多出或蒸发东西。
+//   一次性物品不参与 bought 记账: 它既不是本次购买, 也不是仓库来源。
 
 import { create } from "zustand";
 import { RULES } from "../engine";
-import { getItemDef, makeItemStack } from "../data";
-import { addToContainer, occupiedSlots, removeByUid } from "../items/inventory";
+import { getItemDef, makeAidSupplyStacks, makeItemStack } from "../data";
+import { addToContainer, isDisposable, occupiedSlots, removeByUid } from "../items/inventory";
 import type { ItemStack } from "../items/types";
 import type { MapDifficulty } from "../data/mapDifficulty";
 import { useTownStore } from "./townStore";
@@ -64,6 +65,8 @@ function refundStack(
   backpack: ItemStack[],
   bought: Record<string, number>,
 ): { backpack: ItemStack[]; bought: Record<string, number> } {
+  if (isDisposable(stack)) return { backpack: removeByUid(backpack, stack.uid), bought };
+
   const def = getItemDef(stack.itemId);
   const price = def.buyValue ?? 0;
 
@@ -103,6 +106,30 @@ function refundAll(backpack: ItemStack[], bought: Record<string, number>): void 
   }
 }
 
+function syncAidSupply(
+  mapId: string,
+  difficulty: MapDifficulty,
+  state: Pick<SortieStore, "backpack" | "bought">,
+): Pick<SortieStore, "backpack" | "bought"> {
+  let backpack = state.backpack.filter((stack) => !isDisposable(stack));
+  let bought = state.bought;
+  const aidStacks = makeAidSupplyStacks(mapId, difficulty);
+  let result = addToContainer(backpack, aidStacks, getItemDef, RULES.burden.backpackSlots);
+
+  while (result.overflow.length) {
+    // 重试前剔除已装入的援助物资，再从末尾退回自备物资腾格子。
+    backpack = result.next.filter((stack) => !isDisposable(stack));
+    const lastOwned = [...backpack].reverse().find((stack) => !isDisposable(stack));
+    if (!lastOwned) break;
+    const refunded = refundStack(lastOwned, backpack, bought);
+    backpack = refunded.backpack;
+    bought = refunded.bought;
+    result = addToContainer(backpack, aidStacks, getItemDef, RULES.burden.backpackSlots);
+  }
+
+  return { backpack: result.next, bought };
+}
+
 export const useSortieStore = create<SortieStore>((set, get) => ({
   ...emptyState(),
 
@@ -115,7 +142,8 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     get().autoLoadRelics();
   },
 
-  pickMap: (mapId, difficulty) => set({ mapId, difficulty, step: "prep" }),
+  pickMap: (mapId, difficulty) =>
+    set({ ...syncAidSupply(mapId, difficulty, get()), mapId, difficulty, step: "prep" }),
 
   // ★ 重选地图不清空背包: 玩家可能只是想换个难度, 没道理让他把补给重买一遍。
   backToMap: () => set({ step: "map" }),
@@ -150,7 +178,10 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
     if (!peek) return false;
     if (
       getItemDef(peek.itemId).category === "relic" &&
-      backpack.filter((stack) => getItemDef(stack.itemId).category === "relic").length >= SORTIE_RELIC_LIMIT
+      backpack.filter(
+        (stack) =>
+          !isDisposable(stack) && getItemDef(stack.itemId).category === "relic",
+      ).length >= SORTIE_RELIC_LIMIT
     )
       return false;
     const probe = addToContainer(backpack, [peek], getItemDef, RULES.burden.backpackSlots);
@@ -177,7 +208,7 @@ export const useSortieStore = create<SortieStore>((set, get) => ({
   putBack: (uid) => {
     const { backpack, bought } = get();
     const stack = backpack.find((s) => s.uid === uid);
-    if (!stack) return;
+    if (!stack || isDisposable(stack)) return;
     set(refundStack(stack, backpack, bought));
   },
 

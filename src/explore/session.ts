@@ -58,6 +58,7 @@ import {
   findByUid,
   occupiedSlots,
   consumeItems,
+  canShipHome,
   removeByUid,
   stackSlots,
 } from "../items/inventory";
@@ -694,7 +695,7 @@ export function shipHome(s: ExploreState, uids: string[]): boolean {
   if (!s.chuteOpen || !uids.length) return false;
   const picked = uids
     .map((u) => findByUid(s.backpack, u))
-    .filter((x): x is ItemStack => !!x && !getItemDef(x.itemId).undroppable);
+    .filter((x): x is ItemStack => !!x && canShipHome(x, getItemDef(x.itemId)));
   if (!picked.length) return false;
 
   for (const st of picked) s.backpack = removeByUid(s.backpack, st.uid);

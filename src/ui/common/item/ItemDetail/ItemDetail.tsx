@@ -110,6 +110,12 @@ export default function ItemDetail({
 
       <p className={s["item-detail-desc"]}>{def.desc}</p>
 
+      {stack.disposable && (
+        <p className={s["item-detail-disposable"]}>
+          一次性物品：远征结束后自动销毁，无法带回仓库，也无法通过投递口寄回。
+        </p>
+      )}
+
       {def.relic && (
         <div className={s["item-detail-relic"]}>
           <strong>{def.relic.polarity === "blessing" ? "祝福遗物" : "诅咒遗物"}</strong>

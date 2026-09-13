@@ -91,7 +91,8 @@ src/ui/
 | [sortie/sortieStepTransition.ts](../../src/ui/sortie/sortieStepTransition.ts) | 出击地图选择 ↔ 物资准备的真实 DOM 步骤动画 hook；同步切换唯一可见步骤，提供 460ms 入场状态和过场交互锁。 |
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：在传入的可见地图列表中以斜跨玻璃选择带切换目标层；地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
-| [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 地图难度与每日通关奖励面板：按 `mapDifficulty` 显示逐级解锁的三档难度、锁定原因和物品详情预览；新手关卡与未开放地图不显示。 |
+| [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 地图难度、援助物资与每日通关奖励面板：按 `mapDifficulty` 显示逐级解锁的三档难度、锁定原因和物品预览；援助物资按地图和难度现算。新手关卡与未开放地图不显示。 |
+| [sortie/PanelItemRow](../../src/ui/sortie/MapSelectStep/PanelItemRow.tsx) | 难度面板的物品图标行与浮卡组件；复用 `ItemSlot`、悬浮定位和 `SortieTooltip`。 |
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列遗物携带窗口、仓库消耗品速取条与补给货架，右上背包，右下售货机器人，舞台左上角终端积分；遗物窗口的编辑面板由出击页根层挂载。 |
 | [sortie/SortieRelicBar](../../src/ui/sortie/SortieRelicBar/SortieRelicBar.tsx) | 出击准备顶行的 3×2 遗物携带窗口：复用物品库存面板展示本次携带的遗物，并作为打开遗物编辑面板的键鼠入口。 |
 | [sortie/SortieRelicPanel](../../src/ui/sortie/SortieRelicPanel/SortieRelicPanel.tsx) | 全屏遗物携带编辑面板：PanelShell 双栏展示仓库遗物与本次携带，取物/退回分别复用出击状态层的既有 action，并在状态行反馈容量限制。 |
@@ -247,13 +248,13 @@ src/ui/
 | [BondShowcase](../../src/ui/common/BondShowcase/BondShowcase.tsx) | 编队页(含角色详情态)的巨型羁绊图标展示：96px 图标、点数角标、档位微标与 `RailPopover` 详情浮层；不读 store、不承载羁绊规则。 |
 | [BondTooltip](../../src/ui/common/BondTooltip/BondTooltip.tsx) | 羁绊详情浮层内部内容：名称、主题描述、各档位效果与未激活时的差距提示。 |
 | [BondIcon](../../src/ui/common/BondIcon/BondIcon.tsx) | 兼容旧调用点的羁绊图标适配器，转发到 `ArcanaIcon` 的 bare 模式。 |
-| [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，并导出排布所需的 `EmptySlot`。 |
+| [item/ItemSlot](../../src/ui/common/item/ItemSlot/ItemSlot.tsx) | 背包、仓库、战后小结和远征结算共用的物品格；五档稀有度只由局部变量 `--rr`/`--rg` 驱动，一次性物品显示右上角「弃」角标，并导出排布所需的 `EmptySlot`。 |
 | [art/moduleGlyphs](../../src/ui/art/moduleGlyphs.tsx) | 成品模组的专属徽记：`MODULE_THEMES` 三档配色（hue/deep/ink）+ 每件模组一套分层 SVG，由 `itemArt.itemIcon` 在模组类别上优先命中；未登记的模组回落到通用 ModuleIcon。设计逻辑与小队徽章 `badgeGlyphs` 一致。 |
 | [item/ModuleInstall](../../src/ui/common/item/ModuleInstall/) | 待拾取模组的「装载 / 拾取」接线：`useLootModuleActions` 判定物品是不是模组并托管弹窗状态（拾取动作由调用方传入，战利品盘与拾取框各接一次）；`ModuleSlotActions` 是贴在格子上下边框的两个悬浮按钮（悬停淡入，父格需 `position: relative`）；`ModuleInstallDialog` 是原地装配弹窗，只列本趟远征的出战队员，装配走 `exploreStore.installLootModule`。 |
 | [art/moduleGlyphsGenericT1](../../src/ui/art/moduleGlyphsGenericT1.tsx) | 1 阶通用模组的徽记与配色，按「改的是哪一项」分色；由 `moduleGlyphs` 合并进主表，清单加长时主表不膨胀。 |
 | [art/moduleGlyphsAlchemist](../../src/ui/art/moduleGlyphsAlchemist.tsx) | 炼金术士组装模组 A/B/C/D 的徽记：图形直接复用组装 BUFF 的炼金三角（风/火/土/水），按四元素分色，由 `ASSEMBLE_MODULE_LETTERS` 展开后合并进 `moduleGlyphs` 主表。 |
 | [art/moduleGlyphsActuary](../../src/ui/art/moduleGlyphsActuary.tsx) | 精算师模组的徽记：急诊模组为斜绷带盖住的医疗十字（急救红），回响模组为渐弱声波（回响紫）；同样由 `moduleGlyphs` 合并进主表。 |
-| [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；模组另有独立的「装配条件」字段，文案读 `data/cardModules` 的 `equipText`。操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
+| [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；一次性物品显示远征结束销毁及不可寄回提示；模组另有独立的「装配条件」字段，文案读 `data/cardModules` 的 `equipText`。操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
 | [item/ItemTooltip](../../src/ui/common/item/ItemTooltip/ItemTooltip.tsx) | 物品详情悬浮层：`tooltipPointFromElement` 把触发元素归一化成「所属画布 + 设计 px 锚点」，`useTooltipPlacement` 实测浮层真实尺寸后在画布边界内翻转夹取，浮层 portal 进画布内部。换皮版浮卡（商店仓库、出击背包）共用这两个导出，不要再抄一份定位算法。 |
 | [item/ItemIconFrame](../../src/ui/common/item/ItemIconFrame/ItemIconFrame.tsx) | 1:1 物品图标框——全站「物品图标永远被方框包裹」的唯一实现。**框内只有图标，一个字都不放**，名称/数量/持有量一律由调用方排在框外。四档边长(sm44/md64/lg96/xl132)，稀有度读 `--rarity-*` 令牌，`tone="short"` 转红表示货币不足，`as="button"` 时可点选，`tooltip` 走 `ItemTooltip`（无原生 `title`）。 |
 | [item/ItemCostTag](../../src/ui/common/item/ItemCostTag/ItemCostTag.tsx) | 图标化食品报价标签：`ItemIconFrame` 出框，价格/持有量文字排在框外；缺货时框与文字同时转红。自己不再画边框。 |

@@ -48,6 +48,15 @@ describe("占格", () => {
     expect(removeByUid(list, "不存在")).toBe(list);
     expect(removeByUid(list, list[0].uid)).toHaveLength(0);
   });
+
+  it("一次性物品与普通物品不会并堆", () => {
+    const ordinary = stack("milk");
+    const aid = makeItemStack("milk", 1, { disposable: true });
+    const result = addToContainer([ordinary], [aid], getItemDef, 24);
+
+    expect(result.next).toHaveLength(2);
+    expect(result.next.map((entry) => entry.disposable ?? false)).toEqual([false, true]);
+  });
 });
 
 describe("仓库展示堆叠", () => {
@@ -77,6 +86,16 @@ describe("仓库展示堆叠", () => {
     const merged = mergeStacksForDisplay([first, second], getItemDef);
 
     expect(merged).toHaveLength(2);
+  });
+
+  it("一次性物品与普通物品不会合并展示", () => {
+    const ordinary = stack("milk");
+    const aid = makeItemStack("milk", 1, { disposable: true });
+
+    const merged = mergeStacksForDisplay([ordinary, aid], getItemDef);
+
+    expect(merged).toHaveLength(2);
+    expect(merged.map((entry) => entry.disposable ?? false)).toEqual([false, true]);
   });
 });
 

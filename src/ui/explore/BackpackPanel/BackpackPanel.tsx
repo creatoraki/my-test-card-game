@@ -20,7 +20,7 @@ import {
   partyBurdenAdapt,
 } from "@/explore/session";
 import { EXPLORE_RULES } from "@/explore/rules";
-import { layoutBackpack, stackSlots } from "@/items/inventory";
+import { canShipHome, layoutBackpack, stackSlots } from "@/items/inventory";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
 import ItemDetail from "@/ui/common/item/ItemDetail";
@@ -193,7 +193,7 @@ export default function BackpackPanel({
                       key={cell.stack.uid}
                       stack={cell.stack}
                       selected={chuteMode ? shipping.includes(cell.stack.uid) : selected === cell.stack.uid}
-                      disabled={chuteMode && !!getItemDef(cell.stack.itemId).undroppable}
+                      disabled={chuteMode && !canShipHome(cell.stack, getItemDef(cell.stack.itemId))}
                       dimmed={!matchTab(cell.stack, tab, equipTab)}
                       onClick={() => onSlotClick(cell.stack)}
                     />
