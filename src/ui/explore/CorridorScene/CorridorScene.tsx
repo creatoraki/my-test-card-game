@@ -1,7 +1,6 @@
 import { CORRIDOR_CURIOS } from "@/data/corridorCurios";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import background from "@/assets/explore-corridor/corridor.png";
-import ground from "@/assets/explore-corridor/ground.png";
 import { CorridorSprite } from "./CorridorSprite";
 import { ShadowEncounter } from "./ShadowEncounter";
 import { useCorridorMovement } from "./useCorridorMovement";
@@ -18,7 +17,7 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
     <div className={s.backdrop} style={{ backgroundImage: `url(${background})`, backgroundPositionX: -camera * .72 }} />
     <div className={s.haze} aria-hidden />
     <div className={s.world} style={{ width: corridor.width, transform: `translateX(${-camera}px)` }}>
-      <div className={s.ground} style={{ backgroundImage: `url(${ground})`, top: CORRIDOR.floorY }} aria-hidden />
+      <div className={s.ground} style={{ top: CORRIDOR.floorY }} aria-hidden />
       {Array.from({ length: 6 }, (_, index) => <div className={s.sectorMark} key={index} style={{ left: index * 1050 + 130, top: 304 }}>第 {corridor.round} 层 · {index + 1} 区</div>)}
       {corridor.objects.map((object) => {
         const def = CORRIDOR_CURIOS[object.kind];
