@@ -1,0 +1,1 @@
+export { CorridorPlayer } from "./CorridorPlayer";

@@ -17,13 +17,10 @@
 .used .objectLabel { color: #85918c; }
 .selected .objectLabel { color: #ffe4a9; border-color: #cdb67d99; }
 .targetMarker { position: absolute; top: -26px; color: #f1cc85; font-size: 21px; animation: marker 1.5s ease-in-out infinite; }
-.player { position: absolute; transform: translate(-50%, -100%); width: 290px; height: 290px; pointer-events: none; z-index: 15; }
+.player { position: absolute; transform: translate(-50%, calc(-100% + 24px)); width: 150px; height: 300px; pointer-events: none; z-index: 15; }
 .actorDirection { position: absolute; inset: 0; transform-origin: center; }
-.playerShadow { position: absolute; width: 145px; height: 30px; bottom: -9px; left: 62px; background: #000b; border-radius: 50%; filter: blur(6px); }
+.playerShadow { position: absolute; width: 145px; height: 30px; bottom: -9px; left: 50%; transform: translateX(-50%); background: #000b; border-radius: 50%; filter: blur(6px); }
 .playerLabel { position: absolute; top: -20px; width: 100%; text-align: center; font-size: 18px; color: #efcf90; letter-spacing: 7px; text-shadow: 0 2px 8px #000; }
-.lanternGlow { position: absolute; left: 175px; top: 142px; width: 115px; height: 115px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, #ffc77c30, #ffa63b0d 40%, transparent 70%); animation: lantern 2.8s ease-in-out infinite; mix-blend-mode: screen; }
-.walking { transform-origin: 50% 94%; animation: walk 420ms ease-in-out infinite; }
-.idle { transform-origin: 50% 94%; animation: breathe 3.3s ease-in-out infinite; }
 .dormant { position: absolute; width: 200px; height: 26px; transform: translate(-50%, -50%); border-radius: 50%; background: #030304c9; box-shadow: 0 0 18px #0009; }
 .dormant i, .dormant span { position: absolute; left: 30px; bottom: 0; width: 140px; height: 35px; border-radius: 50%; background: #03030470; filter: blur(7px); animation: seep 3s ease-in-out infinite; }
 .dormant span { animation-delay: -1.5s; }
@@ -47,8 +44,5 @@
 .controls { position: absolute; bottom: 348px; left: 1270px; z-index: 20; display: flex; align-items: center; }
 .moveButtons { display: flex; gap: 7px; }
 .moveButtons button { width: 48px; height: 56px; padding: 0; font-size: 24px; color: #d7bc8b; border: 1px solid #8d795355; background: #10191bf0; touch-action: none; }
-@keyframes walk { 0%, 100% { transform: translateY(0) rotate(-1.3deg); } 25% { transform: translateY(-7px) rotate(.8deg); } 50% { transform: translateY(-1px) rotate(1.3deg); } 75% { transform: translateY(-7px) rotate(-.8deg); } }
-@keyframes breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.012); } }
-@keyframes lantern { 0%, 100% { opacity: .7; } 40% { opacity: 1; } 70% { opacity: .8; } }
 @keyframes seep { 0% { transform: translateY(0) scale(.9); opacity: .4; } 100% { transform: translateY(-45px) scale(1.2); opacity: 0; } }
 @keyframes marker { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }

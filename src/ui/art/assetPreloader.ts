@@ -8,6 +8,7 @@ import { MAP_ART_SOURCES } from "@/ui/art/mapArt";
 import { RARITY_CRYSTAL_SOURCES } from "@/ui/art/rarityArt";
 import { SCENE_ART_SOURCES, SCENE_VIDEO_SOURCES } from "@/ui/art/sceneArt";
 import { STATUS_ART_SOURCES } from "@/ui/art/statusArt";
+import { CORRIDOR_PLAYER_ART_SOURCES } from "@/ui/art/corridorPlayerArt";
 import { BATTLE_BG_IMAGE_SOURCES } from "@/ui/art/battleBg";
 import { STATION_BUILDINGS } from "@/ui/town/TownScreen/stationBuildings";
 
@@ -39,6 +40,7 @@ const imageSources = unique([
   ...ITEM_ART_SOURCES,
   ...STATUS_ART_SOURCES,
   ...CHARACTER_ART_SOURCES,
+  ...CORRIDOR_PLAYER_ART_SOURCES,
 ]);
 
 const videoSources = unique([...SCENE_VIDEO_SOURCES]);

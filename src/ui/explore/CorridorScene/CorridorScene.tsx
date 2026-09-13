@@ -2,6 +2,7 @@ import { CORRIDOR_CURIOS } from "@/data/corridorCurios";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import background from "@/assets/explore-corridor/corridor.png";
 import { CorridorSprite } from "./CorridorSprite";
+import { CorridorPlayer } from "./CorridorPlayer";
 import { ShadowEncounter } from "./ShadowEncounter";
 import { useCorridorMovement } from "./useCorridorMovement";
 import s from "./CorridorScene.module.css";
@@ -37,10 +38,9 @@ export function CorridorScene({ corridor, blocked, encountering, finalFloor }: {
       <div className={s.player} style={{ left: movement.x, top: CORRIDOR.floorY }}>
         <span className={s.playerShadow} />
         <div className={s.actorDirection} style={{ transform: `scaleX(${movement.facing})` }}>
-          <CorridorSprite index={0} size={290} className={movement.walking && !blocked ? s.walking : s.idle} />
-          <span className={s.lanternGlow} />
+          <CorridorPlayer walking={movement.walking && !blocked} />
         </div>
-        <span className={s.playerLabel}>玩家</span>
+        <span className={s.playerLabel}>炼金术士</span>
       </div>
     </div>
     {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x - camera} final={activeThreat.final} />}
