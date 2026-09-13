@@ -1,7 +1,7 @@
 .scene { position: absolute; inset: 0; overflow: hidden; background: #080e11; color: #e9ddc9; font-size: 18px; }
 /* 图层次序：远景(0) → 深渊(1) → 顶部雾(2) → 世界(3，含近景与全部实体) → 暗角(20)。 */
 .haze { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(180deg, #09151b9c 0%, #09151b4a 15%, transparent 36%, transparent 100%); }
-.world { position: absolute; inset: 0 auto 0 0; z-index: 3; height: 1080px; }
+.world { position: absolute; inset: 0 auto 0 0; z-index: 3; height: 1080px; will-change: transform; }
 .object { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; z-index: 5; }
 .objectButton { padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; cursor: pointer; transition: filter 200ms; }
 .objectButton:disabled { opacity: 1; cursor: default; }

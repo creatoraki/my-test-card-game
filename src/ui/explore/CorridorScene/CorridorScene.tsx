@@ -7,10 +7,10 @@ import { CorridorPlayer } from "./CorridorPlayer";
 import { RoomPortal } from "./RoomPortal";
 import { ShadowEncounter } from "./ShadowEncounter";
 import { useCorridorMovement } from "./useCorridorMovement";
-import { CORRIDOR_LAYOUT } from "./corridorLayout";
+import { cameraX, CORRIDOR_LAYOUT } from "./corridorLayout";
 import s from "./CorridorScene.module.css";
 
-/** 一个房间正好一屏：镜头固定，不再跟随卷轴。 */
+/** 一间房两屏宽：镜头跟随玩家居中卷动。 */
 export function CorridorScene({ corridor, blocked, encountering, bossRoom }: {
   corridor: CorridorState;
   blocked: boolean;
@@ -18,14 +18,15 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom }: {
   bossRoom: boolean;
 }) {
   const movement = useCorridorMovement(corridor, blocked);
+  const camera = cameraX(movement.x, corridor.width);
   const entityFloorY = CORRIDOR.floorY + CORRIDOR_LAYOUT.entityGroundOffset;
   const activeThreat = corridor.threats.find((threat) => threat.id === corridor.encounterId);
 
   return <div className={s.scene} aria-label={bossRoom ? "总控室" : "房间场景"}>
-    <CorridorFar camera={0} />
+    <CorridorFar camera={camera} />
     <CorridorAbyss />
     <div className={s.haze} aria-hidden />
-    <div className={s.world} style={{ width: corridor.width }}>
+    <div className={s.world} style={{ width: corridor.width, transform: `translateX(${-camera}px)` }}>
       <CorridorNear width={corridor.width} />
       {corridor.portals.map((portal) => {
         const standing = movement.standingPortal?.dir === portal.dir;
@@ -57,7 +58,7 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom }: {
         </div>
       </div>
     </div>
-    {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x} final={activeThreat.final} />}
+    {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x - camera} final={activeThreat.final} />}
     <div className={s.vignette} aria-hidden />
   </div>;
 }

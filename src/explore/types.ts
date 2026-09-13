@@ -368,7 +368,7 @@ export type ExplorePhase =
   | "wiped"; // 团灭
 
 export interface ExploreState {
-  /** 当前房间的横向场景(一屏); 房间之间的连通关系见 dungeon。 */
+  /** 当前房间的横向场景(两屏宽); 房间之间的连通关系见 dungeon。 */
   corridor: import("./corridor/types").CorridorState | null;
   /** 整趟远征的房间图 —— 房间制下没有「层」, 一张地图就是一张图。 */
   dungeon: import("./dungeon/types").DungeonState | null;

@@ -24,3 +24,8 @@ export const CORRIDOR_LAYOUT = {
   /** 近景平台带的下缘，黑色遮罩从这里开始挡住远景。 */
   abyssTop: 735,
 } as const;
+
+/** 镜头让玩家居中, 并夹在房间两端, 永远不越出房间边界。 */
+export function cameraX(playerX: number, width: number): number {
+  return Math.max(0, Math.min(width - CORRIDOR.viewportWidth, playerX - CORRIDOR.viewportWidth / 2));
+}

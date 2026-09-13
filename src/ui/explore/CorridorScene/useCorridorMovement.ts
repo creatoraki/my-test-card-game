@@ -127,7 +127,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
         if (target?.closest("button, a")) target.blur();
         if (!event.repeat) cycle(1);
       } else if (["ArrowUp", "KeyW", "Space", "Enter"].includes(event.code)) {
-        // ↑ / W 与空格、回车等价：一屏之内目标很少，交互键多一个更顺手。
+        // ↑ / W 与空格、回车等价：房间内目标较少，交互键多一个更顺手。
         if (["Space", "Enter"].includes(event.code) && target?.closest("button, a")) return;
         event.preventDefault();
         if (target?.closest("button, a")) target.blur();

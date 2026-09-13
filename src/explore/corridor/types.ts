@@ -1,4 +1,4 @@
-// 房间内的横向场景使用设计画布坐标; 一个房间正好一屏 1920×1080, 镜头固定不卷轴。
+// 房间内的横向场景使用设计画布坐标; 房间宽两屏(3840×1080), 镜头跟随玩家卷动。
 // 场景状态随远征会话保留, 战后返回原处; 房间之间的连通关系见 ../dungeon/types.ts。
 import type { PortalDir } from "../dungeon/types";
 
@@ -42,18 +42,22 @@ export interface CorridorState {
 }
 
 export const CORRIDOR = {
-  /** 单屏房间宽度, 与设计画布等宽。 */
-  width: 1920,
+  /** 房间渲染宽度, 为设计画布的两倍。 */
+  width: 3840,
+  /** 可视区域宽度, 与设计画布等宽。 */
+  viewportWidth: 1920,
   floorY: 680,
   speed: 340,
   /** 可行走范围, 两侧各留出墙体厚度。 */
   walkMin: 170,
-  walkMax: 1750,
+  walkMax: 3670,
   interactionRadius: 190,
   encounterRadius: 190,
   encounterMs: 1850,
   /** 站上传送门的判定半径; 比交互半径小, 避免与相邻物件抢操作。 */
   portalRadius: 120,
-  /** 地面等距槽位: 传送门与可交互物都落在其中, 天然不重叠。 */
-  slots: [250, 500, 750, 1000, 1250, 1500, 1750] as readonly number[],
+  /** 传送门专用左右边缘槽位。 */
+  portalEdgeSlots: [300, 3540] as readonly number[],
+  /** 房间中段槽位: 可交互物与额外传送门共用, 跳过黑影所在的正中位置。 */
+  slots: [800, 1120, 1440, 1760, 2080, 2400, 2720, 3040] as readonly number[],
 } as const;

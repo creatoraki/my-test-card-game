@@ -5,7 +5,7 @@ import { CORRIDOR, type CorridorPortal, type CorridorState } from "./types";
 
 /**
  * 把一个房间展开成可游玩的横向场景。
- * 房间图(谁连通谁)由 dungeon/ 负责, 这里只负责「这一屏里有什么、玩家站在哪」。
+ * 房间图(谁连通谁)由 dungeon/ 负责, 这里只负责「房间场景里有什么、玩家站在哪」。
  * board 仍是现有事件结算的索引: 第 i 个物件对应第 i 段, 末段固定是黑影。
  */
 export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalDir | null): void {

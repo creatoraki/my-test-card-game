@@ -4,7 +4,7 @@
 // ① 从起始房间开始随机长出一棵生成树, 直到房间数达到地图的 roomCount;
 // ② 追加少量环路边, 让路线出现取舍而不是一条死路走到底;
 // ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房;
-// ④ 每个房间从 CORRIDOR.slots 里给传送门与可交互物分配互不重叠的地面槽位。
+// ④ 传送门优先占最左/最右, 多出来的与可交互物共用中段槽位。
 // ============================================================================
 
 import { rngInt, shuffle } from "../../engine/rng";
@@ -105,19 +105,22 @@ function pickBossRoom(s: ExploreState, rooms: Record<string, RoomNode>, startId:
   return shuffle(s, pool.map((room) => room.id))[0];
 }
 
-/** 地面槽位分配: 先给传送门, 再给可交互物, 两者共用同一份槽位池故不会叠在一起。 */
+/** 传送门优先占左右边缘; 多出来的门与可交互物共用中段槽位, 坐标不会重叠。 */
 function layoutRoom(s: ExploreState, room: RoomNode, kinds: CurioKind[], curioCount: number): void {
-  const slots = shuffle(s, [...CORRIDOR.slots]);
+  // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
+  const dirs = shuffle(s, PORTAL_DIRS.filter((dir) => room.exits[dir]));
+  const edges = shuffle(s, [...CORRIDOR.portalEdgeSlots]);
+  const middle = shuffle(s, [...CORRIDOR.slots]);
   let cursor = 0;
-  for (const dir of PORTAL_DIRS) {
-    if (!room.exits[dir]) continue;
-    room.portalX[dir] = slots[cursor++ % slots.length];
-  }
+  dirs.forEach((dir, index) => {
+    room.portalX[dir] = index < edges.length ? edges[index] : middle[cursor++];
+  });
+  // 最多两扇中段门加三件物件, 共用五个槽位, 不需要绕回制造重复坐标。
   const picks = shuffle(s, [...kinds]).slice(0, Math.max(0, curioCount));
   room.curios = picks.map((kind, index) => ({
     id: `${room.id}-curio-${index}`,
     kind,
-    x: slots[cursor++ % slots.length],
+    x: middle[cursor++],
     used: false,
   }));
 }
