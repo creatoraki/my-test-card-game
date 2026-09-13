@@ -16,6 +16,8 @@ export const CORRIDOR_LAYOUT = {
   nearTileHeight: 1080,
   /** 近景整体下移量，使素材里的平台顶面正好落在 CORRIDOR.floorY。 */
   nearTop: CORRIDOR.floorY - 670,
-  /** 近景平台带的下缘，深渊渐变从这里开始接管画面。 */
+  /** 角色与交互物相对素材地面线的视觉下沉量。 */
+  entityGroundOffset: 12,
+  /** 近景平台带的下缘，黑色遮罩从这里开始挡住远景。 */
   abyssTop: 735,
 } as const;
