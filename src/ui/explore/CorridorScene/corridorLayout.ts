@@ -6,6 +6,10 @@ const NEAR_MAP_FLOOR_Y: Record<NearMapVariant, number> = {
   standard: NEAR_FLOOR_Y,
   alternate: 621, // 测试2.png的平台顶面缩放到 1080px 高后的约略位置
 };
+const NEAR_MAP_OFFSET_Y: Record<NearMapVariant, number> = {
+  standard: 0,
+  alternate: -16,
+};
 
 /**
  * 废弃楼层分层布局常量。
@@ -22,7 +26,8 @@ export const CORRIDOR_LAYOUT = {
   nearMapHeight: 1080,
   /** 两种近景的平台顶面位置与对应场景偏移。 */
   nearMapFloorY: NEAR_MAP_FLOOR_Y,
-  nearTop: (variant: NearMapVariant) => CORRIDOR.floorY - NEAR_MAP_FLOOR_Y[variant],
+  /** 仅调整近景图层位置，不影响角色与交互物。 */
+  nearTop: (variant: NearMapVariant) => CORRIDOR.floorY - NEAR_MAP_FLOOR_Y[variant] + NEAR_MAP_OFFSET_Y[variant],
   /** 角色与交互物共用的地面下沉量；较原值再向下 6px，缩小脚底间隙。 */
   entityGroundOffset: 12,
   /** 近景平台带的下缘，黑色遮罩从这里开始挡住远景。 */
