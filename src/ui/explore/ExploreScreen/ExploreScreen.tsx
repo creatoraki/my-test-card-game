@@ -34,11 +34,12 @@ export function ExploreScreen() {
   const blocked = !canWalkCorridor(session) || inventory.blocked;
   const tier = energyTier(session.energy);
   const curioOpen = (phase === "landed" || phase === "resolving") && Boolean(session.corridor.activeObjectId);
-  const bossRoom = session.dungeon.currentRoomId === session.dungeon.bossRoomId;
+  const currentRoom = session.dungeon.rooms[session.dungeon.currentRoomId];
+  const bossRoom = currentRoom?.id === session.dungeon.bossRoomId;
   const sceneBlocked = blocked || travelTransition.phase !== "idle";
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
-    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={locked} bossRoom={bossRoom} onPortalTravel={travelTransition.start} />
+    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={locked} bossRoom={bossRoom} nearMapVariant={currentRoom?.nearMapVariant ?? "standard"} onPortalTravel={travelTransition.start} />
     <div className={s.readout}>
       <span>净化粒子</span><strong style={{ color: tier.color }}>{session.energy}<small> / 100</small></strong>
       <div className={s.energyTrack}><i style={{ width: `${Math.min(100, session.energy)}%`, background: tier.color }} /></div>

@@ -11,6 +11,7 @@ import type { CurioKind } from "../corridor/types";
 
 export type PortalDir = "up" | "down" | "left" | "right";
 export type RoomKind = "start" | "normal" | "battle" | "boss";
+export type NearMapVariant = "standard" | "alternate";
 
 export const PORTAL_DIRS: readonly PortalDir[] = ["up", "down", "left", "right"];
 
@@ -42,6 +43,8 @@ export interface RoomNode {
   gx: number;
   gy: number;
   kind: RoomKind;
+  /** 房间近景地图变体；生成后固定，重返房间时保持一致。 */
+  nearMapVariant: NearMapVariant;
   /** 距起始房间的最短步数; 战斗档位与事件门槛都读它, 越深越难。 */
   depth: number;
   /** 小地图上的房间序号, 从 1 起, 按生成顺序分配。 */

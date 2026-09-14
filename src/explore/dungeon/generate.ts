@@ -25,7 +25,7 @@ function gridSize(roomCount: number): number {
 
 function makeRoom(gx: number, gy: number, label: number): RoomNode {
   return {
-    id: roomIdAt(gx, gy), gx, gy, kind: "normal", depth: 0, label,
+    id: roomIdAt(gx, gy), gx, gy, kind: "normal", nearMapVariant: "standard", depth: 0, label,
     curios: [], exits: {}, portalX: {}, visited: false, threatDefeated: false, revealed: false,
   };
 }
@@ -125,6 +125,18 @@ function layoutRoom(s: ExploreState, room: RoomNode, kinds: CurioKind[], curioCo
   }));
 }
 
+/** 新手关卡随机混排两种近景，并确保整张房间图里两种都会出现。 */
+function assignTutorialNearMaps(s: ExploreState, rooms: Record<string, RoomNode>, order: string[]): void {
+  if (s.mapId !== "tutorial" || order.length < 2) return;
+  const randomizedRooms = shuffle(s, [...order]);
+  const firstVariant = rngInt(s, 2) === 0 ? "standard" : "alternate";
+  rooms[randomizedRooms[0]].nearMapVariant = firstVariant;
+  rooms[randomizedRooms[1]].nearMapVariant = firstVariant === "standard" ? "alternate" : "standard";
+  for (const id of randomizedRooms.slice(2)) {
+    rooms[id].nearMapVariant = rngInt(s, 2) === 0 ? "standard" : "alternate";
+  }
+}
+
 export function generateDungeon(s: ExploreState): DungeonState {
   const map = difficultyMapConfig(s.mapId, s.difficulty);
   const roomCount = Math.max(2, map.roomCount);
@@ -150,6 +162,7 @@ export function generateDungeon(s: ExploreState): DungeonState {
         : minCurio + rngInt(s, maxCurio - minCurio + 1);
     layoutRoom(s, room, kinds, count);
   }
+  assignTutorialNearMaps(s, rooms, order);
 
   const xs = order.map((id) => rooms[id].gx);
   const ys = order.map((id) => rooms[id].gy);

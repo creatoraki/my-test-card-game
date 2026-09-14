@@ -1,8 +1,9 @@
-import { CORRIDOR_FAR_ART, CORRIDOR_NEAR_ONE_ART, CORRIDOR_NEAR_TWO_ART } from "@/ui/art/corridorArt";
+import type { NearMapVariant } from "@/explore/dungeon/types";
+import { CORRIDOR_FAR_ART, CORRIDOR_NEAR_ART } from "@/ui/art/corridorArt";
 import { CORRIDOR_LAYOUT } from "../corridorLayout";
 import s from "./CorridorBackdrop.module.css";
 
-const { farParallax, farTileWidth, farTileHeight, nearMapHeight, nearTop, nearSegmentYOffsets, abyssTop } = CORRIDOR_LAYOUT;
+const { farParallax, farTileWidth, farTileHeight, nearMapHeight, nearTop, abyssTop } = CORRIDOR_LAYOUT;
 
 /** 远景：整屏平铺，按相机位移的一个比例慢速滑动。 */
 export function CorridorFar({ camera }: { camera: number }) {
@@ -18,26 +19,16 @@ export function CorridorAbyss() {
   return <div className={s.abyss} aria-hidden style={{ top: abyssTop }} />;
 }
 
-/** 近景：每个房间完整展示 1、2 两张图，左右拼成全宽地图并与实体 1:1 同步。 */
-export function CorridorNear({ width }: { width: number }) {
-  const segmentWidth = width / 2;
-
+/** 近景：按房间地图变体铺满整间房，并与实体 1:1 同步。 */
+export function CorridorNear({ width, variant }: { width: number; variant: NearMapVariant }) {
   return <div className={s.near} aria-hidden style={{
     width,
-    top: nearTop,
+    top: nearTop(variant),
     height: nearMapHeight,
   }}>
     <div className={s.nearSegment} style={{
-      left: 0,
-      top: nearSegmentYOffsets.one,
-      width: segmentWidth,
-      backgroundImage: `url(${CORRIDOR_NEAR_ONE_ART})`,
-    }} />
-    <div className={s.nearSegment} style={{
-      left: segmentWidth,
-      top: nearSegmentYOffsets.two,
-      width: segmentWidth,
-      backgroundImage: `url(${CORRIDOR_NEAR_TWO_ART})`,
+      inset: 0,
+      backgroundImage: `url(${CORRIDOR_NEAR_ART[variant]})`,
     }} />
   </div>;
 }

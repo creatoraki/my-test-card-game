@@ -1,5 +1,6 @@
 import { CORRIDOR_CURIOS } from "@/data/corridorCurios";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
+import type { NearMapVariant } from "@/explore/dungeon/types";
 import { EXPLORE_RULES } from "@/explore/rules";
 import { CORRIDOR_PORTAL_Y_OFFSET, CORRIDOR_PROP_Y_OFFSETS } from "@/ui/art/corridorArt";
 import { CorridorAbyss, CorridorFar, CorridorNear } from "./CorridorBackdrop";
@@ -12,11 +13,12 @@ import { cameraX, CORRIDOR_LAYOUT } from "./corridorLayout";
 import s from "./CorridorScene.module.css";
 
 /** 一间房两屏宽：镜头跟随玩家居中卷动。 */
-export function CorridorScene({ corridor, blocked, encountering, bossRoom, onPortalTravel }: {
+export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearMapVariant, onPortalTravel }: {
   corridor: CorridorState;
   blocked: boolean;
   encountering: boolean;
   bossRoom: boolean;
+  nearMapVariant: NearMapVariant;
   onPortalTravel: (travel: () => boolean) => void;
 }) {
   const movement = useCorridorMovement(corridor, blocked, onPortalTravel);
@@ -30,7 +32,7 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom, onPor
     <CorridorAbyss />
     <div className={s.haze} aria-hidden />
     <div className={s.world} style={{ width: corridor.width, transform: `translateX(${-camera}px)` }}>
-      <CorridorNear width={corridor.width} />
+      <CorridorNear width={corridor.width} variant={nearMapVariant} />
       {corridor.portals.map((portal) => {
         const standing = movement.standingPortal?.dir === portal.dir;
         return <div key={portal.dir} className={`${s.object} ${s.portal}`} style={{ left: portal.x, top: entityFloorY + CORRIDOR_PORTAL_Y_OFFSET }}>
