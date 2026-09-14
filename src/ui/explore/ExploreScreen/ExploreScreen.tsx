@@ -11,6 +11,7 @@ import { CurioPanel } from "./CurioPanel";
 import { ExploreDock } from "./ExploreDock";
 import { ExploreInventory } from "./ExploreInventory";
 import { useExploreInventory } from "./useExploreInventory";
+import { usePortalTravelTransition } from "./usePortalTravelTransition";
 import s from "./CorridorScreen.module.css";
 
 /** 主界面只编排场景、小地图、底部 HUD 和浮层；移动、房间规则与美术各自独立。 */
@@ -20,6 +21,7 @@ export function ExploreScreen() {
   const finishExpedition = useRunStore((state) => state.finishExpedition);
   const inventory = useExploreInventory(session);
   const phase = session?.phase;
+  const travelTransition = usePortalTravelTransition(session?.corridor?.roomId ?? "");
 
   useEffect(() => {
     if (phase === "inBattle") enterEncounter();
@@ -33,9 +35,10 @@ export function ExploreScreen() {
   const tier = energyTier(session.energy);
   const curioOpen = (phase === "landed" || phase === "resolving") && Boolean(session.corridor.activeObjectId);
   const bossRoom = session.dungeon.currentRoomId === session.dungeon.bossRoomId;
+  const sceneBlocked = blocked || travelTransition.phase !== "idle";
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
-    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={blocked} encountering={locked} bossRoom={bossRoom} />
+    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={locked} bossRoom={bossRoom} onPortalTravel={travelTransition.start} />
     <div className={s.readout}>
       <span>净化粒子</span><strong style={{ color: tier.color }}>{session.energy}<small> / 100</small></strong>
       <div className={s.energyTrack}><i style={{ width: `${Math.min(100, session.energy)}%`, background: tier.color }} /></div>
@@ -46,5 +49,10 @@ export function ExploreScreen() {
     {curioOpen && !inventory.target && <CurioPanel session={session} covered={inventory.blocked || pending} onOpenBag={() => inventory.setBagOpen(true)} />}
     <RewardOverlay gate={!locked} />
     <LootPickup gate={!locked && !session.pendingActions.length} />
+    {travelTransition.phase !== "idle" && <div
+      aria-hidden
+      className={`${s["portal-travel-curtain"]} ${travelTransition.phase === "fade-out" ? s["portal-travel-fade-out"] : s["portal-travel-fade-in"]}`}
+      onAnimationEnd={travelTransition.finishAnimation}
+    />}
   </StageCanvas>;
 }

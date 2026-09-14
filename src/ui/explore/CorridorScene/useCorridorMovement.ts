@@ -7,12 +7,14 @@ import {
   saveCorridorPosition, travelThroughPortal,
 } from "@/store/exploreCorridor";
 
+type PortalTravel = (travel: () => boolean) => void;
+
 /**
  * 房间内的行走与交互。
  * 操作: ←/→ 或 A/D 行走；↑/W、空格、回车 = 交互（脚下有传送门时优先传送）；↓/S 循环切目标。
  * 站到传送门上只是点亮小地图，必须再按一次交互键才真的传送。
  */
-export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
+export function useCorridorMovement(corridor: CorridorState, blocked: boolean, onPortalTravel: PortalTravel) {
   const [motion, setMotion] = useState({ x: corridor.playerX, facing: corridor.facing, walking: false });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [interactingId, setInteractingId] = useState<string | null>(null);
@@ -46,7 +48,8 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
   const travel = (dir: PortalDir) => {
     if (live.current.blocked) return;
     stop(); // 先把位置提交上去：传送判定读的是会话里的坐标
-    travelThroughPortal(dir);
+    if (portalAt(live.current.corridor, position.current.x)?.dir !== dir) return;
+    onPortalTravel(() => travelThroughPortal(dir));
   };
   const interact = (id?: string) => {
     if (live.current.blocked) return;
