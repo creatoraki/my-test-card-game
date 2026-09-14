@@ -11,9 +11,11 @@
   每格底部各有一段透明留白(宝箱 16.8%、传送门 15.2%、售货机 4.4%、雕像 3.7%，由
   `node scripts/alpha-bbox.mjs <图> --frames 4 --alpha 24` 实测)，登记在 `CORRIDOR_PROP_GROUND_TRIM`，
   渲染时用负外边距吃掉，物件才能真正踩在地面线上。
-- `移动精灵图（第五张是站立）.png`：炼金术士六帧横向精灵图；第五帧用于站立，其余五帧组成行走循环。
-  底部留白约 6.9%，由 `CorridorScene.module.css` 的 `.player` 偏移补偿；角色与交互物再共用
-  `CORRIDOR_LAYOUT.entityGroundOffset` 对齐新近景地面。
+- 当前动画使用帧 000～012、030～061、100～120，分别用于初始站立、行走循环和停步后的站立；帧 013～029、062～099 不参与当前动画。
+  `ui/art/corridorPlayerArt.ts` 按原始帧号登记资源，缺失帧保留空位，避免裁剪素材后动画帧错位。站立区间往返播放并在端点停留，动作使用每秒 30 帧。
+  `ui/art/corridorPlayerFrames.ts` 缓存已解码图片，角色组件通过独立画布同步绘帧，避免逐帧切换图片地址造成显示延迟。
+  单帧原图 417×556，现已等比压缩至 180×240 以匹配 1080p 设计画布中的实际绘制尺寸；完整透明画布与底部留白均予保留，
+  角色组件按 240px 高度显示，并通过 `.player` 偏移及 `CORRIDOR_LAYOUT.entityGroundOffset` 与新近景地面对齐。
 - 道具按物件类型映射对应素材；未配置专属图的物件回退到宝箱图。黑影与破地动画仍由 `ShadowEncounter` 独立绘制。
 - 旧版 `废弃楼层/背景.png`、`corridor.png`、`ground.png`、`sprites.png` 保留在目录中，不再用于当前走廊场景。
 

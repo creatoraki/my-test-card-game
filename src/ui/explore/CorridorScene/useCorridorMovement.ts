@@ -94,7 +94,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
       if (!current.blocked && !document.hidden && !menuOpen) {
         const keys = pressed.current;
         const direction = Number(keys.has("ArrowRight") || keys.has("KeyD")) - Number(keys.has("ArrowLeft") || keys.has("KeyA"));
-        if (direction) {
+        if (direction && elapsed > 0) {
           const x = clampCorridorX(current.corridor, position.current.x + direction * CORRIDOR.speed * elapsed);
           position.current = { x, facing: direction < 0 ? -1 : 1, walking: x !== position.current.x };
           setMotion(position.current);
@@ -105,7 +105,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean) {
             pressed.current.clear();
             encounterCorridorThreat(threat.id);
           }
-        } else if (position.current.walking) {
+        } else if (!direction && position.current.walking) {
           position.current = { ...position.current, walking: false };
           setMotion(position.current);
           save();

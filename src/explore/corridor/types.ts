@@ -47,7 +47,7 @@ export const CORRIDOR = {
   /** 可视区域宽度, 与设计画布等宽。 */
   viewportWidth: 1920,
   floorY: 680,
-  speed: 340,
+  speed: 240,
   /** 可行走范围, 两侧各留出墙体厚度。 */
   walkMin: 170,
   walkMax: 3670,

@@ -1,10 +1,12 @@
-.art { position: absolute; inset: 0; background-repeat: no-repeat; background-size: 600% 100%; background-position: 80% 0; }
-.moving { animation: walkCycle 600ms steps(1, end) infinite; }
-@keyframes walkCycle {
-  0% { background-position: 0% 0%; }
-  20% { background-position: 20% 0%; }
-  40% { background-position: 40% 0%; }
-  60% { background-position: 60% 0%; }
-  80% { background-position: 100% 0%; }
-  100% { background-position: 0% 0%; }
+.art { position: absolute; inset: 0; }
+.direction { position: absolute; inset: 0; transform-origin: center; }
+.image {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: auto;
+  max-width: none;
+  height: 100%;
+  user-select: none;
+  transform: translateX(-50%);
 }

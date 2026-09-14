@@ -21,6 +21,7 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom }: {
   const camera = cameraX(movement.x, corridor.width);
   const entityFloorY = CORRIDOR.floorY + CORRIDOR_LAYOUT.entityGroundOffset;
   const activeThreat = corridor.threats.find((threat) => threat.id === corridor.encounterId);
+  const playerWalking = movement.walking && !blocked;
 
   return <div className={s.scene} aria-label={bossRoom ? "总控室" : "房间场景"}>
     <CorridorFar camera={camera} />
@@ -53,9 +54,7 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom }: {
       })}
       {corridor.threats.filter((threat) => !threat.defeated && threat.id !== corridor.encounterId).map((threat) => <div key={threat.id} className={s.dormant} style={{ left: threat.x, top: CORRIDOR.floorY }} aria-hidden><i /><span /></div>)}
       <div className={s.player} style={{ left: movement.x, top: entityFloorY }}>
-        <div className={s.actorDirection} style={{ transform: `scaleX(${movement.facing})` }}>
-          <CorridorPlayer walking={movement.walking && !blocked} />
-        </div>
+        <CorridorPlayer walking={playerWalking} facing={movement.facing} />
       </div>
     </div>
     {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x - camera} final={activeThreat.final} />}

@@ -13,9 +13,8 @@
 .selected .objectButton { filter: drop-shadow(0 0 6px #dfb968) drop-shadow(0 0 22px #dcb36050); }
 .used .objectButton { filter: grayscale(.8) brightness(.6); }
 .targetMarker { position: absolute; top: -26px; color: #f1cc85; font-size: 21px; animation: marker 1.5s ease-in-out infinite; }
-/* 角色格高 240，素材底部约 6.9% 是透明留白，下移 17px 让鞋底正好踩在 floorY。 */
-.player { position: absolute; transform: translate(-50%, calc(-100% + 17px)); width: 120px; height: 240px; pointer-events: none; z-index: 15; }
-.actorDirection { position: absolute; inset: 0; transform-origin: center; }
+/* 逐帧立绘已压缩为 180×240；透明画布保留并在 216px 角色容器内水平居中。 */
+.player { position: absolute; transform: translate(-50%, calc(-100% + 29px)); width: 216px; height: 240px; pointer-events: none; z-index: 15; }
 .dormant { position: absolute; width: 200px; height: 26px; transform: translate(-50%, -50%); border-radius: 50%; background: #030304c9; box-shadow: 0 0 18px #0009; }
 .dormant i, .dormant span { position: absolute; left: 30px; bottom: 0; width: 140px; height: 35px; border-radius: 50%; background: #03030470; filter: blur(7px); animation: seep 3s ease-in-out infinite; }
 .dormant span { animation-delay: -1.5s; }
