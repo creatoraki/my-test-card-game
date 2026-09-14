@@ -1,16 +1,16 @@
 import bluePortalArt from "@/assets/explore-corridor/废弃楼层/蓝色传送门.png";
 import defaultChestArt from "@/assets/explore-corridor/废弃楼层/默认宝箱素材.png";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.png";
-import corridorNearLeftArt from "@/assets/explore-corridor/废弃楼层/无限近景-左.png";
-import corridorNearRightArt from "@/assets/explore-corridor/废弃楼层/无限近景-右.png";
+import corridorNearOneArt from "@/assets/explore-corridor/废弃楼层/近景/1.png";
+import corridorNearTwoArt from "@/assets/explore-corridor/废弃楼层/近景/2.png";
 import type { CurioKind } from "@/explore/corridor/types";
 
 /** 废弃楼层专属背景与物件素材登记；所有交互物共用默认宝箱图。 */
 export const CORRIDOR_FAR_ART = corridorFarArt;
 /** 房间传送门：四个方向共用蓝色传送门立绘。 */
 export const CORRIDOR_PORTAL_ART = bluePortalArt;
-export const CORRIDOR_NEAR_LEFT_ART = corridorNearLeftArt;
-export const CORRIDOR_NEAR_RIGHT_ART = corridorNearRightArt;
+export const CORRIDOR_NEAR_ONE_ART = corridorNearOneArt;
+export const CORRIDOR_NEAR_TWO_ART = corridorNearTwoArt;
 
 export const CORRIDOR_PROP_ART: Record<CurioKind, string> = {
   chest: defaultChestArt,
@@ -57,8 +57,8 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
 
 export const CORRIDOR_ART_SOURCES: readonly string[] = [
   corridorFarArt,
-  corridorNearLeftArt,
-  corridorNearRightArt,
+  corridorNearOneArt,
+  corridorNearTwoArt,
   bluePortalArt,
   defaultChestArt,
 ];

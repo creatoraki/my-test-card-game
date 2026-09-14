@@ -1,8 +1,8 @@
-import { CORRIDOR_FAR_ART, CORRIDOR_NEAR_LEFT_ART, CORRIDOR_NEAR_RIGHT_ART } from "@/ui/art/corridorArt";
+import { CORRIDOR_FAR_ART, CORRIDOR_NEAR_ONE_ART, CORRIDOR_NEAR_TWO_ART } from "@/ui/art/corridorArt";
 import { CORRIDOR_LAYOUT } from "../corridorLayout";
 import s from "./CorridorBackdrop.module.css";
 
-const { farParallax, farTileWidth, farTileHeight, nearHalfTileWidth, nearTileWidth, nearTileHeight, nearTop, abyssTop } = CORRIDOR_LAYOUT;
+const { farParallax, farTileWidth, farTileHeight, nearMapHeight, nearTop, nearSegmentYOffsets, abyssTop } = CORRIDOR_LAYOUT;
 
 /** 远景：整屏平铺，按相机位移的一个比例慢速滑动。 */
 export function CorridorFar({ camera }: { camera: number }) {
@@ -18,18 +18,26 @@ export function CorridorAbyss() {
   return <div className={s.abyss} aria-hidden style={{ top: abyssTop }} />;
 }
 
-/** 近景：左右半图拼成一组并沿世界层重复，天然与实体 1:1 同步。 */
+/** 近景：每个房间完整展示 1、2 两张图，左右拼成全宽地图并与实体 1:1 同步。 */
 export function CorridorNear({ width }: { width: number }) {
-  const tileCount = Math.ceil(width / nearTileWidth);
+  const segmentWidth = width / 2;
 
   return <div className={s.near} aria-hidden style={{
-    width: tileCount * nearTileWidth,
+    width,
     top: nearTop,
-    height: nearTileHeight,
+    height: nearMapHeight,
   }}>
-    {Array.from({ length: tileCount }, (_, index) => <div key={index} className={s.nearTile} style={{ left: index * nearTileWidth, width: nearTileWidth }}>
-      <div className={s.nearHalf} style={{ left: 0, width: nearHalfTileWidth, backgroundImage: `url(${CORRIDOR_NEAR_LEFT_ART})` }} />
-      <div className={s.nearHalf} style={{ left: nearHalfTileWidth, width: nearHalfTileWidth, backgroundImage: `url(${CORRIDOR_NEAR_RIGHT_ART})` }} />
-    </div>)}
+    <div className={s.nearSegment} style={{
+      left: 0,
+      top: nearSegmentYOffsets.one,
+      width: segmentWidth,
+      backgroundImage: `url(${CORRIDOR_NEAR_ONE_ART})`,
+    }} />
+    <div className={s.nearSegment} style={{
+      left: segmentWidth,
+      top: nearSegmentYOffsets.two,
+      width: segmentWidth,
+      backgroundImage: `url(${CORRIDOR_NEAR_TWO_ART})`,
+    }} />
   </div>;
 }
