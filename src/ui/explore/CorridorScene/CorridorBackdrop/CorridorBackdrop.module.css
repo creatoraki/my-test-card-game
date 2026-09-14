@@ -1,4 +1,4 @@
 .far { position: absolute; inset: 0; z-index: 0; background-repeat: repeat-x; will-change: background-position; }
 .abyss { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; background: #000; }
 .near { position: absolute; left: 0; z-index: 1; }
-.nearSegment { position: absolute; height: 100%; background-repeat: no-repeat; background-size: 100% 100%; }
+.nearSegment { position: absolute; height: 100%; background-repeat: no-repeat; background-position: left top; }

@@ -3,6 +3,7 @@ import defaultChestArt from "@/assets/explore-corridor/废弃楼层/默认宝箱
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.png";
 import corridorNearStandardArt from "@/assets/explore-corridor/废弃楼层/近景/测试.png";
 import corridorNearAlternateArt from "@/assets/explore-corridor/废弃楼层/近景/测试2.png";
+import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/测试3.png";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
 
@@ -13,6 +14,7 @@ export const CORRIDOR_PORTAL_ART = bluePortalArt;
 export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
   standard: corridorNearStandardArt,
   alternate: corridorNearAlternateArt,
+  third: corridorNearThirdArt,
 };
 
 export const CORRIDOR_PROP_ART: Record<CurioKind, string> = {

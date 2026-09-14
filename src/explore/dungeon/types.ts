@@ -11,7 +11,7 @@ import type { CurioKind } from "../corridor/types";
 
 export type PortalDir = "up" | "down" | "left" | "right";
 export type RoomKind = "start" | "normal" | "battle" | "boss";
-export type NearMapVariant = "standard" | "alternate";
+export type NearMapVariant = "standard" | "alternate" | "third";
 
 export const PORTAL_DIRS: readonly PortalDir[] = ["up", "down", "left", "right"];
 
@@ -30,7 +30,7 @@ export const OPPOSITE_DIR: Record<PortalDir, PortalDir> = {
   right: "left",
 };
 
-/** 房间里的一件可交互物; x 取自 CORRIDOR.slots, 与传送门共用槽位故不会重叠。 */
+/** 房间里的一件可交互物; x 取自按该房间近景宽度换算的中段槽位, 与传送门共用槽位故不会重叠。 */
 export interface RoomCurio {
   id: string;
   kind: CurioKind;

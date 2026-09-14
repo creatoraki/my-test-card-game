@@ -7,15 +7,15 @@
 // ④ 传送门优先占最左/最右, 多出来的与可交互物共用中段槽位。
 // ============================================================================
 
-import { rngInt, shuffle } from "../../engine/rng";
+import { rngInt, rngPick, shuffle } from "../../engine/rng";
 import { CORRIDOR_CURIOS } from "../../data/corridorCurios";
 import { difficultyMapConfig } from "../../data";
 import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
-import { CORRIDOR, type CurioKind } from "../corridor/types";
+import { corridorPortalEdgeSlotsFor, corridorSlotsFor, type CurioKind } from "../corridor/types";
 import {
   DIR_STEP, OPPOSITE_DIR, PORTAL_DIRS, roomIdAt,
-  type DungeonState, type PortalDir, type RoomNode,
+  type DungeonState, type NearMapVariant, type PortalDir, type RoomNode,
 } from "./types";
 
 /** 网格边长: 够放下 roomCount 个房间并留出分支空间。 */
@@ -109,8 +109,8 @@ function pickBossRoom(s: ExploreState, rooms: Record<string, RoomNode>, startId:
 function layoutRoom(s: ExploreState, room: RoomNode, kinds: CurioKind[], curioCount: number): void {
   // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
   const dirs = shuffle(s, PORTAL_DIRS.filter((dir) => room.exits[dir]));
-  const edges = shuffle(s, [...CORRIDOR.portalEdgeSlots]);
-  const middle = shuffle(s, [...CORRIDOR.slots]);
+  const edges = shuffle(s, corridorPortalEdgeSlotsFor(room.nearMapVariant));
+  const middle = shuffle(s, corridorSlotsFor(room.nearMapVariant));
   let cursor = 0;
   dirs.forEach((dir, index) => {
     room.portalX[dir] = index < edges.length ? edges[index] : middle[cursor++];
@@ -125,15 +125,13 @@ function layoutRoom(s: ExploreState, room: RoomNode, kinds: CurioKind[], curioCo
   }));
 }
 
-/** 新手关卡随机混排两种近景，并确保整张房间图里两种都会出现。 */
+/** 新手关卡随机混排三种近景，并确保整张房间图里三种都会出现。 */
 function assignTutorialNearMaps(s: ExploreState, rooms: Record<string, RoomNode>, order: string[]): void {
-  if (s.mapId !== "tutorial" || order.length < 2) return;
+  if (s.mapId !== "tutorial" || order.length === 0) return;
   const randomizedRooms = shuffle(s, [...order]);
-  const firstVariant = rngInt(s, 2) === 0 ? "standard" : "alternate";
-  rooms[randomizedRooms[0]].nearMapVariant = firstVariant;
-  rooms[randomizedRooms[1]].nearMapVariant = firstVariant === "standard" ? "alternate" : "standard";
-  for (const id of randomizedRooms.slice(2)) {
-    rooms[id].nearMapVariant = rngInt(s, 2) === 0 ? "standard" : "alternate";
+  const variants = shuffle<NearMapVariant>(s, ["standard", "alternate", "third"]);
+  for (const [index, id] of randomizedRooms.entries()) {
+    rooms[id].nearMapVariant = variants[index] ?? rngPick(s, variants);
   }
 }
 
@@ -152,6 +150,8 @@ export function generateDungeon(s: ExploreState): DungeonState {
   const battleCount = Math.min(plain.length, Math.max(1, Math.round(plain.length * EXPLORE_RULES.dungeon.battleRoomRatio)));
   for (let i = 0; i < battleCount; i++) rooms[plain[i]].kind = "battle";
 
+  assignTutorialNearMaps(s, rooms, order);
+
   const kinds = Object.keys(CORRIDOR_CURIOS) as CurioKind[];
   const [minCurio, maxCurio] = EXPLORE_RULES.dungeon.curiosPerRoom;
   for (const id of order) {
@@ -162,8 +162,6 @@ export function generateDungeon(s: ExploreState): DungeonState {
         : minCurio + rngInt(s, maxCurio - minCurio + 1);
     layoutRoom(s, room, kinds, count);
   }
-  assignTutorialNearMaps(s, rooms, order);
-
   const xs = order.map((id) => rooms[id].gx);
   const ys = order.map((id) => rooms[id].gy);
   return {

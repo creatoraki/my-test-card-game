@@ -1,6 +1,7 @@
-// 房间内的横向场景使用设计画布坐标; 房间宽两屏(3840×1080), 镜头跟随玩家卷动。
+// 房间内的横向场景使用设计画布坐标; 宽度由近景素材 2 倍显示宽度决定, 镜头跟随玩家卷动。
 // 场景状态随远征会话保留, 战后返回原处; 房间之间的连通关系见 ../dungeon/types.ts。
-import type { PortalDir } from "../dungeon/types";
+import type { NearMapVariant, PortalDir } from "../dungeon/types";
+import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
 
 export type CurioKind = "chest" | "medical" | "terminal" | "vending" | "purifier" | "scrap" | "dispatch" | "camp";
 
@@ -42,22 +43,44 @@ export interface CorridorState {
 }
 
 export const CORRIDOR = {
-  /** 房间渲染宽度, 为设计画布的两倍。 */
-  width: 3840,
+  /** 旧布局的参考宽度；只用于按素材宽度换算传送门与物件槽位。 */
+  referenceWidth: 3840,
   /** 可视区域宽度, 与设计画布等宽。 */
   viewportWidth: 1920,
   floorY: 680,
   speed: 264,
-  /** 可行走范围, 两侧各留出墙体厚度。 */
+  /** 可行走范围的左右墙体留白。 */
   walkMin: 170,
-  walkMax: 3670,
   interactionRadius: 190,
   encounterRadius: 190,
   encounterMs: 1850,
   /** 站上传送门的判定半径; 比交互半径小, 避免与相邻物件抢操作。 */
   portalRadius: 120,
-  /** 传送门专用左右边缘槽位。 */
-  portalEdgeSlots: [300, 3540] as readonly number[],
-  /** 房间中段槽位: 可交互物与额外传送门共用, 跳过黑影所在的正中位置。 */
-  slots: [800, 1120, 1440, 1760, 2080, 2400, 2720, 3040] as readonly number[],
+  /** 旧布局的传送门边缘槽位，会按当前素材宽度等比换算。 */
+  basePortalEdgeSlots: [300, 3540] as readonly number[],
+  /** 旧布局的中段槽位，会按当前素材宽度等比换算。 */
+  baseSlots: [800, 1120, 1440, 1760, 2080, 2400, 2720, 3040] as readonly number[],
 } as const;
+
+/** 当前近景素材 2 倍显示宽度，也就是对应房间的宽度。 */
+export function corridorWidthFor(variant: NearMapVariant): number {
+  return NEAR_MAP_GEOMETRY[variant].width;
+}
+
+/** 把旧场景的横向槽位按素材宽度换算到当前房间。 */
+function scaleSlots(slots: readonly number[], variant: NearMapVariant): number[] {
+  const ratio = corridorWidthFor(variant) / CORRIDOR.referenceWidth;
+  return slots.map((slot) => Math.round(slot * ratio));
+}
+
+export function corridorPortalEdgeSlotsFor(variant: NearMapVariant): number[] {
+  return scaleSlots(CORRIDOR.basePortalEdgeSlots, variant);
+}
+
+export function corridorSlotsFor(variant: NearMapVariant): number[] {
+  return scaleSlots(CORRIDOR.baseSlots, variant);
+}
+
+export function corridorWalkMax(width: number): number {
+  return width - CORRIDOR.walkMin;
+}

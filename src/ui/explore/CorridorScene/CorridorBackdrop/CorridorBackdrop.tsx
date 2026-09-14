@@ -19,16 +19,17 @@ export function CorridorAbyss() {
   return <div className={s.abyss} aria-hidden style={{ top: abyssTop }} />;
 }
 
-/** 近景：按房间地图变体铺满整间房，并与实体 1:1 同步。 */
+/** 近景：按 2 倍尺寸绘制整张素材，并与对应宽度的房间实体同步。 */
 export function CorridorNear({ width, variant }: { width: number; variant: NearMapVariant }) {
   return <div className={s.near} aria-hidden style={{
     width,
     top: nearTop(variant),
-    height: nearMapHeight,
+    height: nearMapHeight(variant),
   }}>
     <div className={s.nearSegment} style={{
       inset: 0,
       backgroundImage: `url(${CORRIDOR_NEAR_ART[variant]})`,
+      backgroundSize: "100% 100%",
     }} />
   </div>;
 }
