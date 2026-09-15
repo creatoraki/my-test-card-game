@@ -3,7 +3,20 @@
 import type { NearMapVariant, PortalDir } from "../dungeon/types";
 import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
 
-export type CurioKind = "chest" | "medical" | "terminal" | "vending" | "purifier" | "scrap" | "dispatch" | "camp";
+export type CurioKind =
+  | "safe"
+  | "crystalVein"
+  | "vending"
+  | "remains"
+  | "compactor"
+  | "medical"
+  | "sink"
+  | "repairPod"
+  | "modBench"
+  | "cardPrinter"
+  | "shrine"
+  | "dispatch"
+  | "merchant";
 
 export interface CorridorObject {
   id: string;

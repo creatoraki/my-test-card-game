@@ -26,8 +26,8 @@ export function useCorridorPlayerAnimation(walking: boolean, facing: -1 | 1) {
       if (disposed || !canvas || !firstFrame) return;
       const context = canvas.getContext("2d");
       if (!context) return;
-      canvas.width = firstFrame.naturalWidth;
-      canvas.height = firstFrame.naturalHeight;
+      canvas.width = firstFrame.width;
+      canvas.height = firstFrame.height;
       let drawnFrame = -1;
       let drawnFacing = 0;
 
@@ -56,7 +56,7 @@ export function useCorridorPlayerAnimation(walking: boolean, facing: -1 | 1) {
         } else {
           const elapsed = previousTime === undefined ? 0 : now - previousTime;
           previousTime = now;
-          // 长时间卡顿后从当前动作继续，避免一次跳过整段启停动作。
+          // 长时间卡顿后从当前步态继续，避免一次跳过多帧。
           state.elapsed += Math.min(elapsed, 50);
           while (state.elapsed + 0.001 >= frameDuration) {
             state.elapsed = Math.max(0, state.elapsed - frameDuration);

@@ -237,7 +237,7 @@ describe("交互(每交互 1 个事件 −2 粒子)", () => {
   // 物件种类是随机的, 各分支自带的 energyDelta 不同 —— 钉死成遗留物资箱才能断言净消耗。
   function withChest(seed = 31): ExploreState {
     const s = newSession(seed);
-    roomNow(s).curios[0].kind = "chest";
+    roomNow(s).curios[0].kind = "safe";
     enterRoom(s, roomNow(s).id);
     return s;
   }

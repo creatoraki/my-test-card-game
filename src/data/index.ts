@@ -229,6 +229,20 @@ export {
   type UpgradeRecipe,
 } from "./equipUpgrade";
 export { SORTIE_STOCK_IDS } from "./sortieStock";
+export {
+  CORRIDOR_AMBUSH,
+  CORRIDOR_CURIOS,
+  RANDOM_CURIO_KINDS,
+  curioEvent,
+} from "./curios";
+export type {
+  ActorTarget,
+  CurioDef,
+  CurioDecision,
+  CurioEffect,
+  CurioRequirement,
+  MerchantShelf,
+} from "./curios";
 export { PICNIC_RECIPES, matchPicnicRecipe, type PicnicRecipeDef } from "./picnicRecipes";
 export { pickBotLine } from "./botLines";
 export { VENDOR_LINES, pickVendorLine, type VendorLineKind } from "./vendorLines";

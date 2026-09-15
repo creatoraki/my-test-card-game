@@ -39,9 +39,15 @@ import {
   deriveStats,
   useTownStore,
   vitalsOf,
-  type ContaminationHit,
   type ExpGain,
 } from "./townStore";
+import { applyPendingContamination, settleFallenGear } from "./exploreAftermath";
+import {
+  chooseCurio as chooseCurioAction,
+  offerCurio as offerCurioAction,
+  openMerchantShelf as openMerchantShelfAction,
+  buyMerchantSlot as buyMerchantSlotAction,
+} from "./curioActions";
 
 // ★ "formation"(编队) 是据点的**一级全屏页**, 不是设施内浮层 ——
 //   入口是据点全景右下的「编队」按钮(见 ui/town/TownScreen), 医疗室提供「复苏舱」。
@@ -97,6 +103,10 @@ interface RunStore {
   beginAscent: () => void;
   finishRide: () => void;
   chooseEventOption: (index: number) => import("../explore/types").ExploreState | null;
+  chooseCurio: (decisionId: string) => import("../explore/types").ExploreState | null;
+  offerCurio: (picks: import("../explore/curio/offering").OfferingPick[]) => import("../explore/types").ExploreState | null;
+  openMerchantShelf: () => import("../explore/types").ExploreState | null;
+  buyMerchantSlot: (index: number) => boolean;
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
   resolveBattle: () => void; // 战斗结束: 回填血量/结算积分与经验/推进会话
   // ---- 战斗设置面板的两个出口(见 ui/battle/BattleSettingsPanel) ----
@@ -112,6 +122,7 @@ interface RunStore {
   resolvePendingQuirk: (charId?: string, quirkId?: QuirkId) => void;
   resolvePendingPollution: (charId?: string) => void;
   resolvePendingPurification: (charId: string | undefined, uids: string[]) => void;
+  startTaintedDraw: (charId: string) => void;
   retreat: () => void; // 主动撤离 → 落袋回城
   finishExpedition: () => void; // 会话自行走到终局(升降机/轮次走完/团灭) → 结算页
   backToTown: () => void;
@@ -158,15 +169,6 @@ function syncMemberStats(charId: string): void {
   if (!cs) return;
   const stats = deriveStats(cs);
   useExploreStore.getState().syncPartyVitals(charId, stats.maxHp, stats.burdenAdapt);
-}
-
-function applyPendingContamination(charIds: string[]): ContaminationHit[] {
-  const request = useExploreStore.getState().consumePendingContamination();
-  const town = useTownStore.getState();
-  const hits: ContaminationHit[] = [];
-  if (request.total > 0) hits.push(...town.contaminateCards(charIds, request.total));
-  if (request.each > 0) hits.push(...town.contaminateCards(charIds, request.each, true));
-  return hits;
 }
 
 function alivePartyIds(): string[] {
@@ -290,24 +292,6 @@ function syncConditionsFrom(battle: BattleState): void {
       return { charId: a.charId, pollution: a.pollution, sick: a.sick, quirks: a.quirks };
     }),
   );
-}
-
-// 阵亡装备只从城镇槽位原子取出一次, 并并入本趟战利品盘。
-// 团灭时战利品盘已经由 loseEverything 清空, 阵亡装备随之丢失。
-function settleFallenGear(): void {
-  const ids = useExploreStore.getState().takeUnsettledFallen();
-  if (!ids.length) return;
-
-  const town = useTownStore.getState();
-  const dropped = ids.flatMap((charId) =>
-    (["weapon", "armor", "trinket"] as EquipSlot[])
-      .map((slot) => town.takeOffStack(charId, slot))
-      .filter((stack): stack is ItemStack => Boolean(stack)),
-  );
-  const session = useExploreStore.getState().session;
-  if (dropped.length && session && session.phase !== "wiped") {
-    useExploreStore.getState().addFallenGear(dropped);
-  }
 }
 
 // 远征收尾的落袋 —— 积分 + 实物一起进城镇, 只有这一个出口。
@@ -446,6 +430,11 @@ export const useRunStore = create<RunStore>((set, get) => ({
     if (hits.length) useExploreStore.getState().fillStoryPlaceholders(hits);
     return result;
   },
+
+  chooseCurio: (decisionId) => chooseCurioAction(decisionId),
+  offerCurio: (picks) => offerCurioAction(picks),
+  openMerchantShelf: () => openMerchantShelfAction(),
+  buyMerchantSlot: (index) => buyMerchantSlotAction(index),
 
   // 本轮线路披露完 → 建局开打(设计文档 §3.1 的固定档位表)。
   // ⚠ 会话的推进不在这里: startRoundBattle 已经把 phase 打成 inBattle 并写下 pendingEncounterId,
@@ -759,6 +748,14 @@ export const useRunStore = create<RunStore>((set, get) => ({
     const action = useExploreStore.getState().session?.pendingActions[0];
     if (!action || (limit ? action.kind !== "healLimitOne" : action.kind !== "healOne")) return;
     useExploreStore.getState().resolvePendingHealing(charId, limit);
+  },
+
+  startTaintedDraw: (charId) => {
+    const action = useExploreStore.getState().session?.pendingActions[0];
+    if (!action || action.kind !== "forgeDraw") return;
+    const town = useTownStore.getState();
+    town.grantFreeDraw(charId);
+    if (action.contaminate) town.contaminateCards([charId], action.contaminate);
   },
 
   resolvePendingQuirk: (charId, quirkId) => {

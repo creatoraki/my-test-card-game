@@ -80,6 +80,11 @@ export const EXPLORE_RULES = {
     loopEdgeRatio: 0.2,
     // 每个房间的可交互物数量区间(起始房固定 1 件, BOSS 房 0 件)。
     curiosPerRoom: [1, 3] as const,
+    merchants: {
+      smallMapMaxRooms: 8,
+      small: [1, 1] as const,
+      large: [1, 2] as const,
+    },
   },
 
   // ── 推进战斗档位权重(设计文档 §3.1) ──

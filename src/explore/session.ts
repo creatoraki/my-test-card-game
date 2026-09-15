@@ -291,6 +291,7 @@ export function createSession(
     currentSegment: 0,
     freeNodes: 0,
     pendingNotes: [],
+    pendingPollution: [],
     pendingContaminationCount: 0,
     pendingContaminationEach: 0,
     lateralShiftsLeft: 1,
@@ -726,7 +727,7 @@ function damagePartyPercent(s: ExploreState, percent: number): void {
 }
 
 // 全队阵亡 = 团灭。事件掉血也可能触发, 故每次改动队伍后都要查。返回是否刚刚团灭。
-function checkWipe(s: ExploreState): boolean {
+export function checkWipe(s: ExploreState): boolean {
   if (s.phase === "wiped" || s.phase === "cleared" || s.phase === "retreated") return false;
   if (!s.party.every((p) => !p.alive)) return false;
   s.phase = "wiped";
@@ -782,7 +783,7 @@ function rollOutcome(s: ExploreState, outcomes: EventOutcome[]): EventOutcome | 
   return outcomes[outcomes.length - 1];
 }
 
-function rollEquipOffers(s: ExploreState, count: number, slot?: import("../items/types").EquipSlot): ItemStack[] {
+export function rollEquipOffers(s: ExploreState, count: number, slot?: import("../items/types").EquipSlot): ItemStack[] {
   const familyIds = [
     ...new Set(
       equipmentDefsBySlot(slot)
@@ -846,7 +847,7 @@ function rollRelicOffers(
   return pool.slice(0, Math.max(0, count)).map((def) => makeRolledItemStack(s, def.id, 1));
 }
 
-function randomRelicId(s: ExploreState, rarity?: ItemRarity): string | undefined {
+export function randomRelicId(s: ExploreState, rarity?: ItemRarity): string | undefined {
   const pending = new Set(
     s.pendingPickup
       .filter((stack) => getItemDef(stack.itemId).category === "relic")
@@ -1064,6 +1065,12 @@ export function takePendingContamination(s: ExploreState): PendingContamination 
   s.pendingContaminationCount = 0;
   s.pendingContaminationEach = 0;
   return result;
+}
+
+export function takePendingPollution(s: ExploreState): { charId: string; amount: number }[] {
+  const pending = s.pendingPollution.map((entry) => ({ ...entry }));
+  s.pendingPollution = [];
+  return pending;
 }
 
 export function grantExpTo(s: ExploreState, charId: string): boolean {

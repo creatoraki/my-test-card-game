@@ -36,6 +36,7 @@ import {
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import RelicOffers from "./RelicOffers";
+import { ReplaceCardReward } from "./ReplaceCardReward";
 import s from "./RewardOverlay.module.css";
 
 // 奖励浮层的主色。★ 只在这里出现一次, 通过 EventPanelFrame 的 accent 下发给页眉/边线/按钮。
@@ -63,7 +64,8 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const resolvePendingPurification = useRunStore((state) => state.resolvePendingPurification);
   const characters = useTownStore((state) => state.characters);
   const party = useTownStore((state) => state.party);
-  const grantFreeDraw = useTownStore((state) => state.grantFreeDraw);
+  const startTaintedDraw = useRunStore((state) => state.startTaintedDraw);
+  const replaceCardWithCommon = useTownStore((state) => state.replaceCardWithCommon);
   const pickDraw = useTownStore((state) => state.pickDraw);
   const removeCardFree = useTownStore((state) => state.removeCardFree);
   const reforgeEquipped = useTownStore((state) => state.reforgeEquipped);
@@ -88,7 +90,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const chosenCharacter = chosenCharId ? characters[chosenCharId] : null;
   const detailStage = action.kind === "forgeDraw"
     ? Boolean(chosenCharacter?.pendingDraw)
-    : (action.kind === "forgeRemove" || action.kind === "cureQuirk" || action.kind === "purifyCards")
+    : (action.kind === "forgeRemove" || action.kind === "cureQuirk" || action.kind === "purifyCards" || action.kind === "replaceCard")
       ? Boolean(chosenCharacter)
       : false;
   const finish = () => resolvePendingAction();
@@ -133,13 +135,25 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
               character={chosenCharacter}
               onSelect={setSelectedChar}
               onStart={() => {
-                if (chosenCharId) grantFreeDraw(chosenCharId);
+                if (chosenCharId) startTaintedDraw(chosenCharId);
               }}
               onSkip={finish}
               onPick={(cardId) => {
                 if (!chosenCharId) return;
                 pickDraw(chosenCharId, cardId);
                 finish();
+              }}
+            />
+          )}
+
+          {action.kind === "replaceCard" && (
+            <ReplaceCardReward
+              members={selectableCharacters}
+              selected={chosenCharId}
+              onSelect={setSelectedChar}
+              onSkip={finish}
+              onReplace={(charId, uid) => {
+                if (replaceCardWithCommon(charId, uid)) finish();
               }}
             />
           )}
@@ -293,6 +307,8 @@ function titleOf(kind: string): string {
       return "免费卡组锻造";
     case "forgeRemove":
       return "免费卡组整理";
+    case "replaceCard":
+      return "普通卡替换";
     case "equipOffer":
       return "装备候选";
     case "relicOffer":

@@ -1,12 +1,12 @@
 import { CORRIDOR_PLAYER_ART_SOURCES } from "./corridorPlayerArt";
 
-let decodedFrames: Promise<readonly (HTMLImageElement | undefined)[]> | undefined;
+let decodedFrames: Promise<readonly (ImageBitmap | undefined)[]> | undefined;
 
-/** 保留已解码图片供画布同步绘制；仅缓存 URL 无法保证换帧时图片已可显示。 */
-export function loadCorridorPlayerFrames(): Promise<readonly (HTMLImageElement | undefined)[]> {
+/** 缓存位图供画布同步绘制，避免浏览器在换帧时回收图片解码数据。 */
+export function loadCorridorPlayerFrames(): Promise<readonly (ImageBitmap | undefined)[]> {
   if (decodedFrames) return decodedFrames;
   decodedFrames = (async () => {
-    const frames = new Array<HTMLImageElement | undefined>(CORRIDOR_PLAYER_ART_SOURCES.length);
+    const frames = new Array<ImageBitmap | undefined>(CORRIDOR_PLAYER_ART_SOURCES.length);
     let next = 0;
     const worker = async () => {
       while (next < frames.length) {
@@ -16,7 +16,7 @@ export function loadCorridorPlayerFrames(): Promise<readonly (HTMLImageElement |
         const image = new Image();
         image.src = src;
         await image.decode();
-        frames[index] = image;
+        frames[index] = await createImageBitmap(image);
       }
     };
     await Promise.all(Array.from({ length: 4 }, worker));

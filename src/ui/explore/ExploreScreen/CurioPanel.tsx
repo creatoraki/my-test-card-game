@@ -1,21 +1,29 @@
-import { useEffect, useRef } from "react";
-import { getItemDef } from "@/data";
-import { CORRIDOR_CURIOS } from "@/data/corridorCurios";
-import { interactionCost, landedChoices, landedEvent } from "@/explore/session";
+import { useEffect, useRef, useState } from "react";
+import { CORRIDOR_CURIOS } from "@/data/curios";
+import { canOfferAny, visibleDecisions } from "@/explore/curio/visibility";
 import { hasCorridorRewards } from "@/explore/corridor/session";
+import { interactionCost } from "@/explore/session";
 import type { ExploreState } from "@/explore/types";
-import { countByItemId } from "@/items/inventory";
 import { useRunStore } from "@/store/runStore";
 import { useExploreStore } from "@/store/exploreStore";
 import { closeCorridorObject } from "@/store/exploreCorridor";
 import { CorridorSprite } from "@/ui/explore/CorridorScene/CorridorSprite";
+import { CurioOfferView } from "./CurioOfferView";
 import s from "./CurioPanel.module.css";
 
-export function CurioPanel({ session, onOpenBag, covered }: { session: ExploreState; onOpenBag: () => void; covered: boolean }) {
+export function CurioPanel({
+  session,
+  onOpenBag,
+  covered,
+}: {
+  session: ExploreState;
+  onOpenBag: () => void;
+  covered: boolean;
+}) {
   const panel = useRef<HTMLElement>(null);
+  const [offerMode, setOfferMode] = useState(false);
   const object = session.corridor?.objects.find((item) => item.id === session.corridor?.activeObjectId);
   const def = object ? CORRIDOR_CURIOS[object.kind] : null;
-  const event = landedEvent(session);
   const result = session.phase === "resolving";
   const rewards = hasCorridorRewards(session);
 
@@ -29,34 +37,55 @@ export function CurioPanel({ session, onOpenBag, covered }: { session: ExploreSt
     panel.current.inert = covered;
     if (!covered) panel.current.focus();
   }, [covered]);
-  if (!event || !def || !object) return null;
-  const artworkSize = object.kind === "chest" ? 230 : 280;
+  useEffect(() => {
+    if (result) setOfferMode(false);
+  }, [result]);
+  if (!def || !object || object.kind === "merchant") return null;
+
+  const decisions = visibleDecisions(session, def);
+  const offeringAvailable = canOfferAny(session, def);
+  const artworkSize = def.size;
+
+  if (offerMode && !result) {
+    return <div className={s.backdrop}>
+      <section ref={panel} className={s.panel} role="dialog" aria-modal="true" aria-labelledby="curio-heading" tabIndex={-1}>
+        <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={artworkSize} interacting={false} /><span>{def.name} · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
+        <div className={s.content}><CurioOfferView
+          backpack={session.backpack}
+          objectId={object.id}
+          onBack={() => setOfferMode(false)}
+          onSubmit={(picks) => useRunStore.getState().offerCurio(picks)}
+        /></div>
+      </section>
+    </div>;
+  }
 
   return <div className={s.backdrop}>
     <section ref={panel} className={s.panel} role="dialog" aria-modal="true" aria-labelledby="curio-heading" tabIndex={-1}
-      onKeyDown={(e) => {
-        if (e.key === "Escape" && !result) { e.stopPropagation(); closeCorridorObject(); }
-        if (e.key === "Tab") {
-          const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"));
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !result) { event.stopPropagation(); closeCorridorObject(); }
+        if (event.key === "Tab") {
+          const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"));
           const first = buttons[0]; const last = buttons[buttons.length - 1];
-          if (e.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { e.preventDefault(); last?.focus(); }
-          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+          if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         }
       }}>
-      <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={artworkSize} interacting={false} /><span>遗留物件 · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
+      <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={artworkSize} interacting={false} /><span>{def.name} · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
       <div className={s.content}>
         <div className={s.eyebrow}>{result ? "搜寻结果" : "驻足调查"}</div>
         <h2 id="curio-heading">{def.name}</h2>
         {!result ? <>
-          <p className={s.description}>{event.description}</p>
+          <p className={s.description}>{def.description}</p>
           <p className={s.cost}>操作物件消耗 {interactionCost(session)} 点净化粒子 · 离开不消耗</p>
-          <div className={s.choices}>{landedChoices(session).map((choice, index) => {
-            const missing = choice.cost && countByItemId(session.backpack, choice.cost.itemId) < choice.cost.count;
-            return <button key={choice.id} type="button" disabled={Boolean(missing)} onClick={() => useRunStore.getState().chooseEventOption(index)}>
-              <strong>{choice.label}<span>→</span></strong><span>{choice.desc}</span>
-              {choice.cost && <span>需要 {getItemDef(choice.cost.itemId).name} ×{choice.cost.count}{missing ? "（数量不足）" : ""}</span>}
-            </button>;
-          })}</div>
+          <div className={s.choices}>{decisions.map((decision) => (
+            <button key={decision.id} type="button" onClick={() => useRunStore.getState().chooseCurio(decision.id)}>
+              <strong>{decision.label}<span>→</span></strong>
+            </button>
+          ))}</div>
+          {offeringAvailable && <button className={s.offer} type="button" onClick={() => setOfferMode(true)}>
+            尝试放入什么物体看看会不会发生什么
+          </button>}
           <button className={s.leave} type="button" onClick={closeCorridorObject}>暂不处理，继续行走</button>
         </> : <>
           <div className={s.result} aria-live="polite">

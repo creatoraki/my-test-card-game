@@ -232,7 +232,8 @@ export interface HiddenRest {
 
 export type PendingAction =
   | { kind: "expOne"; amount: number }
-  | { kind: "forgeDraw" }
+  | { kind: "forgeDraw"; contaminate?: number }
+  | { kind: "replaceCard" }
   | { kind: "forgeRemove" }
   | { kind: "equipOffer"; offers: ItemStack[] }
   | { kind: "relicOffer"; offers: ItemStack[] }
@@ -426,6 +427,7 @@ export interface ExploreState {
   currentSegment: number; // 已抵达的推进段数, 0 = 尚未进入第 1 段, 达到棋盘段数 = 已走满
   freeNodes: number; // 「隐匿通道」: 接下来几个节点免除基础粒子消耗
   pendingNotes: string[]; // 本节点结算摘要, 供 resolving 浮层展示
+  pendingPollution: { charId: string; amount: number }[];
   pendingContaminationCount: number; // 尚未交给 townStore 应用的污染卡数量
   pendingContaminationEach: number; // 每名角色各污染 N 张, 与上面的全队总数语义分开
 

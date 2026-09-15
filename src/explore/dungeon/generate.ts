@@ -8,7 +8,7 @@
 // ============================================================================
 
 import { rngInt, rngPick, shuffle } from "../../engine/rng";
-import { CORRIDOR_CURIOS } from "../../data/corridorCurios";
+import { RANDOM_CURIO_KINDS } from "../../data/curios";
 import { difficultyMapConfig } from "../../data";
 import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
@@ -106,7 +106,13 @@ function pickBossRoom(s: ExploreState, rooms: Record<string, RoomNode>, startId:
 }
 
 /** 传送门优先占左右边缘; 多出来的门与可交互物共用中段槽位, 坐标不会重叠。 */
-function layoutRoom(s: ExploreState, room: RoomNode, kinds: CurioKind[], curioCount: number): void {
+function layoutRoom(
+  s: ExploreState,
+  room: RoomNode,
+  kinds: CurioKind[],
+  curioCount: number,
+  forceMerchant = false,
+): void {
   // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
   const dirs = shuffle(s, PORTAL_DIRS.filter((dir) => room.exits[dir]));
   const edges = shuffle(s, corridorPortalEdgeSlotsFor(room.nearMapVariant));
@@ -116,7 +122,9 @@ function layoutRoom(s: ExploreState, room: RoomNode, kinds: CurioKind[], curioCo
     room.portalX[dir] = index < edges.length ? edges[index] : middle[cursor++];
   });
   // 最多两扇中段门加三件物件, 共用五个槽位, 不需要绕回制造重复坐标。
-  const picks = shuffle(s, [...kinds]).slice(0, Math.max(0, curioCount));
+  const randomCount = Math.max(0, curioCount - (forceMerchant ? 1 : 0));
+  const picks = shuffle(s, [...kinds]).slice(0, randomCount);
+  if (forceMerchant) picks.push("merchant");
   room.curios = picks.map((kind, index) => ({
     id: `${room.id}-curio-${index}`,
     kind,
@@ -152,20 +160,35 @@ export function generateDungeon(s: ExploreState): DungeonState {
 
   assignTutorialNearMaps(s, rooms, order);
 
-  const kinds = Object.keys(CORRIDOR_CURIOS) as CurioKind[];
+  const kinds = [...RANDOM_CURIO_KINDS] as CurioKind[];
   const [minCurio, maxCurio] = EXPLORE_RULES.dungeon.curiosPerRoom;
+  const merchantRange = map.roomCount <= EXPLORE_RULES.dungeon.merchants.smallMapMaxRooms
+    ? EXPLORE_RULES.dungeon.merchants.small
+    : EXPLORE_RULES.dungeon.merchants.large;
+  const merchantCount = merchantRange[0] + rngInt(s, merchantRange[1] - merchantRange[0] + 1);
+  const merchantRooms = new Set(
+    shuffle(
+      s,
+      order.filter((id) => rooms[id].kind === "normal"),
+    ).slice(0, merchantCount),
+  );
   for (const id of order) {
     const room = rooms[id];
-    // BOSS 房只有黑影, 起始房固定 1 件安全物件, 其余按区间随机。
+    // BOSS 房只有黑影, 起始房固定 1 件安全投递柜, 其余按区间随机。
     const count = room.kind === "boss" ? 0
       : room.kind === "start" ? 1
-        : minCurio + rngInt(s, maxCurio - minCurio + 1);
-    layoutRoom(s, room, kinds, count);
+        : minCurio + rngInt(s, maxCurio - minCurio + 1) + (merchantRooms.has(id) ? 1 : 0);
+    const roomKinds = room.kind === "start"
+      ? (["dispatch"] as CurioKind[])
+      : kinds;
+    layoutRoom(s, room, roomKinds, count, merchantRooms.has(id));
   }
   const xs = order.map((id) => rooms[id].gx);
   const ys = order.map((id) => rooms[id].gy);
   return {
     rooms, order, startRoomId: startId, bossRoomId: bossId, currentRoomId: startId,
+    layoutKnown: false,
+    threatsKnown: false,
     bounds: { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) },
   };
 }

@@ -57,6 +57,7 @@ import { createMapProgressSlice, freshMapProgress, type MapProgressSlice } from 
 import { createShopSlice, freshShop, type ShopState } from "./shopSlice";
 import { rollShopStock } from "./shopStock";
 import { createTechTreeSlice } from "./techTreeSlice";
+import { createCurioTownSlice, type CurioTownSlice } from "./curioTownSlice";
 import {
   addCardToDeck,
   availablePools,
@@ -151,7 +152,7 @@ export interface CodexState {
   enemies: string[];
 }
 
-export interface TownStore {
+export interface TownStore extends CurioTownSlice {
   characters: Record<string, CharacterState>;
   // ★ 在编队员名单, 按加入先后。阵亡角色会从这里移出。
   // ⚠ characters 仍是**全量**建档(见 freshProfile) —— 「有没有解锁」只看这里, 各处取
@@ -449,6 +450,7 @@ export const useTownStore = create<TownStore>()(
       ...createMapProgressSlice(set, get),
       ...createShopSlice(set, get),
       ...createTechTreeSlice(set, get),
+      ...createCurioTownSlice(set, get),
       initialized: false,
 
       ensureProfile: () => {

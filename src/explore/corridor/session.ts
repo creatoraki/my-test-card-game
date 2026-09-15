@@ -1,4 +1,4 @@
-import { CORRIDOR_AMBUSH, CORRIDOR_CURIOS } from "../../data/corridorCurios";
+import { CORRIDOR_AMBUSH, curioEvent } from "../../data/curios";
 import { OPPOSITE_DIR, PORTAL_DIRS, type PortalDir, type RoomNode } from "../dungeon/types";
 import type { ExploreState } from "../types";
 import { corridorSlotsFor, corridorWalkMax, corridorWidthFor, CORRIDOR, type CorridorPortal, type CorridorState } from "./types";
@@ -36,7 +36,7 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
     standingPortalDir: null,
   };
 
-  const nodes = [...objects.map((object) => [CORRIDOR_CURIOS[object.kind].event]), [CORRIDOR_AMBUSH]];
+  const nodes = [...objects.map((object) => [curioEvent(object.kind)]), [CORRIDOR_AMBUSH]];
   s.board = {
     round: room.depth + 1, laneCount: 1, rowsPerSegment: 1,
     segments: nodes.map((_, index) => ({ index, bridges: [] })),
@@ -52,7 +52,7 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
   s.pendingBattleTier = null;
   s.battleSource = null;
   s.chuteOpen = false;
-  s.phase = "atNode";
+    s.phase = "atNode";
 }
 
 /** 落地点: 从哪扇门进来就站在那扇门边上(但不踩在门上), 首次进图站离门最远的槽位。 */
@@ -116,7 +116,7 @@ export function openCorridorObject(s: ExploreState, id: string): boolean {
 }
 
 export function dismissCorridorObject(s: ExploreState): boolean {
-  if (!s.corridor || s.phase !== "landed" || hasCorridorRewards(s)) return false;
+  if (!s.corridor || (s.phase !== "landed" && s.phase !== "shopping") || hasCorridorRewards(s)) return false;
   s.corridor.activeObjectId = null;
   s.phase = "atNode";
   return true;

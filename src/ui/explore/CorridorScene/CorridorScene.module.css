@@ -3,23 +3,25 @@
 .haze { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(180deg, #09151b9c 0%, #09151b4a 15%, transparent 36%, transparent 100%); }
 .world { position: absolute; inset: 0 auto 0 0; z-index: 3; height: 1080px; will-change: transform; }
 .object { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; z-index: 5; }
-.objectButton { padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; cursor: pointer; transition: filter 200ms; }
+.object::before { content: ""; position: absolute; left: 50%; top: 50%; width: 190px; height: 120px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse, #dfb968a8 0%, #dcb36050 38%, transparent 72%); opacity: 0; z-index: 0; pointer-events: none; transition: opacity 200ms; }
+.objectButton { position: relative; z-index: 1; padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; cursor: pointer; }
 .objectButton:disabled { opacity: 1; cursor: default; }
 .objectButton:focus-visible { outline: 2px solid #efc37f; outline-offset: 5px; }
 .sprite { display: block; background-size: 100% 100%; background-repeat: no-repeat; background-position: 0 0; }
 .sprite.interacting { animation: chestInteraction 520ms ease-out both; }
-.selected .objectButton { filter: drop-shadow(0 0 6px #dfb968) drop-shadow(0 0 22px #dcb36050); }
+.selected::before { opacity: 1; }
 .used .objectButton { filter: grayscale(.8) brightness(.6); }
 .targetMarker { position: absolute; top: -26px; color: #f1cc85; font-size: 21px; animation: marker 1.5s ease-in-out infinite; }
 /* 逐帧立绘已压缩为 180×240；透明画布保留并在 216px 角色容器内水平居中。 */
-.player { position: absolute; transform: translate(-50%, calc(-100% + 29px)); width: 216px; height: 240px; pointer-events: none; z-index: 15; }
+.playerAnchor { position: absolute; left: 0; z-index: 15; will-change: transform; pointer-events: none; }
+.player { position: absolute; left: 0; top: 0; transform: translate(-50%, calc(-100% + 29px)); width: 216px; height: 240px; pointer-events: none; }
 .dormant { position: absolute; width: 200px; height: 26px; transform: translate(-50%, -50%); border-radius: 50%; background: #030304c9; box-shadow: 0 0 18px #0009; }
-.dormant i, .dormant span { position: absolute; left: 30px; bottom: 0; width: 140px; height: 35px; border-radius: 50%; background: #03030470; filter: blur(7px); animation: seep 3s ease-in-out infinite; }
+.dormant i, .dormant span { position: absolute; left: 20px; bottom: -12px; width: 160px; height: 50px; border-radius: 50%; background: radial-gradient(closest-side, #030304a0, #03030470 55%, transparent); animation: seep 3s ease-in-out infinite; }
 .dormant span { animation-delay: -1.5s; }
 /* 传送门：四个方向同一副外观，方向只能从小地图读出。踩上去才亮起并给出确认提示。 */
 .portal { z-index: 4; }
 .portalArt { display: block; filter: brightness(.85) saturate(.8); transition: filter 220ms; }
-.portalLit { filter: brightness(1.25) saturate(1.15) drop-shadow(0 0 16px #7fe6d8aa); animation: portalBreathe 1.6s ease-in-out infinite; }
+.portalLit { filter: brightness(1.25) saturate(1.15) drop-shadow(0 0 16px #7fe6d8aa); will-change: opacity; animation: portalBreathe 1.6s ease-in-out infinite; }
 .portalPrompt { position: absolute; top: -52px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 7px 14px; font-size: 18px; color: #d9f4ec; background: #0d2223e8; border: 1px solid #7fc9b680; }
 .vignette { position: absolute; inset: 0; z-index: 20; box-shadow: inset 0 0 180px 50px #020507ad; pointer-events: none; }
 @keyframes seep { 0% { transform: translateY(0) scale(.9); opacity: .4; } 100% { transform: translateY(-45px) scale(1.2); opacity: 0; } }

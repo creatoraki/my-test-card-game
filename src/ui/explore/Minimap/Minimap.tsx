@@ -29,6 +29,7 @@ interface Cell {
 
 function stateOf(room: RoomNode, dungeon: DungeonState): CellState | null {
   if (room.visited) return "visited";
+  if (dungeon.layoutKnown) return "revealed";
   if (room.revealed) return "revealed";
   // 与任意已访问房相连 ⇒ 玩家已经知道「那边还有一间」, 但不知道是哪一间。
   const touched = Object.values(room.exits).some((id) => dungeon.rooms[id]?.visited);
@@ -56,14 +57,14 @@ export function Minimap({ dungeon, corridor }: { dungeon: DungeonState; corridor
     for (const targetId of Object.values(cell.room.exits)) {
       const target = dungeon.rooms[targetId];
       if (!target || !shown.has(targetId)) continue;
-      if (!cell.room.visited && !target.visited) continue;
+      if (!dungeon.layoutKnown && !cell.room.visited && !target.visited) continue;
       const key = [cell.room.id, targetId].sort().join("|");
       if (seen.has(key)) continue;
       seen.add(key);
       links.push({
         x1: cell.left + CELL / 2, y1: cell.top + CELL / 2,
         x2: (target.gx - minX) * STEP + CELL / 2, y2: (target.gy - minY) * STEP + CELL / 2,
-        solid: cell.room.visited && target.visited,
+        solid: !dungeon.layoutKnown && cell.room.visited && target.visited,
       });
     }
   }
@@ -86,8 +87,9 @@ export function Minimap({ dungeon, corridor }: { dungeon: DungeonState; corridor
       </svg>
       {cells.map(({ room, state, left, top }) => {
         const explored = room.visited && isRoomExplored(room);
-        const badge = room.kind === "boss" ? "☗"
-          : room.kind === "battle" && !room.threatDefeated ? "▲"
+        const knownThreat = dungeon.threatsKnown || room.visited;
+        const badge = knownThreat && room.kind === "boss" ? "☗"
+          : knownThreat && room.kind === "battle" && !room.threatDefeated ? "▲"
             : explored ? "✓" : "";
         return <div key={room.id} className={s.cell} data-state={state}
           data-current={room.id === dungeon.currentRoomId || undefined}

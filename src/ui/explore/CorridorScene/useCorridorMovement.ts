@@ -6,21 +6,40 @@ import {
   encounterCorridorThreat, inspectCorridorObject, markStandingPortal,
   saveCorridorPosition, travelThroughPortal,
 } from "@/store/exploreCorridor";
+import {
+  deriveCorridorMovementView,
+  hasCorridorMovementViewChanged,
+  type CorridorMovementView,
+} from "./corridorMovementView";
 
 type PortalTravel = (travel: () => boolean) => void;
+type FrameCallback = (x: number) => void;
 
 /**
  * 房间内的行走与交互。
  * 操作: ←/→ 或 A/D 行走；↑/W、空格、回车 = 交互（脚下有传送门时优先传送）；↓/S 循环切目标。
  * 站到传送门上只是点亮小地图，必须再按一次交互键才真的传送。
  */
-export function useCorridorMovement(corridor: CorridorState, blocked: boolean, onPortalTravel: PortalTravel) {
-  const [motion, setMotion] = useState({ x: corridor.playerX, facing: corridor.facing, walking: false });
+export function useCorridorMovement(
+  corridor: CorridorState,
+  blocked: boolean,
+  onPortalTravel: PortalTravel,
+  onFrame: FrameCallback,
+) {
+  const initialPosition: { x: number; facing: -1 | 1; walking: boolean } = {
+    x: corridor.playerX,
+    facing: corridor.facing,
+    walking: false,
+  };
+  const [view, setView] = useState<CorridorMovementView>(() => deriveCorridorMovementView(corridor, initialPosition, blocked));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [interactingId, setInteractingId] = useState<string | null>(null);
   const live = useRef({ corridor, blocked });
   live.current = { corridor, blocked };
-  const position = useRef(motion);
+  const position = useRef(initialPosition);
+  const committedView = useRef(view);
+  const onFrameRef = useRef(onFrame);
+  onFrameRef.current = onFrame;
   const selected = useRef(selectedId);
   selected.current = selectedId;
   const pressed = useRef(new Set<string>());
@@ -30,6 +49,12 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean, o
   const save = () => {
     const value = position.current;
     saveCorridorPosition(value.x, value.facing, live.current.corridor.roomId);
+  };
+  const commitView = (force = false) => {
+    const next = deriveCorridorMovementView(live.current.corridor, position.current, live.current.blocked);
+    if (!force && !hasCorridorMovementViewChanged(committedView.current, next)) return;
+    committedView.current = next;
+    setView(next);
   };
   const syncPortal = () => {
     const current = live.current;
@@ -41,7 +66,7 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean, o
   const stop = () => {
     pressed.current.clear();
     position.current = { ...position.current, walking: false };
-    setMotion(position.current);
+    commitView(true);
     save();
     syncPortal();
   };
@@ -92,25 +117,36 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean, o
       const elapsed = Math.min((now - previous) / 1000, 0.04);
       previous = now;
       const current = live.current;
-      const menuOpen = Boolean(document.querySelector("[role='menu']"));
+      const menuOpen = pressed.current.size > 0 && Boolean(document.querySelector("[role='menu']"));
       if (menuOpen && pressed.current.size) stop();
       if (!current.blocked && !document.hidden && !menuOpen) {
         const keys = pressed.current;
         const direction = Number(keys.has("ArrowRight") || keys.has("KeyD")) - Number(keys.has("ArrowLeft") || keys.has("KeyA"));
         if (direction && elapsed > 0) {
-          const x = clampCorridorX(current.corridor, position.current.x + direction * CORRIDOR.speed * elapsed);
-          position.current = { x, facing: direction < 0 ? -1 : 1, walking: x !== position.current.x };
-          setMotion(position.current);
-          syncPortal();
+          const previousX = position.current.x;
+          const x = clampCorridorX(current.corridor, previousX + direction * CORRIDOR.speed * elapsed);
+          const facing: -1 | 1 = direction < 0 ? -1 : 1;
+          const nextPosition: { x: number; facing: -1 | 1; walking: boolean } = { x, facing, walking: x !== previousX };
+          const positionChanged = nextPosition.x !== position.current.x
+            || nextPosition.facing !== position.current.facing
+            || nextPosition.walking !== position.current.walking;
+          if (positionChanged) {
+            position.current = nextPosition;
+          }
+          if (x !== previousX) {
+            onFrameRef.current(x);
+          }
           const threat = current.corridor.threats.find((item) => !item.defeated && Math.abs(item.x - x) <= CORRIDOR.encounterRadius);
           if (threat) {
-            save();
-            pressed.current.clear();
+            stop();
             encounterCorridorThreat(threat.id);
+          } else if (positionChanged) {
+            commitView();
+            if (x !== previousX) syncPortal();
           }
         } else if (!direction && position.current.walking) {
           position.current = { ...position.current, walking: false };
-          setMotion(position.current);
+          commitView();
           save();
           syncPortal();
         }
@@ -120,7 +156,8 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean, o
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || live.current.blocked || event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], [role='menu']") || document.querySelector("[role='menu']")) return;
+      if (target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog'], [role='menu']")
+        || (pressed.current.size > 0 && document.querySelector("[role='menu']"))) return;
       if (["ArrowLeft", "ArrowRight", "KeyA", "KeyD"].includes(event.code)) {
         event.preventDefault();
         if (target?.closest("button, a")) target.blur();
@@ -160,8 +197,8 @@ export function useCorridorMovement(corridor: CorridorState, blocked: boolean, o
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const nearby = nearbyObjects(corridor, motion.x);
-  const standingPortal = blocked ? null : portalAt(corridor, motion.x);
+  const nearby = nearbyObjects(corridor, view.x);
+  const standingPortal = blocked ? null : portalAt(corridor, view.x);
   const target = standingPortal ? null : nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
-  return { ...motion, nearby, target, standingPortal, interactingId, interact, cycle, travel };
+  return { x: view.x, facing: view.facing, walking: view.walking, nearby, target, standingPortal, interactingId, interact, cycle, travel };
 }

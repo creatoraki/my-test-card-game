@@ -18,28 +18,38 @@ export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
 };
 
 export const CORRIDOR_PROP_ART: Record<CurioKind, string> = {
-  chest: defaultChestArt,
-  medical: defaultChestArt,
-  terminal: defaultChestArt,
+  safe: defaultChestArt,
+  crystalVein: defaultChestArt,
   vending: defaultChestArt,
-  purifier: defaultChestArt,
-  scrap: defaultChestArt,
+  remains: defaultChestArt,
+  compactor: defaultChestArt,
+  medical: defaultChestArt,
+  sink: defaultChestArt,
+  repairPod: defaultChestArt,
+  modBench: defaultChestArt,
+  cardPrinter: defaultChestArt,
+  shrine: defaultChestArt,
   dispatch: defaultChestArt,
-  camp: defaultChestArt,
+  merchant: defaultChestArt,
 };
 
 /**
  * 各物件素材的底部透明留白比例；每种物件可独立调整，正好补偿透明画布与地面线之间的距离。
  */
 export const CORRIDOR_PROP_GROUND_TRIM: Record<CurioKind, number> = {
-  chest: 20 / 148,
-  medical: 20 / 148,
-  terminal: 20 / 148,
+  safe: 20 / 148,
+  crystalVein: 20 / 148,
   vending: 20 / 148,
-  purifier: 20 / 148,
-  scrap: 20 / 148,
+  remains: 20 / 148,
+  compactor: 20 / 148,
+  medical: 20 / 148,
+  sink: 20 / 148,
+  repairPod: 20 / 148,
+  modBench: 20 / 148,
+  cardPrinter: 20 / 148,
+  shrine: 20 / 148,
   dispatch: 20 / 148,
-  camp: 20 / 148,
+  merchant: 20 / 148,
 };
 
 /** 默认宝箱素材宽高比；物件组件按该比例显示，避免拉伸原图。 */
@@ -50,14 +60,19 @@ export const CORRIDOR_PORTAL_Y_OFFSET = 60;
 
 /** 各交互物独立的场景 Y 轴微调值（设计 px，正值向下）。 */
 export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
-  chest: 0,
-  medical: 0,
-  terminal: 0,
+  safe: 0,
+  crystalVein: 0,
   vending: 0,
-  purifier: 0,
-  scrap: 0,
+  remains: 0,
+  compactor: 0,
+  medical: 0,
+  sink: 0,
+  repairPod: 0,
+  modBench: 0,
+  cardPrinter: 0,
+  shrine: 0,
   dispatch: 0,
-  camp: 0,
+  merchant: 0,
 };
 
 export const CORRIDOR_ART_SOURCES: readonly string[] = [

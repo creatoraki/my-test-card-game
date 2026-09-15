@@ -6,6 +6,7 @@
 
 import { beginCorridorEncounter, buildRoomScene, canWalkCorridor, portalAt } from "../corridor/session";
 import { CORRIDOR } from "../corridor/types";
+import { CORRIDOR_CURIOS } from "../../data/curios";
 import { changeEnergy } from "../energy";
 import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
@@ -23,7 +24,10 @@ export function roomOf(s: ExploreState, id: string): RoomNode | null {
 /** 房间是否已探索完: 所有可交互物都处理过, 且房里的黑影已清。 */
 export function isRoomExplored(room: RoomNode): boolean {
   const guarded = room.kind === "battle" || room.kind === "boss";
-  return room.curios.every((curio) => curio.used) && (!guarded || room.threatDefeated);
+  return room.curios.every((curio) => {
+    if (CORRIDOR_CURIOS[curio.kind]?.persistent) return true;
+    return curio.used;
+  }) && (!guarded || room.threatDefeated);
 }
 
 /** 把场景里的进度(物件已搜、黑影已清)写回房间图 —— 小地图与重进房间都读房间图。 */

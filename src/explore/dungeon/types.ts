@@ -8,6 +8,7 @@
 // ============================================================================
 
 import type { CurioKind } from "../corridor/types";
+import type { MerchantShelf } from "../../data/curios/types";
 
 export type PortalDir = "up" | "down" | "left" | "right";
 export type RoomKind = "start" | "normal" | "battle" | "boss";
@@ -36,6 +37,7 @@ export interface RoomCurio {
   kind: CurioKind;
   x: number;
   used: boolean;
+  shelf?: MerchantShelf;
 }
 
 export interface RoomNode {
@@ -68,6 +70,10 @@ export interface DungeonState {
   startRoomId: string;
   bossRoomId: string;
   currentRoomId: string;
+  /** 神谕揭示后，所有房间的位置都已知。 */
+  layoutKnown: boolean;
+  /** 神谕揭示后，未访问房间的战斗与 BOSS 标记也可见。 */
+  threatsKnown: boolean;
   /** 网格包围盒, 小地图按它换算画布尺寸。 */
   bounds: { minX: number; maxX: number; minY: number; maxY: number };
 }

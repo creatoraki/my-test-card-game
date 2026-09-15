@@ -1,4 +1,4 @@
-import { CORRIDOR_CURIOS } from "@/data/corridorCurios";
+import { CORRIDOR_CURIOS } from "@/data/curios";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import { EXPLORE_RULES } from "@/explore/rules";
@@ -10,7 +10,9 @@ import { RoomPortal } from "./RoomPortal";
 import { ShadowEncounter } from "./ShadowEncounter";
 import { useCorridorMovement } from "./useCorridorMovement";
 import { cameraX, CORRIDOR_LAYOUT } from "./corridorLayout";
+import { applyCorridorFrame } from "./corridorFrame";
 import s from "./CorridorScene.module.css";
+import { useCallback, useLayoutEffect, useRef } from "react";
 
 /** 一间房两屏宽：镜头跟随玩家居中卷动。 */
 export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearMapVariant, onPortalTravel }: {
@@ -21,17 +23,31 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearM
   nearMapVariant: NearMapVariant;
   onPortalTravel: (travel: () => boolean) => void;
 }) {
-  const movement = useCorridorMovement(corridor, blocked, onPortalTravel);
+  const worldRef = useRef<HTMLDivElement>(null);
+  const farStripRef = useRef<HTMLDivElement>(null);
+  const playerAnchorRef = useRef<HTMLDivElement>(null);
+  const onFrame = useCallback((x: number) => {
+    applyCorridorFrame({
+      world: worldRef.current,
+      farStrip: farStripRef.current,
+      player: playerAnchorRef.current,
+    }, x, corridor.width);
+  }, [corridor.width]);
+  const movement = useCorridorMovement(corridor, blocked, onPortalTravel, onFrame);
   const camera = cameraX(movement.x, corridor.width);
   const entityFloorY = CORRIDOR.floorY + CORRIDOR_LAYOUT.entityGroundOffset;
   const activeThreat = corridor.threats.find((threat) => threat.id === corridor.encounterId);
   const playerWalking = movement.walking && !blocked;
 
+  useLayoutEffect(() => {
+    onFrame(movement.x);
+  }, [movement.x, onFrame]);
+
   return <div className={s.scene} aria-label={bossRoom ? "总控室" : "房间场景"}>
-    <CorridorFar camera={camera} />
+    <CorridorFar ref={farStripRef} />
     <CorridorAbyss />
     <div className={s.haze} aria-hidden />
-    <div className={s.world} style={{ width: corridor.width, transform: `translateX(${-camera}px)` }}>
+    <div ref={worldRef} className={s.world} style={{ width: corridor.width }}>
       <CorridorNear width={corridor.width} variant={nearMapVariant} />
       {corridor.portals.map((portal) => {
         const standing = movement.standingPortal?.dir === portal.dir;
@@ -60,8 +76,10 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearM
         </div>;
       })}
       {corridor.threats.filter((threat) => !threat.defeated && threat.id !== corridor.encounterId).map((threat) => <div key={threat.id} className={s.dormant} style={{ left: threat.x, top: CORRIDOR.floorY }} aria-hidden><i /><span /></div>)}
-      <div className={s.player} style={{ left: movement.x, top: entityFloorY }}>
-        <CorridorPlayer walking={playerWalking} facing={movement.facing} />
+      <div ref={playerAnchorRef} className={s.playerAnchor} style={{ top: entityFloorY }}>
+        <div className={s.player}>
+          <CorridorPlayer walking={playerWalking} facing={movement.facing} />
+        </div>
       </div>
     </div>
     {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x - camera} final={activeThreat.final} />}
