@@ -78,7 +78,7 @@ export const EXPLORE_RULES = {
     battleRoomRatio: 0.22,
     // 生成树之外额外接通的相邻房间数比例 —— 制造回环与近路。
     loopEdgeRatio: 0.2,
-    // 每个房间的可交互物数量区间(起始房固定 1 件, BOSS 房 0 件)。
+    // 每个房间的可交互物数量区间(起始房固定 1 件, BOSS 房也按区间随机)。
     curiosPerRoom: [1, 3] as const,
     merchants: {
       smallMapMaxRooms: 8,

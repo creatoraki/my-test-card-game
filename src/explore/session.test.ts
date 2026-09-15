@@ -3,7 +3,7 @@
 //      全图从起点可达、BOSS 房是最深的那一间、同种子完全复现;
 //   ② 换房间的代价与信息 —— 站上传送门只点亮不收费, 确认传送 −5 粒子;
 //   ③ 交互的代价与进度 —— 每交互 1 个事件 −2 粒子, 搜干净后房间标记为已探索;
-//   ④ 战斗接缝 —— 战斗房打赢回原房间、BOSS 房打赢即通关、挑战契约按战斗场次结算,
+//   ④ 战斗接缝 —— 战斗房打赢回原房间、BOSS 红门挑战打赢即通关、挑战契约按战斗场次结算,
 //      以及血量继承、团灭清算这些跨系统的口子。
 //
 // ⚠ 旧路由模式(浮现 → 揭示 → 选入口 → 推进段)的用例已随层级概念一并移除;
@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { difficultyMapConfig, getEventPool, makeItemStack } from "../data";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { enterRoom, isRoomExplored, standOnPortal, travelPortal } from "./dungeon/session";
-import { openCorridorObject } from "./corridor/session";
+import { openBossGate, openCorridorObject } from "./corridor/session";
 import { CORRIDOR } from "./corridor/types";
 import type { PortalDir, RoomNode } from "./dungeon/types";
 import {
@@ -22,6 +22,7 @@ import {
   backpackSlots,
   burdenNow,
   chooseOption,
+  challengeBoss,
   confirmNode,
   createSession,
   discardStack,
@@ -88,11 +89,18 @@ function goToRoom(s: ExploreState, pick: (room: RoomNode) => boolean): RoomNode 
   return room;
 }
 
-/** 落进一间有黑影的房间并把战斗建起来。 */
+/** 落进一间战斗房，或打开 BOSS 红门并把战斗建起来。 */
 function intoBattle(s: ExploreState, boss = false): void {
   goToRoom(s, (room) => (boss ? room.kind === "boss" : room.kind === "battle" && !room.threatDefeated));
-  expect(phaseOf(s)).toBe("encounter");
-  engageRoomThreat(s);
+  if (boss) {
+    expect(phaseOf(s)).toBe("atNode");
+    s.corridor!.playerX = s.corridor!.bossGate!.x;
+    expect(openBossGate(s)).toBe(true);
+    expect(challengeBoss(s)).toBe(true);
+  } else {
+    expect(phaseOf(s)).toBe("encounter");
+    engageRoomThreat(s);
+  }
   expect(phaseOf(s)).toBe("inBattle");
 }
 
@@ -149,7 +157,9 @@ describe("建局与房间图", () => {
     const maxDepth = Math.max(...allRooms(s).map((room) => room.depth));
     expect(boss.id).not.toBe(dungeonOf(s).startRoomId);
     expect(boss.depth).toBe(maxDepth);
-    expect(boss.curios).toHaveLength(0); // BOSS 房只有黑影
+    expect(boss.bossGateX).toEqual(expect.any(Number));
+    expect(boss.curios.length).toBeGreaterThanOrEqual(EXPLORE_RULES.dungeon.curiosPerRoom[0]);
+    expect(boss.curios.length).toBeLessThanOrEqual(EXPLORE_RULES.dungeon.curiosPerRoom[1]);
   });
 
   it("起始房固定 1 件物件, 战斗房至少 1 间", () => {
@@ -314,6 +324,20 @@ describe("战斗接缝", () => {
     expect(s.pendingIsBoss).toBe(true);
     finishBattle(s, true, WIN, ["scrap-bot"]);
     expect(s.phase).toBe("cleared");
+  });
+
+  it("BOSS 战失败 = 撤离副本, 背包与积分保留", () => {
+    const s = newSession(430);
+    intoBattle(s, true);
+    s.loot = 200;
+    s.backpack = [makeItemStack("copper-coin"), makeItemStack("logic-cube")];
+    finishBattle(s, false, [{ charId: "swordsman", hp: 0, alive: false, limitLoss: 0 }], ["scrap-bot"]);
+    expect(s.phase).toBe("retreated");
+    expect(s.loot).toBe(200);
+    expect(s.backpack).toHaveLength(2);
+    const last = s.history[s.history.length - 1];
+    expect(last?.battleResult).toBe("lose");
+    expect(last?.notes).toEqual(["首领挑战失败 · 撤离副本"]);
   });
 
   it("战斗档位随房间深度爬升 —— 档位必须落在该深度的权重表里", () => {

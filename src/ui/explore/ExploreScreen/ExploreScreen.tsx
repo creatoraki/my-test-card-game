@@ -8,6 +8,7 @@ import { CorridorScene } from "@/ui/explore/CorridorScene/CorridorScene";
 import RewardOverlay from "@/ui/explore/RewardOverlay";
 import LootPickup from "@/ui/explore/LootPickup";
 import { CurioPanel } from "./CurioPanel";
+import { BossGatePanel } from "./BossGatePanel";
 import { WanderingMerchantPanel } from "../WanderingMerchant/WanderingMerchantPanel";
 import { ExploreDock } from "./ExploreDock";
 import { ExploreInventory } from "./ExploreInventory";
@@ -37,12 +38,11 @@ export function ExploreScreen() {
   const curioOpen = (phase === "landed" || phase === "resolving") && Boolean(session.corridor.activeObjectId);
   const currentRoom = session.dungeon.rooms[session.dungeon.currentRoomId];
   const activeObject = session.corridor.objects.find((object) => object.id === session.corridor?.activeObjectId);
-  const bossRoom = currentRoom?.id === session.dungeon.bossRoomId;
   const merchantOpen = Boolean(activeObject?.kind === "merchant" && (phase === "landed" || phase === "shopping"));
   const sceneBlocked = blocked || travelTransition.phase !== "idle";
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
-    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={locked} bossRoom={bossRoom} nearMapVariant={currentRoom?.nearMapVariant ?? "standard"} onPortalTravel={travelTransition.start} />
+    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={locked} nearMapVariant={currentRoom?.nearMapVariant ?? "standard"} onPortalTravel={travelTransition.start} />
     <div className={s.readout}>
       <span>净化粒子</span><strong style={{ color: tier.color }}>{session.energy}<small> / 100</small></strong>
       <div className={s.energyTrack}><i style={{ width: `${Math.min(100, session.energy)}%`, background: tier.color }} /></div>
@@ -51,6 +51,7 @@ export function ExploreScreen() {
     <ExploreInventory session={session} inventory={inventory} />
     <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />
     {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && <CurioPanel session={session} covered={inventory.blocked || pending} onOpenBag={() => inventory.setBagOpen(true)} />}
+    {session.corridor.bossGateOpen && !inventory.target && <BossGatePanel session={session} />}
     {merchantOpen && !inventory.target && <WanderingMerchantPanel session={session} />}
     <RewardOverlay gate={!locked} />
     <LootPickup gate={!locked && !session.pendingActions.length} />

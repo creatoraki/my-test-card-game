@@ -342,7 +342,26 @@ function bankEverything(session: {
   commitTownBackup();
 }
 
-export const useRunStore = create<RunStore>((set, get) => ({
+export const useRunStore = create<RunStore>((set, get) => {
+  const settleRetreatScreen = () => {
+    const session = useExploreStore.getState().session;
+    if (session) bankEverything(session);
+    useBattleStore.getState().clear();
+    // ⚠ 这里**刻意不写 expReport** —— bankEverything 刚用 setState 把本趟的经验结算写进来,
+    //   在这个 set 里带上 expReport: [] 会当场清掉它。战斗中撤退与 BOSS 战败同此口径。
+    set({
+      screen: "victory",
+      lastResult: "retreat",
+      battleSettled: false,
+      lastDropK: 0,
+      lastDropTier: null,
+      lastChallengeBonus: 0,
+      lastBountyBonus: 0,
+      lastChallenges: [],
+    });
+  };
+
+  return {
   screen: "menu",
   mapId: null,
   difficulty: "normal",
@@ -479,6 +498,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
 
     syncConditionsFrom(battle);
 
+    const wasBoss = session.pendingIsBoss;
     const explore = useExploreStore.getState();
     explore.settleBattle(won, survivors, enemyDefIds, challengeBonus, bountyBonus);
     settleFallenGear();
@@ -489,10 +509,14 @@ export const useRunStore = create<RunStore>((set, get) => ({
     // ★ 必须在 settleBattle 之后 —— 掉落系数/经验倍率读的是战前能量, 提前扣会削掉本场收益。
     // ★ BOSS 战豁免(胜负均不扣): 那一场打完远征就结束了。isBoss 只能读 settleBattle
     //   **之前**的快照 —— finishBattle 会把 pendingIsBoss 清成 false。
-    if (!session.pendingIsBoss) explore.spendBattleEnergy(battle.round);
+    if (!wasBoss) explore.spendBattleEnergy(battle.round);
     const after = useExploreStore.getState().session;
 
     if (!won) {
+      if (wasBoss) {
+        settleRetreatScreen();
+        return;
+      }
       // 战败即团灭。背包已在 settleBattle 里丢干净, 这里只把寄回的落袋。
       if (after) bankEverything(after);
       set({
@@ -578,21 +602,7 @@ export const useRunStore = create<RunStore>((set, get) => ({
       syncMemberStats((battle.combatants[id] as Ally).charId);
     }
 
-    const after = useExploreStore.getState().session;
-    if (after) bankEverything(after);
-    useBattleStore.getState().clear();
-    // ⚠ 这里**刻意不写 expReport** —— bankEverything 刚用 setState 把本趟的经验结算写进来,
-    //   在这个 set 里带上 expReport: [] 会当场清掉它。finishExpedition 的撤离分支同此口径。
-    set({
-      screen: "victory",
-      lastResult: "retreat",
-      battleSettled: false,
-      lastDropK: 0,
-      lastDropTier: null,
-      lastChallengeBonus: 0,
-      lastBountyBonus: 0,
-      lastChallenges: [],
-    });
+    settleRetreatScreen();
   },
 
   confirmExpReport: () => {
@@ -839,4 +849,5 @@ export const useRunStore = create<RunStore>((set, get) => ({
       lastChallenges: [],
     });
   },
-}));
+  };
+});

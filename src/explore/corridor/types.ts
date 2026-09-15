@@ -29,7 +29,6 @@ export interface CorridorObject {
 export interface CorridorThreat {
   id: string;
   x: number;
-  final: boolean;
   defeated: boolean;
   nodeIndex: number;
 }
@@ -48,6 +47,8 @@ export interface CorridorState {
   facing: -1 | 1;
   objects: CorridorObject[];
   threats: CorridorThreat[];
+  bossGate: { x: number } | null;
+  bossGateOpen: boolean;
   portals: CorridorPortal[];
   activeObjectId: string | null;
   encounterId: string | null;

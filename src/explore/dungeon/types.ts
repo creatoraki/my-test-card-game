@@ -4,7 +4,7 @@
 //
 // · 每个房间最多连通上下左右 4 个房间, 即最多 4 个传送门(网格邻接天然保证上限)。
 // · exits 只记录生成时**真正打通**的边, 相邻但未打通的房间之间没有传送门。
-// · 房间内的横向场景(物件位置、玩家坐标、黑影)仍由 corridor/ 负责, 本模块只管图。
+// · 房间内的横向场景(物件位置、玩家坐标、黑影、BOSS 红门)仍由 corridor/ 负责, 本模块只管图。
 // ============================================================================
 
 import type { CurioKind } from "../corridor/types";
@@ -56,8 +56,10 @@ export interface RoomNode {
   exits: Partial<Record<PortalDir, string>>;
   /** 传送门在房间地面上的横坐标, 与 exits 同键。 */
   portalX: Partial<Record<PortalDir, number>>;
+  /** BOSS 红门在房间地面上的横坐标；只有 BOSS 房会生成。 */
+  bossGateX?: number;
   visited: boolean;
-  /** 战斗房 / BOSS 房的黑影是否已被击败。 */
+  /** 战斗房的黑影是否已被击败。 */
   threatDefeated: boolean;
   /** 曾被传送门点亮过 —— 小地图从「问号占位」变成「亮格待探索」。 */
   revealed: boolean;

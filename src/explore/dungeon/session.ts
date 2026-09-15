@@ -21,9 +21,9 @@ export function roomOf(s: ExploreState, id: string): RoomNode | null {
   return s.dungeon?.rooms[id] ?? null;
 }
 
-/** 房间是否已探索完: 所有可交互物都处理过, 且房里的黑影已清。 */
+/** 房间是否已探索完: 所有可交互物都处理过, 战斗房的黑影也已清除。 */
 export function isRoomExplored(room: RoomNode): boolean {
-  const guarded = room.kind === "battle" || room.kind === "boss";
+  const guarded = room.kind === "battle";
   return room.curios.every((curio) => {
     if (CORRIDOR_CURIOS[curio.kind]?.persistent) return true;
     return curio.used;

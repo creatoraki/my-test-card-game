@@ -7,6 +7,7 @@ import { CorridorAbyss, CorridorFar, CorridorNear } from "./CorridorBackdrop";
 import { CorridorSprite } from "./CorridorSprite";
 import { CorridorPlayer } from "./CorridorPlayer";
 import { RoomPortal } from "./RoomPortal";
+import { BossGate } from "./BossGate";
 import { ShadowEncounter } from "./ShadowEncounter";
 import { useCorridorMovement } from "./useCorridorMovement";
 import { cameraX, CORRIDOR_LAYOUT } from "./corridorLayout";
@@ -15,11 +16,10 @@ import s from "./CorridorScene.module.css";
 import { useCallback, useLayoutEffect, useRef } from "react";
 
 /** 一间房两屏宽：镜头跟随玩家居中卷动。 */
-export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearMapVariant, onPortalTravel }: {
+export function CorridorScene({ corridor, blocked, encountering, nearMapVariant, onPortalTravel }: {
   corridor: CorridorState;
   blocked: boolean;
   encountering: boolean;
-  bossRoom: boolean;
   nearMapVariant: NearMapVariant;
   onPortalTravel: (travel: () => boolean) => void;
 }) {
@@ -43,7 +43,7 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearM
     onFrame(movement.x);
   }, [movement.x, onFrame]);
 
-  return <div className={s.scene} aria-label={bossRoom ? "总控室" : "房间场景"}>
+  return <div className={s.scene} aria-label={corridor.bossGate ? "首领所在房间" : "房间场景"}>
     <CorridorFar ref={farStripRef} />
     <CorridorAbyss />
     <div className={s.haze} aria-hidden />
@@ -60,6 +60,7 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearM
           {standing && <span className={s.portalPrompt}>空格传送 · 粒子 −{EXPLORE_RULES.dungeon.energyPerRoomMove}</span>}
         </div>;
       })}
+      {corridor.bossGate && <BossGate x={corridor.bossGate.x} top={entityFloorY} near={movement.nearGate} blocked={blocked} onClick={movement.openGate} />}
       {corridor.objects.map((object) => {
         const def = CORRIDOR_CURIOS[object.kind];
         const selected = movement.target?.id === object.id && !blocked;
@@ -82,7 +83,7 @@ export function CorridorScene({ corridor, blocked, encountering, bossRoom, nearM
         </div>
       </div>
     </div>
-    {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x - camera} final={activeThreat.final} />}
+    {encountering && activeThreat && <ShadowEncounter key={activeThreat.id} x={activeThreat.x - camera} />}
     <div className={s.vignette} aria-hidden />
   </div>;
 }

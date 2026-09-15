@@ -6,7 +6,7 @@ import { corridorSlotsFor, corridorWalkMax, corridorWidthFor, CORRIDOR, type Cor
 /**
  * 把一个房间展开成可游玩的横向场景。
  * 房间图(谁连通谁)由 dungeon/ 负责, 这里只负责「房间场景里有什么、玩家站在哪」。
- * board 仍是现有事件结算的索引: 第 i 个物件对应第 i 段, 末段固定是黑影。
+ * board 仍是现有事件结算的索引: 第 i 个物件对应第 i 段, 战斗房末段才是黑影。
  */
 export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalDir | null): void {
   const width = corridorWidthFor(room.nearMapVariant);
@@ -16,7 +16,7 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
   const portals: CorridorPortal[] = PORTAL_DIRS
     .filter((dir) => room.exits[dir])
     .map((dir) => ({ dir, x: room.portalX[dir] ?? width / 2, to: room.exits[dir] as string }));
-  const guarded = (room.kind === "battle" || room.kind === "boss") && !room.threatDefeated;
+  const guarded = room.kind === "battle" && !room.threatDefeated;
 
   s.corridor = {
     roomId: room.id,
@@ -27,16 +27,19 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
     threats: guarded
       ? [{
         id: `threat-${room.id}`, x: width / 2,
-        final: room.kind === "boss", defeated: false, nodeIndex: objects.length,
+        defeated: false, nodeIndex: objects.length,
       }]
       : [],
+    bossGate: typeof room.bossGateX === "number" ? { x: room.bossGateX } : null,
+    bossGateOpen: false,
     portals,
     activeObjectId: null,
     encounterId: null,
     standingPortalDir: null,
   };
 
-  const nodes = [...objects.map((object) => [curioEvent(object.kind)]), [CORRIDOR_AMBUSH]];
+  const nodes = objects.map((object) => [curioEvent(object.kind)]);
+  if (room.kind === "battle") nodes.push([CORRIDOR_AMBUSH]);
   s.board = {
     round: room.depth + 1, laneCount: 1, rowsPerSegment: 1,
     segments: nodes.map((_, index) => ({ index, bridges: [] })),
@@ -79,6 +82,10 @@ export function nearbyObjects(corridor: CorridorState, x: number) {
   return corridor.objects.filter((object) => !object.used && Math.abs(object.x - x) <= CORRIDOR.interactionRadius);
 }
 
+export function bossGateNear(corridor: CorridorState, x: number): boolean {
+  return Boolean(corridor.bossGate && Math.abs(corridor.bossGate.x - x) <= CORRIDOR.interactionRadius);
+}
+
 /** 脚下的传送门(最近且在判定半径内的一座)。 */
 export function portalAt(corridor: CorridorState, x: number): CorridorPortal | null {
   const hits = corridor.portals
@@ -98,7 +105,19 @@ export function hasCorridorRewards(s: ExploreState): boolean {
 }
 
 export function canWalkCorridor(s: ExploreState): boolean {
-  return Boolean(s.corridor && s.phase === "atNode" && !hasCorridorRewards(s));
+  return Boolean(s.corridor && s.phase === "atNode" && !s.corridor.bossGateOpen && !hasCorridorRewards(s));
+}
+
+export function openBossGate(s: ExploreState): boolean {
+  if (!canWalkCorridor(s) || !s.corridor?.bossGate || !bossGateNear(s.corridor, s.corridor.playerX)) return false;
+  s.corridor.bossGateOpen = true;
+  return true;
+}
+
+export function closeBossGate(s: ExploreState): boolean {
+  if (!s.corridor?.bossGateOpen || s.phase !== "atNode") return false;
+  s.corridor.bossGateOpen = false;
+  return true;
 }
 
 export function openCorridorObject(s: ExploreState, id: string): boolean {

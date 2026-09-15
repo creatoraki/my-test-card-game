@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { clampCorridorX, nearbyObjects, portalAt } from "@/explore/corridor/session";
+import { bossGateNear, clampCorridorX, nearbyObjects, portalAt } from "@/explore/corridor/session";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { PortalDir } from "@/explore/dungeon/types";
 import {
   encounterCorridorThreat, inspectCorridorObject, markStandingPortal,
-  saveCorridorPosition, travelThroughPortal,
+  openBossGateAt, saveCorridorPosition, travelThroughPortal,
 } from "@/store/exploreCorridor";
 import {
   deriveCorridorMovementView,
@@ -17,7 +17,7 @@ type FrameCallback = (x: number) => void;
 
 /**
  * 房间内的行走与交互。
- * 操作: ←/→ 或 A/D 行走；↑/W、空格、回车 = 交互（脚下有传送门时优先传送）；↓/S 循环切目标。
+ * 操作: ←/→ 或 A/D 行走；↑/W、空格、回车 = 交互（传送门 → 红门 → 物件）；↓/S 循环切目标。
  * 站到传送门上只是点亮小地图，必须再按一次交互键才真的传送。
  */
 export function useCorridorMovement(
@@ -76,12 +76,21 @@ export function useCorridorMovement(
     if (portalAt(live.current.corridor, position.current.x)?.dir !== dir) return;
     onPortalTravel(() => travelThroughPortal(dir));
   };
+  const openGate = () => {
+    if (live.current.blocked) return;
+    stop(); // 先把位置提交上去：红门判定读的是会话里的坐标
+    openBossGateAt();
+  };
   const interact = (id?: string) => {
     if (live.current.blocked) return;
     // 脚下有传送门时，交互键就是「确认传送」。
     const portal = portalAt(live.current.corridor, position.current.x);
     if (portal && !id) {
       travel(portal.dir);
+      return;
+    }
+    if (!id && bossGateNear(live.current.corridor, position.current.x)) {
+      openGate();
       return;
     }
     const near = nearbyObjects(live.current.corridor, position.current.x);
@@ -199,6 +208,7 @@ export function useCorridorMovement(
 
   const nearby = nearbyObjects(corridor, view.x);
   const standingPortal = blocked ? null : portalAt(corridor, view.x);
+  const nearGate = !blocked && bossGateNear(corridor, view.x);
   const target = standingPortal ? null : nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
-  return { x: view.x, facing: view.facing, walking: view.walking, nearby, target, standingPortal, interactingId, interact, cycle, travel };
+  return { x: view.x, facing: view.facing, walking: view.walking, nearby, target, standingPortal, nearGate, interactingId, interact, cycle, travel, openGate };
 }

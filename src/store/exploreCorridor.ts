@@ -1,8 +1,8 @@
 import { useExploreStore } from "./exploreStore";
-import { engageRoomThreat } from "../explore/session";
+import { challengeBoss, engageRoomThreat } from "../explore/session";
 import {
   beginCorridorEncounter, canWalkCorridor, clampCorridorX,
-  dismissCorridorObject, openCorridorObject,
+  closeBossGate, dismissCorridorObject, openBossGate, openCorridorObject,
 } from "../explore/corridor/session";
 import { standOnPortal, travelPortal } from "../explore/dungeon/session";
 import type { PortalDir } from "../explore/dungeon/types";
@@ -43,6 +43,9 @@ export function travelThroughPortal(dir: PortalDir): boolean {
 export const inspectCorridorObject = (id: string) => mutateCorridor((s) => openCorridorObject(s, id));
 export const closeCorridorObject = () => mutateCorridor(dismissCorridorObject);
 export const encounterCorridorThreat = (id: string) => mutateCorridor((s) => beginCorridorEncounter(s, id));
+export const openBossGateAt = () => mutateCorridor(openBossGate);
+export const closeBossGatePanel = () => mutateCorridor(closeBossGate);
+export const challengeBossGate = () => mutateCorridor(challengeBoss);
 
 /** 演出完成后才建立遭遇战。与开始动画分开，StrictMode 或重复回调不会重复建局。 */
 export function finishCorridorEncounter(): boolean {

@@ -4,7 +4,7 @@
 //
 // 当前远征：generateDungeonRun → 房间图 → 进入房间 atNode → 物件 landed → resolving → atNode。
 // 换房间：站上传送门点亮小地图 → 确认传送(−5 粒子) → 落地新房间(见 dungeon/session.ts)。
-// 黑影：atNode → encounter → inBattle；战斗房战胜回原地，BOSS 房战胜即通关。
+// 黑影：atNode → encounter → inBattle；战斗房战胜回原地，BOSS 红门挑战胜利即通关。
 // 房间图在 dungeon/，房间内的位置与交互在 corridor/；下列路由流程属于保留的旧模式。
 // 旧路由一轮的生命周期(设计文档 §1.2):
 //   generateRouteRound ─▶ generating ─finishGenerating─▶ sealed ─startReveal─▶ revealing
@@ -72,7 +72,7 @@ import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
 import { fireExploreRelic } from "./relics";
-import { settleCorridorEncounter } from "./corridor/session";
+import { hasCorridorRewards, settleCorridorEncounter } from "./corridor/session";
 import { changeEnergy } from "./energy";
 import { generateDungeon } from "./dungeon/generate";
 import { currentRoom, enterRoom, isRoomExplored, syncRoomFromScene } from "./dungeon/session";
@@ -1896,18 +1896,13 @@ export function roundBattleEvent(s: ExploreState): NodeEvent | null {
 
 /**
  * 黑影演出结束 → 真正建立战斗(由 store 在动画回调里调用, 与开始演出分开以免重复建局)。
- * BOSS 房走通关战; 战斗房走房内战斗, 打赢后留在原房间。
+ * 这里只处理战斗房黑影; BOSS 红门由 challengeBoss 直接接入推进战斗。
  */
 export function engageRoomThreat(s: ExploreState): boolean {
   if (s.phase !== "encounter" || !s.corridor?.encounterId) return false;
   const encounterId = s.corridor.encounterId;
   const threat = s.corridor.threats.find((candidate) => candidate.id === encounterId);
   if (!threat) return false;
-  if (currentRoom(s)?.kind === "boss") {
-    s.phase = "atNode";
-    s.entryLane = null;
-    return leaveRegion(s) && engageRoundBattle(s);
-  }
   s.currentLane = 0;
   s.currentSegment = threat.nodeIndex + 1;
   s.pendingNotes = [];
@@ -1916,7 +1911,15 @@ export function engageRoomThreat(s: ExploreState): boolean {
   return chooseOption(s, 0);
 }
 
-/** BOSS 房的战斗接缝: 由 engageRoomThreat 调用。 */
+/** 开启 BOSS 红门后的挑战接缝：保留红门状态，直接建立固定 t5 战斗。 */
+export function challengeBoss(s: ExploreState): boolean {
+  if (s.phase !== "atNode" || !s.corridor?.bossGateOpen || hasCorridorRewards(s)) return false;
+  syncRoomFromScene(s);
+  s.entryLane = null;
+  return leaveRegion(s) && engageRoundBattle(s);
+}
+
+/** BOSS 红门的战斗接缝：固定 t5，胜利后结束整趟远征。 */
 export function engageRoundBattle(s: ExploreState): boolean {
   if (s.phase !== "roundBattle") return false;
   const tier = bossBattleTier();
@@ -2074,6 +2077,7 @@ export function finishBattle(
 ): { loot: number; items: ItemStack[]; overflow: ItemStack[] } {
   const empty = { loot: 0, items: [], overflow: [] };
   if (s.phase !== "inBattle") return empty;
+  const wasBoss = s.pendingIsBoss;
   s.pendingChallengeBonus = won ? challengeBonus : 0;
   // 挑战结算条只属于这一场: 每场战斗结算时重挂一份, 免得上一场的条子留在胜利面板上。
   s.trialReport = [];
@@ -2081,6 +2085,22 @@ export function finishBattle(
   applySurvivors(s, survivors);
 
   if (!won) {
+    if (wasBoss) {
+      const last = s.history[s.history.length - 1];
+      if (last?.slot === "battle") {
+        last.battleResult = "lose";
+        last.notes = ["首领挑战失败 · 撤离副本"];
+      }
+      s.phase = "retreated";
+      s.pendingEncounterId = null;
+      s.pendingIsBoss = false;
+      s.pendingBattleTier = null;
+      s.battleSource = null;
+      s.pendingChallengeBonus = 0;
+      s.roundBattleEventId = null;
+      logLine(s, "首领挑战失败 · 撤离副本");
+      return empty;
+    }
     if (s.battleSource === "round") {
       const last = s.history[s.history.length - 1];
       if (last?.slot === "battle") {
@@ -2102,7 +2122,6 @@ export function finishBattle(
 
   s.stats.kills += enemyDefIds.length;
   s.battlesWon += 1; // 挑战契约的倒计时按场次走, 必须在 settleTrials 之前累加
-  const wasBoss = s.pendingIsBoss;
   const wasRoundBattle = s.battleSource === "round";
   const wasNodeBattle = s.battleSource === "node";
   const mult = rewardMultiplier(s.energy);
@@ -2155,7 +2174,6 @@ export function finishBattle(
   }
 
   // BOSS 房胜利 = 通关。房间制下没有「下一层」, 打完这一场整趟远征就结束。
-  settleCorridorEncounter(s);
   syncRoomFromScene(s);
   s.phase = "cleared";
   logLine(s, "回收总控已停机");

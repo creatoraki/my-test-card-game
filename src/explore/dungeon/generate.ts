@@ -4,7 +4,7 @@
 // ① 从起始房间开始随机长出一棵生成树, 直到房间数达到地图的 roomCount;
 // ② 追加少量环路边, 让路线出现取舍而不是一条死路走到底;
 // ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房;
-// ④ 传送门优先占最左/最右, 多出来的与可交互物共用中段槽位。
+// ④ 传送门优先占最左/最右, BOSS 红门与多出来的门、可交互物共用中段槽位。
 // ============================================================================
 
 import { rngInt, rngPick, shuffle } from "../../engine/rng";
@@ -112,6 +112,7 @@ function layoutRoom(
   kinds: CurioKind[],
   curioCount: number,
   forceMerchant = false,
+  bossGate = false,
 ): void {
   // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
   const dirs = shuffle(s, PORTAL_DIRS.filter((dir) => room.exits[dir]));
@@ -121,7 +122,8 @@ function layoutRoom(
   dirs.forEach((dir, index) => {
     room.portalX[dir] = index < edges.length ? edges[index] : middle[cursor++];
   });
-  // 最多两扇中段门加三件物件, 共用五个槽位, 不需要绕回制造重复坐标。
+  if (bossGate) room.bossGateX = middle[cursor++];
+  // 最多两扇中段门、1 扇红门加三件物件, 共用六个槽位, 不需要绕回制造重复坐标。
   const randomCount = Math.max(0, curioCount - (forceMerchant ? 1 : 0));
   const picks = shuffle(s, [...kinds]).slice(0, randomCount);
   if (forceMerchant) picks.push("merchant");
@@ -174,14 +176,13 @@ export function generateDungeon(s: ExploreState): DungeonState {
   );
   for (const id of order) {
     const room = rooms[id];
-    // BOSS 房只有黑影, 起始房固定 1 件安全投递柜, 其余按区间随机。
-    const count = room.kind === "boss" ? 0
-      : room.kind === "start" ? 1
+    // BOSS 房也按区间投放物件, 起始房固定 1 件安全投递柜, 其余按区间随机。
+    const count = room.kind === "start" ? 1
         : minCurio + rngInt(s, maxCurio - minCurio + 1) + (merchantRooms.has(id) ? 1 : 0);
     const roomKinds = room.kind === "start"
       ? (["dispatch"] as CurioKind[])
       : kinds;
-    layoutRoom(s, room, roomKinds, count, merchantRooms.has(id));
+    layoutRoom(s, room, roomKinds, count, merchantRooms.has(id), room.kind === "boss");
   }
   const xs = order.map((id) => rooms[id].gx);
   const ys = order.map((id) => rooms[id].gy);

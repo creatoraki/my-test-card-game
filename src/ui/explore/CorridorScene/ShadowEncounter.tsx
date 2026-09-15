@@ -4,7 +4,7 @@ import { finishCorridorEncounter } from "@/store/exploreCorridor";
 import { setTransitionOrigin } from "@/ui/app/transitionOrigin";
 import s from "./ShadowEncounter.module.css";
 
-export function ShadowEncounter({ x, final }: { x: number; final: boolean }) {
+export function ShadowEncounter({ x }: { x: number }) {
   const silhouette = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -21,7 +21,7 @@ export function ShadowEncounter({ x, final }: { x: number; final: boolean }) {
       <div className={s.figure}><span className={s.eyes} /></div>
       <div className={s.ripple} />
     </div>
-    <div className={s.warning} role="status"><span>不明敌意</span><strong>{final ? "前路已被封锁" : "黑影正在苏醒"}</strong><p>准备迎战</p></div>
+    <div className={s.warning} role="status"><span>不明敌意</span><strong>黑影正在苏醒</strong><p>准备迎战</p></div>
     <div className={s.flash} aria-hidden />
   </>;
 }
