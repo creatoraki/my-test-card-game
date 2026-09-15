@@ -71,7 +71,7 @@ export function CorridorScene({ corridor, blocked, encountering, nearMapVariant,
           top: entityFloorY + CORRIDOR_PROP_Y_OFFSETS[object.kind],
         }}>
           <button className={s.objectButton} type="button" disabled={blocked || object.used || !near} onClick={() => movement.interact(object.id)} aria-label={`${def.name}${object.used ? "，已搜寻" : !near ? "，靠近后交互" : `，${def.verb}`}`}>
-            <CorridorSprite kind={object.kind} size={def.size} interacting={interacting} />
+            <CorridorSprite kind={object.kind} interacting={interacting} />
           </button>
           {selected && <span className={s.targetMarker} aria-hidden>◆</span>}
         </div>;

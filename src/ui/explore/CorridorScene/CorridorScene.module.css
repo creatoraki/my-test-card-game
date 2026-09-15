@@ -8,7 +8,7 @@
 .objectButton:disabled { opacity: 1; cursor: default; }
 .objectButton:focus-visible { outline: 2px solid #efc37f; outline-offset: 5px; }
 .sprite { display: block; background-size: 100% 100%; background-repeat: no-repeat; background-position: 0 0; }
-.sprite.interacting { animation: chestInteraction 520ms ease-out both; }
+.sprite.interacting { animation: propInteraction 520ms ease-out both; }
 .selected::before { opacity: 1; }
 .used .objectButton { filter: grayscale(.8) brightness(.6); }
 .targetMarker { position: absolute; top: -26px; color: #f1cc85; font-size: 21px; animation: marker 1.5s ease-in-out infinite; }
@@ -32,7 +32,7 @@
 @keyframes marker { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 @keyframes portalBreathe { 0%, 100% { opacity: .88; } 50% { opacity: 1; } }
 @keyframes bossGateBreathe { 0%, 100% { opacity: .86; } 50% { opacity: 1; } }
-@keyframes chestInteraction {
+@keyframes propInteraction {
   0%, 100% { filter: brightness(1); }
   40% { filter: brightness(1.45); }
 }

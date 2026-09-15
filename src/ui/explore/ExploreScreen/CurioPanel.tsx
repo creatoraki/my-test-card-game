@@ -44,12 +44,11 @@ export function CurioPanel({
 
   const decisions = visibleDecisions(session, def);
   const offeringAvailable = canOfferAny(session, def);
-  const artworkSize = def.size;
 
   if (offerMode && !result) {
     return <div className={s.backdrop}>
       <section ref={panel} className={s.panel} role="dialog" aria-modal="true" aria-labelledby="curio-heading" tabIndex={-1}>
-        <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={artworkSize} interacting={false} /><span>{def.name} · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
+        <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} interacting={false} /><span>{def.name} · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
         <div className={s.content}><CurioOfferView
           backpack={session.backpack}
           objectId={object.id}
@@ -71,7 +70,7 @@ export function CurioPanel({
           else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         }
       }}>
-      <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} size={artworkSize} interacting={false} /><span>{def.name} · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
+      <div className={s.art}><span className={s.artHalo} /><CorridorSprite kind={object.kind} interacting={false} /><span>{def.name} · {session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?"} 号房间</span></div>
       <div className={s.content}>
         <div className={s.eyebrow}>{result ? "搜寻结果" : "驻足调查"}</div>
         <h2 id="curio-heading">{def.name}</h2>

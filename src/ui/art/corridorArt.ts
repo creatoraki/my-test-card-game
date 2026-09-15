@@ -1,5 +1,17 @@
 import bluePortalArt from "@/assets/explore-corridor/废弃楼层/蓝色传送门.png";
-import defaultChestArt from "@/assets/explore-corridor/废弃楼层/默认宝箱素材.png";
+import corridorSafeArt from "@/assets/explore-corridor/废弃楼层/可交互物体/保险箱.png";
+import corridorMerchantArt from "@/assets/explore-corridor/废弃楼层/可交互物体/货商.png";
+import corridorVendingArt from "@/assets/explore-corridor/废弃楼层/可交互物体/贩卖机.png";
+import corridorRemainsArt from "@/assets/explore-corridor/废弃楼层/可交互物体/遗骸.png";
+import corridorCompactorArt from "@/assets/explore-corridor/废弃楼层/可交互物体/压缩舱.png";
+import corridorMedicalArt from "@/assets/explore-corridor/废弃楼层/可交互物体/医疗柜.png";
+import corridorSinkArt from "@/assets/explore-corridor/废弃楼层/可交互物体/净水槽.png";
+import corridorRepairPodArt from "@/assets/explore-corridor/废弃楼层/可交互物体/修复舱.png";
+import corridorModBenchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/改装台.png";
+import corridorCardPrinterArt from "@/assets/explore-corridor/废弃楼层/可交互物体/打印终端.png";
+import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.png";
+import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/档案柜.png";
+import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.png";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.png";
 import corridorNearStandardArt from "@/assets/explore-corridor/废弃楼层/近景/测试.png";
 import corridorNearAlternateArt from "@/assets/explore-corridor/废弃楼层/近景/测试2.png";
@@ -7,7 +19,24 @@ import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
 
-/** 废弃楼层专属背景与物件素材登记；所有交互物共用默认宝箱图。 */
+export const CORRIDOR_PROP_SCALES = {
+  small: 0.5,
+  medium: 1,
+  large: 1.2,
+} as const;
+
+export const CORRIDOR_PROP_BASE_SCALE = 0.5;
+
+interface CorridorPropArt {
+  src: string;
+  width: number;
+  height: number;
+  scale: number;
+  /** 透明画布底部留白比例，用于让主体贴住场景地面。 */
+  groundTrim: number;
+}
+
+/** 废弃楼层专属背景与物件素材登记；每类交互物使用自己的透明 PNG。 */
 export const CORRIDOR_FAR_ART = corridorFarArt;
 /** 房间传送门：四个方向共用蓝色传送门立绘。 */
 export const CORRIDOR_PORTAL_ART = bluePortalArt;
@@ -17,43 +46,25 @@ export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
   third: corridorNearThirdArt,
 };
 
-export const CORRIDOR_PROP_ART: Record<CurioKind, string> = {
-  safe: defaultChestArt,
-  crystalVein: defaultChestArt,
-  vending: defaultChestArt,
-  remains: defaultChestArt,
-  compactor: defaultChestArt,
-  medical: defaultChestArt,
-  sink: defaultChestArt,
-  repairPod: defaultChestArt,
-  modBench: defaultChestArt,
-  cardPrinter: defaultChestArt,
-  shrine: defaultChestArt,
-  dispatch: defaultChestArt,
-  merchant: defaultChestArt,
-};
-
 /**
- * 各物件素材的底部透明留白比例；每种物件可独立调整，正好补偿透明画布与地面线之间的距离。
+ * 交互物原图按 0.5 作为设计画布基准，再叠加小/中/大三档尺寸。
+ * 512px 方图的中档绘制边长为 256px，宽幅素材仍按原始比例绘制。
  */
-export const CORRIDOR_PROP_GROUND_TRIM: Record<CurioKind, number> = {
-  safe: 20 / 148,
-  crystalVein: 20 / 148,
-  vending: 20 / 148,
-  remains: 20 / 148,
-  compactor: 20 / 148,
-  medical: 20 / 148,
-  sink: 20 / 148,
-  repairPod: 20 / 148,
-  modBench: 20 / 148,
-  cardPrinter: 20 / 148,
-  shrine: 20 / 148,
-  dispatch: 20 / 148,
-  merchant: 20 / 148,
+export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
+  safe: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 86 / 512 },
+  crystalVein: { src: corridorCrystalVeinArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 40 / 512 },
+  vending: { src: corridorVendingArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 20 / 512 },
+  remains: { src: corridorRemainsArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 37 / 512 },
+  compactor: { src: corridorCompactorArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 58 / 512 },
+  medical: { src: corridorMedicalArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 26 / 512 },
+  sink: { src: corridorSinkArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 68 / 512 },
+  repairPod: { src: corridorRepairPodArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 11 / 512 },
+  modBench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 65 / 512 },
+  cardPrinter: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
+  shrine: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
+  dispatch: { src: corridorDispatchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 12 / 512 },
+  merchant: { src: corridorMerchantArt, width: 724, height: 543, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 5 / 543 },
 };
-
-/** 默认宝箱素材宽高比；物件组件按该比例显示，避免拉伸原图。 */
-export const CORRIDOR_PROP_ASPECT_RATIO = 256 / 148;
 
 /** 蓝色传送门素材的场景 Y 轴偏移（设计 px，正值向下）。 */
 export const CORRIDOR_PORTAL_Y_OFFSET = 60;
@@ -79,5 +90,5 @@ export const CORRIDOR_ART_SOURCES: readonly string[] = [
   corridorFarArt,
   ...Object.values(CORRIDOR_NEAR_ART),
   bluePortalArt,
-  defaultChestArt,
+  ...Object.values(CORRIDOR_PROP_ART).map((art) => art.src),
 ];
