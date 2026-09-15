@@ -40,8 +40,8 @@
 | [mapDailyReward.ts](../../src/data/mapDailyReward.ts) | 基于日期种子生成地图×难度通关奖励：随机通用材料、固定稀有度随机词条装备与换金物；通关奖励装备完美度 +1，无难度地图读取固定奖励表；不含水晶和地区材料。 |
 | [mapAidSupply.ts](../../src/data/mapAidSupply.ts) | 按地图 × 难度登记出击配额物资，查询顺序为难度键、地图键、默认清单；生成的 `ItemStack` 带一次性标记。 |
 | [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人；4 只怪的编成只登记在 t4/t5；`roundPlans` 可为地图提供固定轮次棋盘，`dungeonPlan` 可为地图提供固定直线房间蓝图，`hideAfterClear` 控制通关后从选择带隐藏，`battleTierByRound`、`battleEncounterByRound`（按轮次钉死推进战斗的遭遇战，教学关前两轮用它排两套不同的双敌人编成）、`requiresClear` 与 `locked` 定义按轮次档位和地图解锁规则；`visibleMaps` 是出击界面唯一的可见地图筛选入口。难度配置由 `mapDifficulty.ts` 管理；地图素材由 UI 查表。 |
-| [tutorialDungeon.ts](../../src/data/tutorialDungeon.ts) | 新手关卡 6 间直线房间蓝图：固定登记武装、两场 t1 守卫战、强化、回复和 BOSS 的房间顺序与物件。 |
-| [curios/tutorialCurios.ts](../../src/data/curios/tutorialCurios.ts) | 新手蓝图专用物件：训练装备柜、训练模组台、训练锻造终端和训练医疗站；不进入普通地图随机物件池。 |
+| [tutorialDungeon.ts](../../src/data/tutorialDungeon.ts) | 新手关卡 6 间直线房间蓝图：固定登记武装、两场 t1 守卫战、强化、回复和 BOSS 的房间顺序与物件；BOSS 房为 t2 训练班组守卫，起始房无安全投递柜。 |
+| [curios/tutorialCurios.ts](../../src/data/curios/tutorialCurios.ts) | 新手蓝图专用物件：训练装备柜、固定发放攻击力模组1的训练模组台、训练锻造终端和训练医疗站；不进入普通地图随机物件池。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid；`newUid` 也供临时战斗奖励生成唯一 id。 |
 
 数据层不登记素材路径，也不写流程逻辑。素材查表在 `src/ui/`；战斗、探索和物品规则分别由对应纯逻辑层维护。

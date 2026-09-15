@@ -210,7 +210,7 @@ function pickNodeBattleTier(s: ExploreState): BattleTier {
   return pickWeighted(s, rows[Math.min(Math.max(depth, 0), rows.length - 1)]).tier;
 }
 
-// BOSS 房固定 t5 —— 那一场打赢就通关, 不参与深度爬升。
+// BOSS 房默认 t5, 固定蓝图守卫可覆盖档位与遭遇 —— 那一场打赢就通关, 不参与深度爬升。
 function bossBattleTier(): BattleTier {
   return "t5";
 }
@@ -1914,7 +1914,7 @@ export function engageRoomThreat(s: ExploreState): boolean {
   return chooseOption(s, 0);
 }
 
-/** 开启 BOSS 红门后的挑战接缝：保留红门状态，直接建立固定 t5 战斗。 */
+/** 开启 BOSS 红门后的挑战接缝：保留红门状态，直接建立默认 t5、可被蓝图守卫覆盖的战斗。 */
 export function challengeBoss(s: ExploreState): boolean {
   if (s.phase !== "atNode" || !s.corridor?.bossGateOpen || hasCorridorRewards(s)) return false;
   syncRoomFromScene(s);
@@ -1922,12 +1922,13 @@ export function challengeBoss(s: ExploreState): boolean {
   return leaveRegion(s) && engageRoundBattle(s);
 }
 
-/** BOSS 红门的战斗接缝：固定 t5，胜利后结束整趟远征。 */
+/** BOSS 红门的战斗接缝：默认 t5，蓝图守卫可覆盖档位与遭遇；胜利后结束整趟远征。 */
 export function engageRoundBattle(s: ExploreState): boolean {
   if (s.phase !== "roundBattle") return false;
-  const tier = bossBattleTier();
+  const guard = currentRoom(s)?.guard;
+  const tier = guard?.tier ?? bossBattleTier();
   s.roundBattleTier = tier;
-  const encounterId = bossEncounterFor(s, tier);
+  const encounterId = guard?.encounterId ?? bossEncounterFor(s, tier);
   if (!encounterId) return false;
   const eventTitle = roundBattleEvent(s)?.title ?? BATTLE_TIER_NAME[tier];
 
@@ -1946,7 +1947,7 @@ export function engageRoundBattle(s: ExploreState): boolean {
   });
   s.pendingBattleTier = tier;
   s.pendingEncounterId = encounterId;
-  s.pendingIsBoss = tier === "t5";
+  s.pendingIsBoss = true;
   s.battleSource = "round";
   s.phase = "inBattle";
   s.roundBattleEventId = null;

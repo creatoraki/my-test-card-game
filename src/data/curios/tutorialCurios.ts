@@ -18,12 +18,12 @@ export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
     name: "训练模组台",
     verb: "领取",
     size: 210,
-    description: "训练模组台已把一枚可直接装载的模组送到交付槽。",
+    description: "训练模组台已把一枚攻击力模组送到交付槽。",
     decisions: [{
       id: "claimModule",
-      label: "领取训练模组",
-      story: "模组台完成检验，一枚训练模组被送入待拾取框。",
-      effects: [{ type: "GRANT_MODULE" }],
+      label: "领取攻击力模组",
+      story: "模组台完成检验，一枚攻击力模组被送入待拾取框。",
+      effects: [{ type: "GAIN_ITEM", itemId: "attack-module-t1" }],
     }],
   },
   tutorialForge: {
