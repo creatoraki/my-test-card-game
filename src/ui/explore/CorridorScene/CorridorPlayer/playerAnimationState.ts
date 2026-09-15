@@ -3,6 +3,7 @@ import {
   CORRIDOR_PLAYER_IDLE_LAST_FRAME as IDLE_LAST,
   CORRIDOR_PLAYER_REST_FIRST_FRAME as REST_FIRST,
   CORRIDOR_PLAYER_REST_LAST_FRAME as REST_LAST,
+  CORRIDOR_PLAYER_WALK_FRAME_STEP as WALK_STEP,
   CORRIDOR_PLAYER_WALK_LAST_FRAME as WALK_LAST,
   CORRIDOR_PLAYER_WALK_START_FRAME as WALK_FIRST,
 } from "../corridorPlayerMotion";
@@ -55,7 +56,7 @@ export function advancePlayerAnimation(state: PlayerAnimationState, walking: boo
       break;
     }
     case "walking":
-      state.frame = state.frame < WALK_LAST ? state.frame + 1 : WALK_FIRST;
+      state.frame = state.frame + WALK_STEP <= WALK_LAST ? state.frame + WALK_STEP : WALK_FIRST;
       break;
   }
 }

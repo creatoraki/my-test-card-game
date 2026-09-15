@@ -1,8 +1,10 @@
 export const CORRIDOR_PLAYER_IDLE_FIRST_FRAME = 0;
 export const CORRIDOR_PLAYER_IDLE_LAST_FRAME = 12;
 export const CORRIDOR_PLAYER_WALK_START_FRAME = 30;
-// 30～61 是完整步态循环；后续帧最终会回身，不能纳入循环。
-export const CORRIDOR_PLAYER_WALK_LAST_FRAME = 61;
+// 原始步态为 30～61；隔帧播放 30、32……60，避开后续回身帧。
+export const CORRIDOR_PLAYER_WALK_LAST_FRAME = 60;
+export const CORRIDOR_PLAYER_WALK_FRAME_STEP = 2;
 export const CORRIDOR_PLAYER_REST_FIRST_FRAME = 100;
 export const CORRIDOR_PLAYER_REST_LAST_FRAME = 120;
-export const CORRIDOR_PLAYER_MOTION_FPS = 30;
+// 翻页频率减半、每次跨两帧，保持完整步态循环时长不变。
+export const CORRIDOR_PLAYER_MOTION_FPS = 15;
