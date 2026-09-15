@@ -4,6 +4,8 @@
   top: 11px;
   width: 210px;
   height: 74px;
+  transform: scale(1.5);
+  transform-origin: top left;
   pointer-events: none;
 }
 .brand svg {

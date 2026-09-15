@@ -8,9 +8,20 @@
   padding: 0 18px 2px 66px;
   border: 0;
   border-radius: 0;
-  clip-path: none;
+  /* 与设施升级按钮一致：左上 / 右下大切角，右上 / 左下小切角。 */
+  clip-path: polygon(
+    14px 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    6px 100%,
+    0 calc(100% - 6px),
+    0 14px
+  );
   background: transparent;
   color: #efffff;
+  cursor: var(--cursor-pointer);
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -32,6 +43,7 @@
 
 .label {
   position: relative;
+  cursor: var(--cursor-pointer);
   text-shadow: 0 0 3px #b7faff66, 0 2px 3px #000;
 }
 

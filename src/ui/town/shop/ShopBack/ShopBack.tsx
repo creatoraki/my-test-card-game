@@ -3,7 +3,8 @@ import s from "./ShopBack.module.css";
 
 export function ShopBack({ onClick }: { onClick: () => void }) {
   const id = useId();
-  const outline = "M3 25 23 5H173L193 25V49L175 66H21L3 49Z";
+  const outline = "M14 0H192L198 6V58L184 72H6L0 66V14Z";
+  const innerOutline = "M21 7H185L191 13V51L177 65H21L7 59V21Z";
   return (
     <button className={s.back} type="button" onClick={onClick}>
       <svg className={s.frame} viewBox="0 0 198 72" fill="none" aria-hidden="true">
@@ -29,8 +30,8 @@ export function ShopBack({ onClick }: { onClick: () => void }) {
         <g stroke={`url(#${id}-edge)`}>
           <path d={outline} strokeWidth="3" filter={`url(#${id}-glow)`} />
           <path d={outline} strokeWidth="1.5" />
-          <path d="M8 26 25 10H170L188 27V47L173 61H23L8 47Z" />
-          <path d="M14 20 29 6H89M103 2H174L196 24V39M5 52 22 69H113M135 65H177L192 51" strokeWidth="1.4" />
+          <path d={innerOutline} />
+          <path d="M6 20 20 6H89M103 2H188L196 10V39M2 54 20 70H113M135 70H181L196 55" strokeWidth="1.4" />
         </g>
         <path d="M5 29V43M17 54l8 7h19M123 6h43l14 14M186 30v7M178 53l-8 8" stroke="#b7fffc" strokeWidth="2" />
         <path d="M22 17h6m4-2h6m4-2h5M19 57l5 5M59 65h35M181 24h5M180 55v5" stroke="#55e6e7" />
