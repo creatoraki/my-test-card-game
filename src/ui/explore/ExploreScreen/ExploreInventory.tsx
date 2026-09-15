@@ -33,6 +33,7 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
       charId={inventory.detailCharId} stats={deriveStats(character)} vitals={{ hp: member.hp, hpLimit: member.hpLimit, maxHp: member.maxHp }}
       pollution={character.pollution} sick={character.sick} quirks={character.quirks} down={!member.alive}
       deck={character.deck} equipped={character.equipped} accent={MODAL_ACCENT.explore} closing={false}
+      className={s.characterModal}
       onClose={() => inventory.setDetailCharId(null)}
       swap={{ candidates: session.backpack.filter((item) => getItemDef(item.itemId).category === "equipment"),
         disabledReason: !inventory.allowed ? "此时无法换装" : !member.alive ? "阵亡队员无法换装" : undefined,

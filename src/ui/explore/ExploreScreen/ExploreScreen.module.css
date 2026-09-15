@@ -709,9 +709,3 @@
   text-shadow: var(--ui-glow);
 }
 
-/* 角色档案 Modal(common/CharacterModal)的层序。
-   外壳自带 z-index: 3, 那是装配舱场景里的层数 —— 探索画布上要压过路由图、四角 HUD 与
-   .expl-scrim(30), 故在这里就地抬到 32。几何沿用外壳的 inset: 0。 */
-.expl-character-modal {
-  z-index: 32;
-}

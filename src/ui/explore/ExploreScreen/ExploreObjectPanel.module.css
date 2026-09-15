@@ -1,0 +1,44 @@
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 34;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: #020709a8;
+}
+
+.panel {
+  composes: panel-box from "../styles/explorePanel.module.css";
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+
+.panel-reveal {
+  composes: panel-reveal from "../styles/explorePanel.module.css";
+}
+
+.panel-bar {
+  composes: panel-bar from "../styles/explorePanel.module.css";
+}
+
+.panel-scan {
+  composes: panel-scan from "../styles/explorePanel.module.css";
+}
+
+.status {
+  color: var(--event-accent);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.story p {
+  margin: 0 0 14px;
+}
+
+.story p:last-child {
+  margin-bottom: 0;
+}

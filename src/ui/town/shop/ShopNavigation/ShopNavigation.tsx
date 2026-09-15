@@ -19,7 +19,6 @@ export function ShopNavigation({ page, onChange }: { page: ShopPage; onChange: (
           <span className={s.label}>{label}</span>
         </button>
       ))}
-      <p className={s.note}>更远的星辰<br />仍在等待我们</p>
     </nav>
   );
 }

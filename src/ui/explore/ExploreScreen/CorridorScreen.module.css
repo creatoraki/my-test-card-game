@@ -18,3 +18,4 @@
 .targetBanner { position: absolute; left: 30px; bottom: 348px; z-index: 45; padding: 17px 22px; background: #192c2dee; border: 1px solid #b0caba70; font-size: 21px; }
 .targetBanner button { margin-left: 25px; font-size: 18px; }
 .toast { position: absolute; left: 580px; top: 325px; width: 760px; z-index: 90; padding: 20px; text-align: center; background: #142425ef; color: #e1d5b9; border: 1px solid #af987452; font-size: 22px; pointer-events: none; }
+.characterModal { z-index: 46; }

@@ -204,6 +204,7 @@ interface EventPanelResultProps {
   summaryValue?: ReactNode;
   notice?: { title: string; desc: string };
   footNote: string;
+  footActions?: ReactNode;
   confirmLabel: string;
   confirmDisabled?: boolean;
   onConfirm: () => void;
@@ -220,6 +221,7 @@ export function EventPanelResult({
   summaryValue,
   notice,
   footNote,
+  footActions,
   confirmLabel,
   confirmDisabled = false,
   onConfirm,
@@ -254,6 +256,7 @@ export function EventPanelResult({
       )}
       <div className={choiceResult.resultFoot}>
         <span className={choiceResult.resultFootNote}>{footNote}</span>
+        {footActions}
         <button type="button" className={briefing.advanceButton} disabled={confirmDisabled} onClick={onConfirm}>
           {confirmLabel}
         </button>
