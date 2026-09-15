@@ -1,155 +1,61 @@
-// 天赋树径向布局 —— html-templates/天赋树.html 布局算法的数据驱动版。
-//
-// 输入徽章的分支链与节点, 输出每颗节点的画布坐标、分支折线 path 与末节点标签位置:
-// 六条分支绕画布中心等角放射, 链内节点沿方向排布并带交错的轻微锯齿弯曲(与模板一致)。
-// 只做几何, 不承载任何解锁/退还/花费规则 —— 那些一律来自 @/data/squadTalents。
-
+// 原型坐标系：1672×941；由天赋页外壳统一映射到 1920×1080 设计画布。
+// 分支按资源语义固定位置，节点数量仍取实际徽章配置。
 import { branchNodesOf, type SquadBadgeDef, type TalentNodeDef } from "@/data";
 
-export const RADIAL_CANVAS = { width: 1660, height: 860 } as const;
-// 画布居中对称: 六分支全径向展开, 顶部垂直支的标签仍有余量。
-export const RADIAL_CENTER = { x: RADIAL_CANVAS.width / 2, y: RADIAL_CANVAS.height / 2 };
-export const LABEL_HALF_W = 78;
-export const LABEL_HALF_H = 36;
-
-export interface Point {
-  x: number;
-  y: number;
+export const RADIAL_CANVAS = { width: 1672, height: 941 } as const;
+export const RADIAL_CENTER = { x: 836, y: 425 };
+export interface Point { x: number; y: number }
+interface BranchArtwork {
+  hue: string;
+  deep: string;
+  label: Point;
+  points: Point[];
 }
-
+const points = (...pairs: [number, number][]): Point[] => pairs.map(([x, y]) => ({ x, y }));
+export const BRANCH_ART: Record<string, BranchArtwork> = {
+  handLimit: { hue: "#ffc76b", deep: "#8a501b", label: { x: 836, y: 61 },
+    points: points([836, 289], [836, 220], [836, 137]) },
+  redraw: { hue: "#ff7c88", deep: "#832a3c", label: { x: 836, y: 699 },
+    points: points([836, 533], [836, 581], [836, 633]) },
+  wait: { hue: "#6bccff", deep: "#155492", label: { x: 1413, y: 425 },
+    points: points([976, 454], [1042, 462], [1107, 447], [1172, 435], [1238, 422]) },
+  mana: { hue: "#b0ef91", deep: "#386627", label: { x: 257, y: 425 },
+    points: points([696, 454], [630, 462], [565, 447], [500, 435], [434, 422]) },
+  draw: { hue: "#cd91ff", deep: "#582989", label: { x: 1167, y: 169 },
+    points: points([934, 332], [993, 296], [1066, 238]) },
+  openingHand: { hue: "#74e4ff", deep: "#12618b", label: { x: 507, y: 169 },
+    points: points([738, 332], [678, 296], [605, 238]) },
+};
+export function branchArtOf(id: string): BranchArtwork {
+  return BRANCH_ART[id] ?? BRANCH_ART.handLimit;
+}
 export interface RadialBranchGeometry {
   branchIndex: number;
-  /** 链序节点(来自 branchNodesOf)。 */
   nodes: TalentNodeDef[];
-  /** 从核心穿过全部节点的折线(连线与流动光点共用)。 */
   pathD: string;
-  /** 每颗节点的圆心。 */
   nodePoints: Point[];
-  /** 分支名标签位置(末节点沿方向外推, 与铭牌矩形的方向投影保持间隙)。 */
   labelPoint: Point;
 }
-
-function degToRad(deg: number): number {
-  return (deg * Math.PI) / 180;
-}
-
-function branchLength(angleDeg: number): number {
-  const halfW = RADIAL_CANVAS.width / 2 - 12;
-  const halfH = RADIAL_CANVAS.height / 2 - 12;
-  const angle = degToRad(angleDeg);
-  const dirX = Math.cos(angle);
-  const dirY = Math.sin(angle);
-  const xDistance = Math.abs(dirX) > 0.0001 ? halfW / Math.abs(dirX) : Infinity;
-  const yDistance = Math.abs(dirY) > 0.0001 ? halfH / Math.abs(dirY) : Infinity;
-  const upperBound = Math.min(xDistance, yDistance);
-  const labelOffset =
-    36 + Math.abs(dirX) * LABEL_HALF_W + Math.abs(dirY) * LABEL_HALF_H + 14;
-
-  // 铭牌和末节点共用同一条分支轴线; 取两种锯齿偏移方向中更保守的最大长度。
-  function fits(length: number, bendSign: number): boolean {
-    const lateral = length * 0.06 * bendSign;
-    const perpX = -dirY;
-    const perpY = dirX;
-    const labelX = dirX * (length + labelOffset) + perpX * lateral;
-    const labelY = dirY * (length + labelOffset) + perpY * lateral;
-    return (
-      Math.abs(labelX) + LABEL_HALF_W <= halfW &&
-      Math.abs(labelY) + LABEL_HALF_H <= halfH
-    );
-  }
-
-  let low = 0;
-  let high = upperBound;
-  for (let index = 0; index < 24; index += 1) {
-    const middle = (low + high) / 2;
-    if (fits(middle, 1) && fits(middle, -1)) low = middle;
-    else high = middle;
-  }
-  return low;
-}
-
-const RADIAL_ANGLES = [0, 180, -90, 90, -40, -140] as const;
-
-function branchAngles(badge: SquadBadgeDef): number[] | null {
-  const { branches } = badge;
-  if (branches.length !== 6) return null;
-  const counts = branches.map((branch) => branchNodesOf(badge, branch.id).length);
-  if (counts.filter((count) => count > 0).length < 2) return null;
-  const longBranchIndices = counts
-    .map((count, index) => ({ count, index }))
-    .sort((a, b) => b.count - a.count || a.index - b.index)
-    .slice(0, 2)
-    .map(({ index }) => index);
-  const angles: number[] = [];
-  let shortIndex = 2;
-  for (let index = 0; index < branches.length; index += 1) {
-    const longIndex = longBranchIndices.indexOf(index);
-    if (longIndex >= 0) angles[index] = RADIAL_ANGLES[longIndex] ?? 0;
-    else angles[index] = RADIAL_ANGLES[shortIndex++] ?? -90;
-  }
-  return angles;
-}
-
 export function buildRadialLayout(badge: SquadBadgeDef): RadialBranchGeometry[] {
-  const branches = badge.branches;
-  const n = branches.length;
-  const firstProgress = 0.4; // 链首离核心的距离比例
-  const plannedAngles = branchAngles(badge);
-
-  return branches.map((branch, i) => {
+  return badge.branches.map((branch, branchIndex) => {
     const nodes = branchNodesOf(badge, branch.id);
-    const count = nodes.length;
-    const angleDeg =
-      plannedAngles?.[i] ?? (n <= 1 ? -90 : -90 + (360 / n) * i);
-    const angle = degToRad(angleDeg);
-    const dirX = Math.cos(angle);
-    const dirY = Math.sin(angle);
-    const perpX = -Math.sin(angle);
-    const perpY = Math.cos(angle);
-    const length = branchLength(angleDeg);
-    // 相邻分支的锯齿弯曲方向相反, 避免六条链读起来千篇一律。
-    const bendDir = i % 2 === 0 ? 1 : -1;
-    const bendOffset = 0.06 * length;
-
-    const nodePoints = nodes.map((_, idx) => {
-      const t = count <= 1 ? 1 : firstProgress + (1 - firstProgress) * (idx / (count - 1));
-      const lateral = bendDir * bendOffset * (idx % 2 === 0 ? 1 : -1);
-      return {
-        x: RADIAL_CENTER.x + dirX * length * t + perpX * lateral,
-        y: RADIAL_CENTER.y + dirY * length * t + perpY * lateral,
-      };
+    const art = branchArtOf(branch.id);
+    const nodePoints = nodes.map((_, index) => {
+      if (nodes.length === art.points.length) return art.points[index];
+      const progress = nodes.length <= 1 ? art.points.length - 1 : index * (art.points.length - 1) / (nodes.length - 1);
+      const a = art.points[Math.floor(progress)];
+      const b = art.points[Math.min(Math.ceil(progress), art.points.length - 1)];
+      const t = progress % 1;
+      return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
     });
-
-    const pathD = [RADIAL_CENTER, ...nodePoints]
-      .map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-      .join(" ");
-
-    const tail = nodePoints[count - 1];
-    const tailRadius = nodeRadius(nodes[count - 1], count - 1);
-    const labelOffset =
-      tailRadius + Math.abs(dirX) * LABEL_HALF_W + Math.abs(dirY) * LABEL_HALF_H + 14;
-    const labelPoint = { x: tail.x + dirX * labelOffset, y: tail.y + dirY * labelOffset };
-
-    return { branchIndex: i, nodes, pathD, nodePoints, labelPoint };
+    return {
+      branchIndex, nodes, nodePoints, labelPoint: art.label,
+      pathD: [RADIAL_CENTER, ...nodePoints].map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y}`).join(" "),
+    };
   });
 }
-
-// 节点半径: major(末节点)大一档; 链内越深越大, 与模板的递进一致。
 export function nodeRadius(node: TalentNodeDef, index: number): number {
-  if (node.tier === "major") return 36;
-  return Math.min(24 + index * 2.4, 32);
-}
-
-// 六条分支的表现色(模板六色系: 橙金/棕/蓝/金/紫/绿), 按分支序号查表。
-export const RADIAL_BRANCH_HUES: Array<{ hue: string; deep: string }> = [
-  { hue: "#ffb347", deep: "#b36b00" },
-  { hue: "#c77d5a", deep: "#713f2a" },
-  { hue: "#66ccff", deep: "#2266cc" },
-  { hue: "#ffcc44", deep: "#cc9900" },
-  { hue: "#aa66ff", deep: "#7733cc" },
-  { hue: "#55cc66", deep: "#338822" },
-];
-
-export function branchHueOf(index: number): { hue: string; deep: string } {
-  return RADIAL_BRANCH_HUES[index % RADIAL_BRANCH_HUES.length] ?? RADIAL_BRANCH_HUES[0];
+  if (node.key === "redraws") return node.tier === "major" ? 29 : 20;
+  if (node.tier === "major") return 32;
+  return Math.min(23 + index * 1.5, 28);
 }

@@ -1,0 +1,24 @@
+.node { cursor: var(--cursor-pointer); outline: none; }
+.visual { transform-box: fill-box; transform-origin: center; transition: filter 160ms; }
+.halo { fill: none; stroke: var(--trr-hue); stroke-width: 5px; filter: blur(5px); opacity: 0; }
+.rim { fill: none; stroke: #aab2bc; stroke-width: 1px; opacity: .45; }
+.inner { fill: #090e1766; stroke: #555f6b; stroke-width: .6px; }
+.icon { color: #b6bac1; filter: drop-shadow(0 1px 1px #000); }
+.spark { fill: #edfcff; filter: drop-shadow(0 0 4px var(--trr-hue)); }
+.node[data-major] .halo { opacity: .8; }
+.node[data-major] .rim { stroke: var(--trr-hue); stroke-width: 2.2px; opacity: 1; filter: drop-shadow(0 0 4px var(--trr-hue)); }
+.node[data-major] .inner { fill: color-mix(in srgb, var(--trr-deep) 23%, #050b13); stroke: var(--trr-hue); stroke-opacity: .3; }
+.node[data-major] .icon { color: var(--trr-hue); filter: drop-shadow(0 0 3px var(--trr-deep)); }
+.node[data-state="available"] .rim { stroke: #f5e6bf; opacity: 1; }
+.node[data-state="active"] .halo, .node[data-state="refundable"] .halo { opacity: 1; stroke-width: 8px; }
+.node[data-state="active"] .rim, .node[data-state="refundable"] .rim { stroke: #fff5e0; opacity: 1; stroke-width: 2px; }
+.node[data-state="active"] .inner, .node[data-state="refundable"] .inner { fill: color-mix(in srgb, var(--trr-deep) 65%, #071019); stroke: var(--trr-hue); }
+.node[data-state="active"] .icon, .node[data-state="refundable"] .icon { color: #fffdf0; filter: drop-shadow(0 0 4px var(--trr-hue)); }
+.refund { fill: none; stroke: var(--trr-hue); stroke-width: 1px; stroke-dasharray: 3 5; opacity: .65; }
+.node:hover .visual, .node:focus-visible .visual { filter: brightness(1.3) drop-shadow(0 0 5px var(--trr-hue)); }
+.node:focus-visible .rim { stroke: #fff; stroke-width: 3px; opacity: 1; }
+.node[data-readonly] { cursor: var(--cursor-default); }
+.latest .visual { animation: illuminate 520ms ease-out; }
+.shaking .visual { animation: shake 260ms ease-in-out; }
+@keyframes illuminate { from { filter: brightness(2.5); scale: 1.2; } to { filter: brightness(1); scale: 1; } }
+@keyframes shake { 0%, 100% { translate: 0; } 25%, 75% { translate: -4px; } 50% { translate: 4px; } }

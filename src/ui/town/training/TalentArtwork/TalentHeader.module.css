@@ -1,0 +1,28 @@
+.header { position: absolute; left: 25px; top: 10px; z-index: 2; pointer-events: none; }
+.emblem { position: absolute; left: 0; top: 0; color: #ffdc95; filter: drop-shadow(0 0 7px #d99b4b66); }
+.title {
+  position: absolute; left: 116px; top: 5px; width: 310px; margin: 0;
+  color: #ffe3aa; font-family: var(--talent-serif); font-size: 66px;
+  font-weight: 700; line-height: 1.25; letter-spacing: 3px;
+  background: linear-gradient(#fff8e1 12%, #ffe6af 44%, #b67d33 95%);
+  background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 1px #23180c) drop-shadow(0 0 10px #c8903944);
+}
+.points {
+  position: absolute; left: 80px; top: 96px; display: flex; align-items: baseline;
+  gap: 18px; width: 240px; padding: 0 4px 7px; color: #fff8e9;
+  border-bottom: 1px solid #cba56455; font-family: var(--talent-serif);
+  font-size: 28px; white-space: nowrap; font-weight: 700;
+}
+.points i { font-size: 22px; font-style: normal; color: #a78d64; }
+.points strong { color: #b7f1ff; font-size: 41px; line-height: 1.1; text-shadow: 0 0 10px #5bd8ff44; }
+.description {
+  position: absolute; left: 85px; top: 157px; width: 330px; margin: 0;
+  color: #c1a16b; font-family: var(--talent-serif); font-size: 18px; line-height: 1.65; letter-spacing: 3px;
+}
+.leftInscription, .rightInscription {
+  position: absolute; z-index: 2; writing-mode: vertical-rl;
+  color: #b89861; font-family: var(--talent-serif); font-size: 18px; letter-spacing: 8px; pointer-events: none;
+}
+.leftInscription { left: 65px; top: 388px; height: 328px; }
+.rightInscription { right: 67px; top: 207px; height: 240px; }

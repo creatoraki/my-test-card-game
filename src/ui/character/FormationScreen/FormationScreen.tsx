@@ -56,7 +56,7 @@ const FIGURE_FONT = 44;
 const FIGURE_RADIUS = 16;
 
 const TALENT_PANEL_RECT: Record<"talent", Rect> = {
-  talent: { x: 70, y: 30, w: 1780, h: 1020 },
+  talent: { x: 0, y: 0, w: 1920, h: 1080 },
 };
 
 export function FormationScreen() {

@@ -1,0 +1,12 @@
+.tip {
+  position: absolute; z-index: 9; display: grid; gap: 8px; width: 340px;
+  padding: 20px 24px; border: 1px solid #d8b477; color: #d8c8ac;
+  background: linear-gradient(135deg, #172332fa, #080d16fa);
+  box-shadow: 0 12px 30px #000b, inset 0 0 20px #d9a94d0c;
+  font-size: 18px; line-height: 1.5; pointer-events: none;
+  transform: translate(-50%, calc(-100% - 44px));
+}
+.tip[data-below] { transform: translate(-50%, 44px); }
+.tip strong { font-family: var(--talent-serif); font-size: 23px; color: #fff0c9; }
+.effect { color: var(--tip-hue); }
+.tip small { font-size: 18px; color: #a99b83; padding-top: 9px; border-top: 1px solid #d7ab6144; }

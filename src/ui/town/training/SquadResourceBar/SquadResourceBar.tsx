@@ -7,11 +7,11 @@ import {
   squadWaitLimit,
 } from "@/engine";
 import { useState, type CSSProperties } from "react";
-import { getBadge, squadModsOf, type SquadResourceKey } from "@/data";
+import { squadModsOf, type SquadResourceKey } from "@/data";
 import { useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
-import { TRACK_ICON_SIZE, TrackIcon } from "../TalentTreeRadial/icons";
-import { branchHueOf } from "../TalentTreeRadial/talentGeometry";
+import { TrackIcon } from "../TalentTreeRadial/icons";
+import { TalentResourceFrame } from "../TalentArtwork/TalentResourceFrame";
 import s from "./SquadResourceBar.module.css";
 
 const RESOURCE_LABELS: Record<SquadResourceKey, string> = {
@@ -32,7 +32,10 @@ const RESOURCE_ROWS: Array<{ key: SquadResourceKey; branchId: string }> = [
   { key: "handLimit", branchId: "handLimit" },
 ];
 
-const RESOURCE_ICON_SIZE = Math.round(TRACK_ICON_SIZE * 1.2);
+const RESOURCE_COLORS: Record<SquadResourceKey, string> = {
+  openingHand: "#a0f0bb", drawCount: "#cb8cff", redraws: "#d5f3f6",
+  waits: "#67c9ff", mana: "#ffcb68", handLimit: "#ffdc95",
+};
 
 interface SquadResourceBarProps {
   highlightKey: SquadResourceKey | null;
@@ -42,7 +45,6 @@ interface SquadResourceBarProps {
 export function SquadResourceBar({ highlightKey, className }: SquadResourceBarProps) {
   const [hoverKey, setHoverKey] = useState<SquadResourceKey | null>(null);
   const squadTalent = useTownStore((state) => state.squadTalent);
-  const activeBadge = squadTalent.badgeId ? getBadge(squadTalent.badgeId) : undefined;
   const mods = squadModsOf(squadTalent.badgeId, squadTalent.nodes);
 
   const values: Record<SquadResourceKey, number> = {
@@ -56,11 +58,11 @@ export function SquadResourceBar({ highlightKey, className }: SquadResourceBarPr
 
   return (
     <div className={cx(s["srb-wrap"], className)}>
+      <TalentResourceFrame />
       <section className={s["srb"]} aria-label="小队属性">
         <div className={s["srb-grid"]}>
           {RESOURCE_ROWS.map(({ key, branchId }) => {
-            const branchIndex = activeBadge?.branches.findIndex((branch) => branch.id === branchId) ?? -1;
-            const branchColor = branchIndex >= 0 ? branchHueOf(branchIndex).hue : undefined;
+            const branchColor = RESOURCE_COLORS[key];
             return (
             <div className={s["srb-cell-wrap"]} key={key}>
               {hoverKey === key && (
@@ -79,14 +81,10 @@ export function SquadResourceBar({ highlightKey, className }: SquadResourceBarPr
                 onMouseLeave={() => setHoverKey(null)}
                 onFocus={() => setHoverKey(key)}
                 onBlur={() => setHoverKey(null)}
-                style={
-                  branchColor
-                    ? ({ "--srb-color": branchColor, "--srb-icon-size": `${RESOURCE_ICON_SIZE}px` } as CSSProperties)
-                    : ({ "--srb-icon-size": `${RESOURCE_ICON_SIZE}px` } as CSSProperties)
-                }
+                style={{ "--srb-color": branchColor } as CSSProperties}
               >
                 <span className={s["srb-icon"]} aria-hidden>
-                  <TrackIcon branchId={branchId} />
+                  <TrackIcon branchId={branchId} resource />
                 </span>
                 <span className={s["srb-label"]}>{RESOURCE_LABELS[key]}</span>
                 <strong className={s["srb-value"]}>{values[key]}</strong>

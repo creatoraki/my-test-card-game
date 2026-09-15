@@ -116,6 +116,8 @@ import s from "./CombatantView.module.css";
 
 ## 设计画布
 
+编队天赋页使用 `town/training/TalentArtwork/TalentPanelShell` 的独立全屏外壳：背景与 CSS/SVG 元素共享 1672×941 原型坐标，由外壳统一映射到 1920×1080 设计画布。分支坐标以 `TalentTreeRadial/talentGeometry.ts` 为唯一来源，金属边框、节点、铭牌、标题和底栏各自持有组件样式；原有入口形变只控制外层矩形，不参与内部布局。主画面最低字号为 18px，中文衬线标题使用局部 `--talent-serif` 字体栈。
+
 [hooks/stage.ts](../../src/ui/hooks/stage.ts) 提供 `STAGE`（1920×1080 基准尺寸、最大缩放）和 `useStageScale`（基于 `ResizeObserver` 计算 letterbox 等比缩放，机会性吸附到设备像素并监听 DPR 变化）。各页通过 `app/StageCanvas` 复用画布骨架，画布内部坐标都是设计 px，不能使用 `vw` / `vh`，也不能按窗口宽度重新排版。
 
 ⚠ 浮层（物品详情一族）**挂在画布内部**、用设计 px 定位，不要 portal 到 `document.body` 再手工把矩形换算成屏幕 px：`getBoundingClientRect()` 在 CSS `zoom` 子树里到底带不带 zoom，各浏览器/各渲染分支并不一致，一旦判反，`zoom === 1` 的大窗口下恒等看不出问题，窗口一小浮层就整体偏移甚至被推出可视区。画布带 `data-stage-canvas` 标记，配合 `stageHostOf` / `designScaleOf` 做坐标归一化（锚点矩形与画布矩形取自同一坐标系，相减再同除即得设计 px）。

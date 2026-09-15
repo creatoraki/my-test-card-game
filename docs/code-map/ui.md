@@ -84,8 +84,10 @@ src/ui/
 | [town/shop/ShopWindow](../../src/ui/town/shop/ShopWindow/ShopWindow.tsx) | 据点商店与探索货商共用的金框窗口外壳：承载 `DetailFrame`、切角背景、内容区和入场/离场动画，定位与页眉由调用方注入。 |
 | [town/shop/shopTheme.module.css](../../src/ui/town/shop/shopTheme.module.css) | 据点商店与探索货商共用的金色冷青主题令牌，提供 `--sx-*`、`--asm-*` 与升级树桥接变量。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
-| [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
-| [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 编队页训练点分配弹窗左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
+| [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队天赋页的六向星盘：按 1672×941 原型坐标绘制顶部扩容、左上起手、右上抽牌、左右费用/待机和底部换牌分支；坐标与语义配色集中在 `talentGeometry.ts`，完整展示徽章的真实节点与已点亮计数。左键激活、快捷点亮、右键/组合键/删除键退还沿用数据层判定，节点浮卡联动底部属性栏。 |
+| [town/training/TalentArtwork](../../src/ui/town/training/TalentArtwork/) | 天赋页的独立视觉组件：`TalentPanelShell` 使用「天赋背景.png」并将原型坐标整体映射到编队的 1920×1080 画布；`TalentBorder`、`TalentEmblem`、`TalentPlaque`、`TalentNode` 和 `TalentResourceFrame` 以 SVG 绘制金属外框、星芒徽记、分色铭牌、状态圆环及通栏装饰，标题与悬浮提示各自模块化。 |
+| [town/training/SquadTalentModal](../../src/ui/town/training/SquadTalentModal/SquadTalentModal.tsx) | 天赋页与徽章选择的编排：承接原有入口形变、关闭和退出键，接入独立金色全屏外壳、标题训练点、星盘及底栏，未启用徽章时展开选择浮层。 |
+| [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 天赋页底部金色通栏：依次展示初始手牌、回合抽牌、换牌、待机、费用和手牌上限，数值由 `squadModsOf` 与引擎 `squad*` helper 计算；分色图标与蓝色读数横排，接收节点悬浮键高亮对应属性。 |
 | [town/museum](../../src/ui/town/museum/index.ts) | 博物馆设施：使用 `codexCatalog` 生成物品、非临时卡牌和三档敌人目录，展示永久收录进度；`MuseumScene` 编排三个入口与共享 `PanelShell`，三个展厅各自持有筛选、选中态和详情栏。物品展厅使用 1:1 方格，卡牌展厅使用原尺寸大卡与未收录卡背，三个展厅的全部条目统一挂 `InteractiveHint`。 |
 | 旧 `town/training/TrainingConfirm` | 训练室旧通用确认弹窗（重置分配/切换徽章共用），极简版改造移除后归档到 `ui/_legacy/training/`，零引用。 |
 | 旧 `town/training/TalentTree` / `TalentNode` | 已归档到 `ui/_legacy/training/`（白玻璃青绿扇形半环版），零引用，见该目录 README。 |

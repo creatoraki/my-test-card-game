@@ -1,0 +1,22 @@
+.panel {
+  --talent-serif: "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun", serif;
+  position: absolute; z-index: 2; overflow: hidden; background: #080d15;
+  color: #fff2d6; font-size: 18px; box-shadow: inset 0 0 0 1px #ab8548;
+}
+.canvas { position: absolute; left: 0; top: 0; width: 1672px; height: 941px; transform-origin: top left; }
+.background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
+.shade {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, #03081025, transparent 38%, transparent 66%, #03081022),
+    radial-gradient(ellipse at 50% 44%, #02050b32 0%, #02050b0a 60%, transparent);
+}
+.close {
+  position: absolute; z-index: 8; left: 1549px; top: 22px; width: 72px; height: 72px;
+  padding: 0; border: 0; background: transparent; clip-path: none; border-radius: 50%;
+  filter: drop-shadow(0 0 6px #d9a65066);
+}
+.close svg { width: 100%; height: 100%; }
+.close:hover, .close:focus-visible { filter: brightness(1.3) drop-shadow(0 0 10px #ffd88e99); outline: 1px solid #ffe4a8; outline-offset: 2px; }
+.seed { height: 100%; display: flex; align-items: center; justify-content: center; gap: 14px; color: #ffdc91; font-size: 24px; }
+.seed svg { width: 52px; height: 52px; }
+:global([data-talent-phase="closing"]) .close { pointer-events: none; }

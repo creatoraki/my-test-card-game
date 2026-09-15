@@ -7,7 +7,8 @@
 
 import { useEffect, useState, type ReactNode, type Ref } from "react";
 import { SQUAD_BADGES } from "@/data";
-import { HudPanelShell, HUD_TONE_GOLD } from "@/ui/common/HudPanelShell";
+import { TalentPanelShell } from "../TalentArtwork/TalentPanelShell";
+import { TalentHeader } from "../TalentArtwork/TalentHeader";
 import { cx } from "@/ui/common/cx";
 import type { Rect } from "@/ui/common/panelMorph";
 import { BadgeSelectModal } from "../BadgeSelectModal";
@@ -48,15 +49,16 @@ export function SquadTalentModal({ closing = false, onClose, morph }: Props) {
     <div className={cx(s.layer, closing && s["is-closing"])} role="dialog" aria-modal="true" aria-label="训练点分配">
       <div className={s.veil} aria-hidden="true" />
 
-      <HudPanelShell closing={closing} onClose={onClose} label="训练点分配" tone={HUD_TONE_GOLD} morph={morph}>
+      <TalentPanelShell closing={closing} onClose={onClose} morph={morph}>
+        <TalentHeader remaining={talent.remaining} total={talent.trainingPoints} />
         {talent.badge ? (
           <>
             <TalentTreeRadial
+              key={talent.badge.id}
               className={s.tree}
               badge={talent.badge}
               activated={talent.activated}
               remaining={talent.remaining}
-              totalTrainingPoints={talent.trainingPoints}
               locked={talent.locked}
               resourceLabels={talent.resourceLabels}
               pulse={talent.pulse}
@@ -79,7 +81,7 @@ export function SquadTalentModal({ closing = false, onClose, morph }: Props) {
             </button>
           </div>
         )}
-      </HudPanelShell>
+      </TalentPanelShell>
 
       {pickerOpen && (
         <BadgeSelectModal

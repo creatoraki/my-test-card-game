@@ -1,157 +1,32 @@
-.srb-wrap {
-  position: relative;
-  display: inline-block;
-  overflow: visible;
+/* 原型底栏 1552×140，图标和读数在同一横向格内；外部只负责定位。 */
+.srb-wrap { position: relative; width: 1552px; height: 140px; overflow: visible; }
+.srb { position: relative; height: 100%; padding: 25px 48px 22px; }
+.srb-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); height: 100%; }
+.srb-cell-wrap { position: relative; min-width: 0; padding: 4px 0 4px 38px; }
+.srb-cell-wrap:not(:last-child)::after {
+  content: ""; position: absolute; right: 0; top: 18px; bottom: 15px; width: 1px;
+  background: linear-gradient(transparent, #cba262 12%, #d9c093 80%, transparent);
 }
-
-.srb {
-  composes: tr-tokens from "../styles/trainingKit.module.css";
-  --ui-glow-color: var(--tr-glow);
-  box-sizing: border-box;
-  display: flex;
-  gap: 12px;
-  animation: srbRise 480ms 140ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
+.srb-cell-wrap:not(:last-child)::before {
+  content: ""; position: absolute; right: -1px; bottom: 13px; width: 3px; height: 3px;
+  background: #efd59c; transform: rotate(45deg);
 }
-
-.srb-grid {
-  display: flex;
-  gap: 12px;
-}
-
-.srb-cell-wrap {
-  position: relative;
-  flex: 0 0 124px;
-  width: 124px;
-  height: 140px;
-}
-
 .srb-cell {
-  display: flex;
-  box-sizing: border-box;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 124px;
-  height: 140px;
-  padding: 8px 3px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--tr-ink-dim);
-  cursor: var(--cursor-pointer);
-  overflow: visible;
-  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+  display: grid; grid-template-columns: 64px 1fr; grid-template-rows: 30px 40px; column-gap: 23px;
+  align-content: center; align-items: center; text-align: left; width: 100%; height: 100%;
+  padding: 0; border: 0; border-radius: 0; background: transparent; clip-path: none;
+  color: #fff8e4; transition: filter 160ms;
 }
-
-.srb-cell:hover,
-.srb-cell:focus-visible {
-  border-color: rgba(255, 215, 0, 0.45);
-  background: rgba(255, 215, 0, 0.08);
-  color: var(--tr-ink);
-  outline: none;
-}
-
-.srb-icon {
-  display: grid;
-  place-items: center;
-  width: var(--srb-icon-size, 58px);
-  height: var(--srb-icon-size, 58px);
-  color: var(--srb-color, var(--tr-glow-deep));
-}
-
-.srb-icon svg {
-  width: var(--srb-icon-size, 58px);
-  height: var(--srb-icon-size, 58px);
-}
-
-.srb-label {
-  color: var(--ui-label);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  line-height: 1.15;
-  text-shadow: var(--ui-glow);
-  white-space: nowrap;
-}
-
-.srb-value {
-  min-width: 34px;
-  color: var(--ui-value);
-  font-family: var(--font-family);
-  font-size: 22px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  line-height: 1;
-  text-align: center;
-  text-shadow: var(--ui-glow);
-}
-
+.srb-cell:hover, .srb-cell:focus-visible { outline: none; filter: brightness(1.3); }
+.srb-cell:focus-visible { box-shadow: 0 0 0 1px #d7b77388; }
+.srb-icon { grid-row: 1 / 3; display: grid; place-items: center; width: 64px; height: 70px; color: var(--srb-color); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--srb-color) 50%, transparent)); }
+.srb-icon svg { width: 64px; height: 64px; }
+.srb-label { color: #fffaf0; font-size: 20px; font-weight: 400; line-height: 1.3; white-space: nowrap; letter-spacing: 0; }
+.srb-value { color: #80dcf6; font-family: "BebasNeue", var(--font-family); font-size: 38px; font-weight: 700; line-height: 1; letter-spacing: 1px; text-shadow: 0 0 5px #44bfe622; }
+.srb-cell.is-highlight .srb-value { color: #fff1ca; text-shadow: 0 0 8px #e6ba6b66; }
+.srb-cell.is-highlight .srb-icon { filter: brightness(1.25) drop-shadow(0 0 8px var(--srb-color)); }
 .srb-tip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  z-index: 2;
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 215, 0, 0.42);
-  background: rgba(18, 13, 24, 0.94);
-  box-shadow: 0 8px 20px -12px #000, 0 0 14px -8px var(--tr-glow);
-  color: var(--ui-label);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  line-height: 1.2;
-  text-shadow: var(--ui-glow);
-  pointer-events: none;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
-.srb-tip::after {
-  position: absolute;
-  bottom: -5px;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  border-right: 1px solid rgba(255, 215, 0, 0.42);
-  border-bottom: 1px solid rgba(255, 215, 0, 0.42);
-  background: rgba(18, 13, 24, 0.94);
-  content: "";
-  transform: translateX(-50%) rotate(45deg);
-}
-
-.srb-cell.is-highlight {
-  border-color: rgba(255, 215, 0, 0.55);
-  background: rgba(255, 215, 0, 0.1);
-  color: var(--tr-ink);
-}
-
-.srb-cell.is-highlight .srb-icon,
-.srb-cell.is-highlight .srb-value {
-  color: var(--tr-glow);
-  text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
-}
-
-/* 保留横排容器的可读边界, 但不让按钮状态被外层文字表格样式稀释。 */
-.srb-cell:active {
-  transform: translateY(1px);
-}
-
-.srb-cell[disabled] {
-  cursor: var(--cursor-default);
-}
-
-@keyframes srbRise {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .srb {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
-  }
-
-  .srb-cell {
-    transition: none;
-  }
+  position: absolute; z-index: 6; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%);
+  width: max-content; padding: 10px 16px; border: 1px solid #d2aa6b; background: #080e18f5;
+  color: #f4e0b9; font-size: 18px; pointer-events: none;
 }

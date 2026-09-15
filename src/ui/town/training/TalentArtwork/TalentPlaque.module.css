@@ -1,0 +1,7 @@
+.plaque { color: var(--trr-hue); pointer-events: none; }
+.halo { fill: none; stroke: var(--trr-hue); stroke-width: 3px; opacity: .5; filter: blur(4px); }
+.name {
+  fill: #fff5dc; font-family: var(--talent-serif); font-size: 22px; font-weight: 700;
+  text-anchor: middle; letter-spacing: 1px; filter: drop-shadow(0 0 4px #ffe4a733);
+}
+.count { fill: #f1f2ee; font-family: var(--talent-serif); font-size: 21px; text-anchor: middle; font-weight: 700; }

@@ -1,56 +1,48 @@
-// 六条训练链的方向图标(迁自旧 TalentNode 的 TRACK_ICONS)。
-// 画法统一: 48×48 视框、stroke="currentColor"、主体 strokeWidth 3.2、陪衬 2.4 + 低透明度。
-// 内嵌在天赋树 SVG 里, 必须带显式 width/height(48), 由父级 g 的 scale 缩放。
-
+// 六种训练图标：卡牌扇、抽牌、循环箭头、秒表、水晶与叠牌。
+// 48×48 显式视框，可同时嵌入节点 SVG 与底部属性栏。
 export const TRACK_ICON_VIEWBOX = 48;
 export const TRACK_ICON_SIZE = 48;
 
-const TRACK_ICONS: Record<string, (props: { className?: string }) => JSX.Element> = {
-  handLimit: ({ className }) => (
-    <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path d="M9 13h30v24H9z" strokeWidth={2.4} opacity={0.5} />
-      <path d="M15 18h18M15 24h12M15 30h8" strokeWidth={3.2} />
-      <path d="M36 9v8M32 13h8" strokeWidth={3.2} />
+export function TrackIcon({ branchId, className, resource = false }: {
+  branchId: string; className?: string; resource?: boolean;
+}) {
+  const fan = branchId === "openingHand" || (resource && branchId === "handLimit");
+  return (
+    <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
+      {fan && <>
+        <path d="m7 13 12-4 8 28-12 4Z" fill="currentColor" fillOpacity=".15" />
+        <path d="M17 7h15v29H17Z" fill="#07151f" />
+        <path d="m28 10 14 5-9 27-14-5Z" fill="currentColor" fillOpacity=".16" />
+        <path d="m31 18 2 5-4 3-1-5Z" fill="currentColor" strokeWidth="1" />
+        <path d="m5 17 7 26M21 11h6M24 31h4" opacity=".65" />
+      </>}
+      {branchId === "draw" && <>
+        <path d="M12 9H8v31h23v-4" opacity=".55" />
+        <path d="M15 5h24v30H15Z" fill="currentColor" fillOpacity=".12" />
+        <path d="m27 12 2.5 6 4.5 2-4.5 2.5-2.5 6-2.5-6-4.5-2.5 4.5-2Z" fill="currentColor" stroke="none" />
+        <path d="M19 8h4M34 29v3h-4" opacity=".7" />
+      </>}
+      {branchId === "redraw" && <>
+        <path d="M8 22a16 16 0 0 1 27-10l3 3M40 26a16 16 0 0 1-27 10l-3-3" strokeWidth="3" />
+        <path d="m32 7 7 8-11 1M16 41l-7-8 11-1" strokeWidth="2.8" />
+      </>}
+      {branchId === "wait" && <>
+        <path d="M20 3h8M24 3v5M34 10l3-3M35 6l4 4" strokeWidth="2.5" />
+        <circle cx="24" cy="27" r="16" strokeWidth="2.5" />
+        <path d="M24 14v14l8-6M12 17l2 2M36 17l-2 2" strokeWidth="2" />
+        <path d="M10 30a14 14 0 0 0 10 10" opacity=".4" />
+      </>}
+      {branchId === "mana" && <>
+        <path d="m24 3 13 21-13 21L11 24Z" fill="currentColor" fillOpacity=".15" />
+        <path d="m24 3 5 21-5 21-5-21ZM11 24h26M24 3v42" />
+        <path d="m24 10 9 14-9 15" opacity=".6" />
+      </>}
+      {!fan && !["draw", "redraw", "wait", "mana"].includes(branchId) && <>
+        <path d="m7 17 17-9 17 9-17 9Z" fill="currentColor" strokeWidth="1" />
+        <path d="m7 22 17 9 17-9M7 27l17 9 17-9M7 32l17 9 17-9" strokeWidth="2.8" />
+        <path d="M7 18v16M24 27v14M41 18v16" strokeWidth="1.2" opacity=".65" />
+      </>}
     </svg>
-  ),
-  redraw: ({ className }) => (
-    <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path d="M12 18a14 14 0 0 1 24-3l3 4" strokeWidth={2.4} opacity={0.5} />
-      <path d="M36 30a14 14 0 0 1-24 3l-3-4" strokeWidth={2.4} opacity={0.5} />
-      <path d="M36 11v8h-8M12 37v-8h8" strokeWidth={3.2} />
-    </svg>
-  ),
-  wait: ({ className }) => (
-    <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <circle cx="24" cy="24" r="15" strokeWidth={2.4} opacity={0.5} />
-      <path d="M24 15v10l7 4" strokeWidth={3.2} />
-      <path d="M10 10l4 4M38 10l-4 4" strokeWidth={3.2} />
-    </svg>
-  ),
-  mana: ({ className }) => (
-    <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path d="m24 5 14 19-14 19L10 24 24 5Z" strokeWidth={2.4} opacity={0.5} />
-      <path d="m24 12 8.5 12-8.5 12-8.5-12L24 12Z" strokeWidth={3.2} />
-      <path d="M24 18v12M18 24h12" strokeWidth={2.8} />
-    </svg>
-  ),
-  draw: ({ className }) => (
-    <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path d="M11 9h26v30H11z" strokeWidth={2.4} opacity={0.5} />
-      <path d="M17 15h14M17 22h10M17 29h14" strokeWidth={3.2} />
-      <path d="M34 34h6M37 31v6" strokeWidth={3.2} />
-    </svg>
-  ),
-  openingHand: ({ className }) => (
-    <svg className={className} width={48} height={48} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeLinecap="round">
-      <path d="M9 14h30v24H9z" strokeWidth={2.4} opacity={0.5} />
-      <path d="M16 20h16M16 26h10M16 32h6" strokeWidth={3.2} />
-      <path d="M34 7v9M29.5 11.5h9" strokeWidth={3.2} />
-    </svg>
-  ),
-};
-
-export function TrackIcon({ branchId, className }: { branchId: string; className?: string }) {
-  const Icon = TRACK_ICONS[branchId] ?? TRACK_ICONS.handLimit;
-  return <Icon className={className} />;
+  );
 }
