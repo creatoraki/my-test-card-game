@@ -7,26 +7,13 @@ import ItemTooltip, {
   type TooltipDirection,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { HudPanelShell } from "@/ui/common/HudPanelShell";
 import { buildEquipTargets, equipStackOf, equipTargetKey } from "../EquipTargetList";
 import { EquipUpgradeBoard, type PickEntry } from "./parts";
 import { upgradeChanges } from "./upgradeMessage";
 import { useUpgradeView } from "./upgradeView";
 import s from "./EquipUpgradePanel.module.css";
 
-interface Props {
-  closing?: boolean;
-  onClose: () => void;
-  morph: {
-    ref: React.Ref<HTMLElement>;
-    rect: import("@/ui/common/panelMorph").Rect;
-    ready: boolean;
-    seed?: React.ReactNode;
-    seedLabel?: string;
-  };
-}
-
-export function EquipUpgradePanel({ closing = false, onClose, morph }: Props) {
+export function EquipUpgradePanel() {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const loot = useTownStore((state) => state.loot);
@@ -69,33 +56,31 @@ export function EquipUpgradePanel({ closing = false, onClose, morph }: Props) {
 
   return (
     <>
-      <HudPanelShell closing={closing} onClose={onClose} label="装备升阶面板" morph={morph}>
-        <EquipUpgradeBoard
-          entries={entries}
-          equipTab={equipTab}
-          onEquipTab={setEquipTab}
-          selectedKey={selectedKey}
-          onSelect={(key) => {
-            const target = keyMap.get(key);
-            if (!target) return;
-            setSelected(target);
-            setFlash(null);
-          }}
-          current={current}
-          currentDef={view.currentDef}
-          affinityId={current?.affinity ?? view.currentDef?.affinity}
-          nextDef={view.nextDef}
-          check={view.check}
-          loot={loot}
-          preview={view.preview}
-          notice={view.notice}
-          canUpgrade={view.canUpgrade}
-          onUpgrade={onUpgrade}
-          onShowTooltip={showTooltip}
-          onHideTooltip={() => setHovered(null)}
-        />
-        {flash && <p className={s.flash} role="status">{flash}</p>}
-      </HudPanelShell>
+      <EquipUpgradeBoard
+        entries={entries}
+        equipTab={equipTab}
+        onEquipTab={setEquipTab}
+        selectedKey={selectedKey}
+        onSelect={(key) => {
+          const target = keyMap.get(key);
+          if (!target) return;
+          setSelected(target);
+          setFlash(null);
+        }}
+        current={current}
+        currentDef={view.currentDef}
+        affinityId={current?.affinity ?? view.currentDef?.affinity}
+        nextDef={view.nextDef}
+        check={view.check}
+        loot={loot}
+        preview={view.preview}
+        notice={view.notice}
+        canUpgrade={view.canUpgrade}
+        onUpgrade={onUpgrade}
+        onShowTooltip={showTooltip}
+        onHideTooltip={() => setHovered(null)}
+      />
+      {flash && <p className={s.flash} role="status">{flash}</p>}
       {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
     </>
   );

@@ -1,0 +1,47 @@
+.theme {
+  --asm-key: #ff5fc8;
+  --asm-key-hot: #ffc1ef;
+  --asm-violet: #a86bff;
+  --asm-violet-deep: #34184d;
+  --asm-ink: #f7e9ff;
+  --asm-muted: #cdb5d8;
+  --asm-dim: #8e779a;
+  --asm-line: #d48cdb38;
+  --asm-line-lit: #ff83db66;
+  --asm-title: #ffd8f4;
+  --asm-title-glow: #ff5fc855;
+  --asm-title-shadow: #51224c;
+  --asm-line-hot: #fff0fb;
+
+  --asm-bg-hi: #171021;
+  --asm-bg: #0f0a18;
+  --asm-bg-lo: #08050d;
+
+  --asm-brand-fill-start: #5a245e;
+  --asm-brand-fill-middle: #21142d;
+  --asm-brand-fill-end: #4b2361;
+  --asm-brand-line-hot: #ffe6fa;
+  --asm-brand-line-mid: #ff71d2;
+  --asm-brand-line-end: #b16bff;
+  --asm-brand-shard-hot: #ffb4e9;
+  --asm-brand-shard-mid: #c47dff;
+  --asm-brand-shard-dim: #8f5dbb;
+  --asm-brand-text: #ffe7f8;
+  --asm-brand-text-hot: #fff0fb;
+  --asm-brand-glow-near: #ff5fc8b3;
+  --asm-brand-glow-far: #a86bff66;
+
+  --nav-active-plate-start: #6b2f70f5;
+  --nav-active-plate-middle: #2b173af7;
+  --nav-active-plate-end: #5a286bf5;
+  --nav-active-edge-hot: #fff0fb;
+  --nav-active-edge-mid: #ff5fc8;
+  --nav-active-edge-dim: #a944a9;
+  --nav-active-tab-arrow: #ffe0f6;
+  --nav-active-color: #fff1fb;
+  --nav-active-glow-near: #ff7bd3b3;
+  --nav-active-glow-far: #a86bff66;
+  --nav-active-label-glow: #ffb0e477;
+  --nav-active-icon: #ffc1ef;
+  --nav-active-icon-glow: #ff69cd99;
+}

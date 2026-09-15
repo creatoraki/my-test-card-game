@@ -6,14 +6,15 @@ import s from "./ShopWindow.module.css";
 interface Props {
   className?: string;
   ariaLabel: string;
+  frameTone?: "gold" | "teal";
   header: ReactNode;
   children: ReactNode;
 }
 
-export function ShopWindow({ className, ariaLabel, header, children }: Props) {
+export function ShopWindow({ className, ariaLabel, frameTone = "gold", header, children }: Props) {
   return (
     <section className={cx(s.window, className)} aria-label={ariaLabel}>
-      <DetailFrame tone="gold" />
+      <DetailFrame tone={frameTone} />
       <div className={s.inner}>
         {header}
         <div className={s.content}>{children}</div>

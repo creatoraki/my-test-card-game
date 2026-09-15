@@ -1,9 +1,9 @@
 .museum-root {
-  --museum-ink: #e7f2ed;
-  --museum-dim: #91aaa3;
-  --museum-line: #b8e5d533;
-  --museum-accent: #6ed6b8;
-  --museum-gold: #e8b86a;
+  --museum-ink: var(--sx-ink, #eceff1);
+  --museum-dim: var(--sx-muted, #aab2b8);
+  --museum-line: var(--sx-line, #aab2b82e);
+  --museum-accent: var(--sx-key, #6ed6b8);
+  --museum-gold: var(--sx-key, #6ed6b8);
 }
 
 .museum-content {
@@ -22,11 +22,11 @@
 .museum-locked {
   display: grid;
   place-items: center;
-  color: #9aaba755;
+  color: color-mix(in srgb, var(--sx-dim, #848d93) 62%, transparent);
   background:
     linear-gradient(135deg, #ffffff05 25%, transparent 25% 50%, #ffffff05 50% 75%, transparent 75%) 0 0 / 12px 12px,
-    #101a1a;
-  border: 1px solid #8ca8a822;
+    var(--sx-bg, #081016);
+  border: 1px solid var(--sx-line, #aab2b82e);
 }
 
 .museum-locked-mark {
@@ -34,13 +34,13 @@
   width: 34px;
   height: 34px;
   place-items: center;
-  color: #b9ccc655;
+  color: color-mix(in srgb, var(--sx-muted, #aab2b8) 58%, transparent);
   font-size: 22px;
-  border: 1px solid #a8c4bc33;
+  border: 1px solid var(--sx-line, #aab2b82e);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .museum-locked {
-    background: #101a1a;
+    background: var(--sx-bg, #081016);
   }
 }

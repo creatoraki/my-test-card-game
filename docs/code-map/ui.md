@@ -45,7 +45,7 @@ src/ui/
 | [town/TownScreen/StationBot](../../src/ui/town/TownScreen/StationBot/StationBot.tsx) | 据点常驻管理终端：复用 `common/ChatBot` 与独立台词池，点击立绘会播放点击音效并插入 poke 台词。 |
 | [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
 | [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配、模组制造与科技树场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
-| [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 工房与研究中心共用的暗色抽屉入口砖与入场/退场动画容器。 |
+| [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 研究中心使用的暗色抽屉入口砖与入场/退场动画容器。 |
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、在编队员/阵亡/积分读数、三行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
 | [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 医疗室入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
 | [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 医疗室横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
@@ -67,8 +67,9 @@ src/ui/
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
 | [town/storage/EquipUpgradePanel](../../src/ui/town/storage/EquipUpgradePanel/EquipUpgradePanel.tsx) | 装备升阶面板：展示当前装备与下一阶预览，复用目标列/消耗清单并派发 `upgradeEquip`。 |
 | [town/storage/EquipReforgePanel](../../src/ui/town/storage/EquipReforgePanel/EquipReforgePanel.tsx) | 装备词条重铸面板：扣除绿色水晶后展示原/新词条二选一，候选状态由城镇 store 持久化。 |
-| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房装备侧场景编排：只保留装备升阶与羁绊重铸入口、装备读数和面板挂载。 |
-| 旧 `town/assembly/AssemblyPanelShell` | 舱内弹窗的通用外壳已提升为公共件 [`common/PanelShell`](../../src/ui/common/PanelShell/PanelShell.tsx)（见「公共组件」一节），装配舱与制造弹窗改为从 `@/ui/common/PanelShell` 引用，样式规则一行未改。 |
+| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房场景编排：使用紫粉主题的常驻 HUD 窗口与左侧导航，在装备升阶和羁绊重铸之间换页；返回按钮由工房场景自带。 |
+| [town/assembly/AssemblyChrome](../../src/ui/town/assembly/AssemblyChrome/) | 工房品牌牌、左侧导航、返回按钮与常驻窗口的场景外框组件；窗口复用 `HudFrame`，导航牌面复用商店的 `NavigationFrame`，统一处理离场淡出。 |
+| [town/assembly/assemblyTheme.module.css](../../src/ui/town/assembly/assemblyTheme.module.css) | 工房紫粉主题令牌，供品牌、导航、返回按钮、主操作按钮和装备筛选页签共用。 |
 | [town/terminal/CraftPanel](../../src/ui/town/terminal/CraftPanel/CraftPanel.tsx) | 模组制造弹窗：注入熔炉琥珀配色，订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与装配弹窗一致。 |
 | [town/terminal/CraftRecipeGrid](../../src/ui/town/terminal/CraftRecipeGrid/CraftRecipeGrid.tsx) | 中央制造清单：列出当前角色可造的模组与「材料齐备 / 材料不足 / 经验不足」状态；判定结果由面板算好传入，组件不读 store。 |
 | [town/terminal/CraftBench](../../src/ui/town/terminal/CraftBench/CraftBench.tsx) | 右栏制造台：产出预览、经验与材料消耗清单、缺料提示与制造按钮；按钮禁用条件直接来自 `craftCheck`。 |
@@ -242,7 +243,7 @@ src/ui/
 | [CardKeywordNotes](../../src/ui/common/CardKeywordNotes/CardKeywordNotes.tsx) | 按卡牌说明中实际出现的词条展示紧凑释义列表；无词条时不渲染。 |
 | [PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx) | 功能弹窗通用外壳：模态遮罩、切角面板、边框装饰层与 `EventPanelFrame` 收口，导出关闭动画时长与默认面板尺寸（1600×920，可用 `size` 覆盖）。原为装配舱私有件，现由装配舱、制造弹窗与角色档案 Modal 共用；可选形变模式支持入口砖 → 面板的三段形变、种子态与遮罩跟随淡入；配色只靠外层覆盖 `--asm-*` 变量，场景未下发时吃组件自带的青蓝默认值，层序由调用方经 `className` 压。 |
 | [HudFrame](../../src/ui/common/HudFrame/HudFrame.tsx) | 粉色霓虹 HUD 几何外框：按真实容器像素生成台阶、切角和断口路径，内容区复用同一闭合路径裁切；装备升阶正式面板与 Opus demo 共用。 |
-| [HudPanelShell](../../src/ui/common/HudPanelShell/HudPanelShell.tsx) | 装备升阶专用 HUD 弹窗壳：承接入口砖形变、种子占位、粉色 HUD 外框和不受内容裁切影响的关闭按钮；内容落位后才挂载 `HudFrame`。 |
+| [HudPanelShell](../../src/ui/common/HudPanelShell/HudPanelShell.tsx) | 形变弹窗专用 HUD 外壳：承接入口砖形变、种子占位、HUD 外框和关闭按钮；工房已改由 `town/assembly/AssemblyChrome/AssemblyWindow` 承载常驻面板。 |
 | [common/panelMorph](../../src/ui/common/panelMorph/usePanelMorph.ts) | 从冬眠仓提升的公共入口砖形变引擎：按设计 px 执行三段开窗与倒放关窗，统一处理种子态时机、入口隐藏、Esc、动画完成兜底；冬眠仓与物资中转仓共用。 |
 | [CharacterModal](../../src/ui/common/CharacterModal/CharacterModal.tsx) | 角色档案 Modal：立绘/三段血量/污染/怪癖、只读属性表（分组来自 `common/statGroups.ts`）、中列装备三槽与右列只读卡组平铺（`HandCard`）。不读 store、不含规则，全部靠 props 与回调；传 `swap` 即可点击装备槽打开画布内候选浮层并与容器互换，默认装备区只读；可按调用方需要传入临时状态与护盾。装备槽不写部位文字（部位只留在 `aria-label` 与悬浮 Tooltip），槽位 176×176 并常驻挂 `InteractiveHint` 四角悬浮提示。 |
 | [statGroups.ts](../../src/ui/common/statGroups.ts) | 面板属性的分组、文案与条长 `ref` 旋钮，角色详情态与角色档案 Modal 共用的唯一真相点；`ref` 是纯展示旋钮，不参与任何结算。 |

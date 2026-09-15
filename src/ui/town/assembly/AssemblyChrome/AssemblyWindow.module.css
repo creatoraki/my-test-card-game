@@ -5,6 +5,12 @@
   top: 100px;
   bottom: 58px;
   pointer-events: auto;
+  animation: arrive 420ms ease-out both;
+}
+
+.frame {
+  width: 100%;
+  height: 100%;
 }
 
 .page {
@@ -21,21 +27,27 @@
   animation: pageEnter 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
 }
 
-.stat {
-  display: grid;
-  min-width: 110px;
-  gap: 3px;
-  color: var(--sx-muted);
-  font-size: 18px;
-  letter-spacing: 1px;
-  white-space: nowrap;
+:global([data-assembly-root][data-leaving]) .window {
+  pointer-events: none;
+  animation: depart 300ms ease-in both;
 }
 
-.stat strong {
-  color: var(--sx-key-hot);
-  font-size: 26px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
+@keyframes arrive {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes depart {
+  to {
+    opacity: 0;
+    translate: 0 18px;
+  }
 }
 
 @keyframes pageLeave {

@@ -12,6 +12,10 @@
   --sx-dim: #848d93;
   --sx-line: #aab2b82e;
   --sx-line-lit: #edc77942;
+  --sx-title: #ffe6a4;
+  --sx-title-glow: #edc7794d;
+  --sx-title-shadow: #5a401f;
+  --sx-line-hot: #fff4cf;
 
   /* 冷青黑底：受光面、常规面与凹陷阴影面。 */
   --sx-bg-hi: #0b131a;
@@ -31,7 +35,9 @@
 
   /* 下游 PanelShell 与升级树使用的主题桥。 */
   --asm-glow: var(--sx-key);
+  --asm-frame: var(--sx-key);
   --asm-select: var(--sx-key-hot);
+  --asm-cyan: var(--sx-key-hot);
   --asm-ink: var(--sx-ink);
   --asm-ink-dim: var(--sx-muted);
   --asm-line: var(--sx-line);

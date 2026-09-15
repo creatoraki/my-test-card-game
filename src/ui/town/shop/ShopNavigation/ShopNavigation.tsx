@@ -1,6 +1,5 @@
-import { NavigationFrame } from "./NavigationFrame";
 import { NavigationIcon } from "./NavigationIcon";
-import s from "./ShopNavigation.module.css";
+import { NavigationRail } from "./NavigationRail";
 
 export type ShopPage = "shop" | "recycle" | "warehouse";
 const entries = [
@@ -11,14 +10,11 @@ const entries = [
 
 export function ShopNavigation({ page, onChange }: { page: ShopPage; onChange: (page: ShopPage) => void }) {
   return (
-    <nav className={s.nav} aria-label="商店功能">
-      {entries.map(({ id, label }) => (
-        <button key={id} type="button" className={s.entry} aria-current={page === id ? "page" : undefined} onClick={() => onChange(id)}>
-          <NavigationFrame />
-          <span className={s.icon}><NavigationIcon page={id} /></span>
-          <span className={s.label}>{label}</span>
-        </button>
-      ))}
-    </nav>
+    <NavigationRail
+      entries={entries.map((entry) => ({ ...entry, icon: <NavigationIcon page={entry.id} /> }))}
+      value={page}
+      onChange={onChange}
+      ariaLabel="商店功能"
+    />
   );
 }

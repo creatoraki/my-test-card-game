@@ -1,67 +1,42 @@
-// 工房(据点设施 assembly)的装备侧界面：这里只保留装备升阶与羁绊重铸。
-// 模组装配与模组制造已迁入研究中心(terminal)，入口与浮层分别由各自模块管理。
+// 工房设施场景：常驻 HUD 面板内切换装备升阶与羁绊重铸。
 
-import { useMemo, type CSSProperties } from "react";
-import { useTownStore } from "@/store/townStore";
+import { useState } from "react";
 import { cx } from "@/ui/common/cx";
-import { DrawerEntries } from "@/ui/town/drawerEntry";
-import { buildEquipTargets } from "../EquipTargetList";
-import { useEquipPanels } from "./EquipEntries";
+import { HUD_TONE_BLUE } from "@/ui/common/HudPanelShell";
+import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
+import { EquipReforgePanel } from "../EquipReforgePanel";
+import { EquipUpgradePanel } from "../EquipUpgradePanel";
+import theme from "../assemblyTheme.module.css";
+import { AssemblyBack, AssemblyBrand, AssemblyNavigation, AssemblyWindow, type AssemblyPage } from "../AssemblyChrome";
 import s from "./AssemblyScene.module.css";
-
-const cn = (...values: Array<string | false | null | undefined>) =>
-  cx(...values.map((value) => (typeof value === "string" ? s[value] : value)));
 
 interface Props {
   leaving?: boolean;
+  onBack?: () => void;
 }
 
-export function AssemblyScene({ leaving = false }: Props) {
-  const storage = useTownStore((state) => state.storage);
-  const characters = useTownStore((state) => state.characters);
-  const equip = useEquipPanels();
-  const equipTargets = useMemo(() => buildEquipTargets(storage, characters), [characters, storage]);
-  const equipmentCount = equipTargets.length;
-  const equippedCount = equipTargets.filter((entry) => entry.ownerName).length;
+export function AssemblyScene({ leaving = false, onBack }: Props) {
+  const [view, setView] = useState<AssemblyPage>("upgrade");
+  const { value: shownView, phase } = useSwapTransition(view, view, 170, 280);
 
   return (
-    <div className={cn("asm-scene", leaving && "is-leaving")}>
-      <header className={cn("asm-header")} style={{ left: "56px", top: "42px" }}>
-        <h2 className={cn("asm-title")}>工房</h2>
-        <p className={cn("asm-sub")}>装备升阶 · 羁绊重铸</p>
-      </header>
-
-      <div className={cn("asm-readout")} style={{ right: "56px", top: "42px" }}>
-        <Readout label="可改装装备" value={equipmentCount} />
-        <Readout label="已装备" value={equippedCount} />
-      </div>
-
-      <DrawerEntries
-        leaving={leaving}
-        style={
-          {
-            right: "0px",
-            top: "138px",
-            width: "500px",
-            height: "216px",
-            "--peek": "296px",
-            ...equip.entryVars,
-          } as CSSProperties
-        }
+    <div
+      className={cx(theme.theme, s.root)}
+      data-assembly-root
+      data-leaving={leaving ? "" : undefined}
+    >
+      <AssemblyBrand />
+      <AssemblyNavigation page={view} onChange={setView} />
+      <AssemblyWindow
+        ariaLabel={shownView === "upgrade" ? "装备升阶面板" : "羁绊重铸面板"}
+        tone={shownView === "reforge" ? HUD_TONE_BLUE : undefined}
+        phase={phase}
       >
-        {equip.entries}
-      </DrawerEntries>
-
-      {equip.panels}
+        {shownView === "upgrade" ? <EquipUpgradePanel /> : <EquipReforgePanel />}
+      </AssemblyWindow>
+      {onBack && <AssemblyBack onClick={onBack} />}
     </div>
   );
 }
 
-function Readout({ label, value }: { label: string; value: number }) {
-  return (
-    <div className={cn("asm-chip")}>
-      <span className={cn("asm-chip-label")}>{label}</span>
-      <strong className={cn("asm-chip-value")}>{value}</strong>
-    </div>
-  );
-}
+export default AssemblyScene;

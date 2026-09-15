@@ -8,6 +8,7 @@
   transform-origin: top left;
   pointer-events: none;
 }
+
 .brand svg {
   position: absolute;
   inset: 0;
@@ -15,18 +16,20 @@
   height: 100%;
   overflow: visible;
 }
+
 .brand strong {
   position: absolute;
   top: 18px;
   left: 46px;
-  color: var(--brand-text, #ffe7a2);
+  color: var(--asm-brand-text);
   font-size: 28px;
   line-height: 36px;
   font-weight: 700;
   letter-spacing: 3px;
-  text-shadow: 0 0 3px var(--brand-text-hot, #ffecaa), 0 0 11px var(--brand-glow-near, #f8b840b3), 0 0 23px var(--brand-glow-far, #d78e3466);
+  text-shadow: 0 0 3px var(--asm-brand-text-hot), 0 0 11px var(--asm-brand-glow-near), 0 0 23px var(--asm-brand-glow-far);
 }
-:global([data-shop-root][data-leaving]) .brand {
+
+:global([data-assembly-root][data-leaving]) .brand {
   opacity: 0;
   transition: opacity 300ms;
 }

@@ -1,36 +1,81 @@
+/* 工房主操作按钮：紫粉描边层 + 近黑核心 + 四边内辉光。 */
 .action {
+  --btn-cut-a: 14px;
+  --btn-cut-b: 6px;
+  --btn-shape: polygon(
+    var(--btn-cut-a) 0,
+    calc(100% - var(--btn-cut-b)) 0,
+    100% var(--btn-cut-b),
+    100% calc(100% - var(--btn-cut-a)),
+    calc(100% - var(--btn-cut-a)) 100%,
+    var(--btn-cut-b) 100%,
+    0 calc(100% - var(--btn-cut-b)),
+    0 var(--btn-cut-a)
+  );
+  --btn-stroke: linear-gradient(135deg, var(--asm-key-hot), var(--asm-key) 35%, var(--asm-violet) 68%, #7040c8);
+  --btn-core: #171020;
+  --btn-edge: #a944a9;
+  --btn-edge-soft: #713e844d;
+  --btn-bloom-bottom: #6f2e70;
+  --btn-bloom-bottom-mid: #3b214b99;
+  --btn-bloom-top: #9d4f95;
+  --btn-bloom-top-mid: #3c264799;
+  --btn-ink: #fff1fb;
+  --btn-halo: #ff5fc866;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: none;
   width: 100%;
+  min-height: 60px;
   margin-top: auto;
-  padding: 14px 12px;
-  border: 1px solid var(--hud-body, #ff2f8e);
+  padding: 10px 22px;
+  border: 0;
   border-radius: 0;
-  background: linear-gradient(
-    100deg,
-    color-mix(in srgb, var(--hud-body, #ff2f8e) 20%, transparent),
-    color-mix(in srgb, var(--hud-body, #ff2f8e) 8%, transparent)
-  );
-  box-shadow: inset 0 1px 0 #ffffff26;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  color: var(--hud-ink, #ffe5f1);
+  background: var(--btn-stroke);
+  clip-path: var(--btn-shape);
   cursor: var(--cursor-pointer);
   font: inherit;
-  font-size: 22.5px;
-  letter-spacing: 0.3em;
-  transition: transform 0.14s ease, box-shadow 0.16s ease;
+  transition: filter 180ms ease, transform 80ms ease;
 }
 
-.action:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 #ffffff26,
-    0 0 22px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 25%, transparent);
+.action::before {
+  position: absolute;
+  z-index: 0;
+  inset: 1px;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--btn-edge) 0, var(--btn-edge-soft) 3px, transparent 22px),
+    linear-gradient(270deg, var(--btn-edge) 0, var(--btn-edge-soft) 3px, transparent 22px),
+    linear-gradient(0deg, var(--btn-bloom-bottom) 0, var(--btn-bloom-bottom-mid) 14%, transparent 38%),
+    linear-gradient(180deg, var(--btn-bloom-top) 0, var(--btn-bloom-top-mid) 10%, transparent 19%),
+    var(--btn-core);
+  clip-path: var(--btn-shape);
+}
+
+.action:hover:not(:disabled),
+.action:focus-visible:not(:disabled) {
+  filter: drop-shadow(0 0 15px var(--btn-halo)) brightness(1.16);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--asm-key-hot);
+  outline-offset: 3px;
 }
 
 .action:disabled {
-  border-color: color-mix(in srgb, var(--hud-ink-dim, #9fb6cc) 42%, #101820);
-  background: color-mix(in srgb, var(--hud-ink-dim, #9fb6cc) 10%, #0b1018);
-  box-shadow: none;
-  color: color-mix(in srgb, var(--hud-ink-dim, #9fb6cc) 78%, #0b1018);
+  opacity: 0.45;
   cursor: not-allowed;
+}
+
+.label {
+  position: relative;
+  z-index: 1;
+  color: var(--btn-ink);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
 }

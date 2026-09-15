@@ -17,7 +17,7 @@ export function EquipAction({ disabled = false, label, ariaLabel, onClick }: Pro
       onClick={onClick}
       aria-label={ariaLabel}
     >
-      {label}
+      <span className={s.label}>{label}</span>
     </button>
   );
 }

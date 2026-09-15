@@ -1,8 +1,8 @@
 .hall {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 18px;
-  height: 700px;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 24px;
+  height: 100%;
   min-height: 0;
   --item-tab-font-size: 18px;
   --item-tab-count-size: 18px;
@@ -21,28 +21,85 @@
   --item-detail-note-size: 18px;
 }
 
-.catalog, .detail {
+.catalog {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
   min-height: 0;
+  padding: 0;
   font-size: var(--museum-font-body, 20px);
-  background: #08131266;
-  border: 1px solid var(--museum-line);
+  background: transparent;
 }
-.catalog { display: grid; grid-template-rows: auto auto minmax(0, 1fr); padding: 16px; }
-.detail { padding: 10px; }
-.section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.kicker { color: var(--museum-accent); font-size: var(--museum-font-kicker, 18px); letter-spacing: 0.16em; }
-.section-head h3 { margin: 5px 0 0; color: var(--museum-ink); font-size: var(--museum-font-section, 30px); letter-spacing: 0.12em; }
-.count { color: var(--museum-dim); font-size: var(--museum-font-label, 18px); font-variant-numeric: tabular-nums; }
-.tabs { margin: 16px 0 12px; }
+
+.detail {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid var(--sx-line);
+  border-left-color: var(--sx-line-lit);
+  background: linear-gradient(145deg, #0b131ae0, #040a0fe8);
+  box-shadow: var(--sx-sunk);
+  font-size: var(--museum-font-body, 20px);
+}
+
+.section-head {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 2px;
+  padding: 11px 10px 11px 26px;
+  border-bottom: 1px solid var(--sx-line-lit);
+}
+
+.section-head::before {
+  position: absolute;
+  top: 11px;
+  left: 10px;
+  width: 4px;
+  height: 42px;
+  background: var(--sx-key-hot);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--sx-key) 48%, transparent);
+  content: "";
+}
+
+.kicker {
+  color: var(--sx-key);
+  font-size: var(--museum-font-kicker, 18px);
+  letter-spacing: 0.16em;
+}
+
+.section-head h3 {
+  margin: 5px 0 0;
+  color: var(--sx-ink);
+  font-size: 24px;
+  letter-spacing: 0.12em;
+}
+
+.count {
+  color: var(--sx-muted);
+  font-size: var(--museum-font-label, 18px);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabs {
+  margin: 16px 0 12px;
+}
+
 .item-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-rows: auto;
+  align-content: start;
   gap: 9px;
   min-height: 0;
   overflow: auto;
-  padding: 8px;
-  align-content: start;
+  padding: 8px 4px 8px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sx-key) 52%, transparent) var(--sx-bg-lo);
   --item-slot-icon-size: 52%;
   --item-slot-name-size: 18px;
   --item-slot-notch: 12px;
@@ -52,9 +109,27 @@
   --item-slot-pad: 12px 10px;
   --item-slot-gap: 6px;
 }
-.slot-anchor { position: relative; min-width: 0; aspect-ratio: 1; }
-.slot-hint { --ihint-offset: 4px; --ihint-size: 18px; }
-.item-slot { width: 100%; }
+
+.slot-anchor {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1;
+}
+
+.slot-hint {
+  --ihint-offset: 4px;
+  --ihint-size: 18px;
+}
+
+.item-slot {
+  --accent: var(--sx-key);
+  --accent2: var(--sx-key-hot);
+  --border: var(--sx-line);
+  --muted: var(--sx-muted);
+  --text: var(--sx-ink);
+  width: 100%;
+}
+
 .locked-button {
   display: block;
   width: 100%;
@@ -64,8 +139,19 @@
   border: 0;
   cursor: var(--cursor-pointer);
 }
-.locked-button > div { width: 100%; }
-.locked-button:hover > div, .locked-button.is-selected > div { border-color: var(--museum-accent); color: var(--museum-accent); }
-.locked-button:focus-visible { outline: 1px solid var(--museum-accent); outline-offset: 3px; }
 
-@media (prefers-reduced-motion: reduce) { .locked-button > div { transition: none; } }
+.locked-button > div {
+  width: 100%;
+}
+
+.locked-button:hover > div,
+.locked-button.is-selected > div {
+  border-color: var(--sx-key);
+  color: var(--sx-key);
+  box-shadow: 0 0 18px -8px var(--sx-key);
+}
+
+.locked-button:focus-visible {
+  outline: 1px solid var(--sx-key);
+  outline-offset: 3px;
+}

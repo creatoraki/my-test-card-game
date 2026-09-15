@@ -61,6 +61,7 @@ import { guardSortie, useFormationTodo } from "../formationTodo";
 import s from "./TownScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";
+const FACILITIES_WITH_OWN_BACK = new Set(["shop", "museum", "assembly"]);
 
 // ===================== 设施内容登记处 =====================
 // 设施 id → 进去之后在设施背景上渲染什么。未登记的设施仍是「只有背景 + 返回据点」的空场景。
@@ -68,7 +69,7 @@ const isTest = import.meta.env.isTest === "true";
 // leaving 参数 = 返回据点的演出已开始, 交给设施组件自己做淡出(与背景转场同步)。
 const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) => ReactNode> = {
   // 工房: 装备升阶 / 羁绊重铸
-  assembly: (leaving) => <AssemblyScene leaving={leaving} />,
+  assembly: (leaving, onBack) => <AssemblyScene leaving={leaving} onBack={onBack} />,
   // 商店: 货架 / 仓库 / 回收台 / 库存清单
   shop: (leaving, onBack) => <ShopScene leaving={leaving} onBack={onBack} />,
   // 医疗室: 复苏舱 / 营养舱 / 圣水池
@@ -76,7 +77,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   // 研究中心: 模组装配 / 模组制造
   worklog: (leaving) => <ResearchScene leaving={leaving} />,
   // 档案机: 物品 / 卡牌 / 怪物图鉴
-  museum: (leaving) => <MuseumScene leaving={leaving} />,
+  museum: (leaving, onBack) => <MuseumScene leaving={leaving} onBack={onBack} />,
 };
 
 // ===================== 进设施演出 =====================
@@ -337,7 +338,7 @@ export function TownScreen() {
       {inFacility && facilityId && FACILITY_CONTENT[facilityId] && (
         <FacilityExitProvider register={exit.register}>
           {FACILITY_CONTENT[facilityId](phase === "leaving", backToTown)}
-          {facilityId !== "shop" && <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />}
+          {!FACILITIES_WITH_OWN_BACK.has(facilityId ?? "") && <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />}
         </FacilityExitProvider>
       )}
     </StageCanvas>

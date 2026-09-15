@@ -33,7 +33,7 @@
   clip-path: none;
   background: transparent;
   color: #c7deeb;
-  font-size: 25px;
+  font-size: var(--nav-label-size, 25px);
   font-weight: 700;
   letter-spacing: 1px;
   text-align: left;
@@ -42,16 +42,16 @@
 }
 
 .entry[aria-current] {
-  --plate-start: #49432af5;
-  --plate-middle: #25281ff7;
-  --plate-end: #494026f5;
-  --edge-hot: #fffbd0;
-  --edge-mid: #ffd35f;
-  --edge-dim: #b68a32;
-  --tab-arrow: #fff4c5;
+  --plate-start: var(--nav-active-plate-start, #49432af5);
+  --plate-middle: var(--nav-active-plate-middle, #25281ff7);
+  --plate-end: var(--nav-active-plate-end, #494026f5);
+  --edge-hot: var(--nav-active-edge-hot, #fffbd0);
+  --edge-mid: var(--nav-active-edge-mid, #ffd35f);
+  --edge-dim: var(--nav-active-edge-dim, #b68a32);
+  --tab-arrow: var(--nav-active-tab-arrow, #fff4c5);
   --tab-flare: 1;
-  color: #fff9e6;
-  filter: drop-shadow(0 0 3px #ffda7699) drop-shadow(0 0 10px #ffba333d);
+  color: var(--nav-active-color, #fff9e6);
+  filter: drop-shadow(0 0 3px var(--nav-active-glow-near, #ffda7699)) drop-shadow(0 0 10px var(--nav-active-glow-far, #ffba333d));
 }
 
 .entry:hover {
@@ -59,7 +59,7 @@
 }
 
 .entry[aria-current]:hover {
-  filter: brightness(1.12) drop-shadow(0 0 6px #ffc44277);
+  filter: brightness(1.12) drop-shadow(0 0 6px var(--nav-active-hover-glow, #ffc44277));
 }
 
 .entry:focus-visible {
@@ -72,8 +72,8 @@
   flex: none;
   width: 38px;
   height: 38px;
-  color: #ffe58c;
-  filter: drop-shadow(0 0 3px #ffc95466);
+  color: var(--nav-icon, #ffe58c);
+  filter: drop-shadow(0 0 3px var(--nav-icon-glow, #ffc95466));
 }
 
 .icon svg {
@@ -89,7 +89,12 @@
 }
 
 .entry[aria-current] .label {
-  text-shadow: 0 0 5px #ffdd8966;
+  text-shadow: 0 0 5px var(--nav-active-label-glow, #ffdd8966);
+}
+
+.entry[aria-current] .icon {
+  color: var(--nav-active-icon, #ffe58c);
+  filter: drop-shadow(0 0 3px var(--nav-active-icon-glow, #ffc95466));
 }
 
 :global([data-shop-root][data-leaving]) .nav {

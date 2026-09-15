@@ -1,0 +1,89 @@
+.theme {
+  /* 博物馆沿用商店的冷灰黑底，只把交互主光、标题和牌面选中态换成青绿。 */
+  --sx-key: #6ed6b8;
+  --sx-key-hot: #a4efd7;
+  --sx-key-wash: #6ed6b81f;
+  --sx-fill: #4e8ba3;
+  --sx-fill-wash: #4e8ba316;
+
+  --sx-ink: #eceff1;
+  --sx-muted: #aab2b8;
+  --sx-dim: #848d93;
+  --sx-line: #aab2b82e;
+  --sx-line-lit: #6ed6b842;
+
+  --sx-bg-hi: #0b131a;
+  --sx-bg: #081016;
+  --sx-bg-lo: #040a0f;
+
+  --sx-action: var(--sx-key);
+  --sx-action-hot: var(--sx-key-hot);
+  --sx-alert: #ff9383;
+  --sx-electric: var(--sx-key);
+
+  --sx-lit: inset 0 1px 0 var(--sx-line-lit), inset 0 -1px 0 #4e8ba31c;
+  --sx-sunk: inset 0 2px 14px -8px #000000d0, inset 0 -1px 0 #4e8ba31c;
+  --sx-drop: 0 18px 40px -26px #000000c4;
+
+  --sx-title: #bff9e4;
+  --sx-title-glow: #6ed6b866;
+  --sx-title-shadow: #164c3c;
+  --sx-line-hot: #dcfff3;
+
+  --nav-active-plate-start: #1f4f46f5;
+  --nav-active-plate-middle: #122c28f7;
+  --nav-active-plate-end: #1e4a40f5;
+  --nav-active-edge-hot: #e4fff5;
+  --nav-active-edge-mid: #6ed6b8;
+  --nav-active-edge-dim: #368d75;
+  --nav-active-tab-arrow: #c4ffea;
+  --nav-active-color: #eafff7;
+  --nav-active-glow-near: #6ed6b899;
+  --nav-active-glow-far: #2aa98055;
+  --nav-active-hover-glow: #6ed6b877;
+  --nav-active-label-glow: #86f0cf88;
+  --nav-icon: #9bdcca;
+  --nav-icon-glow: #4ac49b66;
+  --nav-active-icon: #c8ffec;
+  --nav-active-icon-glow: #6ed6b8aa;
+  --nav-label-size: 20px;
+
+  --brand-fill-start: #194b3e;
+  --brand-fill-middle: #102a25;
+  --brand-fill-end: #1a4238;
+  --brand-line-hot: #dffff2;
+  --brand-line-mid: #65c9a7;
+  --brand-line-end: #a4efd7;
+  --brand-shard-hot: #a4efd7;
+  --brand-shard-mid: #62c4a1;
+  --brand-shard-dim: #3b806b;
+  --brand-text: #cffff0;
+  --brand-text-hot: #e8fff7;
+  --brand-glow-near: #6ed6b8b3;
+  --brand-glow-far: #2d997566;
+
+  /* 旧展厅组件仍使用 museum-*，统一映射到新的 sx 令牌。 */
+  --museum-ink: var(--sx-ink);
+  --museum-dim: var(--sx-muted);
+  --museum-line: var(--sx-line);
+  --museum-accent: var(--sx-key);
+  --museum-gold: var(--sx-key);
+  --museum-font-kicker: 18px;
+  --museum-font-label: 18px;
+  --museum-font-body: 20px;
+  --museum-font-entry: 24px;
+  --museum-font-value: 26px;
+  --museum-font-section: 30px;
+  --museum-font-title: 46px;
+  --museum-font-panel-title: 56px;
+
+  /* PanelShell 旧桥接变量保留，避免同域其它组件接入时失去主题。 */
+  --asm-glow: var(--sx-key);
+  --asm-frame: var(--sx-key);
+  --asm-select: var(--sx-key-hot);
+  --asm-cyan: var(--sx-key-hot);
+  --asm-ink: var(--sx-ink);
+  --asm-ink-dim: var(--sx-muted);
+  --asm-line: var(--sx-line);
+  --ui-glow-color: var(--sx-key);
+}

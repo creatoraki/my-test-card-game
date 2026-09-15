@@ -7,10 +7,10 @@ export function DetailFrame({
   tone = "blue",
 }: {
   subtle?: boolean;
-  tone?: "blue" | "gold";
+  tone?: "blue" | "gold" | "teal";
 }) {
   return (
-    <span className={cx(s.frame, subtle && s.subtle, tone === "gold" && s.gold)} aria-hidden="true">
+    <span className={cx(s.frame, subtle && s.subtle, tone === "gold" && s.gold, tone === "teal" && s.teal)} aria-hidden="true">
       <span className={s.outer} />
       <span className={s.inner} />
       <span className={s.corners} />

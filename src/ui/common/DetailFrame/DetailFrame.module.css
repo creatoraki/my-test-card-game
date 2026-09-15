@@ -27,6 +27,17 @@
   --frame-glow-far: #b8863199;
 }
 
+.teal {
+  --frame-stroke: linear-gradient(115deg, #e8fff7, #a4efd7 18%, #6ed6b8 40%, #d9fff3 67%, #8edfc5);
+  --frame-inner-stroke: linear-gradient(125deg, #a4efd7b3, #6ed6b84d 40%, #c9ffebcc);
+  --frame-corner-tl: linear-gradient(#e8fff7, #a4efd7);
+  --frame-corner-tr: linear-gradient(#a4efd7, #6ed6b8);
+  --frame-corner-bl: linear-gradient(#6ed6b8, #e8fff7);
+  --frame-corner-br: linear-gradient(#8edfc5, #e8fff7);
+  --frame-glow-near: #6ed6b8;
+  --frame-glow-far: #2eaa8499;
+}
+
 .outer,
 .inner,
 .corners {

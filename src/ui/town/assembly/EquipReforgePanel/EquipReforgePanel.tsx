@@ -8,24 +8,11 @@ import ItemTooltip, {
   type TooltipDirection,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { HudPanelShell, HUD_TONE_BLUE } from "@/ui/common/HudPanelShell";
 import { buildEquipTargets, equipStackOf, equipTargetKey } from "../EquipTargetList";
 import { ReforgeBoard } from "./parts/ReforgeBoard";
 import { useReforgeView } from "./reforgeView";
 
-interface Props {
-  closing?: boolean;
-  onClose: () => void;
-  morph: {
-    ref: React.Ref<HTMLElement>;
-    rect: import("@/ui/common/panelMorph").Rect;
-    ready: boolean;
-    seed?: React.ReactNode;
-    seedLabel?: string;
-  };
-}
-
-export function EquipReforgePanel({ closing = false, onClose, morph }: Props) {
+export function EquipReforgePanel() {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const pending = useTownStore((state) => state.pendingReforge);
@@ -70,37 +57,29 @@ export function EquipReforgePanel({ closing = false, onClose, morph }: Props) {
 
   return (
     <>
-      <HudPanelShell
-        tone={HUD_TONE_BLUE}
-        closing={closing}
-        onClose={onClose}
-        label="羁绊重铸面板"
-        morph={morph}
-      >
-        <ReforgeBoard
-          entries={entries}
-          equipTab={equipTab}
-          onEquipTab={setEquipTab}
-          selectedKey={selectedKey}
-          onSelect={(key) => {
-            if (pending) return;
-            const next = keyMap.get(key);
-            if (next) setSelected(next);
-          }}
-          current={current}
-          currentDef={view.def}
-          check={view.check}
-          pending={pending}
-          notice={pending
-            ? "请选择要保留的羁绊，放弃新羁绊不会返还材料。"
-            : view.notice}
-          canRoll={view.canRoll}
-          onRoll={() => target && rollReforge(target)}
-          onApply={applyReforge}
-          onShowTooltip={showTooltip}
-          onHideTooltip={() => setHovered(null)}
-        />
-      </HudPanelShell>
+      <ReforgeBoard
+        entries={entries}
+        equipTab={equipTab}
+        onEquipTab={setEquipTab}
+        selectedKey={selectedKey}
+        onSelect={(key) => {
+          if (pending) return;
+          const next = keyMap.get(key);
+          if (next) setSelected(next);
+        }}
+        current={current}
+        currentDef={view.def}
+        check={view.check}
+        pending={pending}
+        notice={pending
+          ? "请选择要保留的羁绊，放弃新羁绊不会返还材料。"
+          : view.notice}
+        canRoll={view.canRoll}
+        onRoll={() => target && rollReforge(target)}
+        onApply={applyReforge}
+        onShowTooltip={showTooltip}
+        onHideTooltip={() => setHovered(null)}
+      />
       {hovered && <ItemTooltip stack={hovered.stack} point={hovered.point} />}
     </>
   );
