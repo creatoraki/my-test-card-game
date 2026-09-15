@@ -75,13 +75,20 @@ describe("货商房间", () => {
   it("货商不影响房间已探索判定，货架固定六格", () => {
     const s = sessionWith("merchant");
     const room = s.dungeon!.rooms[s.dungeon!.currentRoomId];
-    expect(room.curios[0].shelf?.slots).toHaveLength(6);
+    const shelf = room.curios[0].shelf!;
+    expect(shelf.slots).toHaveLength(6);
+    expect(shelf.foods).toHaveLength(2);
+    expect(new Set(shelf.foods).size).toBe(2);
+    expect(shelf.slots.every((slot) => shelf.foods.includes(slot.price.itemId))).toBe(true);
     expect(isRoomExplored(room)).toBe(true);
   });
 
   it("货架商品买完即空，不能重复购买", () => {
-    const s = sessionWith("merchant", [makeItemStack("bread", 4)]);
+    const s = sessionWith("merchant");
     const room = s.dungeon!.rooms[s.dungeon!.currentRoomId];
+    const shelf = room.curios[0].shelf!;
+    const payment = shelf.slots[0].price;
+    s.backpack = [makeItemStack(payment.itemId, payment.count)];
     enterRoom(s, room.id);
     s.corridor!.objects[0].kind = "merchant";
     s.corridor!.objects[0].used = false;

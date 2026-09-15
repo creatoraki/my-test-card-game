@@ -1,0 +1,39 @@
+.theme {
+  /* 光照：左上暖金主光 + 右下冷青环境反光。 */
+  --sx-key: #edc779;
+  --sx-key-hot: #ffe5a7;
+  --sx-key-wash: #edc7791f;
+  --sx-fill: #4e8ba3;
+  --sx-fill-wash: #4e8ba316;
+
+  /* 中性冷灰材质，不与金色交互抢色相。 */
+  --sx-ink: #eceff1;
+  --sx-muted: #aab2b8;
+  --sx-dim: #848d93;
+  --sx-line: #aab2b82e;
+  --sx-line-lit: #edc77942;
+
+  /* 冷青黑底：受光面、常规面与凹陷阴影面。 */
+  --sx-bg-hi: #0b131a;
+  --sx-bg: #081016;
+  --sx-bg-lo: #040a0f;
+
+  /* 交互语义与兼容桥接。 */
+  --sx-action: var(--sx-key);
+  --sx-action-hot: var(--sx-key-hot);
+  --sx-alert: #ff9383;
+  --sx-electric: var(--sx-key);
+
+  /* 标准光影：受光边、凹陷面、悬浮投影。 */
+  --sx-lit: inset 0 1px 0 var(--sx-line-lit), inset 0 -1px 0 #4e8ba31c;
+  --sx-sunk: inset 0 2px 14px -8px #000000d0, inset 0 -1px 0 #4e8ba31c;
+  --sx-drop: 0 18px 40px -26px #000000c4;
+
+  /* 下游 PanelShell 与升级树使用的主题桥。 */
+  --asm-glow: var(--sx-key);
+  --asm-select: var(--sx-key-hot);
+  --asm-ink: var(--sx-ink);
+  --asm-ink-dim: var(--sx-muted);
+  --asm-line: var(--sx-line);
+  --ui-glow-color: var(--sx-key);
+}

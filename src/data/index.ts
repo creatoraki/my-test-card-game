@@ -233,6 +233,7 @@ export {
   CORRIDOR_AMBUSH,
   CORRIDOR_CURIOS,
   RANDOM_CURIO_KINDS,
+  corridorWandererEvent,
   curioEvent,
 } from "./curios";
 export type {

@@ -337,7 +337,7 @@ export function TownScreen() {
       {inFacility && facilityId && FACILITY_CONTENT[facilityId] && (
         <FacilityExitProvider register={exit.register}>
           {FACILITY_CONTENT[facilityId](phase === "leaving", backToTown)}
-          <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />
+          {facilityId !== "shop" && <FacilityBack leaving={phase === "leaving"} onClick={backToTown} />}
         </FacilityExitProvider>
       )}
     </StageCanvas>

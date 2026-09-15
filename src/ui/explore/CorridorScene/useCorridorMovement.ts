@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { bossGateNear, clampCorridorX, nearbyObjects, portalAt } from "@/explore/corridor/session";
+import { encounterSpot } from "@/explore/corridor/ambush";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { PortalDir } from "@/explore/dungeon/types";
 import {
-  encounterCorridorThreat, inspectCorridorObject, markStandingPortal,
+  inspectCorridorObject, markStandingPortal,
   openBossGateAt, saveCorridorPosition, travelThroughPortal,
 } from "@/store/exploreCorridor";
 import {
@@ -11,6 +12,7 @@ import {
   hasCorridorMovementViewChanged,
   type CorridorMovementView,
 } from "./corridorMovementView";
+import { createCorridorTriggers } from "./corridorTriggers";
 
 type PortalTravel = (travel: () => boolean) => void;
 type FrameCallback = (x: number) => void;
@@ -43,6 +45,7 @@ export function useCorridorMovement(
   const selected = useRef(selectedId);
   selected.current = selectedId;
   const pressed = useRef(new Set<string>());
+  const [triggers] = useState(() => createCorridorTriggers(corridor, initialPosition.x));
   // 脚下传送门只在「换了一扇门」时提交，避免每帧克隆整个会话。
   const standingDir = useRef<string | null>(corridor.standingPortalDir);
 
@@ -145,13 +148,27 @@ export function useCorridorMovement(
           if (x !== previousX) {
             onFrameRef.current(x);
           }
-          const threat = current.corridor.threats.find((item) => !item.defeated && Math.abs(item.x - x) <= CORRIDOR.encounterRadius);
-          if (threat) {
-            stop();
-            encounterCorridorThreat(threat.id);
-          } else if (positionChanged) {
-            commitView();
-            if (x !== previousX) syncPortal();
+          if (positionChanged) {
+            const trigger = triggers.step(
+              current.corridor,
+              x,
+              facing,
+              x !== previousX ? elapsed * 1000 : 0,
+            );
+            if (trigger === "gate") {
+              openGate();
+            } else if (trigger === "ambush") {
+              position.current = {
+                ...position.current,
+                x: encounterSpot(current.corridor, x, facing),
+                facing,
+                walking: false,
+              };
+              stop();
+            } else {
+              commitView();
+              if (x !== previousX) syncPortal();
+            }
           }
         } else if (!direction && position.current.walking) {
           position.current = { ...position.current, walking: false };

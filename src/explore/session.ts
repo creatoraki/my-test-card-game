@@ -261,6 +261,7 @@ export function createSession(
     board: null,
     party: party.map((p) => ({ ...p })),
     stats: { kills: 0, expTotal: 0, pickups: 0, energySpent: 0 },
+    battleEnergyMark: 0,
     history: [],
     // 出发时带进来的物资(货柜买的 + 从仓库拿的)。★ 拷贝一份: 准备界面那边还持有原数组,
     // 会话开始后两边不能再互相影响。
@@ -333,8 +334,8 @@ export function cheatChangeEnergy(s: ExploreState, delta: number): void {
 //   提前扣会削掉本场自己的收益。BOSS 战不调用本函数(那一场打完即通关)。
 export function spendBattleEnergy(s: ExploreState, rounds: number): void {
   const cost = Math.max(0, Math.round(rounds)) * EXPLORE_RULES.energyPerBattleRound;
-  if (cost <= 0) return;
-  changeEnergy(s, -cost);
+  if (cost > 0) changeEnergy(s, -cost);
+  s.battleEnergyMark = s.stats.energySpent;
 }
 
 // ---------------------------------------------------------------------------

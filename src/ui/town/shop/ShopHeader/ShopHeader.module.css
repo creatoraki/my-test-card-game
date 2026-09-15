@@ -36,6 +36,12 @@
   font-size: 18px;
   letter-spacing: 3px;
 }
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-left: auto;
+}
 .credits {
   display: flex;
   align-items: center;

@@ -87,6 +87,18 @@ export const EXPLORE_RULES = {
     },
   },
 
+  ambush: {
+    minEnergy: 20,
+    guaranteedEnergy: 40,
+    chanceMin: 0.05,
+    chanceMax: 0.35,
+    checkIntervalMs: 2000,
+    tierWeights: [
+      { tier: "t1", weight: 80 },
+      { tier: "t2", weight: 20 },
+    ] as const,
+  },
+
   // ── 推进战斗档位权重(设计文档 §3.1) ──
   // index = **当前房间的深度**(距起始房间的步数)。越深越难; 深度超出表长时取最后一档。
   // BOSS 房不读这张表 —— 那一场固定 t5。

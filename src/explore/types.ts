@@ -399,6 +399,8 @@ export interface ExploreState {
   trialReport: { name: string; story: string; notes: string[] }[];
   // 结算页唯一数据来源; 节点数从 history 的 node 条目、推进轮数从 round 现算。
   stats: ExpeditionStats;
+  /** 上一场战斗结束时的累计粒子消耗，用于计算战后暗雷进度。 */
+  battleEnergyMark: number;
   history: NodeHistoryEntry[];
 
   // ---- 实物背包(设计文档 §六) ----

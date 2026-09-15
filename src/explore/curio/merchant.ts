@@ -1,12 +1,12 @@
 import { getItemDef, makeRolledItemStack } from "@/data";
-import { rngPick } from "@/engine/rng";
+import { rngPick, shuffle } from "@/engine/rng";
 import { addToContainer, consumeItems, countByItemId, stackSlots } from "@/items/inventory";
 import { RULES } from "@/engine/rules";
 import { rollEquipCrate } from "../boons";
 import { backpackFree, dropContext, randomRelicId } from "../session";
 import { fireExploreRelic } from "../relics";
 import type { CardOfferCandidate, ExploreState } from "../types";
-import { MERCHANT_PRICES, merchantPrice } from "@/data/curios/merchantPricing";
+import { MERCHANT_FOOD_POOL, merchantPriceCount } from "@/data/curios/merchantPricing";
 import type { MerchantPayment, MerchantShelf, MerchantSlot } from "@/data/curios/types";
 
 function activeMerchant(s: ExploreState): { shelf: MerchantShelf; objectId: string } | null {
@@ -18,27 +18,49 @@ function activeMerchant(s: ExploreState): { shelf: MerchantShelf; objectId: stri
   return { shelf: object.shelf, objectId };
 }
 
-function itemSlot(s: ExploreState, itemId: string, priceIndex: number): MerchantSlot {
-  return { kind: "item", stack: makeRolledItemStack(s, itemId, 1), price: merchantPrice(priceIndex), sold: false };
+function itemSlot(s: ExploreState, itemId: string, foods: [string, string]): MerchantSlot {
+  const stack = makeRolledItemStack(s, itemId, 1);
+  return {
+    kind: "item",
+    stack,
+    price: { itemId: rngPick(s, foods), count: merchantPriceCount(getItemDef(itemId).category) },
+    sold: false,
+  };
 }
 
 export function createMerchantShelf(s: ExploreState, cards: CardOfferCandidate[]): MerchantShelf {
-  const slots: MerchantSlot[] = cards.slice(0, 2).map((card, index) => ({
+  const foods = shuffle(s, [...MERCHANT_FOOD_POOL]).slice(0, 2) as [string, string];
+  const slots: MerchantSlot[] = cards.slice(0, 2).map((card) => ({
     kind: "card",
     charId: card.charId,
     cardDefId: card.cardDefId,
-    price: merchantPrice(index),
+    price: { itemId: rngPick(s, foods), count: merchantPriceCount("card") },
     sold: false,
   }));
   const equipment = rollEquipCrate(s, dropContext(s));
-  if (equipment) slots.push({ kind: "item", stack: equipment, price: merchantPrice(2), sold: false });
-  slots.push(itemSlot(s, "attack-module-t1", 3));
+  if (equipment) {
+    slots.push({
+      kind: "item",
+      stack: equipment,
+      price: { itemId: rngPick(s, foods), count: merchantPriceCount("equipment") },
+      sold: false,
+    });
+  }
+  slots.push(itemSlot(s, "attack-module-t1", foods));
   const relicId = randomRelicId(s);
-  if (relicId) slots.push({ kind: "item", stack: makeRolledItemStack(s, relicId, 1), price: merchantPrice(4), sold: false });
-  slots.push(itemSlot(s, rngPick(s, ["medical-kit-c", "sugar-cube-c", "holy-water-c"]), 5));
+  if (relicId) {
+    const stack = makeRolledItemStack(s, relicId, 1);
+    slots.push({
+      kind: "item",
+      stack,
+      price: { itemId: rngPick(s, foods), count: merchantPriceCount("relic") },
+      sold: false,
+    });
+  }
+  slots.push(itemSlot(s, rngPick(s, ["medical-kit-c", "sugar-cube-c", "holy-water-c"]), foods));
   // 装备池或遗物池为空时用消耗品补位，货架仍然保持六格。
-  while (slots.length < 6) slots.push(itemSlot(s, "medical-kit-c", slots.length));
-  return { slots: slots.slice(0, 6), opened: true };
+  while (slots.length < 6) slots.push(itemSlot(s, "medical-kit-c", foods));
+  return { slots: slots.slice(0, 6), foods, opened: true };
 }
 
 export function openMerchantShelf(s: ExploreState, cards: CardOfferCandidate[]): boolean {
@@ -60,22 +82,22 @@ export function merchantSlot(s: ExploreState, index: number): MerchantSlot | nul
   return merchantShelf(s)?.slots[index] ?? null;
 }
 
-export function merchantQuote(s: ExploreState, index: number): {
-  slot: MerchantSlot | null;
-  price: MerchantPayment | null;
-  affordable: boolean;
-} {
+export function merchantBuyReason(s: ExploreState, index: number): string | null {
+  if (s.phase !== "shopping") return "当前无法交换";
   const slot = merchantSlot(s, index);
-  const price = slot?.price ?? null;
-  return { slot, price, affordable: Boolean(slot && !slot.sold && price && countByItemId(s.backpack, price.itemId) >= price.count) };
+  if (!slot) return "当前无法交换";
+  if (slot.sold) return "已售出";
+  if (countByItemId(s.backpack, slot.price.itemId) < slot.price.count) {
+    return `缺少${getItemDef(slot.price.itemId).name}`;
+  }
+  if (slot.kind === "item" && stackSlots(slot.stack, getItemDef(slot.stack.itemId)) > backpackFree(s)) {
+    return "背包空间不足";
+  }
+  return null;
 }
 
 export function canBuyMerchantSlot(s: ExploreState, index: number): boolean {
-  const slot = merchantSlot(s, index);
-  if (!slot || slot.sold || s.phase !== "shopping") return false;
-  if (countByItemId(s.backpack, slot.price.itemId) < slot.price.count) return false;
-  if (slot.kind === "item" && stackSlots(slot.stack, getItemDef(slot.stack.itemId)) > backpackFree(s)) return false;
-  return true;
+  return merchantBuyReason(s, index) === null;
 }
 
 export function payMerchant(s: ExploreState, price: MerchantPayment): void {
@@ -105,8 +127,4 @@ export function buyFromMerchant(s: ExploreState, index: number): boolean {
   }
   markMerchantSlotSold(s, index);
   return true;
-}
-
-export function merchantPriceCount(): number {
-  return MERCHANT_PRICES.length;
 }

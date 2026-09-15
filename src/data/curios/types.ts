@@ -83,6 +83,7 @@ export type MerchantSlot =
 
 export interface MerchantShelf {
   slots: MerchantSlot[];
+  foods: [string, string];
   opened: boolean;
 }
 

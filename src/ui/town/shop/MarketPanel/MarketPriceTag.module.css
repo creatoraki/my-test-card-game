@@ -22,6 +22,7 @@
   translate: var(--market-unit) 0;
   transition: filter 180ms;
 }
+.tag:not(button) { cursor: var(--cursor-default); }
 .price {
   position: relative;
   overflow: hidden;
@@ -35,6 +36,23 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-shadow: 0 0 5px #f6cb7855, 0 2px 1px #000;
+}
+.icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: calc(26 * var(--market-unit));
+  height: calc(26 * var(--market-unit));
+  flex: none;
+  place-items: center;
+  margin-right: auto;
+  color: inherit;
+}
+.icon img, .icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .is-ready:hover, .is-ready:focus-visible { filter: brightness(1.2); }
 .is-ready:focus-visible { outline: 2px solid #ffe6b2; outline-offset: -2px; }

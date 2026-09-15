@@ -2,7 +2,10 @@
 
 import { cx } from "@/ui/common/cx";
 import { StockEntries } from "@/ui/town/shop/StockPanels";
+import { ShopBack } from "@/ui/town/shop/ShopBack";
+import theme from "../shopTheme.module.css";
 import s from "./ShopScene.module.css";
+import { ShopBrand } from "./ShopBrand";
 
 interface Props {
   leaving?: boolean;
@@ -12,12 +15,13 @@ interface Props {
 export function ShopScene({ leaving = false, onBack }: Props) {
   return (
     <div
-      className={cx(s["sx-root"], leaving && s["is-leaving"])}
+      className={cx(theme.theme, s["sx-root"], leaving && s["is-leaving"])}
       data-shop-root
       data-leaving={leaving ? "" : undefined}
     >
-      <div className={s.brand}><strong>商店</strong></div>
+      <ShopBrand />
       <StockEntries onBack={onBack} />
+      {onBack && <ShopBack onClick={onBack} />}
     </div>
   );
 }

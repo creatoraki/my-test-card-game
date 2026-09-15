@@ -4,51 +4,7 @@
   right: 70px;
   top: 100px;
   bottom: 58px;
-  display: block;
-  isolation: isolate;
-  --panel-shape: polygon(
-    19px 0,
-    calc(100% - 19px) 0,
-    100% 19px,
-    100% calc(100% - 19px),
-    calc(100% - 19px) 100%,
-    19px 100%,
-    0 calc(100% - 19px),
-    0 19px
-  );
   pointer-events: auto;
-  animation: arrive 420ms ease-out both;
-}
-.window::before {
-  position: absolute;
-  z-index: -1;
-  content: "";
-  inset: 0;
-  background:
-    radial-gradient(ellipse 78% 58% at 6% -8%, var(--sx-key-wash), transparent 62%),
-    radial-gradient(ellipse 62% 52% at 102% 108%, var(--sx-fill-wash), transparent 58%),
-    linear-gradient(115deg, #0b131af2, #081016f0 62%, #050c12f2);
-  clip-path: var(--panel-shape);
-  box-shadow:
-    inset 0 1px 0 var(--sx-line-lit),
-    inset 0 -1px 0 #4e8ba322,
-    inset 0 -40px 60px -50px #000000e0;
-  filter: drop-shadow(0 20px 46px #000c);
-  pointer-events: none;
-}
-.inner {
-  position: relative;
-  display: flex;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-  clip-path: var(--panel-shape);
-}
-.content {
-  flex: 1;
-  min-height: 0;
-  padding: 16px 24px 12px;
-  box-shadow: var(--sx-sunk);
 }
 .page {
   height: 100%;
@@ -60,26 +16,6 @@
 }
 .page[data-page-phase="entering"] {
   animation: pageEnter 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
-}
-:global([data-shop-root][data-leaving]) .window {
-  pointer-events: none;
-  animation: depart 300ms ease-in both;
-}
-@keyframes arrive {
-  from {
-    opacity: 0;
-    translate: 0 18px;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-@keyframes depart {
-  to {
-    opacity: 0;
-    translate: 0 18px;
-  }
 }
 @keyframes pageLeave {
   to {

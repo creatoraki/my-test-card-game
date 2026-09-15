@@ -40,9 +40,10 @@ export function ExploreScreen() {
   const activeObject = session.corridor.objects.find((object) => object.id === session.corridor?.activeObjectId);
   const merchantOpen = Boolean(activeObject?.kind === "merchant" && (phase === "landed" || phase === "shopping"));
   const sceneBlocked = blocked || travelTransition.phase !== "idle";
+  const encountering = phase === "encounter" && travelTransition.phase === "idle";
 
   return <StageCanvas className={s.screen} viewportClassName={s.viewport} data-explore-stage>
-    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={locked} nearMapVariant={currentRoom?.nearMapVariant ?? "standard"} onPortalTravel={travelTransition.start} />
+    <CorridorScene key={session.corridor.roomId} corridor={session.corridor} blocked={sceneBlocked} encountering={encountering} nearMapVariant={currentRoom?.nearMapVariant ?? "standard"} onPortalTravel={travelTransition.start} />
     <div className={s.readout}>
       <span>净化粒子</span><strong style={{ color: tier.color }}>{session.energy}<small> / 100</small></strong>
       <div className={s.energyTrack}><i style={{ width: `${Math.min(100, session.energy)}%`, background: tier.color }} /></div>

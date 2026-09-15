@@ -28,6 +28,7 @@ export interface CorridorObject {
 
 export interface CorridorThreat {
   id: string;
+  kind: "guard" | "ambush";
   x: number;
   defeated: boolean;
   nodeIndex: number;
@@ -66,7 +67,8 @@ export const CORRIDOR = {
   /** 可行走范围的左右墙体留白。 */
   walkMin: 170,
   interactionRadius: 190,
-  encounterRadius: 190,
+  /** 暗雷在玩家面朝方向前方生成的距离。 */
+  encounterOffset: 300,
   encounterMs: 1850,
   /** 站上传送门的判定半径; 比交互半径小, 避免与相邻物件抢操作。 */
   portalRadius: 120,

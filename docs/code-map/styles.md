@@ -46,7 +46,7 @@
 
 据点设施的 hover/active 样式通过大厅根的 `data-town-stage` 传递状态；商店的
 `MarketSlotFrame.module.css`、`MarketFrameArtwork.module.css`、`MarketPriceTag.module.css`、`MarketPriceArtwork.module.css` 与 `ShopDetailCard.module.css` 各自维护货位布局、原型边框分片、售价牌、金币及价格边线分片和详情栏样式；货架通过 `--market-card-width` 统一商品与补货占位尺寸，外壳通过 `--market-unit` 下发原型缩放单位，
-不再由 `ShopScene.module.css` 远程改写子组件。商店大窗在 `StockEntries.module.css` 绘制切角背景，双层金色描边和辉光由 `common/DetailFrame/DetailFrame.module.css` 的 `tone="gold"` 变量提供；蓝色默认变量继续服务角色详情页。
+不再由 `ShopScene.module.css` 远程改写子组件。商店主题令牌集中在 `shopTheme.module.css`，商店大窗由 `ShopWindow.module.css` 绘制切角背景，`StockEntries.module.css` 只保留据点定位与页面切换动画；双层金色描边和辉光由 `common/DetailFrame/DetailFrame.module.css` 的 `tone="gold"` 变量提供，货商面板复用同一套窗口与主题。
 
 设施升级的公共视觉实现集中在 `common/techTree/Technology*`：`TechnologyBoard` 提供无外框的图表、详情与底栏主体，`TechnologyTree` 在其外层提供纯净背景、页头和完整面板布局；`TechnologyGraph` 持有连线与节点布局，`TechnologyMedallion` 绘制圆环、六边框和状态角标，`TechnologyDetail`、`TechnologyMaterials` 与 `TechnologyFooter` 分别负责右栏、材料及底栏。各模块仅导入同名样式。商店升级页嵌入商店窗口的内容区，换页动效复用 `StockEntries.module.css`。
 

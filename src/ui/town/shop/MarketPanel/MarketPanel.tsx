@@ -7,6 +7,7 @@ import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { MarketActionButton } from "./MarketActionButton";
 import { MarketDetail } from "./MarketDetail";
 import { MarketShelf } from "./MarketShelf";
+import { marketBuyReason } from "./marketBuyReason";
 import s from "./MarketPanel.module.css";
 
 const SHELF_LEAVE_MS = 415;
@@ -45,10 +46,9 @@ export function MarketPanel({ onUpgrade }: { onUpgrade: () => void }) {
         <MarketShelf
           slots={shownSlots}
           phase={phase}
-          characters={characters}
-          loot={loot}
           selectedKey={selectedSlot?.key ?? null}
           onSelect={setSelectedKey}
+          getBuyReason={(slot) => marketBuyReason(slot, characters, loot)}
           onBuy={buyShopSlot}
         />
         <MarketDetail

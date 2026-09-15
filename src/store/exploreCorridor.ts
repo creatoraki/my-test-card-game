@@ -1,9 +1,10 @@
 import { useExploreStore } from "./exploreStore";
 import { challengeBoss, engageRoomThreat } from "../explore/session";
 import {
-  beginCorridorEncounter, canWalkCorridor, clampCorridorX,
+  canWalkCorridor, clampCorridorX,
   closeBossGate, dismissCorridorObject, openBossGate, openCorridorObject,
 } from "../explore/corridor/session";
+import { rollCorridorAmbush } from "../explore/corridor/ambush";
 import { standOnPortal, travelPortal } from "../explore/dungeon/session";
 import type { PortalDir } from "../explore/dungeon/types";
 import type { ExploreState } from "../explore/types";
@@ -35,6 +36,17 @@ export function markStandingPortal(x: number): boolean {
   return mutateCorridor((s) => standOnPortal(s, x));
 }
 
+/** 每累计一段行走时间检查一次暗雷；未命中也必须提交 RNG 的推进。 */
+export function checkCorridorAmbush(x: number, facing: -1 | 1): boolean {
+  const current = useExploreStore.getState().session;
+  if (!current?.corridor) return false;
+  const draft = structuredClone(current);
+  const result = rollCorridorAmbush(draft, x, facing);
+  if (result === "skip") return false;
+  useExploreStore.setState({ session: draft });
+  return result === "hit";
+}
+
 /** 确认传送：扣 5 点净化粒子并换房间。 */
 export function travelThroughPortal(dir: PortalDir): boolean {
   return mutateCorridor((s) => travelPortal(s, dir));
@@ -42,7 +54,6 @@ export function travelThroughPortal(dir: PortalDir): boolean {
 
 export const inspectCorridorObject = (id: string) => mutateCorridor((s) => openCorridorObject(s, id));
 export const closeCorridorObject = () => mutateCorridor(dismissCorridorObject);
-export const encounterCorridorThreat = (id: string) => mutateCorridor((s) => beginCorridorEncounter(s, id));
 export const openBossGateAt = () => mutateCorridor(openBossGate);
 export const closeBossGatePanel = () => mutateCorridor(closeBossGate);
 export const challengeBossGate = () => mutateCorridor(challengeBoss);

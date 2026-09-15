@@ -11,7 +11,7 @@ interface Props {
   icon: ReactNode;
   label: string;
   /** 竖线右侧的附加信息, 如「800 积分」「等级 3」。 */
-  meta: string;
+  meta: ReactNode;
   disabled?: boolean;
   onClick: () => void;
 }

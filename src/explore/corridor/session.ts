@@ -26,7 +26,7 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
     objects,
     threats: guarded
       ? [{
-        id: `threat-${room.id}`, x: width / 2,
+        id: `threat-${room.id}`, kind: "guard", x: width / 2,
         defeated: false, nodeIndex: objects.length,
       }]
       : [],
@@ -95,9 +95,7 @@ export function portalAt(corridor: CorridorState, x: number): CorridorPortal | n
 }
 
 export function clampCorridorX(corridor: CorridorState, x: number): number {
-  // 未清场的黑影会挡住它身后的半间房, 打赢才恢复通行。
-  const obstacle = corridor.threats.find((threat) => !threat.defeated);
-  return Math.max(CORRIDOR.walkMin, Math.min(obstacle ? obstacle.x - 110 : corridorWalkMax(corridor.width), x));
+  return Math.max(CORRIDOR.walkMin, Math.min(corridorWalkMax(corridor.width), x));
 }
 
 export function hasCorridorRewards(s: ExploreState): boolean {
@@ -155,7 +153,12 @@ export function beginCorridorEncounter(s: ExploreState, id: string): boolean {
 
 export function settleCorridorEncounter(s: ExploreState): void {
   if (!s.corridor?.encounterId) return;
-  const threat = s.corridor.threats.find((candidate) => candidate.id === s.corridor?.encounterId);
-  if (threat) threat.defeated = true;
+  const encounterId = s.corridor.encounterId;
+  const threat = s.corridor.threats.find((candidate) => candidate.id === encounterId);
+  if (threat?.kind === "ambush") {
+    s.corridor.threats = s.corridor.threats.filter((candidate) => candidate.id !== encounterId);
+  } else if (threat) {
+    threat.defeated = true;
+  }
   s.corridor.encounterId = null;
 }

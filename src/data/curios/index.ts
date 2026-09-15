@@ -1,4 +1,4 @@
-import type { NodeEvent } from "@/explore/types";
+import type { BattleTier, NodeEvent } from "@/explore/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { CRAFT_CURIOS } from "./craftCurios";
 import { SCAVENGE_CURIOS } from "./scavengeCurios";
@@ -48,6 +48,25 @@ export const CORRIDOR_AMBUSH: NodeEvent = {
     effects: [{ type: "START_NODE_BATTLE" }],
   }],
 };
+
+export function corridorWandererEvent(tier: BattleTier): NodeEvent {
+  return {
+    id: `corridor-wanderer-${tier}`,
+    kind: "battle",
+    category: "battle",
+    title: "游荡杂兵",
+    energyDelta: 0,
+    description: "走廊深处的杂兵循着粒子波动现身，挡住了前路。",
+    choices: [{
+      id: "fight",
+      label: "迎战杂兵",
+      desc: "准备战斗。",
+      story: "准备战斗。",
+      energyDelta: 0,
+      effects: [{ type: "START_NODE_BATTLE", tier }],
+    }],
+  };
+}
 
 export function curioEvent(kind: CurioKind): NodeEvent {
   const def = CORRIDOR_CURIOS[kind];

@@ -14,10 +14,11 @@ import s from "./MarketCardTile.module.css";
 interface Props {
   slot: ShopCardSlot;
   selected: boolean;
+  priceText?: string;
   onSelect: (key: string) => void;
 }
 
-export function MarketCardTile({ slot, selected, onSelect }: Props) {
+export function MarketCardTile({ slot, selected, priceText, onSelect }: Props) {
   const card = useMemo(
     () => ({ ...makeCard(slot.cardDefId), ownerCharId: slot.charId }),
     [slot.cardDefId, slot.charId],
@@ -29,7 +30,7 @@ export function MarketCardTile({ slot, selected, onSelect }: Props) {
     <MarketTile
       selected={selected}
       sold={slot.sold}
-      ariaLabel={slot.sold ? `${card.name}，已售出` : `${card.name}，售价 ${slot.price} 居民积分`}
+      ariaLabel={slot.sold ? `${card.name}，已售出` : `${card.name}，${priceText ?? `${slot.price} 居民积分`}`}
       onSelect={handleSelect}
     >
       <span className={s.art}><img src={cardArt(card.id)} alt="" draggable={false} /></span>

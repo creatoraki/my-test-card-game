@@ -1,0 +1,30 @@
+.brand {
+  position: absolute;
+  left: 8px;
+  top: 11px;
+  width: 210px;
+  height: 74px;
+  pointer-events: none;
+}
+.brand svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.brand strong {
+  position: absolute;
+  top: 18px;
+  left: 46px;
+  color: #ffe7a2;
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-shadow: 0 0 3px #ffecaa, 0 0 11px #f8b840b3, 0 0 23px #d78e3466;
+}
+:global([data-shop-root][data-leaving]) .brand {
+  opacity: 0;
+  transition: opacity 300ms;
+}

@@ -1,0 +1,33 @@
+.wallet {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-left: auto;
+}
+
+.food {
+  display: grid;
+  grid-template-columns: 34px auto;
+  grid-template-rows: 1fr 1fr;
+  column-gap: 8px;
+  align-items: center;
+  min-width: 108px;
+}
+
+.food > :global([class*="icon"]) {
+  grid-row: 1 / -1;
+}
+
+.name {
+  color: var(--sx-muted);
+  font-size: 18px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.count {
+  color: var(--sx-key-hot);
+  font-size: 24px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}

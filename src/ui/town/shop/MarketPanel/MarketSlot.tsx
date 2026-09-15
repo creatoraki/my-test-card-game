@@ -1,41 +1,53 @@
-// 统一商店货位。商品立牌只负责选中，价格牌是唯一购买入口。
+// 统一商店货位。商品立牌只负责选中，价格牌按调用方决定是购买入口还是展示态。
 // 形状/描边/选中发光/售罄蒙层全部交给 MarketSlotFrame，这里只做内容组装。
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { ShopSlot } from "@/data/shop";
-import type { CharacterState } from "@/store/townStore";
 import { MarketCardTile } from "./MarketCardTile";
 import { MarketItemTile } from "./MarketItemTile";
 import { MarketPriceTag } from "./MarketPriceTag";
 import { MarketSlotFrame } from "./MarketSlotFrame";
-import { marketBuyReason } from "./marketBuyReason";
 
 interface Props {
   slot: ShopSlot;
-  characters: Record<string, CharacterState>;
-  loot: number;
   selected: boolean;
   className?: string;
   style?: CSSProperties;
   onSelect: (key: string) => void;
-  onBuy: (key: string) => void;
+  getBuyReason: (slot: ShopSlot) => string | null;
+  onBuy?: (key: string) => void;
+  priceIcon?: (slot: ShopSlot) => ReactNode;
+  priceText?: (slot: ShopSlot) => string;
 }
 
-export function MarketSlot({ slot, characters, loot, selected, className, style, onSelect, onBuy }: Props) {
-  const buyReason = marketBuyReason(slot, characters, loot);
+export function MarketSlot({
+  slot,
+  selected,
+  className,
+  style,
+  onSelect,
+  getBuyReason,
+  onBuy,
+  priceIcon,
+  priceText,
+}: Props) {
+  const buyReason = getBuyReason(slot);
+  const slotPriceText = priceText?.(slot);
 
   return (
     <MarketSlotFrame selected={selected} sold={slot.sold} className={className} style={style}>
       {slot.kind === "card" ? (
-        <MarketCardTile slot={slot} selected={selected} onSelect={onSelect} />
+        <MarketCardTile slot={slot} selected={selected} priceText={slotPriceText} onSelect={onSelect} />
       ) : (
-        <MarketItemTile slot={slot} selected={selected} sold={slot.sold} onSelect={onSelect} />
+        <MarketItemTile slot={slot} selected={selected} sold={slot.sold} priceText={slotPriceText} onSelect={onSelect} />
       )}
       <MarketPriceTag
         price={slot.price}
         sold={slot.sold}
         disabledReason={buyReason ?? undefined}
-        onBuy={() => onBuy(slot.key)}
+        icon={priceIcon?.(slot)}
+        ariaText={slotPriceText}
+        onBuy={onBuy ? () => onBuy(slot.key) : undefined}
       />
     </MarketSlotFrame>
   );

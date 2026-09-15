@@ -4,6 +4,10 @@
 
 样式约定（CSS Modules、五条铁律、`data-*` 跨模块契约）见 [styles.md](styles.md)，本文件不重复。
 
+商店左上铭牌由 `town/shop/ShopScene/ShopBrand` 独立绘制；左侧页签的 `ShopNavigation/NavigationFrame` 与 `NavigationIcon` 分别负责 SVG 牌面和图标。导航按参考图使用 205×96 设计像素与 11px 间距，通过 CSS 变量切换金色选中态与青色常态，缩放跟随全站设计画布。
+
+商店左下返回入口由 `town/shop/ShopBack` 绘制青色双层切角边框与双箭头，挂载于 `ShopScene`，沿用据点返回回调及入退场时长；`TownScreen` 在商店内不重复挂载通用 `FacilityBack`。导航牌面的蜂窝纹理、分段高光和局部光斑由 `NavigationFrame` 独立管理，选中态通过 CSS 变量增强金色光晕。
+
 ## 目录结构
 
 ```text
@@ -75,7 +79,9 @@ src/ui/
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
 | [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 研究中心三条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造/科技树面板。 |
 | [town/terminal/TechTreePanel](../../src/ui/town/terminal/TechTreePanel/) | 全局科技树三栏面板：左侧分类导航、中间带等级进度弧的 SVG 节点图、右侧效果与消耗详情；研究动作只派发 `townStore.researchTech`。 |
-| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、副标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板与内容区换页，大窗使用 `common/DetailFrame` 金色框。面板切换与 `MarketPanel` 刷新货架共用 `hooks/useSwapTransition`，均按旧退新入演出。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
+| [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、副标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板与内容区换页，主题令牌由 `shopTheme.module.css` 提供，窗口外壳由 `ShopWindow` 提供。面板切换与 `MarketPanel` 刷新货架共用 `hooks/useSwapTransition`，均按旧退新入演出。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
+| [town/shop/ShopWindow](../../src/ui/town/shop/ShopWindow/ShopWindow.tsx) | 据点商店与探索货商共用的金框窗口外壳：承载 `DetailFrame`、切角背景、内容区和入场/离场动画，定位与页眉由调用方注入。 |
+| [town/shop/shopTheme.module.css](../../src/ui/town/shop/shopTheme.module.css) | 据点商店与探索货商共用的金色冷青主题令牌，提供 `--sx-*`、`--asm-*` 与升级树桥接变量。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队页训练点分配弹窗里的径向天赋树（`html-templates/天赋树.html` 的组件化）：由公共 HUD 外框提供玻璃材质，中央金色徽章核心线框（**可点击**，`onCoreClick` 开关徽章浮层）、六分支绕中心等角放射；SVG 渐变连线带 dim/open/active 三态与 SMIL 流动光点，节点为圆盘+方向图标（未激活灰色无光、激活点亮分支本色、可退还虚线金环），悬浮节点出暗金详情浮卡。交互：左键激活、Shift+点击快捷点亮整条路径、右键/Alt+点击/Delete 退还、点数不足抖动；布局与节点半径由 `talentGeometry.ts` 纯函数按分支链自动径向排布（忽略手写坐标），方向图标在 `icons.tsx`，解锁/退还/花费判定一律来自 `data/squadTalents`。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 编队页训练点分配弹窗左下角小队属性读数：按上阵角色 `deriveStats` 求和，叠加徽章/天赋修正并通过引擎 `squad*` helper 得到六项实战最终值；接收径向树悬浮资源键并高亮对应行，不承载规则或交互。 |
@@ -136,9 +142,10 @@ src/ui/
 | [explore/ExploreScreen/ExploreObjectPanel](../../src/ui/explore/ExploreScreen/ExploreObjectPanel.tsx) | 房间物件事件浮层公共外壳：复用 936×680 探索面板、揭幕动画与 `EventPanelFrame`，统一处理遮罩、状态栏、场景切换和活动态。 |
 | [explore/ExploreScreen/useDialogFocus](../../src/ui/explore/ExploreScreen/useDialogFocus.ts) | 奇物与红门共用的对话框焦点 hook：挂载时接管焦点、卸载时恢复原焦点，按活动态切换 `inert`，并处理 Esc 关闭与 Tab 循环。 |
 | [explore/ExploreScreen/CurioOfferView](../../src/ui/explore/ExploreScreen/CurioOfferView.tsx) | 黑盒放入视图：嵌入 `EventPanelStage`，复用物品格与悬浮详情，支持可叠加物品数量选择、已放入区、放入和返回。 |
-| [explore/WanderingMerchant](../../src/ui/explore/WanderingMerchant/WanderingMerchantPanel.tsx) | 流浪货商货架：固定六格、卡牌队员归属、物品/卡牌详情、食品价格与购买状态；购买后空格保留，不使用原生 `title`。 |
+| [explore/WanderingMerchant](../../src/ui/explore/WanderingMerchant/WanderingMerchantPanel.tsx) | 流浪货商面板：复用据点 `ShopWindow`、`ShopHeader`、`MarketShelf` 与 `MarketDetail`，展示每个货商随机接受的两种临期食品、六格货架和底部《交换》按钮；`merchantShopSlots` 负责货位适配，`useMerchantBuyReason` 合并食品、背包与卡组判定，不使用原生 `title`。 |
 | [explore/ExploreScreen/ExploreDock](../../src/ui/explore/ExploreScreen/ExploreDock.tsx) | 探索底部整条 HUD：左段队伍立绘、中段 12×2 随身背包、右段野餐与撤离。立绘几何与战斗 `AllyBar` 对齐（500×316、gap 10、取景基准宽 160），两个场景看同一批角色尺寸一致；三段自然高度不同，用 `align-items: end` 底边对齐。HUD 顶边落在 y=748，走廊地平线 `CORRIDOR.floorY` 已相应上移到 680 以免物件名牌被压住。 |
 | [explore/CorridorScene](../../src/ui/explore/CorridorScene/CorridorScene.tsx) | 走廊房间场景：房间宽度取近景素材 2 倍显示宽度、高度为 1080，镜头在 1920×1080 可视区内跟随玩家居中并在两端夹紧；渲染传送门、BOSS 红门、可交互物、黑影与角色。`useCorridorMovement` 管理左右行走、↑/W/空格/回车交互（脚下传送门 → 附近红门 → 选中物件）、↓/S 循环切目标、触摸按钮、失焦暂停、位置保存和道具交互动画；`RoomPortal` 是四个方向共用的同一副传送门外观（方向只能从小地图读出），`BossGate` 复用传送门素材并以红色滤镜与近距离呼吸光区分；近景以原始素材的 2 倍宽高绘制，新手关卡的三种近景在生成时随机混排并保证各出现一次，布局按显示宽度换算且地面线维持现有高度，重访保持一致；角色与交互物共用布局中的地面下沉量；`CorridorSprite` 按交互物类型渲染独立透明 PNG，并应用小/中/大三档尺寸；`CorridorPlayer` 使用独立画布播放 17 张立绘帧，`playerAnimationState` 管理第 0 帧静态站姿与 30～60 帧隔帧行走（15 FPS）；开始移动直接切到第 30 帧迈步姿态，停止时立即回到第 0 帧；`art/corridorPlayerFrames` 缓存已解码图片，动画时钟不依赖 React 逐帧更新图片地址；`ShadowEncounter` 播放黑影破地动画并将战斗转场圆心定位到黑影。 |
+| [explore/CorridorScene/corridorTriggers](../../src/ui/explore/CorridorScene/corridorTriggers.ts) | 无 React 依赖的走廊触发器：记录出生时红门邻近状态与真实行走时间，处理进入红门范围自动打开和每 2 秒一次的暗雷检查。 |
 | [explore/CorridorScene/BossGate](../../src/ui/explore/CorridorScene/BossGate.tsx) | BOSS 红门场景组件：复用传送门素材，以红色滤镜显示，靠近时呼吸发光并显示「空格 · 挑战首领」提示。 |
 | [explore/ExploreScreen/BossGatePanel](../../src/ui/explore/ExploreScreen/BossGatePanel.tsx) | BOSS 红门事件面板：复用 `ExploreObjectPanel` 与 `EventPanelChoice` 展示红色挑战选项；挑战时记录点击坐标，驱动裂纹转场从按钮位置开始，焦点与 Esc 由公共 hook 管理。 |
 | [battle/BattleScreen](../../src/ui/battle/BattleScreen/BattleScreen.tsx) | 战斗画布、顶端信息条、挑战词条与羁绊信息、战场、底部 HUD、组装部件栏、组装选择器、目标交互、分镜队列和相机；相机按 `focusIds` 取景，敌人攻击我方时聚焦施法者并驱动蓄力预告，`kind: "tempo"` 的拍点帧只在持有者自己身上演 DOT/HOT 特效与飘字、不播前冲；弃牌按触发步骤在命中结算后播放 `DISCARD.total` 对应的 `cardDiscardBurst` 弹出化光，再进入统一卡面亮相，`kind: "reveal"` 只播 `SkillCutInCard` 亮相，无前冲/推镜/受击/音效；挑战状态从逐帧 `BattleState` 读取，胜利后在画布内显示经验、掉落和背包结算面板。实现拆分为取景纯函数、分镜步翻译、手牌渲染列表、演出闸门、相机、分镜回放、操作分发，以及战场 / HUD / 屏幕特效三个视图 part。 |
@@ -353,6 +360,6 @@ src/ui/
 
 ⚠ 相机取景要量的是含体型 `scale` 的那一层，`querySelector` 认的是 `[data-cmb-stage]` 而**不是**类名——类名已被 CSS Modules 哈希，写死字符串会静默退回外层布局盒，取景悄悄出错。
 
-商店场景的 `StockEntries` 编排左侧导航与常驻矩形交易面板，进入时直接展示商店，回收台与仓库在同一外壳内切换。`MarketPanel` 使用三列混合货架与右侧详情栏；第二行允许在底部被裁切，超出视口时纵向滚动，不足八个展示格时使用等待补货占位。物品与卡牌都采用插画、名称、单枚中文分类标签及效果摘要的立牌，标签由 `MarketChip` 按物品分类配色。`MarketShelf` 通过 `--market-card-width` 统一下发 308px 宽度，商品按未选中原型 198∶291 等比放大至约 308×453 设计像素；`MarketSlotFrame` 下发 `--market-unit` 对齐内部排版，并统一商品与等待补货的布局盒、背景和可见边框。`MarketFrameArtwork` 从 `art/shopArt.ts` 登记的两张独立原型分片显示四角及边线，未选中态直接显示对应原图，选中态使用对齐后的金色原图；中心商品区域不渲染。物品不带金属底座。`MarketPriceTag` 为唯一购买入口，`MarketPriceArtwork` 从未选中原图分片显示金币和价格牌边线，数字由真实售价渲染，长售价只拉长横边。购买条件仍复用原有规则。默认选中首件在售商品，物品详情标示仓库库存。底部提供刷新与设施升级；设施升级在商店窗口内容区内换页，复用 `common/techTree/TechnologyBoard` 的无外框主体；四个原有升级由 `ShopUpgradePanel/UpgradeTree/shopTechnologyView.tsx` 适配，节点内部金属图案由 `art/techTreeArt.ts` 登记参考图区域，圆环、状态框和连线独立绘制。
+商店场景的 `StockEntries` 编排左侧导航与常驻矩形交易面板，进入时直接展示商店，回收台与仓库在同一外壳内切换。`ShopWindow` 统一承载金框外壳与页面定位，`MarketPanel` 使用三列混合货架与右侧详情栏；第二行允许在底部被裁切，超出视口时纵向滚动，不足八个展示格时使用等待补货占位。物品与卡牌都采用插画、名称、单枚中文分类标签及效果摘要的立牌，标签由 `MarketChip` 按物品分类配色。`MarketShelf` 通过 `--market-card-width` 统一下发 308px 宽度，商品按未选中原型 198∶291 等比放大至约 308×453 设计像素；`MarketSlotFrame` 下发 `--market-unit` 对齐内部排版，并统一商品与等待补货的布局盒、背景和可见边框。`MarketFrameArtwork` 从 `art/shopArt.ts` 登记的两张独立原型分片显示四角及边线，未选中态直接显示对应原图，选中态使用对齐后的金色原图；中心商品区域不渲染。物品不带金属底座。`MarketPriceTag` 为唯一购买入口，调用方可注入价格图标和无障碍文案；不传购买回调时价格牌为不可点击展示态。购买判定由调用方注入，默认选中首件在售商品，物品详情为纯展示。底部提供刷新与设施升级；设施升级在商店窗口内容区内换页，复用 `common/techTree/TechnologyBoard` 的无外框主体；四个原有升级由 `ShopUpgradePanel/UpgradeTree/shopTechnologyView.tsx` 适配，节点内部金属图案由 `art/techTreeArt.ts` 登记参考图区域，圆环、状态框和连线独立绘制。
 
 我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。

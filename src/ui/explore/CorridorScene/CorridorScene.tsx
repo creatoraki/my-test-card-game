@@ -71,12 +71,11 @@ export function CorridorScene({ corridor, blocked, encountering, nearMapVariant,
           top: entityFloorY + CORRIDOR_PROP_Y_OFFSETS[object.kind],
         }}>
           <button className={s.objectButton} type="button" disabled={blocked || object.used || !near} onClick={() => movement.interact(object.id)} aria-label={`${def.name}${object.used ? "，已搜寻" : !near ? "，靠近后交互" : `，${def.verb}`}`}>
-            <CorridorSprite kind={object.kind} interacting={interacting} />
+            <CorridorSprite kind={object.kind} interacting={interacting} outlined={object.kind === "merchant" && near && !blocked} />
           </button>
           {selected && <span className={s.targetMarker} aria-hidden>◆</span>}
         </div>;
       })}
-      {corridor.threats.filter((threat) => !threat.defeated && threat.id !== corridor.encounterId).map((threat) => <div key={threat.id} className={s.dormant} style={{ left: threat.x, top: CORRIDOR.floorY }} aria-hidden><i /><span /></div>)}
       <div ref={playerAnchorRef} className={s.playerAnchor} style={{ top: entityFloorY }}>
         <div className={s.player}>
           <CorridorPlayer walking={playerWalking} facing={movement.facing} />

@@ -6,6 +6,7 @@
 
 import { beginCorridorEncounter, buildRoomScene, canWalkCorridor, portalAt } from "../corridor/session";
 import { CORRIDOR } from "../corridor/types";
+import { encounterSpot } from "../corridor/ambush";
 import { CORRIDOR_CURIOS } from "../../data/curios";
 import { changeEnergy } from "../energy";
 import { EXPLORE_RULES } from "../rules";
@@ -38,7 +39,7 @@ export function syncRoomFromScene(s: ExploreState): void {
     const curio = room.curios[object.nodeIndex];
     if (curio) curio.used = object.used;
   }
-  if (s.corridor.threats.some((threat) => threat.defeated)) room.threatDefeated = true;
+  if (s.corridor.threats.some((threat) => threat.kind === "guard" && threat.defeated)) room.threatDefeated = true;
 }
 
 /** 进入一个房间: 写图状态、展开场景、按深度更新战斗压力, 战斗房立刻起黑影。 */
@@ -51,8 +52,13 @@ export function enterRoom(s: ExploreState, roomId: string, fromDir: PortalDir | 
   // round 在房间制下只表示「当前房间的深度」, 供战斗档位与事件门槛读取。
   s.round = room.depth + 1;
   buildRoomScene(s, room, fromDir);
-  const threat = s.corridor?.threats.find((candidate) => !candidate.defeated);
-  if (threat) beginCorridorEncounter(s, threat.id);
+  const threat = s.corridor?.threats.find((candidate) => candidate.kind === "guard" && !candidate.defeated);
+  if (threat && s.corridor) {
+    const facing: -1 | 1 = s.corridor.playerX <= s.corridor.width / 2 ? 1 : -1;
+    threat.x = encounterSpot(s.corridor, s.corridor.playerX, facing);
+    s.corridor.facing = facing;
+    beginCorridorEncounter(s, threat.id);
+  }
   return true;
 }
 

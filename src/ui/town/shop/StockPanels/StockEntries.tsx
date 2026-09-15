@@ -4,9 +4,9 @@ import { getItemDef, shopLevelOf } from "@/data";
 import { sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
 import { techLevels, useTownStore } from "@/store/townStore";
-import { DetailFrame } from "@/ui/common/DetailFrame";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { MarketPanel } from "@/ui/town/shop/MarketPanel";
+import { ShopWindow } from "@/ui/town/shop/ShopWindow";
 import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
 import { ShopHeader } from "@/ui/town/shop/ShopHeader";
 import { ShopNavigation, type ShopPage } from "@/ui/town/shop/ShopNavigation";
@@ -40,20 +40,18 @@ export function StockEntries({ onBack }: { onBack?: () => void }) {
   return (
     <>
       <ShopNavigation page={view === "upgrade" ? "shop" : view} onChange={setView} />
-      <section className={s.window} aria-label={titles[shownView]}>
-        <DetailFrame tone="gold" />
-        <div className={s.inner}>
-          <ShopHeader title={titles[shownView]} subtitle={subtitles[shownView]} credits={loot} level={shopLevelOf(shop.techs)} onBack={onBack} />
-          <div className={s.content}>
-            <div className={s.page} data-page-phase={phase}>
-              {shownView === "shop" && <MarketPanel onUpgrade={() => setView("upgrade")} />}
-              {shownView === "recycle" && <RecyclePanel stacks={sorted} loot={loot} levels={levels} onSell={sellItem} />}
-              {shownView === "warehouse" && <WarehousePanel rows={4} columns={8} />}
-              {shownView === "upgrade" && <ShopUpgradePanel onBack={() => setView("shop")} />}
-            </div>
-          </div>
+      <ShopWindow
+        className={s.window}
+        ariaLabel={titles[shownView]}
+        header={<ShopHeader title={titles[shownView]} subtitle={subtitles[shownView]} credits={loot} level={shopLevelOf(shop.techs)} onBack={onBack} />}
+      >
+        <div className={s.page} data-page-phase={phase}>
+          {shownView === "shop" && <MarketPanel onUpgrade={() => setView("upgrade")} />}
+          {shownView === "recycle" && <RecyclePanel stacks={sorted} loot={loot} levels={levels} onSell={sellItem} />}
+          {shownView === "warehouse" && <WarehousePanel rows={4} columns={8} />}
+          {shownView === "upgrade" && <ShopUpgradePanel onBack={() => setView("shop")} />}
         </div>
-      </section>
+      </ShopWindow>
     </>
   );
 }

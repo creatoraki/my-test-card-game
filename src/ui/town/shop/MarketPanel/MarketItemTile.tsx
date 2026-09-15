@@ -13,10 +13,11 @@ interface Props {
   slot: ShopItemSlot;
   selected: boolean;
   sold: boolean;
+  priceText?: string;
   onSelect: (key: string) => void;
 }
 
-export function MarketItemTile({ slot, selected, sold, onSelect }: Props) {
+export function MarketItemTile({ slot, selected, sold, priceText, onSelect }: Props) {
   const def = getItemDef(slot.itemId);
   const handleClick = useCallback(() => onSelect(slot.key), [onSelect, slot.key]);
   return (
@@ -24,7 +25,7 @@ export function MarketItemTile({ slot, selected, sold, onSelect }: Props) {
       selected={selected}
       sold={sold}
       rarityClass={s[`rarity-${def.rarity}`]}
-      ariaLabel={sold ? `${def.name}，已售出` : `${def.name}，售价 ${slot.price} 居民积分`}
+      ariaLabel={sold ? `${def.name}，已售出` : `${def.name}，${priceText ?? `${slot.price} 居民积分`}`}
       onSelect={handleClick}
     >
       <span className={s.stage}>
