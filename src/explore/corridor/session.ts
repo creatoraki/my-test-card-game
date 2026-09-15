@@ -1,4 +1,4 @@
-import { CORRIDOR_AMBUSH, curioEvent } from "../../data/curios";
+import { corridorGuardEvent, CORRIDOR_AMBUSH, curioEvent } from "../../data/curios";
 import { OPPOSITE_DIR, PORTAL_DIRS, type PortalDir, type RoomNode } from "../dungeon/types";
 import type { ExploreState } from "../types";
 import { corridorSlotsFor, corridorWalkMax, corridorWidthFor, CORRIDOR, type CorridorPortal, type CorridorState } from "./types";
@@ -39,7 +39,9 @@ export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalD
   };
 
   const nodes = objects.map((object) => [curioEvent(object.kind)]);
-  if (room.kind === "battle") nodes.push([CORRIDOR_AMBUSH]);
+  if (room.kind === "battle") {
+    nodes.push([room.guard ? corridorGuardEvent(room.guard.tier, room.guard.encounterId) : CORRIDOR_AMBUSH]);
+  }
   s.board = {
     round: room.depth + 1, laneCount: 1, rowsPerSegment: 1,
     segments: nodes.map((_, index) => ({ index, bridges: [] })),

@@ -4,12 +4,12 @@ import type { CurioDef } from "./types";
 export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
   safe: {
     name: "合金保险箱",
-    verb: "撬开",
+    verb: "打开",
     size: 210,
-    description: "保险箱的合金锁芯仍在运转，里面的物资保存得很好，但强行打开可能会触发防盗装置。",
+    description: "保险箱的合金锁芯仍在运转，里面的物资保存得很好，但贸然开锁可能会触发防盗装置。",
     decisions: [{
       id: "forceOpen",
-      label: "强行撬开",
+      label: "尝试打开",
       story: "锁芯发出刺耳的摩擦声，保险箱在防盗装置启动前吐出了一份物资。",
       risk: { chance: 0.5, effects: [{ type: "DAMAGE_MEMBER_PERCENT", target: "party", percent: 0.08 }] },
       effects: [{ type: "GAIN_POOL_ITEM", pool: "generalMaterialOrScrap", count: 1 }],
@@ -23,7 +23,7 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
       ),
       jobDecision(
         "swordsman",
-        "让剑士撬开锁芯",
+        "让剑士拨开锁芯",
         "剑士用熟悉的角度压住锁芯，保险箱打开了，但反冲仍擦过了他的装甲。",
         "swordsman",
         [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.15 }, { type: "GAIN_POOL_ITEM", pool: "module", count: 1 }, { type: "GAIN_POOL_ITEM", pool: "scrap", count: 1 }],
@@ -38,7 +38,7 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
     decisions: [
       {
         id: "mine",
-        label: "徒手开采",
+        label: "挖取结晶",
         story: "矿脉的光芒突然灌入空气，队伍只能在刺痛中收集结晶。",
         risk: { chance: 0.5, effects: [{ type: "ADJUST_POLLUTION", target: "random", amount: 12 }] },
         effects: [{ type: "GAIN_ITEM", itemId: "green-crystal" }],
@@ -74,7 +74,7 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
     decisions: [
       {
         id: "shake",
-        label: "强行翻找",
+        label: "翻找货格",
         story: "机器内部传来一阵闷响，几件包装完好的食品滚了出来。",
         risk: { chance: 0.5, effects: [{ type: "DAMAGE_MEMBER_PERCENT", target: "party", percent: 0.05 }] },
         effects: [{ type: "GAIN_POOL_ITEM", pool: "basicFood", count: 1 }],

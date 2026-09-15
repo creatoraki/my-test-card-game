@@ -45,7 +45,7 @@ export function useCorridorMovement(
   const selected = useRef(selectedId);
   selected.current = selectedId;
   const pressed = useRef(new Set<string>());
-  const [triggers] = useState(() => createCorridorTriggers(corridor, initialPosition.x));
+  const [triggers] = useState(() => createCorridorTriggers());
   // 脚下传送门只在「换了一扇门」时提交，避免每帧克隆整个会话。
   const standingDir = useRef<string | null>(corridor.standingPortalDir);
 
@@ -155,9 +155,7 @@ export function useCorridorMovement(
               facing,
               x !== previousX ? elapsed * 1000 : 0,
             );
-            if (trigger === "gate") {
-              openGate();
-            } else if (trigger === "ambush") {
+            if (trigger === "ambush") {
               position.current = {
                 ...position.current,
                 x: encounterSpot(current.corridor, x, facing),
@@ -225,7 +223,7 @@ export function useCorridorMovement(
 
   const nearby = nearbyObjects(corridor, view.x);
   const standingPortal = blocked ? null : portalAt(corridor, view.x);
-  const nearGate = !blocked && bossGateNear(corridor, view.x);
+  const nearGate = view.nearGate;
   const target = standingPortal ? null : nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
   return { x: view.x, facing: view.facing, walking: view.walking, nearby, target, standingPortal, nearGate, interactingId, interact, cycle, travel, openGate };
 }

@@ -21,7 +21,7 @@ export const CorridorAbyss = memo(function CorridorAbyss() {
   return <div className={s.abyss} aria-hidden style={{ top: abyssTop }} />;
 });
 
-/** 近景：按 2 倍尺寸绘制整张素材，并与对应宽度的房间实体同步。 */
+/** 近景：按 NEAR_MAP_ART_SCALE 倍尺寸绘制整张素材，并与对应宽度的房间实体同步。 */
 export const CorridorNear = memo(function CorridorNear({ width, variant }: { width: number; variant: NearMapVariant }) {
   return <div className={s.near} aria-hidden style={{
     width,

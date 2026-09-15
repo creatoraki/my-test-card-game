@@ -17,8 +17,10 @@ function activeObject(s: ExploreState) {
 
 function historyKind(kind: string): "loot" | "heal" | "merchant" | "energy" {
   if (kind === "merchant" || kind === "dispatch" || kind === "shrine") return "merchant";
-  if (kind === "medical" || kind === "sink" || kind === "repairPod") return "heal";
-  if (kind === "crystalVein" || kind === "vending" || kind === "remains" || kind === "compactor" || kind === "modBench" || kind === "cardPrinter") return "loot";
+  if (kind === "medical" || kind === "sink" || kind === "repairPod" || kind === "tutorialMedical") return "heal";
+  if (kind === "crystalVein" || kind === "vending" || kind === "remains" || kind === "compactor"
+    || kind === "modBench" || kind === "cardPrinter" || kind === "tutorialArmory"
+    || kind === "tutorialModBench" || kind === "tutorialForge") return "loot";
   return "energy";
 }
 

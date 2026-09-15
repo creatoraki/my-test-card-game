@@ -4,7 +4,7 @@ import {
   getMapDifficulty,
   isDifficultyUnlocked,
   makeAidSupplyStacks,
-  MAP_DIFFICULTY_IDS,
+  mapDifficultyIds,
   mapHasDifficulty,
   fixedClearRewardOf,
   type MapDifficulty,
@@ -41,8 +41,10 @@ export function MapDifficultyPanel({
   } | null>(null);
   const aidStacks = useMemo(() => makeAidSupplyStacks(mapId, difficulty), [mapId, difficulty]);
   const hasDifficulty = mapHasDifficulty(mapId);
+  const difficultyIds = mapDifficultyIds(mapId);
+  const hasDifficultySelection = difficultyIds.length > 0;
 
-  if (!hasDifficulty && !fixedClearRewardOf(mapId)) return null;
+  if (!hasDifficultySelection && !fixedClearRewardOf(mapId)) return null;
 
   const grouped = rewards.reduce<Record<string, ItemStack>>((result, stack) => {
     const existing = result[stack.itemId];
@@ -56,15 +58,15 @@ export function MapDifficultyPanel({
       className={s.panel}
       data-active={active}
       aria-hidden={!active}
-      aria-label={hasDifficulty ? "难度、配额物资与每日奖励" : "配额物资与通关奖励"}
+      aria-label={hasDifficultySelection ? "难度、配额物资与每日奖励" : "配额物资与通关奖励"}
     >
-      {hasDifficulty ? (
+      {hasDifficultySelection ? (
         <div className={s.difficultySection}>
           <div className={s.surface} />
           <SortieFrame width={814} height={176} />
           <h2 className={s.heading}><SortieGlyph name="sliders" className={s.headingIcon} />难度选择<span className={s.headingSlash}>／／</span><span className={s.headingDots} aria-hidden="true">···•</span></h2>
           <div className={s.difficultyRow} aria-label="选择地图难度">
-            {MAP_DIFFICULTY_IDS.map((id) => {
+            {difficultyIds.map((id) => {
               const definition = getMapDifficulty(id);
               const unlocked = isDifficultyUnlocked(mapId, id, clearedKeys);
               const reason = difficultyLockReason(mapId, id, clearedKeys);

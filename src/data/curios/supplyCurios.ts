@@ -10,8 +10,8 @@ export const SUPPLY_CURIOS: Record<string, CurioDef> = {
     decisions: [
       {
         id: "takeSugar",
-        label: "拆走糖块",
-        story: "你们撬开备用营养匣，里面还留着一块没有受潮的糖块。",
+        label: "取出糖块",
+        story: "你们打开备用营养匣，里面还留着一块没有受潮的糖块。",
         risk: { chance: 0.5, effects: [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.08 }] },
         effects: [{ type: "GAIN_ITEM", itemId: "sugar-cube-c" }],
       },
@@ -68,7 +68,7 @@ export const SUPPLY_CURIOS: Record<string, CurioDef> = {
     decisions: [
       {
         id: "forceRepair",
-        label: "强行启动",
+        label: "尝试启动",
         story: "修复舱拒绝执行完整程序，只能把一小段治疗脉冲打向队伍。",
         risk: { chance: 0.5, effects: [{ type: "MODIFY_ENERGY", amount: -4 }] },
         effects: [{ type: "HEAL_ONE", percent: 0.25 }],

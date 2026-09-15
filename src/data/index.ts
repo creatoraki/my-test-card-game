@@ -87,6 +87,7 @@ export {
   getMapDifficulty,
   isDifficultyUnlocked,
   mapHasDifficulty,
+  mapDifficultyIds,
   type MapDifficulty,
   type MapDifficultyDef,
 } from "./mapDifficulty";
@@ -233,6 +234,7 @@ export {
   CORRIDOR_AMBUSH,
   CORRIDOR_CURIOS,
   RANDOM_CURIO_KINDS,
+  corridorGuardEvent,
   corridorWandererEvent,
   curioEvent,
 } from "./curios";

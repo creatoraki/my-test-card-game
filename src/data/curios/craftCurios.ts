@@ -10,7 +10,7 @@ export const CRAFT_CURIOS: Record<string, CurioDef> = {
     decisions: [
       {
         id: "salvage",
-        label: "拆解台面零件",
+        label: "取下台面零件",
         story: "改装台的机械臂突然夹紧，行动者只能在受伤前抢下一份通用材料。",
         risk: { chance: 0.5, effects: [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.06 }] },
         effects: [{ type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 1 }],
@@ -39,7 +39,7 @@ export const CRAFT_CURIOS: Record<string, CurioDef> = {
     decisions: [
       {
         id: "printTainted",
-        label: "强制打印",
+        label: "尝试打印",
         story: "终端勉强打印出一套卡牌模板，但它把污染也一并写入了其中。",
         effects: [{ type: "FORGE_DRAW_TAINTED", contaminate: 1 }],
       },

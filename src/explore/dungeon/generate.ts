@@ -4,35 +4,27 @@
 // ① 从起始房间开始随机长出一棵生成树, 直到房间数达到地图的 roomCount;
 // ② 追加少量环路边, 让路线出现取舍而不是一条死路走到底;
 // ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房;
-// ④ 传送门优先占最左/最右, BOSS 红门与多出来的门、可交互物共用中段槽位。
+// ④ 传送门按门数规则分布: 2 门左右、3 门左中右、4 门等距; BOSS 红门与可交互物避开门附近槽位。
 // ============================================================================
 
-import { rngInt, rngPick, shuffle } from "../../engine/rng";
+import { rngInt, shuffle } from "../../engine/rng";
 import { RANDOM_CURIO_KINDS } from "../../data/curios";
 import { difficultyMapConfig } from "../../data";
 import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
-import { corridorPortalEdgeSlotsFor, corridorSlotsFor, type CurioKind } from "../corridor/types";
 import {
-  DIR_STEP, OPPOSITE_DIR, PORTAL_DIRS, roomIdAt,
-  type DungeonState, type NearMapVariant, type PortalDir, type RoomNode,
+  corridorPortalSlotsFor, corridorSlotsFor, CORRIDOR, type CurioKind,
+} from "../corridor/types";
+import {
+  DIR_STEP, PORTAL_DIRS, roomIdAt,
+  type DungeonState, type PortalDir, type RoomNode,
 } from "./types";
+import { generatePlannedDungeon } from "./planned";
+import { link, makeRoom } from "./roomNode";
 
 /** 网格边长: 够放下 roomCount 个房间并留出分支空间。 */
 function gridSize(roomCount: number): number {
   return Math.max(3, Math.ceil(Math.sqrt(roomCount)) + 1);
-}
-
-function makeRoom(gx: number, gy: number, label: number): RoomNode {
-  return {
-    id: roomIdAt(gx, gy), gx, gy, kind: "normal", nearMapVariant: "standard", depth: 0, label,
-    curios: [], exits: {}, portalX: {}, visited: false, threatDefeated: false, revealed: false,
-  };
-}
-
-function link(a: RoomNode, b: RoomNode, dir: PortalDir): void {
-  a.exits[dir] = b.id;
-  b.exits[OPPOSITE_DIR[dir]] = a.id;
 }
 
 /** 生成树 + 少量环路。房间只在 size×size 网格内扩张, 故出口天然不超过 4 个。 */
@@ -105,7 +97,7 @@ function pickBossRoom(s: ExploreState, rooms: Record<string, RoomNode>, startId:
   return shuffle(s, pool.map((room) => room.id))[0];
 }
 
-/** 传送门优先占左右边缘; 多出来的门与可交互物共用中段槽位, 坐标不会重叠。 */
+/** 按门数规则分布传送门, 并让红门与可交互物避开传送门附近的中段槽位。 */
 function layoutRoom(
   s: ExploreState,
   room: RoomNode,
@@ -116,17 +108,41 @@ function layoutRoom(
 ): void {
   // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
   const dirs = shuffle(s, PORTAL_DIRS.filter((dir) => room.exits[dir]));
-  const edges = shuffle(s, corridorPortalEdgeSlotsFor(room.nearMapVariant));
-  const middle = shuffle(s, corridorSlotsFor(room.nearMapVariant));
-  let cursor = 0;
+  const portalSlots = dirs.length <= 1
+    ? shuffle(s, corridorPortalSlotsFor(room.nearMapVariant, dirs.length)).slice(0, dirs.length)
+    : corridorPortalSlotsFor(room.nearMapVariant, dirs.length);
   dirs.forEach((dir, index) => {
-    room.portalX[dir] = index < edges.length ? edges[index] : middle[cursor++];
+    room.portalX[dir] = portalSlots[index];
   });
-  if (bossGate) room.bossGateX = middle[cursor++];
-  // 最多两扇中段门、1 扇红门加三件物件, 共用六个槽位, 不需要绕回制造重复坐标。
+
+  const allMiddleSlots = corridorSlotsFor(room.nearMapVariant);
+  const portalAvoidanceRadius = CORRIDOR.portalRadius + 80;
+  const availableMiddleSlots = allMiddleSlots.filter((slot) => (
+    !portalSlots.some((portalX) => Math.abs(slot - portalX) <= portalAvoidanceRadius)
+  ));
+
   const randomCount = Math.max(0, curioCount - (forceMerchant ? 1 : 0));
   const picks = shuffle(s, [...kinds]).slice(0, randomCount);
   if (forceMerchant) picks.push("merchant");
+
+  const requiredSlotCount = (bossGate ? 1 : 0) + picks.length;
+  const blockedMiddleSlots = allMiddleSlots.filter((slot) => (
+    !availableMiddleSlots.includes(slot) && !portalSlots.includes(slot)
+  ));
+  const distanceToPortal = (slot: number) => portalSlots.length
+    ? Math.min(...portalSlots.map((portalX) => Math.abs(slot - portalX)))
+    : Number.MAX_SAFE_INTEGER;
+  const middleSlots = availableMiddleSlots.length >= requiredSlotCount
+    ? availableMiddleSlots
+    : [
+      ...availableMiddleSlots,
+      ...blockedMiddleSlots
+        .sort((a, b) => distanceToPortal(b) - distanceToPortal(a))
+        .slice(0, requiredSlotCount - availableMiddleSlots.length),
+    ];
+  const middle = shuffle(s, middleSlots);
+  let cursor = 0;
+  if (bossGate) room.bossGateX = middle[cursor++];
   room.curios = picks.map((kind, index) => ({
     id: `${room.id}-curio-${index}`,
     kind,
@@ -135,18 +151,9 @@ function layoutRoom(
   }));
 }
 
-/** 新手关卡随机混排三种近景，并确保整张房间图里三种都会出现。 */
-function assignTutorialNearMaps(s: ExploreState, rooms: Record<string, RoomNode>, order: string[]): void {
-  if (s.mapId !== "tutorial" || order.length === 0) return;
-  const randomizedRooms = shuffle(s, [...order]);
-  const variants = shuffle<NearMapVariant>(s, ["standard", "alternate", "third"]);
-  for (const [index, id] of randomizedRooms.entries()) {
-    rooms[id].nearMapVariant = variants[index] ?? rngPick(s, variants);
-  }
-}
-
 export function generateDungeon(s: ExploreState): DungeonState {
   const map = difficultyMapConfig(s.mapId, s.difficulty);
+  if (map.dungeonPlan) return generatePlannedDungeon(s, map.dungeonPlan);
   const roomCount = Math.max(2, map.roomCount);
   const { rooms, order } = growRooms(s, roomCount);
   const startId = order[0];
@@ -159,8 +166,6 @@ export function generateDungeon(s: ExploreState): DungeonState {
   const plain = shuffle(s, order.filter((id) => id !== startId && id !== bossId));
   const battleCount = Math.min(plain.length, Math.max(1, Math.round(plain.length * EXPLORE_RULES.dungeon.battleRoomRatio)));
   for (let i = 0; i < battleCount; i++) rooms[plain[i]].kind = "battle";
-
-  assignTutorialNearMaps(s, rooms, order);
 
   const kinds = [...RANDOM_CURIO_KINDS] as CurioKind[];
   const [minCurio, maxCurio] = EXPLORE_RULES.dungeon.curiosPerRoom;

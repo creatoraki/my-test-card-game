@@ -9,10 +9,17 @@
 
 import type { CurioKind } from "../corridor/types";
 import type { MerchantShelf } from "../../data/curios/types";
+import type { BattleTier } from "../types";
 
 export type PortalDir = "up" | "down" | "left" | "right";
 export type RoomKind = "start" | "normal" | "battle" | "boss";
 export type NearMapVariant = "standard" | "alternate" | "third";
+
+export interface DungeonRoomPlan {
+  kind: RoomKind;
+  curios: CurioKind[];
+  guard?: { tier: BattleTier; encounterId: string };
+}
 
 export const PORTAL_DIRS: readonly PortalDir[] = ["up", "down", "left", "right"];
 
@@ -54,6 +61,8 @@ export interface RoomNode {
   curios: RoomCurio[];
   /** 方向 → 目标房间 id; 只有这里登记的方向才会在场景里生成传送门。 */
   exits: Partial<Record<PortalDir, string>>;
+  /** 固定蓝图房间的守卫遭遇；未设置时战斗房沿用随机黑影。 */
+  guard?: { tier: BattleTier; encounterId: string };
   /** 传送门在房间地面上的横坐标, 与 exits 同键。 */
   portalX: Partial<Record<PortalDir, number>>;
   /** BOSS 红门在房间地面上的横坐标；只有 BOSS 房会生成。 */

@@ -10,6 +10,7 @@ export type MapDifficulty = "normal" | "hard" | "abyss";
 
 export const MAP_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal", "hard", "abyss"];
 export const DIFFICULTY_BASE_MAP_ID = "neon-city";
+const TUTORIAL_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal"];
 
 export interface MapDifficultyDef {
   id: MapDifficulty;
@@ -68,6 +69,13 @@ export function getMapDifficulty(id: string): MapDifficultyDef {
 export function mapHasDifficulty(mapId: string): boolean {
   const map = requireMap(mapId);
   return !map.locked && !map.hideAfterClear;
+}
+
+/** 地图选择页实际展示的难度选项；新手关卡保留普通难度入口。 */
+export function mapDifficultyIds(mapId: string): readonly MapDifficulty[] {
+  const map = requireMap(mapId);
+  if (map.id === "tutorial" && !map.locked) return TUTORIAL_DIFFICULTY_IDS;
+  return !map.locked && !map.hideAfterClear ? MAP_DIFFICULTY_IDS : [];
 }
 
 export function difficultyMapConfig(mapId: string, difficulty: MapDifficulty): MapDef {

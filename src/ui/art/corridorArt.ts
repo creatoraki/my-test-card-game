@@ -10,7 +10,7 @@ import corridorRepairPodArt from "@/assets/explore-corridor/废弃楼层/可交�
 import corridorModBenchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/改装台.png";
 import corridorCardPrinterArt from "@/assets/explore-corridor/废弃楼层/可交互物体/打印终端.png";
 import corridorShrineArt from "@/assets/explore-corridor/废弃楼层/可交互物体/神龛.png";
-import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/档案柜.png";
+import corridorDispatchArt from "@/assets/explore-corridor/废弃楼层/可交互物体/传送带.png";
 import corridorCrystalVeinArt from "@/assets/explore-corridor/废弃楼层/可交互物体/矿脉.png";
 import corridorFarArt from "@/assets/explore-corridor/废弃楼层/无限远景.png";
 import corridorNearStandardArt from "@/assets/explore-corridor/废弃楼层/近景/测试.png";
@@ -64,6 +64,10 @@ export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   shrine: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
   dispatch: { src: corridorDispatchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 12 / 512 },
   merchant: { src: corridorMerchantArt, width: 724, height: 543, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 5 / 543 },
+  tutorialArmory: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 86 / 512 },
+  tutorialModBench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 65 / 512 },
+  tutorialForge: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
+  tutorialMedical: { src: corridorMedicalArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 26 / 512 },
 };
 
 /** 蓝色传送门素材的场景 Y 轴偏移（设计 px，正值向下）。 */
@@ -84,6 +88,10 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   shrine: 0,
   dispatch: 0,
   merchant: 0,
+  tutorialArmory: 0,
+  tutorialModBench: 0,
+  tutorialForge: 0,
+  tutorialMedical: 0,
 };
 
 export const CORRIDOR_ART_SOURCES: readonly string[] = [

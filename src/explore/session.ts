@@ -1698,6 +1698,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   let endRegion = false;
   let openTerminal = false;
   let nodeBattleTier: BattleTier | null = null;
+  let pinnedEncounterId: string | null = null;
   const outcome = resolveEventOutcome(s, choice);
   const effects = outcome?.effects ?? choice.effects ?? ev.effects ?? [];
   if (choice.story) s.pendingStory.push(choice.story);
@@ -1717,6 +1718,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
     }
     if (e.type === "START_NODE_BATTLE") {
       nodeBattleTier = e.tier ?? pickNodeBattleTier(s);
+      pinnedEncounterId = e.encounterId ?? null;
       continue;
     }
     try {
@@ -1766,7 +1768,7 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   if (nodeBattleTier) {
     s.roundBattleTier = nodeBattleTier; // HUD 与结算读的是这一个
     s.pendingBattleTier = nodeBattleTier;
-    s.pendingEncounterId = encounterForTier(s, nodeBattleTier);
+    s.pendingEncounterId = pinnedEncounterId ?? encounterForTier(s, nodeBattleTier);
     if (!s.pendingEncounterId) return false;
     s.pendingIsBoss = false;
     s.battleSource = "node";

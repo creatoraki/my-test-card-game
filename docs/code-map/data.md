@@ -12,7 +12,7 @@
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、招式及各自延迟、招式权重与招式级命中修正、目标选择、每回合行动次数上限、击杀经验、普通掉落表和战斗胜利 `boonTable`；掉落表按档位挂水晶与废弃楼层地区材料——小怪绿晶/low、精英蓝晶/mid、BOSS 必掉红晶/boss；水晶与换金物按档位共用常量表，通用材料逐怪物固定一种。垃圾山的守护者登记五招及 `ai` 状态机字段，按玩家护盾状态驱动后继权重。首图小怪已包含玻璃水母这一闪避型飞行单位。先手统一 20、与角色基础先手持平，故 `delay` 字段即最终蓄力时刻数。经验写在敌人定义中，不写入掉落表。 |
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）；`lift` 是飞行离地高度，只供 UI 把落地阴影放回地面；t2 同时登记 3 只标准编成与 2 只轻档编成；4 只怪的编成只登记在 t4/t5。 |
 | [items/](../../src/data/items/) | 按设计文档拆分的物品定义：通用材料与水晶、地区特色材料、换金物、消耗品与临期食品、装备模型模板及成品模组、`items/relics/blessings/{tutorial,basic,uncommon}.ts` 的祝福遗物分表与 `relics/curses.ts` 的诅咒遗物；正向武器由族级词条模板展开五档模型，极端武器仍使用固定属性；由 `items/index.ts` 汇总并在 `data/index.ts` 注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20；`items/materials.ts` 的水晶与 `items/regional.ts` 的地区材料都刻意不过它 ⇒ 没有 `buyValue` ⇒ 据点商店永不上架、回收台也不收。 |
-| [curios/](../../src/data/curios/) | 房间物件的唯一数据入口：A1-A5、B1-B3、C1-C3、安全投递柜与流浪货商；`critters.ts` 维护三种机械小生物的双食品，`rewardPools.ts` 维护材料/换金物/水晶/食品/消耗品/模组池，`merchantPricing.ts` 维护货商临期食品池与价值分档。 |
+| [curios/](../../src/data/curios/) | 房间物件的唯一数据入口：A1-A5、B1-B3、C1-C3、安全投递柜与流浪货商；`tutorialCurios.ts` 登记只供新手固定蓝图使用的装备柜、模组台、锻造终端和医疗站；`critters.ts` 维护三种机械小生物的双食品，`rewardPools.ts` 维护材料/换金物/水晶/食品/消耗品/模组池，`merchantPricing.ts` 维护货商临期食品池与价值分档。 |
 | [picnicRecipes.ts](../../src/data/picnicRecipes.ts) | 远征技能《野餐》的 6 个隐藏食谱与多重集精确匹配；命中食谱后由探索层生成随机祝福遗物，食谱名称只在命中结算时交给 UI。 |
 | [items/regional.ts](../../src/data/items/regional.ts) | 地区特色材料的唯一真相点：按地区与 `low` / `mid` / `boss` 档位登记材料，提供 `regionalMaterial()`、`itemRegionId()` 与 `regionalTierOf()`；首批登记废弃楼层三种材料，独立于 `MATERIAL_ITEM_DEFS`，不进入交易终端材料候选池。 |
 | [items/modules.ts](../../src/data/items/modules.ts) | 成品模组物品定义：角色模组（速攻、弃牌、落差、卫星、借星、瞄准、催熟、组装 A/B/C/D、急诊、回响）与 1 阶通用模组（攻击力/治愈力/穿甲/暴击/精准/淬毒/燃烧，统一 `fine` + `familyId: "generic-module"`），均不填购买/回收价格，因此不会进入商店或回收台；另有 1 阶模组箱 `module-crate-t1`（消耗品，`use.kind = "openModuleCrate"`）。四件组装模组同构，由 `ASSEMBLE_MODULE_LETTERS` + `assembleModuleItemId` 统一展开，卡牌模组表、制造配方与徽记共用这一份字母表与 id 生成。 |
@@ -39,7 +39,9 @@
 | [mapClearReward.ts](../../src/data/mapClearReward.ts) | 无难度地图的固定通关奖励配置；教学关奖励为银币 ×1 与随机 common 装备 ×1。 |
 | [mapDailyReward.ts](../../src/data/mapDailyReward.ts) | 基于日期种子生成地图×难度通关奖励：随机通用材料、固定稀有度随机词条装备与换金物；通关奖励装备完美度 +1，无难度地图读取固定奖励表；不含水晶和地区材料。 |
 | [mapAidSupply.ts](../../src/data/mapAidSupply.ts) | 按地图 × 难度登记出击配额物资，查询顺序为难度键、地图键、默认清单；生成的 `ItemStack` 带一次性标记。 |
-| [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人；4 只怪的编成只登记在 t4/t5；`roundPlans` 可为地图提供固定轮次棋盘，`hideAfterClear` 控制通关后从选择带隐藏，`battleTierByRound`、`battleEncounterByRound`（按轮次钉死推进战斗的遭遇战，教学关前两轮用它排两套不同的双敌人编成）、`requiresClear` 与 `locked` 定义按轮次档位和地图解锁规则；`visibleMaps` 是出击界面唯一的可见地图筛选入口。难度配置由 `mapDifficulty.ts` 管理；地图素材由 UI 查表。 |
+| [maps.ts](../../src/data/maps.ts) | 地图名称、描述、轮数、事件池、各战斗档位对应的遭遇战和低档补充敌人；4 只怪的编成只登记在 t4/t5；`roundPlans` 可为地图提供固定轮次棋盘，`dungeonPlan` 可为地图提供固定直线房间蓝图，`hideAfterClear` 控制通关后从选择带隐藏，`battleTierByRound`、`battleEncounterByRound`（按轮次钉死推进战斗的遭遇战，教学关前两轮用它排两套不同的双敌人编成）、`requiresClear` 与 `locked` 定义按轮次档位和地图解锁规则；`visibleMaps` 是出击界面唯一的可见地图筛选入口。难度配置由 `mapDifficulty.ts` 管理；地图素材由 UI 查表。 |
+| [tutorialDungeon.ts](../../src/data/tutorialDungeon.ts) | 新手关卡 6 间直线房间蓝图：固定登记武装、两场 t1 守卫战、强化、回复和 BOSS 的房间顺序与物件。 |
+| [curios/tutorialCurios.ts](../../src/data/curios/tutorialCurios.ts) | 新手蓝图专用物件：训练装备柜、训练模组台、训练锻造终端和训练医疗站；不进入普通地图随机物件池。 |
 | [index.ts](../../src/data/index.ts) | 按 id 建索引和 getter，维护物品族索引，实例化卡牌/物品并生成持久化 uid；`newUid` 也供临时战斗奖励生成唯一 id。 |
 
 数据层不登记素材路径，也不写流程逻辑。素材查表在 `src/ui/`；战斗、探索和物品规则分别由对应纯逻辑层维护。

@@ -142,7 +142,7 @@ export type ExploreEffect =
   | { type: "RELIC_OFFER"; count?: number; relicIds?: string[]; rarity?: ItemRarity }
   | { type: "REFORGE_BOND"; bias?: BondBias }
   | { type: "START_TRIAL"; trial: TrialDef } // 接下一份挑战契约(负面修正立即生效, 到期发奖)
-  | { type: "START_NODE_BATTLE"; tier?: BattleTier }
+  | { type: "START_NODE_BATTLE"; tier?: BattleTier; encounterId?: string }
   | { type: "OPEN_SHOP" } // 打开本事件的交易终端, 由落点选项触发
   | { type: "END_REGION" } // 立即结束本轮推进, 进入本轮战斗(「逆流净化机」)
   | { type: "RETREAT" }; // 立即结束远征, 收益带回

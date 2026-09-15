@@ -19,7 +19,7 @@ export function CorridorSprite({
   const art = CORRIDOR_PROP_ART[kind];
   const width = art.width * CORRIDOR_PROP_BASE_SCALE * art.scale;
   const height = art.height * CORRIDOR_PROP_BASE_SCALE * art.scale;
-  return <span aria-hidden className={`${s.sprite} ${outlined ? s.outlined : ""} ${interacting ? s.interacting : ""}`} style={{
+  return <span aria-hidden className={`${s.sprite} ${outlined ? s.propOutline : ""} ${interacting ? s.interacting : ""}`} style={{
     width, height, marginBottom: -height * art.groundTrim,
     backgroundImage: `url(${art.src})`,
   } as CSSProperties} />;

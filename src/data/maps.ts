@@ -7,8 +7,10 @@
 // 地图配图不在此登记 —— 数据层不碰素材; 选层预览图见 ui/mapArt.ts,
 // 战斗背景见 ui/battleBg.ts, 场景氛围见 ui/ambience.ts, 三处都按下面的 id 作键。
 
+import type { DungeonRoomPlan } from "../explore/dungeon/types";
 import type { BattleTier, RouteBoardPlan } from "../explore/types";
 import { RARITY_ORDER, type ItemRarity } from "../items/types";
+import { TUTORIAL_DUNGEON_PLAN } from "./tutorialDungeon";
 import { TUTORIAL_ROUND_PLANS } from "./tutorialRoute";
 
 export interface MapDef {
@@ -22,6 +24,8 @@ export interface MapDef {
   // ── 区域推进 ──
   /** 本图的房间总数 = 这张地图的庞大程度; 房间图由 explore/dungeon/generate.ts 现生成。 */
   roomCount: number;
+  /** 有蓝图时按蓝图生成直线房间图；roomCount 应与蓝图长度一致。 */
+  dungeonPlan?: readonly DungeonRoomPlan[];
   eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
   /** 固定轮次棋盘; 旧路由模式保留字段, 房间制不读取。 */
   roundPlans?: readonly RouteBoardPlan[];
@@ -51,7 +55,8 @@ export const MAPS: MapDef[] = [
     difficulty: 1,
     emoji: "🧭",
     maxEquipRarity: "common",
-    roomCount: 5,
+    roomCount: 6,
+    dungeonPlan: TUTORIAL_DUNGEON_PLAN,
     eventPoolId: "tutorial",
     roundPlans: TUTORIAL_ROUND_PLANS,
     hideAfterClear: true,
