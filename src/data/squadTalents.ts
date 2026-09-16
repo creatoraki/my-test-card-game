@@ -1,11 +1,11 @@
 // 小队徽章与天赋树 —— 训练室的数据真相点。
 //
-// ★ 结构从「方向 + 成本数组」改成了**节点图**(《初心者徽章.md》与训练室改造计划):
-//   每个徽章 = 若干条方向链(branches, 仅用于图标/配色/文案分组) + 一张手写坐标的节点图(nodes)。
+// ★ 结构从「方向 + 成本数组」改成了**节点图**(《基础徽章.md》与训练室改造计划):
+//   每个徽章 = 若干条方向链(branches, 仅用于图标/配色/文案分组) + 一张节点图(nodes)。
 //   节点按前置依赖逐颗点亮: requires 数组里**任一**已激活即解锁, 空数组 = 链首, 直接可点。
 //   解锁/退还/花费的判定都是本文件的纯函数, UI 与 store 共用, 禁止在组件里重写这些判断。
 //
-// 数值与平衡沿用《初心者徽章.md》既有配置(22 个节点、成本不变), 本次只改了结构与表现。
+// 三枚基础徽章的数值与成本在此集中定义，UI 与 store 只读取这里的结果。
 
 import type { SquadResourceMods } from "../engine/types";
 
@@ -30,8 +30,6 @@ export interface TalentNodeDef {
   value: number; // 该节点提供的修正(沿用 perNode, 均为 1)
   cost: number; // 沿用现有 costs 数组的对应项
   requires: string[]; // 满足其一即可解锁; 空数组 = 链首, 直接可点
-  x: number;
-  y: number; // 树面板内的设计 px 坐标
   tier: "minor" | "major"; // 只影响节点大小, 末节点用 major
   desc: string;
 }
@@ -52,26 +50,19 @@ export interface SquadBadgeDef {
   requirement: string | null;
   branches: TalentBranchDef[];
   nodes: TalentNodeDef[];
-  canvas: { width: number; height: number }; // 树面板设计 px 尺寸
   locked?: boolean; // 占位徽章用(列表条显示「待开放」)
 }
 
 // ---------------------------------------------------------------------------
 // 方向链展开工具
 // ---------------------------------------------------------------------------
-// 一条链 = 方向定义 + 成本数组 + 一串坐标。首节点 requires: [] 直接可点,
+// 一条链 = 方向定义 + 成本数组。首节点 requires: [] 直接可点,
 // 其余节点 requires: [上一节点 id], 形成「点亮 → 解锁下一颗」的推进关系。
-// 坐标只负责表现, 不参与任何规则判定。
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI"];
 
-function chain(
-  branch: TalentBranchDef,
-  costs: number[],
-  points: Array<[number, number]>,
-): TalentNodeDef[] {
+function chain(branch: TalentBranchDef, costs: number[]): TalentNodeDef[] {
   return costs.map((cost, index) => {
-    const [x, y] = points[index];
     return {
       id: `${branch.id}-${index + 1}`,
       name: `${branch.name} ${ROMAN[index]}`,
@@ -79,23 +70,10 @@ function chain(
       value: 1,
       cost,
       requires: index === 0 ? [] : [`${branch.id}-${index}`],
-      x,
-      y,
       tier: index === costs.length - 1 ? "major" : "minor",
       desc: `${BRANCH_EFFECTS[branch.id] ?? branch.name} +1`,
     };
   });
-}
-
-// 扇形半环布局: 以画布下方的徽章核心为原点, 0° 向右, 逆时针为上。
-const FAN_ORIGIN = { x: 670, y: 540 };
-
-function fan(angleDeg: number, radii: number[]): Array<[number, number]> {
-  const angle = (angleDeg * Math.PI) / 180;
-  return radii.map((radius) => [
-    FAN_ORIGIN.x + Math.cos(angle) * radius,
-    FAN_ORIGIN.y - Math.sin(angle) * radius,
-  ]);
 }
 
 const BRANCH_EFFECTS: Record<string, string> = {
@@ -108,12 +86,9 @@ const BRANCH_EFFECTS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// 初心者徽章 —— 六条链共 22 个节点, 成本严格沿用既有值
+// 基础徽章 —— 节点坐标由 TalentTreeRadial/talentGeometry.ts 统一负责。
 // ---------------------------------------------------------------------------
-// 画布 1340×580, 徽章核心位于下方, 六条链向上呈扇面展开。
-const NOVICE_CANVAS = { width: 1340, height: 580 };
-
-const NOVICE_BRANCHES: TalentBranchDef[] = [
+const VOYAGE_BRANCHES: TalentBranchDef[] = [
   { id: "handLimit", name: "手牌扩容", key: "handLimit" },
   { id: "redraw", name: "换牌训练", key: "redraws" },
   { id: "wait", name: "待机训练", key: "waits" },
@@ -122,88 +97,73 @@ const NOVICE_BRANCHES: TalentBranchDef[] = [
   { id: "openingHand", name: "起手训练", key: "openingHand" },
 ];
 
-// ⚠ 成本数组与《初心者徽章.md》的训练方向表一一对应, 不要在这里改数值。
-const NOVICE_NODES: TalentNodeDef[] = [
-  ...chain(NOVICE_BRANCHES[0], [1, 3, 5], fan(12, [225, 370, 565])),
-  ...chain(NOVICE_BRANCHES[1], [1, 2, 3], fan(35, [165, 340, 515])),
-  ...chain(NOVICE_BRANCHES[2], [1, 1, 2, 2, 2], fan(68, [150, 245, 339, 430, 521])),
-  ...chain(NOVICE_BRANCHES[3], [5, 5, 5, 8, 8], fan(112, [150, 245, 339, 430, 521])),
-  ...chain(NOVICE_BRANCHES[4], [3, 4, 5], fan(145, [165, 340, 515])),
-  ...chain(NOVICE_BRANCHES[5], [1, 2, 3], fan(168, [225, 370, 565])),
+const VOYAGE_NODES: TalentNodeDef[] = [
+  ...chain(VOYAGE_BRANCHES[0], [2]),
+  ...chain(VOYAGE_BRANCHES[1], [2]),
+  ...chain(VOYAGE_BRANCHES[2], [2]),
+  ...chain(VOYAGE_BRANCHES[3], [6]),
+  ...chain(VOYAGE_BRANCHES[4], [4]),
+  ...chain(VOYAGE_BRANCHES[5], [3]),
+];
+
+const VANGUARD_BRANCHES: TalentBranchDef[] = [
+  { id: "openingHand", name: "起手训练", key: "openingHand" },
+  { id: "handLimit", name: "手牌扩容", key: "handLimit" },
+  { id: "redraw", name: "换牌训练", key: "redraws" },
+  { id: "draw", name: "抽牌训练", key: "drawCount" },
+];
+
+const VANGUARD_NODES: TalentNodeDef[] = [
+  ...chain(VANGUARD_BRANCHES[0], [3, 4]),
+  ...chain(VANGUARD_BRANCHES[1], [2, 3]),
+  ...chain(VANGUARD_BRANCHES[2], [2]),
+  ...chain(VANGUARD_BRANCHES[3], [4]),
+];
+
+const CLOCKWORK_BRANCHES: TalentBranchDef[] = [
+  { id: "wait", name: "待机训练", key: "waits" },
+  { id: "redraw", name: "换牌训练", key: "redraws" },
+  { id: "mana", name: "费用训练", key: "mana" },
+  { id: "handLimit", name: "手牌扩容", key: "handLimit" },
+];
+
+const CLOCKWORK_NODES: TalentNodeDef[] = [
+  ...chain(CLOCKWORK_BRANCHES[0], [2, 3]),
+  ...chain(CLOCKWORK_BRANCHES[1], [2, 3]),
+  ...chain(CLOCKWORK_BRANCHES[2], [6]),
+  ...chain(CLOCKWORK_BRANCHES[3], [2]),
 ];
 
 export const SQUAD_BADGES: SquadBadgeDef[] = [
   {
-    id: "novice",
-    name: "初心者徽章",
+    id: "voyage",
+    name: "启程徽章",
     kicker: "基础方案",
-    desc: "为尚未定型的小队提供一套可自由分配的基础训练方案。",
+    desc: "均衡扩展小队资源，为尚未定型的队伍提供稳妥的启程方案。",
+    base: { redraws: 1, handLimit: 1 },
+    requirement: null,
+    branches: VOYAGE_BRANCHES,
+    nodes: VOYAGE_NODES,
+  },
+  {
+    id: "vanguard",
+    name: "先手徽章",
+    kicker: "起手方案",
+    desc: "把关键组件带入战斗开端，强化起手与前期展开能力。",
     base: { openingHand: 1 },
     requirement: null,
-    branches: NOVICE_BRANCHES,
-    nodes: NOVICE_NODES,
-    canvas: NOVICE_CANVAS,
-  },
-  // 以下徽章只有列表条占位(「待开放」), 尚无天赋树内容 —— 名称与适配方向见《队伍属性养成.md》§3.3。
-  {
-    id: "rush",
-    name: "疾行徽章",
-    kicker: "疾行方案",
-    desc: "以速度换取压制: 抽牌数提高, 手牌上限略受限制。",
-    base: {},
-    requirement: "速攻 / 抽牌类卡牌达到一定数量",
-    branches: [],
-    nodes: [],
-    canvas: { width: 0, height: 0 },
-    locked: true,
+    branches: VANGUARD_BRANCHES,
+    nodes: VANGUARD_NODES,
   },
   {
-    id: "reload",
-    name: "重载徽章",
-    kicker: "重载方案",
-    desc: "为高费牌组蓄能: 费用上限提高, 抽牌与换牌效率受限制。",
-    base: {},
-    requirement: "2~3 费与高倍率卡牌达到一定数量",
-    branches: [],
-    nodes: [],
-    canvas: { width: 0, height: 0 },
-    locked: true,
-  },
-  {
-    id: "reserve",
-    name: "储备徽章",
-    kicker: "储备方案",
-    desc: "囤积与回收手牌: 手牌上限提高, 基础抽牌速度较慢。",
-    base: {},
-    requirement: "弃牌 / 回收类卡牌达到一定数量",
-    branches: [],
-    nodes: [],
-    canvas: { width: 0, height: 0 },
-    locked: true,
-  },
-  {
-    id: "observer",
-    name: "观测徽章",
-    kicker: "观测方案",
-    desc: "读透对手的时刻: 待机次数提高, 直接费用爆发较弱。",
-    base: {},
-    requirement: "待机 / 延迟触发类卡牌达到一定数量",
-    branches: [],
-    nodes: [],
-    canvas: { width: 0, height: 0 },
-    locked: true,
-  },
-  {
-    id: "balance",
-    name: "均衡徽章",
-    kicker: "均衡方案",
-    desc: "混合牌组的均衡方案: 不提供明显的初始偏向。",
-    base: {},
-    requirement: "无特殊要求",
-    branches: [],
-    nodes: [],
-    canvas: { width: 0, height: 0 },
-    locked: true,
+    id: "clockwork",
+    name: "守时徽章",
+    kicker: "节奏方案",
+    desc: "用待机与换牌调整行动时机，保持队伍节奏稳定。",
+    base: { waits: 1 },
+    requirement: null,
+    branches: CLOCKWORK_BRANCHES,
+    nodes: CLOCKWORK_NODES,
   },
 ];
 

@@ -1303,6 +1303,7 @@ export const useTownStore = create<TownStore>()(
         });
       },
     }),
+    // ⚠ v30: 徽章 id 全部更换, 旧档的 squadTalent.badgeId 不再有效, 换 key 让旧档自然失效重建。
     // ⚠ v29: 新增教学关固定通关奖励键与通关奖励装备完美度加成, 旧档不兼容, 换 key 让旧档自然失效重建。
     // ⚠ v28: 新增地图难度进度与每日通关奖励。
     // ⚠ v27: 卡牌/装备/材料/祝福遗物统一为一套商店货架, 旧档不兼容, 换 key 让旧档自然失效重建。
@@ -1329,6 +1330,6 @@ export const useTownStore = create<TownStore>()(
     //   换 key 让旧档自然失效重建。
     //   (v5 引入的是装备实例的随机羁绊词条 ItemStack.affinity;
     //    v4 引入的是物资中转仓 storage 与三装备槽 CharacterState.equipped。)
-    { name: TOWN_PROFILE_KEY, version: 29 },
+    { name: TOWN_PROFILE_KEY, version: 30 },
   ),
 );

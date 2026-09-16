@@ -42,7 +42,7 @@ export function buildRadialLayout(badge: SquadBadgeDef): RadialBranchGeometry[] 
     const art = branchArtOf(branch.id);
     const nodePoints = nodes.map((_, index) => {
       if (nodes.length === art.points.length) return art.points[index];
-      const progress = nodes.length <= 1 ? art.points.length - 1 : index * (art.points.length - 1) / (nodes.length - 1);
+      const progress = nodes.length <= 1 ? Math.floor((art.points.length - 1) / 2) : index * (art.points.length - 1) / (nodes.length - 1);
       const a = art.points[Math.floor(progress)];
       const b = art.points[Math.min(Math.ceil(progress), art.points.length - 1)];
       const t = progress % 1;

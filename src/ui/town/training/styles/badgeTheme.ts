@@ -7,7 +7,9 @@ export interface BadgeTheme {
 }
 
 export const BADGE_THEMES: Record<string, BadgeTheme> = {
-  novice: { hue: "#ffc21a", deep: "#a86b00", ink: "#ffe9a8" },
+  voyage: { hue: "#ffc21a", deep: "#a86b00", ink: "#ffe9a8" },
+  vanguard: { hue: "#74e4ff", deep: "#12618b", ink: "#d6f4ff" },
+  clockwork: { hue: "#ff9d5c", deep: "#8e3f1b", ink: "#ffe0bf" },
   rush: { hue: "#4fd1ff", deep: "#0a6f9c", ink: "#c8efff" },
   reload: { hue: "#ff6a2a", deep: "#a33200", ink: "#ffd0b8" },
   reserve: { hue: "#2ee6a0", deep: "#0a7a55", ink: "#bdf7e0" },
@@ -15,7 +17,7 @@ export const BADGE_THEMES: Record<string, BadgeTheme> = {
   balance: { hue: "#cfe0f5", deep: "#5f7288", ink: "#eef4fb" },
 };
 
-const FALLBACK: BadgeTheme = BADGE_THEMES.novice;
+const FALLBACK: BadgeTheme = BADGE_THEMES.voyage;
 
 export function getBadgeTheme(badgeId: string): BadgeTheme {
   return BADGE_THEMES[badgeId] ?? FALLBACK;

@@ -35,7 +35,7 @@
 | [tradeServices.ts](../../src/data/tradeServices.ts) | 12 种交易服务的唯一目录：食品货币、标准价格、公开说明、货架类型、待办效果和随机团队 BUFF 候选。 |
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用材料、水晶、消耗品、食品和武器按服务类型筛选；材料已无地区专属池，只有武器仍按所选地图难度筛稀有度。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
-| [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：每个徽章 = 方向链（`branches`，仅供图标/文案分组）+ 扇形半环坐标节点图（`nodes`，`requires` 任一满足即解锁）；初心者徽章 6 链 22 节点，其余徽章为「待开放」占位。`fan()` 负责纯坐标生成，`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` / `addSquadMods` 一起作为 UI 与 store 共用的判定入口。 |
+| [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：当前只保留启程、先手、守时三枚基础徽章；每个徽章由方向链（`branches`，仅供图标/文案分组）和节点图（`nodes`，`requires` 任一满足即解锁）组成，节点坐标由训练室 UI 层统一布局。`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` / `addSquadMods` 一起作为 UI 与 store 共用的判定入口。 |
 | [mapDifficulty.ts](../../src/data/mapDifficulty.ts) | 地图难度普通/困难/深渊、逐级解锁、奖励定义与 `difficultyMapConfig` 唯一配置入口；奖励类型由 `mapClearReward.ts` 外迁复用；当前非普通档临时复用废弃楼层配置，并按难度覆盖装备稀有度上限。 |
 | [mapClearReward.ts](../../src/data/mapClearReward.ts) | 无难度地图的固定通关奖励配置；教学关奖励为银币 ×1 与随机 common 装备 ×1。 |
 | [mapDailyReward.ts](../../src/data/mapDailyReward.ts) | 基于日期种子生成地图×难度通关奖励：随机通用材料、固定稀有度随机词条装备与换金物；通关奖励装备完美度 +1，无难度地图读取固定奖励表；不含水晶和地区材料。 |

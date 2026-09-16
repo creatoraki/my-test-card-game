@@ -12,13 +12,32 @@ interface BadgeArtProps {
 }
 
 const ART: Record<string, (props: BadgeArtProps) => ReactNode> = {
-  novice: ({ gradientId }) => (
+  voyage: ({ gradientId }) => (
     <g className={s["bsg-subject"]}>
       <path className={s["bsg-core"]} d="M100 48 143 73v53l-43 27-43-27V73l43-25Z" fill={`url(#${gradientId})`} stroke="var(--badge-hue, var(--tr-glow))" strokeWidth="1.6" />
       <path d="M100 63 128 80v38l-28 17-28-17V80l28-17Z" stroke="var(--badge-hue, var(--tr-glow))" strokeWidth="1.1" opacity=".82" />
       <circle className={s["bsg-breathe"]} cx="100" cy="99" r="17" fill={`url(#${gradientId})`} stroke="var(--badge-hue, var(--tr-glow))" strokeWidth="1.5" />
       <circle cx="100" cy="99" r="7" stroke="var(--badge-ink, var(--tr-ink))" strokeWidth="1.4" />
       <path d="M100 83v32M84 99h32" stroke="var(--badge-ink, var(--tr-ink))" strokeWidth="1.1" opacity=".86" />
+    </g>
+  ),
+  vanguard: ({ gradientId }) => (
+    <g className={s["bsg-subject"]}>
+      <path d="M57 76h56l15 15v57H57V76Z" fill={`url(#${gradientId})`} stroke="var(--badge-deep, var(--tr-glow-deep))" strokeWidth="1.3" />
+      <path className={s["bsg-core"]} d="M75 61h56l15 15v57H75V61Z" fill={`url(#${gradientId})`} stroke="var(--badge-hue, var(--tr-glow))" strokeWidth="1.6" />
+      <path d="M131 61v15h15M88 84h35M88 97h27M88 110h35" stroke="var(--badge-ink, var(--tr-ink))" strokeWidth="2" opacity=".78" />
+      <path className={s["bsg-speed-line"]} d="M39 126h35M32 142h38M48 158h28" stroke="var(--badge-deep, var(--tr-glow-deep))" strokeWidth="2" opacity=".82" />
+      <path className={s["bsg-breathe"]} d="m125 126 25-18v12h18v12h-18v12l-25-18Z" fill={`url(#${gradientId})`} stroke="var(--badge-ink, var(--tr-ink))" strokeWidth="1.2" />
+    </g>
+  ),
+  clockwork: ({ gradientId }) => (
+    <g className={s["bsg-subject"]}>
+      <circle className={s["bsg-spin"]} cx="100" cy="100" r="58" fill="none" stroke="var(--badge-deep, var(--tr-glow-deep))" strokeWidth="2" strokeDasharray="3 8" />
+      <path d="M100 35v13M100 152v13M35 100h13M152 100h13M54 54l9 9M137 137l9 9M146 54l-9 9M63 137l-9 9" stroke="var(--badge-hue, var(--tr-glow))" strokeWidth="2" opacity=".8" />
+      <circle className={s["bsg-core"]} cx="100" cy="100" r="31" fill={`url(#${gradientId})`} stroke="var(--badge-hue, var(--tr-glow))" strokeWidth="1.6" />
+      <circle cx="100" cy="100" r="12" fill="none" stroke="var(--badge-ink, var(--tr-ink))" strokeWidth="1.4" />
+      <path d="M100 48v35M100 83q30 15 0 42" fill="none" stroke="var(--badge-ink, var(--tr-ink))" strokeWidth="1.7" />
+      <circle className={s["bsg-breathe"]} cx="100" cy="137" r="11" fill={`url(#${gradientId})`} stroke="var(--badge-ink, var(--tr-ink))" strokeWidth="1.3" />
     </g>
   ),
   rush: ({ gradientId }) => (
