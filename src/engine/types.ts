@@ -184,9 +184,10 @@ export interface EffectDescriptor {
   maxBonusMultiplier?: number; // DAMAGE: bonusMultiplierFrom 的加算倍率上限
   // DAMAGE: 按目标状况逐目标加算倍率。targetHpBelowPct 用 value 传阈值(百分比)。
   damageBonus?: {
-    when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct" | "targetHasDebuff";
+    when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct" | "targetHasDebuff" | "targetHasStatus";
     multiplier: number;
     value?: number;
+    status?: string;
   };
   bonusMultiplierPerSelfStack?: number; // DAMAGE: 每 1 层本卡实例累计(state.activeCardStacks)加算的倍率
   onKill?: EffectDescriptor[]; // DAMAGE: 本次效果把某个目标打死时结算一次(主目标 = 被击杀者)

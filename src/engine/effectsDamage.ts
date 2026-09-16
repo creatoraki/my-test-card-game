@@ -78,7 +78,8 @@ export function applyDamageEffect(
         ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
           (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield) ||
           (effect.damageBonus.when === "targetHpBelowPct" && hpPct < (effect.damageBonus.value ?? 0)) ||
-          (effect.damageBonus.when === "targetHasDebuff" && targetUnit?.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)));
+          (effect.damageBonus.when === "targetHasDebuff" && targetUnit?.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)) ||
+          (effect.damageBonus.when === "targetHasStatus" && Boolean(effect.damageBonus.status) && targetUnit?.statuses.some((status) => status.id === effect.damageBonus?.status && status.stacks > 0)));
       const aimedBonus =
         effect.aimedMultiplier != null && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
           ? effect.aimedMultiplier

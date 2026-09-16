@@ -128,7 +128,8 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
       ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
         (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield) ||
         (effect.damageBonus.when === "targetHpBelowPct" && target.hp / target.maxHp * 100 < (effect.damageBonus.value ?? 0)) ||
-        (effect.damageBonus.when === "targetHasDebuff" && target.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)));
+        (effect.damageBonus.when === "targetHasDebuff" && target.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)) ||
+        (effect.damageBonus.when === "targetHasStatus" && Boolean(effect.damageBonus.status) && target.statuses.some((status) => status.id === effect.damageBonus?.status && status.stacks > 0)));
     const aimedBonus =
       effect.aimedMultiplier != null && target.statuses.some((status) => status.id === "aimed")
         ? effect.aimedMultiplier

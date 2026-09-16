@@ -2,6 +2,14 @@ import type { CardAnim, EffectDescriptor, EnemyAiScript, StatBlock, Targeting } 
 import type { BoonEntry } from "../../explore/types";
 import type { DropEntry } from "../../items/types";
 
+export type MoveBiasWhen =
+  | { when: "anyFoeHasStatus"; status: string }
+  | { when: "noFoeHasStatus"; status: string }
+  | { when: "anyFoeHealRoomAtLeast"; value: number }
+  | { when: "allyCountAtLeast"; value: number };
+
+export type MoveBias = MoveBiasWhen & { multiplier: number };
+
 export interface EnemyMove {
   id: string;
   name: string;
@@ -9,9 +17,11 @@ export interface EnemyMove {
   delay: number;
   kind: "attack" | "block" | "buff" | "debuff" | "special";
   targeting: Targeting;
-  targetPick?: "random" | "highestShield";
+  targetPick?: "random" | "highestShield" | "highestHealRoom" | "withStatus" | "withoutStatus";
+  targetStatus?: string;
   effects: EffectDescriptor[];
   weight?: number;
+  bias?: MoveBias[];
   hitBonus?: number;
   anim?: CardAnim;
 }

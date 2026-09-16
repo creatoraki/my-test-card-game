@@ -9,7 +9,7 @@ import { runEnemyTempo } from "./statusLifecycle";
 import { attackDamage, enemyActDelay, statOf } from "./stats";
 import { rngPickWeighted } from "./rng";
 import { withHitRecorder } from "./animHits";
-import { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
+import { enemyMoveWeight, pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 
 // 消耗一个行动点, 随机抽取下一招并开始蓄力。
 export function startCharge(state: BattleState, enemyId: string): void {
@@ -22,7 +22,7 @@ export function startCharge(state: BattleState, enemyId: string): void {
   const def = getEnemyDef(e.enemyDefId);
   const move = def.ai
     ? pickScriptedMove(state, e, def)
-    : rngPickWeighted(state, def.moves, (m) => m.weight ?? 1);
+    : rngPickWeighted(state, def.moves, (m) => enemyMoveWeight(state, e, m));
   if (def.ai) updateAiMemory(e, move, def.ai);
   e.actsThisRound += 1;
 

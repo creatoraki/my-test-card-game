@@ -74,10 +74,10 @@ export {
 } from "./battle";
 export type { AllyInit, BattleSetup, PlayBlock, PlayRecorder } from "./battle";
 export { runEnemyFlee } from "./flee";
-export { foesOf, alliesOf, aliveOf, chooseRandomTarget } from "./targeting";
+export { foesOf, alliesOf, aliveOf, chooseRandomTarget, tauntedAmong, validFoeTargetIds } from "./targeting";
 export { getStatus } from "./ops";
 export { growInsurance, insuranceStacksOf, partyInsuranceStacks, settleInsurance } from "./insurance";
-export { pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
+export { enemyMoveWeight, pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
 export { moveToDiscard } from "./discard";
 export { isPassive, playableHandUids, handPassiveUids } from "./passive";
 export { avidyaPickCount } from "./handChoice";

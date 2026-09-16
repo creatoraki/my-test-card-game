@@ -16,7 +16,7 @@ import { checkEnd, ops } from "./ops";
 import { withHitRecorder } from "./animHits";
 import { RULES } from "./rules";
 import { rngPick } from "./rng";
-import { alliesOf, foesOf } from "./targeting";
+import { alliesOf, foesOf, validFoeTargetIds } from "./targeting";
 import { resetCultivate } from "./cultivate";
 import { addCardToHand } from "./deck";
 import { cardCost } from "./cost";
@@ -37,10 +37,12 @@ function autoTarget(state: BattleState, card: Card): string | undefined {
   if (card.targeting === "self") return card.ownerCharId;
   const candidates = card.targeting === "foe" ? foesOf(state, owner) : card.targeting === "ally" ? alliesOf(state, owner) : [];
   if (candidates.length === 0) return undefined;
-  if (card.targeting === "foe" && card.onDiscard?.autoTarget === "lowestHpFoe") {
-    return candidates.reduce((lowest, current) => (current.hp < lowest.hp ? current : lowest)).id;
-  }
-  return rngPick(state, candidates).id;
+  const validIds = card.targeting === "foe" ? new Set(validFoeTargetIds(state, owner.team)) : undefined;
+  const targetCandidates = validIds ? candidates.filter((candidate) => validIds.has(candidate.id)) : candidates;
+  if (card.targeting === "foe" && card.onDiscard?.autoTarget === "lowestHpFoe")
+    return (targetCandidates.length > 0 ? targetCandidates : candidates)
+      .reduce((lowest, current) => (current.hp < lowest.hp ? current : lowest)).id;
+  return rngPick(state, targetCandidates.length > 0 ? targetCandidates : candidates).id;
 }
 
 // 「被丢弃时回到手牌」: 累计一层实例层数, 再把牌从弃牌堆挪回手牌。

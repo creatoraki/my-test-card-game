@@ -43,6 +43,7 @@ import { KEYWORD_DEFS } from "./keywords";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { firePassive, isPassive, playableHandUids, recycleHandPassives } from "./passive";
 import { fireRelic } from "./relics";
+import { validFoeTargetIds } from "./targeting";
 import { cultivateReady, effectiveTargeting, resetCultivate, tickCultivate } from "./cultivate";
 import { withHitRecorder } from "./animHits";
 import { runEnemyFlee } from "./flee";
@@ -167,7 +168,11 @@ function isValidPrimary(state: BattleState, card: Card, primaryId?: string): boo
   const t = state.combatants[primaryId];
   if (!t || !t.alive) return false;
   const targeting = effectiveTargeting(card);
-  if (targeting === "foe") return t.team === "enemy";
+  if (targeting === "foe") {
+    if (t.team !== "enemy") return false;
+    const owner = state.combatants[card.ownerCharId];
+    return owner?.team !== "player" || validFoeTargetIds(state, "player").includes(primaryId);
+  }
   if (targeting === "ally") return t.team === "player";
   return true;
 }

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties, type MutableRefObject, type RefObject } from "react";
-import type { BattleState, Enemy } from "@/engine";
+import { validFoeTargetIds, type BattleState, type Enemy } from "@/engine";
 import type { EnemyPlacement } from "@/data";
 import { CombatantView } from "@/ui/battle/CombatantView";
 import { AmbienceLayer } from "@/ui/battle/AmbienceLayer";
@@ -68,6 +68,8 @@ export function BattleStageLayer({
     return () => dofTargetsRef.current.delete(target);
   }, [bg, dofTargetsRef]);
 
+  const validTargetIds = new Set(validFoeTargetIds(battle, "player"));
+
   return (
     <div className={s["battle-scene"]} ref={sceneRef}>
       <div className={s["battle-world"]} ref={worldRef} style={worldStyle}>
@@ -85,7 +87,7 @@ export function BattleStageLayer({
                 key={enemy.id}
                 cmb={enemy}
                 currentTick={battle.tick}
-                targetable={isPlayerTurn && !!needsFoe && enemy.alive}
+                targetable={isPlayerTurn && !!needsFoe && enemy.alive && validTargetIds.has(enemy.id)}
                 hitChance={hitPreview?.[enemy.id] ?? null}
                 damagePreview={damagePreview?.[enemy.id] ?? null}
                 attacking={enemy.id === attackerId}

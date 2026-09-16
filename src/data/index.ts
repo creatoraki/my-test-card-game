@@ -59,7 +59,7 @@ export {
   type BondTier,
 } from "./bonds";
 export { NPC_EVENTS, getNpcEvent, type NpcEvent } from "./npcEvents";
-export { ENEMIES, type EnemyDef, type EnemyMove } from "./enemies";
+export { ENEMIES, type EnemyDef, type EnemyMove, type MoveBias, type MoveBiasWhen } from "./enemies";
 export {
   ENCOUNTERS,
   slotDefId,
