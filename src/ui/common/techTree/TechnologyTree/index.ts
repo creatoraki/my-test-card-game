@@ -1,3 +1,4 @@
 export { TechnologyTree } from "./TechnologyTree";
 export type { TechnologyTreeProps } from "./TechnologyTree";
-export type { TechnologyCore, TechnologyNode, TechnologyState } from "./types";
+export { TECHNOLOGY_STATE_LABEL, technologyLevelText, technologyStateLabel } from "./types";
+export type { TechnologyCore, TechnologyNode, TechnologyState, TechnologyTab } from "./types";

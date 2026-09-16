@@ -20,10 +20,10 @@
   top: 18px;
   left: 46px;
   color: var(--brand-text, #ffe7a2);
-  font-size: 28px;
+  font-size: var(--brand-text-size, 28px);
   line-height: 36px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: var(--brand-text-tracking, 3px);
   text-shadow: 0 0 3px var(--brand-text-hot, #ffecaa), 0 0 11px var(--brand-glow-near, #f8b840b3), 0 0 23px var(--brand-glow-far, #d78e3466);
 }
 :global([data-shop-root][data-leaving]) .brand {

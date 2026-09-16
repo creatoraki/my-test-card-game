@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
 import defaultBotArt from "@/assets/通用素材/售货机器人.png";
 import { cx } from "@/ui/common/cx";
 import { ChatBubble } from "./ChatBubble";
+import { useChatLinePresence } from "./useChatLinePresence";
 import type { ChatLine } from "./useBotChatter";
 import s from "./ChatBot.module.css";
 
@@ -14,8 +14,6 @@ export interface ChatBotProps {
   bubbleVariant?: "solid" | "glass";
 }
 
-const OUT_MS = 200;
-
 export function ChatBot({
   line,
   onClick,
@@ -24,23 +22,7 @@ export function ChatBot({
   className,
   bubbleVariant = "solid",
 }: ChatBotProps) {
-  const [shown, setShown] = useState<ChatLine | null>(line);
-  const [leaving, setLeaving] = useState(false);
-  const timerRef = useRef(0);
-
-  useEffect(() => {
-    window.clearTimeout(timerRef.current);
-    if (line) {
-      setShown(line);
-      setLeaving(false);
-      return;
-    }
-    setLeaving(true);
-    timerRef.current = window.setTimeout(() => setShown(null), OUT_MS);
-    return () => window.clearTimeout(timerRef.current);
-  }, [line]);
-
-  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+  const { shown, leaving } = useChatLinePresence(line);
 
   const image = <img className={s.art} src={art} alt={alt} draggable={false} />;
 

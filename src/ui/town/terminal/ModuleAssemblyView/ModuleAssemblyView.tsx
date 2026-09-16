@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode, type Ref } from "react";
+// 研究中心「模组装配」页: 左角色舞台 / 中卡组网格 / 右工作台 + 模组仓架。
+// ★ 页面只做编排与选择态, 装配规则在 townStore; 皮肤统一吃场景根的 researchTheme 令牌。
+import { useEffect, useMemo, useState } from "react";
 import { canEquipModule, getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
@@ -6,42 +8,18 @@ import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
-import { PanelShell } from "@/ui/common/PanelShell";
-import type { Rect } from "@/ui/common/panelMorph";
 import { AssemblyBench } from "../AssemblyBench";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
 import { AssemblyDeckGrid } from "../AssemblyDeckGrid";
 import { AssemblyModuleRack } from "../AssemblyModuleRack";
-import s from "./ModuleAssemblyPanel.module.css";
-
-export interface ModulePanelMorph {
-  ref: Ref<HTMLElement>;
-  rect: Rect;
-  ready: boolean;
-  seed?: ReactNode;
-  seedLabel?: string;
-}
-
-interface Props {
-  closing: boolean;
-  onClose: () => void;
-  morph: ModulePanelMorph;
-}
+import s from "./ModuleAssemblyView.module.css";
 
 interface HoveredItem {
   stack: ItemStack;
   point: TooltipPoint;
 }
 
-const ASSEMBLY_THEME = {
-  "--asm-panel-bg": "#0b1116f2",
-  "--asm-panel-filter": "blur(10px) saturate(104%) brightness(0.82)",
-  "--panel-shell-title-size": "34px",
-  "--panel-shell-status-size": "20px",
-  "--panel-shell-close-size": "36px",
-} as CSSProperties;
-
-export function ModuleAssemblyPanel({ closing, onClose, morph }: Props) {
+export function ModuleAssemblyView() {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const awakened = useTownStore((state) => state.awakened);
@@ -67,10 +45,6 @@ export function ModuleAssemblyPanel({ closing, onClose, morph }: Props) {
   const installedStack = selectedCard?.cardModule
     ? { uid: selectedCard.cardModule.uid, itemId: selectedCard.cardModule.itemId, count: 1 }
     : null;
-  const installedCount = Object.values(characters).reduce(
-    (count, character) => count + character.deck.filter((card) => card.cardModule).length,
-    0,
-  );
 
   useEffect(() => {
     if (!currentDeck.some((card) => card.uid === cardUid)) setCardUid(currentDeck[0]?.uid ?? null);
@@ -97,52 +71,41 @@ export function ModuleAssemblyPanel({ closing, onClose, morph }: Props) {
 
   return (
     <>
-      <PanelShell
-        accent="#52cfff"
-        title="模组装配"
-        status={`库存 ${moduleStacks.length} · 已装配 ${installedCount}`}
-        closeLabel="关闭模组装配"
-        closing={closing}
-        onClose={onClose}
-        themeStyle={ASSEMBLY_THEME}
-        morph={morph}
-      >
-        <div className={s.body}>
-          <AssemblyCharacterStage
-            awakened={awakened}
-            selected={charId}
-            onSelect={(id) => {
-              setCharId(id);
-              setCardUid(characters[id]?.deck[0]?.uid ?? null);
-            }}
+      <div className={s.body}>
+        <AssemblyCharacterStage
+          awakened={awakened}
+          selected={charId}
+          onSelect={(id) => {
+            setCharId(id);
+            setCardUid(characters[id]?.deck[0]?.uid ?? null);
+          }}
+        />
+        <AssemblyDeckGrid
+          deck={currentDeck}
+          selectedUid={selectedCard?.uid ?? null}
+          moduleStacks={moduleStacks}
+          onSelect={setCardUid}
+        />
+        <div className={s.rightColumn}>
+          <AssemblyBench
+            card={selectedCard}
+            installedStack={installedStack}
+            candidate={selectedModule ?? null}
+            actionDisabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
+            onAction={action}
+            onShowTooltip={showTooltip}
+            onHideTooltip={() => setHoveredItem(null)}
           />
-          <AssemblyDeckGrid
-            deck={currentDeck}
-            selectedUid={selectedCard?.uid ?? null}
+          <AssemblyModuleRack
+            card={selectedCard}
             moduleStacks={moduleStacks}
-            onSelect={setCardUid}
+            selectedModuleUid={moduleUid}
+            onSelect={setModuleUid}
+            onShowTooltip={showTooltip}
+            onHideTooltip={() => setHoveredItem(null)}
           />
-          <div className={s.rightColumn}>
-            <AssemblyBench
-              card={selectedCard}
-              installedStack={installedStack}
-              candidate={selectedModule ?? null}
-              actionDisabled={!selectedCard?.cardModule && !cardCanUseSelectedModule}
-              onAction={action}
-              onShowTooltip={showTooltip}
-              onHideTooltip={() => setHoveredItem(null)}
-            />
-            <AssemblyModuleRack
-              card={selectedCard}
-              moduleStacks={moduleStacks}
-              selectedModuleUid={moduleUid}
-              onSelect={setModuleUid}
-              onShowTooltip={showTooltip}
-              onHideTooltip={() => setHoveredItem(null)}
-            />
-          </div>
         </div>
-      </PanelShell>
+      </div>
       {hoveredItem && <ItemTooltip stack={hoveredItem.stack} point={hoveredItem.point} />}
     </>
   );

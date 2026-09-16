@@ -100,7 +100,7 @@ export function TalentTreeRadial({ badge, activated, remaining, locked, resource
                 const lit = state === "active" || state === "refundable";
                 return <TalentNode key={`${node.id}-${lit && pulse?.nodeId === node.id ? pulse.n : "stable"}`}
                   point={branch.nodePoints[index]} radius={nodeRadius(node, index)} branchId={def.id}
-                  state={state} major={node.tier === "major"} locked={locked}
+                  state={state} locked={locked}
                   latest={lit && pulse?.nodeId === node.id} shaking={shakeId === node.id}
                   label={`${def.name}，第${index + 1}级，${resourceLabels[node.key]}增加${node.value}，消耗${node.cost}训练点。${NODE_STATUS[state]}`}
                   onClick={event => { event.preventDefault(); press(node, event); }}

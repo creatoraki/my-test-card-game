@@ -8,6 +8,11 @@
   gap: 12px;
 }
 
+/* 顶部多一行分类页签时才加这一档，单树调用方布局不变。 */
+.board.has-tabs {
+  grid-template-rows: auto minmax(0, 1fr) 78px;
+}
+
 .body {
   display: grid;
   min-width: 0;

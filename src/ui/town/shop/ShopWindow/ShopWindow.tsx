@@ -6,7 +6,7 @@ import s from "./ShopWindow.module.css";
 interface Props {
   className?: string;
   ariaLabel: string;
-  frameTone?: "gold" | "teal";
+  frameTone?: "gold" | "teal" | "red";
   header: ReactNode;
   children: ReactNode;
 }

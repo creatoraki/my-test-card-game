@@ -1,5 +1,5 @@
 .grid {
-  --ui-glow-color: var(--asm-select, #9fe8ff);
+  --ui-glow-color: var(--asm-select, var(--sx-key-hot, #9fe8ff));
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -66,7 +66,7 @@
 
 /* 与模组仓库同款的四角括号选中态。 */
 .option.selected::after {
-  --mk-c: var(--asm-select, #9fe8ff);
+  --mk-c: var(--asm-select, var(--sx-key-hot, #9fe8ff));
   --mk-w: 2px;
   --mk-len: 15px;
   --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
@@ -102,7 +102,7 @@
 }
 
 .option.selected .slot {
-  --accent: var(--asm-select, #9fe8ff);
+  --accent: var(--asm-select, var(--sx-key-hot, #9fe8ff));
 }
 
 .status {
@@ -111,16 +111,16 @@
   bottom: 4px;
   z-index: 3;
   padding: 3px 6px;
-  color: #f0a39a;
+  color: var(--sx-alert);
   font-size: var(--rs-font-mark, 18px);
   white-space: nowrap;
-  background: #2b1719dd;
+  background: color-mix(in srgb, var(--sx-alert) 16%, var(--sx-bg-lo));
   pointer-events: none;
 }
 
 .status[data-ok="true"] {
-  color: var(--asm-cyan, #58efc7);
-  background: #11201bd9;
+  color: var(--asm-cyan, var(--sx-key, #58efc7));
+  background: color-mix(in srgb, var(--sx-bg-hi) 86%, transparent);
 }
 
 .empty {
@@ -129,7 +129,7 @@
   justify-items: center;
   gap: 10px;
   padding: 28px 8px;
-  color: var(--muted, #849096);
+  color: var(--sx-muted, var(--muted, #849096));
   font-size: var(--rs-font-body, 20px);
   text-align: center;
   border: 1px dashed #ffffff1f;
@@ -138,7 +138,7 @@
 .emptySlot {
   width: 48px;
   aspect-ratio: 1;
-  border: 1px dashed #819092;
+  border: 1px dashed var(--sx-dim);
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }
 

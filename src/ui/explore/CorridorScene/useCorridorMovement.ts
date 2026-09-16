@@ -225,5 +225,20 @@ export function useCorridorMovement(
   const standingPortal = blocked ? null : portalAt(corridor, view.x);
   const nearGate = view.nearGate;
   const target = standingPortal ? null : nearby.find((item) => item.id === selectedId) ?? nearby[0] ?? null;
-  return { x: view.x, facing: view.facing, walking: view.walking, nearby, target, standingPortal, nearGate, interactingId, interact, cycle, travel, openGate };
+  return {
+    x: view.x,
+    facing: view.facing,
+    walking: view.walking,
+    nearbyKey: view.nearbyKey,
+    portalDir: view.portalDir,
+    nearby,
+    target,
+    standingPortal,
+    nearGate,
+    interactingId,
+    interact,
+    cycle,
+    travel,
+    openGate,
+  };
 }

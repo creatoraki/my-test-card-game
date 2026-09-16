@@ -85,3 +85,14 @@
 .subtle .outer { opacity: 0.65; }
 .subtle .inner { inset: 5px; --cut: 10px; opacity: 0.2; }
 .subtle .corners { inset: 0; --stroke: 2px; opacity: 0.8; }
+
+.red {
+  --frame-stroke: linear-gradient(115deg, #ffe4e6, #ff909a 18%, #d4313f 40%, #ffd0d4 67%, #b8434e);
+  --frame-inner-stroke: linear-gradient(125deg, #ff909ab3, #d4313f4d 40%, #ffd8dbcc);
+  --frame-corner-tl: linear-gradient(#ffe4e6, #ff909a);
+  --frame-corner-tr: linear-gradient(#ff909a, #d4313f);
+  --frame-corner-bl: linear-gradient(#d4313f, #ffe4e6);
+  --frame-corner-br: linear-gradient(#b8434e, #ffe4e6);
+  --frame-glow-near: #ff3b4e;
+  --frame-glow-far: #8c1f2a99;
+}

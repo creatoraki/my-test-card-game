@@ -26,6 +26,7 @@
 | [botLines.ts](../../src/data/botLines.ts) | 公共台词取句函数：按台词池与分类随机取句，并回避上一句；供出击售货机器人与据点管理终端共用。 |
 | [vendorLines.ts](../../src/data/vendorLines.ts) | 出击准备页售货机器人的台词表：按开口场合（问候/闲聊/购买/退款/退回仓库/积分不足/背包已满/仓库取物）分池，`pickVendorLine()` 作为公共 `pickBotLine()` 的薄封装随机取句并回避上一句；分类与 UI 的 `VendorLineKind` 一一对应。 |
 | [townBotLines.ts](../../src/data/townBotLines.ts) | 据点常驻管理终端台词表：按问候/闲聊/点击反馈分池，`pickTownBotLine()` 复用公共取句逻辑，不涉及设施规则。 |
+| [explorerLines.ts](../../src/data/explorerLines.ts) | 探索者第一人称独白台词表：按进入房间、发呆、行走、发现物件/传送门、红门、交互完成、粒子不足和负重告急分池，`pickExplorerLine()` 复用公共取句逻辑。 |
 | [shop.ts](../../src/data/shop.ts) | 据点统一商店的物品侧货位工厂：保留 `SHOP_LEVELS` 品质权重，提供 `SHOP_KIND_WEIGHTS`、`pickShopKind` 与 `rollShopItemSlot`；祝福遗物池直接取 `items/relics`，装备模型与羁绊在上架时固定到物品货位。随机刻意用 `Math.random`，不进探索的可复现种子链。 |
 | [shopTech.ts](../../src/data/shopTech.ts) | 统一商店科技与卡牌价格：维护槽位 6→7→8、刷新基价 100/90/80、四个设施科技节点及状态判定；`CARD_SHOP_PRICE` 保留卡牌三档售价表名。 |
 | [exploreEvents.ts](../../src/data/exploreEvents.ts) | 探索节点事件池、事件选项、加权 outcome、独立故事文案和效果。废弃楼层登记 16 个成长事件、8 个生存事件、18 个风险事件与 6 个经济交易事件；风险事件限定第 3-4 推进段，按 `negative` / `highRisk` 分级，并用 `FORCE_ITEM` 发放不可移除的《沉重的负担》。经济事件只登记交易服务槽位，货架与食品结算由 `explore/shop.ts` 负责。大奖策略通过选项食品门槛校验，六个食品触发的隐藏休息映射由事件的 `hiddenRest` 登记；教学事件池由 [tutorialEvents.ts](../../src/data/tutorialEvents.ts) 单独登记，供固定蓝图按 id 取用；挑战节点池由 [exploreTrials.ts](../../src/data/exploreTrials.ts) 单独登记。 |

@@ -4,6 +4,7 @@ import { pickBotLine } from "@/data";
 const BUBBLE_MS = 4500;
 const IDLE_MIN_MS = 14000;
 const IDLE_MAX_MS = 22000;
+const DEFAULT_IDLE_RANGE = [IDLE_MIN_MS, IDLE_MAX_MS] as const;
 
 export interface ChatLine {
   id: number;
@@ -16,21 +17,47 @@ export interface BotChatterOptions<K extends string> {
   lines: BotLineTable<K>;
   greet: K;
   idle: K;
+  greetEnabled?: boolean;
+  idleEnabled?: boolean;
+  idleRange?: readonly [number, number];
+  /** 气泡停留时长；不同场景的说话节奏不同(默认 4.5s)。 */
+  bubbleMs?: number;
+  onIdle?: () => void;
 }
 
-const nextIdleDelay = () => IDLE_MIN_MS + Math.random() * (IDLE_MAX_MS - IDLE_MIN_MS);
+const nextIdleDelay = (range: readonly [number, number]) => {
+  const [min, max] = range;
+  return min + Math.random() * Math.max(0, max - min);
+};
 
 export function useBotChatter<K extends string>(
   active: boolean,
-  { lines, greet, idle }: BotChatterOptions<K>,
-): { line: ChatLine | null; say: (kind: K) => void } {
+  {
+    lines,
+    greet,
+    idle,
+    greetEnabled = true,
+    idleEnabled = true,
+    idleRange = DEFAULT_IDLE_RANGE,
+    bubbleMs = BUBBLE_MS,
+    onIdle,
+  }: BotChatterOptions<K>,
+): { line: ChatLine | null; say: (kind: K) => void; clear: () => void } {
   const [line, setLine] = useState<ChatLine | null>(null);
   const seqRef = useRef(0);
   const lastTextRef = useRef<string | null>(null);
   const hideTimerRef = useRef(0);
   const idleTimerRef = useRef(0);
   const activeRef = useRef(active);
+  const idleEnabledRef = useRef(idleEnabled);
+  const idleRangeRef = useRef(idleRange);
+  const onIdleRef = useRef(onIdle);
+  const bubbleMsRef = useRef(bubbleMs);
   activeRef.current = active;
+  idleEnabledRef.current = idleEnabled;
+  idleRangeRef.current = idleRange;
+  onIdleRef.current = onIdle;
+  bubbleMsRef.current = bubbleMs;
 
   const clearTimers = useCallback(() => {
     window.clearTimeout(hideTimerRef.current);
@@ -41,7 +68,12 @@ export function useBotChatter<K extends string>(
 
   const scheduleIdle = useCallback(() => {
     window.clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = window.setTimeout(() => sayRef.current(idle), nextIdleDelay());
+    if (!activeRef.current || !idleEnabledRef.current) return;
+    idleTimerRef.current = window.setTimeout(() => {
+      if (!activeRef.current || !idleEnabledRef.current) return;
+      if (onIdleRef.current) onIdleRef.current();
+      else sayRef.current(idle);
+    }, nextIdleDelay(idleRangeRef.current));
   }, [idle]);
 
   const say = useCallback(
@@ -52,7 +84,7 @@ export function useBotChatter<K extends string>(
       seqRef.current += 1;
       setLine({ id: seqRef.current, text });
       window.clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = window.setTimeout(() => setLine(null), BUBBLE_MS);
+      hideTimerRef.current = window.setTimeout(() => setLine(null), bubbleMsRef.current);
       scheduleIdle();
     },
     [lines, scheduleIdle],
@@ -60,15 +92,28 @@ export function useBotChatter<K extends string>(
 
   sayRef.current = say;
 
+  const clear = useCallback(() => {
+    clearTimers();
+    setLine(null);
+  }, [clearTimers]);
+
   useEffect(() => {
     if (!active) {
-      clearTimers();
-      setLine(null);
+      clear();
       return;
     }
-    say(greet);
+    if (greetEnabled) say(greet);
+    else scheduleIdle();
     return clearTimers;
-  }, [active, clearTimers, greet, say]);
+  }, [active, clear, clearTimers, greet, greetEnabled, say, scheduleIdle]);
 
-  return { line, say };
+  useEffect(() => {
+    if (!active || !idleEnabled) {
+      window.clearTimeout(idleTimerRef.current);
+      return;
+    }
+    scheduleIdle();
+  }, [active, idleEnabled, idleRange, scheduleIdle]);
+
+  return { line, say, clear };
 }

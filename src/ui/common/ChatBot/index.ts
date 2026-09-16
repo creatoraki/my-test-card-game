@@ -6,3 +6,4 @@ export {
   type BotLineTable,
   type ChatLine,
 } from "./useBotChatter";
+export { useChatLinePresence } from "./useChatLinePresence";

@@ -254,6 +254,7 @@ export {
   pickTownBotLine,
   type TownBotLineKind,
 } from "./townBotLines";
+export { EXPLORER_LINES, pickExplorerLine, type ExplorerLineKind } from "./explorerLines";
 export { TRADE_SERVICES, TRADE_BUFF_OPTIONS, getTradeService, type TradeServiceDef } from "./tradeServices";
 export { tradeStockDefs, type TradeStockKind } from "./tradeStock";
 export { SANCTUARY_RULES } from "./sanctuary";

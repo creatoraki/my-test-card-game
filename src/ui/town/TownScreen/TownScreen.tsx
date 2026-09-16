@@ -61,7 +61,7 @@ import { guardSortie, useFormationTodo } from "../formationTodo";
 import s from "./TownScreen.module.css";
 
 const isTest = import.meta.env.isTest === "true";
-const FACILITIES_WITH_OWN_BACK = new Set(["shop", "museum", "assembly"]);
+const FACILITIES_WITH_OWN_BACK = new Set(["shop", "museum", "assembly", "worklog"]);
 
 // ===================== 设施内容登记处 =====================
 // 设施 id → 进去之后在设施背景上渲染什么。未登记的设施仍是「只有背景 + 返回据点」的空场景。
@@ -75,7 +75,7 @@ const FACILITY_CONTENT: Record<string, (leaving: boolean, onBack: () => void) =>
   // 医疗室: 复苏舱 / 营养舱 / 圣水池
   cryo: (leaving) => <CryoScene leaving={leaving} />,
   // 研究中心: 模组装配 / 模组制造
-  worklog: (leaving) => <ResearchScene leaving={leaving} />,
+  worklog: (leaving, onBack) => <ResearchScene leaving={leaving} onBack={onBack} />,
   // 档案机: 物品 / 卡牌 / 怪物图鉴
   museum: (leaving, onBack) => <MuseumScene leaving={leaving} onBack={onBack} />,
 };

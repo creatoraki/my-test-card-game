@@ -1,0 +1,132 @@
+.theme {
+  /* 研究中心沿用商店的板材语言，只把主光、标题与牌面选中态换成警示红。 */
+  --sx-key: #ff3b4e;
+  --sx-key-hot: #ff909a;
+  --sx-key-wash: #ff3b4e1f;
+  --sx-fill: #8c2b33;
+  --sx-fill-wash: #8c2b3316;
+
+  --sx-ink: #f3edee;
+  --sx-muted: #b6a8ab;
+  --sx-dim: #8c7d80;
+  --sx-line: #b6a8ab2e;
+  --sx-line-lit: #ff3b4e42;
+  --sx-line-hot: #ffd9dc;
+
+  --sx-title: #ffd2d6;
+  --sx-title-glow: #ff3b4e4d;
+  --sx-title-shadow: #5c1b20;
+
+  /* 黑底三档：受光面、常规面与凹陷阴影面。 */
+  --sx-bg-hi: #17090b;
+  --sx-bg: #0e0608;
+  --sx-bg-lo: #060203;
+
+  --sx-action: var(--sx-key);
+  --sx-action-hot: var(--sx-key-hot);
+  /* 警示语义改用琥珀，避免与主红同色而读不出差别。 */
+  --sx-alert: #ffb454;
+  --sx-electric: var(--sx-key);
+
+  --sx-lit: inset 0 1px 0 var(--sx-line-lit), inset 0 -1px 0 #8c2b331c;
+  --sx-sunk: inset 0 2px 14px -8px #000000d0, inset 0 -1px 0 #8c2b331c;
+  --sx-drop: 0 18px 40px -26px #000000c4;
+
+  /* 左侧导航牌：常态暗红金属，选中态红光。 */
+  --nav-active-plate-start: #5e1f27f5;
+  --nav-active-plate-middle: #2a1013f7;
+  --nav-active-plate-end: #55191ff5;
+  --nav-active-edge-hot: #ffe3e5;
+  --nav-active-edge-mid: #ff3b4e;
+  --nav-active-edge-dim: #93252f;
+  --nav-active-tab-arrow: #ffd3d7;
+  --nav-active-color: #fff0f1;
+  --nav-active-glow-near: #ff5a6a99;
+  --nav-active-glow-far: #b0202f55;
+  --nav-active-hover-glow: #ff3b4e77;
+  --nav-active-label-glow: #ff8d9788;
+  --nav-icon: #e3a3a8;
+  --nav-icon-glow: #c4444f66;
+  --nav-active-icon: #ffd0d4;
+  --nav-active-icon-glow: #ff3b4eaa;
+  --nav-label-size: 20px;
+
+  /* 左上铭牌。 */
+  --brand-fill-start: #551a22;
+  --brand-fill-middle: #2a1013;
+  --brand-fill-end: #4a161d;
+  --brand-line-hot: #ffe1e3;
+  --brand-line-mid: #c8404f;
+  --brand-line-end: #ff8a94;
+  --brand-shard-hot: #ff9aa2;
+  --brand-shard-mid: #c4515c;
+  --brand-shard-dim: #80373e;
+  --brand-text: #ffd5d8;
+  --brand-text-hot: #fff0f1;
+  --brand-glow-near: #ff3b4eb3;
+  --brand-glow-far: #992a3566;
+  /* 「研究中心」四个字要塞进同一块铭牌, 收一档字号与字距。 */
+  --brand-text-size: 24px;
+  --brand-text-tracking: 1px;
+
+  /* 左下返回按钮。 */
+  --back-body-start: #4a141c;
+  --back-body-middle: #150507;
+  --back-body-end: #38121a;
+  --back-edge-hot: #ffb8be;
+  --back-edge-mid: #b33241;
+  --back-edge-lit: #ffdfe2;
+  --back-edge-end: #d1495a;
+  --back-grid: #d97984;
+  --back-spark: #ff8e98;
+  --back-tick: #e8616f;
+  --back-arrow: #ff9aa4;
+  --back-text: #ffd7da;
+  --back-text-glow: #ff3b4e99;
+
+  /* 公共科技树令牌。 */
+  --tech-accent: #ff6b78;
+  --tech-accent-hot: #ffd0d4;
+  --tech-accent-soft: #ff8f99;
+  --tech-accent-line: #a8323f;
+  --tech-ink: #f6eef0;
+  --tech-muted: #c0aeb1;
+  --tech-line: #9c7f84;
+  --tech-plate: #1a0c0f;
+  --tech-plate-deep: #0c0507;
+  --tech-info: #ff5a6a;
+  --tech-info-ink: #ffd6da;
+  --tech-info-fill-a: #5d161f;
+  --tech-info-fill-b: #26080c;
+  --tech-info-glow: #ff3b4e44;
+  --tech-good: #ffb454;
+  --tech-wire: #8c6a6e;
+  --tech-wire-lit: #ffd2d6;
+  --tech-halo-lit: #ff3b4e;
+  --tech-medal-1: #ffe6e8;
+  --tech-medal-2: #ff8f99;
+  --tech-medal-3: #8e2531;
+  --tech-medal-4: #ffb0b7;
+  --tech-medal-5: #a33642;
+  --tech-medal-plate-1: #3a1a1e;
+  --tech-medal-plate-2: #1c0a0d;
+  --tech-medal-plate-3: #080203;
+  --tech-medal-glow: #ff3b4e55;
+  --tech-medal-mark: #ff9aa2;
+  --tech-medal-check-fill: #5e1c22;
+  --tech-medal-check-edge: #ffb6bc;
+  --tech-medal-check-tick: #fff0f1;
+
+  /* 下游装配/制造子组件的旧桥接变量。 */
+  --asm-glow: var(--sx-key);
+  --asm-frame: var(--sx-key);
+  --asm-select: var(--sx-key-hot);
+  --asm-cyan: var(--sx-key-hot);
+  --asm-ink: var(--sx-ink);
+  --asm-ink-dim: var(--sx-muted);
+  --asm-line: var(--sx-line);
+  /* 读数与小标题走全局 --ui-* 令牌, 这里一并从薄荷色改到红黑口径。 */
+  --ui-label: var(--sx-muted);
+  --ui-value: var(--sx-ink);
+  --ui-glow-color: #ff3b4e66;
+}

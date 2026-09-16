@@ -1,0 +1,27 @@
+/*
+ * 挂点 .playerAnchor 自身宽度为 0(两个子节点都绝对定位)，
+ * 所以气泡槽必须显式给宽，否则绝对定位的气泡会被收缩到 min-content 变成又瘦又高的一条。
+ */
+.bubbleSlot {
+  position: absolute;
+  bottom: 250px;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  width: 440px;
+  pointer-events: none;
+  transform: translateX(-50%) scale(var(--corridor-ui-scale));
+  transform-origin: 50% 100%;
+}
+
+.bubbleOut {
+  animation: bubbleOut 200ms ease forwards;
+}
+
+@keyframes bubbleOut {
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px) scale(calc(var(--corridor-ui-scale) * 0.98));
+  }
+}

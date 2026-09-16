@@ -16,10 +16,16 @@
   font-display: swap;
 }
 
+/* ★ 自定义光标的渲染尺寸必须 ≤ 32 DIP。Chrome 会把「大于 32×32 DIP 且图形与原生 UI 相交」的
+   自定义光标整张丢弃, 回落到列表里的关键字(default / pointer)。表现是: 屏幕中间一切正常,
+   一碰到贴着视口边缘的元素(左下角「返回据点」, 光标图会越过视口底边)就突然变回系统光标。
+   素材本体是 40×40, 所以用 image-set 的 1.25x 声明分辨率: 渲染尺寸 40 / 1.25 = 32 DIP,
+   既绕开限制, 又保留了 HiDPI 下的像素密度。热点同比例缩: 4 / 1.25 ≈ 3。
+   ⚠ 换素材尺寸时记得同步调 1.25x 与热点, 别让渲染尺寸又爬回 32 DIP 以上。 */
 :root {
-  --cursor-default: url("../assets/通用素材/鼠标默认.png") 4 4, default;
-  --cursor-pointer: url("../assets/通用素材/鼠标可点击.png") 4 4, pointer;
-  --cursor-pressed: url("../assets/通用素材/鼠标点击.png") 4 4, pointer;
+  --cursor-default: image-set(url("../assets/通用素材/鼠标默认.png") 1.25x) 3 3, default;
+  --cursor-pointer: image-set(url("../assets/通用素材/鼠标可点击.png") 1.25x) 3 3, pointer;
+  --cursor-pressed: image-set(url("../assets/通用素材/鼠标点击.png") 1.25x) 3 3, pointer;
   cursor: var(--cursor-default);
 }
 

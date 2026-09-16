@@ -1,124 +1,17 @@
-/* 研究中心场景的冷青墨玻璃层，压暗亮背景换对比。玻璃配方与入口砖变量需同步 ResearchScene.tsx。 */
-.term-scene {
-  --ui-glow-color: var(--term-glow);
-  --term-ink: #eaf7fb;
-  --term-ink-dim: #a6c8d4;
-  --term-line: #7fe3e02e;
-  --term-glow: #35d6d0;
-  --term-glow-deep: #12a3a8;
-  --term-warm: #f5ac5a;
-  --term-fill: linear-gradient(150deg, #0e2b33cc, #08191fe0);
+/* 场景氛围层：右下暗红环境反光压住亮背景，窗口与导航自己带底板。 */
+.root {
   position: absolute;
-  inset: 0;
   z-index: 2;
-  pointer-events: none;
-}
-
-/* 根节点不能挂 animation / opacity / transform，否则会破坏背景毛玻璃的 backdrop-filter。 */
-.term-header,
-.term-readout {
-  animation: termRise 420ms 0ms cubic-bezier(0.2, 0.72, 0.28, 1) backwards;
-}
-
-.term-header {
-  position: absolute;
-  padding-left: 16px;
-  border-left: 3px solid var(--term-glow);
-  pointer-events: none;
-}
-
-.term-header::before {
-  content: "";
-  position: absolute;
-  inset: -18px -60px -18px -20px;
-  z-index: -1;
-  background: radial-gradient(ellipse at 0% 50%, #06222bb8, transparent 72%);
-  pointer-events: none;
-}
-
-.term-title {
-  margin: 4px 0 0;
-  color: var(--ui-value);
-  font-size: 40px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-indent: 8px;
-  text-shadow: var(--ui-glow), 0 2px 18px #04212bcc;
-}
-
-.term-sub {
-  margin: 4px 0 0;
-  color: var(--ui-label);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.term-readout {
-  position: absolute;
-  display: flex;
-  gap: 12px;
-  pointer-events: none;
-  animation-delay: 60ms;
-}
-
-.term-chip {
-  --notch: 10px;
-  display: flex;
-  min-width: 170px;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 20px;
-  border: 1px solid var(--term-line);
-  background: var(--term-fill);
-  -webkit-backdrop-filter: blur(14px) saturate(115%) brightness(0.9);
-  backdrop-filter: blur(14px) saturate(115%) brightness(0.9);
-  box-shadow: inset 0 1px 0 #ffffff26, 0 22px 46px -26px #04141aa8;
-  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
-}
-
-.term-chip-label {
-  color: var(--ui-label);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.term-chip-value {
-  color: var(--ui-value);
+  inset: 0;
+  color: var(--sx-ink);
   font-family: var(--font-family);
-  font-size: 28px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 74% 68% at 100% 100%, color-mix(in srgb, var(--sx-fill) 16%, transparent), #060203a6 72%),
+    linear-gradient(0deg, #06020366, transparent 52%);
 }
 
-.term-scene.is-leaving .term-header,
-.term-scene.is-leaving .term-readout {
-  animation: termFade 300ms ease-in both;
-}
-
-@keyframes termRise {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes termFade {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+.is-leaving {
+  pointer-events: none;
 }

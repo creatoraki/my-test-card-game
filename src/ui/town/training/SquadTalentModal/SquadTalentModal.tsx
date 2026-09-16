@@ -5,7 +5,7 @@
 //   却要离开当前编队页才能分配, 这条动线太长。
 // ⚠ 尺寸全是设计 px, 缩放交给外层 StageCanvas。
 
-import { useEffect, useState, type ReactNode, type Ref } from "react";
+import { useEffect, useState, type Ref } from "react";
 import { SQUAD_BADGES } from "@/data";
 import { TalentPanelShell } from "../TalentArtwork/TalentPanelShell";
 import { TalentHeader } from "../TalentArtwork/TalentHeader";
@@ -24,8 +24,6 @@ interface Props {
     ref: Ref<HTMLElement>;
     rect: Rect;
     ready: boolean;
-    seed?: ReactNode;
-    seedLabel?: string;
   };
 }
 

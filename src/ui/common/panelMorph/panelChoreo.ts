@@ -16,6 +16,7 @@ export const SLIDE_MS = duration(520);
 export const WIDEN_MS = duration(260);
 export const TALLEN_MS = duration(300);
 export const OPEN_MS = SLIDE_MS + WIDEN_MS + TALLEN_MS;
+export const FADE_MS = duration(340);
 // ── 关闭编排 ──
 // 所有 morph 面板统一走「面板竖向折叠成一条横线 → 横线淡出」; 同时右侧入口砖从画布
 // 右缘外主动滑回它的静态初始位。两段轻微重叠: 折叠推进到约七成时砖块起步。

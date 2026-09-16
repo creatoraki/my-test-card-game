@@ -4,9 +4,9 @@
 
 样式约定（CSS Modules、五条铁律、`data-*` 跨模块契约）见 [styles.md](styles.md)，本文件不重复。
 
-商店左上铭牌由 `town/shop/ShopScene/ShopBrand` 独立绘制；左侧页签的 `ShopNavigation/NavigationFrame` 与 `NavigationIcon` 分别负责 SVG 牌面和图标。导航按参考图使用 205×96 设计像素与 11px 间距，通过 CSS 变量切换金色选中态与青色常态，缩放跟随全站设计画布。
+商店左上铭牌由 `town/shop/ShopScene/ShopBrand` 独立绘制；左侧页签的 `ShopNavigation/NavigationFrame` 与 `NavigationIcon` 分别负责 SVG 牌面和图标。导航按参考图使用 205×96 设计像素与 11px 间距，通过 CSS 变量切换金色选中态与青色常态，缩放跟随全站设计画布。铭牌文字与返回按钮的配色、字号都走带默认值的 CSS 变量，博物馆与研究中心只覆盖变量即可换皮。
 
-商店左下返回入口由 `town/shop/ShopBack` 绘制青色双层切角边框与双箭头，挂载于 `ShopScene`，沿用据点返回回调及入退场时长；`TownScreen` 在商店内不重复挂载通用 `FacilityBack`。导航牌面的蜂窝纹理、分段高光和局部光斑由 `NavigationFrame` 独立管理，选中态通过 CSS 变量增强金色光晕。
+商店左下返回入口由 `town/shop/ShopBack` 绘制双层切角边框与双箭头，挂载于 `ShopScene`，沿用据点返回回调及入退场时长；颜色全部走 `--back-*` 变量，默认值即商店青色，研究中心覆盖为红色。`TownScreen` 的 `FACILITIES_WITH_OWN_BACK`（商店、博物馆、工房、研究中心）不重复挂载通用 `FacilityBack`。导航牌面的蜂窝纹理、分段高光和局部光斑由 `NavigationFrame` 独立管理，选中态通过 CSS 变量增强金色光晕。
 
 ## 目录结构
 
@@ -43,8 +43,8 @@ src/ui/
 | [town/TownScreen/StationSettings](../../src/ui/town/TownScreen/StationSettings/StationSettingsPanel.tsx) | 据点右上设置入口与系统菜单：复用 `common/SettingsPanel`，承载音乐/音效、重置存档与测试奖励。 |
 | [town/TownScreen/StationBot](../../src/ui/town/TownScreen/StationBot/StationBot.tsx) | 据点常驻管理终端：复用 `common/ChatBot` 与独立台词池，点击立绘会播放点击音效并插入 poke 台词。 |
 | [town/formationTodo](../../src/ui/town/formationTodo/) | 据点出击前的编排待办判定 + 拦截确认，是三项编队准备状态的唯一真相点。 |
-| [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心：模组装配、模组制造与科技树场景编排；共用暗色抽屉砖、入口形变与 `PanelShell`，不新增路由。 |
-| [town/drawerEntry](../../src/ui/town/drawerEntry/DrawerEntries.tsx) | 研究中心使用的暗色抽屉入口砖与入场/退场动画容器。 |
+| [town/terminal/ResearchScene](../../src/ui/town/terminal/ResearchScene/ResearchScene.tsx) | 研究中心场景：与商店同一套外壳语言（`ShopBrand` 铭牌 + `ShopBack` 返回 + 常驻窗口），主题令牌由 `terminal/researchTheme.module.css` 提供黑红配色；内容编排交给 `ResearchPanel`，设施 id 仍是 worklog。 |
+| [town/terminal/ResearchPanel](../../src/ui/town/terminal/ResearchPanel/ResearchPanel.tsx) | 研究中心常驻界面：复用商店的 `NavigationRail` / `ShopWindow` / `ShopHeader`，左侧三条导航在同一窗口内切换模组装配、模组制造与科技树，页眉给出终端积分、库存模组与已装配读数，换页演出共用 `hooks/useSwapTransition`。 |
 | [town/cryo/CryoScene](../../src/ui/town/cryo/CryoScene/CryoScene.tsx) | 医疗室场景骨架：标题、在编队员/阵亡/积分读数、三行右侧抽屉入口与 `common/PanelShell` 面板挂载；入口通过 `data-cryo-entry` 把按钮矩形交给 `cryoMorph`，不承载具体功能内容。 |
 | [town/cryo/cryoMorph](../../src/ui/town/cryo/cryoMorph/useCryoMorph.ts) | 医疗室入口按钮到面板的同页形变态机；按 `cryoChoreo` 的设计 px 矩形执行滑动、横向撑开、纵向撑开与倒放关闭，并处理 Esc、完成兜底和过渡期间内容隐藏。 |
 | [town/cryo/CryoFigureStrip](../../src/ui/town/cryo/CryoFigureStrip/CryoFigureStrip.tsx) | 医疗室横向立绘条：隐藏原生滚动条，支持滚轮横滚、指针拖拽、拖拽吞点击，以及内容溢出时的两端箭头和渐隐。 |
@@ -60,7 +60,7 @@ src/ui/
 | [town/cryo/NutritionPanel/NutritionRosterRow](../../src/ui/town/cryo/NutritionPanel/NutritionRosterRow.tsx) | 待疗养队员行式条目：展示立绘、三段血量、体力极限损伤、选择态、已入席角标与队伍下限提示。 |
 | [town/cryo/NutritionTechTree](../../src/ui/town/cryo/NutritionTechTree/) | 疗养舱横向科技树：直线连接核心与两条链式分支；节点状态由 `nutritionTechState` 驱动，右栏详情固定展示效果、消耗和研究按钮，连边算法已抽到 `ui/common/techTree`。 |
 | [town/shop/ShopUpgradePanel/UpgradeTree](../../src/ui/town/shop/ShopUpgradePanel/UpgradeTree/) | 商店四个升级的视图适配：沿用原有节点编号、前置关系和水晶消耗，提供中文名称、坐标、图标与效果；`ShopUpgradePanel` 订阅城镇数据并在商店窗口内容区内嵌公共科技树。 |
-| [common/techTree/TechnologyTree](../../src/ui/common/techTree/TechnologyTree/README.md) | 公共科技树组件：`TechnologyBoard` 提供无外框主体供既有窗口嵌入，`TechnologyTree` 提供金色切角外框与页头的完整形态；两者共用分支图、节点详情、材料提示和底部操作，只接收视图数据与回调。 |
+| [common/techTree/TechnologyTree](../../src/ui/common/techTree/TechnologyTree/README.md) | 公共科技树组件：`TechnologyBoard` 提供无外框主体供既有窗口嵌入，`TechnologyTree` 提供金色切角外框与页头的完整形态；两者共用分支图、节点详情、材料提示和底部操作，只接收视图数据与回调。`TechnologyBoard` 另有三组可选能力——顶部分类页签（`TechnologyTabs`）、多级节点（`level` / `maxLevel` 画进度环并显示 Lv.x/y）、省略返回按钮与自定义进度读数口径；不传时布局与商店升级树完全一致。配色统一走带默认值的 `--tech-*` 变量，换皮场景只覆盖变量。 |
 | [town/storage/StorageScene](../../src/ui/town/storage/StorageScene/StorageScene.tsx) | 物资中转仓：库存、回收台、装备升阶和词条重铸四个抽屉；穿戴后通过 `deriveStats` 现算面板，出售后清理失效勾选。 |
 | [town/storage/EquipTargetList](../../src/ui/town/storage/EquipTargetList/EquipTargetList.tsx) | 升阶与重铸共用的装备目标列：合并仓库装备和三槽穿戴件，支持武器/防具/饰品筛选、队员角标和 `ItemTooltip`。 |
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
@@ -69,7 +69,8 @@ src/ui/
 | [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房场景编排：使用紫粉主题的常驻 HUD 窗口与左侧导航，在装备升阶和羁绊重铸之间换页；返回按钮由工房场景自带。 |
 | [town/assembly/AssemblyChrome](../../src/ui/town/assembly/AssemblyChrome/) | 工房品牌牌、左侧导航、返回按钮与常驻窗口的场景外框组件；窗口复用 `HudFrame`，导航牌面复用商店的 `NavigationFrame`，统一处理离场淡出。 |
 | [town/assembly/assemblyTheme.module.css](../../src/ui/town/assembly/assemblyTheme.module.css) | 工房紫粉主题令牌，供品牌、导航、返回按钮、主操作按钮和装备筛选页签共用。 |
-| [town/terminal/CraftPanel](../../src/ui/town/terminal/CraftPanel/CraftPanel.tsx) | 模组制造弹窗：注入熔炉琥珀配色，订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与装配弹窗一致。 |
+| [town/terminal/researchTheme.module.css](../../src/ui/town/terminal/researchTheme.module.css) | 研究中心黑红主题令牌：`--sx-*` 板材与主光、`--nav-active-*` 导航选中态、`--brand-*` 铭牌、`--back-*` 返回按钮、`--tech-*` 公共科技树，以及给装配/制造子组件的 `--asm-*` 桥接。|
+| [town/terminal/CraftView](../../src/ui/town/terminal/CraftView/CraftView.tsx) | 模组制造页：订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与模组装配页一致，皮肤吃场景根的主题令牌。 |
 | [town/terminal/CraftRecipeGrid](../../src/ui/town/terminal/CraftRecipeGrid/CraftRecipeGrid.tsx) | 中央制造清单：列出当前角色可造的模组与「材料齐备 / 材料不足 / 经验不足」状态；判定结果由面板算好传入，组件不读 store。 |
 | [town/terminal/CraftBench](../../src/ui/town/terminal/CraftBench/CraftBench.tsx) | 右栏制造台：产出预览、经验与材料消耗清单、缺料提示与制造按钮；按钮禁用条件直接来自 `craftCheck`。 |
 | [town/terminal/CraftMaterialRack](../../src/ui/town/terminal/CraftMaterialRack/CraftMaterialRack.tsx) | 右栏材料仓库：展示当前角色配方涉及的材料库存与本次需求量，未被选中配方使用的材料压暗。 |
@@ -77,15 +78,15 @@ src/ui/
 | [town/terminal/AssemblyBench](../../src/ui/town/terminal/AssemblyBench/AssemblyBench.tsx) | 右栏紧凑装配工作台：展示单一模组插槽、当前已装配模组和装配状态，派发装配/拆卸按钮与物品 tooltip 回调；候选模组由模组仓架展示；不直接操作 store。 |
 | [town/terminal/AssemblyModuleRack](../../src/ui/town/terminal/AssemblyModuleRack/AssemblyModuleRack.tsx) | 右栏滚动模组仓架：以稳定网格展示库存模组，表达选中与兼容性状态，保留键盘聚焦和 tooltip 路径；不承载装配规则。 |
 | [town/terminal/AssemblyDeckGrid](../../src/ui/town/terminal/AssemblyDeckGrid/AssemblyDeckGrid.tsx) | 中央卡组主浏览网格：以 3 列完整卡面纵向展示当前角色卡组、选中卡牌和已装配标记，通过回调切换右栏工作台卡牌；使用显式 `data-assembly-deck-grid` 契约。 |
-| [town/terminal/ModuleEntries](../../src/ui/town/terminal/ModuleEntries/useModulePanels.tsx) | 研究中心三条入口与浮层的形变状态机；一次返回入口样式变量、入口砖和场景根下的装配/制造/科技树面板。 |
-| [town/terminal/TechTreePanel](../../src/ui/town/terminal/TechTreePanel/) | 全局科技树三栏面板：左侧分类导航、中间带等级进度弧的 SVG 节点图、右侧效果与消耗详情；研究动作只派发 `townStore.researchTech`。 |
+| [town/terminal/ModuleAssemblyView](../../src/ui/town/terminal/ModuleAssemblyView/ModuleAssemblyView.tsx) | 模组装配页：左角色舞台 / 中卡组网格 / 右工作台与模组仓架三栏编排，维护角色、卡牌与模组选择并派发装配、拆卸；装配规则在 `townStore`。 |
+| [town/terminal/ResearchTechView](../../src/ui/town/terminal/ResearchTechView/) | 全局科技树页：`researchTechnologyView.tsx` 把 `data/techTree` 的分类、等级、消耗与状态翻译成公共科技板节点（满级记为已解锁，并给出等级、状态文案与操作文案），`ResearchTechView` 持有分类页签与选中节点，研究动作只派发 `townStore.researchTech`。 |
 | [town/shop/ShopScene](../../src/ui/town/shop/ShopScene/ShopScene.tsx) | 商店场景：默认展示货架，`ShopNavigation` 提供左侧商店、回收台和仓库导航；`ShopHeader` 展示标题、副标题、积分、设施等级及返回按钮；`StockEntries` 编排常驻矩形交易面板与内容区换页，主题令牌由 `shopTheme.module.css` 提供，窗口外壳由 `ShopWindow` 提供。面板切换与 `MarketPanel` 刷新货架共用 `hooks/useSwapTransition`，均按旧退新入演出。货架状态、购买、刷新、设施升级与隔日重置都在 `townStore`。 |
-| [town/shop/ShopWindow](../../src/ui/town/shop/ShopWindow/ShopWindow.tsx) | 据点商店与探索货商共用的金框窗口外壳：承载 `DetailFrame`、切角背景、内容区和入场/离场动画，定位与页眉由调用方注入。 |
+| [town/shop/ShopWindow](../../src/ui/town/shop/ShopWindow/ShopWindow.tsx) | 据点商店、博物馆、研究中心与探索货商共用的切角窗口外壳：承载 `DetailFrame`（`frameTone` 支持 gold / teal / red）、切角背景、内容区和入场/离场动画，定位与页眉由调用方注入，配色跟随场景根的 `--sx-*` 令牌。 |
 | [town/shop/shopTheme.module.css](../../src/ui/town/shop/shopTheme.module.css) | 据点商店与探索货商共用的金色冷青主题令牌，提供 `--sx-*`、`--asm-*` 与升级树桥接变量。 |
 | [town/training/BadgeRail](../../src/ui/town/training/BadgeRail/BadgeRail.tsx) | 训练室徽章列表条（现挂在左侧抽屉浮层内）：可滚动条目（kicker、名称、基础加成摘要、已启用/待开放状态），点击派发切换；只接收 props 与回调，不读 store，锁定徽章与远征中不派发。 |
 | [town/training/TalentTreeRadial](../../src/ui/town/training/TalentTreeRadial/TalentTreeRadial.tsx) | 编队天赋页的六向星盘：按 1672×941 原型坐标绘制顶部扩容、左上起手、右上抽牌、左右费用/待机和底部换牌分支；坐标与语义配色集中在 `talentGeometry.ts`，完整展示徽章的真实节点与已点亮计数。左键激活、快捷点亮、右键/组合键/删除键退还沿用数据层判定，节点浮卡联动底部属性栏。 |
-| [town/training/TalentArtwork](../../src/ui/town/training/TalentArtwork/) | 天赋页的独立视觉组件：`TalentPanelShell` 使用「天赋背景.png」并将原型坐标整体映射到编队的 1920×1080 画布；`TalentBorder`、`TalentEmblem`、`TalentPlaque`、`TalentNode` 和 `TalentResourceFrame` 以 SVG 绘制金属外框、星芒徽记、分色铭牌、状态圆环及通栏装饰，标题与悬浮提示各自模块化。 |
-| [town/training/SquadTalentModal](../../src/ui/town/training/SquadTalentModal/SquadTalentModal.tsx) | 天赋页与徽章选择的编排：承接原有入口形变、关闭和退出键，接入独立金色全屏外壳、标题训练点、星盘及底栏，未启用徽章时展开选择浮层。 |
+| [town/training/TalentArtwork](../../src/ui/town/training/TalentArtwork/) | 天赋页的独立视觉组件：`TalentPanelShell` 将 1672×941 原型坐标缩放到编队画布中央的 1536×864 面板，背景收进外框边界；`TalentBorder`、`TalentEmblem`、`TalentPlaque`、`TalentNode` 和 `TalentResourceFrame` 以 SVG 绘制金属外框、星芒徽记、分色铭牌、状态圆环及通栏装饰，标题与悬浮提示各自模块化。 |
+| [town/training/SquadTalentModal](../../src/ui/town/training/SquadTalentModal/SquadTalentModal.tsx) | 天赋页与徽章选择的编排：承接入口淡入淡出、关闭和退出键，接入独立金色面板、标题训练点、星盘及底栏，未启用徽章时展开选择浮层。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 天赋页底部金色通栏：依次展示初始手牌、回合抽牌、换牌、待机、费用和手牌上限，数值由 `squadModsOf` 与引擎 `squad*` helper 计算；分色图标与蓝色读数横排，接收节点悬浮键高亮对应属性。 |
 | [town/museum](../../src/ui/town/museum/index.ts) | 博物馆设施：使用 `codexCatalog` 生成物品、非临时卡牌和三档敌人目录，展示永久收录进度；`MuseumScene` 编排三个入口与共享 `PanelShell`，三个展厅各自持有筛选、选中态和详情栏。物品展厅使用 1:1 方格，卡牌展厅使用原尺寸大卡与未收录卡背，三个展厅的全部条目统一挂 `InteractiveHint`。 |
 | [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 编队页训练点分配弹窗域共享的设计令牌（`--tr-*`，暗底金色）、暗玻璃材质与 kicker 排版，各组件各自 `composes`。 |
@@ -104,7 +105,7 @@ src/ui/
 | [sortie/SortieRelicPanel](../../src/ui/sortie/SortieRelicPanel/SortieRelicPanel.tsx) | 全屏遗物携带编辑面板：PanelShell 双栏展示仓库遗物与本次携带，取物/退回分别复用出击状态层的既有 action，并在状态行反馈容量限制。 |
 | [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击下行 / 结算上行共用的电梯纯演出页：视频静音播放，独立音轨由 BGM 播放器播放；方向与去向由 `runStore.elevatorRide` 决定，下行结束进入探索，上行结束回据点；不可跳过且不承载探索规则。 |
 | [sortie/StockShelf](../../src/ui/sortie/StockShelf/StockShelf.tsx) | 出击补给货架：固定清单一次全摆出，按 `maxStack` 自动分成临期食品 / 消耗品两层（层板画在 `ShelfRow`，单个货位在 `StockSlot`）。商品本体只负责悬浮浮卡（复用 `SortieTooltip`，展示用 `ItemStack` 由 itemId 现造），购买入口只有下方价格牌一处；买不起 / 装不下不弹提示，交给售货机器人说。 |
-| [common/ChatBot](../../src/ui/common/ChatBot/ChatBot.tsx) | 聊天机器人公共组件：立绘、固体彩色/出击页毛玻璃气泡与可选点击态；`useBotChatter` 泛型化台词调度（14~22s 随机闲聊，事件台词插队，气泡 4.5s 后淡出，失活即清空定时器）。出击准备页通过它承接售货机器人反馈，据点页复用同一立绘作为管理终端。 |
+| [common/ChatBot](../../src/ui/common/ChatBot/ChatBot.tsx) | 聊天机器人公共组件：立绘、固体彩色/出击页毛玻璃气泡（`ChatBubble` 的 `tail` 可选左下角或正下方居中）与可选点击态；`useBotChatter` 泛型化台词调度（默认 14~22s 随机闲聊，也支持 `idleEnabled` / `idleRange`，气泡默认 4.5s 后淡出、可由 `bubbleMs` 按场景覆盖，失活即清空定时器）；`useChatLinePresence` 统一管理气泡退场保留。出击准备页通过它承接售货机器人反馈，据点页复用同一立绘作为管理终端。 |
 | [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；真正的 1×4 格且只显示单件消耗品，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
 | [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域物品面板的调色板真相点：仓库冷银白、背包黑玻璃熔橙、遗物紫金。 |
 | [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击域共享的白玻璃面板材质与共享排版，四方 `composes`；材质真相点见 [styles.md](styles.md)。 |
@@ -132,7 +133,7 @@ src/ui/
 | [explore/ExploreScreen/CurioOfferView](../../src/ui/explore/ExploreScreen/CurioOfferView.tsx) | 黑盒放入视图：嵌入 `EventPanelStage`，复用物品格与悬浮详情，支持可叠加物品数量选择、已放入区、放入和返回。 |
 | [explore/WanderingMerchant](../../src/ui/explore/WanderingMerchant/WanderingMerchantPanel.tsx) | 流浪货商面板：复用据点 `ShopWindow`、`ShopHeader`、`MarketShelf` 与 `MarketDetail`，展示每个货商随机接受的两种临期食品、六格货架和底部《交换》按钮；`merchantShopSlots` 负责货位适配，`useMerchantBuyReason` 合并食品、背包与卡组判定，不使用原生 `title`。 |
 | [explore/ExploreScreen/ExploreDock](../../src/ui/explore/ExploreScreen/ExploreDock.tsx) | 探索底部整条 HUD：左段队伍立绘、中段 12×2 随身背包、右段野餐与撤离。立绘几何与战斗 `AllyBar` 对齐（500×316、gap 10、取景基准宽 160），两个场景看同一批角色尺寸一致；三段自然高度不同，用 `align-items: end` 底边对齐。HUD 顶边落在 y=748，走廊地平线 `CORRIDOR.floorY` 已相应上移到 680 以免物件名牌被压住。 |
-| [explore/CorridorScene](../../src/ui/explore/CorridorScene/CorridorScene.tsx) | 走廊房间场景：房间宽度取近景素材 2 倍显示宽度、高度为 1080，镜头在 1920×1080 可视区内跟随玩家居中并在两端夹紧；渲染传送门、BOSS 红门、可交互物、黑影与角色。`useCorridorMovement` 管理左右行走、↑/W/空格/回车交互（脚下传送门 → 附近红门 → 选中物件）、↓/S 循环切目标、触摸按钮、失焦暂停、位置保存和道具交互动画；`RoomPortal` 是四个方向共用的同一副传送门外观（方向只能从小地图读出），`BossGate` 复用传送门素材并以红色滤镜与近距离呼吸光区分；近景以原始素材的 2 倍宽高绘制，新手关卡的三种近景在生成时随机混排并保证各出现一次，布局按显示宽度换算且地面线维持现有高度，重访保持一致；角色与交互物共用布局中的地面下沉量；`CorridorSprite` 按交互物类型渲染独立透明 PNG，并应用小/中/大三档尺寸；`CorridorPlayer` 使用独立画布播放 17 张立绘帧，`playerAnimationState` 管理第 0 帧静态站姿与 30～60 帧隔帧行走（15 FPS）；开始移动直接切到第 30 帧迈步姿态，停止时立即回到第 0 帧；`art/corridorPlayerFrames` 缓存已解码图片，动画时钟不依赖 React 逐帧更新图片地址；`ShadowEncounter` 播放黑影破地动画并将战斗转场圆心定位到黑影。 |
+| [explore/CorridorScene](../../src/ui/explore/CorridorScene/CorridorScene.tsx) | 走廊房间场景：房间宽度取近景素材 2 倍显示宽度、高度为 1080；除远景外的世界内容统一以地面线为锚缩放至 0.7，镜头按等效 2743 世界 px 可视宽度在两端夹紧；渲染传送门、BOSS 红门、可交互物、黑影与角色。`useCorridorMovement` 管理左右行走、↑/W/空格/回车交互（脚下传送门 → 附近红门 → 选中物件）、↓/S 循环切目标、触摸按钮、失焦暂停、位置保存和道具交互动画；`RoomPortal` 是四个方向共用的同一副传送门外观（方向只能从小地图读出），`BossGate` 复用传送门素材并以红色滤镜与近距离呼吸光区分；近景以原始素材的 2 倍宽高绘制，新手关卡的三种近景在生成时随机混排并保证各出现一次，布局按显示宽度换算且地面线维持现有高度，重访保持一致；角色与交互物共用布局中的地面下沉量；`CorridorSprite` 按交互物类型渲染独立透明 PNG，并应用小/中/大三档尺寸；`CorridorPlayer` 使用独立画布播放 17 张立绘帧，`playerAnimationState` 管理第 0 帧静态站姿与 30～60 帧隔帧行走（15 FPS）；开始移动直接切到第 30 帧迈步姿态，停止时立即回到第 0 帧；`art/corridorPlayerFrames` 缓存已解码图片，动画时钟不依赖 React 逐帧更新图片地址；`ShadowEncounter` 保留在 scene 层并将黑影世界坐标换算为屏幕坐标，警示文案与闪光不随缩放；`useExplorerChatter` 按场景信号调度探索者独白，`PlayerSpeech` 把毛玻璃气泡挂在 `playerAnchor` 上随角色和镜头移动，并反向补偿字号。 |
 | [explore/CorridorScene/corridorTriggers](../../src/ui/explore/CorridorScene/corridorTriggers.ts) | 无 React 依赖的走廊触发器：记录真实行走时间，处理每 2 秒一次的暗雷检查；红门只由交互键或点击触发。 |
 | [explore/CorridorScene/BossGate](../../src/ui/explore/CorridorScene/BossGate.tsx) | BOSS 红门场景组件：复用传送门素材，以红色滤镜显示，靠近时呼吸发光并显示「空格 · 挑战首领」提示。 |
 | [explore/ExploreScreen/BossGatePanel](../../src/ui/explore/ExploreScreen/BossGatePanel.tsx) | BOSS 红门事件面板：复用 `ExploreObjectPanel` 与 `EventPanelChoice` 展示红色挑战选项；挑战时记录点击坐标，驱动裂纹转场从按钮位置开始，焦点与 Esc 由公共 hook 管理。 |

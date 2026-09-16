@@ -61,6 +61,12 @@
   background: #06181bd9;
 }
 
+/* 尾巴默认在左下角(机器人立绘在气泡左侧)；居中变体用于气泡正下方就是说话者的场合。 */
+.tailCenter .tail {
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
 @keyframes bubbleIn {
   from {
     opacity: 0;

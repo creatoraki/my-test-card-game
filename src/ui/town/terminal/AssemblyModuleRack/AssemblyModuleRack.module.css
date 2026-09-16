@@ -1,5 +1,5 @@
 .rack {
-  --ui-glow-color: var(--asm-cyan, var(--event-accent, #58efc7));
+  --ui-glow-color: var(--asm-cyan, var(--sx-key, #58efc7));
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -70,7 +70,7 @@
 
 /* 与卡组选中态同一套语言: 四角括号, 不勾整圈。角标短一些以匹配格子尺寸。 */
 .option.selected::after {
-  --mk-c: var(--asm-select, #9fe8ff);
+  --mk-c: var(--asm-select, var(--sx-key-hot, #9fe8ff));
   --mk-w: 2px;
   --mk-len: 15px;
   --mk-bar: linear-gradient(var(--mk-c), var(--mk-c));
@@ -107,7 +107,7 @@
 
 /* ItemSlot 选中时把自身边框染成 --accent, 这里把它对齐到面板的选中色, 与角标同色。 */
 .option.selected .slot {
-  --accent: var(--asm-select, #9fe8ff);
+  --accent: var(--asm-select, var(--sx-key-hot, #9fe8ff));
 }
 
 .compatibility {
@@ -122,17 +122,17 @@
   font-weight: var(--ui-weight);
   letter-spacing: var(--ui-tracking);
   text-shadow: var(--ui-glow);
-  background: #11201bd9;
+  background: color-mix(in srgb, var(--sx-bg-hi) 86%, transparent);
   pointer-events: none;
 }
 
 .option.incompatible .compatibility {
-  color: #f0a39a;
-  background: #2b1719dd;
+  color: var(--sx-alert);
+  background: color-mix(in srgb, var(--sx-alert) 16%, var(--sx-bg-lo));
 }
 
 .option[data-compatible="true"] .compatibility {
-  color: var(--asm-cyan, #58efc7);
+  color: var(--asm-cyan, var(--sx-key, #58efc7));
 }
 
 .empty {
@@ -140,7 +140,7 @@
   justify-items: center;
   gap: 8px;
   padding: 16px 8px;
-  color: var(--muted, #849096);
+  color: var(--sx-muted, var(--muted, #849096));
   font-size: var(--rs-font-body, 20px);
   text-align: center;
   border: 1px dashed #ffffff1f;
@@ -149,7 +149,7 @@
 .emptySlot {
   width: 42px;
   aspect-ratio: 1;
-  border: 1px dashed #819092;
+  border: 1px dashed var(--sx-dim);
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }
 

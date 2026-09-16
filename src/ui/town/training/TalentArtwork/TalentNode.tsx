@@ -11,20 +11,20 @@ export const NODE_STATUS: Record<TalentNodeState, string> = {
 };
 interface Props {
   point: Point; radius: number; branchId: string; state: TalentNodeState;
-  major: boolean; locked: boolean; latest: boolean; shaking: boolean; label: string;
+  locked: boolean; latest: boolean; shaking: boolean; label: string;
   onClick: (event: MouseEvent<SVGGElement>) => void;
   onContextMenu: (event: MouseEvent<SVGGElement>) => void;
   onKeyDown: (event: KeyboardEvent<SVGGElement>) => void;
   onEnter: () => void; onLeave: () => void;
 }
-export function TalentNode({ point, radius, branchId, state, major, locked, latest, shaking, label,
+export function TalentNode({ point, radius, branchId, state, locked, latest, shaking, label,
   onClick, onContextMenu, onKeyDown, onEnter, onLeave }: Props) {
   const id = useId();
   const active = state === "active" || state === "refundable";
   const size = radius * 1.38;
   return (
     <g className={cx(s.node, latest && s.latest, shaking && s.shaking)}
-      transform={`translate(${point.x} ${point.y})`} data-state={state} data-major={major || undefined}
+      transform={`translate(${point.x} ${point.y})`} data-state={state}
       data-readonly={locked || undefined} role="button" tabIndex={locked ? -1 : 0}
       aria-disabled={locked || (!active && state !== "available")} aria-label={label}
       onClick={onClick} onContextMenu={onContextMenu} onKeyDown={onKeyDown}
@@ -48,7 +48,7 @@ export function TalentNode({ point, radius, branchId, state, major, locked, late
         <g className={s.icon} transform={`translate(${-size / 2} ${-size / 2}) scale(${size / 48})`}>
           <TrackIcon branchId={branchId} />
         </g>
-        {(major || active) && <path className={s.spark} d={`M0 ${-radius - 15} 2 ${-radius - 8} 7 ${-radius - 6} 2 ${-radius - 4} 0 ${-radius + 1} -2 ${-radius - 4} -7 ${-radius - 6} -2 ${-radius - 8}Z`} />}
+        {active && <path className={s.spark} d={`M0 ${-radius - 15} 2 ${-radius - 8} 7 ${-radius - 6} 2 ${-radius - 4} 0 ${-radius + 1} -2 ${-radius - 4} -7 ${-radius - 6} -2 ${-radius - 8}Z`} />}
         {state === "refundable" && <circle className={s.refund} r={radius + 5} />}
       </g>
     </g>

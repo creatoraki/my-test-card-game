@@ -1,6 +1,6 @@
 .stage {
   --ui-glow-color: var(--stage-accent);
-  --stage-accent: var(--character-color, var(--asm-cyan, var(--event-accent, #58efc7)));
+  --stage-accent: var(--character-color, var(--asm-cyan, var(--sx-key, #58efc7)));
   /* ⚠ 立绘宽度改用**百分比**基准: 44% × 2.2 ≈ 96.8% —— 与旧的 132px × 2.2 在 300px 容器里
      完全等价, 但从此随容器缩放。--bust-scale 是纯倍率, 跟着缩放没问题;
      --portrait-dx/dy 是 px, **不**能直接照搬到小框, 详见 .portrait 上的 --frame-k 说明。 */
@@ -30,10 +30,10 @@
   justify-content: center;
   overflow: hidden;
   aspect-ratio: 3 / 4;
-  border: 1px solid color-mix(in srgb, var(--stage-accent) 58%, #7f9394);
+  border: 1px solid color-mix(in srgb, var(--stage-accent) 58%, var(--sx-dim));
   background:
     radial-gradient(ellipse at 50% 78%, color-mix(in srgb, var(--stage-accent) 24%, transparent), transparent 58%),
-    #101a1d;
+    var(--sx-bg-hi);
   box-shadow: inset 0 0 35px #000a, 0 0 24px color-mix(in srgb, var(--stage-accent) 12%, transparent);
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
@@ -63,7 +63,7 @@
   z-index: 1;
   width: 42%;
   aspect-ratio: 1;
-  border: 1px dashed #8a9b9d;
+  border: 1px dashed var(--sx-dim);
   border-radius: 50%;
   opacity: 0.55;
 }
@@ -74,7 +74,7 @@
   right: -32%;
   left: -32%;
   height: 1px;
-  background: #8a9b9d;
+  background: var(--sx-dim);
   content: "";
 }
 
@@ -90,7 +90,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 26px 14px 11px;
-  background: linear-gradient(to top, #060d0fee 16%, #060d0f8f 58%, transparent);
+  background: linear-gradient(to top, color-mix(in srgb, var(--sx-bg-lo) 93%, transparent) 16%, color-mix(in srgb, var(--sx-bg-lo) 56%, transparent) 58%, transparent);
   pointer-events: none;
 }
 
@@ -133,7 +133,7 @@
 }
 
 .characterList:focus-visible {
-  outline: 1px solid var(--asm-select, #9fe8ff);
+  outline: 1px solid var(--asm-select, var(--sx-key-hot, #9fe8ff));
   outline-offset: 3px;
 }
 

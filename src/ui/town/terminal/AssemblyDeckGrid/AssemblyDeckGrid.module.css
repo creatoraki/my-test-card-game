@@ -1,5 +1,5 @@
 .gridPanel {
-  --ui-glow-color: var(--asm-select, #9fe8ff);
+  --ui-glow-color: var(--asm-select, var(--sx-key-hot, #9fe8ff));
   display: grid;
   min-height: 0;
   min-width: 0;
@@ -77,13 +77,13 @@
   width: 17%;
   aspect-ratio: 1;
   place-items: center;
-  color: #06171a;
+  color: var(--sx-bg-lo);
   background:
-    linear-gradient(150deg, color-mix(in srgb, var(--asm-cyan, #58efc7) 92%, white), var(--asm-cyan, #58efc7) 62%, color-mix(in srgb, var(--asm-cyan, #58efc7) 72%, #0b2b28));
-  border: 1px solid color-mix(in srgb, var(--asm-cyan, #58efc7) 60%, white);
+    linear-gradient(150deg, color-mix(in srgb, var(--asm-cyan, var(--sx-key, #58efc7)) 92%, white), var(--asm-cyan, var(--sx-key, #58efc7)) 62%, color-mix(in srgb, var(--asm-cyan, var(--sx-key, #58efc7)) 72%, var(--sx-bg-lo)));
+  border: 1px solid color-mix(in srgb, var(--asm-cyan, var(--sx-key, #58efc7)) 60%, white);
   box-shadow:
-    0 0 0 2px #08161ab8,
-    0 0 16px -1px color-mix(in srgb, var(--asm-cyan, #58efc7) 78%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--sx-bg) 72%, transparent),
+    0 0 16px -1px color-mix(in srgb, var(--asm-cyan, var(--sx-key, #58efc7)) 78%, transparent),
     0 3px 8px #000000a6;
   clip-path: polygon(28% 0, 100% 0, 100% 72%, 72% 100%, 0 100%, 0 28%);
   pointer-events: none;

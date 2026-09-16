@@ -1,4 +1,4 @@
-.shadow { position: absolute; width: 180px; height: 300px; transform: translate(-50%, -100%); z-index: 30; pointer-events: none; }
+.shadow { position: absolute; width: 180px; height: 300px; transform: translate(-50%, -100%) scale(var(--corridor-scale)); transform-origin: 50% 100%; z-index: 30; pointer-events: none; }
 .pool { position: absolute; width: 270px; height: 45px; left: -45px; bottom: -18px; border-radius: 50%; background: #000; box-shadow: 0 0 34px 13px #000; animation: spread 650ms both; }
 .figure { position: absolute; inset: 0; transform-origin: bottom; background: linear-gradient(90deg, #010204, #08070b 50%, #000); clip-path: polygon(44% 1%, 61% 0, 70% 9%, 69% 25%, 88% 38%, 97% 71%, 81% 63%, 100% 100%, 0 100%, 21% 64%, 4% 81%, 12% 39%, 35% 25%, 32% 11%); filter: drop-shadow(0 0 10px #000); animation: rise 1150ms 170ms cubic-bezier(.12,.76,.22,1) both; }
 .eyes { position: absolute; width: 28px; height: 5px; left: 82px; top: 49px; background: #f6d4b1; box-shadow: 0 0 15px 4px #f23924; animation: eyes 420ms 950ms both; }

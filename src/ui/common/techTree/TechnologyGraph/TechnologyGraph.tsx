@@ -1,6 +1,11 @@
 import { cx } from "@/ui/common/cx";
 import { TechnologyMedallion } from "@/ui/common/techTree/TechnologyMedallion";
-import { TECHNOLOGY_STATE_LABEL, type TechnologyCore, type TechnologyNode } from "@/ui/common/techTree/TechnologyTree/types";
+import {
+  technologyLevelText,
+  technologyStateLabel,
+  type TechnologyCore,
+  type TechnologyNode,
+} from "@/ui/common/techTree/TechnologyTree/types";
 import { technologyGraphEdges } from "./technologyGraphGeometry";
 import s from "./TechnologyGraph.module.css";
 
@@ -30,21 +35,32 @@ export function TechnologyGraph({ nodes, core, canvas, selectedId, onSelect, cla
           <strong className={s.name}>{core.name}</strong>
           <span className={s.coreStatus}>已解锁</span>
         </div>
-        {nodes.map((node) => <button
-          key={node.id}
-          className={s.node}
-          style={{ left: node.x, top: node.y }}
-          type="button"
-          data-state={node.state}
-          data-selected={selectedId === node.id || undefined}
-          aria-label={`${node.name}，${TECHNOLOGY_STATE_LABEL[node.state]}`}
-          aria-pressed={selectedId === node.id}
-          onClick={() => onSelect(node.id)}
-        >
-          <TechnologyMedallion icon={node.icon} state={node.state} selected={selectedId === node.id} />
-          <strong className={s.name}>{node.name}</strong>
-          <span className={s.status}>{TECHNOLOGY_STATE_LABEL[node.state]}</span>
-        </button>)}
+        {nodes.map((node) => {
+          const levelText = technologyLevelText(node);
+          return (
+            <button
+              key={node.id}
+              className={s.node}
+              style={{ left: node.x, top: node.y }}
+              type="button"
+              data-state={node.state}
+              data-selected={selectedId === node.id || undefined}
+              aria-label={`${node.name}，${technologyStateLabel(node)}${levelText ? `，等级 ${levelText}` : ""}`}
+              aria-pressed={selectedId === node.id}
+              onClick={() => onSelect(node.id)}
+            >
+              <TechnologyMedallion
+                icon={node.icon}
+                state={node.state}
+                selected={selectedId === node.id}
+                progress={node.maxLevel && node.maxLevel > 1 ? (node.level ?? 0) / node.maxLevel : undefined}
+              />
+              <strong className={s.name}>{node.name}</strong>
+              {levelText && <span className={s.level}>{levelText}</span>}
+              <span className={s.status}>{technologyStateLabel(node)}</span>
+            </button>
+          );
+        })}
       </div>
     </section>
   );

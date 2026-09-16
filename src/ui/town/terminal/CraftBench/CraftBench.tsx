@@ -3,7 +3,7 @@ import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
 import { EventPanelButton } from "@/ui/common/EventPanel";
 import { cx } from "@/ui/common/cx";
-import { CraftIcon } from "../ModuleEntries/icons";
+import { CraftIcon } from "../ResearchPanel/icons";
 import s from "./CraftBench.module.css";
 
 type BenchState = "empty" | "ready" | "blocked";

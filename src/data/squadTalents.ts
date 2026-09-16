@@ -32,7 +32,7 @@ export interface TalentNodeDef {
   requires: string[]; // 满足其一即可解锁; 空数组 = 链首, 直接可点
   x: number;
   y: number; // 树面板内的设计 px 坐标
-  tier: "minor" | "major"; // 只影响节点大小/外观, 末节点用 major
+  tier: "minor" | "major"; // 只影响节点大小, 末节点用 major
   desc: string;
 }
 

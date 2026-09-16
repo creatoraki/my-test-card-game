@@ -4,6 +4,7 @@ import {
   CLOSE_MS,
   ENTRY_BACK_DELAY_MS,
   ENTRY_BACK_MS,
+  FADE_MS,
   MORPH_EASE,
   OPEN_MS,
   SLIDE_MS,
@@ -33,8 +34,9 @@ const createIdle = <Id extends string>(): MorphState<Id> => ({ panel: null, phas
 export function usePanelMorph<Id extends string>(options: {
   rects: Record<Id, Rect>;
   escEnabled?: boolean;
+  transition?: "morph" | "fade";
 }) {
-  const { rects, escEnabled = true } = options;
+  const { rects, escEnabled = true, transition = "morph" } = options;
   const [state, setState] = useState<MorphState<Id>>(() => createIdle<Id>());
   const stateRef = useRef(state);
   const panelRef = useRef<HTMLElement>(null);
@@ -81,6 +83,29 @@ export function usePanelMorph<Id extends string>(options: {
     };
 
     if (!opening) {
+      if (transition === "fade") {
+        if (typeof panel.animate !== "function" || FADE_MS <= 0) {
+          finish();
+          return;
+        }
+        const animation = panel.animate(
+          [{ opacity: 1 }, { opacity: 0 }],
+          { duration: FADE_MS, easing: "ease-out", fill: "both" },
+        );
+        let done = false;
+        const guardedFinish = () => {
+          if (done) return;
+          done = true;
+          finish();
+        };
+        animation.addEventListener("finish", guardedFinish);
+        guardRef.current = window.setTimeout(guardedFinish, FADE_MS + 120);
+        return () => {
+          clearGuard();
+          animation.cancel();
+        };
+      }
+
       if (CLOSE_MS <= 0) {
         finish();
         return;
@@ -89,23 +114,27 @@ export function usePanelMorph<Id extends string>(options: {
       return clearGuard;
     }
 
+    const openingFade = transition === "fade";
     const horizontal = { ...centered(target, origin.w, origin.h), y: origin.y };
     const wide = { ...centered(target, target.w, origin.h), y: origin.y };
-    const keyframes = [
-      { ...box(origin), offset: 0 },
-      { ...box(horizontal), offset: SLIDE_MS / OPEN_MS },
-      { ...box(wide), offset: (SLIDE_MS + WIDEN_MS) / OPEN_MS },
-      { ...box(target), offset: 1 },
-    ];
+    const keyframes = openingFade
+      ? [{ ...box(target), opacity: 0 }, { ...box(target), opacity: 1 }]
+      : [
+          { ...box(origin), offset: 0 },
+          { ...box(horizontal), offset: SLIDE_MS / OPEN_MS },
+          { ...box(wide), offset: (SLIDE_MS + WIDEN_MS) / OPEN_MS },
+          { ...box(target), offset: 1 },
+        ];
+    const durationMs = openingFade ? FADE_MS : OPEN_MS;
 
-    if (typeof panel.animate !== "function" || OPEN_MS <= 0) {
+    if (typeof panel.animate !== "function" || durationMs <= 0) {
       finish();
       return;
     }
 
     const animation = panel.animate(keyframes, {
-      duration: OPEN_MS,
-      easing: MORPH_EASE,
+      duration: durationMs,
+      easing: openingFade ? "ease-out" : MORPH_EASE,
       fill: "both",
     });
     let done = false;
@@ -115,13 +144,13 @@ export function usePanelMorph<Id extends string>(options: {
       finish();
     };
     animation.addEventListener("finish", guardedFinish);
-    guardRef.current = window.setTimeout(guardedFinish, OPEN_MS + 120);
+    guardRef.current = window.setTimeout(guardedFinish, durationMs + 120);
 
     return () => {
       clearGuard();
       animation.cancel();
     };
-  }, [clearGuard, rects, state.panel, state.phase, state.origin]);
+  }, [clearGuard, rects, state.panel, state.phase, state.origin, transition]);
 
   useEffect(() => {
     if (!state.panel || !escEnabled) return;

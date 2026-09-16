@@ -1,0 +1,1 @@
+export { ResearchTechView } from "./ResearchTechView";

@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState, type CSSProperties, type Ref, type ReactNode } from "react";
+// 研究中心「模组制造」页: 左角色舞台 / 中配方清单 / 右制造台 + 材料仓库。
+// ★ 三栏节奏与模组装配页一致; 制造判定来自 data 的 craftCheck, 页面不复制规则。
+import { useEffect, useMemo, useState } from "react";
 import { craftCheck, getModuleRecipe, recipesOfCharacter, type CraftCheck } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
@@ -7,48 +9,17 @@ import ItemTooltip, {
   type TooltipPoint,
 } from "@/ui/common/item/ItemTooltip";
 import { AssemblyCharacterStage } from "../AssemblyCharacterStage";
-import { PanelShell } from "@/ui/common/PanelShell";
-import type { Rect } from "@/ui/common/panelMorph";
 import { CraftBench } from "../CraftBench";
 import { CraftMaterialRack } from "../CraftMaterialRack";
 import { CraftRecipeGrid } from "../CraftRecipeGrid";
-import s from "./CraftPanel.module.css";
-
-/** 制造弹窗的熔炉琥珀配色。★ 只覆盖变量, 外壳与各子组件的规则一条都不必复制。 */
-export const CRAFT_ACCENT = "#ff9d4d";
-const CRAFT_THEME = {
-  "--asm-frame": CRAFT_ACCENT,
-  "--asm-glow": CRAFT_ACCENT,
-  "--asm-select": "#ffd08a",
-  "--asm-cyan": "#ffb35c",
-  "--asm-line": "#ffb0572e",
-  "--asm-ink": "#fdf1e6",
-  "--asm-ink-dim": "#b39a86",
-  "--asm-panel-bg": "#150f09f2",
-  "--asm-panel-filter": "blur(10px) saturate(104%) brightness(0.82)",
-  "--panel-shell-title-size": "34px",
-  "--panel-shell-status-size": "20px",
-  "--panel-shell-close-size": "36px",
-} as CSSProperties;
-
-interface Props {
-  closing: boolean;
-  onClose: () => void;
-  morph?: {
-    ref: Ref<HTMLElement>;
-    rect: Rect;
-    ready: boolean;
-    seed?: ReactNode;
-    seedLabel?: string;
-  };
-}
+import s from "./CraftView.module.css";
 
 interface HoveredItem {
   stack: ItemStack;
   point: TooltipPoint;
 }
 
-export function CraftPanel({ closing, onClose, morph }: Props) {
+export function CraftView() {
   const storage = useTownStore((state) => state.storage);
   const characters = useTownStore((state) => state.characters);
   const awakened = useTownStore((state) => state.awakened);
@@ -86,52 +57,41 @@ export function CraftPanel({ closing, onClose, morph }: Props) {
 
   return (
     <>
-      <PanelShell
-        accent={CRAFT_ACCENT}
-        title="模组制造"
-        status={`可制造 ${recipes.length} 种 · 经验 ${exp}`}
-        closeLabel="关闭模组制造"
-        closing={closing}
-        onClose={onClose}
-        themeStyle={CRAFT_THEME}
-        morph={morph}
-      >
-        <div className={s.body}>
-          <AssemblyCharacterStage
-            awakened={awakened}
-            selected={charId}
-            onSelect={(id) => {
-              setCharId(id);
-              setHoveredItem(null);
-            }}
-          />
-          <CraftRecipeGrid
-            recipes={recipes}
-            checks={checks}
-            selectedItemId={recipe?.itemId ?? null}
-            onSelect={setRecipeItemId}
+      <div className={s.body}>
+        <AssemblyCharacterStage
+          awakened={awakened}
+          selected={charId}
+          onSelect={(id) => {
+            setCharId(id);
+            setHoveredItem(null);
+          }}
+        />
+        <CraftRecipeGrid
+          recipes={recipes}
+          checks={checks}
+          selectedItemId={recipe?.itemId ?? null}
+          onSelect={setRecipeItemId}
+          onShowTooltip={showTooltip}
+          onHideTooltip={() => setHoveredItem(null)}
+        />
+        <div className={s.rightColumn}>
+          <CraftBench
+            recipe={recipe}
+            check={check}
+            exp={exp}
+            onCraft={() => recipe && craftModule(charId, recipe.itemId)}
             onShowTooltip={showTooltip}
             onHideTooltip={() => setHoveredItem(null)}
           />
-          <div className={s.rightColumn}>
-            <CraftBench
-              recipe={recipe}
-              check={check}
-              exp={exp}
-              onCraft={() => recipe && craftModule(charId, recipe.itemId)}
-              onShowTooltip={showTooltip}
-              onHideTooltip={() => setHoveredItem(null)}
-            />
-            <CraftMaterialRack
-              recipes={recipes}
-              storage={storage}
-              recipe={recipe}
-              onShowTooltip={showTooltip}
-              onHideTooltip={() => setHoveredItem(null)}
-            />
-          </div>
+          <CraftMaterialRack
+            recipes={recipes}
+            storage={storage}
+            recipe={recipe}
+            onShowTooltip={showTooltip}
+            onHideTooltip={() => setHoveredItem(null)}
+          />
         </div>
-      </PanelShell>
+      </div>
       {hoveredItem && <ItemTooltip stack={hoveredItem.stack} point={hoveredItem.point} />}
     </>
   );

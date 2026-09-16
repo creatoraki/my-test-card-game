@@ -20,14 +20,14 @@
     0 14px
   );
   background: transparent;
-  color: #efffff;
+  color: var(--back-text, #efffff);
   cursor: var(--cursor-pointer);
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 1px;
   white-space: nowrap;
   pointer-events: auto;
-  filter: drop-shadow(0 0 6px #36dce333);
+  filter: drop-shadow(0 0 6px var(--back-text-glow, #36dce333));
   animation: arrive var(--fac-back-in, 320ms) ease-out both;
   transition: filter 160ms ease, transform 160ms ease;
 }
@@ -44,15 +44,15 @@
 .label {
   position: relative;
   cursor: var(--cursor-pointer);
-  text-shadow: 0 0 3px #b7faff66, 0 2px 3px #000;
+  text-shadow: 0 0 3px var(--back-text-glow, #b7faff66), 0 2px 3px #000;
 }
 
 .back:hover {
-  filter: brightness(1.2) drop-shadow(0 0 9px #36dce377);
+  filter: brightness(1.2) drop-shadow(0 0 9px var(--back-text-glow, #36dce377));
 }
 
 .back:focus-visible {
-  outline: 2px solid #aafff8;
+  outline: 2px solid var(--back-edge-hot, #aafff8);
   outline-offset: 4px;
 }
 

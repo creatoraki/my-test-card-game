@@ -15,7 +15,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 46%, rgb(12 8 20 / 0.78) 0%, rgb(8 5 14 / 0.92) 100%);
+  background: radial-gradient(ellipse at 50% 46%, rgb(12 8 20 / 0.16) 0%, rgb(8 5 14 / 0.28) 100%);
   clip-path: none;
   animation: talentVeilIn 220ms ease both;
 }

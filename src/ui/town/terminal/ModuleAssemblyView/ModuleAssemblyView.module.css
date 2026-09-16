@@ -1,5 +1,6 @@
 .body {
   composes: rs-tokens from "../styles/terminalKit.module.css";
+  height: 100%;
   display: grid;
   min-width: 0;
   min-height: 0;

@@ -31,7 +31,6 @@ import { cx } from "@/ui/common/cx";
 import { usePanelMorph, type Rect } from "@/ui/common/panelMorph";
 import { FORMATION_BG_ART } from "@/ui/art/sceneArt";
 import { CharacterDetailView } from "@/ui/character/CharacterDetailView";
-import { BadgeGlyph } from "@/ui/town/training/BadgeSelectModal/badgeGlyphs";
 import { SquadTalentModal } from "@/ui/town/training/SquadTalentModal";
 import { markTownReturn } from "@/ui/town/townReturn";
 import { useSquadTalent } from "@/ui/town/training/useSquadTalent";
@@ -56,7 +55,7 @@ const FIGURE_FONT = 44;
 const FIGURE_RADIUS = 16;
 
 const TALENT_PANEL_RECT: Record<"talent", Rect> = {
-  talent: { x: 0, y: 0, w: 1920, h: 1080 },
+  talent: { x: 192, y: 108, w: 1536, h: 864 },
 };
 
 export function FormationScreen() {
@@ -75,7 +74,7 @@ export function FormationScreen() {
   }, [enterTown]);
 
   const talent = useSquadTalent();
-  const talentMorph = usePanelMorph<"talent">({ rects: TALENT_PANEL_RECT, escEnabled: false });
+  const talentMorph = usePanelMorph<"talent">({ rects: TALENT_PANEL_RECT, escEnabled: false, transition: "fade" });
   const [backPending, setBackPending] = useState(false);
   const morph = useFormationMorph();
 
@@ -233,8 +232,6 @@ export function FormationScreen() {
             ref: talentMorph.panelRef,
             rect: TALENT_PANEL_RECT.talent,
             ready: talentMorph.ready,
-            seed: <BadgeGlyph badgeId={talent.badge?.id ?? "novice"} />,
-            seedLabel: "训练点分配",
           }}
         />
       )}
