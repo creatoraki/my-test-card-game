@@ -87,6 +87,19 @@ import driedHerbArt from "@/assets/遗物/干燥药草.png";
 import compressedBiscuitArt from "@/assets/遗物/压缩饼干.png";
 import energyCrystalArt from "@/assets/遗物/储能水晶.png";
 import warmMatchArt from "@/assets/遗物/余温火柴.png";
+import expiryLabelerArt from "@/assets/遗物/临期标签机.png";
+import insuranceContractArt from "@/assets/遗物/保险契约.png";
+import recycleListArt from "@/assets/遗物/回收清单.png";
+import emergencyBeaconArt from "@/assets/遗物/应急信标.png";
+import emergencyRationArt from "@/assets/遗物/应急口粮.png";
+import bountyListArt from "@/assets/遗物/悬赏名单.png";
+import foldingCrateArt from "@/assets/遗物/折叠货箱.png";
+import stopwatchArt from "@/assets/遗物/秒表.png";
+import particleClipArt from "@/assets/遗物/粒子回收夹.png";
+import gapCombArt from "@/assets/遗物/缺齿梳.png";
+import wormwoodDropsArt from "@/assets/遗物/苦艾滴剂.png";
+import entropyBatteryArt from "@/assets/遗物/逆熵电池.png";
+import tinWhistleArt from "@/assets/遗物/锡制哨子.png";
 
 const VB = "0 0 48 48";
 const base = {
@@ -323,6 +336,19 @@ const RELIC_ART: Record<string, string> = {
   "relic-compressed-biscuit": compressedBiscuitArt,
   "relic-energy-crystal": energyCrystalArt,
   "relic-warm-match": warmMatchArt,
+  "relic-expiry-labeler": expiryLabelerArt,
+  "relic-insurance-contract": insuranceContractArt,
+  "relic-recycle-list": recycleListArt,
+  "relic-emergency-beacon": emergencyBeaconArt,
+  "relic-emergency-ration": emergencyRationArt,
+  "relic-bounty-list": bountyListArt,
+  "relic-folding-crate": foldingCrateArt,
+  "relic-stopwatch": stopwatchArt,
+  "relic-particle-clip": particleClipArt,
+  "relic-gap-comb": gapCombArt,
+  "relic-wormwood-drops": wormwoodDropsArt,
+  "relic-entropy-battery": entropyBatteryArt,
+  "relic-tin-whistle": tinWhistleArt,
 };
 
 export const ITEM_ART_SOURCES: readonly string[] = [...new Set([
