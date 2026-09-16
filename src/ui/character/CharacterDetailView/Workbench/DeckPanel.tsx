@@ -41,7 +41,7 @@ export function DeckPanel({ deck, deckLevel, minDeckSize, hoveredUid, onHoverCar
         </button>
       </div>
 
-      {/* data-deck-anchor: 抽卡演出把新卡飞向卡组时认这块位置(见 DeckForgeOverlay/ForgeDrawStage)。 */}
+      {/* data-deck-anchor: 抽卡演出把新卡飞向卡组时认这块位置。 */}
       <div className={s.grid} data-deck-anchor>
         {deck.map((card, i) => (
           <div key={card.uid} className={s.cell} style={{ "--i": i } as CSSProperties}>

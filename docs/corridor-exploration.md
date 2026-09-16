@@ -97,4 +97,4 @@
 - `src/ui/explore/ExploreScreen/`：界面、物件弹窗、背包及队伍编排。
 - `src/assets/explore-corridor/`：内置 imagegen 生成的走廊、传送门和透明图集。
 
-界面沿用 1920×1080 设计画布，新组件的文字最小为 18px。旧路线事件与桥接组件（`route.ts` / `generateRouteRound` / `RouteBoard`）保留在工程中，当前远征不再经过它们。不处理旧存档迁移。
+界面沿用 1920×1080 设计画布，新组件的文字最小为 18px。旧路线事件与桥接规则（`route.ts` / `generateRouteRound`）仍保留在引擎测试与数据兼容范围内，当前远征不再经过它们。不处理旧存档迁移。

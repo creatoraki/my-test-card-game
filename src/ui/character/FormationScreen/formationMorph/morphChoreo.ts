@@ -10,7 +10,7 @@
 import { prefersReducedMotion } from "@/ui/app/transitions";
 export { designRectOf } from "@/ui/hooks/stage";
 
-/** 「减少动态效果」时所有时长归零 —— 与 DeckForgeOverlay/forgeChoreo.ts 同款包法。 */
+/** 「减少动态效果」时所有时长归零，与卡组成长面板的演出采用同一判定。 */
 const duration = (ms: number) => (prefersReducedMotion() ? 0 : ms);
 
 // ---- 时长 ----

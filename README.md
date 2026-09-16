@@ -87,8 +87,7 @@ my-test-card-game/
    │  │  ├─ town/training/  # 训练室与小队徽章分配
    │  │  └─ town/museum/    # 博物馆与物品、卡牌、怪物图鉴
    │  ├─ art/              # 素材查表（id → 图片 URL + 预热）
-   │  ├─ hooks/            # 1920×1080 设计画布与三个通用 hook
-   │  └─ _legacy/          # 无人引用的归档件
+   │  └─ hooks/            # 1920×1080 设计画布与通用 hook
    └─ styles/              # 全局层：tokens.css（设计令牌）+ base.css（reset / 按钮皮肤）
 ```
 
