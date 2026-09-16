@@ -1,4 +1,4 @@
-import { CORRIDOR_PORTAL_ART, CORRIDOR_PORTAL_Y_OFFSET } from "@/ui/art/corridorArt";
+import { CORRIDOR_BOSS_GATE_ART, CORRIDOR_BOSS_GATE_Y_OFFSET } from "@/ui/art/corridorArt";
 import s from "./CorridorScene.module.css";
 
 export function BossGate({
@@ -15,7 +15,7 @@ export function BossGate({
   onClick: () => void;
 }) {
   const disabled = blocked || !near;
-  return <div className={`${s.object} ${s.bossGate}`} style={{ left: x, top: top + CORRIDOR_PORTAL_Y_OFFSET }}>
+  return <div className={`${s.object} ${s.bossGate}`} style={{ left: x, top: top + CORRIDOR_BOSS_GATE_Y_OFFSET }}>
     <button
       className={s.objectButton}
       type="button"
@@ -27,7 +27,7 @@ export function BossGate({
         aria-hidden
         alt=""
         draggable={false}
-        src={CORRIDOR_PORTAL_ART}
+        src={CORRIDOR_BOSS_GATE_ART}
         className={`${s.bossGateArt} ${near ? s.bossGateLit : ""}`}
         style={{ height: 455 }}
       />

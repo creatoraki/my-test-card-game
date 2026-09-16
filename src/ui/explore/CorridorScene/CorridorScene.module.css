@@ -22,8 +22,28 @@
 .player { position: absolute; left: 0; top: 0; transform: translate(-50%, calc(-100% + 29px)); width: 216px; height: 240px; pointer-events: none; }
 /* 传送门：四个方向同一副外观，方向只能从小地图读出。踩上去才亮起并给出确认提示。 */
 .portal { z-index: 4; }
-.portalArt { display: block; filter: brightness(.85) saturate(.8); transition: filter 220ms; }
-.portalLit { filter: brightness(1.25) saturate(1.15) drop-shadow(0 0 16px #7fe6d8aa); will-change: opacity; animation: portalBreathe 1.6s ease-in-out infinite; }
+.portalArt {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  filter: brightness(.85) saturate(.8);
+  transition: filter 220ms;
+}
+.portalSprite {
+  position: absolute;
+  inset: 0;
+  background-size: 200% 200%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  animation: portalSprite 400ms steps(1, end) infinite;
+  will-change: transform, background-position;
+}
+.portalLit {
+  filter: brightness(1.25) saturate(1.15) drop-shadow(0 0 16px #7fe6d8aa);
+  will-change: opacity;
+  animation: portalBreathe 1.6s ease-in-out infinite;
+}
 .portalPrompt { position: absolute; top: -52px; left: 50%; transform: translateX(-50%) scale(var(--corridor-ui-scale)); transform-origin: 50% 100%; white-space: nowrap; padding: 7px 14px; font-size: 18px; color: #d9f4ec; background: #0d2223e8; border: 1px solid #7fc9b680; }
 .bossGate { z-index: 4; }
 .bossGateArt { display: block; filter: hue-rotate(140deg) saturate(1.6) brightness(.9); transition: filter 220ms; }
@@ -31,6 +51,12 @@
 .bossGatePrompt { position: absolute; top: -52px; left: 50%; transform: translateX(-50%) scale(var(--corridor-ui-scale)); transform-origin: 50% 100%; white-space: nowrap; padding: 7px 14px; font-size: 18px; color: #ffd6cf; background: #321619eb; border: 1px solid #e36b6388; }
 .vignette { position: absolute; inset: 0; z-index: 20; box-shadow: inset 0 0 180px 50px #020507ad; pointer-events: none; }
 @keyframes marker { 0%, 100% { transform: scale(var(--corridor-ui-scale)) translateY(0); } 50% { transform: scale(var(--corridor-ui-scale)) translateY(-7px); } }
+@keyframes portalSprite {
+  0%, 24.999% { background-position: 0 0; transform: translateX(0); }
+  25%, 49.999% { background-position: 100% 0; transform: translateX(var(--portal-anchor-shift)); }
+  50%, 74.999% { background-position: 0 100%; transform: translateX(0); }
+  75%, 100% { background-position: 100% 100%; transform: translateX(var(--portal-anchor-shift)); }
+}
 @keyframes portalBreathe { 0%, 100% { opacity: .88; } 50% { opacity: 1; } }
 @keyframes bossGateBreathe { 0%, 100% { opacity: .86; } 50% { opacity: 1; } }
 @keyframes propInteraction {
