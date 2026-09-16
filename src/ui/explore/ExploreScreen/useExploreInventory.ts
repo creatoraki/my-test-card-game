@@ -9,13 +9,14 @@ import { useRunStore } from "@/store/runStore";
 export function useExploreInventory(session: ExploreState | null) {
   const [bagOpen, setBagOpen] = useState(false);
   const [picnicOpen, setPicnicOpen] = useState(false);
+  const [beaconPicking, setBeaconPicking] = useState(false);
   const [detailCharId, setDetailCharId] = useState<string | null>(null);
   const [target, setTarget] = useState<ItemStack | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const allowed = Boolean(session && canOpenBackpack(session));
 
   useEffect(() => {
-    if (!allowed) { setBagOpen(false); setPicnicOpen(false); setDetailCharId(null); setTarget(null); }
+    if (!allowed) { setBagOpen(false); setPicnicOpen(false); setBeaconPicking(false); setDetailCharId(null); setTarget(null); }
   }, [allowed]);
   useEffect(() => {
     if (!message) return;
@@ -25,7 +26,7 @@ export function useExploreInventory(session: ExploreState | null) {
   useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      setTarget(null); setDetailCharId(null); setPicnicOpen(false); setBagOpen(false);
+      setTarget(null); setDetailCharId(null); setPicnicOpen(false); setBeaconPicking(false); setBagOpen(false);
     };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
@@ -58,9 +59,9 @@ export function useExploreInventory(session: ExploreState | null) {
   };
   const mustReplace = Boolean(session?.pendingPickup.length);
   return {
-    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, detailCharId, target, message,
+    allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, detailCharId, target, message,
     blocked: bagOpen || mustReplace || picnicOpen || Boolean(detailCharId || target),
-    setBagOpen, setPicnicOpen, setDetailCharId, setTarget, useItem, chooseMember, equip, unequip,
+    setBagOpen, setPicnicOpen, setBeaconPicking, setDetailCharId, setTarget, useItem, chooseMember, equip, unequip,
   };
 }
 

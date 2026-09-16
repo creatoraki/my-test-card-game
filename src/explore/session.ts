@@ -72,6 +72,7 @@ import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
 import { closeShop, openShop } from "./shop";
 import { fireExploreRelic } from "./relics";
+import { relicBurdenAdapt } from "./relicModifiers";
 import { hasCorridorRewards, settleCorridorEncounter } from "./corridor/session";
 import { changeEnergy } from "./energy";
 import { generateDungeon } from "./dungeon/generate";
@@ -297,6 +298,8 @@ export function createSession(
     pendingContaminationEach: 0,
     lateralShiftsLeft: 1,
     picnicUsed: false,
+    relicCounters: {},
+    beaconUsed: false,
     roundBattleEventId: null,
     pendingEncounterId: null,
     pendingIsBoss: false,
@@ -353,7 +356,7 @@ export function backpackFree(s: ExploreState): number {
 // 小队负重适应 A = Σ 上阵角色负重适应(《角色养成设计.md》)。
 // ⚠ 算**全员**而不只是存活者 —— 东西是开局就背上的, 队友倒下不会让包变轻。
 export function partyBurdenAdapt(s: ExploreState): number {
-  return s.party.reduce((n, p) => n + (p.burdenAdapt ?? 0), 0);
+  return s.party.reduce((n, p) => n + (p.burdenAdapt ?? 0), 0) + relicBurdenAdapt(s);
 }
 
 // 当前有效负重点数。小队合计后按格抵扣，下限由 burdenValue 截到 0。

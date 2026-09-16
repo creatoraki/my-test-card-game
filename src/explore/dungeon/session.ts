@@ -10,6 +10,8 @@ import { encounterSpot } from "../corridor/ambush";
 import { CORRIDOR_CURIOS } from "../../data/curios";
 import { changeEnergy } from "../energy";
 import { EXPLORE_RULES } from "../rules";
+import { canUseBeacon } from "../relicModifiers";
+import { fireExploreRelic } from "../relics";
 import type { ExploreState } from "../types";
 import type { PortalDir, RoomNode } from "./types";
 
@@ -22,13 +24,17 @@ export function roomOf(s: ExploreState, id: string): RoomNode | null {
   return s.dungeon?.rooms[id] ?? null;
 }
 
-/** 房间是否已探索完: 所有可交互物都处理过, 战斗房的黑影也已清除。 */
-export function isRoomExplored(room: RoomNode): boolean {
-  const guarded = room.kind === "battle";
+/** 房间内所有可交互物是否都已处理, 不检查战斗房的黑影。 */
+export function areRoomCuriosCleared(room: RoomNode): boolean {
   return room.curios.every((curio) => {
     if (CORRIDOR_CURIOS[curio.kind]?.persistent) return true;
     return curio.used;
-  }) && (!guarded || room.threatDefeated);
+  });
+}
+
+/** 房间是否已探索完: 所有可交互物都处理过, 战斗房的黑影也已清除。 */
+export function isRoomExplored(room: RoomNode): boolean {
+  return areRoomCuriosCleared(room) && (room.kind !== "battle" || room.threatDefeated);
 }
 
 /** 把场景里的进度(物件已搜、黑影已清)写回房间图 —— 小地图与重进房间都读房间图。 */
@@ -46,6 +52,7 @@ export function syncRoomFromScene(s: ExploreState): void {
 export function enterRoom(s: ExploreState, roomId: string, fromDir: PortalDir | null = null): boolean {
   const room = roomOf(s, roomId);
   if (!room || !s.dungeon) return false;
+  const firstVisit = !room.visited;
   s.dungeon.currentRoomId = roomId;
   room.visited = true;
   room.revealed = true;
@@ -59,7 +66,19 @@ export function enterRoom(s: ExploreState, roomId: string, fromDir: PortalDir | 
     s.corridor.facing = facing;
     beginCorridorEncounter(s, threat.id);
   }
+  if (firstVisit) fireExploreRelic(s, { type: "roomEntered" });
   return true;
+}
+
+/** 应急信标传送: 只允许前往已访问房间, 不消耗净化粒子。 */
+export function beaconTravel(s: ExploreState, roomId: string): boolean {
+  if (!canUseBeacon(s) || !s.dungeon || roomId === s.dungeon.currentRoomId) return false;
+  const target = roomOf(s, roomId);
+  if (!target?.visited) return false;
+  syncRoomFromScene(s);
+  s.beaconUsed = true;
+  s.log.push(`应急信标：传送至${target.label} 号房间 · 不消耗净化粒子`);
+  return enterRoom(s, roomId, null);
 }
 
 /** 站上/离开传送门: 点亮目标房间在小地图上的位置(内容仍未知), 不消耗任何资源。 */

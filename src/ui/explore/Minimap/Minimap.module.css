@@ -69,6 +69,13 @@
   transition: border-color 180ms ease, background 180ms ease;
 }
 
+button.cell {
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: var(--cursor-pointer);
+}
+
 .face {
   color: #9fb6b0;
   font-size: 20px;
@@ -123,6 +130,26 @@
 
 .cell[data-current] .face {
   color: #b8ffe9;
+}
+
+.cell[data-picking] {
+  border-color: #f2d79e;
+  box-shadow: 0 0 0 2px #f2d79e66, 0 0 22px #f2d79e55;
+  cursor: var(--cursor-pointer);
+}
+
+.cell[data-picking]:hover,
+.cell[data-picking]:focus-visible {
+  border-color: #fff1c8;
+  background: linear-gradient(160deg, #4d3b1f, #1f1910ee);
+  box-shadow: 0 0 0 3px #f2d79ecc, 0 0 30px #f2d79e99;
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.map[data-picking] .cell:not([data-picking]) {
+  filter: grayscale(0.75);
+  opacity: 0.48;
 }
 
 /* 脚下这扇传送门通往的那一格。 */

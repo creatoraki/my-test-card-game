@@ -213,6 +213,7 @@ export function redrawHandCard(state: BattleState, uid: string): boolean {
 export function waitTick(state: BattleState, rec?: FxRecorder): boolean {
   if (state.pendingChoice || state.phase !== "player" || state.waitsThisRound >= partyWaitLimit(state)) return false;
   state.waitsThisRound += 1;
+  runRelicHook(state, "onWait");
   log(state, `⏳ 待机 —— 推进 ${RULES.timeline.waitAdvance} 时刻`);
   withDiscardRecorder(rec, () => advanceTick(state, RULES.timeline.waitAdvance, rec));
   return true;

@@ -190,6 +190,7 @@ export function dealDamage(
   if (downed && dmg.amount > 0) {
     dmg.downed = true;
     dmg.fatal = roll(state, RULES.combat.downedDeathChance);
+    runRelicHook(state, "onDownedFatal", dmg);
     dmg.amount = 0;
     dmg.hpLost = 0;
     log(state, `${target.emoji} ${target.name} ${dmg.fatal ? "没能撑住" : "顶住了这次攻击"}`);
@@ -387,6 +388,10 @@ export function applyStatus(
       }
     }
   }
+
+  const info = { targetId, statusId, stacks };
+  runRelicHook(state, "modifyStatusApply", info);
+  stacks = info.stacks;
 
   const existing = getStatus(t, statusId);
   if (existing) {

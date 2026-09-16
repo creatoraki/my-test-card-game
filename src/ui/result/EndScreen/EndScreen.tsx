@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useExploreStore } from "@/store/exploreStore";
+import { relicScrapSellBonus } from "@/explore/relicModifiers";
 import { useRunStore } from "@/store/runStore";
 import { techLevels, useTownStore } from "@/store/townStore";
 import { EXPEDITION_RESULT_BG_ART } from "@/ui/art/sceneArt";
@@ -97,7 +98,13 @@ export function EndScreen() {
           </div>
         )}
         <div className={s["end-haul-slot"]}>
-          <EndHaulPanel haul={summary.haul} salvageValue={summary.salvageValue} wiped={summary.wiped} levels={levels} />
+          <EndHaulPanel
+            haul={summary.haul}
+            salvageValue={summary.salvageValue}
+            wiped={summary.wiped}
+            levels={levels}
+            relicBonus={session ? relicScrapSellBonus(session) : 0}
+          />
         </div>
         <div className={s["end-roster-slot"]}>
           <EndPartyRoster members={summary.roster} wiped={summary.wiped} />

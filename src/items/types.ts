@@ -11,7 +11,7 @@
 //    卡牌那套只出现在 Card/卡组锻造里, 物品这套只出现在 ItemDef/ItemStack 里, 别混用。
 // ============================================================================
 
-import type { EffectDescriptor, StatBlock, StatModifier } from "../engine/types";
+import type { EffectDescriptor, SquadResourceMods, StatBlock, StatModifier } from "../engine/types";
 
 // ---------------------------------------------------------------------------
 // 稀有度 —— 五档(《物品设计.md》第四章)
@@ -116,6 +116,7 @@ export interface RelicSpec {
   on?: RelicTriggerId | RelicTriggerId[];
   effects?: EffectDescriptor[];
   mods?: StatModifier;
+  squadMods?: Partial<SquadResourceMods>; // 小队资源修正(开局手牌/每回合抽牌/换牌/待机/费用/手牌上限)
   every?: number;
   purifyTo?: string | { rarity: ItemRarity };
 }

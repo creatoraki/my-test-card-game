@@ -9,5 +9,5 @@ export const RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
   ...UNCOMMON_RELIC_BEHAVIORS,
 };
 
-export type { RelicBehavior, RelicBehaviorContext } from "./types";
+export type { RelicBehavior, RelicBehaviorContext, StatusApplyInfo } from "./types";
 export { runRelicHook } from "./types";

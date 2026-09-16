@@ -10,8 +10,9 @@ export function techScrapSellRate(levels: TechTreeState["levels"]): number {
   return 1 + 0.1 * techLevel(levels, "scrap-price");
 }
 
-export function sellPriceOf(def: ItemDef, levels: TechTreeState["levels"]): number {
+export function sellPriceOf(def: ItemDef, levels: TechTreeState["levels"], relicBonus = 0): number {
   const basePrice = def.sellValue ?? 0;
   if (def.category !== "scrap") return basePrice;
-  return Math.floor(basePrice * techScrapSellRate(levels));
+  // 科技树回收溢价与回收清单属于同一加算系数。
+  return Math.floor(basePrice * (techScrapSellRate(levels) + relicBonus));
 }

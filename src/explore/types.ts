@@ -438,6 +438,10 @@ export interface ExploreState {
   lateralShiftsLeft: number;
   // 野餐技能整趟远征只有一次。
   picnicUsed: boolean;
+  /** 探索级遗物的运行态计数(新房间数、已返还粒子的房间等)。键由各遗物行为自取。 */
+  relicCounters: Record<string, number>;
+  /** 应急信标整趟远征只有一次。 */
+  beaconUsed: boolean;
 
   // ---- 本轮推进战斗 ----
   roundBattleEventId: string | null; // 本轮展示的战斗事件, 开战后清空

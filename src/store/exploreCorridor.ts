@@ -5,7 +5,7 @@ import {
   closeBossGate, dismissCorridorObject, openBossGate, openCorridorObject,
 } from "../explore/corridor/session";
 import { rollCorridorAmbush } from "../explore/corridor/ambush";
-import { standOnPortal, travelPortal } from "../explore/dungeon/session";
+import { beaconTravel, standOnPortal, travelPortal } from "../explore/dungeon/session";
 import type { PortalDir } from "../explore/dungeon/types";
 import type { ExploreState } from "../explore/types";
 
@@ -51,6 +51,8 @@ export function checkCorridorAmbush(x: number, facing: -1 | 1): boolean {
 export function travelThroughPortal(dir: PortalDir): boolean {
   return mutateCorridor((s) => travelPortal(s, dir));
 }
+
+export const travelByBeacon = (roomId: string) => mutateCorridor((s) => beaconTravel(s, roomId));
 
 export const inspectCorridorObject = (id: string) => mutateCorridor((s) => openCorridorObject(s, id));
 export const closeCorridorObject = () => mutateCorridor(dismissCorridorObject);

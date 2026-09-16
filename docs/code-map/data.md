@@ -11,7 +11,7 @@
 | [characters.ts](../../src/data/characters.ts) | 角色颜色、固定 `StatBlock`、统一基础初始卡组和按稀有度分档的个人抽卡池；五名角色基础先手统一为 20，剑士、预言家、植物学家、炼金术士与精算师专属卡池均已登记，精算师卡池为 8 张普通卡且罕见/稀有池留空。 |
 | [enemies.ts](../../src/data/enemies.ts) | 敌人属性、招式及各自延迟、招式权重与招式级命中修正、目标选择、每回合行动次数上限、击杀经验、普通掉落表和战斗胜利 `boonTable`；掉落表按档位挂水晶与废弃楼层地区材料——小怪绿晶/low、精英蓝晶/mid、BOSS 必掉红晶/boss；水晶与换金物按档位共用常量表，通用材料逐怪物固定一种。垃圾山的守护者登记五招及 `ai` 状态机字段，按玩家护盾状态驱动后继权重。首图小怪已包含玻璃水母这一闪避型飞行单位。先手统一 20、与角色基础先手持平，故 `delay` 字段即最终蓄力时刻数。经验写在敌人定义中，不写入掉落表。 |
 | [encounters.ts](../../src/data/encounters.ts) | 遭遇战敌人组合与手工站位。引擎只取敌人 id，`dx/dy/scale/flip` 只供 UI 取景（`flip` = 立绘左右镜像）；`lift` 是飞行离地高度，只供 UI 把落地阴影放回地面；t2 同时登记 3 只标准编成与 2 只轻档编成；4 只怪的编成只登记在 t4/t5。 |
-| [items/](../../src/data/items/) | 按设计文档拆分的物品定义：通用材料与水晶、地区特色材料、换金物、消耗品与临期食品、装备模型模板及成品模组、`items/relics/blessings/{tutorial,basic,uncommon}.ts` 的祝福遗物分表与 `relics/curses.ts` 的诅咒遗物；正向武器由族级词条模板展开五档模型，极端武器仍使用固定属性；由 `items/index.ts` 汇总并在 `data/index.ts` 注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20；`items/materials.ts` 的水晶与 `items/regional.ts` 的地区材料都刻意不过它 ⇒ 没有 `buyValue` ⇒ 据点商店永不上架、回收台也不收。 |
+| [items/](../../src/data/items/) | 按设计文档拆分的物品定义：通用材料与水晶、地区特色材料、换金物、消耗品与临期食品、装备模型模板及成品模组、`items/relics/blessings/{tutorial,basic,uncommon}.ts` 的祝福遗物分表（教程 3 件、普通 21 件、精良 6 件）与 `relics/curses.ts` 的诅咒遗物；正向武器由族级词条模板展开五档模型，极端武器仍使用固定属性；由 `items/index.ts` 汇总并在 `data/index.ts` 注册。`items/pricing.ts` 按「类别 × 稀有度」统一给装备与材料打 `buyValue`，消耗品统一使用货柜固定价 20；`items/materials.ts` 的水晶与 `items/regional.ts` 的地区材料都刻意不过它 ⇒ 没有 `buyValue` ⇒ 据点商店永不上架、回收台也不收。 |
 | [curios/](../../src/data/curios/) | 房间物件的唯一数据入口：A1-A5、B1-B3、C1-C3、安全投递柜与流浪货商；`tutorialCurios.ts` 登记只供新手固定蓝图使用的装备柜、模组台、锻造终端和医疗站；`critters.ts` 维护三种机械小生物的双食品，`rewardPools.ts` 维护材料/换金物/水晶/食品/消耗品/模组池，`merchantPricing.ts` 维护货商临期食品池与价值分档。 |
 | [picnicRecipes.ts](../../src/data/picnicRecipes.ts) | 远征技能《野餐》的 6 个隐藏食谱与多重集精确匹配；命中食谱后由探索层生成随机祝福遗物，食谱名称只在命中结算时交给 UI。 |
 | [items/regional.ts](../../src/data/items/regional.ts) | 地区特色材料的唯一真相点：按地区与 `low` / `mid` / `boss` 档位登记材料，提供 `regionalMaterial()`、`itemRegionId()` 与 `regionalTierOf()`；首批登记废弃楼层三种材料，独立于 `MATERIAL_ITEM_DEFS`，不进入交易终端材料候选池。 |
@@ -20,7 +20,7 @@
 | [moduleCrafting.ts](../../src/data/moduleCrafting.ts) | 模组制造配方表：为剑士、预言家、植物学家、炼金术士、精算师登记配方，包含产出模组、制造者角色、经验消耗、两种通用材料与产出地区的 mid 材料；组装 A/B/C/D 四条同价配方由字母表展开；`craftCheck` 是可行性判定的唯一真相点，store 护栏与 UI 置灰共用它。 |
 | [equipUpgrade.ts](../../src/data/equipUpgrade.ts) | 装备升阶与词条重铸配方表；按装备槽位登记两种通用材料，1 阶升阶使用产出地区的 low 材料，高阶继续使用水晶，重铸使用产出地区的 boss 材料；`upgradeCheck` / `reforgeCheck` 是 store 护栏与 UI 置灰共用的唯一可行性判定。 |
 | [nutritionPod.ts](../../src/data/nutritionPod.ts) | 营养舱科技与疗养规则：登记带 `requires`、坐标的横向节点图，席位扩建与疗养液配比按链式逐节点解锁；统一计算四态节点、席位、等级和单次体力极限恢复量，`nutritionTechCost` 复用材料判定，`NUTRITION_TREAT_COST` 固定为 100 积分。 |
-| [techTree/](../../src/data/techTree/) | 全局科技树数据与规则：按分类、支线、科技三级组织节点，集中登记等级制消耗、四态判定和训练点/换金物售价效果；`sellPriceOf` 是换金物售价倍率的唯一入口。 |
+| [techTree/](../../src/data/techTree/) | 全局科技树数据与规则：按分类、支线、科技三级组织节点，集中登记等级制消耗、四态判定和训练点/换金物售价效果；`sellPriceOf` 是换金物售价倍率的唯一入口，并接收回收清单的加算修正。 |
 | [items/pricing.ts](../../src/data/items/pricing.ts) | 物品购买价统一入口：装备和材料按稀有度定价，祝福遗物由 `relicBuyValue` 按稀有度单独取价，消耗品使用 `CONSUMABLE_BUY_VALUE = 20`；遗物不写回 `ItemDef.buyValue`。 |
 | [sortieStock.ts](../../src/data/sortieStock.ts) | 出击准备货柜固定库存：6 种临期食品与 4 种普通消耗品，按食品/消耗品两行登记；价格从物品定义读取，不在清单内重复维护。 |
 | [botLines.ts](../../src/data/botLines.ts) | 公共台词取句函数：按台词池与分类随机取句，并回避上一句；供出击售货机器人与据点管理终端共用。 |

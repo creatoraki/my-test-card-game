@@ -3,6 +3,7 @@ import type { ExploreState } from "@/explore/types";
 import { useRunStore } from "@/store/runStore";
 import { useTownStore } from "@/store/townStore";
 import BackpackBar from "@/ui/explore/BackpackBar";
+import { BeaconButton } from "@/ui/explore/BeaconSkill";
 import { PicnicButton } from "@/ui/explore/PicnicSkill";
 import { PartyMemberCard } from "@/ui/common/PartyMemberCard";
 import type { ExploreInventoryState } from "./useExploreInventory";
@@ -29,6 +30,7 @@ export function ExploreDock({ session, inventory, locked, pending }: {
       <BackpackBar onUseItem={inventory.useItem} />
     </div>
     <div className={s.actions}>
+      <BeaconButton onPick={() => inventory.setBeaconPicking(true)} />
       <PicnicButton onOpen={() => inventory.setPicnicOpen(true)} />
       <button className={s.retreat} type="button" disabled={!canRetreat(session) || locked || pending || inventory.blocked}
         onClick={() => useRunStore.getState().retreat()}>撤离远征</button>

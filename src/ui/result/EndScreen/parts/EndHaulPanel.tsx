@@ -9,9 +9,10 @@ interface Props {
   salvageValue: number;
   wiped: boolean;
   levels: TechTreeState["levels"];
+  relicBonus: number;
 }
 
-export function EndHaulPanel({ haul, salvageValue, wiped, levels }: Props) {
+export function EndHaulPanel({ haul, salvageValue, wiped, levels, relicBonus }: Props) {
   const itemCount = haul.reduce((total, stack) => total + stack.count, 0);
   // 换金物回城即变现(townStore.depositHaul), 不进仓库 —— 面板照常把它列出来, 只是说明去向。
   const stored = salvageValue
@@ -48,7 +49,7 @@ export function EndHaulPanel({ haul, salvageValue, wiped, levels }: Props) {
           );
         }
         const def = getItemDef(stack.itemId);
-        const sellPrice = sellPriceOf(def, levels);
+        const sellPrice = sellPriceOf(def, levels, relicBonus);
         return (
           <>
             <span>物资详情</span>

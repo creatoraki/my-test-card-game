@@ -3,6 +3,7 @@ import type { ExploreState, PartySnapshot } from "@/explore/types";
 import type { ItemStack } from "@/items/types";
 import type { RunResult } from "@/store/runStore";
 import { vitalsOf, type CharacterState } from "@/store/townStore";
+import { relicScrapSellBonus } from "@/explore/relicModifiers";
 
 export type EndTrophyTone = "gold" | "cyan" | "green" | "red";
 
@@ -50,7 +51,7 @@ export function buildEndSummary(
   const salvageValue = haul.reduce((total, stack) => {
     const def = getItemDef(stack.itemId);
     if (def.category !== "scrap") return total;
-    return total + sellPriceOf(def, levels) * stack.count;
+    return total + sellPriceOf(def, levels, session ? relicScrapSellBonus(session) : 0) * stack.count;
   }, 0);
   const wiped = result === "lost";
   // 实际进账 = 探索所得积分 + 换金物自动售出。

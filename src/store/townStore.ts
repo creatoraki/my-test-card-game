@@ -187,7 +187,7 @@ export interface TownStore extends CurioTownSlice {
   recordSortieRelics: (ids: string[]) => void;
   bankLoot: (amount: number) => void; // 远征结束落袋
   deposit: (stacks: ItemStack[]) => void; // 远征结束: 背包 + 已寄回的整批入仓
-  depositHaul: (stacks: ItemStack[]) => number; // 远征收尾: 换金物折积分, 其余入仓; 返回售出总额
+  depositHaul: (stacks: ItemStack[], relicBonus?: number) => number; // 远征收尾: 换金物折积分, 其余入仓; 返回售出总额
   discardStored: (uid: string) => void; // 仓库里丢弃(二次确认在 UI)
   withdraw: (uid: string) => ItemStack | null; // 出击准备: 把一整堆从仓库取出交给调用方
   sellItem: (uid: string) => void; // 回收台: 按统一售价函数出售换居民积分
@@ -615,14 +615,14 @@ export const useTownStore = create<TownStore>()(
       // ⚠ 与 deposit 分成两个出口是刻意的: 出击准备把未出发的物资退回仓库走的是 deposit,
       //   那条路径不该触发售出。
       // ⚠ 漏填 sellValue 的换金物(折算下来是 0)一律照常入仓 —— 绝不让物品凭空消失。
-      depositHaul: (stacks) => {
+      depositHaul: (stacks, relicBonus = 0) => {
         if (!stacks.length) return 0; // 幂等护栏, 同 deposit
         const { techTree } = get();
         let sold = 0;
         const kept: ItemStack[] = [];
         for (const st of stacks) {
           const def = getItemDef(st.itemId);
-          const value = def.category === "scrap" ? sellPriceOf(def, techTree.levels) : 0;
+          const value = def.category === "scrap" ? sellPriceOf(def, techTree.levels, relicBonus) : 0;
           if (value > 0) sold += value * st.count;
           else kept.push({ ...st });
         }

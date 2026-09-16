@@ -27,7 +27,8 @@ import {
   energyTier,
   rewardMultiplier,
 } from "../explore/session";
-import type { ExplorePhase, PartySnapshot } from "../explore/types";
+import { relicScrapSellBonus } from "../explore/relicModifiers";
+import type { ExploreState, PartySnapshot } from "../explore/types";
 import type { EquipSlot, ItemStack } from "../items/types";
 import type { MapDifficulty } from "../data/mapDifficulty";
 import { useBattleStore, type BattleMeta } from "./battleStore";
@@ -253,6 +254,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
   const squadMods = addSquadMods(
     squadModsOf(squadTalent.badgeId, squadTalent.nodes),
     ...active.map((a) => a.tier.squadMods),
+    ...session.backpack.map((stack) => getItemDef(stack.itemId).relic?.squadMods),
   );
   useBattleStore
     .getState()
@@ -300,13 +302,7 @@ function syncConditionsFrom(battle: BattleState): void {
 //   投递口寄回的 shipped 不受团灭影响, 因此照样入仓 —— 那是背包玩法唯一的保险手段(§6.5)。
 // ★ 生命三段的前两段一并落档: 撤离/通关/团灭都走这里, 所以「打掉的血与体力极限跨日传承」
 //   这条规则只有这一个出口。阵亡成员不再回填, 由 markFallen 接管。
-function bankEverything(session: {
-  loot: number;
-  backpack: ItemStack[];
-  shipped: ItemStack[];
-  party: { charId: string; hp: number; hpLimit: number; alive: boolean }[];
-  phase: ExplorePhase;
-}) {
+function bankEverything(session: ExploreState) {
   const town = useTownStore.getState();
   town.syncExpeditionStatus(
     session.party.filter((member) => member.alive).map((member) => ({
@@ -332,7 +328,10 @@ function bankEverything(session: {
   // 配额物资在探索途中仍可使用，故不能提前删除；这里是远征结束时统一销毁它们的唯一真相点。
   // ★ 换金物在这一步**直接变现**(town.depositHaul), 不进仓库 —— 它带回据点后本来就只有
   //   「去回收台卖掉」一条路; 其余物资照旧入仓。结算页展示的换金价值用同一套 sellPriceOf 现算。
-  town.depositHaul([...session.shipped, ...session.backpack].filter((stack) => !stack.disposable));
+  town.depositHaul(
+    [...session.shipped, ...session.backpack].filter((stack) => !stack.disposable),
+    relicScrapSellBonus(session),
+  );
   const exp = town.grantExpEach(useExploreStore.getState().consumePendingExp());
   useExploreStore.getState().recordExpGain(exp.reduce((total, gain) => total + gain.gained, 0));
   if (exp.length) {

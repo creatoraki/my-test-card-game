@@ -12,6 +12,9 @@ export interface RelicBehaviorContext {
 export interface RelicBehavior {
   onRoundStart?: (ctx: RelicBehaviorContext) => void;
   onRoundEnd?: (ctx: RelicBehaviorContext) => void;
+  onWait?: (ctx: RelicBehaviorContext) => void;
+  onDownedFatal?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void;
+  modifyStatusApply?: (ctx: RelicBehaviorContext, info: StatusApplyInfo) => void;
   beforeCardEffects?: (ctx: RelicBehaviorContext, card: Card, primaryId?: string) => void;
   afterCardPlay?: (ctx: RelicBehaviorContext, card: Card) => void;
   onShuffle?: (ctx: RelicBehaviorContext) => void;
@@ -21,9 +24,18 @@ export interface RelicBehavior {
   modifyOutgoingDamage?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void;
 }
 
+export interface StatusApplyInfo {
+  targetId: string;
+  statusId: string;
+  stacks: number;
+}
+
 type HookArgs = {
   onRoundStart: [];
   onRoundEnd: [];
+  onWait: [];
+  onDownedFatal: [DamageCtx];
+  modifyStatusApply: [StatusApplyInfo];
   beforeCardEffects: [Card, string | undefined];
   afterCardPlay: [Card];
   onShuffle: [];

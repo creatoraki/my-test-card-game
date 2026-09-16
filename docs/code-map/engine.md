@@ -15,9 +15,9 @@
 | [insurance.ts](../../src/engine/insurance.ts) | 精算师保险机制的唯一真相点：读取单体/全队保险层数、受击增值、保险兑现与移除。 |
 | [counters.ts](../../src/engine/counters.ts) | 战斗计数器的唯一读取入口；支持当前出牌费用/星辉消耗、抬费手牌数、最近吞噬费用与移除标记数，并保留共鸣、保险和弃牌批次计数。 |
 | [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/等概率与加权抽取、Fisher–Yates 洗牌。 |
-| [relicBehaviors/](../../src/engine/relicBehaviors/) | 行为型遗物注册表与钩子派发：承载回合、出牌、洗牌、抽牌、暴击、跨半血与伤害修正等命令式机制；运行态只写入 `BattleRelic.data`。 |
+| [relicBehaviors/](../../src/engine/relicBehaviors/) | 行为型遗物注册表与钩子派发：钩子包括 `onRoundStart` / `onRoundEnd` / `onWait` / `onDownedFatal` / `modifyStatusApply` / `beforeCardEffects` / `afterCardPlay` / `onShuffle` / `onCardDrawn` / `onCrit` / `onAllyHpCrossedHalf` / `modifyOutgoingDamage`；运行态只写入 `BattleRelic.data`。 |
 | [relics.ts](../../src/engine/relics.ts) | 声明式战斗遗物的唯一分发入口；读取 `RelicSpec.on` / `effects` 并保留 `every` 计数，行为型遗物由 `relicBehaviors/` 并行处理。 |
-| [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调和胜负判定等原语；状态实例支持持续拍数、结构化数据、来源记录与清理，并提供丢牌/出牌、治疗及带攻击者上下文的护盾击破钩子；治疗返回实际治疗量，伤害进入命中、暴击、防御、格挡、护盾与 HP 管线，暴击确认后支持效果回调。 |
+| [ops.ts](../../src/engine/ops.ts) | 伤害、治疗、护盾、施加状态、战斗内属性修正、弃牌回调和胜负判定等原语；状态实例支持持续拍数、结构化数据、来源记录与清理，并提供丢牌/出牌、治疗及带攻击者上下文的护盾击破钩子；伤害在濒死骰后派发遗物改写，状态在抗性后派发遗物层数改写；治疗返回实际治疗量，伤害进入命中、暴击、防御、格挡、护盾与 HP 管线，暴击确认后支持效果回调。 |
 | [cost.ts](../../src/engine/cost.ts) | 卡牌生效费用唯一入口；支持本回合计数减费、标记级费用修正、纳刀费用覆盖、雷走回手层数和应星/星契的星辉抵扣。 |
 | [cardMarks.ts](../../src/engine/cardMarks.ts) | 卡牌实例标记注册表；提供心眼、星契、沉重、剑冢、神眼、纳刀、逆流与多米诺，标记可声明费用修正、出牌前效果和弃牌触发效果。 |
 | [cardText.ts](../../src/engine/cardText.ts) | 将卡牌说明中的 `{0}` / `{d0}` / `{c}` / `{k0}` 占位符按施放者攻击力或治愈力、培育实例状态渲染为具体数值。 |

@@ -36,7 +36,17 @@ function stateOf(room: RoomNode, dungeon: DungeonState): CellState | null {
   return touched ? "hinted" : null;
 }
 
-export function Minimap({ dungeon, corridor }: { dungeon: DungeonState; corridor: CorridorState }) {
+export function Minimap({
+  dungeon,
+  corridor,
+  picking = false,
+  onPick,
+}: {
+  dungeon: DungeonState;
+  corridor: CorridorState;
+  picking?: boolean;
+  onPick?: (roomId: string) => void;
+}) {
   const { minX, maxX, minY, maxY } = dungeon.bounds;
   const width = (maxX - minX) * STEP + CELL;
   const height = (maxY - minY) * STEP + CELL;
@@ -75,7 +85,7 @@ export function Minimap({ dungeon, corridor }: { dungeon: DungeonState; corridor
     : null;
   const target = targetId ? dungeon.rooms[targetId] : null;
 
-  return <div className={s.map} aria-label="房间小地图">
+  return <div className={s.map} data-picking={picking || undefined} aria-label="房间小地图">
     <div className={s.head}>
       <span>区域图</span>
       <b>{cells.filter((cell) => cell.room.visited).length} / {dungeon.order.length}</b>
@@ -91,23 +101,34 @@ export function Minimap({ dungeon, corridor }: { dungeon: DungeonState; corridor
         const badge = knownThreat && room.kind === "boss" ? "☗"
           : knownThreat && room.kind === "battle" && !room.threatDefeated ? "▲"
             : explored ? "✓" : "";
-        return <div key={room.id} className={s.cell} data-state={state}
-          data-current={room.id === dungeon.currentRoomId || undefined}
-          data-explored={explored || undefined}
-          data-target={room.id === targetId || undefined}
-          style={{ left, top, width: CELL, height: CELL }}
-          aria-label={room.visited
-            ? `${room.label} 号房间${explored ? "，已探索" : ""}`
-            : "未知房间"}>
+        const pickable = picking && room.visited && room.id !== dungeon.currentRoomId;
+        const content = <>
           <span className={s.face}>{room.visited ? room.label : "?"}</span>
           {badge && <i className={s.badge} aria-hidden>{badge}</i>}
-        </div>;
+        </>;
+        const props = {
+          className: s.cell,
+          "data-state": state,
+          "data-current": room.id === dungeon.currentRoomId || undefined,
+          "data-explored": explored || undefined,
+          "data-target": room.id === targetId || undefined,
+          "data-picking": pickable || undefined,
+          style: { left, top, width: CELL, height: CELL },
+          "aria-label": room.visited
+            ? `${room.label} 号房间${explored ? "，已探索" : ""}`
+            : "未知房间",
+        };
+        return pickable
+          ? <button key={room.id} {...props} type="button" onClick={() => onPick?.(room.id)}>{content}</button>
+          : <div key={room.id} {...props}>{content}</div>;
       })}
     </div>
-    <p className={s.hint} data-live={Boolean(target) || undefined}>
-      {target
-        ? `脚下传送门通往${target.visited ? ` ${target.label} 号房间` : "此处"} · 粒子 −${EXPLORE_RULES.dungeon.energyPerRoomMove}`
-        : "站上传送门可点亮它通往的房间"}
+    <p className={s.hint} data-live={Boolean(target) || picking || undefined}>
+      {picking
+        ? "选择一间已访问的房间传送过去 · 不消耗净化粒子"
+        : target
+          ? `脚下传送门通往${target.visited ? ` ${target.label} 号房间` : "此处"} · 粒子 −${EXPLORE_RULES.dungeon.energyPerRoomMove}`
+          : "站上传送门可点亮它通往的房间"}
     </p>
   </div>;
 }

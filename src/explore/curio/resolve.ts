@@ -3,7 +3,8 @@ import type { CurioDecision, CurioEffectContext } from "@/data/curios/types";
 import { rngFloat, rngPick } from "@/engine/rng";
 import { changeEnergy } from "../energy";
 import { interactionCost, checkWipe, logLine } from "../session";
-import { syncRoomFromScene } from "../dungeon/session";
+import { areRoomCuriosCleared, currentRoom, syncRoomFromScene } from "../dungeon/session";
+import { fireExploreRelic } from "../relics";
 import type { ExploreState } from "../types";
 import type { ItemStack } from "@/items/types";
 import { matchOffering, takeOfferedStacks, validOfferingPicks, type OfferingPick } from "./offering";
@@ -63,6 +64,8 @@ function executeDecision(
   s.pendingNotes = notes;
   object.used = true;
   syncRoomFromScene(s);
+  const room = currentRoom(s);
+  if (room && areRoomCuriosCleared(room)) fireExploreRelic(s, { type: "roomCleared", roomId: room.id });
   s.history.push({
     slot: "node",
     round: s.round,
@@ -128,6 +131,8 @@ export function offerToCurio(s: ExploreState, picks: OfferingPick[]): boolean {
   s.pendingNotes = ["放入的物品被吞掉，物件已经耗尽"];
   object.used = true;
   syncRoomFromScene(s);
+  const room = currentRoom(s);
+  if (room && areRoomCuriosCleared(room)) fireExploreRelic(s, { type: "roomCleared", roomId: room.id });
   s.history.push({
     slot: "node",
     round: s.round,

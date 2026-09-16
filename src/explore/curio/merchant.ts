@@ -5,6 +5,7 @@ import { RULES } from "@/engine/rules";
 import { rollEquipCrate } from "../boons";
 import { backpackFree, dropContext, randomRelicId } from "../session";
 import { fireExploreRelic } from "../relics";
+import { merchantExtraSlots } from "../relicModifiers";
 import type { CardOfferCandidate, ExploreState } from "../types";
 import { MERCHANT_FOOD_POOL, merchantPriceCount } from "@/data/curios/merchantPricing";
 import type { MerchantPayment, MerchantShelf, MerchantSlot } from "@/data/curios/types";
@@ -58,9 +59,9 @@ export function createMerchantShelf(s: ExploreState, cards: CardOfferCandidate[]
     });
   }
   slots.push(itemSlot(s, rngPick(s, ["medical-kit-c", "sugar-cube-c", "holy-water-c"]), foods));
-  // 装备池或遗物池为空时用消耗品补位，货架仍然保持六格。
-  while (slots.length < 6) slots.push(itemSlot(s, "medical-kit-c", foods));
-  return { slots: slots.slice(0, 6), foods, opened: true };
+  const size = 6 + merchantExtraSlots(s);
+  while (slots.length < size) slots.push(itemSlot(s, "medical-kit-c", foods));
+  return { slots: slots.slice(0, size), foods, opened: true };
 }
 
 export function openMerchantShelf(s: ExploreState, cards: CardOfferCandidate[]): boolean {

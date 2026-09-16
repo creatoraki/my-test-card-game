@@ -73,6 +73,39 @@ export const BASIC_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
       }
     },
   },
+  "relic-tin-whistle": {
+    onRoundStart: ({ state }) => {
+      if (state.round !== 1) return;
+      const target = state.playerIds
+        .map((id) => state.combatants[id])
+        .filter((ally) => ally?.alive)
+        .sort((a, b) => b.hp - a.hp)[0];
+      if (target) ops.applyStatus(state, target.id, "taunt", 1, 1);
+    },
+  },
+  "relic-stopwatch": {
+    onWait: (ctx) => {
+      const data = relicData(ctx);
+      data.waits = (data.waits ?? 0) + 1;
+      if (data.waits !== 2 || data.done) return;
+      data.done = 1;
+      for (const id of ctx.state.playerIds) {
+        if (ctx.state.combatants[id]?.alive) ops.applyStatus(ctx.state, id, "sharp", 1, 2);
+      }
+    },
+  },
+  "relic-wormwood-drops": {
+    modifyStatusApply: (ctx, info) => {
+      const target = ctx.state.combatants[info.targetId];
+      if (
+        target?.team === "enemy" &&
+        (info.statusId === "poison" || info.statusId === "burn") &&
+        info.stacks > 0 &&
+        !hasDebuff(ctx.state, target.id)
+      )
+        info.stacks += 3;
+    },
+  },
   "relic-energy-crystal": {
     onRoundEnd: (ctx) => {
       if ((ctx.state.resources[RULES.resource.name] ?? 0) > 0) relicData(ctx).charged = 1;

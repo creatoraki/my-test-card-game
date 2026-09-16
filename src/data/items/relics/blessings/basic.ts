@@ -44,4 +44,15 @@ export const BASIC_BLESSING_RELIC_DEFS: ItemDef[] = [
   ),
   blessing("relic-black-iron-nail", "黑铁钉", "攻击拥有减益的敌人时，额外造成 3 点伤害。", { scope: "battle" }),
   blessing("relic-heat-stone", "蓄热石", "若本回合未受到伤害，下回合第一张卡牌的攻击力与治愈力 +40。", { scope: "battle" }),
+  blessing("relic-gap-comb", "缺齿梳", "战斗开局手牌数 −1，之后每回合抽牌数 +1。", {
+    scope: "battle",
+    squadMods: { openingHand: -1, drawCount: 1 },
+  }),
+  blessing("relic-tin-whistle", "锡制哨子", "战斗开始时，为当前生命最高的队员施加 1 拍嘲讽。", { scope: "battle" }),
+  blessing("relic-stopwatch", "秒表", "每场战斗累计待机两次后，全队获得 1 层锋利，持续 2 拍。", { scope: "battle" }),
+  blessing("relic-recycle-list", "回收清单", "废料带回据点的出售价 +10%。", { scope: "explore" }),
+  blessing("relic-expiry-labeler", "临期标签机", "流浪货商额外出售 2 件商品。", { scope: "explore" }),
+  blessing("relic-wormwood-drops", "苦艾滴剂", "对没有任何减益的敌人施加中毒/灼烧时，额外施加 3 层。", { scope: "battle" }),
+  blessing("relic-emergency-ration", "应急口粮", "每探索 3 个全新房间，全队回复 3 点生命。", { scope: "explore" }),
+  blessing("relic-particle-clip", "粒子回收夹", "清空一间房间内的所有可交互物后，返还 2 点净化粒子。", { scope: "explore" }),
 ];

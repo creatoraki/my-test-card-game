@@ -127,12 +127,12 @@ src/ui/
 | [character/EquipmentSlots](../../src/ui/character/EquipmentSlots/EquipmentSlots.tsx) | 角色详情态的深蓝装备配置栏，纵向三格显示当前装备或空槽，附中文部位名与空槽添加标记；派发部位选择、卸下操作，复用物品悬浮详情，不承载装备规则。 |
 | [character/DeckCard](../../src/ui/character/DeckCard/DeckCard.tsx) | 角色详情态与集会卡组列表的交互外壳，负责按钮语义、选中态、焦点态、入场动画和鼠标/键盘事件；卡面统一由 `battle/HandCard` 提供，并通过 `data-deck-card` 固定尺寸缩放；`activated` 直接透传给卡面的激活态。 |
 | [character/DeckCardHoverPreview](../../src/ui/character/DeckCardHoverPreview/DeckCardHoverPreview.tsx) | 角色详情态的场景级卡牌悬浮层，放大渲染 `HandCard`；默认落点是自带的坐标，使用方可通过 `className` 挪到本页版面的空档（两栏版面里由 `CharacterDetailView` 挪到立绘右侧）。只负责定位和展示时机，不承载卡牌业务规则。 |
-| [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 房间探索主界面，只编排固定设计画布、房间场景、小地图、净化粒子、底部 HUD、奖励和撤离。场景以 `corridor.roomId` 为 key，换房间即整屏重建；`usePortalTravelTransition` 在黑场淡入完成后提交传送，再淡出揭开新房间。`ExploreDock` 承载底部整条 HUD；`ExploreInventory` 与 `useExploreInventory` 管理负重读数、用药目标、角色装备和野餐；`CurioPanel` 通过 `ExploreObjectPanel` 展示奇物的行动/结算两段式界面，`WanderingMerchantPanel` 展示持续货架。物件奖励复用 `RewardOverlay` / `LootPickup`，战斗仍由 `runStore.enterEncounter` 建局。 |
+| [explore/ExploreScreen](../../src/ui/explore/ExploreScreen/ExploreScreen.tsx) | 房间探索主界面，只编排固定设计画布、房间场景、小地图、净化粒子、底部 HUD、奖励和撤离。场景以 `corridor.roomId` 为 key，换房间即整屏重建；`usePortalTravelTransition` 在黑场淡入完成后提交传送，再淡出揭开新房间。`ExploreDock` 承载底部整条 HUD；`ExploreInventory` 与 `useExploreInventory` 管理负重读数、用药目标、角色装备、野餐和应急信标选点；`CurioPanel` 通过 `ExploreObjectPanel` 展示奇物的行动/结算两段式界面，`WanderingMerchantPanel` 展示持续货架。物件奖励复用 `RewardOverlay` / `LootPickup`，战斗仍由 `runStore.enterEncounter` 建局。 |
 | [explore/ExploreScreen/ExploreObjectPanel](../../src/ui/explore/ExploreScreen/ExploreObjectPanel.tsx) | 房间物件事件浮层公共外壳：复用 936×680 探索面板、揭幕动画与 `EventPanelFrame`，统一处理遮罩、状态栏、场景切换和活动态。 |
 | [explore/ExploreScreen/useDialogFocus](../../src/ui/explore/ExploreScreen/useDialogFocus.ts) | 奇物与红门共用的对话框焦点 hook：挂载时接管焦点、卸载时恢复原焦点，按活动态切换 `inert`，并处理 Esc 关闭与 Tab 循环。 |
 | [explore/ExploreScreen/CurioOfferView](../../src/ui/explore/ExploreScreen/CurioOfferView.tsx) | 黑盒放入视图：嵌入 `EventPanelStage`，复用物品格与悬浮详情，支持可叠加物品数量选择、已放入区、放入和返回。 |
 | [explore/WanderingMerchant](../../src/ui/explore/WanderingMerchant/WanderingMerchantPanel.tsx) | 流浪货商面板：复用据点 `ShopWindow`、`ShopHeader`、`MarketShelf` 与 `MarketDetail`，展示每个货商随机接受的两种临期食品、六格货架和底部《交换》按钮；`merchantShopSlots` 负责货位适配，`useMerchantBuyReason` 合并食品、背包与卡组判定，不使用原生 `title`。 |
-| [explore/ExploreScreen/ExploreDock](../../src/ui/explore/ExploreScreen/ExploreDock.tsx) | 探索底部整条 HUD：左段队伍立绘、中段 12×2 随身背包、右段野餐与撤离。立绘几何与战斗 `AllyBar` 对齐（500×316、gap 10、取景基准宽 160），两个场景看同一批角色尺寸一致；三段自然高度不同，用 `align-items: end` 底边对齐。HUD 顶边落在 y=748，走廊地平线 `CORRIDOR.floorY` 已相应上移到 680 以免物件名牌被压住。 |
+| [explore/ExploreScreen/ExploreDock](../../src/ui/explore/ExploreScreen/ExploreDock.tsx) | 探索底部整条 HUD：左段队伍立绘、中段 12×2 随身背包、右段应急信标/野餐与撤离。立绘几何与战斗 `AllyBar` 对齐（500×316、gap 10、取景基准宽 160），两个场景看同一批角色尺寸一致；三段自然高度不同，用 `align-items: end` 底边对齐。HUD 顶边落在 y=748，走廊地平线 `CORRIDOR.floorY` 已相应上移到 680 以免物件名牌被压住。 |
 | [explore/CorridorScene](../../src/ui/explore/CorridorScene/CorridorScene.tsx) | 走廊房间场景：房间宽度取近景素材 2 倍显示宽度、高度为 1080；除远景外的世界内容统一以地面线为锚缩放至 0.7，镜头按等效 2743 世界 px 可视宽度在两端夹紧；渲染传送门、BOSS 红门、可交互物、黑影与角色。`useCorridorMovement` 管理左右行走、↑/W/空格/回车交互（脚下传送门 → 附近红门 → 选中物件）、↓/S 循环切目标、触摸按钮、失焦暂停、位置保存和道具交互动画；`RoomPortal` 是四个方向共用的同一副传送门外观（方向只能从小地图读出），`BossGate` 复用传送门素材并以红色滤镜与近距离呼吸光区分；近景以原始素材的 2 倍宽高绘制，新手关卡的三种近景在生成时随机混排并保证各出现一次，布局按显示宽度换算且地面线维持现有高度，重访保持一致；角色与交互物共用布局中的地面下沉量；`CorridorSprite` 按交互物类型渲染独立透明 PNG，并应用小/中/大三档尺寸；`CorridorPlayer` 使用独立画布播放 17 张立绘帧，`playerAnimationState` 管理第 0 帧静态站姿与 30～60 帧隔帧行走（15 FPS）；开始移动直接切到第 30 帧迈步姿态，停止时立即回到第 0 帧；`art/corridorPlayerFrames` 缓存已解码图片，动画时钟不依赖 React 逐帧更新图片地址；`ShadowEncounter` 保留在 scene 层并将黑影世界坐标换算为屏幕坐标，警示文案与闪光不随缩放；`useExplorerChatter` 按场景信号调度探索者独白，`PlayerSpeech` 把毛玻璃气泡挂在 `playerAnchor` 上随角色和镜头移动，并反向补偿字号。 |
 | [explore/CorridorScene/corridorTriggers](../../src/ui/explore/CorridorScene/corridorTriggers.ts) | 无 React 依赖的走廊触发器：记录真实行走时间，处理每 2 秒一次的暗雷检查；红门只由交互键或点击触发。 |
 | [explore/CorridorScene/BossGate](../../src/ui/explore/CorridorScene/BossGate.tsx) | BOSS 红门场景组件：复用传送门素材，以红色滤镜显示，靠近时呼吸发光并显示「空格 · 挑战首领」提示。 |
@@ -156,16 +156,17 @@ src/ui/
 | [result/EndScreen/EndPartyRoster](../../src/ui/result/EndScreen/parts/EndPartyRoster.tsx) | 结算页左侧队伍状态：复用 `PartyMemberCard` 展示立绘、血量、污染和阵亡态，按成员错峰入场。 |
 | [result/EndScreen/EndTrophyRail](../../src/ui/result/EndScreen/parts/EndTrophyRail.tsx) | 结算页中央战果统计：展示击杀、经验、换金物、积分、节点、轮数、拾取件数和能量消耗，数字使用统一 count-up；「居民积分入账」已包含回城自动售出的换金物价值。 |
 | [result/EndScreen/EventDropBand](../../src/ui/result/EndScreen/parts/EventDropBand.tsx) | 结算页右侧斜切事件带：按节点历史正序逐条掉落，超过可见槽位后整体上移，点击或键盘确认可跳过演出。 |
-| [result/EndScreen/EndHaulPanel](../../src/ui/result/EndScreen/parts/EndHaulPanel.tsx) | 结算页中央物资回收面板：复用只读 `ItemInventoryPanel` 展示 `shipped` 与 `backpack`，按 `sellPriceOf` 汇总换金价值并同步科技树回收溢价。换金物已在落袋时由 `townStore.depositHaul` 自动售出，本面板只做展示与「已自动售出」标注。 |
+| [result/EndScreen/EndHaulPanel](../../src/ui/result/EndScreen/parts/EndHaulPanel.tsx) | 结算页中央物资回收面板：复用只读 `ItemInventoryPanel` 展示 `shipped` 与 `backpack`，按 `sellPriceOf` 汇总换金价值并同步科技树回收溢价与回收清单加成。换金物已在落袋时由 `townStore.depositHaul` 自动售出，本面板只做展示与「已自动售出」标注。 |
 
 ## 探索域
 
 | 文件 | 作用 |
 | --- | --- |
-| [Minimap](../../src/ui/explore/Minimap/Minimap.tsx) | 房间小地图，房间制唯一的空间信息来源：已访问房画序号（搜干净后加「已探索」✓ 并降饱和），被传送门点亮的房画亮「?」，与已访问房相连但未点亮的房画淡「?」占位；连线只画「至少一端已访问」的通道。脚下踩着传送门时，目标格呼吸高亮并在底部给出「粒子 −5」提示。只读 `dungeon` 与 `corridor.standingPortalDir`，不自己判定连通。 |
+| [Minimap](../../src/ui/explore/Minimap/Minimap.tsx) | 房间小地图，房间制唯一的空间信息来源：已访问房画序号（搜干净后加「已探索」✓ 并降饱和），被传送门点亮的房画亮「?」，与已访问房相连但未点亮的房画淡「?」占位；连线只画「至少一端已访问」的通道。脚下踩着传送门时，目标格呼吸高亮并在底部给出「粒子 −5」提示；应急信标选点时把非当前的已访问房变成可点击格，并显示不消耗粒子的提示。只读 `dungeon` 与 `corridor.standingPortalDir`，不自己判定连通。 |
 | [ExploreScreen/RelicRail](../../src/ui/explore/ExploreScreen/RelicRail.tsx) | 随身遗物图标行：接在左上角 `BurdenGauge`（背包负重）右侧，与它共用 112×104 格子与 68px 图标几何，于是背包 svg 读起来就是这一行的第一枚遗物。无框无名字，效果一律靠向下展开的 `ItemTooltip`；只读 `relicsInBackpack` 的结论，不判定遗物归属。 |
 | [BackpackPanel](../../src/ui/explore/BackpackPanel/BackpackPanel.tsx) | 探索背包浮层：常规、满包替换、投递口寄件三种模式共用一块面板；容量与开放时机只读取会话结论。 |
 | [PicnicSkill](../../src/ui/explore/PicnicSkill/) | 探索技能《野餐》的按钮与面板：按钮按会话阶段显示可用/锁定/已使用状态，面板负责最多 4 份食品选择、野餐布槽位和隐藏食谱结算。 |
+| [BeaconSkill](../../src/ui/explore/BeaconSkill/) | 探索遗物技能《应急信标》的按钮：仅在背包持有遗物时显示可用/锁定/已使用状态，点击后切换小地图的已访问房间选点模式。 |
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`；模组走 `useLootModuleActions` 的两按钮菜单，可选择直接装载。 |
 | [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、遗物候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
 | [RewardOverlay/RelicOffers](../../src/ui/explore/RewardOverlay/RelicOffers.tsx) | 遗物三选一候选面板：几何对齐卡牌三选一（三列居中、一件一格），悬浮出完整 `ItemTooltip` 看效果，点哪件就把哪件放进拾取框，没有放弃出口。候选由会话的 `relicOffer` 待办给出，本组件不生成也不去重。 |

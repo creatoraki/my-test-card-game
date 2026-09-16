@@ -1,5 +1,6 @@
 import { makeRolledItemStack } from "../data";
 import { rngFloat } from "../engine/rng";
+import { changeEnergy } from "./energy";
 import type { ItemStack } from "../items/types";
 import type { ExploreRelicEvent } from "./relics";
 import type { ExploreState } from "./types";
@@ -38,6 +39,27 @@ export const EXPLORE_RELIC_BEHAVIORS: Record<string, ExploreRelicBehaviorMap> = 
         member.hp = Math.min(member.hpLimit, member.hp + 1);
       }
       state.log.push("干燥药草：存活角色体力极限 +1");
+    },
+  },
+  "relic-emergency-ration": {
+    roomEntered: ({ state }) => {
+      const count = (state.relicCounters.ration ?? 0) + 1;
+      state.relicCounters.ration = count;
+      if (count % 3 !== 0) return;
+      for (const member of state.party) {
+        if (member.alive) member.hp = Math.min(member.hpLimit, member.hp + 3);
+      }
+      state.log.push("应急口粮：全队回复 3 点生命");
+    },
+  },
+  "relic-particle-clip": {
+    roomCleared: ({ state, event }) => {
+      if (!event.roomId) return;
+      const key = `clip:${event.roomId}`;
+      if (state.relicCounters[key]) return;
+      state.relicCounters[key] = 1;
+      changeEnergy(state, 2);
+      state.log.push("粒子回收夹：返还 2 点净化粒子");
     },
   },
 };
