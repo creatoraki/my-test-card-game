@@ -300,7 +300,8 @@ span.ally-portrait {
   right: 6px;
   z-index: 6;
   pointer-events: auto;
-  --pip-box: 30px;
+  --pip-box: 44px;
+  --pip-rows: 5;
 }
 /* 可选中 / 仇恨目标的描边发光。
    ⚠ 不能走 box-shadow: 卡框带 clip-path, 而 clip-path 会把外阴影一起裁掉(整条不可见)。

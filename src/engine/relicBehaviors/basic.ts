@@ -22,6 +22,12 @@ function addPlayStatBonus(ctx: RelicBehaviorContext, card: Card, stat: "attack" 
   ctx.state.playStatMods.push({ targetId: owner.id, stat, amount, pct: false });
 }
 
+// 磨刀石: 只读判断, 修正钩子与消耗钩子共用同一口径。
+function isSharpenedPlayerAttack(ctx: RelicBehaviorContext, dmg: Readonly<DamageCtx>): boolean {
+  const source = dmg.sourceId ? ctx.state.combatants[dmg.sourceId] : undefined;
+  return Boolean(ctx.relic.data?.sharpen) && dmg.isAttack && source?.team === "player";
+}
+
 function hasAttackEffect(card: Card): boolean {
   return activeEffectsOf(card).some((effect) => effect.type === "DAMAGE");
 }
@@ -45,13 +51,11 @@ export const BASIC_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
       const data = relicData(ctx);
       if (!data.sharpen) data.sharpen = 1;
     },
-    modifyOutgoingDamage: (ctx, dmg) => {
-      const source = dmg.sourceId ? ctx.state.combatants[dmg.sourceId] : undefined;
-      const data = relicData(ctx);
-      if (data.sharpen && dmg.isAttack && source?.team === "player") {
-        dmg.amount += 3;
-        data.sharpen = 0;
-      }
+    modifyOutgoingDamage: (ctx, dmg, mods) => {
+      if (isSharpenedPlayerAttack(ctx, dmg)) mods.addFlat(3);
+    },
+    afterDamageModified: (ctx, dmg) => {
+      if (isSharpenedPlayerAttack(ctx, dmg)) relicData(ctx).sharpen = 0;
     },
     afterCardPlay: (ctx) => {
       relicData(ctx).sharpen = 0;
@@ -143,11 +147,11 @@ export const BASIC_RELIC_BEHAVIORS: Record<string, RelicBehavior> = {
     },
   },
   "relic-black-iron-nail": {
-    modifyOutgoingDamage: (ctx, dmg) => {
+    modifyOutgoingDamage: (ctx, dmg, mods) => {
       const source = dmg.sourceId ? ctx.state.combatants[dmg.sourceId] : undefined;
       const target = ctx.state.combatants[dmg.targetId];
       if (dmg.isAttack && source?.team === "player" && target?.team === "enemy" && hasDebuff(ctx.state, target.id))
-        dmg.amount += 3;
+        mods.addFlat(3);
     },
   },
   "relic-heat-stone": {

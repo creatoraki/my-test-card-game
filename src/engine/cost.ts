@@ -21,10 +21,16 @@ export function cardCost(state: BattleState | null, card: Card): number {
     .map((markId) => CARD_MARK_DEFS[markId]?.costOverride)
     .find((value): value is number => value != null);
   const markDelta = markDefs.reduce((sum, markId) => sum + (CARD_MARK_DEFS[markId]?.costDelta ?? 0), 0);
+  const auraCost = state
+    ? state.hand
+      .map((uid) => state.cards[uid])
+      .find((handCard) => handCard?.cardType === "passive" && handCard.handAura?.cardId === card.id)
+      ?.handAura?.cost
+    : undefined;
   const returnDelta = card.playReturn?.when === "fastPlaysThisRound"
     ? (card.costStacks ?? 0) * card.playReturn.costDelta
     : 0;
-  return Math.max(0, (override ?? card.cost) + delta + stackDelta + markDelta + returnDelta);
+  return Math.max(0, (override ?? auraCost ?? card.cost) + delta + stackDelta + markDelta + returnDelta);
 }
 
 export function starPayable(card: Card): boolean {

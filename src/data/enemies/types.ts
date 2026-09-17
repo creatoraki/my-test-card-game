@@ -6,7 +6,11 @@ export type MoveBiasWhen =
   | { when: "anyFoeHasStatus"; status: string }
   | { when: "noFoeHasStatus"; status: string }
   | { when: "anyFoeHealRoomAtLeast"; value: number }
-  | { when: "allyCountAtLeast"; value: number };
+  | { when: "allyCountAtLeast"; value: number }
+  | { when: "selfHasStatus"; status: string }
+  | { when: "selfLacksStatus"; status: string }
+  | { when: "anyAllyHpBelowPct"; value: number }
+  | { when: "allyCountBelow"; value: number };
 
 export type MoveBias = MoveBiasWhen & { multiplier: number };
 
@@ -17,7 +21,7 @@ export interface EnemyMove {
   delay: number;
   kind: "attack" | "block" | "buff" | "debuff" | "special";
   targeting: Targeting;
-  targetPick?: "random" | "highestShield" | "highestHealRoom" | "withStatus" | "withoutStatus";
+  targetPick?: "random" | "highestShield" | "highestHealRoom" | "withStatus" | "withoutStatus" | "escortAlly";
   targetStatus?: string;
   effects: EffectDescriptor[];
   weight?: number;

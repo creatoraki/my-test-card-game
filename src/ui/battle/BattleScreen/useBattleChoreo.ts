@@ -268,7 +268,7 @@ export function useBattleChoreo({
             }
             playback.setHitstop(preset.hitstop > 0);
             if (preset.hitstop > 0) camera.rig.setTimeScale(0);
-            const axis = impactAxis(camera.worldRef.current, battle, step, targetIds);
+            const axis = impactAxis(camera.planeRef.current, battle, step, targetIds);
             camera.rig.punch(preset.punch);
             camera.rig.impact(axis, preset.shake, -axis.x * preset.roll * 0.35);
             if (preset.creep > 0) {

@@ -16,7 +16,7 @@ import { applyStatus, log } from "./ops";
 import { rollChallenges } from "./challenges";
 import { getEncounter, getEnemyDef, slotDefId } from "../data";
 
-const isTest = import.meta.env.isTest === "true";
+const isBattleTest = import.meta.env.BattleTest === "true";
 
 export interface AllyInit {
   id: string;
@@ -88,7 +88,7 @@ export function createBattleState(
     const id = `${defId}#${i}`;
     const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";
     defSeen[defId] = (defSeen[defId] ?? 0) + 1;
-    const maxHp = isTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
+    const maxHp = isBattleTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
     const enemy: Enemy = {
       id,
       enemyDefId: defId,
@@ -170,14 +170,16 @@ export function createBattleState(
     activeCardStarSpent: 0,
     activeCardStacks: 0,
     activeCardResonance: 0,
-    lastAimConsumed: 0,
+    fullDraw: { hitIds: [], removed: {} },
     activeCardUid: null,
+    activeCardPrimaryId: null,
     markTransferSourceUid: null,
     chosenCardCost: 0,
     lastStrippedMarks: 0,
     autoPlaySuppress: false,
     passiveEventCardUid: null,
     passiveEventTargetStatuses: null,
+    passiveSourceCardUid: null,
     lastDiscardBatchCost: 0,
     lastConvertBatch: 0,
     squadBuffs: [],
@@ -190,6 +192,8 @@ export function createBattleState(
     lastSquadBuffConsumed: 0,
     lastConsumedStatusStacks: 0,
     lastRemovedStatusCount: 0,
+    lastRemovedStatuses: [],
+    lastExhaustedHandCards: 0,
   };
 
   state.draw = shuffle(state, Object.keys(cards));

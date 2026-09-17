@@ -1,9 +1,35 @@
-/* 本文件消费 .battle 下发的 --canvas-pad、--hud-h、--stage-gap、--topbar-h 与深度变量。
-   这些变量跨 CSS Module 继承，不要在这里复制构图数值。 */
-.battle-scene {
+/* 本文件消费 .battle 下发的 --canvas-pad、--hud-h、--stage-gap、--topbar-h、--perspective,
+   以及 .battle-layers 行内下发的深度变量。这些变量跨 CSS Module 继承，不要在这里复制构图数值。
+
+   层级(自下而上):
+     背景纵深组(.battle-depth)  背景图 / 闪烁 / 远景粒子 —— 3D 透视运镜, 保留视差
+     敌人平面(.battle-plane)     敌人单位 —— 纯 2D, 各单位由 rig 写入线性化后的 matrix()
+     近景纵深组(.battle-depth-front) 近景粒子 —— 3D 透视运镜, 压在敌人之上
+   ★ 敌人平面必须不在任何透视容器内: 浏览器对带透视的层只能近似估算栅格倍率,
+     推镜时立绘、BUFF、血条会被按 1× 位图拉糊。 */
+.battle-layers {
   position: absolute;
   inset: 0;
   z-index: 0;
+}
+
+/* perspective 必须是属性而不是 .battle-scene 的 perspective() 函数；
+   否则后代 translateZ 无法获得父级透视。容器正中(= 画布正中)同时是光轴与消失点。 */
+.battle-depth {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  perspective: var(--perspective, 1400px);
+  pointer-events: none;
+}
+
+.battle-depth-front {
+  z-index: 4;
+}
+
+.battle-scene {
+  position: absolute;
+  inset: 0;
   transform-origin: 50% 50%;
   transform-style: preserve-3d;
 }
@@ -11,10 +37,6 @@
 /* 纵深层的 transform 各自独占所在元素的 transform 属性，别再往上叠加其它变换。 */
 .battle-scene .battle-bg-video {
   transform: translateZ(var(--depth-bg, 0)) scale(var(--depth-bg-fix, 1));
-}
-
-.battle-scene .battle-bg-video-dof {
-  filter: blur(calc(var(--dof, 0) * 5px));
 }
 
 .battle-world {
@@ -34,13 +56,19 @@
   z-index: 0;
 }
 
+/* 敌人平面与画布同坐标系(原点 = 画布左上角), 取景数学与 worldBox 的布局读数以它为根。 */
+.battle-plane {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
 .battle-stage {
   position: absolute;
   top: var(--canvas-pad);
   right: var(--canvas-pad);
   bottom: calc(var(--canvas-pad) + var(--hud-h) + var(--stage-gap));
   left: var(--canvas-pad);
-  z-index: 3;
   display: flex;
   flex-direction: column;
   min-height: 0;

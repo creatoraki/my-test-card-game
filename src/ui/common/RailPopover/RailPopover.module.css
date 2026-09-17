@@ -25,6 +25,35 @@
 .popover small {
   font-size: 18px;
 }
+.lg {
+  --popover-icon: 108px;
+  --popover-name-size: 40px;
+  --popover-meta-size: 36px;
+  --popover-head-gap: 24px;
+  width: 600px;
+  padding: 24px 28px;
+  font-size: 36px;
+  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+}
+.lg strong {
+  font-size: 40px;
+}
+.lg p {
+  margin-top: 12px;
+  font-size: 36px;
+}
+.lg small {
+  font-size: 36px;
+}
+.bare {
+  width: auto;
+  padding: 0;
+  line-height: normal;
+  background: none;
+  border: 0;
+  clip-path: none;
+  box-shadow: none;
+}
 .left {
   right: calc(100% + 12px);
   transform: translateX(8px);

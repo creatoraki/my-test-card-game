@@ -24,7 +24,7 @@ import {
 import { applyStatus, checkEnd, ctxFor, log, ops } from "./ops";
 import { STATUS_DEFS } from "./statuses";
 import { allyTempoIds, runAllyTempo, runOwnerTempo } from "./statusLifecycle";
-import { drawCards } from "./deck";
+import { drawCards, rotOverripeCards } from "./deck";
 import { resolveEffects } from "./effects";
 import { baseEffectsOf } from "./cardEffects";
 import { cardCost, manaCostOf, starlightPayment } from "./cost";
@@ -45,6 +45,7 @@ import { firePassive, isPassive, playableHandUids, recycleHandPassives } from ".
 import { fireRelic } from "./relics";
 import { validFoeTargetIds } from "./targeting";
 import { cultivateReady, effectiveTargeting, resetCultivate, tickCultivate } from "./cultivate";
+import { emptyFullDraw, resolveFullDraw } from "./fullDraw";
 import { withHitRecorder } from "./animHits";
 import { runEnemyFlee } from "./flee";
 import {
@@ -61,6 +62,7 @@ import type { BattleSetup as BattleSetupInput } from "./battleSetup";
 export interface PlayRecorder {
   steps: FxRecorder["steps"];
   cardMissedTargets: string[];
+  cardFullDraw?: number;
   cardKeywordTriggers?: Record<string, number>;
   cardSnapshot?: BattleState;
   // 本次出牌真实影响到的单位与逐段明细(见 animHits.ts)。UI 据此飘字与播音效 ——
@@ -276,6 +278,7 @@ export function playCard(
   state.hand = state.hand.filter((x) => x !== uid);
   state.pendingDiscardPicks = [...(playOptions?.discardPicks ?? [])];
   state.activeCardUid = uid;
+  state.activeCardPrimaryId = primaryId ?? null;
   log(state, `${owner.emoji} ${owner.name} 打出 ${card.name}`);
   const discardRecorder = rec;
   const cardMissed = new Set<string>();
@@ -295,13 +298,15 @@ export function playCard(
       state.activeCardCost = faceCost;
       state.activeCardStacks = card.discardStacks ?? 0;
       state.activeCardResonance = card.resonanceStacks ?? 0;
-      state.lastAimConsumed = 0;
+      state.fullDraw = emptyFullDraw();
       try {
         runRelicHook(state, "beforeCardEffects", card, primaryId);
         for (const markId of cardMarksAtPlay) {
           const preEffects = CARD_MARK_DEFS[markId]?.preEffects;
           if (preEffects?.length) mergeCardResolution(resolveEffects(state, preEffects, card.ownerCharId, primaryId));
         }
+        resolveFullDraw(state, card, primaryId);
+        if (rec) rec.cardFullDraw = state.fullDraw.hitIds.length;
         const cultivated = cultivateReady(card);
         const cultivateMode = card.cultivate?.mode ?? "append";
         const baseEffects = baseEffectsOf(card);
@@ -382,6 +387,7 @@ export function playCard(
         state.activeCardStacks = 0;
         state.activeCardResonance = 0;
         state.activeCardUid = null;
+        state.activeCardPrimaryId = null;
         state.pendingDiscardPicks = [];
       }
     });
@@ -464,6 +470,7 @@ export function endRound(state: BattleState, rec?: FxRecorder): void {
     runRelicHook(state, "onRoundEnd");
     // 手牌里剩下的被动卡自动收进弃牌堆 —— 不计弃牌数、不触发任何弃牌联动。
     recycleHandPassives(state, rec);
+    rotOverripeCards(state);
     for (const uid of [...state.hand]) {
       const card = state.cards[uid];
       if (!card?.voidCard) continue;

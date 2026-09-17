@@ -1,5 +1,5 @@
 import type { BattleState } from "./types";
-import { advanceCultivate, resetCultivate } from "./cultivate";
+import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "./cultivate";
 import { gainSquadBuff } from "./squadBuff";
 import { cardCost } from "./cost";
 import { resolveEffects } from "./effects";
@@ -39,8 +39,8 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
     const card = state.cards[uid];
     let dominoMarkConsumed = false;
     if (choice.action === "cultivateTick") {
-      if (!card?.cultivate || (card.cultivateLeft ?? card.cultivate.turns) <= 0) return false;
-      advanceCultivate(card, 1);
+      if (!card || !cultivateCanAdvance(card)) return false;
+      advanceCultivate(state, card, 1);
       log(state, `${card.name} 的培育层数 -1`);
     } else if (choice.action === "moveToBottom") {
       state.hand = state.hand.filter((handUid) => handUid !== uid);
@@ -75,6 +75,16 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
       state.lastStrippedMarks = stripped.length;
       dominoMarkConsumed = stripped.includes("domino");
       card.marks = card.marks.slice(stripped.length);
+    }
+    const nextRemaining = choice.remaining - 1;
+    const canContinue = nextRemaining > 0 && choice.action === "cultivateTick" && state.hand.some((handUid) => {
+      const handCard = state.cards[handUid];
+      return handCard != null && cultivateCanAdvance(handCard);
+    });
+    if (canContinue) {
+      choice.remaining = nextRemaining;
+      log(state, `还需催熟 ${nextRemaining} 张牌`);
+      return true;
     }
     state.pendingChoice = null;
     if (dominoMarkConsumed) firePassive(state, { type: "cardPlayed", cardUid: uid });

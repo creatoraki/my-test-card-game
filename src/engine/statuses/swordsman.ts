@@ -1,4 +1,4 @@
-import type { Card, DamageCtx, StatusCtx, StatusDef } from "../types";
+import type { Card, StatusCtx, StatusDef } from "../types";
 
 function hasCardInHand(state: StatusCtx["state"], cardId: string): boolean {
   return state.hand.some((uid) => state.cards[uid]?.id === cardId);
@@ -38,8 +38,8 @@ export const SWORDSMAN_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "override",
     desc: "受到的伤害降低 20%。",
     hooks: {
-      modifyIncomingDamage: (c: StatusCtx, dmg: DamageCtx) => {
-        if (dmg.amount > 0) dmg.amount *= 0.8;
+      modifyIncomingDamage: (_c, _dmg, mods) => {
+        mods.mulTaken(0.8);
       },
     },
   },
@@ -97,9 +97,9 @@ export const SWORDSMAN_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "override",
     desc: "手牌少于 3 张时，攻击伤害获得加算增伤。",
     hooks: {
-      modifyOutgoingDamage: (c: StatusCtx, dmg: DamageCtx) => {
+      modifyOutgoingDamage: (c, dmg, mods) => {
         if (!dmg.isAttack || !hasCardInHand(c.state, "yachiyo") || c.state.hand.length >= 3) return;
-        dmg.bonusPct += c.state.hand.length === 1 ? 40 : 20;
+        mods.addDealtPct(c.state.hand.length === 1 ? 40 : 20);
       },
     },
   },

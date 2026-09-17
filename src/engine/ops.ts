@@ -1,18 +1,12 @@
 // ============================================================================
-// 引擎原语 —— 伤害结算管线、治疗、护盾、状态施加、状态生命周期、胜负判定。
+// 引擎原语 —— 治疗、护盾、状态施加、状态生命周期、胜负判定。
 // 这些是所有效果/AI/状态最终落地的地方, 都经过事件钩子, 便于组合出复杂联动。
-//
-// ★ 非固定伤害的结算顺序是硬规定(《角色养成设计.md》3.3):
-//     状态修正 → 命中 → 暴击 → 防御 → 格挡 → 护盾 → HP
-//   固定伤害跳过"防御"与"格挡"两段, 但仍可被护盾吸收。
+// 伤害结算管线在 ./damage, 这里只转出, 保持原有导入路径可用。
 // ============================================================================
 
 import type {
   BattleState,
   Combatant,
-  DamageCtx,
-  DamageOpts,
-  DamageResult,
   EngineOps,
   HealCtx,
   StatBlock,
@@ -20,13 +14,15 @@ import type {
   StatusInstance,
 } from "./types";
 import { STATUS_DEFS } from "./statuses";
-import { RULES } from "./rules";
 import { rngFloat } from "./rng";
-import { addMod, critChance, defenseMultiplier, healValue, hitChance, offenseStatOf, statOf } from "./stats";
-import { checkChallengesOnWin, noteChallengeDamage, noteChallengeKill } from "./challenges";
+import { addMod, healValue, offenseStatOf, statOf } from "./stats";
+import { checkChallengesOnWin, noteChallengeKill } from "./challenges";
 import { recordHitPart } from "./animHits";
 import { capStatusStacks, mergeStatus, syncSegments } from "./statuses/stacking";
 import { runRelicHook } from "./relicBehaviors/types";
+import { dealDamage, previewDamage } from "./damage";
+
+export { dealDamage, previewDamage };
 
 export function log(state: BattleState, text: string): void {
   state.log.push({ round: state.round, tick: state.tick, text });
@@ -53,15 +49,6 @@ function roll(state: BattleState, chancePct: number): boolean {
   if (chancePct <= 0) return false;
   if (chancePct >= 100) return true;
   return rngFloat(state) * 100 < chancePct;
-}
-
-function noteAttacked(state: BattleState, dmg: DamageCtx): void {
-  const source = dmg.sourceId ? state.combatants[dmg.sourceId] : undefined;
-  const target = state.combatants[dmg.targetId];
-  if (!dmg.isAttack || source?.team !== "enemy" || target?.team !== "player") return;
-  if (!state.attackedThisRound.includes(target.id)) state.attackedThisRound.push(target.id);
-  ops.firePassive(state, { type: "allyAttacked", targetId: target.id });
-  ops.fireRelic(state, { type: "allyAttacked", targetId: target.id });
 }
 
 export function markDead(state: BattleState, cmb: Combatant): void {
@@ -97,155 +84,6 @@ function purgeOwnerCards(state: BattleState, ownerId: string, ownerLabel: string
   log(state, `${ownerLabel} 的个人卡牌已清场`);
 }
 
-// ---------------------------------------------------------------------------
-// 伤害结算管线
-// ---------------------------------------------------------------------------
-export function dealDamage(
-  state: BattleState,
-  sourceId: string | undefined,
-  targetId: string,
-  amount: number,
-  opts: DamageOpts = {},
-): DamageResult {
-  const target = state.combatants[targetId];
-  if (!target || !target.alive) return null;
-  const hpBefore = target.hp;
-
-  const dmg: DamageCtx = {
-    sourceId,
-    targetId,
-    amount,
-    bonusPct: 0,
-    flags: opts.flags ?? [],
-    isAttack: opts.isAttack ?? false,
-    fixed: opts.fixed ?? false,
-    missed: false,
-    crit: false,
-    blockRolled: false,
-    blocked: 0,
-    hpLost: 0,
-  };
-
-  // ---- 0. 状态修正(力量 +, 虚弱 ×, 易伤 ×) —— 在命中判定之前完成基础值调整 ----
-  const src = sourceId ? state.combatants[sourceId] : undefined;
-  if (src && !opts.pure) {
-    for (const inst of [...src.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
-  }
-  runRelicHook(state, "modifyOutgoingDamage", dmg);
-  if (!opts.pure)
-    for (const inst of [...target.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
-
-  dmg.amount *= 1 + dmg.bonusPct / 100;
-
-  // 状态钩子可以直接判定"这次攻击被闪避"(罗生门)。★ 必须排在命中掷骰之前短路,
-  // 否则闪避会被后续掷骰覆盖, 也会白白消耗一次战斗 RNG。
-  if (dmg.missed) {
-    dmg.amount = 0;
-    recordHitPart(targetId, 0, true);
-    return "missed";
-  }
-
-  // ---- 1. 命中判定 —— 只有"攻击"需要命中; 无施法者(中毒/荆棘等)与必中效果直接跳过 ----
-  if (dmg.isAttack && src && !opts.mustHit) {
-    if (!roll(state, hitChance(state, src, target, opts.hitBonus ?? 0))) {
-      dmg.missed = true;
-      dmg.amount = 0;
-      log(state, `${target.emoji} ${target.name} 闪避了这次攻击`);
-      recordHitPart(targetId, 0, true);
-      return "missed";
-    }
-  }
-
-  // ---- 2. 暴击判定(命中之后) ----
-  if (dmg.isAttack && src && roll(state, critChance(state, src))) {
-    dmg.crit = true;
-    opts.onCrit?.();
-    dmg.amount *= statOf(src, "critDamage") / 100;
-  }
-
-  // ---- 3. 防御减伤 / 4. 格挡(固定伤害两段都跳过) ----
-  if (!dmg.fixed) {
-    dmg.amount *= defenseMultiplier(target, src);
-    if (roll(state, statOf(target, "blockRate"))) {
-      dmg.blockRolled = true;
-      dmg.amount *= RULES.combat.blockReduction;
-    }
-  }
-
-  dmg.amount = Math.max(0, Math.round(dmg.amount));
-
-  // ---- 5. 护盾吸收 ----
-  const shieldBefore = target.shield;
-  if (!opts.unblockable && target.shield > 0) {
-    const absorbed = Math.min(target.shield, dmg.amount);
-    target.shield -= absorbed;
-    dmg.amount -= absorbed;
-    dmg.blocked = absorbed;
-  }
-
-  // ---- 6. 落到 HP ----
-  const downed = target.team === "player" && target.hp <= 0;
-  if (downed && dmg.amount > 0) {
-    dmg.downed = true;
-    dmg.fatal = roll(state, RULES.combat.downedDeathChance);
-    runRelicHook(state, "onDownedFatal", dmg);
-    dmg.amount = 0;
-    dmg.hpLost = 0;
-    log(state, `${target.emoji} ${target.name} ${dmg.fatal ? "没能撑住" : "顶住了这次攻击"}`);
-
-    // 濒死判定仍算一次受击, 保留荆棘等 onAfterAttacked 联动, 但不产生 HP 损失。
-    for (const inst of [...target.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
-    if (shieldBefore > 0 && target.shield === 0)
-      for (const inst of [...target.statuses])
-        STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst), dmg);
-    if (dmg.crit) runRelicHook(state, "onCrit", dmg);
-    noteAttacked(state, dmg);
-    cleanup(target);
-    if (dmg.fatal) markDead(state, target);
-    recordHitPart(targetId, 0);
-    return "hit";
-  }
-
-  // 持续伤害与不周山都跳过体力极限压低。
-  if (
-    target.team === "player" &&
-    target.hp > 0 &&
-    dmg.amount > 0 &&
-    !opts.noLimitLoss &&
-    !getStatus(target, "buzhou")
-  )
-    target.hpLimit = Math.max(1, target.hp);
-  target.hp = target.team === "player" ? Math.max(0, target.hp - dmg.amount) : target.hp - dmg.amount;
-  dmg.hpLost = dmg.amount;
-  opts.onDealt?.(dmg.hpLost);
-  recordHitPart(targetId, dmg.hpLost, false, dmg.crit);
-
-  const marks =
-    (dmg.crit ? " 暴击!" : "") +
-    (dmg.blockRolled ? "(格挡)" : "") +
-    (dmg.blocked > 0 ? `(护盾挡下 ${dmg.blocked})` : "");
-  log(state, `${target.emoji} ${target.name} 受到 ${dmg.hpLost} 点伤害${marks}`);
-  noteChallengeDamage(state, sourceId, targetId, dmg.hpLost);
-
-  // 被攻击后触发(荆棘等)
-  for (const inst of [...target.statuses])
-    STATUS_DEFS[inst.id]?.hooks?.onAfterAttacked?.(ctxFor(state, targetId, inst), dmg);
-  if (shieldBefore > 0 && target.shield === 0)
-    for (const inst of [...target.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.onShieldBroken?.(ctxFor(state, targetId, inst), dmg);
-  if (dmg.crit) runRelicHook(state, "onCrit", dmg);
-  if (target.team === "player" && hpBefore > target.maxHp * 0.5 && target.hp <= target.maxHp * 0.5)
-    runRelicHook(state, "onAllyHpCrossedHalf", target.id);
-  noteAttacked(state, dmg);
-  cleanup(target);
-
-  if (target.team !== "player" && target.hp <= 0) markDead(state, target);
-  return "hit";
-}
-
 // 失去生命 —— 不是伤害: 不吃护盾/防御/格挡/命中/暴击, 也不触发受击与护盾击破钩子。
 // 我方仍走濒死与体力极限口径, 敌人归零即死。血坏这类"自残"代价走这里。
 export function loseHp(state: BattleState, targetId: string, amount: number): void {
@@ -253,53 +91,12 @@ export function loseHp(state: BattleState, targetId: string, amount: number): vo
   const lost = Math.max(0, Math.round(amount));
   if (!target || !target.alive || lost <= 0) return;
 
-  if (target.team === "player" && target.hp > 0 && !getStatus(target, "buzhou"))
+  if (target.team === "player" && target.hp > 0)
     target.hpLimit = Math.max(1, Math.min(target.hpLimit, target.hp));
   target.hp = target.team === "player" ? Math.max(0, target.hp - lost) : target.hp - lost;
   recordHitPart(targetId, lost);
   log(state, `${target.emoji} ${target.name} 失去 ${lost} 点生命`);
   if (target.team !== "player" && target.hp <= 0) markDead(state, target);
-}
-
-// 预览命中后的确定性伤害: 应用状态修正与防御, 忽略命中/暴击/格挡/护盾等随机或吸收结果。
-// UI 需要的是“命中时会打多少”, 而不是提前掷一次战斗 RNG。
-export function previewDamage(
-  state: BattleState,
-  sourceId: string | undefined,
-  targetId: string,
-  amount: number,
-  opts: Pick<DamageOpts, "flags" | "isAttack" | "fixed" | "pure"> = {},
-): number | null {
-  const target = state.combatants[targetId];
-  if (!target || !target.alive) return null;
-
-  const dmg: DamageCtx = {
-    sourceId,
-    targetId,
-    amount,
-    bonusPct: 0,
-    flags: opts.flags ?? [],
-    isAttack: opts.isAttack ?? false,
-    fixed: opts.fixed ?? false,
-    missed: false,
-    crit: false,
-    blockRolled: false,
-    blocked: 0,
-    hpLost: 0,
-  };
-  const src = sourceId ? state.combatants[sourceId] : undefined;
-  if (src && !opts.pure) {
-    for (const inst of [...src.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.modifyOutgoingDamage?.(ctxFor(state, sourceId!, inst), dmg);
-  }
-  if (!opts.pure)
-    for (const inst of [...target.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.modifyIncomingDamage?.(ctxFor(state, targetId, inst), dmg);
-
-  dmg.amount *= 1 + dmg.bonusPct / 100;
-
-  if (!dmg.fixed) dmg.amount *= defenseMultiplier(target, src);
-  return Math.max(0, Math.round(dmg.amount));
 }
 
 // 最终治疗 =(基础治疗 + 治愈力÷healDivisor)×(1 + 治愈强度)。倍率型治疗的基础值已是治愈力÷healDivisor × 倍率,
@@ -321,6 +118,23 @@ export function heal(
       (1 + statOf(src, "healBoost") / 100);
   }
 
+  const incomingHeal: HealCtx = {
+    sourceId,
+    targetId,
+    amount: final,
+    healed: 0,
+    single: opts.single === true,
+    splash: opts.splash === true,
+  };
+  for (const inst of [...t.statuses]) {
+    incomingHeal.amount = final;
+    const multiplier = STATUS_DEFS[inst.id]?.hooks?.modifyIncomingHeal?.(
+      ctxFor(state, targetId, inst),
+      incomingHeal,
+    );
+    if (multiplier != null) final *= Math.max(0, multiplier);
+  }
+
   const before = t.hp;
   t.hp = Math.min(t.hpLimit, t.hp + Math.round(final));
   log(state, `${t.emoji} ${t.name} 回复 ${t.hp - before} 点生命`);
@@ -328,16 +142,10 @@ export function heal(
   recordHitPart(targetId, before - t.hp);
   const healed = t.hp - before;
   if (opts.single && !opts.splash) {
-    const heal: HealCtx = {
-      sourceId,
-      targetId,
-      amount,
-      healed,
-      single: true,
-      splash: false,
-    };
+    incomingHeal.amount = final;
+    incomingHeal.healed = healed;
     for (const inst of [...t.statuses])
-      STATUS_DEFS[inst.id]?.hooks?.onHealed?.(ctxFor(state, targetId, inst), heal);
+      STATUS_DEFS[inst.id]?.hooks?.onHealed?.(ctxFor(state, targetId, inst), incomingHeal);
   }
   return healed;
 }
@@ -371,6 +179,15 @@ export function applyStatus(
   stacks = Math.trunc(stacks); // 层数只允许整数: 舍去小数部分(0.9 层 ⇒ 不施加)
   if (!t || !t.alive || stacks === 0) return;
   const def = STATUS_DEFS[statusId];
+
+  if (
+    def?.kind === "debuff" &&
+    statusId !== "debuffImmune" &&
+    t.statuses.some((status) => status.id === "debuffImmune" && status.stacks > 0)
+  ) {
+    log(state, `${t.emoji} ${t.name} 免疫了 ${def.name}`);
+    return;
+  }
 
   // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续拍数"中的一项(见 statuses.resistMode)。
   if (def && def.kind === "debuff" && stacks > 0) {
@@ -413,8 +230,13 @@ export function applyStatus(
     }
     t.statuses.push(instance);
   }
-  const inst = getStatus(t, statusId)!;
+  const inst = getStatus(t, statusId);
+  if (!inst) {
+    log(state, `${t.emoji} ${t.name} 的${def?.name ?? statusId}被移除`);
+    return;
+  }
   if (def) capStatusStacks(inst, def);
+  if (def) def.hooks?.onApplied?.(ctxFor(state, targetId, inst));
   cleanup(t);
   log(state, `${t.emoji} ${t.name} 获得 ${def?.name ?? statusId} ${stacks > 0 ? "+" : ""}${stacks}`);
 }

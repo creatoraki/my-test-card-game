@@ -52,8 +52,8 @@ export const ACTUARY_STATUS_DEFS: Record<string, StatusDef> = {
     kind: "buff",
     desc: "受到的伤害降低 20%。",
     hooks: {
-      modifyIncomingDamage: (_c, dmg) => {
-        dmg.amount *= 0.8;
+      modifyIncomingDamage: (_c, _dmg, mods) => {
+        mods.mulTaken(0.8);
       },
     },
   },

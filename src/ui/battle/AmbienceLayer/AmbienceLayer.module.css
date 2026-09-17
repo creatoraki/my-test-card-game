@@ -1,7 +1,8 @@
 /* ===================== 场景氛围层(ui/AmbienceLayer.tsx + ui/ambience.ts) ===================== */
 /* 两张画布的 CSS 尺寸恒为设计画布尺寸(位图分辨率由组件按 dpr 另设), 与背景一样精确铺满世界。
-   它们在 .battle-world 内 ⇒ 跟随相机推近/平移/漂移/震屏, 粒子与场景是一体的。
-   ★ 两张画布同时是 3D 场景里的**纵深层**: far 在敌人之后、near 在敌人之前, translateZ 与
+   它们在纵深组的 .battle-world 内 ⇒ 跟随相机推近/平移/漂移/震屏, 粒子与场景是一体的。
+   ★ 两张画布同时是 3D 场景里的**纵深层**: far 在背景纵深组(敌人平面之后)、near 在近景纵深组
+     (敌人平面之前), 层序由 BattleStageLayer 的三层结构保证; translateZ 与
      抵消透视的预缩放见下面 .far / .near 两条(纵深值由 BattleScreen 按 CINEMA.depth 下发)。
      所以这里不要给 .battle-ambience 加任何 transform —— 那条属性已经被纵深占用了。
    near 层的 filter: blur 由组件行内下发(取该层各发射器 blur 的最大值)—— 近景失焦本就是
@@ -16,7 +17,7 @@
 /* ── 两层的层序 + 纵深 ──
    far 在敌人之后、near 在敌人之前(z-index), 同时各自是 3D 场景里的一个纵深层:
    translateZ(纵深) + 抵消透视的预缩放 (P−z)/P, 两个数都由 BattleScreen 的 depthVars
-   按 CINEMA.depth 下发到 .battle-world(跨组件变量契约, 样式铁律 4)。
+   按 CINEMA.depth 下发到 .battle-layers(跨组件变量契约, 样式铁律 4)。
    预缩放保证**静止画面与无纵深时逐 px 相同** —— 纵深只在相机运动时以视差显现。
    ⓘ transform 那两行原先住在 BattleScreen.module.css 的「纵深层」一组(写作
      `.battle-scene .battle-ambience.far`), 但 .battle-ambience 是本文件的类,

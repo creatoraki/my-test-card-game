@@ -66,35 +66,35 @@ const T1_SCOUT = placeRow(
 );
 
 const T1_SWEEP = placeRow(
-  ground("maintenance-spider", { x: -238, scale: 1.1 }),
-  ground("sweep-drone", { x: 238, flip: true }),
+  ground("sweep-drone", { x: -238, scale: 1.1 }),
+  ground("radio-bot", { x: 238, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
 );
 
 const T1_DRIFT = placeRow(
   flyer("glass-jelly", { x: -238, scale: 1.2 }),
-  ground("maintenance-spider", { x: 238, scale: 0.7, flip: true }),
+  ground("maintenance-spider", { x: 238, dy: SPIDER_DY, scale: 1.1, flip: true }),
 );
 
 const T2_CREW = placeRow(
   ground("maintenance-spider", { x: -426, dy: SPIDER_DY, scale: 1.1 }),
-  ground("radio-bot", { dy: GROUND_DY + 30, scale: 0.7 }),
-  ground("sweep-drone", { x: 426, scale: 1.2, flip: true }),
+  ground("sweep-drone"),
+  ground("radio-bot", { x: 426, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
 );
 
 const T2_BEACON = placeRow(
-  ground("radio-bot", { x: -426 }),
-  ground("traffic-light-bot"),
-  ground("sweep-drone", { x: 426, scale: 1.1, flip: true }),
+  ground("traffic-light-bot", { x: -426 }),
+  flyer("glass-jelly"),
+  ground("radio-bot", { x: 426, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
 );
 
 const T2_CURRENT = placeRow(
   flyer("glass-jelly", { x: -426, scale: 1.2 }),
   ground("traffic-light-bot"),
-  ground("maintenance-spider", { x: 426, scale: 1.1, flip: true }),
+  ground("maintenance-spider", { x: 426, dy: SPIDER_DY, scale: 1.1, flip: true }),
 );
 
 const T2_DUO_CRUSH = placeRow(
-  ground("radio-bot", { x: -238, scale: 1.1 }),
+  ground("sweep-drone", { x: -238, scale: 1.1 }),
   ground("sweep-drone", { x: 238, scale: 1.1, flip: true }),
 );
 
@@ -106,24 +106,19 @@ const T2_DUO_TORCH = placeRow(
 const T3_PATROL = placeRow(
   ground("maintenance-spider", { x: -426, dy: SPIDER_DY, scale: 1.1 }),
   ground("sweep-drone", { scale: 1.1 }),
-  ground("sweep-drone", { x: 426, scale: 1.1, flip: true }),
+  flyer("glass-jelly", { x: 426, scale: 1.2, flip: true }),
 );
 
 const T3_BLOCKADE = placeRow(
   ground("traffic-light-bot", { x: -426 }),
-  ground("maintenance-spider", { dy: SPIDER_DY, scale: 1.1 }),
-  ground("sweep-drone", { x: 426, scale: 1.1, flip: true }),
+  ground("radio-bot", { dy: GROUND_DY + 30, scale: 0.7 }),
+  ground("radio-bot", { x: 426, dy: GROUND_DY + 30, scale: 0.7, flip: true }),
 );
 
 const T3_SWARM = placeRow(
   flyer("glass-jelly", { x: -426, scale: 1.2 }),
-  ground("maintenance-spider", { scale: 1.1 }),
-  flyer("glass-jelly", {
-    x: 426,
-    dy: GROUND_DY - FLY_LIFT - 30,
-    scale: 1.2,
-    flip: true,
-  }),
+  flyer("glass-jelly", { scale: 1.2 }),
+  ground("traffic-light-bot", { x: 426, flip: true }),
 );
 
 const T4_PATROL = placeRow(
@@ -173,7 +168,7 @@ const T5_BOSS = placeRow(ground("scrap-mountain-guardian", { dy: -60 }));
 
 const TUT_T1_INTRO = placeRow(
   ground("radio-bot", { x: -238, scale: 0.7 }),
-  ground("sweep-drone", { x: 238, flip: true }),
+  ground("maintenance-spider", { x: 238, dy: SPIDER_DY, scale: 1.1, flip: true }),
 );
 
 const TUT_T1_SCOUT = placeRow(

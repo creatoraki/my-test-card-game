@@ -3,7 +3,7 @@ import { cardCost, starlightPayment } from "./cost";
 import { activeEffectsOf } from "./cardEffects";
 import { conditionMet } from "./effects";
 import { counterOf } from "./counters";
-import { cultivateReady } from "./cultivate";
+import { cultivateOverripe, cultivateReady } from "./cultivate";
 import { isPassive } from "./passive";
 import { waterfallHolds } from "./waterfall";
 
@@ -76,7 +76,7 @@ export function cardBoons(state: BattleState, card: Card): CardBoonId[] {
 
   const effects = activeEffectsOf(card);
   const boons: CardBoonId[] = [];
-  if (cultivateReady(card)) boons.push("cultivate");
+  if (cultivateReady(card) || cultivateOverripe(card)) boons.push("cultivate");
   if (cardCost(state, card) < card.cost) boons.push("cheaper");
   if (starlightPayment(state, card) > 0) boons.push("starPay");
   if ((card.resonanceStacks ?? 0) > 0) boons.push("resonance");

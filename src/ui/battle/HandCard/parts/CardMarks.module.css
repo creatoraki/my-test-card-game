@@ -16,6 +16,10 @@
 .hc-cultivate-ready .hc-mark-icon {
   box-shadow: 0 0 12px #c7e85f99;
 }
+.hc-cultivate-overripe .hc-mark-icon {
+  filter: sepia(0.75) saturate(0.8);
+  box-shadow: 0 0 12px #b9895d99;
+}
 .hc-mark-inline {
   position: absolute;
   z-index: 8;
@@ -26,7 +30,7 @@
   height: 30px;
   place-items: center;
   color: #d9f3ff;
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1;
   text-shadow: 0 0 5px #54c8e8;
   background: #102b3566;
@@ -80,7 +84,7 @@
   bottom: 1px;
   z-index: 1;
   color: #effff9;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1;
   text-shadow: 0 1px 2px #000;
@@ -113,12 +117,12 @@
 }
 .hc-mark-tip-name {
   color: #d9f3ff;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
 }
 .hc-mark-tip-desc {
-  font-size: 12px;
+  font-size: 18px;
   line-height: 1.4;
 }
 @keyframes hc-mark-in {

@@ -103,7 +103,7 @@ const ART: Record<string, (props: ArtProps) => ReactNode> = {
       <circle className={s.breathe} cx="24" cy="24" r="3.2" fill={`url(#${coreId})`} stroke="var(--mg-ink)" strokeWidth="1.2" />
     </>
   ),
-  // 瞄准模组: 叠在能量核上的准星。
+  // 穿孔模组: 叠在能量核上的准星。
   "aim-module": ({ coreId }) => (
     <>
       <path d="M8 17V8h9M31 8h9v9M40 31v9h-9M17 40H8v-9" stroke="var(--mg-deep)" strokeWidth="1.3" opacity=".55" />

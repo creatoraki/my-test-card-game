@@ -1,4 +1,5 @@
 // 目标选择。无站位；有嘲讽时先收窄到嘲讽单位，否则在存活目标中等概率随机挑一个。
+// 普通敌人的定向目标筛选由 enemyMovePick.ts 负责, 本文件只提供公共敌我查询与嘲讽口径。
 // 走战斗 RNG(rngFloat) 而不是 Math.random, 保证同种子的战斗可复现。
 
 import type { BattleState, Combatant } from "./types";

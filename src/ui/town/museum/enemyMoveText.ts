@@ -13,6 +13,7 @@ const KIND_LABEL: Record<EnemyMove["kind"], string> = {
 
 const EFFECT_LABEL: Record<string, string> = {
   DRAIN_SHIELD: "吸收护盾",
+  STRIP_STATUS: "移除增益",
   APPLY_STAT_MOD: "施加属性修正",
   DISCARD: "弃牌",
   RECOVER_FROM_DISCARD: "从弃牌堆恢复",
@@ -53,6 +54,12 @@ function effectText(effect: EffectDescriptor): string {
       return effect.amount != null ? `恢复 ${numberText(effect.amount)} 点生命` : `恢复 ${numberText(effect.multiplier ?? 1)} 倍治愈力`;
     case "GAIN_SHIELD":
       return effect.amount != null ? `获得 ${numberText(effect.amount)} 点护盾` : `获得 ${numberText(effect.multiplier ?? 1)} 倍治愈力护盾`;
+    case "DRAIN_SHIELD":
+      return effect.maxAmount != null
+        ? `吸收护盾（每个目标最多 ${numberText(effect.maxAmount)} 点）`
+        : "吸收护盾";
+    case "STRIP_STATUS":
+      return "移除增益";
     case "DRAW":
       return `抽 ${effect.amount ?? 1} 张牌`;
     case "GAIN_RESOURCE":

@@ -9,7 +9,8 @@ import { runEnemyTempo } from "./statusLifecycle";
 import { attackDamage, enemyActDelay, statOf } from "./stats";
 import { rngPickWeighted } from "./rng";
 import { withHitRecorder } from "./animHits";
-import { enemyMoveWeight, pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
+import { enemyMoveWeight, pickAllyTarget, pickScriptedTarget } from "./enemyMovePick";
+import { pickScriptedMove, updateAiMemory } from "./enemyScript";
 
 // 消耗一个行动点, 随机抽取下一招并开始蓄力。
 export function startCharge(state: BattleState, enemyId: string): void {
@@ -132,7 +133,7 @@ export function enemyAct(state: BattleState, enemyId: string, phase?: TempoPhase
   let primaryId: string | undefined;
   if (move.targeting === "foe")
     primaryId = pickScriptedTarget(state, e, move) ?? chooseRandomTarget(state, enemyId);
-  else if (move.targeting === "ally") primaryId = enemyId; // 简化: 支援自身
+  else if (move.targeting === "ally") primaryId = pickAllyTarget(state, e, move);
 
   // 在结算前归纳受影响单位(此时目标仍存活, 死掉的目标也应闪特效)
   const targetIds = collectMoveTargets(state, e, move, primaryId);

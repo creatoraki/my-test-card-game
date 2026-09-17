@@ -1,0 +1,215 @@
+/* ===================== 敌方单位的常驻循环动画 ===================== */
+/* 待机呼吸 / 可选目标描边 / 蓄力光, 三条都改为动画 @property 注册的数值变量(主线程插值),
+   再由普通的 translate / rotate / filter 消费。
+   ★ 为什么不直接动画 transform / filter: 那会被浏览器提升为合成动画层, 位图倍率在动画期间
+     基本锁死 —— 相机推近时立绘被按旧倍率拉糊。变量驱动等同逐帧改样式, 浏览器按真实倍率重绘。
+   类由 CombatantView.tsx 挂在 .combatant-figure / .combatant-stage 的同一元素上;
+   状态走 data-*(契约见 battle/unitShell.ts), 属性不参与哈希, 可跨模块命中。
+   ⚠ 死亡/逃跑规则在 CombatantView.module.css, 特异性 (0,3,0) 高于这里, 会整条换掉 animation;
+     换掉后变量回到初始值 0, 呼吸位移随之归零, 与改造前「transform 被整条覆盖」等价。 */
+@property --bob-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --rim-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --windup-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --shake-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --shake-r {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --flash-b {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --flash-s {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --bless-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* 待机呼吸: 逐敌人登记在 ui/enemyArt.ts 的 idle 段, 经 CombatantView 下发成 --idle-*。
+   transform 同时容纳受击抖动(--shake-*), 两者不会同时运行: 受击动画整条换掉 animation,
+   --bob-t 随之归零。translate/scale 属性留给 HitFxLayer 的施法者前冲。原点取底边中点。 */
+.figure {
+  transform: translate(
+      calc(var(--idle-sway, 0px) * var(--bob-t) + var(--shake-x)),
+      calc(var(--idle-bob, 3px) * -1 * var(--bob-t))
+    )
+    rotate(calc(var(--idle-tilt, 0deg) * var(--bob-t) + var(--shake-r)));
+  animation: idleBob var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite;
+}
+@keyframes idleBob {
+  0%,
+  100% {
+    --bob-t: 0;
+  }
+  50% {
+    --bob-t: 1;
+  }
+}
+
+/* 可选目标提示: 细霓虹描边。白热内芯紧贴轮廓(1px), 外圈 --accent 色晕 2~4px,
+   峰值再多一圈 8px、50% 透明度的窄色雾做呼吸。
+   ⚠ animation 是简写, 必须连 idleBob 一起写, 否则待机呼吸整条被抹掉。 */
+:global([data-targetable]) .figure {
+  animation:
+    idleBob var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite,
+    targetRim 1.25s ease-in-out infinite;
+  filter: drop-shadow(0 0 1px #f6ffde)
+    drop-shadow(0 0 calc(2px + 2px * var(--rim-t)) color-mix(in srgb, var(--accent) 85%, #fff))
+    drop-shadow(0 0 calc(8px * var(--rim-t)) color-mix(in srgb, var(--accent) calc(50% * var(--rim-t)), transparent));
+}
+@keyframes targetRim {
+  0%,
+  100% {
+    --rim-t: 0;
+  }
+  50% {
+    --rim-t: 1;
+  }
+}
+
+/* 蓄力光: 颜色由 CombatantView.module.css 的 --tg-* 按意图类别下发。 */
+:global([data-telegraph]) .stage {
+  animation: foeWindup 780ms ease-in-out infinite;
+  filter: drop-shadow(
+      0 0 calc(3px + 8px * var(--windup-t))
+        color-mix(in srgb, var(--tg-core-strong) calc(100% * var(--windup-t)), var(--tg-soft))
+    )
+    drop-shadow(
+      0 0 calc(1px + 3px * var(--windup-t))
+        color-mix(in srgb, var(--tg-highlight) calc(100% * var(--windup-t)), var(--tg-core))
+    );
+}
+@keyframes foeWindup {
+  0%,
+  100% {
+    --windup-t: 0;
+  }
+  50% {
+    --windup-t: 1;
+  }
+}
+
+/* 受击 / 受益(敌方): 覆盖 fx/HitFxLayer 的同名演出, 视觉曲线与那边逐帧一致, 只换成变量驱动。
+   特异性 (0,4,0) 高于 HitFxLayer 的 (0,3,0), 与 CSS 加载顺序无关。
+   ⚠ HitFxLayer 那边把受击推迟到特效命中时刻(--vfx-impact), 这里必须一并写上 animation-delay;
+     顿帧暂停规则(0,4,0)只改 animation-play-state, 与这里不冲突。
+   我方立绘在 HUD 里不随镜头缩放, 仍走 HitFxLayer 的原版。 */
+:global([data-unit][data-side="enemy"][data-react="hit"]) .figure {
+  animation:
+    enemyHitShake 0.4s ease,
+    enemyHitFlash 0.42s ease;
+  animation-delay: var(--vfx-impact, 0ms), var(--vfx-impact, 0ms);
+  filter: brightness(var(--flash-b)) saturate(var(--flash-s));
+}
+@keyframes enemyHitShake {
+  0%,
+  100% {
+    --shake-x: 0px;
+    --shake-r: 0deg;
+  }
+  15% {
+    --shake-x: -7px;
+    --shake-r: -2deg;
+  }
+  35% {
+    --shake-x: 6px;
+    --shake-r: 2deg;
+  }
+  55% {
+    --shake-x: -4px;
+    --shake-r: 0deg;
+  }
+  75% {
+    --shake-x: 3px;
+    --shake-r: 0deg;
+  }
+}
+@keyframes enemyHitFlash {
+  0% {
+    --flash-b: 2.4;
+    --flash-s: 0.5;
+  }
+  100% {
+    --flash-b: 1;
+    --flash-s: 1;
+  }
+}
+
+:global([data-unit][data-side="enemy"][data-react="bless"]) .figure {
+  animation: enemyBlessGlow 0.6s ease;
+  filter: drop-shadow(0 0 calc(16px * var(--bless-t)) color-mix(in srgb, var(--vfx-color) calc(100% * var(--bless-t)), transparent))
+    drop-shadow(0 0 calc(6px * var(--bless-t)) color-mix(in srgb, var(--vfx-color) calc(100% * var(--bless-t)), transparent))
+    brightness(calc(1 + 0.15 * var(--bless-t)));
+}
+@keyframes enemyBlessGlow {
+  0%,
+  100% {
+    --bless-t: 0;
+  }
+  40% {
+    --bless-t: 1;
+  }
+}
+
+/* 待机小动作(ui/useIdleTwitch.ts): 每隔几秒随机抽一个敌人抖一下, 盖掉纯循环呼吸的破绽。
+   挂在 .combatant-stage —— .combatant 的 transform 已被 hover/前冲占用。
+   必须写在蓄力光之后: 同特异性下后者胜, 与改造前「抖动覆盖蓄力」的层叠一致。
+   时长须 ≤ useIdleTwitch 的 TWITCH_MS(400ms), 否则会被中途摘掉属性而截断。 */
+@property --twitch-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --twitch-r {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+/* ⚠ transform 只在抖动期间挂: 常驻非 none 的 transform 会让本层成为层叠上下文,
+   命中特效(HitFxLayer)的 z-index 就被关在里面, 压不过层外的 BUFF 行。 */
+:global([data-twitch]) .stage {
+  transform: translateX(var(--twitch-x)) rotate(var(--twitch-r));
+  animation: idleTwitch 360ms ease-out 1;
+}
+@keyframes idleTwitch {
+  0%,
+  100% {
+    --twitch-x: 0px;
+    --twitch-r: 0deg;
+  }
+  25% {
+    --twitch-x: -2px;
+    --twitch-r: -1.1deg;
+  }
+  55% {
+    --twitch-x: 2px;
+    --twitch-r: 0.8deg;
+  }
+  80% {
+    --twitch-x: -1px;
+    --twitch-r: -0.3deg;
+  }
+}

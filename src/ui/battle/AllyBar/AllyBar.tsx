@@ -147,7 +147,7 @@ const AllySlot = memo(function AllySlot({
           statuses={cmb.statuses}
           shield={cmb.shield}
           detail
-          reverse
+          vertical
           popoverSide="top-left"
         />
       </div>

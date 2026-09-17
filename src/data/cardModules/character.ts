@@ -70,14 +70,15 @@ export const CHARACTER_CARD_MODULES: CardModuleDef[] = [
   {
     itemId: "aim-module",
     canEquip: (def) =>
+      def.targeting === "foe" &&
       hasDamageEffect(def) &&
       def.ownerCharId !== "botanist" &&
-      !def.keywords?.some((keyword) => keyword.id === "aim"),
-    equipText: "攻击卡，且不带瞄准词条，也不属于植物学家",
-    patch: {},
-    prependEffects: [{ type: "VALUE_BOOST", boostSource: "primaryAimed", boostPct: 30 }],
-    appendKeywords: [{ id: "aim", effects: [] }],
-    textSuffix: "（瞄准模组：附加瞄准；目标已有被瞄准时本卡数值 +30%）",
+      !def.volley,
+    equipText: "单体攻击卡，不属于植物学家且没有满弓",
+    patch: { volley: { threshold: 3 } },
+    prependEffects: [{ type: "VALUE_BOOST", boostSource: "fullDraw", boostPct: 30 }],
+    appendEffects: [{ type: "APPLY_STATUS", status: "pierce", stacks: 1, target: "primary", fullDraw: "miss" }],
+    textSuffix: "（穿孔模组：满弓 3 时本卡数值 +30%；未满弓时穿孔 1）",
   },
   {
     itemId: "ripen-module",
@@ -85,7 +86,7 @@ export const CHARACTER_CARD_MODULES: CardModuleDef[] = [
     equipText: "不属于植物学家",
     patch: {},
     appendEffects: [{ type: "CULTIVATE_TICK", amount: 1 }],
-    textSuffix: "（催熟模组：使用后随机使一张带培育的手牌培育层数 -1）",
+    textSuffix: "（催熟模组：使用后随机催熟 1 张可选培育牌）",
   },
   ...ASSEMBLE_CARD_MODULES,
   {

@@ -2,4 +2,5 @@
 
 interface ImportMetaEnv {
 	readonly isTest: string;
+	readonly BattleTest: string;
 }

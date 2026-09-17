@@ -16,6 +16,7 @@ import { ShieldBar } from "@/ui/common/ShieldBar";
 import { HourglassIcon } from "./icons";
 import { HitChanceBadge } from "./HitChanceBadge";
 import s from "./CombatantView.module.css";
+import m from "./CombatantView.motion.module.css";
 
 interface Props {
   cmb: Enemy;
@@ -121,7 +122,8 @@ export const CombatantView = memo(function CombatantView({
       // 外壳状态一律走 data-*(见 battle/unitShell.ts): fx/HitFxLayer 与 EnemySprite 都要
       // 按这些状态改自己的表现, 而它们够不着本文件被哈希的类名。
       {...unitShellAttrs({ side: "enemy", dead, death: phase, targetable, attacking, telegraph, react })}
-      className={cx(s["combatant"], twitching && !dead && s["twitch"])}
+      data-twitch={twitching && !dead ? "" : undefined}
+      className={s["combatant"]}
       style={vars as React.CSSProperties}
       onClick={(e) => {
         e.stopPropagation();
@@ -141,14 +143,14 @@ export const CombatantView = memo(function CombatantView({
           HitFxLayer 必须留在这层内 —— 它相对最近的定位祖先定位, 且要跟着立绘一起缩放 */}
       {/* data-cmb-stage: 供 BattleScreen 的 computeCamera 量取景框(它要的是含体型 scale 的
           这一层, 不是外层布局盒)。类名会被 Modules 哈希, querySelector 只能认属性。 */}
-      <div className={s["combatant-stage"]} data-cmb-stage>
+      <div className={cx(s["combatant-stage"], m.stage)} data-cmb-stage>
         {phase === "alive" && targetable && hitChance != null && (
           <HitChanceBadge value={hitChance} damage={damagePreview} />
         )}
         <HitFxLayer hit={hit ?? null} />
         {phase === "vanish" && <DeathVanishFx />}
 
-        <div className={s["combatant-figure"]} {...UNIT_BODY_ATTR}>
+        <div className={cx(s["combatant-figure"], m.figure)} {...UNIT_BODY_ATTR}>
           {enemySprite ? (
             <EnemySprite
               id={cmb.enemyDefId}

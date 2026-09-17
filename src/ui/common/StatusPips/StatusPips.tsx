@@ -2,8 +2,10 @@ import type { ReactNode } from "react";
 import type { StatusInstance, Team } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { statusArtOf } from "@/ui/art/statusArt";
+import { statusAccentOf } from "@/ui/art/statusAccent";
+import { BuffDetailCard, type BuffStat } from "@/ui/common/BuffDetailCard";
 import { cx } from "@/ui/common/cx";
-import { PopoverHead, RailPopover } from "@/ui/common/RailPopover";
+import { RailPopover } from "@/ui/common/RailPopover";
 import { ShieldIcon } from "./icons";
 import s from "./StatusPips.module.css";
 
@@ -13,6 +15,7 @@ export function StatusPips({
   detail = false,
   shield = 0,
   reverse = false,
+  vertical = false,
   popoverSide,
   team = "player",
 }: {
@@ -25,12 +28,23 @@ export function StatusPips({
   shield?: number;
   /** 从右往左排列，换行后继续向下。 */
   reverse?: boolean;
+  /** 从右上角起竖排，排满一列后向左换列。 */
+  vertical?: boolean;
   /** 详情浮层在图标上方的对齐方式。 */
-  popoverSide?: "top" | "top-right" | "top-left";
+  popoverSide?: "left" | "top" | "top-right" | "top-left";
   /** 状态持有者阵营, 用于将节拍解释为回合或敌人行动。 */
   team?: Team;
 }) {
   if (statuses.length === 0 && shield <= 0) return null;
+
+  const durationUnit = team === "enemy" ? "次行动" : "回合";
+
+  const statsOf = (shieldPip: boolean, stacks: number, duration?: number): BuffStat[] => {
+    if (shieldPip) return [{ label: "护盾值", value: stacks }];
+    const stats: BuffStat[] = [{ label: "当前层数", value: stacks }];
+    if (duration != null) stats.push({ label: "剩余", value: duration, suffix: durationUnit });
+    return stats;
+  };
 
   const renderPip = ({
     key,
@@ -43,6 +57,7 @@ export function StatusPips({
     shieldPip = false,
     icon,
     detailIcon,
+    accent,
   }: {
     key: string;
     emoji?: string;
@@ -54,6 +69,7 @@ export function StatusPips({
     kind: "buff" | "debuff";
     duration?: number;
     shieldPip?: boolean;
+    accent: string;
   }) => (
     <span
       key={key}
@@ -68,27 +84,28 @@ export function StatusPips({
       aria-label={
         shieldPip
           ? `护盾，当前 ${stacks}`
-          : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${team === "enemy" ? "次行动" : "回合"}` : ""}`
+          : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${durationUnit}` : ""}`
       }
     >
       {icon ?? emoji}
       {!shieldPip && stacks > 1 && <b>{stacks}</b>}
       {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
       {detail && (
-        <RailPopover side={popoverSide ?? "top"}>
-          <PopoverHead icon={detailIcon} name={name} />
-          <p>{desc}</p>
-          <small>
-            {shieldPip ? "护盾值" : "当前层数"} {stacks}
-            {duration != null && <> · 剩余 {duration} {team === "enemy" ? "次行动" : "回合"}</>}
-          </small>
+        <RailPopover side={popoverSide ?? "top"} bare>
+          <BuffDetailCard
+            icon={detailIcon}
+            name={name}
+            desc={desc}
+            accent={accent}
+            stats={statsOf(shieldPip, stacks, duration)}
+          />
         </RailPopover>
       )}
     </span>
   );
 
   return (
-    <div className={cx(s["status-pips"], reverse && s.reverse, className)}>
+    <div className={cx(s["status-pips"], reverse && s.reverse, vertical && s.vertical, className)}>
       {shield > 0 && renderPip({
         key: "shield",
         icon: <ShieldIcon className={s["shield-icon"]} />,
@@ -98,6 +115,7 @@ export function StatusPips({
         stacks: shield,
         kind: "buff",
         shieldPip: true,
+        accent: statusAccentOf("shield"),
       })}
       {statuses.map((st) => {
         const def = getStatusDef(st.id);
@@ -114,6 +132,7 @@ export function StatusPips({
           stacks: st.stacks,
           kind: def?.kind ?? "buff",
           duration: st.duration,
+          accent: statusAccentOf(st.id, def?.kind),
         });
       })}
     </div>

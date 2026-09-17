@@ -11,7 +11,7 @@ import { CARD_DEFS, type EnemyMove } from "@/data";
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
 // 解析。不走 getCardDef: 它对未知 id 直接 throw, 而存档可能残留已删定义的旧卡。
 const DEF_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.anim]));
-const DEF_AIMED_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.aimedAnim]));
+const DEF_FULL_DRAW_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.fullDrawAnim]));
 
 // 程序化 CSS 特效参数。视觉几何在各自 Fx 组件中, 这里只放 JS 要消费的时序。
 export interface ProcFxPreset {
@@ -44,7 +44,7 @@ export interface AnimPreset {
 // 相机运动本身由 camera/useCameraRig.ts 的 rAF 循环接管。
 export const CINEMA = {
   // ── 3D 场景 ──
-  // 透视距离(世界 px, 即设计画布的坐标系), 下发为 .screen.battle 的 perspective 属性。
+  // 透视距离(世界 px, 即设计画布的坐标系), 下发为纵深组容器(BattleStageLayer 的 .battle-depth)的 perspective 属性。
   // 相机的"推近"实为沿视线推进 z = P(1-1/s)。越小畸变与视差越强: 1000 很"广角",
   // 2600 接近正交(退化回 2D 平推)。
   perspective: 1400,
@@ -68,7 +68,8 @@ export const CINEMA = {
     // ⚠ near + 推进量 P(1−1/scale) 必须显著小于 P, 否则最近的一层会跨过镜头平面炸开。
     //   当前 250 + 1400(1−1/1.55) ≈ 747 < 1400, 余量充足; 加大 near 或 scale 前先算这一条。
     near: 250,
-    // 敌我单位(.battle-stage)恒为 0 —— 它是取景与相机数学的基准面, 不要给它加深度。
+    // 敌人单位(.battle-plane)恒为 0 —— 它是取景与相机数学的基准面, 不要给它加深度。
+    // 它不在透视容器内, 而是由 camera/planeProjection 在 z=0 处线性化出等效 2D 变换(保清晰)。
   },
 
   // 朝向 = 偏航/俯仰(转) + 平移(挪) 两者叠加。
@@ -257,10 +258,10 @@ export interface HitFx {
 
 // 卡牌 → 动画类型。优先按定义表实时解析(见 DEF_ANIM: 实例上的副本可能来自旧存档),
 // 定义已不存在才回退实例自带值, 都没有则按效果兜底推断。
-export function cardAnim(card: Card, keywordTriggers?: Record<string, number>): CardAnim {
-  if ((keywordTriggers?.aim ?? 0) > 0) {
-    const aimedAnim = DEF_AIMED_ANIM.get(card.id);
-    if (aimedAnim) return aimedAnim;
+export function cardAnim(card: Card, cardFullDraw = 0): CardAnim {
+  if (cardFullDraw > 0) {
+    const fullDrawAnim = DEF_FULL_DRAW_ANIM.get(card.id);
+    if (fullDrawAnim) return fullDrawAnim;
   }
   const anim = DEF_ANIM.has(card.id) ? DEF_ANIM.get(card.id) : card.anim;
   if (anim) return anim;

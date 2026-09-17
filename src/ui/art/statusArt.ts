@@ -1,10 +1,12 @@
 // 新增状态美术只在此登记一次，StatusPips 与 HitFxLayer 自动生效。
 // 四宫格状态图必须使用 `node scripts/crop-status-buffs.mjs <四宫格原图路径>` 切图；
-// 脚本按左上到右下输出中毒、烧伤、护盾、锋利到 src/assets/buffs，不要手动截屏取图。
+// 切分后的素材按状态实际目录登记，不要手动截屏取图。
 
-import poisonArt from "@/assets/buffs/中毒.png";
+import poisonArt from "@/assets/buffs/dot/中毒.png";
 import shieldArt from "@/assets/buffs/护盾.png";
-import burnArt from "@/assets/buffs/烧伤.png";
+import burnArt from "@/assets/buffs/dot/灼烧.png";
+import flammableArt from "@/assets/buffs/debuffs/易燃.png";
+import scorchedArt from "@/assets/buffs/debuffs/焦灼.png";
 import sharpArt from "@/assets/buffs/锋利.png";
 import insuranceArt from "@/assets/buffs/保险.png";
 import tauntArt from "@/assets/buffs/嘲讽.png";
@@ -37,6 +39,8 @@ export const STATUS_ART: Record<string, string> = {
   taunt: tauntArt,
   burn: burnArt,
   poison: poisonArt,
+  flammable: flammableArt,
+  scorched: scorchedArt,
   vitality: vitalityArt,
   cactusCounterattack: cactusCounterattackArt,
   insurance: insuranceArt,
@@ -65,6 +69,8 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   tauntArt,
   burnArt,
   poisonArt,
+  flammableArt,
+  scorchedArt,
   vitalityArt,
   cactusCounterattackArt,
   insuranceArt,

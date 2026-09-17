@@ -77,14 +77,26 @@ export { runEnemyFlee } from "./flee";
 export { foesOf, alliesOf, aliveOf, chooseRandomTarget, tauntedAmong, validFoeTargetIds } from "./targeting";
 export { getStatus } from "./ops";
 export { growInsurance, insuranceStacksOf, partyInsuranceStacks, settleInsurance } from "./insurance";
-export { enemyMoveWeight, pickScriptedMove, pickScriptedTarget, updateAiMemory } from "./enemyScript";
+export { enemyMoveWeight, biasConditionMet, pickScriptedTarget, pickAllyTarget } from "./enemyMovePick";
+export { pickScriptedMove, updateAiMemory } from "./enemyScript";
 export { moveToDiscard } from "./discard";
+export { addCardToHand, replaceHandCard, rotOverripeCards } from "./deck";
 export { isPassive, playableHandUids, handPassiveUids } from "./passive";
 export { avidyaPickCount } from "./handChoice";
 export { RELIC_TRIGGERS, fireRelic } from "./relics";
 export { RELIC_BEHAVIORS, runRelicHook } from "./relicBehaviors";
 export type { RelicBehavior, RelicBehaviorContext } from "./relicBehaviors";
-export { cultivateReady, effectiveTargeting, resetCultivate, tickCultivate } from "./cultivate";
+export {
+  cultivateCanAdvance,
+  cultivateOverripe,
+  cultivateReady,
+  cultivateStage,
+  effectiveTargeting,
+  resetCultivate,
+  tickCultivate,
+} from "./cultivate";
+export { applyPierce, mostPiercedFoe, pierceOf, removePierce, transferPierce } from "./pierce";
+export { emptyFullDraw, fullDrawBigHits, fullDrawHits, resolveFullDraw } from "./fullDraw";
 export { cardActivated, cardBoons } from "./cardBoon";
 export type { CardBoonId } from "./cardBoon";
 export {

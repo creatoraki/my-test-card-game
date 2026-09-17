@@ -23,40 +23,6 @@ export interface KeywordDef {
 }
 
 export const KEYWORD_DEFS: Record<string, KeywordDef> = {
-  aim: {
-    id: "aim",
-    name: "瞄准",
-    desc: "攻击未被瞄准的目标时为其附加被瞄准；再次用瞄准卡命中时收割被瞄准并触发额外效果。锚定瞄准可保留一次被瞄准。",
-    triggers: (state, card, ctx) => {
-      const candidates =
-        card.targeting === "allFoes"
-          ? [...new Set(ctx.hitIds)].filter((id) => state.combatants[id]?.team === "enemy")
-          : ctx.primaryId && ctx.hitIds.includes(ctx.primaryId)
-            ? [ctx.primaryId]
-            : [];
-      let triggered = 0;
-      let consumed = 0;
-      const owner = state.combatants[card.ownerCharId];
-      for (const id of candidates) {
-        const target = state.combatants[id];
-        if (!target) continue;
-        const aimed = target.statuses.find((status) => status.id === "aimed");
-        if (aimed) {
-          const aimLock = owner?.statuses.find((status) => status.id === "aimLock" && status.stacks > 0);
-          if (aimLock) ops.applyStatus(state, card.ownerCharId, "aimLock", -1);
-          else {
-            ops.applyStatus(state, id, "aimed", -1);
-            consumed += 1;
-          }
-          triggered += 1;
-        } else {
-          ops.applyStatus(state, id, "aimed", 1);
-        }
-      }
-      state.lastAimConsumed = consumed;
-      return triggered;
-    },
-  },
   echo: {
     id: "echo",
     name: "回响",
@@ -140,14 +106,34 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     desc: "费用 +1；打出后抽 1 张牌，持有多米诺被动时会重新附加到未带卡牌增益的手牌。",
   },
   {
-    id: "aim",
-    name: "瞄准",
-    desc: "攻击未被瞄准的目标时附加被瞄准；再次命中时收割被瞄准并触发额外效果，锚定瞄准可保留一次。",
+    id: "pierce",
+    name: "穿孔",
+    desc: "每层使目标受到的伤害提高 2%，最多 10 层。",
+  },
+  {
+    id: "fullDraw",
+    name: "满弓",
+    desc: "目标穿孔层数达到指定数量时，移除指定层数并触发满弓效果；本次不再附加穿孔。",
+  },
+  {
+    id: "overripe",
+    name: "过熟",
+    desc: "培育牌成熟后继续留在手牌中会过熟，打出时结算过熟效果。",
+  },
+  {
+    id: "ripen",
+    name: "催熟",
+    desc: "使一张生长中或已成熟的培育牌推进 1 层；成熟牌会被推进为过熟。",
+  },
+  {
+    id: "rottenFruit",
+    name: "腐烂的果实",
+    desc: "过熟培育牌在回合结束仍留在手牌中时转化而成的临时卡。",
   },
   {
     id: "cultivate",
     name: "培育",
-    desc: "该牌在手牌中每经过 1 个回合减少 1 层培育；归零后打出时触发额外效果。",
+    desc: "该牌在手牌中每经过 1 个回合推进 1 层；成熟后打出触发培育效果，继续留在手牌中会过熟。",
   },
   {
     id: "resonance",

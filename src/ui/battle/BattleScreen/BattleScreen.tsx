@@ -167,6 +167,10 @@ export function BattleScreen() {
   useEffect(() => {
     if (battle?.pendingChoice?.kind !== "pickHandCard") return;
     const action = battle.pendingChoice.action;
+    if (action === "cultivateTick") {
+      showBattleToast(`请选择一张牌进行催熟（剩余 ${battle.pendingChoice.remaining} 次）`);
+      return;
+    }
     const prompts: Record<string, string> = {
       markSource: "请选择要搬运增益的来源牌",
       markTarget: "请选择要搬运增益的目标牌",
@@ -230,8 +234,11 @@ export function BattleScreen() {
 
         {/* 场景由 rig 直接写入 transform；aim 只作为瞄准态与出牌分镜的交接目标。 */}
         <BattleStageLayer
-          sceneRef={camera.sceneRef}
-          worldRef={camera.worldRef}
+          sceneTargetsRef={camera.sceneTargetsRef}
+          worldTargetsRef={camera.worldTargetsRef}
+          planeRef={camera.planeRef}
+          planeUnitsRef={camera.planeUnitsRef}
+          onPlaneLayout={camera.rig.refreshPlane}
           stageRef={camera.stageRef}
           dofTargetsRef={camera.dofTargetsRef}
           worldStyle={worldStyle}

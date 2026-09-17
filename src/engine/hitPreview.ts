@@ -9,6 +9,7 @@ import { RULES } from "./rules";
 import { getStatusDef } from "./statuses";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { waterfallHolds } from "./waterfall";
+import { pierceOf } from "./pierce";
 
 // 本卡自带的「出牌期临时面板」(模组的 PLAY_STAT_BONUS)。
 // ★ 预览必须把它算进去, 否则装了攻击力/穿甲/命中模组后预览数字与实际结果对不上。
@@ -21,8 +22,31 @@ function playStatBonusesOf(state: BattleState, card: Card, targetId?: string): E
   return [...activeEffectsOf(card), ...markEffects].flatMap((effect) => {
     if (effect.type !== "PLAY_STAT_BONUS" || !effect.stat || !previewConditionMet(state, effect, card, targetId))
       return [];
+    if (effect.boostSource === "fullDraw" && !willFullDraw(state, card, targetId)) return [];
     return effect.condition === "waterfall" && doublesWaterfall ? [effect, effect] : [effect];
   });
+}
+
+function willFullDraw(state: BattleState, card: Card, targetId?: string): boolean {
+  if (!card.volley) return false;
+  const ids = card.targeting === "allFoes"
+    ? targetId ? [targetId] : state.enemyIds.filter((id) => state.combatants[id]?.alive)
+    : targetId ? [targetId] : [];
+  return ids.some((id) => pierceOf(state, id) >= card.volley!.threshold);
+}
+
+function previewPierceStacks(state: BattleState, card: Card, targetId: string): number {
+  const current = pierceOf(state, targetId);
+  if (!card.volley || !willFullDraw(state, card, targetId)) return current;
+  const halfDraw = state.playerIds.some((id) =>
+    state.combatants[id]?.alive && state.combatants[id].statuses.some(
+      (status) => status.id === "halfDraw" && status.stacks > 0,
+    ),
+  );
+  const removed = halfDraw
+    ? Math.ceil(card.volley.threshold / 2)
+    : card.volley.consumeAll ? current : card.volley.threshold;
+  return Math.max(0, current - removed);
 }
 
 function previewConditionMet(
@@ -71,8 +95,12 @@ function withPlayStatBonuses<T>(state: BattleState, card: Card, targetId: string
   }
 }
 
-function firstDamageEffect(card: Card): EffectDescriptor | undefined {
-  return activeEffectsOf(card).find((candidate) => candidate.type === "DAMAGE");
+function firstDamageEffect(state: BattleState, card: Card, targetId?: string): EffectDescriptor | undefined {
+  const fullDraw = willFullDraw(state, card, targetId);
+  return activeEffectsOf(card).find((candidate) =>
+    candidate.type === "DAMAGE" &&
+    (!candidate.fullDraw || (candidate.fullDraw === "hit" ? fullDraw : !fullDraw)),
+  );
 }
 
 function cardAttack(state: BattleState, card: Card): number {
@@ -86,7 +114,7 @@ function cardAttack(state: BattleState, card: Card): number {
 // 预览卡牌的第一个 DAMAGE 效果; 多段 DAMAGE 的徽章按第一个效果显示。
 // 返回百分点; null 表示没有命中判定或当前目标不可预览。
 export function cardHitChance(state: BattleState, card: Card, targetId: string): number | null {
-  const effect = firstDamageEffect(card);
+  const effect = firstDamageEffect(state, card, targetId);
 
   if (!effect || effect.flags?.includes("mustHit")) return null;
 
@@ -99,7 +127,7 @@ export function cardHitChance(state: BattleState, card: Card, targetId: string):
 
 // 返回命中后的单段确定性伤害; 暴击、格挡和护盾吸收不计入预览。
 export function cardDamagePreview(state: BattleState, card: Card, targetId: string): number | null {
-  const effect = firstDamageEffect(card);
+  const effect = firstDamageEffect(state, card, targetId);
   const attacker = state.combatants[card.ownerCharId];
   const target = state.combatants[targetId];
   if (!effect || !attacker || !target || !target.alive) return null;
@@ -122,20 +150,30 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
         : 1;
     const baseMultiplier = (effect.multiplier ?? 1) + bonusMult;
     const targetHasShield = target.shield > 0;
-    const bonusApplies =
-      !fixed &&
-      effect.damageBonus &&
-      ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
-        (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield) ||
-        (effect.damageBonus.when === "targetHpBelowPct" && target.hp / target.maxHp * 100 < (effect.damageBonus.value ?? 0)) ||
-        (effect.damageBonus.when === "targetHasDebuff" && target.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)) ||
-        (effect.damageBonus.when === "targetHasStatus" && Boolean(effect.damageBonus.status) && target.statuses.some((status) => status.id === effect.damageBonus?.status && status.stacks > 0)));
-    const aimedBonus =
-      effect.aimedMultiplier != null && target.statuses.some((status) => status.id === "aimed")
-        ? effect.aimedMultiplier
-        : baseMultiplier;
-    const damageMultiplier = bonusApplies ? aimedBonus + effect.damageBonus!.multiplier : aimedBonus;
-    const valueMultiplier = 1 + state.playValueBonusPct / 100;
+    let damageBonus = 0;
+    if (!fixed && effect.damageBonus) {
+      const bonus = effect.damageBonus;
+      if (
+        (bonus.when === "targetHasShield" && targetHasShield) ||
+        (bonus.when === "targetHasNoShield" && !targetHasShield) ||
+        (bonus.when === "targetHpBelowPct" && target.hp / target.maxHp * 100 < (bonus.value ?? 0)) ||
+        (bonus.when === "targetHasDebuff" && target.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)) ||
+        (bonus.when === "targetHasStatus" && Boolean(bonus.status) && target.statuses.some((status) => status.id === bonus.status && status.stacks > 0))
+      ) damageBonus = bonus.multiplier;
+      if (bonus.when === "perStatusStack") {
+        const count = bonus.status === "pierce"
+          ? previewPierceStacks(state, card, targetId)
+          : bonus.status
+          ? target.statuses.find((status) => status.id === bonus.status)?.stacks ?? 0
+          : target.statuses.reduce((sum, status) => sum + status.stacks, 0);
+        damageBonus = count * bonus.multiplier;
+      }
+    }
+    const damageMultiplier = baseMultiplier + damageBonus;
+    const fullDrawBonus = activeEffectsOf(card)
+      .filter((candidate) => candidate.type === "VALUE_BOOST" && candidate.boostSource === "fullDraw" && willFullDraw(state, card, targetId))
+      .reduce((sum, candidate) => sum + (candidate.boostPct ?? 0), 0);
+    const valueMultiplier = 1 + (state.playValueBonusPct + fullDrawBonus) / 100;
     const rawDamage = fixed
       ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier * valueScale
       : attackDamage(cardAttack(state, card), damageMultiplier) * valueMultiplier * valueScale;

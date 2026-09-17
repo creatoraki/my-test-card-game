@@ -7,7 +7,7 @@ export interface Box {
   bottom: number;
 }
 
-function layoutPosition(world: HTMLElement, element: HTMLElement): { x: number; y: number } {
+export function layoutPosition(world: HTMLElement, element: HTMLElement): { x: number; y: number } {
   let x = 0;
   let y = 0;
   let current: HTMLElement | null = element;
@@ -17,6 +17,18 @@ function layoutPosition(world: HTMLElement, element: HTMLElement): { x: number; 
     current = current.offsetParent as HTMLElement | null;
   }
   return { x, y };
+}
+
+/** 敌人平面单位包裹层的线性化参数: origin = 包裹层左上角, anchor = 视觉中心(含手工站位偏移)。
+ *  站位偏移由包裹层的 data-anchor-dx/dy 下发(见 BattleScreen/parts/PlaneUnit)。 */
+export function planeUnitAnchor(root: HTMLElement, unit: HTMLElement) {
+  const origin = layoutPosition(root, unit);
+  const dx = Number(unit.dataset.anchorDx) || 0;
+  const dy = Number(unit.dataset.anchorDy) || 0;
+  return {
+    origin,
+    anchor: { x: origin.x + unit.offsetWidth / 2 + dx, y: origin.y + unit.offsetHeight / 2 + dy },
+  };
 }
 
 export function unitWorldBox(world: HTMLElement, id: string, placement?: EnemyPlacement): Box | null {

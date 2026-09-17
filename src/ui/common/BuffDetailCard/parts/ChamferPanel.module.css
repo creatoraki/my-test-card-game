@@ -1,0 +1,18 @@
+.panel {
+  position: relative;
+  z-index: 1;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  pointer-events: none;
+}
+
+.frame path {
+  fill: var(--panel-fill, #06111acc);
+  stroke: var(--panel-stroke, #2b4b5f);
+  stroke-width: 1;
+}

@@ -1,0 +1,47 @@
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.glow {
+  z-index: 3;
+  filter: drop-shadow(0 0 3px #4fb4e8cc) drop-shadow(0 0 8px #3a9ad888);
+}
+
+.outer {
+  fill: none;
+  stroke: #8fd0f0;
+  stroke-width: 1.5;
+}
+
+.brackets {
+  fill: none;
+  stroke: #c4ecff;
+  stroke-width: 2.5;
+  stroke-linejoin: miter;
+}
+
+.inner {
+  fill: none;
+  stroke: #4a7fa3;
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+}
+
+.band-edge {
+  fill: none;
+  stroke: #9fd2f2;
+  stroke-opacity: 0.22;
+  stroke-width: 1;
+}
+
+.band-edge-faint {
+  fill: none;
+  stroke: #9fd2f2;
+  stroke-opacity: 0.1;
+  stroke-width: 1;
+}
