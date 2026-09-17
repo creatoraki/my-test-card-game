@@ -39,10 +39,6 @@
   transform: translateZ(var(--depth-bg, 0)) scale(var(--depth-bg-fix, 1));
 }
 
-.battle-scene .battle-bg-video-dof {
-  filter: blur(calc(var(--dof, 0) * 5px));
-}
-
 .battle-world {
   position: absolute;
   inset: 0;

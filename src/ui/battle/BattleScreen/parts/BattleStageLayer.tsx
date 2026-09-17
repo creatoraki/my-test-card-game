@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type CSSProperties, type MutableRefObject, type ReactNode, type RefObject } from "react";
+import { type CSSProperties, type MutableRefObject, type ReactNode, type RefObject } from "react";
 import { validFoeTargetIds, type BattleState, type Enemy } from "@/engine";
 import type { EnemyPlacement } from "@/data";
 import { cx } from "@/ui/common/cx";
@@ -93,29 +93,14 @@ export function BattleStageLayer({
   onCombatantClick,
   onAimHover,
 }: Props) {
-  const bgImageRef = useRef<HTMLImageElement>(null);
-
-  useLayoutEffect(() => {
-    const target = bgImageRef.current;
-    if (!target) return;
-    dofTargetsRef.current.add(target);
-    return () => {
-      dofTargetsRef.current.delete(target);
-    };
-  }, [bg, dofTargetsRef]);
-
   const validTargetIds = new Set(validFoeTargetIds(battle, "player"));
   const depthProps = { sceneTargetsRef, worldTargetsRef };
 
   return (
     <div className={s["battle-layers"]} style={worldStyle}>
       <DepthScene {...depthProps}>
-        <img
-          ref={bgImageRef}
-          className={`${s["battle-bg-video"]} ${s["battle-bg-video-dof"]}`}
-          src={bg}
-          alt=""
-        />
+        {/* 背景图不参与景深模糊, 运镜时保持清晰。 */}
+        <img className={s["battle-bg-video"]} src={bg} alt="" />
         <AmbienceLayer layer="far" mapId={mapId} paused={hitstop} fxRate={fxRate} dofTargetsRef={dofTargetsRef} />
       </DepthScene>
 
