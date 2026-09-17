@@ -5,7 +5,7 @@ import { shuffle } from "./rng";
 import { log, ops } from "./ops";
 import { partyHandLimit } from "./stats";
 import { registerPollutedCardDraw } from "./pollution";
-import { resetCultivate } from "./cultivate";
+import { cultivateOverripe, resetCultivate } from "./cultivate";
 import { makeCard } from "../data";
 import { runRelicHook } from "./relicBehaviors/types";
 
@@ -66,4 +66,31 @@ export function addCardCopyToHand(state: BattleState, sourceCard: Card): void {
   state.hand.push(copy.uid);
   resetCultivate(copy);
   log(state, `${sourceCard.name} 的复制卡加入手牌`);
+}
+
+export function replaceHandCard(
+  state: BattleState,
+  uid: string,
+  cardId: string,
+  ownerCharId?: string,
+): string | undefined {
+  const index = state.hand.indexOf(uid);
+  if (index < 0) return undefined;
+  const replacement = makeCard(cardId);
+  if (ownerCharId) replacement.ownerCharId = ownerCharId;
+  state.cards[replacement.uid] = replacement;
+  state.hand[index] = replacement.uid;
+  resetCultivate(replacement);
+  return replacement.uid;
+}
+
+export function rotOverripeCards(state: BattleState): void {
+  for (const uid of [...state.hand]) {
+    const card = state.cards[uid];
+    if (!card || !cultivateOverripe(card)) continue;
+    const replacementUid = replaceHandCard(state, uid, "rotten-fruit", card.ownerCharId);
+    if (!replacementUid) continue;
+    if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+    log(state, `${card.name} 过熟腐烂，变为腐烂的果实`);
+  }
 }

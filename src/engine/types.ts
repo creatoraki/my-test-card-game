@@ -43,6 +43,11 @@ export type CounterSource =
   | "lastSquadBuffConsumed"
   | "lastConsumedStatusStacks"
   | "lastRemovedStatusCount"
+  | "fullDrawHits"
+  | "fullDrawBigHits"
+  | "primaryDebuffKinds"
+  | "handRottenFruit"
+  | "lastExhaustedHandCards"
   | "activeCardResonance"
   | "activeCardCost"
   | "activeCardStarSpent"
@@ -50,8 +55,7 @@ export type CounterSource =
   | "chosenCardCost"
   | "lastStrippedMarks"
   | "partyInsuranceStacks"
-  | "discardPileTens"
-  | "lastAimConsumed";
+  | "discardPileTens";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -135,6 +139,10 @@ export type EffectType =
   | "CONSUME_STATUS"
   | "SPREAD_STATUS"
   | "TICK_STATUS"
+  | "EXTEND_STATUS"
+  | "TRANSFER_STATUS"
+  | "TRANSFER_DEBUFFS"
+  | "EXHAUST_HAND_CARDS"
   | "RESONATE"
   | "SETTLE_INSURANCE"
   | "TRANSFORM_CARD"
@@ -159,12 +167,10 @@ export interface EffectDescriptor {
   statusDataFrom?: { key: string; stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 从施法者属性生成参数
   stacks?: number; // APPLY_STATUS: 层数
   setStacks?: boolean; // APPLY_STATUS: 覆盖已有层数，0 层时移除
-  maxStacks?: number; // CONSUME_STATUS: 单次最多消耗的层数
-  stacksFromStat?: { stat: keyof StatBlock; multiplier: number }; // APPLY_STATUS: 层数 = 施法者属性 × 倍率
+  maxStacks?: number; // CONSUME_STATUS: 单次最多消耗的层数；APPLY_STATUS: 本次附加层数上限
+  stacksFromStat?: { stat: keyof StatBlock; multiplier: number; bonusMultiplierFrom?: CounterSource; bonusMultiplierPer?: number }; // APPLY_STATUS: 层数 = 施放者属性 × 倍率, 可按计数增加倍率
   spreadPct?: number; // SPREAD_STATUS: 复制给其他目标的状态层数比例
-  aimedStacks?: number; // APPLY_STATUS: 目标已有瞄准时额外增加的层数
-  aimedStacksMultiplier?: number; // APPLY_STATUS: 目标已有瞄准时层数倍率
-  boostSource?: "spendPartyStarlight" | "primaryAimed"; // VALUE_BOOST: 数值加成来源
+  boostSource?: "spendPartyStarlight" | "fullDraw"; // VALUE_BOOST: 数值加成来源
   boostPct?: number; // VALUE_BOOST: 每次成功触发增加的百分点
   duration?: number; // APPLY_STATUS: 剩余拍数
   targetCount?: number; // randomFoe / randomAlly: 无放回随机目标数
@@ -178,7 +184,7 @@ export interface EffectDescriptor {
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
   flags?: string[]; // 例如 ["unblockable", "mustHit"]
   hits?: number; // DAMAGE: 段数, 缺省 1
-  aimedMultiplier?: number; // DAMAGE: 目标已有瞄准时使用的伤害倍率
+  pierceOnHit?: number; // DAMAGE: 每段命中后为目标附加的穿孔层数
   hitsFrom?: CounterSource; // DAMAGE: 段数直接等于计数, 可为 0
   maxHits?: number; // DAMAGE: 直接取段数的上限
   bonusHitsFrom?: CounterSource; // DAMAGE: 每 1 点计数追加 1 段
@@ -188,7 +194,7 @@ export interface EffectDescriptor {
   maxBonusMultiplier?: number; // DAMAGE: bonusMultiplierFrom 的加算倍率上限
   // DAMAGE: 按目标状况逐目标加算倍率。targetHpBelowPct 用 value 传阈值(百分比)。
   damageBonus?: {
-    when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct" | "targetHasDebuff" | "targetHasStatus";
+    when: "targetHasShield" | "targetHasNoShield" | "targetHpBelowPct" | "targetHasDebuff" | "targetHasStatus" | "perStatusStack";
     multiplier: number;
     value?: number;
     status?: string;
@@ -202,16 +208,23 @@ export interface EffectDescriptor {
   pctOfCurrentHp?: number; // LOSE_HP: 按目标当前生命的比例失去生命(0.1 = 10%)
   cardOwner?: "randomAlly"; // ADD_CARD_TO_HAND: 将卡牌归属改为随机存活我方角色
   lifesteal?: number; // DAMAGE: 按本次效果实际掉血总量的倍率回复施放者
+  lifestealTarget?: "allAllies"; // DAMAGE: 按实际伤害为全队分别回复
   lifestealOverflow?: "lowestHpAlly"; // DAMAGE: 吸血溢出部分治疗最伤的存活队友
   hitBonus?: number; // DAMAGE: 本次效果的命中修正(百分点)
-  amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE / ADD_CARD_TO_HAND / REVEAL_CARDS: 数量直接等于计数
+  amountFrom?: CounterSource; // DRAW / GAIN_RESOURCE / ADD_CARD_TO_HAND / REVEAL_CARDS / CHOOSE_HAND_CARD: 数量直接等于计数
   maxAmount?: number; // 按计数重复处理效果时的上限
+  durationFrom?: { counter: CounterSource; per?: number }; // APPLY_STATUS: 持续时间额外增加
+  tickNow?: boolean; // APPLY_STATUS: 附加后立即结算本次新增层数
+  excludePrimary?: boolean; // 解析目标时排除主目标
+  fullDraw?: "hit" | "miss"; // 整条效果按本次满弓结果门控
+  fullDrawTargets?: "hit" | "miss"; // 按目标过滤本次满弓命中/未命中的对象
   discardPick?: "handTop" | "handBottom" | "handRandom" | "handAll"; // DISCARD: 取牌口径
   condition?:
     | "discardedThisRound"
     | "noFastPlaysThisRound"
     | "noPlaysThisRound"
     | "waterfall"
+    | "eventIsSourceCard"
     | "handHasCostAtLeast"
     | "fastCardsInHandAtLeast"
     | "counterAtLeast"
@@ -298,7 +311,7 @@ export interface CardDef {
   exhaust?: boolean; // 打出后进消耗堆(本场移除)
   tags?: string[];
   anim?: CardAnim; // 出牌动画类型(纯表现)。缺省时 UI 按效果兜底推断。
-  aimedAnim?: CardAnim; // 瞄准词条实际触发时改用的动画(纯表现)。
+  fullDrawAnim?: CardAnim; // 满弓实际触发时改用的动画(纯表现)。
   starPay?: boolean; // 应星: 可用星辉替代法力水晶
   temporary?: boolean; // 临时卡: 仅战斗内生成, 不进入抽卡池
   playReturn?: { when: "fastPlaysThisRound"; atLeast: number; costDelta: number };
@@ -320,7 +333,10 @@ export interface CardDef {
     turns: number;
     effects: EffectDescriptor[];
     mode?: "append" | "replace";
+    overripe: { effects: EffectDescriptor[]; targeting?: Targeting };
   };
+  volley?: { threshold: number; consumeAll?: boolean };
+  handAura?: { cardId: string; cost: number };
 }
 
 // 被动卡的驻留触发。cardDiscarded = 每有一张牌被丢弃, cardDrawn = 每抽到一张牌, cardPlayed = 每打出一张牌。
@@ -409,6 +425,7 @@ export type PendingChoice =
       sourceCardUid: string;
       ownerCharId: string;
       action: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks";
+      remaining: number;
       followUp?: EffectDescriptor[];
     }
   | {
@@ -502,8 +519,12 @@ export interface StatusHooks {
   onRoundStart?: (c: StatusCtx) => void; // 我方回合开始(抽牌之前)
   onCardDiscarded?: (c: StatusCtx, cardUid: string) => void;
   onCardPlayed?: (c: StatusCtx, card: Card) => void;
+  onAfterAttack?: (c: StatusCtx, dmg: DamageCtx) => void;
+  onCultivateStage?: (c: StatusCtx, card: Card, stage: CultivateStage) => void;
   onExpire?: (c: StatusCtx) => void; // 状态在本次节拍后过期时触发一次
 }
+
+export type CultivateStage = "growing" | "mature" | "overripe";
 
 // 异常抗性抵抗哪一项 —— 每种异常只能选一种(《角色养成设计.md》3.3)。
 //   chance   —— 按抗性掷判定, 成功则本次完全不施加(眩晕这类开关型控制)
@@ -720,8 +741,9 @@ export interface BattleState {
   activeCardStacks: number;
   // 当前结算卡的共鸣强化次数, 与 activeCardStacks 同生命周期。
   activeCardResonance: number;
-  lastAimConsumed: number;
+  fullDraw: { hitIds: string[]; removed: Record<string, number> };
   activeCardUid: string | null;
+  activeCardPrimaryId: string | null;
   markTransferSourceUid: string | null;
   chosenCardCost: number;
   lastStrippedMarks: number;
@@ -729,6 +751,7 @@ export interface BattleState {
   // 被动卡结算窗口内, 触发本次事件的那张牌 uid(供 markPick: "eventCard" 定位)。
   passiveEventCardUid: string | null;
   passiveEventTargetStatuses: StatusInstance[] | null;
+  passiveSourceCardUid: string | null;
   lastDiscardBatchCost: number;
   lastConvertBatch: number;
   squadBuffs: { id: string }[];
@@ -736,6 +759,8 @@ export interface BattleState {
   lastSquadBuffConsumed: number;
   lastConsumedStatusStacks: number;
   lastRemovedStatusCount: number;
+  lastRemovedStatuses: StatusInstance[];
+  lastExhaustedHandCards: number;
   resources: Record<string, number>; // 全队共享池, 如 { mana: 3 }
   // ★ 开战瞬间快照的有效负重点数, 战斗中恒定不变(《探索模式设计.md》§6.3)。
   //   引擎不认识背包与占格, 只认识这一个数 —— 由探索层用 stats.burdenValue 算好传入。

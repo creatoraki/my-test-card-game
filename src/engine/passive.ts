@@ -35,6 +35,7 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
   const recorder = currentRecorder(rec);
   const previousEventUid = state.passiveEventCardUid;
   const previousTargetStatuses = state.passiveEventTargetStatuses;
+  const previousSourceCardUid = state.passiveSourceCardUid;
   depth += 1;
   try {
     for (const uid of listeners) {
@@ -43,12 +44,13 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
       if (!card?.passive || !state.hand.includes(uid) || state.phase !== "player") continue;
       state.passiveEventCardUid = event.cardUid ?? null;
       state.passiveEventTargetStatuses = event.targetStatuses ?? null;
+      state.passiveSourceCardUid = event.cardUid ?? null;
       if (recorder) ensureCardFxSnapshot(state);
       const beforeHp = snapshotHp(state);
       const effects = card.passive.effectsByTrigger?.[event.type] ?? card.passive.effects;
       let resolution!: EffectResolution;
       const recorded = withHitRecorder(() => {
-        resolution = resolveEffects(state, effects, card.ownerCharId, event.targetId);
+        resolution = resolveEffects(state, effects, card.ownerCharId, event.targetId, card);
       });
       checkEnd(state);
       if (recorder) recordCardTrigger(state, card, beforeHp, recorder, resolution, false, recorded);
@@ -57,6 +59,7 @@ export function firePassive(state: BattleState, event: PassiveEvent, rec?: Disca
     depth -= 1;
     state.passiveEventCardUid = previousEventUid;
     state.passiveEventTargetStatuses = previousTargetStatuses;
+    state.passiveSourceCardUid = previousSourceCardUid;
   }
 }
 

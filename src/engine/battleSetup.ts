@@ -170,14 +170,16 @@ export function createBattleState(
     activeCardStarSpent: 0,
     activeCardStacks: 0,
     activeCardResonance: 0,
-    lastAimConsumed: 0,
+    fullDraw: { hitIds: [], removed: {} },
     activeCardUid: null,
+    activeCardPrimaryId: null,
     markTransferSourceUid: null,
     chosenCardCost: 0,
     lastStrippedMarks: 0,
     autoPlaySuppress: false,
     passiveEventCardUid: null,
     passiveEventTargetStatuses: null,
+    passiveSourceCardUid: null,
     lastDiscardBatchCost: 0,
     lastConvertBatch: 0,
     squadBuffs: [],
@@ -190,6 +192,8 @@ export function createBattleState(
     lastSquadBuffConsumed: 0,
     lastConsumedStatusStacks: 0,
     lastRemovedStatusCount: 0,
+    lastRemovedStatuses: [],
+    lastExhaustedHandCards: 0,
   };
 
   state.draw = shuffle(state, Object.keys(cards));

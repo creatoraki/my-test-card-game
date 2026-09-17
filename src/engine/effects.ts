@@ -11,7 +11,6 @@ import { alliesOf, foesOf } from "./targeting";
 import { rngPick } from "./rng";
 import { counterOf } from "./counters";
 import { getStatusDef } from "./statuses";
-import { playableHandUids } from "./passiveCards";
 import { runStatusTickNow } from "./statusLifecycle";
 import { addPollution } from "./pollution";
 import { settleInsurance } from "./insurance";
@@ -19,6 +18,10 @@ import { applyHandEffect } from "./effectsHand";
 import { applyDamageEffect } from "./effectsDamage";
 import { applyStripStatusEffect } from "./effectsStrip";
 import { applyRevealEffect } from "./effectsReveal";
+import { applyStatusMoveEffect } from "./effectsStatusMove";
+import { filterFullDrawTargets, fullDrawGateMatches } from "./fullDraw";
+import { conditionMet } from "./effectConditions";
+export { conditionMet } from "./effectConditions";
 import {
   ASSEMBLE_IDS,
   gainSquadBuff,
@@ -47,69 +50,6 @@ function sourceStatValue(state: BattleState, source: Combatant | undefined, stat
   return statOf(source, stat);
 }
 
-// ★ 导出给 hitPreview 复用 —— 预览要判定条件型 PLAY_STAT_BONUS 当前是否成立,
-//   两边各写一份的话条件枚举一改就会漏。
-export function conditionMet(
-  state: BattleState,
-  effect: EffectDescriptor,
-  card?: Card,
-  targetIds?: string[],
-  primaryId?: string,
-): boolean {
-  if (effect.condition === "discardedThisRound")
-    return counterOf(state, "discardsThisRound") > 0;
-  if (effect.condition === "noFastPlaysThisRound")
-    return counterOf(state, "fastPlaysThisRound") === 0;
-  if (effect.condition === "noPlaysThisRound")
-    return counterOf(state, "cardsPlayedThisRound") === 0;
-  if (effect.condition === "waterfall") return state.waterfallPlay;
-  // ★ 手牌口径的条件一律走 playableHandUids —— 被动卡无费用、不可打出, 不参与统计。
-  if (effect.condition === "handHasCostAtLeast")
-    return playableHandUids(state).some((uid) => (state.cards[uid]?.cost ?? 0) >= (effect.conditionValue ?? 0));
-  if (effect.condition === "fastCardsInHandAtLeast")
-    return playableHandUids(state).filter((uid) => state.cards[uid]?.cardType === "fast").length >= (effect.conditionValue ?? 0);
-  if (effect.condition === "counterAtLeast") {
-    const value = counterOf(state, effect.conditionCounter!, card);
-    return value >= (effect.conditionValue ?? 0) &&
-      (effect.conditionValueMax == null || value <= effect.conditionValueMax);
-  }
-  if (effect.condition === "counterBelow")
-    return counterOf(state, effect.conditionCounter!, card) < (effect.conditionValue ?? 0);
-  if (effect.condition === "eventTargetHasStatus")
-    return Boolean(
-      effect.conditionStatus &&
-        state.passiveEventTargetStatuses?.some(
-          (status) => status.id === effect.conditionStatus && status.stacks > 0,
-        ),
-    );
-  if (effect.condition === "fullyStarPaid")
-    return state.activeCardStarSpent > 0 && state.activeCardCost != null &&
-      state.activeCardStarSpent === state.activeCardCost;
-  if (effect.condition === "targetLacksStatus")
-    return Boolean(effect.conditionStatus) && (targetIds ?? []).every((id) =>
-      !state.combatants[id]?.statuses.some((status) => status.id === effect.conditionStatus && status.stacks > 0),
-    );
-  if (effect.condition === "primaryBelowHpLimit") {
-    const primary = primaryId ? state.combatants[primaryId] : undefined;
-    return Boolean(primary?.alive && primary.hp < primary.hpLimit);
-  }
-  if (effect.condition === "targetAttackedThisRound" || effect.condition === "targetNotAttackedThisRound") {
-    const targetWasAttacked =
-      targetIds == null
-        ? state.attackedThisRound.length > 0 || state.playerIds.some((id) => feignsInjury(state, id))
-        : targetIds.some((id) => state.attackedThisRound.includes(id) || feignsInjury(state, id));
-    return effect.condition === "targetAttackedThisRound" ? targetWasAttacked : !targetWasAttacked;
-  }
-  return true;
-}
-
-/** 《假装受伤》= 伪造的受击记录。★ 急诊的判定口径只有这一处, 真受击与假装受伤必须在这里等价。 */
-function feignsInjury(state: BattleState, id: string): boolean {
-  return Boolean(
-    state.combatants[id]?.statuses.some((status) => status.id === "feignInjury" && status.stacks > 0),
-  );
-}
-
 function scaleFactor(state: BattleState, effect: EffectDescriptor): number {
   if (!effect.scaleByCounter) return 1;
   const { counter, per = 1, min, max } = effect.scaleByCounter;
@@ -130,6 +70,7 @@ export function resolveTargets(
   const t = effect.target ?? "primary";
   const pickUnique = (candidates: ReturnType<typeof foesOf>): string[] => {
     const pool = candidates.filter((candidate) =>
+      (!effect.excludePrimary || candidate.id !== primaryId) &&
       (!effect.targetHasStatus || candidate.statuses.some((status) => status.id === effect.targetHasStatus)) &&
       (!effect.targetWithoutStatus || !candidate.statuses.some((status) => status.id === effect.targetWithoutStatus)),
     );
@@ -142,9 +83,10 @@ export function resolveTargets(
     }
     return selected;
   };
-  switch (t) {
+  const targets = (() => {
+    switch (t) {
     case "primary":
-      return primaryId && state.combatants[primaryId]?.alive ? [primaryId] : [];
+      return primaryId && (state.combatants[primaryId]?.alive || effect.type === "TRANSFER_STATUS") ? [primaryId] : [];
     case "self":
       return src?.alive ? [sourceId] : [];
     case "allFoes":
@@ -175,9 +117,11 @@ export function resolveTargets(
       });
       return [target.id];
     }
-    default:
-      return [];
-  }
+      default:
+        return [];
+    }
+  })();
+  return effect.excludePrimary ? targets.filter((id) => id !== primaryId) : targets;
 }
 
 // 治疗/护盾的计数加算倍率(与 DAMAGE 的 bonusMultiplierFrom / bonusMultiplierPer 同口径)。
@@ -195,13 +139,15 @@ function applyEffect(
   sourceId: string,
   targetIds: string[],
   primaryId: string | undefined,
+  contextCard?: Card,
 ): EffectResolution {
   const resolution: EffectResolution = { missed: [], hit: [] };
   if (state.autoPlaySuppress && (
     effect.condition === "waterfall" ||
     (effect.type === "APPLY_STATUS" && effect.status === "starlight")
   )) return resolution;
-  if (!conditionMet(state, effect, undefined, targetIds, primaryId)) return resolution;
+  if (effect.fullDraw && !fullDrawGateMatches(state, effect.fullDraw)) return resolution;
+  if (!conditionMet(state, effect, contextCard, targetIds, primaryId)) return resolution;
   const amount = effect.amount ?? 0;
   const src = state.combatants[sourceId];
   switch (effect.type) {
@@ -286,11 +232,8 @@ function applyEffect(
         state.playValueBonusPct += spent * boostPct;
         break;
       }
-      if (effect.boostSource === "primaryAimed") {
-        const primaryId = targetIds.find((id) => state.combatants[id]?.alive) ?? foesOf(state, src)[0]?.id;
-        if (primaryId && state.combatants[primaryId].statuses.some((status) => status.id === "aimed"))
-          state.playValueBonusPct += boostPct;
-      }
+      if (effect.boostSource === "fullDraw" && state.fullDraw.hitIds.length > 0)
+        state.playValueBonusPct += boostPct;
       break;
     }
     case "CULTIVATE_TICK":
@@ -303,7 +246,13 @@ function applyEffect(
     case "TRANSFORM_CARD":
     case "COPY_CARD_TO_HAND":
     case "CHOOSE_HAND_CARD":
+    case "EXHAUST_HAND_CARDS":
       return applyHandEffect(state, effect, sourceId, targetIds);
+    case "EXTEND_STATUS":
+    case "TRANSFER_STATUS":
+    case "TRANSFER_DEBUFFS":
+      applyStatusMoveEffect(state, effect, sourceId, targetIds);
+      break;
     case "REVEAL_CARDS":
       return applyRevealEffect(state, effect, sourceId);
     case "APPLY_STATUS": {
@@ -315,27 +264,39 @@ function applyEffect(
           }
         : effect.statusData;
       for (const id of targetIds) {
-        const aimed = state.combatants[id]?.statuses.some((status) => status.id === "aimed");
-        const baseStacks = effect.stacksFromStat
-          ? Math.round(sourceStatValue(state, src, effect.stacksFromStat.stat) * effect.stacksFromStat.multiplier)
-          : effect.stacksFrom
-            ? counterOf(state, effect.stacksFrom)
-            : effect.stacks ?? 0;
-        const aimedStacks = effect.aimedStacks && aimed ? effect.aimedStacks : 0;
-        const aimedMultiplier = effect.aimedStacksMultiplier != null && aimed ? effect.aimedStacksMultiplier : 1;
-        const stacks = Math.round(baseStacks * aimedMultiplier * scaleFactor(state, effect)) + aimedStacks;
+        const statMultiplier = effect.stacksFromStat
+          ? effect.stacksFromStat.multiplier +
+            ((effect.stacksFromStat.bonusMultiplierFrom && effect.stacksFromStat.bonusMultiplierPer != null
+              ? counterOf(state, effect.stacksFromStat.bonusMultiplierFrom) * effect.stacksFromStat.bonusMultiplierPer
+              : effect.bonusMultiplierFrom && effect.bonusMultiplierPer != null
+                ? counterOf(state, effect.bonusMultiplierFrom) * effect.bonusMultiplierPer
+              : 0))
+          : 0;
+        const statStacks = effect.stacksFromStat
+          ? Math.round(sourceStatValue(state, src, effect.stacksFromStat.stat) * statMultiplier)
+          : 0;
+        const counterStacks = effect.stacksFrom ? counterOf(state, effect.stacksFrom) : 0;
+        const rawStacks = (effect.stacks ?? 0) + statStacks + counterStacks;
+        const stacks = Math.min(effect.maxStacks ?? Infinity, Math.round(rawStacks * scaleFactor(state, effect)));
+        const duration = (effect.duration != null || effect.durationFrom)
+          ? (effect.duration ?? 0) + (effect.durationFrom ? counterOf(state, effect.durationFrom.counter) * (effect.durationFrom.per ?? 1) : 0)
+          : undefined;
         if (effect.setStacks) {
           const existing = state.combatants[id]?.statuses.find((status) => status.id === effect.status);
           if (stacks <= 0) {
             if (existing) state.combatants[id].statuses = state.combatants[id].statuses.filter((status) => status !== existing);
           } else if (existing) {
             existing.stacks = stacks;
-            if (effect.duration != null) existing.duration = effect.duration;
+            if (duration != null) existing.duration = duration;
           } else {
-            ops.applyStatus(state, id, effect.status, stacks, effect.duration, generatedData, sourceId);
+            ops.applyStatus(state, id, effect.status, stacks, duration, generatedData, sourceId);
           }
         } else if (stacks > 0) {
-          ops.applyStatus(state, id, effect.status, stacks, effect.duration, generatedData, sourceId);
+          const before = state.combatants[id]?.statuses.find((status) => status.id === effect.status)?.stacks ?? 0;
+          ops.applyStatus(state, id, effect.status, stacks, duration, generatedData, sourceId);
+          const after = state.combatants[id]?.statuses.find((status) => status.id === effect.status)?.stacks ?? 0;
+          if (effect.tickNow && after > before)
+            runStatusTickNow(state, id, effect.status, after - before);
         }
       }
       break;
@@ -359,9 +320,10 @@ function applyEffect(
       break;
     case "GAIN_RESOURCE": {
       const res = effect.resource ?? "mana";
-      const resourceAmount = Math.floor(
+      const resourceAmount = Math.floor(Math.min(
+        effect.maxAmount ?? Infinity,
         (effect.amountFrom ? counterOf(state, effect.amountFrom) : amount) * scaleFactor(state, effect),
-      );
+      ));
       if (resourceAmount <= 0) break;
       state.resources[res] = (state.resources[res] ?? 0) + resourceAmount;
       ops.log(state, `✨ 获得 ${resourceAmount} 点${res === "mana" ? "法力水晶" : res}`);
@@ -386,13 +348,17 @@ function applyEffect(
     case "REMOVE_STATUS": {
       const kind = effect.statusKind ?? "debuff";
       state.lastRemovedStatusCount = 0;
+      state.lastRemovedStatuses = [];
       for (const id of targetIds) {
         const target = state.combatants[id];
         if (!target) continue;
         target.statuses = target.statuses.filter((status) => {
           const def = getStatusDef(status.id);
           const removed = kind === "all" || def?.kind === kind;
-          if (removed) state.lastRemovedStatusCount += 1;
+          if (removed) {
+            state.lastRemovedStatusCount += 1;
+            state.lastRemovedStatuses.push(structuredClone(status));
+          }
           return !removed;
         });
       }
@@ -434,7 +400,9 @@ function applyEffect(
     }
     case "SPREAD_STATUS": {
       if (!effect.status) break;
-      const spreadTargets = foesOf(state, src);
+      const spreadTargets = foesOf(state, src).filter((target) =>
+        !effect.targetHasStatus || target.statuses.some((status) => status.id === effect.targetHasStatus && status.stacks > 0),
+      );
       for (const sourceTargetId of targetIds) {
         const sourceTarget = state.combatants[sourceTargetId];
         const sourceStatus = sourceTarget?.statuses.find((entry) => entry.id === effect.status);
@@ -442,7 +410,8 @@ function applyEffect(
         const stacks = Math.floor(sourceStatus.stacks * (effect.spreadPct ?? 0.5));
         if (stacks <= 0) continue;
         for (const target of spreadTargets) {
-          if (target.id !== sourceTargetId) ops.applyStatus(state, target.id, effect.status, stacks, undefined, undefined, sourceId);
+          if (target.id !== sourceTargetId)
+            ops.applyStatus(state, target.id, effect.status, stacks, effect.duration ?? sourceStatus.duration, undefined, sourceId);
         }
       }
       break;
@@ -461,11 +430,12 @@ export function resolveEffects(
   effects: EffectDescriptor[],
   sourceId: string,
   primaryId: string | undefined,
+  contextCard?: Card,
 ): EffectResolution {
   const resolution: EffectResolution = { missed: [], hit: [] };
   for (const effect of effects) {
-    const targets = resolveTargets(state, effect, sourceId, primaryId);
-    mergeResolution(resolution, applyEffect(state, effect, sourceId, targets, primaryId));
+    const targets = filterFullDrawTargets(state, effect, resolveTargets(state, effect, sourceId, primaryId));
+    mergeResolution(resolution, applyEffect(state, effect, sourceId, targets, primaryId, contextCard));
   }
   return resolution;
 }

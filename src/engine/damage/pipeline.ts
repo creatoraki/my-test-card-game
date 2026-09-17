@@ -88,6 +88,11 @@ function resolveDowned(state: BattleState, dmg: DamageCtx, target: Combatant, sh
   log(state, `${target.emoji} ${target.name} ${dmg.fatal ? "没能撑住" : "顶住了这次攻击"}`);
 
   runAfterHit(state, dmg, target, shieldBefore);
+  if (dmg.sourceId) {
+    runStatusHooks(state, dmg.sourceId, "onAfterAttack", dmg);
+    const source = state.combatants[dmg.sourceId];
+    if (source) cleanup(source);
+  }
   noteAttacked(state, dmg);
   cleanup(target);
   if (dmg.fatal) markDead(state, target);
@@ -156,6 +161,11 @@ export function dealDamage(
   runAfterHit(state, dmg, target, shieldBefore);
   if (target.team === "player" && hpBefore > target.maxHp * 0.5 && target.hp <= target.maxHp * 0.5)
     runRelicHook(state, "onAllyHpCrossedHalf", target.id);
+  if (dmg.sourceId) {
+    runStatusHooks(state, dmg.sourceId, "onAfterAttack", dmg);
+    const source = state.combatants[dmg.sourceId];
+    if (source) cleanup(source);
+  }
   noteAttacked(state, dmg);
   cleanup(target);
 

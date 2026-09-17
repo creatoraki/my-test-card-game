@@ -30,11 +30,11 @@ export const STATUS_ACCENT: Record<string, string> = {
   salvageArmor: "#b8c4cf",
   escort: "#6fd2ff",
   conductiveFilm: "#7ae8ff",
-  twinFlower: "#ff9ad5",
-  rootBond: "#8fd46a",
   thornCrown: "#b6e05a",
-  ivyThorn: "#78d66a",
-  aimLock: "#ffcf5a",
+  halfDraw: "#f2c66d",
+  agaveBloom: "#ff9ad5",
+  debuffImmune: "#9fdcff",
+  rootNetwork: "#8fd46a",
   zenithStar: "#ffe38a",
   gravityLens: "#a78bff",
   drift: "#8fd8ff",
@@ -57,7 +57,7 @@ export const STATUS_ACCENT: Record<string, string> = {
   vulnerable: "#ff5d6c",
   armorBreak: "#ff5d6c",
   hunterMark: "#ff6a4a",
-  aimed: "#ff8a4a",
+  pierce: "#ff8a4a",
 };
 
 const KIND_ACCENT: Record<StatusKind, string> = {

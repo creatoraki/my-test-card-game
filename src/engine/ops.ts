@@ -180,6 +180,15 @@ export function applyStatus(
   if (!t || !t.alive || stacks === 0) return;
   const def = STATUS_DEFS[statusId];
 
+  if (
+    def?.kind === "debuff" &&
+    statusId !== "debuffImmune" &&
+    t.statuses.some((status) => status.id === "debuffImmune" && status.stacks > 0)
+  ) {
+    log(state, `${t.emoji} ${t.name} 免疫了 ${def.name}`);
+    return;
+  }
+
   // 异常抗性 —— 每种异常只抵抗"施加概率 / 层数 / 持续拍数"中的一项(见 statuses.resistMode)。
   if (def && def.kind === "debuff" && stacks > 0) {
     const resist = statOf(t, "ailmentResist");

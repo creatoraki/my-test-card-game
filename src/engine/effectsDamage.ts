@@ -4,6 +4,7 @@ import { ops } from "./ops";
 import { attackDamage, offenseStatOf } from "./stats";
 import { counterOf } from "./counters";
 import { getStatusDef } from "./statuses";
+import { applyPierce } from "./pierce";
 
 interface DamageDeps {
   resolveTargets: (
@@ -72,21 +73,24 @@ export function applyDamageEffect(
       const targetUnit = state.combatants[id];
       const targetHasShield = targetUnit?.shield > 0;
       const hpPct = targetUnit && targetUnit.maxHp > 0 ? (targetUnit.hp / targetUnit.maxHp) * 100 : 100;
-      const bonusApplies =
-        !fixed &&
-        effect.damageBonus &&
-        ((effect.damageBonus.when === "targetHasShield" && targetHasShield) ||
-          (effect.damageBonus.when === "targetHasNoShield" && !targetHasShield) ||
-          (effect.damageBonus.when === "targetHpBelowPct" && hpPct < (effect.damageBonus.value ?? 0)) ||
-          (effect.damageBonus.when === "targetHasDebuff" && targetUnit?.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)) ||
-          (effect.damageBonus.when === "targetHasStatus" && Boolean(effect.damageBonus.status) && targetUnit?.statuses.some((status) => status.id === effect.damageBonus?.status && status.stacks > 0)));
-      const aimedBonus =
-        effect.aimedMultiplier != null && state.combatants[id]?.statuses.some((status) => status.id === "aimed")
-          ? effect.aimedMultiplier
-          : baseMultiplier;
-      const damageMultiplier = bonusApplies
-        ? aimedBonus + (effect.damageBonus?.multiplier ?? 0)
-        : aimedBonus;
+      let damageBonus = 0;
+      if (!fixed && effect.damageBonus) {
+        const bonus = effect.damageBonus;
+        if (
+          (bonus.when === "targetHasShield" && targetHasShield) ||
+          (bonus.when === "targetHasNoShield" && !targetHasShield) ||
+          (bonus.when === "targetHpBelowPct" && hpPct < (bonus.value ?? 0)) ||
+          (bonus.when === "targetHasDebuff" && targetUnit?.statuses.some((status) => getStatusDef(status.id)?.kind === "debuff" && status.stacks > 0)) ||
+          (bonus.when === "targetHasStatus" && Boolean(bonus.status) && targetUnit?.statuses.some((status) => status.id === bonus.status && status.stacks > 0))
+        ) damageBonus = bonus.multiplier;
+        if (bonus.when === "perStatusStack") {
+          const stackCount = bonus.status
+            ? targetUnit?.statuses.find((status) => status.id === bonus.status)?.stacks ?? 0
+            : targetUnit?.statuses.reduce((sum, status) => sum + status.stacks, 0) ?? 0;
+          damageBonus = stackCount * bonus.multiplier;
+        }
+      }
+      const damageMultiplier = baseMultiplier + damageBonus;
       const valueMultiplier = 1 + state.playValueBonusPct / 100;
       const dmg = fixed
         ? amount * (1 + bonusMult) * valueMultiplier * valueScale
@@ -110,6 +114,8 @@ export function applyDamageEffect(
         resolution.hit.push(id);
         hitTriggered = true;
         firstHitTarget ??= id;
+        if (effect.pierceOnHit && !state.fullDraw.hitIds.includes(id))
+          applyPierce(state, id, effect.pierceOnHit, sourceId);
       }
       if (
         effect.onKill?.length &&
@@ -128,6 +134,13 @@ export function applyDamageEffect(
     mergeResolution(resolution, deps.resolveEffects(state, effect.onCrit, sourceId, firstCritTarget));
   if (effect.lifesteal != null && lifestealPool > 0) {
     const lifestealAmount = lifestealPool * effect.lifesteal;
+    if (effect.lifestealTarget === "allAllies") {
+      for (const id of state.playerIds) {
+        if (state.combatants[id]?.alive)
+          ops.heal(state, sourceId, id, lifestealAmount, { scaled: true, splash: true });
+      }
+      return resolution;
+    }
     const healed = ops.heal(state, sourceId, sourceId, lifestealAmount, { scaled: true });
     const overflow = Math.max(0, lifestealAmount - healed);
     if (overflow > 0 && effect.lifestealOverflow === "lowestHpAlly") {

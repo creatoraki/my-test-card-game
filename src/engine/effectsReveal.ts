@@ -9,6 +9,8 @@ import { addMod, partyHandLimit } from "./stats";
 import { withHitRecorder } from "./animHits";
 import { currentRecorder, ensureCardFxSnapshot, recordCardTrigger, snapshotHp } from "./cardFx";
 import { resolveEffects, type EffectResolution } from "./effects";
+import { baseEffectsOf } from "./cardEffects";
+import { resolveFullDraw } from "./fullDraw";
 
 function emptyResolution(): EffectResolution {
   return { missed: [], hit: [] };
@@ -34,7 +36,8 @@ function autoPlayRevealedCard(state: BattleState, card: Card): void {
     activeCardResonance: state.activeCardResonance,
     waterfallPlay: state.waterfallPlay,
     playValueBonusPct: state.playValueBonusPct,
-    lastAimConsumed: state.lastAimConsumed,
+    fullDraw: state.fullDraw,
+    activeCardPrimaryId: state.activeCardPrimaryId,
     playStatModsLength: state.playStatMods.length,
   };
   state.activeCardCost = cardCost(state, card);
@@ -44,13 +47,14 @@ function autoPlayRevealedCard(state: BattleState, card: Card): void {
   state.activeCardResonance = card.resonanceStacks ?? 0;
   state.waterfallPlay = false;
   state.playValueBonusPct = 0;
-  state.lastAimConsumed = 0;
+  state.activeCardPrimaryId = primaryId ?? null;
+  resolveFullDraw(state, card, primaryId);
   state.autoPlaySuppress = true;
   let resolution: EffectResolution = emptyResolution();
   let recorded = [] as ReturnType<typeof withHitRecorder>;
   try {
     recorded = withHitRecorder(() => {
-      resolution = resolveEffects(state, card.effects, card.ownerCharId, primaryId);
+      resolution = resolveEffects(state, baseEffectsOf(card), card.ownerCharId, primaryId);
     });
   } finally {
     for (const mod of state.playStatMods.slice(previous.playStatModsLength).reverse()) {
@@ -66,7 +70,8 @@ function autoPlayRevealedCard(state: BattleState, card: Card): void {
     state.activeCardResonance = previous.activeCardResonance;
     state.waterfallPlay = previous.waterfallPlay;
     state.playValueBonusPct = previous.playValueBonusPct;
-    state.lastAimConsumed = previous.lastAimConsumed;
+    state.fullDraw = previous.fullDraw;
+    state.activeCardPrimaryId = previous.activeCardPrimaryId;
   }
   checkEnd(state);
   moveToDiscard(state, card.uid);

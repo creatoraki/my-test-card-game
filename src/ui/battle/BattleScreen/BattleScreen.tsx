@@ -167,6 +167,10 @@ export function BattleScreen() {
   useEffect(() => {
     if (battle?.pendingChoice?.kind !== "pickHandCard") return;
     const action = battle.pendingChoice.action;
+    if (action === "cultivateTick") {
+      showBattleToast(`请选择一张牌进行催熟（剩余 ${battle.pendingChoice.remaining} 次）`);
+      return;
+    }
     const prompts: Record<string, string> = {
       markSource: "请选择要搬运增益的来源牌",
       markTarget: "请选择要搬运增益的目标牌",

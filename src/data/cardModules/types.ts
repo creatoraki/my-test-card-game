@@ -6,7 +6,7 @@ export interface CardModuleDef {
   /** 装配条件的展示文案。★ 与 canEquip 写在一起, 规则改了文案不会漏改; 物品详情直接读它。 */
   equipText: string;
   /** 白名单字段覆盖: 重算时先还原成基础卡定义, 再套上当前模组的值。 */
-  patch: Partial<Pick<CardDef, "cardType">>;
+  patch: Partial<Pick<CardDef, "cardType" | "volley">>;
   /** 相对基础费用的调整。重算时独立还原, 不受卡牌强化影响。 */
   costDelta?: number;
   /** 插在 card.effects 最前的效果。 */

@@ -11,7 +11,7 @@ import { CARD_DEFS, type EnemyMove } from "@/data";
 // 副本会在改数据后过期 —— 旧档的卡永远放老特效。anim 是纯表现字段, 故按定义表实时
 // 解析。不走 getCardDef: 它对未知 id 直接 throw, 而存档可能残留已删定义的旧卡。
 const DEF_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.anim]));
-const DEF_AIMED_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.aimedAnim]));
+const DEF_FULL_DRAW_ANIM = new Map(CARD_DEFS.map((d) => [d.id, d.fullDrawAnim]));
 
 // 程序化 CSS 特效参数。视觉几何在各自 Fx 组件中, 这里只放 JS 要消费的时序。
 export interface ProcFxPreset {
@@ -258,10 +258,10 @@ export interface HitFx {
 
 // 卡牌 → 动画类型。优先按定义表实时解析(见 DEF_ANIM: 实例上的副本可能来自旧存档),
 // 定义已不存在才回退实例自带值, 都没有则按效果兜底推断。
-export function cardAnim(card: Card, keywordTriggers?: Record<string, number>): CardAnim {
-  if ((keywordTriggers?.aim ?? 0) > 0) {
-    const aimedAnim = DEF_AIMED_ANIM.get(card.id);
-    if (aimedAnim) return aimedAnim;
+export function cardAnim(card: Card, cardFullDraw = 0): CardAnim {
+  if (cardFullDraw > 0) {
+    const fullDrawAnim = DEF_FULL_DRAW_ANIM.get(card.id);
+    if (fullDrawAnim) return fullDrawAnim;
   }
   const anim = DEF_ANIM.has(card.id) ? DEF_ANIM.get(card.id) : card.anim;
   if (anim) return anim;

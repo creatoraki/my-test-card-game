@@ -11,7 +11,7 @@ import { counterOf } from "./counters";
 import { cardCost, starPayable } from "./cost";
 import { CARD_MARK_DEFS } from "./cardMarks";
 import { isPassive, playableHandUids } from "./passiveCards";
-import { advanceCultivate, resetCultivate } from "./cultivate";
+import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "./cultivate";
 import { makeCard } from "../data";
 
 function emptyResolution(): EffectResolution {
@@ -245,17 +245,34 @@ function applyCultivateTick(state: BattleState, effect: EffectDescriptor): void 
   if (amountToTick <= 0) return;
   const pool = state.hand.filter((uid) => {
     const card = state.cards[uid];
-    return card?.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) > 0;
+    return card != null && cultivateCanAdvance(card);
   });
   for (let i = 0; i < amountToTick && pool.length > 0; i++) {
     const uid = rngPick(state, pool);
     const card = state.cards[uid];
     if (card) {
-      advanceCultivate(card, 1);
+      advanceCultivate(state, card, 1);
       ops.log(state, `${card.name} 的培育层数 -1`);
     }
     pool.splice(pool.indexOf(uid), 1);
   }
+}
+
+function applyExhaustHandCards(state: BattleState, effect: EffectDescriptor): void {
+  state.lastExhaustedHandCards = 0;
+  if (!effect.cardId) return;
+  let cardName = "指定牌";
+  for (const uid of [...state.hand]) {
+    const card = state.cards[uid];
+    if (card?.id !== effect.cardId) continue;
+    cardName = card.name;
+    state.hand = state.hand.filter((handUid) => handUid !== uid);
+    if (!state.exhaust.includes(uid)) state.exhaust.push(uid);
+    resetCultivate(card);
+    state.lastExhaustedHandCards += 1;
+  }
+  if (state.lastExhaustedHandCards > 0)
+    ops.log(state, `消耗了 ${state.lastExhaustedHandCards} 张${cardName}`);
 }
 
 function applyResonate(state: BattleState, effect: EffectDescriptor): void {
@@ -296,6 +313,9 @@ export function applyHandEffect(
     case "CULTIVATE_TICK":
       applyCultivateTick(state, effect);
       break;
+    case "EXHAUST_HAND_CARDS":
+      applyExhaustHandCards(state, effect);
+      break;
     case "RESONATE":
       applyResonate(state, effect);
       break;
@@ -306,6 +326,13 @@ export function applyHandEffect(
       applyCopyToHand(state);
       break;
     case "CHOOSE_HAND_CARD": {
+      const requestedAmount = effect.amountFrom
+        ? Math.min(effect.maxAmount ?? Infinity, Math.max(0, Math.floor(counterOf(state, effect.amountFrom))))
+        : Math.max(0, Math.floor(effect.amount ?? 1));
+      if (requestedAmount <= 0) {
+        if (effect.followUp?.length) return resolveEffects(state, effect.followUp, sourceId, undefined);
+        return emptyResolution();
+      }
       const candidates = playableHandUids(state).filter((uid) => {
         if (effect.handChoiceAction === "markTarget" && uid === state.markTransferSourceUid) return false;
         if (effect.handChoiceAction === "markSource" || effect.handChoiceAction === "stripMarks") {
@@ -313,7 +340,7 @@ export function applyHandEffect(
         }
         if (effect.handChoiceAction !== "cultivateTick") return true;
         const card = state.cards[uid];
-        return card?.cultivate != null && (card.cultivateLeft ?? card.cultivate.turns) > 0;
+        return card != null && cultivateCanAdvance(card);
       });
       if (candidates.length === 0) {
         if (effect.handChoiceAction === "devour") state.chosenCardCost = 0;
@@ -329,6 +356,7 @@ export function applyHandEffect(
           sourceCardUid: state.activeCardUid ?? "",
           ownerCharId: sourceId,
           action: effect.handChoiceAction,
+          remaining: requestedAmount,
           followUp: effect.followUp,
         };
       }

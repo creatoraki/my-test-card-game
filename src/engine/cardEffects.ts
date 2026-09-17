@@ -1,7 +1,8 @@
 import type { Card, EffectDescriptor } from "./types";
-import { cultivateReady } from "./cultivate";
+import { cultivateOverripe, cultivateReady } from "./cultivate";
 
 export function baseEffectsOf(card: Card): EffectDescriptor[] {
+  if (cultivateOverripe(card)) return card.cultivate?.overripe.effects ?? [];
   const cultivated = cultivateReady(card) && card.cultivate?.mode === "replace";
   return cultivated ? card.cultivate?.effects ?? [] : card.effects;
 }

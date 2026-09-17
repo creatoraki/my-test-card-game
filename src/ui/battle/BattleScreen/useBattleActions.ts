@@ -89,7 +89,7 @@ export function useBattleActions({
     }
     const plan = play(uid, primaryId, discardPicks);
     if (!plan) return;
-    const anim = cardAnim(card, plan.cardKeywordTriggers);
+    const anim = cardAnim(card, plan.cardFullDraw);
     hand.setPlayingOutUid(uid);
     const hitIds = new Set(plan.cardHits.map((hit) => hit.id));
     const cardHits = [
