@@ -166,6 +166,26 @@
     transform: translateX(-50%);
   }
 }
+/* 敌人平面(战斗运镜会推近缩放)里的血条: 流光改由 @property 变量在主线程插值。
+   合成层动画的位图倍率在动画期间基本锁死, 推镜时整条血条会被按旧倍率拉糊;
+   场上敌人只有几条, 逐帧重绘的开销可以接受。HUD 里的血条不缩放, 仍走上面的合成层写法。 */
+@property --hp-flow-t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+:global([data-plane-unit]) .hp-flow {
+  translate: calc(var(--hp-flow-t) * -50%) 0;
+  animation-name: hpFlowPlane;
+}
+@keyframes hpFlowPlane {
+  from {
+    --hp-flow-t: 0;
+  }
+  to {
+    --hp-flow-t: 1;
+  }
+}
 /* 端头: 白热核心 + 双层外溢辉光 = 血量的"游标"。
    靠 left:var(--hp-pct) 跟随填充(而非嵌在 .hp-fill 里), 辉光才能往右溢进空槽。
    transition 与 .hp-fill 的 width 同参数, 两者才不会在掉血那 0.15s 里脱节。 */

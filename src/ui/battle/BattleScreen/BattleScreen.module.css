@@ -45,11 +45,9 @@
   padding: var(--stage-pad-y, 0px) var(--stage-pad-x, 0px);
 }
 
-/* perspective 必须是属性而不是 .battle-scene 的 perspective() 函数；
-   否则后代 translateZ 无法获得父级透视。画布正中同时是光轴与消失点。 */
-.battle-viewport .battle {
-  perspective: var(--perspective, 1400px);
-}
+/* ⚠ 画布本身不设 perspective: 透视只落在 parts/BattleStageLayer 的纵深组容器上,
+   敌人平面必须保持在任何透视之外(否则推镜时立绘与血条被按 1× 位图拉糊)。
+   --perspective 由本组件行内下发到 .battle-viewport, 经继承交给纵深组消费。 */
 
 /* 相机强制居中且不做边界钳制，世界外露出的区域由同背景的模糊副本兜底。 */
 .battle-bg-spill {

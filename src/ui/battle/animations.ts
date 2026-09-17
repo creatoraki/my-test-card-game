@@ -44,7 +44,7 @@ export interface AnimPreset {
 // 相机运动本身由 camera/useCameraRig.ts 的 rAF 循环接管。
 export const CINEMA = {
   // ── 3D 场景 ──
-  // 透视距离(世界 px, 即设计画布的坐标系), 下发为 .screen.battle 的 perspective 属性。
+  // 透视距离(世界 px, 即设计画布的坐标系), 下发为纵深组容器(BattleStageLayer 的 .battle-depth)的 perspective 属性。
   // 相机的"推近"实为沿视线推进 z = P(1-1/s)。越小畸变与视差越强: 1000 很"广角",
   // 2600 接近正交(退化回 2D 平推)。
   perspective: 1400,
@@ -68,7 +68,8 @@ export const CINEMA = {
     // ⚠ near + 推进量 P(1−1/scale) 必须显著小于 P, 否则最近的一层会跨过镜头平面炸开。
     //   当前 250 + 1400(1−1/1.55) ≈ 747 < 1400, 余量充足; 加大 near 或 scale 前先算这一条。
     near: 250,
-    // 敌我单位(.battle-stage)恒为 0 —— 它是取景与相机数学的基准面, 不要给它加深度。
+    // 敌人单位(.battle-plane)恒为 0 —— 它是取景与相机数学的基准面, 不要给它加深度。
+    // 它不在透视容器内, 而是由 camera/planeProjection 在 z=0 处线性化出等效 2D 变换(保清晰)。
   },
 
   // 朝向 = 偏航/俯仰(转) + 平移(挪) 两者叠加。

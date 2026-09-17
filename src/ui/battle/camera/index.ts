@@ -1,5 +1,6 @@
 export * from "./camera";
 export * from "./choreo";
+export * from "./planeProjection";
 export * from "./shots";
 export * from "./spring";
 export * from "./timeline";

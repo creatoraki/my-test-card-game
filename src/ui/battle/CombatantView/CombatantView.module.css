@@ -2,7 +2,7 @@
 /* ⚠ 单位的**状态**是 data-* 而不是类: dead / targetable / attacking / react 需要被
    fx/HitFxLayer 与 EnemySprite 跨模块命中, 类名会被哈希、属性不会(样式铁律 2)。
    契约的唯一真相在 battle/unitShell.ts。属性与类同权 ⇒ 层叠关系与改造前逐条一致。
-   `twitch` 是**本文件独有**的(只有敌人有待机小动作), 所以它仍是一个普通局部类。 */
+   待机小动作 data-twitch 只有敌人有, 其动画与其它常驻循环一起住在 CombatantView.motion.module.css。 */
 /* 无面板: 立绘直接浮在场景上, 下方依次是血条 → 状态/护盾/仇恨。
    高亮(可选中/仇恨目标/受益)一律走 drop-shadow 而非 box-shadow —— 没有面板盒可描边,
    drop-shadow 沿立绘轮廓发光才不会凭空出现一个矩形。 */
@@ -31,9 +31,7 @@
   margin-bottom: calc(var(--foot-inset) * -1);
   transform-origin: 50% 100%;
 }
-.combatant[data-telegraph] .combatant-stage {
-  animation: foeWindup 780ms ease-in-out infinite;
-}
+/* 蓄力光(foeWindup)在 CombatantView.motion.module.css, 这里只下发配色。 */
 .combatant[data-telegraph] {
   --tg-core: #ff334f;
   --tg-soft: #ff4d5f88;
@@ -63,15 +61,6 @@
   --tg-label-shadow: #6ea8fe80;
   --tg-label-inset: #6ea8fe33;
   --tg-reduced-highlight: #b9dcff;
-}
-@keyframes foeWindup {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 3px var(--tg-soft)) drop-shadow(0 0 1px var(--tg-core));
-  }
-  50% {
-    filter: drop-shadow(0 0 11px var(--tg-core-strong)) drop-shadow(0 0 4px var(--tg-highlight));
-  }
 }
 /* 蓄力时的脚下警示环与落地阴影分开占伪元素, 不改变单位布局。 */
 .combatant[data-telegraph] .combatant-stage::before {
@@ -140,30 +129,7 @@
     opacity: 0.68;
   }
 }
-/* 待机小动作(ui/useIdleTwitch.ts): 每隔几秒随机抽一个敌人抖一下。
-   纯循环的呼吸看久了会露出"这是段循环动画"的破绽, 一个低频随机事件就能盖掉。
-   挂在 .combatant-stage 的 transform 上 —— .combatant 那条已被 hover/前冲/hitShake 占满。
-   时长须 ≤ useIdleTwitch 的 TWITCH_MS(400ms), 否则会被中途摘掉类名而截断。 */
-.combatant.twitch .combatant-stage {
-  animation: idleTwitch 360ms ease-out 1;
-}
-@keyframes idleTwitch {
-  0% {
-    transform: translateX(0) rotate(0);
-  }
-  25% {
-    transform: translateX(-2px) rotate(-1.1deg);
-  }
-  55% {
-    transform: translateX(2px) rotate(0.8deg);
-  }
-  80% {
-    transform: translateX(-1px) rotate(-0.3deg);
-  }
-  100% {
-    transform: translateX(0) rotate(0);
-  }
-}
+/* 待机小动作(idleTwitch, 由 data-twitch 触发)在 CombatantView.motion.module.css。 */
 .combatant[data-dead] {
   pointer-events: none;
 }
@@ -234,29 +200,9 @@
 .combatant[data-targetable] {
   cursor: var(--cursor-pointer);
 }
-/* ⚠ 必须连 idleBob 一起写: animation 是简写, 只写 targetRim 会把待机呼吸整条抹掉。
-   两条同时挂在这个元素上互不干扰 —— 一条动 transform, 一条动 filter。 */
-.combatant[data-targetable] .combatant-figure {
-  animation:
-    idleBob var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite,
-    targetRim 1.25s ease-in-out infinite;
-}
+/* 可选目标描边(targetRim)与待机呼吸一起在 CombatantView.motion.module.css。 */
 .combatant[data-targetable]:hover {
   transform: translateY(-4px) scale(1.03);
-}
-/* 可选目标提示: 细霓虹描边, 不再做大范围糊光 —— 白热内芯紧贴立绘轮廓(1px)让边缘
-   锐利, 外圈一层提亮的 --accent 色晕(2~4px)让色相集中、清晰可辨; 峰值只多一圈
-   50% 透明度的窄色雾做呼吸, 光始终沿轮廓走, 不会糊成旧版那种 9px 大光斑。 */
-@keyframes targetRim {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 1px #f6ffde) drop-shadow(0 0 2px color-mix(in srgb, var(--accent) 85%, #fff));
-  }
-  50% {
-    filter: drop-shadow(0 0 1px #f6ffde)
-      drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 85%, #fff))
-      drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
-  }
 }
 /* 仍有盒子的小徽章(如 .countdown.imminent)用这条描边脉冲 */
 @keyframes pulse {
@@ -276,23 +222,12 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  /* 待机呼吸: 逐敌人登记在 ui/enemyArt.ts 的 idle 段, 经 CombatantView 下发成 --idle-*。
+  /* 待机呼吸(idleBob)在 CombatantView.motion.module.css, 占用本层的 translate / rotate。
      ⚠ 落点必须是这一层: .enemy-sprite 的 animationName 由 EnemySprite.tsx 行内下发(拼条
      逐帧循环), 挂在那儿会被整条覆盖; .combatant / .combatant-stage 的 transform 与 scale
-     则分别被 hover/前冲/hitShake 与 --place-scale 占用。这个元素三个变换属性全空。
+     则分别被 hover/前冲/hitShake 与 --place-scale 占用。
      transform-origin 取底边中点 —— 与体型缩放同一原则: 只在原地起伏, 脚不离地。 */
   transform-origin: 50% 100%;
-  animation: idleBob var(--idle-dur, 2800ms) ease-in-out var(--idle-delay, 0ms) infinite;
-}
-@keyframes idleBob {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0);
-  }
-  50% {
-    transform: translate(var(--idle-sway, 0px), calc(var(--idle-bob, 3px) * -1))
-      rotate(var(--idle-tilt, 0deg));
-  }
 }
 /* 顿帧: 命中瞬间把待机呼吸一起冻住。标记由 BattleScreen 挂在画布根上(见那边的 data-hitstop),
    规则写在**持有 .combatant-figure 的本文件**里(样式铁律 2)。 */
@@ -533,7 +468,6 @@ span.combatant-portrait {
   }
   .combatant-figure,
   .combatant-stage::after,
-  .combatant.twitch .combatant-stage,
   .combatant[data-telegraph] .telegraph,
   .hit-chance,
   .combatant[data-telegraph] .combatant-stage::before {

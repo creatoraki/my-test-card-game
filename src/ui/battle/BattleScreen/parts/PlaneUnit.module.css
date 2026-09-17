@@ -1,0 +1,13 @@
+/* transform 由相机 rig 行内写入(相对包裹层左上角的 2D matrix), 此处不得再占用 transform。
+   ⚠ 不要加 will-change: 它会让浏览器按设值瞬间的倍率锁死位图, 推镜时立绘与血条被拉糊。
+   position: relative 让内部单位的 offsetParent 链稳定落在包裹层上(worldBox 的布局读数依赖它)。 */
+.unit {
+  position: relative;
+  transform-origin: 0 0;
+}
+
+/* 运镜期间包裹层带 transform ⇒ 各自成为层叠上下文, 单位内部的 z-index 出不了包裹层。
+   施法者置顶(fx/HitFxLayer 给外壳的 z-index: 6)因此要在包裹层上再抬一次。 */
+.unit:has(> [data-attacking]) {
+  z-index: 6;
+}

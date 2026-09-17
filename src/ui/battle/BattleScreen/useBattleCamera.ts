@@ -3,21 +3,27 @@ import { effectiveTargeting, type BattleState } from "@/engine";
 import { sameCamera, useCameraRig, type Camera, type CameraRigApi } from "@/ui/battle/camera";
 import { computeAimCamera, computeFocusCamera, placementOf } from "./battleCamera";
 
+// 相机目标分三类: 透视容器里的 scene/world 纵深层(可有多组, 背景组与近景组)、
+// 脱离透视的敌人平面(planeRef, 同时是取景数学的查询根)及其单位包裹层。
 export interface BattleRigApi {
   rig: CameraRigApi;
-  sceneRef: RefObject<HTMLDivElement>;
-  worldRef: RefObject<HTMLDivElement>;
+  sceneTargetsRef: MutableRefObject<Set<HTMLElement>>;
+  worldTargetsRef: MutableRefObject<Set<HTMLElement>>;
+  planeRef: RefObject<HTMLDivElement>;
+  planeUnitsRef: MutableRefObject<Set<HTMLElement>>;
   stageRef: RefObject<HTMLDivElement>;
   dofTargetsRef: MutableRefObject<Set<HTMLElement>>;
 }
 
 export function useBattleRig(): BattleRigApi {
-  const sceneRef = useRef<HTMLDivElement>(null);
-  const worldRef = useRef<HTMLDivElement>(null);
+  const sceneTargetsRef = useRef<Set<HTMLElement>>(new Set());
+  const worldTargetsRef = useRef<Set<HTMLElement>>(new Set());
+  const planeRef = useRef<HTMLDivElement>(null);
+  const planeUnitsRef = useRef<Set<HTMLElement>>(new Set());
   const stageRef = useRef<HTMLDivElement>(null);
   const dofTargetsRef = useRef<Set<HTMLElement>>(new Set());
-  const rig = useCameraRig({ sceneRef, worldRef, dofTargetsRef });
-  return { rig, sceneRef, worldRef, stageRef, dofTargetsRef };
+  const rig = useCameraRig({ sceneTargetsRef, worldTargetsRef, planeRef, planeUnitsRef, dofTargetsRef });
+  return { rig, sceneTargetsRef, worldTargetsRef, planeRef, planeUnitsRef, stageRef, dofTargetsRef };
 }
 
 export interface BattleCameraApi extends BattleRigApi {
@@ -37,17 +43,14 @@ interface Options extends BattleRigApi {
 }
 
 export function useBattleCamera({
-  rig,
-  sceneRef,
-  worldRef,
-  stageRef,
-  dofTargetsRef,
   battle,
   battleSeq,
   selectedUid,
   animating,
   stageScale,
+  ...rigApi
 }: Options): BattleCameraApi {
+  const { rig, planeRef, stageRef } = rigApi;
   const [aimFoeId, setAimFoeId] = useState<string | null>(null);
   const [aim, setAim] = useState<Camera | null>(null);
 
@@ -61,8 +64,8 @@ export function useBattleCamera({
 
   const focusCamera = useCallback((focusIds: string[], preset: Parameters<typeof computeFocusCamera>[4]) => {
     if (!battle) return null;
-    return computeFocusCamera(worldRef.current, stageRef.current, battle, focusIds, preset);
-  }, [battle, stageRef, worldRef]);
+    return computeFocusCamera(planeRef.current, stageRef.current, battle, focusIds, preset);
+  }, [battle, planeRef, stageRef]);
 
   useEffect(() => {
     setAimFoeId(null);
@@ -79,7 +82,7 @@ export function useBattleCamera({
     const on = !!battle && battle.phase === "player" && !animating && card != null && effectiveTargeting(card) === "foe";
     const next = on
       ? computeAimCamera(
-          worldRef.current,
+          planeRef.current,
           stageRef.current,
           aimFoeId,
           aimFoeId && battle ? placementOf(battle, aimFoeId) : undefined,
@@ -87,14 +90,10 @@ export function useBattleCamera({
       : null;
     if (!animating) setCameraTarget(next);
     setAim((previous) => (sameCamera(previous, next) ? previous : next));
-  }, [aimFoeId, animating, battle, selectedUid, setCameraTarget, stageScale, stageRef, worldRef]);
+  }, [aimFoeId, animating, battle, selectedUid, setCameraTarget, planeRef, stageScale, stageRef]);
 
   return {
-    rig,
-    sceneRef,
-    worldRef,
-    stageRef,
-    dofTargetsRef,
+    ...rigApi,
     aim,
     setAimFoeId,
     setCameraTarget,

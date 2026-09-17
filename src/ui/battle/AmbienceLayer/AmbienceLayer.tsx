@@ -10,13 +10,14 @@ import s from "./AmbienceLayer.module.css";
 // 为什么是 Canvas 而不是一堆 div: 上百个粒子各自持续位移, 用 DOM 会产生同样数量的
 // 合成层与样式重算; Canvas 只有两张位图, 更新成本与粒子数近似无关。
 //
-// 两张画布(far/near)夹着 .battle-stage —— 近景粒子画在敌我单位**之上**并整层失焦,
-// 这是纵深的全部来源。两张画布由**同一个** rAF 循环驱动(不是两个循环)。
+// 两张画布(far/near)夹着敌人平面 —— 近景粒子画在敌我单位**之上**并整层失焦,
+// 这是纵深的全部来源。敌人平面脱离了透视(见 BattleScreen/parts/BattleStageLayer),
+// far/near 分属背景与近景两个纵深组, 故按 layer 各挂一个实例, 每个实例只驱动本层发射器。
 // ⚠ 某一层若没有登记发射器, 它的画布**根本不挂载**(见 AmbienceCanvases 里的 has):
 //   空画布每帧照样 clearRect ⇒ 被标脏 ⇒ 合成器每帧白传一次 ~2880×1620 的全屏纹理。
 //   目前多数地图只用 far 层, 这一条省下的是实打实的每帧带宽。
 //
-// 画布挂在 .battle-world 内 ⇒ 跟随分镜相机推近/平移/漂移/震屏, 粒子与场景是一体的。
+// 画布挂在纵深组的 .battle-world 内 ⇒ 跟随分镜相机推近/平移/漂移/震屏, 粒子与场景是一体的。
 // CSS 尺寸恒为设计画布尺寸(1920×1080), 位图分辨率按 devicePixelRatio 上浮但封顶 1.5 ——
 // 粒子都是软边色块, 相机推到 1.55× 也看不出这点差别, 没必要为它烧填充率。
 // ============================================================================
@@ -94,12 +95,16 @@ function spawn(p: Particle, def: EmitterDef, initial: boolean): void {
   }
 }
 
+type AmbienceLayerKind = "far" | "near";
+
 export function AmbienceLayer({
+  layer,
   mapId,
   paused,
   fxRate,
   dofTargetsRef,
 }: {
+  layer: AmbienceLayerKind; // far 实例同时负责闪烁层
   mapId: string | null;
   paused: boolean;
   fxRate: number;
@@ -108,15 +113,17 @@ export function AmbienceLayer({
   // 系统「减少动态效果」: 整层不挂载(连 rAF 都不起), 而不是挂载后再静止。
   // 检查放在外壳组件里, 内部组件的 hook 才不会变成条件调用。
   if (prefersReducedMotion()) return null;
-  return <AmbienceCanvases mapId={mapId} paused={paused} fxRate={fxRate} dofTargetsRef={dofTargetsRef} />;
+  return <AmbienceCanvases layer={layer} mapId={mapId} paused={paused} fxRate={fxRate} dofTargetsRef={dofTargetsRef} />;
 }
 
 function AmbienceCanvases({
+  layer,
   mapId,
   paused,
   fxRate,
   dofTargetsRef,
 }: {
+  layer: AmbienceLayerKind;
   mapId: string | null;
   paused: boolean;
   fxRate: number;
@@ -142,15 +149,15 @@ function AmbienceCanvases({
   //   就是在空烧带宽。将来登记了 near 发射器它会自动挂回来, 这里不需要维护名单。
   const has = useMemo(
     () => ({
-      far: def.emitters.some((e) => e.layer === "far"),
-      near: def.emitters.some((e) => e.layer === "near"),
+      far: layer === "far" && def.emitters.some((e) => e.layer === "far"),
+      near: layer === "near" && def.emitters.some((e) => e.layer === "near"),
     }),
-    [def],
+    [def, layer],
   );
 
   // 粒子池: 换地图才重建。数组长度恒定, 出界即就地复用同一个对象(无 GC 压力)。
   useEffect(() => {
-    groupsRef.current = def.emitters.map((e) => ({
+    groupsRef.current = def.emitters.filter((e) => e.layer === layer).map((e) => ({
       def: e,
       sprite: e.kind === "rain" ? null : makeDotSprite(e.color),
       items: Array.from({ length: e.count }, () => {
@@ -159,7 +166,7 @@ function AmbienceCanvases({
         return p;
       }),
     }));
-  }, [def]);
+  }, [def, layer]);
 
   useLayoutEffect(() => {
     const targets = dofTargetsRef.current;
@@ -224,7 +231,7 @@ function AmbienceCanvases({
   const style = { width: `${STAGE.width}px`, height: `${STAGE.height}px` };
   return (
     <>
-      {def.flicker && (
+      {layer === "far" && def.flicker && (
         <div
           className={s["battle-flicker"]}
           style={

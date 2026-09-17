@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { CINEMA } from "@/ui/battle/animations";
 import type { Camera } from "./camera";
-import { cameraCss, CAMERA_REST, CAMERA_REST_EPS } from "./camera";
+import { CAMERA_REST, CAMERA_REST_EPS } from "./camera";
+import type { WorldFx } from "./planeProjection";
+import { FX_REST, setDepthWillChange, writeDof, writeFrame, writePlane, type RigTargets } from "./rigWriters";
 import { Impulse, Spring, type SpringTuning } from "./spring";
 
-export interface CameraRigRefs {
-  sceneRef: React.RefObject<HTMLElement>;
-  worldRef: React.RefObject<HTMLElement>;
+export interface CameraRigRefs extends RigTargets {
   dofTargetsRef: React.MutableRefObject<Set<HTMLElement>>;
 }
 
@@ -19,6 +19,8 @@ export interface CameraRigApi {
   setTimeScale(scale: number): void;
   getTimeScale(): number;
   onRestChange(callback: (rest: boolean) => void): () => void;
+  /** 敌人平面的布局变了(单位挂载/尺寸变化)但相机静止时, 按最后一帧的镜头重写单位变换。 */
+  refreshPlane(): void;
 }
 
 const DEFAULT_TUNING: Record<keyof Camera, SpringTuning> = {
@@ -30,7 +32,12 @@ const DEFAULT_TUNING: Record<keyof Camera, SpringTuning> = {
   roll: { stiffness: 150, damping: 14 },
 };
 
-export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRefs): CameraRigApi {
+const dofOf = (camera: Camera) => String(Math.round(Math.max(0, Math.min(1, (camera.s - 1) / 0.8)) * 4) / 4);
+
+export function useCameraRig(refs: CameraRigRefs): CameraRigApi {
+  const { dofTargetsRef } = refs;
+  const refsRef = useRef(refs);
+  refsRef.current = refs;
   const targetRef = useRef<Camera>(CAMERA_REST);
   const tuningRef = useRef<Partial<Record<keyof Camera, SpringTuning>>>({});
   const timeScaleRef = useRef(1);
@@ -43,6 +50,8 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
   const mountedRef = useRef(false);
   const lastFrameRef = useRef(0);
   const dofRef = useRef<string | null>(null);
+  const lastCameraRef = useRef<Camera>(CAMERA_REST);
+  const lastFxRef = useRef<WorldFx>(FX_REST);
   const impulsesRef = useRef({ x: new Impulse(), y: new Impulse(), roll: new Impulse() });
   const springsRef = useRef<Record<keyof Camera, Spring> | null>(null);
   if (!springsRef.current) {
@@ -55,8 +64,7 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
   const setRest = (rest: boolean) => {
     if (restRef.current === rest) return;
     restRef.current = rest;
-    if (sceneRef.current) sceneRef.current.style.willChange = rest ? "auto" : "transform";
-    if (worldRef.current) worldRef.current.style.willChange = rest ? "auto" : "transform";
+    setDepthWillChange(refsRef.current, !rest);
     for (const callback of restListenersRef.current) callback(rest);
   };
   if (!apiRef.current) {
@@ -95,12 +103,26 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
         callback(restRef.current);
         return () => restListenersRef.current.delete(callback);
       },
+      refreshPlane() {
+        // 运动中下一帧自然会重写; 只有静止态需要补写。
+        if (restRef.current) writePlane(refsRef.current, lastCameraRef.current, lastFxRef.current);
+      },
     };
   }
 
   useEffect(() => {
     mountedRef.current = true;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const commitFrame = (camera: Camera, fx: WorldFx) => {
+      lastCameraRef.current = camera;
+      lastFxRef.current = fx;
+      writeFrame(refsRef.current, camera, fx);
+      const dof = dofOf(camera);
+      if (dofRef.current !== dof) {
+        writeDof(dofTargetsRef.current, dof);
+        dofRef.current = dof;
+      }
+    };
     const frame = (now: number) => {
       rafRef.current = null;
       if (!mountedRef.current || restRef.current) return;
@@ -116,10 +138,10 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
         springs[key].step(target[key], dt, tuning);
       }
       punchRef.current *= Math.exp(-dt * 18);
-      const impulseX = impulsesRef.current.x.step(dt);
-      const impulseY = impulsesRef.current.y.step(dt);
-      const impulseRollValue = impulsesRef.current.roll.step(dt);
-      const impulseRoll = reduced ? 0 : impulseRollValue;
+      const impulses = impulsesRef.current;
+      const impulseX = impulses.x.step(dt);
+      const impulseY = impulses.y.step(dt);
+      impulses.roll.step(dt);
       const idleX = !reduced && target === CAMERA_REST ? Math.sin(idleTimeRef.current * 0.7) * CINEMA.idleDrift.x : 0;
       const idleY = !reduced && target === CAMERA_REST ? Math.cos(idleTimeRef.current * 0.53) * CINEMA.idleDrift.y : 0;
       const camera: Camera = {
@@ -134,41 +156,28 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
       const cameraRest = (Object.keys(target) as (keyof Camera)[]).every(
         (key) => Math.abs(springs[key].value - target[key]) < CAMERA_REST_EPS && Math.abs(springs[key].velocity) < CAMERA_REST_EPS,
       );
-      const impulsesRest = [impulsesRef.current.x, impulsesRef.current.y, impulsesRef.current.roll].every(
+      const impulsesRest = [impulses.x, impulses.y, impulses.roll].every(
         (impulse) => Math.abs(impulse.value) < CAMERA_REST_EPS && Math.abs(impulse.velocity) < CAMERA_REST_EPS,
       );
       const idleRest = CINEMA.idleDrift.x === 0 && CINEMA.idleDrift.y === 0;
       if (cameraRest && Math.abs(punchRef.current) < CAMERA_REST_EPS && impulsesRest && idleRest) {
         for (const key of Object.keys(target) as (keyof Camera)[]) springs[key].snap(target[key]);
         punchRef.current = 0;
-        for (const impulse of [impulsesRef.current.x, impulsesRef.current.y, impulsesRef.current.roll]) {
+        for (const impulse of [impulses.x, impulses.y, impulses.roll]) {
           impulse.value = 0;
           impulse.velocity = 0;
         }
-        if (sceneRef.current) sceneRef.current.style.transform = cameraCss(camera);
-        if (worldRef.current) worldRef.current.style.transform = "";
-        const dof = String(Math.round(Math.max(0, Math.min(1, (camera.s - 1) / 0.8)) * 4) / 4);
-        if (dofRef.current !== dof) {
-          for (const target of dofTargetsRef.current) target.style.setProperty("--dof", dof);
-          dofRef.current = dof;
-        }
+        commitFrame(camera, FX_REST);
         setRest(true);
         return;
       }
 
-      if (sceneRef.current) sceneRef.current.style.transform = cameraCss(camera);
-      if (worldRef.current) worldRef.current.style.transform = `translate(${idleX + impulseX}px, ${idleY + impulseY}px) scale(${1 + punchRef.current * 0.12})`;
-      const dof = String(Math.round(Math.max(0, Math.min(1, (camera.s - 1) / 0.8)) * 4) / 4);
-      if (dofRef.current !== dof) {
-        for (const target of dofTargetsRef.current) target.style.setProperty("--dof", dof);
-        dofRef.current = dof;
-      }
+      commitFrame(camera, { x: idleX + impulseX, y: idleY + impulseY, k: 1 + punchRef.current * 0.12 });
       rafRef.current = requestAnimationFrame(frame);
     };
     wakeRef.current = () => {
       if (!mountedRef.current) return;
-      if (sceneRef.current) sceneRef.current.style.willChange = "transform";
-      if (worldRef.current) worldRef.current.style.willChange = "transform";
+      setDepthWillChange(refsRef.current, true);
       setRest(false);
       if (rafRef.current === null) {
         lastFrameRef.current = performance.now();
@@ -183,7 +192,7 @@ export function useCameraRig({ sceneRef, worldRef, dofTargetsRef }: CameraRigRef
       rafRef.current = null;
       wakeRef.current = () => undefined;
     };
-  }, [dofTargetsRef, sceneRef, worldRef]);
+  }, [dofTargetsRef]);
 
   return apiRef.current;
 }
