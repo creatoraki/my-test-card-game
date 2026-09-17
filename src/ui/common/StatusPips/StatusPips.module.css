@@ -8,6 +8,16 @@
   flex-direction: row-reverse;
   justify-content: flex-start;
 }
+.status-pips.vertical {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--pip-rows, 5), var(--pip-box, 30px));
+  grid-auto-columns: var(--pip-box, 30px);
+  direction: rtl;
+}
+.status-pips.vertical .pip {
+  direction: ltr;
+}
 .pip {
   position: relative;
   display: grid;
@@ -20,17 +30,6 @@
   color: #e7f4f5;
   cursor: help;
 }
-.pip::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(145deg, #18282ddd, #081013e8);
-  border: 1px solid var(--pip-border, var(--border));
-  backdrop-filter: blur(4px);
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-}
 .pip > b {
   position: absolute;
   right: 3px;
@@ -42,18 +41,8 @@
   line-height: 1;
   text-shadow: 1px 1px 0 #05080a, -1px -1px 0 #05080a, 1px -1px 0 #05080a, -1px 1px 0 #05080a;
 }
-.pip-debuff {
-  --pip-border: #b34c63;
-}
-.pip-buff {
-  --pip-border: #3e9a72;
-}
 .pip-shield {
-  --pip-border: #34567a;
   color: #9cc4ff;
-}
-.pip-duration {
-  --pip-border: #b98a43;
 }
 .pip-duration > b {
   color: #ffd98a;
@@ -73,7 +62,4 @@
 .status-icon:is(img),
 .shield-icon:is(img) {
   filter: drop-shadow(0 0 2px rgba(158, 216, 255, 0.45));
-}
-.pip-shield::before {
-  background: linear-gradient(145deg, #1d2a3aee, #0b131de8);
 }

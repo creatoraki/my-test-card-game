@@ -13,6 +13,7 @@ export function StatusPips({
   detail = false,
   shield = 0,
   reverse = false,
+  vertical = false,
   popoverSide,
   team = "player",
 }: {
@@ -25,8 +26,10 @@ export function StatusPips({
   shield?: number;
   /** 从右往左排列，换行后继续向下。 */
   reverse?: boolean;
+  /** 从右上角起竖排，排满一列后向左换列。 */
+  vertical?: boolean;
   /** 详情浮层在图标上方的对齐方式。 */
-  popoverSide?: "top" | "top-right" | "top-left";
+  popoverSide?: "left" | "top" | "top-right" | "top-left";
   /** 状态持有者阵营, 用于将节拍解释为回合或敌人行动。 */
   team?: Team;
 }) {
@@ -75,7 +78,7 @@ export function StatusPips({
       {!shieldPip && stacks > 1 && <b>{stacks}</b>}
       {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
       {detail && (
-        <RailPopover side={popoverSide ?? "top"}>
+        <RailPopover side={popoverSide ?? "top"} size="md">
           <PopoverHead icon={detailIcon} name={name} />
           <p>{desc}</p>
           <small>
@@ -88,7 +91,7 @@ export function StatusPips({
   );
 
   return (
-    <div className={cx(s["status-pips"], reverse && s.reverse, className)}>
+    <div className={cx(s["status-pips"], reverse && s.reverse, vertical && s.vertical, className)}>
       {shield > 0 && renderPip({
         key: "shield",
         icon: <ShieldIcon className={s["shield-icon"]} />,

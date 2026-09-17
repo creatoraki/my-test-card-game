@@ -1,7 +1,7 @@
 .head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--popover-head-gap, 12px);
   margin-bottom: 4px;
 }
 
@@ -30,10 +30,10 @@
 }
 
 .name {
-  font-size: 20px;
+  font-size: var(--popover-name-size, 20px);
 }
 
 .meta {
   color: var(--muted);
-  font-size: 18px;
+  font-size: var(--popover-meta-size, 18px);
 }

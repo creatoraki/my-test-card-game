@@ -291,7 +291,7 @@ span.combatant-portrait {
   pointer-events: auto;
 }
 .combatant-statuses {
-  --pip-box: 40px;
+  --pip-box: 56px;
 }
 /* 血条下方的读数行: 意图(仅洞察时) + 沙漏倒计时。 */
 .combatant-readout {
