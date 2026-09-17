@@ -28,6 +28,12 @@
 .item:hover,
 .item:focus-visible {
   transform: translateY(-2px);
+}
+/* 提亮只作用在图标本身, 不连带把详情卡也提亮。 */
+.item:hover > svg,
+.item:focus-visible > svg,
+.item:hover::before,
+.item:focus-visible::before {
   filter: brightness(1.16);
 }
 .item:hover::before,
@@ -45,24 +51,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.item :global(.popover) strong {
-  color: var(--assemble-accent);
-}
-.item :global(.popover) p {
-  margin: 5px 0;
-  color: #bdd0cc;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-.pop-icon {
-  color: var(--assemble-accent);
-}
-
-.pop-icon svg {
-  stroke-width: 1.4;
-}
-
 @media (max-width: 700px) {
   .item {
     width: 42px;

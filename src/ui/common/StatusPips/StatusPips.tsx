@@ -2,8 +2,10 @@ import type { ReactNode } from "react";
 import type { StatusInstance, Team } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { statusArtOf } from "@/ui/art/statusArt";
+import { statusAccentOf } from "@/ui/art/statusAccent";
+import { BuffDetailCard, type BuffStat } from "@/ui/common/BuffDetailCard";
 import { cx } from "@/ui/common/cx";
-import { PopoverHead, RailPopover } from "@/ui/common/RailPopover";
+import { RailPopover } from "@/ui/common/RailPopover";
 import { ShieldIcon } from "./icons";
 import s from "./StatusPips.module.css";
 
@@ -35,6 +37,15 @@ export function StatusPips({
 }) {
   if (statuses.length === 0 && shield <= 0) return null;
 
+  const durationUnit = team === "enemy" ? "次行动" : "回合";
+
+  const statsOf = (shieldPip: boolean, stacks: number, duration?: number): BuffStat[] => {
+    if (shieldPip) return [{ label: "护盾值", value: stacks }];
+    const stats: BuffStat[] = [{ label: "当前层数", value: stacks }];
+    if (duration != null) stats.push({ label: "剩余", value: duration, suffix: durationUnit });
+    return stats;
+  };
+
   const renderPip = ({
     key,
     emoji,
@@ -46,6 +57,7 @@ export function StatusPips({
     shieldPip = false,
     icon,
     detailIcon,
+    accent,
   }: {
     key: string;
     emoji?: string;
@@ -57,6 +69,7 @@ export function StatusPips({
     kind: "buff" | "debuff";
     duration?: number;
     shieldPip?: boolean;
+    accent: string;
   }) => (
     <span
       key={key}
@@ -71,20 +84,21 @@ export function StatusPips({
       aria-label={
         shieldPip
           ? `护盾，当前 ${stacks}`
-          : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${team === "enemy" ? "次行动" : "回合"}` : ""}`
+          : `${name}，当前层数 ${stacks}${duration != null ? `，剩余 ${duration} ${durationUnit}` : ""}`
       }
     >
       {icon ?? emoji}
       {!shieldPip && stacks > 1 && <b>{stacks}</b>}
       {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
       {detail && (
-        <RailPopover side={popoverSide ?? "top"} size="md">
-          <PopoverHead icon={detailIcon} name={name} />
-          <p>{desc}</p>
-          <small>
-            {shieldPip ? "护盾值" : "当前层数"} {stacks}
-            {duration != null && <> · 剩余 {duration} {team === "enemy" ? "次行动" : "回合"}</>}
-          </small>
+        <RailPopover side={popoverSide ?? "top"} bare>
+          <BuffDetailCard
+            icon={detailIcon}
+            name={name}
+            desc={desc}
+            accent={accent}
+            stats={statsOf(shieldPip, stacks, duration)}
+          />
         </RailPopover>
       )}
     </span>
@@ -101,6 +115,7 @@ export function StatusPips({
         stacks: shield,
         kind: "buff",
         shieldPip: true,
+        accent: statusAccentOf("shield"),
       })}
       {statuses.map((st) => {
         const def = getStatusDef(st.id);
@@ -117,6 +132,7 @@ export function StatusPips({
           stacks: st.stacks,
           kind: def?.kind ?? "buff",
           duration: st.duration,
+          accent: statusAccentOf(st.id, def?.kind),
         });
       })}
     </div>

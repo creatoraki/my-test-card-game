@@ -45,6 +45,15 @@
 .lg small {
   font-size: 36px;
 }
+.bare {
+  width: auto;
+  padding: 0;
+  line-height: normal;
+  background: none;
+  border: 0;
+  clip-path: none;
+  box-shadow: none;
+}
 .left {
   right: calc(100% + 12px);
   transform: translateX(8px);

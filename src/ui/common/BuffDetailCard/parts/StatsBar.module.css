@@ -1,0 +1,119 @@
+/* 设计图底栏 x84–1452, y758–890 → 左右内缩 8, 高 45。 */
+.wrap {
+  position: relative;
+  z-index: 1;
+  margin: 3px 8px 0;
+}
+
+.chevron-left,
+.chevron-right {
+  position: absolute;
+  top: -8px;
+  z-index: 2;
+  display: block;
+  pointer-events: none;
+}
+
+.chevron-left {
+  left: 1px;
+}
+
+.chevron-right {
+  right: 1px;
+}
+
+.chevron-left path,
+.chevron-right path {
+  fill: none;
+  stroke: #4d7a96;
+  stroke-width: 1.2;
+}
+
+.bar {
+  --panel-fill: #06111ad9;
+  --panel-stroke: #34617f;
+  display: flex;
+  height: 45px;
+  align-items: center;
+  padding-left: 23px;
+}
+
+.hourglass {
+  flex: none;
+  color: color-mix(in srgb, var(--accent) 55%, #5fe8d0);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 60%, transparent));
+}
+
+.hourglass path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+}
+
+.hourglass path:last-child {
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.85;
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  margin-left: 12px;
+  background: linear-gradient(#3a678400, #4a7fa3 30%, #4a7fa3 70%, #3a678400);
+}
+
+.stats {
+  display: flex;
+  align-items: baseline;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.label {
+  color: #b9c9df;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.value {
+  margin: 0 8px 0 10px;
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.value:last-child {
+  margin-right: 0;
+}
+
+.dot {
+  margin: 0 12px 0 5px;
+  color: #6f8499;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.decor {
+  position: absolute;
+  top: 31px;
+  left: 377px;
+  display: block;
+  pointer-events: none;
+}
+
+.stripe {
+  fill: #3f78a0;
+  opacity: 0.85;
+}
+
+.rule {
+  fill: none;
+  stroke: #2f5670;
+  stroke-width: 1;
+}
