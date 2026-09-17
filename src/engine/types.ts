@@ -3,6 +3,9 @@
 // ============================================================================
 
 import type { QuirkId } from "./quirks";
+import type { DamageModifierSink } from "./damage/types";
+
+export type { DamageModifiers, DamageModifierSink } from "./damage/types";
 
 export type Team = "player" | "enemy";
 export type Phase = "player" | "won" | "lost";
@@ -119,6 +122,7 @@ export type EffectType =
   | "ADD_CARD_TO_HAND"
   | "RESTORE_HP_LIMIT"
   | "REMOVE_STATUS"
+  | "STRIP_STATUS"
   | "VALUE_BOOST"
   | "LOSE_HP"
   | "GAIN_POLLUTION"
@@ -224,8 +228,10 @@ export interface EffectDescriptor {
   conditionStatus?: string;
   mark?: string; // MARK_CARDS: 要写入卡牌实例的标记 id
   // MARK_CARDS: 手牌选择方式。eventCard = 触发本次被动的那张牌(state.passiveEventCardUid)。
-  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard" | "handBottom" | "handRandomUnmarked";
+  markPick?: "handRandom" | "handAll" | "handRandomNonStarPay" | "handHighestCostRandom" | "eventCard" | "handBottom" | "handRandomUnmarked" | "targetHandRandom";
   markUnique?: boolean; // MARK_CARDS: 手牌中已存在该标记时跳过
+  onEachRemoved?: EffectDescriptor[]; // STRIP_STATUS: 每移除一个状态后结算
+  onNoneRemoved?: EffectDescriptor[]; // STRIP_STATUS: 一个状态都没有移除时结算
   recoverPick?: "choose" | "random"; // RECOVER_FROM_DISCARD: 玩家选择或随机选择
   recoverMark?: string; // RECOVER_FROM_DISCARD: 回收的牌附加标记
   handChoiceAction?: "moveToBottom" | "noto" | "cultivateTick" | "markSource" | "markTarget" | "devour" | "stripMarks"; // CHOOSE_HAND_CARD: 选牌后的动作
@@ -452,11 +458,12 @@ export interface StatusCtx {
 export interface DamageCtx {
   sourceId?: string;
   targetId: string;
-  amount: number; // 在管线中被逐段修改
-  bonusPct: number; // 加算型增伤池，所有来源相加后一次性乘算
+  amount: number; // 在管线中被逐段修改; 乘区修正见 damage/modifiers.ts
   flags: string[];
   isAttack: boolean;
   fixed: boolean; // 固定伤害: 不使用攻击力, 也不吃防御与格挡
+  single?: boolean; // 单体攻击: 可触发护航分担
+  guarded?: boolean; // 本次伤害是否已经被护航分担
   missed: boolean; // 命中判定失手 —— 后续各段全部跳过
   crit: boolean; // 本次是否暴击
   blockRolled: boolean; // 本次是否触发格挡(伤害减半)
@@ -464,6 +471,7 @@ export interface DamageCtx {
   hpLost: number;
   downed?: boolean; // 目标处于我方濒死态, 本次伤害触发死亡骰
   fatal?: boolean; // 濒死死亡骰命中
+  keepHpLimit?: boolean; // 由 onBeforeHpLoss 设置: 本次扣血不压低体力极限
 }
 
 export interface HealCtx {
@@ -478,11 +486,17 @@ export interface HealCtx {
 export type DamageResult = "missed" | "hit" | null;
 
 export interface StatusHooks {
+  onApplied?: (c: StatusCtx) => void; // 状态合并、限层并清理后触发
   onTempo?: (c: StatusCtx) => void;
   onTick?: (c: StatusCtx) => void;
-  modifyOutgoingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 施放者身上的状态
-  modifyIncomingDamage?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上的状态
+  // 乘区修正(纯计算, 预览也会调用): 只能往 mods 里登记, 不能改 dmg, 不能有副作用。
+  modifyOutgoingDamage?: (c: StatusCtx, dmg: Readonly<DamageCtx>, mods: DamageModifierSink) => void; // 施放者身上的状态
+  modifyIncomingDamage?: (c: StatusCtx, dmg: Readonly<DamageCtx>, mods: DamageModifierSink) => void; // 目标身上的状态
+  modifyIncomingHeal?: (c: StatusCtx, heal: Readonly<HealCtx>) => number; // 返回受到治疗倍率
+  onBeforeHitRoll?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上: 命中掷骰前, 可设 dmg.missed(罗生门)
+  onBeforeHpLoss?: (c: StatusCtx, dmg: DamageCtx) => void; // 目标身上: 护盾吸收后、扣血前, 可改 amount 或设 keepHpLimit
   onAfterAttacked?: (c: StatusCtx, dmg: DamageCtx) => void; // 荆棘等
+  onGuardAlly?: (c: StatusCtx, dmg: DamageCtx) => void; // 护卫其他友方承受的单体攻击
   onShieldBroken?: (c: StatusCtx, dmg: DamageCtx) => void; // 护盾被伤害击破时
   onHealed?: (c: StatusCtx, heal: HealCtx) => void; // 持有者受到治疗时
   onRoundStart?: (c: StatusCtx) => void; // 我方回合开始(抽牌之前)
@@ -750,6 +764,8 @@ export interface DamageOpts {
   flags?: string[];
   isAttack?: boolean; // 攻击: 吃力量/虚弱, 需要命中判定, 可暴击
   fixed?: boolean; // 固定伤害: 跳过防御减伤与格挡
+  single?: boolean; // 单体攻击: 可触发护航分担
+  guarded?: boolean; // 本次伤害是否已经被护航分担
   mustHit?: boolean; // 必中: 跳过命中判定
   unblockable?: boolean; // 不被护盾吸收
   pure?: boolean; // 跳过施放者与目标的伤害状态修正

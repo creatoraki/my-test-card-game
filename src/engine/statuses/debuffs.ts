@@ -1,4 +1,4 @@
-import type { DamageCtx, StatusCtx, StatusDef } from "../types";
+import type { StatusDef } from "../types";
 import { RULES } from "../rules";
 
 export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
@@ -12,8 +12,8 @@ export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
     resistMode: "duration",
     desc: `造成的攻击伤害 ×${RULES.combat.weakMultiplier}。持续指定拍数。`,
     hooks: {
-      modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
-        if (dmg.isAttack) dmg.amount *= RULES.combat.weakMultiplier;
+      modifyOutgoingDamage: (_c, dmg, mods) => {
+        if (dmg.isAttack) mods.mulDealt(RULES.combat.weakMultiplier);
       },
     },
   },
@@ -27,8 +27,8 @@ export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
     resistMode: "duration",
     desc: `受到的伤害 ×${RULES.combat.vulnerableMultiplier}。持续指定拍数。`,
     hooks: {
-      modifyIncomingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
-        dmg.amount *= RULES.combat.vulnerableMultiplier;
+      modifyIncomingDamage: (_c, _dmg, mods) => {
+        mods.mulTaken(RULES.combat.vulnerableMultiplier);
       },
     },
   },
@@ -42,8 +42,8 @@ export const DEBUFF_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "max",
     desc: `受到的伤害 ×${RULES.combat.hunterMarkMultiplier}。持续 1 回合。`,
     hooks: {
-      modifyIncomingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
-        dmg.amount *= RULES.combat.hunterMarkMultiplier;
+      modifyIncomingDamage: (_c, _dmg, mods) => {
+        mods.mulTaken(RULES.combat.hunterMarkMultiplier);
       },
     },
   },

@@ -16,7 +16,7 @@ import { applyStatus, log } from "./ops";
 import { rollChallenges } from "./challenges";
 import { getEncounter, getEnemyDef, slotDefId } from "../data";
 
-const isTest = import.meta.env.isTest === "true";
+const isBattleTest = import.meta.env.BattleTest === "true";
 
 export interface AllyInit {
   id: string;
@@ -88,7 +88,7 @@ export function createBattleState(
     const id = `${defId}#${i}`;
     const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";
     defSeen[defId] = (defSeen[defId] ?? 0) + 1;
-    const maxHp = isTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
+    const maxHp = isBattleTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
     const enemy: Enemy = {
       id,
       enemyDefId: defId,

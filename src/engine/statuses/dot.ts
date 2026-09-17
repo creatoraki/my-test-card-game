@@ -34,14 +34,18 @@ export const DOT_STATUS_DEFS: Record<string, StatusDef> = {
     resistMode: "stacks",
     hooks: {
       onTempo: (c: StatusCtx) => {
-        if (c.stacks > 0)
-          c.ops.dealDamage(c.state, undefined, c.ownerId, c.stacks, {
+        if (c.stacks > 0) {
+          const flammable = c.state.combatants[c.ownerId]?.statuses.some(
+            (status) => status.id === "flammable" && status.stacks > 0,
+          );
+          c.ops.dealDamage(c.state, undefined, c.ownerId, c.stacks * (flammable ? 2 : 1), {
             flags: ["burn"],
             fixed: true,
             pure: true,
             unblockable: true,
             noLimitLoss: true,
           });
+        }
       },
     },
   },

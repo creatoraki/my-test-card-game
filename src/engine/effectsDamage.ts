@@ -94,6 +94,7 @@ export function applyDamageEffect(
       const result = ops.dealDamage(state, sourceId, id, dmg, {
         isAttack: true,
         fixed,
+        single: (effect.target ?? "primary") === "primary" || (effect.target === "randomFoe" && hitTargets.length === 1),
         mustHit,
         flags: effect.flags,
         unblockable,

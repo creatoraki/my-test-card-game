@@ -10,7 +10,7 @@
 // ============================================================================
 
 import type { BattleState, Combatant, SquadResourceMods, StatBlock, StatModifier } from "./types";
-import { OVERLOAD_STATUS_ID, RULES, capProb } from "./rules";
+import { RULES, capProb } from "./rules";
 import { STATUS_DEFS } from "./statuses";
 
 // 全零面板。新增属性时只需在 types.StatBlock 与这里各加一行。
@@ -121,11 +121,6 @@ export function burdenOf(state: BattleState, cmb: Combatant): number {
   return cmb.team === "player" ? state.burden : 0;
 }
 
-function pollutionDodgeOf(cmb: Combatant): number {
-  const stacks = cmb.statuses.find((status) => status.id === OVERLOAD_STATUS_ID)?.stacks ?? 0;
-  return stacks * RULES.combat.overloadDodgePerStack;
-}
-
 // 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。
 export function hitChance(
   state: BattleState,
@@ -134,7 +129,7 @@ export function hitChance(
   bonusPct = 0,
 ): number {
   const c = RULES.combat;
-  const dodge = capProb(statOf(defender, "dodgeRate") + pollutionDodgeOf(defender));
+  const dodge = statOf(defender, "dodgeRate");
   const effectiveDodge = Math.max(0, dodge - statOf(attacker, "precision"));
   const raw =
     c.baseHitChance +

@@ -36,8 +36,8 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "max",
     desc: "造成的攻击伤害 + 层数。持续存在。",
     hooks: {
-      modifyOutgoingDamage: (c: StatusCtx, dmg: DamageCtx) => {
-        if (dmg.isAttack) dmg.amount += c.inst.stacks;
+      modifyOutgoingDamage: (c, dmg, mods) => {
+        if (dmg.isAttack) mods.addFlat(c.inst.stacks);
       },
     },
   },
@@ -48,7 +48,10 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     kind: "buff",
     stackMode: "add",
     refreshMode: "max",
-    statMods: { attack: RULES.combat.overloadAttackPerStack },
+    statMods: {
+      attack: RULES.combat.overloadAttackPerStack,
+      dodgeRate: RULES.combat.overloadDodgePerStack,
+    },
     desc: `每层: 攻击力 +${RULES.combat.overloadAttackPerStack}, 闪避 +${RULES.combat.overloadDodgePerStack}%。持续存在。`,
   },
   // 罗生门 —— 回合开始抽 1; 期间首次被攻击时消耗自身, 闪避该次攻击并抽 2。
@@ -65,7 +68,7 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
       onRoundStart: (c: StatusCtx) => {
         c.ops.draw(c.state, 1);
       },
-      modifyIncomingDamage: (c: StatusCtx, dmg: DamageCtx) => {
+      onBeforeHitRoll: (c: StatusCtx, dmg: DamageCtx) => {
         if (!dmg.isAttack || c.inst.stacks <= 0 || dmg.missed) return;
         dmg.missed = true;
         dmg.amount = 0;
@@ -87,8 +90,8 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "override",
     desc: `造成的攻击伤害 +${RULES.combat.sharpBonusPct}%。持续指定拍数。`,
     hooks: {
-      modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
-        if (dmg.isAttack) dmg.bonusPct += RULES.combat.sharpBonusPct;
+      modifyOutgoingDamage: (_c, dmg, mods) => {
+        if (dmg.isAttack) mods.addDealtPct(RULES.combat.sharpBonusPct);
       },
     },
   },
@@ -102,8 +105,8 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "override",
     desc: `造成的攻击伤害 ×${RULES.combat.chargedShellDamageMultiplier}。护盾被击破时眩晕 1 拍并掉落一张随机归属的废料弹片。`,
     hooks: {
-      modifyOutgoingDamage: (_c: StatusCtx, dmg: DamageCtx) => {
-        if (dmg.isAttack) dmg.amount *= RULES.combat.chargedShellDamageMultiplier;
+      modifyOutgoingDamage: (_c, dmg, mods) => {
+        if (dmg.isAttack) mods.mulDealt(RULES.combat.chargedShellDamageMultiplier);
       },
       onShieldBroken: (c: StatusCtx) => {
         const owner = c.state.combatants[c.ownerId];
@@ -154,13 +157,6 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     stackMode: "add",
     desc: "每层使本场战斗结算时的掉率提高 30%。",
   },
-  buzhou: {
-    id: "buzhou",
-    name: "不周山",
-    emoji: "🏔️",
-    kind: "buff",
-    desc: "持续期间体力极限不会下降。持续指定拍数。",
-  },
   insight: {
     id: "insight",
     name: "洞察",
@@ -178,17 +174,6 @@ export const BUFF_STATUS_DEFS: Record<string, StatusDef> = {
     refreshMode: "override",
     statModsPct: { attack: 20 },
     desc: "攻击力 +20%。",
-  },
-  defenseUp: {
-    id: "defenseUp",
-    name: "坚固",
-    emoji: "🛡️",
-    kind: "buff",
-    maxStacks: 1,
-    stackMode: "max",
-    refreshMode: "override",
-    statModsPct: { defense: 20 },
-    desc: "防御力 +20%。",
   },
   taunt: {
     id: "taunt",

@@ -121,10 +121,14 @@ function applyRecover(state: BattleState, effect: EffectDescriptor, sourceId: st
   ops.log(state, "请选择一张弃牌堆中的牌回到手牌");
 }
 
-function applyMarkCards(state: BattleState, effect: EffectDescriptor): void {
+function applyMarkCards(state: BattleState, effect: EffectDescriptor, targetIds: string[]): void {
   if (!effect.mark || !effect.markPick) return;
   if (effect.markUnique && Object.values(state.cards).some((card) => card.marks?.includes(effect.mark!))) return;
-  const markable = playableHandUids(state);
+  const primaryTarget = targetIds[0] ? state.combatants[targetIds[0]] : undefined;
+  const targetOwner = primaryTarget?.team === "player" ? primaryTarget.charId : undefined;
+  const markable = playableHandUids(state).filter((uid) =>
+    effect.markPick !== "targetHandRandom" || state.cards[uid]?.ownerCharId === targetOwner,
+  );
   if (effect.markPick === "eventCard") {
     const uid = state.passiveEventCardUid;
     const target = uid ? state.cards[uid] : undefined;
@@ -271,7 +275,7 @@ export function applyHandEffect(
   state: BattleState,
   effect: EffectDescriptor,
   sourceId: string,
-  _targetIds: string[],
+  targetIds: string[],
 ): EffectResolution {
   switch (effect.type) {
     case "DISCARD":
@@ -281,7 +285,7 @@ export function applyHandEffect(
       applyRecover(state, effect, sourceId);
       break;
     case "MARK_CARDS":
-      applyMarkCards(state, effect);
+      applyMarkCards(state, effect, targetIds);
       break;
     case "CONVERT_CARD_TYPE":
       applyConvert(state, effect);

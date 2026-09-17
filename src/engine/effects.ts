@@ -17,6 +17,7 @@ import { addPollution } from "./pollution";
 import { settleInsurance } from "./insurance";
 import { applyHandEffect } from "./effectsHand";
 import { applyDamageEffect } from "./effectsDamage";
+import { applyStripStatusEffect } from "./effectsStrip";
 import { applyRevealEffect } from "./effectsReveal";
 import {
   ASSEMBLE_IDS,
@@ -230,11 +231,13 @@ function applyEffect(
     }
     case "DRAIN_SHIELD": {
       let drained = 0;
+      const maxAmount = effect.maxAmount == null ? Infinity : Math.max(0, effect.maxAmount);
       for (const id of targetIds) {
         const target = state.combatants[id];
         if (!target || !target.alive) continue;
-        drained += target.shield;
-        target.shield = 0;
+        const amountToDrain = Math.min(target.shield, maxAmount);
+        drained += amountToDrain;
+        target.shield -= amountToDrain;
       }
       if (drained > 0 || amount > 0) {
         ops.gainShield(state, sourceId, sourceId, drained + amount);
@@ -395,6 +398,8 @@ function applyEffect(
       }
       break;
     }
+    case "STRIP_STATUS":
+      return applyStripStatusEffect(state, effect, sourceId, targetIds, { resolveEffects });
     case "GAIN_SQUAD_BUFF": {
       if (effect.squadBuffPick === "choose") {
         if (!state.pendingChoice)

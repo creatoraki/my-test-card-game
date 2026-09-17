@@ -1,4 +1,4 @@
-import type { BattleRelic, BattleState, Card, DamageCtx } from "../types";
+import type { BattleRelic, BattleState, Card, DamageCtx, DamageModifierSink } from "../types";
 import { RELIC_BEHAVIORS } from "./index";
 
 // 行为型遗物可以触发抽牌等后续钩子，因此与声明式遗物共用同一递归深度上限。
@@ -21,7 +21,9 @@ export interface RelicBehavior {
   onCardDrawn?: (ctx: RelicBehaviorContext, cardUid: string) => void;
   onCrit?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void;
   onAllyHpCrossedHalf?: (ctx: RelicBehaviorContext, targetId: string) => void;
-  modifyOutgoingDamage?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void;
+  // 纯计算, 预览也会调用: 只能往 mods 里登记。一次性加成的消耗放到 afterDamageModified。
+  modifyOutgoingDamage?: (ctx: RelicBehaviorContext, dmg: Readonly<DamageCtx>, mods: DamageModifierSink) => void;
+  afterDamageModified?: (ctx: RelicBehaviorContext, dmg: DamageCtx) => void; // 乘区结算完毕、命中判定前(不论最终是否命中)
 }
 
 export interface StatusApplyInfo {
@@ -42,7 +44,8 @@ type HookArgs = {
   onCardDrawn: [string];
   onCrit: [DamageCtx];
   onAllyHpCrossedHalf: [string];
-  modifyOutgoingDamage: [DamageCtx];
+  modifyOutgoingDamage: [DamageCtx, DamageModifierSink];
+  afterDamageModified: [DamageCtx];
 };
 
 type RelicHook = keyof HookArgs;
