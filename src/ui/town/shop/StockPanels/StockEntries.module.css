@@ -1,7 +1,8 @@
+/* 左栏宽 240（见 shopLayout.ts）+ 左边距 14 + 间隔 45；面板尺寸不变，整体右移 35px。 */
 .window {
   position: absolute;
-  left: 264px;
-  right: 70px;
+  left: 299px;
+  right: 35px;
   top: 100px;
   bottom: 58px;
   pointer-events: auto;

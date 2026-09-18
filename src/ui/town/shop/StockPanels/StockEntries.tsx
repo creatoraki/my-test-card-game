@@ -11,6 +11,7 @@ import WarehousePanel from "@/ui/town/shop/WarehousePanel/WarehousePanel";
 import { ShopHeader } from "@/ui/town/shop/ShopHeader";
 import { ShopNavigation, type ShopPage } from "@/ui/town/shop/ShopNavigation";
 import { ShopUpgradePanel } from "@/ui/town/shop/ShopUpgradePanel";
+import { SIDEBAR_WIDTH } from "@/ui/town/shop/shopLayout";
 import { RecyclePanel } from "./RecyclePanel";
 import s from "./StockEntries.module.css";
 
@@ -39,7 +40,7 @@ export function StockEntries({ onBack }: { onBack?: () => void }) {
 
   return (
     <>
-      <ShopNavigation page={view === "upgrade" ? "shop" : view} onChange={setView} />
+      <ShopNavigation page={view === "upgrade" ? "shop" : view} onChange={setView} itemWidth={SIDEBAR_WIDTH} />
       <ShopWindow
         className={s.window}
         ariaLabel={titles[shownView]}

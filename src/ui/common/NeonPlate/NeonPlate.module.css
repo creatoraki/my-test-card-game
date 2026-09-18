@@ -6,3 +6,31 @@
   overflow: visible;
   pointer-events: none;
 }
+
+/* 以下变量均可选，用于低调态（如未选中）微调牌面层次。 */
+.bodyMid {
+  stop-color: var(--plate-middle, color-mix(in srgb, var(--plate-start) 45%, var(--plate-end)));
+}
+
+/* 底部中央辉光，默认透明。 */
+.bloom {
+  stop-color: var(--plate-bloom, transparent);
+}
+
+.stroke {
+  stroke-width: var(--plate-stroke, 1.6px);
+}
+
+.innerGlow {
+  opacity: var(--plate-inner-glow, .32);
+}
+
+/* 外发光强度，未选中等低调态可用 --plate-glow 压低。 */
+.glow {
+  opacity: var(--plate-glow, .75);
+}
+
+.innerLine {
+  stroke: var(--plate-inner, var(--edge-mid));
+  opacity: var(--plate-inner-opacity, .5);
+}

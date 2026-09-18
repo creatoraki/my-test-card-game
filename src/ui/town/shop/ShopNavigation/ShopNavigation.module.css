@@ -9,11 +9,17 @@
 }
 
 .entry {
-  --plate-start: #0e2530eb;
-  --plate-end: #09141bf2;
-  --edge-hot: #c8fbff;
-  --edge-mid: #4fd6ea;
-  --edge-dim: #2a7f8f;
+  /* 未选中：沿用出征页难度按钮的冷灰金属配色（MapDifficultyPanel / SortieFrame）。 */
+  --plate-start: #131e24da;
+  --plate-middle: #070b10e8;
+  --plate-end: #1c2731b8;
+  --edge-hot: #f0f9ff;
+  --edge-mid: #69767f;
+  --edge-dim: #c8d8e2;
+  --plate-glow: 0;
+  --plate-inner-glow: 0;
+  --plate-inner: #a6c7db;
+  --plate-inner-opacity: .13;
   position: relative;
   isolation: isolate;
   display: flex;
@@ -24,36 +30,46 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #d6f2fb;
+  color: #f0f3f6;
   font-size: var(--nav-label-size, 20px);
   font-weight: 700;
   letter-spacing: 1px;
   text-align: left;
   cursor: var(--cursor-pointer);
-  filter: drop-shadow(0 0 4px #4fd6ea33);
+  filter: drop-shadow(0 8px 12px #0005);
   transition: color 180ms ease, filter 180ms ease, transform 80ms ease;
 }
 
+/* 选中：默认值为出征页难度按钮选中态的冰蓝配色；其他场景主题可用 --nav-active-* 覆盖。 */
 .entry[aria-current] {
-  --plate-start: var(--nav-active-plate-start, #3b3320f2);
-  --plate-end: var(--nav-active-plate-end, #1c1a12f5);
-  --edge-hot: var(--nav-active-edge-hot, #fff4c0);
-  --edge-mid: var(--nav-active-edge-mid, #ffc94a);
-  --edge-dim: var(--nav-active-edge-dim, #a8802e);
-  color: var(--nav-active-color, #fff1c9);
-  filter: drop-shadow(0 0 4px var(--nav-active-glow-near, #ffd26a88)) drop-shadow(0 0 12px var(--nav-active-glow-far, #ffb3333d));
+  --plate-start: var(--nav-active-plate-start, #243e50e6);
+  --plate-end: var(--nav-active-plate-end, #315971c9);
+  --plate-middle: var(--nav-active-plate-middle, color-mix(in srgb, var(--plate-start) 40%, #000c));
+  --plate-bloom: var(--nav-active-bloom, color-mix(in srgb, var(--edge-mid) 38%, transparent));
+  --edge-hot: var(--nav-active-edge-hot, #c3edff);
+  --edge-mid: var(--nav-active-edge-mid, #c3edff);
+  --edge-dim: var(--nav-active-edge-dim, #c3edff);
+  --plate-stroke: 2.5px;
+  --plate-glow: 0;
+  --plate-inner-glow: .3;
+  --plate-inner: var(--nav-active-inner, var(--edge-mid));
+  --plate-inner-opacity: .48;
+  --nav-icon: var(--nav-active-icon, #ddf3ff);
+  --nav-icon-glow: var(--nav-active-icon-glow, #83ceff70);
+  color: var(--nav-active-color, #ddf3ff);
+  filter: drop-shadow(0 0 3px var(--nav-active-glow-near, #b0e7ff)) drop-shadow(0 0 10px var(--nav-active-glow-far, #52b9f4a0));
 }
 
 .entry:hover {
-  filter: brightness(1.16) drop-shadow(0 0 6px #4fd6ea55);
+  filter: brightness(1.25) drop-shadow(0 8px 12px #0005);
 }
 
 .entry[aria-current]:hover {
-  filter: brightness(1.12) drop-shadow(0 0 7px var(--nav-active-hover-glow, #ffc44277));
+  filter: brightness(1.25) drop-shadow(0 0 3px var(--nav-active-glow-near, #b0e7ff)) drop-shadow(0 0 10px var(--nav-active-hover-glow, #52b9f4a0));
 }
 
 .entry:focus-visible {
-  outline: 2px solid #fff2b2;
+  outline: 2px solid #bde9ff;
   outline-offset: 5px;
 }
 
@@ -62,8 +78,8 @@
   flex: none;
   width: 32px;
   height: 32px;
-  color: var(--nav-icon, #ffd666);
-  filter: drop-shadow(0 0 3px var(--nav-icon-glow, #ffc95466));
+  color: var(--nav-icon, #f0f3f6);
+  filter: drop-shadow(0 0 6px var(--nav-icon-glow, transparent));
 }
 
 .icon svg {
@@ -75,16 +91,11 @@
 .label {
   white-space: nowrap;
   line-height: 1;
-  text-shadow: 0 0 5px #6fdcf044, 0 1px 2px #000a;
+  text-shadow: 0 1px 2px #000a;
 }
 
 .entry[aria-current] .label {
-  text-shadow: 0 0 6px var(--nav-active-label-glow, #ffdd8977), 0 1px 2px #000a;
-}
-
-.entry[aria-current] .icon {
-  color: var(--nav-active-icon, #ffd666);
-  filter: drop-shadow(0 0 4px var(--nav-active-icon-glow, #ffc95488));
+  text-shadow: 0 0 13px var(--nav-active-label-glow, #78caff80), 0 1px 2px #000a;
 }
 
 :global([data-shop-root][data-leaving]) .nav {

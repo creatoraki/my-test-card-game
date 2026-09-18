@@ -31,7 +31,7 @@ export function NeonPlate({ width: w, height: h, chamfer, inset = 5, className }
     >
       <defs>
         <linearGradient id={`${id}-body`} x1="0" y1="0" x2={w * 0.35} y2={h} gradientUnits="userSpaceOnUse">
-          <stop stopColor="var(--plate-start)" /><stop offset="1" stopColor="var(--plate-end)" />
+          <stop stopColor="var(--plate-start)" /><stop className={s.bodyMid} offset=".62" /><stop offset="1" stopColor="var(--plate-end)" />
         </linearGradient>
         <linearGradient id={`${id}-edge`} x1="0" y1="0" x2={w} y2={h} gradientUnits="userSpaceOnUse">
           <stop stopColor="var(--edge-hot)" />
@@ -40,17 +40,21 @@ export function NeonPlate({ width: w, height: h, chamfer, inset = 5, className }
           <stop offset=".85" stopColor="var(--edge-mid)" />
           <stop offset="1" stopColor="var(--edge-hot)" />
         </linearGradient>
+        <radialGradient id={`${id}-bloom`} cx=".5" cy="1" r=".7">
+          <stop className={s.bloom} /><stop offset="1" stopColor="transparent" />
+        </radialGradient>
         <clipPath id={`${id}-clip`}><path d={outline} /></clipPath>
         <filter id={`${id}-soft`} x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="3" /></filter>
         <filter id={`${id}-glow`} x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="2" /></filter>
       </defs>
       <path d={outline} fill={ref("body")} />
+      <path d={outline} fill={ref("bloom")} />
       <g clipPath={ref("clip")}>
-        <path d={outline} stroke="var(--edge-mid)" strokeWidth="10" opacity=".32" filter={ref("soft")} />
+        <path className={s.innerGlow} d={outline} stroke="var(--edge-mid)" strokeWidth="10" filter={ref("soft")} />
       </g>
-      <path d={outline} stroke="var(--edge-mid)" strokeWidth="3" opacity=".75" filter={ref("glow")} />
-      <path d={outline} stroke={ref("edge")} strokeWidth="1.6" strokeLinejoin="miter" />
-      <path d={inner} stroke="var(--edge-mid)" strokeWidth="1" opacity=".5" />
+      <path className={s.glow} d={outline} stroke="var(--edge-mid)" strokeWidth="3" filter={ref("glow")} />
+      <path className={s.stroke} d={outline} stroke={ref("edge")} strokeLinejoin="miter" />
+      <path className={s.innerLine} d={inner} strokeWidth="1" />
       <path d={accent} stroke="var(--edge-hot)" strokeWidth="4" opacity=".7" filter={ref("glow")} />
       <path d={accent} stroke="var(--edge-hot)" strokeWidth="2.4" strokeLinejoin="miter" />
     </svg>

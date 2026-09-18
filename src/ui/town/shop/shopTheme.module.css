@@ -42,4 +42,9 @@
   --asm-ink-dim: var(--sx-muted);
   --asm-line: var(--sx-line);
   --ui-glow-color: var(--sx-key);
+
+  /* 左侧导航选中态：与出征页难度按钮选中态一致。 */
+  --nav-active-plate-middle: #0a1824eb;
+  --nav-active-bloom: #559dc062;
+  --nav-active-inner: #81cefb;
 }
