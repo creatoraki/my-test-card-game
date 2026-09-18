@@ -12,7 +12,7 @@
   pointer-events: none;
 }
 
-/* 几何与内部排版全部走事件面板那一套: 外框 936×680(panel-box), 内容由 EventPanelFrame 铺。
+/* 几何与内部排版全部走事件面板那一套: 外框 1336×904(panel-box), 内容由 EventPanelFrame 铺。
    这里只留「拾取」这一块自己的东西 —— 物品网格与主色。 */
 .loot-panel {
   composes: panel-box from "../styles/explorePanel.module.css";

@@ -40,6 +40,8 @@ export interface CurioDecision {
 
 export interface CurioDef {
   name: string;
+  /** 事件面板大标题下的英文副标题；缺省时显示通用副标题。 */
+  enName?: string;
   verb: string;
   size: number;
   description: string;

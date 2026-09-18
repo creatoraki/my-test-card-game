@@ -1,0 +1,163 @@
+/* 左栏通用块。坐标均为面板内绝对坐标(面板 1336×904, 原点 = 折角内边框左上角)。 */
+.phase {
+  position: absolute;
+  left: 43px;
+  top: 340px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  color: #b3c1c6;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.phase i {
+  width: 3px;
+  height: 34px;
+  margin-right: 8px;
+  background: var(--k);
+  box-shadow: 0 0 8px var(--k);
+}
+
+.phase b {
+  color: var(--k);
+  font-family: "BebasNeue", var(--font-family);
+  font-size: 52px;
+  font-weight: 400;
+  letter-spacing: 8px;
+  transform: translateY(3px);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--k) 55%, transparent);
+}
+
+.phaseSlash {
+  margin: 0 12px 0 4px;
+  color: #7d949c;
+  font-size: 30px;
+}
+
+.body {
+  position: absolute;
+  left: 45px;
+  top: 400px;
+  z-index: 3;
+  width: 330px;
+  max-height: 124px;
+  overflow-y: auto;
+  color: #e6eef0;
+  font-size: 26px;
+  line-height: 40px;
+  letter-spacing: 0.02em;
+  pointer-events: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--k) 45%, transparent) transparent;
+}
+
+.body p {
+  margin: 0;
+}
+
+.bodyWide {
+  width: 460px;
+}
+
+/* 设计图信息框: (39,548) 466×128, 右上 / 右下 / 左下切角 12, 左上与左下、右上带亮线。 */
+.info {
+  --tone: var(--k);
+  position: absolute;
+  left: 39px;
+  top: 548px;
+  z-index: 3;
+  width: 466px;
+  height: 128px;
+  pointer-events: auto;
+}
+
+.info[data-tone="danger"] {
+  --tone: #ff6a5e;
+}
+
+.infoFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.infoLine {
+  fill: #03161fd6;
+  stroke: color-mix(in srgb, var(--tone) 40%, #0b2a33);
+  stroke-width: 1;
+}
+
+.infoGlow {
+  fill: none;
+  stroke: var(--tone);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px var(--tone));
+}
+
+.infoIcon {
+  position: absolute;
+  left: 25px;
+  top: 31px;
+  width: 54px;
+  height: 54px;
+  color: var(--tone);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--tone) 60%, transparent));
+}
+
+.infoIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.infoContent {
+  position: absolute;
+  inset: 0 18px 0 101px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 33px;
+  overflow: hidden;
+}
+
+.infoContentBare {
+  left: 28px;
+  padding-top: 18px;
+}
+
+.costMain {
+  margin: 0;
+  color: #eef4f6;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 34px;
+  white-space: nowrap;
+}
+
+.costMain em {
+  margin: 0 10px 0 6px;
+  color: var(--tone);
+  font-family: "BebasNeue", var(--font-family);
+  font-size: 40px;
+  font-style: normal;
+  font-weight: 400;
+  vertical-align: -3px;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--tone) 55%, transparent);
+}
+
+.costMain span {
+  color: var(--tone);
+}
+
+.costNote {
+  margin: 0;
+  color: #8b9ba1;
+  font-size: 22px;
+  line-height: 26px;
+}

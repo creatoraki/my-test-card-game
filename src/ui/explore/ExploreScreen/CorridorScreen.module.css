@@ -8,7 +8,7 @@
 /* 左上角：小地图、负重计与随身遗物横向排列。底部整条 HUD 见 ExploreDock.module.css。 */
 .burden { position: absolute; left: 12px; top: 0; display: flex; gap: 12px; align-items: flex-start; z-index: 30; }
 /* 右上角：净化粒子读数卡（样式见 EnergyReadout），这里只管定位。 */
-.readout { position: absolute; top: 24px; right: 40px; z-index: 30; }
+.readout { position: absolute; top: 0; right: 0; z-index: 30; }
 /* 底部 HUD 顶边落在 y=748(1080 − 16 − 316)，浮层一律压在它之上。 */
 .targetBanner { position: absolute; left: 30px; bottom: 348px; z-index: 45; padding: 17px 22px; background: #192c2dee; border: 1px solid #b0caba70; font-size: 21px; }
 .targetBanner button { margin-left: 25px; font-size: 18px; }

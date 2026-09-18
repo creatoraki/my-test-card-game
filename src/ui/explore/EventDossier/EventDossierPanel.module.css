@@ -1,0 +1,110 @@
+/* 事件档案浮层外壳。外框几何(1336×904 + 折角内边框)来自 explorePanel 的 panel-box,
+   这里只管插图、暗部渐变、关闭按钮与场景槽。 */
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 34;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: #020709a8;
+  backdrop-filter: blur(6px);
+}
+
+.panel {
+  composes: panel-box from "../styles/explorePanel.module.css";
+  position: relative;
+  overflow: hidden;
+  outline: none;
+  background: #03121b;
+  color: #e6eef0;
+  font-family: var(--font-family);
+}
+
+.panel-reveal {
+  composes: panel-reveal from "../styles/explorePanel.module.css";
+}
+
+.panel-bar {
+  composes: panel-bar from "../styles/explorePanel.module.css";
+  z-index: 30;
+}
+
+.panel-scan {
+  composes: panel-scan from "../styles/explorePanel.module.css";
+  z-index: 1;
+}
+
+/* 插图按高度铺满(1448×1086 → 1205×904), 靠右对齐, 人物落在右缘。 */
+.art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 0;
+  width: auto;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 左侧文字区的暗部: 0–28% 实色, 60% 处完全透出插图; 顶 / 底再压一层暗边。 */
+.shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(0deg, #020b12f0 0%, #020b12a8 9%, transparent 26%),
+    linear-gradient(180deg, #020a10b8 0%, transparent 16%),
+    linear-gradient(90deg, #03121b 0%, #03121b 28%, #03121be6 35%, #03121b8c 46%, #03121b26 56%, transparent 62%);
+}
+
+/* ✕ 中心 (1316,23), 线长 25。 */
+.close {
+  position: absolute;
+  left: 1294px;
+  top: 1px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 9.5px;
+  border: 0;
+  background: none;
+  color: #f4f9fa;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 160ms ease, transform 160ms ease, filter 160ms ease;
+}
+
+.close svg {
+  width: 25px;
+  height: 25px;
+}
+
+.close:not(:disabled):hover,
+.close:not(:disabled):focus-visible {
+  outline: none;
+  color: var(--k);
+  filter: drop-shadow(0 0 6px var(--k));
+  transform: rotate(90deg);
+}
+
+.close:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  animation: dossierSceneIn 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes dossierSceneIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}

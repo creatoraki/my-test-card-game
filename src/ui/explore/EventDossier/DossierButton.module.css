@@ -1,0 +1,206 @@
+/* 事件档案按钮。设计图坐标(面板内): 网格左 372 / 右 1308 / 底 893, 两列间距 16, 行高 89, 行间距 14。
+   默认 = 设计图里的暗色按钮; 悬浮 / 键盘聚焦 = 设计图"领取训练装备"那颗亮青色按钮。 */
+.grid {
+  position: absolute;
+  left: 372px;
+  right: 28px;
+  bottom: 11px;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 89px;
+  gap: 14px 16px;
+  pointer-events: auto;
+}
+
+/* 选项多于 4 个时让出左侧信息框(右缘 506), 行高收紧。 */
+.grid[data-dense] {
+  left: 540px;
+  grid-auto-rows: 76px;
+  gap: 10px 14px;
+}
+
+.button {
+  --c: 11px;
+  --line: #5a97aa;
+  --fill-a: #0d2635;
+  --fill-b: #051b27;
+  --ink: #e8f3f6;
+  --glyph: #8fe8f4;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 35px 0 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-family);
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  animation: dossierButtonIn 420ms var(--enter-delay, 120ms) cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  transition: filter 180ms ease, transform 180ms ease;
+}
+
+.plate,
+.plate::before,
+.plate::after {
+  position: absolute;
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c)),
+    0 var(--c)
+  );
+}
+
+.plate {
+  z-index: 0;
+  inset: 0;
+  background: var(--line);
+  transition: background 180ms ease;
+}
+
+.plate::before {
+  --c: 10.4px;
+  inset: 1.5px;
+  content: "";
+  background: linear-gradient(90deg, var(--fill-a) 0%, var(--fill-b) 46%, var(--fill-b) 70%, var(--fill-a) 100%);
+  transition: background 180ms ease;
+}
+
+/* 亮态的实心内芯: 与外细线之间留 3px 暗缝, 还原设计图的"双线"质感。 */
+.plate::after {
+  --c: 9px;
+  inset: 5px;
+  content: "";
+  opacity: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 58%, #ffffff) 0%, color-mix(in srgb, var(--k) 82%, #ffffff) 55%, color-mix(in srgb, var(--k) 90%, #ffffff) 100%);
+  transition: opacity 180ms ease;
+}
+
+.icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 34px 0 46px;
+  color: var(--glyph);
+  transition: color 180ms ease;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.text {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.text strong {
+  overflow: hidden;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cost {
+  color: #7fdce8;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.costRed {
+  color: #ff8a80;
+}
+
+.arrow {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 12px;
+  height: 22px;
+  color: #eef8fa;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.arrow svg {
+  width: 100%;
+  height: 100%;
+}
+
+.button:not(:disabled):hover,
+.button:not(:disabled):focus-visible {
+  --line: color-mix(in srgb, var(--k) 80%, #ffffff);
+  --ink: #04191e;
+  --glyph: #04191e;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--k) 55%, transparent));
+}
+
+.button:not(:disabled):hover .plate::before,
+.button:not(:disabled):focus-visible .plate::before {
+  background: #032d35;
+}
+
+.button:not(:disabled):hover .plate::after,
+.button:not(:disabled):focus-visible .plate::after {
+  opacity: 1;
+}
+
+.button:not(:disabled):hover .text strong,
+.button:not(:disabled):focus-visible .text strong {
+  font-weight: 700;
+}
+
+.button:not(:disabled):hover .cost,
+.button:not(:disabled):focus-visible .cost {
+  color: #07343c;
+}
+
+.button:not(:disabled):hover .arrow,
+.button:not(:disabled):focus-visible .arrow {
+  color: #04191e;
+  transform: translateX(4px);
+}
+
+.button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.grid[data-dense] .icon {
+  margin: 0 22px 0 28px;
+}
+
+.grid[data-dense] .text strong {
+  font-size: 22px;
+}
+
+@keyframes dossierButtonIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

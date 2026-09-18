@@ -1,0 +1,129 @@
+/* 装饰层坐标(面板内)。右上英文角标中线 y=18; 左下水印三角 (66,751) 90×88, 标语中线 y=852 / 872。 */
+.decor {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.decor i,
+.decor span,
+.decor svg {
+  position: absolute;
+}
+
+.dotGrid {
+  left: 0;
+  top: 610px;
+  width: 420px;
+  height: 294px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--k) 26%, transparent) 0.9px, transparent 1.3px) 0 0 / 12px 12px;
+  mask-image: radial-gradient(120% 100% at 0% 100%, #000 30%, transparent 85%);
+}
+
+.rail {
+  left: 11px;
+  top: 110px;
+  width: 1px;
+  height: 680px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--k) 26%, transparent) 14%, color-mix(in srgb, var(--k) 26%, transparent) 86%, transparent);
+}
+
+.railBracket {
+  left: 9px;
+  top: 809px;
+  width: 4px;
+  height: 36px;
+  border: 1.5px solid var(--k);
+  border-radius: 1px;
+  box-shadow: 0 0 6px var(--k);
+}
+
+.edgeTop {
+  left: 26px;
+  top: 0;
+  width: 96px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--k), color-mix(in srgb, var(--k) 20%, transparent));
+  box-shadow: 0 0 8px var(--k);
+}
+
+.edgeBottom {
+  left: 52px;
+  bottom: 9px;
+  width: 210px;
+  height: 1px;
+  opacity: 0.45;
+  background: repeating-linear-gradient(90deg, var(--k) 0 2px, transparent 2px 6px);
+}
+
+.midDots {
+  left: 46px;
+  top: 729px;
+  width: 290px;
+  height: 1px;
+  opacity: 0.5;
+  background: repeating-linear-gradient(90deg, var(--k) 0 2px, transparent 2px 6px);
+}
+
+.cornerBand {
+  left: 1240px;
+  top: -2px;
+  width: 136px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--k) 45%, transparent) 30%, color-mix(in srgb, var(--k) 20%, transparent));
+  transform: rotate(44deg);
+  transform-origin: 0 0;
+}
+
+.ops {
+  left: 1013px;
+  top: 9px;
+  color: #6f8790;
+  font-family: "BebasNeue", var(--font-family);
+  font-size: 18px;
+  line-height: 18px;
+  letter-spacing: 0.25em;
+  white-space: nowrap;
+}
+
+.ops b {
+  margin-left: 4px;
+  color: #93b1b9;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+
+.mark {
+  left: 66px;
+  top: 751px;
+  width: 90px;
+  height: 88px;
+  fill: #8fb6c2;
+  opacity: 0.07;
+}
+
+.motto {
+  left: 54px;
+  top: 842px;
+  color: #5d7580;
+  font-family: "BebasNeue", var(--font-family);
+  font-size: 18px;
+  line-height: 20px;
+  letter-spacing: 0.5em;
+  white-space: nowrap;
+}
+
+.motto em {
+  color: var(--k);
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.mottoRule {
+  left: 241px;
+  top: 873px;
+  width: 34px;
+  height: 2px;
+  background: color-mix(in srgb, var(--k) 38%, #1b3f48);
+}

@@ -1,0 +1,110 @@
+/* 物品货架: 右侧插图区 (560,110)–(1308,650), 压暗后铺物品格; 下方留给提示行与按钮网格。 */
+.shelf {
+  position: absolute;
+  left: 560px;
+  top: 110px;
+  right: 28px;
+  bottom: 254px;
+  z-index: 3;
+  padding: 22px 24px;
+  overflow-y: auto;
+  pointer-events: auto;
+  background: #03121bdb;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--k) 30%, transparent);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--k) 45%, transparent) transparent;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid transparent;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.item:hover,
+.item.selected {
+  border-color: color-mix(in srgb, var(--k) 70%, transparent);
+  background: color-mix(in srgb, var(--k) 12%, transparent);
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #dff8fb;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.counter button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--k) 45%, transparent);
+  background: #062330;
+  color: #e8fbfd;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.counter button:hover {
+  background: color-mix(in srgb, var(--k) 30%, #062330);
+}
+
+.empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #8b9ba1;
+  font-size: 20px;
+}
+
+.offered {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  max-height: 100px;
+  overflow-y: auto;
+  font-size: 18px;
+}
+
+.offeredLabel {
+  color: #9fb3b9;
+}
+
+.offered b {
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--k) 38%, transparent);
+  color: #dff8fb;
+  font-weight: 500;
+}
+
+.offered em {
+  color: #6f8288;
+  font-style: normal;
+}
+
+.hint {
+  position: absolute;
+  left: 372px;
+  top: 660px;
+  z-index: 3;
+  margin: 0;
+  color: #9fb3b9;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+}

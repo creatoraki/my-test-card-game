@@ -26,18 +26,82 @@
 
 /* ★ 浮层外框的唯一尺寸真相 ★
    落点事件面板与它之后弹出的浮层(奖励 / 拾取 / 背包 / 野餐)共用这一个框:
-   **936 × 680, 画布正中**。尺寸各写一份就会出现「换个浮层边界跳一下」的偏移感,
-   要调大小请只改这里。内容排版交给 ui/common/EventPanel，当前探索浮层统一使用这套尺寸。 */
+   **1336 × 904, 画布正中**。尺寸各写一份就会出现「换个浮层边界跳一下」的偏移感,
+   要调大小请只改这里。
+   外形 = 事件档案设计图的「折角内边框」: 左上 24 / 右上 40 / 右下 24 / 左下 48 切角,
+   8 个顶点; 展开动画的中缝态 / 种子态同样 8 顶点(见下方 --panel-shape-line / -seed)。 */
 .panel-box {
   composes: panel-shell;
-  width: 936px;
-  height: 680px;
+  --cut-tl: 24px;
+  --cut-tr: 40px;
+  --cut-br: 24px;
+  --cut-bl: 48px;
+  --panel-shape:
+    var(--cut-tl) 0,
+    calc(100% - var(--cut-tr)) 0,
+    100% var(--cut-tr),
+    100% calc(100% - var(--cut-br)),
+    calc(100% - var(--cut-br)) 100%,
+    var(--cut-bl) 100%,
+    0 calc(100% - var(--cut-bl)),
+    0 var(--cut-tl);
+  --panel-shape-line:
+    0 calc(50% - 2px),
+    100% calc(50% - 2px),
+    100% calc(50% - 2px),
+    100% calc(50% + 2px),
+    100% calc(50% + 2px),
+    0 calc(50% + 2px),
+    0 calc(50% + 2px),
+    0 calc(50% - 2px);
+  --panel-shape-seed:
+    46% calc(50% - 2px),
+    54% calc(50% - 2px),
+    54% calc(50% - 2px),
+    54% calc(50% + 2px),
+    54% calc(50% + 2px),
+    46% calc(50% + 2px),
+    46% calc(50% + 2px),
+    46% calc(50% - 2px);
+  width: 1336px;
+  height: 904px;
   padding: 0;
   pointer-events: auto;
   box-shadow:
-    inset 0 1px 0 var(--k),
     0 28px 72px -34px #000000e8,
     0 0 90px -42px var(--k);
+}
+
+/* 折角内边框描边: 外环 + 内缩 1.5px 的内环, evenodd 挖空成一圈细线。只有这一圈线, 不画直角外框。 */
+.panel-box::after {
+  --w: 1.5px;
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: var(--panel-line, color-mix(in srgb, var(--k) 48%, transparent));
+  clip-path: polygon(
+    evenodd,
+    var(--cut-tl) 0,
+    calc(100% - var(--cut-tr)) 0,
+    100% var(--cut-tr),
+    100% calc(100% - var(--cut-br)),
+    calc(100% - var(--cut-br)) 100%,
+    var(--cut-bl) 100%,
+    0 calc(100% - var(--cut-bl)),
+    0 var(--cut-tl),
+    var(--cut-tl) 0,
+    calc(var(--cut-tl) + var(--w) * 0.41) var(--w),
+    var(--w) calc(var(--cut-tl) + var(--w) * 0.41),
+    var(--w) calc(100% - var(--cut-bl) - var(--w) * 0.41),
+    calc(var(--cut-bl) + var(--w) * 0.41) calc(100% - var(--w)),
+    calc(100% - var(--cut-br) - var(--w) * 0.41) calc(100% - var(--w)),
+    calc(100% - var(--w)) calc(100% - var(--cut-br) - var(--w) * 0.41),
+    calc(100% - var(--w)) calc(var(--cut-tr) + var(--w) * 0.41),
+    calc(100% - var(--cut-tr) - var(--w) * 0.41) var(--w),
+    calc(var(--cut-tl) + var(--w) * 0.41) var(--w)
+  );
 }
 
 .panel-reveal {
@@ -69,8 +133,7 @@
 
 /* ★ 形状可被调用方替换 ★
    三个关键帧的多边形都写成 var(--panel-shape / -line / -seed, 兜底) ——
-   兜底就是原来的切角矩形(奖励 / 拾取 / 交易 / 背包继续吃它, 观感不变);
-  落点事件面板通过 inline style 注入自己的轮廓。
+   兜底是 6 顶点切角矩形(只用 panel-shell 的面板吃它); panel-box 自带 8 顶点的折角轮廓三件套。
    ⚠ 无论换成什么形状, 完整态 / 中缝态 / 种子态**必须同顶点数**, 否则 clip-path 不插值、动画会跳。 */
 @keyframes panelRevealIn {
   0% {

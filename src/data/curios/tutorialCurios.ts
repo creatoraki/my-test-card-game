@@ -4,9 +4,10 @@ import type { CurioDef } from "./types";
 export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
   tutorialArmory: {
     name: "训练装备柜",
+    enName: "TRAINING EQUIPMENT LOCKER",
     verb: "领取",
     size: 210,
-    description: "训练装备柜已经为队伍准备好一件校准完成的装备。",
+    description: "训练装备柜已经为小队备好一件校准完成的装备。是否现在领取补给？",
     decisions: [{
       id: "claimEquip",
       label: "领取训练装备",

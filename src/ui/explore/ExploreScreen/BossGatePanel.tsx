@@ -1,45 +1,51 @@
 import type { ExploreState } from "@/explore/types";
 import { challengeBossGate, closeBossGatePanel } from "@/store/exploreCorridor";
 import { setTransitionOrigin } from "@/ui/app/transitionOrigin";
-import { EventPanelChoice } from "@/ui/common/EventPanel";
-import { ExploreObjectPanel } from "./ExploreObjectPanel";
+import {
+  DossierChoice,
+  DossierIcon,
+  DossierInfoBox,
+  DossierNotice,
+  EventDossierPanel,
+} from "@/ui/explore/EventDossier";
+
+const BOSS_ACCENT = "#e0524a";
 
 export function BossGatePanel({ session }: { session: ExploreState }) {
   const actionable = session.phase === "atNode";
 
   return (
-    <ExploreObjectPanel
-      accent="#e0524a"
-      kicker="封锁红门"
+    <EventDossierPanel
+      accent={BOSS_ACCENT}
+      kicker="封锁红门 · 首领区域"
       title="首领所在"
-      status={actionable ? "挑战可用" : "面板锁定"}
-      scene="choice"
+      enTitle="SEALED RED GATE"
       contentKey="boss-gate"
       active={actionable}
-      onEscape={closeBossGatePanel}
+      onClose={actionable ? closeBossGatePanel : undefined}
     >
-      <EventPanelChoice
-        heading="首领所在"
-        hint="红门之后封存着这片区域的核心敌意。你可以先继续搜索房间里的物件，准备妥当后再回来开启挑战。"
-        signal="准备妥当后再开启挑战"
-        options={[{
-          id: "challenge-boss",
-          name: "挑战首领",
-          description: "开启首领战后将无法返回副本继续搜索。胜利即通关；失败或撤退按撤离副本结算。",
-          cost: "开启后无法返回副本继续搜索",
-          costTone: "red",
-          disabled: !actionable,
-        }]}
-        onPick={(_, event) => {
-          if (!event) return;
-          setTransitionOrigin(event.clientX, event.clientY);
-          challengeBossGate();
-        }}
-        backLabel="暂不挑战，继续搜索"
-        onBack={() => {
-          if (actionable) closeBossGatePanel();
-        }}
+      <DossierChoice
+        body={<p>红门之后封存着这片区域的核心敌意。先搜索物件，准备妥当再来挑战。</p>}
+        info={
+          <DossierInfoBox tone="danger" icon={<DossierIcon name="warn" />}>
+            <DossierNotice title="开启后无法返回副本" note="胜利即通关，失败按撤离结算" />
+          </DossierInfoBox>
+        }
+        actions={[
+          {
+            id: "challenge-boss",
+            label: "挑战首领",
+            icon: "upgrade",
+            sfx: "confirm",
+            disabled: !actionable,
+            onClick: (event) => {
+              setTransitionOrigin(event.clientX, event.clientY);
+              challengeBossGate();
+            },
+          },
+          { id: "leave", label: "暂不挑战，继续搜索", icon: "leave", sfx: "back", disabled: !actionable, onClick: closeBossGatePanel },
+        ]}
       />
-    </ExploreObjectPanel>
+    </EventDossierPanel>
   );
 }
