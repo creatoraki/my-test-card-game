@@ -1,0 +1,51 @@
+/* 小地图霓虹外框 —— HUD 缩略图与展开大图共用。
+   外层细蓝描边 + 内层暗线, 四角加粗亮括号, 左右边中段各一截短亮条。
+   尺寸靠 --arm(括号臂长) / --bar(括号粗细) / --gap(内层暗线内缩)调整。 */
+
+.frame {
+  --arm: 34px;
+  --bar: 3px;
+  --gap: 6px;
+  --line: #2b78d6b0;
+  --bright: #5cb6ff;
+
+  position: relative;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(120% 70% at 50% 0%, #0f2744b0, transparent 60%),
+    linear-gradient(180deg, #08121fee, #050a12f5);
+  box-shadow:
+    inset 0 0 24px #1f6fd82a,
+    0 0 16px #1f6fd840,
+    0 22px 48px -30px #000;
+}
+
+/* 内层暗线。 */
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: var(--gap);
+  border: 1px solid #1d4d8a70;
+  pointer-events: none;
+}
+
+/* 四角亮括号 + 左右中段亮条。 */
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--bar) * -1);
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--bright), var(--bright)) left top / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) left top / var(--bar) var(--arm) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) right top / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) right top / var(--bar) var(--arm) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) left bottom / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) left bottom / var(--bar) var(--arm) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) right bottom / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) right bottom / var(--bar) var(--arm) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) left center / var(--bar) calc(var(--arm) * 1.4) no-repeat,
+    linear-gradient(var(--bright), var(--bright)) right center / var(--bar) calc(var(--arm) * 1.4) no-repeat;
+  filter: drop-shadow(0 0 4px #2f8dff) drop-shadow(0 0 10px #2f8dffa0);
+}

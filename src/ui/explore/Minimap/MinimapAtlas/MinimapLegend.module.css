@@ -1,0 +1,58 @@
+/* 图例条: 细蓝描边 + 左上/右下切角, 8 项等分。 */
+
+.legend {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 18px 10px 16px;
+  list-style: none;
+  background: linear-gradient(180deg, #0a1628f0, #060d18f5);
+  box-shadow: 0 0 18px #1f6fd833;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+
+/* 描边画在伪元素上, 让切角处也有斜边线。 */
+.legend::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 9.4px, #2b78d6 9.4px 11px, transparent 11px) left top / 16px 16px no-repeat,
+    linear-gradient(315deg, transparent 9.4px, #2b78d6 9.4px 11px, transparent 11px) right bottom / 16px 16px no-repeat;
+  box-shadow: inset 0 0 0 1px #2b78d6b0;
+  clip-path: inherit;
+}
+
+.item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.swatch {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 58px;
+}
+
+.name {
+  color: #dfe8f7;
+  font-size: 18px;
+  white-space: nowrap;
+  text-shadow: 0 0 8px #000;
+}
+
+/* 道路图例: 与地图上的霓虹管同色的双线。 */
+.road {
+  display: block;
+  width: 60px;
+  height: 9px;
+  border-block: 3px solid #9fd3ff;
+  background: #1f63d4;
+  box-shadow: 0 0 8px #2f8dff, 0 0 16px #2f8dffa0;
+}

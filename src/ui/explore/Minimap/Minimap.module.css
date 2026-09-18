@@ -1,192 +1,104 @@
-/* 房间小地图 —— 左上 HUD 的常驻面板，排在负重读数与遗物列表之前。
+/* 房间小地图(HUD 缩略版)—— 左上 HUD 的常驻面板，排在负重读数与遗物列表之前。
+   外框材质见 MinimapFrame.module.css，方块与道路见 MinimapTile / MinimapRoutes。
    ⚠ 字号按项目规范以 18px 为下限：这块面板要在行走途中被反复瞥一眼，读不快等于没有。
    ⚠ 不用 backdrop-filter：外层 StageCanvas 有变换祖先，玻璃取不到背景图。 */
 
 .map {
-  position: relative;
+  --arm: 26px;
   z-index: 30;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px 18px 14px;
-  border: 1px solid #7fb3a870;
-  background: linear-gradient(155deg, #12232499, #070d0fdd);
-  box-shadow: inset 0 1px 0 #ffffff12, 0 22px 48px -30px #000;
-  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 14px 16px 14px;
+}
+
+.map[data-expandable] {
+  cursor: var(--cursor-pointer);
+}
+
+.map[data-expandable]:hover {
+  --line: #4b9bf0d0;
+  box-shadow: inset 0 0 28px #2f8dff3a, 0 0 22px #2f8dff66, 0 22px 48px -30px #000;
 }
 
 .head {
+  position: relative;
+  z-index: 2;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 14px;
-  width: 100%;
-  justify-content: space-between;
 }
 
-.head span {
-  color: #8fa8a2;
-  font-size: 18px;
-  letter-spacing: 4px;
-}
-
-.head b {
-  color: #d8e6df;
+.title {
+  color: #cfe4ff;
   font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px #2f8dffa0;
+}
+
+.count {
+  color: #8fc6ff;
+  font-size: 18px;
   font-weight: 500;
 }
 
-.grid {
+.expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 2px 10px;
+  border: 1px solid #3f8fe8a0;
+  background: #0b1d36c0;
+  color: #9fd3ff;
+  font-size: 18px;
+  cursor: var(--cursor-pointer);
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.expand svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+.expand:hover:not(:disabled),
+.expand:focus-visible {
+  border-color: #8fd0ff;
+  background: #133563e0;
+  color: #e6f4ff;
+  outline: none;
+}
+
+.expand:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.board {
   position: relative;
+  z-index: 2;
   align-self: center;
 }
 
-.links {
-  position: absolute;
-  inset: 0;
-  overflow: visible;
-}
-
-.linkSolid {
-  stroke: #74b3a4b0;
-  stroke-width: 3;
-}
-
-.linkDashed {
-  stroke: #5d7a7660;
-  stroke-width: 3;
-  stroke-dasharray: 5 7;
-}
-
-.cell {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #4d6b6660;
-  background: #0a1416cc;
-  transition: border-color 180ms ease, background 180ms ease;
-}
-
-button.cell {
-  padding: 0;
-  color: inherit;
-  font: inherit;
-  cursor: var(--cursor-pointer);
-}
-
-.face {
-  color: #9fb6b0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-/* 已访问：实心亮格，房间序号清晰可读。 */
-.cell[data-state="visited"] {
-  border-color: #7fc9b6;
-  background: linear-gradient(160deg, #1d3a38, #0d1b1dee);
-}
-
-.cell[data-state="visited"] .face {
-  color: #e7f3ec;
-}
-
-/* 已搜干净：降饱和 + ✓ 角标，一眼区分「还有东西」与「不用回来了」。 */
-.cell[data-explored] {
-  border-color: #5c7b76;
-  background: linear-gradient(160deg, #18262699, #0a1315cc);
-}
-
-.cell[data-explored] .face {
-  color: #8fa39d;
-}
-
-/* 被传送门点亮：位置已知、内容未知。 */
-.cell[data-state="revealed"] {
-  border: 1px dashed #e0b978;
-  background: #1c1710cc;
-}
-
-.cell[data-state="revealed"] .face {
-  color: #e8c98d;
-}
-
-/* 与已访问房相连但尚未点亮的问号占位。 */
-.cell[data-state="hinted"] {
-  border: 1px dashed #46605c;
-  background: #0a1214aa;
-}
-
-.cell[data-state="hinted"] .face {
-  color: #56706b;
-}
-
-/* 玩家当前所在的房间。 */
-.cell[data-current] {
-  border-color: #9ff0d8;
-  box-shadow: 0 0 0 2px #9ff0d840, 0 0 22px #63d9bc55;
-}
-
-.cell[data-current] .face {
-  color: #b8ffe9;
-}
-
-.cell[data-picking] {
-  border-color: #f2d79e;
-  box-shadow: 0 0 0 2px #f2d79e66, 0 0 22px #f2d79e55;
-  cursor: var(--cursor-pointer);
-}
-
-.cell[data-picking]:hover,
-.cell[data-picking]:focus-visible {
-  border-color: #fff1c8;
-  background: linear-gradient(160deg, #4d3b1f, #1f1910ee);
-  box-shadow: 0 0 0 3px #f2d79ecc, 0 0 30px #f2d79e99;
-  outline: none;
-  transform: translateY(-2px);
-}
-
-.map[data-picking] .cell:not([data-picking]) {
-  filter: grayscale(0.75);
-  opacity: 0.48;
-}
-
-/* 脚下这扇传送门通往的那一格。 */
-.cell[data-target] {
-  animation: mapTargetPulse 1.4s ease-in-out infinite;
-}
-
-.badge {
-  position: absolute;
-  top: -9px;
-  right: -7px;
-  padding: 0 4px;
-  color: #f0d49a;
-  font-size: 18px;
-  font-style: normal;
-  line-height: 1;
-  text-shadow: 0 0 8px #000;
-}
-
-.cell[data-explored] .badge {
-  color: #86b8a3;
-}
-
 .hint {
+  position: relative;
+  z-index: 2;
   margin: 0;
-  max-width: 320px;
-  color: #86999a;
+  max-width: 360px;
+  color: #7f98b8;
   font-size: 18px;
   line-height: 1.4;
   text-align: right;
+  align-self: flex-end;
 }
 
 .hint[data-live] {
   color: #f2d79e;
-}
-
-@keyframes mapTargetPulse {
-  0%, 100% { box-shadow: 0 0 0 1px #f0c98a60, 0 0 14px #e2b06e40; }
-  50% { box-shadow: 0 0 0 3px #f0c98ac0, 0 0 30px #e2b06ea0; }
 }

@@ -4,125 +4,71 @@
 // 玩家站上某座传送门 → 那扇门的目标房间在这里亮起(位置已知, 内容仍未知)。
 // 因此它不是装饰性 HUD, 而是这套玩法的主界面之一。
 //
-// 三种格子状态(见 dungeon/types.ts):
-//   · 已访问 —— 画房间序号, 搜干净后加「已探索」角标并降饱和;
-//   · 已点亮 —— 被传送门照出过位置, 画「?」;
-//   · 已知邻接 —— 与某个已访问房相连但还没被点亮, 画淡「?」占位。
+// 这里是左上角常驻的缩略版; 点击面板(或「展开」)打开 MinimapAtlas 大图。
+// 格子状态与视觉映射见 minimapModel.ts, 格子落点与折线道路见 minimapLayout.ts。
 
-import { isRoomExplored } from "@/explore/dungeon/session";
-import type { DungeonState, RoomNode } from "@/explore/dungeon/types";
 import type { CorridorState } from "@/explore/corridor/types";
+import type { DungeonState } from "@/explore/dungeon/types";
 import { EXPLORE_RULES } from "@/explore/rules";
+import { MinimapBoard } from "./MinimapBoard";
+import { buildMapModel, portalTargetId } from "./minimapModel";
+import type { BoardMetrics } from "./minimapLayout";
+import frame from "./MinimapFrame.module.css";
 import s from "./Minimap.module.css";
 
-const CELL = 52;
-const STEP = 78;
-
-type CellState = "visited" | "revealed" | "hinted";
-
-interface Cell {
-  room: RoomNode;
-  state: CellState;
-  left: number;
-  top: number;
-}
-
-function stateOf(room: RoomNode, dungeon: DungeonState): CellState | null {
-  if (room.visited) return "visited";
-  if (dungeon.layoutKnown) return "revealed";
-  if (room.revealed) return "revealed";
-  // 与任意已访问房相连 ⇒ 玩家已经知道「那边还有一间」, 但不知道是哪一间。
-  const touched = Object.values(room.exits).some((id) => dungeon.rooms[id]?.visited);
-  return touched ? "hinted" : null;
-}
+const HUD_METRICS: BoardMetrics = { tile: 44, stepX: 92, stepY: 88, label: 22 };
 
 export function Minimap({
   dungeon,
   corridor,
   picking = false,
   onPick,
+  onExpand,
 }: {
   dungeon: DungeonState;
   corridor: CorridorState;
   picking?: boolean;
   onPick?: (roomId: string) => void;
+  onExpand?: () => void;
 }) {
-  const { minX, maxX, minY, maxY } = dungeon.bounds;
-  const width = (maxX - minX) * STEP + CELL;
-  const height = (maxY - minY) * STEP + CELL;
-
-  const cells: Cell[] = [];
-  for (const id of dungeon.order) {
-    const room = dungeon.rooms[id];
-    const state = stateOf(room, dungeon);
-    if (!state) continue;
-    cells.push({ room, state, left: (room.gx - minX) * STEP, top: (room.gy - minY) * STEP });
-  }
-  const shown = new Set(cells.map((cell) => cell.room.id));
-
-  // 连线: 只画「至少一端已访问」的通道 —— 玩家没去过的两间房之间有没有门, 他并不知道。
-  const seen = new Set<string>();
-  const links: { x1: number; y1: number; x2: number; y2: number; solid: boolean }[] = [];
-  for (const cell of cells) {
-    for (const targetId of Object.values(cell.room.exits)) {
-      const target = dungeon.rooms[targetId];
-      if (!target || !shown.has(targetId)) continue;
-      if (!dungeon.layoutKnown && !cell.room.visited && !target.visited) continue;
-      const key = [cell.room.id, targetId].sort().join("|");
-      if (seen.has(key)) continue;
-      seen.add(key);
-      links.push({
-        x1: cell.left + CELL / 2, y1: cell.top + CELL / 2,
-        x2: (target.gx - minX) * STEP + CELL / 2, y2: (target.gy - minY) * STEP + CELL / 2,
-        solid: !dungeon.layoutKnown && cell.room.visited && target.visited,
-      });
-    }
-  }
-
-  const standingDir = corridor.standingPortalDir;
-  const targetId = standingDir
-    ? corridor.portals.find((portal) => portal.dir === standingDir)?.to ?? null
-    : null;
+  const { cells, links } = buildMapModel(dungeon);
+  const targetId = portalTargetId(corridor);
   const target = targetId ? dungeon.rooms[targetId] : null;
+  const expandable = Boolean(onExpand) && !picking;
 
-  return <div className={s.map} data-picking={picking || undefined} aria-label="房间小地图">
+  return <div
+    className={`${frame.frame} ${s.map}`}
+    data-picking={picking || undefined}
+    data-expandable={expandable || undefined}
+    aria-label="房间小地图"
+    onClick={expandable ? onExpand : undefined}
+  >
     <div className={s.head}>
-      <span>区域图</span>
-      <b>{cells.filter((cell) => cell.room.visited).length} / {dungeon.order.length}</b>
+      <span className={s.title}>区域图</span>
+      <b className={s.count}>{cells.filter((cell) => cell.room.visited).length} / {dungeon.order.length}</b>
+      {onExpand && <button
+        type="button"
+        className={s.expand}
+        disabled={picking}
+        aria-label="展开区域图"
+        onClick={(event) => { event.stopPropagation(); onExpand(); }}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /></svg>
+        展开
+      </button>}
     </div>
-    <div className={s.grid} style={{ width, height }}>
-      <svg className={s.links} width={width} height={height} aria-hidden>
-        {links.map((link, index) => <line key={index} x1={link.x1} y1={link.y1} x2={link.x2} y2={link.y2}
-          className={link.solid ? s.linkSolid : s.linkDashed} />)}
-      </svg>
-      {cells.map(({ room, state, left, top }) => {
-        const explored = room.visited && isRoomExplored(room);
-        const knownThreat = dungeon.threatsKnown || room.visited;
-        const badge = knownThreat && room.kind === "boss" ? "☗"
-          : knownThreat && room.kind === "battle" && !room.threatDefeated ? "▲"
-            : explored ? "✓" : "";
-        const pickable = picking && room.visited && room.id !== dungeon.currentRoomId;
-        const content = <>
-          <span className={s.face}>{room.visited ? room.label : "?"}</span>
-          {badge && <i className={s.badge} aria-hidden>{badge}</i>}
-        </>;
-        const props = {
-          className: s.cell,
-          "data-state": state,
-          "data-current": room.id === dungeon.currentRoomId || undefined,
-          "data-explored": explored || undefined,
-          "data-target": room.id === targetId || undefined,
-          "data-picking": pickable || undefined,
-          style: { left, top, width: CELL, height: CELL },
-          "aria-label": room.visited
-            ? `${room.label} 号房间${explored ? "，已探索" : ""}`
-            : "未知房间",
-        };
-        return pickable
-          ? <button key={room.id} {...props} type="button" onClick={() => onPick?.(room.id)}>{content}</button>
-          : <div key={room.id} {...props}>{content}</div>;
-      })}
-    </div>
+    <MinimapBoard
+      className={s.board}
+      dungeon={dungeon}
+      cells={cells}
+      links={links}
+      metrics={HUD_METRICS}
+      road={5}
+      numSize={18}
+      targetId={targetId}
+      picking={picking}
+      onPick={onPick}
+    />
     <p className={s.hint} data-live={Boolean(target) || picking || undefined}>
       {picking
         ? "选择一间已访问的房间传送过去 · 不消耗净化粒子"

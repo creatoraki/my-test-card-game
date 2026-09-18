@@ -1,0 +1,215 @@
+/* 房间方块 —— 还原设计图的「霓虹切角方块」。
+   层次(由外到内): 外发光(drop-shadow) → 四角亮括号 → 切角亮描边 → 深色内面板(内阴影 + 内圈暗框) → 图标。
+   每种 tone 只下发 6 个色值变量, 结构样式全部共用。 */
+
+.tile {
+  --edge: #c9d3ea;
+  --edge-hi: #ffffff;
+  --glow: #7d9cd066;
+  --fill-a: #2a3345;
+  --fill-b: #121823;
+  --icon: #c3cde0;
+  --cut: calc(var(--tile) * 0.1);
+  --arm: calc(var(--tile) * 0.26);
+  --bar: max(2px, calc(var(--tile) * 0.035));
+
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: var(--tile);
+  height: var(--tile);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  filter: drop-shadow(0 0 calc(var(--tile) * 0.06) var(--glow)) drop-shadow(0 0 calc(var(--tile) * 0.16) var(--glow));
+  transition: filter 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.tile[data-tone="current"] {
+  --edge: #58a8ff;
+  --edge-hi: #a8dcff;
+  --glow: #2f8dffd0;
+  --fill-a: #0f2c5c;
+  --fill-b: #06132b;
+  --icon: #72c2ff;
+}
+
+.tile[data-tone="cleared"] {
+  --edge: #5fe2b6;
+  --edge-hi: #c2ffe9;
+  --glow: #2fd69a90;
+  --fill-a: #12423a;
+  --fill-b: #071b18;
+  --icon: #66f2bb;
+}
+
+.tile[data-tone="locked"] {
+  --icon: #9fb0cc;
+  --fill-a: #252c3a;
+  --fill-b: #10151e;
+}
+
+.tile[data-tone="elite"] {
+  --edge: #bf95ff;
+  --edge-hi: #eadcff;
+  --glow: #9b5cffb0;
+  --fill-a: #3b2474;
+  --fill-b: #170d33;
+  --icon: #cf9fff;
+}
+
+.tile[data-tone="chest"] {
+  --edge: #ffc54a;
+  --edge-hi: #ffe8ad;
+  --glow: #ffb020a8;
+  --fill-a: #3a2d12;
+  --fill-b: #171208;
+  --icon: #ffc84d;
+}
+
+.tile[data-tone="boss"] {
+  --edge: #ff4656;
+  --edge-hi: #ffa3aa;
+  --glow: #ff2233d0;
+  --fill-a: #4d1119;
+  --fill-b: #1d060a;
+  --icon: #ff6d7a;
+}
+
+/* 切角亮描边: 外层实色 + 内层面板内缩, 露出的一圈就是描边。 */
+.shell {
+  position: absolute;
+  inset: 0;
+  padding: var(--bar);
+  background: linear-gradient(160deg, var(--edge-hi), var(--edge) 45%, var(--edge));
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)
+  );
+}
+
+.face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--fill-a) 80%, #ffffff 6%), transparent 70%),
+    linear-gradient(165deg, var(--fill-a), var(--fill-b));
+  box-shadow: inset 0 0 calc(var(--tile) * 0.14) #000000b0;
+  clip-path: inherit;
+}
+
+/* 内圈暗框: 设计图方块里那一圈「凹槽」。 */
+.face::before {
+  content: "";
+  position: absolute;
+  inset: 9%;
+  border: 1px solid color-mix(in srgb, var(--edge) 22%, transparent);
+  background: linear-gradient(165deg, #ffffff08, #00000030);
+  box-shadow: inset 0 1px 0 #ffffff10, 0 0 0 1px #00000060;
+}
+
+.icon {
+  position: relative;
+  width: 54%;
+  height: 54%;
+  color: var(--icon);
+  filter: drop-shadow(0 0 calc(var(--tile) * 0.05) var(--icon)) drop-shadow(0 0 calc(var(--tile) * 0.12) var(--glow));
+}
+
+/* 四角亮括号: 贴着方块外沿、比描边更亮更粗。 */
+.corners {
+  position: absolute;
+  inset: calc(var(--bar) * -0.5);
+  pointer-events: none;
+  background:
+    linear-gradient(var(--edge-hi), var(--edge-hi)) left top / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--edge-hi), var(--edge-hi)) left top / var(--bar) var(--arm) no-repeat,
+    linear-gradient(var(--edge-hi), var(--edge-hi)) right top / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--edge-hi), var(--edge-hi)) right top / var(--bar) var(--arm) no-repeat,
+    linear-gradient(var(--edge-hi), var(--edge-hi)) left bottom / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--edge-hi), var(--edge-hi)) left bottom / var(--bar) var(--arm) no-repeat,
+    linear-gradient(var(--edge-hi), var(--edge-hi)) right bottom / var(--arm) var(--bar) no-repeat,
+    linear-gradient(var(--edge-hi), var(--edge-hi)) right bottom / var(--bar) var(--arm) no-repeat;
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)
+  );
+}
+
+/* 当前位置: 方块外再套一圈偏外的蓝色粗括号。 */
+.halo {
+  --out: calc(var(--tile) * -0.1);
+  --harm: calc(var(--tile) * 0.3);
+  --hbar: max(3px, calc(var(--tile) * 0.05));
+  position: absolute;
+  inset: var(--out);
+  pointer-events: none;
+  background:
+    linear-gradient(#4aa6ff, #4aa6ff) left top / var(--harm) var(--hbar) no-repeat,
+    linear-gradient(#4aa6ff, #4aa6ff) left top / var(--hbar) var(--harm) no-repeat,
+    linear-gradient(#4aa6ff, #4aa6ff) right top / var(--harm) var(--hbar) no-repeat,
+    linear-gradient(#4aa6ff, #4aa6ff) right top / var(--hbar) var(--harm) no-repeat,
+    linear-gradient(#4aa6ff, #4aa6ff) left bottom / var(--harm) var(--hbar) no-repeat,
+    linear-gradient(#4aa6ff, #4aa6ff) left bottom / var(--hbar) var(--harm) no-repeat,
+    linear-gradient(#4aa6ff, #4aa6ff) right bottom / var(--harm) var(--hbar) no-repeat,
+    linear-gradient(#4aa6ff, #4aa6ff) right bottom / var(--hbar) var(--harm) no-repeat;
+  animation: tileHalo 2.4s ease-in-out infinite;
+}
+
+.num {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%);
+  color: #eef3ff;
+  font-size: var(--num-size, 18px);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0 6px #000, 0 0 10px #000, 0 0 12px var(--glow);
+}
+
+/* 当前格有外圈括号, 序号再抬高一点避免压线。 */
+.tile[data-tone="current"] .num {
+  bottom: calc(100% + var(--tile) * 0.12);
+}
+
+/* 暗提示(与已访问房相连但未点亮): 整体压暗。 */
+.tile[data-dim] {
+  opacity: 0.45;
+  filter: saturate(0.5);
+}
+
+/* 脚下传送门通往的那一格。 */
+.tile[data-target] {
+  animation: tileTarget 1.4s ease-in-out infinite;
+}
+
+/* 信标选房: 可点格子换成金色括号。 */
+.tile[data-picking] {
+  --edge-hi: #fff1c8;
+  --glow: #f2d79ec0;
+  cursor: var(--cursor-pointer);
+}
+
+.tile[data-picking]:hover,
+.tile[data-picking]:focus-visible {
+  outline: none;
+  transform: translateY(-2px);
+  filter: drop-shadow(0 0 6px #f2d79e) drop-shadow(0 0 18px #f2d79ecc);
+}
+
+@keyframes tileTarget {
+  0%, 100% { filter: drop-shadow(0 0 4px #f0c98a80) drop-shadow(0 0 10px #e2b06e60); }
+  50% { filter: drop-shadow(0 0 8px #f0c98a) drop-shadow(0 0 24px #e2b06ec0); }
+}
+
+@keyframes tileHalo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

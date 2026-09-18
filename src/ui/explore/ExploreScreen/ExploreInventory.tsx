@@ -5,6 +5,7 @@ import { travelByBeacon } from "@/store/exploreCorridor";
 import BackpackPanel from "@/ui/explore/BackpackPanel";
 import { PicnicPanel } from "@/ui/explore/PicnicSkill";
 import Minimap from "@/ui/explore/Minimap";
+import MinimapAtlas from "@/ui/explore/Minimap/MinimapAtlas";
 import { CharacterModal, MODAL_ACCENT } from "@/ui/common/CharacterModal";
 import { BurdenGauge } from "@/ui/explore/BurdenGauge";
 import { RelicRail } from "./RelicRail";
@@ -24,10 +25,16 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
         corridor={session.corridor}
         picking={inventory.beaconPicking}
         onPick={(roomId) => { travelByBeacon(roomId); inventory.setBeaconPicking(false); }}
+        onExpand={inventory.allowed ? () => inventory.setAtlasOpen(true) : undefined}
       />}
       <BurdenGauge />
       <RelicRail stacks={relicsInBackpack(session)} />
     </div>
+    {inventory.atlasOpen && session.dungeon && session.corridor && <MinimapAtlas
+      dungeon={session.dungeon}
+      corridor={session.corridor}
+      onClose={() => inventory.setAtlasOpen(false)}
+    />}
     {inventory.target && <div className={s.targetBanner} role="status">
       <span>选择队员使用「{getItemDef(inventory.target.itemId).name}」</span>
       <button type="button" onClick={() => inventory.setTarget(null)}>取消</button>

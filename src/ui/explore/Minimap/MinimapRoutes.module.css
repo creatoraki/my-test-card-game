@@ -1,0 +1,33 @@
+.routes {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.routes path {
+  fill: none;
+  stroke-linejoin: miter;
+  stroke-linecap: square;
+}
+
+.glow {
+  stroke: #2f8dff;
+  opacity: 0.75;
+}
+
+.tube {
+  stroke: #9fd3ff;
+}
+
+.core {
+  stroke: #1f63d4;
+}
+
+.faint {
+  opacity: 0.42;
+}
+
+.faint path {
+  stroke-linecap: butt;
+}
