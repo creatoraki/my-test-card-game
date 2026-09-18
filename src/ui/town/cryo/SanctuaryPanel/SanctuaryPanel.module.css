@@ -1,6 +1,5 @@
 .body {
-  composes: content from "../styles/cryoKit.module.css";
-  --accent: var(--asm-select, #fff0b4);
+  --accent: var(--sx-key-hot);
   display: flex;
   min-height: 0;
   flex: 1;
@@ -28,17 +27,31 @@
 .heading {
   flex: 0 0 auto;
   margin: 0;
-  color: var(--asm-select, #fff0b4);
+  padding: 8px 4px 10px;
+  border-bottom: 1px solid var(--sx-line-lit);
+  color: var(--sx-title);
   font-size: 24px;
   font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px var(--sx-title-glow);
+}
+
+/* 标题前的竖条: 与商店详情栏标题同一语言。 */
+.heading::before {
+  display: inline-block;
+  content: "";
+  width: 4px;
+  height: 22px;
+  margin-right: 12px;
+  background: var(--sx-key-hot);
+  vertical-align: -3px;
+  box-shadow: 0 0 8px var(--sx-key);
 }
 
 .slotGrid,
 .collection {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   align-content: start;
   gap: 12px;
   min-height: 0;
@@ -80,9 +93,11 @@
   flex-direction: column;
   gap: 12px;
   padding: 18px;
-  color: var(--asm-ink, #f6ead1);
-  background: color-mix(in srgb, var(--asm-frame) 8%, #080a0d);
-  border: 1px solid var(--asm-line, #d7b55d2e);
+  color: var(--sx-ink);
+  background: var(--cryo-plate);
+  border: 1px solid var(--sx-line);
+  border-left-color: var(--sx-line-lit);
+  box-shadow: var(--sx-lit), var(--sx-drop);
   font-size: 18px;
   line-height: 1.5;
 }
@@ -100,22 +115,24 @@
   justify-content: space-between;
   gap: 14px;
   padding: 16px;
-  color: var(--asm-ink, #f6ead1);
-  background: color-mix(in srgb, var(--asm-frame) 7%, #080a0d);
-  border: 1px solid var(--asm-line, #d7b55d2e);
+  color: var(--sx-ink);
+  background: var(--cryo-plate);
+  border: 1px solid var(--sx-line);
+  border-left: 2px solid var(--sx-fill);
+  box-shadow: var(--sx-lit);
   font-size: 18px;
   line-height: 1.4;
 }
 
 .progress strong {
-  color: var(--asm-select, #fff0b4);
+  color: var(--sx-key-hot);
   font-size: 20px;
   font-weight: var(--ui-weight);
 }
 
 .progress span,
 .empty {
-  color: var(--asm-ink-dim, #a89a7c);
+  color: var(--sx-muted);
   font-size: 18px;
 }
 

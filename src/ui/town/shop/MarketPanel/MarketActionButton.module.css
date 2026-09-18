@@ -87,6 +87,23 @@
   --btn-halo: #6fd6f066;
 }
 
+/* 医疗室: 冰蓝主光 + 紫色顶光, 冷白文字。 */
+.med {
+  --btn-stroke: linear-gradient(135deg, #f4f8ff, #a9d4ff 35%, #5cb4ff 68%, #8b6cf2);
+  --btn-core: #080b17;
+  --btn-edge: #4d8fd6;
+  --btn-edge-soft: #3a62a84d;
+  --btn-bloom-bottom: #2f5f9e;
+  --btn-bloom-bottom-mid: #1a2a4a99;
+  --btn-bloom-top: #6a54c4;
+  --btn-bloom-top-mid: #211c4099;
+  --btn-ink: #f2f7ff;
+  --btn-meta: #a9d4ff;
+  --btn-icon: #cfe8ff;
+  --btn-divider: #a9c6ff59;
+  --btn-halo: #5cb4ff66;
+}
+
 .button:hover:not(:disabled),
 .button:focus-visible:not(:disabled) {
   filter: drop-shadow(0 0 15px var(--btn-halo)) brightness(1.16);

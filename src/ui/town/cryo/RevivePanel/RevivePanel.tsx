@@ -4,11 +4,13 @@ import { RULES } from "@/engine";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import { CryoFigureStrip } from "../CryoFigureStrip";
-import { CONTENT_DELAY_MS, STAGGER_MS } from "../cryoMorph/cryoChoreo";
+import { MarketActionButton } from "@/ui/town/shop/MarketPanel";
 import kit from "../styles/cryoKit.module.css";
 import figure from "../styles/cryoFigure.module.css";
 import s from "./RevivePanel.module.css";
 
+/** 生命体征读数逐格起跳的间隔。 */
+const STAGGER_MS = 40;
 const stagger = (index: number): CSSProperties => ({ "--i": index } as CSSProperties);
 
 const VITALS: { label: string; num?: number; decimals?: number; unit?: string; text?: string }[] = [
@@ -94,16 +96,24 @@ export function RevivePanel({ awakened, fallen, loot, slot, onSelect, onRevive }
       </div>
 
       <div className={kit.panelFoot}>
-        <p className={kit.note}>
-          {active?.kind !== "fallen"
-            ? "选中一名阵亡队员才能复苏。"
-            : loot < cost
-              ? `积分将透支至 ${(loot - cost).toLocaleString()}，复苏仍会执行。`
-              : "复苏后该队员进入待命，不会自动上阵。"}
-        </p>
-        <button className={kit.primary} type="button" disabled={!canRevive} onClick={() => active?.kind === "fallen" && onRevive(active.charId)}>
-          复苏唤醒 −{cost} 居民积分
-        </button>
+        <div className={kit.summary}>
+          <strong className={kit.summaryTitle}>复苏信息</strong>
+          <p className={kit.note}>
+            {active?.kind !== "fallen"
+              ? "选中一名阵亡队员才能复苏。"
+              : loot < cost
+                ? `积分将透支至 ${(loot - cost).toLocaleString()}，复苏仍会执行。`
+                : "复苏后该队员进入待命，不会自动上阵。"}
+          </p>
+        </div>
+        <MarketActionButton
+          tone="med"
+          icon="✚"
+          label="复苏唤醒"
+          meta={`−${cost} 积分`}
+          disabled={!canRevive}
+          onClick={() => active?.kind === "fallen" && onRevive(active.charId)}
+        />
       </div>
     </div>
   );
@@ -132,7 +142,7 @@ function PodCard({ pod, index, selected, onSelect }: { pod: Pod; index: number; 
 }
 
 function VitalCell({ vital, index }: { vital: (typeof VITALS)[number]; index: number }) {
-  const shown = useCountUp(vital.num ?? 0, CONTENT_DELAY_MS + index * STAGGER_MS, 460, vital.decimals ?? 0);
+  const shown = useCountUp(vital.num ?? 0, index * STAGGER_MS, 460, vital.decimals ?? 0);
   return (
     <div className={s.vital} style={stagger(index)}>
       <span className={s.label}>{vital.label}</span>

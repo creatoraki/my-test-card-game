@@ -1,5 +1,4 @@
 .wrap {
-  --ui-glow-color: var(--cryo-glow);
   position: relative;
   flex: 0 0 96px;
   min-width: 0;
@@ -14,9 +13,9 @@
   gap: 12px;
   padding: 4px 10px 4px 8px;
   overflow: hidden;
-  border: 1px solid var(--cryo-line);
-  background: color-mix(in srgb, var(--cryo-card) 82%, transparent);
-  color: var(--cryo-ink);
+  border: 1px solid var(--sx-line);
+  background: color-mix(in srgb, var(--sx-bg-hi) 82%, transparent);
+  color: var(--sx-ink);
   text-align: left;
   transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
 }
@@ -26,16 +25,22 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: var(--cryo-glow);
+  background: var(--sx-key);
   opacity: 0;
   transition: opacity 0.18s ease;
 }
 
-.row:not(:disabled):hover,
-.row.is-selected {
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-hover);
-  box-shadow: 0 0 20px -12px var(--cryo-glow);
+.row:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--sx-key) 55%, transparent);
+  background: var(--cryo-plate-hover);
+  box-shadow: var(--sx-lit);
+}
+
+.row.is-selected,
+.row.is-selected:not(:disabled):hover {
+  border-color: var(--sx-key);
+  background: var(--cryo-plate-active);
+  box-shadow: inset 0 0 22px -8px var(--sx-key), var(--sx-lit);
 }
 
 .row.is-selected::before {
@@ -88,7 +93,7 @@
 
 .damage {
   overflow: hidden;
-  color: var(--cryo-alert);
+  color: var(--sx-alert);
   font-size: 18px;
   letter-spacing: 1px;
   text-overflow: ellipsis;
@@ -96,7 +101,7 @@
 }
 
 .damage.is-healthy {
-  color: var(--cryo-ink-dim);
+  color: var(--sx-muted);
 }
 
 .hp {
@@ -122,8 +127,8 @@
   top: 8px;
   z-index: 3;
   padding: 3px 5px;
-  border: 1px solid color-mix(in srgb, var(--cryo-glow) 52%, transparent);
-  background: var(--cryo-card-hover);
+  border: 1px solid color-mix(in srgb, var(--sx-key) 52%, transparent);
+  background: var(--cryo-plate-hover);
   color: var(--ui-value);
   font-size: 18px;
   font-weight: var(--ui-weight);

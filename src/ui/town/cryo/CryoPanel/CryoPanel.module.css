@@ -1,0 +1,55 @@
+/* 窗口定位与商店、研究中心、博物馆共用同一组设计像素，换页演出也用同一组关键帧。 */
+.window {
+  position: absolute;
+  left: 264px;
+  right: 70px;
+  top: 100px;
+  bottom: 58px;
+  pointer-events: auto;
+}
+
+.page {
+  height: 100%;
+  min-height: 0;
+}
+
+.page[data-page-phase="leaving"] {
+  pointer-events: none;
+  animation: pageLeave 170ms ease-in both;
+}
+
+.page[data-page-phase="entering"] {
+  animation: pageEnter 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
+}
+
+.stat {
+  display: grid;
+  min-width: 118px;
+  gap: 3px;
+  color: var(--sx-muted);
+  font-size: 18px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* 阵亡读数 >0 时由组件下发 --stat-value 转成警示粉。 */
+.stat strong {
+  color: var(--stat-value, var(--sx-key-hot));
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+
+@keyframes pageLeave {
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}

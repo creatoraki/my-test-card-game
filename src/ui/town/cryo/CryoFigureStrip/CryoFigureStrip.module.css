@@ -40,17 +40,17 @@
   width: 30px;
   height: 46px;
   padding: 0;
-  border: 1px solid var(--cryo-line);
-  background: var(--cryo-card-hover);
-  color: var(--cryo-glow-deep);
+  border: 1px solid var(--sx-line);
+  background: var(--cryo-plate-hover);
+  color: var(--sx-key-hot);
   font-size: 22px;
   transform: translateY(-50%);
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 
 .arrow:hover {
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-strong);
+  border-color: var(--sx-key);
+  background: var(--cryo-plate-active);
 }
 
 .previous { left: 0; }
@@ -67,10 +67,10 @@
 
 .edgeStart {
   left: 0;
-  background: linear-gradient(90deg, #071613, transparent);
+  background: linear-gradient(90deg, var(--sx-bg-lo), transparent);
 }
 
 .edgeEnd {
   right: 0;
-  background: linear-gradient(270deg, #071613, transparent);
+  background: linear-gradient(270deg, var(--sx-bg-lo), transparent);
 }

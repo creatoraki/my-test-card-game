@@ -5,8 +5,8 @@
 .figureFrame {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--cryo-line);
-  background: linear-gradient(160deg, #132420b8, #0d1a17a8 62%, #08120fb0);
+  border: 1px solid var(--sx-line);
+  background: linear-gradient(160deg, #121a34b8, #0b1020a8 62%, #060914b0);
   clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
 }
 
@@ -39,7 +39,7 @@
   flex-direction: column;
   gap: 3px;
   min-width: 0;
-  color: var(--cryo-ink);
+  color: var(--sx-ink);
   text-align: left;
 }
 
@@ -54,7 +54,7 @@
 
 .figureMeta {
   overflow: hidden;
-  color: var(--cryo-ink-dim);
+  color: var(--sx-muted);
   font-size: 18px;
   letter-spacing: 1px;
   text-overflow: ellipsis;

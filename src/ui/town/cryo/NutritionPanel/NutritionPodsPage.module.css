@@ -2,11 +2,11 @@
   display: flex;
   min-width: 0;
   min-height: 0;
-  flex: 0 0 50%;
+  flex: 1;
   box-sizing: border-box;
   flex-direction: column;
   gap: 16px;
-  padding: 16px 0 12px;
+  padding: 16px 0 0;
 }
 
 .pageHead {
@@ -14,7 +14,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  flex: 0 0 44px;
+  flex: 0 0 auto;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--sx-line-lit);
 }
 
 .subhead {
@@ -22,44 +24,35 @@
   align-items: baseline;
   gap: 16px;
   min-width: 0;
-  color: var(--cryo-ink-dim);
+  color: var(--sx-muted);
 }
 
+/* 标题与商店详情栏标题同一语言: 前置竖条 + 标题辉光。 */
 .subhead h2 {
   margin: 0;
-  color: var(--ui-value);
+  color: var(--sx-title);
   font-family: var(--font-family);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px var(--sx-title-glow);
+}
+
+.subhead h2::before {
+  display: inline-block;
+  content: "";
+  width: 4px;
+  height: 22px;
+  margin-right: 12px;
+  background: var(--sx-key-hot);
+  vertical-align: -3px;
+  box-shadow: 0 0 8px var(--sx-key);
 }
 
 .subhead span {
+  color: var(--sx-muted);
   font-size: 18px;
-  color: var(--ui-label);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.upgradeButton {
-  flex: 0 0 auto;
-  padding: 9px 16px;
-  border: 1px solid color-mix(in srgb, var(--cryo-glow) 38%, transparent);
-  background: var(--cryo-card);
-  color: var(--ui-value);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
-}
-
-.upgradeButton:hover {
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-strong);
-  transform: translateY(-2px);
+  letter-spacing: 1px;
 }
 
 .stage {

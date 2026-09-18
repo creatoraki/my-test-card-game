@@ -1,8 +1,9 @@
 import { getItemDef } from "@/data";
 import { SANCTUARY_RULES } from "@/data/sanctuary";
 import ItemDetail from "@/ui/common/item/ItemDetail";
-import ItemSlot from "@/ui/common/item/ItemSlot";
+import ItemTile from "@/ui/common/item/ItemTile";
 import { useTownStore } from "@/store/townStore";
+import { MarketActionButton } from "@/ui/town/shop/MarketPanel";
 import kit from "../styles/cryoKit.module.css";
 import { useSanctuaryPurify } from "./useSanctuaryPurify";
 import s from "./SanctuaryPanel.module.css";
@@ -25,9 +26,10 @@ export function SanctuaryPanel({ onPurify }: Props) {
             <h4 className={s.heading}>待净化诅咒</h4>
             <div className={s.slotGrid}>
               {purify.curses.length ? purify.curses.map((stack) => (
-                <ItemSlot
+                <ItemTile
                   key={stack.uid}
                   stack={stack}
+                  variant="compact"
                   selected={stack.uid === purify.selected?.uid}
                   onClick={() => purify.select(stack.uid)}
                 />
@@ -62,17 +64,25 @@ export function SanctuaryPanel({ onPurify }: Props) {
             <h4 className={s.heading}>祝福收藏</h4>
             <div className={s.collection}>
               {purify.blessings.length ? purify.blessings.map((stack) => (
-                <ItemSlot key={stack.uid} stack={stack} />
+                <ItemTile key={stack.uid} stack={stack} variant="compact" />
               )) : <p className={s.empty}>尚未收藏祝福遗物</p>}
             </div>
           </section>
         </div>
 
         <div className={kit.panelFoot}>
-          <p className={kit.note}>{purify.note}</p>
-          <button className={kit.primary} type="button" disabled={!purify.canStart} onClick={purify.confirm}>
-            投入圣水池
-          </button>
+          <div className={kit.summary}>
+            <strong className={kit.summaryTitle}>净化信息</strong>
+            <p className={kit.note}>{purify.note}</p>
+          </div>
+          <MarketActionButton
+            tone="med"
+            icon="◈"
+            label="投入圣水池"
+            meta={purify.lootCost !== null ? `−${purify.lootCost} 积分` : `耗时 ${SANCTUARY_RULES.days} 天`}
+            disabled={!purify.canStart}
+            onClick={purify.confirm}
+          />
         </div>
       </div>
     </div>

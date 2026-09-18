@@ -1,6 +1,4 @@
 .body {
-  composes: content from "../styles/cryoKit.module.css";
-  --ui-glow-color: var(--cryo-glow);
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -20,26 +18,31 @@
   width: 186px;
   height: 452px;
   overflow: hidden;
-  border: 1px solid var(--cryo-line);
-  background: var(--cryo-card);
-  color: var(--cryo-ink);
+  border: 1px solid var(--sx-line);
+  background: var(--cryo-plate);
+  box-shadow: var(--sx-lit);
+  color: var(--sx-ink);
   text-align: left;
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
   transition: border-color 0.18s ease, background 0.18s ease, transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1), box-shadow 0.2s ease;
 }
 
+/* 与商店货位同一套交互口径: 悬浮只提亮描边并上浮 2px, 选中换主光描边 + 洗色 + 内辉光。 */
 .pod:hover {
-  transform: translateY(-5px);
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-hover);
-  box-shadow: 0 18px 34px -24px var(--cryo-shadow);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--sx-key) 55%, transparent);
+  background: var(--cryo-plate-hover);
+  box-shadow: var(--sx-lit), 0 18px 34px -24px var(--cryo-shadow);
 }
 
 .pod.is-selected,
 .pod.is-selected:hover {
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-strong);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cryo-glow) 23%, transparent), 0 0 24px -8px var(--cryo-glow);
+  border-color: var(--sx-key);
+  background: var(--cryo-plate-active);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--sx-key) 30%, transparent),
+    inset 0 0 26px -8px var(--sx-key),
+    var(--sx-lit);
 }
 
 .lid {
@@ -49,7 +52,7 @@
   top: 0;
   z-index: 3;
   height: 4px;
-  background: linear-gradient(90deg, transparent, var(--cryo-glow) 40%, var(--cryo-glow-soft));
+  background: linear-gradient(90deg, transparent, var(--sx-key) 40%, var(--sx-fill));
   opacity: 0.72;
 }
 
@@ -78,7 +81,7 @@
   justify-content: center;
   border: 0;
   clip-path: none;
-  color: var(--cryo-ink-dim);
+  color: var(--sx-muted);
 }
 
 .figure::after {
@@ -123,8 +126,8 @@
   height: 6px;
   margin-right: 6px;
   border-radius: 50%;
-  background: var(--cryo-glow);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--cryo-glow) 55%, transparent);
+  background: var(--sx-key);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--sx-key) 55%, transparent);
 }
 
 .is-active .figure {
@@ -133,14 +136,14 @@
 }
 
 .is-fallen .figure {
-  background: linear-gradient(145deg, #34363bc2, #17191db8);
+  background: linear-gradient(145deg, #2a2e3ec2, #12141eb8);
   filter: grayscale(1);
   opacity: 0.58;
 }
 
 .is-fallen .led {
-  background: var(--cryo-alert);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--cryo-alert) 65%, transparent);
+  background: var(--sx-alert);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--sx-alert) 65%, transparent);
 }
 
 .is-empty {
@@ -149,7 +152,7 @@
 }
 
 .is-empty .figure {
-  background: #f4edf888;
+  background: color-mix(in srgb, var(--sx-bg-lo) 70%, transparent);
 }
 
 .detail {
@@ -189,7 +192,7 @@
 .desc {
   max-width: 460px;
   margin: 8px 0 0;
-  color: var(--cryo-ink-dim);
+  color: var(--sx-muted);
   font-size: 19px;
   line-height: 1.7;
   letter-spacing: 1px;
@@ -202,14 +205,15 @@
 }
 
 .vital {
-  composes: content from "../styles/cryoKit.module.css";
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 5px;
   padding: 12px 14px;
-  border: 1px solid var(--cryo-line);
-  background: var(--cryo-card);
+  border: 1px solid var(--sx-line);
+  border-left: 2px solid var(--sx-fill);
+  background: var(--sx-bg-lo);
+  box-shadow: var(--sx-sunk);
 }
 
 .label {

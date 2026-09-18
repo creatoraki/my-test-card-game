@@ -1,11 +1,12 @@
 .roster {
-  --ui-glow-color: var(--cryo-glow);
   display: flex;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  border: 1px solid var(--cryo-line);
-  background: color-mix(in srgb, var(--cryo-card) 86%, #071713);
+  border: 1px solid var(--sx-line);
+  border-left-color: var(--sx-line-lit);
+  background: linear-gradient(145deg, #0b1020e0, #04060ee8);
+  box-shadow: var(--sx-sunk);
 }
 
 .head {
@@ -15,7 +16,7 @@
   gap: 16px;
   min-height: 78px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--cryo-line);
+  border-bottom: 1px solid var(--sx-line);
 }
 
 .head h3 {
@@ -52,7 +53,7 @@
   gap: 8px;
   padding: 10px;
   overflow-y: auto;
-  scrollbar-color: var(--cryo-line) transparent;
+  scrollbar-color: var(--sx-line) transparent;
   scrollbar-width: thin;
 }
 
@@ -61,7 +62,7 @@
 }
 
 .list::-webkit-scrollbar-thumb {
-  background: var(--cryo-line);
+  background: var(--sx-line);
 }
 
 .empty {
@@ -69,7 +70,7 @@
   align-items: center;
   justify-content: center;
   min-height: 120px;
-  color: var(--cryo-ink-dim);
+  color: var(--sx-muted);
   font-size: 18px;
   text-align: center;
 }

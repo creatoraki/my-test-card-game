@@ -13,7 +13,7 @@
   bottom: 0;
   left: 0;
   height: var(--fill, 0%);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--cryo-glow-deep) 36%, transparent), color-mix(in srgb, var(--cryo-glow) 22%, transparent));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sx-key-hot) 36%, transparent), color-mix(in srgb, var(--sx-key) 22%, transparent));
   transition: height 520ms cubic-bezier(0.2, 0.72, 0.28, 1);
 }
 
@@ -25,15 +25,15 @@
   right: 0;
   left: 0;
   height: 2px;
-  background: var(--cryo-glow-soft);
-  box-shadow: 0 0 12px var(--cryo-glow);
+  background: var(--sx-fill);
+  box-shadow: 0 0 12px var(--sx-key);
   animation: podWave 2.4s ease-in-out infinite;
 }
 
 .gain {
   height: var(--gain, 0%);
   bottom: var(--base-fill, 0%);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--cryo-glow-deep) 62%, transparent), color-mix(in srgb, var(--cryo-glow) 48%, transparent));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sx-key-hot) 62%, transparent), color-mix(in srgb, var(--sx-key) 48%, transparent));
   animation: podGain 1.6s ease-in-out infinite;
 }
 
@@ -48,7 +48,7 @@
   left: var(--bubble-left);
   width: var(--bubble-size);
   height: var(--bubble-size);
-  border: 1px solid var(--cryo-glow-soft);
+  border: 1px solid var(--sx-fill);
   border-radius: 50%;
   opacity: 0;
   animation: podBubble var(--bubble-duration) ease-in infinite;
@@ -61,7 +61,7 @@
   left: 0;
   top: -20%;
   height: 18%;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--cryo-glow) 40%, transparent), transparent);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--sx-key) 40%, transparent), transparent);
   opacity: 0.72;
   animation: podScan 2.8s linear infinite;
 }

@@ -96,3 +96,15 @@
   --frame-glow-near: #ff3b4e;
   --frame-glow-far: #8c1f2a99;
 }
+
+/* 医疗室: 冷白 → 冰蓝 → 紫, 近光蓝、远光紫。 */
+.med {
+  --frame-stroke: linear-gradient(115deg, #f4f8ff, #a9d4ff 18%, #5cb4ff 40%, #e6e0ff 67%, #9a7cf5);
+  --frame-inner-stroke: linear-gradient(125deg, #a9d4ffb3, #7a8cf24d 40%, #d8ccffcc);
+  --frame-corner-tl: linear-gradient(#f4f8ff, #a9d4ff);
+  --frame-corner-tr: linear-gradient(#a9d4ff, #5cb4ff);
+  --frame-corner-bl: linear-gradient(#8b6cf2, #f4f8ff);
+  --frame-corner-br: linear-gradient(#9a7cf5, #f0ecff);
+  --frame-glow-near: #5cb4ff;
+  --frame-glow-far: #6a4fd899;
+}

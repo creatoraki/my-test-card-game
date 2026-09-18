@@ -1,5 +1,4 @@
 .wrap {
-  --ui-glow-color: var(--cryo-glow);
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -14,35 +13,38 @@
   min-height: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--cryo-line);
-  background: var(--cryo-card);
-  color: var(--cryo-ink);
+  border: 1px solid var(--sx-line);
+  background: var(--cryo-plate);
+  color: var(--sx-ink);
   text-align: left;
   clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
   transition: border-color 0.18s ease, background 0.18s ease, transform 0.2s cubic-bezier(0.2, 0.72, 0.28, 1), box-shadow 0.2s ease;
 }
 
+/* 与商店货位同一套交互口径: 悬浮提亮描边 + 上浮 2px; 选中 / 待入舱换主光描边 + 洗色 + 内辉光;
+   疗养中用紫色反光区分「占用」与「选中」。外形始终不变。 */
 .pod:not(:disabled):hover {
-  transform: translateY(-5px);
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-hover);
-  box-shadow: 0 18px 34px -24px var(--cryo-shadow);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--sx-key) 55%, transparent);
+  background: var(--cryo-plate-hover);
+  box-shadow: var(--sx-lit), 0 18px 34px -24px var(--cryo-shadow);
 }
 
 .pod.is-treating {
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-hover);
+  border-color: color-mix(in srgb, var(--sx-fill) 70%, transparent);
+  background: var(--cryo-plate-hover);
+  box-shadow: inset 0 0 22px -10px var(--sx-fill), var(--sx-lit);
 }
 
 .pod.is-pending {
-  border-color: var(--cryo-glow);
-  background: color-mix(in srgb, var(--cryo-glow) 10%, var(--cryo-card));
-  box-shadow: 0 0 24px -12px var(--cryo-glow);
+  border-color: var(--sx-key);
+  background: var(--cryo-plate-active);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sx-key) 30%, transparent), inset 0 0 26px -8px var(--sx-key), var(--sx-lit);
 }
 
 .pod.is-selected {
-  border-width: 2px;
-  box-shadow: 0 0 30px -10px var(--cryo-glow);
+  border-color: var(--sx-key-hot);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sx-key) 45%, transparent), inset 0 0 30px -8px var(--sx-key), var(--sx-lit);
 }
 
 .pod.is-droppable {
@@ -66,7 +68,7 @@
   right: 0;
   z-index: 5;
   height: 4px;
-  background: linear-gradient(90deg, transparent, var(--cryo-glow) 40%, var(--cryo-glow-soft));
+  background: linear-gradient(90deg, transparent, var(--sx-key) 40%, var(--sx-fill));
   opacity: 0.82;
   transition: transform 0.42s cubic-bezier(0.2, 0.72, 0.28, 1);
 }
@@ -150,14 +152,14 @@
 }
 
 .emptyIcon {
-  color: var(--cryo-ink-dim);
+  color: var(--sx-muted);
   font-size: 54px;
   font-weight: 300;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .is-droppable .emptyIcon {
-  color: var(--cryo-glow);
+  color: var(--sx-key);
   animation: podPlus 1.6s ease-in-out infinite;
 }
 
@@ -215,7 +217,7 @@
 
 .lock {
   padding: 3px 6px;
-  border: 1px solid var(--cryo-line);
+  border: 1px solid var(--sx-line);
   color: var(--ui-label);
   font-size: 18px;
   font-weight: var(--ui-weight);
@@ -227,15 +229,15 @@
   position: absolute;
   inset: 22%;
   z-index: 6;
-  border: 2px solid var(--cryo-glow);
+  border: 2px solid var(--sx-key);
   border-radius: 50%;
   pointer-events: none;
   animation: podShock 0.72s ease-out both;
 }
 
 @keyframes podReady {
-  0%, 100% { box-shadow: 0 0 0 -10px var(--cryo-glow); }
-  50% { box-shadow: 0 0 26px -10px var(--cryo-glow); }
+  0%, 100% { box-shadow: 0 0 0 -10px var(--sx-key); }
+  50% { box-shadow: 0 0 26px -10px var(--sx-key); }
 }
 
 @keyframes podPlus {

@@ -6,8 +6,8 @@ import { cx } from "@/ui/common/cx";
 import s from "./MarketActionButton.module.css";
 
 interface Props {
-  /** 金 = 刷新货架一类的交易动作; 青 = 设施升级一类的建造动作。 */
-  tone: "gold" | "cyan";
+  /** 金 = 刷新货架一类的交易动作; 青 = 设施升级一类的建造动作; med = 医疗室。 */
+  tone: "gold" | "cyan" | "med";
   icon: ReactNode;
   label: string;
   /** 竖线右侧的附加信息, 如「800 积分」「等级 3」。 */

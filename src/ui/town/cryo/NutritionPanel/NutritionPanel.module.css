@@ -1,53 +1,8 @@
 .body {
-  composes: content from "../styles/cryoKit.module.css";
-  --ui-glow-color: var(--cryo-glow);
   display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;
-}
-
-.viewport {
-  min-height: 0;
-  flex: 1;
-  overflow: hidden;
-}
-
-.track {
-  display: flex;
-  width: 200%;
-  height: 100%;
-  transition: transform 420ms cubic-bezier(.2, .72, .28, 1);
-}
-
-.page {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex: 0 0 50%;
-  box-sizing: border-box;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px 0 12px;
-}
-
-.backButton {
-  flex: 0 0 auto;
-  padding: 9px 16px;
-  border: 1px solid color-mix(in srgb, var(--cryo-glow) 38%, transparent);
-  background: var(--cryo-card);
-  color: var(--ui-value);
-  font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
-}
-
-.backButton:hover {
-  border-color: var(--cryo-glow);
-  background: var(--cryo-card-strong);
-  transform: translateY(-2px);
 }
 
 .footCopy {
@@ -55,21 +10,11 @@
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-.cost,
-.techReadout {
-  color: var(--ui-label);
+.cost {
+  color: var(--sx-dim);
   font-size: 18px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-}
-
-.techReadout {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 22px;
-  color: var(--ui-value);
+  letter-spacing: 1px;
 }

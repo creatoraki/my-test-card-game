@@ -1,0 +1,108 @@
+.theme {
+  /* 医疗室沿用商店的板材语言: 冰蓝主光(交互 / 选中 / 标题 / 按钮) + 紫色环境反光 + 冷白高光。 */
+  --sx-key: #5cb4ff;
+  --sx-key-hot: #cfe8ff;
+  --sx-key-wash: #5cb4ff1f;
+  --sx-fill: #8b6cf2;
+  --sx-fill-wash: #8b6cf216;
+
+  --sx-ink: #eef3fb;
+  --sx-muted: #a9b3c6;
+  --sx-dim: #818ba0;
+  --sx-line: #a9b3c62e;
+  --sx-line-lit: #5cb4ff42;
+  --sx-line-hot: #e6f2ff;
+
+  --sx-title: #e6f2ff;
+  --sx-title-glow: #5cb4ff4d;
+  --sx-title-shadow: #1b2f5c;
+
+  /* 蓝黑底三档：受光面、常规面与凹陷阴影面。 */
+  --sx-bg-hi: #0b1020;
+  --sx-bg: #080b17;
+  --sx-bg-lo: #04060e;
+
+  --sx-action: var(--sx-key);
+  --sx-action-hot: var(--sx-key-hot);
+  /* 阵亡 / 不足：粉红, 与蓝紫都拉得开。 */
+  --sx-alert: #ff7a9a;
+  --sx-electric: var(--sx-key);
+
+  --sx-lit: inset 0 1px 0 var(--sx-line-lit), inset 0 -1px 0 #8b6cf21c;
+  --sx-sunk: inset 0 2px 14px -8px #000000d0, inset 0 -1px 0 #8b6cf21c;
+  --sx-drop: 0 18px 40px -26px #000000c4;
+
+  /* 左侧信息条（底栏 / 铭牌 / 导航 / 返回）：冷蓝玻璃。 */
+  --rail-accent: #5cb4ff;
+  --rail-accent-hot: #a9d4ff;
+  --rail-accent-deep: #13264f;
+  --rail-accent-pale: #c9dcff;
+  --rail-accent-flare: #f2f6ff;
+  --rail-glass: #080a12b8;
+  --rail-ink: #eef3fb;
+  --rail-sub: #6f7890;
+  --rail-line: #cfd8ea1f;
+
+  /* 公共科技树令牌：主色蓝，次色紫。 */
+  --tech-accent: #6cbcff;
+  --tech-accent-hot: #d6ebff;
+  --tech-accent-soft: #93ccff;
+  --tech-accent-line: #3a6fb0;
+  --tech-ink: #eef3fb;
+  --tech-muted: #aeb8cc;
+  --tech-line: #7f8aa6;
+  --tech-plate: #0e1428;
+  --tech-plate-deep: #060914;
+  --tech-info: #5cb4ff;
+  --tech-info-ink: #d6ebff;
+  --tech-info-fill-a: #17305e;
+  --tech-info-fill-b: #0a1330;
+  --tech-info-glow: #5cb4ff44;
+  --tech-good: #a58cff;
+  --tech-wire: #6a7596;
+  --tech-wire-lit: #d6ebff;
+  --tech-halo-lit: #5cb4ff;
+  --tech-medal-1: #eef6ff;
+  --tech-medal-2: #93ccff;
+  --tech-medal-3: #3a3f9e;
+  --tech-medal-4: #c2b2ff;
+  --tech-medal-5: #5b46b8;
+  --tech-medal-plate-1: #1c2446;
+  --tech-medal-plate-2: #0e1328;
+  --tech-medal-plate-3: #04060e;
+  --tech-medal-glow: #5cb4ff55;
+  --tech-medal-mark: #a9d4ff;
+  --tech-medal-check-fill: #22306a;
+  --tech-medal-check-edge: #b6d6ff;
+  --tech-medal-check-tick: #f2f7ff;
+
+  /* 医疗室板材：与商店货位同一套「左上主光洗色 + 右下反光洗色 + 蓝黑斜向底」。
+     只用于 background 声明; 需要参与 color-mix 的地方直接读 --sx-bg-hi。 */
+  --cryo-plate:
+    radial-gradient(ellipse 78% 58% at 6% -8%, var(--sx-key-wash), transparent 62%),
+    radial-gradient(ellipse 62% 52% at 102% 108%, var(--sx-fill-wash), transparent 58%),
+    linear-gradient(120deg, #0e1428e6, #05070fe6 68%, #0b1020e6);
+  --cryo-plate-hover:
+    radial-gradient(ellipse 78% 58% at 6% -8%, #5cb4ff33, transparent 62%),
+    radial-gradient(ellipse 62% 52% at 102% 108%, #8b6cf22a, transparent 58%),
+    linear-gradient(120deg, #121a34eb, #070a14eb 68%, #0e1428eb);
+  --cryo-plate-active:
+    radial-gradient(ellipse 90% 70% at 50% 110%, #5cb4ff38, transparent 70%),
+    radial-gradient(ellipse 62% 52% at 102% 108%, #8b6cf233, transparent 58%),
+    linear-gradient(120deg, #15224af0, #0a1026f0 68%, #111a3af0);
+  /* 立绘底部压暗与投影。 */
+  --cryo-scrim: #04060eb8;
+  --cryo-shadow: #000000c4;
+
+  /* 下游组件的桥接变量。 */
+  --asm-glow: var(--sx-key);
+  --asm-frame: var(--sx-key);
+  --asm-select: var(--sx-key-hot);
+  --asm-cyan: var(--sx-key-hot);
+  --asm-ink: var(--sx-ink);
+  --asm-ink-dim: var(--sx-muted);
+  --asm-line: var(--sx-line);
+  --ui-label: var(--sx-muted);
+  --ui-value: var(--sx-ink);
+  --ui-glow-color: #5cb4ff66;
+}
