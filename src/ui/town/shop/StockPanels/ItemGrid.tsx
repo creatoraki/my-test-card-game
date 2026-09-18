@@ -1,10 +1,10 @@
 // 库存清单与回收台共用的物品网格。
-// ★ 与探索背包共用同一个 ItemSlot 与同一套 tab —— 这就是把格子抽成组件的全部意义。
-//   区别只有一条: 这里**没有格数上限**, 一排固定 5 格、按可用宽度等分的正方形网格 + 滚动。
+// 格子用 ItemTile 默认模式(竖版卡, 带名称); tab 与探索背包共用。
+// **没有格数上限**, 一排固定 5 格、按可用宽度等分 + 滚动。
 
 import { useEffect, useState } from "react";
 import type { ItemStack } from "@/items/types";
-import ItemSlot from "@/ui/common/item/ItemSlot";
+import ItemTile from "@/ui/common/item/ItemTile";
 import ItemTooltip, {
   tooltipPointFromElement,
   type TooltipPoint,
@@ -62,9 +62,8 @@ export function ItemGrid({ stacks, tab, equipTab, isSelected, onSelect, empty }:
               setTooltipPoint(null);
             }}
           >
-            <ItemSlot
+            <ItemTile
               stack={stack}
-              overlay
               selected={isSelected(stack)}
               onClick={() => onSelect(stack.uid)}
             />

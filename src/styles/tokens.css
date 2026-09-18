@@ -58,8 +58,8 @@
   --rarity-rare-glow: #4aa3ff45;
   --rarity-epic: #b06cf0;
   --rarity-epic-glow: #b06cf04d;
-  --rarity-legendary: #ffb340;
-  --rarity-legendary-glow: #ffb34055;
+  --rarity-legendary: #ff4d4d;
+  --rarity-legendary-glow: #ff4d4d55;
 
   color-scheme: dark;
 }

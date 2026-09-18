@@ -3,7 +3,7 @@ import { getItemDef } from "@/data";
 import { mergeStacksForDisplay, sortStacks } from "@/items/inventory";
 import { RARITY_ORDER } from "@/items/types";
 import { useTownStore } from "@/store/townStore";
-import ItemSlot from "@/ui/common/item/ItemSlot/ItemSlot";
+import ItemTile from "@/ui/common/item/ItemTile";
 import ItemTabs from "@/ui/common/item/ItemTabs/ItemTabs";
 import { matchTab, type EquipTab, type ItemTab } from "@/ui/common/item/itemFilters";
 import { WarehouseDetail } from "./WarehouseDetail";
@@ -61,13 +61,12 @@ export default function WarehousePanel({ columns = 6 }: WarehousePanelProps) {
           >
             {visibleStacks.length ? (
               visibleStacks.map((stack) => (
-                <ItemSlot
+                <ItemTile
                   key={stack.uid}
                   stack={stack}
-                  overlay
+                  variant="compact"
                   selected={selectedStack?.uid === stack.uid}
                   onClick={() => setSelectedUid(stack.uid)}
-                  className={s["warehouse-slot"]}
                 />
               ))
             ) : (

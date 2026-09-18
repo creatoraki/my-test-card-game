@@ -1,0 +1,271 @@
+/* 物品卡。★ 稀有度只在 5 条 .r-* 里改 --rr(主色) / --rg(辉光), 其余一律读这两个。
+   描边手法: 外层 button 的底色 = 描边色, .face 内缩 --tile-stroke 盖住中间,
+   二者用同一族斜切多边形, 于是四个斜切角处也有等宽描边(纯 border 会被 clip-path 切掉)。
+   选中只改颜色(描边 / 底色 / 内框 / 内辉光), 外形与尺寸完全不动。 */
+
+.tile {
+  --rr: var(--rarity-common);
+  --rg: var(--rarity-common-glow);
+  --tile-notch: 12px;
+  --tile-stroke: 2px;
+  --tile-pad: 12px;
+  --tile-band-h: 40px;
+  --tile-bond-size: 36px;
+  --tile-name-size: 22px;
+  --tile-edge: color-mix(in srgb, var(--rr) 72%, #151a1f);
+  --tile-inner-line: color-mix(in srgb, var(--rr) 30%, transparent);
+
+  position: relative;
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 300 / 445;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding:
+    calc(var(--tile-pad) + var(--tile-bond-size) * 0.6)
+    calc(var(--tile-pad) + 10px)
+    calc(var(--tile-pad) + var(--tile-band-h) + 10px);
+  color: var(--rr); /* ★ itemIcon 的 stroke="currentColor" 吃这一行 */
+  background: var(--tile-edge);
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(
+    var(--tile-notch) 0,
+    calc(100% - var(--tile-notch)) 0,
+    100% var(--tile-notch),
+    100% calc(100% - var(--tile-notch)),
+    calc(100% - var(--tile-notch)) 100%,
+    var(--tile-notch) 100%,
+    0 calc(100% - var(--tile-notch)),
+    0 var(--tile-notch)
+  );
+  cursor: var(--cursor-pointer);
+  transform: translateY(0);
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+/* ── 五档稀有度 ── */
+.r-common {
+  --rr: var(--rarity-common);
+  --rg: var(--rarity-common-glow);
+}
+.r-fine {
+  --rr: var(--rarity-fine);
+  --rg: var(--rarity-fine-glow);
+}
+.r-rare {
+  --rr: var(--rarity-rare);
+  --rg: var(--rarity-rare-glow);
+}
+.r-epic {
+  --rr: var(--rarity-epic);
+  --rg: var(--rarity-epic-glow);
+}
+.r-legendary {
+  --rr: var(--rarity-legendary);
+  --rg: var(--rarity-legendary-glow);
+}
+
+/* ── 卡面底 ── 内缩一个描边宽度, 斜切量同步减小 1px 让斜边描边与直边等宽。 */
+.face {
+  --face-notch: calc(var(--tile-notch) - 1px);
+
+  position: absolute;
+  z-index: 0;
+  inset: var(--tile-stroke);
+  background:
+    radial-gradient(ellipse 80% 42% at 50% 100%, var(--rg), transparent 72%),
+    linear-gradient(150deg, #ffffff0d, transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--rr) 9%, #0d1318), #070a0e 78%);
+  box-shadow: inset 0 0 22px -8px var(--rg);
+  clip-path: polygon(
+    var(--face-notch) 0,
+    calc(100% - var(--face-notch)) 0,
+    100% var(--face-notch),
+    100% calc(100% - var(--face-notch)),
+    calc(100% - var(--face-notch)) 100%,
+    var(--face-notch) 100%,
+    0 calc(100% - var(--face-notch)),
+    0 var(--face-notch)
+  );
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+/* ── 细内框 ── 1px 线: 顶边 + 左右边 + 顶部两个斜切角, 底边敞开接到稀有度条上。
+   用背景渐变逐段画线, 不靠 clip-path —— clip-path 会把斜角处的线一并切掉。 */
+.inner {
+  --inner-notch: 9px;
+  --l: var(--tile-inner-line);
+
+  position: absolute;
+  z-index: 0;
+  inset: var(--tile-pad);
+  bottom: calc(var(--tile-pad) + var(--tile-band-h) + 4px);
+  background:
+    linear-gradient(var(--l), var(--l)) var(--inner-notch) 0 / calc(100% - var(--inner-notch) * 2) 1px no-repeat,
+    linear-gradient(var(--l), var(--l)) 0 var(--inner-notch) / 1px 100% no-repeat,
+    linear-gradient(var(--l), var(--l)) 100% var(--inner-notch) / 1px 100% no-repeat,
+    linear-gradient(to bottom right, transparent calc(50% - 0.8px), var(--l) 50%, transparent calc(50% + 0.8px))
+      0 0 / var(--inner-notch) var(--inner-notch) no-repeat,
+    linear-gradient(to bottom left, transparent calc(50% - 0.8px), var(--l) 50%, transparent calc(50% + 0.8px))
+      100% 0 / var(--inner-notch) var(--inner-notch) no-repeat;
+  pointer-events: none;
+}
+
+/* ── 左上角: 羁绊图标 + ITEM ── */
+.badge {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--tile-pad) + 10px);
+  left: calc(var(--tile-pad) + 12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.bond {
+  width: var(--tile-bond-size);
+  height: var(--tile-bond-size);
+  line-height: 1;
+}
+
+.tag {
+  color: color-mix(in srgb, var(--rr) 45%, #7d8a94);
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 1px;
+  opacity: 0.75;
+}
+
+/* ── 物品图 ── */
+.art {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.art svg,
+.art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px #000000b0);
+}
+
+/* ── 名称 ── */
+.name {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding-top: 8px;
+  color: #f2f5f8;
+  font-size: var(--tile-name-size);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px #000, 0 0 8px #000000b3;
+  white-space: nowrap;
+}
+
+/* ── 角标 ── */
+.count {
+  position: absolute;
+  z-index: 3;
+  right: calc(var(--tile-pad) + 10px);
+  bottom: calc(var(--tile-pad) + var(--tile-band-h) + 12px);
+  color: #f2f5f8;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 4px #000, 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.disposable {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--tile-pad) + 8px);
+  right: calc(var(--tile-pad) + 8px);
+  padding: 1px 5px;
+  background: #401e22e8;
+  color: #ffd8d3;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow: 0 1px 4px #000;
+  pointer-events: none;
+}
+
+/* ── 紧缩模式: 1:1, 不显示名称 ── */
+.tile.is-compact {
+  --tile-notch: 10px;
+  --tile-pad: 8px;
+  --tile-band-h: 34px;
+  --tile-bond-size: 28px;
+  /* 格子更窄: 收紧底条留白与字距, 保证 LEGENDARY 放得下。 */
+  --tile-band-gap: 8px;
+  --tile-band-pad-x: 10px;
+  --tile-band-spacing: 1px;
+
+  aspect-ratio: 1;
+  grid-template-rows: minmax(0, 1fr);
+  padding:
+    calc(var(--tile-pad) + 8px)
+    calc(var(--tile-pad) + 14px)
+    calc(var(--tile-pad) + var(--tile-band-h) + 6px);
+}
+
+.tile.is-compact .inner {
+  --inner-notch: 7px;
+}
+
+.tile.is-compact .badge {
+  top: calc(var(--tile-pad) + 6px);
+  left: calc(var(--tile-pad) + 6px);
+  gap: 2px;
+}
+
+.tile.is-compact .count {
+  right: calc(var(--tile-pad) + 6px);
+  bottom: calc(var(--tile-pad) + var(--tile-band-h) + 6px);
+}
+
+/* ── 交互态: 只变色 ── */
+.tile:hover {
+  --tile-edge: var(--rr);
+  --tile-inner-line: color-mix(in srgb, var(--rr) 45%, transparent);
+  transform: translateY(-2px);
+}
+
+.tile.is-selected {
+  --tile-edge: color-mix(in srgb, var(--rr) 62%, #ffffff);
+  --tile-inner-line: color-mix(in srgb, var(--rr) 80%, transparent);
+}
+
+.tile.is-selected .face {
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 100%, color-mix(in srgb, var(--rr) 42%, transparent), transparent 74%),
+    linear-gradient(150deg, #ffffff17, transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--rr) 22%, #0f161c), color-mix(in srgb, var(--rr) 8%, #080c10) 80%);
+  box-shadow:
+    inset 0 0 26px -6px color-mix(in srgb, var(--rr) 75%, transparent),
+    inset 0 0 4px color-mix(in srgb, var(--rr) 60%, transparent);
+}
+
+.tile:focus-visible {
+  outline: none;
+  --tile-edge: #ffffff;
+}
