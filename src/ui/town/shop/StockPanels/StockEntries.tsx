@@ -49,7 +49,7 @@ export function StockEntries({ onBack }: { onBack?: () => void }) {
         <div className={s.page} data-page-phase={phase}>
           {shownView === "shop" && <MarketPanel onUpgrade={() => setView("upgrade")} />}
           {shownView === "recycle" && <RecyclePanel stacks={sorted} loot={loot} levels={levels} onSell={sellItem} />}
-          {shownView === "warehouse" && <WarehousePanel rows={4} columns={8} />}
+          {shownView === "warehouse" && <WarehousePanel columns={6} />}
           {shownView === "upgrade" && <ShopUpgradePanel onBack={() => setView("shop")} />}
         </div>
       </ShopWindow>

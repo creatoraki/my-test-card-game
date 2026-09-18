@@ -236,34 +236,40 @@
   --item-tab-sub-font-size: 19px;
 }
 
-/* 仓库网格: 无格数上限，用 auto-fill 流式铺 + 滚动。 */
+/* 回收台网格: 一排固定 5 格, 列宽按可用宽度等分, 格子 1:1; 行数不限, 超出滚动。
+   ⚠ align-content/align-items: start 必不可少 —— 网格被 flex:1 撑高后,
+     默认会把行拉伸到占满高度, 物品少时格子就被拉成竖长条。 */
 .grid {
   --item-slot-notch: 20px;
-  --item-slot-pad: 14px 10px;
-  --item-slot-gap: 8px;
   --item-slot-corner: 30px;
-  --item-slot-icon-size: 70%;
-  --item-slot-name-size: 24px;
-  --item-slot-count-size: 24px;
-  --item-slot-bond-size: 44px;
+  --item-slot-icon-inset: 10%;
+  --item-slot-name-size: 22px;
+  --item-slot-name-pad: 26px 12px 10px;
+  --item-slot-count-size: 22px;
+  --item-slot-bond-size: 40px;
 
   display: grid;
-  grid-template-columns: repeat(auto-fill, 270px);
-  justify-content: start;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  align-content: start;
+  align-items: start;
   gap: 20px;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding-top: 4px;
   padding-right: 4px;
 }
 
 .cell {
-  display: flex;
+  display: block;
   min-width: 0;
+  aspect-ratio: 1;
 }
 
 .cell > button {
   width: 100%;
+  height: 100%;
 }
 
 .empty {
@@ -288,37 +294,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 28px;
-  padding-top: 18px;
+  /* 底部留白让按钮落在分隔线与面板底边之间的视觉中线上。 */
+  padding: 18px 0 12px;
   border-top: 1px solid var(--asm-line, #f2e6d82e);
   box-shadow: var(--sx-lit);
 }
 
 .foot .note {
   font-size: 20px;
-}
-
-/* 回收台唯一的实心主按钮。 */
-.primary {
-  --notch: 14px;
-  position: relative;
-  flex: 0 0 auto;
-  padding: 15px 40px;
-  color: #1b1410;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  background: var(--asm-glow, #d6b477);
-  border: 1px solid var(--asm-glow, #d6b477);
-  box-shadow: inset 0 1px 0 #ffffff66, inset 0 -3px 6px -4px #00000080, 0 14px 30px -18px #a86a1f;
-  clip-path: none;
-}
-
-:global([data-town-stage]) .primary:hover:not(:disabled) {
-  color: #1b1410;
-  background: var(--asm-select, #f0d49b);
-  border-color: var(--asm-select, #f0d49b);
-}
-
-.primary:disabled {
-  opacity: 0.4;
 }

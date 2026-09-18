@@ -8,7 +8,6 @@
   --warehouse-frame-hot: #f2f6f9;
   --warehouse-electric: #c9d3da;
   --warehouse-electric-hot: #f2f6f9;
-  --warehouse-cell-size: 124px;
   --warehouse-gap: 12px;
   --accent: var(--warehouse-electric-hot);
   --border: var(--warehouse-line);
@@ -61,10 +60,11 @@
   min-width: 0;
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: repeat(var(--warehouse-columns), var(--warehouse-cell-size));
-  grid-auto-rows: var(--warehouse-cell-size);
+  grid-template-columns: repeat(var(--warehouse-columns), minmax(0, 1fr));
+  grid-auto-rows: auto;
   gap: var(--warehouse-gap);
   align-content: start;
+  align-items: start;
   justify-content: start;
   padding: var(--warehouse-grid-bleed) 4px 4px;
   overflow-y: auto;
@@ -87,14 +87,13 @@
   border-radius: 0;
 }
 
-.warehouse-slot.warehouse-slot,
-.warehouse-empty.warehouse-empty {
+.warehouse-slot.warehouse-slot {
   box-sizing: border-box;
-  width: var(--warehouse-cell-size);
-  height: var(--warehouse-cell-size);
+  width: 100%;
+  height: auto;
   min-width: 0;
   min-height: 0;
-  aspect-ratio: auto;
+  aspect-ratio: 1;
   border-radius: 0;
   clip-path: none;
 }
@@ -105,12 +104,8 @@
   --item-slot-bond-size: 30px;
   --item-slot-notch: 14px;
   --item-slot-corner: 20px;
-  --item-slot-icon-size: 60%;
-  --item-slot-pad: 8px 6px;
-  --item-slot-gap: 6px;
-
-  padding: var(--item-slot-pad);
-  --item-slot-name-offset: 10px;
+  --item-slot-icon-inset: 10%;
+  --item-slot-name-pad: 22px 10px 8px;
   color: var(--rr);
   background:
     /* ★ 斜向拉丝纹。银是最容易做平的一支色 —— 靠这层细密斜线给出金属的方向感,
@@ -153,14 +148,13 @@
   outline-offset: 3px;
 }
 
-.warehouse-empty.warehouse-empty {
-  display: block;
-  background:
-    repeating-linear-gradient(135deg, transparent 0 8px, #ffffff08 8px 9px),
-    linear-gradient(145deg, #ffffff0b, #0a0d108a);
-  border: 1px solid #c9d3da3d;
-  border-style: solid;
-  box-shadow: inset 0 1px 0 #ffffff18;
+.warehouse-none {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 40px 0;
+  color: var(--warehouse-muted);
+  font-size: 20px;
+  text-align: center;
 }
 
 .warehouse-foot {

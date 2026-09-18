@@ -8,6 +8,7 @@ import type { ItemStack } from "@/items/types";
 import ItemTabs from "@/ui/common/item/ItemTabs";
 import type { EquipTab, ItemTab } from "@/ui/common/item/itemFilters";
 import { cx } from "@/ui/common/cx";
+import { MarketActionButton } from "../MarketPanel";
 import { ItemGrid } from "./ItemGrid";
 import s from "./StockPanels.module.css";
 
@@ -74,17 +75,17 @@ export function RecyclePanel({ stacks, loot, levels, onSell }: RecyclePanelProps
         <p className={s.note}>
           当前余额 {loot.toLocaleString()} · 已选 {picked.length} 件，可换 {total} 积分
         </p>
-        <button
-          className={s.primary}
-          type="button"
+        <MarketActionButton
+          tone="gold"
+          icon="◈"
+          label="出售"
+          meta={`+${total} 积分`}
           disabled={!picked.length}
           onClick={() => {
             for (const uid of picked) onSell(uid);
             setPicked([]);
           }}
-        >
-          出售
-        </button>
+        />
       </div>
     </div>
   );

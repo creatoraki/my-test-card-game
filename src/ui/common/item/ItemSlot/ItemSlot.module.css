@@ -188,3 +188,53 @@
   transform: none;
   box-shadow: none;
 }
+
+/* ── 浮层布局(overlay) ──
+   图标与名字不再上下分摊空间: 图标绝对定位并在格子里完全居中、尽量铺满;
+   名字绝对定位浮在底部, 压一条渐变暗条保证可读。只在调用方传 overlay 时生效。 */
+.item-slot.is-overlay {
+  padding: 0;
+}
+
+.item-slot.is-overlay .item-slot-icon {
+  position: absolute;
+  inset: var(--item-slot-icon-inset, 8%);
+  display: flex;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-slot.is-overlay .item-slot-icon svg,
+.item-slot.is-overlay .item-slot-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.item-slot.is-overlay .item-slot-name {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  max-width: none;
+  padding: var(--item-slot-name-pad, 22px 10px 8px);
+  background: linear-gradient(to top, #000000c7, #0000008c 55%, transparent);
+  text-shadow: 0 1px 3px #000, 0 0 6px #000;
+  transform: none;
+  pointer-events: none;
+}
+
+/* 有数量角标时, 名字右侧让出角标的宽度, 两者不重叠。 */
+.item-slot.is-overlay.has-count .item-slot-name {
+  padding-right: var(--item-slot-name-count-gap, 2.4em);
+}
+
+/* 数量角标要压在渐变暗条之上。 */
+.item-slot.is-overlay .item-slot-count {
+  z-index: 3;
+  right: 8px;
+  bottom: 8px;
+  line-height: 1.15;
+}

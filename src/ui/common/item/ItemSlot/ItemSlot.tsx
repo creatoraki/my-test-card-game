@@ -16,6 +16,8 @@ interface Props {
   showName?: boolean;
   showCount?: boolean;
   showBond?: boolean;
+  /** 浮层布局: 图标绝对居中铺满格子, 名字浮在格子底部不占空间。默认关闭, 仅商店回收台/仓库开启。 */
+  overlay?: boolean;
   // 分类 tab 未命中。★ 压暗而不隐藏 —— 24 格是「物理容器」的隐喻,
   //   抽掉格子会让玩家失去空间感, 也看不出还剩多少地方。
   dimmed?: boolean;
@@ -32,6 +34,7 @@ export default function ItemSlot({
   showName = true,
   showCount = true,
   showBond = true,
+  overlay = false,
   dimmed,
   disabled,
   "aria-label": ariaLabel,
@@ -50,6 +53,8 @@ export default function ItemSlot({
         s[`r-${def.rarity}`],
         selected && s["is-selected"],
         dimmed && s["is-dimmed"],
+        overlay && s["is-overlay"],
+        overlay && showCount && stack.count > 1 && s["has-count"],
         className,
       )}
       aria-label={ariaLabel}

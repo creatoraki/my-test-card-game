@@ -1,6 +1,6 @@
 // 库存清单与回收台共用的物品网格。
 // ★ 与探索背包共用同一个 ItemSlot 与同一套 tab —— 这就是把格子抽成组件的全部意义。
-//   区别只有一条: 这里**没有格数上限**, 用 auto-fill 的流式网格 + 滚动。
+//   区别只有一条: 这里**没有格数上限**, 一排固定 5 格、按可用宽度等分的正方形网格 + 滚动。
 
 import { useEffect, useState } from "react";
 import type { ItemStack } from "@/items/types";
@@ -64,6 +64,7 @@ export function ItemGrid({ stacks, tab, equipTab, isSelected, onSelect, empty }:
           >
             <ItemSlot
               stack={stack}
+              overlay
               selected={isSelected(stack)}
               onClick={() => onSelect(stack.uid)}
             />
