@@ -1,0 +1,104 @@
+/* 净化粒子读数卡 —— 局部坐标 335×215, 所有定位取自设计图像素测量(见 EnergyReadout.tsx 头注)。
+   面板、点阵、放射线在 SVG 里; 这里只管文字、能量条与能量罐的摆放。 */
+
+.card {
+  position: relative;
+  width: 335px;
+  height: 215px;
+  pointer-events: none;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 335px;
+  height: 215px;
+  overflow: visible;
+}
+
+/* 标题: 字形左缘 x=140, 顶 y=68, 四字宽约 93px。 */
+.title {
+  position: absolute;
+  top: 66px;
+  left: 140px;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #00000080;
+}
+
+/* 数字: BebasNeue 大写字高 0.7em —— 字形高 49px ⇒ 70px; 行高 1 时字形顶在盒顶下 0.1em,
+   故盒顶 101 ⇒ 字形顶 108、基线 157。 */
+.value {
+  position: absolute;
+  top: 101px;
+  left: 135px;
+  display: flex;
+  align-items: baseline;
+  color: var(--c-number);
+  font-family: "BebasNeue", var(--font-family);
+  font-size: 70px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--c-number) 45%, transparent);
+}
+
+.value small {
+  margin-left: 14px;
+  color: #a9b8c6;
+  font-size: 31px;
+  text-shadow: none;
+}
+
+/* 能量条: x 113–275, y 173–189, 两端全圆角; 满能量时铺满, 否则按占比缩短。 */
+.track {
+  position: absolute;
+  top: 173px;
+  left: 113px;
+  width: 162px;
+  height: 16px;
+  border-radius: 8px;
+  background: #00000055;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-band) 60%, transparent);
+}
+
+.track i {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, #ffffff66 0 1.5px, transparent 2.5px, transparent calc(100% - 3px), #ffffff33 calc(100% - 3px)),
+    linear-gradient(90deg, var(--c-bar-a), var(--c-bar-b) 55%, var(--c-bar-c));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--c-band) 70%, transparent),
+    0 0 4px 1px color-mix(in srgb, var(--c-bar-a) 55%, transparent),
+    0 0 9px color-mix(in srgb, var(--c-glow) 80%, transparent);
+  transition: width 450ms ease;
+}
+
+/* 能量罐: 竖直罐体 78×185 的中心落在 (66.5, 111.5), 顺时针倾斜 11.5°。
+   SVG 视框四周各留 14px 给外发光, 故元素尺寸 106×213、左上角 (13.5, 5)。 */
+.canister {
+  position: absolute;
+  top: 5px;
+  left: 13.5px;
+  width: 106px;
+  height: 213px;
+  overflow: visible;
+  transform: rotate(11.5deg);
+}
+
+.liquid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 450ms ease;
+}
+
+.surface {
+  transition: transform 450ms ease;
+}

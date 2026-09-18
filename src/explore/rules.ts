@@ -214,7 +214,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 1,
     name: "充盈",
-    color: "#8dcc3f",
+    color: "#31fa67",
     min: 80,
     enemyStatuses: [],
     rewardMultiplier: 1.0,
@@ -222,7 +222,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 2,
     name: "稳定",
-    color: "#d8f329",
+    color: "#fcd50a",
     min: 60,
     enemyStatuses: [{ id: "overload", stacks: 1 }],
     rewardMultiplier: 1.1,
@@ -230,7 +230,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 3,
     name: "衰减",
-    color: "#ffd43b",
+    color: "#0888fc",
     min: 40,
     enemyStatuses: [{ id: "overload", stacks: 2 }],
     rewardMultiplier: 1.2,
@@ -238,7 +238,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 4,
     name: "告急",
-    color: "#ff922b",
+    color: "#df46fc",
     min: 20,
     enemyStatuses: [{ id: "overload", stacks: 3 }],
     rewardMultiplier: 1.35,
@@ -246,7 +246,7 @@ export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 5,
     name: "枯竭",
-    color: "#ff6b6b",
+    color: "#fd0531",
     min: 0,
     enemyStatuses: [{ id: "overload", stacks: 4 }],
     rewardMultiplier: 1.6,
