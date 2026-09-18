@@ -31,12 +31,10 @@
   --sx-line-hot: #dcfff3;
 
   --nav-active-plate-start: #1f4f46f5;
-  --nav-active-plate-middle: #122c28f7;
   --nav-active-plate-end: #1e4a40f5;
   --nav-active-edge-hot: #e4fff5;
   --nav-active-edge-mid: #6ed6b8;
   --nav-active-edge-dim: #368d75;
-  --nav-active-tab-arrow: #c4ffea;
   --nav-active-color: #eafff7;
   --nav-active-glow-near: #6ed6b899;
   --nav-active-glow-far: #2aa98055;
@@ -49,14 +47,10 @@
   --nav-label-size: 20px;
 
   --brand-fill-start: #194b3e;
-  --brand-fill-middle: #102a25;
   --brand-fill-end: #1a4238;
   --brand-line-hot: #dffff2;
   --brand-line-mid: #65c9a7;
   --brand-line-end: #a4efd7;
-  --brand-shard-hot: #a4efd7;
-  --brand-shard-mid: #62c4a1;
-  --brand-shard-dim: #3b806b;
   --brand-text: #cffff0;
   --brand-text-hot: #e8fff7;
   --brand-glow-near: #6ed6b8b3;

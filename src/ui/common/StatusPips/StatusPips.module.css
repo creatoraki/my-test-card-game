@@ -35,6 +35,8 @@
   right: 3px;
   bottom: 2px;
   z-index: 1;
+  max-width: calc(100% - 6px);
+  overflow: hidden;
   color: #fff;
   font-size: var(--pip-count-size, max(12px, calc(var(--pip-box, 30px) * 0.3)));
   font-weight: 800;
@@ -49,14 +51,14 @@
 }
 .shield-icon {
   display: block;
-  width: 82%;
-  height: 82%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 .status-icon {
   display: block;
-  width: 82%;
-  height: 82%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 .status-icon:is(img),

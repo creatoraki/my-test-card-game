@@ -138,6 +138,13 @@ export function BattleScreen() {
     setSettingsOpen(false);
   }, [battleSeq]);
 
+  // 动画/运镜开始时清掉战斗内的焦点, 防止 :focus-within 让悬浮详情在播放结束后又弹出。
+  useEffect(() => {
+    if (!playback.animating) return;
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && viewportRef.current?.contains(active)) active.blur();
+  }, [playback.animating]);
+
   useEffect(() => {
     warmEnemyArt();
     warmBattleBg();
@@ -227,6 +234,7 @@ export function BattleScreen() {
       <div
         className={s.battle}
         data-hitstop={playback.hitstop ? "" : undefined}
+        data-popover-mute={playback.animating ? "" : undefined}
         data-stage-canvas=""
         onClick={() => setSelectedUid(null)}
       >

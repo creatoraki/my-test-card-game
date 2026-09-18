@@ -9,10 +9,9 @@ export function CardFrame({ width: w, height: h }: { width: number; height: numb
   const bgId = useSvgId("bdc-bg");
   const clipId = useSvgId("bdc-clip");
   const bandId = useSvgId("bdc-band");
-  const glowId = useSvgId("bdc-glow");
   if (w <= 0 || h <= 0) return null;
 
-  const { chamfer: c, headHeight: hh, innerInset: i, medallionX, medallionY } = CARD;
+  const { chamfer: c, headHeight: hh, innerInset: i } = CARD;
   const outer = chamferRect(0.75, 0.75, w - 0.75, h - 0.75, c);
 
   return (
@@ -29,10 +28,6 @@ export function CardFrame({ width: w, height: h }: { width: number; height: numb
             <stop offset="0.35" stopColor="#8fc4e8" stopOpacity="0.09" />
             <stop offset="1" stopColor="#8fc4e8" stopOpacity="0.04" />
           </linearGradient>
-          <radialGradient id={glowId}>
-            <stop offset="0" style={{ stopColor: "var(--accent)", stopOpacity: 0.2 }} />
-            <stop offset="1" style={{ stopColor: "var(--accent)", stopOpacity: 0 }} />
-          </radialGradient>
           <clipPath id={clipId}>
             <path d={outer} />
           </clipPath>
@@ -49,7 +44,6 @@ export function CardFrame({ width: w, height: h }: { width: number; height: numb
             className={s["band-edge-faint"]}
             d={`M${w * 0.62} ${hh}L${w * 0.745} ${i + 18}`}
           />
-          <circle cx={medallionX} cy={medallionY} r="92" fill={`url(#${glowId})`} />
         </g>
         <path className={s.inner} d={chamferRect(i + 0.5, i + 0.5, w - i - 0.5, hh - 0.5, 8)} />
       </svg>

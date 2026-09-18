@@ -34,12 +34,10 @@
 
   /* 左侧导航牌：常态暗红金属，选中态红光。 */
   --nav-active-plate-start: #5e1f27f5;
-  --nav-active-plate-middle: #2a1013f7;
   --nav-active-plate-end: #55191ff5;
   --nav-active-edge-hot: #ffe3e5;
   --nav-active-edge-mid: #ff3b4e;
   --nav-active-edge-dim: #93252f;
-  --nav-active-tab-arrow: #ffd3d7;
   --nav-active-color: #fff0f1;
   --nav-active-glow-near: #ff5a6a99;
   --nav-active-glow-far: #b0202f55;
@@ -53,14 +51,10 @@
 
   /* 左上铭牌。 */
   --brand-fill-start: #551a22;
-  --brand-fill-middle: #2a1013;
   --brand-fill-end: #4a161d;
   --brand-line-hot: #ffe1e3;
   --brand-line-mid: #c8404f;
   --brand-line-end: #ff8a94;
-  --brand-shard-hot: #ff9aa2;
-  --brand-shard-mid: #c4515c;
-  --brand-shard-dim: #80373e;
   --brand-text: #ffd5d8;
   --brand-text-hot: #fff0f1;
   --brand-glow-near: #ff3b4eb3;
@@ -71,15 +65,10 @@
 
   /* 左下返回按钮。 */
   --back-body-start: #4a141c;
-  --back-body-middle: #150507;
   --back-body-end: #38121a;
   --back-edge-hot: #ffb8be;
   --back-edge-mid: #b33241;
-  --back-edge-lit: #ffdfe2;
   --back-edge-end: #d1495a;
-  --back-grid: #d97984;
-  --back-spark: #ff8e98;
-  --back-tick: #e8616f;
   --back-arrow: #ff9aa4;
   --back-text: #ffd7da;
   --back-text-glow: #ff3b4e99;

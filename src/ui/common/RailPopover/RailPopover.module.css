@@ -133,3 +133,10 @@
 :global([data-rail-item]:focus-within) .top-left {
   transform: translateY(0);
 }
+/* 播放动画/运镜期间由外层容器统一压制所有悬浮详情, 立即隐藏不走过渡。 */
+:global([data-popover-mute] [data-rail-item]) .popover {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}

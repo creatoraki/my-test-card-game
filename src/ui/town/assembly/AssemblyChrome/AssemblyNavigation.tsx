@@ -26,7 +26,7 @@ export function AssemblyNavigation({
           aria-current={page === entry.id ? "page" : undefined}
           onClick={() => onChange(entry.id)}
         >
-          <NavigationFrame />
+          <NavigationFrame width={205} height={96} />
           <span className={s.icon}>{entry.icon}</span>
           <span className={s.label}>{entry.label}</span>
         </button>

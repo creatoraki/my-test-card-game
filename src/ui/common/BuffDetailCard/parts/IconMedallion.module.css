@@ -7,79 +7,25 @@
   height: 128px;
 }
 
-.back,
-.front {
-  position: absolute;
-  inset: 0;
-  display: block;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.front {
-  filter: drop-shadow(0 0 3px var(--accent)) drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 55%, transparent));
-}
-
-.halo {
-  fill: none;
-  stroke: var(--accent);
-  stroke-opacity: 0.32;
-  stroke-width: 1;
-}
-
-.dim {
-  fill: none;
-  stroke: color-mix(in srgb, var(--accent) 40%, #1c3444);
-  stroke-opacity: 0.6;
-  stroke-width: 1;
-}
-
-.dot {
-  fill: var(--accent);
-  opacity: 0.7;
-}
-
-.ring {
-  fill: none;
-  stroke: color-mix(in srgb, var(--accent) 70%, white);
-  stroke-width: 2.5;
-}
-
-.ring-inner {
-  fill: none;
-  stroke: var(--accent);
-  stroke-opacity: 0.55;
-  stroke-width: 1;
-}
-
-.spark {
-  fill: color-mix(in srgb, var(--accent) 35%, white);
-}
-
-/* 中心圆: 直径 86(设计图 ~255)。 */
+/* 素材区域: 仍占用原徽章的 128×128 定位盒，但不再裁成圆形。 */
 .core {
   position: absolute;
-  top: 21px;
-  left: 21px;
+  top: 10px;
+  left: 10px;
   display: grid;
-  width: 86px;
-  height: 86px;
+  width: 108px;
+  height: 108px;
   place-items: center;
-  overflow: hidden;
   color: var(--accent);
   font-size: 46px;
   line-height: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent) 22%, #0a1a14) 0%, #050b0e 78%);
-  box-shadow: inset 0 0 10px #000c, inset 0 0 18px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .core > img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 50%, transparent));
 }
 

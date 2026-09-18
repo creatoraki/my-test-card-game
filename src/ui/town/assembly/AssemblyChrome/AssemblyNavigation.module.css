@@ -10,14 +10,11 @@
 }
 
 .entry {
-  --plate-start: #332145f0;
-  --plate-middle: #161021f5;
-  --plate-end: #291b3df0;
+  --plate-start: #2a1b3aeb;
+  --plate-end: #120c1bf2;
   --edge-hot: #eddcff;
   --edge-mid: #b47cff;
   --edge-dim: #66468c;
-  --tab-arrow: #e6b9ff;
-  --tab-flare: .3;
   --nav-icon: var(--asm-violet);
   --nav-icon-glow: #a86bff66;
   position: relative;
@@ -31,10 +28,9 @@
   padding: 0 22px;
   border: 0;
   border-radius: 0;
-  clip-path: none;
   background: transparent;
   color: #d9c9e8;
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 1px;
   text-align: left;
@@ -44,13 +40,10 @@
 
 .entry[aria-current] {
   --plate-start: var(--nav-active-plate-start);
-  --plate-middle: var(--nav-active-plate-middle);
   --plate-end: var(--nav-active-plate-end);
   --edge-hot: var(--nav-active-edge-hot);
   --edge-mid: var(--nav-active-edge-mid);
   --edge-dim: var(--nav-active-edge-dim);
-  --tab-arrow: var(--nav-active-tab-arrow);
-  --tab-flare: 1;
   --nav-icon: var(--nav-active-icon);
   --nav-icon-glow: var(--nav-active-icon-glow);
   color: var(--nav-active-color);

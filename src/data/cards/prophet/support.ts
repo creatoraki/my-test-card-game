@@ -14,7 +14,7 @@ export const PROPHET_SUPPORT_CARDS: CardDef[] = [
       { type: "HEAL", multiplier: 0.35, target: "primary" },
       { type: "RESTORE_HP_LIMIT", amount: 5, target: "primary", condition: "waterfall" },
     ],
-    text: "为一名队友恢复 {0} 点生命。速攻。瀑布：恢复 5 点体力极限并回复等值生命。",
+    text: "为一名队友恢复 {0} 点生命。瀑布：恢复 5 点体力极限并回复等值生命。",
   },
   {
     id: "solar-wind",
@@ -126,7 +126,7 @@ export const PROPHET_SUPPORT_CARDS: CardDef[] = [
         followUp: [{ type: "CHOOSE_HAND_CARD", handChoiceAction: "markTarget" }],
       },
     ],
-    text: "选择一张手牌作为来源，再选择另一张手牌，将来源牌上的全部卡牌增益搬到目标牌。速攻，打出后消耗。",
+    text: "选择一张手牌作为来源，再选择另一张手牌，将来源牌上的全部卡牌增益搬到目标牌。打出后消耗。",
   },
   {
     id: "astrology",
@@ -153,7 +153,7 @@ export const PROPHET_SUPPORT_CARDS: CardDef[] = [
       { type: "APPLY_STATUS", status: "starlight", stacks: 1, target: "self" },
       { type: "APPLY_STATUS", status: "starlight", stacks: 1, target: "self", condition: "waterfall" },
     ],
-    text: "汇星 1。瀑布：额外汇星 1。速攻。",
+    text: "汇星 1。瀑布：额外汇星 1。",
   },
   {
     id: "foresight-eye",

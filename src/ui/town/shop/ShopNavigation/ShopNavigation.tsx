@@ -8,13 +8,22 @@ const entries = [
   { id: "warehouse", label: "仓库" },
 ] as const;
 
-export function ShopNavigation({ page, onChange }: { page: ShopPage; onChange: (page: ShopPage) => void }) {
+interface Props {
+  page: ShopPage;
+  onChange: (page: ShopPage) => void;
+  itemWidth?: number;
+  itemHeight?: number;
+}
+
+export function ShopNavigation({ page, onChange, itemWidth, itemHeight }: Props) {
   return (
     <NavigationRail
       entries={entries.map((entry) => ({ ...entry, icon: <NavigationIcon page={entry.id} /> }))}
       value={page}
       onChange={onChange}
       ariaLabel="商店功能"
+      itemWidth={itemWidth}
+      itemHeight={itemHeight}
     />
   );
 }

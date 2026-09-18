@@ -1,50 +1,48 @@
 .back {
+  --plate-start: var(--back-body-start, #0f2833eb);
+  --plate-end: var(--back-body-end, #07141af2);
+  --edge-hot: var(--back-edge-hot, #c8fbff);
+  --edge-mid: var(--back-edge-end, #4fdcec);
+  --edge-dim: var(--back-edge-mid, #267f8d);
   position: absolute;
   left: 14px;
   bottom: 24px;
   z-index: 4;
-  width: 198px;
-  height: 72px;
-  padding: 0 18px 2px 66px;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px 0 24px;
   border: 0;
   border-radius: 0;
-  /* 与设施升级按钮一致：左上 / 右下大切角，右上 / 左下小切角。 */
-  clip-path: polygon(
-    14px 0,
-    calc(100% - 6px) 0,
-    100% 6px,
-    100% calc(100% - 14px),
-    calc(100% - 14px) 100%,
-    6px 100%,
-    0 calc(100% - 6px),
-    0 14px
-  );
   background: transparent;
-  color: var(--back-text, #efffff);
+  color: var(--back-text, #eefcff);
   cursor: var(--cursor-pointer);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 1px;
   white-space: nowrap;
   pointer-events: auto;
-  filter: drop-shadow(0 0 6px var(--back-text-glow, #36dce333));
+  filter: drop-shadow(0 0 5px var(--back-text-glow, #36dce344));
   animation: arrive var(--fac-back-in, 320ms) ease-out both;
   transition: filter 160ms ease, transform 160ms ease;
 }
 
-.frame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.arrow {
+  flex: none;
+  width: 26px;
+  height: 20px;
   overflow: visible;
-  pointer-events: none;
+}
+
+.arrowGlow {
+  filter: blur(2px);
 }
 
 .label {
   position: relative;
-  cursor: var(--cursor-pointer);
-  text-shadow: 0 0 3px var(--back-text-glow, #b7faff66), 0 2px 3px #000;
+  line-height: 1;
+  text-shadow: 0 0 4px var(--back-text-glow, #b7faff66), 0 1px 2px #000;
 }
 
 .back:hover {

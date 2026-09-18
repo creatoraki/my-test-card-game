@@ -76,11 +76,6 @@ export const CARD_KEYWORD_INFOS: CardKeywordInfo[] = [
     desc: "该牌的当前费用严格高于其他可打出手牌时，触发额外效果。",
   },
   {
-    id: "fast",
-    name: "速攻",
-    desc: "打出后不推进时刻。",
-  },
-  {
     id: "zenithStar",
     name: "天顶星",
     desc: "下一张带瀑布效果的牌无视费用比较触发瀑布，随后移除此状态。",

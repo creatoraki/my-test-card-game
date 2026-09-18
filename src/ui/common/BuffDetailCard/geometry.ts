@@ -11,9 +11,6 @@ export const CARD = {
   headHeight: 123,
   /** 头部内描边相对外框的内缩。 */
   innerInset: 5,
-  /** 徽章中心(设计图 272,297)。 */
-  medallionX: 72,
-  medallionY: 65,
 } as const;
 
 /** 斜切四角的矩形轮廓。 */
