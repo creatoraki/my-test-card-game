@@ -8,6 +8,7 @@ import { SWORDSMAN_STATUS_DEFS } from "./swordsman";
 import { BOTANIST_STATUS_DEFS } from "./botanist";
 import { PROPHET_STATUS_DEFS } from "./prophet";
 import { ABANDONED_FLOOR_STATUS_DEFS } from "./abandonedFloor";
+import { ALCHEMIST_STATUS_DEFS } from "./alchemist";
 
 export const STATUS_DEFS: Record<string, StatusDef> = {
   ...DOT_STATUS_DEFS,
@@ -19,6 +20,7 @@ export const STATUS_DEFS: Record<string, StatusDef> = {
   ...BOTANIST_STATUS_DEFS,
   ...PROPHET_STATUS_DEFS,
   ...ABANDONED_FLOOR_STATUS_DEFS,
+  ...ALCHEMIST_STATUS_DEFS,
 };
 
 export function getStatusDef(id: string): StatusDef | undefined {

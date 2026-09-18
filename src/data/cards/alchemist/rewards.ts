@@ -2,12 +2,15 @@ import type { CardDef } from "../../../engine/types";
 
 const rewardBase = {
   ownerCharId: "alchemist",
-  cost: 0,
+  cost: 1,
   cardType: "fast" as const,
   rarity: "common" as const,
   temporary: true,
   exhaust: true,
 };
+
+// 被动类奖励：无法付费，持在手中生效，回合结束进入消耗区(见 passive.recycleHandPassives)。
+const passiveRewardBase = { ...rewardBase, cost: 0, cardType: "passive" as const, targeting: "none" as const };
 
 export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
   {
@@ -15,18 +18,24 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     id: "over-catalysis",
     name: "过量催化",
     targeting: "foe",
-    anim: "poison",
-    effects: [{ type: "DAMAGE", multiplier: 1.5, damageBonus: { when: "targetHasDebuff", multiplier: 0.3 }, target: "primary" }],
-    text: "造成 {0} 点伤害；目标有负面状态时，伤害提高 30%。打出后消耗。",
+    anim: "fire",
+    effects: [
+      { type: "APPLY_STATUS", status: "burn", stacksFromStat: { stat: "attack", multiplier: 0.75 }, duration: 2, target: "primary" },
+      { type: "APPLY_STATUS", status: "poison", stacksFromStat: { stat: "attack", multiplier: 0.2 }, target: "primary" },
+    ],
+    text: "对目标施加 {0} 层灼烧（持续 2 回合）与 {1} 层中毒。打出后消耗。",
   },
   {
     ...rewardBase,
     id: "chain-burst",
-    name: "链式爆破",
+    name: "链式燃烧",
     targeting: "none",
     anim: "fire",
-    effects: [{ type: "DAMAGE", multiplier: 0.7, target: "allFoes", onKill: [{ type: "DRAW", amount: 1 }], onKillOnce: true }],
-    text: "对所有敌人造成 {0} 点伤害；本次至少击杀一名敌人时，抽 1 张牌。打出后消耗。",
+    effects: [
+      { type: "APPLY_STATUS", status: "burn", stacksFromStat: { stat: "attack", multiplier: 0.5 }, duration: 2, target: "allFoes" },
+      { type: "APPLY_STATUS", status: "flammable", stacks: 1, duration: 1, target: "allFoes" },
+    ],
+    text: "对所有敌人施加 {0} 层灼烧（持续 2 回合），并施加易燃 1 回合。打出后消耗。",
   },
   {
     ...rewardBase,
@@ -34,7 +43,7 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     name: "相变护膜",
     targeting: "none",
     anim: "shield",
-    effects: [{ type: "GAIN_SHIELD", multiplier: 0.8, target: "allAllies" }],
+    effects: [{ type: "GAIN_SHIELD", multiplier: 0.6, target: "allAllies" }],
     text: "全队获得 {0} 点护盾。打出后消耗。",
   },
   {
@@ -60,12 +69,15 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
   },
   {
     ...rewardBase,
-    id: "reflux-potion",
-    name: "回流药剂",
+    id: "resonance-catalyst",
+    name: "共鸣催化剂",
     targeting: "none",
     anim: "buff",
-    effects: [{ type: "GAIN_RESOURCE", resource: "mana", amount: 2 }],
-    text: "恢复 2 点法力。打出后消耗。",
+    effects: [
+      { type: "RESONATE", amount: 1, resonatePick: "handAll" },
+      { type: "DRAW", amount: 1 },
+    ],
+    text: "手牌中所有共鸣卡各获得 1 次共鸣强化（无视费用限制）；抽 1 张牌。打出后消耗。",
   },
   {
     ...rewardBase,
@@ -73,45 +85,31 @@ export const ALCHEMIST_REWARD_CARDS: CardDef[] = [
     name: "灵感药剂",
     targeting: "none",
     anim: "buff",
-    effects: [{ type: "DRAW", amount: 3 }],
-    text: "抽 3 张牌。打出后消耗。",
+    effects: [{ type: "DRAW", amount: 2 }],
+    text: "抽 2 张牌。打出后消耗。",
   },
   {
-    ...rewardBase,
+    ...passiveRewardBase,
     id: "bounty-hunter",
     name: "赏金猎人",
-    targeting: "none",
     anim: "buff",
     effects: [],
     passive: {
       on: "enemyKilled",
       effects: [{ type: "APPLY_STATUS", status: "bountyHunter", stacks: 1, target: "self" }],
     },
-    text: "被动：在手中时，完成击杀获得 1 层赏金猎人，使战斗结算掉率提高 30%。打出后消耗。",
+    text: "被动：在手中时，每完成一次击杀获得 1 层赏金猎人，使战斗结算掉率提高 30%。回合结束时移入消耗区。",
   },
   {
-    ...rewardBase,
-    id: "infinite-ledger",
-    name: "无限财宝",
-    targeting: "none",
-    anim: "buff",
+    ...passiveRewardBase,
+    id: "residual-heat-crystal",
+    name: "余温结晶",
+    anim: "fire",
     effects: [],
     passive: {
-      on: "assembleSuccess",
-      effects: [{ type: "ADD_CARD_TO_HAND", cardId: "infinite-treasure", cardOwner: "randomAlly" }],
+      on: "burnApplied",
+      effects: [{ type: "GAIN_SHIELD", multiplier: 0.05, target: "allAllies" }],
     },
-    text: "被动：重新完成组装时，获得临时卡无限财宝。打出后消耗。",
-  },
-  {
-    ...rewardBase,
-    id: "infinite-treasure",
-    name: "无限财宝",
-    targeting: "none",
-    anim: "buff",
-    effects: [
-      { type: "DRAW", amount: 4 },
-      { type: "GAIN_RESOURCE", resource: "mana", amount: 4 },
-    ],
-    text: "抽 4 张牌，恢复 4 点法力。打出后消耗。",
+    text: "被动：在手中时，你每打出一张施加灼烧的卡，全队获得 5% 治愈力的护盾。回合结束时移入消耗区。",
   },
 ];

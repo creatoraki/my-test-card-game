@@ -54,8 +54,6 @@ import alchemistRetortWallArt from "@/assets/skills/alchemist/反应釜壁.png";
 import alchemistRefluxPotionArt from "@/assets/skills/alchemist/回流药剂.png";
 import alchemistRejuvenationPotionArt from "@/assets/skills/alchemist/回生药剂.png";
 import alchemistConstantTemperatureCrucibleArt from "@/assets/skills/alchemist/恒温坩埚.png";
-import alchemistInfiniteTreasureArt from "@/assets/skills/alchemist/无限财宝.png";
-import alchemistDissolveDoubleArt from "@/assets/skills/alchemist/溶解替身.png";
 import alchemistTonicPotionArt from "@/assets/skills/alchemist/滋补魔药.png";
 import alchemistInspirationPotionArt from "@/assets/skills/alchemist/灵感药剂.png";
 import alchemistPointGoldShotArt from "@/assets/skills/alchemist/点金试射.png";
@@ -128,7 +126,7 @@ export const CARD_ART: Record<string, string> = {
   "guiding-crown": botanistGuidingCrownArt,
   "new-leaf": botanistNewLeafArt,
   "chaotic-spike": botanistChaoticSpikeArt,
-  "point-gold-shot": alchemistPointGoldShotArt,
+  "ignition-reagent": alchemistPointGoldShotArt,
   "bone-acid-rain": alchemistBoneAcidRainArt,
   "catalytic-detonation": alchemistCatalyticDetonationArt,
   "phase-spread": alchemistPhaseSpreadArt,
@@ -136,7 +134,6 @@ export const CARD_ART: Record<string, string> = {
   "terminal-mixture": alchemistTerminalMixtureArt,
   "jade-plating": alchemistJadePlatingArt,
   "retort-wall": alchemistRetortWallArt,
-  "dissolve-double": alchemistDissolveDoubleArt,
   "universal-component": alchemistUniversalComponentArt,
   "reverse-disassembly": alchemistReverseDisassemblyArt,
   "resonance-tuning": alchemistResonanceTuningArt,
@@ -147,11 +144,9 @@ export const CARD_ART: Record<string, string> = {
   "phase-membrane": alchemistPhaseMembraneArt,
   "rejuvenation-potion": alchemistRejuvenationPotionArt,
   "tonic-potion": alchemistTonicPotionArt,
-  "reflux-potion": alchemistRefluxPotionArt,
+  "resonance-catalyst": alchemistRefluxPotionArt,
   "inspiration-potion": alchemistInspirationPotionArt,
   "bounty-hunter": alchemistBountyHunterArt,
-  "infinite-ledger": alchemistInfiniteTreasureArt,
-  "infinite-treasure": alchemistInfiniteTreasureArt,
 };
 
 export const CARD_ART_SOURCES: readonly string[] = [...new Set([...Object.values(CARD_ART), placeholderArt])];

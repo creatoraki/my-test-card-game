@@ -5,25 +5,29 @@
 import poisonArt from "@/assets/buffs/dot/中毒.png";
 import shieldArt from "@/assets/buffs/护盾.png";
 import burnArt from "@/assets/buffs/dot/灼烧.png";
+import regenArt from "@/assets/buffs/dot/再生.png";
 import flammableArt from "@/assets/buffs/debuffs/易燃.png";
 import scorchedArt from "@/assets/buffs/debuffs/焦灼.png";
+import pierceArt from "@/assets/buffs/debuffs/穿孔.png";
 import sharpArt from "@/assets/buffs/锋利.png";
 import insuranceArt from "@/assets/buffs/保险.png";
 import tauntArt from "@/assets/buffs/嘲讽.png";
-import chargedShellArt from "@/assets/buffs/充能外壳.png";
+import chargedShellArt from "@/assets/buffs/buffs/充能外壳.png";
 import retortWallArt from "@/assets/buffs/反应釜壁.png";
-import overloadArt from "@/assets/buffs/过载.png";
+import overloadArt from "@/assets/buffs/buffs/过载.png";
 import echoArt from "@/assets/buffs/回响.png";
 import feignInjuryArt from "@/assets/buffs/假装受伤.png";
 import strengthArt from "@/assets/buffs/力量.png";
-import tequilaArt from "@/assets/buffs/龙舌兰.png";
-import rashomonArt from "@/assets/buffs/罗生门.png";
+import tequilaArt from "@/assets/buffs/buffs/龙舌兰.png";
+import rashomonArt from "@/assets/buffs/buffs/罗生门.png";
 import deductibleArt from "@/assets/buffs/免赔.png";
 import bountyHunterArt from "@/assets/buffs/赏金猎人.png";
 import vitalityArt from "@/assets/buffs/生机.png";
 import ironwallArt from "@/assets/buffs/铁壁.png";
 import cactusCounterattackArt from "@/assets/buffs/仙人掌.png";
 import starlightArt from "@/assets/buffs/星辉.png";
+import insightArt from "@/assets/buffs/洞察.png";
+import thornsArt from "@/assets/buffs/荆棘.png";
 
 export const STATUS_ART: Record<string, string> = {
   starlight: starlightArt,
@@ -39,10 +43,14 @@ export const STATUS_ART: Record<string, string> = {
   taunt: tauntArt,
   burn: burnArt,
   poison: poisonArt,
+  regen: regenArt,
+  thorns: thornsArt,
   flammable: flammableArt,
   scorched: scorchedArt,
+  pierce: pierceArt,
   vitality: vitalityArt,
   cactusCounterattack: cactusCounterattackArt,
+  insight: insightArt,
   insurance: insuranceArt,
   echo: echoArt,
   feignInjury: feignInjuryArt,
@@ -69,10 +77,14 @@ export const STATUS_ART_SOURCES: readonly string[] = [
   tauntArt,
   burnArt,
   poisonArt,
+  regenArt,
+  thornsArt,
   flammableArt,
   scorchedArt,
+  pierceArt,
   vitalityArt,
   cactusCounterattackArt,
+  insightArt,
   insuranceArt,
   echoArt,
   feignInjuryArt,

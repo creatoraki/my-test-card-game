@@ -1,6 +1,7 @@
 import type { Card } from "@/engine";
 import { CARD_MARK_DEFS, cultivateOverripe, cultivateReady } from "@/engine";
-import { CultivatedEmblem, CultivatingEmblem } from "@/ui/common/BuffIcon";
+import { CultivatedEmblem } from "@/ui/common/BuffIcon";
+import { CULTIVATION_ART } from "@/ui/art/buffArt";
 import s from "./CardMarks.module.css";
 
 interface Props {
@@ -58,7 +59,7 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
               {cultivateReady(card) || cultivateOverripe(card) ? (
                 <CultivatedEmblem className={s["hc-cultivate-emblem"]} label={null} />
               ) : (
-                <CultivatingEmblem className={s["hc-cultivate-emblem"]} label={null} />
+                <img className={s["hc-cultivate-emblem"]} src={CULTIVATION_ART} alt="" />
               )}
               {!cultivateReady(card) && !cultivateOverripe(card) && (
                 <span className={s["hc-mark-count"]}>{card.cultivateLeft ?? card.cultivate.turns}</span>

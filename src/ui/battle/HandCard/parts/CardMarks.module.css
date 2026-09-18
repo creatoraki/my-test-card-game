@@ -77,6 +77,7 @@
   inset: 1px;
   width: calc(100% - 2px);
   height: calc(100% - 2px);
+  object-fit: contain;
 }
 .hc-mark-count {
   position: absolute;

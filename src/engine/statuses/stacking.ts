@@ -37,6 +37,19 @@ function removeSegmentStacks(inst: StatusInstance, stacks: number): void {
   inst.segments = segments.filter((segment) => segment.stacks > 0);
 }
 
+// 从状态实例上移除指定层数(分段状态按段扣减), 返回实际移除的层数。
+export function reduceStatusStacks(inst: StatusInstance, amount: number): number {
+  const removed = Math.min(inst.stacks, Math.max(0, Math.floor(amount)));
+  if (removed <= 0) return 0;
+  if (inst.segments) {
+    removeSegmentStacks(inst, removed);
+    syncSegments(inst);
+  } else {
+    inst.stacks -= removed;
+  }
+  return removed;
+}
+
 export function mergeStatus(
   inst: StatusInstance,
   def: StatusDef,

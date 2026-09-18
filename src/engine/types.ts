@@ -55,7 +55,9 @@ export type CounterSource =
   | "chosenCardCost"
   | "lastStrippedMarks"
   | "partyInsuranceStacks"
-  | "discardPileTens";
+  | "discardPileTens"
+  | "aliveFoeCount"
+  | "burningFoeCount";
 
 export interface ChallengeRun {
   id: ChallengeId;
@@ -178,7 +180,17 @@ export interface EffectDescriptor {
   targetWithoutStatus?: string; // randomFoe / randomAlly / allFoes: 排除带指定状态的目标
   cardId?: string; // ADD_CARD_TO_HAND: 卡牌定义 id
   stacksFrom?: CounterSource; // APPLY_STATUS: 层数直接取自计数
-  scaleByCounter?: { counter: CounterSource; per?: number; min?: number; max?: number };
+  stacksFromPer?: number; // APPLY_STATUS: stacksFrom 计数的倍率, 缺省 1
+  consumePct?: number; // CONSUME_STATUS: 按当前层数比例消耗(向下取整), 与 maxStacks 同时存在时取较小值
+  amountBonusFrom?: CounterSource; // GAIN_SHIELD 固定值模式: 按计数加算到 amount 上
+  amountBonusPer?: number; // GAIN_SHIELD 固定值模式: 每 1 点计数加算的 amount
+  scaleByCounter?: {
+    counter: CounterSource;
+    per?: number;
+    min?: number;
+    max?: number;
+    add?: number; // 计数 × per 后再加上的常数
+  };
   stat?: keyof StatBlock; // APPLY_STAT_MOD / PLAY_STAT_BONUS: 要修改的属性
   pct?: boolean; // APPLY_STAT_MOD / PLAY_STAT_BONUS: true = 百分比修正(百分点), 缺省 = 固定值修正
   resource?: string; // GAIN_RESOURCE: 资源名(默认 mana)
@@ -348,7 +360,8 @@ export type PassiveTriggerId =
   | "assembleSuccess"
   | "allyAttacked"
   | "cardPlayed"
-  | "roundStart";
+  | "roundStart"
+  | "burnApplied";
 
 export interface PassiveDef {
   on: PassiveTriggerId | PassiveTriggerId[];
@@ -437,6 +450,7 @@ export type PendingChoice =
   | {
       kind: "pickSquadBuff";
       options: string[];
+      mode?: "gain" | "remove";
     };
 
 // ---------------------------------------------------------------------------

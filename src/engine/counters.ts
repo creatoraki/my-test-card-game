@@ -41,6 +41,13 @@ export function counterOf(state: BattleState, source: CounterSource, card?: Card
   if (source === "lastStrippedMarks") return state.lastStrippedMarks;
   if (source === "partyInsuranceStacks") return partyInsuranceStacks(state);
   if (source === "discardPileTens") return Math.floor(state.discard.length / 10);
+  if (source === "aliveFoeCount")
+    return state.enemyIds.filter((id) => state.combatants[id]?.alive).length;
+  if (source === "burningFoeCount")
+    return state.enemyIds.filter((id) => {
+      const enemy = state.combatants[id];
+      return enemy?.alive && enemy.statuses.some((status) => status.id === "burn" && status.stacks > 0);
+    }).length;
   if (source === "fastPlaysThisRound")
     return state.playedThisRound.filter((played) => played.cardType === "fast").length;
   return state.playedThisRound.length;

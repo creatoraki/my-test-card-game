@@ -18,7 +18,9 @@ function extendStatuses(state: BattleState, effect: EffectDescriptor, targetIds:
     const target = state.combatants[id];
     if (!target?.alive) continue;
     for (const status of target.statuses) {
-      if (!matchesKind(status, effect.statusKind)) continue;
+      if (effect.status) {
+        if (status.id !== effect.status) continue;
+      } else if (!matchesKind(status, effect.statusKind)) continue;
       if (status.segments) {
         for (const segment of status.segments) {
           if (segment.duration != null) segment.duration += amount;

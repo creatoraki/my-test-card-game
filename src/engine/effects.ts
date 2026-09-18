@@ -21,6 +21,7 @@ import { applyRevealEffect } from "./effectsReveal";
 import { applyStatusMoveEffect } from "./effectsStatusMove";
 import { filterFullDrawTargets, fullDrawGateMatches } from "./fullDraw";
 import { conditionMet } from "./effectConditions";
+import { reduceStatusStacks } from "./statuses/stacking";
 export { conditionMet } from "./effectConditions";
 import {
   ASSEMBLE_IDS,
@@ -28,6 +29,7 @@ import {
   consumeAllSquadBuffs,
   missingAssembleIds,
   removeRandomSquadBuff,
+  squadBuffIds,
   type AssembleId,
 } from "./squadBuff";
 
@@ -35,6 +37,9 @@ export interface EffectResolution {
   missed: string[];
   hit: string[];
 }
+
+// 本批效果是否施加过灼烧; resolveEffects 负责保存/恢复, 供「burnApplied」被动事件使用。
+let burnAppliedInBatch = false;
 
 function mergeResolution(target: EffectResolution, source: EffectResolution): void {
   target.missed.push(...source.missed);
@@ -52,8 +57,8 @@ function sourceStatValue(state: BattleState, source: Combatant | undefined, stat
 
 function scaleFactor(state: BattleState, effect: EffectDescriptor): number {
   if (!effect.scaleByCounter) return 1;
-  const { counter, per = 1, min, max } = effect.scaleByCounter;
-  let value = counterOf(state, counter) * per;
+  const { counter, per = 1, min, max, add = 0 } = effect.scaleByCounter;
+  let value = counterOf(state, counter) * per + add;
   if (min != null) value = Math.max(min, value);
   if (max != null) value = Math.min(max, value);
   return value;
@@ -197,7 +202,11 @@ function applyEffect(
       const shieldMultiplier =
         effect.multiplier != null ? effect.multiplier + supportBonusMultiplier(state, effect) : null;
       const shield =
-        (shieldMultiplier != null ? healValue(offenseStatOf(state, src, "healPower"), shieldMultiplier) : amount) *
+        (shieldMultiplier != null
+          ? healValue(offenseStatOf(state, src, "healPower"), shieldMultiplier)
+          : amount + (effect.amountBonusFrom
+            ? counterOf(state, effect.amountBonusFrom) * (effect.amountBonusPer ?? 1)
+            : 0)) *
         (1 + state.playValueBonusPct / 100) * scaleFactor(state, effect);
       for (const id of targetIds) ops.gainShield(state, sourceId, id, shield);
       break;
@@ -275,7 +284,9 @@ function applyEffect(
         const statStacks = effect.stacksFromStat
           ? Math.round(sourceStatValue(state, src, effect.stacksFromStat.stat) * statMultiplier)
           : 0;
-        const counterStacks = effect.stacksFrom ? counterOf(state, effect.stacksFrom) : 0;
+        const counterStacks = effect.stacksFrom
+          ? counterOf(state, effect.stacksFrom) * (effect.stacksFromPer ?? 1)
+          : 0;
         const rawStacks = (effect.stacks ?? 0) + statStacks + counterStacks;
         const stacks = Math.min(effect.maxStacks ?? Infinity, Math.round(rawStacks * scaleFactor(state, effect)));
         const duration = (effect.duration != null || effect.durationFrom)
@@ -294,6 +305,7 @@ function applyEffect(
         } else if (stacks > 0) {
           const before = state.combatants[id]?.statuses.find((status) => status.id === effect.status)?.stacks ?? 0;
           ops.applyStatus(state, id, effect.status, stacks, duration, generatedData, sourceId);
+          if (effect.status === "burn") burnAppliedInBatch = true;
           const after = state.combatants[id]?.statuses.find((status) => status.id === effect.status)?.stacks ?? 0;
           if (effect.tickNow && after > before)
             runStatusTickNow(state, id, effect.status, after - before);
@@ -381,6 +393,11 @@ function applyEffect(
     case "REMOVE_SQUAD_BUFF":
       if (effect.squadBuffPick === "all") consumeAllSquadBuffs(state);
       else if (effect.squadBuffPick === "random") removeRandomSquadBuff(state);
+      else if (effect.squadBuffPick === "choose") {
+        const owned = squadBuffIds(state);
+        if (owned.length > 0 && !state.pendingChoice)
+          state.pendingChoice = { kind: "pickSquadBuff", options: [...owned], mode: "remove" };
+      }
       break;
     case "CONSUME_STATUS": {
       state.lastConsumedStatusStacks = 0;
@@ -389,12 +406,14 @@ function applyEffect(
         const target = state.combatants[id];
         const status = target?.statuses.find((entry) => entry.id === effect.status);
         if (!target || !status) continue;
-        const consumed = Math.min(status.stacks, Math.max(0, Math.floor(effect.maxStacks ?? status.stacks)));
+        let limit = status.stacks;
+        if (effect.consumePct != null) limit = Math.min(limit, Math.floor(status.stacks * effect.consumePct));
+        if (effect.maxStacks != null) limit = Math.min(limit, Math.floor(effect.maxStacks));
+        const consumed = reduceStatusStacks(status, limit);
         if (consumed <= 0) continue;
         state.lastConsumedStatusStacks += consumed;
-        status.stacks -= consumed;
         if (status.stacks <= 0) target.statuses = target.statuses.filter((entry) => entry !== status);
-        ops.log(state, `${target.emoji} ${target.name} 的${effect.status}被消耗 ${consumed} 层`);
+        ops.log(state, `${target.emoji} ${target.name} 的${getStatusDef(effect.status)?.name ?? effect.status}被消耗 ${consumed} 层`);
       }
       break;
     }
@@ -412,6 +431,7 @@ function applyEffect(
         for (const target of spreadTargets) {
           if (target.id !== sourceTargetId)
             ops.applyStatus(state, target.id, effect.status, stacks, effect.duration ?? sourceStatus.duration, undefined, sourceId);
+          if (effect.status === "burn") burnAppliedInBatch = true;
         }
       }
       break;
@@ -433,9 +453,18 @@ export function resolveEffects(
   contextCard?: Card,
 ): EffectResolution {
   const resolution: EffectResolution = { missed: [], hit: [] };
-  for (const effect of effects) {
-    const targets = filterFullDrawTargets(state, effect, resolveTargets(state, effect, sourceId, primaryId));
-    mergeResolution(resolution, applyEffect(state, effect, sourceId, targets, primaryId, contextCard));
+  const outerBurnFlag = burnAppliedInBatch;
+  burnAppliedInBatch = false;
+  try {
+    for (const effect of effects) {
+      const targets = filterFullDrawTargets(state, effect, resolveTargets(state, effect, sourceId, primaryId));
+      mergeResolution(resolution, applyEffect(state, effect, sourceId, targets, primaryId, contextCard));
+    }
+  } finally {
+    const applied = burnAppliedInBatch;
+    burnAppliedInBatch = outerBurnFlag;
+    if (applied && state.combatants[sourceId]?.team === "player")
+      ops.firePassive(state, { type: "burnApplied" });
   }
   return resolution;
 }

@@ -30,8 +30,8 @@
   transform: translateY(-2px);
 }
 /* 提亮只作用在图标本身, 不连带把详情卡也提亮。 */
-.item:hover > svg,
-.item:focus-visible > svg,
+.item:hover > img,
+.item:focus-visible > img,
 .item:hover::before,
 .item:focus-visible::before {
   filter: brightness(1.16);
@@ -40,23 +40,19 @@
 .item:focus-visible::before {
   border-color: color-mix(in srgb, var(--assemble-accent) 58%, white);
 }
-.item > svg {
+.item > img {
   width: 30px;
   height: 30px;
   position: relative;
   z-index: 1;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  object-fit: contain;
 }
 @media (max-width: 700px) {
   .item {
     width: 42px;
     height: 42px;
   }
-  .item > svg {
+  .item > img {
     width: 27px;
     height: 27px;
   }

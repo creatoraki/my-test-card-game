@@ -1,6 +1,6 @@
 import type { BattleState } from "./types";
 import { advanceCultivate, cultivateCanAdvance, resetCultivate } from "./cultivate";
-import { gainSquadBuff } from "./squadBuff";
+import { gainSquadBuff, removeSquadBuff, SQUAD_BUFF_DEFS, type AssembleId } from "./squadBuff";
 import { cardCost } from "./cost";
 import { resolveEffects } from "./effects";
 import { firePassive } from "./passive";
@@ -11,10 +11,17 @@ export function resolvePendingChoice(state: BattleState, uid: string): boolean {
   const choice = state.pendingChoice;
   if (!choice) return false;
   if (choice.kind === "pickSquadBuff") {
-    if (!choice.options.includes(uid) || state.squadBuffs.some((entry) => entry.id === uid)) return false;
-    if (!gainSquadBuff(state, uid as Parameters<typeof gainSquadBuff>[1])) return false;
+    if (!choice.options.includes(uid)) return false;
+    if (choice.mode === "remove") {
+      if (!removeSquadBuff(state, uid as AssembleId)) return false;
+      state.pendingChoice = null;
+      log(state, `移除 ${SQUAD_BUFF_DEFS[uid as AssembleId]?.name ?? uid}`);
+      return true;
+    }
+    if (state.squadBuffs.some((entry) => entry.id === uid)) return false;
+    if (!gainSquadBuff(state, uid as AssembleId)) return false;
     state.pendingChoice = null;
-    log(state, `获得 ${uid}`);
+    log(state, `获得 ${SQUAD_BUFF_DEFS[uid as AssembleId]?.name ?? uid}`);
     return true;
   }
   if (choice.kind === "pickFromDraw") {

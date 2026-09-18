@@ -26,11 +26,11 @@ export const ALCHEMIST_SUPPORT_CARDS: CardDef[] = [
     rarity: "common",
     anim: "buff",
     effects: [
-      { type: "REMOVE_SQUAD_BUFF", squadBuffPick: "random" },
-      { type: "GAIN_RESOURCE", resource: "mana", amount: 2 },
+      { type: "REMOVE_SQUAD_BUFF", squadBuffPick: "choose" },
+      { type: "GAIN_SHIELD", multiplier: 0.3, target: "allAllies" },
       { type: "DRAW", amount: 1 },
     ],
-    text: "移除 1 个随机组装 BUFF；恢复 2 点法力；抽 1 张牌。",
+    text: "选择并移除 1 个已拥有的组装 BUFF；全队获得 {1} 点护盾；抽 1 张牌。",
   },
   {
     id: "resonance-tuning",

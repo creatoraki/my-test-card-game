@@ -13,7 +13,7 @@
 | [hitPreview.ts](../../src/engine/hitPreview.ts) | 复用 `hitChance` 计算选中卡牌对指定目标的命中率预览；成熟培育或过熟分支读取对应当前效果，并按目标当前穿孔预判满弓伤害分支；无攻击效果、必中效果或无效目标返回 `null`；预览前把本卡的 `PLAY_STAT_BONUS` 临时写进施放者面板、算完原样撤回，保证攻击力/穿甲/命中类模组的预览数字与实际结算一致。 |
 | [cardEffects.ts](../../src/engine/cardEffects.ts) | 卡牌当前生效效果的共享口径：`baseEffectsOf` 处理培育替换、过熟替换与卡牌自身基础效果，`activeEffectsOf` 在此基础上追加关键词效果；回响只重放基础效果。 |
 | [insurance.ts](../../src/engine/insurance.ts) | 精算师保险机制的唯一真相点：读取单体/全队保险层数、受击增值、保险兑现与移除。 |
-| [counters.ts](../../src/engine/counters.ts) | 战斗计数器的唯一读取入口；支持当前出牌费用/星辉消耗、抬费手牌数、最近吞噬费用与移除标记数，并保留共鸣、保险和弃牌批次计数。 |
+| [counters.ts](../../src/engine/counters.ts) | 战斗计数器的唯一读取入口；支持当前出牌费用/星辉消耗、抬费手牌数、最近吞噬费用与移除标记数、存活敌人数与灼烧中的敌人数，并保留共鸣、保险和弃牌批次计数。 |
 | [rng.ts](../../src/engine/rng.ts) | mulberry32 可复现随机、整数/浮点/等概率与加权抽取、Fisher–Yates 洗牌。 |
 | [relicBehaviors/](../../src/engine/relicBehaviors/) | 行为型遗物注册表与钩子派发：钩子包括 `onRoundStart` / `onRoundEnd` / `onWait` / `onDownedFatal` / `modifyStatusApply` / `beforeCardEffects` / `afterCardPlay` / `onShuffle` / `onCardDrawn` / `onCrit` / `onAllyHpCrossedHalf` / `modifyOutgoingDamage`；运行态只写入 `BattleRelic.data`。 |
 | [relics.ts](../../src/engine/relics.ts) | 声明式战斗遗物的唯一分发入口；读取 `RelicSpec.on` / `effects` 并保留 `every` 计数，行为型遗物由 `relicBehaviors/` 并行处理。 |
@@ -34,7 +34,7 @@
 | [effectConditions.ts](../../src/engine/effectConditions.ts) | 共享效果条件判定，供效果解释器和命中预览复用。 |
 | [keywords.ts](../../src/engine/keywords.ts) | 卡牌词条注册表；承载回响基础效果扩散、满弓/穿孔/过熟/催熟/腐烂的展示释义登记表与文本分段纯函数，并保留登阶、日蚀、月蚀的待接落点。 |
 | [challenges.ts](../../src/engine/challenges.ts) | 挑战词条注册表、随机抽取、克制/大屠杀/慈悲的判定与奖励计算；由 `ops.ts` 和 `battle.ts` 接入战斗真相点。 |
-| [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语；支持新条件、自动出牌时抑制瀑布/汇星、按计数缩放 `PLAY_STAT_BONUS` 与封顶的治疗/护盾加成。仍集中处理状态、资源、组装、手牌操作等通用效果；`REVEAL_CARDS` 转发给 `effectsReveal.ts`。 |
+| [effects.ts](../../src/engine/effects.ts) | 将 `EffectDescriptor` 解释成引擎原语；支持新条件、自动出牌时抑制瀑布/汇星、按计数缩放 `PLAY_STAT_BONUS` 与封顶的治疗/护盾加成；`CONSUME_STATUS` 支持按比例消耗且正确扣减分段状态；每批效果施加过灼烧后派发 `burnApplied` 被动事件；`REMOVE_SQUAD_BUFF` 支持玩家选择移除。仍集中处理状态、资源、组装、手牌操作等通用效果；`REVEAL_CARDS` 转发给 `effectsReveal.ts`。 |
 | [effectsDamage.ts](../../src/engine/effectsDamage.ts) | DAMAGE 的多段伤害管线：支持 onHit、onCrit、onKill、逐段随机目标、计数增段、按护盾/生命/减益/指定状态的目标增伤、吸血以及自身治疗溢出转给最伤队友。 |
 | [effectsHand.ts](../../src/engine/effectsHand.ts) | 手牌与牌堆效果：弃牌预选、弃牌堆回收及标记、全手牌标记、牌型转换、培育/共鸣、随机变牌、复制入手、多张临时卡入手，以及手牌 BUFF 搬运、吞噬和拆解选择。 |
 | [effectsStrip.ts](../../src/engine/effectsStrip.ts) | `STRIP_STATUS` 的随机增益移除效果；按移除次数逐次执行后续效果，无可移除状态时执行兜底效果。 |
@@ -44,7 +44,7 @@
 | [battleChoices.ts](../../src/engine/battleChoices.ts) | 待选项的唯一结算入口：手牌标记搬运、吞噬、拆解，抽牌堆顶选择、弃牌回收与组装奖励选择。 |
 | [cardBoon.ts](../../src/engine/cardBoon.ts) | 手牌激活态的唯一判定点：按培育就绪、减费、星辉抵扣、共鸣、弃牌回手层数、当前费用瀑布、计数型加成和当前成立条件返回卡牌收益分类。被动卡与不在手牌中的卡不激活。 |
 | [statuses/prophet.ts](../../src/engine/statuses/prophet.ts) | 预言家状态定义：天顶星、引力透镜与漂流；具体瀑布行为统一由 `waterfall.ts` 执行。 |
-| [statuses/](../../src/engine/statuses/) | 状态定义分表：`dot.ts` 负责持续伤害/治疗与反伤；`abandonedFloor.ts` 负责静电、易燃、焦灼、回收装甲、护航与导电薄膜；`botanist.ts` 负责棘冠、半熟保鲜、龙舌花信、免疫与根系网络；`buffs.ts` 负责通用增益、龙舌兰与锋利增伤池；`debuffs.ts` 负责穿孔与通用减益；`swordsman.ts` 负责镜月、铁衣、风切、残心、残心·凝神与八千代, 其余文件负责保险、减益、控制与叠加策略；`index.ts` 合并并提供注册表。 |
+| [statuses/](../../src/engine/statuses/) | 状态定义分表：`dot.ts` 负责持续伤害/治疗与反伤；`abandonedFloor.ts` 负责静电、易燃、焦灼、回收装甲、护航与导电薄膜；`botanist.ts` 负责棘冠、半熟保鲜、龙舌花信、免疫与根系网络；`buffs.ts` 负责通用增益、龙舌兰与锋利增伤池；`debuffs.ts` 负责穿孔与通用减益；`swordsman.ts` 负责镜月、铁衣、风切、残心、残心·凝神与八千代；`alchemist.ts` 负责余烬护壁；其余文件负责保险、减益、控制与叠加策略；`index.ts` 合并并提供注册表。 |
 | [statusLifecycle.ts](../../src/engine/statusLifecycle.ts) | 状态节拍唯一驱动入口：我方在回合结束推进一拍, 敌人在行动前按规则推进一拍；按 DOT/HOT → 衰减 → 到期钩子 → 清理顺序处理状态, 并负责敌人 DOT 致死和 tick 钩子。`runOwnerTempo` 按单位暴露拍点, 供回合结束逐个录动画帧。 |
 | [targeting.ts](../../src/engine/targeting.ts) | 存活单位、敌我查询和目标合法性判定。`tauntedAmong` / `validFoeTargetIds` 统一维护嘲讽筛选；普通敌人优先在存活的嘲讽目标中等概率随机选取，没有嘲讽时从全部存活单位中随机选取；玩家单体敌方卡、弃牌自动目标和战场点选也复用同一判定，群攻不受限。普通敌人的脚本筛选由 `enemyMovePick.ts` 在玩家嘲讽不存在时保持优先。 |
 | [deck.ts](../../src/engine/deck.ts) | 抽牌堆、手牌、弃牌堆和消耗堆；抽牌堆耗尽时洗回弃牌堆并派发遗物 `onShuffle`，每抽到一张牌分发被动 `cardDrawn` 与遗物 `onCardDrawn`，并受小队手牌上限约束；通过 `addCardToHand` 统一实例化并加入临时卡。 |

@@ -8,8 +8,8 @@ import { ALCHEMIST_SUPPORT_CARDS } from "./support";
 export const ASSEMBLE_REWARD_POOLS = {
   attack: ["over-catalysis", "chain-burst"],
   defense: ["phase-membrane", "rejuvenation-potion", "tonic-potion"],
-  support: ["reflux-potion", "inspiration-potion"],
-  passive: ["bounty-hunter", "infinite-ledger"],
+  support: ["resonance-catalyst", "inspiration-potion"],
+  passive: ["bounty-hunter", "residual-heat-crystal"],
 } as const;
 
 export const ALCHEMIST_CARD_DEFS: CardDef[] = [
