@@ -1,21 +1,22 @@
-import { NeonPlate, type Chamfer } from "@/ui/common/NeonPlate";
+import { BrandEmblem } from "./BrandEmblem";
 import s from "./ShopBrand.module.css";
-
-const DEFAULT_CHAMFER: Chamfer = { tl: 14, tr: 8, br: 14, bl: 6 };
 
 interface Props {
   label?: string;
-  width?: number;
-  height?: number;
-  chamfer?: Chamfer;
+  /** 英文副标题，装饰用。 */
+  subLabel?: string;
 }
 
-// 左上场景铭牌：颜色走 --brand-* 变量，默认值为商店金色。
-export function ShopBrand({ label = "商店", width = 205, height = 86, chamfer = DEFAULT_CHAMFER }: Props) {
+// 左上场景铭牌：徽标 + 场景名（中文主标题 / 英文副标题）+ 带刻度的分隔线；颜色走 --rail-* 变量。
+export function ShopBrand({ label = "商店", subLabel = "SHOP" }: Props) {
   return (
-    <div className={s.brand} style={{ width, height }}>
-      <NeonPlate width={width} height={height} chamfer={chamfer} />
-      <strong className={s.label}>{label}</strong>
+    <div className={s.brand}>
+      <BrandEmblem />
+      <div className={s.text}>
+        <strong className={s.label}>{label}</strong>
+        <span className={s.sub}>{subLabel}</span>
+      </div>
+      <i className={s.rule} aria-hidden="true" />
     </div>
   );
 }

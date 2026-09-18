@@ -13,10 +13,10 @@ import s from "./MuseumPanel.module.css";
 
 export type MuseumHallId = "items" | "cards" | "enemies";
 
-const TABS: { id: MuseumHallId; label: string }[] = [
-  { id: "items", label: "物品" },
-  { id: "cards", label: "卡牌" },
-  { id: "enemies", label: "怪物" },
+const TABS: { id: MuseumHallId; label: string; subLabel: string }[] = [
+  { id: "items", label: "物品", subLabel: "ITEMS" },
+  { id: "cards", label: "卡牌", subLabel: "CARDS" },
+  { id: "enemies", label: "怪物", subLabel: "ENEMIES" },
 ];
 
 const TITLES: Record<MuseumHallId, string> = {
@@ -49,6 +49,7 @@ export function MuseumPanel({ initialHall = "items", onBack }: Props) {
     () => TABS.map((tab) => ({
       id: tab.id,
       label: `${tab.label} ${progress[tab.id].unlocked}/${progress[tab.id].total}`,
+      subLabel: tab.subLabel,
       icon: <MuseumNavIcon hall={tab.id} />,
     })),
     [progress],

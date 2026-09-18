@@ -15,9 +15,9 @@ import s from "./ResearchPanel.module.css";
 type ResearchPage = "assembly" | "craft" | "tech";
 
 const ENTRIES = [
-  { id: "assembly", label: "模组装配", icon: <AssemblyIcon /> },
-  { id: "craft", label: "模组制造", icon: <CraftIcon /> },
-  { id: "tech", label: "科技树", icon: <TechTreeIcon /> },
+  { id: "assembly", label: "模组装配", subLabel: "EQUIPMENT", icon: <AssemblyIcon /> },
+  { id: "craft", label: "模组制造", subLabel: "MANUFACTURE", icon: <CraftIcon /> },
+  { id: "tech", label: "科技树", subLabel: "TECH TREE", icon: <TechTreeIcon /> },
 ] as const;
 
 const TITLES: Record<ResearchPage, string> = {

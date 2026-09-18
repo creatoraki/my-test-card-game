@@ -1,85 +1,67 @@
-/* 牌面尺寸由 NavigationRail 的 props 内联下发；--plate-* / --edge-* 传给 NeonPlate。 */
+/* 牌面尺寸由 NavigationRail 的 props 内联下发；线条与玻璃卡见 NavigationFrame。
+   设计像素：导航 x 13→229；图标中心 x≈60；文字起点 x≈103。 */
 .nav {
   position: absolute;
-  left: 14px;
-  top: 134px;
+  left: 13px;
+  top: 132px;
   display: flex;
   flex-direction: column;
   pointer-events: auto;
 }
 
 .entry {
-  /* 未选中：沿用出征页难度按钮的冷灰金属配色（MapDifficultyPanel / SortieFrame）。 */
-  --plate-start: #131e24da;
-  --plate-middle: #070b10e8;
-  --plate-end: #1c2731b8;
-  --edge-hot: #f0f9ff;
-  --edge-mid: #69767f;
-  --edge-dim: #c8d8e2;
-  --plate-glow: 0;
-  --plate-inner-glow: 0;
-  --plate-inner: #a6c7db;
-  --plate-inner-opacity: .13;
   position: relative;
   isolation: isolate;
   display: flex;
   align-items: center;
   flex: none;
-  gap: 22px;
-  padding: 0 20px 0 24px;
+  gap: 26px;
+  /* 未选中行内容区在分隔线（下移 6px）之下居中。 */
+  padding: 6px 0 0 30px;
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #f0f3f6;
-  font-size: var(--nav-label-size, 20px);
-  font-weight: 700;
-  letter-spacing: 1px;
+  color: var(--rail-ink, #f3edee);
   text-align: left;
   cursor: var(--cursor-pointer);
-  filter: drop-shadow(0 8px 12px #0005);
-  transition: color 180ms ease, filter 180ms ease, transform 80ms ease;
+  transition: filter 180ms ease, transform 80ms ease;
 }
 
-/* 选中：默认值为出征页难度按钮选中态的冰蓝配色；其他场景主题可用 --nav-active-* 覆盖。 */
+/* 选中卡占槽位上部，内容改为在卡内居中。 */
 .entry[aria-current] {
-  --plate-start: var(--nav-active-plate-start, #243e50e6);
-  --plate-end: var(--nav-active-plate-end, #315971c9);
-  --plate-middle: var(--nav-active-plate-middle, color-mix(in srgb, var(--plate-start) 40%, #000c));
-  --plate-bloom: var(--nav-active-bloom, color-mix(in srgb, var(--edge-mid) 38%, transparent));
-  --edge-hot: var(--nav-active-edge-hot, #c3edff);
-  --edge-mid: var(--nav-active-edge-mid, #c3edff);
-  --edge-dim: var(--nav-active-edge-dim, #c3edff);
-  --plate-stroke: 2.5px;
-  --plate-glow: 0;
-  --plate-inner-glow: .3;
-  --plate-inner: var(--nav-active-inner, var(--edge-mid));
-  --plate-inner-opacity: .48;
-  --nav-icon: var(--nav-active-icon, #ddf3ff);
-  --nav-icon-glow: var(--nav-active-icon-glow, #83ceff70);
-  color: var(--nav-active-color, #ddf3ff);
-  filter: drop-shadow(0 0 3px var(--nav-active-glow-near, #b0e7ff)) drop-shadow(0 0 10px var(--nav-active-glow-far, #52b9f4a0));
+  padding: 0 0 6px 30px;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--rail-accent, #ff3b4e) 38%, transparent));
 }
 
 .entry:hover {
-  filter: brightness(1.25) drop-shadow(0 8px 12px #0005);
+  filter: brightness(1.15);
 }
 
 .entry[aria-current]:hover {
-  filter: brightness(1.25) drop-shadow(0 0 3px var(--nav-active-glow-near, #b0e7ff)) drop-shadow(0 0 10px var(--nav-active-hover-glow, #52b9f4a0));
+  filter: brightness(1.08) drop-shadow(0 0 9px color-mix(in srgb, var(--rail-accent, #ff3b4e) 50%, transparent));
+}
+
+.entry:active {
+  transform: translateY(1px);
 }
 
 .entry:focus-visible {
-  outline: 2px solid #bde9ff;
-  outline-offset: 5px;
+  outline: 2px solid var(--rail-accent-hot, #ff8d97);
+  outline-offset: 3px;
 }
 
 .icon {
   display: block;
   flex: none;
-  width: 32px;
-  height: 32px;
-  color: var(--nav-icon, #f0f3f6);
-  filter: drop-shadow(0 0 6px var(--nav-icon-glow, transparent));
+  width: 34px;
+  height: 34px;
+  color: #ececec;
+  transition: color 180ms ease, filter 180ms ease;
+}
+
+.entry[aria-current] .icon {
+  color: color-mix(in srgb, var(--rail-accent, #ff3b4e) 60%, var(--rail-accent-hot, #ff8d97));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--rail-accent, #ff3b4e) 70%, transparent));
 }
 
 .icon svg {
@@ -88,14 +70,39 @@
   height: 100%;
 }
 
+.text {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+}
+
 .label {
-  white-space: nowrap;
+  color: #f2f2f2;
+  font-size: 20px;
+  font-weight: 700;
   line-height: 1;
+  letter-spacing: .6px;
+  white-space: nowrap;
   text-shadow: 0 1px 2px #000a;
 }
 
 .entry[aria-current] .label {
-  text-shadow: 0 0 13px var(--nav-active-label-glow, #78caff80), 0 1px 2px #000a;
+  color: #ffffff;
+}
+
+.sub {
+  color: var(--rail-sub, #6f7173);
+  font-family: var(--font-num);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1.3px;
+  white-space: nowrap;
+  transition: color 180ms ease;
+}
+
+.entry[aria-current] .sub {
+  color: color-mix(in srgb, var(--rail-accent, #ff3b4e) 45%, #a39a9b);
 }
 
 :global([data-shop-root][data-leaving]) .nav {

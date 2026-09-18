@@ -1,0 +1,36 @@
+.frame {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.idle,
+.active {
+  transition: opacity 180ms ease;
+}
+
+.active {
+  opacity: 0;
+}
+
+.frame[data-active] .active {
+  opacity: 1;
+}
+
+.frame[data-active] .idle {
+  opacity: 0;
+}
+
+/* 未选中行设计稿无底板，只在悬停时浮出一层极淡的玻璃底。 */
+.idleFill {
+  fill: #ffffff;
+  fill-opacity: 0;
+  transition: fill-opacity 160ms ease;
+}
+
+:global(button:hover) > .frame .idleFill {
+  fill-opacity: .035;
+}

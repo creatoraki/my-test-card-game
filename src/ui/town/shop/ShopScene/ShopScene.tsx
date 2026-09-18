@@ -3,7 +3,7 @@
 import { cx } from "@/ui/common/cx";
 import { StockEntries } from "@/ui/town/shop/StockPanels";
 import { ShopBack } from "@/ui/town/shop/ShopBack";
-import { SIDEBAR_WIDTH } from "../shopLayout";
+import { ShopSidebar } from "@/ui/town/shop/ShopSidebar";
 import theme from "../shopTheme.module.css";
 import s from "./ShopScene.module.css";
 import { ShopBrand } from "./ShopBrand";
@@ -20,7 +20,8 @@ export function ShopScene({ leaving = false, onBack }: Props) {
       data-shop-root
       data-leaving={leaving ? "" : undefined}
     >
-      <ShopBrand width={SIDEBAR_WIDTH} />
+      <ShopSidebar />
+      <ShopBrand label="商店" subLabel="TRADING POST" />
       <StockEntries onBack={onBack} />
       {onBack && <ShopBack onClick={onBack} />}
     </div>

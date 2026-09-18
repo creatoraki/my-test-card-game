@@ -1,56 +1,88 @@
+/* 设计像素：x 29→239，y 964→1039。 */
 .back {
-  --plate-start: var(--back-body-start, #0f2833eb);
-  --plate-end: var(--back-body-end, #07141af2);
-  --edge-hot: var(--back-edge-hot, #c8fbff);
-  --edge-mid: var(--back-edge-end, #4fdcec);
-  --edge-dim: var(--back-edge-mid, #267f8d);
   position: absolute;
-  left: 14px;
-  bottom: 24px;
+  left: 29px;
+  bottom: 41px;
   z-index: 4;
   isolation: isolate;
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 0 16px 0 24px;
+  gap: 25px;
+  padding: 0 16px 0 25px;
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--back-text, #eefcff);
+  color: var(--rail-ink, #f3edee);
   cursor: var(--cursor-pointer);
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  text-align: left;
   white-space: nowrap;
   pointer-events: auto;
-  filter: drop-shadow(0 0 5px var(--back-text-glow, #36dce344));
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--rail-accent, #ff3b4e) 35%, transparent));
   animation: arrive var(--fac-back-in, 320ms) ease-out both;
   transition: filter 160ms ease, transform 160ms ease;
 }
 
+.frame {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.edgeGlow {
+  opacity: .45;
+  transition: opacity 160ms ease;
+}
+
 .arrow {
   flex: none;
-  width: 26px;
-  height: 20px;
+  width: 30px;
+  height: 28px;
   overflow: visible;
 }
 
 .arrowGlow {
-  filter: blur(2px);
+  filter: blur(2.5px);
+}
+
+.text {
+  display: grid;
+  gap: 7px;
 }
 
 .label {
-  position: relative;
+  font-size: 22px;
+  font-weight: 700;
   line-height: 1;
-  text-shadow: 0 0 4px var(--back-text-glow, #b7faff66), 0 1px 2px #000;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--rail-accent, #ff3b4e) 40%, transparent), 0 1px 2px #000;
+}
+
+.sub {
+  color: #b3a7a9;
+  font-family: var(--font-num);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1.2px;
 }
 
 .back:hover {
-  filter: brightness(1.2) drop-shadow(0 0 9px var(--back-text-glow, #36dce377));
+  filter: brightness(1.15) drop-shadow(0 0 10px color-mix(in srgb, var(--rail-accent, #ff3b4e) 55%, transparent));
+}
+
+.back:hover .edgeGlow {
+  opacity: .8;
+}
+
+.back:active {
+  transform: translateY(1px);
 }
 
 .back:focus-visible {
-  outline: 2px solid var(--back-edge-hot, #aafff8);
+  outline: 2px solid var(--rail-accent-hot, #ff8d97);
   outline-offset: 4px;
 }
 

@@ -32,46 +32,17 @@
   --sx-sunk: inset 0 2px 14px -8px #000000d0, inset 0 -1px 0 #8c2b331c;
   --sx-drop: 0 18px 40px -26px #000000c4;
 
-  /* 左侧导航牌：常态暗红金属，选中态红光。 */
-  --nav-active-plate-start: #5e1f27f5;
-  --nav-active-plate-end: #55191ff5;
-  --nav-active-edge-hot: #ffe3e5;
-  --nav-active-edge-mid: #ff3b4e;
-  --nav-active-edge-dim: #93252f;
-  --nav-active-color: #fff0f1;
-  --nav-active-glow-near: #ff5a6a99;
-  --nav-active-glow-far: #b0202f55;
-  --nav-active-hover-glow: #ff3b4e77;
-  --nav-active-label-glow: #ff8d9788;
-  --nav-icon: #e3a3a8;
-  --nav-icon-glow: #c4444f66;
-  --nav-active-icon: #ffd0d4;
-  --nav-active-icon-glow: #ff3b4eaa;
-  --nav-label-size: 20px;
-
-  /* 左上铭牌。 */
-  --brand-fill-start: #551a22;
-  --brand-fill-end: #4a161d;
-  --brand-line-hot: #ffe1e3;
-  --brand-line-mid: #c8404f;
-  --brand-line-end: #ff8a94;
-  --brand-text: #ffd5d8;
-  --brand-text-hot: #fff0f1;
-  --brand-glow-near: #ff3b4eb3;
-  --brand-glow-far: #992a3566;
-  /* 「研究中心」四个字要塞进同一块铭牌, 收一档字号与字距。 */
-  --brand-text-size: 24px;
-  --brand-text-tracking: 1px;
-
-  /* 左下返回按钮。 */
-  --back-body-start: #4a141c;
-  --back-body-end: #38121a;
-  --back-edge-hot: #ffb8be;
-  --back-edge-mid: #b33241;
-  --back-edge-end: #d1495a;
-  --back-arrow: #ff9aa4;
-  --back-text: #ffd7da;
-  --back-text-glow: #ff3b4e99;
+  /* 左侧信息条（底栏 / 铭牌 / 导航 / 返回）：红黑玻璃。 */
+  --rail-accent: #ff3b4e;
+  --rail-accent-hot: #ff8d97;
+  --rail-accent-deep: #5a1119;
+  /* 导航选中亮条的浅粉主体与右下切角的近白热核。 */
+  --rail-accent-pale: #f9b1ac;
+  --rail-accent-flare: #ffdfda;
+  --rail-glass: #0b0909b8;
+  --rail-ink: #f3edee;
+  --rail-sub: #6f7173;
+  --rail-line: #d8cfd11f;
 
   /* 公共科技树令牌。 */
   --tech-accent: #ff6b78;

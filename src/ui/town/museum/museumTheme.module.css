@@ -30,31 +30,14 @@
   --sx-title-shadow: #164c3c;
   --sx-line-hot: #dcfff3;
 
-  --nav-active-plate-start: #1f4f46f5;
-  --nav-active-plate-end: #1e4a40f5;
-  --nav-active-edge-hot: #e4fff5;
-  --nav-active-edge-mid: #6ed6b8;
-  --nav-active-edge-dim: #368d75;
-  --nav-active-color: #eafff7;
-  --nav-active-glow-near: #6ed6b899;
-  --nav-active-glow-far: #2aa98055;
-  --nav-active-hover-glow: #6ed6b877;
-  --nav-active-label-glow: #86f0cf88;
-  --nav-icon: #9bdcca;
-  --nav-icon-glow: #4ac49b66;
-  --nav-active-icon: #c8ffec;
-  --nav-active-icon-glow: #6ed6b8aa;
-  --nav-label-size: 20px;
-
-  --brand-fill-start: #194b3e;
-  --brand-fill-end: #1a4238;
-  --brand-line-hot: #dffff2;
-  --brand-line-mid: #65c9a7;
-  --brand-line-end: #a4efd7;
-  --brand-text: #cffff0;
-  --brand-text-hot: #e8fff7;
-  --brand-glow-near: #6ed6b8b3;
-  --brand-glow-far: #2d997566;
+  /* 左侧信息条：青色玻璃。 */
+  --rail-accent: #6ed6b8;
+  --rail-accent-hot: #b4f5e0;
+  --rail-accent-deep: #11443a;
+  --rail-glass: #080b0bb8;
+  --rail-ink: #eafff7;
+  --rail-sub: #6f7d79;
+  --rail-line: #cfe0db1f;
 
   /* 旧展厅组件仍使用 museum-*，统一映射到新的 sx 令牌。 */
   --museum-ink: var(--sx-ink);

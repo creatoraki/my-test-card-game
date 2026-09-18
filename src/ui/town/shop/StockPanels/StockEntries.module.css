@@ -1,4 +1,4 @@
-/* 左栏宽 240（见 shopLayout.ts）+ 左边距 14 + 间隔 45；面板尺寸不变，整体右移 35px。 */
+/* 左侧信息条右缘约 236px，窗口保持原位置。 */
 .window {
   position: absolute;
   left: 299px;

@@ -18,7 +18,7 @@ export function AssemblyNavigation({
 }) {
   return (
     <nav className={s.nav} aria-label="工房功能">
-      {entries.map((entry) => (
+      {entries.map((entry, index) => (
         <button
           key={entry.id}
           type="button"
@@ -26,7 +26,7 @@ export function AssemblyNavigation({
           aria-current={page === entry.id ? "page" : undefined}
           onClick={() => onChange(entry.id)}
         >
-          <NavigationFrame width={205} height={96} />
+          <NavigationFrame width={205} height={96} active={page === entry.id} last={index === entries.length - 1} />
           <span className={s.icon}>{entry.icon}</span>
           <span className={s.label}>{entry.label}</span>
         </button>

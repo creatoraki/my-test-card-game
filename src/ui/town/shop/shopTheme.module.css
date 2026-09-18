@@ -43,8 +43,12 @@
   --asm-line: var(--sx-line);
   --ui-glow-color: var(--sx-key);
 
-  /* 左侧导航选中态：与出征页难度按钮选中态一致。 */
-  --nav-active-plate-middle: #0a1824eb;
-  --nav-active-bloom: #559dc062;
-  --nav-active-inner: #81cefb;
+  /* 左侧信息条：暖金玻璃。 */
+  --rail-accent: #edc779;
+  --rail-accent-hot: #ffe5a7;
+  --rail-accent-deep: #4a3713;
+  --rail-glass: #0a0b0cb8;
+  --rail-ink: #f3efe6;
+  --rail-sub: #7d786e;
+  --rail-line: #e0d8c81f;
 }
