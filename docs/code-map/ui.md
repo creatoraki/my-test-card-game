@@ -66,9 +66,9 @@ src/ui/
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
 | [town/storage/EquipUpgradePanel](../../src/ui/town/storage/EquipUpgradePanel/EquipUpgradePanel.tsx) | 装备升阶面板：展示当前装备与下一阶预览，复用目标列/消耗清单并派发 `upgradeEquip`。 |
 | [town/storage/EquipReforgePanel](../../src/ui/town/storage/EquipReforgePanel/EquipReforgePanel.tsx) | 装备词条重铸面板：扣除绿色水晶后展示原/新词条二选一，候选状态由城镇 store 持久化。 |
-| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房场景编排：使用商店同款切角窗口并保留紫粉主题与左侧导航，在装备升阶和羁绊重铸之间换页；返回按钮由工房场景自带。 |
+| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房场景编排：使用商店同款切角窗口与左侧导航，工房独立主题按实际展示页切换（升阶熔炉橙、重铸电光玫红），在装备升阶和羁绊重铸之间换页；返回按钮由工房场景自带。 |
 | [town/assembly/AssemblyChrome](../../src/ui/town/assembly/AssemblyChrome/) | 工房品牌牌、左侧导航、返回按钮与常驻窗口的场景外框组件；窗口、页眉、导航、品牌和返回入口分别复用商店的 `ShopWindow`、`ShopHeader`、`NavigationRail`、`ShopBrand`、`ShopBack`，统一处理离场淡出。 |
-| [town/assembly/assemblyTheme.module.css](../../src/ui/town/assembly/assemblyTheme.module.css) | 工房沿用紫粉主题，适配商店新版组件，并为装备升阶与羁绊重铸的内容组件桥接令牌；主操作复用 `MarketActionButton`，装备筛选复用 `ItemTabs`，装备和材料格复用 `ItemTile`。 |
+| [town/assembly/assemblyTheme.module.css](../../src/ui/town/assembly/assemblyTheme.module.css) | 工房独立的双色主题，不组合商店主题类；`data-assembly-page` 按实际展示页切换熔炉橙与电光玫红，桥接窗口、侧栏、按钮、筛选及内容组件的令牌；主操作复用 `MarketActionButton`，装备筛选复用 `ItemTabs`，装备和材料格复用 `ItemTile`；`equipBoard.module.css` 统一提供两道贯穿三栏的主题色分割线。 |
 | [town/terminal/researchTheme.module.css](../../src/ui/town/terminal/researchTheme.module.css) | 研究中心黑红主题令牌：`--sx-*` 板材与主光、`--nav-active-*` 导航选中态、`--brand-*` 铭牌、`--back-*` 返回按钮、`--tech-*` 公共科技树，以及给装配/制造子组件的 `--asm-*` 桥接。|
 | [town/terminal/CraftView](../../src/ui/town/terminal/CraftView/CraftView.tsx) | 模组制造页：订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与模组装配页一致，皮肤吃场景根的主题令牌。 |
 | [town/terminal/CraftRecipeGrid](../../src/ui/town/terminal/CraftRecipeGrid/CraftRecipeGrid.tsx) | 中央制造清单：列出当前角色可造的模组与「材料齐备 / 材料不足 / 经验不足」状态；判定结果由面板算好传入，组件不读 store。 |

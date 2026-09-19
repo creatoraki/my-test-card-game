@@ -7,6 +7,6 @@
   font-size: 18px;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 74% 68% at 100% 100%, color-mix(in srgb, var(--asm-violet) 12%, transparent), #08050d99 72%),
-    linear-gradient(0deg, #08050d66, transparent 52%);
+    radial-gradient(ellipse 74% 68% at 100% 100%, color-mix(in srgb, var(--sx-fill) 12%, transparent), color-mix(in srgb, var(--sx-bg-lo) 60%, transparent) 72%),
+    linear-gradient(0deg, color-mix(in srgb, var(--sx-bg-lo) 40%, transparent), transparent 52%);
 }

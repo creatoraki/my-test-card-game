@@ -1,50 +1,97 @@
+/* 工房独立主题：不组合商店主题类，避免入口加载顺序覆盖同名令牌。
+   AssemblyScene 用实际展示页的 data-assembly-page 切换两套配色。
+   所有 sx / rail / asm / hud 桥接均在此处定义，不改变公共组件默认皮肤。 */
 .theme {
-  composes: theme from "../shop/shopTheme.module.css";
-  /* 工房的紫粉主光与紫色环境光，供新版公共组件统一继承。 */
-  --sx-key: #ff5fc8;
-  --sx-key-hot: #ffc1ef;
-  --sx-key-wash: #ff5fc81f;
-  --sx-fill: #a86bff;
-  --sx-fill-wash: #a86bff16;
-  --sx-ink: #f7e9ff;
-  --sx-muted: #cdb5d8;
-  --sx-dim: #8e779a;
-  --sx-line: #d48cdb38;
-  --sx-line-lit: #ff83db66;
-  --sx-title: #ffd8f4;
-  --sx-title-glow: #ff5fc855;
-  --sx-title-shadow: #51224c;
-  --sx-line-hot: #fff0fb;
-  --sx-bg-hi: #171021;
-  --sx-bg: #0f0a18;
-  --sx-bg-lo: #08050d;
-  --rail-accent: #ff5fc8;
-  --rail-accent-hot: #ffc1ef;
-  --rail-accent-deep: #51224c;
-  --rail-glass: #160b22b8;
-  --rail-ink: #ffe7f8;
-  --rail-sub: #aa8db4;
-  --rail-line: #d48cdb38;
-  --asm-key: var(--sx-key);
-  --asm-key-hot: var(--sx-key-hot);
-  --asm-violet: var(--sx-fill);
-  --asm-violet-deep: #34184d;
-  --asm-muted: var(--sx-muted);
-  --asm-dim: var(--sx-dim);
-  --asm-bg: var(--sx-bg);
-  --asm-bg-hi: var(--sx-bg-hi);
-  --asm-bg-lo: var(--sx-bg-lo);
-  --accent: var(--sx-key);
-  --accent2: var(--sx-key-hot);
+  --forge-key: #ff8738;
+  --forge-hot: #ffc18f;
+  --forge-fill: #dc621f;
+  --forge-white: #fff0e1;
+  --forge-muted: #c6aaa0;
+  --forge-dim: #977a6f;
+  --forge-deep: #512713;
+  --forge-bg-hi: #21150e;
+  --forge-bg: #140d09;
+  --forge-bg-lo: #090604;
+
+  --sx-key: var(--forge-key);
+  --sx-key-hot: var(--forge-hot);
+  --sx-key-wash: color-mix(in srgb, var(--forge-key) 12%, transparent);
+  --sx-fill: var(--forge-fill);
+  --sx-fill-wash: color-mix(in srgb, var(--forge-fill) 9%, transparent);
+  --sx-ink: var(--forge-white);
+  --sx-muted: var(--forge-muted);
+  --sx-dim: var(--forge-dim);
+  --sx-line: color-mix(in srgb, var(--forge-hot) 22%, transparent);
+  --sx-line-lit: color-mix(in srgb, var(--forge-key) 44%, transparent);
+  --sx-line-hot: var(--forge-white);
+  --sx-title: var(--forge-hot);
+  --sx-title-glow: color-mix(in srgb, var(--forge-key) 34%, transparent);
+  --sx-title-shadow: var(--forge-deep);
+  --sx-bg-hi: var(--forge-bg-hi);
+  --sx-bg: var(--forge-bg);
+  --sx-bg-lo: var(--forge-bg-lo);
+  --sx-action: var(--forge-key);
+  --sx-action-hot: var(--forge-hot);
+  --sx-alert: #ff8585;
+  --sx-electric: var(--forge-key);
+  --sx-lit: inset 0 1px 0 var(--sx-line-lit), inset 0 -1px 0 var(--sx-fill-wash);
+  --sx-sunk: inset 0 2px 14px -8px #000d, inset 0 -1px 0 var(--sx-fill-wash);
+  --sx-drop: 0 18px 40px -26px #000c;
+
+  --rail-accent: var(--forge-key);
+  --rail-accent-hot: var(--forge-hot);
+  --rail-accent-deep: var(--forge-deep);
+  --rail-accent-pale: color-mix(in srgb, var(--forge-hot) 70%, white);
+  --rail-accent-flare: var(--forge-white);
+  --rail-glass: color-mix(in srgb, var(--forge-bg) 82%, transparent);
+  --rail-ink: var(--forge-white);
+  --rail-sub: var(--forge-muted);
+  --rail-line: var(--sx-line);
+
+  --asm-key: var(--forge-key);
+  --asm-key-hot: var(--forge-hot);
+  --asm-violet: var(--forge-fill);
+  --asm-violet-deep: var(--forge-deep);
+  --asm-glow: var(--forge-key);
+  --asm-frame: var(--forge-key);
+  --asm-select: var(--forge-hot);
+  --asm-cyan: var(--forge-hot);
+  --asm-ink: var(--forge-white);
+  --asm-ink-dim: var(--forge-muted);
+  --asm-muted: var(--forge-muted);
+  --asm-dim: var(--forge-dim);
+  --asm-line: var(--sx-line);
+  --asm-bg: var(--forge-bg);
+  --asm-bg-hi: var(--forge-bg-hi);
+  --asm-bg-lo: var(--forge-bg-lo);
+  --accent: var(--forge-key);
+  --accent2: var(--forge-hot);
   --border: var(--sx-line);
-  --muted: var(--sx-muted);
-  --text: var(--sx-ink);
-  --bg: var(--sx-bg);
+  --muted: var(--forge-muted);
+  --text: var(--forge-white);
+  --bg: var(--forge-bg);
+  --ui-label: var(--forge-muted);
+  --ui-value: var(--forge-white);
+  --ui-glow-color: var(--forge-key);
   --item-tab-count-size: 18px;
-  --hud-glass-b: var(--sx-bg-hi);
-  --hud-value: var(--sx-key-hot);
-  --hud-body: var(--sx-key);
-  --hud-glow-color: var(--sx-key);
-  --hud-ink: var(--sx-ink);
-  --hud-ink-dim: var(--sx-muted);
+  --hud-glass-b: var(--forge-bg-hi);
+  --hud-value: var(--forge-hot);
+  --hud-body: var(--forge-key);
+  --hud-glow-color: var(--forge-key);
+  --hud-ink: var(--forge-white);
+  --hud-ink-dim: var(--forge-muted);
+}
+
+/* 重铸使用玫红，不借用宿舍紫或医疗室冰蓝；升阶保留默认熔炉橙。 */
+.theme[data-assembly-page="reforge"] {
+  --forge-key: #ee57cf;
+  --forge-hot: #ffa9e9;
+  --forge-fill: #ba349d;
+  --forge-white: #fff0fb;
+  --forge-muted: #c8a7bf;
+  --forge-dim: #99758f;
+  --forge-deep: #4d153e;
+  --forge-bg-hi: #21101d;
+  --forge-bg: #140911;
+  --forge-bg-lo: #090407;
 }

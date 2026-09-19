@@ -1,6 +1,7 @@
 .layout {
   display: grid;
-  grid-template-columns: 340px 1px minmax(0, 1.5fr) 1px minmax(0, 0.8fr);
+  grid-template-columns: 340px 2px minmax(0, 1.5fr) 2px minmax(0, 0.8fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 0 20px;
   width: 100%;
   height: 100%;
@@ -10,13 +11,36 @@
 }
 
 .divider {
-  width: 1px;
-  height: 100%;
+  position: relative;
+  display: block;
+  width: 2px;
+  min-height: 0;
+  align-self: stretch;
   background: linear-gradient(
     180deg,
-    transparent 0%,
-    color-mix(in srgb, var(--hud-body, #f5116f) 28%, transparent) 18%,
-    color-mix(in srgb, var(--hud-body, #f5116f) 28%, transparent) 82%,
-    transparent 100%
+    var(--sx-key-hot) 0%,
+    color-mix(in srgb, var(--sx-key) 65%, transparent) 12%,
+    color-mix(in srgb, var(--sx-key) 65%, transparent) 88%,
+    var(--sx-key-hot) 100%
   );
+  box-shadow: 0 0 8px var(--sx-key-wash);
+  pointer-events: none;
+}
+
+.divider::before,
+.divider::after {
+  position: absolute;
+  left: -2px;
+  width: 6px;
+  height: 12px;
+  background: var(--sx-key-hot);
+  content: "";
+}
+
+.divider::before {
+  top: 0;
+}
+
+.divider::after {
+  bottom: 0;
 }

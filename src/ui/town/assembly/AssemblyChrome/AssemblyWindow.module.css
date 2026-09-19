@@ -34,3 +34,11 @@
     transform: translateX(28px);
   }
 }
+
+/* 通过窗口 className 注入工房底材，仅作用于本设施。 */
+.window.window::before {
+  background:
+    radial-gradient(ellipse 78% 58% at 6% -8%, var(--sx-key-wash), transparent 62%),
+    radial-gradient(ellipse 62% 52% at 102% 108%, var(--sx-fill-wash), transparent 58%),
+    linear-gradient(115deg, var(--sx-bg-hi), var(--sx-bg) 62%, var(--sx-bg-lo));
+}

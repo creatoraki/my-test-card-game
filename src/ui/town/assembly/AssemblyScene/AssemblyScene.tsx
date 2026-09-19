@@ -24,6 +24,7 @@ export function AssemblyScene({ leaving = false, onBack }: Props) {
       className={cx(theme.theme, s.root)}
       data-shop-root
       data-assembly-root
+      data-assembly-page={shownView}
       data-leaving={leaving ? "" : undefined}
     >
       <ShopSidebar />
