@@ -8,6 +8,7 @@
 | [characterStats.ts](../../src/store/characterStats.ts) | 角色局外属性派生纯函数：合并装备固定/百分比修正、计算上阵羁绊计数、换算三段生命并在装备变化后平移生命上限；由 `townStore` 兼容导出，供装备养成 slice 复用。 |
 | [equipCraftSlice.ts](../../src/store/equipCraftSlice.ts) | 装备养成 slice：统一寻址仓库件与穿戴件，执行升阶、重铸候选生成和原/新词条确认；待确认重铸写入城镇持久化状态。 |
 | [curioTownSlice.ts](../../src/store/curioTownSlice.ts) | 物件需要的城镇侧切片：按污染阈值处理生病与随机怪癖，并把卡牌替换为角色卡池中的随机普通卡。 |
+| [exploreGrowthServices.ts](../../src/store/exploreGrowthServices.ts) | 探索换卡、低价羁绊重铸与高价完美度重置的结算编排；先检查待办、目标与食品总数，成功才扣款，已穿装备同步角色属性与探索血量快照；装备调校结果保留前后实例供界面展示。 |
 | [mapProgressSlice.ts](../../src/store/mapProgressSlice.ts) | 地图进度 slice：持久化已通关难度 key 与当日奖励表；教学关固定奖励使用 `tutorial:normal` 键；负责难度通关幂等记录、跨日刷新及通关奖励清单拷贝。 |
 | [exploreStore.ts](../../src/store/exploreStore.ts) | 探索会话与背包 action 包装，按阶段机调用 `explore/session`；`settleBattle` 转发挑战加成与本场赏金猎人掉率加成，保证它们只消费在战斗结算；转发交易终端购买、待拾取物品、隐藏休息/NPC、待办成长奖励、定向经验和经验消费 action。待拾取的模组另有 `installLootModule`：不进背包直接调 `townStore.installModuleStack` 上卡，装成了才把它从 `pendingLoot` 划掉。远征途中换装另有 `takeBackpackItem` / `putBackpackItems` / `syncPartyVitals` 三个搬运转发，编排在 `runStore`。纯函数返回无效时不替换状态，远征中途刷新即作废。 |
 | [curioActions.ts](../../src/store/curioActions.ts) | 物件与货商动作编排：克隆会话后调用物件纯逻辑，落地待处理污染；首次打开货商生成绑定队员的卡牌和六格双食品货架，购买时扣食品、加入背包或角色卡组并标记售出。 |

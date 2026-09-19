@@ -168,7 +168,7 @@ src/ui/
 | [PicnicSkill](../../src/ui/explore/PicnicSkill/) | 探索技能《野餐》的按钮与面板：按钮按会话阶段显示可用/锁定/已使用状态，面板负责最多 4 份食品选择、野餐布槽位和隐藏食谱结算。 |
 | [BeaconSkill](../../src/ui/explore/BeaconSkill/) | 探索遗物技能《应急信标》的按钮：仅在背包持有遗物时显示可用/锁定/已使用状态，点击后切换小地图的已访问房间选点模式。 |
 | [LootPickup](../../src/ui/explore/LootPickup/LootPickup.tsx) | 事件奖励拾取框：展示 `pendingLoot`，支持逐件飞入背包、全部拾取和放弃剩余物品；飞入副本通过 portal 挂到 `document.body`；模组走 `useLootModuleActions` 的两按钮菜单，可选择直接装载。 |
-| [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列面板：处理定向经验、免费角色三选一卡牌、免费删卡、装备候选、遗物候选、羁绊重铸、单体治疗/体力极限/怪癖/污染/污染卡和全队确认；切换净化目标时清空已选卡，`ItemSlot` 保持按钮语义，不包在按钮内。 |
+| [RewardOverlay](../../src/ui/explore/RewardOverlay/RewardOverlay.tsx) | 成长与生存奖励队列编排；角色、卡牌和装备内容分别拆为 `RewardCharacters`、`RewardCards`、`RewardEquipment`，共享域样式 `styles/rewardKit.module.css`。`EquipmentTuneReward` 提供付费羁绊重铸／完美度重置的目标选择和结果对照，换卡由 `ReplaceCardReward` 处理；实际扣款与修改通过 store 派发。 |
 | [RewardOverlay/RelicOffers](../../src/ui/explore/RewardOverlay/RelicOffers.tsx) | 遗物三选一候选面板：几何对齐卡牌三选一（三列居中、一件一格），悬浮出完整 `ItemTooltip` 看效果，点哪件就把哪件放进拾取框，没有放弃出口。候选由会话的 `relicOffer` 待办给出，本组件不生成也不去重。 |
 | [styles/exploreKit.module.css](../../src/ui/explore/styles/exploreKit.module.css) | 探索域共享的按钮、标签和事件类型色，四个组件各自 `composes`。 |
 | [styles/explorePanel.module.css](../../src/ui/explore/styles/explorePanel.module.css) | 探索事件、拾取和奖励面板共享的暗玻璃材质、边框装饰与扫描线；三方各自 `composes`，`ExploreScreen` 通过 `data-explore-dock="stacked"` 与 CSS 变量传递上下错位契约。 |

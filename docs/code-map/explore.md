@@ -1,4 +1,4 @@
-# 探索引擎
+﻿# 探索引擎
 
 路径：`src/explore/`。管理一趟远征、房间图、物件事件、战斗接缝和背包，不负责具体战斗内部结算。与 `engine/` 平行、无 React 和副作用，可复制、可单测。
 
@@ -13,7 +13,7 @@
 | `dungeon/types.ts` / `dungeon/nearMapGeometry.ts` | 房间节点、近景地图变体与 1.7 倍显示尺寸、出口方向、房间图状态与方向换算；场景层的 0.7 缩放由 UI 的 `corridorLayout.ts` 负责，世界坐标仍保持设计 px。 |
 | `dungeon/growRooms.ts` | 随机房间的紧凑生成树与无重复环路：最多三行，优先填补空位并接近正方形，增加规模时只扩列；从有效前沿选择新房间以保证连通与房间总数，同种子复现。 |
 | `dungeon/generate.ts` | 调用紧凑房间生成，计算 BFS 深度、BOSS/战斗房投放，以及按门数规则分布传送门并过滤/兜底传送门附近的中段槽位；按 `curioPlan.ts` 给出的物件清单布置槽位，并按地图大小追加 1–2 个流浪货商。检测到地图蓝图时转交 `planned.ts`。全程同种子复现。 |
-| `dungeon/curioPlan.ts` | 随机地图的物件清单：治疗交互按 `roomsPerHeal` 配额沿深度分段投放，风险房按 `roomsPerRisk` 配额落在普通房，其余名额按 `RANDOM_CURIO_WEIGHTS` 不放回加权抽取（偏向物品奖励），货商追加在末尾。 |
+| `dungeon/curioPlan.ts` | 随机地图的物件清单：治疗交互按 `roomsPerHeal` 配额沿深度分段投放，风险房按 `roomsPerRisk` 配额落在普通房，其余名额按 `RANDOM_CURIO_WEIGHTS` 不放回加权抽取（偏向物品奖励），货商追加在末尾。成长配额固定装备箱两件、换卡一处、精密校准一处，并按房间数配置训练和羁绊重铸；起始房有临时遗物与食品。 |
 | `dungeon/planned.ts` | 固定蓝图房间图生成：按蓝图排成单行直线，登记房间类型、物件与固定守卫遭遇，左右门固定占据两侧边缘槽位，物件按顺序均匀占用中段槽位，并混排三种近景地图。 |
 | `dungeon/roomNode.ts` | 随机生成器与蓝图生成器共用的房间工厂 `makeRoom` 与双向连线 `link`。 |
 | `dungeon/session.ts` | 进入房间、站上传送门点亮目标、确认传送扣粒子、应急信标传送、房间探索完成判定、场景进度回写房间图。 |
@@ -32,7 +32,7 @@
 | [types.ts](../../src/explore/types.ts) | 路由图、固定路线蓝图、节点事件、探索效果、队伍快照、三段血量、临时光环、能量/战斗档位、节点记录、背包和会话阶段类型；`ExploreState.difficulty` 保存出击所选难度，`dungeon` 保存整张房间图，`roomCount` 是地图的房间总数，`round` 只表示当前房间深度 + 1，`battlesWon` 是挑战契约的倒计时基准；`relicCounters` 保存探索遗物运行态计数，`beaconUsed` 记录应急信标是否已用。`EventRisk` 标记风险事件分级，`FORCE_ITEM` 用于不可放弃的强制拾取，`GRANT_EQUIP` / `GRANT_MODULE` 用于生成随机装备或模组待拾取奖励；`pendingLoot`、`pendingBoons`、`pendingCardOffer`、`pendingExp`、`pendingActions` 与 `pendingStory` 分别承载战利品、战斗胜利额外奖励、卡牌候选、待落袋经验、治疗/净化等待办奖励和事件文案；装备箱保留生成时的掉落系数，避免战后能量扣除改变品质。`TrialDef` / `ActiveTrial` 与 `START_TRIAL` 描述挑战契约（探索层唯一跨房间生效的机制，倒计时按战斗场次走：`untilBattles` vs `battlesWon`；代码一律叫 trial 以避开 `engine/challenges` 的战斗挑战词条）：负面修正存 `trials` 而不并入 `auras`（允许叠加、到期必须撤掉），到期结算的展示数据落在 `trialReport`。 |
 | [rules.ts](../../src/explore/rules.ts) | 房间图规模旋钮（`dungeon.energyPerRoomMove` / `battleRoomRatio` / `loopEdgeRatio` / `curiosPerRoom`）、交互粒子消耗、战斗档位、BOSS 缩放、团灭、投递口、能量档位和掉落品质权重。`battleTierWeights` 的下标语义已改为**当前房间的深度**（越深越难，超表长取最后一档），BOSS 房默认固定 t5，不读该表；固定蓝图 BOSS 房可用 `guard` 覆盖档位与遭遇。`battleTierWeights` 是按层数加权的轮次战斗档位表，第 5 层压力低于第 4 层是有意设计的 BOSS 前缓冲轮。探索平衡优先改这里。`eventPool.trialNodes` 控制挑战节点的出现概率与轮次上限，其中 `maxRound` 是硬约束而非手感旋钮（最后一轮打完即通关，等不到结算奖励的那一拍）。 |
 | [route.ts](../../src/explore/route.ts) | 路由段桥接生成、走线、通道映射与求解。每段入/出通道必须是双射；UI 隐藏桥接时不能读取求解结果。 |
-| [boons.ts](../../src/explore/boons.ts) | 战斗胜利额外奖励纯逻辑：按敌人 `boonTable` 与掉落系数生成治疗露珠、卡牌奖励、随机装备箱和 1 阶模组箱，处理奖励拾取、固定值回血、装备箱/模组箱开具和统一放弃。模组箱在 1 阶清单内均匀随机（1 阶全部是 `fine`，没有可右移的档位），产出进 `pendingLoot`。 |
+| [boons.ts](../../src/explore/boons.ts) | 战斗胜利额外奖励纯逻辑：按敌人 `boonTable` 与掉落系数生成治疗露珠、卡牌奖励、随机装备箱和 1 阶模组箱，处理奖励拾取、固定值回血、装备箱/模组箱开具和统一放弃。装备箱首次击杀胜利保底一件、每场最多一件、整趟最多三件。模组箱在 1 阶清单内均匀随机（1 阶全部是 `fine`，没有可右移的档位），产出进 `pendingLoot`。 |
 | [picnic.ts](../../src/explore/picnic.ts) | 远征技能《野餐》纯逻辑：合并六种临期食品、校验最多 4 份、精确匹配隐藏食谱，按食谱奖励回复全队体力极限（上限 20）或发放一次性遗物（disposable，远征结束销毁），未命中时按份数兜底恢复体力极限。 |
 | [relicBehaviors.ts](../../src/explore/relicBehaviors.ts) | 探索级遗物行为注册表：处理战斗胜利额外铜币、空白事件回血、战后体力极限恢复、每三间新房回血与房间物件清空返还粒子。 |
 | [shop.ts](../../src/explore/shop.ts) | 交易终端纯逻辑：锁定货架与随机 BUFF 候选、报价校验、食品扣款、商品/服务结算和交易记录。 |
@@ -42,3 +42,6 @@
 | [curio/curio.test.ts](../../src/explore/curio/curio.test.ts) | 物件放入的完全匹配、多放判错、职业可见性、放错吞物、货商货架与探索完成判定。 |
 
 关键边界：BOSS 房的收尾链为 `atNode → roundBattle → inBattle`（先由 `openBossGate` 打开面板，再由 `challengeBoss` 调用 `leaveRegion` + `engageRoundBattle`，默认档位固定 t5，固定蓝图 BOSS 房可用 `guard` 覆盖档位与遭遇）；战斗房走 `encounter → landed → inBattle`，胜利后 `settleCorridorEncounter` + `syncRoomFromScene` 清场并回到 `atNode`。BOSS 战胜利不再结算黑影，失败转 `retreated` 且保留背包，战斗撤退与之共用撤离屏幕结算。挑战契约的倒计时按**战斗场次**走（`untilBattles` vs `battlesWon`），战斗房与 BOSS 房同权，`settleTrials` 因此排在所有早退之前。节点成长链为 `resolving → pendingLoot/pendingActions → resting → npcEvent → npcResolving → atNode`。交易终端与普通分支事件并行：`landed` 阶段选择带 `OPEN_SHOP` 的选项后进入 `shopping`，`shop.ts` 负责原子交易，`closeShopping` 写入成交记录后直接回到 `atNode`。野餐链路由 `canPicnic` 限定在 `choosingEntry / atNode`，遗物型食谱把一次性遗物放入待拾取框。风险房物件由 `enterRoom` 调用 `openForcedCurio` 立即打开，`dismissCorridorObject` 拒绝关闭未处理的强制物件。store 只负责克隆和编排，不把背包规则塞进 `engine`。
+
+探索成长频率与服务价格的当前口径见 [探索成长投放](../exploration-growth-balance.md)。
+
