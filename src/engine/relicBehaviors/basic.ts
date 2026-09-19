@@ -16,7 +16,7 @@ function ownerOf(state: RelicBehaviorContext["state"], card: Card) {
 }
 
 function addPlayStatBonus(ctx: RelicBehaviorContext, card: Card, stat: "attack" | "healPower", amount: number): void {
-  const owner = ownerOf(ctx, card);
+  const owner = ownerOf(ctx.state, card);
   if (!owner?.alive) return;
   ops.applyStatMod(ctx.state, owner.id, stat, amount);
   ctx.state.playStatMods.push({ targetId: owner.id, stat, amount, pct: false });
