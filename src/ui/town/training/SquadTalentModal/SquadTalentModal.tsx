@@ -44,7 +44,8 @@ export function SquadTalentModal({ closing = false, onClose, morph }: Props) {
   }, [onClose, pickerOpen]);
 
   return (
-    <div className={cx(s.layer, closing && s["is-closing"])} role="dialog" aria-modal="true" aria-label="训练点分配">
+    <div className={cx(s.layer, closing && s["is-closing"])} data-talent-closing={closing}
+      role="dialog" aria-modal="true" aria-label="训练点分配">
       <div className={s.veil} aria-hidden="true" />
 
       <TalentPanelShell closing={closing} onClose={onClose} morph={morph}>

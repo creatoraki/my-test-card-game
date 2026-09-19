@@ -4,11 +4,11 @@
 //   (store/townStore.squadTrainingPoints),
 //   队员一升卡组就会多出可分配的点, 而分配入口原先只藏在据点的训练室设施里。
 //   有未分配点时这里整枚徽章转金呼吸 + 角标脉冲, 点一下直接开天赋树弹窗。
-// ★ 徽章图形/配色**复用训练室那一套**(BadgeGlyph + badgeThemeVars), 两处必须是同一枚徽章。
+// ★ 徽章图形/配色复用天赋页的 BadgeCoreArtwork + badgeThemeVars。
 
 import type { CSSProperties, MouseEvent } from "react";
 import type { SquadBadgeDef } from "@/data";
-import { BadgeGlyph } from "@/ui/town/training/BadgeSelectModal/badgeGlyphs";
+import { BadgeCoreArtwork } from "@/ui/town/training/TalentArtwork/BadgeCoreArtwork";
 import { badgeThemeVars } from "@/ui/town/training/styles/badgeTheme";
 import { cx } from "@/ui/common/cx";
 import s from "./SquadBadgeDial.module.css";
@@ -42,7 +42,7 @@ export function SquadBadgeDial({ badge, remaining, total, onClick, className, st
       >
         <span className={s.ring} aria-hidden="true" />
         {badge ? (
-          <BadgeGlyph badgeId={badge.id} className={s.glyph} />
+          <BadgeCoreArtwork badgeId={badge.id} className={s.glyph} />
         ) : (
           <span className={s.blank} aria-hidden="true">
             ?

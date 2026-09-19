@@ -1,0 +1,20 @@
+.rail { display: flex; flex: 0 0 25px; flex-direction: column; gap: 12px; padding-bottom: 10px; }
+.arrow { width: 25px; height: 25px; padding: 0; border: 0; background: transparent; clip-path: none; }
+.arrow svg { width: 100%; height: 100%; fill: #634016; stroke: #f6ca77; stroke-width: 1.2; }
+.arrow:hover:not(:disabled) { filter: brightness(1.5); }
+.arrow:focus-visible { outline: 1px solid #ffe8ac; }
+.arrow:disabled { opacity: .5; }
+.track {
+  position: relative; flex: 1; width: 22px; margin: 0 auto; border: 1px solid #c38e40;
+  background: linear-gradient(90deg, #513418, #070b0e 22%, #090c0f 76%, #845822);
+  clip-path: polygon(50% 0, 100% 14px, 100% calc(100% - 14px), 50% 100%, 0 calc(100% - 14px), 0 14px);
+  touch-action: none; cursor: var(--cursor-pointer); box-shadow: inset 0 0 0 2px #161410;
+}
+.thumb {
+  position: absolute; left: 4px; right: 4px; min-height: 30px;
+  background: linear-gradient(90deg, #a56822, #ffdd87 24%, #f0c36a 70%, #fff0b9);
+  clip-path: polygon(50% 0, 100% 10px, 100% calc(100% - 10px), 50% 100%, 0 calc(100% - 10px), 0 10px);
+  box-shadow: inset 0 0 0 1px #fff3ce;
+}
+.rail[data-inactive] .thumb { opacity: .23; }
+.rail[data-inactive] .track { cursor: var(--cursor-default); }

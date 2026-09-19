@@ -1,8 +1,8 @@
 // ============================================================================
 // 成品模组徽记 —— 每件模组一套专属图形与配色。
 //
-// ★ 设计逻辑照搬小队徽章(ui/town/training/BadgeSelectModal/badgeGlyphs.tsx +
-//   styles/badgeTheme.ts): 配色抽成 hue / deep / ink 三档主题表, 由 CSS 变量注入;
+// ★ 设计逻辑沿用小队徽章的三档主题表（training/styles/badgeTheme.ts）：
+//   配色抽成 hue / deep / ink 三档主题表, 由 CSS 变量注入;
 //   图形按「外框断线 → 主体 core(吃径向渐变) → 细节 → 呼吸核心」分层, 动效只挂最内层。
 //
 // ★ 与其余物品图标的区别: 这里**不**用 currentColor 跟随稀有度 ——

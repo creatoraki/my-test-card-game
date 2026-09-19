@@ -1,10 +1,10 @@
 import { useId } from "react";
 
 // 中央与标题共用的四向星芒徽记，原型为金属罗盘和菱形宝石。
-export function TalentEmblem({ size = 184 }: { size?: number }) {
+export function TalentEmblem({ size = 184, className }: { size?: number; className?: string }) {
   const id = useId();
   return (
-    <svg width={size} height={size} viewBox="-100 -100 200 200" fill="none" aria-hidden="true">
+    <svg className={className} width={size} height={size} viewBox="-100 -100 200 200" fill="none" aria-hidden="true">
       <defs>
         <linearGradient id={id}><stop stopColor="#a37439" /><stop offset=".28" stopColor="#fff0bd" />
           <stop offset=".5" stopColor="#b07a37" /><stop offset=".72" stopColor="#ffe6ac" /><stop offset="1" stopColor="#8a5b27" /></linearGradient>

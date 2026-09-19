@@ -2,7 +2,7 @@
 import { useEffect, useId, useMemo, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
 import { canRefund, costToReach, isUnlocked, pathTo, type SquadBadgeDef, type SquadResourceKey, type TalentNodeDef } from "@/data";
 import { cx } from "@/ui/common/cx";
-import { TalentEmblem } from "../TalentArtwork/TalentEmblem";
+import { BadgeCoreArtwork } from "@/ui/town/training/TalentArtwork/BadgeCoreArtwork";
 import { TalentPlaque } from "../TalentArtwork/TalentPlaque";
 import { TalentNode, NODE_STATUS, type TalentNodeState } from "../TalentArtwork/TalentNode";
 import { TalentTooltip } from "../TalentArtwork/TalentTooltip";
@@ -116,7 +116,7 @@ export function TalentTreeRadial({ badge, activated, remaining, locked, resource
         style={{ left: RADIAL_CENTER.x - 92, top: RADIAL_CENTER.y - 92 }}
         onClick={onCoreClick} onMouseEnter={() => setCoreHovered(true)} onMouseLeave={() => setCoreHovered(false)}
         onFocus={() => setCoreHovered(true)} onBlur={() => setCoreHovered(false)}>
-        <TalentEmblem />
+        <BadgeCoreArtwork badgeId={badge.id} size={184} />
       </button>
       {coreHovered && <span className={s.coreTip} role="tooltip">切换小队徽章</span>}
       {hover && <TalentTooltip node={hover.node} point={hover.point} state={stateOf(hover.node)}
