@@ -48,7 +48,7 @@ export function MuseumPanel({ initialHall = "items", onBack }: Props) {
   const entries = useMemo(
     () => TABS.map((tab) => ({
       id: tab.id,
-      label: `${tab.label} ${progress[tab.id].unlocked}/${progress[tab.id].total}`,
+      label: tab.label,
       subLabel: tab.subLabel,
       icon: <MuseumNavIcon hall={tab.id} />,
     })),

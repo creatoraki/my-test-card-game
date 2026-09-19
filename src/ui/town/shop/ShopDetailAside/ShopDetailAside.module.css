@@ -16,10 +16,10 @@
   margin: 0;
   padding: 11px 10px;
   border-bottom: 1px solid var(--sx-line-lit);
-  color: #ffe6ac;
+  color: var(--detail-aside-title, #ffe6ac);
   font-size: 24px;
   letter-spacing: 2px;
-  text-shadow: 0 0 12px #e3ba5b44;
+  text-shadow: 0 0 12px var(--detail-aside-title-glow, #e3ba5b44);
 }
 
 .heading::before {
@@ -28,9 +28,9 @@
   width: 4px;
   height: 22px;
   margin-right: 12px;
-  background: #ffe0a0;
+  background: var(--detail-aside-marker, #ffe0a0);
   vertical-align: -3px;
-  box-shadow: 0 0 8px #fac36c77;
+  box-shadow: 0 0 8px var(--detail-aside-marker-glow, #fac36c77);
 }
 
 .content {

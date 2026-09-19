@@ -16,57 +16,11 @@ import {
   corridorPortalSlotsFor, corridorSlotsFor, CORRIDOR, type CurioKind,
 } from "../corridor/types";
 import {
-  DIR_STEP, PORTAL_DIRS, roomIdAt,
-  type DungeonState, type PortalDir, type RoomNode,
+  PORTAL_DIRS,
+  type DungeonState, type RoomNode,
 } from "./types";
 import { generatePlannedDungeon } from "./planned";
-import { link, makeRoom } from "./roomNode";
-
-/** 网格边长: 够放下 roomCount 个房间并留出分支空间。 */
-function gridSize(roomCount: number): number {
-  return Math.max(3, Math.ceil(Math.sqrt(roomCount)) + 1);
-}
-
-/** 生成树 + 少量环路。房间只在 size×size 网格内扩张, 故出口天然不超过 4 个。 */
-function growRooms(s: ExploreState, roomCount: number): { rooms: Record<string, RoomNode>; order: string[] } {
-  const size = gridSize(roomCount);
-  const start = Math.floor(size / 2);
-  const rooms: Record<string, RoomNode> = {};
-  const order: string[] = [];
-  const push = (room: RoomNode) => {
-    rooms[room.id] = room;
-    order.push(room.id);
-  };
-  push(makeRoom(start, start, 1));
-
-  let guard = roomCount * 60;
-  while (order.length < roomCount && guard-- > 0) {
-    const from = rooms[order[rngInt(s, order.length)]];
-    const dir = PORTAL_DIRS[rngInt(s, PORTAL_DIRS.length)];
-    const step = DIR_STEP[dir];
-    const gx = from.gx + step.dx;
-    const gy = from.gy + step.dy;
-    if (gx < 0 || gy < 0 || gx >= size || gy >= size) continue;
-    const id = roomIdAt(gx, gy);
-    if (rooms[id]) continue;
-    const room = makeRoom(gx, gy, order.length + 1);
-    push(room);
-    link(from, room, dir);
-  }
-
-  // 环路: 把少量相邻但未打通的房间接起来, 让小地图出现回环与近路。
-  const extra = Math.floor(order.length * EXPLORE_RULES.dungeon.loopEdgeRatio);
-  for (let i = 0; i < extra; i++) {
-    const room = rooms[order[rngInt(s, order.length)]];
-    const dir = PORTAL_DIRS[rngInt(s, PORTAL_DIRS.length)];
-    if (room.exits[dir]) continue;
-    const step = DIR_STEP[dir];
-    const neighbor = rooms[roomIdAt(room.gx + step.dx, room.gy + step.dy)];
-    if (neighbor) link(room, neighbor, dir);
-  }
-
-  return { rooms, order };
-}
+import { growRooms } from "./growRooms";
 
 /** 起始房间出发的最短步数。 */
 function markDepth(rooms: Record<string, RoomNode>, startId: string): void {

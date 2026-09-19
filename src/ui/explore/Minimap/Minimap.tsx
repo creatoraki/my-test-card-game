@@ -12,11 +12,9 @@ import type { DungeonState } from "@/explore/dungeon/types";
 import { EXPLORE_RULES } from "@/explore/rules";
 import { MinimapBoard } from "./MinimapBoard";
 import { buildMapModel, portalTargetId } from "./minimapModel";
-import type { BoardMetrics } from "./minimapLayout";
+import { minimapHudLayout } from "./minimapHudLayout";
 import frame from "./MinimapFrame.module.css";
 import s from "./Minimap.module.css";
-
-const HUD_METRICS: BoardMetrics = { tile: 44, stepX: 92, stepY: 88, label: 22 };
 
 export function Minimap({
   dungeon,
@@ -35,9 +33,11 @@ export function Minimap({
   const targetId = portalTargetId(corridor);
   const target = targetId ? dungeon.rooms[targetId] : null;
   const expandable = Boolean(onExpand) && !picking;
+  const layout = minimapHudLayout(dungeon.bounds);
 
   return <div
     className={`${frame.frame} ${s.map}`}
+    style={{ width: layout.width, height: layout.height }}
     data-picking={picking || undefined}
     data-expandable={expandable || undefined}
     aria-label="房间小地图"
@@ -57,18 +57,20 @@ export function Minimap({
         展开
       </button>}
     </div>
-    <MinimapBoard
-      className={s.board}
-      dungeon={dungeon}
-      cells={cells}
-      links={links}
-      metrics={HUD_METRICS}
-      road={5}
-      numSize={18}
-      targetId={targetId}
-      picking={picking}
-      onPick={onPick}
-    />
+    <div className={s.viewport}>
+      <MinimapBoard
+        className={s.board}
+        dungeon={dungeon}
+        cells={cells}
+        links={links}
+        metrics={layout.metrics}
+        road={4}
+        numSize={18}
+        targetId={targetId}
+        picking={picking}
+        onPick={onPick}
+      />
+    </div>
     <p className={s.hint} data-live={Boolean(target) || picking || undefined}>
       {picking
         ? "选择一间已访问的房间传送过去 · 不消耗净化粒子"

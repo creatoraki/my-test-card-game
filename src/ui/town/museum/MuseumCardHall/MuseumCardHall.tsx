@@ -1,3 +1,4 @@
+import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import { useState, type CSSProperties } from "react";
 import { getCharacter } from "@/data";
 import { HandCard } from "@/ui/battle/HandCard";
@@ -6,7 +7,6 @@ import { CardBack } from "@/ui/common/CardBack";
 import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { DeckCard } from "@/ui/character/DeckCard";
 import { useTownStore } from "@/store/townStore";
-import { cx } from "@/ui/common/cx";
 import { CARD_GROUPS, CARD_CATALOG, CARD_RARITY_LABEL, cardFor } from "../codexCatalog";
 import s from "./MuseumCardHall.module.css";
 
@@ -62,7 +62,7 @@ export function MuseumCardHall() {
           ))}
         </div>
       </section>
-      <aside className={s["detail"]}>
+      <ShopDetailAside>
         {selected ? (
           <div className={s["card-detail"]}>
             <div className={s["detail-card"]} data-deck-card style={DETAIL_CARD_STYLE}>
@@ -79,7 +79,7 @@ export function MuseumCardHall() {
         ) : (
           <p className={s["empty"]}>选择已收录卡牌查看详情</p>
         )}
-      </aside>
+      </ShopDetailAside>
     </div>
   );
 }

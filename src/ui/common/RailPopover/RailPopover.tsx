@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
 import s from "./RailPopover.module.css";
+import { RailTooltip } from "./RailTooltip";
 
 export function RailPopover({
   side,
@@ -16,6 +17,7 @@ export function RailPopover({
   className?: string;
   children: ReactNode;
 }) {
+  if (bare) return <RailTooltip side={side}>{children}</RailTooltip>;
   return (
     <div className={cx(s.popover, s[side], size === "lg" && s.lg, bare && s.bare, className)}>
       {children}

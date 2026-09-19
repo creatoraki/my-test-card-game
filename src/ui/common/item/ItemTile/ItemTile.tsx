@@ -22,6 +22,9 @@ interface Props {
   /** default: 竖版卡, 显示名称; compact: 1:1, 不显示名称。 */
   variant?: ItemTileVariant;
   selected?: boolean;
+  disabled?: boolean;
+  /** 图鉴未收录条目：保留相同格子外框，隐藏物品图案与稀有度。 */
+  locked?: boolean;
   "aria-label"?: string;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   /** 调用方的布局类。卡面外观一律由本组件持有。 */
@@ -32,6 +35,8 @@ export default function ItemTile({
   stack,
   variant = "default",
   selected,
+  disabled,
+  locked = false,
   "aria-label": ariaLabel,
   onClick,
   className,
@@ -45,33 +50,35 @@ export default function ItemTile({
       type="button"
       className={cx(
         s.tile,
-        s[`r-${def.rarity}`],
+        s[`r-${locked ? "common" : def.rarity}`],
         compact && s["is-compact"],
         selected && s["is-selected"],
+        locked && s.locked,
         className,
       )}
       aria-label={ariaLabel ?? def.name}
       aria-pressed={selected}
+      disabled={disabled}
       onClick={onClick}
     >
       <span className={s.face} aria-hidden="true" />
       <span className={s.inner} aria-hidden="true" />
 
-      <span className={s.badge}>
+      {!locked && <span className={s.badge}>
         {bond && <BondIcon bondId={bond.id} className={s.bond} />}
         <span className={s.tag} aria-hidden="true">ITEM</span>
-      </span>
+      </span>}
 
-      <span className={s.art} aria-hidden="true">{itemIcon(def)}</span>
+      <span className={s.art} aria-hidden="true">{locked ? "？" : itemIcon(def)}</span>
 
-      {!compact && <span className={s.name}>{def.name}</span>}
+      {!compact && <span className={s.name}>{locked ? "未收录" : def.name}</span>}
 
-      {stack.disposable && (
+      {!locked && stack.disposable && (
         <span className={s.disposable} aria-hidden="true">弃</span>
       )}
-      {stack.count > 1 && <span className={s.count}>×{stack.count}</span>}
+      {!locked && stack.count > 1 && <span className={s.count}>×{stack.count}</span>}
 
-      <ItemTileBand rarity={def.rarity} />
+      {!locked && <ItemTileBand rarity={def.rarity} />}
     </button>
   );
 }

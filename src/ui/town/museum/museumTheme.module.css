@@ -1,36 +1,14 @@
 .theme {
-  /* 博物馆沿用商店的冷灰黑底，只把交互主光、标题和牌面选中态换成青绿。 */
+  composes: theme from "../shop/shopTheme.module.css";
+  /* 博物馆保留青绿光与冷灰黑底。 */
   --sx-key: #6ed6b8;
   --sx-key-hot: #a4efd7;
   --sx-key-wash: #6ed6b81f;
-  --sx-fill: #4e8ba3;
-  --sx-fill-wash: #4e8ba316;
-
-  --sx-ink: #eceff1;
-  --sx-muted: #aab2b8;
-  --sx-dim: #848d93;
-  --sx-line: #aab2b82e;
   --sx-line-lit: #6ed6b842;
-
-  --sx-bg-hi: #0b131a;
-  --sx-bg: #081016;
-  --sx-bg-lo: #040a0f;
-
-  --sx-action: var(--sx-key);
-  --sx-action-hot: var(--sx-key-hot);
-  --sx-alert: #ff9383;
-  --sx-electric: var(--sx-key);
-
-  --sx-lit: inset 0 1px 0 var(--sx-line-lit), inset 0 -1px 0 #4e8ba31c;
-  --sx-sunk: inset 0 2px 14px -8px #000000d0, inset 0 -1px 0 #4e8ba31c;
-  --sx-drop: 0 18px 40px -26px #000000c4;
-
   --sx-title: #bff9e4;
   --sx-title-glow: #6ed6b866;
   --sx-title-shadow: #164c3c;
   --sx-line-hot: #dcfff3;
-
-  /* 左侧信息条：青色玻璃。 */
   --rail-accent: #6ed6b8;
   --rail-accent-hot: #b4f5e0;
   --rail-accent-deep: #11443a;
@@ -38,8 +16,15 @@
   --rail-ink: #eafff7;
   --rail-sub: #6f7d79;
   --rail-line: #cfe0db1f;
-
-  /* 旧展厅组件仍使用 museum-*，统一映射到新的 sx 令牌。 */
+  --accent: var(--sx-key);
+  --border: var(--sx-line);
+  --muted: var(--sx-muted);
+  --text: var(--sx-ink);
+  --bg: var(--sx-bg);
+  --detail-aside-title: var(--sx-title);
+  --detail-aside-title-glow: var(--sx-title-glow);
+  --detail-aside-marker: var(--sx-key-hot);
+  --detail-aside-marker-glow: var(--sx-title-glow);
   --museum-ink: var(--sx-ink);
   --museum-dim: var(--sx-muted);
   --museum-line: var(--sx-line);
@@ -53,14 +38,4 @@
   --museum-font-section: 30px;
   --museum-font-title: 46px;
   --museum-font-panel-title: 56px;
-
-  /* PanelShell 旧桥接变量保留，避免同域其它组件接入时失去主题。 */
-  --asm-glow: var(--sx-key);
-  --asm-frame: var(--sx-key);
-  --asm-select: var(--sx-key-hot);
-  --asm-cyan: var(--sx-key-hot);
-  --asm-ink: var(--sx-ink);
-  --asm-ink-dim: var(--sx-muted);
-  --asm-line: var(--sx-line);
-  --ui-glow-color: var(--sx-key);
 }

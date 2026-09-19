@@ -1,14 +1,13 @@
 import { useState } from "react";
 import type { EquipTab, ItemTab } from "@/ui/common/item/itemFilters";
 import { matchTab } from "@/ui/common/item/itemFilters";
-import ItemDetail from "@/ui/common/item/ItemDetail";
-import ItemSlot from "@/ui/common/item/ItemSlot";
+import ShopItemCard from "@/ui/town/shop/ShopItemCard";
+import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
+import ItemTile from "@/ui/common/item/ItemTile";
 import ItemTabs from "@/ui/common/item/ItemTabs";
 import { InteractiveHint } from "@/ui/common/InteractiveHint";
 import { useTownStore } from "@/store/townStore";
-import { cx } from "@/ui/common/cx";
 import { ITEM_CATALOG, ITEM_CATALOG_STACKS, itemStackFor } from "../codexCatalog";
-import { MuseumLockedTile } from "../MuseumLockedTile";
 import s from "./MuseumItemHall.module.css";
 
 export function MuseumItemHall() {
@@ -40,36 +39,26 @@ export function MuseumItemHall() {
         <div className={s["item-grid"]}>
           {visibleItems.map((def) => {
             const isRecorded = recorded.includes(def.id);
-            return isRecorded ? (
+            return (
               <div key={def.id} className={s["slot-anchor"]} data-interactive-hint="">
-                <ItemSlot
+                <ItemTile
+                  variant="compact"
                   stack={itemStackFor(def.id)}
+                  locked={!isRecorded}
                   selected={selectedId === def.id}
-                  aria-label={`查看${def.name}详情`}
+                  aria-label={isRecorded ? `查看${def.name}详情` : `未收录物品：${def.name}`}
                   className={s["item-slot"]}
                   onClick={() => setSelectedId(def.id)}
                 />
-                <InteractiveHint className={s["slot-hint"]} />
-              </div>
-            ) : (
-              <div key={def.id} className={s["slot-anchor"]} data-interactive-hint="">
-                <button
-                  type="button"
-                  className={cx(s["locked-button"], selectedId === def.id && s["is-selected"])}
-                  aria-label={`未收录物品：${def.name}`}
-                  onClick={() => setSelectedId(def.id)}
-                >
-                  <MuseumLockedTile />
-                </button>
                 <InteractiveHint className={s["slot-hint"]} />
               </div>
             );
           })}
         </div>
       </section>
-      <aside className={s["detail"]}>
-        <ItemDetail stack={selected} placeholder="选择已收录物品查看详情" />
-      </aside>
+      <ShopDetailAside heading="物品详情" empty="选择已收录物品查看详情">
+        {selected && <ShopItemCard stack={selected} />}
+      </ShopDetailAside>
     </div>
   );
 }

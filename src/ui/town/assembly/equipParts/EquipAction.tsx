@@ -1,3 +1,4 @@
+import { MarketActionButton } from "@/ui/town/shop/MarketPanel";
 import s from "./EquipAction.module.css";
 
 interface Props {
@@ -8,16 +9,6 @@ interface Props {
 }
 
 export function EquipAction({ disabled = false, label, ariaLabel, onClick }: Props) {
-  return (
-    <button
-      type="button"
-      className={s.action}
-      data-sfx="confirm"
-      disabled={disabled}
-      onClick={onClick}
-      aria-label={ariaLabel}
-    >
-      <span className={s.label}>{label}</span>
-    </button>
-  );
+  return <MarketActionButton tone="theme" className={s.action} label={label}
+    ariaLabel={ariaLabel} disabled={disabled} onClick={onClick} />;
 }

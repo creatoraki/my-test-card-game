@@ -269,3 +269,13 @@
   outline: none;
   --tile-edge: #ffffff;
 }
+
+.tile:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.locked .art {
+  font-size: 32px;
+}

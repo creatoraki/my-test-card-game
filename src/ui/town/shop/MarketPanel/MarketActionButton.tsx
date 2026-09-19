@@ -7,21 +7,23 @@ import s from "./MarketActionButton.module.css";
 
 interface Props {
   /** 金 = 刷新货架一类的交易动作; 青 = 设施升级一类的建造动作; med = 医疗室。 */
-  tone: "gold" | "cyan" | "med";
-  icon: ReactNode;
+  tone: "gold" | "cyan" | "med" | "theme";
+  icon?: ReactNode;
   label: string;
   /** 竖线右侧的附加信息, 如「800 积分」「等级 3」。 */
-  meta: ReactNode;
+  meta?: ReactNode;
+  className?: string;
+  ariaLabel?: string;
   disabled?: boolean;
   onClick: () => void;
 }
 
-export function MarketActionButton({ tone, icon, label, meta, disabled = false, onClick }: Props) {
+export function MarketActionButton({ tone, icon, label, meta, disabled = false, onClick, className, ariaLabel }: Props) {
   return (
-    <button className={cx(s.button, s[tone])} type="button" disabled={disabled} onClick={onClick}>
-      <span className={s.icon} aria-hidden="true">{icon}</span>
+    <button className={cx(s.button, s[tone], className)} type="button" aria-label={ariaLabel} disabled={disabled} onClick={onClick}>
+      {icon && <span className={s.icon} aria-hidden="true">{icon}</span>}
       <span className={s.label}>{label}</span>
-      <span className={s.meta}>{meta}</span>
+      {meta != null && <span className={s.meta}>{meta}</span>}
     </button>
   );
 }

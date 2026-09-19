@@ -1,8 +1,8 @@
-// 工房设施场景：常驻 HUD 面板内切换装备升阶与羁绊重铸。
+// 工房设施场景：商店同款常驻面板内切换装备升阶与羁绊重铸。
 
+import { ShopSidebar } from "@/ui/town/shop/ShopSidebar";
 import { useState } from "react";
 import { cx } from "@/ui/common/cx";
-import { HUD_TONE_BLUE } from "@/ui/common/HudPanelShell";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { EquipReforgePanel } from "../EquipReforgePanel";
 import { EquipUpgradePanel } from "../EquipUpgradePanel";
@@ -22,14 +22,16 @@ export function AssemblyScene({ leaving = false, onBack }: Props) {
   return (
     <div
       className={cx(theme.theme, s.root)}
+      data-shop-root
       data-assembly-root
       data-leaving={leaving ? "" : undefined}
     >
+      <ShopSidebar />
       <AssemblyBrand />
       <AssemblyNavigation page={view} onChange={setView} />
       <AssemblyWindow
         ariaLabel={shownView === "upgrade" ? "装备升阶面板" : "羁绊重铸面板"}
-        tone={shownView === "reforge" ? HUD_TONE_BLUE : undefined}
+        onBack={onBack}
         phase={phase}
       >
         {shownView === "upgrade" ? <EquipUpgradePanel /> : <EquipReforgePanel />}

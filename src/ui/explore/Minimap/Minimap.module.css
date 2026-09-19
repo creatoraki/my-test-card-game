@@ -4,6 +4,9 @@
    ⚠ 不用 backdrop-filter：外层 StageCanvas 有变换祖先，玻璃取不到背景图。 */
 
 .map {
+  box-sizing: border-box;
+  max-width: 720px;
+  align-self: flex-start;
   --arm: 26px;
   z-index: 30;
   flex: 0 0 auto;
@@ -85,9 +88,24 @@
   position: relative;
   z-index: 2;
   align-self: center;
+  flex: none;
+}
+
+.viewport {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+  justify-content: safe center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #3f8fe8a0 transparent;
 }
 
 .hint {
+  flex: none;
+  min-height: 51px;
   position: relative;
   z-index: 2;
   margin: 0;

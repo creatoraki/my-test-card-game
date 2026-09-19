@@ -16,6 +16,18 @@
   filter: drop-shadow(0 0 3px var(--frame-glow-near)) drop-shadow(0 0 8px var(--frame-glow-far));
 }
 
+/* 场景自定义配色：由宿主的 --sx-* 令牌提供主光、环境光与高光。 */
+.theme {
+  --frame-stroke: linear-gradient(115deg, var(--sx-line-hot), var(--sx-key-hot) 18%, var(--sx-key) 40%, var(--sx-line-hot) 67%, var(--sx-fill));
+  --frame-inner-stroke: linear-gradient(125deg, var(--sx-key-hot), var(--sx-line-lit) 40%, var(--sx-key-hot));
+  --frame-corner-tl: linear-gradient(var(--sx-line-hot), var(--sx-key-hot));
+  --frame-corner-tr: linear-gradient(var(--sx-key-hot), var(--sx-key));
+  --frame-corner-bl: linear-gradient(var(--sx-fill), var(--sx-line-hot));
+  --frame-corner-br: linear-gradient(var(--sx-key), var(--sx-line-hot));
+  --frame-glow-near: var(--sx-key);
+  --frame-glow-far: color-mix(in srgb, var(--sx-fill) 60%, transparent);
+}
+
 .gold {
   --frame-stroke: linear-gradient(115deg, #fff8ae, #ffe391 18%, #f4d78c 40%, #ffe391 67%, #e0be70);
   --frame-inner-stroke: linear-gradient(125deg, #fff8aeb3, #ffe3914d 40%, #f4d78ccc);

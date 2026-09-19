@@ -7,7 +7,7 @@ export function DetailFrame({
   tone = "blue",
 }: {
   subtle?: boolean;
-  tone?: "blue" | "gold" | "teal" | "red" | "med";
+  tone?: "blue" | "gold" | "teal" | "red" | "med" | "theme";
 }) {
   return (
     <span
@@ -18,6 +18,7 @@ export function DetailFrame({
         tone === "teal" && s.teal,
         tone === "red" && s.red,
         tone === "med" && s.med,
+        tone === "theme" && s.theme,
       )}
       aria-hidden="true"
     >

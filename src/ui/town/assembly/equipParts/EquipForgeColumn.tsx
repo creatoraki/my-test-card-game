@@ -3,7 +3,7 @@
 import { getItemDef, type CostCheck } from "@/data";
 import type { ItemDef, ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
-import ItemSlot from "@/ui/common/item/ItemSlot";
+import ItemTile from "@/ui/common/item/ItemTile";
 import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
 import s from "./EquipForgeColumn.module.css";
@@ -48,7 +48,7 @@ export function EquipForgeColumn({
               const matStack: ItemStack = {
                 uid: `cost-${material.itemId}`,
                 itemId: material.itemId,
-                count: Math.max(1, material.have),
+                count: 1,
               };
               return (
                 <div
@@ -61,10 +61,9 @@ export function EquipForgeColumn({
                     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHideTooltip();
                   }}
                 >
-                  <ItemSlot
+                  <ItemTile
+                    variant="compact"
                     stack={matStack}
-                    showName={false}
-                    showCount={false}
                     disabled={!material.have}
                     aria-label={`${getItemDef(material.itemId).name}，持有 ${material.have}，需要 ${material.need}`}
                   />

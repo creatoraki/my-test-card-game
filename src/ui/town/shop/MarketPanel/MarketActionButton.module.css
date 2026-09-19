@@ -55,6 +55,23 @@
   clip-path: var(--btn-shape);
 }
 
+/* 场景主题按钮复用相同几何，配色继承宿主 --sx-*。 */
+.theme {
+  --btn-stroke: linear-gradient(135deg, var(--sx-line-hot), var(--sx-key-hot) 35%, var(--sx-key) 68%, var(--sx-fill));
+  --btn-core: var(--sx-bg-hi);
+  --btn-edge: var(--sx-key);
+  --btn-edge-soft: var(--sx-line-lit);
+  --btn-bloom-bottom: color-mix(in srgb, var(--sx-key) 40%, var(--sx-bg));
+  --btn-bloom-bottom-mid: var(--sx-key-wash);
+  --btn-bloom-top: color-mix(in srgb, var(--sx-fill) 50%, var(--sx-bg));
+  --btn-bloom-top-mid: var(--sx-fill-wash);
+  --btn-ink: var(--sx-ink);
+  --btn-meta: var(--sx-key-hot);
+  --btn-icon: var(--sx-key-hot);
+  --btn-divider: var(--sx-line-lit);
+  --btn-halo: color-mix(in srgb, var(--sx-key) 40%, transparent);
+}
+
 .gold {
   --btn-stroke: linear-gradient(135deg, #fff8ae, #ffe391 35%, #f4d78c 68%, #e0be70);
   --btn-core: #171411;

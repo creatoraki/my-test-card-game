@@ -5,12 +5,6 @@
   top: 100px;
   bottom: 58px;
   pointer-events: auto;
-  animation: arrive 420ms ease-out both;
-}
-
-.frame {
-  width: 100%;
-  height: 100%;
 }
 
 .page {
@@ -25,29 +19,6 @@
 
 .page[data-page-phase="entering"] {
   animation: pageEnter 280ms cubic-bezier(0.2, 0.72, 0.28, 1) both;
-}
-
-:global([data-assembly-root][data-leaving]) .window {
-  pointer-events: none;
-  animation: depart 300ms ease-in both;
-}
-
-@keyframes arrive {
-  from {
-    opacity: 0;
-    translate: 0 18px;
-  }
-  to {
-    opacity: 1;
-    translate: 0 0;
-  }
-}
-
-@keyframes depart {
-  to {
-    opacity: 0;
-    translate: 0 18px;
-  }
 }
 
 @keyframes pageLeave {

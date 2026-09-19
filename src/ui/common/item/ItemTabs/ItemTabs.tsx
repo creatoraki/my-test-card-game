@@ -18,6 +18,8 @@ interface Props {
   tab: ItemTab;
   equipTab: EquipTab;
   visibleTabs?: ItemTab[];
+  equipmentOnly?: boolean;
+  disabled?: boolean;
   onTab: (t: ItemTab) => void;
   onEquipTab: (t: EquipTab) => void;
   /** 调用方的布局类(tab 条在自己的面板里怎么占位)。外观一律由本组件持有。 */
@@ -26,6 +28,8 @@ interface Props {
 
 export default function ItemTabs({
   stacks,
+  equipmentOnly = false,
+  disabled = false,
   tab,
   equipTab,
   visibleTabs = ITEM_TABS.map((itemTab) => itemTab.id),
@@ -37,11 +41,12 @@ export default function ItemTabs({
 
   return (
     <div className={cx(s["item-tabs"], className)}>
-      <div className={s["item-tab-row"]}>
+      {!equipmentOnly && <div className={s["item-tab-row"]}>
         {ITEM_TABS.filter((itemTab) => visibleTabs.includes(itemTab.id)).map((t) => (
           <button
             key={t.id}
             type="button"
+            disabled={disabled}
             className={cx(s["item-tab"], tab === t.id && s["is-on"])}
             onClick={() => onTab(t.id)}
           >
@@ -49,16 +54,17 @@ export default function ItemTabs({
             <span className={s["item-tab-count"]}>{counts[t.id] ?? 0}</span>
           </button>
         ))}
-      </div>
+      </div>}
 
       {/* 二级 tab 只在「装备」下出现 —— 别的类别没有槽位可分 */}
       {tab === "equipment" && (
-        <div className={cx(s["item-tab-row"], s["is-sub"])}>
+        <div className={cx(s["item-tab-row"], !equipmentOnly && s["is-sub"])}>
           {EQUIP_TABS.map((t) => (
             <button
               key={t.id}
               type="button"
-              className={cx(s["item-tab"], s["is-sub"], equipTab === t.id && s["is-on"])}
+              disabled={disabled}
+              className={cx(s["item-tab"], !equipmentOnly && s["is-sub"], equipTab === t.id && s["is-on"])}
               onClick={() => onEquipTab(t.id)}
             >
               {t.label}

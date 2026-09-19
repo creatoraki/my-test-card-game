@@ -71,3 +71,8 @@
   padding: var(--item-tab-sub-padding, 3px 9px);
   font-size: var(--item-tab-sub-font-size, 18px);
 }
+
+.item-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

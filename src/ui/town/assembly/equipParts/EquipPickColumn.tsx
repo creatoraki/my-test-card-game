@@ -2,8 +2,9 @@
 
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
-import ItemSlot from "@/ui/common/item/ItemSlot";
-import { EQUIP_TABS, matchTab, type EquipTab } from "@/ui/common/item/itemFilters";
+import ItemTile from "@/ui/common/item/ItemTile";
+import ItemTabs from "@/ui/common/item/ItemTabs";
+import { matchTab, type EquipTab } from "@/ui/common/item/itemFilters";
 import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
 import s from "./EquipPickColumn.module.css";
@@ -39,20 +40,8 @@ export function EquipPickColumn({
 
   return (
     <section className={s.column} aria-label="装备选择">
-      <nav className={s.tabs} aria-label="装备槽位">
-        {EQUIP_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={cx(s.tab, equipTab === tab.id && s.tabOn)}
-            aria-pressed={equipTab === tab.id}
-            disabled={disabled}
-            onClick={() => onEquipTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      <ItemTabs equipmentOnly stacks={entries.map((entry) => entry.stack)} tab="equipment"
+        equipTab={equipTab} onTab={() => {}} onEquipTab={onEquipTab} disabled={disabled} />
 
       {shown.length ? (
         <div className={s.grid} aria-disabled={disabled}>
@@ -70,9 +59,9 @@ export function EquipPickColumn({
                   if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHideTooltip();
                 }}
               >
-                <ItemSlot
+                <ItemTile
+                  variant="compact"
                   stack={entry.stack}
-                  showName={false}
                   selected={on}
                   disabled={disabled}
                   onClick={() => !disabled && onSelect(entry.key)}

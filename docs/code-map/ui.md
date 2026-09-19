@@ -66,9 +66,9 @@ src/ui/
 | [town/storage/EquipCostRack](../../src/ui/town/storage/EquipCostRack/EquipCostRack.tsx) | 升阶与重铸共用的消耗清单：按 `CostCheck` 展示材料持有/需求数量与居民积分，不足时标红。 |
 | [town/storage/EquipUpgradePanel](../../src/ui/town/storage/EquipUpgradePanel/EquipUpgradePanel.tsx) | 装备升阶面板：展示当前装备与下一阶预览，复用目标列/消耗清单并派发 `upgradeEquip`。 |
 | [town/storage/EquipReforgePanel](../../src/ui/town/storage/EquipReforgePanel/EquipReforgePanel.tsx) | 装备词条重铸面板：扣除绿色水晶后展示原/新词条二选一，候选状态由城镇 store 持久化。 |
-| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房场景编排：使用紫粉主题的常驻 HUD 窗口与左侧导航，在装备升阶和羁绊重铸之间换页；返回按钮由工房场景自带。 |
-| [town/assembly/AssemblyChrome](../../src/ui/town/assembly/AssemblyChrome/) | 工房品牌牌、左侧导航、返回按钮与常驻窗口的场景外框组件；窗口复用 `HudFrame`，导航牌面复用商店的 `NavigationFrame`，统一处理离场淡出。 |
-| [town/assembly/assemblyTheme.module.css](../../src/ui/town/assembly/assemblyTheme.module.css) | 工房紫粉主题令牌，供品牌、导航、返回按钮、主操作按钮和装备筛选页签共用。 |
+| [town/assembly/AssemblyScene](../../src/ui/town/assembly/AssemblyScene/AssemblyScene.tsx) | 工房场景编排：使用商店同款切角窗口并保留紫粉主题与左侧导航，在装备升阶和羁绊重铸之间换页；返回按钮由工房场景自带。 |
+| [town/assembly/AssemblyChrome](../../src/ui/town/assembly/AssemblyChrome/) | 工房品牌牌、左侧导航、返回按钮与常驻窗口的场景外框组件；窗口、页眉、导航、品牌和返回入口分别复用商店的 `ShopWindow`、`ShopHeader`、`NavigationRail`、`ShopBrand`、`ShopBack`，统一处理离场淡出。 |
+| [town/assembly/assemblyTheme.module.css](../../src/ui/town/assembly/assemblyTheme.module.css) | 工房沿用紫粉主题，适配商店新版组件，并为装备升阶与羁绊重铸的内容组件桥接令牌；主操作复用 `MarketActionButton`，装备筛选复用 `ItemTabs`，装备和材料格复用 `ItemTile`。 |
 | [town/terminal/researchTheme.module.css](../../src/ui/town/terminal/researchTheme.module.css) | 研究中心黑红主题令牌：`--sx-*` 板材与主光、`--nav-active-*` 导航选中态、`--brand-*` 铭牌、`--back-*` 返回按钮、`--tech-*` 公共科技树，以及给装配/制造子组件的 `--asm-*` 桥接。|
 | [town/terminal/CraftView](../../src/ui/town/terminal/CraftView/CraftView.tsx) | 模组制造页：订阅据点状态，维护角色与配方选择，按 `craftCheck` 派发 `craftModule`；三栏节奏与模组装配页一致，皮肤吃场景根的主题令牌。 |
 | [town/terminal/CraftRecipeGrid](../../src/ui/town/terminal/CraftRecipeGrid/CraftRecipeGrid.tsx) | 中央制造清单：列出当前角色可造的模组与「材料齐备 / 材料不足 / 经验不足」状态；判定结果由面板算好传入，组件不读 store。 |
@@ -88,7 +88,7 @@ src/ui/
 | [town/training/TalentArtwork](../../src/ui/town/training/TalentArtwork/) | 天赋页的独立视觉组件：`TalentPanelShell` 将 1672×941 原型坐标缩放到编队画布中央的 1536×864 面板，背景收进外框边界；`TalentBorder`、`TalentEmblem`、`TalentPlaque`、`TalentNode` 和 `TalentResourceFrame` 以 SVG 绘制金属外框、星芒徽记、分色铭牌、状态圆环及通栏装饰，标题与悬浮提示各自模块化。 |
 | [town/training/SquadTalentModal](../../src/ui/town/training/SquadTalentModal/SquadTalentModal.tsx) | 天赋页与徽章选择的编排：承接入口淡入淡出、关闭和退出键，接入独立金色面板、标题训练点、星盘及底栏，未启用徽章时展开选择浮层。 |
 | [town/training/SquadResourceBar](../../src/ui/town/training/SquadResourceBar/SquadResourceBar.tsx) | 天赋页底部金色通栏：依次展示初始手牌、回合抽牌、换牌、待机、费用和手牌上限，数值由 `squadModsOf` 与引擎 `squad*` helper 计算；分色图标与蓝色读数横排，接收节点悬浮键高亮对应属性。 |
-| [town/museum](../../src/ui/town/museum/index.ts) | 博物馆设施：使用 `codexCatalog` 生成物品、非临时卡牌和三档敌人目录，展示永久收录进度；`MuseumScene` 编排三个入口与共享 `PanelShell`，三个展厅各自持有筛选、选中态和详情栏。物品展厅使用 1:1 方格，卡牌展厅使用原尺寸大卡与未收录卡背，三个展厅的全部条目统一挂 `InteractiveHint`。 |
+| [town/museum](../../src/ui/town/museum/index.ts) | 博物馆设施：使用 `codexCatalog` 生成物品、非临时卡牌和三档敌人目录，展示永久收录进度；`MuseumScene` 复用商店新版窗口、品牌、导航与返回入口并保留青绿主题，三个展厅各自持有筛选和选中态并共用 `ShopDetailAside`。物品展厅使用商店的 1:1 `ItemTile`（含未收录状态）与 `ShopItemCard` 详情，卡牌展厅使用原尺寸大卡与未收录卡背，三个展厅的全部条目统一挂 `InteractiveHint`。 |
 | [town/training/styles/trainingKit.module.css](../../src/ui/town/training/styles/trainingKit.module.css) | 编队页训练点分配弹窗域共享的设计令牌（`--tr-*`，暗底金色）、暗玻璃材质与 kicker 排版，各组件各自 `composes`。 |
 | [town/shop/WarehousePanel](../../src/ui/town/shop/WarehousePanel/WarehousePanel.tsx) | 商店视觉语言下的可复用仓库面板：直接读取 `townStore.storage`，支持分类 tab、滚动网格和鼠标右侧物品详情；由 `StockEntries` 以独立第三入口打开，并传入 4×4 格配置。 |
 | [sortie/SortieScreen](../../src/ui/sortie/SortieScreen/SortieScreen.tsx) | 出击全屏页：固定 1920×1080 舞台，共享当前地图背景与地图 HUD，固定底部导航，并在地图选择和物资准备之间切换；取消时回滚本次购买与仓库取物。 |
@@ -341,3 +341,7 @@ src/ui/
 商店场景的 `StockEntries` 编排左侧导航与常驻矩形交易面板，进入时直接展示商店，回收台与仓库在同一外壳内切换。`ShopWindow` 统一承载金框外壳与页面定位，`MarketPanel` 使用三列混合货架与右侧详情栏；第二行允许在底部被裁切，超出视口时纵向滚动，不足八个展示格时使用等待补货占位。物品与卡牌都采用插画、名称、单枚中文分类标签及效果摘要的立牌，标签由 `MarketChip` 按物品分类配色。`MarketShelf` 通过 `--market-card-width` 统一下发 308px 宽度，商品按未选中原型 198∶291 等比放大至约 308×453 设计像素；`MarketSlotFrame` 下发 `--market-unit` 对齐内部排版，并统一商品与等待补货的布局盒、背景和可见边框。`MarketFrameArtwork` 从 `art/shopArt.ts` 登记的两张独立原型分片显示四角及边线，未选中态直接显示对应原图，选中态使用对齐后的金色原图；中心商品区域不渲染。物品不带金属底座。`MarketPriceTag` 为唯一购买入口，调用方可注入价格图标和无障碍文案；不传购买回调时价格牌为不可点击展示态。购买判定由调用方注入，默认选中首件在售商品，物品详情为纯展示。底部提供刷新与设施升级；设施升级在商店窗口内容区内换页，复用 `common/techTree/TechnologyBoard` 的无外框主体；四个原有升级由 `ShopUpgradePanel/UpgradeTree/shopTechnologyView.tsx` 适配，节点内部金属图案由 `art/techTreeArt.ts` 登记参考图区域，圆环、状态框和连线独立绘制。
 
 我方队伍卡在战场世界之外，因此不参与取景；玩家攻击自身或友军时保持全景，只播放特效和震屏，敌人攻击我方则聚焦施法敌人并播放蓄力预告。调色层、HUD 和过场幕布是镜头/界面层，不应跟着场景相机移动。
+
+探索缩略图的尺寸由 `explore/Minimap/minimapHudLayout.ts` 集中管理：默认 360×360、32px 房间格、18px 序号，固定高度，只按整张地图边界增加宽度，极宽地图横向滚动；展开大图继续使用原房间坐标。
+
+状态详情的 `RailPopover bare` 使用独立 `RailTooltip`，通过 portal 挂到设计画布的 30 层，避免角色/HUD 局部层叠上下文遮挡。鼠标悬浮与键盘聚焦共用显隐逻辑，保留运镜期间 `data-popover-mute` 抑制与画布边界夹取。

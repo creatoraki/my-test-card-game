@@ -1,3 +1,4 @@
+import { ShopDetailAside } from "@/ui/town/shop/ShopDetailAside";
 import { useState, type CSSProperties } from "react";
 import type { EnemyDef } from "@/data";
 import { enemyArt } from "@/ui/art/enemyArt";
@@ -62,9 +63,9 @@ export function MuseumEnemyHall() {
           ))}
         </div>
       </section>
-      <aside className={s["detail"]}>
+      <ShopDetailAside>
         {selected && recorded.includes(selected.id) ? <EnemyDetail enemy={selected} /> : <p className={s["empty"]}>选择已遭遇敌人查看详情</p>}
-      </aside>
+      </ShopDetailAside>
     </div>
   );
 }

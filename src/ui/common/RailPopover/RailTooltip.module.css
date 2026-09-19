@@ -1,0 +1,10 @@
+.tooltip {
+  position: absolute;
+  /* 高于战斗角色、手牌和详情栏，低于结算及模态面板。 */
+  z-index: 30;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  max-height: var(--tooltip-max-h);
+  pointer-events: none;
+  font-size: 18px;
+}
