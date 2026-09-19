@@ -80,6 +80,10 @@ export const EXPLORE_RULES = {
     loopEdgeRatio: 0.2,
     // 每个房间的可交互物数量区间(起始房固定 1 件, BOSS 房也按区间随机)。
     curiosPerRoom: [1, 3] as const,
+    // 治疗交互配额: 约每 6 间房 1 个(至少 1 个), 按深度分段均匀投放。
+    roomsPerHeal: 6,
+    // 风险房配额: 约每 5 间房 1 间(至少 1 间), 进房立即触发、必须决策。
+    roomsPerRisk: 5,
     merchants: {
       smallMapMaxRooms: 8,
       small: [1, 1] as const,
@@ -181,6 +185,8 @@ export const EXPLORE_RULES = {
   picnic: {
     maxFoods: 4,
     limitPerFood: 5,
+    // 回复型食谱的体力极限回复上限。
+    recipeLimitMax: 20,
     emptyHeal: 10,
   },
 

@@ -4,6 +4,7 @@ import type { CurioDef } from "./types";
 export const CRAFT_CURIOS: Record<string, CurioDef> = {
   modBench: {
     name: "街边改装台",
+    role: "loot",
     verb: "改装",
     size: 205,
     description: "改装台的工具仍然锋利，但台面上只留着两种可识别的加工协议。",
@@ -33,6 +34,7 @@ export const CRAFT_CURIOS: Record<string, CurioDef> = {
   },
   cardPrinter: {
     name: "卡牌打印终端",
+    role: "loot",
     verb: "接入",
     size: 210,
     description: "打印终端的墨盒已经干涸，只有一根霓虹灯管能重新接通它的普通卡牌模板。",
@@ -54,6 +56,7 @@ export const CRAFT_CURIOS: Record<string, CurioDef> = {
   },
   shrine: {
     name: "路边神龛",
+    role: "service",
     verb: "祈愿",
     size: 190,
     description: "神龛里的电子烛火仍在燃烧。它接受遗物，也接受一枚最普通的硬币作为回应。",

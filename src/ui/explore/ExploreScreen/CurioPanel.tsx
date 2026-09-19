@@ -56,6 +56,8 @@ export function CurioPanel({
   const decisions = visibleDecisions(session, def);
   const offeringAvailable = canOfferAny(session, def);
   const roomLabel = session.dungeon?.rooms[session.dungeon.currentRoomId]?.label ?? "?";
+  // 风险房物件: 进房立即触发, 不能暂不处理, 也不收交互粒子。
+  const forced = Boolean(def.forced);
   const contentKey = `curio-${object.id}-${result ? "result" : offerMode ? "offer" : "choice"}`;
 
   const choiceActions: DossierAction[] = [
@@ -72,7 +74,13 @@ export function CurioPanel({
       icon: "offer",
       onClick: () => setOfferMode(true),
     } satisfies DossierAction] : []),
-    { id: "leave", label: "暂不处理，继续前进", icon: "leave", sfx: "back", onClick: closeCorridorObject },
+    ...(forced ? [] : [{
+      id: "leave",
+      label: "暂不处理，继续前进",
+      icon: "leave",
+      sfx: "back",
+      onClick: closeCorridorObject,
+    } satisfies DossierAction]),
   ];
 
   const resultActions: DossierAction[] = [
@@ -94,12 +102,12 @@ export function CurioPanel({
 
   return (
     <EventDossierPanel
-      kicker={`${def.name} · ${roomLabel}号房间`}
+      kicker={forced ? `风险房间 · ${roomLabel}号房间` : `${def.name} · ${roomLabel}号房间`}
       title={def.name}
       enTitle={def.enName ?? DEFAULT_EN_TITLE}
       contentKey={contentKey}
       active={!covered}
-      onClose={result ? undefined : closeCorridorObject}
+      onClose={result || forced ? undefined : closeCorridorObject}
     >
       {result ? (
         <DossierResult
@@ -119,9 +127,15 @@ export function CurioPanel({
         <DossierChoice
           body={sentences(def.description).map((text, index) => <p key={`desc-${index}`}>{text}</p>)}
           info={
-            <DossierInfoBox icon={<ParticleCrystal />}>
-              <DossierCost lead="操作物件消耗" amount={interactionCost(session)} note={`若不${def.verb}则无消耗`} />
-            </DossierInfoBox>
+            forced ? (
+              <DossierInfoBox icon={<ParticleCrystal />} tone="danger">
+                <DossierCost lead="风险应对消耗" amount={0} note="必须做出选择才能继续探索" />
+              </DossierInfoBox>
+            ) : (
+              <DossierInfoBox icon={<ParticleCrystal />}>
+                <DossierCost lead="操作物件消耗" amount={interactionCost(session)} note={`若不${def.verb}则无消耗`} />
+              </DossierInfoBox>
+            )
           }
           actions={choiceActions}
         />

@@ -4,6 +4,7 @@ import type { CurioDef } from "./types";
 export const SUPPLY_CURIOS: Record<string, CurioDef> = {
   medical: {
     name: "应急医疗柜",
+    role: "heal",
     verb: "检查",
     size: 205,
     description: "医疗柜的急救灯还亮着，但内部的自动诊断程序已经无法判断谁更需要治疗。",
@@ -33,6 +34,7 @@ export const SUPPLY_CURIOS: Record<string, CurioDef> = {
   },
   sink: {
     name: "净水槽",
+    role: "heal",
     verb: "取水",
     size: 210,
     description: "净水槽的循环泵还在工作，浑浊水面下藏着一层不稳定的净化膜。",
@@ -62,6 +64,7 @@ export const SUPPLY_CURIOS: Record<string, CurioDef> = {
   },
   repairPod: {
     name: "修复舱",
+    role: "heal",
     verb: "校准",
     size: 215,
     description: "修复舱的机械臂停在半空，看来它只接受一份完整的医疗组件和传动零件。",

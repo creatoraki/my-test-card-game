@@ -20,7 +20,16 @@ export type CurioKind =
   | "tutorialArmory"
   | "tutorialModBench"
   | "tutorialForge"
-  | "tutorialMedical";
+  | "tutorialMedical"
+  | "tutorialRelicCache"
+  | "supplyCrate"
+  | "toolLocker"
+  | "courierDrone"
+  | "cashBox"
+  | "moduleCase"
+  | "collapsedCeiling"
+  | "leakingPipe"
+  | "rogueDrone";
 
 export interface CorridorObject {
   id: string;

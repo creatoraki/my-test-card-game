@@ -1,6 +1,8 @@
 import type { BattleTier, NodeEvent } from "@/explore/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { CRAFT_CURIOS } from "./craftCurios";
+import { LOOT_CURIOS } from "./lootCurios";
+import { RISK_CURIOS } from "./riskCurios";
 import { SCAVENGE_CURIOS } from "./scavengeCurios";
 import { SERVICE_CURIOS } from "./serviceCurios";
 import { SUPPLY_CURIOS } from "./supplyCurios";
@@ -18,21 +20,35 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
   ...CRAFT_CURIOS,
   ...SERVICE_CURIOS,
   ...TUTORIAL_CURIOS,
+  ...LOOT_CURIOS,
+  ...RISK_CURIOS,
 };
 
-export const RANDOM_CURIO_KINDS: readonly CurioKind[] = [
-  "safe",
-  "crystalVein",
-  "vending",
-  "remains",
-  "compactor",
-  "medical",
-  "sink",
-  "repairPod",
-  "modBench",
-  "cardPrinter",
-  "shrine",
-];
+/**
+ * 普通物件随机投放权重：偏向获取物品的交互。
+ * 治疗与风险物件不在这里，由 dungeon/curioPlan.ts 按房间配额单独投放。
+ */
+export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {
+  safe: 3,
+  crystalVein: 3,
+  vending: 3,
+  remains: 3,
+  compactor: 3,
+  supplyCrate: 3,
+  toolLocker: 3,
+  courierDrone: 3,
+  cashBox: 3,
+  moduleCase: 3,
+  modBench: 2,
+  cardPrinter: 2,
+  shrine: 1,
+};
+
+/** 治疗交互：约每 roomsPerHeal 间房投放 1 个。 */
+export const HEAL_CURIO_KINDS: readonly CurioKind[] = ["medical", "sink", "repairPod"];
+
+/** 风险房物件：约每 roomsPerRisk 间房投放 1 间，进房立即触发。 */
+export const RISK_CURIO_KINDS: readonly CurioKind[] = ["collapsedCeiling", "leakingPipe", "rogueDrone"];
 
 export const CORRIDOR_AMBUSH: NodeEvent = {
   id: "corridor-ambush",

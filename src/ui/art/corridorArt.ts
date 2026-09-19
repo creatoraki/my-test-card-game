@@ -82,6 +82,16 @@ export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   tutorialModBench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 65 / 512 },
   tutorialForge: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
   tutorialMedical: { src: corridorMedicalArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 26 / 512 },
+  // 以下物件暂无专属素材，复用已有交互物图片。
+  tutorialRelicCache: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
+  supplyCrate: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 86 / 512 },
+  toolLocker: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 65 / 512 },
+  courierDrone: { src: corridorDispatchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 131 / 512 },
+  cashBox: { src: corridorRemainsArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 37 / 512 },
+  moduleCase: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
+  collapsedCeiling: { src: corridorCompactorArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 58 / 512 },
+  leakingPipe: { src: corridorSinkArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 68 / 512 },
+  rogueDrone: { src: corridorVendingArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 20 / 512 },
 };
 
 /** 首领红门单帧素材的场景 Y 轴偏移（设计 px，正值向下）。 */
@@ -106,6 +116,15 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   tutorialModBench: 0,
   tutorialForge: 0,
   tutorialMedical: 0,
+  tutorialRelicCache: 0,
+  supplyCrate: 0,
+  toolLocker: 0,
+  courierDrone: 0,
+  cashBox: 0,
+  moduleCase: 0,
+  collapsedCeiling: 0,
+  leakingPipe: 0,
+  rogueDrone: 0,
 };
 
 export const CORRIDOR_ART_SOURCES: readonly string[] = [
@@ -113,5 +132,5 @@ export const CORRIDOR_ART_SOURCES: readonly string[] = [
   ...Object.values(CORRIDOR_NEAR_ART),
   roomPortalSpriteArt,
   bossGateArt,
-  ...Object.values(CORRIDOR_PROP_ART).map((art) => art.src),
+  ...new Set(Object.values(CORRIDOR_PROP_ART).map((art) => art.src)),
 ];

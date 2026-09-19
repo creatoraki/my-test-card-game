@@ -4,6 +4,7 @@ import type { CurioDef } from "./types";
 export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
   tutorialArmory: {
     name: "训练装备柜",
+    role: "loot",
     enName: "TRAINING EQUIPMENT LOCKER",
     verb: "领取",
     size: 210,
@@ -17,6 +18,7 @@ export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
   },
   tutorialModBench: {
     name: "训练模组台",
+    role: "loot",
     verb: "领取",
     size: 210,
     description: "训练模组台已把一枚攻击力模组送到交付槽。",
@@ -29,6 +31,7 @@ export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
   },
   tutorialForge: {
     name: "训练锻造终端",
+    role: "loot",
     verb: "锻造",
     size: 215,
     description: "训练锻造终端可以免费生成一次角色卡组候选。",
@@ -41,6 +44,7 @@ export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
   },
   tutorialMedical: {
     name: "训练医疗站",
+    role: "heal",
     verb: "治疗",
     size: 215,
     description: "训练医疗站会为所有存活成员恢复生命，并清除一部分污染。",
@@ -52,6 +56,22 @@ export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
         { type: "HEAL_PARTY", percent: 0.4 },
         { type: "ADJUST_POLLUTION", target: "party", amount: -10 },
       ],
+    }],
+  },
+  tutorialRelicCache: {
+    name: "遗物储备箱",
+    role: "loot",
+    verb: "开启",
+    size: 190,
+    description: "储备箱读取到三种不同的祝福遗物，开箱后可以当场挑走一件。",
+    decisions: [{
+      id: "openCache",
+      label: "开启储备箱",
+      story: "储备箱弹开三格暗仓，三件祝福遗物同时亮起识别码。",
+      effects: [{
+        type: "RELIC_OFFER",
+        relicIds: ["relic-heart-mirror", "relic-old-clockwork", "relic-light-feather"],
+      }],
     }],
   },
 };

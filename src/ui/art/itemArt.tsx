@@ -336,6 +336,11 @@ const RELIC_ART: Record<string, string> = {
   "relic-compressed-biscuit": compressedBiscuitArt,
   "relic-energy-crystal": energyCrystalArt,
   "relic-warm-match": warmMatchArt,
+  // 野餐一次性遗物暂无专属素材，复用已有遗物图标。
+  "relic-picnic-soda": energyCrystalArt,
+  "relic-picnic-afterglow": warmMatchArt,
+  "relic-picnic-calorie": compressedBiscuitArt,
+  "relic-picnic-cloth": foldingCrateArt,
   "relic-expiry-labeler": expiryLabelerArt,
   "relic-insurance-contract": insuranceContractArt,
   "relic-recycle-list": recycleListArt,

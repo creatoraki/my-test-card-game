@@ -1,10 +1,10 @@
 // ============================================================================
 // 房间之间的移动 —— 纯逻辑, 由 store 层克隆后调用。
 // 房间场景内的行走与交互属于 corridor/, 本文件只处理「换房间」这件事:
-// 站上传送门点亮小地图 → 确认后扣粒子 → 落地新房间 → 战斗房立即触发黑影。
+// 站上传送门点亮小地图 → 确认后扣粒子 → 落地新房间 → 战斗房立即触发黑影, 风险房立即打开风险物件。
 // ============================================================================
 
-import { beginCorridorEncounter, buildRoomScene, canWalkCorridor, portalAt } from "../corridor/session";
+import { beginCorridorEncounter, buildRoomScene, canWalkCorridor, openForcedCurio, portalAt } from "../corridor/session";
 import { CORRIDOR } from "../corridor/types";
 import { encounterSpot } from "../corridor/ambush";
 import { CORRIDOR_CURIOS } from "../../data/curios";
@@ -65,6 +65,9 @@ export function enterRoom(s: ExploreState, roomId: string, fromDir: PortalDir | 
     threat.x = encounterSpot(s.corridor, s.corridor.playerX, facing);
     s.corridor.facing = facing;
     beginCorridorEncounter(s, threat.id);
+  } else {
+    // 风险房与战斗房同一模式: 进房立即触发, 必须先做出选择。
+    openForcedCurio(s);
   }
   if (firstVisit) fireExploreRelic(s, { type: "roomEntered" });
   return true;

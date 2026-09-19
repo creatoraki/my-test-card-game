@@ -55,12 +55,17 @@ export function VictoryCardOffer() {
         <div className={s.head}>
           <span className={s.kicker}>额外奖励</span>
           <h3>选择一张卡牌</h3>
-          <p>候选卡牌将加入对应角色的卡组</p>
+          <p>候选卡牌将加入对应角色的卡组，也可以放弃本次奖励</p>
         </div>
         <div className={cx(s.cardGrid)} data-pick-grid>
           {offers.map((offer, index) => (
             <OfferCard key={`${offer.charId}-${offer.cardDefId}`} offer={offer} index={index} onPick={pick} />
           ))}
+        </div>
+        <div className={s.foot}>
+          <button type="button" className={s.skip} onClick={clearCardOffer}>
+            放弃卡牌
+          </button>
         </div>
       </section>
     </div>

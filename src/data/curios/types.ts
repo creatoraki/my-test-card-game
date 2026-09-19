@@ -38,8 +38,14 @@ export interface CurioDecision {
   effects: CurioEffect[];
 }
 
+/** 物件在投放与历史记录中的分类：物品奖励、治疗、风险房、服务。 */
+export type CurioRole = "loot" | "heal" | "risk" | "service";
+
 export interface CurioDef {
   name: string;
+  role: CurioRole;
+  /** 进房立即触发：不能暂不处理，也不消耗交互粒子。 */
+  forced?: boolean;
   /** 事件面板大标题下的英文副标题；缺省时显示通用副标题。 */
   enName?: string;
   verb: string;

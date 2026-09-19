@@ -13,10 +13,11 @@ export const TUTORIAL_DUNGEON_PLAN: readonly DungeonRoomPlan[] = [
     curios: ["compactor"],
     guard: { tier: "t1", encounterId: "tut-t1-scout" },
   },
-  { kind: "normal", curios: ["tutorialMedical", "sink"] },
+  // BOSS 前唯一一次回复; 新手遗物改由储备箱发放。
+  { kind: "normal", curios: ["tutorialMedical", "tutorialRelicCache"] },
   {
     kind: "boss",
-    curios: ["repairPod"],
+    curios: ["supplyCrate"],
     guard: { tier: "t2", encounterId: "tut-t2-crew" },
   },
 ];

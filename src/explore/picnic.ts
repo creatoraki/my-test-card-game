@@ -1,7 +1,8 @@
-import { matchPicnicRecipe, NEAR_EXPIRY_FOOD_IDS } from "../data";
+import { getItemDef, makeItemStack, matchPicnicRecipe, NEAR_EXPIRY_FOOD_IDS } from "../data";
+import type { PicnicReward } from "../data/picnicRecipes";
 import { consumeItems, countByItemId } from "../items/inventory";
 import type { ExploreState } from "./types";
-import { applyEffect, logLine } from "./session";
+import { logLine } from "./session";
 import { EXPLORE_RULES } from "./rules";
 
 const FOOD_ID_SET = new Set<string>(NEAR_EXPIRY_FOOD_IDS);
@@ -45,6 +46,18 @@ function recoverPartyLimit(s: ExploreState, amount: number): void {
   }
 }
 
+/** 食谱奖励：体力极限回复(上限 picnic.recipeLimitMax)或一次性遗物(远征结束销毁、不能寄回)。 */
+function grantRecipeReward(s: ExploreState, reward: PicnicReward): string {
+  if (reward.kind === "limit") {
+    const amount = Math.min(EXPLORE_RULES.picnic.recipeLimitMax, reward.amount);
+    recoverPartyLimit(s, amount);
+    return `全队体力极限 +${amount}，当前生命回复等值`;
+  }
+  const def = getItemDef(reward.relicId);
+  s.pendingPickup = [...s.pendingPickup, makeItemStack(reward.relicId, 1, { disposable: true })];
+  return `获得一次性遗物「${def.name}」，已放入待拾取框`;
+}
+
 /** 校验、扣除食品并结算隐藏食谱或兜底恢复。 */
 export function resolvePicnic(s: ExploreState, picks: Record<string, number>): PicnicResult | null {
   if (!canPicnic(s) || s.picnicUsed || !validPicks(s, picks)) return null;
@@ -64,7 +77,7 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
       recipeId: recipe.id,
       recipeName: recipe.name,
       story: recipe.story,
-      notes: [applyEffect(s, { type: "GRANT_RANDOM_RELIC" })],
+      notes: [grantRecipeReward(s, recipe.reward)],
     };
   } else if (total > 0) {
     const amount = EXPLORE_RULES.picnic.limitPerFood * total;
@@ -89,6 +102,6 @@ export function resolvePicnic(s: ExploreState, picks: Record<string, number>): P
   }
 
   s.picnicUsed = true;
-  logLine(s, recipe ? "完成野餐，祝福遗物已进入待拾取框" : "完成野餐，队伍恢复了状态");
+  logLine(s, recipe ? `完成野餐，发现食谱「${recipe.name}」` : "完成野餐，队伍恢复了状态");
   return result;
 }

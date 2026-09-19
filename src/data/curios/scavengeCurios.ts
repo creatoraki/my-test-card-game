@@ -4,6 +4,7 @@ import type { CurioDef } from "./types";
 export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
   safe: {
     name: "合金保险箱",
+    role: "loot",
     verb: "打开",
     size: 210,
     description: "保险箱的合金锁芯仍在运转，里面的物资保存得很好，但贸然开锁可能会触发防盗装置。",
@@ -32,6 +33,7 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
   },
   crystalVein: {
     name: "结晶矿脉",
+    role: "loot",
     verb: "开采",
     size: 230,
     description: "墙体裂隙里流动着不稳定的彩色光芒。贸然开采会把污染一并带出来。",
@@ -68,6 +70,7 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
   },
   vending: {
     name: "侧翻的自动贩卖机",
+    role: "loot",
     verb: "翻找",
     size: 205,
     description: "侧翻的机器仍在重复播放促销音。它的储藏格也许还有没被压坏的商品。",
@@ -100,6 +103,7 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
   },
   remains: {
     name: "拾荒者遗骸",
+    role: "loot",
     verb: "检查",
     size: 110,
     description: "遗骸旁的工具箱已经锈死，胸口却还挂着一枚没有熄灭的识别牌。",
@@ -129,6 +133,7 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
   },
   compactor: {
     name: "垃圾压缩舱",
+    role: "loot",
     verb: "拆解",
     size: 220,
     description: "压缩舱的压力表还在缓慢上升。里面的废料可以直接取出，也可以重新压成更紧凑的形态。",

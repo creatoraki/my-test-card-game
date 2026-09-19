@@ -4,11 +4,11 @@
 // ① 从起始房间开始随机长出一棵生成树, 直到房间数达到地图的 roomCount;
 // ② 追加少量环路边, 让路线出现取舍而不是一条死路走到底;
 // ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房;
-// ④ 传送门按门数规则分布: 2 门左右、3 门左中右、4 门等距; BOSS 红门与可交互物避开门附近槽位。
+// ④ 物件清单由 curioPlan.ts 决定: 治疗与风险房按配额投放, 其余按权重偏向物品奖励;
+// ⑤ 传送门按门数规则分布: 2 门左右、3 门左中右、4 门等距; BOSS 红门与可交互物避开门附近槽位。
 // ============================================================================
 
 import { rngInt, shuffle } from "../../engine/rng";
-import { RANDOM_CURIO_KINDS } from "../../data/curios";
 import { difficultyMapConfig } from "../../data";
 import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
@@ -21,6 +21,7 @@ import {
 } from "./types";
 import { generatePlannedDungeon } from "./planned";
 import { growRooms } from "./growRooms";
+import { planRoomCurios } from "./curioPlan";
 
 /** 起始房间出发的最短步数。 */
 function markDepth(rooms: Record<string, RoomNode>, startId: string): void {
@@ -55,9 +56,7 @@ function pickBossRoom(s: ExploreState, rooms: Record<string, RoomNode>, startId:
 function layoutRoom(
   s: ExploreState,
   room: RoomNode,
-  kinds: CurioKind[],
-  curioCount: number,
-  forceMerchant = false,
+  picks: CurioKind[],
   bossGate = false,
 ): void {
   // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
@@ -74,10 +73,6 @@ function layoutRoom(
   const availableMiddleSlots = allMiddleSlots.filter((slot) => (
     !portalSlots.some((portalX) => Math.abs(slot - portalX) <= portalAvoidanceRadius)
   ));
-
-  const randomCount = Math.max(0, curioCount - (forceMerchant ? 1 : 0));
-  const picks = shuffle(s, [...kinds]).slice(0, randomCount);
-  if (forceMerchant) picks.push("merchant");
 
   const requiredSlotCount = (bossGate ? 1 : 0) + picks.length;
   const blockedMiddleSlots = allMiddleSlots.filter((slot) => (
@@ -121,8 +116,6 @@ export function generateDungeon(s: ExploreState): DungeonState {
   const battleCount = Math.min(plain.length, Math.max(1, Math.round(plain.length * EXPLORE_RULES.dungeon.battleRoomRatio)));
   for (let i = 0; i < battleCount; i++) rooms[plain[i]].kind = "battle";
 
-  const kinds = [...RANDOM_CURIO_KINDS] as CurioKind[];
-  const [minCurio, maxCurio] = EXPLORE_RULES.dungeon.curiosPerRoom;
   const merchantRange = map.roomCount <= EXPLORE_RULES.dungeon.merchants.smallMapMaxRooms
     ? EXPLORE_RULES.dungeon.merchants.small
     : EXPLORE_RULES.dungeon.merchants.large;
@@ -133,15 +126,11 @@ export function generateDungeon(s: ExploreState): DungeonState {
       order.filter((id) => rooms[id].kind === "normal"),
     ).slice(0, merchantCount),
   );
+  // 起始房固定 1 件安全投递柜; 治疗/风险配额与加权抽取见 curioPlan.ts。
+  const curioPlan = planRoomCurios(s, rooms, order, merchantRooms);
   for (const id of order) {
     const room = rooms[id];
-    // BOSS 房也按区间投放物件, 起始房固定 1 件安全投递柜, 其余按区间随机。
-    const count = room.kind === "start" ? 1
-        : minCurio + rngInt(s, maxCurio - minCurio + 1) + (merchantRooms.has(id) ? 1 : 0);
-    const roomKinds = room.kind === "start"
-      ? (["dispatch"] as CurioKind[])
-      : kinds;
-    layoutRoom(s, room, roomKinds, count, merchantRooms.has(id), room.kind === "boss");
+    layoutRoom(s, room, curioPlan[id], room.kind === "boss");
   }
   const xs = order.map((id) => rooms[id].gx);
   const ys = order.map((id) => rooms[id].gy);

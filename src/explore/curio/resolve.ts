@@ -7,6 +7,7 @@ import { areRoomCuriosCleared, currentRoom, syncRoomFromScene } from "../dungeon
 import { fireExploreRelic } from "../relics";
 import type { ExploreState } from "../types";
 import type { ItemStack } from "@/items/types";
+import type { CurioKind } from "../corridor/types";
 import { matchOffering, takeOfferedStacks, validOfferingPicks, type OfferingPick } from "./offering";
 import { applyCurioEffect } from "./effects";
 import { visibleDecisions } from "./visibility";
@@ -16,12 +17,10 @@ function activeObject(s: ExploreState) {
   return id ? s.corridor?.objects.find((object) => object.id === id) : undefined;
 }
 
-function historyKind(kind: string): "loot" | "heal" | "merchant" | "energy" {
-  if (kind === "merchant" || kind === "dispatch" || kind === "shrine") return "merchant";
-  if (kind === "medical" || kind === "sink" || kind === "repairPod" || kind === "tutorialMedical") return "heal";
-  if (kind === "crystalVein" || kind === "vending" || kind === "remains" || kind === "compactor"
-    || kind === "modBench" || kind === "cardPrinter" || kind === "tutorialArmory"
-    || kind === "tutorialModBench" || kind === "tutorialForge") return "loot";
+function historyKind(kind: CurioKind): "loot" | "heal" | "merchant" | "energy" {
+  const role = CORRIDOR_CURIOS[kind]?.role;
+  if (role === "service") return "merchant";
+  if (role === "heal" || role === "loot") return role;
   return "energy";
 }
 
@@ -86,6 +85,9 @@ function executeDecision(
 }
 
 function spendCurioInteraction(s: ExploreState): void {
+  // 风险房物件是被动触发的, 不收交互粒子。
+  const object = activeObject(s);
+  if (object && CORRIDOR_CURIOS[object.kind]?.forced) return;
   if (s.freeNodes > 0) s.freeNodes -= 1;
   else changeEnergy(s, -interactionCost(s));
 }

@@ -67,6 +67,7 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
   const startTaintedDraw = useRunStore((state) => state.startTaintedDraw);
   const replaceCardWithCommon = useTownStore((state) => state.replaceCardWithCommon);
   const pickDraw = useTownStore((state) => state.pickDraw);
+  const cancelDraw = useTownStore((state) => state.cancelDraw);
   const removeCardFree = useTownStore((state) => state.removeCardFree);
   const reforgeEquipped = useTownStore((state) => state.reforgeEquipped);
   const [selectedChar, setSelectedChar] = useState<string | null>(null);
@@ -138,6 +139,10 @@ export default function RewardOverlay({ gate }: RewardOverlayProps) {
                 if (chosenCharId) startTaintedDraw(chosenCharId);
               }}
               onSkip={finish}
+              onAbandon={() => {
+                if (chosenCharId) cancelDraw(chosenCharId);
+                finish();
+              }}
               onPick={(cardId) => {
                 if (!chosenCharId) return;
                 pickDraw(chosenCharId, cardId);
@@ -576,6 +581,7 @@ function FreeDraw({
   onSelect,
   onStart,
   onSkip,
+  onAbandon,
   onPick,
 }: {
   members: ExploreState["party"];
@@ -584,6 +590,8 @@ function FreeDraw({
   onSelect: (id: string) => void;
   onStart: () => void;
   onSkip: () => void;
+  /** 候选已生成后放弃三选一: 清掉候选, 不加入任何卡牌。 */
+  onAbandon: () => void;
   onPick: (cardId: string) => void;
 }) {
   if (!character?.pendingDraw) {
@@ -598,9 +606,12 @@ function FreeDraw({
         </EventPanelBody>
         <EventPanelFoot note={members.length ? (selected ? "免费锻造不消耗经验" : "请选择角色") : "奖励无法执行"}>
           {members.length ? (
-            <EventPanelButton tone="primary" disabled={!selected} onClick={onStart}>
-              开始锻造
-            </EventPanelButton>
+            <>
+              <EventPanelButton tone="primary" disabled={!selected} onClick={onStart}>
+                开始锻造
+              </EventPanelButton>
+              <EventPanelButton onClick={onSkip}>放弃锻造</EventPanelButton>
+            </>
           ) : (
             <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
           )}
@@ -631,8 +642,10 @@ function FreeDraw({
           <EventPanelNotice>当前角色没有可生成的卡牌候选。</EventPanelNotice>
         )}
       </EventPanelBody>
-      <EventPanelFoot note={character.pendingDraw.length ? "选择一张即可完成锻造" : "本次免费锻造无法执行"}>
-        {!character.pendingDraw.length && <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>}
+      <EventPanelFoot note={character.pendingDraw.length ? "选择一张即可完成锻造，也可以放弃" : "本次免费锻造无法执行"}>
+        {character.pendingDraw.length
+          ? <EventPanelButton onClick={onAbandon}>放弃选择</EventPanelButton>
+          : <EventPanelButton onClick={onAbandon}>结束奖励</EventPanelButton>}
       </EventPanelFoot>
     </EventPanelStage>
   );

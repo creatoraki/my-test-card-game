@@ -233,7 +233,9 @@ export { SORTIE_STOCK_IDS } from "./sortieStock";
 export {
   CORRIDOR_AMBUSH,
   CORRIDOR_CURIOS,
-  RANDOM_CURIO_KINDS,
+  HEAL_CURIO_KINDS,
+  RANDOM_CURIO_WEIGHTS,
+  RISK_CURIO_KINDS,
   corridorGuardEvent,
   corridorWandererEvent,
   curioEvent,

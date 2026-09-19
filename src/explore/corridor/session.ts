@@ -1,4 +1,4 @@
-import { corridorGuardEvent, CORRIDOR_AMBUSH, curioEvent } from "../../data/curios";
+import { corridorGuardEvent, CORRIDOR_AMBUSH, CORRIDOR_CURIOS, curioEvent } from "../../data/curios";
 import { OPPOSITE_DIR, PORTAL_DIRS, type PortalDir, type RoomNode } from "../dungeon/types";
 import type { ExploreState } from "../types";
 import { corridorSlotsFor, corridorWalkMax, corridorWidthFor, CORRIDOR, type CorridorPortal, type CorridorState } from "./types";
@@ -134,8 +134,27 @@ export function openCorridorObject(s: ExploreState, id: string): boolean {
   return true;
 }
 
+/** 风险房: 进房立即打开第一个未处理的强制物件, 不检查距离。 */
+export function openForcedCurio(s: ExploreState): boolean {
+  if (!s.corridor || s.phase !== "atNode" || hasCorridorRewards(s)) return false;
+  const object = s.corridor.objects.find((candidate) => !candidate.used && CORRIDOR_CURIOS[candidate.kind]?.forced);
+  if (!object) return false;
+  s.corridor.activeObjectId = object.id;
+  s.corridor.standingPortalDir = null;
+  s.currentLane = 0;
+  s.currentSegment = object.nodeIndex + 1;
+  s.pendingNotes = [];
+  s.pendingStory = [];
+  s.chuteOpen = false;
+  s.phase = "landed";
+  return true;
+}
+
 export function dismissCorridorObject(s: ExploreState): boolean {
   if (!s.corridor || (s.phase !== "landed" && s.phase !== "shopping") || hasCorridorRewards(s)) return false;
+  const active = s.corridor.objects.find((object) => object.id === s.corridor?.activeObjectId);
+  // 风险房物件必须做出选择; 结算完成(resolving)后走 confirmNode, 不经过这里。
+  if (active && !active.used && CORRIDOR_CURIOS[active.kind]?.forced) return false;
   s.corridor.activeObjectId = null;
   s.phase = "atNode";
   return true;
