@@ -1,36 +1,22 @@
 // ============================================================================
 // 随机地图的物件清单 —— 决定每间房放哪些可交互物, 不负责槽位坐标(见 generate.ts)。
 //
-// · 治疗交互按配额投放: 约每 roomsPerHeal 间房 1 个, 按深度分段, 每段 1 间, 避免扎堆;
-// · 风险房按配额投放: 约每 roomsPerRisk 间房 1 间, 只落在普通房, 进房立即触发;
-// · 其余名额按 RANDOM_CURIO_WEIGHTS 不放回加权抽取, 偏向获取物品的交互;
-// · 流浪货商额外追加, 不占普通物件名额。
+// 一切产出都由概率与权重决定, 不做配额或保底:
+// · 起始房固定: 只有临时祝福匣(一次性随机遗物);
+// · 其余房间 1-2 个物件, 货商房的货商占 1 个名额;
+// · 治疗: 每房 healChance 独立掷骰; 风险: 仅普通房, riskChance 独立掷骰, 与治疗互斥;
+// · 剩余名额按 RANDOM_CURIO_WEIGHTS 房内不放回加权抽取(期望推算见该表注释)。
 // ============================================================================
 
-import { rngInt, rngPick, rngPickWeighted, shuffle } from "../../engine/rng";
+import { rngFloat, rngInt, rngPick, rngPickWeighted } from "../../engine/rng";
 import { HEAL_CURIO_KINDS, RANDOM_CURIO_WEIGHTS, RISK_CURIO_KINDS } from "../../data/curios";
 import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
 import type { CurioKind } from "../corridor/types";
 import type { RoomNode } from "./types";
-import { allowsCardRemoval, GROWTH_BALANCE } from "@/data/curios/growthBalance";
+import { allowsCardRemoval } from "@/data/curios/growthBalance";
 
-/** 配额至少 1 个, 不超过可投放的房间数。 */
-function quota(wanted: number, available: number): number {
-  return Math.min(available, Math.max(1, wanted));
-}
-
-/** 按深度排序后均分成 count 段, 每段随机取 1 间 —— 让配额物件沿路线均匀分布。 */
-function pickSpread(s: ExploreState, ids: string[], rooms: Record<string, RoomNode>, count: number): string[] {
-  const sorted = [...ids].sort((a, b) => rooms[a].depth - rooms[b].depth);
-  const picked: string[] = [];
-  for (let i = 0; i < count; i += 1) {
-    const from = Math.floor((i * sorted.length) / count);
-    const to = Math.max(from + 1, Math.floor(((i + 1) * sorted.length) / count));
-    picked.push(rngPick(s, sorted.slice(from, to)));
-  }
-  return picked;
-}
+const START_ROOM_CURIOS: readonly CurioKind[] = ["temporaryRelicCache"];
 
 /** 按权重不放回抽取 count 个普通物件。 */
 function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[]): CurioKind[] {
@@ -45,52 +31,31 @@ function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[]
   return picks;
 }
 
-/** 生成整张随机地图每间房的物件清单(房间 id → 物件种类, 货商排在最后)。 */
+/** 单间非起点房的物件清单。 */
+function planRoom(s: ExploreState, room: RoomNode, merchant: boolean): CurioKind[] {
+  const { curiosPerRoom, healChance, riskChance } = EXPLORE_RULES.dungeon;
+  const [minCurio, maxCurio] = curiosPerRoom;
+  const total = minCurio + rngInt(s, maxCurio - minCurio + 1);
+  const fixed: CurioKind[] = [];
+  if (rngFloat(s) < healChance) fixed.push(rngPick(s, [...HEAL_CURIO_KINDS]));
+  else if (room.kind === "normal" && rngFloat(s) < riskChance) fixed.push(rngPick(s, [...RISK_CURIO_KINDS]));
+  const slots = Math.max(0, total - fixed.length - (merchant ? 1 : 0));
+  const picks = [...fixed, ...drawWeightedKinds(s, slots, fixed)].slice(0, merchant ? total - 1 : total);
+  // 货商排在最后, 由布局随机分配槽位。
+  return merchant ? [...picks, "merchant"] : picks;
+}
+
+/** 生成整张随机地图每间房的物件清单(房间 id → 物件种类)。 */
 export function planRoomCurios(
   s: ExploreState,
   rooms: Record<string, RoomNode>,
   order: string[],
   merchantRooms: ReadonlySet<string>,
 ): Record<string, CurioKind[]> {
-  const { roomsPerHeal, roomsPerRisk, curiosPerRoom } = EXPLORE_RULES.dungeon;
-  const roomCount = order.length;
-
-  const healCandidates = order.filter((id) => rooms[id].kind !== "start");
-  const healCount = quota(Math.floor(roomCount / roomsPerHeal), healCandidates.length);
-  const healRooms = new Set(pickSpread(s, healCandidates, rooms, healCount));
-
-  const riskCandidates = order.filter((id) => rooms[id].kind === "normal" && !healRooms.has(id));
-  const riskCount = quota(Math.round(roomCount / roomsPerRisk), riskCandidates.length);
-  const riskRooms = new Set(shuffle(s, riskCandidates).slice(0, riskCount));
-
-  const [minCurio, maxCurio] = curiosPerRoom;
   const plan: Record<string, CurioKind[]> = {};
-  // 配额占普通物件名额，按深度分散并优先填入空闲房间；不依赖随机权重碰运气。
-  for (const id of order) plan[id] = rooms[id].kind === "start" ? ["dispatch", "temporaryRelicCache", "supplyCrate"] : [];
-  const candidates = order.filter(id => rooms[id].kind !== "start");
-  const place = (kind: CurioKind, count: number) => {
-    const available = candidates.filter(id => !plan[id].includes(kind));
-    const least = [...available].sort((a, b) => plan[a].length - plan[b].length);
-    const picked = pickSpread(s, least.slice(0, Math.max(count, Math.ceil(least.length / 2))), rooms, Math.min(count, least.length));
-    for (const id of picked) plan[id].push(kind);
-  };
-  place("equipmentCache", GROWTH_BALANCE.equipmentCaches);
-  place("fieldTraining", Math.max(2, Math.ceil(roomCount / GROWTH_BALANCE.roomsPerTraining)));
-  place("cardExchange", 1);
-  place("bondWorkbench", Math.max(1, Math.floor(roomCount / GROWTH_BALANCE.roomsPerBondService)));
-  place("perfectnessWorkbench", 1);
-  place("temporaryRelicCache", 1);
   for (const id of order) {
-    if (rooms[id].kind === "start") {
-      continue;
-    }
-    const fixed = plan[id];
-    if (riskRooms.has(id)) fixed.push(rngPick(s, [...RISK_CURIO_KINDS]));
-    if (healRooms.has(id)) fixed.push(rngPick(s, [...HEAL_CURIO_KINDS]));
-    const total = minCurio + rngInt(s, maxCurio - minCurio + 1);
-    const picks = [...fixed, ...drawWeightedKinds(s, Math.max(0, total - fixed.length), fixed)];
-    if (merchantRooms.has(id)) picks.push("merchant");
-    plan[id] = picks;
+    const room = rooms[id];
+    plan[id] = room.kind === "start" ? [...START_ROOM_CURIOS] : planRoom(s, room, merchantRooms.has(id));
   }
   return plan;
 }

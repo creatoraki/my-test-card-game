@@ -4,7 +4,6 @@ import { rollEquipment } from "../items/equipRoll";
 import { pickByQuality, rollAffinity, rollCount, type DropContext } from "../items/drops";
 import type { ItemStack } from "../items/types";
 import { EXPLORE_RULES } from "./rules";
-import { GROWTH_BALANCE } from "@/data/curios/growthBalance";
 import type {
   BoonEntry,
   BattleBoonKind,
@@ -28,20 +27,9 @@ export function rollBoons(
     }
   }
 
-  // 首胜保底一箱；以后每战最多一箱，本趟战斗共 1–3 箱。
-  // 地图拾取、货商与通关奖励不占这个配额。
-  if (tables.length > 0 && !s.battleEquipmentRewards && !rolled.some(boon => boon.kind === "equipCrate")) {
-    rolled.push({ uid: newUid("boon"), kind: "equipCrate", dropK: k });
-  }
-  let equipmentCount = 0;
+  // 装备箱完全按掉率产出，不做保底与上限；产出节奏靠各敌人 boonTable 的 chance 调节。
   let cardOfferCount = 0;
   return rolled.filter((boon) => {
-    if (boon.kind === "equipCrate") {
-      if (equipmentCount || s.battleEquipmentRewards >= GROWTH_BALANCE.battleEquipmentCap) return false;
-      equipmentCount += 1;
-      s.battleEquipmentRewards += 1;
-      return true;
-    }
     if (boon.kind !== "cardOffer") return true;
     if (cardOfferCount >= EXPLORE_RULES.boons.cardOfferCap) return false;
     cardOfferCount += 1;

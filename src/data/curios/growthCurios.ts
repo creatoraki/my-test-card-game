@@ -37,6 +37,12 @@ export const GROWTH_CURIOS: Record<string, CurioDef> = {
     decisions: [{ id: "blessing", label: "领取一次性遗物", story: "封印松开，短暂的祝福化作一件可携带的遗物。",
       effects: [{ type: "GRANT_DISPOSABLE_RELIC" }] }],
   },
+  relicCache: {
+    name: "尘封的遗物匣", role: "loot", verb: "开启", size: 190,
+    description: "匣子表面落满灰尘，封印仍在微微发光。开启后可直接获得一件随机遗物。",
+    decisions: [{ id: "open", label: "开启遗物匣", story: "封印碎裂，一件遗物从匣底浮起，被送入待拾取框。",
+      effects: [{ type: "GRANT_RANDOM_RELIC" }] }],
+  },
   cardArchive: {
     name: "卡组整理终端", role: "service", verb: "整理", size: 210,
     description: "终端可删除一张卡牌，卡组不能低于最小张数。该服务仅在困难及以上探索开放。",

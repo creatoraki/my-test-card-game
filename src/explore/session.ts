@@ -260,7 +260,6 @@ export function createSession(
     roomCount: map.roomCount,
     roundBattleTier: "t1",
     battlesWon: 0,
-    battleEquipmentRewards: 0,
     board: null,
     party: party.map((p) => ({ ...p })),
     stats: { kills: 0, expTotal: 0, pickups: 0, energySpent: 0 },

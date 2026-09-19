@@ -78,12 +78,14 @@ export const EXPLORE_RULES = {
     battleRoomRatio: 0.22,
     // 生成树之外额外接通的相邻房间数比例 —— 制造回环与近路。
     loopEdgeRatio: 0.2,
-    // 普通房随机物件总数下限/上限；成长配额优先，起始房固定投递柜、临时祝福和食品箱。
-    curiosPerRoom: [1, 3] as const,
-    // 治疗交互配额: 约每 6 间房 1 个(至少 1 个), 按深度分段均匀投放。
-    roomsPerHeal: 6,
-    // 风险房配额: 约每 5 间房 1 间(至少 1 间), 进房立即触发、必须决策。
-    roomsPerRisk: 5,
+    // 每间房交互物总数下限/上限(含货商、治疗、风险)；起始房只固定一个临时祝福匣。
+    curiosPerRoom: [1, 2] as const,
+    // 治疗交互: 每间非起点房独立掷骰, 命中投放 1 个。
+    healChance: 0.2,
+    // 风险物件: 每间普通房独立掷骰(与治疗互斥), 进房立即触发、必须决策。
+    riskChance: 0.15,
+    // 每间房最多的传送门数量(至少 1 扇, 由连通性保证)。
+    maxExits: 3,
     merchants: {
       smallMapMaxRooms: 8,
       small: [1, 1] as const,

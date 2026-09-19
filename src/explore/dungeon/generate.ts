@@ -4,7 +4,7 @@
 // ① 从起始房间开始随机长出一棵生成树, 直到房间数达到地图的 roomCount;
 // ② 追加少量环路边, 让路线出现取舍而不是一条死路走到底;
 // ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房;
-// ④ 物件清单由 curioPlan.ts 决定: 治疗与风险房按配额投放, 其余按权重偏向物品奖励;
+// ④ 物件清单由 curioPlan.ts 决定: 每房 1-2 个, 治疗与风险按每房概率投放, 其余按权重偏向物品奖励;
 // ⑤ 传送门按门数规则分布: 2 门左右、3 门左中右、4 门等距; BOSS 红门与可交互物避开门附近槽位。
 // ============================================================================
 
@@ -126,7 +126,7 @@ export function generateDungeon(s: ExploreState): DungeonState {
       order.filter((id) => rooms[id].kind === "normal"),
     ).slice(0, merchantCount),
   );
-  // 起始房补给、成长服务与治疗/风险配额统一由 curioPlan.ts 规划。
+  // 起始房祝福匣、货商名额与治疗/风险概率统一由 curioPlan.ts 规划。
   const curioPlan = planRoomCurios(s, rooms, order, merchantRooms);
   for (const id of order) {
     const room = rooms[id];

@@ -10,6 +10,7 @@ export type CurioKind =
   | "bondWorkbench"
   | "perfectnessWorkbench"
   | "temporaryRelicCache"
+  | "relicCache"
   | "cardArchive"
   | "safe"
   | "crystalVein"

@@ -27,31 +27,43 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
 };
 
 /**
- * 普通物件随机投放权重：偏向获取物品的交互。
- * 治疗与风险物件不在这里，由 dungeon/curioPlan.ts 按房间配额单独投放。
+ * 普通物件随机投放权重：换金物最常见，其次材料、食品与道具，装备与服务偶尔出现。
+ * 治疗与风险物件不在这里，由 dungeon/curioPlan.ts 按每房概率单独投放。
+ *
+ * 期望推算：12-16 房地图约 16 次加权抽取，单局期望 ≈ 16 × 权重 / 总权重(约 115)。
+ * · 装备箱 ≈ 0.8 件，与战斗掉落(约 2.1 件)合计约 3 件；
+ * · 换卡终端 ≈ 1 次；遗物匣 ≈ 0.28 个，与杂兵掉落的遗物合计约 0.4 个。
  */
 export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {
-  safe: 2,
-  crystalVein: 3,
-  vending: 3,
-  remains: 2,
-  compactor: 2,
-  supplyCrate: 5,
-  toolLocker: 3,
-  courierDrone: 3,
-  cashBox: 2,
-  moduleCase: 3,
-  modBench: 2,
-  cardPrinter: 5,
-  fieldTraining: 4,
-  cardArchive: 1,
+  // 换金物 / 材料 / 食品 / 道具
+  cashBox: 20,
+  supplyCrate: 11,
+  toolLocker: 9,
+  safe: 8,
+  courierDrone: 8,
+  vending: 6,
+  compactor: 6,
+  crystalVein: 5,
+  moduleCase: 5,
+  remains: 4,
+  modBench: 4,
+  // 装备、遗物与成长服务
+  equipmentCache: 6,
+  cardExchange: 7,
+  fieldTraining: 3,
+  cardPrinter: 3,
+  bondWorkbench: 2,
+  perfectnessWorkbench: 1,
+  relicCache: 2,
+  dispatch: 3,
   shrine: 1,
+  cardArchive: 1,
 };
 
-/** 治疗交互：约每 roomsPerHeal 间房投放 1 个。 */
+/** 治疗交互：每间非起点房按 healChance 概率投放 1 个。 */
 export const HEAL_CURIO_KINDS: readonly CurioKind[] = ["medical", "sink", "repairPod"];
 
-/** 风险房物件：约每 roomsPerRisk 间房投放 1 间，进房立即触发。 */
+/** 风险房物件：每间普通房按 riskChance 概率投放，进房立即触发。 */
 export const RISK_CURIO_KINDS: readonly CurioKind[] = ["collapsedCeiling", "leakingPipe", "rogueDrone"];
 
 export const CORRIDOR_AMBUSH: NodeEvent = {

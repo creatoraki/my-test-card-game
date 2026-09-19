@@ -9,7 +9,7 @@ export const COMMON_BASE: DropEntry[] = [
   { kind: "item", itemId: regionalMaterial(DEFAULT_REGION_ID, "low").id, chance: 0.25 },
   { kind: "item", itemId: "copper-coin", chance: 0.4 },
   { kind: "item", itemId: "module-crate-t1", chance: 0.03 },
-  { kind: "item", itemId: "relic-broken-compass", chance: 0.04 },
+  { kind: "item", itemId: "relic-broken-compass", chance: 0.02 },
 ];
 
 export const generalDrop = (itemId: string, chance: number): DropEntry => ({
@@ -20,7 +20,7 @@ export const generalDrop = (itemId: string, chance: number): DropEntry => ({
 
 export const LOW_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.3 },
-  { kind: "equipCrate", chance: 0.18 },
+  { kind: "equipCrate", chance: 0.12 },
   { kind: "moduleCrate", chance: 0.05 },
   { kind: "cardOffer", chance: 0.4 },
 ];
