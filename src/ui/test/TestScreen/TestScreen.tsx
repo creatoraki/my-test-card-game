@@ -1,46 +1,38 @@
 import { useState } from "react";
-import { DsDeckCardDemo } from "@/ui/test/ds";
-import { OpusHudFrameDemo, OpusKeenEdgeDemo, OpusTwinArrowDemo } from "@/ui/test/opus";
-import { QwenCharacterCardDemo } from "@/ui/test/qwen";
-import { SciFiPanelDemo } from "@/ui/test/luna/SciFiPanelDemo/SciFiPanelDemo";
-import { SlashSfxDemo } from "@/ui/test/luna/SlashSfxDemo/SlashSfxDemo";
-import { TarotIconDemo } from "@/ui/test/luna/TarotIconDemo/TarotIconDemo";
+import { OpusTwinArrowDemo } from "@/ui/test/opus";
+import { AttackArtsDemo } from "@/ui/test/AttackArtsDemo";
+import { ATTACK_ARTS, type AttackArtId } from "@/ui/battle/fx/AttackArtsFx";
 import s from "./TestScreen.module.css";
 
-// 测试 demo 页面：多个开发者可以同时开发相同内容的组件 demo，并通过各自的 tab 进行评选。
-// 每位开发者独占一个文件夹和一个 tab，互相不干扰；AI 不得抄袭其他开发者的代码成果。
-type TestTab = "opus" | "ds" | "qwen" | "luna";
-
-const TABS: TestTab[] = ["opus", "ds", "qwen", "luna"];
-
-// 页签文案与 tab 值分开: tab 值同时是 key 与 aria 标签的词根, 改文案不影响其它两处。
-const TAB_LABEL: Record<TestTab, string> = {
-  opus: "opus",
-  ds: "ds",
-  qwen: "qwen",
-  luna: "luna",
-};
+type TestTab = AttackArtId | "blade-reference" | "twin-reference";
+const TABS: { id: TestTab; name: string }[] = [
+  ...ATTACK_ARTS.map(art => ({ id: art.id, name: art.name })),
+  { id: "blade-reference", name: "刀光斩对照" },
+  { id: "twin-reference", name: "原版双箭" },
+];
 
 export function TestScreen() {
-  const [activeTab, setActiveTab] = useState<TestTab>("opus");
+  const [activeTab, setActiveTab] = useState<TestTab>("moon-cleave");
+  const art = ATTACK_ARTS.find(entry => entry.id === activeTab);
+  const label = TABS.find(entry => entry.id === activeTab)!.name;
 
   return (
     <main className={s.root}>
       <nav className={s.tabs} aria-label="测试页面">
         {TABS.map((tab) => (
           <button
-            key={tab}
+            key={tab.id}
             type="button"
-            className={activeTab === tab ? s.activeTab : undefined}
-            aria-current={activeTab === tab ? "page" : undefined}
-            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab.id ? s.activeTab : undefined}
+            aria-current={activeTab === tab.id ? "page" : undefined}
+            onClick={() => setActiveTab(tab.id)}
           >
-            {TAB_LABEL[tab]}
+            {tab.name}
           </button>
         ))}
       </nav>
-      <section className={s.page} key={activeTab} aria-label={`${activeTab} 测试页面`}>
-        {activeTab === "opus" ? <OpusTwinArrowDemo /> : null}
+      <section className={s.page} key={activeTab} aria-label={`${label}演示`}>
+        {activeTab === "twin-reference" ? <OpusTwinArrowDemo /> : <AttackArtsDemo art={art} />}
       </section>
     </main>
   );

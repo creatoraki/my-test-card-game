@@ -10,6 +10,7 @@
 | 卡牌、角色、敌人、地图等内容配置 | [data.md](data.md) |
 | Zustand、远征流程、城镇持久化 | [store.md](store.md) |
 | React 页面、组件、动画与资源查表 | [ui.md](ui.md) |
+| 十种攻击特效与独立演示页签 | [攻击特效演示集](../../src/ui/battle/fx/AttackArtsFx/README.md) |
 | 全局 CSS、设计画布、样式边界 | [styles.md](styles.md) |
 | 根入口、构建配置与脚本 | [project.md](project.md) |
 
