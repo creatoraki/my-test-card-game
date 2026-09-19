@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CORRIDOR_CURIOS } from "@/data/curios";
 import type { CurioDecision } from "@/data/curios/types";
 import { canOfferAny, visibleDecisions } from "@/explore/curio/visibility";
+import { serviceFoodCount } from "@/explore/curio/foodPayment";
 import { hasCorridorRewards } from "@/explore/corridor/session";
 import { interactionCost } from "@/explore/session";
 import type { ExploreState } from "@/explore/types";
@@ -20,7 +21,7 @@ import {
   type DossierIconName,
 } from "@/ui/explore/EventDossier";
 
-const DEFAULT_EN_TITLE = "EXPLORATION EVENT";
+const DEFAULT_EN_TITLE = "探索交互";
 const DECISION_ICONS: DossierIconName[] = ["claim", "upgrade", "detail"];
 
 function decisionIcon(decision: CurioDecision, index: number): DossierIconName {
@@ -66,6 +67,7 @@ export function CurioPanel({
       label: decision.label,
       icon: decisionIcon(decision, index),
       sfx: "confirm",
+      disabled: serviceFoodCount(session) < (decision.foodCost ?? 0),
       onClick: () => useRunStore.getState().chooseCurio(decision.id),
     })),
     ...(offeringAvailable ? [{
@@ -104,7 +106,7 @@ export function CurioPanel({
     <EventDossierPanel
       kicker={forced ? `风险房间 · ${roomLabel}号房间` : `${def.name} · ${roomLabel}号房间`}
       title={def.name}
-      enTitle={def.enName ?? DEFAULT_EN_TITLE}
+      enTitle={DEFAULT_EN_TITLE}
       contentKey={contentKey}
       active={!covered}
       onClose={result || forced ? undefined : closeCorridorObject}

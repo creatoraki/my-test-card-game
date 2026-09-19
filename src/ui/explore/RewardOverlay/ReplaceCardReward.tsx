@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import type { ExploreState } from "@/explore/types";
 import type { Card } from "@/engine";
 import { HandCard } from "@/ui/battle/HandCard";
@@ -11,7 +11,10 @@ import {
   EventPanelStage,
 } from "@/ui/common/EventPanel";
 import { useTownStore } from "@/store/townStore";
-import s from "./RewardOverlay.module.css";
+import { useExploreStore } from "@/store/exploreStore";
+import { serviceFoodCount } from "@/explore/curio/foodPayment";
+import { availablePools } from "@/store/deckCards";
+import s from "@/ui/explore/styles/rewardKit.module.css";
 
 export function ReplaceCardReward({
   members,
@@ -19,17 +22,22 @@ export function ReplaceCardReward({
   onSelect,
   onReplace,
   onSkip,
+  foodCost = 0,
 }: {
   members: ExploreState["party"];
   selected: string | null;
   onSelect: (charId: string) => void;
   onReplace: (charId: string, uid: string) => void;
   onSkip: () => void;
+  foodCost?: number;
 }) {
   const characters = useTownStore((state) => state.characters);
+  const foodCount = useExploreStore(state => state.session ? serviceFoodCount(state.session) : 0);
   const [cardUid, setCardUid] = useState<string | null>(null);
   const character = selected ? characters[selected] : null;
-  const cards = character?.deck ?? [];
+  const cards = character ? character.deck.filter(card => availablePools({ ...character,
+    deck: character.deck.filter(other => other.uid !== card.uid),
+  }).common.some(id => id !== card.id)) : [];
   if (!character) {
     return <EventPanelStage>
       <EventPanelBody caption="先选择一名角色，再从他的卡组中选择要替换的卡牌。" scroll={false}>
@@ -46,7 +54,7 @@ export function ReplaceCardReward({
     </EventPanelStage>;
   }
   return <EventPanelStage>
-    <EventPanelBody caption="选择一张卡牌，它会被一张随机普通卡替换。" scroll>
+    <EventPanelBody caption={`选择一张卡牌，它会被一张随机普通卡替换，原卡模组一并移除。消耗任意食品 ${foodCost} 份，当前 ${foodCount} 份。`} scroll>
       {cards.length ? <div className={s["card-list"]} data-pick-grid>{cards.map((card: Card, index) => <div
         key={card.uid} className={`${s["card-choice"]} ${cardUid === card.uid ? s["is-selected"] : ""}`}
         onClick={() => setCardUid(card.uid)}
@@ -55,7 +63,8 @@ export function ReplaceCardReward({
     </EventPanelBody>
     <EventPanelFoot note={cardUid ? "普通卡替换目标已锁定" : "请选择一张卡牌"}>
       <EventPanelButton onClick={onSkip}>结束奖励</EventPanelButton>
-      <EventPanelButton tone="primary" disabled={!cardUid} onClick={() => cardUid && onReplace(character.charId, cardUid)}>确认替换</EventPanelButton>
+      <EventPanelButton tone="primary" disabled={!cards.some(card => card.uid === cardUid) || foodCount < foodCost} onClick={() => cardUid && onReplace(character.charId, cardUid)}>确认替换</EventPanelButton>
     </EventPanelFoot>
   </EventPanelStage>;
 }
+

@@ -20,7 +20,7 @@ export const generalDrop = (itemId: string, chance: number): DropEntry => ({
 
 export const LOW_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.3 },
-  { kind: "equipCrate", chance: 0.1 },
+  { kind: "equipCrate", chance: 0.18 },
   { kind: "moduleCrate", chance: 0.05 },
-  { kind: "cardOffer", chance: 0.15 },
+  { kind: "cardOffer", chance: 0.4 },
 ];

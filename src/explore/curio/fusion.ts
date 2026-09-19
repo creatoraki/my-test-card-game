@@ -42,6 +42,6 @@ export function upgradeRelic(s: ExploreState, offered: ItemStack[]): string {
     return "没有可交换的祝福遗物，折算居民积分 +10";
   }
   const def = shuffle(s, candidates)[0];
-  addPendingLoot(s, [makeRolledItemStack(s, def.id, 1)]);
-  return `获得祝福遗物「${def.name}」，已放入待拾取框`;
+  addPendingLoot(s, [{ ...makeRolledItemStack(s, def.id, 1), disposable: source.disposable }]);
+  return `获得${source.disposable ? "一次性" : ""}祝福遗物「${def.name}」，已放入待拾取框`;
 }

@@ -13,6 +13,7 @@ import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
 import type { CurioKind } from "../corridor/types";
 import type { RoomNode } from "./types";
+import { allowsCardRemoval, GROWTH_BALANCE } from "@/data/curios/growthBalance";
 
 /** 配额至少 1 个, 不超过可投放的房间数。 */
 function quota(wanted: number, available: number): number {
@@ -32,8 +33,9 @@ function pickSpread(s: ExploreState, ids: string[], rooms: Record<string, RoomNo
 }
 
 /** 按权重不放回抽取 count 个普通物件。 */
-function drawWeightedKinds(s: ExploreState, count: number): CurioKind[] {
-  const pool = Object.keys(RANDOM_CURIO_WEIGHTS) as CurioKind[];
+function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[]): CurioKind[] {
+  const pool = (Object.keys(RANDOM_CURIO_WEIGHTS) as CurioKind[])
+    .filter(kind => !excluded.includes(kind) && (kind !== "cardArchive" || allowsCardRemoval(s)));
   const picks: CurioKind[] = [];
   for (let i = 0; i < count && pool.length; i += 1) {
     const kind = rngPickWeighted(s, pool, (candidate) => RANDOM_CURIO_WEIGHTS[candidate] ?? 0);
@@ -63,16 +65,30 @@ export function planRoomCurios(
 
   const [minCurio, maxCurio] = curiosPerRoom;
   const plan: Record<string, CurioKind[]> = {};
+  // 配额占普通物件名额，按深度分散并优先填入空闲房间；不依赖随机权重碰运气。
+  for (const id of order) plan[id] = rooms[id].kind === "start" ? ["dispatch", "temporaryRelicCache", "supplyCrate"] : [];
+  const candidates = order.filter(id => rooms[id].kind !== "start");
+  const place = (kind: CurioKind, count: number) => {
+    const available = candidates.filter(id => !plan[id].includes(kind));
+    const least = [...available].sort((a, b) => plan[a].length - plan[b].length);
+    const picked = pickSpread(s, least.slice(0, Math.max(count, Math.ceil(least.length / 2))), rooms, Math.min(count, least.length));
+    for (const id of picked) plan[id].push(kind);
+  };
+  place("equipmentCache", GROWTH_BALANCE.equipmentCaches);
+  place("fieldTraining", Math.max(2, Math.ceil(roomCount / GROWTH_BALANCE.roomsPerTraining)));
+  place("cardExchange", 1);
+  place("bondWorkbench", Math.max(1, Math.floor(roomCount / GROWTH_BALANCE.roomsPerBondService)));
+  place("perfectnessWorkbench", 1);
+  place("temporaryRelicCache", 1);
   for (const id of order) {
     if (rooms[id].kind === "start") {
-      plan[id] = ["dispatch"];
       continue;
     }
-    const fixed: CurioKind[] = [];
+    const fixed = plan[id];
     if (riskRooms.has(id)) fixed.push(rngPick(s, [...RISK_CURIO_KINDS]));
     if (healRooms.has(id)) fixed.push(rngPick(s, [...HEAL_CURIO_KINDS]));
     const total = minCurio + rngInt(s, maxCurio - minCurio + 1);
-    const picks = [...fixed, ...drawWeightedKinds(s, Math.max(0, total - fixed.length))];
+    const picks = [...fixed, ...drawWeightedKinds(s, Math.max(0, total - fixed.length), fixed)];
     if (merchantRooms.has(id)) picks.push("merchant");
     plan[id] = picks;
   }

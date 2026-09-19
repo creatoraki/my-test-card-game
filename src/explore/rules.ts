@@ -78,7 +78,7 @@ export const EXPLORE_RULES = {
     battleRoomRatio: 0.22,
     // 生成树之外额外接通的相邻房间数比例 —— 制造回环与近路。
     loopEdgeRatio: 0.2,
-    // 每个房间的可交互物数量区间(起始房固定 1 件, BOSS 房也按区间随机)。
+    // 普通房随机物件总数下限/上限；成长配额优先，起始房固定投递柜、临时祝福和食品箱。
     curiosPerRoom: [1, 3] as const,
     // 治疗交互配额: 约每 6 间房 1 个(至少 1 个), 按深度分段均匀投放。
     roomsPerHeal: 6,

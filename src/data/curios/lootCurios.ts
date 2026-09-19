@@ -75,13 +75,12 @@ export const LOOT_CURIOS: Record<string, CurioDef> = {
     role: "loot",
     verb: "清点",
     size: 120,
-    description: "钱箱被丢在角落，箱体上沾着一层发黑的污染残渣。",
+    description: "钱箱被丢在角落，锁扣已经断开，可以直接收走箱内的零钱。",
     decisions: [
       {
         id: "grabCoins",
         label: "抓取硬币",
-        story: "你们从残渣里捞出一把硬币，手套上沾满了污染。",
-        risk: { chance: 0.5, effects: [{ type: "ADJUST_POLLUTION", target: "actor", amount: 8 }] },
+        story: "你们打开钱箱，收走了箱底的零钱。",
         effects: [{ type: "GAIN_POOL_ITEM", pool: "scrap", count: 2 }],
       },
       jobDecision(

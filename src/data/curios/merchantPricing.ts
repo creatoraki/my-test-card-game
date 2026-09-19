@@ -4,13 +4,13 @@ import type { ItemCategory } from "@/items/types";
 export const MERCHANT_FOOD_POOL = NEAR_EXPIRY_FOOD_IDS;
 
 export const MERCHANT_PRICE_TIER: Readonly<Record<"card" | ItemCategory, number>> = {
-  card: 2,
+  card: 1,
   scrap: 1,
-  material: 1,
-  module: 1,
+  material: 2,
+  module: 3,
   consumable: 1,
-  equipment: 2,
-  relic: 3,
+  equipment: 3,
+  relic: 5,
 };
 
 export function merchantPriceCount(kind: "card" | ItemCategory): number {

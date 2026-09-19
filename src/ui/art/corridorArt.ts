@@ -65,6 +65,13 @@ export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
  * 房间传送门与首领红门使用独立尺寸，不受此基准影响。
  */
 export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
+  equipmentCache: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 86 / 512 },
+  fieldTraining: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
+  cardExchange: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
+  cardArchive: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
+  bondWorkbench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 65 / 512 },
+  perfectnessWorkbench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 65 / 512 },
+  temporaryRelicCache: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
   safe: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 86 / 512 },
   crystalVein: { src: corridorCrystalVeinArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 40 / 512 },
   vending: { src: corridorVendingArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 20 / 512 },
@@ -99,6 +106,13 @@ export const CORRIDOR_BOSS_GATE_Y_OFFSET = 60;
 
 /** 各交互物独立的场景 Y 轴微调值（设计 px，正值向下）。 */
 export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
+  equipmentCache: 0,
+  fieldTraining: 0,
+  cardExchange: 0,
+  cardArchive: 0,
+  bondWorkbench: 0,
+  perfectnessWorkbench: 0,
+  temporaryRelicCache: 0,
   safe: 0,
   crystalVein: 0,
   vending: 0,

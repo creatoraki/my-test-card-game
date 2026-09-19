@@ -8,6 +8,7 @@ import { rewardPool } from "@/data/curios/rewardPools";
 import type { ActorTarget, CurioEffect, CurioEffectContext } from "@/data/curios/types";
 import { fuseEquipment, upgradeRelic } from "./fusion";
 import { revealDungeon } from "./reveal";
+import { grantTemporaryRelic } from "./temporaryRelic";
 
 function targetIds(s: ExploreState, target: ActorTarget, ctx: CurioEffectContext): string[] {
   const alive = s.party.filter((member) => member.alive);
@@ -88,8 +89,13 @@ export function applyCurioEffect(
         ? `获得一次免费卡组锻造，完成后污染 ${effect.contaminate} 张卡牌`
         : "获得一次免费卡组锻造";
     case "REPLACE_CARD_COMMON":
-      s.pendingActions.push({ kind: "replaceCard" });
+      s.pendingActions.push({ kind: "replaceCard", foodCost: effect.foodCost });
       return "获得一次将卡牌替换为普通卡的机会";
+    case "TUNE_EQUIPMENT":
+      s.pendingActions.push({ kind: "equipmentTune", mode: effect.mode, foodCost: effect.foodCost });
+      return `请选择装备${effect.mode === "bond" ? "重铸羁绊" : "重置完美度"}，确认后支付食品 ×${effect.foodCost}`;
+    case "GRANT_DISPOSABLE_RELIC":
+      return grantTemporaryRelic(s);
     case "CONSUME_ITEM": {
       const before = s.backpack.reduce((sum, stack) => sum + (stack.itemId === effect.itemId ? stack.count : 0), 0);
       const amount = Math.min(before, Math.max(0, effect.count));

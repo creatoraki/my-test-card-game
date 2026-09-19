@@ -70,6 +70,7 @@ import type { MapDifficulty } from "../data/mapDifficulty";
 import { generateSegments, lanePath, traceSegment } from "./route";
 import { rollBoons, rollEquipCrate, rollModuleCrate } from "./boons";
 import { EXPLORE_RULES, ENERGY_TIERS } from "./rules";
+import { allowsCardRemoval, growthChoices } from "@/data/curios/growthBalance";
 import { closeShop, openShop } from "./shop";
 import { fireExploreRelic } from "./relics";
 import { relicBurdenAdapt } from "./relicModifiers";
@@ -259,6 +260,7 @@ export function createSession(
     roomCount: map.roomCount,
     roundBattleTier: "t1",
     battlesWon: 0,
+    battleEquipmentRewards: 0,
     board: null,
     party: party.map((p) => ({ ...p })),
     stats: { kills: 0, expTotal: 0, pickups: 0, energySpent: 0 },
@@ -671,7 +673,7 @@ export function restSkip(s: ExploreState): boolean {
 
 export function npcChoices(s: ExploreState): EventChoice[] {
   if (!s.restNpcId) return [];
-  return getNpcEvent(s.restNpcId)?.choices ?? [];
+  return growthChoices(s, getNpcEvent(s.restNpcId)?.choices ?? []);
 }
 
 export function chooseNpcOption(s: ExploreState, index: number): boolean {
@@ -1004,6 +1006,7 @@ export function applyEffect(s: ExploreState, e: ExploreEffect, defer = false): s
       s.pendingActions.push({ kind: "forgeDraw" });
       return "获得一次免费角色卡组锻造";
     case "FORGE_REMOVE":
+      if (!allowsCardRemoval(s)) return "当前探索未开放删卡服务";
       s.pendingActions.push({ kind: "forgeRemove" });
       return "获得一次免费角色删卡机会";
     case "EQUIP_OFFER": {
@@ -1598,7 +1601,7 @@ export function arriveNode(s: ExploreState): boolean {
 export function landedChoices(s: ExploreState): EventChoice[] {
   const ev = landedEvent(s);
   if (!ev) return [];
-  if (ev.choices?.length) return ev.choices;
+  if (ev.choices?.length) return growthChoices(s, ev.choices);
   return [
     {
       id: "proceed",

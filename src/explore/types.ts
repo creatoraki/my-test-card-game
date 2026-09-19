@@ -233,7 +233,8 @@ export interface HiddenRest {
 export type PendingAction =
   | { kind: "expOne"; amount: number }
   | { kind: "forgeDraw"; contaminate?: number }
-  | { kind: "replaceCard" }
+  | { kind: "replaceCard"; foodCost?: number }
+  | { kind: "equipmentTune"; mode: "bond" | "perfectness"; foodCost: number; result?: { before: ItemStack; after: ItemStack } }
   | { kind: "forgeRemove" }
   | { kind: "equipOffer"; offers: ItemStack[] }
   | { kind: "relicOffer"; offers: ItemStack[] }
@@ -385,6 +386,7 @@ export interface ExploreState {
   roomCount: number; // 由地图决定的房间总数 = 这张地图的庞大程度
   roundBattleTier: BattleTier; // 最近一次建立的战斗档位, 供 HUD 与结算读取
   battlesWon: number; // 本趟已打赢的战斗场数; 挑战契约的倒计时按它走
+  battleEquipmentRewards: number; // 本趟战斗装备箱已投放数量（不含拾取、购买与通关奖励）。
   board: RouteBoard | null;
 
   party: PartySnapshot[];

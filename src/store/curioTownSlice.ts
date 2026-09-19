@@ -42,7 +42,8 @@ export function createCurioTownSlice(
       const index = character.deck.findIndex((card) => card.uid === uid);
       if (index < 0) return false;
       const reducedDeck = character.deck.filter((_, cardIndex) => cardIndex !== index);
-      const candidates = availablePools({ ...character, deck: reducedDeck }).common;
+      const candidates = availablePools({ ...character, deck: reducedDeck }).common
+        .filter(id => id !== character.deck[index].id);
       if (!candidates.length) return false;
       const cardDefId = candidates[Math.floor(Math.random() * candidates.length)];
       const nextDeck = character.deck.slice();

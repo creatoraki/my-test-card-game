@@ -26,13 +26,17 @@ export type CurioEffect =
   | { type: "FUSE_EQUIPMENT" }
   | { type: "UPGRADE_RELIC" }
   | { type: "FORGE_DRAW_TAINTED"; contaminate: number }
-  | { type: "REPLACE_CARD_COMMON" }
+  | { type: "REPLACE_CARD_COMMON"; foodCost?: number }
+  | { type: "TUNE_EQUIPMENT"; mode: "bond" | "perfectness"; foodCost: number }
+  | { type: "GRANT_DISPOSABLE_RELIC" }
   | { type: "CONSUME_ITEM"; itemId: string; count: number };
 
 export interface CurioDecision {
   id: string;
   label: string;
   story: string;
+  /** 明码食品支付，可混付六种临期食品；无此字段不收食品。 */
+  foodCost?: number;
   require?: CurioRequirement;
   risk?: { chance: number; effects: CurioEffect[] };
   effects: CurioEffect[];

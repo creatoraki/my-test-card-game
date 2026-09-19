@@ -6,6 +6,7 @@ import { RULES } from "../engine/rules";
 import type { ItemStack } from "../items/types";
 import type { ExploreEffect, ExploreState, NodeEvent, ShopState, TradeSlotState } from "./types";
 import { backpackFree } from "./session";
+import { allowsCardRemoval } from "@/data/curios/growthBalance";
 
 export interface TradeQuote {
   ok: boolean;
@@ -65,7 +66,7 @@ function buffOptionsFor(s: ExploreState, serviceId: string) {
 
 export function openShop(s: ExploreState, event: NodeEvent): void {
   if (!event.services?.length || s.shop) return;
-  const serviceIds = event.services.slice(0, 2);
+  const serviceIds = event.services.filter(id => id !== "card-remove-service" || allowsCardRemoval(s)).slice(0, 2);
   const slots: TradeSlotState[] = serviceIds.map((serviceId) => ({
     serviceId,
     stock: stockFor(s, serviceId),

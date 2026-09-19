@@ -1,0 +1,2 @@
+.items { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; padding: 18px; }
+.choice { display: flex; flex-direction: column; gap: 8px; width: 148px; color: #d6e3f3; font-size: 18px; text-align: center; }

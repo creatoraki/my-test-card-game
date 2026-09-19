@@ -2,6 +2,7 @@ import { CORRIDOR_CURIOS } from "@/data/curios";
 import type { CurioDef, CurioDecision, OfferingPart } from "@/data/curios/types";
 import { matchOffering, partCanMatch } from "./offering";
 import type { ExploreState } from "../types";
+import { allowsCardRemoval } from "@/data/curios/growthBalance";
 
 function activeObject(s: ExploreState) {
   const id = s.corridor?.activeObjectId;
@@ -14,6 +15,7 @@ function hasJob(s: ExploreState, charId: string): boolean {
 
 export function visibleDecisions(s: ExploreState, def: CurioDef): CurioDecision[] {
   return def.decisions.filter((decision) => {
+    if (!allowsCardRemoval(s) && decision.effects.some(effect => effect.type === "FORGE_REMOVE")) return false;
     if (!decision.require) return true;
     if (decision.require.kind === "job") return hasJob(s, decision.require.charId);
     return false;

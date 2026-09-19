@@ -22,7 +22,7 @@ const ELITE_BOONS: BoonEntry[] = [
   { kind: "healDew", chance: 0.5 },
   { kind: "equipCrate", chance: 0.3 },
   { kind: "moduleCrate", chance: 0.15 },
-  { kind: "cardOffer", chance: 0.3 },
+  { kind: "cardOffer", chance: 0.65 },
 ];
 
 export const ELITE_ENEMIES: EnemyDef[] = [

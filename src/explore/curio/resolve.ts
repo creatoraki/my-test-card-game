@@ -11,6 +11,7 @@ import type { CurioKind } from "../corridor/types";
 import { matchOffering, takeOfferedStacks, validOfferingPicks, type OfferingPick } from "./offering";
 import { applyCurioEffect } from "./effects";
 import { visibleDecisions } from "./visibility";
+import { payServiceFood } from "./foodPayment";
 
 function activeObject(s: ExploreState) {
   const id = s.corridor?.activeObjectId;
@@ -106,6 +107,7 @@ export function chooseCurioDecision(s: ExploreState, decisionId: string): boolea
   if (!found || found.decision.require?.kind === "offering") return false;
   const actorId = actorFor(s, found.decision);
   if (!actorId) return false;
+  if (!payServiceFood(s, found.decision.foodCost ?? 0)) return false;
   spendCurioInteraction(s);
   return executeDecision(s, found.decision, actorId, [], found.index);
 }

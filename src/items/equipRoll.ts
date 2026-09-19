@@ -164,6 +164,26 @@ export function rollPerfectness(def: ItemDef, roll: EquipRoll): number {
   return roll.budget - calculateRefund(def.model, roll.cost);
 }
 
+/** 重掷完美度，保留负面代价；在原词条上按原有侧重增减预算，不重抽羁绊。 */
+export function resetPerfectness(def: ItemDef, roll: EquipRoll, pick: (n: number) => number): EquipRoll {
+  const model = def.model;
+  if (!model) return roll;
+  assertModelValid(def);
+  const nextBase = rollBudgetBase(model.budget, pick);
+  const delta = nextBase - rollPerfectness(def, roll);
+  const points = { ...roll.points };
+  const direction = Math.sign(delta);
+  for (let left = Math.abs(delta); left > 0; left -= 1) {
+    const eligible = model.affixes.filter(affix => direction > 0
+      ? (points[affix.stat] ?? 0) < affix.max : (points[affix.stat] ?? 0) > affix.min);
+    if (!eligible.length) throw new Error(`装备校准预算不合法: ${def.id}`);
+    const favored = eligible.map(affix => ({ ...affix, weight: Math.max(1, roll.points[affix.stat] ?? 0) }));
+    const chosen = weightedPick(favored, pick);
+    points[chosen.stat] = (points[chosen.stat] ?? 0) + direction;
+  }
+  return { ...roll, budget: roll.budget + delta, points };
+}
+
 /** 完美度 +amount：预算与词条点数一起加；已达模型上限或词条无余量时原样返回。 */
 export function bumpPerfectness(
   def: ItemDef,

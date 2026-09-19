@@ -126,7 +126,7 @@ export function generateDungeon(s: ExploreState): DungeonState {
       order.filter((id) => rooms[id].kind === "normal"),
     ).slice(0, merchantCount),
   );
-  // 起始房固定 1 件安全投递柜; 治疗/风险配额与加权抽取见 curioPlan.ts。
+  // 起始房补给、成长服务与治疗/风险配额统一由 curioPlan.ts 规划。
   const curioPlan = planRoomCurios(s, rooms, order, merchantRooms);
   for (const id of order) {
     const room = rooms[id];

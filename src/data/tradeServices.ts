@@ -35,13 +35,13 @@ const service = (
 ): TradeServiceDef => ({ id, name, kind, currencyItemId, price, desc, ...extra });
 
 export const TRADE_SERVICES: TradeServiceDef[] = [
-  service("general-material-shop", "通用材料商店", "goods", "bread", 1, "展示 2 种通用材料，选择 1 种 ×1；材料占 1 格。", {
+  service("general-material-shop", "通用材料商店", "goods", "bread", 2, "展示 2 种通用材料，选择 1 种 ×1；材料占 1 格。", {
     stockKind: "material-general",
   }),
   service("near-expiry-food-shop", "临期食品商店", "goods", "cola", 1, "从 2 种食品中选择 1 种 ×1；候选不包含当前支付的可乐。", {
     stockKind: "food",
   }),
-  service("crystal-shop", "水晶交易站", "goods", "fried-chicken", 1, "展示 2 种水晶，选择 1 种 ×1；水晶占 1 格。", {
+  service("crystal-shop", "水晶交易站", "goods", "fried-chicken", 2, "展示 2 种水晶，选择 1 种 ×1；水晶占 1 格。", {
     stockKind: "crystal",
   }),
   service("consumable-shop", "消耗品商店", "goods", "hamburger", 1, "展示 2 种消耗品，选择 1 种 ×1；消耗品占 1 格。", {
@@ -53,10 +53,10 @@ export const TRADE_SERVICES: TradeServiceDef[] = [
   service("medical-service", "医疗服务", "party", "milk", 1, "全队存活角色回复当前生命 20%，不修复体力极限。", {
     effects: [{ type: "HEAL_PARTY", percent: 0.2 }],
   }),
-  service("random-party-buff", "随机团队 BUFF 服务", "random", "cola", 1, "公开 3 个团队 BUFF 及概率，随机获得 1 个祝福遗物。", {
+  service("random-party-buff", "随机团队祝福服务", "random", "cola", 5, "公开 3 个团队祝福及概率，随机获得 1 个永久祝福遗物。", {
     buffOptions: TRADE_BUFF_OPTIONS,
   }),
-  service("weapon-shop", "武器商店服务", "goods", "hamburger", 1, "展示 2 件武器，选择 1 件；装备占 2 格。", {
+  service("weapon-shop", "武器商店服务", "goods", "hamburger", 3, "展示 2 件武器，选择 1 件；装备占 2 格。", {
     stockKind: "equip-weapon",
   }),
   service("card-draw-service", "抽卡服务", "pending", "pizza", 1, "指定角色后获得 3 张专属卡牌候选，选择 1 张加入待办奖励。", {

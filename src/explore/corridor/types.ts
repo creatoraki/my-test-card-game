@@ -4,6 +4,13 @@ import type { NearMapVariant, PortalDir } from "../dungeon/types";
 import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
 
 export type CurioKind =
+  | "equipmentCache"
+  | "fieldTraining"
+  | "cardExchange"
+  | "bondWorkbench"
+  | "perfectnessWorkbench"
+  | "temporaryRelicCache"
+  | "cardArchive"
   | "safe"
   | "crystalVein"
   | "vending"

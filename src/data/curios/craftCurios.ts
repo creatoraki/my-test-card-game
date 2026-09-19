@@ -1,5 +1,6 @@
-import { critterRecipe, exactItem, jobDecision, offeringDecision } from "./helpers";
+import { critterRecipe, jobDecision, offeringDecision } from "./helpers";
 import type { CurioDef } from "./types";
+import { GROWTH_BALANCE } from "./growthBalance";
 
 export const CRAFT_CURIOS: Record<string, CurioDef> = {
   modBench: {
@@ -37,21 +38,15 @@ export const CRAFT_CURIOS: Record<string, CurioDef> = {
     role: "loot",
     verb: "接入",
     size: 210,
-    description: "打印终端的墨盒已经干涸，只有一根霓虹灯管能重新接通它的普通卡牌模板。",
+    description: "终端已经恢复常规打印协议。支付任意临期食品一份，就能获得一次无污染的角色卡牌三选一。",
     decisions: [
       {
-        id: "printTainted",
-        label: "尝试打印",
-        story: "终端勉强打印出一套卡牌模板，但它把污染也一并写入了其中。",
-        effects: [{ type: "FORGE_DRAW_TAINTED", contaminate: 1 }],
+        id: "print",
+        label: "抽取卡牌（任意食品 ×1）",
+        foodCost: GROWTH_BALANCE.drawFood,
+        story: "终端收下食品并开启稳定模板，一次无污染抽卡机会已就绪。",
+        effects: [{ type: "FORGE_DRAW" }],
       },
-      offeringDecision(
-        "replaceCommon",
-        "投放霓虹灯管",
-        "霓虹灯管补足了打印终端的显色频段，可以将一张卡替换成普通模板。",
-        exactItem("neon-tube", 1).map((part) => [part]),
-        [{ type: "REPLACE_CARD_COMMON" }],
-      ),
     ],
   },
   shrine: {

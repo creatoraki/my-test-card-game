@@ -1,6 +1,7 @@
 import type { BattleTier, NodeEvent } from "@/explore/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { CRAFT_CURIOS } from "./craftCurios";
+import { GROWTH_CURIOS } from "./growthCurios";
 import { LOOT_CURIOS } from "./lootCurios";
 import { RISK_CURIOS } from "./riskCurios";
 import { SCAVENGE_CURIOS } from "./scavengeCurios";
@@ -18,6 +19,7 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
   ...SCAVENGE_CURIOS,
   ...SUPPLY_CURIOS,
   ...CRAFT_CURIOS,
+  ...GROWTH_CURIOS,
   ...SERVICE_CURIOS,
   ...TUTORIAL_CURIOS,
   ...LOOT_CURIOS,
@@ -29,18 +31,20 @@ export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
  * 治疗与风险物件不在这里，由 dungeon/curioPlan.ts 按房间配额单独投放。
  */
 export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> = {
-  safe: 3,
+  safe: 2,
   crystalVein: 3,
   vending: 3,
-  remains: 3,
-  compactor: 3,
-  supplyCrate: 3,
+  remains: 2,
+  compactor: 2,
+  supplyCrate: 5,
   toolLocker: 3,
   courierDrone: 3,
-  cashBox: 3,
+  cashBox: 2,
   moduleCase: 3,
   modBench: 2,
-  cardPrinter: 2,
+  cardPrinter: 5,
+  fieldTraining: 4,
+  cardArchive: 1,
   shrine: 1,
 };
 

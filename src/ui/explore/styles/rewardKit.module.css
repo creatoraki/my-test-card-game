@@ -1,4 +1,4 @@
-/* 事件奖励浮层。★ 页眉/正文/底栏/按钮/选择卡的样式全部来自 ui/common/EventPanel ——
+﻿/* 事件奖励浮层。★ 页眉/正文/底栏/按钮/选择卡的样式全部来自 ui/common/EventPanel ——
    这里只留奖励自己的东西: 外框主色、角色/怪癖列的栅格、卡牌与装备候选的排布。
    ⚠ 不要在这里重写宽高(几何见 explorePanel.module.css 的 panel-box)。 */
 .reward-layer {
@@ -14,22 +14,22 @@
 }
 
 .reward-panel {
-  composes: panel-box from "../styles/explorePanel.module.css";
+  composes: panel-box from "./explorePanel.module.css";
   --k: #a7c9ff;
   position: relative;
   overflow: hidden;
 }
 
 .panel-reveal {
-  composes: panel-reveal from "../styles/explorePanel.module.css";
+  composes: panel-reveal from "./explorePanel.module.css";
 }
 
 .panel-bar {
-  composes: panel-bar from "../styles/explorePanel.module.css";
+  composes: panel-bar from "./explorePanel.module.css";
 }
 
 .panel-scan {
-  composes: panel-scan from "../styles/explorePanel.module.css";
+  composes: panel-scan from "./explorePanel.module.css";
 }
 
 .reward-step {
@@ -193,3 +193,4 @@
     transform: none;
   }
 }
+
