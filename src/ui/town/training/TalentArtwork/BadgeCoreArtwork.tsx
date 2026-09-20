@@ -1,14 +1,17 @@
 import { useId } from "react";
 import { TalentEmblem } from "./TalentEmblem";
+import { BadgeRim, rimMotifOf, rimToneOf } from "./BadgeRim";
 
-/** 启程复用星盘中央原图；其余基础徽章使用参考图的爆发与循环纹样。 */
+/** 启程复用星盘中央原图；其余基础徽章用参考图的爆发与循环纹样，外框一律由 BadgeRim 按本徽章配色绘制。 */
 export function BadgeCoreArtwork({ badgeId, size = 100, className }: { badgeId: string; size?: number; className?: string }) {
   const id = useId();
   if (badgeId === "voyage") return <TalentEmblem size={size} className={className} />;
   const cycle = badgeId === "clockwork";
   const hue = cycle ? "#49cfff" : "#ff7167";
   const light = cycle ? "#c5f7ff" : "#ffd6c5";
-  return <svg className={className} width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+  // ⚠ viewBox 与 BadgeRim 对齐到 "-100 -100 200 200"：外缘 r=92 仍占半宽 92%，
+  //   与改版前 100 画布上的 r=46 同比例 ⇒ 三处调用点的版式尺寸一律不用动。
+  return <svg className={className} width={size} height={size} viewBox="-100 -100 200 200" fill="none" aria-hidden="true">
     <defs>
       <radialGradient id={`${id}-background`}><stop stopColor={hue} stopOpacity=".15" /><stop offset="1" stopColor="#050d14" /></radialGradient>
       <linearGradient id={`${id}-light`} x2=".3" y2="1"><stop stopColor={light} /><stop offset=".55" stopColor={hue} /><stop offset="1" stopColor={light} /></linearGradient>
@@ -23,10 +26,14 @@ export function BadgeCoreArtwork({ badgeId, size = 100, className }: { badgeId: 
         </g>}
       </g>
     </defs>
-    <circle cx="50" cy="50" r="46" fill={`url(#${id}-background)`} stroke={hue} strokeWidth="1.3" />
-    {[0, 45, 90, 135, 180, 225, 270, 315].map(angle => <path key={angle} d="m50 2 2 2-2 3-2-3Z"
-      transform={`rotate(${angle} 50 50)`} fill="#112328" stroke={hue} strokeWidth=".7" />)}
-    <use href={`#${id}-glyph`} filter={`url(#${id}-glow)`} opacity=".85" />
-    <use href={`#${id}-glyph`} />
+    <BadgeRim tone={rimToneOf(badgeId)} motif={rimMotifOf(badgeId)} />
+    {/* 中心纹样仍按原来的 0..100 坐标写，整体搬到原点再放大到内盘尺度：
+        原 r=46 底盘落到 r≈51（纹样外缘 r≈42，与启程星芒的 43 同档），稳落在内盘 r=70 内、与内细环 r=62 留一圈呼吸。
+        原先那圈 8 个小菱形点已删 —— 放大后会和 r=62 细环、外框刻度环叠成三重环，刻度统一归 BadgeRim 管。 */}
+    <g transform="scale(1.1) translate(-50 -50)">
+      <circle cx="50" cy="50" r="46" fill={`url(#${id}-background)`} stroke={hue} strokeWidth="1.3" />
+      <use href={`#${id}-glyph`} filter={`url(#${id}-glow)`} opacity=".85" />
+      <use href={`#${id}-glyph`} />
+    </g>
   </svg>;
 }

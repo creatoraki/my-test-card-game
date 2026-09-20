@@ -1,5 +1,5 @@
 import { RULES } from "@/engine";
-import { getBadge, spentPoints } from "@/data";
+import { getBadge, hasActivatableNode, spentPoints } from "@/data";
 import { squadTrainingPoints, useTownStore } from "@/store/townStore";
 
 export interface FormationTodo {
@@ -38,7 +38,9 @@ export function useFormationTodo(): FormationTodo {
 
   const spent = badge ? spentPoints(badge, squadTalent.nodes) : 0;
   const unallocatedPoints = trainingPoints - spent;
-  if (unallocatedPoints > 0) {
+  // ⚠ 只有「还点得动」才算待办: 剩余点数不足以支付任何一颗已解锁节点时(如只剩 1 点、门槛 2 点),
+  //   这笔点数当前花不掉, 再提示就成了玩家无法消除的死待办。
+  if (badge && unallocatedPoints > 0 && hasActivatableNode(badge, squadTalent.nodes, unallocatedPoints)) {
     items.push(`${unallocatedPoints} 点训练点未分配`);
   }
 

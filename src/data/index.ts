@@ -24,6 +24,7 @@ export {
   costToReach,
   getBadge,
   getNode,
+  hasActivatableNode,
   isUnlocked,
   pathTo,
   spentPoints,

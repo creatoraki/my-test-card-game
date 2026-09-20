@@ -225,6 +225,17 @@ export function canActivate(
   return remaining >= node.cost;
 }
 
+// 剩余训练点是否还能点亮任何一颗节点。
+// ★ 「有剩余点数」不等于「还花得掉」: 只剩 1 点而所有已解锁节点都要 2 点时这笔点数就是死的,
+//   据点的「训练点未分配」待办必须据此收敛, 否则会变成一条永远消不掉的提示。
+export function hasActivatableNode(
+  badge: SquadBadgeDef,
+  activated: string[],
+  remaining: number,
+): boolean {
+  return badge.nodes.some((node) => canActivate(badge, activated, node.id, remaining));
+}
+
 // 能否退还: 已激活, 且把它移除后其余每个已激活节点仍满足 isUnlocked。
 // ★ 通用写法: 从集合里摘掉再全量校验依赖 —— 同时覆盖链式与将来的多前置结构。
 export function canRefund(badge: SquadBadgeDef, activated: string[], id: string): boolean {
