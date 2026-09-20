@@ -37,45 +37,83 @@
   pointer-events: auto;
 }
 
-/* ── 未启用徽章时的空态 ── */
+/* ── 未启用徽章时的空态 ──
+   ★ 不再是一块描边小面板: 背景板本来就画满了纹样, 上面再叠个框只会把板子切碎。
+     这里改成与 TalentHeader 碑文同款的衬线金字直接落在板心(无边框/无底色),
+     整块字即按钮 —— 徽章选择被关掉后, 这是唯一能把它叫回来的入口。 */
 .empty {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 425px; /* 板心 = 天赋树的星盘圆心(RADIAL_CENTER), 换上徽章后树就在这儿展开 */
+  left: 836px;
   display: grid;
-  width: 560px;
   justify-items: center;
-  gap: 14px;
-  padding: 46px 40px;
-  border: 1px solid rgb(255 194 26 / 0.28);
-  background: linear-gradient(150deg, rgb(30 22 12 / 0.94), rgb(14 10 20 / 0.94));
+  gap: 20px;
+  padding: 12px 40px;
+  border: 0;
+  background: transparent;
+  clip-path: none;
   pointer-events: auto;
   transform: translate(-50%, -50%);
+  animation: talentEmptyIn 420ms ease both;
 }
 
 .empty-title {
-  margin: 0;
-  color: #ffe9a8;
-  font-size: 26px;
+  color: #ffe3aa;
+  font-family: var(--talent-serif);
+  font-size: 42px;
   font-weight: 700;
-  letter-spacing: 6px;
+  letter-spacing: 10px;
+  text-indent: 10px; /* 抵掉末字后面那格字距, 保持视觉居中 */
+  background: linear-gradient(#fff8e1 12%, #ffe6af 46%, #b67d33 95%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 1px #23180c) drop-shadow(0 0 10px #c8903944);
+}
+
+/* 一道渐隐的金线, 与抬头「训练点」那条下划线同源。 */
+.empty-rule {
+  width: 320px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #cba56488 30%, #cba564aa 50%, #cba56488 70%, transparent);
+  transition: width 260ms ease, background 260ms ease;
 }
 
 .empty-sub {
-  margin: 0;
-  color: #b6a88c;
-  font-size: 18px;
-  letter-spacing: 2px;
+  color: #c1a16b;
+  font-family: var(--talent-serif);
+  font-size: 20px;
+  line-height: 1.65;
+  letter-spacing: 4px;
+  text-indent: 4px;
 }
 
-.empty-open {
-  margin-top: 8px;
-  padding: 10px 28px;
-  border: 1px solid rgb(255 194 26 / 0.5);
-  background: rgb(255 194 26 / 0.14);
-  color: #ffe9a8;
-  font-size: 18px;
-  letter-spacing: 4px;
+.empty:hover .empty-sub,
+.empty:focus-visible .empty-sub {
+  color: #ffdfa6;
+}
+
+.empty:hover .empty-rule,
+.empty:focus-visible .empty-rule {
+  width: 380px;
+  background: linear-gradient(90deg, transparent, #ffd89a99 30%, #ffd89add 50%, #ffd89a99 70%, transparent);
+}
+
+.empty:focus-visible {
+  outline: 1px solid #ffe4a8;
+  outline-offset: 10px;
+}
+
+/* ⚠ 全站按钮按下会 translateY(1px), 会顶掉这里的居中位移 —— 必须原样按住。 */
+.empty.empty:active {
+  transform: translate(-50%, -50%);
+}
+
+@keyframes talentEmptyIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px));
+  }
 }
 
 @keyframes talentVeilIn {

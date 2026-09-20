@@ -38,6 +38,12 @@ interface Props {
    * 两个 window 监听会同时触发, 表现为"关弹窗顺手把详情也退了"。
    */
   escEnabled: boolean;
+  /**
+   * 离屏预热态(FormationScreen/detailPrewarm): 这棵树只是被渲染出来让浏览器把样式、布局与
+   * 立绘解码先跑一遍, 玩家看不见它。⚠ 凡是「持续在动」的东西都要在这一态里关掉 ——
+   * 预热要的是一次静态绘制, 不是一场没人看的演出。
+   */
+  prewarm?: boolean;
   canPrevious: boolean;
   canNext: boolean;
   onPrevious: () => void;
@@ -51,6 +57,7 @@ export function CharacterDetailView({
   leaving,
   closingOverlays,
   escEnabled,
+  prewarm = false,
   canPrevious,
   canNext,
   onPrevious,
@@ -110,7 +117,9 @@ export function CharacterDetailView({
   // Esc: 锻造层自己处理逐层退出, 详情态只在没有锻造层时响应。
   // ⚠ 编队态那一层的 Esc 在 FormationScreen 里, 它只在 roster 态响应, 两边不会打架。
   useEffect(() => {
-    if (!escEnabled) return;
+    // ⚠ 预热层再兜一道: 它传进来的 escEnabled 已经是 false, 这里多一层保险,
+    //   免得将来有人漏传就凭空多出一份 keydown 监听。
+    if (!escEnabled || prewarm) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (forgeView) return;
@@ -133,7 +142,7 @@ export function CharacterDetailView({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeSlot, canNavigate, canNext, canPrevious, escEnabled, equipPreview, forgeView, onBack, onNext, onPrevious]);
+  }, [activeSlot, canNavigate, canNext, canPrevious, escEnabled, equipPreview, forgeView, onBack, onNext, onPrevious, prewarm]);
 
   if (!cs) return null;
 
@@ -199,7 +208,8 @@ export function CharacterDetailView({
             exp={cs.exp}
             stats={stats}
             preview={previewStats}
-            rolling={!morphing && !leaving}
+            // 预热层里 21 条属性各起一路 rAF 滚数值纯属空转 —— 那一屏没人在看。
+            rolling={!morphing && !leaving && !prewarm}
             equipped={cs.equipped}
             activeSlot={activeSlot}
             onSelect={(slot) => {

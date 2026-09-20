@@ -1,4 +1,4 @@
-import { burdenHitPenalty, burdenInitiativePenalty, RULES } from "@/engine";
+import { burdenDodgePenalty, burdenHitPenalty, burdenPrecisionPenalty, RULES } from "@/engine";
 import { backpackSlots, burdenNow, partyBurdenAdapt } from "@/explore/session";
 import { useExploreStore } from "@/store/exploreStore";
 import { RailPopover } from "@/ui/common/RailPopover";
@@ -35,7 +35,8 @@ export function BurdenGauge() {
   const adapt = partyBurdenAdapt(session);
   const burden = burdenNow(session);
   const hitPenalty = burdenHitPenalty(burden);
-  const initiativePenalty = burdenInitiativePenalty(burden);
+  const dodgePenalty = burdenDodgePenalty(burden);
+  const precisionPenalty = burdenPrecisionPenalty(burden);
   const fill = total > 0 ? occupied / total : 0;
   const level = fill >= 1 ? "full" : fill >= WARN_AT ? "warn" : "ok";
   const adaptNote = adapt > 0 ? `（占格 ${occupied} − 小队负重适应 ${adapt}）` : "";
@@ -46,7 +47,7 @@ export function BurdenGauge() {
       data-level={level}
       data-rail-item
       tabIndex={0}
-      aria-label={`背包负重，已占 ${occupied} / ${total} 格，有效负重 ${burden}，命中 −${hitPenalty}%，先手 −${initiativePenalty}`}
+      aria-label={`背包负重，已占 ${occupied} / ${total} 格，有效负重 ${burden}，命中 −${hitPenalty}%，闪避 −${dodgePenalty}%，精准 −${precisionPenalty}%`}
     >
       <BackpackIcon />
       <span key={occupied} className={s.slots}>
@@ -58,7 +59,8 @@ export function BurdenGauge() {
           <p>已占 {occupied} / {total} 格</p>
           <p>有效负重 {burden}{adaptNote}</p>
           <p>命中 −{hitPenalty}%</p>
-          <p>先手 −{initiativePenalty}</p>
+          <p>闪避 −{dodgePenalty}%</p>
+          <p>精准 −{precisionPenalty}%</p>
         </div>
       </RailPopover>
     </div>

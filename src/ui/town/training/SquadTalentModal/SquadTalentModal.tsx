@@ -72,13 +72,12 @@ export function SquadTalentModal({ closing = false, onClose, morph }: Props) {
             <SquadResourceBar highlightKey={talent.hoverKey} className={s["resource-bar"]} />
           </>
         ) : (
-          <div className={s.empty} role="status">
-            <h3 className={s["empty-title"]}>尚未启用徽章</h3>
-            <p className={s["empty-sub"]}>先选一枚小队徽章, 天赋树才会在这里展开。</p>
-            <button className={s["empty-open"]} type="button" onClick={() => setPickerOpen(true)}>
-              选择徽章
-            </button>
-          </div>
+          // 空态不再糊一块小面板: 直接用背景板同款的衬线碑文落在板心, 整块字就是打开徽章选择的入口。
+          <button className={s.empty} type="button" onClick={() => setPickerOpen(true)}>
+            <span className={s["empty-title"]}>尚未启用徽章</span>
+            <span className={s["empty-rule"]} aria-hidden="true" />
+            <span className={s["empty-sub"]}>点此择定一枚小队徽章，天赋树将在此展开</span>
+          </button>
         )}
       </TalentPanelShell>
 

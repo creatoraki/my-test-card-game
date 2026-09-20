@@ -122,6 +122,9 @@ export function burdenOf(state: BattleState, cmb: Combatant): number {
 }
 
 // 命中概率(百分点, 已截断到 5%~100%)。攻击方 vs 防御方各出一半属性。
+// ★ 负重的三项惩罚都减在 statOf **之后** —— capProb 会把闪避的下限截到 0,
+//   先扣再进 statOf 会被那条下限吞掉; 精准不封顶, 被压成负值后会反向放大目标闪避,
+//   对 0 闪避的目标也等效为一次额外的命中惩罚, 这是设计上有意保留的叠加。
 export function hitChance(
   state: BattleState,
   attacker: Combatant,
@@ -129,14 +132,15 @@ export function hitChance(
   bonusPct = 0,
 ): number {
   const c = RULES.combat;
-  const dodge = statOf(defender, "dodgeRate");
-  const effectiveDodge = Math.max(0, dodge - statOf(attacker, "precision"));
+  const precision =
+    statOf(attacker, "precision") - burdenPrecisionPenalty(burdenOf(state, attacker));
+  const dodge = statOf(defender, "dodgeRate") - burdenDodgePenalty(burdenOf(state, defender));
+  const effectiveDodge = Math.max(0, dodge - precision);
   const raw =
     c.baseHitChance +
     statOf(attacker, "hitRate") +
     -effectiveDodge -
     burdenHitPenalty(burdenOf(state, attacker)) +
-    (attacker.team === "enemy" ? c.enemyBaseHitBonus : 0) +
     bonusPct;
   return Math.max(c.hitFloorPct, Math.min(c.hitCeilPct, raw));
 }
@@ -166,11 +170,11 @@ export function healValue(healPower: number, multiplier = 1): number {
 }
 
 // 我方小队先手均值 S_party —— 只算**存活**的上阵角色, 有人阵亡节奏就会变。
+// ★ 背包负重不参与这里: 节奏只由角色面板与装备决定, 捡东西不改敌人排程。
 export function partyInitiative(state: BattleState): number {
   const alive = state.playerIds.map((id) => state.combatants[id]).filter((c) => c.alive);
   if (alive.length === 0) return 0;
-  const average = alive.reduce((s, c) => s + statOf(c, "initiative"), 0) / alive.length;
-  return average - burdenInitiativePenalty(state.burden);
+  return alive.reduce((s, c) => s + statOf(c, "initiative"), 0) / alive.length;
 }
 
 // 敌人当前招式的蓄力时长: T = max(1, D_skill + S_party − S_enemy)。
@@ -241,6 +245,21 @@ export function burdenHitPenalty(burden: number): number {
   return Math.floor(burden / RULES.burden.hitPer);
 }
 
-export function burdenInitiativePenalty(burden: number): number {
-  return Math.floor(burden / RULES.burden.initiativePer);
+export function burdenDodgePenalty(burden: number): number {
+  return Math.floor(burden / RULES.burden.dodgePer);
+}
+
+export function burdenPrecisionPenalty(burden: number): number {
+  return Math.floor(burden / RULES.burden.precisionPer);
+}
+
+// 敌人面板基线。★ 怪物的基础命中与基础格挡在这里并入, 不在 hitChance 里做阵营特判 ——
+// 敌人数据写的同名属性会叠在基线之上, 图鉴与建局共用同一个口径。
+export function enemyBaselineStats(partial: Partial<StatBlock>): StatBlock {
+  const c = RULES.combat;
+  return makeStats({
+    ...partial,
+    hitRate: (partial.hitRate ?? 0) + c.enemyBaseHitRate,
+    blockRate: (partial.blockRate ?? 0) + c.enemyBaseBlockRate,
+  });
 }

@@ -44,7 +44,9 @@ export {
   squadWaitLimit,
   burdenValue,
   burdenHitPenalty,
-  burdenInitiativePenalty,
+  burdenDodgePenalty,
+  burdenPrecisionPenalty,
+  enemyBaselineStats,
 } from "./stats";
 export { STATUS_DEFS, getStatusDef } from "./statuses";
 export { cardCost, manaCostOf, starPayable, starlightPayment, starlightStacksOf } from "./cost";

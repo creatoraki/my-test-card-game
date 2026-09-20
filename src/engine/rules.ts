@@ -65,7 +65,10 @@ export const RULES = {
     hunterMarkMultiplier: 1.2, // 猎人标记: 受到伤害 ×
     overloadDodgePerStack: 2, // 过载每层: 闪避 +2 个百分点
     overloadAttackPerStack: 10, // 过载每层: 攻击力 +10
-    enemyBaseHitBonus: 5, // 怪物阵营统一命中补正(百分点)
+    // 怪物阵营的面板基线 —— 建局时由 stats.enemyBaselineStats 并入敌人 StatBlock,
+    // 不是结算时的阵营特判; 敌人数据里写的同名属性在这条基线之上累加。
+    enemyBaseHitRate: 5, // 怪物基础命中率(百分点)
+    enemyBaseBlockRate: 10, // 怪物基础格挡率(百分点)
 
     defenseConstant: 50, // 减伤 = 防御力 / (防御力 + 该常量)
     attackDivisor: 5, // 攻击牌伤害 = 攻击力 ÷ 该值 × 倍率
@@ -91,12 +94,14 @@ export const RULES = {
     bigHarvest: 8,
   },
 
-  // 探索负重 —— 背包固定 24 格; 每 4 点负重命中 −1%, 每 10 点负重先手 −1。
-  // 有效负重 = max(0, 已占格数 - 小队负重适应); 两项惩罚各自向下取整。
+  // 探索负重 —— 背包固定 24 格; 每 4 点负重命中 −1%, 每 2 点负重闪避 −1%、精准 −1%。
+  // ★ 负重不再触碰先手: 战斗节奏只由装备构筑决定, 背包重量不改敌人排程。
+  // 有效负重 = max(0, 已占格数 - 小队负重适应); 三项惩罚各自向下取整。
   burden: {
     backpackSlots: 24,
     hitPer: 4,
-    initiativePer: 10,
+    dodgePer: 2,
+    precisionPer: 2,
   },
 
   // 角色养成 —— ★ 无等级、无属性点。角色面板固定, 经验只用于锻造个人卡组。

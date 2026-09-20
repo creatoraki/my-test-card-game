@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getItemDef } from "@/data";
-import { burdenHitPenalty, burdenInitiativePenalty, RULES } from "@/engine";
+import { burdenDodgePenalty, burdenHitPenalty, burdenPrecisionPenalty, RULES } from "@/engine";
 import {
   backpackFree,
   backpackSlots,
@@ -75,7 +75,8 @@ export default function BackpackPanel({
   const free = backpackFree(session);
   const burden = burdenNow(session);
   const hitPenalty = burdenHitPenalty(burden);
-  const initiativePenalty = burdenInitiativePenalty(burden);
+  const dodgePenalty = burdenDodgePenalty(burden);
+  const precisionPenalty = burdenPrecisionPenalty(burden);
   const adapt = partyBurdenAdapt(session);
   const pending = session.pendingPickup;
   const replaceMode = pending.length > 0;
@@ -112,7 +113,7 @@ export default function BackpackPanel({
                 }
               </span>
               <span className={s["bp-penalty"]}>
-                命中 −{hitPenalty}% · 先手 −{initiativePenalty}
+                命中 −{hitPenalty}% · 闪避 −{dodgePenalty}% · 精准 −{precisionPenalty}%
               </span>
               <span className={s["bp-adapt"]}>负重适应 {Math.round(adapt)} 格</span>
             </div>
@@ -204,7 +205,7 @@ export default function BackpackPanel({
               <div className={s["bp-detail"]}>
                 <ItemDetail
                   stack={sel}
-                  placeholder="背包里的东西都会占格子——每格让全队命中、暴击、闪避各降 1%。"
+                  placeholder="背包里的东西都会占格子——每 4 格让全队命中降 1%，每 2 格让闪避和精准各降 1%。"
                 >
                   {sel && selDef && (
                     <>

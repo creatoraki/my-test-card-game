@@ -86,22 +86,26 @@ describe("属性口径", () => {
     expect(p).toBeLessThanOrEqual(RULES.combat.hitCeilPct);
   });
 
-  // 负重是我方自己背的包 —— 它只削我方命中与小队先手, 不影响闪避和暴击。
-  it("负重只扣我方命中与先手", () => {
+  // 负重是我方自己背的包 —— 它削我方命中、闪避与精准, 不影响暴击, 也**不再影响先手**。
+  it("负重扣我方命中、闪避与精准, 不碰先手", () => {
     const light = battleWith("swordsman-basic-attack");
     const heavy = { ...battleWith("swordsman-basic-attack"), burden: 20 };
     const sw = heavy.combatants["swordsman"];
     const enemy = heavy.combatants[heavy.enemyIds[0]];
 
+    // 我方出手: 命中 −floor(20/4)=5, 精准 −floor(20/2)=10 又经 max(0, 目标闪避 − 精准)
+    // 对 0 闪避的目标等效再扣 10 ⇒ 合计 15。
     expect(
       hitChance(light, light.combatants["swordsman"], light.combatants[light.enemyIds[0]]) -
         hitChance(heavy, sw, enemy),
-    ).toBeCloseTo(5, 6);
+    ).toBeCloseTo(15, 6);
     expect(critChance(heavy, sw)).toBe(statOf(sw, "critRate"));
-    expect(hitChance(heavy, enemy, sw)).toBe(
-      hitChance(light, light.combatants[light.enemyIds[0]], light.combatants["swordsman"]),
-    );
-    expect(partyInitiative(light) - partyInitiative(heavy)).toBeCloseTo(2, 6);
+    // 敌方出手: 我方闪避被负重削 floor(20/2)=10, 所以敌人更容易打中。
+    expect(
+      hitChance(heavy, enemy, sw) -
+        hitChance(light, light.combatants[light.enemyIds[0]], light.combatants["swordsman"]),
+    ).toBeCloseTo(10, 6);
+    expect(partyInitiative(light) - partyInitiative(heavy)).toBeCloseTo(0, 6);
   });
 
   it("粒子污染放大攻击伤害, 且闪避加成受 70% 封顶", () => {
@@ -171,10 +175,13 @@ describe("时刻推进(核心机制)", () => {
 describe("回合结束冲刷: 未行动的敌人各打一次", () => {
   it("玩家不出牌直接过合, 会挨两次攻击", () => {
     const b = battleWith("swordsman-basic-attack");
+    // ★ 本例考的是"回合结束会把没行动的敌人冲刷掉", 不是命中判定 ——
+    //   把我方基础闪避清零, 让敌人必定命中(命中率触顶 100 不掷骰), 结果才与随机种子无关。
+    for (const id of b.playerIds) b.combatants[id].stats.dodgeRate = 0;
     const before = b.combatants["swordsman"].hp;
     endRound(b);
     // ★ 无仇恨 —— 敌人随机选目标; 单人上阵时两次都落在剑士身上。
-    // 具体掉血受命中/暴击/格挡影响, 只断言"确实挨打了"。
+    // 具体掉血受暴击/格挡影响, 只断言"确实挨打了"。
     expect(b.combatants["swordsman"].hp).toBeLessThan(before);
   });
 });

@@ -36,6 +36,7 @@ import { markTownReturn } from "@/ui/town/townReturn";
 import { useSquadTalent } from "@/ui/town/training/useSquadTalent";
 import { CrewGrid } from "./CrewGrid";
 import { SquadHud } from "./SquadHud";
+import { DetailPrewarm, useDetailPrewarm } from "./detailPrewarm";
 import { MorphFlyer } from "./formationMorph/MorphFlyer";
 import {
   BACK_GATHER_MS,
@@ -101,6 +102,15 @@ export function FormationScreen() {
   }, [baseOrder, awakened]);
   const restingIds = useMemo(() => new Set(occupants.map((occupant) => occupant.charId)), [occupants]);
 
+  // ★ 详情态的**首次**上屏是一笔一次性重活(版面、clip-path mask、1152×2048 立绘按详情尺寸重采样),
+  //   过去它整个落在第一次点卡那 620ms 的过场里, 表现就是"第一次切换卡, 之后丝滑"。
+  //   这里趁编队态的空闲把它提前付掉, 逐位把名册轮一遍; 详见 detailPrewarm/useDetailPrewarm.ts。
+  // ⚠ 只在编队态、没过场、没浮层时开工 —— 玩家一点卡, 预热层当帧让位。
+  const prewarmCharId = useDetailPrewarm(
+    roster,
+    morph.mode === "roster" && morph.phase === "idle" && talentMorph.panel === null,
+  );
+
   const detailIndex = morph.charId ? roster.indexOf(morph.charId) : -1;
   const previousCharId = detailIndex > 0 ? roster[detailIndex - 1] : null;
   const nextCharId = detailIndex >= 0 && detailIndex < roster.length - 1 ? roster[detailIndex + 1] : null;
@@ -154,6 +164,9 @@ export function FormationScreen() {
       <img className={s.bg} src={FORMATION_BG_ART} alt="" draggable={false} />
       {/* 冷色暗罩: 宿舍图是深色工业空间, 压住局部高光后让队伍卡与亮玻璃 HUD 保持层次。 */}
       <div className={s.veil} />
+
+      {/* 详情态预热层: 近乎全透明, 压在卡阵之下, 玩家看不见也点不到。 */}
+      {prewarmCharId && <DetailPrewarm charId={prewarmCharId} />}
 
       {morph.showRoster && (
         <CrewGrid

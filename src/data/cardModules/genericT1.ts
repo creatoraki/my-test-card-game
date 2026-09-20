@@ -51,7 +51,9 @@ export const GENERIC_T1_CARD_MODULES: CardModuleDef[] = [
     textSuffix: "（暴击模组1：使用该卡牌时，计算结果时额外获得 25% 暴击率）",
   },
   {
-    // 唯一在某些战斗里收益为零的面板件(对 0 闪避目标), 所以给两项且装配条件最宽松。
+    // 给两项且装配条件最宽松。★ 精准对 0 闪避目标不再是空词条 ——
+    //   背包负重会把我方精准压成负值, 负精准在 max(0, 目标闪避 − 精准) 里反向放大目标闪避,
+    //   所以这一项在满包时对任何目标都有收益。
     itemId: "precision-module-t1",
     canEquip: hasDamageEffect,
     equipText: "攻击卡",

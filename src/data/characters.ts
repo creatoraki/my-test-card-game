@@ -24,7 +24,8 @@ export const CHARACTERS: CharacterDef[] = [
     name: "剑士",
     emoji: "⚔️",
     color: "#78c8ff",
-    // 首版基准: HP 65 / 攻击 100 / 治愈力 100 / 防御 0 / 先手 20(《角色养成设计.md》3.0)。
+    // 首版基准: HP 65 / 攻击 100 / 治愈力 100 / 防御 0 / 先手 20 / 闪避 15(《角色养成设计.md》3.0)。
+    // 闪避 15 与怪物基础命中 5 配套 —— 空包时角色约有 10% 几率闪开怪物攻击。
     // 治愈力按 ÷5 结算(RULES.combat.healDivisor), 100 治愈力使基础卡的 50% 治疗/护盾各为 10 点。
     base: makeStats({
       maxHp: 70,
@@ -32,6 +33,7 @@ export const CHARACTERS: CharacterDef[] = [
       healPower: 90,
       defense: 5,
       initiative: 20,
+      dodgeRate: 15,
       critRate: 10,
       critDamage: 150,
     }),
@@ -86,6 +88,7 @@ export const CHARACTERS: CharacterDef[] = [
       healPower: 100,
       defense: 0,
       initiative: 20,
+      dodgeRate: 15,
       critRate: 10,
       critDamage: 150,
     }),
@@ -128,6 +131,7 @@ export const CHARACTERS: CharacterDef[] = [
       healPower: 100,
       defense: 0,
       initiative: 20,
+      dodgeRate: 15,
       critRate: 5,
       critDamage: 160,
     }),
@@ -169,6 +173,7 @@ export const CHARACTERS: CharacterDef[] = [
       healPower: 105,
       defense: 5,
       initiative: 20,
+      dodgeRate: 15,
       critRate: 0,
       critDamage: 150,
     }),
@@ -214,6 +219,7 @@ export const CHARACTERS: CharacterDef[] = [
       healPower: 110,
       defense: 5,
       initiative: 20,
+      dodgeRate: 15,
       critRate: 0,
       critDamage: 150,
     }),

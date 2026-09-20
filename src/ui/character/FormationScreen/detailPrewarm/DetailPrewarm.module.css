@@ -1,0 +1,17 @@
+/* 详情态预热层 —— 铺满编队页的 1920×1080 画布, 与真实详情态同一套几何,
+   预热出来的布局与光栅化结果才对得上。⚠ 本文件里每个 px 都是「设计 px」。 */
+
+/* ⚠⚠ opacity 必须是一个**极小但非零**的值。
+   display:none / visibility:hidden / content-visibility:hidden / 挪出视口(translate -9999px)
+   这几种写法浏览器都会直接跳过光栅化 —— 那样预热就是白做, 首次点卡照样掉帧。
+   0.004 肉眼不可见(且这一层还被卡阵与暗罩压着), 但绘制流程一步不少。
+   ★ opacity < 1 顺带建立层叠上下文: CharacterDetailView 根部 .view 的 z-index:2 被关在层内,
+     不会冒到卡阵之上。 */
+.prewarm {
+  position: absolute;
+  inset: 0;
+  z-index: 0; /* 底图之上、卡阵(1)之下 */
+  contain: layout paint style; /* 把预热层的布局影响关在层内, 别把编队态卷进重排 */
+  opacity: 0.004;
+  pointer-events: none;
+}

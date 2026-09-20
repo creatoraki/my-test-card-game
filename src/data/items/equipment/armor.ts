@@ -12,8 +12,8 @@ const ARMOR_FAMILIES: EquipFamily[] = [
   {
     familyId: "mobile-armor",
     name: "机动护甲",
-    desc: "以闪避、先手与防御强化机动生存能力。",
-    affixes: ["dodgeRate", "initiative", "defense"],
+    desc: "以闪避、格挡与防御强化机动生存能力。",
+    affixes: ["dodgeRate", "blockRate", "defense"],
   },
   {
     familyId: "fire-control-armor",

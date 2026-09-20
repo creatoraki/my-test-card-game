@@ -10,7 +10,7 @@ import type {
   StatBlock,
 } from "./types";
 import type { QuirkId } from "./quirks";
-import { makeStats } from "./stats";
+import { enemyBaselineStats } from "./stats";
 import { shuffle } from "./rng";
 import { applyStatus, log } from "./ops";
 import { rollChallenges } from "./challenges";
@@ -99,7 +99,7 @@ export function createBattleState(
       hpLimit: maxHp,
       maxHp,
       shield: 0,
-      stats: makeStats({ ...def.stats, maxHp }),
+      stats: enemyBaselineStats({ ...def.stats, maxHp }),
       mods: {},
       statuses: [],
       alive: true,

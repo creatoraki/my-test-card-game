@@ -11,8 +11,8 @@ const WEAPON_FAMILIES: EquipFamily[] = [
   {
     familyId: "quickstrike-gauntlet",
     name: "拳套",
-    desc: "围绕低费卡牌与行动节奏构筑的速攻武器。",
-    affixes: ["lowCostMastery", "initiative"],
+    desc: "围绕低费卡牌与稳定命中构筑的速攻武器。",
+    affixes: ["lowCostMastery", "hitRate"],
   },
   {
     familyId: "armor-piercing-crossbow",
@@ -35,14 +35,14 @@ const WEAPON_FAMILIES: EquipFamily[] = [
   {
     familyId: "saber",
     name: "军刀",
-    desc: "兼顾攻击、先手和命中率的制式近战武器。",
-    affixes: ["attack", "initiative", "hitRate"],
+    desc: "兼顾攻击、暴击和命中率的制式近战武器。",
+    affixes: ["attack", "critRate", "hitRate"],
   },
   {
     familyId: "glass-dagger",
     name: "匕首",
-    desc: "牺牲生命上限，换取低费精通与暴击的极端速攻武器。",
-    affixes: ["lowCostMastery", "critRate", "initiative"],
+    desc: "牺牲生命上限，换取低费精通与暴击爆发的极端速攻武器。",
+    affixes: ["lowCostMastery", "critRate", "critDamage"],
     drawback: "maxHp",
   },
   {
@@ -55,9 +55,9 @@ const WEAPON_FAMILIES: EquipFamily[] = [
   {
     familyId: "cross-sword",
     name: "盾斧",
-    desc: "牺牲先手，换取生命上限、高费精通和攻击力的极端武器。",
+    desc: "牺牲命中率，换取生命上限、高费精通和攻击力的极端武器。",
     affixes: ["maxHp", "highCostMastery", "attack"],
-    drawback: "initiative",
+    drawback: "hitRate",
   },
   {
     familyId: "war-hammer",
