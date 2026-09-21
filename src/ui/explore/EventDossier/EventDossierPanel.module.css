@@ -59,52 +59,36 @@
     linear-gradient(90deg, #03121b 0%, #03121b 28%, #03121be6 35%, #03121b8c 46%, #03121b26 56%, transparent 62%);
 }
 
-/* ✕ 中心 (1316,23), 线长 25。 */
-.close {
-  position: absolute;
-  left: 1294px;
-  top: 1px;
-  z-index: 6;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  padding: 9.5px;
-  border: 0;
-  background: none;
-  color: #f4f9fa;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: color 160ms ease, transform 160ms ease, filter 160ms ease;
-}
-
-.close svg {
-  width: 25px;
-  height: 25px;
-}
-
-.close:not(:disabled):hover,
-.close:not(:disabled):focus-visible {
-  outline: none;
-  color: var(--k);
-  filter: drop-shadow(0 0 6px var(--k));
-  transform: rotate(90deg);
-}
-
-.close:disabled {
-  cursor: not-allowed;
-  opacity: 0.3;
-}
-
+/* 场景槽。换场 = 旧内容向上滚出 → 新内容从下方滚入(时长与 EventDossierPanel.tsx 的 SCENE_*_MS 一致)。
+   换场期间把滚动限制在标题区(y≈330)以下, 内容不会从大标题上面扫过去; 同时屏蔽点击, 旧快照上的按钮不可再点。 */
 .scene {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  animation: dossierSceneIn 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: dossierSceneIn 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.scene[data-phase="leaving"] {
+  clip-path: inset(330px 0 0 0);
+  animation: dossierSceneOut 280ms cubic-bezier(0.55, 0, 0.8, 0.4) forwards;
+}
+
+.scene[data-phase="entering"] {
+  clip-path: inset(330px 0 0 0);
+}
+
+.scene[data-phase="leaving"] *,
+.scene[data-phase="entering"] * {
+  pointer-events: none !important;
 }
 
 @keyframes dossierSceneIn {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateY(90px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dossierSceneOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-90px); }
 }

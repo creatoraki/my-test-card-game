@@ -1,6 +1,6 @@
 /** 事件档案面板用到的内联图标。颜色一律走 currentColor，由按钮状态决定。 */
 
-export type DossierIconName = "claim" | "upgrade" | "detail" | "leave" | "offer" | "back" | "confirm" | "bag" | "warn";
+export type DossierIconName = "claim" | "upgrade" | "detail" | "leave" | "offer" | "back" | "confirm" | "bag" | "discard" | "warn";
 
 export function DossierIcon({ name }: { name: DossierIconName }) {
   switch (name) {
@@ -41,28 +41,16 @@ export function DossierIcon({ name }: { name: DossierIconName }) {
         <path d="M6 12h28v24H6Z" />
         <path d="M14 12V6h12v6M6 21h28M17 21v5h6v-5" />
       </svg>;
+    case "discard":
+      return <svg viewBox="0 0 40 40" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.6">
+        <path d="M5 10h30M15 10V5h10v5M9 10l2 26h18l2-26" />
+        <path d="M16 17v12M24 17v12" strokeLinecap="square" />
+      </svg>;
     case "warn":
       return <svg viewBox="0 0 40 40" aria-hidden>
         <path fill="currentColor" d="M20 3 38 36H2Zm-2.4 11v11h4.8V14Zm0 14v4.4h4.8V28Z" fillRule="evenodd" />
       </svg>;
   }
-}
-
-/** 净化粒子晶体：六棱外壳 + 内部多面体切面。 */
-export function ParticleCrystal() {
-  return <svg viewBox="0 0 56 56" aria-hidden>
-    <path d="M28 2 51 15v26L28 54 5 41V15Z" fill="#0a8f9c" stroke="#5ff9ff" strokeWidth="2.4" />
-    <path d="M28 8 45 18v20L28 48 11 38V18Z" fill="#2fe9f3" />
-    <path d="M28 8 11 18l12 8Zm0 0 17 10-12 8Zm-5 18h10l-5 22Z" fill="#b9fdff" opacity="0.75" />
-    <path d="M11 18v20l12-12Zm34 0v20L33 26Z" fill="#12bfcc" />
-    <path d="M28 8v40M11 18l34 20M45 18 11 38" stroke="#e6ffff" strokeWidth="0.9" opacity="0.7" />
-  </svg>;
-}
-
-export function CloseGlyph() {
-  return <svg viewBox="0 0 26 26" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.6">
-    <path d="M1.5 1.5l23 23M24.5 1.5l-23 23" />
-  </svg>;
 }
 
 export function ChevronGlyph() {

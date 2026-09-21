@@ -29,12 +29,14 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
     );
   }
 
-  if (actionBadge || leaving) return null;
+  if (leaving) return null;
+  // 换牌/丢弃/选择模式只隐藏、不卸载: 卸载后退出模式会重新挂载, 发牌飞入动画(hc-marks-deal-in)会再播一遍。
+  const hidden = actionBadge ? true : undefined;
 
   return (
     <>
       {(card.marks?.length ?? 0) > 0 && (
-        <span className={s["hc-marks"]} data-card-marks>
+        <span className={s["hc-marks"]} data-card-marks data-hidden={hidden}>
           {card.marks!.map((markId) => {
             const mark = CARD_MARK_DEFS[markId];
             if (!mark) return null;
@@ -53,6 +55,7 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
         <span
           className={`${s["hc-marks"]}${(card.marks?.length ?? 0) > 0 ? ` ${s["hc-cultivate-row"]}` : ""}`}
           data-card-marks
+          data-hidden={hidden}
         >
           <span className={`${s["hc-mark"]}${cultivateReady(card) ? ` ${s["hc-cultivate-ready"]}` : ""}${cultivateOverripe(card) ? ` ${s["hc-cultivate-overripe"]}` : ""}`} aria-label="培育">
             <span className={`${s["hc-mark-icon"]} ${s["hc-cultivate-icon"]}`} aria-hidden>

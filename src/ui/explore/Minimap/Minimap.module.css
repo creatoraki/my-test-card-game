@@ -5,7 +5,9 @@
 
 .map {
   box-sizing: border-box;
-  max-width: 720px;
+  /* 固定 1:1。 */
+  width: 360px;
+  height: 360px;
   align-self: flex-start;
   --arm: 26px;
   z-index: 30;
@@ -84,39 +86,13 @@
   cursor: default;
 }
 
-.board {
+/* 裁切窗口: 棋盘由 MinimapFocus 以当前房间居中, 超出部分直接裁掉, 不滚动。 */
+.viewport {
   position: relative;
   z-index: 2;
-  align-self: center;
-  flex: none;
-}
-
-.viewport {
-  display: flex;
   flex: 1;
   min-height: 0;
-  align-items: center;
-  justify-content: safe center;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #3f8fe8a0 transparent;
-}
-
-.hint {
-  flex: none;
-  min-height: 51px;
-  position: relative;
-  z-index: 2;
-  margin: 0;
-  max-width: 360px;
-  color: #7f98b8;
-  font-size: 18px;
-  line-height: 1.4;
-  text-align: right;
-  align-self: flex-end;
-}
-
-.hint[data-live] {
-  color: #f2d79e;
+  overflow: hidden;
+  /* 四周淡出, 暗示地图在窗口外仍有延伸。 */
+  mask-image: radial-gradient(closest-side, #000 72%, transparent);
 }

@@ -10,6 +10,8 @@ export interface DossierAction {
   /** 标签下方的一行小字，例如首领门的"开启后无法返回"。 */
   cost?: ReactNode;
   costTone?: "cyan" | "red";
+  /** primary = 常亮的主色实心按钮；danger = 红色描边的危险操作。默认暗色。 */
+  tone?: "primary" | "danger";
   disabled?: boolean;
   /** 返回/离开类按钮使用 back 音效。 */
   sfx?: "confirm" | "back";
@@ -21,6 +23,7 @@ export function DossierButton({ action, index }: { action: DossierAction; index:
     <button
       type="button"
       className={s.button}
+      data-tone={action.tone}
       disabled={action.disabled}
       data-sfx={action.sfx}
       style={{ "--enter-delay": `${index * 60 + 120}ms` } as CSSProperties}

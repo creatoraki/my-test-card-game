@@ -4,44 +4,34 @@
 // 玩家站上某座传送门 → 那扇门的目标房间在这里亮起(位置已知, 内容仍未知)。
 // 因此它不是装饰性 HUD, 而是这套玩法的主界面之一。
 //
-// 这里是左上角常驻的缩略版; 点击面板(或「展开」)打开 MinimapAtlas 大图。
+// 这里是左上角常驻的缩略版: 固定 1:1 外框, 只显示以当前房间为中心、外框装得下的范围;
+// 点击面板(或「展开」)打开 MinimapAtlas 大图看更大范围, 传送选房也在大图里进行。
 // 格子状态与视觉映射见 minimapModel.ts, 格子落点与折线道路见 minimapLayout.ts。
 
 import type { CorridorState } from "@/explore/corridor/types";
 import type { DungeonState } from "@/explore/dungeon/types";
-import { roomMoveCostFor } from "@/explore/energyCost";
-import { MinimapBoard } from "./MinimapBoard";
+import { MinimapFocus } from "./MinimapFocus";
 import { buildMapModel, portalTargetId } from "./minimapModel";
-import { minimapHudLayout } from "./minimapHudLayout";
+import { MINIMAP_HUD_METRICS } from "./minimapHudLayout";
 import frame from "./MinimapFrame.module.css";
 import s from "./Minimap.module.css";
 
 export function Minimap({
   dungeon,
   corridor,
-  picking = false,
-  onPick,
   onExpand,
 }: {
   dungeon: DungeonState;
   corridor: CorridorState;
-  picking?: boolean;
-  onPick?: (roomId: string) => void;
   onExpand?: () => void;
 }) {
   const { cells, links } = buildMapModel(dungeon);
-  const targetId = portalTargetId(corridor);
-  const target = targetId ? dungeon.rooms[targetId] : null;
-  const expandable = Boolean(onExpand) && !picking;
-  const layout = minimapHudLayout(dungeon.bounds);
 
   return <div
     className={`${frame.frame} ${s.map}`}
-    style={{ width: layout.width, height: layout.height }}
-    data-picking={picking || undefined}
-    data-expandable={expandable || undefined}
+    data-expandable={onExpand ? true : undefined}
     aria-label="房间小地图"
-    onClick={expandable ? onExpand : undefined}
+    onClick={onExpand}
   >
     <div className={s.head}>
       <span className={s.title}>区域图</span>
@@ -49,7 +39,6 @@ export function Minimap({
       {onExpand && <button
         type="button"
         className={s.expand}
-        disabled={picking}
         aria-label="展开区域图"
         onClick={(event) => { event.stopPropagation(); onExpand(); }}
       >
@@ -58,26 +47,16 @@ export function Minimap({
       </button>}
     </div>
     <div className={s.viewport}>
-      <MinimapBoard
-        className={s.board}
+      <MinimapFocus
         dungeon={dungeon}
         cells={cells}
         links={links}
-        metrics={layout.metrics}
+        metrics={MINIMAP_HUD_METRICS}
         road={4}
         numSize={18}
-        targetId={targetId}
-        picking={picking}
-        onPick={onPick}
+        targetId={portalTargetId(corridor)}
       />
     </div>
-    <p className={s.hint} data-live={Boolean(target) || picking || undefined}>
-      {picking
-        ? "选择一间已访问的房间传送过去 · 不消耗净化粒子"
-        : target
-          ? `脚下传送门通往${target.visited ? ` ${target.label} 号房间` : "此处"} · 粒子 −${roomMoveCostFor(target.visited)}`
-          : "站上传送门可点亮它通往的房间"}
-    </p>
   </div>;
 }
 

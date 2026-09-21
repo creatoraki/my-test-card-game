@@ -61,7 +61,7 @@ export function useExploreInventory(session: ExploreState | null) {
   const mustReplace = Boolean(session?.pendingPickup.length);
   return {
     allowed, bagOpen: bagOpen || mustReplace, picnicOpen, beaconPicking, atlasOpen, detailCharId, target, message,
-    blocked: bagOpen || mustReplace || picnicOpen || atlasOpen || Boolean(detailCharId || target),
+    blocked: bagOpen || mustReplace || picnicOpen || atlasOpen || beaconPicking || Boolean(detailCharId || target),
     setBagOpen, setPicnicOpen, setBeaconPicking, setAtlasOpen, setDetailCharId, setTarget, useItem, chooseMember, equip, unequip,
   };
 }

@@ -23,17 +23,18 @@ export function ExploreInventory({ session, inventory }: { session: ExploreState
       {session.dungeon && session.corridor && <Minimap
         dungeon={session.dungeon}
         corridor={session.corridor}
-        picking={inventory.beaconPicking}
-        onPick={(roomId) => { travelByBeacon(roomId); inventory.setBeaconPicking(false); }}
         onExpand={inventory.allowed ? () => inventory.setAtlasOpen(true) : undefined}
       />}
       <BurdenGauge />
       <RelicRail stacks={relicsInBackpack(session)} />
     </div>
-    {inventory.atlasOpen && session.dungeon && session.corridor && <MinimapAtlas
+    {/* 信标传送选房改在展开大图里进行, 小地图只显示当前房间周边, 远处的房间点不到。 */}
+    {(inventory.atlasOpen || inventory.beaconPicking) && session.dungeon && session.corridor && <MinimapAtlas
       dungeon={session.dungeon}
       corridor={session.corridor}
-      onClose={() => inventory.setAtlasOpen(false)}
+      picking={inventory.beaconPicking}
+      onPick={(roomId) => { travelByBeacon(roomId); inventory.setBeaconPicking(false); inventory.setAtlasOpen(false); }}
+      onClose={() => { inventory.setAtlasOpen(false); inventory.setBeaconPicking(false); }}
     />}
     {inventory.target && <div className={s.targetBanner} role="status">
       <span>选择队员使用「{getItemDef(inventory.target.itemId).name}」</span>

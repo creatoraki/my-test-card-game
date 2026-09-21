@@ -103,6 +103,11 @@
   letter-spacing: 6px;
 }
 
+.heading p[data-live] {
+  color: #f2d79e;
+  letter-spacing: 2px;
+}
+
 /* 原英文装饰文字的位置只保留短横线。 */
 .tick {
   position: absolute;
@@ -156,16 +161,16 @@
   outline: none;
 }
 
-/* 棋盘区域: 与 MinimapAtlas.tsx 的 BOARD_AREA(790×590)一致。 */
+/* 棋盘裁切窗口: MinimapFocus 以当前房间居中, 超出部分裁掉并四周淡出。 */
 .board {
   position: absolute;
   top: 150px;
   left: 40px;
   z-index: 2;
-  display: grid;
-  place-items: center;
   width: 790px;
   height: 590px;
+  overflow: hidden;
+  mask-image: radial-gradient(closest-side, #000 78%, transparent);
 }
 
 /* 右下指北针 */

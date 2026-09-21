@@ -1,11 +1,20 @@
 /* 净化粒子读数卡 —— 局部坐标 335×215, 所有定位取自设计图像素测量(见 EnergyReadout.tsx 头注)。
    面板、点阵、放射线在 SVG 里; 这里只管文字、能量条与能量罐的摆放。 */
 
+/* 悬浮 / 聚焦时弹出档位详情(EnergyTierDetail), 卡片本身略微提亮作为反馈。 */
 .card {
   position: relative;
   width: 335px;
   height: 215px;
-  pointer-events: none;
+  outline: none;
+  cursor: var(--cursor-help, default);
+  pointer-events: auto;
+  transition: filter 160ms ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  filter: brightness(1.12);
 }
 
 .frame {
@@ -16,13 +25,13 @@
   overflow: visible;
 }
 
-/* 标题: 字形左缘 x=140, 顶 y=68, 四字宽约 93px。 */
+/* 标题: 字形左缘 x=138, 顶 y≈60, 28px 四字宽约 118px, 右缘仍在右上切角之内。 */
 .title {
   position: absolute;
-  top: 66px;
-  left: 140px;
+  top: 60px;
+  left: 138px;
   color: #ffffff;
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 500;
   letter-spacing: 1.2px;
   line-height: 1;
@@ -48,9 +57,9 @@
 }
 
 .value small {
-  margin-left: 14px;
+  margin-left: 12px;
   color: #a9b8c6;
-  font-size: 31px;
+  font-size: 38px;
   text-shadow: none;
 }
 

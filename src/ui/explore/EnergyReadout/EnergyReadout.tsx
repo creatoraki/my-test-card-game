@@ -4,9 +4,12 @@
 //   能量罐 —— EnergyCanister, 压在面板左端之上;
 //   文字   —— 标题 / 大号数字 / 「/100」; 能量条按能量占比缩短。
 // 配色随能量档位切换(绿 / 黄 / 蓝 / 紫 / 红), 色值见 energyPalette.ts。
+// 悬浮(或键盘聚焦)弹出档位详情: 当前收益加成与敌人强化(EnergyTierDetail)。
 
 import { useId, type CSSProperties } from "react";
+import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
 import { EnergyCanister } from "./EnergyCanister";
+import { EnergyTierDetail } from "./EnergyTierDetail";
 import { energyPalette } from "./energyPalette";
 import s from "./EnergyReadout.module.css";
 
@@ -26,6 +29,8 @@ const DOTS: [number, number, number][] = [
 
 export function EnergyReadout({ energy, className }: { energy: number; className?: string }) {
   const uid = useId().replace(/:/g, "");
+  // 卡片贴在画布右上角: 详情一律弹在左侧, 不盖住读数本身。
+  const hover = useHoverTooltip("left");
   const palette = energyPalette(energy);
   const ratio = Math.max(0, Math.min(1, energy / MAX_ENERGY));
   const style = {
@@ -37,7 +42,14 @@ export function EnergyReadout({ energy, className }: { energy: number; className
     "--c-glow": palette.glow,
   } as CSSProperties;
 
-  return <div className={`${s.card}${className ? ` ${className}` : ""}`} style={style} role="group" aria-label={`净化粒子 ${energy} / ${MAX_ENERGY}`}>
+  return <div
+    className={`${s.card}${className ? ` ${className}` : ""}`}
+    style={style}
+    role="group"
+    tabIndex={0}
+    aria-label={`净化粒子 ${energy} / ${MAX_ENERGY}`}
+    {...hover.bind}
+  >
     <svg className={s.frame} viewBox="0 0 335 215" aria-hidden>
       <defs>
         <linearGradient id={`panel-fill-${uid}`} x1="0" x2="0" y1="0" y2="1">
@@ -87,6 +99,7 @@ export function EnergyReadout({ energy, className }: { energy: number; className
     <div className={s.track}><i style={{ width: `${ratio * 100}%` }} /></div>
 
     <EnergyCanister palette={palette} fill={ratio} />
+    {hover.point && <HoverTooltip point={hover.point}><EnergyTierDetail energy={energy} /></HoverTooltip>}
   </div>;
 }
 

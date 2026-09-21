@@ -10,6 +10,8 @@ import { DossierActionGrid } from "./DossierButton";
 import { DossierBody, DossierInfoBox, DossierPhase } from "./DossierParts";
 import s from "./DossierOffer.module.css";
 
+const OFFER_LINES = ["选择背包里的物品放入。", "种类和数量完全符合条件时物件才会回应，放错的物品会被吞掉。"];
+
 /** 放入物品页：左栏说明与已放入区，右侧压暗插图上铺背包物品格。 */
 export function DossierOffer({
   backpack,
@@ -44,9 +46,7 @@ export function DossierOffer({
   return (
     <section aria-label="放入物品">
       <DossierPhase no="02" label="放入物品" />
-      <DossierBody wide>
-        <p>选择背包里的物品放入。种类和数量完全符合条件时物件才会回应，放错的物品会被吞掉。</p>
-      </DossierBody>
+      <DossierBody lines={OFFER_LINES} size="short" />
       <DossierInfoBox>
         <div className={s.offered}>
           <span className={s.offeredLabel}>已放入区</span>

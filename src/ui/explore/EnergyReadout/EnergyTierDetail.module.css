@@ -1,0 +1,44 @@
+/* 粒子档位详情的正文行: 左标签 + 右数值, 下方一行小字补充。数值用档位色(TooltipCard 的 --accent)。 */
+.rows {
+  display: grid;
+  gap: 4px;
+  min-width: 300px;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.row + .sub + .row {
+  margin-top: 8px;
+}
+
+.row dt {
+  color: #c7d4d8;
+}
+
+.row dd {
+  margin: 0;
+}
+
+.rows b {
+  color: var(--accent, #6fe3f5);
+  font-weight: 700;
+}
+
+.none {
+  color: #7f949b;
+}
+
+.sub {
+  margin: 0;
+  color: #8fa2a8;
+  font-size: 18px;
+  line-height: 1.4;
+}

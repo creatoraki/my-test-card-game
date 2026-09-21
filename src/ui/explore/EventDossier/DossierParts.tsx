@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { cx } from "@/ui/common/cx";
+import { useTypewriter } from "@/ui/hooks/useTypewriter";
 import s from "./DossierParts.module.css";
 
 /** "02 / 行动阶段" 阶段行。 */
@@ -14,9 +15,32 @@ export function DossierPhase({ no, label }: { no: string; label: string }) {
   );
 }
 
-/** 左栏正文：固定在阶段行下方，超出三行后在区域内滚动。 */
-export function DossierBody({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
-  return <div className={cx(s.body, wide && s.bodyWide)}>{children}</div>;
+/**
+ * 左栏正文：逐字打出，一句一行；超出区域时跟着打字自动下滚，不显示滚动条(滚轮仍可回看)。
+ * notesFrom 之后的行是结算条目，用强调色区分。size 决定区域高度，由下方是否有信息框 / 物品栏决定。
+ */
+export function DossierBody({
+  lines,
+  notesFrom = lines.length,
+  size = "tall",
+}: {
+  lines: string[];
+  notesFrom?: number;
+  size?: "short" | "tall";
+}) {
+  const typed = useTypewriter(lines.join("\n"), 260);
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [typed.shown]);
+  return (
+    <div ref={ref} className={s.body} data-size={size}>
+      {typed.shown.split("\n").map((text, index) => (
+        <p key={index} className={cx(index >= notesFrom && s.bodyNote)}>{text}</p>
+      ))}
+    </div>
+  );
 }
 
 /** 左下信息框(消耗 / 警示 / 结算条目共用)。tone 决定描边与图标色。 */
@@ -46,16 +70,6 @@ export function DossierNotice({ title, note }: { title: string; note: string }) 
   return (
     <>
       <p className={s.costMain}>{title}</p>
-      <p className={s.costNote}>{note}</p>
-    </>
-  );
-}
-
-/** 消耗信息的主副两行排版。 */
-export function DossierCost({ lead, amount, note }: { lead: string; amount: number; note: string }) {
-  return (
-    <>
-      <p className={s.costMain}>{lead}<em>{amount}</em><span>点净化粒子</span></p>
       <p className={s.costNote}>{note}</p>
     </>
   );

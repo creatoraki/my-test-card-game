@@ -10,6 +10,11 @@
   animation: hc-marks-deal-in 0.8s cubic-bezier(0.16, 0.84, 0.3, 1) backwards;
   animation-delay: var(--deal-delay, 0ms);
 }
+/* 与模式徽章互斥时只隐藏, 保持挂载, 避免退出模式时重播发牌动画。 */
+.hc-marks[data-hidden] {
+  visibility: hidden;
+  pointer-events: none;
+}
 .hc-cultivate-row {
   left: 64px;
 }

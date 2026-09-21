@@ -1,6 +1,6 @@
 ﻿// ★ 事件奖励浮层 ★ —— 事件结算后 pendingActions 逐条弹出的处理面板。
 //
-// ⚠ 版式不在这里: 外框(1336×904)取自 explorePanel 的 panel-box, 页眉/正文/底栏/按钮/选择卡
+// ⚠ 版式不在这里: 外框取自 explorePanel 的 panel-box(在 rewardKit 里缩到 1120×780), 页眉/正文/底栏/按钮/选择卡
 //   全部来自 ui/common/EventPanel 的原语 —— 与落点事件面板同一套设计语言,
 //   这样「选完选项 → 弹出奖励」时页眉基线与按钮行不会跳。
 //   本文件只负责: 奖励种类 → 内容与文案。
@@ -13,6 +13,7 @@ import { cx } from "@/ui/common/cx";
 import { useRevealPresence } from "@/ui/common/ModalReveal";
 import { EventPanelFrame } from "@/ui/common/EventPanel";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
+import { DOSSIER_ACCENT } from "@/ui/explore/EventDossier";
 import RelicOffers from "./RelicOffers";
 import { ReplaceCardReward } from "./ReplaceCardReward";
 import { EquipmentTuneReward } from "./EquipmentTuneReward";
@@ -22,8 +23,9 @@ import { FreeDraw, FreeRemove } from "./RewardCards";
 import { EquipOffers, ReforgePicker } from "./RewardEquipment";
 import s from "@/ui/explore/styles/rewardKit.module.css";
 
-// 奖励浮层的主色。★ 只在这里出现一次, 通过 EventPanelFrame 的 accent 下发给页眉/边线/按钮。
-const REWARD_ACCENT = "#a7c9ff";
+// 奖励浮层的主色 = 事件档案面板主色: 它是从事件面板里拉起的小一号子弹窗, 外框与配色保持一致。
+// 通过 EventPanelFrame 的 accent 下发给页眉/边线/按钮; 外框描边读 rewardKit 的 --k(同值)。
+const REWARD_ACCENT = DOSSIER_ACCENT;
 
 interface RewardView {
   session: ExploreState;

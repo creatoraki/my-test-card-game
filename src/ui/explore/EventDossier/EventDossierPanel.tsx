@@ -3,13 +3,17 @@ import { playSfx } from "@/ui/audio";
 import { cx } from "@/ui/common/cx";
 import { useDialogFocus } from "@/ui/explore/ExploreScreen/useDialogFocus";
 import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
+import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { DossierDecor } from "./DossierDecor";
 import { DossierHeader } from "./DossierHeader";
-import { CloseGlyph } from "./DossierIcons";
 import { DOSSIER_DEFAULT_ART } from "./dossierArt";
 import s from "./EventDossierPanel.module.css";
 
 export const DOSSIER_ACCENT = "#0ff0f4";
+
+/** 换场节奏: 与 EventDossierPanel.module.css 的 dossierSceneOut / dossierSceneIn 时长一致。 */
+const SCENE_LEAVE_MS = 280;
+const SCENE_ENTER_MS = 460;
 
 interface EventDossierPanelProps {
   accent?: string;
@@ -18,10 +22,10 @@ interface EventDossierPanelProps {
   title: string;
   enTitle: string;
   art?: string;
-  /** 场景切换时换 key，触发内容区入场动画。 */
+  /** 场景切换时换 key：旧内容向上滚出，新内容从下方滚入。 */
   contentKey: string;
   active: boolean;
-  /** 关闭(✕ / Esc)。不传则 ✕ 置灰、Esc 无效。 */
+  /** Esc 关闭。不传则 Esc 无效。面板不设关闭按钮, 离开走按钮网格里的选项。 */
   onClose?: () => void;
   children: ReactNode;
 }
@@ -39,6 +43,8 @@ export function EventDossierPanel({
   children,
 }: EventDossierPanelProps) {
   const { panel, onKeyDown } = useDialogFocus({ active, onEscape: () => onClose?.() });
+  // 退场期间冻结旧内容的快照, 退场结束后换成新内容再入场。
+  const scene = useSwapTransition(children, contentKey, SCENE_LEAVE_MS, SCENE_ENTER_MS);
 
   useEffect(() => {
     playSfx("panel");
@@ -61,17 +67,7 @@ export function EventDossierPanel({
         <span className={s["panel-scan"]} aria-hidden />
         <DossierDecor />
         <DossierHeader kicker={kicker} title={title} enTitle={enTitle} />
-        <button
-          type="button"
-          className={s.close}
-          aria-label="关闭"
-          data-sfx="back"
-          disabled={!onClose}
-          onClick={onClose}
-        >
-          <CloseGlyph />
-        </button>
-        <div className={s.scene} key={contentKey}>{children}</div>
+        <div className={s.scene} data-phase={scene.phase}>{scene.value}</div>
         <span className={s["panel-bar"]} aria-hidden />
       </section>
     </div>

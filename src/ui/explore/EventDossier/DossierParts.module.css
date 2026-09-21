@@ -39,29 +39,40 @@
   font-size: 30px;
 }
 
+/* 正文区: 宽 460(右缘 505, 仍在插图暗部内)。高度按下方占位分两档:
+   tall = 直到按钮网格上沿(y≈700); short = 让出信息框(y=548)。 */
 .body {
   position: absolute;
   left: 45px;
   top: 400px;
   z-index: 3;
-  width: 330px;
-  max-height: 124px;
+  width: 460px;
+  max-height: 280px;
   overflow-y: auto;
   color: #e6eef0;
   font-size: 26px;
   line-height: 40px;
   letter-spacing: 0.02em;
   pointer-events: auto;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--k) 45%, transparent) transparent;
+  scrollbar-width: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
+}
+
+.body[data-size="short"] {
+  max-height: 124px;
 }
 
 .body p {
   margin: 0;
+  min-height: 40px;
 }
 
-.bodyWide {
-  width: 460px;
+.bodyNote {
+  color: var(--k);
+  font-size: 22px;
 }
 
 /* 设计图信息框: (39,548) 466×128, 右上 / 右下 / 左下切角 12, 左上与左下、右上带亮线。 */

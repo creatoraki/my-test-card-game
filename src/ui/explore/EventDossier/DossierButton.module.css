@@ -192,6 +192,48 @@
   opacity: 0.42;
 }
 
+/* primary: 常驻亮态(与悬浮态同一套实心主色), 用于「全部拾取」这类推荐操作。 */
+.button[data-tone="primary"] {
+  --line: color-mix(in srgb, var(--k) 80%, #ffffff);
+  --ink: #04191e;
+  --glyph: #04191e;
+}
+
+.button[data-tone="primary"] .plate::before {
+  background: #032d35;
+}
+
+.button[data-tone="primary"] .plate::after {
+  opacity: 1;
+}
+
+.button[data-tone="primary"] .text strong {
+  font-weight: 700;
+}
+
+.button[data-tone="primary"] .arrow {
+  color: #04191e;
+}
+
+.button[data-tone="primary"]:not(:disabled):hover,
+.button[data-tone="primary"]:not(:disabled):focus-visible {
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--k) 75%, transparent)) brightness(1.08);
+}
+
+/* danger: 红色描边与图标; 悬浮时整颗亮成红色(悬浮态读的是 --k)。 */
+.button[data-tone="danger"] {
+  --k: #ff6a5e;
+  --line: #a5524b;
+  --fill-a: #2a1214;
+  --fill-b: #1b0b0d;
+  --glyph: #ff8a80;
+}
+
+.button[data-tone="danger"]:not(:disabled):hover .plate::before,
+.button[data-tone="danger"]:not(:disabled):focus-visible .plate::before {
+  background: #3a0f0d;
+}
+
 .grid[data-dense] .icon {
   margin: 0 22px 0 28px;
 }

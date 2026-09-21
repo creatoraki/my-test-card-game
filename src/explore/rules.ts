@@ -219,8 +219,8 @@ export const EXPLORE_RULES = {
 // 玩家看到「再推进一个节点就掉进告急」会真的停下来算一算还要不要深潜。
 //
 // ⚠ 惩罚已按新回报重新定价: K_energy 全程只有 +0.60(旧版 +1.40)。
-//   粒子污染按档位 −1 层提高敌方攻击伤害与闪避, 与力量 buff 分开显示。
-// 能量档位只把对应的 BUFF/状态层数带入战斗；每层的实际伤害与闪避效果由 engine/statuses.ts 定义。
+//   粒子污染按档位 −1 层提高敌方攻击伤害与格挡, 与力量 buff 分开显示。
+// 能量档位只把对应的 BUFF/状态层数带入战斗；每层的实际攻击与格挡加成由 engine/statuses 的过载定义。
 export const ENERGY_TIERS: EnergyTier[] = [
   {
     tier: 1,

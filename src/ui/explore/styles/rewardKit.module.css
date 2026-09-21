@@ -1,13 +1,21 @@
 ﻿/* 事件奖励浮层。★ 页眉/正文/底栏/按钮/选择卡的样式全部来自 ui/common/EventPanel ——
    这里只留奖励自己的东西: 外框主色、角色/怪癖列的栅格、卡牌与装备候选的排布。
-   ⚠ 不要在这里重写宽高(几何见 explorePanel.module.css 的 panel-box)。 */
+   ★ 奖励弹窗是从事件档案面板(1336×904)里拉起来的子弹窗: 沿用同一个折角外框(panel-box)与
+     同一主色, 但尺寸缩小到 1120×780, 让下层事件面板从四周露出来, 读作「面板上的一层」。 */
 .reward-layer {
   position: absolute;
   inset: 0;
   z-index: 35;
   display: grid;
   place-items: center;
+  /* 压暗并拦住下层事件面板的点击: 奖励没处理完, 下面的按钮不能点。 */
+  pointer-events: auto;
+  background: #01060999;
+  animation: rewardDimIn 240ms ease-out both;
+}
+.reward-layer[data-closing="true"] {
   pointer-events: none;
+  animation: rewardDimOut 380ms ease-in both;
 }
 .reward-layer[data-closing="true"] .reward-panel {
   pointer-events: none;
@@ -15,9 +23,35 @@
 
 .reward-panel {
   composes: panel-box from "./explorePanel.module.css";
-  --k: #a7c9ff;
+  --k: #0ff0f4;
   position: relative;
   overflow: hidden;
+  width: 1120px;
+  height: 780px;
+}
+
+/* 与事件档案面板同款的左上亮边(见 EventDossier/DossierDecor 的 edgeTop)。 */
+.reward-panel::before {
+  position: absolute;
+  z-index: 21;
+  left: 26px;
+  top: 0;
+  width: 96px;
+  height: 2px;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--k), color-mix(in srgb, var(--k) 20%, transparent));
+  box-shadow: 0 0 8px var(--k);
+}
+
+@keyframes rewardDimIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rewardDimOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .panel-reveal {
@@ -33,7 +67,7 @@
 }
 
 .reward-step {
-  color: #a7c9ff;
+  color: var(--k);
   font-size: 18px;
   letter-spacing: 0.12em;
   white-space: nowrap;
@@ -42,7 +76,7 @@
 .group-label {
   display: block;
   margin-bottom: 10px;
-  color: #8fa9cc;
+  color: #8fb3bb;
   font-size: 18px;
   letter-spacing: 0.12em;
 }
@@ -111,14 +145,14 @@
 }
 
 .card-choice:hover {
-  border-color: #a7c9ff;
+  border-color: var(--k);
   transform: translateY(-4px);
 }
 
 .card-choice.is-selected {
-  border-color: #a7c9ff;
-  background: #23405f;
-  box-shadow: inset 3px 0 0 var(--k), 0 0 18px -12px #a7c9ff;
+  border-color: var(--k);
+  background: color-mix(in srgb, var(--k) 16%, #0b1a20);
+  box-shadow: inset 3px 0 0 var(--k), 0 0 18px -12px var(--k);
 }
 
 .card-choice:active {
@@ -148,8 +182,8 @@
 .item-choice:hover,
 .equipped-choice:hover {
   transform: translateY(-2px);
-  border-color: #a7c9ff;
-  box-shadow: 0 0 20px -12px #a7c9ff;
+  border-color: var(--k);
+  box-shadow: 0 0 20px -12px var(--k);
 }
 
 .item-choice:active,

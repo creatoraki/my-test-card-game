@@ -1,6 +1,5 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { getItemDef } from "@/data";
-import { createPortal } from "react-dom";
 import type { ItemStack } from "@/items/types";
 import { useExploreStore } from "@/store/exploreStore";
 import { useRevealPresence } from "@/ui/common/ModalReveal";
@@ -21,28 +20,21 @@ import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
 import { EXPLORE_BACKPACK_COLORS } from "@/ui/explore/styles/inventoryPalettes";
 import { panelRevealCloseMs, panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { cx } from "@/ui/common/cx";
+import { useLootPick } from "./useLootPick";
 import s from "./LootPickup.module.css";
-
-interface FlyingLoot {
-  id: number;
-  stack: ItemStack;
-  from: { left: number; top: number; width: number };
-  to: { left: number; top: number };
-}
 
 interface LootPickupProps {
   gate: boolean;
 }
 
+/** 独立拾取浮层: 事件面板之外来源的掉落(事件面板内的掉落由 DossierLoot 在面板里直接处理)。 */
 function LootPickup({ gate }: LootPickupProps) {
   const pendingLoot = useExploreStore((state) => state.session?.pendingLoot ?? []);
-  const takeLoot = useExploreStore((state) => state.takeLoot);
   const takeAllLoot = useExploreStore((state) => state.takeAllLoot);
   const abandonLoot = useExploreStore((state) => state.abandonLoot);
   const [confirming, setConfirming] = useState(false);
-  const [flying, setFlying] = useState<FlyingLoot | null>(null);
   const [hovered, setHovered] = useState<{ uid: string; point: TooltipPoint } | null>(null);
-  const [lootMessage, setLootMessage] = useState<string | null>(null);
+  const loot = useLootPick();
   const presence = useRevealPresence(
     gate && pendingLoot.length > 0,
     pendingLoot,
@@ -56,38 +48,7 @@ function LootPickup({ gate }: LootPickupProps) {
     }
   }, [displayed, hovered]);
 
-  const pick = (stack: ItemStack) => {
-    if (flying) return;
-    const index = pendingLoot.findIndex((item) => item.uid === stack.uid);
-    if (index < 0) return;
-    const source = document.querySelector<HTMLElement>(`[data-loot-uid="${stack.uid}"]`);
-    const target = document.getElementById("explore-backpack-bar");
-    const sourceRect = source?.getBoundingClientRect();
-    const targetRect = target?.getBoundingClientRect();
-    const accepted = takeLoot(index);
-    if (!accepted) {
-      setLootMessage("背包已满");
-      return;
-    }
-    setLootMessage(null);
-    if (!sourceRect || !targetRect) {
-      return;
-    }
-
-    const id = Date.now();
-    setFlying({
-      id,
-      stack,
-      from: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width },
-      to: {
-        left: targetRect.left + targetRect.width / 2 - sourceRect.width / 2,
-        top: targetRect.top + targetRect.height / 2 - sourceRect.height / 2,
-      },
-    });
-    window.setTimeout(() => {
-      setFlying((current) => (current?.id === id ? null : current));
-    }, 430);
-  };
+  const pick = (stack: ItemStack) => { loot.pick(stack); };
 
   // 模组不走「点一下就拾取」: 格子上直接给出「装载 / 拾取」两个悬浮按钮(见 ModuleInstall)。
   const moduleActions = useLootModuleActions({ onTake: pick });
@@ -118,7 +79,7 @@ function LootPickup({ gate }: LootPickupProps) {
           <EventPanelStage>
             <EventPanelBody
               caption={
-                lootMessage ??
+                loot.message ??
                 "点击拾取，未拾取的物品会丢失；模组可以选择直接装载。"
               }
             >
@@ -184,24 +145,7 @@ function LootPickup({ gate }: LootPickupProps) {
         </EventPanelFrame>
       </section>
       {moduleActions.overlay}
-      {flying && typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className={s["loot-fly"]}
-            style={
-              {
-                "--fly-left": `${flying.from.left}px`,
-                "--fly-top": `${flying.from.top}px`,
-                "--fly-x": `${flying.to.left - flying.from.left}px`,
-                "--fly-y": `${flying.to.top - flying.from.top}px`,
-                "--fly-w": `${flying.from.width}px`,
-              } as CSSProperties
-            }
-          >
-            <ItemSlot stack={flying.stack} />
-          </div>,
-          document.body,
-        )}
+      {loot.flyingPortal}
     </div>
   );
 }

@@ -47,10 +47,27 @@ function band(seed: number): number {
   return [-1, 0, 0, 1][seed & 3];
 }
 
+type Bounds = { minX: number; maxX: number; minY: number; maxY: number };
+
+/** 单个房间方块在棋盘画布上的左上角坐标(含哈希偏移)。 */
+export function placeRoom(
+  room: { id: string; gx: number; gy: number },
+  bounds: Bounds,
+  m: BoardMetrics,
+): { left: number; top: number } {
+  const ampX = Math.round(m.stepX * JITTER_X);
+  const ampY = Math.round(m.stepY * JITTER_Y);
+  const h = hash(room.id);
+  return {
+    left: ampX + GLOW_PAD + (room.gx - bounds.minX) * m.stepX + band(h) * ampX,
+    top: ampY + GLOW_PAD + m.label + (room.gy - bounds.minY) * m.stepY + band(h >>> 3) * ampY,
+  };
+}
+
 export function layoutBoard(
   cells: MapCell[],
   links: MapLink[],
-  bounds: { minX: number; maxX: number; minY: number; maxY: number },
+  bounds: Bounds,
   m: BoardMetrics,
 ): { width: number; height: number; cells: PlacedCell[]; links: PlacedLink[] } {
   const ampX = Math.round(m.stepX * JITTER_X);
@@ -59,14 +76,7 @@ export function layoutBoard(
   const padTop = ampY + GLOW_PAD + m.label;
   const padBottom = ampY + GLOW_PAD;
 
-  const placed = cells.map((cell): PlacedCell => {
-    const h = hash(cell.room.id);
-    return {
-      ...cell,
-      left: padX + (cell.room.gx - bounds.minX) * m.stepX + band(h) * ampX,
-      top: padTop + (cell.room.gy - bounds.minY) * m.stepY + band(h >>> 3) * ampY,
-    };
-  });
+  const placed = cells.map((cell): PlacedCell => ({ ...cell, ...placeRoom(cell.room, bounds, m) }));
   const byId = new Map(placed.map((cell) => [cell.room.id, cell]));
 
   const routed: PlacedLink[] = [];
@@ -95,25 +105,6 @@ export function metricsForTile(tile: number): BoardMetrics {
   };
 }
 
-/** 在给定区域内能放下整张网格的最大尺寸; 方块边长上限 maxTile, 下限 minTile。 */
-export function fitMetrics(
-  bounds: { minX: number; maxX: number; minY: number; maxY: number },
-  area: { width: number; height: number },
-  maxTile: number,
-  minTile = 32,
-): BoardMetrics {
-  const cols = bounds.maxX - bounds.minX;
-  const rows = bounds.maxY - bounds.minY;
-  for (let tile = maxTile; tile > minTile; tile -= 2) {
-    const m = metricsForTile(tile);
-    const ampX = Math.round(m.stepX * JITTER_X);
-    const ampY = Math.round(m.stepY * JITTER_Y);
-    const width = cols * m.stepX + m.tile + (ampX + GLOW_PAD) * 2;
-    const height = rows * m.stepY + m.tile + (ampY + GLOW_PAD) * 2 + m.label;
-    if (width <= area.width && height <= area.height) return m;
-  }
-  return metricsForTile(minTile);
-}
 
 function routeLink(a: PlacedCell, b: PlacedCell, link: MapLink, m: BoardMetrics): string {
   const half = m.tile / 2;

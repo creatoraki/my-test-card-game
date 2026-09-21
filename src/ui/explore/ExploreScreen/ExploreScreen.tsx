@@ -38,6 +38,9 @@ export function ExploreScreen() {
   const currentRoom = session.dungeon.rooms[session.dungeon.currentRoomId];
   const activeObject = session.corridor.objects.find((object) => object.id === session.corridor?.activeObjectId);
   const merchantOpen = Boolean(activeObject?.kind === "merchant" && (phase === "landed" || phase === "shopping"));
+  // 物件事件的掉落在事件面板内直接拾取, 独立拾取浮层只接其他来源; 面板只被真正的弹窗(奖励 / 背包等)遮挡。
+  const curioHandlesLoot = curioOpen && activeObject?.kind !== "merchant";
+  const curioCovered = inventory.blocked || Boolean(session.pendingActions.length || session.pendingPickup.length);
   const sceneBlocked = blocked || travelTransition.phase !== "idle";
   const encountering = phase === "encounter" && travelTransition.phase === "idle";
 
@@ -46,11 +49,11 @@ export function ExploreScreen() {
     <div className={s.readout}><EnergyReadout energy={session.energy} /></div>
     <ExploreInventory session={session} inventory={inventory} />
     <ExploreDock session={session} inventory={inventory} locked={locked} pending={pending} />
-    {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && <CurioPanel session={session} covered={inventory.blocked || pending} onOpenBag={() => inventory.setBagOpen(true)} />}
+    {curioOpen && !inventory.target && activeObject?.kind !== "merchant" && <CurioPanel session={session} covered={curioCovered} onOpenBag={() => inventory.setBagOpen(true)} />}
     {session.corridor.bossGateOpen && !inventory.target && <BossGatePanel session={session} />}
     {merchantOpen && !inventory.target && <WanderingMerchantPanel session={session} />}
     <RewardOverlay gate={!locked} />
-    <LootPickup gate={!locked && !session.pendingActions.length} />
+    <LootPickup gate={!locked && !session.pendingActions.length && !curioHandlesLoot} />
     {travelTransition.phase !== "idle" && <div
       aria-hidden
       className={`${s["portal-travel-curtain"]} ${travelTransition.phase === "fade-out" ? s["portal-travel-fade-out"] : s["portal-travel-fade-in"]}`}

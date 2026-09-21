@@ -1,15 +1,18 @@
-/* 随身遗物 —— 与背包负重首格共用同一套格子几何(112 × 104, 图标 68)。
-   首格由 ExploreScreen 明确预留给「背包 svg + 下方计数」, 遗物只能从下一格开始。 */
+/* 随身遗物 —— 紧跟在背包负重格后面, 格宽 = 图标宽(68), 遗物之间只留 4px。
+   背包格宽 112(给下方「x / 24」计数留宽度)而图标只有 68, 右侧空出 22px;
+   再加上 .burden 行的 12px 间距, 这里用负外边距吃掉这两段, 让首枚遗物贴近背包图标。 */
 .rail {
-  --expl-relic-cell-width: 96px;
+  --expl-relic-cell-width: 68px;
 
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 0;
+  gap: 4px;
   max-width: 700px;
   flex: 0 0 auto;
-  padding-top: 6px;
+  margin-left: -28px;
+  /* 遗物素材自身顶部留白少, 视觉上比背包图标偏高, 整行下压一点对齐。 */
+  padding-top: 12px;
 }
 
 .item {

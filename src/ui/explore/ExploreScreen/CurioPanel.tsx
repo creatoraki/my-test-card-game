@@ -4,22 +4,20 @@ import type { CurioDecision } from "@/data/curios/types";
 import { canOfferAny, visibleDecisions } from "@/explore/curio/visibility";
 import { serviceFoodCount } from "@/explore/curio/foodPayment";
 import { hasCorridorRewards } from "@/explore/corridor/session";
-import { interactionCost } from "@/explore/session";
 import type { ExploreState } from "@/explore/types";
 import { useRunStore } from "@/store/runStore";
 import { useExploreStore } from "@/store/exploreStore";
 import { closeCorridorObject } from "@/store/exploreCorridor";
 import {
   DossierChoice,
-  DossierCost,
-  DossierInfoBox,
+  DossierLoot,
   DossierOffer,
   DossierResult,
   EventDossierPanel,
-  ParticleCrystal,
   type DossierAction,
   type DossierIconName,
 } from "@/ui/explore/EventDossier";
+import { useCurioLoot, type CurioLoot } from "./useCurioLoot";
 
 const DEFAULT_EN_TITLE = "探索交互";
 const DECISION_ICONS: DossierIconName[] = ["claim", "upgrade", "detail"];
@@ -34,6 +32,40 @@ function sentences(text: string): string[] {
   return text.split(/(?<=[。？！])/).filter(Boolean);
 }
 
+/** 结算页按钮: 有掉落时换成「全部拾取 / 放弃一切」, 处理完由 useCurioLoot 直接结束事件。 */
+function resultActions(session: ExploreState, loot: CurioLoot, onOpenBag: () => void): DossierAction[] {
+  const bag: DossierAction[] = session.chuteOpen
+    ? [{ id: "bag", label: "打开背包寄回物品", icon: "bag", onClick: onOpenBag }]
+    : [];
+  if (session.pendingLoot.length) {
+    return [
+      { id: "take-all", label: "全部拾取", icon: "claim", tone: "primary", onClick: loot.takeAll },
+      {
+        id: "abandon",
+        label: loot.confirmAbandon ? "确认放弃？" : "放弃一切",
+        cost: loot.confirmAbandon ? "未拾取的物品会永久丢失" : undefined,
+        costTone: "red",
+        icon: "discard",
+        tone: "danger",
+        sfx: "back",
+        onClick: loot.abandon,
+      },
+      ...bag,
+    ];
+  }
+  return [
+    ...bag,
+    {
+      id: "confirm",
+      label: "收拾行装，继续探索",
+      icon: "confirm",
+      sfx: "confirm",
+      disabled: hasCorridorRewards(session),
+      onClick: () => useExploreStore.getState().confirmNode(),
+    },
+  ];
+}
+
 export function CurioPanel({
   session,
   onOpenBag,
@@ -44,10 +76,10 @@ export function CurioPanel({
   covered: boolean;
 }) {
   const [offerMode, setOfferMode] = useState(false);
+  const loot = useCurioLoot();
   const object = session.corridor?.objects.find((item) => item.id === session.corridor?.activeObjectId);
   const def = object ? CORRIDOR_CURIOS[object.kind] : null;
   const result = session.phase === "resolving";
-  const rewards = hasCorridorRewards(session);
 
   useEffect(() => {
     if (result) setOfferMode(false);
@@ -85,24 +117,7 @@ export function CurioPanel({
     } satisfies DossierAction]),
   ];
 
-  const resultActions: DossierAction[] = [
-    ...(session.chuteOpen ? [{
-      id: "bag",
-      label: "打开背包寄回物品",
-      icon: "bag",
-      onClick: onOpenBag,
-    } satisfies DossierAction] : []),
-    {
-      id: "confirm",
-      label: "收拾行装，继续探索",
-      icon: "confirm",
-      sfx: "confirm",
-      disabled: rewards,
-      onClick: () => useExploreStore.getState().confirmNode(),
-    },
-  ];
-
-  return (
+  return <>
     <EventDossierPanel
       kicker={forced ? `风险房间 · ${roomLabel}号房间` : `${def.name} · ${roomLabel}号房间`}
       title={def.name}
@@ -113,10 +128,12 @@ export function CurioPanel({
     >
       {result ? (
         <DossierResult
-          story={session.pendingStory.map((text, index) => <p key={`story-${index}`}>{text}</p>)}
+          story={session.pendingStory.flatMap(sentences)}
           notes={session.pendingNotes}
-          footNote={rewards ? "请先处理奖励" : "结算完毕"}
-          actions={resultActions}
+          loot={session.pendingLoot.length
+            ? <DossierLoot items={session.pendingLoot} message={loot.message} onPick={loot.pick} />
+            : undefined}
+          actions={resultActions(session, loot, onOpenBag)}
         />
       ) : offerMode ? (
         <DossierOffer
@@ -126,22 +143,9 @@ export function CurioPanel({
           onSubmit={(picks) => useRunStore.getState().offerCurio(picks)}
         />
       ) : (
-        <DossierChoice
-          body={sentences(def.description).map((text, index) => <p key={`desc-${index}`}>{text}</p>)}
-          info={
-            forced ? (
-              <DossierInfoBox icon={<ParticleCrystal />} tone="danger">
-                <DossierCost lead="风险应对消耗" amount={0} note="必须做出选择才能继续探索" />
-              </DossierInfoBox>
-            ) : (
-              <DossierInfoBox icon={<ParticleCrystal />}>
-                <DossierCost lead="操作物件消耗" amount={interactionCost(session)} note={`若不${def.verb}则无消耗`} />
-              </DossierInfoBox>
-            )
-          }
-          actions={choiceActions}
-        />
+        <DossierChoice lines={sentences(def.description)} actions={choiceActions} />
       )}
     </EventDossierPanel>
-  );
+    {loot.flyingPortal}
+  </>;
 }

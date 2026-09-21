@@ -25,7 +25,7 @@ export function BossGatePanel({ session }: { session: ExploreState }) {
       onClose={actionable ? closeBossGatePanel : undefined}
     >
       <DossierChoice
-        body={<p>红门之后封存着这片区域的核心敌意。先搜索物件，准备妥当再来挑战。</p>}
+        lines={["红门之后封存着这片区域的核心敌意。", "先搜索物件，准备妥当再来挑战。"]}
         info={
           <DossierInfoBox tone="danger" icon={<DossierIcon name="warn" />}>
             <DossierNotice title="开启后无法返回副本" note="胜利即通关，失败按撤离结算" />

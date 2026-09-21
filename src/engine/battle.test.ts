@@ -108,7 +108,7 @@ describe("属性口径", () => {
     expect(partyInitiative(light) - partyInitiative(heavy)).toBeCloseTo(0, 6);
   });
 
-  it("粒子污染放大攻击伤害, 且闪避加成受 70% 封顶", () => {
+  it("粒子污染放大攻击伤害与格挡, 不影响命中, 且格挡受 70% 封顶", () => {
     const clean = createBattle(
       "n-t1-scout",
       { allies: allies(), deck: deckOf("swordsman-basic-attack") },
@@ -129,19 +129,15 @@ describe("属性口径", () => {
     expect(statOf(pollutedEnemy, "attack") - statOf(cleanEnemy, "attack")).toBe(
       4 * RULES.combat.overloadAttackPerStack,
     );
+    expect(statOf(pollutedEnemy, "blockRate") - statOf(cleanEnemy, "blockRate")).toBe(
+      4 * RULES.combat.overloadBlockPerStack,
+    );
     expect(hitChance(polluted, pollutedAlly, pollutedEnemy)).toBe(
-      hitChance(clean, cleanAlly, cleanEnemy) - 20,
+      hitChance(clean, cleanAlly, cleanEnemy),
     );
 
-    pollutedEnemy.statuses[0].stacks = 20;
-    expect(hitChance(polluted, pollutedAlly, pollutedEnemy)).toBe(
-      Math.max(
-        RULES.combat.hitFloorPct,
-        RULES.combat.baseHitChance +
-          statOf(pollutedAlly, "hitRate") +
-          -RULES.combat.probCapPct,
-      ),
-    );
+    pollutedEnemy.statuses[0].stacks = 100;
+    expect(statOf(pollutedEnemy, "blockRate")).toBe(RULES.combat.probCapPct);
   });
 
   it("概率类属性最终值封顶在 probCapPct", () => {
