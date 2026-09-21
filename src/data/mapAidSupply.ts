@@ -8,8 +8,7 @@ export interface AidSupplyEntry {
 }
 
 export const DEFAULT_AID_SUPPLY: AidSupplyEntry[] = [
-  { itemId: "milk", count: 1 },
-  { itemId: "cola", count: 1 },
+  { itemId: "cola", count: 2 },
   { itemId: "medical-kit-c", count: 1 },
   { itemId: "energy-canister", count: 1 },
 ];
@@ -18,8 +17,7 @@ export const DEFAULT_AID_SUPPLY: AidSupplyEntry[] = [
 export const AID_SUPPLY_OVERRIDES: Partial<Record<string, AidSupplyEntry[]>> = {};
 export const AID_SUPPLY_MAP_OVERRIDES: Partial<Record<string, AidSupplyEntry[]>> = {
   tutorial: [
-    { itemId: "milk", count: 1 },
-    { itemId: "bread", count: 1 },
+    { itemId: "bread", count: 2 },
     { itemId: "medical-kit-c", count: 1 },
     { itemId: "energy-canister", count: 1 },
   ],
