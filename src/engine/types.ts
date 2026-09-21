@@ -575,6 +575,9 @@ export interface StatBlock {
   healPower: number; // 治愈力: 治疗/护盾基础值 = 治愈力 ÷ RULES.combat.healDivisor × 倍率
   lowCostMastery: number; // 低费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
   highCostMastery: number; // 高费精通: 仅在卡牌结算窗口内叠加到攻击力与治愈力
+  fastMastery: number; // 速攻精通: 打出速攻牌时叠加到攻击力(只加伤害)
+  executeMastery: number; // 斩杀精通: 攻击生命低于 50% 的目标时叠加到攻击力(只加伤害)
+  chargeMastery: number; // 冲锋精通: 攻击满血目标时叠加到攻击力(只加伤害)
   defense: number; // 防御力: 正值按防御力 / (防御力 + 常量)减伤，负值增伤；穿甲只抵扣正防御，角色基础防御力为 0
   armorPen: number; // 穿甲(固定整数): 结算时抵扣目标防御力, 有效防御力不低于 0
   // 命中 / 回避 / 暴击
@@ -750,6 +753,8 @@ export interface BattleState {
   // ★ 出牌结束逐条逆向撤回后清空 —— 它不是场上 buff, 结算完不留痕。
   playStatMods: { targetId: string; stat: keyof StatBlock; amount: number; pct: boolean }[];
   activeCardCost: number | null;
+  // 当前结算卡的类型(速攻精通判定用), 与 activeCardCost 同生命周期。
+  activeCardType: CardType | null;
   activeCardStarSpent: number;
   // 当前结算卡的实例累计层数(Card.discardStacks)。与 activeCardCost 同生命周期。
   activeCardStacks: number;

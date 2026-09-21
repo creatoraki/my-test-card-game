@@ -1,11 +1,12 @@
-/* 三个分组框的栅格: 上排两组并列, 「特殊属性」横跨整行。
-   ⚠ 稿子上左框比右框宽一档(292 : 255 ≈ 1.14 : 1), 不是等分。
-   ★ 上排用 1fr 吃掉剩余高度 —— 稿子的竖向尺寸比实际容器高约 5%, 靠行间距自适应吸收。 */
+/* 三个分组框的栅格: 左栏上下叠放两组(框内两列), 「特殊属性」在右侧通高成一条竖栏。
+   ★ 属性区高约 580px, 旧版「上排两框 + 下方横跨三列」要约 650px 才放得下, 故改为左右分栏:
+     左栏两框各 3 行 × 2 列, 右栏 9 行单列, 两侧都用 1fr 吃满高度、行距自适应。
+   ⚠ 左栏要装两列属性行(含换装预览的 ±N 色块), 所以比右栏宽一截(1.7 : 1)。 */
 .groups {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: 1.14fr 1fr;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: 1.7fr 1fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 16px 20px;
   min-height: 0;
 }

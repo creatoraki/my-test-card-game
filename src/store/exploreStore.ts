@@ -6,7 +6,7 @@
 
 import { create } from "zustand";
 import { getItemDef } from "../data";
-import type { CardOfferCandidate, ExploreState, PartySnapshot } from "../explore/types";
+import type { BattleTier, CardOfferCandidate, ExploreState, PartySnapshot } from "../explore/types";
 import { resolvePicnic, type PicnicResult } from "../explore/picnic";
 import type { ItemStack } from "../items/types";
 import type { MapDifficulty } from "../data/mapDifficulty";
@@ -115,7 +115,7 @@ interface ExploreStore {
     bountyBonus: number,
   ) => void;
   // 战斗回合消耗。★ 必须在 settleBattle 之后调用 —— 掉落系数与经验倍率读的是战前能量
-  spendBattleEnergy: (rounds: number) => void;
+  spendBattleEnergy: (rounds: number, tier: BattleTier | null) => void;
   clear: () => void;
   receiveClearReward: (stacks: ItemStack[]) => void;
 
@@ -296,9 +296,9 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
     });
   },
 
-  spendBattleEnergy: (rounds) => {
+  spendBattleEnergy: (rounds, tier) => {
     mutate(get, set, (d) => {
-      spendBattleEnergyFn(d, rounds);
+      spendBattleEnergyFn(d, rounds, tier);
     });
   },
 

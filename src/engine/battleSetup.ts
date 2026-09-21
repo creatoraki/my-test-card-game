@@ -167,6 +167,7 @@ export function createBattleState(
     playValueBonusPct: 0,
     playStatMods: [],
     activeCardCost: null,
+    activeCardType: null,
     activeCardStarSpent: 0,
     activeCardStacks: 0,
     activeCardResonance: 0,

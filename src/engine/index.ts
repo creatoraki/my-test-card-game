@@ -24,6 +24,7 @@ export {
   healValue,
   masteryBonusOf,
   offenseStatOf,
+  damageMasteryOf,
   statOf,
   hitChance,
   critChance,

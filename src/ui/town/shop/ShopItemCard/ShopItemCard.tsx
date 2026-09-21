@@ -16,7 +16,11 @@ import { ShopDetailCard } from "../ShopDetailCard";
 import detailStyles from "../ShopDetailCard/ShopDetailCard.module.css";
 import s from "./ShopItemCard.module.css";
 
-const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+// 词条允许小数(如 1.5 倍换算), 显示时四舍五入。
+const signed = (value: number) => {
+  const n = Math.round(value);
+  return n > 0 ? `+${n}` : `${n}`;
+};
 
 interface Props {
   stack: ItemStack | null;

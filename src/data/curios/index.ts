@@ -60,8 +60,8 @@ export const RANDOM_CURIO_WEIGHTS: Readonly<Partial<Record<CurioKind, number>>> 
   cardArchive: 1,
 };
 
-/** 治疗交互：每间非起点房按 healChance 概率投放 1 个。 */
-export const HEAL_CURIO_KINDS: readonly CurioKind[] = ["medical", "sink", "repairPod"];
+/** 治疗与粒子补给交互：每间非起点房按 healChance 概率投放 1 个。 */
+export const HEAL_CURIO_KINDS: readonly CurioKind[] = ["medical", "sink", "repairPod", "energyStation"];
 
 /** 风险房物件：每间普通房按 riskChance 概率投放，进房立即触发。 */
 export const RISK_CURIO_KINDS: readonly CurioKind[] = ["collapsedCeiling", "leakingPipe", "rogueDrone"];

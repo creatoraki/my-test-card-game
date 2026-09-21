@@ -17,10 +17,14 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
       kind: "buff",
       targeting: "self",
       weight: 1,
-      bias: [{ when: "selfLacksStatus", status: "escort", multiplier: 4 }],
+      bias: [
+        { when: "selfLacksStatus", status: "escort", multiplier: 4 },
+        // 没有队友时护航毫无意义，落单坦克优先攻击。
+        { when: "allyCountBelow", value: 2, multiplier: 0 },
+      ],
       anim: "buff",
       effects: [
-        { type: "GAIN_SHIELD", amount: 10, target: "self" },
+        { type: "GAIN_SHIELD", amount: 14, target: "self" },
         { type: "APPLY_STATUS", status: "escort", stacks: 1, target: "self" },
       ],
     },
@@ -32,9 +36,12 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
       kind: "buff",
       targeting: "self",
       weight: 1,
-      bias: [{ when: "selfHasStatus", status: "escort", multiplier: 1.5 }],
+      bias: [
+        { when: "selfHasStatus", status: "escort", multiplier: 1.5 },
+        { when: "allyCountBelow", value: 2, multiplier: 0.3 },
+      ],
       anim: "buff",
-      effects: [{ type: "GAIN_SHIELD", amount: 8, target: "self" }],
+      effects: [{ type: "GAIN_SHIELD", amount: 12, target: "self" }],
     },
     {
       id: "signal-red",
@@ -44,9 +51,10 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
       kind: "attack",
       targeting: "foe",
       weight: 1.5,
+      bias: [{ when: "allyCountBelow", value: 2, multiplier: 3 }],
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 0.6, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.75, target: "primary" },
         { type: "APPLY_STATUS", status: "static", stacks: 2, target: "primary" },
       ],
     },
@@ -58,9 +66,10 @@ export const TRAFFIC_LIGHT_BOT: EnemyDef = {
       kind: "debuff",
       targeting: "foe",
       weight: 1,
+      bias: [{ when: "allyCountBelow", value: 2, multiplier: 3 }],
       anim: "shot",
       effects: [
-        { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.6, target: "primary" },
         { type: "MARK_CARDS", mark: "heavy", markPick: "targetHandRandom", amount: 1, target: "primary" },
       ],
     },

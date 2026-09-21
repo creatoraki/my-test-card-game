@@ -76,6 +76,7 @@ import { fireExploreRelic } from "./relics";
 import { relicBurdenAdapt } from "./relicModifiers";
 import { hasCorridorRewards, settleCorridorEncounter } from "./corridor/session";
 import { changeEnergy } from "./energy";
+import { interactionCost } from "./energyCost";
 import { generateDungeon } from "./dungeon/generate";
 import { currentRoom, enterRoom, isRoomExplored, syncRoomFromScene } from "./dungeon/session";
 import type {
@@ -113,11 +114,8 @@ export function rewardMultiplier(energy: number): number {
   return energyTier(energy).rewardMultiplier;
 }
 
-// 交互一个事件要花多少粒子 —— 房间制下是固定价(见 EXPLORE_RULES.energyPerInteraction),
-// 「隐匿通道」这类效果留下的 freeNodes 仍可免除。UI 的预告与实际扣费都读这一个口。
-export function interactionCost(s: ExploreState): number {
-  return s.freeNodes > 0 ? 0 : EXPLORE_RULES.energyPerInteraction;
-}
+// 粒子计价(交互 / 换房 / 战斗 / 行走)统一在 energyCost.ts, 这里转出供旧调用方沿用。
+export { interactionCost, spendBattleEnergy } from "./energyCost";
 
 // 统一掉落系数 K =(K_energy + Σ挑战加成 + 额外掉率加成)× K_global —— **全加法合成**(设计文档 §5.1)。
 // 挑战加成由战斗引擎在 finishBattle 时写入 pendingChallengeBonus。
@@ -331,15 +329,6 @@ function countPickup(s: ExploreState, amount: number): void {
 
 export function cheatChangeEnergy(s: ExploreState, delta: number): void {
   changeEnergy(s, delta);
-}
-
-// 战斗回合消耗(设计文档 §4.2): 每进行 1 个战斗回合 −1 粒子。
-// ⚠ 由 store 层在 finishBattle **之后**调用 —— 掉落系数与经验倍率读的是战前能量,
-//   提前扣会削掉本场自己的收益。BOSS 战不调用本函数(那一场打完即通关)。
-export function spendBattleEnergy(s: ExploreState, rounds: number): void {
-  const cost = Math.max(0, Math.round(rounds)) * EXPLORE_RULES.energyPerBattleRound;
-  if (cost > 0) changeEnergy(s, -cost);
-  s.battleEnergyMark = s.stats.energySpent;
 }
 
 // ---------------------------------------------------------------------------
@@ -1685,11 +1674,11 @@ export function chooseOption(s: ExploreState, index: number): boolean {
   const notes: string[] = [];
   const historyNotes: string[] = [];
 
-  // ① 交互的基础消耗(固定价, 见 interactionCost)。「隐匿通道」这类效果免的就是这一份。
+  // ① 交互的基础消耗(见 energyCost.interactionCost)。「隐匿通道」这类效果免的就是这一份。
   if (s.freeNodes > 0) {
     s.freeNodes -= 1;
   } else {
-    changeEnergy(s, -EXPLORE_RULES.energyPerInteraction);
+    changeEnergy(s, -interactionCost(s));
   }
 
   // ② 分支自己的额外增减

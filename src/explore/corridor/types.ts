@@ -20,6 +20,7 @@ export type CurioKind =
   | "medical"
   | "sink"
   | "repairPod"
+  | "energyStation"
   | "modBench"
   | "cardPrinter"
   | "shrine"

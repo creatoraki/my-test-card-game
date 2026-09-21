@@ -1,6 +1,9 @@
 import type { DamageCtx, StatusCtx, StatusDef } from "../types";
 import { recordHitPart } from "../animHits";
 
+// 静电叠到该层数时清空并眩晕 1 拍。
+const STATIC_STUN_STACKS = 2;
+
 function playerAttacker(c: StatusCtx, dmg: DamageCtx): boolean {
   const source = dmg.sourceId ? c.state.combatants[dmg.sourceId] : undefined;
   return source?.team === "player";
@@ -24,10 +27,10 @@ export const ABANDONED_FLOOR_STATUS_DEFS: Record<string, StatusDef> = {
     kind: "debuff",
     stackMode: "add",
     resistMode: "stacks",
-    desc: "每层静电持续存在。达到 3 层时清空并眩晕 1 拍。",
+    desc: `每层静电持续存在。达到 ${STATIC_STUN_STACKS} 层时清空并眩晕 1 拍。`,
     hooks: {
       onApplied: (c: StatusCtx) => {
-        if (c.inst.stacks < 3) return;
+        if (c.inst.stacks < STATIC_STUN_STACKS) return;
         c.inst.stacks = 0;
         c.inst.duration = 0;
         c.ops.applyStatus(c.state, c.ownerId, "stun", 1, 1, undefined, c.ownerId);

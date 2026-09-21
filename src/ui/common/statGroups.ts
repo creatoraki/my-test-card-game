@@ -51,6 +51,9 @@ export const STAT_GROUPS: StatGroup[] = [
     title: "特殊属性",
     subtitle: "防护与其他",
     rows: [
+      { key: "fastMastery", label: "速攻精通", ref: 30 },
+      { key: "executeMastery", label: "斩杀精通", ref: 30 },
+      { key: "chargeMastery", label: "冲锋精通", ref: 30 },
       { key: "initiative", label: "先手", ref: 20 },
       { key: "blockRate", label: "格挡", pct: true },
       { key: "healBoost", label: "治愈强度", pct: true },

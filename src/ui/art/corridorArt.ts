@@ -81,6 +81,8 @@ export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
   medical: { src: corridorMedicalArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 26 / 512 },
   sink: { src: corridorSinkArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 68 / 512 },
   repairPod: { src: corridorRepairPodArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 11 / 512 },
+  // 粒子净化站暂无专属素材，复用修复舱图片。
+  energyStation: { src: corridorRepairPodArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 11 / 512 },
   modBench: { src: corridorModBenchArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 65 / 512 },
   cardPrinter: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
   shrine: { src: corridorShrineArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.large, groundTrim: 46 / 512 },
@@ -123,6 +125,7 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
   medical: 0,
   sink: 0,
   repairPod: 0,
+  energyStation: 0,
   modBench: 0,
   cardPrinter: 0,
   shrine: 0,

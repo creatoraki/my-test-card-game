@@ -8,6 +8,10 @@ export interface CardTextStats {
   healPower: number;
   lowCostMastery: number;
   highCostMastery: number;
+  // 速攻精通: 只在速攻牌的 DAMAGE 数值上叠加(卡面没有目标, 斩杀/冲锋不展示)。
+  fastMastery?: number;
+  // 仅 DAMAGE 使用的额外攻击力, 由 renderCardText 按卡牌类型填入。
+  damageAttackBonus?: number;
 }
 
 // 由属性换算出的展示值(层数 / 状态参数)。与 effects.sourceStatValue 同口径:
@@ -40,7 +44,7 @@ export function effectDisplayValue(
         ? effect.amount
         : Math.round(
             attackDamage(
-              stats.attack,
+              stats.attack + (stats.damageAttackBonus ?? 0),
               (effect.multiplier ?? 1) + (effect.bonusMultiplierPerSelfStack ?? 0) * selfStacks,
             ),
           );
@@ -74,6 +78,7 @@ export function renderCardText(card: Card, stats: CardTextStats, cost = cardCost
     ...stats,
     attack: stats.attack + mastery,
     healPower: stats.healPower + mastery,
+    damageAttackBonus: card.cardType === "fast" ? stats.fastMastery ?? 0 : 0,
   };
   return card.text.replace(/\{(d|k|o)?(\d+|c)\}/g, (_match, kind: string | undefined, indexText: string) => {
     if (indexText === "c") {

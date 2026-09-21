@@ -19,7 +19,7 @@ export const GLASS_JELLY: EnemyDef = {
       weight: 2,
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.7, target: "primary" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "primary" },
       ],
     },
@@ -34,7 +34,7 @@ export const GLASS_JELLY: EnemyDef = {
       bias: [{ when: "anyAllyHpBelowPct", value: 70, multiplier: 2.5 }],
       anim: "heal",
       effects: [
-        { type: "HEAL", amount: 6, target: "allAllies" },
+        { type: "HEAL", amount: 10, target: "allAllies" },
         { type: "APPLY_STATUS", status: "regen", stacks: 2, duration: 3, target: "allAllies" },
       ],
     },
@@ -50,7 +50,7 @@ export const GLASS_JELLY: EnemyDef = {
       bias: [{ when: "allyCountBelow", value: 2, multiplier: 0 }],
       anim: "buff",
       effects: [
-        { type: "GAIN_SHIELD", amount: 10, target: "primary" },
+        { type: "GAIN_SHIELD", amount: 14, target: "primary" },
         { type: "APPLY_STATUS", status: "conductiveFilm", stacks: 1, target: "primary" },
       ],
     },
@@ -64,7 +64,7 @@ export const GLASS_JELLY: EnemyDef = {
       weight: 0.8,
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 0.2, target: "allFoes" },
+        { type: "DAMAGE", multiplier: 0.3, target: "allFoes" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "allFoes" },
       ],
     },

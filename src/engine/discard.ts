@@ -186,9 +186,11 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
       if (recorder) ensureCardFxSnapshot(state);
       const beforeHp = snapshotHp(state);
       const previousCardCost = state.activeCardCost;
+      const previousCardType = state.activeCardType;
       const previousCardStacks = state.activeCardStacks;
       const previousCardResonance = state.activeCardResonance;
       state.activeCardCost = cardCost(state, card);
+      state.activeCardType = card.cardType;
       state.activeCardStacks = card.discardStacks ?? 0;
       state.activeCardResonance = card.resonanceStacks ?? 0;
       let resolution!: EffectResolution;
@@ -199,6 +201,7 @@ export function flushAutoPlays(state: BattleState, rec?: DiscardRecorder): void 
         });
       } finally {
         state.activeCardCost = previousCardCost;
+        state.activeCardType = previousCardType;
         state.activeCardStacks = previousCardStacks;
         state.activeCardResonance = previousCardResonance;
       }

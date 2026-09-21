@@ -198,7 +198,7 @@ describe("换房间(每移动 1 个房间 −5 粒子)", () => {
     expect(s.energy).toBe(before);
   });
 
-  it("确认传送扣 5 粒子并落进目标房间", () => {
+  it("确认传送按新房价扣粒子并落进目标房间", () => {
     const s = newSession(12);
     const dir = exitDirs(roomNow(s))[0];
     const targetId = roomNow(s).exits[dir]!;
@@ -206,7 +206,7 @@ describe("换房间(每移动 1 个房间 −5 粒子)", () => {
 
     stepOnPortal(s, dir);
     expect(travelPortal(s, dir)).toBe(true);
-    expect(s.energy).toBe(before - EXPLORE_RULES.dungeon.energyPerRoomMove);
+    expect(s.energy).toBe(before - EXPLORE_RULES.dungeon.energyPerRoomMove.fresh);
     expect(dungeonOf(s).currentRoomId).toBe(targetId);
     expect(roomNow(s).visited).toBe(true);
     expect(s.round).toBe(roomNow(s).depth + 1);
@@ -243,7 +243,7 @@ describe("换房间(每移动 1 个房间 −5 粒子)", () => {
   });
 });
 
-describe("交互(每交互 1 个事件 −2 粒子)", () => {
+describe("交互(按物件分类扣粒子)", () => {
   // 物件种类是随机的, 各分支自带的 energyDelta 不同 —— 钉死成遗留物资箱才能断言净消耗。
   function withChest(seed = 31): ExploreState {
     const s = newSession(seed);
@@ -252,11 +252,11 @@ describe("交互(每交互 1 个事件 −2 粒子)", () => {
     return s;
   }
 
-  it("交互一个事件固定扣 2 点", () => {
+  it("交互物品奖励类物件按 loot 档扣粒子", () => {
     const s = withChest();
     const before = s.energy;
     takeCurio(s);
-    expect(s.energy).toBe(before - EXPLORE_RULES.energyPerInteraction);
+    expect(s.energy).toBe(before - EXPLORE_RULES.energyPerInteraction.loot);
   });
 
   it("「隐匿通道」的免费次数会顶掉基础消耗, 且只顶指定次数", () => {
@@ -267,12 +267,12 @@ describe("交互(每交互 1 个事件 −2 粒子)", () => {
     takeCurio(s);
     expect(s.energy).toBe(before);
     expect(s.freeNodes).toBe(0);
-    expect(interactionCost(s)).toBe(EXPLORE_RULES.energyPerInteraction);
+    expect(interactionCost(s)).toBeGreaterThan(0);
   });
 
   it("预测值 = 再交互一次后的能量, 不会低于 0", () => {
     const s = newSession(33);
-    expect(projectedEnergy(s)).toBe(s.energy - EXPLORE_RULES.energyPerInteraction);
+    expect(projectedEnergy(s)).toBe(s.energy - EXPLORE_RULES.energyPerInteraction.event);
     s.energy = 1;
     expect(projectedEnergy(s)).toBe(0);
   });
@@ -362,6 +362,13 @@ describe("战斗接缝", () => {
     const before = s.energy;
     spendBattleEnergy(s, 4);
     expect(s.energy).toBe(before - 4 * EXPLORE_RULES.energyPerBattleRound);
+  });
+
+  it("战斗按档位额外扣粒子", () => {
+    const s = newSession(46);
+    const before = s.energy;
+    spendBattleEnergy(s, 2, "t3");
+    expect(s.energy).toBe(before - 2 * EXPLORE_RULES.energyPerBattleRound - EXPLORE_RULES.energyPerBattleTier.t3);
   });
 
   // 设计文档 §6.1: 战斗胜利**只掉物品, 绝不直接掉居民积分**。

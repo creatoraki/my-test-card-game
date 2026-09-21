@@ -29,9 +29,11 @@
   clip-path: var(--panel-shape);
 }
 
-/* 「特殊属性」独占一整行，内部三列。 */
-.card.is-wide {
-  grid-column: 1 / -1;
+/* 左栏两框按 DOM 顺序上下叠放; 「特殊属性」是右侧通高竖栏。 */
+.card { grid-column: 1; }
+.card.is-side {
+  grid-column: 2;
+  grid-row: 1 / -1;
 }
 
 /* 右上角的大号斜体序号水印 —— 纯文本, 不占布局也不吃指针。 */
@@ -50,26 +52,12 @@
   user-select: none;
 }
 
-/* 宽组序号左侧的装饰花字 —— 压到几乎看不清, 只做版面呼吸。 */
-.watermark {
-  position: absolute;
-  top: 16px;
-  right: 74px;
-  color: #b9d4ff3d;
-  font-size: var(--fm-fs-l3, 18px);
-  font-style: italic;
-  letter-spacing: 4px;
-  line-height: 1;
-  pointer-events: none;
-  user-select: none;
-}
-
 .head {
   display: flex;
   align-items: center;
   gap: 12px;
   /* 给序号水印让出地方。 */
-  padding-right: 84px;
+  padding-right: 56px;
 }
 
 .title {
@@ -111,18 +99,22 @@
   background: linear-gradient(90deg, #cfe0ffc4, #8fb0e85e 30%, #8fb0e814 70%, transparent);
 }
 
+/* 竖栏: 单列纵排, 行距随框高自适应(最少 6px)。 */
 .rows {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
+  min-height: 0;
 }
 
-.rows.is-two-col {
+/* 左栏框: 两列 × 三行, 行按阅读顺序横向铺, 三行在框内上下撑开。 */
+.rows.is-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px 13px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: space-between;
+  gap: 12px 28px;
 }
 
 @keyframes statGroupIn {

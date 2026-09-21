@@ -10,6 +10,10 @@ export const AFFIX_SCALE: Partial<Record<keyof StatBlock, number>> = {
   burdenAdapt: 1,
   lowCostMastery: 1,
   highCostMastery: 1,
+  // 三种伤害精通 1 点词条 = 1.5 攻击力; 计算保留小数, 显示时四舍五入。
+  fastMastery: 1.5,
+  executeMastery: 1.5,
+  chargeMastery: 1.5,
   critRate: 2,
   critDamage: 2,
   hitRate: 1,
@@ -21,6 +25,9 @@ export const AFFIX_SCALE: Partial<Record<keyof StatBlock, number>> = {
   blockRate: 2,
   ailmentResist: 2,
 };
+
+/** 升阶固定投入的模型值区间缺省值；模型可用 upgradeAdd 覆盖(如武器每阶 +10 上限)。 */
+export const DEFAULT_UPGRADE_ADD: readonly [number, number] = [4, 5];
 
 export const COST_ALLOWED_STATS: ReadonlySet<keyof StatBlock> = new Set([
   "maxHp",
@@ -225,7 +232,8 @@ export function upgradeEquipment(
     cost += rolledCost;
   }
   const refund = calculateRefund(nextDef.model, cost);
-  const added = randomInt(4, 5, pick);
+  const [addMin, addMax] = nextDef.model.upgradeAdd ?? DEFAULT_UPGRADE_ADD;
+  const added = randomInt(addMin, addMax, pick);
   const budgetAdded = added + refund - previousRefund;
   if (budgetAdded < 0) throw new Error(`装备升阶后预算不足: ${nextDef.id}`);
   distribute(nextDef.model, points, budgetAdded, pick);

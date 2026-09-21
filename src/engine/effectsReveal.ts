@@ -29,6 +29,7 @@ function autoPlayRevealedCard(state: BattleState, card: Card): void {
   const primaryId = randomFoeId(state, card);
   const previous = {
     activeCardCost: state.activeCardCost,
+    activeCardType: state.activeCardType,
     activeCardStarSpent: state.activeCardStarSpent,
     activeCardUid: state.activeCardUid,
     autoPlaySuppress: state.autoPlaySuppress,
@@ -42,6 +43,7 @@ function autoPlayRevealedCard(state: BattleState, card: Card): void {
   };
   state.activeCardCost = cardCost(state, card);
   state.activeCardStarSpent = 0;
+  state.activeCardType = card.cardType;
   state.activeCardUid = card.uid;
   state.activeCardStacks = card.discardStacks ?? 0;
   state.activeCardResonance = card.resonanceStacks ?? 0;
@@ -63,6 +65,7 @@ function autoPlayRevealedCard(state: BattleState, card: Card): void {
     }
     state.playStatMods.length = previous.playStatModsLength;
     state.activeCardCost = previous.activeCardCost;
+    state.activeCardType = previous.activeCardType;
     state.activeCardStarSpent = previous.activeCardStarSpent;
     state.activeCardUid = previous.activeCardUid;
     state.autoPlaySuppress = previous.autoPlaySuppress;

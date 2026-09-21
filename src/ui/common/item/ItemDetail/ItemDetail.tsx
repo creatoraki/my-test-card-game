@@ -23,6 +23,9 @@ export const STAT_LABEL: Partial<Record<keyof StatBlock, string>> = {
   healPower: "治愈力",
   lowCostMastery: "低费精通",
   highCostMastery: "高费精通",
+  fastMastery: "速攻精通",
+  executeMastery: "斩杀精通",
+  chargeMastery: "冲锋精通",
   defense: "防御力",
   armorPen: "穿甲",
   hitRate: "命中率",
@@ -168,7 +171,11 @@ export default function ItemDetail({
   );
 }
 
-const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+// 词条允许小数(如 1.5 倍换算), 显示时四舍五入。
+const signed = (value: number) => {
+  const n = Math.round(value);
+  return n > 0 ? `+${n}` : `${n}`;
+};
 
 function relicTriggerText(on: string | string[]): string {
   const labels: Record<string, string> = {

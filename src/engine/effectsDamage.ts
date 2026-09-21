@@ -1,7 +1,7 @@
 import type { BattleState, EffectDescriptor } from "./types";
 import type { EffectResolution } from "./effects";
 import { ops } from "./ops";
-import { attackDamage, offenseStatOf } from "./stats";
+import { attackDamage, damageMasteryOf, offenseStatOf } from "./stats";
 import { counterOf } from "./counters";
 import { getStatusDef } from "./statuses";
 import { applyPierce } from "./pierce";
@@ -94,7 +94,7 @@ export function applyDamageEffect(
       const valueMultiplier = 1 + state.playValueBonusPct / 100;
       const dmg = fixed
         ? amount * (1 + bonusMult) * valueMultiplier * valueScale
-        : attackDamage(offenseStatOf(state, src, "attack"), damageMultiplier) * valueMultiplier * valueScale;
+        : attackDamage(offenseStatOf(state, src, "attack") + damageMasteryOf(state, src, targetUnit), damageMultiplier) * valueMultiplier * valueScale;
       const result = ops.dealDamage(state, sourceId, id, dmg, {
         isAttack: true,
         fixed,

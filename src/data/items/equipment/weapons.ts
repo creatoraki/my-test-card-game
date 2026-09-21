@@ -1,18 +1,19 @@
 import type { ItemDef } from "../../../items/types";
 import { expandEquipTiers, WEAPON_PRESET, type EquipFamily } from "./equipModel";
 
+// 武器特色词条: 速攻 / 斩杀 / 冲锋三种伤害精通分散到不同武器上, 先手可作为负面词条。
 const WEAPON_FAMILIES: EquipFamily[] = [
   {
     familyId: "deflection-blade",
     name: "太刀",
-    desc: "以攻击力和命中率为核心的稳定近战武器。",
-    affixes: ["attack", "hitRate"],
+    desc: "以攻击力和冲锋精通抢下首刀的稳定近战武器。",
+    affixes: ["attack", "chargeMastery", "hitRate"],
   },
   {
     familyId: "quickstrike-gauntlet",
     name: "拳套",
-    desc: "围绕低费卡牌与稳定命中构筑的速攻武器。",
-    affixes: ["lowCostMastery", "hitRate"],
+    desc: "围绕速攻牌与低费卡牌连打构筑的速攻武器。",
+    affixes: ["fastMastery", "lowCostMastery", "hitRate"],
   },
   {
     familyId: "armor-piercing-crossbow",
@@ -23,34 +24,35 @@ const WEAPON_FAMILIES: EquipFamily[] = [
   {
     familyId: "hunting-rifle",
     name: "狙击枪",
-    desc: "围绕暴击、高费精通与爆伤构筑的精确武器。",
-    affixes: ["critRate", "highCostMastery", "critDamage"],
+    desc: "牺牲先手，换取对满血目标的冲锋精通与暴击爆发的精确武器。",
+    affixes: ["critRate", "chargeMastery", "critDamage"],
+    drawback: "initiative",
   },
   {
     familyId: "hunter-longbow",
     name: "弓箭",
-    desc: "以穿甲和低费精通为核心的远程武器。",
-    affixes: ["armorPen", "lowCostMastery"],
+    desc: "以穿甲和速攻精通为核心的轻快远程武器。",
+    affixes: ["armorPen", "fastMastery"],
   },
   {
     familyId: "saber",
     name: "军刀",
-    desc: "兼顾攻击、暴击和命中率的制式近战武器。",
-    affixes: ["attack", "critRate", "hitRate"],
+    desc: "兼顾攻击、暴击和斩杀精通的制式近战武器。",
+    affixes: ["attack", "critRate", "executeMastery"],
   },
   {
     familyId: "glass-dagger",
     name: "匕首",
-    desc: "牺牲生命上限，换取低费精通与暴击爆发的极端速攻武器。",
-    affixes: ["lowCostMastery", "critRate", "critDamage"],
+    desc: "牺牲生命上限，换取速攻与斩杀爆发的极端速攻武器。",
+    affixes: ["fastMastery", "executeMastery", "critDamage"],
     drawback: "maxHp",
   },
   {
     familyId: "heavy-cannon",
     name: "火炮",
-    desc: "以高费精通、攻击力和穿甲换取重击能力，但牺牲命中率。",
+    desc: "牺牲先手，换取高费精通、攻击力和穿甲的重击武器。",
     affixes: ["highCostMastery", "attack", "armorPen"],
-    drawback: "hitRate",
+    drawback: "initiative",
   },
   {
     familyId: "cross-sword",
@@ -62,9 +64,9 @@ const WEAPON_FAMILIES: EquipFamily[] = [
   {
     familyId: "war-hammer",
     name: "锤子",
-    desc: "牺牲先手，换取攻击、穿甲和爆伤的迟滞型重击武器。",
-    affixes: ["attack", "armorPen", "critDamage"],
-    drawback: "defense",
+    desc: "牺牲先手，换取攻击、斩杀精通和穿甲的迟滞型重击武器。",
+    affixes: ["attack", "executeMastery", "armorPen"],
+    drawback: "initiative",
   },
   {
     familyId: "crystal-orb",

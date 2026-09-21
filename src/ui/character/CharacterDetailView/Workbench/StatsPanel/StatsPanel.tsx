@@ -1,4 +1,4 @@
-// 属性面板 —— 三组只读面板属性, 每组一个独立玻璃框。
+// 属性面板 —— 三组只读面板属性, 每组一个独立玻璃框: 左栏上下两组, 右侧一条通高竖栏。
 //
 // ★ 角色不设等级也不加点(角色养成设计.md 第一章), 故这里刻意没有任何 ＋ 按钮:
 //   这些数字进游戏后只由装备与羁绊改变。
@@ -29,7 +29,7 @@ export function StatsPanel({
   return (
     <div className={s.groups}>
       {STAT_GROUPS.map((group, gi) => (
-        <StatGroupCard key={group.title} title={group.title} subtitle={group.subtitle} index={gi} wide={group.wide}>
+        <StatGroupCard key={group.title} title={group.title} subtitle={group.subtitle} index={gi} side={group.wide}>
           {group.rows.map((row) => (
             <AttrRow
               key={row.key}

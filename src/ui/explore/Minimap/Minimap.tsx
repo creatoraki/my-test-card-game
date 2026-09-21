@@ -9,7 +9,7 @@
 
 import type { CorridorState } from "@/explore/corridor/types";
 import type { DungeonState } from "@/explore/dungeon/types";
-import { EXPLORE_RULES } from "@/explore/rules";
+import { roomMoveCostFor } from "@/explore/energyCost";
 import { MinimapBoard } from "./MinimapBoard";
 import { buildMapModel, portalTargetId } from "./minimapModel";
 import { minimapHudLayout } from "./minimapHudLayout";
@@ -75,7 +75,7 @@ export function Minimap({
       {picking
         ? "选择一间已访问的房间传送过去 · 不消耗净化粒子"
         : target
-          ? `脚下传送门通往${target.visited ? ` ${target.label} 号房间` : "此处"} · 粒子 −${EXPLORE_RULES.dungeon.energyPerRoomMove}`
+          ? `脚下传送门通往${target.visited ? ` ${target.label} 号房间` : "此处"} · 粒子 −${roomMoveCostFor(target.visited)}`
           : "站上传送门可点亮它通往的房间"}
     </p>
   </div>;

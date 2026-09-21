@@ -20,6 +20,9 @@ export const ZERO_STATS: StatBlock = {
   healPower: 0,
   lowCostMastery: 0,
   highCostMastery: 0,
+  fastMastery: 0,
+  executeMastery: 0,
+  chargeMastery: 0,
   defense: 0,
   armorPen: 0,
   hitRate: 0,
@@ -98,6 +101,25 @@ export function offenseStatOf(
   key: "attack" | "healPower",
 ): number {
   return statOf(cmb, key) + masteryBonusOf(state, cmb);
+}
+
+// 伤害专属精通: 只在卡牌结算窗口内、按每个受击目标单独判定, 叠加到攻击力(不影响治疗与护盾)。
+//   速攻 —— 当前结算的是速攻牌; 斩杀 —— 目标生命低于 50%; 冲锋 —— 目标满血。
+export const EXECUTE_HP_PCT = 50;
+
+export function damageMasteryOf(
+  state: BattleState,
+  cmb: Combatant,
+  target: Combatant | undefined,
+  cardType = state.activeCardType,
+): number {
+  if (cardType == null) return 0; // 不在卡牌结算窗口内(敌人出招、遗物伤害等)
+  let bonus = cardType === "fast" ? statOf(cmb, "fastMastery") : 0;
+  if (target && target.maxHp > 0) {
+    if ((target.hp / target.maxHp) * 100 < EXECUTE_HP_PCT) bonus += statOf(cmb, "executeMastery");
+    if (target.hp >= target.maxHp) bonus += statOf(cmb, "chargeMastery");
+  }
+  return bonus;
 }
 
 // 往战斗内修正里写一笔(卡牌 / 状态 / 场景效果都走这里)。

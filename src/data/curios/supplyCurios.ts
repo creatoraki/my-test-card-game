@@ -1,4 +1,4 @@
-import { critterRecipe, jobDecision, offeringDecision } from "./helpers";
+import { critterRecipe, exactItem, jobDecision, offeringDecision } from "./helpers";
 import type { CurioDef } from "./types";
 
 export const SUPPLY_CURIOS: Record<string, CurioDef> = {
@@ -82,6 +82,36 @@ export const SUPPLY_CURIOS: Record<string, CurioDef> = {
         "医疗包与齿轮同时嵌入接口，修复舱锁定了一名队员的体力极限。",
         [[{ match: { familyId: "medical-kit" }, count: 1 }, { match: { itemIds: ["standard-gear"] }, count: 1 }]],
         [{ type: "HEAL_LIMIT_ONE", percent: 0.5 }],
+      ),
+    ],
+  },
+  energyStation: {
+    name: "粒子净化站",
+    role: "heal",
+    verb: "充能",
+    size: 215,
+    description: "净化站的储能罐里还残留着一层稳定的净化粒子，只是泄压阀已经锈死。",
+    decisions: [
+      {
+        id: "forceCharge",
+        label: "强行充能",
+        story: "你们撬开泄压阀，一股粒子流灌进队伍的净化装置。",
+        risk: { chance: 0.5, effects: [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.08 }] },
+        effects: [{ type: "MODIFY_ENERGY", amount: 12 }],
+      },
+      offeringDecision(
+        "colaCharge",
+        "投放两份可乐",
+        "可乐里的糖分被净化站当作临时燃料，储能罐稳定地吐出一整轮粒子。",
+        [exactItem("cola", 2)],
+        [{ type: "MODIFY_ENERGY", amount: 25 }],
+      ),
+      jobDecision(
+        "alchemistCharge",
+        "让炼金术士重配粒子",
+        "炼金术士把残留粒子重新提纯，顺手滤掉了队伍身上的一部分污染。",
+        "alchemist",
+        [{ type: "MODIFY_ENERGY", amount: 18 }, { type: "ADJUST_POLLUTION", target: "party", amount: -5 }],
       ),
     ],
   },

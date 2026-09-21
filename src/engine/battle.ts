@@ -296,6 +296,7 @@ export function playCard(
       state.playValueBonusPct = 0;
       revertPlayStatMods(state);
       state.activeCardCost = faceCost;
+      state.activeCardType = card.cardType;
       state.activeCardStacks = card.discardStacks ?? 0;
       state.activeCardResonance = card.resonanceStacks ?? 0;
       state.fullDraw = emptyFullDraw();
@@ -383,6 +384,7 @@ export function playCard(
         flushAutoPlays(state, rec);
       } finally {
         state.activeCardCost = null;
+        state.activeCardType = null;
         state.activeCardStarSpent = 0;
         state.activeCardStacks = 0;
         state.activeCardResonance = 0;

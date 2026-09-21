@@ -11,6 +11,7 @@ export const DEFAULT_AID_SUPPLY: AidSupplyEntry[] = [
   { itemId: "milk", count: 1 },
   { itemId: "cola", count: 1 },
   { itemId: "medical-kit-c", count: 1 },
+  { itemId: "energy-canister", count: 1 },
 ];
 
 // 优先按地图 × 难度覆盖；未命中时再按地图覆盖，最后回退默认配额物资。
@@ -20,6 +21,7 @@ export const AID_SUPPLY_MAP_OVERRIDES: Partial<Record<string, AidSupplyEntry[]>>
     { itemId: "milk", count: 1 },
     { itemId: "bread", count: 1 },
     { itemId: "medical-kit-c", count: 1 },
+    { itemId: "energy-canister", count: 1 },
   ],
 };
 

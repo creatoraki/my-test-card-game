@@ -9,7 +9,7 @@ import { CORRIDOR } from "../corridor/types";
 import { encounterSpot } from "../corridor/ambush";
 import { CORRIDOR_CURIOS } from "../../data/curios";
 import { changeEnergy } from "../energy";
-import { EXPLORE_RULES } from "../rules";
+import { roomMoveCost } from "../energyCost";
 import { canUseBeacon } from "../relicModifiers";
 import { fireExploreRelic } from "../relics";
 import type { ExploreState } from "../types";
@@ -98,7 +98,7 @@ export function standOnPortal(s: ExploreState, x: number): boolean {
   return true;
 }
 
-/** 确认传送: 扣 5 点净化粒子, 落到目标房间对向门的边上。 */
+/** 确认传送: 按新房/回头路扣净化粒子(见 energyCost.roomMoveCost), 落到目标房间对向门的边上。 */
 export function travelPortal(s: ExploreState, dir: PortalDir): boolean {
   if (!canWalkCorridor(s) || !s.corridor || !s.dungeon) return false;
   const portal = s.corridor.portals.find((candidate) => candidate.dir === dir);
@@ -107,9 +107,10 @@ export function travelPortal(s: ExploreState, dir: PortalDir): boolean {
   if (!target) return false;
 
   syncRoomFromScene(s);
-  changeEnergy(s, -EXPLORE_RULES.dungeon.energyPerRoomMove);
+  const cost = roomMoveCost(s, portal.to);
+  changeEnergy(s, -cost);
   const known = target.visited ? `${target.label} 号房间` : "未知房间";
-  s.log.push(`传送至${known} · 净化粒子 −${EXPLORE_RULES.dungeon.energyPerRoomMove}`);
+  s.log.push(`传送至${known} · 净化粒子 −${cost}`);
   return enterRoom(s, portal.to, dir);
 }
 

@@ -4,7 +4,7 @@ import { activeEffectsOf } from "./cardEffects";
 import { counterOf } from "./counters";
 import { conditionMet } from "./effects";
 import { previewDamage } from "./ops";
-import { addMod, attackDamage, hitChance, statOf } from "./stats";
+import { addMod, attackDamage, damageMasteryOf, hitChance, statOf } from "./stats";
 import { RULES } from "./rules";
 import { getStatusDef } from "./statuses";
 import { CARD_MARK_DEFS } from "./cardMarks";
@@ -103,12 +103,13 @@ function firstDamageEffect(state: BattleState, card: Card, targetId?: string): E
   );
 }
 
-function cardAttack(state: BattleState, card: Card): number {
+function cardAttack(state: BattleState, card: Card, targetId?: string): number {
   const attacker = state.combatants[card.ownerCharId];
   if (!attacker) return 0;
+  const target = targetId ? state.combatants[targetId] : undefined;
   const cost = cardCost(state, card);
   const mastery = cost <= RULES.combat.lowCostApMax ? "lowCostMastery" : "highCostMastery";
-  return statOf(attacker, "attack") + statOf(attacker, mastery);
+  return statOf(attacker, "attack") + statOf(attacker, mastery) + damageMasteryOf(state, attacker, target, card.cardType);
 }
 
 // 预览卡牌的第一个 DAMAGE 效果; 多段 DAMAGE 的徽章按第一个效果显示。
@@ -176,7 +177,7 @@ export function cardDamagePreview(state: BattleState, card: Card, targetId: stri
     const valueMultiplier = 1 + (state.playValueBonusPct + fullDrawBonus) / 100;
     const rawDamage = fixed
       ? (effect.amount ?? 0) * (1 + bonusMult) * valueMultiplier * valueScale
-      : attackDamage(cardAttack(state, card), damageMultiplier) * valueMultiplier * valueScale;
+      : attackDamage(cardAttack(state, card, targetId), damageMultiplier) * valueMultiplier * valueScale;
 
     return previewDamage(state, attacker.id, target.id, rawDamage, {
       isAttack: true,

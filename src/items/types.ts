@@ -97,6 +97,8 @@ export interface EquipModelDef {
   drawbacks?: EquipAffixDef[];
   costRefund?: number;
   costRefundFlat?: number;
+  /** 每次升阶固定投入的模型值区间 [下限, 上限]；缺省为 DEFAULT_UPGRADE_ADD。 */
+  upgradeAdd?: readonly [number, number];
 }
 
 export type RelicTriggerId =

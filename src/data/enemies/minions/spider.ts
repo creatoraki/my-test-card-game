@@ -19,7 +19,8 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       weight: 2,
       anim: "fire",
       effects: [
-        { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.6, target: "primary" },
+        { type: "APPLY_STATUS", status: "static", stacks: 1, target: "primary" },
         { type: "MARK_CARDS", mark: "scorching", markPick: "targetHandRandom", amount: 1, target: "primary" },
       ],
     },
@@ -33,7 +34,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       weight: 2,
       anim: "fire",
       effects: [
-        { type: "DAMAGE", multiplier: 0.4, target: "primary" },
+        { type: "DAMAGE", multiplier: 0.55, target: "primary" },
         { type: "APPLY_STATUS", status: "burn", stacks: 3, duration: 3, target: "primary" },
       ],
     },
@@ -47,7 +48,7 @@ export const MAINTENANCE_SPIDER: EnemyDef = {
       weight: 1,
       anim: "fire",
       effects: [
-        { type: "DAMAGE", multiplier: 0.2, target: "allFoes" },
+        { type: "DAMAGE", multiplier: 0.3, target: "allFoes" },
         { type: "APPLY_STATUS", status: "burn", stacks: 2, duration: 2, target: "allFoes" },
       ],
     },

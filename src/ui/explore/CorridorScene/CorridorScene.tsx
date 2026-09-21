@@ -1,7 +1,8 @@
 import { CORRIDOR_CURIOS } from "@/data/curios";
 import { CORRIDOR, type CorridorState } from "@/explore/corridor/types";
 import type { NearMapVariant } from "@/explore/dungeon/types";
-import { EXPLORE_RULES } from "@/explore/rules";
+import { roomMoveCostFor } from "@/explore/energyCost";
+import { useExploreStore } from "@/store/exploreStore";
 import {
   CORRIDOR_PROP_Y_OFFSETS,
   CORRIDOR_ROOM_PORTAL_DISPLAY_HEIGHT,
@@ -40,6 +41,7 @@ export function CorridorScene({ corridor, blocked, encountering, nearMapVariant,
     }, x, corridor.width);
   }, [corridor.width]);
   const movement = useCorridorMovement(corridor, blocked, onPortalTravel, onFrame);
+  const rooms = useExploreStore((state) => state.session?.dungeon?.rooms);
   const explorerChatter = useExplorerChatter({
     walking: movement.walking,
     nearbyKey: movement.nearbyKey,
@@ -79,7 +81,7 @@ export function CorridorScene({ corridor, blocked, encountering, nearMapVariant,
               aria-label={standing ? "传送门，确认前往" : "传送门，走上去可点亮它通往的房间"}>
               <RoomPortal height={CORRIDOR_ROOM_PORTAL_DISPLAY_HEIGHT} standing={standing} />
             </button>
-            {standing && <span className={s.portalPrompt}>空格传送 · 粒子 −{EXPLORE_RULES.dungeon.energyPerRoomMove}</span>}
+            {standing && <span className={s.portalPrompt}>空格传送 · 粒子 −{roomMoveCostFor(Boolean(rooms?.[portal.to]?.visited))}</span>}
           </div>;
         })}
         {corridor.bossGate && <BossGate x={corridor.bossGate.x} top={entityFloorY} near={movement.nearGate} blocked={blocked} onClick={movement.openGate} />}

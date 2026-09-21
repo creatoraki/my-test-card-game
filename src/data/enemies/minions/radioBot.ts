@@ -18,7 +18,10 @@ export const RADIO_BOT: EnemyDef = {
       targeting: "foe",
       weight: 3,
       anim: "shot",
-      effects: [{ type: "DAMAGE", multiplier: 0.35, target: "primary" }],
+      effects: [
+        { type: "DAMAGE", multiplier: 0.7, target: "primary" },
+        { type: "APPLY_STATUS", status: "static", stacks: 1, target: "primary" },
+      ],
     },
     {
       id: "radio-noise",
@@ -41,7 +44,7 @@ export const RADIO_BOT: EnemyDef = {
       weight: 1,
       anim: "lightning",
       effects: [
-        { type: "DAMAGE", multiplier: 0.2, target: "allFoes" },
+        { type: "DAMAGE", multiplier: 0.3, target: "allFoes" },
         { type: "APPLY_STATUS", status: "static", stacks: 1, target: "allFoes" },
       ],
     },

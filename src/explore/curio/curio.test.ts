@@ -10,6 +10,7 @@ import { enterRoom } from "../dungeon/session";
 import { openCorridorObject } from "../corridor/session";
 import { isRoomExplored } from "../dungeon/session";
 import { createSession } from "../session";
+import { interactionCost } from "../energyCost";
 import type { ExploreState, PartySnapshot } from "../types";
 
 const party: PartySnapshot[] = [
@@ -47,10 +48,12 @@ describe("物件放入匹配", () => {
     s.corridor!.playerX = s.corridor!.objects[0].x;
     expect(openCorridorObject(s, s.corridor!.objects[0].id)).toBe(true);
     const before = s.energy;
+    const cost = interactionCost(s);
     expect(offerToCurio(s, [{ uid: s.backpack[0].uid, count: 1 }])).toBe(true);
     expect(s.backpack).toHaveLength(0);
     expect(s.corridor!.objects[0].used).toBe(true);
-    expect(s.energy).toBe(before - 2);
+    expect(cost).toBeGreaterThan(0);
+    expect(s.energy).toBe(before - cost);
   });
 
   it("兜底风险按物件自己的概率判定", () => {

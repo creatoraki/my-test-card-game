@@ -7,7 +7,7 @@ import { deriveStats, useTownStore } from "@/store/townStore";
 function battleStatOfOwner(
   battle: BattleState | null,
   ownerCharId: string,
-  key: "attack" | "healPower" | "lowCostMastery" | "highCostMastery",
+  key: "attack" | "healPower" | "lowCostMastery" | "highCostMastery" | "fastMastery",
 ): number {
   if (!battle) return -1;
   for (const id of battle.playerIds) {
@@ -24,6 +24,7 @@ export function useCardTextStats(ownerCharId: string): CardTextStats {
   const battleHealPower = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "healPower"));
   const battleLowCostMastery = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "lowCostMastery"));
   const battleHighCostMastery = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "highCostMastery"));
+  const battleFastMastery = useBattleStore((state) => battleStatOfOwner(state.battle, ownerCharId, "fastMastery"));
   const characterState = useTownStore((state) => state.characters[ownerCharId]);
   const panelStats = useMemo(
     () => (characterState ? deriveStats(characterState) : getCharacter(ownerCharId).base),
@@ -32,20 +33,22 @@ export function useCardTextStats(ownerCharId: string): CardTextStats {
 
   return useMemo(
     () =>
-      battleAttack >= 0 && battleHealPower >= 0 && battleLowCostMastery >= 0 && battleHighCostMastery >= 0
+      battleAttack >= 0 && battleHealPower >= 0 && battleLowCostMastery >= 0 && battleHighCostMastery >= 0 && battleFastMastery >= 0
         ? {
             attack: battleAttack,
             healPower: battleHealPower,
             lowCostMastery: battleLowCostMastery,
             highCostMastery: battleHighCostMastery,
+            fastMastery: battleFastMastery,
           }
         : {
             attack: panelStats.attack,
             healPower: panelStats.healPower,
             lowCostMastery: panelStats.lowCostMastery,
             highCostMastery: panelStats.highCostMastery,
+            fastMastery: panelStats.fastMastery,
           },
-    [battleAttack, battleHealPower, battleLowCostMastery, battleHighCostMastery, panelStats],
+    [battleAttack, battleHealPower, battleLowCostMastery, battleHighCostMastery, battleFastMastery, panelStats],
   );
 }
 

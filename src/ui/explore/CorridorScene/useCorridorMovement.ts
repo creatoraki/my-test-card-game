@@ -154,6 +154,7 @@ export function useCorridorMovement(
               x,
               facing,
               x !== previousX ? elapsed * 1000 : 0,
+              Math.abs(x - previousX),
             );
             if (trigger === "ambush") {
               position.current = {

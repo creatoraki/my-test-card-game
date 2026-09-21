@@ -5,6 +5,7 @@ import {
   closeBossGate, dismissCorridorObject, openBossGate, openCorridorObject,
 } from "../explore/corridor/session";
 import { rollCorridorAmbush } from "../explore/corridor/ambush";
+import { spendWalkEnergy } from "../explore/energyCost";
 import { beaconTravel, standOnPortal, travelPortal } from "../explore/dungeon/session";
 import type { PortalDir } from "../explore/dungeon/types";
 import type { ExploreState } from "../explore/types";
@@ -47,7 +48,16 @@ export function checkCorridorAmbush(x: number, facing: -1 | 1): boolean {
   return result === "hit";
 }
 
-/** 确认传送：扣 5 点净化粒子并换房间。 */
+/** 房间内行走满一段距离：扣净化粒子。粒子见底也照常行走，只是扣到 0。 */
+export function spendCorridorWalkEnergy(amount: number): boolean {
+  return mutateCorridor((s) => {
+    if (!canWalkCorridor(s) || amount <= 0) return false;
+    spendWalkEnergy(s, amount);
+    return true;
+  });
+}
+
+/** 确认传送：按新房/回头路扣净化粒子并换房间。 */
 export function travelThroughPortal(dir: PortalDir): boolean {
   return mutateCorridor((s) => travelPortal(s, dir));
 }

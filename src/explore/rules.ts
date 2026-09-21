@@ -4,9 +4,8 @@
 //
 // ⚠ 上一版的「区域危险度 DANGER_TIERS」与「残片」已废弃, 难度轴只保留净化粒子一条
 //   (设计文档 §4.1 明确禁止再引入第二条并行难度数值)。
-// ⚠ 上一版的「每段 −10 粒子」「战斗额外扣 4/7/10」「避战代价」口径也已废弃(设计文档 §4.2):
-//   房间制下只有「每移动 1 个房间 −5」「每交互 1 个事件 −2」「每进行 1 个战斗回合 −1」三项。
-//   后者由 runStore.resolveBattle 在战斗结算后接入(读 battle.round), BOSS 战豁免。
+// ⚠ 房间制下的粒子消耗: 换房(新房/回头路分价)、交互(按物件分类分档)、战斗(每回合 + 按档位加扣)、
+//   房间内行走(每走一屏 −1)。计价函数统一在 explore/energyCost.ts; 补充来源有净化粒子罐与粒子净化站。
 // ============================================================================
 
 import type { ItemRarity } from "../items/types";
@@ -61,19 +60,23 @@ export const EXPLORE_RULES = {
   // ── 净化粒子(设计文档 §4.2) ──
   startingEnergy: 100,
   energyMax: 100,
-  // ★ 每交互 1 个事件的固定消耗。房间制下不再按推进段分档 ——
-  //   压力改由「每换一个房间 −5」承担, 交互本身保持廉价, 鼓励把一个房间搜干净再走。
-  //   「隐匿通道」这类效果仍可免除这一份(见 ExploreState.freeNodes)。
-  energyPerInteraction: 2,
+  // ★ 每交互 1 个事件的消耗, 按物件分类分档(见 explore/energyCost.ts interactionCost):
+  //   物品奖励最贵, 治疗次之, 服务最便宜, 货商免费; 风险房强制触发不收费。
+  //   event 是旧节点事件(非房间物件)的兜底价。「隐匿通道」这类效果仍可免除这一份(见 ExploreState.freeNodes)。
+  energyPerInteraction: { loot: 4, heal: 3, service: 2, merchant: 0, event: 2 },
   // 每进行 1 个战斗回合 −1。战斗结算时按 battle.round 一次性扣除(见 runStore.resolveBattle
-  // 与 explore/session.spendBattleEnergy), 胜负都扣; **最后一战 BOSS 战豁免** ——
+  // 与 explore/energyCost.spendBattleEnergy), 胜负都扣; **最后一战 BOSS 战豁免** ——
   // 那一场打完远征就结束了, 再扣只是在通关瞬间制造一次无用的档位跌落。
   energyPerBattleRound: 1,
+  // 回合消耗之外, 按遭遇档位额外一次性扣除(BOSS 战同样豁免)。
+  energyPerBattleTier: { t1: 0, t2: 2, t3: 4, t4: 6, t5: 0 } as Record<BattleTier, number>,
+  // 房间内行走: 每累计走过这么多设计像素 −1 粒子(一屏宽度)。
+  walk: { pxPerEnergy: 1920 },
 
   // ── 房间图(设计: 一张地图 = 一张房间网格图, 没有层) ──
   dungeon: {
-    // 每移动 1 个房间 −5。★ 这是房间制的主压力来源: 走回头路是有代价的。
-    energyPerRoomMove: 5,
+    // 换房消耗: 进没去过的房间 −5, 回已到过的房间 −3。★ 这是房间制的主压力来源之一。
+    energyPerRoomMove: { fresh: 5, revisit: 3 },
     // 非起点、非 BOSS 房中埋伏黑影的比例(至少 1 间)。
     battleRoomRatio: 0.22,
     // 生成树之外额外接通的相邻房间数比例 —— 制造回环与近路。

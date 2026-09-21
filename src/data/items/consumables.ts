@@ -34,6 +34,9 @@ const POLLUTION_REDUCE = 15;
 const SUGAR_CUBE_BUY_VALUE = 30;
 const MEDICAL_KIT_BUY_VALUE = 200;
 const HOLY_WATER_BUY_VALUE = 50;
+// 净化粒子罐：出击配额每张图一次性配发，也可在货柜购买。
+const ENERGY_CANISTER_AMOUNT = 20;
+const ENERGY_CANISTER_BUY_VALUE = 60;
 
 function pendingConsumable(
   id: string,
@@ -115,6 +118,15 @@ const DEFS: ItemDef[] = [
       { kind: "reducePollutionOne", amount: POLLUTION_REDUCE },
       HOLY_WATER_BUY_VALUE,
     ),
+  ),
+  usableConsumable(
+    "energy-canister",
+    "净化粒子罐",
+    "energy-canister",
+    "common",
+    `压缩封装的净化粒子：使用后立即补充 ${ENERGY_CANISTER_AMOUNT} 点净化粒子。`,
+    { kind: "gainEnergy", amount: ENERGY_CANISTER_AMOUNT },
+    ENERGY_CANISTER_BUY_VALUE,
   ),
   ...QUALITY_ORDER.map((rarity) =>
     pendingConsumable(
