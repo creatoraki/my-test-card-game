@@ -1,6 +1,7 @@
 import { canUseBeacon, hasExploreRelic } from "@/explore/relicModifiers";
 import { useExploreStore } from "@/store/exploreStore";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
 import s from "./BeaconButton.module.css";
 
@@ -33,8 +34,7 @@ export default function BeaconButton({ onPick }: { onPick: () => void }) {
       </button>
       {phaseLocked && (
         <RailPopover side="top-right">
-          <strong>应急信标暂不可用</strong>
-          <p>完成物件交互、恢复自由行走后才能选择传送房间。</p>
+          <TooltipCard title="应急信标暂不可用" desc="完成物件交互、恢复自由行走后才能选择传送房间。" />
         </RailPopover>
       )}
     </div>

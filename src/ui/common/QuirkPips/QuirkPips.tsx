@@ -1,6 +1,7 @@
 import type { QuirkId } from "@/engine";
 import { getQuirkDef } from "@/engine";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
 import s from "./QuirkPips.module.css";
 
@@ -24,8 +25,7 @@ export function QuirkPips({ quirks, sick, className }: Props) {
           <span aria-hidden>🤒</span>
           <b>生病</b>
           <RailPopover side="top">
-            <strong>生病</strong>
-            <p>攻击、防御、先手降低 10%。</p>
+            <TooltipCard title="生病" desc="攻击、防御、先手降低 10%。" accent="#ff9d83" />
           </RailPopover>
         </div>
       )}
@@ -43,8 +43,7 @@ export function QuirkPips({ quirks, sick, className }: Props) {
             <span aria-hidden>{def.emoji}</span>
             <b>{def.name}</b>
             <RailPopover side="top">
-              <strong>{def.name}</strong>
-              <p>{def.desc}</p>
+              <TooltipCard title={def.name} desc={def.desc} />
             </RailPopover>
           </div>
         );

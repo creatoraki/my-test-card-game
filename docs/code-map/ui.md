@@ -99,13 +99,13 @@ src/ui/
 | [sortie/SortieNav](../../src/ui/sortie/SortieNav/SortieNav.tsx) | 出击流程共享底部导航：根据当前步骤派发返回、确认目标层或开始远征，并在过场期间禁用操作。 |
 | [sortie/MapSelectStep](../../src/ui/sortie/MapSelectStep/MapSelectStep.tsx) | 地图选择步骤：右侧深色斜栏以 162px 步进循环切换地图，中央卡片放大并显示冷蓝描边、当前徽标与定位圆环；相邻卡片各向外让位 21px。`MapSelectChrome` 持有页眉与全屏装饰线。地图信息由共享背景 HUD 展示，无队伍时由固定导航禁止确认目标层。 |
 | [sortie/MapDifficultyPanel](../../src/ui/sortie/MapSelectStep/MapDifficultyPanel.tsx) | 左侧独立难度框与并排奖励框：按 `mapDifficulty` 显示可用难度、逐级解锁的三档难度、锁定原因和物品预览；新手关卡显示仅有普通难度的难度区，未开放地图仍不显示。 |
-| [sortie/PanelItemRow](../../src/ui/sortie/MapSelectStep/PanelItemRow.tsx) | 奖励面板与独立切角物品格；使用 `itemIcon` 现有素材，完整显示数量（含 ×1），复用悬浮定位与 `SortieTooltip`，样式由同名 CSS Module 持有。 |
+| [sortie/PanelItemRow](../../src/ui/sortie/MapSelectStep/PanelItemRow.tsx) | 奖励面板与独立切角物品格；使用 `itemIcon` 现有素材，完整显示数量（含 ×1），复用 `ItemTooltip` 悬浮详情，样式由同名 CSS Module 持有。 |
 | [sortie/SortieFrame](../../src/ui/sortie/SortieFrame/SortieFrame.tsx) | 出击界面的 SVG 切角框：按设计尺寸绘制双层细描边、金属角片和选中辉光，由任务框、难度按钮、奖励格、地图卡及导航复用。`SortieGlyph` 提供配套的单色矢量图标。 |
 | [sortie/PrepStep](../../src/ui/sortie/PrepStep/PrepStep.tsx) | 物资准备步骤：左列遗物携带窗口、仓库消耗品速取条与补给货架，右上背包，右下售货机器人，舞台左上角终端积分；遗物窗口的编辑面板由出击页根层挂载。 |
 | [sortie/SortieRelicBar](../../src/ui/sortie/SortieRelicBar/SortieRelicBar.tsx) | 出击准备顶行的 3×2 遗物携带窗口：复用物品库存面板展示本次携带的遗物，并作为打开遗物编辑面板的键鼠入口。 |
 | [sortie/SortieRelicPanel](../../src/ui/sortie/SortieRelicPanel/SortieRelicPanel.tsx) | 全屏遗物携带编辑面板：PanelShell 双栏展示仓库遗物与本次携带，取物/退回分别复用出击状态层的既有 action，并在状态行反馈容量限制。 |
 | [elevator/ElevatorScene](../../src/ui/elevator/ElevatorScene/ElevatorScene.tsx) | 出击下行 / 结算上行共用的电梯纯演出页：视频静音播放，独立音轨由 BGM 播放器播放；方向与去向由 `runStore.elevatorRide` 决定，下行结束进入探索，上行结束回据点；不可跳过且不承载探索规则。 |
-| [sortie/StockShelf](../../src/ui/sortie/StockShelf/StockShelf.tsx) | 出击补给货架：固定清单一次全摆出，按 `maxStack` 自动分成临期食品 / 消耗品两层（层板画在 `ShelfRow`，单个货位在 `StockSlot`）。商品本体只负责悬浮浮卡（复用 `SortieTooltip`，展示用 `ItemStack` 由 itemId 现造），购买入口只有下方价格牌一处；买不起 / 装不下不弹提示，交给售货机器人说。 |
+| [sortie/StockShelf](../../src/ui/sortie/StockShelf/StockShelf.tsx) | 出击补给货架：固定清单一次全摆出，按 `maxStack` 自动分成临期食品 / 消耗品两层（层板画在 `ShelfRow`，单个货位在 `StockSlot`）。商品本体只负责悬浮浮卡（复用 `ItemTooltip`，展示用 `ItemStack` 由 itemId 现造），购买入口只有下方价格牌一处；买不起 / 装不下不弹提示，交给售货机器人说。 |
 | [common/ChatBot](../../src/ui/common/ChatBot/ChatBot.tsx) | 聊天机器人公共组件：立绘、固体彩色/出击页毛玻璃气泡（`ChatBubble` 的 `tail` 可选左下角或正下方居中）与可选点击态；`useBotChatter` 泛型化台词调度（默认 14~22s 随机闲聊，也支持 `idleEnabled` / `idleRange`，气泡默认 4.5s 后淡出、可由 `bubbleMs` 按场景覆盖，失活即清空定时器）；`useChatLinePresence` 统一管理气泡退场保留。出击准备页通过它承接售货机器人反馈，据点页复用同一立绘作为管理终端。 |
 | [sortie/StorageInventory](../../src/ui/sortie/StorageInventory/StorageInventory.tsx) | 出击准备中的仓库消耗品取物壳，复用公共物品面板的悬停详情与容量读数；真正的 1×4 格且只显示单件消耗品，配色经 [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) 的 `colorMap` 与背包区分。 |
 | [sortie/styles/inventoryPalettes.ts](../../src/ui/sortie/styles/inventoryPalettes.ts) | 出击域物品面板的调色板真相点：仓库冷银白、背包黑玻璃熔橙、遗物紫金。 |
@@ -144,10 +144,10 @@ src/ui/
 | [battle/VictoryTrialBand](../../src/ui/battle/VictoryTrialBand/VictoryTrialBand.tsx) | 战斗胜利面板上的「挑战达成」条：读会话的 `trialReport`，把本场到期的跨轮契约与它发放的奖励接回两轮前的那个决定；没有到期契约时返回 null 不占位。 |
 | [battle/VictoryPanel/VictoryBackdrop](../../src/ui/battle/VictoryPanel/VictoryBackdrop.tsx) | 胜利结算面板的装饰性霓虹都市背板：分层天际线、地平线光带、窗口光点、塔灯、斜雨丝与浮尘；不参与内容交互，支持揭幕淡入、慢循环光效和减少动态效果降级。 |
 | [battle/VictoryPlaque](../../src/ui/battle/VictoryPlaque/VictoryPlaque.tsx) | 胜利结算区域共享铭牌：96px 独立材质铭牌与逐字竖排标题，按额外奖励、战利品、回收背包区分外观。 |
-| [battle/VictoryDropSection](../../src/ui/battle/VictoryDropSection/VictoryDropSection.tsx) | 战斗胜利结算的掉落系数通栏分区：展示能量档位与挑战来源 chip，复用 RailPopover 提供键盘可聚焦的详情浮层，并表现已打破挑战的灰显态。 |
+| [battle/VictoryDropSection](../../src/ui/battle/VictoryDropSection/VictoryDropSection.tsx) | 战斗胜利结算的掉落系数通栏分区：展示能量档位与挑战来源 chip，复用 `HoverTooltip` + `TooltipCard` 提供详情浮层，并表现已打破挑战的灰显态。 |
 | [battle/VictoryExpRow](../../src/ui/battle/VictoryExpRow/VictoryExpRow.tsx) | 单名队员经验结算行：头像、存活/阵亡态、总经验数字、经验条增长和主视觉 `+N EXP` 演出。 |
 | [battle/VictoryLootTray](../../src/ui/battle/VictoryLootTray/VictoryLootTray.tsx) | 战斗 pendingLoot 展示与拾取交互：固定八格、固定边长与间距的托盘，逐件或全部拾取，并通过回调触发回收背包的脉冲反馈；模组不直接拾取，改由 `useLootModuleActions` 弹「装载 / 收入背包」菜单。 |
-| [battle/VictoryBoonTray](../../src/ui/battle/VictoryBoonTray/VictoryBoonTray.tsx) | 战斗胜利额外奖励托盘：展示治疗露珠、卡牌奖励、随机装备箱和 1 阶模组箱，复用 RailPopover 提供详情，并派发拾取动作。 |
+| [battle/VictoryBoonTray](../../src/ui/battle/VictoryBoonTray/VictoryBoonTray.tsx) | 战斗胜利额外奖励托盘：展示治疗露珠、卡牌奖励、随机装备箱和 1 阶模组箱，复用 `HoverTooltip` + `TooltipCard` 提供详情，并派发拾取动作。 |
 | [battle/VictoryCardOffer](../../src/ui/battle/VictoryCardOffer/VictoryCardOffer.tsx) | 卡牌奖励候选层：按存活角色展示候选卡牌，复用 `HandCard` 卡面，选择后将卡牌加入对应角色卡组。 |
 | [battle/victoryChoreo](../../src/ui/battle/victoryChoreo.ts) | 胜利结算面板的统一入场、分区、经验增长与交互反馈时序；`victoryTiming()` 统一下发 reduced-motion 降级参数。 |
 | [result/EndScreen](../../src/ui/result/EndScreen/EndScreen.tsx) | 远征结算：通过 `StageCanvas` 编排通关、撤退和团灭三种结果；组合队伍状态、战果统计、带回据点物资与事件回放，支持统计数字和事件逐条入场，团灭保留已投递物资。 |
@@ -236,7 +236,9 @@ src/ui/
 | [PollutionMeter](../../src/ui/common/PollutionMeter/PollutionMeter.tsx) | 跨战斗队伍槽与角色详情复用的污染值进度条；只负责展示，不修改状态。 |
 | [QuirkPips](../../src/ui/common/QuirkPips/QuirkPips.tsx) | 角色详情态展示生病与永久怪癖徽章及说明；不服务战斗队伍卡，也不复用临时战斗 `StatusPips`。 |
 | [StatusPips](../../src/ui/common/StatusPips/StatusPips.tsx) | 战斗临时状态、层数与护盾的方形玻璃图标条；支持右起换行和 `RailPopover` 详情，尺寸通过 `--pip-box` 变量由父级下发。关闭详情时保留原生 `title`。 |
-| [RailPopover](../../src/ui/common/RailPopover/RailPopover.tsx) | 跨战斗域复用的斜切角玻璃详情浮层；支持左右、下方和上方（居中 / 右对齐）定位，由 `data-rail-item` 的悬浮与键盘聚焦驱动。 |
+| [RailPopover](../../src/ui/common/RailPopover/RailPopover.tsx) | 悬停详情的定位层：找到最近的 `data-rail-item` 宿主，悬浮或键盘聚焦时经 `RailTooltip` portal 到设计画布（支持左右、上下与对角定位）；不画任何外观，内容统一传 `TooltipCard`。 |
+| [TooltipCard](../../src/ui/common/TooltipCard/TooltipCard.tsx) | **全项目悬浮详情的唯一外观**（以状态 BUFF 详情卡为标准）：`TooltipShell` 画深海蓝底、斜切外框与四角亮角标；`TooltipCard` 按内容选头部——有 `icon` 走大头部（128 徽章 + 38px 标题 + 星形徽记，宽 480），仅 `title` 走紧凑头部（宽 280~420），都没有则只有正文面板；正文数字按 `accent` 高亮，底部可挂沙漏读数 `stats` 或提示条 `notes`。各场景只能改 `accent`，不再各自换底色。 |
+| [HoverTooltip](../../src/ui/common/HoverTooltip/HoverTooltip.tsx) | 手动触发的悬浮定位层（配合 `useHoverTooltip`）：portal 进画布并在边界内放置，外观交给 `TooltipCard`。 |
 | [VolumeSlider](../../src/ui/common/VolumeSlider/VolumeSlider.tsx) | 通用 0~1 音量滑块：轨道填充比例经 `--vs-fill` 下发，右侧定宽百分比读数；`onCommit` 只在松手/松键时触发一次（给「试听」这类落定才该发生的事）。不认识任何音频模块，纯受控组件。 |
 | [ManaCrystal](../../src/ui/common/ManaCrystal/ManaCrystal.tsx) | 法力水晶菱形（Arcane Diamond）；`empty`/`normal`/`active` 三态受控，`still` 关闭呼吸循环；尺寸与配色经 `--mana-crystal-size` / `--crystal-*` 变量下发。 |
 | [ArcanaIcon](../../src/ui/common/ArcanaIcon/ArcanaIcon.tsx) | 羁绊塔罗图标公共展示组件；支持完整档案壳、无壳图案和 bare 纯线稿模式，未知 id 回退中性环徽。 |
@@ -252,7 +254,7 @@ src/ui/
 | [art/moduleGlyphsAlchemist](../../src/ui/art/moduleGlyphsAlchemist.tsx) | 炼金术士组装模组 A/B/C/D 的徽记：图形直接复用组装 BUFF 的炼金三角（风/火/土/水），按四元素分色，由 `ASSEMBLE_MODULE_LETTERS` 展开后合并进 `moduleGlyphs` 主表。 |
 | [art/moduleGlyphsActuary](../../src/ui/art/moduleGlyphsActuary.tsx) | 精算师模组的徽记：急诊模组为斜绷带盖住的医疗十字（急救红），回响模组为渐弱声波（回响紫）；同样由 `moduleGlyphs` 合并进主表。 |
 | [item/ItemDetail](../../src/ui/common/item/ItemDetail/ItemDetail.tsx) | 物品名称、稀有度、类别、占格、描述、属性和售价；一次性物品显示远征结束销毁及不可寄回提示；模组另有独立的「装配条件」字段，文案读 `data/cardModules` 的 `equipText`。操作按钮由调用方通过 children 注入。导出 `STAT_LABEL` 供商店复用文案口径。 |
-| [item/ItemTooltip](../../src/ui/common/item/ItemTooltip/ItemTooltip.tsx) | 物品详情悬浮层：`tooltipPointFromElement` 把触发元素归一化成「所属画布 + 设计 px 锚点」，`useTooltipPlacement` 实测浮层真实尺寸后在画布边界内翻转夹取，浮层 portal 进画布内部。换皮版浮卡（商店仓库、出击背包）共用这两个导出，不要再抄一份定位算法。 |
+| [item/ItemTooltip](../../src/ui/common/item/ItemTooltip/ItemTooltip.tsx) | 物品详情悬浮层：`tooltipPointFromElement` 把触发元素归一化成「所属画布 + 设计 px 锚点」，`useTooltipPlacement` 实测浮层真实尺寸后在画布边界内翻转夹取，浮层 portal 进画布内部。`HoverTooltip` / `RailTooltip` 共用这两个导出，不要再抄一份定位算法。外框套 `TooltipShell`，配色固定为深海蓝色板，`themeStyle` 只用于尺寸变量。 |
 | [item/ItemIconFrame](../../src/ui/common/item/ItemIconFrame/ItemIconFrame.tsx) | 1:1 物品图标框——全站「物品图标永远被方框包裹」的唯一实现。**框内只有图标，一个字都不放**，名称/数量/持有量一律由调用方排在框外。四档边长(sm44/md64/lg96/xl132)，稀有度读 `--rarity-*` 令牌，`tone="short"` 转红表示货币不足，`as="button"` 时可点选，`tooltip` 走 `ItemTooltip`（无原生 `title`）。 |
 | [item/ItemTabs](../../src/ui/common/item/ItemTabs/ItemTabs.tsx) | 物品一级/二级分类 tab；稀有度颜色留给格子，不给 tab 叠色。 |
 | [item/itemFilters.ts](../../src/ui/common/item/itemFilters.ts) | 物品分类定义、匹配和计数纯函数。 |
@@ -345,4 +347,4 @@ src/ui/
 
 探索缩略图的尺寸由 `explore/Minimap/minimapHudLayout.ts` 集中管理：默认 360×360、32px 房间格、18px 序号，固定高度，只按整张地图边界增加宽度，极宽地图横向滚动；展开大图继续使用原房间坐标。
 
-状态详情的 `RailPopover bare` 使用独立 `RailTooltip`，通过 portal 挂到设计画布的 30 层，避免角色/HUD 局部层叠上下文遮挡。鼠标悬浮与键盘聚焦共用显隐逻辑，保留运镜期间 `data-popover-mute` 抑制与画布边界夹取。
+所有 `RailPopover` 都使用独立 `RailTooltip`，通过 portal 挂到设计画布的 30 层，避免角色/HUD 局部层叠上下文遮挡。鼠标悬浮与键盘聚焦共用显隐逻辑，保留运镜期间 `data-popover-mute` 抑制与画布边界夹取。

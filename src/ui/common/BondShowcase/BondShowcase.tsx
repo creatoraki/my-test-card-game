@@ -53,7 +53,7 @@ export function BondShowcase({
           <i key={i} className={cx(s.pip, i <= tierIndex && s.pipOn)} />
         ))}
       </span>
-      <RailPopover side={popoverSide} className={s.popover}>
+      <RailPopover side={popoverSide}>
         <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} />
       </RailPopover>
     </div>

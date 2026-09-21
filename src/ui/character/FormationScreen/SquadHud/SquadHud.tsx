@@ -9,6 +9,7 @@ import type { CSSProperties, MouseEvent } from "react";
 import type { SquadBadgeDef } from "@/data";
 import type { CharacterState } from "@/store/townStore";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { SquadBondBar } from "@/ui/common/SquadBondBar";
 import { cx } from "@/ui/common/cx";
 import { HudPanel } from "../HudPanel";
@@ -52,8 +53,7 @@ export function SquadHud({
         </button>
         {point && (
           <HoverTooltip point={point}>
-            <strong>{backLabel}</strong>
-            <p>也可以按 Esc</p>
+            <TooltipCard title={backLabel} desc="也可以按 Esc" />
           </HoverTooltip>
         )}
       </span>

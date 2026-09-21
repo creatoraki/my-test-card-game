@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CHALLENGE_DEFS, type ChallengeRun } from "@/engine";
-import { PopoverHead, RailPopover } from "@/ui/common/RailPopover";
+import { RailPopover } from "@/ui/common/RailPopover";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import s from "./ChallengeRail.module.css";
 
 function ChallengeItem({ run }: { run: ChallengeRun }) {
@@ -26,10 +27,15 @@ function ChallengeItem({ run }: { run: ChallengeRun }) {
       <span className={`${s.stroke} ${s.strokeSecond}`} />
       <span className={s.dot} />
       <RailPopover side="bottom-left">
-        <PopoverHead icon={def.icon} name={def.title} />
-        <p>{def.desc}</p>
-        <small>掉落加成 +{def.dropBonus.toFixed(2)}</small>
-        {run.broken && <em>已打破 —— 本场不再获得该奖励</em>}
+        <TooltipCard
+          icon={def.icon}
+          title={def.title}
+          desc={def.desc}
+          notes={[
+            { text: `掉落加成 +${def.dropBonus.toFixed(2)}` },
+            ...(run.broken ? [{ text: "已打破 —— 本场不再获得该奖励", tone: "bad" as const }] : []),
+          ]}
+        />
       </RailPopover>
     </div>
   );

@@ -2,6 +2,7 @@ import { burdenDodgePenalty, burdenHitPenalty, burdenPrecisionPenalty, RULES } f
 import { backpackSlots, burdenNow, partyBurdenAdapt } from "@/explore/session";
 import { useExploreStore } from "@/store/exploreStore";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import s from "./BurdenGauge.module.css";
 
@@ -53,15 +54,16 @@ export function BurdenGauge() {
       <span key={occupied} className={s.slots}>
         {occupiedShown}/{total}
       </span>
-      <RailPopover side="bottom-right" className={s.popover}>
-        <strong className={s.title}>背包负重</strong>
-        <div className={s.detail}>
-          <p>已占 {occupied} / {total} 格</p>
-          <p>有效负重 {burden}{adaptNote}</p>
-          <p>命中 −{hitPenalty}%</p>
-          <p>闪避 −{dodgePenalty}%</p>
-          <p>精准 −{precisionPenalty}%</p>
-        </div>
+      <RailPopover side="bottom-right">
+        <TooltipCard title="背包负重">
+          <div className={s.detail}>
+            <p>已占 {occupied} / {total} 格</p>
+            <p>有效负重 {burden}{adaptNote}</p>
+            <p>命中 −{hitPenalty}%</p>
+            <p>闪避 −{dodgePenalty}%</p>
+            <p>精准 −{precisionPenalty}%</p>
+          </div>
+        </TooltipCard>
       </RailPopover>
     </div>
   );

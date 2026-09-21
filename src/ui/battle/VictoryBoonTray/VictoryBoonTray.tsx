@@ -1,8 +1,7 @@
 import type { CSSProperties, KeyboardEvent } from "react";
 import { useExploreStore } from "@/store/exploreStore";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
-import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
-import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { victoryStagger } from "@/ui/battle/victoryChoreo";
 import { VictoryPlaque } from "@/ui/battle/VictoryPlaque";
 import { cx } from "@/ui/common/cx";
@@ -19,7 +18,6 @@ interface Props {
   style?: CSSProperties;
 }
 
-const VICTORY_TOOLTIP_THEME = inventoryThemeVars(VICTORY_INVENTORY_COLORS);
 const BOON_SLOT_COUNT = 4;
 
 const BOON_META: Record<BattleBoonKind, { name: string; desc: string }> = {
@@ -72,10 +70,8 @@ function BoonCell({ boon, index, onTake }: { boon: PendingBoon; index: number; o
     >
       <img className={s.icon} src={BOON_ART[boon.kind]} alt="" draggable={false} />
       {point && (
-        <HoverTooltip point={point} themeStyle={VICTORY_TOOLTIP_THEME}>
-          <strong>{meta.name}</strong>
-          <p>{meta.desc}</p>
-          <small>点击拾取</small>
+        <HoverTooltip point={point}>
+          <TooltipCard title={meta.name} desc={meta.desc} notes={[{ text: "点击拾取" }]} />
         </HoverTooltip>
       )}
     </div>

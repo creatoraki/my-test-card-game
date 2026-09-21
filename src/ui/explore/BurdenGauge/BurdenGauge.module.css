@@ -40,26 +40,9 @@
   animation: countBump 260ms var(--sm-ease);
 }
 
-.popover {
-  width: 360px;
-  padding: 22px 26px;
-}
-
-.title {
-  display: block;
-  color: var(--ui-value);
-  font-size: 26px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
-  line-height: 1.2;
-}
-
 .detail {
   display: grid;
   gap: 8px;
-  margin-top: 16px;
-  color: var(--muted);
   font-size: 20px;
   line-height: 1.4;
 }

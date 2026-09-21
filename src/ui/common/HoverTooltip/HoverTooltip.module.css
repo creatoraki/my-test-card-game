@@ -1,41 +1,11 @@
+/* 定位层: 挂在设计画布内部, left/top 是设计 px; 外观全部由 TooltipCard 绘制。
+   z-index 与物品浮层同档, 须压在弹窗遮罩之上。 */
 .hover-tooltip {
-  composes: item-tooltip item-tooltip-detail from "../item/ItemTooltip/ItemTooltip.module.css";
-}
-
-.hover-tooltip.hover-tooltip {
-  width: min(260px, calc(100% - 24px));
-}
-
-.hover-tooltip strong {
-  display: block;
-  color: var(--inventory-text, #ffffff);
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.35;
-  letter-spacing: 0.04em;
-}
-
-.hover-tooltip p {
-  margin: 8px 0 0;
-  color: var(--inventory-muted, #b6c7c9);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.hover-tooltip small,
-.hover-tooltip em {
-  display: block;
-  margin-top: 10px;
-  font-size: 11px;
-  line-height: 1.4;
-  letter-spacing: 0.06em;
-}
-
-.hover-tooltip small {
-  color: var(--inventory-accent-alt, #75e1d4);
-}
-
-.hover-tooltip em {
-  color: #ff819d;
-  font-style: normal;
+  position: absolute;
+  z-index: 1000;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  max-height: var(--tooltip-max-h);
+  pointer-events: none;
+  font-size: 18px;
 }

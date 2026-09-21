@@ -6,37 +6,42 @@
   z-index: 1000;
   width: 420px;
   pointer-events: none;
-  filter: drop-shadow(0 14px 24px #000000cc);
+}
+
+/* 外壳: 深海蓝底 + 斜切外框(TooltipShell), 四周留出外框与角标的位置。 */
+.item-tooltip-shell {
+  width: 100%;
+  padding: 10px;
 }
 
 .item-tooltip-detail {
   composes: detail-scale-lg from "../ItemDetail/itemDetailScale.module.css";
 }
 
+/* ★ 配色固定为悬浮详情统一的深海蓝色板, 不再读各场景的 --inventory-* 主题;
+   详情区本身画成与状态详情正文面板同款的深色细边框盒子。 */
 .item-tooltip-detail.item-tooltip-detail {
 
-  --accent: var(--inventory-accent, #ffffffe6);
-  --accent2: var(--inventory-accent-alt, #75e1d4);
+  --accent: #8fd0f0;
+  --accent2: #7fe0d2;
   --bad: #ff819d;
-  --border: var(--inventory-panel-line, #ffffff3d);
-  --good: var(--inventory-accent-alt, #75e1d4);
-  --muted: var(--inventory-muted, #b6c7c9);
-  --text: var(--inventory-text, #ffffff);
+  --border: #2b4b5f;
+  --good: #7fe0b0;
+  --muted: #9fb4c8;
+  --text: #eef3f8;
 
+  position: relative;
+  z-index: 1;
   box-sizing: border-box;
   width: 100%;
   height: auto;
   /* 上限由 JS 下发(画布高度减留白, 设计 px), 不能直接写 100vh:
-     视口单位不随画布 zoom 缩放, 在画布内会被当成设计 px 再放大一遍。 */
-  max-height: var(--tooltip-max-h, 300px);
+     视口单位不随画布 zoom 缩放, 在画布内会被当成设计 px 再放大一遍。
+     减去的 20px 是外壳上下内距。 */
+  max-height: calc(var(--tooltip-max-h, 320px) - 20px);
   padding: var(--tooltip-detail-padding, 18px);
   overflow-y: auto;
-  background:
-    linear-gradient(135deg, var(--inventory-panel-glow, #ffffff14), transparent 50%),
-    linear-gradient(155deg, var(--inventory-panel, #0b1a1fa6), var(--inventory-panel-deep, #04090cb3));
-  border: 1px solid var(--inventory-panel-line, #ffffff3d);
-  border-radius: 8px 4px 9px 5px;
-  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
-  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(0.82);
-  backdrop-filter: blur(14px) saturate(120%) brightness(0.82);
+  background: #06111acc;
+  border: 1px solid #2b4b5f;
+  border-radius: 0;
 }

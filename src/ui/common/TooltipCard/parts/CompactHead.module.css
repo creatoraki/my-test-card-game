@@ -1,0 +1,81 @@
+/* 紧凑头部: 高度与 geometry.HEAD_HEIGHT.compact(62) 一致, 外框的头部内描边就画在这一段。 */
+.head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 62px;
+  align-items: baseline;
+  gap: 14px;
+  padding: 16px 92px 0 22px;
+  box-sizing: border-box;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  color: #f6fbff;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow:
+    0 0 1px #ffffff,
+    0 0 8px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 2px 2px #000000aa;
+}
+
+.meta {
+  flex: none;
+  color: #9fb4c8;
+  font-size: 18px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.underline,
+.stripes {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.underline {
+  bottom: 10px;
+  left: 22px;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent));
+}
+
+.dash {
+  fill: var(--accent);
+  opacity: 0.75;
+}
+
+.dash-bright {
+  fill: color-mix(in srgb, var(--accent) 75%, white);
+}
+
+.stripes {
+  top: 25px;
+  right: 18px;
+}
+
+.rule {
+  fill: none;
+  stroke: #5a7fa3;
+  stroke-opacity: 0.7;
+  stroke-width: 1;
+}
+
+.stripe {
+  fill: #4f7ea3;
+  opacity: 0.75;
+}
+
+.stripe-accent {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 2px var(--accent));
+}

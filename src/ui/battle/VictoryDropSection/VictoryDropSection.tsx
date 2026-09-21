@@ -1,8 +1,7 @@
 import type { CSSProperties } from "react";
 import { CHALLENGE_DEFS, type ChallengeRun } from "@/engine";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
-import { inventoryThemeVars } from "@/ui/common/item/inventoryTheme";
-import { VICTORY_INVENTORY_COLORS } from "@/ui/battle/styles/inventoryPalettes";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { victoryStagger } from "@/ui/battle/victoryChoreo";
 import s from "./VictoryDropSection.module.css";
 
@@ -22,8 +21,6 @@ interface Props {
   style?: CSSProperties;
 }
 
-const VICTORY_TOOLTIP_THEME = inventoryThemeVars(VICTORY_INVENTORY_COLORS);
-
 function EnergyChip({ tier }: { tier: VictoryDropTier }) {
   const { point, bind } = useHoverTooltip();
   return (
@@ -41,10 +38,12 @@ function EnergyChip({ tier }: { tier: VictoryDropTier }) {
         <small>+{tier.rewardMultiplier.toFixed(2)}</small>
       </span>
       {point && (
-        <HoverTooltip point={point} themeStyle={VICTORY_TOOLTIP_THEME}>
-          <strong>能量档位 · {tier.name}</strong>
-          <p>本场探索的能量处于该档，基础掉落倍率 ×{tier.rewardMultiplier.toFixed(2)}</p>
-          <small>掉落加成 +{tier.rewardMultiplier.toFixed(2)}</small>
+        <HoverTooltip point={point}>
+          <TooltipCard
+            title={`能量档位 · ${tier.name}`}
+            desc={`本场探索的能量处于该档，基础掉落倍率 ×${tier.rewardMultiplier.toFixed(2)}`}
+            notes={[{ text: `掉落加成 +${tier.rewardMultiplier.toFixed(2)}` }]}
+          />
         </HoverTooltip>
       )}
     </div>
@@ -69,11 +68,16 @@ function ChallengeChip({ run, index }: { run: ChallengeRun; index: number }) {
         <small>{run.broken ? "+0.00" : `+${def.dropBonus.toFixed(2)}`}</small>
       </span>
       {point && (
-        <HoverTooltip point={point} themeStyle={VICTORY_TOOLTIP_THEME}>
-          <strong>{def.title}</strong>
-          <p>{def.desc}</p>
-          <small>掉落加成 +{def.dropBonus.toFixed(2)}</small>
-          {run.broken && <em>已打破 · 未获得 +{def.dropBonus.toFixed(2)}</em>}
+        <HoverTooltip point={point}>
+          <TooltipCard
+            icon={def.icon}
+            title={def.title}
+            desc={def.desc}
+            notes={[
+              { text: `掉落加成 +${def.dropBonus.toFixed(2)}` },
+              ...(run.broken ? [{ text: `已打破 · 未获得 +${def.dropBonus.toFixed(2)}`, tone: "bad" as const }] : []),
+            ]}
+          />
         </HoverTooltip>
       )}
     </div>
@@ -98,10 +102,12 @@ function BountyChip({ bonus, index }: { bonus: number; index: number }) {
         <small>+{bonus.toFixed(2)}</small>
       </span>
       {point && (
-        <HoverTooltip point={point} themeStyle={VICTORY_TOOLTIP_THEME}>
-          <strong>赏金猎人</strong>
-          <p>本场战斗完成击杀获得的赏金猎人层数，会在结算时提高掉率。</p>
-          <small>{stacks} 层 · 掉落加成 +{bonus.toFixed(2)}</small>
+        <HoverTooltip point={point}>
+          <TooltipCard
+            title="赏金猎人"
+            desc="本场战斗完成击杀获得的赏金猎人层数，会在结算时提高掉率。"
+            notes={[{ text: `${stacks} 层 · 掉落加成 +${bonus.toFixed(2)}` }]}
+          />
         </HoverTooltip>
       )}
     </div>

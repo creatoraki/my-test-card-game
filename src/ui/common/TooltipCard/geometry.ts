@@ -1,17 +1,26 @@
-// 状态详情卡的几何: 设计图卡片本体 1416 宽, 等比缩到 480 宽(k ≈ 0.339)。
+// 悬浮详情卡的几何: 设计图卡片本体 1416 宽, 等比缩到 480 宽(k ≈ 0.339)。
 // 所有数值都是按设计图量出来再乘 k 取整的结果, 调整时请回到设计图重新量。
 
 import { useId } from "react";
 
 export const CARD = {
+  /** 大头部卡(带徽章)的固定宽度。 */
   width: 480,
   /** 外框斜切。 */
   chamfer: 10,
-  /** 头部区高度(含内描边)。 */
-  headHeight: 123,
   /** 头部内描边相对外框的内缩。 */
   innerInset: 5,
 } as const;
+
+/** 三档头部高度(含内描边): 无头部 / 紧凑头部 / 大头部。 */
+export const HEAD_HEIGHT = {
+  none: 0,
+  compact: 62,
+  hero: 123,
+} as const;
+
+/** 默认主题色 —— 与外框亮线同一色系。 */
+export const DEFAULT_ACCENT = "#8fd0f0";
 
 /** 斜切四角的矩形轮廓。 */
 export function chamferRect(l: number, t: number, r: number, b: number, c: number): string {

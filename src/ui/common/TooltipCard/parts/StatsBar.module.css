@@ -102,7 +102,7 @@
 .decor {
   position: absolute;
   top: 31px;
-  left: 377px;
+  right: 11px;
   display: block;
   pointer-events: none;
 }

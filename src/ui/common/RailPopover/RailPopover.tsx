@@ -1,26 +1,12 @@
+// 悬停详情的定位层: 找到最近的 [data-rail-item] 宿主, 悬停/聚焦时把内容 portal 到设计画布。
+// ★ 外观统一交给 TooltipCard —— 本组件不画任何底色与边框。
+// ★ 运镜 / 播放动画期间, 宿主外层挂 data-popover-mute 即可立即隐藏(见 RailTooltip)。
+
 import type { ReactNode } from "react";
-import { cx } from "@/ui/common/cx";
-import s from "./RailPopover.module.css";
 import { RailTooltip } from "./RailTooltip";
 
-export function RailPopover({
-  side,
-  size = "md",
-  bare = false,
-  className,
-  children,
-}: {
-  side: "left" | "right" | "bottom" | "bottom-left" | "bottom-right" | "top" | "top-left" | "top-right";
-  size?: "md" | "lg";
-  /** 只保留定位与悬停显隐, 外观完全交给内容自绘(如 BuffDetailCard)。 */
-  bare?: boolean;
-  className?: string;
-  children: ReactNode;
-}) {
-  if (bare) return <RailTooltip side={side}>{children}</RailTooltip>;
-  return (
-    <div className={cx(s.popover, s[side], size === "lg" && s.lg, bare && s.bare, className)}>
-      {children}
-    </div>
-  );
+export type RailPopoverSide = "left" | "right" | "bottom" | "bottom-left" | "bottom-right" | "top" | "top-left" | "top-right";
+
+export function RailPopover({ side, children }: { side: RailPopoverSide; children: ReactNode }) {
+  return <RailTooltip side={side}>{children}</RailTooltip>;
 }

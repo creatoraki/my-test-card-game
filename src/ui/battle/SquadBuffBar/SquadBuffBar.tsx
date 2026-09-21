@@ -1,6 +1,6 @@
 import { SQUAD_BUFF_DEFS, squadBuffIds, type BattleState } from "@/engine";
 import { ASSEMBLE_ACCENT, AssembleIcon } from "@/ui/common/AssembleIcon";
-import { BuffDetailCard } from "@/ui/common/BuffDetailCard";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { RailPopover } from "@/ui/common/RailPopover";
 import s from "./SquadBuffBar.module.css";
 
@@ -26,10 +26,10 @@ export function SquadBuffBar({ battle }: Props) {
               style={{ ["--assemble-accent" as string]: ASSEMBLE_ACCENT[id] }}
             >
               <AssembleIcon id={id} />
-              <RailPopover side="top-left" bare>
-                <BuffDetailCard
+              <RailPopover side="top-left">
+                <TooltipCard
                   icon={<AssembleIcon id={id} />}
-                  name={def.name}
+                  title={def.name}
                   desc={def.desc}
                   accent={ASSEMBLE_ACCENT[id]}
                 />

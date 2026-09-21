@@ -1,5 +1,6 @@
 import { POLLUTION_RULES } from "@/engine";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
 import type { CSSProperties } from "react";
 import s from "./PollutionMeter.module.css";
@@ -26,8 +27,7 @@ export function PollutionMeter({ value, className }: Props) {
         </span>
       </div>
       <RailPopover side="top-right">
-        <strong>污染值</strong>
-        <p>当前 {current} / {POLLUTION_RULES.threshold}</p>
+        <TooltipCard title="污染值" desc={`当前 ${current} / ${POLLUTION_RULES.threshold}`} />
       </RailPopover>
     </div>
   );

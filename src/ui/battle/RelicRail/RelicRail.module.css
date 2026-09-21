@@ -50,21 +50,6 @@
   object-fit: contain;
 }
 
-.pop strong {
-  color: #ffe49a;
-}
-
-.pop .head-icon {
-  color: inherit;
-}
-
-.pop p {
-  margin: 8px 0 0;
-  color: #d8d0b8;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
 @keyframes relicPulse {
   from { filter: brightness(1); }
   to { filter: brightness(1.5); }

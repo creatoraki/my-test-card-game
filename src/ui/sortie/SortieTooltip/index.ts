@@ -1,1 +1,0 @@
-export { SortieTooltip } from "./SortieTooltip";

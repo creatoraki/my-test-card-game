@@ -14,8 +14,7 @@ import type { ItemStack } from "@/items/types";
 import { useSortieStore } from "@/store/sortieStore";
 import { useTownStore } from "@/store/townStore";
 import { cx } from "@/ui/common/cx";
-import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
-import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
+import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import ShelfRow from "./ShelfRow";
 import s from "./StockShelf.module.css";
 
@@ -99,7 +98,7 @@ export function StockShelf({ active, entering, className, onBought, onPoor, onFu
           />
         ))}
       </div>
-      {hovered && <SortieTooltip stack={stacks.get(hovered.itemId)!} point={hovered.point} />}
+      {hovered && <ItemTooltip stack={stacks.get(hovered.itemId)!} point={hovered.point} />}
     </section>
   );
 }

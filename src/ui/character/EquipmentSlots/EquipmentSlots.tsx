@@ -1,5 +1,6 @@
 import { DetailFrame } from "@/ui/common/DetailFrame";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import type { EquipSlot, ItemStack } from "@/items/types";
 import { SLOT_LABEL } from "@/items/types";
 import { EQUIP_SLOTS } from "@/store/townStore";
@@ -88,7 +89,7 @@ function EquipmentSlot({
           </button>
           {unequipPoint && (
             <HoverTooltip point={unequipPoint}>
-              <strong>卸下{SLOT_LABEL[slot]}装备</strong>
+              <TooltipCard title={`卸下${SLOT_LABEL[slot]}装备`} />
             </HoverTooltip>
           )}
         </>

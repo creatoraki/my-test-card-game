@@ -97,7 +97,7 @@ const ShopItemCardBody = memo(function ShopItemCardBody({ stack }: { stack: Item
                 <BondIcon bondId={bond.id} className={s["sx-card-bond-icon"]} />
                 <span className={s["sx-card-bond-name"]}>{bond.name}</span>
               </span>
-              <RailPopover side="bottom-right" className={s["sx-card-bond-popover"]}>
+              <RailPopover side="bottom-right">
                 <BondTooltip def={bond} count={1} tierIndex={-1} next={bond.tiers[0]} />
               </RailPopover>
             </span>

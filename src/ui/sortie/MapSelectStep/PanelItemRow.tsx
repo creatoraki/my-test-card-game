@@ -4,8 +4,7 @@ import type { ItemStack } from "@/items/types";
 import { itemIcon } from "@/ui/art/itemArt";
 import { SortieFrame } from "@/ui/sortie/SortieFrame";
 import { SortieGlyph } from "@/ui/sortie/SortieGlyph";
-import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
-import { SortieTooltip } from "@/ui/sortie/SortieTooltip";
+import ItemTooltip, { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import s from "./PanelItemRow.module.css";
 
 interface Props {
@@ -54,7 +53,7 @@ export function PanelItemRow({ title, kind, stacks, active }: Props) {
         })}
         {stacks.length === 0 && <p className={s.empty}>今日奖励已领取</p>}
       </div>
-      {active && itemTooltip && <SortieTooltip stack={itemTooltip.stack} point={itemTooltip.point} />}
+      {active && itemTooltip && <ItemTooltip stack={itemTooltip.stack} point={itemTooltip.point} />}
     </section>
   );
 }

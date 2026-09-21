@@ -11,6 +11,7 @@ import {
 } from "@/data";
 import type { ItemStack } from "@/items/types";
 import { HoverTooltip } from "@/ui/common/HoverTooltip";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { tooltipPointFromElement, type TooltipPoint } from "@/ui/common/item/ItemTooltip";
 import { PanelItemRow } from "./PanelItemRow";
 import { SortieFrame } from "@/ui/sortie/SortieFrame";
@@ -129,8 +130,7 @@ export function MapDifficultyPanel({
 
       {active && lockTooltip && (
         <HoverTooltip point={lockTooltip.point}>
-          <strong style={{ fontSize: 18 }}>{lockTooltip.name}难度未开放</strong>
-          <p style={{ fontSize: 18 }}>{lockTooltip.reason}</p>
+          <TooltipCard title={`${lockTooltip.name}难度未开放`} desc={lockTooltip.reason} />
         </HoverTooltip>
       )}
     </aside>

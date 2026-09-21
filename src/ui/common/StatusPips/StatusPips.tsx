@@ -3,7 +3,7 @@ import type { StatusInstance, Team } from "@/engine";
 import { getStatusDef } from "@/engine";
 import { statusArtOf } from "@/ui/art/statusArt";
 import { statusAccentOf } from "@/ui/art/statusAccent";
-import { BuffDetailCard, type BuffStat } from "@/ui/common/BuffDetailCard";
+import { TooltipCard, type BuffStat } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
 import { RailPopover } from "@/ui/common/RailPopover";
 import { ShieldIcon } from "./icons";
@@ -91,10 +91,10 @@ export function StatusPips({
       {!shieldPip && stacks > 1 && <b>{stacks}</b>}
       {!shieldPip && stacks === 1 && duration != null && <b>{duration}</b>}
       {detail && (
-        <RailPopover side={popoverSide ?? "top"} bare>
-          <BuffDetailCard
+        <RailPopover side={popoverSide ?? "top"}>
+          <TooltipCard
             icon={detailIcon}
-            name={name}
+            title={name}
             desc={desc}
             accent={accent}
             stats={statsOf(shieldPip, stacks, duration)}

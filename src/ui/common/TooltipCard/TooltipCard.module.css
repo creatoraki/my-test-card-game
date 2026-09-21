@@ -1,0 +1,76 @@
+/* 设计图卡片 1416×804 → 480×272(k≈0.339)。 */
+.card {
+  padding-bottom: 8px;
+}
+
+.is-hero {
+  width: 480px;
+}
+
+/* 紧凑卡: 宽度随内容, 但不窄于标题装饰、不宽于一行舒适阅读长度。 */
+.is-compact {
+  width: max-content;
+  min-width: 280px;
+  max-width: 420px;
+}
+
+.has-stats {
+  padding-bottom: 6px;
+}
+
+/* 只有标题、没有正文时, 头部底边就是卡底。 */
+.is-bare {
+  padding-bottom: 0;
+}
+
+/* 正文面板: 设计图 x90–1446, y480–748。 */
+.body {
+  --panel-fill: #06111acc;
+  --panel-stroke: #2b4b5f;
+  margin: 4px 10px 0;
+  padding: 12px 22px 13px;
+}
+
+.is-compact .body {
+  margin-top: 6px;
+  padding: 10px 18px 12px;
+}
+
+.desc {
+  color: #eef3f8;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px #000000aa;
+}
+
+.is-compact .desc {
+  line-height: 29px;
+}
+
+.num {
+  margin: 0 3px;
+  color: var(--accent);
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 800;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+/* 自定义正文: 默认字色与行距, 具体排版由调用方的类决定。 */
+.extra {
+  color: #cfdbe8;
+  font-size: 18px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.desc + .extra {
+  margin-top: 8px;
+}
+
+/* 无头部: 正文面板离外框上沿留出与左右相同的呼吸。 */
+.is-headless .body {
+  margin-top: 10px;
+}

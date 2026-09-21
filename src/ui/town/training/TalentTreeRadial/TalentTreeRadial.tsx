@@ -5,6 +5,7 @@ import { cx } from "@/ui/common/cx";
 import { BadgeCoreArtwork } from "@/ui/town/training/TalentArtwork/BadgeCoreArtwork";
 import { TalentPlaque } from "../TalentArtwork/TalentPlaque";
 import { TalentNode, NODE_STATUS, type TalentNodeState } from "../TalentArtwork/TalentNode";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { TalentTooltip } from "../TalentArtwork/TalentTooltip";
 import { RADIAL_CENTER, branchArtOf, buildRadialLayout, nodeRadius, type Point } from "./talentGeometry";
 import s from "./TalentTreeRadial.module.css";
@@ -118,7 +119,7 @@ export function TalentTreeRadial({ badge, activated, remaining, locked, resource
         onFocus={() => setCoreHovered(true)} onBlur={() => setCoreHovered(false)}>
         <BadgeCoreArtwork badgeId={badge.id} size={184} />
       </button>
-      {coreHovered && <span className={s.coreTip} role="tooltip">切换小队徽章</span>}
+      {coreHovered && <span className={s.coreTip} role="tooltip"><TooltipCard title="切换小队徽章" /></span>}
       {hover && <TalentTooltip node={hover.node} point={hover.point} state={stateOf(hover.node)}
         resourceLabel={resourceLabels[hover.node.key]} reach={costToReach(badge, activated, hover.node.id)}
         hue={branchArtOf(hover.branchId).hue} locked={locked} />}

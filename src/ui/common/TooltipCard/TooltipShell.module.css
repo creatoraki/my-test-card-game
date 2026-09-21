@@ -1,0 +1,12 @@
+/* 外壳: 外框层(z 0 底色 / z 3 亮线)由 TooltipFrame 绘制, 内容需自带 z-index: 1 以上。 */
+.shell {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  color: #eef3f8;
+  font-size: 18px;
+  line-height: 1;
+  text-align: left;
+  white-space: normal;
+  cursor: default;
+}

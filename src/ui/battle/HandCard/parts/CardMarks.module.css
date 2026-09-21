@@ -92,39 +92,22 @@
   white-space: nowrap;
   pointer-events: none;
 }
+/* 外观交给 TooltipCard(统一悬浮详情), 这里只管落位与悬停显隐。 */
 .hc-mark-tip {
   position: absolute;
   left: 0;
   bottom: calc(100% + 8px);
   z-index: 2;
-  display: flex;
-  width: 210px;
-  flex-direction: column;
-  gap: 4px;
-  padding: 9px 11px;
+  display: block;
+  width: max-content;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  color: #c6d8e4;
-  background: linear-gradient(150deg, #212831, #141a1e 42%, #080b0d);
-  border: 1px solid #66d7ec66;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  box-shadow: 0 6px 14px #05080abf;
   transition: opacity 120ms ease, visibility 120ms ease;
 }
 .hc-mark:hover .hc-mark-tip {
   opacity: 1;
   visibility: visible;
-}
-.hc-mark-tip-name {
-  color: #d9f3ff;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.hc-mark-tip-desc {
-  font-size: 18px;
-  line-height: 1.4;
 }
 @keyframes hc-mark-in {
   from {

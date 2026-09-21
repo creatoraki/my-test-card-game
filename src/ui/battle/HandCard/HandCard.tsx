@@ -14,6 +14,7 @@ import { cx } from "@/ui/common/cx";
 import { stripModuleText, useCardText } from "@/ui/common/cardText";
 import { CardTextRich } from "@/ui/common/CardTextRich";
 import s from "./HandCard.module.css";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import f from "./HandCard.face.module.css";
 import "./HandCard.motion.module.css";
 import "./HandCard.layout.module.css";
@@ -234,7 +235,10 @@ export const HandCard = memo(function HandCard({
           <span className={f["hc-star-pay"]}>
             ✨{starPay}
             <span className={f["hc-star-pay-tip"]} role="tooltip">
-              消耗 {starPay} 层星辉，实付 {effectiveCost - starPay} 点法力水晶
+              <TooltipCard
+                className={f["hc-star-pay-card"]}
+                desc={`消耗 ${starPay} 层星辉，实付 ${effectiveCost - starPay} 点法力水晶`}
+              />
             </span>
           </span>
         )}

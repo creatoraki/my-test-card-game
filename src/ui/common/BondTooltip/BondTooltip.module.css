@@ -1,59 +1,30 @@
-.tooltip {
-  --bond-color: var(--slot-accent, #6fd2ff);
-}
-
-.popHead {
-  padding-bottom: 8px;
-  border-bottom: 1px solid #6fd2ff33;
-}
-
-.popHead .name {
-  color: var(--bond-color);
-}
-
-.popTiers,
-.tooltip p,
-.tooltip small {
-  font-size: 18px;
-  letter-spacing: 0.5px;
-}
-
-.tooltip p {
-  margin: 10px 0;
-  color: #b8c8ce;
-  line-height: 1.5;
-}
-
-.popTiers {
+/* 等级表: 当前等级用主题色左边条 + 淡底高亮, 其余压暗。 */
+.tiers {
   display: grid;
   gap: 8px;
 }
 
-.popTiers > div {
+.tier {
   display: grid;
   gap: 4px;
   padding: 8px 10px;
-  border-left: 3px solid transparent;
-  color: #9fb3bb;
+  border-left: 3px solid #34617f;
+  color: #8fa4b8;
+  font-size: 18px;
+  letter-spacing: 0.02em;
 }
 
-.popTiers > div.tierActive {
-  border-left-color: var(--bond-color);
-  background: color-mix(in srgb, var(--bond-color) 12%, transparent);
+.tier.is-active {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: #eef7f8;
 }
 
-.popTiers b {
+.tier b {
   color: inherit;
   font-size: 18px;
 }
 
-.popTiers span {
+.tier span {
   line-height: 1.4;
-}
-
-.tooltip small {
-  display: block;
-  margin-top: 9px;
-  color: var(--bond-color);
 }

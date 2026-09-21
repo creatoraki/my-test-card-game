@@ -2,6 +2,8 @@ import { createPortal } from "react-dom";
 import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import type { ItemStack } from "@/items/types";
 import ItemDetail from "@/ui/common/item/ItemDetail";
+import { cx } from "@/ui/common/cx";
+import { TooltipShell } from "@/ui/common/TooltipCard";
 import { designScaleOf, stageHostOf } from "@/ui/hooks/stage";
 import s from "./ItemTooltip.module.css";
 
@@ -128,7 +130,7 @@ export function useTooltipPlacement(
   return { left: placed?.left ?? 0, top: placed?.top ?? 0, maxHeight, ready: placed !== null };
 }
 
-/** 放置结果 → 浮层根节点的 inline style。各处换皮浮卡(商店仓库、出击背包)共用。 */
+/** 放置结果 → 浮层根节点的 inline style。ItemTooltip / HoverTooltip / RailTooltip 共用。 */
 export function tooltipStyle(placement: TooltipPlacement): CSSProperties {
   return {
     left: `${placement.left}px`,
@@ -154,12 +156,15 @@ export default function ItemTooltip({
 
   return createPortal(
     <div
-      className={`${s["item-tooltip"]}${className ? ` ${className}` : ""}`}
+      className={cx(s["item-tooltip"], className)}
       ref={ref}
       style={{ ...themeStyle, ...tooltipStyle(placement) }}
       role="tooltip"
     >
-      <ItemDetail stack={stack} className={`${s["item-tooltip-detail"]}${className ? ` ${className}` : ""}`} />
+      {/* 外框与全项目悬浮详情统一(TooltipShell), 物品详情的内部排版保持不变。 */}
+      <TooltipShell className={s["item-tooltip-shell"]}>
+        <ItemDetail stack={stack} className={cx(s["item-tooltip-detail"], className)} />
+      </TooltipShell>
     </div>,
     point.host,
   );

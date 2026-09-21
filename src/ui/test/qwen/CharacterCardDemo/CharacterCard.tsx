@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { BorderGlow } from "@/ui/common/BorderGlow";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
 import { CHARACTER_CARD_GLOW } from "@/ui/character/characterGlow";
 import s from "./CharacterCard.module.css";
@@ -64,7 +65,7 @@ export function CharacterCard({
           </div>
         </div>
       </BorderGlow>
-      {disabledReason && point ? <HoverTooltip point={point}>{disabledReason}</HoverTooltip> : null}
+      {disabledReason && point ? <HoverTooltip point={point}><TooltipCard desc={disabledReason} /></HoverTooltip> : null}
     </div>
   );
 }

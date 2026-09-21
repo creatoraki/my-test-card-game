@@ -1,0 +1,48 @@
+.head {
+  position: relative;
+  z-index: 1;
+  height: 123px;
+}
+
+/* 标题: 设计图字形高 ~105, 左缘 x=515。 */
+.name {
+  position: absolute;
+  top: 32px;
+  left: 154px;
+  z-index: 2;
+  max-width: 212px;
+  overflow: hidden;
+  color: #f6fbff;
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow:
+    0 0 1px #ffffff,
+    0 0 8px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 16px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 2px 2px #000000aa;
+}
+
+.name.is-long {
+  top: 38px;
+  font-size: 30px;
+  letter-spacing: 0.02em;
+}
+
+/* 副信息落在下划线下方, 与标题左缘对齐。 */
+.meta {
+  position: absolute;
+  top: 88px;
+  left: 154px;
+  z-index: 2;
+  max-width: 230px;
+  overflow: hidden;
+  color: #9fb4c8;
+  font-size: 18px;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

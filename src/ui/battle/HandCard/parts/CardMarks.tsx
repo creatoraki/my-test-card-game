@@ -2,6 +2,7 @@ import type { Card } from "@/engine";
 import { CARD_MARK_DEFS, cultivateOverripe, cultivateReady } from "@/engine";
 import { CultivatedEmblem } from "@/ui/common/BuffIcon";
 import { CULTIVATION_ART } from "@/ui/art/buffArt";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import s from "./CardMarks.module.css";
 
 interface Props {
@@ -41,8 +42,7 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
               <span key={markId} className={s["hc-mark"]} aria-label={mark.name}>
                 <span className={s["hc-mark-icon"]} aria-hidden>{mark.emoji}</span>
                 <span className={s["hc-mark-tip"]} role="tooltip">
-                  <span className={s["hc-mark-tip-name"]}>{mark.emoji} {mark.name}</span>
-                  <span className={s["hc-mark-tip-desc"]}>{mark.desc}</span>
+                  <TooltipCard icon={mark.emoji} title={mark.name} desc={mark.desc} />
                 </span>
               </span>
             );
@@ -66,14 +66,16 @@ export function CardMarks({ card, variant, actionBadge, leaving }: Props) {
               )}
             </span>
             <span className={s["hc-mark-tip"]} role="tooltip">
-              <span className={s["hc-mark-tip-name"]}>培育</span>
-              <span className={s["hc-mark-tip-desc"]}>
-                {cultivateOverripe(card)
-                  ? "已过熟：打出时结算过熟效果；本回合结束时仍在手牌中会腐烂。"
-                  : cultivateReady(card)
-                  ? "已就绪：打出时触发额外效果。"
-                  : `还需经过 ${card.cultivateLeft ?? card.cultivate.turns} 个回合。`}
-              </span>
+              <TooltipCard
+                title="培育"
+                desc={
+                  cultivateOverripe(card)
+                    ? "已过熟：打出时结算过熟效果；本回合结束时仍在手牌中会腐烂。"
+                    : cultivateReady(card)
+                    ? "已就绪：打出时触发额外效果。"
+                    : `还需经过 ${card.cultivateLeft ?? card.cultivate.turns} 个回合。`
+                }
+              />
             </span>
           </span>
         </span>

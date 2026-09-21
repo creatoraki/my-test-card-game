@@ -15,6 +15,7 @@ import { CHARACTER_CARD_GLOW, characterGlow } from "@/ui/character/characterGlow
 import { BorderGlow } from "@/ui/common/BorderGlow";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
 import s from "./CrewCard.module.css";
 
@@ -141,8 +142,7 @@ function CrewCardView({
             )}
             {(resting || blocked) && point && (
               <HoverTooltip point={point}>
-                <strong>{tooltipTitle}</strong>
-                <p>{tooltipReason}</p>
+                <TooltipCard title={tooltipTitle} desc={tooltipReason} />
               </HoverTooltip>
             )}
           </span>

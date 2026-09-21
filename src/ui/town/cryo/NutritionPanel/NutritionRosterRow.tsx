@@ -3,6 +3,7 @@ import type { CharacterState } from "@/store/townStore";
 import { vitalsOf } from "@/store/townStore";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { HpBar } from "@/ui/common/HpBar";
 import { cx } from "@/ui/common/cx";
 import type { NutritionCandidate } from "./useNutritionAssign";
@@ -50,7 +51,7 @@ export function NutritionRosterRow({ candidate, character: characterState, selec
         {candidate.assignedSlot !== undefined && <span className={s.assignment}>已入席位-0{candidate.assignedSlot + 1}</span>}
         <span className={s.mark} aria-hidden>{selected ? "✓" : ""}</span>
       </button>
-      {point && candidate.reason && <HoverTooltip point={point}>{candidate.reason}</HoverTooltip>}
+      {point && candidate.reason && <HoverTooltip point={point}><TooltipCard desc={candidate.reason} /></HoverTooltip>}
     </div>
   );
 }

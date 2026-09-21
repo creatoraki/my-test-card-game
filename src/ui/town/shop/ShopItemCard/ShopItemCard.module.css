@@ -39,6 +39,3 @@
   white-space: nowrap;
 }
 
-.sx-card-bond-popover {
-  --bond-color: var(--sx-bond);
-}

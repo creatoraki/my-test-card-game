@@ -89,11 +89,6 @@
   box-shadow: 0 0 6px color-mix(in srgb, var(--slot-accent) 55%, transparent);
 }
 
-.popover {
-  --bond-color: var(--slot-accent);
-  width: 260px;
-}
-
 .showcase[data-inactive="true"] {
   --slot-ink: #8d86a3;
 }

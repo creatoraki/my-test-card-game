@@ -82,7 +82,7 @@ export function BondSlot({
           ))}
         </div>
       )}
-      <RailPopover side={popoverSide} className={s.popover}>
+      <RailPopover side={popoverSide}>
         <BondTooltip def={def} count={count} tierIndex={tierIndex} next={next} />
       </RailPopover>
     </div>

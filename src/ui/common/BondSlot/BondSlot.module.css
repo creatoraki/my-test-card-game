@@ -172,8 +172,3 @@
   font-size: calc(var(--slot-icon) * 0.18);
 }
 
-.popover {
-  --bond-color: var(--slot-accent);
-  width: 260px;
-}
-

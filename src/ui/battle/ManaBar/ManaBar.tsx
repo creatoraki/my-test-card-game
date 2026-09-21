@@ -4,6 +4,7 @@ import { RULES, partyManaPerRound } from "@/engine";
 import { useHandHoverCost } from "@/ui/battle/handFocusStore";
 import { ManaCrystal } from "@/ui/common/ManaCrystal";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import s from "./ManaBar.module.css";
 
 interface Props {
@@ -28,8 +29,7 @@ export const ManaBar = memo(function ManaBar({ battle }: Props) {
         />
       ))}
       <RailPopover side="top-left">
-        <strong>法力水晶</strong>
-        <p>每回合用于打出卡牌的共享资源。</p>
+        <TooltipCard title="法力水晶" desc="每回合用于打出卡牌的共享资源。" />
       </RailPopover>
     </div>
   );

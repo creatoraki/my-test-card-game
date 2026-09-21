@@ -1,6 +1,7 @@
 import { canPicnic } from "@/explore/picnic";
 import { useExploreStore } from "@/store/exploreStore";
 import { RailPopover } from "@/ui/common/RailPopover";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
 import s from "./PicnicButton.module.css";
 
@@ -33,8 +34,7 @@ export default function PicnicButton({ onOpen }: { onOpen: () => void }) {
       </button>
       {phaseLocked && (
         <RailPopover side="top-right">
-          <strong>野餐暂不可用</strong>
-          <p>完成物件交互、恢复自由行走后才能野餐。</p>
+          <TooltipCard title="野餐暂不可用" desc="完成物件交互、恢复自由行走后才能野餐。" />
         </RailPopover>
       )}
     </div>

@@ -3,6 +3,7 @@ import { getCharacter } from "@/data";
 import { playSfx } from "@/ui/audio";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
 import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
+import { TooltipCard } from "@/ui/common/TooltipCard";
 import { useCountUp } from "@/ui/hooks/useCountUp";
 import type { CharacterState, NutritionState } from "@/store/townStore";
 import { vitalsOf } from "@/store/townStore";
@@ -125,7 +126,7 @@ export function NutritionPod({
         {state === "treating" && <span className={s.lock} aria-hidden>锁</span>}
         {state === "pending" && <span key={shockKey} className={s.shock} aria-hidden />}
       </button>
-      {point && reason && <HoverTooltip point={point}>{reason}</HoverTooltip>}
+      {point && reason && <HoverTooltip point={point}><TooltipCard desc={reason} /></HoverTooltip>}
     </div>
   );
 }

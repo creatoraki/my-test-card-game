@@ -12,7 +12,7 @@
   filter: drop-shadow(0 0 7px #ffcb6e77); transition: filter 180ms;
 }
 .core:hover, .core:focus-visible { filter: brightness(1.15) drop-shadow(0 0 13px #ffce7e99); outline: none; }
+/* 落位层; 外观由 TooltipCard 绘制。 */
 .coreTip {
-  position: absolute; left: 836px; top: 520px; z-index: 10; transform: translateX(-50%);
-  background: #080e18f5; border: 1px solid #bd9655; color: #ffebbd; font-size: 18px; padding: 9px 17px;
+  position: absolute; left: 836px; top: 520px; z-index: 10; transform: translateX(-50%); pointer-events: none;
 }
