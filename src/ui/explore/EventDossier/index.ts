@@ -1,4 +1,5 @@
-export { EventDossierPanel, DOSSIER_ACCENT } from "./EventDossierPanel";
+export { EventDossierPanel } from "./EventDossierPanel";
+export { DOSSIER_ACCENT, DOSSIER_THEMES, type DossierThemeId } from "./dossierThemes";
 export { DossierChoice } from "./DossierChoice";
 export { DossierResult } from "./DossierResult";
 export { DossierLoot } from "./DossierLoot";

@@ -9,14 +9,12 @@ import {
   EventDossierPanel,
 } from "@/ui/explore/EventDossier";
 
-const BOSS_ACCENT = "#e0524a";
-
 export function BossGatePanel({ session }: { session: ExploreState }) {
   const actionable = session.phase === "atNode";
 
   return (
     <EventDossierPanel
-      accent={BOSS_ACCENT}
+      theme="danger"
       kicker="封锁红门 · 首领区域"
       title="首领所在"
       enTitle="SEALED RED GATE"

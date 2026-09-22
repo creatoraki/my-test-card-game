@@ -17,6 +17,7 @@ import {
   type DossierAction,
   type DossierIconName,
 } from "@/ui/explore/EventDossier";
+import { curioTheme } from "./curioTheme";
 import { useCurioLoot, type CurioLoot } from "./useCurioLoot";
 
 const DEFAULT_EN_TITLE = "探索交互";
@@ -119,6 +120,7 @@ export function CurioPanel({
 
   return <>
     <EventDossierPanel
+      theme={curioTheme(object.kind)}
       kicker={forced ? `风险房间 · ${roomLabel}号房间` : `${def.name} · ${roomLabel}号房间`}
       title={def.name}
       enTitle={DEFAULT_EN_TITLE}

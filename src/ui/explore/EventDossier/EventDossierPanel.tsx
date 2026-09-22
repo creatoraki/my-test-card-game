@@ -6,16 +6,16 @@ import { panelRevealVars } from "@/ui/explore/styles/panelReveal";
 import { useSwapTransition } from "@/ui/hooks/useSwapTransition";
 import { DossierDecor } from "./DossierDecor";
 import { DossierHeader } from "./DossierHeader";
-import { DOSSIER_DEFAULT_ART } from "./dossierArt";
+import { DOSSIER_THEMES, type DossierThemeId } from "./dossierThemes";
 import s from "./EventDossierPanel.module.css";
-
-export const DOSSIER_ACCENT = "#0ff0f4";
 
 /** 换场节奏: 与 EventDossierPanel.module.css 的 dossierSceneOut / dossierSceneIn 时长一致。 */
 const SCENE_LEAVE_MS = 280;
 const SCENE_ENTER_MS = 460;
 
 interface EventDossierPanelProps {
+  /** 事件主题: 决定插图与主题色, 默认物资青色。accent / art 可单独覆盖。 */
+  theme?: DossierThemeId;
   accent?: string;
   /** 页眉位置文字，例如"训练装备柜 · 1号房间"。 */
   kicker: string;
@@ -32,11 +32,12 @@ interface EventDossierPanelProps {
 
 /** 探索物件事件的"事件档案"浮层：折角外框 + 右侧插图 + 左栏标题，场景内容由 children 提供。 */
 export function EventDossierPanel({
-  accent = DOSSIER_ACCENT,
+  theme = "supply",
+  accent = DOSSIER_THEMES[theme].accent,
   kicker,
   title,
   enTitle,
-  art = DOSSIER_DEFAULT_ART,
+  art = DOSSIER_THEMES[theme].art,
   contentKey,
   active,
   onClose,

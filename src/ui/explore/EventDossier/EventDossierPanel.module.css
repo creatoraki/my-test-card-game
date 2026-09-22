@@ -16,7 +16,9 @@
   position: relative;
   overflow: hidden;
   outline: none;
-  background: #03121b;
+  /* 底色随主题色(--k)轻微染色, 左侧暗部渐变同源, 不同事件类型整体色调不同。 */
+  --bg: color-mix(in srgb, var(--k) 7%, #03121b);
+  background: var(--bg);
   color: #e6eef0;
   font-family: var(--font-family);
 }
@@ -56,7 +58,15 @@
   background:
     linear-gradient(0deg, #020b12f0 0%, #020b12a8 9%, transparent 26%),
     linear-gradient(180deg, #020a10b8 0%, transparent 16%),
-    linear-gradient(90deg, #03121b 0%, #03121b 28%, #03121be6 35%, #03121b8c 46%, #03121b26 56%, transparent 62%);
+    linear-gradient(
+      90deg,
+      var(--bg) 0%,
+      var(--bg) 28%,
+      color-mix(in srgb, var(--bg) 90%, transparent) 35%,
+      color-mix(in srgb, var(--bg) 55%, transparent) 46%,
+      color-mix(in srgb, var(--bg) 15%, transparent) 56%,
+      transparent 62%
+    );
 }
 
 /* 场景槽。换场 = 旧内容向上滚出 → 新内容从下方滚入(时长与 EventDossierPanel.tsx 的 SCENE_*_MS 一致)。

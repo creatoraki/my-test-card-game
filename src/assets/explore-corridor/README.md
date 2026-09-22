@@ -18,6 +18,9 @@
   `ui/art/corridorPlayerFrames.ts` 缓存已解码图片，角色组件通过独立画布同步绘帧，避免逐帧切换图片地址造成显示延迟。
   单帧原图 417×556，现已等比压缩至 180×240 以匹配 1080p 设计画布中的实际绘制尺寸；完整透明画布与底部留白均予保留，
   角色组件按 240px 高度显示，并通过 `.player` 偏移及 `CORRIDOR_LAYOUT.entityGroundOffset` 与新近景地面对齐。
+- `事件背景/`：事件档案面板右侧插图，已从 1448×1086 等比压缩至 1205×904（面板在 1080P 下的显示高度）。
+  由 `ui/art/eventDossierArt.ts` 登记并纳入预载；主题色在 `ui/explore/EventDossier/dossierThemes.ts`，
+  物件种类到主题的分配在 `ui/explore/ExploreScreen/curioTheme.ts`。
 - 旧版 `售货机.png`、`宝箱.png`、`雕像.png` 保留在目录中，不参与当前走廊运行时渲染。黑影与破地动画仍由 `ShadowEncounter` 独立绘制。
 - 旧版 `废弃楼层/背景.png`、`corridor.png`、`ground.png`、`sprites.png` 保留在目录中，不再用于当前走廊场景。
 
