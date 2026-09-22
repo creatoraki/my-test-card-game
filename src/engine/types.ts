@@ -691,6 +691,7 @@ export interface EncounterModifier {
   enemyStatuses?: StatusInstance[]; // 全体敌人的开局状态
   moveDelayDelta?: number; // 每次抽招式的延迟调整, 最终延迟钳到下限 1
   hpMultiplier?: number; // 敌人 maxHp 倍率(BOSS 缩放用), 缺省 1
+  attackMultiplier?: number; // 地图难度的敌人攻击力倍率，缺省 1
 }
 
 // ---------------------------------------------------------------------------

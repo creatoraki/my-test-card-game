@@ -4,6 +4,7 @@
 // 这件事, 因为只有它同时认识 battleStore、exploreStore 与界面路由。
 
 import { create } from "zustand";
+import { mapCombatModifier } from "../data/mapCombatBalance";
 import type { AllyInit, Ally, BattleState, Card, ChallengeRun, Enemy, QuirkId } from "../engine";
 import { RULES, applyModifier, earnedChallengeBonus, getStatus } from "../engine";
 import {
@@ -251,7 +252,7 @@ function launchBattle(encounterId: string, isBoss: boolean): void {
     };
   });
 
-  const mod = encounterModifier(session.energy);
+  const mod = { ...encounterModifier(session.energy), ...mapCombatModifier(session.mapId, session.difficulty) };
   const meta = battleMeta(characters, party);
   // ★ 负重在**开战瞬间快照**(设计文档 §6.3): 引擎不认识背包, 只收这一个有效负重点数。
   const burden = burdenNow(session);

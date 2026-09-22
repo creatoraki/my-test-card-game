@@ -17,7 +17,7 @@ export function BossGatePanel({ session }: { session: ExploreState }) {
       theme="danger"
       kicker="封锁红门 · 首领区域"
       title="首领所在"
-      enTitle="SEALED RED GATE"
+      enTitle="封锁红门"
       contentKey="boss-gate"
       active={actionable}
       onClose={actionable ? closeBossGatePanel : undefined}

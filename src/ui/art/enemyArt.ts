@@ -11,6 +11,7 @@ import glassJellyIdle from "@/assets/敌人立绘/玻璃水母/idle.png";
 import mimicGearIdle from "@/assets/敌人立绘/宝箱怪A/idle.png";
 import mimicCardIdle from "@/assets/敌人立绘/宝箱怪B/idle.png";
 import { preloadImage } from "@/ui/art/assetLoader";
+import { ECO_ARK_ENEMY_ART } from "./ecoArkEnemyArt";
 
 // 横向拼条(strip)待机图。几何/时序集中在此(而非散落 CSS), 由 ui/EnemySprite.tsx 行内下发。
 // 单张拼条以 background-position 无限循环播放待机动画(可按 skipFrames 挑帧)。
@@ -54,6 +55,7 @@ export function enemyIdle(def: EnemySpriteDef | undefined): typeof DEFAULT_IDLE 
 }
 
 const ENEMY_ART: Record<string, EnemySpriteDef> = {
+  ...ECO_ARK_ENEMY_ART,
   // 9:16 与 1:1 素材都走同一模型: view 决定展示构图, body 决定主体高度归一。
   // 电线杆机器人已换成专属 9:16 立绘, 主体 1024×1546(瘦高), 体型差异由 encounters.ts 的 scale 承担。
   // 废品机器人使用 1:1 立绘, 主体 1719×1860; view 省略即整帧展示。

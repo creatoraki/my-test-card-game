@@ -264,6 +264,8 @@ src/ui/
 
 ## 素材查表（`art/`）与 hooks
 
+生态方舟的素材分为 `ecoArkEnemyArt.ts`（八名敌人的透明主体框与待机）、`ecoArkPropArt.ts`（五种交互物尺寸与地面留白）、`ecoArkScenery.ts`（探索远近景）。它们合并进既有素材表与启动预加载清单。选图使用现有生态方舟配图，战斗背景单独登记；`CorridorFar` 按地图切换远景，近景与布局读取房间的 `nearMapVariant`。
+
 | 文件 | 作用 |
 | --- | --- |
 | [art/cardArt.ts](../../src/ui/art/cardArt.ts) | 战斗卡 id → 卡面配图。 |

@@ -19,6 +19,8 @@ import corridorNearAlternateArt from "@/assets/explore-corridor/废弃楼层/近
 import corridorNearThirdArt from "@/assets/explore-corridor/废弃楼层/近景/测试3.png";
 import type { NearMapVariant } from "@/explore/dungeon/types";
 import type { CurioKind } from "@/explore/corridor/types";
+import { ECO_ARK_SCENERY, ECO_ARK_SCENERY_SOURCES } from "./ecoArkScenery";
+import { ECO_ARK_PROP_ART } from "./ecoArkPropArt";
 
 export const CORRIDOR_PROP_SCALES = {
   small: 0.7,
@@ -28,7 +30,7 @@ export const CORRIDOR_PROP_SCALES = {
 
 export const CORRIDOR_PROP_BASE_SCALE = 0.5;
 
-interface CorridorPropArt {
+export interface CorridorPropArt {
   src: string;
   width: number;
   height: number;
@@ -54,10 +56,15 @@ export const CORRIDOR_ROOM_PORTAL_ANCHOR_SHIFT = 79;
 /** 首领红门沿用单帧传送门素材，并在组件中做红色调色。 */
 export const CORRIDOR_BOSS_GATE_ART = bossGateArt;
 export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
+  ecoArk: ECO_ARK_SCENERY.near,
   standard: corridorNearStandardArt,
   alternate: corridorNearAlternateArt,
   third: corridorNearThirdArt,
 };
+
+export function getCorridorFarArt(mapId: string | undefined): string {
+  return mapId === "eco-ark" ? ECO_ARK_SCENERY.far : CORRIDOR_FAR_ART;
+}
 
 /**
  * 交互物原图按 0.35 作为设计画布基准，再叠加小/中/大三档尺寸。
@@ -65,6 +72,7 @@ export const CORRIDOR_NEAR_ART: Record<NearMapVariant, string> = {
  * 房间传送门与首领红门使用独立尺寸，不受此基准影响。
  */
 export const CORRIDOR_PROP_ART: Record<CurioKind, CorridorPropArt> = {
+  ...ECO_ARK_PROP_ART,
   equipmentCache: { src: corridorSafeArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.small, groundTrim: 86 / 512 },
   fieldTraining: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
   cardExchange: { src: corridorCardPrinterArt, width: 512, height: 512, scale: CORRIDOR_PROP_SCALES.medium, groundTrim: 19 / 512 },
@@ -109,6 +117,11 @@ export const CORRIDOR_BOSS_GATE_Y_OFFSET = 60;
 
 /** 各交互物独立的场景 Y 轴微调值（设计 px，正值向下）。 */
 export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
+  arkSeedVault: 0,
+  arkDewCollector: 0,
+  arkComposter: 0,
+  arkGeneConsole: 0,
+  arkSporeVent: 0,
   equipmentCache: 0,
   fieldTraining: 0,
   cardExchange: 0,
@@ -147,6 +160,7 @@ export const CORRIDOR_PROP_Y_OFFSETS: Record<CurioKind, number> = {
 };
 
 export const CORRIDOR_ART_SOURCES: readonly string[] = [
+  ...ECO_ARK_SCENERY_SOURCES,
   corridorFarArt,
   ...Object.values(CORRIDOR_NEAR_ART),
   roomPortalSpriteArt,

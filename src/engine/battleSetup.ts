@@ -89,6 +89,8 @@ export function createBattleState(
     const suffix = defCounts[defId] > 1 ? ` ${String.fromCharCode(65 + (defSeen[defId] ?? 0))}` : "";
     defSeen[defId] = (defSeen[defId] ?? 0) + 1;
     const maxHp = isBattleTest ? 1 : Math.max(1, Math.round(def.maxHp * hpMul));
+    const stats = enemyBaselineStats({ ...def.stats, maxHp });
+    stats.attack = Math.round(stats.attack * (mod?.attackMultiplier ?? 1));
     const enemy: Enemy = {
       id,
       enemyDefId: defId,
@@ -99,7 +101,7 @@ export function createBattleState(
       hpLimit: maxHp,
       maxHp,
       shield: 0,
-      stats: enemyBaselineStats({ ...def.stats, maxHp }),
+      stats,
       mods: {},
       statuses: [],
       alive: true,

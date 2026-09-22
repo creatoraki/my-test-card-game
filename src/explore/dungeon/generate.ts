@@ -110,6 +110,9 @@ export function generateDungeon(s: ExploreState): DungeonState {
   if (map.dungeonPlan) return generatePlannedDungeon(s, map.dungeonPlan);
   const roomCount = Math.max(2, map.roomCount);
   const { rooms, order } = growRooms(s, roomCount);
+  if (map.nearMapVariant) {
+    for (const room of Object.values(rooms)) room.nearMapVariant = map.nearMapVariant;
+  }
   const startId = order[0];
   markDepth(rooms, startId);
   const bossId = pickBossRoom(s, rooms, startId);

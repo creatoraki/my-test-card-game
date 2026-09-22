@@ -5,6 +5,7 @@
 //   同一张地图两者可以是不同的图, 故刻意分成两张表。
 import ruinedFloorArt from "@/assets/场景/大楼废弃楼层.png";
 import indoorGardenArt from "@/assets/场景/室内花园.png";
+import ecoArkArt from "@/assets/场景/生态方舟.png";
 import skyTrainArt from "@/assets/场景/天空列车.png";
 import glassWalkwayArt from "@/assets/场景/玻璃栈道.png";
 import cityZenithArt from "@/assets/场景/城市天顶.png";
@@ -14,6 +15,7 @@ const MAP_ART: Record<string, string> = {
   "tutorial": ruinedFloorArt,
   // 废弃楼层 = 废弃大楼内部, 与这张等距废弃楼层图最贴。
   "neon-city": ruinedFloorArt,
+  "eco-ark": ecoArkArt,
   "indoor-garden": indoorGardenArt,
   "sky-train": skyTrainArt,
   "glass-walkway": glassWalkwayArt,

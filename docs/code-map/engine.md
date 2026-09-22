@@ -4,6 +4,7 @@
 
 | 文件 | 作用 |
 | --- | --- |
+| [battleSetup.ts](../../src/engine/battleSetup.ts) | 建局时从 `EncounterModifier.hpMultiplier` 缩放敌人生命，从 `attackMultiplier` 缩放敌人攻击；难度参数来自数据层，不更改原始敌人定义。粒子过载作为开局状态另行注入。 |
 | [flee.ts](../../src/engine/flee.ts) | 回合结束的敌人离场通道，按 fleeAfterRound 记录专属逃跑演出并区别于 markDead，不会触发击杀被动或敌人奖励。 |
 | [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、我方/敌方单位、效果、状态、战斗状态、挑战运行态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。效果支持新瀑布条件、全额星辉支付、主目标生命条件、暴击回调与翻牌；`damageBonus` 支持按目标状态增伤；待选项支持手牌 BUFF 操作和抽牌堆顶选择，战斗状态记录生效费用、星辉消耗及自动出牌抑制。 |
 | [types.ts](../../src/engine/types.ts) | 引擎与 UI 共用的类型总集：卡牌、弃牌触发、我方/敌方单位、效果、状态、战斗状态、挑战运行态、`EngineOps`、`EncounterModifier`、16 项 `StatBlock`、`StatModifier` 和 `ResistMode`。卡牌带污染标记、状态与卡牌效果支持组装/共鸣/手牌操作和多事件被动；战斗状态包含自动出牌、星辉记账、瀑布标记、抽牌堆选择和手牌 BUFF 选择的可序列化运行态。 |

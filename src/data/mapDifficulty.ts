@@ -1,6 +1,5 @@
 // 地图难度规则唯一真相点。
-// 临时行为：普通、困难、深渊目前共用废弃楼层的遭遇战与事件配置。
-// 后续每档有独立战斗/事件/装备上限时，只需替换 difficultyMapConfig 的配置选择。
+// 各地图保留自己的遭遇战与交互池，难度只覆盖装备上限、物件等级和战斗倍率。
 
 import { MAPS, mapEquipRarities, type MapDef } from "./maps";
 import type { ItemRarity } from "../items/types";
@@ -10,7 +9,6 @@ import type { CurioLevel } from "./curios/types";
 export type MapDifficulty = "normal" | "hard" | "abyss";
 
 export const MAP_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal", "hard", "abyss"];
-export const DIFFICULTY_BASE_MAP_ID = "neon-city";
 const TUTORIAL_DIFFICULTY_IDS: readonly MapDifficulty[] = ["normal"];
 
 export interface MapDifficultyDef {
@@ -89,13 +87,8 @@ export function difficultyMapConfig(mapId: string, difficulty: MapDifficulty): M
   const definition = getMapDifficulty(difficulty);
   if (!mapHasDifficulty(mapId) || difficulty === "normal") return map;
 
-  const base = requireMap(DIFFICULTY_BASE_MAP_ID);
   return {
-    ...base,
-    id: map.id,
-    name: map.name,
-    desc: map.desc,
-    emoji: map.emoji,
+    ...map,
     maxEquipRarity: definition.reward.equipRarity,
     curioLevelRange: definition.curioLevelRange,
   };

@@ -18,7 +18,7 @@ export function DossierHeader({ kicker, title, enTitle }: { kicker: string; titl
           <path className={s.tagFill} d="M.75.75h86.3L78 27.25H.75Z" />
           <path className={s.tagBlock} d="M0 0h6v28H0Z" />
         </svg>
-        <span>EVENT</span>
+        <span>事件</span>
       </div>
       <p className={s.kicker}>{kicker}</p>
       <i className={s.kickerRule} aria-hidden />

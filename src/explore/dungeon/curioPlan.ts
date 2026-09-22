@@ -16,16 +16,19 @@ import type { ExploreState } from "../types";
 import type { CurioKind } from "../corridor/types";
 import type { RoomNode } from "./types";
 import { allowsCardRemoval } from "@/data/curios/growthBalance";
+import { difficultyMapConfig } from "../../data/mapDifficulty";
+import type { MapDef } from "../../data/maps";
 
 const START_ROOM_CURIOS: readonly CurioKind[] = ["temporaryRelicCache"];
 
 /** 按权重不放回抽取 count 个普通物件。 */
-function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[]): CurioKind[] {
-  const pool = (Object.keys(RANDOM_CURIO_WEIGHTS) as CurioKind[])
-    .filter(kind => !excluded.includes(kind) && (kind !== "cardArchive" || allowsCardRemoval(s)));
+function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[], map: MapDef): CurioKind[] {
+  const weights = { ...RANDOM_CURIO_WEIGHTS, ...map.curioPool?.weights };
+  const pool = (Object.keys(weights) as CurioKind[])
+    .filter(kind => (weights[kind] ?? 0) > 0 && !excluded.includes(kind) && (kind !== "cardArchive" || allowsCardRemoval(s)));
   const picks: CurioKind[] = [];
   for (let i = 0; i < count && pool.length; i += 1) {
-    const kind = rngPickWeighted(s, pool, (candidate) => RANDOM_CURIO_WEIGHTS[candidate] ?? 0);
+    const kind = rngPickWeighted(s, pool, (candidate) => weights[candidate] ?? 0);
     picks.push(kind);
     pool.splice(pool.indexOf(kind), 1);
   }
@@ -33,15 +36,15 @@ function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[]
 }
 
 /** 单间非起点房的物件清单。 */
-function planRoom(s: ExploreState, room: RoomNode, merchant: boolean): CurioKind[] {
+function planRoom(s: ExploreState, room: RoomNode, merchant: boolean, map: MapDef): CurioKind[] {
   const { curiosPerRoom, healChance } = EXPLORE_RULES.dungeon;
   const [minCurio, maxCurio] = curiosPerRoom;
   const total = minCurio + rngInt(s, maxCurio - minCurio + 1);
   const fixed: CurioKind[] = [];
-  if (room.kind === "trap") fixed.push(rngPick(s, [...TRAP_CURIO_KINDS]));
-  else if (rngFloat(s) < healChance) fixed.push(rngPick(s, [...HEAL_CURIO_KINDS]));
+  if (room.kind === "trap") fixed.push(rngPick(s, [...(map.curioPool?.trapKinds ?? TRAP_CURIO_KINDS)]));
+  else if (rngFloat(s) < healChance) fixed.push(rngPick(s, [...(map.curioPool?.healKinds ?? HEAL_CURIO_KINDS)]));
   const slots = Math.max(0, total - fixed.length - (merchant ? 1 : 0));
-  const picks = [...fixed, ...drawWeightedKinds(s, slots, fixed)].slice(0, merchant ? total - 1 : total);
+  const picks = [...fixed, ...drawWeightedKinds(s, slots, fixed, map)].slice(0, merchant ? total - 1 : total);
   // 货商排在最后, 由布局随机分配槽位。
   return merchant ? [...picks, "merchant"] : picks;
 }
@@ -54,9 +57,10 @@ export function planRoomCurios(
   merchantRooms: ReadonlySet<string>,
 ): Record<string, CurioKind[]> {
   const plan: Record<string, CurioKind[]> = {};
+  const map = difficultyMapConfig(s.mapId, s.difficulty);
   for (const id of order) {
     const room = rooms[id];
-    plan[id] = room.kind === "start" ? [...START_ROOM_CURIOS] : planRoom(s, room, merchantRooms.has(id));
+    plan[id] = room.kind === "start" ? [...START_ROOM_CURIOS] : planRoom(s, room, merchantRooms.has(id), map);
   }
   return plan;
 }

@@ -1,11 +1,13 @@
 // 战斗背景素材集中登记处(与 enemyArt.ts 同思路: 静态 import + 登记表), 按 MapDef.id 作键。
 // 数据层不碰素材(见 data/maps.ts 顶部注释), 故「地图 → 背景」的关联落在这里。
 import neonCityBg from "@/assets/战斗背景/霓虹城市.png";
+import ecoArkBg from "@/assets/战斗背景/生态方舟.png";
 import { preloadImage } from "@/ui/art/assetLoader";
 
 // 战斗背景现在只渲染静态图。.battle-bg-video 是历史遗留类名, 仍被
 // BattleScreen.module.css / animations.ts 多处引用, 故保持不动。
 const BATTLE_BG: Record<string, string> = {
+  "eco-ark": ecoArkBg,
   "neon-city": neonCityBg,
 };
 

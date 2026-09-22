@@ -36,7 +36,11 @@
 | [tradeStock.ts](../../src/data/tradeStock.ts) | 交易货架候选池：通用材料、水晶、消耗品、食品和武器按服务类型筛选；材料已无地区专属池，只有武器仍按所选地图难度筛稀有度。 |
 | [npcEvents.ts](../../src/data/npcEvents.ts) | 六个隐藏 NPC 事件注册表。每个 NPC 提供独立描述、分支故事和加权 outcome，可发放物品、经验、免费锻造/删卡、装备候选或羁绊重铸。 |
 | [squadTalents.ts](../../src/data/squadTalents.ts) | 小队徽章与天赋树的唯一数据定义：当前只保留启程、先手、守时三枚基础徽章；每个徽章由方向链（`branches`，仅供图标/文案分组）和节点图（`nodes`，`requires` 任一满足即解锁）组成，节点坐标由训练室 UI 层统一布局。`pathTo` / `costToReach` 与 `getNode` / `isUnlocked` / `canActivate` / `canRefund` / `spentPoints` / `squadModsOf` / `addSquadMods` 一起作为 UI 与 store 共用的判定入口。 |
-| [mapDifficulty.ts](../../src/data/mapDifficulty.ts) | 地图难度普通/困难/深渊、逐级解锁、奖励定义与 `difficultyMapConfig` 唯一配置入口；奖励类型由 `mapClearReward.ts` 外迁复用；当前非普通档临时复用废弃楼层配置，并按难度覆盖装备稀有度上限。 |
+| [mapDifficulty.ts](../../src/data/mapDifficulty.ts) | 地图难度普通/困难/深渊、逐级解锁、奖励定义与 `difficultyMapConfig` 唯一配置入口；各档保留本地图遭遇战、房间几何和物件池，只覆盖装备上限与交互等级。 |
+| [mapCombatBalance.ts](../../src/data/mapCombatBalance.ts) | 战斗难度倍率唯一入口；普通保持原属性，困难生命 ×1.3／攻击 ×1.2，深渊生命 ×1.6／攻击 ×1.4；新手不增强，由 runStore 与粒子过载一起传入建局。 |
+| [maps/ecoArk.ts](../../src/data/maps/ecoArk.ts) | 生态方舟十二房地图，通关废弃楼层后解锁；使用独立近景几何与专属交互池。普通档定位介于普通和困难废弃楼层之间。 |
+| [enemies/ecoArk/](../../src/data/enemies/ecoArk/) + [encounters/ecoArk.ts](../../src/data/encounters/ecoArk.ts) | 方舟五种小怪、两种精英、一名首领与十七场编成；敌人按小怪／精英／首领／共享掉落拆表，通过总注册表进入战斗和图鉴。 |
+| [curios/ecoArk.ts](../../src/data/curios/ecoArk.ts) | 休眠种子库、凝露净化器、生质循环釜、枝序档案台、失控孢子风阀；仅方舟物件池投放，复用既有奖励、失败与职业应对规则。 |
 | [mapClearReward.ts](../../src/data/mapClearReward.ts) | 无难度地图的固定通关奖励配置；教学关奖励为银币 ×1 与随机 common 装备 ×1。 |
 | [mapDailyReward.ts](../../src/data/mapDailyReward.ts) | 基于日期种子生成地图×难度通关奖励：随机通用材料、固定稀有度随机词条装备与换金物；通关奖励装备完美度 +1，无难度地图读取固定奖励表；不含水晶和地区材料。 |
 | [mapAidSupply.ts](../../src/data/mapAidSupply.ts) | 按地图 × 难度登记出击配额物资，查询顺序为难度键、地图键、默认清单；生成的 `ItemStack` 带一次性标记。 |

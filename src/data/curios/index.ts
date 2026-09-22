@@ -1,6 +1,7 @@
 import type { BattleTier, NodeEvent } from "@/explore/types";
 import type { CurioKind } from "@/explore/corridor/types";
 import { CRAFT_CURIOS } from "./craftCurios";
+import { ARK_CURIOS } from "./ecoArk";
 import { GROWTH_CURIOS } from "./growthCurios";
 import { LOOT_CURIOS } from "./lootCurios";
 import { TRAP_CURIOS } from "./trapCurios";
@@ -17,6 +18,7 @@ export * from "./rewardPools";
 export * from "./types";
 
 export const CORRIDOR_CURIOS: Record<CurioKind, CurioDef> = {
+  ...ARK_CURIOS,
   ...SCAVENGE_CURIOS,
   ...SUPPLY_CURIOS,
   ...CRAFT_CURIOS,

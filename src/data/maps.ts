@@ -7,12 +7,14 @@
 // 地图配图不在此登记 —— 数据层不碰素材; 选层预览图见 ui/mapArt.ts,
 // 战斗背景见 ui/battleBg.ts, 场景氛围见 ui/ambience.ts, 三处都按下面的 id 作键。
 
-import type { DungeonRoomPlan } from "../explore/dungeon/types";
+import type { DungeonRoomPlan, NearMapVariant } from "../explore/dungeon/types";
 import type { CurioLevel } from "./curios/types";
 import type { BattleTier, RouteBoardPlan } from "../explore/types";
 import { RARITY_ORDER, type ItemRarity } from "../items/types";
 import { TUTORIAL_DUNGEON_PLAN } from "./tutorialDungeon";
 import { TUTORIAL_ROUND_PLANS } from "./tutorialRoute";
+import type { CurioKind } from "../explore/corridor/types";
+import { ECO_ARK_MAP } from "./maps/ecoArk";
 
 export interface MapDef {
   id: string;
@@ -25,10 +27,18 @@ export interface MapDef {
   // ── 区域推进 ──
   /** 本图的房间总数 = 这张地图的庞大程度; 房间图由 explore/dungeon/generate.ts 现生成。 */
   roomCount: number;
+  /** 地区近景决定实际房间宽度、传送门与物件布局。 */
+  nearMapVariant?: NearMapVariant;
   /** 有蓝图时按蓝图生成直线房间图；roomCount 应与蓝图长度一致。 */
   dungeonPlan?: readonly DungeonRoomPlan[];
   /** 随机房间图的物件等级区间 [最低, 最高]；越深的房间越接近最高级。 */
   curioLevelRange: readonly [CurioLevel, CurioLevel];
+  /** 地区专属物件；权重与通用池合并，治疗及风险池按地区替换。 */
+  curioPool?: {
+    weights?: Readonly<Partial<Record<CurioKind, number>>>;
+    healKinds?: readonly CurioKind[];
+    trapKinds?: readonly CurioKind[];
+  };
   /** 关闭物件的交互失败(新手关用)。 */
   disableCurioFailure?: boolean;
   eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
@@ -101,6 +111,7 @@ export const MAPS: MapDef[] = [
     requiresClear: "tutorial",
     startingEnergy: 100,
   },
+  ECO_ARK_MAP,
   {
     id: "indoor-garden",
     name: "室内花园",

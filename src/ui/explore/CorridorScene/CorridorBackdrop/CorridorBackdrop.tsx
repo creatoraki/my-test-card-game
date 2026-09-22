@@ -1,16 +1,16 @@
 import { forwardRef, memo } from "react";
 import type { NearMapVariant } from "@/explore/dungeon/types";
-import { CORRIDOR_FAR_ART, CORRIDOR_NEAR_ART } from "@/ui/art/corridorArt";
+import { getCorridorFarArt, CORRIDOR_NEAR_ART } from "@/ui/art/corridorArt";
 import { CORRIDOR_LAYOUT } from "../corridorLayout";
 import s from "./CorridorBackdrop.module.css";
 
 const { farTileWidth, farTileHeight, nearMapHeight, nearTop, abyssTop } = CORRIDOR_LAYOUT;
 
 /** 远景：整屏平铺，按相机位移的一个比例慢速滑动。 */
-export const CorridorFar = forwardRef<HTMLDivElement>(function CorridorFar(_, ref) {
+export const CorridorFar = forwardRef<HTMLDivElement, { mapId?: string }>(function CorridorFar({ mapId }, ref) {
   return <div className={s.far} aria-hidden>
     <div ref={ref} className={s.farStrip} style={{
-      backgroundImage: `url(${CORRIDOR_FAR_ART})`,
+      backgroundImage: `url(${getCorridorFarArt(mapId)})`,
       backgroundSize: `${farTileWidth}px ${farTileHeight}px`,
     }} />
   </div>;

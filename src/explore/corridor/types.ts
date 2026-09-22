@@ -6,6 +6,11 @@ import type { CurioLevel } from "../../data/curios/types";
 import type { BattleTier } from "../types";
 
 export type CurioKind =
+  | "arkSeedVault"
+  | "arkDewCollector"
+  | "arkComposter"
+  | "arkGeneConsole"
+  | "arkSporeVent"
   | "equipmentCache"
   | "fieldTraining"
   | "cardExchange"

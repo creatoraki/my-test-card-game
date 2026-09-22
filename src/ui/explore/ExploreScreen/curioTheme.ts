@@ -6,6 +6,11 @@ import type { DossierThemeId } from "@/ui/explore/EventDossier";
  * 物资搜刮走默认青色; 陷阱红色; 治疗补给绿色; 采掘拾荒紫晶; 神龛暖金; 成长/改造终端电蓝。
  */
 const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
+  arkSeedVault: "supply",
+  arkComposter: "mineral",
+  arkDewCollector: "medical",
+  arkGeneConsole: "terminal",
+  arkSporeVent: "danger",
   supplyCrate: "supply",
   toolLocker: "supply",
   courierDrone: "supply",

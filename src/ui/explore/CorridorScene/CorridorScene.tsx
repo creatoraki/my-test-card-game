@@ -42,6 +42,7 @@ export function CorridorScene({ corridor, blocked, encountering, nearMapVariant,
   }, [corridor.width]);
   const movement = useCorridorMovement(corridor, blocked, onPortalTravel, onFrame);
   const rooms = useExploreStore((state) => state.session?.dungeon?.rooms);
+  const mapId = useExploreStore((state) => state.session?.mapId);
   const explorerChatter = useExplorerChatter({
     walking: movement.walking,
     nearbyKey: movement.nearbyKey,
@@ -67,7 +68,7 @@ export function CorridorScene({ corridor, blocked, encountering, nearMapVariant,
       "--corridor-floor-y": `${CORRIDOR.floorY}px`,
     } as CSSProperties}
   >
-    <CorridorFar ref={farStripRef} />
+    <CorridorFar ref={farStripRef} mapId={mapId} />
     <CorridorAbyss />
     <div className={s.haze} aria-hidden />
     <div className={s.stage}>

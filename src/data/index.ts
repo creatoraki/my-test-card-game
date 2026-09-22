@@ -78,7 +78,6 @@ export {
   type MapDef,
 } from "./maps";
 export {
-  DIFFICULTY_BASE_MAP_ID,
   MAP_DIFFICULTIES,
   MAP_DIFFICULTY_IDS,
   difficultyEquipRarities,

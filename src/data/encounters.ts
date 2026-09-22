@@ -1,4 +1,5 @@
 // 遭遇战数据 —— enemies 引用敌人 id，站位只供战斗 UI 取景。
+import { ARK_ENCOUNTERS } from "./encounters/ecoArk";
 
 export interface EnemyPlacement {
   id: string;
@@ -201,6 +202,7 @@ const TUT_T3_RELAY = placeRow(
 );
 
 export const ENCOUNTERS: EncounterDef[] = [
+  ...ARK_ENCOUNTERS,
   { id: "n-t1-scout", name: "初遇侦察", enemies: T1_SCOUT },
   { id: "n-t1-sweep", name: "双机清扫", enemies: T1_SWEEP },
   { id: "n-t1-drift", name: "浮游巡检", enemies: T1_DRIFT },
