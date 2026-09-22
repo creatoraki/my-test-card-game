@@ -56,7 +56,7 @@ import { StationBot } from "./StationBot";
 import { StationHud } from "./StationHud";
 import { StationSettingsPanel } from "./StationSettings";
 import { StationLayer } from "./StationLayer";
-import { STATION_BUILDINGS, buildingOfFacility, type StationBuilding } from "./stationBuildings";
+import { buildingOfFacility, type StationBuilding } from "./stationBuildings";
 import { guardSortie, useFormationTodo } from "../formationTodo";
 import s from "./TownScreen.module.css";
 
@@ -106,9 +106,6 @@ export function TownScreen() {
   const awakened = useTownStore((state) => state.awakened);
   const grantExp = useTownStore((state) => state.grantExp);
   const bankLoot = useTownStore((state) => state.bankLoot);
-  const terminalCredits = useTownStore((state) => state.loot);
-  // 生存天数: 只由 townStore.advanceDay 推进(出击打完回据点算一日), 也是商店换货的节拍器。
-  const day = useTownStore((state) => state.day);
   const openFormation = useRunStore((state) => state.openFormation);
   const openSortie = useRunStore((state) => state.openSortie);
   const formationTodo = useFormationTodo();
@@ -238,13 +235,6 @@ export function TownScreen() {
   const inFacility = phase === "inside" || phase === "leaving";
   const facilityId = building?.facility ?? null;
 
-  // HUD 与据点机器人、设置入口在 idle 与演出期间都要在场, 只是演出期间多挂飞出变量。
-  const hudProps = {
-    day,
-    credits: terminalCredits,
-    facilityCount: STATION_BUILDINGS.length,
-  };
-
   // 一个飞出单元的 CSS 变量。backIdx = 返回时的飞回次序(与飞出次序相反)。
   const fly = (spec: FlyOut, backIdx: number): CSSProperties =>
     phase === "leaving"
@@ -297,7 +287,6 @@ export function TownScreen() {
       {phase !== "inside" && (
         <>
           <StationHud
-            {...hudProps}
             flyingClassName={inCinema ? s["is-flying"] : undefined}
             statusStyle={inCinema ? fly(FLY_STATUS, 3) : undefined}
           />

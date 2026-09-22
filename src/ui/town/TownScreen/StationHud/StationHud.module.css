@@ -1,20 +1,46 @@
 /* 全景 HUD。⚠ 全部设计 px(1920×1080 画布); 一律不用 backdrop-filter ——
    背景被 PixelSwap 包了一层, 毛玻璃采样不到底下的图(见 TownScreen.module.css 顶部)。 */
 
-/* ---- 左上: 终端状态带 ---- */
+/* ---- 左上: 据点终端面板 ---- */
 .status {
   position: absolute;
   left: 56px;
   top: 20px;
   z-index: 3;
-  display: flex;
-  align-items: stretch;
-  min-width: 620px;
-  height: 74px;
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  align-items: center;
+  width: 800px;
+  height: 136px;
+  padding-left: 4px;
   border: 1px solid #ffffff2b;
-  background: linear-gradient(110deg, #071114e0, #0c1719cc 58%, #6fe3f51a);
-  box-shadow: inset 0 1px 0 #ffffff24, 0 12px 28px -24px #000000dd;
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  background:
+    repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 4px),
+    linear-gradient(110deg, #071114f0, #0c1719d9 52%, #6fe3f51f);
+  box-shadow: inset 0 1px 0 #ffffff24, 0 16px 34px -24px #000000ee;
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+}
+
+/* 刻度盘与右侧信息之间的竖向分隔 */
+.status::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 140px;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #8ef4ff66, transparent);
+}
+
+/* 右下角斜纹角标 */
+.status::after {
+  content: "";
+  position: absolute;
+  right: 22px;
+  bottom: 8px;
+  width: 64px;
+  height: 6px;
+  background: repeating-linear-gradient(-60deg, #8ef4ff59 0 3px, transparent 3px 8px);
 }
 
 .rim {
@@ -25,7 +51,7 @@
   overflow: hidden;
   pointer-events: none;
   filter: drop-shadow(0 0 3px #8ef4ff);
-  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -58,42 +84,86 @@
   }
 }
 
-.item {
+.main {
   position: relative;
   z-index: 2;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  justify-content: center;
-  gap: 5px;
+  gap: 8px;
   min-width: 0;
-  padding: 0 28px;
+  padding: 10px 24px 10px 20px;
 }
 
-.item + .item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 17px;
-  bottom: 17px;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent, #ffffff36, transparent);
-}
-
-.label {
-  color: var(--ui-label);
-  font-size: 18px;
+/* ---- 标题行 ---- */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 26px;
   font-family: var(--font-family);
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
-  text-shadow: var(--ui-glow);
 }
 
-.value {
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6ff0a4;
+  box-shadow: 0 0 8px #6ff0a4;
+  animation: dotBlink 2s ease-in-out infinite;
+}
+
+@keyframes dotBlink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.title {
   color: var(--ui-value);
-  font-family: var(--font-family);
   font-size: 20px;
-  font-weight: var(--ui-weight);
-  letter-spacing: var(--ui-tracking);
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-shadow: var(--ui-glow);
+}
+
+.state {
+  padding: 0 8px;
+  border: 1px solid #6ff0a466;
+  color: #9ff5c3;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.08em;
+}
+
+/* 装饰英文: 右端淡出, 后跟一截刻度线 */
+.deco {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+  color: #8ef4ff66;
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+}
+
+.deco::before {
+  content: "";
+  flex: 1;
+  height: 6px;
+  background:
+    linear-gradient(90deg, transparent, #8ef4ff4d) center / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, #8ef4ff40 0 1px, transparent 1px 12px);
+}
+
+/* ---- 资源行 / 队伍行 ---- */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.squad {
+  gap: 8px;
 }

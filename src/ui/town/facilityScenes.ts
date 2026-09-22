@@ -60,8 +60,8 @@ export interface FlyOut {
   rot: number; // deg: 一点点旋转, 免得读起来像整块平移的贴纸
 }
 
-// 左上角的信息条 → 往左上角飞。第一个走, 给整段退场起个头。
-export const FLY_STATUS: FlyOut = { delay: 0, ms: 460, dx: -820, dy: -70, rot: -4 };
+// 左上角的终端面板(800×136) → 往左上角飞。第一个走, 给整段退场起个头。
+export const FLY_STATUS: FlyOut = { delay: 0, ms: 460, dx: -900, dy: -170, rot: -4 };
 
 // 右上角的设置按钮 → 往右上飞。
 export const FLY_SETTINGS: FlyOut = { delay: 120, ms: 380, dx: 320, dy: -160, rot: 6 };

@@ -1,0 +1,86 @@
+/* 生存日刻度盘。⚠ 设计 px。 */
+
+.dial {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  height: 132px;
+  background: radial-gradient(circle at 50% 50%, #6fe3f526 0%, #6fe3f50d 46%, transparent 70%);
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.orbit {
+  stroke: #6fe3f566;
+  stroke-width: 1.2;
+  stroke-dasharray: 3 7;
+  transform-origin: 66px 66px;
+  animation: dialSpin 40s linear infinite;
+}
+
+.ticks line {
+  stroke: #c5e8df40;
+  stroke-width: 1.2;
+}
+
+.ticks line[data-major] {
+  stroke: #8ef4ffb3;
+  stroke-width: 1.8;
+}
+
+.core {
+  stroke: #ffffff1f;
+  stroke-width: 1;
+  fill: #04101399;
+}
+
+.arc {
+  stroke: #8ef4ff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px #8ef4ffaa);
+}
+
+@keyframes dialSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 装饰英文: 压在数字上方 */
+.deco {
+  position: relative;
+  margin-bottom: -2px;
+  color: #8ef4ff99;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+}
+
+.num {
+  position: relative;
+  color: #ffffff;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 14px #6fe3f5aa;
+}
+
+.label {
+  position: relative;
+  color: var(--ui-label);
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
