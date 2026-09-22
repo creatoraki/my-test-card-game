@@ -22,7 +22,7 @@ const BUILDING_CONTOURS = [
   {
     id: "airlock",
     label: "工房",
-    // y 让开左上角终端面板(底边 156)。
+    // y 让开左上角终端面板(底边 148)。
     sign: { x: 322, y: 180, anchorX: 380, anchorY: 358 },
     path: `M 359 179
       L 599 125 L 605 119 L 673 140 L 674 79
