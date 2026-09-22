@@ -75,6 +75,7 @@ import { closeShop, openShop } from "./shop";
 import { fireExploreRelic } from "./relics";
 import { relicBurdenAdapt } from "./relicModifiers";
 import { hasCorridorRewards, settleCorridorEncounter } from "./corridor/session";
+import { releasePendingAlarm } from "./corridor/alarm";
 import { changeEnergy } from "./energy";
 import { interactionCost } from "./energyCost";
 import { generateDungeon } from "./dungeon/generate";
@@ -1798,6 +1799,8 @@ export function confirmNode(s: ExploreState): boolean {
     s.phase = "resting";
   } else {
     s.phase = "atNode";
+    // 物件交互失败拉响的警报: 回到场景立即生成守卫战。
+    releasePendingAlarm(s);
   }
   return true;
 }

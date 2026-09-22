@@ -1,4 +1,4 @@
-import { chooseCurioDecision, offerToCurio } from "@/explore/curio/resolve";
+import { chooseCurioDecision, selectForCurio } from "@/explore/curio/resolve";
 import {
   buyFromMerchant,
   canBuyMerchantSlot,
@@ -24,12 +24,12 @@ function mutateCurio(fn: (draft: ExploreState) => boolean): ExploreState | null 
   return useExploreStore.getState().session;
 }
 
-export function chooseCurio(decisionId: string): ExploreState | null {
-  return mutateCurio((draft) => chooseCurioDecision(draft, decisionId));
+export function chooseCurio(decisionId: string, executorId: string): ExploreState | null {
+  return mutateCurio((draft) => chooseCurioDecision(draft, decisionId, executorId));
 }
 
-export function offerCurio(picks: OfferingPick[]): ExploreState | null {
-  return mutateCurio((draft) => offerToCurio(draft, picks));
+export function selectCurio(decisionId: string, executorId: string, picks: OfferingPick[]): ExploreState | null {
+  return mutateCurio((draft) => selectForCurio(draft, decisionId, executorId, picks));
 }
 
 export function openMerchantShelf(): ExploreState | null {

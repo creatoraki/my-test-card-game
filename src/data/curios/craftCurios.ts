@@ -1,4 +1,4 @@
-import { critterRecipe, jobDecision, offeringDecision } from "./helpers";
+import { byJob, fail, feedDecision } from "./helpers";
 import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 import { GROWTH_BALANCE } from "./growthBalance";
@@ -9,29 +9,39 @@ export const CRAFT_CURIOS = {
     role: "loot",
     verb: "改装",
     size: 205,
-    description: "改装台的工具仍然锋利，但台面上只留着两种可识别的加工协议。",
+    description: "改装台的工具仍然锋利，台面上还留着可识别的加工协议，也能把三件装备熔成一件。",
     decisions: [
       {
         id: "salvage",
         label: "取下台面零件",
-        story: "改装台的机械臂突然夹紧，行动者只能在受伤前抢下一份通用材料。",
-        risk: { chance: 0.5, effects: [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.06 }] },
+        story: "执行者赶在机械臂复位前，抢下了台面上的零件。",
         effects: [{ type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 1 }],
+        failure: fail(
+          0.4,
+          "改装台的机械臂突然夹紧，执行者的手被夹出一道血痕。",
+          [{ type: "DAMAGE_MEMBER_PERCENT", target: "actor", percent: 0.08 }],
+          byJob("swordsman", {
+            chanceDelta: -0.25,
+            bonusEffects: [{ type: "GAIN_POOL_ITEM", pool: "generalMaterial", count: 1 }],
+            note: "剑士卡住了机械臂的关节，多拆下一份零件",
+          }),
+        ),
       },
-      offeringDecision(
-        "breadModule",
-        "投放两份面包",
-        "面包的热量让改装台重新点亮，机械臂从夹层中推出一枚随机模组。",
-        critterRecipe("beetle", 2).filter((recipe) => recipe[0].match.itemIds?.[0] === "bread"),
+      feedDecision(
+        "feedBeetle",
+        "喂给工具槽里的甲虫",
+        "甲虫吃饱后钻进夹层，把一枚随机模组推了出来。",
+        "beetle",
+        2,
         [{ type: "GAIN_POOL_ITEM", pool: "module", count: 1 }],
       ),
-      offeringDecision(
-        "fuseEquipment",
-        "投放三件装备",
-        "三件装备被依次锁进改装台，熔炉开始把它们压缩成一件更高阶的装备。",
-        [[{ match: { category: "equipment" }, count: 3 }]],
-        [{ type: "FUSE_EQUIPMENT" }],
-      ),
+      {
+        id: "fuseEquipment",
+        label: "选择三件装备熔合",
+        story: "三件装备被依次锁进改装台，熔炉开始把它们压缩成一件更高阶的装备。",
+        select: [[{ match: { category: "equipment" }, count: 3 }]],
+        effects: [{ type: "FUSE_EQUIPMENT" }],
+      },
     ],
   },
   cardPrinter: {
@@ -65,24 +75,25 @@ export const CRAFT_CURIOS = {
           { type: "CONSUME_ITEM", itemId: "copper-coin", count: 1 },
           { type: "ADJUST_POLLUTION", target: "party", amount: -8 },
         ],
+        failure: fail(
+          0.3,
+          "烛火忽然转成暗红，一股阴冷顺着执行者的手臂爬了上来。",
+          [{ type: "ADJUST_POLLUTION", target: "actor", amount: 12 }],
+          byJob("prophet", {
+            convert: {
+              story: "烛火变色的一刻，预言家听见了神龛背后的城市脉搏，完整地图和所有战斗与陷阱位置被同时揭示。",
+              effects: [{ type: "REVEAL_MAP", threats: true }],
+            },
+          }),
+        ),
       },
-      offeringDecision(
-        "tradeRelic",
-        "投放祝福遗物",
-        "神龛回应了遗物的光芒，远处更高阶的祝福正在向这里靠近。",
-        [[{ match: { relicPolarity: "blessing" }, count: 1 }]],
-        [{ type: "UPGRADE_RELIC" }],
-      ),
-      jobDecision(
-        "prophet",
-        "让预言家聆听神谕",
-        "预言家听见神龛背后的城市脉搏，完整地图和所有战斗位置被同时揭示。",
-        "prophet",
-        [
-          { type: "ADJUST_POLLUTION", target: "actor", amount: 20 },
-          { type: "REVEAL_MAP", threats: true },
-        ],
-      ),
+      {
+        id: "tradeRelic",
+        label: "选择祝福遗物献上",
+        story: "神龛回应了遗物的光芒，远处更高阶的祝福正在向这里靠近。",
+        select: [[{ match: { relicPolarity: "blessing" }, count: 1 }]],
+        effects: [{ type: "UPGRADE_RELIC" }],
+      },
     ],
   },
 } satisfies Partial<Record<CurioKind, CurioDef>>;

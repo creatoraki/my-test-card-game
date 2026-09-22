@@ -1,4 +1,5 @@
 import { GROWTH_BALANCE as balance } from "./growthBalance";
+import { byJob, fail, withItem } from "./helpers";
 import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
@@ -6,13 +7,35 @@ export const GROWTH_CURIOS = {
   equipmentCache: {
     name: "遗落的装备箱", role: "loot", verb: "领取", size: 210,
     description: "封条已经松开，箱内留着一件完整装备。无需投入材料即可领取，装备品质仍由当前地图决定。",
-    decisions: [{ id: "claim", label: "领取装备", story: "箱盖弹开，一件完整装备被送入待拾取框。", effects: [{ type: "GRANT_EQUIP" }] }],
+    decisions: [{
+      id: "claim", label: "领取装备", story: "箱盖弹开，一件完整装备被送入待拾取框。",
+      effects: [{ type: "GRANT_EQUIP" }],
+      failure: fail(
+        0.15,
+        "箱盖弹开的同时触发了连锁警报，守卫循声而来，装备被锁回了箱底。",
+        [{ type: "ALARM_BATTLE" }],
+        byJob("swordsman", { chanceDelta: -0.15, note: "剑士先一步割断了警报线" }),
+      ),
+    }],
   },
   fieldTraining: {
     name: "战术训练终端", role: "loot", verb: "训练", size: 210,
     description: `终端保存着可直接使用的战术记录。全队各获得 ${balance.trainingExp} 点卡组经验，并免费抽取一次角色卡牌。`,
-    decisions: [{ id: "train", label: "学习战术并免费抽卡", story: "小队共享了战术记录，终端开放了一次无污染的卡牌候选。",
-      effects: [{ type: "GAIN_EXP_PARTY", amount: balance.trainingExp }, { type: "FORGE_DRAW" }] }],
+    decisions: [{
+      id: "train", label: "学习战术并免费抽卡", story: "小队共享了战术记录，终端开放了一次无污染的卡牌候选。",
+      effects: [{ type: "GAIN_EXP_PARTY", amount: balance.trainingExp }, { type: "FORGE_DRAW" }],
+      failure: fail(
+        0.2,
+        "战术记录里混着一段被污染的影像，执行者看完后头痛欲裂，终端也随即断电。",
+        [{ type: "ADJUST_POLLUTION", target: "actor", amount: 10 }],
+        byJob("prophet", {
+          convert: {
+            story: "预言家察觉到影像里的异常帧，把它剪下来单独解读，全队从中学到了更多。",
+            effects: [{ type: "GAIN_EXP_PARTY", amount: balance.trainingExp }, { type: "FORGE_DRAW" }],
+          },
+        }),
+      ),
+    }],
   },
   cardExchange: {
     name: "卡牌置换终端", role: "service", verb: "置换", size: 210,
@@ -41,8 +64,16 @@ export const GROWTH_CURIOS = {
   relicCache: {
     name: "尘封的遗物匣", role: "loot", verb: "开启", size: 190,
     description: "匣子表面落满灰尘，封印仍在微微发光。开启后可直接获得一件随机遗物。",
-    decisions: [{ id: "open", label: "开启遗物匣", story: "封印碎裂，一件遗物从匣底浮起，被送入待拾取框。",
-      effects: [{ type: "GRANT_RANDOM_RELIC" }] }],
+    decisions: [{
+      id: "open", label: "开启遗物匣", story: "封印碎裂，一件遗物从匣底浮起，被送入待拾取框。",
+      effects: [{ type: "GRANT_RANDOM_RELIC" }],
+      failure: fail(
+        0.2,
+        "封印碎裂时的反冲灌进执行者体内，遗物的光芒也随之熄灭。",
+        [{ type: "ADJUST_POLLUTION", target: "actor", amount: 15 }],
+        withItem({ familyId: "holy-water" }, { chanceDelta: -0.2, note: "圣水浸透封印，让它安静地碎开" }),
+      ),
+    }],
   },
   cardArchive: {
     name: "卡组整理终端", role: "service", verb: "整理", size: 210,

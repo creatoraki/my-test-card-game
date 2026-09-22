@@ -4,12 +4,13 @@
 // 一切产出都由概率与权重决定, 不做配额或保底:
 // · 起始房固定: 只有临时祝福匣(一次性随机遗物);
 // · 其余房间 1-2 个物件, 货商房的货商占 1 个名额;
-// · 治疗: 每房 healChance 独立掷骰; 风险: 仅普通房, riskChance 独立掷骰, 与治疗互斥;
+// · 陷阱房: 固定 1 个陷阱物件排在最前, 其余名额照常抽取;
+// · 治疗: 非陷阱房每房 healChance 独立掷骰;
 // · 剩余名额按 RANDOM_CURIO_WEIGHTS 房内不放回加权抽取(期望推算见该表注释)。
 // ============================================================================
 
 import { rngFloat, rngInt, rngPick, rngPickWeighted } from "../../engine/rng";
-import { HEAL_CURIO_KINDS, RANDOM_CURIO_WEIGHTS, RISK_CURIO_KINDS } from "../../data/curios";
+import { HEAL_CURIO_KINDS, RANDOM_CURIO_WEIGHTS, TRAP_CURIO_KINDS } from "../../data/curios";
 import { EXPLORE_RULES } from "../rules";
 import type { ExploreState } from "../types";
 import type { CurioKind } from "../corridor/types";
@@ -33,12 +34,12 @@ function drawWeightedKinds(s: ExploreState, count: number, excluded: CurioKind[]
 
 /** 单间非起点房的物件清单。 */
 function planRoom(s: ExploreState, room: RoomNode, merchant: boolean): CurioKind[] {
-  const { curiosPerRoom, healChance, riskChance } = EXPLORE_RULES.dungeon;
+  const { curiosPerRoom, healChance } = EXPLORE_RULES.dungeon;
   const [minCurio, maxCurio] = curiosPerRoom;
   const total = minCurio + rngInt(s, maxCurio - minCurio + 1);
   const fixed: CurioKind[] = [];
-  if (rngFloat(s) < healChance) fixed.push(rngPick(s, [...HEAL_CURIO_KINDS]));
-  else if (room.kind === "normal" && rngFloat(s) < riskChance) fixed.push(rngPick(s, [...RISK_CURIO_KINDS]));
+  if (room.kind === "trap") fixed.push(rngPick(s, [...TRAP_CURIO_KINDS]));
+  else if (rngFloat(s) < healChance) fixed.push(rngPick(s, [...HEAL_CURIO_KINDS]));
   const slots = Math.max(0, total - fixed.length - (merchant ? 1 : 0));
   const picks = [...fixed, ...drawWeightedKinds(s, slots, fixed)].slice(0, merchant ? total - 1 : total);
   // 货商排在最后, 由布局随机分配槽位。

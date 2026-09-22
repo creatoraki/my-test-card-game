@@ -60,6 +60,15 @@
   --icon: #cf9fff;
 }
 
+.tile[data-tone="trap"] {
+  --edge: #ff8a3d;
+  --edge-hi: #ffd0ad;
+  --glow: #ff7a1fb0;
+  --fill-a: #4a2410;
+  --fill-b: #1d0d05;
+  --icon: #ff9a52;
+}
+
 .tile[data-tone="chest"] {
   --edge: #ffc54a;
   --edge-hi: #ffe8ad;

@@ -5,7 +5,9 @@ import type { ExploreEffect } from "../types";
 import { addPendingLoot, applyEffect } from "../session";
 import type { ExploreState } from "../types";
 import { rewardPool } from "@/data/curios/rewardPools";
-import type { ActorTarget, CurioEffect, CurioEffectContext } from "@/data/curios/types";
+import type { ActorTarget, CurioEffect, CurioEffectContext, CurioLevel } from "@/data/curios/types";
+import { CURIO_LEVEL_RULES } from "@/data/curios/levelRules";
+import { queueAlarm } from "../corridor/alarm";
 import { fuseEquipment, upgradeRelic } from "./fusion";
 import { revealDungeon } from "./reveal";
 import { grantTemporaryRelic } from "./temporaryRelic";
@@ -31,17 +33,20 @@ function damageMember(s: ExploreState, charId: string, percent: number): string 
   return `${member.name} 损失 ${Math.round(percent * 100)}% 生命`;
 }
 
+/** 按物件等级把奖励池权重向高品质档倾斜：品质档 n 的权重 × gradeBoost^n。 */
 function rollPoolItem(
   s: ExploreState,
   pool: Extract<CurioEffect, { type: "GAIN_POOL_ITEM" }>,
+  level: CurioLevel,
 ): string | null {
   const entries = rewardPool(pool.pool);
   if (!entries.length) return null;
-  const entry = rngPickWeighted(s, [...entries], (candidate) => candidate.weight);
+  const boost = CURIO_LEVEL_RULES[level].gradeBoost;
+  const entry = rngPickWeighted(s, [...entries], (candidate) => candidate.weight * boost ** candidate.grade);
   return entry.itemId;
 }
 
-function applyExploreEffect(s: ExploreState, effect: ExploreEffect, ctx: CurioEffectContext): string {
+function applyExploreEffect(s: ExploreState, effect: ExploreEffect): string {
   return applyEffect(s, effect, true);
 }
 
@@ -54,7 +59,7 @@ export function applyCurioEffect(
     case "GAIN_POOL_ITEM": {
       const made: ReturnType<typeof makeRolledItemStack>[] = [];
       for (let i = 0; i < Math.max(0, effect.count); i += 1) {
-        const itemId = rollPoolItem(s, effect);
+        const itemId = rollPoolItem(s, effect, ctx.level);
         if (itemId) made.push(makeRolledItemStack(s, itemId, 1));
       }
       if (!made.length) return "奖励池为空";
@@ -78,7 +83,7 @@ export function applyCurioEffect(
     }
     case "REVEAL_MAP":
       revealDungeon(s, effect.threats);
-      return effect.threats ? "完整地图与战斗位置已揭示" : "完整地图已揭示";
+      return effect.threats ? "完整地图与战斗、陷阱位置已揭示" : "完整地图已揭示";
     case "FUSE_EQUIPMENT":
       return fuseEquipment(s, ctx.offered);
     case "UPGRADE_RELIC":
@@ -103,7 +108,10 @@ export function applyCurioEffect(
       s.backpack = consumeItems(s.backpack, effect.itemId, amount);
       return `消耗 ${getItemDef(effect.itemId).name} ×${amount}`;
     }
+    case "ALARM_BATTLE":
+      queueAlarm(s, CURIO_LEVEL_RULES[ctx.level].alarmTier);
+      return "警报引来了守卫，结算后将立即遭遇战斗";
     default:
-      return applyExploreEffect(s, effect, ctx);
+      return applyExploreEffect(s, effect);
   }
 }

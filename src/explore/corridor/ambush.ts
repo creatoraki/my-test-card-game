@@ -1,7 +1,7 @@
 import { corridorWandererEvent } from "../../data/curios";
 import { rngFloat, rngInt } from "../../engine/rng";
 import { EXPLORE_RULES } from "../rules";
-import type { BattleTier, ExploreState } from "../types";
+import type { BattleTier, ExploreState, NodeEvent } from "../types";
 import { beginCorridorEncounter, canWalkCorridor } from "./session";
 import { corridorWalkMax, CORRIDOR } from "./types";
 
@@ -45,17 +45,20 @@ export function rollCorridorAmbush(
   if (!canWalkCorridor(s) || !s.corridor || !s.board) return "skip";
   const chance = ambushChance(energySinceBattle(s));
   if (rngFloat(s) >= chance) return "miss";
+  spawnCorridorEncounter(s, corridorWandererEvent(pickAmbushTier(s)), x, facing);
+  return "hit";
+}
 
-  const corridor = s.corridor;
-  const playerX = encounterSpot(corridor, x, facing);
+/** 在玩家面前生成一场临时遭遇战(暗雷、警报守卫共用), 并立即进入遭遇演出。 */
+export function spawnCorridorEncounter(s: ExploreState, event: NodeEvent, x: number, facing: -1 | 1): boolean {
+  if (!s.corridor || !s.board) return false;
+  const playerX = encounterSpot(s.corridor, x, facing);
   const nodeIndex = s.board.nodes.length;
-  const tier = pickAmbushTier(s);
   const id = `ambush-${s.corridor.threats.filter((threat) => threat.kind === "ambush").length}`;
   s.corridor.playerX = playerX;
   s.corridor.facing = facing;
-  s.board.nodes.push([corridorWandererEvent(tier)]);
+  s.board.nodes.push([event]);
   s.board.segments.push({ index: s.board.segments.length, bridges: [] });
   s.corridor.threats.push({ id, kind: "ambush", x: playerX, defeated: false, nodeIndex });
-  beginCorridorEncounter(s, id);
-  return "hit";
+  return beginCorridorEncounter(s, id);
 }

@@ -8,6 +8,7 @@
 // 战斗背景见 ui/battleBg.ts, 场景氛围见 ui/ambience.ts, 三处都按下面的 id 作键。
 
 import type { DungeonRoomPlan } from "../explore/dungeon/types";
+import type { CurioLevel } from "./curios/types";
 import type { BattleTier, RouteBoardPlan } from "../explore/types";
 import { RARITY_ORDER, type ItemRarity } from "../items/types";
 import { TUTORIAL_DUNGEON_PLAN } from "./tutorialDungeon";
@@ -26,6 +27,10 @@ export interface MapDef {
   roomCount: number;
   /** 有蓝图时按蓝图生成直线房间图；roomCount 应与蓝图长度一致。 */
   dungeonPlan?: readonly DungeonRoomPlan[];
+  /** 随机房间图的物件等级区间 [最低, 最高]；越深的房间越接近最高级。 */
+  curioLevelRange: readonly [CurioLevel, CurioLevel];
+  /** 关闭物件的交互失败(新手关用)。 */
+  disableCurioFailure?: boolean;
   eventPoolId: string; // 节点事件池(见 data/exploreEvents.ts)
   /** 固定轮次棋盘; 旧路由模式保留字段, 房间制不读取。 */
   roundPlans?: readonly RouteBoardPlan[];
@@ -57,6 +62,8 @@ export const MAPS: MapDef[] = [
     maxEquipRarity: "common",
     roomCount: 6,
     dungeonPlan: TUTORIAL_DUNGEON_PLAN,
+    curioLevelRange: [1, 1],
+    disableCurioFailure: true,
     eventPoolId: "tutorial",
     roundPlans: TUTORIAL_ROUND_PLANS,
     hideAfterClear: true,
@@ -81,6 +88,7 @@ export const MAPS: MapDef[] = [
     emoji: "🌆",
     maxEquipRarity: "common",
     roomCount: 12,
+    curioLevelRange: [1, 3],
     eventPoolId: "ruined-floor",
     battleEncounters: {
       t1: ["n-t1-scout", "n-t1-sweep", "n-t1-drift"],
@@ -101,6 +109,7 @@ export const MAPS: MapDef[] = [
     emoji: "🌿",
     maxEquipRarity: "common",
     roomCount: 12,
+    curioLevelRange: [1, 3],
     eventPoolId: "",
     battleEncounters: {
       t1: [],
@@ -120,6 +129,7 @@ export const MAPS: MapDef[] = [
     emoji: "🚆",
     maxEquipRarity: "common",
     roomCount: 14,
+    curioLevelRange: [1, 3],
     eventPoolId: "",
     battleEncounters: {
       t1: [],
@@ -139,6 +149,7 @@ export const MAPS: MapDef[] = [
     emoji: "🌉",
     maxEquipRarity: "common",
     roomCount: 14,
+    curioLevelRange: [1, 3],
     eventPoolId: "",
     battleEncounters: {
       t1: [],
@@ -158,6 +169,7 @@ export const MAPS: MapDef[] = [
     emoji: "🌇",
     maxEquipRarity: "common",
     roomCount: 16,
+    curioLevelRange: [1, 3],
     eventPoolId: "",
     battleEncounters: {
       t1: [],

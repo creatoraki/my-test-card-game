@@ -45,7 +45,7 @@ import {
 import { applyPendingContamination, settleFallenGear } from "./exploreAftermath";
 import {
   chooseCurio as chooseCurioAction,
-  offerCurio as offerCurioAction,
+  selectCurio as selectCurioAction,
   openMerchantShelf as openMerchantShelfAction,
   buyMerchantSlot as buyMerchantSlotAction,
 } from "./curioActions";
@@ -104,8 +104,12 @@ interface RunStore {
   beginAscent: () => void;
   finishRide: () => void;
   chooseEventOption: (index: number) => import("../explore/types").ExploreState | null;
-  chooseCurio: (decisionId: string) => import("../explore/types").ExploreState | null;
-  offerCurio: (picks: import("../explore/curio/offering").OfferingPick[]) => import("../explore/types").ExploreState | null;
+  chooseCurio: (decisionId: string, executorId: string) => import("../explore/types").ExploreState | null;
+  selectCurio: (
+    decisionId: string,
+    executorId: string,
+    picks: import("../explore/curio/offering").OfferingPick[],
+  ) => import("../explore/types").ExploreState | null;
   openMerchantShelf: () => import("../explore/types").ExploreState | null;
   buyMerchantSlot: (index: number) => boolean;
   enterEncounter: () => void; // 本轮的推进战斗已定 → 建局开打
@@ -449,8 +453,8 @@ export const useRunStore = create<RunStore>((set, get) => {
     return result;
   },
 
-  chooseCurio: (decisionId) => chooseCurioAction(decisionId),
-  offerCurio: (picks) => offerCurioAction(picks),
+  chooseCurio: (decisionId, executorId) => chooseCurioAction(decisionId, executorId),
+  selectCurio: (decisionId, executorId, picks) => selectCurioAction(decisionId, executorId, picks),
   openMerchantShelf: () => openMerchantShelfAction(),
   buyMerchantSlot: (index) => buyMerchantSlotAction(index),
 

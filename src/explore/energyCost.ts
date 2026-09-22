@@ -13,7 +13,7 @@ function activeCurioKind(s: ExploreState) {
   return id ? s.corridor?.objects.find((object) => object.id === id)?.kind : undefined;
 }
 
-/** 交互当前物件要花多少粒子: 按物件分类分档; 货商与风险房免费; freeNodes 可免除。 */
+/** 交互当前物件要花多少粒子: 按物件分类分档; 货商与陷阱免费; freeNodes 可免除。 */
 export function interactionCost(s: ExploreState): number {
   if (s.freeNodes > 0) return 0;
   const prices = EXPLORE_RULES.energyPerInteraction;

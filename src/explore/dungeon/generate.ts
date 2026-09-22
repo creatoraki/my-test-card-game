@@ -3,8 +3,9 @@
 //
 // ① 从起始房间开始随机长出一棵生成树, 直到房间数达到地图的 roomCount;
 // ② 追加少量环路边, 让路线出现取舍而不是一条死路走到底;
-// ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房;
-// ④ 物件清单由 curioPlan.ts 决定: 每房 1-2 个, 治疗与风险按每房概率投放, 其余按权重偏向物品奖励;
+// ③ BFS 算 depth, 最深的死胡同当 BOSS 房, 其余非起点房按比例投放战斗房与陷阱房;
+// ④ 物件清单由 curioPlan.ts 决定: 每房 1-2 个, 陷阱房固定一个陷阱, 治疗按每房概率投放, 其余按权重偏向物品奖励;
+//    物件等级由 curioLevel.ts 按地图等级区间与房间深度决定;
 // ⑤ 传送门按门数规则分布: 2 门左右、3 门左中右、4 门等距; BOSS 红门与可交互物避开门附近槽位。
 // ============================================================================
 
@@ -22,6 +23,8 @@ import {
 import { generatePlannedDungeon } from "./planned";
 import { growRooms } from "./growRooms";
 import { planRoomCurios } from "./curioPlan";
+import { rollCurioLevel } from "./curioLevel";
+import type { CurioLevel } from "../../data/curios/types";
 
 /** 起始房间出发的最短步数。 */
 function markDepth(rooms: Record<string, RoomNode>, startId: string): void {
@@ -57,6 +60,7 @@ function layoutRoom(
   s: ExploreState,
   room: RoomNode,
   picks: CurioKind[],
+  levelOf: () => CurioLevel,
   bossGate = false,
 ): void {
   // 先打乱方向, 避免固定方向总被分到中段, 让门的朝向只能从小地图获知。
@@ -97,6 +101,7 @@ function layoutRoom(
     kind,
     x: middle[cursor++],
     used: false,
+    level: levelOf(),
   }));
 }
 
@@ -115,6 +120,9 @@ export function generateDungeon(s: ExploreState): DungeonState {
   const plain = shuffle(s, order.filter((id) => id !== startId && id !== bossId));
   const battleCount = Math.min(plain.length, Math.max(1, Math.round(plain.length * EXPLORE_RULES.dungeon.battleRoomRatio)));
   for (let i = 0; i < battleCount; i++) rooms[plain[i]].kind = "battle";
+  // 陷阱房: 战斗房之外的剩余普通房里按比例投放, 可以为 0 间。
+  const trapCount = Math.min(plain.length - battleCount, Math.round(plain.length * EXPLORE_RULES.dungeon.trapRoomRatio));
+  for (let i = battleCount; i < battleCount + trapCount; i++) rooms[plain[i]].kind = "trap";
 
   const merchantRange = map.roomCount <= EXPLORE_RULES.dungeon.merchants.smallMapMaxRooms
     ? EXPLORE_RULES.dungeon.merchants.small
@@ -126,11 +134,13 @@ export function generateDungeon(s: ExploreState): DungeonState {
       order.filter((id) => rooms[id].kind === "normal"),
     ).slice(0, merchantCount),
   );
-  // 起始房祝福匣、货商名额与治疗/风险概率统一由 curioPlan.ts 规划。
+  // 起始房祝福匣、货商名额、陷阱与治疗概率统一由 curioPlan.ts 规划。
   const curioPlan = planRoomCurios(s, rooms, order, merchantRooms);
+  const maxDepth = Math.max(1, ...order.map((id) => rooms[id].depth));
   for (const id of order) {
     const room = rooms[id];
-    layoutRoom(s, room, curioPlan[id], room.kind === "boss");
+    const levelOf = () => rollCurioLevel(s, map.curioLevelRange, room.depth, maxDepth);
+    layoutRoom(s, room, curioPlan[id], levelOf, room.kind === "boss");
   }
   const xs = order.map((id) => rooms[id].gx);
   const ys = order.map((id) => rooms[id].gy);

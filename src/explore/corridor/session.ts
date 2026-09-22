@@ -11,7 +11,7 @@ import { corridorSlotsFor, corridorWalkMax, corridorWidthFor, CORRIDOR, type Cor
 export function buildRoomScene(s: ExploreState, room: RoomNode, fromDir: PortalDir | null): void {
   const width = corridorWidthFor(room.nearMapVariant);
   const objects = room.curios.map((curio, index) => ({
-    id: curio.id, kind: curio.kind, x: curio.x, used: curio.used, nodeIndex: index,
+    id: curio.id, kind: curio.kind, x: curio.x, used: curio.used, level: curio.level, nodeIndex: index,
   }));
   const portals: CorridorPortal[] = PORTAL_DIRS
     .filter((dir) => room.exits[dir])
@@ -134,7 +134,7 @@ export function openCorridorObject(s: ExploreState, id: string): boolean {
   return true;
 }
 
-/** 风险房: 进房立即打开第一个未处理的强制物件, 不检查距离。 */
+/** 陷阱房: 进房立即打开第一个未处理的陷阱物件, 不检查距离。 */
 export function openForcedCurio(s: ExploreState): boolean {
   if (!s.corridor || s.phase !== "atNode" || hasCorridorRewards(s)) return false;
   const object = s.corridor.objects.find((candidate) => !candidate.used && CORRIDOR_CURIOS[candidate.kind]?.forced);
@@ -153,7 +153,7 @@ export function openForcedCurio(s: ExploreState): boolean {
 export function dismissCorridorObject(s: ExploreState): boolean {
   if (!s.corridor || (s.phase !== "landed" && s.phase !== "shopping") || hasCorridorRewards(s)) return false;
   const active = s.corridor.objects.find((object) => object.id === s.corridor?.activeObjectId);
-  // 风险房物件必须做出选择; 结算完成(resolving)后走 confirmNode, 不经过这里。
+  // 陷阱物件必须做出选择; 结算完成(resolving)后走 confirmNode, 不经过这里。
   if (active && !active.used && CORRIDOR_CURIOS[active.kind]?.forced) return false;
   s.corridor.activeObjectId = null;
   s.phase = "atNode";

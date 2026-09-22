@@ -3,7 +3,7 @@ import type { DossierThemeId } from "@/ui/explore/EventDossier";
 
 /**
  * 物件事件 → 事件档案主题。
- * 物资搜刮走默认青色; 风险房红色; 治疗补给绿色; 采掘拾荒紫晶; 神龛暖金; 成长/改造终端电蓝。
+ * 物资搜刮走默认青色; 陷阱红色; 治疗补给绿色; 采掘拾荒紫晶; 神龛暖金; 成长/改造终端电蓝。
  */
 const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   supplyCrate: "supply",

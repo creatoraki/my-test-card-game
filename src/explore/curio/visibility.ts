@@ -1,6 +1,8 @@
-import { CORRIDOR_CURIOS } from "@/data/curios";
-import type { CurioDef, CurioDecision, OfferingPart } from "@/data/curios/types";
+import { CORRIDOR_CURIOS, critterFoods } from "@/data/curios";
+import type { CurioDef, CurioDecision, CurioLevel, OfferingPart } from "@/data/curios/types";
+import { countByItemId } from "@/items/inventory";
 import { matchOffering, partCanMatch } from "./offering";
+import { curioAtLevel } from "./leveling";
 import type { ExploreState } from "../types";
 import { allowsCardRemoval } from "@/data/curios/growthBalance";
 
@@ -9,24 +11,30 @@ function activeObject(s: ExploreState) {
   return id ? s.corridor?.objects.find((object) => object.id === id) : undefined;
 }
 
-function hasJob(s: ExploreState, charId: string): boolean {
-  return s.party.some((member) => member.alive && member.charId === charId);
+/** 喂养选项要用哪种食物：背包里第一种达到数量的对应食物；没有则为 null。 */
+export function feedFoodFor(s: Pick<ExploreState, "backpack">, decision: CurioDecision): string | null {
+  const feed = decision.feed;
+  if (!feed) return null;
+  return critterFoods(feed.critter).find((itemId) => countByItemId(s.backpack, itemId) >= feed.count) ?? null;
 }
 
 export function visibleDecisions(s: ExploreState, def: CurioDef): CurioDecision[] {
   return def.decisions.filter((decision) => {
     if (!allowsCardRemoval(s) && decision.effects.some(effect => effect.type === "FORGE_REMOVE")) return false;
-    if (!decision.require) return true;
-    if (decision.require.kind === "job") return hasJob(s, decision.require.charId);
-    return false;
+    if (decision.feed) return Boolean(feedFoodFor(s, decision));
+    return true;
   });
 }
 
-export function canOfferAny(s: ExploreState, def: CurioDef): boolean {
-  const stacks = s.backpack;
-  return visibleDecisions(s, def).some((decision) =>
-    decision.require?.kind === "offering" && decision.require.recipes.some((recipe) => recipeCanMatch(recipe, stacks)),
-  );
+/** 功能性选物决策(熔合装备、升级遗物)：背包里凑得齐配方才可点。 */
+export function canSelectFor(s: ExploreState, decision: CurioDecision): boolean {
+  return Boolean(decision.select?.some((recipe) => recipeCanMatch(recipe, s.backpack)));
+}
+
+/** 选物面板只列出能用于该决策配方的物品。 */
+export function selectableStacks(s: ExploreState, decision: CurioDecision): ExploreState["backpack"] {
+  const parts = decision.select?.flat() ?? [];
+  return s.backpack.filter((stack) => parts.some((part) => partCanMatch(part, stack)));
 }
 
 function recipeCanMatch(recipe: OfferingPart[], stacks: ExploreState["backpack"]): boolean {
@@ -46,7 +54,13 @@ function recipeCanMatch(recipe: OfferingPart[], stacks: ExploreState["backpack"]
   return total > 0 && walk(0, [], 0);
 }
 
+/** 当前打开的物件在其等级下的定义。 */
 export function activeCurioDef(s: ExploreState): CurioDef | null {
   const object = activeObject(s);
-  return object ? CORRIDOR_CURIOS[object.kind] ?? null : null;
+  const def = object ? CORRIDOR_CURIOS[object.kind] : undefined;
+  return object && def ? curioAtLevel(def, object.level) : null;
+}
+
+export function activeCurioLevel(s: ExploreState): CurioLevel {
+  return activeObject(s)?.level ?? 1;
 }

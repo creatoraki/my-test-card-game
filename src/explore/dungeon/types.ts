@@ -8,11 +8,11 @@
 // ============================================================================
 
 import type { CurioKind } from "../corridor/types";
-import type { MerchantShelf } from "../../data/curios/types";
+import type { CurioLevel, MerchantShelf } from "../../data/curios/types";
 import type { BattleTier } from "../types";
 
 export type PortalDir = "up" | "down" | "left" | "right";
-export type RoomKind = "start" | "normal" | "battle" | "boss";
+export type RoomKind = "start" | "normal" | "battle" | "trap" | "boss";
 export type NearMapVariant = "standard" | "alternate" | "third";
 
 export interface DungeonRoomPlan {
@@ -44,6 +44,8 @@ export interface RoomCurio {
   kind: CurioKind;
   x: number;
   used: boolean;
+  /** 物件等级(1-5)，生成时按地图区间与房间深度决定，玩家不可见。 */
+  level: CurioLevel;
   shelf?: MerchantShelf;
 }
 
@@ -83,7 +85,7 @@ export interface DungeonState {
   currentRoomId: string;
   /** 神谕揭示后，所有房间的位置都已知。 */
   layoutKnown: boolean;
-  /** 神谕揭示后，未访问房间的战斗与 BOSS 标记也可见。 */
+  /** 神谕揭示后，未访问房间的战斗、陷阱与 BOSS 标记也可见。 */
   threatsKnown: boolean;
   /** 网格包围盒, 小地图按它换算画布尺寸。 */
   bounds: { minX: number; maxX: number; minY: number; maxY: number };

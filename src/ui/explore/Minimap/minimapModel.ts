@@ -1,18 +1,18 @@
 // 小地图数据模型 —— 把房间图翻译成「画哪些格子、每格什么视觉状态、画哪些路」。
 // 纯函数, HUD 缩略图与展开大图共用; 视觉映射只对接已有数据:
-//   当前 / Boss / 精英(未清的战斗房) / 已完成 / 未探索 / 暗提示。
+//   当前 / Boss / 精英(未清的战斗房) / 陷阱(未触发的陷阱房) / 已完成 / 未探索 / 暗提示。
 // 宝箱、锁定两种视觉只存在于样式与图例中, 这里不会产出。
 
-import { isRoomExplored } from "@/explore/dungeon/session";
+import { areRoomCuriosCleared, isRoomExplored } from "@/explore/dungeon/session";
 import type { DungeonState, PortalDir, RoomNode } from "@/explore/dungeon/types";
 import type { CorridorState } from "@/explore/corridor/types";
 
 export type CellState = "visited" | "revealed" | "hinted";
 
 /** 格子的视觉色调, 与 MinimapTile.module.css 的 data-tone 一一对应。 */
-export type MapTone = "current" | "cleared" | "unknown" | "locked" | "elite" | "chest" | "boss";
+export type MapTone = "current" | "cleared" | "unknown" | "locked" | "elite" | "trap" | "chest" | "boss";
 
-export type MapIcon = "arrow" | "check" | "swords" | "question" | "lock" | "demon" | "chest" | "boss";
+export type MapIcon = "arrow" | "check" | "swords" | "question" | "lock" | "demon" | "trap" | "chest" | "boss";
 
 export interface MapCell {
   room: RoomNode;
@@ -58,6 +58,7 @@ function visualOf(room: RoomNode, state: CellState, dungeon: DungeonState): { to
   const knownThreat = dungeon.threatsKnown || room.visited;
   if (knownThreat && room.kind === "boss") return { tone: "boss", icon: "boss" };
   if (knownThreat && room.kind === "battle" && !room.threatDefeated) return { tone: "elite", icon: "demon" };
+  if (knownThreat && room.kind === "trap" && !areRoomCuriosCleared(room)) return { tone: "trap", icon: "trap" };
   if (state === "visited" && isRoomExplored(room)) {
     return { tone: "cleared", icon: room.kind === "battle" ? "swords" : "check" };
   }

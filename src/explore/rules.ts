@@ -61,7 +61,7 @@ export const EXPLORE_RULES = {
   startingEnergy: 100,
   energyMax: 100,
   // ★ 每交互 1 个事件的消耗, 按物件分类分档(见 explore/energyCost.ts interactionCost):
-  //   物品奖励最贵, 治疗次之, 服务最便宜, 货商免费; 风险房强制触发不收费。
+  //   物品奖励最贵, 治疗次之, 服务最便宜, 货商免费; 陷阱强制触发不收费。
   //   event 是旧节点事件(非房间物件)的兜底价。「隐匿通道」这类效果仍可免除这一份(见 ExploreState.freeNodes)。
   energyPerInteraction: { loot: 4, heal: 3, service: 2, merchant: 0, event: 2 },
   // 每进行 1 个战斗回合 −1。战斗结算时按 battle.round 一次性扣除(见 runStore.resolveBattle
@@ -81,12 +81,12 @@ export const EXPLORE_RULES = {
     battleRoomRatio: 0.22,
     // 生成树之外额外接通的相邻房间数比例 —— 制造回环与近路。
     loopEdgeRatio: 0.2,
-    // 每间房交互物总数下限/上限(含货商、治疗、风险)；起始房只固定一个临时祝福匣。
+    // 每间房交互物总数下限/上限(含货商、治疗、陷阱)；起始房只固定一个临时祝福匣。
     curiosPerRoom: [1, 2] as const,
     // 治疗交互: 每间非起点房独立掷骰, 命中投放 1 个。
     healChance: 0.2,
-    // 风险物件: 每间普通房独立掷骰(与治疗互斥), 进房立即触发、必须决策。
-    riskChance: 0.15,
+    // 陷阱房: 在战斗房之外的普通房中按比例投放(可为 0 间), 进房立即触发陷阱、必须指定执行者应对。
+    trapRoomRatio: 0.15,
     // 每间房最多的传送门数量(至少 1 扇, 由连通性保证)。
     maxExits: 3,
     merchants: {

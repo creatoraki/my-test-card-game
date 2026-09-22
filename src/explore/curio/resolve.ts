@@ -1,20 +1,22 @@
-import { CORRIDOR_CURIOS } from "@/data/curios";
-import type { CurioDecision, CurioEffectContext } from "@/data/curios/types";
-import { rngFloat, rngPick } from "@/engine/rng";
+import { CORRIDOR_CURIOS, difficultyMapConfig, getItemDef } from "@/data";
+import type { CurioDecision, CurioDef, CurioEffect, CurioEffectContext } from "@/data/curios/types";
+import { consumeItems } from "@/items/inventory";
+import type { ItemStack } from "@/items/types";
 import { changeEnergy } from "../energy";
 import { checkWipe, logLine } from "../session";
 import { interactionCost } from "../energyCost";
 import { areRoomCuriosCleared, currentRoom, syncRoomFromScene } from "../dungeon/session";
 import { fireExploreRelic } from "../relics";
 import type { ExploreState } from "../types";
-import type { ItemStack } from "@/items/types";
-import type { CurioKind } from "../corridor/types";
+import type { CorridorObject, CurioKind } from "../corridor/types";
 import { matchOffering, takeOfferedStacks, validOfferingPicks, type OfferingPick } from "./offering";
 import { applyCurioEffect } from "./effects";
-import { visibleDecisions } from "./visibility";
+import { activeCurioDef, feedFoodFor, visibleDecisions } from "./visibility";
 import { payServiceFood } from "./foodPayment";
+import { resolveFailure } from "./failure";
+import { scaleEffects } from "./leveling";
 
-function activeObject(s: ExploreState) {
+function activeObject(s: ExploreState): CorridorObject | undefined {
   const id = s.corridor?.activeObjectId;
   return id ? s.corridor?.objects.find((object) => object.id === id) : undefined;
 }
@@ -26,43 +28,65 @@ function historyKind(kind: CurioKind): "loot" | "heal" | "merchant" | "energy" {
   return "energy";
 }
 
-function actorFor(s: ExploreState, decision: CurioDecision): string | null {
-  const alive = s.party.filter((member) => member.alive);
-  if (!alive.length) return null;
-  const require = decision.require;
-  if (require?.kind === "job") {
-    const { charId } = require;
-    return alive.some((member) => member.charId === charId) ? charId : null;
+/** 执行者必须是存活队员。 */
+function aliveExecutor(s: ExploreState, executorId: string): string | null {
+  return s.party.some((member) => member.alive && member.charId === executorId) ? executorId : null;
+}
+
+function failureDisabled(s: ExploreState): boolean {
+  return Boolean(difficultyMapConfig(s.mapId, s.difficulty).disableCurioFailure);
+}
+
+function applyAll(s: ExploreState, effects: CurioEffect[], ctx: CurioEffectContext, notes: string[]): void {
+  for (const effect of effects) {
+    const note = applyCurioEffect(s, effect, ctx);
+    if (note) notes.push(note);
   }
-  return rngPick(s, alive).charId;
 }
 
 function executeDecision(
   s: ExploreState,
   decision: CurioDecision,
-  actorId: string,
+  executorId: string,
   offered: ItemStack[],
   visibleIndex: number,
+  preNotes: string[] = [],
 ): boolean {
   const object = activeObject(s);
-  if (!object) return false;
-  const def = CORRIDOR_CURIOS[object.kind];
-  const notes: string[] = [];
-  s.pendingStory = [decision.story];
+  const def = activeCurioDef(s);
+  if (!object || !def) return false;
+  const level = object.level;
+  const ctx: CurioEffectContext = { actorId: executorId, offered, level };
+  const outcome = resolveFailure(s, decision.failure, level, executorId, failureDisabled(s));
+  const notes = [...preNotes, ...outcome.notes];
+
+  let story = decision.story;
+  let effects: CurioEffect[];
+  if (!outcome.failed) {
+    effects = [...decision.effects, ...outcome.bonusEffects];
+  } else if (outcome.converted) {
+    story = outcome.converted.story;
+    effects = outcome.converted.effects;
+  } else {
+    story = decision.failure?.story ?? story;
+    effects = decision.failure?.effects ?? [];
+  }
+  s.pendingStory = [story];
   s.pendingNotes = [];
-  const ctx: CurioEffectContext = { actorId, offered };
-  for (const effect of decision.effects) {
-    const note = applyCurioEffect(s, effect, ctx);
-    if (note) notes.push(note);
-  }
-  if (decision.risk && rngFloat(s) < Math.max(0, Math.min(1, decision.risk.chance))) {
-    notes.push("黑盒的反应比预期更糟");
-    for (const effect of decision.risk.effects) {
-      const note = applyCurioEffect(s, effect, ctx);
-      if (note) notes.push(note);
-    }
-  }
+  applyAll(s, scaleEffects(s, effects, level), ctx, notes);
   s.pendingNotes = notes;
+  finishInteraction(s, object, def, visibleIndex, decision.label);
+  return true;
+}
+
+/** 物件耗尽后的公共收尾：写回房间、历史与日志，进入结算阶段。 */
+function finishInteraction(
+  s: ExploreState,
+  object: CorridorObject,
+  def: CurioDef,
+  choiceIndex: number,
+  choiceLabel: string,
+): void {
   object.used = true;
   syncRoomFromScene(s);
   const room = currentRoom(s);
@@ -72,22 +96,21 @@ function executeDecision(
     round: s.round,
     segment: object.nodeIndex,
     lane: 0,
-    roomLabel: s.dungeon?.rooms[s.dungeon.currentRoomId]?.label,
+    roomLabel: room?.label,
     eventId: `curio-${object.kind}`,
     eventTitle: def.name,
     eventKind: historyKind(object.kind),
-    choiceIndex: visibleIndex,
-    choiceLabel: decision.label,
-    notes,
+    choiceIndex,
+    choiceLabel,
+    notes: s.pendingNotes,
   });
-  logLine(s, `${s.dungeon?.rooms[s.dungeon.currentRoomId]?.label ?? "?"} 号房间: ${def.name} · ${decision.label}`);
-  if (checkWipe(s)) return true;
+  logLine(s, `${room?.label ?? "?"} 号房间: ${def.name} · ${choiceLabel}`);
+  if (checkWipe(s)) return;
   s.phase = "resolving";
-  return true;
 }
 
 function spendCurioInteraction(s: ExploreState): void {
-  // 风险房物件是被动触发的, 不收交互粒子。
+  // 陷阱物件是被动触发的, 不收交互粒子。
   const object = activeObject(s);
   if (object && CORRIDOR_CURIOS[object.kind]?.forced) return;
   if (s.freeNodes > 0) s.freeNodes -= 1;
@@ -96,63 +119,49 @@ function spendCurioInteraction(s: ExploreState): void {
 
 function findVisibleDecision(s: ExploreState, decisionId: string): { decision: CurioDecision; index: number } | null {
   const object = activeObject(s);
-  if (!object || object.used || s.phase !== "landed") return null;
-  const def = CORRIDOR_CURIOS[object.kind];
+  const def = activeCurioDef(s);
+  if (!object || !def || object.used || s.phase !== "landed") return null;
   const decisions = visibleDecisions(s, def);
   const index = decisions.findIndex((decision) => decision.id === decisionId);
   return index >= 0 ? { decision: decisions[index], index } : null;
 }
 
-export function chooseCurioDecision(s: ExploreState, decisionId: string): boolean {
-  const found = findVisibleDecision(s, decisionId);
-  if (!found || found.decision.require?.kind === "offering") return false;
-  const actorId = actorFor(s, found.decision);
-  if (!actorId) return false;
-  if (!payServiceFood(s, found.decision.foodCost ?? 0)) return false;
-  spendCurioInteraction(s);
-  return executeDecision(s, found.decision, actorId, [], found.index);
+/** 喂养选项：自动扣除背包里的对应食物。 */
+function payFeed(s: ExploreState, decision: CurioDecision): string | null | false {
+  if (!decision.feed) return null;
+  const food = feedFoodFor(s, decision);
+  if (!food) return false;
+  s.backpack = consumeItems(s.backpack, food, decision.feed.count);
+  return `消耗 ${getItemDef(food).name} ×${decision.feed.count}`;
 }
 
-export function offerToCurio(s: ExploreState, picks: OfferingPick[]): boolean {
-  const object = activeObject(s);
-  if (!object || object.used || s.phase !== "landed") return false;
-  const def = CORRIDOR_CURIOS[object.kind];
-  const decisions = visibleDecisions(s, def);
-  const offered = validOfferingPicks(s, picks);
-  if (!offered) return false;
-  const matchedIndex = decisions.findIndex((decision) =>
-    decision.require?.kind === "offering" && matchOffering(decision.require.recipes, offered),
-  );
-  const actorDecision = matchedIndex >= 0 ? decisions[matchedIndex] : null;
-  const actorId = actorDecision ? actorFor(s, actorDecision) : actorFor(s, decisions[0]);
+export function chooseCurioDecision(s: ExploreState, decisionId: string, executorId: string): boolean {
+  const found = findVisibleDecision(s, decisionId);
+  if (!found || found.decision.select) return false;
+  const actorId = aliveExecutor(s, executorId);
   if (!actorId) return false;
+  if ((found.decision.foodCost ?? 0) > 0 && !payServiceFood(s, found.decision.foodCost ?? 0)) return false;
+  const fed = payFeed(s, found.decision);
+  if (fed === false) return false;
+  spendCurioInteraction(s);
+  return executeDecision(s, found.decision, actorId, [], found.index, fed ? [fed] : []);
+}
+
+/** 功能性选物决策：所选物品必须完全符合配方，不符合时不结算也不扣任何东西。 */
+export function selectForCurio(
+  s: ExploreState,
+  decisionId: string,
+  executorId: string,
+  picks: OfferingPick[],
+): boolean {
+  const found = findVisibleDecision(s, decisionId);
+  const recipes = found?.decision.select;
+  if (!found || !recipes) return false;
+  const actorId = aliveExecutor(s, executorId);
+  const offered = validOfferingPicks(s, picks);
+  if (!actorId || !offered || !matchOffering(recipes, offered)) return false;
   const taken = takeOfferedStacks(s, picks);
   if (!taken.length) return false;
   spendCurioInteraction(s);
-  if (matchedIndex >= 0 && actorDecision) {
-    return executeDecision(s, actorDecision, actorId, taken, matchedIndex);
-  }
-  s.pendingStory = ["黑盒吞下了你放入的物品，却没有给出任何回应。"];
-  s.pendingNotes = ["放入的物品被吞掉，物件已经耗尽"];
-  object.used = true;
-  syncRoomFromScene(s);
-  const room = currentRoom(s);
-  if (room && areRoomCuriosCleared(room)) fireExploreRelic(s, { type: "roomCleared", roomId: room.id });
-  s.history.push({
-    slot: "node",
-    round: s.round,
-    segment: object.nodeIndex,
-    lane: 0,
-    roomLabel: s.dungeon?.rooms[s.dungeon.currentRoomId]?.label,
-    eventId: `curio-${object.kind}`,
-    eventTitle: def.name,
-    eventKind: historyKind(object.kind),
-    choiceIndex: -1,
-    choiceLabel: "放错物品",
-    notes: s.pendingNotes,
-  });
-  logLine(s, `${def.name} 吞掉了放入的物品`);
-  if (checkWipe(s)) return true;
-  s.phase = "resolving";
-  return true;
+  return executeDecision(s, found.decision, actorId, taken, found.index);
 }

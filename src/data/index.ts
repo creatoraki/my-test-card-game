@@ -236,9 +236,10 @@ export {
   CORRIDOR_CURIOS,
   HEAL_CURIO_KINDS,
   RANDOM_CURIO_WEIGHTS,
-  RISK_CURIO_KINDS,
+  TRAP_CURIO_KINDS,
   corridorGuardEvent,
   corridorWandererEvent,
+  corridorAlarmEvent,
   curioEvent,
 } from "./curios";
 export type {
@@ -246,7 +247,9 @@ export type {
   CurioDef,
   CurioDecision,
   CurioEffect,
-  CurioRequirement,
+  CurioFailure,
+  CurioLevel,
+  CurioMitigation,
   MerchantShelf,
 } from "./curios";
 export { PICNIC_RECIPES, matchPicnicRecipe, type PicnicRecipeDef } from "./picnicRecipes";

@@ -1,0 +1,94 @@
+/* 执行者选择条：放在左下信息框(内容区约 420×110)里，标题一行 + 队员按钮一行。 */
+.executor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.label {
+  color: #8b9ba1;
+  font-size: 18px;
+  line-height: 22px;
+  letter-spacing: 0.04em;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.member {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  height: 70px;
+  padding: 4px 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--k) 25%, #1a3640);
+  background: #04141bcc;
+  color: #b3c1c6;
+  cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.member:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--k) 60%, #1a3640);
+  color: #e6eef0;
+}
+
+.member.selected {
+  border-color: var(--k);
+  background: color-mix(in srgb, var(--k) 18%, #04141b);
+  color: #ffffff;
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--k) 45%, transparent);
+}
+
+.member:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.face {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #0b2a33;
+}
+
+/* 头部取景：9:16 立绘放大后把头部对到圆框中心。 */
+.member .faceImage {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 150px;
+  height: auto;
+  font-size: 26px;
+  line-height: 36px;
+  transform: translate(calc(-50% + var(--head-dx, 0px)), calc(-14px + var(--head-dy, 0px)));
+}
+
+.name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 18px;
+  line-height: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hp {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #4fe08a;
+  box-shadow: 0 0 6px #4fe08a;
+}

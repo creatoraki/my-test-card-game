@@ -2,6 +2,8 @@
 // 场景状态随远征会话保留, 战后返回原处; 房间之间的连通关系见 ../dungeon/types.ts。
 import type { NearMapVariant, PortalDir } from "../dungeon/types";
 import { NEAR_MAP_GEOMETRY } from "../dungeon/nearMapGeometry";
+import type { CurioLevel } from "../../data/curios/types";
+import type { BattleTier } from "../types";
 
 export type CurioKind =
   | "equipmentCache"
@@ -45,6 +47,7 @@ export interface CorridorObject {
   kind: CurioKind;
   x: number;
   used: boolean;
+  level: CurioLevel;
   nodeIndex: number;
 }
 
@@ -77,6 +80,8 @@ export interface CorridorState {
   encounterId: string | null;
   /** 玩家当前脚下的传送门方向; 站上去即点亮小地图, 再确认才真的传送。 */
   standingPortalDir: PortalDir | null;
+  /** 交互失败拉响的警报：结算确认后立即生成守卫战。 */
+  pendingAlarm?: BattleTier;
 }
 
 export const CORRIDOR = {

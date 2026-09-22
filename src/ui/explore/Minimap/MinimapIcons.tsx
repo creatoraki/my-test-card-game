@@ -23,6 +23,8 @@ const PATHS: Record<MapIcon, ReactElement> = {
   </g>,
   // 精英: 尖耳恶魔面具。
   demon: <path fillRule="evenodd" d="M6 8l7 10 5-3h12l5 3 7-10-2 14-4 5-2 8-5 5h-2l-1-4h-4l-1 4h-2l-5-5-2-8-4-5ZM17 22l6 3-1 3-5-2ZM31 22l-6 3 1 3 5-2Z" />,
+  // 陷阱: 警示三角 + 感叹号。
+  trap: <path fillRule="evenodd" d="M24 5 44 41H4ZM21.5 17h5l-.8 12h-3.4ZM21.5 32h5v5h-5Z" />,
   // BOSS: 上弯犄角 + 面具。
   boss: <path fillRule="evenodd" d="M8 4c-1 6 1 10 6 12l3-1h14l3 1c5-2 7-6 6-12-2 4-5 6-9 6H17c-4 0-7-2-9-6ZM13 18l4 5 1 8 5 7h2l5-7 1-8 4-5-3 1H16ZM18.5 24l4.5 2-1 3-3.5-1ZM29.5 24l-4.5 2 1 3 3.5-1Z" />,
   chest: <path fillRule="evenodd" d="M9 18c0-6 4-9 9-9h12c5 0 9 3 9 9v2H9Zm0 4h30v16H9Zm12 1v6h6v-6Zm-6-11v6h3v-6Zm15 0v6h3v-6Z" />,

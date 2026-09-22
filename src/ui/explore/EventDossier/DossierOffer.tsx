@@ -10,19 +10,25 @@ import { DossierActionGrid } from "./DossierButton";
 import { DossierBody, DossierInfoBox, DossierPhase } from "./DossierParts";
 import s from "./DossierOffer.module.css";
 
-const OFFER_LINES = ["选择背包里的物品放入。", "种类和数量完全符合条件时物件才会回应，放错的物品会被吞掉。"];
+const OFFER_LINES = ["选择背包里的物品放入。", "种类和数量完全符合条件时才能确认。"];
 
-/** 放入物品页：左栏说明与已放入区，右侧压暗插图上铺背包物品格。 */
+/** 选择物品页：左栏说明与已放入区，右侧压暗插图上铺可选物品格。 */
 export function DossierOffer({
   backpack,
   objectId,
   onSubmit,
   onBack,
+  lines = OFFER_LINES,
+  canSubmit,
 }: {
   backpack: ItemStack[];
   objectId: string;
   onSubmit: (picks: { uid: string; count: number }[]) => void;
   onBack: () => void;
+  /** 左栏说明，一句一行。 */
+  lines?: string[];
+  /** 额外校验所选物品(如必须完全符合配方)；缺省只要求至少选一件。 */
+  canSubmit?: (picks: { uid: string; count: number }[]) => boolean;
 }) {
   const [picks, setPicks] = useState<Record<string, number>>({});
   const [hovered, setHovered] = useState<{ stack: ItemStack; point: TooltipPoint } | null>(null);
@@ -33,6 +39,8 @@ export function DossierOffer({
   }, [objectId]);
 
   const selected = backpack.filter((stack) => (picks[stack.uid] ?? 0) > 0);
+  const pickList = selected.map((stack) => ({ uid: stack.uid, count: picks[stack.uid] }));
+  const ready = selected.length > 0 && (!canSubmit || canSubmit(pickList));
   const change = (stack: ItemStack, delta: number) => {
     setPicks((current) => {
       const next = Math.max(0, Math.min(stack.count, (current[stack.uid] ?? 0) + delta));
@@ -46,7 +54,7 @@ export function DossierOffer({
   return (
     <section aria-label="放入物品">
       <DossierPhase no="02" label="放入物品" />
-      <DossierBody lines={OFFER_LINES} size="short" />
+      <DossierBody lines={lines} size="short" />
       <DossierInfoBox>
         <div className={s.offered}>
           <span className={s.offeredLabel}>已放入区</span>
@@ -83,15 +91,17 @@ export function DossierOffer({
         </div>
       </div>
 
-      <p className={s.hint}>{selected.length ? "数量已锁定，放入后物品将离开背包" : "请选择至少一件物品"}</p>
+      <p className={s.hint}>{!selected.length
+        ? "请选择至少一件物品"
+        : ready ? "数量已锁定，放入后物品将离开背包" : "所选物品不符合条件"}</p>
       <DossierActionGrid actions={[
         {
           id: "submit",
           label: "放进去",
           icon: "offer",
           sfx: "confirm",
-          disabled: !selected.length,
-          onClick: () => onSubmit(selected.map((stack) => ({ uid: stack.uid, count: picks[stack.uid] }))),
+          disabled: !ready,
+          onClick: () => onSubmit(pickList),
         },
         { id: "back", label: "返回", icon: "back", sfx: "back", onClick: onBack },
       ]} />
