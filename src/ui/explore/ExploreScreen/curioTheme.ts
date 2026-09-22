@@ -14,7 +14,6 @@ const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   safe: "supply",
   vending: "supply",
   equipmentCache: "supply",
-  temporaryRelicCache: "supply",
   relicCache: "supply",
   dispatch: "supply",
   merchant: "supply",
@@ -36,6 +35,7 @@ const CURIO_THEME: Record<CurioKind, DossierThemeId> = {
   compactor: "mineral",
 
   shrine: "shrine",
+  temporaryRelicCache: "shrine",
 
   modBench: "terminal",
   cardPrinter: "terminal",
