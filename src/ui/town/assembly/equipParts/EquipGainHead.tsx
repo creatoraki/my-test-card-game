@@ -21,7 +21,7 @@ export function EquipGainHead({ def, nextDef, notice, affinityId }: Props) {
         <h3 className={s.name}>{def.name}</h3>
         <p className={s.tags}>
           <span className={cx(s.rarity, s[`r-${def.rarity}`])}>{RARITY_LABEL[def.rarity]}</span>
-          {def.slot && <span>{SLOT_LABEL[def.slot]}</span>}
+          {def.slot && <span className={s.slot}>{SLOT_LABEL[def.slot]}</span>}
           {nextDef && (
             <span className={s.step}>
               {RARITY_LABEL[def.rarity]}

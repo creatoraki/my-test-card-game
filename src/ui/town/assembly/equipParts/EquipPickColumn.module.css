@@ -41,23 +41,14 @@
   min-width: 0;
 }
 
+/* 选中时整格发光，穿戴者头像描边切到金色。 */
 .on {
+  --avatar-ring: var(--deco-gold);
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 75%, transparent));
 }
 
 .locked {
   cursor: not-allowed;
-}
-
-.owner {
-  max-width: 100%;
-  font-size: 18px;
-  line-height: 1.2;
-  color: var(--hud-ink-dim, #9b8ea9);
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .empty {

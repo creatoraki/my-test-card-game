@@ -6,7 +6,9 @@
   font-family: var(--font-family);
   font-size: 18px;
   pointer-events: none;
+  /* 场景底光：左下升阶橙、右下重铸玫红，两色在中部交汇成渐变，不随页面切换。 */
   background:
-    radial-gradient(ellipse 74% 68% at 100% 100%, color-mix(in srgb, var(--sx-fill) 12%, transparent), color-mix(in srgb, var(--sx-bg-lo) 60%, transparent) 72%),
-    linear-gradient(0deg, color-mix(in srgb, var(--sx-bg-lo) 40%, transparent), transparent 52%);
+    radial-gradient(ellipse 60% 64% at 0% 100%, color-mix(in srgb, var(--up-fill) 12%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 64% at 100% 100%, color-mix(in srgb, var(--re-fill) 12%, transparent), transparent 70%),
+    linear-gradient(0deg, color-mix(in srgb, var(--sx-bg-lo) 60%, transparent), color-mix(in srgb, var(--sx-bg-lo) 30%, transparent) 72%);
 }

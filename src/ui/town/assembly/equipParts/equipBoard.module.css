@@ -1,6 +1,6 @@
 .layout {
   display: grid;
-  grid-template-columns: 340px 2px minmax(0, 1.5fr) 2px minmax(0, 0.8fr);
+  grid-template-columns: 440px 2px minmax(0, 1fr) 2px minmax(0, 0.8fr);
   grid-template-rows: minmax(0, 1fr);
   gap: 0 20px;
   width: 100%;
@@ -20,6 +20,7 @@
     180deg,
     var(--sx-key-hot) 0%,
     color-mix(in srgb, var(--sx-key) 65%, transparent) 12%,
+    color-mix(in srgb, var(--deco-gold) 55%, transparent) 50%,
     color-mix(in srgb, var(--sx-key) 65%, transparent) 88%,
     var(--sx-key-hot) 100%
   );

@@ -51,8 +51,6 @@ export function ReforgeBoard({
         selectedKey={selectedKey}
         onSelect={onSelect}
         disabled={Boolean(pending)}
-        onShowTooltip={onShowTooltip}
-        onHideTooltip={onHideTooltip}
       />
       <span className={s.divider} aria-hidden />
       <EquipForgeColumn

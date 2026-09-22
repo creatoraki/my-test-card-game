@@ -86,6 +86,7 @@ export function EquipGainColumn({
           disabled={!canUpgrade}
           label="升阶"
           ariaLabel="升阶选中的装备"
+          confirmLabel="再次点击确认升阶"
           onClick={onUpgrade}
         />
       )}

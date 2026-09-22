@@ -32,6 +32,7 @@ export function AssemblyScene({ leaving = false, onBack }: Props) {
       <AssemblyNavigation page={view} onChange={setView} />
       <AssemblyWindow
         ariaLabel={shownView === "upgrade" ? "装备升阶面板" : "羁绊重铸面板"}
+        page={shownView}
         onBack={onBack}
         phase={phase}
       >

@@ -18,9 +18,9 @@ export type CryoPage = "revive" | "nutrition" | "sanctuary";
 type CryoView = CryoPage | "nutritionTech";
 
 const ENTRIES = [
-  { id: "revive", label: "复苏舱", subLabel: "REVIVE", icon: <CryoNavIcon page="revive" /> },
   { id: "nutrition", label: "疗养舱", subLabel: "RECOVERY", icon: <CryoNavIcon page="nutrition" /> },
   { id: "sanctuary", label: "圣水池", subLabel: "SANCTUARY", icon: <CryoNavIcon page="sanctuary" /> },
+  { id: "revive", label: "复苏舱", subLabel: "REVIVE", icon: <CryoNavIcon page="revive" /> },
 ] as const;
 
 const TITLES: Record<CryoView, string> = {
@@ -41,7 +41,7 @@ const PAGE_LEAVE_MS = 170;
 const PAGE_ENTER_MS = 280;
 
 export function CryoPanel({ onBack }: { onBack?: () => void }) {
-  const [view, setView] = useState<CryoView>("revive");
+  const [view, setView] = useState<CryoView>("nutrition");
   const { value: shownView, phase } = useSwapTransition(view, view, PAGE_LEAVE_MS, PAGE_ENTER_MS);
   const awakened = useTownStore((state) => state.awakened);
   const fallen = useTownStore((state) => state.fallen);

@@ -1,14 +1,32 @@
+/* 羁绊卡：以装饰紫为底色，与主题色面板区分；选中时叠加主题色描边与辉光。 */
 .card {
+  position: relative;
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 10px;
-  padding: 14px;
-  border: 1px solid color-mix(in srgb, var(--hud-body, #2f9bff) 24%, transparent);
+  padding: 14px 14px 14px 18px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--deco-violet) 30%, transparent);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--hud-body, #2f9bff) 7%, transparent);
+  background:
+    radial-gradient(ellipse 70% 90% at 100% 0%, color-mix(in srgb, var(--deco-violet) 14%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in srgb, var(--deco-violet) 8%, var(--sx-bg-hi)), var(--sx-bg-lo));
   color: var(--hud-ink, #eaf4ff);
   text-align: left;
+}
+
+/* 左侧竖向色条：紫 → 主题色。 */
+.card::before {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  content: "";
+  background: linear-gradient(180deg, var(--deco-violet), var(--sx-key));
+  pointer-events: none;
 }
 
 .interactive {
@@ -19,15 +37,25 @@
 }
 
 .interactive:hover {
-  border-color: var(--hud-body, #2f9bff);
-  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--deco-violet) 70%, transparent);
+  box-shadow: 0 6px 18px -10px color-mix(in srgb, var(--deco-violet) 70%, transparent);
+  transform: translateY(-2px);
+}
+
+.interactive:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .selected {
-  border-color: var(--hud-body, #2f9bff);
+  border-color: var(--sx-key);
   box-shadow:
-    0 0 10px color-mix(in srgb, var(--hud-glow-color, #2f9bff) 55%, transparent),
-    inset 0 0 18px color-mix(in srgb, var(--hud-body, #2f9bff) 13%, transparent);
+    0 0 14px color-mix(in srgb, var(--sx-key) 45%, transparent),
+    inset 0 0 22px color-mix(in srgb, var(--sx-key) 12%, transparent);
+}
+
+.selected::before {
+  width: 4px;
+  background: linear-gradient(180deg, var(--deco-gold), var(--sx-key));
 }
 
 .heading {
@@ -43,6 +71,7 @@
   height: 36px;
   flex: none;
   place-items: center;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--deco-violet) 55%, transparent));
 }
 
 .iconPlaceholder {
@@ -50,11 +79,13 @@
   border-radius: 50%;
   color: var(--hud-ink-dim, #9fb6cc);
   font-size: 24px;
+  filter: none;
 }
 
 .nameBlock {
   display: flex;
   min-width: 0;
+  flex: 1;
   align-items: baseline;
   gap: 8px;
 }
@@ -65,8 +96,26 @@
 }
 
 .nameBlock span {
-  color: var(--hud-ink-dim, #9fb6cc);
+  color: var(--deco-violet);
   font-size: 18px;
+}
+
+.tag {
+  flex: none;
+  padding: 1px 10px;
+  border: 1px solid color-mix(in srgb, var(--deco-ice) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--deco-ice) 10%, transparent);
+  color: var(--deco-ice);
+  font-size: 18px;
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.tagNew {
+  border-color: color-mix(in srgb, var(--deco-gold) 55%, transparent);
+  background: color-mix(in srgb, var(--deco-gold) 12%, transparent);
+  color: var(--deco-gold);
 }
 
 .desc {
@@ -84,4 +133,8 @@
   color: var(--hud-ink, #eaf4ff);
   font-size: 18px;
   line-height: 1.45;
+}
+
+.tiers li::marker {
+  color: var(--deco-gold);
 }

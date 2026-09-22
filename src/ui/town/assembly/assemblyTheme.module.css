@@ -1,18 +1,10 @@
 /* 工房独立主题：不组合商店主题类，避免入口加载顺序覆盖同名令牌。
-   AssemblyScene 用实际展示页的 data-assembly-page 切换两套配色。
+   场景层（.theme）固定使用升阶橙与重铸玫红的混合色，不随页面切换；
+   面板层（.panel）重新声明 --forge-*，升阶为熔炉橙、重铸（.reforge）为玫红。
+   派生令牌同时挂在两层上，保证面板内的 var() 以面板自身的 --forge-* 重新求值。
    所有 sx / rail / asm / hud 桥接均在此处定义，不改变公共组件默认皮肤。 */
-.theme {
-  --forge-key: #ff8738;
-  --forge-hot: #ffc18f;
-  --forge-fill: #dc621f;
-  --forge-white: #fff0e1;
-  --forge-muted: #c6aaa0;
-  --forge-dim: #977a6f;
-  --forge-deep: #512713;
-  --forge-bg-hi: #21150e;
-  --forge-bg: #140d09;
-  --forge-bg-lo: #090604;
-
+.theme,
+.panel {
   --sx-key: var(--forge-key);
   --sx-key-hot: var(--forge-hot);
   --sx-key-wash: color-mix(in srgb, var(--forge-key) 12%, transparent);
@@ -82,16 +74,79 @@
   --hud-ink-dim: var(--forge-muted);
 }
 
-/* 重铸使用玫红，不借用宿舍紫或医疗室冰蓝；升阶保留默认熔炉橙。 */
-.theme[data-assembly-page="reforge"] {
-  --forge-key: #ee57cf;
-  --forge-hot: #ffa9e9;
-  --forge-fill: #ba349d;
-  --forge-white: #fff0fb;
-  --forge-muted: #c8a7bf;
-  --forge-dim: #99758f;
-  --forge-deep: #4d153e;
-  --forge-bg-hi: #21101d;
-  --forge-bg: #140911;
-  --forge-bg-lo: #090407;
+/* 两套页面配色的源值，场景层与面板层都从这里取。 */
+.theme {
+  --up-key: #ff8738;
+  --up-hot: #ffc18f;
+  --up-fill: #dc621f;
+  --up-white: #fff0e1;
+  --up-muted: #c6aaa0;
+  --up-dim: #977a6f;
+  --up-deep: #512713;
+  --up-bg-hi: #21150e;
+  --up-bg: #140d09;
+  --up-bg-lo: #090604;
+
+  --re-key: #ee57cf;
+  --re-hot: #ffa9e9;
+  --re-fill: #ba349d;
+  --re-white: #fff0fb;
+  --re-muted: #c8a7bf;
+  --re-dim: #99758f;
+  --re-deep: #4d153e;
+  --re-bg-hi: #21101d;
+  --re-bg: #140911;
+  --re-bg-lo: #090407;
+
+  /* 场景层：橙与玫红各半混合，作为品牌、导航、侧栏等常驻元素的单色令牌。 */
+  --forge-key: color-mix(in srgb, var(--up-key), var(--re-key));
+  --forge-hot: color-mix(in srgb, var(--up-hot), var(--re-hot));
+  --forge-fill: color-mix(in srgb, var(--up-fill), var(--re-fill));
+  --forge-white: color-mix(in srgb, var(--up-white), var(--re-white));
+  --forge-muted: color-mix(in srgb, var(--up-muted), var(--re-muted));
+  --forge-dim: color-mix(in srgb, var(--up-dim), var(--re-dim));
+  --forge-deep: color-mix(in srgb, var(--up-deep), var(--re-deep));
+  --forge-bg-hi: color-mix(in srgb, var(--up-bg-hi), var(--re-bg-hi));
+  --forge-bg: color-mix(in srgb, var(--up-bg), var(--re-bg));
+  --forge-bg-lo: color-mix(in srgb, var(--up-bg-lo), var(--re-bg-lo));
+
+  /* 装饰色：两页共用、不随页面切换，打破主题单色，按语义分布到各元素。
+     金 = 数值 / 积分 / 升阶箭头；青绿 = 收益 / 材料充足；紫 = 羁绊；冰蓝 = 标签 / 说明；红 = 缺料 / 负面。 */
+  --deco-gold: #ffd36a;
+  --deco-teal: #52e3c2;
+  --deco-violet: #a58bff;
+  --deco-ice: #86c5ff;
+  --deco-red: #ff6f7d;
+
+  /* 场景层渐变：由升阶橙过渡到重铸玫红，供背景等大面积装饰使用。 */
+  --forge-gradient: linear-gradient(100deg, var(--up-key), var(--re-key));
+  --forge-gradient-fill: linear-gradient(100deg, var(--up-fill), var(--re-fill));
+}
+
+/* 面板层：升阶默认熔炉橙。 */
+.panel {
+  --forge-key: var(--up-key);
+  --forge-hot: var(--up-hot);
+  --forge-fill: var(--up-fill);
+  --forge-white: var(--up-white);
+  --forge-muted: var(--up-muted);
+  --forge-dim: var(--up-dim);
+  --forge-deep: var(--up-deep);
+  --forge-bg-hi: var(--up-bg-hi);
+  --forge-bg: var(--up-bg);
+  --forge-bg-lo: var(--up-bg-lo);
+}
+
+/* 面板层：重铸使用玫红，不借用宿舍紫或医疗室冰蓝。 */
+.panel.reforge {
+  --forge-key: var(--re-key);
+  --forge-hot: var(--re-hot);
+  --forge-fill: var(--re-fill);
+  --forge-white: var(--re-white);
+  --forge-muted: var(--re-muted);
+  --forge-dim: var(--re-dim);
+  --forge-deep: var(--re-deep);
+  --forge-bg-hi: var(--re-bg-hi);
+  --forge-bg: var(--re-bg);
+  --forge-bg-lo: var(--re-bg-lo);
 }

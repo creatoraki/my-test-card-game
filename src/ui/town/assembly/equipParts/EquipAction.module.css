@@ -1,5 +1,159 @@
+/* 工房操作按钮。
+   .action          描边层：主题色 → 金色的斜向渐变，clip-path 切出对角切角；
+   .action::before  主体层：inset 1px 露出描边，内部是主题色底辉 + 深色核心；
+   .action::after   扫光层：悬停时一道斜向高光从左扫到右；
+   .armed           待确认态：整体切到金色警示配色，底部倒计时条逐渐收缩。 */
+
 .action {
-  width: 100%;
-  margin-top: auto;
+  --cut-a: 14px;
+  --cut-b: 6px;
+  --shape: polygon(
+    var(--cut-a) 0,
+    calc(100% - var(--cut-b)) 0,
+    100% var(--cut-b),
+    100% calc(100% - var(--cut-a)),
+    calc(100% - var(--cut-a)) 100%,
+    var(--cut-b) 100%,
+    0 calc(100% - var(--cut-b)),
+    0 var(--cut-a)
+  );
+  --stroke: linear-gradient(120deg, var(--sx-key-hot), var(--sx-key) 45%, var(--deco-gold));
+  --core-top: color-mix(in srgb, var(--sx-key) 14%, var(--sx-bg-hi));
+  --core-bottom: color-mix(in srgb, var(--sx-fill) 34%, var(--sx-bg-lo));
+  --ink: var(--sx-ink);
+  --halo: color-mix(in srgb, var(--sx-key) 45%, transparent);
+
+  position: relative;
+  display: flex;
   flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 62px;
+  margin-top: auto;
+  padding: 10px 22px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--stroke);
+  clip-path: var(--shape);
+  font: inherit;
+  cursor: var(--cursor-pointer);
+  transition: filter 180ms ease, transform 120ms ease;
+}
+
+.action::before {
+  position: absolute;
+  z-index: 0;
+  inset: 1px;
+  content: "";
+  clip-path: var(--shape);
+  background:
+    linear-gradient(0deg, color-mix(in srgb, var(--sx-key) 36%, transparent), transparent 42%),
+    linear-gradient(90deg, color-mix(in srgb, var(--deco-gold) 16%, transparent), transparent 30%, transparent 70%, color-mix(in srgb, var(--deco-gold) 16%, transparent)),
+    linear-gradient(180deg, var(--core-top), var(--core-bottom));
+  transition: background 200ms ease;
+  pointer-events: none;
+}
+
+.action::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto 0 0;
+  width: 40%;
+  content: "";
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--sx-line-hot) 28%, transparent), transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  pointer-events: none;
+}
+
+.label {
+  position: relative;
+  z-index: 2;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-shadow: 0 0 12px var(--halo);
+}
+
+.action:hover:not(:disabled),
+.action:focus-visible:not(:disabled) {
+  filter: drop-shadow(0 0 16px var(--halo)) brightness(1.12);
+  transform: translateY(-2px);
+}
+
+.action:hover:not(:disabled)::after {
+  animation: sweep 720ms ease-out;
+}
+
+.action:active:not(:disabled) {
+  filter: brightness(0.94);
+  transform: translateY(0) scale(0.985);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--deco-gold);
+  outline-offset: 3px;
+}
+
+.action:disabled {
+  --stroke: linear-gradient(120deg, color-mix(in srgb, var(--sx-muted) 50%, transparent), color-mix(in srgb, var(--sx-dim) 40%, transparent));
+  --core-top: var(--sx-bg-hi);
+  --core-bottom: var(--sx-bg-lo);
+  --ink: var(--sx-dim);
+  --halo: transparent;
+  cursor: not-allowed;
+}
+
+.action:disabled::before {
+  background: linear-gradient(180deg, var(--core-top), var(--core-bottom));
+}
+
+/* 待确认：金色警示 + 呼吸辉光。 */
+.armed {
+  --stroke: linear-gradient(120deg, #fff4c8, var(--deco-gold) 45%, #ff9f43);
+  --core-top: color-mix(in srgb, var(--deco-gold) 18%, var(--sx-bg-hi));
+  --core-bottom: color-mix(in srgb, #ff9f43 30%, var(--sx-bg-lo));
+  --ink: #fff4d6;
+  --halo: color-mix(in srgb, var(--deco-gold) 60%, transparent);
+  animation: armedPulse 900ms ease-in-out infinite alternate;
+}
+
+.armed::before {
+  background:
+    linear-gradient(0deg, color-mix(in srgb, var(--deco-gold) 34%, transparent), transparent 46%),
+    linear-gradient(180deg, var(--core-top), var(--core-bottom));
+}
+
+.countdown {
+  position: absolute;
+  z-index: 2;
+  right: 18px;
+  bottom: 6px;
+  left: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ff9f43, var(--deco-gold), #fff4c8);
+  box-shadow: 0 0 8px var(--halo);
+  transform-origin: left center;
+  animation-name: drain;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  pointer-events: none;
+}
+
+@keyframes sweep {
+  from { transform: translateX(-160%) skewX(-18deg); }
+  to { transform: translateX(360%) skewX(-18deg); }
+}
+
+@keyframes armedPulse {
+  from { filter: drop-shadow(0 0 8px var(--halo)); }
+  to { filter: drop-shadow(0 0 20px var(--halo)) brightness(1.1); }
+}
+
+@keyframes drain {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }

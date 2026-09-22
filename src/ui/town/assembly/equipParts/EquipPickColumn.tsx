@@ -1,18 +1,19 @@
-// 左列：装备选择。槽位筛选 + 双列装备格。
+// 左列：装备选择。槽位筛选 + 双列装备格；已穿戴装备在右上角显示穿戴者小头像，装备格不显示悬浮详情。
 
 import { getItemDef } from "@/data";
 import type { ItemStack } from "@/items/types";
 import ItemTile from "@/ui/common/item/ItemTile";
 import ItemTabs from "@/ui/common/item/ItemTabs";
 import { matchTab, type EquipTab } from "@/ui/common/item/itemFilters";
-import type { TooltipDirection } from "@/ui/common/item/ItemTooltip";
 import { cx } from "@/ui/common/cx";
+import { EquipOwnerAvatar } from "./EquipOwnerAvatar";
 import s from "./EquipPickColumn.module.css";
 
 export interface PickEntry {
   key: string;
   stack: ItemStack;
   ownerName?: string;
+  ownerId?: string;
 }
 
 interface Props {
@@ -21,8 +22,6 @@ interface Props {
   onEquipTab: (tab: EquipTab) => void;
   selectedKey: string | null;
   onSelect: (key: string) => void;
-  onShowTooltip: (element: HTMLElement, stack: ItemStack, direction?: TooltipDirection) => void;
-  onHideTooltip: () => void;
   disabled?: boolean;
 }
 
@@ -32,8 +31,6 @@ export function EquipPickColumn({
   onEquipTab,
   selectedKey,
   onSelect,
-  onShowTooltip,
-  onHideTooltip,
   disabled = false,
 }: Props) {
   const shown = entries.filter((entry) => matchTab(entry.stack, "equipment", equipTab));
@@ -49,16 +46,7 @@ export function EquipPickColumn({
             const def = getItemDef(entry.stack.itemId);
             const on = selectedKey === entry.key;
             return (
-              <div
-                key={entry.key}
-                className={cx(s.cell, on && s.on, disabled && s.locked)}
-                onPointerEnter={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
-                onPointerLeave={onHideTooltip}
-                onFocus={(event) => onShowTooltip(event.currentTarget, entry.stack, "vertical")}
-                onBlur={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onHideTooltip();
-                }}
-              >
+              <div key={entry.key} className={cx(s.cell, on && s.on, disabled && s.locked)}>
                 <ItemTile
                   variant="compact"
                   stack={entry.stack}
@@ -68,7 +56,7 @@ export function EquipPickColumn({
                   className={s.slot}
                   aria-label={`${def.name}${entry.ownerName ? `，${entry.ownerName}已穿戴` : "，仓库"}`}
                 />
-                {entry.ownerName && <span className={s.owner}>{entry.ownerName}</span>}
+                {entry.ownerId && <EquipOwnerAvatar charId={entry.ownerId} />}
               </div>
             );
           })}

@@ -54,8 +54,6 @@ export function EquipUpgradeBoard({
         onEquipTab={onEquipTab}
         selectedKey={selectedKey}
         onSelect={onSelect}
-        onShowTooltip={onShowTooltip}
-        onHideTooltip={onHideTooltip}
       />
       <span className={s.divider} aria-hidden />
       <EquipForgeColumn

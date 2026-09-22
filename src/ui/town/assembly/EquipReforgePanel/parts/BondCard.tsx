@@ -7,9 +7,11 @@ interface Props {
   bondId?: string;
   selected?: boolean;
   onSelect?: () => void;
+  /** 候选卡角标：原羁绊 / 新羁绊。 */
+  tag?: "original" | "new";
 }
 
-export function BondCard({ bondId, selected = false, onSelect }: Props) {
+export function BondCard({ bondId, selected = false, onSelect, tag }: Props) {
   const bond = bondId ? getBondDef(bondId) : undefined;
   const content = (
     <>
@@ -23,6 +25,7 @@ export function BondCard({ bondId, selected = false, onSelect }: Props) {
           <strong>{bond?.name ?? "无羁绊"}</strong>
           {bond && <span>{bond.arcana}</span>}
         </div>
+        {tag && <em className={cx(s.tag, tag === "new" && s.tagNew)}>{tag === "new" ? "新羁绊" : "原羁绊"}</em>}
       </div>
       {bond ? (
         <>

@@ -46,11 +46,13 @@ export function ReforgeResultColumn({
         <div className={s.candidates} role="radiogroup" aria-label="羁绊候选">
           <BondCard
             bondId={affinityId}
+            tag="original"
             selected={picked === "original"}
             onSelect={() => setPicked("original")}
           />
           <BondCard
             bondId={pending.affinity}
+            tag="new"
             selected={picked === "new"}
             onSelect={() => setPicked("new")}
           />
@@ -63,6 +65,7 @@ export function ReforgeResultColumn({
         disabled={pending ? false : !canRoll}
         label={pending ? "保留选中羁绊" : "重铸"}
         ariaLabel={pending ? "保留选中羁绊" : "重铸选中装备的羁绊"}
+        confirmLabel={pending ? undefined : "再次点击确认重铸"}
         onClick={() => (pending ? onApply(picked === "new") : onRoll())}
       />
     </section>

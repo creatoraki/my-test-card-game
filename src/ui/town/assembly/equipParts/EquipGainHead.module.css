@@ -1,3 +1,4 @@
+/* 右列表头：名称 + 标签行 + 羁绊。装饰色分工：冰蓝 = 部位标签，金 = 升阶箭头，紫 = 羁绊。 */
 .head {
   display: flex;
   flex-direction: column;
@@ -18,12 +19,24 @@
   text-shadow: 0 0 12px color-mix(in srgb, var(--hud-glow-color, #ff2b86) 40%, transparent);
 }
 
+/* 名称下方的三色装饰线：主题色 → 金 → 青绿，两端淡出。 */
+.name::after {
+  display: block;
+  width: 160px;
+  height: 2px;
+  margin: 8px auto 0;
+  content: "";
+  background: linear-gradient(90deg, transparent, var(--sx-key) 20%, var(--deco-gold) 50%, var(--deco-teal) 80%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--deco-gold) 40%, transparent);
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 10px;
+  gap: 6px 10px;
   justify-content: center;
-  margin: 6px 0 0;
+  align-items: center;
+  margin: 8px 0 0;
   font-size: 18px;
   letter-spacing: 0.06em;
   color: var(--hud-ink-dim, #a896b5);
@@ -31,20 +44,29 @@
 
 .rarity {
   color: var(--rr);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--rr) 45%, transparent);
+}
+
+.slot {
+  padding: 1px 10px;
+  border: 1px solid color-mix(in srgb, var(--deco-ice) 40%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--deco-ice) 10%, transparent);
+  color: var(--deco-ice);
 }
 
 .step {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 1px 8px;
-  border: 1px solid color-mix(in srgb, var(--hud-body, #f5116f) 30%, transparent);
+  padding: 1px 10px;
+  border: 1px solid color-mix(in srgb, var(--deco-gold) 40%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--hud-body, #f5116f) 8%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sx-key) 10%, transparent), color-mix(in srgb, var(--deco-gold) 12%, transparent));
 }
 
 .arrow {
-  color: var(--hud-body, #ff86bf);
+  color: var(--deco-gold);
   font-weight: 400;
 }
 
@@ -59,15 +81,17 @@
   grid-template-columns: 26px auto 1fr;
   align-items: center;
   gap: 4px 8px;
-  padding: 8px 10px;
-  border: 1px solid color-mix(in srgb, var(--hud-body, #f5116f) 20%, transparent);
+  padding: 8px 10px 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--deco-violet) 30%, transparent);
+  border-left: 3px solid var(--deco-violet);
   border-radius: 4px;
-  background: color-mix(in srgb, var(--hud-body, #f5116f) 6%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--deco-violet) 14%, transparent), color-mix(in srgb, var(--deco-violet) 3%, transparent));
 }
 
 .bondIcon {
   width: 26px;
   height: 26px;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--deco-violet) 60%, transparent));
 }
 
 .bondName {
@@ -81,7 +105,7 @@
 
 .bondArcana {
   font-size: 18px;
-  color: var(--hud-ink-dim, #b28fb0);
+  color: var(--deco-violet);
 }
 
 .bondDesc {

@@ -65,6 +65,7 @@ export function EquipForgeColumn({
                     variant="compact"
                     stack={matStack}
                     disabled={!material.have}
+                    className={s.materialTile}
                     aria-label={`${getItemDef(material.itemId).name}，持有 ${material.have}，需要 ${material.need}`}
                   />
                   <span className={s.materialName}>{getItemDef(material.itemId).name}</span>

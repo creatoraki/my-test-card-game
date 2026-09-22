@@ -28,6 +28,7 @@ export function EquipUpgradePanel() {
       key: equipTargetKey(entry.target),
       stack: entry.stack,
       ownerName: entry.ownerName,
+      ownerId: entry.target.kind === "equipped" ? entry.target.charId : undefined,
     })),
     [characters, storage],
   );
