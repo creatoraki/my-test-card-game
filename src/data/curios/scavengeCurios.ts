@@ -1,7 +1,8 @@
 import { critterRecipe, exactItem, jobDecision, offeringDecision } from "./helpers";
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
-export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
+export const SCAVENGE_CURIOS = {
   safe: {
     name: "合金保险箱",
     role: "loot",
@@ -161,4 +162,4 @@ export const SCAVENGE_CURIOS: Record<string, CurioDef> = {
       ),
     ],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;

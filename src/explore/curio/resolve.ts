@@ -29,10 +29,10 @@ function historyKind(kind: CurioKind): "loot" | "heal" | "merchant" | "energy" {
 function actorFor(s: ExploreState, decision: CurioDecision): string | null {
   const alive = s.party.filter((member) => member.alive);
   if (!alive.length) return null;
-  if (decision.require?.kind === "job") {
-    return alive.some((member) => member.charId === decision.require?.charId)
-      ? decision.require.charId
-      : null;
+  const require = decision.require;
+  if (require?.kind === "job") {
+    const { charId } = require;
+    return alive.some((member) => member.charId === charId) ? charId : null;
   }
   return rngPick(s, alive).charId;
 }

@@ -1,7 +1,8 @@
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
 /** 新手固定蓝图专用物件；不进入普通地图的随机物件池。 */
-export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
+export const TUTORIAL_CURIOS = {
   tutorialArmory: {
     name: "训练装备柜",
     role: "loot",
@@ -74,4 +75,4 @@ export const TUTORIAL_CURIOS: Record<string, CurioDef> = {
       }],
     }],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;

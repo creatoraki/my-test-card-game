@@ -1,7 +1,8 @@
 import { critterRecipe, exactItem, jobDecision, offeringDecision } from "./helpers";
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
-export const SUPPLY_CURIOS: Record<string, CurioDef> = {
+export const SUPPLY_CURIOS = {
   medical: {
     name: "应急医疗柜",
     role: "heal",
@@ -115,4 +116,4 @@ export const SUPPLY_CURIOS: Record<string, CurioDef> = {
       ),
     ],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;

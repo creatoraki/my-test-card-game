@@ -1,4 +1,4 @@
-import type { BattleState, Enemy, StatusInstance } from "./types";
+import type { BattleState, Combatant, Enemy, StatusInstance } from "./types";
 import type { EnemyMove, MoveBiasWhen } from "../data";
 import { alliesOf, foesOf, tauntedAmong } from "./targeting";
 import { rngPick } from "./rng";
@@ -7,8 +7,8 @@ function hasStatus(status: StatusInstance, statusId: string): boolean {
   return status.id === statusId && status.stacks > 0;
 }
 
-function combatantHasStatus(enemy: Enemy, statusId: string): boolean {
-  return enemy.statuses.some((status) => hasStatus(status, statusId));
+function combatantHasStatus(combatant: Combatant, statusId: string): boolean {
+  return combatant.statuses.some((status) => hasStatus(status, statusId));
 }
 
 export function biasConditionMet(state: BattleState, enemy: Enemy, condition: MoveBiasWhen): boolean {

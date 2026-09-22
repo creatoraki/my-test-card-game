@@ -69,7 +69,7 @@ export function recycleHandPassives(state: BattleState, rec?: DiscardRecorder): 
   for (const uid of handPassiveUids(state)) {
     const card = state.cards[uid];
     if (card && (card.holdRounds ?? 0) > 0) {
-      card.holdRounds = card.holdRounds - 1;
+      card.holdRounds = (card.holdRounds ?? 0) - 1;
       continue;
     }
     if (card?.exhaust) {

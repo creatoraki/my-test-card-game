@@ -1,7 +1,8 @@
 import { GROWTH_BALANCE as balance } from "./growthBalance";
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
-export const GROWTH_CURIOS: Record<string, CurioDef> = {
+export const GROWTH_CURIOS = {
   equipmentCache: {
     name: "遗落的装备箱", role: "loot", verb: "领取", size: 210,
     description: "封条已经松开，箱内留着一件完整装备。无需投入材料即可领取，装备品质仍由当前地图决定。",
@@ -48,4 +49,4 @@ export const GROWTH_CURIOS: Record<string, CurioDef> = {
     description: "终端可删除一张卡牌，卡组不能低于最小张数。该服务仅在困难及以上探索开放。",
     decisions: [{ id: "remove", label: "选择卡牌删除", story: "终端开放了卡组整理权限。", effects: [{ type: "FORGE_REMOVE" }] }],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;

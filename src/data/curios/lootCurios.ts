@@ -1,8 +1,9 @@
 import { exactItem, jobDecision, offeringDecision } from "./helpers";
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
 /** 道具奖励类物件：以直接获取物品为主，投放或职业选项给出更好的收益。美术复用已有交互物素材。 */
-export const LOOT_CURIOS: Record<string, CurioDef> = {
+export const LOOT_CURIOS = {
   supplyCrate: {
     name: "散落的补给箱",
     role: "loot",
@@ -115,4 +116,4 @@ export const LOOT_CURIOS: Record<string, CurioDef> = {
       ),
     ],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;

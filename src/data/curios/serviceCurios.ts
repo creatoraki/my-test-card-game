@@ -1,6 +1,7 @@
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
-export const SERVICE_CURIOS: Record<string, CurioDef> = {
+export const SERVICE_CURIOS = {
   dispatch: {
     name: "安全投递柜",
     role: "service",
@@ -23,4 +24,4 @@ export const SERVICE_CURIOS: Record<string, CurioDef> = {
     persistent: true,
     decisions: [],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;

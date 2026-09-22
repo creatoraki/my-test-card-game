@@ -1,10 +1,10 @@
-import { TOWN_BOT_LINES } from "@/data";
+import { TOWN_BOT_LINES, type TownBotLineKind } from "@/data";
 import { ChatBot, useBotChatter } from "@/ui/common/ChatBot";
 import { playSfx } from "@/ui/audio";
 import s from "./StationBot.module.css";
 
 export function StationBot() {
-  const { line, say } = useBotChatter(true, {
+  const { line, say } = useBotChatter<TownBotLineKind>(true, {
     lines: TOWN_BOT_LINES,
     greet: "greet",
     idle: "idle",

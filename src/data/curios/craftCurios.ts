@@ -1,8 +1,9 @@
 import { critterRecipe, jobDecision, offeringDecision } from "./helpers";
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 import { GROWTH_BALANCE } from "./growthBalance";
 
-export const CRAFT_CURIOS: Record<string, CurioDef> = {
+export const CRAFT_CURIOS = {
   modBench: {
     name: "街边改装台",
     role: "loot",
@@ -84,4 +85,4 @@ export const CRAFT_CURIOS: Record<string, CurioDef> = {
       ),
     ],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;

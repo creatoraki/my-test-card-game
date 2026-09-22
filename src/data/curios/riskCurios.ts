@@ -1,7 +1,8 @@
+import type { CurioKind } from "@/explore/corridor/types";
 import type { CurioDef } from "./types";
 
 /** 风险房物件：进房立即触发，必须在几个轻度代价之间做出取舍。美术复用已有交互物素材。 */
-export const RISK_CURIOS: Record<string, CurioDef> = {
+export const RISK_CURIOS = {
   collapsedCeiling: {
     name: "坍塌的天花板",
     role: "risk",
@@ -98,4 +99,4 @@ export const RISK_CURIOS: Record<string, CurioDef> = {
       },
     ],
   },
-};
+} satisfies Partial<Record<CurioKind, CurioDef>>;
