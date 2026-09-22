@@ -3,7 +3,7 @@
 // ⚠⚠ 卡面主体是 button 而外壳不是: 卡面要能点(进详情), 底部动作条也要能点, 而
 //   button 里嵌 button 是非法 HTML(浏览器会把内层拆出去, 点击行为随之乱掉)。
 //   故做成「div 外壳 + 两个同级 button」。
-// ★ 卡面文字只有角色名 —— 数值一律去详情态看, 高楼型卡的体量全给立绘与上阵状态。
+// ★ 卡面文字只有编号牌与名牌(徽记 + 中英文名) —— 数值一律去详情态看, 高楼型卡的体量全给立绘与上阵状态。
 // ★ data-crew-card 挂在最外层 div 上: 回程飞行的落点靠它认领(见 formationMorph/useFormationMorph.ts)。
 //   ⚠ 不能挂在 BorderGlow 上 —— 它只认自己 props 里的那几项, 不透传任意 DOM 属性。
 //   data 属性不参与 CSS Modules 哈希, 是跨模块能命中的唯一通道。
@@ -14,14 +14,15 @@ import type { CharacterState } from "@/store/townStore";
 import { CHARACTER_CARD_GLOW, characterGlow } from "@/ui/character/characterGlow";
 import { BorderGlow } from "@/ui/common/BorderGlow";
 import { CharacterPortrait } from "@/ui/common/CharacterPortrait";
-import { HoverTooltip, useHoverTooltip } from "@/ui/common/HoverTooltip";
-import { TooltipCard } from "@/ui/common/TooltipCard";
 import { cx } from "@/ui/common/cx";
+import { CrewFrame } from "./CrewFrame";
+import { CrewNameplate } from "./CrewNameplate";
+import { CrewToggle } from "./CrewToggle";
 import s from "./CrewCard.module.css";
 
 interface Props {
   cs: CharacterState;
-  /** 网格序号: 错峰入场用。 */
+  /** 网格序号: 错峰入场与左上角编号牌用。 */
   index: number;
   onField: boolean;
   /** 来自 nutrition.occupants，只影响编队卡外观与状态提示。 */
@@ -69,7 +70,6 @@ function CrewCardView({
   const tooltipReason = resting
     ? "该队员正在疗养舱中，次日结算后自动离舱"
     : reason;
-  const { point, bind } = useHoverTooltip();
 
   // 起飞点要量的是**外壳**(整张卡的矩形), 不是被点的那颗按钮。
   const open = (event: MouseEvent<HTMLElement>) => {
@@ -98,7 +98,7 @@ function CrewCardView({
       }
       data-crew-card={cs.charId}
     >
-      {/* ★ 上阵态的表达: 常亮边缘光 + 角色色名字 + 更浓的填充(0.3 vs 0.2)。
+      {/* ★ 上阵态的表达: 常亮边缘光 + 上阵外框(CrewFrame) + 角色色名字 + 更浓的填充(0.3 vs 0.2)。
           ★ 底色必须保持半透明: BorderGlow 的 ::after 会以它作为 soft-light 混合基底,
           做成不透明会吃掉渐变原色; 卡片背后的深底由 .card 负责。
           ★ 上阵卡的常亮是**锁定**的(followPointer=false): 悬浮期间整圈照常、不塌成光锥,
@@ -124,30 +124,20 @@ function CrewCardView({
               className={s.bust}
             />
             <span className={s.scrim} aria-hidden="true" />
-            <span className={s.name}>{def.name}</span>
+            <CrewNameplate charId={def.id} name={def.name} onField={onField} />
           </button>
 
-          <span className={s["toggle-slot"]} {...bind}>
-            {resting ? (
-              <span className={s.banner}>疗养中</span>
-            ) : (
-              <button
-                className={s.toggle}
-                type="button"
-                disabled={blocked}
-                onClick={() => onToggle(cs.charId)}
-              >
-                {onField ? "下阵" : "上阵"}
-              </button>
-            )}
-            {(resting || blocked) && point && (
-              <HoverTooltip point={point}>
-                <TooltipCard title={tooltipTitle} desc={tooltipReason} />
-              </HoverTooltip>
-            )}
-          </span>
+          <CrewToggle
+            onField={onField}
+            resting={resting}
+            blocked={blocked}
+            tooltipTitle={tooltipTitle}
+            tooltipReason={tooltipReason}
+            onToggle={() => onToggle(cs.charId)}
+          />
         </div>
       </BorderGlow>
+      <CrewFrame index={index} onField={onField} />
     </div>
   );
 }

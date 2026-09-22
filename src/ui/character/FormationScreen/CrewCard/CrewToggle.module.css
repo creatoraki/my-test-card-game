@@ -1,0 +1,190 @@
+/* 编队卡上阵 / 下阵胶囊按钮。⚠ 设计 px; 颜色从 --gc-color(角色色)派生。
+   ⚠⚠ 全局 base.css 的 button 带斜切角 clip-path 与深色渐变底, 这里必须逐项清掉;
+   悬浮/按下规则用 (0,3,0) 压住全局 button 的 hover(同 CrewCard.module.css 的说明)。 */
+
+.slot {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  left: 18px;
+  z-index: 5;
+  display: block;
+}
+
+.toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  overflow: hidden;
+  border: 1.5px solid color-mix(in srgb, var(--gc-color) 62%, transparent);
+  border-radius: 999px;
+  clip-path: none;
+  background: linear-gradient(180deg, rgb(14 24 32 / 0.74), rgb(5 10 14 / 0.86));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 0 14px color-mix(in srgb, var(--gc-color) 14%, transparent);
+  color: #e8f0ee;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+/* 内描边: 一圈细线让胶囊有"双层玻璃"的厚度 */
+.toggle::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--gc-color) 22%, transparent);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+/* 顶部高光扫过一道 */
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 18%;
+  left: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.4), transparent);
+  pointer-events: none;
+}
+
+/* letter-spacing 会在末字后多留一截, 用等量左内边距把文字拉回正中 */
+.label {
+  position: relative;
+  padding-left: 0.3em;
+}
+
+.slot .toggle:hover:not(:disabled),
+.slot .toggle:focus-visible {
+  border-color: var(--gc-color);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--gc-color) 26%, #0b161c),
+    color-mix(in srgb, var(--gc-color) 12%, #05090c)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    inset 0 0 16px color-mix(in srgb, var(--gc-color) 30%, transparent),
+    0 0 16px color-mix(in srgb, var(--gc-color) 42%, transparent);
+  color: #ffffff;
+  outline: none;
+  transform: none;
+}
+
+.slot .toggle:active:not(:disabled) {
+  transform: none;
+}
+
+/* ── 上阵态: 角色色实心胶囊 ── */
+.slot .toggle.is-on {
+  border-color: var(--gc-color);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--gc-color) 30%, #061015),
+    color-mix(in srgb, var(--gc-color) 52%, #0a1a22) 50%,
+    color-mix(in srgb, var(--gc-color) 30%, #061015)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    inset 0 0 16px color-mix(in srgb, var(--gc-color) 40%, transparent),
+    0 0 18px color-mix(in srgb, var(--gc-color) 45%, transparent);
+  color: #ffffff;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--gc-color) 80%, transparent);
+}
+
+.slot .toggle.is-on:hover:not(:disabled) {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--gc-color) 38%, #061015),
+    color-mix(in srgb, var(--gc-color) 62%, #0a1a22) 50%,
+    color-mix(in srgb, var(--gc-color) 38%, #061015)
+  );
+}
+
+.toggle:disabled {
+  border-color: rgb(183 207 202 / 0.22);
+  color: #7b8a87;
+  opacity: 1;
+  box-shadow: none;
+}
+
+.toggle:disabled::before {
+  border-color: rgb(183 207 202 / 0.1);
+}
+
+/* ── 两侧箭头 ── */
+.chev {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 16px;
+  margin-top: -8px;
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px var(--gc-color));
+}
+
+.chev-left {
+  left: 18px;
+  animation: chevLeft 1.6s ease-in-out infinite;
+}
+
+.chev-right {
+  right: 18px;
+  transform: scaleX(-1);
+  animation: chevRight 1.6s ease-in-out infinite;
+}
+
+@keyframes chevLeft {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-3px);
+  }
+}
+
+@keyframes chevRight {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scaleX(-1) translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(-1) translateX(-3px);
+  }
+}
+
+/* ── 疗养中状态条 ── */
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 12px 0 calc(12px + 0.3em);
+  border: 1.5px solid rgb(129 193 237 / 0.58);
+  border-radius: 999px;
+  background: rgb(10 28 42 / 0.66);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #d8eafa;
+  font-size: 20px;
+  letter-spacing: 0.3em;
+  pointer-events: none;
+}

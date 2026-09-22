@@ -1,0 +1,137 @@
+/* 编队页背景装饰层。⚠ 设计 px, 不写 vw/vh。
+   色系跟随编队页: 深紫罗兰 #7c4dbe 为主, 冷青 #5fc8e6 点缀。 */
+
+.decor {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 全屏细扫描线: 给底图一层"屏幕玻璃"的质感 */
+.scan {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgb(255 255 255 / 0.022) 0 1px,
+    transparent 1px 4px
+  );
+}
+
+/* 斜向光带: 两道大幅倾斜的柔光, 缓慢横移 */
+.beam {
+  position: absolute;
+  top: -300px;
+  width: 260px;
+  height: 1700px;
+  transform: rotate(24deg);
+  animation: beamDrift 14s ease-in-out infinite alternate;
+}
+
+.beam[data-beam="a"] {
+  left: 420px;
+  background: linear-gradient(90deg, transparent, rgb(124 77 190 / 0.1) 40%, rgb(124 77 190 / 0.14) 50%, transparent);
+}
+
+.beam[data-beam="b"] {
+  left: 1260px;
+  width: 140px;
+  background: linear-gradient(90deg, transparent, rgb(95 200 230 / 0.07) 50%, transparent);
+  animation-duration: 18s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes beamDrift {
+  from {
+    translate: -80px 0;
+  }
+  to {
+    translate: 80px 0;
+  }
+}
+
+/* 两侧竖向警示条纹 */
+.hazard {
+  position: absolute;
+  width: 14px;
+  height: 300px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgb(124 77 190 / 0.5) 0 8px,
+    transparent 8px 16px
+  );
+  opacity: 0.7;
+}
+
+.hazard[data-side="left"] {
+  top: 250px;
+  left: 22px;
+  mask: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+}
+
+.hazard[data-side="right"] {
+  top: 540px;
+  right: 22px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgb(95 200 230 / 0.42) 0 8px,
+    transparent 8px 16px
+  );
+  mask: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+}
+
+/* 右上角通栏外侧的一组竖条: 长短不一, 像仪表刻度 */
+.bars {
+  position: absolute;
+  top: 40px;
+  right: 30px;
+  width: 44px;
+  height: 116px;
+  background:
+    linear-gradient(rgb(124 77 190 / 0.55), rgb(124 77 190 / 0.55)) 0 0 / 3px 100% no-repeat,
+    linear-gradient(rgb(124 77 190 / 0.4), rgb(124 77 190 / 0.4)) 10px 30px / 3px 86px no-repeat,
+    linear-gradient(rgb(95 200 230 / 0.45), rgb(95 200 230 / 0.45)) 20px 56px / 3px 60px no-repeat,
+    linear-gradient(rgb(124 77 190 / 0.3), rgb(124 77 190 / 0.3)) 30px 80px / 3px 36px no-repeat,
+    linear-gradient(rgb(124 77 190 / 0.22), rgb(124 77 190 / 0.22)) 40px 98px / 3px 18px no-repeat;
+}
+
+/* 底部刻度导轨: 横线 + 亮段 + 起首三道斜杠, 从返回按钮右侧一直延伸到右边缘 */
+.rail {
+  position: absolute;
+  bottom: 30px;
+  left: 300px;
+  width: 1600px;
+  height: 40px;
+  overflow: visible;
+}
+
+.rail-line {
+  stroke: rgb(170 150 220 / 0.3);
+  stroke-width: 1;
+}
+
+.rail-accent {
+  stroke: rgb(124 77 190 / 0.9);
+  stroke-width: 3;
+}
+
+.rail-slash {
+  stroke: rgb(95 200 230 / 0.6);
+  stroke-width: 2;
+}
+
+.ticks {
+  position: absolute;
+  bottom: 44px;
+  left: 560px;
+  width: 1320px;
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgb(170 150 220 / 0.32) 0 1px,
+    transparent 1px 40px
+  );
+  mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}

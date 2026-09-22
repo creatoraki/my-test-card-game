@@ -1,9 +1,8 @@
 /* 一张编队卡。276×772 的高楼型 —— 立绘竖着放才有"人站在那儿"的体量。
    ⚠ 本文件里每个 px 都是「设计 px」(1920×1080 画布内), 不要写 vw/vh。
-   ★ 窗内材质(取景窗、scrim、动作条)全部来自 character/styles/glowCard.module.css,
-     与详情态立绘共用同一套配方; 本文件只声明编队态自己的尺度、入场与飞散。
-     上阵态不挂角旗 —— 「出战」由常亮边缘光 + 角色色名字 + 动作条文字表达
-     (与 CharacterCardDemo 的演示观感一致)。
+   ★ 取景窗与 scrim 来自 character/styles/glowCard.module.css; 名牌、胶囊按钮、装饰外框
+     分别在 CrewNameplate / CrewToggle / CrewFrame 各自的 module.css 里。
+     「出战」由常亮边缘光 + 上阵外框 + 角色色名字 + 点亮的胶囊按钮共同表达。
    ★ 时长旋钮(--fm-*-ms)由 FormationScreen 从 formationMorph/morphChoreo.ts 下发,
      「减少动态效果」时那边已经把数值归零 ⇒ 这里不需要再写一份 @media 兜底。 */
 
@@ -74,12 +73,15 @@
   composes: glow-card-scrim from "../../styles/glowCard.module.css";
 }
 
-.name {
-  composes: glow-card-name from "../../styles/glowCard.module.css";
-}
-
-.card.is-on .name {
-  color: var(--gc-color);
+/* 名牌(徽记 + 中英文名)比旧版单行名字高出一截, 底部压暗再往上抬一些托住文字。 */
+.card .body .scrim {
+  background: linear-gradient(
+    to top,
+    rgb(4 11 15 / 0.92) 0%,
+    rgb(4 11 15 / 0.66) 22%,
+    rgb(4 11 15 / 0.24) 40%,
+    transparent 60%
+  );
 }
 
 .bust {
@@ -103,52 +105,6 @@
     rgb(96 164 214 / 0.22) 58%,
     rgb(65 126 176 / 0.3)
   );
-}
-
-/* ── 上阵 / 下阵动作条 ──
-   外层槽位负责定位并接收 disabled 按钮的悬浮事件(disabled 的 button 自己不派发指针事件);
-   动作条本体来自共享 kit。 */
-.toggle-slot {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  left: 16px;
-  z-index: 3;
-  display: block;
-}
-
-.toggle {
-  composes: glow-card-toggle from "../../styles/glowCard.module.css";
-}
-
-.banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 46px;
-  padding: 9px 12px;
-  border: 1px solid rgb(129 193 237 / 0.58);
-  background: rgb(10 28 42 / 0.62);
-  backdrop-filter: var(--glass-backdrop, blur(8px));
-  -webkit-backdrop-filter: var(--glass-backdrop, blur(8px));
-  color: #d8eafa;
-  font-size: var(--fm-fs-l3, 18px);
-  letter-spacing: 0.12em;
-  text-align: center;
-  pointer-events: none;
-}
-
-.toggle:disabled {
-  opacity: 0.56;
-}
-
-/* 同上: 压住全局按钮 hover, 保住共享 kit 的角色色反馈。 */
-.card .body .toggle:hover:not(:disabled),
-.card .body .toggle:focus-visible {
-  border-color: var(--gc-color);
-  background: color-mix(in srgb, var(--gc-color) 18%, #071014);
-  color: #ffffff;
-  outline: none;
 }
 
 /* ===================== 飞散 / 收拢 ===================== */

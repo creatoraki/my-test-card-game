@@ -2,7 +2,7 @@
  * 编队卡与角色详情立绘栏共用的 BorderGlow 窗内材质。
  *
  * 跨组件契约:
- * --gc-color: 角色色, 由使用方下发, 上阵态的角色色名字读取。
+ * --gc-color: 角色色, 由使用方下发。
  * --gc-focus: 立绘取景锚点, 默认 50% 6%。
  *
  * 立绘取景规则必须保持 (0,2,0): CharacterPortrait.module.css 的基础
@@ -52,58 +52,3 @@
   );
 }
 
-.glow-card-name {
-  position: absolute;
-  right: 0;
-  bottom: 70px;
-  left: 0;
-  z-index: 2;
-  padding: 0 12px;
-  color: #f5f8f4;
-  font-size: var(--fm-fs-l1, 24px);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-shadow: 0 2px 12px rgb(0 0 0 / 0.55);
-  text-align: center;
-}
-
-.glow-card-name::before {
-  content: "";
-  position: absolute;
-  top: -12px;
-  right: 34px;
-  left: 34px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgb(245 248 244 / 0.34) 22%, rgb(245 248 244 / 0.34) 78%, transparent);
-}
-
-.glow-card-toggle {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 46px;
-  padding: 9px 12px;
-  overflow: hidden;
-  border: 1px solid rgb(183 207 202 / 0.42);
-  background: rgb(7 16 20 / 0.42);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #dce8e3;
-  font-size: var(--fm-fs-l3, 18px);
-  letter-spacing: 0.12em;
-  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
-}
-
-.glow-card-toggle:hover:not(:disabled),
-.glow-card-toggle:focus-visible {
-  border-color: var(--gc-color);
-  background: color-mix(in srgb, var(--gc-color) 18%, #071014);
-  color: #ffffff;
-  outline: none;
-}
-
-.glow-card-toggle:disabled {
-  border-color: rgb(183 207 202 / 0.2);
-  color: #73827f;
-  opacity: 1;
-}

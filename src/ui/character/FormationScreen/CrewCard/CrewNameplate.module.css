@@ -1,0 +1,74 @@
+/* 编队卡名牌。⚠ 设计 px; 自底向上: 动作条(16..62) → 英文名 → 中文名 → 徽记。
+   .name 的 bottom / font-size 与 FormationScreen 的 CARD_NAME_BOTTOM / CARD_FONT 是同一个事实。 */
+
+.plate {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  color: #f5f8f4;
+}
+
+.glyph {
+  position: absolute;
+  bottom: 142px;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  color: color-mix(in srgb, var(--gc-color) 70%, #ffffff);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--gc-color) 60%, transparent));
+  opacity: 0.86;
+}
+
+.name {
+  position: absolute;
+  right: 12px;
+  bottom: 102px;
+  left: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.6);
+  white-space: nowrap;
+}
+
+/* 英文职业名: 两侧短横线收边, 呼应参考图的「— SWORDSMAN —」。 */
+.en {
+  position: absolute;
+  right: 0;
+  bottom: 74px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgb(222 234 232 / 0.72);
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  white-space: nowrap;
+}
+
+.en::before,
+.en::after {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: color-mix(in srgb, var(--gc-color) 70%, transparent);
+}
+
+.is-on .name {
+  color: var(--gc-color);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--gc-color) 55%, transparent), 0 2px 12px rgb(0 0 0 / 0.6);
+}
+
+.is-on .glyph {
+  opacity: 1;
+}
+
+.is-on .en {
+  color: color-mix(in srgb, var(--gc-color) 55%, #ffffff);
+}

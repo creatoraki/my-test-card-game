@@ -22,9 +22,12 @@ interface Props {
   color: string;
   from: Rect;
   to: Rect;
-  /** 名字字号: 卡面 21px → 详情态 44px, 与两端的实际字号对齐。 */
+  /** 名字字号: 卡面 28px → 详情态 44px, 与两端的实际字号对齐。 */
   fromFontSize: number;
   toFontSize: number;
+  /** 名字离底距离: 卡面名牌 102px → 详情态 70px(卡面名牌下方还压着英文名与动作条)。 */
+  fromNameBottom: number;
+  toNameBottom: number;
   /** 卡角圆角 16px → 详情取景窗 16px。 */
   fromRadius: number;
   toRadius: number;
@@ -51,6 +54,8 @@ export function MorphFlyer({
   to,
   fromFontSize,
   toFontSize,
+  fromNameBottom,
+  toNameBottom,
   fromRadius,
   toRadius,
   reverse,
@@ -92,7 +97,10 @@ export function MorphFlyer({
       options,
     );
     const nameAnim = nameRef.current?.animate(
-      [{ fontSize: `${fromFontSize}px` }, { fontSize: `${toFontSize}px` }],
+      [
+        { fontSize: `${fromFontSize}px`, bottom: `${fromNameBottom}px` },
+        { fontSize: `${toFontSize}px`, bottom: `${toNameBottom}px` },
+      ],
       options,
     );
     let done = false;
@@ -110,7 +118,7 @@ export function MorphFlyer({
       shellAnim.cancel();
       nameAnim?.cancel();
     };
-  }, [from, to, fromFontSize, toFontSize, fromRadius, toRadius, reverse, delay, ms]);
+  }, [from, to, fromFontSize, toFontSize, fromNameBottom, toNameBottom, fromRadius, toRadius, reverse, delay, ms]);
 
   return (
     <div
@@ -121,7 +129,7 @@ export function MorphFlyer({
     >
       <CharacterPortrait characterId={characterId} emoji={emoji} alt={name} className={s.portrait} />
       <span className={s.scrim} />
-      <span className={s.name} ref={nameRef} style={{ fontSize: `${fromFontSize}px` }}>
+      <span className={s.name} ref={nameRef} style={{ fontSize: `${fromFontSize}px`, bottom: `${fromNameBottom}px` }}>
         {name}
       </span>
     </div>

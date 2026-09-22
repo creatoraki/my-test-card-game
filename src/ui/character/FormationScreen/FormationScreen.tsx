@@ -37,6 +37,7 @@ import { useSquadTalent } from "@/ui/town/training/useSquadTalent";
 import { CrewGrid } from "./CrewGrid";
 import { SquadHud } from "./SquadHud";
 import { DetailPrewarm, useDetailPrewarm } from "./detailPrewarm";
+import { FormationDecor } from "./FormationDecor";
 import { MorphFlyer } from "./formationMorph/MorphFlyer";
 import {
   BACK_GATHER_MS,
@@ -47,12 +48,14 @@ import {
 import { useFormationMorph } from "./formationMorph/useFormationMorph";
 import s from "./FormationScreen.module.css";
 
-// 飞行层两端的字号与圆角 —— 与两侧的实际样式对齐:
-//   24px / 16px = 卡面(glowCard.module.css 的 .glow-card-name 与 CHARACTER_CARD_GLOW.borderRadius)
-//   44px / 16px = 详情态立绘取景窗(FigureStage.module.css 的 .name 与 .stage)
-const CARD_FONT = 24;
+// 飞行层两端的字号、名字离底距离与圆角 —— 与两侧的实际样式对齐:
+//   28px / 102px / 16px = 卡面(CrewCard/CrewNameplate.module.css 的 .name 与 CHARACTER_CARD_GLOW.borderRadius)
+//   44px / 70px / 16px = 详情态立绘取景窗(FigureStage.module.css 的 .name 与 .stage)
+const CARD_FONT = 28;
+const CARD_NAME_BOTTOM = 102;
 const CARD_RADIUS = 16;
 const FIGURE_FONT = 44;
+const FIGURE_NAME_BOTTOM = 70;
 const FIGURE_RADIUS = 16;
 
 const TALENT_PANEL_RECT: Record<"talent", Rect> = {
@@ -164,6 +167,8 @@ export function FormationScreen() {
       <img className={s.bg} src={FORMATION_BG_ART} alt="" draggable={false} />
       {/* 冷色暗罩: 宿舍图是深色工业空间, 压住局部高光后让队伍卡与亮玻璃 HUD 保持层次。 */}
       <div className={s.veil} />
+      {/* 背景装饰条纹: 扫描线、斜光带、警示条纹与底部导轨, 两态共用、不接收指针。 */}
+      <FormationDecor />
 
       {/* 详情态预热层: 近乎全透明, 压在卡阵之下, 玩家看不见也点不到。 */}
       {prewarmCharId && <DetailPrewarm charId={prewarmCharId} />}
@@ -216,6 +221,8 @@ export function FormationScreen() {
           to={flight.to}
           fromFontSize={flight.reverse ? FIGURE_FONT : CARD_FONT}
           toFontSize={flight.reverse ? CARD_FONT : FIGURE_FONT}
+          fromNameBottom={flight.reverse ? FIGURE_NAME_BOTTOM : CARD_NAME_BOTTOM}
+          toNameBottom={flight.reverse ? CARD_NAME_BOTTOM : FIGURE_NAME_BOTTOM}
           fromRadius={flight.reverse ? FIGURE_RADIUS : CARD_RADIUS}
           toRadius={flight.reverse ? CARD_RADIUS : FIGURE_RADIUS}
           reverse={flight.reverse}
