@@ -13,7 +13,7 @@ import {
   polarPoint,
   ringTicks,
   strataPath,
-} from "./cultivationGeometry";
+} from "@/ui/common/BuffIcon/cultivationGeometry";
 import s from "./CultivationSigil.module.css";
 
 // 「培育植物」BUFF 图标 —— 两态, 纯 SVG 现画, 不依赖任何位图。

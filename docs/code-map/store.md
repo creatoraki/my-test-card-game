@@ -1,24 +1,47 @@
 # 状态层
 
-路径：`src/store/`。Zustand 连接纯逻辑层与 React；城镇档案持久化，远征过程和远征背包不持久化。
+路径：`src/store/`。Zustand 4。store 负责包裹纯逻辑层：每次操作先 `structuredClone`，再把副本交给 engine / explore 的纯函数处理，React 拿到的始终是新对象。store 不引用 `ui/`。
+
+## 四个 store 的边界
+
+| store | 生命周期 | 作用 |
+| --- | --- | --- |
+| [townStore.ts](../../src/store/townStore.ts) | **持久化**（localStorage，键名 `town-profile-v28`，版本号 30） | 城镇档案，存放跨远征的永久资产：角色卡组、装备、经验、居民积分、仓库、编队、阵亡名单、小队天赋、医疗室、图鉴、地图进度、商店与科技。1336 行。 |
+| [runStore.ts](../../src/store/runStore.ts) | 内存 | 一次远征的流程编排：界面路由 `screen`、进出探索、建战斗、战后结算、撤离与回城。单向依赖 `townStore`。869 行。 |
+| [exploreStore.ts](../../src/store/exploreStore.ts) | 内存（出击前会备份城镇档案） | 包裹 `explore/session.ts` 的远征会话本身。⚠ `generateDone`、`beginReveal`、`revealDone`、`pickEntry`、`arrive`、`buyFromShop`、`closeShop` 属于旧节点路线玩法，UI 已不再调用。 |
+| [battleStore.ts](../../src/store/battleStore.ts) | 内存 | 包裹战斗引擎。出牌和结束回合会引出敌人行动与弃牌触发，引擎按发生顺序记为 `steps`，UI 逐步回放。 |
+| [sortieStore.ts](../../src/store/sortieStore.ts) | 内存，**刻意不持久化** | 出击准备的临时会话：选地图、装背包。刷新页面即作废，避免半截的出击状态混进存档。 |
+
+## townStore 的切片与辅助
 
 | 文件 | 作用 |
 | --- | --- |
-| [battleStore.ts](../../src/store/battleStore.ts) | 单场战斗状态包装。`play/end/wait` 前先 `structuredClone`，再调用引擎，避免 React 持有对象被原地修改；`pickPendingChoice` / `cancelPendingChoice` 同样克隆后提交待选择回收结果；`seq` 标识新战斗，供 UI 重置分镜。 |
-| [characterStats.ts](../../src/store/characterStats.ts) | 角色局外属性派生纯函数：合并装备固定/百分比修正、计算上阵羁绊计数、换算三段生命并在装备变化后平移生命上限；由 `townStore` 兼容导出，供装备养成 slice 复用。 |
-| [equipCraftSlice.ts](../../src/store/equipCraftSlice.ts) | 装备养成 slice：统一寻址仓库件与穿戴件，执行升阶、重铸候选生成和原/新词条确认；待确认重铸写入城镇持久化状态。 |
-| [curioTownSlice.ts](../../src/store/curioTownSlice.ts) | 物件需要的城镇侧切片：按污染阈值处理生病与随机怪癖，并把卡牌替换为角色卡池中的随机普通卡。 |
-| [exploreGrowthServices.ts](../../src/store/exploreGrowthServices.ts) | 探索换卡、低价羁绊重铸与高价完美度重置的结算编排；先检查待办、目标与食品总数，成功才扣款，已穿装备同步角色属性与探索血量快照；装备调校结果保留前后实例供界面展示。 |
-| [mapProgressSlice.ts](../../src/store/mapProgressSlice.ts) | 地图进度 slice：持久化已通关难度 key 与当日奖励表；教学关固定奖励使用 `tutorial:normal` 键；负责难度通关幂等记录、跨日刷新及通关奖励清单拷贝。 |
-| [exploreStore.ts](../../src/store/exploreStore.ts) | 探索会话与背包 action 包装，按阶段机调用 `explore/session`；`settleBattle` 转发挑战加成与本场赏金猎人掉率加成，保证它们只消费在战斗结算；转发交易终端购买、待拾取物品、隐藏休息/NPC、待办成长奖励、定向经验和经验消费 action。待拾取的模组另有 `installLootModule`：不进背包直接调 `townStore.installModuleStack` 上卡，装成了才把它从 `pendingLoot` 划掉。远征途中换装另有 `takeBackpackItem` / `putBackpackItems` / `syncPartyVitals` 三个搬运转发，编排在 `runStore`。纯函数返回无效时不替换状态，远征中途刷新即作废。 |
-| [curioActions.ts](../../src/store/curioActions.ts) | 物件与货商动作编排：克隆会话后调用物件纯逻辑，落地待处理污染；首次打开货商生成绑定队员的卡牌和六格双食品货架，购买时扣食品、加入背包或角色卡组并标记售出。 |
-| [exploreAftermath.ts](../../src/store/exploreAftermath.ts) | 远征后处理：统一应用污染/污染卡、结算阵亡装备，避免节点、物件和收尾路径各自复制一套落地逻辑。 |
-| [sortieStore.ts](../../src/store/sortieStore.ts) | 出击准备临时状态：保存地图、所选难度、背包和本次购买账本；`pickMap()` 按地图 × 难度注入一次性配额物资（教学关读取固定配额清单），背包空间不足时从末尾退款/退仓库自备物资。取消时一次性物品直接移除，不退款也不入仓库，其余物资按来源退回。进入出击准备时按 `townStore.lastSortieRelicIds` 自动装填遗物，`open()` 与 `cancel()` 共用同一条全量退回规则因而可重复调用。状态不持久化，正式出击后由 `runStore` 透传背包并清空。 |
-| [townStore.ts](../../src/store/townStore.ts) | 持久化城镇档案：角色 profile、回城记录的当前 HP 与体力极限 `hpLimit`（两者都是跨日传承的永久损伤，局外读数统一走 `vitalsOf`；据点换装时由 `shiftVitals` 按上限增减平移，损伤量保留）、在编队名单 `awakened`、永久阵亡名单 `fallen`、编队、经验池、个人卡组、污染值、生病、怪癖、卡组锻造、免费三选一/删卡、居民积分、仓库、装备和出售，以及生存天数 `day`、统一商店货架 `shop`、已通关地图 `clearedMaps`、`clearedDifficulties`、`dailyClear`、`squadTalent`（`badgeId` + 已激活节点 id 数组 `nodes`）、`nutrition`（已研究科技 id 和带席位号的疗养中角色快照）、`techTree`（各科技当前等级）、`codex`（物品、卡牌、敌人永久收录 id 数组）、`seenGuides`（已看过的新手引导 id 数组）与待确认的 `pendingReforge`。训练点由在编队角色中等级最高的 5 人卡组等级之和与科技树训练点强化加成实时计算；`markFallen` 处理永久阵亡并在训练点超支时清空天赋节点，`reviveFallen` 以 200 居民积分透支复苏并重置角色档案；营养舱通过 `admitToNutritionPods` 批量确认时扣除总积分、移出队伍并记录席位号，`advanceDay` 统一负责次日恢复体力极限、同步恢复等额当前 HP 并清空 occupants；营养舱科技由 `researchNutritionTech` 复用 `data/nutritionPod` 的可用性和材料判定，科技树由 `researchTech` 扣除积分与材料并提升全局等级。`recordCodex` 只做数组并集，避免重复收录触发持久化；全局 `codexCollector` 订阅城镇、探索和战斗 store，在物品进入可见库存、卡牌进入角色卡组或敌人遭遇后统一收录。装备槽除走仓库的 `equipItem` / `unequipItem` 外，另有不经仓库的原子 `wearStack` / `takeOffStack`（远征途中与背包互换时由 `runStore` 调用，前两者内部也复用它们）。模组相关有 `equipCardModule` / `unequipCardModule`、不经仓库的 `installModuleStack`（远征途中从待拾取框直接装载，装配校验的唯一真相点，`equipCardModule` 也复用它）与 `craftModule`（按 `data/moduleCrafting` 的配方扣角色经验与仓库材料，产出模组入库）；装备相关由 `equipCraftSlice` 执行。远征落袋走 `depositHaul`（换金物按 `sellPriceOf` 直接折成居民积分入账、不进仓库，其余物资入仓，回收清单加成作为同一售价系数透传，返回售出总额），`deposit` 只留给出击准备的物资退回；`sellItem` 仍是回收台出售仓库物品的入口。存档 key 为 `town-profile-v28`，persist 版本为 v29，不兼容旧版本存档。 |
-| [runStore.ts](../../src/store/runStore.ts) | 远征流程总编排和界面路由。`beginDescent` / `beginAscent` / `finishRide` 与 `elevatorRide` 负责出击下行、结算上行共用的不可跳过电梯中转页：下行视频结束后才调用 `startExpedition` 建立会话，上行视频结束后才调用 `backToTown` 落地据点；启动战斗前消费待处理污染请求并污染当前队伍个人卡组；启动战斗时合并存活队员卡组、羁绊、背包遗物与临时光环，计算完整面板及小队资源修正，传入污染/疾病/怪癖与继承的三段血量；`resolveBattle` 在战斗结束瞬间汇总全队 `bountyHunter` 层数，每层转为 0.3 的本场掉率加成，同时保存最终掉率与各来源快照供胜利面板展示，并在战斗、事件和远征收尾路径调用 `settleFallenGear` 剥离阵亡装备；远征收尾统一消费探索 `pendingExp` 并落袋；通关时把每日难度奖励先并入 `session.shipped` 再落袋，战败、撤退与终局也不丢污染；`bankEverything` 只把存活成员的 HP 与体力极限写回城镇档案，阵亡成员交给 `markFallen`，一次性物品在此过滤销毁，其余物资经 `townStore.depositHaul` 落袋——换金物在这一步回城即变现，直接折成居民积分，不再进仓库等玩家去回收台点，回收清单的加成与科技树回收溢价在同一售价系数中合算。`partySnapshot` 出发时直接读 `vitalsOf` 的存档值。`backToTown` 是唯一推进一日的地方，且只在上行电梯落地时调用。远征途中换装由 `equipFromBackpack` / `unequipToBackpack` 编排：阶段限制同背包（`canOpenBackpack`），背包容量一律校验、失败整体回滚，成功后按 `deriveStats` 同步队伍快照的生命上限与负重适应（只裁不补，当前血量不因换装回复）。 |
+| [shopSlice.ts](../../src/store/shopSlice.ts) + [shopStock.ts](../../src/store/shopStock.ts) | 据点商店的状态和每日货架生成。卡牌货位需要读取角色卡组，所以放在这里生成；物品货位交给 `data/shop.ts`。 |
+| [techTreeSlice.ts](../../src/store/techTreeSlice.ts) | 研究中心的科技等级和研究动作。 |
+| [equipCraftSlice.ts](../../src/store/equipCraftSlice.ts) | 工房：装备升阶和羁绊重铸（包括待确认的重铸结果）。 |
+| [mapProgressSlice.ts](../../src/store/mapProgressSlice.ts) | 地图通关记录和每日通关状态。 |
+| [curioTownSlice.ts](../../src/store/curioTownSlice.ts) | 物件结算写回城镇档案的两个动作：增加污染、把某张卡换成普通卡。 |
+| [characterStats.ts](../../src/store/characterStats.ts) | 由装备和羁绊推导角色面板与生命值（`deriveStats`、`vitalsOf`）。 |
+| [deckCards.ts](../../src/store/deckCards.ts) | 卡组规则：稀有度和同名卡的携带上限、可用卡池、抽取稀有度、加卡。 |
+| [expeditionBackup.ts](../../src/store/expeditionBackup.ts) | 出击时给城镇档案拍快照，刷新后回滚到出击前。⚠ 必须在 `townStore` 执行 `create(persist(...))` 之前回滚。 |
+| [codexCollector.ts](../../src/store/codexCollector.ts) | 图鉴收集器，由 `main.tsx` 安装。它汇总城镇、探索、战斗三个 store 中出现过的卡牌、敌人和物品，写入 `townStore.recordCodex`。 |
 
-依赖边界：`runStore` 是探索、战斗和界面的唯一连接点；`townStore` 不直接依赖探索会话。探索层提供队伍快照，战斗只接收 `startHp`、`EncounterModifier` 和有效负重 `burden` 等初始化数据。
+## runStore 的拆分文件
 
-统一商店由 `shopSlice` 管理每日混合货架、积分刷新、卡牌入组、物品入仓和商店科技升级；`shopStock` 负责按卡牌/装备/材料/祝福遗物权重生成整架，`deckCards` 提供卡组限携、同名副本上限、卡池过滤、稀有度抽取与入组写入的公共工具。当前城镇存档使用 `town-profile-v28`（persist v29），不兼容旧版本存档。
+| 文件 | 作用 |
+| --- | --- |
+| [curioActions.ts](../../src/store/curioActions.ts) | 物件决策、选择执行者、打开货商货架、购买。 |
+| [exploreCorridor.ts](../../src/store/exploreCorridor.ts) | 场景内操作：保存站位、站上传送门、伏击检定、行走扣粒子、传送与信标、打开或关闭物件、BOSS 红门、结束遭遇战。 |
+| [exploreGrowthServices.ts](../../src/store/exploreGrowthServices.ts) | 远征途中的装备调校和换卡服务。 |
+| [exploreAftermath.ts](../../src/store/exploreAftermath.ts) | 把远征中的污染、卡牌污染和阵亡角色的装备写回城镇档案。 |
+| [picnicActions.ts](../../src/store/picnicActions.ts) | 野餐结算后，落地遗物带来的污染变化。 |
 
-城镇档案另存 `clearedDifficulties` 与 `{ day, rewards }` 形式的 `dailyClear`；教学关固定通关奖励使用 `tutorial:normal` 键，persist 版本为 v29。`advanceDay` 与 `syncDailyClear` 共用 `rollAllDailyClearRewards` 刷新当日清单。
+## 常见数据流
+
+- **出击**：`sortieStore` 装好背包 → `runStore.startExpedition` → 备份城镇档案 → `exploreStore.start` → 电梯过场 → 探索页。
+- **战斗**：`runStore.enterEncounter` 建局，交给 `battleStore` → 战斗结束后由 `runStore.resolveBattle` 回填探索会话、发放经验和掉落。
+- **回城**：`runStore.finishExpedition` / `backToTown` → 仓库入库、换金物折算积分、登记阵亡、推进一天（`townStore.advanceDay`，同时刷新货架）。
+
+## 测试
+
+`townStore.test.ts`（只有 15 行）。

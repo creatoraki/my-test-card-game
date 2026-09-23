@@ -68,10 +68,17 @@ my-test-card-game/
 │  ├─ engine.md            # 战斗引擎
 │  ├─ explore.md           # 探索引擎
 │  ├─ items.md             # 物品层
-│  ├─ data.md              # 内容数据
+│  ├─ data-combat.md       # 内容数据：卡牌、角色、敌人、模组、羁绊
+│  ├─ data-world.md        # 内容数据：地图、物件、物品、据点设施、台词
 │  ├─ store.md             # Zustand 状态层
-│  ├─ ui.md                # React 视图层
-│  └─ styles.md            # 公共与组件样式
+│  ├─ styles.md            # 公共与组件样式
+│  ├─ ui-app.md            # 顶层过场、美术登记、音频、hooks、菜单与结算页
+│  ├─ ui-battle.md         # 战斗界面与攻击特效
+│  ├─ ui-explore.md        # 探索界面
+│  ├─ ui-town.md           # 据点设施与出击准备
+│  ├─ ui-character.md      # 编队页与角色详情
+│  └─ ui-common.md         # 公共组件
+├─ docs/代码健康度审查.md  # 代码健康度审查结果与整改路线
 ├─ scripts/                # 开发辅助脚本
 └─ src/
    ├─ engine/              # 战斗引擎
@@ -79,7 +86,7 @@ my-test-card-game/
    ├─ items/               # 物品逻辑
    ├─ data/                # 内容数据
    ├─ store/               # 状态与持久化
-   ├─ ui/                  # React 视图层，按功能域分目录（详见 docs/code-map/ui.md）
+   ├─ ui/                  # React 视图层，按功能域分目录（详见 docs/code-map/ 下的 ui-*.md）
    │  ├─ app/              # 过场编排：ScreenTransition、战斗裂纹幕布、1920×1080 设计画布
    │  ├─ audio/            # BGM 播放器与程序化音效合成
    │  ├─ common/           # 跨域复用组件：立绘、血条、状态图标、物品格/详情/分类 tab

@@ -32,11 +32,11 @@ export function buildEcoArkArchitectureLayout(
   occupiedX: readonly number[],
 ): EcoArkArchitecturePlacement[] {
   const random = seededRandom(roomId);
-  const edgePadding = 210;
+  const edgePadding = 430;
   const usableWidth = Math.max(0, roomWidth - edgePadding * 2);
-  const segmentCount = 8;
+  const segmentCount = 18;
   const candidates = Array.from({ length: segmentCount }, (_, index) => (
-    edgePadding + usableWidth * (index + 0.18 + random() * 0.64) / segmentCount
+    edgePadding + usableWidth * (index + 0.2 + random() * 0.6) / segmentCount
   ));
 
   for (let index = candidates.length - 1; index > 0; index -= 1) {
@@ -44,24 +44,32 @@ export function buildEcoArkArchitectureLayout(
     [candidates[index], candidates[other]] = [candidates[other], candidates[index]];
   }
 
-  const targetCount = 4 + Math.floor(random() * 3);
+  const targetCount = 2 + Math.floor(random() * 2);
   const placements: EcoArkArchitecturePlacement[] = [];
 
   for (const x of candidates) {
     if (placements.length >= targetCount) break;
-    if (occupiedX.some((occupied) => Math.abs(occupied - x) < 285)) continue;
-    if (placements.some((placement) => Math.abs(placement.x - x) < 250)) continue;
-
     const art = ECO_ARK_ARCHITECTURE_ART[Math.floor(random() * ECO_ARK_ARCHITECTURE_ART.length)];
-    const scale = 0.84 + random() * 0.32;
+    if (placements.some((placement) => placement.art.id === art.id)) continue;
+
+    const scale = 0.84 + random() * 0.24;
+    const height = Math.round(art.displayHeight * scale);
+    const renderedWidth = height * art.aspectRatio;
+    if (x - renderedWidth / 2 < 80 || x + renderedWidth / 2 > roomWidth - 80) continue;
+    if (occupiedX.some((occupied) => Math.abs(occupied - x) < Math.max(260, renderedWidth / 2 + 180))) continue;
+    if (placements.some((placement) => {
+      const otherWidth = placement.height * placement.art.aspectRatio;
+      return Math.abs(placement.x - x) < (otherWidth + renderedWidth) / 2 + 140;
+    })) continue;
+
     placements.push({
       id: `${roomId}-architecture-${placements.length}`,
       art,
       x: Math.round(x),
-      height: Math.round(art.displayHeight * scale),
+      height,
       offsetY: Math.round(random() * 14),
       mirrored: random() > 0.5,
-      opacity: 0.73 + random() * 0.17,
+      opacity: 0.78 + random() * 0.13,
     });
   }
 

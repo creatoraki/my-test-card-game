@@ -1,7 +1,9 @@
-import pillar from "@/assets/explore-corridor/生态方舟/近景建筑/温室支撑柱.png";
-import planter from "@/assets/explore-corridor/生态方舟/近景建筑/水培苗床.png";
-import arch from "@/assets/explore-corridor/生态方舟/近景建筑/藤蔓拱廊.png";
-import beacon from "@/assets/explore-corridor/生态方舟/近景建筑/生态信标灯.png";
+import greenhouse from "@/assets/explore-corridor/生态方舟/近景建筑/生态温室.png";
+import seedArchive from "@/assets/explore-corridor/生态方舟/近景建筑/种源保存馆.png";
+import researchHall from "@/assets/explore-corridor/生态方舟/近景建筑/水培研究馆.png";
+import waterStation from "@/assets/explore-corridor/生态方舟/近景建筑/水循环处理站.png";
+import observatory from "@/assets/explore-corridor/生态方舟/近景建筑/冠层观测塔.png";
+import restorationCenter from "@/assets/explore-corridor/生态方舟/近景建筑/生态修复中心.png";
 
 export interface EcoArkArchitectureArt {
   id: string;
@@ -11,12 +13,14 @@ export interface EcoArkArchitectureArt {
   groundTrim: number;
 }
 
-/** 方舟走廊使用的透明建筑装饰；尺寸为场景设计像素。 */
+/** 方舟走廊的完整正视建筑立面；尺寸为场景设计像素。 */
 export const ECO_ARK_ARCHITECTURE_ART: readonly EcoArkArchitectureArt[] = [
-  { id: "pillar", src: pillar, aspectRatio: 1024 / 1536, displayHeight: 430, groundTrim: 0 },
-  { id: "planter", src: planter, aspectRatio: 1448 / 1086, displayHeight: 330, groundTrim: 40 / 1086 },
-  { id: "arch", src: arch, aspectRatio: 1254 / 1254, displayHeight: 500, groundTrim: 0 },
-  { id: "beacon", src: beacon, aspectRatio: 1024 / 1536, displayHeight: 370, groundTrim: 0 },
+  { id: "greenhouse", src: greenhouse, aspectRatio: 1983 / 793, displayHeight: 320, groundTrim: 0 },
+  { id: "seed-archive", src: seedArchive, aspectRatio: 1199 / 1312, displayHeight: 420, groundTrim: 0 },
+  { id: "research-hall", src: researchHall, aspectRatio: 2172 / 724, displayHeight: 300, groundTrim: 0 },
+  { id: "water-station", src: waterStation, aspectRatio: 1774 / 887, displayHeight: 320, groundTrim: 0 },
+  { id: "observatory", src: observatory, aspectRatio: 1024 / 1536, displayHeight: 500, groundTrim: 0 },
+  { id: "restoration-center", src: restorationCenter, aspectRatio: 1774 / 887, displayHeight: 320, groundTrim: 0 },
 ];
 
 export const ECO_ARK_ARCHITECTURE_SOURCES = ECO_ARK_ARCHITECTURE_ART.map(({ src }) => src);

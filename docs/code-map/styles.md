@@ -1,143 +1,43 @@
 # 样式层
 
-路径：`src/styles/`（全局层）与 `src/ui/**/*.module.css`（组件层）。公共层集中维护，组件表现随组件维护。
+路径：`src/styles/`（全局层）与 `src/ui/**/*.module.css`（组件层）。
 
-## 公共样式
+## 全局层
 
 | 文件 | 作用 |
 | --- | --- |
-| [index.css](../../src/styles/index.css) | 公共 CSS 唯一入口，只按 `tokens → base` 两条导入。 |
-| [tokens.css](../../src/styles/tokens.css) | 设计令牌：配色、边框、圆角，以及五档物品稀有度和对应辉光。卡牌稀有度是另一套类型，不在这里混用。 |
-| [base.css](../../src/styles/base.css) | reset、页面底纹、扫描线、按钮全家桶、表单元素和基础文字元素。 |
-| [stageCanvas.module.css](../../src/ui/app/styles/stageCanvas.module.css) | 全站 1920×1080 设计画布的 letterbox 容器、布局居中与 `zoom` 几何骨架；页面样式通过 `composes` 复用。 |
+| [index.css](../../src/styles/index.css) | 公共样式的唯一入口，依次引入 `tokens` 和 `base`。由 `main.tsx` 在所有 import 之前引入。 |
+| [tokens.css](../../src/styles/tokens.css) | 全站唯一的设计令牌：字体族、终端文字色与辉光、背景和面板底色、边框、物品稀有度色。⚠ 组件 CSS 里不要重新声明这些变量名。 |
+| [base.css](../../src/styles/base.css) | 字体注册（BebasNeue 用于装饰，思源黑体用于正文）、reset、自定义光标、按钮与表单的基础外观。 |
 
-**全局层只剩这两个文件**（曾经的第三个是 `ui/app/viewTransition.global.css`，已随编队↔详情改成同页元素重组一并删除）。
-原先的 `layout.css` 与 `widgets.css` 已在模块化改造中拆解完毕：
+⚠ `--font-family` 以 BebasNeue 打头，中文会回落到思源黑体；按项目规则，英文字体只能用作装饰。
 
-- 被多页复用的骨架类（`.screen` / `.terminal-screen` / `.center` / `.screen-kicker` …）由各页在自己的
-  `module.css` 里持有——它们本就只有寥寥几行，复制远比共享一个全局类名安全；
-- 只有一个使用方的（`.row` / `.overlay` / `.overlay-card`）直接收归那个组件，见
-  [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css) 末尾；
-- 结算页的卡组摘要、战利品标签和终端骨架在
-[EndScreen.module.css](../../src/ui/result/EndScreen/EndScreen.module.css)，战斗画布内胜利结算的黑钢面板在
-[VictoryPanel.module.css](../../src/ui/battle/VictoryPanel/VictoryPanel.module.css)、
-[VictoryExpRow.module.css](../../src/ui/battle/VictoryExpRow/VictoryExpRow.module.css) 和
-[VictoryLootTray.module.css](../../src/ui/battle/VictoryLootTray/VictoryLootTray.module.css)；
-- 确认无人使用的（`.title` / `.subtitle` / `.menu-main` / `.chip` / `.reward-cards` …）已删除。
+## 组件层约定
 
-探索域的共享按钮、标签和事件类型色位于
-[exploreKit.module.css](../../src/ui/explore/styles/exploreKit.module.css)，探索组件各自通过 `composes` 使用；
-探索画布根通过 `data-explore-stage` 传递跨组件状态，不再依赖 `.explore-stage` 的远程后代选择器。
-探索事件、拾取和奖励面板的统一暗玻璃材质、边框装饰与扫描线位于
-[explorePanel.module.css](../../src/ui/explore/styles/explorePanel.module.css)，三方各自通过 `composes` 使用；
-画布根通过 `data-explore-dock="stacked"` 传递事件面板占用上半格的状态，dock 顶部位置与可用高度由
-`--expl-dock-top` / `--expl-dock-max-h` CSS 变量统一下发。
+- 每个组件在同名目录下放 `Xxx.module.css`，由组件自己引入，类名在编译期加哈希，天然隔离。
+- 动态类名保留 kebab 写法，用 `s["k-" + kind]` 方括号访问（Vite 刻意没有开启 camelCase 转换）。
+- 拼接类名统一用 [ui/common/cx.ts](../../src/ui/common/cx.ts)（全项目唯一一处）。
+- 跨组件的状态通过根节点的 `data-*` 属性传递（例如 `data-explore-stage`、`data-town-stage`），不要写远程后代选择器去改子组件样式。
+- 同一领域里共享的材质和骨架放在该领域的 `styles/` 目录，由组件通过 `composes` 复用：
 
-地图选择步骤使用独立的冷蓝黑钢界面：`SortieFrame` 绘制 SVG 切角、金属角片与描边，任务框、难度框、奖励框和地图卡分别持有自身材质；右侧列表保持 162px 固定步进，中央卡片独立放大，归位帧关闭卡片尺寸过渡。页面的 1920×1080 坐标与背景沿用现有画布。
-
-物资准备步骤的白玻璃面板材质（零圆角 + `blur(18px) saturate(118%) brightness(1.06)` + 白色内描边 hairline）
-住在 [sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css)，
-仓库库存面板 / 出击背包面板 / 补给货架都通过 `.shellStatic` 使用不带 `panelIn` 的版本。`.shell` 仍保留给需要自身入场动画的复用方，`.shellStatic` 专供由 View Transition 负责飞入的仓库和背包。
-共享材质同时下发 `--sm-ease` / `--sm-dur` 两个手感令牌；两条步骤路线的带壳和片通过
-`view-transition.global.css` 的文档根伪元素规则配对。
-⚠ 面板唯一刻意的偏差是多压一层 `#05121466` 深底：`SortieBackdrop` 的地图信息在物资准备步骤的面板背后，
-纯白玻璃会让物品图标读不清。
-面板材质共享自 `sortieGlass.module.css`，配色（`--inventory-*` 变量组）由 `inventoryPalettes.ts` 以 props 下发，两者分工不要混。
-
-据点设施的 hover/active 样式通过大厅根的 `data-town-stage` 传递状态；商店的
-`MarketSlotFrame.module.css`、`MarketFrameArtwork.module.css`、`MarketPriceTag.module.css`、`MarketPriceArtwork.module.css` 与 `ShopDetailCard.module.css` 各自维护货位布局、原型边框分片、售价牌、金币及价格边线分片和详情栏样式；货架通过 `--market-card-width` 统一商品与补货占位尺寸，外壳通过 `--market-unit` 下发原型缩放单位，
-不再由 `ShopScene.module.css` 远程改写子组件。商店主题令牌集中在 `shopTheme.module.css`，商店大窗由 `ShopWindow.module.css` 绘制切角背景，`StockEntries.module.css` 只保留据点定位与页面切换动画；双层金色描边和辉光由 `common/DetailFrame/DetailFrame.module.css` 的 `tone="gold"` 变量提供，货商面板复用同一套窗口与主题。
-
-设施升级的公共视觉实现集中在 `common/techTree/Technology*`：`TechnologyBoard` 提供无外框的图表、详情与底栏主体，`TechnologyTree` 在其外层提供纯净背景、页头和完整面板布局；`TechnologyGraph` 持有连线与节点布局，`TechnologyMedallion` 绘制圆环、六边框和状态角标，`TechnologyDetail`、`TechnologyMaterials` 与 `TechnologyFooter` 分别负责右栏、材料及底栏。各模块仅导入同名样式。商店升级页嵌入商店窗口的内容区，换页动效复用 `StockEntries.module.css`。
-
-医疗室浮层外壳复用 [common/PanelShell](../../src/ui/common/PanelShell/PanelShell.tsx)，由场景注入 `--asm-*` 医疗青绿主题；
-[cryoKit.module.css](../../src/ui/town/cryo/styles/cryoKit.module.css) 只剩内容入场动画、底栏与主按钮，
-[cryoFigure.module.css](../../src/ui/town/cryo/styles/cryoFigure.module.css) 提供深色瘦高立绘窗的取景变量、底部渐隐和铭牌，
-[RevivePanel.module.css](../../src/ui/town/cryo/RevivePanel/RevivePanel.module.css)、
-[NutritionPanel.module.css](../../src/ui/town/cryo/NutritionPanel/NutritionPanel.module.css) 与其子组件样式各自持有功能内容；圣水池面板注入金色 `--asm-*` 主题，底栏与主按钮仍复用 `cryoKit`。
-入口到面板的几何由 `cryoMorph` 的 WAAPI 驱动，`cryoKit.module.css` 不再包含吊绳、`panelIn` 或 `panelOut`；场景骨架样式只留在 `CryoScene.module.css`，根节点不挂 `animation` / `opacity` / `transform`，以免破坏设施背景的 `backdrop-filter`。
-
-战斗域的两种「单位外壳」（敌人 `CombatantView` 的 `.combatant`、我方 `AllyBar` 的 `.ally-slot`）
-共享同一套演出规则，靠 [unitShell.ts](../../src/ui/battle/unitShell.ts) 定义的 `data-*` 契约跨模块命中：
-`data-side` / `data-dead` / `data-attacking` / `data-targetable` / `data-react`；
-受击、前冲和受益通过 `data-unit-body` 限定在立绘容器，外壳读数保持稳定。
-规则本体住在 [HitFxLayer.module.css](../../src/ui/battle/fx/HitFxLayer/HitFxLayer.module.css)。
-两枚共用徽章在 [unitBadges.module.css](../../src/ui/battle/styles/unitBadges.module.css)。
-另有三处结构性 `data-*` 钩子：`data-hitstop`（顿帧，BattleScreen 挂在画布根）、
-`data-hand-tray` / `data-hand-slot`（手牌托盘版式）、`data-cmb-stage`（相机取景的 `querySelector` 锚点
-——类名会被哈希，JS 只能认属性）。
-
-## 组件样式约定 —— CSS Modules
-
-组件样式一律是与组件同目录的 `Xxx.module.css`，类名在编译期被哈希（`vite.config.ts` 的 `css.modules.generateScopedName` 保留 `[name]__[local]`，devtools 里仍可读）。**类名本身不改名**：既有的 `expl-` / `cryo-` / `sx-` 前缀保留下来当作可读性标记，隔离由构建保证，不再靠命名纪律。
-
-TSX 侧统一用 `src/ui/common/cx.ts`：
-
-```tsx
-import { cx } from "@/ui/common/cx";
-import s from "./CombatantView.module.css";
-
-<div className={cx(s["combatant"], dead && s["dead"], s[`intent-${kind}`])} />
-```
-
-方括号访问是刻意的（未开 `localsConvention: camelCase`）：项目里大量动态类名（`k-${kind}`、`pip-${kind}`、`r-${rarity}`、`screen-fx-${fx}`、`shake-lv${n}`）只有 kebab 原名拼得出来。
-
-### 五条铁律
-
-| # | 规则 |
+| 共享样式 | 用途 |
 | --- | --- |
-| 1 | 一个 `*.module.css` **只被同名 `.tsx` 导入**。两个组件要共用的样式，抽成 `<域>/styles/xxx.module.css`，由双方各自 `composes`。 |
-| 2 | **祖先状态用 `data-*` 属性传递，不用类名。** 「祖先处于某状态时改我」的规则写在**拥有该元素的组件**的 CSS 里：`:global([data-hitstop]) .combatant-figure { … }`。祖先只负责挂属性。 |
-| 3 | **父组件要改子组件外观，只能通过 `className` prop。** 公共组件一律接受 `className`。禁止 `.ally-figure .portrait-image` 这类远程后代选择器——哈希之后它根本不会命中。 |
-| 4 | **跨组件的尺寸/配色契约用 CSS 自定义属性**（`--hand-card-w`、`--rr`、`--notch`）。CSS 变量不受哈希影响，是模块边界上唯一合法的通道；契约必须在双方文件头写清楚。 |
-| 5 | **`:global()` 只允许三种场景**：`::view-transition-*` 文档根伪元素、铁律 2 的 `data-*` 祖先状态、`src/styles/` 全局层的类（能用 `composes` 就不用 `:global`）。其余一律视为违规。 |
+| [app/styles/stageCanvas.module.css](../../src/ui/app/styles/stageCanvas.module.css) | 1920×1080 设计画布的 letterbox 容器与缩放骨架。 |
+| [explore/styles/](../../src/ui/explore/styles/exploreKit.module.css) | `exploreKit`（按钮、标签、事件类型色）、`explorePanel`（暗玻璃面板）、`rewardKit`（奖励浮层版式）。 |
+| [common/EventPanel/styles/](../../src/ui/common/EventPanel/styles/eventPanelFrame.module.css) | 事件面板的外框、简报、选项和结果、遮罩。 |
+| [battle/styles/](../../src/ui/battle/styles/unitBadges.module.css) | 敌我单位徽章、胜利面板格子。 |
+| [character/styles/](../../src/ui/character/styles/detailTokens.module.css) | 角色详情的令牌、发光卡、场景遮罩、字号阶梯。 |
+| [sortie/styles/sortieGlass.module.css](../../src/ui/sortie/styles/sortieGlass.module.css) | 出击准备的白玻璃面板材质。 |
+| `town/cryo/styles/`、`town/museum/styles/`、`town/terminal/styles/` | 医疗室、博物馆、研究中心各自的场景套件。 |
 
-### 保持全局的两处
-
-`src/styles/tokens.css`（设计令牌）、`src/styles/base.css`（reset / `body` / `button` 皮肤）。除此之外 `src/ui` 下不应再出现普通 `.css`——`_legacy/` 是归档区，不算在内。
-
-原先还有第三处 `ui/app/viewTransition.global.css`（编队↔详情的共享元素过场，全是文档根伪元素、没有类名）。那条路线已改成编队页内部的同页元素重组，文件随之删除。现在唯一还写 `::view-transition-*` 的地方是 `ScreenTransition.module.css` 里探索→战斗的裂纹涟漪与色调迁移第 ① 段（`vt-grade-old` / `vt-grade-new`，见 [ui.md](./ui.md) 的「探索 → 战斗的色调迁移」）——它靠 `:root[data-vt-route="explore>battle"]` 收窄，写在 Modules 里也不受哈希影响，因为选择器括号里的名字是属性**值**不是类名。
-
-⚠ 这条路线的**新快照 = 战场 + `.battle-entry-veil`（血色暗角），刻意不含裂纹幕布**。快照是像素：写进快照的层，在 VT 结束时必须在真实 DOM 里以完全相同的状态存在，否则那一帧就是一次闪烁。约束的完整清单见 [ui.md](./ui.md) 的「涟漪结束那一帧的零跳变约束」。
-
-### @keyframes 的两条相反陷阱
-
-`@keyframes` 名字**会**被哈希，同文件内的 `animation-name` 引用由构建自动改写。由此分出两种情形，写反了都是「动画静默不播」：
-
-- **关键帧写在 `module.css` 里** ⇒ `animation-name` 必须也写在 CSS 里，**不能**由 TSX 行内下发（JS 字符串构建管不着）。见
-  [IaiSlashFx.module.css](../../src/ui/battle/fx/IaiSlashFx/IaiSlashFx.module.css) 的 `.iai-dot` 与
-  [BladeSlashFx.module.css](../../src/ui/battle/fx/BladeSlashFx/BladeSlashFx.module.css)——行内只留 `delay` / `duration`，刀光时序全部由 TSX 下发，不做百分比对表。
-- **关键帧由组件运行时注入 `<style>`**（按敌人生成、支持跳帧）⇒ 不经 Modules，名字不哈希，行内 `animationName` 正常工作。见
-  [EnemySprite.tsx](../../src/ui/battle/EnemySprite/EnemySprite.tsx)。
-
-`TriSlashFx` 是第三种情形：特效画在 Canvas 上、时序全部由 rAF 驱动，组件没有任何 `@keyframes`，故完全不受哈希约束（见 [TriSlashFx.module.css](../../src/ui/battle/fx/TriSlashFx/TriSlashFx.module.css)）。
-
-`prefers-reduced-motion` 降级块放在所属组件 CSS 的末尾，与被压制的规则保持同文件。不要把所有降级规则重新集中到一个全局文件。
+- 颜色主题由 TS 以 props 或 CSS 变量下发，材质写在 CSS 里，两者不要混在一处。例如出击和探索的背包配色写在各自的 `styles/inventoryPalettes.ts`。
+- 演出时长常量的唯一来源在 TS 中（`ui/app/transitions.ts`、`ui/battle/animations.ts`、`ui/town/facilityScenes.ts`），CSS 通过变量读取。
 
 ## 设计画布
 
-编队天赋页使用 `town/training/TalentArtwork/TalentPanelShell` 的独立全屏外壳：背景与 CSS/SVG 元素共享 1672×941 原型坐标，由外壳统一映射到 1920×1080 设计画布。分支坐标以 `TalentTreeRadial/talentGeometry.ts` 为唯一来源，金属边框、节点、铭牌、标题和底栏各自持有组件样式；原有入口形变只控制外层矩形，不参与内部布局。主画面最低字号为 18px，中文衬线标题使用局部 `--talent-serif` 字体栈。
+所有页面都在 1920×1080 的设计画布上排版，由 `--stage-scale` 等比缩放适配窗口（见 [ui/hooks/stage.ts](../../src/ui/hooks/stage.ts)）。组件中的 px 都是设计 px，与实际分辨率无关。悬浮层要 portal 到画布内部，跟着画布一起缩放。
 
-[hooks/stage.ts](../../src/ui/hooks/stage.ts) 提供 `STAGE`（1920×1080 基准尺寸、最大缩放）和 `useStageScale`（基于 `ResizeObserver` 计算 letterbox 等比缩放，机会性吸附到设备像素并监听 DPR 变化）。各页通过 `app/StageCanvas` 复用画布骨架，画布内部坐标都是设计 px，不能使用 `vw` / `vh`，也不能按窗口宽度重新排版。
+## 已知问题
 
-⚠ 浮层（物品详情一族）**挂在画布内部**、用设计 px 定位，不要 portal 到 `document.body` 再手工把矩形换算成屏幕 px：`getBoundingClientRect()` 在 CSS `zoom` 子树里到底带不带 zoom，各浏览器/各渲染分支并不一致，一旦判反，`zoom === 1` 的大窗口下恒等看不出问题，窗口一小浮层就整体偏移甚至被推出可视区。画布带 `data-stage-canvas` 标记，配合 `stageHostOf` / `designScaleOf` 做坐标归一化（锚点矩形与画布矩形取自同一坐标系，相减再同除即得设计 px）。
-
-战斗画布的主要旋钮在 [BattleScreen.module.css](../../src/ui/battle/BattleScreen/BattleScreen.module.css)：`--canvas-pad`、`--stage-gap`、`--hud-h`、`--hud-party-w`、`--hud-info-w`、`--hand-plate-h`、`--pile-w`、`--pile-h`、`--pile-gap`。其中 `--hand-plate-h` 继续作为托盘衬板的高度契约，`--pile-w` / `--pile-h` / `--pile-gap` 决定右上角竖排牌堆的尺寸和间距；手牌托盘不再为牌堆额外让位。`--hud-h` 会直接决定战场可见下沿，调整它前要检查敌人脚下的背景地面线。手牌宽度使用 `--hand-card-w`，卡高由配图区、顶栏和说明区推导，不要另写固定高度——这几个变量是下发给 [HandCard.module.css](../../src/ui/battle/HandCard/HandCard.module.css) 的跨组件契约（铁律 4），卡在托盘里的版式与厚度规则住在那边。卡面状态被拆成四个同级文件：`HandCard.module.css`（材质、稀有度、边棱、污染）、`HandCard.face.module.css`（配图/费用/卡名/说明区）、`HandCard.motion.module.css`（悬停、选中、离场）、`HandCard.layout.module.css`（托盘与弹窗版式），以及新增的 [HandCard.activated.module.css](../../src/ui/battle/HandCard/HandCard.activated.module.css)（激活态）。后三者只做副作用导入、全部走 `[data-hand-card]` 一族属性选择器（铁律 2）；激活态**必须最后导入**，它的 `--card-edge*` 覆写与 motion 里的选中态同特指度，靠源码顺序定胜负。
-
-场景相机使用 `.battle-world` 的 `transform` / `translate` / `scale` 分工，世界、背景、氛围和单位必须作为刚体一起变换；不要让背景和单位分别套相机。画布内 `getBoundingClientRect()` 得到的是屏幕 px，定位前要换算回设计 px；相机反投影则以 `.battle-world` 的矩形抵消缩放和漂移。
-
-公共样式不应重新引入已移除的主题覆盖层、战斗窗口断点或第二个裁切边界。
-
-## 加规则时往哪放
-
-1. 只服务一个组件 → 它自己的 `Xxx.module.css`（**默认答案**）。
-2. 一个域内两个以上组件共用 → `<域>/styles/xxx.module.css`，双方 `composes` 或直接 import
-  （现有五例：`battle/styles/unitBadges.module.css`、`explore/styles/exploreKit.module.css`、
-  `sortie/styles/sortieGlass.module.css`、`character/styles/detailTokens.module.css`、
-  `character/styles/sceneVeil.module.css`）。
-  其中 `detailTokens.module.css` 是角色详情态 5 个 `--cd-*` 令牌的唯一定义处，靠详情根 `.view`
-  继承下发给全部浮层。
-3. 跨域复用的**组件** → `ui/common/` 下建组件，别建共享类名。
-4. 真的全站通用且无法组件化（新设计令牌、`button` 皮肤）→ `src/styles/tokens.css` 或 `base.css`。
-
-只有第 4 条会进全局层，而它至今只有两个文件——先确认前三条都不成立再考虑它。
+- 生产代码中仍有 85 处小于 18px 的字号（包括 `base.css` 的 14px / 15px），详见 [代码健康度审查](../代码健康度审查.md)。
+- 超过 500 行的样式文件：`eventPanelChoiceResult`、`TripleSlashFx`、`ItemInventoryPanel`、`HandCard`。
