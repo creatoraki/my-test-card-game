@@ -3,7 +3,7 @@ import { CharacterPortrait } from "@/ui/common/unit/CharacterPortrait";
 import { cx } from "@/ui/common/shared/cx";
 import s from "./DossierExecutor.module.css";
 
-/** 行动选择页左下的执行者选择条：每次交互都要指定一名存活队员来执行。 */
+/** 行动选择页左下的执行者选择条：每次交互都要指定一名存活队员来执行。只显示立绘与血条，名字仅供读屏。 */
 export function DossierExecutor({
   party,
   selectedId,
@@ -33,8 +33,11 @@ export function DossierExecutor({
               <span className={s.figure}>
                 <CharacterPortrait characterId={member.charId} emoji={member.emoji} alt="" className={s.portrait} />
               </span>
-              <span className={s.name}>{member.name}</span>
               <i className={s.hp} style={{ width: `${Math.round(hpRatio * 100)}%` }} aria-hidden />
+              <i className={s.frame} aria-hidden />
+              <span className={s.mark} aria-hidden>
+                <svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5" /></svg>
+              </span>
             </button>
           );
         })}

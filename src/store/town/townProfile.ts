@@ -4,7 +4,6 @@ import { RULES } from "@/engine";
 import {
   BLESSING_RELIC_DEFS,
   CHARACTERS,
-  REGIONAL_MATERIAL_DEFS,
   getItemDef,
   makeCard,
   makeItemStack,
@@ -29,20 +28,6 @@ const INITIAL_CONSUMABLE_IDS = [
   "fruit-juice-c",
 ] as const;
 
-// 模组制造与装备养成的测试材料。开局给足，方便直接验证两条消耗路径。
-const INITIAL_MATERIAL_IDS = [
-  "logic-cube",
-  "standard-gear",
-  "standard-battery",
-  "coil-spring",
-  "magnet",
-] as const;
-const INITIAL_CRYSTAL_IDS = ["green-crystal", "blue-crystal", "red-crystal"] as const;
-const INITIAL_RELIC_IDS = ["relic-sport-shoes", "relic-broken-compass"] as const;
-const INITIAL_REGIONAL_IDS = REGIONAL_MATERIAL_DEFS.flatMap((def) =>
-  Array.from({ length: def.regionTier === "boss" ? 2 : 6 }, () => def.id),
-);
-
 export function freshCharacter(def: CharacterDef): CharacterState {
   return {
     charId: def.id,
@@ -65,18 +50,9 @@ export function freshCharacter(def: CharacterDef): CharacterState {
 }
 
 export function freshStorage(): ItemStack[] {
-  return [
-    makeItemStack("rush-module"),
-    ...INITIAL_CONSUMABLE_IDS.flatMap((itemId) =>
-      Array.from({ length: 3 }, () => makeItemStack(itemId)),
-    ),
-    ...INITIAL_MATERIAL_IDS.flatMap((itemId) =>
-      Array.from({ length: 6 }, () => makeItemStack(itemId)),
-    ),
-    ...INITIAL_CRYSTAL_IDS.map((itemId) => makeItemStack(itemId)),
-    ...INITIAL_RELIC_IDS.map((itemId) => makeItemStack(itemId)),
-    ...INITIAL_REGIONAL_IDS.map((itemId) => makeItemStack(itemId)),
-  ];
+  return INITIAL_CONSUMABLE_IDS.flatMap((itemId) =>
+    Array.from({ length: 3 }, () => makeItemStack(itemId)),
+  );
 }
 
 export function freshProfile(includeInitialExp = true): {

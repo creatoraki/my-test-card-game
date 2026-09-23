@@ -55,20 +55,13 @@ export function DossierInfoBox({
   variant?: "default" | "executor";
   children: ReactNode;
 }) {
+  // 两种变体只差高度(须与 .info 的 CSS 高度一致), 边框路径按高度生成。
+  const h = variant === "executor" ? 345 : 128;
   return (
     <div className={s.info} data-tone={tone} data-variant={variant}>
-      <svg className={s.infoFrame} viewBox={variant === "executor" ? "0 0 466 288" : "0 0 466 128"} aria-hidden>
-        {variant === "executor" ? (
-          <>
-            <path className={s.infoLine} d="M.5.5h453l12 12v263l-12 12H12.5l-12-12Z" />
-            <path className={s.infoGlow} d="M.5 26V.5H26M.5 256v19.5l12 12H30M442 .5h11.5l12 12V34" />
-          </>
-        ) : (
-          <>
-            <path className={s.infoLine} d="M.5.5h453l12 12v103l-12 12H12.5l-12-12Z" />
-            <path className={s.infoGlow} d="M.5 26V.5H26M.5 96v19.5l12 12H30M442 .5h11.5l12 12V34" />
-          </>
-        )}
+      <svg className={s.infoFrame} viewBox={`0 0 466 ${h}`} aria-hidden>
+        <path className={s.infoLine} d={`M.5.5h453l12 12v${h - 25}l-12 12H12.5l-12-12Z`} />
+        <path className={s.infoGlow} d={`M.5 26V.5H26M.5 ${h - 32}v19.5l12 12H30M442 .5h11.5l12 12V34`} />
       </svg>
       {icon && <span className={s.infoIcon}>{icon}</span>}
       <div className={cx(s.infoContent, !icon && s.infoContentBare)}>{children}</div>

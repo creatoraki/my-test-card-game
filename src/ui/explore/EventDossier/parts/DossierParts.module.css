@@ -87,8 +87,14 @@
   pointer-events: auto;
 }
 
+/* 执行者选择框: 向下延伸到与右侧按钮网格同一底边(y=893), 内容四边统一 16px 内边距。 */
 .info[data-variant="executor"] {
-  height: 288px;
+  height: 345px;
+}
+
+.info[data-variant="executor"] .infoContent {
+  inset: 16px;
+  padding: 0;
 }
 
 .info[data-tone="danger"] {

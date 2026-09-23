@@ -1,4 +1,5 @@
-/* 执行者选择区复用探索队员卡的竖向立绘窗，在大号信息框中横向排列。 */
+/* 执行者选择区复用探索队员卡的竖向立绘窗，在大号信息框中横向排列。
+   选中态: 主题色实心折角描边 + 右上勾选角标 + 底部主题色泛光; 未选中的立绘整体压暗去饱和。 */
 .executor {
   display: flex;
   width: 100%;
@@ -8,12 +9,13 @@
 .row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
   width: 100%;
   height: 100%;
 }
 
 .member {
+  --cut: 10px;
   position: relative;
   display: flex;
   flex: 1 1 0;
@@ -24,24 +26,22 @@
   height: 100%;
   padding: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--k) 25%, #1a3640);
+  border: 1px solid color-mix(in srgb, var(--k) 22%, #1a3640);
   background: #04141bcc;
   color: #b3c1c6;
   cursor: pointer;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 200ms ease;
 }
 
 .member:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--k) 60%, #1a3640);
-  color: #e6eef0;
+  border-color: color-mix(in srgb, var(--k) 55%, #1a3640);
 }
 
 .member.selected {
-  border-color: var(--k);
-  background: color-mix(in srgb, var(--k) 18%, #04141b);
-  color: #ffffff;
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--k) 45%, transparent);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--k) 22%, #04141b);
+  box-shadow: inset 0 0 28px color-mix(in srgb, var(--k) 55%, transparent);
 }
 
 .member:disabled {
@@ -58,6 +58,16 @@
   overflow: hidden;
   contain: layout paint;
   background: #0b1b22;
+  filter: brightness(0.5) saturate(0.55);
+  transition: filter 200ms ease;
+}
+
+.member:hover:not(:disabled) .figure {
+  filter: brightness(0.8) saturate(0.85);
+}
+
+.member.selected .figure {
+  filter: none;
 }
 
 .figure::after {
@@ -66,6 +76,12 @@
   pointer-events: none;
   background: linear-gradient(180deg, #ffffff12 0%, #ffffff04 38%, #00000080 100%);
   content: "";
+  transition: background 200ms ease;
+}
+
+/* 选中时底部换成主题色泛光，立绘像被点亮。 */
+.member.selected .figure::after {
+  background: linear-gradient(180deg, #ffffff14 0%, transparent 45%, color-mix(in srgb, var(--k) 45%, transparent) 100%);
 }
 
 /* 按探索队员卡的立绘倍率缩放，窗口高度较小时自然裁切下半身。 */
@@ -79,7 +95,13 @@
   object-fit: contain;
   object-position: center top;
   translate: calc(-50% + var(--portrait-dx, 0px)) var(--portrait-dy, 0px);
+  transform-origin: 50% 0;
   filter: drop-shadow(0 4px 10px #000a);
+  transition: scale 240ms ease;
+}
+
+.member.selected img.portrait {
+  scale: 1.05;
 }
 
 .member span.portrait {
@@ -93,26 +115,69 @@
   font-size: 40px;
 }
 
-.name {
-  flex: 0 0 30px;
-  align-self: stretch;
-  padding: 3px 4px 0;
-  max-width: 100%;
-  overflow: hidden;
-  background: #071218;
-  color: #f2debe;
-  font-size: 18px;
-  line-height: 24px;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .hp {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 4px;
+  z-index: 1;
+  height: 5px;
   background: #4fe08a;
   box-shadow: 0 0 6px #4fe08a;
+}
+
+/* 3px 折角描边环: 外轮廓顺时针 + 内轮廓逆时针, 挖空中间, 切角斜边也能完整描出。 */
+.frame {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--k);
+  opacity: 0;
+  clip-path: polygon(
+    var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut), var(--cut) 0,
+    calc(var(--cut) + 1.2px) 3px, 3px calc(var(--cut) + 1.2px), 3px calc(100% - 3px),
+    calc(100% - var(--cut) - 1.2px) calc(100% - 3px), calc(100% - 3px) calc(100% - var(--cut) - 1.2px),
+    calc(100% - 3px) 3px, calc(var(--cut) + 1.2px) 3px
+  );
+  transition: opacity 160ms ease;
+}
+
+.member.selected .frame {
+  opacity: 1;
+}
+
+/* 右上勾选角标。 */
+.mark {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 3px 3px 0 0;
+  background: var(--k);
+  color: #04141b;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  opacity: 0;
+  scale: 0.4;
+  transform-origin: 100% 0;
+  transition: opacity 160ms ease, scale 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mark svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.member.selected .mark {
+  opacity: 1;
+  scale: 1;
 }

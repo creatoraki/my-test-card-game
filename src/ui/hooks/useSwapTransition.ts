@@ -11,7 +11,7 @@ interface SwapState<T> {
 /**
  * 按 token 驱动「旧值退场 → 替换为最新值 → 新值入场」。
  * token 是唯一换场信号，value 变化本身不会触发动画；idle 时透传最新 value，
- * leaving / entering 时冻结快照。换场期间更新的 value 会在退场结束时读取。
+ * leaving 冻结换场前最后显示的值, entering 冻结退场结束时的最新值。换场期间更新的 value 会在退场结束时读取。
  */
 export function useSwapTransition<T>(
   value: T,
@@ -24,6 +24,9 @@ export function useSwapTransition<T>(
 
   const timingsRef = useRef({ leaveMs, enterMs });
   timingsRef.current = { leaveMs, enterMs };
+
+  // 上一帧实际显示的值: 换场时冻结它, 而不是上次换场留下的旧快照(否则 idle 期间的变化会在退场时闪回)。
+  const shownRef = useRef(value);
 
   const [state, setState] = useState<SwapState<T>>(() => ({ token, value, phase: "idle" }));
   const handledTokenRef = useRef(token);
@@ -40,7 +43,8 @@ export function useSwapTransition<T>(
     clearTimers();
 
     const { leaveMs: currentLeaveMs, enterMs: currentEnterMs } = timingsRef.current;
-    setState((current) => ({ token, value: current.value, phase: "leaving" }));
+    const frozen = shownRef.current;
+    setState({ token, value: frozen, phase: "leaving" });
 
     const forgetTimer = (timer: ReturnType<typeof setTimeout>) => {
       timersRef.current = timersRef.current.filter((active) => active !== timer);
@@ -67,7 +71,9 @@ export function useSwapTransition<T>(
     return clearTimers;
   }, [token]);
 
-  if (state.token !== token) return { value: state.value, phase: "leaving" };
-  if (state.phase === "idle") return { value, phase: "idle" };
-  return { value: state.value, phase: state.phase };
+  // token 刚变的这一帧 state 还没更新, 继续显示上一帧的值。
+  const swapping = state.token !== token;
+  const shown = swapping ? shownRef.current : state.phase === "idle" ? value : state.value;
+  shownRef.current = shown;
+  return { value: shown, phase: swapping ? "leaving" : state.phase };
 }
